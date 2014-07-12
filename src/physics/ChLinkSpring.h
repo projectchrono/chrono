@@ -103,14 +103,14 @@ public:
 					/// in body or abs. coordinates) and the imposed rest length of the spring.
 					/// NOTE! As in ChLinkMarkers::Initialize(), the two markers are automatically 
 					/// created and placed inside the two connected bodies.
-	virtual int Initialize(ChSharedPtr<ChBody> mbody1,	///< first body to link
-						   ChSharedPtr<ChBody> mbody2, ///< second body to link
-						   bool pos_are_relative,	///< true: following posit. are considered relative to bodies. false: pos.are absolute
-						   ChVector<> mpos1,		///< position of spring endpoint, for 1st body (rel. or abs., see flag above)
-						   ChVector<> mpos2,		///< position of spring endpoint, for 2nd body (rel. or abs., see flag above) 
-						   bool auto_rest_length =true,///< if true, initializes the rest-length as the distance between mpos1 and mpos2
-						   double mrest_length =0   ///< imposed rest_length (no need to define, if auto_rest_length=true.)
-						   );
+	void Initialize(ChSharedPtr<ChBody> mbody1,	///< first body to link
+					ChSharedPtr<ChBody> mbody2, ///< second body to link
+					bool pos_are_relative,	///< true: following posit. are considered relative to bodies. false: pos.are absolute
+					ChVector<> mpos1,		///< position of spring endpoint, for 1st body (rel. or abs., see flag above)
+					ChVector<> mpos2,		///< position of spring endpoint, for 2nd body (rel. or abs., see flag above) 
+					bool auto_rest_length =true,///< if true, initializes the rest-length as the distance between mpos1 and mpos2
+					double mrest_length =0   ///< imposed rest_length (no need to define, if auto_rest_length=true.)
+					);
 
 					/// Get the 1st spring endpoint (expressed in Body1 coordinate system)
 	ChVector<> GetEndPoint1Rel() {return marker1->GetPos();}

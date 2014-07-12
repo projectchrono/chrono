@@ -349,7 +349,7 @@ void ChLinkMateGeneric::Update (double mytime)
 
 
 
-int ChLinkMateGeneric::Initialize(ChSharedPtr<ChBodyFrame> mbody1,	///< first body to link
+void ChLinkMateGeneric::Initialize(ChSharedPtr<ChBodyFrame> mbody1,	///< first body to link
 						   ChSharedPtr<ChBodyFrame> mbody2, ///< second body to link
 						   bool pos_are_relative,	///< true: following posit. are considered relative to bodies. false: pos.are absolute
 						   ChFrame<> mpos1,			///< mate frame (slave), for 1st body (rel. or abs., see flag above)
@@ -375,7 +375,6 @@ int ChLinkMateGeneric::Initialize(ChSharedPtr<ChBodyFrame> mbody1,	///< first bo
 		static_cast<ChFrame<>*>(this->Body1)->TrasformParentToLocal(mpos1, this->frame1);
 		static_cast<ChFrame<>*>(this->Body2)->TrasformParentToLocal(mpos2, this->frame2);
 	}
-	return true;
 }
 
 
@@ -511,7 +510,7 @@ void ChLinkMateGeneric::ConstraintsFetch_react(double factor)
 }
 
 
-int ChLinkMateGeneric::Initialize(ChSharedPtr<ChBodyFrame> mbody1,	///< first body to link
+void ChLinkMateGeneric::Initialize(ChSharedPtr<ChBodyFrame> mbody1,	///< first body to link
 						   ChSharedPtr<ChBodyFrame> mbody2, ///< second body to link
 						   bool pos_are_relative,	///< true: following posit. are considered relative to bodies. false: pos.are absolute
 						   ChVector<> mpt1,			
@@ -568,8 +567,6 @@ int ChLinkMateGeneric::Initialize(ChSharedPtr<ChBodyFrame> mbody1,	///< first bo
 
 	this->frame1 = mfr1;
 	this->frame2 = mfr2;
-
-	return true;
 }
 
 
@@ -676,7 +673,7 @@ void ChLinkMatePlane::SetFlipped(bool doflip)
 }
 
 
-int ChLinkMatePlane::Initialize(ChSharedPtr<ChBodyFrame> mbody1,	///< first body to link
+void ChLinkMatePlane::Initialize(ChSharedPtr<ChBodyFrame> mbody1,	///< first body to link
 						   ChSharedPtr<ChBodyFrame> mbody2, ///< second body to link
 						   bool pos_are_relative,	///< true: following posit. are considered relative to bodies. false: pos.are absolute
 						   ChVector<> mpt1,			///< point on slave plane, for 1st body (rel. or abs., see flag above)
@@ -694,7 +691,7 @@ int ChLinkMatePlane::Initialize(ChSharedPtr<ChBodyFrame> mbody1,	///< first body
 	else
 		mnorm1_reversed = mnorm1;
 
-	return ChLinkMateGeneric::Initialize(mbody1, mbody2, 
+	ChLinkMateGeneric::Initialize(mbody1, mbody2, 
 								pos_are_relative, 
 								mpt1, mpt2, 
 								mnorm1_reversed, mnorm2);
@@ -757,7 +754,7 @@ void ChLinkMateCoaxial::SetFlipped(bool doflip)
 }
 
 
-int ChLinkMateCoaxial::Initialize(ChSharedPtr<ChBodyFrame> mbody1,	///< first body to link
+void ChLinkMateCoaxial::Initialize(ChSharedPtr<ChBodyFrame> mbody1,	///< first body to link
 						   ChSharedPtr<ChBodyFrame> mbody2, ///< second body to link
 						   bool pos_are_relative,	///< true: following posit. are considered relative to bodies. false: pos.are absolute
 						   ChVector<> mpt1,			
@@ -775,7 +772,7 @@ int ChLinkMateCoaxial::Initialize(ChSharedPtr<ChBodyFrame> mbody1,	///< first bo
 	else
 		mnorm1_reversed = -mnorm1;
 
-	return ChLinkMateGeneric::Initialize(mbody1, mbody2, 
+	ChLinkMateGeneric::Initialize(mbody1, mbody2, 
 								pos_are_relative, 
 								mpt1, mpt2, 
 								mnorm1_reversed, mnorm2);
@@ -812,14 +809,14 @@ ChLink* ChLinkMateSpherical::new_Duplicate ()
 }
 
 
-int ChLinkMateSpherical::Initialize(ChSharedPtr<ChBodyFrame> mbody1,	///< first body to link
+void ChLinkMateSpherical::Initialize(ChSharedPtr<ChBodyFrame> mbody1,	///< first body to link
 						   ChSharedPtr<ChBodyFrame> mbody2, ///< second body to link
 						   bool pos_are_relative,	///< true: following posit. are considered relative to bodies. false: pos.are absolute
 						   ChVector<> mpt1,			
 						   ChVector<> mpt2 		
 						   )
 {
-	return ChLinkMateGeneric::Initialize(mbody1, mbody2, 
+	ChLinkMateGeneric::Initialize(mbody1, mbody2, 
 								pos_are_relative, 
 								mpt1, mpt2, 
 								VECT_X, VECT_X);
@@ -855,7 +852,7 @@ ChLink* ChLinkMateXdistance::new_Duplicate ()
 }
 
 
-int ChLinkMateXdistance::Initialize(ChSharedPtr<ChBodyFrame> mbody1,	///< first body to link
+void ChLinkMateXdistance::Initialize(ChSharedPtr<ChBodyFrame> mbody1,	///< first body to link
 						   ChSharedPtr<ChBodyFrame> mbody2, ///< second body to link
 						   bool pos_are_relative,	///< true: following posit. are considered relative to bodies. false: pos.are absolute
 						   ChVector<> mpt1,			
@@ -863,7 +860,7 @@ int ChLinkMateXdistance::Initialize(ChSharedPtr<ChBodyFrame> mbody1,	///< first 
 						   ChVector<> mdir2
 						   )
 {
-	return ChLinkMateGeneric::Initialize(mbody1, mbody2, 
+	ChLinkMateGeneric::Initialize(mbody1, mbody2, 
 								pos_are_relative, 
 								mpt1, mpt2, 
 								mdir2, mdir2);
@@ -918,7 +915,7 @@ void ChLinkMateParallel::SetFlipped(bool doflip)
 	}
 }
 
-int ChLinkMateParallel::Initialize(ChSharedPtr<ChBodyFrame> mbody1,	///< first body to link
+void ChLinkMateParallel::Initialize(ChSharedPtr<ChBodyFrame> mbody1,	///< first body to link
 						   ChSharedPtr<ChBodyFrame> mbody2, ///< second body to link
 						   bool pos_are_relative,	///< true: following posit. are considered relative to bodies. false: pos.are absolute
 						   ChVector<> mpt1,			
@@ -936,7 +933,7 @@ int ChLinkMateParallel::Initialize(ChSharedPtr<ChBodyFrame> mbody1,	///< first b
 	else
 		mnorm1_reversed = -mnorm1;
 
-	return ChLinkMateGeneric::Initialize(mbody1, mbody2, 
+	ChLinkMateGeneric::Initialize(mbody1, mbody2, 
 								pos_are_relative, 
 								mpt1, mpt2, 
 								mnorm1_reversed, mnorm2);
@@ -973,7 +970,7 @@ ChLink* ChLinkMateOrthogonal::new_Duplicate ()
 }
 
 
-int ChLinkMateOrthogonal::Initialize(ChSharedPtr<ChBodyFrame> mbody1,	///< first body to link
+void ChLinkMateOrthogonal::Initialize(ChSharedPtr<ChBodyFrame> mbody1,	///< first body to link
 						   ChSharedPtr<ChBodyFrame> mbody2, ///< second body to link
 						   bool pos_are_relative,	///< true: following posit. are considered relative to bodies. false: pos.are absolute
 						   ChVector<> mpt1,			
@@ -1005,7 +1002,7 @@ int ChLinkMateOrthogonal::Initialize(ChSharedPtr<ChBodyFrame> mbody1,	///< first
 	this->Update(this->ChTime);
 
 	// Perform initialization (set pointers to variables, etc.)
-	return ChLinkMateGeneric::Initialize(mbody1, mbody2, 
+	ChLinkMateGeneric::Initialize(mbody1, mbody2, 
 								true, // recycle already-updated frames 
 								this->frame1, this->frame2);
 }

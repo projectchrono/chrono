@@ -109,7 +109,7 @@ ChLink* ChLinkSpring::new_Duplicate ()
 
 
 
-int ChLinkSpring::Initialize(ChSharedPtr<ChBody> mbody1,   ///< first body to link
+void ChLinkSpring::Initialize(ChSharedPtr<ChBody> mbody1,   ///< first body to link
 						   ChSharedPtr<ChBody> mbody2,		 ///< second body to link
 						   bool pos_are_relative,///< true: following posit. are considered relative to bodies. false: pos.are absolute
 						   ChVector<> mpos1,	 ///< position of distance endpoint, for 1st body (rel. or abs., see flag above)
@@ -143,8 +143,6 @@ int ChLinkSpring::Initialize(ChSharedPtr<ChBody> mbody1,   ///< first body to li
 	{
 		this->spr_restlenght = mrest_length; 
 	}
-
-	return true;
 }
 
 

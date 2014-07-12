@@ -129,24 +129,23 @@ void ChLinkMarkers::SetMarker2 (ChMarker* mark2)
 }
 
 
-int ChLinkMarkers::ReferenceMarkers(ChMarker* mark1, ChMarker* mark2)
+bool ChLinkMarkers::ReferenceMarkers(ChMarker* mark1, ChMarker* mark2)
 {
-	this->SetMarker1(mark1);
-  this->SetMarker2(mark2);
+    this->SetMarker1(mark1);
+    this->SetMarker2(mark2);
 
-	if (mark1)
-		SetMarkID1(mark1->GetIdentifier());
-	else SetMarkID1(0);
-	if (mark2)
-		SetMarkID2(mark2->GetIdentifier());
-	else SetMarkID2(0);
+    if (mark1)
+        SetMarkID1(mark1->GetIdentifier());
+    else SetMarkID1(0);
+    if (mark2)
+        SetMarkID2(mark2->GetIdentifier());
+    else SetMarkID2(0);
 
-	if (mark1 && mark2) return TRUE;
-	return FALSE;
+    return mark1 && mark2;
 }
 
 
-int ChLinkMarkers::Initialize(ChSharedPtr<ChMarker> mmark1, ChSharedPtr<ChMarker> mmark2)
+void ChLinkMarkers::Initialize(ChSharedPtr<ChMarker> mmark1, ChSharedPtr<ChMarker> mmark2)
 {
 	ChMarker* mm1 = mmark1.get_ptr();
 	ChMarker* mm2 = mmark2.get_ptr();
@@ -156,17 +155,14 @@ int ChLinkMarkers::Initialize(ChSharedPtr<ChMarker> mmark1, ChSharedPtr<ChMarker
 	assert(mm1->GetBody()->GetSystem() == mm2->GetBody()->GetSystem());
 
 	ReferenceMarkers(mm1, mm2);
-	//SetSystem(this->Body1->GetSystem());
-	return true;
 }
 	
-int ChLinkMarkers::Initialize(ChSharedPtr<ChBody> mbody1, ChSharedPtr<ChBody> mbody2,  const ChCoordsys<>& mpos)
+void ChLinkMarkers::Initialize(ChSharedPtr<ChBody> mbody1, ChSharedPtr<ChBody> mbody2, const ChCoordsys<>& mpos)
 {
 	return Initialize(mbody1,mbody2,false,mpos,mpos);
-	
 }
 
-int ChLinkMarkers::Initialize(ChSharedPtr<ChBody> mbody1, ChSharedPtr<ChBody> mbody2, bool pos_are_relative, const ChCoordsys<>& mpos1, const ChCoordsys<>& mpos2)
+void ChLinkMarkers::Initialize(ChSharedPtr<ChBody> mbody1, ChSharedPtr<ChBody> mbody2, bool pos_are_relative, const ChCoordsys<>& mpos1, const ChCoordsys<>& mpos2)
 {
 	assert(mbody1.get_ptr() != mbody2.get_ptr());
 	assert(mbody1->GetSystem() == mbody2->GetSystem());
@@ -191,8 +187,6 @@ int ChLinkMarkers::Initialize(ChSharedPtr<ChBody> mbody1, ChSharedPtr<ChBody> mb
 		mmark1->Impose_Abs_Coord(mpos1);
 		mmark2->Impose_Abs_Coord(mpos2);
 	}
-
-	return true;
 }
 
 
