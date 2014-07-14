@@ -170,14 +170,14 @@ int main(
    { // float 3 length
       real3 a(1.0, 2.0, -3.0);
       real c = length(a);
-      StrictEqual(c,sqrt(14));
+      StrictEqual(c,sqrt(14.0));
    }
    { // float 3 normalize
       real3 a(1.0, 2.0, -3.0);
       real3 c = normalize(a);
-      WeakEqual(c.x,1.0/sqrt(14));
-      WeakEqual(c.y,2.0/sqrt(14));
-      WeakEqual(c.z,-3.0/sqrt(14));
+      WeakEqual(c.x,1.0/sqrt(14.0));
+      WeakEqual(c.y,2.0/sqrt(14.0));
+      WeakEqual(c.z,-3.0/sqrt(14.0));
    }
 
 
