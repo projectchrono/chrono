@@ -5,11 +5,13 @@
 
 namespace chrono {
 
+CH_PARALLEL_API
 void Orthogonalize(
       real3 &U,
       real3 &V,
       real3 &W);
 
+CH_PARALLEL_API
 void Compute_Jacobian(
       const real4& quat,
       const real3& U,
@@ -20,6 +22,7 @@ void Compute_Jacobian(
       real3& T2,
       real3& T3);
 
+CH_PARALLEL_API
 void Compute_Jacobian_Rolling(
       const real4& quat,
       const real3& U,

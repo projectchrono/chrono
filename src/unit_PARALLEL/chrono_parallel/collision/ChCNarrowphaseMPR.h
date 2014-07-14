@@ -6,6 +6,7 @@
 namespace chrono {
 namespace collision {
 
+CH_PARALLEL_API
 bool CollideAndFindPoint(
       const shape_type &typeA,
       const real3 &A_X,
@@ -21,6 +22,7 @@ bool CollideAndFindPoint(
       real3 &point,
       real &depth);
 
+CH_PARALLEL_API
 void GetPoints(
       shape_type A_T,
       real3 A_X,
@@ -37,6 +39,7 @@ void GetPoints(
       real3 & p1,
       real3 & p2);
 
+CH_PARALLEL_API
 bool SphereSphere(
       const real3 &A_X,
       const real3 &B_X,
