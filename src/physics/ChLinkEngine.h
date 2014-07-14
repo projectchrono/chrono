@@ -110,16 +110,16 @@ public:
 
 							// UPDATING FUNCTIONS - "lin.act. link" custom implementations
 
-							// Updates motion laws, etc. for the impose rotation / impose speed modes
+							/// Updates motion laws, etc. for the impose rotation / impose speed modes
 	virtual void UpdateTime (double mytime);
-							// Updates torque for the impose torque mode
+							/// Updates torque for the impose torque mode
 	virtual void UpdateForces (double mytime);
-							// Updates the r3d time, so perform differentiation for computing speed in case of keyframed motion
+							/// Updates the r3d time, so perform differentiation for computing speed in case of keyframed motion
 
 	virtual void UpdatedExternalTime (double prevtime, double time);
 
-	virtual void SetMarker1 (ChMarker* mark1);
-	virtual void SetMarker2 (ChMarker* mark2);
+                            /// Sets up the markers associated with the engine link
+    virtual void ChLinkEngine::SetUpMarkers(ChMarker* mark1, ChMarker* mark2);
 
 			// data get/set
 	ChFunction* Get_rot_funct() {return rot_funct;};

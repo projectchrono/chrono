@@ -155,9 +155,8 @@ public:
 	virtual int GetDOC_c  () {return ndoc_c;}
 	virtual int GetDOC_d  () {return ndoc_d;}
 
-	virtual void SetMarker1 (ChMarker* mark1);
-	virtual void SetMarker2 (ChMarker* mark2);
-
+    /// overwrites inherited implementation of this method
+    virtual void SetUpMarkers(ChMarker* mark1, ChMarker* mark2);
 
 
 			//

@@ -242,35 +242,19 @@ int ChLinkMasked::RestoreRedundant()
     return mchanges;
 }
 
-
-void ChLinkMasked::SetMarker1 (ChMarker* mark1)
+void ChLinkMasked::SetUpMarkers(ChMarker* mark1, ChMarker* mark2)
 {
-	ChLinkMarkers::SetMarker1 (mark1);
+    ChLinkMarkers::SetUpMarkers(mark1, mark2);
 
-	if(this->Body1 && this->Body2)
-	{
-		((ChLinkMaskLF*)this->mask)->SetTwoBodiesVariables(&Body1->Variables(), &Body2->Variables());
-					// This is needed because only if all constraints in mask are now active, and C,Ct,etc.
-					// matrices must be allocated accordingly, otherwise are null.
-		DestroyLink();
-		BuildLink();
-	}
+    // could the line below be:     assert(this->Body1 && this->Body2); ?
+    if (this->Body1 && this->Body2){
+        ((ChLinkMaskLF*)this->mask)->SetTwoBodiesVariables(&Body1->Variables(), &Body2->Variables());
+        // This is needed because only if all constraints in mask are now active, and C,Ct,etc.
+        // matrices must be allocated accordingly, otherwise are null.
+        DestroyLink();
+        BuildLink();
+    }
 }
-
-void ChLinkMasked::SetMarker2 (ChMarker* mark2)
-{
-	ChLinkMarkers::SetMarker2 (mark2);
-
-	if(this->Body1 && this->Body2)
-	{
-		((ChLinkMaskLF*)this->mask)->SetTwoBodiesVariables(&Body1->Variables(), &Body2->Variables());
-					// This is needed because only if all constraints in mask are now active, and C,Ct,etc.
-					// matrices must be allocated accordingly, otherwise are null.
-		DestroyLink();
-		BuildLink();
-	}
-}
-
 
  
 ////////////////////////////////////

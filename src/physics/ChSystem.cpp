@@ -1238,8 +1238,7 @@ void ChSystem::Reference_LM_byID()
 			ChSharedPtr<ChMarker> shm2 = SearchMarker(malink->GetMarkID2());
 			ChMarker* mm1 = shm1.get_ptr();
 			ChMarker* mm2 = shm1.get_ptr();
-			malink->SetMarker1(mm1);
-			malink->SetMarker2(mm2);
+            malink->SetUpMarkers(mm1, mm2);
 			if (mm1 && mm2)
 			{
 				Lpointer->SetValid(true);
@@ -1248,8 +1247,7 @@ void ChSystem::Reference_LM_byID()
 			else
 			{
 				Lpointer->SetValid(false);
-				malink->SetMarker1(0);  // note: marker ID is maintained
-				malink->SetMarker2(0);  // note: marker ID is maintained
+                malink->SetUpMarkers(0, 0); // note: marker IDs are maintained
 				iterlink = RemoveLinkIter(iterlink); // may delete it...
 			}
 		}

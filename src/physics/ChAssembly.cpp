@@ -627,8 +627,7 @@ void ChAssembly::Reference_LM_byID()
 		{
 			m1 = SearchMarker(malink->GetMarkID1());
 			m2 = SearchMarker(malink->GetMarkID2());
-			malink->SetMarker1(m1);
-			malink->SetMarker2(m2);
+            malink->SetUpMarkers(m1, m2);
 			if (m1 && m2)
 			{
 				Lpointer->SetValid(true);
@@ -637,8 +636,7 @@ void ChAssembly::Reference_LM_byID()
 			else
 			{
 				Lpointer->SetValid(false);
-				malink->SetMarker1(0);  // note: marker ID is maintained
-				malink->SetMarker2(0);  // note: marker ID is maintained
+                malink->SetUpMarkers(0, 0); // note: marker IDs are maintained
 				iterlink = RemoveLinkIter(iterlink); // may delete it...
 			}
 		}

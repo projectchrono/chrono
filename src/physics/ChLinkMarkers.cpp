@@ -109,30 +109,27 @@ ChLink* ChLinkMarkers::new_Duplicate ()   // inherited classes:  Link* MyInherit
 
 
 
-
-void ChLinkMarkers::SetMarker1 (ChMarker* mark1)
+void ChLinkMarkers::SetUpMarkers(ChMarker* mark1, ChMarker* mark2)
 {
+    // take care of the first link marker
     marker1 = mark1;
     if (mark1)
-        Body1=(ChBodyFrame*) mark1->GetBody();
+        Body1 = (ChBodyFrame*)mark1->GetBody();
     else
-        Body1= NULL;
-}
+        Body1 = NULL;
 
-void ChLinkMarkers::SetMarker2 (ChMarker* mark2)
-{
+    //take care of the second link marker
     marker2 = mark2;
     if (mark2)
-        Body2=(ChBodyFrame*) mark2->GetBody();
+        Body2 = (ChBodyFrame*)mark2->GetBody();
     else
-        Body2= NULL;
+        Body2 = NULL;
 }
 
 
 bool ChLinkMarkers::ReferenceMarkers(ChMarker* mark1, ChMarker* mark2)
 {
-    this->SetMarker1(mark1);
-    this->SetMarker2(mark2);
+    this->SetUpMarkers(mark1, mark2);
 
     if (mark1)
         SetMarkID1(mark1->GetIdentifier());
@@ -188,24 +185,6 @@ void ChLinkMarkers::Initialize(ChSharedPtr<ChBody> mbody1, ChSharedPtr<ChBody> m
 		mmark2->Impose_Abs_Coord(mpos2);
 	}
 }
-
-
-
-void ChLinkMarkers::SwapMainSlaveMarkers()
-{
-    ChMarker* tempmarker;
-    tempmarker = marker1;
-    SetMarker1(marker2);
-    SetMarker2(tempmarker);
-
-    int tempid;
-    tempid = markID1;
-    markID1 = markID2;
-    markID2 = tempid;
-}
-
- 
-
 
 
 

@@ -527,9 +527,9 @@ void ChLinkEngine::UpdateForces (double mytime)
 
 
 
-void ChLinkEngine::SetMarker1 (ChMarker* mark1)
+void ChLinkEngine::SetUpMarkers(ChMarker* mark1, ChMarker* mark2)
 {
-	ChLinkLock::SetMarker1 (mark1);
+	ChLinkMasked::SetUpMarkers(mark1, mark2);
 	
 	if(this->Body1 && this->Body2)
 	{
@@ -537,19 +537,6 @@ void ChLinkEngine::SetMarker1 (ChMarker* mark1)
 		this->innerconstraint2.SetVariables(&Body2->Variables(), &innershaft2.Variables());
 	}
 }
-
-void ChLinkEngine::SetMarker2 (ChMarker* mark2)
-{
-	ChLinkLock::SetMarker2 (mark2);
-	
-	if(this->Body1 && this->Body2)
-	{
-		this->innerconstraint1.SetVariables(&Body1->Variables(), &innershaft1.Variables());
-		this->innerconstraint2.SetVariables(&Body2->Variables(), &innershaft2.Variables());
-	}
-	
-}
-
 
 //
 //  LCP functions

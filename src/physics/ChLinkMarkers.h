@@ -103,14 +103,8 @@ public:
 	ChMarker* GetMarker1 () {return marker1;}
 					/// Return the 2nd referenced marker (the 'master' marker, owned by 2nd body)
 	ChMarker* GetMarker2 () {return marker2;}
-					/// Set the 1st referenced marker (the 'slave' marker, owned by 1st body)
-	virtual void SetMarker1 (ChMarker* mark1);
-					/// Set the 2nd referenced marker (the 'master' marker, owned by 2nd body)
-	virtual void SetMarker2 (ChMarker* mark2);
-					/// Exchange the master and the slave marker. The same happens for 
-					/// body1 and body2, automatically.
-	void SwapMainSlaveMarkers();
-					
+					/// set the two markers associated with this link
+    virtual void SetUpMarkers(ChMarker* mark1, ChMarker* mark2);
 	void SetMarkID1(int mid) {markID1 = mid;}
 	void SetMarkID2(int mid) {markID2 = mid;}
 	int GetMarkID1() {return markID1;}
