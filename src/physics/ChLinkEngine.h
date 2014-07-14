@@ -119,7 +119,7 @@ public:
 	virtual void UpdatedExternalTime (double prevtime, double time);
 
                             /// Sets up the markers associated with the engine link
-    virtual void ChLinkEngine::SetUpMarkers(ChMarker* mark1, ChMarker* mark2);
+    virtual void SetUpMarkers(ChMarker* mark1, ChMarker* mark2);
 
 			// data get/set
 	ChFunction* Get_rot_funct() {return rot_funct;};
