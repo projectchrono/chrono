@@ -49,7 +49,6 @@ SET(TESTS
     test_real3
     test_real4
     test_mat33
-    test_mpr
     test_gravity
     test_jacobians
 )
@@ -76,3 +75,57 @@ FOREACH(PROGRAM ${TESTS})
 
 ENDFOREACH(PROGRAM)
 
+#--------------------------------------------------------------
+# Executables that use Bullet
+
+SET(TESTS_B
+    test_mpr
+)
+
+# Because Bullet classes are not DLL exported, the sources must be explicitly
+# included.
+IF (MSVC)
+  SET(BULLET_FILES
+        ${CHRONO_INC}/collision/bullet/BulletCollision/CollisionShapes/btCollisionShape.h
+        ${CHRONO_INC}/collision/bullet/BulletCollision/CollisionShapes/btCollisionShape.cpp
+        ${CHRONO_INC}/collision/bullet/BulletCollision/CollisionShapes/btConvexInternalShape.h
+        ${CHRONO_INC}/collision/bullet/BulletCollision/CollisionShapes/btConvexInternalShape.cpp
+        ${CHRONO_INC}/collision/bullet/BulletCollision/CollisionShapes/btConvexShape.h
+        ${CHRONO_INC}/collision/bullet/BulletCollision/CollisionShapes/btConvexShape.cpp
+        ${CHRONO_INC}/collision/bullet/BulletCollision/CollisionShapes/btPolyhedralConvexShape.h
+        ${CHRONO_INC}/collision/bullet/BulletCollision/CollisionShapes/btPolyhedralConvexShape.cpp
+        ${CHRONO_INC}/collision/bullet/BulletCollision/CollisionShapes/btBoxShape.h
+        ${CHRONO_INC}/collision/bullet/BulletCollision/CollisionShapes/btBoxShape.cpp
+        ${CHRONO_INC}/collision/bullet/BulletCollision/CollisionShapes/btConeShape.h
+        ${CHRONO_INC}/collision/bullet/BulletCollision/CollisionShapes/btConeShape.cpp
+        ${CHRONO_INC}/collision/bullet/BulletCollision/CollisionShapes/btCylinderShape.h
+        ${CHRONO_INC}/collision/bullet/BulletCollision/CollisionShapes/btCylinderShape.cpp
+        ${CHRONO_INC}/collision/bullet/BulletCollision/CollisionShapes/btSphereShape.h
+        ${CHRONO_INC}/collision/bullet/BulletCollision/CollisionShapes/btSphereShape.cpp
+        ${CHRONO_INC}/collision/bullet/LinearMath/btAlignedAllocator.h
+        ${CHRONO_INC}/collision/bullet/LinearMath/btAlignedAllocator.cpp
+  )
+  SOURCE_GROUP(bullet FILES ${BULLET_FILES})
+ELSE()
+    SET(BULLET_FILES "")
+ENDIF()
+
+FOREACH(PROGRAM ${TESTS_B})
+    MESSAGE(STATUS "...add ${PROGRAM}")
+
+    ADD_EXECUTABLE(${PROGRAM}  ${PROGRAM}.cpp ${BULLET_FILES})
+    SOURCE_GROUP(""  FILES "${PROGRAM}.cpp")
+
+    SET_TARGET_PROPERTIES(${PROGRAM} PROPERTIES
+        FOLDER demos
+        COMPILE_FLAGS "${CH_BUILDFLAGS}"
+        LINK_FLAGS "${CH_LINKERFLAG_EXE}"
+    )
+
+    TARGET_LINK_LIBRARIES(${PROGRAM} ${LIBRARIES})
+    ADD_DEPENDENCIES(${PROGRAM} ${LIBRARIES})
+
+    INSTALL(TARGETS ${PROGRAM} DESTINATION bin)
+    ADD_TEST(${PROGRAM} ${PROJECT_BINARY_DIR}/bin/${PROGRAM})
+
+ENDFOREACH(PROGRAM)
