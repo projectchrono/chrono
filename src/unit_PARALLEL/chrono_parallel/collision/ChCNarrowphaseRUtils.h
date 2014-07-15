@@ -100,6 +100,41 @@ bool snap_to_face(const real3& A, const real3& B, const real3& C,
 }
 
 // ----------------------------------------------------------------------------
+// This utility function snaps the specified location to a point on a cylinder
+// with given radius and half-length. The in/out location is assumed to be
+// specified in the frame of the cylinder (in this frame the cylinder is assumed
+// to be centered at the origin and aligned with the Y axis).  The return code
+// indicates the feature of the cylinder that caused snapping.
+//   code = 0 indicates and interior point
+//   code = 1 indicates snapping to one of the cylinder caps
+//   code = 2 indicates snapping to the cylinder side
+//   code = 3 indicates snapping to one of the cylinder edges
+__host__ __device__
+uint snap_to_cylinder(const real& rad, const real& hlen, real3& loc)
+{
+  uint code = 0;
+
+  if (loc.y > hlen) {
+    code |= 1;
+    loc.y = hlen;
+  } else if (loc.y < -hlen) {
+    code |= 1;
+    loc.y = -hlen;
+  }
+
+  real d2 = loc.x * loc.x + loc.z * loc.z;
+
+  if (d2 > rad * rad) {
+    code |= 2;
+    real d = sqrt(d2);
+    loc.x *= (rad/d);
+    loc.z *= (rad/d);
+  }
+
+  return code;
+}
+
+// ----------------------------------------------------------------------------
 // This utility function snaps the specified location to a point on a box with
 // given half-dimensions. The in/out location is assumed to be specified in
 // the frame of the box (which is therefore assumed to be an AABB centered at
