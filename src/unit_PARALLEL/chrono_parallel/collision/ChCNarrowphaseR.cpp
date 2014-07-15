@@ -29,7 +29,7 @@ using namespace chrono::collision;
 
 //// TODO: what is a good value here?
 ////       Should this even be a constant?  Maybe set it based on object size?
-const real edge_radius = 0.1;
+const real ChCNarrowphaseR::edge_radius = 0.1;
 
 
 void ChCNarrowphaseR::Process(ChParallelDataManager* data_container)
@@ -225,6 +225,63 @@ bool ChCNarrowphaseR::capsule_sphere(
   return true;
 }
 
+// =============================================================================
+//              CYLINDER - SPHERE
+
+// Cylinder-sphere narrow phase collision detection.
+// In:  cylinder at pos1, with orientation rot1
+//              cylinder has radius1 and half-length hlen1 (in Y direction)
+//      sphere centered at pos2 with radius2
+__host__ __device__
+bool ChCNarrowphaseR::cylinder_sphere(
+        const real3& pos1, const real4& rot1, const real& radius1, const real& hlen1,
+        const real3& pos2, const real& radius2,
+        real3& norm, real& depth,
+        real3& pt1, real3& pt2,
+        real& eff_radius)
+{
+  // Express the sphere position in the frame of the cylinder.
+  real3 spherePos = TransformParentToLocal(pos1, rot1, pos2);
+
+  // Snap the sphere position to the surface of the cylinder.
+  real3 cylPos = spherePos;
+  uint  code = snap_to_cylinder(radius1, hlen1, cylPos);
+
+  // Quick return: no contact if the sphere center is inside the cylinder.
+  if (code == 0)
+    return false;
+
+  // If the sphere doesn't touch the closest point then there is no contact.
+  // Also, ignore contact if the sphere center (almost) coincides with the
+  // closest point, in which case we couldn't decide on the proper contact
+  // direction.
+  real3 delta = spherePos - cylPos;
+  real  dist2 = dot(delta, delta);
+
+  if (dist2 >= radius2 * radius2 || dist2 <= 1e-12f)
+    return false;
+
+  // Generate contact information
+  real dist = sqrt(dist2);
+  depth = dist - radius2;
+  norm = quatRotateMat(delta / dist, rot1);
+  pt1 = TransformLocalToParent(pos1, rot1, cylPos);
+  pt2 = pos2 - norm * radius2;
+
+  switch (code) {
+  case 1:
+    eff_radius = radius2;
+    break;
+  case 2:
+    eff_radius = radius1 * radius2 / (radius1 + radius2);
+    break;
+  case 3:
+    eff_radius = radius2 * edge_radius / (radius2 + edge_radius);
+    break;
+  }
+
+  return true;
+}
 
 // =============================================================================
 //              BOX - SPHERE
@@ -743,6 +800,33 @@ void function_process(const uint&       icoll,           // index of this contac
 
   if (type1 == SPHERE && type2 == CAPSULE) {
     if (ChCNarrowphaseR::capsule_sphere(
+            X2, R2, Y2.x, Y2.y,
+            X1, Y1.x,
+            ct_norm[index], ct_depth[index],
+            ct_pt2[index], ct_pt1[index],
+            ct_eff_rad[index])) {
+      ct_norm[index] = -ct_norm[index];
+      ct_flag[index] = 0;
+      ct_body_ids[index] = I2(body1, body2);
+    }
+    return;
+  }
+
+  if (type1 == CYLINDER && type2 == SPHERE) {
+    if (ChCNarrowphaseR::cylinder_sphere(
+            X1, R1, Y1.x, Y1.y,
+            X2, Y2.x,
+            ct_norm[index], ct_depth[index],
+            ct_pt1[index], ct_pt2[index],
+            ct_eff_rad[index])) {
+      ct_flag[index] = 0;
+      ct_body_ids[index] = I2(body1, body2);
+    }
+    return;
+  }
+
+  if (type1 == SPHERE && type2 == CYLINDER) {
+    if (ChCNarrowphaseR::cylinder_sphere(
             X2, R2, Y2.x, Y2.y,
             X1, Y1.x,
             ct_norm[index], ct_depth[index],

@@ -12,17 +12,18 @@
 // Authors: Radu Serban
 // =============================================================================
 //
-// Header file for ChCNarrophaseR.
+// Header file for ChCNarrowphaseR.
 // This narrow-phase collision detection relies on specialized functions for
 // each pair of collision shapes. Only a subset of collision shapes and of
 // pair-wise interactions are currently supported:
 //
-//         |  sphere   box   capsule   trimesh
-// --------+----------------------------------
-// sphere  |    Y       Y       Y         Y
-// box     |           WIP      Y         N
-// capsule |                    Y         N
-// trimesh |                              N
+//          |  sphere   box   capsule   cylinder   trimesh
+// ---------+---------------------------------------------
+// sphere   |    Y       Y       Y         Y         Y
+// box      |           WIP      Y         N         N
+// capsule  |                    Y         N         N
+// cylinder |                              N         N
+// trimesh  |                              N         N
 //
 // Note that some pairs may return more than one contact (e.g., box-box).
 //
@@ -64,6 +65,13 @@ public:
                       real& eff_radius);
 
   static __host__ __device__
+  bool cylinder_sphere(const real3& pos1, const real4& rot1, const real& radius1, const real& hlen1,
+                       const real3& pos2, const real& radius2,
+                       real3& norm, real& depth,
+                       real3& pt1, real3& pt2,
+                       real& eff_radius);
+
+  static __host__ __device__
   bool box_sphere(const real3& pos1, const real4& rot1, const real3& hdims1,
                   const real3& pos2, const real& radius2,
                   real3& norm, real& depth,
@@ -97,6 +105,9 @@ public:
               real3* norm, real* depth,
               real3* pt1, real3* pt2,
               real* eff_radius);
+
+  // Implicit radius of curvature for edge contact.
+  static const real edge_radius;
 
 private:
   void host_process(ChParallelDataManager* data_container,
