@@ -78,27 +78,27 @@ int main(
 
    {
       cout << "Cylinder" << endl;
-      real3 R = real3(3.0, 1, 2);
+      real3 R = real3(3.0, 1.0, 3.0);
       real3 answer_a = GetSupportPoint_Cylinder(R, Dir);
 
       btCylinderShape shape(ToBtVec(R));
       shape.setMargin(0);
       real3 answer_b = ToReal3(shape.localGetSupportingVertex(btVector3(Dir.x, Dir.y, Dir.z)));
 
-      StrictEqual(answer_a, answer_b);
+      WeakEqual(answer_a, answer_b);
 
    }
 
    {
       cout << "Cone" << endl;
-      real3 R = real3(3.0, 1, 2);
+      real3 R = real3(3.0, 1.0, 3.0);
       real3 answer_a = GetSupportPoint_Cone(R, Dir);
 
       btConeShape shape(R.x, R.y);
       shape.setMargin(0);
       real3 answer_b = ToReal3(shape.localGetSupportingVertex(btVector3(Dir.x, Dir.y, Dir.z)));
 
-      StrictEqual(answer_a, answer_b);
+      WeakEqual(answer_a, answer_b);
    }
    //TODO: Add Ellipsoid test
 
