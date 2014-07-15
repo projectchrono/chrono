@@ -92,7 +92,7 @@ protected:
 	ChMatrix<>* Qc;			// {Qc} , the known part,
 						//        {Qc}=-{C_dtdt}-([Cq]{q_dt})q-2[Cq_dt]{q_dt}
 
-	ChMatrix<>* Ct;			// The time derivative of link equation, i.e. (dC/dt)
+	ChMatrix<>* Ct;			// the partial derivative of the link kin. equation wrt to time, i.e. $\frac{\partial C}{\partial t}$
 
 	ChMatrix<>* react;		// {l}	, the lagrangians forces in the constraints
 
