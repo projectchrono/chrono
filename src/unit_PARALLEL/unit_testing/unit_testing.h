@@ -74,8 +74,17 @@ M33 ToM33(
 }
 
 void StrictEqual(
-      const float & x,
-      const float & y) {
+      const int & x,
+      const int & y) {
+  if (x != y) {
+      std::cout << x << " does not equal " << y << std::endl;
+      exit(1);
+  }
+}
+
+void StrictEqual(
+      const real & x,
+      const real & y) {
    if (x != y) {
       std::cout << x << " does not equal " << y << std::endl;
       exit(1);
@@ -108,8 +117,8 @@ void StrictEqual(
 }
 
 void WeakEqual(
-      const float & x,
-      const float & y,
+      const real & x,
+      const real & y,
       float COMPARE_EPS = FLT_EPSILON * 5) {
    if (fabs(x - y) > COMPARE_EPS) {
       std::cout << x << " does not equal " << y << " " << fabs(x - y) << std::endl;
