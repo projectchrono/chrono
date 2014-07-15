@@ -1,3 +1,33 @@
+// =============================================================================
+// PROJECT CHRONO - http://projectchrono.org
+//
+// Copyright (c) 2014 projectchrono.org
+// All right reserved.
+//
+// Use of this source code is governed by a BSD-style license that can be found
+// in the LICENSE file at the top level of the distribution and at
+// http://projectchrono.org/license-chrono.txt.
+//
+// =============================================================================
+// Authors: Radu Serban
+// =============================================================================
+//
+// Header file for ChCNarrophaseR.
+// This narrow-phase collision detection relies on specialized functions for
+// each pair of collision shapes. Only a subset of collision shapes and of
+// pair-wise interactions are currently supported:
+//
+//         |  sphere   box   capsule   trimesh
+// --------+----------------------------------
+// sphere  |    Y       Y       Y         Y
+// box     |           WIP      Y         N
+// capsule |                    Y         N
+// trimesh |                              N
+//
+// Note that some pairs may return more than one contact (e.g., box-box).
+//
+// =============================================================================
+
 #ifndef CHC_NARROWPHASE_R_H
 #define CHC_NARROWPHASE_R_H
 
