@@ -133,11 +133,12 @@ void ChCNarrowphaseR::host_count(ChParallelDataManager* data_container,
 // In:  sphere centered at pos1 with radius1
 //      sphere centered at pos2 with radius2
 __host__ __device__
-bool sphere_sphere(const real3& pos1, const real& radius1,
-                   const real3& pos2, const real& radius2,
-                   real3& norm, real& depth,
-                   real3& pt1, real3& pt2,
-                   real& eff_radius)
+bool ChCNarrowphaseR::sphere_sphere(
+        const real3& pos1, const real& radius1,
+        const real3& pos2, const real& radius2,
+        real3& norm, real& depth,
+        real3& pt1, real3& pt2,
+        real& eff_radius)
 {
 	real3 delta = pos2 - pos1;
 	real  dist2 = dot(delta, delta);
@@ -168,11 +169,12 @@ bool sphere_sphere(const real3& pos1, const real& radius1,
 //              capsule has radius1 and half-length hlen1 (in Y direction)
 //      sphere centered at pos2 with radius2
 __host__ __device__
-bool capsule_sphere(const real3& pos1, const real4& rot1, const real& radius1, const real& hlen1,
-                    const real3& pos2, const real& radius2,
-                    real3& norm, real& depth,
-                    real3& pt1, real3& pt2,
-                    real& eff_radius)
+bool ChCNarrowphaseR::capsule_sphere(
+        const real3& pos1, const real4& rot1, const real& radius1, const real& hlen1,
+        const real3& pos2, const real& radius2,
+        real3& norm, real& depth,
+        real3& pt1, real3& pt2,
+        real& eff_radius)
 {
 	// Working in the global frame, project the sphere center onto the
 	// capsule's centerline and clamp the resulting location to the extent
@@ -213,11 +215,12 @@ bool capsule_sphere(const real3& pos1, const real4& rot1, const real& radius1, c
 // In:  box at position pos1, with orientation rot1, and half-dimensions hdims1
 //      sphere centered at pos2 and with radius2
 __host__ __device__
-bool box_sphere(const real3& pos1, const real4& rot1, const real3& hdims1,
-                const real3& pos2, const real& radius2,
-                real3& norm, real& depth,
-                real3& pt1, real3& pt2,
-                real& eff_radius)
+bool ChCNarrowphaseR::box_sphere(
+        const real3& pos1, const real4& rot1, const real3& hdims1,
+        const real3& pos2, const real& radius2,
+        real3& norm, real& depth,
+        real3& pt1, real3& pt2,
+        real& eff_radius)
 {
 	// Express the sphere position in the frame of the box.
 	real3 spherePos = TransformParentToLocal(pos1, rot1, pos2);
@@ -259,11 +262,12 @@ bool box_sphere(const real3& pos1, const real4& rot1, const real3& hdims1,
 //     sphere sphere centered at pos2 and with radius2
 
 __host__ __device__
-bool face_sphere(const real3& A1, const real3& B1, const real3& C1,
-                 const real3& pos2, const real& radius2,
-                 real3& norm, real& depth,
-                 real3& pt1, real3& pt2,
-                 real& eff_radius)
+bool ChCNarrowphaseR::face_sphere(
+        const real3& A1, const real3& B1, const real3& C1,
+        const real3& pos2, const real& radius2,
+        real3& norm, real& depth,
+        real3& pt1, real3& pt2,
+        real& eff_radius)
 {
 	// Calculate face normal.
 	real3 nrm1 = face_normal(A1, B1, C1);
@@ -319,11 +323,12 @@ bool face_sphere(const real3& A1, const real3& B1, const real3& C1,
 // Note: a capsule-capsule collision may return 0, 1, or 2 contacts
 
 __host__ __device__
-int capsule_capsule(const real3& pos1, const real4& rot1, const real& radius1, const real& hlen1,
-                    const real3& pos2, const real4& rot2, const real& radius2, const real& hlen2,
-                    real3* norm, real* depth,
-                    real3* pt1, real3* pt2,
-                    real* eff_radius)
+int ChCNarrowphaseR::capsule_capsule(
+        const real3& pos1, const real4& rot1, const real& radius1, const real& hlen1,
+        const real3& pos2, const real4& rot2, const real& radius2, const real& hlen2,
+        real3* norm, real* depth,
+        real3* pt1, real3* pt2,
+        real* eff_radius)
 {
 	// Express the second capule in the frame of the first one.
 	real3 pos = quatRotateMatT(pos2 - pos1, rot1);
@@ -439,11 +444,12 @@ int capsule_capsule(const real3& pos1, const real4& rot1, const real& radius1, c
 // Note: a box-capsule collision may return 0, 1, or 2 contacts
 
 __host__ __device__
-int box_capsule(const real3& pos1, const real4& rot1, const real3& hdims1,
-                const real3& pos2, const real4& rot2, const real& radius2, const real& hlen2,
-                real3* norm, real* depth,
-                real3* pt1, real3* pt2,
-                real* eff_radius)
+int ChCNarrowphaseR::box_capsule(
+        const real3& pos1, const real4& rot1, const real3& hdims1,
+        const real3& pos2, const real4& rot2, const real& radius2, const real& hlen2,
+        real3* norm, real* depth,
+        real3* pt1, real3* pt2,
+        real* eff_radius)
 {
 	// Express the capsule in the frame of the box.
 	// (this is a bit cryptic with the functions we have available)
@@ -572,11 +578,12 @@ int box_capsule(const real3& pos1, const real4& rot1, const real3& hdims1,
 //      box at position pos2, with orientation rot2, and half-dimensions hdims2
 
 __host__ __device__
-int box_box(const real3& pos1, const real4& rot1, const real3& hdims1,
-            const real3& pos2, const real4& rot2, const real3& hdims2,
-            real3* norm, real* depth,
-            real3* pt1, real3* pt2,
-            real* eff_radius)
+int ChCNarrowphaseR::box_box(
+        const real3& pos1, const real4& rot1, const real3& hdims1,
+        const real3& pos2, const real4& rot2, const real3& hdims2,
+        real3* norm, real* depth,
+        real3* pt1, real3* pt2,
+        real* eff_radius)
 {
 	// Express the second box into the frame of the first box.
 	// (this is a bit cryptic with the functions we have available)
@@ -691,7 +698,7 @@ void function_process(const uint&       icoll,           // index of this contac
 	uint index = start_index[icoll];
 
 	if (type1 == SPHERE && type2 == SPHERE) {
-		if (sphere_sphere(X1, Y1.x,
+		if (ChCNarrowphaseR::sphere_sphere(X1, Y1.x,
 			              X2, Y2.x,
 			              ct_norm[index], ct_depth[index],
 			              ct_pt1[index], ct_pt2[index],
@@ -703,7 +710,7 @@ void function_process(const uint&       icoll,           // index of this contac
 	}
 
 	if (type1 == CAPSULE && type2 == SPHERE) {
-		if (capsule_sphere(X1, R1, Y1.x, Y1.y,
+		if (ChCNarrowphaseR::capsule_sphere(X1, R1, Y1.x, Y1.y,
 			               X2, Y2.x,
 			               ct_norm[index], ct_depth[index],
 			               ct_pt1[index], ct_pt2[index],
@@ -715,7 +722,7 @@ void function_process(const uint&       icoll,           // index of this contac
 	}
 
 	if (type1 == SPHERE && type2 == CAPSULE) {
-		if (capsule_sphere(X2, R2, Y2.x, Y2.y,
+		if (ChCNarrowphaseR::capsule_sphere(X2, R2, Y2.x, Y2.y,
 			               X1, Y1.x,
 			               ct_norm[index], ct_depth[index],
 			               ct_pt2[index], ct_pt1[index],
@@ -728,7 +735,7 @@ void function_process(const uint&       icoll,           // index of this contac
 	}
 
 	if (type1 == BOX && type2 == SPHERE) {
-		if (box_sphere(X1, R1, Y1,
+		if (ChCNarrowphaseR::box_sphere(X1, R1, Y1,
 			           X2, Y2.x,
 			           ct_norm[index], ct_depth[index],
 			           ct_pt1[index], ct_pt2[index],
@@ -740,7 +747,7 @@ void function_process(const uint&       icoll,           // index of this contac
 	}
 
 	if (type1 == SPHERE && type2 == BOX) {
-		if (box_sphere(X2, R2, Y2,
+		if (ChCNarrowphaseR::box_sphere(X2, R2, Y2,
 			           X1, Y1.x,
 			           ct_norm[index], ct_depth[index],
 			           ct_pt2[index], ct_pt1[index],
@@ -753,7 +760,7 @@ void function_process(const uint&       icoll,           // index of this contac
 	}
 
 	if (type1 == TRIANGLEMESH && type2 == SPHERE) {
-		if (face_sphere(X1, Y1, Z1,
+		if (ChCNarrowphaseR::face_sphere(X1, Y1, Z1,
 			            X2, Y2.x,
 			            ct_norm[index], ct_depth[index],
 			            ct_pt1[index], ct_pt2[index],
@@ -764,7 +771,7 @@ void function_process(const uint&       icoll,           // index of this contac
 	}
 
 	if (type1 == SPHERE && type2 == TRIANGLEMESH) {
-		if (face_sphere(X2, Y2, Z2,
+		if (ChCNarrowphaseR::face_sphere(X2, Y2, Z2,
 			            X1, Y1.x,
 			            ct_norm[index], ct_depth[index],
 			            ct_pt2[index], ct_pt1[index],
@@ -776,7 +783,7 @@ void function_process(const uint&       icoll,           // index of this contac
 	}
 
 	if (type1 == CAPSULE && type2 == CAPSULE) {
-		int nC = capsule_capsule(X1, R1, Y1.x, Y1.y,
+		int nC = ChCNarrowphaseR::capsule_capsule(X1, R1, Y1.x, Y1.y,
 		                         X2, R2, Y2.x, Y2.y,
 		                         &ct_norm[index], &ct_depth[index],
 		                         &ct_pt1[index], &ct_pt2[index],
@@ -789,7 +796,7 @@ void function_process(const uint&       icoll,           // index of this contac
 	}
 
 	if (type1 == BOX && type2 == CAPSULE) {
-		int nC = box_capsule(X1, R1, Y1,
+		int nC = ChCNarrowphaseR::box_capsule(X1, R1, Y1,
 		                     X2, R2, Y2.x, Y2.y,
 		                     &ct_norm[index], &ct_depth[index],
 		                     &ct_pt1[index], &ct_pt2[index],
@@ -802,7 +809,7 @@ void function_process(const uint&       icoll,           // index of this contac
 	}
 
 	if (type1 == CAPSULE && type2 == BOX) {
-		int nC = box_capsule(X2, R2, Y2,
+		int nC = ChCNarrowphaseR::box_capsule(X2, R2, Y2,
 		                     X1, R1, Y1.x, Y1.y,
 		                     &ct_norm[index], &ct_depth[index],
 		                     &ct_pt2[index], &ct_pt1[index],
@@ -816,7 +823,7 @@ void function_process(const uint&       icoll,           // index of this contac
 	}
 
 	if (type1 == BOX && type2 == BOX) {
-		int nC = box_box(X1, R1, Y1,
+		int nC = ChCNarrowphaseR::box_box(X1, R1, Y1,
 		                 X2, R2, Y2,
 		                 &ct_norm[index], &ct_depth[index],
 		                 &ct_pt1[index], &ct_pt2[index],
