@@ -136,16 +136,16 @@ void AddCapsuleGeometry(ChBody*               body,
 inline
 void AddCylinderGeometry(ChBody*               body,
                          double                radius,
-                         double                height,
+                         double                hlen,
                          const ChVector<>&     pos = ChVector<>(0,0,0),
                          const ChQuaternion<>& rot = ChQuaternion<>(1,0,0,0))
 {
-  body->GetCollisionModel()->AddCylinder(radius, radius, height, pos, rot);
+  body->GetCollisionModel()->AddCylinder(radius, radius, hlen, pos, rot);
 
   ChSharedPtr<ChCylinderShape> cylinder(new ChCylinderShape);
   cylinder->GetCylinderGeometry().rad = radius;
-  cylinder->GetCylinderGeometry().p1 = ChVector<>(0,  height / 2, 0);
-  cylinder->GetCylinderGeometry().p2 = ChVector<>(0, -height / 2, 0);
+  cylinder->GetCylinderGeometry().p1 = ChVector<>(0,  hlen, 0);
+  cylinder->GetCylinderGeometry().p2 = ChVector<>(0, -hlen, 0);
   cylinder->Pos = pos;
   cylinder->Rot = rot;
 
@@ -215,16 +215,16 @@ inline
 void AddRoundedCylinderGeometry(
           ChBody*               body,
           double                radius,
-          double                height,
+          double                hlen,
           double                srad,
           const ChVector<>&     pos = ChVector<>(0,0,0),
           const ChQuaternion<>& rot = ChQuaternion<>(1,0,0,0))
 {
-  body->GetCollisionModel()->AddRoundedCylinder(radius, radius, height, srad, pos, rot);
+  body->GetCollisionModel()->AddRoundedCylinder(radius, radius, hlen, srad, pos, rot);
 
   ChSharedPtr<ChRoundedCylinderShape> rcyl(new ChRoundedCylinderShape);
   rcyl->GetRoundedCylinderGeometry().rad = radius;
-  rcyl->GetRoundedCylinderGeometry().hlen = height / 2;
+  rcyl->GetRoundedCylinderGeometry().hlen = hlen;
   rcyl->GetRoundedCylinderGeometry().radsphere = srad;
   rcyl->Pos = pos;
   rcyl->Rot = rot;

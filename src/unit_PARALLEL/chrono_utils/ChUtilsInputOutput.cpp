@@ -129,7 +129,7 @@ void WriteCheckpoint(ChSystem*          system,
       } else if (asset.IsType<ChCylinderShape>()) {
         ChCylinderShape* cylinder = (ChCylinderShape*) asset.get_ptr();
         const geometry::ChCylinder& geom = cylinder->GetCylinderGeometry();
-        csv << CYLINDER << geom.rad << geom.p1.y - geom.p2.y;
+        csv << CYLINDER << geom.rad << (geom.p1.y - geom.p2.y) / 2;
       } else if (asset.IsType<ChConeShape>()) {
         ChConeShape* cone = (ChConeShape*) asset.get_ptr();
         const geometry::ChCone& geom = cone->GetConeGeometry();
@@ -141,7 +141,7 @@ void WriteCheckpoint(ChSystem*          system,
       } else if (asset.IsType<ChRoundedCylinderShape>()) {
         ChRoundedCylinderShape* rcyl = (ChRoundedCylinderShape*) asset.get_ptr();
         const geometry::ChRoundedCylinder& geom = rcyl->GetRoundedCylinderGeometry();
-        csv << ROUNDEDCYL << geom.rad << 2 * geom.hlen << geom.radsphere;
+        csv << ROUNDEDCYL << geom.rad << geom.hlen << geom.radsphere;
       }
 
       csv << std::endl;
@@ -274,9 +274,9 @@ void ReadCheckpoint(ChSystem*          system,
         break;
       case chrono::CYLINDER:
         {
-          double radius, height;
-          iss >> radius >> height;
-          AddCylinderGeometry(body, radius, height, apos, arot);
+          double radius, hlen;
+          iss >> radius >> hlen;
+          AddCylinderGeometry(body, radius, hlen, apos, arot);
         }
         break;
       case chrono::CONE:
@@ -296,9 +296,9 @@ void ReadCheckpoint(ChSystem*          system,
         break;
       case chrono::ROUNDEDCYL:
         {
-          double radius, height, srad;
-          iss >> radius >> height >> srad;
-          AddRoundedCylinderGeometry(body, radius, height, srad, apos, arot);
+          double radius, hlen, srad;
+          iss >> radius >> hlen >> srad;
+          AddRoundedCylinderGeometry(body, radius, hlen, srad, apos, arot);
         }
         break;
       }
@@ -310,93 +310,6 @@ void ReadCheckpoint(ChSystem*          system,
     system->AddBody(ChSharedPtr<ChBody>(body));
   }
 }
-
-
-////  TODO:  figure out the Chrono inconsistent mess with relative transforms
-////                body -> asset -> shape
-
-// -----------------------------------------------------------------------------
-// WriteShapesRender
-//
-// Write CSV output file for the Blender plugin.
-// Each line contains information about one visualization asset shape, as
-// follows:
-//    group,index,p.x,p.y,p.z,q.e0,q.e1,q.e2,q.e3,type,geometry
-// where 'geometry' depends on 'type' (a string).
-// All shapes of the same 'type' are placed in the same 'group', unless the body
-// has a negative identifier, in which case the shapes are tagged as 'individual'
-// -----------------------------------------------------------------------------
-void WriteShapesRender(ChSystem*          system,
-                       const std::string& filename,
-                       const std::string& delim)
-{
-  CSV_writer csv(delim);
-
-  int index = 0;
-
-  for (int i = 0; i < system->Get_bodylist()->size(); i++) {
-    ChBody* body = system->Get_bodylist()->at(i);
-    const Vector& body_pos = body->GetPos();
-    const Quaternion& body_rot = body->GetRot();
-    int bodyId = body->GetIdentifier();
-
-    for (int j = 0; j < body->GetAssets().size(); j++) {
-      ChSharedPtr<ChAsset> asset = body->GetAssets().at(j);
-      ChVisualization* visual_asset = dynamic_cast<ChVisualization*>(asset.get_ptr());
-      if (!visual_asset)
-        continue;
-
-      const Vector& asset_pos = visual_asset->Pos;
-      Quaternion    asset_rot = visual_asset->Rot.Get_A_quaternion();
-
-      Vector     pos = body_pos + body_rot.Rotate(asset_pos);
-      Quaternion rot = body_rot % asset_rot;
-
-      std::string group;
-      std::stringstream geometry;
-
-      if (asset.IsType<ChSphereShape>()) {
-        ChSphereShape* sphere = (ChSphereShape*) asset.get_ptr();
-        group = bodyId < 0 ? "individual" : "g_sphere";
-        geometry << "sphere" << delim << sphere->GetSphereGeometry().rad;
-      } else if (asset.IsType<ChEllipsoidShape>()) {
-        ChEllipsoidShape* ellipsoid = (ChEllipsoidShape*) asset.get_ptr();
-        const Vector& size = ellipsoid->GetEllipsoidGeometry().rad;
-        group = bodyId < 0 ? "individual" : "g_ellipsoid";
-        geometry << "ellipsoid" << delim << size.x << delim << size.y << delim << size.z;
-      } else if (asset.IsType<ChBoxShape>()) {
-        ChBoxShape* box = (ChBoxShape*) asset.get_ptr();
-        const Vector& size = box->GetBoxGeometry().Size;
-        group = bodyId < 0 ? "individual" : "g_box";
-        geometry << "box" << delim << size.x << delim << size.y << delim << size.z;
-      } else if (asset.IsType<ChCapsuleShape>()) {
-        ChCapsuleShape* capsule = (ChCapsuleShape*) asset.get_ptr();
-        double rad = capsule->GetCapsuleGeometry().rad;
-        double hlen = capsule->GetCapsuleGeometry().hlen;
-        group = bodyId < 0 ? "individual" : "g_capsule";
-        geometry << "capsule" << delim << rad << delim << hlen;
-      } else if (asset.IsType<ChCylinderShape>()) {
-        ChCylinderShape* cylinder = (ChCylinderShape*) asset.get_ptr();
-        double rad = cylinder->GetCylinderGeometry().rad;
-        double height = cylinder->GetCylinderGeometry().p1.y - cylinder->GetCylinderGeometry().p2.y;
-        group = bodyId < 0 ? "individual" : "g_cylinder";
-        geometry << "cylinder" << delim << rad << delim << height;
-      } else if (asset.IsType<ChConeShape>()) {
-        ChConeShape* cone = (ChConeShape*) asset.get_ptr();
-        const Vector& size = cone->GetConeGeometry().rad;
-        group = bodyId < 0 ? "individual" : "g_cone";
-        geometry << "cone" << delim << size.x << delim << size.y;
-      }
-
-      csv << group << index << pos << rot << geometry.str() << std::endl;
-
-      index++;
-    }
-  }
-
-  csv.write_to_file(filename);
-}
-
 
 ////  TODO:  figure out the Chrono inconsistent mess with relative transforms
 ////                body -> asset -> shape
@@ -456,7 +369,7 @@ void WriteShapesPovray(ChSystem*          system,
       } else if (asset.IsType<ChCylinderShape>()) {
         ChCylinderShape* cylinder = (ChCylinderShape*) asset.get_ptr();
         const geometry::ChCylinder& geom = cylinder->GetCylinderGeometry();
-        gss << CYLINDER << delim << geom.rad << delim << geom.p1.y - geom.p2.y;
+        gss << CYLINDER << delim << geom.rad << delim << (geom.p1.y - geom.p2.y) / 2;
       } else if (asset.IsType<ChConeShape>()) {
         ChConeShape* cone = (ChConeShape*) asset.get_ptr();
         const geometry::ChCone& geom = cone->GetConeGeometry();
@@ -468,7 +381,7 @@ void WriteShapesPovray(ChSystem*          system,
       } else if (asset.IsType<ChRoundedCylinderShape>()) {
         ChRoundedCylinderShape* rcyl = (ChRoundedCylinderShape*) asset.get_ptr();
         const geometry::ChRoundedCylinder& geom = rcyl->GetRoundedCylinderGeometry();
-        gss << ROUNDEDCYL << delim << geom.rad << delim << 2 * geom.hlen << delim << geom.radsphere;
+        gss << ROUNDEDCYL << delim << geom.rad << delim << geom.hlen << delim << geom.radsphere;
       } else if (asset.IsType<ChTriangleMeshShape>()) {
         ChTriangleMeshShape* mesh = (ChTriangleMeshShape*) asset.get_ptr();
         gss << TRIANGLEMESH << delim << "\"" << mesh->GetName() << "\"";

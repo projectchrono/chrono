@@ -141,18 +141,6 @@ CH_UTILS_API
 void ReadCheckpoint(ChSystem*          system,
                     const std::string& filename);
 
-// Write CSV output file for the Blender plugin.
-// Each line contains information about one visualization asset shape, as
-// follows:
-//    group,index,p.x,p.y,p.z,q.e0,q.e1,q.e2,q.e3,type,geometry
-// where 'geometry' depends on 'type' (a string).
-// All shapes of the same 'type' are placed in the same 'group', unless the body
-// has a negative identifier, in which case the shapes are tagged as 'individual'
-CH_UTILS_API
-void WriteShapesRender(ChSystem*          system,
-                       const std::string& filename,
-                       const std::string& delim = ",");
-
 // Write CSV output file for PovRay.
 // Each line contains information about one visualization asset shape, as
 // follows:
