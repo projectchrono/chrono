@@ -173,20 +173,41 @@ void AddTriangleMeshGeometry(ChBody*               body,
 }
 
 inline
-void AddRoundedBoxGeometry(ChBody*        body,
-                    const ChVector<>&     size,
-                    const double&         radius,
-                    const ChVector<>&     pos = ChVector<>(0,0,0),
-                    const ChQuaternion<>& rot = ChQuaternion<>(1,0,0,0))
+void AddRoundedBoxGeometry(
+          ChBody*               body,
+          const ChVector<>&     size,
+          double                srad,
+          const ChVector<>&     pos = ChVector<>(0,0,0),
+          const ChQuaternion<>& rot = ChQuaternion<>(1,0,0,0))
 {
-   body->GetCollisionModel()->AddRoundedBox(size.x, size.y, size.z, radius, pos, rot);
+   body->GetCollisionModel()->AddRoundedBox(size.x, size.y, size.z, srad, pos, rot);
 
    ChSharedPtr<ChRoundedBoxShape> box(new ChRoundedBoxShape);
    box->GetRoundedBoxGeometry().Size = size;
-   box->GetRoundedBoxGeometry().radsphere = radius;
+   box->GetRoundedBoxGeometry().radsphere = srad;
    box->Pos = pos;
    box->Rot = rot;
    body->GetAssets().push_back(box);
+}
+
+inline
+void AddRoundedCylinderGeometry(
+          ChBody*               body,
+          double                radius,
+          double                height,
+          double                srad,
+          const ChVector<>&     pos = ChVector<>(0,0,0),
+          const ChQuaternion<>& rot = ChQuaternion<>(1,0,0,0))
+{
+  body->GetCollisionModel()->AddRoundedCylinder(radius, radius, height, srad, pos, rot);
+
+  ChSharedPtr<ChRoundedCylinderShape> rcyl(new ChRoundedCylinderShape);
+  rcyl->GetRoundedCylinderGeometry().rad = radius;
+  rcyl->GetRoundedCylinderGeometry().hlen = height / 2;
+  rcyl->GetRoundedCylinderGeometry().radsphere = srad;
+  rcyl->Pos = pos;
+  rcyl->Rot = rot;
+  body->GetAssets().push_back(rcyl);
 }
 
 // -------------------------------------------------------------------------------

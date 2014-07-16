@@ -96,30 +96,37 @@ void WriteCheckpoint(ChSystem*          system,
 			// Write relative position and rotation
 			csv << visual_asset->Pos << visual_asset->Rot.Get_A_quaternion();
 
-			// Write shape type and geometry data
-			if (asset.IsType<ChSphereShape>()) {
-				ChSphereShape* sphere = (ChSphereShape*) asset.get_ptr();
-				csv << chrono::SPHERE << sphere->GetSphereGeometry().rad;
-			} else if (asset.IsType<ChEllipsoidShape>()) {
-				ChEllipsoidShape* ellipsoid = (ChEllipsoidShape*) asset.get_ptr();
-				csv << chrono::ELLIPSOID << ellipsoid->GetEllipsoidGeometry().rad;
-			} else if (asset.IsType<ChBoxShape>()) {
-				ChBoxShape* box = (ChBoxShape*) asset.get_ptr();
-				csv << chrono::BOX << box->GetBoxGeometry().Size;
-			} else if (asset.IsType<ChCapsuleShape>()) {
-				ChCapsuleShape* capsule = (ChCapsuleShape*) asset.get_ptr();
-				double rad = capsule->GetCapsuleGeometry().rad;
-				double hlen = capsule->GetCapsuleGeometry().hlen;
-				csv << chrono::CAPSULE << rad << hlen;
-			} else if (asset.IsType<ChCylinderShape>()) {
-				ChCylinderShape* cylinder = (ChCylinderShape*) asset.get_ptr();
-				double rad = cylinder->GetCylinderGeometry().rad;
-				double height = cylinder->GetCylinderGeometry().p1.y - cylinder->GetCylinderGeometry().p2.y;
-				csv << chrono::CYLINDER << rad << height;
-			} else if (asset.IsType<ChConeShape>()) {
-				ChConeShape* cone = (ChConeShape*) asset.get_ptr();
-				csv << chrono::CONE << cone->GetConeGeometry().rad.x << cone->GetConeGeometry().rad.y;
-			}
+      // Write shape type and geometry data
+      if (asset.IsType<ChSphereShape>()) {
+        ChSphereShape* sphere = (ChSphereShape*) asset.get_ptr();
+        csv << SPHERE << sphere->GetSphereGeometry().rad;
+      } else if (asset.IsType<ChEllipsoidShape>()) {
+        ChEllipsoidShape* ellipsoid = (ChEllipsoidShape*) asset.get_ptr();
+        csv << ELLIPSOID << ellipsoid->GetEllipsoidGeometry().rad;
+      } else if (asset.IsType<ChBoxShape>()) {
+        ChBoxShape* box = (ChBoxShape*) asset.get_ptr();
+        csv << BOX << box->GetBoxGeometry().Size;
+      } else if (asset.IsType<ChCapsuleShape>()) {
+        ChCapsuleShape* capsule = (ChCapsuleShape*) asset.get_ptr();
+        const geometry::ChCapsule& geom = capsule->GetCapsuleGeometry();
+        csv << CAPSULE << geom.rad << geom.hlen;
+      } else if (asset.IsType<ChCylinderShape>()) {
+        ChCylinderShape* cylinder = (ChCylinderShape*) asset.get_ptr();
+        const geometry::ChCylinder& geom = cylinder->GetCylinderGeometry();
+        csv << CYLINDER << geom.rad << geom.p1.y - geom.p2.y;
+      } else if (asset.IsType<ChConeShape>()) {
+        ChConeShape* cone = (ChConeShape*) asset.get_ptr();
+        const geometry::ChCone& geom = cone->GetConeGeometry();
+        csv << CONE << geom.rad.x << geom.rad.y;
+      } else if (asset.IsType<ChRoundedBoxShape>()) {
+        ChRoundedBoxShape* rbox = (ChRoundedBoxShape*) asset.get_ptr();
+        const geometry::ChRoundedBox& geom = rbox->GetRoundedBoxGeometry();
+        csv << ROUNDEDBOX << geom.Size << geom.radsphere;
+      } else if (asset.IsType<ChRoundedCylinderShape>()) {
+        ChRoundedCylinderShape* rcyl = (ChRoundedCylinderShape*) asset.get_ptr();
+        const geometry::ChRoundedCylinder& geom = rcyl->GetRoundedCylinderGeometry();
+        csv << ROUNDEDCYL << geom.rad << 2 * geom.hlen << geom.radsphere;
+      }
 
 			csv << std::endl;
 		}
@@ -244,8 +251,7 @@ void ReadCheckpoint(ChSystem*          system,
 				break;
 			case chrono::CAPSULE:
 				{
-					double radius;
-					double hlen;
+					double radius, hlen;
 					iss >> radius >> hlen;
 					AddCapsuleGeometry(body, radius, hlen, apos, arot);
 				}
@@ -264,7 +270,22 @@ void ReadCheckpoint(ChSystem*          system,
 					AddConeGeometry(body, radius, height, apos, arot);
 				}
 				break;
-			}
+      case chrono::ROUNDEDBOX:
+        {
+          ChVector<> size;
+          double srad;
+          iss >> size.x >> size.y >> size.z >> srad;
+          AddRoundedBoxGeometry(body, size, srad, apos, arot);
+        }
+        break;
+      case chrono::ROUNDEDCYL:
+        {
+          double radius, height, srad;
+          iss >> radius >> height >> srad;
+          AddRoundedCylinderGeometry(body, radius, height, srad, apos, arot);
+        }
+        break;
+      }
 		}
 
 		body->GetCollisionModel()->BuildModel();
@@ -397,39 +418,45 @@ void WriteShapesPovray(ChSystem*          system,
 			Vector     pos = body_pos + body_rot.Rotate(asset_pos);
 			Quaternion rot = body_rot % asset_rot;
 
-			std::stringstream geometry;
+			std::stringstream gss;
 
-			if (asset.IsType<ChSphereShape>()) {
-				ChSphereShape* sphere = (ChSphereShape*) asset.get_ptr();
-				geometry << SPHERE << delim << sphere->GetSphereGeometry().rad;
-			} else if (asset.IsType<ChEllipsoidShape>()) {
-				ChEllipsoidShape* ellipsoid = (ChEllipsoidShape*) asset.get_ptr();
-				const Vector& size = ellipsoid->GetEllipsoidGeometry().rad;
-				geometry << ELLIPSOID << delim << size.x << delim << size.y << delim << size.z;
-			} else if (asset.IsType<ChBoxShape>()) {
-				ChBoxShape* box = (ChBoxShape*) asset.get_ptr();
-				const Vector& size = box->GetBoxGeometry().Size;
-				geometry << BOX << delim << size.x << delim << size.y << delim << size.z;
-			} else if (asset.IsType<ChCapsuleShape>()) {
-				ChCapsuleShape* capsule = (ChCapsuleShape*) asset.get_ptr();
-				double rad = capsule->GetCapsuleGeometry().rad;
-				double hlen = capsule->GetCapsuleGeometry().hlen;
-				geometry << CAPSULE << delim << rad << delim << hlen;
-			} else if (asset.IsType<ChCylinderShape>()) {
-				ChCylinderShape* cylinder = (ChCylinderShape*) asset.get_ptr();
-				double rad = cylinder->GetCylinderGeometry().rad;
-				double height = cylinder->GetCylinderGeometry().p1.y - cylinder->GetCylinderGeometry().p2.y;
-				geometry << CYLINDER << delim << rad << delim << height;
-			} else if (asset.IsType<ChConeShape>()) {
-				ChConeShape* cone = (ChConeShape*) asset.get_ptr();
-				const Vector& size = cone->GetConeGeometry().rad;
-				geometry << CONE << delim << size.x << delim << size.y;
-			} else if (asset.IsType<ChTriangleMeshShape>()) {
-				ChTriangleMeshShape* mesh = (ChTriangleMeshShape*) asset.get_ptr();
-				geometry << TRIANGLEMESH << delim << "\"" << mesh->GetName() << "\"";
-			}
+      if (asset.IsType<ChSphereShape>()) {
+        ChSphereShape* sphere = (ChSphereShape*) asset.get_ptr();
+        gss << SPHERE << delim << sphere->GetSphereGeometry().rad;
+      } else if (asset.IsType<ChEllipsoidShape>()) {
+        ChEllipsoidShape* ellipsoid = (ChEllipsoidShape*) asset.get_ptr();
+        const Vector& size = ellipsoid->GetEllipsoidGeometry().rad;
+        gss << ELLIPSOID << delim << size.x << delim << size.y << delim << size.z;
+      } else if (asset.IsType<ChBoxShape>()) {
+        ChBoxShape* box = (ChBoxShape*) asset.get_ptr();
+        const Vector& size = box->GetBoxGeometry().Size;
+        gss << BOX << delim << size.x << delim << size.y << delim << size.z;
+      } else if (asset.IsType<ChCapsuleShape>()) {
+        ChCapsuleShape* capsule = (ChCapsuleShape*) asset.get_ptr();
+        const geometry::ChCapsule& geom = capsule->GetCapsuleGeometry();
+        gss << CAPSULE << delim << geom.rad << delim << geom.hlen;
+      } else if (asset.IsType<ChCylinderShape>()) {
+        ChCylinderShape* cylinder = (ChCylinderShape*) asset.get_ptr();
+        const geometry::ChCylinder& geom = cylinder->GetCylinderGeometry();
+        gss << CYLINDER << delim << geom.rad << delim << geom.p1.y - geom.p2.y;
+      } else if (asset.IsType<ChConeShape>()) {
+        ChConeShape* cone = (ChConeShape*) asset.get_ptr();
+        const geometry::ChCone& geom = cone->GetConeGeometry();
+        gss << CONE << delim << geom.rad.x << delim << geom.rad.y;
+      } else if (asset.IsType<ChRoundedBoxShape>()) {
+        ChRoundedBoxShape* rbox = (ChRoundedBoxShape*) asset.get_ptr();
+        const geometry::ChRoundedBox& geom = rbox->GetRoundedBoxGeometry();
+        gss << ROUNDEDBOX << delim << geom.Size.x << delim << geom.Size.y << delim << geom.Size.z << delim << geom.radsphere;
+      } else if (asset.IsType<ChRoundedCylinderShape>()) {
+        ChRoundedCylinderShape* rcyl = (ChRoundedCylinderShape*) asset.get_ptr();
+        const geometry::ChRoundedCylinder& geom = rcyl->GetRoundedCylinderGeometry();
+        gss << ROUNDEDCYL << delim << geom.rad << delim << 2 * geom.hlen << delim << geom.radsphere;
+      } else if (asset.IsType<ChTriangleMeshShape>()) {
+        ChTriangleMeshShape* mesh = (ChTriangleMeshShape*) asset.get_ptr();
+        gss << TRIANGLEMESH << delim << "\"" << mesh->GetName() << "\"";
+      }
 
-			csv << body->GetIdentifier() << body->IsActive() << pos << rot << geometry.str() << std::endl;
+			csv << body->GetIdentifier() << body->IsActive() << pos << rot << gss.str() << std::endl;
 
 			count++;
 		}
