@@ -1991,7 +1991,7 @@ int ChSystem::Integrate_Y_impulse_Anitescu()
 	// fill LCP known-term vectors with proper terms (forces, etc.):
 	//
 	// | M+dt^2*K+dt*R -Cq'|*|v_new|- | [M]*v_old + f*dt      | = |0| ,  c>=0, l>=0, l*c=0;
-	// | Cq              0 | |l    |  | -C/dt +min(-C/dt,vlim)|   |c|
+	// | Cq              0 | |l    |  | -Ct +min(-C/dt,vlim)  |   |c|
 	//
 
 	LCPprepare_load(true,                           // Cq,
