@@ -39,17 +39,19 @@ double ChLcpIterativeSymmSOR::Solve(
 	double maxdeltalambda = 0.;
 	int i_friction_comp = 0;
 	double old_lambda_friction[3];
+	const unsigned int nConstr = mconstraints.size();
+	const unsigned int nVars = mvariables.size();
 
 	// 1)  Update auxiliary data in all constraints before starting,
 	//     that is: g_i=[Cq_i]*[invM_i]*[Cq_i]' and  [Eq_i]=[invM_i]*[Cq_i]'
-	for (unsigned int ic = 0; ic< mconstraints.size(); ic++)
+	for (unsigned int ic = 0; ic< nConstr; ic++)
 		mconstraints[ic]->Update_auxiliary();
 
 	// Average all g_i for the triplet of contact constraints n,u,v.
 	//
 	int j_friction_comp = 0;
 	double gi_values[3];
-	for (unsigned int ic = 0; ic< mconstraints.size(); ic++)
+	for (unsigned int ic = 0; ic< nConstr; ic++)
 	{
 		if (mconstraints[ic]->GetMode() == CONSTRAINT_FRIC) 
 		{
@@ -69,7 +71,7 @@ double ChLcpIterativeSymmSOR::Solve(
 	// 2)  Compute, for all items with variables, the initial guess for
 	//     still uncostrained system:
 
-	for (unsigned int iv = 0; iv< mvariables.size(); iv++)
+	for (unsigned int iv = 0; iv< nVars; iv++)
 		if (mvariables[iv]->IsActive())
 			mvariables[iv]->Compute_invMb_v(mvariables[iv]->Get_qb(), mvariables[iv]->Get_fb()); // q = [M]'*fb
 
@@ -78,13 +80,13 @@ double ChLcpIterativeSymmSOR::Solve(
 	//     Otherwise, if no warm start, simply resets initial lagrangians to zero.
 	if (warm_start)
 	{
-		for (unsigned int ic = 0; ic< mconstraints.size(); ic++)
+		for (unsigned int ic = 0; ic< nConstr; ic++)
 			if (mconstraints[ic]->IsActive())
 				mconstraints[ic]->Increment_q(mconstraints[ic]->Get_l_i());
 	}
 	else
 	{
-		for (unsigned int ic = 0; ic< mconstraints.size(); ic++)
+		for (unsigned int ic = 0; ic< nConstr; ic++)
 			mconstraints[ic]->Set_l_i(0.);
 	}
 
@@ -217,7 +219,7 @@ double ChLcpIterativeSymmSOR::Solve(
 		maxdeltalambda = 0.;
 		i_friction_comp = 0;
 
-		for (int ic = ((mconstraints.size())-1); ic >= 0 ; ic--)
+		for (int ic = (nConstr-1); ic >= 0 ; ic--)
 		{
 			// skip computations if constraint not active.
 			if (mconstraints[ic]->IsActive())
