@@ -66,14 +66,14 @@ class CH_UTILS_OPENGL_API ChOpenGLWindow {
          ChVector<> look,  //The point that the camera is looking at
          ChVector<> up,     //The up vector associated with the camera
          float scale = 0.5f,
-         float near = 0.1f,
-         float far = 1000.0f
+         float near_clip_dist = 0.1f,
+         float far_clip_dist = 1000.0f
          ) {
       viewer->render_camera.camera_position = glm::vec3(pos.x, pos.y, pos.z);
       viewer->render_camera.camera_look_at = glm::vec3(look.x, look.y, look.z);
       viewer->render_camera.camera_up = glm::vec3(up.x, up.y, up.z);
       viewer->render_camera.camera_scale = scale;
-      viewer->render_camera.SetClipping(near, far);
+      viewer->render_camera.SetClipping(near_clip_dist, far_clip_dist);
    }
 
    //Checks if there are any errors in the opengl context
