@@ -235,12 +235,138 @@ void test_cylinder_sphere()
       cout << "    test failed" << endl;
       exit(1);
     }
-    WeakEqual(norm, real3(1/sqrt(2.0), 1/sqrt(2.0), 0));
-    WeakEqual(depth, -1+sqrt(0.5));
-    WeakEqual(pt1, real3(3.0, 2.0, 0));
-    WeakEqual(pt2, real3(3.5-sqrt(0.5), 2.5-sqrt(0.5), 0));
-    WeakEqual(eff_rad, s_rad * ChCNarrowphaseR::edge_radius/(s_rad + ChCNarrowphaseR::edge_radius));
 
+    float oosqrt2 = sqrt(0.5);   // 1/sqrt(2)
+
+    WeakEqual(norm, real3(oosqrt2, oosqrt2, 0));
+    WeakEqual(depth, -1 + oosqrt2);
+    WeakEqual(pt1, real3(3.0, 2.0, 0));
+    WeakEqual(pt2, real3(3.5 - oosqrt2, 2.5 - oosqrt2, 0));
+    WeakEqual(eff_rad, s_rad * ChCNarrowphaseR::edge_radius/(s_rad + ChCNarrowphaseR::edge_radius));
+  }
+}
+
+void test_roundedcyl_sphere()
+{
+  cout << "roundedcyl_sphere" << endl;
+
+  real  c_rad = 2.0;   // radius of skeleton cylinder
+  real  c_hlen = 1.5;  // half-length of skeleton cylinder
+  real  c_srad = 0.1;  // radius of sweeping sphere
+
+  real  s_rad = 1.0;   // sphere radius
+
+  // Rounded cylinder position and orientation fixed for all tests.
+  // Aligned with X axis and shifted by its half-length in the X direction.
+  real3 c_pos(c_hlen, 0, 0);
+  real4 c_rot = ToReal4(Q_from_AngAxis(CH_C_PI_2, ChVector<>(0, 0, 1)));
+
+  real3 norm;
+  real  depth;
+  real3 pt1;
+  real3 pt2;
+  real  eff_rad;
+
+  {
+    cout << "  sphere center inside cylinder" << endl;
+    real3 s_pos(2.5, 1.5, 0);
+    bool res = ChCNarrowphaseR::roundedcyl_sphere(c_pos, c_rot, c_rad, c_hlen, c_srad,
+                                                  s_pos, s_rad,
+                                                  norm, depth, pt1, pt2, eff_rad);
+    if (res) {
+      cout << "    test failed" << endl;
+      exit(1);
+    }
+  }
+
+  {
+    cout << "  cap interaction (separated)" << endl;
+    real3 s_pos(4.5, 1.5, 0);
+    bool res = ChCNarrowphaseR::roundedcyl_sphere(c_pos, c_rot, c_rad, c_hlen, c_srad,
+                                                  s_pos, s_rad,
+                                                  norm, depth, pt1, pt2, eff_rad);
+    if (res) {
+      cout << "    test failed" << endl;
+      exit(1);
+    }
+  }
+
+  {
+    cout << "  cap interaction (penetrated)" << endl;
+    real3 s_pos(3.75, 1.5, 0);
+    bool res = ChCNarrowphaseR::roundedcyl_sphere(c_pos, c_rot, c_rad, c_hlen, c_srad,
+                                                  s_pos, s_rad,
+                                                  norm, depth, pt1, pt2, eff_rad);
+    if (!res) {
+      cout << "    test failed" << endl;
+      exit(1);
+    }
+    WeakEqual(norm, real3(1, 0, 0));
+    WeakEqual(depth, -0.35);
+    WeakEqual(pt1, real3(3.1, 1.5, 0));
+    WeakEqual(pt2, real3(2.75, 1.5, 0));
+    WeakEqual(eff_rad, s_rad);
+  }
+
+  {
+    cout << "  side interaction (separated)" << endl;
+    real3 s_pos(2.5, 3.5, 0);
+    bool res = ChCNarrowphaseR::roundedcyl_sphere(c_pos, c_rot, c_rad, c_hlen, c_srad,
+                                                  s_pos, s_rad,
+                                                  norm, depth, pt1, pt2, eff_rad);
+    if (res) {
+      cout << "    test failed" << endl;
+      exit(1);
+    }
+  }
+
+  {
+    cout << "  side interaction (penetrated)" << endl;
+    real3 s_pos(2.5, 2.5, 0);
+    bool res = ChCNarrowphaseR::roundedcyl_sphere(c_pos, c_rot, c_rad, c_hlen, c_srad,
+                                                  s_pos, s_rad,
+                                                  norm, depth, pt1, pt2, eff_rad);
+    if (!res) {
+      cout << "    test failed" << endl;
+      exit(1);
+    }
+    WeakEqual(norm, real3(0, 1, 0));
+    WeakEqual(depth, -0.6);
+    WeakEqual(pt1, real3(2.5, 2.1, 0));
+    WeakEqual(pt2, real3(2.5, 1.5, 0));
+    WeakEqual(eff_rad, s_rad * c_rad/(s_rad + c_rad));
+  }
+
+  {
+    cout << "  edge interaction (separated)" << endl;
+    real3 s_pos(4, 3, 0);
+    bool res = ChCNarrowphaseR::roundedcyl_sphere(c_pos, c_rot, c_rad, c_hlen, c_srad,
+                                                  s_pos, s_rad,
+                                                  norm, depth, pt1, pt2, eff_rad);
+    if (res) {
+      cout << "    test failed" << endl;
+      exit(1);
+    }
+  }
+
+  {
+    cout << "  edge interaction (penetrated)" << endl;
+    real3 s_pos(3.5, 2.5, 0);
+    bool res = ChCNarrowphaseR::roundedcyl_sphere(c_pos, c_rot, c_rad, c_hlen, c_srad,
+                                                  s_pos, s_rad,
+                                                  norm, depth, pt1, pt2, eff_rad);
+    if (!res) {
+      cout << "    test failed" << endl;
+      exit(1);
+    }
+
+    float oosqrt2 = sqrt(0.5);   // 1/sqrt(2)
+
+    WeakEqual(norm, real3(oosqrt2, oosqrt2, 0));
+    WeakEqual(depth, -1.1 + oosqrt2);
+    WeakEqual(pt1, real3(3.0 + 0.1*oosqrt2, 2.0 + 0.1*oosqrt2, 0));
+    WeakEqual(pt2, real3(3.5 - oosqrt2, 2.5 - oosqrt2, 0));
+    WeakEqual(eff_rad, s_rad * c_srad/(s_rad + c_srad));
   }
 
 }
@@ -255,6 +381,7 @@ int main()
   // Collision detection
   test_sphere_sphere();
   test_cylinder_sphere();
+  test_roundedcyl_sphere();
 
    return 0;
 }

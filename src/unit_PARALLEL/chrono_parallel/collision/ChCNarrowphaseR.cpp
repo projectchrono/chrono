@@ -284,6 +284,69 @@ bool ChCNarrowphaseR::cylinder_sphere(
 }
 
 // =============================================================================
+//              ROUNDEDCYL - SPHERE
+
+// RoundedCylinder-sphere narrow phase collision detection.
+// In:  roundedcyl at pos1, with orientation rot1
+//              roundedcyl has radius1 and half-length hlen1 (in Y direction)
+//              radius of the sweeping sphere is srad1
+//      sphere centered at pos2 with radius2
+__host__ __device__
+bool ChCNarrowphaseR::roundedcyl_sphere(
+        const real3& pos1, const real4& rot1, const real& radius1, const real& hlen1, const real& srad1,
+        const real3& pos2, const real& radius2,
+        real3& norm, real& depth,
+        real3& pt1, real3& pt2,
+        real& eff_radius)
+{
+  // Express the sphere position in the frame of the rounded cylinder.
+  real3 spherePos = TransformParentToLocal(pos1, rot1, pos2);
+
+  // Snap the sphere position to the surface of the skeleton cylinder.
+  real3 cylPos = spherePos;
+  uint  code = snap_to_cylinder(radius1, hlen1, cylPos);
+
+  // Quick return: no contact if the sphere center is inside the skeleton
+  // cylinder.
+  if (code == 0)
+    return false;
+
+  // Reduce the problem to the interaction between two spheres:
+  //    (a) a sphere with radius srad1, centered at cylPos
+  //    (b) a sphere with radius radius2, centered at spherePos
+  // If the two sphere centers are farther away that the radii sum, there is
+  // no contact. Also, ignore contact if the two centers almost coincide, in
+  // which case we couldn't decide on the proper contact direction.
+  real  radSum = srad1 + radius2;
+  real3 delta = spherePos - cylPos;
+  real  dist2 = dot(delta, delta);
+
+  if (dist2 >= radSum * radSum || dist2 <= 1e-12f)
+    return false;
+
+  // Generate contact information.
+  real dist = sqrt(dist2);
+  depth = dist - radSum;
+  norm = quatRotateMat(delta / dist, rot1);
+  pt2 = pos2 - norm * radius2;
+  pt1 = pt2 - depth * norm;
+
+  switch (code) {
+  case 1:
+    eff_radius = radius2;
+    break;
+  case 2:
+    eff_radius = radius1 * radius2 / (radius1 + radius2);
+    break;
+  case 3:
+    eff_radius = srad1 * radius2 / (srad1 + radius2);
+    break;
+  }
+
+  return true;
+}
+
+// =============================================================================
 //              BOX - SPHERE
 
 // Box-sphere narrow phase collision detection.

@@ -17,13 +17,14 @@
 // each pair of collision shapes. Only a subset of collision shapes and of
 // pair-wise interactions are currently supported:
 //
-//          |  sphere   box   capsule   cylinder   trimesh
-// ---------+---------------------------------------------
-// sphere   |    Y       Y       Y         Y         Y
-// box      |           WIP      Y         N         N
-// capsule  |                    Y         N         N
-// cylinder |                              N         N
-// trimesh  |                              N         N
+//          |  sphere   box   capsule   cylinder   rcyl   trimesh
+// ---------+----------------------------------------------------------
+// sphere   |    Y       Y       Y         Y        Y        Y
+// box      |           WIP      Y         N        N        N
+// capsule  |                    Y         N        N        N
+// cylinder |                              N        N        N
+// rcyl     |                                       N        N
+// trimesh  |                                                N
 //
 // Note that some pairs may return more than one contact (e.g., box-box).
 //
@@ -70,6 +71,13 @@ public:
                        real3& norm, real& depth,
                        real3& pt1, real3& pt2,
                        real& eff_radius);
+
+  static __host__ __device__
+  bool roundedcyl_sphere(const real3& pos1, const real4& rot1, const real& radius1, const real& hlen1, const real& srad1,
+                         const real3& pos2, const real& radius2,
+                         real3& norm, real& depth,
+                         real3& pt1, real3& pt2,
+                         real& eff_radius);
 
   static __host__ __device__
   bool box_sphere(const real3& pos1, const real4& rot1, const real3& hdims1,
