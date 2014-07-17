@@ -51,6 +51,7 @@ SET(TESTS
     test_mat33
     test_gravity
     test_jacobians
+    test_r
 )
 
 MESSAGE(STATUS "Executable programs...")

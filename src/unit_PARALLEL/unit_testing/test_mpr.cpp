@@ -116,7 +116,7 @@ int main(
       StrictEqual(n, real3(0, -1, 0));
       StrictEqual(p1, real3(2, 1, 0));
       StrictEqual(p2, real3(2, 1, 0));
-      StrictEqual(d, 0);
+      StrictEqual(d, 0.0);
    }
    {
       cout << "special two spheres inter-penetrating" << endl;
@@ -159,7 +159,7 @@ int main(
       StrictEqual(n, real3(0, -1, 0));
       StrictEqual(p1, real3(2, 1, 0));
       StrictEqual(p2, real3(2, 1, 0));
-      StrictEqual(d, 0);
+      StrictEqual(d, 0.0);
 
    }
 //
@@ -217,7 +217,7 @@ int main(
       StrictEqual(n, real3(0, -1, 0));
       StrictEqual(p1, real3(2, 1, 0));
       StrictEqual(p2, real3(2, 1, 0));
-      StrictEqual(d, 0);
+      StrictEqual(d, 0.0);
 
    }
 //
