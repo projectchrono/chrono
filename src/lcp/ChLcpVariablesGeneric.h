@@ -107,53 +107,22 @@ public:
 
 				/// The number of scalar variables in the vector qb
 				/// (dof=degrees of freedom)
-	virtual int Get_ndof() {return this->ndof;};
-
+	int Get_ndof() const {return this->ndof;};
 
 				/// Computes the product of the inverse mass matrix by a
 				/// vector, and add to result: result = [invMb]*vect
-	virtual void Compute_invMb_v(ChMatrix<float>& result, const ChMatrix<float>& vect)
-					{
-						assert (result.GetRows() == vect.GetRows());
-						assert (vect.GetRows()   == Get_ndof());
-						result = (*inv_Mmass)*vect;
-					};
-	virtual void Compute_invMb_v(ChMatrix<double>& result, const ChMatrix<double>& vect)
-					{
-						assert (result.GetRows() == vect.GetRows());
-						assert (vect.GetRows()   == Get_ndof());
-						result = (*inv_Mmass)*vect;
-					};
+	void Compute_invMb_v(ChMatrix<float>& result, const ChMatrix<float>& vect) const;
+    void Compute_invMb_v(ChMatrix<double>& result, const ChMatrix<double>& vect) const;
 
 				/// Computes the product of the inverse mass matrix by a
 				/// vector, and increment result: result += [invMb]*vect
-	virtual void Compute_inc_invMb_v(ChMatrix<float>& result, const ChMatrix<float>& vect)
-					{
-						assert (result.GetRows() == vect.GetRows());
-						assert (vect.GetRows()   == Get_ndof());
-						result += (*inv_Mmass)*vect;
-					};
-	virtual void Compute_inc_invMb_v(ChMatrix<double>& result, const ChMatrix<double>& vect)
-					{
-						assert (result.GetRows() == vect.GetRows());
-						assert (vect.GetRows()   == Get_ndof());
-						result += (*inv_Mmass)*vect;
-					};
+    void Compute_inc_invMb_v(ChMatrix<float>& result, const ChMatrix<float>& vect) const;
+    void Compute_inc_invMb_v(ChMatrix<double>& result, const ChMatrix<double>& vect) const;
 
 				/// Computes the product of the mass matrix by a
 				/// vector, and set in result: result = [Mb]*vect
-	virtual void Compute_inc_Mb_v(ChMatrix<float>& result, const ChMatrix<float>& vect)
-					{
-						assert (result.GetRows() == vect.GetRows());
-						assert (vect.GetRows()   == Get_ndof());
-						result += (*Mmass)*vect;
-					};
-	virtual void Compute_inc_Mb_v(ChMatrix<double>& result, const ChMatrix<double>& vect)
-					{
-						assert (result.GetRows() == vect.GetRows());
-						assert (vect.GetRows()   == Get_ndof());
-						result += (*Mmass)*vect;
-					};
+    void Compute_inc_Mb_v(ChMatrix<float>& result, const ChMatrix<float>& vect) const;
+    void Compute_inc_Mb_v(ChMatrix<double>& result, const ChMatrix<double>& vect) const;
 
 				/// Computes the product of the corresponding block in the 
 				/// system matrix (ie. the mass matrix) by 'vect', and add to 'result'. 
@@ -161,38 +130,18 @@ public:
 				/// the size of the total variables&constraints in the system; the procedure
 				/// will use the ChVariable offsets (that must be already updated) to know the 
 				/// indexes in result and vect.
-	virtual void MultiplyAndAdd(ChMatrix<double>& result, const ChMatrix<double>& vect) const
-					{
-						assert(result.GetColumns()==1 && vect.GetColumns()==1);
-	
-						for (int i = 0; i < Mmass->GetRows(); i++)
-						{
-							double tot = 0;
-							for (int j = 0; j < Mmass->GetColumns(); j++)
-							{
-								tot += (*Mmass)(i,j)* vect(this->offset + i);
-							}
-							result(this->offset + i) += tot;
-						}
-					}
+    void MultiplyAndAdd(ChMatrix<double>& result, const ChMatrix<double>& vect) const;
 
 				/// Add the diagonal of the mass matrix (as a column vector) to 'result'.
 				/// NOTE: the 'result' vector must already have the size of system unknowns, ie
 				/// the size of the total variables&constraints in the system; the procedure
 				/// will use the ChVariable offset (that must be already updated) as index.
-	virtual void DiagonalAdd(ChMatrix<double>& result) const 
-					{
-						assert(result.GetColumns()==1);
-						for (int i = 0; i < Mmass->GetRows(); i++)
-						{
-							result(this->offset + i) += (*Mmass)(i,i);
-						}
-					}
+    void DiagonalAdd(ChMatrix<double>& result) const;
 
 				/// Build the mass matrix (for these variables) storing
 				/// it in 'storage' sparse matrix, at given column/row offset.
 				/// Note, most iterative solvers don't need to know mass matrix explicitly.
-	virtual void Build_M(ChSparseMatrix& storage, int insrow, int inscol)
+	void Build_M(ChSparseMatrix& storage, int insrow, int inscol)
 					{
 						storage.PasteMatrix(Mmass, insrow, inscol);
 					};

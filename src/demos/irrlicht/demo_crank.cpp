@@ -110,36 +110,44 @@ int main(int argc, char* argv[])
 	ChSharedBodyPtr  my_body_A(new ChBody);   
 	my_system.AddBody(my_body_A);
 	my_body_A->SetBodyFixed(true);			// truss does not move!
+	my_body_A->SetName("Ground-Truss");
 
 	// ..the crank
 	ChSharedBodyPtr  my_body_B(new ChBody);	  
 	my_system.AddBody(my_body_B);
 	my_body_B->SetPos(ChVector<>(1,0,0));	// position of COG of crank
+	my_body_B->SetMass(2);
+	my_body_B->SetName("Crank");
 
 	// ..the rod
 	ChSharedBodyPtr  my_body_C(new ChBody);	 
 	my_system.AddBody(my_body_C);
 	my_body_C->SetPos(ChVector<>(4,0,0));	// position of COG of rod
-	
+	my_body_C->SetMass(3);
+	my_body_C->SetName("Rod");
+
 
 	// 3- Create constraints: the mechanical joints between the 
 	//    rigid bodies.
     
 	// .. a revolute joint between crank and rod
 	ChSharedPtr<ChLinkLockRevolute>  my_link_BC(new ChLinkLockRevolute);
-	my_link_BC->Initialize(my_body_B, my_body_C, ChCoordsys<>(ChVector<>(2,0,0)));
+	my_link_BC->SetName("RevJointCrankRod");
+	my_link_BC->Initialize(my_body_B, my_body_C, ChCoordsys<>(ChVector<>(2, 0, 0)));
 	my_system.AddLink(my_link_BC);
 
 	// .. a slider joint between rod and truss
 	ChSharedPtr<ChLinkLockPointLine> my_link_CA(new ChLinkLockPointLine);
-	my_link_CA->Initialize(my_body_C, my_body_A, ChCoordsys<>(ChVector<>(6,0,0)));
+	my_link_CA->SetName("TransJointRodGround");
+	my_link_CA->Initialize(my_body_C, my_body_A, ChCoordsys<>(ChVector<>(6, 0, 0)));
 	my_system.AddLink(my_link_CA);
- 
+
 	// .. an engine between crank and truss
 
 	ChSharedPtr<ChLinkEngine> my_link_AB(new ChLinkEngine);
 	my_link_AB->Initialize(my_body_A, my_body_B, ChCoordsys<>(ChVector<>(0,0,0)));
 	my_link_AB->Set_eng_mode(ChLinkEngine::ENG_MODE_SPEED);
+	my_link_AB->SetName("RevJointEngine");
 	if (ChFunction_Const* mfun = dynamic_cast<ChFunction_Const*>(my_link_AB->Get_spe_funct()))
 		mfun->Set_yconst(CH_C_PI); // speed w=3.145 rad/sec
 	my_system.AddLink(my_link_AB);

@@ -93,7 +93,7 @@ public:
 
 				/// The number of scalar variables in the vector qb
 				/// (dof=degrees of freedom)
-	virtual int Get_ndof() {return 6;};
+	virtual int Get_ndof() const {return 6;}
 
 
 	virtual void* GetUserData() {return this->user_data;}
