@@ -214,7 +214,8 @@ public:
 
 		this->SetDensity( (float)mdensity );
 		this->SetMass( mass * mdensity );
-		this->SetInertia( &(inertia * mdensity) );
+		ChMatrix33<> massinertia = inertia * mdensity;
+		this->SetInertia( &massinertia );
 		
 		if (collide)
 		{
