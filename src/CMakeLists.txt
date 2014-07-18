@@ -666,6 +666,10 @@ IF (BUILD_CH_SDK)
 		particlefactory/ChRandomParticlePosition.h
 		particlefactory/ChRandomParticleAlignment.h
 		particlefactory/ChRandomParticleVelocity.h
+		particlefactory/ChParticleRemover.h
+		particlefactory/ChParticleEventTrigger.h
+		particlefactory/ChParticleProcessEvent.h
+		particlefactory/ChParticleProcessor.h
 	)
 	SOURCE_GROUP(particlefactory FILES  
 			${ChronoEngine_particlefactory_SOURCES}

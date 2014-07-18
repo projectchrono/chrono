@@ -33,6 +33,7 @@
 #include "physics/ChApidll.h" 
 #include "physics/ChSystem.h"
 #include "particlefactory/ChParticleEmitter.h"
+#include "particlefactory/ChParticleRemover.h"
 #include "assets/ChTexture.h"
 #include "assets/ChColorAsset.h"
 #include "irrlicht_interface/ChIrrApp.h"
@@ -222,6 +223,30 @@ int main(int argc, char* argv[])
 
 
 
+	// Create the remover, i.e. an object that takes care 
+	// of removing particles that are inside or outside some volume.
+	// The fact that particles are handled with shared pointers means that,
+	// after they are removed from the ChSystem, they are also automatically
+	// deleted if no one else is referencing them.
+
+	ChParticleRemoverBox remover;
+	remover.SetRemoveOutside(true);
+	remover.GetBox().Pos = ChVector<>(0,0,0);
+	remover.GetBox().SetLenghts( ChVector<>(5,20,5) );
+
+	// Test also a ChParticleProcessor configured as a
+	// counter of particles that flow into a rectangle:
+	//  -create the trigger:
+	ChSharedPtr<ChParticleEventFlowInRectangle> rectangleflow (new ChParticleEventFlowInRectangle(8,8));
+	rectangleflow->rectangle_csys = ChCoordsys<>( ChVector<>(0,2,0), Q_from_AngAxis(-CH_C_PI_2,VECT_X) ); // center and alignment of rectangle
+	rectangleflow->margin = 1;
+	//  -create the counter:
+	ChSharedPtr<ChParticleProcessEventCount> counter (new ChParticleProcessEventCount);
+	//  -create the processor and plug in the trigger and the counter:
+	ChParticleProcessor processor_flowcount;
+	processor_flowcount.SetEventTrigger(rectangleflow);
+	processor_flowcount.SetParticleEventProcessor(counter);
+
 
 
 	// Use this function for adding a ChIrrNodeAsset to all already created items (ex. the floor, etc.)
@@ -237,8 +262,6 @@ int main(int argc, char* argv[])
 	mphysicalSystem.SetIterLCPmaxItersSpeed(40);
 	mphysicalSystem.SetIterLCPmaxItersStab(5);
 
- 
-	//mphysicalSystem.SetUseSleeping(true);
 
 	application.SetStepManage(true);
 	application.SetTimestep(0.02);
@@ -255,6 +278,13 @@ int main(int argc, char* argv[])
 		
 		// Continuosly create particle flow:
 		emitter.EmitParticles(mphysicalSystem, application.GetTimestep());
+
+		// Continuosly check if some particle must be removed:
+		remover.ProcessParticles(mphysicalSystem);
+
+		// Use the processor to count particle flow in the rectangle section:
+		processor_flowcount.ProcessParticles(mphysicalSystem);
+		GetLog() << "Particles being flown across rectangle:" << counter->counter << "\n";
 
 		application.DoStep();	
 
