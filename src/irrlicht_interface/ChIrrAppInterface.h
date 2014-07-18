@@ -48,6 +48,10 @@
 namespace irr
 {
 
+/// Directory where .obj primitives and fonts files are stored (by default, it is "../data/")
+/// Should be set _before_ creating the ChIrrApp or the ChIrrAssetConverter 
+static std::string irrlicht_default_obj_dir("../data/");
+
 
 /// Class to add some GUI to Irrlicht+Chrono::Engine
 /// applications. 
@@ -340,7 +344,7 @@ public:
 				device->setWindowCaption(L"Chrono::Engine");
 
 			gui::IGUISkin* skin = GetIGUIEnvironment()->getSkin();
-			gui::IGUIFont* font = GetIGUIEnvironment()->getFont("../data/fonts/arial8.xml");
+			gui::IGUIFont* font = GetIGUIEnvironment()->getFont((irrlicht_default_obj_dir+"fonts/arial8.xml").c_str());
 			if (font)
 				skin->setFont(font);
 			skin->setColor(irr::gui::EGDC_BUTTON_TEXT, irr::video::SColor(255,40,50,50));

@@ -36,6 +36,7 @@
 //
 
 
+#include "ChIrrAppInterface.h"
 #include "ChBodySceneNode.h"
 #include "ChIrrMeshTools.h"
 #include "geometry/ChCSphere.h"
@@ -119,7 +120,7 @@ ISceneNode* addChBodySceneNode_offsetCOG(chrono::ChSystem* asystem,
 	return rigidBodyZ;	
 }
 
-static std::string irrlicht_default_obj_dir("../data/");
+
 
 
 
