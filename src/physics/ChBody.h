@@ -70,10 +70,7 @@ typedef ChSharedPtr<ChMarker> ChSharedMarkerPtr;
 /// be associated to the body, for collision detection.
 ///
 
-class ChApi ChBody : 
-						public ChPhysicsItem , 
-						public ChBodyFrame
-						//public ChFrameMoving<double> 
+class ChApi ChBody : public ChPhysicsItem , public ChBodyFrame
 {
 
                         // Chrono simulation of RTTI, needed for serialization
@@ -143,11 +140,11 @@ public:
             //
 
                 /// Build a rigid body.
-    ChBody ();
+    ChBody();
                 /// Build a rigid body with a different collision model.
-    ChBody (ChCollisionModel* new_collision_model);
+    ChBody(ChCollisionModel* new_collision_model);
                 /// Destructor
-    ~ChBody ();
+    ~ChBody();
 
                 /// Copy from another ChBody. 
                 /// NOTE: all settings of the body are copied, but the
@@ -162,66 +159,65 @@ public:
 
                 /// Sets the 'fixed' state of the body. If true, it does not move
                 /// respect to the absolute world, despite constraints, forces, etc.
-    void SetBodyFixed (bool mev);
+    void SetBodyFixed(bool mev);
     bool GetBodyFixed()    {return BFlagGet(BF_FIXED);}
 
                 /// If true, the normal restitution coefficient is evaluated
                 /// from painted material channel.
-    void SetEvalContactCn (bool mev) { BFlagSet(BF_EVAL_CONTACT_CN, mev);}
-    bool GetEvalContactCn() {return BFlagGet(BF_EVAL_CONTACT_CN);}
+    void SetEvalContactCn(bool mev) { BFlagSet(BF_EVAL_CONTACT_CN, mev);}
+    bool GetEvalContactCn()         {return BFlagGet(BF_EVAL_CONTACT_CN);}
 
                 /// If true, the tangential restitution coefficient is evaluated
                 /// from painted material channel.
-    void SetEvalContactCt (bool mev) { BFlagSet(BF_EVAL_CONTACT_CT, mev);}
-    bool GetEvalContactCt() {return BFlagGet(BF_EVAL_CONTACT_CT);}
+    void SetEvalContactCt(bool mev) { BFlagSet(BF_EVAL_CONTACT_CT, mev);}
+    bool GetEvalContactCt()         {return BFlagGet(BF_EVAL_CONTACT_CT);}
 
                 /// If true, the kinetic friction coefficient is evaluated
                 /// from painted material channel.
-    void SetEvalContactKf (bool mev) { BFlagSet(BF_EVAL_CONTACT_KF, mev);}
-    bool GetEvalContactKf() {return BFlagGet(BF_EVAL_CONTACT_KF);}
+    void SetEvalContactKf(bool mev) { BFlagSet(BF_EVAL_CONTACT_KF, mev);}
+    bool GetEvalContactKf()         {return BFlagGet(BF_EVAL_CONTACT_KF);}
 
                 /// If true, the static friction coefficient is evaluated
                 /// from painted material channel.
-    void SetEvalContactSf (bool mev) { BFlagSet(BF_EVAL_CONTACT_SF, mev);}
-    bool GetEvalContactSf() {return BFlagGet(BF_EVAL_CONTACT_SF);}
+    void SetEvalContactSf(bool mev) { BFlagSet(BF_EVAL_CONTACT_SF, mev);}
+    bool GetEvalContactSf()         {return BFlagGet(BF_EVAL_CONTACT_SF);}
 
                 /// Enable/disable the collision for this rigid body.
                 /// (After setting ON, you may need RecomputeCollisionModel()
                 /// before anim starts, if you added an external object 
                 /// that implements onAddCollisionGeometries(), ex. in a plugin for a CAD)
-    void  SetCollide (bool mcoll);
-    bool  GetCollide() {return BFlagGet(BF_COLLIDE);}
+    void  SetCollide(bool mcoll);
+    bool  GetCollide()    {return BFlagGet(BF_COLLIDE);}
 
                 /// Show collision mesh in 3D views.
-    void SetShowCollisionMesh    (bool mcoll) { BFlagSet(BF_SHOW_COLLMESH, mcoll);};
-    bool GetShowCollisionMesh () {return BFlagGet(BF_SHOW_COLLMESH);};
+    void SetShowCollisionMesh(bool mcoll) { BFlagSet(BF_SHOW_COLLMESH, mcoll);}
+    bool GetShowCollisionMesh()           {return BFlagGet(BF_SHOW_COLLMESH);}
 
                 /// Trick. Set the maximum linear speed (beyond this limit it will
                 /// be clamped). This is useful in virtual reality and real-time
                 /// simulations, because it reduces the risk of bad collision detection.
                 /// The realism is limited, but the simulation is more stable.
-    void SetLimitSpeed    (bool mlimit) { BFlagSet(BF_LIMITSPEED, mlimit);};
-    bool GetLimitSpeed()  {return BFlagGet(BF_LIMITSPEED);};
+    void SetLimitSpeed(bool mlimit) { BFlagSet(BF_LIMITSPEED, mlimit);}
+    bool GetLimitSpeed()            {return BFlagGet(BF_LIMITSPEED);}
 
                 /// Trick. Deactivate the gyroscopic torque (quadratic term).
                 /// This is useful in virtual reality and real-time
                 /// simulations, where objects that spin too fast with non-uniform inertia
                 /// tensors (ex thin cylinders) might cause the integration to diverge quickly.
                 /// The realism is limited, but the simulation is more stable.
-    void SetNoGyroTorque    (bool mnogyro) { BFlagSet(BF_NOGYROTORQUE, mnogyro);};
-    bool GetNoGyroTorque()  {return BFlagGet(BF_NOGYROTORQUE);};
+    void SetNoGyroTorque(bool mnogyro) { BFlagSet(BF_NOGYROTORQUE, mnogyro);}
+    bool GetNoGyroTorque()             {return BFlagGet(BF_NOGYROTORQUE);}
 
                 /// Trick. If use sleeping= true, bodies which stay in same place
                 /// for too long time will be deactivated, for optimization.
                 /// The realism is limited, but the simulation is faster.
-    void SetUseSleeping    (bool ms) { BFlagSet(BF_USESLEEPING, ms);};
-    bool GetUseSleeping()  {return BFlagGet(BF_USESLEEPING);};
+    void SetUseSleeping(bool ms) { BFlagSet(BF_USESLEEPING, ms);}
+    bool GetUseSleeping()        {return BFlagGet(BF_USESLEEPING);}
 
                 /// Force the body in sleeping mode or not (usually this state change is not
                 /// handled by users, anyway, because it is mostly automatic).
-    void SetSleeping    (bool ms) { BFlagSet(BF_SLEEPING, ms);};
-                /// Tell if the body is actually in sleeping state.
-    bool GetSleeping()  {return BFlagGet(BF_SLEEPING);};
+    void SetSleeping(bool ms) { BFlagSet(BF_SLEEPING, ms);}
+    bool GetSleeping()        {return BFlagGet(BF_SLEEPING);}
 
                 /// Put the body in sleeping state if requirements are satisfied.
     bool TrySleeping();
@@ -316,7 +312,7 @@ public:
 
                 /// Gets the last position when the collision detection was
                 /// performed last time (i.e. last time SynchronizeLastCollPos() was used)
-    ChCoordsys<> GetLastCollPos () { return last_coll_pos; }
+    const ChCoordsys<>& GetLastCollPos() const { return last_coll_pos; }
                 /// Stores the current position in the last-collision-position buffer.
     void SynchronizeLastCollPos() {last_coll_pos = this->coord;}
 
@@ -357,7 +353,7 @@ public:
                 /// if needed, it is automatically dereferenced and deleted.
                 /// The ChMaterialSurface can be a shared object! (by default, each body creates its
                 /// own as soon as instanced, but later the material object can be replaced).
-    void SetMaterialSurface(ChSharedPtr<ChMaterialSurface>& mnewsurf) {this->matsurface = mnewsurf;}
+    void SetMaterialSurface(const ChSharedPtr<ChMaterialSurface>& mnewsurf) {this->matsurface = mnewsurf;}
 
 
                 /// FOR BACKWARD COMPATIBILITY ONLY. Better use: GetMaterialSurface()->Get...  etc.etc.
@@ -385,7 +381,7 @@ public:
                 /// The density of the rigid body, as [mass]/[unit volume]. Used just if
                 /// the inertia tensor and mass are automatically recomputed from the
                 /// geometry (in case a CAD plugin for example provides the surfaces.)
-    float  GetDensity() {return density;}
+    float  GetDensity() const {return density;}
     void   SetDensity(float mdensity) {density = mdensity;}
 
 
@@ -425,12 +421,12 @@ public:
                 /// Gets the list of children markers.
                 /// NOTE: to modify this list, use the appropriate Remove..
                 /// and Add.. functions.
-    const std::vector<ChMarker*>& GetMarkerList() {return marklist;} 
+    const std::vector<ChMarker*>& GetMarkerList() const {return marklist;} 
 
                 /// Gets the list of children forces.
                 /// NOTE: to modify this list, use the appropriate Remove..
                 /// and Add.. functions.
-    const std::vector<ChForce*>& GetForceList() {return forcelist;}
+    const std::vector<ChForce*>& GetForceList() const {return forcelist;}
 
     
 
@@ -454,6 +450,9 @@ public:
 
                 /// Set the inertia tensor of the body
     void SetInertia (const ChMatrix33<>& newXInertia);
+                /// Get a reference to the inertia tensor, as a 3x3 matrix,
+                /// expressed in local coordinate system.
+    const ChMatrix33<>& GetInertia() {return variables.GetBodyInertia();}
                 /// Set the diagonal part of the inertia tensor (Ixx, Iyy, Izz values)
     void SetInertiaXX(const ChVector<>& iner);
                 /// Get the diagonal part of the inertia tensor (Ixx, Iyy, Izz values)
@@ -474,33 +473,33 @@ public:
                 /// be clamped). This is useful in virtual reality and real-time
                 /// simulations, because it reduces the risk of bad collision detection.
                 /// This speed limit is active only if you set  SetLimitSpeed(true);
-    void   SetMaxSpeed(float m_max_speed) {max_speed = m_max_speed;}
-    float  GetMaxSpeed () {return max_speed;}
+    void  SetMaxSpeed(float m_max_speed) {max_speed = m_max_speed;}
+    float GetMaxSpeed() const {return max_speed;}
 
                 /// Trick. Set the maximum angualar speed (beyond this limit it will
                 /// be clamped). This is useful in virtual reality and real-time
                 /// simulations, because it reduces the risk of bad collision detection.
                 /// This speed limit is active only if you set  SetLimitSpeed(true);
-    void   SetMaxWvel(float m_max_wvel) {max_wvel = m_max_wvel;}
-    float  GetMaxWvel () {return max_wvel;}
+    void  SetMaxWvel(float m_max_wvel) {max_wvel = m_max_wvel;}
+    float GetMaxWvel() const {return max_wvel;}
 
                 /// When this function is called, the speed of the body is clamped
                 /// into limits posed by max_speed and max_wvel  - but remember to
                 /// put the body in the SetLimitSpeed(true) mode.
-    void ClampSpeed();
+    void  ClampSpeed();
 
                 /// Set the amount of time which must pass before going automatically in
                 /// sleep mode when the body has very small movements.
-    void   SetSleepTime(float m_t) {sleep_time = m_t;}
-    float GetSleepTime () {return sleep_time;}
+    void  SetSleepTime(float m_t) {sleep_time = m_t;}
+    float GetSleepTime() const {return sleep_time;}
 
                 /// Set the max linear speed to be kept for 'sleep_time' before freezing.
-    void   SetSleepMinSpeed(float m_t) {sleep_minspeed = m_t;}
-    float GetSleepMinSpeed () {return sleep_minspeed;}
+    void  SetSleepMinSpeed(float m_t) {sleep_minspeed = m_t;}
+    float GetSleepMinSpeed() const {return sleep_minspeed;}
 
                 /// Set the max linear speed to be kept for 'sleep_time' before freezing.
-    void   SetSleepMinWvel(float m_t) {sleep_minwvel = m_t;}
-    float GetSleepMinWvel () {return sleep_minwvel;}
+    void  SetSleepMinWvel(float m_t) {sleep_minwvel = m_t;}
+    float GetSleepMinWvel() const {return sleep_minwvel;}
 
 
 
@@ -539,43 +538,39 @@ public:
                 /// expressed in body coordinates, otherwise are considered in absolute coordinates.
     void Accumulate_force(const ChVector<>& force, const ChVector<>& appl_point, int local);
     void Accumulate_torque(const ChVector<>& torque, int local);
-    ChVector<> Get_accumulated_force  () {return Force_acc;};
-    ChVector<> Get_accumulated_torque () {return Torque_acc;};
-    void Empty_forces_accumulators () {Force_acc = VNULL; Torque_acc = VNULL;};
+    void Empty_forces_accumulators () {Force_acc = VNULL; Torque_acc = VNULL;}
+    const ChVector<>& Get_accumulated_force() const {return Force_acc;}
+    const ChVector<>& Get_accumulated_torque() const {return Torque_acc;}
 
                 /// To get & set the 'script' force buffers(only accessed by external scripts, so
                 /// It's up to the script to remember to set& reset them -link class just add them to
                 /// all other forces. Script forces&torques are considered applied to COG, in abs csys.
-    ChVector<>* Get_Scr_force() {return &Scr_force;};
-    ChVector<>* Get_Scr_torque() {return &Scr_torque;};
-    void Set_Scr_force(ChVector<> mf) {Scr_force = mf;};
-    void Set_Scr_torque(ChVector<> mf) {Scr_torque = mf;};
+    const ChVector<>& Get_Scr_force() const {return Scr_force;}
+    const ChVector<>& Get_Scr_torque() const {return Scr_torque;}
+    void Set_Scr_force(const ChVector<>& mf) {Scr_force = mf;}
+    void Set_Scr_torque(const ChVector<>& mf) {Scr_torque = mf;}
     void Accumulate_script_force(const ChVector<>& force, const ChVector<>& appl_point, int local);
     void Accumulate_script_torque(const ChVector<>& torque, int local);
 
                 /// Return the gyroscopic torque.
-    ChVector<>  Get_gyro() {return gyro;}
+    const ChVector<>& Get_gyro() const {return gyro;}
 
                 /// Get the total force applied to the rigid body (applied at center of mass.
                 /// expressed in absolute coordinates).
-    ChVector<> Get_Xforce () {return Xforce;}
+    const ChVector<>& Get_Xforce () const {return Xforce;}
                 /// Get the total torque applied to the rigid body (expressed in body coordinates).
                 /// This does not include the gyroscopic torque.
-    ChVector<> Get_Xtorque() {return Xtorque;}
-
-                /// Get the address of the inertia tensor, as a 3x3 matrix,
-                /// expressed in local coordinate system.
-    const ChMatrix33<>& GetXInertia() {return variables.GetBodyInertia();}
+    const ChVector<>& Get_Xtorque() const {return Xtorque;}
 
 
             // Body-specific flag handling
 
-    void BFlagsSetAllOFF () {bflag = 0;}
-    void BFlagsSetAllON () {bflag = 0; bflag = ~ bflag;}
-    void BFlagSetON  (int mask) {bflag |= mask ;}
-    void BFlagSetOFF (int mask) {bflag &= ~ mask;}
-    bool BFlagGet    (int mask) {return (bflag & mask)!=0;};
-    void BFlagSet    (int mask, bool state) {if (state) bflag |= mask; else bflag &= ~ mask;};
+    void BFlagsSetAllOFF ()              {bflag = 0;}
+    void BFlagsSetAllON ()               {bflag = 0; bflag = ~ bflag;}
+    void BFlagSetON (int mask)           {bflag |= mask ;}
+    void BFlagSetOFF (int mask)          {bflag &= ~ mask;}
+    bool BFlagGet (int mask)             {return (bflag & mask)!=0;};
+    void BFlagSet (int mask, bool state) {if (state) bflag |= mask; else bflag &= ~ mask;}
 
             //
             // UPDATE FUNCTIONS

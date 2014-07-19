@@ -395,7 +395,7 @@ void ChBody::ComputeQInertia (ChMatrixNM<double,4,4>* mQInertia)
     SetMatrix_Gl(Gl, coord.rot);
     GlT.CopyFromMatrixT(Gl);
 
-    res.MatrMultiply(this->GetXInertia(), Gl);
+    res.MatrMultiply(this->GetInertia(), Gl);
     mQInertia->MatrMultiply(GlT, res); // [Iq]=[G'][Ix][G]
 }
 
