@@ -48,6 +48,7 @@
 // Use the namespace of Chrono
 
 using namespace chrono;
+using namespace chrono::collision;
 
 // Use the main namespaces of Irrlicht
 using namespace irr;

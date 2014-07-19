@@ -22,6 +22,7 @@
 #include <irrlicht.h>
 
 using namespace chrono;
+using namespace chrono::collision;
 using namespace irr;
          
 using namespace core;
