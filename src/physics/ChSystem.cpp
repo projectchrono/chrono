@@ -1188,10 +1188,10 @@ ChSharedPtr<ChMarker> ChSystem::SearchMarker (int markID)
 	HIER_BODY_INIT
 	while HIER_BODY_NOSTOP
 	{
-		res = ChContainerSearchFromID<ChMarker, std::vector<ChMarker*>::iterator>
+		res = ChContainerSearchFromID<ChMarker, std::vector<ChMarker*>::const_iterator>
 				(markID, 
-				Bpointer->GetMarkerList()->begin(), 
-				Bpointer->GetMarkerList()->end());
+				Bpointer->GetMarkerList().begin(), 
+				Bpointer->GetMarkerList().end());
 		if (res != NULL) 
 		{
 			res->AddRef(); // in that container pointers were not stored as ChSharedPtr, so this is needed..
@@ -1205,10 +1205,10 @@ ChSharedPtr<ChMarker> ChSystem::SearchMarker (int markID)
 	{
 		if (ChBodyAuxRef* mbodyauxref = dynamic_cast<ChBodyAuxRef*>(PHpointer))
 		{
-			res = ChContainerSearchFromID<ChMarker, std::vector<ChMarker*>::iterator>
+			res = ChContainerSearchFromID<ChMarker, std::vector<ChMarker*>::const_iterator>
 				(markID, 
-				mbodyauxref->GetMarkerList()->begin(), 
-				mbodyauxref->GetMarkerList()->end());
+				mbodyauxref->GetMarkerList().begin(), 
+				mbodyauxref->GetMarkerList().end());
 			if (res != NULL) 
 			{
 				res->AddRef(); // in that container pointers were not stored as ChSharedPtr, so this is needed..
@@ -3199,15 +3199,15 @@ void ChSystem::ShowHierarchy(ChStreamOutAscii& m_file)
 	{
 		GetLog() << "     BODY:       " << (*ibody)->GetName() << "\n";
 
-		std::vector<ChMarker*>::iterator imarker = (*ibody)->GetMarkerList()->begin();
-		while (imarker != (*ibody)->GetMarkerList()->end())
+		std::vector<ChMarker*>::const_iterator imarker = (*ibody)->GetMarkerList().begin();
+		while (imarker != (*ibody)->GetMarkerList().end())
 		{
 			GetLog() << "        MARKER:   " << (*imarker)->GetName() << "\n";
 			imarker++;
 		}
 
-		std::vector<ChForce*>::iterator iforce = (*ibody)->GetForceList()->begin();
-		while (iforce != (*ibody)->GetForceList()->end())
+    std::vector<ChForce*>::const_iterator iforce = (*ibody)->GetForceList().begin();
+		while (iforce != (*ibody)->GetForceList().end())
 		{
 			GetLog() << "        FORCE:   " << (*iforce)->GetName() << "\n";
 			iforce++;

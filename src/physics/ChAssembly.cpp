@@ -655,10 +655,10 @@ ChMarker* ChAssembly::SearchMarker (int markID)
 	HIER_BODY_INIT
 	while HIER_BODY_NOSTOP
 	{
-		res = ChContainerSearchFromID<ChMarker, std::vector<ChMarker*>::iterator>
+		res = ChContainerSearchFromID<ChMarker, std::vector<ChMarker*>::const_iterator>
 				(markID, 
-				Bpointer->GetMarkerList()->begin(), 
-				Bpointer->GetMarkerList()->end());
+				Bpointer->GetMarkerList().begin(), 
+				Bpointer->GetMarkerList().end());
 		if (res != NULL) return res;
 
 		HIER_BODY_NEXT

@@ -423,16 +423,14 @@ public:
     ChSharedPtr<ChForce>  SearchForce (char* m_name);
 
                 /// Gets the list of children markers.
-                /// NOTE! use this list only to enumerate etc., but NOT to
-                /// remove or add items (use the appropriate Remove.. and Add.. 
-                /// functions instead!)
-    std::vector<ChMarker*>* GetMarkerList() {return &marklist;} 
+                /// NOTE: to modify this list, use the appropriate Remove..
+                /// and Add.. functions.
+    const std::vector<ChMarker*>& GetMarkerList() {return marklist;} 
 
                 /// Gets the list of children forces.
-                /// NOTE! use this list only to enumerate etc., but NOT to
-                /// remove or add items (use the appropriate Remove.. and Add.. 
-                /// functions instead!)
-    std::vector<ChForce*>* GetForceList() {return &forcelist;}
+                /// NOTE: to modify this list, use the appropriate Remove..
+                /// and Add.. functions.
+    const std::vector<ChForce*>& GetForceList() {return forcelist;}
 
     
 
