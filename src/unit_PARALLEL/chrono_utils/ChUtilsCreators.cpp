@@ -61,7 +61,7 @@ void CreateBoxContainerDEM(ChSystem*                           system,
   if (sysType == SEQUENTIAL_DEM)
     body = new ChBodyDEM();
   else
-    body = new ChBodyDEM(new ChCollisionModelParallel);
+    body = new ChBodyDEM(new collision::ChCollisionModelParallel);
 
   body->SetMaterialSurfaceDEM(mat);
 
@@ -104,7 +104,7 @@ void CreateBoxContainerDVI(ChSystem*                           system,
   if (sysType == SEQUENTIAL_DVI)
     body = new ChBody();
   else
-    body = new ChBody(new ChCollisionModelParallel);
+    body = new ChBody(new collision::ChCollisionModelParallel);
 
   body->SetMaterialSurface(mat);
 

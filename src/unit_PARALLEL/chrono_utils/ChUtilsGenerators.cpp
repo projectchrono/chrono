@@ -497,11 +497,11 @@ void Generator::createObjects(const PointVector& points,
       m_mixture[index]->setMaterialProperties(((ChBodyDEM*) body)->GetMaterialSurfaceDEM());
       break;
     case PARALLEL_DVI:
-      body = new ChBody(new ChCollisionModelParallel);
+      body = new ChBody(new collision::ChCollisionModelParallel);
       m_mixture[index]->setMaterialProperties(body->GetMaterialSurface());
       break;
     case PARALLEL_DEM:
-      body = new ChBodyDEM(new ChCollisionModelParallel);
+      body = new ChBodyDEM(new collision::ChCollisionModelParallel);
       m_mixture[index]->setMaterialProperties(((ChBodyDEM*) body)->GetMaterialSurfaceDEM());
       break;
     }
