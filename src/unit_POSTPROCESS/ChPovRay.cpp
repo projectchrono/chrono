@@ -902,7 +902,7 @@ void ChPovRay::ExportData(const std::string &filename)
 
 				// Get the current coordinate frame of the i-th object
 				ChCoordsys<> assetcsys = CSYSNORM;
-				ChFrame<> bodyframe = mybody->GetFrame_REF_to_abs();
+				const ChFrame<>& bodyframe = mybody->GetFrame_REF_to_abs();
 				assetcsys = bodyframe.GetCoord();
 
 				// Dump the POV macro that generates the contained asset(s) tree!!!
@@ -911,7 +911,7 @@ void ChPovRay::ExportData(const std::string &filename)
 				// Show body COG?
 				if (this->COGs_show)
 				{
-					ChCoordsys<> cogcsys = mybody->GetFrame_COG_to_abs().GetCoord();
+					const ChCoordsys<>& cogcsys = mybody->GetFrame_COG_to_abs().GetCoord();
 					mfilepov << "sh_csysCOG(";
 					mfilepov << cogcsys.pos.x << "," << cogcsys.pos.y << "," << cogcsys.pos.z << ",";
 					mfilepov << cogcsys.rot.e0 << "," << cogcsys.rot.e1 << "," << cogcsys.rot.e2 << "," << cogcsys.rot.e3  << ",";

@@ -230,21 +230,21 @@ public:
 				core::matrix4 irrMat;
 
 				// Get the rigid body actual rotation, as a 3x3 matrix [A]
-				chrono::ChMatrix33<>* chMat = GetBody()->GetFrame_REF_to_abs().GetA();
+				const chrono::ChMatrix33<>& chMat = GetBody()->GetFrame_REF_to_abs().GetA();
 				
 				// Fill the upper 3x3 submatrix with the [A] matrix
 				// transposed, since Irrlicht uses the row-major style as in D3D
-				irrMat[0] = (irr::f32)chMat->GetElementN(0);
-				irrMat[1] = (irr::f32)chMat->GetElementN(3);
-				irrMat[2] = (irr::f32)chMat->GetElementN(6);
+				irrMat[0] = (irr::f32)chMat.GetElementN(0);
+				irrMat[1] = (irr::f32)chMat.GetElementN(3);
+				irrMat[2] = (irr::f32)chMat.GetElementN(6);
 
-				irrMat[4] = (irr::f32)chMat->GetElementN(1);
-				irrMat[5] = (irr::f32)chMat->GetElementN(4);
-				irrMat[6] = (irr::f32)chMat->GetElementN(7);
+				irrMat[4] = (irr::f32)chMat.GetElementN(1);
+				irrMat[5] = (irr::f32)chMat.GetElementN(4);
+				irrMat[6] = (irr::f32)chMat.GetElementN(7);
 				
-				irrMat[8] = (irr::f32)chMat->GetElementN(2);
-				irrMat[9] = (irr::f32)chMat->GetElementN(5);
-				irrMat[10]= (irr::f32)chMat->GetElementN(8);
+				irrMat[8] = (irr::f32)chMat.GetElementN(2);
+				irrMat[9] = (irr::f32)chMat.GetElementN(5);
+				irrMat[10]= (irr::f32)chMat.GetElementN(8);
 
 				irrMat[12]= (irr::f32)GetBody()->GetFrame_REF_to_abs().GetPos().x;
 				irrMat[13]= (irr::f32)GetBody()->GetFrame_REF_to_abs().GetPos().y;

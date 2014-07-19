@@ -370,13 +370,13 @@ public:
 					chrono::ChSharedPtr<chrono::ChBody> abody ((*myiter).DynamicCastTo<chrono::ChBody>());
 
 					video::SColor mcol;
-					chrono::ChFrame<>* mframe_cog = &(abody->GetFrame_COG_to_abs());
-					chrono::ChFrame<>* mframe_ref = &(abody->GetFrame_REF_to_abs());
+					const chrono::ChFrame<>& mframe_cog = abody->GetFrame_COG_to_abs();
+					const chrono::ChFrame<>& mframe_ref = abody->GetFrame_REF_to_abs();
 					
-					chrono::ChVector<> p0 = mframe_cog->GetPos();
-					chrono::ChVector<> px = p0 + mframe_cog->GetA()->Get_A_Xaxis()*0.5*scale;
-					chrono::ChVector<> py = p0 + mframe_cog->GetA()->Get_A_Yaxis()*0.5*scale;
-					chrono::ChVector<> pz = p0 + mframe_cog->GetA()->Get_A_Zaxis()*0.5*scale;
+					chrono::ChVector<> p0 = mframe_cog.GetPos();
+					chrono::ChVector<> px = p0 + mframe_cog.GetA().Get_A_Xaxis()*0.5*scale;
+					chrono::ChVector<> py = p0 + mframe_cog.GetA().Get_A_Yaxis()*0.5*scale;
+					chrono::ChVector<> pz = p0 + mframe_cog.GetA().Get_A_Zaxis()*0.5*scale;
 
 					mcol=video::SColor(70,125,0,0);  // X red
 					driver->draw3DLine(core::vector3dfCH(p0), core::vector3dfCH(px), mcol );
@@ -385,10 +385,10 @@ public:
 					mcol=video::SColor(70,0,0,125);  // Z blue
 					driver->draw3DLine(core::vector3dfCH(p0), core::vector3dfCH(pz), mcol );
 
-					p0 = mframe_ref->GetPos();
-					px = p0 + mframe_ref->GetA()->Get_A_Xaxis()*scale;
-					py = p0 + mframe_ref->GetA()->Get_A_Yaxis()*scale;
-					pz = p0 + mframe_ref->GetA()->Get_A_Zaxis()*scale;
+					p0 = mframe_ref.GetPos();
+					px = p0 + mframe_ref.GetA().Get_A_Xaxis()*scale;
+					py = p0 + mframe_ref.GetA().Get_A_Yaxis()*scale;
+					pz = p0 + mframe_ref.GetA().Get_A_Zaxis()*scale;
 
 					mcol=video::SColor(70,255,0,0);  // X red
 					driver->draw3DLine(core::vector3dfCH(p0), core::vector3dfCH(px), mcol );

@@ -325,12 +325,12 @@ public:
                 /// are defined respect to this coordinate system, that is also
                 /// assumed the default main coordinates of the body. 
                 /// By default, doing mybody.GetPos() etc. is like mybody.GetFrame_COG_abs().GetPos() etc.
-    virtual ChFrame<>& GetFrame_COG_to_abs() {return *this;}
+    virtual const ChFrame<>& GetFrame_COG_to_abs() const {return *this;}
 
                 /// Get the rigid body coordinate system that is used for
                 /// defining the collision shapes and the ChMarker objects.
                 /// For the base ChBody, this is always the same reference of the COG.
-    virtual ChFrame<>& GetFrame_REF_to_abs() {return *this;}
+    virtual const ChFrame<>& GetFrame_REF_to_abs() const {return *this;}
 
 
                 /// Get the master coordinate system for the assets (this will return the 
