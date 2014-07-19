@@ -779,13 +779,13 @@ public:
 				/// it into the system using this function. The replaced engine is automatically deleted. 
 				/// When the system is deleted, the custom engine that you plugged will be automatically deleted.
 				/// Note: use only _before_ you start adding colliding bodies to the system!
-	void ChangeCollisionSystem(ChCollisionSystem* newcollsystem);
+	void ChangeCollisionSystem(collision::ChCollisionSystem* newcollsystem);
 
 				/// Access the collision system, the engine which 
 				/// computes the contact points (usually you don't need to
 				/// access it, since it is automatically handled by the
 				/// client ChSystem object).
-	ChCollisionSystem* GetCollisionSystem() {return collision_system;}; 
+	collision::ChCollisionSystem* GetCollisionSystem() {return collision_system;}; 
 
 
 
@@ -1052,7 +1052,7 @@ protected:
 	int nbodies_fixed;  // number of bodies that are fixed
 
 						// The collision engine, to compute and store contact manifolds
-	ChCollisionSystem*		collision_system;
+	collision::ChCollisionSystem*		collision_system;
 
 	ChCustomComputeCollisionCallback* collision_callback;
 	public: ChCustomCollisionPointCallback*	  collisionpoint_callback;

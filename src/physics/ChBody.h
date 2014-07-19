@@ -29,10 +29,6 @@
 namespace chrono
 {
 
-using namespace collision;
-
-
-
 // Forward references (for parent hierarchy pointer)
 
 class ChSystem;
@@ -80,7 +76,7 @@ protected:
     
                         // Pointer to the collision model, including the
                         // colliding geometry .
-    ChCollisionModel* collision_model;
+    collision::ChCollisionModel* collision_model;
 
 protected:
             //
@@ -142,7 +138,7 @@ public:
                 /// Build a rigid body.
     ChBody();
                 /// Build a rigid body with a different collision model.
-    ChBody(ChCollisionModel* new_collision_model);
+    ChBody(collision::ChCollisionModel* new_collision_model);
                 /// Destructor
     ~ChBody();
 
@@ -289,7 +285,7 @@ public:
 
 
                 /// Instantiate the collision model
-    virtual ChCollisionModel* InstanceCollisionModel();
+    virtual collision::ChCollisionModel* InstanceCollisionModel();
 
                // Other functions
 
@@ -299,7 +295,7 @@ public:
 
                 /// Acess the collision model for the collision engine.
                 /// To get a non-null pointer, remember to SetCollide(true), before.
-    ChCollisionModel* GetCollisionModel() {return collision_model;}
+    collision::ChCollisionModel* GetCollisionModel() {return collision_model;}
 
                 /// Synchronize coll.model coordinate and bounding box to the position of the body.
     virtual void SyncCollisionModels();

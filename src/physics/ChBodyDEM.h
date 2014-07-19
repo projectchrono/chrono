@@ -47,7 +47,7 @@ public:
       //
 
   ChBodyDEM();
-  ChBodyDEM(ChCollisionModel* new_collision_model);
+  ChBodyDEM(collision::ChCollisionModel* new_collision_model);
   ~ChBodyDEM() {}
 
   /// Copy from another body

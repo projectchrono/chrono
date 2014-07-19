@@ -196,7 +196,7 @@ public:
 	ChBodyEasyConvexHull ( std::vector< ChVector<> >& points, double mdensity, bool collide = false, bool visual_asset= true)
 	{
 		ChSharedPtr<ChTriangleMeshShape> vshape (new ChTriangleMeshShape() );
-		ChConvexHullLibraryWrapper lh;
+		collision::ChConvexHullLibraryWrapper lh;
 		lh.ComputeHull(points, vshape->GetMesh());
 		if (visual_asset)
 		{	

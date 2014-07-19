@@ -44,7 +44,7 @@ ChSystemDEM::ChSystemDEM(unsigned int max_objects, double scene_size)
 
 	LCP_solver_stab = new ChLcpSolverDEM();
 
-	collision_system = new ChCollisionSystemBullet(max_objects, scene_size);
+	collision_system = new collision::ChCollisionSystemBullet(max_objects, scene_size);
 
 	contact_container = new ChContactContainerDEM;
 }

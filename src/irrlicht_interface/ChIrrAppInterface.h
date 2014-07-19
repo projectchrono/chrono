@@ -131,7 +131,7 @@ public:
 						 core::line3d<f32> mline = app->GetSceneManager()->getSceneCollisionManager()->getRayFromScreenCoordinates(app->GetDevice()->getCursorControl()->getPosition());
 						 chrono::ChVector<> mfrom(mline.start.X, mline.start.Y, mline.start.Z) ;
 						 chrono::ChVector<> mto  (mline.end.X,   mline.end.Y,   mline.end.Z);
-						 chrono::ChCollisionSystem::ChRayhitResult mresult;
+						 chrono::collision::ChCollisionSystem::ChRayhitResult mresult;
 						 app->GetSystem()->GetCollisionSystem()->RayHit(mfrom, mto, mresult);
 						 if (mresult.hit)
 							 if (chrono::collision::ChModelBulletBody* mbomod = dynamic_cast<chrono::collision::ChModelBulletBody*>(mresult.hitModel))
