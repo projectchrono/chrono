@@ -214,8 +214,7 @@ public:
 
 		this->SetDensity( (float)mdensity );
 		this->SetMass( mass * mdensity );
-		ChMatrix33<> massinertia = inertia * mdensity;
-		this->SetInertia( &massinertia );
+		this->SetInertia( inertia * mdensity );
 		
 		if (collide)
 		{
@@ -293,7 +292,7 @@ public:
 
 		this->SetDensity( (float)mdensity );
 		this->SetMass( totmass );
-		this->SetInertia( &totinertia );
+		this->SetInertia( totinertia );
 
 		// Translate the cluster baricenter so that body origin is also baricenter
 		std::vector< ChVector<> > offset_positions = positions;

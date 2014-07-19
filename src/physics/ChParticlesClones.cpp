@@ -375,19 +375,19 @@ void ChParticlesClones::ClampSpeed()
 ////
 // The inertia tensor functions
 
-void ChParticlesClones::SetInertia (ChMatrix33<>* newXInertia)
+void ChParticlesClones::SetInertia (const ChMatrix33<>& newXInertia)
 {
 	this->particle_mass.SetBodyInertia(newXInertia);
 }
 
-void ChParticlesClones::SetInertiaXX (Vector iner)
+void ChParticlesClones::SetInertiaXX (const ChVector<>& iner)
 {
 	this->particle_mass.GetBodyInertia().SetElement(0,0,iner.x);
 	this->particle_mass.GetBodyInertia().SetElement(1,1,iner.y);
 	this->particle_mass.GetBodyInertia().SetElement(2,2,iner.z);
 	this->particle_mass.GetBodyInertia().FastInvert(&this->particle_mass.GetBodyInvInertia());
 }
-void ChParticlesClones::SetInertiaXY (Vector iner)
+void ChParticlesClones::SetInertiaXY (const ChVector<>& iner)
 {
 	this->particle_mass.GetBodyInertia().SetElement(0,1,iner.x);
 	this->particle_mass.GetBodyInertia().SetElement(0,2,iner.y);
@@ -398,7 +398,7 @@ void ChParticlesClones::SetInertiaXY (Vector iner)
 	this->particle_mass.GetBodyInertia().FastInvert(&this->particle_mass.GetBodyInvInertia());
 }
 
-Vector ChParticlesClones::GetInertiaXX()
+ChVector<> ChParticlesClones::GetInertiaXX()
 {
 	ChVector<> iner;
 	iner.x= this->particle_mass.GetBodyInertia().GetElement(0,0);
@@ -407,7 +407,7 @@ Vector ChParticlesClones::GetInertiaXX()
 	return iner;
 }
 
-Vector ChParticlesClones::GetInertiaXY()
+ChVector<> ChParticlesClones::GetInertiaXY()
 {
 	ChVector<> iner;
 	iner.x= this->particle_mass.GetBodyInertia().GetElement(0,1);

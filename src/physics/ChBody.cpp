@@ -345,7 +345,7 @@ ChVector<> ChBody::RelPoint_AbsAcc(const ChVector<>& mrelpoint)
 ////
 // The inertia tensor functions
 
-void ChBody::SetInertia (ChMatrix33<>* newXInertia)
+void ChBody::SetInertia (const ChMatrix33<>& newXInertia)
 {
     variables.SetBodyInertia(newXInertia);
 }
@@ -368,7 +368,7 @@ void ChBody::SetInertiaXY(const ChVector<>& iner)
     variables.GetBodyInertia().FastInvert(&variables.GetBodyInvInertia());
 }
 
-Vector ChBody::GetInertiaXX()
+ChVector<> ChBody::GetInertiaXX()
 {
     ChVector<> iner;
     iner.x= variables.GetBodyInertia().GetElement(0,0);
@@ -377,7 +377,7 @@ Vector ChBody::GetInertiaXX()
     return iner;
 }
 
-Vector ChBody::GetInertiaXY()
+ChVector<> ChBody::GetInertiaXY()
 {
     ChVector<> iner;
     iner.x= variables.GetBodyInertia().GetElement(0,1);

@@ -64,9 +64,9 @@ public:
 				}
 
 				/// Set the inertia matrix
-	void    SetBodyInertia(const ChMatrix33<>* minertia)
+	void    SetBodyInertia(const ChMatrix33<>& minertia)
 						{
-							inertia.CopyFromMatrix(*minertia);
+							inertia.CopyFromMatrix(minertia);
 							inertia.FastInvert(&inv_inertia);
 						}
 

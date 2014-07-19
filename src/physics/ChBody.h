@@ -247,7 +247,7 @@ public:
                 /// and forces.
                 /// The ChLcpVariablesBodyOwnMass is the interface to the LCP system solver.
     ChLcpVariablesBodyOwnMass& VariablesBody() {return variables;}
-	ChLcpVariables&			   Variables() {return variables;}
+    ChLcpVariables&            Variables()     {return variables;}
 
 
              // Override/implement LCP system functions of ChPhysicsItem
@@ -262,13 +262,13 @@ public:
 
                 /// Initialize the 'qb' part of the ChLcpVariablesBody with the 
                 /// current value of body speeds. Note: since 'qb' is the unknown of the LCP, this
-				/// function seems unuseful, unless used before VariablesFbIncrementMq()
+                /// function seems unuseful, unless used before VariablesFbIncrementMq()
     void VariablesQbLoadSpeed();
 
-				/// Adds M*q (masses multiplied current 'qb') to Fb, ex. if qb is initialized
-				/// with v_old using VariablesQbLoadSpeed, this method can be used in 
-				/// timestepping schemes that do: M*v_new = M*v_old + forces*dt
-	void VariablesFbIncrementMq();
+                /// Adds M*q (masses multiplied current 'qb') to Fb, ex. if qb is initialized
+                /// with v_old using VariablesQbLoadSpeed, this method can be used in 
+                /// timestepping schemes that do: M*v_new = M*v_old + forces*dt
+    void VariablesFbIncrementMq();
 
                 /// Fetches the body speed (both linear and angular) from the
                 /// 'qb' part of the ChLcpVariablesBody (does not updates the full body&markers state)
@@ -455,7 +455,7 @@ public:
     double GetMass() {return variables.GetBodyMass();}
 
                 /// Set the inertia tensor of the body
-    void SetInertia (ChMatrix33<>* newXInertia);
+    void SetInertia (const ChMatrix33<>& newXInertia);
                 /// Set the diagonal part of the inertia tensor (Ixx, Iyy, Izz values)
     void SetInertiaXX(const ChVector<>& iner);
                 /// Get the diagonal part of the inertia tensor (Ixx, Iyy, Izz values)

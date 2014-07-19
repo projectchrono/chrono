@@ -390,17 +390,17 @@ void test_3()
 
 	ChLcpVariablesBodyOwnMass mvarA;
 	mvarA.SetBodyMass(5);
-	mvarA.SetBodyInertia(&minertia);
+	mvarA.SetBodyInertia(minertia);
 	mvarA.Get_fb().FillRandom(-3,5);
 
 	ChLcpVariablesBodyOwnMass mvarB;
 	mvarB.SetBodyMass(4);
-	mvarB.SetBodyInertia(&minertia);
+	mvarB.SetBodyInertia(minertia);
 	mvarB.Get_fb().FillRandom(1,3);
 
 	ChLcpVariablesBodyOwnMass mvarC;
 	mvarC.SetBodyMass(5.5);
-	mvarC.SetBodyInertia(&minertia);
+	mvarC.SetBodyInertia(minertia);
 	mvarC.Get_fb().FillRandom(-8,3);
 
 	mdescriptor.InsertVariables(&mvarA);

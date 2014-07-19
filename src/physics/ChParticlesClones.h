@@ -292,17 +292,17 @@ public:
 	double GetMass() {return this->particle_mass.GetBodyMass();}
 
 				/// Set the inertia tensor of each particle
-	void SetInertia (ChMatrix33<>* newXInertia);
+	void SetInertia (const ChMatrix33<>& newXInertia);
 				/// Set the diagonal part of the inertia tensor of each particle
-	void SetInertiaXX (Vector iner);
+	void SetInertiaXX (const ChVector<>& iner);
 				/// Get the diagonal part of the inertia tensor of each particle
-	Vector GetInertiaXX();
+	ChVector<> GetInertiaXX();
 				/// Set the extradiagonal part of the inertia tensor of each particle
 				/// (xy, yz, zx values, the rest is symmetric)
-	void SetInertiaXY (Vector iner);
+	void SetInertiaXY (const ChVector<>& iner);
 				/// Get the extradiagonal part of the inertia tensor of each particle
 				/// (xy, yz, zx values, the rest is symmetric)
-	Vector GetInertiaXY();
+	ChVector<> GetInertiaXY();
 
 
 				/// Trick. Set the maximum linear speed (beyond this limit it will
