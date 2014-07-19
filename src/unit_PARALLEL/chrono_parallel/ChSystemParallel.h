@@ -56,7 +56,7 @@ CH_RTTI(ChSystemParallel, ChSystem)
 
   virtual void LoadMaterialSurfaceData(ChSharedPtr<ChBody> newbody) = 0;
   virtual void UpdateBodies() = 0;
-  virtual void ChangeCollisionSystem(ChCollisionSystem *newcollsystem);
+  virtual void ChangeCollisionSystem(collision::ChCollisionSystem *newcollsystem);
 
   virtual void PrintStepStats() {
     gpu_data_manager->system_timer.PrintReport();
@@ -146,7 +146,7 @@ public:
   virtual void LoadMaterialSurfaceData(ChSharedPtr<ChBody> newbody);
   virtual void UpdateBodies();
 
-  virtual void ChangeCollisionSystem(ChCollisionSystem *newcollsystem);
+  virtual void ChangeCollisionSystem(collision::ChCollisionSystem *newcollsystem);
 
   virtual void PrintStepStats();
 

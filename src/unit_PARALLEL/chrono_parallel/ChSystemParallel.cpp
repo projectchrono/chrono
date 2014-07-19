@@ -2,6 +2,7 @@
 #include <omp.h>
 
 using namespace chrono;
+using namespace chrono::collision;
 
 ChSystemParallel::ChSystemParallel(
       unsigned int max_objects)

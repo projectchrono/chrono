@@ -1,9 +1,8 @@
 #include "chrono_parallel/ChSystemParallel.h"
 #include <omp.h>
 
-
 using namespace chrono;
-
+using namespace chrono::collision;
 
 ChSystemParallelDEM::ChSystemParallelDEM(unsigned int                       max_objects,
                                          ChContactDEM::NormalForceModel     normal_model,
