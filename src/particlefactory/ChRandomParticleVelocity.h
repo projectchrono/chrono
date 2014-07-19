@@ -21,8 +21,8 @@
 #include "core/ChSmartpointers.h"
 
 
-namespace particlefactory
-{
+namespace chrono {
+namespace particlefactory {
 
 
 	/// BASE class for generators of random particle velocities.
@@ -114,9 +114,8 @@ private:
 
 
 
-
-
-} // end of namespace
+} // end of namespace particlefactory
+} // end of namespace chrono
 
 
 #endif 

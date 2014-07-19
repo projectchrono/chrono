@@ -18,9 +18,8 @@
 #include "ChParticleEventTrigger.h"
 
 
-
-namespace particlefactory
-{
+namespace chrono {
+namespace particlefactory {
 
 
 
@@ -102,9 +101,8 @@ public:
 
 
 
-
-
-} // end of namespace
+} // end of namespace particlefactory
+} // end of namespace chrono
 
 
 #endif  

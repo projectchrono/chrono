@@ -17,9 +17,8 @@
 #include "ChParticleEventTrigger.h"
 #include "ChParticleProcessEvent.h"
 
-
-namespace particlefactory
-{
+namespace chrono {
+namespace particlefactory {
 
 
 
@@ -90,7 +89,8 @@ protected:
 
 
 
-} // end of namespace
+} // end of namespace particlefactory
+} // end of namespace chrono
 
 
 #endif  

@@ -26,13 +26,13 @@
 #include "physics/ChSystem.h"
 
 
+namespace chrono {
 
 /// Namespace for helper classes that build a system for generating
 /// flows of particles. This system heavily relies on statistical
 /// approaches, for example positions, rotations, shapes of particles
 /// can be generated according to statistical distributions.
-namespace particlefactory
-{
+namespace particlefactory {
 
 
 	
@@ -140,7 +140,8 @@ private:
 };
 
 
-} // end of namespace
+} // end of namespace particlefactory
+} // end of namespace chrono
 
 
 #endif  

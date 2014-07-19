@@ -25,9 +25,8 @@
 #include "physics/ChBodyEasy.h"
 
 
-
-namespace particlefactory
-{
+namespace chrono {
+namespace particlefactory {
 
 
 // Forward reference
@@ -493,10 +492,7 @@ private:
 
 
 
-
-
-
-} // end of namespace
-
+} // end of namespace particlefactory
+} // end of namespace chrono
 
 #endif  
