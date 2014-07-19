@@ -118,8 +118,8 @@ class CH_UTILS_OPENGL_API ChOpenGLViewer : public ChOpenGLBase {
    vector<glm::mat4> model_cylinder;
    vector<glm::mat4> model_cone;
    vector<glm::vec4> text_data;
-
-
+   map<string,ChOpenGLOBJ> obj_files;
+   map<string,vector<glm::mat4> > model_obj;
 };
 }
 }

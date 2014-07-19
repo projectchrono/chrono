@@ -63,6 +63,11 @@ void ChOpenGLViewer::TakeDown() {
    cylinder.TakeDown();
    cone.TakeDown();
    cloud.TakeDown();
+
+   for (map<string, ChOpenGLOBJ>::iterator iter = obj_files.begin(); iter != obj_files.end(); iter++) {
+      (*iter).second.TakeDown();
+   }
+
 }
 
 bool ChOpenGLViewer::Initialize() {
@@ -169,6 +174,7 @@ void ChOpenGLViewer::Render() {
          model_sphere.clear();
          model_cone.clear();
          model_cylinder.clear();
+         model_obj.clear();
          for (int i = 0; i < physics_system->Get_bodylist()->size(); i++) {
             ChBody* abody = (ChBody*) physics_system->Get_bodylist()->at(i);
             DrawObject(abody);
@@ -189,6 +195,15 @@ void ChOpenGLViewer::Render() {
             cylinder.Update(model_cylinder);
             cylinder.Draw(projection, view);
          }
+         if (model_obj.size() > 0) {
+            for (map<string, ChOpenGLOBJ>::iterator iter = obj_files.begin(); iter != obj_files.end(); iter++) {
+               (*iter).second.Update(model_obj[(*iter).first]);
+               (*iter).second.Draw(projection, view);
+
+            }
+
+         }
+
       } else {
          cloud_data.resize(physics_system->Get_bodylist()->size());
 #pragma omp parallel for
@@ -315,69 +330,62 @@ void ChOpenGLViewer::DrawObject(
          model = glm::scale(model, glm::vec3(rad.x, rad.y, rad.z));
          model_box.push_back(model);
 
-         glm::vec3 local  = glm::rotate(glm::vec3(rad.x, rad.y, rad.z) ,float(angle), glm::vec3(axis.x, axis.y, axis.z));
+         glm::vec3 local = glm::rotate(glm::vec3(rad.x, rad.y, rad.z), float(angle), glm::vec3(axis.x, axis.y, axis.z));
          model = glm::translate(glm::mat4(1), glm::vec3(pos_final.x + local.x, pos_final.y + local.y, pos_final.z + local.z));
          model = glm::scale(model, glm::vec3(radsphere));
          model_sphere.push_back(model);
 
-         local  = glm::rotate(glm::vec3(rad.x, rad.y, -rad.z) ,float(angle), glm::vec3(axis.x, axis.y, axis.z));
+         local = glm::rotate(glm::vec3(rad.x, rad.y, -rad.z), float(angle), glm::vec3(axis.x, axis.y, axis.z));
          model = glm::translate(glm::mat4(1), glm::vec3(pos_final.x + local.x, pos_final.y + local.y, pos_final.z + local.z));
          model = glm::scale(model, glm::vec3(radsphere));
          model_sphere.push_back(model);
 
-         local  = glm::rotate(glm::vec3(-rad.x, rad.y, rad.z) ,float(angle), glm::vec3(axis.x, axis.y, axis.z));
+         local = glm::rotate(glm::vec3(-rad.x, rad.y, rad.z), float(angle), glm::vec3(axis.x, axis.y, axis.z));
          model = glm::translate(glm::mat4(1), glm::vec3(pos_final.x + local.x, pos_final.y + local.y, pos_final.z + local.z));
          model = glm::scale(model, glm::vec3(radsphere));
          model_sphere.push_back(model);
 
-         local  = glm::rotate(glm::vec3(-rad.x, rad.y, -rad.z) ,float(angle), glm::vec3(axis.x, axis.y, axis.z));
+         local = glm::rotate(glm::vec3(-rad.x, rad.y, -rad.z), float(angle), glm::vec3(axis.x, axis.y, axis.z));
          model = glm::translate(glm::mat4(1), glm::vec3(pos_final.x + local.x, pos_final.y + local.y, pos_final.z + local.z));
          model = glm::scale(model, glm::vec3(radsphere));
          model_sphere.push_back(model);
 
-         local  = glm::rotate(glm::vec3(rad.x, -rad.y, rad.z) ,float(angle), glm::vec3(axis.x, axis.y, axis.z));
+         local = glm::rotate(glm::vec3(rad.x, -rad.y, rad.z), float(angle), glm::vec3(axis.x, axis.y, axis.z));
          model = glm::translate(glm::mat4(1), glm::vec3(pos_final.x + local.x, pos_final.y + local.y, pos_final.z + local.z));
          model = glm::scale(model, glm::vec3(radsphere));
          model_sphere.push_back(model);
 
-         local  = glm::rotate(glm::vec3(rad.x, -rad.y, -rad.z) ,float(angle), glm::vec3(axis.x, axis.y, axis.z));
+         local = glm::rotate(glm::vec3(rad.x, -rad.y, -rad.z), float(angle), glm::vec3(axis.x, axis.y, axis.z));
          model = glm::translate(glm::mat4(1), glm::vec3(pos_final.x + local.x, pos_final.y + local.y, pos_final.z + local.z));
          model = glm::scale(model, glm::vec3(radsphere));
          model_sphere.push_back(model);
 
-         local  = glm::rotate(glm::vec3(-rad.x, -rad.y, rad.z) ,float(angle), glm::vec3(axis.x, axis.y, axis.z));
+         local = glm::rotate(glm::vec3(-rad.x, -rad.y, rad.z), float(angle), glm::vec3(axis.x, axis.y, axis.z));
          model = glm::translate(glm::mat4(1), glm::vec3(pos_final.x + local.x, pos_final.y + local.y, pos_final.z + local.z));
          model = glm::scale(model, glm::vec3(radsphere));
          model_sphere.push_back(model);
 
-         local  = glm::rotate(glm::vec3(-rad.x, -rad.y, -rad.z) ,float(angle), glm::vec3(axis.x, axis.y, axis.z));
+         local = glm::rotate(glm::vec3(-rad.x, -rad.y, -rad.z), float(angle), glm::vec3(axis.x, axis.y, axis.z));
          model = glm::translate(glm::mat4(1), glm::vec3(pos_final.x + local.x, pos_final.y + local.y, pos_final.z + local.z));
          model = glm::scale(model, glm::vec3(radsphere));
          model_sphere.push_back(model);
 
       } else if (asset.IsType<ChTriangleMeshShape>()) {
          ChTriangleMeshShape * trimesh_shape = ((ChTriangleMeshShape *) (asset.get_ptr()));
-         ChTriangleMeshConnected trimesh = trimesh_shape->GetMesh();
-         glPushMatrix();
-         glBegin(GL_TRIANGLES);
-         for (int i = 0; i < trimesh.getNumTriangles(); i++) {
-            ChTriangle temptri = trimesh.getTriangle(i);
-            real3 A, B, C;
-            A = R3(temptri.p1.x, temptri.p1.y, temptri.p1.z);
-            B = R3(temptri.p2.x, temptri.p2.y, temptri.p2.z);
-            C = R3(temptri.p3.x, temptri.p3.y, temptri.p3.z);
-            real4 Q = R4(rot.e0, rot.e1, rot.e2, rot.e3);
+         ChVector<> pos_final = pos + center;
+         model = glm::translate(glm::mat4(1), glm::vec3(pos_final.x, pos_final.y, pos_final.z));
+         model = glm::rotate(model, float(angle), glm::vec3(axis.x, axis.y, axis.z));
 
-            A = quatRotate(A, Q) + R3(pos.x, pos.y, pos.z);
-            B = quatRotate(B, Q) + R3(pos.x, pos.y, pos.z);
-            C = quatRotate(C, Q) + R3(pos.x, pos.y, pos.z);
-
-            glVertex3f(A.x, A.y, A.z);
-            glVertex3f(B.x, B.y, B.z);
-            glVertex3f(C.x, C.y, C.z);
+         if (obj_files.find(trimesh_shape->GetName()) == obj_files.end()) {
+            ChOpenGLOBJ temp;
+            ChOpenGLMaterial pillow(glm::vec3(196.0f, 77.0f, 88.0f) / 255.0f * .5f, glm::vec3(196.0f, 77.0f, 88.0f) / 255.0f, glm::vec3(1, 1, 1));
+            cout << trimesh_shape->GetName() << endl;
+            temp.Initialize(trimesh_shape->GetName(), pillow, &main_shader);
+            obj_files[trimesh_shape->GetName()] = temp;
+            model_obj[trimesh_shape->GetName()].push_back(model);
+         } else {
+            model_obj[trimesh_shape->GetName()].push_back(model);
          }
-         glEnd();
-         glPopMatrix();
       }
    }
 }

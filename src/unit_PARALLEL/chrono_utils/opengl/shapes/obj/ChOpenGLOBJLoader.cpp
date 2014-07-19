@@ -35,7 +35,7 @@ void ChOpenGLOBJLoader::LoadObject(
 
    std::string err = tinyobj::LoadObj(shapes, fname.c_str());
 
-   std::cout << "# of shapes : " << shapes.size() << std::endl;
+   std::cout <<fname <<" # of shapes : " << shapes.size() << std::endl;
 
    vertices.resize(shapes.size());
    normals.resize(shapes.size());
