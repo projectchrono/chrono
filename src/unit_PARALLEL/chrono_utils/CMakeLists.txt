@@ -16,6 +16,7 @@ SET(ChronoEngine_Utils_SOURCES
 
 SET(ChronoEngine_Utils_HEADERS
     ChUtilsCommon.h
+    ChUtilsGeometry.h
     ChUtilsCreators.h
     ChUtilsGenerators.h
     ChUtilsSamplers.h
