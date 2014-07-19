@@ -453,7 +453,7 @@ void mflipSurfacesOnX(scene::IMesh* mesh) const
 
 				irrcamera->setPosition(core::vector3dfCH(mycamera->GetPosition()));
 				irrcamera->setTarget(core::vector3dfCH(mycamera->GetAimPoint()));
-				double fov_rad = mycamera->GetAngle()*CH_C_DEG_TO_RAD;
+				double fov_rad = mycamera->GetAngle() * chrono::CH_C_DEG_TO_RAD;
 				irrcamera->setFOV((irr::f32)fov_rad); 
 				irrcamera->setNearValue(0.3f);
 				irrcamera->setMinZoom(0.6f);
@@ -461,8 +461,8 @@ void mflipSurfacesOnX(scene::IMesh* mesh) const
 			if ( k_asset.IsType<chrono::ChAssetLevel>() )
 			{
 				chrono::ChSharedPtr<chrono::ChAssetLevel> mylevel(k_asset.DynamicCastTo<chrono::ChAssetLevel>());
-				std::vector< ChSharedPtr<ChAsset> >& subassetlist = mylevel->GetAssets();
-				ChFrame<> subassetframe = mylevel->GetFrame();
+				std::vector< chrono::ChSharedPtr<chrono::ChAsset> >& subassetlist = mylevel->GetAssets();
+				chrono::ChFrame<> subassetframe = mylevel->GetFrame();
 				irr::scene::ISceneNode* mproxynode = new irr::scene::ChIrrNodeProxyToAsset(mylevel, mnode);
 				irr::scene::ISceneNode* subassetnode = scenemanager->addEmptySceneNode(mproxynode);
 				// recurse level...
@@ -507,7 +507,7 @@ void mflipSurfacesOnX(scene::IMesh* mesh) const
 		}
 
 		// Set the rotation and position of the node container
-		if (!(parentframe.GetCoord() == CSYSNORM))
+		if (!(parentframe.GetCoord() == chrono::CSYSNORM))
 		{
 			ChIrrTools::alignIrrlichtNodeToChronoCsys(mnode, parentframe.GetCoord());
 		}
@@ -515,11 +515,6 @@ void mflipSurfacesOnX(scene::IMesh* mesh) const
 
 
 };
-
-
-
-
-
 
 
 

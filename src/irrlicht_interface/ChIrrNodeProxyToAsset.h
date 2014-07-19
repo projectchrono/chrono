@@ -135,9 +135,9 @@ public:
 			if (this->visualization_asset.IsNull()) 
 				return;
 
-			if (this->visualization_asset.IsType<ChTriangleMeshShape>())
+			if (this->visualization_asset.IsType<chrono::ChTriangleMeshShape>())
 			{
-				ChSharedPtr<ChTriangleMeshShape> trianglemesh = this->visualization_asset.DynamicCastTo<ChTriangleMeshShape>();
+				chrono::ChSharedPtr<chrono::ChTriangleMeshShape> trianglemesh = this->visualization_asset.DynamicCastTo<chrono::ChTriangleMeshShape>();
 
 				// Fetch the 1st child, i.e. the mesh
 				irr::scene::ISceneNode* mchildnode = *(this->getChildren().begin()); 
@@ -171,10 +171,10 @@ public:
 				// set buffers
 				for (unsigned int itri = 0; itri < ntriangles; itri++)
 				{	
-					ChVector<> t1 = mmesh->getCoordsVertices()[ mmesh->getIndicesVertexes()[itri].x ];
-					ChVector<> t2 = mmesh->getCoordsVertices()[ mmesh->getIndicesVertexes()[itri].y ];
-					ChVector<> t3 = mmesh->getCoordsVertices()[ mmesh->getIndicesVertexes()[itri].z ];					
-					ChVector<> n1, n2, n3;
+					chrono::ChVector<> t1 = mmesh->getCoordsVertices()[ mmesh->getIndicesVertexes()[itri].x ];
+					chrono::ChVector<> t2 = mmesh->getCoordsVertices()[ mmesh->getIndicesVertexes()[itri].y ];
+					chrono::ChVector<> t3 = mmesh->getCoordsVertices()[ mmesh->getIndicesVertexes()[itri].z ];					
+					chrono::ChVector<> n1, n2, n3;
 					if ( mmesh->getIndicesNormals().size() == mmesh->getIndicesVertexes().size() )
 					{
 						n1 = mmesh->getCoordsNormals()[ mmesh->getIndicesNormals()[itri].x ];
@@ -188,7 +188,7 @@ public:
 						n3 = n1;
 					}
 
-					ChVector<> uv1,uv2,uv3;
+					chrono::ChVector<> uv1,uv2,uv3;
 					if ( mmesh->getIndicesUV().size() == mmesh->getIndicesVertexes().size() )
 					{
 						uv1 = mmesh->getCoordsUV()[ mmesh->getIndicesUV()[itri].x ];
@@ -204,10 +204,10 @@ public:
 					}
 					else
 					{
-						uv1=uv2=uv3= VNULL;
+						uv1=uv2=uv3= chrono::VNULL;
 					}
 
-					ChVector<float> col1,col2,col3;
+					chrono::ChVector<float> col1,col2,col3;
 					if ( mmesh->getIndicesColors().size() == mmesh->getIndicesVertexes().size() )
 					{
 						col1 = mmesh->getCoordsColors()[ mmesh->getIndicesColors()[itri].x ];
@@ -222,7 +222,7 @@ public:
 						col3 = mmesh->getCoordsColors()[ mmesh->getIndicesVertexes()[itri].z ];
 					} else
 					{
-						col1=col2=col3= ChVector<float>( trianglemesh->GetColor().R,
+						col1=col2=col3= chrono::ChVector<float>( trianglemesh->GetColor().R,
 														 trianglemesh->GetColor().G, 
 														 trianglemesh->GetColor().B);
 					}
@@ -266,9 +266,9 @@ public:
 			}
 
 
-			if (this->visualization_asset.IsType<ChGlyphs>())
+			if (this->visualization_asset.IsType<chrono::ChGlyphs>())
 			{
-				ChSharedPtr<ChGlyphs> mglyphs = this->visualization_asset.DynamicCastTo<ChGlyphs>();
+				chrono::ChSharedPtr<chrono::ChGlyphs> mglyphs = this->visualization_asset.DynamicCastTo<chrono::ChGlyphs>();
 
 				// Fetch the 1st child, i.e. the mesh
 				irr::scene::ISceneNode* mchildnode = *(this->getChildren().begin()); 
@@ -289,17 +289,17 @@ public:
 				unsigned int ntriangles = 0;
 				unsigned int nvertexes = 0;
 
-				if (mglyphs->GetDrawMode() == ChGlyphs::GLYPH_POINT)
+				if (mglyphs->GetDrawMode() == chrono::ChGlyphs::GLYPH_POINT)
 				{
 					ntriangles =  12 * mglyphs->GetNumberOfGlyphs();
 					nvertexes =   24 * mglyphs->GetNumberOfGlyphs();
 				}
-				if (mglyphs->GetDrawMode() == ChGlyphs::GLYPH_VECTOR)
+				if (mglyphs->GetDrawMode() == chrono::ChGlyphs::GLYPH_VECTOR)
 				{
 					ntriangles =  1 * mglyphs->GetNumberOfGlyphs();
 					nvertexes =   3 * mglyphs->GetNumberOfGlyphs();
 				}
-				if (mglyphs->GetDrawMode() == ChGlyphs::GLYPH_COORDSYS)
+				if (mglyphs->GetDrawMode() == chrono::ChGlyphs::GLYPH_COORDSYS)
 				{
 					ntriangles =  3 * mglyphs->GetNumberOfGlyphs();
 					nvertexes =   9 * mglyphs->GetNumberOfGlyphs();
@@ -316,7 +316,7 @@ public:
 
 				// set buffers
 
-				if (mglyphs->GetDrawMode() == ChGlyphs::GLYPH_POINT)
+				if (mglyphs->GetDrawMode() == chrono::ChGlyphs::GLYPH_POINT)
 				{
 					const u32 u[36] = {   0,1,2,   0,2,3, 
 										  4,6,5,   4,7,6,
@@ -329,8 +329,8 @@ public:
 
 					for (unsigned int ig= 0; ig< mglyphs->points.size(); ++ig)
 					{
-						ChVector<> t1 =  mglyphs->points[ig];
-						ChColor mcol  =  mglyphs->colors[ig];
+						chrono::ChVector<> t1 =  mglyphs->points[ig];
+						chrono::ChColor mcol  =  mglyphs->colors[ig];
 						video::SColor clr(255, (irr::u32)(mcol.R *255), (irr::u32)(mcol.G *255), (irr::u32)(mcol.B *255) );
 
 						// create a small cube per each vertex
@@ -381,14 +381,14 @@ public:
 				}
 
 
-				if (mglyphs->GetDrawMode() == ChGlyphs::GLYPH_VECTOR)
+				if (mglyphs->GetDrawMode() == chrono::ChGlyphs::GLYPH_VECTOR)
 				{
 					int itri = 0;
 					for (unsigned int ig= 0; ig< mglyphs->points.size(); ++ig)
 					{
-						ChVector<> t1 =  mglyphs->points [ig];
-						ChVector<> t2 =  mglyphs->vectors[ig] + t1;
-						ChColor mcol  =  mglyphs->colors [ig];
+						chrono::ChVector<> t1 =  mglyphs->points [ig];
+						chrono::ChVector<> t2 =  mglyphs->vectors[ig] + t1;
+						chrono::ChColor mcol  =  mglyphs->colors [ig];
 						video::SColor clr(255, (irr::u32)(mcol.R *255), (irr::u32)(mcol.G *255), (irr::u32)(mcol.B *255) );
 
 						// create a  small line (a degenerate triangle) per each vector
@@ -412,17 +412,16 @@ public:
 				}
 
 
-				if (mglyphs->GetDrawMode() == ChGlyphs::GLYPH_COORDSYS)
+				if (mglyphs->GetDrawMode() == chrono::ChGlyphs::GLYPH_COORDSYS)
 				{
 					int itri = 0;
 					for (unsigned int ig= 0; ig< mglyphs->points.size(); ++ig)
 					{
-						ChVector<> t1 =  mglyphs->points [ig];
-		
-						ChVector<> t2;
+						chrono::ChVector<> t1 =  mglyphs->points [ig];
+						chrono::ChVector<> t2;
 
 						// X axis - create a  small line (a degenerate triangle) per each vector
-						t2 =  mglyphs->rotations[ig].Rotate( ChVector<>(1,0,0)*mglyphs->GetGlyphsSize() ) + t1;
+						t2 =  mglyphs->rotations[ig].Rotate( chrono::ChVector<>(1,0,0)*mglyphs->GetGlyphsSize() ) + t1;
 						irrmesh->getVertexBuffer()[0+ig*9] = irr::video::S3DVertex((irr::f32)t1.x, (irr::f32)t1.y, (irr::f32)t1.z, 
 																		1, 0, 0, video::SColor(255,255,0,0), 0, 0);
 						irrmesh->getVertexBuffer()[1+ig*9] = irr::video::S3DVertex((irr::f32)t2.x, (irr::f32)t2.y, (irr::f32)t2.z, 
@@ -435,7 +434,7 @@ public:
 						++itri;
 
 						// Y axis
-						t2 =  mglyphs->rotations[ig].Rotate( ChVector<>(0,1,0)*mglyphs->GetGlyphsSize() ) + t1;
+						t2 =  mglyphs->rotations[ig].Rotate( chrono::ChVector<>(0,1,0)*mglyphs->GetGlyphsSize() ) + t1;
 						irrmesh->getVertexBuffer()[3+ig*9] = irr::video::S3DVertex((irr::f32)t1.x, (irr::f32)t1.y, (irr::f32)t1.z, 
 																		1, 0, 0,	video::SColor(255,0,255,0),	0, 0);
 						irrmesh->getVertexBuffer()[4+ig*9] = irr::video::S3DVertex((irr::f32)t2.x, (irr::f32)t2.y, (irr::f32)t2.z, 
@@ -448,7 +447,7 @@ public:
 						++itri;
 
 						// Z axis
-						t2 =  mglyphs->rotations[ig].Rotate( ChVector<>(0,0,1)*mglyphs->GetGlyphsSize() ) + t1;
+						t2 =  mglyphs->rotations[ig].Rotate( chrono::ChVector<>(0,0,1)*mglyphs->GetGlyphsSize() ) + t1;
 						irrmesh->getVertexBuffer()[6+ig*9] = irr::video::S3DVertex((irr::f32)t1.x, (irr::f32)t1.y, (irr::f32)t1.z, 
 																		1, 0, 0,	video::SColor(255,0,0,255), 0, 0);
 						irrmesh->getVertexBuffer()[7+ig*9] = irr::video::S3DVertex((irr::f32)t2.x, (irr::f32)t2.y, (irr::f32)t2.z, 
@@ -467,8 +466,8 @@ public:
 				irrmesh->setHardwareMappingHint(irr::scene::EHM_DYNAMIC);//EHM_NEVER); //EHM_DYNAMIC for faster hw mapping
 				irrmesh->recalculateBoundingBox();
 
-				if (mglyphs->GetDrawMode() == ChGlyphs::GLYPH_VECTOR ||
-					mglyphs->GetDrawMode() == ChGlyphs::GLYPH_COORDSYS )
+				if (mglyphs->GetDrawMode() == chrono::ChGlyphs::GLYPH_VECTOR ||
+					mglyphs->GetDrawMode() == chrono::ChGlyphs::GLYPH_COORDSYS )
 				{
 					meshnode->setMaterialFlag(video::EMF_WIREFRAME,			true ); 
 					meshnode->setMaterialFlag(video::EMF_LIGHTING,			false ); // avoid shading for wireframe
