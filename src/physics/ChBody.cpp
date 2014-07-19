@@ -596,22 +596,6 @@ void ChBody::RemoveAllMarkers()
     marklist.clear();
 };
 
-/* old
-ChMarker* ChBody::SearchMarker (char* m_name)
-{
-    return ChContainerSearchFromName<ChMarker, std::vector<ChMarker*>::iterator>
-                (m_name, 
-                marklist.begin(), 
-                marklist.end());
-}
-ChForce* ChBody::SearchForce (char* m_name)
-{
-    return ChContainerSearchFromName<ChForce, std::vector<ChForce*>::iterator>
-                (m_name, 
-                forcelist.begin(), 
-                forcelist.end());
-}
-*/
 ChSharedPtr<ChMarker> ChBody::SearchMarker (char* m_name)
 {
     ChMarker* mmark= ChContainerSearchFromName<ChMarker, std::vector<ChMarker*>::iterator>
