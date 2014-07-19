@@ -317,16 +317,14 @@ public:
 				/// Remove all links from this system.
 	void RemoveAllLinks();
 
-				/// Gets the list of children bodies -low level function-.
-				/// NOTE! use this list only to enumerate etc., but NOT to
-				/// remove or add items (use the appropriate Remove.. and Add..
-				/// functions instead!)
-	std::vector<ChBody*>* Get_bodylist() {return &bodylist;}
-				/// Gets the list of children links -low level function-.
-				/// NOTE! use this list only to enumerate etc., but NOT to
-				/// remove or add items (use the appropriate Remove.. and Add..
-				/// functions instead!)
-	std::list<ChLink*>* Get_linklist() {return &linklist;}
+        /// Gets the list of children bodies -low level function-.
+        /// NOTE: to modify this list, use the appropriate Remove..
+        /// and Add.. functions.
+	const std::vector<ChBody*>& Get_bodylist() const {return bodylist;}
+        /// Gets the list of children links -low level function-.
+        /// NOTE: to modify this list, use the appropriate Remove..
+        /// and Add.. functions.
+	const std::list<ChLink*>& Get_linklist() const {return linklist;}
 
 
 			//
