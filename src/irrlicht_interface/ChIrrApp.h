@@ -59,7 +59,7 @@ public:
 						video::E_DRIVER_TYPE mydriver = video::EDT_DIRECT3D9) 
 		: ChIrrAppInterface(psystem,title,dimens,do_fullscreen,do_shadows,mydriver)
 		{
-			mconverter = new irr::scene::ChIrrAssetConverter(*this);
+			mconverter = new scene::ChIrrAssetConverter(*this);
 		}
 
 
@@ -73,7 +73,7 @@ public:
 		}
 
 		/// Gets the asset converter
-	irr::scene::ChIrrAssetConverter* GetAssetConverter() {return mconverter;}
+	scene::ChIrrAssetConverter* GetAssetConverter() {return mconverter;}
 
 
 		/// Shortcut to add and bind a ChIrrNodeAsset to an item, if
@@ -153,9 +153,9 @@ public:
 	}
 
 private:
-	void _recurse_add_shadow(irr::scene::ISceneNode* mnode)
+	void _recurse_add_shadow(scene::ISceneNode* mnode)
 	{
-		ISceneNodeList::ConstIterator it = mnode->getChildren().begin();
+		scene::ISceneNodeList::ConstIterator it = mnode->getChildren().begin();
 		for (; it != mnode->getChildren().end(); ++it)
 		{
 			_recurse_add_shadow((*it));
@@ -167,7 +167,7 @@ private:
 
 
 private:
-	irr::scene::ChIrrAssetConverter* mconverter;
+	scene::ChIrrAssetConverter* mconverter;
 
 }; // end of  class 
 

@@ -81,33 +81,33 @@ public:
 					if (this->app->user_receiver->OnEvent(event))
 						return true;
 			
-			if (event.EventType == irr::EET_KEY_INPUT_EVENT && !event.KeyInput.PressedDown)
+			if (event.EventType == EET_KEY_INPUT_EVENT && !event.KeyInput.PressedDown)
 			{
 				switch (event.KeyInput.Key)
 				{
-				case irr::KEY_KEY_I: 
+				case KEY_KEY_I: 
 					app->SetShowInfos(!app->GetShowInfos());
 					return true;
-				case irr::KEY_SPACE:
+				case KEY_SPACE:
 					app->pause_step = !app->pause_step;
 					return true;
-				case irr::KEY_KEY_P: 
+				case KEY_KEY_P: 
 					app->pause_step = true;
 					app->do_single_step = true;
 					return true;
-				case irr::KEY_F12:
+				case KEY_F12:
 					chrono::GetLog() << "Saving system vector and matrices to dump_xxyy.dat files.\n";
 					app->DumpMatrices();
 					return true;
-				case irr::KEY_F11:
+				case KEY_F11:
 					chrono::GetLog() << "---Computing linear static solution---\n";
 					app->GetSystem()->DoStaticLinear();
 					return true;
-				case irr::KEY_F10:
+				case KEY_F10:
 					chrono::GetLog() << "---Computing NONlinear static solution, 20 steps---\n";
 					app->GetSystem()->DoStaticNonlinear(20);
 					return true;
-				case irr::KEY_SNAPSHOT:
+				case KEY_SNAPSHOT:
 					if (app->videoframe_save == false)
 					{
 						app->videoframe_save = true;
@@ -335,7 +335,7 @@ public:
 
 			// Xeffects for shadow maps!
 			effect = new EffectHandler(device, device->getVideoDriver()->getScreenSize(), true, true, true);
-			effect->setAmbientColor(SColor(255, 122, 122, 122));
+			effect->setAmbientColor(video::SColor(255, 122, 122, 122));
 			this->use_effects = false; // will be true as sson as a lightwith shadow is added.
 
 			if (title)
@@ -347,7 +347,7 @@ public:
 			gui::IGUIFont* font = GetIGUIEnvironment()->getFont((irrlicht_default_obj_dir+"fonts/arial8.xml").c_str());
 			if (font)
 				skin->setFont(font);
-			skin->setColor(irr::gui::EGDC_BUTTON_TEXT, irr::video::SColor(255,40,50,50));
+			skin->setColor(gui::EGDC_BUTTON_TEXT, video::SColor(255,40,50,50));
 
 			gad_tabbed = GetIGUIEnvironment()->addTabControl(core::rect<s32>(2,70,220,476), 0, true, true);
 			gad_tab1 = gad_tabbed->addTab(L"Stats");
@@ -564,13 +564,13 @@ public:
 	double GetSymbolscale() {return this->symbolscale;}
 
 				/// Use this function to hook a custom event receiver to the application. See examples.
-	void SetUserEventReceiver(irr::IEventReceiver* mreceiver) {this->user_receiver = mreceiver;}
+	void SetUserEventReceiver(IEventReceiver* mreceiver) {this->user_receiver = mreceiver;}
 
 
 			/// Call this to clean the canvas at the beginning of each animation
 			/// frame
 	void BeginScene(bool backBuffer=true, bool zBuffer=true,
-		            irr::video::SColor color=irr::video::SColor(255,0,0,0))
+		            video::SColor color=video::SColor(255,0,0,0))
 		{
 			this->GetVideoDriver()->beginScene(backBuffer, zBuffer, color);
 		}
@@ -822,9 +822,9 @@ public:
 	}
 
 			/// Add a point light to the scene
-	irr::scene::ILightSceneNode* AddLight(core::vector3df pos, double radius, video::SColorf color = video::SColorf(0.7f,0.7f,0.7f,1.0f))
-	{	
-		irr::scene::ILightSceneNode* mlight = device->getSceneManager()->addLightSceneNode( 0,pos, color, (f32)radius);
+	scene::ILightSceneNode* AddLight(core::vector3df pos, double radius, video::SColorf color = video::SColorf(0.7f,0.7f,0.7f,1.0f))
+	{
+		scene::ILightSceneNode* mlight = device->getSceneManager()->addLightSceneNode( 0,pos, color, (f32)radius);
 		return mlight;
 	}
 
@@ -833,10 +833,10 @@ public:
 			/// 'mfar' parameters as close as possible to the bounding box of the scene. 
 			/// NOTE: use myapplication.AddShadow(myitem) to enable shadow for an object! Otherwise,
 			/// use myapplication.AddShadowAll().
-	irr::scene::ILightSceneNode* AddLightWithShadow(core::vector3df pos, core::vector3df aim, double radius, double mnear, double mfar, double angle, irr::u32 resolution=512, video::SColorf color = video::SColorf(1.f,1.f,1.f,1.f))
-	{	
-		irr::scene::ILightSceneNode* mlight =  device->getSceneManager()->addLightSceneNode( 0,pos, color, (f32)radius);
-		effect->addShadowLight(SShadowLight(resolution, pos, aim, color, (irr::f32)mnear , (irr::f32)mfar, ((irr::f32)angle * DEGTORAD)));
+	scene::ILightSceneNode* AddLightWithShadow(core::vector3df pos, core::vector3df aim, double radius, double mnear, double mfar, double angle, u32 resolution=512, video::SColorf color = video::SColorf(1.f,1.f,1.f,1.f))
+	{
+		scene::ILightSceneNode* mlight =  device->getSceneManager()->addLightSceneNode( 0,pos, color, (f32)radius);
+		effect->addShadowLight(SShadowLight(resolution, pos, aim, color, (f32)mnear , (f32)mfar, ((f32)angle * core::DEGTORAD)));
 		this->use_effects = true;
 		return mlight;
 	}
@@ -854,8 +854,8 @@ private:
 	chrono::ChSystem* system;
 
 	ChIrrAppEventReceiver* receiver;
-	
-	irr::IEventReceiver* user_receiver;
+
+	IEventReceiver* user_receiver;
 
 	scene::ISceneNode* container;
 

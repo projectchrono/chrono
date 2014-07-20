@@ -19,30 +19,24 @@
 
 #include <irrlicht.h>
 
-
-
-using namespace irr;
-using namespace video;
-using namespace core;
-using namespace scene;
-using namespace io;
+namespace irr {
 
 //////////////////////////// CShaderPre.h
 
 class CShaderPreprocessor
 {
 public:
-	CShaderPreprocessor(irr::video::IVideoDriver* driverIn);
-	irr::core::stringc ppShader(irr::core::stringc shaderProgram);
-	irr::core::stringc ppShaderFF(irr::core::stringc shaderProgram);
-	void addShaderDefine(const irr::core::stringc name, const irr::core::stringc value = "");
-	void removeShaderDefine(const irr::core::stringc name);
+	CShaderPreprocessor(video::IVideoDriver* driverIn);
+	core::stringc ppShader(core::stringc shaderProgram);
+	core::stringc ppShaderFF(core::stringc shaderProgram);
+	void addShaderDefine(const core::stringc name, const core::stringc value = "");
+	void removeShaderDefine(const core::stringc name);
 
 private:
 	void initDefineMap();
 
-	irr::video::IVideoDriver* driver;
-	irr::core::map<irr::core::stringc , irr::core::stringc> DefineMap;
+	video::IVideoDriver* driver;
+	core::map<core::stringc , core::stringc> DefineMap;
 };
 
 
@@ -57,7 +51,7 @@ public:
 
 	virtual void OnSetConstants(video::IMaterialRendererServices* services, s32 userData)
 	{
-		IVideoDriver* driver = services->getVideoDriver();
+		video::IVideoDriver* driver = services->getVideoDriver();
 
 		worldViewProj = driver->getTransform(video::ETS_PROJECTION);			
 		worldViewProj *= driver->getTransform(video::ETS_VIEW);
@@ -78,24 +72,24 @@ class ShadowShaderCB : public video::IShaderConstantSetCallBack
 public:
 	ShadowShaderCB(EffectHandler* effectIn) : effect(effectIn) {};
 
-	virtual void OnSetMaterial(const SMaterial& material) {}
+	virtual void OnSetMaterial(const video::SMaterial& material) {}
 
 	virtual void OnSetConstants(video::IMaterialRendererServices* services, s32 userData)
 	{
-		IVideoDriver* driver = services->getVideoDriver();
+		video::IVideoDriver* driver = services->getVideoDriver();
 
-		matrix4 worldViewProj = driver->getTransform(video::ETS_PROJECTION);			
+		core::matrix4 worldViewProj = driver->getTransform(video::ETS_PROJECTION);			
 		worldViewProj *= driver->getTransform(video::ETS_VIEW);
 		worldViewProj *= driver->getTransform(video::ETS_WORLD);
 		services->setVertexShaderConstant("mWorldViewProj", worldViewProj.pointer(), 16);
 
-		worldViewProj = ProjLink;			
+		worldViewProj = ProjLink;
 		worldViewProj *= ViewLink;
 		worldViewProj *= driver->getTransform(video::ETS_WORLD);
 		services->setVertexShaderConstant("mWorldViewProj2", worldViewProj.pointer(), 16);
 
 		driver->getTransform(video::ETS_WORLD).getInverse(invWorld);
-		vector3df lightPosOS = LightLink;
+		core::vector3df lightPosOS = LightLink;
 		invWorld.transformVect(lightPosOS); 
 		services->setVertexShaderConstant("LightPos", reinterpret_cast<f32*>(&lightPosOS.X), 4);
 		
@@ -116,7 +110,7 @@ public:
 };
 
 
-class ScreenQuadCB : public irr::video::IShaderConstantSetCallBack
+class ScreenQuadCB : public video::IShaderConstantSetCallBack
 {
 public:
 	ScreenQuadCB(EffectHandler* effectIn, bool defaultV = true) 
@@ -125,20 +119,20 @@ public:
 	EffectHandler* effect;
 	bool defaultVertexShader;
 
-	virtual void OnSetConstants(irr::video::IMaterialRendererServices* services, irr::s32 userData);
+	virtual void OnSetConstants(video::IMaterialRendererServices* services, s32 userData);
 
 	struct SUniformDescriptor
 	{
 		SUniformDescriptor() : fPointer(0), paramCount(0) {}
 
-		SUniformDescriptor(const irr::f32* fPointerIn, irr::u32 paramCountIn)
+		SUniformDescriptor(const f32* fPointerIn, u32 paramCountIn)
 			: fPointer(fPointerIn), paramCount(paramCountIn) {}
 
-		const irr::f32* fPointer;
-		irr::u32 paramCount;
+		const f32* fPointer;
+		u32 paramCount;
 	};
 
-	irr::core::map<irr::core::stringc, SUniformDescriptor> uniformDescriptors;
+	core::map<core::stringc, SUniformDescriptor> uniformDescriptors;
 };
 
 
@@ -295,33 +289,33 @@ core::array<SDefineExp> grabDefineExpressions(core::stringc &shaderProgram)
 }
 
 inline
-CShaderPreprocessor::CShaderPreprocessor(irr::video::IVideoDriver* driverIn) : driver(driverIn) 
+CShaderPreprocessor::CShaderPreprocessor(video::IVideoDriver* driverIn) : driver(driverIn) 
 {initDefineMap();};
 
 inline
 void CShaderPreprocessor::initDefineMap()
 {
-	if(driver->queryFeature(EVDF_TEXTURE_NPOT))
+	if(driver->queryFeature(video::EVDF_TEXTURE_NPOT))
 		DefineMap["EVDF_TEXTURE_NPOT"] = "";
-	if(driver->queryFeature(EVDF_FRAMEBUFFER_OBJECT))
+	if(driver->queryFeature(video::EVDF_FRAMEBUFFER_OBJECT))
 		DefineMap["EVDF_FRAMEBUFFER_OBJECT"] = "";
-	if(driver->queryFeature(EVDF_VERTEX_SHADER_1_1))
+	if(driver->queryFeature(video::EVDF_VERTEX_SHADER_1_1))
 		DefineMap["EVDF_VERTEX_SHADER_1_1"] = "";
-	if(driver->queryFeature(EVDF_VERTEX_SHADER_2_0))
+	if(driver->queryFeature(video::EVDF_VERTEX_SHADER_2_0))
 		DefineMap["EVDF_VERTEX_SHADER_2_0"] = "";
-	if(driver->queryFeature(EVDF_VERTEX_SHADER_3_0))
+	if(driver->queryFeature(video::EVDF_VERTEX_SHADER_3_0))
 		DefineMap["EVDF_VERTEX_SHADER_3_0"] = "";
-	if(driver->queryFeature(EVDF_PIXEL_SHADER_1_1))
+	if(driver->queryFeature(video::EVDF_PIXEL_SHADER_1_1))
 		DefineMap["EVDF_PIXEL_SHADER_1_1"] = "";
-	if(driver->queryFeature(EVDF_PIXEL_SHADER_1_2))
+	if(driver->queryFeature(video::EVDF_PIXEL_SHADER_1_2))
 		DefineMap["EVDF_PIXEL_SHADER_1_2"] = "";
-	if(driver->queryFeature(EVDF_PIXEL_SHADER_1_3))
+	if(driver->queryFeature(video::EVDF_PIXEL_SHADER_1_3))
 		DefineMap["EVDF_PIXEL_SHADER_1_3"] = "";
-	if(driver->queryFeature(EVDF_PIXEL_SHADER_1_4))
+	if(driver->queryFeature(video::EVDF_PIXEL_SHADER_1_4))
 		DefineMap["EVDF_PIXEL_SHADER_1_4"] = "";
-	if(driver->queryFeature(EVDF_PIXEL_SHADER_2_0))
+	if(driver->queryFeature(video::EVDF_PIXEL_SHADER_2_0))
 		DefineMap["EVDF_PIXEL_SHADER_2_0"] = "";
-	if(driver->queryFeature(EVDF_PIXEL_SHADER_3_0))
+	if(driver->queryFeature(video::EVDF_PIXEL_SHADER_3_0))
 		DefineMap["EVDF_PIXEL_SHADER_3_0"] = "";
 
 	// Commented for backwards compatibility.
@@ -457,31 +451,31 @@ public:
                 Material.Lighting = false;
                 Material.ZWriteEnable = false;
  
-                Vertices[0] = irr::video::S3DVertex(-1.0f,-1.0f,0.0f,0,0,1,irr::video::SColor(0x0),0.0f,1.0f);
-                Vertices[1] = irr::video::S3DVertex(-1.0f, 1.0f,0.0f,0,0,1,irr::video::SColor(0x0),0.0f,0.0f);
-                Vertices[2] = irr::video::S3DVertex( 1.0f, 1.0f,0.0f,0,0,1,irr::video::SColor(0x0),1.0f,0.0f);
-                Vertices[3] = irr::video::S3DVertex( 1.0f,-1.0f,0.0f,0,0,1,irr::video::SColor(0x0),1.0f,1.0f);
+                Vertices[0] = video::S3DVertex(-1.0f,-1.0f,0.0f,0,0,1,video::SColor(0x0),0.0f,1.0f);
+                Vertices[1] = video::S3DVertex(-1.0f, 1.0f,0.0f,0,0,1,video::SColor(0x0),0.0f,0.0f);
+                Vertices[2] = video::S3DVertex( 1.0f, 1.0f,0.0f,0,0,1,video::SColor(0x0),1.0f,0.0f);
+                Vertices[3] = video::S3DVertex( 1.0f,-1.0f,0.0f,0,0,1,video::SColor(0x0),1.0f,1.0f);
         }
  
-        virtual void render(irr::video::IVideoDriver* driver)
+        virtual void render(video::IVideoDriver* driver)
         {
-                const irr::u16 indices[6] = {0, 1, 2, 0, 2, 3};
+                const u16 indices[6] = {0, 1, 2, 0, 2, 3};
  
                 driver->setMaterial(Material);
-                driver->setTransform(irr::video::ETS_WORLD, irr::core::matrix4());
+                driver->setTransform(video::ETS_WORLD, core::matrix4());
                 driver->drawIndexedTriangleList(&Vertices[0], 4, &indices[0], 2);
         }
  
-        virtual irr::video::SMaterial& getMaterial()
+        virtual video::SMaterial& getMaterial()
         {
                 return Material;
         }  
  
-        irr::video::ITexture* rt[2];
+        video::ITexture* rt[2];
  
 private:
-        irr::video::S3DVertex Vertices[4];
-        irr::video::SMaterial Material;
+        video::S3DVertex Vertices[4];
+        video::SMaterial Material;
 };
 
 /*
@@ -494,33 +488,33 @@ public:
 		Material.Lighting = false;
 		Material.ZWriteEnable = false;
 
-		Vertices[0] = irr::video::S3DVertex(-1.0f,-1.0f,0.0f,0,0,1,irr::video::SColor(0x0),0.0f,1.0f);
-		Vertices[1] = irr::video::S3DVertex(-1.0f, 1.0f,0.0f,0,0,1,irr::video::SColor(0x0),0.0f,0.0f);
-		Vertices[2] = irr::video::S3DVertex( 1.0f, 1.0f,0.0f,0,0,1,irr::video::SColor(0x0),1.0f,0.0f);
-		Vertices[3] = irr::video::S3DVertex( 1.0f,-1.0f,0.0f,0,0,1,irr::video::SColor(0x0),1.0f,1.0f);
-		Vertices[4] = irr::video::S3DVertex(-1.0f,-1.0f,0.0f,0,0,1,irr::video::SColor(0x0),0.0f,1.0f);
-		Vertices[5] = irr::video::S3DVertex( 1.0f, 1.0f,0.0f,0,0,1,irr::video::SColor(0x0),1.0f,0.0f);
+		Vertices[0] = video::S3DVertex(-1.0f,-1.0f,0.0f,0,0,1,video::SColor(0x0),0.0f,1.0f);
+		Vertices[1] = video::S3DVertex(-1.0f, 1.0f,0.0f,0,0,1,video::SColor(0x0),0.0f,0.0f);
+		Vertices[2] = video::S3DVertex( 1.0f, 1.0f,0.0f,0,0,1,video::SColor(0x0),1.0f,0.0f);
+		Vertices[3] = video::S3DVertex( 1.0f,-1.0f,0.0f,0,0,1,video::SColor(0x0),1.0f,1.0f);
+		Vertices[4] = video::S3DVertex(-1.0f,-1.0f,0.0f,0,0,1,video::SColor(0x0),0.0f,1.0f);
+		Vertices[5] = video::S3DVertex( 1.0f, 1.0f,0.0f,0,0,1,video::SColor(0x0),1.0f,0.0f);
 	}
 
-	virtual void render(irr::video::IVideoDriver* driver)
+	virtual void render(video::IVideoDriver* driver)
 	{
-		irr::u16 indices[6] = {0, 1, 2, 3, 4, 5};
+		u16 indices[6] = {0, 1, 2, 3, 4, 5};
 
 		driver->setMaterial(Material);
-		driver->setTransform(irr::video::ETS_WORLD, irr::core::matrix4());
+		driver->setTransform(video::ETS_WORLD, core::matrix4());
 		driver->drawIndexedTriangleList(&Vertices[0], 6, &indices[0], 2);
 	}
 
-	virtual irr::video::SMaterial& getMaterial()
+	virtual video::SMaterial& getMaterial()
 	{
 		return Material;
-	}   
+	}
 
-	irr::video::ITexture* rt[2];
+	video::ITexture* rt[2];
 
 private:
-	irr::video::S3DVertex Vertices[6];
-	irr::video::SMaterial Material;
+	video::S3DVertex Vertices[6];
+	video::SMaterial Material;
 };
 */
 
@@ -1085,14 +1079,20 @@ struct SShadowLight
 	/// a camera, this would be similar to setting the camera's field of view. The last
 	/// parameter is whether the light is directional or not, if it is, an orthogonal
 	/// projection matrix will be created instead of a perspective one.
-	SShadowLight(	const irr::u32 shadowMapResolution,
-					const irr::core::vector3df& position, 
-					const irr::core::vector3df& target,
-					irr::video::SColorf lightColour = irr::video::SColor(0xffffffff), 
-					irr::f32 nearValue = 10.0, irr::f32 farValue = 100.0,
-					irr::f32 fov = 90.0 * irr::core::DEGTORAD64, bool directional = false)
-					:	pos(position), tar(target), farPlane(directional ? 1.0f : farValue), diffuseColour(lightColour), 
-						mapRes(shadowMapResolution)
+	SShadowLight(
+      const u32 shadowMapResolution,
+      const core::vector3df& position, 
+      const core::vector3df& target,
+      video::SColorf lightColour = video::SColor(0xffffffff), 
+      f32 nearValue = 10.0,
+      f32 farValue = 100.0,
+      f32 fov = 90.0 * core::DEGTORAD64,
+      bool directional = false)
+  : pos(position),
+    tar(target),
+    farPlane(directional ? 1.0f : farValue),
+    diffuseColour(lightColour),
+    mapRes(shadowMapResolution)
 	{
 		nearValue = nearValue <= 0.0f ? 0.1f : nearValue;
 
@@ -1105,84 +1105,84 @@ struct SShadowLight
 	}
 
 	/// Sets the light's position.
-	void setPosition(const irr::core::vector3df& position)
+	void setPosition(const core::vector3df& position)
 	{
 		pos = position;
 		updateViewMatrix();
 	}
 
 	/// Sets the light's target.
-	void setTarget(const irr::core::vector3df& target)
+	void setTarget(const core::vector3df& target)
 	{
 		tar = target;
 		updateViewMatrix();
 	}
 
 	/// Gets the light's position.
-	const irr::core::vector3df& getPosition() const
+	const core::vector3df& getPosition() const
 	{
 		return pos;
 	}
 
 	/// Gets the light's target.
-	const irr::core::vector3df& getTarget()  const
+	const core::vector3df& getTarget()  const
 	{
 		return tar;
 	}
 
 	/// Sets the light's view matrix.
-	void setViewMatrix(const irr::core::matrix4& matrix)
+	void setViewMatrix(const core::matrix4& matrix)
 	{
 		viewMat = matrix;
-		irr::core::matrix4 vInverse;
+		core::matrix4 vInverse;
 		viewMat.getInverse(vInverse);
 		pos = vInverse.getTranslation();
 	}
 
 	/// Sets the light's projection matrix.
-	void setProjectionMatrix(const irr::core::matrix4& matrix)
+	void setProjectionMatrix(const core::matrix4& matrix)
 	{
 		projMat = matrix;
 	}
 
 	/// Gets the light's view matrix.
-	irr::core::matrix4& getViewMatrix()
+	core::matrix4& getViewMatrix()
 	{
 		return viewMat;
 	}
 
 	/// Gets the light's projection matrix.
-	irr::core::matrix4& getProjectionMatrix()
+	core::matrix4& getProjectionMatrix()
 	{
 		return projMat;
 	}
 
 	/// Gets the light's far value.
-	irr::f32 getFarValue() const
+	f32 getFarValue() const
 	{
 		return farPlane;
 	}
 
 	/// Gets the light's color.
-	const irr::video::SColorf& getLightColor() const
+	const video::SColorf& getLightColor() const
 	{
 		return diffuseColour;
 	}
 
 	/// Sets the light's color.
-	void setLightColor(const irr::video::SColorf& lightColour) 
+	void setLightColor(const video::SColorf& lightColour) 
 	{
 		diffuseColour = lightColour;
 	}
 
 	/// Sets the shadow map resolution for this light.
-	void setShadowMapResolution(const irr::u32 shadowMapResolution)
+	void setShadowMapResolution(const u32 shadowMapResolution)
 	{
 		mapRes = shadowMapResolution;
 	}
 
 	/// Gets the shadow map resolution for this light.
-	const irr::u32 getShadowMapResolution() const
+	const u32 getShadowMapResolution() const
 	{
 		return mapRes;
 	}
@@ -1192,15 +1192,15 @@ private:
 	void updateViewMatrix()
 	{
 		viewMat.buildCameraLookAtMatrixLH(pos, tar,
-			(pos - tar).dotProduct(irr::core::vector3df(1.0f, 0.0f, 1.0f)) == 0.0f ?
-			irr::core::vector3df(0.0f, 0.0f, 1.0f) : irr::core::vector3df(0.0f, 1.0f, 0.0f)); 
+			(pos - tar).dotProduct(core::vector3df(1.0f, 0.0f, 1.0f)) == 0.0f ?
+			core::vector3df(0.0f, 0.0f, 1.0f) : core::vector3df(0.0f, 1.0f, 0.0f)); 
 	}
 
-	irr::video::SColorf diffuseColour;
-	irr::core::vector3df pos, tar;
-	irr::f32 farPlane;
-	irr::core::matrix4 viewMat, projMat;
-	irr::u32 mapRes;
+	video::SColorf diffuseColour;
+	core::vector3df pos, tar;
+	f32 farPlane;
+	core::matrix4 viewMat, projMat;
+	u32 mapRes;
 };
 
 // This is a general interface that can be overidden if you want to perform operations before or after
@@ -1233,8 +1233,8 @@ public:
 		useRoundSpotlights: Shadow lights will have a soft round spot light mask. Default is false.
 		use32BitDepthBuffers: XEffects will use 32-bit depth buffers if this is true, otherwise 16-bit. Default is false.
 	*/
-	EffectHandler(irr::IrrlichtDevice* irrlichtDevice, 
-		const irr::core::dimension2du& screenRTTSize = irr::core::dimension2du(0, 0),
+	EffectHandler(IrrlichtDevice* irrlichtDevice, 
+		const core::dimension2du& screenRTTSize = core::dimension2du(0, 0),
 		const bool useVSMShadows = false, const bool useRoundSpotLights = false,
 		const bool use32BitDepthBuffers = false);
 	
@@ -1248,13 +1248,13 @@ public:
 	}
 
 	/// Retrieves a reference to a shadow light. You may get the max amount from getShadowLightCount.
-	SShadowLight& getShadowLight(irr::u32 index)
+	SShadowLight& getShadowLight(u32 index)
 	{
 		return LightList[index];
 	}
 
 	/// Retrieves the current number of shadow lights.
-	const irr::u32 getShadowLightCount() const
+	const u32 getShadowLightCount() const
 	{
 		return LightList.size();
 	}
@@ -1263,11 +1263,11 @@ public:
 	/// Only one shadow map is kept for each resolution, so if multiple lights are using
 	/// the same resolution, you will only see the last light drawn's output.
 	/// The secondary param specifies whether to retrieve the secondary shadow map used in blurring.
-	irr::video::ITexture* getShadowMapTexture(const irr::u32 resolution, const bool secondary = false);
+	video::ITexture* getShadowMapTexture(const u32 resolution, const bool secondary = false);
 
 	/// Retrieves the screen depth map texture if the depth pass is enabled. This is unrelated to the shadow map, and is
 	/// meant to be used for post processing effects that require screen depth info, eg. DOF or SSAO.
-	irr::video::ITexture* getDepthMapTexture()
+	video::ITexture* getDepthMapTexture()
 	{
 		return DepthRTT;
 	}
@@ -1275,11 +1275,11 @@ public:
 	/// This function is now unrelated to shadow mapping. It simply adds a node to the screen space depth map render, for use
 	/// with post processing effects that require screen depth info. If you want the functionality of the old method (A node that
 	/// only casts but does not recieve shadows, use addShadowToNode with the ESM_CAST shadow mode.
-	void addNodeToDepthPass(irr::scene::ISceneNode *node);
+	void addNodeToDepthPass(scene::ISceneNode *node);
 
 	/// This function is now unrelated to shadow mapping. It simply removes a node to the screen space depth map render, for use
 	/// with post processing effects that require screen depth info.
-	void removeNodeFromDepthPass(irr::scene::ISceneNode *node);
+	void removeNodeFromDepthPass(scene::ISceneNode *node);
 
 	/// Enables/disables an additional pass before applying post processing effects (If there are any) which records screen depth info
 	/// to the depth buffer for use with post processing effects that require screen depth info, such as SSAO or DOF. For nodes to be
@@ -1287,10 +1287,10 @@ public:
 	void enableDepthPass(bool enableDepthPass);
 
 	/// Removes shadows from a scene node.
-	void removeShadowFromNode(irr::scene::ISceneNode* node)
+	void removeShadowFromNode(scene::ISceneNode* node)
 	{
 		SShadowNode tmpShadowNode = {node, ESM_RECEIVE, EFT_NONE};
-		irr::s32 i = ShadowNodeArray.binary_search(tmpShadowNode);
+		s32 i = ShadowNodeArray.binary_search(tmpShadowNode);
 
 		if(i != -1)
 			ShadowNodeArray.erase(i);
@@ -1298,7 +1298,7 @@ public:
 
 	// Excludes a scene node from lighting calculations, avoiding any side effects that may
 	// occur from XEffect's light modulation on this particular scene node.
-	void excludeNodeFromLightingCalculations(irr::scene::ISceneNode* node)
+	void excludeNodeFromLightingCalculations(scene::ISceneNode* node)
 	{
 		SShadowNode tmpShadowNode = {node, ESM_EXCLUDE, EFT_NONE};
 		ShadowNodeArray.push_back(tmpShadowNode);
@@ -1309,23 +1309,23 @@ public:
 	/// that the clear colour from IVideoDriver::beginScene is not preserved, so you must instead specify the clear
 	/// colour using EffectHandler::setClearColour(Colour).
 	/// A render target may be passed as the output target, else rendering will commence on the backbuffer.
-	void update(irr::video::ITexture* outputTarget = 0);
+	void update(video::ITexture* outputTarget = 0);
 
 	/// Adds a shadow to the scene node. The filter type specifies how many shadow map samples
 	/// to take, a higher value can produce a smoother or softer result. The shadow mode can
 	/// be either ESM_BOTH, ESM_CAST, or ESM_RECEIVE. ESM_BOTH casts and receives shadows,
 	/// ESM_CAST only casts shadows, and is unaffected by shadows or lighting, and ESM_RECEIVE
 	/// only receives but does not cast shadows.
-	void addShadowToNode(irr::scene::ISceneNode* node, E_FILTER_TYPE filterType = EFT_NONE, E_SHADOW_MODE shadowMode = ESM_BOTH);
+	void addShadowToNode(scene::ISceneNode* node, E_FILTER_TYPE filterType = EFT_NONE, E_SHADOW_MODE shadowMode = ESM_BOTH);
 	
 	/// Returns the device time divided by 100, for use with the shader callbacks.
-	irr::f32 getTime() 
+	f32 getTime() 
 	{ 
 		return device->getTimer()->getTime() / 100.0f;
 	}
 	
 	/// Sets the scene clear colour, for when the scene is cleared before smgr->drawAll().
-	void setClearColour(irr::video::SColor ClearCol)
+	void setClearColour(video::SColor ClearCol)
 	{
 		ClearColour = ClearCol;
 	}
@@ -1368,14 +1368,14 @@ public:
 	The last parameter is the render callback, you may pass 0 if you do not need one.
 	Please see IPostProcessingRenderCallback for more info about this callback.
 	*/
-	void addPostProcessingEffect(irr::s32 MaterialType, IPostProcessingRenderCallback* callback = 0);
+	void addPostProcessingEffect(s32 MaterialType, IPostProcessingRenderCallback* callback = 0);
 
 	/// Sets the IPostProcessingRenderCallback for the specified post processing effect.
 	/// The old callback if previously set will be automatically deleted.
-	void setPostProcessingRenderCallback(irr::s32 MaterialType, IPostProcessingRenderCallback* callback = 0)
+	void setPostProcessingRenderCallback(s32 MaterialType, IPostProcessingRenderCallback* callback = 0)
 	{
 		SPostProcessingPair tempPair(MaterialType, 0);
-		irr::s32 i = PostProcessingRoutines.binary_search(tempPair);
+		s32 i = PostProcessingRoutines.binary_search(tempPair);
 
 		if(i != -1)
 		{
@@ -1387,10 +1387,10 @@ public:
 	}
 
 	/// Removes the first encountered post processing effect with the specified material type.
-	void removePostProcessingEffect(irr::s32 MaterialType)
+	void removePostProcessingEffect(s32 MaterialType)
 	{
 		SPostProcessingPair tempPair(MaterialType, 0);
-		irr::s32 i = PostProcessingRoutines.binary_search(tempPair);
+		s32 i = PostProcessingRoutines.binary_search(tempPair);
 
 		if(i != -1)
 		{
@@ -1406,15 +1406,14 @@ public:
 	/// Direct3D or the gl_TexCoord[0] varying in OpenGL.
 	/// See addPostProcessingEffect for more info.
 	/// Returns the Irrlicht material type of the post processing effect.
-	irr::s32 addPostProcessingEffectFromFile(const irr::core::stringc& filename,
+	s32 addPostProcessingEffectFromFile(const core::stringc& filename,
 		IPostProcessingRenderCallback* callback = 0);
 
 	/// Sets a shader parameter for a post-processing effect. The first parameter is the material type, the second
 	/// is the uniform paratmeter name, the third is a float pointer that points to the data and the last is the
 	/// component count of the data. Please note that the float pointer must remain valid during render time.
 	/// To disable the setting of a parameter you may simply pass a null float pointer.
-	void setPostProcessingEffectConstant(const irr::s32 materialType, const irr::core::stringc& name, const irr::f32* data,
-		const irr::u32 count);
+	void setPostProcessingEffectConstant(const s32 materialType, const core::stringc& name, const f32* data, const u32 count);
 
 	/// Returns the screen quad scene node. This is not required in any way, but some advanced users may want to adjust
 	/// its material settings accordingly.
@@ -1424,45 +1423,45 @@ public:
 	}
 
 	/// Sets the active scene manager.
-	void setActiveSceneManager(irr::scene::ISceneManager* smgrIn)
+	void setActiveSceneManager(scene::ISceneManager* smgrIn)
 	{
 		smgr = smgrIn;
 	}
 
 	/// Gets the active scene manager.
-	irr::scene::ISceneManager* getActiveSceneManager()
+	scene::ISceneManager* getActiveSceneManager()
 	{
 		return smgr;
 	}
 	
 	/// This allows the user to specify a custom, fourth texture to be used in the post-processing effects.
 	/// See addPostProcessingEffect for more info.
-	void setPostProcessingUserTexture(irr::video::ITexture* userTexture)
+	void setPostProcessingUserTexture(video::ITexture* userTexture)
 	{
 		ScreenQuad.getMaterial().setTexture(3, userTexture);
 	}
 
 	/// Sets the global ambient color for shadowed scene nodes.
-	void setAmbientColor(irr::video::SColor ambientColour)
+	void setAmbientColor(video::SColor ambientColour)
 	{
 		AmbientColour = ambientColour;
 	}
 
 	/// Gets the global ambient color.
-	irr::video::SColor getAmbientColor() const
+	video::SColor getAmbientColor() const
 	{
 		return AmbientColour;
 	}
 
 	/// Generates a randomized texture composed of uniformly distributed 3 dimensional vectors.
-	irr::video::ITexture* generateRandomVectorTexture(const irr::core::dimension2du& dimensions,
-		const irr::core::stringc& name = "randVec");
+	video::ITexture* generateRandomVectorTexture(const core::dimension2du& dimensions,
+		const core::stringc& name = "randVec");
 
 	/// Sets a new screen render target resolution.
-	void setScreenRenderTargetResolution(const irr::core::dimension2du& resolution);
+	void setScreenRenderTargetResolution(const core::dimension2du& resolution);
 
 	/// Returns the device that this EffectHandler was initialized with.
-	irr::IrrlichtDevice* getIrrlichtDevice() {return device;}
+	IrrlichtDevice* getIrrlichtDevice() {return device;}
 
 private:
 
@@ -1473,7 +1472,7 @@ private:
 			return node < other.node;
 		}
 
-		irr::scene::ISceneNode* node;
+		scene::ISceneNode* node;
 
 		E_SHADOW_MODE shadowMode;
 		E_FILTER_TYPE filterType;
@@ -1481,7 +1480,7 @@ private:
 
 	struct SPostProcessingPair
 	{
-		SPostProcessingPair(const irr::s32 materialTypeIn, ScreenQuadCB* callbackIn,
+		SPostProcessingPair(const s32 materialTypeIn, ScreenQuadCB* callbackIn,
 			IPostProcessingRenderCallback* renderCallbackIn = 0)
 			: materialType(materialTypeIn), callback(callbackIn), renderCallback(renderCallbackIn) {}
 
@@ -1492,44 +1491,44 @@ private:
 
 		ScreenQuadCB* callback;
 		IPostProcessingRenderCallback* renderCallback;
-		irr::s32 materialType;
+		s32 materialType;
 	};
 
-	SPostProcessingPair obtainScreenQuadMaterialFromFile(const irr::core::stringc& filename, 
-		irr::video::E_MATERIAL_TYPE baseMaterial = irr::video::EMT_SOLID);
+	SPostProcessingPair obtainScreenQuadMaterialFromFile(const core::stringc& filename, 
+		video::E_MATERIAL_TYPE baseMaterial = video::EMT_SOLID);
 
-	irr::IrrlichtDevice* device;
-	irr::video::IVideoDriver* driver;
-	irr::scene::ISceneManager* smgr;
-	irr::core::dimension2du mapRes;
+	IrrlichtDevice* device;
+	video::IVideoDriver* driver;
+	scene::ISceneManager* smgr;
+	core::dimension2du mapRes;
 	
-	irr::s32 Depth;
-	irr::s32 DepthT;
-	irr::s32 DepthWiggle;
-	irr::s32 Shadow[EFT_COUNT];
-	irr::s32 LightModulate;
-	irr::s32 Simple;
-	irr::s32 WhiteWash;
-	irr::s32 WhiteWashTRef;
-	irr::s32 WhiteWashTAdd;
-	irr::s32 WhiteWashTAlpha;
-	irr::s32 VSMBlurH;
-	irr::s32 VSMBlurV;
+	s32 Depth;
+	s32 DepthT;
+	s32 DepthWiggle;
+	s32 Shadow[EFT_COUNT];
+	s32 LightModulate;
+	s32 Simple;
+	s32 WhiteWash;
+	s32 WhiteWashTRef;
+	s32 WhiteWashTAdd;
+	s32 WhiteWashTAlpha;
+	s32 VSMBlurH;
+	s32 VSMBlurV;
 	
 	DepthShaderCB* depthMC;
 	ShadowShaderCB* shadowMC;
 
-	irr::video::ITexture* ScreenRTT;
-	irr::video::ITexture* DepthRTT;
+	video::ITexture* ScreenRTT;
+	video::ITexture* DepthRTT;
 
-	irr::core::array<SPostProcessingPair> PostProcessingRoutines;
-	irr::core::array<SShadowLight> LightList;
-	irr::core::array<SShadowNode> ShadowNodeArray;
-	irr::core::array<irr::scene::ISceneNode*> DepthPassArray;
+	core::array<SPostProcessingPair> PostProcessingRoutines;
+	core::array<SShadowLight> LightList;
+	core::array<SShadowNode> ShadowNodeArray;
+	core::array<scene::ISceneNode*> DepthPassArray;
 
-	irr::core::dimension2du ScreenRTTSize;
-	irr::video::SColor ClearColour;
-	irr::video::SColor AmbientColour;
+	core::dimension2du ScreenRTTSize;
+	video::SColor ClearColour;
+	video::SColor AmbientColour;
 	CScreenQuad ScreenQuad;
 
 	bool shadowsUnsupported;
@@ -1543,31 +1542,31 @@ private:
 ////////////////////////////////// EffectHandler.cpp
 
 inline
-EffectHandler::EffectHandler(IrrlichtDevice* dev, const irr::core::dimension2du& screenRTTSize,
+EffectHandler::EffectHandler(IrrlichtDevice* dev, const core::dimension2du& screenRTTSize,
 	const bool useVSMShadows, const bool useRoundSpotLights, const bool use32BitDepthBuffers)
 : device(dev), smgr(dev->getSceneManager()), driver(dev->getVideoDriver()),
 ScreenRTTSize(screenRTTSize.getArea() == 0 ? dev->getVideoDriver()->getScreenSize() : screenRTTSize),
 ClearColour(0x0), shadowsUnsupported(false), DepthRTT(0), DepthPass(false), depthMC(0), shadowMC(0),
 AmbientColour(0x0), use32BitDepth(use32BitDepthBuffers), useVSM(useVSMShadows)
 {
-	bool tempTexFlagMipMaps = driver->getTextureCreationFlag(ETCF_CREATE_MIP_MAPS);
-	bool tempTexFlag32 = driver->getTextureCreationFlag(ETCF_ALWAYS_32_BIT);
+	bool tempTexFlagMipMaps = driver->getTextureCreationFlag(video::ETCF_CREATE_MIP_MAPS);
+	bool tempTexFlag32 = driver->getTextureCreationFlag(video::ETCF_ALWAYS_32_BIT);
 
 	ScreenRTT = driver->addRenderTargetTexture(ScreenRTTSize);
 	ScreenQuad.rt[0] = driver->addRenderTargetTexture(ScreenRTTSize);
 	ScreenQuad.rt[1] = driver->addRenderTargetTexture(ScreenRTTSize);
 
-	driver->setTextureCreationFlag(ETCF_CREATE_MIP_MAPS, tempTexFlagMipMaps);
-	driver->setTextureCreationFlag(ETCF_ALWAYS_32_BIT, tempTexFlag32);
+	driver->setTextureCreationFlag(video::ETCF_CREATE_MIP_MAPS, tempTexFlagMipMaps);
+	driver->setTextureCreationFlag(video::ETCF_ALWAYS_32_BIT, tempTexFlag32);
 
 	CShaderPreprocessor sPP(driver);
 
-	E_SHADER_EXTENSION shaderExt = (driver->getDriverType() == EDT_DIRECT3D9) ? ESE_HLSL : ESE_GLSL;
+	E_SHADER_EXTENSION shaderExt = (driver->getDriverType() == video::EDT_DIRECT3D9) ? ESE_HLSL : ESE_GLSL;
 
 	video::IGPUProgrammingServices* gpu = driver->getGPUProgrammingServices();
 	
-	if(gpu && ((driver->getDriverType() == EDT_OPENGL && driver->queryFeature(EVDF_ARB_GLSL)) ||
-			   (driver->getDriverType() == EDT_DIRECT3D9 && driver->queryFeature(EVDF_PIXEL_SHADER_2_0))))
+	if(gpu && ((driver->getDriverType() == video::EDT_OPENGL && driver->queryFeature(video::EVDF_ARB_GLSL)) ||
+			   (driver->getDriverType() == video::EDT_DIRECT3D9 && driver->queryFeature(video::EVDF_PIXEL_SHADER_2_0))))
 	{
 		depthMC = new DepthShaderCB(this);
 		shadowMC = new ShadowShaderCB(this);
@@ -1610,11 +1609,11 @@ AmbientColour(0x0), use32BitDepth(use32BitDepthBuffers), useVSM(useVSMShadows)
 
 		const u32 sampleCounts[EFT_COUNT] = {1, 4, 8, 12, 16};
 
-		const E_VERTEX_SHADER_TYPE vertexProfile = 
-			driver->queryFeature(video::EVDF_VERTEX_SHADER_3_0) ? EVST_VS_3_0 : EVST_VS_2_0; 
+		const video::E_VERTEX_SHADER_TYPE vertexProfile = 
+			driver->queryFeature(video::EVDF_VERTEX_SHADER_3_0) ? video::EVST_VS_3_0 : video::EVST_VS_2_0; 
 
-		const E_PIXEL_SHADER_TYPE pixelProfile = 
-			driver->queryFeature(video::EVDF_PIXEL_SHADER_3_0) ? EPST_PS_3_0 : EPST_PS_2_0;  
+		const video::E_PIXEL_SHADER_TYPE pixelProfile = 
+			driver->queryFeature(video::EVDF_PIXEL_SHADER_3_0) ? video::EPST_PS_3_0 : video::EPST_PS_2_0;  
 
 		for(u32 i = 0;i < EFT_COUNT;i++)
 		{
@@ -1659,16 +1658,16 @@ AmbientColour(0x0), use32BitDepth(use32BitDepthBuffers), useVSM(useVSMShadows)
 	}
 	else
 	{
-		Depth = EMT_SOLID;
-		DepthT = EMT_SOLID;
-		WhiteWash = EMT_SOLID;
-		WhiteWashTRef = EMT_TRANSPARENT_ALPHA_CHANNEL_REF;
-		WhiteWashTAdd = EMT_TRANSPARENT_ADD_COLOR;
-		WhiteWashTAlpha = EMT_TRANSPARENT_ALPHA_CHANNEL;
-		Simple = EMT_SOLID;
+		Depth = video::EMT_SOLID;
+		DepthT = video::EMT_SOLID;
+		WhiteWash = video::EMT_SOLID;
+		WhiteWashTRef = video::EMT_TRANSPARENT_ALPHA_CHANNEL_REF;
+		WhiteWashTAdd = video::EMT_TRANSPARENT_ADD_COLOR;
+		WhiteWashTAlpha = video::EMT_TRANSPARENT_ALPHA_CHANNEL;
+		Simple = video::EMT_SOLID;
 
 		for(u32 i = 0;i < EFT_COUNT;++i)
-			Shadow[i] = EMT_SOLID;
+			Shadow[i] = video::EMT_SOLID;
 
 		device->getLogger()->log("XEffects: Shader effects not supported on this system.");
 		shadowsUnsupported = true;
@@ -1692,10 +1691,10 @@ EffectHandler::~EffectHandler()
 }
 
 inline
-void EffectHandler::setScreenRenderTargetResolution(const irr::core::dimension2du& resolution)
+void EffectHandler::setScreenRenderTargetResolution(const core::dimension2du& resolution)
 {
-	bool tempTexFlagMipMaps = driver->getTextureCreationFlag(ETCF_CREATE_MIP_MAPS);
-	bool tempTexFlag32 = driver->getTextureCreationFlag(ETCF_ALWAYS_32_BIT);
+	bool tempTexFlagMipMaps = driver->getTextureCreationFlag(video::ETCF_CREATE_MIP_MAPS);
+	bool tempTexFlag32 = driver->getTextureCreationFlag(video::ETCF_ALWAYS_32_BIT);
 
 	if(ScreenRTT)
 		driver->removeTexture(ScreenRTT);
@@ -1718,8 +1717,8 @@ void EffectHandler::setScreenRenderTargetResolution(const irr::core::dimension2d
 		DepthRTT = driver->addRenderTargetTexture(resolution);
 	}
 
-	driver->setTextureCreationFlag(ETCF_CREATE_MIP_MAPS, tempTexFlagMipMaps);
-	driver->setTextureCreationFlag(ETCF_ALWAYS_32_BIT, tempTexFlag32);
+	driver->setTextureCreationFlag(video::ETCF_CREATE_MIP_MAPS, tempTexFlagMipMaps);
+	driver->setTextureCreationFlag(video::ETCF_ALWAYS_32_BIT, tempTexFlag32);
 
 	ScreenRTTSize = resolution;
 }
@@ -1730,11 +1729,11 @@ void EffectHandler::enableDepthPass(bool enableDepthPass)
 	DepthPass = enableDepthPass;
 
 	if(DepthPass && DepthRTT == 0)
-		DepthRTT = driver->addRenderTargetTexture(ScreenRTTSize, "depthRTT", use32BitDepth ? ECF_G32R32F : ECF_G16R16F);
+		DepthRTT = driver->addRenderTargetTexture(ScreenRTTSize, "depthRTT", use32BitDepth ? video::ECF_G32R32F : video::ECF_G16R16F);
 }
 
 inline
-void EffectHandler::addPostProcessingEffect(irr::s32 MaterialType, IPostProcessingRenderCallback* callback)
+void EffectHandler::addPostProcessingEffect(s32 MaterialType, IPostProcessingRenderCallback* callback)
 {
 	SPostProcessingPair pPair(MaterialType, 0);
 	pPair.renderCallback = callback;
@@ -1742,21 +1741,21 @@ void EffectHandler::addPostProcessingEffect(irr::s32 MaterialType, IPostProcessi
 }
 
 inline
-void EffectHandler::addShadowToNode(irr::scene::ISceneNode *node, E_FILTER_TYPE filterType, E_SHADOW_MODE shadowMode)
+void EffectHandler::addShadowToNode(scene::ISceneNode *node, E_FILTER_TYPE filterType, E_SHADOW_MODE shadowMode)
 {
 	SShadowNode snode = {node, shadowMode, filterType};
 	ShadowNodeArray.push_back(snode);
 }
 
 inline
-void EffectHandler::addNodeToDepthPass(irr::scene::ISceneNode *node)
+void EffectHandler::addNodeToDepthPass(scene::ISceneNode *node)
 {
 	if(DepthPassArray.binary_search(node) == -1)
 		DepthPassArray.push_back(node);
 }
 
 inline
-void EffectHandler::removeNodeFromDepthPass(irr::scene::ISceneNode *node)
+void EffectHandler::removeNodeFromDepthPass(scene::ISceneNode *node)
 {
 	s32 i = DepthPassArray.binary_search(node);
 	
@@ -1765,7 +1764,7 @@ void EffectHandler::removeNodeFromDepthPass(irr::scene::ISceneNode *node)
 }
 
 inline
-void EffectHandler::update(irr::video::ITexture* outputTarget)
+void EffectHandler::update(video::ITexture* outputTarget)
 {
 	if(shadowsUnsupported || smgr->getActiveCamera() == 0)
 		return;
@@ -1774,7 +1773,7 @@ void EffectHandler::update(irr::video::ITexture* outputTarget)
 	{
 		driver->setRenderTarget(ScreenQuad.rt[0], true, true, AmbientColour);
 
-		ICameraSceneNode* activeCam = smgr->getActiveCamera();
+		scene::ICameraSceneNode* activeCam = smgr->getActiveCamera();
 		activeCam->OnAnimate(device->getTimer()->getTime());
 		activeCam->OnRegisterSceneNode();
 		activeCam->render();
@@ -1786,11 +1785,11 @@ void EffectHandler::update(irr::video::ITexture* outputTarget)
 			// Set max distance constant for depth shader.
 			depthMC->FarLink = LightList[l].getFarValue();
 
-			driver->setTransform(ETS_VIEW, LightList[l].getViewMatrix());
-			driver->setTransform(ETS_PROJECTION, LightList[l].getProjectionMatrix());
+			driver->setTransform(video::ETS_VIEW, LightList[l].getViewMatrix());
+			driver->setTransform(video::ETS_PROJECTION, LightList[l].getProjectionMatrix());
 			
-			ITexture* currentShadowMapTexture = getShadowMapTexture(LightList[l].getShadowMapResolution());
-			driver->setRenderTarget(currentShadowMapTexture, true, true, SColor(0xffffffff));
+			video::ITexture* currentShadowMapTexture = getShadowMapTexture(LightList[l].getShadowMapResolution());
+			driver->setRenderTarget(currentShadowMapTexture, true, true, video::SColor(0xffffffff));
 			
 			for(u32 i = 0;i < ShadowNodeArraySize;++i)
 			{
@@ -1798,13 +1797,13 @@ void EffectHandler::update(irr::video::ITexture* outputTarget)
 					continue;
 
 				const u32 CurrentMaterialCount = ShadowNodeArray[i].node->getMaterialCount();
-				core::array<irr::s32> BufferMaterialList(CurrentMaterialCount);
+				core::array<s32> BufferMaterialList(CurrentMaterialCount);
 				BufferMaterialList.set_used(0);
 
 				for(u32 m = 0;m < CurrentMaterialCount;++m)
 				{
 					BufferMaterialList.push_back(ShadowNodeArray[i].node->getMaterial(m).MaterialType);
-					ShadowNodeArray[i].node->getMaterial(m).MaterialType = (E_MATERIAL_TYPE)
+					ShadowNodeArray[i].node->getMaterial(m).MaterialType = (video::E_MATERIAL_TYPE)
 						(BufferMaterialList[m] == video::EMT_TRANSPARENT_ALPHA_CHANNEL_REF ? DepthT : Depth);
 				}
 
@@ -1813,31 +1812,31 @@ void EffectHandler::update(irr::video::ITexture* outputTarget)
 
 				const u32 BufferMaterialListSize = BufferMaterialList.size();
 				for(u32 m = 0;m < BufferMaterialListSize;++m)
-					ShadowNodeArray[i].node->getMaterial(m).MaterialType = (E_MATERIAL_TYPE)BufferMaterialList[m];
+					ShadowNodeArray[i].node->getMaterial(m).MaterialType = (video::E_MATERIAL_TYPE)BufferMaterialList[m];
 			}
 
 			// Blur the shadow map texture if we're using VSM filtering.
 			if(useVSM)
 			{
-				ITexture* currentSecondaryShadowMap = getShadowMapTexture(LightList[l].getShadowMapResolution(), true);
+				video::ITexture* currentSecondaryShadowMap = getShadowMapTexture(LightList[l].getShadowMapResolution(), true);
 
-				driver->setRenderTarget(currentSecondaryShadowMap, true, true, SColor(0xffffffff));
+				driver->setRenderTarget(currentSecondaryShadowMap, true, true, video::SColor(0xffffffff));
 				ScreenQuad.getMaterial().setTexture(0, currentShadowMapTexture);
-				ScreenQuad.getMaterial().MaterialType = (E_MATERIAL_TYPE)VSMBlurH;
+				ScreenQuad.getMaterial().MaterialType = (video::E_MATERIAL_TYPE)VSMBlurH;
 				
 				ScreenQuad.render(driver);
 
-				driver->setRenderTarget(currentShadowMapTexture, true, true, SColor(0xffffffff));
+				driver->setRenderTarget(currentShadowMapTexture, true, true, video::SColor(0xffffffff));
 				ScreenQuad.getMaterial().setTexture(0, currentSecondaryShadowMap);
-				ScreenQuad.getMaterial().MaterialType = (E_MATERIAL_TYPE)VSMBlurV;
+				ScreenQuad.getMaterial().MaterialType = (video::E_MATERIAL_TYPE)VSMBlurV;
 				
 				ScreenQuad.render(driver);
 			}
 
-			driver->setRenderTarget(ScreenQuad.rt[1], true, true, SColor(0xffffffff));
+			driver->setRenderTarget(ScreenQuad.rt[1], true, true, video::SColor(0xffffffff));
 		
-			driver->setTransform(ETS_VIEW, activeCam->getViewMatrix());
-			driver->setTransform(ETS_PROJECTION, activeCam->getProjectionMatrix());
+			driver->setTransform(video::ETS_VIEW, activeCam->getViewMatrix());
+			driver->setTransform(video::ETS_PROJECTION, activeCam->getProjectionMatrix());
 
 			shadowMC->LightColour = LightList[l].getLightColor();
 			shadowMC->LightLink = LightList[l].getPosition();
@@ -1852,15 +1851,15 @@ void EffectHandler::update(irr::video::ITexture* outputTarget)
 						continue;
 
 				const u32 CurrentMaterialCount = ShadowNodeArray[i].node->getMaterialCount();
-				core::array<irr::s32> BufferMaterialList(CurrentMaterialCount);
-				core::array<irr::video::ITexture*> BufferTextureList(CurrentMaterialCount);
+				core::array<s32> BufferMaterialList(CurrentMaterialCount);
+				core::array<video::ITexture*> BufferTextureList(CurrentMaterialCount);
 				
 				for(u32 m = 0;m < CurrentMaterialCount;++m)
 				{
 					BufferMaterialList.push_back(ShadowNodeArray[i].node->getMaterial(m).MaterialType);
 					BufferTextureList.push_back(ShadowNodeArray[i].node->getMaterial(m).getTexture(0));
 				
-					ShadowNodeArray[i].node->getMaterial(m).MaterialType = (E_MATERIAL_TYPE)Shadow[ShadowNodeArray[i].filterType];
+					ShadowNodeArray[i].node->getMaterial(m).MaterialType = (video::E_MATERIAL_TYPE)Shadow[ShadowNodeArray[i].filterType];
 					ShadowNodeArray[i].node->getMaterial(m).setTexture(0, currentShadowMapTexture);
 				}
 
@@ -1869,14 +1868,14 @@ void EffectHandler::update(irr::video::ITexture* outputTarget)
 
 				for(u32 m = 0;m < CurrentMaterialCount;++m)
 				{
-					ShadowNodeArray[i].node->getMaterial(m).MaterialType = (E_MATERIAL_TYPE)BufferMaterialList[m];
+					ShadowNodeArray[i].node->getMaterial(m).MaterialType = (video::E_MATERIAL_TYPE)BufferMaterialList[m];
 					ShadowNodeArray[i].node->getMaterial(m).setTexture(0, BufferTextureList[m]);
 				}
 			}
 
-			driver->setRenderTarget(ScreenQuad.rt[0], false, false, SColor(0x0));
+			driver->setRenderTarget(ScreenQuad.rt[0], false, false, video::SColor(0x0));
 			ScreenQuad.getMaterial().setTexture(0, ScreenQuad.rt[1]);
-			ScreenQuad.getMaterial().MaterialType = (E_MATERIAL_TYPE)Simple;
+			ScreenQuad.getMaterial().MaterialType = (video::E_MATERIAL_TYPE)Simple;
 			
 			ScreenQuad.render(driver);
 		}
@@ -1888,7 +1887,7 @@ void EffectHandler::update(irr::video::ITexture* outputTarget)
 					continue;
 
 			const u32 CurrentMaterialCount = ShadowNodeArray[i].node->getMaterialCount();
-			core::array<irr::s32> BufferMaterialList(CurrentMaterialCount);
+			core::array<s32> BufferMaterialList(CurrentMaterialCount);
 			BufferMaterialList.set_used(0);
 			
 			for(u32 m = 0;m < CurrentMaterialCount;++m)
@@ -1897,17 +1896,17 @@ void EffectHandler::update(irr::video::ITexture* outputTarget)
 			
 				switch(BufferMaterialList[m])
 				{
-					case EMT_TRANSPARENT_ALPHA_CHANNEL_REF:
-						ShadowNodeArray[i].node->getMaterial(m).MaterialType = (E_MATERIAL_TYPE)WhiteWashTRef;
+					case video::EMT_TRANSPARENT_ALPHA_CHANNEL_REF:
+						ShadowNodeArray[i].node->getMaterial(m).MaterialType = (video::E_MATERIAL_TYPE)WhiteWashTRef;
 						break;
-					case EMT_TRANSPARENT_ADD_COLOR:
-						ShadowNodeArray[i].node->getMaterial(m).MaterialType = (E_MATERIAL_TYPE)WhiteWashTAdd;
+					case video::EMT_TRANSPARENT_ADD_COLOR:
+						ShadowNodeArray[i].node->getMaterial(m).MaterialType = (video::E_MATERIAL_TYPE)WhiteWashTAdd;
 						break;
-					case EMT_TRANSPARENT_ALPHA_CHANNEL:
-						ShadowNodeArray[i].node->getMaterial(m).MaterialType = (E_MATERIAL_TYPE)WhiteWashTAlpha;
+					case video::EMT_TRANSPARENT_ALPHA_CHANNEL:
+						ShadowNodeArray[i].node->getMaterial(m).MaterialType = (video::E_MATERIAL_TYPE)WhiteWashTAlpha;
 						break;
 					default:
-						ShadowNodeArray[i].node->getMaterial(m).MaterialType = (E_MATERIAL_TYPE)WhiteWash;
+						ShadowNodeArray[i].node->getMaterial(m).MaterialType = (video::E_MATERIAL_TYPE)WhiteWash;
 						break;
 				}
 			}
@@ -1916,12 +1915,12 @@ void EffectHandler::update(irr::video::ITexture* outputTarget)
 			ShadowNodeArray[i].node->render();
 
 			for(u32 m = 0;m < CurrentMaterialCount;++m)
-				ShadowNodeArray[i].node->getMaterial(m).MaterialType = (E_MATERIAL_TYPE)BufferMaterialList[m];
+				ShadowNodeArray[i].node->getMaterial(m).MaterialType = (video::E_MATERIAL_TYPE)BufferMaterialList[m];
 		}
 	}
 	else
 	{
-		driver->setRenderTarget(ScreenQuad.rt[0], true, true, SColor(0xffffffff));
+		driver->setRenderTarget(ScreenQuad.rt[0], true, true, video::SColor(0xffffffff));
 	}
 	
 	driver->setRenderTarget(ScreenQuad.rt[1], true, true, ClearColour);
@@ -1930,36 +1929,36 @@ void EffectHandler::update(irr::video::ITexture* outputTarget)
 	const u32 PostProcessingRoutinesSize = PostProcessingRoutines.size();
 
 	driver->setRenderTarget(PostProcessingRoutinesSize 
-		? ScreenRTT : outputTarget, true, true, SColor(0x0));
+		? ScreenRTT : outputTarget, true, true, video::SColor(0x0));
 
 	ScreenQuad.getMaterial().setTexture(0, ScreenQuad.rt[1]);
 	ScreenQuad.getMaterial().setTexture(1, ScreenQuad.rt[0]);
 
-	ScreenQuad.getMaterial().MaterialType = (E_MATERIAL_TYPE)LightModulate;
+	ScreenQuad.getMaterial().MaterialType = (video::E_MATERIAL_TYPE)LightModulate;
 	ScreenQuad.render(driver);
 
 	// Perform depth pass after rendering, to ensure animations stay up to date.
 	if(DepthPass)
 	{
-		driver->setRenderTarget(DepthRTT, true, true, SColor(0xffffffff));
+		driver->setRenderTarget(DepthRTT, true, true, video::SColor(0xffffffff));
 
 		// Set max distance constant for depth shader.
 		depthMC->FarLink = smgr->getActiveCamera()->getFarValue();
 
 		for(u32 i = 0;i < DepthPassArray.size();++i)
 		{
-			core::array<irr::s32> BufferMaterialList(DepthPassArray[i]->getMaterialCount());
+			core::array<s32> BufferMaterialList(DepthPassArray[i]->getMaterialCount());
 			BufferMaterialList.set_used(0);
 
 			for(u32 g = 0;g < DepthPassArray[i]->getMaterialCount();++g)
 				BufferMaterialList.push_back(DepthPassArray[i]->getMaterial(g).MaterialType);
 
-			DepthPassArray[i]->setMaterialType((E_MATERIAL_TYPE)Depth);
+			DepthPassArray[i]->setMaterialType((video::E_MATERIAL_TYPE)Depth);
 			DepthPassArray[i]->OnAnimate(device->getTimer()->getTime());
 			DepthPassArray[i]->render();
 
 			for(u32 g = 0;g < DepthPassArray[i]->getMaterialCount();++g)
-				DepthPassArray[i]->getMaterial(g).MaterialType = (E_MATERIAL_TYPE)BufferMaterialList[g];
+				DepthPassArray[i]->getMaterial(g).MaterialType = (video::E_MATERIAL_TYPE)BufferMaterialList[g];
 		}
 
 		driver->setRenderTarget(0, false, false);
@@ -1972,7 +1971,7 @@ void EffectHandler::update(irr::video::ITexture* outputTarget)
 		ScreenQuad.getMaterial().setTexture(2, DepthRTT);
 		for(u32 i = 0;i < PostProcessingRoutinesSize;++i)
 		{
-			ScreenQuad.getMaterial().MaterialType = (E_MATERIAL_TYPE)PostProcessingRoutines[i].materialType;
+			ScreenQuad.getMaterial().MaterialType = (video::E_MATERIAL_TYPE)PostProcessingRoutines[i].materialType;
 
 			Alter = !Alter;
 			ScreenQuad.getMaterial().setTexture(0, i == 0 ? ScreenRTT : ScreenQuad.rt[int(!Alter)]);
@@ -1987,7 +1986,7 @@ void EffectHandler::update(irr::video::ITexture* outputTarget)
 }
 
 inline
-irr::video::ITexture* EffectHandler::getShadowMapTexture(const irr::u32 resolution, const bool secondary)
+video::ITexture* EffectHandler::getShadowMapTexture(const u32 resolution, const bool secondary)
 {
 	// Using Irrlicht cache now.
 	core::stringc shadowMapName = core::stringc("XEFFECTS_SM_") + core::stringc(resolution);
@@ -1995,24 +1994,24 @@ irr::video::ITexture* EffectHandler::getShadowMapTexture(const irr::u32 resoluti
 	if(secondary)
 		shadowMapName += "_2";
 
-	ITexture* shadowMapTexture = driver->getTexture(shadowMapName);
+	video::ITexture* shadowMapTexture = driver->getTexture(shadowMapName);
 
 	if(shadowMapTexture == 0)
 	{
 		device->getLogger()->log("XEffects: Please ignore previous warning, it is harmless.");
 
-		shadowMapTexture = driver->addRenderTargetTexture(dimension2du(resolution, resolution),
-			shadowMapName, use32BitDepth ? ECF_G32R32F : ECF_G16R16F);
+		shadowMapTexture = driver->addRenderTargetTexture(core::dimension2du(resolution, resolution),
+			shadowMapName, use32BitDepth ? video::ECF_G32R32F : video::ECF_G16R16F);
 	}
 
 	return shadowMapTexture;
 }
 
 inline
-irr::video::ITexture* EffectHandler::generateRandomVectorTexture(const irr::core::dimension2du& dimensions,
-	const irr::core::stringc& name)
+video::ITexture* EffectHandler::generateRandomVectorTexture(const core::dimension2du& dimensions,
+	const core::stringc& name)
 {
-	IImage* tmpImage = driver->createImage(irr::video::ECF_A8R8G8B8, dimensions);
+	video::IImage* tmpImage = driver->createImage(video::ECF_A8R8G8B8, dimensions);
 
 	srand(device->getTimer()->getRealTime());
 	
@@ -2020,18 +2019,18 @@ irr::video::ITexture* EffectHandler::generateRandomVectorTexture(const irr::core
 	{
 		for(u32 y = 0;y < dimensions.Height;++y)
 		{
-			vector3df randVec; 
+			core::vector3df randVec; 
 			
 			// Reject vectors outside the unit sphere to get a uniform distribution.
-			do {randVec = vector3df((f32)rand() / (f32)RAND_MAX, (f32)rand() / (f32)RAND_MAX, (f32)rand() / (f32)RAND_MAX);}
+			do {randVec = core::vector3df((f32)rand() / (f32)RAND_MAX, (f32)rand() / (f32)RAND_MAX, (f32)rand() / (f32)RAND_MAX);}
 			while(randVec.getLengthSQ() > 1.0f);
 
-			const SColorf randCol(randVec.X, randVec.Y, randVec.Z);
+			const video::SColorf randCol(randVec.X, randVec.Y, randVec.Z);
 			tmpImage->setPixel(x, y, randCol.toSColor());
 		}
 	}
 
-	ITexture* randTexture = driver->addTexture(name, tmpImage);
+	video::ITexture* randTexture = driver->addTexture(name, tmpImage);
 	
 	tmpImage->drop();
 
@@ -2039,22 +2038,22 @@ irr::video::ITexture* EffectHandler::generateRandomVectorTexture(const irr::core
 }
 
 inline
-EffectHandler::SPostProcessingPair EffectHandler::obtainScreenQuadMaterialFromFile(const irr::core::stringc& filename, 
-	irr::video::E_MATERIAL_TYPE baseMaterial)
+EffectHandler::SPostProcessingPair EffectHandler::obtainScreenQuadMaterialFromFile(const core::stringc& filename, 
+	video::E_MATERIAL_TYPE baseMaterial)
 {
 	CShaderPreprocessor sPP(driver);
 
 	sPP.addShaderDefine("SCREENX", core::stringc(ScreenRTTSize.Width));
 	sPP.addShaderDefine("SCREENY", core::stringc(ScreenRTTSize.Height));	
 	
-	video::E_VERTEX_SHADER_TYPE VertexLevel = driver->queryFeature(video::EVDF_VERTEX_SHADER_3_0) ? EVST_VS_3_0 : EVST_VS_2_0; 
-	video::E_PIXEL_SHADER_TYPE PixelLevel = driver->queryFeature(video::EVDF_PIXEL_SHADER_3_0) ? EPST_PS_2_0 : EPST_PS_2_0; 
+	video::E_VERTEX_SHADER_TYPE VertexLevel = driver->queryFeature(video::EVDF_VERTEX_SHADER_3_0) ? video::EVST_VS_3_0 : video::EVST_VS_2_0; 
+	video::E_PIXEL_SHADER_TYPE PixelLevel = driver->queryFeature(video::EVDF_PIXEL_SHADER_3_0) ? video::EPST_PS_2_0 : video::EPST_PS_2_0; 
 
-	E_SHADER_EXTENSION shaderExt = (driver->getDriverType() == EDT_DIRECT3D9) ? ESE_HLSL : ESE_GLSL;
+	E_SHADER_EXTENSION shaderExt = (driver->getDriverType() == video::EDT_DIRECT3D9) ? ESE_HLSL : ESE_GLSL;
 
 	video::IGPUProgrammingServices* gpu = driver->getGPUProgrammingServices();
 
-	const stringc shaderString = sPP.ppShaderFF(filename.c_str());
+	const core::stringc shaderString = sPP.ppShaderFF(filename.c_str());
 
 	ScreenQuadCB* SQCB = new ScreenQuadCB(this, true);
 
@@ -2071,8 +2070,8 @@ EffectHandler::SPostProcessingPair EffectHandler::obtainScreenQuadMaterialFromFi
 }
 
 inline
-void EffectHandler::setPostProcessingEffectConstant(const irr::s32 materialType, const irr::core::stringc& name,
-	const f32* data, const irr::u32 count)
+void EffectHandler::setPostProcessingEffectConstant(const s32 materialType, const core::stringc& name,
+	const f32* data, const u32 count)
 {
 	SPostProcessingPair tempPair(materialType, 0);
 	s32 matIndex = PostProcessingRoutines.binary_search(tempPair);
@@ -2082,7 +2081,7 @@ void EffectHandler::setPostProcessingEffectConstant(const irr::s32 materialType,
 }
 
 inline
-s32 EffectHandler::addPostProcessingEffectFromFile(const irr::core::stringc& filename,
+s32 EffectHandler::addPostProcessingEffectFromFile(const core::stringc& filename,
 	IPostProcessingRenderCallback* callback)
 {
 	SPostProcessingPair pPair = obtainScreenQuadMaterialFromFile(filename);
@@ -2098,13 +2097,13 @@ s32 EffectHandler::addPostProcessingEffectFromFile(const irr::core::stringc& fil
 ///////////////ScreenQuadCB impl.
 
 inline
-void ScreenQuadCB::OnSetConstants(irr::video::IMaterialRendererServices* services, irr::s32 userData)
+void ScreenQuadCB::OnSetConstants(video::IMaterialRendererServices* services, s32 userData)
 	{
-		if(services->getVideoDriver()->getDriverType() == irr::video::EDT_OPENGL)
+		if(services->getVideoDriver()->getDriverType() == video::EDT_OPENGL)
 		{
 			//***ALEX*** modified for Irrlicht 1.8
 			/*
-			irr::s32 TexVar = 0;
+			s32 TexVar = 0;
 			services->setPixelShaderConstant("ColorMapSampler", &TexVar, 1);
 	 
 			TexVar = 1;
@@ -2117,43 +2116,43 @@ void ScreenQuadCB::OnSetConstants(irr::video::IMaterialRendererServices* service
 			services->setPixelShaderConstant("UserMapSampler", &TexVar, 1);
 			*/
 			/// Version for Irrlicht 1.7.3
-			irr::u32 TexVar = 0;
-			services->setPixelShaderConstant("ColorMapSampler", (irr::f32*)(&TexVar), 1); 
+			u32 TexVar = 0;
+			services->setPixelShaderConstant("ColorMapSampler", (f32*)(&TexVar), 1); 
 
 			TexVar = 1;
-			services->setPixelShaderConstant("ScreenMapSampler", (irr::f32*)(&TexVar), 1); 
+			services->setPixelShaderConstant("ScreenMapSampler", (f32*)(&TexVar), 1); 
 
 			TexVar = 2;
-			services->setPixelShaderConstant("DepthMapSampler", (irr::f32*)(&TexVar), 1); 
+			services->setPixelShaderConstant("DepthMapSampler", (f32*)(&TexVar), 1); 
 
 			TexVar = 3;
-			services->setPixelShaderConstant("UserMapSampler", (irr::f32*)(&TexVar), 1);
+			services->setPixelShaderConstant("UserMapSampler", (f32*)(&TexVar), 1);
 		}
 
 		if(defaultVertexShader)
 		{
-			const irr::core::dimension2du currentRTTSize = services->getVideoDriver()->getCurrentRenderTargetSize();
-			const irr::f32 screenX = (irr::f32)currentRTTSize.Width, screenY = (irr::f32)currentRTTSize.Height;
+			const core::dimension2du currentRTTSize = services->getVideoDriver()->getCurrentRenderTargetSize();
+			const f32 screenX = (f32)currentRTTSize.Width, screenY = (f32)currentRTTSize.Height;
 
 			services->setVertexShaderConstant("screenX", &screenX, 1);
 			services->setVertexShaderConstant("screenY", &screenY, 1);
 
-			irr::scene::ISceneManager* smgr = effect->getActiveSceneManager();
-			irr::scene::ICameraSceneNode* cam = smgr->getActiveCamera();
+			scene::ISceneManager* smgr = effect->getActiveSceneManager();
+			scene::ICameraSceneNode* cam = smgr->getActiveCamera();
 
-			const irr::core::position2di tLeft = services->getVideoDriver()->getViewPort().UpperLeftCorner;
-			const irr::core::position2di bRight = services->getVideoDriver()->getViewPort().LowerRightCorner;
+			const core::position2di tLeft = services->getVideoDriver()->getViewPort().UpperLeftCorner;
+			const core::position2di bRight = services->getVideoDriver()->getViewPort().LowerRightCorner;
 
-			const irr::core::line3df sLines[4] =
+			const core::line3df sLines[4] =
 			{
 				smgr->getSceneCollisionManager()->getRayFromScreenCoordinates
-				(irr::core::position2di(tLeft.X, tLeft.Y), cam),
+				(core::position2di(tLeft.X, tLeft.Y), cam),
 				smgr->getSceneCollisionManager()->getRayFromScreenCoordinates
-				(irr::core::position2di(bRight.X, tLeft.Y), cam),
+				(core::position2di(bRight.X, tLeft.Y), cam),
 				smgr->getSceneCollisionManager()->getRayFromScreenCoordinates
-				(irr::core::position2di(tLeft.X, bRight.Y), cam),
+				(core::position2di(tLeft.X, bRight.Y), cam),
 				smgr->getSceneCollisionManager()->getRayFromScreenCoordinates
-				(irr::core::position2di(bRight.X, bRight.Y), cam)
+				(core::position2di(bRight.X, bRight.Y), cam)
 			};
 
 			services->setVertexShaderConstant("LineStarts0", &sLines[0].start.X, 3);
@@ -2169,7 +2168,7 @@ void ScreenQuadCB::OnSetConstants(irr::video::IMaterialRendererServices* service
 
 		if(uniformDescriptors.size())
 		{
-			irr::core::map<irr::core::stringc, SUniformDescriptor>::Iterator mapIter = uniformDescriptors.getIterator();
+			core::map<core::stringc, SUniformDescriptor>::Iterator mapIter = uniformDescriptors.getIterator();
 
 			for(;!mapIter.atEnd();mapIter++)
 			{
@@ -2183,5 +2182,6 @@ void ScreenQuadCB::OnSetConstants(irr::video::IMaterialRendererServices* service
 	}
 
 
+} // end namespace irr
 
 #endif
