@@ -34,6 +34,7 @@
 // Use the namespace of Chrono
 
 using namespace chrono;
+using namespace chrono::collision;
 
 // Use the main namespaces of Irrlicht
 using namespace irr;
@@ -57,8 +58,8 @@ int main(int argc, char* argv[])
 
 	// Set the collision margins. This is expecially important for 
 	// very large or very small objects! Do this before creating shapes.
-	chrono::ChCollisionModel::SetDefaultSuggestedEnvelope(0.001);
-	chrono::ChCollisionModel::SetDefaultSuggestedMargin(0.001);
+	ChCollisionModel::SetDefaultSuggestedEnvelope(0.001);
+	ChCollisionModel::SetDefaultSuggestedMargin(0.001);
 
 
 	// 
