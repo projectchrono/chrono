@@ -38,7 +38,6 @@
 namespace chrono
 {
 
-using namespace chrono::pneumatics;
 
 // Unique link identifier, for detecting type faster than with rtti.
 #define LNK_PNEUMATIC	33
@@ -56,7 +55,7 @@ class ChApi ChLinkPneumaticActuator : public ChLinkLock {
 
 protected:
 							// pointer to internal structure with all pneumatic variables
-	AssePneumatico* pneuma;
+	pneumatics::AssePneumatico* pneuma;
 							// marker distance for zero stroke
 	double offset;
 							// read-only vars  (updated in UpdateXyz() functions!!)
@@ -85,7 +84,7 @@ public:
 
 							// DATA GET/ SET
 										// for straight access to all internal pneumatic data
-	AssePneumatico* Get_pneuma() {return this->pneuma;};
+	pneumatics::AssePneumatico* Get_pneuma() {return this->pneuma;};
 										// after setting internal pneumatic datas in 'pneuma'
 	void SetupActuator()			{pneuma->SetupAssePneumatico();};
 

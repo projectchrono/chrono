@@ -39,9 +39,6 @@
 namespace chrono
 {
 
-using namespace collision;
-
-
 
 // Forward references (for parent hierarchy pointer)
 
@@ -66,9 +63,9 @@ public:
 
 
 	ChLcpVariablesBodySharedMass	variables;
-	ChCollisionModel*				collision_model;
-	ChVector<> UserForce;		
-	ChVector<> UserTorque;		
+	collision::ChCollisionModel*	collision_model;
+	ChVector<> UserForce;
+	ChVector<> UserTorque;
 };
 
 
@@ -98,13 +95,13 @@ private:
 			//
 	
 						// The particles: 
-	std::vector<ChAparticle*> particles;				
+	std::vector<ChAparticle*> particles;
 	
 						// Shared mass of particles
 	ChSharedMassBody		 particle_mass;
 
 						// Sample collision model
-	ChCollisionModel*		 particle_collision_model;
+	collision::ChCollisionModel*  particle_collision_model;
 
 
 	bool do_collide;
@@ -239,7 +236,7 @@ public:
 				/// Acess the collision model for the collision engine: this is the 'sample'
 				/// collision model that is used by all particles.
 				/// To get a non-null pointer, remember to SetCollide(true), before.
-	ChCollisionModel* GetCollisionModel() {return particle_collision_model;}
+	collision::ChCollisionModel* GetCollisionModel() {return particle_collision_model;}
 			
 				/// Synchronize coll.models coordinates and bounding boxes to the positions of the particles.
 	virtual void SyncCollisionModels();

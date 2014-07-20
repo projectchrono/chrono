@@ -42,9 +42,6 @@
 namespace chrono
 {
 
-using namespace collision;
-
-
 
 // Forward references (for parent hierarchy pointer)
 

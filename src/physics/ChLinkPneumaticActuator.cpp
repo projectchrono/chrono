@@ -38,7 +38,7 @@ ChLinkPneumaticActuator::ChLinkPneumaticActuator ()
 {
     type = LNK_PNEUMATIC;       // initializes type
 
-    pneuma = new AssePneumatico();
+    pneuma = new pneumatics::AssePneumatico();
     offset = pneuma->Get_L() + 0.1;
 
     pA = pB = pneuma->Get_Ps(); // default state (initial chamber pressure = ambient pressure)

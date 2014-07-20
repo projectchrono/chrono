@@ -43,9 +43,6 @@
 namespace chrono
 {
 
-using namespace collision;
-
-
 
 // Forward references (for parent hierarchy pointer)
 
@@ -90,11 +87,11 @@ public:
 					// DATA
 					// 
 	
-	ChLcpVariablesNode	variables;
+	ChLcpVariablesNode  variables;
 
-	ChCollisionModel*	collision_model;
+	collision::ChCollisionModel*  collision_model;
 
-	ChVector<> UserForce;		
+	ChVector<> UserForce;
 
 	double volume; 
 	double density;

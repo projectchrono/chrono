@@ -26,10 +26,6 @@
 namespace chrono
 {
 
-using namespace collision;
-
-
-
 
 /// Class for a node, that has some degrees of 
 /// freedom and that contain a proxy to the solver.
