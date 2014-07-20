@@ -45,6 +45,7 @@
 // Use the namespace of Chrono
 
 using namespace chrono;
+using namespace chrono::geometry;
 
 // Use the main namespaces of Irrlicht
 using namespace irr;

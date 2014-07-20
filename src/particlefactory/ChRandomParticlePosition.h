@@ -91,7 +91,7 @@ public:
 	ChRandomParticlePositionOnGeometry() 
 		{
 			// defaults
-			geometry = ChSmartPtr<ChGeometry>(new ChBox(VNULL, ChMatrix33<>(QUNIT), ChVector<>(0.1,0.1,0.1)));
+			geometry = ChSmartPtr<geometry::ChGeometry>(new geometry::ChBox(VNULL, ChMatrix33<>(QUNIT), ChVector<>(0.1,0.1,0.1)));
 		}
 
 			/// Function that creates a random position each
@@ -106,10 +106,10 @@ public:
 			/// Set the parametric surface used for this outlet. 
 			/// The surface will be sampled uniformly over its U,V parametric
 			/// coordinaters. In cas of lines, oly U is used, in case of parametric volumes, U,V,W.
-	void SetGeometry(ChSmartPtr<ChGeometry> mgeometry) {this->geometry = mgeometry;}
+	void SetGeometry(ChSmartPtr<geometry::ChGeometry> mgeometry) {this->geometry = mgeometry;}
 
 private:
-	ChSmartPtr<ChGeometry> geometry;
+	ChSmartPtr<geometry::ChGeometry> geometry;
 };
 
 

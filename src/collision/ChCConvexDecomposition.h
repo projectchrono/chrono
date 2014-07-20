@@ -35,8 +35,6 @@
 #include "geometry/ChCTriangleMeshSoup.h"
 
 
-using namespace chrono::geometry;
-
 namespace chrono
 {
 namespace collision
@@ -75,11 +73,11 @@ public:
 
 		/// Add a triangle, by passing a  ChTriangle object (that will be copied, not referenced). 
 		/// Note: the vertexes must be properly ordered (oriented triangle, normal pointing outside)
-	virtual bool AddTriangle(const ChTriangle& t1);
+	virtual bool AddTriangle(const geometry::ChTriangle& t1);
 
 		/// Add a triangle mesh, by passing an entire ChTriangleMesh object.
 		/// Note: the triangles must define closed volumes (holes, gaps in edges, etc. may trouble the decomposition)
-	virtual bool AddTriangleMesh(const ChTriangleMesh& tm);
+	virtual bool AddTriangleMesh(const geometry::ChTriangleMesh& tm);
 
 
 		/// Perform the convex decomposition. 
@@ -92,7 +90,7 @@ public:
 
 		/// Get the n-th computed convex hull, by filling a ChTriangleMesh object
 		/// that is passed as a parameter.
-	virtual bool GetConvexHullResult(unsigned int hullIndex, ChTriangleMesh& convextrimesh) =0;
+	virtual bool GetConvexHullResult(unsigned int hullIndex, geometry::ChTriangleMesh& convextrimesh) =0;
 
 		/// Get the n-th computed convex hull, by filling a vector of points of the vertexes of the n-th hull
 		/// that is passed as a parameter.
@@ -162,7 +160,7 @@ public:
 		/// Note 1: the triangle mesh does not need connectivity information (a basic 'triangle soup' is enough)
 		/// Note 2: all vertexes must be properly ordered (oriented triangles, normals pointing outside).
 		/// Note 3: the triangles must define closed volumes (holes, gaps in edges, etc. may trouble the decomposition)
-	virtual bool AddTriangleMesh(const ChTriangleMesh& tm);
+	virtual bool AddTriangleMesh(const geometry::ChTriangleMesh& tm);
 
 
 		/// Set the parameters for this convex decomposition algorithm. 
@@ -194,7 +192,7 @@ public:
 
 		/// Get the n-th computed convex hull, by filling a ChTriangleMesh object
 		/// that is passed as a parameter.
-	virtual bool GetConvexHullResult(unsigned int hullIndex, ChTriangleMesh& convextrimesh);
+	virtual bool GetConvexHullResult(unsigned int hullIndex, geometry::ChTriangleMesh& convextrimesh);
 
 		/// Get the n-th computed convex hull, by filling a vector of points of the vertexes of the n-th hull
 		/// that is passed as a parameter.
@@ -260,7 +258,7 @@ public:
 		/// Note 1: the triangle mesh does not need connectivity information (a basic 'triangle soup' is enough)
 		/// Note 2: all vertexes must be properly ordered (oriented triangles, normals pointing outside).
 		/// Note 3: the triangles must define closed volumes (holes, gaps in edges, etc. may trouble the decomposition)
-	virtual bool AddTriangleMesh(const ChTriangleMesh& tm);
+	virtual bool AddTriangleMesh(const geometry::ChTriangleMesh& tm);
 
 		/// Set the parameters for this convex decomposition algorithm. 
 		/// Use this function before calling ComputeConvexDecomposition().
@@ -287,7 +285,7 @@ public:
 
 		/// Get the n-th computed convex hull, by filling a ChTriangleMesh object
 		/// that is passed as a parameter.
-	virtual bool GetConvexHullResult(unsigned int hullIndex, ChTriangleMesh& convextrimesh);
+	virtual bool GetConvexHullResult(unsigned int hullIndex, geometry::ChTriangleMesh& convextrimesh);
 
 		/// Get the n-th computed convex hull, by filling a vector of points of the vertexes of the n-th hull
 		/// that is passed as a parameter.
@@ -356,7 +354,7 @@ public:
 		/// Note 1: the triangle mesh does not need connectivity information (a basic 'triangle soup' is enough)
 		/// Note 2: all vertexes must be properly ordered (oriented triangles, normals pointing outside).
 		/// Note 3: the triangles must define closed volumes (holes, gaps in edges, etc. may trouble the decomposition)
-	virtual bool AddTriangleMesh(const ChTriangleMesh& tm);
+	virtual bool AddTriangleMesh(const geometry::ChTriangleMesh& tm);
 
 
 		/// Set the parameters for this convex decomposition algorithm. 
@@ -384,7 +382,7 @@ public:
 
 		/// Get the n-th computed convex hull, by filling a ChTriangleMesh object
 		/// that is passed as a parameter.
-	virtual bool GetConvexHullResult(unsigned int hullIndex, ChTriangleMesh& convextrimesh);
+	virtual bool GetConvexHullResult(unsigned int hullIndex, geometry::ChTriangleMesh& convextrimesh);
 
 		/// Get the n-th computed convex hull, by filling a vector of points of the vertexes of the n-th hull
 		/// that is passed as a parameter.

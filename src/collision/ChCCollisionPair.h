@@ -33,8 +33,6 @@
 #include "geometry/ChCGeometry.h"
 
 
-using namespace chrono::geometry;
-
 namespace chrono
 {
 namespace collision
@@ -63,8 +61,8 @@ public:
 		}
 
 		/// Constructor for case of contact point correctly estimated
-	ChCollisionPair(chrono::geometry::ChGeometry* mgeo1,
-					chrono::geometry::ChGeometry* mgeo2,
+	ChCollisionPair(geometry::ChGeometry* mgeo1,
+					geometry::ChGeometry* mgeo2,
 					const ChVector<>& mp1,
 					const ChVector<>& mp2,
 					const ChVector<float>& mnormal,
@@ -75,8 +73,8 @@ public:
 		}
 
 			/// Constructor for case of just intersection
-	ChCollisionPair(chrono::geometry::ChGeometry* mgeo1,
-					chrono::geometry::ChGeometry* mgeo2)
+	ChCollisionPair(geometry::ChGeometry* mgeo1,
+					geometry::ChGeometry* mgeo2)
 		{
 			geo1 = mgeo1;
 			geo2 = mgeo2;
@@ -87,8 +85,8 @@ public:
 		}
 
 			/// Set all data at once (better: use the custom constructor)
-	void Set(		chrono::geometry::ChGeometry* mgeo1,
-					chrono::geometry::ChGeometry* mgeo2,
+	void Set(geometry::ChGeometry* mgeo1,
+					geometry::ChGeometry* mgeo2,
 					const ChVector<>& mp1,
 					const ChVector<>& mp2,
 					const ChVector<float>& mnormal, 
@@ -109,7 +107,7 @@ public:
 			/// geo1 becomes geo2 and viceversa; normal and so on are updates as well.
 	void SwapGeometries()
 	{
-		chrono::geometry::ChGeometry* gtemp;
+		geometry::ChGeometry* gtemp;
 		 gtemp = geo1;
 		 geo1 = geo2;
 		 geo2 = gtemp;
@@ -167,8 +165,8 @@ public:
 
 	// DATA
 
-	chrono::geometry::ChGeometry* geo1;	///< pointer to 1st geometry which generated this collision pair
-	chrono::geometry::ChGeometry* geo2;	///< pointer to 2nd geometry which generated this collision pair
+	geometry::ChGeometry* geo1;	///< pointer to 1st geometry which generated this collision pair
+	geometry::ChGeometry* geo2;	///< pointer to 2nd geometry which generated this collision pair
 
 	ChVector<> p1;	///< max penetration point on geo1, after refining, in abs space
 	ChVector<> p2;	///< max penetration point on geo2, after refining, in abs space

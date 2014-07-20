@@ -36,7 +36,7 @@ public:
 	}
 
 		/// easy access to box of trigger
-	ChBox& GetBox() 
+	geometry::ChBox& GetBox() 
 	{ 
 		ChSharedPtr<ChParticleEventTriggerBox> mtrigbox = trigger.DynamicCastTo<ChParticleEventTriggerBox>();
 		if (mtrigbox.IsNull()) throw ChException("ChParticleRemoverBox had trigger replaced to non-box type");

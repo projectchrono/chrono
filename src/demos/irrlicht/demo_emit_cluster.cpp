@@ -43,7 +43,8 @@
 // Use the main namespace of Chrono, and other chrono namespaces
 
 using namespace chrono;
-using namespace particlefactory;
+using namespace chrono::particlefactory;
+using namespace chrono::geometry;
 
 // Use the main namespaces of Irrlicht
 using namespace irr;    

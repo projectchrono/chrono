@@ -354,7 +354,7 @@ ISceneNode* addChBodySceneNode_easyGenericMesh(chrono::ChSystem* asystem,
 	assert(genericMesh);
 
 
-	ChTriangleMeshSoup temp_trianglemesh; // temp., only in function scope, since AddTriangleMesh doesn't reference by striding interface -just copy 
+	chrono::geometry::ChTriangleMeshSoup temp_trianglemesh; // temp., only in function scope, since AddTriangleMesh doesn't reference by striding interface -just copy 
 	fillChTrimeshFromIrlichtMesh(&temp_trianglemesh, genericMesh->getMesh(0));
 
 	// create a ChronoENGINE rigid body

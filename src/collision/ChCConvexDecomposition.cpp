@@ -82,12 +82,12 @@ ChConvexDecomposition::~ChConvexDecomposition()
 		{
 		}
 
-bool ChConvexDecomposition::AddTriangle(const ChTriangle& t1)
+bool ChConvexDecomposition::AddTriangle(const geometry::ChTriangle& t1)
 		{
 			return this->AddTriangle(t1.p1, t1.p2, t1.p3); // add the input mesh one triangle at a time.
 		}
 
-bool ChConvexDecomposition::AddTriangleMesh(const ChTriangleMesh& tm)
+bool ChConvexDecomposition::AddTriangleMesh(const geometry::ChTriangleMesh& tm)
 		{
 			for (int i= 0; i< tm.getNumTriangles(); i++)
 			{
@@ -162,7 +162,7 @@ bool ChConvexDecompositionHACD::AddTriangle(const ChVector<>& v1,const ChVector<
 			return true;
 		}
 
-bool ChConvexDecompositionHACD::AddTriangleMesh(const ChTriangleMesh& tm)
+bool ChConvexDecompositionHACD::AddTriangleMesh(const geometry::ChTriangleMesh& tm)
 		{
 			for (int i= 0; i< tm.getNumTriangles(); i++)
 			{
@@ -246,7 +246,7 @@ bool ChConvexDecompositionHACD::GetConvexHullResult(unsigned int hullIndex, std:
 
 	/// Get the n-th computed convex hull, by filling a ChTriangleMesh object
 	/// that is passed as a parameter.
-bool ChConvexDecompositionHACD::GetConvexHullResult(unsigned int hullIndex, ChTriangleMesh& convextrimesh)
+bool ChConvexDecompositionHACD::GetConvexHullResult(unsigned int hullIndex, geometry::ChTriangleMesh& convextrimesh)
 		{
 			if (hullIndex > myHACD->GetNClusters()) 
 				return false;
@@ -370,7 +370,7 @@ bool ChConvexDecompositionJR::AddTriangle(const ChVector<>& v1,const ChVector<>&
 			return this->mydecomposition->addTriangle(p1,p2,p3); 
 		}
 
-bool ChConvexDecompositionJR::AddTriangleMesh(const ChTriangleMesh& tm)
+bool ChConvexDecompositionJR::AddTriangleMesh(const geometry::ChTriangleMesh& tm)
 		{
 			for (int i= 0; i< tm.getNumTriangles(); i++)
 			{
@@ -419,7 +419,7 @@ unsigned int ChConvexDecompositionJR::GetHullCount() { return this->mydecomposit
 
 	/// Get the n-th computed convex hull, by filling a ChTriangleMesh object
 	/// that is passed as a parameter.
-bool ChConvexDecompositionJR::GetConvexHullResult(unsigned int hullIndex, ChTriangleMesh& convextrimesh)
+bool ChConvexDecompositionJR::GetConvexHullResult(unsigned int hullIndex, geometry::ChTriangleMesh& convextrimesh)
 		{
 			CONVEX_DECOMPOSITION::ConvexHullResult result;
 			if (!this->mydecomposition->getConvexHullResult(hullIndex, result)) return false;
@@ -545,7 +545,7 @@ bool ChConvexDecompositionHACDv2::AddTriangle(const ChVector<>& v1,const ChVecto
 			return true;
 		}
 
-bool ChConvexDecompositionHACDv2::AddTriangleMesh(const ChTriangleMesh& tm)
+bool ChConvexDecompositionHACDv2::AddTriangleMesh(const geometry::ChTriangleMesh& tm)
 		{
 			for (int i= 0; i< tm.getNumTriangles(); i++)
 			{
@@ -664,7 +664,7 @@ bool ChConvexDecompositionHACDv2::GetConvexHullResult(unsigned int hullIndex, st
 
 	/// Get the n-th computed convex hull, by filling a ChTriangleMesh object
 	/// that is passed as a parameter.
-bool ChConvexDecompositionHACDv2::GetConvexHullResult(unsigned int hullIndex, ChTriangleMesh& convextrimesh)
+bool ChConvexDecompositionHACDv2::GetConvexHullResult(unsigned int hullIndex, geometry::ChTriangleMesh& convextrimesh)
 		{
 			if (hullIndex > this->gHACD->getHullCount()) 
 				return false;
