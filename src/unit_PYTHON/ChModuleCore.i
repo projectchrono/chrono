@@ -51,7 +51,8 @@
 #include "physics/ChBody.h"
 
 using namespace chrono;
-
+using namespace chrono::collision;
+using namespace chrono::geometry;
 
 %}
 
