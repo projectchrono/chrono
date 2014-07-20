@@ -36,8 +36,6 @@
 #include "assets/ChSphereShape.h"
 #include "assets/ChBoxShape.h"
 //#include "assets/ChGenericRender.h"
-using namespace std;
-using namespace tinyxml2;
 
 namespace chrono {
 namespace postprocess {
@@ -47,7 +45,7 @@ namespace postprocess {
 /// render photo-realistic animations.
 
 struct xml_option {
-	string type, parameter, value;
+	std::string type, parameter, value;
 
 };
 
@@ -59,74 +57,75 @@ public:
 	void ExportScript(const std::string &filename);
 	void ExportData(const std::string &filename);
     void ExportDriver(const std::string &filename);
-	void SetIntegrator(string type, bool irrcache = false, int irrcache_res = 6) {
+	void SetIntegrator(const std::string& type, bool irrcache = false, int irrcache_res = 6) {
 		integrator = type;
 		use_irrcache = irrcache;
 		irr_resolution = irrcache_res;
 	}
-	void SetIntegratorOption(string type, string parameter, string value) {
+	void SetIntegratorOption(const std::string& type, const std::string& parameter, const std::string& value) {
 		xml_option option;
 		option.type = type;
 		option.parameter = parameter;
 		option.value = value;
 		integrator_options.push_back(option);
 	}
-	void SetSensor(string type) {
+	void SetSensor(const std::string& type) {
 		sensor = type;
 	}
-	void SetSensorOption(string type, string parameter, string value) {
+	void SetSensorOption(const std::string& type, const std::string& parameter, const std::string& value) {
 		xml_option option;
 		option.type = type;
 		option.parameter = parameter;
 		option.value = value;
 		sensor_options.push_back(option);
 	}
-	void SetCamera(ChVector<> target, ChVector<> origin, ChVector<> up) {
+	void SetCamera(const ChVector<>& target, const ChVector<>& origin, const ChVector<>& up) {
 		camera_target = target;
 		camera_origin = origin;
 		camera_up = up;
 	}
-	void SetSampler(string type) {
+	void SetSampler(const std::string& type) {
 		sampler = type;
 	}
-	void SetSamplerOption(string type, string parameter, string value) {
+	void SetSamplerOption(const std::string& type, const std::string& parameter, const std::string& value) {
 		xml_option option;
 		option.type = type;
 		option.parameter = parameter;
 		option.value = value;
 		sampler_options.push_back(option);
 	}
-	void SetFilter(string type) {
+	void SetFilter(const std::string& type) {
 		filter = type;
 	}
-	void SetFilm(string type) {
+	void SetFilm(const std::string& type) {
 		film = type;
 	}
-	void SetFilmOption(string type, string parameter, string value) {
+	void SetFilmOption(const std::string& type, const std::string& parameter, const std::string& value) {
 		xml_option option;
 		option.type = type;
 		option.parameter = parameter;
 		option.value = value;
 		film_options.push_back(option);
 	}
-	void SetDataFolder(string folder) {
+	void SetDataFolder(const std::string& folder) {
 		data_folder = folder;
 	}
-    void SetRenderFolder(string folder) {
+    void SetRenderFolder(const std::string& folder) {
 		render_folder = folder;
 	}
 
 	void AddIntegrator();
 	void AddSensor();
 	void AddObject(ChSharedPtr<ChAsset> & asset, ChBody * abody);
-	string integrator, sensor, sampler, filter, film;
+
+	std::string integrator, sensor, sampler, filter, film;
 	bool use_irrcache;
 	int height, width, irr_resolution;
-	vector<xml_option> integrator_options, sensor_options, sampler_options, film_options;
+	std::vector<xml_option> integrator_options, sensor_options, sampler_options, film_options;
 	ChVector<> camera_target, camera_origin, camera_up;
-	string data_folder, render_folder;
-	XMLDocument doc, data;
-	XMLElement* root, *root_data;
+	std::string data_folder, render_folder;
+	tinyxml2::XMLDocument doc, data;
+	tinyxml2::XMLElement* root, *root_data;
 
 };
 

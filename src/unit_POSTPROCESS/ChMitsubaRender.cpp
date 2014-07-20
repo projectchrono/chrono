@@ -26,6 +26,7 @@ using namespace chrono;
 using namespace chrono::postprocess;
 using namespace geometry;
 using namespace std;
+using namespace tinyxml2;
 
 void ChMitsubaRender::AddIntegrator() {
 
