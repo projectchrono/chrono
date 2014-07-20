@@ -10,6 +10,7 @@
 #include "geometry/ChCTriangleMeshConnected.h"
 
 using namespace chrono;
+using namespace geometry;
 
 %}
  
