@@ -34,7 +34,6 @@
 #include "ChCCompile.h"
 #include <vector>
 
-using namespace chrono::geometry;
 
 namespace chrono 
 {
@@ -96,7 +95,7 @@ public:
 						/// axis, and a list of geometric object, this function recomputes the
 						/// bounding box in order to enclose 'ngeos' geometries, from index 'firstgeo' 
 						/// Box may be also 'inflated' by a thinckness='envelope' 
-  void     FitToGeometries(ChMatrix33<>& O, std::vector<ChGeometry*> mgeos, int firstgeo, int ngeos, double envelope);
+  void     FitToGeometries(ChMatrix33<>& O, std::vector<geometry::ChGeometry*> mgeos, int firstgeo, int ngeos, double envelope);
 
   						/// Find if two box OBB are overlapping, given relative 
 						/// rotation matrix B, relative translation T, and half-sizes of the two OBB

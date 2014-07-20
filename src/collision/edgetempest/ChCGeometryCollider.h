@@ -38,7 +38,6 @@
 #include "geometry/ChCTriangle.h"
 #include "geometry/ChCBox.h"
 
-using namespace chrono::geometry;
 
 namespace chrono 
 {
@@ -69,17 +68,18 @@ public:
 			/// the ChNarrowPhaseCollider object \see ChNarrowPhaseCollider passed as parameter.
 			///   \return number of found contacts
 			///
-static int ComputeCollisions(ChGeometry& mgeo1,		///< first geometric primitive	
-							 ChMatrix33<>* R1,		///< absolute rotation of model enclosing first geometric primitive
-							 Vector* T1,			///< absolute position of model enclosing primitive
-							 ChGeometry& mgeo2,		///< second geometric primitive
-							 ChMatrix33<>* R2,		///< absolute rotation of model enclosing second geometric primitive
-							 Vector* T2,			///< absolute position of model enclosing second geometric primitive
-							 ChNarrowPhaseCollider& mcollider,	///< reference to a collider to store contacts into
-							 ChMatrix33<>* relRot = NULL,	///< relative rotation of mgeo2 respect to mgeo1, if available (for optimization)
-							 Vector* relPos = NULL,	///< relative position of mgeo2 respect to mgeo1, if available (for optimization)
-							 bool just_intersection = false	///< if true, just report if intersecting (no further calculus on normal, depht, etc.)
-							 );
+static int ComputeCollisions(
+              geometry::ChGeometry& mgeo1,       ///< first geometric primitive
+              ChMatrix33<>* R1,                  ///< absolute rotation of model enclosing first geometric primitive
+              Vector* T1,                        ///< absolute position of model enclosing primitive
+              geometry::ChGeometry& mgeo2,       ///< second geometric primitive
+              ChMatrix33<>* R2,                  ///< absolute rotation of model enclosing second geometric primitive
+              Vector* T2,                        ///< absolute position of model enclosing second geometric primitive
+              ChNarrowPhaseCollider& mcollider,  ///< reference to a collider to store contacts into
+              ChMatrix33<>* relRot = NULL,       ///< relative rotation of mgeo2 respect to mgeo1, if available (for optimization)
+              Vector* relPos = NULL,             ///< relative position of mgeo2 respect to mgeo1, if available (for optimization)
+              bool just_intersection = false     ///< if true, just report if intersecting (no further calculus on normal, depht, etc.)
+              );
 
 
 
@@ -90,67 +90,67 @@ static int ComputeCollisions(ChGeometry& mgeo1,		///< first geometric primitive
 			/// SPHERE - SPHERE specific case
 			///
 static int ComputeSphereSphereCollisions(
-							 ChSphere& mgeo1,		///< first sphere	
-							 Vector* c1,			///< absolute position of 1st center
-							 ChSphere& mgeo2,		///< second sphere
-							 Vector* c2,			///< absolute position of 2nd center
-							 ChNarrowPhaseCollider& mcollider,	///< reference to a collider to store contacts into
-							 bool just_intersection	///< if true, just report if intersecting (no further calculus on normal, depht, etc.)
-							 );
+              geometry::ChSphere& mgeo1,         ///< first sphere
+              Vector* c1,                       ///< absolute position of 1st center
+              geometry::ChSphere& mgeo2,        ///< second sphere
+              Vector* c2,                       ///< absolute position of 2nd center
+              ChNarrowPhaseCollider& mcollider, ///< reference to a collider to store contacts into
+              bool just_intersection            ///< if true, just report if intersecting (no further calculus on normal, depht, etc.)
+              );
 
 
 			/// SPHERE - TRIANGLE specific case
 			///
 static int ComputeSphereTriangleCollisions(
-							 ChSphere& mgeo1,		///< sphere	
-							 Vector* c1,			///< absolute position of 1st center
-							 ChTriangle& mgeo2,		///< triangle
-							 ChMatrix33<>* R2,		///< absolute rotation of 2nd model (with triangle)
-							 Vector* T2,			///< absolute position of 2nd model (with triangle)
-							 ChNarrowPhaseCollider& mcollider,	///< reference to a collider to store contacts into
-							 bool just_intersection,///< if true, just report if intersecting (no further calculus on normal, depht, etc.)
-							 bool swap_pairs		///< if true, pairs are reported as Triangle-Sphere (triangle will be the main ref.)
-							 );
+              geometry::ChSphere& mgeo1,        ///< sphere
+              Vector* c1,                       ///< absolute position of 1st center
+              geometry::ChTriangle& mgeo2,      ///< triangle
+              ChMatrix33<>* R2,                 ///< absolute rotation of 2nd model (with triangle)
+              Vector* T2,                       ///< absolute position of 2nd model (with triangle)
+              ChNarrowPhaseCollider& mcollider, ///< reference to a collider to store contacts into
+              bool just_intersection,           ///< if true, just report if intersecting (no further calculus on normal, depht, etc.)
+              bool swap_pairs                   ///< if true, pairs are reported as Triangle-Sphere (triangle will be the main ref.)
+              );
 
 			/// BOX - BOX specific case
 			///
 static int ComputeBoxBoxCollisions(
-							 ChBox& mgeo1,			///< box 1	
-							 ChMatrix33<>* R1,		///< absolute rotation of 1st model (with box 1)
-							 Vector* T1,			///< absolute position of 1st model (with box 1)
-							 ChBox& mgeo2,			///< box 2
-							 ChMatrix33<>* R2,		///< absolute rotation of 2nd model (with box 2)
-							 Vector* T2,			///< absolute position of 2nd model (with box 2)
-							 ChNarrowPhaseCollider& mcollider,	///< reference to a collider to store contacts into
-							 bool just_intersection ///< if true, just report if intersecting (no further calculus on normal, depht, etc.)
-							 );
+              geometry::ChBox& mgeo1,           ///< box 1
+              ChMatrix33<>* R1,                 ///< absolute rotation of 1st model (with box 1)
+              Vector* T1,                       ///< absolute position of 1st model (with box 1)
+              geometry::ChBox& mgeo2,           ///< box 2
+              ChMatrix33<>* R2,                 ///< absolute rotation of 2nd model (with box 2)
+              Vector* T2,                       ///< absolute position of 2nd model (with box 2)
+              ChNarrowPhaseCollider& mcollider, ///< reference to a collider to store contacts into
+              bool just_intersection            ///< if true, just report if intersecting (no further calculus on normal, depht, etc.)
+              );
 
 			/// SPHERE - BOX specific case
 			///
 static int ComputeSphereBoxCollisions(
-							 ChSphere& mgeo1,		///< sphere	
-							 Vector* c1,			///< absolute position of center
-							 ChBox& mgeo2,			///< box 
-							 ChMatrix33<>* R2,		///< absolute rotation of 2nd model (with box)
-							 Vector* T2,			///< absolute position of 2nd model (with box)
-							 ChNarrowPhaseCollider& mcollider,	///< reference to a collider to store contacts into
-							 bool just_intersection,///< if true, just report if intersecting (no further calculus on normal, depht, etc.)
-							 bool swap_pairs		///< if true, pairs are reported as Triangle-Sphere (triangle will be the main ref.)
-							 );
+              geometry::ChSphere& mgeo1,        ///< sphere
+              Vector* c1,                       ///< absolute position of center
+              geometry::ChBox& mgeo2,           ///< box 
+              ChMatrix33<>* R2,                 ///< absolute rotation of 2nd model (with box)
+              Vector* T2,                       ///< absolute position of 2nd model (with box)
+              ChNarrowPhaseCollider& mcollider, ///< reference to a collider to store contacts into
+              bool just_intersection,           ///< if true, just report if intersecting (no further calculus on normal, depht, etc.)
+              bool swap_pairs                   ///< if true, pairs are reported as Triangle-Sphere (triangle will be the main ref.)
+              );
 
 			/// BOX - TRIANGLE specific case
 			///
 static int ComputeBoxTriangleCollisions(
-							 ChBox& mbox,			///< box 	
-							 ChMatrix33<>* R1,		///< absolute rotation of 1st model (with box)
-							 Vector* T1,			///< absolute position of 1st model (with box)
-							 ChTriangle& mtri,		///< triangle
-							 ChMatrix33<>* R2,		///< absolute rotation of 2nd model (with triangle)
-							 Vector* T2,			///< absolute position of 2nd model (with triangle)
-							 ChNarrowPhaseCollider& mcollider,	///< reference to a collider to store contacts into
-							 bool just_intersection,///< if true, just report if intersecting (no further calculus on normal, depht, etc.)
-							 bool swap_pairs		///< if true, pairs are reported as Triangle-Box (triangle will be the main ref.)
-							 );
+              geometry::ChBox& mbox,            ///< box
+              ChMatrix33<>* R1,                 ///< absolute rotation of 1st model (with box)
+              Vector* T1,                       ///< absolute position of 1st model (with box)
+              geometry::ChTriangle& mtri,       ///< triangle
+              ChMatrix33<>* R2,                 ///< absolute rotation of 2nd model (with triangle)
+              Vector* T2,                       ///< absolute position of 2nd model (with triangle)
+              ChNarrowPhaseCollider& mcollider, ///< reference to a collider to store contacts into
+              bool just_intersection,           ///< if true, just report if intersecting (no further calculus on normal, depht, etc.)
+              bool swap_pairs                   ///< if true, pairs are reported as Triangle-Box (triangle will be the main ref.)
+              );
 
 };
 

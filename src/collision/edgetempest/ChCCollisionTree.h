@@ -36,7 +36,6 @@
 
 #define CH_COLL_ENVELOPE 0.0022
 
-using namespace chrono::geometry;
 
 namespace chrono 
 {
@@ -47,9 +46,6 @@ class ChBody;
 
 namespace collision 
 {
-
-
-
 
 
 ///
@@ -74,7 +70,7 @@ public:
 		/// Add a ChGeometry in this model. 
 		/// All the added geometries will be automatically deleted when this 
 		/// model is deleted. 
-  virtual int AddGeometry(ChGeometry* mgeo);
+  virtual int AddGeometry(geometry::ChGeometry* mgeo);
 
 		/// Builds the BV hierarchy
 		/// MUST be inherited by child classes! (ex for bulding BV hierarchies)
@@ -130,13 +126,13 @@ public:
   eChBuildState build_state;
 
 		/// Vector of pointers to geometric objects.
-  std::vector<ChGeometry*> geometries;
+  std::vector<geometry::ChGeometry*> geometries;
 	
 		/// Total number of geometric objects added
   int num_geometries;
 	
 		/// Used by internal algorithms, contains the last accessed geometry.
-  ChGeometry *last_geometry;
+  geometry::ChGeometry *last_geometry;
 
 private:
 

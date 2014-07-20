@@ -147,12 +147,12 @@ int CHAABBTree::TraverseBoundingBoxes( void callback(ChMatrix33<>& Rot,Vector& P
 
 
 
-static void get_centroid_geometries(Vector& mean, std::vector<ChGeometry*>& mgeos, int firstgeo, int ngeos)
+static void get_centroid_geometries(Vector& mean, std::vector<geometry::ChGeometry*>& mgeos, int firstgeo, int ngeos)
 {
   mean = VNULL;
 
   // get center of mass
-  ChGeometry* nit = mgeos[firstgeo];
+  geometry::ChGeometry* nit = mgeos[firstgeo];
   for(int count = 0; count < ngeos; ++count)
   {
 	nit = mgeos[firstgeo+count];
@@ -172,12 +172,12 @@ static void get_centroid_geometries(Vector& mean, std::vector<ChGeometry*>& mgeo
 
 
 
-static int split_geometries(std::vector<ChGeometry*>& mgeos, int firstgeo, int ngeos,
+static int split_geometries(std::vector<geometry::ChGeometry*>& mgeos, int firstgeo, int ngeos,
 							Vector& direction, double c)
 {
   int c1 = 0;
   double x;
-  ChGeometry* temp;
+  geometry::ChGeometry* temp;
 
   for(int count = 0; count < ngeos; count++)
   {

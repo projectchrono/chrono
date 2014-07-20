@@ -87,18 +87,18 @@ void CHAABBcollider::CollideRecurse(
 
     // transform the points in b2 into space of b1, then compare
 
-	ChGeometry* mgeo1 = o1->geometries[box1->GetGeometryIndex()];
-	ChGeometry* mgeo2 = o2->geometries[box2->GetGeometryIndex()];
+	geometry::ChGeometry* mgeo1 = o1->geometries[box1->GetGeometryIndex()];
+	geometry::ChGeometry* mgeo2 = o2->geometries[box2->GetGeometryIndex()];
 
 	bool just_intersect = false;
 	if (flag==ChNarrowPhaseCollider::ChC_FIRST_CONTACT)
 		just_intersect = true;
 
 	ChGeometryCollider::ComputeCollisions(*mgeo1, &this->R1, &this->T1, 
-										  *mgeo2, &this->R2, &this->T2, 
-										  *this, 
-										  &this->R, &this->T, 
-										  just_intersect);
+                                        *mgeo2, &this->R2, &this->T2, 
+                                        *this, 
+                                        &this->R, &this->T, 
+                                        just_intersect);
 	return;
   }
 
@@ -147,10 +147,10 @@ ChNarrowPhaseCollider::eCollSuccess CHAABBcollider::ComputeCollisions(
   // INHERIT parent class behaviour
 
   if (ChNarrowPhaseCollider::ComputeCollisions(
-			R1, T1, oc1,
+            R1, T1, oc1,
             R2, T2, oc2,
             flag) != ChC_RESULT_OK)
-				return ChC_RESULT_GENERICERROR;
+    return ChC_RESULT_GENERICERROR;
  
   // Downcasting 
   CHAABBTree* o1 = (CHAABBTree*)oc1;

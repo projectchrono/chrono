@@ -84,8 +84,8 @@ void CHOBBcollider::CollideRecurse(
 
     // transform the points in b2 into space of b1, then compare
 
-	ChGeometry* mgeo1 = o1->geometries[box1->GetGeometryIndex()];
-	ChGeometry* mgeo2 = o2->geometries[box2->GetGeometryIndex()];
+	geometry::ChGeometry* mgeo1 = o1->geometries[box1->GetGeometryIndex()];
+	geometry::ChGeometry* mgeo2 = o2->geometries[box2->GetGeometryIndex()];
 
 	bool just_intersect = false;
 	if (flag==ChNarrowPhaseCollider::ChC_FIRST_CONTACT)

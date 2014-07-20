@@ -158,13 +158,13 @@ int CHOBBTree::TraverseBoundingBoxes( void callback(ChMatrix33<>& Rot,Vector& Po
 
 
 
-void get_centroid_geometries(PQP_REAL c[3], std::vector<ChGeometry*>& mgeos, int firstgeo, int ngeos)
+void get_centroid_geometries(PQP_REAL c[3], std::vector<geometry::ChGeometry*>& mgeos, int firstgeo, int ngeos)
 {
 
   c[0] = c[1] = c[2] = 0.0;
 
   // get center of mass
-  ChGeometry* nit;
+  geometry::ChGeometry* nit;
   for(int count = 0; count < ngeos; ++count)
   {
 	nit = mgeos[firstgeo+count];
@@ -182,7 +182,7 @@ void get_centroid_geometries(PQP_REAL c[3], std::vector<ChGeometry*>& mgeos, int
 }
 
 
-void get_covariance_geometries(PQP_REAL M[3][3], std::vector<ChGeometry*>& mgeos, int firstgeo, int ngeos)
+void get_covariance_geometries(PQP_REAL M[3][3], std::vector<geometry::ChGeometry*>& mgeos, int firstgeo, int ngeos)
 {
   static Vector S1;
   static Vector S1_geo;
@@ -194,7 +194,7 @@ void get_covariance_geometries(PQP_REAL M[3][3], std::vector<ChGeometry*>& mgeos
   S2_geo.Reset();
 
   // get center of mass
-  ChGeometry* nit;
+  geometry::ChGeometry* nit;
   for(int count = 0; count < ngeos; ++count)
   {
 	nit = mgeos[firstgeo+count];
@@ -224,12 +224,12 @@ void get_covariance_geometries(PQP_REAL M[3][3], std::vector<ChGeometry*>& mgeos
 
 
 
-int split_geometries(std::vector<ChGeometry*>& mgeos, int firstgeo, int ngeos, PQP_REAL a[3], PQP_REAL c)
+int split_geometries(std::vector<geometry::ChGeometry*>& mgeos, int firstgeo, int ngeos, PQP_REAL a[3], PQP_REAL c)
 {
   int c1 = 0;
   PQP_REAL p[3];
   PQP_REAL x;
-  ChGeometry* temp;
+  geometry::ChGeometry* temp;
 
 
   for(int count = 0; count < ngeos; count++)

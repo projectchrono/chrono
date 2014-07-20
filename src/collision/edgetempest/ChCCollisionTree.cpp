@@ -59,7 +59,7 @@ ChCollisionTree::~ChCollisionTree()
 int ChCollisionTree::ResetModel()
 {
   // delete previously added geometries
-  std::vector<ChGeometry*>::iterator nit = geometries.begin();
+  std::vector<geometry::ChGeometry*>::iterator nit = geometries.begin();
   for(;nit!=geometries.end();++nit)
   {
 	  if (*nit) 
@@ -96,7 +96,7 @@ int ChCollisionTree::BuildModel(double envelope)
 }
 
 
-int ChCollisionTree::AddGeometry(ChGeometry* mgeo)
+int ChCollisionTree::AddGeometry(geometry::ChGeometry* mgeo)
 {
 	this->geometries.push_back(mgeo);
 
@@ -116,7 +116,7 @@ void ChCollisionTree::GetBoundingBox(  double& xmin, double& xmax,
 	xmin = ymin = zmin = +10e20;
 	xmax = ymax = zmax = -10e20;
 
-	std::vector<ChGeometry*>::iterator nit = geometries.begin();
+	std::vector<geometry::ChGeometry*>::iterator nit = geometries.begin();
     for(;nit!=geometries.end();++nit)
 	{
 	 if((*nit))
@@ -127,7 +127,7 @@ void ChCollisionTree::GetBoundingBox(  double& xmin, double& xmax,
 }
 
 
-		
+
 void ChCollisionTree::UpdateAbsoluteAABB(double envelope)
 {
 	assert(m_body);

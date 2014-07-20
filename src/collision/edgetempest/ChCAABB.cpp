@@ -46,13 +46,13 @@ CHAABB::~CHAABB()
 
 
 
-void CHAABB::FitToGeometries(std::vector<ChGeometry*> mgeos, int firstgeo, int ngeos, double envelope)
+void CHAABB::FitToGeometries(std::vector<geometry::ChGeometry*> mgeos, int firstgeo, int ngeos, double envelope)
 {
 	double minx, maxx, miny, maxy, minz, maxz;
 	minx = miny = minz = +10e20;
 	maxx = maxy = maxz = -10e20;
 
-	ChGeometry* nit = mgeos[firstgeo];
+	geometry::ChGeometry* nit = mgeos[firstgeo];
 	for(int count = 0; count < ngeos; ++count)
 	{
 	 nit = mgeos[firstgeo+count];

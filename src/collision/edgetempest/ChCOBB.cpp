@@ -48,7 +48,7 @@ CHOBB::~CHOBB()
 
 
 
-void CHOBB::FitToGeometries(ChMatrix33<>& O, std::vector<ChGeometry*> mgeos, int firstgeo, int ngeos, double envelope)
+void CHOBB::FitToGeometries(ChMatrix33<>& O, std::vector<geometry::ChGeometry*> mgeos, int firstgeo, int ngeos, double envelope)
 {
 	// store orientation
 
@@ -60,7 +60,7 @@ void CHOBB::FitToGeometries(ChMatrix33<>& O, std::vector<ChGeometry*> mgeos, int
 
 	Vector c;
 
-	ChGeometry* nit;
+	geometry::ChGeometry* nit;
 	for(int count = 0; count < ngeos; ++count)
 	{
 	 nit = mgeos[firstgeo+count];

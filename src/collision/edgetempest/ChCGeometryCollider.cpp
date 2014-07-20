@@ -45,10 +45,10 @@ namespace collision
 
 
 int ChGeometryCollider::ComputeCollisions(
-							 ChGeometry& mgeo1,		///< first geometric primitive
+							 geometry::ChGeometry& mgeo1,		///< first geometric primitive
 							 ChMatrix33<>* R1,			///< absolute rotation of first geometric primitive
 							 Vector* T1,			///< absolute position of first geometric primitive
-							 ChGeometry& mgeo2,		///< second geometric primitive
+							 geometry::ChGeometry& mgeo2,		///< second geometric primitive
 							 ChMatrix33<>* R2,			///< absolute rotation of second geometric primitive
 							 Vector* T2,			///< absolute position of second geometric primitive
 							 ChNarrowPhaseCollider& mcollider,	///< reference to a collider to store contacts into
@@ -72,8 +72,8 @@ int ChGeometryCollider::ComputeCollisions(
 	if((mgeo1.GetClassType() == CH_GEOCLASS_SPHERE) &&
 	   (mgeo2.GetClassType() == CH_GEOCLASS_SPHERE))
 	{
-		ChSphere* msph1 = (ChSphere*)&mgeo1;
-		ChSphere* msph2 = (ChSphere*)&mgeo2;
+		geometry::ChSphere* msph1 = (geometry::ChSphere*)&mgeo1;
+		geometry::ChSphere* msph2 = (geometry::ChSphere*)&mgeo2;
 		Vector c1, c2;
 		c1 = ChTrasform<>::TrasformLocalToParent(msph1->center, *T1, *R1);
 		c2 = ChTrasform<>::TrasformLocalToParent(msph2->center, *T2, *R2);
@@ -83,16 +83,16 @@ int ChGeometryCollider::ComputeCollisions(
 	if((mgeo1.GetClassType() == CH_GEOCLASS_BOX) &&
 	   (mgeo2.GetClassType() == CH_GEOCLASS_BOX))
 	{
-		ChBox* mbox1  = (ChBox*)&mgeo1;
-		ChBox* mbox2  = (ChBox*)&mgeo2;
+		geometry::ChBox* mbox1  = (geometry::ChBox*)&mgeo1;
+		geometry::ChBox* mbox2  = (geometry::ChBox*)&mgeo2;
 		return ComputeBoxBoxCollisions(*mbox1, R1, T1, *mbox2, R2, T2, mcollider, just_intersection);
 	}
 
 	if((mgeo1.GetClassType() == CH_GEOCLASS_SPHERE) &&
 	   (mgeo2.GetClassType() == CH_GEOCLASS_TRIANGLE))
 	{
-		ChSphere*   msph   = (ChSphere*)&mgeo1;
-		ChTriangle* mtri = (ChTriangle*)&mgeo2;
+		geometry::ChSphere*   msph = (geometry::ChSphere*)&mgeo1;
+		geometry::ChTriangle* mtri = (geometry::ChTriangle*)&mgeo2;
 		Vector c1 = ChTrasform<>::TrasformLocalToParent(msph->center, *T1, *R1);
 		return ComputeSphereTriangleCollisions(*msph, &c1, *mtri, R2, T2,
 							mcollider, just_intersection, false);
@@ -100,8 +100,8 @@ int ChGeometryCollider::ComputeCollisions(
 	if((mgeo1.GetClassType() == CH_GEOCLASS_TRIANGLE) &&
 	   (mgeo2.GetClassType() == CH_GEOCLASS_SPHERE))
 	{
-		ChSphere*   msph   = (ChSphere*)&mgeo2;
-		ChTriangle* mtri = (ChTriangle*)&mgeo1;
+		geometry::ChSphere*   msph = (geometry::ChSphere*)&mgeo2;
+		geometry::ChTriangle* mtri = (geometry::ChTriangle*)&mgeo1;
 		Vector c2 = ChTrasform<>::TrasformLocalToParent(msph->center, *T2, *R2);
 		return ComputeSphereTriangleCollisions(*msph, &c2, *mtri, R1, T1,
 							mcollider, just_intersection, true);
@@ -110,8 +110,8 @@ int ChGeometryCollider::ComputeCollisions(
 	if((mgeo1.GetClassType() == CH_GEOCLASS_SPHERE) &&
 	   (mgeo2.GetClassType() == CH_GEOCLASS_BOX))
 	{
-		ChSphere* msph =  (ChSphere*)&mgeo1;
-		ChBox*    mbox =  (ChBox*)&mgeo2;
+		geometry::ChSphere* msph =  (geometry::ChSphere*)&mgeo1;
+		geometry::ChBox*    mbox =  (geometry::ChBox*)&mgeo2;
 		Vector c1 = ChTrasform<>::TrasformLocalToParent(msph->center, *T1, *R1);
 		return ComputeSphereBoxCollisions(*msph, &c1, *mbox, R2, T2,
 							mcollider, just_intersection, false);
@@ -119,8 +119,8 @@ int ChGeometryCollider::ComputeCollisions(
 	if((mgeo1.GetClassType() == CH_GEOCLASS_BOX) &&
 	   (mgeo2.GetClassType() == CH_GEOCLASS_SPHERE))
 	{
-		ChSphere* msph =  (ChSphere*)&mgeo2;
-		ChBox*    mbox =  (ChBox*)&mgeo1;
+		geometry::ChSphere* msph =  (geometry::ChSphere*)&mgeo2;
+		geometry::ChBox*    mbox =  (geometry::ChBox*)&mgeo1;
 		Vector c2 = ChTrasform<>::TrasformLocalToParent(msph->center, *T2, *R2);
 		return ComputeSphereBoxCollisions(*msph, &c2, *mbox, R1, T1,
 							mcollider, just_intersection, true);
@@ -129,16 +129,16 @@ int ChGeometryCollider::ComputeCollisions(
 	if((mgeo1.GetClassType() == CH_GEOCLASS_BOX) &&
 	   (mgeo2.GetClassType() == CH_GEOCLASS_TRIANGLE))
 	{
-		ChBox* mbox =		(ChBox*)&mgeo1;
-		ChTriangle* mtri =  (ChTriangle*)&mgeo2;
+		geometry::ChBox* mbox      =  (geometry::ChBox*)&mgeo1;
+		geometry::ChTriangle* mtri =  (geometry::ChTriangle*)&mgeo2;
 		return ComputeBoxTriangleCollisions(*mbox, R1, T1, *mtri, R2, T2,
 							mcollider, just_intersection, false);
 	}
 	if((mgeo1.GetClassType() == CH_GEOCLASS_TRIANGLE) &&
 	   (mgeo2.GetClassType() == CH_GEOCLASS_BOX))
 	{
-		ChBox* mbox =		(ChBox*)&mgeo2;
-		ChTriangle* mtri =  (ChTriangle*)&mgeo1;
+		geometry::ChBox* mbox      =  (geometry::ChBox*)&mgeo2;
+		geometry::ChTriangle* mtri =  (geometry::ChTriangle*)&mgeo1;
 		return ComputeBoxTriangleCollisions(*mbox, R2, T2, *mtri, R1, T1,
 							mcollider, just_intersection, true);
 	}
@@ -154,9 +154,9 @@ int ChGeometryCollider::ComputeCollisions(
 // SPHERE - SPHERE
 
 int ChGeometryCollider::ComputeSphereSphereCollisions(
-							 ChSphere& mgeo1,		///< first sphere
+							 geometry::ChSphere& mgeo1,		///< first sphere
 							 Vector* c1,			///< absolute position of 1st
-							 ChSphere& mgeo2,		///< second sphere
+							 geometry::ChSphere& mgeo2,		///< second sphere
 							 Vector* c2,			///< absolute position of 2nd
 							 ChNarrowPhaseCollider& mcollider,	///< reference to a collider to store contacts into
 							 bool just_intersection
@@ -198,9 +198,9 @@ int ChGeometryCollider::ComputeSphereSphereCollisions(
 
 
 int ChGeometryCollider::ComputeSphereTriangleCollisions(
-							 ChSphere& mgeo1,		///< sphere
+							 geometry::ChSphere& mgeo1,		///< sphere
 							 Vector* c1,			///< absolute position of 1st center
-							 ChTriangle& mgeo2,		///< triangle
+							 geometry::ChTriangle& mgeo2,		///< triangle
 							 ChMatrix33<>* R2,			///< absolute roation of 2nd model
 							 Vector* T2,			///< absolute position of 2nd model
 							 ChNarrowPhaseCollider& mcollider,	///< reference to a collider to store contacts into
@@ -257,7 +257,7 @@ int ChGeometryCollider::ComputeSphereTriangleCollisions(
 
 
 		// test sphere-plane
-	tdist = -mgeo1.rad + fabs(ChTriangle::PointTriangleDistance(v_center, v_1, v_2, v_3, mu,mv, is_into, ept));
+	tdist = -mgeo1.rad + fabs(geometry::ChTriangle::PointTriangleDistance(v_center, v_1, v_2, v_3, mu,mv, is_into, ept));
 	if (is_into)
 		if (tdist<0)
 		if (tdist<mdist)
@@ -270,7 +270,7 @@ int ChGeometryCollider::ComputeSphereTriangleCollisions(
 		}
 
 		// test edge-sphere
-	tdist = -mgeo1.rad + fabs(ChTriangle::PointLineDistance(v_center, v_1, v_2, mu, is_into));
+	tdist = -mgeo1.rad + fabs(geometry::ChTriangle::PointLineDistance(v_center, v_1, v_2, mu, is_into));
 	if (is_into)
 		if (tdist<0)
 		if (tdist<mdist)
@@ -282,7 +282,7 @@ int ChGeometryCollider::ComputeSphereTriangleCollisions(
 			mp2= ept;
 			mdist = tdist;
 		}
-	tdist = -mgeo1.rad + fabs(ChTriangle::PointLineDistance(v_center, v_2, v_3, mu, is_into));
+	tdist = -mgeo1.rad + fabs(geometry::ChTriangle::PointLineDistance(v_center, v_2, v_3, mu, is_into));
 	if (is_into)
 		if (tdist<0)
 		if (tdist<mdist)
@@ -294,7 +294,7 @@ int ChGeometryCollider::ComputeSphereTriangleCollisions(
 			mp2= ept;
 			mdist = tdist;
 		}
-	tdist = -mgeo1.rad + fabs(ChTriangle::PointLineDistance(v_center, v_3, v_1, mu, is_into));
+	tdist = -mgeo1.rad + fabs(geometry::ChTriangle::PointLineDistance(v_center, v_3, v_1, mu, is_into));
 	if (is_into)
 		if (tdist<0)
 		if (tdist<mdist)
@@ -1044,10 +1044,10 @@ int ChGeometryCollider::ComputeSphereTriangleCollisions(
 
 
 int ChGeometryCollider::ComputeBoxBoxCollisions(
-							 ChBox& mgeo1,			///< box 1
+							 geometry::ChBox& mgeo1,			///< box 1
 							 ChMatrix33<>* R1,			///< absolute rotation of 1st model (with box 1)
 							 Vector* T1,			///< absolute position of 1st model (with box 1)
-							 ChBox& mgeo2,			///< box 2
+							 geometry::ChBox& mgeo2,			///< box 2
 							 ChMatrix33<>* R2,			///< absolute rotation of 2nd model (with box 2)
 							 Vector* T2,			///< absolute position of 2nd model (with box 2)
 							 ChNarrowPhaseCollider& mcollider,	///< reference to a collider to store contacts into
@@ -1104,9 +1104,9 @@ int ChGeometryCollider::ComputeBoxBoxCollisions(
 			/// SPHERE - BOX specific case
 			///
 int ChGeometryCollider::ComputeSphereBoxCollisions(
-							 ChSphere& mgeo1,		///< sphere
+							 geometry::ChSphere& mgeo1,		///< sphere
 							 Vector* c1,			///< absolute position of center
-							 ChBox& mgeo2,			///< box
+							 geometry::ChBox& mgeo2,			///< box
 							 ChMatrix33<>* R2,			///< absolute rotation of 2nd model (with box)
 							 Vector* T2,			///< absolute position of 2nd model (with box)
 							 ChNarrowPhaseCollider& mcollider,	///< reference to a collider to store contacts into
@@ -1316,10 +1316,10 @@ static double ChPointTriangleDistance(Vector& B, Vector& A1, Vector& A2, Vector&
 /// BOX - TRIANGLE specific case
 ///
 int ChGeometryCollider::ComputeBoxTriangleCollisions(
-							 ChBox& mbox,			///< box
+							 geometry::ChBox& mbox,			///< box
 							 ChMatrix33<>* R1,			///< absolute rotation of 1st model (with box)
 							 Vector* T1,			///< absolute position of 1st model (with box)
-							 ChTriangle& mtri,		///< triangle
+							 geometry::ChTriangle& mtri,		///< triangle
 							 ChMatrix33<>* R2,			///< absolute rotation of 2nd model (with triangle)
 							 Vector* T2,			///< absolute position of 2nd model (with triangle)
 							 ChNarrowPhaseCollider& mcollider,	///< reference to a collider to store contacts into
