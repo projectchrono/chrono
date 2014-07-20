@@ -176,7 +176,7 @@ void AddTriangleMeshGeometry(ChBody*               body,
                              const ChVector<>&     pos = ChVector<>(0,0,0),
                              const ChQuaternion<>& rot = ChQuaternion<>(1,0,0,0))
 {
-  ChTriangleMeshConnected trimesh;
+  geometry::ChTriangleMeshConnected trimesh;
   trimesh.LoadWavefrontMesh(obj_filename, false, false);
 
   for (int i = 0; i < trimesh.m_vertices.size(); i++)

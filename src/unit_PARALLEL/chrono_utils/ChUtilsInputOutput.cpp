@@ -413,7 +413,7 @@ void WriteMeshPovray(const std::string&    obj_filename,
                      const ChQuaternion<>& rot)
 {
   // Read trimesh from OBJ file
-  ChTriangleMeshConnected trimesh;
+  geometry::ChTriangleMeshConnected trimesh;
   trimesh.LoadWavefrontMesh(obj_filename, false, false);
 
   // Transform vertices.

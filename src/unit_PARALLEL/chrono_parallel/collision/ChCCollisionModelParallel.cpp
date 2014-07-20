@@ -364,7 +364,7 @@ bool ChCollisionModelParallel::AddTriangleMesh(
    nObjects += trimesh.getNumTriangles();
    bData tData;
    for (int i = 0; i < trimesh.getNumTriangles(); i++) {
-      ChTriangle temptri = trimesh.getTriangle(i);
+      geometry::ChTriangle temptri = trimesh.getTriangle(i);
       tData.A = R3(temptri.p1.x + pos.x, temptri.p1.y + pos.y, temptri.p1.z + pos.z);
       tData.B = R3(temptri.p2.x + pos.x, temptri.p2.y + pos.y, temptri.p2.z + pos.z);
       tData.C = R3(temptri.p3.x + pos.x, temptri.p3.y + pos.y, temptri.p3.z + pos.z);
