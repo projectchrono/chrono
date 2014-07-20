@@ -49,6 +49,10 @@ namespace scene
 {
 
 
+/// Directory where .obj primitives are stored (by default, it is "../data/")
+static std::string irrlicht_default_obj_dir("../data/");
+
+
 
 /// Easy-to-use function which creates a ChBodySceneNode 
 /// with given position of COG, inserts it into the Irrlicht 

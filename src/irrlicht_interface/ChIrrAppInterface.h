@@ -48,9 +48,6 @@
 namespace irr
 {
 
-/// Directory where .obj primitives and fonts files are stored (by default, it is "../data/")
-/// Should be set _before_ creating the ChIrrApp or the ChIrrAssetConverter 
-static std::string irrlicht_default_obj_dir("../data/");
 
 
 /// Class to add some GUI to Irrlicht+Chrono::Engine
@@ -344,7 +341,7 @@ public:
 				device->setWindowCaption(L"Chrono::Engine");
 
 			gui::IGUISkin* skin = GetIGUIEnvironment()->getSkin();
-			gui::IGUIFont* font = GetIGUIEnvironment()->getFont((irrlicht_default_obj_dir+"fonts/arial8.xml").c_str());
+			gui::IGUIFont* font = GetIGUIEnvironment()->getFont("../data/fonts/arial8.xml");
 			if (font)
 				skin->setFont(font);
 			skin->setColor(gui::EGDC_BUTTON_TEXT, video::SColor(255,40,50,50));
@@ -839,6 +836,16 @@ public:
 		effect->addShadowLight(SShadowLight(resolution, pos, aim, color, (f32)mnear , (f32)mfar, ((f32)angle * core::DEGTORAD)));
 		this->use_effects = true;
 		return mlight;
+	}
+		
+			/// Set the fonts to be used from now on. Note that the font must be in the .xml format
+			/// of Irrlicht - this can be generated using a tool provided with Irrlicht.
+	void SetFonts (const char* mfontdir = "../data/fonts/arial8.xml")
+	{
+		gui::IGUISkin* skin = GetIGUIEnvironment()->getSkin();
+		gui::IGUIFont* font = GetIGUIEnvironment()->getFont(mfontdir);
+		if (font)
+			skin->setFont(font);
 	}
 
 
