@@ -100,6 +100,70 @@ public:
 };
 
 
+	/// Processed particle will increment a mass counter .
+	/// Note that you have to use this processor with triggers that
+	/// make some sense, such as ChParticleEventFlowInRectangle, because
+	/// with others like ChParticleEventTriggerBox you'll get a trigger per 
+	/// each timestep, not only after the particle entered the box.
+class ChParticleProcessEventMassCount : public ChParticleProcessEvent
+{
+public:
+	ChParticleProcessEventMassCount()
+	{
+		counted_mass = 0;
+	}
+
+		/// Remove the particle from the system. 
+	virtual void ParticleProcessEvent(ChSharedPtr<ChBody> mbody, 
+									  ChSystem& msystem, 
+									  ChSharedPtr<ChParticleEventTrigger> mprocessor ) 
+	{
+		counted_mass += mbody->GetMass();
+	}
+
+	double counted_mass;
+};
+
+
+
+	/// Processed particle will increment a NxM matrix mass counter,
+	/// so that a statistical distribution of flow over a uv surface
+	/// can be obtained. Note that the matrix maps the 0...1 of the u (matrix rows)
+	/// and the 0..1 of the v (matrix columns) of the uv surface.
+	/// Note: For the moment, this supports only the case of trigger of type
+	/// ChParticleEventFlowInRectangle.
+class ChParticleProcessEventMassDistribution : public ChParticleProcessEvent
+{
+public:
+	ChParticleProcessEventMassDistribution(int u_sects = 10, int v_sects = 10)
+	{
+		mmass.Reset(u_sects, v_sects);
+	}
+
+		/// Remove the particle from the system. 
+	virtual void ParticleProcessEvent(ChSharedPtr<ChBody> mbody, 
+									  ChSystem& msystem, 
+									  ChSharedPtr<ChParticleEventTrigger> mprocessor ) 
+	{
+		assert(mprocessor.IsType<ChParticleEventFlowInRectangle>());
+		if (mprocessor.IsType<ChParticleEventFlowInRectangle>())
+		{
+			ChSharedPtr<ChParticleEventFlowInRectangle> mrectangleprocessor = mprocessor.DynamicCastTo<ChParticleEventFlowInRectangle>();
+			int irow = floor(mmass.GetRows() * mrectangleprocessor->last_intersectionUV.x);
+			if (irow >= mmass.GetRows()) irow = mmass.GetRows()-1;
+			int icol = floor(mmass.GetColumns() * mrectangleprocessor->last_intersectionUV.y);
+			if (icol >= mmass.GetColumns()) icol = mmass.GetColumns()-1;
+
+			mmass(irow,icol) += mbody->GetMass();
+		}
+	}
+
+	ChMatrixDynamic<> mmass;
+};
+
+
+
+
 
 } // end of namespace particlefactory
 } // end of namespace chrono
