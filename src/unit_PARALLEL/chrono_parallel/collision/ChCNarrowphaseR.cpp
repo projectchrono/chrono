@@ -902,6 +902,33 @@ void function_process(const uint&       icoll,           // index of this contac
     return;
   }
 
+  if (type1 == ROUNDEDCYL && type2 == SPHERE) {
+    if (ChCNarrowphaseR::roundedcyl_sphere(
+            X1, R1, Y1.x, Y1.y, Z1.x,
+            X2, Y2.x,
+            ct_norm[index], ct_depth[index],
+            ct_pt1[index], ct_pt2[index],
+            ct_eff_rad[index])) {
+      ct_flag[index] = 0;
+      ct_body_ids[index] = I2(body1, body2);
+    }
+    return;
+  }
+
+  if (type1 == SPHERE && type2 == ROUNDEDCYL) {
+    if (ChCNarrowphaseR::roundedcyl_sphere(
+            X2, R2, Y2.x, Y2.y, Z2.x,
+            X1, Y1.x,
+            ct_norm[index], ct_depth[index],
+            ct_pt2[index], ct_pt1[index],
+            ct_eff_rad[index])) {
+      ct_norm[index] = -ct_norm[index];
+      ct_flag[index] = 0;
+      ct_body_ids[index] = I2(body1, body2);
+    }
+    return;
+  }
+
   if (type1 == BOX && type2 == SPHERE) {
     if (ChCNarrowphaseR::box_sphere(
             X1, R1, Y1,
