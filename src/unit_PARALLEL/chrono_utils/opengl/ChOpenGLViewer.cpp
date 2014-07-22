@@ -308,7 +308,7 @@ void ChOpenGLViewer::DrawObject(
          ChVector<> pos_final = pos + center;
          model = glm::translate(glm::mat4(1), glm::vec3(pos_final.x, pos_final.y, pos_final.z));
          model = glm::rotate(model, float(angle), glm::vec3(axis.x, axis.y, axis.z));
-         model = glm::scale(model, glm::vec3(rad, height, rad));
+         model = glm::scale(model, glm::vec3(rad, height*.5, rad));
          model_cylinder.push_back(model);
 
       } else if (asset.IsType<ChConeShape>()) {

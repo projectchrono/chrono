@@ -56,7 +56,7 @@ SET(DEMOS
 )
 
 IF(ENABLE_OPENGL)
-    SET(DEMOS ${DEMOS} benchmarkOpenGL)
+    SET(DEMOS ${DEMOS} benchmarkOpenGL shapesOpenGL)
 ENDIF()
 
 MESSAGE(STATUS "Executable programs...")
