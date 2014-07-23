@@ -475,7 +475,7 @@ void ChLinkMasked::UpdateCqw()
 
 void ChLinkMasked::UpdateForces(double mytime)
 {
-	ChLinkMarkers::UpdateForces(mytime);
+    ChLinkMarkers::UpdateForces(mytime);
 
     // ** Child class can inherit this method. The parent implementation must
     //    be called _before_ adding further custom forces.
@@ -492,21 +492,19 @@ void ChLinkMasked::UpdateForces(double mytime)
 
     // 1)========== the generic spring-damper
 
-    if (force_D) {
-    if (force_D->Get_active())
+    if (force_D && force_D->Get_active())
     {
         double dfor;
         dfor = force_D->Get_Force((dist - d_restlenght), dist_dt, ChTime);
         m_force = Vmul (Vnorm(relM.pos), dfor);
 
         C_force = Vadd(C_force, m_force);
-    } }
+    }
 
 
     // 2)========== the generic torsional spring / torsional damper
 
-    if (force_R) {
-    if (force_R->Get_active())
+    if (force_R && force_R->Get_active())
     {
         double tor;
             // 1) the tors. spring
@@ -518,30 +516,27 @@ void ChLinkMasked::UpdateForces(double mytime)
         tor = force_R->Get_Force(0, angle_dt, ChTime);
         m_torque = Vmul (Vnorm(relWvel), tor);
         C_torque = Vadd(C_torque, m_torque);
-    } }
+    }
 
 
     // 3)========== the XYZ forces
 
     m_force = VNULL;
 
-    if (force_X) {
-    if (force_X->Get_active())
+    if (force_X && force_X->Get_active())
     {
         m_force.x = force_X->Get_Force(relM.pos.x, relM_dt.pos.x, ChTime);
-    } }
+    }
 
-    if (force_Y) {
-    if (force_Y->Get_active())
+    if (force_Y && force_Y->Get_active())
     {
         m_force.y = force_Y->Get_Force(relM.pos.y, relM_dt.pos.y, ChTime);
-    } }
+    }
 
-    if (force_Z) {
-    if (force_Z->Get_active())
+    if (force_Z && force_Z->Get_active())
     {
         m_force.z = force_Z->Get_Force(relM.pos.z, relM_dt.pos.z, ChTime);
-    } }
+    }
 
     C_force = Vadd(C_force, m_force);
 
@@ -550,23 +545,20 @@ void ChLinkMasked::UpdateForces(double mytime)
 
     m_torque = VNULL;
 
-    if (force_Rx) {
-    if (force_Rx->Get_active())
+    if (force_Rx && force_Rx->Get_active())
     {
         m_torque.x = force_Rx->Get_Force(relRotaxis.x, relWvel.x, ChTime);
-    } }
+    }
 
-    if (force_Ry) {
-    if (force_Ry->Get_active())
+    if (force_Ry && force_Ry->Get_active())
     {
         m_torque.y = force_Ry->Get_Force(relRotaxis.y, relWvel.y, ChTime);
-    } }
+    }
 
-    if (force_Rz) {
-    if (force_Rz->Get_active())
+    if (force_Rz && force_Rz->Get_active())
     {
         m_torque.z = force_Rz->Get_Force(relRotaxis.z, relWvel.z, ChTime);
-    } }
+    }
 
     C_torque = Vadd(C_torque, m_torque);
 
