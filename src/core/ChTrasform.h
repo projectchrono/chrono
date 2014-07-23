@@ -72,9 +72,9 @@ public:
 					/// \return The point in local coordinate, as local=[A]'*(parent-origin)
 
 	static ChVector<Real> TrasformParentToLocal (
-								const ChVector<Real>& parent,	///< point to transform, given in parent coordinates
-								const ChVector<Real>& origin,	///< origin of frame respect to parent, in parent coords,
-								const ChMatrix33<Real>& alignment	///< rotation of frame respect to parent, in parent coords.
+								const ChVector<Real>& parent,	///< point to transform, given in parent coordinates;
+								const ChVector<Real>& origin,	///< location of local frame with respect to parent, expressed in parent ref frame;
+								const ChMatrix33<Real>& alignment	///< rotation of local frame with respect to parent, expressed in parent coords.
 								)
 						{
 							Real mx = parent.x-origin.x;
@@ -92,13 +92,14 @@ public:
 										(( alignment.Get33Element(2,2))*mz) );
 						}
 
-					/// This function transforms a point from the local coordinate
-					/// system to the parent coordinate system. Relative position of local respect
-					/// to parent is given by the 'origin' translation and 'alignment' rotation matrix.
-					///  Since the function is static, you do not need a ChTrasform object, for example
-					/// use it as: mresult=ChTrasform<>::TrasformLocalToParent(mloc, morig, malign)
-					///  This function is optimised for fast execution.
-					/// \return The point in parent coordinate, as parent=origin +[A]*(local)
+					/// This function transforms a point from the local reference
+					/// frame to the parent reference frame. The relative attitude of  
+                    /// the local reference frame with respect to the parent reference frame
+					/// is given by the 'origin' translation and the 'alignment' rotation matrix.
+					/// Since the function is static, you do not need a ChTrasform object. For example,
+					/// use it as: mresult=ChTrasform<>::TrasformLocalToParent(mloc, morig, malign).
+					/// This function is optimized for fast execution.
+					/// \return The point in the parent reference frame, as parent=origin +[A]*(local)
 
 	static ChVector<Real> TrasformLocalToParent (
 								const ChVector<Real>& local,	///< point to transform, given in local coordinates

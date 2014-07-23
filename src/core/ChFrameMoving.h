@@ -409,9 +409,9 @@ public:
 			       ((coord_dt.rot % ChQuaternion<Real>(0,localpos) % this->coord.rot.GetConjugate()).GetVector()*2) ;
 		}
 
-		/// Given the position of a point in local frame coords, and
-		/// assuming it has a frame-relative speed localspeed,
-		/// return the speed in parent coords.
+		/// Given the position localpos of a point in the local reference frame, assuming
+        /// that the point moves in the local reference frame with localspeed, 
+		/// return the speed in the parent reference frame.
 	ChVector<Real> PointSpeedLocalToParent(const ChVector<Real>& localpos, const ChVector<Real>& localspeed) const
 		{
 			return coord_dt.pos +
