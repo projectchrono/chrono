@@ -27,9 +27,14 @@ IF(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
 ENDIF()
 
 #--------------------------------------------------------------
+# Justin's models
+OPTION(ENABLE_HMMWV_9BODY    "Build the HMMWV vehicle model"     OFF)
+IF(ENABLE_HMMWV_9BODY)
+ ADD_SUBDIRECTORY(hmmwv_9body)
+ENDIF()
 
+#--------------------------------------------------------------
 ADD_SUBDIRECTORY(slider_crank)
-#ADD_SUBDIRECTORY(hmmwv_9body)
 ADD_SUBDIRECTORY(hmmwv_full)
 
 
