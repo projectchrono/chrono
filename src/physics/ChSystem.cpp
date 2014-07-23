@@ -1369,15 +1369,10 @@ void ChSystem::WakeUpSleepingBodies()
 		// COUNT ALL BODIES AND LINKS, ETC, COMPUTE &SET DOF FOR STATISTICS,
 		// ALLOCATES OR REALLOCATE BOOKKEEPING DATA/VECTORS, IF ANY
 
-int ChSystem::Setup()
+void ChSystem::Setup()
 {
 	events->Record(CHEVENT_SETUP);
 
-	int need_update = FALSE;
-	int old_ncoords  = ncoords ;
-	int old_ndoc = ndoc;
-	int old_ndoc_w_D = ndoc_w_D;
-	
 	nbodies = 0;
 	nbodies_sleep = 0;
 	nbodies_fixed = 0;
@@ -1390,38 +1385,28 @@ int ChSystem::Setup()
 	nlinks = 0;
 	nphysicsitems = 0;
 
-							
-	HIER_BODY_INIT					
-	while HIER_BODY_NOSTOP		
+	HIER_BODY_INIT
+	while HIER_BODY_NOSTOP
 	{
-		if (!Bpointer->GetBodyFixed())
-		{
-			if (!Bpointer->GetSleeping())
-			{
-				nbodies ++;	// Count bodies and indicize them.
-			}
-			else
-			{
-				nbodies_sleep ++;
-			}
-		}
-		else
-		{
-			nbodies_fixed ++;
-		}
- 
-		HIER_BODY_NEXT
+        if (Bpointer->GetBodyFixed())
+          nbodies_fixed++;
+        else if (Bpointer->GetSleeping())
+          nbodies_sleep++;
+        else
+          nbodies++;
+
+        HIER_BODY_NEXT
 	}
 
 	ncoords_w += nbodies * 6;
 	ncoords   += nbodies * 7; // with quaternion coords
-	ndoc	  += nbodies; // There is a quaternion constr. for each active body.
+	ndoc      += nbodies;     // add one quaternion constr. for each active body.
 
 
 	HIER_OTHERPHYSICS_INIT
 	while HIER_OTHERPHYSICS_NOSTOP
 	{
-		nphysicsitems ++;	
+		nphysicsitems ++;
 
 		ncoords_w += PHpointer->GetDOF();
 		ndoc_w	  += PHpointer->GetDOC();
@@ -1445,14 +1430,11 @@ int ChSystem::Setup()
 
 	ndoc_w_D += contact_container->GetDOC_d();
 
+	ndoc       = ndoc_w + nbodies;   // number of constraints including quaternion constraints.
+	nsysvars   = ncoords   + ndoc;   // total number of variables (coordinates + lagrangian multipliers)
+	nsysvars_w = ncoords_w + ndoc_w; // total number of variables (with 6 dof per body)
 
-	ndoc = ndoc_w + nbodies;		// sets number of constraints including quaternion constraints.
-	nsysvars   = ncoords   + ndoc;  // sets number of total variables (=coordinates + lagrangian multipliers)
-	nsysvars_w = ncoords_w + ndoc_w;// sets number of total variables (with 6 dof per body)
-
-	ndof= ncoords - ndoc;			// sets number of left degrees of freedom (approximate - does not consider constr. redundancy, etc)
-
-	return need_update;
+	ndof= ncoords - ndoc;            // number of degrees of freedom (approximate - does not consider constr. redundancy, etc)
 }
 
 

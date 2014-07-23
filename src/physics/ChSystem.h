@@ -627,7 +627,7 @@ public:
 			//
 
 				/// Counts the number of bodies and links. 
-	int  Setup();
+	void Setup();
 
 				/// Updates all the auxiliary data and children of
 				/// bodies, forces, links, given their current state.
