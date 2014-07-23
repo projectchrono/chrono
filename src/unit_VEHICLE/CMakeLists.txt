@@ -18,7 +18,7 @@ SET(CHRONO_LIB_PATH  ""  CACHE PATH "Location of the Chrono library")
 # ------------------------------------------------------------------------------
 # Options
 # ------------------------------------------------------------------------------
-SET(ENABLE_IRRLICHT FALSE CACHE BOOL "Turn this ON to enable Irrlich support")
+OPTION(ENABLE_IRRLICHT "Enable Irrlich support in Chrono" OFF)
 
 # ------------------------------------------------------------------------------
 # Specify output locations for libraries and executables

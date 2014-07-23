@@ -15,8 +15,10 @@
 #include "physics/CHlinkDistance.h"
 // terramechanics include. Note: this file needs to be updated based on demo_TMsoilbin.cpp
 
+#include "HMMWV_9body_config.h"
+
 // Irrlicht includes
-#ifdef ENABLE_UNIT_IRRLICHT
+#ifdef USE_IRRLICHT
  #include "irrlicht_interface/ChIrrApp.h"
  #include <irrlicht.h>
  #include "HMMWVEventReceiver.h"
