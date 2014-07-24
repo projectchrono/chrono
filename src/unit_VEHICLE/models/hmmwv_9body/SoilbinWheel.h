@@ -18,7 +18,7 @@
 #include "physics/CHsystem.h"
 
 using namespace chrono;
-using namespace chrono::collision;
+// using namespace chrono::collision;
 
 class SoilbinWheel {
 public:
@@ -41,8 +41,6 @@ public:
 		const double mu = 0.4, const double cohesion = 0.0,
 		const bool enable_collision = true): wheel(new ChBody)
 	{
-		ChCollisionModel::SetDefaultSuggestedEnvelope(0.005);
-		ChCollisionModel::SetDefaultSuggestedMargin  (0.004);
 
 		// the mesh for the visualization (independent from the collision shape)
 		ChSharedPtr<ChObjShapeFile> m_obj(new ChObjShapeFile);
@@ -106,9 +104,6 @@ public:
 		double mass, double cyl_width, double cyl_d_outer, double cyl_d_inner,
 		const bool enable_collision): wheel(new ChBody)
 	{
-		ChCollisionModel::SetDefaultSuggestedEnvelope(0.005);
-		ChCollisionModel::SetDefaultSuggestedMargin  (0.004);
-
 		double r2 = cyl_d_outer/2.0;	// outer radius
 		double r1 = cyl_d_inner/2.0;	// inner radius
 		double h = cyl_width;		// height

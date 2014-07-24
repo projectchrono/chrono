@@ -44,10 +44,6 @@ public:
 		const double muWall = 0.7, const double cohesionWall = 0.0,
 		const bool collide=true): msys(&system), floor(new ChBody), wall1(new ChBody), wall2(new ChBody), wall3(new ChBody), wall4(new ChBody)
 	{
-		// create the floor, walls of the terrain based on the desired width/length
-		ChCollisionModel::SetDefaultSuggestedEnvelope(0.003);
-		ChCollisionModel::SetDefaultSuggestedMargin  (0.002);
-
 		double wallThickness = std::min<double>(terrainWidth, terrainLength) / 20.0;	// wall width = 1/10 of min of bin dims
 		double wallHeight = 1.0;
 		// create the floor

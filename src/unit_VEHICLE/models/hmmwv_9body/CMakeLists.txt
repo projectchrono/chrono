@@ -64,7 +64,7 @@ IF(HMMWV_9BODY_USE_IRRLICHT)
 
 	# include the irrlicht library as a dependency
 	SET(HMMWV_LIBS ${HMMWV_LIBS} ${CH_IRRLICHTLIB})
-	SET(HMMWV_DEPENDENCIES ${HMMWV_DEPENDENCIES} Irrlicht)
+	SET(HMMWV_DEPENDENCIES ${HMMWV_DEPENDENCIES} ${CH_IRRLICHTLIB})
 ENDIF()
 
 # Create the executable
@@ -73,6 +73,9 @@ SET_TARGET_PROPERTIES(demo_HMMWV_9body PROPERTIES LINK_FLAGS "${LINKERFLAG_EXE}"
 TARGET_LINK_LIBRARIES(demo_HMMWV_9body ${HMMWV_LIBS})
 ADD_DEPENDENCIES(demo_HMMWV_9body ${HMMWV_DEPENDENCIES})
 INSTALL(TARGETS demo_HMMWV_9body DESTINATION bin)
+
+message("libraries: ${HMMWV_LIBS}")
+message("dependencies: ${HMMWV_DEPENDENCIES}")
 
 # ----------------------
 # Create config file

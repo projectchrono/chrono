@@ -88,14 +88,16 @@ IF(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
     # Find the library based on the build type
     FIND_LIBRARY(CHRONO_LIB NAMES ChronoEngine PATHS ${CHRONO_LIB_PATH}/${CMAKE_BUILD_TYPE}          REQUIRED)
 
-    # Copy the DLL from/to appropriate place, based on build type
-    SET(CHRONO_DLL "${CHRONO_LIB_PATH}/../bin/${CMAKE_BUILD_TYPE}/ChronoEngine.dll")
-
-    FILE(COPY ${CHRONO_DLL} DESTINATION "${CMAKE_BINARY_DIR}/bin/${CMAKE_BUILD_TYPE}")
+	# Copy the Chrono DLL from/to appropriate place, for two common build types
+	SET(CHRONO_DLL_RELEASE "${CHRONO_LIB_PATH}/../bin/Release/ChronoEngine.dll")
+	SET(CHRONO_DLL_DBG	"${CHRONO_LIB_PATH}/../bin/Debug/ChronoEngine.dll")
+    FILE(COPY ${CHRONO_DLL_RELEASE} DESTINATION "${CMAKE_BINARY_DIR}/bin/Release")
+	FILE(COPY ${CHRONO_DLL_DBG} DESTINATION "${CMAKE_BINARY_DIR}/bin/Debug")
 
     # Report what library we use and which DLL was copied
     MESSAGE(STATUS "Found chrono library:    ${CHRONO_LIB}")
-    MESSAGE(STATUS "Copied chrono DLL:       ${CHRONO_DLL}")
+    MESSAGE(STATUS "Copied chrono DLL, release:       ${CHRONO_DLL_RELEASE}")
+	MESSAGE(STATUS "Copied chrono DLL, debug:       ${CHRONO_DLL_DBG}")
 ELSE()
     FIND_LIBRARY(CHRONO_LIB NAMES ChronoEngine  PATHS ${CHRONO_LIB_PATH}          REQUIRED)
 ENDIF()
@@ -127,13 +129,22 @@ IF(ENABLE_IRRLICHT)
     IF(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
         SET(CH_IRRLICHTDIR "C:/irrlicht-1.8"  CACHE PATH   "Where is your Irrlicht SDK installed? You must set this path to compile demos with 3D display.")
         
-        IF("${CH_COMPILER}" STREQUAL "COMPILER_MSVC")
+        IF("${COMPILER}" STREQUAL "COMPILER_MSVC")
             FIND_LIBRARY( CH_IRRLICHTLIB NAMES Irrlicht PATHS "${CH_IRRLICHTDIR}/lib/Win32-visualstudio")
-        ELSEIF("${CH_COMPILER}" STREQUAL "COMPILER_MSVC_X64")
+			# copy over the dll to your debug and release dirs
+			FILE(COPY "${CH_IRRLICHTDIR}/bin/Win32-VisualStudio/Irrlicht.dll"		DESTINATION ${CMAKE_BINARY_DIR}/bin/Release PATTERN .svn EXCLUDE)
+			FILE(COPY "${CH_IRRLICHTDIR}/bin/Win32-VisualStudio/Irrlicht.dll"		DESTINATION ${CMAKE_BINARY_DIR}/bin/Debug PATTERN .svn EXCLUDE)
+        ELSEIF("${COMPILER}" STREQUAL "COMPILER_MSVC_X64")
             FIND_LIBRARY( CH_IRRLICHTLIB NAMES Irrlicht PATHS "${CH_IRRLICHTDIR}/lib/Win64-visualStudio")
-        ELSEIF("${CH_COMPILER}" STREQUAL "COMPILER_GCC")
+			# copy over the dll to your debug and release dirs
+			FILE(COPY "${CH_IRRLICHTDIR}/bin/Win64-VisualStudio/Irrlicht.dll"		DESTINATION ${CMAKE_BINARY_DIR}/bin/Release PATTERN .svn EXCLUDE)
+			FILE(COPY "${CH_IRRLICHTDIR}/bin/Win64-VisualStudio/Irrlicht.dll"		DESTINATION ${CMAKE_BINARY_DIR}/bin/Debug PATTERN .svn EXCLUDE)
+        ELSEIF("${COMPILER}" STREQUAL "COMPILER_GCC")
             FIND_LIBRARY( CH_IRRLICHTLIB NAMES Irrlicht PATHS "${CH_IRRLICHTDIR}/lib/Win32-gcc")
-        ELSEIF("${CH_COMPILER}" STREQUAL "COMPILER_GCC_X64")
+			# copy over the dll to your debug and release dirs
+			FILE(COPY "${CH_IRRLICHTDIR}/bin/Win32-gcc/Irrlicht.dll"		DESTINATION ${CMAKE_BINARY_DIR}/bin/Release PATTERN .svn EXCLUDE)
+			FILE(COPY "${CH_IRRLICHTDIR}/bin/Win32-gcc/Irrlicht.dll"		DESTINATION ${CMAKE_BINARY_DIR}/bin/Debug PATTERN .svn EXCLUDE)
+        ELSEIF("${COMPILER}" STREQUAL "COMPILER_GCC_X64")
             FIND_LIBRARY( CH_IRRLICHTLIB NAMES Irrlicht PATHS "${CH_IRRLICHTDIR}/lib/Win64-gcc")
         ENDIF()
     ELSEIF(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
@@ -145,7 +156,8 @@ IF(ENABLE_IRRLICHT)
         FIND_LIBRARY( CH_IRRLICHTLIB NAMES Irrlicht PATHS "/usr/local/lib" ${CH_IRRLICHTDIR}/lib/Linux)
         SET(CH_IRRLICHTLIB "${CH_IRRLICHTLIB}")
     ENDIF()
-
+	message("found irrlicht lib: ${CH_IRRLICHTLIB}")
+	
     IF(EXISTS "${CH_IRRLICHTDIR}/include")
         SET(CH_IRRLICHTINC "${CH_IRRLICHTDIR}/include")
     ELSE()

@@ -32,6 +32,7 @@
 // Use the namespace of Chrono
 using namespace chrono;
 
+/*
 #ifdef USE_IRRLICHT
 // Use the main namespaces of Irrlicht
 using namespace irr;
@@ -41,6 +42,7 @@ using namespace video;
 using namespace io;
 using namespace gui;
 #endif
+*/
 
 int main(int argc, char* argv[]){
 	// create the system, set the solver settings

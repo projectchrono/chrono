@@ -5,7 +5,7 @@
 // only used with visualization via Irrlicht is enabled 
 // Allows the user to control the wheel testing mechaism manually
 // also, can generate various particles to represent the soil
-#include "soilbin_config.h"
+#include "HMMWV_9body_config.h"
 // CE Includes   
 #include "physics/ChApidll.h" 
 #include "physics/ChSystem.h"
@@ -13,7 +13,7 @@
 
 // HMMWV vehicle and terrain module includes
 #include "HMMWVTerrain.h"
-#include "HMMWV.h"
+#include "HMMWV_9body.h"
 
 using namespace chrono;
 using namespace irr;
@@ -36,7 +36,7 @@ public:
 	gui::IGUITab*		gad_tab_controls;	// HMMWV vehicle control
 	gui::IGUITab*		gad_tab_carData;	// output pane for wheel state data
 
-	HMMWVEventReceiver(ChIrrApp* app, ChSystem* system, HMMWV* car, HMMWVTerrain* terrain, 
+	HMMWVEventReceiver(ChIrrApp* app, ChSystem* system, HMMWV_9body* car, HMMWVTerrain* terrain, 
 		const int gui_TLC_x = 740, const int gui_TLC_y = 20):
 	mapp(app), msys(system), mcar(car), mterrain(terrain)
 	{
@@ -322,7 +322,7 @@ public:
 private:
 	ChIrrAppInterface* mapp;
 	// bodies/joints we can control
-	HMMWV* mcar;
+	HMMWV_9body* mcar;
 	HMMWVTerrain* mterrain;
 
 	// the chrono system
