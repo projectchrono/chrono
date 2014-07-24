@@ -175,14 +175,17 @@ DoubleAarm::DoubleAarm(ChSystem&  my_system, const int susp_type, ChSharedPtr<Ch
 	this->link_names.push_back("link_distL2");
 
 	//	--- Spring/damper
-	ChSharedPtr<ChLinkSpring> shock(new ChLinkSpring);
-	shock->Initialize(chassis, spindle, false, HP_KD_U, HP_KD_L );
-	shock->Set_SpringK(springK_F);	
-	shock->Set_SpringR(damperC_F);	
-	my_system.AddLink(shock);
+	ChSharedPtr<ChLinkSpring> spring = ChSharedPtr<ChLinkSpring>(new ChLinkSpring);
+	spring->Initialize(chassis, spindle, false, HP_KD_U, HP_KD_L );
+	spring->Set_SpringK(springK_F);	
+	spring->Set_SpringR(damperC_F);	
+	my_system.AddLink(spring);
+	this->shock = spring;
+	// double m_springRestLen = shock->Get_SpringRestLenght();
+	// shock->Set_SpringRestLenght
 
 	//	--- Steering
-	ChSharedPtr<ChLinkDistance> link_distSTEER = ChSharedPtr<ChLinkDistance>(new ChLinkDistance); // right steer
+ 	ChSharedPtr<ChLinkDistance> link_distSTEER = ChSharedPtr<ChLinkDistance>(new ChLinkDistance); // right steer
 	link_distSTEER->Initialize(chassis, spindle, false, HP_St_1, HP_St_2 );
 	my_system.AddLink(link_distSTEER);
 	this->link_list.push_back(link_distSTEER);

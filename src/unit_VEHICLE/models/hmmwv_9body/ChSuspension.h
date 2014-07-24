@@ -26,8 +26,6 @@ protected:
 	std::string subsys_name;
 
 public:
-	// the shock
-	ChSharedPtr<ChLinkSpring> shock;
 
 	// Constructors, destruct
 	ChSuspension(){}

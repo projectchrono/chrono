@@ -32,6 +32,8 @@ protected:
 public:
 	// easy access to tie rod
 	ChSharedPtr<ChLinkDistance> tierod;	// a distance constraint
+	// the shock
+	ChSharedPtr<ChLinkSpring> shock;
 
 	// @brief default Constructor 
 	DoubleAarm() {}

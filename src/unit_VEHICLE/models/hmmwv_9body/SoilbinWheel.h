@@ -87,12 +87,8 @@ public:
 		// rotate the wheel
 		wheel->SetRot( wheelRot);
 
-		if( enable_collision){
-			wheel->SetCollide(true);
-		} else {
-			// TURN OFF RIGID BODY COLLISIONS for testing with terramechanics
-			wheel->SetCollide(false);
-		}
+		wheel->SetCollide(enable_collision);
+		
 		// finally, add the body to the system
 		msys.Add(wheel);
 	}
@@ -102,20 +98,30 @@ public:
 	SoilbinWheel(ChSystem& msys, 
 		ChVector<>& mposition, const ChQuaternion<>& wheelRot,
 		double mass, double cyl_width, double cyl_d_outer, double cyl_d_inner,
-		const bool enable_collision): wheel(new ChBody)
+		const bool enable_collision,
+		const std::string& wheelMeshFile="none",
+		const ChQuaternion<>& meshRot = QUNIT,
+		const double mu = 0.7, const double coh = 0.0): wheel(new ChBody)
 	{
 		double r2 = cyl_d_outer/2.0;	// outer radius
 		double r1 = cyl_d_inner/2.0;	// inner radius
 		double h = cyl_width;		// height
 
-		// use a cylinder for the tm tests
-
-		ChSharedPtr<ChCylinderShape> mcyl(new ChCylinderShape);
-		mcyl->GetCylinderGeometry().p1 = ChVector<>(0, cyl_width/2.0, 0);
-		mcyl->GetCylinderGeometry().p2 = ChVector<>(0, -cyl_width/2.0, 0);
-		mcyl->GetCylinderGeometry().rad = r2;
-		wheel->AddAsset(mcyl);
-		// if using collision, create the CD model
+		// if you want a wheel mesh, the name will be different than "none"
+		if( std::strcmp(wheelMeshFile.c_str(),"none") ) {
+			// use a cylinder for the tm tests
+			ChSharedPtr<ChCylinderShape> mcyl(new ChCylinderShape);
+			mcyl->GetCylinderGeometry().p1 = ChVector<>(0, cyl_width/2.0, 0);
+			mcyl->GetCylinderGeometry().p2 = ChVector<>(0, -cyl_width/2.0, 0);
+			mcyl->GetCylinderGeometry().rad = r2;
+			wheel->AddAsset(mcyl);
+		} else {
+			// use the input mesh specified as an asset
+			ChSharedPtr<ChObjShapeFile> mesh_obj(new ChObjShapeFile);
+			mesh_obj->SetFilename(wheelMeshFile);
+			wheel->AddAsset(mesh_obj);
+		}
+		//  create the CD model using a cylinder in either case
 		wheel->GetCollisionModel()->ClearModel();
 		wheel->GetCollisionModel()->AddCylinder(r2,r2,h/2.0);
 		wheel->GetCollisionModel()->BuildModel();
@@ -126,19 +132,15 @@ public:
 		double ixx = (mass/12.0)*(3.0*(r2*r2+r1*r1) + h*h);
 		ChVector<> inertia( ixx, izz, ixx);
 		wheel->SetInertiaXX(inertia);
-		wheel->SetFriction(0.7);
+		wheel->GetMaterialSurface()->SetFriction(mu);
+		wheel->GetMaterialSurface()->SetCohesion(coh);
 
 		GetLog() << "wheel CM, inertia = " << mposition << "\n" <<  inertia << "\n";
-		// set the wheel ICs
+
+		// set the wheel ICs, collide on/off
 		wheel->SetPos(mposition);
 		wheel->SetRot(wheelRot);
-
-		// turn collision off for TM testing
-		if( enable_collision) {
-			wheel->SetCollide(true);
-		} else {
-			wheel->SetCollide(false);
-		}
+		wheel->SetCollide(enable_collision);
 
 		// add a rubber texture
 		ChSharedPtr<ChTexture> mtexture(new ChTexture);

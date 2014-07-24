@@ -67,6 +67,7 @@ public:
 	HMMWV_9body(ChSystem&  my_system,	///< the chrono::engine physical system 
 		const ChVector<>& chassisCM = ChVector<>(0,0,0),
 		const ChQuaternion<>& chassisRot = ChQuaternion<>(1,0,0,0),
+		const bool enableContact = false,
 		const bool tireMesh = true, const std::string& meshFile = "none");
 
 	ChSharedPtr<ChBody> create_wheel(ChVector<>& mpos);

@@ -9,6 +9,10 @@
 //	Part of the Chrono-T project
 
 
+
+// TESTING
+// #define USE_PACTIRE
+
 // CE includes
 #include "physics/CHapidll.h" 
 #include "physics/CHsystem.h"
@@ -44,10 +48,26 @@ using namespace gui;
 #endif
 */
 
+// how the tire will supply the reaction forces to the wheel rigid body
+enum TireForceType {
+	RIGIDCONTACT,
+	PACJEKA,
+	SOFTSOIL };
+
+#ifdef USE_PACTIRE
+	TireForceType tiretype = PACJEKA;
+#elif USE_TERRAIN
+	TireForceType tiretype = RIGIDCONTACT;
+#else
+	TireForceType tiretype = RIGIDCONTACT;
+#endif
+
+
 int main(int argc, char* argv[]){
 	// create the system, set the solver settings
 	DLL_CreateGlobals();
 	ChSystem m_system;
+
 	// Integration and Solver settings
 	m_system.SetLcpSolverType(ChSystem::LCP_ITERATIVE_SOR); 
 	m_system.SetIterLCPmaxItersSpeed(150);
@@ -60,7 +80,7 @@ int main(int argc, char* argv[]){
 	ChQuaternion<> chassisOri(1,0,0,0);	// forward is the positive x-direction
 
 	// ***** vehicle module
-	HMMWV_9body* mycar = new HMMWV_9body(m_system, chassisCM, chassisOri,false);
+	HMMWV_9body* mycar = new HMMWV_9body(m_system, chassisCM, chassisOri,true);
 
 	// set the location of the "ground" relative to the chassisCM.
 	ChVector<> ground_cm = ChVector<>(0,0,0); 
@@ -68,7 +88,7 @@ int main(int argc, char* argv[]){
 	double terrainWidth = 100.0;
 	double terrainLength =100.0;
 	// create the ground. NOTE: orientation will have to be in the x-y plane
-	HMMWVTerrain* terrain = new HMMWVTerrain(m_system, ground_cm, terrainWidth, terrainLength,0.5,0.5,false);
+	HMMWVTerrain* terrain = new HMMWVTerrain(m_system, ground_cm, terrainWidth, terrainLength,0.5,0.5,true);
 //	ChVector<> obstacle_location(10,1,1);
 //	terrain->create_some_obstacles(obstacle_location);
 	
@@ -196,25 +216,34 @@ int main(int argc, char* argv[]){
 		mycar->ComputeWheelTorque();
 		mycar->ComputeSteerDisplacement();
 
+
+ #ifdef USE_TERRAIN
 		// each timestep, need to pass new forces and torques to the wheel hub!
 		std::vector<ChVector<>> F_hub;
 		std::vector<ChVector<>> M_hub;
- #ifdef USE_TERRAIN
 		for(int i = 0; i < 4; i++) {
 			F_hub.push_back( m_TM->getSpindleForce(i) );
 			M_hub.push_back( m_TM->getSpindleTorque(i) );
 		}
- #else
-		// here, use the Pac tire model to compute F and M on wheel spindle
-//		for(int i = 0; i < 4; i++) {
-//			F_hub.push_back( getPacTire_SpindleForce(i) );
-//			M_hub.push_back( getPacTire_SpindleTorque(i) );
-//		}
- #endif
-
 		// apply the wheel hub reaction forces and moments. Does not interfere w/ applied torque (I think)
 		// That is applied through the ChLinkEngine, this is force accumulators
 		mycar->applyHub_FM(F_hub, M_hub );
+ #else
+  #ifdef USE_PACTIRE
+		// here, use the Pac tire model to compute F and M on wheel spindle
+		std::vector<ChVector<>> F_hub;
+		std::vector<ChVector<>> M_hub;
+		for(int i = 0; i < 4; i++) {
+			F_hub.push_back( getPacTire_SpindleForce(i) );
+			M_hub.push_back( getPacTire_SpindleTorque(i) );
+		}
+		mycar->applyHub_FM(F_hub, M_hub );
+  #else
+		// no terrain, no pac tire, just use DVI contact
+  #endif
+ #endif
+
+
 
 		// ------------------------------------------------
 		// main time stepping loop, using Irrlicht

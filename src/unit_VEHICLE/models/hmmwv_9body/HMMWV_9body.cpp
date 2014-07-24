@@ -45,7 +45,9 @@ ostream& operator << (ostream& output, const ChVector<>& v) {
 // the spindle/wheel topology is dependent on this:
 // the front two wheels need revolute joints at the wheel hub
 // the rear (driven) wheels use a ChLinkEngine, which is a revolute joint w/ an engine attached to the DOF
-HMMWV_9body::HMMWV_9body(ChSystem&  my_system,	const ChVector<>& chassisCM, const ChQuaternion<>& chassisRot,
+HMMWV_9body::HMMWV_9body(ChSystem&  my_system,
+	const ChVector<>& chassisCM, const ChQuaternion<>& chassisRot,
+	const bool enableContact,
 	const bool tireMesh,  const std::string& meshFile): 
 	writeOutData(false), m_sys(&my_system), driver(new ChVehicleDriver)
 {
@@ -71,7 +73,6 @@ HMMWV_9body::HMMWV_9body(ChSystem&  my_system,	const ChVector<>& chassisCM, cons
 	chassisObj->Rot = QUNIT;
 	chassis->AddAsset(chassisObj);
 
-
 	// position of spindle, wheel CMs
 	double offset= 2.0*in_to_m;	// offset in lateral length between CM of spindle, wheel
 
@@ -94,8 +95,10 @@ HMMWV_9body::HMMWV_9body(ChSystem&  my_system,	const ChVector<>& chassisCM, cons
 	ChVector<> wheelLF_cm = chassis->GetCoord().TrasformLocalToParent( wheelLF_cm_bar);
 	if(useTireMesh) {
 		// use a nice looking .obj mesh for the wheel visuals
-		wheelLF = new SoilbinWheel(my_system, wheelLF_cm, chrono::QUNIT, chrono::QUNIT,
-			wheelInertia, wheelMass, meshFile);
+		wheelLF = new SoilbinWheel(my_system, wheelLF_cm, chrono::QUNIT,
+			wheelMass, tireWidth, tireRadius*2.0, tireRadius*0.8,
+			true,
+			meshFile, QUNIT);
 	} else {
 		// use a cylinder, with inertia based on the inner and outer radii
 		wheelLF = new SoilbinWheel(my_system, wheelLF_cm,chrono::QUNIT,
@@ -110,16 +113,15 @@ HMMWV_9body::HMMWV_9body(ChSystem&  my_system,	const ChVector<>& chassisCM, cons
 	ChVector<> wheelRF_cm = chassis->GetCoord().TrasformLocalToParent( wheelRF_cm_bar);
 	if(useTireMesh) {
 		// use a nice looking .obj mesh for the wheel visuals
-		wheelRF = new SoilbinWheel(my_system, wheelRF_cm, chrono::QUNIT, chrono::QUNIT,
-			wheelInertia, wheelMass, meshFile);
+		wheelRF = new SoilbinWheel(my_system, wheelRF_cm, chrono::QUNIT,
+			wheelMass, tireWidth, tireRadius*2.0, tireRadius*0.8,
+			true,
+			meshFile, QUNIT);
 	} else {
 		// use a cylinder, with inertia based on the inner and outer radii
 		wheelRF = new SoilbinWheel(my_system, wheelRF_cm,chrono::QUNIT,
 			wheelMass, tireWidth, tireRadius*2.0, tireRadius*0.8, true);
 	}
-	wheelRF->wheel->GetCollisionModel()->SetEnvelope(1.0);
-	wheelRF->wheel->GetCollisionModel()->SetSafeMargin(0.3);
-	wheelRF->wheel->GetMaterialSurface()->SetKfriction(0.8);
 
 	// --- Right front suspension
 	suspension_RF = new DoubleAarm(my_system, 1, chassis, wheelRF->GetBody(), spindleRF_cm_bar);
@@ -129,8 +131,10 @@ HMMWV_9body::HMMWV_9body(ChSystem&  my_system,	const ChVector<>& chassisCM, cons
 	ChVector<> wheelLB_cm = chassis->GetCoord().TrasformLocalToParent( wheelLB_cm_bar);
 	if(useTireMesh) {
 		// use a nice looking .obj mesh for the wheel visuals
-		wheelLB = new SoilbinWheel(my_system, wheelLB_cm, chrono::QUNIT, chrono::QUNIT,
-			wheelInertia, wheelMass, meshFile);
+		wheelLB =  new SoilbinWheel(my_system, wheelLB_cm, chrono::QUNIT,
+			wheelMass, tireWidth, tireRadius*2.0, tireRadius*0.8,
+			true,
+			meshFile, QUNIT);
 	} else {
 		// use a cylinder, with inertia based on the inner and outer radii
 		wheelLB = new SoilbinWheel(my_system, wheelLB_cm,chrono::QUNIT,
@@ -151,8 +155,10 @@ HMMWV_9body::HMMWV_9body(ChSystem&  my_system,	const ChVector<>& chassisCM, cons
 	ChVector<> wheelRB_cm = chassis->GetCoord().TrasformLocalToParent( wheelRB_cm_bar);
 	if(useTireMesh) {
 		// use a nice looking .obj mesh for the wheel visuals
-		wheelRB = new SoilbinWheel(my_system, wheelRB_cm, chrono::QUNIT, chrono::QUNIT,
-			wheelInertia, wheelMass, meshFile);
+		wheelRB = new SoilbinWheel(my_system, wheelRB_cm, chrono::QUNIT,
+			wheelMass, tireWidth, tireRadius*2.0, tireRadius*0.8,
+			true,
+			meshFile, QUNIT);
 	} else {
 		// use a cylinder, with inertia based on the inner and outer radii
 		wheelRB = new SoilbinWheel(my_system, wheelRB_cm,chrono::QUNIT,
