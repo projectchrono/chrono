@@ -96,6 +96,9 @@ public:
 	/// the force applied to body 2 (for body 1 it is inverted).
 	const ChVector<>& GetContactForce() const {return m_force;}
 
+	/// Get the contact force, expressed in the frame of the contact.
+	ChVector<> GetContactForceLocal() const {return m_contact_plane.MatrT_x_Vect(m_force);}
+
 	/// Get the collision model 1, with point P1.
 	collision::ChCollisionModel* GetModel1() {return (collision::ChCollisionModel*) m_mod1;}
 

@@ -161,7 +161,7 @@ void ChContactContainerDEM::ReportAllContacts(ChReportContactCallback* mcallback
 		                                                (*itercontact)->GetContactPlane(),
 		                                                (*itercontact)->GetContactPenetration(),
 		                                                0.0,
-		                                                (*itercontact)->GetContactForce(),
+		                                                (*itercontact)->GetContactForceLocal(),
 		                                                VNULL, // no react torques
 		                                                (*itercontact)->GetModel1(),
 		                                                (*itercontact)->GetModel2());
