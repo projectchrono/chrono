@@ -136,14 +136,19 @@ int main(int argc, char* argv[])
 
 				// Create three rigid bodies and add them to the system:
 		ChSharedBodyPtr  my_body_A(new ChBody);   // truss
-		ChSharedBodyPtr  my_body_B(new ChBody);	  // crank
-		ChSharedBodyPtr  my_body_C(new ChBody);	  // rod
+		ChSharedBodyPtr  my_body_B(new ChBody);   // crank
+		ChSharedBodyPtr  my_body_C(new ChBody);   // rod
+
+        my_body_A->SetName("truss");
+        my_body_B->SetName("crank");
+        my_body_C->SetName("rod");
+
 		my_system.AddBody(my_body_A);
 		my_system.AddBody(my_body_B);
 		my_system.AddBody(my_body_C);
 
 				// Set initial position of the bodies (center of mass)
-		my_body_A->SetBodyFixed(true);			// truss does not move!
+		my_body_A->SetBodyFixed(true);            // truss does not move!
 		my_body_B->SetPos(ChVector<>(1,0,0));
 		my_body_C->SetPos(ChVector<>(4,0,0));
 
@@ -152,9 +157,13 @@ int main(int argc, char* argv[])
 				// they will be used as references for 'rod-crank'link.
 		ChSharedMarkerPtr my_marker_b(new ChMarker);
 		ChSharedMarkerPtr my_marker_c(new ChMarker);
+
+        my_marker_b->SetName("crank_rev");
+        my_marker_c->SetName("rod_rev");
+
 		my_body_B->AddMarker(my_marker_b); 
 		my_body_C->AddMarker(my_marker_c);
-  
+
 				// Set absolute position of the two markers, 
 				// for the initial position of the 'rod-crank' link:
 		my_marker_b->Impose_Abs_Coord(ChCoordsys<>(ChVector<>(2,0,0)));
@@ -164,6 +173,7 @@ int main(int argc, char* argv[])
 				// between these two markers, and insert in system:
 		ChSharedPtr<ChLinkLockRevolute>  my_link_BC(new ChLinkLockRevolute);
 		my_link_BC->Initialize(my_marker_b, my_marker_c);
+        my_link_BC->SetName("REVOLUTE crank-rod");
 		my_system.AddLink(my_link_BC);
 
 				// Phew! All this 'marker' stuff is boring!
@@ -176,6 +186,10 @@ int main(int argc, char* argv[])
 		my_link_CA->Initialize(my_body_C, my_body_A, ChCoordsys<>(ChVector<>(6,0,0)));
 		my_system.AddLink(my_link_CA);
 
+        my_link_CA->GetMarker1()->SetName("rod_poinline");
+        my_link_CA->GetMarker2()->SetName("truss_pointline");
+        my_link_CA->SetName("POINTLINE rod-truss");
+
 				// Now create a 'motor' link between crank and truss,
 				// in 'imposed speed' mode:
 		ChSharedPtr<ChLinkEngine> my_link_AB(new ChLinkEngine);
@@ -184,6 +198,10 @@ int main(int argc, char* argv[])
 		if (ChFunction_Const* mfun = dynamic_cast<ChFunction_Const*>(my_link_AB->Get_spe_funct()))
 			mfun->Set_yconst(CH_C_PI); // speed w=3.145 rad/sec
 		my_system.AddLink(my_link_AB);
+
+        my_link_AB->GetMarker1()->SetName("truss_engine");
+        my_link_AB->GetMarker2()->SetName("crank_engine");
+        my_link_AB->SetName("ENGINE truss-crank");
 
 		GetLog() << "\n\n\nHere's the system hierarchy for slider-crank: \n\n ";
 		my_system.ShowHierarchy( GetLog()); 
