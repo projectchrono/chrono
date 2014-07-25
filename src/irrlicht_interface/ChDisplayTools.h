@@ -739,6 +739,47 @@ public:
 
 
 
+	static void drawPlot3D(video::IVideoDriver* driver,
+					 chrono::ChMatrix<> X, // x of points, in local csys x
+					 chrono::ChMatrix<> Y, // y of points, in local csys y
+					 chrono::ChMatrix<> Z, // z height map of points, in local csys z
+					 chrono::ChCoordsys<> mpos = chrono::CSYSNORM,
+					 video::SColor mcol = video::SColor(50,80,110,110),
+					 bool use_Zbuffer = false
+					)
+	{ 
+			driver->setTransform(video::ETS_WORLD, core::matrix4());
+			video::SMaterial mattransp;
+			mattransp.ZBuffer= true;
+			mattransp.Lighting=false;
+			driver->setMaterial(mattransp);
+			if ((X.GetColumns() != Y.GetColumns()) || (X.GetColumns() != Z.GetColumns()) ||
+				(X.GetRows() != Y.GetRows()) || (X.GetRows() != Z.GetRows()) )
+			{ 
+				chrono::GetLog() << "drawPlot3D: X Y Z matrices must have the same size, as n.rows and n.columns \n";
+				return;
+			}
+
+			for (int iy = 0; iy < X.GetColumns(); ++iy)
+			{
+				for (int ix = 0; ix < X.GetRows(); ++ix)
+				{
+					if (ix >0)
+					{
+						chrono::ChVector<> Vx1(X(ix-1,iy),Y(ix-1,iy),Z(ix-1,iy));
+						chrono::ChVector<> Vx2(X(ix  ,iy),Y(ix  ,iy),Z(ix  ,iy));
+						drawSegment(driver, mpos.TrasformLocalToParent(Vx1),mpos.TrasformLocalToParent(Vx2), mcol, use_Zbuffer);
+					}
+					if (iy >0)
+					{
+						chrono::ChVector<> Vy1(X(ix,iy-1),Y(ix,iy-1),Z(ix,iy-1));
+						chrono::ChVector<> Vy2(X(ix,iy  ),Y(ix,iy  ),Z(ix,iy  ));
+						drawSegment(driver, mpos.TrasformLocalToParent(Vy1),mpos.TrasformLocalToParent(Vy2), mcol, use_Zbuffer);
+					}
+				}
+			}
+	}
+
 
 
 }; // end of class with tools
