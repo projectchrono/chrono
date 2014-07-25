@@ -2,14 +2,14 @@
 
 using namespace chrono;
 // JCM 11/7/12, helpful for unit conversions
-// double 1.0/39.3701 = 1.0/39.3701;	// inches to meters
+// double inch_to_m = inch_to_m;	// inches to meters
 // double inlb_to_Nm = 1.0/8.851;	// in-lb to N-m
 
 // set up tire & vehicle geometry -------------------------------------------------
 // effective radius of the tires
-// double tireRadius			= 18.5*1.0/39.3701;
+// double tireRadius			= 18.5*inch_to_m;
 // width of the tires
-// double tireWidth			= 10.0*1.0/39.3701;
+// double tireWidth			= 10.0*inch_to_m;
 // double chassisMass			= 7500.0/2.2;	// chassis mass in kg
 // double spindleMass			= 100.0/2.2;	//chassisMass/(150./8.0);
 // double wheelMass			= 175.0/3.2;	//chassisMass/(150./3.0);
@@ -25,6 +25,7 @@ double springK_F = 168822.0;		// lb/in
 double springK_R = 302619;			// lb/in
 double damperC_F = 16987;			// lb-sec/in
 double damperC_R = 33974;			// lb-sec/in
+double inch_to_m = 0.0254;	// inches to meters
 // engine data
 // double max_torque = 8600*1.0/8.851;	// in-lb
 // double max_engine_n = 2000;	// engine speed, rpm 
@@ -56,63 +57,64 @@ DoubleAarm::DoubleAarm(ChSystem&  my_system, const int susp_type, ChSharedPtr<Ch
 	ChVector<> HP_St_1	= ChVector<>();	// steer, chassis 
 	ChVector<> HP_St_2	= ChVector<>();	// steer, spindle
 
+	// all numbers are w.r.t. chassis CM
 	switch ( susp_type )
 	{
-		case 0:	// "lf":
+		case 0:	// "left front, (x,y) (-,-)":
 		{	
-			HP_U1	= ChVector<>(r0.x+44.13, r0.y-17.56, r0.z+11.13)*1.0/39.3701;		// on chassis, top front
-			HP_U2	= ChVector<>(r0.x+43.93, r0.y-28.17, r0.z+10.43)*1.0/39.3701;		// on spindle
-			HP_U3	= ChVector<>(r0.x+35.46, r0.y-18.81, r0.z+11.13)*1.0/39.3701;		// on chassis, top back
-			HP_L1 = ChVector<>(r0.x+54.81, r0.y-12.1, r0.z+18.91)*1.0/39.3701;	// chassis, bottom front
-			HP_L2 = ChVector<>(r0.x+44.62, r0.y-30.97, r0.z+23.56)*1.0/39.3701;	// spindle, bottom
-			HP_L3 = ChVector<>(r0.x+37.23, r0.y-12.1, r0.z+18.91)*1.0/39.3701;	// spindle, bottom rear
-			HP_KD_U	= ChVector<>(r0.x+39.795, r0.y-27.87, r0.z+11.13)*1.0/39.3701;		// springDamper, top, avg of UCA HP1,3
-			HP_KD_L	= ChVector<>(r0.x+44.62, r0.y-30.97, r0.z+23.56)*1.0/39.3701;	// sringDamper, lower, = HP L2
-			HP_St_1	= ChVector<>(r0.x+25.8, r0.y-9.81, r0.z+16.6)*1.0/39.3701;	// steer, chassis // y -= 9.81
-			HP_St_2	= ChVector<>(r0.x+31.1, r0.y-32.33, r0.z+19.55)*1.0/39.3701;	// steer, spindle
+			HP_U1 = r0 + ChVector<>(-44.13, -11.13, -17.56)*inch_to_m;		// on chassis, top front
+			HP_U2 = r0 + ChVector<>(-43.93, -10.43, -28.17)*inch_to_m;		// on spindle
+			HP_U3 = r0 + ChVector<>(-35.46,  -11.13, -18.81)*inch_to_m;		// on chassis, top back
+			HP_L1 = r0 + ChVector<>(-54.81, -18.91, -12.1)*inch_to_m;	// chassis, bottom front
+			HP_L2 = r0 + ChVector<>(-44.62, -23.56, -30.97)*inch_to_m;	// spindle, bottom
+			HP_L3 = r0 + ChVector<>(-37.23, -18.91, -12.1)*inch_to_m;	// spindle, bottom rear
+			HP_KD_U	= r0 + ChVector<>(-39.795, -11.13, -27.87)*inch_to_m;		// springDamper, top, avg of UCA HP1,3
+			HP_KD_L	= r0 + ChVector<>(-44.62, -23.56, -30.97)*inch_to_m;	// sringDamper, lower, = HP L2
+			HP_St_1	= r0 + ChVector<>(-25.8, -16.6, -9.81)*inch_to_m;	// steer, chassis // y -= 9.81
+			HP_St_2	= r0 + ChVector<>(-31.1, -19.55, -32.33)*inch_to_m;	// steer, spindle
 	
 			break;
 		}
-		case 1:	// "rf":
+		case 1:	// "right front, (x,y) (-,+)":
 		{
-			HP_U1	= ChVector<>(r0.x+44.13, r0.y+17.56, r0.z+11.13)*1.0/39.3701;	// top front, 
-			HP_U2	= ChVector<>(r0.x+43.93, r0.y+28.17, r0.z+10.43)*1.0/39.3701;	// outer, on spindle
-			HP_U3	= ChVector<>(r0.x+35.46, r0.y+18.81, r0.z+11.13)*1.0/39.3701;	// top back
-			HP_L1 = ChVector<>(r0.x+54.81, r0.y+12.1 ,r0.z+18.91)*1.0/39.3701;	// chassis, bottom front
-			HP_L2 = ChVector<>(r0.x+44.62, r0.y+30.97, r0.z+23.56)*1.0/39.3701;	// outer, on spindle
-			HP_L3 = ChVector<>(r0.x+37.23, r0.y+12.1, r0.z+18.91)*1.0/39.3701;	// bottom rear
-			HP_KD_U	= ChVector<>(r0.x+39.795, r0.y+27.87, r0.z+11.13)*1.0/39.3701;	// springDamper, top, avg. of UCA HP 1,3
-			HP_KD_L	= ChVector<>(r0.x+44.62, r0.y+30.97, r0.z+23.56)*1.0/39.3701;	// sringDamper, lower = LCA HP2
-			HP_St_1	= ChVector<>(r0.x+25.8, r0.y+9.81, r0.z+16.6)*1.0/39.3701;	// steer, chassis 
-			HP_St_2	= ChVector<>(r0.x+31.1, r0.y+32.33, r0.z+19.55)*1.0/39.3701;	// steer, spindle
+			HP_U1 = r0 + ChVector<>(-44.13, 11.13, -17.56)*inch_to_m;	// top front, 
+			HP_U2 = r0 + ChVector<>(-43.93, 10.43, -28.17)*inch_to_m;	// outer, on spindle
+			HP_U3 = r0 + ChVector<>(-35.46, 11.13, -18.81)*inch_to_m;	// top back
+			HP_L1 = r0 + ChVector<>(-54.81, 18.91, -12.1 )*inch_to_m;	// chassis, bottom front
+			HP_L2 = r0 + ChVector<>(-44.62, 23.56, -30.97)*inch_to_m;	// outer, on spindle
+			HP_L3 = r0 + ChVector<>(-37.23, 18.91, -12.1)*inch_to_m;	// bottom rear
+			HP_KD_U	= r0 + ChVector<>(-39.795, 11.13, -27.87)*inch_to_m;	// springDamper, top, avg. of UCA HP 1,3
+			HP_KD_L	= r0 + ChVector<>(-44.62, 23.56, -30.97)*inch_to_m;	// sringDamper, lower = LCA HP2
+			HP_St_1	= r0 + ChVector<>(-25.8, 16.6, -9.81)*inch_to_m;	// steer, chassis 
+			HP_St_2	= r0 + ChVector<>(-31.1, 19.55, -32.33)*inch_to_m;	// steer, spindle
 			break; 
 		}
-		case 2:	// "lr":
+		case 2:	// "left back, (x,y) (+,-)":
 		{
-			HP_U1	= ChVector<>(r0.x-83.97, r0.y-18.2, r0.z+10.02)*1.0/39.3701;	// on chassis, top rear
-			HP_U2	= ChVector<>(r0.x-85.57, r0.y-28.17, r0.z+10.41)*1.0/39.3701;	// outer, on spindle
-			HP_U3	= ChVector<>(r0.x-73.2, r0.y-18.2, r0.z+10.02)*1.0/39.3701;		// top front
-			HP_L1 = ChVector<>(r0.x-95.76, r0.y-12.1, r0.z+18.91)*1.0/39.3701;	// chassis, bottom rear
-			HP_L2 = ChVector<>(r0.x-85.57, r0.y-30.97, r0.z+23.56)*1.0/39.3701;	// outer, spindle, bottom
-			HP_L3 = ChVector<>(r0.x-78.18, r0.y-12.1, r0.z+18.91)*1.0/39.3701;	// bottom front
-			HP_KD_U	= ChVector<>(r0.x-85.57, r0.y-28.2, r0.z+10.02)*1.0/39.3701;		// springDamper, top (chassis) = avg. of UCA HP 1,3
-			HP_KD_L	= ChVector<>(r0.x-85.57, r0.y-30.97, r0.z+23.56)*1.0/39.3701;	// sringDamper, lower (spindle) = LCA HP2
-			HP_St_1	= ChVector<>(r0.x-70.18, r0.y-16.38, r0.z+16.6)*1.0/39.3701;	// steer, chassis 
-			HP_St_2	= ChVector<>(r0.x-72.27, r0.y-32.33, r0.z+19.28)*1.0/39.3701;	// steer, spindle
+			HP_U1	= r0 + ChVector<>(83.97, -10.02, -18.2)*inch_to_m;	// on chassis, top rear
+			HP_U2	= r0 + ChVector<>(85.57, -10.41, -28.17)*inch_to_m;	// outer, on spindle
+			HP_U3	= r0 +ChVector<>(73.2, -10.02, -18.2)*inch_to_m;		// top front
+			HP_L1 = r0 +ChVector<>(95.76, -18.91, -12.1)*inch_to_m;	// chassis, bottom rear
+			HP_L2 = r0 +ChVector<>(85.57, -23.56, -30.97)*inch_to_m;	// outer, spindle, bottom
+			HP_L3 = r0 +ChVector<>(78.18, -18.91, -12.1)*inch_to_m;	// bottom front
+			HP_KD_U	= r0 +ChVector<>(85.57, -10.02, -28.2)*inch_to_m;		// springDamper, top (chassis) = avg. of UCA HP 1,3
+			HP_KD_L	= r0 +ChVector<>(85.57, -23.56, -30.97)*inch_to_m;	// sringDamper, lower (spindle) = LCA HP2
+			HP_St_1	= r0 +ChVector<>(70.18, -16.6, -16.38)*inch_to_m;	// steer, chassis 
+			HP_St_2	= r0 + ChVector<>(72.27, -19.28, -32.33)*inch_to_m;	// steer, spindle
 			break;
 		}
-		case 3:	// "rr":
+		case 3:	// "right back, (x,y) (+,+)":
 		{
-			HP_U1	= ChVector<>(r0.x-83.97, r0.y+18.2, r0.z+10.02)*1.0/39.3701;	// on chassis, top rear
-			HP_U2	= ChVector<>(r0.x-85.57, r0.y+28.17, r0.z+10.41)*1.0/39.3701;	// outer, on spindle
-			HP_U3	= ChVector<>(r0.x-73.2, r0.y+18.2, r0.z+10.02)*1.0/39.3701;		// top front
-			HP_L1 = ChVector<>(r0.x-95.76, r0.y+12.1 ,r0.z+18.91)*1.0/39.3701;	// chassis, bottom rear
-			HP_L2 = ChVector<>(r0.x-85.57, r0.y+30.97, r0.z+23.56)*1.0/39.3701;	// outer, on spindle, bottom
-			HP_L3 = ChVector<>(r0.x-78.18, r0.y+12.1, r0.z+18.91)*1.0/39.3701;	// bottom front
-			HP_KD_U	= ChVector<>(r0.x-85.57, r0.y+28.2, r0.z+10.02)*1.0/39.3701;		// springDamper, top = avg. of UCA HP1,3
-			HP_KD_L	= ChVector<>(r0.x-85.57, r0.y+30.97, r0.z+23.56)*1.0/39.3701;	// sringDamper, lower = LCA HP2
-			HP_St_1	= ChVector<>(r0.x-70.18, r0.y+16.38, r0.z+16.6)*1.0/39.3701;	// steer, chassis 
-			HP_St_2	= ChVector<>(r0.x-72.27, r0.y+32.33, r0.z+19.28)*1.0/39.3701;	// steer, spindle
+			HP_U1	= r0 + ChVector<>(83.97, 10.02, -18.2)*inch_to_m;	// on chassis, top rear
+			HP_U2	= r0 + ChVector<>(85.57, 10.41, -28.17)*inch_to_m;	// outer, on spindle
+			HP_U3	= r0 + ChVector<>(73.2, 10.02, -18.2)*inch_to_m;		// top front
+			HP_L1 = r0 + ChVector<>(95.76, 18.91, -12.1 )*inch_to_m;	// chassis, bottom rear
+			HP_L2 = r0 + ChVector<>(85.57, 23.56, -30.97)*inch_to_m;	// outer, on spindle, bottom
+			HP_L3 = r0 + ChVector<>(78.18, 18.91, -12.1)*inch_to_m;	// bottom front
+			HP_KD_U	= r0 + ChVector<>(85.57, 10.02, -28.2)*inch_to_m;		// springDamper, top = avg. of UCA HP1,3
+			HP_KD_L	= r0 + ChVector<>(85.57, 23.56, -30.97)*inch_to_m;	// sringDamper, lower = LCA HP2
+			HP_St_1	= r0 + ChVector<>(70.18, 16.6, -16.38)*inch_to_m;	// steer, chassis 
+			HP_St_2	= r0 + ChVector<>(72.27, 19.28, -32.33)*inch_to_m;	// steer, spindle
 			break;
 		}
 		default:
