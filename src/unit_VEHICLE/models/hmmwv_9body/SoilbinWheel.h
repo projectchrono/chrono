@@ -108,7 +108,7 @@ public:
 		double h = cyl_width;		// height
 
 		// if you want a wheel mesh, the name will be different than "none"
-		if( std::strcmp(wheelMeshFile.c_str(),"none") ) {
+		if( wheelMeshFile=="none" ) {
 			// use a cylinder for the tm tests
 			ChSharedPtr<ChCylinderShape> mcyl(new ChCylinderShape);
 			mcyl->GetCylinderGeometry().p1 = ChVector<>(0, cyl_width/2.0, 0);
@@ -128,9 +128,9 @@ public:
 
 		// set inertia, friction coef, collide
 		wheel->SetMass(mass);
-		double izz = (mass/2.0)*(r1*r1 + r2*r2);
+		double iyy = (mass/2.0)*(r1*r1 + r2*r2);
 		double ixx = (mass/12.0)*(3.0*(r2*r2+r1*r1) + h*h);
-		ChVector<> inertia( ixx, izz, ixx);
+		ChVector<> inertia( ixx, iyy, ixx);
 		wheel->SetInertiaXX(inertia);
 		wheel->GetMaterialSurface()->SetFriction(mu);
 		wheel->GetMaterialSurface()->SetCohesion(coh);

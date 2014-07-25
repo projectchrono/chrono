@@ -7,7 +7,10 @@
 //
 //  Author: Justin Madsen, 2014
 //	Part of the Chrono-T project
-
+//
+// The global reference frame has Z up, X towards the back of the vehicle, and
+// Y pointing to the right.
+// =============================================================================
 
 
 // TESTING
@@ -34,7 +37,7 @@
 
 #include <omp.h>		// just using this for timers
 // Use the namespace of Chrono
-namespace chrono {
+using namespace chrono;
 
 /*
 #ifdef USE_IRRLICHT
@@ -65,8 +68,8 @@ enum TireForceType {
 
 // GLOBAL VARIABLES
 ChVector<> cameraOffset(-1,2,2);	// camera should trail the car
-// chassis CM position, in SAE units [inches]. cONVERT TO METERS
-ChVector<> chassis_cmSAE = ChVector<>(600.5, 600.5, -36.0/2.0);
+// chassis CM position, in SAE units [inches]. CONVERT TO METERS upon init.
+ChVector<> chassis_cmSAE = ChVector<>(600.5, 600.5, 36.304);	// only height above ground (0) truly matters
 ChQuaternion<> chassisOri(1,0,0,0);	// forward is the positive x-direction
 
 // if using DVI rigid body contact, how large to make the ground width/length dims?
@@ -82,6 +85,8 @@ int main(int argc, char* argv[]){
 	// create the system, set the solver settings
 	DLL_CreateGlobals();
 	ChSystem m_system;
+	// z+ is vertically up, gravity acts in opposite direction
+	m_system.Set_G_acc( ChVector<>(0,0,-9.81));
 
 	// Integration and Solver settings
 	m_system.SetLcpSolverType(ChSystem::LCP_ITERATIVE_SOR); 
@@ -105,17 +110,17 @@ int main(int argc, char* argv[]){
 	// USER INTERFACE, if using Irrlicht
 #ifdef USE_IRRLICHT
 	// Create the Irrlicht device, defaults to DirectX
-	ChIrrApp application(&m_system, L"Justin's HMMWV demo",	core::dimension2d<u32>(1000,800),false,true);
+	irr::ChIrrApp application(&m_system, L"Justin's HMMWV demo",	irr::core::dimension2d<irr::u32>(1000,800),false,true);
 	application.AddTypicalSky();
 	application.AddTypicalLights();
 	// camera is behind and above chassis, its target
-	core::vector3df camera_pos = core::vector3df(chassisCM.x, chassisCM.y, chassisCM.z );
-	core::vector3df camera_targ = core::vector3df(camera_pos);
+	irr::core::vector3df camera_pos = irr::core::vector3df(chassisCM.x, chassisCM.y, chassisCM.z );
+	irr::core::vector3df camera_targ = irr::core::vector3df(camera_pos);
 	camera_pos.X += cameraOffset.x; camera_pos.Y += cameraOffset.y; camera_pos.Z += cameraOffset.z;
 	application.AddTypicalCamera(camera_pos,camera_targ );
 
 	// This is for GUI for the on-road HMMWV vehicle
-	HMMWVEventReceiver receiver(&application, &m_system, mycar, terrain);
+	irr::HMMWVEventReceiver receiver(&application, &m_system, mycar, terrain);
 	application.SetUserEventReceiver(&receiver);
 
 	// Use real-time step of the simulation, OR...
@@ -278,5 +283,3 @@ int main(int argc, char* argv[]){
 
 	return 0;
 }
-
-}	//	namespace chrono{

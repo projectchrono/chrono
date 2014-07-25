@@ -117,7 +117,7 @@ DoubleAarm::DoubleAarm(ChSystem&  my_system, const int susp_type, ChSharedPtr<Ch
 		}
 		default:
 		{
-			cout << "couldn't recognize susp_type " << susp_type << endl;
+			std::cout << "couldn't recognize susp_type " << susp_type << std::endl;
 			break;
 		}
 	}

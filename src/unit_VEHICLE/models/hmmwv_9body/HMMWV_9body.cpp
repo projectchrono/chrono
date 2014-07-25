@@ -33,14 +33,14 @@ double max_torque = 8600*inlb_to_Nm;	// in-lb
 double max_engine_n = 2000;	// engine speed, rpm 
 
 // for quick output of TMVector
-ostream& operator << (ostream& output, const ChVector<>& v) {
+std::ostream& operator << (std::ostream& output, const chrono::ChVector<>& v) {
 	output << v.x << "," << v.y << "," << v.z;
 	return output;
 }
 
-// x-dir: foward, z-dir: lateral
-// A rear wheel drive vehicle
-// the spindle/wheel topology is dependent on this:
+// x+ points towards rear of vehicle
+// y+ points towards right of vehicle
+// z+ points vertical upwards
 // the front two wheels need revolute joints at the wheel hub
 // the rear (driven) wheels use a ChLinkEngine, which is a revolute joint w/ an engine attached to the DOF
 HMMWV_9body::HMMWV_9body(ChSystem&  my_system,
@@ -76,16 +76,16 @@ HMMWV_9body::HMMWV_9body(ChSystem&  my_system,
 
 	// wheel and spindle positions, relative to the chassis CM position
 	// x-forward, z-lateral, w.r.t. chassis coord-sys
-	ChVector<> wheelRF_cm_bar = ChVector<>(44.43, 19.98, 35.82)*in_to_m;	// right front wheel, in body coords
+	ChVector<> wheelRF_cm_bar = ChVector<>(-44.43, 35.82, -19.98)*in_to_m;	// right front wheel, in body coords
 	ChVector<> spindleRF_cm_bar	= ChVector<>(wheelRF_cm_bar);	// right front spindle
 	spindleRF_cm_bar.z -= offset; 
-	ChVector<> wheelLF_cm_bar = ChVector<>(44.43, 19.98, -35.82)*in_to_m;	// left front wheel, in body coords
+	ChVector<> wheelLF_cm_bar = ChVector<>(-44.43, -35.82, -19.98)*in_to_m;	// left front wheel, in body coords
 	ChVector<> spindleLF_cm_bar = ChVector<>(wheelLF_cm_bar);	// left front spnidle
 	spindleLF_cm_bar.z += offset;
-	ChVector<> wheelRB_cm_bar = ChVector<>(-88.57, 19.98, 35.82)*in_to_m;	// right back wheel
+	ChVector<> wheelRB_cm_bar = ChVector<>(88.57, 35.82, -19.98 )*in_to_m;	// right back wheel
 	ChVector<> spindleRB_cm_bar	= ChVector<>(wheelRB_cm_bar);	// right back spindle
 	spindleRB_cm_bar.z -= offset;
-	ChVector<> wheelLB_cm_bar = ChVector<>(-88.57, 19.98,-35.82)*in_to_m;	// left back wheel
+	ChVector<> wheelLB_cm_bar = ChVector<>(88.57, -35.82, -19.98)*in_to_m;	// left back wheel
 	ChVector<> spindleLB_cm_bar = ChVector<>(wheelLB_cm_bar);	// left back spindle
 	spindleLB_cm_bar.z += offset;
 
@@ -393,19 +393,19 @@ ChVector<> HMMWV_9body::getCM_acc(int tire_idx){
 void HMMWV_9body::write_OutData(double simtime) {
 	// first time thru, write the headers
 	if( this->outWritten_nTimes == 0 ) {
-		this->outFile = std::ofstream( outFilename, ios::out);
+		this->outFile = std::ofstream( outFilename, std::ios::out);
 		if( !outFile.is_open() ) {
-			cout << "couldn't open file: " << outFilename << " to write TestMech data to!!!! " << endl;
+			std::cout << "couldn't open file: " << outFilename << " to write TestMech data to!!!! " << std::endl;
 		} else {
 			// write the headers
 			// NOTE: CHECK THE OUTPUT OF NASA ANGS, MIGHT BE ROLL PITCH YAW!!!!
-			outFile << "time,cm_x,cm_y,cm_z,Yaw,Pitch,Roll,vel_x,vel_y,vel_z,w_x,w_y,w_z,F_x,F_y,F_z,T_a" << endl;
+			outFile << "time,cm_x,cm_y,cm_z,Yaw,Pitch,Roll,vel_x,vel_y,vel_z,w_x,w_y,w_z,F_x,F_y,F_z,T_a" << std::endl;
 			this->outWritten_nTimes++;
 			outFile.close();
 		}
 	} else {
 		// open file for append
-		this->outFile.open( outFilename, ios::app);
+		this->outFile.open( outFilename, std::ios::app);
 		ChVector<> cm_pos = this->chassis->GetPos();
 		ChVector<> nasa_angs = chrono::Q_to_NasaAngles( this->chassis->GetRot() );
 		ChVector<> cm_vel = chassis->GetPos_dt();
@@ -413,7 +413,7 @@ void HMMWV_9body::write_OutData(double simtime) {
 		ChVector<> omega = chrono::Q_to_NasaAngles( chassis->GetRot_dt() );
 		// write the data
 
-		outFile << simtime << "," << cm_pos << "," << nasa_angs << "," << cm_vel << "," << omega << endl;
+//		outFile << simtime << "," << cm_pos << "," << nasa_angs << "," << cm_vel << "," << omega << std::endl;
 		this->outWritten_nTimes++; // increment the counter
 		outFile.close();	// close the file for writing
 

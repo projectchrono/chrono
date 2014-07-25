@@ -139,7 +139,7 @@ private:
 	ChSystem* m_sys;
 };
 
-ostream& operator << (ostream& output, const ChVector<>& v);
+std::ostream& operator << (std::ostream& output, const chrono::ChVector<>& v);
 
 
 }	// namespace chrono {

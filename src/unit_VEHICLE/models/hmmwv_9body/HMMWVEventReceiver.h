@@ -15,7 +15,7 @@
 #include "HMMWVTerrain.h"
 #include "HMMWV_9body.h"
 
-namespace irr{
+namespace irr {
 
  // TODO: move this stuff
 double KfreeLenOff_F = 0.2;

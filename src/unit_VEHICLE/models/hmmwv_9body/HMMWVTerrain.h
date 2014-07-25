@@ -16,7 +16,7 @@
 namespace chrono{
 
 // for easy output of ChVectors
-ostream&  operator<<(ostream& os, const ChVector<>& v);
+std::ostream&  operator<<(std::ostream& os, const ChVector<>& v);
 
 
 // create a test mechanism made up of 2 bodies
