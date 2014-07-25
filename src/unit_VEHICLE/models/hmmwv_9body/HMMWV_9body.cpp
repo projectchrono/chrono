@@ -106,6 +106,11 @@ HMMWV_9body::HMMWV_9body(ChSystem&  my_system,
 	// Each suspension has its marker joint locations hardcoded, for now, for each of the four units
 	// --- Left front suspension
 	suspension_LF = new DoubleAarm(my_system, 0, chassis, wheelLF->GetBody(), spindleLF_cm_bar);
+	// ---- connect LF spindle to wheel, unpowered = revolute joint
+	spindle_joint_LF = ChSharedPtr<ChLinkLockRevolute>(new ChLinkLockRevolute);
+	spindle_joint_LF->Initialize(wheelLF->GetBody(), suspension_LF->spindle, 
+		ChCoordsys<>( chassis->GetCoord().TrasformLocalToParent(spindleLF_cm_bar), chrono::Q_from_AngX(CH_C_PI/2) ) );
+	my_system.AddLink(spindle_joint_LF);
 
 	// 1) --- RF wheel
 	ChVector<> wheelRF_cm = chassis->GetCoord().TrasformLocalToParent( wheelRF_cm_bar);
@@ -123,8 +128,13 @@ HMMWV_9body::HMMWV_9body(ChSystem&  my_system,
 
 	// --- Right front suspension
 	suspension_RF = new DoubleAarm(my_system, 1, chassis, wheelRF->GetBody(), spindleRF_cm_bar);
+	// ---- connect RF spindle to wheel, unpowered = revolute joint
+	spindle_joint_RF = ChSharedPtr<ChLinkLockRevolute>(new ChLinkLockRevolute);
+	spindle_joint_RF->Initialize(wheelRF->GetBody(), suspension_RF->spindle, 
+		ChCoordsys<>( chassis->GetCoord().TrasformLocalToParent(spindleRF_cm_bar), chrono::Q_from_AngX(CH_C_PI/2) ) );
+	my_system.AddLink(spindle_joint_RF);
 
-	
+
 	// 2) ---	LB Wheel
 	ChVector<> wheelLB_cm = chassis->GetCoord().TrasformLocalToParent( wheelLB_cm_bar);
 	if(useTireMesh) {
@@ -141,7 +151,13 @@ HMMWV_9body::HMMWV_9body(ChSystem&  my_system,
 
 	// --- Left back suspension. Does not include ChLinkEngine; create it here
 	suspension_LB = new DoubleAarm(my_system, 2, chassis, wheelLB->GetBody(), spindleLB_cm_bar);
-	// --- LB spindle joint, driven with a torque
+	// --- LB spindle joint,
+	spindle_joint_LB = ChSharedPtr<ChLinkLockRevolute>(new ChLinkLockRevolute);
+	spindle_joint_LB->Initialize(wheelLB->GetBody(), suspension_LB->spindle, 
+		ChCoordsys<>( chassis->GetCoord().TrasformLocalToParent(spindleLB_cm_bar), chrono::Q_from_AngX(CH_C_PI/2) ) );
+	my_system.AddLink(spindle_joint_LB);
+
+	/// --- LB engine
 	link_engineL = ChSharedPtr<ChLinkEngine>(new ChLinkEngine); 
 	link_engineL->Initialize(wheelLB->GetBody(), chassis, 
 		ChCoordsys<>( wheelLB_cm, chrono::Q_from_AngAxis(CH_C_PI/2.0, VECT_X) ) );
@@ -165,7 +181,13 @@ HMMWV_9body::HMMWV_9body(ChSystem&  my_system,
 
 	// --- Right back suspension. Does not include ChLinkEngine; create it here
 	suspension_RB = new DoubleAarm(my_system, 3, chassis, wheelRB->GetBody(), spindleRB_cm_bar);
-	// ---	RB spindle joint, with an applied engine torque
+	// ---	RB spindle joint
+	spindle_joint_RB = ChSharedPtr<ChLinkLockRevolute>(new ChLinkLockRevolute);
+	spindle_joint_RB->Initialize(wheelRB->GetBody(), suspension_RB->spindle, 
+		ChCoordsys<>( chassis->GetCoord().TrasformLocalToParent(spindleRB_cm_bar), chrono::Q_from_AngX(CH_C_PI/2) ) );
+	my_system.AddLink(spindle_joint_RB);
+
+	// --- RB engine
 	link_engineR = ChSharedPtr<ChLinkEngine>(new ChLinkEngine); 
 	link_engineR->Initialize(wheelRB->GetBody(), chassis, 
 		ChCoordsys<>( wheelRB_cm, chrono::Q_from_AngAxis(CH_C_PI/2.0, VECT_X) ) );

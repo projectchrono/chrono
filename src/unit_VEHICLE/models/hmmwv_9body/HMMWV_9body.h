@@ -56,6 +56,10 @@ public:
 	// use these instead of revolute joints between the spindle and wheel
 	ChSharedPtr<ChLinkEngine>   link_engineL;
 	ChSharedPtr<ChLinkEngine>   link_engineR;
+	ChSharedPtr<ChLinkLockRevolute> spindle_joint_LF;
+	ChSharedPtr<ChLinkLockRevolute> spindle_joint_RF;
+	ChSharedPtr<ChLinkLockRevolute> spindle_joint_LB;
+	ChSharedPtr<ChLinkLockRevolute> spindle_joint_RB;
 
 	// @brief Build and initialize the car, creating all bodies relative to
 	// the CM position, and orientation. x-positive is forward, y-positive is up.

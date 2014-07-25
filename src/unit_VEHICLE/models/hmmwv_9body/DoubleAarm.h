@@ -34,6 +34,8 @@ public:
 	ChSharedPtr<ChLinkDistance> tierod;	// a distance constraint
 	// the shock
 	ChSharedPtr<ChLinkSpring> shock;
+	// spindle body, combines mass/inertia of upper/lower arms and shock
+	ChSharedPtr<ChBodyEasyBox> spindle;
 
 	// @brief default Constructor 
 	DoubleAarm() {}

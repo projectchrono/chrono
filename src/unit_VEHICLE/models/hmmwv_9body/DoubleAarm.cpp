@@ -131,8 +131,7 @@ DoubleAarm::DoubleAarm(ChSystem&  my_system, const int susp_type, ChSharedPtr<Ch
 	// 4) finalize or add to system
 	// 5) add ChSharedPtr to the class list, and the name also
 	// ---------- spindle.  Initialize, add to the system, add to ref array.
-	ChSharedPtr<ChBodyEasyBox> spindle(new ChBodyEasyBox(spindleSize.x, spindleSize.y, spindleSize.z,
-		1000));
+	spindle = ChSharedPtr<ChBodyEasyBox>(new ChBodyEasyBox(spindleSize.x, spindleSize.y, spindleSize.z, 1000));
 	spindle->SetPos(chassis->GetCoord().TrasformLocalToParent( spindle_r_bar) );
 	my_system.Add(spindle);
 
