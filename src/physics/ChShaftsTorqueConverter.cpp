@@ -38,8 +38,8 @@ ChShaftsTorqueConverter::ChShaftsTorqueConverter ()
 	this->shaft_stator = 0;
 	this->torque_in= 0;
 	this->torque_out= 0;
-	this->K = ChSmartPtr<ChFunction> (new ChFunction_Const(0.9));
-	this->T = ChSmartPtr<ChFunction> (new ChFunction_Const(0.9));
+	this->K = ChSharedPtr<ChFunction> (new ChFunction_Const(0.9));
+	this->T = ChSharedPtr<ChFunction> (new ChFunction_Const(0.9));
 	this->state_warning_reverseflow = false;
 	this->state_warning_wrongimpellerdirection = false;
 
@@ -68,10 +68,8 @@ void ChShaftsTorqueConverter::Copy(ChShaftsTorqueConverter* source)
 	state_warning_reverseflow = source->state_warning_reverseflow;
 	state_warning_wrongimpellerdirection = source->state_warning_wrongimpellerdirection;
 
-	ChSmartPtr<ChFunction> cloneK (K->new_Duplicate());
-	this->K = cloneK;
-	ChSmartPtr<ChFunction> cloneT (T->new_Duplicate());
-	this->T = cloneT;
+	this->K = ChSharedPtr<ChFunction>(K->new_Duplicate()); // deep copy
+	this->T = ChSharedPtr<ChFunction>(T->new_Duplicate()); // deep copy
 }
 
 
@@ -191,8 +189,8 @@ void ChShaftsTorqueConverter::StreamOUT(ChStreamOutBinary& mstream)
 	ChPhysicsItem::StreamOUT(mstream);
 
 		// stream out all member data
-	mstream.AbstractWrite(this->K.get_ptr());
-	mstream.AbstractWrite(this->T.get_ptr());
+	mstream.AbstractWrite(this->K.get_ptr()); //***TODO*** proper serialize for ChSharedPtr
+	mstream.AbstractWrite(this->T.get_ptr()); //***TODO*** proper serialize for ChSharedPtr
 }
 
 void ChShaftsTorqueConverter::StreamIN(ChStreamInBinary& mstream)
@@ -205,12 +203,10 @@ void ChShaftsTorqueConverter::StreamIN(ChStreamInBinary& mstream)
 
 		// deserialize class
 	ChFunction* newfun;
-	mstream.AbstractReadCreate(&newfun); //***TODO*** proper deserialize for ChSharedPtr and ChSmartPtr
-	ChSmartPtr<ChFunction> ptrK(newfun);
-	this->K = ptrK;
-	mstream.AbstractReadCreate(&newfun); //***TODO*** proper deserialize for ChSharedPtr and ChSmartPtr
-	ChSmartPtr<ChFunction> ptrT(newfun);
-	this->T = ptrT;
+	mstream.AbstractReadCreate(&newfun); //***TODO*** proper deserialize for ChSharedPtr
+	this->K = ChSharedPtr<ChFunction>(newfun);
+	mstream.AbstractReadCreate(&newfun); //***TODO*** proper deserialize for ChSharedPtr
+	this->T = ChSharedPtr<ChFunction>(newfun);;
 	
 }
 

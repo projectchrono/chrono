@@ -51,8 +51,8 @@ private:
 	double torque_in;
 	double torque_out;
 
-	ChSmartPtr<ChFunction> K;
-	ChSmartPtr<ChFunction> T;
+	ChSharedPtr<ChFunction> K;
+	ChSharedPtr<ChFunction> T;
 
 	bool state_warning_reverseflow;
 	bool state_warning_wrongimpellerdirection;
@@ -106,18 +106,18 @@ public:
 				/// Set the capacity factor curve, function of speed ratio R.
 				/// It is K(R)= input speed / square root of the input torque.
 				/// Units: (rad/s) / sqrt(Nm)
-	void SetCurveCapacityFactor( ChSmartPtr<ChFunction> mf) { K = mf;}
+	void SetCurveCapacityFactor( ChSharedPtr<ChFunction> mf) { K = mf;}
 				/// Get the capacity factor curve.
-	ChSmartPtr<ChFunction> GetCurveCapacityFactor() {return K;}
+	ChSharedPtr<ChFunction> GetCurveCapacityFactor() {return K;}
 
 				/// Set the torque ratio curve, function of speed ratio R.
 				/// It is T(R) = (output torque) / (input torque) 
-	void SetCurveTorqueRatio( ChSmartPtr<ChFunction> mf) { T = mf;}
+	void SetCurveTorqueRatio( ChSharedPtr<ChFunction> mf) { T = mf;}
 				/// Get the torque ratio curve.
-	ChSmartPtr<ChFunction> GetCurveTorqueRatio() {return T;}
+	ChSharedPtr<ChFunction> GetCurveTorqueRatio() {return T;}
 
 				
-	/// Get the torque applied to the input shaft 
+				/// Get the torque applied to the input shaft 
 	double GetTorqueReactionOnInput()  {return  torque_in;}
 
 				/// Get the torque applied to the output shaft

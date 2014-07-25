@@ -506,7 +506,7 @@ int main(int argc, char* argv[])
 		my_torqueconverter->Initialize(my_shaftA, my_shaftB, my_shaftC);
 		my_system.Add(my_torqueconverter);
 
-		ChSmartPtr<ChFunction_Recorder> mK(new ChFunction_Recorder);
+		ChSharedPtr<ChFunction_Recorder> mK(new ChFunction_Recorder);
 		mK->AddPoint(0.0,  15);
 		mK->AddPoint(0.25, 15);
 		mK->AddPoint(0.50, 15);
@@ -515,7 +515,7 @@ int main(int argc, char* argv[])
 		mK->AddPoint(1.00, 35);
 		my_torqueconverter->SetCurveCapacityFactor(mK);
 		
-		ChSmartPtr<ChFunction_Recorder> mT(new ChFunction_Recorder);
+		ChSharedPtr<ChFunction_Recorder> mT(new ChFunction_Recorder);
 		mT->AddPoint(0.0,  2.00);
 		mT->AddPoint(0.25, 1.80);
 		mT->AddPoint(0.50, 1.50);
