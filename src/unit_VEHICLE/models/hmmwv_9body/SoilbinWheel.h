@@ -117,9 +117,13 @@ public:
 			wheel->AddAsset(mcyl);
 		} else {
 			// use the input mesh specified as an asset
+			// if using wheel_cenetered.obj, x-dir is the axis of rotation. we want y-axis
 			ChSharedPtr<ChObjShapeFile> mesh_obj(new ChObjShapeFile);
 			mesh_obj->SetFilename(wheelMeshFile);
-			wheel->AddAsset(mesh_obj);
+			ChSharedPtr<ChAssetLevel> wheel_level(new ChAssetLevel);
+			wheel_level->AddAsset(mesh_obj);
+			wheel_level->GetFrame().SetRot( chrono::Q_from_AngZ(CH_C_PI_2) );
+			wheel->AddAsset(wheel_level);
 		}
 		//  create the CD model using a cylinder in either case
 		wheel->GetCollisionModel()->ClearModel();

@@ -98,17 +98,19 @@ int main(int argc, char* argv[]){
 	ChVector<> chassisCM = chassis_cmSAE * 0.0254;
 
 	// ***** vehicle module
-	HMMWV_9body* mycar = new HMMWV_9body(m_system, chassisCM, chassisOri,true);
+	HMMWV_9body* mycar = new HMMWV_9body(m_system, chassisCM, chassisOri,true,false);
 
 	// create the ground. NOTE: orientation will have to be in the x-y plane
-	HMMWVTerrain* terrain = new HMMWVTerrain(m_system, ChVector<>(0,0,0), terrainWidth, terrainLength,0.5,0.5,true);
+	HMMWVTerrain* terrain = new HMMWVTerrain(m_system, ChVector<>(0,0,0), 
+		terrainWidth, terrainLength,0.5,0.5,true);
 //	ChVector<> obstacle_location(10,1,1);
 //	terrain->create_some_obstacles(obstacle_location);
 	
 	// USER INTERFACE, if using Irrlicht
 #ifdef USE_IRRLICHT
 	// Create the Irrlicht device, defaults to DirectX
-	irr::ChIrrApp application(&m_system, L"Justin's HMMWV demo",	irr::core::dimension2d<irr::u32>(1000,800),false,true);
+	irr::ChIrrApp application(&m_system, L"Justin's HMMWV demo",
+		irr::core::dimension2d<irr::u32>(1000,800),false,true);
 	application.AddTypicalSky();
 	application.AddTypicalLights();
 	// camera is behind and above chassis, its target
