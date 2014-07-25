@@ -13,8 +13,7 @@
 #include <ostream>
 #include <iostream>
 
-using namespace std;
-using namespace chrono;
+namespace chrono{
 
 // for easy output of ChVectors
 ostream&  operator<<(ostream& os, const ChVector<>& v);
@@ -211,5 +210,8 @@ private:
 	ChSystem* msys;
 
 };
+
+
+}	// namespace chrono{
 
 #endif		// #ifndef HMMWVTERRAIN_H

@@ -34,7 +34,7 @@
 
 #include <omp.h>		// just using this for timers
 // Use the namespace of Chrono
-using namespace chrono;
+namespace chrono {
 
 /*
 #ifdef USE_IRRLICHT
@@ -63,6 +63,21 @@ enum TireForceType {
 #endif
 
 
+// GLOBAL VARIABLES
+ChVector<> cameraOffset(-1,2,2);	// camera should trail the car
+// chassis CM position, in SAE units [inches]. cONVERT TO METERS
+ChVector<> chassis_cmSAE = ChVector<>(600.5, 600.5, -36.0/2.0);
+ChQuaternion<> chassisOri(1,0,0,0);	// forward is the positive x-direction
+
+// if using DVI rigid body contact, how large to make the ground width/length dims?
+double terrainWidth = 100.0;
+double terrainLength =100.0;
+
+// simulation parameters
+double tend = 10.0;
+double step_size = 0.001;
+int out_fps = 30;
+
 int main(int argc, char* argv[]){
 	// create the system, set the solver settings
 	DLL_CreateGlobals();
@@ -73,20 +88,15 @@ int main(int argc, char* argv[]){
 	m_system.SetIterLCPmaxItersSpeed(150);
 	m_system.SetIterLCPmaxItersStab(150);
 
-	// chassis CM position, in SAE units [inches]
-	ChVector<> chassis_cmSAE = ChVector<>(600.5, 600.5, -36.0/2.0);
+
 	// create the HMMWV vehicle
 	ChVector<> chassisCM = chassis_cmSAE * 0.0254;
-	ChQuaternion<> chassisOri(1,0,0,0);	// forward is the positive x-direction
 
 	// ***** vehicle module
 	HMMWV_9body* mycar = new HMMWV_9body(m_system, chassisCM, chassisOri,true);
 
 	// set the location of the "ground" relative to the chassisCM.
-	ChVector<> ground_cm = ChVector<>(0,0,0); 
-	ground_cm = chassisCM;
-	double terrainWidth = 100.0;
-	double terrainLength =100.0;
+	ChVector<> ground_cm = ChVector<>(chassisCM);
 	// create the ground. NOTE: orientation will have to be in the x-y plane
 	HMMWVTerrain* terrain = new HMMWVTerrain(m_system, ground_cm, terrainWidth, terrainLength,0.5,0.5,true);
 //	ChVector<> obstacle_location(10,1,1);
@@ -101,33 +111,24 @@ int main(int argc, char* argv[]){
 	// camera is behind and above chassis, its target
 	core::vector3df camera_pos = core::vector3df(chassisCM.x, chassisCM.y, chassisCM.z );
 	core::vector3df camera_targ = core::vector3df(camera_pos);
-	camera_pos.X -= 1.5; camera_pos.Y += 0.6;
+	camera_pos.X += cameraOffset.x; camera_pos.Y += cameraOffset.y; camera_pos.Z += cameraOffset.z;
 	application.AddTypicalCamera(camera_pos,camera_targ );
 
 	// This is for GUI for the on-road HMMWV vehicle
 	HMMWVEventReceiver receiver(&application, &m_system, mycar, terrain);
 	application.SetUserEventReceiver(&receiver);
+
 	// Use real-time step of the simulation, OR...
 //	application.SetStepManage(true);
-	application.SetTimestep(0.001);
+	application.SetTimestep(step_size);
 //	application.SetTryRealtime(true);
 	
 
-	// last thing to add: if we're using Irrlicht, add some stuff to the scene
-	ChSharedPtr<ChCamera> mcamera(new ChCamera);
-	mcamera->SetPosition(ChVector<>(3.5,2.5f,-2.4) );
-//	mcamera->SetAimPoint(wheelCMpos);
-	// attach this to the wheel?
-	// mwheel->wheel->AddAsset(mcamera);
-	application.AddTypicalCamera(core::vector3df(0,2,-4));
-
-	// 
 	// set up the assets for rendering
 	application.AssetBindAll();
 	application.AssetUpdateAll();
 #else
-	m_system.SetStep(0.005);
-	double tend = 10.0;
+	m_system.SetStep(step_size);
 #endif
 
 	// keep track of the steps we save
@@ -165,37 +166,37 @@ int main(int argc, char* argv[]){
 #endif
 #ifdef USE_IRRLICHT
 	// Main time-stepping loop
+	int step_num = 0;
+	int out_steps = std::ceil((1.0/ step_size) / out_fps);
 	while(application.GetDevice()->run()) { 
 		double simtime = application.GetSystem()->GetChTime();	// current sim time
-		double timeStep = application.GetTimestep();	// current step size
-		application.GetVideoDriver()->beginScene(true, true, SColor(255,140,161,192));
-		// try to have the camera follow the vehicle
-		irr::scene::ICameraSceneNode *mCamera = application.GetSceneManager()->getActiveCamera();
-		// camera should trail the car
-		ChVector<> cameraOffset(-1,2,2);
-		ChVector<> tmp_offset =  mycar->getCM_pos_chassis() - cameraOffset;
-		irr::core::vector3df mVect = irr::core::vector3df(tmp_offset.x, tmp_offset.y, tmp_offset.z);
-		mCamera->setPosition( mVect);
-		ChVector<> chCM = mycar->getCM_pos_chassis();
-		mCamera->setTarget( irr::core::vector3df( chCM.x, chCM.y, chCM.z) );
+//		double timeStep = application.GetTimestep();	// current step size
 
-		// .. draw distance constraints (the massless rods) as simplified lines
-		receiver.drawLinks();
-		receiver.drawSprings();
+		// only render 30 frames/simulation second using Irrlicht
+		if( step_num % out_steps == 0) {
+			application.GetVideoDriver()->beginScene(true, true, irr::video::SColor(255,140,161,192));
+			// have the camera follow the vehicle
+			receiver.update_cameraPos(cameraOffset);
+
+			// .. draw distance constraints (the massless rods) as simplified lines
+			receiver.drawLinks();
+			receiver.drawSprings();
 
 #ifdef USE_TERRAIN
-		// draw the terramechanics forces as vectors on each tire
-		for(int i = 0; i < 4; i++){
-			receiver.drawTMvisGrid(i);
- 			receiver.drawTM_forces(i);
-		}
+			// draw the terramechanics forces as vectors on each tire
+			for(int i = 0; i < 4; i++){
+				receiver.drawTMvisGrid(i);
+ 				receiver.drawTM_forces(i);
+			}
 #endif
-		if( receiver.gad_tab_carData->isVisible() )
-			receiver.drawCarDataOutput();
+			if( receiver.gad_tab_carData->isVisible() )
+				receiver.drawCarDataOutput();
 
-		// Irrlicht draws the scene
-		application.DrawAll();
+			// Irrlicht draws the scene
+			application.DrawAll();
+		}
 #else
+	// normal time stepping loop: just do the dynamics
 	while( m_system.GetChTime() <= tend)
 	{
 #endif
@@ -212,11 +213,14 @@ int main(int argc, char* argv[]){
 			// apply a driving torque to the wheel via the test mechanism
 		}
  #endif
+
+		// ---- **** engine applied torque to driven wheels.
 		// based on current shaft speed, user torque, find the driving torque on the wheels
 		mycar->ComputeWheelTorque();
+		// ---- **** input steer angle drives tierod displacement
 		mycar->ComputeSteerDisplacement();
 
-
+		// ---- **** wheel force calculation
  #ifdef USE_TERRAIN
 		// each timestep, need to pass new forces and torques to the wheel hub!
 		std::vector<ChVector<>> F_hub;
@@ -243,18 +247,22 @@ int main(int argc, char* argv[]){
   #endif
  #endif
 
-
-
 		// ------------------------------------------------
 		// main time stepping loop, using Irrlicht
-		application.DoStep();
-		application.GetVideoDriver()->endScene();
+		if( step_num % out_steps == 0) {
+			application.DoStep();
+			application.GetVideoDriver()->endScene();
+		} else {
+			m_system.DoStepDynamics( m_system.GetStep() );
+		}
+
 #else
 		// main time stepping loop, using the ChSystem
 		m_system.DoStepDynamics( m_system.GetStep() );
 #endif
 
 		// end of time stepping loop ------------------------
+		step_num++;
 	}
 
 
@@ -270,3 +278,5 @@ int main(int argc, char* argv[]){
 
 	return 0;
 }
+
+}	//	namespace chrono{

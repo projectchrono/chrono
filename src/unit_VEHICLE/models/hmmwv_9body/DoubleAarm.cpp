@@ -1,7 +1,6 @@
 #include "DoubleAarm.h"
 
 using namespace chrono;
-using namespace std;
 // JCM 11/7/12, helpful for unit conversions
 // double 1.0/39.3701 = 1.0/39.3701;	// inches to meters
 // double inlb_to_Nm = 1.0/8.851;	// in-lb to N-m

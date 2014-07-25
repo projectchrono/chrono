@@ -22,8 +22,7 @@
 #include "DoubleAarm.h"
 #include "ChVehicleDriver.h"
 
-using namespace std;
-using namespace chrono;
+namespace chrono {
 
 /// HMMWV with four wheels, four lumped mass suspension elements, and a single chassis.
 ///	Controlled by prescribing an input throttle and steer angle to the driver class each timestep.
@@ -141,5 +140,8 @@ private:
 };
 
 ostream& operator << (ostream& output, const ChVector<>& v);
+
+
+}	// namespace chrono {
 
 #endif		// HMMWV_H

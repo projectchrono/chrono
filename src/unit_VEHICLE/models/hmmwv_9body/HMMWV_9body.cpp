@@ -32,8 +32,6 @@ ChVector<> spindleInertia	= carInertia/40.0;	// guesses, for now
 double max_torque = 8600*inlb_to_Nm;	// in-lb
 double max_engine_n = 2000;	// engine speed, rpm 
 
-using namespace std;
-
 // for quick output of TMVector
 ostream& operator << (ostream& output, const ChVector<>& v) {
 	output << v.x << "," << v.y << "," << v.z;
