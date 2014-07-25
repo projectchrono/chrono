@@ -34,7 +34,8 @@ ChClassRegister<ChFunction_Derive> a_registration_derive;
 void ChFunction_Derive::Copy (ChFunction_Derive* source)
 {
 	order = source->order;
-	fa = source->fa->new_Duplicate();
+	// fa = source->fa;		//***? shallow copy (now sharing same object)...
+	fa = ChSharedPtr<ChFunction>(source->fa->new_Duplicate());	//***? ..or deep copy? make optional with flag?
 }
 
 ChFunction* ChFunction_Derive::new_Duplicate ()
@@ -85,7 +86,9 @@ void ChFunction_Derive::StreamOUT(ChStreamOutBinary& mstream)
 
 		// stream out all member data
 	mstream << order;
-	mstream.AbstractWrite(fa);
+
+	mstream.AbstractWrite(this->fa.get_ptr()); 
+	//***TODO*** better direct management of shared pointers serialization
 }
 
 void ChFunction_Derive::StreamIN(ChStreamInBinary& mstream)
@@ -98,8 +101,10 @@ void ChFunction_Derive::StreamIN(ChStreamInBinary& mstream)
 		// stream in all member data
 	mstream >> order;
 
-	if (fa) delete fa; fa=NULL;
-	mstream.AbstractReadCreate(&fa);
+	ChFunction* fooshared;
+	mstream.AbstractReadCreate(&fooshared);	 // instance new
+	fa = ChSharedPtr<ChFunction>(fooshared); // swap old shared to new shared, may delete old
+	//***TODO*** better direct management of shared pointers serialization
 }
 
 void ChFunction_Derive::StreamOUT(ChStreamOutAscii& mstream)

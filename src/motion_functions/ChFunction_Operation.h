@@ -60,24 +60,29 @@ class ChApi ChFunction_Operation : public ChFunction
 {
 	CH_RTTI(ChFunction_Operation, ChFunction);
 private:
-	ChFunction* fa;
-	ChFunction* fb;
+	ChSharedPtr<ChFunction> fa;
+	ChSharedPtr<ChFunction> fb;
 	int op_type;		// see operation type IDS
 
 public:
-	ChFunction_Operation() {op_type = ChOP_ADD; fa = new ChFunction_Const; fb = new ChFunction_Const; }
-	~ChFunction_Operation () {if (fa) delete fa; if (fb) delete fb;};
+	ChFunction_Operation() 
+		{
+			op_type = ChOP_ADD; 
+			fa = ChSharedPtr<ChFunction_Const>(new ChFunction_Const); 
+			fb = ChSharedPtr<ChFunction_Const>(new ChFunction_Const); 
+		}
+	~ChFunction_Operation () {};
 	void Copy (ChFunction_Operation* source);
 	ChFunction* new_Duplicate ();
 
 	void Set_optype  (int m_op)  {op_type = m_op;}
 	int Get_optype () {return op_type;}
 
-	void Set_fa  (ChFunction* m_fa)  {fa = m_fa;}
-	ChFunction* Get_fa () {return fa;}
+	void Set_fa  (ChSharedPtr<ChFunction> m_fa)  {fa = m_fa;}
+	ChSharedPtr<ChFunction> Get_fa () {return fa;}
 	
-	void Set_fb  (ChFunction* m_fb)  {fb = m_fb;}
-	ChFunction* Get_fb () {return fb;}
+	void Set_fb  (ChSharedPtr<ChFunction> m_fb)  {fb = m_fb;}
+	ChSharedPtr<ChFunction> Get_fb () {return fb;}
 
 	double Get_y      (double x) ;
 	//	double Get_y_dx   (double x) ;

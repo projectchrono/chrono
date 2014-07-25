@@ -30,6 +30,7 @@
 
 #include "ChFunction_Base.h"
 #include "ChFunction_Const.h"
+#include "core/ChSmartpointers.h"
 
 namespace chrono 
 {
@@ -46,12 +47,16 @@ class ChApi ChFunction_Repeat : public ChFunction
 {
 	CH_RTTI(ChFunction_Repeat, ChFunction);
 private:
-	ChFunction* fa;
+	ChSharedPtr<ChFunction> fa;
 	double window_start;			// window begin position
 	double window_length;			// window length
 public:
-	ChFunction_Repeat() {window_start=0;window_length=1;  fa = new ChFunction_Const;}
-	~ChFunction_Repeat () {if (fa) delete fa;};
+	ChFunction_Repeat() 
+			{
+				window_start=0;window_length=1;  
+				fa = ChSharedPtr<ChFunction_Const>(new ChFunction_Const); // default
+			}
+	~ChFunction_Repeat () {};
 	void Copy (ChFunction_Repeat* source);
 	ChFunction* new_Duplicate ();
 
@@ -60,8 +65,8 @@ public:
 	void Set_window_length  (double m_v)  {window_length = m_v;}
 	double Get_window_length () {return window_length;}
 
-	void Set_fa  (ChFunction* m_fa)  {fa = m_fa;}
-	ChFunction* Get_fa () {return fa;}
+	void Set_fa  (ChSharedPtr<ChFunction> m_fa)  {fa = m_fa;}
+	ChSharedPtr<ChFunction> Get_fa () {return fa;}
 	
 	double Get_y      (double x) ;
 

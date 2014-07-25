@@ -34,8 +34,10 @@ ChClassRegister<ChFunction_Operation> a_registration_operation;
 void ChFunction_Operation::Copy (ChFunction_Operation* source)
 {
 	op_type = source->op_type;
-	fa = source->fa->new_Duplicate();
-	fb = source->fb->new_Duplicate();
+	// fa = source->fa;		//***? shallow copy (now sharing same object)...
+	fa = ChSharedPtr<ChFunction>(source->fa->new_Duplicate());	//***? ..or deep copy? make optional with flag?
+	// fb = source->fb;		//***? shallow copy (now sharing same object)...
+	fb = ChSharedPtr<ChFunction>(source->fb->new_Duplicate());	//***? ..or deep copy? make optional with flag?
 }
 
 ChFunction* ChFunction_Operation::new_Duplicate ()
@@ -138,8 +140,12 @@ void ChFunction_Operation::StreamOUT(ChStreamOutBinary& mstream)
 
 		// stream out all member data
 	mstream << op_type;
-	mstream.AbstractWrite(fa);
-	mstream.AbstractWrite(fb);
+	
+	mstream.AbstractWrite(this->fa.get_ptr()); 
+	//***TODO*** better direct management of shared pointers serialization
+
+	mstream.AbstractWrite(this->fb.get_ptr()); 
+	//***TODO*** better direct management of shared pointers serialization
 }
 
 void ChFunction_Operation::StreamIN(ChStreamInBinary& mstream)
@@ -152,10 +158,15 @@ void ChFunction_Operation::StreamIN(ChStreamInBinary& mstream)
 		// stream in all member data
 	mstream >> op_type;
 
-	if (fa) delete fa; fa=NULL;
-	mstream.AbstractReadCreate(&fa);
-	if (fb) delete fb; fb=NULL;
-	mstream.AbstractReadCreate(&fb);
+	ChFunction* foosharedA;
+	mstream.AbstractReadCreate(&foosharedA);	 // instance new
+	fa = ChSharedPtr<ChFunction>(foosharedA); // swap old shared to new shared, may delete old
+	//***TODO*** better direct management of shared pointers serialization
+
+	ChFunction* foosharedB;
+	mstream.AbstractReadCreate(&foosharedB);	 // instance new
+	fb = ChSharedPtr<ChFunction>(foosharedB); // swap old shared to new shared, may delete old
+	//***TODO*** better direct management of shared pointers serialization
 }
 
 void ChFunction_Operation::StreamOUT(ChStreamOutAscii& mstream)

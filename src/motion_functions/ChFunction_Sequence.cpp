@@ -27,7 +27,7 @@ namespace chrono
 {
 
 
-ChFseqNode::ChFseqNode(ChFunction* myfx, double mdur)
+ChFseqNode::ChFseqNode(ChSharedPtr<ChFunction> myfx, double mdur)
 {
 	fx = myfx;
 	duration = mdur;
@@ -39,13 +39,13 @@ ChFseqNode::ChFseqNode(ChFunction* myfx, double mdur)
 
 ChFseqNode::~ChFseqNode()
 {
-	if (fx) delete fx; fx = NULL;
+	// no need to delete wrapped function, it is handled with shared pointer
 }
 
 void ChFseqNode::Copy(ChFseqNode* source)
 {
-	if (fx) delete fx;
-	fx = source->fx->new_Duplicate();
+	// fx = source->fx;		//***? shallow copy (now sharing same object)...
+	fx = ChSharedPtr<ChFunction>(source->fx->new_Duplicate());	//***? ..or deep copy? make optional with flag?
 	duration = source->duration;
 	weight = source->weight;
 	t_start = source->t_start;
@@ -82,7 +82,9 @@ void ChFseqNode::StreamOUT(ChStreamOutBinary& mstream)
 	mstream << this->y_cont;
 	mstream << this->ydt_cont;
 	mstream << this->ydtdt_cont;
-	mstream.AbstractWrite(this->fx);
+
+	mstream.AbstractWrite(this->fx.get_ptr()); 
+	//***TODO*** better direct management of shared pointers serialization
 }
 
 void ChFseqNode::StreamIN(ChStreamInBinary& mstream)
@@ -101,8 +103,11 @@ void ChFseqNode::StreamIN(ChStreamInBinary& mstream)
 	mstream >> this->y_cont;
 	mstream >> this->ydt_cont;
 	mstream >> this->ydtdt_cont;
-	if (fx) delete fx; fx=NULL;
-	mstream.AbstractReadCreate(&this->fx);
+
+	ChFunction* fooshared;
+	mstream.AbstractReadCreate(&fooshared);	 // instance new
+	fx = ChSharedPtr<ChFunction>(fooshared); // swap old shared to new shared, may delete old
+	//***TODO*** better direct management of shared pointers serialization
 }
 
 
@@ -131,7 +136,7 @@ void ChFunction_Sequence::Copy (ChFunction_Sequence* source)
 	ChFseqNode* mfxs;
 	for (ChNode<ChFseqNode>* mnode = source->functions.GetHead(); mnode != NULL; mnode= mnode->next)
 	{
-		mfxs = new ChFseqNode(NULL, 0.0);
+		mfxs = new ChFseqNode(ChSharedPtr<ChFunction>() , 0.0);
 		mfxs->Copy(mnode->data);
 		functions.AddTail(mfxs);
 	}
@@ -145,7 +150,7 @@ ChFunction* ChFunction_Sequence::new_Duplicate ()
 	return (m_func);
 }
 
-int ChFunction_Sequence::InsertFunct (ChFunction* myfx, double duration, double weight, bool c0, bool c1, bool c2, int position)
+int ChFunction_Sequence::InsertFunct (ChSharedPtr<ChFunction> myfx, double duration, double weight, bool c0, bool c1, bool c2, int position)
 {
 	ChFseqNode* mfxsegment = new ChFseqNode(myfx, duration);
 	mfxsegment->y_cont = c0;
@@ -175,6 +180,13 @@ int ChFunction_Sequence::InsertFunct (ChFunction* myfx, double duration, double 
 	return inserted;
 }
 
+// only for backward compatibility:
+int ChFunction_Sequence::InsertFunct (ChFunction* myfx, double duration, double weight, bool c0, bool c1, bool c2, int position)
+{
+	ChSharedPtr<ChFunction> mysharedfx(myfx);
+	return InsertFunct (mysharedfx, duration, weight, c0, c1, c2, position);
+}
+
 int ChFunction_Sequence::KillFunct (int position)
 {
 	int fcount = functions.Count();
@@ -190,11 +202,11 @@ int ChFunction_Sequence::KillFunct (int position)
 	return TRUE;
 }
 
-ChFunction* ChFunction_Sequence::GetNthFunction (int position)
+ChSharedPtr<ChFunction> ChFunction_Sequence::GetNthFunction (int position)
 {
 	int fcount = functions.Count();
 	if (fcount == 0)
-		return NULL;
+		return ChSharedPtr<ChFunction>();
 	if ((position == -1)||(position > fcount))
 		{ return functions.GetTail()->data->fx;}
 	if (position == 0)
@@ -242,20 +254,21 @@ void ChFunction_Sequence::Setup()
 		mnode->data->Iydt	= 0;
 		mnode->data->Iydtdt = 0;
 
-		if (mnode->data->fx->Get_Type() == FUNCT_FILLET3)	// C0 C1 fillet
+		if (mnode->data->fx.IsType<ChFunction_Fillet3>())	// C0 C1 fillet
 		{
-			((ChFunction_Fillet3*)mnode->data->fx)->Set_y1(lastIy);
-			((ChFunction_Fillet3*)mnode->data->fx)->Set_dy1(lastIy_dt);
+			ChSharedPtr<ChFunction_Fillet3> mfillet = mnode->data->fx.DynamicCastTo<ChFunction_Fillet3>();
+			mfillet->Set_y1(lastIy);
+			mfillet->Set_dy1(lastIy_dt);
 			if (mnode->next)
 			{
-				((ChFunction_Fillet3*)mnode->data->fx)->Set_y2(mnode->next->data->fx->Get_y(0));
-				((ChFunction_Fillet3*)mnode->data->fx)->Set_dy2(mnode->next->data->fx->Get_y_dx(0));
+				mfillet->Set_y2(mnode->next->data->fx->Get_y(0));
+				mfillet->Set_dy2(mnode->next->data->fx->Get_y_dx(0));
 			}else
 			{
-				((ChFunction_Fillet3*)mnode->data->fx)->Set_y2(0);
-				((ChFunction_Fillet3*)mnode->data->fx)->Set_dy2(0);
+				mfillet->Set_y2(0);
+				mfillet->Set_dy2(0);
 			}
-			((ChFunction_Fillet3*)mnode->data->fx)->Set_end(mnode->data->duration);
+			mfillet->Set_end(mnode->data->duration);
 			mnode->data->Iy = mnode->data->Iydt = mnode->data->Iydtdt = 0;
 		}
 		else	// generic continuity conditions
@@ -473,7 +486,7 @@ void ChFunction_Sequence::StreamIN(ChStreamInBinary& mstream)
 	mstream >> mgoID;
 	while (mgoID == 1)
 	{
-		ChFseqNode* mynode = new ChFseqNode(NULL, 0.0);
+		ChFseqNode* mynode = new ChFseqNode(ChSharedPtr<ChFunction>(0), 0.0);
 		mstream >> *mynode;
 		functions.AddTail(mynode);
 		mstream >> mgoID;

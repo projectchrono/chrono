@@ -29,7 +29,7 @@
 
 
 #include "ChFunction_Base.h"
-
+#include "core/ChSmartpointers.h"
 
 namespace chrono 
 {
@@ -46,7 +46,7 @@ class ChApi ChFunction_Integrate : public ChFunction
 {
 	CH_RTTI(ChFunction_Integrate, ChFunction);
 private:
-	ChFunction* fa;
+	ChSharedPtr<ChFunction> fa;
 	int order;			// 1= Integrate one time, 2= two times, etc.
 	double C_start;
 	double x_start;
@@ -55,7 +55,7 @@ private:
 	ChMatrix<>* array_x;
 public:
 	ChFunction_Integrate();
-	~ChFunction_Integrate () {if (fa) delete fa; if (array_x) delete array_x;};
+	~ChFunction_Integrate () {if (array_x) delete array_x;};
 	void Copy (ChFunction_Integrate* source);
 	ChFunction* new_Duplicate ();
 
@@ -71,8 +71,10 @@ public:
 	double Get_x_start () {return x_start;}
 	void Set_x_end  (double m_val)  {x_end = m_val; ComputeIntegral();}
 	double Get_x_end () {return x_end;}
-	void Set_fa  (ChFunction* m_fa)  {fa = m_fa; ComputeIntegral();}
-	ChFunction* Get_fa () {return fa;}
+
+		/// Set the function to be integrated
+	void Set_fa  (ChSharedPtr<ChFunction> m_fa)  {fa = m_fa; ComputeIntegral();}
+	ChSharedPtr<ChFunction> Get_fa () {return fa;}
 
 	double Get_y      (double x) ;
 

@@ -35,7 +35,8 @@ void ChFunction_Repeat::Copy (ChFunction_Repeat* source)
 {
 	window_start = source->window_start;
 	window_length = source->window_length;
-	fa = source->fa->new_Duplicate();
+	// fa = source->fa;		//***? shallow copy (now sharing same object)...
+	fa = ChSharedPtr<ChFunction>(source->fa->new_Duplicate());	//***? ..or deep copy? make optional with flag?
 }
 
 ChFunction* ChFunction_Repeat::new_Duplicate ()
@@ -86,7 +87,9 @@ void ChFunction_Repeat::StreamOUT(ChStreamOutBinary& mstream)
 		// stream out all member data
 	mstream << window_start;
 	mstream << window_length;
-	mstream.AbstractWrite(fa);
+
+	mstream.AbstractWrite(this->fa.get_ptr()); 
+	//***TODO*** better direct management of shared pointers serialization
 }
 
 void ChFunction_Repeat::StreamIN(ChStreamInBinary& mstream)
@@ -99,8 +102,11 @@ void ChFunction_Repeat::StreamIN(ChStreamInBinary& mstream)
 		// stream in all member data
 	mstream >> window_start;
 	mstream >> window_length;
-	if (fa) delete fa; fa=NULL;
-	mstream.AbstractReadCreate(&fa);
+
+	ChFunction* fooshared;
+	mstream.AbstractReadCreate(&fooshared);	 // instance new
+	fa = ChSharedPtr<ChFunction>(fooshared); // swap old shared to new shared, may delete old
+	//***TODO*** better direct management of shared pointers serialization
 }
 
 void ChFunction_Repeat::StreamOUT(ChStreamOutAscii& mstream)

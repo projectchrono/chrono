@@ -81,7 +81,7 @@ bool ChRefFunctionSegment::RestoreReference(ChFunction* mrootf)
 		if (this->function_segment->Get_Type()!=FUNCT_SEQUENCE)
 			return (valid=false);
 
-		this->function_segment =((ChFunction_Sequence*)function_segment)->GetNthFunction(mIDi);
+		this->function_segment =(((ChFunction_Sequence*)function_segment)->GetNthFunction(mIDi)).get_ptr(); //***TODO*** use ChSharedPtr everywhere
 
 		mid++;
 	}

@@ -34,7 +34,8 @@ ChClassRegister<ChFunction_Mirror> a_registration_mirror;
 void ChFunction_Mirror::Copy (ChFunction_Mirror* source)
 {
 	mirror_axis = source->mirror_axis;
-	fa = source->fa->new_Duplicate();
+	// fa = source->fa;		//***? shallow copy (now sharing same object)...
+	fa = ChSharedPtr<ChFunction>(source->fa->new_Duplicate());	//***? ..or deep copy? make optional with flag?
 }
 
 ChFunction* ChFunction_Mirror::new_Duplicate ()
@@ -87,7 +88,9 @@ void ChFunction_Mirror::StreamOUT(ChStreamOutBinary& mstream)
 
 		// stream out all member data
 	mstream << mirror_axis;
-	mstream.AbstractWrite(fa);
+
+	mstream.AbstractWrite(this->fa.get_ptr()); 
+	//***TODO*** better direct management of shared pointers serialization
 }
 
 void ChFunction_Mirror::StreamIN(ChStreamInBinary& mstream)
@@ -99,8 +102,11 @@ void ChFunction_Mirror::StreamIN(ChStreamInBinary& mstream)
 
 		// stream in all member data
 	mstream >> mirror_axis;
-	if (fa) delete fa; fa=NULL;
-	mstream.AbstractReadCreate(&fa);
+	
+	ChFunction* fooshared;
+	mstream.AbstractReadCreate(&fooshared);	 // instance new
+	fa = ChSharedPtr<ChFunction>(fooshared); // swap old shared to new shared, may delete old
+	//***TODO*** better direct management of shared pointers serialization
 }
 
 void ChFunction_Mirror::StreamOUT(ChStreamOutAscii& mstream)

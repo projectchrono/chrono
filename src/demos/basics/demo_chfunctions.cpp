@@ -146,15 +146,15 @@ int main(int argc, char* argv[])
 
 	ChFunction_Sequence f_sequence;
 
-	ChFunction_ConstAcc* f_constacc1 = new ChFunction_ConstAcc;
+	ChSharedPtr<ChFunction_ConstAcc> f_constacc1(new ChFunction_ConstAcc);
 	f_constacc1->Set_end(0.5); // length of ramp
 	f_constacc1->Set_h(0.3);   // height of ramp
 	f_sequence.InsertFunct(f_constacc1, 0.5, 1, false, false, false, 0);
 
-	ChFunction_Const* f_const = new ChFunction_Const;
+	ChSharedPtr<ChFunction_Const> f_const(new ChFunction_Const);
 	f_sequence.InsertFunct(f_const, 0.4, 1, true, false, false, -1);
 
-	ChFunction_ConstAcc* f_constacc2 = new ChFunction_ConstAcc;
+	ChSharedPtr<ChFunction_ConstAcc> f_constacc2(new ChFunction_ConstAcc);
 	f_constacc2->Set_end(0.6); // length of ramp
 	f_constacc2->Set_av(0.3);  // acceleration ends after 30% length
 	f_constacc2->Set_aw(0.7);  // deceleration starts after 70% length

@@ -30,6 +30,7 @@
 
 #include "ChFunction_Base.h"
 #include "ChFunction_Const.h"
+#include "core/ChSmartpointers.h"
 
 
 namespace chrono 
@@ -49,20 +50,20 @@ class ChApi ChFunction_Derive : public ChFunction
 {
 	CH_RTTI(ChFunction_Derive, ChFunction);
 private:
-	ChFunction* fa;
+	ChSharedPtr<ChFunction> fa;
 	int order;			// 1= derive one time, 2= two times, etc.
 
 public:
-	ChFunction_Derive() {order = 1; fa = new ChFunction_Const;}
-	~ChFunction_Derive () {if (fa) delete fa;};
+	ChFunction_Derive() {order = 1;}
+	~ChFunction_Derive () {};
 	void Copy (ChFunction_Derive* source);
 	ChFunction* new_Duplicate ();
 
 	void Set_order  (int m_order)  {order = m_order;}
 	int Get_order () {return order;}
 
-	void Set_fa  (ChFunction* m_fa)  {fa = m_fa;}
-	ChFunction* Get_fa () {return fa;}
+	void Set_fa  (ChSharedPtr<ChFunction> m_fa)  {fa = m_fa;}
+	ChSharedPtr<ChFunction> Get_fa () {return fa;}
 	
 	double Get_y      (double x) ;
 

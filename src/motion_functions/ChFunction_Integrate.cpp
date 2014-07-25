@@ -35,7 +35,7 @@ ChClassRegister<ChFunction_Integrate> a_registration_integrate;
 ChFunction_Integrate::ChFunction_Integrate()
 {
 	order = 1;
-	fa = new ChFunction_Const; // default 
+	fa = ChSharedPtr<ChFunction_Const>(new ChFunction_Const); // default 
 	C_start= x_start=0;
 	x_end=1;
 	num_samples=2000;
@@ -44,8 +44,9 @@ ChFunction_Integrate::ChFunction_Integrate()
 
 void ChFunction_Integrate::Copy (ChFunction_Integrate* source)
 {
+	// fa = source->fa;		//***? shallow copy (now sharing same object)...
+	fa = ChSharedPtr<ChFunction>(source->fa->new_Duplicate());	//***? ..or deep copy? make optional with flag?
 	order = source->order;
-	fa = source->fa->new_Duplicate();
 	C_start = source->C_start;
 	x_start = source->x_start;
 	x_end = source->x_end;
@@ -144,7 +145,9 @@ void ChFunction_Integrate::StreamOUT(ChStreamOutBinary& mstream)
 	mstream << Get_x_start();
 	mstream << Get_x_end();
 	mstream << Get_num_samples();
-	mstream.AbstractWrite(fa);
+	
+	mstream.AbstractWrite(this->fa.get_ptr()); 
+	//***TODO*** better direct management of shared pointers serialization
 }
 
 void ChFunction_Integrate::StreamIN(ChStreamInBinary& mstream)
@@ -162,8 +165,11 @@ void ChFunction_Integrate::StreamIN(ChStreamInBinary& mstream)
 	mstream >> dfoo;			Set_x_start(dfoo);
 	mstream >> dfoo;			Set_x_end(dfoo);
 	mstream >> ifoo;			Set_num_samples(ifoo);
-	if (fa) delete fa; fa=NULL;
-	mstream.AbstractReadCreate(&fa);
+	
+	ChFunction* fooshared;
+	mstream.AbstractReadCreate(&fooshared);	 // instance new
+	fa = ChSharedPtr<ChFunction>(fooshared); // swap old shared to new shared, may delete old
+	//***TODO*** better direct management of shared pointers serialization
 }
 
 void ChFunction_Integrate::StreamOUT(ChStreamOutAscii& mstream)
