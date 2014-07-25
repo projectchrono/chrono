@@ -100,10 +100,8 @@ int main(int argc, char* argv[]){
 	// ***** vehicle module
 	HMMWV_9body* mycar = new HMMWV_9body(m_system, chassisCM, chassisOri,true);
 
-	// set the location of the "ground" relative to the chassisCM.
-	ChVector<> ground_cm = ChVector<>(chassisCM);
 	// create the ground. NOTE: orientation will have to be in the x-y plane
-	HMMWVTerrain* terrain = new HMMWVTerrain(m_system, ground_cm, terrainWidth, terrainLength,0.5,0.5,true);
+	HMMWVTerrain* terrain = new HMMWVTerrain(m_system, ChVector<>(0,0,0), terrainWidth, terrainLength,0.5,0.5,true);
 //	ChVector<> obstacle_location(10,1,1);
 //	terrain->create_some_obstacles(obstacle_location);
 	

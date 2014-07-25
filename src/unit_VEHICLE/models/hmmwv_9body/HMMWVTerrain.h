@@ -41,12 +41,11 @@ public:
 	HMMWVTerrain(ChSystem& system, ChVector<> pos = ChVector<>(0.0,0.0,0.0),
 		double terrainWidth = 100.0, double terrainLength =  100.0,
 		const double muWall = 0.7, const double cohesionWall = 0.0,
-		const bool collide=true): msys(&system), floor(new ChBody), wall1(new ChBody), wall2(new ChBody), wall3(new ChBody), wall4(new ChBody)
+		const bool collide=true): msys(&system), floor(new ChBody) // , wall1(new ChBody), wall2(new ChBody), wall3(new ChBody), wall4(new ChBody)
 	{
-		double wallThickness = std::min<double>(terrainWidth, terrainLength) / 20.0;	// wall width = 1/10 of min of bin dims
-		double wallHeight = 1.0;
-		// create the floor
-		ChVector<> floordims( terrainWidth/2.0, wallThickness, terrainLength/2.0);
+
+		// create the floor, 20 cm thick by default
+		ChVector<> floordims( terrainWidth/2.0, terrainLength/2.0, 0.1);
 		floor->GetCollisionModel()->ClearModel();
 		floor->GetCollisionModel()->AddBox(floordims.x, floordims.y, floordims.z); // , &pos);
 		floor->GetMaterialSurface()->SetFriction(muWall);
@@ -55,9 +54,12 @@ public:
 		floor->SetCollide(collide);
 		floor->SetBodyFixed(true);
 	//	floor->setMaterialTexture(0, cubeMap);
+		// move the center of the floor so the top-most surface is at the z-height specified by input 'pos'
+		ChVector<> floorCenter = ChVector<>(pos);
+		floorCenter.z -= 0.1;
 		floor->SetPos(pos);
 		floor->SetInertiaXX(ChVector<>(1,1,1));
-		floor->SetMass(10.0);
+		floor->SetMass(100.0);
 		system.Add(floor);
 
 		// attach the visualization assets, floor
@@ -69,6 +71,8 @@ public:
 		floorColor->SetColor(ChColor(0.4,0.4,0.6));
 		floor->AddAsset(floorColor);	// add the color asset
 
+
+		/*
 		// add the walls to the soilBin, w.r.t. width, length, height of bin
 		// wall 1, sidewall 1
 		wall1->GetCollisionModel()->ClearModel();
@@ -155,6 +159,7 @@ public:
 		ChSharedPtr<ChTexture> wall4tex(new ChTexture);
 		wall4tex->SetTextureFilename("../data/rock.jpg");
 		wall4->AddAsset(wall4tex);	// add a texture asset
+		*/
 
 	}
 
