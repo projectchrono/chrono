@@ -6,7 +6,7 @@
 //  objects and visualization assets quickly
 //
 //  Author: Justin Madsen, 2014
-//	Part of the Chrono-T project
+//  Part of the Chrono-T project
 //
 // The global reference frame has Z up, X towards the back of the vehicle, and
 // Y pointing to the right.
@@ -24,18 +24,27 @@
 
 #include "HMMWV_9body_config.h"
 
-// Irrlicht includes
-#ifdef USE_IRRLICHT
- #include "irrlicht_interface/ChIrrApp.h"
- #include <irrlicht.h>
- #include "HMMWVEventReceiver.h"
+// If Irrlicht support is available...
+#if IRRLICHT_ENABLED
+  // ...include additional headers
+# include "irrlicht_interface/ChIrrApp.h"
+# include <irrlicht.h>
+# include "HMMWVEventReceiver.h"
+
+  // ...and specify whether the demo should actually use Irrlicht
+# define USE_IRRLICHT
 #endif
+
+// Specify is using terrain
+//#define USE_TERRAIN
 
 // Include the source for the car class, nothing special here
 #include "HMMWV_9body.h"
 #include "HMMWVTerrain.h"
 
 #include <omp.h>		// just using this for timers
+
+
 // Use the namespace of Chrono
 using namespace chrono;
 
@@ -59,7 +68,7 @@ enum TireForceType {
 
 #ifdef USE_PACTIRE
 	TireForceType tiretype = PACJEKA;
-#elif USE_TERRAIN
+#elif defined USE_TERRAIN
 	TireForceType tiretype = RIGIDCONTACT;
 #else
 	TireForceType tiretype = RIGIDCONTACT;
@@ -169,10 +178,12 @@ int main(int argc, char* argv[]){
 	wheel_vect.push_back(mycar->wheelRB->wheel);
 	wheel_vect.push_back(mycar->wheelLB->wheel);
 #endif
-#ifdef USE_IRRLICHT
+
 	// Main time-stepping loop
 	int step_num = 0;
 	int out_steps = std::ceil((1.0/ step_size) / out_fps);
+
+#ifdef USE_IRRLICHT
 	while(application.GetDevice()->run()) { 
 		double simtime = application.GetSystem()->GetChTime();	// current sim time
 //		double timeStep = application.GetTimestep();	// current step size
