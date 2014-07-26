@@ -388,8 +388,11 @@ IF (BUILD_CH_SDK)
 		physics/ChShaftsPlanetary.cpp 
 		physics/ChShaftsMotor.cpp 
 		physics/ChShaftsBody.cpp 
+		physics/ChShaftsTorqueBase.cpp 
+		physics/ChShaftsTorque.cpp 
 		physics/ChShaftsTorsionSpring.cpp 
 		physics/ChShaftsTorqueConverter.cpp
+		physics/ChShaftsThermalEngine.cpp
 		physics/ChConveyor.cpp 
 		physics/ChFx.cpp 
 		physics/ChAssembly.cpp
@@ -484,8 +487,11 @@ IF (BUILD_CH_SDK)
 		physics/ChShaftsGearboxAngled.h
 		physics/ChShaftsMotor.h
 		physics/ChShaftsPlanetary.h
+		physics/ChShaftsTorqueBase.h 
+		physics/ChShaftsTorque.h 
 		physics/ChShaftsTorsionSpring.h
 		physics/ChShaftsTorqueConverter.h
+		physics/ChShaftsThermalEngine.h
 		physics/ChSolver.h
 		physics/ChSolvmin.h
 		physics/ChStack.h

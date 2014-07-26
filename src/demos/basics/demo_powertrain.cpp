@@ -41,6 +41,8 @@
 #include "physics/ChShaftsTorsionSpring.h"
 #include "physics/ChShaftsTorqueConverter.h"
 #include "physics/ChShaftsMotor.h"
+#include "physics/ChShaftsTorque.h"
+#include "physics/ChShaftsThermalEngine.h"
 
 using namespace chrono;
 
@@ -528,13 +530,47 @@ int main(int argc, char* argv[])
 				// Make the thermal engine, acting on shaft A, the input to
 				// the torque converter. Note that the thermal engine also 
 				// requires another shaft D, that is used to transmit the
-				// reaction torque back to a truss.
+				// reaction torque back to a truss (the motor block).
+
+					// Option A: use a ChShaftsMotor, in the MOT_MODE_TORQUE mode.
+					//  It works, but most often this is more useful when in MOT_MODE_SPEED.
+		/*
 		ChSharedPtr<ChShaftsMotor> my_motor(new ChShaftsMotor);
 		my_motor->Initialize(my_shaftA, my_shaftD);
 		my_motor->SetMotorMode(ChShaftsMotor::MOT_MODE_TORQUE);
 		my_motor->SetMotorTorque(30);
-		my_system.Add(my_motor); //***TODO*** use thermal engine
+		my_system.Add(my_motor); 
+		*/
 
+					// Option B: use a ChShaftsTorque, it just applies a torque
+					// to my_shaftA (say, the crankshaft) and the negative torque 
+					// to my_shaftD (say, the motor block). 
+					// It is a quick approach. But you should take care of changing
+					// the torque at each timestep if you want to simulate a torque curve...
+		/*
+		ChSharedPtr<ChShaftsTorque> my_motor(new ChShaftsTorque);
+		my_motor->Initialize(my_shaftA, my_shaftD);
+		my_motor->SetTorque(30);
+		my_system.Add(my_motor);
+		*/
+
+					// Option C: a more powerful approach where you can
+					// define a torque curve and a throttle value, using the 
+					// ChShaftsThermalEngine.
+		
+		ChSharedPtr<ChShaftsThermalEngine> my_motor(new ChShaftsThermalEngine);
+		my_motor->Initialize(my_shaftA, my_shaftD);
+		my_system.Add(my_motor);
+
+		ChSharedPtr<ChFunction_Recorder> mTw(new ChFunction_Recorder);
+		mTw->AddPoint(  -5,  30);  //   [rad/s],  [Nm]  
+		mTw->AddPoint(   0,  30);
+		mTw->AddPoint( 200,  60);
+		mTw->AddPoint( 400,  40);
+		mTw->AddPoint( 450,   0);
+		mTw->AddPoint( 500, -60);   // torque curve must be defined beyond max speed too - engine might be 'pulled' 
+		my_motor->SetTorqueCurve(mTw);
+		
 
 
 		GetLog() << "\n\n\nHere's the system hierarchy: \n\n ";
@@ -567,7 +603,7 @@ int main(int argc, char* argv[])
 					 << "  accel: " 
 					 << my_shaftB->GetPos_dtdt()
 					 << "\n"
-					 << "  T.Converter: "
+					 << "  T.Convert.:"
 					 << "  R="
 					 << my_torqueconverter->GetSpeedRatio()
 					 << "  Tin="
@@ -576,6 +612,12 @@ int main(int argc, char* argv[])
 					 << my_torqueconverter->GetTorqueReactionOnOutput()
 					 << "  Tstator="
 					 << my_torqueconverter->GetTorqueReactionOnStator()
+					 << "\n"
+					 << "  T.Motor: "
+					 << "  T(w)=" 
+					 << my_motor->GetTorqueReactionOn1() << "[Nm]"
+					 << "  w=" 
+					 << my_motor->GetRelativeRotation_dt() << "[rad/s]"
 					 << "\n";
 		}
 

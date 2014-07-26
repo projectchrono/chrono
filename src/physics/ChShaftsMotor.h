@@ -39,12 +39,16 @@
 namespace chrono
 {
 
-///  Class for defining a 'transmission ratio' (a 1D gear) 
+///  Class for defining a 'motor' (a 1D model of 'imposed torque'
+///  or 'imposed velocity' or 'imposed rotation') 
 ///  between two one-degree-of-freedom parts, that is,
 ///  shafts that can be used to build 1D models
 ///  of power trains. This is more efficient than 
 ///  simulating power trains modeled with full 3D ChBody
 ///  objects. 
+///  Note, it is not inherited from ChShaftsTorqueBase because
+///  it might introduce also a constraint, in case it is working in
+///  MOT_MODE_ROTATION or MOT_MODE_SPEED.
 
 class ChApi ChShaftsMotor : public ChShaftsCouple {
 

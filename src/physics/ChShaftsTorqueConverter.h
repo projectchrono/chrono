@@ -13,7 +13,6 @@
 #define CHSHAFTSTORQUECONVERTER_H
 
 #include "physics/ChShaftsCouple.h"
-//#include "lcp/ChLcpConstraintTwoGeneric.h"
 #include "physics/ChFunction.h"
 
 
@@ -24,7 +23,9 @@ namespace chrono
 ///  Class for defining a torque converter  
 ///  between two one-degree-of-freedom parts, that is,
 ///  shafts that can be used to build 1D models
-///  of power trains. 
+///  of power trains. Note that is not inherited from 
+///  ChShaftsTorqueBase, because it requires a third part: 
+///  the stator.
 ///  The torque converter multiplies the input torque
 ///  if there is slippage between input and output, then
 ///  the multiplicative effect becomes closer to unity
