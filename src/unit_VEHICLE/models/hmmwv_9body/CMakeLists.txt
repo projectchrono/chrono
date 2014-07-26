@@ -45,12 +45,12 @@ SET(demo_HMMWV_SRCS
 )
 
 SET(HMMWV_LIBS 
-	${CHRONO_LIB}
+	${CHRONOENGINE_LIBRARIES}
 	Chrono_Utils
 	)
 
 SET(HMMWV_DEPENDENCIES
-	${CHRONO_LIB}
+	${CHRONOENGINE_LIBRARIES}
 	Chrono_Utils
 	)
 
@@ -74,8 +74,8 @@ TARGET_LINK_LIBRARIES(demo_HMMWV_9body ${HMMWV_LIBS})
 ADD_DEPENDENCIES(demo_HMMWV_9body ${HMMWV_DEPENDENCIES})
 INSTALL(TARGETS demo_HMMWV_9body DESTINATION bin)
 
-message("libraries: ${HMMWV_LIBS}")
-message("dependencies: ${HMMWV_DEPENDENCIES}")
+#message(STATUS "libraries: ${HMMWV_LIBS}")
+#message(STATUS "dependencies: ${HMMWV_DEPENDENCIES}")
 
 # ----------------------
 # Create config file

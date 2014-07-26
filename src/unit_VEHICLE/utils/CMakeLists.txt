@@ -18,15 +18,6 @@ SET(Chrono_Utils_HEADERS
     ChUtilsInputOutput.h
     )
 
-#
-# INCLUDE Chrono HEADERS
-#
-
-INCLUDE_DIRECTORIES(
-    ${CHRONO_INC}
-    ${CMAKE_SOURCE_DIR}
-    ${CMAKE_BINARY_DIR}
-    )
 
 # ------------------------------------------------------------------------------
 # ADD THE Chrono_Utils LIBRARY
@@ -41,7 +32,7 @@ SET_TARGET_PROPERTIES(Chrono_Utils PROPERTIES
   LINK_FLAGS "${CH_LINKERFLAG_GPU}"
   COMPILE_DEFINITIONS "CH_API_COMPILE_UTILS")
 
-TARGET_LINK_LIBRARIES(Chrono_Utils ${CHRONO_LIB})
+TARGET_LINK_LIBRARIES(Chrono_Utils ${CHRONOENGINE_LIBRARY})
 
 INSTALL(TARGETS Chrono_Utils
     RUNTIME DESTINATION bin

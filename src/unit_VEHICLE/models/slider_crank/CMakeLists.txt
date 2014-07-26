@@ -4,7 +4,7 @@ SET(MODEL_FILES
   )
 
 SET(LIBRARIES
-    ${CHRONO_LIB}
+    ${CHRONOENGINE_LIBRARIES}
     Chrono_Utils
   )
 
