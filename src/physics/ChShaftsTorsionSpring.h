@@ -31,8 +31,7 @@
 // ------------------------------------------------
 ///////////////////////////////////////////////////
 
-#include "physics/ChShaftsCouple.h"
-#include "lcp/ChLcpConstraintTwoGeneric.h"
+#include "physics/ChShaftsTorqueBase.h"
 
 
 
@@ -47,10 +46,10 @@ namespace chrono
 ///  simulating power trains modeled with full 3D ChBody
 ///  objects. 
 
-class ChApi ChShaftsTorsionSpring : public ChShaftsCouple {
+class ChApi ChShaftsTorsionSpring : public ChShaftsTorqueBase {
 
 						// Chrono simulation of RTTI, needed for serialization
-	CH_RTTI(ChShaftsTorsionSpring,ChShaftsCouple);
+	CH_RTTI(ChShaftsTorsionSpring,ChShaftsTorqueBase);
 
 private:
 			//
@@ -58,9 +57,7 @@ private:
 			//
 
 	double stiffness;	
-	double damping;
-
-	double torque_kr;					
+	double damping;				
 
 
 public:
@@ -79,23 +76,8 @@ public:
 
 
 			//
-	  		// FLAGS
-			//
-
-			//
 	  		// FUNCTIONS
 			//
-
-				/// Number of scalar constraints 
-	virtual int GetDOC_c  () {return 0;}
-
-
-			// Override/implement LCP system functions of ChShaftsCouple
-			// (to assembly/manage data for LCP system solver
-
-				// Adds the torsional torques in the 'fb' part: qf+=torques*factor 
-				// of both shafts 
-	void VariablesFbLoadForces(double factor=1.);
 
 
 				/// Set the torsional stiffness between the two shafts 
@@ -108,22 +90,14 @@ public:
 				/// Get the torsional damping between the two shafts 
 	double GetTorsionalDamping() { return this->damping;}
 
-				/// Get the reaction torque exchanged between the two shafts,
-				/// considered as applied to the 1st axis.
-	virtual double GetTorqueReactionOn1() {return  (this->torque_kr); }
-
-				/// Get the reaction torque exchanged between the two shafts,
-				/// considered as applied to the 2nd axis.
-	virtual double GetTorqueReactionOn2() {return -(this->torque_kr); }
-
 
 			//
 			// UPDATE FUNCTIONS
 			//
 
-				/// Update all auxiliary data of the gear transmission at given time
-	virtual void Update (double mytime);
-	
+				/// This is the function that actually contains the 
+				/// formula for computing T=T(rot,vel,time,etc)
+	virtual double ComputeTorque();
 
 
 			//
@@ -142,8 +116,6 @@ public:
 };
 
 
-
-typedef ChSharedPtr<ChShaftsTorsionSpring> ChSharedShaftsTorsionSpringPtr;
 
 
 

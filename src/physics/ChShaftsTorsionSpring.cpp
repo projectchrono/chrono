@@ -9,14 +9,6 @@
 // and at http://projectchrono.org/license-chrono.txt.
 //
 
-///////////////////////////////////////////////////
-//
-//   ChShaftsTorsionSpring.cpp
-//
-// ------------------------------------------------
-//             www.deltaknowledge.com
-// ------------------------------------------------
-///////////////////////////////////////////////////
 
 
 #include "physics/ChShaftsTorsionSpring.h"
@@ -42,7 +34,6 @@ ChClassRegister<ChShaftsTorsionSpring> a_registration_ChShaftsTorsionSpring;
 
 ChShaftsTorsionSpring::ChShaftsTorsionSpring ()
 {
-	this->torque_kr= 0;
 	this->stiffness = 0;
 	this->damping = 0;
 
@@ -58,37 +49,24 @@ ChShaftsTorsionSpring::~ChShaftsTorsionSpring ()
 void ChShaftsTorsionSpring::Copy(ChShaftsTorsionSpring* source)
 {
 		// copy the parent class data...
-	ChShaftsCouple::Copy(source);
+	ChShaftsTorqueBase::Copy(source);
 
 		// copy class data
-	torque_kr = source->torque_kr;
 	stiffness = source->stiffness;
 	damping   = source->damping;
 }
 
 
 
-void ChShaftsTorsionSpring::Update (double mytime)
+double ChShaftsTorsionSpring::ComputeTorque()
 {
-		// Inherit time changes of parent class
-	ChShaftsCouple::Update(mytime);
-	
-		// update class data
-	torque_kr = - (this->GetRelativeRotation() * this->stiffness + this->GetRelativeRotation_dt() * this->damping);
+		// COMPUTE THE TORQUE HERE!
+	return   - ( 
+					  this->GetRelativeRotation()    * this->stiffness	// the torsional spring term
+					+ this->GetRelativeRotation_dt() * this->damping    // the torsional damper term
+				);
 }
 
-
-
-
-////////// LCP INTERFACES ////
-
-
-void ChShaftsTorsionSpring::VariablesFbLoadForces(double factor)
-{
-	// add applied torques to 'fb' vector
-	this->shaft1->Variables().Get_fb().ElementN(0) +=  this->torque_kr * factor;
-	this->shaft2->Variables().Get_fb().ElementN(0) += -this->torque_kr * factor;
-}
 
 
 
@@ -100,7 +78,7 @@ void ChShaftsTorsionSpring::StreamOUT(ChStreamOutBinary& mstream)
 	mstream.VersionWrite(1);
 
 		// serialize parent class too
-	ChShaftsCouple::StreamOUT(mstream);
+	ChShaftsTorqueBase::StreamOUT(mstream);
 
 		// stream out all member data
 	mstream << this->stiffness;
@@ -113,7 +91,7 @@ void ChShaftsTorsionSpring::StreamIN(ChStreamInBinary& mstream)
 	int version = mstream.VersionRead();
 
 		// deserialize parent class too
-	ChShaftsCouple::StreamIN(mstream);
+	ChShaftsTorqueBase::StreamIN(mstream);
 
 		// deserialize class
 	mstream >> this->stiffness;
