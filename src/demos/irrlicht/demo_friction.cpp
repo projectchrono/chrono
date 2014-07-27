@@ -32,7 +32,7 @@
 #include "physics/ChApidll.h" 
 #include "physics/ChSystem.h" 
 #include "physics/ChBodyEasy.h"  
-#include "irrlicht_interface/ChIrrApp.h"
+#include "unit_IRRLICHT/ChIrrApp.h"
 
 // Use the namespace of Chrono
 

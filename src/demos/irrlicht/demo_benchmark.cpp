@@ -33,9 +33,9 @@
 #include "physics/ChSystem.h"
 #include "geometry/ChCSphere.h"
 #include "geometry/ChCBox.h"
-#include "irrlicht_interface/ChBodySceneNode.h"
-#include "irrlicht_interface/ChBodySceneNodeTools.h" 
-#include "irrlicht_interface/ChIrrAppInterface.h"
+#include "unit_IRRLICHT/ChBodySceneNode.h"
+#include "unit_IRRLICHT/ChBodySceneNodeTools.h" 
+#include "unit_IRRLICHT/ChIrrAppInterface.h"
 #include "core/ChTimer.h"
 #include "core/ChRealtimeStep.h"
 

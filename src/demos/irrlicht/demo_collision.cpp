@@ -37,7 +37,7 @@
 #include "physics/ChBodyEasy.h"
 #include "physics/ChParticlesClones.h" 
 #include "assets/ChTexture.h"
-#include "irrlicht_interface/ChIrrApp.h"
+#include "unit_IRRLICHT/ChIrrApp.h"
  
 
 
