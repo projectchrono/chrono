@@ -6,7 +6,7 @@
 
 SET(ENABLE_UNIT_IRRLICHT
   FALSE  CACHE  BOOL
-  "Turn this ON to generate the Chrono::Engine demos with Irrlicht 3D display"
+  "Turn this ON to generate the Chrono::Engine Irrlicht unit."
 )
 
 IF(NOT ENABLE_UNIT_IRRLICHT)
@@ -14,7 +14,7 @@ IF(NOT ENABLE_UNIT_IRRLICHT)
 ENDIF()
 
 #-------------------------------------------------------------------------------
-# List all the files in the IRRLICHT library
+# List all the files in the ChronoEngine_IRRLICHT library
 
 SET(ChronoEngine_UNIT_IRRLICHT_SOURCES
   ChIrrApp.cpp
@@ -84,7 +84,32 @@ SET(CH_IRRLICHTINC  "${CH_IRRLICHTINC}"  PARENT_SCOPE)
 SET(CH_IRRLICHTLIB  "${CH_IRRLICHTLIB}"  PARENT_SCOPE)
 
 #-------------------------------------------------------------------------------
-# Create the IRRLICHT library
+# On Windows, copy the IRRLICHT DLL to the bin/ directory
+# We do this through a custom command so that the Irrlich DLL is copied to the
+# appropriate directory (depending on the build type); however, we use
+# copy_if_different.
+
+IF(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
+
+  ADD_CUSTOM_TARGET(COPY_DLLS ALL)
+
+  IF("${CH_COMPILER}" STREQUAL "COMPILER_MSVC")
+    SET(CH_IRRLICHT_DLL "${CH_IRRLICHTDIR}/bin/Win32-VisualStudio/Irrlicht.dll")
+  ELSEIF("${CH_COMPILER}" STREQUAL "COMPILER_MSVC_X64")
+    SET(CH_IRRLICHT_DLL "${CH_IRRLICHTDIR}/bin/Win64-VisualStudio/Irrlicht.dll")
+  ENDIF()
+
+  ADD_CUSTOM_COMMAND(
+    TARGET COPY_DLLS POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E copy_if_different
+            "${CH_IRRLICHT_DLL}"
+            "${CMAKE_BINARY_DIR}/bin/$<CONFIGURATION>"
+  )
+
+ENDIF()
+
+#-------------------------------------------------------------------------------
+# Create the ChronoEngine_IRRLICHT library
 
 ADD_LIBRARY(ChronoEngine_IRRLICHT SHARED
   ${ChronoEngine_UNIT_IRRLICHT_SOURCES}
@@ -104,7 +129,7 @@ TARGET_LINK_LIBRARIES(ChronoEngine_IRRLICHT
 ADD_DEPENDENCIES (ChronoEngine_IRRLICHT ChronoEngine)
 
 #-------------------------------------------------------------------------------
-# Install the IRRLICHT library
+# Install the ChronoEngine_IRRLICHT library
 
 INSTALL(TARGETS ChronoEngine_IRRLICHT
   RUNTIME DESTINATION bin
