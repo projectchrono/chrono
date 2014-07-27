@@ -29,8 +29,8 @@
 
 #include <irrlicht.h>
 #include "assets/ChAsset.h"
-#include "irrlicht_interface/ChIrrAppInterface.h"
-#include "irrlicht_interface/ChIrrNode.h"
+#include "unit_IRRLICHT/ChIrrAppInterface.h"
+#include "unit_IRRLICHT/ChIrrNode.h"
 
 
 
