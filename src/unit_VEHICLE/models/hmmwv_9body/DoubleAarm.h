@@ -15,70 +15,36 @@ using namespace chrono;
 /// Author: Justin Madsen
 class DoubleAarm : public ChSuspension 
 {
-	// same as in ChSuspension class
-	/*
-protected:
-	// all the bodies
-	std::vector<ChSharedPtr<ChBody>> body_list;
-	// all the joints/links
-	std::vector<ChSharedPtr<ChLinkLock>> link_list;
-	// name of the bodies
-	std::vector<std::string> body_names;
-	// name of the links/joints~IteratorPhysicsItems
-	std::vector<std::string> joint_names;
-	// suspension name
-	std::string subsys_name;
-*/
 public:
 	// easy access to tie rod
 	ChSharedPtr<ChLinkDistance> tierod;	// a distance constraint
 	// the shock
 	ChSharedPtr<ChLinkSpring> shock;
-	// spindle body, combines mass/inertia of upper/lower arms and shock
-	ChSharedPtr<ChBodyEasyBox> spindle;
+	// upright body, combines mass/inertia of upper/lower arms, shock
+	ChSharedPtr<ChBodyEasyBox> upright;
 
 	// @brief default Constructor 
 	DoubleAarm() {}
 
-	// @brief suspension constructor. hard code the link and body locations in the suspension,
-	//		relative to the chassis. Eventually, read in subsystem info from the file.
-	// @param my_system	Chrono system to add bodies, joints, assets, etc. to 
+	// @brief create a Double A-arm suspension using idealized kinematic links. 
+	//	A single body, representing combined inertia of the suspension arms, shock and upright is 
+	//	connected to the chassis and wheel.
+	//	NOTE: applied torque or motion on the wheel needs to be applied outside this function.
+	// @param my_system	Chrono system 
 	// @param susp_type	which side of the car? lf, rf, lr(LB), and rr(RB) correspond to 0,1,2 and 3, as input ints
 	// @param chassis	the Chassis body, whose cm position and orientation is used to locate the wheel spindle location with...
 	// @param wheel		the wheel body
-	// @param spindle_r_bar	relative to the chassis C-sys, where the wheel spindle rigid body position is
+	// @param upright_r_bar spindle connection point to wheel,	relative to the chassis C-sys, 
 	DoubleAarm(ChSystem&  my_system, const int susp_type, 
 		ChSharedPtr<ChBody>& chassis,	ChSharedPtr<ChBody>& wheel,
-		const ChVector<>& spindle_r_bar, const std::string& data_file_name = "none",
-		double spindleMass = 1, ChVector<>& spindleInertia = ChVector<>(1,1,1),
-		ChVector<>& spindleSize = ChVector<>(.1, .1, .1) );	// 10 cm cube
+		const ChVector<>& upright_r_bar, const std::string& data_file_name = "none",
+		double uprightMass = 1, ChVector<>& uprightInertia = ChVector<>(1,1,1),
+		ChVector<>& uprightSize = ChVector<>(.1, .1, .1) );	// 10 cm cube
 
 	// @brief responsible for calling "ChSystem->RemoveXYZ()" for the links and bodies in the model.
 	~DoubleAarm();
 
-/*
-	// @brief get the list of bodies as const refs
-	std::vector<ChSharedPtr<ChBody>>& get_body_ptrs();
-
-	// @brief get the list of joints/links as const refs
-	std::vector<ChSharedPtr<ChLinkLock>>& get_link_ptrs();
-
-	// @brief get the names of the bodies
-	const std::vector<std::string>& get_body_name_list() {
-		return body_names;
-	}
-
-	// @brief get the list of names of the links/joints
-	const std::vector<std::string>& get_link_name_list() {
-		return joint_names;
-	}
-
-	// @brief get the name of the subsys
-	const std::string& get_subsysName() {
-		return subsys_name;
-	}
-*/
-
+	
 };
 
 #endif

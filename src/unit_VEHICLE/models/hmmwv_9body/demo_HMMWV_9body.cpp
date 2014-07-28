@@ -83,7 +83,7 @@ ChQuaternion<> chassisOri(1,0,0,0);	// forward is the positive x-direction
 
 // if using DVI rigid body contact, how large to make the ground width/length dims?
 double terrainWidth = 100.0;
-double terrainLength =100.0;
+double terrainLength = 100.0;
 
 // simulation parameters
 double tend = 10.0;
@@ -182,6 +182,11 @@ int main(int argc, char* argv[]){
 	// Main time-stepping loop
 	int step_num = 0;
 	int out_steps = std::ceil((1.0/ step_size) / out_fps);
+
+// show heiarchy before simulation begins
+#ifdef _DEBUG
+	m_system.ShowHierarchy(GetLog());
+#endif
 
 #ifdef USE_IRRLICHT
 	while(application.GetDevice()->run()) { 

@@ -41,7 +41,7 @@ public:
 		const double mu = 0.4, const double cohesion = 0.0,
 		const bool enable_collision = true): wheel(new ChBody)
 	{
-
+		wheel->SetName("wheel");
 		// the mesh for the visualization (independent from the collision shape)
 		ChSharedPtr<ChObjShapeFile> m_obj(new ChObjShapeFile);
 		m_obj->SetFilename(wheelMeshFile );
@@ -103,6 +103,7 @@ public:
 		const ChQuaternion<>& meshRot = QUNIT,
 		const double mu = 0.7, const double coh = 0.0): wheel(new ChBody)
 	{
+		wheel->SetName("wheel");
 		double r2 = cyl_d_outer/2.0;	// outer radius
 		double r1 = cyl_d_inner/2.0;	// inner radius
 		double h = cyl_width;		// height

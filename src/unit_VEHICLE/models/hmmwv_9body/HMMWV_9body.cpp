@@ -2,8 +2,6 @@
 #include "assets/ChObjShapeFile.h"
 #include "assets/ChAssetLevel.h"
 #include "HMMWV_9body_config.h"
-// #include "assets/ChAsset.h"
-// #include "assets/ChBoxShape.h"
 
 // helpful for unit conversions
 double in_to_m = 1.0/39.3701;	// inches to meters
@@ -20,15 +18,12 @@ double wheelMass			= 175.0/3.2;	//chassisMass/(150./3.0);
 // for visualization, the size of some objects
 ChVector<> bodySize(5.2, 2.0, 2.8);
 ChVector<> spindleSize(0.2,0.2,0.1);
+
 // Inertias, from my HMMWV model
 ChVector<> carInertia		= ChVector<>(10.0, 20.0, 20.0);	// kg-m2
 ChVector<> wheelInertia		= carInertia/20.0;	// [kg-m^2]
 ChVector<> spindleInertia	= carInertia/40.0;	// guesses, for now
-// spring stiffness and damping, HMMWV M 1037 data
-// double springK_F = 168822.0;		// lb/in
-// double springK_R = 302619;			// lb/in
-// double damperC_F = 16987;			// lb-sec/in
-// double damperC_R = 33974;			// lb-sec/in
+
 // engine data
 double max_torque = 8600*inlb_to_Nm;	// in-lb
 double max_engine_n = 2000;	// engine speed, rpm 
@@ -63,6 +58,7 @@ HMMWV_9body::HMMWV_9body(ChSystem&  my_system,
 	chassis = ChSharedPtr<ChBodyEasyBox>(new ChBodyEasyBox(bodySize.x, bodySize.y, bodySize.z,
 		500, false, true) );
 	chassis->SetPos(chassisCM);
+	chassis->SetName("chassis");
 	my_system.Add(chassis);
 
 	// add a nice .obj mesh file as a visual asset
@@ -105,106 +101,87 @@ HMMWV_9body::HMMWV_9body(ChSystem&  my_system,
 	ChVector<> wheelLF_cm = chassis->GetCoord().TrasformLocalToParent( wheelLF_cm_bar);
 	if(useTireMesh) {
 		// use a nice looking .obj mesh for the wheel visuals
-		wheelLF = new SoilbinWheel(my_system, wheelLF_cm, chrono::QUNIT,
+		this->wheelLF = new SoilbinWheel(my_system, wheelLF_cm, chrono::QUNIT,
 			wheelMass, tireWidth, tireRadius*2.0, tireRadius*0.8,
 			true,
 			meshFile, QUNIT);
 	} else {
 		// use a cylinder, with inertia based on the inner and outer radii
-		wheelLF = new SoilbinWheel(my_system, wheelLF_cm,chrono::QUNIT,
+		this->wheelLF = new SoilbinWheel(my_system, wheelLF_cm,chrono::QUNIT,
 			wheelMass, tireWidth, tireRadius*2.0, tireRadius*0.8, true);
 	}
 
 	// Each suspension has its marker joint locations hardcoded, for now, for each of the four units
 	// --- Left front suspension
-	suspension_LF = new DoubleAarm(my_system, 0, chassis, wheelLF->GetBody(), spindleLF_cm_bar);
-	// ---- connect LF spindle to wheel, unpowered = revolute joint
-	spindle_joint_LF = ChSharedPtr<ChLinkLockRevolute>(new ChLinkLockRevolute);
-	spindle_joint_LF->Initialize(wheelLF->GetBody(), suspension_LF->spindle, 
-		ChCoordsys<>( chassis->GetCoord().TrasformLocalToParent(spindleLF_cm_bar), chrono::Q_from_AngX(CH_C_PI/2) ) );
-	my_system.AddLink(spindle_joint_LF);
+	this->suspension_LF = new DoubleAarm(my_system, 0, chassis, wheelLF->GetBody(), spindleLF_cm_bar);
 
 	// 1) --- RF wheel
 	ChVector<> wheelRF_cm = chassis->GetCoord().TrasformLocalToParent( wheelRF_cm_bar);
 	if(useTireMesh) {
 		// use a nice looking .obj mesh for the wheel visuals
-		wheelRF = new SoilbinWheel(my_system, wheelRF_cm, chrono::QUNIT,
+		this->wheelRF = new SoilbinWheel(my_system, wheelRF_cm, chrono::QUNIT,
 			wheelMass, tireWidth, tireRadius*2.0, tireRadius*0.8,
 			true,
 			meshFile, QUNIT);
 	} else {
 		// use a cylinder, with inertia based on the inner and outer radii
-		wheelRF = new SoilbinWheel(my_system, wheelRF_cm,chrono::QUNIT,
+		this->wheelRF = new SoilbinWheel(my_system, wheelRF_cm,chrono::QUNIT,
 			wheelMass, tireWidth, tireRadius*2.0, tireRadius*0.8, true);
 	}
 
 	// --- Right front suspension
-	suspension_RF = new DoubleAarm(my_system, 1, chassis, wheelRF->GetBody(), spindleRF_cm_bar);
-	// ---- connect RF spindle to wheel, unpowered = revolute joint
-	spindle_joint_RF = ChSharedPtr<ChLinkLockRevolute>(new ChLinkLockRevolute);
-	spindle_joint_RF->Initialize(wheelRF->GetBody(), suspension_RF->spindle, 
-		ChCoordsys<>( chassis->GetCoord().TrasformLocalToParent(spindleRF_cm_bar), chrono::Q_from_AngX(CH_C_PI/2) ) );
-	my_system.AddLink(spindle_joint_RF);
-
+	this->suspension_RF = new DoubleAarm(my_system, 1, chassis, wheelRF->GetBody(), spindleRF_cm_bar);
 
 	// 2) ---	LB Wheel
 	ChVector<> wheelLB_cm = chassis->GetCoord().TrasformLocalToParent( wheelLB_cm_bar);
 	if(useTireMesh) {
 		// use a nice looking .obj mesh for the wheel visuals
-		wheelLB =  new SoilbinWheel(my_system, wheelLB_cm, chrono::QUNIT,
+		this->wheelLB =  new SoilbinWheel(my_system, wheelLB_cm, chrono::QUNIT,
 			wheelMass, tireWidth, tireRadius*2.0, tireRadius*0.8,
 			true,
 			meshFile, QUNIT);
 	} else {
 		// use a cylinder, with inertia based on the inner and outer radii
-		wheelLB = new SoilbinWheel(my_system, wheelLB_cm,chrono::QUNIT,
+		this->wheelLB = new SoilbinWheel(my_system, wheelLB_cm,chrono::QUNIT,
 			wheelMass, tireWidth, tireRadius*2.0, tireRadius*0.8, true);
 	}
 
 	// --- Left back suspension. Does not include ChLinkEngine; create it here
-	suspension_LB = new DoubleAarm(my_system, 2, chassis, wheelLB->GetBody(), spindleLB_cm_bar);
-	// --- LB spindle joint,
-	spindle_joint_LB = ChSharedPtr<ChLinkLockRevolute>(new ChLinkLockRevolute);
-	spindle_joint_LB->Initialize(wheelLB->GetBody(), suspension_LB->spindle, 
-		ChCoordsys<>( chassis->GetCoord().TrasformLocalToParent(spindleLB_cm_bar), chrono::Q_from_AngX(CH_C_PI/2) ) );
-	my_system.AddLink(spindle_joint_LB);
+	this->suspension_LB = new DoubleAarm(my_system, 2, chassis, wheelLB->GetBody(), spindleLB_cm_bar);
 
 	/// --- LB engine
-	link_engineL = ChSharedPtr<ChLinkEngine>(new ChLinkEngine); 
+	this->link_engineL = ChSharedPtr<ChLinkEngine>(new ChLinkEngine); 
 	link_engineL->Initialize(wheelLB->GetBody(), chassis, 
 		ChCoordsys<>( wheelLB_cm, chrono::Q_from_AngAxis(CH_C_PI/2.0, VECT_X) ) );
 	link_engineL->Set_shaft_mode(ChLinkEngine::ENG_SHAFT_CARDANO); // approx as a double Rzeppa joint
 	link_engineL->Set_eng_mode(ChLinkEngine::ENG_MODE_TORQUE);
+	link_engineL->SetName("engine_L");
 	my_system.AddLink(link_engineL);
 
 	// 3) ---	RB Wheel
 	ChVector<> wheelRB_cm = chassis->GetCoord().TrasformLocalToParent( wheelRB_cm_bar);
 	if(useTireMesh) {
 		// use a nice looking .obj mesh for the wheel visuals
-		wheelRB = new SoilbinWheel(my_system, wheelRB_cm, chrono::QUNIT,
+		this->wheelRB = new SoilbinWheel(my_system, wheelRB_cm, chrono::QUNIT,
 			wheelMass, tireWidth, tireRadius*2.0, tireRadius*0.8,
 			true,
 			meshFile, QUNIT);
 	} else {
 		// use a cylinder, with inertia based on the inner and outer radii
-		wheelRB = new SoilbinWheel(my_system, wheelRB_cm,chrono::QUNIT,
+		this->wheelRB = new SoilbinWheel(my_system, wheelRB_cm,chrono::QUNIT,
 			wheelMass, tireWidth, tireRadius*2.0, tireRadius*0.8, true);
 	}
 
 	// --- Right back suspension. Does not include ChLinkEngine; create it here
-	suspension_RB = new DoubleAarm(my_system, 3, chassis, wheelRB->GetBody(), spindleRB_cm_bar);
-	// ---	RB spindle joint
-	spindle_joint_RB = ChSharedPtr<ChLinkLockRevolute>(new ChLinkLockRevolute);
-	spindle_joint_RB->Initialize(wheelRB->GetBody(), suspension_RB->spindle, 
-		ChCoordsys<>( chassis->GetCoord().TrasformLocalToParent(spindleRB_cm_bar), chrono::Q_from_AngX(CH_C_PI/2) ) );
-	my_system.AddLink(spindle_joint_RB);
+	this->suspension_RB = new DoubleAarm(my_system, 3, chassis, wheelRB->GetBody(), spindleRB_cm_bar);
 
 	// --- RB engine
-	link_engineR = ChSharedPtr<ChLinkEngine>(new ChLinkEngine); 
+	this->link_engineR = ChSharedPtr<ChLinkEngine>(new ChLinkEngine); 
 	link_engineR->Initialize(wheelRB->GetBody(), chassis, 
-		ChCoordsys<>( wheelRB_cm, chrono::Q_from_AngAxis(CH_C_PI/2.0, VECT_X) ) );
+		ChCoordsys<>( wheelRB_cm, chrono::Q_from_AngAxis(-CH_C_PI/2.0, VECT_X) ) );
 	link_engineR->Set_shaft_mode(ChLinkEngine::ENG_SHAFT_CARDANO); // approx as a double Rzeppa joint
 	link_engineR->Set_eng_mode(ChLinkEngine::ENG_MODE_TORQUE);
+	link_engineR->SetName("engine_R");
 	my_system.AddLink(link_engineR);
 }
 

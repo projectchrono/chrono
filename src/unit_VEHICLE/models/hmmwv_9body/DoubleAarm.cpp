@@ -1,46 +1,21 @@
 #include "DoubleAarm.h"
 
 using namespace chrono;
-// JCM 11/7/12, helpful for unit conversions
-// double inch_to_m = inch_to_m;	// inches to meters
-// double inlb_to_Nm = 1.0/8.851;	// in-lb to N-m
 
 // set up tire & vehicle geometry -------------------------------------------------
-// effective radius of the tires
-// double tireRadius			= 18.5*inch_to_m;
-// width of the tires
-// double tireWidth			= 10.0*inch_to_m;
-// double chassisMass			= 7500.0/2.2;	// chassis mass in kg
-// double spindleMass			= 100.0/2.2;	//chassisMass/(150./8.0);
-// double wheelMass			= 175.0/3.2;	//chassisMass/(150./3.0);
-// for visualization, the size of some objects
-// ChVector<> bodySize(5.2, 2.0, 2.8);
-// ChVector<> spindleSize(0.2,0.2,0.1);
-// Inertias, from my HMMWV model
-// ChVector<> carInertia		= ChVector<>(10.0, 20.0, 20.0);	// kg-m2
-// ChVector<> wheelInertia		= carInertia/20.0;	// [kg-m^2]
-// ChVector<> spindleInertia	= carInertia/40.0;	// guesses, for now
 // spring stiffness and damping, HMMWV M 1037 data
 double springK_F = 168822.0;		// lb/in
 double springK_R = 302619;			// lb/in
 double damperC_F = 16987;			// lb-sec/in
 double damperC_R = 33974;			// lb-sec/in
 double inch_to_m = 0.0254;	// inches to meters
-// engine data
-// double max_torque = 8600*1.0/8.851;	// in-lb
-// double max_engine_n = 2000;	// engine speed, rpm 
 
-/*
-DoubleAarm::DoubleAarm() {
-
-}
-*/
 
 DoubleAarm::DoubleAarm(ChSystem&  my_system, const int susp_type, ChSharedPtr<ChBody>& chassis,
 	ChSharedPtr<ChBody>& wheel,
-	const ChVector<>& spindle_r_bar,
+	const ChVector<>& upright_r_bar,
 	const std::string& data_file_name,
-	double spindleMass, ChVector<>& spindleInertia, ChVector<>& spindleSize) 
+	double uprightMass, ChVector<>& uprightInertia, ChVector<>& uprightSize) 
 {
 	// for now, assume HMMWV is oriented directly forward
 	ChVector<> r0 = chassis->GetPos();
@@ -57,6 +32,8 @@ DoubleAarm::DoubleAarm(ChSystem&  my_system, const int susp_type, ChSharedPtr<Ch
 	ChVector<> HP_St_1	= ChVector<>();	// steer, chassis 
 	ChVector<> HP_St_2	= ChVector<>();	// steer, spindle
 
+	std::string susp_type_string;
+
 	// all numbers are w.r.t. chassis CM
 	switch ( susp_type )
 	{
@@ -72,7 +49,7 @@ DoubleAarm::DoubleAarm(ChSystem&  my_system, const int susp_type, ChSharedPtr<Ch
 			HP_KD_L	= r0 + ChVector<>(-44.62, -23.56, -30.97)*inch_to_m;	// sringDamper, lower, = HP L2
 			HP_St_1	= r0 + ChVector<>(-25.8, -16.6, -9.81)*inch_to_m;	// steer, chassis // y -= 9.81
 			HP_St_2	= r0 + ChVector<>(-31.1, -19.55, -32.33)*inch_to_m;	// steer, spindle
-	
+			susp_type_string = "left front";
 			break;
 		}
 		case 1:	// "right front, (x,y) (-,+)":
@@ -87,6 +64,7 @@ DoubleAarm::DoubleAarm(ChSystem&  my_system, const int susp_type, ChSharedPtr<Ch
 			HP_KD_L	= r0 + ChVector<>(-44.62, 23.56, -30.97)*inch_to_m;	// sringDamper, lower = LCA HP2
 			HP_St_1	= r0 + ChVector<>(-25.8, 16.6, -9.81)*inch_to_m;	// steer, chassis 
 			HP_St_2	= r0 + ChVector<>(-31.1, 19.55, -32.33)*inch_to_m;	// steer, spindle
+			susp_type_string = "right front";
 			break; 
 		}
 		case 2:	// "left back, (x,y) (+,-)":
@@ -101,6 +79,7 @@ DoubleAarm::DoubleAarm(ChSystem&  my_system, const int susp_type, ChSharedPtr<Ch
 			HP_KD_L	= r0 +ChVector<>(85.57, -23.56, -30.97)*inch_to_m;	// sringDamper, lower (spindle) = LCA HP2
 			HP_St_1	= r0 +ChVector<>(70.18, -16.6, -16.38)*inch_to_m;	// steer, chassis 
 			HP_St_2	= r0 + ChVector<>(72.27, -19.28, -32.33)*inch_to_m;	// steer, spindle
+			susp_type_string = "left back";
 			break;
 		}
 		case 3:	// "right back, (x,y) (+,+)":
@@ -115,6 +94,7 @@ DoubleAarm::DoubleAarm(ChSystem&  my_system, const int susp_type, ChSharedPtr<Ch
 			HP_KD_L	= r0 + ChVector<>(85.57, 23.56, -30.97)*inch_to_m;	// sringDamper, lower = LCA HP2
 			HP_St_1	= r0 + ChVector<>(70.18, 16.6, -16.38)*inch_to_m;	// steer, chassis 
 			HP_St_2	= r0 + ChVector<>(72.27, 19.28, -32.33)*inch_to_m;	// steer, spindle
+			susp_type_string = "right back";
 			break;
 		}
 		default:
@@ -131,94 +111,74 @@ DoubleAarm::DoubleAarm(ChSystem&  my_system, const int susp_type, ChSharedPtr<Ch
 	// 4) finalize or add to system
 	// 5) add ChSharedPtr to the class list, and the name also
 	// ---------- spindle.  Initialize, add to the system, add to ref array.
-	spindle = ChSharedPtr<ChBodyEasyBox>(new ChBodyEasyBox(spindleSize.x, spindleSize.y, spindleSize.z, 1000));
-	spindle->SetPos(chassis->GetCoord().TrasformLocalToParent( spindle_r_bar) );
-	my_system.Add(spindle);
+	this->upright = ChSharedPtr<ChBodyEasyBox>(new ChBodyEasyBox(uprightSize.x, uprightSize.y, uprightSize.z, 1000));
+	upright->SetPos(chassis->GetCoord().TrasformLocalToParent( upright_r_bar) );
+	upright->SetNameString(susp_type_string + " upright" );
+	my_system.Add(upright);
 
-	this->body_list.push_back(spindle);
-	this->body_names.push_back("spindle");
+	this->body_list.push_back(&upright.DynamicCastTo<ChBody>());
 
-	// either front suspension needs a revolute joint between wheel and spindle, due to lack of ChLinkEngine
-	// on Rear Wheel Drive vehicles
-	if(susp_type == 0 || susp_type == 1 ) {
-		ChSharedPtr<ChLinkLockRevolute> spindle_revolute = ChSharedPtr<ChLinkLockRevolute>(new ChLinkLockRevolute); 
-		spindle_revolute->Initialize(wheel, spindle, ChCoordsys<>( wheel->GetPos(),
-			chrono::Q_from_AngAxis(CH_C_PI/2.0, VECT_X) ) );
-		my_system.AddLink(spindle_revolute);
-		this->joint_list.push_back(spindle_revolute);
-		this->joint_names.push_back("spindle_revolute");
-	}
+	// ---- revolute joint between wheel and upright. Joint location based on input position, spindle_r_bar
+	ChSharedPtr<ChLinkLockRevolute> spindle_revolute = ChSharedPtr<ChLinkLockRevolute>(new ChLinkLockRevolute); 
+	spindle_revolute->Initialize(wheel, upright, ChCoordsys<>( chassis->GetCoord().TrasformLocalToParent(upright_r_bar),
+		chrono::Q_from_AngAxis(CH_C_PI/2.0, VECT_X) ) );
+	my_system.AddLink(spindle_revolute);
+	this->joint_list.push_back(&spindle_revolute.DynamicCastTo<ChLinkLock>());
+	spindle_revolute->SetNameString(susp_type_string + "spindle revolute");
 
-	// --- suspension joints. Initialize, add to the system, add to ref array.
-	ChSharedPtr<ChLinkDistance> link_distU1 = ChSharedPtr<ChLinkDistance>(new ChLinkDistance); // right, front, upper, 1
-	link_distU1->Initialize(chassis, spindle, false, HP_U1, HP_U2);
+	// --- distance constraints to idealize upper and lower control arms
+	ChSharedPtr<ChLinkDistance> link_distU1 = ChSharedPtr<ChLinkDistance>(new ChLinkDistance); // upper 1, (frontward)
+	link_distU1->Initialize(chassis, upright, false, HP_U1, HP_U2);
+	link_distU1->SetNameString(susp_type_string + "_dist_U1_front");
 	my_system.AddLink(link_distU1);
-	this->link_list.push_back(link_distU1);
-	this->link_names.push_back("link_distU1");
+	this->link_list.push_back(&link_distU1);
 
-	ChSharedPtr<ChLinkDistance> link_distU2 = ChSharedPtr<ChLinkDistance>(new ChLinkDistance); // right, front, upper, 2
-	link_distU2->Initialize(chassis, spindle, false, HP_U3, HP_U2 );
+	ChSharedPtr<ChLinkDistance> link_distU2 = ChSharedPtr<ChLinkDistance>(new ChLinkDistance); //   upper 2, (rearward)
+	link_distU2->Initialize(chassis, upright, false, HP_U3, HP_U2 );
+	link_distU2->SetNameString(susp_type_string + "_dist_U2_rear");
 	my_system.AddLink(link_distU2);
-	this->link_list.push_back(link_distU2);
-	this->link_names.push_back("link_distU2)");
+	this->link_list.push_back(&link_distU2);
 
-	ChSharedPtr<ChLinkDistance> link_distL1 = ChSharedPtr<ChLinkDistance>(new ChLinkDistance); // right, front, lower, 1
-	link_distL1->Initialize(chassis, spindle, false, HP_L1, HP_L2 );
+	ChSharedPtr<ChLinkDistance> link_distL1 = ChSharedPtr<ChLinkDistance>(new ChLinkDistance); //   lower 1, frontward
+	link_distL1->Initialize(chassis, upright, false, HP_L1, HP_L2 );
+	link_distL1->SetNameString(susp_type_string + "_dist_L1_front");
 	my_system.AddLink(link_distL1);
-	this->link_list.push_back(link_distL1);
-	this->link_names.push_back("link_distL1");
+	this->link_list.push_back(&link_distL1);
 
-	ChSharedPtr<ChLinkDistance> link_distL2 = ChSharedPtr<ChLinkDistance>(new ChLinkDistance); // right, front, lower, 2
-	link_distL2->Initialize(chassis, spindle, false, HP_L3, HP_L2 );
+	ChSharedPtr<ChLinkDistance> link_distL2 = ChSharedPtr<ChLinkDistance>(new ChLinkDistance); // lower 2, rearward
+	link_distL2->Initialize(chassis, upright, false, HP_L3, HP_L2 );
+	link_distL2->SetNameString(susp_type_string + "_dist_L2_rear");
 	my_system.AddLink(link_distL2);
-	this->link_list.push_back(link_distL2);
-	this->link_names.push_back("link_distL2");
+	this->link_list.push_back(&link_distL2);
 
-	//	--- Spring/damper
-	ChSharedPtr<ChLinkSpring> spring = ChSharedPtr<ChLinkSpring>(new ChLinkSpring);
-	spring->Initialize(chassis, spindle, false, HP_KD_U, HP_KD_L );
-	spring->Set_SpringK(springK_F);	
-	spring->Set_SpringR(damperC_F);	
-	my_system.AddLink(spring);
-	this->shock = spring;
+	//	--- Spring/damper, between upright and chassis
+	this->shock = ChSharedPtr<ChLinkSpring>(new ChLinkSpring);
+	shock->Initialize(upright, chassis, false, HP_KD_U, HP_KD_L );
+	shock->Set_SpringK(springK_F);	
+	shock->Set_SpringR(damperC_F);
+	shock->SetNameString(susp_type_string + "_shock");
+	my_system.AddLink(shock);
 	// double m_springRestLen = shock->Get_SpringRestLenght();
 	// shock->Set_SpringRestLenght
 
 	//	--- Steering
- 	ChSharedPtr<ChLinkDistance> link_distSTEER = ChSharedPtr<ChLinkDistance>(new ChLinkDistance); // right steer
-	link_distSTEER->Initialize(chassis, spindle, false, HP_St_1, HP_St_2 );
-	my_system.AddLink(link_distSTEER);
-	this->link_list.push_back(link_distSTEER);
-	this->link_names.push_back("link_distSTEER");
-	this->tierod = link_distSTEER;
+ 	this->tierod = ChSharedPtr<ChLinkDistance>(new ChLinkDistance); // right steer
+	tierod->Initialize(chassis, chassis, false, HP_St_1, HP_St_2 );
+	tierod->SetNameString(susp_type_string + "_dist_tierod");
+	my_system.AddLink(tierod);
+	this->link_list.push_back(&tierod);
 
 }
 
 DoubleAarm::~DoubleAarm() {
 	// remove the links, forces, etc., then the bodies last
 	if( this->link_list.size() > 0 ) {
-		ChSystem* m_sys = this->body_list[0]->GetSystem();
+		ChSystem* m_sys = (*(this->body_list[0]))->GetSystem();
 		for(int i = 0; i < this->link_list.size(); i++){
-			m_sys->RemoveLink(this->link_list[i]);
+			m_sys->RemoveLink(*(this->link_list[i]));
 		}
 		for(int j = 0; j < this->body_list.size(); j++){
-			m_sys->RemoveBody(this->body_list[j]);
+			m_sys->RemoveBody(*(this->body_list[j]) );
 		}
-		this->body_names.clear();
-		this->joint_names.clear();
 	}
 }
-
-/*
-
-// get the list of bodies as const refs
-std::vector<ChSharedPtr<ChBody>>& DoubleAarm::get_body_ptrs() {
-	return this->body_list;
-}
-
-// get the list of joints/links as const refs
-std::vector<ChSharedPtr<ChLinkLock>>& DoubleAarm::get_link_ptrs() {
-	return this->link_list;
-}
-
-*/
