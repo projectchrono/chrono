@@ -52,8 +52,9 @@ IF (ENABLE_UNIT_IRRLICHT)
 		${CH_IRRLICHTLIB}
 		ChronoEngine
 		ChronoEngine_FEM
+		ChronoEngine_IRRLICHT
 		)
-	ADD_DEPENDENCIES (demo_meshless ChronoEngine ChronoEngine_FEM)
+	ADD_DEPENDENCIES (demo_meshless ChronoEngine ChronoEngine_FEM ChronoEngine_IRRLICHT)
 
 	install(TARGETS demo_meshless DESTINATION bin)
 	
@@ -67,8 +68,9 @@ IF (ENABLE_UNIT_IRRLICHT)
 		${CH_IRRLICHTLIB}
 		ChronoEngine
 		ChronoEngine_FEM
+		ChronoEngine_IRRLICHT
 		)
-	ADD_DEPENDENCIES (demo_FEMthermal ChronoEngine ChronoEngine_FEM)
+	ADD_DEPENDENCIES (demo_FEMthermal ChronoEngine ChronoEngine_FEM ChronoEngine_IRRLICHT)
 
 	install(TARGETS demo_FEMthermal DESTINATION bin)
 	
@@ -86,8 +88,9 @@ IF (ENABLE_UNIT_IRRLICHT)
 			${CH_MATLABLIB}
 			ChronoEngine
 			ChronoEngine_FEM
+			ChronoEngine_IRRLICHT
 			)
-		ADD_DEPENDENCIES (demo_FEMvisualize ChronoEngine ChronoEngine_FEM)
+		ADD_DEPENDENCIES (demo_FEMvisualize ChronoEngine ChronoEngine_FEM ChronoEngine_IRRLICHT)
 
 		install(TARGETS demo_FEMvisualize DESTINATION bin)
 	
@@ -103,8 +106,9 @@ IF (ENABLE_UNIT_IRRLICHT)
 			${CH_MATLABLIB}
 			ChronoEngine
 			ChronoEngine_FEM
+			ChronoEngine_IRRLICHT
 			)
-		ADD_DEPENDENCIES (demo_FEMbeams ChronoEngine ChronoEngine_FEM)
+		ADD_DEPENDENCIES (demo_FEMbeams ChronoEngine ChronoEngine_FEM ChronoEngine_IRRLICHT)
 
 		install(TARGETS demo_FEMbeams DESTINATION bin)
 
@@ -120,8 +124,9 @@ IF (ENABLE_UNIT_IRRLICHT)
 			${CH_MATLABLIB}
 			ChronoEngine
 			ChronoEngine_FEM
+			ChronoEngine_IRRLICHT
 			)
-		ADD_DEPENDENCIES (demo_FEMbeamsconstr ChronoEngine ChronoEngine_FEM)
+		ADD_DEPENDENCIES (demo_FEMbeamsconstr ChronoEngine ChronoEngine_FEM ChronoEngine_IRRLICHT)
 
 		install(TARGETS demo_FEMbeamsconstr DESTINATION bin)
 	
@@ -137,8 +142,9 @@ IF (ENABLE_UNIT_IRRLICHT)
 			${CH_MATLABLIB}
 			ChronoEngine
 			ChronoEngine_FEM
+			ChronoEngine_IRRLICHT
 			)
-		ADD_DEPENDENCIES (demo_FEMminiature ChronoEngine ChronoEngine_FEM)
+		ADD_DEPENDENCIES (demo_FEMminiature ChronoEngine ChronoEngine_FEM ChronoEngine_IRRLICHT)
 
 		install(TARGETS demo_FEMminiature DESTINATION bin)
 	
@@ -154,8 +160,9 @@ IF (ENABLE_UNIT_IRRLICHT)
 		${CH_IRRLICHTLIB}
 		ChronoEngine
 		ChronoEngine_FEM
+		ChronoEngine_IRRLICHT
 		)
-	ADD_DEPENDENCIES (demo_FEMelectrostatics ChronoEngine ChronoEngine_FEM)
+	ADD_DEPENDENCIES (demo_FEMelectrostatics ChronoEngine ChronoEngine_FEM ChronoEngine_IRRLICHT)
 
 	install(TARGETS demo_FEMelectrostatics DESTINATION bin)
 	
