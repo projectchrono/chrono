@@ -64,14 +64,18 @@ HMMWV_9body::HMMWV_9body(ChSystem&  my_system,
 	// add a nice .obj mesh file as a visual asset
 	ChSharedPtr<ChObjShapeFile> chassisObj(new ChObjShapeFile);
 	chassisObj->SetFilename("../data/humvee4.obj");
+//	chassisObj->SetFilename("../data/humvee_scaled.obj");
 
 	// might need to rotate the visualization mesh so x+ is backwards
 	// in blender, humvee4.obj looks to have z+ up, -y forward. Want -x forward
 	ChSharedPtr<ChAssetLevel> chassisMesh_level(new ChAssetLevel);
 	chassisMesh_level->AddAsset(chassisObj);
 	// NOTE: I am not sure what the offset is between the wavefront origin and the body center of mass
-	chassisMesh_level->GetFrame().SetPos( ChVector<>(0,0,0) );
-	chassisMesh_level->GetFrame().SetRot( chrono::Q_from_AngX(CH_C_PI_2) );
+	chassisMesh_level->GetFrame().SetPos( ChVector<>(.1,0,0) );
+	ChFrame<> rot1(ChVector<>(),  chrono::Q_from_AngX(CH_C_PI_2) );
+	ChFrame<> rot2(ChVector<>(),  chrono::Q_from_AngZ(CH_C_PI_2) );
+	ChFrame<> rot3 = rot1 >> rot2;
+	chassisMesh_level->GetFrame().SetRot( rot3.GetRot() );
 	chassis->AddAsset(chassisMesh_level);
 //	chassis->AddAsset(chassisObj);
 	// position of spindle, wheel CMs
