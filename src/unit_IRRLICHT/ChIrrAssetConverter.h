@@ -63,11 +63,6 @@ public:
   /// Destructor
   ~ChIrrAssetConverter();
 
-  /// Set the directory where the cube, cylinder, etc. primitives are stored as
-  /// .obj  files (by default, it is "../data/"). Must be set _before_ creating
-  /// the ChIrrApp or the ChIrrAssetConverter (it is a static method)
-  static void SetDefaultObjectDir(std::string mdir) {irrlicht_default_obj_dir = mdir;}
-
   /// Returns the proxy to the ChIrrNode, by scanning all assets.
   /// Note, check for the returned pointer, using mnode.IsNull(), just in case a
   /// proxy has not been added.

@@ -19,6 +19,7 @@ ENDIF()
 SET(ChronoEngine_UNIT_IRRLICHT_SOURCES
   ChIrrApp.cpp
   ChBodySceneNode.cpp
+  ChBodySceneNodeTools.cpp
   ChIrrAppInterface.cpp
   ChIrrAssetConverter.cpp
   ChIrrCamera.cpp
