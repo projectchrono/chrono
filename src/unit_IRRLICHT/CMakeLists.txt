@@ -26,6 +26,7 @@ SET(ChronoEngine_UNIT_IRRLICHT_SOURCES
   ChIrrMeshTools.cpp
   ChIrrNode.cpp
   ChIrrNodeProxyToAsset.cpp
+  ChIrrParticlesSceneNode.cpp
   ChIrrTools.cpp
 )
 
@@ -39,7 +40,7 @@ SET(ChronoEngine_UNIT_IRRLICHT_HEADERS
   ChIrrCamera.h
   ChIrrMeshTools.h
   ChIrrWizard.h
-  ChParticlesSceneNode.h
+  ChIrrParticlesSceneNode.h
   ChIrrAssetConverter.h
   ChIrrNode.h
   ChIrrNodeProxyToAsset.h
