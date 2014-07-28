@@ -27,7 +27,7 @@
 // If Irrlicht support is available...
 #if IRRLICHT_ENABLED
   // ...include additional headers
-# include "irrlicht_interface/ChIrrApp.h"
+# include "unit_IRRLICHT/ChIrrApp.h"
 # include <irrlicht.h>
 # include "HMMWVEventReceiver.h"
 

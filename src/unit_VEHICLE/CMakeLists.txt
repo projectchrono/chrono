@@ -96,6 +96,9 @@ IF(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
         ADD_CUSTOM_COMMAND(
             TARGET COPY_DLLS POST_BUILD
             COMMAND ${CMAKE_COMMAND} -E copy_if_different
+                "${CH_BINDIR}/$<CONFIGURATION>/ChronoEngine_IRRLICHT.dll"
+                "${CMAKE_BINARY_DIR}/bin/$<CONFIGURATION>"
+            COMMAND ${CMAKE_COMMAND} -E copy_if_different
                 "${CH_IRRLICHT_DLL}"
                 "${CMAKE_BINARY_DIR}/bin/$<CONFIGURATION>"
         )
