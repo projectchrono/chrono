@@ -35,9 +35,9 @@
 #include "physics/ChContactContainerNodes.h"
 #include "unit_FEM/ChMatterMeshless.h"
 #include "unit_FEM/ChProximityContainerMeshless.h"
-#include "irrlicht_interface/ChBodySceneNode.h"
-#include "irrlicht_interface/ChBodySceneNodeTools.h" 
-#include "irrlicht_interface/ChIrrAppInterface.h"
+#include "unit_IRRLICHT/ChBodySceneNode.h"
+#include "unit_IRRLICHT/ChBodySceneNodeTools.h" 
+#include "unit_IRRLICHT/ChIrrAppInterface.h"
 #include "core/ChRealtimeStep.h"
 
 

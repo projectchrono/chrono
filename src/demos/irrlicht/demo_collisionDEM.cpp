@@ -31,7 +31,7 @@
 
 #include "lcp/ChLcpSolverDEM.h"
 
-#include "irrlicht_interface/ChIrrApp.h"
+#include "unit_IRRLICHT/ChIrrApp.h"
 #include <irrlicht.h>
 
 // Use the namespace of Chrono

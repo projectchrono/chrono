@@ -26,8 +26,8 @@
   
  
 #include "physics/ChApidll.h" 
-#include "irrlicht_interface/ChIrrAppInterface.h"
-#include "irrlicht_interface/ChIrrMeshTools.h"
+#include "unit_IRRLICHT/ChIrrAppInterface.h"
+#include "unit_IRRLICHT/ChIrrMeshTools.h"
 #include "core/ChRealtimeStep.h"
 #include "collision/ChCConvexDecomposition.h"
 

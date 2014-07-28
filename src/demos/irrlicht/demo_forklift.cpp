@@ -37,8 +37,8 @@
 #include "physics/ChApidll.h" 
 #include "physics/ChSystem.h"
 #include "physics/ChLinkLinActuator.h"
-#include "irrlicht_interface/ChBodySceneNodeTools.h" 
-#include "irrlicht_interface/ChIrrAppInterface.h"
+#include "unit_IRRLICHT/ChBodySceneNodeTools.h" 
+#include "unit_IRRLICHT/ChIrrAppInterface.h"
 #include "core/ChRealtimeStep.h"
 
 #include <irrlicht.h>
