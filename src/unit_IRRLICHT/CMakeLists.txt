@@ -28,6 +28,7 @@ SET(ChronoEngine_UNIT_IRRLICHT_SOURCES
   ChIrrNodeProxyToAsset.cpp
   ChIrrParticlesSceneNode.cpp
   ChIrrTools.cpp
+  ChIrrWizard.cpp
 )
 
 SET(ChronoEngine_UNIT_IRRLICHT_HEADERS
