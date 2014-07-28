@@ -21,6 +21,7 @@ SET(ChronoEngine_UNIT_IRRLICHT_SOURCES
   ChIrrAppInterface.cpp
   ChIrrAssetConverter.cpp
   ChIrrCamera.cpp
+  ChIrrMeshTools.cpp
   ChIrrNodeProxyToAsset.cpp
   ChIrrTools.cpp
 )
