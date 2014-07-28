@@ -19,6 +19,7 @@ ENDIF()
 SET(ChronoEngine_UNIT_IRRLICHT_SOURCES
   ChIrrApp.cpp
   ChIrrAppInterface.cpp
+  ChIrrNodeProxyToAsset.cpp
   ChIrrTools.cpp
 )
 
