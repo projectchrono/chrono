@@ -9,8 +9,8 @@
 // and at http://projectchrono.org/license-chrono.txt.
 //
 
-#ifndef CHLCPITERATIVEAPGD_H
-#define CHLCPITERATIVEAPGD_H
+#ifndef CHITERATIVEAPGD_H
+#define CHITERATIVEAPGD_H
 
 //////////////////////////////////////////////////
 //
@@ -43,7 +43,7 @@ namespace chrono
 ///
 /// or similar CCP problem.
 
-class ChApi ChLcpIterativeAPGD : public ChLcpIterativeSolver
+class ChApi ChIterativeAPGD : public ChLcpIterativeSolver
 {
 protected:
 			//
@@ -55,7 +55,7 @@ public:
 			// CONSTRUCTORS
 			//
 
-	ChLcpIterativeAPGD(
+	ChIterativeAPGD(
 				int mmax_iters=50,      ///< max.number of iterations
 				bool mwarm_start=false,	///< uses warm start?
 				double mtolerance=0.0   ///< tolerance for termination criterion
@@ -65,7 +65,7 @@ public:
 				
 			};
 				
-	virtual ~ChLcpIterativeAPGD() {};
+	virtual ~ChIterativeAPGD() {};
 
 			//
 			// FUNCTIONS

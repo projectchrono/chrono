@@ -28,14 +28,16 @@
 namespace chrono
 {
 
-double ChLcpIterativeAPGD::Solve(
+double ChIterativeAPGD::Solve(
 					ChLcpSystemDescriptor& sysd		///< system description with constraints and variables	
 					)
 {
-	std::vector<ChLcpConstraint*>& mconstraints = sysd.GetConstraintsList();
-	std::vector<ChLcpVariables*>&  mvariables	= sysd.GetVariablesList();
+	const std::vector<ChLcpConstraint*>& mconstraints = sysd.GetConstraintsList();
+    size_t nOfConstraints = mconstraints.size();
 
-
+	const std::vector<ChLcpVariables*>&  mvariables	= sysd.GetVariablesList();
+    size_t nOfVars = mvariables.size();
+    
 	
 
 	double gdiff= 0.000001;
@@ -56,7 +58,6 @@ double ChLcpIterativeAPGD::Solve(
 	int nc = sysd.CountActiveConstraints();
 	if (verbose) GetLog() <<"\n-----Accelerated Projected Gradient Descent, solving nc=" << nc << "unknowns \n";
 
-	//ChMatrixDynamic<> ml(nc,1);		//I made this into a class variable so I could print it easier -Hammad
 	ml.Resize(nc,1);
 	ChMatrixDynamic<> mx(nc,1);
 	ChMatrixDynamic<> ms(nc,1);
@@ -66,21 +67,20 @@ double ChLcpIterativeAPGD::Solve(
 	ChMatrixDynamic<> mg_tmp(nc,1);
 	ChMatrixDynamic<> mg_tmp1(nc,1);
 	ChMatrixDynamic<> mg_tmp2(nc,1);
-	//ChMatrixDynamic<> mb(nc,1);   //I made this into a class variable so I could print it easier -Hammad
 	mb.Resize(nc,1);
 	ChMatrixDynamic<> mb_tmp(nc,1);
 
 
 	// Update auxiliary data in all constraints before starting,
 	// that is: g_i=[Cq_i]*[invM_i]*[Cq_i]' and  [Eq_i]=[invM_i]*[Cq_i]'
-	for (unsigned int ic = 0; ic< mconstraints.size(); ic++)
+    for (unsigned int ic = 0; ic< nOfConstraints; ic++)
 		mconstraints[ic]->Update_auxiliary();
 
 	// Average all g_i for the triplet of contact constraints n,u,v.
 	//  Can be used for the fixed point phase and/or by preconditioner.
 	int j_friction_comp = 0;
 	double gi_values[3];
-	for (unsigned int ic = 0; ic< mconstraints.size(); ic++)
+    for (unsigned int ic = 0; ic< nOfConstraints; ic++)
 	{
 		if (mconstraints[ic]->GetMode() == CONSTRAINT_FRIC)
 		{
@@ -107,13 +107,13 @@ double ChLcpIterativeAPGD::Solve(
 	// Do this in three steps:
 	
 	// Put (M^-1)*k    in  q  sparse vector of each variable..
-	for (unsigned int iv = 0; iv< mvariables.size(); iv++)
+    for (unsigned int iv = 0; iv< nOfVars; iv++)
 		if (mvariables[iv]->IsActive())
 			mvariables[iv]->Compute_invMb_v(mvariables[iv]->Get_qb(), mvariables[iv]->Get_fb()); // q = [M]'*fb 
 
 	// ...and now do  b_shur = - D'*q = - D'*(M^-1)*k ..
 	int s_i = 0;
-	for (unsigned int ic = 0; ic< mconstraints.size(); ic++)
+    for (unsigned int ic = 0; ic< nOfConstraints; ic++)
 		if (mconstraints[ic]->IsActive())
 		{
 			mb(s_i, 0) = - mconstraints[ic]->Compute_Cq_q();
@@ -254,7 +254,7 @@ double ChLcpIterativeAPGD::Solve(
 		//****METHOD 2 for residual, same as ChLcpIterativeSOR
 		maxviolation = 0;
 		i_friction_comp = 0;
-		for (unsigned int ic = 0; ic< mconstraints.size(); ic++)
+        for (unsigned int ic = 0; ic< nOfConstraints; ic++)
 		{
 			if (mconstraints[ic]->IsActive())
 			{
@@ -342,7 +342,7 @@ double ChLcpIterativeAPGD::Solve(
 
 
 		// ... + (M^-1)*D*l     (this increment and also stores 'qb' in the ChLcpVariable items)
-	for (unsigned int ic = 0; ic < mconstraints.size(); ic++)
+    for (size_t ic = 0; ic < nOfConstraints; ic++)
 	{	
 		if (mconstraints[ic]->IsActive())
 			mconstraints[ic]->Increment_q( mconstraints[ic]->Get_l_i() );

@@ -565,8 +565,8 @@ void ChSystem::SetLcpSolverType(eCh_lcpSolver mval)
 		LCP_solver_stab = new ChLcpIterativePCG();
 		break;
 	case LCP_ITERATIVE_APGD:
-		LCP_solver_speed = new ChLcpIterativeAPGD();
-		LCP_solver_stab = new ChLcpIterativeAPGD();
+		LCP_solver_speed = new ChIterativeAPGD();
+		LCP_solver_stab = new ChIterativeAPGD();
 		break;
 	case LCP_ITERATIVE_MINRES:
 		LCP_solver_speed = new ChLcpIterativeMINRES();
