@@ -198,7 +198,8 @@ void ChMarker::Impose_Abs_Coord (const Coordsys& m_coord)
 	my_body = GetBody();
 
 	Coordsys csys;
-			// trasform coordsys to local coordsys...
+			// coordsys: trasform the representation from the parent reference frame 
+            // to the local reference frame.
 	csys.pos= ChTrasform<>::TrasformParentToLocal (m_coord.pos, my_body->GetCoord().pos, *my_body->GetA());
 	csys.rot= Qcross (Qconjugate (my_body->GetCoord().rot), m_coord.rot);
 			// apply the imposition on local  coordinate and resting coordinate:
