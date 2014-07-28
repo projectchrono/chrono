@@ -58,6 +58,7 @@ HMMWV_9body::HMMWV_9body(ChSystem&  my_system,
 	chassis = ChSharedPtr<ChBodyEasyBox>(new ChBodyEasyBox(bodySize.x, bodySize.y, bodySize.z,
 		500, false, true) );
 	chassis->SetPos(chassisCM);
+	chassis->SetCollide(false);	// disable rigid body chassis collisions
 	chassis->SetName("chassis");
 	my_system.Add(chassis);
 
@@ -76,8 +77,6 @@ HMMWV_9body::HMMWV_9body(ChSystem&  my_system,
 	// Vertically, wavefront origin is on bottom surface of chassis, which is far too low for the physical CM
 	chassisMesh_level->GetFrame().SetPos( ChVector<>(0,0,0) );
 	chassis->AddAsset(chassisMesh_level);
-	
-	// chassis->AddAsset(chassisObj);
 
 	// position of spindle, wheel CMs
 	double offset= 2.0*in_to_m;	// offset in lateral length between CM of spindle, wheel
@@ -111,9 +110,15 @@ HMMWV_9body::HMMWV_9body(ChSystem&  my_system,
 			wheelMass, tireWidth, tireRadius*2.0, tireRadius*0.8, true);
 	}
 
+	GetLog() << " \n ---- system heiarchy after BEFORE first suspension subsystem : \n\n\n ";
+	my_system.ShowHierarchy( GetLog() );
+
 	// Each suspension has its marker joint locations hardcoded, for now, for each of the four units
 	// --- Left front suspension
 	this->suspension_LF = new DoubleAarm(my_system, 0, chassis, wheelLF->GetBody(), spindleLF_cm_bar);
+
+	GetLog() << " \n ---- system heiarchy after AFTER first suspension subsystem : \n\n\n ";
+	my_system.ShowHierarchy( GetLog() );
 
 	// 1) --- RF wheel
 	ChVector<> wheelRF_cm = chassis->GetCoord().TrasformLocalToParent( wheelRF_cm_bar);
