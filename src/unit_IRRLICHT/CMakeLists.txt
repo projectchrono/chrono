@@ -18,6 +18,7 @@ ENDIF()
 
 SET(ChronoEngine_UNIT_IRRLICHT_SOURCES
   ChIrrApp.cpp
+  ChIrrAppInterface.cpp
 )
 
 SET(ChronoEngine_UNIT_IRRLICHT_HEADERS
