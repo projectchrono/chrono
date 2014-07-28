@@ -21,7 +21,7 @@
 
 #include "unit_IRRLICHT/ChApiIrr.h"
 #include "unit_IRRLICHT/ChIrrWizard.h"
-#include "unit_IRRLICHT/ChDisplayTools.h"
+#include "unit_IRRLICHT/ChIrrTools.h"
 #include "unit_IRRLICHT/ChIrrEffects.h"
 
 namespace irr

@@ -19,13 +19,14 @@ ENDIF()
 SET(ChronoEngine_UNIT_IRRLICHT_SOURCES
   ChIrrApp.cpp
   ChIrrAppInterface.cpp
+  ChIrrTools.cpp
 )
 
 SET(ChronoEngine_UNIT_IRRLICHT_HEADERS
   ChApiIrr.h
   ChBodySceneNode.h
   ChBodySceneNodeTools.h
-  ChDisplayTools.h
+  ChIrrTools.h
   ChIrrAppInterface.h
   ChIrrApp.h
   ChIrrCamera.h

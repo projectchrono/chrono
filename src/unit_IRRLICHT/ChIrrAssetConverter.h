@@ -34,7 +34,7 @@
 #include "ChBodySceneNodeTools.h"
 #include "ChIrrMeshTools.h"
 #include "ChIrrNodeAsset.h"
-#include "ChDisplayTools.h"
+#include "ChIrrTools.h"
 #include "ChIrrAppInterface.h"
 #include "geometry/ChCSphere.h"
 #include "geometry/ChCBox.h"

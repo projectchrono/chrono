@@ -31,6 +31,7 @@
 
 #include "physics/ChApidll.h" 
 #include "physics/ChSystem.h"
+#include "physics/ChContactContainerBase.h"
 #include "geometry/ChCSphere.h"
 #include "geometry/ChCBox.h"
 #include "unit_IRRLICHT/ChBodySceneNode.h"

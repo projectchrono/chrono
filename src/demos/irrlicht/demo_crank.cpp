@@ -38,7 +38,7 @@
 #include "physics/ChSystem.h"
 #include "unit_IRRLICHT/ChBodySceneNode.h"
 #include "unit_IRRLICHT/ChBodySceneNodeTools.h" 
-#include "unit_IRRLICHT/ChDisplayTools.h" 
+#include "unit_IRRLICHT/ChIrrTools.h" 
 #include "unit_IRRLICHT/ChIrrWizard.h"
 #include "core/ChRealtimeStep.h"
 
