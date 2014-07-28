@@ -76,7 +76,7 @@ enum TireForceType {
 
 
 // GLOBAL VARIABLES
-ChVector<> cameraOffset(-1,2,2);	// camera should trail the car
+ChVector<> cameraOffset(-3,4,5);	// camera should trail the car
 // chassis CM position, in SAE units [inches]. CONVERT TO METERS upon init.
 ChVector<> chassis_cmSAE = ChVector<>(600.5, 600.5, 36.304);	// only height above ground (0) truly matters
 ChQuaternion<> chassisOri(1,0,0,0);	// forward is the positive x-direction
@@ -102,7 +102,6 @@ int main(int argc, char* argv[]){
 	m_system.SetIterLCPmaxItersSpeed(150);
 	m_system.SetIterLCPmaxItersStab(150);
 
-
 	// create the HMMWV vehicle
 	ChVector<> chassisCM = chassis_cmSAE * 0.0254;
 
@@ -111,7 +110,7 @@ int main(int argc, char* argv[]){
 
 	// create the ground. NOTE: orientation will have to be in the x-y plane
 	HMMWVTerrain* terrain = new HMMWVTerrain(m_system, ChVector<>(0,0,0), 
-		terrainWidth, terrainLength,0.5,0.5,true);
+		terrainWidth, terrainLength,0.8,0.0,true);
 //	ChVector<> obstacle_location(10,1,1);
 //	terrain->create_some_obstacles(obstacle_location);
 	
@@ -122,15 +121,12 @@ int main(int argc, char* argv[]){
 		irr::core::dimension2d<irr::u32>(1000,800),false,true);
 	application.AddTypicalSky();
 	application.AddTypicalLights();
-	// camera is behind and above chassis, its target
-	irr::core::vector3df camera_pos = irr::core::vector3df(chassisCM.x, chassisCM.y, chassisCM.z );
-	irr::core::vector3df camera_targ = irr::core::vector3df(camera_pos);
-	camera_pos.X += cameraOffset.x; camera_pos.Y += cameraOffset.y; camera_pos.Z += cameraOffset.z;
-	application.AddTypicalCamera(camera_pos,camera_targ );
 
 	// This is for GUI for the on-road HMMWV vehicle
 	irr::HMMWVEventReceiver receiver(&application, &m_system, mycar, terrain);
 	application.SetUserEventReceiver(&receiver);
+	// create and manage the camera thru the receiver
+	receiver.create_camera(chassisCM + cameraOffset, chassisCM );
 
 	// Use real-time step of the simulation, OR...
 //	application.SetStepManage(true);
@@ -273,6 +269,7 @@ int main(int argc, char* argv[]){
 		if( step_num % out_steps == 0) {
 			application.DoStep();
 			application.GetVideoDriver()->endScene();
+			int arg = 2;
 		} else {
 			m_system.DoStepDynamics( m_system.GetStep() );
 		}

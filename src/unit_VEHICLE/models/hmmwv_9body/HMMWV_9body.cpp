@@ -56,28 +56,24 @@ HMMWV_9body::HMMWV_9body(ChSystem&  my_system,
 	// ---	 chassis
 	ChVector<> r0 = chassisCM;	// cm of chassis used as a reference for building other bodies
 	chassis = ChSharedPtr<ChBodyEasyBox>(new ChBodyEasyBox(bodySize.x, bodySize.y, bodySize.z,
-		500, false, true) );
+		500, false, false) );
 	chassis->SetPos(chassisCM);
-	chassis->SetCollide(false);	// disable rigid body chassis collisions
 	chassis->SetName("chassis");
 	my_system.Add(chassis);
 
 	// add a nice .obj mesh file as a visual asset
 	ChSharedPtr<ChObjShapeFile> chassisObj(new ChObjShapeFile);
 	chassisObj->SetFilename("../data/humvee4.obj");
-	chassisObj->Pos = ChVector<>(0,0,0);
-	chassisObj->Rot = QUNIT;
+
 	// might need to rotate the visualization mesh so x+ is backwards
 	// in blender, humvee4.obj looks to have z+ up, -y forward. Want -x forward
 	ChSharedPtr<ChAssetLevel> chassisMesh_level(new ChAssetLevel);
 	chassisMesh_level->AddAsset(chassisObj);
-	chassisMesh_level->GetFrame().SetRot( chrono::Q_from_AngZ(CH_C_PI_2) );
 	// NOTE: I am not sure what the offset is between the wavefront origin and the body center of mass
-	// Front/back -wise, it looks to be in the right general area
-	// Vertically, wavefront origin is on bottom surface of chassis, which is far too low for the physical CM
 	chassisMesh_level->GetFrame().SetPos( ChVector<>(0,0,0) );
+	chassisMesh_level->GetFrame().SetRot( chrono::Q_from_AngX(CH_C_PI_2) );
 	chassis->AddAsset(chassisMesh_level);
-
+//	chassis->AddAsset(chassisObj);
 	// position of spindle, wheel CMs
 	double offset= 2.0*in_to_m;	// offset in lateral length between CM of spindle, wheel
 

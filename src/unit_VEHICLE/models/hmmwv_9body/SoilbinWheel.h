@@ -149,7 +149,7 @@ public:
 
 		// add a rubber texture
 		ChSharedPtr<ChTexture> mtexture(new ChTexture);
-		mtexture->SetTextureFilename("../data/tire.png");
+		mtexture->SetTextureFilename("../data/bluwhite.png");
 		wheel->AddAsset(mtexture);
 		msys.Add(wheel);
 	}

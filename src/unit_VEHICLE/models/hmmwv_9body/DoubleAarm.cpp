@@ -111,7 +111,7 @@ DoubleAarm::DoubleAarm(ChSystem&  my_system, const int susp_type, ChSharedPtr<Ch
 	// 4) finalize or add to system
 	// 5) add ChSharedPtr to the class list, and the name also
 	// ---------- upright.  Initialize, add to the system, add to ref array.
-	this->upright = ChSharedPtr<ChBodyEasyBox>(new ChBodyEasyBox(uprightSize.x, uprightSize.y, uprightSize.z, 1000));
+	this->upright = ChSharedPtr<ChBodyEasyBox>(new ChBodyEasyBox(uprightSize.x, uprightSize.y, uprightSize.z, 1000, false, true));
 	upright->SetPos(chassis->GetCoord().TrasformLocalToParent( upright_r_bar) );
 	upright->SetNameString(susp_type_string + " upright" );
 	my_system.Add(upright);

@@ -253,33 +253,12 @@ public:
 
 	void drawGrid()
 	{	
-
-		// wall 1
-		ChCoordsys<> wall1Csys = this->mterrain->wall1->GetCoord();
+		// floor
+		ChCoordsys<> wall1Csys = this->mterrain->floor->GetCoord();
 		wall1Csys.rot = chrono::Q_from_AngAxis(-CH_C_PI_2, VECT_Y);
-		wall1Csys.pos.x += .05;
+		wall1Csys.pos.x += .1;
 		ChIrrTools::drawGrid(this->mapp->GetVideoDriver(),0.05,0.05,40,20, wall1Csys,
 			video::SColor(255,80,130,130),true);
-/*
-		// wall 2
-		ChCoordsys<> wall2Csys = this->mtester->wall2->GetBody()->GetCoord();
-		wall2Csys.pos.x -= .05;
-		wall2Csys.rot = chrono::Q_from_AngAxis(CH_C_PI/2.0, VECT_Y);
-		ChIrrTools::drawGrid(this->app->GetVideoDriver(),0.1,0.05,24,20, wall2Csys,
-			video::SColor(255,80,130,130),true);
-
-		// wall 3
-		ChCoordsys<> wall3Csys = this->mtester->wall3->GetBody()->GetCoord();
-		wall3Csys.pos.z += .05;
-		ChIrrTools::drawGrid(this->mapp->GetVideoDriver(),0.1,0.05,10,20, wall3Csys, 
-			video::SColor(255,80,130,130),true);
-
-		// wall 4
-		ChCoordsys<> wall4Csys = this->mtester->wall4->GetBody()->GetCoord();
-		wall4Csys.pos.z -= .05;
-		ChIrrTools::drawGrid(this->mapp->GetVideoDriver(),0.1,0.05,10,20, wall4Csys,
-			video::SColor(255,80,130,130),true);
-*/
 	}
 
 	void drawLinks()
@@ -298,7 +277,6 @@ public:
 	// output any relevant test rig data here
 	void drawCarDataOutput()
 	{
-		
 		// wheel CM pos
 		ChVector<> cm = this->mcar->chassis->GetPos();
 		char messageCM[100]; sprintf(messageCM,"CM pos, x: %4.4g, y: %4.4g, z: %4.4g",cm.x,cm.y,cm.z);
@@ -308,6 +286,17 @@ public:
 		char messageV[100]; sprintf(messageV,"CM vel, x: %4.4g, y: %4.4g, z: %4.4g",cmVel.x,cmVel.y,cmVel.z);
 		text_chassisCMVel->setText( core::stringw(messageV).c_str() );
 		
+	}
+
+	void create_camera(const ChVector<>& camera_pos, const ChVector<>& camera_targ ) {
+		// camera is behind and above chassis, its target
+		core::vector3df pos = core::vector3df(camera_pos.x, camera_pos.y, camera_pos.z );
+		core::vector3df targ = core::vector3df(camera_targ.x, camera_targ.y, camera_targ.z);
+		mapp->GetSceneManager()->addCameraSceneNode( mapp->GetSceneManager()->getRootSceneNode(),
+			pos, targ);
+		mapp->GetSceneManager()->getActiveCamera()->setUpVector( core::vector3df(0,0,1) );
+
+
 	}
 
 	// move the camera every rendered frame, so it follows the car at a given global offset
@@ -321,7 +310,6 @@ public:
 		chrono::ChVector<> mcar_CMpos = mcar->getCM_pos_chassis();
 		// set the camera target: chassis CM
 		mCamera->setTarget( core::vector3df( mcar_CMpos.x, mcar_CMpos.y, mcar_CMpos.z) );
-
 	}
 
 private:
@@ -369,6 +357,7 @@ private:
     scene::ISceneNode* Terrain;
     scene::ISceneNode* Skybox;
     scene::ISceneNode* Skydome;
+	scene::ICameraSceneNode *mCamera;	// follow camera
     bool showBox;
     bool showDebug;
 
