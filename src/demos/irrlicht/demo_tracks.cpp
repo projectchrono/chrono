@@ -37,6 +37,7 @@
 #include "unit_IRRLICHT/ChBodySceneNodeTools.h" 
 #include "unit_IRRLICHT/ChIrrAppInterface.h"
 #include "core/ChRealtimeStep.h"
+#include "geometry/ChCTriangleMeshSoup.h"
 
 #include <irrlicht.h>
 
