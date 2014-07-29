@@ -64,10 +64,7 @@ public:
 			/// This must be implemented by a child class of ChNarrowPhaseCallback
 	virtual void NarrowCallback (
 					const ChCollisionInfo& mcontactinfo
-					) 
-	{
-		// do nothing by default - inherit and implement it if you want to use a custom narrow callback
-	};
+					) = 0;
 };
 
 
@@ -86,14 +83,10 @@ public:
 			/// Callback used to report 'near enough' pairs of models.
 			/// This must be implemented by a child class of ChBroadPhaseCallback.
 			/// Return false to skip narrow-phase contact generation for this pair of bodies.
-	bool BroadCallback(
+	virtual bool BroadCallback(
 				ChCollisionModel*  mmodelA,	///< pass 1st model
 				ChCollisionModel*  mmodelB	///< pass 2nd model
-				) 
-	{
-		// do nothing by default - please inherit and implement it!
-		return true;
-	};
+				) = 0;
 };
 
 
