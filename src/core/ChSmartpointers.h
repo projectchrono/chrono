@@ -29,20 +29,30 @@ namespace chrono
 {
 
 
-///  Smart pointer to be used with generic objects to be shared
-/// among multiple pointers, without the risk of deleting the 
-/// pointed instance too early, hence avoids dangling pointers.
-///  It does not need that instances are inherited from ChShared 
-/// because it uses an auxiliary 
-/// reference counter which is allocated on heap).
-///  It should be initialized in the following two main ways:
-///    ChSmartPtr<MyClass> foo_pointer(new MyClass);
-///       or
-///    ChSmartPtr<MyClass> foo_pointer(another_smart_pointer);
-///  Doing so, you will _never_ need to call 'delete', because the reference
-/// count mechanism will automatically delete the instance when no smart pointers 
-/// reference it.
-///  This kind of pointer does not perform copy of pointed data when copied.
+	/// [See nice article on shared pointers at: 
+	/// http://stackoverflow.com/questions/106508/what-is-a-smart-pointer-and-when-should-i-use-one.
+	/// See also the chrono demo demo_sharedptr.cpp]
+	/// The class ChSmartPtr wraps a 'bare' C++ pointer in order 
+	/// to manage the lifetime of the object being pointed to by the 
+	/// bare pointer. With 'bare' C++ pointers, the programmer has to 
+	/// explicitly destroy the object when it is no longer useful.
+	/// A ChSmartPtr object by comparison defines a policy 
+	/// as to when the object pointed to by the bare pointer is 
+	/// to be destroyed. You still have to create the object, but 
+	/// you no longer have to worry about destroying it.
+	/// It should be initialized in one of the following two ways:
+	///    ChSmartPtr<MyClass> foo_pointer(new MyClass);
+	///       or
+	///    ChSmartPtr<MyClass> foo_pointer(another_smart_pointer);
+	/// In doing so, you will _never_ need to call 'delete', because 
+	/// the reference count mechanism will automatically delete the 
+	/// 'bare' pointer when no other smart pointer reference it.
+	/// NOTE1: When copied, a ChSmartPtr object does not perform copy 
+	/// of the data pointed to by the 'bare' pointer.
+	/// NOTE2: Unlike with the ChSharedPtr class, the 'bare' pointer 
+	/// does not need to point to an object that inherits from 
+	/// ChShared because ChSmartPtr uses an auxiliary reference counter 
+	/// that is allocated on the heap.
 
 
 
@@ -285,20 +295,31 @@ template <typename T, typename R >
 
 
 
-///  Smart pointer to be used with generic objects to be shared
-/// among multiple pointers, without the risk of deleting the 
-/// pointed instance too early, hence avoids dangling pointers.
-///  When compared to the ChSmartPtr, this is a faster version
-/// but requires that you use it only for data which is instanced
-/// from the ChShared class.
-///  It should be initialized in the following two main ways:
-///    ChSharedPtr<MyClass> foo_pointer(new MyClass);
-///       or
-///    ChSharedPtr<MyClass> foo_pointer(another_smart_pointer);
-///  Doing so, you will _never_ need to call 'delete', because the reference
-/// count mechanism will automatically delete the instance when no smart pointers 
-/// reference it.
-///  This kind of pointer does not perform copy of pointed data when copied.
+	/// [See nice article on shared pointers at: 
+	/// http://stackoverflow.com/questions/106508/what-is-a-smart-pointer-and-when-should-i-use-one.
+	/// See also the chrono demo demo_sharedptr.cpp]
+	/// The class ChSharedPtr wraps a 'bare' C++ pointer in order 
+	/// to manage the lifetime of the object being pointed to by the 
+	/// bare pointer. With 'bare' C++ pointers, the programmer has to 
+	/// explicitly destroy the object when it is no longer useful.
+	/// A ChSharedPtr object by comparison defines a policy 
+	/// as to when the object pointed to by the bare pointer is 
+	/// to be destroyed. You still have to create the object, but 
+	/// you no longer have to worry about destroying it.
+	/// It should be initialized in one of the following two ways:
+	///    ChSharedPtr<MyClass> foo_pointer(new MyClass);
+	///       or
+	///    ChSharedPtr<MyClass> foo_pointer(another_shared_pointer);
+	/// In doing so, you will _never_ need to call 'delete', because 
+	/// the reference count mechanism will automatically delete the 
+	/// 'bare' pointer when no other smart pointer reference it.
+	/// NOTE1: When copied, a ChSharedPtr object does not perform copy 
+	/// of the data pointed to by the 'bare' pointer.
+	/// NOTE2: Unlike with the ChSmartPtr class, which can manage
+	/// any 'bare' pointer at the price of some overhead (counter
+	/// placed on the heap), the ChSharedPtr only works for 'bare' 
+	/// pointers that point to an object that inherits from 
+	/// ChShared.
 
 template <class T> 
 class ChSharedPtr
