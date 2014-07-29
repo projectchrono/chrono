@@ -52,7 +52,7 @@ public:
 		ChSharedPtr<ChBody>& chassis,	ChSharedPtr<ChBody>& wheel,
 		const ChVector<>& upright_r_bar, const std::string& data_file_name = "none",
 		double uprightMass = 1, ChVector<>& uprightInertia = ChVector<>(1,1,1),
-		ChVector<>& uprightSize = ChVector<>(.1, .1, .1) );	// 10 cm cube
+		ChVector<>& uprightSize = ChVector<>(.1, .05, .1) );
 
 	// @brief responsible for calling "ChSystem->RemoveXYZ()" for the links and bodies in the model.
 	~DoubleAarm();
