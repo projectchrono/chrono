@@ -9,7 +9,7 @@
 // http://projectchrono.org/license-chrono.txt.
 //
 // =============================================================================
-// Authors: Radu Serban
+// Authors: Radu Serban, Hammad Mazhar
 // =============================================================================
 //
 // Utility functions for various geometrical calculations.
@@ -72,6 +72,12 @@ double CalcCylinderBradius(double radius, double hlen)
 }
 
 inline
+double CalcConeBradius(double radius, double hlen)
+{
+  return sqrt(hlen * hlen + radius * radius);
+}
+
+inline
 double CalcRoundedCylinderBradius(double radius, double hlen, double srad)
 {
   return sqrt(hlen * hlen + radius * radius) + srad;
@@ -116,6 +122,12 @@ inline
 double CalcCylinderVolume(double radius, double hlen)
 {
   return 2.0 * CH_C_PI * radius * radius * hlen;
+}
+
+inline
+double CalcConeVolume(double radius, double hlen)
+{
+  return CH_C_PI * radius * radius * hlen / 3.0;
 }
 
 inline
@@ -244,6 +256,25 @@ ChMatrix33<> CalcCylinderGyration(
 
   return J;
 }
+
+inline
+ChMatrix33<> CalcConeGyration(
+                 double                radius,
+                 double                hlen,
+                 const ChVector<>&     pos = ChVector<>(0,0,0),
+                 const ChQuaternion<>& rot = ChQuaternion<>(1,0,0,0))
+{
+  ChMatrix33<> J;
+
+  J.SetElement(0, 0, (3.0/5.0) * (hlen * hlen) + (3.0/20.0) * (radius * radius));
+  J.SetElement(1, 1, (3.0/10.0) * (radius * radius));
+  J.SetElement(2, 2, (3.0/5.0) * (hlen * hlen) + (3.0/20.0) * (radius * radius));
+
+  TransformGyration(J, pos, rot);
+
+  return J;
+}
+
 
 inline
 ChMatrix33<> CalcRoundedCylinderGyration(

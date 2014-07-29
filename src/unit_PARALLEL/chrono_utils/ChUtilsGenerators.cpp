@@ -9,7 +9,7 @@
 // http://projectchrono.org/license-chrono.txt.
 //
 // =============================================================================
-// Authors: Radu Serban
+// Authors: Radu Serban, Hammad Mazhar
 // =============================================================================
 //
 // =============================================================================
@@ -233,20 +233,24 @@ MixtureIngredient::calcGeometricProps(const ChVector<>& size, double& volume, Ch
 {
   switch (m_type) {
   case SPHERE:
-    volume = 4.0/3 * Pi * size.x * size.x * size.x;
-    gyration = 2.0/5 * size.x * size.x * ChVector<>(1,1,1);
+    volume = CalcSphereVolume(size.x);
+    gyration = CalcSphereGyration(size.x).Get_Diag();
     break;
   case ELLIPSOID:
-    volume = 4.0/3 * Pi * size.x * size.y * size.z;
-    gyration = 1.0/5 * ChVector<>(size.y * size.y + size.z * size.z,
-                                size.x * size.x + size.z * size.z,
-                                size.x * size.x + size.y * size.y);
+    volume = CalcEllipsoidVolume(size.x);
+    gyration = CalcEllipsoidGyration(size).Get_Diag();
     break;
   case BOX:
-    volume = 8 * size.x * size.y * size.z;
-    gyration = 1.0/12 * ChVector<>(size.y * size.y + size.z * size.z,
-                                   size.x * size.x + size.z * size.z,
-                                   size.x * size.x + size.y * size.y);
+    volume = CalcBoxVolume(size);
+    gyration = CalcBoxGyration(size).Get_Diag();
+    break;
+  case CYLINDER:
+    volume = CalcCylinderVolume(size.x,size.y);
+    gyration = CalcCylinderGyration(size.x,size.y).Get_Diag();
+    break;
+  case CONE:
+    volume = CalcConeVolume(size.x,size.y);
+    gyration = CalcConeGyration(size.x,size.y).Get_Diag();
     break;
   }
 }
@@ -542,6 +546,12 @@ void Generator::createObjects(const PointVector& points,
       break;
     case BOX:
       AddBoxGeometry(body, size);
+      break;
+    case CYLINDER:
+      AddCylinderGeometry(body, size.x, size.y);
+      break;
+    case CONE:
+      AddConeGeometry(body, size.x, size.y);
       break;
     }
 

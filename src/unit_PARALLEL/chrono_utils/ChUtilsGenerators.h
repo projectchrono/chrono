@@ -45,7 +45,7 @@
 #include "chrono_utils/ChUtilsSamplers.h"
 #include "chrono_utils/ChUtilsCreators.h"
 #include "chrono_utils/ChUtilsInputOutput.h"
-
+#include "chrono_utils/ChUtilsGeometry.h"
 
 namespace chrono {
 namespace utils {
@@ -55,9 +55,9 @@ namespace utils {
 enum MixtureType {
   SPHERE,
   ELLIPSOID,
-  BOX//,
-  //CYLINDER,
-  //CONE
+  BOX,
+  CYLINDER,
+  CONE
 };
 
 
