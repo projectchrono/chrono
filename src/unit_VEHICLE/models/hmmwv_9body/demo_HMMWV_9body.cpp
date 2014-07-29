@@ -66,7 +66,7 @@ enum TireForceType {
 // GLOBAL VARIABLES
 ChVector<> cameraOffset(-3,4,5);	// camera should trail the car
 // chassis CM position, in SAE units [inches]. CONVERT TO METERS upon init.
-ChVector<> chassis_cmSAE = ChVector<>(600.5, 600.5, 36.304);	// only height above ground (0) truly matters
+ChVector<> chassis_cmSAE = ChVector<>(600.5, 600.5, 49.68);	// only height above ground (0) truly matters
 ChQuaternion<> chassisOri(1,0,0,0);	// forward is the positive x-direction
 
 // if using DVI rigid body contact, how large to make the ground width/length dims?

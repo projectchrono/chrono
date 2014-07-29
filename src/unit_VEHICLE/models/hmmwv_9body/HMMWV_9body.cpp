@@ -83,16 +83,16 @@ HMMWV_9body::HMMWV_9body(ChSystem&  my_system,
 
 	// wheel and spindle positions, relative to the chassis CM position
 	// x-forward, z-lateral, w.r.t. chassis coord-sys
-	ChVector<> wheelRF_cm_bar = ChVector<>(-44.43, 35.82, -19.98)*in_to_m;	// right front wheel, in body coords
+	ChVector<> wheelRF_cm_bar = ChVector<>(-44.43, 35.82, -33.325)*in_to_m;	// right front wheel, in body coords
 	ChVector<> spindleRF_cm_bar	= ChVector<>(wheelRF_cm_bar);	// right front spindle
 	spindleRF_cm_bar.y -= offset; 
-	ChVector<> wheelLF_cm_bar = ChVector<>(-44.43, -35.82, -19.98)*in_to_m;	// left front wheel, in body coords
+	ChVector<> wheelLF_cm_bar = ChVector<>(-44.43, -35.82, -33.325)*in_to_m;	// left front wheel, in body coords
 	ChVector<> spindleLF_cm_bar = ChVector<>(wheelLF_cm_bar);	// left front spnidle
 	spindleLF_cm_bar.y += offset;
-	ChVector<> wheelRB_cm_bar = ChVector<>(88.57, 35.82, -19.98 )*in_to_m;	// right back wheel
+	ChVector<> wheelRB_cm_bar = ChVector<>(88.57, 35.82, -33.325 )*in_to_m;	// right back wheel
 	ChVector<> spindleRB_cm_bar	= ChVector<>(wheelRB_cm_bar);	// right back spindle
 	spindleRB_cm_bar.y -= offset;
-	ChVector<> wheelLB_cm_bar = ChVector<>(88.57, -35.82, -19.98)*in_to_m;	// left back wheel
+	ChVector<> wheelLB_cm_bar = ChVector<>(88.57, -35.82, -33.325)*in_to_m;	// left back wheel
 	ChVector<> spindleLB_cm_bar = ChVector<>(wheelLB_cm_bar);	// left back spindle
 	spindleLB_cm_bar.y += offset;
 
