@@ -69,7 +69,7 @@ void WriteCheckpoint(ChSystem*          system,
       csv << mat->compliance << mat->complianceT << mat->complianceRoll << mat->complianceSpin;
     } else {
       // Write DEM material surface information
-      ChSharedPtr<ChMaterialSurfaceDEM>& mat = ((ChBodyDEM*) body)->GetMaterialSurfaceDEM();
+      ChSharedPtr<ChMaterialSurfaceDEM>& mat = static_cast<ChBodyDEM*>(body)->GetMaterialSurfaceDEM();
       csv << mat->young_modulus << mat->poisson_ratio;
       csv << mat->static_friction << mat->sliding_friction;
       csv << mat->restitution << mat->dissipation_factor;
