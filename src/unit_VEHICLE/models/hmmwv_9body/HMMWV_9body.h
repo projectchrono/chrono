@@ -17,7 +17,7 @@
 #include <map>
 
 // wheel class
-#include "SoilbinWheel.h"
+#include "ChWheel.h"
 // suspension class
 #include "DoubleAarm.h"
 #include "ChVehicleDriver.h"
@@ -36,22 +36,22 @@ public:
 	//  right front (RF) suspension:
 	DoubleAarm* suspension_RF;
 	// ChSharedPtr<ChBody> wheelRF;
-	SoilbinWheel* wheelRF;
+	ChWheel* wheelRF;
 
 	// left front (LF) suspension:
 	DoubleAarm* suspension_LF;
 	// ChSharedPtr<ChBody> wheelLF;
-	SoilbinWheel* wheelLF;
+	ChWheel* wheelLF;
 
 	// right back (RB) suspension:
 	DoubleAarm* suspension_RB;
 	// ChSharedPtr<ChBody> wheelRB;
-	SoilbinWheel* wheelRB;
+	ChWheel* wheelRB;
 
 	// left back (LB) suspension:
 	DoubleAarm* suspension_LB;
 	// ChSharedPtr<ChBody> wheelLB;
-	SoilbinWheel* wheelLB;
+	ChWheel* wheelLB;
 
 	// use these instead of revolute joints between the spindle and wheel
 	ChSharedPtr<ChLinkEngine>   link_engineL;

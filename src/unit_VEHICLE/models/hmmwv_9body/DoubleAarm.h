@@ -3,7 +3,7 @@
 
 #include "physics/ChApidll.h" 
 #include "physics/ChSystem.h"
-#include "ChSuspension.h"
+// #include "ChSuspension.h"
 #include "physics/ChBodyEasy.h"
 // #include "ChAssetHelper_initialization.h"
 
@@ -13,8 +13,21 @@ using namespace chrono;
 ///	Kinematic mode, the upper and lower A-arms and the upright and wheel spindle are lumped into a single mass.
 ///	The suspension kinematics are correct through two sets of distance constraints; however, the dynamics will be slightly off.
 /// Author: Justin Madsen
-class DoubleAarm : public ChSuspension 
+class DoubleAarm //  : public ChSuspension 
 {
+protected:
+	// all the bodies
+	std::list<ChBody*> body_list;
+	
+	// links: kinematically idealized joints, e.g. massless link distance constraint
+	std::list<ChLink*> link_list;
+	
+	// all the general joints
+	std::list<ChLink*> joint_list;
+
+	// suspension name
+	std::string subsys_name;
+
 public:
 	// easy access to tie rod
 	ChSharedPtr<ChLinkDistance> tierod;	// a distance constraint

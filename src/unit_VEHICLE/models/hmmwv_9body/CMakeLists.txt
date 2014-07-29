@@ -20,7 +20,7 @@ MESSAGE(STATUS "Adding HMMWV_9BODY...")
 SET(demo_HMMWV_HEADERS
 		HMMWV_9body.h
 		HMMWVTerrain.h
-		SoilbinWheel.h
+		ChWheel.h
 		DoubleAarm.h
 		ChVehicleDriver.h
     HMMWVEventReceiver.h

@@ -115,7 +115,7 @@ DoubleAarm::DoubleAarm(ChSystem&  my_system, const int susp_type, ChSharedPtr<Ch
 	upright->SetPos(chassis->GetCoord().TrasformLocalToParent( upright_r_bar) );
 	upright->SetNameString(susp_type_string + " upright" );
 	my_system.Add(upright);
-	this->body_list.push_back(&upright.DynamicCastTo<ChBody>());
+	this->body_list.push_back(upright.DynamicCastTo<ChBody>().get_ptr());
 
 	// ---- revolute joint between wheel and upright. Joint location based on input position, upright_r_bar
 	ChSharedPtr<ChLinkLockRevolute> spindle_revolute = ChSharedPtr<ChLinkLockRevolute>(new ChLinkLockRevolute); 
@@ -123,32 +123,32 @@ DoubleAarm::DoubleAarm(ChSystem&  my_system, const int susp_type, ChSharedPtr<Ch
 		chrono::Q_from_AngAxis(CH_C_PI/2.0, VECT_X) ) );
 	spindle_revolute->SetNameString(susp_type_string + " spindle revolute");
 	my_system.AddLink(spindle_revolute);
-	this->joint_list.push_back(&spindle_revolute.DynamicCastTo<ChLinkLock>());
+	this->joint_list.push_back(spindle_revolute.DynamicCastTo<ChLinkLock>().get_ptr() );
 
 	// --- distance constraints to idealize upper and lower control arms
 	ChSharedPtr<ChLinkDistance> link_distU1 = ChSharedPtr<ChLinkDistance>(new ChLinkDistance); // upper 1, (frontward)
 	link_distU1->Initialize(chassis, upright, false, HP_U1, HP_U2);
 	link_distU1->SetNameString(susp_type_string + " dist U1 front");
 	my_system.AddLink(link_distU1);
-	this->link_list.push_back(&link_distU1);
+	this->link_list.push_back(link_distU1.get_ptr() );
 
 	ChSharedPtr<ChLinkDistance> link_distU2 = ChSharedPtr<ChLinkDistance>(new ChLinkDistance); //   upper 2, (rearward)
 	link_distU2->Initialize(chassis, upright, false, HP_U3, HP_U2 );
 	link_distU2->SetNameString(susp_type_string + " dist U2 rear");
 	my_system.AddLink(link_distU2);
-	this->link_list.push_back(&link_distU2);
+	this->link_list.push_back(link_distU2.get_ptr() );
 
 	ChSharedPtr<ChLinkDistance> link_distL1 = ChSharedPtr<ChLinkDistance>(new ChLinkDistance); //   lower 1, frontward
 	link_distL1->Initialize(chassis, upright, false, HP_L1, HP_L2 );
 	link_distL1->SetNameString(susp_type_string + " dist L1 front");
 	my_system.AddLink(link_distL1);
-	this->link_list.push_back(&link_distL1);
+	this->link_list.push_back(link_distL1.get_ptr() );
 
 	ChSharedPtr<ChLinkDistance> link_distL2 = ChSharedPtr<ChLinkDistance>(new ChLinkDistance); // lower 2, rearward
 	link_distL2->Initialize(chassis, upright, false, HP_L3, HP_L2 );
 	link_distL2->SetNameString(susp_type_string + " dist L2 rear");
 	my_system.AddLink(link_distL2);
-	this->link_list.push_back(&link_distL2);
+	this->link_list.push_back(link_distL2.get_ptr() );
 
 	//	--- Spring/damper, between upright and chassis
 	this->shock = ChSharedPtr<ChLinkSpring>(new ChLinkSpring);
@@ -165,19 +165,31 @@ DoubleAarm::DoubleAarm(ChSystem&  my_system, const int susp_type, ChSharedPtr<Ch
 	tierod->Initialize(chassis, chassis, false, HP_St_1, HP_St_2 );
 	tierod->SetNameString(susp_type_string + " dist tierod");
 	my_system.AddLink(tierod);
-	this->link_list.push_back(&tierod);
+	this->link_list.push_back(tierod.get_ptr());
 
 }
 
 DoubleAarm::~DoubleAarm() {
 	// remove the links, forces, etc., then the bodies last
 	if( this->link_list.size() > 0 ) {
-		ChSystem* m_sys = (*(this->body_list[0]))->GetSystem();
-		for(int i = 0; i < this->link_list.size(); i++){
-			m_sys->RemoveLink(*(this->link_list[i]));
-		}
-		for(int j = 0; j < this->body_list.size(); j++){
-			m_sys->RemoveBody(*(this->body_list[j]) );
+		ChSystem* m_sys = this->link_list.front()->GetSystem();
+		std::list<ChLink*>::iterator link_iter =  this->link_list.begin();
+		m_sys->RemoveLinkIter(link_iter);
+	}
+	if( this->joint_list.size() > 0 ) {
+		ChSystem* m_sys = this->joint_list.front()->GetSystem();
+		std::list<ChLink*>::iterator joint_iter = this->joint_list.begin();
+		m_sys->RemoveLinkIter(joint_iter);
+	}
+	if( this->body_list.size() > 0 ) {
+		ChSystem* m_sys = this->body_list.front()->GetSystem();
+		std::list<ChBody*>::iterator body_iter = this->body_list.begin();
+		while(1) {
+			ChSharedPtr<ChBody> curr_body(*body_iter);
+			m_sys->RemoveBody(curr_body);
+			if(body_iter == this->body_list.end() ) {
+				break;
+			}
 		}
 	}
 }

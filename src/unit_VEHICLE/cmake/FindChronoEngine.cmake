@@ -42,7 +42,7 @@
 
 
 
-SET (CH_SDKDIR         "" CACHE PATH "Where is your Chrono SDK source installed (the ChronoEngine src/ directory)?")
+SET (CH_CHRONO_SDKDIR         "" CACHE PATH "Where is your Chrono SDK source installed (the ChronoEngine src/ directory)?")
 SET (CH_LIBDIR_DEBUG   "" CACHE PATH "Where are your Chrono debug libraries (ChronoEngine.lib etc.) installed?")
 SET (CH_LIBDIR_RELEASE "" CACHE PATH "Where are your Chrono release libraries (ChronoEngine.lib etc.) installed?")
 
@@ -140,10 +140,10 @@ ENDIF()
 MARK_AS_ADVANCED(CHRONOENGINE_LIBRARY_RELEASE)
 MARK_AS_ADVANCED(CHRONOENGINE_LIBRARY_DEBUG)
 
-SET(CH_INCLUDES "${CH_SDKDIR}")
-SET(CH_INCLUDES ${CH_INCLUDES} "${CH_SDKDIR}/collision/bullet" )
-SET(CH_INCLUDES ${CH_INCLUDES} "${CH_SDKDIR}/collision/gimpact" )
-SET(CH_INCLUDES ${CH_INCLUDES} "${CH_SDKDIR}/collision/convexdecomposition/HACD" )
+SET(CH_INCLUDES "${CH_CHRONO_SDKDIR}")
+SET(CH_INCLUDES ${CH_INCLUDES} "${CH_CHRONO_SDKDIR}/collision/bullet" )
+SET(CH_INCLUDES ${CH_INCLUDES} "${CH_CHRONO_SDKDIR}/collision/gimpact" )
+SET(CH_INCLUDES ${CH_INCLUDES} "${CH_CHRONO_SDKDIR}/collision/convexdecomposition/HACD" )
 
 # Append to easy collective variables
 SET(CHRONOENGINE_INCLUDES  ${CH_INCLUDES})

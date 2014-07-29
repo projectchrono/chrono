@@ -48,18 +48,6 @@
 // Use the namespace of Chrono
 using namespace chrono;
 
-/*
-#ifdef USE_IRRLICHT
-// Use the main namespaces of Irrlicht
-using namespace irr;
-using namespace core;
-using namespace scene;
-using namespace video;
-using namespace io;
-using namespace gui;
-#endif
-*/
-
 // how the tire will supply the reaction forces to the wheel rigid body
 enum TireForceType {
 	RIGIDCONTACT,

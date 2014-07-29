@@ -12,11 +12,13 @@ class ChSuspension
 {
 protected:
 	// all the bodies
-	std::vector<ChSharedPtr<ChBody>*> body_list;
+	std::vector<ChBody*> body_list;
+	
 	// links: kinematically idealized joints, e.g. massless link distance constraint
-	std::vector<ChSharedPtr<ChLinkDistance>*> link_list;
+	std::vector<ChLinkDistance*> link_list;
+	
 	// all the general joints
-	std::vector<ChSharedPtr<ChLinkLock>*> joint_list;
+	std::vector<ChLinkLock*> joint_list;
 
 	// suspension name
 	std::string subsys_name;
@@ -27,14 +29,21 @@ public:
 	ChSuspension(){}
 	virtual ~ChSuspension(){}
 
+	virtual 
+
 	// get the list of bodies as const refs
-	virtual const std::vector<ChSharedPtr<ChBody>*>& get_body_ptrs(){
+	const std::vector<ChBody*>& get_body_ptrs(){
 		return this->body_list;
 	}
 
-	// get the list of joints/links as const refs
-	virtual const std::vector<ChSharedPtr<ChLinkDistance>*>& get_link_ptrs(){
+	// get the list of geometric constraints (links) as const refs
+	const std::vector<ChLinkDistance*>& get_link_ptrs(){
 		return this->link_list;
+	}
+
+	// get the list of joints in this subsystem
+	const std::vector<ChLinkLock*>& get_joint_ptrs(){
+		return this->joint_list;
 	}
 
 	// get the name of the subsys

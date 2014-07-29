@@ -85,28 +85,28 @@ HMMWV_9body::HMMWV_9body(ChSystem&  my_system,
 	// x-forward, z-lateral, w.r.t. chassis coord-sys
 	ChVector<> wheelRF_cm_bar = ChVector<>(-44.43, 35.82, -19.98)*in_to_m;	// right front wheel, in body coords
 	ChVector<> spindleRF_cm_bar	= ChVector<>(wheelRF_cm_bar);	// right front spindle
-	spindleRF_cm_bar.z -= offset; 
+	spindleRF_cm_bar.y -= offset; 
 	ChVector<> wheelLF_cm_bar = ChVector<>(-44.43, -35.82, -19.98)*in_to_m;	// left front wheel, in body coords
 	ChVector<> spindleLF_cm_bar = ChVector<>(wheelLF_cm_bar);	// left front spnidle
-	spindleLF_cm_bar.z += offset;
+	spindleLF_cm_bar.y += offset;
 	ChVector<> wheelRB_cm_bar = ChVector<>(88.57, 35.82, -19.98 )*in_to_m;	// right back wheel
 	ChVector<> spindleRB_cm_bar	= ChVector<>(wheelRB_cm_bar);	// right back spindle
-	spindleRB_cm_bar.z -= offset;
+	spindleRB_cm_bar.y -= offset;
 	ChVector<> wheelLB_cm_bar = ChVector<>(88.57, -35.82, -19.98)*in_to_m;	// left back wheel
 	ChVector<> spindleLB_cm_bar = ChVector<>(wheelLB_cm_bar);	// left back spindle
-	spindleLB_cm_bar.z += offset;
+	spindleLB_cm_bar.y += offset;
 
 	// 0) --- LF Wheel
 	ChVector<> wheelLF_cm = chassis->GetCoord().TrasformLocalToParent( wheelLF_cm_bar);
 	if(useTireMesh) {
 		// use a nice looking .obj mesh for the wheel visuals
-		this->wheelLF = new SoilbinWheel(my_system, wheelLF_cm, chrono::QUNIT,
+		this->wheelLF = new ChWheel(my_system, wheelLF_cm, chrono::QUNIT,
 			wheelMass, tireWidth, tireRadius*2.0, tireRadius*0.8,
 			true,
 			meshFile, QUNIT);
 	} else {
 		// use a cylinder, with inertia based on the inner and outer radii
-		this->wheelLF = new SoilbinWheel(my_system, wheelLF_cm,chrono::QUNIT,
+		this->wheelLF = new ChWheel(my_system, wheelLF_cm,chrono::QUNIT,
 			wheelMass, tireWidth, tireRadius*2.0, tireRadius*0.8, true);
 	}
 
@@ -124,13 +124,13 @@ HMMWV_9body::HMMWV_9body(ChSystem&  my_system,
 	ChVector<> wheelRF_cm = chassis->GetCoord().TrasformLocalToParent( wheelRF_cm_bar);
 	if(useTireMesh) {
 		// use a nice looking .obj mesh for the wheel visuals
-		this->wheelRF = new SoilbinWheel(my_system, wheelRF_cm, chrono::QUNIT,
+		this->wheelRF = new ChWheel(my_system, wheelRF_cm, chrono::QUNIT,
 			wheelMass, tireWidth, tireRadius*2.0, tireRadius*0.8,
 			true,
 			meshFile, QUNIT);
 	} else {
 		// use a cylinder, with inertia based on the inner and outer radii
-		this->wheelRF = new SoilbinWheel(my_system, wheelRF_cm,chrono::QUNIT,
+		this->wheelRF = new ChWheel(my_system, wheelRF_cm,chrono::QUNIT,
 			wheelMass, tireWidth, tireRadius*2.0, tireRadius*0.8, true);
 	}
 
@@ -141,13 +141,13 @@ HMMWV_9body::HMMWV_9body(ChSystem&  my_system,
 	ChVector<> wheelLB_cm = chassis->GetCoord().TrasformLocalToParent( wheelLB_cm_bar);
 	if(useTireMesh) {
 		// use a nice looking .obj mesh for the wheel visuals
-		this->wheelLB =  new SoilbinWheel(my_system, wheelLB_cm, chrono::QUNIT,
+		this->wheelLB =  new ChWheel(my_system, wheelLB_cm, chrono::QUNIT,
 			wheelMass, tireWidth, tireRadius*2.0, tireRadius*0.8,
 			true,
 			meshFile, QUNIT);
 	} else {
 		// use a cylinder, with inertia based on the inner and outer radii
-		this->wheelLB = new SoilbinWheel(my_system, wheelLB_cm,chrono::QUNIT,
+		this->wheelLB = new ChWheel(my_system, wheelLB_cm,chrono::QUNIT,
 			wheelMass, tireWidth, tireRadius*2.0, tireRadius*0.8, true);
 	}
 
@@ -167,13 +167,13 @@ HMMWV_9body::HMMWV_9body(ChSystem&  my_system,
 	ChVector<> wheelRB_cm = chassis->GetCoord().TrasformLocalToParent( wheelRB_cm_bar);
 	if(useTireMesh) {
 		// use a nice looking .obj mesh for the wheel visuals
-		this->wheelRB = new SoilbinWheel(my_system, wheelRB_cm, chrono::QUNIT,
+		this->wheelRB = new ChWheel(my_system, wheelRB_cm, chrono::QUNIT,
 			wheelMass, tireWidth, tireRadius*2.0, tireRadius*0.8,
 			true,
 			meshFile, QUNIT);
 	} else {
 		// use a cylinder, with inertia based on the inner and outer radii
-		this->wheelRB = new SoilbinWheel(my_system, wheelRB_cm,chrono::QUNIT,
+		this->wheelRB = new ChWheel(my_system, wheelRB_cm,chrono::QUNIT,
 			wheelMass, tireWidth, tireRadius*2.0, tireRadius*0.8, true);
 	}
 
@@ -236,25 +236,25 @@ double HMMWV_9body::ComputeSteerDisplacement()
 void HMMWV_9body::applyHub_FM(const std::vector<ChVector<>>& F_hub, const std::vector<ChVector<>>& M_hub){
 
 	// empty force accumulators
-	this->wheelLB->wheel->Empty_forces_accumulators();
-	this->wheelLF->wheel->Empty_forces_accumulators();
-	this->wheelRB->wheel->Empty_forces_accumulators();
-	this->wheelRF->wheel->Empty_forces_accumulators();
+	this->wheelLB->wheelBody->Empty_forces_accumulators();
+	this->wheelLF->wheelBody->Empty_forces_accumulators();
+	this->wheelRB->wheelBody->Empty_forces_accumulators();
+	this->wheelRF->wheelBody->Empty_forces_accumulators();
 
 	// add the force and moment to each
 	// TODO: reverse signs?
 	// RF
-	this->wheelRF->wheel->Accumulate_force(F_hub[0], ChVector<>(0,0,0),0);
-	this->wheelRF->wheel->Accumulate_torque(M_hub[0],0);
+	this->wheelRF->wheelBody->Accumulate_force(F_hub[0], ChVector<>(0,0,0),0);
+	this->wheelRF->wheelBody->Accumulate_torque(M_hub[0],0);
 	// LF
-	this->wheelLF->wheel->Accumulate_force(F_hub[0], ChVector<>(0,0,0),0);
-	this->wheelLF->wheel->Accumulate_torque(M_hub[0],0);
+	this->wheelLF->wheelBody->Accumulate_force(F_hub[0], ChVector<>(0,0,0),0);
+	this->wheelLF->wheelBody->Accumulate_torque(M_hub[0],0);
 	// RB
-	this->wheelRB->wheel->Accumulate_force(F_hub[0], ChVector<>(0,0,0),0);
-	this->wheelRB->wheel->Accumulate_torque(M_hub[0],0);
+	this->wheelRB->wheelBody->Accumulate_force(F_hub[0], ChVector<>(0,0,0),0);
+	this->wheelRB->wheelBody->Accumulate_torque(M_hub[0],0);
 	// LB
-	this->wheelLB->wheel->Accumulate_force(F_hub[0], ChVector<>(0,0,0),0);
-	this->wheelLB->wheel->Accumulate_torque(M_hub[0],0);
+	this->wheelLB->wheelBody->Accumulate_force(F_hub[0], ChVector<>(0,0,0),0);
+	this->wheelLB->wheelBody->Accumulate_torque(M_hub[0],0);
 
 }
 
@@ -265,19 +265,19 @@ ChVector<> HMMWV_9body::getCM_pos(int tire_idx){
 	// RF, LF, RB, LB
 	if( tire_idx == 0 ) {
 		// RF
-		CM_pos = this->wheelRF->wheel->GetPos();
+		CM_pos = this->wheelRF->wheelBody->GetPos();
 	}
 	if( tire_idx == 1) {
 		// LF
-		CM_pos = this->wheelLF->wheel->GetPos();
+		CM_pos = this->wheelLF->wheelBody->GetPos();
 	}
 	if( tire_idx == 2) {
 		// RB
-		CM_pos = this->wheelRB->wheel->GetPos();
+		CM_pos = this->wheelRB->wheelBody->GetPos();
 	}
 	if( tire_idx == 3) {
 		// LB
-		CM_pos = this->wheelLB->wheel->GetPos();
+		CM_pos = this->wheelLB->wheelBody->GetPos();
 	}
 	if( tire_idx > 3 ) {
 		GetLog()<< "warning, tire_idx larger than the max # of tires\n";
@@ -292,19 +292,19 @@ ChQuaternion<> HMMWV_9body::getCM_q(int tire_idx){
 	// RF, LF, RB, LB
 	if( tire_idx == 0 ) {
 		// RF
-		CM_q = this->wheelRF->wheel->GetRot();
+		CM_q = this->wheelRF->wheelBody->GetRot();
 	}
 	if( tire_idx == 1) {
 		// LF
-		CM_q = this->wheelLF->wheel->GetRot();
+		CM_q = this->wheelLF->wheelBody->GetRot();
 	}
 	if( tire_idx == 2) {
 		// RB
-		CM_q = this->wheelRB->wheel->GetRot();
+		CM_q = this->wheelRB->wheelBody->GetRot();
 	}
 	if( tire_idx == 3) {
 		// LB
-		CM_q = this->wheelLB->wheel->GetRot();
+		CM_q = this->wheelLB->wheelBody->GetRot();
 	}
 	if( tire_idx > 3 ) {
 		GetLog()<< "warning, tire_idx larger than the max # of tires\n";
@@ -328,19 +328,19 @@ ChVector<> HMMWV_9body::getCM_vel(int tire_idx){
 		// RF, LF, RB, LB
 	if( tire_idx == 0 ) {
 		// RF
-		this->wheelRF->wheel->GetPos_dt();
+		this->wheelRF->wheelBody->GetPos_dt();
 	}
 	if( tire_idx == 1) {
 		// LF
-		this->wheelLF->wheel->GetPos_dt();
+		this->wheelLF->wheelBody->GetPos_dt();
 	}
 	if( tire_idx == 2) {
 		// RB
-		this->wheelRB->wheel->GetPos_dt();
+		this->wheelRB->wheelBody->GetPos_dt();
 	}
 	if( tire_idx == 3) {
 		// LB
-		this->wheelLB->wheel->GetPos_dt();
+		this->wheelLB->wheelBody->GetPos_dt();
 	}
 	if( tire_idx > 3 ) {
 		GetLog()<< "warning, tire_idx larger than the max # of tires\n";
@@ -353,19 +353,19 @@ ChVector<> HMMWV_9body::getCM_w(int tire_idx){
 		// RF, LF, RB, LB
 	if( tire_idx == 0 ) {
 		// RF
-		this->wheelRF->wheel->GetWvel_loc();
+		this->wheelRF->wheelBody->GetWvel_loc();
 	}
 	if( tire_idx == 1) {
 		// LF
-		this->wheelLF->wheel->GetWvel_loc();
+		this->wheelLF->wheelBody->GetWvel_loc();
 	}
 	if( tire_idx == 2) {
 		// RB
-		this->wheelRB->wheel->GetWvel_loc();
+		this->wheelRB->wheelBody->GetWvel_loc();
 	}
 	if( tire_idx == 3) {
 		// LB
-		this->wheelLB->wheel->GetWvel_loc();
+		this->wheelLB->wheelBody->GetWvel_loc();
 	}
 	if( tire_idx > 3 ) {
 		GetLog()<< "warning, tire_idx larger than the max # of tires\n";
@@ -378,19 +378,19 @@ ChVector<> HMMWV_9body::getCM_acc(int tire_idx){
 		// RF, LF, RB, LB
 	if( tire_idx == 0 ) {
 		// RF
-		this->wheelRF->wheel->GetPos_dtdt();
+		this->wheelRF->wheelBody->GetPos_dtdt();
 	}
 	if( tire_idx == 1) {
 		// LF
-		this->wheelLF->wheel->GetPos_dtdt();
+		this->wheelLF->wheelBody->GetPos_dtdt();
 	}
 	if( tire_idx == 2) {
 		// RB
-		this->wheelRB->wheel->GetPos_dtdt();
+		this->wheelRB->wheelBody->GetPos_dtdt();
 	}
 	if( tire_idx == 3) {
 		// LB
-		this->wheelLB->wheel->GetPos_dtdt();
+		this->wheelLB->wheelBody->GetPos_dtdt();
 	}
 	if( tire_idx > 3 ) {
 		GetLog()<< "warning, tire_idx larger than the max # of tires\n";
