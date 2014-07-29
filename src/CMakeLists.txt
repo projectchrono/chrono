@@ -459,7 +459,6 @@ IF (BUILD_CH_SDK)
 		physics/ChShaftsThermalEngine.h
 		physics/ChSolver.h
 		physics/ChSolvmin.h
-		physics/ChStack.h
 		physics/ChSystem.h
 		physics/ChAssembly.h
 		physics/ChSystemDEM.h
