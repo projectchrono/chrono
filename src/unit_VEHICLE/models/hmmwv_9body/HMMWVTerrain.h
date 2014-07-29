@@ -10,6 +10,7 @@
 #include <ostream>
 #include <iostream>
 #include "physics/ChBodyEasy.h"
+#include "assets/ChColorAsset.h"
 
 namespace chrono{
 
@@ -50,7 +51,7 @@ public:
 		system.Add(floor);
 
 		// add some color
-		ChSharedPtr<ChVisualization> floorColor(new ChVisualization);
+		ChSharedPtr<ChColorAsset> floorColor(new ChColorAsset);
 		floorColor->SetColor(ChColor(0.4,0.4,0.6));
 		floor->AddAsset(floorColor);	// add the color asset
 
