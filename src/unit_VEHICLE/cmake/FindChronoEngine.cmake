@@ -305,7 +305,6 @@ IF( ChronoEngine_FIND_COMPONENTS )
     ##### THE unit_IRRLICHT COMPONENT
     
     if (${CH_USE_UNIT_IRRLICHT})
-
         # Find the ChronoEngine_IRRLICHT interface library
 
         FIND_LIBRARY(CHRONOENGINE_LIBRARY_IRRLICHT_RELEASE
@@ -349,27 +348,27 @@ IF( ChronoEngine_FIND_COMPONENTS )
     ##### ADDITIONAL DEPENDENCIES FOR CHRONOENGINE COMPONENTS
     
     if (${CH_USE_UNIT_IRRLICHT})
-        SET(CH_IRRLICHTDIR ""  CACHE PATH   "Where is your Irrlicht SDK installed? You must set this path to compile demos with 3D display.")
-        IF(EXISTS "${CH_IRRLICHTDIR}/include")
-            SET(CH_IRRLICHTINC "${CH_IRRLICHTDIR}/include")
+        SET(CH_IRRLICHT_SDKDIR ""  CACHE PATH   "Where is your Irrlicht SDK installed? You must set this path to compile demos with 3D display.")
+        IF(EXISTS "${CH_IRRLICHT_SDKDIR}/include")
+            SET(CH_IRRLICHTINC "${CH_IRRLICHT_SDKDIR}/include")
         ELSE()
-            SET(CH_IRRLICHTINC "${CH_IRRLICHTDIR}")
+            SET(CH_IRRLICHTINC "${CH_IRRLICHT_SDKDIR}")
         ENDIF()
         IF(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
             IF ("${CH_COMPILER}" STREQUAL "COMPILER_MSVC")
-                FIND_LIBRARY( CH_IRRLICHTLIB NAMES Irrlicht PATHS "${CH_IRRLICHTDIR}/lib/Win32-visualstudio")
+                FIND_LIBRARY( CH_IRRLICHTLIB NAMES Irrlicht PATHS "${CH_IRRLICHT_SDKDIR}/lib/Win32-visualstudio")
             ELSEIF ("${CH_COMPILER}" STREQUAL "COMPILER_MSVC_X64")
-                FIND_LIBRARY( CH_IRRLICHTLIB NAMES Irrlicht PATHS "${CH_IRRLICHTDIR}/lib/Win64-visualStudio")
+                FIND_LIBRARY( CH_IRRLICHTLIB NAMES Irrlicht PATHS "${CH_IRRLICHT_SDKDIR}/lib/Win64-visualStudio")
             ELSEIF ("${CH_COMPILER}" STREQUAL "COMPILER_GCC")
-                FIND_LIBRARY( CH_IRRLICHTLIB NAMES Irrlicht PATHS "${CH_IRRLICHTDIR}/lib/Win32-gcc")
+                FIND_LIBRARY( CH_IRRLICHTLIB NAMES Irrlicht PATHS "${CH_IRRLICHT_SDKDIR}/lib/Win32-gcc")
             ELSEIF ("${CH_COMPILER}" STREQUAL "COMPILER_GCC_X64")
-                FIND_LIBRARY( CH_IRRLICHTLIB NAMES Irrlicht PATHS "${CH_IRRLICHTDIR}/lib/Win64-gcc")
+                FIND_LIBRARY( CH_IRRLICHTLIB NAMES Irrlicht PATHS "${CH_IRRLICHT_SDKDIR}/lib/Win64-gcc")
             ENDIF()
         ELSEIF(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
-            FIND_LIBRARY( CH_IRRLICHTLIB NAMES Irrlicht PATHS "/usr/local/lib" ${CH_IRRLICHTDIR}/lib/Linux)
+            FIND_LIBRARY( CH_IRRLICHTLIB NAMES Irrlicht PATHS "/usr/local/lib" ${CH_IRRLICHT_SDKDIR}/lib/Linux)
             SET (CH_IRRLICHTLIB "${CH_IRRLICHTLIB}" -lXxf86vm -lglut -lX11 -lGL)
         ELSEIF(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
-            FIND_LIBRARY( CH_IRRLICHTLIB NAMES Irrlicht PATHS "/usr/local/lib" ${CH_IRRLICHTDIR}/lib/Linux)
+            FIND_LIBRARY( CH_IRRLICHTLIB NAMES Irrlicht PATHS "/usr/local/lib" ${CH_IRRLICHT_SDKDIR}/lib/Linux)
             SET (CH_IRRLICHTLIB "${CH_IRRLICHTLIB}")
         ENDIF()
         

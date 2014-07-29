@@ -88,9 +88,9 @@ IF(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
 
     IF(ENABLE_IRRLICHT)
         IF("${CH_COMPILER}" STREQUAL "COMPILER_MSVC")
-            SET(CH_IRRLICHT_DLL "${CH_IRRLICHTDIR}/bin/Win32-VisualStudio/Irrlicht.dll")
+            SET(CH_IRRLICHT_DLL "${CH_IRRLICHT_SDKDIR}/bin/Win32-VisualStudio/Irrlicht.dll")
         ELSEIF("${CH_COMPILER}" STREQUAL "COMPILER_MSVC_X64")
-            SET(CH_IRRLICHT_DLL "${CH_IRRLICHTDIR}/bin/Win64-VisualStudio/Irrlicht.dll")
+            SET(CH_IRRLICHT_DLL "${CH_IRRLICHT_SDKDIR}/bin/Win64-VisualStudio/Irrlicht.dll")
         ENDIF()
 
         ADD_CUSTOM_COMMAND(
