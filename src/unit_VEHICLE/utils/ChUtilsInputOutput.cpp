@@ -82,7 +82,7 @@ void WriteCheckpoint(ChSystem*          system,
     int num_visual_assets = 0;
     for (int j = 0; j < body->GetAssets().size(); j++) {
       ChSharedPtr<ChAsset> asset = body->GetAssets().at(j);
-      if (dynamic_cast<ChVisualization*>(asset.get_ptr()))
+      if (asset.IsType<ChVisualization>())
         num_visual_assets++;
     }
     csv << num_visual_assets << std::endl;
@@ -90,32 +90,38 @@ void WriteCheckpoint(ChSystem*          system,
     // Loop over each asset and, for visual assets, write its data on a separate line
     for (int j = 0; j < body->GetAssets().size(); j++) {
       ChSharedPtr<ChAsset> asset = body->GetAssets().at(j);
-      ChVisualization* visual_asset = dynamic_cast<ChVisualization*>(asset.get_ptr());
-      if (!visual_asset)  continue;
+      ChSharedPtr<ChVisualization> visual_asset = asset.DynamicCastTo<ChVisualization>();
+      if (visual_asset.IsNull())
+        continue;
 
       // Write relative position and rotation
       csv << visual_asset->Pos << visual_asset->Rot.Get_A_quaternion();
 
       // Write shape type and geometry data
-      if (asset.IsType<ChSphereShape>()) {
-        ChSphereShape* sphere = (ChSphereShape*) asset.get_ptr();
+      if (ChSharedPtr<ChSphereShape> sphere = asset.DynamicCastTo<ChSphereShape>())
+      {
         csv << collision::SPHERE << sphere->GetSphereGeometry().rad;
-      } else if (asset.IsType<ChEllipsoidShape>()) {
-        ChEllipsoidShape* ellipsoid = (ChEllipsoidShape*) asset.get_ptr();
+      }
+      else if (ChSharedPtr<ChEllipsoidShape> ellipsoid = asset.DynamicCastTo<ChEllipsoidShape>())
+      {
         csv << collision::ELLIPSOID << ellipsoid->GetEllipsoidGeometry().rad;
-      } else if (asset.IsType<ChBoxShape>()) {
-        ChBoxShape* box = (ChBoxShape*) asset.get_ptr();
+      }
+      else if (ChSharedPtr<ChBoxShape> box = asset.DynamicCastTo<ChBoxShape>())
+      {
         csv << collision::BOX << box->GetBoxGeometry().Size;
-      } else if (asset.IsType<ChCapsuleShape>()) {
-        ChCapsuleShape* capsule = (ChCapsuleShape*) asset.get_ptr();
+      }
+      else if (ChSharedPtr<ChCapsuleShape> capsule = asset.DynamicCastTo<ChCapsuleShape>())
+      {
         const geometry::ChCapsule& geom = capsule->GetCapsuleGeometry();
         csv << collision::CAPSULE << geom.rad << geom.hlen;
-      } else if (asset.IsType<ChCylinderShape>()) {
-        ChCylinderShape* cylinder = (ChCylinderShape*) asset.get_ptr();
+      }
+      else if (ChSharedPtr<ChCylinderShape> cylinder = asset.DynamicCastTo<ChCylinderShape>())
+      {
         const geometry::ChCylinder& geom = cylinder->GetCylinderGeometry();
         csv << collision::CYLINDER << geom.rad << (geom.p1.y - geom.p2.y) / 2;
-      } else if (asset.IsType<ChConeShape>()) {
-        ChConeShape* cone = (ChConeShape*) asset.get_ptr();
+      }
+      else if (ChSharedPtr<ChConeShape> cone = asset.DynamicCastTo<ChConeShape>())
+      {
         const geometry::ChCone& geom = cone->GetConeGeometry();
         csv << collision::CONE << geom.rad.x << geom.rad.y;
       }
@@ -172,7 +178,7 @@ void ReadCheckpoint(ChSystem*          system,
       iss2 >> mat->compliance >> mat->complianceT >> mat->complianceRoll >> mat->complianceSpin;
     } else {
       body = new ChBodyDEM();
-      ChSharedPtr<ChMaterialSurfaceDEM>& mat = ((ChBodyDEM*) body)->GetMaterialSurfaceDEM();
+      ChSharedPtr<ChMaterialSurfaceDEM>& mat = static_cast<ChBodyDEM*>(body)->GetMaterialSurfaceDEM();
       iss2 >> mat->young_modulus >> mat->poisson_ratio;
       iss2 >> mat->static_friction >> mat->sliding_friction;
       iss2 >> mat->restitution >> mat->dissipation_factor;
