@@ -315,6 +315,24 @@ ChMatrix33<> CalcRoundedBoxGyration(
   return J;
 }
 
+inline
+ChMatrix33<> CalcTorusGyration(
+                 double                radius,
+                 double                thickness,
+                 const ChVector<>&     pos = ChVector<>(0,0,0),
+                 const ChQuaternion<>& rot = ChQuaternion<>(1,0,0,0))
+{
+  ChMatrix33<> J;
+
+  J.SetElement(0, 0, (5.0/8.0) * (thickness * thickness)  + (1.0/2.0) * (radius * radius));
+  J.SetElement(1, 1, (3.0/4.0) * (thickness * thickness)  + (radius * radius));
+  J.SetElement(2, 2, (5.0/8.0) * (thickness * thickness)  + (1.0/2.0) * (radius * radius));
+
+  TransformGyration(J, pos, rot);
+
+  return J;
+}
+
 
 } // end namespace utils
 } // end namespace chrono
