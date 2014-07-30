@@ -63,8 +63,8 @@ HMMWV_9body::HMMWV_9body(ChSystem&  my_system,
 
 	// add a nice .obj mesh file as a visual asset
 	ChSharedPtr<ChObjShapeFile> chassisObj(new ChObjShapeFile);
-	chassisObj->SetFilename("../data/humvee4.obj");
-//	chassisObj->SetFilename("../data/humvee_scaled.obj");
+//	chassisObj->SetFilename("../data/humvee4.obj");
+	chassisObj->SetFilename("../data/humvee_scaled.obj");
 
 	// might need to rotate the visualization mesh so x+ is backwards
 	// in blender, humvee4.obj looks to have z+ up, -y forward. Want -x forward
@@ -75,11 +75,11 @@ HMMWV_9body::HMMWV_9body(ChSystem&  my_system,
 	ChFrame<> rot1(ChVector<>(),  chrono::Q_from_AngX(CH_C_PI_2) );
 	ChFrame<> rot2(ChVector<>(),  chrono::Q_from_AngZ(CH_C_PI_2) );
 	ChFrame<> rot3 = rot1 >> rot2;
-	chassisMesh_level->GetFrame().SetRot( rot3.GetRot() );
+//	chassisMesh_level->GetFrame().SetRot( rot3.GetRot() );
 	chassis->AddAsset(chassisMesh_level);
 //	chassis->AddAsset(chassisObj);
 	// position of spindle, wheel CMs
-	double offset= 5.0*in_to_m;	// offset in lateral length between CM of spindle, wheel
+	double offset= 4.0*in_to_m;	// offset in lateral length between CM of spindle, wheel
 
 	// wheel and spindle positions, relative to the chassis CM position
 	// x-forward, z-lateral, w.r.t. chassis coord-sys
