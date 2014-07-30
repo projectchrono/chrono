@@ -166,9 +166,10 @@ public:
 				if (id == 101) // Steering slider
 				{
 					s32 pos = ((gui::IGUIScrollBar*)event.GUIEvent.Caller)->getPos();
-					this->mcar->driver->setSteer(((double)(pos-50))/50.);
+          double steering = (double)(pos - 50) / 50.;
+					this->mcar->driver->setSteer(steering);
 					// show steer position
-					char msg[150]; sprintf(msg,"steer pos: %+5.4g",pos);
+					char msg[150]; sprintf(msg,"steer pos: %+5.4g",steering);
 					text_steerPos->setText(core::stringw(msg).c_str() );
 				}
 				if (id == 102) // id of 'spring stiffness' slider..
