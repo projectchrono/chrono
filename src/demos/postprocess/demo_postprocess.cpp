@@ -34,7 +34,7 @@
 #include "assets/ChCylinderShape.h" 
 #include "assets/ChObjShapeFile.h" 
 #include "assets/ChCamera.h" 
-#include "assets/ChVisualization.h" 
+#include "assets/ChColorAsset.h" 
 #include "assets/ChTexture.h"
 #include "assets/ChAssetLevel.h"
 #include "unit_POSTPROCESS/ChPovRay.h" 
@@ -92,7 +92,7 @@ int main(int argc, char* argv[])
 	mfloor->AddAsset(mboxfloor);
 
 			// ==Asset== attach color asset. 
-	ChSharedPtr<ChVisualization> mfloorcolor(new ChVisualization);
+	ChSharedPtr<ChColorAsset> mfloorcolor(new ChColorAsset);
 	mfloorcolor->SetColor(ChColor(0.3,0.3,0.6));
 	mfloor->AddAsset(mfloorcolor);
 
@@ -132,7 +132,7 @@ int main(int argc, char* argv[])
 
 			// ==Asset== Attach color. To set colors for all assets  
 			// in the same level, just add this:
-	ChSharedPtr<ChVisualization> mvisual(new ChVisualization);
+	ChSharedPtr<ChColorAsset> mvisual(new ChColorAsset);
 	mvisual->SetColor(ChColor(0.9,0.4,0.2));
 	mbody->AddAsset(mvisual);
 
