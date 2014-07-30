@@ -89,6 +89,11 @@ double CalcRoundedBoxBradius(const ChVector<>& hdims, double srad)
   return hdims.Length() + srad;
 }
 
+inline
+double CalcTorusBradius(double radius, double thickness)
+{
+  return radius + thickness;
+}
 
 // -----------------------------------------------------------------------------
 // These utility functions calculate the volume of the corresponding shape.
@@ -145,6 +150,12 @@ double CalcRoundedBoxVolume(const ChVector<>& hdims, double srad)
   return  8 * hdims.x * hdims.y * hdims.z +
           2 * srad * (hdims.x * hdims.y + hdims.y * hdims.z + hdims.z * hdims.x) +
           (4.0 * CH_C_PI / 3.0) * srad * srad * srad;
+}
+
+inline
+double CalcTorusVolume( double radius, double thickness)
+{
+  return  2 * CH_C_PI * CH_C_PI * thickness * thickness * radius;
 }
 
 // -----------------------------------------------------------------------------
