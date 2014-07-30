@@ -46,8 +46,10 @@ DoubleAarm::DoubleAarm(ChSystem&  my_system, const int susp_type, ChSharedPtr<Ch
 			HP_L1 = r0 + ChVector<>(-94.18, -12.1, -32.29)*inch_to_m;	// chassis, bottom front
 			HP_L2 = r0 + ChVector<>(-83.99, -30.97, -36.94)*inch_to_m;	// upright, bottom
 			HP_L3 = r0 + ChVector<>(-76.6, -12.1, -32.29)*inch_to_m;	// upright, bottom rear
-			HP_KD_U	= r0 + ChVector<>(-89.49, -27.87, -19.57)*inch_to_m;	// springDamper, top, avg of UCA HP1,3
-			HP_KD_L	= r0 + ChVector<>(-89.22, -30.97, -33.81)*inch_to_m;	// sringDamper, lower, = HP L2
+//			HP_KD_U	= r0 + ChVector<>(-83.8, -27.87, -19.57)*inch_to_m;	// shock, top, Aligned with spindle CM
+//			HP_KD_L	= r0 + ChVector<>(-83.8, -30.97, -33.81)*inch_to_m;	// shock, bottom, Aligned with spindle CM
+			HP_KD_U	= r0 + ChVector<>(-89.49, -27.87, -19.57)*inch_to_m;	// shock, top
+			HP_KD_L	= r0 + ChVector<>(-89.22, -30.97, -33.81)*inch_to_m;	// shock, bottom
 			HP_St_1	= r0 + ChVector<>(-72.0, -9.81, -33.325)*inch_to_m;	// steer, output to rack // y -= 9.81
 			HP_St_2	= r0 + ChVector<>(-78.47, -32.32, -33.325)*inch_to_m;	// steer, upright ball joint
 			susp_type_string = "left front";
@@ -112,8 +114,10 @@ DoubleAarm::DoubleAarm(ChSystem&  my_system, const int susp_type, ChSharedPtr<Ch
 	// 4) finalize or add to system
 	// 5) add ChSharedPtr to the class list, and the name also
 	// ---------- upright.  Initialize, add to the system, add to ref array.
-	this->upright = ChSharedPtr<ChBodyEasyBox>(new ChBodyEasyBox(uprightSize.x, uprightSize.y, uprightSize.z, 1000, false, true));
-	upright->SetPos(chassis->GetCoord().TrasformLocalToParent( upright_r_bar) );
+	this->upright = ChSharedPtr<ChBodyEasyBox>(new ChBodyEasyBox(uprightSize.x, uprightSize.y, uprightSize.z, 1000,
+		false, true));
+	ChVector<> spindlePos = chassis->GetCoord().TrasformLocalToParent( upright_r_bar);
+	upright->SetPos( spindlePos );
 	upright->SetNameString(susp_type_string + " upright" );
 	my_system.Add(upright);
 	this->body_list.push_back(upright.DynamicCastTo<ChBody>().get_ptr());
@@ -163,7 +167,7 @@ DoubleAarm::DoubleAarm(ChSystem&  my_system, const int susp_type, ChSharedPtr<Ch
 
 	//	--- Steering
  	this->tierod = ChSharedPtr<ChLinkDistance>(new ChLinkDistance); // right steer
-	tierod->Initialize(chassis, chassis, false, HP_St_1, HP_St_2 );
+	tierod->Initialize(upright, chassis, false, HP_St_1, HP_St_2 );
 	tierod->SetNameString(susp_type_string + " dist tierod");
 	my_system.AddLink(tierod);
 	this->link_list.push_back(tierod.get_ptr());

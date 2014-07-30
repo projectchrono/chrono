@@ -265,11 +265,12 @@ public:
 	{
 		std::list<chrono::ChLink*>::iterator iterlink =  msys->Get_linklist()->begin();
 		while(iterlink !=  msys->Get_linklist()->end())	{
-			if (ChLinkDistance* mylinkdis = ChDynamicCast(ChLinkDistance,(*iterlink)))
+			if (ChLinkDistance* mylinkdis = ChDynamicCast(ChLinkDistance,(*iterlink))) {
 				ChIrrTools::drawSegment(mapp->GetVideoDriver(), 
 					mylinkdis->GetEndPoint1Abs(), 
 					mylinkdis->GetEndPoint2Abs(),
 					video::SColor(255,   0,20,0), true	);
+			}
 			iterlink++;
 		}
 	}

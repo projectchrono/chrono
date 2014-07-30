@@ -51,7 +51,7 @@ public:
 			mcyl->GetCylinderGeometry().p1 = ChVector<>(0, cyl_width/2.0, 0);
 			mcyl->GetCylinderGeometry().p2 = ChVector<>(0, -cyl_width/2.0, 0);
 			mcyl->GetCylinderGeometry().rad = r2;
-			wheelBody->AddAsset(mcyl);
+//			wheelBody->AddAsset(mcyl);
 		} else {
 			// use the input mesh specified as an asset
 			// if using wheel_cenetered.obj, x-dir is the axis of rotation. we want y-axis
@@ -88,6 +88,15 @@ public:
 		mtexture->SetTextureFilename("../data/bluwhite.png");
 		wheelBody->AddAsset(mtexture);
 		msys.Add(wheelBody);
+
+
+
+		// DEBUG
+		wheelBody->SetCollide(false);
+
+
+
+
 	}
 
 	// toggle visibility

@@ -61,6 +61,14 @@ HMMWV_9body::HMMWV_9body(ChSystem&  my_system,
 	chassis->SetName("chassis");
 	my_system.Add(chassis);
 
+	// DEBUG
+	chassis->SetBodyFixed(true);
+
+
+
+
+
+
 	// add a nice .obj mesh file as a visual asset
 	ChSharedPtr<ChObjShapeFile> chassisObj(new ChObjShapeFile);
 //	chassisObj->SetFilename("../data/humvee4.obj");

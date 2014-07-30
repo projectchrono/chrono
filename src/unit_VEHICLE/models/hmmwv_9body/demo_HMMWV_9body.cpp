@@ -64,9 +64,10 @@ enum TireForceType {
 
 
 // GLOBAL VARIABLES
-ChVector<> cameraOffset(-3,4,5);	// camera should trail the car
+ChVector<> cameraOffset(-2,3,3);	// camera should trail the car
 // chassis CM position, in SAE units [inches]. CONVERT TO METERS upon init.
-ChVector<> chassis_cmSAE = ChVector<>(600.5, 600.5, 49.68);	// only height above ground (0) truly matters
+// ChVector<> chassis_cm_inches = ChVector<>(600.5, 600.5, 49.68);	// only height above ground (0) truly matters
+ChVector<> chassis_cm_inches = ChVector<>(0,0, 49.68);
 ChQuaternion<> chassisOri(1,0,0,0);	// forward is the positive x-direction
 
 // if using DVI rigid body contact, how large to make the ground width/length dims?
@@ -91,7 +92,7 @@ int main(int argc, char* argv[]){
 	m_system.SetIterLCPmaxItersStab(150);
 
 	// create the HMMWV vehicle
-	ChVector<> chassisCM = chassis_cmSAE * 0.0254;
+	ChVector<> chassisCM = chassis_cm_inches * 0.0254;
 
 	// ***** vehicle module
 	HMMWV_9body* mycar = new HMMWV_9body(m_system, chassisCM, chassisOri,true,false);
