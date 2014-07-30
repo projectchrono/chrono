@@ -238,16 +238,17 @@ void AddTorusGeometry(
           double                radius,
           double                thickness,
           int                   segments = 20,
+          int                   angle = 360,
           const ChVector<>&     pos = ChVector<>(0,0,0),
           const ChQuaternion<>& rot = ChQuaternion<>(1,0,0,0))
 {
-   for (int i = 0; i < 360; i += 360/segments) {
+   for (int i = 0; i < angle; i += angle/segments) {
          double angle = i * CH_C_PI / 180.0;
          double x = cos(angle) * radius;
          double z = sin(angle) * radius;
          Quaternion q = chrono::Q_from_AngAxis(-angle, VECT_Y) % chrono::Q_from_AngAxis(CH_C_PI/2.0, VECT_X);
 
-         AddCylinderGeometry(body,thickness,thickness * 2,ChVector<>(x, 0, z),q);
+         AddCylinderGeometry(body,thickness,thickness ,ChVector<>(x, 0, z) + pos,q);
    }
 }
 
@@ -285,18 +286,18 @@ void CreateBoxContainerDVI(ChSystem*                           system,
                            bool                                y_up = false);
 
 CH_UTILS_API
-void InitializeObject(  ChSharedBodyPtr                     body,
-                           double                              mass,
-                           ChSharedPtr<ChMaterialSurface>&     mat,
-                           const ChVector<>&                   pos = ChVector<>(0,0,0),
-                           const ChQuaternion<>&               rot = ChQuaternion<>(1,0,0,0),
-                           bool                                collide = true,
-                           bool                                fixed = false,
-                           int                                 collision_family = 2,
-                           int                                 do_not_collide_with = 4);
+void InitializeObject(ChSharedBodyPtr                     body,
+                      double                              mass,
+                      ChSharedPtr<ChMaterialSurface>&     mat,
+                      const ChVector<>&                   pos = ChVector<>(0,0,0),
+                      const ChQuaternion<>&               rot = ChQuaternion<>(1,0,0,0),
+                      bool                                collide = true,
+                      bool                                fixed = false,
+                      int                                 collision_family = 2,
+                      int                                 do_not_collide_with = 4);
 CH_UTILS_API
-void FinalizeObject(     ChSharedBodyPtr                     body,
-                           ChSystem*                         system);
+void FinalizeObject(ChSharedBodyPtr                     body,
+                    ChSystem*                           system);
 
 
 
