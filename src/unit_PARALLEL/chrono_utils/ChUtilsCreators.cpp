@@ -49,7 +49,8 @@ void CreateBoxContainerDEM(ChSystem*                           system,
                            double                              hthick,
                            const ChVector<>&                   pos,
                            const ChQuaternion<>&               rot,
-                           bool                                collide)
+                           bool                                collide,
+                           bool                                y_up)
 {
   // Infer system type.
   SystemType sysType = GetSystemType(system);
@@ -74,11 +75,19 @@ void CreateBoxContainerDEM(ChSystem*                           system,
   body->SetBodyFixed(true);
 
   body->GetCollisionModel()->ClearModel();
-  AddWall(body, ChVector<>(0, 0, -hthick), ChVector<>(hdim.x, hdim.y, hthick));
-  AddWall(body, ChVector<>(-hdim.x-hthick, 0, hdim.z), ChVector<>(hthick, hdim.y, hdim.z));
-  AddWall(body, ChVector<>( hdim.x+hthick, 0, hdim.z), ChVector<>(hthick, hdim.y, hdim.z));
-  AddWall(body, ChVector<>(0, -hdim.y-hthick, hdim.z), ChVector<>(hdim.x, hthick, hdim.z));
-  AddWall(body, ChVector<>(0,  hdim.y+hthick, hdim.z), ChVector<>(hdim.x, hthick, hdim.z));
+  if(y_up){
+     AddBoxGeometry(body,  ChVector<>(hdim.x,  hthick,hdim.y),ChVector<>(0             , -hthick,0             ));
+     AddBoxGeometry(body,  ChVector<>(hthick,  hdim.z,hdim.y),ChVector<>(-hdim.x-hthick, hdim.z ,0             ));
+     AddBoxGeometry(body,  ChVector<>(hthick,  hdim.z,hdim.y),ChVector<>( hdim.x+hthick, hdim.z ,0             ));
+     AddBoxGeometry(body,  ChVector<>(hdim.x,  hdim.z,hthick),ChVector<>(0             , hdim.z ,-hdim.y-hthick));
+     AddBoxGeometry(body,  ChVector<>(hdim.x,  hdim.z,hthick),ChVector<>(0             , hdim.z , hdim.y+hthick));
+  }else{
+     AddBoxGeometry(body,  ChVector<>(hdim.x, hdim.y, hthick),ChVector<>(0             , 0             , -hthick));
+     AddBoxGeometry(body,  ChVector<>(hthick, hdim.y, hdim.z),ChVector<>(-hdim.x-hthick, 0             , hdim.z));
+     AddBoxGeometry(body,  ChVector<>(hthick, hdim.y, hdim.z),ChVector<>( hdim.x+hthick, 0             , hdim.z));
+     AddBoxGeometry(body,  ChVector<>(hdim.x, hthick, hdim.z),ChVector<>(0             , -hdim.y-hthick, hdim.z));
+     AddBoxGeometry(body,  ChVector<>(hdim.x, hthick, hdim.z),ChVector<>(0             ,  hdim.y+hthick, hdim.z));
+  }
   body->GetCollisionModel()->BuildModel();
 
   // Attach the body to the system.
@@ -92,7 +101,8 @@ void CreateBoxContainerDVI(ChSystem*                           system,
                            double                              hthick,
                            const ChVector<>&                   pos,
                            const ChQuaternion<>&               rot,
-                           bool                                collide)
+                           bool                                collide,
+                           bool                                y_up)
 {
   // Infer system type.
   SystemType sysType = GetSystemType(system);
@@ -117,15 +127,50 @@ void CreateBoxContainerDVI(ChSystem*                           system,
   body->SetBodyFixed(true);
 
   body->GetCollisionModel()->ClearModel();
-  AddWall(body, ChVector<>(0, 0, -hthick), ChVector<>(hdim.x, hdim.y, hthick));
-  AddWall(body, ChVector<>(-hdim.x-hthick, 0, hdim.z), ChVector<>(hthick, hdim.y, hdim.z));
-  AddWall(body, ChVector<>( hdim.x+hthick, 0, hdim.z), ChVector<>(hthick, hdim.y, hdim.z));
-  AddWall(body, ChVector<>(0, -hdim.y-hthick, hdim.z), ChVector<>(hdim.x, hthick, hdim.z));
-  AddWall(body, ChVector<>(0,  hdim.y+hthick, hdim.z), ChVector<>(hdim.x, hthick, hdim.z));
+if(y_up){
+   AddBoxGeometry(body,  ChVector<>(hdim.x,  hthick,hdim.y),ChVector<>(0             , -hthick,0             ));
+   AddBoxGeometry(body,  ChVector<>(hthick,  hdim.z,hdim.y),ChVector<>(-hdim.x-hthick, hdim.z ,0             ));
+   AddBoxGeometry(body,  ChVector<>(hthick,  hdim.z,hdim.y),ChVector<>( hdim.x+hthick, hdim.z ,0             ));
+   AddBoxGeometry(body,  ChVector<>(hdim.x,  hdim.z,hthick),ChVector<>(0             , hdim.z ,-hdim.y-hthick));
+   AddBoxGeometry(body,  ChVector<>(hdim.x,  hdim.z,hthick),ChVector<>(0             , hdim.z , hdim.y+hthick));
+}else{
+   AddBoxGeometry(body,  ChVector<>(hdim.x, hdim.y, hthick),ChVector<>(0             , 0             , -hthick));
+   AddBoxGeometry(body,  ChVector<>(hthick, hdim.y, hdim.z),ChVector<>(-hdim.x-hthick, 0             , hdim.z));
+   AddBoxGeometry(body,  ChVector<>(hthick, hdim.y, hdim.z),ChVector<>( hdim.x+hthick, 0             , hdim.z));
+   AddBoxGeometry(body,  ChVector<>(hdim.x, hthick, hdim.z),ChVector<>(0             , -hdim.y-hthick, hdim.z));
+   AddBoxGeometry(body,  ChVector<>(hdim.x, hthick, hdim.z),ChVector<>(0             ,  hdim.y+hthick, hdim.z));
+}
   body->GetCollisionModel()->BuildModel();
 
   // Attach the body to the system.
   system->AddBody(ChSharedPtr<ChBody>(body));
+}
+
+
+void InitializeObject(     ChSharedBodyPtr                     body,
+                           double                              mass,
+                           ChSharedPtr<ChMaterialSurface>&     mat,
+                           const ChVector<>&                   pos,
+                           const ChQuaternion<>&               rot,
+                           bool                                collide,
+                           bool                                fixed,
+                           int                                 collision_family,
+                           int                                 do_not_collide_with){
+  body->SetMass(mass);
+  body->SetPos(pos);
+  body->SetRot(rot);
+  body->SetCollide(collide);
+  body->SetBodyFixed(fixed);
+  body->SetMaterialSurface(mat);
+  body->GetCollisionModel()->ClearModel();
+  body->GetCollisionModel()->SetFamily(collision_family);
+  body->GetCollisionModel()->SetFamilyMaskNoCollisionWithFamily(do_not_collide_with);
+}
+
+void FinalizeObject(ChSharedBodyPtr                         body,
+                    ChSystem*                               system){
+  body->GetCollisionModel()->BuildModel();
+  system->AddBody(body);
 }
 
 

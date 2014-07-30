@@ -64,7 +64,7 @@ namespace utils {
 // AddTriangleMeshGeometry
 // AddRoundedBoxGeometry
 // AddRoundedCylinderGeometry
-//
+// AddTorusGeometry
 // Utility functions for adding contact and asset geometry shapes to a body
 // -----------------------------------------------------------------------------
 inline
@@ -231,13 +231,37 @@ void AddRoundedCylinderGeometry(
   body->GetAssets().push_back(rcyl);
 }
 
+//Creates a compound torus shape using cylinders
+inline
+void AddTorusGeometry(
+          ChBody*               body,
+          double                radius,
+          double                thickness,
+          int                   segments = 20,
+          const ChVector<>&     pos = ChVector<>(0,0,0),
+          const ChQuaternion<>& rot = ChQuaternion<>(1,0,0,0))
+{
+   for (int i = 0; i < 360; i += 360/segments) {
+         double angle = i * CH_C_PI / 180.0;
+         double x = cos(angle) * radius;
+         double z = sin(angle) * radius;
+         Quaternion q = chrono::Q_from_AngAxis(-angle, VECT_Y) % chrono::Q_from_AngAxis(CH_C_PI/2.0, VECT_X);
+
+         AddCylinderGeometry(body,thickness,thickness * 2,ChVector<>(x, 0, z),q);
+   }
+}
+
+
 // -----------------------------------------------------------------------------
 // CreateBoxContainerDEM
 // CreateBoxContainerDVI
-//
+// InitializeObjectDVI
+// FinalizeObjectDVI
+// Utility functions for creating objects
+// -----------------------------------------------------------------------------
+
 // Create a fixed body with contact and asset geometry representing a box with 5
 // walls (no top).
-// -----------------------------------------------------------------------------
 CH_UTILS_API
 void CreateBoxContainerDEM(ChSystem*                           system,
                            int                                 id,
@@ -246,7 +270,8 @@ void CreateBoxContainerDEM(ChSystem*                           system,
                            double                              hthick,
                            const ChVector<>&                   pos = ChVector<>(0,0,0),
                            const ChQuaternion<>&               rot = ChQuaternion<>(1,0,0,0),
-                           bool                                collide = true);
+                           bool                                collide = true,
+                           bool                                y_up = false);
 
 CH_UTILS_API
 void CreateBoxContainerDVI(ChSystem*                           system,
@@ -256,7 +281,23 @@ void CreateBoxContainerDVI(ChSystem*                           system,
                            double                              hthick,
                            const ChVector<>&                   pos = ChVector<>(0,0,0),
                            const ChQuaternion<>&               rot = ChQuaternion<>(1,0,0,0),
-                           bool                                collide = true);
+                           bool                                collide = true,
+                           bool                                y_up = false);
+
+CH_UTILS_API
+void InitializeObject(  ChSharedBodyPtr                     body,
+                           double                              mass,
+                           ChSharedPtr<ChMaterialSurface>&     mat,
+                           const ChVector<>&                   pos = ChVector<>(0,0,0),
+                           const ChQuaternion<>&               rot = ChQuaternion<>(1,0,0,0),
+                           bool                                collide = true,
+                           bool                                fixed = false,
+                           int                                 collision_family = 2,
+                           int                                 do_not_collide_with = 4);
+CH_UTILS_API
+void FinalizeObject(     ChSharedBodyPtr                     body,
+                           ChSystem*                         system);
+
 
 
 } // end namespace utils
