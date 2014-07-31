@@ -51,7 +51,7 @@ public:
 protected:
     /// Constructor.
     /// Protected because ChVisualization should not be constructed directly.
-  ChVisualization() : visible(true), fading(0) {}
+  ChVisualization() : Pos(0), Rot(1), visible(true), fading(0) {}
 
   bool    visible;
   ChColor color;
