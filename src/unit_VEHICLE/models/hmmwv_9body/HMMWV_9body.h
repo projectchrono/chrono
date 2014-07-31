@@ -119,6 +119,9 @@ public:
 	// set the output data
 	void set_writeOutData(bool out);
 
+  // Access to private static members
+  static const std::string& ChassisMeshName() { return chassisMeshName; }
+  static const std::string& ChassisMeshFile() { return chassisMeshFile; }
 
 private:
 	// THE DATA
@@ -140,6 +143,9 @@ private:
 
 	ChSystem* m_sys;
 
+  // Visualization mesh
+  static const std::string chassisMeshName;
+  static const std::string chassisMeshFile;
 
   // Mass properties
   static const double chassisMass;

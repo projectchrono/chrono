@@ -225,6 +225,8 @@ int main(int argc, char* argv[])
     return 1;
   }
 
+  utils::WriteMeshPovray(HMMWV_9body::ChassisMeshFile(), HMMWV_9body::ChassisMeshName(), out_dir);
+
   char filename[100];
 
   while (time < tend)

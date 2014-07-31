@@ -22,7 +22,8 @@ const double HMMWV_9body::spindleMass = 100.0 / 2.2;
 const ChVector<> HMMWV_9body::chassisInertia(125.8, 497.4, 531.4);	// kg-m2;
 const ChVector<> HMMWV_9body::spindleInertia = chassisInertia / 60;
 
-
+const std::string HMMWV_9body::chassisMeshName = "hmmwv_chassis";
+const std::string HMMWV_9body::chassisMeshFile = "../data/humvee4_scaled_rotated_decimated_centered.obj";
 
 // helpful for unit conversions
 double in_to_m = 1.0/39.3701;	// inches to meters
@@ -99,25 +100,12 @@ HMMWV_9body::HMMWV_9body(ChSystem&             my_system,
   box2->Pos = ChVector<>(0.5, 0, 0);
   chassis->AddAsset(box2);
 #elif CHASSIS_VISUALIZATION == 2
-  // add a nice .obj mesh file as a visual asset
-  ChSharedPtr<ChObjShapeFile> chassisObj(new ChObjShapeFile);
-  //	chassisObj->SetFilename("../data/humvee4.obj");
-  //	chassisObj->SetFilename("../data/humvee_scaled.obj");
-  chassisObj->SetFilename("../data/humvee4_scaled_rotated_decimated_centered.obj");
-
-  // might need to rotate the visualization mesh so x+ is backwards
-  // in blender, humvee4.obj looks to have z+ up, -y forward. Want -x forward
-  ChSharedPtr<ChAssetLevel> chassisMesh_level(new ChAssetLevel);
-  chassisMesh_level->AddAsset(chassisObj);
-  // NOTE: I am not sure what the offset is between the wavefront origin and the body center of mass
-  ChFrame<> rot1(ChVector<>(), chrono::Q_from_AngX(CH_C_PI_2));
-  ChFrame<> rot2(ChVector<>(), chrono::Q_from_AngZ(CH_C_PI_2));
-  ChFrame<> rot3 = rot1 >> rot2;
-  // IF NO mesh translation/rotation, comment out next two lines
-  //	chassisMesh_level->GetFrame().SetPos(ChVector<>(.1, 0, 0));
-  //	chassisMesh_level->GetFrame().SetRot( rot3.GetRot() );
-  chassis->AddAsset(chassisMesh_level);
-  //	chassis->AddAsset(chassisObj);
+  geometry::ChTriangleMeshConnected trimesh;
+  trimesh.LoadWavefrontMesh(chassisMeshFile, false, false);
+  ChSharedPtr<ChTriangleMeshShape> trimesh_shape(new ChTriangleMeshShape);
+  trimesh_shape->SetMesh(trimesh);
+  trimesh_shape->SetName(chassisMeshName);
+  chassis->AddAsset(trimesh_shape);
 #endif
 
   my_system.Add(chassis);
