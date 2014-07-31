@@ -37,7 +37,7 @@
 #include "chrono_parallel/ChSystemParallel.h"
 
 namespace chrono {
-namespace utils {
+namespace opengl {
 
 enum RenderMode {
    POINTS,

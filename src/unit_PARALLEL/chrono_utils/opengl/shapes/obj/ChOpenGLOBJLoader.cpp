@@ -19,7 +19,7 @@
 #include <string>
 using namespace std;
 using namespace glm;
-using namespace chrono::utils;
+using namespace chrono::opengl;
 ChOpenGLOBJLoader::ChOpenGLOBJLoader() {
 }
 

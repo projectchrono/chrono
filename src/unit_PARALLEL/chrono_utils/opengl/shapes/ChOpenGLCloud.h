@@ -19,7 +19,7 @@
 #include "chrono_utils/opengl/core/ChOpenGLObject.h"
 
 namespace chrono {
-namespace utils {
+namespace opengl {
 class CH_UTILS_OPENGL_API ChOpenGLCloud : public ChOpenGLObject {
  public:
    ChOpenGLCloud();

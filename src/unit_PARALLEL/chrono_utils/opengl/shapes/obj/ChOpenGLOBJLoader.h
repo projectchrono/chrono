@@ -19,7 +19,7 @@
 #include "chrono_utils/opengl/core/ChOpenGLObject.h"
 #include "tiny_obj_loader.h"
 namespace chrono {
-namespace utils {
+namespace opengl {
 class ChOpenGLOBJLoader : public ChOpenGLBase {
  public:
    ChOpenGLOBJLoader();

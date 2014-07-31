@@ -18,7 +18,7 @@
 
 using namespace std;
 using namespace glm;
-using namespace chrono::utils;
+using namespace chrono::opengl;
 
 ChOpenGLCloud::ChOpenGLCloud()
       :

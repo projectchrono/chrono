@@ -28,7 +28,7 @@
 
 #include "chrono_utils/opengl/core/ChOpenGLBase.h"
 namespace chrono {
-namespace utils {
+namespace opengl {
 
 class CH_UTILS_OPENGL_API ChOpenGLVertexAttributesPADSNT {
  public:

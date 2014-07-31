@@ -19,7 +19,7 @@
 
 using namespace std;
 using namespace glm;
-using namespace chrono::utils;
+using namespace chrono::opengl;
 
 /*	Notice the destructor in this case asserts that all resources
  that don't go away by themselves have ALREADY been released. This

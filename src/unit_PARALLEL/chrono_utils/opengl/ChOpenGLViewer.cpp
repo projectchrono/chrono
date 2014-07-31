@@ -25,7 +25,7 @@
 
 //using namespace std;
 using namespace chrono;
-using namespace chrono::utils;
+using namespace chrono::opengl;
 
 ChOpenGLViewer::ChOpenGLViewer(
       ChSystem * system) {

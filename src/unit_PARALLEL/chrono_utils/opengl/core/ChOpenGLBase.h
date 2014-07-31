@@ -54,7 +54,7 @@
 
 
 namespace chrono {
-	namespace utils{
+	namespace opengl{
 
 #ifndef	BAD_GL_VALUE
 #define	BAD_GL_VALUE	GLuint(-1)

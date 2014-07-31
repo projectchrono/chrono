@@ -20,7 +20,7 @@
 
 using namespace std;
 namespace chrono {
-	namespace utils{
+	namespace opengl{
 
 		enum CameraType {
 			ORTHO, FREE

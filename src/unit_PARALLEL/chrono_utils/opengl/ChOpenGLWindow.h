@@ -20,7 +20,7 @@
 using namespace std;
 
 namespace chrono {
-namespace utils {
+namespace opengl {
 class CH_UTILS_OPENGL_API ChOpenGLWindow {
  public:
 

@@ -26,7 +26,7 @@
 #include "ChOpenGLVertexAttributes.h"
 
 using namespace glm;
-using namespace chrono::utils;
+using namespace chrono::opengl;
 
 ChOpenGLVertexAttributesPADSNT::ChOpenGLVertexAttributesPADSNT() {
    this->position = vec3(0.0f);

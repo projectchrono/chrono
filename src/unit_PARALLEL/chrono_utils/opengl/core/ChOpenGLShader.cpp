@@ -21,7 +21,7 @@
 #include "ChOpenGLShader.h"
 using namespace std;
 using namespace glm;
-using namespace chrono::utils;
+using namespace chrono::opengl;
 
 ChOpenGLShader::ChOpenGLShader() {
    this->vertex_shader_id = BAD_GL_VALUE;

@@ -227,7 +227,7 @@ int main(int argc, char* argv[])
   // ----------------------
 
 #ifdef CHRONO_PARALLEL_HAS_OPENGL
-  utils::ChOpenGLWindow &gl_window = utils::ChOpenGLWindow::getInstance();
+  opengl::ChOpenGLWindow &gl_window = opengl::ChOpenGLWindow::getInstance();
   gl_window.Initialize(1280, 720, "mixerDEM", &msystem);
   gl_window.SetCamera(ChVector<>(0,-10,0), ChVector<>(0,0,0),ChVector<>(0,0,1));
 

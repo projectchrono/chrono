@@ -15,7 +15,7 @@
 
 #include "ChOpenGLCamera.h"
 using namespace chrono;
-using namespace chrono::utils;
+using namespace chrono::opengl;
 
 ChOpenGLCamera::ChOpenGLCamera() {
    camera_mode = FREE;

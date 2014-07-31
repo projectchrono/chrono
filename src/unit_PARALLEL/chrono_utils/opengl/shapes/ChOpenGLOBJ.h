@@ -21,7 +21,7 @@
 #include "chrono_utils/opengl/shapes/ChOpenGLMesh.h"
 #include "chrono_utils/opengl/shapes/obj/ChOpenGLOBJLoader.h"
 namespace chrono {
-namespace utils {
+namespace opengl {
 class CH_UTILS_OPENGL_API ChOpenGLOBJ : public ChOpenGLBase {
  public:
    ChOpenGLOBJ();

@@ -21,7 +21,7 @@
 #include "ChOpenGLShader.h"
 
 namespace chrono {
-	namespace utils{
+	namespace opengl{
 
 		class ChOpenGLMaterial: public ChOpenGLBase
 		{
