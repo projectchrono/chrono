@@ -20,9 +20,10 @@ ChVector<> bodySize(5.2, 2.0, 2.8);
 ChVector<> spindleSize(0.2,0.2,0.1);
 
 // Inertias, from my HMMWV model
-ChVector<> carInertia		= ChVector<>(10.0, 20.0, 20.0);	// kg-m2
-ChVector<> wheelInertia		= carInertia/20.0;	// [kg-m^2]
-ChVector<> spindleInertia	= carInertia/40.0;	// guesses, for now
+// (roll, pitch, yaw) = (13320, 52680, 56280) lb-in-sec^2
+ChVector<> carInertia		= ChVector<>(125.8, 497.4, 531.4);	// kg-m2
+ChVector<> wheelInertia		= carInertia/40.0;	// [kg-m^2]
+ChVector<> spindleInertia	= carInertia/60.0;	// guesses, for now
 
 // engine data
 double max_torque = 8600*inlb_to_Nm;	// in-lb
