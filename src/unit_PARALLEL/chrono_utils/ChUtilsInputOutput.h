@@ -162,12 +162,6 @@ void WriteMeshPovray(const std::string&    obj_filename,
                      const ChVector<>&     pos = ChVector<>(0,0,0),
                      const ChQuaternion<>& rot = ChQuaternion<>(1,0,0,0));
 
-//Write the positions and rotation of every ChBody
-//Each line contains the information for one ChBody
-//x, y, z, e0, e1, e2, e3,
-CH_UTILS_API
-void WritePositions( ChSystem*          system,
-                     const std::string&    name);
 
 } // namespace utils
 } // namespace chrono

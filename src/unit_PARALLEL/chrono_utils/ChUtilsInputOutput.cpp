@@ -450,19 +450,6 @@ void WriteMeshPovray(const std::string&    obj_filename,
   ofile << "#end" << std::endl;
 }
 
-void WritePositions(ChSystem*          system,
-                    const std::string& filename)
-{
-   CSV_writer csv(" ");
-     for (int i = 0; i < system->Get_bodylist()->size(); i++) {
-       ChBody* body = system->Get_bodylist()->at(i);
-       // Write body position, orientation
-       csv << body->GetPos() << body->GetRot()<< std::endl;
-     }
-
-     csv.write_to_file(filename);
-}
-
 
 }  // namespace utils
 }  // namespace chrono
