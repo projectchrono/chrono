@@ -1,19 +1,25 @@
 #--------------------------------------------------------------
-# Additional include paths (for ChronoEngine_Utils)
-INCLUDE_DIRECTORIES(${CMAKE_SOURCE_DIR}
-                    ${CMAKE_BINARY_DIR}
-                    ${GLM_INCLUDE_DIRS}
-                    ${GLEW_INCLUDE_DIR}
-                    ${GLFW_INCLUDE_DIR}
+# Additional include paths and libraries
+INCLUDE_DIRECTORIES(
+    ${CMAKE_SOURCE_DIR}
+    ${CMAKE_BINARY_DIR}
 )
 
-# Libraries
 SET(LIBRARIES
     ${CHRONO_LIB}
     ChronoEngine_Parallel
     ChronoEngine_Utils
-    ChronoEngine_Utils_OpenGL
 )
+
+IF (ENABLE_OPENGL)
+    INCLUDE_DIRECTORIES(
+        ${GLM_INCLUDE_DIRS}
+        ${GLEW_INCLUDE_DIR}
+        ${GLFW_INCLUDE_DIR}
+    )
+
+    SET(LIBRARIES ${LIBRARIES} ChronoEngine_OpenGL)
+ENDIF()
 
 #--------------------------------------------------------------
 # Always use full RPATH (differentiating between the build and install trees)
@@ -34,17 +40,17 @@ SET(CMAKE_INSTALL_RPATH_USE_LINK_PATH TRUE)
 # the RPATH to be used when installing, but only if it's not a system directory
 LIST(FIND CMAKE_PLATFORM_IMPLICIT_LINK_DIRECTORIES "${CMAKE_INSTALL_PREFIX}/lib" isSystemDir)
 IF("${isSystemDir}" STREQUAL "-1")
-   SET(CMAKE_INSTALL_RPATH "${CMAKE_INSTALL_PREFIX}/lib")
+    SET(CMAKE_INSTALL_RPATH "${CMAKE_INSTALL_PREFIX}/lib")
 ENDIF("${isSystemDir}" STREQUAL "-1")
 
 #--------------------------------------------------------------
 
 IF("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
-	SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
+    SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
 ENDIF()
 
 IF(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
-	SET (CH_LINKERFLAG_EXE  "${CH_LINKERFLAG_EXE} -framework IOKit -framework Cocoa -framework OpenGL")
+    SET (CH_LINKERFLAG_EXE  "${CH_LINKERFLAG_EXE} -framework IOKit -framework Cocoa -framework OpenGL")
 ENDIF()
 
 #--------------------------------------------------------------

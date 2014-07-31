@@ -1,7 +1,7 @@
 #=============================================================================
-# CMake configuration file for Chrono_Utils OpenGL
+# CMake configuration file for Chrono OpenGL
 #
-# Currently this is invoked from the main CMakeLists for Chrono_Utils
+# Invoked from the main CMakeLists.txt using ADD_SUBDIRECTORY()
 #=============================================================================
 
 add_executable(embedfile embedfile.cpp)
@@ -44,7 +44,7 @@ add_custom_command(
   WORKING_DIRECTORY ${CMAKE_BINARY_DIR})
 
 
-SET(ChronoEngine_Utils_OpenGL_SOURCES 
+SET(ChronoEngine_OpenGL_SOURCES 
 	core/ChOpenGLShader.cpp
 	core/ChOpenGLObject.cpp
 	core/ChOpenGLVertexAttributes.cpp
@@ -58,8 +58,8 @@ SET(ChronoEngine_Utils_OpenGL_SOURCES
 	ChOpenGLWindow.cpp
 	)
 
-SET(ChronoEngine_Utils_OpenGL_HEADERS
-    core/ChOpenGLBase.h
+SET(ChronoEngine_OpenGL_HEADERS
+	core/ChOpenGLBase.h
 	core/ChApiOpenGL.h
 	core/ChOpenGLShader.h
 	core/ChOpenGLObject.h
@@ -76,19 +76,15 @@ SET(ChronoEngine_Utils_OpenGL_HEADERS
 	${CMAKE_BINARY_DIR}/phong_frag.h
 	${CMAKE_BINARY_DIR}/phong_vert.h
 	${CMAKE_BINARY_DIR}/cloud_frag.h
-    ${CMAKE_BINARY_DIR}/cloud_vert.h
+	${CMAKE_BINARY_DIR}/cloud_vert.h
 	)
 
 IF (MSVC)
 	# On Windows, include necessary Bullet source files.
-	SET(ChronoEngine_Utils_OpenGL_SOURCES ${ChronoEngine_Utils_OpenGL_SOURCES}
+	SET(ChronoEngine_OpenGL_SOURCES ${ChronoEngine_OpenGL_SOURCES}
 		${CHRONO_INC}/collision/bullet/BulletCollision/NarrowPhaseCollision/btPersistentManifold.cpp
 		)
 ENDIF()
-
-SOURCE_GROUP(unit_OPENGL FILES 
-	${ChronoEngine_Utils_OpenGL_SOURCES} 
-	${ChronoEngine_Utils_OpenGL_HEADERS})
 
 SET(INCLUDE_DIR
 	${CHRONO_INC}
@@ -104,23 +100,23 @@ INCLUDE_DIRECTORIES(${INCLUDE_DIR} ${CUDA_TOOLKIT_INCLUDE})
 # The OPENGL library is added to the project,
 # and some custom properties of this target are set.
 
-ADD_LIBRARY(ChronoEngine_Utils_OpenGL SHARED 
-	${ChronoEngine_Utils_OpenGL_SOURCES}
-	${ChronoEngine_Utils_OpenGL_HEADERS})
+ADD_LIBRARY(ChronoEngine_OpenGL SHARED 
+	${ChronoEngine_OpenGL_SOURCES}
+	${ChronoEngine_OpenGL_HEADERS})
 
-SET_TARGET_PROPERTIES(ChronoEngine_Utils_OpenGL PROPERTIES 
-  COMPILE_FLAGS "${CH_BUILDFLAGS}"
+SET_TARGET_PROPERTIES(ChronoEngine_OpenGL PROPERTIES 
+	COMPILE_FLAGS "${CH_BUILDFLAGS}"
 LINK_FLAGS "${CH_LINKERFLAG_GPU}"
-	COMPILE_DEFINITIONS "CH_API_COMPILE_UTILS_OPENGL")
+	COMPILE_DEFINITIONS "CH_API_COMPILE_OPENGL")
 
-TARGET_LINK_LIBRARIES(ChronoEngine_Utils_OpenGL
+TARGET_LINK_LIBRARIES(ChronoEngine_OpenGL
 	${GLEW_LIBRARY}
 	${GLFW_LIBRARY}
 	${OPENGL_LIBRARIES}
 	${CHRONO_LIB}
 	ChronoEngine_Parallel)
 
-INSTALL(TARGETS ChronoEngine_Utils_OpenGL
+INSTALL(TARGETS ChronoEngine_OpenGL
 	RUNTIME DESTINATION bin
 	LIBRARY DESTINATION lib
 	ARCHIVE DESTINATION lib
