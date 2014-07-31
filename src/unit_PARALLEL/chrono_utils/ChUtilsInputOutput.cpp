@@ -407,8 +407,8 @@ void WriteShapesPovray(ChSystem*          system,
 // include file.
 // -----------------------------------------------------------------------------
 void WriteMeshPovray(const std::string&    obj_filename,
-                     const std::string&    name,
-                     const std::string&    pov_filename,
+                     const std::string&    mesh_name,
+                     const std::string&    out_dir,
                      const ChVector<>&     pos,
                      const ChQuaternion<>& rot)
 {
@@ -421,9 +421,10 @@ void WriteMeshPovray(const std::string&    obj_filename,
     trimesh.m_vertices[i] = pos + rot.Rotate(trimesh.m_vertices[i]);
 
   // Open output file.
+  std::string pov_filename = out_dir + "/" + mesh_name + ".inc";
   std::ofstream  ofile(pov_filename.c_str());
 
-  ofile << "#macro " << name << "(col)" << std::endl;
+  ofile << "#macro " << mesh_name << "(col)" << std::endl;
 
   // Write vertices.
   for (int i = 0; i < trimesh.m_vertices.size(); i++) {
