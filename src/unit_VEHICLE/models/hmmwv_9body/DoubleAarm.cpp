@@ -108,6 +108,8 @@ DoubleAarm::DoubleAarm(ChSystem&  my_system, const int susp_type, ChSharedPtr<Ch
 			HP_L3 = r0 +ChVector<>(56.39, 12.1, -32.29)*inch_to_m;	// bottom front
 			HP_KD_U	= r0 +ChVector<>(51.69, 28.2, -19.57)*inch_to_m;		// springDamper, top (chassis) = avg. of UCA HP 1,3
 			HP_KD_L	= r0 +ChVector<>(51.69, 30.97, -33.8)*inch_to_m;	// sringDamper, lower (upright) = LCA HP2
+			// HP_KD_U	= r0 +ChVector<>(46.2, 28.2, -19.57)*inch_to_m;	// keep the connection of the shock in-line with upright CM
+			// HP_KD_L	= r0 +ChVector<>(46.2, 30.97, -33.8)*inch_to_m;	// keep the connection of the shock in-line with upright CM
 			HP_St_1	= r0 +ChVector<>(34.9, 16.38, -32.66)*inch_to_m;	// steer, chassis 
 			HP_St_2	= r0 + ChVector<>(40.9, 32.33, -32.66)*inch_to_m;	// steer, upright
 			susp_type_string = "right back";
@@ -173,7 +175,7 @@ DoubleAarm::DoubleAarm(ChSystem&  my_system, const int susp_type, ChSharedPtr<Ch
 
 	//	--- Spring/damper, between upright and chassis
 	this->shock = ChSharedPtr<ChLinkSpring>(new ChLinkSpring);
-	shock->Initialize(upright, chassis, false, HP_KD_U, HP_KD_L );
+	shock->Initialize(upright, chassis, false, HP_KD_L, HP_KD_U );
 	shock->Set_SpringK(m_spring_K);	// lb-in to N-m
 	shock->Set_SpringR(m_damper_C);	// lb-in/sec to N-m/sec
 	shock->SetNameString(susp_type_string + " shock");
@@ -184,7 +186,7 @@ DoubleAarm::DoubleAarm(ChSystem&  my_system, const int susp_type, ChSharedPtr<Ch
 
 	//	--- Steering
  	this->tierod = ChSharedPtr<ChLinkDistance>(new ChLinkDistance); // right steer
-	tierod->Initialize(upright, chassis, false, HP_St_1, HP_St_2 );
+	tierod->Initialize(chassis, upright, false, HP_St_1, HP_St_2 );
 	tierod->SetNameString(susp_type_string + " dist tierod");
 	my_system.AddLink(tierod);
 	this->link_list.push_back(tierod.get_ptr());

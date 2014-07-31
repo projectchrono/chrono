@@ -147,18 +147,19 @@ HMMWV_9body::HMMWV_9body(ChSystem&             my_system,
 
 	// 0) --- LF Wheel
 	ChVector<> wheelLF_cm = chassis->GetCoord().TrasformLocalToParent( wheelLF_cm_bar);
+    use_tireMesh = true;
   if (use_tireMesh) {
 		// use a nice looking .obj mesh for the wheel visuals
 		this->wheelLF = new ChWheel(my_system, wheelLF_cm, chrono::QUNIT,
 			wheelMass, tireWidth, tireRadius*2.0, tireRadius*0.8,
 			true,
-      tireMeshFile, QUNIT);
+      "../data/wheel_centered_rotated.obj", QUNIT);
 	} else {
 		// use a cylinder, with inertia based on the inner and outer radii
 		this->wheelLF = new ChWheel(my_system, wheelLF_cm,chrono::QUNIT,
 			wheelMass, tireWidth, tireRadius*2.0, tireRadius*0.8, true);
 	}
-
+    use_tireMesh = false;
 	GetLog() << " \n ---- system heiarchy after BEFORE first suspension subsystem : \n\n\n ";
 	my_system.ShowHierarchy( GetLog() );
 
