@@ -268,7 +268,7 @@ IF(ENABLE_UTILS)
 
   ADD_SUBDIRECTORY(chrono_utils)
   IF(ENABLE_OPENGL)
-    ADD_SUBDIRECTORY(chrono_utils/opengl)
+    ADD_SUBDIRECTORY(chrono_opengl)
   ENDIF()
 
 ENDIF()

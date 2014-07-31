@@ -16,7 +16,7 @@
 #ifndef CHOPENGLOBJLOADER_H
 #define CHOPENGLOBJLOADER_H
 
-#include "chrono_utils/opengl/core/ChOpenGLObject.h"
+#include "chrono_opengl/core/ChOpenGLObject.h"
 #include "tiny_obj_loader.h"
 namespace chrono {
 namespace opengl {

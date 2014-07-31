@@ -49,7 +49,7 @@
 #include <vector>
 #include <assert.h>
 
-#include "chrono_utils/opengl/core/ChApiOpenGL.h"
+#include "chrono_opengl/core/ChApiOpenGL.h"
 
 
 

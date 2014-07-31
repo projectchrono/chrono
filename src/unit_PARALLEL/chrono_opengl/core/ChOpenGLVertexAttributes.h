@@ -26,7 +26,7 @@
 #ifndef CHOPENGLVERTEXATTRIBUTE_H
 #define CHOPENGLVERTEXATTRIBUTE_H
 
-#include "chrono_utils/opengl/core/ChOpenGLBase.h"
+#include "chrono_opengl/core/ChOpenGLBase.h"
 namespace chrono {
 namespace opengl {
 

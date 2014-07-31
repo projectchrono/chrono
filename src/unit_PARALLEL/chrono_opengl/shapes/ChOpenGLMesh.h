@@ -22,8 +22,8 @@
  Also, texture coordinates are provided for texturing purposes
  */
 
-#include "chrono_utils/opengl/core/ChOpenGLObject.h"
-#include "chrono_utils/opengl/core/ChOpenGLVertexAttributes.h"
+#include "chrono_opengl/core/ChOpenGLObject.h"
+#include "chrono_opengl/core/ChOpenGLVertexAttributes.h"
 namespace chrono {
 namespace opengl {
 class CH_UTILS_OPENGL_API ChOpenGLMesh : public ChOpenGLObject {

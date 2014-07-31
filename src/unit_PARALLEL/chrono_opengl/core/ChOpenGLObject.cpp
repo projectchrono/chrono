@@ -15,7 +15,7 @@
 // Authors: Hammad Mazhar
 // =============================================================================
 
-#include "chrono_utils/opengl/core/ChOpenGLObject.h"
+#include "chrono_opengl/core/ChOpenGLObject.h"
 
 using namespace std;
 using namespace glm;

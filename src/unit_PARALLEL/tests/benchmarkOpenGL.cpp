@@ -22,7 +22,7 @@
 #include "chrono_utils/ChUtilsCreators.h"
 #include "chrono_utils/ChUtilsGenerators.h"
 
-#include "chrono_utils/opengl/ChOpenGLWindow.h"
+#include "chrono_opengl/ChOpenGLWindow.h"
 
 using namespace chrono;
 using namespace geometry;

@@ -16,12 +16,12 @@
 #ifndef CHOPENGLVIEWER_H
 #define CHOPENGLVIEWER_H
 
-#include "chrono_utils/opengl/core/ChApiOpenGL.h"
-#include "chrono_utils/opengl/core/ChOpenGLBase.h"
-#include "chrono_utils/opengl/ChOpenGLCamera.h"
-#include "chrono_utils/opengl/core/ChOpenGLShader.h"
-#include "chrono_utils/opengl/shapes/ChOpenGLCloud.h"
-#include "chrono_utils/opengl/shapes/ChOpenGLOBJ.h"
+#include "chrono_opengl/core/ChApiOpenGL.h"
+#include "chrono_opengl/core/ChOpenGLBase.h"
+#include "chrono_opengl/ChOpenGLCamera.h"
+#include "chrono_opengl/core/ChOpenGLShader.h"
+#include "chrono_opengl/shapes/ChOpenGLCloud.h"
+#include "chrono_opengl/shapes/ChOpenGLOBJ.h"
 #include "physics/ChSystem.h"
 #include "core/ChTimer.h"
 #include "lcp/ChLcpIterativeSolver.h"

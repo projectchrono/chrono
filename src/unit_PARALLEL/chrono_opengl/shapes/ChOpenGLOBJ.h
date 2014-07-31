@@ -17,9 +17,9 @@
 #ifndef CHOPENGLOBJ_H
 #define CHOPENGLOBJ_H
 
-#include "chrono_utils/opengl/core/ChOpenGLObject.h"
-#include "chrono_utils/opengl/shapes/ChOpenGLMesh.h"
-#include "chrono_utils/opengl/shapes/obj/ChOpenGLOBJLoader.h"
+#include "chrono_opengl/core/ChOpenGLObject.h"
+#include "chrono_opengl/shapes/ChOpenGLMesh.h"
+#include "chrono_opengl/shapes/obj/ChOpenGLOBJLoader.h"
 namespace chrono {
 namespace opengl {
 class CH_UTILS_OPENGL_API ChOpenGLOBJ : public ChOpenGLBase {

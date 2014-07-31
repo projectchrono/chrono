@@ -8,39 +8,39 @@ add_executable(embedfile embedfile.cpp)
 
 add_custom_command(
   OUTPUT  ${CMAKE_BINARY_DIR}/text_vert.h
-  COMMAND embedfile text_vert ${CMAKE_SOURCE_DIR}/chrono_utils/opengl/resources/text.vert ${CMAKE_BINARY_DIR}/text_vert.h
-  DEPENDS ${CMAKE_SOURCE_DIR}/chrono_utils/opengl/resources/text.vert
+  COMMAND embedfile text_vert ${CMAKE_SOURCE_DIR}/chrono_opengl/resources/text.vert ${CMAKE_BINARY_DIR}/text_vert.h
+  DEPENDS ${CMAKE_SOURCE_DIR}/chrono_opengl/resources/text.vert
   WORKING_DIRECTORY ${CMAKE_BINARY_DIR})
 
 add_custom_command(
   OUTPUT  ${CMAKE_BINARY_DIR}/text_frag.h
-  COMMAND embedfile text_frag ${CMAKE_SOURCE_DIR}/chrono_utils/opengl/resources/text.frag ${CMAKE_BINARY_DIR}/text_frag.h
-  DEPENDS ${CMAKE_SOURCE_DIR}/chrono_utils/opengl/resources/text.frag
+  COMMAND embedfile text_frag ${CMAKE_SOURCE_DIR}/chrono_opengl/resources/text.frag ${CMAKE_BINARY_DIR}/text_frag.h
+  DEPENDS ${CMAKE_SOURCE_DIR}/chrono_opengl/resources/text.frag
   WORKING_DIRECTORY ${CMAKE_BINARY_DIR})
 
 add_custom_command(
   OUTPUT  ${CMAKE_BINARY_DIR}/phong_vert.h
-  COMMAND embedfile phong_vert ${CMAKE_SOURCE_DIR}/chrono_utils/opengl/resources/phong.vert ${CMAKE_BINARY_DIR}/phong_vert.h
-  DEPENDS ${CMAKE_SOURCE_DIR}/chrono_utils/opengl/resources/phong.vert
+  COMMAND embedfile phong_vert ${CMAKE_SOURCE_DIR}/chrono_opengl/resources/phong.vert ${CMAKE_BINARY_DIR}/phong_vert.h
+  DEPENDS ${CMAKE_SOURCE_DIR}/chrono_opengl/resources/phong.vert
   WORKING_DIRECTORY ${CMAKE_BINARY_DIR})
 
 add_custom_command(
   OUTPUT  ${CMAKE_BINARY_DIR}/phong_frag.h
-  COMMAND embedfile phong_frag ${CMAKE_SOURCE_DIR}/chrono_utils/opengl/resources/phong.frag ${CMAKE_BINARY_DIR}/phong_frag.h
-  DEPENDS ${CMAKE_SOURCE_DIR}/chrono_utils/opengl/resources/phong.frag
+  COMMAND embedfile phong_frag ${CMAKE_SOURCE_DIR}/chrono_opengl/resources/phong.frag ${CMAKE_BINARY_DIR}/phong_frag.h
+  DEPENDS ${CMAKE_SOURCE_DIR}/chrono_opengl/resources/phong.frag
   WORKING_DIRECTORY ${CMAKE_BINARY_DIR})
 
 
 add_custom_command(
   OUTPUT  ${CMAKE_BINARY_DIR}/cloud_vert.h
-  COMMAND embedfile cloud_vert ${CMAKE_SOURCE_DIR}/chrono_utils/opengl/resources/cloud.vert ${CMAKE_BINARY_DIR}/cloud_vert.h
-  DEPENDS ${CMAKE_SOURCE_DIR}/chrono_utils/opengl/resources/cloud.vert
+  COMMAND embedfile cloud_vert ${CMAKE_SOURCE_DIR}/chrono_opengl/resources/cloud.vert ${CMAKE_BINARY_DIR}/cloud_vert.h
+  DEPENDS ${CMAKE_SOURCE_DIR}/chrono_opengl/resources/cloud.vert
   WORKING_DIRECTORY ${CMAKE_BINARY_DIR})
 
 add_custom_command(
   OUTPUT  ${CMAKE_BINARY_DIR}/cloud_frag.h
-  COMMAND embedfile cloud_frag ${CMAKE_SOURCE_DIR}/chrono_utils/opengl/resources/cloud.frag ${CMAKE_BINARY_DIR}/cloud_frag.h
-  DEPENDS ${CMAKE_SOURCE_DIR}/chrono_utils/opengl/resources/cloud.frag
+  COMMAND embedfile cloud_frag ${CMAKE_SOURCE_DIR}/chrono_opengl/resources/cloud.frag ${CMAKE_BINARY_DIR}/cloud_frag.h
+  DEPENDS ${CMAKE_SOURCE_DIR}/chrono_opengl/resources/cloud.frag
   WORKING_DIRECTORY ${CMAKE_BINARY_DIR})
 
 

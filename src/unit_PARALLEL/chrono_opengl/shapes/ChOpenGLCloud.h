@@ -16,7 +16,7 @@
 #ifndef CHOPENGLCLOUD_H
 #define CHOPENGLCLOUD_H
 
-#include "chrono_utils/opengl/core/ChOpenGLObject.h"
+#include "chrono_opengl/core/ChOpenGLObject.h"
 
 namespace chrono {
 namespace opengl {
