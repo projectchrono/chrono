@@ -17,10 +17,6 @@
 
 namespace irr {
 
- // TODO: move this stuff
-double KfreeLenOff_F = 0.2;
-double KfreeLenOff_R = 0.2;
-
 class HMMWVEventReceiver : public IEventReceiver
 {
 public:
@@ -53,10 +49,10 @@ public:
 		gad_tab_controls = gad_tabbed->addTab(L"Controls");	// static text will be printed w/ each checkbox or slider
 		gad_text_carControls = mapp->GetIGUIEnvironment()->addStaticText(L"Wheel Control", 
 			core::rect<s32>(10,10,245,y1-15), true, true, gad_tab_controls);
-		
+		// tab2: output wheel data
 		gad_tab_carData = gad_tabbed->addTab(L"Wheel State");
 
-		// ..add a GUI slider to control gas throttle via mouse
+		// ..add a GUI slider to control gas throttle
 		scrollbar_throttle = mapp->GetIGUIEnvironment()->addScrollBar(
 			true, core::rect<s32>(x0, y0, x0+140, y0+15), 0, 100);
 		//	true, rect<x32>(10, 85, 150, 100), 0, 100);
@@ -65,14 +61,14 @@ public:
 		text_throttle = mapp->GetIGUIEnvironment()->addStaticText(
 			L"Throttle", core::rect<s32>(x0+140,y0,x0+240,y0+15), false);
 
-		// ..add a GUI slider to control steering via mouse
+		// ..add a GUI slider to control steering
 		scrollbar_steer = mapp->GetIGUIEnvironment()->addScrollBar(
 			true, core::rect<s32>(x0, y0+20, x0+140, y0+35), 0, 101);
 		scrollbar_steer->setMax(100); 
 		scrollbar_steer->setPos(50);
 		text_steerPos = mapp->GetIGUIEnvironment()->addStaticText(
 			L"Steer Pos: ",core::rect<s32>(x0+140,y0+20,x0+240,y0+55),false);
-
+/*
 		// ..add a GUI text and GUI slider to control the stiffness
 		scrollbar_FspringK = mapp->GetIGUIEnvironment()->addScrollBar(
 			true, core::rect<s32>(x0, y0+40, x0+140, y0+55), 0, 102);
@@ -105,15 +101,7 @@ public:
 		double springPos = mcar->suspension_LB->shock->Get_SpringRestLenght();	// will modify this
 		text_FspringL = mapp->GetIGUIEnvironment()->addStaticText(
 			L"Spring L [in]:", core::rect<s32>(x0+140,y0+80,x0+240,y0+95), false);
-		// keep track of the initial spring length
-		this->L_0_F = springPos + KfreeLenOff_F;// + 6.0;
-		this->L_0_R = springPos + KfreeLenOff_R;
-		// usually like an initial prelength longer than initial value, set it to this.
-		this->mcar->suspension_RF->shock->Set_SpringRestLenght(this->L_0_F);
-		this->mcar->suspension_LF->shock->Set_SpringRestLenght(this->L_0_F);
-		this->mcar->suspension_RB->shock->Set_SpringRestLenght(this->L_0_R);
-		this->mcar->suspension_LB->shock->Set_SpringRestLenght(this->L_0_R);
-
+*/
 		// applied torque (or rotational velocity) slider	(id = 1103)
 		scrollbar_torqueVel = mapp->GetIGUIEnvironment()->addScrollBar(true, core::rect<s32>(20, 60, 150, 75),
 			gad_tab_controls, 1103);
@@ -166,12 +154,13 @@ public:
 				if (id == 101) // Steering slider
 				{
 					s32 pos = ((gui::IGUIScrollBar*)event.GUIEvent.Caller)->getPos();
-          double steering = (double)(pos - 50) / 50.;
+					double steering = (double)(pos - 50) / 50.;
 					this->mcar->driver->setSteer(steering);
 					// show steer position
 					char msg[150]; sprintf(msg,"steer pos: %+5.4g",steering);
 					text_steerPos->setText(core::stringw(msg).c_str() );
 				}
+			/*
 				if (id == 102) // id of 'spring stiffness' slider..
 				{
 					s32 pos = ((gui::IGUIScrollBar*)event.GUIEvent.Caller)->getPos();
@@ -217,6 +206,7 @@ public:
 					char message[150]; sprintf(message,"Spring L, F/R [in]: %+5.4g / %5.4g ",newlength_F,newlength_R);
 					text_FspringL->setText(core::stringw(message).c_str());
 				}
+			*/
 			break;
 			// case gui::EGET_CHECKBOX_CHANGED:
 				/*
@@ -332,12 +322,12 @@ private:
 	// menu items, checkboxes ids are: 2xxx
 	gui::IGUIScrollBar*  scrollbar_steer;
 	gui::IGUIStaticText* text_steerPos;	// JCM
-	gui::IGUIStaticText* text_FspringK;
-	gui::IGUIScrollBar*  scrollbar_FspringK;
-	gui::IGUIStaticText* text_FdamperR;
-	gui::IGUIScrollBar*  scrollbar_FdamperR;
-	gui::IGUIStaticText* text_FspringL;
-	gui::IGUIScrollBar*  scrollbar_FspringL;
+//	gui::IGUIStaticText* text_FspringK;
+//	gui::IGUIScrollBar*  scrollbar_FspringK;
+//	gui::IGUIStaticText* text_FdamperR;
+//	gui::IGUIScrollBar*  scrollbar_FdamperR;
+//	gui::IGUIStaticText* text_FspringL;
+//	gui::IGUIScrollBar*  scrollbar_FspringL;
 	gui::IGUIStaticText* text_throttle;
 	gui::IGUIScrollBar*  scrollbar_throttle;
 	// JCM text output of tire forces/moments
@@ -349,12 +339,12 @@ private:
 	// for body data
 	gui::IGUIStaticText* text_infoChassis;
 
-	double K_0_front;	// initial shock stiffness, front suspension
-	double K_0_rear;	// initial shock stiffness, rear
-	double R_0_front;	// initial damping, front
-	double R_0_rear;	// initial damping, rear	
-	double L_0_F;		// initial spring pre-length, front springs
-	double L_0_R;	// rear springs
+//	double K_0_front;	// initial shock stiffness, front suspension
+//	double K_0_rear;	// initial shock stiffness, rear
+//	double R_0_front;	// initial damping, front
+//	double R_0_rear;	// initial damping, rear	
+//	double L_0_F;		// initial spring pre-length, front springs
+//	double L_0_R;	// rear springs
 	// for rendering terrain
     scene::ISceneNode* Terrain;
     scene::ISceneNode* Skybox;

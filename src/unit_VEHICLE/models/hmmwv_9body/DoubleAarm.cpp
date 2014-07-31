@@ -4,10 +4,14 @@ using namespace chrono;
 
 // set up tire & vehicle geometry -------------------------------------------------
 // spring stiffness and damping, HMMWV M 1037 data
-double springK_F = 168822.0;		// lb/in
-double springK_R = 302619;			// lb/in
-double damperC_F = 16987;			// lb-sec/in
-double damperC_R = 33974;			// lb-sec/in
+double springK_F = 954.0;		// lb/in, spring type 5579473, standard front springs
+double springK_R = 2108.0;			// lb/in, spring type 5597913, heavy duty rear springs
+double damperC_F = 128.25;			// lb-sec/in, Fig 5.9 force/rebound rate slope
+double damperC_R = 200.0;			// lb-sec/in, Fig 5.10, heavy duty shock
+// Shock connection point differs from the spring by 4.6" in both front and rear units.
+// No way to account for this currently, so adding this to the spring free lengths 
+double spring_rest_len_F = 17.96;	// inches, front spring, 13.36" from tech report.
+double spring_rest_len_R = 17.96;	// inches, rear heavy duty spring, 15.03" from tech report.
 double inch_to_m = 0.0254;	// inches to meters
 
 
@@ -33,7 +37,7 @@ DoubleAarm::DoubleAarm(ChSystem&  my_system, const int susp_type, ChSharedPtr<Ch
 	ChVector<> HP_St_2	= ChVector<>();	// steer, upright
 
 	std::string susp_type_string;
-
+	double m_spring_K, m_damper_C, m_rest_length = 0;
 	// all numbers are w.r.t. chassis CM
 	switch ( susp_type )
 	{
@@ -53,6 +57,9 @@ DoubleAarm::DoubleAarm(ChSystem&  my_system, const int susp_type, ChSharedPtr<Ch
 			HP_St_1	= r0 + ChVector<>(-72.0, -9.81, -33.325)*inch_to_m;	// steer, output to rack // y -= 9.81
 			HP_St_2	= r0 + ChVector<>(-78.47, -32.32, -33.325)*inch_to_m;	// steer, upright ball joint
 			susp_type_string = "left front";
+			m_spring_K = springK_F/inch_to_m * 4.448;	// lb/in to N/m
+			m_damper_C = damperC_F/inch_to_m * 4.448;	// lb/in/sec to N/m/sec
+			m_rest_length = spring_rest_len_F * inch_to_m;	// inches to meters
 			break;
 		}
 		case 1:	// "right front, (x,y) (-,+)":
@@ -68,6 +75,9 @@ DoubleAarm::DoubleAarm(ChSystem&  my_system, const int susp_type, ChSharedPtr<Ch
 			HP_St_1	= r0 + ChVector<>(-72.0, 9.81, -33.325)*inch_to_m;	// steer, output to rack // y -= 9.81
 			HP_St_2	= r0 + ChVector<>(-78.47, 32.32, -33.325)*inch_to_m;	// steer, upright ball joint
 			susp_type_string = "right front";
+			m_spring_K = springK_F/inch_to_m * 4.448;	// lb/in to N/m
+			m_damper_C = damperC_F/inch_to_m * 4.448;	// lb/in/sec to N/m/sec
+			m_rest_length = spring_rest_len_F * inch_to_m;	// inches to meters
 			break; 
 		}
 		case 2:	// "left back, (x,y) (+,-)":
@@ -83,6 +93,9 @@ DoubleAarm::DoubleAarm(ChSystem&  my_system, const int susp_type, ChSharedPtr<Ch
 			HP_St_1	= r0 +ChVector<>(34.9, -16.38, -32.66)*inch_to_m;	// steer, chassis 
 			HP_St_2	= r0 + ChVector<>(40.9, -32.33, -32.66)*inch_to_m;	// steer, upright
 			susp_type_string = "left back";
+			m_spring_K = springK_R/inch_to_m * 4.448;	// lb/in to N/m
+			m_damper_C = damperC_R/inch_to_m * 4.448;	// lb/in/sec to N/m/sec
+			m_rest_length = spring_rest_len_R * inch_to_m;	// inches to meters
 			break;
 		}
 		case 3:	// "right back, (x,y) (+,+)":
@@ -98,6 +111,9 @@ DoubleAarm::DoubleAarm(ChSystem&  my_system, const int susp_type, ChSharedPtr<Ch
 			HP_St_1	= r0 +ChVector<>(34.9, 16.38, -32.66)*inch_to_m;	// steer, chassis 
 			HP_St_2	= r0 + ChVector<>(40.9, 32.33, -32.66)*inch_to_m;	// steer, upright
 			susp_type_string = "right back";
+			m_spring_K = springK_R/inch_to_m * 4.448;	// lb/in to N/m
+			m_damper_C = damperC_R/inch_to_m * 4.448;	// lb/in/sec to N/m/sec
+			m_rest_length = spring_rest_len_R * inch_to_m;	// inches to meters
 			break;
 		}
 		default:
@@ -158,12 +174,13 @@ DoubleAarm::DoubleAarm(ChSystem&  my_system, const int susp_type, ChSharedPtr<Ch
 	//	--- Spring/damper, between upright and chassis
 	this->shock = ChSharedPtr<ChLinkSpring>(new ChLinkSpring);
 	shock->Initialize(upright, chassis, false, HP_KD_U, HP_KD_L );
-	shock->Set_SpringK(springK_F);	
-	shock->Set_SpringR(damperC_F);
+	shock->Set_SpringK(m_spring_K);	// lb-in to N-m
+	shock->Set_SpringR(m_damper_C);	// lb-in/sec to N-m/sec
 	shock->SetNameString(susp_type_string + " shock");
+	double marker_springRestLen = shock->Get_SpringRestLenght();	// 0.37 m 
+	shock->Set_SpringRestLenght(m_rest_length );	// FRONT 0.456 m, so dx*k = 14 kN, supporting 1425 kg, front
+													// REAR,  dx*k =  32 kN, 3250 kg
 	my_system.AddLink(shock);
-	// double m_springRestLen = shock->Get_SpringRestLenght();
-	// shock->Set_SpringRestLenght
 
 	//	--- Steering
  	this->tierod = ChSharedPtr<ChLinkDistance>(new ChLinkDistance); // right steer
