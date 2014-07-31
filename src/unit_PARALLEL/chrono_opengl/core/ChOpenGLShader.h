@@ -26,7 +26,7 @@
 namespace chrono {
 namespace opengl {
 
-class CH_UTILS_OPENGL_API ChOpenGLShader : public ChOpenGLBase {
+class CH_OPENGL_API ChOpenGLShader : public ChOpenGLBase {
  public:
    ChOpenGLShader();
    void TakeDown();

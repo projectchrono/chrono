@@ -29,7 +29,7 @@ namespace chrono {
 			UP, DOWN, LEFT, RIGHT, FORWARD, BACK
 		};
 
-		class CH_UTILS_OPENGL_API ChOpenGLCamera:ChOpenGLBase {
+		class CH_OPENGL_API ChOpenGLCamera:ChOpenGLBase {
 		public:
 			ChOpenGLCamera();
 			~ChOpenGLCamera();

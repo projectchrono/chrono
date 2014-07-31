@@ -26,7 +26,7 @@
 #include "chrono_opengl/core/ChOpenGLVertexAttributes.h"
 namespace chrono {
 namespace opengl {
-class CH_UTILS_OPENGL_API ChOpenGLMesh : public ChOpenGLObject {
+class CH_OPENGL_API ChOpenGLMesh : public ChOpenGLObject {
  public:
    ChOpenGLMesh();
    bool Initialize(

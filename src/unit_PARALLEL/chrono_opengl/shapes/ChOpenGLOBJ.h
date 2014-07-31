@@ -22,7 +22,7 @@
 #include "chrono_opengl/shapes/obj/ChOpenGLOBJLoader.h"
 namespace chrono {
 namespace opengl {
-class CH_UTILS_OPENGL_API ChOpenGLOBJ : public ChOpenGLBase {
+class CH_OPENGL_API ChOpenGLOBJ : public ChOpenGLBase {
  public:
    ChOpenGLOBJ();
    bool Initialize(

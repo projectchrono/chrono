@@ -30,7 +30,7 @@
 namespace chrono {
 namespace opengl {
 
-class CH_UTILS_OPENGL_API ChOpenGLVertexAttributesPADSNT {
+class CH_OPENGL_API ChOpenGLVertexAttributesPADSNT {
  public:
    ChOpenGLVertexAttributesPADSNT();
    ChOpenGLVertexAttributesPADSNT(
@@ -51,7 +51,7 @@ class CH_UTILS_OPENGL_API ChOpenGLVertexAttributesPADSNT {
 };
 
 
-class CH_UTILS_OPENGL_API ChOpenGLVertexAttributesPADSN {
+class CH_OPENGL_API ChOpenGLVertexAttributesPADSN {
  public:
    ChOpenGLVertexAttributesPADSN();
    ChOpenGLVertexAttributesPADSN(
@@ -69,7 +69,7 @@ class CH_UTILS_OPENGL_API ChOpenGLVertexAttributesPADSN {
    glm::vec3 color_specular;
 };
 
-class CH_UTILS_OPENGL_API ChOpenGLVertexAttributesPCNT {
+class CH_OPENGL_API ChOpenGLVertexAttributesPCNT {
  public:
    ChOpenGLVertexAttributesPCNT();
    ChOpenGLVertexAttributesPCNT(
@@ -85,7 +85,7 @@ class CH_UTILS_OPENGL_API ChOpenGLVertexAttributesPCNT {
    glm::vec2 texture_coordinate;
 };
 
-class CH_UTILS_OPENGL_API ChOpenGLVertexAttributesPCN {
+class CH_OPENGL_API ChOpenGLVertexAttributesPCN {
  public:
    ChOpenGLVertexAttributesPCN();
    ChOpenGLVertexAttributesPCN(
@@ -100,7 +100,7 @@ class CH_UTILS_OPENGL_API ChOpenGLVertexAttributesPCN {
 
 };
 
-class CH_UTILS_OPENGL_API ChOpenGLVertexAttributesPN {
+class CH_OPENGL_API ChOpenGLVertexAttributesPN {
  public:
    ChOpenGLVertexAttributesPN();
    ChOpenGLVertexAttributesPN(
@@ -112,7 +112,7 @@ class CH_UTILS_OPENGL_API ChOpenGLVertexAttributesPN {
    glm::vec3 normal;
 };
 
-class CH_UTILS_OPENGL_API ChOpenGLVertexAttributesP {
+class CH_OPENGL_API ChOpenGLVertexAttributesP {
  public:
    ChOpenGLVertexAttributesP();
    ChOpenGLVertexAttributesP(

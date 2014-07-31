@@ -60,7 +60,7 @@ namespace chrono {
 #define	BAD_GL_VALUE	GLuint(-1)
 #endif
 
-		class CH_UTILS_OPENGL_API ChOpenGLBase {
+		class CH_OPENGL_API ChOpenGLBase {
 		public:
 			ChOpenGLBase(){}
 			~ChOpenGLBase(){}

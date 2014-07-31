@@ -45,7 +45,7 @@ enum RenderMode {
    SOLID
 };
 
-class CH_UTILS_OPENGL_API ChOpenGLViewer : public ChOpenGLBase {
+class CH_OPENGL_API ChOpenGLViewer : public ChOpenGLBase {
  public:
 
    ChOpenGLViewer(

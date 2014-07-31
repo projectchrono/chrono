@@ -20,7 +20,7 @@
 
 namespace chrono {
 namespace opengl {
-class CH_UTILS_OPENGL_API ChOpenGLCloud : public ChOpenGLObject {
+class CH_OPENGL_API ChOpenGLCloud : public ChOpenGLObject {
  public:
    ChOpenGLCloud();
    virtual bool Initialize(

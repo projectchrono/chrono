@@ -25,7 +25,7 @@
 
 namespace chrono {
 namespace opengl {
-class CH_UTILS_OPENGL_API ChOpenGLObject : public ChOpenGLBase {
+class CH_OPENGL_API ChOpenGLObject : public ChOpenGLBase {
  public:
    ChOpenGLObject();
    virtual ~ChOpenGLObject();

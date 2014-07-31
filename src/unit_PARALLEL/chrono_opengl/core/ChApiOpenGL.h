@@ -18,15 +18,15 @@
 
 #include "core/ChPlatform.h"
 
-// When compiling this library, remember to define CH_UTILS_OPENGL_API
-// (so that the symbols with 'ChApi' in front of them will be
-// marked as exported). Otherwise, just do not define it if you
-// link the library to your code, and the symbols will be imported.
+// When compiling this library, remember to define CH_API_COMPILE_OPENGL so
+// that the symbols with 'CH_OPENGL_API' in front of them will be marked as
+// exported. When using this library, CH_API_COMPILE_OPENGL should be left
+// undefined so that symbols are imported.
 
 #if defined(CH_API_COMPILE_OPENGL)
-	#define CH_UTILS_OPENGL_API ChApiEXPORT
+	#define CH_OPENGL_API ChApiEXPORT
 #else
-	#define CH_UTILS_OPENGL_API ChApiINPORT
+	#define CH_OPENGL_API ChApiINPORT
 #endif
 
 #endif  // END of header

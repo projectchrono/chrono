@@ -21,7 +21,7 @@ using namespace std;
 
 namespace chrono {
 namespace opengl {
-class CH_UTILS_OPENGL_API ChOpenGLWindow {
+class CH_OPENGL_API ChOpenGLWindow {
  public:
 
    // Get the unique instance for the OpenGL window
