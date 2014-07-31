@@ -234,7 +234,7 @@ void ChIrrAssetConverter::mflipSurfacesOnX(scene::IMesh* mesh) const
 void ChIrrAssetConverter::_recursePopulateIrrlicht(
             std::vector< chrono::ChSharedPtr<chrono::ChAsset> >&  assetlist,
             chrono::ChFrame<>                                     parentframe,
-            ISceneNode*                               mnode)
+            ISceneNode*                                           mnode)
 {
   chrono::ChSharedPtr<chrono::ChTexture> mtexture; // def no texture in level
   chrono::ChSharedPtr<chrono::ChColorAsset> mcolor; // def no visualiz. settings in level
@@ -302,9 +302,14 @@ void ChIrrAssetConverter::_recursePopulateIrrlicht(
       ISceneNode* mproxynode = new ChIrrNodeProxyToAsset(mysphere, mnode);
       ISceneNode* mchildnode = scenemanager->addMeshSceneNode(sphereMesh,mproxynode);
 
+      // Calculate transform from node to geometry
+      // (concatenate node - asset and asset - geometry)
+      chrono::ChVector<> pos = mysphere->Pos + mysphere->Rot * mysphere->GetSphereGeometry().center;
+      chrono::ChCoordsys<> irrspherecoords(pos, mysphere->Rot.Get_A_quaternion());
+
       double mradius = mysphere->GetSphereGeometry().rad;
       mchildnode->setScale(core::vector3dfCH(chrono::ChVector<>(mradius,mradius,mradius)));
-      mchildnode->setPosition(core::vector3dfCH(mysphere->GetSphereGeometry().center));
+      ChIrrTools::alignIrrlichtNodeToChronoCsys(mchildnode, irrspherecoords);
       mchildnode->setMaterialFlag(video::EMF_NORMALIZE_NORMALS, true);
     }
     if ( k_asset.IsType<chrono::ChCylinderShape>() && cylinderMesh)
@@ -316,14 +321,23 @@ void ChIrrAssetConverter::_recursePopulateIrrlicht(
       double rad = mycylinder->GetCylinderGeometry().rad;
       chrono::ChVector<> dir = mycylinder->GetCylinderGeometry().p2 - mycylinder->GetCylinderGeometry().p1;
       double height = dir.Length();
+
+      // Calculate transform from asset to geometry
       dir.Normalize();
       chrono::ChVector<> mx, my, mz;
       dir.DirToDxDyDz(my,mz,mx); // y is axis, in cylinder.obj frame
       chrono::ChMatrix33<> mrot;
       mrot.Set_A_axis(mx,my,mz);
-      chrono::ChCoordsys<> irrcylindercoords(mycylinder->GetCylinderGeometry().p1+dir*(0.5*height), mrot.Get_A_quaternion());
+      chrono::ChVector<> mpos = 0.5 * (mycylinder->GetCylinderGeometry().p2 + mycylinder->GetCylinderGeometry().p1);
+
+      // Calculate transform from node to geometry
+      // (concatenate node - asset and asset - geometry)
+      chrono::ChVector<> pos = mycylinder->Pos + mycylinder->Rot * mpos;
+      chrono::ChMatrix33<> rot = mycylinder->Rot * mrot;
+      chrono::ChCoordsys<> irrcylindercoords(pos, rot.Get_A_quaternion());
+
       ChIrrTools::alignIrrlichtNodeToChronoCsys(mchildnode, irrcylindercoords);
-      core::vector3df irrsize((irr::f32)rad, (irr::f32)(0.5*height), (irr::f32)rad);
+      core::vector3df irrsize((f32)rad, (f32)(0.5*height), (f32)rad);
       mchildnode->setScale(irrsize);
       mchildnode->setMaterialFlag(video::EMF_NORMALIZE_NORMALS, true);
     }
@@ -333,7 +347,12 @@ void ChIrrAssetConverter::_recursePopulateIrrlicht(
       ISceneNode* mproxynode = new ChIrrNodeProxyToAsset(mybox, mnode);
       ISceneNode* mchildnode = scenemanager->addMeshSceneNode(cubeMesh,mproxynode);
 
-      chrono::ChCoordsys<> irrboxcoords(mybox->GetBoxGeometry().Pos, mybox->GetBoxGeometry().Rot.Get_A_quaternion());				
+      // Calculate transform from node to geometry
+      // (concatenate node - asset and asset - geometry)
+      chrono::ChVector<> pos = mybox->Pos + mybox->Rot * mybox->GetBoxGeometry().Pos;
+      chrono::ChMatrix33<> rot = mybox->Rot * mybox->GetBoxGeometry().Rot;
+      chrono::ChCoordsys<> irrboxcoords(pos, rot.Get_A_quaternion());
+
       mchildnode->setScale(core::vector3dfCH(mybox->GetBoxGeometry().Size));
       ChIrrTools::alignIrrlichtNodeToChronoCsys(mchildnode, irrboxcoords);
       mchildnode->setMaterialFlag(video::EMF_NORMALIZE_NORMALS, true);
