@@ -3,6 +3,25 @@
 #include "assets/ChAssetLevel.h"
 #include "HMMWV_9body_config.h"
 
+
+// DEBUG HACK
+// 0:  no chassis visualization
+// 1:  two boxes
+// 2:  mesh
+#define CHASSIS_VISUALIZATION 0
+
+
+// -----------------------------------------------------------------------------
+// Static variables
+// -----------------------------------------------------------------------------
+const double HMMWV_9body::chassisMass = 7500.0 / 2.2;
+const double HMMWV_9body::spindleMass = 100.0 / 2.2;
+
+const ChVector<> HMMWV_9body::chassisInertia(10.0, 20.0, 20.0);
+const ChVector<> HMMWV_9body::spindleInertia = chassisInertia / 40;
+
+
+
 // helpful for unit conversions
 double in_to_m = 1.0/39.3701;	// inches to meters
 double inlb_to_Nm = 1.0/8.851;	// in-lb to N-m
@@ -12,17 +31,11 @@ double inlb_to_Nm = 1.0/8.851;	// in-lb to N-m
 double tireRadius			= 18.5*in_to_m;
 // width of the tires
 double tireWidth			= 10.0*in_to_m;
-double chassisMass			= 7500.0/2.2;	// chassis mass in kg
-double spindleMass			= 100.0/2.2;	//chassisMass/(150./8.0);
 double wheelMass			= 175.0/3.2;	//chassisMass/(150./3.0);
 // for visualization, the size of some objects
 ChVector<> bodySize(5.2, 2.0, 2.8);
 ChVector<> spindleSize(0.2,0.2,0.1);
 
-// Inertias, from my HMMWV model
-ChVector<> carInertia		= ChVector<>(10.0, 20.0, 20.0);	// kg-m2
-ChVector<> wheelInertia		= carInertia/20.0;	// [kg-m^2]
-ChVector<> spindleInertia	= carInertia/40.0;	// guesses, for now
 
 // engine data
 double max_torque = 8600*inlb_to_Nm;	// in-lb
@@ -34,58 +47,82 @@ std::ostream& operator << (std::ostream& output, const chrono::ChVector<>& v) {
 	return output;
 }
 
+// -----------------------------------------------------------------------------
+// HMMWV_9body constructor
+//
 // x+ points towards rear of vehicle
 // y+ points towards right of vehicle
 // z+ points vertical upwards
 // the front two wheels need revolute joints at the wheel hub
-// the rear (driven) wheels use a ChLinkEngine, which is a revolute joint w/ an engine attached to the DOF
-HMMWV_9body::HMMWV_9body(ChSystem&  my_system,
-	const ChVector<>& chassisCM, const ChQuaternion<>& chassisRot,
-	const bool enableContact,
-	const bool tireMesh,  const std::string& meshFile): 
-	writeOutData(false), m_sys(&my_system), driver(new ChVehicleDriver)
+// the rear (driven) wheels use a ChLinkEngine, which is a revolute joint w/ an
+// engine attached to the DOF
+// -----------------------------------------------------------------------------
+HMMWV_9body::HMMWV_9body(ChSystem&             my_system,
+                         const ChVector<>&     chassisCM,
+                         const ChQuaternion<>& chassisRot,
+                         const bool            fixed,
+                         const std::string&    tireMeshFile)
+: writeOutData(false),
+  m_sys(&my_system),
+  driver(new ChVehicleDriver)
 {
-	// MOVED to driver model
-	// this->throttle = 0;			// initially, gas throttle is 0.
 	this->conic_tau = 0.2;
 	this->gear_tau = 0.3;
 	this->max_motor_torque = max_torque;
 	this->max_motor_speed = max_engine_n;
-	this->useTireMesh = tireMesh;
 
-	// ---	 chassis
-	ChVector<> r0 = chassisCM;	// cm of chassis used as a reference for building other bodies
-	chassis = ChSharedPtr<ChBodyEasyBox>(new ChBodyEasyBox(bodySize.x, bodySize.y, bodySize.z,
-		500, false, false) );
-	chassis->SetPos(chassisCM);
-	chassis->SetName("chassis");
-	my_system.Add(chassis);
+  bool use_tireMesh = !tireMeshFile.empty();
 
-	// DEBUG
-	chassis->SetBodyFixed(true);
+  // -------------------------------------------
+  // Create the chassis body
+  // -------------------------------------------
+
+  chassis = ChSharedPtr<ChBody>(new ChBody);
+
+  chassis->SetIdentifier(0);
+  chassis->SetName("chassis");
+  chassis->SetMass(chassisMass);
+  chassis->SetInertiaXX(chassisInertia);
+  chassis->SetPos(chassisCM);
+  chassis->SetRot(chassisRot);
+  chassis->SetBodyFixed(fixed);
+
+#if CHASSIS_VISUALIZATION == 1
+  ChSharedPtr<ChBoxShape> box1(new ChBoxShape);
+  box1->GetBoxGeometry().SetLenghts(ChVector<>(5, 1.7, 0.4));
+  box1->Pos = ChVector<>(0, 0, -0.4);
+  chassis->AddAsset(box1);
+  ChSharedPtr<ChBoxShape> box2(new ChBoxShape);
+  box2->GetBoxGeometry().SetLenghts(ChVector<>(4, 1.7, 0.4));
+  box2->Pos = ChVector<>(0.5, 0, 0);
+  chassis->AddAsset(box2);
+#elif CHASSIS_VISUALIZATION == 2
+  // add a nice .obj mesh file as a visual asset
+  ChSharedPtr<ChObjShapeFile> chassisObj(new ChObjShapeFile);
+  //	chassisObj->SetFilename("../data/humvee4.obj");
+  chassisObj->SetFilename("../data/humvee_scaled.obj");
+
+  // might need to rotate the visualization mesh so x+ is backwards
+  // in blender, humvee4.obj looks to have z+ up, -y forward. Want -x forward
+  ChSharedPtr<ChAssetLevel> chassisMesh_level(new ChAssetLevel);
+  chassisMesh_level->AddAsset(chassisObj);
+  // NOTE: I am not sure what the offset is between the wavefront origin and the body center of mass
+  chassisMesh_level->GetFrame().SetPos(ChVector<>(.1, 0, 0));
+  ChFrame<> rot1(ChVector<>(), chrono::Q_from_AngX(CH_C_PI_2));
+  ChFrame<> rot2(ChVector<>(), chrono::Q_from_AngZ(CH_C_PI_2));
+  ChFrame<> rot3 = rot1 >> rot2;
+  //	chassisMesh_level->GetFrame().SetRot( rot3.GetRot() );
+  chassis->AddAsset(chassisMesh_level);
+  //	chassis->AddAsset(chassisObj);
+#endif
+
+  my_system.Add(chassis);
 
 
 
 
 
 
-	// add a nice .obj mesh file as a visual asset
-	ChSharedPtr<ChObjShapeFile> chassisObj(new ChObjShapeFile);
-//	chassisObj->SetFilename("../data/humvee4.obj");
-	chassisObj->SetFilename("../data/humvee_scaled.obj");
-
-	// might need to rotate the visualization mesh so x+ is backwards
-	// in blender, humvee4.obj looks to have z+ up, -y forward. Want -x forward
-	ChSharedPtr<ChAssetLevel> chassisMesh_level(new ChAssetLevel);
-	chassisMesh_level->AddAsset(chassisObj);
-	// NOTE: I am not sure what the offset is between the wavefront origin and the body center of mass
-	chassisMesh_level->GetFrame().SetPos( ChVector<>(.1,0,0) );
-	ChFrame<> rot1(ChVector<>(),  chrono::Q_from_AngX(CH_C_PI_2) );
-	ChFrame<> rot2(ChVector<>(),  chrono::Q_from_AngZ(CH_C_PI_2) );
-	ChFrame<> rot3 = rot1 >> rot2;
-//	chassisMesh_level->GetFrame().SetRot( rot3.GetRot() );
-	chassis->AddAsset(chassisMesh_level);
-//	chassis->AddAsset(chassisObj);
 	// position of spindle, wheel CMs
 	double offset= 4.0*in_to_m;	// offset in lateral length between CM of spindle, wheel
 
@@ -106,12 +143,12 @@ HMMWV_9body::HMMWV_9body(ChSystem&  my_system,
 
 	// 0) --- LF Wheel
 	ChVector<> wheelLF_cm = chassis->GetCoord().TrasformLocalToParent( wheelLF_cm_bar);
-	if(useTireMesh) {
+  if (use_tireMesh) {
 		// use a nice looking .obj mesh for the wheel visuals
 		this->wheelLF = new ChWheel(my_system, wheelLF_cm, chrono::QUNIT,
 			wheelMass, tireWidth, tireRadius*2.0, tireRadius*0.8,
 			true,
-			meshFile, QUNIT);
+      tireMeshFile, QUNIT);
 	} else {
 		// use a cylinder, with inertia based on the inner and outer radii
 		this->wheelLF = new ChWheel(my_system, wheelLF_cm,chrono::QUNIT,
@@ -130,12 +167,12 @@ HMMWV_9body::HMMWV_9body(ChSystem&  my_system,
 
 	// 1) --- RF wheel
 	ChVector<> wheelRF_cm = chassis->GetCoord().TrasformLocalToParent( wheelRF_cm_bar);
-	if(useTireMesh) {
+  if (use_tireMesh) {
 		// use a nice looking .obj mesh for the wheel visuals
 		this->wheelRF = new ChWheel(my_system, wheelRF_cm, chrono::QUNIT,
 			wheelMass, tireWidth, tireRadius*2.0, tireRadius*0.8,
 			true,
-			meshFile, QUNIT);
+      tireMeshFile, QUNIT);
 	} else {
 		// use a cylinder, with inertia based on the inner and outer radii
 		this->wheelRF = new ChWheel(my_system, wheelRF_cm,chrono::QUNIT,
@@ -147,12 +184,12 @@ HMMWV_9body::HMMWV_9body(ChSystem&  my_system,
 
 	// 2) ---	LB Wheel
 	ChVector<> wheelLB_cm = chassis->GetCoord().TrasformLocalToParent( wheelLB_cm_bar);
-	if(useTireMesh) {
+  if (use_tireMesh) {
 		// use a nice looking .obj mesh for the wheel visuals
 		this->wheelLB =  new ChWheel(my_system, wheelLB_cm, chrono::QUNIT,
 			wheelMass, tireWidth, tireRadius*2.0, tireRadius*0.8,
 			true,
-			meshFile, QUNIT);
+      tireMeshFile, QUNIT);
 	} else {
 		// use a cylinder, with inertia based on the inner and outer radii
 		this->wheelLB = new ChWheel(my_system, wheelLB_cm,chrono::QUNIT,
@@ -173,12 +210,12 @@ HMMWV_9body::HMMWV_9body(ChSystem&  my_system,
 
 	// 3) ---	RB Wheel
 	ChVector<> wheelRB_cm = chassis->GetCoord().TrasformLocalToParent( wheelRB_cm_bar);
-	if(useTireMesh) {
+  if (use_tireMesh) {
 		// use a nice looking .obj mesh for the wheel visuals
 		this->wheelRB = new ChWheel(my_system, wheelRB_cm, chrono::QUNIT,
 			wheelMass, tireWidth, tireRadius*2.0, tireRadius*0.8,
 			true,
-			meshFile, QUNIT);
+      tireMeshFile, QUNIT);
 	} else {
 		// use a cylinder, with inertia based on the inner and outer radii
 		this->wheelRB = new ChWheel(my_system, wheelRB_cm,chrono::QUNIT,

@@ -107,7 +107,7 @@ int main(int argc, char* argv[])
   ChVector<> chassisCM = chassis_cm_inches * 0.0254;
 
   // ***** vehicle module
-  HMMWV_9body* mycar = new HMMWV_9body(m_system, chassisCM, chassisOri, true, false);
+  HMMWV_9body* mycar = new HMMWV_9body(m_system, chassisCM, chassisOri, true);
 
   // create the ground. NOTE: orientation will have to be in the x-y plane
   HMMWVTerrain* terrain = new HMMWVTerrain(m_system, ChVector<>(0, 0, 0),

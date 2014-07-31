@@ -66,12 +66,12 @@ public:
 	// @param chassisCM		global position of the chassis
 	// @param chassisRot	QUNIT = x-positive is fowrard
 	// @param tireMesh		use a mesh and associated collision shape
-	// @param meshFile		if tireMesh == true, load the mesh file
-	HMMWV_9body(ChSystem&  my_system,	///< the chrono::engine physical system 
-		const ChVector<>& chassisCM = ChVector<>(0,0,0),
-		const ChQuaternion<>& chassisRot = ChQuaternion<>(1,0,0,0),
-		const bool enableContact = false,
-		const bool tireMesh = true, const std::string& meshFile = "none");
+	// @param tireMeshFile		if non-empty, load the mesh file
+	HMMWV_9body(ChSystem&             my_system,
+	            const ChVector<>&     chassisCM = ChVector<>(0,0,0),
+	            const ChQuaternion<>& chassisRot = ChQuaternion<>(1,0,0,0),
+	            const bool            fixed = false,
+              const std::string&    tireMeshFile = "");
 
 	ChSharedPtr<ChBody> create_wheel(ChVector<>& mpos);
 
@@ -132,8 +132,6 @@ private:
 	bool is_torqueDriven;	// drive it with a torque? else, drive with a motion
 	double currTorque;		// current torque applied to wheel
 
-	// use a tire mesh, or a simple cylinder for the visualization geometry?
-	bool useTireMesh;
 	// for saving test mechanism data
 	bool writeOutData;
 	std::string outFilename;
@@ -141,6 +139,15 @@ private:
 	int outWritten_nTimes;	// get init'd to 0 upon initialization, indicates how many times output data is written
 
 	ChSystem* m_sys;
+
+
+  // Mass properties
+  static const double chassisMass;
+  static const double spindleMass;
+  static const ChVector<> chassisInertia;
+  static const ChVector<> spindleInertia;
+
+
 };
 
 std::ostream& operator << (std::ostream& output, const chrono::ChVector<>& v);
