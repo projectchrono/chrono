@@ -558,7 +558,7 @@ ChStreamOutBinary& ChStreamOutBinary::operator <<(char*		str)
 ChStreamOutBinary& ChStreamOutBinary::operator <<(std::string	&str)
 {
 	// save string length, including null termination
-        int mlength = strlen(str.c_str());
+	int mlength = strlen(str.c_str());
 	*this << mlength;
 	// save all bytes including null termination
 	this->Output(str.c_str(), strlen(str.c_str()));
@@ -738,13 +738,13 @@ ChStreamFile::~ChStreamFile()
 	file.close();
 };
 
-void ChStreamFile::Write(const char* data, int n)
+void ChStreamFile::Write(const char* data, size_t n)
 {
 	try{ file.write(data, n); }
 	catch (std::exception){throw ChException("Cannot write to stream");};
 }
 
-void ChStreamFile::Read(char* data, int n)
+void ChStreamFile::Read(char* data, size_t n)
 {
 	try{ file.read(data, n); }
 	catch (std::exception){throw ChException("Cannot read from stream");};
@@ -760,7 +760,7 @@ ChStreamOstreamWrapper::ChStreamOstreamWrapper(std::ostream* mfile)
 ChStreamOstreamWrapper::~ChStreamOstreamWrapper() {};
 
 
-void ChStreamOstreamWrapper::Write(const char* data, int n)
+void ChStreamOstreamWrapper::Write(const char* data, size_t n)
 {
 	try{ afile->write(data, n); }
 	catch (std::exception){throw ChException("Cannot write to wrapped stream");};
@@ -776,7 +776,7 @@ ChStreamIstreamWrapper::ChStreamIstreamWrapper(std::istream* mfile)
 ChStreamIstreamWrapper::~ChStreamIstreamWrapper() {};
 
 
-void ChStreamIstreamWrapper::Read(char* data, int n)
+void ChStreamIstreamWrapper::Read(char* data, size_t n)
 {
 	try{ afile->read(data, n); }
 	catch (std::exception){throw ChException("Cannot read from wrapped stream");};
@@ -794,11 +794,11 @@ ChStreamVectorWrapper::ChStreamVectorWrapper(std::vector<char>* mchars)
 ChStreamVectorWrapper::~ChStreamVectorWrapper() {};
 
 
-void ChStreamVectorWrapper::Write(const char* data, int n)
+void ChStreamVectorWrapper::Write(const char* data, size_t n)
 {
 	std::copy(data, data+n, std::back_inserter(*vbuffer));
 }
-void ChStreamVectorWrapper::Read(char* data, int n)
+void ChStreamVectorWrapper::Read(char* data, size_t n)
 {
 	if (pos+n > vbuffer->size())
 		n = vbuffer->size()-pos;

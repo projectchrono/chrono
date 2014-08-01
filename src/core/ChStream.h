@@ -99,7 +99,7 @@ protected:
 			/// NOTE! Inherited class could override only this function to have
 			/// everything working, for example to output into a message box,
 			/// or to sockets, etc..
-	virtual void	Output(const char* data, int n) =0;
+	virtual void Output(const char* data, size_t n) =0;
 
 
 };
@@ -129,7 +129,7 @@ protected:
 			/// NOTE! Inherited class could override only this function to have
 			/// everything working, for example to output into a message box,
 			/// or to sockets, etc..
-	virtual void	Input(char* data, int n) =0;
+	virtual void	Input(char* data, size_t n) =0;
 
 
 
@@ -651,11 +651,11 @@ public:
 
 				/// Writes to file, up to n chars.
 				/// If does not succeed, throws exception.
-	virtual void	Write(const char* data, int n);
+	virtual void	Write(const char* data, size_t n);
 
 				/// Reads from file, up to n chars.
 				/// If does not succeed, throws exception.
-	virtual void	Read(char* data, int n);
+	virtual void	Read(char* data, size_t n);
 
 				/// Returns true if end of stream reached.
 	virtual bool End_of_stream() { return file.eof();};
@@ -688,13 +688,13 @@ public:
 
 				/// Writes raw data to file, up to n chars.
 				/// If does not succeed, throws exception.
-	virtual void	Write(const char* data, int n);
+	virtual void	Write(const char* data, size_t n);
 
 				/// Returns true if end of stream reached.
-	virtual bool End_of_stream() { return afile->eof();};
+	virtual bool End_of_stream() const { return afile->eof();};
 	
 				/// Reference to ostream encapsulated here.
-	std::ostream* GetOstream() { return afile;}
+	std::ostream* GetOstream() const { return afile;}
 };
 
 ///
@@ -719,7 +719,7 @@ public:
 
 				/// Reads from stream, up to n chars.
 				/// If does not succeed, throws exception.
-	virtual void	Read(char* data, int n);
+	virtual void	Read(char* data, size_t n);
 
 				/// Returns true if end of stream reached.
 	virtual bool End_of_stream() { return afile->eof();};
@@ -752,11 +752,11 @@ public:
 
 				/// Reads from vector, up to n chars.
 				/// If does not succeed, throws exception.
-	virtual void	Read(char* data, int n);
+	virtual void	Read(char* data, size_t n);
 
 				/// Writes raw data to vector, up to n chars.
 				/// If does not succeed, throws exception.
-	virtual void	Write(const char* data, int n);
+	virtual void	Write(const char* data, size_t n);
 
 				/// Returns true if end of stream (end of vector) reached.
 	virtual bool End_of_stream();
@@ -785,7 +785,7 @@ public:
 
 	virtual bool End_of_stream() { return ChStreamOstreamWrapper::End_of_stream(); }
 private:
-	virtual void Output(const char* data, int n) { ChStreamOstreamWrapper::Write(data, n); }
+	virtual void Output(const char* data, size_t n) { ChStreamOstreamWrapper::Write(data, n); }
 };
 
 ///
@@ -800,7 +800,7 @@ public:
 
 	virtual bool End_of_stream() { return ChStreamIstreamWrapper::End_of_stream(); }
 private:
-	virtual void Input(char* data, int n) { ChStreamIstreamWrapper::Read(data, n); }
+	virtual void Input(char* data, size_t n) { ChStreamIstreamWrapper::Read(data, n); }
 };
 
 
@@ -816,7 +816,7 @@ public:
 
 	virtual bool End_of_stream() { return ChStreamVectorWrapper::End_of_stream(); }
 private:
-	virtual void Output(const char* data, int n) { ChStreamVectorWrapper::Write(data, n); }
+	virtual void Output(const char* data, size_t n) { ChStreamVectorWrapper::Write(data, n); }
 };
 
 ///
@@ -831,7 +831,7 @@ public:
 
 	virtual bool End_of_stream() { return ChStreamVectorWrapper::End_of_stream(); }
 private:
-	virtual void Input(char* data, int n) { ChStreamVectorWrapper::Read(data, n); }
+	virtual void Input(char* data, size_t n) { ChStreamVectorWrapper::Read(data, n); }
 };
 
 
@@ -848,7 +848,7 @@ public:
 	virtual ~ChStreamOutBinaryFile();
 
 private:
-	virtual void Output(const char* data, int n) { ChStreamFile::Write(data, n); }
+	virtual void Output(const char* data, size_t n) { ChStreamFile::Write(data, n); }
 };
 
 ///
@@ -862,7 +862,7 @@ public:
 	virtual ~ChStreamOutAsciiFile();
 
 private:
-	virtual void Output(const char* data, int n) { ChStreamFile::Write(data, n); }
+	virtual void Output(const char* data, size_t n) { ChStreamFile::Write(data, n); }
 };
 
 
@@ -878,7 +878,7 @@ public:
 
 	virtual bool End_of_stream() { return ChStreamFile::End_of_stream(); }
 private:
-	virtual void Input(char* data, int n) { ChStreamFile::Read(data, n); }
+	virtual void Input(char* data, size_t n) { ChStreamFile::Read(data, n); }
 };
 
 ///
@@ -893,7 +893,7 @@ public:
 
 	virtual bool End_of_stream() { return ChStreamFile::End_of_stream(); }
 private:
-	virtual void Input(char* data, int n) { ChStreamFile::Read(data, n); }
+	virtual void Input(char* data, size_t n) { ChStreamFile::Read(data, n); }
 };
 
 
