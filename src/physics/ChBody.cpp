@@ -644,32 +644,26 @@ void ChBody::UpdateForces (double mytime)
 {
     // COMPUTE LAGRANGIAN FORCES APPLIED TO BODY
 
-    Xforce = VNULL;
-    Xtorque = VNULL;
+    // 1a- force caused by accumulation of forces in body's accumulator Force_acc
+	Xforce = Force_acc;
 
-    // 1 - force caused by stabilizing damper ***OFF***
-
-    // 2a- force caused by accumulation of forces in body's accumulator Force_acc
-    if (Vnotnull(&Force_acc))
-    {
-        Xforce = Force_acc;     
-    }
-
-    // 2b- force caused by accumulation of torques in body's accumulator Force_acc
-    if (Vnotnull(&Torque_acc))
-    {
+    // 1b- force caused by accumulation of torques in body's accumulator Force_acc
+    if (Vnotnull(&Torque_acc)) {
         Xtorque = Dir_World2Body(Torque_acc); 
     }
+	else {
+		Xtorque = VNULL;
+	}
 
-    // 3 - accumulation of other applied forces
-    HIER_FORCE_INIT
+    // 2 - accumulation of other applied forces
+	ChVector<> mforce;
+	ChVector<> mtorque;
+	HIER_FORCE_INIT
     while (HIER_FORCE_NOSTOP)
     {   
-          // update positions, f=f(t,q)
+		// update positions, f=f(t,q)
         FORCEpointer->Update (mytime);
 
-        ChVector<> mforce; 
-        ChVector<> mtorque;
         FORCEpointer->GetBodyForceTorque(&mforce,&mtorque);
         Xforce  += mforce;
         Xtorque += mtorque;
@@ -677,13 +671,11 @@ void ChBody::UpdateForces (double mytime)
         HIER_FORCE_NEXT
     }
 
-    // 4 - accumulation of script forces
-    if (Vnotnull(&Scr_force))
-    {
-        Xforce += Scr_force;    
-    }
-    if (Vnotnull(&Scr_torque))
-    {
+    // 3 - accumulation of script forces
+	Xforce += Scr_force;
+
+	if (Vnotnull(&Scr_torque))
+	{
         Xtorque += Dir_World2Body(Scr_torque);
     }
 
