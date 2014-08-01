@@ -8,23 +8,39 @@ global_settings { assumed_gamma 1 }
 
   
 // Render a sequence of frames or a single one      
-#declare fnum=abs(frame_number); 
-//#declare fnum = 30;
+//#declare fnum=abs(frame_number); 
+#declare fnum = 1;
 
 #declare datafile = concat("POVRAY/data_", str(fnum,-3,0), ".dat")
 
-    
-// Draw global frame?
-#declare draw_frame = true;
-#declare frame_radius = 0.01;
 
-           
+// Render objects?
+#declare render_objects = true;
+
 // Render static objects?
 #declare render_static = true;
 
-           
+//Render links?
+#declare render_links = true;
+
+
+// Draw global frame?
+#declare draw_global_frame = true;
+#declare global_frame_radius = 0.01;
+#declare global_frame_len = 10;
+
+
+// Draw shape frames?
+#declare draw_object_frame = false;
+#declare object_frame_radius = 0.01;
+#declare object_frame_len = 1.25;
+                 
+                 
+// Perspective camera?
+#declare cam_perspective = true;
+       
 // Camera location and look-at (RIGHT-HAND-FRAME with Z up)
-#declare cam_loc    = <-1, -10, 1>;
+#declare cam_loc    = <-4, -4, 3>;
 #declare cam_lookat = <0, 0, 1>;
 
      
@@ -34,7 +50,8 @@ global_settings { assumed_gamma 1 }
 #include "shapes.inc"
 #include "strings.inc"            
 #include "textures.inc"              
-   
+#include "colors.inc"
+  
    
 // ============================================================================================
 // Macro definitions
@@ -104,11 +121,11 @@ global_settings { assumed_gamma 1 }
 // --------------------------------------------------------------------------------------------          
 // Render a RIGHT-HAND-FRAME with Z up
 //    
-#macro XYZframe(rad)
+#macro XYZframe(len, rad)
    union {
-        cylinder{<0,0,0>, <10,  0,  0>, rad pigment{color rgb<1,0,0>} no_shadow}
-        cylinder{<0,0,0>, < 0,  0, 10>, rad pigment{color rgb<0,1,0>} no_shadow}
-        cylinder{<0,0,0>, < 0, 10,  0>, rad pigment{color rgb<0,0,1>} no_shadow}
+        cylinder{<0,0,0>, <len,  0,  0>, rad pigment{color rgb<1,0,0>} no_shadow}
+        cylinder{<0,0,0>, < 0,  0, len>, rad pigment{color rgb<0,1,0>} no_shadow}
+        cylinder{<0,0,0>, < 0, len,  0>, rad pigment{color rgb<0,0,1>} no_shadow}
    }
 #end
  
@@ -140,10 +157,14 @@ background { color rgb <1, 1, 1> }
 #declare clookat = <cam_lookat.x, cam_lookat.z,  cam_lookat.y>;     
        
 // Perspective (default, not required) camera
-camera {
-   perspective 
-   location cloc
-   look_at clookat
+camera { 
+    #if (cam_perspective)
+        perspective   
+    #else
+        orthographic
+    #end
+    location cloc
+    look_at  clookat
    //right     x*image_width/image_height  // aspect
    // direction z                        // direction and zoom
    // angle 67                           // field (overides direction zoom)
@@ -151,169 +172,235 @@ camera {
 
 // Create a regular point light source 
 light_source { 
- 1000*(cloc - clookat)  // behind the camera
- color rgb <1,1,1>    // light's color
- //translate <-10, 1500, 2>
+    1000*(cloc - clookat)  // behind the camera
+    color rgb <1,1,1>      // light's color
+    //translate <-10, 1500, 2>
 }
 
+// ============================================================================================     
 
 // Read datafile
 #warning concat("LOADING DATA FILE : ",  datafile, "\n")
-#fopen MyPosFile datafile read 
+#fopen MyDataFile datafile read 
                                
-#read (MyPosFile, numObjects)
-   
+#read (MyDataFile, numObjects, numLinks)
+                                     
+        // ---------------------------------------------
+        //    RENDER OBJECTS (VISUAL ASSETS)
+        // ---------------------------------------------
+                                           
 #for (i, 1, numObjects)                               
-//#while (defined(MyPosFile))                               
               
-    #read (MyPosFile, id, active, ax, ay, az, e0, e1, e2, e3, shape)  
+    #read (MyDataFile, id, active, ax, ay, az, e0, e1, e2, e3, shape)  
     
     //#warning concat("  read id: ", str(id,0,0), "  shape: ", str(shape,0,0), "\n")
              
+    #if (draw_object_frame)
+       object {
+            XYZframe(object_frame_len, object_frame_radius) 
+            position(<ax,ay,az>,<e0,e1,e2,e3>)  
+       }
+    #end
           
     #switch (shape)
                        
         // sphere -------------  
         #case (0)
-            # read (MyPosFile, ar) 
-            #if (active)    
-            sphere {
-               <0,0,0>, ar
-               position(<ax,ay,az>,<e0,e1,e2,e3>)
-               pigment {color rgbt <.8, 0.6, 0.6,0> }
-               finish {diffuse 1 ambient 0.0 specular .05 } 
-            }  
-            #else
-            #if (render_static)
-            sphere {
-               <0,0,0>, ar
-               position(<ax,ay,az>,<e0,e1,e2,e3>)
-               pigment {color rgbt <1, 0.9, 0.9, 0> }
-               finish {diffuse 1 ambient 0.0 specular .05 } 
-            }
-            #end
-            #end                                                
+            # read (MyDataFile, ar)  
+            #if (render_objects)
+				#if (active)    
+					sphere {
+					   <0,0,0>, ar
+					   position(<ax,ay,az>,<e0,e1,e2,e3>)
+					   pigment {color rgbt <.8, 0.6, 0.6,0> }
+					   finish {diffuse 1 ambient 0.0 specular .05 } 
+					}  
+				#else
+					#if (render_static)
+					sphere {
+					   <0,0,0>, ar
+					   position(<ax,ay,az>,<e0,e1,e2,e3>)
+					   pigment {color rgbt <1, 0.9, 0.9, 0> }
+					   finish {diffuse 1 ambient 0.0 specular .05 } 
+					}
+					#end
+				#end   
+            #end                                             
         #break     
               
         // box ----------------
         #case (2)
-            #read (MyPosFile, hx, hy, hz)   
-            #if (active)    
-            box {   
-               <-hx, -hz, -hy>, 
-               <hx, hz, hy>     
-               position(<ax,ay,az>,<e0,e1,e2,e3>)
-               pigment {color rgbt <0, .9, 0,0>}
-               finish {diffuse 1 ambient 0.0 specular .05 } 
-            }   
-            #else
-            #if (render_static)
-            box {   
-               <-hx, -hz, -hy>, 
-               <hx, hz, hy>     
-               position(<ax,ay,az>,<e0,e1,e2,e3>)
-               pigment {color rgbt <1, 0.9, 0.9, 0> transmit 0.9}
-               finish {diffuse 1 ambient 0.0 specular .05 } 
-            } 
-            #end   
-            #end                                                
+            #read (MyDataFile, hx, hy, hz)
+			#if (render_objects)   
+				#if (active)    
+					box {   
+					   <-hx, -hz, -hy>, 
+					   <hx, hz, hy>     
+					   position(<ax,ay,az>,<e0,e1,e2,e3>)
+					   pigment {color rgbt <0, .7, 0.3, 0>}
+					   finish {diffuse 1 ambient 0.0 specular .05 } 
+					}   
+				#else
+					#if (render_static)
+					box {   
+					   <-hx, -hz, -hy>, 
+					   <hx, hz, hy>     
+					   position(<ax,ay,az>,<e0,e1,e2,e3>)
+					   pigment {color rgbt <1, 0.9, 0.9, 0> transmit 0.6}
+					   finish {diffuse 1 ambient 0.0 specular .05 } 
+					} 
+					#end   
+				#end
+			#end
+                                                                      
         #break
               
         // cylinder --------------
         #case (3)
-            #read (MyPosFile, ar, hl)
-            #if (active)
-            cylinder {
-               <0,0,hl>, <0,0,-hl>, ar      
-               pigment {color rgbt <1, 0.9, 0.9, 0> }
-               position(<ax,ay,az>,<e0,e1,e2,e3>)     
-               finish {diffuse 1 ambient 0.0 specular .05 }
-            }   
-            #else
-            #if (render_static)
-            cylinder {
-               <0,0,hl>, <0,0,-hl>, ar      
-               pigment {color rgbt <1, 0.9, 0.9, 0> }
-               position(<ax,ay,az>,<e0,e1,e2,e3>)     
-               finish {diffuse 1 ambient 0.0 specular .05 }
-            }
-            #end
-            #end
+            #read (MyDataFile, ar, hl)
+			#if (render_objects)
+				#if (active)
+					cylinder {
+					   <0,0,hl>, <0,0,-hl>, ar      
+					   pigment {color rgbt <1, 0.9, 0.9, 0> }
+					   position(<ax,ay,az>,<e0,e1,e2,e3>)     
+					   finish {diffuse 1 ambient 0.0 specular .05 }
+					}   
+				#else
+					#if (render_static)
+					cylinder {
+					   <0,0,hl>, <0,0,-hl>, ar      
+					   pigment {color rgbt <1, 0.9, 0.9, 0> }
+					   position(<ax,ay,az>,<e0,e1,e2,e3>)     
+					   finish {diffuse 1 ambient 0.0 specular .05 }
+					}
+					#end
+				#end
+			#end
         #break
          
         // rounded cylinder --------------
         #case (10)
-            #read (MyPosFile, ar, hl, sr)
-            #if (active)
-            object {
-               Round_Cylinder(<0,0,hl + sr>, <0,0,-hl - sr>, ar+sr, sr, 0)     
-               pigment {color rgbt <1, 0.9, 0.9, 0> }
-               position(<ax,ay,az>,<e0,e1,e2,e3>)     
-               finish {diffuse 1 ambient 0.0 specular .05 }
-            }   
-            #else
-            #if (render_static)
-            object {
-               Round_Cylinder(<0,0,hl + sr>, <0,0,-hl - sr>, ar+sr, sr, 0)      
-               pigment {color rgbt <1, 0.9, 0.9, 0> }
-               position(<ax,ay,az>,<e0,e1,e2,e3>)     
-               finish {diffuse 1 ambient 0.0 specular .05 }
-            }
-            #end
-            #end
+            #read (MyDataFile, ar, hl, sr)
+			#if (render_objects)
+				#if (active)
+					object {
+					   Round_Cylinder(<0,0,hl + sr>, <0,0,-hl - sr>, ar+sr, sr, 0)     
+					   pigment {color rgbt <0.2, 0.4, 0.9, 0> }
+					   position(<ax,ay,az>,<e0,e1,e2,e3>)     
+					   finish {diffuse 1 ambient 0.0 specular .05 }
+					}   
+				#else
+					#if (render_static)
+					object {
+					   Round_Cylinder(<0,0,hl + sr>, <0,0,-hl - sr>, ar+sr, sr, 0)      
+					   pigment {color rgbt <1, 0.9, 0.9, 0> }
+					   position(<ax,ay,az>,<e0,e1,e2,e3>)     
+					   finish {diffuse 1 ambient 0.0 specular .05 }
+					}
+					#end
+				#end
+			#end
         #break
 
         // capsule ------------
         #case (7)
-            #read (MyPosFile, ar, hl)  
-            #if (active)    
-            sphere_sweep {
-               linear_spline
-               2
-               <0,0,-hl>,ar,<0,0,hl>,ar
-               pigment {Candy_Cane scale 0.1}
-               position(<ax,ay,az>,<e0,e1,e2,e3>)     
-               finish {diffuse 1 ambient 0.0 specular .05 }
-            }
-            #else
-            #if (render_static)
-            sphere_sweep {
-               linear_spline
-               2
-               <0,0,-hl>,ar,<0,0,hl>,ar
-               pigment {color rgbt<1, 0.9, 0.9, 0>}
-               position(<ax,ay,az>,<e0,e1,e2,e3>)     
-               finish {diffuse 0.5 ambient 0.2 specular .05}
-            }    
-            #end
-            #end                                              
+            #read (MyDataFile, ar, hl)  
+			#if (render_objects)
+				#if (active)    
+					sphere_sweep {
+					   linear_spline
+					   2
+					   <0,0,-hl>,ar,<0,0,hl>,ar
+					   pigment {Candy_Cane scale 0.1}
+					   position(<ax,ay,az>,<e0,e1,e2,e3>)     
+					   finish {diffuse 1 ambient 0.0 specular .05 }
+					}
+				#else
+					#if (render_static)
+					sphere_sweep {
+					   linear_spline
+					   2
+					   <0,0,-hl>,ar,<0,0,hl>,ar
+					   pigment {color rgbt<1, 0.9, 0.9, 0>}
+					   position(<ax,ay,az>,<e0,e1,e2,e3>)     
+					   finish {diffuse 0.5 ambient 0.2 specular .05}
+					}    
+					#end
+				#end
+			#end
         #break  
         
         // mesh ----------------
         #case (5)
-            #read (MyPosFile, mesh_name)
-            #if (active)  
-            #warning concat("Mesh name: ", mesh_name, "\n")
-            RenderMesh(mesh_name, <ax,ay,az>,<e0,e1,e2,e3>, rgb<0.9,0.5,0.6>)
-            #else
-            #if (render_static)
-            RenderMesh(mesh_name, <ax,ay,az>,<e0,e1,e2,e3>, rgb<1,0.9,0.9>)
-            #end
-            #end
+            #read (MyDataFile, mesh_name)
+			#if (render_objects)
+				#if (active)  
+					#warning concat("Mesh name: ", mesh_name, "\n")
+					RenderMesh(mesh_name, <ax,ay,az>,<e0,e1,e2,e3>, rgb<0.9,0.5,0.6>)
+				#else
+					#if (render_static)
+					RenderMesh(mesh_name, <ax,ay,az>,<e0,e1,e2,e3>, rgb<1,0.9,0.9>)
+					#end
+				#end
+			#end
         #break  
            
     #end  // switch (shape)     
      
        
-#end  // while (defined(MyPosFile))       
-       
+#end  // for objects      
  
-#fclose MyPosfile
+        // ---------------------------------------------
+        //    RENDER LINKS
+        // ---------------------------------------------
+
+#if (render_links)                                           
+#for (i, 1, numLinks)                               
+              
+    #read (MyDataFile, link)
+   
+	#switch (link)
+		// Revolute -------
+		#case (8)
+			#read (MyDataFile, px, py, pz, dx, dy, dz)
+            cylinder {
+                <px-4*object_frame_radius*dx,  pz-4*object_frame_radius*dz, py-4*object_frame_radius*dy>, 
+                <px+4*object_frame_radius*dx,  pz+4*object_frame_radius*dz, py+4*object_frame_radius*dy>, 
+                2*object_frame_radius
+                pigment {color Blue}}
+		#break
+
+		// Linkspring ------
+		#case (25)
+			#read (MyDataFile, p1x, p1y, p1z, p2x, p2y, p2z)
+			cylinder {<p1x,p1z,p1y>, <p2x,p2z,p2y>, 2 * object_frame_radius  pigment {color Red }}
+
+		#break
+
+		// LinkEngine ------
+		//#case (31)
+		//
+		//#break
+
+		// Distance constraint -------
+		#case (37)
+			#read (MyDataFile, p1x, p1y, p1z, p2x, p2y, p2z)
+			cylinder {<p1x,p1z,p1y>, <p2x,p2z,p2y>, object_frame_radius  pigment {color Black }}
+
+		#break
+
+	#end  // switch (link)
+    
+#end  // for links
+#end  // if (render_links)   
+   
+#fclose MyDataFile
           
           
 // Draw axes (RHF with z up)  
-#if (draw_frame)
-XYZframe(frame_radius) 
+#if (draw_global_frame)
+XYZframe(global_frame_len, global_frame_radius) 
 #end 
       
  

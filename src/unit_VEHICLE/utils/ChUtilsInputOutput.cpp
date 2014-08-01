@@ -290,16 +290,16 @@ void WriteShapesPovray(ChSystem*          system,
 {
   CSV_writer csv(delim);
 
-  int count = 0;
+  int a_count = 0;
+  std::vector<ChBody*>::iterator ibody = system->Get_bodylist()->begin();
+  while (ibody != system->Get_bodylist()->end())
+  {
+    const Vector&     body_pos = (*ibody)->GetPos();
+    const Quaternion& body_rot = (*ibody)->GetRot();
+    const Vector&     body_vel = (*ibody)->GetPos_dt();
 
-  for (int i = 0; i < system->Get_bodylist()->size(); i++) {
-    ChBody* body = system->Get_bodylist()->at(i);
-    const Vector&     body_pos = body->GetPos();
-    const Quaternion& body_rot = body->GetRot();
-    const Vector&     body_vel = body->GetPos_dt();
-
-    for (int j = 0; j < body->GetAssets().size(); j++) {
-      ChSharedPtr<ChAsset> asset = body->GetAssets().at(j);
+    for (int j = 0; j < (*ibody)->GetAssets().size(); j++) {
+      ChSharedPtr<ChAsset> asset = (*ibody)->GetAssets().at(j);
       ChSharedPtr<ChVisualization> visual_asset = asset.DynamicCastTo<ChVisualization>();
       if (visual_asset.IsNull())
         continue;
@@ -315,50 +315,84 @@ void WriteShapesPovray(ChSystem*          system,
       if (ChSharedPtr<ChSphereShape> sphere = asset.DynamicCastTo<ChSphereShape>())
       {
         gss << collision::SPHERE << delim << sphere->GetSphereGeometry().rad;
-        count++;
+        a_count++;
       }
       else if (ChSharedPtr<ChEllipsoidShape> ellipsoid = asset.DynamicCastTo<ChEllipsoidShape>()) {
         const Vector& size = ellipsoid->GetEllipsoidGeometry().rad;
         gss << collision::ELLIPSOID << delim << size.x << delim << size.y << delim << size.z;
-        count++;
+        a_count++;
       }
       else if (ChSharedPtr<ChBoxShape> box = asset.DynamicCastTo<ChBoxShape>())
       {
         const Vector& size = box->GetBoxGeometry().Size;
         gss << collision::BOX << delim << size.x << delim << size.y << delim << size.z;
-        count++;
+        a_count++;
       }
       else if (ChSharedPtr<ChCapsuleShape> capsule = asset.DynamicCastTo<ChCapsuleShape>())
       {
         const geometry::ChCapsule& geom = capsule->GetCapsuleGeometry();
         gss << collision::CAPSULE << delim << geom.rad << delim << geom.hlen;
-        count++;
+        a_count++;
       }
       else if (ChSharedPtr<ChCylinderShape> cylinder = asset.DynamicCastTo<ChCylinderShape>())
       {
         const geometry::ChCylinder& geom = cylinder->GetCylinderGeometry();
         gss << collision::CYLINDER << delim << geom.rad << delim << (geom.p1.y - geom.p2.y) / 2;
-        count++;
+        a_count++;
       }
       else if (ChSharedPtr<ChConeShape> cone = asset.DynamicCastTo<ChConeShape>())
       {
         const geometry::ChCone& geom = cone->GetConeGeometry();
         gss << collision::CONE << delim << geom.rad.x << delim << geom.rad.y;
-        count++;
+        a_count++;
       }
       else if (ChSharedPtr<ChTriangleMeshShape> mesh = asset.DynamicCastTo<ChTriangleMeshShape>())
       {
         gss << collision::TRIANGLEMESH << delim << "\"" << mesh->GetName() << "\"";
-        count++;
+        a_count++;
       }
 
-      csv << body->GetIdentifier() << body->IsActive() << pos << rot << gss.str() << std::endl;
+      csv << (*ibody)->GetIdentifier() << (*ibody)->IsActive() << pos << rot << gss.str() << std::endl;
 
     }
+
+    ++ibody;
   }
 
+  int l_count = 0;
+  std::list<ChLink*>::iterator ilink = system->Get_linklist()->begin();
+  while (ilink != system->Get_linklist()->end())
+  {
+    int type = (*ilink)->GetType();
+
+    if (ChLinkLockRevolute* link = dynamic_cast<ChLinkLockRevolute*>(*ilink))
+    {
+      chrono::ChFrame<> frA_abs = *(link->GetMarker1()) >> *(link->GetBody1());
+      chrono::ChFrame<> frB_abs = *(link->GetMarker2()) >> *(link->GetBody2());
+      
+      csv << type << frA_abs.GetPos() << frA_abs.GetA()->Get_A_Zaxis() << std::endl;
+      l_count++;
+    }
+    else if (ChLinkSpring* link = dynamic_cast<ChLinkSpring*>(*ilink))
+    {
+      chrono::ChFrame<> frA_abs = *(link->GetMarker1()) >> *(link->GetBody1());
+      chrono::ChFrame<> frB_abs = *(link->GetMarker2()) >> *(link->GetBody2());
+
+      csv << type << frA_abs.GetPos() << frB_abs.GetPos() << std::endl;
+      l_count++;
+    }
+    else if (ChLinkDistance* link = dynamic_cast<ChLinkDistance*>(*ilink))
+    {
+      csv << type << link->GetEndPoint1Abs() << link->GetEndPoint2Abs() << std::endl;
+      l_count++;
+    }
+
+    ++ilink;
+  }
+
+
   std::stringstream header;
-  header << count << delim << std::endl;
+  header << a_count << delim << l_count << delim << std::endl;
 
   csv.write_to_file(filename, header.str());
 }
