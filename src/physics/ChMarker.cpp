@@ -240,8 +240,8 @@ Vector ChMarker::Dir_Ref2World (Vector* mpoint)
 
 void ChMarker::UpdateTime (double mytime)
 {
-	static Coordsys csys, csys_dt, csys_dtdt;
-	static Quaternion qtemp;
+	Coordsys csys, csys_dt, csys_dtdt;
+	Quaternion qtemp;
 	double ang, ang_dt, ang_dtdt;
 
 	ChTime = mytime;
@@ -262,7 +262,7 @@ void ChMarker::UpdateTime (double mytime)
 	csys.pos.y= motion_Y->Get_y(mytime);
 	csys.pos.z= motion_Z->Get_y(mytime);
 	if (motion_X->Get_Type() != FUNCT_MOCAP)
-		csys.pos = Vadd(csys.pos, rest_coord.pos);
+		csys.pos += rest_coord.pos;
 
 		// update speeds:		rel_pos_dt
 	csys_dt.pos.x= motion_X->Get_y_dx(mytime);
@@ -302,13 +302,12 @@ void ChMarker::UpdateTime (double mytime)
 
 	// Set the position, speed and acceleration in relative space,
 	// automatically getting also the absolute values,
-	if (!(csys==this->coord))
-			SetCoord (csys);
+	SetCoord(csys);
 
-	if (!(csys_dt==this->coord_dt) || !(csys_dt.rot==QNULL))
+	if (!(csys_dt.rot==QNULL))
 			SetCoord_dt (csys_dt);
 
-	if (!(csys_dtdt==this->coord_dtdt) || !(csys_dtdt.rot==QNULL))
+	if (!(csys_dtdt.rot==QNULL))
 			SetCoord_dtdt (csys_dtdt);
 };
 
