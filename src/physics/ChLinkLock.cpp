@@ -1203,7 +1203,7 @@ void ChLinkLock::InjectConstraints(ChLcpSystemDescriptor& mdescriptor)
 	// parent 
 	ChLinkMasked::InjectConstraints(mdescriptor);
 
-	if (limit_X) if (limit_X->Get_active())
+	if (limit_X && limit_X->Get_active())
 	{
 		limit_X->constr_lower.SetVariables(&Body1->Variables(),&Body2->Variables());
 		limit_X->constr_upper.SetVariables(&Body1->Variables(),&Body2->Variables());
@@ -1212,7 +1212,7 @@ void ChLinkLock::InjectConstraints(ChLcpSystemDescriptor& mdescriptor)
 		if (limit_X->constr_upper.IsActive())
 			mdescriptor.InsertConstraint(&limit_X->constr_upper);
 	}
-	if (limit_Y) if (limit_Y->Get_active())
+	if (limit_Y && limit_Y->Get_active())
 	{
 		limit_Y->constr_lower.SetVariables(&Body1->Variables(),&Body2->Variables());
 		limit_Y->constr_upper.SetVariables(&Body1->Variables(),&Body2->Variables());
@@ -1221,7 +1221,7 @@ void ChLinkLock::InjectConstraints(ChLcpSystemDescriptor& mdescriptor)
 		if (limit_Y->constr_upper.IsActive())
 			mdescriptor.InsertConstraint(&limit_Y->constr_upper);
 	}
-	if (limit_Z) if (limit_Z->Get_active())
+	if (limit_Z && limit_Z->Get_active())
 	{
 		limit_Z->constr_lower.SetVariables(&Body1->Variables(),&Body2->Variables());
 		limit_Z->constr_upper.SetVariables(&Body1->Variables(),&Body2->Variables());
@@ -1230,7 +1230,7 @@ void ChLinkLock::InjectConstraints(ChLcpSystemDescriptor& mdescriptor)
 		if (limit_Z->constr_upper.IsActive())
 			mdescriptor.InsertConstraint(&limit_Z->constr_upper);
 	}
-	if (limit_Rx) if (limit_Rx->Get_active())
+	if (limit_Rx && limit_Rx->Get_active())
 	{
 		limit_Rx->constr_lower.SetVariables(&Body1->Variables(),&Body2->Variables());
 		limit_Rx->constr_upper.SetVariables(&Body1->Variables(),&Body2->Variables());
@@ -1239,7 +1239,7 @@ void ChLinkLock::InjectConstraints(ChLcpSystemDescriptor& mdescriptor)
 		if (limit_Rx->constr_upper.IsActive())
 			mdescriptor.InsertConstraint(&limit_Rx->constr_upper);
 	}
-	if (limit_Ry) if (limit_Ry->Get_active())
+	if (limit_Ry && limit_Ry->Get_active())
 	{
 		limit_Ry->constr_lower.SetVariables(&Body1->Variables(),&Body2->Variables());
 		limit_Ry->constr_upper.SetVariables(&Body1->Variables(),&Body2->Variables());
@@ -1248,7 +1248,7 @@ void ChLinkLock::InjectConstraints(ChLcpSystemDescriptor& mdescriptor)
 		if (limit_Ry->constr_upper.IsActive())
 			mdescriptor.InsertConstraint(&limit_Ry->constr_upper);
 	}
-	if (limit_Rz) if (limit_Rz->Get_active())
+	if (limit_Rz && limit_Rz->Get_active())
 	{
 		limit_Rz->constr_lower.SetVariables(&Body1->Variables(),&Body2->Variables());
 		limit_Rz->constr_upper.SetVariables(&Body1->Variables(),&Body2->Variables());
@@ -1264,32 +1264,32 @@ void ChLinkLock::ConstraintsBiReset()
 	// parent 
 	ChLinkMasked::ConstraintsBiReset();
 
-	if (limit_X) if (limit_X->Get_active())
+	if (limit_X && limit_X->Get_active())
 	{
 		limit_X->constr_lower.Set_b_i(0.);
 		limit_X->constr_upper.Set_b_i(0.);
 	}
-	if (limit_Y) if (limit_Y->Get_active())
+	if (limit_Y && limit_Y->Get_active())
 	{
 		limit_Y->constr_lower.Set_b_i(0.);
 		limit_Y->constr_upper.Set_b_i(0.);
 	}
-	if (limit_Z) if (limit_Z->Get_active())
+	if (limit_Z && limit_Z->Get_active())
 	{
 		limit_Z->constr_lower.Set_b_i(0.);
 		limit_Z->constr_upper.Set_b_i(0.);
 	}
-	if (limit_Rx) if (limit_Rx->Get_active())
+	if (limit_Rx && limit_Rx->Get_active())
 	{
 		limit_Rx->constr_lower.Set_b_i(0.);
 		limit_Rx->constr_upper.Set_b_i(0.);
 	}
-	if (limit_Ry) if (limit_Ry->Get_active())
+	if (limit_Ry && limit_Ry->Get_active())
 	{
 		limit_Ry->constr_lower.Set_b_i(0.);
 		limit_Ry->constr_upper.Set_b_i(0.);
 	}
-	if (limit_Rz) if (limit_Rz->Get_active())
+	if (limit_Rz && limit_Rz->Get_active())
 	{
 		limit_Rz->constr_lower.Set_b_i(0.);
 		limit_Rz->constr_upper.Set_b_i(0.);
@@ -1301,7 +1301,7 @@ void ChLinkLock::ConstraintsBiLoad_C(double factor, double recovery_clamp, bool 
 	// parent
 	ChLinkMasked::ConstraintsBiLoad_C(factor, recovery_clamp, do_clamp);
 
-	if (limit_X) if (limit_X->Get_active())
+	if (limit_X && limit_X->Get_active())
 	{
 		if (limit_X->constr_lower.IsActive())
 			if (!do_clamp)
@@ -1314,7 +1314,7 @@ void ChLinkLock::ConstraintsBiLoad_C(double factor, double recovery_clamp, bool 
 			else
 				limit_X->constr_upper.Set_b_i(limit_X->constr_upper.Get_b_i()+ChMax (factor*( limit_X->Get_max()-relM.pos.x), -recovery_clamp));
 	}
-	if (limit_Y) if (limit_Y->Get_active())
+	if (limit_Y && limit_Y->Get_active())
 	{
 		if (limit_Y->constr_lower.IsActive())
 			if (!do_clamp)
@@ -1327,7 +1327,7 @@ void ChLinkLock::ConstraintsBiLoad_C(double factor, double recovery_clamp, bool 
 			else
 				limit_Y->constr_upper.Set_b_i(limit_Y->constr_upper.Get_b_i()+ChMax (factor*( limit_Y->Get_max()-relM.pos.y), -recovery_clamp));
 	}
-	if (limit_Z) if (limit_Z->Get_active())
+	if (limit_Z && limit_Z->Get_active())
 	{
 		if (limit_Z->constr_lower.IsActive())
 			if (!do_clamp)
@@ -1340,7 +1340,7 @@ void ChLinkLock::ConstraintsBiLoad_C(double factor, double recovery_clamp, bool 
 		else
 				limit_Z->constr_upper.Set_b_i(limit_Z->constr_upper.Get_b_i()+ChMax (factor*( limit_Z->Get_max()-relM.pos.z), -recovery_clamp));
 	}
-	if (limit_Rx) if (limit_Rx->Get_active())
+	if (limit_Rx && limit_Rx->Get_active())
 	{
 		if (limit_Rx->constr_lower.IsActive())
 			if (!do_clamp)
@@ -1353,7 +1353,7 @@ void ChLinkLock::ConstraintsBiLoad_C(double factor, double recovery_clamp, bool 
 		else
 				limit_Rx->constr_upper.Set_b_i(limit_Rx->constr_upper.Get_b_i()+ChMax (factor*(   sin(0.5*limit_Rx->Get_max()) -relM.rot.e1), -recovery_clamp));
 	}
-	if (limit_Ry) if (limit_Ry->Get_active())
+	if (limit_Ry && limit_Ry->Get_active())
 	{
 		if (limit_Ry->constr_lower.IsActive())
 			if (!do_clamp)
@@ -1366,7 +1366,7 @@ void ChLinkLock::ConstraintsBiLoad_C(double factor, double recovery_clamp, bool 
 		else
 				limit_Ry->constr_upper.Set_b_i(limit_Ry->constr_upper.Get_b_i()+ChMax (factor*(  sin(0.5*limit_Ry->Get_max()) -relM.rot.e2), -recovery_clamp));
 	}
-	if (limit_Rz) if (limit_Rz->Get_active())
+	if (limit_Rz && limit_Rz->Get_active())
 	{
 		if (limit_Rz->constr_lower.IsActive())
 			if (!do_clamp)
@@ -1420,7 +1420,7 @@ void ChLinkLock::ConstraintsLoadJacobians()
 	// parent
 	ChLinkMasked::ConstraintsLoadJacobians();
 
-	if (limit_X) if (limit_X->Get_active())
+	if (limit_X && limit_X->Get_active())
 	{
 		limit_X->constr_lower.SetVariables(&Body1->Variables(),&Body2->Variables());
 		limit_X->constr_upper.SetVariables(&Body1->Variables(),&Body2->Variables());
@@ -1431,7 +1431,7 @@ void ChLinkLock::ConstraintsLoadJacobians()
 		limit_X->constr_upper.Get_Cq_a()->MatrNeg();
 		limit_X->constr_upper.Get_Cq_b()->MatrNeg();
 	}
-	if (limit_Y) if (limit_Y->Get_active())
+	if (limit_Y && limit_Y->Get_active())
 	{
 		limit_Y->constr_lower.SetVariables(&Body1->Variables(),&Body2->Variables());
 		limit_Y->constr_upper.SetVariables(&Body1->Variables(),&Body2->Variables());
@@ -1442,7 +1442,7 @@ void ChLinkLock::ConstraintsLoadJacobians()
 		limit_Y->constr_upper.Get_Cq_a()->MatrNeg();
 		limit_Y->constr_upper.Get_Cq_b()->MatrNeg();
 	}
-	if (limit_Z) if (limit_Z->Get_active())
+	if (limit_Z && limit_Z->Get_active())
 	{
 		limit_Z->constr_lower.SetVariables(&Body1->Variables(),&Body2->Variables());
 		limit_Z->constr_upper.SetVariables(&Body1->Variables(),&Body2->Variables());
@@ -1453,7 +1453,7 @@ void ChLinkLock::ConstraintsLoadJacobians()
 		limit_Z->constr_upper.Get_Cq_a()->MatrNeg();
 		limit_Z->constr_upper.Get_Cq_b()->MatrNeg();
 	}
-	if (limit_Rx) if (limit_Rx->Get_active())
+	if (limit_Rx && limit_Rx->Get_active())
 	{
 		limit_Rx->constr_lower.SetVariables(&Body1->Variables(),&Body2->Variables());
 		limit_Rx->constr_upper.SetVariables(&Body1->Variables(),&Body2->Variables());
@@ -1464,7 +1464,7 @@ void ChLinkLock::ConstraintsLoadJacobians()
 		limit_Rx->constr_upper.Get_Cq_a()->MatrNeg();
 		limit_Rx->constr_upper.Get_Cq_b()->MatrNeg();
 	}
-	if (limit_Ry) if (limit_Ry->Get_active())
+	if (limit_Ry && limit_Ry->Get_active())
 	{
 		limit_Ry->constr_lower.SetVariables(&Body1->Variables(),&Body2->Variables());
 		limit_Ry->constr_upper.SetVariables(&Body1->Variables(),&Body2->Variables());
@@ -1475,7 +1475,7 @@ void ChLinkLock::ConstraintsLoadJacobians()
 		limit_Ry->constr_upper.Get_Cq_a()->MatrNeg();
 		limit_Ry->constr_upper.Get_Cq_b()->MatrNeg();
 	}
-	if (limit_Rz) if (limit_Rz->Get_active())
+	if (limit_Rz && limit_Rz->Get_active())
 	{
 		limit_Rz->constr_lower.SetVariables(&Body1->Variables(),&Body2->Variables());
 		limit_Rz->constr_upper.SetVariables(&Body1->Variables(),&Body2->Variables());
@@ -1528,27 +1528,27 @@ void ChLinkLock::ConstraintsFetch_react(double factor)
     // if delta rotation?
 
 	// add also the contribute from link limits to the 'intuitive' react_force and 'react_torque'.
-	if (limit_X) if (limit_X->Get_active()) {
+	if (limit_X && limit_X->Get_active()) {
 		react_force.x -= factor*limit_X->constr_lower.Get_l_i();
 		react_force.x += factor*limit_X->constr_upper.Get_l_i();
 		}
-	if (limit_Y) if (limit_Y->Get_active()) {
+	if (limit_Y && limit_Y->Get_active()) {
 		react_force.y -= factor*limit_Y->constr_lower.Get_l_i();
 		react_force.y += factor*limit_Y->constr_upper.Get_l_i();
 		}
-	if (limit_Z) if (limit_Z->Get_active()) {
+	if (limit_Z && limit_Z->Get_active()) {
 		react_force.z -= factor*limit_Z->constr_lower.Get_l_i();
 		react_force.z += factor*limit_Z->constr_upper.Get_l_i();
 		}
-	if (limit_Rx) if (limit_Rx->Get_active()) {
+	if (limit_Rx && limit_Rx->Get_active()) {
 		react_torque.x -=  0.5*factor*limit_Rx->constr_lower.Get_l_i();
 		react_torque.x +=  0.5*factor*limit_Rx->constr_upper.Get_l_i();
 		}
-	if (limit_Ry) if (limit_Ry->Get_active()) {
+	if (limit_Ry && limit_Ry->Get_active()) {
 		react_torque.y -=  0.5*factor*limit_Ry->constr_lower.Get_l_i();
 		react_torque.y +=  0.5*factor*limit_Ry->constr_upper.Get_l_i();
 		}
-	if (limit_Rz) if (limit_Rz->Get_active()) {
+	if (limit_Rz && limit_Rz->Get_active()) {
 		react_torque.z -=  0.5*factor*limit_Rz->constr_lower.Get_l_i();
 		react_torque.z +=  0.5*factor*limit_Rz->constr_upper.Get_l_i();
 		}

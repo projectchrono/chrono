@@ -78,7 +78,7 @@ void  ChLcpKblockGeneric::SetVariables(std::vector<ChLcpVariables*> mvariables)
 }
 
 
-void ChLcpKblockGeneric::MultiplyAndAdd(ChMatrix<double>& result, const ChMatrix<double>& vect) 
+void ChLcpKblockGeneric::MultiplyAndAdd(ChMatrix<double>& result, const ChMatrix<double>& vect) const
 {
 	assert(K);
 

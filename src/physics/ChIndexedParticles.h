@@ -95,7 +95,7 @@ public:
 			//
 
 				/// Get the number of particles
-	virtual unsigned int GetNparticles() =0;
+	virtual size_t GetNparticles() const = 0;
 
 				/// Access the N-th particle 
 	virtual ChParticleBase& GetParticle(unsigned int n) =0;
@@ -109,13 +109,13 @@ public:
 	virtual void AddParticle(ChCoordsys<double> initial_state = CSYSNORM) =0;
 
 				/// Number of coordinates of the particle cluster
-	virtual int GetDOF  ()   {return 6*GetNparticles();}
+	virtual size_t GetDOF  ()  const {return 6*GetNparticles();}
 
 
 				/// Get the master coordinate system for the assets (this will return the 
 				/// main coordinate system of the rigid body)
 	virtual ChFrame<> GetAssetsFrame(unsigned int nclone=0) { ChFrame<> res; res = GetParticle(nclone); return(res);}
-	virtual unsigned int GetAssetsFrameNclones() {return GetNparticles();}
+	virtual size_t GetAssetsFrameNclones() const {return GetNparticles();}
 
 
 			//

@@ -88,7 +88,7 @@ public:
 			// FUNCTIONS
 			//
 				/// Returns the number of referenced ChLcpVariables items
-	virtual unsigned int GetNvars() const =0;
+	virtual size_t GetNvars() const = 0;
 
 
 				/// Access the K stiffness matrix as a single block,
@@ -101,7 +101,7 @@ public:
 				/// the size of the total variables&constraints in the system; the procedure
 				/// will use the ChVariable offsets (that must be already updated) to know the 
 				/// indexes in result and vect.
-	virtual void MultiplyAndAdd(ChMatrix<double>& result, const ChMatrix<double>& vect) = 0;
+	virtual void MultiplyAndAdd(ChMatrix<double>& result, const ChMatrix<double>& vect) const = 0;
 
 				/// Add the diagonal of the stiffness matrix block(s) as a column vector to 'result'.
 				/// NOTE: the 'result' vector must already have the size of system unknowns, ie
