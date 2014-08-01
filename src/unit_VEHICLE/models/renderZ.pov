@@ -18,7 +18,10 @@ global_settings { assumed_gamma 1 }
 #declare render_objects = true;
 
 // Render static objects?
-#declare render_static = false;
+#declare render_static = true;
+
+//Render links?
+#declare render_links = true;
 
 
 // Draw global frame?
@@ -31,12 +34,13 @@ global_settings { assumed_gamma 1 }
 #declare draw_object_frame = false;
 #declare object_frame_radius = 0.01;
 #declare object_frame_len = 1.25;
-
+                 
+                 
 // Perspective camera?
-#declare cam_perspective = false;
+#declare cam_perspective = true;
        
 // Camera location and look-at (RIGHT-HAND-FRAME with Z up)
-#declare cam_loc    = <-5, 0, 1>;
+#declare cam_loc    = <-4, -4, 3>;
 #declare cam_lookat = <0, 0, 1>;
 
      
@@ -348,9 +352,10 @@ light_source {
 #end  // for objects      
  
         // ---------------------------------------------
-        //    RENDER OBJECTS (VISUAL ASSETS)
+        //    RENDER LINKS
         // ---------------------------------------------
-                                           
+
+#if (render_links)                                           
 #for (i, 1, numLinks)                               
               
     #read (MyDataFile, link)
@@ -384,7 +389,8 @@ light_source {
 	#end  // switch (link)
     
 #end  // for links
-
+#end  // if (render_links)   
+   
 #fclose MyDataFile
           
           
