@@ -23,6 +23,9 @@
 #include "assets/ChCylinderShape.h"
 #include "assets/ChConeShape.h"
 #include "assets/ChTriangleMeshShape.h"
+#include "assets/ChRoundedBoxShape.h"
+#include "assets/ChRoundedConeShape.h"
+#include "assets/ChRoundedCylinderShape.h"
 
 #include "utils/ChApiUtils.h"
 
