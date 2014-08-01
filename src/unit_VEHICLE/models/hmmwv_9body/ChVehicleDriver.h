@@ -26,7 +26,7 @@ public:
 		return this->throttle;
 	}
 
-	// set the throttle position, between 0 and 1
+	// set the throttle position, between -1 and 1
 	void setThrottle(const double thNew) {
 		if(thNew < -1 || thNew > 1) {
 			// throttle setting out of range, not setting.

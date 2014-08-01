@@ -152,8 +152,7 @@ public:
 
 	bool OnEvent(const SEvent& event)
 	{
-	
-		// check if user moved the sliders with mouse..
+		//user input to GUI
 		if (event.EventType == EET_GUI_EVENT)
 		{
 			s32 id = event.GUIEvent.Caller->getID();
@@ -161,6 +160,7 @@ public:
 
 			switch(event.GUIEvent.EventType)
 			{
+			// check if user moved the sliders with mouse
 			case gui::EGET_SCROLL_BAR_CHANGED:
 				if( id == 1001) // throttle slider 
 				{
@@ -240,10 +240,54 @@ public:
 					return true;
 				}
 				*/
+
 			}
 			
 		} 
-
+		// user hit a key, while not holding it down
+		if(event.EventType == EET_KEY_INPUT_EVENT && !event.KeyInput.PressedDown) 
+		{
+			if(event.KeyInput.Key == KEY_KEY_A) {
+				double curr_steer = mcar->driver->getSteer();
+				curr_steer -= 0.1;
+				this->mcar->driver->setSteer(curr_steer);
+				// show steer position
+				char msg[100]; sprintf(msg,"Tierod Disp: %+3.3g",curr_steer);
+				text_steerPos->setText(core::stringw(msg).c_str() );
+				return true;
+			}
+			if(event.KeyInput.Key == KEY_KEY_D) {
+				double curr_steer = mcar->driver->getSteer();
+				curr_steer += 0.1;
+				this->mcar->driver->setSteer(curr_steer);
+				// show steer position
+				char msg[100]; sprintf(msg,"Tierod Disp: %+3.3g",curr_steer);
+				text_steerPos->setText(core::stringw(msg).c_str() );
+				return true;
+			}
+			if(event.KeyInput.Key == KEY_KEY_W)	{
+				// increase throttle by 10
+				double curr_throttle =  mcar->driver->getThrottle();
+				// DEBUG: allow the motor torque to be negative, to slow down
+				curr_throttle += 0.1;
+				mcar->driver->setThrottle(curr_throttle);
+				// show throttle
+				char msg[100]; sprintf(msg,"Throttle: %+3.3g",curr_throttle*100.);
+				text_throttle->setText(core::stringw(msg).c_str() );
+				return true;
+			}
+			if(event.KeyInput.Key == KEY_KEY_S) {
+				// decrease throttle by 10
+				double curr_throttle = mcar->driver->getThrottle();
+				// DEBUG: allow the motor torque to be negative, to slow down
+				curr_throttle -= 0.1;
+				mcar->driver->setThrottle(curr_throttle);
+				// show throttle
+				char msg[100]; sprintf(msg,"Throttle: %+3.3g",curr_throttle*100.);
+				text_throttle->setText(core::stringw(msg).c_str() );
+				return true;
+			}
+		}
 		return false;
 	}
 
