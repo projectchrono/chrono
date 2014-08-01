@@ -249,11 +249,11 @@ void ChMarker::UpdateTime (double mytime)
 	// if a imposed motion (keyframed movement) affects the marker postion (example,from R3D animation system),
 	// compute the speed and acceleration values by BDF (example,see the UpdatedExternalTime() function, later)
 	// so the updating via motion laws can be skipped!
-	if (this->motion_type == M_MOTION_KEYFRAMED) return;
+	if (motion_type == M_MOTION_KEYFRAMED) return;
 
 	// skip realtive-position-functions evaluation also if
 	// someone is already handling this from outside..
-  	if (this->motion_type == M_MOTION_EXTERNAL) return;  // >>>>
+  	if (motion_type == M_MOTION_EXTERNAL) return;  // >>>>
 
 
 	// positions:
@@ -294,7 +294,7 @@ void ChMarker::UpdateTime (double mytime)
 	}
 	else
 	{
-		csys.rot = this->coord.rot; //rel_pos.rot;
+		csys.rot = coord.rot; //rel_pos.rot;
 		csys_dt.rot = QNULL;
 		csys_dtdt.rot = QNULL;
 	}
@@ -302,13 +302,14 @@ void ChMarker::UpdateTime (double mytime)
 
 	// Set the position, speed and acceleration in relative space,
 	// automatically getting also the absolute values,
-	SetCoord(csys);
+	if (!(csys == this->coord))
+		SetCoord(csys);
 
-	if (!(csys_dt.rot==QNULL))
-			SetCoord_dt (csys_dt);
+	if (!(csys_dt == this->coord_dt) || !(csys_dt.rot == QNULL))
+		SetCoord_dt(csys_dt);
 
-	if (!(csys_dtdt.rot==QNULL))
-			SetCoord_dtdt (csys_dtdt);
+	if (!(csys_dtdt == this->coord_dtdt) || !(csys_dtdt.rot == QNULL))
+		SetCoord_dtdt(csys_dtdt);
 };
 
 

@@ -138,7 +138,7 @@ public:
 			//
 
 				/// Gets the address of the parent rigid body.
-	ChBody* GetBody () { return Body;}
+	ChBody* GetBody () const { return Body;}
 				/// Sets the parent rigid body.
 	void SetBody (ChBody* newRB) {Body= newRB;}
 
