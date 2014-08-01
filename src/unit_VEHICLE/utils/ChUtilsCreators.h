@@ -41,6 +41,8 @@ namespace utils {
 // AddCylinderGeometry
 // AddConeGeometry
 // AddTriangleMeshGeometry
+// AddRoundedBoxGeometry
+// AddRoundedCylinderGeometry
 //
 // Utility functions for adding contact and asset geometry shapes to a body.
 // Note that cylinders, capsules, and cones are built with their axis in the
@@ -171,6 +173,43 @@ void AddTriangleMeshGeometry(ChBody*               body,
 
   body->GetAssets().push_back(trimesh_shape);
 }
+
+inline
+void AddRoundedBoxGeometry(ChBody*               body,
+                           const ChVector<>&     size,
+                           double                srad,
+                           const ChVector<>&     pos = ChVector<>(0, 0, 0),
+                           const ChQuaternion<>& rot = ChQuaternion<>(1, 0, 0, 0))
+{
+  body->GetCollisionModel()->AddRoundedBox(size.x, size.y, size.z, srad, pos, rot);
+
+  ChSharedPtr<ChRoundedBoxShape> box(new ChRoundedBoxShape);
+  box->GetRoundedBoxGeometry().Size = size;
+  box->GetRoundedBoxGeometry().radsphere = srad;
+  box->Pos = pos;
+  box->Rot = rot;
+  body->GetAssets().push_back(box);
+}
+
+inline
+void AddRoundedCylinderGeometry(ChBody*               body,
+                                double                radius,
+                                double                hlen,
+                                double                srad,
+                                const ChVector<>&     pos = ChVector<>(0, 0, 0),
+                                const ChQuaternion<>& rot = ChQuaternion<>(1, 0, 0, 0))
+{
+  body->GetCollisionModel()->AddRoundedCylinder(radius, radius, hlen, srad, pos, rot);
+
+  ChSharedPtr<ChRoundedCylinderShape> rcyl(new ChRoundedCylinderShape);
+  rcyl->GetRoundedCylinderGeometry().rad = radius;
+  rcyl->GetRoundedCylinderGeometry().hlen = hlen;
+  rcyl->GetRoundedCylinderGeometry().radsphere = srad;
+  rcyl->Pos = pos;
+  rcyl->Rot = rot;
+  body->GetAssets().push_back(rcyl);
+}
+
 
 // -----------------------------------------------------------------------------
 // CreateBoxContainer

@@ -79,7 +79,7 @@ void WriteBodies(ChSystem*          system,
 
 // Create a CSV file with a checkpoint...
 CH_UTILS_API
-void WriteCheckpoint(ChSystem*          system,
+bool WriteCheckpoint(ChSystem*          system,
                      const std::string& filename);
 
 // Read a CSV file with a checkpoint...

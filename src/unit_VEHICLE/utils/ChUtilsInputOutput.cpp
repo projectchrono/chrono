@@ -37,13 +37,15 @@ void WriteBodies(ChSystem*          system,
 //
 // Create a CSV file with a checkpoint ...
 // -----------------------------------------------------------------------------
-void WriteCheckpoint(ChSystem*          system,
+bool WriteCheckpoint(ChSystem*          system,
                      const std::string& filename)
 {
   CSV_writer csv(" ");
 
-  for (int i = 0; i < system->Get_bodylist()->size(); i++) {
-    ChBody* body = system->Get_bodylist()->at(i);
+  std::vector<ChBody*>::iterator ibody = system->Get_bodylist()->begin();
+  for (; ibody != system->Get_bodylist()->end(); ++ibody)
+  {
+    ChBody* body = *ibody;
 
     // Infer body type (0: DVI, 1:DEM)
     int btype = (dynamic_cast<ChBodyDEM*>(body)) ? 1 : 0;
@@ -78,19 +80,22 @@ void WriteCheckpoint(ChSystem*          system,
 
     csv << std::endl;
 
-    // Write number of visual assets
+    // Count and write all visual assets.
     int num_visual_assets = 0;
-    for (int j = 0; j < body->GetAssets().size(); j++) {
-      ChSharedPtr<ChAsset> asset = body->GetAssets().at(j);
-      if (asset.IsType<ChVisualization>())
+    std::vector<ChSharedPtr<ChAsset> >::iterator iasset = (*ibody)->GetAssets().begin();
+    for (; iasset != (*ibody)->GetAssets().end(); ++iasset)
+    {
+      if ((*iasset).IsType<ChVisualization>())
         num_visual_assets++;
     }
     csv << num_visual_assets << std::endl;
 
-    // Loop over each asset and, for visual assets, write its data on a separate line
-    for (int j = 0; j < body->GetAssets().size(); j++) {
-      ChSharedPtr<ChAsset> asset = body->GetAssets().at(j);
-      ChSharedPtr<ChVisualization> visual_asset = asset.DynamicCastTo<ChVisualization>();
+    // Loop over each asset and, for selected visual assets only, write its data
+    // on a separate line. If we encounter an unsupported type, return false.
+    iasset = (*ibody)->GetAssets().begin();
+    for (; iasset != (*ibody)->GetAssets().end(); ++iasset)
+    {
+      ChSharedPtr<ChVisualization> visual_asset = (*iasset).DynamicCastTo<ChVisualization>();
       if (visual_asset.IsNull())
         continue;
 
@@ -98,32 +103,47 @@ void WriteCheckpoint(ChSystem*          system,
       csv << visual_asset->Pos << visual_asset->Rot.Get_A_quaternion();
 
       // Write shape type and geometry data
-      if (ChSharedPtr<ChSphereShape> sphere = asset.DynamicCastTo<ChSphereShape>())
+      if (ChSharedPtr<ChSphereShape> sphere = visual_asset.DynamicCastTo<ChSphereShape>())
       {
         csv << collision::SPHERE << sphere->GetSphereGeometry().rad;
       }
-      else if (ChSharedPtr<ChEllipsoidShape> ellipsoid = asset.DynamicCastTo<ChEllipsoidShape>())
+      else if (ChSharedPtr<ChEllipsoidShape> ellipsoid = visual_asset.DynamicCastTo<ChEllipsoidShape>())
       {
         csv << collision::ELLIPSOID << ellipsoid->GetEllipsoidGeometry().rad;
       }
-      else if (ChSharedPtr<ChBoxShape> box = asset.DynamicCastTo<ChBoxShape>())
+      else if (ChSharedPtr<ChBoxShape> box = visual_asset.DynamicCastTo<ChBoxShape>())
       {
         csv << collision::BOX << box->GetBoxGeometry().Size;
       }
-      else if (ChSharedPtr<ChCapsuleShape> capsule = asset.DynamicCastTo<ChCapsuleShape>())
+      else if (ChSharedPtr<ChCapsuleShape> capsule = visual_asset.DynamicCastTo<ChCapsuleShape>())
       {
         const geometry::ChCapsule& geom = capsule->GetCapsuleGeometry();
         csv << collision::CAPSULE << geom.rad << geom.hlen;
       }
-      else if (ChSharedPtr<ChCylinderShape> cylinder = asset.DynamicCastTo<ChCylinderShape>())
+      else if (ChSharedPtr<ChCylinderShape> cylinder = visual_asset.DynamicCastTo<ChCylinderShape>())
       {
         const geometry::ChCylinder& geom = cylinder->GetCylinderGeometry();
         csv << collision::CYLINDER << geom.rad << (geom.p1.y - geom.p2.y) / 2;
       }
-      else if (ChSharedPtr<ChConeShape> cone = asset.DynamicCastTo<ChConeShape>())
+      else if (ChSharedPtr<ChConeShape> cone = visual_asset.DynamicCastTo<ChConeShape>())
       {
         const geometry::ChCone& geom = cone->GetConeGeometry();
         csv << collision::CONE << geom.rad.x << geom.rad.y;
+      }
+      else if (ChSharedPtr<ChRoundedBoxShape> rbox = visual_asset.DynamicCastTo<ChRoundedBoxShape>())
+      {
+        const geometry::ChRoundedBox& geom = rbox->GetRoundedBoxGeometry();
+        csv << collision::ROUNDEDBOX << geom.Size << geom.radsphere;
+      }
+      else if (ChSharedPtr<ChRoundedCylinderShape> rcyl = visual_asset.DynamicCastTo<ChRoundedCylinderShape>())
+      {
+        const geometry::ChRoundedCylinder& geom = rcyl->GetRoundedCylinderGeometry();
+        csv << collision::ROUNDEDCYL << geom.rad << geom.hlen << geom.radsphere;
+      }
+      else
+      {
+        // Unsupported visual asset type.
+        return false;
       }
 
       csv << std::endl;
@@ -131,6 +151,8 @@ void WriteCheckpoint(ChSystem*          system,
   }
 
   csv.write_to_file(filename);
+
+  return true;
 }
 
 
@@ -265,6 +287,21 @@ void ReadCheckpoint(ChSystem*          system,
           AddConeGeometry(body, radius, height, apos, arot);
         }
         break;
+      case collision::ROUNDEDBOX:
+        {
+          ChVector<> size;
+          double srad;
+          iss >> size.x >> size.y >> size.z >> srad;
+          AddRoundedBoxGeometry(body, size, srad, apos, arot);
+        }
+        break;
+        case collision::ROUNDEDCYL:
+        {
+          double radius, hlen, srad;
+          iss >> radius >> hlen >> srad;
+          AddRoundedCylinderGeometry(body, radius, hlen, srad, apos, arot);
+        }
+        break;
       }
     }
 
@@ -308,7 +345,6 @@ void WriteShapesPovray(ChSystem*          system,
     std::vector<ChSharedPtr<ChAsset> >::iterator iasset = (*ibody)->GetAssets().begin();
     for (; iasset != (*ibody)->GetAssets().end(); ++iasset)
     {
-      //ChSharedPtr<ChAsset> asset = (*ibody)->GetAssets().at(j);
       ChSharedPtr<ChVisualization> visual_asset = (*iasset).DynamicCastTo<ChVisualization>();
       if (visual_asset.IsNull())
         continue;
