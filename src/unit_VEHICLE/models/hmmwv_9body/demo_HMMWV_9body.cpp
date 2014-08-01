@@ -161,7 +161,6 @@ int main(int argc, char* argv[])
 
   // This is for GUI for the on-road HMMWV vehicle
   irr::HMMWVEventReceiver receiver(&application, &m_system, mycar, terrain);
-  application.SetUserEventReceiver(&receiver);
   // create and manage the camera thru the receiver
   receiver.create_camera(chassisCM + cameraOffset, chassisCM);
 
@@ -192,12 +191,13 @@ int main(int argc, char* argv[])
       application.GetVideoDriver()->beginScene(true, true, irr::video::SColor(255, 140, 161, 192));
 
       receiver.update_cameraPos(cameraOffset);
-
       receiver.drawLinks();
       receiver.drawSprings();
 
-      if (receiver.gad_tab_carData->isVisible())
+	  if (receiver.gad_tab_controls->isVisible())
         receiver.drawCarDataOutput();
+	  if (receiver.gad_tab_wheelState->isVisible())
+		  receiver.drawWheelData_LF();
 
       application.DrawAll();
 

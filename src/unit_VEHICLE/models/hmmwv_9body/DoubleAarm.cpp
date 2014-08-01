@@ -141,7 +141,7 @@ DoubleAarm::DoubleAarm(ChSystem&  my_system, const int susp_type, ChSharedPtr<Ch
 	this->body_list.push_back(upright.DynamicCastTo<ChBody>().get_ptr());
 
 	// ---- revolute joint between wheel and upright. Joint location based on input position, upright_r_bar
-	ChSharedPtr<ChLinkLockRevolute> spindle_revolute = ChSharedPtr<ChLinkLockRevolute>(new ChLinkLockRevolute); 
+	this->spindle_revolute = ChSharedPtr<ChLinkLockRevolute>(new ChLinkLockRevolute); 
 	spindle_revolute->Initialize(wheel, upright, ChCoordsys<>( chassis->GetCoord().TrasformLocalToParent(upright_r_bar),
 		chrono::Q_from_AngAxis(CH_C_PI/2.0, VECT_X) ) );
 	spindle_revolute->SetNameString(susp_type_string + " spindle revolute");
@@ -190,6 +190,8 @@ DoubleAarm::DoubleAarm(ChSystem&  my_system, const int susp_type, ChSharedPtr<Ch
 	tierod->SetNameString(susp_type_string + " dist tierod");
 	my_system.AddLink(tierod);
 	this->link_list.push_back(tierod.get_ptr());
+	// initial relative position of marker 1, attached to chassis, manipulated by steer input
+	this->tierod_marker1_IC = tierod->GetEndPoint1Rel();
 
 }
 

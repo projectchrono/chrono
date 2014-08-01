@@ -266,8 +266,14 @@ double HMMWV_9body::ComputeSteerDisplacement()
 	// between -1 and 1
 	double steer_val = this->driver->getSteer();
 	// apply the steer gain to convert to meters
-	double steer_disp = 0.125 * steer_val;
-
+	double steer_disp = 0.08 * steer_val;
+	// apply the displacement to the initial tierod marker 1
+	ChVector<> r_bar_L = this->suspension_LF->tierod_marker1_IC;
+	ChVector<> r_bar_R = this->suspension_RF->tierod_marker1_IC;
+	r_bar_L.y += steer_disp;
+	r_bar_R.y += steer_disp;
+	this->suspension_LF->tierod->SetEndPoint1Rel(r_bar_L);
+	this->suspension_RF->tierod->SetEndPoint1Rel(r_bar_R);
 	return steer_disp;
 }
 

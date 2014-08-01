@@ -31,10 +31,14 @@ protected:
 public:
 	// easy access to tie rod
 	ChSharedPtr<ChLinkDistance> tierod;	// a distance constraint
+	// initial relative position of marker 1, attached to chassis, manipulated by steer input
+	ChVector<> tierod_marker1_IC;	// initial relative position of tierod marker 1
 	// the shock
 	ChSharedPtr<ChLinkSpring> shock;
 	// upright body, combines mass/inertia of upper/lower arms, shock
 	ChSharedPtr<ChBodyEasyBox> upright;
+	// connect spindle to wheel
+	ChSharedPtr<ChLinkLockRevolute> spindle_revolute;
 
 	// @brief default Constructor 
 	DoubleAarm() {}
