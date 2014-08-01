@@ -153,6 +153,9 @@ private:
   static const ChVector<> chassisInertia;
   static const ChVector<> spindleInertia;
 
+  static const double max_torque ;	// in-lb
+  static const double max_engine_n;	// rpm
+
 
 };
 

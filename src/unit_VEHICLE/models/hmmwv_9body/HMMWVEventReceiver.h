@@ -165,7 +165,8 @@ public:
 				if( id == 1001) // throttle slider 
 				{
 					s32 currPos = ((gui::IGUIScrollBar*)event.GUIEvent.Caller)->getPos();
-					double throttle = double(currPos)/100.0;
+					// DEBUG: allow the motor torque to be negative, to slow down
+					double throttle = double(currPos-10)/100.0;
 					mcar->driver->setThrottle(throttle);
 					// show throttle
 					char msg[100]; sprintf(msg,"Throttle: %+3.3g",throttle*100.);

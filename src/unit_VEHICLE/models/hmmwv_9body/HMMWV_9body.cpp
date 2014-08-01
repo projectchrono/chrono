@@ -29,6 +29,10 @@ const std::string HMMWV_9body::chassisMeshFile = "../data/humvee4_scaled_rotated
 double in_to_m = 1.0/39.3701;	// inches to meters
 double inlb_to_Nm = 1.0/8.851;	// in-lb to N-m
 
+// engine data
+const double HMMWV_9body::max_torque = 2400*inlb_to_Nm;	// in-lb
+const double HMMWV_9body::max_engine_n = 2000;	// engine speed, rpm 
+
 // set up tire & vehicle geometry -------------------------------------------------
 // effective radius of the tires
 double tireRadius			= 18.5*in_to_m;
@@ -39,10 +43,6 @@ double wheelMass			= 175.0/3.2;	//chassisMass/(150./3.0);
 ChVector<> bodySize(5.2, 2.0, 2.8);
 ChVector<> spindleSize(0.2,0.2,0.1);
 
-
-// engine data
-double max_torque = 8600*inlb_to_Nm;	// in-lb
-double max_engine_n = 2000;	// engine speed, rpm 
 
 // for quick output of TMVector
 std::ostream& operator << (std::ostream& output, const chrono::ChVector<>& v) {
@@ -252,9 +252,9 @@ double HMMWV_9body::ComputeWheelTorque()
 	if (ChFunction_Const* mfun = dynamic_cast<ChFunction_Const*>(this->link_engineL->Get_tor_funct()))
 		mfun->Set_yconst(singlewheeltorque);
 	if (ChFunction_Const* mfun = dynamic_cast<ChFunction_Const*>(this->link_engineR->Get_tor_funct()))
-		mfun->Set_yconst(singlewheeltorque);
-	//debug:print infos on screen:
-	// GetLog() << "motor torque="<< motortorque<< "  speed=" << motorspeed << "  wheel torqe=" << singlewheeltorque <<"\n";
+		mfun->Set_yconst(-singlewheeltorque);
+	// debug:print infos on screen:
+	GetLog() << "motor torque="<< motortorque<< "  speed=" << motorspeed << "  wheel torqe=" << singlewheeltorque <<"\n";
 	// If needed, return also the value of wheel torque:
 	this->currTorque = singlewheeltorque;
 	return singlewheeltorque;
