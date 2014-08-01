@@ -8,6 +8,7 @@ project(ChronoEngine_Parallel)
 
 # Enable CTest
 enable_testing()
+include(CTest)
 
 # Location of additional CMAKE modules
 SET(CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/cmake)
