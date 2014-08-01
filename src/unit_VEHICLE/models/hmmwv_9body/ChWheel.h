@@ -90,7 +90,7 @@ public:
 
 
 		// DEBUG
-		wheelBody->SetCollide(false);
+//		wheelBody->SetCollide(false);
 
 
 

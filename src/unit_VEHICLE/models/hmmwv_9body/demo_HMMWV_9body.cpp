@@ -68,7 +68,7 @@ enum TireForceType {
 
 
 // GLOBAL VARIABLES
-ChVector<> cameraOffset(0.5,0,2.0);	// camera should trail the car
+ChVector<> cameraOffset(2.5,0,2.0);	// camera should trail the car
 // chassis CM position, in SAE units [inches]. CONVERT TO METERS upon init.
 // ChVector<> chassis_cm_inches = ChVector<>(600.5, 600.5, 55.68);	// only height above ground (0) truly matters
 ChVector<> chassis_cm_inches = ChVector<>(0,0, 65.68);	// 49.68 = sprung mass height at design
@@ -80,7 +80,7 @@ double terrainLength = 100.0;
 
 // simulation parameters
 double tend = 10.0;
-double step_size = 0.001;
+double step_size = 0.0005;
 int out_fps = 30;
 
 
@@ -101,13 +101,14 @@ int main(int argc, char* argv[])
   m_system.SetLcpSolverType(ChSystem::LCP_ITERATIVE_SOR);
   m_system.SetIterLCPmaxItersSpeed(150);
   m_system.SetIterLCPmaxItersStab(150);
+  m_system.SetMaxPenetrationRecoverySpeed(4.0);
   m_system.SetStep(step_size);
 
   // create the HMMWV vehicle
   ChVector<> chassisCM = chassis_cm_inches * 0.0254;
 
   // ***** vehicle module
-  HMMWV_9body* mycar = new HMMWV_9body(m_system, chassisCM, chassisOri, true);
+  HMMWV_9body* mycar = new HMMWV_9body(m_system, chassisCM, chassisOri, false);
 
   // create the ground. NOTE: orientation will have to be in the x-y plane
   HMMWVTerrain* terrain = new HMMWVTerrain(m_system, ChVector<>(0, 0, 0),
