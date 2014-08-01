@@ -364,7 +364,11 @@ light_source {
 		// Revolute -------
 		#case (8)
 			#read (MyDataFile, px, py, pz, dx, dy, dz)
-
+            cylinder {
+                <px-4*object_frame_radius*dx,  pz-4*object_frame_radius*dz, py-4*object_frame_radius*dy>, 
+                <px+4*object_frame_radius*dx,  pz+4*object_frame_radius*dz, py+4*object_frame_radius*dy>, 
+                2*object_frame_radius
+                pigment {color Blue}}
 		#break
 
 		// Linkspring ------
