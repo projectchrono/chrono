@@ -1,5 +1,5 @@
-#ifndef CHWHEEL_H
-#define CHWHEEL_H
+#ifndef CHWHEELBODY_H
+#define CHWHEELBODY_H
 
 ///////////////////////////////////////////////////
 //
@@ -20,7 +20,7 @@
 using namespace chrono;
 // using namespace chrono::collision;
 
-class ChWheel {
+class ChWheelBody {
 public:
 	//data
 	// ChBodySceneNode* wheel;
@@ -31,7 +31,7 @@ public:
 
 	// use a hollow cylinder as the wheel body. Note, the last input arg doesn't do anything
 	// Just needed a different constructor
-	ChWheel(ChSystem& msys, 
+  ChWheelBody(ChSystem& msys,
 		ChVector<>& mposition, const ChQuaternion<>& wheelRot,
 		double mass, double cyl_width, double cyl_d_outer, double cyl_d_inner,
 		const bool enable_collision,
@@ -108,7 +108,7 @@ public:
 		return this->wheelBody;
 	}
 
-	~ChWheel() {
+  ~ChWheelBody() {
 		// ChSystem* msys = wheel->GetBody()->GetSystem();
 		// remove the bodies, joints
 		// wheel->remove();
