@@ -23,6 +23,7 @@
 #include "physics/ChSystem.h"
 
 #include "HMMWV9_DoubleWishbone.h"
+#include "HMMWV9_Wheel.h"
 
 
 class HMMWV9_Vehicle {
@@ -33,8 +34,6 @@ public:
 
   ~HMMWV9_Vehicle();
 
-  chrono::ChSharedBodyPtr chassis;
-
   chrono::ChSharedPtr<HMMWV9_DoubleWishboneFront>   m_front_right_susp;
   chrono::ChSharedPtr<HMMWV9_DoubleWishboneFront>   m_front_left_susp;
   chrono::ChSharedPtr<HMMWV9_DoubleWishboneRear>    m_rear_right_susp;
@@ -42,19 +41,19 @@ public:
 
 
   // Access to private static members
-  static const std::string& ChassisMeshName() { return chassisMeshName; }
-  static const std::string& ChassisMeshFile() { return chassisMeshFile; }
+  static const std::string& ChassisMeshName() { return m_chassisMeshName; }
+  static const std::string& ChassisMeshFile() { return m_chassisMeshFile; }
 
 private:
-  // Visualization mesh
-  static const std::string chassisMeshName;
-  static const std::string chassisMeshFile;
+  chrono::ChSharedBodyPtr  m_chassis;
 
-  // Mass properties
-  static const double chassisMass;
-  static const double spindleMass;
-  static const chrono::ChVector<> chassisInertia;
-  static const chrono::ChVector<> spindleInertia;
+  // Chassis visualization mesh
+  static const std::string m_chassisMeshName;
+  static const std::string m_chassisMeshFile;
+
+  // Chassis mass properties
+  static const double  m_chassisMass;
+  static const chrono::ChVector<>  m_chassisInertia;
 
 };
 

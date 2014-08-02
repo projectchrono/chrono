@@ -16,13 +16,13 @@
 //
 // =============================================================================
 
-#include "assets/ChObjShapeFile.h"
-#include "assets/ChAssetLevel.h"
+#include "assets/ChBoxShape.h"
+#include "assets/ChTriangleMeshShape.h"
 
 #include "HMMWV9_Vehicle.h"
 
 
-// DEBUG HACK
+// TEMPORARY HACK
 // 0:  no chassis visualization
 // 1:  two boxes
 // 2:  mesh
@@ -33,16 +33,14 @@ using namespace chrono;
 // -----------------------------------------------------------------------------
 // Static variables
 // -----------------------------------------------------------------------------
-const double HMMWV9_Vehicle::chassisMass = 7500.0 / 2.2;
-const double HMMWV9_Vehicle::spindleMass = 100.0 / 2.2;
+const double HMMWV9_Vehicle::m_chassisMass = 7500.0 / 2.2;
 
 // Inertias, from my HMMWV model
 // (roll, pitch, yaw) = (13320, 52680, 56280) lb-in-sec^2
-const ChVector<> HMMWV9_Vehicle::chassisInertia(125.8, 497.4, 531.4);	// kg-m2;
-const ChVector<> HMMWV9_Vehicle::spindleInertia = chassisInertia / 60;
+const ChVector<> HMMWV9_Vehicle::m_chassisInertia(125.8, 497.4, 531.4);	// kg-m2;
 
-const std::string HMMWV9_Vehicle::chassisMeshName = "hmmwv_chassis";
-const std::string HMMWV9_Vehicle::chassisMeshFile = "../data/humvee4_scaled_rotated_decimated_centered.obj";
+const std::string HMMWV9_Vehicle::m_chassisMeshName = "hmmwv_chassis";
+const std::string HMMWV9_Vehicle::m_chassisMeshFile = "../data/humvee4_scaled_rotated_decimated_centered.obj";
 
 
 // helpful for unit conversions
@@ -59,35 +57,35 @@ HMMWV9_Vehicle::HMMWV9_Vehicle(ChSystem&            my_system,
   // Create the chassis body
   // -------------------------------------------
 
-  chassis = ChSharedBodyPtr(new ChBody);
+  m_chassis = ChSharedBodyPtr(new ChBody);
 
-  chassis->SetIdentifier(0);
-  chassis->SetName("chassis");
-  chassis->SetMass(chassisMass);
-  chassis->SetInertiaXX(chassisInertia);
-  chassis->SetPos(chassisPos.pos);
-  chassis->SetRot(chassisPos.rot);
-  chassis->SetBodyFixed(fixed);
+  m_chassis->SetIdentifier(0);
+  m_chassis->SetName("chassis");
+  m_chassis->SetMass(m_chassisMass);
+  m_chassis->SetInertiaXX(m_chassisInertia);
+  m_chassis->SetPos(chassisPos.pos);
+  m_chassis->SetRot(chassisPos.rot);
+  m_chassis->SetBodyFixed(fixed);
 
 #if CHASSIS_VISUALIZATION == 1
   ChSharedPtr<ChBoxShape> box1(new ChBoxShape);
   box1->GetBoxGeometry().SetLenghts(ChVector<>(5, 1.7, 0.4));
   box1->Pos = ChVector<>(0, 0, -0.4);
-  chassis->AddAsset(box1);
+  m_chassis->AddAsset(box1);
   ChSharedPtr<ChBoxShape> box2(new ChBoxShape);
   box2->GetBoxGeometry().SetLenghts(ChVector<>(4, 1.7, 0.4));
   box2->Pos = ChVector<>(0.5, 0, 0);
-  chassis->AddAsset(box2);
+  m_chassis->AddAsset(box2);
 #elif CHASSIS_VISUALIZATION == 2
   geometry::ChTriangleMeshConnected trimesh;
-  trimesh.LoadWavefrontMesh(chassisMeshFile, false, false);
+  trimesh.LoadWavefrontMesh(m_chassisMeshFile, false, false);
   ChSharedPtr<ChTriangleMeshShape> trimesh_shape(new ChTriangleMeshShape);
   trimesh_shape->SetMesh(trimesh);
-  trimesh_shape->SetName(chassisMeshName);
-  chassis->AddAsset(trimesh_shape);
+  trimesh_shape->SetName(m_chassisMeshName);
+  m_chassis->AddAsset(trimesh_shape);
 #endif
 
-  my_system.Add(chassis);
+  my_system.Add(m_chassis);
 
 
   // -------------------------------------------
@@ -95,18 +93,31 @@ HMMWV9_Vehicle::HMMWV9_Vehicle(ChSystem&            my_system,
   // -------------------------------------------
   
   m_front_right_susp = ChSharedPtr<HMMWV9_DoubleWishboneFront>(new HMMWV9_DoubleWishboneFront("RFsusp"));
-  m_front_right_susp->Initialize(chassis, ChVector<>(-83.8, 35.82, -33.325)*in_to_m, false);
+  m_front_right_susp->Initialize(m_chassis, ChVector<>(-83.8, 35.82, -33.325)*in_to_m, false);
 
   m_front_left_susp = ChSharedPtr<HMMWV9_DoubleWishboneFront>(new HMMWV9_DoubleWishboneFront("LFsusp"));
-  m_front_left_susp->Initialize(chassis, ChVector<>(-83.8, -35.82, -33.325)*in_to_m, true);
+  m_front_left_susp->Initialize(m_chassis, ChVector<>(-83.8, -35.82, -33.325)*in_to_m, true);
 
   m_rear_right_susp = ChSharedPtr<HMMWV9_DoubleWishboneRear>(new HMMWV9_DoubleWishboneRear("RBsusp"));
-  m_rear_right_susp->Initialize(chassis, ChVector<>(46.2, 35.82, -33.325)*in_to_m, false);
+  m_rear_right_susp->Initialize(m_chassis, ChVector<>(46.2, 35.82, -33.325)*in_to_m, false);
 
   m_rear_left_susp = ChSharedPtr<HMMWV9_DoubleWishboneRear>(new HMMWV9_DoubleWishboneRear("RBsusp"));
-  m_rear_left_susp->Initialize(chassis, ChVector<>(46.2, -35.82, -33.325)*in_to_m, true);
+  m_rear_left_susp->Initialize(m_chassis, ChVector<>(46.2, -35.82, -33.325)*in_to_m, true);
 
+  // -------------------------------------------
+  // Create the wheels and attach to suspension
+  // -------------------------------------------
+  ChSharedPtr<HMMWV9_Wheel> front_right_wheel(new HMMWV9_Wheel(true));
+  m_front_right_susp->AttachWheel(front_right_wheel);
 
+  ChSharedPtr<HMMWV9_Wheel> front_left_wheel(new HMMWV9_Wheel(true));
+  m_front_left_susp->AttachWheel(front_left_wheel);
+
+  ChSharedPtr<HMMWV9_Wheel> rear_right_wheel(new HMMWV9_Wheel(true));
+  m_rear_right_susp->AttachWheel(rear_right_wheel);
+
+  ChSharedPtr<HMMWV9_Wheel> rear_left_wheel(new HMMWV9_Wheel(true));
+  m_rear_left_susp->AttachWheel(rear_left_wheel);
 }
 
 
