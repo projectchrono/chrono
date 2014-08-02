@@ -20,16 +20,26 @@ MESSAGE(STATUS "Adding HMMWV_9BODY...")
 SET(demo_HMMWV_HEADERS
 		HMMWV_9body.h
 		HMMWVTerrain.h
-		ChWheel.h
+		ChWheelBody.h
 		DoubleAarm.h
 		ChVehicleDriver.h
     HMMWVEventReceiver.h
+	ChDoubleWishboneReduced.h
+	ChWheel.h
+	HMMWV9_Vehicle.cpp
+	HMMWV9_DoubleWishbone.h
+	HMMWV9_Wheel.h
 		)
 
 SET(demo_HMMWV_SRCS
 	demo_HMMWV_9body.cpp
 	HMMWV_9body.cpp
 	DoubleAarm.cpp
+	ChDoubleWishboneReduced.cpp
+	ChWheel.cpp
+	HMMWV9_Vehicle.h
+	HMMWV9_DoubleWishbone.cpp
+	HMMWV9_Wheel.cpp
 )
 
 SET(HMMWV_LIBS 
