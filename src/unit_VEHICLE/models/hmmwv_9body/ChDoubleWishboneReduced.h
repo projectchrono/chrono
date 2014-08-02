@@ -30,6 +30,8 @@
 #include "core/ChVector.h"
 #include "physics/ChSystem.h"
 
+#include "ChWheel.h"
+
 
 namespace chrono {
 
@@ -43,6 +45,8 @@ public:
   void Initialize(ChSharedBodyPtr   chassis,
                   const ChVector<>& location,
                   bool              left = false);
+
+  void AttachWheel(ChSharedPtr<ChWheel> wheel);
 
   virtual double getSpindleMass() const = 0;
   virtual double getUprightMass() const = 0;
