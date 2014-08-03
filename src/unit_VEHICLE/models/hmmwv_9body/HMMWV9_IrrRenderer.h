@@ -31,7 +31,7 @@
 class HMMWV9_IrrRenderer
 {
 public:
-  HMMWV9_IrrRenderer(irr::ChIrrApp*            app,
+  HMMWV9_IrrRenderer(irr::ChIrrApp&            app,
                      const HMMWV9_Vehicle&     car,
                      const chrono::ChVector<>& cam_pos,
                      const chrono::ChVector<>& cam_targ,
@@ -49,7 +49,7 @@ private:
   void renderLinks();
   void renderGrid();
 
-  irr::ChIrrAppInterface* m_app;
+  irr::ChIrrAppInterface& m_app;
   const HMMWV9_Vehicle&   m_car;
   chrono::ChVector<>      m_cam_offset;
 };

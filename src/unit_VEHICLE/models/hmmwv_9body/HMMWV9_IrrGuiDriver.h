@@ -33,7 +33,7 @@
 class HMMWV9_IrrGuiDriver : public chrono::ChDriver, public irr::IEventReceiver
 {
 public:
-  HMMWV9_IrrGuiDriver(irr::ChIrrApp*    app,
+  HMMWV9_IrrGuiDriver(irr::ChIrrApp&    app,
                       const int         tlc_X = 740,
                       const int         tlc_Y = 20);
 

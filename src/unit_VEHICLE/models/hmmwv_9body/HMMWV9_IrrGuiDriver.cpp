@@ -29,20 +29,20 @@ using namespace irr;
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-HMMWV9_IrrGuiDriver::HMMWV9_IrrGuiDriver(ChIrrApp* app,
+HMMWV9_IrrGuiDriver::HMMWV9_IrrGuiDriver(ChIrrApp& app,
                                          const int tlc_X,
                                          const int tlc_Y)
 {
-  app->SetUserEventReceiver(this);
+  app.SetUserEventReceiver(this);
 
-  gui::IGUIStaticText* text_inputs = app->GetIGUIEnvironment()->addStaticText(
+  gui::IGUIStaticText* text_inputs = app.GetIGUIEnvironment()->addStaticText(
     L"", core::rect<s32>(tlc_X, tlc_Y, tlc_X + 200, tlc_Y + 55), true, false, 0);
     
-  m_text_throttle = app->GetIGUIEnvironment()->addStaticText(
+  m_text_throttle = app.GetIGUIEnvironment()->addStaticText(
     L"Throttle: 0",
     core::rect<s32>(10, 10, 150, 25), false, false, text_inputs);
 
-  m_text_steering = app->GetIGUIEnvironment()->addStaticText(
+  m_text_steering = app.GetIGUIEnvironment()->addStaticText(
     L"Steering: 0",
     core::rect<s32>(10, 30, 150, 45), false, false, text_inputs);
 }
