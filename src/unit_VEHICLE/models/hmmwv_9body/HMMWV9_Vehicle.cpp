@@ -30,6 +30,7 @@
 
 using namespace chrono;
 
+
 // -----------------------------------------------------------------------------
 // Static variables
 // -----------------------------------------------------------------------------
@@ -88,7 +89,6 @@ HMMWV9_Vehicle::HMMWV9_Vehicle(ChSystem&            my_system,
 
   my_system.Add(m_chassis);
 
-
   // -------------------------------------------
   // Create the suspension subsystems
   // -------------------------------------------
@@ -99,15 +99,16 @@ HMMWV9_Vehicle::HMMWV9_Vehicle(ChSystem&            my_system,
   m_front_left_susp = ChSharedPtr<HMMWV9_DoubleWishboneFront>(new HMMWV9_DoubleWishboneFront("LFsusp"));
   m_front_left_susp->Initialize(m_chassis, ChVector<>(-83.8, -35.82, -33.325)*in_to_m, true);
 
-  m_rear_right_susp = ChSharedPtr<HMMWV9_DoubleWishboneRear>(new HMMWV9_DoubleWishboneRear("RBsusp"));
+  m_rear_right_susp = ChSharedPtr<HMMWV9_DoubleWishboneRear>(new HMMWV9_DoubleWishboneRear("RBsusp", true));
   m_rear_right_susp->Initialize(m_chassis, ChVector<>(46.2, 35.82, -33.325)*in_to_m, false);
 
-  m_rear_left_susp = ChSharedPtr<HMMWV9_DoubleWishboneRear>(new HMMWV9_DoubleWishboneRear("RBsusp"));
+  m_rear_left_susp = ChSharedPtr<HMMWV9_DoubleWishboneRear>(new HMMWV9_DoubleWishboneRear("RBsusp", true));
   m_rear_left_susp->Initialize(m_chassis, ChVector<>(46.2, -35.82, -33.325)*in_to_m, true);
 
   // -------------------------------------------
   // Create the wheels and attach to suspension
   // -------------------------------------------
+
   ChSharedPtr<HMMWV9_Wheel> front_right_wheel(new HMMWV9_Wheel(true));
   m_front_right_susp->AttachWheel(front_right_wheel);
 
@@ -119,11 +120,37 @@ HMMWV9_Vehicle::HMMWV9_Vehicle(ChSystem&            my_system,
 
   ChSharedPtr<HMMWV9_Wheel> rear_left_wheel(new HMMWV9_Wheel(true));
   m_rear_left_susp->AttachWheel(rear_left_wheel);
+
+  // -------------------------------
+  // Create the powertrain subsystem
+  //--------------------------------
+
+  m_powertrain = ChSharedPtr<HMMWV9_Powertrain>(new HMMWV9_Powertrain(this));
+
 }
 
 
 HMMWV9_Vehicle::~HMMWV9_Vehicle()
 {
+}
+
+
+// -----------------------------------------------------------------------------
+//
+// -----------------------------------------------------------------------------
+double HMMWV9_Vehicle::GetWheelAngSpeed(ChWheelId which)
+{
+  switch (which) {
+  case FRONT_LEFT:
+    return m_front_left_susp->GetSpindleAngSpeed();
+  case FRONT_RIGHT:
+    return m_front_right_susp->GetSpindleAngSpeed();
+  case REAR_LEFT:
+    return m_rear_left_susp->GetSpindleAngSpeed();
+  case REAR_RIGHT:
+    return 0;
+    return m_rear_right_susp->GetSpindleAngSpeed();
+  }
 }
 
 
@@ -138,6 +165,22 @@ void HMMWV9_Vehicle::Update(double time,
 
   m_front_left_susp->ApplySteering(displ);
   m_front_right_susp->ApplySteering(displ);
+
+  // Let the powertrain subsystem process the throttle input
+  m_powertrain->Update(time, throttle);
+
+  // Apply motor torques on driven wheels
+  double wheelTorqueL = m_powertrain->GetWheelTorque(REAR_LEFT);
+  double wheelTorqueR = m_powertrain->GetWheelTorque(REAR_RIGHT);
+
+  m_rear_left_susp->ApplyTorque(wheelTorqueL);
+  m_rear_right_susp->ApplyTorque(wheelTorqueR);
+
+  // Debug...
+  GetLog() << "motor torque=" << m_powertrain->GetMotorTorque()
+           << "  motor speed=" << m_powertrain->GetMotorSpeed()
+           << "  wheel torque=" << m_powertrain->GetWheelTorque(REAR_RIGHT)
+           << "\n";
 
 }
 

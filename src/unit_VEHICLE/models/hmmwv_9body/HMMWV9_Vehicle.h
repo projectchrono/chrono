@@ -26,6 +26,11 @@
 
 #include "HMMWV9_DoubleWishbone.h"
 #include "HMMWV9_Wheel.h"
+#include "HMMWV9_Powertrain.h"
+
+
+// Forward reference
+class HMMWV9_Powertrain;
 
 
 class HMMWV9_Vehicle : public chrono::ChVehicle {
@@ -35,6 +40,8 @@ public:
                  const bool                   fixed = false);
 
   ~HMMWV9_Vehicle();
+
+  virtual double GetWheelAngSpeed(chrono::ChWheelId which);
 
   virtual void Update(double time, double throttle, double steering);
 
@@ -47,6 +54,8 @@ private:
   chrono::ChSharedPtr<HMMWV9_DoubleWishboneFront>   m_front_left_susp;
   chrono::ChSharedPtr<HMMWV9_DoubleWishboneRear>    m_rear_right_susp;
   chrono::ChSharedPtr<HMMWV9_DoubleWishboneRear>    m_rear_left_susp;
+
+  chrono::ChSharedPtr<HMMWV9_Powertrain>  m_powertrain;
 
   // Chassis visualization mesh
   static const std::string m_chassisMeshName;
