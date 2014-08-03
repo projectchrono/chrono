@@ -49,6 +49,7 @@ static double inlb_to_Nm = 1.0/8.851;	// in-lb to N-m
 
 
 // -----------------------------------------------------------------------------
+// -----------------------------------------------------------------------------
 HMMWV9_Vehicle::HMMWV9_Vehicle(ChSystem&            my_system,
                                const ChCoordsys<>&  chassisPos,
                                const bool           fixed)
@@ -124,3 +125,19 @@ HMMWV9_Vehicle::HMMWV9_Vehicle(ChSystem&            my_system,
 HMMWV9_Vehicle::~HMMWV9_Vehicle()
 {
 }
+
+
+// -----------------------------------------------------------------------------
+// -----------------------------------------------------------------------------
+void HMMWV9_Vehicle::Update(double time,
+                            double throttle,
+                            double steering)
+{
+  // Apply steering input.
+  double displ = 0.08 * steering;
+
+  m_front_left_susp->ApplySteering(displ);
+  m_front_right_susp->ApplySteering(displ);
+
+}
+

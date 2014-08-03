@@ -22,11 +22,13 @@
 #include "core/ChCoordsys.h"
 #include "physics/ChSystem.h"
 
+#include "ChVehicle.h"
+
 #include "HMMWV9_DoubleWishbone.h"
 #include "HMMWV9_Wheel.h"
 
 
-class HMMWV9_Vehicle {
+class HMMWV9_Vehicle : public chrono::ChVehicle {
 public:
   HMMWV9_Vehicle(chrono::ChSystem&            my_system,
                  const chrono::ChCoordsys<>&  chassisPos,
@@ -34,18 +36,17 @@ public:
 
   ~HMMWV9_Vehicle();
 
-  chrono::ChSharedPtr<HMMWV9_DoubleWishboneFront>   m_front_right_susp;
-  chrono::ChSharedPtr<HMMWV9_DoubleWishboneFront>   m_front_left_susp;
-  chrono::ChSharedPtr<HMMWV9_DoubleWishboneRear>    m_rear_right_susp;
-  chrono::ChSharedPtr<HMMWV9_DoubleWishboneRear>    m_rear_left_susp;
-
+  virtual void Update(double time, double throttle, double steering);
 
   // Access to private static members
   static const std::string& ChassisMeshName() { return m_chassisMeshName; }
   static const std::string& ChassisMeshFile() { return m_chassisMeshFile; }
 
 private:
-  chrono::ChSharedBodyPtr  m_chassis;
+  chrono::ChSharedPtr<HMMWV9_DoubleWishboneFront>   m_front_right_susp;
+  chrono::ChSharedPtr<HMMWV9_DoubleWishboneFront>   m_front_left_susp;
+  chrono::ChSharedPtr<HMMWV9_DoubleWishboneRear>    m_rear_right_susp;
+  chrono::ChSharedPtr<HMMWV9_DoubleWishboneRear>    m_rear_left_susp;
 
   // Chassis visualization mesh
   static const std::string m_chassisMeshName;
