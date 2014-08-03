@@ -111,8 +111,6 @@ protected:
 
   ChVector<>                        m_tierod_marker;
 
-  static const double in2m;
-
 private:
 
 };

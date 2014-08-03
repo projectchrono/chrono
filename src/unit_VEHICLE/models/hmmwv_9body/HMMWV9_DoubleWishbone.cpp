@@ -27,6 +27,8 @@ using namespace chrono;
 // Static variables
 // -----------------------------------------------------------------------------
 
+static const double in2m = 0.0254;
+
 const double     HMMWV9_DoubleWishboneFront::m_spindleMass = 1;
 const double     HMMWV9_DoubleWishboneFront::m_uprightMass = 1;
 

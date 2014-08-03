@@ -30,9 +30,6 @@
 namespace chrono {
 
 
-const double  ChDoubleWishboneReduced::in2m = 0.0254;
-
-
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 ChDoubleWishboneReduced::ChDoubleWishboneReduced(const std::string& name,

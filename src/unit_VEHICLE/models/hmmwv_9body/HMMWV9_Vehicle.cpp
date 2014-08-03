@@ -34,19 +34,14 @@ using namespace chrono;
 // -----------------------------------------------------------------------------
 // Static variables
 // -----------------------------------------------------------------------------
-const double HMMWV9_Vehicle::m_chassisMass = 7500.0 / 2.2;
 
-// Inertias, from my HMMWV model
-// (roll, pitch, yaw) = (13320, 52680, 56280) lb-in-sec^2
-const ChVector<> HMMWV9_Vehicle::m_chassisInertia(125.8, 497.4, 531.4);	// kg-m2;
+static const double in2m = 0.0254;
+
+const double HMMWV9_Vehicle::m_chassisMass = 7500.0 / 2.2;
+const ChVector<> HMMWV9_Vehicle::m_chassisInertia(125.8, 497.4, 531.4); // chassis inertia (roll,pitch,yaw)
 
 const std::string HMMWV9_Vehicle::m_chassisMeshName = "hmmwv_chassis";
 const std::string HMMWV9_Vehicle::m_chassisMeshFile = "../data/humvee4_scaled_rotated_decimated_centered.obj";
-
-
-// helpful for unit conversions
-static double in_to_m = 1.0/39.3701;	// inches to meters
-static double inlb_to_Nm = 1.0/8.851;	// in-lb to N-m
 
 
 // -----------------------------------------------------------------------------
@@ -94,16 +89,16 @@ HMMWV9_Vehicle::HMMWV9_Vehicle(ChSystem&            my_system,
   // -------------------------------------------
   
   m_front_right_susp = ChSharedPtr<HMMWV9_DoubleWishboneFront>(new HMMWV9_DoubleWishboneFront("RFsusp"));
-  m_front_right_susp->Initialize(m_chassis, ChVector<>(-83.8, 35.82, -33.325)*in_to_m, false);
+  m_front_right_susp->Initialize(m_chassis, in2m * ChVector<>(-83.8, 35.82, -33.325), false);
 
   m_front_left_susp = ChSharedPtr<HMMWV9_DoubleWishboneFront>(new HMMWV9_DoubleWishboneFront("LFsusp"));
-  m_front_left_susp->Initialize(m_chassis, ChVector<>(-83.8, -35.82, -33.325)*in_to_m, true);
+  m_front_left_susp->Initialize(m_chassis, in2m * ChVector<>(-83.8, -35.82, -33.325), true);
 
   m_rear_right_susp = ChSharedPtr<HMMWV9_DoubleWishboneRear>(new HMMWV9_DoubleWishboneRear("RBsusp", true));
-  m_rear_right_susp->Initialize(m_chassis, ChVector<>(46.2, 35.82, -33.325)*in_to_m, false);
+  m_rear_right_susp->Initialize(m_chassis, in2m * ChVector<>(46.2, 35.82, -33.325), false);
 
   m_rear_left_susp = ChSharedPtr<HMMWV9_DoubleWishboneRear>(new HMMWV9_DoubleWishboneRear("RBsusp", true));
-  m_rear_left_susp->Initialize(m_chassis, ChVector<>(46.2, -35.82, -33.325)*in_to_m, true);
+  m_rear_left_susp->Initialize(m_chassis, in2m * ChVector<>(46.2, -35.82, -33.325), true);
 
   // -------------------------------------------
   // Create the wheels and attach to suspension

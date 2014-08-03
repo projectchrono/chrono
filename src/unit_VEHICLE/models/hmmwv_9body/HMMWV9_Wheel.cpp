@@ -36,8 +36,10 @@ using namespace chrono;
 // Static variables
 // -----------------------------------------------------------------------------
 
-const double      HMMWV9_Wheel::m_radius = 18.5 * 0.0254;
-const double      HMMWV9_Wheel::m_width = 10 * 0.0254;
+static const double in2m = 0.0254;
+
+const double      HMMWV9_Wheel::m_radius = 18.5 * in2m;
+const double      HMMWV9_Wheel::m_width = 10 * in2m;
 
 const double      HMMWV9_Wheel::m_mass = 54.7;
 const ChVector<>  HMMWV9_Wheel::m_inertia(3.7958, 7.0037, 3.7958);
