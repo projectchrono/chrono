@@ -16,48 +16,19 @@
 //
 // =============================================================================
 
-#ifndef CH_SUSPENSION_H
-#define CH_SUSPENSION_H
 
-#include <string>
+#include "ChSuspension.h"
 
-#include "core/ChShared.h"
-#include "physics/ChSystem.h"
-
-#include "ChWheel.h"
 
 namespace chrono {
 
 
-class ChSuspension : public ChShared
+ChSuspension::ChSuspension(const std::string& name,
+                           bool               driven)
+: m_name(name),
+  m_driven(driven)
 {
-public:
-
-  ChSuspension(const std::string& name,
-    bool               driven = false);
-
-  virtual ~ChSuspension() {}
-
-  virtual void Initialize(ChSharedBodyPtr   chassis,
-    const ChVector<>& location,
-    bool              left = false) = 0;
-
-  virtual void AttachWheel(ChSharedPtr<ChWheel> wheel) = 0;
-
-  virtual void ApplySteering(double displ) = 0;
-  virtual void ApplyTorque(double torque) = 0;
-
-  virtual double GetSpindleAngSpeed() = 0;
-
-protected:
-
-  std::string       m_name;
-  bool              m_driven;
-
-};
+}
 
 
-} // end namespace chrono
-
-
-#endif
+}  // end namespace chrono

@@ -25,6 +25,7 @@ SET(demo_HMMWV_HEADERS
 		#ChVehicleDriver.h
 		#HMMWVEventReceiver.h
 	ChVehicle.h
+	ChSuspension.h
 	ChDoubleWishboneReduced.h
 	ChWheel.h
 	ChPowertrain.h
@@ -42,6 +43,7 @@ SET(demo_HMMWV_SRCS
 		#DoubleAarm.cpp
 	demo_HMMWV9.cpp
 	ChVehicle.cpp
+	ChSuspension.cpp
 	ChDoubleWishboneReduced.cpp
 	ChWheel.cpp
 	ChPowertrain.cpp

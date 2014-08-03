@@ -34,8 +34,7 @@ namespace chrono {
 // -----------------------------------------------------------------------------
 ChDoubleWishboneReduced::ChDoubleWishboneReduced(const std::string& name,
                                                  bool               driven)
-: m_name(name),
-  m_driven(driven)
+: ChSuspension(name, driven)
 {
   // Create the upright and spindle bodies
   m_spindle = ChSharedBodyPtr(new ChBody);

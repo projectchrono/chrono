@@ -13,6 +13,7 @@
 // =============================================================================
 //
 // Base class for a double-A arm suspension modeled with distance constraints.
+// Derived from ChSuspension, but still an abstract bas class.
 //
 // The suspension subsystem is modeled with respect to a right-handed frame,
 // with X pointing towards the rear, Y to the right, and Z up. The origin of
@@ -27,48 +28,33 @@
 #ifndef CH_DOUBLEWISHBONEREDUCED_H
 #define CH_DOUBLEWISHBONEREDUCED_H
 
-
-#include <string>
-
-#include "core/ChShared.h"
-#include "core/ChVector.h"
-#include "physics/ChSystem.h"
-
-#include "ChWheel.h"
-
+#include "ChSuspension.h"
 
 namespace chrono {
 
 
-class ChDoubleWishboneReduced : public ChShared
+class ChDoubleWishboneReduced : public ChSuspension
 {
 public:
+
   ChDoubleWishboneReduced(const std::string& name,
                           bool               driven = false);
-  virtual ~ChDoubleWishboneReduced() {};
+  virtual ~ChDoubleWishboneReduced() {}
 
-  void Initialize(ChSharedBodyPtr   chassis,
-                  const ChVector<>& location,
-                  bool              left = false);
+  virtual void Initialize(ChSharedBodyPtr   chassis,
+                          const ChVector<>& location,
+                          bool              left = false);
 
-  void AttachWheel(ChSharedPtr<ChWheel> wheel);
+  virtual void AttachWheel(ChSharedPtr<ChWheel> wheel);
 
-  void ApplySteering(double displ);
-  void ApplyTorque(double torque);
+  virtual void ApplySteering(double displ);
+  virtual void ApplyTorque(double torque);
 
-  double GetSpindleAngSpeed();
+  virtual double GetSpindleAngSpeed();
 
-  virtual double getSpindleMass() const = 0;
-  virtual double getUprightMass() const = 0;
-
-  virtual const ChVector<>& getSpindleInertia() const = 0;
-  virtual const ChVector<>& getUprightInertia() const = 0;
-
-  virtual double getSpringCoefficient() const = 0;
-  virtual double getDampingCoefficient() const = 0;
-  virtual double getSpringRestLength() const = 0;
 
 protected:
+
   enum PointId {
     SPINDLE,    // spindle location
     UPRIGHT,    // upright location
@@ -87,11 +73,18 @@ protected:
 
   virtual const ChVector<> getLocation(PointId which) = 0;
 
+  virtual double getSpindleMass() const = 0;
+  virtual double getUprightMass() const = 0;
+
+  virtual const ChVector<>& getSpindleInertia() const = 0;
+  virtual const ChVector<>& getUprightInertia() const = 0;
+
+  virtual double getSpringCoefficient() const = 0;
+  virtual double getDampingCoefficient() const = 0;
+  virtual double getSpringRestLength() const = 0;
+
   virtual void OnInitializeSpindle() {}
   virtual void OnInitializeUpright() {}
-
-  std::string       m_name;
-  bool              m_driven;
 
   ChVector<>        m_points[NUM_POINTS];
 
