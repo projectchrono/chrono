@@ -27,11 +27,19 @@
 
 namespace chrono {
 
+enum ChWheelId {
+  FRONT_LEFT,
+  FRONT_RIGHT,
+  REAR_LEFT,
+  REAR_RIGHT
+};
 
 class ChVehicle : public ChShared {
 public:
   ChVehicle() {}
   virtual ~ChVehicle() {}
+
+  virtual double GetWheelAngSpeed(ChWheelId which) = 0;
 
   virtual void Update(double time, double throttle, double steering) = 0;
 
