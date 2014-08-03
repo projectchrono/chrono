@@ -53,6 +53,22 @@ const double     HMMWV9_DoubleWishboneRear::m_springCoefficient = 369149.0;
 const double     HMMWV9_DoubleWishboneRear::m_dampingCoefficient = 35024.0;
 const double     HMMWV9_DoubleWishboneRear::m_springRestLength = 0.4562;
 
+
+// -----------------------------------------------------------------------------
+// Constructors
+// -----------------------------------------------------------------------------
+HMMWV9_DoubleWishboneFront::HMMWV9_DoubleWishboneFront(const std::string& name,
+                                                       bool               driven)
+: ChDoubleWishboneReduced(name, driven)
+{
+}
+
+HMMWV9_DoubleWishboneRear::HMMWV9_DoubleWishboneRear(const std::string& name,
+                                                     bool               driven)
+: ChDoubleWishboneReduced(name, driven)
+{
+}
+
 // -----------------------------------------------------------------------------
 // Implementations of the getLocation() virtual methods.
 // -----------------------------------------------------------------------------
