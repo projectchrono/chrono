@@ -9,14 +9,18 @@
 // http://projectchrono.org/license-chrono.txt.
 //
 // =============================================================================
-// Authors: Radu Serban
+// Authors: Radu Serban, Justin Madsen
 // =============================================================================
 //
 // Base class for a double-A arm suspension modeled with distance constraints.
+//
 // The suspension subsystem is modeled with respect to a right-handed frame,
-// with X pointing towards the rear, Y to the right, and Z up.
+// with X pointing towards the rear, Y to the right, and Z up. The origin of
+// the reference frame is assumed to be the center of th spindle body (i.e. the
+// center of the wheel).
 // By default, a right suspension is constructed.  This can be mirrored to
 // obtain a left suspension.
+// If marked as 'driven', the suspension subsystem also includes an engine link.
 //
 // =============================================================================
 
@@ -39,7 +43,8 @@ namespace chrono {
 class ChDoubleWishboneReduced : public ChShared
 {
 public:
-  ChDoubleWishboneReduced(const std::string& name);
+  ChDoubleWishboneReduced(const std::string& name,
+                          bool               driven = false);
   virtual ~ChDoubleWishboneReduced() {};
 
   void Initialize(ChSharedBodyPtr   chassis,
@@ -49,6 +54,9 @@ public:
   void AttachWheel(ChSharedPtr<ChWheel> wheel);
 
   void ApplySteering(double displ);
+  void ApplyTorque(double torque);
+
+  double GetSpindleAngSpeed();
 
   virtual double getSpindleMass() const = 0;
   virtual double getUprightMass() const = 0;
@@ -83,6 +91,7 @@ protected:
   virtual void OnInitializeUpright() {}
 
   std::string       m_name;
+  bool              m_driven;
 
   ChVector<>        m_points[NUM_POINTS];
 
@@ -97,6 +106,8 @@ protected:
   ChSharedPtr<ChLinkDistance>       m_distTierod;
 
   ChSharedPtr<ChLinkSpring>         m_shock;
+
+  ChSharedPtr<ChLinkEngine>         m_engine;
 
   ChVector<>                        m_tierod_marker;
 

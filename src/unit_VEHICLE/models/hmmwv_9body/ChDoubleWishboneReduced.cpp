@@ -9,18 +9,23 @@
 // http://projectchrono.org/license-chrono.txt.
 //
 // =============================================================================
-// Authors: Radu Serban
+// Authors: Radu Serban, Justin Madsen
 // =============================================================================
 //
 // Base class for a double-A arm suspension modeled with distance constraints.
+//
 // The suspension subsystem is modeled with respect to a right-handed frame,
-// with X pointing towards the rear, Y to the right, and Z up.
+// with X pointing towards the rear, Y to the right, and Z up. The origin of
+// the reference frame is assumed to be the center of th spindle body (i.e. the
+// center of the wheel).
 // By default, a right suspension is constructed.  This can be mirrored to
 // obtain a left suspension.
+// If marked as 'driven', the suspension subsystem also includes an engine link.
 //
 // =============================================================================
 
 #include "ChDoubleWishboneReduced.h"
+
 
 namespace chrono {
 
@@ -30,8 +35,10 @@ const double  ChDoubleWishboneReduced::in2m = 0.0254;
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-ChDoubleWishboneReduced::ChDoubleWishboneReduced(const std::string& name)
-: m_name(name)
+ChDoubleWishboneReduced::ChDoubleWishboneReduced(const std::string& name,
+                                                 bool               driven)
+: m_name(name),
+  m_driven(driven)
 {
   // Create the upright and spindle bodies
   m_spindle = ChSharedBodyPtr(new ChBody);
@@ -63,6 +70,12 @@ ChDoubleWishboneReduced::ChDoubleWishboneReduced(const std::string& name)
   // Spring-damper
   m_shock = ChSharedPtr<ChLinkSpring>(new ChLinkSpring);
   m_shock->SetNameString(name + "_shock");
+
+  // Engine (only if driven)
+  if (m_driven) {
+    m_engine = ChSharedPtr<ChLinkEngine>(new ChLinkEngine);
+    m_engine->SetNameString(name + "_engine");
+  }
 }
 
 
@@ -99,8 +112,8 @@ ChDoubleWishboneReduced::Initialize(ChSharedBodyPtr   chassis,
   chassis->GetSystem()->AddBody(m_upright);
 
   // Initialize joints
-  ChCoordsys<> rev_sys(m_points[UPRIGHT], Q_from_AngAxis(CH_C_PI/2.0, VECT_X));
-  m_revolute->Initialize(m_spindle, m_upright, rev_sys);
+  ChCoordsys<> rev_csys(m_points[UPRIGHT], Q_from_AngAxis(CH_C_PI / 2.0, VECT_X));
+  m_revolute->Initialize(m_spindle, m_upright, rev_csys);
   chassis->GetSystem()->AddLink(m_revolute);
 
   m_distUCA_F->Initialize(chassis, m_upright, false, m_points[UCA_F], m_points[UCA_U]);
@@ -126,6 +139,28 @@ ChDoubleWishboneReduced::Initialize(ChSharedBodyPtr   chassis,
   // Save initial relative position of marker 1 of the tierod distance link,
   // to be used in steering.
   m_tierod_marker = m_distTierod->GetEndPoint1Rel();
+
+  // Initialize the engine link (if driven)
+  if (m_driven) {
+    ChCoordsys<> eng_csys(m_points[SPINDLE], Q_from_AngAxis(CH_C_PI / 2.0, VECT_X));
+    m_engine->Initialize(m_spindle, chassis, eng_csys);
+    m_engine->Set_shaft_mode(ChLinkEngine::ENG_SHAFT_CARDANO);
+    m_engine->Set_eng_mode(ChLinkEngine::ENG_MODE_TORQUE);
+    chassis->GetSystem()->AddLink(m_engine);
+  }
+
+}
+
+
+// -----------------------------------------------------------------------------
+// -----------------------------------------------------------------------------
+double
+ChDoubleWishboneReduced::GetSpindleAngSpeed()
+{
+  if (m_driven)
+    return m_engine->Get_mot_rot_dt();
+
+  return 0;
 }
 
 
@@ -155,6 +190,19 @@ void ChDoubleWishboneReduced::ApplySteering(double displ)
   ChVector<> r_bar = m_tierod_marker;
   r_bar.y += displ;
   m_distTierod->SetEndPoint1Rel(r_bar);
+}
+
+
+// -----------------------------------------------------------------------------
+//
+// -----------------------------------------------------------------------------
+void ChDoubleWishboneReduced::ApplyTorque(double torque)
+{
+  assert(m_driven);
+
+  if (ChFunction_Const* efun = dynamic_cast<ChFunction_Const*>(m_engine->Get_tor_funct()))
+    efun->Set_yconst(torque);
+
 }
 
 
