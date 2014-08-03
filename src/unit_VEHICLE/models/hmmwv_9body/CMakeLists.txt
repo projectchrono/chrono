@@ -18,29 +18,51 @@ ENDIF()
 MESSAGE(STATUS "Adding HMMWV_9BODY...")
 
 SET(demo_HMMWV_HEADERS
-		HMMWV_9body.h
-		HMMWVTerrain.h
-		ChWheelBody.h
-		DoubleAarm.h
-		ChVehicleDriver.h
-    HMMWVEventReceiver.h
+		#HMMWV_9body.h
+		#HMMWVTerrain.h
+		#ChWheelBody.h
+		#DoubleAarm.h
+		#ChVehicleDriver.h
+		#HMMWVEventReceiver.h
+	ChVehicle.h
 	ChDoubleWishboneReduced.h
 	ChWheel.h
+	ChPowertrain.h
+	ChDriver.h
 	HMMWV9_Vehicle.cpp
 	HMMWV9_DoubleWishbone.h
 	HMMWV9_Wheel.h
-		)
+	HMMWV9_Powertrain.h
+	HMMWV9_RigidTerrain.h
+)
 
 SET(demo_HMMWV_SRCS
-	demo_HMMWV_9body.cpp
-	HMMWV_9body.cpp
-	DoubleAarm.cpp
+		#demo_HMMWV_9body.cpp
+		#HMMWV_9body.cpp
+		#DoubleAarm.cpp
+	demo_HMMWV9.cpp
+	ChVehicle.cpp
 	ChDoubleWishboneReduced.cpp
 	ChWheel.cpp
+	ChPowertrain.cpp
+	ChDriver.cpp
 	HMMWV9_Vehicle.h
 	HMMWV9_DoubleWishbone.cpp
 	HMMWV9_Wheel.cpp
+	HMMWV9_Powertrain.cpp
+	HMMWV9_RigidTerrain.cpp
 )
+
+IF (ENABLE_IRRLICHT)
+	SET(demo_HMMWV_HEADERS ${demo_HMMWV_HEADERS}
+		HMMWV9_IrrGuiDriver.h
+		HMMWV9_irrRenderer.h
+	)
+	SET(demo_HMMWV_SRCS ${demo_HMMWV_SRCS}
+		HMMWV9_IrrGuiDriver.cpp
+		HMMWV9_IrrRenderer.cpp
+	)
+ENDIF()
 
 SET(HMMWV_LIBS 
 	${CHRONOENGINE_LIBRARIES}
