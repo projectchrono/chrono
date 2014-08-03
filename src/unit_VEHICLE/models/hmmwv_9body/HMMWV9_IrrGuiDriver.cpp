@@ -36,7 +36,7 @@ HMMWV9_IrrGuiDriver::HMMWV9_IrrGuiDriver(ChIrrApp& app,
   app.SetUserEventReceiver(this);
 
   gui::IGUIStaticText* text_inputs = app.GetIGUIEnvironment()->addStaticText(
-    L"", core::rect<s32>(tlc_X, tlc_Y, tlc_X + 200, tlc_Y + 55), true, false, 0);
+    L"", core::rect<s32>(tlc_X, tlc_Y, tlc_X + 200, tlc_Y + 55), true, false, 0, -1, true);
     
   m_text_throttle = app.GetIGUIEnvironment()->addStaticText(
     L"Throttle: 0",

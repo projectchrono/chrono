@@ -31,12 +31,14 @@ using namespace irr;
 // -----------------------------------------------------------------------------
 HMMWV9_IrrRenderer::HMMWV9_IrrRenderer(ChIrrApp&                 app,
                                        const HMMWV9_Vehicle&     car,
+                                       double                    terrainHeight,
                                        const chrono::ChVector<>& cam_pos,
                                        const chrono::ChVector<>& cam_targ,
                                        const chrono::ChVector<>& cam_offset)
 : m_app(app),
   m_car(car),
-  m_cam_offset(cam_offset)
+  m_cam_offset(cam_offset),
+  m_terrainHeight(terrainHeight)
 {
   createCamera(cam_pos, cam_targ);
 }
@@ -111,13 +113,13 @@ void HMMWV9_IrrRenderer::renderLinks()
 
 void HMMWV9_IrrRenderer::renderGrid()
 {
-  ChCoordsys<> gridCsys(ChVector<>(0, 0, 0.1), chrono::Q_from_AngAxis(-CH_C_PI_2, VECT_Z));
+  ChCoordsys<> gridCsys(ChVector<>(0, 0, m_terrainHeight + 0.02),
+                        chrono::Q_from_AngAxis(-CH_C_PI_2, VECT_Z));
 
-  ChIrrTools::drawGrid(
-    m_app.GetVideoDriver(),
-    0.5, 0.5, 100, 100,
-    gridCsys,
-    video::SColor(255, 80, 130, 255),
-    true);
+  ChIrrTools::drawGrid(m_app.GetVideoDriver(),
+                       0.5, 0.5, 100, 100,
+                       gridCsys,
+                       video::SColor(255, 80, 130, 255),
+                       true);
 }
 

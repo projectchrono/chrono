@@ -33,6 +33,7 @@ class HMMWV9_IrrRenderer
 public:
   HMMWV9_IrrRenderer(irr::ChIrrApp&            app,
                      const HMMWV9_Vehicle&     car,
+                     double                    terrainHeight,
                      const chrono::ChVector<>& cam_pos,
                      const chrono::ChVector<>& cam_targ,
                      const chrono::ChVector<>& cam_offset);
@@ -52,6 +53,8 @@ private:
   irr::ChIrrAppInterface& m_app;
   const HMMWV9_Vehicle&   m_car;
   chrono::ChVector<>      m_cam_offset;
+
+  double m_terrainHeight;
 };
 
 
