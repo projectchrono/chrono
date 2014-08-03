@@ -48,6 +48,8 @@ public:
 
   void AttachWheel(ChSharedPtr<ChWheel> wheel);
 
+  void ApplySteering(double displ);
+
   virtual double getSpindleMass() const = 0;
   virtual double getUprightMass() const = 0;
 
@@ -95,6 +97,8 @@ protected:
   ChSharedPtr<ChLinkDistance>       m_distTierod;
 
   ChSharedPtr<ChLinkSpring>         m_shock;
+
+  ChVector<>                        m_tierod_marker;
 
   static const double in2m;
 

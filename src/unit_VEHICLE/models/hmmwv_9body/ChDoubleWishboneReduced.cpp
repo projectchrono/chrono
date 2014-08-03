@@ -122,6 +122,10 @@ ChDoubleWishboneReduced::Initialize(ChSharedBodyPtr   chassis,
   m_shock->Set_SpringR(getDampingCoefficient());
   m_shock->Set_SpringRestLenght(getSpringRestLength());
   chassis->GetSystem()->AddLink(m_shock);
+
+  // Save initial relative position of marker 1 of the tierod distance link,
+  // to be used in steering.
+  m_tierod_marker = m_distTierod->GetEndPoint1Rel();
 }
 
 
@@ -140,6 +144,17 @@ ChDoubleWishboneReduced::AttachWheel(ChSharedPtr<ChWheel> wheel)
 
   // Allow the concrete wheel object to perform any additional initialization
   wheel->OnInitialize(m_spindle);
+}
+
+
+// -----------------------------------------------------------------------------
+//
+// -----------------------------------------------------------------------------
+void ChDoubleWishboneReduced::ApplySteering(double displ)
+{
+  ChVector<> r_bar = m_tierod_marker;
+  r_bar.y += displ;
+  m_distTierod->SetEndPoint1Rel(r_bar);
 }
 
 
