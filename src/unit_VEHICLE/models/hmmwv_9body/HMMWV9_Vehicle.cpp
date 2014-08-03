@@ -22,12 +22,6 @@
 #include "HMMWV9_Vehicle.h"
 
 
-// TEMPORARY HACK
-// 0:  no chassis visualization
-// 1:  two boxes
-// 2:  mesh
-#define CHASSIS_VISUALIZATION 0
-
 using namespace chrono;
 
 
@@ -48,7 +42,9 @@ const std::string HMMWV9_Vehicle::m_chassisMeshFile = "../data/humvee4_scaled_ro
 // -----------------------------------------------------------------------------
 HMMWV9_Vehicle::HMMWV9_Vehicle(ChSystem&            my_system,
                                const ChCoordsys<>&  chassisPos,
-                               const bool           fixed)
+                               const bool           fixed,
+                               VisualizationType    chassisVis,
+                               VisualizationType    wheelVis)
 {
   // -------------------------------------------
   // Create the chassis body
@@ -64,23 +60,34 @@ HMMWV9_Vehicle::HMMWV9_Vehicle(ChSystem&            my_system,
   m_chassis->SetRot(chassisPos.rot);
   m_chassis->SetBodyFixed(fixed);
 
-#if CHASSIS_VISUALIZATION == 1
-  ChSharedPtr<ChBoxShape> box1(new ChBoxShape);
-  box1->GetBoxGeometry().SetLenghts(ChVector<>(5, 1.7, 0.4));
-  box1->Pos = ChVector<>(0, 0, -0.4);
-  m_chassis->AddAsset(box1);
-  ChSharedPtr<ChBoxShape> box2(new ChBoxShape);
-  box2->GetBoxGeometry().SetLenghts(ChVector<>(4, 1.7, 0.4));
-  box2->Pos = ChVector<>(0.5, 0, 0);
-  m_chassis->AddAsset(box2);
-#elif CHASSIS_VISUALIZATION == 2
-  geometry::ChTriangleMeshConnected trimesh;
-  trimesh.LoadWavefrontMesh(m_chassisMeshFile, false, false);
-  ChSharedPtr<ChTriangleMeshShape> trimesh_shape(new ChTriangleMeshShape);
-  trimesh_shape->SetMesh(trimesh);
-  trimesh_shape->SetName(m_chassisMeshName);
-  m_chassis->AddAsset(trimesh_shape);
-#endif
+  switch (chassisVis) {
+  case PRIMITIVES:
+  {
+    ChSharedPtr<ChBoxShape> box1(new ChBoxShape);
+    box1->GetBoxGeometry().SetLenghts(ChVector<>(5, 1.7, 0.4));
+    box1->Pos = ChVector<>(0, 0, -0.4);
+    m_chassis->AddAsset(box1);
+
+    ChSharedPtr<ChBoxShape> box2(new ChBoxShape);
+    box2->GetBoxGeometry().SetLenghts(ChVector<>(4, 1.7, 0.4));
+    box2->Pos = ChVector<>(0.5, 0, 0);
+    m_chassis->AddAsset(box2);
+
+    break;
+  }
+  case MESH:
+  {
+    geometry::ChTriangleMeshConnected trimesh;
+    trimesh.LoadWavefrontMesh(m_chassisMeshFile, false, false);
+
+    ChSharedPtr<ChTriangleMeshShape> trimesh_shape(new ChTriangleMeshShape);
+    trimesh_shape->SetMesh(trimesh);
+    trimesh_shape->SetName(m_chassisMeshName);
+    m_chassis->AddAsset(trimesh_shape);
+
+    break;
+  }
+  }
 
   my_system.Add(m_chassis);
 
@@ -104,16 +111,16 @@ HMMWV9_Vehicle::HMMWV9_Vehicle(ChSystem&            my_system,
   // Create the wheels and attach to suspension
   // -------------------------------------------
 
-  ChSharedPtr<HMMWV9_Wheel> front_right_wheel(new HMMWV9_Wheel(true));
+  ChSharedPtr<HMMWV9_Wheel> front_right_wheel(new HMMWV9_Wheel(true, 0.7, wheelVis));
   m_front_right_susp->AttachWheel(front_right_wheel);
 
-  ChSharedPtr<HMMWV9_Wheel> front_left_wheel(new HMMWV9_Wheel(true));
+  ChSharedPtr<HMMWV9_Wheel> front_left_wheel(new HMMWV9_Wheel(true, 0.7, wheelVis));
   m_front_left_susp->AttachWheel(front_left_wheel);
 
-  ChSharedPtr<HMMWV9_Wheel> rear_right_wheel(new HMMWV9_Wheel(true));
+  ChSharedPtr<HMMWV9_Wheel> rear_right_wheel(new HMMWV9_Wheel(true, 0.7, wheelVis));
   m_rear_right_susp->AttachWheel(rear_right_wheel);
 
-  ChSharedPtr<HMMWV9_Wheel> rear_left_wheel(new HMMWV9_Wheel(true));
+  ChSharedPtr<HMMWV9_Wheel> rear_left_wheel(new HMMWV9_Wheel(true, 0.7, wheelVis));
   m_rear_left_susp->AttachWheel(rear_left_wheel);
 
   // -------------------------------

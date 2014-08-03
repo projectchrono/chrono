@@ -21,12 +21,7 @@
 #include "assets/ChTexture.h"
 
 #include "HMMWV9_Wheel.h"
-
-// TEMPORARY HACK
-// 0:  no chassis visualization
-// 1:  cylinder
-// 2:  mesh
-#define VISUALIZATION 1
+#include "HMMWV9_Vehicle.h"
 
 
 using namespace chrono;
@@ -51,9 +46,11 @@ const std::string HMMWV9_Wheel::m_meshFile = "../data/wheel_centered_rotated.obj
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 HMMWV9_Wheel::HMMWV9_Wheel(bool   enableContact,
-                           double mu)
+                           double mu,
+                           int    visType)
 : m_contact(enableContact),
-  m_mu(mu)
+  m_mu(mu),
+  m_visType(visType)
 {
 }
 
@@ -61,24 +58,34 @@ HMMWV9_Wheel::HMMWV9_Wheel(bool   enableContact,
 // -----------------------------------------------------------------------------
 void HMMWV9_Wheel::OnInitialize(ChSharedBodyPtr body)
 {
-#if VISUALIZATION == 1
-  ChSharedPtr<ChCylinderShape> cyl(new ChCylinderShape);
-  cyl->GetCylinderGeometry().rad = m_radius;
-  cyl->GetCylinderGeometry().p1 = ChVector<>(0,  m_width/2, 0);
-  cyl->GetCylinderGeometry().p2 = ChVector<>(0, -m_width/2, 0);
-  body->AddAsset(cyl);
+  switch (m_visType) {
+  case HMMWV9_Vehicle::PRIMITIVES:
+  {
+    ChSharedPtr<ChCylinderShape> cyl(new ChCylinderShape);
+    cyl->GetCylinderGeometry().rad = m_radius;
+    cyl->GetCylinderGeometry().p1 = ChVector<>(0, m_width / 2, 0);
+    cyl->GetCylinderGeometry().p2 = ChVector<>(0, -m_width / 2, 0);
+    body->AddAsset(cyl);
 
-  ChSharedPtr<ChTexture> tex(new ChTexture);
-  tex->SetTextureFilename("../data/bluwhite.png");
-  body->AddAsset(tex);
-#elif VISUALIZATION == 2
-  geometry::ChTriangleMeshConnected trimesh;
-  trimesh.LoadWavefrontMesh(m_meshFile, false, false);
-  ChSharedPtr<ChTriangleMeshShape> trimesh_shape(new ChTriangleMeshShape);
-  trimesh_shape->SetMesh(trimesh);
-  trimesh_shape->SetName(m_meshName);
-  body->AddAsset(trimesh_shape);
-#endif
+    ChSharedPtr<ChTexture> tex(new ChTexture);
+    tex->SetTextureFilename("../data/bluwhite.png");
+    body->AddAsset(tex);
+
+    break;
+  }
+  case HMMWV9_Vehicle::MESH:
+  {
+    geometry::ChTriangleMeshConnected trimesh;
+    trimesh.LoadWavefrontMesh(m_meshFile, false, false);
+
+    ChSharedPtr<ChTriangleMeshShape> trimesh_shape(new ChTriangleMeshShape);
+    trimesh_shape->SetMesh(trimesh);
+    trimesh_shape->SetName(m_meshName);
+    body->AddAsset(trimesh_shape);
+
+    break;
+  }
+  }
 
   body->SetCollide(m_contact);
 

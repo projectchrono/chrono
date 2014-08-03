@@ -25,7 +25,11 @@
 
 class HMMWV9_Wheel : public chrono::ChWheel {
 public:
-  HMMWV9_Wheel(bool enableContact, double mu = 0.7);
+
+  HMMWV9_Wheel(bool    enableContact,
+               double  mu,
+               int     visType);
+
   ~HMMWV9_Wheel() {}
 
   virtual double getMass() const { return m_mass; }
@@ -39,6 +43,7 @@ private:
 
   bool   m_contact;
   double m_mu;
+  int    m_visType;
 
   static const std::string  m_meshName;
   static const std::string  m_meshFile;

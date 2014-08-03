@@ -35,9 +35,19 @@ class HMMWV9_Powertrain;
 
 class HMMWV9_Vehicle : public chrono::ChVehicle {
 public:
+
+  enum VisualizationType {
+    NONE,
+    PRIMITIVES,
+    MESH
+  };
+
+
   HMMWV9_Vehicle(chrono::ChSystem&            my_system,
                  const chrono::ChCoordsys<>&  chassisPos,
-                 const bool                   fixed = false);
+                 const bool                   fixed = false,
+                 VisualizationType            chassisVis = NONE,
+                 VisualizationType            wheelVis = PRIMITIVES);
 
   ~HMMWV9_Vehicle();
 
@@ -50,6 +60,7 @@ public:
   static const std::string& ChassisMeshFile() { return m_chassisMeshFile; }
 
 private:
+
   chrono::ChSharedPtr<HMMWV9_DoubleWishboneFront>   m_front_right_susp;
   chrono::ChSharedPtr<HMMWV9_DoubleWishboneFront>   m_front_left_susp;
   chrono::ChSharedPtr<HMMWV9_DoubleWishboneRear>    m_rear_right_susp;
