@@ -41,7 +41,6 @@
 # include "unit_IRRLICHT/ChIrrApp.h"
 # include <irrlicht.h>
 # include "HMMWV9_IrrGuiDriver.h"
-# include "HMMWV9_IrrRenderer.h"
   // ...and specify whether the demo should actually use Irrlicht
 # define USE_IRRLICHT
 #endif
