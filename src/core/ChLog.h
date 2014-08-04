@@ -119,7 +119,7 @@ public:
 	virtual ~ChLogConsole() {};
 
 			/// Redirect output stream to file wrapper.
-	virtual void	Output(const char* data, int n) 
+	virtual void	Output(const char* data, size_t n) 
 		{ 
 			if (current_level != CHQUIET)
 				ChStreamOstreamWrapper::Write(data, n); 

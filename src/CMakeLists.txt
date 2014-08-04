@@ -77,7 +77,6 @@ SET(CPACK_PACKAGE_VERSION_PATCH "0")
 
 SET(BUILD_CH_SDK         TRUE    CACHE BOOL   "Turn this ON to generate the Chrono::Engine main library.")
 SET(BUILD_DEMOS          TRUE    CACHE BOOL   "Turn this ON to generate Chrono::Engine demos")
-SET(ENABLE_UNIT_IRRLICHT FALSE   CACHE BOOL   "Turn this ON to generate the Chrono::Engine demos with Irrlicht 3D display")
 SET(ENABLE_UNIT_TESTS    FALSE   CACHE BOOL   "Turn this ON to generate Chrono::Engine unit tests")
 
 
@@ -86,7 +85,7 @@ SET(ENABLE_UNIT_TESTS    FALSE   CACHE BOOL   "Turn this ON to generate Chrono::
 # the compiler, generator, platform, etc....
 # Set a default build type if none was specified
 
-if(MSVC)
+if(MSVC) 
     SET(CMAKE_CONFIGURATION_TYPES Release CACHE STRING "Choose the type of build.")
     SET_PROPERTY(CACHE CMAKE_CONFIGURATION_TYPES PROPERTY STRINGS Debug Release)
     file( COPY ${CMAKE_SOURCE_DIR}/demos/data/ DESTINATION ${CMAKE_BINARY_DIR}/bin/data/ PATTERN .svn EXCLUDE)
@@ -216,40 +215,6 @@ SET(CH_INCLUDES ${CH_INCLUDES} "${CMAKE_SOURCE_DIR}/collision/convexdecompositio
 
 INCLUDE_DIRECTORIES( ${CH_INCLUDES} )
 
-#-----------------------------------------------------------------------------
-# Some other variables that will be used when building with Irrlicht or Matlab
-
-IF (ENABLE_UNIT_IRRLICHT)
-    IF(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
-        SET(CH_IRRLICHTDIR "D:/irrlicht-1.8"  CACHE PATH   "Where is your Irrlicht SDK installed? You must set this path to compile demos with 3D display.")
-        
-        IF ("${CH_COMPILER}" STREQUAL "COMPILER_MSVC")
-            FIND_LIBRARY( CH_IRRLICHTLIB NAMES Irrlicht PATHS "${CH_IRRLICHTDIR}/lib/Win32-visualstudio")
-        ELSEIF ("${CH_COMPILER}" STREQUAL "COMPILER_MSVC_X64")
-            FIND_LIBRARY( CH_IRRLICHTLIB NAMES Irrlicht PATHS "${CH_IRRLICHTDIR}/lib/Win64-visualStudio")
-        ELSEIF ("${CH_COMPILER}" STREQUAL "COMPILER_GCC")
-            FIND_LIBRARY( CH_IRRLICHTLIB NAMES Irrlicht PATHS "${CH_IRRLICHTDIR}/lib/Win32-gcc")
-        ELSEIF ("${CH_COMPILER}" STREQUAL "COMPILER_GCC_X64")
-            FIND_LIBRARY( CH_IRRLICHTLIB NAMES Irrlicht PATHS "${CH_IRRLICHTDIR}/lib/Win64-gcc")
-        ENDIF()
-    ELSEIF(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
-        find_path(CH_IRRLICHTDIR NAMES irrlicht.h PATHS "/usr/include/irrlicht" "/usr/local/include/irrlicht")
-        FIND_LIBRARY(CH_IRRLICHTLIB NAMES Irrlicht PATHS  ${CH_IRRLICHTDIR}/lib/Linux)
-        SET (CH_IRRLICHTLIB "${CH_IRRLICHTLIB}" -lXxf86vm -lglut -lX11 -lGL)
-    ELSEIF(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
-    	find_path(CH_IRRLICHTDIR NAMES irrlicht.h PATHS "/usr/include/irrlicht" "/usr/local/include/irrlicht")
-        FIND_LIBRARY( CH_IRRLICHTLIB NAMES Irrlicht PATHS "/usr/local/lib" ${CH_IRRLICHTDIR}/lib/Linux)
-        SET (CH_IRRLICHTLIB "${CH_IRRLICHTLIB}")
-    ENDIF()
-
-    IF(EXISTS "${CH_IRRLICHTDIR}/include")
-        SET(CH_IRRLICHTINC "${CH_IRRLICHTDIR}/include")
-    ELSE()
-        SET(CH_IRRLICHTINC "${CH_IRRLICHTDIR}")
-    ENDIF()
-
-    INCLUDE_DIRECTORIES( ${CH_IRRLICHTINC} )
-ENDIF()
 
 IF (BUILD_CH_SDK)
 
@@ -494,7 +459,6 @@ IF (BUILD_CH_SDK)
 		physics/ChShaftsThermalEngine.h
 		physics/ChSolver.h
 		physics/ChSolvmin.h
-		physics/ChStack.h
 		physics/ChSystem.h
 		physics/ChAssembly.h
 		physics/ChSystemDEM.h
@@ -1056,31 +1020,6 @@ IF (BUILD_CH_SDK)
 		collision/convexdecomposition/HACDv2/wavefront.cpp
 	)
 	SOURCE_GROUP(collision\\convexdecomp\\HACDv2 FILES  ${ChronoEngine_collision_convexdecompHACDv2_SOURCES})
-				
-
-	SET(ChronoEngine_irrlicht_SOURCES
-	)
-	SET(ChronoEngine_irrlicht_HEADERS
-		irrlicht_interface/ChBodySceneNode.h
-		irrlicht_interface/ChBodySceneNodeTools.h
-		irrlicht_interface/ChDisplayTools.h
-		irrlicht_interface/ChIrrAppInterface.h
-		irrlicht_interface/ChIrrApp.h
-		irrlicht_interface/ChIrrCamera.h
-		irrlicht_interface/ChIrrMeshTools.h
-		irrlicht_interface/ChIrrWizard.h
-		irrlicht_interface/ChParticlesSceneNode.h
-		irrlicht_interface/ChPovTools.h
-		irrlicht_interface/ChIrrAssetConverter.h
-		irrlicht_interface/ChIrrNode.h
-		irrlicht_interface/ChIrrNodeProxyToAsset.h
-		irrlicht_interface/ChIrrNodeAsset.h
-		irrlicht_interface/ChIrrEffects.h
-	)
-	SOURCE_GROUP(irrlicht_interface FILES 
-			${ChronoEngine_irrlicht_SOURCES} 
-			${ChronoEngine_irrlicht_HEADERS}
-			)
 			
 			
 	# OK, now chain all the source groups for building the library,
@@ -1117,7 +1056,6 @@ IF (BUILD_CH_SDK)
 		${ChronoEngine_collision_bullet_HEADERS}
 		${ChronoEngine_collision_gimpact_SOURCES}
 		${ChronoEngine_collision_gimpact_HEADERS}
-		${ChronoEngine_irrlicht_HEADERS}
 	)
 	
 	
@@ -1199,7 +1137,6 @@ INSTALL(FILES ${ChronoEngine_motion_functions_HEADERS} DESTINATION include/motio
 INSTALL(FILES ${ChronoEngine_parallel_HEADERS} DESTINATION include/parallel)
 INSTALL(FILES ${ChronoEngine_collision_bullet_HEADERS} DESTINATION include/collision/bullet)
 INSTALL(FILES ${ChronoEngine_collision_gimpact_HEADERS} DESTINATION include/collision/gimpact)
-INSTALL(FILES ${ChronoEngine_irrlicht_HEADERS} DESTINATION include/irrlicht)
 
 #
 # Propagates the CMake build to other directories
@@ -1211,6 +1148,7 @@ ADD_SUBDIRECTORY(unit_MATLAB)
 ADD_SUBDIRECTORY(unit_JS)
 ADD_SUBDIRECTORY(unit_CASCADE)
 # ADD_SUBDIRECTORY(unit_OPENGL)
+ADD_SUBDIRECTORY(unit_IRRLICHT)
 ADD_SUBDIRECTORY(unit_POSTPROCESS)
 ADD_SUBDIRECTORY(unit_COSIMULATION)
 ADD_SUBDIRECTORY(unit_FEM)

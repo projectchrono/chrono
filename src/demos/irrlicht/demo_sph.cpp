@@ -33,9 +33,9 @@
 #include "physics/ChProximityContainerSPH.h"
 #include "physics/ChMatterSPH.h"
 #include "physics/ChContactContainerNodes.h"
-#include "irrlicht_interface/ChBodySceneNode.h"
-#include "irrlicht_interface/ChBodySceneNodeTools.h" 
-#include "irrlicht_interface/ChIrrApp.h"
+#include "unit_IRRLICHT/ChBodySceneNode.h"
+#include "unit_IRRLICHT/ChBodySceneNodeTools.h" 
+#include "unit_IRRLICHT/ChIrrApp.h"
 #include "core/ChRealtimeStep.h"
 
 #include <irrlicht.h>

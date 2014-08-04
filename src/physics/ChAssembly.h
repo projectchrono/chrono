@@ -294,7 +294,7 @@ public:
 			// NOTE! After adding/removing items to the system, you should call Update() !
 
 				/// Get the number of particles
-	unsigned int GetNbodies() {return bodylist.size();}
+	size_t GetNbodies() {return bodylist.size();}
 
 				/// Attach a body to this system. Must be an object of exactly ChBody class.
 	void AddBody (ChSharedPtr<ChBody> newbody);

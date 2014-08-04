@@ -36,8 +36,9 @@
 #include "particlefactory/ChParticleRemover.h"
 #include "assets/ChTexture.h"
 #include "assets/ChColorAsset.h"
-#include "irrlicht_interface/ChIrrApp.h"
-#include "irrlicht_interface/ChDisplayTools.h"
+#include "unit_IRRLICHT/ChIrrApp.h"
+ 
+
 
 // Use the main namespace of Chrono, and other chrono namespaces
 
@@ -52,59 +53,6 @@ using namespace scene;
 using namespace video;
 using namespace io; 
 using namespace gui; 
-
-
-			/// Utility function that plots a matrix over a rectangle
-	static void drawDistribution(video::IVideoDriver* driver,
-					 chrono::ChMatrix<> Z, // distribution matrix
-					 chrono::ChCoordsys<> mpos, // center coordinates of the rectangle that measures flow
-					 double x_size, double y_size, // size of the rectangle
-					 video::SColor mcol = video::SColor(50,80,110,110),
-					 bool use_Zbuffer = false
-					)
-	{ 
-			driver->setTransform(video::ETS_WORLD, core::matrix4());
-			video::SMaterial mattransp;
-			mattransp.ZBuffer= true;
-			mattransp.Lighting=false;
-			driver->setMaterial(mattransp);
-			
-			chrono::ChVector<> V1a(-x_size*0.5, y_size*0.5,0);
-			chrono::ChVector<> V2a( x_size*0.5, y_size*0.5,0);
-			ChIrrTools::drawSegment(driver, mpos.TrasformLocalToParent(V1a),mpos.TrasformLocalToParent(V2a), mcol, use_Zbuffer);
-			chrono::ChVector<> V1b(-x_size*0.5,-y_size*0.5,0);
-			chrono::ChVector<> V2b( x_size*0.5,-y_size*0.5,0);
-			ChIrrTools::drawSegment(driver, mpos.TrasformLocalToParent(V1b),mpos.TrasformLocalToParent(V2b), mcol, use_Zbuffer);
-			chrono::ChVector<> V1c( x_size*0.5, y_size*0.5,0);
-			chrono::ChVector<> V2c( x_size*0.5,-y_size*0.5,0);
-			ChIrrTools::drawSegment(driver, mpos.TrasformLocalToParent(V1c),mpos.TrasformLocalToParent(V2c), mcol, use_Zbuffer);
-			chrono::ChVector<> V1d(-x_size*0.5, y_size*0.5,0);
-			chrono::ChVector<> V2d(-x_size*0.5,-y_size*0.5,0);
-			ChIrrTools::drawSegment(driver, mpos.TrasformLocalToParent(V1d),mpos.TrasformLocalToParent(V2d), mcol, use_Zbuffer);
-
-			for (int iy = 0; iy < Z.GetColumns(); ++iy)
-			{
-				double mystep = y_size/((double)Z.GetColumns());
-				double my = -0.5*y_size + iy*mystep + 0.5*mystep;
-				for (int ix = 0; ix < Z.GetRows(); ++ix)
-				{
-					double mxstep = x_size/((double)Z.GetRows());
-					double mx = -0.5*x_size + ix*mxstep + 0.5*mxstep;
-					if (ix >0)
-					{
-						chrono::ChVector<> Vx1(mx-mxstep, my, Z(ix-1,iy));
-						chrono::ChVector<> Vx2(mx        ,my, Z(ix  ,iy));
-						ChIrrTools::drawSegment(driver, mpos.TrasformLocalToParent(Vx1),mpos.TrasformLocalToParent(Vx2), mcol, use_Zbuffer);
-					}
-					if (iy >0)
-					{
-						chrono::ChVector<> Vy1(mx, my-mystep, Z(ix,iy-1));
-						chrono::ChVector<> Vy2(mx, my       , Z(ix,iy  ));
-						ChIrrTools::drawSegment(driver, mpos.TrasformLocalToParent(Vy1),mpos.TrasformLocalToParent(Vy2), mcol, use_Zbuffer);
-					}
-				}
-			}
-	}
 
 
    
@@ -300,20 +248,6 @@ int main(int argc, char* argv[])
 	processor_flowcount.SetParticleEventProcessor(counter);
 
 
-	// Test also a ChParticleProcessor configured as a
-	// counter of particles that flow into a rectangle with a statistical distribution to plot:
-	//  -create the trigger:
-	ChSharedPtr<ChParticleEventFlowInRectangle> distrrectangle (new ChParticleEventFlowInRectangle(8,8));
-	distrrectangle->rectangle_csys = ChCoordsys<>( ChVector<>(0,2,0), Q_from_AngAxis(-CH_C_PI_2,VECT_X) ); // center and alignment of rectangle
-	distrrectangle->margin = 1;
-	//  -create the counter:
-	ChSharedPtr<ChParticleProcessEventMassDistribution> countdistribution (new ChParticleProcessEventMassDistribution(10,10));
-	//  -create the processor and plug in the trigger and the counter:
-	ChParticleProcessor processor_distribution;
-	processor_distribution.SetEventTrigger(distrrectangle);
-	processor_distribution.SetParticleEventProcessor(countdistribution);
-
-
 
 	// Use this function for adding a ChIrrNodeAsset to all already created items (ex. the floor, etc.)
 	// Otherwise use application.AssetBind(myitem); on a per-item basis.
@@ -351,16 +285,6 @@ int main(int argc, char* argv[])
 		// Use the processor to count particle flow in the rectangle section:
 		processor_flowcount.ProcessParticles(mphysicalSystem);
 		GetLog() << "Particles being flown across rectangle:" << counter->counter << "\n";
-
-
-		processor_distribution.ProcessParticles(mphysicalSystem);
-		drawDistribution(application.GetVideoDriver(),
-			countdistribution->mmass*0.002,
-			distrrectangle->rectangle_csys,
-			distrrectangle->Xsize,
-			distrrectangle->Ysize);
-
-
 
 		application.DoStep();	
 

@@ -33,7 +33,7 @@
  
 #include "physics/ChApidll.h" 
 #include "physics/ChParticlesClones.h" 
-#include "irrlicht_interface/ChIrrApp.h"
+#include "unit_IRRLICHT/ChIrrApp.h"
 #include <irrlicht.h>
 
 

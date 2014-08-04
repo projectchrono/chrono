@@ -195,7 +195,7 @@ public:
 				/// the size of the total variables&constraints in the system; the procedure
 				/// will use the ChVariable offsets (that must be already updated) to know the 
 				/// indexes in result and vect; 
-	virtual void MultiplyAndAdd(double& result, ChMatrix<double>& vect)
+	virtual void MultiplyAndAdd(double& result, const ChMatrix<double>& vect) const
 					{
 						if (variables_a->IsActive())
 						 for (int i= 0; i < Cq_a.GetRows(); i++)

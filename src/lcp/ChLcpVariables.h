@@ -224,7 +224,7 @@ public:
 				/// Set offset in global q vector (set automatically by ChLcpSystemDescriptor)
 	void SetOffset(int moff) {offset = moff;}
 				/// Get offset in global q vector 
-	int GetOffset() {return offset;}
+	int GetOffset() const {return offset;}
 
 };
 

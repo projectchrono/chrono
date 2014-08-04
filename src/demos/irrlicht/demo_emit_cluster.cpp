@@ -36,7 +36,7 @@
 #include "particlefactory/ChParticleEmitter.h"
 #include "assets/ChTexture.h"
 #include "assets/ChColorAsset.h"
-#include "irrlicht_interface/ChIrrApp.h"
+#include "unit_IRRLICHT/ChIrrApp.h"
  
 
 

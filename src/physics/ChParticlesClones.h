@@ -162,7 +162,7 @@ public:
 			//
 
 				/// Get the number of particles
-	unsigned int GetNparticles() {return particles.size();}
+	size_t GetNparticles() const {return particles.size();}
 
 				/// Access the N-th particle 
 	ChParticleBase& GetParticle(unsigned int n) { assert(n<particles.size()); return *particles[n];}

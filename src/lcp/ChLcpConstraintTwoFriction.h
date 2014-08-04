@@ -105,7 +105,7 @@ public:
 
 					/// Tells that this constraint is not linear, that is: it cannot
 					/// be solved with a plain simplex solver.
-	virtual bool IsLinear() {return false;}
+	virtual bool IsLinear() const { return false; }
 
 				/// Get the friction coefficient
 	double GetFrictionCoefficient() {return friction; }

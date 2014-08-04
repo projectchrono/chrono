@@ -47,7 +47,7 @@ class ChSparseMatrix;
 enum eChConstraintMode {
 		CONSTRAINT_FREE			= 0, ///< the constraint does not enforce anything
 		CONSTRAINT_LOCK		    = 1, ///< the constraint enforces c_i=0;
-		CONSTRAINT_UNILATERAL	= 2, ///< the constraint enforces linear complementarity c_i>0, l_i>0, l_1*c_i=0;
+		CONSTRAINT_UNILATERAL	= 2, ///< the constraint enforces linear complementarity c_i>=0, l_i>=0, l_1*c_i=0;
 		CONSTRAINT_FRIC			= 3, ///< the constraint is one of three reactions in friction (cone complementarity problem)
 };
 
@@ -73,9 +73,9 @@ enum eChConstraintMode {
 /// where the following linearization is introduced:
 ///      c_i= [Cq_i]*q + b_i
 ///
-///  The base class introduce just the minimum requirements
+/// The base class introduces just the minimum requirements
 /// for the solver, that is the basic methods which will be
-/// called by the solver. It is up to the inherited classes
+/// called by the solver. It is up to the derived classes
 /// to implement these methods, and to add further features..
 
 class ChApi ChLcpConstraint
@@ -176,37 +176,37 @@ public:
 			//
 
 				/// Tells if the constraint data is currently valid.
-	virtual bool IsValid() {return valid;}
+	virtual bool IsValid() const {return valid;}
 				/// Use this function to set the valid state (child class 
 				/// Children classes must use this function depending on 
 				/// the result of their implementations of RestoreReference();
 	virtual void SetValid(bool mon) {valid = mon; UpdateActiveFlag();}
 
 				/// Tells if the constraint is currently turned on or off by the user.
-	virtual bool IsDisabled() {return disabled;}
+	virtual bool IsDisabled() const { return disabled; }
 				/// User can use this to enable/disable the constraint as desired
 	virtual void SetDisabled(bool mon) {disabled = mon; UpdateActiveFlag();}
 
 				/// Tells if the constraint is redundant or singular.
-	virtual bool IsRedundant() {return redundant;}
+	virtual bool IsRedundant() const { return redundant; }
 				/// Solvers may use the following to mark a constraint as redundant
 	virtual void SetRedundant(bool mon) {redundant = mon; UpdateActiveFlag();}
 
 				/// Tells if the constraint is broken, for eccess of pulling/pushing.
-	virtual bool IsBroken() {return broken;}
+	virtual bool IsBroken() const { return broken; }
 				/// 3rd party software can set the 'broken' status via this method
 				/// (by default, constraints never break);
 	virtual void SetBroken(bool mon) {broken = mon; UpdateActiveFlag();}
 
 				/// Tells if the constraint is unilateral (typical complementarity constraint).
-	virtual bool IsUnilateral() {return mode==CONSTRAINT_UNILATERAL;}
+	virtual bool IsUnilateral()  const { return mode == CONSTRAINT_UNILATERAL; }
 
 				/// Tells if the constraint is linear (if non linear, returns false).
-	virtual bool IsLinear() {return true;}
+	virtual bool IsLinear() const { return true; }
 
 				/// Gets the mode of the constraint: free / lock / complementary
 				/// A typical constraint has 'lock = true' by default.
-	eChConstraintMode GetMode() {return mode;}
+	eChConstraintMode GetMode() const { return mode; }
 
 				/// Sets the mode of the constraint: free / lock / complementary
 	void SetMode(eChConstraintMode mmode) {mode = mmode; UpdateActiveFlag();}
@@ -217,7 +217,7 @@ public:
 				/// that is tells if it must be included into the system solver or not.
 				/// This method cumulates the effect of all flags (so a constraint may
 				/// be not active either because 'disabled', or 'broken', o 'redundant', or not 'valid'.)
-	virtual bool IsActive()
+	virtual bool IsActive() const
 					{
 						/*
 						return ( valid &&
@@ -235,46 +235,34 @@ public:
 				/// constraint, this residual must be near zero.
 	virtual double Compute_c_i() { c_i = Compute_Cq_q() + cfm_i*l_i + b_i; return c_i;};
 
-				///  This function must update the 'c_i' residual of
-				/// the constraint.								  // CURRENTLY NOT USED
-				/// *** This function MAY BE OVERRIDDEN by specialized
-				/// inherited classes! (a possible alternative is not
-				/// overriding this, and using the Set_c_i() function
-				/// an all the constraints, from an external procedure,
-				/// just before calling the solver - if the solver does not
-				/// need successive evaluations of residuals during the process.)
-	//virtual void Update_c_i() { /* do nothing */ };
-
-				/// Sets the residual 'c_i' of this constraint.   // CURRENTLY NOT USED
-	//void   Set_c_i(const double mc) {c_i = mc;}
 
 				/// Return the residual 'c_i' of this constraint. // CURRENTLY NOT USED
-	double Get_c_i() {return c_i;}
+	double Get_c_i() const { return c_i; }
 
 
 				/// Sets the known term b_i in [Cq_i]*q + b_i =0,
-				/// where: c_i= [Cq_i]*q + b_i = 0
-	void   Set_b_i(const double mb) {b_i = mb;}
+				/// where: c_i = [Cq_i]*q + b_i = 0
+	void Set_b_i(const double mb) {b_i = mb;}
 
 				/// Return the known term b_i in [Cq_i]*q + b_i =0,
 				/// where: c_i= [Cq_i]*q + b_i = 0
-	double Get_b_i() {return b_i;}
+	double Get_b_i() const { return b_i; }
 
 
 				/// Sets the constraint force mixing term (default=0).
 				/// Adds artificial 'elasticity' to the constraint,
 				/// as:   c_i= [Cq_i]*q + b_i + cfm*l_i =0;
-	void   Set_cfm_i(const double mcfm) {cfm_i = mcfm;}
+	void Set_cfm_i(const double mcfm) {cfm_i = mcfm;}
 
 				/// Returns the constraint force mixing term.
-	double Get_cfm_i() {return cfm_i;}
+	double Get_cfm_i() const { return cfm_i; }
 
 
 				/// Sets the 'l_i' value (constraint reaction, see 'l' vector)
-	virtual void   Set_l_i(double ml_i) { l_i = ml_i ;}
+	virtual void Set_l_i(double ml_i) { l_i = ml_i ;}
 
 				/// Return the 'l_i' value (constraint reaction, see 'l' vector)
-	virtual double Get_l_i() { return l_i;}
+	virtual double Get_l_i() const { return l_i; }
 
 
 
@@ -290,7 +278,7 @@ public:
 
 
 				/// Return the 'g_i' product , that is [Cq_i]*[invM_i]*[Cq_i]' (+cfm)
-	double Get_g_i() {return g_i;}
+	double Get_g_i() const { return g_i; }
 
 				/// Usually you should not use the Set_g_i function, because g_i
 				/// should be automatically computed during the Update_auxiliary() .
@@ -299,7 +287,7 @@ public:
 
 				///  This function must computes the product between
 				/// the row-jacobian of this constraint '[Cq_i]' and the
-				/// vector of variables, 'q'. that is    Cq_q=[Cq_i]*q
+				/// vector of variables, 'q', that is, Cq_q=[Cq_i]*q.
 				///  This is used for some iterative LCP solvers.
 				/// *** This function MUST BE OVERRIDDEN by specialized
 				/// inherited classes! (since it will be called frequently,
@@ -323,7 +311,7 @@ public:
 				/// the size of the total variables&constraints in the system; the procedure
 				/// will use the ChVariable offsets (that must be already updated) to know the 
 				/// indexes in result and vect; 
-	virtual void MultiplyAndAdd(double& result, ChMatrix<double>& vect) = 0;
+	virtual void MultiplyAndAdd(double& result, const ChMatrix<double>& vect) const = 0;
 
 				/// Computes the product of the corresponding transposed block in the 
 				/// system matrix (ie. the TRANSPOSED jacobian matrix C_q') by 'l', and add to 'result'. 
@@ -358,6 +346,7 @@ public:
 				/// *** This function MUST BE OVERRIDDEN by specialized
 				/// inherited classes!
 	virtual void Build_Cq(ChSparseMatrix& storage, int insrow) =0;
+
 				/// Same as Build_Cq, but puts the _transposed_ jacobian row as a column.
 				/// *** This function MUST BE OVERRIDDEN by specialized
 				/// inherited classes!
@@ -365,8 +354,9 @@ public:
 
 				/// Set offset in global q vector (set automatically by ChLcpSystemDescriptor)
 	void SetOffset(int moff) {offset = moff;}
+
 				/// Get offset in global q vector 
-	int GetOffset() {return offset;}
+	int GetOffset() const {return offset;}
 
 			//
 			// STREAMING

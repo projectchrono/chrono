@@ -113,10 +113,10 @@ public:
 	void SetVariables(std::vector<ChLcpVariables*> mvariables);
 
 				/// Returns the number of referenced ChLcpVariables items
-	virtual unsigned int GetNvars() const {return variables.size();}
+	virtual size_t GetNvars() const {return variables.size();}
 
 				/// Access the m-th vector variable object
-	virtual ChLcpVariables* GetVariableN(unsigned int m_var) {return variables[m_var];}
+	virtual ChLcpVariables* GetVariableN(unsigned int m_var) const {return variables[m_var];}
 
 
 
@@ -133,7 +133,7 @@ public:
 				/// the size of the total variables&constraints in the system; the procedure
 				/// will use the ChVariable offsets (that must be already updated) to know the 
 				/// indexes in result and vect.
-	virtual void MultiplyAndAdd(ChMatrix<double>& result, const ChMatrix<double>& vect);
+	virtual void MultiplyAndAdd(ChMatrix<double>& result, const ChMatrix<double>& vect) const;
 
 				/// Add the diagonal of the stiffness matrix block(s) as a column vector to 'result'.
 				/// NOTE: the 'result' vector must already have the size of system unknowns, ie

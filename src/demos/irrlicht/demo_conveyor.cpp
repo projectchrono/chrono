@@ -31,7 +31,7 @@
 #include "physics/ChSystem.h"
 #include "physics/ChBodyEasy.h"
 #include "physics/ChConveyor.h"
-#include "irrlicht_interface/ChIrrApp.h"
+#include "unit_IRRLICHT/ChIrrApp.h"
 
  
 

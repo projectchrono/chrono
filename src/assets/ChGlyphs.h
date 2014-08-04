@@ -88,7 +88,7 @@ public:
 	void Reserve(unsigned int n_glyphs);
 
 			/// Get the number of glyphs
-	unsigned int GetNumberOfGlyphs() { return points.size(); }
+	size_t GetNumberOfGlyphs() { return points.size(); }
 
 			/// Get the 'size' (thickness of symbol, depending on the rendering
 			/// system) of the glyph symbols

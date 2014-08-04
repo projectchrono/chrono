@@ -2101,6 +2101,16 @@ public:
 			return temp;
 		}
 
+      /// Given a 3x3 rotation matrix, get the diagonal.
+   ChVector<Real> Get_Diag() const
+     {
+         ChVector<Real> temp;
+         temp.x = this->Get33Element(0,0);
+         temp.y = this->Get33Element(1,1);
+         temp.z = this->Get33Element(2,2);
+         return temp;
+      }
+
 };
 
 
