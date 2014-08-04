@@ -179,10 +179,10 @@ void HMMWV9_Vehicle::Update(double time,
   m_rear_right_susp->ApplyTorque(wheelTorqueR);
 
   // Debug...
-  GetLog() << "motor torque=" << m_powertrain->GetMotorTorque()
-           << "  motor speed=" << m_powertrain->GetMotorSpeed()
-           << "  wheel torque=" << m_powertrain->GetWheelTorque(REAR_RIGHT)
-           << "\n";
+  ////GetLog() << "motor torque=" << m_powertrain->GetMotorTorque()
+  ////         << "  motor speed=" << m_powertrain->GetMotorSpeed()
+  ////         << "  wheel torque=" << m_powertrain->GetWheelTorque(REAR_RIGHT)
+  ////         << "\n";
 
 }
 

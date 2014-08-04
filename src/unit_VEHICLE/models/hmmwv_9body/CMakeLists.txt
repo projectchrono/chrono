@@ -58,11 +58,9 @@ SET(demo_HMMWV_SRCS
 IF (ENABLE_IRRLICHT)
 	SET(demo_HMMWV_HEADERS ${demo_HMMWV_HEADERS}
 		HMMWV9_IrrGuiDriver.h
-		HMMWV9_irrRenderer.h
 	)
 	SET(demo_HMMWV_SRCS ${demo_HMMWV_SRCS}
 		HMMWV9_IrrGuiDriver.cpp
-		HMMWV9_IrrRenderer.cpp
 	)
 ENDIF()
 

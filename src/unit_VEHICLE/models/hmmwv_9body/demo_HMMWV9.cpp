@@ -65,7 +65,7 @@ ChVector<> cameraOffset(2.5, 0, 2.0);
 
 // Simulation parameters
 double tend = 10.0;
-double step_size = 0.0005;
+double step_size = 0.001;
 int out_fps = 30;
 
 // Output directories
@@ -96,7 +96,9 @@ int main(int argc, char* argv[])
   // Create the HMMWV vehicle
   HMMWV9_Vehicle vehicle(m_system,
                          ChCoordsys<>(initLoc, initRot),
-                         false);
+                         false,
+                         HMMWV9_Vehicle::NONE,
+                         HMMWV9_Vehicle::PRIMITIVES);
 
   // Create the ground
   HMMWV9_RigidTerrain terrain(m_system, terrainHeight, terrainLength, terrainWidth, 0.8);
@@ -114,8 +116,9 @@ int main(int argc, char* argv[])
 
   application.SetTimestep(step_size);
 
-  HMMWV9_IrrGuiDriver driver(application);
-  HMMWV9_IrrRenderer  renderer(application, vehicle, terrainHeight, initLoc + cameraOffset, initLoc, cameraOffset);
+  HMMWV9_IrrGuiDriver driver(application, vehicle);
+
+  driver.CreateCamera(cameraOffset);
 
   // Set up the assets for rendering
   application.AssetBindAll();
@@ -142,7 +145,7 @@ int main(int argc, char* argv[])
       application.GetVideoDriver()->beginScene(true, true, irr::video::SColor(255, 140, 161, 192));
 
       application.DrawAll();
-      renderer.OnFrame();
+      driver.DrawAll();
 
       out_frame++;
     }
