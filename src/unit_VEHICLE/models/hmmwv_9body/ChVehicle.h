@@ -43,6 +43,7 @@ public:
 
   virtual void Update(double time, double throttle, double steering) = 0;
 
+  const ChSharedBodyPtr GetChassis() const    { return m_chassis; }
   const ChVector<>&     GetChassisPos() const { return m_chassis->GetPos(); }
   const ChQuaternion<>& GetChassisRot() const { return m_chassis->GetRot(); }
 
