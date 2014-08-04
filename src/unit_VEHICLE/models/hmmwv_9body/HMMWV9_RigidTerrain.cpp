@@ -25,6 +25,8 @@
 
 using namespace chrono;
 
+namespace hmmwv9 {
+
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 HMMWV9_RigidTerrain::HMMWV9_RigidTerrain(ChSystem&  system,
@@ -57,3 +59,5 @@ HMMWV9_RigidTerrain::HMMWV9_RigidTerrain(ChSystem&  system,
   system.AddBody(ground);
 }
 
+
+} // end namespace hmmwv9

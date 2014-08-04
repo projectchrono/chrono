@@ -38,6 +38,7 @@
 
 #include "HMMWV9_Vehicle.h"
 
+namespace hmmwv9 {
 
 class HMMWV9_IrrGuiDriver : public chrono::ChDriver, public irr::IEventReceiver
 {
@@ -74,6 +75,9 @@ private:
   irr::gui::IGUIStaticText* m_text_steering;
 
 };
+
+
+} // end namespace hmmwv9
 
 
 #endif

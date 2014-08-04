@@ -31,7 +31,6 @@
 
 #include "utils/ChUtilsInputOutput.h"
 
-#include "HMMWV_9body_config.h"
 #include "HMMWV9_Vehicle.h"
 #include "HMMWV9_RigidTerrain.h"
 
@@ -47,6 +46,8 @@
 
 
 using namespace chrono;
+using namespace hmmwv9;
+
 
 // =============================================================================
 
@@ -96,8 +97,8 @@ int main(int argc, char* argv[])
   HMMWV9_Vehicle vehicle(m_system,
                          ChCoordsys<>(initLoc, initRot),
                          false,
-                         HMMWV9_Vehicle::NONE,
-                         HMMWV9_Vehicle::PRIMITIVES);
+                         hmmwv9::NONE,
+                         hmmwv9::PRIMITIVES);
 
   // Create the ground
   HMMWV9_RigidTerrain terrain(m_system, terrainHeight, terrainLength, terrainWidth, 0.8);

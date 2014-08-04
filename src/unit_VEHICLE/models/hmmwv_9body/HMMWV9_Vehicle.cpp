@@ -21,9 +21,9 @@
 
 #include "HMMWV9_Vehicle.h"
 
-
 using namespace chrono;
 
+namespace hmmwv9 {
 
 // -----------------------------------------------------------------------------
 // Static variables
@@ -186,3 +186,5 @@ void HMMWV9_Vehicle::Update(double time,
 
 }
 
+
+} // end namespace hmmwv9

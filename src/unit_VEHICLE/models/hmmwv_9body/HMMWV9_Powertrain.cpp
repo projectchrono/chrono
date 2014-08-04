@@ -19,12 +19,11 @@
 //
 // =============================================================================
 
-
 #include "HMMWV9_Powertrain.h"
-
 
 using namespace chrono;
 
+namespace hmmwv9 {
 
 // -----------------------------------------------------------------------------
 // Static variables
@@ -95,3 +94,6 @@ void HMMWV9_Powertrain::Update(double time,
   m_wheelTorque = 0.5 * shaftTorque * (1.0 / m_conic_tau);
 
 }
+
+
+} // end namespace hmmwv9

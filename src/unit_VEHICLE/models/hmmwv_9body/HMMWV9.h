@@ -12,30 +12,19 @@
 // Authors: Radu Serban, Justin Madsen
 // =============================================================================
 //
-// Simple rigid terrain...
-//
 // =============================================================================
 
-#ifndef HMMWV9_RIGIDTERRAIN_H
-#define HMMWV9_RIGIDTERRAIN_H
+#ifndef HMMWV9_H
+#define HMMWV9_H
 
-#include "physics/ChSystem.h"
+#include "HMMWV_9body_config.h"
 
 namespace hmmwv9 {
 
-class HMMWV9_RigidTerrain {
-public:
-
-  HMMWV9_RigidTerrain(chrono::ChSystem&  system,
-                      double             height,
-                      double             sizeX,
-                      double             sizeY,
-                      double             mu);
-
-  ~HMMWV9_RigidTerrain() {}
-
-private:
-
+enum VisualizationType {
+  NONE,
+  PRIMITIVES,
+  MESH
 };
 
 

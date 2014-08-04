@@ -26,10 +26,10 @@
 
 #include "HMMWV9_Vehicle.h"
 
+namespace hmmwv9 {
 
 // Forward reference
 class HMMWV9_Vehicle;
-
 
 class HMMWV9_Powertrain : public chrono::ChPowertrain {
 public:
@@ -55,6 +55,9 @@ private:
   static const double m_max_torque;  // the max torque of the motor [Nm];
   static const double m_max_speed;   // the max rotation speed of the motor [rads/s]
 };
+
+
+} // end namespace hmmwv9
 
 
 #endif

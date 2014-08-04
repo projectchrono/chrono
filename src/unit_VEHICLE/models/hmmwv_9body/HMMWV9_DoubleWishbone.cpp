@@ -22,6 +22,7 @@
 
 using namespace chrono;
 
+namespace hmmwv9 {
 
 // -----------------------------------------------------------------------------
 // Static variables
@@ -129,3 +130,6 @@ void HMMWV9_DoubleWishboneRear::OnInitializeUpright()
   box->GetBoxGeometry().SetLenghts(m_uprightDims);
   m_upright->AddAsset(box);
 }
+
+
+} // end namespace hmmwv9

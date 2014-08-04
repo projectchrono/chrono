@@ -29,10 +29,10 @@
 
 #include "HMMWV9_IrrGuiDriver.h"
 
-
 using namespace chrono;
 using namespace irr;
 
+namespace hmmwv9 {
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
@@ -179,3 +179,5 @@ void HMMWV9_IrrGuiDriver::renderGrid()
     true);
 }
 
+
+} // end namespace hmmwv9

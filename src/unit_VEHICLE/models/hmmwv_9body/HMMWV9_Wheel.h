@@ -19,16 +19,18 @@
 #ifndef HMMWV9_WHEEL_H
 #define HMMWV9_WHEEL_H
 
-
 #include "ChWheel.h"
 
+#include "HMMWV9.h"
+
+namespace hmmwv9 {
 
 class HMMWV9_Wheel : public chrono::ChWheel {
 public:
 
-  HMMWV9_Wheel(bool    enableContact,
-               double  mu,
-               int     visType);
+  HMMWV9_Wheel(bool               enableContact,
+               double             mu,
+               VisualizationType  visType);
 
   ~HMMWV9_Wheel() {}
 
@@ -41,9 +43,9 @@ public:
 private:
   virtual void OnInitialize(chrono::ChSharedBodyPtr body);
 
-  bool   m_contact;
-  double m_mu;
-  int    m_visType;
+  bool               m_contact;
+  double             m_mu;
+  VisualizationType  m_visType;
 
   static const std::string  m_meshName;
   static const std::string  m_meshFile;
@@ -54,6 +56,9 @@ private:
   static const chrono::ChVector<>  m_inertia;
 
 };
+
+
+} // end namespace hmmwv9
 
 
 #endif

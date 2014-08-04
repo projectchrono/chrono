@@ -22,8 +22,7 @@
 
 #include "ChDoubleWishboneReduced.h"
 
-
-// -----------------------------------------------------------------------------
+namespace hmmwv9 {
 
 class HMMWV9_DoubleWishboneFront : public chrono::ChDoubleWishboneReduced
 {
@@ -98,6 +97,9 @@ private:
   static const double      m_dampingCoefficient;
   static const double      m_springRestLength;
 };
+
+
+} // end namespace hmmwv9
 
 
 #endif

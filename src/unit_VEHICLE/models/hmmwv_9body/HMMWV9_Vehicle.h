@@ -24,24 +24,18 @@
 
 #include "ChVehicle.h"
 
+#include "HMMWV9.h"
 #include "HMMWV9_DoubleWishbone.h"
 #include "HMMWV9_Wheel.h"
 #include "HMMWV9_Powertrain.h"
 
+namespace hmmwv9 {
 
 // Forward reference
 class HMMWV9_Powertrain;
 
-
 class HMMWV9_Vehicle : public chrono::ChVehicle {
 public:
-
-  enum VisualizationType {
-    NONE,
-    PRIMITIVES,
-    MESH
-  };
-
 
   HMMWV9_Vehicle(chrono::ChSystem&            my_system,
                  const chrono::ChCoordsys<>&  chassisPos,
@@ -78,6 +72,8 @@ private:
 
 };
 
+
+} // end namespace hmmwv9
 
 
 #endif

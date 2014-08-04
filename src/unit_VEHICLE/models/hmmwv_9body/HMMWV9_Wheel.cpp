@@ -23,9 +23,9 @@
 #include "HMMWV9_Wheel.h"
 #include "HMMWV9_Vehicle.h"
 
-
 using namespace chrono;
 
+namespace hmmwv9 {
 
 // -----------------------------------------------------------------------------
 // Static variables
@@ -47,7 +47,7 @@ const std::string HMMWV9_Wheel::m_meshFile = "../data/wheel_centered_rotated.obj
 // -----------------------------------------------------------------------------
 HMMWV9_Wheel::HMMWV9_Wheel(bool   enableContact,
                            double mu,
-                           int    visType)
+                           VisualizationType    visType)
 : m_contact(enableContact),
   m_mu(mu),
   m_visType(visType)
@@ -59,7 +59,7 @@ HMMWV9_Wheel::HMMWV9_Wheel(bool   enableContact,
 void HMMWV9_Wheel::OnInitialize(ChSharedBodyPtr body)
 {
   switch (m_visType) {
-  case HMMWV9_Vehicle::PRIMITIVES:
+  case PRIMITIVES:
   {
     ChSharedPtr<ChCylinderShape> cyl(new ChCylinderShape);
     cyl->GetCylinderGeometry().rad = m_radius;
@@ -73,7 +73,7 @@ void HMMWV9_Wheel::OnInitialize(ChSharedBodyPtr body)
 
     break;
   }
-  case HMMWV9_Vehicle::MESH:
+  case MESH:
   {
     geometry::ChTriangleMeshConnected trimesh;
     trimesh.LoadWavefrontMesh(m_meshFile, false, false);
@@ -97,3 +97,6 @@ void HMMWV9_Wheel::OnInitialize(ChSharedBodyPtr body)
     body->GetMaterialSurface()->SetFriction(m_mu);
   }
 }
+
+
+} // end namespace hmmwv9
