@@ -25,6 +25,7 @@
 
 #include "core/ChFileutils.h"
 #include "core/ChStream.h"
+#include "core/ChRealtimeStep.h"
 #include "physics/ChApidll.h" 
 #include "physics/ChSystem.h"
 #include "physics/ChLinkDistance.h"
@@ -32,6 +33,7 @@
 #include "utils/ChUtilsInputOutput.h"
 
 #include "HMMWV9_Vehicle.h"
+#include "HMMWV9_FuncDriver.h"
 #include "HMMWV9_RigidTerrain.h"
 
 // If Irrlicht support is available...
@@ -57,20 +59,22 @@ ChQuaternion<> initRot(1,0,0,0);      // forward is the positive x-direction
 
 // Rigid terrain dimensions
 double terrainHeight = 0;
-double terrainLength = 100.0;  // size in X direction
+double terrainLength = 100.0;   // size in X direction
 double terrainWidth  = 100.0;   // size in Y directoin
 
-// Camera offset relative to vehicle
-ChVector<> cameraOffset(2.5, 0, 2.0);
-
-// Simulation parameters
-double tend = 10.0;
+// Simulation step size
 double step_size = 0.001;
-int out_fps = 30;
 
-// Output directories
-const std::string out_dir = "../HMMWV9";
-const std::string pov_dir = out_dir + "/POVRAY";
+#ifdef USE_IRRLICHT
+  // Camera offset relative to vehicle
+  ChVector<> cameraOffset(2.5, 0, 2.0);
+#else
+  double tend = 20.0;
+  int out_fps = 30;
+
+  const std::string out_dir = "../HMMWV9";
+  const std::string pov_dir = out_dir + "/POVRAY";
+#endif
 
 // =============================================================================
 
@@ -123,11 +127,41 @@ int main(int argc, char* argv[])
   // Set up the assets for rendering
   application.AssetBindAll();
   application.AssetUpdateAll();
+#else
+  HMMWV9_FuncDriver driver;
 #endif
 
   // ---------------
   // Simulation loop
   // ---------------
+
+
+#ifdef USE_IRRLICHT
+
+  ChRealtimeStepTimer realtime_timer;
+
+  while (application.GetDevice()->run())
+  {
+    // Render scene
+    application.GetVideoDriver()->beginScene(true, true, irr::video::SColor(255, 140, 161, 192));
+
+    application.DrawAll();
+    driver.DrawAll();
+
+    // Update subsystems and advance simulation by one time step
+    double time = m_system.GetChTime();
+    driver.Update(time);
+    vehicle.Update(time, driver.getThrottle(), driver.getSteering());
+
+    m_system.DoStepDynamics(realtime_timer.SuggestSimulationStep(step_size));
+
+    // Complete scene
+    application.GetVideoDriver()->endScene();
+  }
+
+  application.GetDevice()->drop();
+
+#else
 
   int out_steps = std::ceil((1 / step_size) / out_fps);
 
@@ -135,34 +169,6 @@ int main(int argc, char* argv[])
   int frame = 0;
   int out_frame = 0;
 
-#ifdef USE_IRRLICHT
-  while (application.GetDevice()->run())
-  {
-    bool render = (frame % out_steps == 0);
-
-    // Render scene
-    if (render) {
-      application.GetVideoDriver()->beginScene(true, true, irr::video::SColor(255, 140, 161, 192));
-
-      application.DrawAll();
-      driver.DrawAll();
-
-      out_frame++;
-    }
-
-    // Update subsystems and advance simulation by one time step
-    driver.Update(time);
-    vehicle.Update(time, driver.getThrottle(), driver.getSteering());
-
-    m_system.DoStepDynamics(step_size);
-    time += step_size;
-    frame++;
-
-    // Complete scene
-    if (render)
-      application.GetVideoDriver()->endScene();
-  }
-#else
   if(ChFileutils::MakeDirectory(out_dir.c_str()) < 0) {
     std::cout << "Error creating directory " << out_dir << std::endl;
     return 1;
@@ -183,27 +189,24 @@ int main(int argc, char* argv[])
       // Output render data
       sprintf(filename, "%s/data_%03d.dat", pov_dir.c_str(), out_frame + 1);
       utils::WriteShapesPovray(&m_system, filename);
-      std::cout << "------------ Output frame:   " << out_frame << std::endl;
-      std::cout << "             Sim frame:      " << frame << std::endl;
-      std::cout << "             Time:           " << time << std::endl;
+      std::cout << "Output frame:   " << out_frame << std::endl;
+      std::cout << "Sim frame:      " << frame << std::endl;
+      std::cout << "Time:           " << time << std::endl;
+      std::cout << "             throttle: " << driver.getThrottle() << " steering: " << driver.getSteering() << std::endl;
+      std::cout << std::endl;
       out_frame++;
-
-      break;
-
     }
 
     // Update subsystems and advance simulation by one time step
-    ////driver.Update(time);
-    ////vehicle.Update(time, driver.getThrottle(), driver.getSteering());
+    driver.Update(time);
+    vehicle.Update(time, driver.getThrottle(), driver.getSteering());
 
     m_system.DoStepDynamics(step_size);
+
     time += step_size;
     frame++;
   }
-#endif
 
-#ifdef USE_IRRLICHT
-  application.GetDevice()->drop();
 #endif
 
   DLL_DeleteGlobals();
