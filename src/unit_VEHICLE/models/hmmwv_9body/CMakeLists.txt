@@ -30,6 +30,7 @@ SET(demo_HMMWV_HEADERS
 	ChWheel.h
 	ChPowertrain.h
 	ChDriver.h
+	ChChaseCamera.h
 	HMMWV9.h
 	HMMWV9_Vehicle.h
 	HMMWV9_DoubleWishbone.h
@@ -50,6 +51,7 @@ SET(demo_HMMWV_SRCS
 	ChWheel.cpp
 	ChPowertrain.cpp
 	ChDriver.cpp
+	ChChaseCamera.cpp
 	HMMWV9_Vehicle.cpp
 	HMMWV9_DoubleWishbone.cpp
 	HMMWV9_Wheel.cpp
