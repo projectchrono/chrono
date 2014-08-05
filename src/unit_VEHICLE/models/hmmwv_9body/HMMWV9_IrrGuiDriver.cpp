@@ -47,8 +47,11 @@ HMMWV9_IrrGuiDriver::HMMWV9_IrrGuiDriver(ChIrrApp&              app,
   app.SetUserEventReceiver(this);
 
   gui::IGUIStaticText* text_inputs = app.GetIGUIEnvironment()->addStaticText(
-    L"", core::rect<s32>(tlc_X, tlc_Y, tlc_X + 200, tlc_Y + 55), true, false, 0, -1, true);
+    L"", core::rect<s32>(tlc_X, tlc_Y, tlc_X + 200, tlc_Y + 75), true, false, 0, -1, true);
     
+
+  text_inputs->setBackgroundColor(video::SColor(255, 200, 200, 200));
+
   m_text_throttle = app.GetIGUIEnvironment()->addStaticText(
     L"Throttle: 0",
     core::rect<s32>(10, 10, 150, 25), false, false, text_inputs);
@@ -56,6 +59,10 @@ HMMWV9_IrrGuiDriver::HMMWV9_IrrGuiDriver(ChIrrApp&              app,
   m_text_steering = app.GetIGUIEnvironment()->addStaticText(
     L"Steering: 0",
     core::rect<s32>(10, 30, 150, 45), false, false, text_inputs);
+
+  m_text_speed = app.GetIGUIEnvironment()->addStaticText(
+    L"Speed: 0",
+    core::rect<s32>(10, 50, 150, 65), false, false, text_inputs);
 }
 
 
@@ -71,22 +78,22 @@ bool HMMWV9_IrrGuiDriver::OnEvent(const SEvent& event)
     switch (event.KeyInput.Key) {
     case KEY_KEY_A:
       setSteering(m_steering - 0.1);
-      sprintf(msg, "Steering: %+3.3g", m_steering);
+      sprintf(msg, "Steering: %+.2f", m_steering);
       m_text_steering->setText(core::stringw(msg).c_str());
       return true;
     case KEY_KEY_D:
       setSteering(m_steering + 0.1);
-      sprintf(msg, "Steering: %+3.3g", m_steering);
+      sprintf(msg, "Steering: %+.2f", m_steering);
       m_text_steering->setText(core::stringw(msg).c_str());
       return true;
     case KEY_KEY_W:
       setThrottle(m_throttle + 0.1);
-      sprintf(msg, "Throttle: %+3.3g", m_throttle*100.);
+      sprintf(msg, "Throttle: %+.2f", m_throttle*100.);
       m_text_throttle->setText(core::stringw(msg).c_str());
       return true;
     case KEY_KEY_S:
       setThrottle(m_throttle - 0.1);
-      sprintf(msg, "Throttle: %+3.3g", m_throttle*100.);
+      sprintf(msg, "Throttle: %+.2f", m_throttle*100.);
       m_text_throttle->setText(core::stringw(msg).c_str());
       return true;
 
@@ -139,6 +146,7 @@ void HMMWV9_IrrGuiDriver::DrawAll()
   renderSprings();
   renderLinks();
   renderGrid();
+  renderStats();
 }
 
 void HMMWV9_IrrGuiDriver::renderSprings()
@@ -177,6 +185,13 @@ void HMMWV9_IrrGuiDriver::renderGrid()
     gridCsys,
     video::SColor(255, 80, 130, 255),
     true);
+}
+
+void HMMWV9_IrrGuiDriver::renderStats()
+{
+  char msg[100];
+  sprintf(msg, "Speed: %+.2f", m_car.GetVehicleSpeed());
+  m_text_speed->setText(core::stringw(msg).c_str());
 }
 
 

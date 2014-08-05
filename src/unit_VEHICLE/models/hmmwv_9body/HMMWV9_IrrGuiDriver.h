@@ -63,6 +63,7 @@ private:
   void renderSprings();
   void renderLinks();
   void renderGrid();
+  void renderStats();
 
   irr::ChIrrAppInterface&   m_app;
   const HMMWV9_Vehicle&     m_car;
@@ -73,6 +74,7 @@ private:
 
   irr::gui::IGUIStaticText* m_text_throttle;
   irr::gui::IGUIStaticText* m_text_steering;
+  irr::gui::IGUIStaticText* m_text_speed;
 
 };
 

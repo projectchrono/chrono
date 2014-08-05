@@ -49,6 +49,8 @@ public:
   const ChVector<>&     GetChassisPos() const { return m_chassis->GetPos(); }
   const ChQuaternion<>& GetChassisRot() const { return m_chassis->GetRot(); }
 
+  double GetVehicleSpeed() const { return m_chassis->GetPos_dt().Length(); }
+
 protected:
   ChSharedBodyPtr  m_chassis;
 
