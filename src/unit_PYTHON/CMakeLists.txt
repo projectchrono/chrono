@@ -381,7 +381,8 @@ IF(ENABLE_UNIT_PYTHON)
 		SWIG_LINK_LIBRARIES(ChronoEngine_PYTHON_irrlicht 
 							${PYTHON_LIBRARY}
 							ChronoEngine
-							${CH_IRRLICHTLIB}  # no ChronoEngine_IRRLICHT , enough static linking of Irrlicht lib...
+							ChronoEngine_IRRLICHT
+							${CH_IRRLICHTLIB}  
 							)
 		SET_TARGET_PROPERTIES(${SWIG_MODULE_ChronoEngine_PYTHON_irrlicht_REAL_NAME} PROPERTIES 
 						PROJECT_LABEL "ChronoEngine_PYTHON_irrlicht"
