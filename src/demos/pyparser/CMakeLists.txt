@@ -34,6 +34,7 @@ IF (ENABLE_UNIT_IRRLICHT)
 		${CH_IRRLICHTLIB}
  		ChronoEngine
 		ChronoEngine_PYPARSER
+		ChronoEngine_IRRLICHT
  		)
 	ADD_DEPENDENCIES (demo_import_solidworks ChronoEngine ChronoEngine_PYPARSER)
 	
