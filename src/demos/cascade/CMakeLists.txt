@@ -29,6 +29,7 @@ TARGET_LINK_LIBRARIES(demo_converter
 	${CH_CASCADELIBS}
         ChronoEngine
  	ChronoEngine_CASCADE
+	ChronoEngine_IRRLICHT
  	)
 ADD_DEPENDENCIES (demo_converter ChronoEngine ChronoEngine_CASCADE)
  	
@@ -45,7 +46,7 @@ TARGET_LINK_LIBRARIES(demo_stepfile
 	${CH_CASCADELIBS}
  	ChronoEngine
  	ChronoEngine_CASCADE
-
+	ChronoEngine_IRRLICHT
  	)
 ADD_DEPENDENCIES (demo_stepfile ChronoEngine ChronoEngine_CASCADE)
 
@@ -62,7 +63,7 @@ TARGET_LINK_LIBRARIES(demo_robot
 	${CH_CASCADELIBS}
  	ChronoEngine
  	ChronoEngine_CASCADE 
-
+	ChronoEngine_IRRLICHT
  	)
 ADD_DEPENDENCIES (demo_robot ChronoEngine ChronoEngine_CASCADE)
 
