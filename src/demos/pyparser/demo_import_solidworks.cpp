@@ -26,7 +26,7 @@
 ///////////////////////////////////////////////////
  
 #include "physics/ChApidll.h" 
-#include "irrlicht_interface/ChIrrApp.h"
+#include "unit_IRRLICHT/ChIrrApp.h"
 #include "unit_PYTHON/ChPython.h"
 
 #include <irrlicht.h>
