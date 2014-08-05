@@ -52,7 +52,7 @@ public:
 
   virtual const ChVector<>& GetSpindlePos() const { return m_spindle->GetPos(); }
   virtual const ChQuaternion<>& GetSpindleRot() const { return m_spindle->GetRot(); }
-  virtual double GetSpindleAngSpeed();
+  virtual double GetSpindleAngSpeed() const;
 
 protected:
 

@@ -151,7 +151,7 @@ ChDoubleWishboneReduced::Initialize(ChSharedBodyPtr   chassis,
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 double
-ChDoubleWishboneReduced::GetSpindleAngSpeed()
+ChDoubleWishboneReduced::GetSpindleAngSpeed() const
 {
   if (m_driven)
     return m_engine->Get_mot_rot_dt();

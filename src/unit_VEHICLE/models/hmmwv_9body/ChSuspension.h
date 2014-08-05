@@ -54,7 +54,7 @@ public:
 
   virtual const ChVector<>& GetSpindlePos() const = 0;
   virtual const ChQuaternion<>& GetSpindleRot() const = 0;
-  virtual double GetSpindleAngSpeed() = 0;
+  virtual double GetSpindleAngSpeed() const = 0;
 
 protected:
 
