@@ -36,9 +36,9 @@
 #include "unit_CASCADE/ChCascadeMeshTools.h"
 #include "unit_CASCADE/ChIrrCascadeMeshTools.h"
 #include "unit_CASCADE/ChIrrCascade.h"
-#include "irrlicht_interface/ChBodySceneNode.h" 
-#include "irrlicht_interface/ChIrrAppInterface.h"
-#include "irrlicht_interface/ChBodySceneNodeTools.h" 
+#include "unit_IRRLICHT/ChBodySceneNode.h" 
+#include "unit_IRRLICHT/ChIrrAppInterface.h"
+#include "unit_IRRLICHT/ChBodySceneNodeTools.h" 
 
 #include <irrlicht.h>
 

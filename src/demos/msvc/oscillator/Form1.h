@@ -4,10 +4,10 @@
 #include <irrlicht.h>
 #include "physics/ChApidll.h" 
 #include "physics/ChSystem.h"
-#include "irrlicht_interface/ChBodySceneNode.h"
-#include "irrlicht_interface/ChBodySceneNodeTools.h"
-#include "irrlicht_interface/ChIrrWizard.h"
-#include "irrlicht_interface/ChDisplayTools.h" 
+#include "unit_IRRLICHT/ChBodySceneNode.h"
+#include "unit_IRRLICHT/ChBodySceneNodeTools.h"
+#include "unit_IRRLICHT/ChIrrWizard.h"
+#include "unit_IRRLICHT/ChDisplayTools.h" 
 #include "core/ChRealtimeStep.h"
 #include "MyOscillatorSystem.h"
 #pragma managed

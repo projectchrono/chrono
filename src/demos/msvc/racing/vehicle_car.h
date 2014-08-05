@@ -11,8 +11,8 @@
 #include "physics/ChSystem.h"
 #include "physics/ChLinkDistance.h"
 #include "physics/ChLinkBrake.h"
-#include "irrlicht_interface/ChBodySceneNode.h"
-#include "irrlicht_interface/ChBodySceneNodeTools.h" 
+#include "unit_IRRLICHT/ChBodySceneNode.h"
+#include "unit_IRRLICHT/ChBodySceneNodeTools.h" 
 
 #include <irrlicht.h>
 #include <irrKlang.h>

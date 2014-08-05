@@ -49,8 +49,8 @@
 
 //#include "unit_IRRLICHT/ChXxxyyyzzz.h"
 #include <irrlicht.h>
-#include "irrlicht_interface/ChIrrAppInterface.h"
-#include "irrlicht_interface/ChIrrAssetConverter.h"
+#include "unit_IRRLICHT/ChIrrAppInterface.h"
+#include "unit_IRRLICHT/ChIrrAssetConverter.h"
 
 using namespace chrono;
 using namespace irr;

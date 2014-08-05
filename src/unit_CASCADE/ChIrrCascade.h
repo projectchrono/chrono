@@ -30,8 +30,8 @@
 ///////////////////////////////////////////////////
 
 
-#include "irrlicht_interface/ChBodySceneNode.h"
-#include "irrlicht_interface/ChIrrMeshTools.h"
+#include "unit_IRRLICHT/ChBodySceneNode.h"
+#include "unit_IRRLICHT/ChIrrMeshTools.h"
 #include "geometry/ChCTriangleMesh.h"
 #include "physics/ChBodyAuxRef.h"
 #include "ChIrrCascadeMeshTools.h"

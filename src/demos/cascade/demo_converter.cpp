@@ -89,8 +89,8 @@
 #include <TObj_TReference.hxx>
 #include <TNaming_NamedShape.hxx>
 
-#include "irrlicht_interface/ChIrrAppInterface.h"
-#include "irrlicht_interface/ChIrrMeshTools.h"
+#include "unit_IRRLICHT/ChIrrAppInterface.h"
+#include "unit_IRRLICHT/ChIrrMeshTools.h"
 
 
 // Use the namespace of Chrono

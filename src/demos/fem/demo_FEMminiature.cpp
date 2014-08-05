@@ -31,7 +31,7 @@
 #include "unit_FEM/ChBuilderBeam.h"
 #include "unit_FEM/ChMesh.h"
 #include "unit_FEM/ChVisualizationFEMmesh.h"
-#include "irrlicht_interface/ChIrrApp.h"
+#include "unit_IRRLICHT/ChIrrApp.h"
 #include "unit_MATLAB/ChMatlabEngine.h"
 
 // Remember to use the namespace 'chrono' because all classes 

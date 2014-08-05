@@ -1,14 +1,14 @@
 %{
 
 /* Includes the header in the wrapper code */
-#include "irrlicht_interface/ChIrrAssetConverter.h"
+#include "unit_IRRLICHT/ChIrrAssetConverter.h"
 
 using namespace chrono;
 
 %}
  
 /* Parse the header file to generate wrappers */
- %include "../irrlicht_interface/ChIrrAssetConverter.h"    
+ %include "../unit_IRRLICHT/ChIrrAssetConverter.h"    
 
 // Define also the shared pointer chrono::ChShared<ChBoxShape> 
 // (renamed as 'ChBoxShapeShared' in python)
