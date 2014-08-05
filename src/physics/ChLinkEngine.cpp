@@ -237,7 +237,7 @@ void ChLinkEngine::Set_rot_funct_y(ChFunction* m_funct_y)
     if (rot_funct_y) delete rot_funct_y;
         rot_funct_y = m_funct_y;
 }
-void ChLinkEngine::SetKeyedPolarRotation(Quaternion mq)
+void ChLinkEngine::SetKeyedPolarRotation(const Quaternion& mq)
 {
 	keyed_polar_rotation = mq;
 }

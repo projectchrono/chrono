@@ -122,28 +122,32 @@ public:
     virtual void SetUpMarkers(ChMarker* mark1, ChMarker* mark2);
 
 			// data get/set
-	ChFunction* Get_rot_funct() {return rot_funct;};
-	void Set_rot_funct(ChFunction* m_funct);
-	ChFunction* Get_spe_funct() {return spe_funct;};
-	void Set_spe_funct(ChFunction* m_funct);
-	ChFunction* Get_tor_funct() {return tor_funct;};
-	void Set_tor_funct(ChFunction* m_funct);
-	ChFunction* Get_torque_w_funct() {return torque_w;};
-	void Set_torque_w_funct(ChFunction* m_funct);
+  ChFunction* Get_rot_funct() const      {return rot_funct;}
+  ChFunction* Get_spe_funct() const      { return spe_funct; }
+  ChFunction* Get_tor_funct() const      { return tor_funct; }
+  ChFunction* Get_torque_w_funct() const { return torque_w; }
 
-	ChFunction* Get_rot_funct_x() {return rot_funct_x;};
-	void Set_rot_funct_x(ChFunction* m_funct);
-	ChFunction* Get_rot_funct_y() {return rot_funct_y;};
-	void Set_rot_funct_y(ChFunction* m_funct);
-	Quaternion GetKeyedPolarRotation(){return keyed_polar_rotation;};
-	void SetKeyedPolarRotation(Quaternion mq);
+  void Set_rot_funct(ChFunction* m_funct);
+  void Set_spe_funct(ChFunction* m_funct);
+  void Set_tor_funct(ChFunction* m_funct);
+  void Set_torque_w_funct(ChFunction* m_funct);
 
-	int   Get_learn() {return learn;};
-	void  Set_learn(int mset);
-	int   Get_impose_reducer() {return impose_reducer;};
-	void  Set_impose_reducer(int mset) {impose_reducer = mset;};
-	int   Get_eng_mode() {return eng_mode;};
-	void  Set_eng_mode(int mset);
+  ChFunction* Get_rot_funct_x() const      {return rot_funct_x;}
+  ChFunction* Get_rot_funct_y() const      { return rot_funct_y; }
+  const Quaternion& GetKeyedPolarRotation() const { return keyed_polar_rotation; }
+
+  void Set_rot_funct_x(ChFunction* m_funct);
+  void Set_rot_funct_y(ChFunction* m_funct);
+  void SetKeyedPolarRotation(const Quaternion& mq);
+
+  int   Get_learn() const          {return learn;}
+  int   Get_impose_reducer() const { return impose_reducer; }
+  int   Get_eng_mode() const       { return eng_mode; }
+
+  void  Set_learn(int mset);
+  void  Set_impose_reducer(int mset) {impose_reducer = mset;}
+  void  Set_eng_mode(int mset);
+
         enum eCh_eng_mode {
 		ENG_MODE_ROTATION = 0,
 		ENG_MODE_SPEED,
@@ -152,8 +156,10 @@ public:
 		ENG_MODE_KEY_POLAR,
 		ENG_MODE_TO_POWERTRAIN_SHAFT
 		};
-	int   Get_shaft_mode() {return shaft_mode;};
+
+	int   Get_shaft_mode() const {return shaft_mode;}
 	void  Set_shaft_mode(int mset);
+
         enum eCh_shaft_mode	{
 		ENG_SHAFT_LOCK = 0,		// shafts of motor and user (markers 1 and 2) are stiffly joined 
 		ENG_SHAFT_PRISM,		// shafts of motor and user (markers 1 and 2) can shift along shaft (Z axis) 
@@ -161,35 +167,37 @@ public:
 		ENG_SHAFT_UNIVERSAL,	// not yet used
 		ENG_SHAFT_CARDANO		// not yet used
 		};
-	double Get_mot_rot() {return mot_rot;}
-	double Get_mot_rot_dt() {return mot_rot_dt;}
-	double Get_mot_rot_dtdt() {return mot_rot_dtdt;}
-	double Get_mot_torque() {return mot_torque;}
-	double Get_mot_rerot() {return mot_rerot;}
-	double Get_mot_rerot_dt() {return mot_rerot_dt;}
-	double Get_mot_rerot_dtdt() {return mot_rerot_dtdt;}
-	double Get_mot_retorque() {return mot_retorque;}
-	void Set_mot_tau(double mtau) {mot_tau = mtau;}
-	double Get_mot_tau() {return mot_tau;}
-	void Set_mot_eta(double meta) {mot_eta = meta;}
-	double Get_mot_eta() {return mot_eta;}
-	void Set_mot_inertia(double min) {mot_inertia = min;}
-	double Get_mot_inertia() {return mot_inertia;}
+
+	double Get_mot_rot() const        {return mot_rot;}
+	double Get_mot_rot_dt() const     {return mot_rot_dt;}
+	double Get_mot_rot_dtdt() const   {return mot_rot_dtdt;}
+	double Get_mot_torque() const     {return mot_torque;}
+	double Get_mot_rerot() const      {return mot_rerot;}
+	double Get_mot_rerot_dt() const   {return mot_rerot_dt;}
+	double Get_mot_rerot_dtdt() const {return mot_rerot_dtdt;}
+	double Get_mot_retorque() const   {return mot_retorque;}
+  double Get_mot_tau() const        { return mot_tau; }
+  double Get_mot_eta() const        {return mot_eta;}
+  double Get_mot_inertia() const    {return mot_inertia;}
+
+	void Set_mot_tau(double mtau)     {mot_tau = mtau;}
+	void Set_mot_eta(double meta)     {mot_eta = meta;}
+	void Set_mot_inertia(double min)  {mot_inertia = min;}
 
 			// Access the inner 1D shaft connected to the rotation of body1 about dir of motor shaft, 
 			// if in CH_ENG_MODE_TO_POWERTRAIN_SHAFT. The shaft can be
 			// connected to other shafts with ChShaftsClutch or similar items.
-	ChShaft* GetInnerShaft1() {return &this->innershaft1;}
+	ChShaft* GetInnerShaft1() {return &innershaft1;}
 			// Access the inner 1D shaft connected to the rotation of body2 about dir of motor shaft, 
 			// if in CH_ENG_MODE_TO_POWERTRAIN_SHAFT. The shaft can be
 			// connected to other shafts with ChShaftsClutch or similar items.
-	ChShaft* GetInnerShaft2() {return &this->innershaft2;}
+	ChShaft* GetInnerShaft2() {return &innershaft2;}
 			// Get the torque between body 1 and inner shaft 1.
 			// Note: use only if in CH_ENG_MODE_TO_POWERTRAIN_SHAFT.
-	double GetInnerTorque1() {return this->torque_react1;}
+	double GetInnerTorque1() const {return torque_react1;}
 			// Get the torque between body 2 and inner shaft 2.
 			// Note: use only if in CH_ENG_MODE_TO_POWERTRAIN_SHAFT.
-	double GetInnerTorque2() {return this->torque_react2;}
+	double GetInnerTorque2() const {return torque_react2;}
 
 			// Overload LCP system functions of ChPhysicsItem
 			// (beyond the base link implementations, it also have to 
