@@ -35,6 +35,7 @@
 #include "unit_IRRLICHT/ChIrrApp.h"
 
 #include "ChDriver.h"
+#include "ChChaseCamera.h"
 
 #include "HMMWV9_Vehicle.h"
 
@@ -52,14 +53,16 @@ public:
 
   virtual bool OnEvent(const irr::SEvent& event);
 
-  void CreateCamera(const chrono::ChVector<>& cam_offset);
+  void CreateCamera(const chrono::ChVector<>& ptOnChassis,
+                    double                    chaseDist,
+                    double                    chaseHeight);
+  void UpdateCamera(double step_size);
   void DrawAll();
 
   void SetTerrainHeight(double height) { m_terrainHeight = height; }
 
 private:
 
-  void updateCamera();
   void renderSprings();
   void renderLinks();
   void renderGrid();
@@ -67,9 +70,9 @@ private:
 
   irr::ChIrrAppInterface&   m_app;
   const HMMWV9_Vehicle&     m_car;
-  chrono::ChVector<>        m_cam_offset;
 
-  double m_cam_multiplier;
+  chrono::ChChaseCamera     m_camera;
+
   double m_terrainHeight;
 
   irr::gui::IGUIStaticText* m_text_throttle;

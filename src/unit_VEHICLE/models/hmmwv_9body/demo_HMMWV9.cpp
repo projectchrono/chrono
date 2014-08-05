@@ -66,8 +66,8 @@ double terrainWidth  = 100.0;   // size in Y directoin
 double step_size = 0.001;
 
 #ifdef USE_IRRLICHT
-  // Camera offset relative to vehicle
-  ChVector<> cameraOffset(2.5, 0, 2.0);
+  // Point on chassis tracked by the camera
+  ChVector<> trackPoint(0.5, 0, 1.0);
 #else
   double tend = 20.0;
   int out_fps = 30;
@@ -122,7 +122,7 @@ int main(int argc, char* argv[])
 
   HMMWV9_IrrGuiDriver driver(application, vehicle);
 
-  driver.CreateCamera(cameraOffset);
+  driver.CreateCamera(trackPoint, 6, 0.5);
 
   // Set up the assets for rendering
   application.AssetBindAll();
@@ -144,6 +144,8 @@ int main(int argc, char* argv[])
   {
     // Render scene
     application.GetVideoDriver()->beginScene(true, true, irr::video::SColor(255, 140, 161, 192));
+
+    driver.UpdateCamera(step_size);
 
     driver.DrawAll();
 

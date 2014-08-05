@@ -42,7 +42,8 @@ HMMWV9_IrrGuiDriver::HMMWV9_IrrGuiDriver(ChIrrApp&              app,
                                          int                    tlc_Y)
 : m_app(app),
   m_car(car),
-  m_terrainHeight(0)
+  m_terrainHeight(0),
+  m_camera(car.GetChassis())
 {
   app.SetUserEventReceiver(this);
 
@@ -65,14 +66,24 @@ HMMWV9_IrrGuiDriver::HMMWV9_IrrGuiDriver(ChIrrApp&              app,
     core::rect<s32>(10, 50, 150, 65), false, false, text_inputs);
 }
 
-
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 bool HMMWV9_IrrGuiDriver::OnEvent(const SEvent& event)
 {
-  // user hit a key, while not holding it down
-  if (event.EventType == EET_KEY_INPUT_EVENT && !event.KeyInput.PressedDown)
-  {
+  // Only interpret keyboard inputs.
+  if (event.EventType != EET_KEY_INPUT_EVENT)
+    return false;
+
+  if (event.KeyInput.PressedDown) {
+    switch (event.KeyInput.Key) {
+    case KEY_DOWN:
+      m_camera.Zoom(1);
+      return true;
+    case KEY_UP:
+      m_camera.Zoom(-1);
+      return true;
+    }
+  } else {
     char msg[100];
 
     switch (event.KeyInput.Key) {
@@ -97,44 +108,54 @@ bool HMMWV9_IrrGuiDriver::OnEvent(const SEvent& event)
       m_text_throttle->setText(core::stringw(msg).c_str());
       return true;
 
-    case KEY_DOWN:
-      m_cam_multiplier *= 1.01;
+    case KEY_KEY_1:
+      m_camera.SetState(ChChaseCamera::Chase);
       return true;
-    case KEY_UP:
-      m_cam_multiplier /= 1.01;
+    case KEY_KEY_2:
+      m_camera.SetState(ChChaseCamera::Follow);
+      return true;
+    case KEY_KEY_3:
+      m_camera.SetState(ChChaseCamera::Track);
+      return true;
     }
   }
 
   return false;
-
 }
 
-
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-void HMMWV9_IrrGuiDriver::CreateCamera(const chrono::ChVector<>& cam_offset)
+void HMMWV9_IrrGuiDriver::CreateCamera(const ChVector<>& ptOnChassis,
+                                       double            chaseDist,
+                                       double            chaseHeight)
 {
-  m_cam_multiplier = 1;
-  m_cam_offset = cam_offset;
+  // Initialize the ChChaseCamera
+  m_camera.Initialize(ptOnChassis, chaseDist, chaseHeight);
+  ChVector<> cam_pos = m_camera.GetCameraPos();
+  ChVector<> cam_target = m_camera.GetTargetPos();
 
-  m_app.GetSceneManager()->addCameraSceneNode(
+  // Create and initialize the Irrlicht camera
+  scene::ICameraSceneNode *camera = m_app.GetSceneManager()->addCameraSceneNode(
     m_app.GetSceneManager()->getRootSceneNode(),
     core::vector3df(0, 0, 0), core::vector3df(0, 0, 0));
 
-  m_app.GetSceneManager()->getActiveCamera()->setUpVector(core::vector3df(0, 0, 1));
-
-  updateCamera();
+  camera->setUpVector(core::vector3df(0, 0, 1));
+  camera->setPosition(core::vector3df((f32)cam_pos.x, (f32)cam_pos.y, (f32)cam_pos.z));
+  camera->setTarget(core::vector3df((f32)cam_target.x, (f32)cam_target.y, (f32)cam_target.z));
 }
 
-void HMMWV9_IrrGuiDriver::updateCamera()
+void HMMWV9_IrrGuiDriver::UpdateCamera(double step_size)
 {
-  const ChVector<>& car_pos = m_car.GetChassisPos();
-  ChVector<>        cam_pos = m_car.GetChassis()->GetCoord().TrasformLocalToParent(m_cam_multiplier * m_cam_offset);
+  // Update the ChChaseCamera
+  m_camera.Update(step_size);
+  ChVector<> cam_pos = m_camera.GetCameraPos();
+  ChVector<> cam_target = m_camera.GetTargetPos();
 
+  // Update the Irrlicht camera
   scene::ICameraSceneNode *camera = m_app.GetSceneManager()->getActiveCamera();
 
   camera->setPosition(core::vector3df((f32)cam_pos.x, (f32)cam_pos.y, (f32)cam_pos.z));
-  camera->setTarget(core::vector3df((f32)car_pos.x, (f32)car_pos.y, (f32)car_pos.z));
+  camera->setTarget(core::vector3df((f32)cam_target.x, (f32)cam_target.y, (f32)cam_target.z));
 }
 
 
@@ -142,8 +163,6 @@ void HMMWV9_IrrGuiDriver::updateCamera()
 // -----------------------------------------------------------------------------
 void HMMWV9_IrrGuiDriver::DrawAll()
 {
-  updateCamera();
-
   renderGrid();
 
   m_app.DrawAll();
