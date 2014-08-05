@@ -52,7 +52,7 @@ double ChFunction_Matlab::Get_y      (double x)
 {
 	double ret = 0;
 
-	static char m_eval_command[CHF_MATLAB_STRING_LEN+20];
+	char m_eval_command[CHF_MATLAB_STRING_LEN+20];
 
 	#ifdef CH_MATLAB
 	 // no function: shortcut!

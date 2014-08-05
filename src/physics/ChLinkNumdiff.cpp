@@ -228,7 +228,7 @@ void ChLinkNumdiff::ImposeCoords(ChMatrix<>* mc, double t)
 
 void ChLinkNumdiff::FetchCoords(ChMatrix<>* mc)
 {
-    static Coordsys mcsys;
+    ChCoordsys<> mcsys;
 
     mcsys = Body1->GetCoord();
     mc->PasteCoordsys(mcsys,0,0);
@@ -239,7 +239,7 @@ void ChLinkNumdiff::FetchCoords(ChMatrix<>* mc)
 
 void ChLinkNumdiff::FetchCoords_dt(ChMatrix<>* mc)
 {
-    static Coordsys mcsys;
+    ChCoordsys<> mcsys;
 
     mcsys = Body1->GetCoord_dt();
     mc->PasteCoordsys(mcsys,0,0);

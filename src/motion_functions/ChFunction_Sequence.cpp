@@ -216,7 +216,7 @@ ChSharedPtr<ChFunction> ChFunction_Sequence::GetNthFunction (int position)
 
 double ChFunction_Sequence::GetNthDuration(int position)
 {
-	static double default_dur =0.0;
+	double default_dur =0.0;
 	int fcount = functions.Count();
 	if (fcount == 0)
 		return default_dur;

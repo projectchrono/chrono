@@ -147,7 +147,7 @@ public:
 		/// Also speeds and accelerations are transformed.
 	ChFrameMoving<Real> operator >> (const ChFrameMoving<Real>& Fb) const
 		{
-			static ChFrameMoving<Real> res;
+			ChFrameMoving<Real> res;
 			Fb.TrasformLocalToParent(*this, res);
 			return res;
 		}
@@ -163,7 +163,7 @@ public:
 		/// Also speeds and accelerations are transformed.
 	ChFrameMoving<Real> operator * (const ChFrameMoving<Real>& Fb) const
 		{
-			static ChFrameMoving<Real> res;
+			ChFrameMoving<Real> res;
 			TrasformLocalToParent(Fb,res);
 			return res;
 		}
@@ -533,8 +533,8 @@ public:
 		/// That is if w=A*v, then A.Invert();v=A*w;
 	virtual void Invert()
 		{
-			static ChFrameMoving<Real> tmp;
-			static ChFrameMoving<Real> unit;
+			ChFrameMoving<Real> tmp;
+			ChFrameMoving<Real> unit;
 			tmp = *this;
 			tmp.TrasformParentToLocal(unit, *this);
 		}
