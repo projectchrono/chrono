@@ -64,7 +64,7 @@ using namespace gui;
 
 
 // Undefine ChApi and other macros that otherwise SWIG gives a syntax error
-#define ChApiIrrlicht 
+#define ChApiIrr 
 #define _IRR_DEPRECATED_ //
 
 // Include other .i configuration files for SWIG. 
