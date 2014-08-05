@@ -52,6 +52,7 @@ protected:
 	bool backface_cull;
 
 	std::string name;
+	ChVector<> scale;
 
 public:
 				//
@@ -82,6 +83,9 @@ public:
 
 	const std::string& GetName() const     {return name;}
 	void SetName(const std::string& mname) {name = mname;}
+
+	const ChVector<>& GetScale() const     {return scale;}
+	void SetScale(const ChVector<>& mscale) {scale = mscale;}
 };
 
 
