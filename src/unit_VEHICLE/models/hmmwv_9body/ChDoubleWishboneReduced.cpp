@@ -33,8 +33,9 @@ namespace chrono {
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 ChDoubleWishboneReduced::ChDoubleWishboneReduced(const std::string& name,
+                                                 ChSuspension::Side side,
                                                  bool               driven)
-: ChSuspension(name, driven)
+: ChSuspension(name, side, driven)
 {
   // Create the upright and spindle bodies
   m_spindle = ChSharedBodyPtr(new ChBody);
@@ -81,13 +82,12 @@ ChDoubleWishboneReduced::ChDoubleWishboneReduced(const std::string& name,
 // -----------------------------------------------------------------------------
 void
 ChDoubleWishboneReduced::Initialize(ChSharedBodyPtr   chassis,
-                                    const ChVector<>& location,
-                                    bool              left)
+                                    const ChVector<>& location)
 {
   // Transform all points to absolute frame
   for (int i = 0; i < NUM_POINTS; i++) {
     ChVector<> rel_pos = getLocation(static_cast<PointId>(i));
-    if (left)
+    if (m_side == LEFT)
       rel_pos.y = -rel_pos.y;
     m_points[i] = chassis->GetCoord().TrasformLocalToParent(location + rel_pos);
   }

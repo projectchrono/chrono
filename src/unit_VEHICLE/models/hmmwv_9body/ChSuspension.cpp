@@ -24,8 +24,10 @@ namespace chrono {
 
 
 ChSuspension::ChSuspension(const std::string& name,
+                           Side               side,
                            bool               driven)
 : m_name(name),
+  m_side(side),
   m_driven(driven)
 {
 }

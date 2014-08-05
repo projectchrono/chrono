@@ -33,14 +33,19 @@ class ChSuspension : public ChShared
 {
 public:
 
+  enum Side {
+    LEFT,
+    RIGHT
+  };
+
   ChSuspension(const std::string& name,
-    bool               driven = false);
+               Side               side,
+               bool               driven = false);
 
   virtual ~ChSuspension() {}
 
   virtual void Initialize(ChSharedBodyPtr   chassis,
-    const ChVector<>& location,
-    bool              left = false) = 0;
+                          const ChVector<>& location) = 0;
 
   virtual void AttachWheel(ChSharedPtr<ChWheel> wheel) = 0;
 
@@ -52,6 +57,7 @@ public:
 protected:
 
   std::string       m_name;
+  Side              m_side;
   bool              m_driven;
 
 };

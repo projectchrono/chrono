@@ -38,12 +38,12 @@ class ChDoubleWishboneReduced : public ChSuspension
 public:
 
   ChDoubleWishboneReduced(const std::string& name,
+                          ChSuspension::Side side,
                           bool               driven = false);
   virtual ~ChDoubleWishboneReduced() {}
 
   virtual void Initialize(ChSharedBodyPtr   chassis,
-                          const ChVector<>& location,
-                          bool              left = false);
+                          const ChVector<>& location);
 
   virtual void AttachWheel(ChSharedPtr<ChWheel> wheel);
 

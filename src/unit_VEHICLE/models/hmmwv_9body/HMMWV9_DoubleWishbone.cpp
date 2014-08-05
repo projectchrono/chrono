@@ -17,6 +17,7 @@
 // =============================================================================
 
 #include "assets/ChBoxShape.h"
+#include "assets/ChColorAsset.h"
 
 #include "HMMWV9_DoubleWishbone.h"
 
@@ -61,14 +62,16 @@ const double     HMMWV9_DoubleWishboneRear::m_springRestLength = 0.4562;
 // Constructors
 // -----------------------------------------------------------------------------
 HMMWV9_DoubleWishboneFront::HMMWV9_DoubleWishboneFront(const std::string& name,
+                                                       ChSuspension::Side side,
                                                        bool               driven)
-: ChDoubleWishboneReduced(name, driven)
+: ChDoubleWishboneReduced(name, side, driven)
 {
 }
 
 HMMWV9_DoubleWishboneRear::HMMWV9_DoubleWishboneRear(const std::string& name,
+                                                     ChSuspension::Side side,
                                                      bool               driven)
-: ChDoubleWishboneReduced(name, driven)
+: ChDoubleWishboneReduced(name, side, driven)
 {
 }
 
@@ -122,6 +125,13 @@ void HMMWV9_DoubleWishboneFront::OnInitializeUpright()
   ChSharedPtr<ChBoxShape> box(new ChBoxShape);
   box->GetBoxGeometry().SetLenghts(m_uprightDims);
   m_upright->AddAsset(box);
+
+  ChSharedPtr<ChColorAsset> col(new ChColorAsset);
+  switch (m_side) {
+  case RIGHT: col->SetColor(ChColor(0.6, 0.2, 0.2)); break;
+  case LEFT:  col->SetColor(ChColor(0.2, 0.6, 0.2)); break;
+  }
+  m_upright->AddAsset(col);
 }
 
 void HMMWV9_DoubleWishboneRear::OnInitializeUpright()
@@ -129,6 +139,13 @@ void HMMWV9_DoubleWishboneRear::OnInitializeUpright()
   ChSharedPtr<ChBoxShape> box(new ChBoxShape);
   box->GetBoxGeometry().SetLenghts(m_uprightDims);
   m_upright->AddAsset(box);
+
+  ChSharedPtr<ChColorAsset> col(new ChColorAsset);
+  switch (m_side) {
+  case RIGHT: col->SetColor(ChColor(0.6, 0.4, 0.4)); break;
+  case LEFT:  col->SetColor(ChColor(0.4, 0.6, 0.6)); break;
+  }
+  m_upright->AddAsset(col);
 }
 
 
