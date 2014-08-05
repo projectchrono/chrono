@@ -52,6 +52,8 @@ public:
   virtual void ApplySteering(double displ) = 0;
   virtual void ApplyTorque(double torque) = 0;
 
+  virtual const ChVector<>& GetSpindlePos() const = 0;
+  virtual const ChQuaternion<>& GetSpindleRot() const = 0;
   virtual double GetSpindleAngSpeed() = 0;
 
 protected:
