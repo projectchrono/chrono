@@ -344,7 +344,7 @@ public:
 	ChLogPython() {}
 	virtual ~ChLogPython() {};
 			/// Redirect output stream to file wrapper.
-	virtual void	Output(const char* data, int n) 
+	virtual void	Output(const char* data, size_t n) 
 		{ 
 				char buffer[1000];
 				if (n>999) 
