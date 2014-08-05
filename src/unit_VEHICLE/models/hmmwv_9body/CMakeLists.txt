@@ -18,12 +18,6 @@ ENDIF()
 MESSAGE(STATUS "Adding HMMWV_9BODY...")
 
 SET(demo_HMMWV_HEADERS
-		#HMMWV_9body.h
-		#HMMWVTerrain.h
-		#ChWheelBody.h
-		#DoubleAarm.h
-		#ChVehicleDriver.h
-		#HMMWVEventReceiver.h
 	ChVehicle.h
 	ChSuspension.h
 	ChDoubleWishboneReduced.h
@@ -41,9 +35,6 @@ SET(demo_HMMWV_HEADERS
 )
 
 SET(demo_HMMWV_SRCS
-		#demo_HMMWV_9body.cpp
-		#HMMWV_9body.cpp
-		#DoubleAarm.cpp
 	demo_HMMWV9.cpp
 	ChVehicle.cpp
 	ChSuspension.cpp
@@ -79,9 +70,6 @@ ADD_EXECUTABLE(demo_HMMWV_9body ${demo_HMMWV_SRCS} ${demo_HMMWV_HEADERS})
 SET_TARGET_PROPERTIES(demo_HMMWV_9body PROPERTIES LINK_FLAGS "${LINKERFLAG_EXE}")
 TARGET_LINK_LIBRARIES(demo_HMMWV_9body ${HMMWV_LIBS})
 INSTALL(TARGETS demo_HMMWV_9body DESTINATION bin)
-
-#message(STATUS "libraries: ${HMMWV_LIBS}")
-#message(STATUS "dependencies: ${HMMWV_DEPENDENCIES}")
 
 # ----------------------
 # Create config file
