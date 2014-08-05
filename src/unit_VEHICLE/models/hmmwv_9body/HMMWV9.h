@@ -17,7 +17,7 @@
 #ifndef HMMWV9_H
 #define HMMWV9_H
 
-#include "HMMWV_9body_config.h"
+#include "HMMWV9_config.h"
 
 namespace hmmwv9 {
 
