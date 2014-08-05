@@ -45,6 +45,8 @@ public:
 
   ~HMMWV9_Vehicle();
 
+  virtual const chrono::ChVector<>& GetWheelPos(chrono::ChWheelId which) const;
+  virtual const chrono::ChQuaternion<>& GetWheelRot(chrono::ChWheelId which) const;
   virtual double GetWheelAngSpeed(chrono::ChWheelId which);
 
   virtual void Update(double time, double throttle, double steering);

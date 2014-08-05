@@ -141,6 +141,34 @@ HMMWV9_Vehicle::~HMMWV9_Vehicle()
 // -----------------------------------------------------------------------------
 //
 // -----------------------------------------------------------------------------
+const ChVector<>& HMMWV9_Vehicle::GetWheelPos(ChWheelId which) const
+{
+  switch (which) {
+  case FRONT_LEFT:
+    return m_front_left_susp->GetSpindlePos();
+  case FRONT_RIGHT:
+    return m_front_right_susp->GetSpindlePos();
+  case REAR_LEFT:
+    return m_rear_left_susp->GetSpindlePos();
+  case REAR_RIGHT:
+    return m_rear_right_susp->GetSpindlePos();
+  }
+}
+
+const ChQuaternion<>& HMMWV9_Vehicle::GetWheelRot(ChWheelId which) const
+{
+  switch (which) {
+  case FRONT_LEFT:
+    return m_front_left_susp->GetSpindleRot();
+  case FRONT_RIGHT:
+    return m_front_right_susp->GetSpindleRot();
+  case REAR_LEFT:
+    return m_rear_left_susp->GetSpindleRot();
+  case REAR_RIGHT:
+    return m_rear_right_susp->GetSpindleRot();
+  }
+}
+
 double HMMWV9_Vehicle::GetWheelAngSpeed(ChWheelId which)
 {
   switch (which) {
@@ -151,7 +179,6 @@ double HMMWV9_Vehicle::GetWheelAngSpeed(ChWheelId which)
   case REAR_LEFT:
     return m_rear_left_susp->GetSpindleAngSpeed();
   case REAR_RIGHT:
-    return 0;
     return m_rear_right_susp->GetSpindleAngSpeed();
   }
 }
