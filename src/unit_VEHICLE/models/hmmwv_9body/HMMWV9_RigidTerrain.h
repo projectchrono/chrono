@@ -34,8 +34,16 @@ public:
 
   ~HMMWV9_RigidTerrain() {}
 
+  void AddMovingObstacles(int numObstacles);
+  void AddFixedObstacles();
+
 private:
 
+  chrono::ChSystem&  m_system;
+
+  double m_sizeX;
+  double m_sizeY;
+  double m_height;
 };
 
 

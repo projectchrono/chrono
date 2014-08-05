@@ -106,7 +106,8 @@ int main(int argc, char* argv[])
 
   // Create the ground
   HMMWV9_RigidTerrain terrain(m_system, terrainHeight, terrainLength, terrainWidth, 0.8);
-
+  //terrain.AddMovingObstacles(10);
+  terrain.AddFixedObstacles();
 
 #ifdef USE_IRRLICHT
   irr::ChIrrApp application(&m_system,
