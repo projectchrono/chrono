@@ -143,9 +143,13 @@ void HMMWV9_IrrGuiDriver::updateCamera()
 void HMMWV9_IrrGuiDriver::DrawAll()
 {
   updateCamera();
+
+  renderGrid();
+
+  m_app.DrawAll();
+
   renderSprings();
   renderLinks();
-  renderGrid();
   renderStats();
 }
 

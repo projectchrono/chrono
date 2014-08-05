@@ -145,7 +145,6 @@ int main(int argc, char* argv[])
     // Render scene
     application.GetVideoDriver()->beginScene(true, true, irr::video::SColor(255, 140, 161, 192));
 
-    application.DrawAll();
     driver.DrawAll();
 
     // Update subsystems and advance simulation by one time step
