@@ -1,56 +1,71 @@
-#ifndef CHSUSPENSION_H
-#define CHSUSPENSION_H
+// =============================================================================
+// PROJECT CHRONO - http://projectchrono.org
+//
+// Copyright (c) 2014 projectchrono.org
+// All right reserved.
+//
+// Use of this source code is governed by a BSD-style license that can be found
+// in the LICENSE file at the top level of the distribution and at
+// http://projectchrono.org/license-chrono.txt.
+//
+// =============================================================================
+// Authors: Radu Serban, Justin Madsen
+// =============================================================================
+//
+// Base class for all suspension subsystems
+//
+// =============================================================================
 
-#include "physics/ChApidll.h" 
+#ifndef CH_SUSPENSION_H
+#define CH_SUSPENSION_H
+
+#include <string>
+
+#include "core/ChShared.h"
 #include "physics/ChSystem.h"
 
-using namespace chrono;
+#include "ChWheel.h"
 
-/// Used in a HMMWV (or any other) vehicle model template. Specific implementations
-///	can have additional functionality from those inherited from this parent class.
-class ChSuspension
+namespace chrono {
+
+
+class ChSuspension : public ChShared
 {
-protected:
-	// all the bodies
-	std::vector<ChBody*> body_list;
-	
-	// links: kinematically idealized joints, e.g. massless link distance constraint
-	std::vector<ChLinkDistance*> link_list;
-	
-	// all the general joints
-	std::vector<ChLinkLock*> joint_list;
-
-	// suspension name
-	std::string subsys_name;
-
 public:
 
-	// Constructors, destruct
-	ChSuspension(){}
-	virtual ~ChSuspension(){}
+  enum Side {
+    LEFT,
+    RIGHT
+  };
 
-	virtual 
+  ChSuspension(const std::string& name,
+               Side               side,
+               bool               driven = false);
 
-	// get the list of bodies as const refs
-	const std::vector<ChBody*>& get_body_ptrs(){
-		return this->body_list;
-	}
+  virtual ~ChSuspension() {}
 
-	// get the list of geometric constraints (links) as const refs
-	const std::vector<ChLinkDistance*>& get_link_ptrs(){
-		return this->link_list;
-	}
+  virtual void Initialize(ChSharedBodyPtr   chassis,
+                          const ChVector<>& location) = 0;
 
-	// get the list of joints in this subsystem
-	const std::vector<ChLinkLock*>& get_joint_ptrs(){
-		return this->joint_list;
-	}
+  virtual void AttachWheel(ChSharedPtr<ChWheel> wheel) = 0;
 
-	// get the name of the subsys
-	const std::string& get_subsysName() {
-		return subsys_name;
-	}
+  virtual void ApplySteering(double displ) = 0;
+  virtual void ApplyTorque(double torque) = 0;
+
+  virtual const ChVector<>& GetSpindlePos() const = 0;
+  virtual const ChQuaternion<>& GetSpindleRot() const = 0;
+  virtual double GetSpindleAngSpeed() const = 0;
+
+protected:
+
+  std::string       m_name;
+  Side              m_side;
+  bool              m_driven;
 
 };
+
+
+} // end namespace chrono
+
 
 #endif

@@ -12,39 +12,41 @@
 // Authors: Radu Serban, Justin Madsen
 // =============================================================================
 //
-// Base class for a vehicle wheel.
-// A wheel subsystem does not own a body. Instead, when attached to a suspension
-// subsystem, the wheel's mass properties are used to update those of the
-// spindle body owned by the suspension.
-// A concrete wheel subsystem can optionally carry its own visualization assets
-// and/or contact geometry (which are associated with the suspension's spindle
-// body).
+// Base class for a vehicle powertrain.
+//
 // =============================================================================
 
-#ifndef CH_WHEEL_H
-#define CH_WHEEL_H
-
+#ifndef CH_POWERTRAIN_H
+#define CH_POWERTRAIN_H
 
 #include "core/ChShared.h"
 #include "core/ChVector.h"
 #include "physics/ChBody.h"
 
+#include "ChVehicle.h"
 
 namespace chrono {
 
+enum ChDriveType {
+  FWD,
+  RWD,
+  AWD
+};
 
-class ChWheel : public ChShared {
+class ChPowertrain : public ChShared {
 public:
-  ChWheel() {}
-  virtual ~ChWheel() {}
 
-  virtual double getMass() const = 0;
-  virtual const ChVector<>& getInertia() = 0;
+  ChPowertrain(ChVehicle* car, ChDriveType type);
+
+  virtual ~ChPowertrain() {}
+
+  virtual double GetWheelTorque(ChWheelId which) const = 0;
+
+  virtual void Update(double time, double throttle) = 0;
 
 protected:
-  virtual void OnInitialize(ChSharedBodyPtr body) {}
-
-  friend class ChDoubleWishboneReduced;
+  ChVehicle*    m_car;
+  ChDriveType   m_type;
 };
 
 

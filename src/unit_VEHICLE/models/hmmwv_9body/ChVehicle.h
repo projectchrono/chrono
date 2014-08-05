@@ -12,17 +12,12 @@
 // Authors: Radu Serban, Justin Madsen
 // =============================================================================
 //
-// Base class for a vehicle wheel.
-// A wheel subsystem does not own a body. Instead, when attached to a suspension
-// subsystem, the wheel's mass properties are used to update those of the
-// spindle body owned by the suspension.
-// A concrete wheel subsystem can optionally carry its own visualization assets
-// and/or contact geometry (which are associated with the suspension's spindle
-// body).
+// Base class for a vehicle model.
+//
 // =============================================================================
 
-#ifndef CH_WHEEL_H
-#define CH_WHEEL_H
+#ifndef CH_VEHICLE_H
+#define CH_VEHICLE_H
 
 
 #include "core/ChShared.h"
@@ -32,19 +27,33 @@
 
 namespace chrono {
 
+enum ChWheelId {
+  FRONT_LEFT,
+  FRONT_RIGHT,
+  REAR_LEFT,
+  REAR_RIGHT
+};
 
-class ChWheel : public ChShared {
+class ChVehicle : public ChShared {
 public:
-  ChWheel() {}
-  virtual ~ChWheel() {}
+  ChVehicle() {}
+  virtual ~ChVehicle() {}
 
-  virtual double getMass() const = 0;
-  virtual const ChVector<>& getInertia() = 0;
+  virtual const ChVector<>& GetWheelPos(ChWheelId which) const = 0;
+  virtual const ChQuaternion<>& GetWheelRot(ChWheelId which) const = 0;
+  virtual double GetWheelAngSpeed(ChWheelId which) = 0;
+
+  virtual void Update(double time, double throttle, double steering) = 0;
+
+  const ChSharedBodyPtr GetChassis() const    { return m_chassis; }
+  const ChVector<>&     GetChassisPos() const { return m_chassis->GetPos(); }
+  const ChQuaternion<>& GetChassisRot() const { return m_chassis->GetRot(); }
+
+  double GetVehicleSpeed() const { return m_chassis->GetPos_dt().Length(); }
 
 protected:
-  virtual void OnInitialize(ChSharedBodyPtr body) {}
+  ChSharedBodyPtr  m_chassis;
 
-  friend class ChDoubleWishboneReduced;
 };
 
 

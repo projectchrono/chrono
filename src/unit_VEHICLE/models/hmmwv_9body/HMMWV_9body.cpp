@@ -138,13 +138,13 @@ HMMWV_9body::HMMWV_9body(ChSystem&             my_system,
   //  use_tireMesh = true;
   if (use_tireMesh) {
 		// use a nice looking .obj mesh for the wheel visuals
-		this->wheelLF = new ChWheel(my_system, wheelLF_cm, chrono::QUNIT,
+    this->wheelLF = new ChWheelBody(my_system, wheelLF_cm, chrono::QUNIT,
 			wheelMass, tireWidth, tireRadius*2.0, tireRadius*0.8,
 			true,
       "../data/wheel_centered_rotated.obj", QUNIT);
 	} else {
 		// use a cylinder, with inertia based on the inner and outer radii
-		this->wheelLF = new ChWheel(my_system, wheelLF_cm,chrono::QUNIT,
+    this->wheelLF = new ChWheelBody(my_system, wheelLF_cm, chrono::QUNIT,
 			wheelMass, tireWidth, tireRadius*2.0, tireRadius*0.8, true);
 	}
     // use_tireMesh = false;
@@ -162,13 +162,13 @@ HMMWV_9body::HMMWV_9body(ChSystem&             my_system,
 	ChVector<> wheelRF_cm = chassis->GetCoord().TrasformLocalToParent( wheelRF_cm_bar);
   if (use_tireMesh) {
 		// use a nice looking .obj mesh for the wheel visuals
-		this->wheelRF = new ChWheel(my_system, wheelRF_cm, chrono::QUNIT,
+    this->wheelRF = new ChWheelBody(my_system, wheelRF_cm, chrono::QUNIT,
 			wheelMass, tireWidth, tireRadius*2.0, tireRadius*0.8,
 			true,
       tireMeshFile, QUNIT);
 	} else {
 		// use a cylinder, with inertia based on the inner and outer radii
-		this->wheelRF = new ChWheel(my_system, wheelRF_cm,chrono::QUNIT,
+    this->wheelRF = new ChWheelBody(my_system, wheelRF_cm, chrono::QUNIT,
 			wheelMass, tireWidth, tireRadius*2.0, tireRadius*0.8, true);
 	}
 
@@ -179,13 +179,13 @@ HMMWV_9body::HMMWV_9body(ChSystem&             my_system,
 	ChVector<> wheelLB_cm = chassis->GetCoord().TrasformLocalToParent( wheelLB_cm_bar);
   if (use_tireMesh) {
 		// use a nice looking .obj mesh for the wheel visuals
-		this->wheelLB =  new ChWheel(my_system, wheelLB_cm, chrono::QUNIT,
+    this->wheelLB = new ChWheelBody(my_system, wheelLB_cm, chrono::QUNIT,
 			wheelMass, tireWidth, tireRadius*2.0, tireRadius*0.8,
 			true,
       tireMeshFile, QUNIT);
 	} else {
 		// use a cylinder, with inertia based on the inner and outer radii
-		this->wheelLB = new ChWheel(my_system, wheelLB_cm,chrono::QUNIT,
+    this->wheelLB = new ChWheelBody(my_system, wheelLB_cm, chrono::QUNIT,
 			wheelMass, tireWidth, tireRadius*2.0, tireRadius*0.8, true);
 	}
 
@@ -205,13 +205,13 @@ HMMWV_9body::HMMWV_9body(ChSystem&             my_system,
 	ChVector<> wheelRB_cm = chassis->GetCoord().TrasformLocalToParent( wheelRB_cm_bar);
   if (use_tireMesh) {
 		// use a nice looking .obj mesh for the wheel visuals
-		this->wheelRB = new ChWheel(my_system, wheelRB_cm, chrono::QUNIT,
+    this->wheelRB = new ChWheelBody(my_system, wheelRB_cm, chrono::QUNIT,
 			wheelMass, tireWidth, tireRadius*2.0, tireRadius*0.8,
 			true,
       tireMeshFile, QUNIT);
 	} else {
 		// use a cylinder, with inertia based on the inner and outer radii
-		this->wheelRB = new ChWheel(my_system, wheelRB_cm,chrono::QUNIT,
+    this->wheelRB = new ChWheelBody(my_system, wheelRB_cm, chrono::QUNIT,
 			wheelMass, tireWidth, tireRadius*2.0, tireRadius*0.8, true);
 	}
 

@@ -18,19 +18,47 @@ ENDIF()
 MESSAGE(STATUS "Adding HMMWV_9BODY...")
 
 SET(demo_HMMWV_HEADERS
-		HMMWV_9body.h
-		HMMWVTerrain.h
-		ChWheel.h
-		DoubleAarm.h
-		ChVehicleDriver.h
-    HMMWVEventReceiver.h
-		)
+	ChVehicle.h
+	ChSuspension.h
+	ChDoubleWishboneReduced.h
+	ChWheel.h
+	ChPowertrain.h
+	ChDriver.h
+	ChChaseCamera.h
+	HMMWV9.h
+	HMMWV9_Vehicle.h
+	HMMWV9_DoubleWishbone.h
+	HMMWV9_Wheel.h
+	HMMWV9_Powertrain.h
+	HMMWV9_FuncDriver.h
+	HMMWV9_RigidTerrain.h
+)
 
 SET(demo_HMMWV_SRCS
-	demo_HMMWV_9body.cpp
-	HMMWV_9body.cpp
-	DoubleAarm.cpp
+	demo_HMMWV9.cpp
+	ChVehicle.cpp
+	ChSuspension.cpp
+	ChDoubleWishboneReduced.cpp
+	ChWheel.cpp
+	ChPowertrain.cpp
+	ChDriver.cpp
+	ChChaseCamera.cpp
+	HMMWV9_Vehicle.cpp
+	HMMWV9_DoubleWishbone.cpp
+	HMMWV9_Wheel.cpp
+	HMMWV9_Powertrain.cpp
+	HMMWV9_FuncDriver.cpp
+	HMMWV9_RigidTerrain.cpp
 )
+
+IF (ENABLE_IRRLICHT)
+	SET(demo_HMMWV_HEADERS ${demo_HMMWV_HEADERS}
+		HMMWV9_IrrGuiDriver.h
+	)
+	SET(demo_HMMWV_SRCS ${demo_HMMWV_SRCS}
+		HMMWV9_IrrGuiDriver.cpp
+	)
+ENDIF()
 
 SET(HMMWV_LIBS 
 	${CHRONOENGINE_LIBRARIES}
@@ -38,13 +66,10 @@ SET(HMMWV_LIBS
 	)
 
 # Create the executable
-ADD_EXECUTABLE(demo_HMMWV_9body ${demo_HMMWV_SRCS} ${demo_HMMWV_HEADERS})
-SET_TARGET_PROPERTIES(demo_HMMWV_9body PROPERTIES LINK_FLAGS "${LINKERFLAG_EXE}")
-TARGET_LINK_LIBRARIES(demo_HMMWV_9body ${HMMWV_LIBS})
-INSTALL(TARGETS demo_HMMWV_9body DESTINATION bin)
-
-#message(STATUS "libraries: ${HMMWV_LIBS}")
-#message(STATUS "dependencies: ${HMMWV_DEPENDENCIES}")
+ADD_EXECUTABLE(demo_HMMWV9 ${demo_HMMWV_SRCS} ${demo_HMMWV_HEADERS})
+SET_TARGET_PROPERTIES(demo_HMMWV9 PROPERTIES LINK_FLAGS "${LINKERFLAG_EXE}")
+TARGET_LINK_LIBRARIES(demo_HMMWV9 ${HMMWV_LIBS})
+INSTALL(TARGETS demo_HMMWV9 DESTINATION bin)
 
 # ----------------------
 # Create config file
@@ -63,8 +88,8 @@ ENDIF()
 # be found at compile time.
 
 CONFIGURE_FILE(
-  ${CMAKE_CURRENT_SOURCE_DIR}/HMMWV_9body_config.in
-  ${PROJECT_BINARY_DIR}/HMMWV_9body_config.h
+  ${CMAKE_CURRENT_SOURCE_DIR}/HMMWV9_config.in
+  ${PROJECT_BINARY_DIR}/HMMWV9_config.h
   )
 
 INCLUDE_DIRECTORIES(${PROJECT_BINARY_DIR})
