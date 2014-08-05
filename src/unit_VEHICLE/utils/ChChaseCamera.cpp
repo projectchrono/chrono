@@ -25,9 +25,11 @@
 //
 // =============================================================================
 
-#include "ChChaseCamera.h"
+#include "utils/ChChaseCamera.h"
 
 namespace chrono {
+namespace utils {
+
 
 // -----------------------------------------------------------------------------
 // Static variables
@@ -125,4 +127,5 @@ ChVector<> ChChaseCamera::calcDeriv(const ChVector<>& loc)
 }
 
 
+}  // end namespace utils
 }  // end namespace chrono

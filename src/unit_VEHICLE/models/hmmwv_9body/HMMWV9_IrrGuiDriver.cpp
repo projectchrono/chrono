@@ -109,13 +109,13 @@ bool HMMWV9_IrrGuiDriver::OnEvent(const SEvent& event)
       return true;
 
     case KEY_KEY_1:
-      m_camera.SetState(ChChaseCamera::Chase);
+      m_camera.SetState(utils::ChChaseCamera::Chase);
       return true;
     case KEY_KEY_2:
-      m_camera.SetState(ChChaseCamera::Follow);
+      m_camera.SetState(utils::ChChaseCamera::Follow);
       return true;
     case KEY_KEY_3:
-      m_camera.SetState(ChChaseCamera::Track);
+      m_camera.SetState(utils::ChChaseCamera::Track);
       return true;
     }
   }

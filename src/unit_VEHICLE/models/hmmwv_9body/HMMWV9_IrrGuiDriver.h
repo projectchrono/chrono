@@ -35,7 +35,7 @@
 #include "unit_IRRLICHT/ChIrrApp.h"
 
 #include "ChDriver.h"
-#include "ChChaseCamera.h"
+#include "utils/ChChaseCamera.h"
 
 #include "HMMWV9_Vehicle.h"
 
@@ -71,7 +71,7 @@ private:
   irr::ChIrrAppInterface&   m_app;
   const HMMWV9_Vehicle&     m_car;
 
-  chrono::ChChaseCamera     m_camera;
+  chrono::utils::ChChaseCamera  m_camera;
 
   double m_terrainHeight;
 

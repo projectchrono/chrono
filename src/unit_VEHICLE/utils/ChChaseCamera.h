@@ -30,11 +30,13 @@
 
 #include "physics/ChBody.h"
 
+#include "utils/ChApiUtils.h"
+
 
 namespace chrono {
+namespace utils {
 
-
-class ChChaseCamera {
+class CH_UTILS_API ChChaseCamera {
 public:
 
   enum State {
@@ -87,7 +89,8 @@ private:
 };
 
 
-} // end namespace chrono
+}  // end namespace utils
+}  // end namespace chrono
 
 
 #endif
