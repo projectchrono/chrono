@@ -23,9 +23,12 @@
     #include <unistd.h>
     #include <fcntl.h>
     #include <errno.h>
-    #include <iostream.h>
+    #include <iostream>
     #include <sys/types.h>
-    #include <stropts.h>
+    //#include <stropts.h>
+    #include <sys/ioctl.h>
+    #include <stdio.h>
+    #include <string.h>
     #include <sys/filio.h>
 #else
     #include <winsock2.h>

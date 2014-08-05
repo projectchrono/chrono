@@ -42,7 +42,7 @@ ChHostInfo::ChHostInfo()
 
 }
 
-ChHostInfo::ChHostInfo(string& hostName,hostType type)
+ChHostInfo::ChHostInfo(const string& hostName,hostType type)
 {
 	#ifdef UNIX
 		searchHostDB = 0;
