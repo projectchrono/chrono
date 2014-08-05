@@ -22,8 +22,8 @@
 // model:
 //  - implements a custom camera (which follows the vehicle)
 //  - provides support for rendering links, force elements, displaying stats,
-//    etc.  Its DrawAll() method must be invoked every time the Irrlicht scene
-//    is redrawn, after the call to ChIrrAppInterface::DrawAll().
+//    etc.  In order to render these elements, call the its DrawAll() method
+//    instead of ChIrrAppInterface::DrawAll().
 //
 // =============================================================================
 
