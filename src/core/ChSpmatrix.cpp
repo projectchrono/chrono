@@ -139,17 +139,16 @@ void ChSparseMatrix::CopyToMatrix	(ChMatrix<>* matra)
 
 void ChSparseMatrix::CopyFromMatrix (ChSparseMatrix* matra)
 {
-	static ChMelement* eguess;
-	static ChMelement* srowel;
-	double val;
 
 	Reset(matra->rows, matra->columns);
 
 	for (int r = 0; r< rows; r++)
 	{
-		eguess = *(elarray+r);
+		ChMelement* eguess = *(elarray + r);
 
-		for (srowel= *(matra->elarray +r); srowel != NULL; srowel=srowel->next)
+		ChMelement* srowel;
+		double val;
+		for (srowel = *(matra->elarray + r); srowel != NULL; srowel = srowel->next)
 		{
 			val = srowel->val;
 			if (val) eguess= SetElement
@@ -249,7 +248,7 @@ void ChSparseMatrix::ResetBlocks(int row, int col)
 {
 	if ((row == rows)&&(col == columns))	// size doesn't change
 	{
-		static ChMelement* currel;
+		ChMelement* currel;
 		for (int i=0; i<rows; i++)
 		{
 			for(currel= *(elarray+i); currel!=NULL; currel=currel->next)
@@ -1131,8 +1130,6 @@ int	ChSparseMatrix::Decompose_LDL(int* pivarray, double* det, int from_eq)
 
 		if (fabs(pivot) < ACCEPT_PIVOT)
 		{
-			//static cntpiv=0;
-			//R3Error("pivot %d   %g", cntpiv, fabs(pivot));
 
 			// pivoting is needed, so ...
 			pivrow = BestPivotDiag(k-1);
@@ -1375,24 +1372,7 @@ int	ChSparseMatrix::DecomposeAndSolve_LDL_forLCP
 		}
 
 		pivot = Afact->GetElement((k-1),(k-1));
-/*
-		if (fabs(pivot) < ACCEPT_PIVOT)
-		{
-			//static cntpiv=0;
-			//R3Error("pivot %d   %g", cntpiv, fabs(pivot));
 
-			// pivoting is needed, so ...
-			pivrow = Afact->BestPivotDiag(k-1);
-			Afact->DiagPivotSymmetric(k-1,pivrow);	// swap both column and row (only upper right!)
-			*det = - *det;					// invert determ.sign
-
-			eqpivoted = pivarray[pivrow];	// swap diagonal pivot indexes
-			pivarray[pivrow] =pivarray[k-1];
-			pivarray[k-1] = eqpivoted;
-
-			pivot = Afact->GetElement((k-1),(k-1));
-		}
-*/
 		int row_num_D = (k-1) - i_D;
 
 		bool infinite_pivot = false;
