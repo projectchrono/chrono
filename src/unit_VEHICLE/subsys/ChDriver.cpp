@@ -26,20 +26,37 @@ namespace chrono {
 
 
 // -----------------------------------------------------------------------------
-// Clamp a specified input value to appropriate interval.
 // -----------------------------------------------------------------------------
-void ChDriver::setSteering(double val)
+ChDriver::ChDriver()
+: m_throttle(0), m_steering(0), m_braking(0)
 {
-  if (val < -1)     m_steering = -1;
-  else if (val > 1) m_steering = 1;
-  else              m_steering = val;
 }
 
-void ChDriver::setThrottle(double val)
+// -----------------------------------------------------------------------------
+// Clamp a specified input value to appropriate interval.
+// -----------------------------------------------------------------------------
+double clamp(double val, double min_val, double max_val)
 {
-  if (val < -1)     m_throttle = -1;
-  else if (val > 1) m_throttle = 1;
-  else              m_throttle = val;
+  if (val <= min_val)
+    return min_val;
+  if (val >= max_val)
+    return max_val;
+  return val;
+}
+
+void ChDriver::setSteering(double val, double min_val, double max_val)
+{
+  m_steering = clamp(val, min_val, max_val);
+}
+
+void ChDriver::setThrottle(double val, double min_val, double max_val)
+{
+  m_throttle = clamp(val, min_val, max_val);
+}
+
+void ChDriver::setBraking(double val, double min_val, double max_val)
+{
+  m_braking = clamp(val, min_val, max_val);
 }
 
 
