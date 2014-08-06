@@ -110,4 +110,5 @@ ENDIF()
 # Add subdirectories
 # ------------------------------------------------------------------------------
 ADD_SUBDIRECTORY(utils)
+ADD_SUBDIRECTORY(subsys)
 ADD_SUBDIRECTORY(models)

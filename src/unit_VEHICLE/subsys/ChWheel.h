@@ -21,8 +21,34 @@
 // body).
 // =============================================================================
 
+#ifndef CH_WHEEL_H
+#define CH_WHEEL_H
+
+#include "core/ChShared.h"
+#include "core/ChVector.h"
+#include "physics/ChBody.h"
+
+#include "subsys/ChApiSubsys.h"
 
 namespace chrono {
 
 
-}  // end namespace chrono
+class CH_SUBSYS_API ChWheel : public ChShared {
+public:
+  ChWheel() {}
+  virtual ~ChWheel() {}
+
+  virtual double getMass() const = 0;
+  virtual const ChVector<>& getInertia() = 0;
+
+protected:
+  virtual void OnInitialize(ChSharedBodyPtr body) {}
+
+  friend class ChDoubleWishboneReduced;
+};
+
+
+} // end namespace chrono
+
+
+#endif

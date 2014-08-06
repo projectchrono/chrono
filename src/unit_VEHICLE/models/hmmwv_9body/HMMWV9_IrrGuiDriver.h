@@ -34,8 +34,8 @@
 #include "physics/ChSystem.h"
 #include "unit_IRRLICHT/ChIrrApp.h"
 
-#include "ChDriver.h"
 #include "utils/ChChaseCamera.h"
+#include "subsys/ChDriver.h"
 
 #include "HMMWV9_Vehicle.h"
 

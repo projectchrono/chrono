@@ -16,41 +16,18 @@
 //
 // =============================================================================
 
-#ifndef CH_POWERTRAIN_H
-#define CH_POWERTRAIN_H
+#include "subsys/ChPowertrain.h"
 
-#include "core/ChShared.h"
-#include "core/ChVector.h"
-#include "physics/ChBody.h"
-
-#include "ChVehicle.h"
 
 namespace chrono {
 
-enum ChDriveType {
-  FWD,
-  RWD,
-  AWD
-};
 
-class ChPowertrain : public ChShared {
-public:
-
-  ChPowertrain(ChVehicle* car, ChDriveType type);
-
-  virtual ~ChPowertrain() {}
-
-  virtual double GetWheelTorque(ChWheelId which) const = 0;
-
-  virtual void Update(double time, double throttle) = 0;
-
-protected:
-  ChVehicle*    m_car;
-  ChDriveType   m_type;
-};
+ChPowertrain::ChPowertrain(ChVehicle*   car,
+                           ChDriveType  type)
+: m_car(car),
+  m_type(type)
+{
+}
 
 
-} // end namespace chrono
-
-
-#endif
+}  // end namespace chrono

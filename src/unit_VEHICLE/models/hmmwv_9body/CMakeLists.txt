@@ -18,12 +18,6 @@ ENDIF()
 MESSAGE(STATUS "Adding HMMWV_9BODY...")
 
 SET(demo_HMMWV_HEADERS
-	ChVehicle.h
-	ChSuspension.h
-	ChDoubleWishboneReduced.h
-	ChWheel.h
-	ChPowertrain.h
-	ChDriver.h
 	HMMWV9.h
 	HMMWV9_Vehicle.h
 	HMMWV9_DoubleWishbone.h
@@ -35,12 +29,6 @@ SET(demo_HMMWV_HEADERS
 
 SET(demo_HMMWV_SRCS
 	demo_HMMWV9.cpp
-	ChVehicle.cpp
-	ChSuspension.cpp
-	ChDoubleWishboneReduced.cpp
-	ChWheel.cpp
-	ChPowertrain.cpp
-	ChDriver.cpp
 	HMMWV9_Vehicle.cpp
 	HMMWV9_DoubleWishbone.cpp
 	HMMWV9_Wheel.cpp
@@ -61,6 +49,7 @@ ENDIF()
 SET(HMMWV_LIBS 
 	${CHRONOENGINE_LIBRARIES}
 	Chrono_Utils
+	Chrono_Subsys
 	)
 
 # Create the executable

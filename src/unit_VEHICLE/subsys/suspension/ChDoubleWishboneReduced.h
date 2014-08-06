@@ -28,12 +28,13 @@
 #ifndef CH_DOUBLEWISHBONEREDUCED_H
 #define CH_DOUBLEWISHBONEREDUCED_H
 
-#include "ChSuspension.h"
+#include "subsys/ChApiSubsys.h"
+#include "subsys/ChSuspension.h"
 
 namespace chrono {
 
 
-class ChDoubleWishboneReduced : public ChSuspension
+class CH_SUBSYS_API ChDoubleWishboneReduced : public ChSuspension
 {
 public:
 

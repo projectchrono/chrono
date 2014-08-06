@@ -12,25 +12,14 @@
 // Authors: Radu Serban, Justin Madsen
 // =============================================================================
 //
-// Base class for all suspension subsystems
+// Base class for a vehicle model.
 //
 // =============================================================================
 
-
-#include "ChSuspension.h"
+#include "subsys/ChVehicle.h"
 
 
 namespace chrono {
-
-
-ChSuspension::ChSuspension(const std::string& name,
-                           Side               side,
-                           bool               driven)
-: m_name(name),
-  m_side(side),
-  m_driven(driven)
-{
-}
 
 
 }  // end namespace chrono

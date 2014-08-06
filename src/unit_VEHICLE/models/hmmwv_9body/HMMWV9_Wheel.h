@@ -19,7 +19,7 @@
 #ifndef HMMWV9_WHEEL_H
 #define HMMWV9_WHEEL_H
 
-#include "ChWheel.h"
+#include "subsys/ChWheel.h"
 
 #include "HMMWV9.h"
 

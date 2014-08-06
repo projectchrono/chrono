@@ -12,39 +12,43 @@
 // Authors: Radu Serban, Justin Madsen
 // =============================================================================
 //
-// Base class for a vehicle wheel.
-// A wheel subsystem does not own a body. Instead, when attached to a suspension
-// subsystem, the wheel's mass properties are used to update those of the
-// spindle body owned by the suspension.
-// A concrete wheel subsystem can optionally carry its own visualization assets
-// and/or contact geometry (which are associated with the suspension's spindle
-// body).
+// Base class for a vehicle driver. A driver object must be able to report the
+// current values of the inputs (throttle, steering, braking). To set these
+// values, a concrete driver class can implement the virtual method Update()
+// which will be invoked at each time step.
+//
 // =============================================================================
 
-#ifndef CH_WHEEL_H
-#define CH_WHEEL_H
-
+#ifndef CH_DRIVER_H
+#define CH_DRIVER_H
 
 #include "core/ChShared.h"
-#include "core/ChVector.h"
-#include "physics/ChBody.h"
+#include "physics/ChSystem.h"
 
+#include "subsys/ChApiSubsys.h"
 
 namespace chrono {
 
 
-class ChWheel : public ChShared {
+class CH_SUBSYS_API ChDriver : public ChShared
+{
 public:
-  ChWheel() {}
-  virtual ~ChWheel() {}
+  ChDriver() : m_throttle(0), m_steering(0) {}
+  virtual ~ChDriver() {}
 
-  virtual double getMass() const = 0;
-  virtual const ChVector<>& getInertia() = 0;
+  double getThrottle() const { return m_throttle; }
+  double getSteering() const { return m_steering; }
+
+  virtual void Update(double time) {}
 
 protected:
-  virtual void OnInitialize(ChSharedBodyPtr body) {}
+  void setSteering(double val);
+  void setThrottle(double val);
 
-  friend class ChDoubleWishboneReduced;
+  double m_throttle;
+  double m_steering;
+  // double m_braking;
+
 };
 
 

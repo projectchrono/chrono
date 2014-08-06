@@ -24,7 +24,7 @@
 //
 // =============================================================================
 
-#include "ChDoubleWishboneReduced.h"
+#include "subsys/suspension/ChDoubleWishboneReduced.h"
 
 
 namespace chrono {

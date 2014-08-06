@@ -24,12 +24,13 @@
 #include "core/ChShared.h"
 #include "physics/ChSystem.h"
 
-#include "ChWheel.h"
+#include "subsys/ChApiSubsys.h"
+#include "subsys/ChWheel.h"
 
 namespace chrono {
 
 
-class ChSuspension : public ChShared
+class CH_SUBSYS_API ChSuspension : public ChShared
 {
 public:
 

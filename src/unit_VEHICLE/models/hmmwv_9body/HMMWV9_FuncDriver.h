@@ -18,7 +18,7 @@
 #ifndef HMMWV9_FUNCDRIVER_H
 #define HMMWV9_FUNCDRIVER_H
 
-#include "ChDriver.h"
+#include "subsys/ChDriver.h"
 
 namespace hmmwv9 {
 

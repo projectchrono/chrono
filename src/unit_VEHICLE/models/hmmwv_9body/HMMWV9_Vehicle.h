@@ -22,7 +22,7 @@
 #include "core/ChCoordsys.h"
 #include "physics/ChSystem.h"
 
-#include "ChVehicle.h"
+#include "subsys/ChVehicle.h"
 
 #include "HMMWV9.h"
 #include "HMMWV9_DoubleWishbone.h"

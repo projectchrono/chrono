@@ -12,48 +12,43 @@
 // Authors: Radu Serban, Justin Madsen
 // =============================================================================
 //
-// Base class for a vehicle model.
+// Base class for a vehicle powertrain.
 //
 // =============================================================================
 
-#ifndef CH_VEHICLE_H
-#define CH_VEHICLE_H
-
+#ifndef CH_POWERTRAIN_H
+#define CH_POWERTRAIN_H
 
 #include "core/ChShared.h"
 #include "core/ChVector.h"
 #include "physics/ChBody.h"
 
+#include "subsys/ChApiSubsys.h"
+#include "subsys/ChVehicle.h"
 
 namespace chrono {
 
-enum ChWheelId {
-  FRONT_LEFT,
-  FRONT_RIGHT,
-  REAR_LEFT,
-  REAR_RIGHT
+
+enum ChDriveType {
+  FWD,
+  RWD,
+  AWD
 };
 
-class ChVehicle : public ChShared {
+class CH_SUBSYS_API ChPowertrain : public ChShared {
 public:
-  ChVehicle() {}
-  virtual ~ChVehicle() {}
 
-  virtual const ChVector<>& GetWheelPos(ChWheelId which) const = 0;
-  virtual const ChQuaternion<>& GetWheelRot(ChWheelId which) const = 0;
-  virtual double GetWheelAngSpeed(ChWheelId which) = 0;
+  ChPowertrain(ChVehicle* car, ChDriveType type);
 
-  virtual void Update(double time, double throttle, double steering) = 0;
+  virtual ~ChPowertrain() {}
 
-  const ChSharedBodyPtr GetChassis() const    { return m_chassis; }
-  const ChVector<>&     GetChassisPos() const { return m_chassis->GetPos(); }
-  const ChQuaternion<>& GetChassisRot() const { return m_chassis->GetRot(); }
+  virtual double GetWheelTorque(ChWheelId which) const = 0;
 
-  double GetVehicleSpeed() const { return m_chassis->GetPos_dt().Length(); }
+  virtual void Update(double time, double throttle) = 0;
 
 protected:
-  ChSharedBodyPtr  m_chassis;
-
+  ChVehicle*    m_car;
+  ChDriveType   m_type;
 };
 
 

@@ -20,7 +20,7 @@
 #define HMMWV9_DOUBLEWISHBONE_H
 
 
-#include "ChDoubleWishboneReduced.h"
+#include "subsys/suspension/ChDoubleWishboneReduced.h"
 
 namespace hmmwv9 {
 

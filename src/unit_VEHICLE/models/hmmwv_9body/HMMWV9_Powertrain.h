@@ -22,7 +22,7 @@
 #ifndef HMMWV9_POWERTRAIN_H
 #define HMMWV9_POWERTRAIN_H
 
-#include "ChPowertrain.h"
+#include "subsys/ChPowertrain.h"
 
 #include "HMMWV9_Vehicle.h"
 
