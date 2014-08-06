@@ -85,9 +85,6 @@ int main(int argc, char* argv[])
 	double height = 1;
 	double thickness = 0.1;
 
-	// Initialize globals
-	ChGlobals* GLOBAL_Vars = DLL_CreateGlobals();
-
 	// Create the system
 	ChSystemDEM msystem;
 

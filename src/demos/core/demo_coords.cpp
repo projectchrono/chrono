@@ -33,6 +33,7 @@
 #include "core/ChTrasform.h"
 #include "core/ChFrame.h"
 #include "core/ChFrameMoving.h"
+#include "core/ChTimer.h"
 #include "physics/ChMarker.h"
 #include "physics/ChBody.h"
 #include "physics/ChApidll.h" 
@@ -313,50 +314,50 @@ int main(int argc, char* argv[])
 	ChVector<>pallo(2,4,6);
 
 
-
+  ChTimer<double> timer;
 
 	int numcycles =  100000;
 	int i;
 
-	CHGLOBALS().Timer_START();
+  timer.start();
 	for (i= 0; i<1000000; i++)
 	{ 
 		testa.TrasformLocalToParent(testPl,testPw);
 	}
-	CHGLOBALS().Timer_STOP();
-	GetLog() << "TEST 10e6 of ChFrameMoving::TrasformLocalToParent (1.38) Time: " <<  CHGLOBALS().t_duration << " \n";
+  timer.stop();
+	GetLog() << "TEST 10e6 of ChFrameMoving::TrasformLocalToParent (1.38) Time: " <<  timer() << " \n";
 	// VC6   : 1.380
 	// VC2003: 0.861
 	// VC2005: 0.691
 	// GCC   : 0.661
 
-	CHGLOBALS().Timer_START();
+  timer.start();
 	for (i= 0; i<1000000; i++)
 	{ 
 		mvect2 = mvect1 >> mframeA; 
 	} 
-	CHGLOBALS().Timer_STOP();
-	GetLog() << "TEST 10e6 of mvect2 = mvect1 >> mframeA; (0.03)" <<  CHGLOBALS().t_duration << " \n";
+  timer.stop();
+	GetLog() << "TEST 10e6 of mvect2 = mvect1 >> mframeA; (0.03)" <<  timer() << " \n";
 	// VC6   : 0.03
 	// VC2003: 0.03
 	// VC2005: 0.03
 	// GCC   : 0.03
 
 
-	CHGLOBALS().Timer_START();
+  timer.start();
 	for (i= 0; i<1000000; i++)
 	{ 
 		testa.PointAccelerationParentToLocal(vtraslA,vtraslA,vtraslA);
 	}
-	CHGLOBALS().Timer_STOP();
-	GetLog() << "TEST 10e6 of PointAccelerationParentToLocal (0.811)" <<  CHGLOBALS().t_duration << " \n";
+  timer.stop();
+	GetLog() << "TEST 10e6 of PointAccelerationParentToLocal (0.811)" <<  timer() << " \n";
 	// VC6   : 0.811
 	// VC2003: 0.531
 	// VC2005: 0.410
 	// GCC   : 0.320
 
  /*
-	CHGLOBALS().Timer_START();
+	timer.start();
 	for (i= 0; i<numcycles; i++)
 	{ 
 		for (int j = 0; j<100; j++)
@@ -369,69 +370,69 @@ int main(int argc, char* argv[])
 			// three expensive frame*frame operations, and a last frame*vector.
 		}
 	}
-	CHGLOBALS().Timer_STOP();
-	GetLog() << "Test 3 frame transf. with >> ChFrame operator: " <<  CHGLOBALS().t_duration << " \n";
+	timer.stop();
+	GetLog() << "Test 3 frame transf. with >> ChFrame operator: " <<  timer() << " \n";
 
 
-	CHGLOBALS().Timer_START();
+	timer.start();
 	for (i= 0; i<1000000; i++)
 	{  
 		testa.SetCoord(vtraslA,qrotA);
 	}
-	CHGLOBALS().Timer_STOP();
-	GetLog() << "Test ChFrame::SetPos() " <<  CHGLOBALS().t_duration << " \n";
+	timer.stop();
+	GetLog() << "Test ChFrame::SetPos() " <<  timer() << " \n";
 
 
 //ChQuaternion<> mqdt(1, 2, 3, 4);
-	CHGLOBALS().Timer_START();
+	timer.start();
 	for (i= 0; i<1000000; i++)
 	{ 
 		testa.SetRot_dt(mqdt);
 	}
-	CHGLOBALS().Timer_STOP();
-	GetLog() << "Test ChFrame::SetRot_dt() " <<  CHGLOBALS().t_duration << " \n";
+	timer.stop();
+	GetLog() << "Test ChFrame::SetRot_dt() " <<  timer() << " \n";
 
-	CHGLOBALS().Timer_START();
+	timer.start();
 	for (i= 0; i<1000000; i++)
 	{ 
 		testa.SetRot_dtdt(mqdt);
 	}
-	CHGLOBALS().Timer_STOP();
-	GetLog() << "Test ChFrame::SetRot_dtdt() " <<  CHGLOBALS().t_duration << " \n";
+	timer.stop()
+	GetLog() << "Test ChFrame::SetRot_dtdt() " <<  timer() << " \n";
 
 
 ChVector<> mv(1, 2, 3);
-	CHGLOBALS().Timer_START();
+	timer.start();
 	for (i= 0; i<1000000; i++)
 	{ 
 		testa.SetWvel_loc(mv);
 	}
-	CHGLOBALS().Timer_STOP();
-	GetLog() << "Test ChFrame::SetWvel_loc() " <<  CHGLOBALS().t_duration << " \n";
+	timer.stop();
+	GetLog() << "Test ChFrame::SetWvel_loc() " <<  timer() << " \n";
 
-	CHGLOBALS().Timer_START();
+	timer.start();
 	for (i= 0; i<1000000; i++)
 	{ 
 		testa.SetWacc_loc(mv);
 	}
-	CHGLOBALS().Timer_STOP();
-	GetLog() << "Test ChFrame::SetWacc_loc() " <<  CHGLOBALS().t_duration << " \n";
+	timer.stop();
+	GetLog() << "Test ChFrame::SetWacc_loc() " <<  timer() << " \n";
 
-	CHGLOBALS().Timer_START();
+	timer.start();
 	for (i= 0; i<1000000; i++)
 	{ 
 		Vector p= testa.GetWvel_loc();
 	} 
-	CHGLOBALS().Timer_STOP();
-	GetLog() << "Test ChFrame::GetWvel_loc() " <<  CHGLOBALS().t_duration << " \n";
+	timer.stop();
+	GetLog() << "Test ChFrame::GetWvel_loc() " <<  timer() << " \n";
  
-	CHGLOBALS().Timer_START();
+	timer.start();
 	for (i= 0; i<1000000; i++)
 	{ 
 		ChVector<> p= testa.GetWacc_loc();
 	}
-	CHGLOBALS().Timer_STOP();
-	GetLog() << "Test ChFrame::GetWacc_loc() " <<  CHGLOBALS().t_duration << " \n";
+	timer.stop();
+	GetLog() << "Test ChFrame::GetWacc_loc() " <<  timer() << " \n";
  
 
 */

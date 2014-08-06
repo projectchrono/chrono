@@ -82,7 +82,7 @@ ChBody::ChBody ()
 
     last_coll_pos = CSYSNORM;
 
-    SetIdentifier(CHGLOBALS().GetUniqueIntID()); // mark with unique ID
+    SetIdentifier(GetUniqueIntID()); // mark with unique ID
 
     max_speed = 0.5f;
     max_wvel  = 2.0f*float(CH_C_PI);
@@ -122,7 +122,7 @@ ChBody::ChBody (ChCollisionModel* new_collision_model)
 
     last_coll_pos = CSYSNORM;
 
-    SetIdentifier(CHGLOBALS().GetUniqueIntID()); // mark with unique ID
+    SetIdentifier(GetUniqueIntID()); // mark with unique ID
 
     max_speed = 0.5f;
     max_wvel  = 2.0f*float(CH_C_PI);

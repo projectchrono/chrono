@@ -45,7 +45,7 @@ ChClassRegisterABSTRACT<ChIndexedNodes> a_registration_ChIndexedNodes;
 
 ChIndexedNodes::ChIndexedNodes ()
 {
-	SetIdentifier(CHGLOBALS().GetUniqueIntID()); // mark with unique ID
+	SetIdentifier(GetUniqueIntID()); // mark with unique ID
 }
 
 

@@ -35,7 +35,7 @@ namespace chrono
 
 ChControllerPID::ChControllerPID()
 {
-	this->SetIdentifier(CHGLOBALS().GetUniqueIntID()); // mark with unique ID
+	this->SetIdentifier(GetUniqueIntID()); // mark with unique ID
 
 	P= 1.;
 	I= 0.;

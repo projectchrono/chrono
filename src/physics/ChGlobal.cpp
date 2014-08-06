@@ -18,84 +18,41 @@
 // ------------------------------------------------
 ///////////////////////////////////////////////////
 
-  
-#include <string.h> 
-#include <time.h>
+
+#include <string.h>
 
 #include "physics/ChGlobal.h" 
-#include "physics/ChBody.h" 
-#include "physics/ChSystem.h" 
- 
- 
-namespace chrono 
+
+#if defined(_WIN32) || defined(_WIN64)
+#include "Windows.h"
+#endif
+
+#if defined(__APPLE__)
+#include <libkern/OSAtomic.h>
+#endif
+
+namespace chrono
 {
 
-//
-//
-// The global functions
-//
 
- 
-
-
-
-// The class members
-
-  
-ChGlobals::ChGlobals()
+int GetUniqueIntID()
 {
-	WriteComments = 1;
-	WriteAllFeatures = 0;
+#if defined(_WIN32) || defined(_WIN64)
+  volatile static long id = 100000;
+  return (int)InterlockedIncrement(&id);
+#endif
 
-	t_duration = 0;
+#if defined(__APPLE__)
+  static volatile int32_t id = 100000;
+  return (int)OSAtomicIncrement32Barrier(&id);
+#endif
 
-	SkipNframesOutput = 0; 
-
-
-	time_t ltime;		// setup a safe unique first ID
-	struct tm *nt;
-	time (&ltime);
-	nt = localtime(&ltime);
-	int_identifier = (int)(3600*nt->tm_hour + 60*nt->tm_min + nt->tm_sec);
-
+#if defined(__GNUC__)
+  static volatile int id = 100000;
+  return __sync_add_and_fetch(&id, 1);
+#endif
 }
-
-
-
-ChGlobals::~ChGlobals() 
-{
-	
-};
-
-
-
-//
-// The pointer to the global 'ChGlobals'
-//
-
-static ChGlobals*  GlobalGlobals = 0 ;
-
-ChGlobals& CHGLOBALS()
-{
-	if ( GlobalGlobals != NULL )
-        return (*GlobalGlobals);
-	else
-	{
-		static ChGlobals static_globals;
-		return static_globals;
-	}
-}
-
-void SetCHGLOBALS(ChGlobals* my_globals)
-{
-	GlobalGlobals = my_globals;
-}
-
-
 
 
 } // END_OF_NAMESPACE____
 
-
-
-// End

@@ -184,10 +184,6 @@ int main(int argc, char* argv[])
 	double time_step = 1e-5;
 	double out_step = 0.02;
 
-	// In CHRONO engine, The DLL_CreateGlobals() - DLL_DeleteGlobals(); pair is needed if
-	// global functions are needed. 
-	ChGlobals* GLOBAL_Vars = DLL_CreateGlobals();
-
 	// Create a ChronoENGINE physical system
 	ChSystemDEM mphysicalSystem;
 	mphysicalSystem.Set_G_acc(0.38*mphysicalSystem.Get_G_acc());

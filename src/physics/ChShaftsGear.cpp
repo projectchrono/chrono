@@ -49,7 +49,7 @@ ChShaftsGear::ChShaftsGear ()
 	this->cache_li_speed =0.f;
 	this->cache_li_pos = 0.f;
 
-	SetIdentifier(CHGLOBALS().GetUniqueIntID()); // mark with unique ID
+	SetIdentifier(GetUniqueIntID()); // mark with unique ID
 
 	//variables.SetUserData((void*)this);
 }

@@ -30,26 +30,13 @@
 
 namespace chrono 
 {
-
-static ChGlobals* my_dll_globals = 0;
  
-
-extern ChGlobals* DLL_CreateGlobals()
+extern void DLL_CreateGlobals()
 {
-	if (my_dll_globals==0)
-	{
-		my_dll_globals = new ChGlobals;
-		SetCHGLOBALS (my_dll_globals);
-	}
-
-	return my_dll_globals;
 }
 
 extern void DLL_DeleteGlobals()
 {
-	if (my_dll_globals)
-		delete my_dll_globals;
-	my_dll_globals=0;
 }
 
 

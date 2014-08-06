@@ -52,7 +52,7 @@ ChShaftsBody::ChShaftsBody ()
 	this->body = 0;
 	this->shaft_dir = VECT_Z;
 
-	SetIdentifier(CHGLOBALS().GetUniqueIntID()); // mark with unique ID
+	SetIdentifier(GetUniqueIntID()); // mark with unique ID
 }
 
 

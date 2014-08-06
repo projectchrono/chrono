@@ -35,22 +35,12 @@
 #include "core/ChApiCE.h"
 
 
-extern int DLL_TEST(int a, int b);
-
 namespace chrono 
 {
 
+  extern ChApi void DLL_CreateGlobals();
 
-		/// Create a ChGlobal data, sets it as the default return for the CHGLOBALS() 
-		/// function, and returns the ChGlobal object.
-		/// Must be called ALWAYS once at the beginning of the program using Chrono dll.
-extern ChApi ChGlobals* DLL_CreateGlobals();
-
-		/// Deletes the global data created with DLL_CreateGlobals().
-		/// Must be called ALWAYS once at the end of the program using Chrono dll.
-extern ChApi void DLL_DeleteGlobals();
-
-
+  extern ChApi void DLL_DeleteGlobals();
 
 } // END_OF_NAMESPACE____
 
