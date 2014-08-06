@@ -61,11 +61,11 @@ using namespace io;
 using namespace gui;
 
 // defaults
-static int STATIC_lcp_iters      = 20;
-static int STATIC_lcp_iters_stab = 20; 
-static double SPHERE_RAD = 0.35;  //0.9
-static double SPHERE_MASS = 1.0;  
-static int    SPHERE_NUM = 1000; //400
+int STATIC_lcp_iters      = 20;
+int STATIC_lcp_iters_stab = 20; 
+double SPHERE_RAD = 0.35;  //0.9
+double SPHERE_MASS = 1.0;  
+int    SPHERE_NUM = 1000; //400
       
 void create_some_falling_items(ChSystem& mphysicalSystem,  
 							   ISceneManager* msceneManager,  
