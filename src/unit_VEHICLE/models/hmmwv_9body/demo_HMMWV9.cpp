@@ -40,8 +40,8 @@
 #if IRRLICHT_ENABLED
   // ...include additional headers
 # include "unit_IRRLICHT/ChIrrApp.h"
-# include <irrlicht.h>
-# include "HMMWV9_IrrGuiDriver.h"
+# include "subsys/driver/ChIrrGuiDriver.h"
+
   // ...and specify whether the demo should actually use Irrlicht
 # define USE_IRRLICHT
 #endif
@@ -121,7 +121,7 @@ int main(int argc, char* argv[])
 
   application.SetTimestep(step_size);
 
-  HMMWV9_IrrGuiDriver driver(application, vehicle);
+  ChIrrGuiDriver driver(application, vehicle);
 
   driver.CreateCamera(trackPoint, 6, 0.5);
 

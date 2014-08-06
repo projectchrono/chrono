@@ -31,11 +31,32 @@ SET(Chrono_Susp_SOURCES
     suspension/ChDoubleWishboneReduced.cpp
     )
 
+SET(Chrono_Driver_HEADERS
+    #driver/ChDataDriver.h
+    )
+
+SET(Chrono_Driver_SOURCES
+    #driver/ChDataDriver.cpp
+    )
+
+IF (ENABLE_IRRLICHT)
+    SET(Chrono_Driver_HEADERS ${Chrono_Driver_HEADERS}
+        driver/ChIrrGuiDriver.h
+    )
+
+    SET(Chrono_Driver_SOURCES ${Chrono_Driver_SOURCES}
+        driver/ChIrrGuiDriver.cpp
+    )
+ENDIF()
+
 SOURCE_GROUP("Header Files" FILES ${Chrono_Subsys_HEADERS})
 SOURCE_GROUP("Source Files" FILES ${Chrono_Subsys_SOURCES})
 
-SOURCE_GROUP("Header Files\\susp" FILES ${Chrono_Susp_HEADERS})
-SOURCE_GROUP("Source Files\\susp" FILES ${Chrono_Susp_SOURCES})
+SOURCE_GROUP("Header Files\\suspension" FILES ${Chrono_Susp_HEADERS})
+SOURCE_GROUP("Source Files\\suspension" FILES ${Chrono_Susp_SOURCES})
+
+SOURCE_GROUP("Header Files\\driver" FILES ${Chrono_Driver_HEADERS})
+SOURCE_GROUP("Source Files\\driver" FILES ${Chrono_Driver_SOURCES})
 
 # ------------------------------------------------------------------------------
 # ADD THE Chrono_Subsys LIBRARY
@@ -46,6 +67,8 @@ ADD_LIBRARY(Chrono_Subsys SHARED
     ${Chrono_Subsys_SOURCES}
     ${Chrono_Susp_HEADERS}
     ${Chrono_Susp_SOURCES}
+    ${Chrono_Driver_HEADERS}
+    ${Chrono_Driver_SOURCES}
     )
 
 SET_TARGET_PROPERTIES(Chrono_Subsys PROPERTIES
@@ -53,7 +76,7 @@ SET_TARGET_PROPERTIES(Chrono_Subsys PROPERTIES
   LINK_FLAGS "${CH_LINKERFLAG_GPU}"
   COMPILE_DEFINITIONS "CH_API_COMPILE_SUBSYS")
 
-TARGET_LINK_LIBRARIES(Chrono_Subsys ${CHRONOENGINE_LIBRARY})
+TARGET_LINK_LIBRARIES(Chrono_Subsys Chrono_Utils ${CHRONOENGINE_LIBRARIES})
 
 INSTALL(TARGETS Chrono_Subsys
     RUNTIME DESTINATION bin

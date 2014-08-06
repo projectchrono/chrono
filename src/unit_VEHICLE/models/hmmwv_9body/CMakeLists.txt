@@ -37,15 +37,6 @@ SET(demo_HMMWV_SRCS
 	HMMWV9_RigidTerrain.cpp
 )
 
-IF (ENABLE_IRRLICHT)
-	SET(demo_HMMWV_HEADERS ${demo_HMMWV_HEADERS}
-		HMMWV9_IrrGuiDriver.h
-	)
-	SET(demo_HMMWV_SRCS ${demo_HMMWV_SRCS}
-		HMMWV9_IrrGuiDriver.cpp
-	)
-ENDIF()
-
 SET(HMMWV_LIBS 
 	${CHRONOENGINE_LIBRARIES}
 	Chrono_Utils

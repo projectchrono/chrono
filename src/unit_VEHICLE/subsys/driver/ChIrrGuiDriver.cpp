@@ -12,14 +12,13 @@
 // Authors: Radu Serban, Justin Madsen
 // =============================================================================
 //
-// Irrlicht-based GUI driver for the HMMWV9 model. This class implements the
+// Irrlicht-based GUI driver for the a vehicle. This class implements the
 // functionality required by its base ChDriver class using keyboard inputs.
 // As an Irrlicht event receiver, its OnEvent() callback is used to keep track
 // and update the current driver inputs. As such it does not need to override
 // the default no-op Update() virtual method.
 //
-// In addition, this class provides additional Irrlicht support for the HMMWV9
-// model:
+// In addition, this class provides additional Irrlicht support for rendering:
 //  - implements a custom camera (which follows the vehicle)
 //  - provides support for rendering links, force elements, displaying stats,
 //    etc.  In order to render these elements, call the its DrawAll() method
@@ -27,19 +26,18 @@
 //
 // =============================================================================
 
-#include "HMMWV9_IrrGuiDriver.h"
+#include "subsys/driver/ChIrrGuiDriver.h"
 
-using namespace chrono;
 using namespace irr;
 
-namespace hmmwv9 {
+namespace chrono {
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-HMMWV9_IrrGuiDriver::HMMWV9_IrrGuiDriver(ChIrrApp&              app,
-                                         const HMMWV9_Vehicle&  car,
-                                         int                    tlc_X,
-                                         int                    tlc_Y)
+ChIrrGuiDriver::ChIrrGuiDriver(ChIrrApp&         app,
+                               const ChVehicle&  car,
+                               int               tlc_X,
+                               int               tlc_Y)
 : m_app(app),
   m_car(car),
   m_terrainHeight(0),
@@ -68,7 +66,7 @@ HMMWV9_IrrGuiDriver::HMMWV9_IrrGuiDriver(ChIrrApp&              app,
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-bool HMMWV9_IrrGuiDriver::OnEvent(const SEvent& event)
+bool ChIrrGuiDriver::OnEvent(const SEvent& event)
 {
   // Only interpret keyboard inputs.
   if (event.EventType != EET_KEY_INPUT_EVENT)
@@ -125,9 +123,9 @@ bool HMMWV9_IrrGuiDriver::OnEvent(const SEvent& event)
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-void HMMWV9_IrrGuiDriver::CreateCamera(const ChVector<>& ptOnChassis,
-                                       double            chaseDist,
-                                       double            chaseHeight)
+void ChIrrGuiDriver::CreateCamera(const ChVector<>& ptOnChassis,
+                                  double            chaseDist,
+                                  double            chaseHeight)
 {
   // Initialize the ChChaseCamera
   m_camera.Initialize(ptOnChassis, chaseDist, chaseHeight);
@@ -144,7 +142,7 @@ void HMMWV9_IrrGuiDriver::CreateCamera(const ChVector<>& ptOnChassis,
   camera->setTarget(core::vector3df((f32)cam_target.x, (f32)cam_target.y, (f32)cam_target.z));
 }
 
-void HMMWV9_IrrGuiDriver::UpdateCamera(double step_size)
+void ChIrrGuiDriver::UpdateCamera(double step_size)
 {
   // Update the ChChaseCamera
   m_camera.Update(step_size);
@@ -161,7 +159,7 @@ void HMMWV9_IrrGuiDriver::UpdateCamera(double step_size)
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-void HMMWV9_IrrGuiDriver::DrawAll()
+void ChIrrGuiDriver::DrawAll()
 {
   renderGrid();
 
@@ -172,7 +170,7 @@ void HMMWV9_IrrGuiDriver::DrawAll()
   renderStats();
 }
 
-void HMMWV9_IrrGuiDriver::renderSprings()
+void ChIrrGuiDriver::renderSprings()
 {
   std::list<chrono::ChLink*>::iterator ilink = m_app.GetSystem()->Get_linklist()->begin();
   for (; ilink != m_app.GetSystem()->Get_linklist()->end(); ++ilink) {
@@ -185,7 +183,7 @@ void HMMWV9_IrrGuiDriver::renderSprings()
   }
 }
 
-void HMMWV9_IrrGuiDriver::renderLinks()
+void ChIrrGuiDriver::renderLinks()
 {
   std::list<chrono::ChLink*>::iterator ilink = m_app.GetSystem()->Get_linklist()->begin();
   for (; ilink != m_app.GetSystem()->Get_linklist()->end(); ++ilink) {
@@ -198,7 +196,7 @@ void HMMWV9_IrrGuiDriver::renderLinks()
   }
 }
 
-void HMMWV9_IrrGuiDriver::renderGrid()
+void ChIrrGuiDriver::renderGrid()
 {
   ChCoordsys<> gridCsys(ChVector<>(0, 0, m_terrainHeight + 0.02),
     chrono::Q_from_AngAxis(-CH_C_PI_2, VECT_Z));
@@ -210,7 +208,7 @@ void HMMWV9_IrrGuiDriver::renderGrid()
     true);
 }
 
-void HMMWV9_IrrGuiDriver::renderStats()
+void ChIrrGuiDriver::renderStats()
 {
   char msg[100];
   sprintf(msg, "Speed: %+.2f", m_car.GetVehicleSpeed());
@@ -218,4 +216,4 @@ void HMMWV9_IrrGuiDriver::renderStats()
 }
 
 
-} // end namespace hmmwv9
+} // end namespace chrono

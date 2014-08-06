@@ -12,50 +12,50 @@
 // Authors: Radu Serban, Justin Madsen
 // =============================================================================
 //
-// Irrlicht-based GUI driver for the HMMWV9 model. This class implements the
+// Irrlicht-based GUI driver for the a vehicle. This class implements the
 // functionality required by its base ChDriver class using keyboard inputs.
 // As an Irrlicht event receiver, its OnEvent() callback is used to keep track
 // and update the current driver inputs. As such it does not need to override
 // the default no-op Update() virtual method.
 //
-// In addition, this class provides additional Irrlicht support for the HMMWV9
-// model:
+// In addition, this class provides additional Irrlicht support for rendering:
 //  - implements a custom camera (which follows the vehicle)
 //  - provides support for rendering links, force elements, displaying stats,
-//    etc.  Its DrawAll() method must be invoked every time the Irrlicht scene
-//    is redrawn, after the call to ChIrrAppInterface::DrawAll().
+//    etc.  In order to render these elements, call the its DrawAll() method
+//    instead of ChIrrAppInterface::DrawAll().
 //
 // =============================================================================
 
-#ifndef HMMWV9_IRRGUIDRIVER_H
-#define HMMWV9_IRRGUIDRIVER_H
+#ifndef CH_IRRGUIDRIVER_H
+#define CH_IRRGUIDRIVER_H
 
 
 #include "physics/ChSystem.h"
 #include "unit_IRRLICHT/ChIrrApp.h"
 
 #include "utils/ChChaseCamera.h"
+
+#include "subsys/ChApiSubsys.h"
 #include "subsys/ChDriver.h"
+#include "subsys/ChVehicle.h"
 
-#include "HMMWV9_Vehicle.h"
+namespace chrono {
 
-namespace hmmwv9 {
-
-class HMMWV9_IrrGuiDriver : public chrono::ChDriver, public irr::IEventReceiver
+class CH_SUBSYS_API ChIrrGuiDriver : public ChDriver, public irr::IEventReceiver
 {
 public:
-  HMMWV9_IrrGuiDriver(irr::ChIrrApp&         app,
-                      const HMMWV9_Vehicle&  car,
-                      int                    tlc_X = 740,
-                      int                    tlc_Y = 20);
+  ChIrrGuiDriver(irr::ChIrrApp&    app,
+                 const ChVehicle&  car,
+                 int               tlc_X = 740,
+                 int               tlc_Y = 20);
 
-  ~HMMWV9_IrrGuiDriver() {}
+  ~ChIrrGuiDriver() {}
 
   virtual bool OnEvent(const irr::SEvent& event);
 
-  void CreateCamera(const chrono::ChVector<>& ptOnChassis,
-                    double                    chaseDist,
-                    double                    chaseHeight);
+  void CreateCamera(const ChVector<>&  ptOnChassis,
+                    double             chaseDist,
+                    double             chaseHeight);
   void UpdateCamera(double step_size);
   void DrawAll();
 
@@ -69,9 +69,9 @@ private:
   void renderStats();
 
   irr::ChIrrAppInterface&   m_app;
-  const HMMWV9_Vehicle&     m_car;
+  const ChVehicle&          m_car;
 
-  chrono::utils::ChChaseCamera  m_camera;
+  utils::ChChaseCamera      m_camera;
 
   double m_terrainHeight;
 
@@ -82,7 +82,7 @@ private:
 };
 
 
-} // end namespace hmmwv9
+} // end namespace chrono
 
 
 #endif
