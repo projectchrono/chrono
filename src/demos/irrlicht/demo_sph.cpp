@@ -230,8 +230,6 @@ int main(int argc, char* argv[])
 	// THE SOFT-REAL-TIME CYCLE
 	//
 
-	static int printed_prox = 0;
-
 	application.SetStepManage(true);
 	application.SetTimestep(0.01);
 
