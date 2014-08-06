@@ -106,7 +106,7 @@ static bool recurse_CascadeDoc(TDF_Label label, Handle_XCAFDoc_ShapeTool& shapeT
 	is_assembly = shapeTool->GetComponents(label, child_labels, 0);
 
 	char mstring[200]="no name";
-	Standard_PCHaracter mchastr = mstring;
+	Standard_PCharacter mchastr = mstring;
 
 	// access name
 	Handle_TDataStd_Name N;

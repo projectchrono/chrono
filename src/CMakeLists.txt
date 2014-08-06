@@ -1123,20 +1123,20 @@ INSTALL(TARGETS ChronoEngine
 
 
 INSTALL(DIRECTORY ${CMAKE_SOURCE_DIR}/demos/data/ DESTINATION data PATTERN .svn EXCLUDE)
-INSTALL(FILES ${ChronoEngine_core_HEADERS} DESTINATION include/core)
-INSTALL(FILES ${ChronoEngine_physics_HEADERS} DESTINATION include/physics)
-INSTALL(FILES ${ChronoEngine_lcp_HEADERS} DESTINATION include/lcp)
-INSTALL(FILES ${ChronoEngine_collision_HEADERS} DESTINATION include/collision)
-INSTALL(FILES ${ChronoEngine_geometry_HEADERS} DESTINATION include/geometry)
-INSTALL(FILES ${ChronoEngine_assets_HEADERS} DESTINATION include/assets)
-INSTALL(FILES ${ChronoEngine_collision_edgetempest_HEADERS} DESTINATION include/collision/edgetempest)
-INSTALL(FILES ${ChronoEngine_collision_convexdecompJR_HEADERS} DESTINATION include/collision/convexdecompJR)
-INSTALL(FILES ${ChronoEngine_pneumatica_HEADERS} DESTINATION include/pneumatica)
-INSTALL(FILES ${ChronoEngine_particlefactory_HEADERS} DESTINATION include/particlefactory)
-INSTALL(FILES ${ChronoEngine_motion_functions_HEADERS} DESTINATION include/motion_functions)
-INSTALL(FILES ${ChronoEngine_parallel_HEADERS} DESTINATION include/parallel)
-INSTALL(FILES ${ChronoEngine_collision_bullet_HEADERS} DESTINATION include/collision/bullet)
-INSTALL(FILES ${ChronoEngine_collision_gimpact_HEADERS} DESTINATION include/collision/gimpact)
+INSTALL(FILES ${ChronoEngine_core_HEADERS} DESTINATION include/chrono/core)
+INSTALL(FILES ${ChronoEngine_physics_HEADERS} DESTINATION include/chrono/physics)
+INSTALL(FILES ${ChronoEngine_lcp_HEADERS} DESTINATION include/chrono/lcp)
+INSTALL(FILES ${ChronoEngine_collision_HEADERS} DESTINATION include/chrono/collision)
+INSTALL(FILES ${ChronoEngine_geometry_HEADERS} DESTINATION include/chrono/geometry)
+INSTALL(FILES ${ChronoEngine_assets_HEADERS} DESTINATION include/chrono/assets)
+INSTALL(FILES ${ChronoEngine_collision_edgetempest_HEADERS} DESTINATION include/chrono/collision/edgetempest)
+INSTALL(FILES ${ChronoEngine_collision_convexdecompJR_HEADERS} DESTINATION include/chrono/collision/convexdecompJR)
+INSTALL(FILES ${ChronoEngine_pneumatica_HEADERS} DESTINATION include/chrono/pneumatica)
+INSTALL(FILES ${ChronoEngine_particlefactory_HEADERS} DESTINATION include/chrono/particlefactory)
+INSTALL(FILES ${ChronoEngine_motion_functions_HEADERS} DESTINATION include/chrono/motion_functions)
+INSTALL(FILES ${ChronoEngine_parallel_HEADERS} DESTINATION include/chrono/parallel)
+INSTALL(FILES ${ChronoEngine_collision_bullet_HEADERS} DESTINATION include/chrono/collision/bullet)
+INSTALL(FILES ${ChronoEngine_collision_gimpact_HEADERS} DESTINATION include/chrono/collision/gimpact)
 
 #
 # Propagates the CMake build to other directories
@@ -1157,7 +1157,7 @@ ADD_SUBDIRECTORY(unit_PYTHON)
 # Demo Files
 #
 ADD_SUBDIRECTORY(demos)
-# ADD_SUBDIRECTORY(unit_TESTING)
+ADD_SUBDIRECTORY(unit_TESTING)
 
 
 INCLUDE(CPack)

@@ -95,7 +95,7 @@ public:
     ChHostInfo();
 
     // Retrieves the host entry based on the host name or address
-	ChHostInfo(std::string& hostName, hostType type);
+	ChHostInfo(const std::string& hostName, hostType type);
  
     // Destructor.  Closes the host entry database.
     ~ChHostInfo()
