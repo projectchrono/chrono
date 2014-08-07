@@ -128,7 +128,10 @@ HMMWV9_Vehicle::HMMWV9_Vehicle(ChSystem&            my_system,
   // Create the powertrain subsystem
   //--------------------------------
 
-  m_powertrain = ChSharedPtr<HMMWV9_Powertrain>(new HMMWV9_Powertrain(this));
+ // m_powertrain = ChSharedPtr<HMMWV9_Powertrain>(new HMMWV9_Powertrain(this));
+
+  m_powertrain = ChSharedPtr<HMMWV9_Powertrain_NEW>(new HMMWV9_Powertrain_NEW(this));
+  m_powertrain->Initialize(m_chassis, m_rear_left_susp->m_spindle, m_rear_right_susp->m_spindle);
 
 }
 

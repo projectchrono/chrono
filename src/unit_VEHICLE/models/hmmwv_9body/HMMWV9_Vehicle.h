@@ -33,6 +33,7 @@ namespace hmmwv9 {
 
 // Forward reference
 class HMMWV9_Powertrain;
+class HMMWV9_Powertrain_NEW;
 
 class HMMWV9_Vehicle : public chrono::ChVehicle {
 public:
@@ -62,7 +63,10 @@ private:
   chrono::ChSharedPtr<HMMWV9_DoubleWishboneRear>    m_rear_right_susp;
   chrono::ChSharedPtr<HMMWV9_DoubleWishboneRear>    m_rear_left_susp;
 
-  chrono::ChSharedPtr<HMMWV9_Powertrain>  m_powertrain;
+  //chrono::ChSharedPtr<HMMWV9_Powertrain>  m_powertrain;
+	chrono::ChSharedPtr<HMMWV9_Powertrain_NEW>  m_powertrain;
+
+private:
 
   // Chassis visualization mesh
   static const std::string m_chassisMeshName;
