@@ -31,13 +31,14 @@
   
  
 #include "physics/ChSystem.h"
+#include "physics/ChContactContainerBase.h"
 #include "unit_IRRLICHT/ChBodySceneNode.h"
 #include "unit_IRRLICHT/ChBodySceneNodeTools.h" 
 #include "unit_IRRLICHT/ChIrrAppInterface.h"
 #include "core/ChRealtimeStep.h"
 #include <stdio.h>
 
-#include "unit_IRRLICHT/ChDisplayTools.h" 
+#include "unit_IRRLICHT/ChIrrTools.h" 
 #include "unit_IRRLICHT/ChIrrWizard.h" 
  
 #include <irrlicht.h>
@@ -129,7 +130,7 @@ int main(int argc, char* argv[])
 
 	// Create all the rigid bodies.
 
-	video::ITexture* cubeMap = application.GetVideoDriver()->getTexture("../data/cubetexture.png");
+	video::ITexture* cubeMap = application.GetVideoDriver()->getTexture(GetChronoDataFile("cubetexture.png").c_str());
 
 	double incline_degrees = 0;
 	double frictionCoefficient = 0;
@@ -182,7 +183,7 @@ int main(int argc, char* argv[])
 	ChBodySceneNode* poly = (ChBodySceneNode*)addChBodySceneNode_easyGenericMesh(&mphysicalSystem, application.GetSceneManager(),
 		mmass, ChVector<>(0,0,0),
 		Q_from_AngAxis(0, VECT_X), 
-		"../data/shuttle.obj" , 
+		GetChronoDataFile("shuttle.obj").c_str() , 
 		false,	// not static 
 		true);	// true=convex; false=concave(do convex decomposition of concave mesh
 
@@ -195,7 +196,7 @@ int main(int argc, char* argv[])
 	ChBodySceneNode* poly2 = (ChBodySceneNode*)addChBodySceneNode_easyGenericMesh(&mphysicalSystem, application.GetSceneManager(),
 		mmass, ChVector<>(5,0,0),
 		Q_from_AngAxis(spin, VECT_Y), 
-		"../data/octahedron.obj" , 
+		GetChronoDataFile("octahedron.obj").c_str() , 
 		false,	// not static 
 		true);	// true=convex; false=concave(do convex decomposition of concave mesh
 
@@ -234,7 +235,7 @@ int main(int argc, char* argv[])
 	*/
 	// CREATE SPHERE
 	/*
-	video::ITexture* sphereMap = application.GetVideoDriver()->getTexture("../data/bluwhite.png");
+	video::ITexture* sphereMap = application.GetVideoDriver()->getTexture(GetChronoDataFile("bluwhite.png").c_str());
 	
 	ChBodySceneNode* ball = (ChBodySceneNode*)addChBodySceneNode_easySphere(
 		&mphysicalSystem, application.GetSceneManager(),

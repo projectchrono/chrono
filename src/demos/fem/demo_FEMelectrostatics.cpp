@@ -84,7 +84,7 @@ int main(int argc, char* argv[])
 
 	try 
 	{
-		my_mesh->LoadFromAbaqusFile("../data/unit_FEM/electrostatics.INP", mmaterial, node_sets);
+		my_mesh->LoadFromAbaqusFile(GetChronoDataFile("unit_FEM/electrostatics.INP").c_str(), mmaterial, node_sets);
 	}
 	catch (ChException myerr) {
 			GetLog() << myerr.what();

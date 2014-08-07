@@ -74,7 +74,7 @@ int main(int argc, char* argv[])
 		// a (quite simplified & approximated) clock escapement, that has been 
 		// modeled in SolidWorks and saved using the Chrono Add-in for SolidWorks.
 
-		my_python.ImportSolidWorksSystem("../data/solid_works/swiss_escapement", mphysicalSystem);  // note, don't type the .py suffic in filename..
+		my_python.ImportSolidWorksSystem(GetChronoDataFile("solid_works/swiss_escapement").c_str(), mphysicalSystem);  // note, don't type the .py suffix in filename..
 
 	}
 	catch (ChException myerror)

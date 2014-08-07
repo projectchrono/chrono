@@ -82,7 +82,9 @@ int main(int argc, char* argv[])
 				// You can generate these files using the TetGen tool.
 	try 
 	{
-		my_mesh->LoadFromTetGenFile("../data/unit_FEM/beam.node","../data/unit_FEM/beam.ele", mmaterial);
+    my_mesh->LoadFromTetGenFile(GetChronoDataFile("unit_FEM/beam.node").c_str(),
+                                GetChronoDataFile("unit_FEM/beam.ele").c_str(),
+                                mmaterial);
 	}
 	catch (ChException myerr) {
 			GetLog() << myerr.what();

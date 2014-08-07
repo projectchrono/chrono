@@ -474,7 +474,7 @@ int main(int argc, char* argv[])
 											ChVector<>(20,1,20) );
 	mfloor->GetBody()->SetBodyFixed(true);
 	mfloor->GetBody()->SetCollide(true);
-	video::ITexture* cubeMap = application.GetVideoDriver()->getTexture("../data/blu.png");
+	video::ITexture* cubeMap = application.GetVideoDriver()->getTexture(GetChronoDataFile("blu.png").c_str());
 	mfloor->setMaterialTexture(0,	cubeMap);
 
 

@@ -89,7 +89,7 @@ int main(int argc, char* argv[])
 											ChVector<>(20,1,20) );
 	mfloorBody->GetBody()->SetBodyFixed(true);
 
-	video::ITexture* cubeMap = application.GetVideoDriver()->getTexture("../data/concrete.jpg");
+	video::ITexture* cubeMap = application.GetVideoDriver()->getTexture(GetChronoDataFile("concrete.jpg").c_str());
 	mfloorBody->setMaterialTexture(0,	cubeMap);
 
 
