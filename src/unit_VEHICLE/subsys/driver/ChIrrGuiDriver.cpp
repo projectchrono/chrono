@@ -90,22 +90,22 @@ bool ChIrrGuiDriver::OnEvent(const SEvent& event)
 
     switch (event.KeyInput.Key) {
     case KEY_KEY_A:
-      setSteering(m_steering - 0.1, -1, 1);
+      setSteering(m_steering - 0.1);
       sprintf(msg, "Steering: %+.2f", m_steering);
       m_text_steering->setText(core::stringw(msg).c_str());
       return true;
     case KEY_KEY_D:
-      setSteering(m_steering + 0.1, -1, 1);
+      setSteering(m_steering + 0.1);
       sprintf(msg, "Steering: %+.2f", m_steering);
       m_text_steering->setText(core::stringw(msg).c_str());
       return true;
     case KEY_KEY_W:
-      setThrottle(m_throttle + 0.1, -1, 1);
+      setThrottle(m_throttle + 0.1);
       sprintf(msg, "Throttle: %+.2f", m_throttle*100.);
       m_text_throttle->setText(core::stringw(msg).c_str());
       return true;
     case KEY_KEY_S:
-      setThrottle(m_throttle - 0.1, -1, 1);
+      setThrottle(m_throttle - 0.1);
       sprintf(msg, "Throttle: %+.2f", m_throttle*100.);
       m_text_throttle->setText(core::stringw(msg).c_str());
       return true;
