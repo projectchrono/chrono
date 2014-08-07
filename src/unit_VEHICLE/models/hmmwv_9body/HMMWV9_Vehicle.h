@@ -56,7 +56,7 @@ public:
   static const std::string& ChassisMeshName() { return m_chassisMeshName; }
   static const std::string& ChassisMeshFile() { return m_chassisMeshFile; }
 
-private:
+public:
 
   chrono::ChSharedPtr<HMMWV9_DoubleWishboneFront>   m_front_right_susp;
   chrono::ChSharedPtr<HMMWV9_DoubleWishboneFront>   m_front_left_susp;
