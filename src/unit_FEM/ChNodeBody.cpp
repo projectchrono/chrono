@@ -40,7 +40,7 @@ ChNodeBody::ChNodeBody ()
 	this->cache_li_speed = VNULL;
 	this->cache_li_pos = VNULL;
 
-	SetIdentifier(CHGLOBALS().GetUniqueIntID()); // mark with unique ID
+	SetIdentifier(GetUniqueIntID()); // mark with unique ID
 }
 
 

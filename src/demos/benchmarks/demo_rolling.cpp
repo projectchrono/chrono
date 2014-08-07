@@ -28,7 +28,6 @@
 // ------------------------------------------------ 
 ///////////////////////////////////////////////////
     
-#include "physics/ChApidll.h" 
 #include "physics/ChSystem.h"
 #include "unit_IRRLICHT/ChBodySceneNode.h"
 #include "unit_IRRLICHT/ChBodySceneNodeTools.h" 
@@ -101,11 +100,6 @@ public:
  
 int main(int argc, char* argv[])
 { 
-
-	// In CHRONO engine, The DLL_CreateGlobals() - DLL_DeleteGlobals(); pair is needed if
-	// global functions are needed.
-	ChGlobals* GLOBAL_Vars = DLL_CreateGlobals();
-
 	// Create a ChronoENGINE physical system
 	ChSystem mphysicalSystem; 
 
@@ -288,9 +282,5 @@ int main(int argc, char* argv[])
 	data_ballsim0 << "];";
 	data_contacts << "];"; 
 
-	// Remember this at the end of the program, if you started
-	// with DLL_CreateGlobals();
-	DLL_DeleteGlobals();
-	
 	return 0;
 }

@@ -23,7 +23,7 @@ namespace chrono
 template<class Function_Type>
 ChControllerFunc<Function_Type>::ChControllerFunc() : P(1.0), I(0), D(0), t_lag(1.0), y0_func(0.0), t0_func(0.0)
 {
-	this->SetIdentifier(CHGLOBALS().GetUniqueIntID()); // mark with unique ID
+	this->SetIdentifier(GetUniqueIntID()); // mark with unique ID
 	m_func = ChFunction<Function_Type>();
 	// zero out the other vars
 	Reset();
@@ -33,7 +33,7 @@ template<class Function_Type>
 ChControllerFunc<Function_Type>::ChControllerFunc(double p, double i, double d,
 		double time_lag) : P(p), I(i), D(d), t_lag(time_lag), y0_func(0.0), t0_func(0.0)
 {
-	this->SetIdentifier(CHGLOBALS().GetUniqueIntID()); // mark with unique ID
+	this->SetIdentifier(GetUniqueIntID()); // mark with unique ID
 	m_func = ChFunction<Function_Type>();
 
 	Reset();

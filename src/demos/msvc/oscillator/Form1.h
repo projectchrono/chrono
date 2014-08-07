@@ -2,7 +2,6 @@
 
 #pragma unmanaged
 #include <irrlicht.h>
-#include "physics/ChApidll.h" 
 #include "physics/ChSystem.h"
 #include "unit_IRRLICHT/ChBodySceneNode.h"
 #include "unit_IRRLICHT/ChBodySceneNodeTools.h"
@@ -74,8 +73,6 @@ namespace oscillator {
 
 			// Create Chrono::Engine items - adding them to the physical system
 
-			chrono::DLL_CreateGlobals();  // important! before all uses of chrono engine items!
-
 			this->oscillator = new MyOscillatorSystem(this->aIrrDevice);
 	
 			// Set starting values in GUI items, as the initialized oscillator
@@ -96,9 +93,6 @@ namespace oscillator {
 		{	
 			// This safely delete every Irrlicht items, including the chrono bodies with 3d box shapes
 			this->aIrrDevice->drop();
-
-			// Delete all chrono global data - that's all with chrono. 
-			chrono::DLL_DeleteGlobals();
 
 			// this deletes the chrono physical system (also unreferences the added links)
 			if (this->oscillator) delete this->oscillator;

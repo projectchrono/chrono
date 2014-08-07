@@ -24,8 +24,6 @@
 // ------------------------------------------------ 
 ///////////////////////////////////////////////////
  
-#include "physics/ChApidll.h"
-
 #include "unit_MPI/ChContactContainerDEMMPI.h"
 
 #include "lcp/ChLcpVariablesGeneric.h"
@@ -957,9 +955,6 @@ int main(int argc, char* argv[])
 
 	GetLog() << "\n\n\n ----------------------------------------------\n";
 
-	// In CHRONO engine, The DLL_CreateGlobals() - DLL_DeleteGlobals(); pair is needed if
-	// global functions are needed. 
-	ChGlobals* GLOBAL_Vars = DLL_CreateGlobals();
 
 	// Initialize the MPI functionality. Use the CHMPI static functions.  
 	CHMPI::Init(argc,argv);
@@ -1129,7 +1124,6 @@ int main(int argc, char* argv[])
 
 	// Terminate the MPI functionality.
 	CHMPI::Finalize();
-	DLL_DeleteGlobals();
 	return 0;
 }
   

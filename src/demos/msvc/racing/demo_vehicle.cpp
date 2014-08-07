@@ -34,7 +34,6 @@
   
   
 
-#include "physics/ChApidll.h" 
 #include "vehicle_simulator.h"
 
 
@@ -51,11 +50,6 @@ using namespace chrono;
 
 int main(int argc, char* argv[])
 {
-		// In CHRONO engine, The DLL_CreateGlobals() - DLL_DeleteGlobals(); pair is needed if
-		// global functions are needed.
-	DLL_CreateGlobals();
-
-
 		// Here create an instance of the simulator (here, the creation code of the 
 		// object 'the_simulator' opens the 3D view, creates the GUI etc. See MySimulator class.
 	MySimulator* the_simulator = new MySimulator;
@@ -67,10 +61,6 @@ int main(int argc, char* argv[])
 		// Deleting the simulator object, will call ~MySimulator() destruction code which also
 		// closes the Irrlicht 3D view, etc.
 	delete the_simulator;
-
-		// Remember this at the end of the program, if you started
-		// with DLL_CreateGlobals();
-	DLL_DeleteGlobals();
 
 	return 0;
 }
