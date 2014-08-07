@@ -22,7 +22,6 @@
 ///////////////////////////////////////////////////
 
 
-#include "physics/ChApidll.h" 
 #include "physics/ChSystemDEM.h"
 #include "physics/ChBodyDEM.h"
 #include "physics/ChContactContainerDEM.h"
@@ -182,9 +181,6 @@ int main(int argc, char* argv[])
 
 		application.EndScene();
 	}
-
-
-	DLL_DeleteGlobals();
 
 	return 0;
 }

@@ -14,7 +14,6 @@
 #define CHGAUSSPOINT
 
 
-#include "physics/ChApidll.h"
 #include "physics/ChTensors.h"
 #include "core/ChMath.h"
 #include "lcp/ChLcpSystemDescriptor.h"

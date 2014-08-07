@@ -30,7 +30,6 @@
 
  
 
-#include "physics/ChApidll.h" 
 #include "physics/ChSystem.h"
 
 
@@ -43,12 +42,7 @@ using namespace chrono;
 int main(int argc, char* argv[])
 {
 
-	// The DLL_CreateGlobals() - DLL_DeleteGlobals(); pair is needed if
-	// global functions are needed.
-	DLL_CreateGlobals();
-
-
-	{
+  {
 		//
 		// EXAMPLE 1:
 		//
@@ -239,11 +233,6 @@ int main(int argc, char* argv[])
 		}
 
 	}
- 
-
-	// Remember this at the end of the program, if you started
-	// with DLL_CreateGlobals();
-	DLL_DeleteGlobals();
 
 	return 0;
 }

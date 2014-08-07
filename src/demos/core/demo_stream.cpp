@@ -33,8 +33,6 @@
 #include <math.h>
  
         
-#include "physics/ChApidll.h"
-#include "physics/ChGlobal.h"
 #include "core/ChLog.h"
 #include "core/ChMatrix.h" 
 #include "core/ChVector.h"

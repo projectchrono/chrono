@@ -31,7 +31,6 @@
  
   
  
-#include "physics/ChApidll.h" 
 #include "physics/ChParticlesClones.h" 
 #include "unit_IRRLICHT/ChIrrApp.h"
 #include <irrlicht.h>
@@ -57,10 +56,6 @@ using namespace gui;
  
 int main(int argc, char* argv[])
 {
-	// In CHRONO engine, The DLL_CreateGlobals() - DLL_DeleteGlobals(); pair is needed if
-	// global functions are needed. 
-	DLL_CreateGlobals();
-
 	// Create a Chrono::Engine physical system
 	ChSystem mphysicalSystem;
 
@@ -314,11 +309,6 @@ int main(int argc, char* argv[])
 		application.EndScene();  
 	}
 	
- 
- 
-	// Remember this at the end of the program, if you started
-	// with DLL_CreateGlobals();
-	DLL_DeleteGlobals();
 
 	return 0;
 }

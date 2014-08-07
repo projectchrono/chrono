@@ -25,8 +25,6 @@
  
   
   
-#include "physics/ChApidll.h" 
-#include "physics/ChGlobal.h"
 #include "core/ChTrasform.h"
 #include "core/ChMatrix.h" 
 #include "core/ChLog.h"
@@ -44,13 +42,6 @@ int main(int argc, char* argv[])
 		// statement, which returns a global output stream to the console (just
 		// like the std::out stream).
 	GetLog() << "CHRONO foundation classes demo: math\n\n";   
-     
-
-	// The DLL_CreateGlobals() - DLL_DeleteGlobals()  pair is needed if
-	// global functions are needed.
-
-	DLL_CreateGlobals();
-
 
 	//
 	// Some examples of math, using Chrono::Engine core features.
@@ -303,15 +294,6 @@ int main(int argc, char* argv[])
 	ChMatrixNM<double,2,1> resultM;
 	ChQuadrature::Integrate2D< ChMatrixNM<double,2,1> >(resultM, mfx2dM, 0, 1, 0,3, 6);
 	GetLog()<< "Quadrature 2d matrix result:" << resultM << " (analytic solution: 2.25, 4.5) \n";
-
-
-
-	/*
-     * Delete previously created objects, 
-	 * finalize DLL and that's all!
-     */
-
-	DLL_DeleteGlobals();
 
 
 

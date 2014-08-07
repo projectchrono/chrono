@@ -29,7 +29,6 @@
  
     
 
-#include "physics/ChApidll.h" 
 #include "physics/ChSystem.h"
 #include "physics/ChContactContainerBase.h"
 #include "geometry/ChCSphere.h"
@@ -195,11 +194,6 @@ void create_some_falling_items(ChSystem& mphysicalSystem,
 
 int main(int argc, char* argv[])
 {
-
-	// In CHRONO engine, The DLL_CreateGlobals() - DLL_DeleteGlobals(); pair is needed if
-	// global functions are needed.
-	DLL_CreateGlobals();
-
 	// Create a ChronoENGINE physical system
 	ChSystem mphysicalSystem;
 
@@ -972,11 +966,6 @@ int main(int argc, char* argv[])
 		mphysicalSystem.Clear(); 
 	}
 
-
-
-	// Remember this at the end of the program, if you started
-	// with DLL_CreateGlobals();
-	DLL_DeleteGlobals();
 
 	getchar();
 

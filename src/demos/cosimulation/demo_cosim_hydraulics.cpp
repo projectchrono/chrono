@@ -16,7 +16,6 @@
 ///////////////////////////////////////////////////
        
 #include "core/ChLog.h"
-#include "physics/ChApidll.h" 
 #include "physics/ChSystem.h" 
 #include "unit_COSIMULATION/ChCosimulation.h"
 #include "unit_COSIMULATION/ChExceptionSocket.h"
@@ -33,10 +32,6 @@ int main(int argc, char* argv[])
 	GetLog() << "CHRONO SimHydraulics cosimulation \n\n";
 	GetLog() << "NOTE! This requires a copy of Simulink with SimHydraulics. \n\n";
      
-	// The DLL_CreateGlobals() - DLL_DeleteGlobals(); pair is needed if
-	// global functions are needed.
-	DLL_CreateGlobals();
-
 
 	try{
 
@@ -186,9 +181,6 @@ int main(int argc, char* argv[])
 	{
 		GetLog() << " ERRROR with socket system: \n" << exception.what() << "\n";
 	}
-
-	// End of application
-	DLL_DeleteGlobals();
 
 	return 0;
 }

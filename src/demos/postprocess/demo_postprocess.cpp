@@ -27,7 +27,6 @@
 ///////////////////////////////////////////////////
  
  
-#include "physics/ChApidll.h" 
 #include "physics/ChParticlesClones.h" 
 #include "assets/ChBoxShape.h" 
 #include "assets/ChSphereShape.h" 
@@ -51,10 +50,6 @@ using namespace postprocess; // <- to keep things shorter
  
 int main(int argc, char* argv[])
 {
-	// In CHRONO engine, The DLL_CreateGlobals() - DLL_DeleteGlobals(); pair is needed if
-	// global functions are needed. 
-	DLL_CreateGlobals();
-
 	// Create a Chrono::Engine physical system
 	ChSystem mphysicalSystem;
 
@@ -318,11 +313,6 @@ int main(int argc, char* argv[])
 	// POV-Ray will start rendering a short animation, saving the frames
 	// in the directory 'anim'.
 
-
- 
-	// Remember this at the end of the program, if you started
-	// with DLL_CreateGlobals();
-	DLL_DeleteGlobals();
 
 	return 0;
 }

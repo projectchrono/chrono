@@ -282,7 +282,6 @@ IF (BUILD_CH_SDK)
 			)
 
 	SET(ChronoEngine_physics_SOURCES
-		physics/ChApidll.cpp 
 		physics/ChFilePS.cpp 
 		physics/ChNlsolver.cpp  
 		physics/ChFunction.cpp 
@@ -369,8 +368,6 @@ IF (BUILD_CH_SDK)
 		physics/ChContinuumMaterial.cpp
 	)
 	SET(ChronoEngine_physics_HEADERS
-
-		physics/ChApidll.h
 		physics/ChBodyFrame.h
 		physics/ChBody.h
 		physics/ChBodyAuxRef.h

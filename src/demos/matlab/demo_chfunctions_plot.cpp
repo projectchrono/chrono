@@ -29,7 +29,6 @@
  
   
  
-#include "physics/ChApidll.h" 
 #include "physics/ChFunction.h"
 #include "unit_MATLAB/ChMatlabEngine.h"
 
@@ -42,11 +41,6 @@ using namespace chrono;
  
 int main(int argc, char* argv[])
 {
-
-	// The DLL_CreateGlobals() - DLL_DeleteGlobals(); pair is needed if
-	// global functions are needed.
-	DLL_CreateGlobals();
-
 	// Better put the Matlab stuff inside a try{}, since it may throw exception if 
 	// the engine is not started (because Matlab not properly installed)
 	try
@@ -124,10 +118,6 @@ int main(int argc, char* argv[])
 	{
 		GetLog() << mex.what(); // Print error on console, if Matlab did not start.
 	}
- 
-	// Remember this at the end of the program, if you started
-	// with DLL_CreateGlobals();
-	DLL_DeleteGlobals();
 
 	return 0;
 }

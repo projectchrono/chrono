@@ -31,7 +31,6 @@
  
   
  
-#include "physics/ChApidll.h" 
 #include "physics/ChSystem.h"
 #include "unit_IRRLICHT/ChBodySceneNode.h"
 #include "unit_IRRLICHT/ChBodySceneNodeTools.h" 
@@ -556,12 +555,6 @@ private:
 
 int main(int argc, char* argv[])
 {
-
-	// In CHRONO engine, The DLL_CreateGlobals() - DLL_DeleteGlobals(); pair is needed if
-	// global functions are needed.
-	DLL_CreateGlobals();
-
-
 	// 1- Create a ChronoENGINE physical system: all bodies and constraints
 	//    will be handled by this ChSystem object.
 	ChSystem my_system;
@@ -669,12 +662,7 @@ int main(int argc, char* argv[])
 	}
 
 
-	if (mytank) delete mytank;	
-
-	
-	// Remember this at the end of the program, if you started
-	// with DLL_CreateGlobals();
-	DLL_DeleteGlobals();
+	if (mytank) delete mytank;
 
 	return 0;
 }

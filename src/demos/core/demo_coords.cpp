@@ -36,21 +36,15 @@
 #include "core/ChTimer.h"
 #include "physics/ChMarker.h"
 #include "physics/ChBody.h"
-#include "physics/ChApidll.h" 
 
 using namespace chrono;
            
 		        
 int main(int argc, char* argv[])
-{	
+{
 
 	// To write something to the console, use the chrono::GetLog() 
-
 	GetLog() << "CHRONO demo about coordinate transformations: \n\n";   
-     
-	// The DLL_CreateGlobals() - DLL_DeleteGlobals(); pair is needed if
-	// global functions are needed.
-	DLL_CreateGlobals();
 
 	//
 	// Some methods to achieve coordinate transformations, and some
@@ -439,7 +433,6 @@ ChVector<> mv(1, 2, 3);
 
 	GetLog() << "\n  CHRONO execution terminated.";
 	
-	DLL_DeleteGlobals();
 
 	system("pause");
 	return 0;

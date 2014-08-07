@@ -31,7 +31,6 @@
 
 
 
-#include "physics/ChApidll.h"
 #include "unit_PYTHON/ChPython.h"
 #include "physics/ChSystem.h"
 #include "physics/ChBodyAuxRef.h"
@@ -47,10 +46,6 @@ using namespace chrono;
 
 int main(int argc, char* argv[])
 {
-	// The DLL_CreateGlobals() - DLL_DeleteGlobals(); pair is needed if
-	// global functions are needed.
-	DLL_CreateGlobals(); 
-
 	GetLog() << " Test the execution of Python statements, formulas, programs.\n No graphical user interface.\n\n";
 
 
@@ -158,13 +153,6 @@ int main(int argc, char* argv[])
 		GetLog() << myerror.what();
 	}
 
-
-
-
-
-	// Remember this at the end of the program, if you started
-	// with DLL_CreateGlobals();
-	DLL_DeleteGlobals();
 
 	return 0;
 }
