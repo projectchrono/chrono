@@ -92,12 +92,12 @@ public:
 				///   [tet #] [node #] [node #] [node #] [node #]   etc.
 				/// If you pass a material inherited by ChContinuumElastic, nodes with 3D motion are used, and corotational elements.
 				/// If you pass a material inherited by ChContinuumPoisson3D, nodes with scalar field are used (ex. thermal, electrostatics, etc)
-	void LoadFromTetGenFile(char* filename_node,  ///< name of the .node file
-						    char* filename_ele,   ///< name of the .ele  file
+	void LoadFromTetGenFile(const char* filename_node,  ///< name of the .node file
+						    const char* filename_ele,   ///< name of the .ele  file
 							ChSharedPtr<ChContinuumMaterial> my_material); ///< material for the created tetahedrons
 	
 				/// Load tetahedrons, if any, saved in a .inp file for Abaqus.
-	void LoadFromAbaqusFile(char* filename, 
+	void LoadFromAbaqusFile(const char* filename, 
 							ChSharedPtr<ChContinuumMaterial> my_material,
 							std::vector< std::vector< ChSharedPtr<ChNodeFEMbase> > >& node_sets);
 

@@ -116,7 +116,7 @@ void ChMesh::Update (double m_time)
 }
 
 
-void ChMesh::LoadFromTetGenFile(char* filename_node, char* filename_ele, ChSharedPtr<ChContinuumMaterial> my_material)
+void ChMesh::LoadFromTetGenFile(const char* filename_node, const char* filename_ele, ChSharedPtr<ChContinuumMaterial> my_material)
 {
 	int totnodes = 0;
 	int nodes_offset = this->GetNnodes();
@@ -277,7 +277,7 @@ void ChMesh::LoadFromTetGenFile(char* filename_node, char* filename_ele, ChShare
 
 
 
-void ChMesh::LoadFromAbaqusFile(char* filename, 
+void ChMesh::LoadFromAbaqusFile(const char* filename, 
 								ChSharedPtr<ChContinuumMaterial> my_material, 
 								std::vector< std::vector< ChSharedPtr<ChNodeFEMbase> > >& node_sets)
 {
