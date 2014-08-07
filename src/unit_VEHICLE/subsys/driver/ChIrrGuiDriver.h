@@ -67,6 +67,7 @@ private:
   void renderLinks();
   void renderGrid();
   void renderStats();
+  void renderLinGauge(std::string& msg, double factor, int xpos,int ypos, int lenght, int height =12);
 
   irr::ChIrrAppInterface&   m_app;
   const ChVehicle&          m_car;
@@ -78,6 +79,9 @@ private:
   irr::gui::IGUIStaticText* m_text_throttle;
   irr::gui::IGUIStaticText* m_text_steering;
   irr::gui::IGUIStaticText* m_text_speed;
+
+  int  HUD_x;
+  int  HUD_y;
 
 };
 
