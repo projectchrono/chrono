@@ -10,7 +10,6 @@
 // and at http://projectchrono.org/license-chrono.txt.
 //
 
-
 #include "geometry/ChCSphere.h"
 #include "geometry/ChCBox.h"
 #include "geometry/ChCTriangleMeshSoup.h"
@@ -21,15 +20,6 @@
 namespace irr {
 namespace scene {
 
-
-// -----------------------------------------------------------------------------
-
-static std::string irrlicht_default_obj_dir("../data/");
-
-void SetDefaultObjectDir(const std::string& mdir)
-{
-  irrlicht_default_obj_dir = mdir;
-}
 
 // -----------------------------------------------------------------------------
 
@@ -142,7 +132,7 @@ ISceneNode* addChBodySceneNode_easyBox(
   static IAnimatedMesh* cubeMesh = 0;
 
   if (!cubeMesh) 
-    cubeMesh = amanager->getMesh((irrlicht_default_obj_dir+"cube.obj").c_str());
+    cubeMesh = amanager->getMesh(chrono::GetChronoDataFile("cube.obj").c_str());
 
   // create a ChronoENGINE rigid body
   ChBodySceneNode* rigidBodyZ = (ChBodySceneNode*)addChBodySceneNode(asystem, amanager, cubeMesh, mmass, position, rotation, aparent, mid);
@@ -175,7 +165,7 @@ ISceneNode* addChBodySceneNode_easyCylinder(
   static IAnimatedMesh* cylinderMesh = 0;
 
   if (!cylinderMesh) 
-    cylinderMesh = amanager->getMesh((irrlicht_default_obj_dir+"cylinder.obj").c_str());
+    cylinderMesh = amanager->getMesh(chrono::GetChronoDataFile("cylinder.obj").c_str());
 
   // create a ChronoENGINE rigid body
   ChBodySceneNode* rigidBodyZ = (ChBodySceneNode*)addChBodySceneNode(asystem, amanager, cylinderMesh, mmass, position, rotation, aparent, mid);

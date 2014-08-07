@@ -9,15 +9,6 @@
 // and at http://projectchrono.org/license-chrono.txt.
 //
 
-///////////////////////////////////////////////////
-//  
-//   ChGlobal.cpp
-//
-// ------------------------------------------------
-//             www.deltaknowledge.com
-// ------------------------------------------------
-///////////////////////////////////////////////////
-
 
 #include <string.h>
 
@@ -31,10 +22,13 @@
 #include <libkern/OSAtomic.h>
 #endif
 
+
 namespace chrono
 {
 
-
+// -----------------------------------------------------------------------------
+// Obtain a unique identifier (thread-safe)
+// -----------------------------------------------------------------------------
 int GetUniqueIntID()
 {
 #if defined(_WIN32) || defined(_WIN64)
@@ -51,6 +45,31 @@ int GetUniqueIntID()
   static volatile int id = 100000;
   return __sync_add_and_fetch(&id, 1);
 #endif
+}
+
+// -----------------------------------------------------------------------------
+// Function for manipulating the Chrono data directory
+// -----------------------------------------------------------------------------
+
+static std::string chrono_data_path("../data/");
+
+// Set the path to the Chrono data directory (ATTENTION: not thread safe)
+void SetChronoDataPath(const std::string& path)
+{
+  chrono_data_path = path;
+}
+
+// Obtain the current path to the Chrono data directory (thread safe)
+const std::string& GetChronoDataPath()
+{
+  return chrono_data_path;
+}
+
+// Obtain the complete path to the specified filename, given relative to the
+// Chrono data directory (thread safe)
+std::string GetChronoDataFile(const std::string& filename)
+{
+  return chrono_data_path + filename;
 }
 
 

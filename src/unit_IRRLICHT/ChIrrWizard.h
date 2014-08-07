@@ -13,8 +13,10 @@
 #ifndef CHIRRWIZARD_H
 #define CHIRRWIZARD_H
 
-
+#include <string>
 #include <irrlicht.h>
+
+#include "physics/ChGlobal.h"
 
 #include "unit_IRRLICHT/ChApiIrr.h"
 #include "unit_IRRLICHT/ChIrrCamera.h"
@@ -31,21 +33,17 @@ class ChApiIrr ChIrrWizard
 public:
 
   /// A very basic and simple function which is just a shortcut to avoid lot of
-  /// typing when someone wants to add the Chrono logo in a 3D scene, using
-  /// Irrlicht.  Note: in "mtexturedir" directory, relative to exe dir, you
-  /// must provide logo_chronoengine_alpha.png (or pass the file name as 3rd
-  /// optional parameter 'mlogofilename')
+  /// typing when someone wants to add a logo in a 3D scene, using Irrlicht.
 
   static void add_typical_Logo(
-                  IrrlichtDevice* device,
-                  const char*     mtexturedir = "../data/",
-                  const char*     mlogofilename = "logo_chronoengine_alpha.png");
+                  IrrlichtDevice*    device,
+                  const std::string& mlogofilename = chrono::GetChronoDataFile("logo_chronoengine_alpha.png"));
 
 
   /// A very basic and simple function which is just a shortcut to avoid lot of
-  /// typing when someone wants to add two lights and the Chrono logo in a 3D 
-  /// scene, using Irrlicht. Note: if you want more precise control on lights,
-  /// just use plain commands of Irrlicht (see the code below).
+  /// typing when someone wants to add two lights in a 3D scene, using Irrlicht.
+  /// Note: if you want more precise control on lights, just use plain commands
+  /// of Irrlicht.
 
   static void add_typical_Lights(
                   IrrlichtDevice* device,
@@ -58,12 +56,13 @@ public:
 
   /// A very basic and simple function which is just a  shortcut to avoid lot of
   /// typing when someone wants to add a sky dome (sky box) in a 3D scene, using
-  /// Irrlicht. Note: in "mtexturedir" directory, relative to exe dir, you must
-  /// provide sky_lf.jpg, sky_up.jpg, sky_dn.jpg pictures.
+  /// Irrlicht. 
+  /// Note: it is assumed that the specified "mtexturedir" directory contains
+  /// the following three texture images: sky_lf.jpg, sky_up.jpg, sky_dn.jpg
 
   static void add_typical_Sky(
-                  IrrlichtDevice* device,
-                  const char*     mtexturedir = "../data/skybox/" );
+                  IrrlichtDevice*    device,
+                  const std::string& mtexturedir = chrono::GetChronoDataFile("skybox/"));
 
   /// A very basic and simple function which is just a shortcut to avoid lot of
   /// typing when someone wants to add a Maya-like camera in a Irrlicht 3D scene.

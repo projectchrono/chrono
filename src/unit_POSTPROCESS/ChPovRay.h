@@ -84,8 +84,8 @@ public:
 		/// Tell if a ChPhysicsItem has been already added.
 	virtual bool IsAdded(ChSharedPtr<ChPhysicsItem> mitem);
 
-		/// Set the filename of the template for the script generation
-		/// If not set, it defaults to "../data/_template_POV.pov"
+		/// Set the filename of the template for the script generation. If not set,
+    /// it defaults to "_template_POV.pov" in the default Chrono data directory.
 	virtual void SetTemplateFile(const std::string &filename) 
 				{
 					template_filename = filename;

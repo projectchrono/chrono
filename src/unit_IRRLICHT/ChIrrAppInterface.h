@@ -105,7 +105,7 @@ public:
   /// Set the fonts to be used from now on. Note that the font must be in the
   /// XML format of Irrlicht - this can be generated using a tool provided with
   /// Irrlicht.
-  void SetFonts(const char* mfontdir = "../data/fonts/arial8.xml");
+  void SetFonts(const std::string& mfontdir = chrono::GetChronoDataFile("fonts/arial8.xml"));
 
   /// Call this to clean the canvas at the beginning of each animation frame
   void BeginScene(bool          backBuffer=true,
@@ -140,10 +140,9 @@ public:
   // Some wizard functions for 'easy setup' of the application window:
   //
 
-  void AddTypicalLogo(const char* mtexturedir = "../data/",
-                      const char* mlogofilename = "logo_chronoengine_alpha.png")
+  void AddTypicalLogo(const std::string& mlogofilename = chrono::GetChronoDataFile("logo_chronoengine_alpha.png"))
   {
-    ChIrrWizard::add_typical_Logo(GetDevice(), mtexturedir,mlogofilename);
+    ChIrrWizard::add_typical_Logo(GetDevice(), mlogofilename);
   }
 
   void AddTypicalCamera(core::vector3df mpos = core::vector3df(0,0,-8),
@@ -161,7 +160,7 @@ public:
     ChIrrWizard::add_typical_Lights(GetDevice(), pos1,pos2, rad1, rad2, col1, col2);
   }
 
-  void AddTypicalSky(const char* mtexturedir = "../data/skybox/")
+  void AddTypicalSky(const std::string& mtexturedir = chrono::GetChronoDataFile("skybox/"))
   {
     ChIrrWizard::add_typical_Sky(GetDevice(), mtexturedir);
   }

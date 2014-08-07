@@ -42,11 +42,11 @@ using namespace chrono;
 using namespace postprocess;
 using namespace geometry;
 
- 
+
 ChPovRay::ChPovRay(ChSystem* system) : ChPostProcessBase(system)
 {
 	this->pic_filename		= "pic";
-	this->template_filename = "../data/_template_POV.pov";
+	this->template_filename = GetChronoDataFile("_template_POV.pov");
 	this->out_script_filename = "render_frames.pov";
 	this->out_data_filename = "state";
 	this->framenumber = 0;

@@ -12,28 +12,26 @@
 #ifndef CHGLOBAL_H
 #define CHGLOBAL_H
 
-//////////////////////////////////////////////////
-//  
-//   ChGlobal.h
-//
-//   Global variables.
-//
-//   HEADER file for CHRONO,
-//	 Multibody dynamics engine
-//
-// ------------------------------------------------
-//             www.deltaknowledge.com
-// ------------------------------------------------
-///////////////////////////////////////////////////
 
-
+#include <string>
 #include "core/ChApiCE.h"
 
 
 namespace chrono 
 {
 
+/// Obtain a unique identifier (thread-safe)
 ChApi int GetUniqueIntID();
+
+/// Set the path to the Chrono data directory (ATTENTION: not thread safe)
+ChApi void SetChronoDataPath(const std::string& path);
+
+/// Obtain the current path to the Chrono data directory (thread safe)
+ChApi const std::string& GetChronoDataPath();
+
+/// Obtain the complete path to the specified filename, given relative to the
+/// Chrono data directory (thread safe)
+ChApi std::string GetChronoDataFile(const std::string& filename);
 
 } // END_OF_NAMESPACE____
 
