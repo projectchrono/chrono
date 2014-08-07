@@ -83,7 +83,7 @@ int main(int argc, char* argv[])
 	floorBody->SetBodyFixed(true);
 
 	ChSharedPtr<ChTexture> mtexture(new ChTexture());
-	mtexture->SetTextureFilename("../data/concrete.jpg");
+  mtexture->SetTextureFilename(GetChronoDataFile("concrete.jpg"));
 	floorBody->AddAsset(mtexture);
 
 	mphysicalSystem.Add(floorBody);

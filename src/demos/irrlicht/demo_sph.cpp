@@ -107,7 +107,7 @@ void create_some_falling_items(ChIrrAppInterface& mapp)
 		mrigidBody->addShadowVolumeSceneNode();
 
 
-		video::ITexture* sphereMap = driver->getTexture("../data/bluwhite.png");
+    video::ITexture* sphereMap = driver->getTexture(GetChronoDataFile("bluwhite.png").c_str());
 		mrigidBody->setMaterialTexture(0,	sphereMap);
 	} 
 
@@ -123,7 +123,7 @@ void create_some_falling_items(ChIrrAppInterface& mapp)
 	mrigidBody->GetBody()->SetBodyFixed(true);
 	mrigidBody->GetBody()->SetFriction(0.2f); 
 
-	video::ITexture* cubeMap = driver->getTexture("../data/blu.png");
+  video::ITexture* cubeMap = driver->getTexture(GetChronoDataFile("blu.png").c_str());
 	mrigidBody->setMaterialTexture(0,	cubeMap);
 
 	mrigidBody = (ChBodySceneNode*)addChBodySceneNode_easyBox(

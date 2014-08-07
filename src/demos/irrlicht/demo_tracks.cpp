@@ -121,7 +121,7 @@ public:
 
 				// --- The tank body --- 
 
-				IAnimatedMesh*	bulldozer_bodyMesh = msceneManager->getMesh("../data/bulldozerB10.obj");
+        IAnimatedMesh*	bulldozer_bodyMesh = msceneManager->getMesh(GetChronoDataFile("bulldozerB10.obj").c_str());
 				truss = (ChBodySceneNode*)addChBodySceneNode(
 														&my_system, msceneManager, bulldozer_bodyMesh,
 														350.0,
@@ -134,7 +134,7 @@ public:
 				// --- Right Front suspension --- 
 
 				// Load a triangle mesh for wheel visualization
-				IAnimatedMesh* irmesh_wheel_view = msceneManager->getMesh("../data/wheel_view.obj");
+        IAnimatedMesh* irmesh_wheel_view = msceneManager->getMesh(GetChronoDataFile("wheel_view.obj").c_str());
 
 				// ..the tank right-front wheel
 				wheelRF = (ChBodySceneNode*) addChBodySceneNode(
@@ -150,7 +150,7 @@ public:
 				wheelRF->GetBody()->SetCollide(true);
 				wheelRF->GetBody()->SetInertiaXX(ChVector<>(1.2, 1.2, 1.2));
 				wheelRF->GetBody()->SetFriction(1.0);
-					video::ITexture* cylinderMap = mdriver->getTexture("../data/bluwhite.png");
+        video::ITexture* cylinderMap = mdriver->getTexture(GetChronoDataFile("bluwhite.png").c_str());
 				wheelRF->setMaterialTexture(0,	cylinderMap);
 				wheelRF->addShadowVolumeSceneNode();
 
@@ -205,7 +205,7 @@ public:
 				wheelRB->GetBody()->SetCollide(true);
 				wheelRB->GetBody()->SetInertiaXX(ChVector<>(1.2, 1.2, 1.2));
 				wheelRB->GetBody()->SetFriction(1.0);
-					cylinderMap = mdriver->getTexture("../data/bluwhite.png");
+        cylinderMap = mdriver->getTexture(GetChronoDataFile("bluwhite.png").c_str());
 				wheelRB->setMaterialTexture(0,	cylinderMap);
 				wheelRB->addShadowVolumeSceneNode();
 
@@ -248,10 +248,10 @@ public:
 				//--- TRACKS ---
 				
 				// Load a triangle mesh for visualization
-				IAnimatedMesh* irmesh_shoe_view = msceneManager->getMesh("../data/shoe_view.obj");
+        IAnimatedMesh* irmesh_shoe_view = msceneManager->getMesh(GetChronoDataFile("shoe_view.obj").c_str());
 				
 				// Load a triangle mesh for collision
-				IAnimatedMesh* irmesh_shoe_collision = msceneManager->getMesh("../data/shoe_collision.obj");
+        IAnimatedMesh* irmesh_shoe_collision = msceneManager->getMesh(GetChronoDataFile("shoe_collision.obj").c_str());
 				ChTriangleMeshSoup temp_trianglemesh; 
 				fillChTrimeshFromIrlichtMesh(&temp_trianglemesh, irmesh_shoe_collision->getMesh(0));
 
@@ -587,7 +587,7 @@ int main(int argc, char* argv[])
 	my_ground->GetBody()->SetBodyFixed(true);
 	my_ground->GetBody()->SetCollide(true);
 	my_ground->GetBody()->SetFriction(1.0);
-	video::ITexture* groundMap = application.GetVideoDriver()->getTexture("../data/blu.png");
+  video::ITexture* groundMap = application.GetVideoDriver()->getTexture(GetChronoDataFile("blu.png").c_str());
 	my_ground->setMaterialTexture(0,groundMap);
 
 	// ..some obstacles on the ground:

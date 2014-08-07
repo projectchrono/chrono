@@ -115,7 +115,7 @@ void create_some_falling_items(ChSystem& mphysicalSystem,
 		double inertia = (2./5.)*sphereradius*sphereradius * spheremass;
 		mrigidBody->GetBody()->SetInertiaXX(ChVector<>(inertia,inertia,inertia));
 		 
-		video::ITexture* sphereMap = driver->getTexture("../data/pinkwhite.png");
+		video::ITexture* sphereMap = driver->getTexture(GetChronoDataFile("pinkwhite.png").c_str());
 		mrigidBody->setMaterialTexture(0,	sphereMap);
 	}
   

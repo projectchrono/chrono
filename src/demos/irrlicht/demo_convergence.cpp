@@ -100,7 +100,7 @@ void create_items(ChIrrAppInterface& application)
 											true,		// collide enable?
 											true));		// visualization?
 				mrigidBody->SetPos(ChVector<>(0.5, sphrad+level, 0.7));
-				mrigidBody->AddAsset( ChSharedPtr<ChTexture>(new ChTexture("../data/bluwhite.png")) );
+        mrigidBody->AddAsset(ChSharedPtr<ChTexture>(new ChTexture(GetChronoDataFile("bluwhite.png"))));
 
 				application.GetSystem()->Add(mrigidBody);
 			}
@@ -112,7 +112,7 @@ void create_items(ChIrrAppInterface& application)
 											true,		// collide enable?
 											true));		// visualization?
 				mrigidBody->SetPos(ChVector<>(0.5, sphrad+level, 0.7));
-				mrigidBody->AddAsset( ChSharedPtr<ChTexture>(new ChTexture("../data/cubetexture_bluwhite.png")) );
+        mrigidBody->AddAsset(ChSharedPtr<ChTexture>(new ChTexture(GetChronoDataFile("cubetexture_bluwhite.png"))));
 
 				application.GetSystem()->Add(mrigidBody);
 			}
@@ -143,7 +143,7 @@ void create_items(ChIrrAppInterface& application)
 											true));		// visualization?
 					mrigidWall->SetPos(ChVector<>(-8+ui*4.0+2*(bi%2),  1.0+bi*2.0, -5+ ai*6));
 					mrigidWall->SetFriction(0.4f);
-					mrigidWall->AddAsset( ChSharedPtr<ChTexture>(new ChTexture("../data/cubetexture_bluwhite.png")) );
+          mrigidWall->AddAsset(ChSharedPtr<ChTexture>(new ChTexture(GetChronoDataFile("cubetexture_bluwhite.png"))));
 
 					application.GetSystem()->Add(mrigidWall);
 				}
@@ -162,7 +162,7 @@ void create_items(ChIrrAppInterface& application)
 											true,		 // collide enable?
 											true));		 // visualization?
 		mrigidHeavy->SetPos(ChVector<>(0.5, sphrad+0.1, -1));
-		mrigidHeavy->AddAsset( ChSharedPtr<ChTexture>(new ChTexture("../data/pinkwhite.png")) );
+    mrigidHeavy->AddAsset(ChSharedPtr<ChTexture>(new ChTexture(GetChronoDataFile("pinkwhite.png"))));
 
 		application.GetSystem()->Add(mrigidHeavy);
 
@@ -181,7 +181,7 @@ void create_items(ChIrrAppInterface& application)
 	mrigidFloor->SetPos( ChVector<>(0,-2,0) );
 	mrigidFloor->SetBodyFixed(true);
 	mrigidFloor->SetFriction(0.6f);
-	mrigidFloor->AddAsset( ChSharedPtr<ChTexture>(new ChTexture("../data/concrete.jpg")) );
+  mrigidFloor->AddAsset(ChSharedPtr<ChTexture>(new ChTexture(GetChronoDataFile("concrete.jpg"))));
 
 	application.GetSystem()->Add(mrigidFloor);
 

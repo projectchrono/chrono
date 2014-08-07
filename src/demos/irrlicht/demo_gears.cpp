@@ -91,7 +91,7 @@ int main(int argc, char* argv[])
 	mbody_truss->GetBody()->SetBodyFixed(true);
 	mbody_truss->GetBody()->SetCollide(false);
 
-	video::ITexture* cubeMap = application.GetVideoDriver()->getTexture("../data/cubetexture.png");
+  video::ITexture* cubeMap = application.GetVideoDriver()->getTexture(GetChronoDataFile("cubetexture.png").c_str());
 	mbody_truss->setMaterialTexture(0,	cubeMap);
 
 	// ...the rotating bar support for the two epicycloidal wheels
@@ -121,10 +121,10 @@ int main(int argc, char* argv[])
 	mbody_gearA->GetBody()->SetInertiaXX(ChVector<>(1.2,1.2,1.2));
 	mbody_gearA->GetBody()->SetCollide(false);
 	mbody_gearA->addShadowVolumeSceneNode();
-	video::ITexture* cylinderMap = application.GetVideoDriver()->getTexture("../data/pinkwhite.png");
+  video::ITexture* cylinderMap = application.GetVideoDriver()->getTexture(GetChronoDataFile("pinkwhite.png").c_str());
 	mbody_gearA->setMaterialTexture(0,	cylinderMap);
 			// for aesthetical reasons, also add a thin cylinder to show the shaft in Irrlicht: 
-	IAnimatedMesh* axis_mesh = application.GetSceneManager()->getMesh("../data/cylinder.obj");
+  IAnimatedMesh* axis_mesh = application.GetSceneManager()->getMesh(GetChronoDataFile("cylinder.obj").c_str());
 	IAnimatedMeshSceneNode* axis_nodeA = application.GetSceneManager()->addAnimatedMeshSceneNode(axis_mesh, mbody_gearA);
 	axis_nodeA->setScale( core::vector3df((irr::f32)0.4, 21, (irr::f32)0.4) );
 

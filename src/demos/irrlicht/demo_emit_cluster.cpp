@@ -63,7 +63,7 @@ using namespace gui;
 		{
 			// optional: add further assets, ex for improving visualization:
 			ChSharedPtr<ChTexture> mtexture(new ChTexture());
-			mtexture->SetTextureFilename("../data/bluwhite.png");
+      mtexture->SetTextureFilename(GetChronoDataFile("bluwhite.png"));
 			mbody->AddAsset(mtexture);
 
 			// Enable Irrlicht visualization for all particles
@@ -112,7 +112,7 @@ int main(int argc, char* argv[])
 
 	// optional: add further assets, ex for improving visualization:
 	ChSharedPtr<ChTexture> mtexture(new ChTexture());
-	mtexture->SetTextureFilename("../data/concrete.jpg");
+  mtexture->SetTextureFilename(GetChronoDataFile("concrete.jpg"));
 	msphereBody->AddAsset(mtexture);
 
 	mphysicalSystem.Add(msphereBody);

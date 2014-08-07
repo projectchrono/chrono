@@ -170,7 +170,7 @@ public:
 				wheelRF->GetBody()->SetInertiaXX(ChVector<>(0.2, 0.2, 0.2));
 				wheelRF->GetBody()->SetCollide(true);
 				wheelRF->GetBody()->SetFriction(1.0);
-					video::ITexture* cylinderMap = mdriver->getTexture("../data/bluwhite.png");
+        video::ITexture* cylinderMap = mdriver->getTexture(GetChronoDataFile("bluwhite.png").c_str());
 				wheelRF->setMaterialTexture(0,	cylinderMap);
 				wheelRF->addShadowVolumeSceneNode();
 
@@ -292,7 +292,7 @@ public:
 				wheelRB->GetBody()->SetInertiaXX(ChVector<>(0.2, 0.2, 0.2));
 				wheelRB->GetBody()->SetCollide(true);
 				wheelRB->GetBody()->SetFriction(1.0);
-					cylinderMap = mdriver->getTexture("../data/bluwhite.png");
+        cylinderMap = mdriver->getTexture(GetChronoDataFile("bluwhite.png").c_str());
 				wheelRB->setMaterialTexture(0,	cylinderMap);
 				wheelRB->addShadowVolumeSceneNode();
 
@@ -717,7 +717,7 @@ int main(int argc, char* argv[])
 	my_ground->GetBody()->SetCollide(true);
 	my_ground->GetBody()->SetSfriction(1.0);
 	my_ground->GetBody()->SetKfriction(1.0);
-	video::ITexture* groundMap = driver->getTexture("../data/blu.png");
+  video::ITexture* groundMap = driver->getTexture(GetChronoDataFile("blu.png").c_str());
 	my_ground->setMaterialTexture(0,groundMap);
 
 	// ..some obstacles on the ground:

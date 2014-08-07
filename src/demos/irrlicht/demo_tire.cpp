@@ -62,7 +62,7 @@ ChBodySceneNode* create_wheel(ChVector<> mposition, ChIrrAppInterface& mapplicat
 	ChCollisionModel::SetDefaultSuggestedMargin  (0.004);
 
 	// the mesh for the visualization (independent from the collision shape)
-	IAnimatedMesh*	tireMesh = mapplication.GetSceneManager()->getMesh("../data/tractor_wheel.obj");
+  IAnimatedMesh*	tireMesh = mapplication.GetSceneManager()->getMesh(GetChronoDataFile("tractor_wheel.obj").c_str());
 
 	ChBodySceneNode* mrigidBody = (ChBodySceneNode*)addChBodySceneNode(
 									mapplication.GetSystem(), mapplication.GetSceneManager(),
@@ -85,8 +85,8 @@ ChBodySceneNode* create_wheel(ChVector<> mposition, ChIrrAppInterface& mapplicat
 	for (double mangle = 0; mangle < 360.; mangle+= (360./15.))
 	{
 		ChQuaternion<>myrot;
-		ChStreamInAsciiFile myknobs("../data/tractor_wheel_knobs.chulls");
-		ChStreamInAsciiFile myslice("../data/tractor_wheel_slice.chulls");
+		ChStreamInAsciiFile myknobs(GetChronoDataFile("tractor_wheel_knobs.chulls").c_str());
+		ChStreamInAsciiFile myslice(GetChronoDataFile("tractor_wheel_slice.chulls").c_str());
 		myrot.Q_from_AngAxis(mangle*(CH_C_PI/180.),VECT_X);
 		ChMatrix33<> mm(myrot);
 		mrigidBody->GetBody()->GetCollisionModel()->AddConvexHullsFromFile(myknobs, ChVector<>(0,0,0), mm);
@@ -105,8 +105,8 @@ ChBodySceneNode* create_wheel(ChVector<> mposition, ChIrrAppInterface& mapplicat
 void create_some_falling_items(ChSystem& mphysicalSystem, ISceneManager* msceneManager, IVideoDriver* driver)
 {
 	 // Make some pebbles, just for fun, under the wheel
-	video::ITexture* cubeMap = driver->getTexture("../data/concrete.jpg");
-	video::ITexture* rockMap = driver->getTexture("../data/rock.jpg");
+	video::ITexture* cubeMap = driver->getTexture(GetChronoDataFile("concrete.jpg").c_str());
+	video::ITexture* rockMap = driver->getTexture(GetChronoDataFile("rock.jpg").c_str());
 
 	ChBodySceneNode* mrigidBody; 
 

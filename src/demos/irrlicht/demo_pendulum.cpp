@@ -208,7 +208,7 @@ int main(int argc, char* argv[])
 	// loading and handling (this object is here for aesthetical reasons,
 	// it is NOT handled by Chrono::Engine).
 	double fan_radius = 5.3;
-	IAnimatedMesh*	fanMesh = application.GetSceneManager()->getMesh("../data/fan2.obj");
+  IAnimatedMesh*	fanMesh = application.GetSceneManager()->getMesh(GetChronoDataFile("fan2.obj").c_str());
 	IAnimatedMeshSceneNode* fanNode = application.GetSceneManager()->addAnimatedMeshSceneNode (fanMesh);
 	fanNode->setScale(irr::core::vector3df((irr::f32)fan_radius,(irr::f32)fan_radius,(irr::f32)fan_radius));
  

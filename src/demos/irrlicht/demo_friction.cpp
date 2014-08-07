@@ -53,7 +53,7 @@ void create_some_falling_items(ChSystem* mphysicalSystem, ISceneManager* msceneM
 	double density = 1000;
 
 	// Create a texture asset. It can be shared between bodies.
-	ChSharedPtr<ChTexture> textureasset (new ChTexture("../data/bluwhite.png"));
+  ChSharedPtr<ChTexture> textureasset(new ChTexture(GetChronoDataFile("bluwhite.png")));
 
 	// Create some spheres that roll horizontally, 
 	// with increasing rolling friction values
@@ -134,7 +134,7 @@ void create_some_falling_items(ChSystem* mphysicalSystem, ISceneManager* msceneM
 	mfloorBody->SetRollingFriction(1);	 // the min. of the two coeff. of the two contact surfaces will be used
 	mfloorBody->SetSpinningFriction(1);  // the min. of the two coeff. of the two contact surfaces will be used
 
-	mfloorBody->AddAsset( ChSharedPtr<ChTexture>(new ChTexture("../data/blu.png")) );
+  mfloorBody->AddAsset(ChSharedPtr<ChTexture>(new ChTexture(GetChronoDataFile("blu.png"))));
 
 	mphysicalSystem->Add(mfloorBody);
 

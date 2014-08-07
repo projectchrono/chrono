@@ -79,7 +79,7 @@ void create_some_falling_items(ChSystem& mphysicalSystem, ISceneManager* msceneM
 
 		// optional, attach a texture for better visualization
 		ChSharedPtr<ChTexture> mtexture(new ChTexture());
-		mtexture->SetTextureFilename("../data/bluwhite.png");
+    mtexture->SetTextureFilename(GetChronoDataFile("bluwhite.png"));
 		msphereBody->AddAsset(mtexture);
 
 
@@ -95,7 +95,7 @@ void create_some_falling_items(ChSystem& mphysicalSystem, ISceneManager* msceneM
 		
 		// optional, attach a texture for better visualization
 		ChSharedPtr<ChTexture> mtexturebox(new ChTexture());
-		mtexturebox->SetTextureFilename("../data/cubetexture_bluwhite.png");
+    mtexturebox->SetTextureFilename(GetChronoDataFile("cubetexture_bluwhite.png"));
 		mboxBody->AddAsset(mtexturebox);
 
 
@@ -111,7 +111,7 @@ void create_some_falling_items(ChSystem& mphysicalSystem, ISceneManager* msceneM
 		
 		// optional, attach a texture for better visualization
 		ChSharedPtr<ChTexture> mtexturecyl(new ChTexture());
-		mtexturecyl->SetTextureFilename("../data/pinkwhite.png");
+    mtexturecyl->SetTextureFilename(GetChronoDataFile("pinkwhite.png"));
 		mcylBody->AddAsset(mtexturecyl);
 
 	} 
@@ -158,7 +158,7 @@ void create_some_falling_items(ChSystem& mphysicalSystem, ISceneManager* msceneM
 
 	// optional, attach  textures for better visualization
 	ChSharedPtr<ChTexture> mtexturewall(new ChTexture());
-	mtexturewall->SetTextureFilename("../data/concrete.jpg"); 
+  mtexturewall->SetTextureFilename(GetChronoDataFile("concrete.jpg"));
 	wallBody1->AddAsset(mtexturewall); // note: most assets can be shared
 	wallBody2->AddAsset(mtexturewall);
 	wallBody3->AddAsset(mtexturewall);
@@ -219,33 +219,6 @@ void create_some_falling_items(ChSystem& mphysicalSystem, ISceneManager* msceneM
 	// etc. for other 4 box shapes.. 
 	*/
 
-
-	/*
-	// Add also an oddly shaped object, loading from a mesh saved in '.X' fileformat. 
-	// ***OBSOLETE*** the addChBodySceneNode_xxxx methods will be deprecated in future
-	ChBodySceneNode* meshBody = (ChBodySceneNode*)addChBodySceneNode_easyGenericMesh(&mphysicalSystem, msceneManager,
-												1.0, ChVector<>(0,2,0),
-												QUNIT, 
-												"../data/rock.X" , 
-												false,	// not static 
-												true);	// true=convex; false=concave(do convex decomposition of concave mesh)
-	meshBody->addShadowVolumeSceneNode();
-	*/
-
-	/*
-	// Add also a 'barrel' type object
-	// ***OBSOLETE*** the addChBodySceneNode_xxxx methods will be deprecated in future
-	mrigidBody = (ChBodySceneNode*)addChBodySceneNode_easyBarrel(
-											&mphysicalSystem, msceneManager,
-											1.0,
-											ChVector<>(0,6,1),
-											2, 4,
-											-0.8, 0.8, 
-											-0.5);
-	mrigidBody->GetBody()->SetWvel_loc(ChVector<>(0.3,0,0));
-	video::ITexture* barrellMap = driver->getTexture("../data/pinkwhite.png");
-	mrigidBody->setMaterialTexture(0,	barrellMap);
-	*/
 
 	/*
 	// OPTIONAL TEST: Add also few spherical particles 

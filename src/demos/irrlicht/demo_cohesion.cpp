@@ -169,7 +169,7 @@ void create_some_falling_items(ChSystem& mphysicalSystem)
 				
 		// optional, attach a texture for better visualization
 		ChSharedPtr<ChTexture> mtexture(new ChTexture());
-		mtexture->SetTextureFilename("../data/rock.jpg");
+    mtexture->SetTextureFilename(GetChronoDataFile("rock.jpg"));
 		mrigidBody->AddAsset(mtexture);
 
 	} 
@@ -235,7 +235,7 @@ void create_some_falling_items(ChSystem& mphysicalSystem)
 
 	// optional, attach  textures for better visualization
 	ChSharedPtr<ChTexture> mtexturewall(new ChTexture());
-	mtexturewall->SetTextureFilename("../data/concrete.jpg"); 
+  mtexturewall->SetTextureFilename(GetChronoDataFile("concrete.jpg"));
 	wallBody1->AddAsset(mtexturewall); // note: most assets can be shared
 	wallBody2->AddAsset(mtexturewall);
 	wallBody3->AddAsset(mtexturewall);

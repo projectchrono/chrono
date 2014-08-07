@@ -119,12 +119,12 @@ public:
 				double RAD_back_wheel =0.28;
 				double RAD_front_wheel = 0.28;
 
-				forkliftTiremap = app->GetVideoDriver()->getTexture("../data/tire_truck.png");
+        forkliftTiremap = app->GetVideoDriver()->getTexture(GetChronoDataFile("tire_truck.png").c_str());
 				
 
 				// --- The car body --- 
 
-				IAnimatedMesh*	forklift_bodyMesh = app->GetSceneManager()->getMesh("../data/forklift_body.obj");
+        IAnimatedMesh*	forklift_bodyMesh = app->GetSceneManager()->getMesh(GetChronoDataFile("forklift_body.obj").c_str());
 				 truss = (ChBodySceneNode*)addChBodySceneNode(
 														app->GetSystem(), app->GetSceneManager(), forklift_bodyMesh,
 														200.0,
@@ -143,7 +143,7 @@ public:
 				truss->GetBody()->SetCollide(true);
 
 				// ..the right-front wheel
-				IAnimatedMesh*	forklift_wheelMesh = app->GetSceneManager()->getMesh("../data/wheel.obj");
+        IAnimatedMesh*	forklift_wheelMesh = app->GetSceneManager()->getMesh(GetChronoDataFile("wheel.obj").c_str());
 				wheelRF = (ChBodySceneNode*)addChBodySceneNode(
 														app->GetSystem(), app->GetSceneManager(), forklift_wheelMesh,
 														20.0,
@@ -239,7 +239,7 @@ public:
 
 
 				// ..the arm
-				IAnimatedMesh*	forklift_armMesh = app->GetSceneManager()->getMesh("../data/forklift_arm.obj");
+        IAnimatedMesh*	forklift_armMesh = app->GetSceneManager()->getMesh(GetChronoDataFile("forklift_arm.obj").c_str());
 				arm = (ChBodySceneNode*)addChBodySceneNode(
 														app->GetSystem(), app->GetSceneManager(), forklift_armMesh,
 														100.0,
@@ -260,7 +260,7 @@ public:
 
 
 				// ..the fork
-				IAnimatedMesh*	forklift_forkMesh = app->GetSceneManager()->getMesh("../data/forklift_forks.obj");
+        IAnimatedMesh*	forklift_forkMesh = app->GetSceneManager()->getMesh(GetChronoDataFile("forklift_forks.obj").c_str());
 				fork = (ChBodySceneNode*)addChBodySceneNode(
 														app->GetSystem(), app->GetSceneManager(), forklift_forkMesh,
 														60.0,
@@ -295,11 +295,11 @@ public:
 
 				// ..a pallet
 
-				IAnimatedMesh*	palletMesh = app->GetSceneManager()->getMesh("../data/pallet.obj");
-				video::ITexture* palletmap = app->GetVideoDriver()->getTexture("../data/cubetexture.png");
+        IAnimatedMesh*	palletMesh = app->GetSceneManager()->getMesh(GetChronoDataFile("pallet.obj").c_str());
+        video::ITexture* palletmap = app->GetVideoDriver()->getTexture(GetChronoDataFile("cubetexture.png").c_str());
 
 				ChBodySceneNode* pallet = (ChBodySceneNode*)addChBodySceneNode_easyConcaveMesh(
-														app->GetSystem(), app->GetSceneManager(), "../data/pallet.obj",
+														app->GetSystem(), app->GetSceneManager(), GetChronoDataFile("pallet.obj").c_str(),
 														15.0,
 														ChVector<>(0,1,3),
 														QUNIT);
@@ -459,12 +459,12 @@ int main(int argc, char* argv[])
 	my_ground->GetBody()->SetCollide(true);
 	my_ground->GetBody()->SetSfriction(1.0);
 	my_ground->GetBody()->SetKfriction(1.0);
-	video::ITexture* groundMap = application.GetVideoDriver()->getTexture("../data/concrete.jpg");
+  video::ITexture* groundMap = application.GetVideoDriver()->getTexture(GetChronoDataFile("concrete.jpg").c_str());
 	my_ground->setMaterialTexture(0,groundMap);
 
 
 	// ..some obstacles on the ground:
-	video::ITexture* cubesmap = application.GetVideoDriver()->getTexture("../data/cubetexture.png");
+  video::ITexture* cubesmap = application.GetVideoDriver()->getTexture(GetChronoDataFile("cubetexture.png").c_str());
 	for (int i=0; i<6; i++)
 	{
 		ChBodySceneNode* my_obstacle = (ChBodySceneNode*)addChBodySceneNode_easyBox(

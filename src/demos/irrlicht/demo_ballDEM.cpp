@@ -128,7 +128,7 @@ int main(int argc, char* argv[])
 	ball->AddAsset(sphere);
 
 	ChSharedPtr<ChTexture> mtexture(new ChTexture);
-	mtexture->SetTextureFilename("../data/bluwhite.png");
+	mtexture->SetTextureFilename(GetChronoDataFile("bluwhite.png"));
 	ball->AddAsset(mtexture);
 
 	msystem.AddBody(ball);
