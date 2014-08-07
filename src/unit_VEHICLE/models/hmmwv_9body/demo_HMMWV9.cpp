@@ -26,7 +26,6 @@
 #include "core/ChFileutils.h"
 #include "core/ChStream.h"
 #include "core/ChRealtimeStep.h"
-#include "physics/ChApidll.h" 
 #include "physics/ChSystem.h"
 #include "physics/ChLinkDistance.h"
 
@@ -80,8 +79,6 @@ double step_size = 0.001;
 
 int main(int argc, char* argv[])
 {
-  DLL_CreateGlobals();
-
   // -----------------
   // Create the system
   // -----------------
@@ -210,8 +207,6 @@ int main(int argc, char* argv[])
   }
 
 #endif
-
-  DLL_DeleteGlobals();
 
   return 0;
 }
