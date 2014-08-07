@@ -116,8 +116,26 @@ int main(int argc, char* argv[])
                             false,
                             true);
 
-  application.AddTypicalSky();
-  application.AddTypicalLights();
+  // make a skybox that has Z pointing up (default application.AddTypicalSky() makes Y up) 
+  irr::core::stringc mtexturedir("../data/skybox/");
+  irr::core::stringc str_lf = mtexturedir + "sky_lf.jpg";
+  irr::core::stringc str_up = mtexturedir + "sky_up.jpg";
+  irr::core::stringc str_dn = mtexturedir + "sky_dn.jpg";
+  irr::video::ITexture* map_skybox_side = 
+	 application.GetVideoDriver()->getTexture(str_lf.c_str() );
+  irr::scene::ISceneNode* mbox = application.GetSceneManager()->addSkyBoxSceneNode(
+     application.GetVideoDriver()->getTexture(str_up.c_str()),
+     application.GetVideoDriver()->getTexture(str_dn.c_str()),
+     map_skybox_side,
+     map_skybox_side,
+     map_skybox_side,
+     map_skybox_side);
+  mbox->setRotation( irr::core::vector3df(90,0,0));
+ 
+
+  application.AddTypicalLights( irr::core::vector3df(30.f, -30.f,  100.f),
+								irr::core::vector3df(30.f,  50.f,  100.f), 
+								250,130 );
 
   application.SetTimestep(step_size);
 
