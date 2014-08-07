@@ -157,7 +157,10 @@ int main(int argc, char* argv[])
 
 #ifdef USE_IRRLICHT
 
-  ChRealtimeStepTimer realtime_timer;
+  //ChRealtimeStepTimer realtime_timer;
+
+  application.SetTimestep(step_size);
+  application.SetTryRealtime(true);
 
   while (application.GetDevice()->run())
   {
@@ -168,12 +171,17 @@ int main(int argc, char* argv[])
 
     driver.DrawAll();
 
-    // Update subsystems and advance simulation by one time step
+    // Update subsystems 
     double time = m_system.GetChTime();
     driver.Update(time);
     vehicle.Update(time, driver.getThrottle(), driver.getSteering());
 
-    m_system.DoStepDynamics(realtime_timer.SuggestSimulationStep(step_size));
+	// Advance simulation for one timestep.
+	application.DoStep();
+	// Note, alternatively you could also do:
+	//  m_system.DoStepDynamics(realtime_timer.SuggestSimulationStep(step_size));
+	// but application.DoStep()  does the same, plus it can handle the 'pause' (press spacebar)
+	// and it also manages to save screenshots to disk if wanted (pres 'print scr' key)
 
     // Complete scene
     application.GetVideoDriver()->endScene();
