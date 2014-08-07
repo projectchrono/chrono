@@ -32,11 +32,11 @@ SET(Chrono_Susp_SOURCES
     )
 
 SET(Chrono_Driver_HEADERS
-    #driver/ChDataDriver.h
+    driver/ChDataDriver.h
     )
 
 SET(Chrono_Driver_SOURCES
-    #driver/ChDataDriver.cpp
+    driver/ChDataDriver.cpp
     )
 
 IF (ENABLE_IRRLICHT)

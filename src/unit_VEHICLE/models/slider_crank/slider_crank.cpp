@@ -29,7 +29,6 @@
 #include "core/ChFileutils.h"
 #include "core/ChStream.h"
 
-#include "physics/ChApidll.h" 
 #include "physics/ChSystem.h"
 
 #include "utils/ChUtilsCreators.h"
@@ -97,9 +96,6 @@ void OutputData(ChSystem*             system,
 int main(int   argc,
          char* argv[])
 {
-  // TODO: must get rid of these globals...
-  DLL_CreateGlobals();
-
   // 0. Create output directories.
   if(ChFileutils::MakeDirectory(out_dir.c_str()) < 0) {
     std::cout << "Error creating directory " << out_dir << std::endl;
@@ -232,10 +228,6 @@ int main(int   argc,
 
     time += time_step;
   }
-
-
-  // TODO: must get rid of these globals...
-  DLL_DeleteGlobals();
 
   return 0;
 }

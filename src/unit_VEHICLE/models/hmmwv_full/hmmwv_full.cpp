@@ -18,7 +18,6 @@
 // Y pointing to the right.
 // =============================================================================
 
-#include "physics/ChApidll.h" 
 #include "physics/ChSystem.h"
 
 #include "utils/ChUtilsCreators.h"

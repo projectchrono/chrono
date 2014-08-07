@@ -33,21 +33,23 @@ namespace chrono {
 class CH_SUBSYS_API ChDriver : public ChShared
 {
 public:
-  ChDriver() : m_throttle(0), m_steering(0) {}
+  ChDriver();
   virtual ~ChDriver() {}
 
   double getThrottle() const { return m_throttle; }
   double getSteering() const { return m_steering; }
+  double getBraking() const  { return m_braking; }
 
   virtual void Update(double time) {}
 
 protected:
-  void setSteering(double val);
-  void setThrottle(double val);
+  void setSteering(double val, double min_val = -1, double max_val = 1);
+  void setThrottle(double val, double min_val = 0, double max_val = 1);
+  void setBraking(double val, double min_val = 0, double max_val = 1);
 
   double m_throttle;
   double m_steering;
-  // double m_braking;
+  double m_braking;
 
 };
 
