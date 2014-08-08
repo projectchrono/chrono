@@ -27,28 +27,40 @@ namespace chrono
 {
 
 // -----------------------------------------------------------------------------
-// Obtain a unique identifier (thread-safe)
+// Functions for assigning unique identifiers
 // -----------------------------------------------------------------------------
+
+// Set the start value for the sequence of IDs (ATTENTION: not thread safe)
+// Subsequent calls to GetUniqueIntID() will return val+1, val+2, etc.
+static volatile int first_id = 100000;
+
+void SetFirstIntID(int val)
+{
+  first_id = val;
+}
+
+// Obtain a unique identifier (thread-safe)
 int GetUniqueIntID()
 {
 #if defined(_WIN32) || defined(_WIN64)
-  volatile static long id = 100000;
+  volatile static long id = first_id;
   return (int)InterlockedIncrement(&id);
 #endif
 
 #if defined(__APPLE__)
-  static volatile int32_t id = 100000;
+  static volatile int32_t id = first_id;
   return (int)OSAtomicIncrement32Barrier(&id);
 #endif
 
 #if defined(__GNUC__)
-  static volatile int id = 100000;
+  static volatile int id = first_id;
   return __sync_add_and_fetch(&id, 1);
 #endif
 }
 
+
 // -----------------------------------------------------------------------------
-// Function for manipulating the Chrono data directory
+// Functions for manipulating the Chrono data directory
 // -----------------------------------------------------------------------------
 
 static std::string chrono_data_path("../data/");

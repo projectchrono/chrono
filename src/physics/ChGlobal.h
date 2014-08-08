@@ -20,6 +20,11 @@
 namespace chrono 
 {
 
+/// Set the start value for the sequence of IDs (ATTENTION: not thread safe)
+/// Subsequent calls to GetUniqueIntID() will return val+1, val+2, etc.
+/// The default initial value is 100000.
+ChApi void SetFirstIntID(int val);
+
 /// Obtain a unique identifier (thread-safe)
 ChApi int GetUniqueIntID();
 
