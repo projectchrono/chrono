@@ -41,30 +41,23 @@ CH_RTTI(ChSystemParallel, ChSystem)
    ;
 
  public:
-   ChSystemParallel(
-                    unsigned int max_objects);
+   ChSystemParallel(unsigned int max_objects);
 
    virtual int Integrate_Y();
 
-   virtual void AddBody(
-                        ChSharedPtr<ChBody> newbody);
-   virtual void RemoveBody(
-                           ChSharedPtr<ChBody> mbody);
-   void RemoveBody(
-                   int i);
+   virtual void AddBody(ChSharedPtr<ChBody> newbody);
+   virtual void RemoveBody(ChSharedPtr<ChBody> mbody);
+   void RemoveBody(int i);
    void Update();
    void UpdateBilaterals();
    void RecomputeThreads();
    void RecomputeBins();
-   void PerturbBins(
-                    bool increase,
+   void PerturbBins(bool increase,
                     int number = 2);
 
-   virtual void LoadMaterialSurfaceData(
-                                        ChSharedPtr<ChBody> newbody) = 0;
+   virtual void LoadMaterialSurfaceData(ChSharedPtr<ChBody> newbody) = 0;
    virtual void UpdateBodies() = 0;
-   virtual void ChangeCollisionSystem(
-                                      collision::ChCollisionSystem *newcollsystem);
+   virtual void ChangeCollisionSystem(collision::ChCollisionSystem *newcollsystem);
 
    virtual void PrintStepStats() {
       data_manager->system_timer.PrintReport();
@@ -82,16 +75,14 @@ CH_RTTI(ChSystemParallel, ChSystem)
       return data_manager->num_bilaterals;
    }
 
-   void SetAABB(
-                real3 aabbmin,
+   void SetAABB(real3 aabbmin,
                 real3 aabbmax) {
       aabb_min = aabbmin;
       aabb_max = aabbmax;
       use_aabb_active = true;
    }
 
-   bool GetAABB(
-                real3 &aabbmin,
+   bool GetAABB(real3 &aabbmin,
                 real3 &aabbmax) {
       aabbmin = aabb_min;
       aabbmax = aabb_max;
@@ -99,18 +90,15 @@ CH_RTTI(ChSystemParallel, ChSystem)
       return use_aabb_active;
    }
 
-   void DoThreadTuning(
-                       bool m) {
+   void DoThreadTuning(bool m) {
       perform_thread_tuning = m;
    }
 
-   void DoBinTuning(
-                    bool m) {
+   void DoBinTuning(bool m) {
       perform_bin_tuning = m;
    }
 
-   void SetMinThreads(
-                      int m) {
+   void SetMinThreads(int m) {
       min_threads = m;
    }
 
@@ -143,11 +131,9 @@ CH_RTTI(ChSystemParallelDVI, ChSystemParallel)
    ;
 
  public:
-   ChSystemParallelDVI(
-                       unsigned int max_objects = 1000);
+   ChSystemParallelDVI(unsigned int max_objects = 1000);
 
-   virtual void LoadMaterialSurfaceData(
-                                        ChSharedPtr<ChBody> newbody);
+   virtual void LoadMaterialSurfaceData(ChSharedPtr<ChBody> newbody);
    virtual void UpdateBodies();
 
 };
@@ -157,17 +143,14 @@ CH_RTTI(ChSystemParallelDEM, ChSystemParallel)
    ;
 
  public:
-   ChSystemParallelDEM(
-                       unsigned int max_objects = 1000,
+   ChSystemParallelDEM(unsigned int max_objects = 1000,
                        ChContactDEM::NormalForceModel normal_model = ChContactDEM::HuntCrossley,
                        ChContactDEM::TangentialForceModel tangential_model = ChContactDEM::SimpleCoulombSliding);
 
-   virtual void LoadMaterialSurfaceData(
-                                        ChSharedPtr<ChBody> newbody);
+   virtual void LoadMaterialSurfaceData(ChSharedPtr<ChBody> newbody);
    virtual void UpdateBodies();
 
-   virtual void ChangeCollisionSystem(
-                                      collision::ChCollisionSystem *newcollsystem);
+   virtual void ChangeCollisionSystem(collision::ChCollisionSystem *newcollsystem);
 
    virtual void PrintStepStats();
 

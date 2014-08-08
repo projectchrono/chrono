@@ -26,6 +26,7 @@ class CH_PARALLEL_API ChSolverBiCGStab : public ChSolverParallel {
                   const custom_vector<real> &b,  // Rhs vector
                   custom_vector<real> &x         // The vector of unknowns
                   );
-
+   custom_vector<real> p, r, phat, s, shat, t, v;
+   custom_vector<real> rtilde ;
 };
 }

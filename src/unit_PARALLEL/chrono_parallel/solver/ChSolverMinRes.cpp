@@ -2,16 +2,19 @@
 
 using namespace chrono;
 
-uint ChSolverMinRes::SolveMinRes(
-      const uint max_iter,
-      const uint size,
-      const custom_vector<real> &b,
-      custom_vector<real> &x) {
-   uint N = size;
-   bool verbose = true;
-   custom_vector<real> mr(N, 0), ml(N, 0), mp(N, 0), mz(N, 0), mNMr(N, 0), mNp(N, 0), mMNp(N, 0), mtmp(N, 0);
-   custom_vector<real> mz_old;
-   custom_vector<real> mNMr_old;
+uint ChSolverMinRes::SolveMinRes(const uint max_iter,
+                                 const uint size,
+                                 const custom_vector<real> &b,
+                                 custom_vector<real> &x) {
+   mr.resize(size, 0);
+   ml.resize(size, 0);
+   mp.resize(size, 0);
+   mz.resize(size, 0);
+   mNMr.resize(size, 0);
+   mNp.resize(size, 0);
+   mMNp.resize(size, 0);
+   mtmp.resize(size, 0);
+
    real grad_diffstep = 0.01;
    double rel_tol = tolerance;
    double abs_tol = tolerance;

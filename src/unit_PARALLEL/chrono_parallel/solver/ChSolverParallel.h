@@ -39,28 +39,25 @@ class CH_PARALLEL_API ChSolverParallel : public ChBaseParallel {
       rigid_rigid = NULL;
       bilateral = NULL;
       update_rhs = false;
+      verbose = false;
    }
 
    // At the beginning of the step reset the size/indexing variables,
    // resize for new contact list and clear temporary accumulation variables
-   void Setup(
-              ChParallelDataManager *data_container_  //pointer to data container
-              );
+   void Setup(ChParallelDataManager *data_container_  //pointer to data container
+   );
 
    // Project the lagrange multipliers (gamma) onto the friction cone.
-   void Project(
-                real* gamma  //Lagrange Multipliers
-                );
+   void Project(real* gamma  //Lagrange Multipliers
+   );
 
    // Compute the first half of the shur matrix vector multiplication (N*x)
    // Perform M_invDx=M^-1*D*x
-   void shurA(
-              real*x  //Vector that N is multiplied by
-              );
+   void shurA(real*x  //Vector that N is multiplied by
+   );
 
    // Compute second half of shur matrix vector multiplication Nx=D*M_invDx
-   void shurB(
-              real* x,   //Vector that contains M_invDx
+   void shurB(real* x,   //Vector that contains M_invDx
               real* out  //N*x
               );
    // Compute rhs value with relaxation term
@@ -84,8 +81,8 @@ class CH_PARALLEL_API ChSolverParallel : public ChBaseParallel {
    // Used when contacts need to be updated within the solver
    // Function is similar to compute impulses
    void UpdatePosition(
-                       custom_vector<real>& x   //Lagrange multipliers
-                       );
+   custom_vector<real>& x   //Lagrange multipliers
+   );
 
    // Rerun the narrowphase to get the new contact list, broadphase is not run again here
    // This assumes that the positions did not drastically change.
@@ -107,10 +104,8 @@ class CH_PARALLEL_API ChSolverParallel : public ChBaseParallel {
    // Call this function with an associated solver type to solve the system
    virtual void Solve()=0;
 
-
    // Perform velocity stabilization on bilateral constraints
-   uint SolveStab(
-                  const uint max_iter,           // Maximum number of iterations
+   uint SolveStab(const uint max_iter,           // Maximum number of iterations
                   const uint size,               // Number of unknowns
                   const custom_vector<real> &b,  // Rhs vector
                   custom_vector<real> &x         // The vector of unknowns
@@ -124,37 +119,25 @@ class CH_PARALLEL_API ChSolverParallel : public ChBaseParallel {
    real GetResidual() {
       return residual;
    }
-   real GetObjective(
-                     custom_vector<real> & x,
+   real GetObjective(custom_vector<real> & x,
                      custom_vector<real> & b) {
-
       custom_vector<real> Nl(x.size());
-
       // f_p = 0.5*l_candidate'*N*l_candidate - l_candidate'*b  = l_candidate'*(0.5*Nl_candidate - b);
-      ShurProduct(x, Nl);    // 1)  g_tmp = N*l_candidate ...        #### MATR.MULTIPLICATION!!!###
-
-      SEAXMY(0.5, Nl, b, Nl);
-      // 2)  g_tmp = 0.5*N*l_candidate
-      // 3)  g_tmp = 0.5*N*l_candidate-b_shur
-      return Dot(x, Nl);     // 4)  mf_p  = l_candidate'*(0.5*N*l_candidate-b_shur)
+      ShurProduct(x, Nl);     // 1)  g_tmp = N*l_candidate ...        #### MATR.MULTIPLICATION!!!###
+      SEAXMY(0.5, Nl, b, Nl);  // 2) 0.5*N*l_candidate-b_shur
+      return Dot(x, Nl);      // 3)  mf_p  = l_candidate'*(0.5*N*l_candidate-b_shur)
 
    }
    real GetObjective() {
-
       custom_vector<real> Nl(data_container->host_data.gamma_data.size());
-
       // f_p = 0.5*l_candidate'*N*l_candidate - l_candidate'*b  = l_candidate'*(0.5*Nl_candidate - b);
       ShurProduct(data_container->host_data.gamma_data, Nl);    // 1)  g_tmp = N*l_candidate ...        #### MATR.MULTIPLICATION!!!###
-
-      SEAXMY(0.5, Nl, data_container->host_data.rhs_data, Nl);
-      // 2)  g_tmp = 0.5*N*l_candidate
-      // 3)  g_tmp = 0.5*N*l_candidate-b_shur
-      return Dot(data_container->host_data.gamma_data, Nl);     // 4)  mf_p  = l_candidate'*(0.5*N*l_candidate-b_shur)
+      SEAXMY(0.5, Nl, data_container->host_data.rhs_data, Nl);  // 2) 0.5*N*l_candidate-b_shur
+      return Dot(data_container->host_data.gamma_data, Nl);     // 3)  obj  = l_candidate'*(0.5*N*l_candidate-b_shur)
 
    }
 
-   void AtIterationEnd(
-                       real maxd,
+   void AtIterationEnd(real maxd,
                        real maxdeltalambda,
                        int iter) {
       maxd_hist.push_back(maxd);
@@ -163,14 +146,12 @@ class CH_PARALLEL_API ChSolverParallel : public ChBaseParallel {
    }
 
    // Set the tolerance for all solvers
-   void SetTolerance(
-                     const real tolerance_value) {
+   void SetTolerance(const real tolerance_value) {
       tolerance = tolerance_value;
    }
 
    // Set the maximum number of iterations for all solvers
-   void SetMaxIterations(
-                         const int max_iteration_value) {
+   void SetMaxIterations(const int max_iteration_value) {
       max_iteration = max_iteration_value;
    }
 
@@ -186,7 +167,7 @@ class CH_PARALLEL_API ChSolverParallel : public ChBaseParallel {
    bool do_stab;           //There is an alternative velocity stab that can be performed in APGD, this enables that.
    bool collision_inside;
    bool update_rhs;    //Updates the tilting term within the solve
-
+   bool verbose;
    ChConstraintRigidRigid *rigid_rigid;
    ChConstraintBilateral *bilateral;
 

@@ -27,5 +27,6 @@ class CH_PARALLEL_API ChSolverSD : public ChSolverParallel {
                 custom_vector<real> &x         // The vector of unknowns
                 );
 
+   custom_vector<real> r,temp;
 };
 }
