@@ -137,7 +137,7 @@ public:
 	void   SetTransmissionRatio(double mt0) { t0= mt0;}
 		
 				/// Get the transmission ratio t, as in w2=t*w1, or t=w2/w1.
-	double GetTransmissionRatio() { return t0;}
+	double GetTransmissionRatio() const { return t0;}
 
 
 				/// Set the direction of shaft 1 (input) respect to 3D body, as a 
@@ -152,23 +152,23 @@ public:
 
 				/// Get the direction of the shaft 1 (input) respect to 3D body, as a 
 				/// normalized vector expressed in the coordinates of the body. 
-	ChVector<>  GetShaftDirection1() {return shaft_dir1;}
+	const ChVector<>& GetShaftDirection1() const {return shaft_dir1;}
 
 				/// Get the direction of the shaft 2 (input) respect to 3D body, as a 
 				/// normalized vector expressed in the coordinates of the body. 
-	ChVector<>  GetShaftDirection2() {return shaft_dir2;}
+	const ChVector<>& GetShaftDirection2() const {return shaft_dir2;}
 
 
 
 				/// Get the reaction torque considered as applied to the 1st axis.
-	double GetTorqueReactionOn1() {return (this->t0*torque_react);}
+	double GetTorqueReactionOn1() const {return (this->t0*torque_react);}
 
 				/// Get the reaction torque considered as applied to the 2nd axis.
-	double GetTorqueReactionOn2() {return (-1.0*torque_react);}
+	double GetTorqueReactionOn2() const {return (-1.0*torque_react);}
 
 				/// Get the reaction torque considered as applied to the body
 				/// (the truss of the gearbox), expressed in local body coordinates.
-	ChVector<> GetTorqueReactionOnBody() {return (this->shaft_dir1*this->t0 - this->shaft_dir2)*torque_react;}
+	ChVector<> GetTorqueReactionOnBody() const {return (this->shaft_dir1*this->t0 - this->shaft_dir2)*torque_react;}
 
 			//
 			// UPDATE FUNCTIONS

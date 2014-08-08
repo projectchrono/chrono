@@ -74,7 +74,7 @@ public:
 				/// Set the imposed torque between the two shafts 
 	void   SetTorque(double mt) { this->torque = mt;}
 				/// Get the imposed torque between the two shafts 
-	double GetTorque() { return this->torque;}
+	double GetTorque() const { return this->torque;}
 
 
 			//

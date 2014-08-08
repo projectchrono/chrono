@@ -107,33 +107,33 @@ public:
 
 				/// Sets the 'fixed' state of the shaft. If true, it does not rotate
 				/// despite constraints, forces, etc.
-	void SetShaftFixed (bool mev) {this->fixed = mev; variables.SetDisabled(mev);}
-	bool GetShaftFixed() {return this->fixed;}
+	void SetShaftFixed(bool mev) {this->fixed = mev; variables.SetDisabled(mev);}
+	bool GetShaftFixed() const {return this->fixed;}
 				/// Trick. Set the maximum shaft velocity (beyond this limit it will
 				/// be clamped). This is useful in virtual reality and real-time
 				/// simulations.
 				/// The realism is limited, but the simulation is more stable.
-	void SetLimitSpeed    (bool mlimit) { this->limitspeed = mlimit;}
-	bool GetLimitSpeed()  {return this->limitspeed;};
+	void SetLimitSpeed(bool mlimit) { this->limitspeed = mlimit;}
+	bool GetLimitSpeed() const {return this->limitspeed;};
 
 				/// Trick. If use sleeping= true, shafts which do not rotate
 				/// for too long time will be deactivated, for optimization.
 				/// The realism is limited, but the simulation is faster.
-	void SetUseSleeping    (bool ms) { this->use_sleeping = ms;}
-	bool GetUseSleeping()  {return this->use_sleeping;}
+	void SetUseSleeping(bool ms) { this->use_sleeping = ms;}
+	bool GetUseSleeping() const {return this->use_sleeping;}
 
 				/// Force the shaft in sleeping mode or not (usually this state change is not
 				/// handled by users, anyway, because it is mostly automatic).
-	void SetSleeping    (bool ms) { this->sleeping = ms;}
+	void SetSleeping(bool ms) { this->sleeping = ms;}
 				/// Tell if the shaft is actually in sleeping state.
-	bool GetSleeping()  {return this->sleeping;}
+	bool GetSleeping() const {return this->sleeping;}
 
 				/// Put the shaft in sleeping state if requirements are satisfied.
 	bool TrySleeping();
 
 				/// Tell if the body is active, i.e. it is neither fixed to ground nor
 				/// it is in sleep mode.
-	bool IsActive() {return !(sleeping || fixed);}
+	bool IsActive() const {return !(sleeping || fixed);}
 
 
 			//
@@ -192,27 +192,27 @@ public:
 				/// Set the torque applied to the shaft 
 	void   SetAppliedTorque(double mtorque) { this->torque = mtorque;}
 				/// Get the torque applied to the shaft 
-	double GetAppliedTorque() {return torque;}
+	double GetAppliedTorque() const {return torque;}
 
 				/// Set the angular position 
 	void   SetPos(double mp) { this->pos = mp;}
 				/// Get the angular position 
-	double GetPos() {return this->pos;}
+	double GetPos() const {return this->pos;}
 	
 				/// Set the angular velocity 
 	void   SetPos_dt(double mp) { this->pos_dt = mp;}
 		 		/// Get the angular velocity 
-	double GetPos_dt() {return this->pos_dt;}
+	double GetPos_dt() const {return this->pos_dt;}
 
 				/// Set the angular acceleration 
 	void   SetPos_dtdt(double mp) { this->pos_dtdt = mp;}
 				/// Get the angular acceleration
-	double GetPos_dtdt() {return this->pos_dtdt;}
+	double GetPos_dtdt() const {return this->pos_dtdt;}
 
 				/// Inertia of the shaft. Must be positive.
 				/// Try not to mix bodies with too high/too low values of mass, for numerical stability.
 	void   SetInertia (double newJ);
-	double GetInertia() {return this->inertia;}
+	double GetInertia() const {return this->inertia;}
 
 
 
@@ -221,7 +221,7 @@ public:
 				/// simulations, to increase robustness at the cost of realism.
 				/// This limit is active only if you set  SetLimitSpeed(true);
 	void   SetMaxSpeed(float m_max_speed) {max_speed = m_max_speed;}
-	float  GetMaxSpeed () {return max_speed;}
+	float  GetMaxSpeed() const {return max_speed;}
 
 				/// When this function is called, the speed of the shaft is clamped
 				/// into limits posed by max_speed and max_wvel  - but remember to
@@ -231,15 +231,15 @@ public:
 				/// Set the amount of time which must pass before going automatically in
 				/// sleep mode when the shaft has very small movements.
 	void   SetSleepTime(float m_t) {sleep_time = m_t;}
-	float  GetSleepTime () {return sleep_time;}
+	float  GetSleepTime() const {return sleep_time;}
 
 				/// Set the max linear speed to be kept for 'sleep_time' before freezing.
 	void   SetSleepMinSpeed(float m_t) {sleep_minspeed = m_t;}
-	float  GetSleepMinSpeed () {return sleep_minspeed;}
+	float  GetSleepMinSpeed() const {return sleep_minspeed;}
 
 				/// Set the max linear speed to be kept for 'sleep_time' before freezing.
 	void   SetSleepMinWvel(float m_t) {sleep_minwvel = m_t;}
-	float  GetSleepMinWvel () {return sleep_minwvel;}
+	float  GetSleepMinWvel() const {return sleep_minwvel;}
 
 	
 

@@ -148,15 +148,15 @@ public:
 	void   SetMotorTorque(double mt) { assert(motor_mode == MOT_MODE_TORQUE); this->motor_torque = mt;}
 
 				/// Get the motor torque applied between shaft2 and shaft1. 
-	double GetMotorTorque() { return this->motor_torque;}
+	double GetMotorTorque() const { return this->motor_torque;}
 
 				/// Get the reaction torque exchanged between the two shafts,
 				/// considered as applied to the 1st axis.
-	double GetTorqueReactionOn1() {return  (GetMotorTorque());}
+	double GetTorqueReactionOn1() const {return  (GetMotorTorque());}
 
 				/// Get the reaction torque exchanged between the two shafts,
 				/// considered as applied to the 2nd axis.
-	double GetTorqueReactionOn2() {return -(GetMotorTorque());}
+	double GetTorqueReactionOn2() const {return -(GetMotorTorque());}
 
 				/// Set the motor rotation phase between shaft2 and shaft1. 
 				/// If the rotation is not constant, you also must use SetMotorRot_dt()
@@ -172,11 +172,11 @@ public:
 						this->motor_set_rot_dt = mt; }
 
 				/// Get the actual angle rotation of the motor, in terms of phase of shaft 1 respect to 2.
-	double GetMotorRot() {return (this->shaft1->GetPos() - this->shaft2->GetPos());}
+	double GetMotorRot() const {return (this->shaft1->GetPos() - this->shaft2->GetPos());}
 				/// Get the actual speed of the motor, in terms of speed of shaft 1 respect to 2.
-	double GetMotorRot_dt() {return (this->shaft1->GetPos_dt() - this->shaft2->GetPos_dt());}
+	double GetMotorRot_dt() const {return (this->shaft1->GetPos_dt() - this->shaft2->GetPos_dt());}
 				/// Get the actual acceleration of the motor, in terms of accel. of shaft 1 respect to 2.
-	double GetMotorRot_dtdt() {return (this->shaft1->GetPos_dtdt() - this->shaft2->GetPos_dtdt());}
+	double GetMotorRot_dtdt() const {return (this->shaft1->GetPos_dtdt() - this->shaft2->GetPos_dtdt());}
 
 			//
 			// UPDATE FUNCTIONS

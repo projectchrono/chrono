@@ -119,24 +119,24 @@ public:
 
 				
 				/// Get the torque applied to the input shaft 
-	double GetTorqueReactionOnInput()  {return  torque_in;}
+	double GetTorqueReactionOnInput() const {return  torque_in;}
 
 				/// Get the torque applied to the output shaft
-	double GetTorqueReactionOnOutput() {return  torque_out;}
+	double GetTorqueReactionOnOutput() const {return  torque_out;}
 
 				/// Get the torque applied to the stator shaft (the truss)
-	double GetTorqueReactionOnStator() {return  -torque_out-torque_in;}
+	double GetTorqueReactionOnStator() const {return  -torque_out-torque_in;}
 
 
 					/// Get the actual peed ratio, as output speed / input speed. 
 					/// Assumes output has same direction as input, and slower than input
 					/// otherwise exchanges input and output.
 					/// For speed ratio = 0, complete slippage, for ratio=1 perfect locking.
-	double GetSpeedRatio(); 
+	double GetSpeedRatio() const; 
 
 					/// Get the actual slippage, for slippage = 1 complete slippage, 
 					/// for slippage = 0 perfect locking.
-	double GetSlippage() {return 1.0- GetSpeedRatio();}
+	double GetSlippage() const {return 1.0 - GetSpeedRatio();}
 			
 					/// State warning, at last update. Tell if the torque converter is working 
 					/// in reverse power flow, i.e. the output turbine is running faster than

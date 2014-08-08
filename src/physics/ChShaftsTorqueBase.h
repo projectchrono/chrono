@@ -93,11 +93,11 @@ public:
 
 				/// Get the reaction torque exchanged between the two shafts,
 				/// considered as applied to the 1st axis.
-	virtual double GetTorqueReactionOn1() {return  (this->torque); }
+	virtual double GetTorqueReactionOn1() const {return  (this->torque); }
 
 				/// Get the reaction torque exchanged between the two shafts,
 				/// considered as applied to the 2nd axis.
-	virtual double GetTorqueReactionOn2() {return -(this->torque); }
+	virtual double GetTorqueReactionOn2() const {return -(this->torque); }
 
 
 			//

@@ -92,7 +92,7 @@ int ChShaftsTorqueConverter::Initialize(ChSharedPtr<ChShaft> mshaft1, ChSharedPt
 }
 
 
-double ChShaftsTorqueConverter::GetSpeedRatio()
+double ChShaftsTorqueConverter::GetSpeedRatio() const
 {
 	double wrel1 = this->shaft1->GetPos_dt() - this->shaft_stator->GetPos_dt();
 	double wrel2 = this->shaft2->GetPos_dt() - this->shaft_stator->GetPos_dt();

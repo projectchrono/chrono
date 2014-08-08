@@ -136,11 +136,11 @@ public:
 	void   SetTorqueLimit(double ml) {SetTorqueLimit(-fabs(ml),fabs(ml));}
 
 				/// Get the torque limit for forward rotation
-	double GetTorqueLimitF() {return this->maxT;}
+	double GetTorqueLimitF() const {return this->maxT;}
 				/// Get the torque limit for backward rotation
-	double GetTorqueLimitB() {return this->minT;}
+	double GetTorqueLimitB() const {return this->minT;}
 				/// Get the torque limit (when this is a clutch with symmetric forw/backw limits)
-	double GetTorqueLimit() {return this->maxT;}
+	double GetTorqueLimit() const {return this->maxT;}
 
 				/// Set the user modulation of the torque (or brake, if you use it between
 				/// a fixed shaft and a free shaft). The modulation must range from
@@ -148,22 +148,22 @@ public:
 				/// You can update this during integration loop to simulate the pedal pushing by the driver.
 	void   SetModulation(double mm) { this->modulation = ChMax(ChMin(mm,1.0), 0.0);}
 				/// Get the the user modulation.
-	double GetModulation() {return this->modulation;}
+	double GetModulation() const {return this->modulation;}
 
 				/// Get the actual angle slippage of the clutch, in terms of phase of shaft 1 respect to 2.
-	double GetSlippage() {return GetRelativeRotation();}
+	double GetSlippage() const {return GetRelativeRotation();}
 				/// Get the actual slippage speed of the clutch, in terms of speed of shaft 1 respect to 2.
-	double GetSlippage_dt() {return  GetRelativeRotation_dt();}
+	double GetSlippage_dt() const {return  GetRelativeRotation_dt();}
 				/// Get the actual slippage acceleration of the clutch, in terms of accel. of shaft 1 respect to 2.
-	double GetSlippage_dtdt() {return GetRelativeRotation_dtdt();}
+	double GetSlippage_dtdt() const {return GetRelativeRotation_dtdt();}
 
 				/// Get the reaction torque exchanged between the two shafts,
 				/// considered as applied to the 1st axis.
-	virtual double GetTorqueReactionOn1() {return  (this->torque_react); }
+	virtual double GetTorqueReactionOn1() const {return  (this->torque_react); }
 
 				/// Get the reaction torque exchanged between the two shafts,
 				/// considered as applied to the 2nd axis.
-	virtual double GetTorqueReactionOn2() {return -(this->torque_react); }
+	virtual double GetTorqueReactionOn2() const {return -(this->torque_react); }
 
 			//
 			// UPDATE FUNCTIONS

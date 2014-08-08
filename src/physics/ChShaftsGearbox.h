@@ -153,19 +153,19 @@ public:
 
 				/// Get the direction of the shaft respect to 3D body, as a 
 				/// normalized vector expressed in the coordinates of the body. 
-	ChVector<>  GetShaftDirection() {return shaft_dir;}
+	const ChVector<>& GetShaftDirection() const {return shaft_dir;}
 
 
 
 				/// Get the reaction torque considered as applied to the 1st axis.
-	double GetTorqueReactionOn1() {return (this->r1*torque_react);}
+	double GetTorqueReactionOn1() const {return (this->r1*torque_react);}
 
 				/// Get the reaction torque considered as applied to the 2nd axis.
-	double GetTorqueReactionOn2() {return (this->r2*torque_react);}
+	double GetTorqueReactionOn2() const {return (this->r2*torque_react);}
 
 				/// Get the reaction torque considered as applied to the body 
 				/// (the truss of the gearbox), expressed in the coordinates of the body.
-	ChVector<> GetTorqueReactionOnBody() {return (shaft_dir* (this->r3*torque_react));}
+	ChVector<> GetTorqueReactionOnBody() {return (shaft_dir * (this->r3*torque_react));}
 
 			//
 			// UPDATE FUNCTIONS

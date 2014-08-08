@@ -129,15 +129,15 @@ public:
 				/// a gear with inner teeths (or epicycloidal reducer), etc.
 	void   SetTransmissionRatio(double mt) { this->ratio = mt;}
 				/// Get the transmission ratio t, as in w2=t*w1, or t=w2/w1
-	double GetTransmissionRatio() {return this->ratio;}
+	double GetTransmissionRatio() const {return this->ratio;}
 
 				/// Get the reaction torque exchanged between the two shafts,
 				/// considered as applied to the 1st axis.
-	double GetTorqueReactionOn1() {return (this->ratio*this->torque_react);}
+	double GetTorqueReactionOn1() const {return (this->ratio*this->torque_react);}
 
 				/// Get the reaction torque exchanged between the two shafts,
 				/// considered as applied to the 2nd axis.
-	double GetTorqueReactionOn2() {return -(this->torque_react);}
+	double GetTorqueReactionOn2() const {return -(this->torque_react);}
 
 
 

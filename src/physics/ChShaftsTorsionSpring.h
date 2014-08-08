@@ -83,12 +83,12 @@ public:
 				/// Set the torsional stiffness between the two shafts 
 	void   SetTorsionalStiffness(double mt) { this->stiffness = mt;}
 				/// Get the torsional stiffness between the two shafts 
-	double GetTorsionalStiffness() { return this->stiffness;}
+	double GetTorsionalStiffness() const { return this->stiffness;}
 
 				/// Set the torsional damping between the two shafts 
 	void   SetTorsionalDamping(double mt) { this->damping = mt;}
 				/// Get the torsional damping between the two shafts 
-	double GetTorsionalDamping() { return this->damping;}
+	double GetTorsionalDamping() const { return this->damping;}
 
 
 			//

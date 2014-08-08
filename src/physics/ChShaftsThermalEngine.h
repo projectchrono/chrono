@@ -76,7 +76,7 @@ public:
 				/// nough for a basic model. An advanced approach would require a 2D map T(w,s)
 	void SetThrottle( double mt) { this->throttle = mt;}
 				/// Get the current throttle value
-	double GetThrottle() {return this->throttle;}
+	double GetThrottle() const {return this->throttle;}
 
 				/// Tell if the engine is rotating backward.
 				/// If so, it's an erroneous situation

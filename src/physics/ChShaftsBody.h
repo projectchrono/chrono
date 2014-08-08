@@ -146,15 +146,15 @@ public:
 
 				/// Get the direction of the shaft respect to 3D body, as a 
 				/// normalized vector expressed in the coordinates of the body. 
-	ChVector<>  GetShaftDirection() {return shaft_dir;}
+	const ChVector<>& GetShaftDirection() const {return shaft_dir;}
 
 
 				/// Get the reaction torque considered as applied to ChShaft.
-	double GetTorqueReactionOnShaft() {return -(torque_react);}
+	double GetTorqueReactionOnShaft() const {return -(torque_react);}
 
 				/// Get the reaction torque considered as applied to ChBody,
 				/// expressed in the coordinates of the body.
-	ChVector<> GetTorqueReactionOnBody() {return (shaft_dir*torque_react);}
+	ChVector<> GetTorqueReactionOnBody() const {return (shaft_dir*torque_react);}
 
 	
 			//

@@ -181,23 +181,23 @@ public:
 				/// Get the t0 transmission ratio of the equivalent ordinary 
 				/// gearbox, ie. the inverted planetary, that is the ratio  t0=w3'/w2' assuming
 				/// that the carrier (shaft 1) is hold fixed. 
-	double GetTransmissionRatioOrdinary() { return -r2/r3;}
+	double GetTransmissionRatioOrdinary() const { return -r2/r3;}
 
 				/// Get the transmission ratio r1, as in  r1*w1+r2*w2+r3*w3 = 0
-	double GetTransmissionR1() {return this->r1;}
+	double GetTransmissionR1() const {return this->r1;}
 				/// Get the transmission ratio r1, as in  r1*w1+r2*w2+r3*w3 = 0
-	double GetTransmissionR2() {return this->r2;}
+	double GetTransmissionR2() const {return this->r2;}
 				/// Get the transmission ratio r1, as in  r1*w1+r2*w2+r3*w3 = 0
-	double GetTransmissionR3() {return this->r3;}
+	double GetTransmissionR3() const {return this->r3;}
 
 				/// Get the reaction torque considered as applied to the 1st axis.
-	double GetTorqueReactionOn1() {return (this->r1*torque_react);}
+	double GetTorqueReactionOn1() const {return (this->r1*torque_react);}
 
 				/// Get the reaction torque considered as applied to the 2nd axis.
-	double GetTorqueReactionOn2() {return (this->r2*torque_react);}
+	double GetTorqueReactionOn2() const {return (this->r2*torque_react);}
 
 				/// Get the reaction torque considered as applied to the 3rd axis.
-	double GetTorqueReactionOn3() {return (this->r3*torque_react);}
+	double GetTorqueReactionOn3() const {return (this->r3*torque_react);}
 
 
 			//

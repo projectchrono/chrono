@@ -108,19 +108,19 @@ public:
 				/// Get the reaction torque exchanged between the two shafts,
 				/// considered as applied to the 1st axis.
 				/// Children classes might overload this.
-	virtual double GetTorqueReactionOn1() {return 0; }
+	virtual double GetTorqueReactionOn1() const {return 0; }
 
 				/// Get the reaction torque exchanged between the two shafts,
 				/// considered as applied to the 2nd axis.
 				/// Children classes might overload this.
-	virtual double GetTorqueReactionOn2() {return 0; }
+	virtual double GetTorqueReactionOn2() const {return 0; }
 
 				/// Get the actual reative angle in terms of phase of shaft 1 respect to 2.
-	double GetRelativeRotation() {return (this->shaft1->GetPos() - this->shaft2->GetPos());}
+	double GetRelativeRotation() const {return (this->shaft1->GetPos() - this->shaft2->GetPos());}
 				/// Get the actual relative speed in terms of speed of shaft 1 respect to 2.
-	double GetRelativeRotation_dt() {return (this->shaft1->GetPos_dt() - this->shaft2->GetPos_dt());}
+	double GetRelativeRotation_dt() const {return (this->shaft1->GetPos_dt() - this->shaft2->GetPos_dt());}
 				/// Get the actual relative acceleration in terms of speed of shaft 1 respect to 2.
-	double GetRelativeRotation_dtdt() {return (this->shaft1->GetPos_dtdt() - this->shaft2->GetPos_dtdt());}
+	double GetRelativeRotation_dtdt() const {return (this->shaft1->GetPos_dtdt() - this->shaft2->GetPos_dtdt());}
 
 
 
