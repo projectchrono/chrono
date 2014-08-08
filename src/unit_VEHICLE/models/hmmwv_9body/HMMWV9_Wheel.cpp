@@ -68,7 +68,7 @@ void HMMWV9_Wheel::OnInitialize(ChSharedBodyPtr body)
     body->AddAsset(cyl);
 
     ChSharedPtr<ChTexture> tex(new ChTexture);
-    tex->SetTextureFilename("../data/bluwhite.png");
+    tex->SetTextureFilename(GetChronoDataFile("bluwhite.png"));
     body->AddAsset(tex);
 
     break;

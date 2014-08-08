@@ -107,6 +107,32 @@ IF(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
 ENDIF()
 
 # ------------------------------------------------------------------------------
+# Create configuration file
+# ------------------------------------------------------------------------------
+
+# Prepare replacement variables
+
+IF(ENABLE_IRRLICHT)
+	SET(IRRLICHT_ENABLED "1")
+ELSE()
+	SET(IRRLICHT_ENABLED "0")
+ENDIF()
+
+SET(CHRONO_DATA_DIR "${CH_CHRONO_SDKDIR}/demos/data/")
+
+# Generate the configuration header file using substitution variables.
+# Place the header file in the library output directory and make sure it can
+# be found at compile time.
+
+CONFIGURE_FILE(
+  ${CMAKE_MODULE_PATH}/ChronoT_config.h.in
+  ${PROJECT_BINARY_DIR}/ChronoT_config.h
+  )
+
+INCLUDE_DIRECTORIES(${PROJECT_BINARY_DIR})
+
+
+# ------------------------------------------------------------------------------
 # Add subdirectories
 # ------------------------------------------------------------------------------
 ADD_SUBDIRECTORY(utils)

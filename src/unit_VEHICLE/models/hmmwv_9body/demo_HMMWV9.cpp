@@ -31,6 +31,7 @@
 
 #include "utils/ChUtilsInputOutput.h"
 
+#include "HMMWV9.h"
 #include "HMMWV9_Vehicle.h"
 #include "HMMWV9_FuncDriver.h"
 #include "HMMWV9_RigidTerrain.h"
@@ -79,6 +80,8 @@ double step_size = 0.001;
 
 int main(int argc, char* argv[])
 {
+  SetChronoDataPath(CHRONO_DATA_DIR);
+
   // -----------------
   // Create the system
   // -----------------
@@ -114,12 +117,12 @@ int main(int argc, char* argv[])
                             true);
 
   // make a skybox that has Z pointing up (default application.AddTypicalSky() makes Y up) 
-  irr::core::stringc mtexturedir("../data/skybox/");
-  irr::core::stringc str_lf = mtexturedir + "sky_lf.jpg";
-  irr::core::stringc str_up = mtexturedir + "sky_up.jpg";
-  irr::core::stringc str_dn = mtexturedir + "sky_dn.jpg";
+  std::string mtexturedir = GetChronoDataFile("skybox/");
+  std::string str_lf = mtexturedir + "sky_lf.jpg";
+  std::string str_up = mtexturedir + "sky_up.jpg";
+  std::string str_dn = mtexturedir + "sky_dn.jpg";
   irr::video::ITexture* map_skybox_side = 
-	 application.GetVideoDriver()->getTexture(str_lf.c_str() );
+  application.GetVideoDriver()->getTexture(str_lf.c_str());
   irr::scene::ISceneNode* mbox = application.GetSceneManager()->addSkyBoxSceneNode(
      application.GetVideoDriver()->getTexture(str_up.c_str()),
      application.GetVideoDriver()->getTexture(str_dn.c_str()),
