@@ -27,6 +27,18 @@ IF(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
 ENDIF()
 
 #--------------------------------------------------------------
+# Copy the data folder to the bin directory
+
+IF(MSVC)
+  FILE( COPY ${CMAKE_SOURCE_DIR}/models/data/ DESTINATION ${CMAKE_BINARY_DIR}/bin/data/ PATTERN .svn EXCLUDE)
+ELSEIF(XCODE_VERSION)
+  FILE( COPY ${CMAKE_SOURCE_DIR}/models/data/ DESTINATION ${CMAKE_BINARY_DIR}/bin/data/ PATTERN .svn EXCLUDE)
+ELSE()
+  FILE( COPY ${CMAKE_SOURCE_DIR}/models/data/ DESTINATION ${CMAKE_BINARY_DIR}/data/ PATTERN .svn EXCLUDE)
+ENDIF()
+
+#--------------------------------------------------------------
+
 ADD_SUBDIRECTORY(slider_crank)
 ADD_SUBDIRECTORY(hmmwv_full)
 ADD_SUBDIRECTORY(hmmwv_9body)
