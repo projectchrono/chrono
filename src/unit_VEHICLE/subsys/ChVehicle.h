@@ -59,6 +59,7 @@ protected:
   ChPowertrain*    m_powertrain;
 
   friend class ChPowertrain;
+  friend class ChIrrGuiDriver;
 };
 
 

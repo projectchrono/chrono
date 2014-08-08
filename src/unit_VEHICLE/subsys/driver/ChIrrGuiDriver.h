@@ -76,10 +76,6 @@ private:
 
   double m_terrainHeight;
 
-  irr::gui::IGUIStaticText* m_text_throttle;
-  irr::gui::IGUIStaticText* m_text_steering;
-  irr::gui::IGUIStaticText* m_text_speed;
-
   int  HUD_x;
   int  HUD_y;
 

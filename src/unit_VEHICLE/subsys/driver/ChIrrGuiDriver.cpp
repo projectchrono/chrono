@@ -27,7 +27,7 @@
 // =============================================================================
 
 #include "subsys/driver/ChIrrGuiDriver.h"
-#include "models/hmmwv_9body/HMMWV9_Vehicle.h"
+#include "subsys/powertrain/ChShaftsPowertrain.h"
 
 using namespace irr;
 
@@ -48,24 +48,6 @@ ChIrrGuiDriver::ChIrrGuiDriver(ChIrrApp&         app,
 
   HUD_x = tlc_X;
   HUD_y = tlc_Y;
-
-  gui::IGUIStaticText* text_inputs = app.GetIGUIEnvironment()->addStaticText(
-    L"", core::rect<s32>(tlc_X, tlc_Y, tlc_X + 200, tlc_Y + 75), true, false, 0, -1, true);
-    
-
-  text_inputs->setBackgroundColor(video::SColor(255, 200, 200, 200));
-
-  m_text_throttle = app.GetIGUIEnvironment()->addStaticText(
-    L"Throttle: 0",
-    core::rect<s32>(10, 10, 150, 25), false, false, text_inputs);
-
-  m_text_steering = app.GetIGUIEnvironment()->addStaticText(
-    L"Steering: 0",
-    core::rect<s32>(10, 30, 150, 45), false, false, text_inputs);
-
-  m_text_speed = app.GetIGUIEnvironment()->addStaticText(
-    L"Speed: 0",
-    core::rect<s32>(10, 50, 150, 65), false, false, text_inputs);
 }
 
 // -----------------------------------------------------------------------------
@@ -91,23 +73,15 @@ bool ChIrrGuiDriver::OnEvent(const SEvent& event)
     switch (event.KeyInput.Key) {
     case KEY_KEY_A:
       setSteering(m_steering - 0.1);
-      sprintf(msg, "Steering: %+.2f", m_steering);
-      m_text_steering->setText(core::stringw(msg).c_str());
       return true;
     case KEY_KEY_D:
       setSteering(m_steering + 0.1);
-      sprintf(msg, "Steering: %+.2f", m_steering);
-      m_text_steering->setText(core::stringw(msg).c_str());
       return true;
     case KEY_KEY_W:
       setThrottle(m_throttle + 0.1);
-      sprintf(msg, "Throttle: %+.2f", m_throttle*100.);
-      m_text_throttle->setText(core::stringw(msg).c_str());
       return true;
     case KEY_KEY_S:
       setThrottle(m_throttle - 0.1);
-      sprintf(msg, "Throttle: %+.2f", m_throttle*100.);
-      m_text_throttle->setText(core::stringw(msg).c_str());
       return true;
 
     case KEY_KEY_1:
@@ -193,9 +167,9 @@ void ChIrrGuiDriver::renderLinks()
   for (; ilink != m_app.GetSystem()->Get_linklist()->end(); ++ilink) {
     if (ChLinkDistance* link = dynamic_cast<ChLinkDistance*>(*ilink)) {
       ChIrrTools::drawSegment(m_app.GetVideoDriver(),
-        link->GetEndPoint1Abs(),
-        link->GetEndPoint2Abs(),
-        video::SColor(255, 0, 20, 0), true);
+                              link->GetEndPoint1Abs(),
+                              link->GetEndPoint2Abs(),
+                              video::SColor(255, 0, 20, 0), true);
     }
   }
 }
@@ -203,71 +177,79 @@ void ChIrrGuiDriver::renderLinks()
 void ChIrrGuiDriver::renderGrid()
 {
   ChCoordsys<> gridCsys(ChVector<>(0, 0, m_terrainHeight + 0.02),
-    chrono::Q_from_AngAxis(-CH_C_PI_2, VECT_Z));
+                        chrono::Q_from_AngAxis(-CH_C_PI_2, VECT_Z));
 
   ChIrrTools::drawGrid(m_app.GetVideoDriver(),
-    0.5, 0.5, 100, 100,
-    gridCsys,
-    video::SColor(255, 80, 130, 255),
-    true);
+                       0.5, 0.5, 100, 100,
+                       gridCsys,
+                       video::SColor(255, 80, 130, 255),
+                       true);
 }
 
 void ChIrrGuiDriver::renderLinGauge(std::string& msg, double factor, int xpos,int ypos, int lenght, int height)
 {
-	irr::core::rect<s32> mclip(xpos,ypos, xpos+lenght, ypos+height);
-	m_app.GetVideoDriver()->draw2DRectangle(irr::video::SColor(90,60,60,60),
-		irr::core::rect<s32>(xpos,ypos, xpos+lenght, ypos+height),
-        &mclip);
-	m_app.GetVideoDriver()->draw2DRectangle(irr::video::SColor(255,250,200,00),
-		irr::core::rect<s32>(xpos+2,ypos+2, xpos+((lenght-4)*factor), ypos+height-2),
-        &mclip);
+  irr::core::rect<s32> mclip(xpos,ypos, xpos+lenght, ypos+height);
+  m_app.GetVideoDriver()->draw2DRectangle(
+            irr::video::SColor(90,60,60,60),
+            irr::core::rect<s32>(xpos,ypos, xpos+lenght, ypos+height),
+            &mclip);
+  m_app.GetVideoDriver()->draw2DRectangle(
+            irr::video::SColor(255,250,200,00),
+            irr::core::rect<s32>(xpos+2,ypos+2, xpos+((lenght-4)*factor), ypos+height-2),
+            &mclip);
 
-	irr::gui::IGUIFont* font = m_app.GetIGUIEnvironment()->getBuiltInFont();
-	font->draw(msg.c_str(),
-               irr::core::rect<s32>(xpos+3,ypos+3, xpos+lenght, ypos+height),
-               irr::video::SColor(255,20,20,20));
+  irr::gui::IGUIFont* font = m_app.GetIGUIEnvironment()->getBuiltInFont();
+  font->draw(msg.c_str(),
+             irr::core::rect<s32>(xpos+3,ypos+3, xpos+lenght, ypos+height),
+             irr::video::SColor(255,20,20,20));
 }
 
 
 void ChIrrGuiDriver::renderStats()
 {
   char msg[100];
-  sprintf(msg, "Speed: %+.2f", m_car.GetVehicleSpeed());
-  m_text_speed->setText(core::stringw(msg).c_str());
+
+  double speed = m_car.GetVehicleSpeed();
+  sprintf(msg, "Speed: %+.2f", speed);
+  this->renderLinGauge(std::string(msg), speed/30, HUD_x, HUD_y + 40, 120, 15);
+
+  sprintf(msg, "Steering: %+.2f", m_steering);
+  this->renderLinGauge(std::string(msg), m_steering, HUD_x, HUD_y + 60, 120, 15);
 
   sprintf(msg, "Throttle: %+.2f", m_throttle*100.);
-  this->renderLinGauge( std::string(msg), m_throttle, HUD_x, HUD_y+100, 120, 15);
-  
-  ChVehicle* mycar = (ChVehicle*)&this->m_car; // to remove const..
-  if (hmmwv9::HMMWV9_Vehicle* mcar_hmm = dynamic_cast<hmmwv9::HMMWV9_Vehicle*>(mycar))
+  this->renderLinGauge( std::string(msg), m_throttle, HUD_x, HUD_y+80, 120, 15);
+
+  ChPowertrain* ptrain = m_car.m_powertrain;
+
+  if (ChShaftsPowertrain* powertrain = dynamic_cast<ChShaftsPowertrain*>(ptrain))
   {
-	double engine_rpm = mcar_hmm->m_powertrain->m_crankshaft->GetPos_dt() * 60 / chrono::CH_C_2PI;
-	sprintf(msg, "Eng. RPM: %+.2f", engine_rpm);
-	this->renderLinGauge( std::string(msg), engine_rpm/7000, HUD_x, HUD_y+120, 120, 15);
+    double engine_rpm = powertrain->m_crankshaft->GetPos_dt() * 60 / chrono::CH_C_2PI;
+    sprintf(msg, "Eng. RPM: %+.2f", engine_rpm);
+    this->renderLinGauge(std::string(msg), engine_rpm / 7000, HUD_x, HUD_y + 120, 120, 15);
 
-	double engine_torque = mcar_hmm->m_powertrain->m_engine->GetTorqueReactionOn1();
-	sprintf(msg, "Eng. Nm: %+.2f", engine_torque);
-	this->renderLinGauge( std::string(msg), engine_torque/600, HUD_x, HUD_y+140, 120, 15);
+    double engine_torque = powertrain->m_engine->GetTorqueReactionOn1();
+    sprintf(msg, "Eng. Nm: %+.2f", engine_torque);
+    this->renderLinGauge(std::string(msg), engine_torque / 600, HUD_x, HUD_y + 140, 120, 15);
 
-	double tc_slip = mcar_hmm->m_powertrain->m_torqueconverter->GetSlippage();
-	sprintf(msg, "T.conv. slip: %+.2f", tc_slip);
-	this->renderLinGauge( std::string(msg), tc_slip/1, HUD_x, HUD_y+160, 120, 15);
+    double tc_slip = powertrain->m_torqueconverter->GetSlippage();
+    sprintf(msg, "T.conv. slip: %+.2f", tc_slip);
+    this->renderLinGauge(std::string(msg), tc_slip / 1, HUD_x, HUD_y + 160, 120, 15);
 
-	double tc_torquein = - mcar_hmm->m_powertrain->m_torqueconverter->GetTorqueReactionOnInput();
-	sprintf(msg, "T.conv. in  Nm: %+.2f", tc_torquein);
-	this->renderLinGauge( std::string(msg), tc_torquein/600, HUD_x, HUD_y+180, 120, 15);
+    double tc_torquein = -powertrain->m_torqueconverter->GetTorqueReactionOnInput();
+    sprintf(msg, "T.conv. in  Nm: %+.2f", tc_torquein);
+    this->renderLinGauge(std::string(msg), tc_torquein / 600, HUD_x, HUD_y + 180, 120, 15);
 
-	double tc_torqueout = mcar_hmm->m_powertrain->m_torqueconverter->GetTorqueReactionOnOutput();
-	sprintf(msg, "T.conv. out Nm: %+.2f", tc_torqueout);
-	this->renderLinGauge( std::string(msg), tc_torqueout/600, HUD_x, HUD_y+200, 120, 15);
+    double tc_torqueout = powertrain->m_torqueconverter->GetTorqueReactionOnOutput();
+    sprintf(msg, "T.conv. out Nm: %+.2f", tc_torqueout);
+    this->renderLinGauge(std::string(msg), tc_torqueout / 600, HUD_x, HUD_y + 200, 120, 15);
 
-	double torque_wheelL = - mcar_hmm->m_powertrain->m_rear_differential->GetTorqueReactionOn2();
-	sprintf(msg, "Torque wheel L: %+.2f", torque_wheelL);
-	this->renderLinGauge( std::string(msg), torque_wheelL/5000, HUD_x, HUD_y+220, 120, 15);
+    double torque_wheelL = -powertrain->m_rear_differential->GetTorqueReactionOn2();
+    sprintf(msg, "Torque wheel L: %+.2f", torque_wheelL);
+    this->renderLinGauge(std::string(msg), torque_wheelL / 5000, HUD_x, HUD_y + 220, 120, 15);
 
-	double torque_wheelR = - mcar_hmm->m_powertrain->m_rear_differential->GetTorqueReactionOn3();
-	sprintf(msg, "Torque wheel R: %+.2f", torque_wheelR);
-	this->renderLinGauge( std::string(msg), torque_wheelR/5000, HUD_x, HUD_y+240, 120, 15);
+    double torque_wheelR = -powertrain->m_rear_differential->GetTorqueReactionOn3();
+    sprintf(msg, "Torque wheel R: %+.2f", torque_wheelR);
+    this->renderLinGauge(std::string(msg), torque_wheelR / 5000, HUD_x, HUD_y + 240, 120, 15);
   }
 
 }
