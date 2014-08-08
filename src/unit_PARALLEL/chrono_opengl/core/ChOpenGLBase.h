@@ -51,8 +51,8 @@
 
 #include "chrono_opengl/core/ChApiOpenGL.h"
 
-
-
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
 namespace chrono {
 	namespace opengl{
 
@@ -82,6 +82,7 @@ namespace chrono {
 		};
 	}
 }
+#pragma GCC diagnostic pop
 
 
 #endif  // END of CHOPENGLBASE_H

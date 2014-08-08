@@ -131,7 +131,8 @@ void ChOpenGLWindow::Pause() {
    ChOpenGLViewer* pointer = ((ChOpenGLViewer *) (glfwGetWindowUserPointer(window)));
    pointer->pause_sim = true;
 }
-
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
 bool ChOpenGLWindow::GLUGetError(
       string err) {
    bool return_error = false;
@@ -143,6 +144,7 @@ bool ChOpenGLWindow::GLUGetError(
    }
    return return_error;
 }
+#pragma GCC diagnostic pop
 
 void ChOpenGLWindow::GLFWGetVersion(
       GLFWwindow* main_window) {
