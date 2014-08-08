@@ -1,10 +1,9 @@
 // -----------------------------------------------------------------
-// HMMWV_9body configuration header file
+// ChronoT configuration header file
 // -----------------------------------------------------------------
 
 // Path to CHRONO data
-////@CHRONO_DATA_DIR@
-////#define DATA_FILE(name) CHRONO_DATA_DIR name
+#define CHRONO_DATA_DIR "@CHRONO_DATA_DIR@"
 
 // Specify if Irrlicht support is available
 #define IRRLICHT_ENABLED @IRRLICHT_ENABLED@

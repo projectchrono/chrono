@@ -49,25 +49,3 @@ SET_TARGET_PROPERTIES(demo_HMMWV9 PROPERTIES LINK_FLAGS "${LINKERFLAG_EXE}")
 TARGET_LINK_LIBRARIES(demo_HMMWV9 ${HMMWV_LIBS})
 INSTALL(TARGETS demo_HMMWV9 DESTINATION bin)
 
-# ----------------------
-# Create config file
-# ----------------------
-
-# Prepare replacement variables
-
-IF(ENABLE_IRRLICHT)
-	SET(IRRLICHT_ENABLED "1")
-ELSE()
-	SET(IRRLICHT_ENABLED "0")
-ENDIF()
-
-# Generate the configuration header file using substitution variables.
-# Place the header file in the library output directory and make sure it can
-# be found at compile time.
-
-CONFIGURE_FILE(
-  ${CMAKE_CURRENT_SOURCE_DIR}/HMMWV9_config.in
-  ${PROJECT_BINARY_DIR}/HMMWV9_config.h
-  )
-
-INCLUDE_DIRECTORIES(${PROJECT_BINARY_DIR})

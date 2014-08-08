@@ -20,6 +20,8 @@
 #include "assets/ChTriangleMeshShape.h"
 #include "assets/ChTexture.h"
 
+#include "utils/ChUtilsData.h"
+
 #include "HMMWV9_Wheel.h"
 #include "HMMWV9_Vehicle.h"
 
@@ -40,14 +42,14 @@ const double      HMMWV9_Wheel::m_mass = 54.7;
 const ChVector<>  HMMWV9_Wheel::m_inertia(3.7958, 7.0037, 3.7958);
 
 const std::string HMMWV9_Wheel::m_meshName = "hmmwv_tire";
-const std::string HMMWV9_Wheel::m_meshFile = "../data/wheel_centered_rotated.obj";
+const std::string HMMWV9_Wheel::m_meshFile = utils::GetModelDataFile("hmmwv/wheel_centered_rotated.obj");
 
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-HMMWV9_Wheel::HMMWV9_Wheel(bool   enableContact,
-                           double mu,
-                           VisualizationType    visType)
+HMMWV9_Wheel::HMMWV9_Wheel(bool               enableContact,
+                           double             mu,
+                           VisualizationType  visType)
 : m_contact(enableContact),
   m_mu(mu),
   m_visType(visType)
@@ -68,7 +70,7 @@ void HMMWV9_Wheel::OnInitialize(ChSharedBodyPtr body)
     body->AddAsset(cyl);
 
     ChSharedPtr<ChTexture> tex(new ChTexture);
-    tex->SetTextureFilename("../data/bluwhite.png");
+    tex->SetTextureFilename(GetChronoDataFile("bluwhite.png"));
     body->AddAsset(tex);
 
     break;

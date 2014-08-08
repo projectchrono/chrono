@@ -17,7 +17,7 @@
 #ifndef HMMWV9_H
 #define HMMWV9_H
 
-#include "HMMWV9_config.h"
+#include "ChronoT_config.h"
 
 namespace hmmwv9 {
 
