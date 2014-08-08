@@ -46,8 +46,8 @@ class CH_SUBSYS_API ChIrrGuiDriver : public ChDriver, public irr::IEventReceiver
 public:
   ChIrrGuiDriver(irr::ChIrrApp&    app,
                  const ChVehicle&  car,
-                 int               tlc_X = 740,
-                 int               tlc_Y = 20);
+                 int               HUD_x = 740,
+                 int               HUD_y = 20);
 
   ~ChIrrGuiDriver() {}
 
@@ -67,7 +67,10 @@ private:
   void renderLinks();
   void renderGrid();
   void renderStats();
-  void renderLinGauge(std::string& msg, double factor, int xpos,int ypos, int lenght, int height =12);
+  void renderLinGauge(std::string& msg,
+                      double factor, bool sym,
+                      int xpos, int ypos,
+                      int length = 120, int height = 15);
 
   irr::ChIrrAppInterface&   m_app;
   const ChVehicle&          m_car;
@@ -76,8 +79,8 @@ private:
 
   double m_terrainHeight;
 
-  int  HUD_x;
-  int  HUD_y;
+  int  m_HUD_x;
+  int  m_HUD_y;
 
 };
 

@@ -26,6 +26,8 @@
 //
 // =============================================================================
 
+#include <algorithm>
+
 #include "subsys/driver/ChIrrGuiDriver.h"
 #include "subsys/powertrain/ChShaftsPowertrain.h"
 
@@ -37,17 +39,16 @@ namespace chrono {
 // -----------------------------------------------------------------------------
 ChIrrGuiDriver::ChIrrGuiDriver(ChIrrApp&         app,
                                const ChVehicle&  car,
-                               int               tlc_X,
-                               int               tlc_Y)
+                               int               HUD_x,
+                               int               HUD_y)
 : m_app(app),
   m_car(car),
+  m_HUD_x(HUD_x),
+  m_HUD_y(HUD_y),
   m_terrainHeight(0),
   m_camera(car.GetChassis())
 {
   app.SetUserEventReceiver(this);
-
-  HUD_x = tlc_X;
-  HUD_y = tlc_Y;
 }
 
 // -----------------------------------------------------------------------------
@@ -186,21 +187,28 @@ void ChIrrGuiDriver::renderGrid()
                        true);
 }
 
-void ChIrrGuiDriver::renderLinGauge(std::string& msg, double factor, int xpos,int ypos, int lenght, int height)
+void ChIrrGuiDriver::renderLinGauge(std::string& msg,
+                                    double factor, bool sym,
+                                    int xpos, int ypos,
+                                    int length, int height)
 {
-  irr::core::rect<s32> mclip(xpos,ypos, xpos+lenght, ypos+height);
+  irr::core::rect<s32> mclip(xpos,ypos, xpos+length, ypos+height);
   m_app.GetVideoDriver()->draw2DRectangle(
             irr::video::SColor(90,60,60,60),
-            irr::core::rect<s32>(xpos,ypos, xpos+lenght, ypos+height),
+            irr::core::rect<s32>(xpos,ypos, xpos+length, ypos+height),
             &mclip);
+
+  int left  = sym ? (length/2 - 2) * std::min<>(factor,0.0) + length/2 : 2;
+  s32 right = sym ? (length/2 - 2) * std::max<>(factor,0.0) + length/2 : (length - 4)*factor + 2;
+
   m_app.GetVideoDriver()->draw2DRectangle(
             irr::video::SColor(255,250,200,00),
-            irr::core::rect<s32>(xpos+2,ypos+2, xpos+((lenght-4)*factor), ypos+height-2),
+            irr::core::rect<s32>(xpos+left, ypos+2, xpos+right, ypos+height-2),
             &mclip);
 
   irr::gui::IGUIFont* font = m_app.GetIGUIEnvironment()->getBuiltInFont();
   font->draw(msg.c_str(),
-             irr::core::rect<s32>(xpos+3,ypos+3, xpos+lenght, ypos+height),
+             irr::core::rect<s32>(xpos+3,ypos+3, xpos+length, ypos+height),
              irr::video::SColor(255,20,20,20));
 }
 
@@ -209,15 +217,15 @@ void ChIrrGuiDriver::renderStats()
 {
   char msg[100];
 
-  double speed = m_car.GetVehicleSpeed();
-  sprintf(msg, "Speed: %+.2f", speed);
-  this->renderLinGauge(std::string(msg), speed/30, HUD_x, HUD_y + 40, 120, 15);
-
   sprintf(msg, "Steering: %+.2f", m_steering);
-  this->renderLinGauge(std::string(msg), m_steering, HUD_x, HUD_y + 60, 120, 15);
+  renderLinGauge(std::string(msg), m_steering, true, m_HUD_x, m_HUD_y + 40, 120, 15);
 
   sprintf(msg, "Throttle: %+.2f", m_throttle*100.);
-  this->renderLinGauge( std::string(msg), m_throttle, HUD_x, HUD_y+80, 120, 15);
+  renderLinGauge(std::string(msg), m_throttle, false, m_HUD_x, m_HUD_y + 60, 120, 15);
+
+  double speed = m_car.GetVehicleSpeed();
+  sprintf(msg, "Speed: %+.2f", speed);
+  renderLinGauge(std::string(msg), speed/30, false, m_HUD_x, m_HUD_y + 80, 120, 15);
 
   ChPowertrain* ptrain = m_car.m_powertrain;
 
@@ -225,31 +233,31 @@ void ChIrrGuiDriver::renderStats()
   {
     double engine_rpm = powertrain->m_crankshaft->GetPos_dt() * 60 / chrono::CH_C_2PI;
     sprintf(msg, "Eng. RPM: %+.2f", engine_rpm);
-    this->renderLinGauge(std::string(msg), engine_rpm / 7000, HUD_x, HUD_y + 120, 120, 15);
+    renderLinGauge(std::string(msg), engine_rpm / 7000, false, m_HUD_x, m_HUD_y + 120, 120, 15);
 
     double engine_torque = powertrain->m_engine->GetTorqueReactionOn1();
     sprintf(msg, "Eng. Nm: %+.2f", engine_torque);
-    this->renderLinGauge(std::string(msg), engine_torque / 600, HUD_x, HUD_y + 140, 120, 15);
+    renderLinGauge(std::string(msg), engine_torque / 600, false, m_HUD_x, m_HUD_y + 140, 120, 15);
 
     double tc_slip = powertrain->m_torqueconverter->GetSlippage();
     sprintf(msg, "T.conv. slip: %+.2f", tc_slip);
-    this->renderLinGauge(std::string(msg), tc_slip / 1, HUD_x, HUD_y + 160, 120, 15);
+    renderLinGauge(std::string(msg), tc_slip / 1, false, m_HUD_x, m_HUD_y + 160, 120, 15);
 
     double tc_torquein = -powertrain->m_torqueconverter->GetTorqueReactionOnInput();
     sprintf(msg, "T.conv. in  Nm: %+.2f", tc_torquein);
-    this->renderLinGauge(std::string(msg), tc_torquein / 600, HUD_x, HUD_y + 180, 120, 15);
+    renderLinGauge(std::string(msg), tc_torquein / 600, false, m_HUD_x, m_HUD_y + 180, 120, 15);
 
     double tc_torqueout = powertrain->m_torqueconverter->GetTorqueReactionOnOutput();
     sprintf(msg, "T.conv. out Nm: %+.2f", tc_torqueout);
-    this->renderLinGauge(std::string(msg), tc_torqueout / 600, HUD_x, HUD_y + 200, 120, 15);
+    renderLinGauge(std::string(msg), tc_torqueout / 600, false, m_HUD_x, m_HUD_y + 200, 120, 15);
 
     double torque_wheelL = -powertrain->m_rear_differential->GetTorqueReactionOn2();
     sprintf(msg, "Torque wheel L: %+.2f", torque_wheelL);
-    this->renderLinGauge(std::string(msg), torque_wheelL / 5000, HUD_x, HUD_y + 220, 120, 15);
+    renderLinGauge(std::string(msg), torque_wheelL / 5000, false, m_HUD_x, m_HUD_y + 220, 120, 15);
 
     double torque_wheelR = -powertrain->m_rear_differential->GetTorqueReactionOn3();
     sprintf(msg, "Torque wheel R: %+.2f", torque_wheelR);
-    this->renderLinGauge(std::string(msg), torque_wheelR / 5000, HUD_x, HUD_y + 240, 120, 15);
+    renderLinGauge(std::string(msg), torque_wheelR / 5000, false, m_HUD_x, m_HUD_y + 240, 120, 15);
   }
 
 }
