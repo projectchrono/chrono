@@ -229,16 +229,16 @@ void ChIrrGuiDriver::renderStats()
 
   ChPowertrain* ptrain = m_car.m_powertrain;
 
+  double engine_rpm = ptrain->GetMotorSpeed() * 60 / chrono::CH_C_2PI;
+  sprintf(msg, "Eng. RPM: %+.2f", engine_rpm);
+  renderLinGauge(std::string(msg), engine_rpm / 7000, false, m_HUD_x, m_HUD_y + 120, 120, 15);
+
+  double engine_torque = ptrain->GetMotorTorque();
+  sprintf(msg, "Eng. Nm: %+.2f", engine_torque);
+  renderLinGauge(std::string(msg), engine_torque / 600, false, m_HUD_x, m_HUD_y + 140, 120, 15);
+
   if (ChShaftsPowertrain* powertrain = dynamic_cast<ChShaftsPowertrain*>(ptrain))
   {
-    double engine_rpm = powertrain->m_crankshaft->GetPos_dt() * 60 / chrono::CH_C_2PI;
-    sprintf(msg, "Eng. RPM: %+.2f", engine_rpm);
-    renderLinGauge(std::string(msg), engine_rpm / 7000, false, m_HUD_x, m_HUD_y + 120, 120, 15);
-
-    double engine_torque = powertrain->m_engine->GetTorqueReactionOn1();
-    sprintf(msg, "Eng. Nm: %+.2f", engine_torque);
-    renderLinGauge(std::string(msg), engine_torque / 600, false, m_HUD_x, m_HUD_y + 140, 120, 15);
-
     double tc_slip = powertrain->m_torqueconverter->GetSlippage();
     sprintf(msg, "T.conv. slip: %+.2f", tc_slip);
     renderLinGauge(std::string(msg), tc_slip / 1, false, m_HUD_x, m_HUD_y + 160, 120, 15);
