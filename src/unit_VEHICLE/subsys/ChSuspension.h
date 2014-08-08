@@ -45,6 +45,8 @@ public:
 
   virtual ~ChSuspension() {}
 
+  const ChSharedBodyPtr GetSpindle() const { return m_spindle; }
+
   virtual void Initialize(ChSharedBodyPtr   chassis,
                           const ChVector<>& location) = 0;
 
@@ -58,6 +60,7 @@ public:
   virtual double GetSpindleAngSpeed() const = 0;
 
 protected:
+  ChSharedBodyPtr   m_spindle;
 
   std::string       m_name;
   Side              m_side;

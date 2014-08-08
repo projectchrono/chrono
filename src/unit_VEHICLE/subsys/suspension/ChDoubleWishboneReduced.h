@@ -90,8 +90,6 @@ protected:
 
   ChVector<>        m_points[NUM_POINTS];
 
-public:
-  ChSharedBodyPtr   m_spindle;
   ChSharedBodyPtr   m_upright;
 
   ChSharedPtr<ChLinkLockRevolute>   m_revolute;
