@@ -39,6 +39,16 @@ SET(Chrono_Driver_SOURCES
     driver/ChDataDriver.cpp
     )
 
+SET(Chrono_Powertrain_HEADERS
+    powertrain/ChSimplePowertrain.h
+    powertrain/ChShaftsPowertrain.h
+)
+
+SET(Chrono_Powertrain_SOURCES
+    powertrain/ChSimplePowertrain.cpp
+    powertrain/ChShaftsPowertrain.cpp
+)
+
 IF (ENABLE_IRRLICHT)
     SET(Chrono_Driver_HEADERS ${Chrono_Driver_HEADERS}
         driver/ChIrrGuiDriver.h
@@ -58,6 +68,10 @@ SOURCE_GROUP("Source Files\\suspension" FILES ${Chrono_Susp_SOURCES})
 SOURCE_GROUP("Header Files\\driver" FILES ${Chrono_Driver_HEADERS})
 SOURCE_GROUP("Source Files\\driver" FILES ${Chrono_Driver_SOURCES})
 
+SOURCE_GROUP("Header Files\\powertrain" FILES ${Chrono_Powertrain_HEADERS})
+SOURCE_GROUP("Source Files\\powertrain" FILES ${Chrono_Powertrain_SOURCES})
+
+
 # ------------------------------------------------------------------------------
 # ADD THE Chrono_Subsys LIBRARY
 # ------------------------------------------------------------------------------
@@ -69,6 +83,8 @@ ADD_LIBRARY(Chrono_Subsys SHARED
     ${Chrono_Susp_SOURCES}
     ${Chrono_Driver_HEADERS}
     ${Chrono_Driver_SOURCES}
+    ${Chrono_Powertrain_HEADERS}
+    ${Chrono_Powertrain_SOURCES}
     )
 
 SET_TARGET_PROPERTIES(Chrono_Subsys PROPERTIES

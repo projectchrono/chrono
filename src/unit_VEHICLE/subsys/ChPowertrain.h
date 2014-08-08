@@ -42,6 +42,8 @@ public:
 
   virtual ~ChPowertrain() {}
 
+  virtual double GetMotorSpeed() const = 0;
+  virtual double GetMotorTorque() const = 0;
   virtual double GetWheelTorque(ChWheelId which) const = 0;
 
   virtual void Update(double time, double throttle) = 0;
