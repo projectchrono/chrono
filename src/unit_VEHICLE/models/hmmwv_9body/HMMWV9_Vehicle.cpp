@@ -130,10 +130,11 @@ HMMWV9_Vehicle::HMMWV9_Vehicle(ChSystem&            my_system,
   // Create the powertrain subsystem
   //--------------------------------
 
- // m_powertrain = ChSharedPtr<HMMWV9_Powertrain>(new HMMWV9_Powertrain(this));
+  ////m_powertrain = ChSharedPtr<HMMWV9_SimplePowertrain>(new HMMWV9_SimplePowertrain(this));
+  ////m_powertrain->Initialize(m_chassis, m_rear_left_susp, m_rear_right_susp);
 
-  m_powertrain = ChSharedPtr<HMMWV9_Powertrain_NEW>(new HMMWV9_Powertrain_NEW(this));
-  m_powertrain->Initialize(m_chassis, m_rear_left_susp->m_spindle, m_rear_right_susp->m_spindle);
+  m_powertrain = ChSharedPtr<HMMWV9_Powertrain>(new HMMWV9_Powertrain(this));
+  m_powertrain->Initialize(m_chassis, m_rear_left_susp->GetSpindle(), m_rear_right_susp->GetSpindle());
 
 }
 
@@ -203,20 +204,6 @@ void HMMWV9_Vehicle::Update(double time,
 
   // Let the powertrain subsystem process the throttle input
   m_powertrain->Update(time, throttle);
-
-  // Apply motor torques on driven wheels
-  double wheelTorqueL = m_powertrain->GetWheelTorque(REAR_LEFT);
-  double wheelTorqueR = m_powertrain->GetWheelTorque(REAR_RIGHT);
-
-  m_rear_left_susp->ApplyTorque(wheelTorqueL);
-  m_rear_right_susp->ApplyTorque(wheelTorqueR);
-
-  // Debug...
-  ////GetLog() << "motor torque=" << m_powertrain->GetMotorTorque()
-  ////         << "  motor speed=" << m_powertrain->GetMotorSpeed()
-  ////         << "  wheel torque=" << m_powertrain->GetWheelTorque(REAR_RIGHT)
-  ////         << "\n";
-
 }
 
 

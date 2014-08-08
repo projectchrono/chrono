@@ -27,13 +27,14 @@
 #include "HMMWV9.h"
 #include "HMMWV9_DoubleWishbone.h"
 #include "HMMWV9_Wheel.h"
+#include "HMMWV9_SimplePowertrain.h"
 #include "HMMWV9_Powertrain.h"
 
 namespace hmmwv9 {
 
 // Forward reference
+class HMMWV9_SimplePowertrain;
 class HMMWV9_Powertrain;
-class HMMWV9_Powertrain_NEW;
 
 class HMMWV9_Vehicle : public chrono::ChVehicle {
 public:
@@ -56,17 +57,15 @@ public:
   static const std::string& ChassisMeshName() { return m_chassisMeshName; }
   static const std::string& ChassisMeshFile() { return m_chassisMeshFile; }
 
-public:
+private:
 
   chrono::ChSharedPtr<HMMWV9_DoubleWishboneFront>   m_front_right_susp;
   chrono::ChSharedPtr<HMMWV9_DoubleWishboneFront>   m_front_left_susp;
   chrono::ChSharedPtr<HMMWV9_DoubleWishboneRear>    m_rear_right_susp;
   chrono::ChSharedPtr<HMMWV9_DoubleWishboneRear>    m_rear_left_susp;
 
-  //chrono::ChSharedPtr<HMMWV9_Powertrain>  m_powertrain;
-	chrono::ChSharedPtr<HMMWV9_Powertrain_NEW>  m_powertrain;
-
-private:
+  //chrono::ChSharedPtr<HMMWV9_SimplePowertrain>  m_powertrain;
+  chrono::ChSharedPtr<HMMWV9_Powertrain>  m_powertrain;
 
   // Chassis visualization mesh
   static const std::string m_chassisMeshName;
@@ -75,7 +74,6 @@ private:
   // Chassis mass properties
   static const double  m_chassisMass;
   static const chrono::ChVector<>  m_chassisInertia;
-
 };
 
 
