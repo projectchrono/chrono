@@ -35,6 +35,8 @@ enum ChWheelId {
   REAR_RIGHT
 };
 
+class ChPowertrain;
+
 class CH_SUBSYS_API ChVehicle : public ChShared {
 public:
   ChVehicle() {}
@@ -54,7 +56,9 @@ public:
 
 protected:
   ChSharedBodyPtr  m_chassis;
+  ChPowertrain*    m_powertrain;
 
+  friend class ChPowertrain;
 };
 
 

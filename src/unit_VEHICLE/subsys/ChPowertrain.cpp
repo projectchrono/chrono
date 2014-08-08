@@ -27,6 +27,7 @@ ChPowertrain::ChPowertrain(ChVehicle*   car,
 : m_car(car),
   m_type(type)
 {
+  car->m_powertrain = this;
 }
 
 
