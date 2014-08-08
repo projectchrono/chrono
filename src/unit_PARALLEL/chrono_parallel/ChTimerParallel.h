@@ -101,6 +101,9 @@ public:
 
 	}
 	double GetTime(string name) {
+	   if(timer_list.count(name)==0){
+	      return 0;
+	   }
 		return timer_list[name].time;
 	}
 	void PrintReport() {
