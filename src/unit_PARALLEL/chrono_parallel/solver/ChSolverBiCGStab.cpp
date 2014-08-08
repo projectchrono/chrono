@@ -1,8 +1,8 @@
-#include "ChSolverParallel.h"
+#include "ChSolverBiCGStab.h"
 
 using namespace chrono;
 
-uint ChSolverParallel::SolveBiCGStab(const uint max_iter,const uint size,const custom_vector<real> &b,custom_vector<real> &x) {
+uint ChSolverBiCGStab::SolveBiCGStab(const uint max_iter,const uint size,const custom_vector<real> &b,custom_vector<real> &x) {
 	real rho_1, rho_2, alpha = 1, beta, omega = 1;
 	custom_vector<real> p, r(size), phat, s, shat, t(size), v(size);
 	real normb = Norm(b);

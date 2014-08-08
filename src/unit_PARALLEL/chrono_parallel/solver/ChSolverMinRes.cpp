@@ -1,8 +1,8 @@
-#include "ChSolverParallel.h"
+#include "ChSolverMinRes.h"
 
 using namespace chrono;
 
-uint ChSolverParallel::SolveMinRes(
+uint ChSolverMinRes::SolveMinRes(
       const uint max_iter,
       const uint size,
       const custom_vector<real> &b,

@@ -105,8 +105,8 @@ class CH_PARALLEL_API ChSolverParallel : public ChBaseParallel {
                        );
 
    // Call this function with an associated solver type to solve the system
-   void Solve(
-              GPUSOLVERTYPE solver_type);
+   virtual void Solve()=0;
+
 
    // Perform velocity stabilization on bilateral constraints
    uint SolveStab(
@@ -116,92 +116,6 @@ class CH_PARALLEL_API ChSolverParallel : public ChBaseParallel {
                   custom_vector<real> &x         // The vector of unknowns
                   );
 
-   // Solve using the steepest descent method
-   uint SolveSD(
-                const uint max_iter,           // Maximum number of iterations
-                const uint size,               // Number of unknowns
-                const custom_vector<real> &b,  // Rhs vector
-                custom_vector<real> &x         // The vector of unknowns
-                );
-
-   // Solve using the gradient descent method
-   uint SolveGD(
-                const uint max_iter,           // Maximum number of iterations
-                const uint size,               // Number of unknowns
-                const custom_vector<real> &b,  // Rhs vector
-                custom_vector<real> &x         // The vector of unknowns
-                );
-
-   // Solve using the conjugate gradient method
-   uint SolveCG(
-                const uint max_iter,           // Maximum number of iterations
-                const uint size,               // Number of unknowns
-                const custom_vector<real> &b,  // Rhs vector
-                custom_vector<real> &x         // The vector of unknowns
-                );
-
-   // Solve using the conjugate gradient squared method
-   uint SolveCGS(
-                 const uint max_iter,           // Maximum number of iterations
-                 const uint size,               // Number of unknowns
-                 const custom_vector<real> &b,  // Rhs vector
-                 custom_vector<real> &x         // The vector of unknowns
-                 );
-
-   // Solve using the bi-conjugate gradient method
-   uint SolveBiCG(
-                  const uint max_iter,           // Maximum number of iterations
-                  const uint size,               // Number of unknowns
-                  const custom_vector<real> &b,  // Rhs vector
-                  custom_vector<real> &x         // The vector of unknowns
-                  );
-
-   // Solve using the bi-conjugate gradient method with stabilization
-   uint SolveBiCGStab(
-                      const uint max_iter,           // Maximum number of iterations
-                      const uint size,               // Number of unknowns
-                      const custom_vector<real> &b,  // Rhs vector
-                      custom_vector<real> &x         // The vector of unknowns
-                      );
-
-   // Solve using the minimum residual method
-   uint SolveMinRes(
-                    const uint max_iter,           // Maximum number of iterations
-                    const uint size,               // Number of unknowns
-                    const custom_vector<real> &b,  // Rhs vector
-                    custom_vector<real> &x         // The vector of unknowns
-                    );
-
-   // Solve using the Accelerated Projected Gradient Descent Method
-   uint SolveAPGD(
-                  const uint max_iter,           // Maximum number of iterations
-                  const uint size,               // Number of unknowns
-                  const custom_vector<real> &b,  // Rhs vector
-                  custom_vector<real> &x         // The vector of unknowns
-                  );
-
-   // Solve using a more streamlined but harder to read version of the APGD method
-   uint SolveAPGDRS(
-                    const uint max_iter,           // Maximum number of iterations
-                    const uint size,               // Number of unknowns
-                    custom_vector<real> &b,        // Rhs vector
-                    custom_vector<real> &x         // The vector of unknowns
-                    );
-
-   // Compute the residual for the solver
-   // TODO: What is the best way to explain this...
-   real Res4(
-             const int SIZE,
-             real* mg_tmp,
-             const real* b,
-             real*x,
-             real* mb_tmp);
-
-   // Set parameters for growing and shrinking the step size
-   void SetAPGDParams(
-                      real theta_k,
-                      real shrink,
-                      real grow);
    // Get the number of iterations perfomed by the solver
    int GetIteration() {
       return current_iteration;
@@ -227,17 +141,17 @@ class CH_PARALLEL_API ChSolverParallel : public ChBaseParallel {
    }
    real GetObjective() {
 
-        custom_vector<real> Nl(data_container->host_data.gamma_data.size());
+      custom_vector<real> Nl(data_container->host_data.gamma_data.size());
 
-        // f_p = 0.5*l_candidate'*N*l_candidate - l_candidate'*b  = l_candidate'*(0.5*Nl_candidate - b);
-        ShurProduct(data_container->host_data.gamma_data, Nl);    // 1)  g_tmp = N*l_candidate ...        #### MATR.MULTIPLICATION!!!###
+      // f_p = 0.5*l_candidate'*N*l_candidate - l_candidate'*b  = l_candidate'*(0.5*Nl_candidate - b);
+      ShurProduct(data_container->host_data.gamma_data, Nl);    // 1)  g_tmp = N*l_candidate ...        #### MATR.MULTIPLICATION!!!###
 
-        SEAXMY(0.5, Nl, data_container->host_data.rhs_data, Nl);
-        // 2)  g_tmp = 0.5*N*l_candidate
-        // 3)  g_tmp = 0.5*N*l_candidate-b_shur
-        return Dot(data_container->host_data.gamma_data, Nl);     // 4)  mf_p  = l_candidate'*(0.5*N*l_candidate-b_shur)
+      SEAXMY(0.5, Nl, data_container->host_data.rhs_data, Nl);
+      // 2)  g_tmp = 0.5*N*l_candidate
+      // 3)  g_tmp = 0.5*N*l_candidate-b_shur
+      return Dot(data_container->host_data.gamma_data, Nl);     // 4)  mf_p  = l_candidate'*(0.5*N*l_candidate-b_shur)
 
-     }
+   }
 
    void AtIterationEnd(
                        real maxd,
@@ -268,13 +182,6 @@ class CH_PARALLEL_API ChSolverParallel : public ChBaseParallel {
 
    //These three variables are used to store the convergence history of the solver
    thrust::host_vector<real> maxd_hist, maxdeltalambda_hist, iter_hist;
-
-   //APGD specific vectors
-   custom_vector<real> obj2_temp, obj1_temp, ms, mg_tmp2, mb_tmp, mg_tmp, mg_tmp1, mg, ml, mx, my, ml_candidate;
-
-   real init_theta_k;
-   real step_shrink;
-   real step_grow;
 
    bool do_stab;           //There is an alternative velocity stab that can be performed in APGD, this enables that.
    bool collision_inside;

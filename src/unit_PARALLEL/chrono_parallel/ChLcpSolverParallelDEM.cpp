@@ -301,16 +301,16 @@ ChLcpSolverParallelDEM::RunTimeStep(real step)
 
   bilateral.Setup(data_container);
 
-  solver.current_iteration = 0;
-  solver.total_iteration = 0;
-  solver.maxd_hist.clear();               ////
-  solver.maxdeltalambda_hist.clear();     ////  currently not used
-  solver.iter_hist.clear();               ////
+  solver->current_iteration = 0;
+  solver->total_iteration = 0;
+  solver->maxd_hist.clear();               ////
+  solver->maxdeltalambda_hist.clear();     ////  currently not used
+  solver->iter_hist.clear();               ////
 
-  solver.SetTolerance(tolerance);
+  solver->SetTolerance(tolerance);
 
-  solver.bilateral = &bilateral;
-  solver.Setup(data_container);
+  solver->bilateral = &bilateral;
+  solver->Setup(data_container);
 
   ////bilateral.ComputeJacobians();      //// no-op
 
@@ -328,7 +328,7 @@ ChLcpSolverParallelDEM::RunTimeStep(real step)
 
   // Calculate velocity corrections
   data_container->system_timer.start("ChLcpSolverParallel_Stab");
-  solver.SolveStab(max_iter_bilateral,
+  solver->SolveStab(max_iter_bilateral,
                    data_container->num_bilaterals,
                    data_container->host_data.rhs_data,
                    data_container->host_data.gamma_bilateral);
@@ -339,10 +339,10 @@ ChLcpSolverParallelDEM::RunTimeStep(real step)
                  data_container->host_data.gamma_data.begin());
 
   // Update velocity (linear and angular)
-  solver.ComputeImpulses();
+  solver->ComputeImpulses();
 
-  tot_iterations = solver.GetIteration();
-  residual = solver.GetResidual();
+  tot_iterations = solver->GetIteration();
+  residual = solver->GetResidual();
 
   ////for (int i = 0; i < solver.iter_hist.size(); i++) {
   ////  AtIterationEnd(solver.maxd_hist[i], solver.maxdeltalambda_hist[i], solver.iter_hist[i]);

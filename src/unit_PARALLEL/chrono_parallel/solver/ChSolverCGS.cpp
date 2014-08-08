@@ -1,9 +1,9 @@
-#include "ChSolverParallel.h"
+#include "ChSolverCGS.h"
 
 using namespace chrono;
 
 
-uint ChSolverParallel::SolveCGS(const uint max_iter,const uint size,const custom_vector<real> &b,custom_vector<real> &x) {
+uint ChSolverCGS::SolveCGS(const uint max_iter,const uint size,const custom_vector<real> &b,custom_vector<real> &x) {
 	real rho_1, rho_2, alpha, beta;
 	custom_vector<real> r(size);
 	ShurProduct(x,r);

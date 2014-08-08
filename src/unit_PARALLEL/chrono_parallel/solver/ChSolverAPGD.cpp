@@ -1,8 +1,8 @@
-#include "ChSolverParallel.h"
+#include "ChSolverAPGD.h"
 
 using namespace chrono;
 
-void ChSolverParallel::SetAPGDParams(
+void ChSolverAPGD::SetAPGDParams(
       real theta_k,
       real shrink,
       real grow) {
@@ -12,7 +12,7 @@ void ChSolverParallel::SetAPGDParams(
 
 }
 
-real ChSolverParallel::Res4(
+real ChSolverAPGD::Res4(
       const int SIZE,
       real* mg_tmp,
       const real* b,
@@ -41,7 +41,7 @@ real ChSolverParallel::Res4(
    return sqrt(sum);
 
 }
-uint ChSolverParallel::SolveAPGD(const uint max_iter,const uint size,const custom_vector<real> &b,custom_vector<real> &x) {
+uint ChSolverAPGD::SolveAPGD(const uint max_iter,const uint size,const custom_vector<real> &b,custom_vector<real> &x) {
    ms.resize(size);
    mg_tmp2.resize(size);
    mb_tmp.resize(size);

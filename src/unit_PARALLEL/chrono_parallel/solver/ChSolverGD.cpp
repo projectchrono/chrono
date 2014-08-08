@@ -1,8 +1,8 @@
-#include "ChSolverParallel.h"
+#include "ChSolverGD.h"
 
 using namespace chrono;
 
-uint ChSolverParallel::SolveGD(const uint max_iter,const uint size,const custom_vector<real> &b,custom_vector<real> &x) {
+uint ChSolverGD::SolveGD(const uint max_iter,const uint size,const custom_vector<real> &b,custom_vector<real> &x) {
 	real eps = step_size;
 	custom_vector<real> r(size);
 	ShurProduct(x,r);

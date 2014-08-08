@@ -1,9 +1,9 @@
-#include "ChSolverParallel.h"
+#include "ChSolverCG.h"
 
 using namespace chrono;
 
 
-uint ChSolverParallel::SolveCG(const uint max_iter,const uint size,const custom_vector<real> &b,custom_vector<real> &x) {
+uint ChSolverCG::SolveCG(const uint max_iter,const uint size,const custom_vector<real> &b,custom_vector<real> &x) {
     custom_vector<real> r(size), p, Ap(size);
     real rsold, alpha, rsnew = 0, normb = Norm(b);
     if (normb == 0.0) {

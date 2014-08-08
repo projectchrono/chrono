@@ -30,21 +30,21 @@ void ChLcpSolverParallelDVI::RunTimeStep(
    rigid_rigid.Setup(data_container);
    bilateral.Setup(data_container);
 
-   solver.current_iteration = 0;
-   solver.total_iteration = 0;
-   solver.maxd_hist.clear();
-   solver.maxdeltalambda_hist.clear();
-   solver.iter_hist.clear();
+   solver->current_iteration = 0;
+   solver->total_iteration = 0;
+   solver->maxd_hist.clear();
+   solver->maxdeltalambda_hist.clear();
+   solver->iter_hist.clear();
 
-   solver.SetMaxIterations(max_iteration);
-   solver.SetTolerance(tolerance);
+   solver->SetMaxIterations(max_iteration);
+   solver->SetTolerance(tolerance);
 
-   solver.rigid_rigid = &rigid_rigid;
-   solver.bilateral = &bilateral;
-   solver.do_stab = do_stab;
-   solver.update_rhs = update_rhs;
-   solver.collision_inside = collision_inside;
-   solver.Setup(data_container);
+   solver->rigid_rigid = &rigid_rigid;
+   solver->bilateral = &bilateral;
+   solver->do_stab = do_stab;
+   solver->update_rhs = update_rhs;
+   solver->collision_inside = collision_inside;
+   solver->Setup(data_container);
    data_container->system_timer.stop("ChLcpSolverParallel_Setup");
    if (collision_inside) {
       data_container->host_data.vel_new_data = data_container->host_data.vel_data;
@@ -71,7 +71,7 @@ void ChLcpSolverParallelDVI::RunTimeStep(
    if (max_iter_bilateral > 0) {
       data_container->system_timer.start("ChLcpSolverParallel_Stab");
       //thrust::copy_n(data_container->host_data.gamma_data.begin() + data_container->num_unilaterals, data_container->num_bilaterals, data_container->host_data.gamma_bilateral.begin());
-      solver.SolveStab(max_iter_bilateral, data_container->num_bilaterals,rhs_bilateral, data_container->host_data.gamma_bilateral );
+      solver->SolveStab(max_iter_bilateral, data_container->num_bilaterals,rhs_bilateral, data_container->host_data.gamma_bilateral );
       data_container->system_timer.stop("ChLcpSolverParallel_Stab");
       thrust::copy_n(data_container->host_data.gamma_bilateral.begin(), data_container->num_bilaterals,
                      data_container->host_data.gamma_data.begin() + data_container->num_unilaterals);
@@ -81,38 +81,38 @@ void ChLcpSolverParallelDVI::RunTimeStep(
    //solve normal
    if (max_iter_normal > 0) {
 
-      solver.SetMaxIterations(max_iter_normal);
+      solver->SetMaxIterations(max_iter_normal);
       rigid_rigid.solve_sliding = false;
       rigid_rigid.solve_spinning = false;
       data_container->system_timer.start("ChLcpSolverParallel_RHS");
       rigid_rigid.ComputeRHS();
       data_container->system_timer.stop("ChLcpSolverParallel_RHS");
       data_container->system_timer.start("ChLcpSolverParallel_Solve");
-      solver.Solve(solver_type);
+      solver->Solve();
       data_container->system_timer.stop("ChLcpSolverParallel_Solve");
    }
    //cout<<"Solve sliding"<<endl;
    if (max_iter_sliding > 0) {
-      solver.SetMaxIterations(max_iter_sliding);
+      solver->SetMaxIterations(max_iter_sliding);
       rigid_rigid.solve_sliding = true;
       rigid_rigid.solve_spinning = false;
       data_container->system_timer.start("ChLcpSolverParallel_RHS");
       rigid_rigid.ComputeRHS();
       data_container->system_timer.stop("ChLcpSolverParallel_RHS");
       data_container->system_timer.start("ChLcpSolverParallel_Solve");
-      solver.Solve(solver_type);
+      solver->Solve();
       data_container->system_timer.stop("ChLcpSolverParallel_Solve");
    }
    if (max_iter_spinning > 0) {
       //cout<<"Solve Full"<<endl;
-      solver.SetMaxIterations(max_iter_spinning);
+      solver->SetMaxIterations(max_iter_spinning);
       rigid_rigid.solve_sliding = true;
       rigid_rigid.solve_spinning = true;
       data_container->system_timer.start("ChLcpSolverParallel_RHS");
       rigid_rigid.ComputeRHS();
       data_container->system_timer.stop("ChLcpSolverParallel_RHS");
       data_container->system_timer.start("ChLcpSolverParallel_Solve");
-      solver.Solve(solver_type);
+      solver->Solve();
       data_container->system_timer.stop("ChLcpSolverParallel_Solve");
    }
    thrust::copy_n(data_container->host_data.gamma_data.begin() + data_container->num_unilaterals, data_container->num_bilaterals,
@@ -129,16 +129,16 @@ void ChLcpSolverParallelDVI::RunTimeStep(
    //		thrust::copy_n(data_container->host_data.gamma_bilateral.begin(), data_container->num_bilaterals,
    //				data_container->host_data.gamma_data.begin() + data_container->num_unilaterals);
    //	}
-   solver.ComputeImpulses();
+   solver->ComputeImpulses();
 
-   tot_iterations = solver.GetIteration();
-   residual = solver.GetResidual();
+   tot_iterations = solver->GetIteration();
+   residual = solver->GetResidual();
    //data_container->host_data.old_gamma_data = data_container->host_data.gamma_data;
    //rhs = data_container->host_data.rhs_data;
    //lambda = data_container->host_data.gam_data;
 
-   for (int i = 0; i < solver.iter_hist.size(); i++) {
-      AtIterationEnd(solver.maxd_hist[i], solver.maxdeltalambda_hist[i], solver.iter_hist[i]);
+   for (int i = 0; i < solver->iter_hist.size(); i++) {
+      AtIterationEnd(solver->maxd_hist[i], solver->maxdeltalambda_hist[i], solver->iter_hist[i]);
    }
    //if (warm_start) {
    //RunWarmStartPostProcess();
@@ -156,7 +156,7 @@ void ChLcpSolverParallelDVI::RunWarmStartPostProcess() {
       return;
    }
 
-   num_bins_per_axis = I3(20, 40, 20);
+   int3 num_bins_per_axis = I3(20, 40, 20);
    int l = num_bins_per_axis.x;
    int h = num_bins_per_axis.y;
    int w = num_bins_per_axis.z;

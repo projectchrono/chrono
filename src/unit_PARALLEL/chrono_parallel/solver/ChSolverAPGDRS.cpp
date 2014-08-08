@@ -1,8 +1,49 @@
-#include "chrono_parallel/ChConfigParallel.h"
-#include "ChSolverParallel.h"
+#include "ChSolverAPGDRS.h"
 
 using namespace chrono;
-uint ChSolverParallel::SolveAPGDRS(
+
+void ChSolverAPGDRS::SetAPGDParams(
+      real theta_k,
+      real shrink,
+      real grow) {
+   init_theta_k = theta_k;
+   step_shrink = shrink;
+   step_grow = grow;
+
+}
+
+real ChSolverAPGDRS::Res4(
+      const int SIZE,
+      real* mg_tmp,
+      const real* b,
+      real*x,
+      real* mb_tmp) {
+   real gdiff = 1e-6;
+   real sum = 0;
+
+#pragma omp  parallel for
+   for (int i = 0; i < SIZE; i++) {
+      real _mg_tmp2_ = mg_tmp[i] - b[i];
+      mb_tmp[i] = -gdiff * _mg_tmp2_ + x[i];
+   }
+
+   Project(mb_tmp);
+   //ms = mb_tmp - x;
+   //mb_tmp = (-1.0 / (gdiff)) * ms;
+
+#pragma omp  parallel for reduction(+:sum)
+   for (int i = 0; i < SIZE; i++) {
+      real _ms_ = mb_tmp[i] - x[i];
+      real _mb_tmp_ = (-1.0f / (gdiff)) * _ms_;
+      sum += _mb_tmp_ * _mb_tmp_;
+   }
+
+   return sqrt(sum);
+
+}
+
+
+uint ChSolverAPGDRS::SolveAPGDRS(
                                    const uint max_iter,
                                    const uint size,
                                    custom_vector<real> &rhs,
@@ -32,9 +73,9 @@ uint ChSolverParallel::SolveAPGDRS(
    custom_vector<real3> vel_data, omg_data;
    custom_vector<real> b = rhs;
 //#pragma omp  parallel for
-//		for(int i=0; i<SIZE; i++) {
-//			ml[i] = 0;
-//		}
+//    for(int i=0; i<SIZE; i++) {
+//       ml[i] = 0;
+//    }
 
    Project(ml.data());
    ml_candidate = ml;
@@ -191,4 +232,3 @@ uint ChSolverParallel::SolveAPGDRS(
    x = ml_candidate;
    return current_iteration;
 }
-
