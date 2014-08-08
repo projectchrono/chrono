@@ -19,6 +19,8 @@
 #include "assets/ChBoxShape.h"
 #include "assets/ChTriangleMeshShape.h"
 
+#include "utils/ChUtilsData.h"
+
 #include "HMMWV9_Vehicle.h"
 
 using namespace chrono;
@@ -35,7 +37,7 @@ const double HMMWV9_Vehicle::m_chassisMass = 7500.0 / 2.2;
 const ChVector<> HMMWV9_Vehicle::m_chassisInertia(125.8, 497.4, 531.4); // chassis inertia (roll,pitch,yaw)
 
 const std::string HMMWV9_Vehicle::m_chassisMeshName = "hmmwv_chassis";
-const std::string HMMWV9_Vehicle::m_chassisMeshFile = "../data/humvee4_scaled_rotated_decimated_centered.obj";
+const std::string HMMWV9_Vehicle::m_chassisMeshFile = utils::GetModelDataFile("hmmwv/humvee4_scaled_rotated_decimated_centered.obj");
 
 
 // -----------------------------------------------------------------------------
