@@ -57,6 +57,7 @@ CH_RTTI(ChSystemParallel, ChSystem)
 
    virtual void LoadMaterialSurfaceData(ChSharedPtr<ChBody> newbody) = 0;
    virtual void UpdateBodies() = 0;
+   virtual void AssembleSystem(ChLcpSystemDescriptor* sys_descriptor) = 0;
    virtual void ChangeCollisionSystem(collision::ChCollisionSystem *newcollsystem);
 
    virtual void PrintStepStats() {
@@ -135,7 +136,19 @@ CH_RTTI(ChSystemParallelDVI, ChSystemParallel)
 
    virtual void LoadMaterialSurfaceData(ChSharedPtr<ChBody> newbody);
    virtual void UpdateBodies();
-
+   virtual void AssembleSystem(ChLcpSystemDescriptor* sys_descriptor);
+   void Assemble_load(bool load_jacobians,
+         bool load_Mv,
+         double F_factor,
+         double K_factor,
+         double R_factor,
+         double M_factor,
+         double Ct_factor,
+         double C_factor,
+         double recovery_clamp,
+         bool do_clamp,
+         ChContactContainerBase* mcontactcontainer
+   );
 };
 
 class CH_PARALLEL_API ChSystemParallelDEM : public ChSystemParallel {
@@ -149,7 +162,8 @@ CH_RTTI(ChSystemParallelDEM, ChSystemParallel)
 
    virtual void LoadMaterialSurfaceData(ChSharedPtr<ChBody> newbody);
    virtual void UpdateBodies();
-
+   virtual void AssembleSystem(ChLcpSystemDescriptor* sys_descriptor) {
+   }
    virtual void ChangeCollisionSystem(collision::ChCollisionSystem *newcollsystem);
 
    virtual void PrintStepStats();
