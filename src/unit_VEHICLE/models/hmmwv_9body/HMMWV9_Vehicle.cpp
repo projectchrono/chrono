@@ -99,16 +99,16 @@ HMMWV9_Vehicle::HMMWV9_Vehicle(ChSystem&            my_system,
   // -------------------------------------------
 
   m_front_right_susp = ChSharedPtr<HMMWV9_DoubleWishboneFront>(new HMMWV9_DoubleWishboneFront("FRsusp", ChSuspension::RIGHT));
-  m_front_right_susp->Initialize(m_chassis, in2m * ChVector<>(-83.8, 35.82, -33.325));
+  m_front_right_susp->Initialize(m_chassis, in2m * ChVector<>(-83.8, 35.82, -19.949));
 
   m_front_left_susp = ChSharedPtr<HMMWV9_DoubleWishboneFront>(new HMMWV9_DoubleWishboneFront("FLsusp", ChSuspension::LEFT));
-  m_front_left_susp->Initialize(m_chassis, in2m * ChVector<>(-83.8, -35.82, -33.325));
+  m_front_left_susp->Initialize(m_chassis, in2m * ChVector<>(-83.8, -35.82, -19.949));
 
   m_rear_right_susp = ChSharedPtr<HMMWV9_DoubleWishboneRear>(new HMMWV9_DoubleWishboneRear("RRsusp", ChSuspension::RIGHT, true));
-  m_rear_right_susp->Initialize(m_chassis, in2m * ChVector<>(46.2, 35.82, -33.325));
+  m_rear_right_susp->Initialize(m_chassis, in2m * ChVector<>(46.2, 35.82, -19.949));
 
   m_rear_left_susp = ChSharedPtr<HMMWV9_DoubleWishboneRear>(new HMMWV9_DoubleWishboneRear("RLsusp", ChSuspension::LEFT, true));
-  m_rear_left_susp->Initialize(m_chassis, in2m * ChVector<>(46.2, -35.82, -33.325));
+  m_rear_left_susp->Initialize(m_chassis, in2m * ChVector<>(46.2, -35.82, -19.949));
 
   // -------------------------------------------
   // Create the wheels and attach to suspension
