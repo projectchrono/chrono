@@ -179,7 +179,7 @@ uint ChSolverParallel::SolveAPGD(const uint max_iter,const uint size,const custo
       residual = lastgoodres;
       real maxdeltalambda = CompRes(b, num_contacts);     //NormInf(ms);
 
-      AtIterationEnd(residual, maxdeltalambda, iter_hist.size()+current_iteration);
+      AtIterationEnd(residual, maxdeltalambda, iter_hist.size());
       //custom_vector<real> error = (x_initial-x)/x;
       //x_initial = x;
 

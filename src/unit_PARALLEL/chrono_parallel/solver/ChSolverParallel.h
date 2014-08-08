@@ -27,7 +27,6 @@
 #include "chrono_parallel/constraints/ChConstraintRigidRigid.h"
 #include "chrono_parallel/constraints/ChConstraintBilateral.h"
 #include "chrono_parallel/collision/ChCNarrowphaseMPR.h"
-
 namespace chrono {
 class CH_PARALLEL_API ChSolverParallel : public ChBaseParallel {
  public:
@@ -39,54 +38,54 @@ class CH_PARALLEL_API ChSolverParallel : public ChBaseParallel {
       collision_inside = false;
       rigid_rigid = NULL;
       bilateral = NULL;
-      update_rhs=false;
+      update_rhs = false;
    }
 
    // At the beginning of the step reset the size/indexing variables,
    // resize for new contact list and clear temporary accumulation variables
    void Setup(
-         ChParallelDataManager *data_container_  //pointer to data container
-         );
+              ChParallelDataManager *data_container_  //pointer to data container
+              );
 
    // Project the lagrange multipliers (gamma) onto the friction cone.
    void Project(
-         real* gamma  //Lagrange Multipliers
-         );
+                real* gamma  //Lagrange Multipliers
+                );
 
    // Compute the first half of the shur matrix vector multiplication (N*x)
    // Perform M_invDx=M^-1*D*x
    void shurA(
-         real*x  //Vector that N is multiplied by
-         );
+              real*x  //Vector that N is multiplied by
+              );
 
    // Compute second half of shur matrix vector multiplication Nx=D*M_invDx
    void shurB(
-         real* x,   //Vector that contains M_invDx
-         real* out  //N*x
-         );
+              real* x,   //Vector that contains M_invDx
+              real* out  //N*x
+              );
    // Compute rhs value with relaxation term
    void ComputeSRhs(
-         custom_vector<real>& gamma,
-         const custom_vector<real>& rhs,
-         custom_vector<real3>& vel_data,
-         custom_vector<real3>& omg_data,
-         custom_vector<real>& b);
+                    custom_vector<real>& gamma,
+                    const custom_vector<real>& rhs,
+                    custom_vector<real3>& vel_data,
+                    custom_vector<real3>& omg_data,
+                    custom_vector<real>& b);
 
    // Perform M^-1*D*gamma and increment the linear and rotational velocity vectors
    void ComputeImpulses();
 
    // Perform M^-1*D*gamma and compute the linear and rotational velocity vectors
    void ComputeImpulses(
-         custom_vector<real>& gamma,
-         custom_vector<real3>& vel_data,
-         custom_vector<real3>& omg_data);
+                        custom_vector<real>& gamma,
+                        custom_vector<real3>& vel_data,
+                        custom_vector<real3>& omg_data);
 
    // Function that performs time integration to get the new positions
    // Used when contacts need to be updated within the solver
    // Function is similar to compute impulses
    void UpdatePosition(
-         custom_vector<real>& x   //Lagrange multipliers
-         );
+                       custom_vector<real>& x   //Lagrange multipliers
+                       );
 
    // Rerun the narrowphase to get the new contact list, broadphase is not run again here
    // This assumes that the positions did not drastically change.
@@ -94,115 +93,115 @@ class CH_PARALLEL_API ChSolverParallel : public ChBaseParallel {
 
    // Compute the full shur matrix vector product (N*x) where N=D^T*M^-1*D
    void ShurProduct(
-         custom_vector<real>& x,  //Vector that will be multiplied by N
-         custom_vector<real>& AX  //Output Result
-         );
+                    custom_vector<real>& x,  //Vector that will be multiplied by N
+                    custom_vector<real>& AX  //Output Result
+                    );
 
    // Compute the shur matrix vector product only for the bilaterals (N*x)
    // where N=D^T*M^-1*D
    void ShurBilaterals(
-         custom_vector<real> &x,   //Vector that will be multiplied by N
-         custom_vector<real> & AX  //Output Result
-         );
+                       custom_vector<real> &x,   //Vector that will be multiplied by N
+                       custom_vector<real> & AX  //Output Result
+                       );
 
    // Call this function with an associated solver type to solve the system
    void Solve(
-         GPUSOLVERTYPE solver_type);
+              GPUSOLVERTYPE solver_type);
 
    // Perform velocity stabilization on bilateral constraints
    uint SolveStab(
-         const uint max_iter,           // Maximum number of iterations
-         const uint size,               // Number of unknowns
-         const custom_vector<real> &b,  // Rhs vector
-         custom_vector<real> &x         // The vector of unknowns
-         );
+                  const uint max_iter,           // Maximum number of iterations
+                  const uint size,               // Number of unknowns
+                  const custom_vector<real> &b,  // Rhs vector
+                  custom_vector<real> &x         // The vector of unknowns
+                  );
 
    // Solve using the steepest descent method
    uint SolveSD(
-         const uint max_iter,           // Maximum number of iterations
-         const uint size,               // Number of unknowns
-         const custom_vector<real> &b,  // Rhs vector
-         custom_vector<real> &x         // The vector of unknowns
-         );
+                const uint max_iter,           // Maximum number of iterations
+                const uint size,               // Number of unknowns
+                const custom_vector<real> &b,  // Rhs vector
+                custom_vector<real> &x         // The vector of unknowns
+                );
 
    // Solve using the gradient descent method
    uint SolveGD(
-         const uint max_iter,           // Maximum number of iterations
-         const uint size,               // Number of unknowns
-         const custom_vector<real> &b,  // Rhs vector
-         custom_vector<real> &x         // The vector of unknowns
-         );
+                const uint max_iter,           // Maximum number of iterations
+                const uint size,               // Number of unknowns
+                const custom_vector<real> &b,  // Rhs vector
+                custom_vector<real> &x         // The vector of unknowns
+                );
 
    // Solve using the conjugate gradient method
    uint SolveCG(
-         const uint max_iter,           // Maximum number of iterations
-         const uint size,               // Number of unknowns
-         const custom_vector<real> &b,  // Rhs vector
-         custom_vector<real> &x         // The vector of unknowns
-         );
+                const uint max_iter,           // Maximum number of iterations
+                const uint size,               // Number of unknowns
+                const custom_vector<real> &b,  // Rhs vector
+                custom_vector<real> &x         // The vector of unknowns
+                );
 
    // Solve using the conjugate gradient squared method
    uint SolveCGS(
-         const uint max_iter,           // Maximum number of iterations
-         const uint size,               // Number of unknowns
-         const custom_vector<real> &b,  // Rhs vector
-         custom_vector<real> &x         // The vector of unknowns
-         );
+                 const uint max_iter,           // Maximum number of iterations
+                 const uint size,               // Number of unknowns
+                 const custom_vector<real> &b,  // Rhs vector
+                 custom_vector<real> &x         // The vector of unknowns
+                 );
 
    // Solve using the bi-conjugate gradient method
    uint SolveBiCG(
-         const uint max_iter,           // Maximum number of iterations
-         const uint size,               // Number of unknowns
-         const custom_vector<real> &b,  // Rhs vector
-         custom_vector<real> &x         // The vector of unknowns
-         );
+                  const uint max_iter,           // Maximum number of iterations
+                  const uint size,               // Number of unknowns
+                  const custom_vector<real> &b,  // Rhs vector
+                  custom_vector<real> &x         // The vector of unknowns
+                  );
 
    // Solve using the bi-conjugate gradient method with stabilization
    uint SolveBiCGStab(
-         const uint max_iter,           // Maximum number of iterations
-         const uint size,               // Number of unknowns
-         const custom_vector<real> &b,  // Rhs vector
-         custom_vector<real> &x         // The vector of unknowns
-         );
+                      const uint max_iter,           // Maximum number of iterations
+                      const uint size,               // Number of unknowns
+                      const custom_vector<real> &b,  // Rhs vector
+                      custom_vector<real> &x         // The vector of unknowns
+                      );
 
    // Solve using the minimum residual method
    uint SolveMinRes(
-         const uint max_iter,           // Maximum number of iterations
-         const uint size,               // Number of unknowns
-         const custom_vector<real> &b,  // Rhs vector
-         custom_vector<real> &x         // The vector of unknowns
-         );
+                    const uint max_iter,           // Maximum number of iterations
+                    const uint size,               // Number of unknowns
+                    const custom_vector<real> &b,  // Rhs vector
+                    custom_vector<real> &x         // The vector of unknowns
+                    );
 
    // Solve using the Accelerated Projected Gradient Descent Method
    uint SolveAPGD(
-         const uint max_iter,           // Maximum number of iterations
-         const uint size,               // Number of unknowns
-         const custom_vector<real> &b,  // Rhs vector
-         custom_vector<real> &x         // The vector of unknowns
-         );
+                  const uint max_iter,           // Maximum number of iterations
+                  const uint size,               // Number of unknowns
+                  const custom_vector<real> &b,  // Rhs vector
+                  custom_vector<real> &x         // The vector of unknowns
+                  );
 
    // Solve using a more streamlined but harder to read version of the APGD method
    uint SolveAPGDRS(
-         const uint max_iter,           // Maximum number of iterations
-         const uint size,               // Number of unknowns
-         custom_vector<real> &b,        // Rhs vector
-         custom_vector<real> &x         // The vector of unknowns
-         );
+                    const uint max_iter,           // Maximum number of iterations
+                    const uint size,               // Number of unknowns
+                    custom_vector<real> &b,        // Rhs vector
+                    custom_vector<real> &x         // The vector of unknowns
+                    );
 
    // Compute the residual for the solver
    // TODO: What is the best way to explain this...
    real Res4(
-         const int SIZE,
-         real* mg_tmp,
-         const real* b,
-         real*x,
-         real* mb_tmp);
+             const int SIZE,
+             real* mg_tmp,
+             const real* b,
+             real*x,
+             real* mb_tmp);
 
    // Set parameters for growing and shrinking the step size
    void SetAPGDParams(
-         real theta_k,
-         real shrink,
-         real grow);
+                      real theta_k,
+                      real shrink,
+                      real grow);
    // Get the number of iterations perfomed by the solver
    int GetIteration() {
       return current_iteration;
@@ -211,11 +210,39 @@ class CH_PARALLEL_API ChSolverParallel : public ChBaseParallel {
    real GetResidual() {
       return residual;
    }
+   real GetObjective(
+                     custom_vector<real> & x,
+                     custom_vector<real> & b) {
+
+      custom_vector<real> Nl(x.size());
+
+      // f_p = 0.5*l_candidate'*N*l_candidate - l_candidate'*b  = l_candidate'*(0.5*Nl_candidate - b);
+      ShurProduct(x, Nl);    // 1)  g_tmp = N*l_candidate ...        #### MATR.MULTIPLICATION!!!###
+
+      SEAXMY(0.5, Nl, b, Nl);
+      // 2)  g_tmp = 0.5*N*l_candidate
+      // 3)  g_tmp = 0.5*N*l_candidate-b_shur
+      return Dot(x, Nl);     // 4)  mf_p  = l_candidate'*(0.5*N*l_candidate-b_shur)
+
+   }
+   real GetObjective() {
+
+        custom_vector<real> Nl(data_container->host_data.gamma_data.size());
+
+        // f_p = 0.5*l_candidate'*N*l_candidate - l_candidate'*b  = l_candidate'*(0.5*Nl_candidate - b);
+        ShurProduct(data_container->host_data.gamma_data, Nl);    // 1)  g_tmp = N*l_candidate ...        #### MATR.MULTIPLICATION!!!###
+
+        SEAXMY(0.5, Nl, data_container->host_data.rhs_data, Nl);
+        // 2)  g_tmp = 0.5*N*l_candidate
+        // 3)  g_tmp = 0.5*N*l_candidate-b_shur
+        return Dot(data_container->host_data.gamma_data, Nl);     // 4)  mf_p  = l_candidate'*(0.5*N*l_candidate-b_shur)
+
+     }
 
    void AtIterationEnd(
-         real maxd,
-         real maxdeltalambda,
-         int iter) {
+                       real maxd,
+                       real maxdeltalambda,
+                       int iter) {
       maxd_hist.push_back(maxd);
       maxdeltalambda_hist.push_back(maxdeltalambda);
       iter_hist.push_back(iter);
@@ -223,13 +250,13 @@ class CH_PARALLEL_API ChSolverParallel : public ChBaseParallel {
 
    // Set the tolerance for all solvers
    void SetTolerance(
-         const real tolerance_value) {
+                     const real tolerance_value) {
       tolerance = tolerance_value;
    }
 
    // Set the maximum number of iterations for all solvers
    void SetMaxIterations(
-         const int max_iteration_value) {
+                         const int max_iteration_value) {
       max_iteration = max_iteration_value;
    }
 

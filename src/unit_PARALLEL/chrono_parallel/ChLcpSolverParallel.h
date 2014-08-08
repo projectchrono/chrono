@@ -102,7 +102,7 @@ class CH_PARALLEL_API ChLcpSolverParallelDVI : public ChLcpSolverParallel {
   ChLcpSolverParallelDVI() {
     alpha = .2;
     contact_recovery_speed = .6;
-    solver_type = ACCELERATED_PROJECTED_GRADIENT_DESCENT;
+    solver_type = APGD;
     do_stab = false;
     collision_inside = false;
     update_rhs=false;

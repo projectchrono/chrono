@@ -181,7 +181,7 @@ uint ChSolverParallel::SolveAPGDRS(
             UpdateContacts();
          }
       }
-      real maxdeltalambda = 0;
+      real maxdeltalambda = GetObjective(x, b);
       AtIterationEnd(residual, maxdeltalambda, iter_hist.size());
       if (residual < tolerance) {
          break;

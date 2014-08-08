@@ -181,7 +181,7 @@ void ChSolverParallel::Solve(
       } else if (solver_type == QUASAI_MINIMUM_RESIDUAL) {
          // This solver has not been implemented yet
          //SolveQMR(data_container->gpu_data.device_gam_data, rhs, max_iteration);
-      } else if (solver_type == ACCELERATED_PROJECTED_GRADIENT_DESCENT || solver_type == APGDRS) {
+      } else if (solver_type == APGD || solver_type == APGDRS) {
          if (do_stab) {
             custom_vector<real> rhs_bilateral(data_container->num_bilaterals);
             thrust::copy_n(data_container->host_data.rhs_data.begin() + data_container->num_unilaterals, data_container->num_bilaterals, rhs_bilateral.begin());
@@ -200,7 +200,7 @@ void ChSolverParallel::Solve(
                total_iteration += SolveAPGDRS(max_iteration / 8, num_constraints, data_container->host_data.rhs_data, data_container->host_data.gamma_data);
             }
          } else {
-            if (solver_type == ACCELERATED_PROJECTED_GRADIENT_DESCENT) {
+            if (solver_type == APGD) {
                total_iteration += SolveAPGD(max_iteration, num_constraints, data_container->host_data.rhs_data, data_container->host_data.gamma_data);
             } else {
                total_iteration += SolveAPGDRS(max_iteration, num_constraints, data_container->host_data.rhs_data, data_container->host_data.gamma_data);
