@@ -28,7 +28,7 @@ using namespace chrono;
 using namespace chrono::opengl;
 
 ChOpenGLViewer::ChOpenGLViewer(
-      ChSystem * system) {
+                               ChSystem * system) {
    physics_system = system;
 
    render_camera.SetMode(FREE);
@@ -239,7 +239,7 @@ void ChOpenGLViewer::Render() {
 }
 
 void ChOpenGLViewer::DrawObject(
-      ChBody * abody) {
+                                ChBody * abody) {
    if (abody->GetAssets().size() == 0) {
       return;
    }
@@ -308,7 +308,7 @@ void ChOpenGLViewer::DrawObject(
          ChVector<> pos_final = pos + center;
          model = glm::translate(glm::mat4(1), glm::vec3(pos_final.x, pos_final.y, pos_final.z));
          model = glm::rotate(model, float(angle), glm::vec3(axis.x, axis.y, axis.z));
-         model = glm::scale(model, glm::vec3(rad, height*.5, rad));
+         model = glm::scale(model, glm::vec3(rad, height * .5, rad));
          model_cylinder.push_back(model);
 
       } else if (asset.IsType<ChConeShape>()) {
@@ -402,11 +402,11 @@ void ChOpenGLViewer::GenerateFontIndex() {
    }
 }
 void ChOpenGLViewer::RenderText(
-      const std::string &str,
-      float x,
-      float y,
-      float sx,
-      float sy) {
+                                const std::string &str,
+                                float x,
+                                float y,
+                                float sx,
+                                float sy) {
    for (int i = 0; i < str.size(); i++) {
       texture_glyph_t *glyph = 0;
       glyph = &font_data.glyphs[char_index[str[i]]];
@@ -439,9 +439,8 @@ void ChOpenGLViewer::RenderText(
 void ChOpenGLViewer::DisplayHUD() {
 
    GLReturnedError("Start text");
-
-   float sx = 2. / window_size.x;
-   float sy = 2. / window_size.y;
+   float sx = 2.0 / window_size.x;
+   float sy = 2.0 / window_size.y;
    text_data.reserve(300);
    text_data.clear();
 
@@ -512,6 +511,30 @@ void ChOpenGLViewer::DisplayHUD() {
       RenderText(buffer, .6, -0.925 + .06 * 2, sx, sy);
       sprintf(buffer, "Geometry: %04f", time_geometry);
       RenderText(buffer, .6, -0.925 + .06 * 3, sx, sy);
+
+      if (ChSystemParallelDVI* parallel_sys = dynamic_cast<ChSystemParallelDVI*>(physics_system)) {
+         sprintf(buffer, "TimerA:  %04f", parallel_sys->data_manager->system_timer.GetTime("ChSolverParallel_solverA"));
+         RenderText(buffer, -.95, -0.925 + .06 * 9, sx, sy);
+         sprintf(buffer, "TimerB:  %04f", parallel_sys->data_manager->system_timer.GetTime("ChSolverParallel_solverB"));
+         RenderText(buffer, -.95, -0.925 + .06 * 8, sx, sy);
+         sprintf(buffer, "TimerC:  %04f", parallel_sys->data_manager->system_timer.GetTime("ChSolverParallel_solverC"));
+         RenderText(buffer, -.95, -0.925 + .06 * 7, sx, sy);
+         sprintf(buffer, "TimerD:  %04f", parallel_sys->data_manager->system_timer.GetTime("ChSolverParallel_solverD"));
+         RenderText(buffer, -.95, -0.925 + .06 * 6, sx, sy);
+         sprintf(buffer, "TimerE:  %04f", parallel_sys->data_manager->system_timer.GetTime("ChSolverParallel_solverE"));
+         RenderText(buffer, -.95, -0.925 + .06 * 5, sx, sy);
+         sprintf(buffer, "TimerF:  %04f", parallel_sys->data_manager->system_timer.GetTime("ChSolverParallel_solverF"));
+         RenderText(buffer, -.95, -0.925 + .06 * 4, sx, sy);
+         sprintf(buffer, "TimerG:  %04f", parallel_sys->data_manager->system_timer.GetTime("ChSolverParallel_solverG"));
+         RenderText(buffer, -.95, -0.925 + .06 * 3, sx, sy);
+         sprintf(buffer, "Shur A:  %04f", parallel_sys->data_manager->system_timer.GetTime("ChSolverParallel_shurA"));
+         RenderText(buffer, -.95, -0.925 + .06 * 2, sx, sy);
+         sprintf(buffer, "Shur B:  %04f", parallel_sys->data_manager->system_timer.GetTime("ChSolverParallel_shurB"));
+         RenderText(buffer, -.95, -0.925 + .06 * 1, sx, sy);
+         sprintf(buffer, "Proj  :  %04f", parallel_sys->data_manager->system_timer.GetTime("ChSolverParallel_Project"));
+         RenderText(buffer, -.95, -0.925 + .06 * 0, sx, sy);
+
+      }
    }
    glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 
@@ -542,7 +565,7 @@ void ChOpenGLViewer::RenderContacts() {
    }
 
    if (ChSystemParallel* system = dynamic_cast<ChSystemParallel*>(physics_system)) {
-      ChParallelDataManager * data_manager = system->gpu_data_manager;
+      ChParallelDataManager * data_manager = system->data_manager;
       contact_data.resize(data_manager->num_contacts * 2);
       for (int i = 0; i < data_manager->num_contacts; i++) {
          int2 ID = data_manager->host_data.bids_rigid_rigid[i];
@@ -564,9 +587,9 @@ void ChOpenGLViewer::RenderContacts() {
 }
 
 void ChOpenGLViewer::HandleInput(
-      unsigned char key,
-      int x,
-      int y) {
+                                 unsigned char key,
+                                 int x,
+                                 int y) {
 //printf("%f,%f,%f\n", render_camera.camera_position.x, render_camera.camera_position.y, render_camera.camera_position.z);
    switch (key) {
       case 'W':

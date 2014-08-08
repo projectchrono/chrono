@@ -2,29 +2,30 @@
 
 using namespace chrono;
 
-void ChSolverParallel::Setup(ChParallelDataManager *data_container_) {
-  data_container = data_container_;
-  Initialize();
+void ChSolverParallel::Setup(
+      ChParallelDataManager *data_container_) {
+   data_container = data_container_;
+   Initialize();
 
    //APGD specific
    step_shrink = .9;
    step_grow = 2.0;
    init_theta_k = 1.0;
 
-  // Ensure that the size of the data structures is equal to the current number
-  // of rigid bodies. New bodies could have been added in between time steps.
-  data_container->host_data.QXYZ_data.resize(num_bodies);
-  data_container->host_data.QUVW_data.resize(num_bodies);
+   // Ensure that the size of the data structures is equal to the current number
+   // of rigid bodies. New bodies could have been added in between time steps.
+   data_container->host_data.QXYZ_data.resize(num_bodies);
+   data_container->host_data.QUVW_data.resize(num_bodies);
 
 #pragma omp parallel for
-  for (int i = 0; i < num_bodies; i++) {
-    data_container->host_data.QXYZ_data[i] = R3(0);
-    data_container->host_data.QUVW_data[i] = R3(0);
-  }
+   for (int i = 0; i < num_bodies; i++) {
+      data_container->host_data.QXYZ_data[i] = R3(0);
+      data_container->host_data.QUVW_data[i] = R3(0);
+   }
 #pragma omp parallel for
-  for (int i = 0; i < num_constraints; i++) {
-    data_container->host_data.gamma_data[i] = 0;
-  }
+   for (int i = 0; i < num_constraints; i++) {
+      data_container->host_data.gamma_data[i] = 0;
+   }
 }
 
 void ChSolverParallel::Project(
@@ -63,11 +64,31 @@ void ChSolverParallel::shurB(
 
 }
 
+void ChSolverParallel::ComputeSRhs(
+      custom_vector<real>& gamma,
+      const custom_vector<real>& rhs,
+      custom_vector<real3>& vel_data,
+      custom_vector<real3>& omg_data,
+      custom_vector<real>& b) {
+   ComputeImpulses(gamma, vel_data, omg_data);
+   rigid_rigid->ComputeS(rhs, vel_data, omg_data, b);
+
+}
+
 void ChSolverParallel::ComputeImpulses() {
    shurA(data_container->host_data.gamma_data.data());
    data_container->host_data.vel_data += data_container->host_data.QXYZ_data;
    data_container->host_data.omg_data += data_container->host_data.QUVW_data;
 
+}
+
+void ChSolverParallel::ComputeImpulses(
+      custom_vector<real>& gamma,
+      custom_vector<real3>& vel_data,
+      custom_vector<real3>& omg_data) {
+   //shurA(gamma.data());
+   vel_data = data_container->host_data.vel_data + data_container->host_data.QXYZ_data;
+   omg_data = data_container->host_data.omg_data + data_container->host_data.QUVW_data;
 }
 
 void ChSolverParallel::ShurProduct(
@@ -166,17 +187,17 @@ void ChSolverParallel::Solve(
             thrust::copy_n(data_container->host_data.rhs_data.begin() + data_container->num_unilaterals, data_container->num_bilaterals, rhs_bilateral.begin());
 
             for (int i = 0; i < 4; i++) {
-               total_iteration += SolveAPGDRS(max_iteration/8, num_constraints, data_container->host_data.rhs_data, data_container->host_data.gamma_data);
+               total_iteration += SolveAPGDRS(max_iteration / 8, num_constraints, data_container->host_data.rhs_data, data_container->host_data.gamma_data);
 
                thrust::copy_n(data_container->host_data.gamma_data.begin() + data_container->num_unilaterals, data_container->num_bilaterals,
                               data_container->host_data.gamma_bilateral.begin());
 
-               SolveStab(5, num_bilaterals,rhs_bilateral,data_container->host_data.gamma_bilateral);
+               SolveStab(5, num_bilaterals, rhs_bilateral, data_container->host_data.gamma_bilateral);
 
                thrust::copy_n(data_container->host_data.gamma_bilateral.begin(), data_container->num_bilaterals,
                               data_container->host_data.gamma_data.begin() + data_container->num_unilaterals);
 
-               total_iteration += SolveAPGDRS(max_iteration/8, num_constraints, data_container->host_data.rhs_data, data_container->host_data.gamma_data);
+               total_iteration += SolveAPGDRS(max_iteration / 8, num_constraints, data_container->host_data.rhs_data, data_container->host_data.gamma_data);
             }
          } else {
             if (solver_type == ACCELERATED_PROJECTED_GRADIENT_DESCENT) {
@@ -199,7 +220,11 @@ void ChSolverParallel::Solve(
    }
 }
 
-uint ChSolverParallel::SolveStab(const uint max_iter,const uint size,const custom_vector<real> &mb,custom_vector<real> &x) {
+uint ChSolverParallel::SolveStab(
+      const uint max_iter,
+      const uint size,
+      const custom_vector<real> &mb,
+      custom_vector<real> &x) {
    uint N = mb.size();
    //	bool verbose = false;
    //	custom_vector<real> mr(N, 0), ml(N,0), mp(N,0), mz(N,0), mNMr(N,0), mNp(N,0), mMNp(N,0), mtmp(N,0);
@@ -320,7 +345,7 @@ uint ChSolverParallel::SolveStab(const uint max_iter,const uint size,const custo
       residual = norm_rMR / norm_r0;
 
       real maxdeltalambda = CompRes(mb, num_contacts);      //NormInf(ms);
-      AtIterationEnd(residual, maxdeltalambda, iter_hist.size()+current_iteration);
+      AtIterationEnd(residual, maxdeltalambda, iter_hist.size() + current_iteration);
 
       if (residual < tolerance) {
          break;

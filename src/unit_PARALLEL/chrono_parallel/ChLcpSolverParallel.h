@@ -36,6 +36,7 @@ class CH_PARALLEL_API ChLcpSolverParallel : public ChLcpIterativeSolver {
     max_iter_bilateral = 100;
     record_violation_history = true;
     warm_start = false;
+
   }
 
   virtual ~ChLcpSolverParallel() {
@@ -104,6 +105,7 @@ class CH_PARALLEL_API ChLcpSolverParallelDVI : public ChLcpSolverParallel {
     solver_type = ACCELERATED_PROJECTED_GRADIENT_DESCENT;
     do_stab = false;
     collision_inside = false;
+    update_rhs=false;
 
     max_iteration = 1000;
     max_iter_normal = max_iter_sliding = max_iter_spinning = 100;
@@ -141,7 +143,9 @@ class CH_PARALLEL_API ChLcpSolverParallelDVI : public ChLcpSolverParallel {
   void DoCollision(bool do_collision) {
     collision_inside = do_collision;
   }
-
+  void DoUpdateRHS(bool do_update_rhs) {
+    update_rhs = do_update_rhs;
+  }
   ChSolverParallel solver;
 
  private:
@@ -152,6 +156,7 @@ class CH_PARALLEL_API ChLcpSolverParallelDVI : public ChLcpSolverParallel {
   real contact_recovery_speed;
   bool do_stab;
   bool collision_inside;
+  bool update_rhs;
 
   uint max_iteration;
   uint max_iter_normal;

@@ -32,7 +32,6 @@ void Compute_Jacobian_Rolling(
       real3& T2,
       real3& T3);
 
-
 class CH_PARALLEL_API ChConstraintRigidRigid : public ChBaseParallel {
  public:
    ChConstraintRigidRigid() {
@@ -114,7 +113,18 @@ class CH_PARALLEL_API ChConstraintRigidRigid : public ChBaseParallel {
          real3 *ptB,
          real4 *rot,
          real *rhs);
-
+   void host_ComputeS(
+         int2 *ids,
+         real3 *mu,
+         bool2 * active,
+         real3* norm,
+         real3 *vel,
+         real3 *omega,
+         real3 *ptA,
+         real3 *ptB,
+         real4 *rot,
+         const real *rhs,
+         real*b);
    void host_RHS_spinning(
          int2 *ids,
          bool2 * active,
@@ -125,6 +135,11 @@ class CH_PARALLEL_API ChConstraintRigidRigid : public ChBaseParallel {
 
    void ComputeRHS();
    void UpdateRHS();
+   void ComputeS(
+         const custom_vector<real>& rhs,
+         custom_vector<real3>& vel_data,
+         custom_vector<real3>& omg_data,
+         custom_vector<real>& b);
    void host_Jacobians(
          real3 *norm,
          real3 *ptA,

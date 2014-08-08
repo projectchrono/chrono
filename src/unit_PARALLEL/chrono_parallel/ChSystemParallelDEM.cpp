@@ -13,12 +13,12 @@ ChSystemParallelDEM::ChSystemParallelDEM(unsigned int                       max_
 {
   LCP_descriptor = new ChLcpSystemDescriptorParallelDEM();
   LCP_solver_speed = new ChLcpSolverParallelDEM();
-  ((ChLcpSystemDescriptorParallelDEM*) (LCP_descriptor))->data_container = gpu_data_manager;
-  ((ChLcpSolverParallel*) LCP_solver_speed)->data_container = gpu_data_manager;
+  ((ChLcpSystemDescriptorParallelDEM*) (LCP_descriptor))->data_container = data_manager;
+  ((ChLcpSolverParallel*) LCP_solver_speed)->data_container = data_manager;
 
   ((ChCollisionSystemParallel *) collision_system)->SetCollisionEnvelope(0);
 
-  gpu_data_manager->system_timer.AddTimer("ChLcpSolverParallelDEM_ProcessContact");
+  data_manager->system_timer.AddTimer("ChLcpSolverParallelDEM_ProcessContact");
 }
 
 
@@ -28,13 +28,13 @@ void ChSystemParallelDEM::LoadMaterialSurfaceData(ChSharedPtr<ChBody> newbody)
 
   ChSharedPtr<ChMaterialSurfaceDEM>& mat = ((ChBodyDEM*) newbody.get_ptr())->GetMaterialSurfaceDEM();
 
-  gpu_data_manager->host_data.elastic_moduli.push_back(R2(mat->GetYoungModulus(), mat->GetPoissonRatio()));
-  gpu_data_manager->host_data.mu.push_back(mat->GetSfriction());
-  gpu_data_manager->host_data.cohesion_data.push_back(mat->GetCohesion());
+  data_manager->host_data.elastic_moduli.push_back(R2(mat->GetYoungModulus(), mat->GetPoissonRatio()));
+  data_manager->host_data.mu.push_back(mat->GetSfriction());
+  data_manager->host_data.cohesion_data.push_back(mat->GetCohesion());
 
   switch (normal_force_model) {
   case ChContactDEM::HuntCrossley:
-    gpu_data_manager->host_data.alpha.push_back(mat->GetDissipationFactor());
+    data_manager->host_data.alpha.push_back(mat->GetDissipationFactor());
     break;
   }
 
@@ -44,22 +44,22 @@ void ChSystemParallelDEM::LoadMaterialSurfaceData(ChSharedPtr<ChBody> newbody)
 
 void ChSystemParallelDEM::UpdateBodies()
 {
-  real3 *vel_pointer = gpu_data_manager->host_data.vel_data.data();
-  real3 *omg_pointer = gpu_data_manager->host_data.omg_data.data();
-  real3 *pos_pointer = gpu_data_manager->host_data.pos_data.data();
-  real4 *rot_pointer = gpu_data_manager->host_data.rot_data.data();
-  real3 *inr_pointer = gpu_data_manager->host_data.inr_data.data();
-  real3 *frc_pointer = gpu_data_manager->host_data.frc_data.data();
-  real3 *trq_pointer = gpu_data_manager->host_data.trq_data.data();
-  bool *active_pointer = gpu_data_manager->host_data.active_data.data();
-  real *mass_pointer = gpu_data_manager->host_data.mass_data.data();
-  real3 *lim_pointer = gpu_data_manager->host_data.lim_data.data();
+  real3 *vel_pointer = data_manager->host_data.vel_data.data();
+  real3 *omg_pointer = data_manager->host_data.omg_data.data();
+  real3 *pos_pointer = data_manager->host_data.pos_data.data();
+  real4 *rot_pointer = data_manager->host_data.rot_data.data();
+  real3 *inr_pointer = data_manager->host_data.inr_data.data();
+  real3 *frc_pointer = data_manager->host_data.frc_data.data();
+  real3 *trq_pointer = data_manager->host_data.trq_data.data();
+  bool *active_pointer = data_manager->host_data.active_data.data();
+  real *mass_pointer = data_manager->host_data.mass_data.data();
+  real3 *lim_pointer = data_manager->host_data.lim_data.data();
 
-  real2* elastic_moduli = gpu_data_manager->host_data.elastic_moduli.data();
-  real*  mu             = gpu_data_manager->host_data.mu.data();
-  real*  alpha          = gpu_data_manager->host_data.alpha.data();
-  real*  cr             = gpu_data_manager->host_data.cr.data();
-  real*  cohesion       = gpu_data_manager->host_data.cohesion_data.data();
+  real2* elastic_moduli = data_manager->host_data.elastic_moduli.data();
+  real*  mu             = data_manager->host_data.mu.data();
+  real*  alpha          = data_manager->host_data.alpha.data();
+  real*  cr             = data_manager->host_data.cr.data();
+  real*  cohesion       = data_manager->host_data.cohesion_data.data();
 
 #pragma omp parallel for
   for (int i = 0; i < bodylist.size(); i++) {
@@ -123,9 +123,9 @@ void ChSystemParallelDEM::ChangeCollisionSystem(ChCollisionSystem* newcollsystem
 
 void ChSystemParallelDEM::PrintStepStats()
 {
-  double timer_solver_setup = gpu_data_manager->system_timer.GetTime("ChLcpSolverParallel_Setup");
-  double timer_solver_rhs   = gpu_data_manager->system_timer.GetTime("ChLcpSolverParallel_RHS");
-  double timer_solver_stab  = gpu_data_manager->system_timer.GetTime("ChLcpSolverParallel_Stab");
+  double timer_solver_setup = data_manager->system_timer.GetTime("ChLcpSolverParallel_Setup");
+  double timer_solver_rhs   = data_manager->system_timer.GetTime("ChLcpSolverParallel_RHS");
+  double timer_solver_stab  = data_manager->system_timer.GetTime("ChLcpSolverParallel_Stab");
 
   std::cout << std::endl;
   std::cout << "System Information" << std::endl;

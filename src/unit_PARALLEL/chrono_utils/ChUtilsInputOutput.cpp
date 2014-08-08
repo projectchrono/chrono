@@ -181,7 +181,8 @@ void ReadCheckpoint(ChSystem*          system,
 {
   // Infer system type (false: sequential, true: parallel)
   bool sys_par = dynamic_cast<ChSystemParallelDVI*>(system) || dynamic_cast<ChSystemParallelDEM*>(system);
-
+  // Infer collision system type (false: bullet, true: parallel)
+  bool cd_par = dynamic_cast<collision::ChCollisionSystemParallel*>(system->GetCollisionSystem());
   // Open input file stream
   std::ifstream      ifile(filename.c_str());
   std::string        line;
@@ -211,7 +212,7 @@ void ReadCheckpoint(ChSystem*          system,
     // Create a body of the appropriate type, read and apply material properties
     ChBody* body;
     if (btype == 0) {
-      body = sys_par ? new ChBody(new collision::ChCollisionModelParallel) : new ChBody();
+      body = (sys_par && cd_par) ? new ChBody(new collision::ChCollisionModelParallel) : new ChBody();
       ChSharedPtr<ChMaterialSurface>& mat = body->GetMaterialSurface();
       iss2 >> mat->static_friction >> mat->sliding_friction >> mat->rolling_friction >> mat->spinning_friction;
       iss2 >> mat->restitution >> mat->cohesion >> mat->dampingf;

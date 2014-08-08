@@ -39,13 +39,14 @@ class CH_PARALLEL_API ChSolverParallel : public ChBaseParallel {
       collision_inside = false;
       rigid_rigid = NULL;
       bilateral = NULL;
+      update_rhs=false;
    }
 
    // At the beginning of the step reset the size/indexing variables,
    // resize for new contact list and clear temporary accumulation variables
    void Setup(
-     ChParallelDataManager *data_container_  //pointer to data container
-     );
+         ChParallelDataManager *data_container_  //pointer to data container
+         );
 
    // Project the lagrange multipliers (gamma) onto the friction cone.
    void Project(
@@ -63,9 +64,22 @@ class CH_PARALLEL_API ChSolverParallel : public ChBaseParallel {
          real* x,   //Vector that contains M_invDx
          real* out  //N*x
          );
+   // Compute rhs value with relaxation term
+   void ComputeSRhs(
+         custom_vector<real>& gamma,
+         const custom_vector<real>& rhs,
+         custom_vector<real3>& vel_data,
+         custom_vector<real3>& omg_data,
+         custom_vector<real>& b);
 
    // Perform M^-1*D*gamma and increment the linear and rotational velocity vectors
    void ComputeImpulses();
+
+   // Perform M^-1*D*gamma and compute the linear and rotational velocity vectors
+   void ComputeImpulses(
+         custom_vector<real>& gamma,
+         custom_vector<real3>& vel_data,
+         custom_vector<real3>& omg_data);
 
    // Function that performs time integration to get the new positions
    // Used when contacts need to be updated within the solver
@@ -171,7 +185,7 @@ class CH_PARALLEL_API ChSolverParallel : public ChBaseParallel {
    uint SolveAPGDRS(
          const uint max_iter,           // Maximum number of iterations
          const uint size,               // Number of unknowns
-         const custom_vector<real> &b,  // Rhs vector
+         custom_vector<real> &b,        // Rhs vector
          custom_vector<real> &x         // The vector of unknowns
          );
 
@@ -235,8 +249,9 @@ class CH_PARALLEL_API ChSolverParallel : public ChBaseParallel {
    real step_shrink;
    real step_grow;
 
-   bool do_stab;         //There is an alternative velocity stab that can be performed in APGD, this enables that.
+   bool do_stab;           //There is an alternative velocity stab that can be performed in APGD, this enables that.
    bool collision_inside;
+   bool update_rhs;    //Updates the tilting term within the solve
 
    ChConstraintRigidRigid *rigid_rigid;
    ChConstraintBilateral *bilateral;

@@ -42,6 +42,7 @@ void ChLcpSolverParallelDVI::RunTimeStep(
    solver.rigid_rigid = &rigid_rigid;
    solver.bilateral = &bilateral;
    solver.do_stab = do_stab;
+   solver.update_rhs = update_rhs;
    solver.collision_inside = collision_inside;
    solver.Setup(data_container);
    data_container->system_timer.stop("ChLcpSolverParallel_Setup");

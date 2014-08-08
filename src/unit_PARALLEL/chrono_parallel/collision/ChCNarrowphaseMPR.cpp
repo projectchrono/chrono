@@ -747,7 +747,7 @@ void ChCNarrowphaseMPR::function_MPR_Store(
 
    if (A_T != TRIANGLEMESH) {
       A_X = quatRotate(A_X, rotA) + posA;
-   } else  {
+   } else {
       envelope = 0;
       A_X = quatRotate(A_X, rotA) + posA;
       A_Y = quatRotate(A_Y, rotA) + posA;
@@ -756,7 +756,7 @@ void ChCNarrowphaseMPR::function_MPR_Store(
 
    if (B_T != TRIANGLEMESH) {
       B_X = quatRotate(B_X, rotB) + posB;
-   } else  {
+   } else {
       envelope = 0;
       B_X = quatRotate(B_X, rotB) + posB;
       B_Y = quatRotate(B_Y, rotB) + posB;
@@ -774,17 +774,19 @@ void ChCNarrowphaseMPR::function_MPR_Store(
       if (!CollideAndFindPoint(A_T, A_X, A_Y, A_Z, A_R, B_T, B_X, B_Y, B_Z, B_R, N, p0, depth)) {
          return;
       }
+//      A_Y -= envelope;
+//      B_Y -= envelope;
       GetPoints(A_T, A_X, A_Y, A_Z, A_R, B_T, B_X, B_Y, B_Z, B_R, N, p0, p1, p2);
    }
    //if(depth>0){swap(p1,p2); depth = -depth;}
    //cout << N << p0 << p1 << p2 << depth << endl;
-   p1 = p1 - (N) * envelope;
-   p2 = p2 + (N) * envelope;
-
+   //p1 = p1 - (N) * envelope;
+   // p2 = p2 + (N) * envelope;
+   //cout << depth << endl;
    depth = dot(N, p2 - p1);
-   if (depth > envelope) {
-      return;
-   }
+//   if (depth > envelope) {
+//      return;
+//   }
 
    norm[index] = N;
    ptA[index] = p1 - posA;
