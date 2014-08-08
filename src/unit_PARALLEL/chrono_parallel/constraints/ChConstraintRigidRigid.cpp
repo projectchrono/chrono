@@ -596,7 +596,7 @@ void ChConstraintRigidRigid::host_shurA_sliding(
 #pragma omp parallel for
 #endif
    for (int index = 0; index < num_contacts; index++) {
-#ifndef REAL_DOUBLE
+#ifndef DISABLE_SSE
       real3 gam(_mm_loadu_ps(&gamma[_index_]));
 #else
       real3 gam(gamma[_index_+0], gamma[_index_+1], gamma[_index_+2]);
@@ -631,7 +631,7 @@ void ChConstraintRigidRigid::host_shurA_spinning(
       real3 * updateO) {
 #pragma omp parallel for
    for (int index = 0; index < num_contacts; index++) {
-#ifndef REAL_DOUBLE
+#ifndef DISABLE_SSE
       real3 gam(_mm_loadu_ps(&gamma[_index_]));
 #else
       real3 gam(gamma[_index_+0], gamma[_index_+1], gamma[_index_+2]);
@@ -755,7 +755,7 @@ void ChConstraintRigidRigid::host_shurB_sliding(
       }
 
       real4 comp = compliance[index];
-#ifndef REAL_DOUBLE
+#ifndef DISABLE_SSE
       real3 gam(_mm_loadu_ps(&gamma[_index_]));
 #else
       real3 gam(gamma[_index_+0], gamma[_index_+1], gamma[_index_+2]);
