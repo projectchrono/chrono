@@ -51,7 +51,7 @@ ChShaft::ChShaft ()
 	this->fixed = false;
 	this->limitspeed = false;
 
-	SetIdentifier(CHGLOBALS().GetUniqueIntID()); // mark with unique ID
+	SetIdentifier(GetUniqueIntID()); // mark with unique ID
 
 	max_speed = 10.f;
 

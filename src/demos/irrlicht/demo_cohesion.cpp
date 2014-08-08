@@ -30,7 +30,6 @@
  
    
  
-#include "physics/ChApidll.h" 
 #include "physics/ChSystem.h"
 #include "physics/ChBodyEasy.h"
 #include "assets/ChTexture.h"
@@ -170,7 +169,7 @@ void create_some_falling_items(ChSystem& mphysicalSystem)
 				
 		// optional, attach a texture for better visualization
 		ChSharedPtr<ChTexture> mtexture(new ChTexture());
-		mtexture->SetTextureFilename("../data/rock.jpg");
+    mtexture->SetTextureFilename(GetChronoDataFile("rock.jpg"));
 		mrigidBody->AddAsset(mtexture);
 
 	} 
@@ -236,7 +235,7 @@ void create_some_falling_items(ChSystem& mphysicalSystem)
 
 	// optional, attach  textures for better visualization
 	ChSharedPtr<ChTexture> mtexturewall(new ChTexture());
-	mtexturewall->SetTextureFilename("../data/concrete.jpg"); 
+  mtexturewall->SetTextureFilename(GetChronoDataFile("concrete.jpg"));
 	wallBody1->AddAsset(mtexturewall); // note: most assets can be shared
 	wallBody2->AddAsset(mtexturewall);
 	wallBody3->AddAsset(mtexturewall);
@@ -273,11 +272,6 @@ void create_some_falling_items(ChSystem& mphysicalSystem)
  
 int main(int argc, char* argv[])
 {
-
-	// In CHRONO engine, The DLL_CreateGlobals() - DLL_DeleteGlobals(); pair is needed if
-	// global functions are needed. 
-	DLL_CreateGlobals();
-
 	// Create a ChronoENGINE physical system
 	ChSystem mphysicalSystem;
 
@@ -378,11 +372,6 @@ int main(int argc, char* argv[])
 		application.GetVideoDriver()->endScene();  
 	}
 	
- 
- 
-	// Remember this at the end of the program, if you started
-	// with DLL_CreateGlobals();
-	DLL_DeleteGlobals();
 
 	return 0;
 }

@@ -1,7 +1,6 @@
 #include "unit_POSTPROCESS/ChMitsubaRender.h"
 #include "physics/ChSystem.h"
 #include "assets/ChSphereShape.h"
-#include "physics/ChApidll.h"
 #include "physics/ChSystem.h"
 #include "lcp/ChLcpIterativeMINRES.h"
 #include "core/ChRealtimeStep.h"
@@ -11,6 +10,7 @@
 #include "collision/ChCCollisionSystemBullet.h"
 #include "physics/ChContactContainer.h"
 using namespace chrono;
+using namespace chrono::collision;
 using namespace postprocess;
 using namespace geometry;
 using namespace std;
@@ -44,16 +44,15 @@ void InitObject_(ChSharedPtr<CHBODY> &body, double mass, ChVector<> pos, ChQuate
 }
 
 void AddCollisionGeometry_(ChSharedPtr<CHBODY> &body, int type, ChVector<> dim, ChVector<> lPos, ChQuaternion<> lRot) {
-	ChMatrix33<> *rotation = new ChMatrix33<>(lRot);
 	CHMODEL * model = (CHMODEL*) body->GetCollisionModel();
 	if (type == SPHERE) {
-		model->AddSphere(dim.x, &lPos);
+		model->AddSphere(dim.x, lPos);
 	} else if (type == ELLIPSOID) {
-		model->AddEllipsoid(dim.x, dim.y, dim.z, &lPos, rotation);
+		model->AddEllipsoid(dim.x, dim.y, dim.z, lPos, lRot);
 	} else if (type == BOX) {
-		model->AddBox(dim.x, dim.y, dim.z, &lPos, rotation);
+		model->AddBox(dim.x, dim.y, dim.z, lPos, lRot);
 	} else if (type == CYLINDER) {
-		model->AddCylinder(dim.x, dim.y, dim.z, &lPos, rotation);
+		model->AddCylinder(dim.x, dim.y, dim.z, lPos, lRot);
 	}
 }
 void FinalizeObject_(ChSharedPtr<CHBODY> newbody, CHSYS * mSystem) {
@@ -92,7 +91,7 @@ int main() {
 		InitObject_(sphere, 1.0, ChVector<>((rand() % 10000 / 1000.0 - 5) * 2, (rand() % 10000 / 1000.0 - 5) * 2, (rand() % 10000 / 1000.0 - 5) * 2), quat, 0, 0, 0, true, false, -1, i);
 		AddCollisionGeometry_(sphere, SPHERE, ChVector<>(.06, .06, .06), lpos, quat);
 		FinalizeObject_(sphere, mSys);
-		ChSharedPtr<ChSphereShape> sphere_shape = ChSharedPtr<ChAsset>(new ChSphereShape);
+		ChSharedPtr<ChSphereShape> sphere_shape(new ChSphereShape);
 		sphere_shape->SetColor(ChColor(1, 0, 0));
 		sphere_shape->GetSphereGeometry().rad = .06;
 

@@ -3,7 +3,6 @@
 #pragma unmanaged
 
 #include <irrlicht.h>
-#include "physics/ChApidll.h" 
 #include "physics/ChSystem.h"
 #include "physics/ChLinkSpring.h"
 #include "unit_IRRLICHT/ChBodySceneNode.h"

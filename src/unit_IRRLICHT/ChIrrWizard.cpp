@@ -17,16 +17,12 @@
 namespace irr {
 
 
-void ChIrrWizard::add_typical_Logo(IrrlichtDevice*  device,
-                                   const char*      mtexturedir,
-                                   const char*      mlogofilename)
+void ChIrrWizard::add_typical_Logo(IrrlichtDevice*    device,
+                                   const std::string& mlogofilename)
 {
-  core::stringc str_logo = mtexturedir;
-  str_logo += mlogofilename;
-
   device->getGUIEnvironment()->addImage(
-    device->getVideoDriver()->getTexture( str_logo.c_str() ),
-    core::position2d<s32>(10,10));
+    device->getVideoDriver()->getTexture(mlogofilename.c_str()),
+    core::position2d<s32>(10, 10));
 }
 
 
@@ -49,19 +45,16 @@ void ChIrrWizard::add_typical_Lights(IrrlichtDevice* device,
 }
 
 
-void ChIrrWizard::add_typical_Sky(IrrlichtDevice* device,
-                                  const char*     mtexturedir)
+void ChIrrWizard::add_typical_Sky(IrrlichtDevice*    device,
+                                  const std::string& mtexturedir)
 {
   // create sky box
-  core::stringc str_lf = mtexturedir;
-  str_lf +="sky_lf.jpg";
-  core::stringc str_up = mtexturedir;
-  str_up +="sky_up.jpg";
-  core::stringc str_dn = mtexturedir;
-  str_dn +="sky_dn.jpg";
+  std::string str_lf = mtexturedir + "sky_lf.jpg";
+  std::string str_up = mtexturedir + "sky_up.jpg";
+  std::string str_dn = mtexturedir + "sky_dn.jpg";
 
   video::ITexture* map_skybox_side = 
-    device->getVideoDriver()->getTexture(str_lf.c_str() );
+    device->getVideoDriver()->getTexture(str_lf.c_str());
 
   device->getSceneManager()->addSkyBoxSceneNode(
     device->getVideoDriver()->getTexture(str_up.c_str()),

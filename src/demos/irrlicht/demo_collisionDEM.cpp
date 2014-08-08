@@ -22,7 +22,6 @@
 ///////////////////////////////////////////////////
 
 
-#include "physics/ChApidll.h" 
 #include "physics/ChSystemDEM.h"
 #include "physics/ChBodyDEM.h"
 #include "physics/ChContactContainerDEM.h"
@@ -184,10 +183,6 @@ int main(int argc, char* argv[])
 	double time_step = 1e-5;
 	double out_step = 0.02;
 
-	// In CHRONO engine, The DLL_CreateGlobals() - DLL_DeleteGlobals(); pair is needed if
-	// global functions are needed. 
-	ChGlobals* GLOBAL_Vars = DLL_CreateGlobals();
-
 	// Create a ChronoENGINE physical system
 	ChSystemDEM mphysicalSystem;
 	mphysicalSystem.Set_G_acc(0.38*mphysicalSystem.Get_G_acc());
@@ -232,8 +227,6 @@ int main(int argc, char* argv[])
 		application.EndScene();
 	}
 
-
-	DLL_DeleteGlobals();
 
 	return 0;
 }

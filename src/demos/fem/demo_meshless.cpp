@@ -30,7 +30,6 @@
  
    
  
-#include "physics/ChApidll.h" 
 #include "physics/ChSystem.h"
 #include "physics/ChContactContainerNodes.h"
 #include "unit_FEM/ChMatterMeshless.h"
@@ -64,12 +63,6 @@ using namespace gui;
  
 int main(int argc, char* argv[])
 {
-
-	// In CHRONO engine, The DLL_CreateGlobals() - DLL_DeleteGlobals(); pair is needed if
-	// global functions are needed. 
-	DLL_CreateGlobals();
-
-
 	// Create a ChronoENGINE physical system
 	ChSystem mphysicalSystem;
 
@@ -96,7 +89,7 @@ int main(int argc, char* argv[])
 											ChVector<>(20,1,20) );
 	mfloorBody->GetBody()->SetBodyFixed(true);
 
-	video::ITexture* cubeMap = application.GetVideoDriver()->getTexture("../data/concrete.jpg");
+	video::ITexture* cubeMap = application.GetVideoDriver()->getTexture(GetChronoDataFile("concrete.jpg").c_str());
 	mfloorBody->setMaterialTexture(0,	cubeMap);
 
 
@@ -256,11 +249,6 @@ int main(int argc, char* argv[])
 	}
 	
  
- 
-	// Remember this at the end of the program, if you started
-	// with DLL_CreateGlobals();
-	DLL_DeleteGlobals();
-
 	return 0;
 }
   

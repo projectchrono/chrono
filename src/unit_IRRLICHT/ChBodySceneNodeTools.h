@@ -34,13 +34,6 @@ namespace irr {
 namespace scene {
 
 
-/// Set the directory where the cube, cylinder, etc. primitives are stored as
-/// .obj  files (by default, it is "../data/"). Must be set _before_ creating
-/// the ChIrrApp or the ChIrrAssetConverter.
-ChApiIrr
-void SetDefaultObjectDir(const std::string& mdir);
-
-
 /// Easy-to-use function which creates a ChBodySceneNode with given position of
 /// COG, inserts it into the Irrlicht scene etc.
 ChApiIrr

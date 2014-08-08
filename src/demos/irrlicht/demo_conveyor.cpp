@@ -27,7 +27,6 @@
  
    
  
-#include "physics/ChApidll.h" 
 #include "physics/ChSystem.h"
 #include "physics/ChBodyEasy.h"
 #include "physics/ChConveyor.h"
@@ -153,8 +152,8 @@ void create_debris(ChIrrApp& application, double dt, double particles_second)
 	double remaind = exact_particles_dt - particles_dt;
 	if (remaind > ChRandom()) particles_dt +=1;
 
-	video::ITexture* bluwhiteMap = application.GetVideoDriver()->getTexture("../data/bluwhite.png");
-	video::ITexture* pinkwhiteMap = application.GetVideoDriver()->getTexture("../data/pinkwhite.png");
+  video::ITexture* bluwhiteMap = application.GetVideoDriver()->getTexture(GetChronoDataFile("bluwhite.png").c_str());
+  video::ITexture* pinkwhiteMap = application.GetVideoDriver()->getTexture(GetChronoDataFile("pinkwhite.png").c_str());
 
 	for (int i = 0; i < particles_dt; i++)
 	{
@@ -170,7 +169,7 @@ void create_debris(ChIrrApp& application, double dt, double particles_second)
 			mrigidBody->SetPos( ChVector<>(-0.5*xnozzlesize+ChRandom()*xnozzlesize, ynozzle+i*0.005, -0.5*znozzlesize+ChRandom()*znozzlesize) );
 			mrigidBody->SetFriction(0.2f);
 			mrigidBody->SetImpactC(0.8f); 
-			mrigidBody->AddAsset( ChSharedPtr<ChTexture>(new ChTexture("../data/bluwhite.png")) );
+      mrigidBody->AddAsset(ChSharedPtr<ChTexture>(new ChTexture(GetChronoDataFile("bluwhite.png"))));
 
 			application.GetSystem()->Add(mrigidBody);
 
@@ -197,7 +196,7 @@ void create_debris(ChIrrApp& application, double dt, double particles_second)
 											true));		// visualization?
 			mrigidBody->SetPos( ChVector<>(-0.5*xnozzlesize+ChRandom()*xnozzlesize, ynozzle+i*0.005, -0.5*znozzlesize+ChRandom()*znozzlesize) );
 			mrigidBody->SetFriction(0.4f);
-			mrigidBody->AddAsset( ChSharedPtr<ChTexture>(new ChTexture("../data/cubetexture_bluwhite.png")) );
+      mrigidBody->AddAsset(ChSharedPtr<ChTexture>(new ChTexture(GetChronoDataFile("cubetexture_bluwhite.png"))));
 
 			application.GetSystem()->Add(mrigidBody);
 
@@ -217,7 +216,7 @@ void create_debris(ChIrrApp& application, double dt, double particles_second)
 											true));		// visualization?
 			mrigidBody->SetPos( ChVector<>(-0.5*xnozzlesize+ChRandom()*xnozzlesize, ynozzle+i*0.005, -0.5*znozzlesize+ChRandom()*znozzlesize) );
 			mrigidBody->SetFriction(0.2f);
-			mrigidBody->AddAsset( ChSharedPtr<ChTexture>(new ChTexture("../data/pinkwhite.png")) );
+      mrigidBody->AddAsset(ChSharedPtr<ChTexture>(new ChTexture(GetChronoDataFile("pinkwhite.png"))));
 
 			application.GetSystem()->Add(mrigidBody);
 
@@ -248,11 +247,6 @@ void purge_debris(ChIrrAppInterface& application, int nmaxparticles = 100)
  
 int main(int argc, char* argv[])
 {
-
-	// In CHRONO engine, The DLL_CreateGlobals() - DLL_DeleteGlobals(); pair is needed if
-	// global functions are needed. 
-	DLL_CreateGlobals();
-
 	// Create a ChronoENGINE physical system
 	ChSystem mphysicalSystem;
 
@@ -347,11 +341,6 @@ int main(int argc, char* argv[])
 		
 	}
 	
-
- 
-	// Remember this at the end of the program, if you started
-	// with DLL_CreateGlobals();
-	DLL_DeleteGlobals();
 
 	return 0;
 }

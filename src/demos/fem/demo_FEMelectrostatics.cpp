@@ -18,7 +18,6 @@
      
 // Include some headers used by this tutorial...
 
-#include "physics/ChApidll.h" 
 #include "physics/ChSystem.h"
 #include "lcp/ChLcpIterativeMINRES.h"
 #include "unit_FEM/ChElementSpring.h"
@@ -47,10 +46,6 @@ using namespace irr;
 
 int main(int argc, char* argv[])
 {
-	// In CHRONO engine, The DLL_CreateGlobals() - DLL_DeleteGlobals(); pair is needed if
-	// global functions are needed. 
-	DLL_CreateGlobals();
-
 	// Create a Chrono::Engine physical system
 	ChSystem my_system;
 
@@ -89,7 +84,7 @@ int main(int argc, char* argv[])
 
 	try 
 	{
-		my_mesh->LoadFromAbaqusFile("../data/unit_FEM/electrostatics.INP", mmaterial, node_sets);
+		my_mesh->LoadFromAbaqusFile(GetChronoDataFile("unit_FEM/electrostatics.INP").c_str(), mmaterial, node_sets);
 	}
 	catch (ChException myerr) {
 			GetLog() << myerr.what();
@@ -230,10 +225,6 @@ my_system.SetParallelThreadNumber(1);
 			}
 		}
 	}
-
-	// Remember this at the end of the program, if you started
-	// with DLL_CreateGlobals();
-	DLL_DeleteGlobals();
 
 	return 0;
 }

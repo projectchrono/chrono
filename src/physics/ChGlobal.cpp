@@ -9,93 +9,81 @@
 // and at http://projectchrono.org/license-chrono.txt.
 //
 
-///////////////////////////////////////////////////
-//  
-//   ChGlobal.cpp
-//
-// ------------------------------------------------
-//             www.deltaknowledge.com
-// ------------------------------------------------
-///////////////////////////////////////////////////
 
-  
-#include <string.h> 
-#include <time.h>
+#include <string.h>
 
 #include "physics/ChGlobal.h" 
-#include "physics/ChBody.h" 
-#include "physics/ChSystem.h" 
- 
- 
-namespace chrono 
+
+#if defined(_WIN32) || defined(_WIN64)
+#include "Windows.h"
+#endif
+
+#if defined(__APPLE__)
+#include <libkern/OSAtomic.h>
+#endif
+
+
+namespace chrono
 {
 
-//
-//
-// The global functions
-//
+// -----------------------------------------------------------------------------
+// Functions for assigning unique identifiers
+// -----------------------------------------------------------------------------
 
- 
+// Set the start value for the sequence of IDs (ATTENTION: not thread safe)
+// Subsequent calls to GetUniqueIntID() will return val+1, val+2, etc.
+static volatile int first_id = 100000;
 
-
-
-// The class members
-
-  
-ChGlobals::ChGlobals()
+void SetFirstIntID(int val)
 {
-	WriteComments = 1;
-	WriteAllFeatures = 0;
+  first_id = val;
+}
 
-	t_duration = 0;
+// Obtain a unique identifier (thread-safe)
+int GetUniqueIntID()
+{
+#if defined(_WIN32) || defined(_WIN64)
+  volatile static long id = first_id;
+  return (int)InterlockedIncrement(&id);
+#endif
 
-	SkipNframesOutput = 0; 
+#if defined(__APPLE__)
+  static volatile int32_t id = first_id;
+  return (int)OSAtomicIncrement32Barrier(&id);
+#endif
 
-
-	time_t ltime;		// setup a safe unique first ID
-	struct tm *nt;
-	time (&ltime);
-	nt = localtime(&ltime);
-	int_identifier = (int)(3600*nt->tm_hour + 60*nt->tm_min + nt->tm_sec);
-
+#if defined(__GNUC__)
+  static volatile int id = first_id;
+  return __sync_add_and_fetch(&id, 1);
+#endif
 }
 
 
+// -----------------------------------------------------------------------------
+// Functions for manipulating the Chrono data directory
+// -----------------------------------------------------------------------------
 
-ChGlobals::~ChGlobals() 
+static std::string chrono_data_path("../data/");
+
+// Set the path to the Chrono data directory (ATTENTION: not thread safe)
+void SetChronoDataPath(const std::string& path)
 {
-	
-};
-
-
-
-//
-// The pointer to the global 'ChGlobals'
-//
-
-static ChGlobals*  GlobalGlobals = 0 ;
-
-ChGlobals& CHGLOBALS()
-{
-	if ( GlobalGlobals != NULL )
-        return (*GlobalGlobals);
-	else
-	{
-		static ChGlobals static_globals;
-		return static_globals;
-	}
+  chrono_data_path = path;
 }
 
-void SetCHGLOBALS(ChGlobals* my_globals)
+// Obtain the current path to the Chrono data directory (thread safe)
+const std::string& GetChronoDataPath()
 {
-	GlobalGlobals = my_globals;
+  return chrono_data_path;
 }
 
-
+// Obtain the complete path to the specified filename, given relative to the
+// Chrono data directory (thread safe)
+std::string GetChronoDataFile(const std::string& filename)
+{
+  return chrono_data_path + filename;
+}
 
 
 } // END_OF_NAMESPACE____
 
-
-
-// End

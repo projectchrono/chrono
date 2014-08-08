@@ -32,7 +32,6 @@
     
   
  
-#include "physics/ChApidll.h" 
 #include "physics/ChSystem.h"
 #include "physics/ChBodyEasy.h"
 #include "physics/ChMaterialSurface.h"
@@ -88,7 +87,7 @@ void create_wall_bodies(ChSystem& mphysicalSystem)
 				
 				// optional, attach a texture for better visualization
 				ChSharedPtr<ChTexture> mtexture(new ChTexture());
-				mtexture->SetTextureFilename("../data/cubetexture_borders.png");
+				mtexture->SetTextureFilename(GetChronoDataFile("cubetexture_borders.png"));
 				mrigidBody->AddAsset(mtexture);
 			}
 		}
@@ -129,7 +128,7 @@ void create_wall_bodies(ChSystem& mphysicalSystem)
 
 	// optional, attach a texture for better visualization
 	ChSharedPtr<ChTexture> mtextureball(new ChTexture());
-	mtextureball->SetTextureFilename("../data/bluwhite.png");
+	mtextureball->SetTextureFilename(GetChronoDataFile("bluwhite.png"));
 	mrigidBall->AddAsset(mtextureball);
 
 
@@ -225,7 +224,7 @@ void create_jengatower_bodies(ChSystem& mphysicalSystem)
 
 	// optional, attach a texture for better visualization
 	ChSharedPtr<ChTexture> mtextureball(new ChTexture());
-	mtextureball->SetTextureFilename("../data/bluwhite.png");
+  mtextureball->SetTextureFilename(GetChronoDataFile("bluwhite.png"));
 	mrigidBall->AddAsset(mtextureball);
 
 
@@ -236,11 +235,6 @@ void create_jengatower_bodies(ChSystem& mphysicalSystem)
  
 int main(int argc, char* argv[])
 { 
-
-	// In CHRONO engine, The DLL_CreateGlobals() - DLL_DeleteGlobals(); pair is needed if
-	// global functions are needed.
-	DLL_CreateGlobals();
-
 	// Create a ChronoENGINE physical system
 	ChSystem mphysicalSystem; 
 
@@ -309,10 +303,6 @@ int main(int argc, char* argv[])
 		application.GetVideoDriver()->endScene();  
 	}
 	 
-
- 	// Remember this at the end of the program, if you started
-	// with DLL_CreateGlobals();
-	DLL_DeleteGlobals();
 
 	return 0;
 }

@@ -18,7 +18,6 @@
      
 // Include some headers used by this tutorial...
 
-#include "physics/ChApidll.h" 
 #include "physics/ChSystem.h"
 #include "lcp/ChLcpIterativeMINRES.h"
 #include "unit_FEM/ChElementSpring.h"
@@ -653,20 +652,10 @@ void test_5()
 
 int main(int argc, char* argv[])
 {
-	// In CHRONO engine, The DLL_CreateGlobals() - DLL_DeleteGlobals(); pair is needed if
-	// global functions are needed. 
-	DLL_CreateGlobals();
-
 	GetLog() << " Example: the FEM techology for finite elements \n\n\n";
-
 
 	// Test: an introductory problem:
 	test_4();
-
-
-	// Remember this at the end of the program, if you started
-	// with DLL_CreateGlobals();
-	DLL_DeleteGlobals();
 
 	system("pause");
 	return 0;

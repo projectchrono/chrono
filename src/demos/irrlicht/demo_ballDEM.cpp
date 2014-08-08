@@ -22,7 +22,6 @@
 ///////////////////////////////////////////////////
 
 
-#include "physics/ChApidll.h" 
 #include "physics/ChSystemDEM.h"
 #include "physics/ChBodyDEM.h"
 #include "physics/ChContactContainerDEM.h"
@@ -85,9 +84,6 @@ int main(int argc, char* argv[])
 	double height = 1;
 	double thickness = 0.1;
 
-	// Initialize globals
-	ChGlobals* GLOBAL_Vars = DLL_CreateGlobals();
-
 	// Create the system
 	ChSystemDEM msystem;
 
@@ -132,7 +128,7 @@ int main(int argc, char* argv[])
 	ball->AddAsset(sphere);
 
 	ChSharedPtr<ChTexture> mtexture(new ChTexture);
-	mtexture->SetTextureFilename("../data/bluwhite.png");
+	mtexture->SetTextureFilename(GetChronoDataFile("bluwhite.png"));
 	ball->AddAsset(mtexture);
 
 	msystem.AddBody(ball);
@@ -185,9 +181,6 @@ int main(int argc, char* argv[])
 
 		application.EndScene();
 	}
-
-
-	DLL_DeleteGlobals();
 
 	return 0;
 }

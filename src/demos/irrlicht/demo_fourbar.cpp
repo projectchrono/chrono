@@ -30,7 +30,6 @@
 
  
  
-#include "physics/ChApidll.h" 
 #include "physics/ChSystem.h"
 #include "unit_IRRLICHT/ChBodySceneNode.h"
 #include "unit_IRRLICHT/ChBodySceneNodeTools.h" 
@@ -120,11 +119,6 @@ private:
  
 int main(int argc, char* argv[])
 {
-
-	// In CHRONO engine, The DLL_CreateGlobals() - DLL_DeleteGlobals(); pair is needed if
-	// global functions are needed.
-	DLL_CreateGlobals();
-
 	// Create the IRRLICHT context (device, etc.)
 	IrrlichtDevice* device = createDevice(video::EDT_DIRECT3D9, core::dimension2d<u32>(800, 600));
 	if (device == 0)
@@ -318,10 +312,6 @@ int main(int argc, char* argv[])
 	// This safely delete every Irrlicht item..
 	device->getVideoDriver()->drop();
 
-
-	// Remember this at the end of the program, if you started
-	// with DLL_CreateGlobals();
-	DLL_DeleteGlobals();
 
 	return 0;
 }

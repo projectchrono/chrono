@@ -4,7 +4,6 @@
 #include <sstream>
 
 #include <cutil_inline.h>
-#include "physics/ChApidll.h"
 #include "physics/ChSystem.h"
 #include "physics/ChContactContainer.h"
 #include "lcp/ChLcpIterativeSOR.h"

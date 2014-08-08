@@ -11,7 +11,6 @@
 ///////////////////////////////////////////////////
  
    
-#include "physics/ChApidll.h" 
 #include "physics/ChSystem.h"
 #include "unit_IRRLICHT/ChBodySceneNode.h"
 #include "unit_IRRLICHT/ChBodySceneNodeTools.h" 
@@ -134,8 +133,8 @@ public:
 			this->simTime_lastPcreated = msys->GetChTime();
 
 			 // generate some dirt in the bin
-			video::ITexture* cubeMap = mdriver->getTexture("../data/concrete.jpg");	// spheres
-			video::ITexture* rockMap = mdriver->getTexture("../data/rock.jpg");		// boxes
+      video::ITexture* cubeMap = mdriver->getTexture(GetChronoDataFile("concrete.jpg").c_str());	// spheres
+      video::ITexture* rockMap = mdriver->getTexture(GetChronoDataFile("rock.jpg").c_str());		// boxes
 
 			// I should really check these
 			ChCollisionModel::SetDefaultSuggestedEnvelope(0.003);
@@ -288,7 +287,7 @@ public:
 		ChCollisionModel::SetDefaultSuggestedMargin  (0.004);
 
 		// the mesh for the visualization (independent from the collision shape)
-		IAnimatedMesh*	tireMesh = mapplication.GetSceneManager()->getMesh("../data/tractor_wheel.obj");
+    IAnimatedMesh*	tireMesh = mapplication.GetSceneManager()->getMesh(GetChronoDataFile("tractor_wheel.obj").c_str());
 
 		wheel = (ChBodySceneNode*)addChBodySceneNode(
 										mapplication.GetSystem(), mapplication.GetSceneManager(),
@@ -308,8 +307,8 @@ public:
 		for (double mangle = 0; mangle < 360.; mangle+= (360./15.))
 		{
 			ChQuaternion<>myrot;
-			ChStreamInAsciiFile myknobs("../data/tractor_wheel_knobs.chulls");
-			ChStreamInAsciiFile myslice("../data/tractor_wheel_slice.chulls");
+      ChStreamInAsciiFile myknobs(GetChronoDataFile("tractor_wheel_knobs.chulls").c_str());
+      ChStreamInAsciiFile myslice(GetChronoDataFile("tractor_wheel_slice.chulls").c_str());
 			myrot.Q_from_AngAxis(mangle*(CH_C_PI/180.),VECT_X);
 			ChMatrix33<> mm(myrot);
 			wheel->GetBody()->GetCollisionModel()->AddConvexHullsFromFile(myknobs, ChVector<>(0,0,0), mm);
@@ -348,7 +347,7 @@ public:
 		// wheel->GetBody()->SetInertiaXX(inertia);
 		wheel->GetBody()->SetFriction(0.4);
 		wheel->GetBody()->SetCollide(true);
-		video::ITexture* cylinderMap = mapp.GetVideoDriver()->getTexture("../data/rubber.jpg");
+    video::ITexture* cylinderMap = mapp.GetVideoDriver()->getTexture(GetChronoDataFile("rubber.jpg").c_str());
 		wheel->setMaterialTexture(0, cylinderMap);
 	}
 
@@ -397,8 +396,8 @@ public:
 		double springK = 25000, double springD=100)
 	{
 		// create the soil bin, some particles, and the testing Mechanism
-		video::ITexture* cubeMap = mapp.GetVideoDriver()->getTexture("../data/concrete.jpg");
-		video::ITexture* rockMap = mapp.GetVideoDriver()->getTexture("../data/rock.jpg");
+		video::ITexture* cubeMap = mapp.GetVideoDriver()->getTexture(GetChronoDataFile("concrete.jpg").c_str());
+		video::ITexture* rockMap = mapp.GetVideoDriver()->getTexture(GetChronoDataFile("rock.jpg").c_str());
 
 		ChCollisionModel::SetDefaultSuggestedEnvelope(0.003);
 		ChCollisionModel::SetDefaultSuggestedMargin  (0.002);
@@ -440,8 +439,8 @@ public:
 		wall2->setVisible(false);	// this wall will be transparent
 
 		// grab a few more textures to differentiate the walls
-		video::ITexture* wall3tex = mapp.GetVideoDriver()->getTexture("../data/bluwhite.png");
-		video::ITexture* wall4tex = mapp.GetVideoDriver()->getTexture("../data/logo_chronoengine_alpha.png");
+		video::ITexture* wall3tex = mapp.GetVideoDriver()->getTexture(GetChronoDataFile("bluwhite.png").c_str());
+		video::ITexture* wall4tex = mapp.GetVideoDriver()->getTexture(GetChronoDataFile("logo_chronoengine_alpha.png").c_str());
 		// wall 3
 		wall3 = (ChBodySceneNode*)addChBodySceneNode_easyBox(
 			mapp.GetSystem(), mapp.GetSceneManager(), 
@@ -464,7 +463,7 @@ public:
 		// make a truss, connect it to the wheel via revolute joint
 		// single rotational DOF will be driven with a user-input for torque
 		// *****
-		video::ITexture* bluMap = mapp.GetVideoDriver()->getTexture("../data/blu.png");
+    video::ITexture* bluMap = mapp.GetVideoDriver()->getTexture(GetChronoDataFile("blu.png").c_str());
 		ChVector<> trussCM = wheelBody->GetBody()->GetPos();
 		truss = (ChBodySceneNode*)addChBodySceneNode_easyBox(mapp.GetSystem(), mapp.GetSceneManager(),
 			5.0, trussCM, QUNIT, ChVector<>(0.2,0.2,0.4));
@@ -1102,13 +1101,10 @@ private:
 	gui::IGUIStaticText* text_pRad;
 	gui::IGUIStaticText* text_pMass;
 };
+
+
 int main(int argc, char* argv[])
 {
-
-	// In CHRONO engine, The DLL_CreateGlobals() - DLL_DeleteGlobals(); pair is needed if
-	// global functions are needed. 
-	DLL_CreateGlobals();
-
 	// Create a ChronoENGINE physical system
 	ChSystem mphysicalSystem;
 
@@ -1209,10 +1205,6 @@ int main(int argc, char* argv[])
 		application.GetVideoDriver()->endScene();  
 	}
 	
- 
-	// Remember this at the end of the program, if you started
-	// with DLL_CreateGlobals();
-	DLL_DeleteGlobals();
 
 	return 0;
 }

@@ -27,7 +27,6 @@
 ///////////////////////////////////////////////////
  
  
-#include "physics/ChApidll.h" 
 #include "physics/ChParticlesClones.h" 
 #include "assets/ChBoxShape.h" 
 #include "assets/ChSphereShape.h" 
@@ -51,10 +50,6 @@ using namespace postprocess; // <- to keep things shorter
  
 int main(int argc, char* argv[])
 {
-	// In CHRONO engine, The DLL_CreateGlobals() - DLL_DeleteGlobals(); pair is needed if
-	// global functions are needed. 
-	DLL_CreateGlobals();
-
 	// Create a Chrono::Engine physical system
 	ChSystem mphysicalSystem;
 
@@ -145,13 +140,13 @@ int main(int argc, char* argv[])
 				// ==Asset== Attach, in this level, a 'Wavefront mesh' asset, 
 				// referencing a .obj file:
 	ChSharedPtr<ChObjShapeFile> mobjmesh(new ChObjShapeFile);
-	mobjmesh->SetFilename("../data/forklift_body.obj"); 
+  mobjmesh->SetFilename(GetChronoDataFile("forklift_body.obj"));
 	mlevelA->AddAsset(mobjmesh);
 
 				// ==Asset== Attach also a texture, that will affect only the 
 				// assets in mlevelA:
 	ChSharedPtr<ChTexture> mtexture(new ChTexture);
-	mtexture->SetTextureFilename("../data/bluwhite.png");
+  mtexture->SetTextureFilename(GetChronoDataFile("bluwhite.png"));
 	mlevelA->AddAsset(mtexture);
 	
 			// Change the position of mlevelA, thus moving also its sub-assets:
@@ -236,10 +231,10 @@ int main(int argc, char* argv[])
 	ChPovRay pov_exporter = ChPovRay(&mphysicalSystem);
 
 			// Sets some file names for in-out processes.
-	pov_exporter.SetTemplateFile		("../data/_template_POV.pov");
-	pov_exporter.SetOutputScriptFile    ("rendering_frames.pov");
-	pov_exporter.SetOutputDataFilebase  ("my_state");
-	pov_exporter.SetPictureFilebase     ("picture");
+  pov_exporter.SetTemplateFile(GetChronoDataFile("_template_POV.pov"));
+	pov_exporter.SetOutputScriptFile("rendering_frames.pov");
+	pov_exporter.SetOutputDataFilebase("my_state");
+	pov_exporter.SetPictureFilebase("picture");
 		
 			// Even better: save the .dat files and the .bmp files
 			// in two subdirectories, to avoid cluttering the current
@@ -318,11 +313,6 @@ int main(int argc, char* argv[])
 	// POV-Ray will start rendering a short animation, saving the frames
 	// in the directory 'anim'.
 
-
- 
-	// Remember this at the end of the program, if you started
-	// with DLL_CreateGlobals();
-	DLL_DeleteGlobals();
 
 	return 0;
 }

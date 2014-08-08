@@ -66,7 +66,7 @@ ChMarker::ChMarker()
 	last_rel_coord_dt  = CSYSNULL;
 	last_time = 0;
 
-	SetIdentifier(CHGLOBALS().GetUniqueIntID()); // mark with unique ID
+	SetIdentifier(GetUniqueIntID()); // mark with unique ID
 
 	UpdateState();
 }
@@ -94,7 +94,7 @@ ChMarker::ChMarker (char myname[], ChBody* myBody, Coordsys myrel_pos, Coordsys 
 	last_rel_coord_dt  = CSYSNULL;
 	last_time = 0;
 
-	SetIdentifier(CHGLOBALS().GetUniqueIntID()); // mark with unique ID
+	SetIdentifier(GetUniqueIntID()); // mark with unique ID
 
 	UpdateState();
 };

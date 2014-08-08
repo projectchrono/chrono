@@ -31,7 +31,6 @@
 
 
 
-#include "physics/ChApidll.h"
 #include "physics/ChBody.h"
 #include "unit_MPI/ChMpi.h"
 #include <iostream>
@@ -47,10 +46,6 @@ using namespace chrono;
 
 int main(int argc, char* argv[])
 {
-	// The DLL_CreateGlobals() - DLL_DeleteGlobals(); pair is needed if
-	// global functions are needed.
-	DLL_CreateGlobals(); 
-
 	// Initialize the MPI functionality. Use the CHMPI static functions.  
 	CHMPI::Init(argc,argv);
 
@@ -69,7 +64,6 @@ int main(int argc, char* argv[])
 	{
 		GetLog() << "Use at least 2 processes! \n";
 		CHMPI::Finalize();
-		DLL_DeleteGlobals();
 		return 0;
 	}
 
@@ -163,10 +157,6 @@ int main(int argc, char* argv[])
 
 	// Terminate the MPI functionality.
 	CHMPI::Finalize();
-
-	// Remember this at the end of the program, if you started
-	// with DLL_CreateGlobals();
-	DLL_DeleteGlobals();
 
 	return 0;
 }

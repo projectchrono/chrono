@@ -123,7 +123,7 @@ ChParticlesClones::ChParticlesClones ()
 
 	matsurface = ChSharedPtr<ChMaterialSurface>(new ChMaterialSurface);
 
-	SetIdentifier(CHGLOBALS().GetUniqueIntID()); // mark with unique ID
+	SetIdentifier(GetUniqueIntID()); // mark with unique ID
 
 	max_speed = 0.5f;
 	max_wvel  = 2.0f*float(CH_C_PI);

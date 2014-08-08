@@ -30,7 +30,6 @@
  
    
  
-#include "physics/ChApidll.h" 
 #include "physics/ChSystem.h"
 #include "particlefactory/ChParticleEmitter.h"
 #include "particlefactory/ChParticleRemover.h"
@@ -59,11 +58,6 @@ using namespace gui;
  
 int main(int argc, char* argv[])
 {
-
-	// In CHRONO engine, The DLL_CreateGlobals() - DLL_DeleteGlobals(); pair is needed if
-	// global functions are needed. 
-	DLL_CreateGlobals();
-
 	// Create a ChronoENGINE physical system
 	ChSystem mphysicalSystem;
 
@@ -89,7 +83,7 @@ int main(int argc, char* argv[])
 	floorBody->SetBodyFixed(true);
 
 	ChSharedPtr<ChTexture> mtexture(new ChTexture());
-	mtexture->SetTextureFilename("../data/concrete.jpg");
+  mtexture->SetTextureFilename(GetChronoDataFile("concrete.jpg"));
 	floorBody->AddAsset(mtexture);
 
 	mphysicalSystem.Add(floorBody);
@@ -291,12 +285,6 @@ int main(int argc, char* argv[])
 		application.GetVideoDriver()->endScene();  
 	}
 	
- 
- 
-	// Remember this at the end of the program, if you started
-	// with DLL_CreateGlobals();
-	DLL_DeleteGlobals();
-
 	return 0;
 }
   

@@ -42,7 +42,7 @@ ChLink::ChLink ()
     react_force = VNULL;
     react_torque = VNULL;
  
-    SetIdentifier(CHGLOBALS().GetUniqueIntID()); // mark with unique ID
+    SetIdentifier(GetUniqueIntID()); // mark with unique ID
 }
 
 

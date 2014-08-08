@@ -33,7 +33,6 @@
  
    
  
-#include "physics/ChApidll.h" 
 #include "physics/ChSystem.h"
 #include "unit_IRRLICHT/ChBodySceneNode.h"
 #include "unit_IRRLICHT/ChBodySceneNodeTools.h" 
@@ -144,7 +143,7 @@ ChBodySceneNode* create_mecanum_wheel(ChSystem& mphysicalSystem,
 	mCentralWheel->GetBody()->SetCollide(false);
 	mCentralWheel->addShadowVolumeSceneNode();
 
-	video::ITexture* cylinderMap = driver->getTexture("../data/pinkwhite.png");
+  video::ITexture* cylinderMap = driver->getTexture(GetChronoDataFile("pinkwhite.png").c_str());
 	mCentralWheel->setMaterialTexture(0,	cylinderMap);
 
 	double half_length_roller = 0.5 * wheel_width * 1.0/(cos(roller_angle));
@@ -192,11 +191,6 @@ ChBodySceneNode* create_mecanum_wheel(ChSystem& mphysicalSystem,
  
 int main(int argc, char* argv[])
 {
-
-	// In CHRONO engine, The DLL_CreateGlobals() - DLL_DeleteGlobals(); pair is needed if
-	// global functions are needed. 
-	DLL_CreateGlobals();
-
 	// Create a ChronoENGINE physical system
 	ChSystem mphysicalSystem;
 
@@ -326,7 +320,7 @@ int main(int argc, char* argv[])
 	ground->GetBody()->SetBodyFixed(true);
 	ground->GetBody()->SetFriction(STATIC_wheelfriction);
 		
-	video::ITexture* cubeMap = application.GetVideoDriver()->getTexture("../data/cubetexture.png");
+  video::ITexture* cubeMap = application.GetVideoDriver()->getTexture(GetChronoDataFile("cubetexture.png").c_str());
 	ground->setMaterialTexture(0,	cubeMap);
 
 
@@ -385,13 +379,6 @@ int main(int argc, char* argv[])
 	}
 	
  
-
- 
-
- 
-	// Remember this at the end of the program, if you started
-	// with DLL_CreateGlobals();
-	DLL_DeleteGlobals();
 
 	return 0;
 }

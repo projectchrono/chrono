@@ -94,7 +94,7 @@ MySimpleCar::MySimpleCar(ChSystem&  my_system,	///< the chrono::engine physical 
 
 		// Add a visible mesh for Irrlicht representation of the
 		// car - it must be found on disk with the relative path as indicated..
-	IAnimatedMesh* scocca_mesh = msceneManager->getMesh("../data/mycar.obj");
+	IAnimatedMesh* scocca_mesh = msceneManager->getMesh(GetChronoDataFile("mycar.obj").c_str());
 	IAnimatedMeshSceneNode* scocca_node = msceneManager->addAnimatedMeshSceneNode( scocca_mesh, truss );
 	scocca_node->setPosition(vector3dfCH(-truss_COG)); // if COG is not the reference we use for all stuff in truss..
 	scocca_node->addShadowVolumeSceneNode();
@@ -122,7 +122,7 @@ MySimpleCar::MySimpleCar(ChSystem&  my_system,	///< the chrono::engine physical 
 	wheelRF->GetBody()->SetCollide(true);
 	wheelRF->GetBody()->SetFriction(1.3);;
 	wheelRF->GetBody()->SetName("wheelRF");
-		video::ITexture* cylinderMap = mdriver->getTexture("../data/bluwhite.png");
+		video::ITexture* cylinderMap = mdriver->getTexture(GetChronoDataFile("bluwhite.png").c_str());
 	wheelRF->setMaterialTexture(0,	cylinderMap);
 	wheelRF->addShadowVolumeSceneNode();
 
@@ -325,7 +325,7 @@ MySimpleCar::MySimpleCar(ChSystem&  my_system,	///< the chrono::engine physical 
 	wheelRB->GetBody()->SetCollide(true);
 	wheelRB->GetBody()->SetFriction(1.3);
 	wheelRB->GetBody()->SetName("wheelRB");
-		cylinderMap = mdriver->getTexture("../data/bluwhite.png");
+		cylinderMap = mdriver->getTexture(GetChronoDataFile("bluwhite.png").c_str());
 	wheelRB->setMaterialTexture(0,	cylinderMap);
 	wheelRB->addShadowVolumeSceneNode();
 
@@ -527,7 +527,7 @@ MySimpleCar::MySimpleCar(ChSystem&  my_system,	///< the chrono::engine physical 
 
 	// play some sound stream, looped
 	if (sound_engine)
-		car_sound = sound_engine->play2D("../data/carsound.ogg", true, false, true);
+		car_sound = sound_engine->play2D(GetChronoDataFile("carsound.ogg").c_str(), true, false, true);
 	else 
 		car_sound = 0;
 

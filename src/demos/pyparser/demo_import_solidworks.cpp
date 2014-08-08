@@ -25,7 +25,6 @@
 // ------------------------------------------------ 
 ///////////////////////////////////////////////////
  
-#include "physics/ChApidll.h" 
 #include "unit_IRRLICHT/ChIrrApp.h"
 #include "unit_PYTHON/ChPython.h"
 
@@ -49,10 +48,6 @@ using namespace gui;
  
 int main(int argc, char* argv[])
 {
-	// In CHRONO engine, The DLL_CreateGlobals() - DLL_DeleteGlobals(); pair is needed if
-	// global functions are needed. 
-	DLL_CreateGlobals();
-
 	// Create a Chrono::Engine physical system
 	ChSystem mphysicalSystem;
 
@@ -79,7 +74,7 @@ int main(int argc, char* argv[])
 		// a (quite simplified & approximated) clock escapement, that has been 
 		// modeled in SolidWorks and saved using the Chrono Add-in for SolidWorks.
 
-		my_python.ImportSolidWorksSystem("../data/solid_works/swiss_escapement", mphysicalSystem);  // note, don't type the .py suffic in filename..
+		my_python.ImportSolidWorksSystem(GetChronoDataFile("solid_works/swiss_escapement").c_str(), mphysicalSystem);  // note, don't type the .py suffix in filename..
 
 	}
 	catch (ChException myerror)
@@ -206,11 +201,6 @@ int main(int argc, char* argv[])
 		application.EndScene();  
 	}
 	
- 
- 
-	// Remember this at the end of the program, if you started
-	// with DLL_CreateGlobals();
-	DLL_DeleteGlobals();
 
 	return 0;
 }

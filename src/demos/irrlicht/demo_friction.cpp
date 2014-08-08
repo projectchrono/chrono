@@ -29,7 +29,6 @@
  
   
  
-#include "physics/ChApidll.h" 
 #include "physics/ChSystem.h" 
 #include "physics/ChBodyEasy.h"  
 #include "unit_IRRLICHT/ChIrrApp.h"
@@ -54,7 +53,7 @@ void create_some_falling_items(ChSystem* mphysicalSystem, ISceneManager* msceneM
 	double density = 1000;
 
 	// Create a texture asset. It can be shared between bodies.
-	ChSharedPtr<ChTexture> textureasset (new ChTexture("../data/bluwhite.png"));
+  ChSharedPtr<ChTexture> textureasset(new ChTexture(GetChronoDataFile("bluwhite.png")));
 
 	// Create some spheres that roll horizontally, 
 	// with increasing rolling friction values
@@ -135,7 +134,7 @@ void create_some_falling_items(ChSystem* mphysicalSystem, ISceneManager* msceneM
 	mfloorBody->SetRollingFriction(1);	 // the min. of the two coeff. of the two contact surfaces will be used
 	mfloorBody->SetSpinningFriction(1);  // the min. of the two coeff. of the two contact surfaces will be used
 
-	mfloorBody->AddAsset( ChSharedPtr<ChTexture>(new ChTexture("../data/blu.png")) );
+  mfloorBody->AddAsset(ChSharedPtr<ChTexture>(new ChTexture(GetChronoDataFile("blu.png"))));
 
 	mphysicalSystem->Add(mfloorBody);
 
@@ -193,10 +192,6 @@ void create_some_falling_items(ChSystem* mphysicalSystem, ISceneManager* msceneM
  
 int main(int argc, char* argv[])
 {
-	// In CHRONO engine, The DLL_CreateGlobals() - DLL_DeleteGlobals(); pair is needed if
-	// global functions are needed. 
-	DLL_CreateGlobals();
-
 	// Create a ChronoENGINE physical system
 	ChSystem mphysicalSystem;
 
@@ -248,10 +243,6 @@ int main(int argc, char* argv[])
 	}
 	
  
- 
-	// Remember this at the end of the program, if you started
-	// with DLL_CreateGlobals();
-	DLL_DeleteGlobals();
 
 	return 0;
 }

@@ -40,7 +40,7 @@ ChShaftsThermalEngine::ChShaftsThermalEngine ()
 	// default torque curve= constant zero. User will provide better fx.
 	this->Tw = ChSharedPtr<ChFunction> (new ChFunction_Const(0));
 
-	SetIdentifier(CHGLOBALS().GetUniqueIntID()); // mark with unique ID
+	SetIdentifier(GetUniqueIntID()); // mark with unique ID
 }
 
 

@@ -208,11 +208,8 @@ public:
 			/// Output comment with preceding trailer (ex #)
 	void Comment (char m_string[])
 				{
-					//if (CHGLOBALS().WriteComments)
-					//{
-						TAB(); TAB(); TAB();
-						*this << comment_trailer << m_string;
-					//}
+					TAB(); TAB(); TAB();
+					*this << comment_trailer << m_string;
 					CR();
 				}
 					/// Output a separation bar in Ascii file

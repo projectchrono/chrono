@@ -12,7 +12,6 @@
 ///////////////////////////////////////////////////
        
 #include "core/ChLog.h"
-#include "physics/ChApidll.h" 
 //#include "unit_COSIMULATION/ChHostInfo.h"
 //#include "unit_COSIMULATION/ChSocket.h"
 #include "unit_COSIMULATION/ChSocketFramework.h"
@@ -30,9 +29,6 @@ int main(int argc, char* argv[])
 
 	GetLog() << "CHRONO demo about sockets \n\n";   
      
-	// The DLL_CreateGlobals() - DLL_DeleteGlobals(); pair is needed if
-	// global functions are needed.
-	DLL_CreateGlobals();
 
 	try{
 
@@ -129,9 +125,6 @@ int main(int argc, char* argv[])
 	{
 		GetLog() << " ERRROR with socket system: \n" << exception.what() << "\n";
 	}
-
-	// End of application
-	DLL_DeleteGlobals();
 
 	return 0;
 }

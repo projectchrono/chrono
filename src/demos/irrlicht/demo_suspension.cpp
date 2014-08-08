@@ -34,7 +34,6 @@
  
   
  
-#include "physics/ChApidll.h" 
 #include "physics/ChSystem.h"
 #include "physics/ChLinkDistance.h"
 #include "unit_IRRLICHT/ChBodySceneNode.h"
@@ -171,7 +170,7 @@ public:
 				wheelRF->GetBody()->SetInertiaXX(ChVector<>(0.2, 0.2, 0.2));
 				wheelRF->GetBody()->SetCollide(true);
 				wheelRF->GetBody()->SetFriction(1.0);
-					video::ITexture* cylinderMap = mdriver->getTexture("../data/bluwhite.png");
+        video::ITexture* cylinderMap = mdriver->getTexture(GetChronoDataFile("bluwhite.png").c_str());
 				wheelRF->setMaterialTexture(0,	cylinderMap);
 				wheelRF->addShadowVolumeSceneNode();
 
@@ -293,7 +292,7 @@ public:
 				wheelRB->GetBody()->SetInertiaXX(ChVector<>(0.2, 0.2, 0.2));
 				wheelRB->GetBody()->SetCollide(true);
 				wheelRB->GetBody()->SetFriction(1.0);
-					cylinderMap = mdriver->getTexture("../data/bluwhite.png");
+        cylinderMap = mdriver->getTexture(GetChronoDataFile("bluwhite.png").c_str());
 				wheelRB->setMaterialTexture(0,	cylinderMap);
 				wheelRB->addShadowVolumeSceneNode();
 
@@ -667,11 +666,6 @@ private:
 
 int main(int argc, char* argv[])
 {
-
-	// In CHRONO engine, The DLL_CreateGlobals() - DLL_DeleteGlobals(); pair is needed if
-	// global functions are needed.
-	DLL_CreateGlobals();
-
 	// Create the IRRLICHT context (device, etc.)
 	IrrlichtDevice* device = createDevice(video::EDT_DIRECT3D9, 
 							core::dimension2d<u32>(800, 600),	// resolution
@@ -723,7 +717,7 @@ int main(int argc, char* argv[])
 	my_ground->GetBody()->SetCollide(true);
 	my_ground->GetBody()->SetSfriction(1.0);
 	my_ground->GetBody()->SetKfriction(1.0);
-	video::ITexture* groundMap = driver->getTexture("../data/blu.png");
+  video::ITexture* groundMap = driver->getTexture(GetChronoDataFile("blu.png").c_str());
 	my_ground->setMaterialTexture(0,groundMap);
 
 	// ..some obstacles on the ground:
@@ -858,10 +852,6 @@ int main(int argc, char* argv[])
 	// This safely delete every Irrlicht item..
 	device->drop();
 
-
-	// Remember this at the end of the program, if you started
-	// with DLL_CreateGlobals();
-	DLL_DeleteGlobals();
 
 	return 0;
 }

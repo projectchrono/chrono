@@ -30,7 +30,6 @@
  
    
 
-#include "physics/ChApidll.h" 
 #include "physics/ChSystem.h"
 #include "unit_IRRLICHT/ChBodySceneNode.h"
 #include "unit_IRRLICHT/ChBodySceneNodeTools.h" 
@@ -101,12 +100,6 @@ void apply_fan_force (	ChSystem* msystem,		// contains all bodies
 
 int main(int argc, char* argv[])
 {
-
-	// In CHRONO engine, The DLL_CreateGlobals() - DLL_DeleteGlobals(); pair is needed if
-	// global functions are needed.
-	DLL_CreateGlobals();
-
-
 	// Create a ChronoENGINE physical system
 	ChSystem my_system;
 
@@ -215,7 +208,7 @@ int main(int argc, char* argv[])
 	// loading and handling (this object is here for aesthetical reasons,
 	// it is NOT handled by Chrono::Engine).
 	double fan_radius = 5.3;
-	IAnimatedMesh*	fanMesh = application.GetSceneManager()->getMesh("../data/fan2.obj");
+  IAnimatedMesh*	fanMesh = application.GetSceneManager()->getMesh(GetChronoDataFile("fan2.obj").c_str());
 	IAnimatedMeshSceneNode* fanNode = application.GetSceneManager()->addAnimatedMeshSceneNode (fanMesh);
 	fanNode->setScale(irr::core::vector3df((irr::f32)fan_radius,(irr::f32)fan_radius,(irr::f32)fan_radius));
  
@@ -266,11 +259,6 @@ int main(int argc, char* argv[])
 
 	}
  
-
-
-	// Remember this at the end of the program, if you started
-	// with DLL_CreateGlobals();
-	DLL_DeleteGlobals();
 
 	return 0;
 }

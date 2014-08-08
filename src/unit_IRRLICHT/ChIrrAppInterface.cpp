@@ -269,7 +269,7 @@ ChIrrAppInterface::ChIrrAppInterface(
     device->setWindowCaption(L"Chrono::Engine");
 
   gui::IGUISkin* skin = GetIGUIEnvironment()->getSkin();
-  gui::IGUIFont* font = GetIGUIEnvironment()->getFont("../data/fonts/arial8.xml");
+  gui::IGUIFont* font = GetIGUIEnvironment()->getFont(chrono::GetChronoDataFile("fonts/arial8.xml").c_str());
   if (font)
     skin->setFont(font);
   skin->setColor(gui::EGDC_BUTTON_TEXT, video::SColor(255,40,50,50));
@@ -443,10 +443,10 @@ void ChIrrAppInterface::SetSymbolscale(double val)
 
 
 // Set the fonts to be used from now on.
-void ChIrrAppInterface::SetFonts(const char* mfontdir)
+void ChIrrAppInterface::SetFonts(const std::string& mfontdir)
 {
   gui::IGUISkin* skin = GetIGUIEnvironment()->getSkin();
-  gui::IGUIFont* font = GetIGUIEnvironment()->getFont(mfontdir);
+  gui::IGUIFont* font = GetIGUIEnvironment()->getFont(mfontdir.c_str());
   if (font)
     skin->setFont(font);
 }

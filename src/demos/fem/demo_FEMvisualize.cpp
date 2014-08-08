@@ -18,7 +18,6 @@
      
 // Include some headers used by this tutorial...
 
-#include "physics/ChApidll.h" 
 #include "physics/ChSystem.h"
 #include "lcp/ChLcpIterativeMINRES.h"
 #include "unit_FEM/ChElementSpring.h"
@@ -45,10 +44,6 @@ using namespace fem;
 
 int main(int argc, char* argv[])
 {
-	// In CHRONO engine, The DLL_CreateGlobals() - DLL_DeleteGlobals(); pair is needed if
-	// global functions are needed. 
-	DLL_CreateGlobals();
-
 	// Create a Chrono::Engine physical system
 	ChSystem my_system;
 
@@ -87,7 +82,9 @@ int main(int argc, char* argv[])
 				// You can generate these files using the TetGen tool.
 	try 
 	{
-		my_mesh->LoadFromTetGenFile("../data/unit_FEM/beam.node","../data/unit_FEM/beam.ele", mmaterial);
+    my_mesh->LoadFromTetGenFile(GetChronoDataFile("unit_FEM/beam.node").c_str(),
+                                GetChronoDataFile("unit_FEM/beam.ele").c_str(),
+                                mmaterial);
 	}
 	catch (ChException myerr) {
 			GetLog() << myerr.what();
@@ -296,12 +293,6 @@ application.SetPaused(true);
 		application.EndScene();
 	}
 
-
-
-
-	// Remember this at the end of the program, if you started
-	// with DLL_CreateGlobals();
-	DLL_DeleteGlobals();
 
 	return 0;
 }

@@ -27,7 +27,6 @@
      
 // Include some headers used by this tutorial...
 
-#include "physics/ChApidll.h"
 #include "lcp/ChLcpVariablesGeneric.h"
 #include "lcp/ChLcpVariablesBody.h"
 #include "lcp/ChLcpConstraintTwoGeneric.h"
@@ -48,8 +47,6 @@ using namespace chrono;
 
 int main(int argc, char* argv[])
 {
-	DLL_CreateGlobals(); 
-
 	// Initialize the MPI functionality. Use the CHMPI static functions.  
 	CHMPI::Init(argc,argv);
 
@@ -70,7 +67,6 @@ int main(int argc, char* argv[])
 					 << "       using the 'mpiexec', from the MPI toolset! \n";
 		}
 		CHMPI::Finalize();
-		DLL_DeleteGlobals();
 		return 0;
 	}
 
@@ -203,8 +199,6 @@ int main(int argc, char* argv[])
 
 	// Terminate the MPI functionality.
 	CHMPI::Finalize();
-
-	DLL_DeleteGlobals();
 
 	return 0;
 }

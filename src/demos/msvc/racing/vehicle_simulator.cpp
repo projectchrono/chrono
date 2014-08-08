@@ -5,7 +5,6 @@
 ///////////////////////////////////////////////////
  
  
-#include "physics/ChApidll.h" 
 #include "physics/ChSystem.h"
 #include "physics/ChLinkDistance.h"
 #include "unit_IRRLICHT/ChBodySceneNode.h"
@@ -92,7 +91,7 @@ MySimulator::MySimulator()
 	my_ground->GetBody()->SetCollide(true);
 	my_ground->GetBody()->SetFriction(1.3);
 	my_ground->GetBody()->SetName("ground");
-	video::ITexture* groundMap = device->getVideoDriver()->getTexture("../data/blu.png");
+	video::ITexture* groundMap = device->getVideoDriver()->getTexture(GetChronoDataFile("blu.png").c_str());
 	my_ground->setMaterialTexture(0,groundMap); 
 
 	// ..or do you prefer a detailed ground, with bumps, roads, uneven pavement etc.?
@@ -103,7 +102,7 @@ MySimulator::MySimulator()
 											1.0,
 											ChVector<>(0,-1,0),
 											QUNIT,
-											"../data/bumpers.obj",    // mesh name on disk
+											GetChronoDataFile("bumpers.obj").c_str(),    // mesh name on disk
 											true,					 // is static? yes - will be optimized for static case
 											false					 // is convex? no, might require some preprocessing time for convex decomposition
 											);
@@ -116,7 +115,7 @@ MySimulator::MySimulator()
 											1.0,
 											ChVector<>(0,-1,0),
 											QUNIT,
-											"../data/houses.obj",    // mesh name on disk
+                      GetChronoDataFile("houses.obj").c_str(),    // mesh name on disk
 											true,					 // is static? yes - will be optimized for static case
 											false					 // is convex? no, might require some preprocessing time for convex decomposition
 											);
@@ -129,7 +128,7 @@ MySimulator::MySimulator()
 	// Do you need some trees/houses/detail stuff which you want to see in 3D view but you
 	// don't want to consider in collisions and simulation? use the following:
 	/*
-	IAnimatedMesh* details_mesh = device->getSceneManager()->getMesh("../data/details.obj");
+	IAnimatedMesh* details_mesh = device->getSceneManager()->getMesh(GetChronoDataFile("details.obj").c_str());
 	IAnimatedMeshSceneNode* details_node = device->getSceneManager()->addAnimatedMeshSceneNode(details_mesh, device->getSceneManager()->getRootSceneNode());
 	*/
 

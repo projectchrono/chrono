@@ -27,7 +27,6 @@
  
   
  
-#include "physics/ChApidll.h" 
 #include "core/ChRealtimeStep.h"
 #include "collision/ChCConvexDecomposition.h"
 
@@ -726,11 +725,6 @@ private:
 
 int main(int argc, char* argv[])
 {
-
-	// In CHRONO engine, The DLL_CreateGlobals() - DLL_DeleteGlobals(); pair is needed if
-	// global functions are needed.
-	ChGlobals* GLOBAL_Vars = DLL_CreateGlobals();
-
 	// 1- Create a ChronoENGINE physical system: all bodies and constraints
 	//    will be handled by this ChSystem object.
 	ChSystem my_system;
@@ -801,12 +795,6 @@ int main(int argc, char* argv[])
 
 		application.GetVideoDriver()->endScene(); 
 	}
-
-
-	
-	// Remember this at the end of the program, if you started
-	// with DLL_CreateGlobals();
-	DLL_DeleteGlobals();
 
 	return 0;
 }

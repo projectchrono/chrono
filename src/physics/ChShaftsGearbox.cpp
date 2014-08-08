@@ -48,7 +48,7 @@ ChShaftsGearbox::ChShaftsGearbox ()
 
 	this->shaft_dir = VECT_X;
 
-	SetIdentifier(CHGLOBALS().GetUniqueIntID()); // mark with unique ID
+	SetIdentifier(GetUniqueIntID()); // mark with unique ID
 
 }
 

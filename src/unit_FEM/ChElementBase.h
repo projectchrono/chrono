@@ -14,7 +14,6 @@
 #define CHELEMENTBASE_H
 
 
-#include "physics/ChApidll.h"
 #include "physics/ChContinuumMaterial.h"
 #include "core/ChMath.h"
 #include "core/ChShared.h"

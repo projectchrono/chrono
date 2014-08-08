@@ -35,7 +35,7 @@ ChShaftsTorqueBase::ChShaftsTorqueBase ()
 {
 	this->torque= 0;
 
-	SetIdentifier(CHGLOBALS().GetUniqueIntID()); // mark with unique ID
+	SetIdentifier(GetUniqueIntID()); // mark with unique ID
 }
 
 

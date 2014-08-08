@@ -30,7 +30,6 @@
  
   
  
-#include "physics/ChApidll.h" 
 #include "core/ChRealtimeStep.h"
 #include "unit_CASCADE/ChCascadeDoc.h"
 #include "unit_CASCADE/ChCascadeMeshTools.h"
@@ -64,11 +63,6 @@ using namespace cascade;
 
 int main(int argc, char* argv[])
 {
-
-	// In CHRONO engine, The DLL_CreateGlobals() - DLL_DeleteGlobals(); pair is needed if
-	// global functions are needed.
-	ChGlobals* GLOBAL_Vars = DLL_CreateGlobals();
-
 	// 1- Create a ChronoENGINE physical system: all bodies and constraints
 	//    will be handled by this ChSystem object.
 	ChSystem my_system;
@@ -273,7 +267,6 @@ int main(int argc, char* argv[])
 		!mrigidBody_wrist ||
 		!mrigidBody_hand )
 	{
-		DLL_DeleteGlobals();
 		return 0;
 	}
 
@@ -481,7 +474,7 @@ int main(int argc, char* argv[])
 											ChVector<>(20,1,20) );
 	mfloor->GetBody()->SetBodyFixed(true);
 	mfloor->GetBody()->SetCollide(true);
-	video::ITexture* cubeMap = application.GetVideoDriver()->getTexture("../data/blu.png");
+	video::ITexture* cubeMap = application.GetVideoDriver()->getTexture(GetChronoDataFile("blu.png").c_str());
 	mfloor->setMaterialTexture(0,	cubeMap);
 
 
@@ -524,11 +517,6 @@ int main(int argc, char* argv[])
 		application.GetVideoDriver()->endScene(); 
 	}
 
-
-	
-	// Remember this at the end of the program, if you started
-	// with DLL_CreateGlobals();
-	DLL_DeleteGlobals();
 
 	return 0;
 }

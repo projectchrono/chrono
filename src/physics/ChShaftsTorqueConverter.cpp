@@ -43,7 +43,7 @@ ChShaftsTorqueConverter::ChShaftsTorqueConverter ()
 	this->state_warning_reverseflow = false;
 	this->state_warning_wrongimpellerdirection = false;
 
-	SetIdentifier(CHGLOBALS().GetUniqueIntID()); // mark with unique ID
+	SetIdentifier(GetUniqueIntID()); // mark with unique ID
 }
 
 

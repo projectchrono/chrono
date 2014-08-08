@@ -42,7 +42,7 @@ namespace chrono
 
 ChProbe::ChProbe()
 {
-	this->SetIdentifier(CHGLOBALS().GetUniqueIntID()); // mark with unique ID
+	SetIdentifier(GetUniqueIntID()); // mark with unique ID
 }
 
 ChProbe::~ChProbe()

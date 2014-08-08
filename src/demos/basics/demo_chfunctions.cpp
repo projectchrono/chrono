@@ -27,7 +27,6 @@
  
   
  
-#include "physics/ChApidll.h" 
 #include "physics/ChFunction.h"
 
 
@@ -43,14 +42,6 @@ using namespace chrono;
  
 int main(int argc, char* argv[])
 {
-
-	// The DLL_CreateGlobals() - DLL_DeleteGlobals(); pair is needed if
-	// global functions are needed.
-	DLL_CreateGlobals();
-
-
-
-
 	// 
 	// EXAMPLE 1: create a ramp ChFunction, set properties, evaluate it.
 	//
@@ -175,14 +166,6 @@ int main(int argc, char* argv[])
 		double ydxdx = f_sequence.Get_y_dxdx(x);
 		file_f_sequence << x << " " << y << " " << ydx << " " << ydxdx << "\n";
 	}
-
-
-
-
- 
-	// Remember this at the end of the program, if you started
-	// with DLL_CreateGlobals();
-	DLL_DeleteGlobals();
 
 	return 0;
 }

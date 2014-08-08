@@ -8,7 +8,6 @@
 ///////////////////////////////////////////////////
  
  
-#include "physics/ChApidll.h" 
 #include "physics/ChSystem.h"
 #include "physics/ChLinkDistance.h"
 #include "unit_IRRLICHT/ChBodySceneNode.h"

@@ -18,7 +18,6 @@
      
 // Include some headers used by this tutorial...
 
-#include "physics/ChApidll.h" 
 #include "physics/ChSystem.h"
 #include "physics/ChLinkMate.h"
 #include "lcp/ChLcpIterativePMINRES.h"
@@ -41,10 +40,6 @@ using namespace fem;
 
 int main(int argc, char* argv[])
 {
-	// In CHRONO engine, The DLL_CreateGlobals() - DLL_DeleteGlobals(); pair is needed if
-	// global functions are needed. 
-	DLL_CreateGlobals();
-
 	// Create a Chrono::Engine physical system
 	ChSystem my_system;
 
@@ -298,10 +293,6 @@ belement2->SetDisableCorotate(false);
 		//GetLog() << " node pos =" << hnode3->Frame().GetPos() << "\n";
 	}
 
-
-	// Remember this at the end of the program, if you started
-	// with DLL_CreateGlobals();
-	DLL_DeleteGlobals();
 
 	return 0;
 }
