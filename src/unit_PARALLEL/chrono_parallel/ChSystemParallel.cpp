@@ -454,9 +454,11 @@ void ChSystemParallel::ChangeCollisionSystem(
    }
    this->collision_system = newcollsystem;
 
-   if (ChCollisionSystemParallel* coll_sys = dynamic_cast<ChCollisionSystemParallel*>(newcollsystem)) {
-      ((ChCollisionSystemParallel *) (collision_system))->data_container = gpu_data_manager;
-   } else if (ChCollisionSystemBulletParallel* coll_sys = dynamic_cast<ChCollisionSystemBulletParallel*>(newcollsystem)) {
-      ((ChCollisionSystemBulletParallel *) (collision_system))->data_container = gpu_data_manager;
+   if (ChCollisionSystemParallel* coll_sys = dynamic_cast<ChCollisionSystemParallel*>(collision_system)) {
+      coll_sys->data_container = gpu_data_manager;
+   } else if (ChCollisionSystemBulletParallel* coll_sys = dynamic_cast<ChCollisionSystemBulletParallel*>(collision_system)) {
+      coll_sys->data_container = gpu_data_manager;
    }
+
+
 }

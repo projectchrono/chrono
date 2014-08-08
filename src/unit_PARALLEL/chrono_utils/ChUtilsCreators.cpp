@@ -106,16 +106,17 @@ void CreateBoxContainerDVI(ChSystem*                           system,
 {
   // Infer system type.
   SystemType sysType = GetSystemType(system);
+  CollisionType cdType = GetCollisionType(system);
   assert(sysType == SEQUENTIAL_DVI || sysType == PARALLEL_DVI);
 
   // Create the body and set material
   ChBody* body;
 
-  if (sysType == SEQUENTIAL_DVI)
+  if (sysType == SEQUENTIAL_DVI|| cdType==BULLET_CD){
     body = new ChBody();
-  else
+  }else{
     body = new ChBody(new collision::ChCollisionModelParallel);
-
+  }
   body->SetMaterialSurface(mat);
 
   // Set body properties and geometry.

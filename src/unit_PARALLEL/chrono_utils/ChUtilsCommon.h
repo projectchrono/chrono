@@ -26,6 +26,8 @@
 #include "physics/ChSystemDEM.h"
 
 #include "chrono_parallel/ChSystemParallel.h"
+#include "chrono_parallel/collision/ChCCollisionSystemParallel.h"
+#include "collision/ChCCollisionSystemBullet.h"
 
 namespace chrono {
 namespace utils {
@@ -37,7 +39,10 @@ enum SystemType {
   PARALLEL_DVI,
   PARALLEL_DEM
 };
-
+enum CollisionType {
+  BULLET_CD,
+  PARALLEL_CD
+};
 // -----------------------------------------------------------------------------
 // Construct a single random engine (on first use)
 //
@@ -90,6 +95,25 @@ SystemType GetSystemType(ChSystem* system)
   return SEQUENTIAL_DVI;
 }
 
+// -----------------------------------------------------------------------------
+// GetCollisionType()
+//
+// This utility function infers the type of the specified ChCollisionSystem.
+// -----------------------------------------------------------------------------
+inline
+CollisionType GetCollisionType(ChSystem* system)
+{
+  if (dynamic_cast<collision::ChCollisionSystemParallel*>(system->GetCollisionSystem()))
+    return PARALLEL_CD;
+
+  if(dynamic_cast<collision::ChCollisionSystemBulletParallel*>(system->GetCollisionSystem()))
+    return BULLET_CD;
+
+  if(dynamic_cast<collision::ChCollisionSystemBullet*>(system->GetCollisionSystem()))
+     return BULLET_CD;
+
+  return BULLET_CD;
+}
 
 } // end namespace utils
 } // end namespace chrono

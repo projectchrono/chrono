@@ -79,8 +79,11 @@ void ChCollisionSystemBulletParallel::Clear(void) {
 void ChCollisionSystemBulletParallel::Add(ChCollisionModel* model) {
 	if (((ChModelBullet*) model)->GetBulletModel()->getCollisionShape()) {
 		model->SyncPosition();
-		((ChModelBullet*) model)->GetBulletModel()->setCompanionId(counter);
-		bt_collision_world->addCollisionObject(((ChModelBullet*) model)->GetBulletModel(), ((ChModelBullet*) model)->GetFamilyGroup(), ((ChModelBullet*) model)->GetFamilyMask());
+		btCollisionObject* collision_object = ((ChModelBullet*) model)->GetBulletModel();
+		collision_object->setCompanionId(counter);
+		int family_group =  ((ChModelBullet*) model)->GetFamilyGroup();
+		int family_mask = ((ChModelBullet*) model)->GetFamilyMask();
+		bt_collision_world->addCollisionObject(collision_object,family_group, family_mask);
 		counter++;
 		data_container->num_models++;
 	}
@@ -93,13 +96,15 @@ void ChCollisionSystemBulletParallel::Remove(ChCollisionModel* model) {
 }
 
 void ChCollisionSystemBulletParallel::Run() {
+   data_container->system_timer.start("collision_broad");
 	if (bt_collision_world) {
 		bt_collision_world->performDiscreteCollisionDetection();
 	}
+	data_container->system_timer.stop("collision_broad");
 
 }
 void ChCollisionSystemBulletParallel::ReportContacts(ChContactContainerBase* mcontactcontainer) {
-
+   data_container->system_timer.start("collision_narrow");
 	data_container->host_data.norm_rigid_rigid.clear();
 	data_container->host_data.cpta_rigid_rigid.clear();
 	data_container->host_data.cptb_rigid_rigid.clear();
@@ -159,6 +164,11 @@ void ChCollisionSystemBulletParallel::ReportContacts(ChContactContainerBase* mco
 
 					icontact.vpA = icontact.vpA - icontact.vN * envelopeA;
 					icontact.vpB = icontact.vpB + icontact.vN * envelopeB;
+
+					//Required because parallel code expects the offset to be done before hand, this is for performance reasons later on.
+					icontact.vpA = icontact.vpA - ((ChBody*) (icontact.modelA->GetPhysicsItem()))->GetPos();
+					icontact.vpB = icontact.vpB - ((ChBody*) (icontact.modelB->GetPhysicsItem()))->GetPos();
+
 					icontact.distance = ptdist + envelopeA + envelopeB;
 
 					icontact.reaction_cache = pt.reactions_cache;
@@ -187,7 +197,7 @@ void ChCollisionSystemBulletParallel::ReportContacts(ChContactContainerBase* mco
 	}
 
 	mcontactcontainer->EndAddContact();
-
+	data_container->system_timer.stop("collision_narrow");
 }
 } // END_OF_NAMESPACE____
 } // END_OF_NAMESPACE____

@@ -49,6 +49,7 @@
 #include "chrono_utils/ChApiUtils.h"
 #include "chrono_utils/ChUtilsCommon.h"
 
+#include "collision/ChCModelBulletBody.h"
 
 namespace chrono {
 namespace utils {
