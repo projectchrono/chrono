@@ -3,8 +3,24 @@
 
 #include "chrono_parallel/ChParallelDefines.h"
 #include <float.h>
+
+//#define DISABLE_SSE
+//#define REAL_DOUBLE
+
+#ifdef REAL_DOUBLE
+   #ifndef DISABLE_SSE
+      #define DISABLE_SSE
+   #endif
+#endif
+
+#ifdef REAL_DOUBLE
+typedef double real;
+#define ZERO_EPSILON DBL_EPSILON
+#else
 typedef float real;
-#define ZERO_EPSILON FLT_EPSILON/10.0
+#define ZERO_EPSILON FLT_EPSILON
+#endif
+
 
 
 static inline real clamp(const real & a, const real & clamp_min, const real & clamp_max) {

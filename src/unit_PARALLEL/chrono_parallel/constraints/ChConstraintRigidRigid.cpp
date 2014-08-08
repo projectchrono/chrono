@@ -280,7 +280,7 @@ void ChConstraintRigidRigid::host_RHS(
       real3 temp = R3(0);
 
       real3 U = norm[index], V, W;
-      Orthogonalize(U, V, W);     //read 3 float
+      Orthogonalize(U, V, W);     //read 3 real
 
       if (isactive.x) {
          real3 omega_b1 = omega[bid.x];
@@ -339,7 +339,7 @@ void ChConstraintRigidRigid::host_ComputeS(
       real3 temp = R3(0);
 
       real3 U = norm[index], V, W;
-      Orthogonalize(U, V, W);     //read 3 float
+      Orthogonalize(U, V, W);     //read 3 real
 
       if (isactive.x) {
          real3 omega_b1 = omega[bid.x];
@@ -387,7 +387,7 @@ void ChConstraintRigidRigid::host_RHS_spinning(
       if (solve_spinning) {
 
          real3 U = norm[index], V, W;
-         Orthogonalize(U, V, W);     //read 3 float
+         Orthogonalize(U, V, W);     //read 3 real
 
          if (isactive.x) {
 
@@ -596,7 +596,11 @@ void ChConstraintRigidRigid::host_shurA_sliding(
 #pragma omp parallel for
 #endif
    for (int index = 0; index < num_contacts; index++) {
+#ifndef REAL_DOUBLE
       real3 gam(_mm_loadu_ps(&gamma[_index_]));
+#else
+      real3 gam(gamma[_index_+0], gamma[_index_+1], gamma[_index_+2]);
+#endif
       real3 U = norm[index], V, W;
       Orthogonalize(U, V, W);
       bool2 active = contact_active[index];
@@ -627,8 +631,11 @@ void ChConstraintRigidRigid::host_shurA_spinning(
       real3 * updateO) {
 #pragma omp parallel for
    for (int index = 0; index < num_contacts; index++) {
-
+#ifndef REAL_DOUBLE
       real3 gam(_mm_loadu_ps(&gamma[_index_]));
+#else
+      real3 gam(gamma[_index_+0], gamma[_index_+1], gamma[_index_+2]);
+#endif
       real3 gam_roll(gamma[_index_ + 3], gamma[_index_ + 4], gamma[_index_ + 5]);
 
       real3 U = norm[index], V, W;
@@ -748,7 +755,11 @@ void ChConstraintRigidRigid::host_shurB_sliding(
       }
 
       real4 comp = compliance[index];
+#ifndef REAL_DOUBLE
       real3 gam(_mm_loadu_ps(&gamma[_index_]));
+#else
+      real3 gam(gamma[_index_+0], gamma[_index_+1], gamma[_index_+2]);
+#endif
       //temp += (alpha) ? gam * real3(comp.x,comp.y,comp.y) : 0;
 
       AX[_index_ + 0] = temp.x;

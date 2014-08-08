@@ -6,7 +6,9 @@
 #include "chrono_parallel/math/real3.h"
 
 #define R4  real4
+#ifndef DISABLE_SSE
 //#define _mm_shufd(xmm, mask) _mm_castsi128_ps(_mm_shuffle_epi32(_mm_castps_si128(xmm), mask))
+
 
 static inline real horizontal_add(const __m128 & a) {
 	__m128 t1 = _mm_hadd_ps(a, a);
@@ -29,7 +31,7 @@ static inline __m128 change_sign(__m128 const & a) {
 	__m128i mask = constant4i<i0 ? 0x80000000 : 0, i1 ? 0x80000000 : 0, i2 ? 0x80000000 : 0, i3 ? 0x80000000 : 0>();
 	return _mm_xor_ps(a, _mm_castsi128_ps(mask));     // flip sign bits
 }
-
+#endif
 
 class CHRONO_ALIGN_16 real4 {
 public:
@@ -37,18 +39,21 @@ public:
 		struct {
 			real w, x, y, z;
 		};
+#ifndef DISABLE_SSE
 		__m128 mmvalue;
+#endif
 	};
 
+#ifndef DISABLE_SSE
 	inline real4() : mmvalue(_mm_setzero_ps()) {}
-	inline real4(float a) : mmvalue(_mm_set1_ps(a)) {}
-	inline real4(float a, float b, float c) :  mmvalue(_mm_setr_ps(0, a,b,c)) {}
+	inline real4(real a) : mmvalue(_mm_set1_ps(a)) {}
+	inline real4(real a, real b, real c) :  mmvalue(_mm_setr_ps(0, a,b,c)) {}
 	inline real4(real3 a) :  mmvalue(_mm_setr_ps(0, a.x,a.y,a.z)) {}
-	inline real4(float d, float a, float b, float c) :  mmvalue(_mm_setr_ps(d, a,b,c)) {}
+	inline real4(real d, real a, real b, real c) :  mmvalue(_mm_setr_ps(d, a,b,c)) {}
 	inline real4(__m128 m) : mmvalue(m) {}
 
     operator __m128() const { return mmvalue;}
-    operator real3() const { return real3(x,y,z);}
+
 
 	inline real4 operator+(const real4& b) const { return _mm_add_ps(mmvalue, b.mmvalue);}
 	inline real4 operator-(const real4& b) const { return _mm_sub_ps(mmvalue, b.mmvalue);}
@@ -56,23 +61,10 @@ public:
 	inline real4 operator/(const real4& b) const { return _mm_div_ps(mmvalue, b.mmvalue);}
 	inline real4 operator-()               const { return _mm_xor_ps(mmvalue, SIGNMASK); }
 
-	inline real4& operator+=(const real4& b) { *this = *this + b; return *this; }
-	inline real4& operator-=(const real4& b) { *this = *this - b; return *this; }
-	inline real4& operator*=(const real4& b) { *this = *this * b; return *this; }
-	inline real4& operator/=(const real4& b) { *this = *this / b; return *this; }
-
 	inline real4 operator+(real b) const { return _mm_add_ps(mmvalue, _mm_set1_ps(b)); }
 	inline real4 operator-(real b) const { return _mm_sub_ps(mmvalue, _mm_set1_ps(b)); }
 	inline real4 operator*(real b) const { return _mm_mul_ps(mmvalue, _mm_set1_ps(b)); }
 	inline real4 operator/(real b) const { return _mm_div_ps(mmvalue, _mm_set1_ps(b)); }
-
-	inline real4& operator+=(real b) { *this = *this + b; return *this; }
-	inline real4& operator-=(real b) { *this = *this - b; return *this; }
-	inline real4& operator*=(real b) { *this = *this * b; return *this; }
-	inline real4& operator/=(real b) { *this = *this / b; return *this; }
-
-
-
 
 	inline real dot(const real4 &b) const { __m128 l = _mm_mul_ps(mmvalue,b.mmvalue); return horizontal_add(l); }
 
@@ -81,6 +73,50 @@ public:
 		real t1 = horizontal_add(l);
 		return real4 (change_sign<0,1,1,1>(mmvalue))/t1;
 	}
+#else
+	   inline real4() : w(0),x(0),y(0),z(0) {}
+	   inline real4(real a) : w(a),x(a),y(a),z(a) {}
+	   inline real4(real a, real b, real c) :  w(0),x(a),y(b),z(c) {}
+	   inline real4(real3 a) :  w(0),x(a.x),y(a.y),z(a.z) {}
+	   inline real4(real d, real a, real b, real c) :  w(d),x(a),y(b),z(c) {}
+
+
+	   inline real4 operator+(const real4& b) const { return real4(w+b.w,x+b.x,y+b.y,z+b.z);}
+	   inline real4 operator-(const real4& b) const { return real4(w-b.w,x-b.x,y+b.y,z-b.z);}
+	   inline real4 operator*(const real4& b) const { return real4(w*b.w,x*b.x,y*b.y,z*b.z);}
+	   inline real4 operator/(const real4& b) const { return real4(w/b.w,x/b.x,y/b.y,z/b.z);}
+	   inline real4 operator-()               const { return real4(-w,-x,-y,-z);}
+
+	   inline real4 operator+(real b) const { return real4(w+b,x+b,y+b,z+b);}
+	   inline real4 operator-(real b) const { return real4(w-b,x-b,y+b,z-b);}
+	   inline real4 operator*(real b) const { return real4(w*b,x*b,y*b,z*b);}
+	   inline real4 operator/(real b) const { return real4(w/b,x/b,y/b,z/b);}
+
+	   inline real dot(const real4 &b) const {  return x * b.x + y * b.y + z * b.z + w * b.w; }
+
+	   inline real4 inv() const {
+	       real4 temp;
+	       real t1 = w * w + x * x + y * y + z * z;
+	       t1 = 1.0 / t1;
+	       temp.w = t1 * w;
+	       temp.x = -t1 * x;
+	       temp.y = -t1 * y;
+	       temp.z = -t1 * z;
+	       return temp;
+	   }
+#endif
+
+	operator real3() const { return real3(x,y,z);}
+
+   inline real4& operator+=(const real4& b) { *this = *this + b; return *this; }
+   inline real4& operator-=(const real4& b) { *this = *this - b; return *this; }
+   inline real4& operator*=(const real4& b) { *this = *this * b; return *this; }
+   inline real4& operator/=(const real4& b) { *this = *this / b; return *this; }
+
+   inline real4& operator+=(real b) { *this = *this + b; return *this; }
+   inline real4& operator-=(real b) { *this = *this - b; return *this; }
+   inline real4& operator*=(real b) { *this = *this * b; return *this; }
+   inline real4& operator/=(real b) { *this = *this / b; return *this; }
 
 };
 
@@ -96,7 +132,11 @@ typedef real4 quaternion;
 static inline quaternion inv(const quaternion &a) { return a.inv(); }
 
 static inline real4 operator ~ (real4 const & a) {
+#ifndef DISABLE_SSE
     return real4(change_sign<0,1,1,1>(a));
+#else
+    return real4(a.w,-a.x,-a.y,-a.z);
+#endif
 }
 
 
@@ -147,6 +187,7 @@ static inline quaternion mult_classic(const quaternion &qa, const quaternion &qb
 	return temp;
 }
 static inline quaternion mult(const quaternion &a, const quaternion &b) {
+#ifndef DISABLE_SSE
 		__m128 a1123 = _mm_shuffle_ps(a,a,0xE5);
 	    __m128 a2231 = _mm_shuffle_ps(a,a,0x7A);
 	    __m128 b1000 = _mm_shuffle_ps(b,b,0x01);
@@ -162,6 +203,14 @@ static inline quaternion mult(const quaternion &a, const quaternion &b) {
 	    __m128 t0    = _mm_mul_ps(a0000, b);
 	    __m128 t03   = _mm_sub_ps(t0, t3);
 	    return         _mm_add_ps(t03, t12m);
+#else
+	    quaternion temp;
+	    temp.w = a.w * b.w - a.x * b.x - a.y * b.y - a.z * b.z;
+	    temp.x = a.w * b.x + a.x * b.w - a.z * b.y + a.y * b.z;
+	    temp.y = a.w * b.y + a.y * b.w + a.z * b.x - a.x * b.z;
+	    temp.z = a.w * b.z + a.z * b.w - a.y * b.x + a.x * b.y;
+	    return temp;
+#endif
 }
 
 static inline quaternion lerp(const quaternion &a, const quaternion &b, real alpha) {
