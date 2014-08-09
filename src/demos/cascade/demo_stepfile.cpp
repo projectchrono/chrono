@@ -97,8 +97,8 @@ int main(int argc, char* argv[])
 		// print the contained shapes
 	mydoc.Dump(GetLog());
 
-	ChCollisionModel::SetDefaultSuggestedEnvelope(0.002);
-	ChCollisionModel::SetDefaultSuggestedMargin(0.001);
+	collision::ChCollisionModel::SetDefaultSuggestedEnvelope(0.002);
+	collision::ChCollisionModel::SetDefaultSuggestedMargin(0.001);
 
 	// In most CADs the Y axis is horizontal, but we want it vertical.
 	// So define a root transformation for rotating all the imported objects.

@@ -99,13 +99,13 @@ int main(int argc, char* argv[])
 
 
 		// load the STEP model using this command:
-	bool load_ok = mydoc.Load_STEP("..\\data\\cascade\\IRB7600_23_500_m2000_rev1_01_decorated.stp");
+	bool load_ok = mydoc.Load_STEP("../data/cascade/IRB7600_23_500_m2000_rev1_01_decorated.stp");
 
 		// print the contained shapes
 	mydoc.Dump(GetLog());
 
-	ChCollisionModel::SetDefaultSuggestedEnvelope(0.002);
-	ChCollisionModel::SetDefaultSuggestedMargin(0.001);
+	collision::ChCollisionModel::SetDefaultSuggestedEnvelope(0.002);
+	collision::ChCollisionModel::SetDefaultSuggestedMargin(0.001);
 
 	// In most CADs the Y axis is horizontal, but we want it vertical.
 	// So define a root transformation for rotating all the imported objects.
@@ -432,7 +432,7 @@ int main(int argc, char* argv[])
 	motlaw_z3->Set_h( 0.7);
 	motlaw_z3->Set_end(1);
 	ChFunction_Const*	 motlaw_z4 = new ChFunction_Const();
-	ChFunction_Sequence* motlaw_z_seq = new ChFunction_Sequence();
+	ChSharedPtr<ChFunction_Sequence> motlaw_z_seq(new ChFunction_Sequence);
 	motlaw_z_seq->InsertFunct(motlaw_z1, 1,  1, true); 
 	motlaw_z_seq->InsertFunct(motlaw_z2, 1,  1, true);  // true = force c0 continuity, traslating fx
 	motlaw_z_seq->InsertFunct(motlaw_z3, 1,  1, true);
@@ -449,7 +449,7 @@ int main(int argc, char* argv[])
 	ChFunction_ConstAcc* motlaw_y4 = new ChFunction_ConstAcc();
 	motlaw_y4->Set_h(0.6);
 	motlaw_y4->Set_end(1);
-	ChFunction_Sequence* motlaw_y_seq = new ChFunction_Sequence();
+	ChSharedPtr<ChFunction_Sequence> motlaw_y_seq(new ChFunction_Sequence);
 	motlaw_y_seq->InsertFunct(motlaw_y1, 1,  1, true);
 	motlaw_y_seq->InsertFunct(motlaw_y2, 1,  1, true);  // true = force c0 continuity, traslating fx
 	motlaw_y_seq->InsertFunct(motlaw_y3, 1,  1, true);
