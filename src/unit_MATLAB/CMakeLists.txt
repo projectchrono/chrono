@@ -22,7 +22,14 @@ SET(CH_MATLABSDK         ""     CACHE PATH   "Where is your Matlab SDK installed
 
 SET(ChronoEngine_UNIT_MATLAB_HEADERS
   ChMatlabEngine.h
+  ChLcpMatlabSolver.h
 )
+
+SET(ChronoEngine_UNIT_MATLAB_SOURCES
+  ChMatlabEngine.cpp
+  ChLcpMatlabSolver.cpp
+)
+
 
 SET (CH_MATLABINC "${CH_MATLABSDK}/include")
 
@@ -53,5 +60,29 @@ ENDIF()
 
 SET (CH_MATLABINC    "${CH_MATLABINC}"    PARENT_SCOPE )
 SET (CH_MATLABLIB    "${CH_MATLABLIB}"    PARENT_SCOPE )
+
+INCLUDE_DIRECTORIES( ${CH_MATLABSDK}/include )
+
+ADD_LIBRARY(ChronoEngine_MATLAB SHARED 
+            ${ChronoEngine_UNIT_MATLAB_SOURCES}
+            ${ChronoEngine_UNIT_MATLAB_HEADERS})
+            
+SET_TARGET_PROPERTIES(ChronoEngine_MATLAB PROPERTIES
+            COMPILE_FLAGS "${CH_BUILDFLAGS}"
+            LINK_FLAGS "${CH_LINKERFLAG_SHARED}" 
+            COMPILE_DEFINITIONS "CH_API_COMPILE_UNIT_MATLAB")
+                          
+TARGET_LINK_LIBRARIES(ChronoEngine_MATLAB 
+    ChronoEngine
+    ${CH_MATLABLIB}
+    )
+    
+ADD_DEPENDENCIES (ChronoEngine_MATLAB ChronoEngine)  # better, because not automatic
+
+INSTALL(TARGETS ChronoEngine_MATLAB
+    RUNTIME DESTINATION bin
+    LIBRARY DESTINATION lib
+    ARCHIVE DESTINATION lib
+)       
 
 INSTALL(FILES ${ChronoEngine_UNIT_MATLAB_HEADERS} DESTINATION include/chrono/unit_MATLAB)

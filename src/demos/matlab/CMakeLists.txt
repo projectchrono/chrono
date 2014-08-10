@@ -15,7 +15,8 @@ SET_TARGET_PROPERTIES(demo_matlab PROPERTIES
 	)
 TARGET_LINK_LIBRARIES(demo_matlab
 	${CH_MATLABLIB}
- 	ChronoEngine)
+ 	ChronoEngine
+ 	ChronoEngine_MATLAB)
 ADD_DEPENDENCIES (demo_matlab ChronoEngine)
 
 
@@ -27,7 +28,8 @@ SET_TARGET_PROPERTIES(demo_chfunctions_plot PROPERTIES
 	)
 TARGET_LINK_LIBRARIES(demo_chfunctions_plot
 	${CH_MATLABLIB}
- 	ChronoEngine)
+ 	ChronoEngine
+ 	ChronoEngine_MATLAB)
 ADD_DEPENDENCIES (demo_chfunctions_plot ChronoEngine)
 
 
