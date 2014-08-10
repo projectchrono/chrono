@@ -306,10 +306,10 @@ namespace HACD
         bool                                        m_addFacesPoints;           //>! specifies whether to add faces points or not
         bool                                        m_addExtraDistPoints;       //>! specifies whether to add extra points for concave shapes or not
 
-        friend HACD * const                         CreateHACD(HeapManager * heapManager = 0);
+        friend HACD * const                         CreateHACD(HeapManager * heapManager);
         friend void                                 DestroyHACD(HACD * const hacd);
 	};
-    inline HACD * const CreateHACD(HeapManager * heapManager) 
+    inline HACD * const CreateHACD(HeapManager * heapManager = 0) 
     { 
         return new HACD(heapManager);
     }
