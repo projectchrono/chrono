@@ -260,6 +260,7 @@ IF (BUILD_CH_SDK)
 		core/ChMathematics.h
 		core/ChMatrix.h 
 		core/ChMemory.h 
+		core/ChMemorynomgr.h
 		core/ChPlatform.h
 		core/ChQuaternion.h
 		core/ChRunTimeType.h
