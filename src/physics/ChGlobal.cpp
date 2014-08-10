@@ -53,8 +53,11 @@ int GetUniqueIntID()
 #endif
 
 #if defined(__GNUC__)
-  static volatile int id = first_id;
-  return __sync_add_and_fetch(&id, 1);
+  #if defined(__APPLE__)
+  #else
+      static volatile int id = first_id;
+      return __sync_add_and_fetch(&id, 1);
+  #endif
 #endif
 }
 

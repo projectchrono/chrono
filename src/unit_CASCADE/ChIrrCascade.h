@@ -55,6 +55,7 @@ class ChBodySceneNodeAuxRef : public scene::ISceneNode
 
 	// Chrono Engine specific data
 	chrono::ChSharedPtr<chrono::ChBodyAuxRef>* bodyp;
+	int body_identifier;
 	bool ChronoControlled;
 
 public:
@@ -186,21 +187,21 @@ public:
 				core::matrix4 irrMat;
 
 				// Get the rigid body actual rotation, as a 3x3 matrix [A]
-				chrono::ChMatrix33<>* chMat = GetBody()->GetFrame_REF_to_abs().GetA();
+				chrono::ChMatrix33<> chMat = GetBody()->GetFrame_REF_to_abs().GetA();
 				
 				// Fill the upper 3x3 submatrix with the [A] matrix
 				// transposed, since Irrlicht uses the row-major style as in D3D
-				irrMat[0] = (irr::f32)chMat->GetElementN(0);
-				irrMat[1] = (irr::f32)chMat->GetElementN(3);
-				irrMat[2] = (irr::f32)chMat->GetElementN(6);
+				irrMat[0] = (irr::f32)chMat.GetElementN(0);
+				irrMat[1] = (irr::f32)chMat.GetElementN(3);
+				irrMat[2] = (irr::f32)chMat.GetElementN(6);
 
-				irrMat[4] = (irr::f32)chMat->GetElementN(1);
-				irrMat[5] = (irr::f32)chMat->GetElementN(4);
-				irrMat[6] = (irr::f32)chMat->GetElementN(7);
+				irrMat[4] = (irr::f32)chMat.GetElementN(1);
+				irrMat[5] = (irr::f32)chMat.GetElementN(4);
+				irrMat[6] = (irr::f32)chMat.GetElementN(7);
 				
-				irrMat[8] = (irr::f32)chMat->GetElementN(2);
-				irrMat[9] = (irr::f32)chMat->GetElementN(5);
-				irrMat[10]= (irr::f32)chMat->GetElementN(8);
+				irrMat[8] = (irr::f32)chMat.GetElementN(2);
+				irrMat[9] = (irr::f32)chMat.GetElementN(5);
+				irrMat[10]= (irr::f32)chMat.GetElementN(8);
 
 				irrMat[12]= (irr::f32)GetBody()->GetFrame_REF_to_abs().GetPos().x;
 				irrMat[13]= (irr::f32)GetBody()->GetFrame_REF_to_abs().GetPos().y;
@@ -367,13 +368,12 @@ ISceneNode* addChBodySceneNode_Cascade_C(chrono::ChSystem* asystem,
 	double mmass;
 	chrono::cascade::ChCascadeDoc::GetVolumeProperties(objshape, density, mcog, minertiaXX, minertiaXY, mvol, mmass); 
 
-	chrono::ChFrame<> frame_cog_to_ref;
-	frame_cog_to_ref.SetPos(mcog);
-	frame_cog_to_ref.SetRot(chrono::QUNIT);
 
 	ChBodySceneNodeAuxRef* mbody = (ChBodySceneNodeAuxRef*)addChBodySceneNode_Cascade_A(asystem, amanager, objshape, frame_ref_to_abs.GetPos(), frame_ref_to_abs.GetRot(), mmass, minertiaXX, minertiaXY, aparent, mid);
 
-	mbody->GetBody()->SetFrame_COG_to_REF(frame_cog_to_ref);
+	chrono::ChFrame<>* frame_cog_to_ref = (chrono::ChFrame<>*)mbody->GetBody().get_ptr();
+	frame_cog_to_ref->SetPos(mcog);
+	frame_cog_to_ref->SetRot(chrono::QUNIT);
 
 	return mbody;
 }
