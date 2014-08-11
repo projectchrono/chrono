@@ -86,7 +86,7 @@ int main(int argc, char* argv[])
 
 		my_system.Set_G_acc(ChVector<>(0,0,0));
 		my_system.SetIterLCPmaxItersSpeed(20);
-		my_system.SetLcpSolverType(ChSystem::eCh_lcpSolver::LCP_ITERATIVE_BARZILAIBORWEIN);
+		my_system.SetLcpSolverType(ChSystem::LCP_ITERATIVE_BARZILAIBORWEIN);
 
 		// 2) Add a socket framework object
 		ChSocketFramework socket_tools;
