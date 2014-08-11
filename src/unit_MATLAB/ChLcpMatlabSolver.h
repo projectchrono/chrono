@@ -92,4 +92,7 @@ class ChApiMatlab ChLcpMatlabSolver : public ChLcpSolver {
    }
 };
 
-}
+} // END_OF_NAMESPACE____
+
+#endif
+
