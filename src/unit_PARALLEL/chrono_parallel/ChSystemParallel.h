@@ -42,6 +42,7 @@ CH_RTTI(ChSystemParallel, ChSystem)
 
  public:
    ChSystemParallel(unsigned int max_objects);
+   ~ChSystemParallel();
 
    virtual int Integrate_Y();
 
@@ -111,20 +112,17 @@ CH_RTTI(ChSystemParallel, ChSystem)
 
  private:
 
-   unsigned int counter;
-   double timer_collision;
-   std::list<ChLink *>::iterator it;
+   double timer_collision, old_timer, old_timer_cd;
 
    bool use_aabb_active;
+   bool detect_optimal_threads, perform_thread_tuning, perform_bin_tuning;
    real3 aabb_min, aabb_max;
 
    int max_threads, current_threads, min_threads;
-   vector<double> timer_accumulator, cd_accumulator;
-   double old_timer, old_timer_cd;
-   bool detect_optimal_threads, perform_thread_tuning, perform_bin_tuning;
    int detect_optimal_bins;
-   uint frame_threads;
-   uint frame_bins;
+   vector<double> timer_accumulator, cd_accumulator;
+   uint frame_threads, frame_bins, counter;
+   std::list<ChLink *>::iterator it;
 };
 
 class CH_PARALLEL_API ChSystemParallelDVI : public ChSystemParallel {

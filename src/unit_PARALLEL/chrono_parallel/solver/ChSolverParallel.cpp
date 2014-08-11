@@ -7,7 +7,6 @@ void ChSolverParallel::Setup(
    data_container = data_container_;
    Initialize();
 
-
    // Ensure that the size of the data structures is equal to the current number
    // of rigid bodies. New bodies could have been added in between time steps.
    data_container->host_data.QXYZ_data.resize(num_bodies);

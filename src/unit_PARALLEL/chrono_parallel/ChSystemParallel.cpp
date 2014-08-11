@@ -52,6 +52,10 @@ ChSystemParallel::ChSystemParallel(
 
 }
 
+ChSystemParallel::~ChSystemParallel(){
+   delete data_manager;
+}
+
 int ChSystemParallel::Integrate_Y() {
    max_threads = this->GetParallelThreadNumber();
    data_manager->system_timer.Reset();

@@ -69,7 +69,8 @@ void ChSystemParallelDVI::UpdateBodies() {
       bodylist[i]->VariablesQbLoadSpeed();
 
       bodylist[i]->UpdateMarkers(ChTime);
-      bodylist[i]->InjectVariables(*this->LCP_descriptor);
+      //because the loop is running in parallel, this cannot be run (not really needed anyways)
+      //bodylist[i]->InjectVariables(*this->LCP_descriptor);
 
       ChMatrix33<> inertia = bodylist[i]->VariablesBody().GetBodyInvInertia();
       vel_pointer[i] = (R3(bodylist[i]->Variables().Get_qb().ElementN(0), bodylist[i]->Variables().Get_qb().ElementN(1), bodylist[i]->Variables().Get_qb().ElementN(2)));
@@ -147,8 +148,7 @@ void ChSystemParallelDVI::AssembleSystem(ChLcpSystemDescriptor* sys_descriptor) 
    collision_system->Run();
    collision_system->ReportContacts(this->contact_container);
 
-   ChContactContainerBase* mcontactcontainer = new ChContactContainer();
-   mcontactcontainer->BeginAddContact();
+   this->contact_container->BeginAddContact();
    chrono::collision::ChCollisionInfo icontact;
    for (int i = 0; i < data_manager->num_contacts; i++) {
       int2 cd_pair = data_manager->host_data.bids_rigid_rigid[i];
@@ -159,10 +159,10 @@ void ChSystemParallelDVI::AssembleSystem(ChLcpSystemDescriptor* sys_descriptor) 
       icontact.vpA = ToChVector(data_manager->host_data.cpta_rigid_rigid[i] + data_manager->host_data.pos_data[cd_pair.x]);
       icontact.vpB = ToChVector(data_manager->host_data.cptb_rigid_rigid[i] + data_manager->host_data.pos_data[cd_pair.y]);
       icontact.distance = data_manager->host_data.dpth_rigid_rigid[i];
-      mcontactcontainer->AddContact(icontact);
+      this->contact_container->AddContact(icontact);
 
    }
-   mcontactcontainer->EndAddContact();
+   this->contact_container->EndAddContact();
 
    {
       std::list<ChLink*>::iterator iterlink = linklist.begin();
@@ -175,10 +175,10 @@ void ChSystemParallelDVI::AssembleSystem(ChLcpSystemDescriptor* sys_descriptor) 
          (*ibody)->VariablesFbReset();
          ibody++;
       }
-      mcontactcontainer->ConstraintsBiReset();
+      this->contact_container->ConstraintsBiReset();
    }
 
-   Assemble_load(true,                           // Cq,
+   LCPprepare_load(true,                           // Cq,
          true,                           // adds [M]*v_old to the known vector
          step,                           // f*dt
          step * step,                           // dt^2*K  (nb only non-Schur based solvers support K matrix blocks)
@@ -187,19 +187,19 @@ void ChSystemParallelDVI::AssembleSystem(ChLcpSystemDescriptor* sys_descriptor) 
          1.0,                           // Ct   (needed, for rheonomic motors)
          1.0 / step,                           // C/dt
          max_penetration_recovery_speed,                           // vlim, max penetrations recovery speed (positive for exiting)
-         true,                           // do above max. clamping on -C/dt
-         mcontactcontainer);
+         true                           // do above max. clamping on -C/dt
+         );
 
-   sys_descriptor->BeginInsertion();
+   this->LCP_descriptor->BeginInsertion();
    for (int i = 0; i < bodylist.size(); i++) {
-      bodylist[i]->InjectVariables(*sys_descriptor);
+      bodylist[i]->InjectVariables(*this->LCP_descriptor);
    }
    std::list<ChLink *>::iterator it;
    for (it = linklist.begin(); it != linklist.end(); it++) {
-      (*it)->InjectConstraints(*sys_descriptor);
+      (*it)->InjectConstraints(*this->LCP_descriptor);
    }
-   mcontactcontainer->InjectConstraints(*sys_descriptor);
-   sys_descriptor->EndInsertion();
+   this->contact_container->InjectConstraints(*this->LCP_descriptor);
+   this->LCP_descriptor->EndInsertion();
 
 }
 

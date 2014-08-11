@@ -47,6 +47,7 @@ class CH_PARALLEL_API ChLcpSolverParallel : public ChLcpIterativeSolver {
    }
 
    virtual ~ChLcpSolverParallel() {
+
    }
 
    virtual double Solve(
@@ -110,6 +111,10 @@ class CH_PARALLEL_API ChLcpSolverParallelDVI : public ChLcpSolverParallel {
 
       solver = new ChSolverAPGD();
 
+   }
+
+   ~ChLcpSolverParallelDVI() {
+      delete solver;
    }
 
    virtual void RunTimeStep(

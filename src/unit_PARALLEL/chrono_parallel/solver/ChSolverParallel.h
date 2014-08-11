@@ -41,7 +41,9 @@ class CH_PARALLEL_API ChSolverParallel : public ChBaseParallel {
       update_rhs = false;
       verbose = false;
    }
+   ~ChSolverParallel() {
 
+   }
    // At the beginning of the step reset the size/indexing variables,
    // resize for new contact list and clear temporary accumulation variables
    void Setup(ChParallelDataManager *data_container_  //pointer to data container
