@@ -39,27 +39,45 @@ void SetFirstIntID(int val)
   first_id = val;
 }
 
-// Obtain a unique identifier (thread-safe)
+// Obtain a unique identifier (thread-safe; platform-dependent)
+#if defined(__GCC_HAVE_SYNC_COMPARE_AND_SWAP_4)
+
 int GetUniqueIntID()
 {
-#if defined(_WIN32) || defined(_WIN64)
+  static volatile int id = first_id;
+  return __sync_add_and_fetch(&id, 1);
+}
+
+#elif defined(_WIN32)
+
+int GetUniqueIntID()
+{
   volatile static long id = first_id;
   return (int)InterlockedIncrement(&id);
-#endif
+}
 
-#if defined(__APPLE__)
+#elif defined(_WIN64)
+
+int GetUniqueIntID()
+{
+  volatile static long long id = first_id;
+  return (int)InterlockedIncrement64(&id);
+}
+
+#elif defined(__APPLE__)
+
+int GetUniqueIntID()
+{
   static volatile int32_t id = first_id;
   return (int)OSAtomicIncrement32Barrier(&id);
-#endif
-
-#if defined(__GNUC__)
-  #if defined(__APPLE__)
-  #else
-      static volatile int id = first_id;
-      return __sync_add_and_fetch(&id, 1);
-  #endif
-#endif
 }
+
+#else
+
+//// TODO
+#error "No support for atomic operations on current platform!"
+
+#endif
 
 
 // -----------------------------------------------------------------------------
