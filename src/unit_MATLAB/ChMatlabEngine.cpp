@@ -1,6 +1,6 @@
 #include "ChMatlabEngine.h"
 using namespace chrono;
-
+using namespace std;
 ChMatlabEngine::ChMatlabEngine() {
    if (!(ep = engOpen("-automation \0"))) {
       throw ChException("Can't start MATLAB engine");
@@ -18,13 +18,22 @@ Engine* ChMatlabEngine::GetEngine() {
    return ep;
 }
 
-/// Evaluate a Matlab instruction. If error happens while executing, returns false.
+/// Evaluate a Matlab instruction (as a char*). If error happens while executing, returns false.
 bool ChMatlabEngine::Eval(char* mstring) {
    if (engEvalString(ep, mstring) == 0)
       return true;
    else
       return false;
 }
+
+/// Evaluate a Matlab instruction (as a string). If error happens while executing, returns false.
+bool ChMatlabEngine::Eval(string mstring) {
+   if (engEvalString(ep, mstring.c_str()) == 0)
+      return true;
+   else
+      return false;
+}
+
 /// Set visibility of GUI matlab window.
 bool ChMatlabEngine::SetVisible(bool mvis) {
    if (engSetVisible(ep, mvis) == 0)

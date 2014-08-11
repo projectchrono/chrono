@@ -73,8 +73,12 @@ public:
       /// if you can use other functions of this class that 'wrap' it.)
    Engine* GetEngine();
 
-      /// Evaluate a Matlab instruction. If error happens while executing, returns false.
+      /// Evaluate a Matlab instruction (as a char*). If error happens while executing, returns false.
    bool Eval(char* mstring);
+
+     /// Evaluate a Matlab instruction (as a string). If error happens while executing, returns false.
+   bool Eval(std::string mstring);
+
       /// Set visibility of GUI matlab window.
    bool SetVisible(bool mvis);
 
