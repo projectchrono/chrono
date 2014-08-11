@@ -53,7 +53,7 @@ namespace chrono
 /// system that has no Matlab installed, a 'missing dll' error
 /// will pop up as soon as you try to start the program.
 
-class ChApiMatlab ChMatlabEngine
+  class ChApiMatlab ChMatlabEngine
 {
 private:
       //

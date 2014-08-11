@@ -21,6 +21,7 @@ ENDIF()
 SET(CH_MATLABSDK         ""     CACHE PATH   "Where is your Matlab SDK installed? Ex. C:/Programs/MATLAB/R2006b/extern. You must set this path to compile demos with Matlab interface.")
 
 SET(ChronoEngine_UNIT_MATLAB_HEADERS
+  ChApiMatlab.h
   ChMatlabEngine.h
   ChLcpMatlabSolver.h
 )
