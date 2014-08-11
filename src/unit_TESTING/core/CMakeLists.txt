@@ -3,6 +3,10 @@ INCLUDE_DIRECTORIES( ${CH_INCLUDES} )
 
 SET(TESTS
     test_ChVector
+    test_coords
+    test_math
+    test_sharedptr
+    #test_stream
 )
 
 FOREACH(PROGRAM ${TESTS})
