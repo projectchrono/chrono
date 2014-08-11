@@ -1,5 +1,7 @@
 #include "../ChTestConfig.h"
+#if defined(__APPLE__)
 #include <libkern/OSAtomic.h>
+#endif
 #include <iostream>
 using namespace std;
 using namespace chrono;
