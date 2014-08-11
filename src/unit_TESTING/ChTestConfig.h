@@ -24,5 +24,13 @@
 // ------------------------------------------------
 ///////////////////////////////////////////////////
 
+#ifndef CHTESTCONFIG_H
+#define CHTESTCONFIG_H
+
+#include "core/ChTimer.h"
+
 #define LOOPCOUNT 1000
 #define CYCLES 1000
+
+
+#endif
