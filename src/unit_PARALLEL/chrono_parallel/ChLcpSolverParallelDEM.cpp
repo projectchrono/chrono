@@ -9,6 +9,8 @@
 // http://projectchrono.org/license-chrono.txt.
 //
 // =============================================================================
+// Authors: Radu Serban
+// =============================================================================
 // Implementation of methods specific to the parallel DEM solver.
 //
 // These functions implement the basic time update for a multibody system using

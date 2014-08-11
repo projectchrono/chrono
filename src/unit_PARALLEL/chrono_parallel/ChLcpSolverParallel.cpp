@@ -7,8 +7,7 @@ using namespace chrono;
 // Kernel for adding invmass*force*step_size_const to body speed vector.
 // This kernel must be applied to the stream of the body buffer.
 // -----------------------------------------------------------------------------
-void function_addForces(
-                        int& index,
+void function_addForces(int& index,
                         bool* active,
                         real* mass,
                         real3* inertia,
@@ -24,8 +23,7 @@ void function_addForces(
    }
 }
 
-void ChLcpSolverParallel::host_addForces(
-                                         bool* active,
+void ChLcpSolverParallel::host_addForces(bool* active,
                                          real* mass,
                                          real3* inertia,
                                          real3* forces,
@@ -38,8 +36,7 @@ void ChLcpSolverParallel::host_addForces(
    }
 }
 
-void function_ComputeGyro(
-                          int& index,
+void function_ComputeGyro(int& index,
                           real3* omega,
                           real3* inertia,
                           real3* gyro,
@@ -51,8 +48,7 @@ void function_ComputeGyro(
    gyro[index] = gyr;
 }
 
-void ChLcpSolverParallel::host_ComputeGyro(
-                                           real3* omega,
+void ChLcpSolverParallel::host_ComputeGyro(real3* omega,
                                            real3* inertia,
                                            real3* gyro,
                                            real3* torque) {

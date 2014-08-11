@@ -1,20 +1,24 @@
-#ifndef CHC_LCPITERATIVESOLVERGPU_H
-#define CHC_LCPITERATIVESOLVERGPU_H
+// =============================================================================
+// PROJECT CHRONO - http://projectchrono.org
+//
+// Copyright (c) 2014 projectchrono.org
+// All right reserved.
+//
+// Use of this source code is governed by a BSD-style license that can be found
+// in the LICENSE file at the top level of the distribution and at
+// http://projectchrono.org/license-chrono.txt.
+//
+// =============================================================================
+// Authors: Hammad Mazhar
+// =============================================================================
+//
+// Description: This class calls the parallel solver, used as an intermediate
+// between chrono's solver interface and the parallel solver interface.
+// =============================================================================
 
-//////////////////////////////////////////////////
-//
-//   ChIterativeGPU.h
-//
-//   GPU LCP Solver
-//
-//   HEADER file for CHRONO,
-//   Multibody dynamics engine
-//
-// ------------------------------------------------
-//   Copyright:Alessandro Tasora / DeltaKnowledge
-//             www.deltaknowledge.com
-// ------------------------------------------------
-///////////////////////////////////////////////////
+#ifndef CHLCPSOLVERPARALLEL_H
+#define CHLCPSOLVERPARALLEL_H
+
 
 #include "lcp/ChLcpIterativeSolver.h"
 
@@ -50,12 +54,10 @@ class CH_PARALLEL_API ChLcpSolverParallel : public ChLcpIterativeSolver {
 
    }
 
-   virtual double Solve(
-                        ChLcpSystemDescriptor &sysd) {
+   virtual double Solve(ChLcpSystemDescriptor &sysd) {
       return 0;
    }
-   void host_addForces(
-                       bool* active,
+   void host_addForces(bool* active,
                        real *mass,
                        real3 *inertia,
                        real3 *forces,
@@ -63,23 +65,19 @@ class CH_PARALLEL_API ChLcpSolverParallel : public ChLcpIterativeSolver {
                        real3 *vel,
                        real3 *omega);
 
-   void host_ComputeGyro(
-                         real3 *omega,
+   void host_ComputeGyro(real3 *omega,
                          real3 *inertia,
                          real3 *gyro,
                          real3 *torque);
 
-   virtual void RunTimeStep(
-                            real step) = 0;
+   virtual void RunTimeStep(real step) = 0;
    void Preprocess();
 
-   void SetTolerance(
-                     real tol) {
+   void SetTolerance(real tol) {
       tolerance = tol;
    }
 
-   void SetMaxIterationBilateral(
-                                 uint max_iter) {
+   void SetMaxIterationBilateral(uint max_iter) {
       max_iter_bilateral = max_iter;
    }
    real GetResidual() {
@@ -117,17 +115,14 @@ class CH_PARALLEL_API ChLcpSolverParallelDVI : public ChLcpSolverParallel {
       delete solver;
    }
 
-   virtual void RunTimeStep(
-                            real step);
+   virtual void RunTimeStep(real step);
    void RunWarmStartPostProcess();
    void RunWarmStartPreprocess();
 
-   void SetCompliance(
-                      real a) {
+   void SetCompliance(real a) {
       data_container->alpha = a;
    }
-   void SetSolverType(
-                      GPUSOLVERTYPE type) {
+   void SetSolverType(GPUSOLVERTYPE type) {
       solver_type = type;
 
       if (this->solver) {
@@ -158,37 +153,29 @@ class CH_PARALLEL_API ChLcpSolverParallelDVI : public ChLcpSolverParallel {
       }
 
    }
-   void SetMaxIterationNormal(
-                              uint max_iter) {
+   void SetMaxIterationNormal(uint max_iter) {
       max_iter_normal = max_iter;
    }
-   void SetMaxIterationSliding(
-                               uint max_iter) {
+   void SetMaxIterationSliding(uint max_iter) {
       max_iter_sliding = max_iter;
    }
-   void SetMaxIterationSpinning(
-                                uint max_iter) {
+   void SetMaxIterationSpinning(uint max_iter) {
       max_iter_spinning = max_iter;
    }
-   void SetMaxIteration(
-                        uint max_iter) {
+   void SetMaxIteration(uint max_iter) {
       max_iteration = max_iter;
       max_iter_normal = max_iter_sliding = max_iter_spinning = max_iter_bilateral = max_iter;
    }
-   void SetContactRecoverySpeed(
-                                real recovery_speed) {
+   void SetContactRecoverySpeed(real recovery_speed) {
       data_container->contact_recovery_speed = fabs(recovery_speed);
    }
-   void DoStabilization(
-                        bool stab) {
+   void DoStabilization(bool stab) {
       do_stab = stab;
    }
-   void DoCollision(
-                    bool do_collision) {
+   void DoCollision(bool do_collision) {
       collision_inside = do_collision;
    }
-   void DoUpdateRHS(
-                    bool do_update_rhs) {
+   void DoUpdateRHS(bool do_update_rhs) {
       update_rhs = do_update_rhs;
    }
    ChSolverParallel *solver;
@@ -214,15 +201,13 @@ class CH_PARALLEL_API ChLcpSolverParallelDVI : public ChLcpSolverParallel {
 class CH_PARALLEL_API ChLcpSolverParallelDEM : public ChLcpSolverParallel {
  public:
 
-   ChLcpSolverParallelDEM(){
+   ChLcpSolverParallelDEM() {
       solver = new ChSolverAPGD();
    }
 
-   virtual void RunTimeStep(
-                            real step);
+   virtual void RunTimeStep(real step);
 
-   void SetMaxIteration(
-                        uint max_iter) {
+   void SetMaxIteration(uint max_iter) {
       max_iter_bilateral = max_iter;
    }
 
@@ -234,8 +219,7 @@ class CH_PARALLEL_API ChLcpSolverParallelDEM : public ChLcpSolverParallel {
                                custom_vector<real3>& ext_body_force,
                                custom_vector<real3>& ext_body_torque);
 
-   void host_AddContactForces(
-                              uint ct_body_count,
+   void host_AddContactForces(uint ct_body_count,
                               const custom_vector<int>& ct_body_id,
                               const custom_vector<real3>& ct_body_force,
                               const custom_vector<real3>& ct_body_torque);

@@ -1,3 +1,20 @@
+// =============================================================================
+// PROJECT CHRONO - http://projectchrono.org
+//
+// Copyright (c) 2014 projectchrono.org
+// All right reserved.
+//
+// Use of this source code is governed by a BSD-style license that can be found
+// in the LICENSE file at the top level of the distribution and at
+// http://projectchrono.org/license-chrono.txt.
+//
+// =============================================================================
+// Authors: Hammad Mazhar
+// =============================================================================
+//
+// Description: definition of a 3x3 matrix class
+// =============================================================================
+
 #ifndef MAT33_H
 #define MAT33_H
 
@@ -9,23 +26,15 @@
 struct M33 {
    real3 U, V, W;
    inline M33()
-         :
-           U(0),
-           V(0),
-           W(0) {
+         : U(0), V(0), W(0) {
    }
-   inline M33(
-         real3 u,
-         real3 v,
-         real3 w)
-         :
-           U(u),
-           V(v),
-           W(w) {
+   inline M33(real3 u,
+              real3 v,
+              real3 w)
+         : U(u), V(v), W(w) {
    }
 
-   inline M33 operator*(
-         const M33& B) const {
+   inline M33 operator*(const M33& B) const {
       M33 result;
       result.U.x = U.x * B.U.x + V.x * B.U.y + W.x * B.U.z;     //row1 * col1
       result.V.x = U.x * B.V.x + V.x * B.V.y + W.x * B.V.z;     //row1 * col2
@@ -42,8 +51,7 @@ struct M33 {
       return result;
    }
 
-   inline real3 operator*(
-         const real3& B) const {
+   inline real3 operator*(const real3& B) const {
       real3 result;
 
       result.x = U.x * B.x + V.x * B.y + W.x * B.z;     //row1 * col1
@@ -55,8 +63,7 @@ struct M33 {
 
 };
 
-static inline M33 XMatrix(
-      const real3 &vect) {
+static inline M33 XMatrix(const real3 &vect) {
    M33 Xmat;
    Xmat.U.x = 0;
    Xmat.V.x = -vect.z;
@@ -71,24 +78,21 @@ static inline M33 XMatrix(
    Xmat.W.z = 0;
    return Xmat;
 }
-static inline M33 MatMult(
-      const M33 & A,
-      const M33 &B) {
+static inline M33 MatMult(const M33 & A,
+                          const M33 &B) {
 
    return A * B;
 
 }
-static inline real3 MatMult(
-      const M33 &A,
-      const real3 &B) {
+static inline real3 MatMult(const M33 &A,
+                            const real3 &B) {
    return A * B;
 
 }
 
 //A is transposed
-static inline M33 MatTMult(
-      const M33 &A,
-      const M33 &B) {
+static inline M33 MatTMult(const M33 &A,
+                           const M33 &B) {
    M33 result;
    result.U.x = A.U.x * B.U.x + A.U.y * B.U.y + A.U.z * B.U.z;     //row1 * col1
    result.V.x = A.U.x * B.V.x + A.U.y * B.V.y + A.U.z * B.V.z;     //row1 * col2
@@ -106,9 +110,8 @@ static inline M33 MatTMult(
 }
 
 //B is transposed
-static inline M33 MatMultT(
-      const M33 &A,
-      const M33 &B) {
+static inline M33 MatMultT(const M33 &A,
+                           const M33 &B) {
    M33 result;
    result.U.x = A.U.x * B.U.x + A.V.x * B.V.x + A.W.x * B.W.x;     //row1 * col1
    result.V.x = A.U.x * B.U.y + A.V.x * B.V.y + A.W.x * B.W.y;     //row1 * col2
@@ -125,9 +128,8 @@ static inline M33 MatMultT(
    return result;
 }
 
-static inline real3 MatTMult(
-      const M33 &A,
-      const real3 &B) {
+static inline real3 MatTMult(const M33 &A,
+                             const real3 &B) {
    real3 result;
 
    result.x = A.U.x * B.x + A.U.y * B.y + A.U.z * B.z;     //row1 * col1
@@ -137,8 +139,7 @@ static inline real3 MatTMult(
    return result;
 }
 
-static inline M33 AMat(
-      const real4 &q) {
+static inline M33 AMat(const real4 &q) {
    M33 result;
 
    real e0e0 = q.w * q.w;
@@ -180,8 +181,7 @@ static inline M33 AMat(
 //[U.x,U.y,U.z]
 //[V.x,V.y,V.z]
 //[W.x,W.y,W.z]
-static inline M33 AMatT(
-      const real4 &q) {
+static inline M33 AMatT(const real4 &q) {
    M33 result;
 
    real e0e0 = q.w * q.w;
@@ -209,8 +209,7 @@ static inline M33 AMatT(
    return result;
 
 }
-static inline M33 AbsMat(
-      const M33 &A) {
+static inline M33 AbsMat(const M33 &A) {
    M33 result;
    result.U.x = fabs(A.U.x);
    result.U.y = fabs(A.U.y);
@@ -226,8 +225,7 @@ static inline M33 AbsMat(
 
 }
 
-static inline M33 Transpose(
-      const M33 &A) {
+static inline M33 Transpose(const M33 &A) {
 
    M33 result;
 
@@ -238,9 +236,8 @@ static inline M33 Transpose(
    return result;
 }
 
-static inline ostream &operator<<(
-      ostream &out,
-      const M33 &a) {
+static inline ostream &operator<<(ostream &out,
+                                  const M33 &a) {
    out << a.U << a.V << a.W << endl;
    return out;
 }

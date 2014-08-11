@@ -171,7 +171,7 @@ uint ChSolverAPGDRS::SolveAPGDRS(
             mg_tmp2[i] = _mg_tmp_ - _b_;
          }
          norm_ms = sqrt(norm_ms);
-         step_grow += .5;
+         //step_grow += .5;
 
          data_container->system_timer.stop("ChSolverParallel_solverE");
       }

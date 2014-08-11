@@ -2,8 +2,21 @@
 
 using namespace chrono;
 
-void ChSolverParallel::Setup(
-      ChParallelDataManager *data_container_) {
+ChSolverParallel::ChSolverParallel() {
+   tolerance = 1e-6;
+   max_iteration = 100;
+   total_iteration = 0;
+   current_iteration = 0;
+   collision_inside = false;
+   rigid_rigid = NULL;
+   bilateral = NULL;
+   update_rhs = false;
+   verbose = false;
+}
+ChSolverParallel::~ChSolverParallel() {
+
+}
+void ChSolverParallel::Setup(ChParallelDataManager *data_container_) {
    data_container = data_container_;
    Initialize();
 
@@ -23,16 +36,14 @@ void ChSolverParallel::Setup(
    }
 }
 
-void ChSolverParallel::Project(
-      real* gamma) {
+void ChSolverParallel::Project(real* gamma) {
    data_container->system_timer.start("ChSolverParallel_Project");
    rigid_rigid->Project(gamma);
    data_container->system_timer.stop("ChSolverParallel_Project");
 }
 //=================================================================================================================================
 
-void ChSolverParallel::shurA(
-      real* x) {
+void ChSolverParallel::shurA(real* x) {
 
 #pragma omp parallel for
    for (int i = 0; i < num_bodies; i++) {
@@ -49,9 +60,8 @@ void ChSolverParallel::shurA(
 }
 //=================================================================================================================================
 
-void ChSolverParallel::shurB(
-      real*x,
-      real*out) {
+void ChSolverParallel::shurB(real*x,
+                             real*out) {
    if (rigid_rigid) {
       rigid_rigid->ShurB(x, out);
    }
@@ -60,11 +70,11 @@ void ChSolverParallel::shurB(
 }
 
 void ChSolverParallel::ComputeSRhs(
-      custom_vector<real>& gamma,
-      const custom_vector<real>& rhs,
-      custom_vector<real3>& vel_data,
-      custom_vector<real3>& omg_data,
-      custom_vector<real>& b) {
+                                   custom_vector<real>& gamma,
+                                   const custom_vector<real>& rhs,
+                                   custom_vector<real3>& vel_data,
+                                   custom_vector<real3>& omg_data,
+                                   custom_vector<real>& b) {
    ComputeImpulses(gamma, vel_data, omg_data);
    rigid_rigid->ComputeS(rhs, vel_data, omg_data, b);
 
@@ -78,17 +88,17 @@ void ChSolverParallel::ComputeImpulses() {
 }
 
 void ChSolverParallel::ComputeImpulses(
-      custom_vector<real>& gamma,
-      custom_vector<real3>& vel_data,
-      custom_vector<real3>& omg_data) {
+                                       custom_vector<real>& gamma,
+                                       custom_vector<real3>& vel_data,
+                                       custom_vector<real3>& omg_data) {
    //shurA(gamma.data());
    vel_data = data_container->host_data.vel_data + data_container->host_data.QXYZ_data;
    omg_data = data_container->host_data.omg_data + data_container->host_data.QUVW_data;
 }
 
 void ChSolverParallel::ShurProduct(
-      custom_vector<real> &x,
-      custom_vector<real> & output) {
+                                   custom_vector<real> &x,
+                                   custom_vector<real> & output) {
 
    data_container->system_timer.start("ChSolverParallel_shurA");
    shurA(x.data());
@@ -101,14 +111,14 @@ void ChSolverParallel::ShurProduct(
 }
 //=================================================================================================================================
 void ChSolverParallel::ShurBilaterals(
-      custom_vector<real> &x,
-      custom_vector<real> & AX) {
+                                      custom_vector<real> &x,
+                                      custom_vector<real> & AX) {
    bilateral->ShurBilaterals(x, AX);
 }
 //=================================================================================================================================
 
 void ChSolverParallel::UpdatePosition(
-      custom_vector<real> &x) {
+custom_vector<real> &x) {
 
    if (rigid_rigid->solve_sliding == true || rigid_rigid->solve_spinning == true) {
       return;
@@ -216,11 +226,10 @@ void ChSolverParallel::UpdateContacts() {
 ////   }
 //}
 
-uint ChSolverParallel::SolveStab(
-      const uint max_iter,
-      const uint size,
-      const custom_vector<real> &mb,
-      custom_vector<real> &x) {
+uint ChSolverParallel::SolveStab(const uint max_iter,
+                                 const uint size,
+                                 const custom_vector<real> &mb,
+                                 custom_vector<real> &x) {
    uint N = mb.size();
    //	bool verbose = false;
    //	custom_vector<real> mr(N, 0), ml(N,0), mp(N,0), mz(N,0), mNMr(N,0), mNp(N,0), mMNp(N,0), mtmp(N,0);

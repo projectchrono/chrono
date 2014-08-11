@@ -30,20 +30,9 @@
 namespace chrono {
 class CH_PARALLEL_API ChSolverParallel : public ChBaseParallel {
  public:
-   ChSolverParallel() {
-      tolerance = 1e-6;
-      max_iteration = 100;
-      total_iteration = 0;
-      current_iteration = 0;
-      collision_inside = false;
-      rigid_rigid = NULL;
-      bilateral = NULL;
-      update_rhs = false;
-      verbose = false;
-   }
-   ~ChSolverParallel() {
+   ChSolverParallel();
+   ~ChSolverParallel();
 
-   }
    // At the beginning of the step reset the size/indexing variables,
    // resize for new contact list and clear temporary accumulation variables
    void Setup(ChParallelDataManager *data_container_  //pointer to data container
@@ -62,6 +51,7 @@ class CH_PARALLEL_API ChSolverParallel : public ChBaseParallel {
    void shurB(real* x,   //Vector that contains M_invDx
               real* out  //N*x
               );
+
    // Compute rhs value with relaxation term
    void ComputeSRhs(
                     custom_vector<real>& gamma,
@@ -82,8 +72,7 @@ class CH_PARALLEL_API ChSolverParallel : public ChBaseParallel {
    // Function that performs time integration to get the new positions
    // Used when contacts need to be updated within the solver
    // Function is similar to compute impulses
-   void UpdatePosition(
-   custom_vector<real>& x   //Lagrange multipliers
+   void UpdatePosition(custom_vector<real>& x   //Lagrange multipliers
    );
 
    // Rerun the narrowphase to get the new contact list, broadphase is not run again here
@@ -157,18 +146,18 @@ class CH_PARALLEL_API ChSolverParallel : public ChBaseParallel {
       max_iteration = max_iteration_value;
    }
 
-   int current_iteration;  // The current iteration number of the solver
+   int current_iteration; // The current iteration number of the solver
    int max_iteration;     // The maximum number of iterations that the solver will perform
    int total_iteration;   // The total number of iterations performed, this variable accumulates
-   real residual;        // Current residual for the solver
-   real tolerance;       // Solver tolerance
+   real residual;         // Current residual for the solver
+   real tolerance;        // Solver tolerance
 
    //These three variables are used to store the convergence history of the solver
    thrust::host_vector<real> maxd_hist, maxdeltalambda_hist, iter_hist;
 
    bool do_stab;           //There is an alternative velocity stab that can be performed in APGD, this enables that.
    bool collision_inside;
-   bool update_rhs;    //Updates the tilting term within the solve
+   bool update_rhs;        //Updates the tilting term within the solve
    bool verbose;
    ChConstraintRigidRigid *rigid_rigid;
    ChConstraintBilateral *bilateral;

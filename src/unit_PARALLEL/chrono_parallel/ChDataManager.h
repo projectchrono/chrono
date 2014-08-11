@@ -1,20 +1,26 @@
+// =============================================================================
+// PROJECT CHRONO - http://projectchrono.org
+//
+// Copyright (c) 2014 projectchrono.org
+// All right reserved.
+//
+// Use of this source code is governed by a BSD-style license that can be found
+// in the LICENSE file at the top level of the distribution and at
+// http://projectchrono.org/license-chrono.txt.
+//
+// =============================================================================
+// Authors: Hammad Mazhar
+// =============================================================================
+//
+// Description: This class contains manages all data associated with a parallel
+// System. Rather than passing in individual data parameters to different parts
+// of the code like the collision detection and the solver, passing a pointer to
+// a data manager is more convenient from a development perspective.
+// =============================================================================
+
+
 #ifndef CH_DATAMANAGER_H
 #define CH_DATAMANAGER_H
-
-//////////////////////////////////////////////////
-//
-//   ChParallelDataManager.h
-//
-//   Parallel Data Manager Class
-//
-//   HEADER file for CHRONO,
-//   Multibody dynamics engine
-//
-// ------------------------------------------------
-//   Copyright:Alessandro Tasora / DeltaKnowledge
-//             www.deltaknowledge.com
-// ------------------------------------------------
-///////////////////////////////////////////////////
 
 #include "chrono_parallel/ChParallelDefines.h"
 #include "chrono_parallel/math/ChParallelMath.h"
