@@ -85,7 +85,6 @@ HMMWV9_Vehicle::HMMWV9_Vehicle(ChSystem&            my_system,
     ChSharedPtr<ChTriangleMeshShape> trimesh_shape(new ChTriangleMeshShape);
     trimesh_shape->SetMesh(trimesh);
     trimesh_shape->SetName(m_chassisMeshName);
-    trimesh_shape->Pos = ChVector<>(0, 0, -0.3);
     m_chassis->AddAsset(trimesh_shape);
 
     break;
