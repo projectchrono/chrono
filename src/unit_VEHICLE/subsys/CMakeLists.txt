@@ -42,11 +42,13 @@ SET(Chrono_Driver_SOURCES
 SET(Chrono_Powertrain_HEADERS
     powertrain/ChSimplePowertrain.h
     powertrain/ChShaftsPowertrain.h
+    powertrain/ChShaftsPowertrain4wd.h
 )
 
 SET(Chrono_Powertrain_SOURCES
     powertrain/ChSimplePowertrain.cpp
     powertrain/ChShaftsPowertrain.cpp
+    powertrain/ChShaftsPowertrain4wd.cpp
 )
 
 IF (ENABLE_IRRLICHT)
