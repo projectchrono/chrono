@@ -67,10 +67,13 @@ private:
   void renderLinks();
   void renderGrid();
   void renderStats();
-  void renderLinGauge(std::string& msg,
+  void renderLinGauge(const std::string& msg,
                       double factor, bool sym,
                       int xpos, int ypos,
                       int length = 120, int height = 15);
+  void renderTextBox(const std::string& msg,
+                     int xpos, int ypos,
+                     int length = 120, int height = 15);
 
   irr::ChIrrAppInterface&   m_app;
   const ChVehicle&          m_car;

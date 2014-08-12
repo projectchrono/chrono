@@ -67,10 +67,14 @@ bool ChIrrGuiDriver::OnEvent(const SEvent& event)
     case KEY_UP:
       m_camera.Zoom(-1);
       return true;
+    case KEY_LEFT:
+      m_camera.Turn(1);
+      return true;
+    case KEY_RIGHT:
+      m_camera.Turn(-1);
+      return true;
     }
   } else {
-    char msg[100];
-
     switch (event.KeyInput.Key) {
     case KEY_KEY_A:
       setSteering(m_steering - 0.1);
@@ -187,7 +191,7 @@ void ChIrrGuiDriver::renderGrid()
                        true);
 }
 
-void ChIrrGuiDriver::renderLinGauge(std::string& msg,
+void ChIrrGuiDriver::renderLinGauge(const std::string& msg,
                                     double factor, bool sym,
                                     int xpos, int ypos,
                                     int length, int height)
@@ -198,8 +202,8 @@ void ChIrrGuiDriver::renderLinGauge(std::string& msg,
             irr::core::rect<s32>(xpos,ypos, xpos+length, ypos+height),
             &mclip);
 
-  int left  = sym ? (length/2 - 2) * std::min<>(factor,0.0) + length/2 : 2;
-  s32 right = sym ? (length/2 - 2) * std::max<>(factor,0.0) + length/2 : (length - 4)*factor + 2;
+  int left  = sym ? (int)((length/2 - 2) * std::min<>(factor,0.0) + length/2) : 2;
+  int right = sym ? (int)((length/2 - 2) * std::max<>(factor,0.0) + length/2) : (int)((length - 4)*factor + 2);
 
   m_app.GetVideoDriver()->draw2DRectangle(
             irr::video::SColor(255,250,200,00),
@@ -212,10 +216,28 @@ void ChIrrGuiDriver::renderLinGauge(std::string& msg,
              irr::video::SColor(255,20,20,20));
 }
 
+void ChIrrGuiDriver::renderTextBox(const std::string& msg,
+                                   int xpos, int ypos,
+                                   int length, int height)
+{
+  irr::core::rect<s32> mclip(xpos, ypos, xpos + length, ypos + height);
+  m_app.GetVideoDriver()->draw2DRectangle(
+    irr::video::SColor(90, 60, 60, 60),
+    irr::core::rect<s32>(xpos, ypos, xpos + length, ypos + height),
+    &mclip);
+
+  irr::gui::IGUIFont* font = m_app.GetIGUIEnvironment()->getBuiltInFont();
+  font->draw(msg.c_str(),
+    irr::core::rect<s32>(xpos + 3, ypos + 3, xpos + length, ypos + height),
+    irr::video::SColor(255, 20, 20, 20));
+}
 
 void ChIrrGuiDriver::renderStats()
 {
   char msg[100];
+
+  sprintf(msg, "Camera mode: %s", m_camera.GetStateName());
+  renderTextBox(std::string(msg), m_HUD_x, m_HUD_y + 10, 120, 15);
 
   sprintf(msg, "Steering: %+.2f", m_steering);
   renderLinGauge(std::string(msg), m_steering, true, m_HUD_x, m_HUD_y + 40, 120, 15);

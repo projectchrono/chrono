@@ -67,7 +67,7 @@ double step_size = 0.001;
 
 #ifdef USE_IRRLICHT
   // Point on chassis tracked by the camera
-  ChVector<> trackPoint(0.5, 0, 1.0);
+  ChVector<> trackPoint(0.0, 0, 1.0);
 #else
   double tend = 20.0;
   int out_fps = 30;

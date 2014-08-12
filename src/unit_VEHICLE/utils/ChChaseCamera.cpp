@@ -36,6 +36,7 @@ namespace utils {
 // -----------------------------------------------------------------------------
 
 const double ChChaseCamera::m_maxTrackDist2 = 100 * 100;
+const std::string ChChaseCamera::m_stateNames[] = { "Chase", "Follow", "Track" };
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
@@ -60,10 +61,21 @@ void ChChaseCamera::Initialize(const ChVector<>& ptOnChassis,
   m_ptOnChassis = ptOnChassis;
   m_dist = chaseDist;
   m_height = chaseHeight;
+  m_angle = 0;
 
   ChVector<> localOffset(chaseDist, 0, chaseHeight);
   m_loc = m_chassis->GetCoord().TrasformLocalToParent(localOffset);
   m_lastLoc = m_loc;
+}
+
+// -----------------------------------------------------------------------------
+// -----------------------------------------------------------------------------
+void ChChaseCamera::SetState(State s)
+{
+  m_lastLoc = m_loc;
+  m_state = s;
+  if (m_state == Chase)
+    m_angle = 0;
 }
 
 // -----------------------------------------------------------------------------
@@ -77,6 +89,19 @@ void ChChaseCamera::Zoom(int val)
     m_mult /= 1.01;
   else if (val > 0 && m_mult < m_maxMult)
     m_mult *= 1.01;
+}
+
+// -----------------------------------------------------------------------------
+// -----------------------------------------------------------------------------
+void ChChaseCamera::Turn(int val)
+{
+  if (val == 0 || m_state != Chase)
+    return;
+
+  if (val < 0 && m_angle > -0.75 * CH_C_PI)
+    m_angle -= CH_C_PI / 100;
+  else if (val > 0 && m_angle < 0.75 * CH_C_PI)
+    m_angle += CH_C_PI / 100;
 }
 
 // -----------------------------------------------------------------------------
@@ -107,8 +132,10 @@ ChVector<> ChChaseCamera::calcDeriv(const ChVector<>& loc)
 
   if (m_state == Follow)
     uC2T = targetLoc - m_loc;
-  else
-    uC2T = -m_chassis->GetA()->Get_A_Xaxis();
+  else {
+    ChQuaternion<> rot = Q_from_AngAxis(m_angle, ChVector<>(0, 0, 1));
+    uC2T = rot.Rotate(-m_chassis->GetA()->Get_A_Xaxis());
+  }
 
   uC2T.z = 0;
   uC2T.Normalize();
@@ -117,7 +144,7 @@ ChVector<> ChChaseCamera::calcDeriv(const ChVector<>& loc)
   desCamLoc.z = targetLoc.z + m_mult * m_height;
 
   // Calculate the derivative vector (RHS of filter ODEs).
-  ChVector<>deriv;
+  ChVector<> deriv;
 
   deriv.x = m_horizGain * (desCamLoc.x - m_loc.x);
   deriv.y = m_horizGain * (desCamLoc.y - m_loc.y);

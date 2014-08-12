@@ -55,16 +55,18 @@ public:
   void Update(double step);
 
   void Zoom(int val);
+  void Turn(int val);
+  void SetState(State s);
 
-  State GetState() const                 { return m_state; }
-  const ChVector<>& GetCameraPos() const { return (m_state == Track) ? m_lastLoc : m_loc; }
-  ChVector<> GetTargetPos() const        { return m_chassis->GetCoord().TrasformLocalToParent(m_ptOnChassis); }
+  State GetState() const                  { return m_state; }
+  const std::string& GetStateName() const { return m_stateNames[m_state]; }
+  const ChVector<>& GetCameraPos() const  { return (m_state == Track) ? m_lastLoc : m_loc; }
+  ChVector<> GetTargetPos() const         { return m_chassis->GetCoord().TrasformLocalToParent(m_ptOnChassis); }
 
-  void SetState(State s)                 { m_lastLoc = m_loc; m_state = s; }
-  void SetHorizGain(double g)            { m_horizGain = g; }
-  void SetVertGain(double g)             { m_vertGain = g; }
+  void SetHorizGain(double g)             { m_horizGain = g; }
+  void SetVertGain(double g)              { m_vertGain = g; }
   void SetMultLimits(double minMult,
-                     double maxMult)     { m_minMult = minMult; m_maxMult = maxMult; }
+                     double maxMult)      { m_minMult = minMult; m_maxMult = maxMult; }
 
 private:
   ChVector<> calcDeriv(const ChVector<>& loc);
@@ -76,6 +78,7 @@ private:
   double m_dist;
   double m_height;
   double m_mult;
+  double m_angle;
 
   ChVector<> m_loc;
   ChVector<> m_lastLoc;
@@ -86,6 +89,7 @@ private:
   double m_maxMult;
 
   static const double m_maxTrackDist2;
+  static const std::string  m_stateNames[3];
 };
 
 
