@@ -59,6 +59,11 @@ IF (ENABLE_IRRLICHT)
     SET(Chrono_Driver_SOURCES ${Chrono_Driver_SOURCES}
         driver/ChIrrGuiDriver.cpp
     )
+
+    # On Windows, disable warning C4275 
+    IF(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
+        SET(CH_BUILDFLAGS "${CH_BUILDFLAGS} /wd4275")
+    ENDIF()
 ENDIF()
 
 SOURCE_GROUP("Header Files" FILES ${Chrono_Subsys_HEADERS})

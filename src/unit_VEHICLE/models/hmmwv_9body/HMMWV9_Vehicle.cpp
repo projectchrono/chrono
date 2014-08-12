@@ -85,7 +85,6 @@ HMMWV9_Vehicle::HMMWV9_Vehicle(ChSystem&            my_system,
     ChSharedPtr<ChTriangleMeshShape> trimesh_shape(new ChTriangleMeshShape);
     trimesh_shape->SetMesh(trimesh);
     trimesh_shape->SetName(m_chassisMeshName);
-    trimesh_shape->Pos = ChVector<>(0, 0, -0.3);
     m_chassis->AddAsset(trimesh_shape);
 
     break;
@@ -158,6 +157,8 @@ const ChVector<>& HMMWV9_Vehicle::GetWheelPos(ChWheelId which) const
     return m_rear_left_susp->GetSpindlePos();
   case REAR_RIGHT:
     return m_rear_right_susp->GetSpindlePos();
+  default:
+    return m_front_left_susp->GetSpindlePos();  // should not happen
   }
 }
 
@@ -172,6 +173,8 @@ const ChQuaternion<>& HMMWV9_Vehicle::GetWheelRot(ChWheelId which) const
     return m_rear_left_susp->GetSpindleRot();
   case REAR_RIGHT:
     return m_rear_right_susp->GetSpindleRot();
+  default:
+    return m_front_left_susp->GetSpindleRot();  // should not happen
   }
 }
 
@@ -186,6 +189,8 @@ double HMMWV9_Vehicle::GetWheelAngSpeed(ChWheelId which)
     return m_rear_left_susp->GetSpindleAngSpeed();
   case REAR_RIGHT:
     return m_rear_right_susp->GetSpindleAngSpeed();
+  default:
+    return -1;  // should not happen
   }
 }
 
