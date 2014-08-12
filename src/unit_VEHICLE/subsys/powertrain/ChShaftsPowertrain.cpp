@@ -193,7 +193,7 @@ void ChShaftsPowertrain::Initialize(ChSharedPtr<ChBody> chassis,
   my_system->Add(m_rear_differential);
 
 
-  // CREATE  a connection between the motor block and the 3D rigid body that
+  // CREATE  a connection between the 1D spindle shaft and the 3D rigid body that
   // represents the LEFT spindle 
   m_shaft_rear_L_axle_to_body = ChSharedPtr<ChShaftsBody>(new ChShaftsBody);
   m_shaft_rear_L_axle_to_body->Initialize(
@@ -203,7 +203,7 @@ void ChShaftsPowertrain::Initialize(ChSharedPtr<ChBody> chassis,
   my_system->Add(m_shaft_rear_L_axle_to_body);
 
 
-  // CREATE  a connection between the motor block and the 3D rigid body that
+  // CREATE  a connection between the 1D spindle shaft and the 3D rigid body that
   // represents the RIGHT spindle 
   m_shaft_rear_R_axle_to_body = ChSharedPtr<ChShaftsBody>(new ChShaftsBody);
   m_shaft_rear_R_axle_to_body->Initialize(
