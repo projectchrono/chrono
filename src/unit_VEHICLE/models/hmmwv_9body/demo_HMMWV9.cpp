@@ -162,14 +162,19 @@ int main(int argc, char* argv[])
   application.SetTimestep(step_size);
   application.SetTryRealtime(true);
 
+  int simul_substep = 0;
+  int simul_substeps_num = 20;  // Refresh 3D view only each N simulation steps
+
   while (application.GetDevice()->run())
   {
     // Render scene
-    application.GetVideoDriver()->beginScene(true, true, irr::video::SColor(255, 140, 161, 192));
+	if (!simul_substep)
+		application.GetVideoDriver()->beginScene(true, true, irr::video::SColor(255, 140, 161, 192));
 
     driver.UpdateCamera(step_size);
 
-    driver.DrawAll();
+	if (!simul_substep)
+		driver.DrawAll();
 
     // Update subsystems 
     double time = m_system.GetChTime();
@@ -184,7 +189,12 @@ int main(int argc, char* argv[])
 	// and it also manages to save screenshots to disk if wanted (pres 'print scr' key)
 
     // Complete scene
-    application.GetVideoDriver()->endScene();
+	if (!simul_substep)
+		application.GetVideoDriver()->endScene();
+
+	++simul_substep;
+	if (simul_substep >= simul_substeps_num)
+		simul_substep =0;
   }
 
   application.GetDevice()->drop();
