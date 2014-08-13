@@ -6,6 +6,10 @@ cmake_minimum_required(VERSION 2.8)
 
 project(ChronoEngine_Parallel)
 
+IF(APPLE)
+  set(CMAKE_MACOSX_RPATH OFF)
+ENDIF()
+
 # Enable CTest
 enable_testing()
 include(CTest)
@@ -174,13 +178,13 @@ ELSEIF(MSVC)
 ENDIF()
 
 IF(MSVC)
-    # Avoid deprecation warnings
     ADD_DEFINITIONS( "-D_CRT_SECURE_NO_DEPRECATE" )  # avoids deprecation warnings
     ADD_DEFINITIONS( "-D_SCL_SECURE_NO_DEPRECATE" )  # avoids deprecation warnings
-    
-    # Specify a single Build type, so we can import the correct .lib for Chrono
+    SET(CMAKE_CONFIGURATION_TYPES Release CACHE STRING "Choose the type of build.")
+    SET_PROPERTY(CACHE CMAKE_CONFIGURATION_TYPES PROPERTY STRINGS Debug Release)
+ELSE()    
     set(CMAKE_BUILD_TYPE "Release" CACHE STRING "For single-configuration generators (e.g. make) set the type of build: Release, Debug, RelWithDebInfo, MinSizeRel")
-    set_property(CACHE CMAKE_BUILD_TYPE PROPERTY STRINGS "Release" "Debug" "RelWithDebInfo" "MinSizeRel")
+    SET_PROPERTY(CACHE CMAKE_BUILD_TYPE PROPERTY STRINGS Debug Release MinSizeRel RelWithDebInfo)
 ENDIF()
 
 IF(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
