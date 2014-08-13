@@ -6,6 +6,15 @@ cmake_minimum_required(VERSION 2.8)
 
 project(ChronoEngine_Parallel)
 
+# Policy CMP0046 warning when a dependency does not exist
+# According to a dev from kitware The add_dependencies 
+# command is for inter-target ordering dependencies, not
+# file-level dependencies.
+# This warning appears in Cmake 3.0
+if(COMMAND cmake_policy)
+  cmake_policy(SET CMP0046 OLD)
+endif(COMMAND cmake_policy)
+
 IF(APPLE)
   set(CMAKE_MACOSX_RPATH OFF)
 ENDIF()
