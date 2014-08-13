@@ -46,6 +46,8 @@ ChIrrGuiDriver::ChIrrGuiDriver(ChIrrApp&         app,
   m_HUD_x(HUD_x),
   m_HUD_y(HUD_y),
   m_terrainHeight(0),
+  m_throttleDelta(1.0/50),
+  m_steeringDelta(1.0/50),
   m_camera(car.GetChassis())
 {
   app.SetUserEventReceiver(this);
@@ -60,7 +62,21 @@ bool ChIrrGuiDriver::OnEvent(const SEvent& event)
     return false;
 
   if (event.KeyInput.PressedDown) {
+
     switch (event.KeyInput.Key) {
+    case KEY_KEY_A:
+      setSteering(m_steering - m_steeringDelta);
+      return true;
+    case KEY_KEY_D:
+      setSteering(m_steering + m_steeringDelta);
+      return true;
+    case KEY_KEY_W:
+      setThrottle(m_throttle + m_throttleDelta);
+      return true;
+    case KEY_KEY_S:
+      setThrottle(m_throttle - m_throttleDelta);
+      return true;
+
     case KEY_DOWN:
       m_camera.Zoom(1);
       return true;
@@ -74,21 +90,10 @@ bool ChIrrGuiDriver::OnEvent(const SEvent& event)
       m_camera.Turn(-1);
       return true;
     }
-  } else {
-    switch (event.KeyInput.Key) {
-    case KEY_KEY_A:
-      setSteering(m_steering - 0.1);
-      return true;
-    case KEY_KEY_D:
-      setSteering(m_steering + 0.1);
-      return true;
-    case KEY_KEY_W:
-      setThrottle(m_throttle + 0.1);
-      return true;
-    case KEY_KEY_S:
-      setThrottle(m_throttle - 0.1);
-      return true;
 
+  } else {
+
+    switch (event.KeyInput.Key) {
     case KEY_KEY_1:
       m_camera.SetState(utils::ChChaseCamera::Chase);
       return true;
@@ -99,6 +104,7 @@ bool ChIrrGuiDriver::OnEvent(const SEvent& event)
       m_camera.SetState(utils::ChChaseCamera::Track);
       return true;
     }
+
   }
 
   return false;

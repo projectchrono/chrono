@@ -65,12 +65,14 @@ double terrainWidth  = 100.0;   // size in Y directoin
 // Simulation step size
 double step_size = 0.001;
 
+// Rendering FPS
+int FPS = 50;
+
 #ifdef USE_IRRLICHT
   // Point on chassis tracked by the camera
   ChVector<> trackPoint(0.0, 0, 1.0);
 #else
   double tend = 20.0;
-  int out_fps = 30;
 
   const std::string out_dir = "../HMMWV9";
   const std::string pov_dir = out_dir + "/POVRAY";
@@ -122,26 +124,33 @@ int main(int argc, char* argv[])
   std::string str_up = mtexturedir + "sky_up.jpg";
   std::string str_dn = mtexturedir + "sky_dn.jpg";
   irr::video::ITexture* map_skybox_side = 
-  application.GetVideoDriver()->getTexture(str_lf.c_str());
+      application.GetVideoDriver()->getTexture(str_lf.c_str());
   irr::scene::ISceneNode* mbox = application.GetSceneManager()->addSkyBoxSceneNode(
-     application.GetVideoDriver()->getTexture(str_up.c_str()),
-     application.GetVideoDriver()->getTexture(str_dn.c_str()),
-     map_skybox_side,
-     map_skybox_side,
-     map_skybox_side,
-     map_skybox_side);
+      application.GetVideoDriver()->getTexture(str_up.c_str()),
+      application.GetVideoDriver()->getTexture(str_dn.c_str()),
+      map_skybox_side,
+      map_skybox_side,
+      map_skybox_side,
+      map_skybox_side);
   mbox->setRotation( irr::core::vector3df(90,0,0));
  
 
-  application.AddTypicalLights( irr::core::vector3df(30.f, -30.f,  100.f),
-								irr::core::vector3df(30.f,  50.f,  100.f), 
-								250,130 );
+  application.AddTypicalLights(irr::core::vector3df(30.f, -30.f,  100.f),
+                               irr::core::vector3df(30.f,  50.f,  100.f), 
+                               250, 130);
 
   application.SetTimestep(step_size);
 
   ChIrrGuiDriver driver(application, vehicle);
 
   driver.CreateCamera(trackPoint, 6, 0.5);
+
+  // Set the time response for steering and throttle keyboard inputs.
+  // NOTE: this is not exact, since we do not render quite at the specified FPS.
+  double steering_time = 1.0;  // time to go from 0 to +1 (or from 0 to -1)
+  double throttle_time = 1.0;  // time to go from 0 to +1
+  driver.SetSteeringDelta(1 / (steering_time * FPS));
+  driver.SetThrottleDelta(1 / (throttle_time * FPS));
 
   // Set up the assets for rendering
   application.AssetBindAll();
@@ -162,46 +171,47 @@ int main(int argc, char* argv[])
   application.SetTimestep(step_size);
   application.SetTryRealtime(true);
 
+  // Refresh 3D view only every N simulation steps:
+  int simul_substeps_num = std::ceil((1 / step_size) / FPS);
   int simul_substep = 0;
-  int simul_substeps_num = 20;  // Refresh 3D view only each N simulation steps
 
   while (application.GetDevice()->run())
   {
     // Render scene
-	if (!simul_substep)
-		application.GetVideoDriver()->beginScene(true, true, irr::video::SColor(255, 140, 161, 192));
+    if (!simul_substep)
+      application.GetVideoDriver()->beginScene(true, true, irr::video::SColor(255, 140, 161, 192));
 
-    driver.UpdateCamera(step_size);
+    driver.UpdateCamera(application.GetTimestep());
 
-	if (!simul_substep)
-		driver.DrawAll();
+    if (!simul_substep)
+      driver.DrawAll();
 
     // Update subsystems 
     double time = m_system.GetChTime();
     driver.Update(time);
     vehicle.Update(time, driver.getThrottle(), driver.getSteering());
 
-	// Advance simulation for one timestep.
-	application.DoStep();
-	// Note, alternatively you could also do:
-	//  m_system.DoStepDynamics(realtime_timer.SuggestSimulationStep(step_size));
-	// but application.DoStep()  does the same, plus it can handle the 'pause' (press spacebar)
-	// and it also manages to save screenshots to disk if wanted (pres 'print scr' key)
+    // Advance simulation for one timestep.
+    application.DoStep();
+    // Note, alternatively you could also do:
+    //  m_system.DoStepDynamics(realtime_timer.SuggestSimulationStep(step_size));
+    // but application.DoStep()  does the same, plus it can handle the 'pause' (press spacebar)
+    // and it also manages to save screenshots to disk if wanted (pres 'print scr' key)
 
     // Complete scene
-	if (!simul_substep)
-		application.GetVideoDriver()->endScene();
+    if (!simul_substep)
+      application.GetVideoDriver()->endScene();
 
-	++simul_substep;
-	if (simul_substep >= simul_substeps_num)
-		simul_substep =0;
+    ++simul_substep;
+    if (simul_substep >= simul_substeps_num)
+      simul_substep = 0;
   }
 
   application.GetDevice()->drop();
 
 #else
 
-  int out_steps = std::ceil((1 / step_size) / out_fps);
+  int out_steps = std::ceil((1 / step_size) / FPS);
 
   double time = 0;
   int frame = 0;

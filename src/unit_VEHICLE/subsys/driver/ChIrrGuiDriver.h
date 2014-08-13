@@ -61,6 +61,8 @@ public:
 
   void SetTerrainHeight(double height) { m_terrainHeight = height; }
 
+  void SetThrottleDelta(double delta)  { m_throttleDelta = delta; }
+  void SetSteeringDelta(double delta)  { m_steeringDelta = delta; }
 private:
 
   void renderSprings();
@@ -81,6 +83,8 @@ private:
   utils::ChChaseCamera      m_camera;
 
   double m_terrainHeight;
+  double m_throttleDelta;
+  double m_steeringDelta;
 
   int  m_HUD_x;
   int  m_HUD_y;
