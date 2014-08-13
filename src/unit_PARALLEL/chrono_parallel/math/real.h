@@ -23,7 +23,7 @@
 #include <float.h>
 
 //#define DISABLE_SSE
-#define REAL_DOUBLE
+//#define REAL_DOUBLE
 
 #ifdef REAL_DOUBLE
    #ifndef DISABLE_SSE

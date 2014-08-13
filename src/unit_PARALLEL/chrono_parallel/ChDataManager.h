@@ -63,6 +63,7 @@ struct host_container {
    thrust::host_vector<real3> trq_data;
    thrust::host_vector<real3> acc_data;
    thrust::host_vector<bool> active_data;
+   thrust::host_vector<bool> collide_data;
    thrust::host_vector<real> mass_data;
 
    thrust::host_vector<real3> lim_data;

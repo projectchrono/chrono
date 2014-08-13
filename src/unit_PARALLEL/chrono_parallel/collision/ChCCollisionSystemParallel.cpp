@@ -13,46 +13,46 @@
 namespace chrono {
 namespace collision {
 
-
 ChCollisionSystemParallel::ChCollisionSystemParallel() {
-	collision_envelope = 0;
-	max_body_per_bin = 100;
-	min_body_per_bin = 20;
-
-	// Default broadphase and narrowphase processing.
-	broadphase = new ChCBroadphase;
-	narrowphase = new ChCNarrowphaseMPR;
+   collision_envelope = 0;
+   max_body_per_bin = 100;
+   min_body_per_bin = 20;
+   use_aabb_active = 0;
+   data_container = 0;
+   // Default broadphase and narrowphase processing.
+   broadphase = new ChCBroadphase;
+   narrowphase = new ChCNarrowphaseMPR;
 }
 
 ChCollisionSystemParallel::~ChCollisionSystemParallel() {
-	delete narrowphase;
-	delete broadphase;
+   delete narrowphase;
+   delete broadphase;
 }
 
 void ChCollisionSystemParallel::Add(ChCollisionModel *model) {
-	if (model->GetPhysicsItem()->GetCollide() == true) {
-		ChCollisionModelParallel *body = (ChCollisionModelParallel *) model;
-		int body_id = body->GetBody()->GetId();
-		int2 fam = I2(body->GetFamily(), body->GetNoCollFamily());
+   if (model->GetPhysicsItem()->GetCollide() == true) {
+      ChCollisionModelParallel *body = (ChCollisionModelParallel *) model;
+      int body_id = body->GetBody()->GetId();
+      int2 fam = I2(body->GetFamily(), body->GetNoCollFamily());
 
-		for (int j = 0; j < body->GetNObjects(); j++) {
-			real3 obA = body->mData[j].A;
-			real3 obB = body->mData[j].B;
-			if (body->mData[j].type != TRIANGLEMESH) {
-				obB += R3(collision_envelope);
-			}
-			real3 obC = body->mData[j].C;
-			real4 obR = body->mData[j].R;
-			data_container->host_data.ObA_rigid.push_back(obA);
-			data_container->host_data.ObB_rigid.push_back(obB);
-			data_container->host_data.ObC_rigid.push_back(obC);
-			data_container->host_data.ObR_rigid.push_back(obR);
-			data_container->host_data.fam_rigid.push_back(fam);
-			data_container->host_data.typ_rigid.push_back(body->mData[j].type);
-			data_container->host_data.id_rigid.push_back(body_id);
-			data_container->num_models++;
-		}
-	}
+      for (int j = 0; j < body->GetNObjects(); j++) {
+         real3 obA = body->mData[j].A;
+         real3 obB = body->mData[j].B;
+         if (body->mData[j].type != TRIANGLEMESH) {
+            obB += R3(collision_envelope);
+         }
+         real3 obC = body->mData[j].C;
+         real4 obR = body->mData[j].R;
+         data_container->host_data.ObA_rigid.push_back(obA);
+         data_container->host_data.ObB_rigid.push_back(obB);
+         data_container->host_data.ObC_rigid.push_back(obC);
+         data_container->host_data.ObR_rigid.push_back(obR);
+         data_container->host_data.fam_rigid.push_back(fam);
+         data_container->host_data.typ_rigid.push_back(body->mData[j].type);
+         data_container->host_data.id_rigid.push_back(body_id);
+         data_container->num_models++;
+      }
+   }
 }
 
 void ChCollisionSystemParallel::Remove(ChCollisionModel *model) {
@@ -77,73 +77,72 @@ void ChCollisionSystemParallel::Remove(ChCollisionModel *model) {
 }
 
 void ChCollisionSystemParallel::Run() {
-	if (data_container->num_models <= 0) {
-		return;
-	}
 
-	data_container->host_data.old_pair_rigid_rigid = data_container->host_data.pair_rigid_rigid;
-	data_container->host_data.old_norm_rigid_rigid = data_container->host_data.norm_rigid_rigid;
-	data_container->old_num_contacts = data_container->num_contacts;
-  data_container->system_timer.start("collision_broad");
+   if (use_aabb_active) {
+      custom_vector<bool> body_active(data_container->num_bodies, false);
+      GetOverlappingAABB(body_active, aabb_min, aabb_max);
+      for (int i = 0; i < data_container->host_data.active_data.size(); i++) {
+         if (data_container->host_data.active_data[i] == true && data_container->host_data.collide_data[i] == true) {
+            data_container->host_data.active_data[i] = body_active[i];
+         }
+      }
+   }
 
-	aabb_generator.GenerateAABB(
-			data_container->host_data.typ_rigid,
-			data_container->host_data.ObA_rigid,
-			data_container->host_data.ObB_rigid,
-			data_container->host_data.ObC_rigid,
-			data_container->host_data.ObR_rigid,
-			data_container->host_data.id_rigid,
-			data_container->host_data.pos_data,
-			data_container->host_data.rot_data,
-			data_container->host_data.aabb_rigid);
+   if (data_container->num_models <= 0) {
+      return;
+   }
 
-	//aabb_generator.GenerateAABBFluid(data_container->host_data.fluid_pos, data_container->fluid_rad, data_container->host_data.aabb_fluid);
+   data_container->host_data.old_pair_rigid_rigid = data_container->host_data.pair_rigid_rigid;
+   data_container->host_data.old_norm_rigid_rigid = data_container->host_data.norm_rigid_rigid;
+   data_container->old_num_contacts = data_container->num_contacts;
+   data_container->system_timer.start("collision_broad");
 
-	broadphase->detectPossibleCollisions(data_container->host_data.aabb_rigid, data_container->host_data.fam_rigid, data_container->host_data.pair_rigid_rigid);
-  data_container->system_timer.stop("collision_broad");
+   aabb_generator.GenerateAABB(data_container->host_data.typ_rigid, data_container->host_data.ObA_rigid, data_container->host_data.ObB_rigid, data_container->host_data.ObC_rigid,
+                               data_container->host_data.ObR_rigid, data_container->host_data.id_rigid, data_container->host_data.pos_data, data_container->host_data.rot_data,
+                               data_container->host_data.aabb_rigid);
 
-  data_container->system_timer.start("collision_narrow");
-	data_container->collision_envelope = collision_envelope;
-	narrowphase->SetCollisionEnvelope(collision_envelope);
-	narrowphase->Process(data_container);
-  data_container->system_timer.stop("collision_narrow");
+   //aabb_generator.GenerateAABBFluid(data_container->host_data.fluid_pos, data_container->fluid_rad, data_container->host_data.aabb_fluid);
+
+   broadphase->detectPossibleCollisions(data_container->host_data.aabb_rigid, data_container->host_data.fam_rigid, data_container->host_data.pair_rigid_rigid);
+   data_container->system_timer.stop("collision_broad");
+
+   data_container->system_timer.start("collision_narrow");
+   data_container->collision_envelope = collision_envelope;
+   narrowphase->SetCollisionEnvelope(collision_envelope);
+   narrowphase->Process(data_container);
+   data_container->system_timer.stop("collision_narrow");
 
 }
 
-void ChCollisionSystemParallel::GetOverlappingAABB(vector<bool> &active_id, real3 Amin, real3 Amax) {
-	ChCAABBGenerator aabb_generator;
+void ChCollisionSystemParallel::GetOverlappingAABB(custom_vector<bool> &active_id,
+                                                   real3 Amin,
+                                                   real3 Amax) {
+   ChCAABBGenerator aabb_generator;
 
-	aabb_generator.GenerateAABB(
-			data_container->host_data.typ_rigid,
-			data_container->host_data.ObA_rigid,
-			data_container->host_data.ObB_rigid,
-			data_container->host_data.ObC_rigid,
-			data_container->host_data.ObR_rigid,
-			data_container->host_data.id_rigid,
-			data_container->host_data.pos_data,
-			data_container->host_data.rot_data,
-			data_container->host_data.aabb_rigid);
+   aabb_generator.GenerateAABB(data_container->host_data.typ_rigid, data_container->host_data.ObA_rigid, data_container->host_data.ObB_rigid, data_container->host_data.ObC_rigid,
+                               data_container->host_data.ObR_rigid, data_container->host_data.id_rigid, data_container->host_data.pos_data, data_container->host_data.rot_data,
+                               data_container->host_data.aabb_rigid);
+#pragma omp parallel for
+   for (int i = 0; i < data_container->host_data.typ_rigid.size(); i++) {
+      real3 Bmin = data_container->host_data.aabb_rigid[i];
+      real3 Bmax = data_container->host_data.aabb_rigid[i + data_container->host_data.typ_rigid.size()];
 
-	for (int i = 0; i < data_container->host_data.typ_rigid.size(); i++) {
-		real3 Bmin = data_container->host_data.aabb_rigid[i];
-		real3 Bmax = data_container->host_data.aabb_rigid[i + data_container->host_data.typ_rigid.size()];
-
-		bool inContact = (Amin.x <= Bmax.x && Bmin.x <= Amax.x) && (Amin.y <= Bmax.y && Bmin.y <= Amax.y) && (Amin.z <= Bmax.z && Bmin.z <= Amax.z);
-		if (inContact) {
-			active_id[data_container->host_data.id_rigid[i]] = true;
-		}
-	}
+      bool inContact = (Amin.x <= Bmax.x && Bmin.x <= Amax.x) && (Amin.y <= Bmax.y && Bmin.y <= Amax.y) && (Amin.z <= Bmax.z && Bmin.z <= Amax.z);
+      if (inContact) {
+         active_id[data_container->host_data.id_rigid[i]] = true;
+      }
+   }
 }
 
 vector<int2> ChCollisionSystemParallel::GetOverlappingPairs() {
-	vector<int2> pairs;
-	pairs.resize(data_container->host_data.pair_rigid_rigid.size());
-	for (int i = 0; i < data_container->host_data.pair_rigid_rigid.size(); i++) {
-		int2 pair = I2(int(data_container->host_data.pair_rigid_rigid[i] >> 32), int(data_container->host_data.pair_rigid_rigid[i] & 0xffffffff));
-		pairs[i] = pair;
+   vector<int2> pairs;
+   pairs.resize(data_container->host_data.pair_rigid_rigid.size());
+   for (int i = 0; i < data_container->host_data.pair_rigid_rigid.size(); i++) {
+      int2 pair = I2(int(data_container->host_data.pair_rigid_rigid[i] >> 32), int(data_container->host_data.pair_rigid_rigid[i] & 0xffffffff));
+      pairs[i] = pair;
 
-	}
-	return pairs;
+   }
+   return pairs;
 }
 
 }     // END_OF_NAMESPACE____

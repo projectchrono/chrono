@@ -50,6 +50,7 @@ void ChSystemParallelDVI::UpdateBodies() {
    real3 *frc_pointer = data_manager->host_data.frc_data.data();
    real3 *trq_pointer = data_manager->host_data.trq_data.data();
    bool *active_pointer = data_manager->host_data.active_data.data();
+   bool *collide_pointer = data_manager->host_data.collide_data.data();
    real *mass_pointer = data_manager->host_data.mass_data.data();
    real3 *fric_pointer = data_manager->host_data.fric_data.data();
    real *cohesion_pointer = data_manager->host_data.cohesion_data.data();
@@ -80,6 +81,7 @@ void ChSystemParallelDVI::UpdateBodies() {
       frc_pointer[i] = (R3(bodylist[i]->Variables().Get_fb().ElementN(0), bodylist[i]->Variables().Get_fb().ElementN(1), bodylist[i]->Variables().Get_fb().ElementN(2)));   //forces
       trq_pointer[i] = (R3(bodylist[i]->Variables().Get_fb().ElementN(3), bodylist[i]->Variables().Get_fb().ElementN(4), bodylist[i]->Variables().Get_fb().ElementN(5)));  //torques
       active_pointer[i] = bodylist[i]->IsActive();
+      collide_pointer[i] = bodylist[i]->GetCollide();
       mass_pointer[i] = 1.0f / bodylist[i]->VariablesBody().GetBodyMass();
       fric_pointer[i] = R3(bodylist[i]->GetKfriction(), ((bodylist[i]))->GetMaterialSurface()->GetRollingFriction(), ((bodylist[i]))->GetMaterialSurface()->GetSpinningFriction());
       cohesion_pointer[i] = bodylist[i]->GetMaterialSurface()->GetCohesion();
@@ -94,7 +96,23 @@ static inline chrono::ChVector<real> ToChVector(const real3 &a) {
    return chrono::ChVector<real>(a.x, a.y, a.z);
 }
 
-void ChSystemParallelDVI::AssembleSystem(ChLcpSystemDescriptor* sys_descriptor) {
+void ChSystemParallelDVI::SolveSystem() {
+   data_manager->system_timer.Reset();
+   data_manager->system_timer.start("step");
+   data_manager->system_timer.start("update");
+   Setup();
+   Update();
+   data_manager->system_timer.stop("update");
+   data_manager->system_timer.start("collision");
+   collision_system->Run();
+   collision_system->ReportContacts(this->contact_container);
+   data_manager->system_timer.stop("collision");
+   data_manager->system_timer.start("lcp");
+   ((ChLcpSolverParallel *) (LCP_solver_speed))->RunTimeStep(GetStep());
+   data_manager->system_timer.stop("lcp");
+   data_manager->system_timer.stop("step");
+}
+void ChSystemParallelDVI::AssembleSystem() {
 
    collision_system->Run();
    collision_system->ReportContacts(this->contact_container);

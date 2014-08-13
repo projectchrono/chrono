@@ -51,20 +51,18 @@ CH_RTTI(ChSystemParallel, ChSystem)
    ~ChSystemParallel();
 
    virtual int Integrate_Y();
-
    virtual void AddBody(ChSharedPtr<ChBody> newbody);
    virtual void RemoveBody(ChSharedPtr<ChBody> mbody);
-   void RemoveBody(int i);
-   void Update();
-   void UpdateBilaterals();
+   virtual void RemoveBody(int i);
+   virtual void Update();
+   virtual void UpdateBilaterals();
+   virtual void UpdateBodies() = 0;
    void RecomputeThreads();
    void RecomputeBins();
    void PerturbBins(bool increase,
                     int number = 2);
 
    virtual void LoadMaterialSurfaceData(ChSharedPtr<ChBody> newbody) = 0;
-   virtual void UpdateBodies() = 0;
-   virtual void AssembleSystem(ChLcpSystemDescriptor* sys_descriptor) = 0;
    virtual void ChangeCollisionSystem(collision::ChCollisionSystem *newcollsystem);
 
    virtual void PrintStepStats() {
@@ -81,21 +79,6 @@ CH_RTTI(ChSystemParallel, ChSystem)
 
    int GetNumBilaterals() {
       return data_manager->num_bilaterals;
-   }
-
-   void SetAABB(real3 aabbmin,
-                real3 aabbmax) {
-      aabb_min = aabbmin;
-      aabb_max = aabbmax;
-      use_aabb_active = true;
-   }
-
-   bool GetAABB(real3 &aabbmin,
-                real3 &aabbmax) {
-      aabbmin = aabb_min;
-      aabbmax = aabb_max;
-
-      return use_aabb_active;
    }
 
    void DoThreadTuning(bool m) {
@@ -119,10 +102,7 @@ CH_RTTI(ChSystemParallel, ChSystem)
  private:
 
    double timer_collision, old_timer, old_timer_cd;
-
-   bool use_aabb_active;
    bool detect_optimal_threads, perform_thread_tuning, perform_bin_tuning;
-   real3 aabb_min, aabb_max;
 
    int max_threads, current_threads, min_threads;
    int detect_optimal_bins;
@@ -140,7 +120,8 @@ CH_RTTI(ChSystemParallelDVI, ChSystemParallel)
 
    virtual void LoadMaterialSurfaceData(ChSharedPtr<ChBody> newbody);
    virtual void UpdateBodies();
-   virtual void AssembleSystem(ChLcpSystemDescriptor* sys_descriptor);
+   virtual void AssembleSystem();
+   virtual void SolveSystem();
 };
 
 class CH_PARALLEL_API ChSystemParallelDEM : public ChSystemParallel {
@@ -154,8 +135,6 @@ CH_RTTI(ChSystemParallelDEM, ChSystemParallel)
 
    virtual void LoadMaterialSurfaceData(ChSharedPtr<ChBody> newbody);
    virtual void UpdateBodies();
-   virtual void AssembleSystem(ChLcpSystemDescriptor* sys_descriptor) {
-   }
    virtual void ChangeCollisionSystem(collision::ChCollisionSystem *newcollsystem);
 
    virtual void PrintStepStats();

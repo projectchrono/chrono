@@ -15,19 +15,21 @@ ChSystemParallel::ChSystemParallel(unsigned int max_objects)
    ((ChContactContainerParallel*) contact_container)->data_container = data_manager;
 
    counter = 0;
-   use_aabb_active = 0;
    timer_accumulator.resize(10, 0);
    cd_accumulator.resize(10, 0);
    frame_threads = 0;
    frame_bins = 0;
    old_timer = 0;
    old_timer_cd = 0;
+   timer_collision = 0;
    detect_optimal_threads = false;
    detect_optimal_bins = false;
    current_threads = 2;
    perform_thread_tuning = true;
    perform_bin_tuning = true;
    min_threads = 1;
+   max_threads = CHOMPfunctions::GetNumProcs();
+
 
    data_manager->system_timer.AddTimer("step");
    data_manager->system_timer.AddTimer("update");
@@ -56,7 +58,6 @@ ChSystemParallel::~ChSystemParallel() {
 }
 
 int ChSystemParallel::Integrate_Y() {
-   max_threads = this->GetParallelThreadNumber();
    data_manager->system_timer.Reset();
    data_manager->system_timer.start("step");
    //=============================================================================================
@@ -64,17 +65,6 @@ int ChSystemParallel::Integrate_Y() {
    Setup();
    Update();
    data_manager->system_timer.stop("update");
-   //=============================================================================================
-   if (use_aabb_active) {
-      vector<bool> body_active(data_manager->num_bodies, false);
-      ((ChCollisionSystemParallel*) collision_system)->GetOverlappingAABB(body_active, aabb_min, aabb_max);
-      for (int i = 0; i < bodylist.size(); i++) {
-         if (bodylist[i]->IsActive() == true && bodylist[i]->GetCollide() == true) {
-            data_manager->host_data.active_data[i] = body_active[i];
-         }
-      }
-   }
-
    //=============================================================================================
    data_manager->system_timer.start("collision");
    collision_system->Run();
@@ -186,6 +176,7 @@ void ChSystemParallel::AddBody(ChSharedPtr<ChBody> newbody) {
    data_manager->host_data.trq_data.push_back(
    R3(mbodyvar.Get_fb().ElementN(3), mbodyvar.Get_fb().ElementN(4), mbodyvar.Get_fb().ElementN(5)));     //torques
    data_manager->host_data.active_data.push_back(newbody->IsActive());
+   data_manager->host_data.collide_data.push_back(newbody->GetCollide());
    data_manager->host_data.mass_data.push_back(inv_mass);
 
    data_manager->host_data.lim_data.push_back(
