@@ -62,7 +62,8 @@ enum ShapeType {
    CONE,          //Currently implemented on parallel only
    ROUNDEDBOX,    //Currently implemented on parallel only
    ROUNDEDCYL,    //Currently implemented on parallel only
-   ROUNDEDCONE    //Currently implemented on parallel only
+   ROUNDEDCONE,   //Currently implemented on parallel only
+   CONVEX         //Currently implemented on parallel only
 };
 
 
