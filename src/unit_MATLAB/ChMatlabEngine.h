@@ -73,9 +73,6 @@ public:
       /// if you can use other functions of this class that 'wrap' it.)
    Engine* GetEngine();
 
-      /// Evaluate a Matlab instruction (as a char*). If error happens while executing, returns false.
-   bool Eval(char* mstring);
-
      /// Evaluate a Matlab instruction (as a string). If error happens while executing, returns false.
    bool Eval(std::string mstring);
 
@@ -84,16 +81,16 @@ public:
 
       /// Put a matrix in Matlab environment, specifying its name as variable.
       /// If a variable with the same name already exist, it is overwritten.
-   bool PutVariable(const ChMatrix<double>& mmatr, char* varname);
+   bool PutVariable(const ChMatrix<double>& mmatr, std::string varname);
 
       /// Put a sparse matrix in Matlab environment, specifying its name as variable.
       /// If a variable with the same name already exist, it is overwritten.
-   bool PutSparseMatrix(const ChSparseMatrix& mmatr, char* varname);
+   bool PutSparseMatrix(const ChSparseMatrix& mmatr, std::string varname);
 
       /// Fetch a matrix from Matlab environment, specifying its name as variable.
       /// The used matrix must be of ChMatrixDynamic<double> type because
       /// it might undergo resizing.
-   bool GetVariable(ChMatrixDynamic<double>& mmatr, char* varname);
+   bool GetVariable(ChMatrixDynamic<double>& mmatr, std::string varname);
 
 
 };
