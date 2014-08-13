@@ -17,15 +17,14 @@ struct simplex {
    support s0, s1, s2, s3, s4;
 };
 
-bool chrono::collision::SphereSphere(
-      const real3 &A_X,
-      const real3 &B_X,
-      const real3 &A_Y,
-      const real3 &B_Y,
-      real3 & N,
-      real & depth,
-      real3 & p1,
-      real3 & p2) {
+bool chrono::collision::SphereSphere(const real3 &A_X,
+                                     const real3 &B_X,
+                                     const real3 &A_Y,
+                                     const real3 &B_Y,
+                                     real3 & N,
+                                     real & depth,
+                                     real3 & p1,
+                                     real3 & p2) {
    real3 relpos = B_X - A_X;
    real d2 = dot(relpos, relpos);
    real collide_dist = A_Y.x + B_Y.x;
@@ -40,11 +39,10 @@ bool chrono::collision::SphereSphere(
    return false;
 }
 
-__device__ __host__ real3 GetCenter(
-      const shape_type &type,
-      const real3 &A,
-      const real3 &B,
-      const real3 &C) {
+__device__ __host__ real3 GetCenter(const shape_type &type,
+                                    const real3 &A,
+                                    const real3 &B,
+                                    const real3 &C) {
    if (type == TRIANGLEMESH) {
       return GetCenter_Triangle(A, B, C);     //triangle center
    } else {
@@ -52,13 +50,12 @@ __device__ __host__ real3 GetCenter(
    }
 }
 
-__device__ __host__ real3 TransformSupportVert(
-      const shape_type &type,
-      const real3 &A,
-      const real3 &B,
-      const real3 &C,
-      const real4 &R,
-      const real3 &n) {
+__device__ __host__ real3 TransformSupportVert(const shape_type &type,
+                                               const real3 &A,
+                                               const real3 &B,
+                                               const real3 &C,
+                                               const real4 &R,
+                                               const real3 &n) {
    real3 localSupport;
    real3 rotated_n = quatRotateMatT(n, R);
    switch (type) {
@@ -97,16 +94,15 @@ __device__ __host__ real3 TransformSupportVert(
    return quatRotateMat(localSupport, R) + A;     //globalSupport
 }
 
-void FindCenter(
-      const shape_type &typeA,
-      const real3 &A_X,
-      const real3 &A_Y,
-      const real3 &A_Z,
-      const shape_type &typeB,
-      const real3 &B_X,
-      const real3 &B_Y,
-      const real3 &B_Z,
-      simplex & portal) {
+void FindCenter(const shape_type &typeA,
+                const real3 &A_X,
+                const real3 &A_Y,
+                const real3 &A_Z,
+                const shape_type &typeB,
+                const real3 &B_X,
+                const real3 &B_Y,
+                const real3 &B_Z,
+                simplex & portal) {
 
    // v0 = center of Minkowski sum
    portal.s0.v1 = GetCenter(typeA, A_X, A_Y, A_Z);
@@ -115,19 +111,18 @@ void FindCenter(
 
 }
 
-void MPRSupport(
-      const shape_type &typeA,
-      const real3 &A_X,
-      const real3 &A_Y,
-      const real3 &A_Z,
-      const real4 &A_R,
-      const shape_type &typeB,
-      const real3 &B_X,
-      const real3 &B_Y,
-      const real3 &B_Z,
-      const real4 &B_R,
-      const real3 & n,
-      support & s) {
+void MPRSupport(const shape_type &typeA,
+                const real3 &A_X,
+                const real3 &A_Y,
+                const real3 &A_Z,
+                const real4 &A_R,
+                const shape_type &typeB,
+                const real3 &B_X,
+                const real3 &B_Y,
+                const real3 &B_Z,
+                const real4 &B_R,
+                const real3 & n,
+                support & s) {
 
    s.v1 = TransformSupportVert(typeA, A_X, A_Y, A_Z, A_R, -n);
    s.v2 = TransformSupportVert(typeB, B_X, B_Y, B_Z, B_R, n);
@@ -135,8 +130,7 @@ void MPRSupport(
 
 }
 
-void ExpandPortal(
-      simplex & portal) {
+void ExpandPortal(simplex & portal) {
 
    // Compute the tetrahedron dividing face (v4,v0,v1)
    if (dot(cross(portal.s4.v, portal.s1.v), portal.s0.v) < 0) {
@@ -157,15 +151,13 @@ void ExpandPortal(
 
 }
 
-real3 PortalDir(
-      const simplex & portal) {
+real3 PortalDir(const simplex & portal) {
    return normalize(cross((portal.s2.v - portal.s1.v), (portal.s3.v - portal.s1.v)));
 
 }
 
-void FindPos(
-      const simplex & portal,
-      real3 & point) {
+void FindPos(const simplex & portal,
+             real3 & point) {
    real3 n = PortalDir(portal);
    // Compute the barycentric coordinates of the origin
    real b0 = dot(cross(portal.s1.v, portal.s2.v), portal.s3.v);
@@ -189,25 +181,22 @@ void FindPos(
 
 }
 
-int portalEncapsulesOrigin(
-      const simplex & portal,
-      const real3 & n) {
+int portalEncapsulesOrigin(const simplex & portal,
+                           const real3 & n) {
 
    return dot(n, portal.s1.v) >= 0.0;
 
 }
 
-int portalCanEncapsulesOrigin(
-      const simplex & portal,
-      const real3 &n) {
+int portalCanEncapsulesOrigin(const simplex & portal,
+                              const real3 &n) {
 
    return dot(portal.s4.v, n) >= 0.0;
 
 }
 
-int portalReachTolerance(
-      const simplex & portal,
-      const real3 &n) {
+int portalReachTolerance(const simplex & portal,
+                         const real3 &n) {
 
    real dv1 = dot(portal.s1.v, n);
    real dv2 = dot(portal.s2.v, n);
@@ -225,10 +214,9 @@ int portalReachTolerance(
 
 }
 
-real Vec3PointSegmentDist2(
-      const real3 & P,
-      const real3 & x0,
-      const real3 & b) {
+real Vec3PointSegmentDist2(const real3 & P,
+                           const real3 & x0,
+                           const real3 & b) {
    real dist, t;
    real3 d, a;
    d = b - x0;     // direction of segment
@@ -250,11 +238,10 @@ real Vec3PointSegmentDist2(
 
    return dist;
 }
-__device__ __host__ real Vec3PointTriDist2(
-      const real3 & P,
-      const real3 & V0,
-      const real3 & V1,
-      const real3 & V2) {
+__device__ __host__ real Vec3PointTriDist2(const real3 & P,
+                                           const real3 & V0,
+                                           const real3 & V1,
+                                           const real3 & V2) {
 //   real3 d1, d2, a;
 //   real u, v, w, p, q, r;
 //   real s, t, dist, dist2;
@@ -473,21 +460,20 @@ __device__ __host__ real Vec3PointTriDist2(
 
 }
 
-void FindPenetration(
-      const shape_type & typeA,
-      const real3 & A_X,
-      const real3 & A_Y,
-      const real3 & A_Z,
-      const real4 & A_R,
-      const shape_type & typeB,
-      const real3 & B_X,
-      const real3 & B_Y,
-      const real3 & B_Z,
-      const real4 & B_R,
-      simplex & portal,
-      real & depth,
-      real3 & n,
-      real3 & point) {
+void FindPenetration(const shape_type & typeA,
+                     const real3 & A_X,
+                     const real3 & A_Y,
+                     const real3 & A_Z,
+                     const real4 & A_R,
+                     const shape_type & typeB,
+                     const real3 & B_X,
+                     const real3 & B_Y,
+                     const real3 & B_Z,
+                     const real4 & B_R,
+                     simplex & portal,
+                     real & depth,
+                     real3 & n,
+                     real3 & point) {
    real3 zero = real3(0);
 
    for (int i = 0; i < MAX_ITERATIONS; i++) {
@@ -520,19 +506,18 @@ void FindPenetration(
 //   FindPos(portal, point);
 }
 
-bool FindPortal(
-      const shape_type & typeA,
-      const real3 &A_X,
-      const real3 &A_Y,
-      const real3 &A_Z,
-      const real4 &A_R,
-      const shape_type &typeB,
-      const real3 &B_X,
-      const real3 &B_Y,
-      const real3 &B_Z,
-      const real4 &B_R,
-      simplex & portal,
-      real3 & n) {
+bool FindPortal(const shape_type & typeA,
+                const real3 &A_X,
+                const real3 &A_Y,
+                const real3 &A_Z,
+                const real4 &A_R,
+                const shape_type &typeB,
+                const real3 &B_X,
+                const real3 &B_Y,
+                const real3 &B_Z,
+                const real4 &B_R,
+                simplex & portal,
+                real3 & n) {
 
    // Phase One: Identify a portal
    while (true) {
@@ -563,20 +548,19 @@ bool FindPortal(
 
 }
 //Code for Convex-Convex Collision detection, adopted from xeno-collide
-bool chrono::collision::CollideAndFindPoint(
-      const shape_type &typeA,
-      const real3 &A_X,
-      const real3 &A_Y,
-      const real3 &A_Z,
-      const real4 &A_R,
-      const shape_type &typeB,
-      const real3 &B_X,
-      const real3 &B_Y,
-      const real3 &B_Z,
-      const real4 &B_R,
-      real3 &returnNormal,
-      real3 &point,
-      real &depth) {
+bool chrono::collision::CollideAndFindPoint(const shape_type &typeA,
+                                            const real3 &A_X,
+                                            const real3 &A_Y,
+                                            const real3 &A_Z,
+                                            const real4 &A_R,
+                                            const shape_type &typeB,
+                                            const real3 &B_X,
+                                            const real3 &B_Y,
+                                            const real3 &B_Z,
+                                            const real4 &B_R,
+                                            real3 &returnNormal,
+                                            real3 &point,
+                                            real &depth) {
 
    real3 n;
    simplex portal;
@@ -680,47 +664,46 @@ bool chrono::collision::CollideAndFindPoint(
 
 }
 void chrono::collision::GetPoints(
-      shape_type A_T,
-      real3 A_X,
-      real3 A_Y,
-      real3 A_Z,
-      real4 A_R,
-      shape_type B_T,
-      real3 B_X,
-      real3 B_Y,
-      real3 B_Z,
-      real4 B_R,
-      real3 &N,
-      real3 p0,
-      real3 & p1,
-      real3 & p2) {
+                                  shape_type A_T,
+                                  real3 A_X,
+                                  real3 A_Y,
+                                  real3 A_Z,
+                                  real4 A_R,
+                                  shape_type B_T,
+                                  real3 B_X,
+                                  real3 B_Y,
+                                  real3 B_Z,
+                                  real4 B_R,
+                                  real3 &N,
+                                  real3 p0,
+                                  real3 & p1,
+                                  real3 & p2) {
 
    p1 = dot((TransformSupportVert(A_T, A_X, A_Y, A_Z, A_R, -N) - p0), N) * N + p0;
    p2 = dot((TransformSupportVert(B_T, B_X, B_Y, B_Z, B_R, N) - p0), N) * N + p0;
    N = -N;
 
 }
-void ChCNarrowphaseMPR::function_MPR_Store(
-      const uint &index,
-      const shape_type *obj_data_T,
-      const real3 *obj_data_A,
-      const real3 *obj_data_B,
-      const real3 *obj_data_C,
-      const real4 *obj_data_R,
-      const uint *obj_data_ID,
-      const bool * obj_active,
-      const real3 *body_pos,
-      const real4 *body_rot,
-      const real & collision_envelope,
-      long long *contact_pair,
-      uint *contact_active,
-      real3 *norm,
-      real3 *ptA,
-      real3 *ptB,
-      real *contactDepth,
-      int2 *ids
+void ChCNarrowphaseMPR::function_MPR_Store(const uint &index,
+                                           const shape_type *obj_data_T,
+                                           const real3 *obj_data_A,
+                                           const real3 *obj_data_B,
+                                           const real3 *obj_data_C,
+                                           const real4 *obj_data_R,
+                                           const uint *obj_data_ID,
+                                           const bool * obj_active,
+                                           const real3 *body_pos,
+                                           const real4 *body_rot,
+                                           const real & collision_envelope,
+                                           long long *contact_pair,
+                                           uint *contact_active,
+                                           real3 *norm,
+                                           real3 *ptA,
+                                           real3 *ptB,
+                                           real *contactDepth,
+                                           int2 *ids
 
-      ) {
+                                           ) {
 
    long long p = contact_pair[index];
    int2 pair = I2(int(p >> 32), int(p & 0xffffffff));
@@ -745,24 +728,6 @@ void ChCNarrowphaseMPR::function_MPR_Store(
 
    real envelope = collision_envelope;
 
-   if (A_T != TRIANGLEMESH) {
-      A_X = quatRotate(A_X, rotA) + posA;
-   } else {
-      envelope = 0;
-      A_X = quatRotate(A_X, rotA) + posA;
-      A_Y = quatRotate(A_Y, rotA) + posA;
-      A_Z = quatRotate(A_Z, rotA) + posA;
-   }
-
-   if (B_T != TRIANGLEMESH) {
-      B_X = quatRotate(B_X, rotB) + posB;
-   } else {
-      envelope = 0;
-      B_X = quatRotate(B_X, rotB) + posB;
-      B_Y = quatRotate(B_Y, rotB) + posB;
-      B_Z = quatRotate(B_Z, rotB) + posB;
-   }
-
    real3 N = R3(1, 0, 0), p1 = R3(0), p2 = R3(0), p0 = R3(0);
    real depth = 0;
 
@@ -780,10 +745,11 @@ void ChCNarrowphaseMPR::function_MPR_Store(
    }
    //if(depth>0){swap(p1,p2); depth = -depth;}
    //cout << N << p0 << p1 << p2 << depth << endl;
-   //p1 = p1 - (N) * envelope;
-   // p2 = p2 + (N) * envelope;
+   depth = dot(N, p2 - p1) + envelope * 2.0;
+   p1 = p1 - (N) * envelope;
+   p2 = p2 + (N) * envelope;
    //cout << depth << endl;
-   depth = dot(N, p2 - p1);
+
 //   if (depth > envelope) {
 //      return;
 //   }
@@ -796,48 +762,45 @@ void ChCNarrowphaseMPR::function_MPR_Store(
    contact_active[index] = 0;
 }
 
-void ChCNarrowphaseMPR::host_MPR_Store(
-      const shape_type *obj_data_T,
-      const real3 *obj_data_A,
-      const real3 *obj_data_B,
-      const real3 *obj_data_C,
-      const real4 *obj_data_R,
-      const uint *obj_data_ID,
-      const bool * obj_active,
-      const real3 *body_pos,
-      const real4 *body_rot,
-      long long *contact_pair,
-      uint *contact_active,
-      real3 *norm,
-      real3 *ptA,
-      real3 *ptB,
-      real *contactDepth,
-      int2 *ids) {
+void ChCNarrowphaseMPR::host_MPR_Store(const shape_type *obj_data_T,
+                                       const real3 *obj_data_A,
+                                       const real3 *obj_data_B,
+                                       const real3 *obj_data_C,
+                                       const real4 *obj_data_R,
+                                       const uint *obj_data_ID,
+                                       const bool * obj_active,
+                                       const real3 *body_pos,
+                                       const real4 *body_rot,
+                                       long long *contact_pair,
+                                       uint *contact_active,
+                                       real3 *norm,
+                                       real3 *ptA,
+                                       real3 *ptB,
+                                       real *contactDepth,
+                                       int2 *ids) {
 #pragma omp parallel for
-
    for (int index = 0; index < total_possible_contacts; index++) {
       function_MPR_Store(index, obj_data_T, obj_data_A, obj_data_B, obj_data_C, obj_data_R, obj_data_ID, obj_active, body_pos, body_rot, collision_envelope, contact_pair,
                          contact_active, norm, ptA, ptB, contactDepth, ids);
    }
 }
 
-void ChCNarrowphaseMPR::function_MPR_Update(
-      const uint &index,
-      const shape_type *obj_data_T,
-      const real3 *obj_data_A,
-      const real3 *obj_data_B,
-      const real3 *obj_data_C,
-      const real4 *obj_data_R,
-      const uint *obj_data_ID,
-      const bool * obj_active,
-      const real3 *body_pos,
-      const real4 *body_rot,
-      const real & collision_envelope,
-      real3 *norm,
-      real3 *ptA,
-      real3 *ptB,
-      real *contactDepth,
-      int2 *ids) {
+void ChCNarrowphaseMPR::function_MPR_Update(const uint &index,
+                                            const shape_type *obj_data_T,
+                                            const real3 *obj_data_A,
+                                            const real3 *obj_data_B,
+                                            const real3 *obj_data_C,
+                                            const real4 *obj_data_R,
+                                            const uint *obj_data_ID,
+                                            const bool * obj_active,
+                                            const real3 *body_pos,
+                                            const real4 *body_rot,
+                                            const real & collision_envelope,
+                                            real3 *norm,
+                                            real3 *ptA,
+                                            real3 *ptB,
+                                            real *contactDepth,
+                                            int2 *ids) {
 
    int2 pair = ids[index];
    shape_type A_T = obj_data_T[pair.x], B_T = obj_data_T[pair.y];     //Get the type data for each object in the collision pair
@@ -909,21 +872,20 @@ void ChCNarrowphaseMPR::function_MPR_Update(
 
 }
 
-void ChCNarrowphaseMPR::host_MPR_Update(
-      const shape_type *obj_data_T,
-      const real3 *obj_data_A,
-      const real3 *obj_data_B,
-      const real3 *obj_data_C,
-      const real4 *obj_data_R,
-      const uint *obj_data_ID,
-      const bool * obj_active,
-      const real3 *body_pos,
-      const real4 *body_rot,
-      real3 *norm,
-      real3 *ptA,
-      real3 *ptB,
-      real *contactDepth,
-      int2 *ids) {
+void ChCNarrowphaseMPR::host_MPR_Update(const shape_type *obj_data_T,
+                                        const real3 *obj_data_A,
+                                        const real3 *obj_data_B,
+                                        const real3 *obj_data_C,
+                                        const real4 *obj_data_R,
+                                        const uint *obj_data_ID,
+                                        const bool * obj_active,
+                                        const real3 *body_pos,
+                                        const real4 *body_rot,
+                                        real3 *norm,
+                                        real3 *ptA,
+                                        real3 *ptB,
+                                        real *contactDepth,
+                                        int2 *ids) {
 //#pragma omp parallel for
    for (int index = 0; index < total_possible_contacts; index++) {
       function_MPR_Update(index, obj_data_T, obj_data_A, obj_data_B, obj_data_C, obj_data_R, obj_data_ID, obj_active, body_pos, body_rot, collision_envelope, norm, ptA, ptB,
@@ -931,23 +893,76 @@ void ChCNarrowphaseMPR::host_MPR_Update(
    }
 }
 
-void ChCNarrowphaseMPR::DoNarrowphase(
-      const custom_vector<shape_type> &obj_data_T,
-      const custom_vector<real3> &obj_data_A,
-      const custom_vector<real3> &obj_data_B,
-      const custom_vector<real3> &obj_data_C,
-      const custom_vector<real4> &obj_data_R,
-      const custom_vector<uint> &obj_data_ID,
-      const custom_vector<bool> & obj_active,
-      const custom_vector<real3> &body_pos,
-      const custom_vector<real4> &body_rot,
-      custom_vector<long long> &potentialCollisions,
-      custom_vector<real3> &norm_data,
-      custom_vector<real3> &cpta_data,
-      custom_vector<real3> &cptb_data,
-      custom_vector<real> &dpth_data,
-      custom_vector<int2> &bids_data,
-      uint & number_of_contacts) {
+void host_Preprocess(const uint &index,
+                     const shape_type *obj_data_T,
+                     const real3 *obj_data_A,
+                     const real3 *obj_data_B,
+                     const real3 *obj_data_C,
+                     const real4 *obj_data_R,
+                     const uint *obj_data_ID,
+                     const bool * obj_active,
+                     const real3 *body_pos,
+                     const real4 *body_rot,
+                     real3 *obj_data_A_mod,
+                     real3 *obj_data_B_mod,
+                     real3 *obj_data_C_mod) {
+
+   shape_type T = obj_data_T[index];
+
+   uint ID = obj_data_ID[index];
+
+   real3 pos = body_pos[ID];     //Get the global object position
+   real4 rot = body_rot[ID];     //Get the global object rotation
+   real3 X = obj_data_A[index];
+
+   if (T == SPHERE || T == ELLIPSOID || T == BOX || T == CYLINDER || T == CONE) {
+      obj_data_A_mod[index] = quatRotate(X, rot) + pos;
+   } else if (T == TRIANGLEMESH) {
+      real3 Y = obj_data_B[index];
+      real3 Z = obj_data_C[index];
+      obj_data_A_mod[index] = quatRotate(X, rot) + pos;
+      obj_data_B_mod[index] = quatRotate(Y, rot) + pos;
+      obj_data_C_mod[index] = quatRotate(Z, rot) + pos;
+   }
+
+}
+
+void Preprocess(const int numAABB,
+                const shape_type *obj_data_T,
+                const real3 *obj_data_A,
+                const real3 *obj_data_B,
+                const real3 *obj_data_C,
+                const real4 *obj_data_R,
+                const uint *obj_data_ID,
+                const bool * obj_active,
+                const real3 *body_pos,
+                const real4 *body_rot,
+                real3 *obj_data_A_mod,
+                real3 *obj_data_B_mod,
+                real3 *obj_data_C_mod) {
+#pragma omp parallel for
+   for (int index = 0; index < numAABB; index++) {
+      host_Preprocess(index, obj_data_T, obj_data_A, obj_data_B, obj_data_C, obj_data_R, obj_data_ID, obj_active, body_pos, body_rot, obj_data_A_mod, obj_data_B_mod,
+                      obj_data_C_mod);
+   }
+}
+
+void ChCNarrowphaseMPR::DoNarrowphase(const custom_vector<shape_type> &obj_data_T,
+                                      const custom_vector<real3> &obj_data_A,
+                                      const custom_vector<real3> &obj_data_B,
+                                      const custom_vector<real3> &obj_data_C,
+                                      const custom_vector<real4> &obj_data_R,
+                                      const custom_vector<uint> &obj_data_ID,
+                                      const custom_vector<bool> & obj_active,
+                                      const custom_vector<real3> &body_pos,
+                                      const custom_vector<real4> &body_rot,
+                                      custom_vector<long long> &potentialCollisions,
+                                      custom_vector<real3> &norm_data,
+                                      custom_vector<real3> &cpta_data,
+                                      custom_vector<real3> &cptb_data,
+                                      custom_vector<real> &dpth_data,
+                                      custom_vector<int2> &bids_data,
+                                      uint & number_of_contacts) {
 
    total_possible_contacts = potentialCollisions.size();
 
@@ -961,30 +976,17 @@ void ChCNarrowphaseMPR::DoNarrowphase(
    cptb_data.resize(total_possible_contacts);
    dpth_data.resize(total_possible_contacts);
    bids_data.resize(total_possible_contacts);
-#ifdef SIM_ENABLE_GPU_MODE
-   COPY_TO_CONST_MEM(total_possible_contacts);
-   COPY_TO_CONST_MEM(collision_envelope);
-   device_MPR_Store __KERNEL__(BLOCKS(total_possible_contacts), THREADS)(
-         CASTS(obj_data_T),
-         CASTR3(obj_data_A),
-         CASTR3(obj_data_B),
-         CASTR3(obj_data_C),
-         CASTR4(obj_data_R),
-         CASTU1(obj_data_ID),
-         CASTB1(obj_active),
-         CASTR3(body_pos),
-         CASTR4(body_rot),
-         CASTLL(potentialCollisions),
-         CASTU1(generic_counter),
-         CASTR3(norm_data),
-         CASTR3(cpta_data),
-         CASTR3(cptb_data),
-         CASTR1(dpth_data),
-         CASTI2(bids_data));
-#else
-   host_MPR_Store(obj_data_T.data(), obj_data_A.data(), obj_data_B.data(), obj_data_C.data(), obj_data_R.data(), obj_data_ID.data(), obj_active.data(), body_pos.data(),
+
+   obj_data_A_mod = obj_data_A;
+   obj_data_B_mod = obj_data_B;
+   obj_data_C_mod = obj_data_C;
+
+   Preprocess(obj_data_T.size(), obj_data_T.data(), obj_data_A.data(), obj_data_B.data(), obj_data_C.data(), obj_data_R.data(), obj_data_ID.data(), obj_active.data(),
+              body_pos.data(), body_rot.data(), obj_data_A_mod.data(), obj_data_B_mod.data(), obj_data_C_mod.data());
+
+   host_MPR_Store(obj_data_T.data(), obj_data_A_mod.data(), obj_data_B_mod.data(), obj_data_C_mod.data(), obj_data_R.data(), obj_data_ID.data(), obj_active.data(), body_pos.data(),
                   body_rot.data(), potentialCollisions.data(), generic_counter.data(), norm_data.data(), cpta_data.data(), cptb_data.data(), dpth_data.data(), bids_data.data());
-#endif
+
    number_of_contacts = total_possible_contacts - thrust::count(generic_counter.begin(), generic_counter.end(), 1);
 #if PRINT_LEVEL==2
    cout << "Number of number_of_contacts: " << number_of_contacts << endl;
@@ -1011,22 +1013,21 @@ void ChCNarrowphaseMPR::DoNarrowphase(
 
 }
 
-void ChCNarrowphaseMPR::UpdateNarrowphase(
-      const custom_vector<shape_type> &obj_data_T,
-      const custom_vector<real3> &obj_data_A,
-      const custom_vector<real3> &obj_data_B,
-      const custom_vector<real3> &obj_data_C,
-      const custom_vector<real4> &obj_data_R,
-      const custom_vector<uint> &obj_data_ID,
-      const custom_vector<bool> & obj_active,
-      const custom_vector<real3> &body_pos,
-      const custom_vector<real4> &body_rot,
-      const uint & number_of_contacts,
-      custom_vector<real3> &norm_data,
-      custom_vector<real3> &cpta_data,
-      custom_vector<real3> &cptb_data,
-      custom_vector<real> &dpth_data,
-      custom_vector<int2> &bids_data) {
+void ChCNarrowphaseMPR::UpdateNarrowphase(const custom_vector<shape_type> &obj_data_T,
+                                          const custom_vector<real3> &obj_data_A,
+                                          const custom_vector<real3> &obj_data_B,
+                                          const custom_vector<real3> &obj_data_C,
+                                          const custom_vector<real4> &obj_data_R,
+                                          const custom_vector<uint> &obj_data_ID,
+                                          const custom_vector<bool> & obj_active,
+                                          const custom_vector<real3> &body_pos,
+                                          const custom_vector<real4> &body_rot,
+                                          const uint & number_of_contacts,
+                                          custom_vector<real3> &norm_data,
+                                          custom_vector<real3> &cpta_data,
+                                          custom_vector<real3> &cptb_data,
+                                          custom_vector<real> &dpth_data,
+                                          custom_vector<int2> &bids_data) {
    total_possible_contacts = number_of_contacts;
 
    host_MPR_Update(obj_data_T.data(), obj_data_A.data(), obj_data_B.data(), obj_data_C.data(), obj_data_R.data(), obj_data_ID.data(), obj_active.data(), body_pos.data(),
