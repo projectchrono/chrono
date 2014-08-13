@@ -3,6 +3,7 @@ INCLUDE_DIRECTORIES( ${CH_INCLUDES} )
 
 SET(TESTS
     benchmark_atomic
+    benchmark_ChBody
 )
 
 FOREACH(PROGRAM ${TESTS})
