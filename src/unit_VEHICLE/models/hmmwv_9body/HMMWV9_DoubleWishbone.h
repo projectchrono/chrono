@@ -38,6 +38,8 @@ public:
   virtual const chrono::ChVector<>& getSpindleInertia() const { return m_spindleInertia; }
   virtual const chrono::ChVector<>& getUprightInertia() const { return m_uprightInertia; }
 
+  virtual double getAxleInertia() const { return m_axleInertia; }
+
   virtual double getSpringCoefficient() const { return m_springCoefficient; }
   virtual double getDampingCoefficient() const { return m_dampingCoefficient; }
   virtual double getSpringRestLength() const { return m_springRestLength; }
@@ -53,6 +55,8 @@ private:
   static const double      m_uprightMass;
   static const chrono::ChVector<>  m_spindleInertia;
   static const chrono::ChVector<>  m_uprightInertia;
+
+  static const double      m_axleInertia;
 
   static const chrono::ChVector<>  m_uprightDims;
 
@@ -77,6 +81,8 @@ public:
   virtual const chrono::ChVector<>& getSpindleInertia() const { return m_spindleInertia; }
   virtual const chrono::ChVector<>& getUprightInertia() const { return m_uprightInertia; }
 
+  virtual double getAxleInertia() const { return m_axleInertia; }
+
   virtual double getSpringCoefficient() const { return m_springCoefficient; }
   virtual double getDampingCoefficient() const { return m_dampingCoefficient; }
   virtual double getSpringRestLength() const { return m_springRestLength; }
@@ -92,6 +98,8 @@ private:
   static const double      m_uprightMass;
   static const chrono::ChVector<>  m_spindleInertia;
   static const chrono::ChVector<>  m_uprightInertia;
+
+  static const double      m_axleInertia;
 
   static const chrono::ChVector<>  m_uprightDims;
 

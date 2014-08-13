@@ -68,10 +68,13 @@ ChDoubleWishboneReduced::ChDoubleWishboneReduced(const std::string& name,
   m_shock = ChSharedPtr<ChLinkSpring>(new ChLinkSpring);
   m_shock->SetNameString(name + "_shock");
 
-  // Engine (only if driven)
+  // If driven, create the axle shaft and its connection to the spindle.
   if (m_driven) {
-    m_engine = ChSharedPtr<ChLinkEngine>(new ChLinkEngine);
-    m_engine->SetNameString(name + "_engine");
+    m_axle = ChSharedPtr<ChShaft>(new ChShaft);
+    m_axle->SetNameString(name + "_axle");
+
+    m_axle_to_spindle = ChSharedPtr<ChShaftsBody>(new ChShaftsBody);
+    m_axle_to_spindle->SetNameString(name + "_axle_to_spindle");
   }
 }
 
@@ -136,27 +139,16 @@ ChDoubleWishboneReduced::Initialize(ChSharedBodyPtr   chassis,
   // to be used in steering.
   m_tierod_marker = m_distTierod->GetEndPoint1Rel();
 
-  // Initialize the engine link (if driven)
+  // Initialize the axle shaft and its connection to the spindle. Note that the
+  // spindle rotates about the Y axis.
   if (m_driven) {
-    ChCoordsys<> eng_csys(m_points[SPINDLE], Q_from_AngAxis(CH_C_PI / 2.0, VECT_X));
-    m_engine->Initialize(m_spindle, chassis, eng_csys);
-    m_engine->Set_shaft_mode(ChLinkEngine::ENG_SHAFT_CARDANO);
-    m_engine->Set_eng_mode(ChLinkEngine::ENG_MODE_TORQUE);
-    chassis->GetSystem()->AddLink(m_engine);
+    m_axle->SetInertia(getAxleInertia());
+    chassis->GetSystem()->Add(m_axle);
+
+    m_axle_to_spindle->Initialize(m_axle, m_spindle, ChVector<>(0, 1, 0));
+    chassis->GetSystem()->Add(m_axle_to_spindle);
   }
 
-}
-
-
-// -----------------------------------------------------------------------------
-// -----------------------------------------------------------------------------
-double
-ChDoubleWishboneReduced::GetSpindleAngSpeed() const
-{
-  if (m_driven)
-    return m_engine->Get_mot_rot_dt();
-
-  return 0;
 }
 
 
@@ -186,19 +178,6 @@ void ChDoubleWishboneReduced::ApplySteering(double displ)
   ChVector<> r_bar = m_tierod_marker;
   r_bar.y += displ;
   m_distTierod->SetEndPoint1Rel(r_bar);
-}
-
-
-// -----------------------------------------------------------------------------
-//
-// -----------------------------------------------------------------------------
-void ChDoubleWishboneReduced::ApplyTorque(double torque)
-{
-  assert(m_driven);
-
-  if (ChFunction_Const* efun = dynamic_cast<ChFunction_Const*>(m_engine->Get_tor_funct()))
-    efun->Set_yconst(torque);
-
 }
 
 

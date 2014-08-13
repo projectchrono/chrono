@@ -31,8 +31,6 @@ namespace hmmwv9 {
   const double HMMWV9_Powertrain::m_ingear_shaft_inertia = 0.3;
   const double HMMWV9_Powertrain::m_outgear_shaft_inertia = 0.5;
   const double HMMWV9_Powertrain::m_differentialbox_inertia = 0.6;
-  const double HMMWV9_Powertrain::m_rear_L_axle_inertia = 0.4;
-  const double HMMWV9_Powertrain::m_rear_R_axle_inertia = 0.4;
 
   const double HMMWV9_Powertrain::m_conicalgear_ratio = -0.2;
   const double HMMWV9_Powertrain::m_differential_ratio = -1;

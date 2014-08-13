@@ -53,9 +53,9 @@ public:
 
   /// To be called after creation, to create all the wrapped ChShaft objects 
   /// and their constraints, torques etc. 
-  void Initialize(ChSharedPtr<ChBody> chassis,
-                  ChSharedPtr<ChBody> spindle_L,
-                  ChSharedPtr<ChBody> spindle_R);
+  void Initialize(ChSharedPtr<ChBody>  chassis,
+                  ChSharedPtr<ChShaft> axle_L,
+                  ChSharedPtr<ChShaft> axle_R);
 
   virtual double GetMotorSpeed() const { return  m_crankshaft->GetPos_dt(); }
   virtual double GetMotorTorque() const { return  m_engine->GetTorqueReactionOn1(); }
@@ -84,8 +84,6 @@ protected:
   virtual double GetIngearShaftInertia() const = 0;
   virtual double GetOutgearShaftInertia() const = 0;
   virtual double GetDifferentialBoxInertia() const = 0;
-  virtual double GetRearLeftAxleInertia() const = 0;
-  virtual double GetRearRightAxleInertia() const = 0;
 
   /// Gear ratios.
   virtual double GetConicalGearRatio() const = 0;
@@ -112,10 +110,6 @@ private:
   ChSharedPtr<ChShaftsGearboxAngled>    m_rear_conicalgear;
   ChSharedPtr<ChShaft>                  m_shaft_rear_differentialbox;
   ChSharedPtr<ChShaftsPlanetary>        m_rear_differential;
-  ChSharedPtr<ChShaft>                  m_shaft_rear_L_axle;
-  ChSharedPtr<ChShaft>                  m_shaft_rear_R_axle;
-  ChSharedPtr<ChShaftsBody>             m_shaft_rear_L_axle_to_body;
-  ChSharedPtr<ChShaftsBody>             m_shaft_rear_R_axle_to_body;
 
   int m_current_gear;
   std::vector<double> m_gear_ratios;

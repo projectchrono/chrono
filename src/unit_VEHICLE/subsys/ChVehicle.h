@@ -44,7 +44,10 @@ public:
 
   virtual const ChVector<>& GetWheelPos(ChWheelId which) const = 0;
   virtual const ChQuaternion<>& GetWheelRot(ChWheelId which) const = 0;
-  virtual double GetWheelAngSpeed(ChWheelId which) = 0;
+  virtual const ChVector<>& GetWheelLinVel(ChWheelId which) const = 0;
+  virtual const ChVector<>& GetWheelAngVel(ChWheelId which) const = 0;
+
+  virtual double GetWheelOmega(ChWheelId which) = 0;
 
   virtual void Update(double time, double throttle, double steering) = 0;
 

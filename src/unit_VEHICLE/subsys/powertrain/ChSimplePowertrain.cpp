@@ -65,8 +65,8 @@ void ChSimplePowertrain::Update(double time,
                                 double throttle)
 {
   // Get wheel angular speeds.
-  double wheelSpeedL = m_car->GetWheelAngSpeed(REAR_LEFT);
-  double wheelSpeedR = m_car->GetWheelAngSpeed(REAR_RIGHT);
+  double wheelSpeedL = m_rear_L_susp->GetAxleSpeed();
+  double wheelSpeedR = m_rear_R_susp->GetAxleSpeed();
 
   // Assume clutch is never used. Given the kinematics of differential, the
   // speed of the engine transmission shaft is the average of the two wheel
@@ -90,10 +90,9 @@ void ChSimplePowertrain::Update(double time,
   // it is half of the shaft torque  (multiplied the conic gear transmission ratio)
   m_wheelTorque = 0.5 * shaftTorque * (1.0 / GetConicTau());
 
-
   // Apply torques directly to the rear suspension subsystems.
-  m_rear_L_susp->ApplyTorque(m_wheelTorque);
-  m_rear_R_susp->ApplyTorque(m_wheelTorque);
+  m_rear_L_susp->ApplyAxleTorque(-m_wheelTorque);
+  m_rear_R_susp->ApplyAxleTorque(-m_wheelTorque);
 }
 
 

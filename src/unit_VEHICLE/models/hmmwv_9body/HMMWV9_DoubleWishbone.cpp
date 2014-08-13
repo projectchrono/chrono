@@ -37,6 +37,8 @@ const double     HMMWV9_DoubleWishboneFront::m_uprightMass = 1;
 const ChVector<> HMMWV9_DoubleWishboneFront::m_spindleInertia(1, 1, 1);
 const ChVector<> HMMWV9_DoubleWishboneFront::m_uprightInertia(1, 1, 1);
 
+const double     HMMWV9_DoubleWishboneFront::m_axleInertia = 0.4;
+
 const ChVector<> HMMWV9_DoubleWishboneFront::m_uprightDims(0.1, 0.05, 0.1);
 
 const double     HMMWV9_DoubleWishboneFront::m_springCoefficient  = 167062.0;
@@ -50,6 +52,8 @@ const double     HMMWV9_DoubleWishboneRear::m_uprightMass = 1;
 
 const ChVector<> HMMWV9_DoubleWishboneRear::m_spindleInertia(1, 1, 1);
 const ChVector<> HMMWV9_DoubleWishboneRear::m_uprightInertia(1, 1, 1);
+
+const double     HMMWV9_DoubleWishboneRear::m_axleInertia = 0.4;
 
 const ChVector<> HMMWV9_DoubleWishboneRear::m_uprightDims(0.1, 0.05, 0.1);
 

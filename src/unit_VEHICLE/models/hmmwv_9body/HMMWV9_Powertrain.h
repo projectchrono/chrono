@@ -45,8 +45,6 @@ public:
   virtual double GetIngearShaftInertia() const     { return m_ingear_shaft_inertia; }
   virtual double GetOutgearShaftInertia() const    { return m_outgear_shaft_inertia; }
   virtual double GetDifferentialBoxInertia() const { return m_differentialbox_inertia; }
-  virtual double GetRearLeftAxleInertia() const    { return m_rear_L_axle_inertia; }
-  virtual double GetRearRightAxleInertia() const   { return m_rear_R_axle_inertia; }
 
   virtual double GetConicalGearRatio() const       { return m_conicalgear_ratio; }
   virtual double GetDifferentialRatio() const      { return m_differential_ratio; }
@@ -63,8 +61,6 @@ private:
   static const double  m_ingear_shaft_inertia;
   static const double  m_outgear_shaft_inertia;
   static const double  m_differentialbox_inertia;
-  static const double  m_rear_L_axle_inertia;
-  static const double  m_rear_R_axle_inertia;
 
   // Gear ratios.
   static const double  m_conicalgear_ratio;

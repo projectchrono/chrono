@@ -133,7 +133,7 @@ HMMWV9_Vehicle::HMMWV9_Vehicle(ChSystem&            my_system,
   ////m_powertrain->Initialize(m_chassis, m_rear_left_susp, m_rear_right_susp);
 
   m_powertrain = ChSharedPtr<HMMWV9_Powertrain>(new HMMWV9_Powertrain(this));
-  m_powertrain->Initialize(m_chassis, m_rear_left_susp->GetSpindle(), m_rear_right_susp->GetSpindle());
+  m_powertrain->Initialize(m_chassis, m_rear_left_susp->GetAxle(), m_rear_right_susp->GetAxle());
 
 }
 
@@ -178,17 +178,49 @@ const ChQuaternion<>& HMMWV9_Vehicle::GetWheelRot(ChWheelId which) const
   }
 }
 
-double HMMWV9_Vehicle::GetWheelAngSpeed(ChWheelId which)
+const ChVector<>& HMMWV9_Vehicle::GetWheelLinVel(ChWheelId which) const
 {
   switch (which) {
   case FRONT_LEFT:
-    return m_front_left_susp->GetSpindleAngSpeed();
+    return m_front_left_susp->GetSpindleLinVel();
   case FRONT_RIGHT:
-    return m_front_right_susp->GetSpindleAngSpeed();
+    return m_front_right_susp->GetSpindleLinVel();
   case REAR_LEFT:
-    return m_rear_left_susp->GetSpindleAngSpeed();
+    return m_rear_left_susp->GetSpindleLinVel();
   case REAR_RIGHT:
-    return m_rear_right_susp->GetSpindleAngSpeed();
+    return m_rear_right_susp->GetSpindleLinVel();
+  default:
+    return m_front_left_susp->GetSpindleLinVel();  // should not happen
+  }
+}
+
+const ChVector<>& HMMWV9_Vehicle::GetWheelAngVel(ChWheelId which) const
+{
+  switch (which) {
+  case FRONT_LEFT:
+    return m_front_left_susp->GetSpindleAngVel();
+  case FRONT_RIGHT:
+    return m_front_right_susp->GetSpindleAngVel();
+  case REAR_LEFT:
+    return m_rear_left_susp->GetSpindleAngVel();
+  case REAR_RIGHT:
+    return m_rear_right_susp->GetSpindleAngVel();
+  default:
+    return m_front_left_susp->GetSpindleAngVel();  // should not happen
+  }
+}
+
+double HMMWV9_Vehicle::GetWheelOmega(ChWheelId which)
+{
+  switch (which) {
+  case FRONT_LEFT:
+    return m_front_left_susp->GetAxleSpeed();
+  case FRONT_RIGHT:
+    return m_front_right_susp->GetAxleSpeed();
+  case REAR_LEFT:
+    return m_rear_left_susp->GetAxleSpeed();
+  case REAR_RIGHT:
+    return m_rear_right_susp->GetAxleSpeed();
   default:
     return -1;  // should not happen
   }

@@ -49,7 +49,10 @@ public:
 
   virtual const chrono::ChVector<>& GetWheelPos(chrono::ChWheelId which) const;
   virtual const chrono::ChQuaternion<>& GetWheelRot(chrono::ChWheelId which) const;
-  virtual double GetWheelAngSpeed(chrono::ChWheelId which);
+  virtual const chrono::ChVector<>& GetWheelLinVel(chrono::ChWheelId which) const;
+  virtual const chrono::ChVector<>& GetWheelAngVel(chrono::ChWheelId which) const;
+
+  virtual double GetWheelOmega(chrono::ChWheelId which);
 
   virtual void Update(double time, double throttle, double steering);
 
@@ -64,7 +67,7 @@ private:
   chrono::ChSharedPtr<HMMWV9_DoubleWishboneRear>    m_rear_right_susp;
   chrono::ChSharedPtr<HMMWV9_DoubleWishboneRear>    m_rear_left_susp;
 
-  //chrono::ChSharedPtr<HMMWV9_SimplePowertrain>  m_powertrain;
+  ////chrono::ChSharedPtr<HMMWV9_SimplePowertrain>  m_powertrain;
   chrono::ChSharedPtr<HMMWV9_Powertrain>  m_powertrain;
 
   // Chassis visualization mesh

@@ -49,11 +49,6 @@ public:
   virtual void AttachWheel(ChSharedPtr<ChWheel> wheel);
 
   virtual void ApplySteering(double displ);
-  virtual void ApplyTorque(double torque);
-
-  virtual const ChVector<>& GetSpindlePos() const { return m_spindle->GetPos(); }
-  virtual const ChQuaternion<>& GetSpindleRot() const { return m_spindle->GetRot(); }
-  virtual double GetSpindleAngSpeed() const;
 
 protected:
 
@@ -81,6 +76,8 @@ protected:
   virtual const ChVector<>& getSpindleInertia() const = 0;
   virtual const ChVector<>& getUprightInertia() const = 0;
 
+  virtual double getAxleInertia() const = 0;
+
   virtual double getSpringCoefficient() const = 0;
   virtual double getDampingCoefficient() const = 0;
   virtual double getSpringRestLength() const = 0;
@@ -100,8 +97,6 @@ protected:
   ChSharedPtr<ChLinkDistance>       m_distTierod;
 
   ChSharedPtr<ChLinkSpring>         m_shock;
-
-  ChSharedPtr<ChLinkEngine>         m_engine;
 
   ChVector<>                        m_tierod_marker;
 

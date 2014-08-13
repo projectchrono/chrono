@@ -33,4 +33,18 @@ ChSuspension::ChSuspension(const std::string& name,
 }
 
 
+void ChSuspension::ApplyAxleTorque(double torque)
+{
+  assert(m_driven);
+  m_axle->SetAppliedTorque(torque);
+}
+
+
+double ChSuspension::GetAxleSpeed() const
+{
+  assert(m_driven);
+  return m_axle->GetPos_dt();
+}
+
+
 }  // end namespace chrono
