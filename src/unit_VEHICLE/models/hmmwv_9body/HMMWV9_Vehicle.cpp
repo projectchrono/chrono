@@ -20,6 +20,7 @@
 #include "assets/ChTriangleMeshShape.h"
 
 #include "utils/ChUtilsData.h"
+#include "utils/ChUtilsInputOutput.h"
 
 #include "HMMWV9_Vehicle.h"
 
@@ -113,16 +114,16 @@ HMMWV9_Vehicle::HMMWV9_Vehicle(ChSystem&            my_system,
   // Create the wheels and attach to suspension
   // -------------------------------------------
 
-  ChSharedPtr<HMMWV9_Wheel> front_right_wheel(new HMMWV9_Wheel(true, 0.7, wheelVis));
+  ChSharedPtr<HMMWV9_Wheel> front_right_wheel(new HMMWV9_WheelRight(true, 0.7f, wheelVis));
   m_front_right_susp->AttachWheel(front_right_wheel);
 
-  ChSharedPtr<HMMWV9_Wheel> front_left_wheel(new HMMWV9_Wheel(true, 0.7, wheelVis));
+  ChSharedPtr<HMMWV9_Wheel> front_left_wheel(new HMMWV9_WheelLeft(true, 0.7f, wheelVis));
   m_front_left_susp->AttachWheel(front_left_wheel);
 
-  ChSharedPtr<HMMWV9_Wheel> rear_right_wheel(new HMMWV9_Wheel(true, 0.7, wheelVis));
+  ChSharedPtr<HMMWV9_Wheel> rear_right_wheel(new HMMWV9_WheelRight(true, 0.7f, wheelVis));
   m_rear_right_susp->AttachWheel(rear_right_wheel);
 
-  ChSharedPtr<HMMWV9_Wheel> rear_left_wheel(new HMMWV9_Wheel(true, 0.7, wheelVis));
+  ChSharedPtr<HMMWV9_Wheel> rear_left_wheel(new HMMWV9_WheelLeft(true, 0.7f, wheelVis));
   m_rear_left_susp->AttachWheel(rear_left_wheel);
 
   // -------------------------------
@@ -241,6 +242,14 @@ void HMMWV9_Vehicle::Update(double time,
 
   // Let the powertrain subsystem process the throttle input
   m_powertrain->Update(time, throttle);
+}
+
+
+// -----------------------------------------------------------------------------
+// -----------------------------------------------------------------------------
+void HMMWV9_Vehicle::ExportMeshPovray(const std::string& out_dir)
+{
+  utils::WriteMeshPovray(m_chassisMeshFile, m_chassisMeshName, out_dir);
 }
 
 

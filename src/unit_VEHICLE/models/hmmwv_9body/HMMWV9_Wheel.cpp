@@ -21,6 +21,7 @@
 #include "assets/ChTexture.h"
 
 #include "utils/ChUtilsData.h"
+#include "utils/ChUtilsInputOutput.h"
 
 #include "HMMWV9_Wheel.h"
 #include "HMMWV9_Vehicle.h"
@@ -41,20 +42,38 @@ const double      HMMWV9_Wheel::m_width = 10 * in2m;
 const double      HMMWV9_Wheel::m_mass = 54.7;
 const ChVector<>  HMMWV9_Wheel::m_inertia(3.7958, 7.0037, 3.7958);
 
-const std::string HMMWV9_Wheel::m_meshName = "hmmwv_tire";
-const std::string HMMWV9_Wheel::m_meshFile = utils::GetModelDataFile("hmmwv/wheel_centered_rotated.obj");
+const std::string HMMWV9_WheelLeft::m_meshName = "hmmwv_wheel_L";
+const std::string HMMWV9_WheelLeft::m_meshFile = utils::GetModelDataFile("hmmwv/wheel_L.obj");
+
+const std::string HMMWV9_WheelRight::m_meshName = "hmmwv_wheel_R";
+const std::string HMMWV9_WheelRight::m_meshFile = utils::GetModelDataFile("hmmwv/wheel_R.obj");
 
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 HMMWV9_Wheel::HMMWV9_Wheel(bool               enableContact,
-                           double             mu,
+                           float              mu,
                            VisualizationType  visType)
 : m_contact(enableContact),
   m_mu(mu),
   m_visType(visType)
 {
 }
+
+HMMWV9_WheelLeft::HMMWV9_WheelLeft(bool               enableContact,
+                                   float              mu,
+                                   VisualizationType  visType)
+: HMMWV9_Wheel(enableContact, mu, visType)
+{
+}
+
+HMMWV9_WheelRight::HMMWV9_WheelRight(bool               enableContact,
+                                     float              mu,
+                                     VisualizationType  visType)
+: HMMWV9_Wheel(enableContact, mu, visType)
+{
+}
+
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
@@ -78,11 +97,11 @@ void HMMWV9_Wheel::OnInitialize(ChSharedBodyPtr body)
   case MESH:
   {
     geometry::ChTriangleMeshConnected trimesh;
-    trimesh.LoadWavefrontMesh(m_meshFile, false, false);
+    trimesh.LoadWavefrontMesh(getMeshFile(), false, false);
 
     ChSharedPtr<ChTriangleMeshShape> trimesh_shape(new ChTriangleMeshShape);
     trimesh_shape->SetMesh(trimesh);
-    trimesh_shape->SetName(m_meshName);
+    trimesh_shape->SetName(getMeshName());
     body->AddAsset(trimesh_shape);
 
     break;
@@ -98,6 +117,19 @@ void HMMWV9_Wheel::OnInitialize(ChSharedBodyPtr body)
 
     body->GetMaterialSurface()->SetFriction(m_mu);
   }
+}
+
+
+// -----------------------------------------------------------------------------
+// -----------------------------------------------------------------------------
+void HMMWV9_WheelLeft::ExportMeshPovray(const std::string& out_dir)
+{
+  utils::WriteMeshPovray(m_meshFile, m_meshName, out_dir);
+}
+
+void HMMWV9_WheelRight::ExportMeshPovray(const std::string& out_dir)
+{
+  utils::WriteMeshPovray(m_meshFile, m_meshName, out_dir);
 }
 
 

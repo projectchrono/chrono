@@ -56,9 +56,7 @@ public:
 
   virtual void Update(double time, double throttle, double steering);
 
-  // Access to private static members
-  static const std::string& ChassisMeshName() { return m_chassisMeshName; }
-  static const std::string& ChassisMeshFile() { return m_chassisMeshFile; }
+  static void ExportMeshPovray(const std::string& out_dir);
 
 private:
 

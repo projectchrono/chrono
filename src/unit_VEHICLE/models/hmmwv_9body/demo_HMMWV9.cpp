@@ -54,8 +54,8 @@ using namespace hmmwv9;
 // =============================================================================
 
 // Initial vehicle position
-ChVector<>     initLoc(0, 0, 1.7);    // sprung mass height at design = 49.68 in
-ChQuaternion<> initRot(1,0,0,0);      // forward is the positive x-direction
+ChVector<>     initLoc(40, 0, 1.7);   // sprung mass height at design = 49.68 in
+ChQuaternion<> initRot(1,0,0,0);      // forward is in the negative global x-direction
 
 // Rigid terrain dimensions
 double terrainHeight = 0;
@@ -103,8 +103,8 @@ int main(int argc, char* argv[])
   HMMWV9_Vehicle vehicle(m_system,
                          ChCoordsys<>(initLoc, initRot),
                          false,
-                         hmmwv9::NONE,
-                         hmmwv9::PRIMITIVES);
+                         hmmwv9::MESH,
+                         hmmwv9::MESH);
 
   // Create the ground
   HMMWV9_RigidTerrain terrain(m_system, terrainHeight, terrainLength, terrainWidth, 0.8);
@@ -172,7 +172,7 @@ int main(int argc, char* argv[])
   application.SetTryRealtime(true);
 
   // Refresh 3D view only every N simulation steps:
-  int simul_substeps_num = std::ceil((1 / step_size) / FPS);
+  int simul_substeps_num = (int) std::ceil((1 / step_size) / FPS);
   int simul_substep = 0;
 
   while (application.GetDevice()->run())
@@ -211,7 +211,7 @@ int main(int argc, char* argv[])
 
 #else
 
-  int out_steps = std::ceil((1 / step_size) / FPS);
+  int out_steps = (int) std::ceil((1 / step_size) / FPS);
 
   double time = 0;
   int frame = 0;
@@ -226,8 +226,9 @@ int main(int argc, char* argv[])
     return 1;
   }
 
-  utils::WriteMeshPovray(HMMWV9_Vehicle::ChassisMeshFile(), HMMWV9_Vehicle::ChassisMeshName(), out_dir);
-  utils::WriteMeshPovray(HMMWV9_Wheel::MeshFile(), HMMWV9_Wheel::MeshName(), out_dir);
+  HMMWV9_Vehicle::ExportMeshPovray(out_dir);
+  HMMWV9_WheelLeft::ExportMeshPovray(out_dir);
+  HMMWV9_WheelRight::ExportMeshPovray(out_dir);
 
   char filename[100];
 

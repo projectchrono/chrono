@@ -29,32 +29,64 @@ class HMMWV9_Wheel : public chrono::ChWheel {
 public:
 
   HMMWV9_Wheel(bool               enableContact,
-               double             mu,
+               float              mu,
                VisualizationType  visType);
 
-  ~HMMWV9_Wheel() {}
+  virtual ~HMMWV9_Wheel() {}
 
   virtual double getMass() const { return m_mass; }
   virtual const chrono::ChVector<>& getInertia() { return m_inertia; }
 
-  static const std::string& MeshName() { return m_meshName; }
-  static const std::string& MeshFile() { return m_meshFile; }
+  virtual const std::string& getMeshName() const = 0;
+  virtual const std::string& getMeshFile() const = 0;
 
-private:
+protected:
   virtual void OnInitialize(chrono::ChSharedBodyPtr body);
 
   bool               m_contact;
-  double             m_mu;
+  float              m_mu;
   VisualizationType  m_visType;
-
-  static const std::string  m_meshName;
-  static const std::string  m_meshFile;
 
   static const double  m_radius;
   static const double  m_width;
   static const double  m_mass;
   static const chrono::ChVector<>  m_inertia;
+};
 
+
+class HMMWV9_WheelLeft : public HMMWV9_Wheel {
+public:
+  HMMWV9_WheelLeft(bool               enableContact,
+                   float              mu,
+                   VisualizationType  visType);
+  ~HMMWV9_WheelLeft() {}
+
+  virtual const std::string& getMeshName() const { return m_meshName; }
+  virtual const std::string& getMeshFile() const { return m_meshFile; }
+
+  static void ExportMeshPovray(const std::string& out_dir);
+
+private:
+  static const std::string  m_meshName;
+  static const std::string  m_meshFile;
+};
+
+
+class HMMWV9_WheelRight : public HMMWV9_Wheel {
+public:
+  HMMWV9_WheelRight(bool               enableContact,
+                    float              mu,
+                    VisualizationType  visType);
+  ~HMMWV9_WheelRight() {}
+
+  virtual const std::string& getMeshName() const { return m_meshName; }
+  virtual const std::string& getMeshFile() const { return m_meshFile; }
+
+  static void ExportMeshPovray(const std::string& out_dir);
+
+private:
+  static const std::string  m_meshName;
+  static const std::string  m_meshFile;
 };
 
 
