@@ -21,14 +21,26 @@
 #   SSE_FOUND   = 1
 #   SSE_VERSION = the requested version, if EXACT is true, or
 #                 the highest SSE version found.
+#   SSE_FLAGS = compile flags for the version of SSE found
 # 
 # If SSE is not supported on the host platform, these variables are
 # not set. If QUIET is true, the module does not print a message if
 # SSE if missing. If REQUIRED is true, the module produces a fatal
 # error if SSE support is missing.
 # 
+set(SSE_FLAGS)
+
+if(CMAKE_COMPILER_IS_GNUCC OR CMAKE_COMPILER_IS_GNUCXX)
+  execute_process(COMMAND ${CMAKE_CXX_COMPILER} "-dumpversion" OUTPUT_VARIABLE GCC_VERSION_STRING)
+  if(GCC_VERSION_STRING VERSION_GREATER 4.2 AND NOT APPLE AND NOT CMAKE_CROSSCOMPILING)
+    SET(SSE_FLAGS "${SSE_FLAGS} -march=native")
+    message(STATUS "Using CPU native flags for SSE optimization: ${SSE_FLAGS}")
+  endif()
+endif()
 
 include(CheckCXXSourceRuns)
+set(CMAKE_REQUIRED_FLAGS)
+
 
 # Generate a list of SSE versions to test.
 if(SSE_FIND_VERSION_EXACT)
@@ -36,8 +48,6 @@ if(SSE_FIND_VERSION_EXACT)
     set(_SSE_TEST_42 1)
   elseif(SSE_FIND_VERSION VERSION_EQUAL "4.1")
     set(_SSE_TEST_41 1)
-  elseif(SSE_FIND_VERSION VERSION_EQUAL "3.1")
-    set(_SSE_TEST_31 1)
   elseif(SSE_FIND_VERSION VERSION_EQUAL "3.0")
     set(_SSE_TEST_30 1)
   elseif(SSE_FIND_VERSION VERSION_EQUAL "2.0")
@@ -52,9 +62,6 @@ else()
   if(NOT SSE_FIND_VERSION VERSION_GREATER "4.1")
     set(_SSE_TEST_41 1)
   endif()
-  if(NOT SSE_FIND_VERSION VERSION_GREATER "3.1")
-    set(_SSE_TEST_31 1)
-  endif()
   if(NOT SSE_FIND_VERSION VERSION_GREATER "3.0")
     set(_SSE_TEST_30 1)
   endif()
@@ -66,11 +73,12 @@ else()
   endif()  
 endif()
 
-# Set compiler flag to generate instructions for the host architecture.
-set(CMAKE_REQUIRED_FLAGS "-march=native")
 
 # Check for SSE 4.2 support.
 if(_SSE_TEST_42)
+  if(CMAKE_COMPILER_IS_GNUCC OR CMAKE_COMPILER_IS_GNUCXX OR CMAKE_COMPILER_IS_CLANG)
+    set(CMAKE_REQUIRED_FLAGS "-msse4.2")
+  endif()
   check_cxx_source_runs("
   #include <emmintrin.h>
   #include <nmmintrin.h>
@@ -88,16 +96,15 @@ if(_SSE_TEST_42)
       return 0;
     else
       return 1;
-  }" SSE_42_DETECTED)
-  if(SSE_42_DETECTED)
-    set(SSE_VERSION "4.2")
-    set(SSE_FOUND 1)
-    return()
-  endif()
+  }" 
+  DETECTED_SSE_42)
 endif()
 
 # Check for SSE 4.1 support.
 if(_SSE_TEST_41)
+  if(CMAKE_COMPILER_IS_GNUCC OR CMAKE_COMPILER_IS_GNUCXX OR CMAKE_COMPILER_IS_CLANG)
+    set(CMAKE_REQUIRED_FLAGS "-msse4.1")
+  endif()
   check_cxx_source_runs("
   #include <emmintrin.h>
   #include <smmintrin.h>
@@ -115,42 +122,14 @@ if(_SSE_TEST_41)
       return 0;
     else
       return 1;
-  }" SSE_41_DETECTED)
-  if(SSE_41_DETECTED)
-    set(SSE_VERSION "4.1")
-    set(SSE_FOUND 1)
-    return()
-  endif()
-endif()
-
-# Check for SSSE 3 support.
-if(_SSE_TEST_31)
-  check_cxx_source_runs("
-  #include <emmintrin.h>
-  #include <tmmintrin.h>
-  int main()
-  {
-
-    int a[4] = { 1, 0, -3, -2 };
-    int b[4];
-    __m128i va = _mm_loadu_si128((__m128i*)a);
-    __m128i vb = _mm_abs_epi32(va);
-
-    _mm_storeu_si128((__m128i*)b, vb);
-    if (b[0] == 1 && b[1] == 0 && b[2] == 3 && b[3] == 2)
-      return 0;
-    else
-      return 1;
-  }" SSE_31_DETECTED)
-  if(SSE_31_DETECTED)
-    set(SSE_VERSION "3.1")
-    set(SSE_FOUND 1)
-    return()
-  endif()
+  }" DETECTED_SSE_41)
 endif()
 
 # Check for SSE 3 support.
 if(_SSE_TEST_30)
+  if(CMAKE_COMPILER_IS_GNUCC OR CMAKE_COMPILER_IS_GNUCXX OR CMAKE_COMPILER_IS_CLANG)
+    set(CMAKE_REQUIRED_FLAGS "-msse3")
+  endif()
   check_cxx_source_runs("
   #include <emmintrin.h>
   #ifdef _WIN32
@@ -174,19 +153,18 @@ if(_SSE_TEST_30)
       return 0;
     else
       return 1;
-  }" SSE_30_DETECTED)
-  if(SSE_30_DETECTED)
-    set(SSE_VERSION "3.0")
-    set(SSE_FOUND 1)
-    return()
-  endif()
+  }" DETECTED_SSE_30)
 endif()
 
 # Check for SSE2 support.
 if(_SSE_TEST_20)
+  if(CMAKE_COMPILER_IS_GNUCC OR CMAKE_COMPILER_IS_GNUCXX OR CMAKE_COMPILER_IS_CLANG)
+    set(CMAKE_REQUIRED_FLAGS "-msse2")
+  elseif(MSVC AND NOT CMAKE_CL_64)
+    set(CMAKE_REQUIRED_FLAGS "/arch:SSE2")
+  endif()
   check_cxx_source_runs("
   #include <emmintrin.h>
-
   int main()
   {
     int a[4] = { 1, 2,  3,  4 };
@@ -202,16 +180,16 @@ if(_SSE_TEST_20)
       return 0;
     else
       return 1;
-  }" SSE_20_DETECTED)
-  if(SSE_20_DETECTED)
-    set(SSE_VERSION "2.0")
-    set(SSE_FOUND 1)
-    return()
-  endif()
+  }" DETECTED_SSE_20)
 endif()
 
 # Check for SSE support.
 if(_SSE_TEST_10)
+  if(CMAKE_COMPILER_IS_GNUCC OR CMAKE_COMPILER_IS_GNUCXX OR CMAKE_COMPILER_IS_CLANG)
+    set(CMAKE_REQUIRED_FLAGS "-msse")
+  elseif(MSVC AND NOT CMAKE_CL_64)
+    set(CMAKE_REQUIRED_FLAGS "/arch:SSE")
+  endif()
   check_cxx_source_runs("
   #include <emmintrin.h>
   int main()
@@ -228,27 +206,67 @@ if(_SSE_TEST_10)
       return 0;
     else
       return 1;
-  }" SSE_10_DETECTED)
-  if(SSE_10_DETECTED)
-    set(SSE_VERSION "1.0")
-    set(SSE_FOUND 1)
-    return()
+  }" DETECTED_SSE_10)
+endif()
+
+set(CMAKE_REQUIRED_FLAGS)
+
+if(CMAKE_COMPILER_IS_GNUCC OR CMAKE_COMPILER_IS_GNUCXX OR CMAKE_COMPILER_IS_CLANG)
+  if(DETECTED_SSE_42)
+      SET(SSE_FLAGS "${SSE_FLAGS} -msse4.2 -mfpmath=sse -DDETECTED_SSE_42 -DDETECTED_SSE_41 -DDETECTED_SSE_30 -DDETECTED_SSE_20 -DDETECTED_SSE_10")
+      set(SSE_VERSION "4.2")
+      SET(SSE_FOUND 1)
+  elseif(DETECTED_SSE_41)
+      SET(SSE_FLAGS "${SSE_FLAGS} -msse4.1 -mfpmath=sse -DDETECTED_SSE_41 -DDETECTED_SSE_30 -DDETECTED_SSE_20 -DDETECTED_SSE_10")
+      set(SSE_VERSION "4.1")
+      SET(SSE_FOUND 1)
+  elseif(DETECTED_SSE_30)
+      SET(SSE_FLAGS "${SSE_FLAGS} -msse3 -mfpmath=sse -DDETECTED_SSE_30 -DDETECTED_SSE_20 -DDETECTED_SSE_10")
+      set(SSE_VERSION "3.0")
+      SET(SSE_FOUND 1)
+  elseif(DETECTED_SSE_20)
+      SET(SSE_FLAGS "${SSE_FLAGS} -msse2 -mfpmath=sse -DDETECTED_SSE_20 -DDETECTED_SSE_10")
+      set(SSE_VERSION "2.0")
+      SET(SSE_FOUND 1)
+  elseif(DETECTED_SSE_10)
+      SET(SSE_FLAGS "${SSE_FLAGS} -msse -mfpmath=sse -DDETECTED_SSE_10")
+      set(SSE_VERSION "1.0")
+      SET(SSE_FOUND 1)
+  else()
+      # Setting -ffloat-store to alleviate 32bit vs 64bit discrepancies on non-SSE platforms.
+      set(SSE_FLAGS "-ffloat-store")
+      message(STATUS "No SSE extensions found")
+  endif()
+elseif(MSVC AND NOT CMAKE_CL_64)
+  if(DETECTED_SSE_20)
+      SET(SSE_FLAGS "${SSE_FLAGS} /arch:SSE2")
+      set(SSE_VERSION "2.0")
+      SET(SSE_FOUND 1)
+  elseif(DETECTED_SSE_10)
+      SET(SSE_FLAGS "${SSE_FLAGS} /arch:SSE")
+      set(SSE_VERSION "1.0")
+      SET(SSE_FOUND 1)
   endif()
 endif()
 
+if(SSE_FOUND)
+  message(STATUS "Found SSE ${SSE_VERSION} extensions, using flags: ${SSE_FLAGS}")
+endif()
+
+set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} ${SSE_FLAGS}")
+set(CMAKE_CXX_FLAGS_RELWITHDEBINFO "${CMAKE_CXX_FLAGS_RELWITHDEBINFO} ${SSE_FLAGS}")
+set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} ${SSE_FLAGS}")
+return()
+
 # If no SSE support is found, print an error message.
-if(NOT SSE_FOUND)
-  
-  if(SSE_FIND_VERSION)
-    set(_SSE_ERROR_MESSAGE "SSE ${SSE_FIND_VERSION} support is not found on this architecture")
-  else()
-    set(_SSE_ERROR_MESSAGE "SSE support is not found on this architecture")
-  endif()
+if(SSE_FIND_VERSION)
+  set(_SSE_ERROR_MESSAGE "SSE ${SSE_FIND_VERSION} support is not found on this architecture")
+else()
+  set(_SSE_ERROR_MESSAGE "SSE support is not found on this architecture")
+endif()
 
-  if(SSE_FIND_REQUIRED)
-    message(FATAL_ERROR "${_SSE_ERROR_MESSAGE}")
-  elseif(NOT SSE_FIND_QUIETLY)
-    message(STATUS "${_SSE_ERROR_MESSAGE}")
-  endif()
-
+if(SSE_FIND_REQUIRED)
+  message(FATAL_ERROR "${_SSE_ERROR_MESSAGE}")
+elseif(NOT SSE_FIND_QUIETLY)
+  message(STATUS "${_SSE_ERROR_MESSAGE}")
 endif()
