@@ -47,6 +47,11 @@ if(COMMAND cmake_policy)
   cmake_policy(SET CMP0003 NEW)
 endif(COMMAND cmake_policy)
 
+# Get rid of cmake RPATH warning on OSX
+IF(APPLE)
+  set(CMAKE_MACOSX_RPATH OFF)
+ENDIF()
+
 #-----------------------------------------------------------------------------
 # Disable solution folders because not supported in VC Express
 
