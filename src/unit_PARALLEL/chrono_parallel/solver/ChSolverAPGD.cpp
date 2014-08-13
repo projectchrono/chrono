@@ -106,7 +106,7 @@ uint ChSolverAPGD::SolveAPGD(const uint max_iter,const uint size,const custom_ve
       obj2 = Dot(my, ms);
       Sub(ms, mx, my);     //ms = mx - my;
       //cout<<obj1<<" "<<obj2<<endl;
-      while (obj1 > obj2 + Dot(mg, ms) + 0.5 * L_k * powf(Norm(ms), 2.0)) {
+      while (obj1 > obj2 + Dot(mg, ms) + 0.5 * L_k * pow(Norm(ms), 2.0)) {
          L_k = step_grow * L_k;
          t_k = 1.0 / L_k;
          SEAXPY(-t_k, mg, my, mx);     // mx = my + mg*(t_k);
@@ -165,7 +165,7 @@ uint ChSolverAPGD::SolveAPGD(const uint max_iter,const uint size,const custom_ve
          real resid_bilat = -1;
 
          for (int i = num_unilaterals; i < x.size(); i++) {
-            resid_bilat = max(resid_bilat, fabs(mg_tmp2[i]));
+            resid_bilat = max(resid_bilat, abs(mg_tmp2[i]));
          }
          g_proj_norm = max(g_proj_norm, resid_bilat);
          //cout<<resid_bilat<<endl;

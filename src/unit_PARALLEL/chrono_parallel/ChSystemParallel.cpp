@@ -77,8 +77,6 @@ int ChSystemParallel::Integrate_Y() {
    //=============================================================================================
    data_manager->system_timer.start("update");
 
-   //std::vector<ChLcpVariables*> vvariables = LCP_descriptor->GetVariablesList();
-
    uint cntr = 0;
    std::vector<ChLcpConstraint *> &mconstraints = (*this->LCP_descriptor).GetConstraintsList();
    for (uint ic = 0; ic < mconstraints.size(); ic++) {

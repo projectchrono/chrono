@@ -2,22 +2,20 @@
 
 using namespace chrono;
 
-void ChSolverAPGDRS::SetAPGDParams(
-      real theta_k,
-      real shrink,
-      real grow) {
+void ChSolverAPGDRS::SetAPGDParams(real theta_k,
+                                   real shrink,
+                                   real grow) {
    init_theta_k = theta_k;
    step_shrink = shrink;
    step_grow = grow;
 
 }
 
-real ChSolverAPGDRS::Res4(
-      const int SIZE,
-      real* mg_tmp,
-      const real* b,
-      real*x,
-      real* mb_tmp) {
+real ChSolverAPGDRS::Res4(const int SIZE,
+                          real* mg_tmp,
+                          const real* b,
+                          real*x,
+                          real* mb_tmp) {
    real gdiff = 1e-6;
    real sum = 0;
 
@@ -42,12 +40,10 @@ real ChSolverAPGDRS::Res4(
 
 }
 
-
-uint ChSolverAPGDRS::SolveAPGDRS(
-                                   const uint max_iter,
-                                   const uint size,
-                                   custom_vector<real> &rhs,
-                                   custom_vector<real> &x) {
+uint ChSolverAPGDRS::SolveAPGDRS(const uint max_iter,
+                                 const uint size,
+                                 custom_vector<real> &rhs,
+                                 custom_vector<real> &x) {
    ms.resize(size);
    mg_tmp2.resize(size);
    mb_tmp.resize(size);
@@ -83,7 +79,7 @@ uint ChSolverAPGDRS::SolveAPGDRS(
 
 #pragma omp parallel for reduction(+:mb_tmp_norm)
    for (int i = 0; i < size; i++) {
-      real _mb_tmp_ = -1.0f + ml[i];
+      real _mb_tmp_ = -1.0 + ml[i];
       mb_tmp_norm += _mb_tmp_ * _mb_tmp_;
       mb_tmp[i] = _mb_tmp_;
       mg[i] = mg[i] - b[i];
@@ -111,8 +107,8 @@ uint ChSolverAPGDRS::SolveAPGDRS(
       norm_ms = 0;
 
       ShurProduct(my, mg_tmp1);
-    data_container->system_timer.stop("ChSolverParallel_solverB");
-    data_container->system_timer.start("ChSolverParallel_solverC");
+      data_container->system_timer.stop("ChSolverParallel_solverB");
+      data_container->system_timer.start("ChSolverParallel_solverC");
 #pragma omp parallel for
       for (int i = 0; i < size; i++) {
          real _mg_ = mg_tmp1[i] - b[i];
@@ -142,17 +138,13 @@ uint ChSolverAPGDRS::SolveAPGDRS(
 
       norm_ms = sqrt(norm_ms);
       data_container->system_timer.stop("ChSolverParallel_solverD");
-      while (obj1 > obj2 + dot_mg_ms + 0.5 * L_k * powf(norm_ms, 2.0)) {
+      while (obj1 > obj2 + dot_mg_ms + 0.5 * L_k * pow(norm_ms, 2.0)) {
          data_container->system_timer.start("ChSolverParallel_solverE");
          L_k = step_grow * L_k;
          t_k = 1.0 / L_k;
          obj1 = dot_mg_ms = norm_ms = 0;
 
-#ifdef CHRONO_PARALLEL_OMP_40
-#pragma omp parallel for simd safelen(4)
-#else
 #pragma omp parallel for
-#endif
          for (int i = 0; i < size; i++) {
             mx[i] = -t_k * mg[i] + my[i];
          }
@@ -197,31 +189,31 @@ uint ChSolverAPGDRS::SolveAPGDRS(
       ml = mx;
       step_grow = 2.0;
       theta_k = theta_k1;
-      if (current_iteration % 2 == 0) {
-         real g_proj_norm = Res4(num_unilaterals, mg_tmp.data(), b.data(), ml.data(), mb_tmp.data());
-         if (num_bilaterals > 0) {
-            real resid_bilat = -1;
-            for (int i = num_unilaterals; i < x.size(); i++) {
-               resid_bilat = max(resid_bilat, fabs(mg_tmp2[i]));
-            }
-            g_proj_norm = max(g_proj_norm, resid_bilat);
+      //if (current_iteration % 2 == 0) {
+      real g_proj_norm = Res4(num_unilaterals, mg_tmp.data(), b.data(), ml.data(), mb_tmp.data());
+      if (num_bilaterals > 0) {
+         real resid_bilat = -1;
+         for (int i = num_unilaterals; i < x.size(); i++) {
+            resid_bilat = max(resid_bilat, abs(mg_tmp2[i]));
          }
-
-         if (g_proj_norm < lastgoodres) {
-            lastgoodres = g_proj_norm;
-            ml_candidate = ml;
-         }
-
-         residual = lastgoodres;
-         //CompRes(b,num_contacts);     //NormInf(ms);
-         if (update_rhs) {
-            ComputeSRhs(ml_candidate, rhs, vel_data, omg_data, b);
-         }
-         if (collision_inside) {
-            UpdatePosition(ml_candidate);
-            UpdateContacts();
-         }
+         g_proj_norm = max(g_proj_norm, resid_bilat);
       }
+
+      if (g_proj_norm < lastgoodres) {
+         lastgoodres = g_proj_norm;
+         ml_candidate = ml;
+      }
+
+      residual = lastgoodres;
+      //CompRes(b,num_contacts);     //NormInf(ms);
+      if (update_rhs) {
+         ComputeSRhs(ml_candidate, rhs, vel_data, omg_data, b);
+      }
+      if (collision_inside) {
+         UpdatePosition(ml_candidate);
+         UpdateContacts();
+      }
+      //}
       real maxdeltalambda = GetObjective(x, b);
       AtIterationEnd(residual, maxdeltalambda, iter_hist.size());
       if (residual < tolerance) {
