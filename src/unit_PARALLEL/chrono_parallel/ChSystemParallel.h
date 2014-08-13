@@ -141,18 +141,6 @@ CH_RTTI(ChSystemParallelDVI, ChSystemParallel)
    virtual void LoadMaterialSurfaceData(ChSharedPtr<ChBody> newbody);
    virtual void UpdateBodies();
    virtual void AssembleSystem(ChLcpSystemDescriptor* sys_descriptor);
-   void Assemble_load(bool load_jacobians,
-         bool load_Mv,
-         double F_factor,
-         double K_factor,
-         double R_factor,
-         double M_factor,
-         double Ct_factor,
-         double C_factor,
-         double recovery_clamp,
-         bool do_clamp,
-         ChContactContainerBase* mcontactcontainer
-   );
 };
 
 class CH_PARALLEL_API ChSystemParallelDEM : public ChSystemParallel {

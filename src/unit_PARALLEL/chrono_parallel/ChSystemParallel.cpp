@@ -4,11 +4,9 @@
 using namespace chrono;
 using namespace chrono::collision;
 
-ChSystemParallel::ChSystemParallel(
-      unsigned int max_objects)
-      :
-        ChSystem(1000, 10000, false) {
-   counter = 0;
+ChSystemParallel::ChSystemParallel(unsigned int max_objects)
+      : ChSystem(1000, 10000, false) {
+
    data_manager = new ChParallelDataManager();
 
    contact_container = new ChContactContainerParallel();
@@ -16,6 +14,7 @@ ChSystemParallel::ChSystemParallel(
    ((ChCollisionSystemParallel *) (collision_system))->data_container = data_manager;
    ((ChContactContainerParallel*) contact_container)->data_container = data_manager;
 
+   counter = 0;
    use_aabb_active = 0;
    timer_accumulator.resize(10, 0);
    cd_accumulator.resize(10, 0);
@@ -28,6 +27,7 @@ ChSystemParallel::ChSystemParallel(
    current_threads = 2;
    perform_thread_tuning = true;
    perform_bin_tuning = true;
+   min_threads = 1;
 
    data_manager->system_timer.AddTimer("step");
    data_manager->system_timer.AddTimer("update");
@@ -48,11 +48,10 @@ ChSystemParallel::ChSystemParallel(
 
    data_manager->system_timer.AddTimer("ChSolverParallel_shurA");
    data_manager->system_timer.AddTimer("ChSolverParallel_shurB");
-   min_threads = 1;
 
 }
 
-ChSystemParallel::~ChSystemParallel(){
+ChSystemParallel::~ChSystemParallel() {
    delete data_manager;
 }
 
@@ -87,18 +86,18 @@ int ChSystemParallel::Integrate_Y() {
    data_manager->system_timer.stop("lcp");
    //=============================================================================================
    data_manager->system_timer.start("update");
-   //gpu_data_manager->Copy(DEVICE_TO_HOST);
+
    //std::vector<ChLcpVariables*> vvariables = LCP_descriptor->GetVariablesList();
 
-   uint counter = 0;
+   uint cntr = 0;
    std::vector<ChLcpConstraint *> &mconstraints = (*this->LCP_descriptor).GetConstraintsList();
    for (uint ic = 0; ic < mconstraints.size(); ic++) {
       if (mconstraints[ic]->IsActive() == false) {
          continue;
       }
       ChLcpConstraintTwoBodies *mbilateral = (ChLcpConstraintTwoBodies *) (mconstraints[ic]);
-      mconstraints[ic]->Set_l_i(data_manager->host_data.gamma_bilateral[counter]);
-      counter++;
+      mconstraints[ic]->Set_l_i(data_manager->host_data.gamma_bilateral[cntr]);
+      cntr++;
    }
    // updates the reactions of the constraint
    LCPresult_Li_into_reactions(1.0 / this->GetStep());     // R = l/dt  , approximately
@@ -120,8 +119,8 @@ int ChSystemParallel::Integrate_Y() {
          bodylist[i]->UpdateTime(ChTime);
          //TrySleeping();			// See if the body can fall asleep; if so, put it to sleeping
          bodylist[i]->ClampSpeed();     // Apply limits (if in speed clamping mode) to speeds.
-         //bodylist[i]->ComputeGyro();     // Set the gyroscopic momentum.
-         //bodylist[i]->UpdateForces(ChTime);
+         bodylist[i]->ComputeGyro();     // Set the gyroscopic momentum.
+         bodylist[i]->UpdateForces(ChTime);
          bodylist[i]->UpdateMarkers(ChTime);
       }
    }
@@ -145,28 +144,17 @@ int ChSystemParallel::Integrate_Y() {
    timer_lcp = data_manager->system_timer.GetTime("lcp");
    timer_step = data_manager->system_timer.GetTime("step");
 
-   timer_accumulator.insert(timer_accumulator.begin(), timer_step);
-   timer_accumulator.pop_back();
-
-   cd_accumulator.insert(cd_accumulator.begin(), timer_collision);
-   cd_accumulator.pop_back();
    if (perform_thread_tuning) {
       RecomputeThreads();
    }
    if (perform_bin_tuning) {
-     RecomputeBins();
+      RecomputeBins();
    }
-   //cout << "timer_accumulator " << sum_of_elems / 10.0 << " s: " << timer_accumulator[0] << endl;
-
-   //cout << "current threads " << current_threads <<" "<<frame_threads<<" "<<detect_optimal_threads<< endl;
-   frame_threads++;
-   frame_bins++;
 
    return 1;
 }
 
-void ChSystemParallel::AddBody(
-      ChSharedPtr<ChBody> newbody) {
+void ChSystemParallel::AddBody(ChSharedPtr<ChBody> newbody) {
 
    newbody->AddRef();
    newbody->SetSystem(this);
@@ -202,7 +190,6 @@ void ChSystemParallel::AddBody(
 
    data_manager->host_data.lim_data.push_back(
    R3(newbody->GetLimitSpeed(), .05 / GetStep(), .05 / GetStep()));
-   //gpu_data_manager->host_data.pressure_data.push_back(0);
 
    // Let derived classes load specific material surface data
    LoadMaterialSurfaceData(newbody);
@@ -211,8 +198,7 @@ void ChSystemParallel::AddBody(
    data_manager->num_bodies = counter;
 }
 
-void ChSystemParallel::RemoveBody(
-      ChSharedPtr<ChBody> mbody) {
+void ChSystemParallel::RemoveBody(ChSharedPtr<ChBody> mbody) {
    assert(std::find<std::vector<ChBody *>::iterator>(bodylist.begin(), bodylist.end(), mbody.get_ptr()) != bodylist.end());
 
    // remove from collision system
@@ -227,8 +213,7 @@ void ChSystemParallel::RemoveBody(
    mbody->RemoveRef();
 }
 
-void ChSystemParallel::RemoveBody(
-      int body) {
+void ChSystemParallel::RemoveBody(int body) {
    //assert( std::find<std::vector<ChBody*>::iterator>(bodylist.begin(), bodylist.end(), mbody.get_ptr()) != bodylist.end());
    ChBody *mbody = ((ChBody *) (bodylist[body]));
 
@@ -303,13 +288,14 @@ void ChSystemParallel::UpdateBilaterals() {
       data_manager->host_data.residual_bilateral[i] = mbilateral->Get_b_i();     // b_i is residual b
       data_manager->host_data.correction_bilateral[i] = 1.0 / mbilateral->Get_g_i();     // eta = 1/g
       data_manager->host_data.bids_bilateral[i] = I2(idA, idB);
-      //gpu_data_manager->host_data.gamma_bilateral[i] = -mbilateral->Get_l_i();
-      //cout<<"gamma "<<gpu_data_manager->host_data.gamma_bilateral[i]<<endl;
-
+      //data_manager->host_data.gamma_bilateral[i] = -mbilateral->Get_l_i();
    }
 }
 
 void ChSystemParallel::RecomputeThreads() {
+   timer_accumulator.insert(timer_accumulator.begin(), timer_step);
+   timer_accumulator.pop_back();
+
    double sum_of_elems = std::accumulate(timer_accumulator.begin(), timer_accumulator.end(), 0.0);
 
    if (frame_threads == 50 && detect_optimal_threads == false) {
@@ -346,11 +332,11 @@ void ChSystemParallel::RecomputeThreads() {
       current_threads = min_threads;
       omp_set_num_threads(min_threads);
    }
+   frame_threads++;
 }
 
-void ChSystemParallel::PerturbBins(
-      bool increase,
-      int number) {
+void ChSystemParallel::PerturbBins(bool increase,
+                                   int number) {
 
    if (increase) {
       int3 grid_size = ((ChCollisionSystemParallel *) (GetCollisionSystem()))->broadphase->getBinsPerAxis();
@@ -390,9 +376,14 @@ void ChSystemParallel::PerturbBins(
 
    }
 
+   frame_bins++;
 }
 
 void ChSystemParallel::RecomputeBins() {
+
+   cd_accumulator.insert(cd_accumulator.begin(), timer_collision);
+   cd_accumulator.pop_back();
+
    double sum_of_elems_cd = std::accumulate(cd_accumulator.begin(), cd_accumulator.end(), 0.0);
 
    //if 0 increase and then measure
@@ -445,8 +436,7 @@ void ChSystemParallel::RecomputeBins() {
 
 }
 
-void ChSystemParallel::ChangeCollisionSystem(
-      ChCollisionSystem *newcollsystem) {
+void ChSystemParallel::ChangeCollisionSystem(ChCollisionSystem *newcollsystem) {
    assert(this->GetNbodies() == 0);
    assert(newcollsystem);
 
@@ -460,6 +450,5 @@ void ChSystemParallel::ChangeCollisionSystem(
    } else if (ChCollisionSystemBulletParallel* coll_sys = dynamic_cast<ChCollisionSystemBulletParallel*>(collision_system)) {
       coll_sys->data_container = data_manager;
    }
-
 
 }

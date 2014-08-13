@@ -4,8 +4,7 @@
 using namespace chrono;
 
 ChSystemParallelDVI::ChSystemParallelDVI(unsigned int max_objects)
-      :
-        ChSystemParallel(max_objects) {
+      : ChSystemParallel(max_objects) {
    LCP_descriptor = new ChLcpSystemDescriptorParallelDVI();
    LCP_solver_speed = new ChLcpSolverParallelDVI();
    ((ChLcpSystemDescriptorParallelDVI*) LCP_descriptor)->data_container = data_manager;
@@ -95,54 +94,6 @@ static inline chrono::ChVector<real> ToChVector(const real3 &a) {
    return chrono::ChVector<real>(a.x, a.y, a.z);
 }
 
-void ChSystemParallelDVI::Assemble_load(bool load_jacobians,
-                                        bool load_Mv,
-                                        double F_factor,
-                                        double K_factor,
-                                        double R_factor,
-                                        double M_factor,
-                                        double Ct_factor,
-                                        double C_factor,
-                                        double recovery_clamp,
-                                        bool do_clamp,
-                                        ChContactContainerBase* mcontactcontainer) {
-   std::list<ChLink*>::iterator iterlink = linklist.begin();
-   while (iterlink != linklist.end()) {
-      if (C_factor)
-         (*iterlink)->ConstraintsBiLoad_C(C_factor, recovery_clamp, do_clamp);
-      if (Ct_factor)
-         (*iterlink)->ConstraintsBiLoad_Ct(Ct_factor);         // Ct
-      if (F_factor)
-         (*iterlink)->ConstraintsFbLoadForces(F_factor);    // f*dt
-      if (load_Mv) {
-         (*iterlink)->VariablesQbLoadSpeed();               //   v_old
-         (*iterlink)->VariablesFbIncrementMq();             // M*v_old
-      }
-      if (load_jacobians)
-         (*iterlink)->ConstraintsLoadJacobians();
-      iterlink++;
-   }
-
-   std::vector<ChBody*>::iterator ibody = bodylist.begin();
-   while (ibody != bodylist.end()) {
-      if (F_factor)
-         (*ibody)->VariablesFbLoadForces(F_factor);         // f*dt
-      if (load_Mv) {
-         (*ibody)->VariablesQbLoadSpeed();               //   v_old
-         (*ibody)->VariablesFbIncrementMq();             // M*v_old
-      }
-      ibody++;
-   }
-
-   if (C_factor)
-      mcontactcontainer->ConstraintsBiLoad_C(C_factor, recovery_clamp, do_clamp);
-   if (F_factor)
-      mcontactcontainer->ConstraintsFbLoadForces(F_factor);    // f*dt
-   if (load_jacobians)
-      mcontactcontainer->ConstraintsLoadJacobians();
-
-}
-
 void ChSystemParallelDVI::AssembleSystem(ChLcpSystemDescriptor* sys_descriptor) {
 
    collision_system->Run();
@@ -154,13 +105,11 @@ void ChSystemParallelDVI::AssembleSystem(ChLcpSystemDescriptor* sys_descriptor) 
       int2 cd_pair = data_manager->host_data.bids_rigid_rigid[i];
       icontact.modelA = bodylist[cd_pair.x]->GetCollisionModel();
       icontact.modelB = bodylist[cd_pair.y]->GetCollisionModel();
-
       icontact.vN = ToChVector(data_manager->host_data.norm_rigid_rigid[i]);
       icontact.vpA = ToChVector(data_manager->host_data.cpta_rigid_rigid[i] + data_manager->host_data.pos_data[cd_pair.x]);
       icontact.vpB = ToChVector(data_manager->host_data.cptb_rigid_rigid[i] + data_manager->host_data.pos_data[cd_pair.y]);
       icontact.distance = data_manager->host_data.dpth_rigid_rigid[i];
       this->contact_container->AddContact(icontact);
-
    }
    this->contact_container->EndAddContact();
 
@@ -178,16 +127,16 @@ void ChSystemParallelDVI::AssembleSystem(ChLcpSystemDescriptor* sys_descriptor) 
       this->contact_container->ConstraintsBiReset();
    }
 
-   LCPprepare_load(true,                           // Cq,
-         true,                           // adds [M]*v_old to the known vector
-         step,                           // f*dt
-         step * step,                           // dt^2*K  (nb only non-Schur based solvers support K matrix blocks)
-         step,                           // dt*R   (nb only non-Schur based solvers support R matrix blocks)
-         1.0,                           // M (for FEM with non-lumped masses, add their mass-matrixes)
-         1.0,                           // Ct   (needed, for rheonomic motors)
-         1.0 / step,                           // C/dt
-         max_penetration_recovery_speed,                           // vlim, max penetrations recovery speed (positive for exiting)
-         true                           // do above max. clamping on -C/dt
+   LCPprepare_load(true,                  // Cq,
+         true,                            // adds [M]*v_old to the known vector
+         step,                            // f*dt
+         step * step,                     // dt^2*K  (nb only non-Schur based solvers support K matrix blocks)
+         step,                            // dt*R   (nb only non-Schur based solvers support R matrix blocks)
+         1.0,                             // M (for FEM with non-lumped masses, add their mass-matrixes)
+         1.0,                             // Ct   (needed, for rheonomic motors)
+         1.0 / step,                      // C/dt
+         max_penetration_recovery_speed,  // vlim, max penetrations recovery speed (positive for exiting)
+         true                             // do above max. clamping on -C/dt
          );
 
    this->LCP_descriptor->BeginInsertion();
