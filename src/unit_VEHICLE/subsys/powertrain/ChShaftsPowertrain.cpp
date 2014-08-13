@@ -215,7 +215,7 @@ double ChShaftsPowertrain::GetWheelTorque(ChWheelId which) const
   case REAR_RIGHT:
     return -m_rear_differential->GetTorqueReactionOn3();
   default:
-    return 0;  // should not happen
+    return -1;  // should not happen
   }
 }
 
@@ -230,4 +230,4 @@ void ChShaftsPowertrain::Update(double time,
 }
 
 
-} // end namespace hmmwv9
+} // end namespace chrono

@@ -53,11 +53,11 @@ public:
 
   /// To be called after creation, to create all the wrapped ChShaft objects 
   /// and their constraints, torques etc. 
-  void Initialize(ChSharedPtr<ChBody> chassis,
-                  ChSharedPtr<ChBody> spindle_front_L,
-                  ChSharedPtr<ChBody> spindle_front_R,
-				  ChSharedPtr<ChBody> spindle_rear_L,
-				  ChSharedPtr<ChBody> spindle_rear_R);
+  void Initialize(ChSharedPtr<ChBody>  chassis,
+                  ChSharedPtr<ChShaft> axle_front_L,
+                  ChSharedPtr<ChShaft> axle_front_R,
+                  ChSharedPtr<ChShaft> axle_rear_L,
+                  ChSharedPtr<ChShaft> axle_rear_R);
 
   virtual double GetMotorSpeed() const { return  m_crankshaft->GetPos_dt(); }
   virtual double GetMotorTorque() const { return  m_engine->GetTorqueReactionOn1(); }
@@ -89,11 +89,7 @@ protected:
   virtual double GetToFrontDiffShaftInertia() const = 0;
   virtual double GetToRearDiffShaftInertia() const = 0;
   virtual double GetRearDifferentialBoxInertia() const = 0;
-  virtual double GetRearLeftAxleInertia() const = 0;
-  virtual double GetRearRightAxleInertia() const = 0;
   virtual double GetFrontDifferentialBoxInertia() const = 0;
-  virtual double GetFrontLeftAxleInertia() const = 0;
-  virtual double GetFrontRightAxleInertia() const = 0;
   
 
   /// Gear ratios.
@@ -128,17 +124,9 @@ private:
   ChSharedPtr<ChShaftsGearboxAngled>    m_rear_conicalgear;
   ChSharedPtr<ChShaftsPlanetary>        m_rear_differential;
   ChSharedPtr<ChShaft>                  m_shaft_rear_differentialbox;
-  ChSharedPtr<ChShaft>                  m_shaft_rear_L_axle;
-  ChSharedPtr<ChShaft>                  m_shaft_rear_R_axle;
-  ChSharedPtr<ChShaftsBody>             m_shaft_rear_L_axle_to_body;
-  ChSharedPtr<ChShaftsBody>             m_shaft_rear_R_axle_to_body;
   ChSharedPtr<ChShaftsGearboxAngled>    m_front_conicalgear;
   ChSharedPtr<ChShaftsPlanetary>        m_front_differential;
   ChSharedPtr<ChShaft>                  m_shaft_front_differentialbox;
-  ChSharedPtr<ChShaft>                  m_shaft_front_L_axle;
-  ChSharedPtr<ChShaft>                  m_shaft_front_R_axle;
-  ChSharedPtr<ChShaftsBody>             m_shaft_front_L_axle_to_body;
-  ChSharedPtr<ChShaftsBody>             m_shaft_front_R_axle_to_body;
 
   int m_current_gear;
   std::vector<double> m_gear_ratios;

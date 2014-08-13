@@ -33,8 +33,8 @@ namespace chrono {
 // could transfer pitch torque to the chassis.
 // -----------------------------------------------------------------------------
 ChShaftsPowertrain4wd::ChShaftsPowertrain4wd(ChVehicle*         car,
-                                       const ChVector<>&  dir_motor_block,
-                                       const ChVector<>&  dir_axle)
+                                             const ChVector<>&  dir_motor_block,
+                                             const ChVector<>&  dir_axle)
 : ChPowertrain(car, RWD),
   m_dir_motor_block(dir_motor_block),
   m_dir_axle(dir_axle)
@@ -44,17 +44,17 @@ ChShaftsPowertrain4wd::ChShaftsPowertrain4wd(ChVehicle*         car,
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-void ChShaftsPowertrain4wd::Initialize(	ChSharedPtr<ChBody> chassis,
-										ChSharedPtr<ChBody> spindle_front_L,
-										ChSharedPtr<ChBody> spindle_front_R,
-										ChSharedPtr<ChBody> spindle_rear_L,
-										ChSharedPtr<ChBody> spindle_rear_R)
+void ChShaftsPowertrain4wd::Initialize(ChSharedPtr<ChBody>  chassis,
+                                       ChSharedPtr<ChShaft> axle_front_L,
+                                       ChSharedPtr<ChShaft> axle_front_R,
+                                       ChSharedPtr<ChShaft> axle_rear_L,
+                                       ChSharedPtr<ChShaft> axle_rear_R)
 {
   assert(chassis);
-  assert(spindle_front_L);
-  assert(spindle_front_R);
-  assert(spindle_rear_L);
-  assert(spindle_rear_R);
+  assert(axle_front_L);
+  assert(axle_front_R);
+  assert(axle_rear_L);
+  assert(axle_rear_R);
   assert(chassis->GetSystem());
 
   ChSystem* my_system = chassis->GetSystem();
@@ -177,8 +177,7 @@ void ChShaftsPowertrain4wd::Initialize(	ChSharedPtr<ChBody> chassis,
   my_system->Add(m_rear_differential);
 
 
-	// ---Rear differential and axles:
-
+  // ---Rear differential and axles:
 
   // CREATE  a 1 d.o.f. object: a 'shaft' with rotational inertia.
   // This represents the inertia of the rotating box of the differential.
@@ -201,55 +200,21 @@ void ChShaftsPowertrain4wd::Initialize(	ChSharedPtr<ChBody> chassis,
   my_system->Add(m_rear_conicalgear);
 
 
-  // CREATE  a 1 d.o.f. object: a 'shaft' with rotational inertia.
-  // This represents the inertia of the LEFT axle, exiting from the differential.
-  m_shaft_rear_L_axle = ChSharedPtr<ChShaft>(new ChShaft);
-  m_shaft_rear_L_axle->SetInertia(GetRearLeftAxleInertia());
-  my_system->Add(m_shaft_rear_L_axle);
-  
-
-  // CREATE  a 1 d.o.f. object: a 'shaft' with rotational inertia.
-  // This represents the inertia of the RIGHT axle, exiting from the differential.
-  m_shaft_rear_R_axle = ChSharedPtr<ChShaft>(new ChShaft);
-  m_shaft_rear_R_axle->SetInertia(GetRearRightAxleInertia());
-  my_system->Add(m_shaft_rear_R_axle);
-
-
   // CREATE a differential, i.e. an apicycloidal mechanism that connects three 
   // rotating members. This class of mechanisms can be simulated using 
   // ChShaftsPlanetary; a proper 'ordinary' transmission ratio t0 must be assigned according
   // to Willis formula. The case of the differential is simple: t0=-1.
   m_rear_differential = ChSharedPtr<ChShaftsPlanetary>(new ChShaftsPlanetary);
   m_rear_differential->Initialize(m_shaft_rear_differentialbox, // the carrier
-                                  m_shaft_rear_L_axle,
-                                  m_shaft_rear_R_axle);
+                                  axle_rear_L,
+                                  axle_rear_R);
   m_rear_differential->SetTransmissionRatioOrdinary(GetRearDifferentialRatio());
   my_system->Add(m_rear_differential);
 
 
-  // CREATE  a connection between the 1D spindle shaft and the 3D rigid body that
-  // represents the LEFT spindle 
-  m_shaft_rear_L_axle_to_body = ChSharedPtr<ChShaftsBody>(new ChShaftsBody);
-  m_shaft_rear_L_axle_to_body->Initialize(
-          m_shaft_rear_L_axle,
-          spindle_rear_L,
-          ChVector<>(0,1,0) ); // spindle rot axis on its Y
-  my_system->Add(m_shaft_rear_L_axle_to_body);
+  // ---Front differential and axles:
 
-
-  // CREATE  a connection between the 1D spindle shaft and the 3D rigid body that
-  // represents the RIGHT spindle 
-  m_shaft_rear_R_axle_to_body = ChSharedPtr<ChShaftsBody>(new ChShaftsBody);
-  m_shaft_rear_R_axle_to_body->Initialize(
-          m_shaft_rear_R_axle,
-          spindle_rear_R,
-          ChVector<>(0,1,0) ); // spindle rot axis on its Y
-  my_system->Add(m_shaft_rear_R_axle_to_body);
-
-
-  	// ---Front differential and axles:
-
-    // CREATE  a 1 d.o.f. object: a 'shaft' with rotational inertia.
+  // CREATE  a 1 d.o.f. object: a 'shaft' with rotational inertia.
   // This represents the inertia of the rotating box of the differential.
   m_shaft_front_differentialbox = ChSharedPtr<ChShaft>(new ChShaft);
   m_shaft_front_differentialbox->SetInertia(GetRearDifferentialBoxInertia());
@@ -270,51 +235,16 @@ void ChShaftsPowertrain4wd::Initialize(	ChSharedPtr<ChBody> chassis,
   my_system->Add(m_front_conicalgear);
 
 
-  // CREATE  a 1 d.o.f. object: a 'shaft' with rotational inertia.
-  // This represents the inertia of the LEFT axle, exiting from the differential.
-  m_shaft_front_L_axle = ChSharedPtr<ChShaft>(new ChShaft);
-  m_shaft_front_L_axle->SetInertia(GetFrontLeftAxleInertia());
-  my_system->Add(m_shaft_front_L_axle);
-  
-
-  // CREATE  a 1 d.o.f. object: a 'shaft' with rotational inertia.
-  // This represents the inertia of the RIGHT axle, exiting from the differential.
-  m_shaft_front_R_axle = ChSharedPtr<ChShaft>(new ChShaft);
-  m_shaft_front_R_axle->SetInertia(GetFrontRightAxleInertia());
-  my_system->Add(m_shaft_front_R_axle);
-
-
   // CREATE a differential, i.e. an apicycloidal mechanism that connects three 
   // rotating members. This class of mechanisms can be simulated using 
   // ChShaftsPlanetary; a proper 'ordinary' transmission ratio t0 must be assigned according
   // to Willis formula. The case of the differential is simple: t0=-1.
   m_front_differential = ChSharedPtr<ChShaftsPlanetary>(new ChShaftsPlanetary);
   m_front_differential->Initialize(m_shaft_front_differentialbox, // the carrier
-                                  m_shaft_front_L_axle,
-                                  m_shaft_front_R_axle);
+                                   axle_front_L,
+                                   axle_front_R);
   m_front_differential->SetTransmissionRatioOrdinary(GetFrontDifferentialRatio());
   my_system->Add(m_front_differential);
-
-
-  // CREATE  a connection between the 1D spindle and the 3D rigid body that
-  // represents the LEFT spindle 
-  m_shaft_front_L_axle_to_body = ChSharedPtr<ChShaftsBody>(new ChShaftsBody);
-  m_shaft_front_L_axle_to_body->Initialize(
-          m_shaft_front_L_axle,
-          spindle_front_L,
-          ChVector<>(0,1,0) ); // spindle rot axis on its Y
-  my_system->Add(m_shaft_front_L_axle_to_body);
-
-
-  // CREATE  a connection between the 1D spindle and the 3D rigid body that
-  // represents the RIGHT spindle 
-  m_shaft_front_R_axle_to_body = ChSharedPtr<ChShaftsBody>(new ChShaftsBody);
-  m_shaft_front_R_axle_to_body->Initialize(
-          m_shaft_front_R_axle,
-          spindle_front_R,
-          ChVector<>(0,1,0) ); // spindle rot axis on its Y
-  my_system->Add(m_shaft_front_R_axle_to_body);
-
 
 
   // -------
@@ -345,13 +275,15 @@ double ChShaftsPowertrain4wd::GetWheelTorque(ChWheelId which) const
 {
   switch (which) {
   case FRONT_LEFT:
-    return 0;
+    return -m_front_differential->GetTorqueReactionOn2();
   case FRONT_RIGHT:
-    return 0;
+    return -m_front_differential->GetTorqueReactionOn3();
   case REAR_LEFT:
-    return m_shaft_rear_L_axle_to_body->GetTorqueReactionOnShaft();
+    return -m_rear_differential->GetTorqueReactionOn2();
   case REAR_RIGHT:
-    return m_shaft_rear_R_axle_to_body->GetTorqueReactionOnShaft();
+    return -m_rear_differential->GetTorqueReactionOn3();
+  default:
+    return -1;  // should not happen
   }
 }
 
@@ -366,4 +298,4 @@ void ChShaftsPowertrain4wd::Update(double time,
 }
 
 
-} // end namespace hmmwv9
+} // end namespace chrono
