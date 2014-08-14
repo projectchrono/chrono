@@ -98,6 +98,7 @@ const ChVector<> HMMWV9_DoubleWishboneFront::getLocation(PointId which)
   case SHOCK_U:  return in2m * ChVector<>(-5.4200, -4.8500, -0.4850);
   case TIEROD_C: return in2m * ChVector<>(11.8000, -26.0100, 0);
   case TIEROD_U: return in2m * ChVector<>(5.3300, -3.5000, 0);
+  default:       return ChVector<>(0, 0, 0);
   }
 }
 
@@ -116,6 +117,7 @@ const ChVector<> HMMWV9_DoubleWishboneRear::getLocation(PointId which)
   case SHOCK_U:  return in2m * ChVector<>(5.4900, -4.8500, -0.4750);
   case TIEROD_C: return in2m * ChVector<>(-11.3000, -19.4400, 0.6650);
   case TIEROD_U: return in2m * ChVector<>(-5.3000, -3.4900, 0.6650);
+  default:       return ChVector<>(0, 0, 0);
   }
 }
 
@@ -132,8 +134,8 @@ void HMMWV9_DoubleWishboneFront::OnInitializeUpright()
 
   ChSharedPtr<ChColorAsset> col(new ChColorAsset);
   switch (m_side) {
-  case RIGHT: col->SetColor(ChColor(0.6, 0.2, 0.2)); break;
-  case LEFT:  col->SetColor(ChColor(0.2, 0.6, 0.2)); break;
+  case RIGHT: col->SetColor(ChColor(0.6f, 0.2f, 0.2f)); break;
+  case LEFT:  col->SetColor(ChColor(0.2f, 0.6f, 0.2f)); break;
   }
   m_upright->AddAsset(col);
 }
@@ -146,8 +148,8 @@ void HMMWV9_DoubleWishboneRear::OnInitializeUpright()
 
   ChSharedPtr<ChColorAsset> col(new ChColorAsset);
   switch (m_side) {
-  case RIGHT: col->SetColor(ChColor(0.6, 0.4, 0.4)); break;
-  case LEFT:  col->SetColor(ChColor(0.4, 0.6, 0.6)); break;
+  case RIGHT: col->SetColor(ChColor(0.6f, 0.4f, 0.4f)); break;
+  case LEFT:  col->SetColor(ChColor(0.4f, 0.6f, 0.6f)); break;
   }
   m_upright->AddAsset(col);
 }

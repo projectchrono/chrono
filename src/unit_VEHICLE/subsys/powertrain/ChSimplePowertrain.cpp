@@ -56,6 +56,8 @@ double ChSimplePowertrain::GetWheelTorque(ChWheelId which) const
     return m_wheelTorque;
   case REAR_RIGHT:
     return m_wheelTorque;
+  default:
+    return -1;  // should not happen
   }
 }
 

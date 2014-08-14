@@ -214,8 +214,8 @@ void ReadCheckpoint(ChSystem*          system,
     body->SetRot_dt(brot_dt);
 
     body->SetIdentifier(bid);
-    body->SetBodyFixed(bfixed);
-    body->SetCollide(bcollide);
+    body->SetBodyFixed(bfixed != 0);
+    body->SetCollide(bcollide != 0);
 
     body->SetMass(mass);
     body->SetInertiaXX(inertiaXX);

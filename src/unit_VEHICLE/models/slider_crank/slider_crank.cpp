@@ -203,8 +203,8 @@ int main(int   argc,
 
   // Calculate the required number of simulation steps and the number of steps
   // between output frames (based on the requested FPS).
-  int num_steps = std::ceil(time_end / time_step);
-  int out_steps = std::ceil((1 / time_step) / out_fps);
+  int num_steps = (int) std::ceil(time_end / time_step);
+  int out_steps = (int) std::ceil((1 / time_step) / out_fps);
 
   double time = 0;
   int out_frame = 0;

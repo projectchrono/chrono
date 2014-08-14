@@ -58,7 +58,7 @@ HMMWV9_RigidTerrain::HMMWV9_RigidTerrain(ChSystem&  system,
   ground->GetCollisionModel()->BuildModel();
 
   ChSharedPtr<ChColorAsset> groundColor(new ChColorAsset);
-  groundColor->SetColor(ChColor(0.4, 0.4, 0.6));
+  groundColor->SetColor(ChColor(0.4f, 0.4f, 0.6f));
   ground->AddAsset(groundColor);
 
   system.AddBody(ground);
