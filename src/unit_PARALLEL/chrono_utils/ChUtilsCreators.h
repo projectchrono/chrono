@@ -249,7 +249,7 @@ void AddTorusGeometry(
          double z = sin(angle) * radius;
          Quaternion q = chrono::Q_from_AngAxis(-angle, VECT_Y) % chrono::Q_from_AngAxis(CH_C_PI/2.0, VECT_X);
 
-         AddCylinderGeometry(body,thickness,thickness ,ChVector<>(x, 0, z) + pos,q);
+         AddCylinderGeometry(body,thickness,thickness*.75 ,ChVector<>(x, 0, z) + pos,q);
    }
 }
 
