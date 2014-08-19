@@ -84,7 +84,9 @@ int GetUniqueIntID()
 // Functions for manipulating the Chrono data directory
 // -----------------------------------------------------------------------------
 
-static std::string chrono_data_path("../data/");
+#define STRINGIFY(s) XSTR(s)
+#define XSTR(s) #s
+static std::string chrono_data_path(STRINGIFY(CHRONO_DATA_PATH));
 
 // Set the path to the Chrono data directory (ATTENTION: not thread safe)
 void SetChronoDataPath(const std::string& path)

@@ -199,6 +199,8 @@ ELSEIF(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
 	endif()
     SET (CPACK_SYSTEM_NAME "OSX-x64")
 ENDIF()
+SET (CHRONO_DATA_PATH ${CMAKE_INSTALL_PREFIX}/data/)
+SET (CH_BUILDFLAGS "${CH_BUILDFLAGS} -DCHRONO_DATA_PATH=\"${CHRONO_DATA_PATH}\"")
 
 #-----------------------------------------------------------------------------
 # Some global  C++ definitions and includes that are used 
