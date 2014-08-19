@@ -25,7 +25,7 @@ global_settings { assumed_gamma 1 }
 
 
 // Draw global frame?
-#declare draw_global_frame = true;
+#declare draw_global_frame = false;
 #declare global_frame_radius = 0.01;
 #declare global_frame_len = 10;
 
@@ -40,8 +40,12 @@ global_settings { assumed_gamma 1 }
 #declare cam_perspective = true;
        
 // Camera location and look-at (RIGHT-HAND-FRAME with Z up)
-#declare cam_loc    = <-4, -4, 3>;
+#declare cam_loc    = <0, 4, 1>;
 #declare cam_lookat = <0, 0, 1>;
+
+
+// Render environment?
+#declare draw_environment = false;
 
      
 // ============================================================================================
@@ -170,12 +174,14 @@ camera {
    // angle 67                           // field (overides direction zoom)
 }
 
+/*
 // Create a regular point light source 
 light_source { 
     1000*(cloc - clookat)  // behind the camera
     color rgb <1,1,1>      // light's color
     //translate <-10, 1500, 2>
 }
+*/
 
 // ============================================================================================     
 
@@ -262,7 +268,7 @@ light_source {
 				#if (active)
 					cylinder {
 					   <0,0,hl>, <0,0,-hl>, ar      
-					   pigment {color rgbt <1, 0.9, 0.9, 0> }
+					   pigment {color rgbt <1, 0.9, 0.9, 0> transmit 0.4}
 					   position(<ax,ay,az>,<e0,e1,e2,e3>)     
 					   finish {diffuse 1 ambient 0.0 specular .05 }
 					}   
@@ -337,7 +343,7 @@ light_source {
 			#if (render_objects)
 				#if (active)  
 					#warning concat("Mesh name: ", mesh_name, "\n")
-					RenderMesh(mesh_name, <ax,ay,az>,<e0,e1,e2,e3>, rgb<0.9,0.5,0.6>)
+					RenderMesh(mesh_name, <ax,ay,az>,<e0,e1,e2,e3>, rgb<0.6,0.5,0.6>)
 				#else
 					#if (render_static)
 					RenderMesh(mesh_name, <ax,ay,az>,<e0,e1,e2,e3>, rgb<1,0.9,0.9>)
@@ -404,25 +410,75 @@ XYZframe(global_frame_len, global_frame_radius)
 #end 
       
  
-// Draw ground plane    
-//plane {
-//y,0 
-//pigment {color rgbt <.5, .5, .5,0> }
-//finish {diffuse 0.5 ambient 0.2 reflection {0.2, 1.0 fresnel on}}
-//hollow on
-//}
-// 
-//plane {
-//x,9 
-//pigment {color rgbt <.5, .5, .5,0> }
-//finish {diffuse 0.5 ambient 0.2}
-//hollow on
-//}
-//
-//plane {
-//z,4 
-//pigment {color rgbt <.5, .5, .5,0> }
-//finish {diffuse 0.5 ambient 0.2}
-//hollow on
-//}
+ 
+#if (draw_environment) 
+ 
+    // sun ---------------------------------------------------------------
+    light_source{<1500,2500,-2500>*100 color rgb<1,1,1> }
+
+    // sky ---------------------------------------------------------------
+
+    // optional with ground fog
+    sky_sphere{ pigment{ color rgb<0.15,0.28,0.75>*0.5}   } 
+    // ground fog at the horizon -----------------------------------------
+    fog{ fog_type   2
+        distance   500
+        color      rgb<1,1,1>*0.9
+        fog_offset 0.1
+        fog_alt    30
+        turbulence 1.8
+    } //---------------------------------------------------------------
+            
+
+/*
+    // without ground fog
+    sky_sphere{
+        pigment{ gradient y
+          color_map{
+          [0.0 color rgb<1,1,1>             ]
+          [0.3 color rgb<0.18,0.28,0.75>*0.6]
+          [1.0 color rgb<0.15,0.28,0.75>*0.5] }
+          scale 1.05
+          translate<0,-0.05,0>
+        }
+    }  
+*/
+
+    // spherical cloud layer --------------------------------------------
+    #declare R_planet = 6000000 ;
+    #declare R_sky    = R_planet + 2000 ;
+
+    sphere{ <0, -R_planet, 0>, R_sky  hollow
+       
+        texture{ pigment{ bozo turbulence 0.75
+                          octaves 6  omega 0.7 lambda 2  phase 0.00 //0.15*clock
+                         color_map {
+                          [0.00 color rgb <0.95, 0.95, 0.95> ]
+                          [0.05 color rgb <1, 1, 1>*1.25 ]
+                          [0.15 color rgb <0.85, 0.85, 0.85> ]
+                          [0.55 color rgbt <1, 1, 1, 1>*1 ]
+                          [1.00 color rgbt <1, 1, 1, 1>*1 ]
+                         } // end color_map 
+                         translate< 3, 0,-1>
+                         scale <0.3, 0.4, 0.2>*3
+                       } // end pigment
+                              
+                 #if (version = 3.7 )  finish {emission 1 diffuse 0}
+                 #else                 finish { ambient 1 diffuse 0}
+                 #end 
+                 scale 3000
+               } // end interior texture
+        // no_shadow 
+    }
+
+    // ground ------------------------------------------------------------
+    sphere{ <0, -R_planet, 0>, R_planet+0.05  
+ 
+         texture{ pigment{color rgb<0.35,0.65,0.0>*0.8}
+                  normal {bumps 0.75 scale 0.015}
+                } // end of texture
+    }
+    //--------------------------------------------------------------------
+    
+#end
 
