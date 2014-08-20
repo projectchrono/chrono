@@ -15,12 +15,16 @@
 // Base class for a double-A arm suspension modeled with distance constraints.
 //
 // The suspension subsystem is modeled with respect to a right-handed frame,
-// with X pointing towards the rear, Y to the right, and Z up. The origin of
-// the reference frame is assumed to be the center of th spindle body (i.e. the
-// center of the wheel).
-// By default, a right suspension is constructed.  This can be mirrored to
-// obtain a left suspension.
-// If marked as 'driven', the suspension subsystem also includes an engine link.
+// with X pointing towards the rear, Y to the right, and Z up. By default, a
+// right suspension is constructed.  This can be mirrored to obtain a left
+// suspension. Note that this is done by reflecting the y coordinates of the
+// hardpoints. As such, the orientation of the suspension reference frame must
+// be as specified above. However, its location relative to the chassis is
+// arbitrary (and left up to a derived class).
+//
+// If marked as 'driven', the suspension subsystem also creates the ChShaft axle
+// element and its connection to the spindle body (which provides the interface
+// to the powertrain subsystem).
 //
 // =============================================================================
 

@@ -14,6 +14,11 @@
 //
 // Front and Rear HMMWV suspension subsystems (reduced double A-arm)
 //
+// These concrete suspension subsystems are defined with respect to right-handed
+// frames having X pointing towards the rear, Y to the right, and Z up (as
+// imposed by the base class ChDoubleWishboneReduced) and origins at the 
+// midpoint between the lower control arm's connection points to the chassis.
+//
 // =============================================================================
 
 #ifndef HMMWV9_DOUBLEWISHBONE_H
