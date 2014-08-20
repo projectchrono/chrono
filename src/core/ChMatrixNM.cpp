@@ -29,7 +29,7 @@
 
 #include <math.h>
 
-#include "core/ChMatrix.h"
+#include "core/ChMatrixNM.h"
 
 
 
