@@ -26,7 +26,7 @@
 
 
 #include "core/ChQuaternion.h"
-#include "core/ChMatrix.h"
+#include "core/ChMatrix33.h"
 
 
 

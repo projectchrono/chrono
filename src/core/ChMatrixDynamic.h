@@ -15,10 +15,10 @@
 
 //////////////////////////////////////////////////
 //  
-//   ChMatrix.h
+//   ChMatrixDynamic.h
 //
 //   Math functions for:
-//      - MATRICES
+//      - Dynamicly sized MATRICES
 //
 //   HEADER file for CHRONO,
 //   Multibody dynamics engine
@@ -56,8 +56,6 @@ namespace chrono
 #define Set44Element(a,b,val)  SetElementN(((a*4)+(b)),val) 
 #define Get44Element(a,b)      GetElementN((a*4)+(b)) 
 
-//forward declaration
-template <class Real = double> class ChMatrixDynamic ;
 
 ///
 /// ChMatrixDynamic

@@ -38,6 +38,9 @@
 #include "core/ChVector.h"
 #include "core/ChQuaternion.h"
 #include "core/ChMatrix.h"
+#include "core/ChMatrixDynamic.h"
+#include "core/ChMatrixNM.h"
+#include "core/ChMatrix33.h"
 #include "core/ChCoordsys.h"
 
 

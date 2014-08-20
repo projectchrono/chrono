@@ -30,8 +30,8 @@
 
 #include "core/ChCoordsys.h"
 #include "core/ChTrasform.h"
-
-
+#include "core/ChMatrixNM.h"
+#include "core/ChMatrix33.h"
 
 namespace chrono
 {

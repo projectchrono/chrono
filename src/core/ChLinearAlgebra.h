@@ -29,7 +29,7 @@
 
 
 #include "core/ChMatrix.h"
-
+#include "core/ChMatrixDynamic.h"
 
 #define PIVOT_ACCEPT_TRESHOLD 0.8
 #define ACCEPT_PIVOT	0.001

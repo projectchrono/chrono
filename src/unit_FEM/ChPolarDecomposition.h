@@ -22,8 +22,7 @@
 #define CHPOLARDECOMPOSITION_H
 
 #include "ChApiFEM.h"
-#include "core/ChMatrix.h"
-
+#include "core/ChMatrix33.h"
 
 namespace chrono
 {

@@ -30,7 +30,7 @@
 
 #include "assets/ChAsset.h"
 #include "core/ChFrame.h"
-
+#include "core/ChMatrixDynamic.h"
 namespace chrono
 {
 

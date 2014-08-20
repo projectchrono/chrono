@@ -16,7 +16,7 @@
 #include <math.h>
 #include <float.h>
 #include "ChQuadrature.h"
-
+#include "core/ChMatrixDynamic.h"
 
 using namespace chrono;
 

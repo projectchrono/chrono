@@ -31,6 +31,7 @@
 
 
 #include "core/ChMatrix.h"
+#include "core/ChMatrixDynamic.h"
 #include "core/ChLists.h"
 #include "core/ChApiCE.h"
 

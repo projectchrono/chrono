@@ -34,7 +34,7 @@
 
 
 #include "core/ChApiCE.h"
-#include "core/ChMatrix.h"
+#include "core/ChMatrixDynamic.h"
 #include "core/ChSpmatrix.h"
 #include "core/ChMemory.h" // must be after system's include (memory leak debugger).
 

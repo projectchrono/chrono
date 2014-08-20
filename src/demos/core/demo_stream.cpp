@@ -35,6 +35,7 @@
         
 #include "core/ChLog.h"
 #include "core/ChMatrix.h" 
+#include "core/ChMatrixDynamic.h"
 #include "core/ChVector.h"
 #include "core/ChClassRegister.h"
 #include "core/ChException.h"               

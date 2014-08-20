@@ -15,6 +15,7 @@
 ///////////////////////////////////////////////////
        
 #include "core/ChLog.h"
+#include "core/ChMatrixDynamic.h"
 #include "unit_COSIMULATION/ChCosimulation.h"
 #include "unit_COSIMULATION/ChExceptionSocket.h"
 

@@ -28,7 +28,7 @@
 ///////////////////////////////////////////////////
 
 
-#include "core/ChMatrix.h"  // ***g++
+#include "core/ChMatrix33.h"  // ***g++
 #include "core/ChApiCE.h"
 
 

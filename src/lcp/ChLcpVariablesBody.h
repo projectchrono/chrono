@@ -31,7 +31,7 @@
 
 
 #include "ChLcpVariables.h"
-
+#include "core/ChMatrix33.h"
 
 namespace chrono
 {

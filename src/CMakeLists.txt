@@ -244,6 +244,9 @@ IF (BUILD_CH_SDK)
 		core/ChQuaternion.cpp 
 		core/ChCoordsys.cpp 
 		core/ChMatrix.cpp 
+		core/ChMatrixDynamic.cpp
+		core/ChMatrixNM.cpp
+		core/ChMatrix33.cpp   
 		core/ChMemory.cpp 
 		core/ChSpmatrix.cpp 
 		core/ChQuadrature.cpp
@@ -264,6 +267,9 @@ IF (BUILD_CH_SDK)
 		core/ChMath.h
 		core/ChMathematics.h
 		core/ChMatrix.h 
+		core/ChMatrixDynamic.h 
+		core/ChMatrixNM.h 
+		core/ChMatrix33.h 
 		core/ChMemory.h 
 		core/ChMemorynomgr.h
 		core/ChPlatform.h

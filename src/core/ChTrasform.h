@@ -30,7 +30,7 @@
 #include "core/ChVector.h"
 #include "core/ChQuaternion.h"
 #include "core/ChMatrix.h"
-
+#include "core/ChMatrix33.h"
 
 namespace chrono
 {

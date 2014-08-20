@@ -15,10 +15,10 @@
 
 //////////////////////////////////////////////////
 //  
-//   ChMatrix.h
+//   ChMatrix33.h
 //
 //   Math functions for:
-//      - MATRICES
+//      - 3x3 MATRICES
 //
 //   HEADER file for CHRONO,
 //   Multibody dynamics engine
@@ -32,14 +32,9 @@
 #include "core/ChCoordsys.h"
 #include "core/ChStream.h"
 #include "core/ChException.h"
-#include "core/ChMatrix.h"
+#include "core/ChMatrixNM.h"
 namespace chrono
 {
-
-
-//forward declaration
-template <class Real = double> class ChMatrixDynamic ;
-
 
 ///
 /// ChMatrix33

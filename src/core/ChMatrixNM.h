@@ -15,10 +15,10 @@
 
 //////////////////////////////////////////////////
 //  
-//   ChMatrix.h
+//   ChMatrixNM.h
 //
 //   Math functions for:
-//      - MATRICES
+//      - NXM MATRICES
 //
 //   HEADER file for CHRONO,
 //   Multibody dynamics engine
