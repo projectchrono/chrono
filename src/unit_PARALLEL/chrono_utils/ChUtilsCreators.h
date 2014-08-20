@@ -233,7 +233,7 @@ void AddRoundedCylinderGeometry(
 }
 
 //Creates a compound torus shape using cylinders
-inline
+CH_UTILS_API
 void AddTorusGeometry(
           ChBody*               body,
           double                radius,
@@ -241,17 +241,7 @@ void AddTorusGeometry(
           int                   segments = 20,
           int                   angle = 360,
           const ChVector<>&     pos = ChVector<>(0,0,0),
-          const ChQuaternion<>& rot = ChQuaternion<>(1,0,0,0))
-{
-   for (int i = 0; i < angle; i += angle/segments) {
-         double angle = i * CH_C_PI / 180.0;
-         double x = cos(angle) * radius;
-         double z = sin(angle) * radius;
-         Quaternion q = chrono::Q_from_AngAxis(-angle, VECT_Y) % chrono::Q_from_AngAxis(CH_C_PI/2.0, VECT_X);
-
-         AddCylinderGeometry(body,thickness,thickness*.75 ,ChVector<>(x, 0, z) + pos,q);
-   }
-}
+          const ChQuaternion<>& rot = ChQuaternion<>(1,0,0,0));
 
 
 // -----------------------------------------------------------------------------
