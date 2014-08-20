@@ -40,7 +40,9 @@ class CH_PARALLEL_API ChSolverCGS : public ChSolverParallel {
       if (num_constraints == 0) {
          return;
       }
+      data_container->system_timer.start("ChSolverParallel_Solve");
       total_iteration += SolveCGS(max_iteration, num_constraints, data_container->host_data.rhs_data, data_container->host_data.gamma_data);
+      data_container->system_timer.stop("ChSolverParallel_Solve");
       current_iteration = total_iteration;
    }
    // Solve using the Accelerated Projected Gradient Descent Method

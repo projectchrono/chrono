@@ -191,6 +191,16 @@ uint ChSolverAPGDRS::SolveAPGDRS(const uint max_iter,
       theta_k = theta_k1;
       //if (current_iteration % 2 == 0) {
       real g_proj_norm = Res4(num_unilaterals, mg_tmp.data(), b.data(), ml.data(), mb_tmp.data());
+      real objective = 100;
+//      if(current_iteration==0){
+//         old_objective = GetObjective(ml,b);
+//      }else{
+//         objective = GetObjective(ml,b);
+//         g_proj_norm = fabs(objective - old_objective);
+//         old_objective = objective;
+//      }
+
+
       if (num_bilaterals > 0) {
          real resid_bilat = -1;
          for (int i = num_unilaterals; i < x.size(); i++) {

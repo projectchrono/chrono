@@ -26,6 +26,7 @@ ChSystemParallelDVI::ChSystemParallelDVI(unsigned int max_objects)
    data_manager->system_timer.AddTimer("ChSolverParallel_solverF");
    data_manager->system_timer.AddTimer("ChSolverParallel_solverG");
    data_manager->system_timer.AddTimer("ChSolverParallel_Project");
+   data_manager->system_timer.AddTimer("ChSolverParallel_Solve");
 
 }
 
