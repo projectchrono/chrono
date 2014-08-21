@@ -138,7 +138,7 @@ uint ChSolverAPGDRS::SolveAPGDRS(const uint max_iter,
 
       norm_ms = sqrt(norm_ms);
       data_container->system_timer.stop("ChSolverParallel_solverD");
-      while (obj1 > obj2 + dot_mg_ms + 0.5 * L_k * pow(norm_ms, 2.0)) {
+      while (obj1 > obj2 + dot_mg_ms + 0.5 * L_k * pow(norm_ms, real(2.0))) {
          data_container->system_timer.start("ChSolverParallel_solverE");
          L_k = step_grow * L_k;
          t_k = 1.0 / L_k;
