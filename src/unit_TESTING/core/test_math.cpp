@@ -190,11 +190,11 @@ int main(int argc,
 // can use them equivalently!
 // (the 1st method however is a bit faster..)
 
-   mvect2 = chrono::ChTransform<>::TrasformLocalToParent(mvect1, vtraslA, mrotA);
+   mvect2 = chrono::ChTransform<>::TransformLocalToParent(mvect1, vtraslA, mrotA);
 
-   mvect2 = chrono::ChTransform<>::TrasformLocalToParent(mvect1, vtraslA, qrotA);
+   mvect2 = chrono::ChTransform<>::TransformLocalToParent(mvect1, vtraslA, qrotA);
 
-   mvect2 = csysA.TrasformLocalToParent(mvect1);
+   mvect2 = csysA.TransformLocalToParent(mvect1);
 
    mvect2 = vtraslA + mrotA * mvect1;
 

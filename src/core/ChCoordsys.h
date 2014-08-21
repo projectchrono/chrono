@@ -150,7 +150,7 @@ public:
 		/// system to a local coordinate system, whose relative position 
 		/// is given by this coodsys, i.e. 'origin' translation and 'alignment' quaternion.
 		/// \return The point in local coordinate, as local=q'*[0,(parent-origin)]*q
-	ChVector<Real> TrasformParentToLocal(const ChVector<Real>& parent) const
+	ChVector<Real> TransformParentToLocal(const ChVector<Real>& parent) const
 		{
 			return rot.RotateBack(parent - pos);
 		}
@@ -159,7 +159,7 @@ public:
 		/// system to the parent coordinate system. Relative position of local respect
 		/// to parent is given by this coordys, i.e. 'origin' translation and 'alignment' quaternion.
 		/// \return The point in parent coordinate, as parent=origin +q*[0,(local)]*q'
-	ChVector<Real> TrasformLocalToParent(const ChVector<Real>& local) const
+	ChVector<Real> TransformLocalToParent(const ChVector<Real>& local) const
 		{
 			return pos + rot.Rotate(local);
 		}

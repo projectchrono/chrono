@@ -600,7 +600,7 @@ void ChIrrTools::drawCircle(video::IVideoDriver*  driver,
     phaseB= chrono::CH_C_2PI*(double)iu/(double)mresolution;
     chrono::ChVector<> V1(radius*cos(phaseA), radius*sin(phaseA), 0);
     chrono::ChVector<> V2(radius*cos(phaseB), radius*sin(phaseB), 0);
-    drawSegment(driver,mpos.TrasformLocalToParent(V1), mpos.TrasformLocalToParent(V2), mcol, use_Zbuffer );
+    drawSegment(driver,mpos.TransformLocalToParent(V1), mpos.TransformLocalToParent(V2), mcol, use_Zbuffer );
     phaseA = phaseB;
   }
 }
@@ -645,7 +645,7 @@ void ChIrrTools::drawSpring(video::IVideoDriver*  driver,
     heightB= length*((double)iu/(double)mresolution);
     chrono::ChVector<> V1(heightA, radius*cos(phaseA), radius*sin(phaseA));
     chrono::ChVector<> V2(heightB, radius*cos(phaseB), radius*sin(phaseB));
-    drawSegment(driver,mpos.TrasformLocalToParent(V1), mpos.TrasformLocalToParent(V2), mcol, use_Zbuffer );
+    drawSegment(driver,mpos.TransformLocalToParent(V1), mpos.TransformLocalToParent(V2), mcol, use_Zbuffer );
     phaseA = phaseB;
     heightA = heightB;
   }
@@ -673,13 +673,13 @@ void ChIrrTools::drawGrid(video::IVideoDriver*  driver,
   for (int iu=-nu/2; iu<=nu/2; iu++) {
     chrono::ChVector<> V1(iu*ustep, vstep*(nv/2), 0);
     chrono::ChVector<> V2(iu*ustep,-vstep*(nv/2), 0);
-    drawSegment(driver, mpos.TrasformLocalToParent(V1),mpos.TrasformLocalToParent(V2), mcol, use_Zbuffer);
+    drawSegment(driver, mpos.TransformLocalToParent(V1),mpos.TransformLocalToParent(V2), mcol, use_Zbuffer);
   }
 
   for (int iv=-nv/2; iv<=nv/2; iv++) {
     chrono::ChVector<> V1(ustep*(nu/2), iv*vstep, 0);
     chrono::ChVector<> V2(-ustep*(nu/2),iv*vstep, 0);
-    drawSegment(driver, mpos.TrasformLocalToParent(V1),mpos.TrasformLocalToParent(V2), mcol, use_Zbuffer);
+    drawSegment(driver, mpos.TransformLocalToParent(V1),mpos.TransformLocalToParent(V2), mcol, use_Zbuffer);
   }
 }
 
@@ -714,13 +714,13 @@ void ChIrrTools::drawPlot3D(video::IVideoDriver*  driver,
       if (ix >0) {
         chrono::ChVector<> Vx1(X(ix-1,iy),Y(ix-1,iy),Z(ix-1,iy));
         chrono::ChVector<> Vx2(X(ix  ,iy),Y(ix  ,iy),Z(ix  ,iy));
-        drawSegment(driver, mpos.TrasformLocalToParent(Vx1),mpos.TrasformLocalToParent(Vx2), mcol, use_Zbuffer);
+        drawSegment(driver, mpos.TransformLocalToParent(Vx1),mpos.TransformLocalToParent(Vx2), mcol, use_Zbuffer);
       }
 
       if (iy >0) {
         chrono::ChVector<> Vy1(X(ix,iy-1),Y(ix,iy-1),Z(ix,iy-1));
         chrono::ChVector<> Vy2(X(ix,iy  ),Y(ix,iy  ),Z(ix,iy  ));
-        drawSegment(driver, mpos.TrasformLocalToParent(Vy1),mpos.TrasformLocalToParent(Vy2), mcol, use_Zbuffer);
+        drawSegment(driver, mpos.TransformLocalToParent(Vy1),mpos.TransformLocalToParent(Vy2), mcol, use_Zbuffer);
       }
     }
   }

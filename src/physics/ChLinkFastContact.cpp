@@ -116,7 +116,7 @@ ChLink* ChLinkFastContact::new_Duplicate ()
 
 ChCoordsys<> ChLinkFastContact::GetLinkRelativeCoords()
 {
-	Vector Pl2 = Body2->TrasformPointParentToLocal(this->collision_pair.p2);
+	Vector Pl2 = Body2->TransformPointParentToLocal(this->collision_pair.p2);
 	ChMatrix33<> m12; 
 	m12.MatrTMultiply(*Body2->GetA(), contact_plane);
 	Quaternion Ql2 = m12.Get_A_quaternion();
@@ -130,8 +130,8 @@ void ChLinkFastContact::Update (double mytime)
     ChLink::UpdateTime(mytime);
 
 		// contact point in body coordinates
-	Vector Pl1 = Body1->TrasformPointParentToLocal(this->collision_pair.p1);
-	Vector Pl2 = Body2->TrasformPointParentToLocal(this->collision_pair.p2);
+	Vector Pl1 = Body1->TransformPointParentToLocal(this->collision_pair.p1);
+	Vector Pl2 = Body2->TransformPointParentToLocal(this->collision_pair.p2);
 
 		// compute friction
 	//double mfriction_coeff = (Body1->GetSfriction() + Body2->GetSfriction())*0.5;

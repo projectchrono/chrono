@@ -314,12 +314,12 @@ void ChBody::ClampSpeed()
 ///
 ChVector<> ChBody::Point_World2Body(const ChVector<>& mpoint)
 {
-    return ChFrame<double>::TrasformParentToLocal(mpoint);
+    return ChFrame<double>::TransformParentToLocal(mpoint);
 }
 
 ChVector<> ChBody::Point_Body2World(const ChVector<>& mpoint)
 {
-    return ChFrame<double>::TrasformLocalToParent(mpoint);
+    return ChFrame<double>::TransformLocalToParent(mpoint);
 }
 
 ChVector<> ChBody::Dir_World2Body(const ChVector<>& mpoint)

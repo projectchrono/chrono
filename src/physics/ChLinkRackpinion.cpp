@@ -76,7 +76,7 @@ ChVector<>  ChLinkRackpinion::GetAbsPinionDir()
 	if (this->Body1)
 	{
 		ChFrame<double> absframe;
-		((ChFrame<double>*)Body1)->TrasformLocalToParent(local_pinion, absframe);
+		((ChFrame<double>*)Body1)->TransformLocalToParent(local_pinion, absframe);
 		return absframe.GetA()->Get_A_Zaxis();
 	} else return VECT_Z;
 }
@@ -86,7 +86,7 @@ ChVector<>  ChLinkRackpinion::GetAbsPinionPos()
 	if (this->Body1)
 	{
 		ChFrame<double> absframe;
-		((ChFrame<double>*)Body1)->TrasformLocalToParent(local_pinion, absframe);
+		((ChFrame<double>*)Body1)->TransformLocalToParent(local_pinion, absframe);
 		return absframe.GetPos();
 	} else return VNULL;
 }
@@ -96,7 +96,7 @@ ChVector<> ChLinkRackpinion::GetAbsRackDir()
 	if (this->Body2)
 	{
 		ChFrame<double> absframe;
-		((ChFrame<double>*)Body2)->TrasformLocalToParent(local_rack, absframe);
+		((ChFrame<double>*)Body2)->TransformLocalToParent(local_rack, absframe);
 		return absframe.GetA()->Get_A_Zaxis();
 	} else return VECT_Z;
 }
@@ -106,7 +106,7 @@ ChVector<>  ChLinkRackpinion::GetAbsRackPos()
 	if (this->Body2)
 	{
 		ChFrame<double> absframe;
-		((ChFrame<double>*)Body2)->TrasformLocalToParent(local_rack, absframe);
+		((ChFrame<double>*)Body2)->TransformLocalToParent(local_rack, absframe);
 		return absframe.GetPos();
 	} else return VNULL;
 }
@@ -122,8 +122,8 @@ void ChLinkRackpinion::UpdateTime (double mytime)
 	ChFrame<double> abs_pinion;
 	ChFrame<double> abs_rack;
 
-	((ChFrame<double>*)Body1)->TrasformLocalToParent(local_pinion, abs_pinion);
-	((ChFrame<double>*)Body2)->TrasformLocalToParent(local_rack, abs_rack);
+	((ChFrame<double>*)Body1)->TransformLocalToParent(local_pinion, abs_pinion);
+	((ChFrame<double>*)Body2)->TransformLocalToParent(local_rack, abs_rack);
 
 	ChVector<> abs_distpr = abs_pinion.GetPos() - abs_rack.GetPos();
 	ChVector<> abs_Dpin = abs_pinion.GetA()->Get_A_Zaxis();
@@ -173,8 +173,8 @@ void ChLinkRackpinion::UpdateTime (double mytime)
 	abs_contact.ConcatenatePostTransformation ( mrotframe ); // or: abs_contact *= mrotframe;
 
 	// Set the link frame 'abs_contact' to relative frames to the two connected ChBodyFrame
-	((ChFrame<double>*)Body1)->TrasformParentToLocal(abs_contact, this->frame1);
-	((ChFrame<double>*)Body2)->TrasformParentToLocal(abs_contact, this->frame2);
+	((ChFrame<double>*)Body1)->TransformParentToLocal(abs_contact, this->frame1);
+	((ChFrame<double>*)Body2)->TransformParentToLocal(abs_contact, this->frame2);
 }
 
 

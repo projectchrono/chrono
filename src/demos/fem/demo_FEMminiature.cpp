@@ -344,8 +344,8 @@ int main(int argc, char* argv[])
 		ChFrameMoving<> f_rack_abs( vP + ChVector<>(0,0.1,0) );
 		ChFrameMoving<> f_pin;
 		ChFrameMoving<> f_rack;
-		balance->TrasformParentToLocal( f_pin_abs, f_pin); 
-		rack->TrasformParentToLocal( f_rack_abs, f_rack); 
+		balance->TransformParentToLocal( f_pin_abs, f_pin); 
+		rack->TransformParentToLocal( f_rack_abs, f_rack); 
 		constr_rack->SetPinionRadius(Rpinion);
 		constr_rack->SetPinionFrame ( f_pin);
 		constr_rack->SetRackFrame ( f_rack);

@@ -67,11 +67,11 @@ public:
 					/// system to a local coordinate system, whose relative position
 					/// is given by the 'origin' translation and 'alignment' rotation matrix.
 					///  Since the function is static, you do not need a ChTransform object, for example
-					/// use it as: mresult=ChTransform<>::TrasformParentToLocal(mpar, morig, malign)
+					/// use it as: mresult=ChTransform<>::TransformParentToLocal(mpar, morig, malign)
 					///  This function is optimised for fast execution.
 					/// \return The point in local coordinate, as local=[A]'*(parent-origin)
 
-	static ChVector<Real> TrasformParentToLocal (
+	static ChVector<Real> TransformParentToLocal (
 								const ChVector<Real>& parent,	///< point to transform, given in parent coordinates;
 								const ChVector<Real>& origin,	///< location of local frame with respect to parent, expressed in parent ref frame;
 								const ChMatrix33<Real>& alignment	///< rotation of local frame with respect to parent, expressed in parent coords.
@@ -97,11 +97,11 @@ public:
                     /// the local reference frame with respect to the parent reference frame
 					/// is given by the 'origin' translation and the 'alignment' rotation matrix.
 					/// Since the function is static, you do not need a ChTransform object. For example,
-					/// use it as: mresult=ChTransform<>::TrasformLocalToParent(mloc, morig, malign).
+					/// use it as: mresult=ChTransform<>::TransformLocalToParent(mloc, morig, malign).
 					/// This function is optimized for fast execution.
 					/// \return The point in the parent reference frame, as parent=origin +[A]*(local)
 
-	static ChVector<Real> TrasformLocalToParent (
+	static ChVector<Real> TransformLocalToParent (
 								const ChVector<Real>& local,	///< point to transform, given in local coordinates
 								const ChVector<Real>& origin,	///< origin of frame respect to parent, in parent coords,
 								const ChMatrix33<Real>& alignment	///< rotation of frame respect to parent, in parent coords.
@@ -127,10 +127,10 @@ public:
 					/// system to a local coordinate system, whose relative position
 					/// is given by the 'origin' translation and 'alignment' quaternion q.
 					///  Since the function is static, you do not need a ChTransform object, for example
-					/// use it as: mresult=ChTransform<>::TrasformParentToLocal(mpar, morig, malign)
+					/// use it as: mresult=ChTransform<>::TransformParentToLocal(mpar, morig, malign)
 					/// \return The point in local coordinate, as local=q*[(parent-origin)]*q
 
-	static ChVector<Real> TrasformParentToLocal (
+	static ChVector<Real> TransformParentToLocal (
 								const ChVector<Real>& parent,		///< point to transform, given in parent coordinates
 								const ChVector<Real>& origin,		///< origin of frame respect to parent, in parent coords,
 								const ChQuaternion<Real>& alignment	///< rotation of frame respect to parent, in parent coords.
@@ -163,10 +163,10 @@ public:
 					/// system to the parent coordinate system. Relative position of local respect
 					/// to parent is given by the 'origin' translation and 'alignment' quaternion rotation.
 					///  Since the function is static, you do not need a ChTransform object, for example
-					/// use it as: mresult=ChTransform<>::TrasformLocalToParent(mloc, morig, malign)
+					/// use it as: mresult=ChTransform<>::TransformLocalToParent(mloc, morig, malign)
 					/// \return The point in parent coordinate, as parent=origin +q'*(local)*q
 
-	static ChVector<Real> TrasformLocalToParent (
+	static ChVector<Real> TransformLocalToParent (
 								const ChVector<Real>& local,		///< point to transform, given in local coordinates
 								const ChVector<Real>& origin,		///< origin of frame respect to parent, in parent coords,
 								const ChQuaternion<Real>& alignment	///< rotation of frame respect to parent, in parent coords.

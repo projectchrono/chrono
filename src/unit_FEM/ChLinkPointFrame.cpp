@@ -109,7 +109,7 @@ int ChLinkPointFrame::Initialize(ChSharedPtr<ChNodeFEMxyz> anode,  ///< node to 
 
 	if (mattach)
 	{
-		this->attach_position = body->TrasformPointParentToLocal(*mattach);
+		this->attach_position = body->TransformPointParentToLocal(*mattach);
 	}
 	else
 	{
@@ -117,7 +117,7 @@ int ChLinkPointFrame::Initialize(ChSharedPtr<ChNodeFEMxyz> anode,  ///< node to 
 		if (mnode.IsNull()) return false;
 
 		ChVector<> temp= mnode->GetPos(); 
-		this->attach_position = body->TrasformPointParentToLocal(temp);
+		this->attach_position = body->TransformPointParentToLocal(temp);
 	}
 
 	return true;
@@ -165,7 +165,7 @@ void ChLinkPointFrame::ConstraintsBiLoad_C(double factor, double recovery_clamp,
 	if (mnode.IsNull()) 
 		return;
 
-	ChVector<> res = mnode->GetPos() - this->body->TrasformPointLocalToParent(this->attach_position) ; 
+	ChVector<> res = mnode->GetPos() - this->body->TransformPointLocalToParent(this->attach_position) ; 
 
 	this->constraint1.Set_b_i(constraint1.Get_b_i() +  factor * res.x);
 	this->constraint2.Set_b_i(constraint2.Get_b_i() +  factor * res.y);

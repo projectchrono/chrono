@@ -174,9 +174,9 @@ void drawTriMesh(ChTriangleMesh &TriMesh,ChBody *abody){
 	glColor3f (color.x, color.y,color.z);
 	for(int i=0; i<TriMesh.getNumTriangles(); i++){
 		geometry::ChTriangle tri=TriMesh.getTriangle(i);
-		ChVector<> gA = (abody)->GetCoord().TrasformLocalToParent(tri.p1);
-		ChVector<> gB = (abody)->GetCoord().TrasformLocalToParent(tri.p2);
-		ChVector<> gC = (abody)->GetCoord().TrasformLocalToParent(tri.p3);
+		ChVector<> gA = (abody)->GetCoord().TransformLocalToParent(tri.p1);
+		ChVector<> gB = (abody)->GetCoord().TransformLocalToParent(tri.p2);
+		ChVector<> gC = (abody)->GetCoord().TransformLocalToParent(tri.p3);
 		glColor4f (0, 0,0,.3);
 		glBegin(GL_LINE_LOOP);
 		glVertex3f(gA.x,gA.y,gA.z);

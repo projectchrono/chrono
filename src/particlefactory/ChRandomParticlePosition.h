@@ -60,7 +60,7 @@ public:
 	virtual ChVector<> RandomPosition() 
 		{
 			ChVector<> localp = ChVector<>(ChRandom()*width-0.5*width, ChRandom()*height-0.5*height, 0);
-			return outlet.TrasformLocalToParent(localp);
+			return outlet.TransformLocalToParent(localp);
 		}
 			/// Access the coordinate system of the rectangular outlet. 
 			/// The outlet width is on the X direction of this csys, and the

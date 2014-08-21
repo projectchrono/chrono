@@ -184,7 +184,7 @@ int main(int argc, char* argv[])
 	// the aboslute position of the joint (ex. we used measuring tools in the 3D CAD)
 	ChVector<> measured_joint_pos_mm (0, 48, 120); 
 	double scale = 1./1000.; // because we use meters instead of mm
-	ChVector<> joint_pos =  ((ChFrame<>)root_frame) * (measured_joint_pos_mm*scale); // trasform because we rotated everything
+	ChVector<> joint_pos =  ((ChFrame<>)root_frame) * (measured_joint_pos_mm*scale); // transform because we rotated everything
 
 	if (mrigidBody1 && mrigidBody2)
 	{

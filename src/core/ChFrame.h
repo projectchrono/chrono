@@ -131,7 +131,7 @@ public:
 	ChFrame<Real> operator >> (const ChFrame<Real>& Fb) const
 		{
 			ChFrame<Real> res;
-			Fb.TrasformLocalToParent(*this,res);
+			Fb.TransformLocalToParent(*this,res);
 			return res;
 		}
 
@@ -146,7 +146,7 @@ public:
 		/// This operation is not commutative.
 	friend ChVector<Real> operator >> (const ChVector<Real>& V, const ChFrame<Real>& mframe)
 		{
-			return mframe.TrasformLocalToParent(V);
+			return mframe.TransformLocalToParent(V);
 		}
 
 		/// The '*' operator transforms a coordinate system, so
@@ -163,7 +163,7 @@ public:
 	ChFrame<Real> operator * (const ChFrame<Real>& Fb) const
 		{
 			ChFrame<Real> res;
-			TrasformLocalToParent(Fb,res);
+			TransformLocalToParent(Fb,res);
 			return res;
 		}
 
@@ -180,7 +180,7 @@ public:
 		/// performs faster, like  w=v>>C>>B>>A;
 	ChVector<Real> operator * (const ChVector<Real>& V) const
 		{
-				return TrasformLocalToParent(V);
+				return TransformLocalToParent(V);
 		}
 
 		/// The '/' is like the '*' operator (see), but uses the inverse
@@ -188,7 +188,7 @@ public:
 		/// That is: c=A*b ; b=A/c;
 	ChVector<Real> operator / (const ChVector<Real>& V) const
 		{
-			return TrasformParentToLocal(V);
+			return TransformParentToLocal(V);
 		}
 
 		/// Performs pre-multiplication of this frame by another
@@ -299,7 +299,7 @@ public:
 		/// by the other frame T:   this'= T * this; or this' = this >> T
 	void ConcatenatePreTransformation(const ChFrame<Real>& T)
 		{
-			this->SetCoord(T.TrasformLocalToParent(coord.pos),
+			this->SetCoord(T.TransformLocalToParent(coord.pos),
 			               T.coord.rot % coord.rot);
 		}
 
@@ -308,7 +308,7 @@ public:
 		/// post-multiply this frame by the other frame T:   this'= this * T; or this'= T >> this
 	void ConcatenatePostTransformation(const ChFrame<Real>& T)
 		{
-			this->SetCoord(TrasformLocalToParent(T.coord.pos),
+			this->SetCoord(TransformLocalToParent(T.coord.pos),
 			               coord.rot % T.coord.rot);
 		}
 
@@ -323,7 +323,7 @@ public:
 		/// coordinates, as a vector for translation and quaternion for rotation,
 	void Move(const ChCoordsys<Real>& VR)
 		{
-			this->SetCoord(VR.TrasformLocalToParent(coord.pos),
+			this->SetCoord(VR.TransformLocalToParent(coord.pos),
 			               VR.rot % coord.rot);
 		}
 
@@ -334,18 +334,18 @@ public:
 		/// system to the parent coordinate system.
 		/// OPTIMIZED FOR SPEED.
 		/// Since it will use the auxiliary rotation matrix of the ChFrame
-		/// object, this function is about 50% faster than TrasformParentToLocal
+		/// object, this function is about 50% faster than TransformParentToLocal
 		/// of a ChCoordsys.
 		/// \return The point in parent coordinate
 
-	virtual ChVector<Real> TrasformLocalToParent(const ChVector<Real>& local) const
+	virtual ChVector<Real> TransformLocalToParent(const ChVector<Real>& local) const
 		{
-			return ChTransform<Real>::TrasformLocalToParent(local, coord.pos, Amatrix);
+			return ChTransform<Real>::TransformLocalToParent(local, coord.pos, Amatrix);
 		}
 
-	virtual ChVector<Real> TrasformPointLocalToParent(const ChVector<Real>& local) const
+	virtual ChVector<Real> TransformPointLocalToParent(const ChVector<Real>& local) const
 		{
-			return ChTransform<Real>::TrasformLocalToParent(local, coord.pos, Amatrix);
+			return ChTransform<Real>::TransformLocalToParent(local, coord.pos, Amatrix);
 		}
 
 
@@ -353,30 +353,30 @@ public:
 		/// system to local frame coordinate system.
 		/// OPTIMIZED FOR SPEED.
 		/// Since it will use the auxiliary rotation matrix of the ChFrame
-		/// object, this function is about 50% faster than TrasformParentToLocal
+		/// object, this function is about 50% faster than TransformParentToLocal
 		/// method of a ChCoordsys.
 		/// \return The point in local frame coordinate
 
-	virtual ChVector<Real> TrasformParentToLocal(const ChVector<Real>& parent) const
+	virtual ChVector<Real> TransformParentToLocal(const ChVector<Real>& parent) const
 		{
-			return ChTransform<Real>::TrasformParentToLocal(parent, coord.pos, Amatrix);
+			return ChTransform<Real>::TransformParentToLocal(parent, coord.pos, Amatrix);
 		}
 
-	virtual ChVector<Real> TrasformPointParentToLocal(const ChVector<Real>& parent) const
+	virtual ChVector<Real> TransformPointParentToLocal(const ChVector<Real>& parent) const
 		{
-			return ChTransform<Real>::TrasformParentToLocal(parent, coord.pos, Amatrix);
+			return ChTransform<Real>::TransformParentToLocal(parent, coord.pos, Amatrix);
 		}
 
 		/// This function transforms a frame from 'this' local coordinate
 		/// system to parent frame coordinate system.
 		/// \return The frame in parent frame coordinate
 
-	virtual void TrasformLocalToParent(
+	virtual void TransformLocalToParent(
 			const ChFrame<Real>& local,  ///< frame to transform, given in local frame coordinates
 			ChFrame<Real>&       parent  ///< transformed frame, in parent coordinates, will be stored here
 			) const
 		{
-			parent.SetCoord(TrasformLocalToParent(local.coord.pos),
+			parent.SetCoord(TransformLocalToParent(local.coord.pos),
 			                coord.rot % local.coord.rot);
 		}
 
@@ -384,12 +384,12 @@ public:
 		/// system to 'this' local frame coordinate system.
 		/// \return The frame in local frame coordinate
 
-	virtual void TrasformParentToLocal(
+	virtual void TransformParentToLocal(
 			const ChFrame<Real>& parent,  ///< frame to transform, given in parent coordinates
 			ChFrame<Real>&       local    ///< transformed frame, in local coordinates, will be stored here
 			)  const
 		{
-			local.SetCoord(TrasformParentToLocal(parent.coord.pos),
+			local.SetCoord(TransformParentToLocal(parent.coord.pos),
 			               coord.rot.GetConjugate() % parent.coord.rot);
 		}
 
@@ -398,7 +398,7 @@ public:
 		/// system to parent frame coordinate system.
 		/// \return The direction in local frame coordinate
 
-	virtual ChVector<Real> TrasformDirectionParentToLocal (
+	virtual ChVector<Real> TransformDirectionParentToLocal (
 			const ChVector<>& mdirection  ///< direction to transform, given in parent coordinates
 			) const
 		{
@@ -409,7 +409,7 @@ public:
 		/// to 'this' local coordinate system.
 		/// \return The direction in parent frame coordinate
 
-	virtual ChVector<Real> TrasformDirectionLocalToParent (
+	virtual ChVector<Real> TransformDirectionLocalToParent (
 			const ChVector<>& mdirection
 			) const
 		{
@@ -439,7 +439,7 @@ public:
 			Amatrix.SetIdentity();
 		}
 
-		/// The trasformation is inverted in place.
+		/// The transformation is inverted in place.
 		/// That is if w=A*v, then A.Invert();v=A*w;
 	virtual void Invert()
 		{

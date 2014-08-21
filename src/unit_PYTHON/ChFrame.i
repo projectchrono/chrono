@@ -34,7 +34,7 @@ using namespace chrono;
 					// in ChFrame.h is not supported by SWIG
 			chrono::ChVector<double> operator>> (const chrono::ChFrame<double>& mframe) const
 			{
-					return mframe.TrasformLocalToParent(*$self);
+					return mframe.TransformLocalToParent(*$self);
 			}
 			
 		};

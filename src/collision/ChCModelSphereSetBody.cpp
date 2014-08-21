@@ -49,8 +49,8 @@ void ChModelSphereSetBody::SyncPosition()
 	ChCoordsys<> bodyCoord=bpointer->GetCoord();
 
 	// Update the bounding box points in global frame
-	//ChVector<> tmin=bodyCoord.TrasformLocalToParent(myBBminLocal);
-	//ChVector<> tmax=bodyCoord.TrasformLocalToParent(myBBmaxLocal);
+	//ChVector<> tmin=bodyCoord.TransformLocalToParent(myBBminLocal);
+	//ChVector<> tmax=bodyCoord.TransformLocalToParent(myBBmaxLocal);
 	ChVector<> tmin=bpointer->GetPos()+myBBminLocal;
 	ChVector<> tmax=bpointer->GetPos()+myBBmaxLocal;
 	myBBminGlobal.Set(tmin.x,tmin.y,tmin.z);
@@ -61,7 +61,7 @@ void ChModelSphereSetBody::SyncPosition()
 	gPos.resize(nSpheres);
 	for(uint i=0; i<nSpheres; i++)
 	{
-		gPos[i]=bodyCoord.TrasformLocalToParent(sphPosLocal[i]);
+		gPos[i]=bodyCoord.TransformLocalToParent(sphPosLocal[i]);
 	}
 
 	sphPosGlobal.swap(gPos);

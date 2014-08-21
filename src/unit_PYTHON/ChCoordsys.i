@@ -31,10 +31,10 @@ public:
 	bool	Equals ( const ChCoordsys<Real>& other) const;
 	bool	Equals ( const ChCoordsys<Real>& other, Real tol) const;
 	void    SetIdentity();
-	chrono::ChVector<Real> TrasformParentToLocal (
+	chrono::ChVector<Real> TransformParentToLocal (
 								const chrono::ChVector<Real>& parent		///< point to transform, given in parent coordinates
 								) const;
-	chrono::ChVector<Real> TrasformLocalToParent (
+	chrono::ChVector<Real> TransformLocalToParent (
 								const chrono::ChVector<Real>& local			///< point to transform, given in local coordinates
 								) const;
 	void StreamOUT(chrono::ChStreamOutAscii& mstream);

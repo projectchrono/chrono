@@ -69,11 +69,11 @@ int ChLinkDistance::Initialize(ChSharedPtr<ChBodyFrame> mbody1,   ///< first bod
 	}
 	else
 	{
-		this->pos1 = this->Body1->TrasformPointParentToLocal(mpos1);
-		this->pos2 = this->Body2->TrasformPointParentToLocal(mpos2);
+		this->pos1 = this->Body1->TransformPointParentToLocal(mpos1);
+		this->pos2 = this->Body2->TransformPointParentToLocal(mpos2);
 	}
 	
-	ChVector<> AbsDist = Body1->TrasformPointLocalToParent(pos1)-Body2->TrasformPointLocalToParent(pos2);
+	ChVector<> AbsDist = Body1->TransformPointLocalToParent(pos1)-Body2->TransformPointLocalToParent(pos2);
 	this->curr_dist = AbsDist.Length();
 
 	if (auto_distance)
@@ -119,8 +119,8 @@ ChLink* ChLinkDistance::new_Duplicate ()
 ChCoordsys<> ChLinkDistance::GetLinkRelativeCoords()
 {
 	ChVector<> D2local;
-	ChVector<> D2temp=(Vnorm(Body1->TrasformPointLocalToParent(pos1)-Body2->TrasformPointLocalToParent(pos2)));
-	ChVector<> D2rel = Body2->TrasformDirectionParentToLocal(D2temp);
+	ChVector<> D2temp=(Vnorm(Body1->TransformPointLocalToParent(pos1)-Body2->TransformPointLocalToParent(pos2)));
+	ChVector<> D2rel = Body2->TransformDirectionParentToLocal(D2temp);
 	ChVector<> Vx, Vy, Vz;
 	ChVector<> Vsingul(VECT_Y);
 	ChMatrix33<> rel_matrix;
@@ -138,11 +138,11 @@ void ChLinkDistance::Update (double mytime)
     ChLink::UpdateTime(mytime);
 
 		// compute jacobians
-	ChVector<> AbsDist = Body1->TrasformPointLocalToParent(pos1)-Body2->TrasformPointLocalToParent(pos2);
+	ChVector<> AbsDist = Body1->TransformPointLocalToParent(pos1)-Body2->TransformPointLocalToParent(pos2);
 	curr_dist          = AbsDist.Length();
 	ChVector<> D2abs   = Vnorm(AbsDist);
-	ChVector<> D2relB  = Body2->TrasformDirectionParentToLocal(D2abs);
-	ChVector<> D2relA  = Body1->TrasformDirectionParentToLocal(D2abs);
+	ChVector<> D2relB  = Body2->TransformDirectionParentToLocal(D2abs);
+	ChVector<> D2relA  = Body1->TransformDirectionParentToLocal(D2abs);
 
 	ChVector<> CqAx =  D2abs;
 	ChVector<> CqBx = -D2abs;

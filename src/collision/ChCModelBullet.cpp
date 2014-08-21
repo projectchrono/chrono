@@ -110,24 +110,24 @@ static btVector3 ChVectToBullet(const ChVector<>& pos)
 	return btVector3((btScalar)pos.x,(btScalar)pos.y,(btScalar)pos.z);
 }
 
-static void ChPosMatrToBullet(const ChVector<>& pos, const ChMatrix33<>& rA, btTransform& mtrasform)
+static void ChPosMatrToBullet(const ChVector<>& pos, const ChMatrix33<>& rA, btTransform& mtransform)
 {
 	btMatrix3x3 basisA((btScalar)rA(0,0), (btScalar)rA(0,1), (btScalar)rA(0,2),
 	                   (btScalar)rA(1,0), (btScalar)rA(1,1), (btScalar)rA(1,2),
 	                   (btScalar)rA(2,0), (btScalar)rA(2,1), (btScalar)rA(2,2));
-	mtrasform.setBasis(basisA);
-	mtrasform.setOrigin(btVector3((btScalar)pos.x, (btScalar)pos.y, (btScalar)pos.z));
+	mtransform.setBasis(basisA);
+	mtransform.setOrigin(btVector3((btScalar)pos.x, (btScalar)pos.y, (btScalar)pos.z));
 }
 
-static void ChCoordsToBullet(const ChCoordsys<>& mcoords, btTransform& mtrasform)
+static void ChCoordsToBullet(const ChCoordsys<>& mcoords, btTransform& mtransform)
 {
 	ChMatrix33<> rA;
 	rA.Set_A_quaternion(mcoords.rot);
 	btMatrix3x3 basisA( (btScalar)rA(0,0), (btScalar)rA(0,1), (btScalar)rA(0,2),
 						(btScalar)rA(1,0), (btScalar)rA(1,1), (btScalar)rA(1,2),
 						(btScalar)rA(2,0), (btScalar)rA(2,1), (btScalar)rA(2,2));
-	mtrasform.setBasis(basisA);
-	mtrasform.setOrigin(btVector3(
+	mtransform.setBasis(basisA);
+	mtransform.setOrigin(btVector3(
 								(btScalar)mcoords.pos.x,
 								(btScalar)mcoords.pos.y,
 								(btScalar)mcoords.pos.z));
@@ -153,9 +153,9 @@ void ChModelBullet::_injectShape(const ChVector<>& pos, const ChMatrix33<>& rot,
 			shapes.push_back(ChSmartPtr<btCollisionShape>(mcompound)); 
 			shapes.push_back(ChSmartPtr<btCollisionShape>(mshape)); 
 			bt_collision_object->setCollisionShape(mcompound);
-			btTransform mtrasform;
-			ChPosMatrToBullet(pos, rot, mtrasform);
-			mcompound->addChildShape(mtrasform, mshape);
+			btTransform mtransform;
+			ChPosMatrToBullet(pos, rot, mtransform);
+			mcompound->addChildShape(mtransform, mshape);
 			// vector=  | compound | not centered shape |
 			return;
 		}
@@ -163,27 +163,27 @@ void ChModelBullet::_injectShape(const ChVector<>& pos, const ChMatrix33<>& rot,
 	// start_vector = | centered shape |    ----just a single centered shape was added
 	if (shapes.size()==1)
 	{
-		btTransform mtrasform;
+		btTransform mtransform;
 		shapes.push_back(shapes[0]);
 		shapes.push_back(ChSmartPtr<btCollisionShape>(mshape));
 		btCompoundShape* mcompound = new btCompoundShape(true);
 		shapes[0] = ChSmartPtr<btCollisionShape>(mcompound); 
 		bt_collision_object->setCollisionShape(mcompound);
-		mtrasform.setIdentity();
-		mcompound->addChildShape(mtrasform, shapes[1].get_ptr()); 
-		ChPosMatrToBullet(pos, rot, mtrasform);
-		mcompound->addChildShape(mtrasform, shapes[2].get_ptr()); 
+		mtransform.setIdentity();
+		mcompound->addChildShape(mtransform, shapes[1].get_ptr()); 
+		ChPosMatrToBullet(pos, rot, mtransform);
+		mcompound->addChildShape(mtransform, shapes[2].get_ptr()); 
 		// vector=  | compound | old centered shape | new shape | ...
 		return;
 	}
 	// vector=  | compound | old | old.. |   ----already working with compounds..
 	if (shapes.size()>1)
 	{
-		btTransform mtrasform;
+		btTransform mtransform;
 		shapes.push_back(ChSmartPtr<btCollisionShape>(mshape)); 
-		ChPosMatrToBullet(pos, rot, mtrasform);
+		ChPosMatrToBullet(pos, rot, mtransform);
 		btCollisionShape* mcom = shapes[0].get_ptr(); 
-		((btCompoundShape*)mcom)->addChildShape(mtrasform, mshape); 
+		((btCompoundShape*)mcom)->addChildShape(mtransform, mshape); 
 		// vector=  | compound | old | old.. | new shape | ...
 		return;
 	}

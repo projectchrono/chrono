@@ -170,8 +170,8 @@ void ChLinkClearance::UpdateForces (double mytime)
 	if (((ChLinkMaskLF*)(this->GetMask()))->Constr_X().IsActive() )
     {
 		Vector temp=Get_contact_P_abs();
-        Vector pb1 = ((ChFrame<double>*)Body1)->TrasformParentToLocal(temp);
-        Vector pb2 = ((ChFrame<double>*)Body2)->TrasformParentToLocal(temp);
+        Vector pb1 = ((ChFrame<double>*)Body1)->TransformParentToLocal(temp);
+        Vector pb2 = ((ChFrame<double>*)Body2)->TransformParentToLocal(temp);
         Vector m_V1_abs = Body1->PointSpeedLocalToParent(pb1 );
         Vector m_V2_abs = Body2->PointSpeedLocalToParent(pb2 );
 		this->contact_V_abs = Vsub(m_V1_abs, m_V2_abs);

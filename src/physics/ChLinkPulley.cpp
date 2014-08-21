@@ -109,7 +109,7 @@ Vector  ChLinkPulley::Get_shaft_dir1()
 	if (this->Body1)
 	{
 		ChFrame<double> absframe;
-		((ChFrame<double>*)Body1)->TrasformLocalToParent(local_shaft1, absframe);
+		((ChFrame<double>*)Body1)->TransformLocalToParent(local_shaft1, absframe);
 		return absframe.GetA()->Get_A_Zaxis();
 	} else return VECT_Z;
 }
@@ -119,7 +119,7 @@ Vector  ChLinkPulley::Get_shaft_dir2()
 	if (this->Body1)
 	{
 		ChFrame<double> absframe;
-		((ChFrame<double>*)Body2)->TrasformLocalToParent(local_shaft2, absframe);
+		((ChFrame<double>*)Body2)->TransformLocalToParent(local_shaft2, absframe);
 		return absframe.GetA()->Get_A_Zaxis();
 	} else return VECT_Z;
 }
@@ -129,7 +129,7 @@ Vector  ChLinkPulley::Get_shaft_pos1()
 	if (this->Body1)
 	{
 		ChFrame<double> absframe;
-		((ChFrame<double>*)Body1)->TrasformLocalToParent(local_shaft1, absframe);
+		((ChFrame<double>*)Body1)->TransformLocalToParent(local_shaft1, absframe);
 		return absframe.GetPos();
 	} else return VNULL;
 }
@@ -139,7 +139,7 @@ Vector  ChLinkPulley::Get_shaft_pos2()
 	if (this->Body1)
 	{
 		ChFrame<double> absframe;
-		((ChFrame<double>*)Body2)->TrasformLocalToParent(local_shaft2, absframe);
+		((ChFrame<double>*)Body2)->TransformLocalToParent(local_shaft2, absframe);
 		return absframe.GetPos();
 	} else return VNULL;
 }
@@ -155,8 +155,8 @@ void ChLinkPulley::UpdateTime (double mytime)
 	ChFrame<double> abs_shaft1;
 	ChFrame<double> abs_shaft2;
 
-	((ChFrame<double>*)Body1)->TrasformLocalToParent(local_shaft1, abs_shaft1);
-	((ChFrame<double>*)Body2)->TrasformLocalToParent(local_shaft2, abs_shaft2);
+	((ChFrame<double>*)Body1)->TransformLocalToParent(local_shaft1, abs_shaft1);
+	((ChFrame<double>*)Body2)->TransformLocalToParent(local_shaft2, abs_shaft2);
 
 	ChVector<> dcc_w = Vsub(Get_shaft_pos2(),
                             Get_shaft_pos1());

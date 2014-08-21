@@ -73,7 +73,7 @@ void ChBodyAuxRef::Update()
 	ChBody::Update();
 
 		// update own data
-	this->TrasformLocalToParent(this->auxref_to_cog, this->auxref_to_abs);
+	this->TransformLocalToParent(this->auxref_to_cog, this->auxref_to_abs);
 }
 
 

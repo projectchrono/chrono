@@ -117,7 +117,7 @@ void ChContactNode::Reset(		collision::ChCollisionModel* mmodA,	///< model A (bo
 	this->norm_dist = mdistance;
 	this->reactions_cache = mreaction_cache;
 
-	ChVector<> Pl1 = frameA->TrasformParentToLocal(p1);
+	ChVector<> Pl1 = frameA->TransformParentToLocal(p1);
 	ChVector<> Pl2 = p2  - *posB; 
 
 			// compute jacobians

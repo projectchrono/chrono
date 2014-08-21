@@ -163,7 +163,7 @@ void ChShaftsGearbox::ConstraintsLoadJacobians()
 	constraint.Get_Cq_a()->SetElement(0,0, (float)this->r1);
 	constraint.Get_Cq_b()->SetElement(0,0, (float)this->r2);
 
-	//ChVector<> jacw = this->body->TrasformDirectionParentToLocal(shaft_dir);
+	//ChVector<> jacw = this->body->TransformDirectionParentToLocal(shaft_dir);
 	ChVector<> jacw = shaft_dir;
 
 	this->constraint.Get_Cq_c()->ElementN(0)=0;

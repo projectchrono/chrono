@@ -123,8 +123,8 @@ void ChContact::Reset(	collision::ChCollisionModel* mmodA,	///< model A
 	this->norm_dist = mdistance;
 	this->reactions_cache = mreaction_cache;
 
-	ChVector<> Pl1 = frameA->TrasformParentToLocal(p1);
-	ChVector<> Pl2 = frameB->TrasformParentToLocal(p2);
+	ChVector<> Pl1 = frameA->TransformParentToLocal(p1);
+	ChVector<> Pl2 = frameB->TransformParentToLocal(p2);
 
 			// compute jacobians
 	ChMatrix33<> Jx1, Jx2, Jr1, Jr2;

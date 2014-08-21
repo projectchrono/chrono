@@ -278,14 +278,14 @@ void ChMatterSPH::FillBox (const ChVector<> size,
 									iy*spacing  -0.5*size.y,	
 									iz*spacing  -0.5*size.z);
 				pos += ChVector<>(mrandomness*ChRandom()*spacing, mrandomness*ChRandom()*spacing, mrandomness*ChRandom()*spacing);
-				this->AddNode(boxcoords.TrasformLocalToParent(pos));
+				this->AddNode(boxcoords.TransformLocalToParent(pos));
 				totsamples++;
 
 				if (do_centeredcube)
 				{
 					ChVector<> pos2 = pos + 0.5*ChVector<>(spacing,spacing,spacing);
 					pos2 += ChVector<>(mrandomness*ChRandom()*spacing, mrandomness*ChRandom()*spacing, mrandomness*ChRandom()*spacing);
-					this->AddNode(boxcoords.TrasformLocalToParent(pos2));
+					this->AddNode(boxcoords.TransformLocalToParent(pos2));
 					totsamples++;
 				}
 			}

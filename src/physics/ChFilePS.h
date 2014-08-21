@@ -204,9 +204,9 @@ public:
 				/// extension in graph space
 	void Set_ZoomPan_by_fit(double Xgmin, double Xgmax, double Ygmin, double Ygmax);
 		
-				/// Trasform position from 'page space' to 'graph viewport space'
+				/// Transform position from 'page space' to 'graph viewport space'
 	ChPageVect To_page_from_graph (ChPageVect mv_g);
-				/// Trasform position from 'graph viewport space' to 'page space',
+				/// Transform position from 'graph viewport space' to 'page space',
 	ChPageVect To_graph_from_page (ChPageVect mv_p);
 
 	ChPageVect TransPt (ChPageVect mfrom, int space);

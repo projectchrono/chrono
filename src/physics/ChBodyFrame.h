@@ -42,12 +42,12 @@ public:
     virtual ChLcpVariablesBodyOwnMass& VariablesBody() = 0;
 
 
-	            /// Trasform generic cartesian force into absolute force+torque applied to body COG.
+	            /// Transform generic cartesian force into absolute force+torque applied to body COG.
                 /// If local=1, force & application point are intended as expressed in local
                 /// coordinates, if =0, in absolute.
     void To_abs_forcetorque(const ChVector<>& force, const ChVector<>& appl_point, int local, ChVector<>& resultforce, ChVector<>& resulttorque);
 
-                /// Trasform generic cartesian torque into absolute torque applied to body COG.
+                /// Transform generic cartesian torque into absolute torque applied to body COG.
                 /// If local=1, torque is intended as expressed in local coordinates, if =0, in absolute.
     void To_abs_torque(const ChVector<>& torque, int local, ChVector<>& resulttorque);
 

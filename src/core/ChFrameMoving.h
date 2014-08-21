@@ -148,7 +148,7 @@ public:
 	ChFrameMoving<Real> operator >> (const ChFrameMoving<Real>& Fb) const
 		{
 			ChFrameMoving<Real> res;
-			Fb.TrasformLocalToParent(*this, res);
+			Fb.TransformLocalToParent(*this, res);
 			return res;
 		}
 
@@ -164,7 +164,7 @@ public:
 	ChFrameMoving<Real> operator * (const ChFrameMoving<Real>& Fb) const
 		{
 			ChFrameMoving<Real> res;
-			TrasformLocalToParent(Fb,res);
+			TransformLocalToParent(Fb,res);
 			return res;
 		}
 
@@ -384,7 +384,7 @@ public:
 	void ConcatenatePreTransformation(const ChFrameMoving<Real>& T)
 		{
 			ChFrameMoving<Real> res;
-			T.TrasformLocalToParent(*this, res);
+			T.TransformLocalToParent(*this, res);
 			*this = res;
 		}
 
@@ -394,7 +394,7 @@ public:
 	void ConcatenatePostTransformation(const ChFrameMoving<Real>& T)
 		{
 			ChFrameMoving<Real> res;
-			this->TrasformLocalToParent(T, res);
+			this->TransformLocalToParent(T, res);
 			*this = res;
 		}
 
@@ -445,7 +445,7 @@ public:
 		/// return the speed in local coords.
 	ChVector<Real> PointSpeedParentToLocal(const ChVector<Real>& parentpos, const ChVector<Real>& parentspeed) const
 		{
-			ChVector<Real> localpos = ChFrame<Real>::TrasformParentToLocal(parentpos);
+			ChVector<Real> localpos = ChFrame<Real>::TransformParentToLocal(parentpos);
 			return this->Amatrix.MatrT_x_Vect(
 			       parentspeed - coord_dt.pos -
 			       ((coord_dt.rot % ChQuaternion<Real>(0,localpos) % this->coord.rot.GetConjugate()).GetVector()*2)
@@ -457,7 +457,7 @@ public:
 		/// acceleration parentacc, return the acceleration in local coords.
 	ChVector<Real> PointAccelerationParentToLocal(const ChVector<Real>& parentpos, const ChVector<Real>& parentspeed, const ChVector<Real>& parentacc) const
 		{
-			ChVector<Real> localpos = ChFrame<Real>::TrasformParentToLocal(parentpos);
+			ChVector<Real> localpos = ChFrame<Real>::TransformParentToLocal(parentpos);
 			ChVector<Real> localspeed = PointSpeedParentToLocal(parentpos, parentspeed);
 			return this->Amatrix.MatrT_x_Vect(
 			        parentacc - coord_dtdt.pos -
@@ -470,13 +470,13 @@ public:
 		/// This function transforms a frame from 'this' local coordinate
 		/// system to parent frame coordinate system, and also transforms the speed
 		/// and acceleration of the frame.
-	void TrasformLocalToParent(
+	void TransformLocalToParent(
 			const ChFrameMoving<Real>& local,   ///< frame to transform, given in local frame coordinates
 			ChFrameMoving<Real>&       parent   ///< transformed frame, in parent coordinates, will be stored here
 			) const
 		{
 			// pos & rot
-			ChFrame<Real>::TrasformLocalToParent(local,parent);
+			ChFrame<Real>::TransformLocalToParent(local,parent);
 
 			// pos_dt
 			parent.coord_dt.pos = PointSpeedLocalToParent(local.coord.pos, local.coord_dt.pos);
@@ -496,13 +496,13 @@ public:
 
 		/// This function transforms a frame from the parent coordinate
 		/// system to 'this' local frame coordinate system.
-	void TrasformParentToLocal(
+	void TransformParentToLocal(
 			const ChFrameMoving<Real>& parent,   ///< frame to transform, given in parent coordinates
 			ChFrameMoving<Real>&       local     ///< transformed frame, in local coordinates, will be stored here
 			) const
 		{
 			// pos & rot
-			ChFrame<Real>::TrasformParentToLocal(parent,local);
+			ChFrame<Real>::TransformParentToLocal(parent,local);
 
 			// pos_dt
 			local.coord_dt.pos = PointSpeedParentToLocal(parent.coord.pos, parent.coord_dt.pos);
@@ -528,7 +528,7 @@ public:
 		/// Returns true if coordsys is equal to other coordsys, within a tolerance 'tol'
 	bool Equals(const ChFrameMoving<Real>& other, Real tol) const { return this->coord.Equals(other.coord,tol) && coord_dt.Equals(other.coord_dt,tol) && coord_dtdt.Equals(other.coord_dtdt,tol);}
 
-		/// The trasformation (also for speeds, accelerations) is
+		/// The transformation (also for speeds, accelerations) is
 		/// inverted in place.
 		/// That is if w=A*v, then A.Invert();v=A*w;
 	virtual void Invert()
@@ -536,7 +536,7 @@ public:
 			ChFrameMoving<Real> tmp;
 			ChFrameMoving<Real> unit;
 			tmp = *this;
-			tmp.TrasformParentToLocal(unit, *this);
+			tmp.TransformParentToLocal(unit, *this);
 		}
 
 	ChFrameMoving<Real> GetInverse()

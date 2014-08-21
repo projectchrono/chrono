@@ -136,7 +136,7 @@ public:
 	virtual bool TriggerEvent(ChSharedPtr<ChBody> mbody, ChSystem& msystem)
 	{
 		ChVector<> particle_pos = mbody->GetPos();
-		ChVector<> localpos = rectangle_csys.TrasformParentToLocal(mbody->GetPos());
+		ChVector<> localpos = rectangle_csys.TransformParentToLocal(mbody->GetPos());
 
 		// Is in lower part of rectangle?
 		if ((localpos.z<=0) && (-localpos.z < margin)
@@ -180,7 +180,7 @@ public:
 		ChSystem::IteratorBodies myiter = msystem.IterBeginBodies();
 		while (myiter != msystem.IterEndBodies())
 		{
-			ChVector<> localpos = rectangle_csys.TrasformParentToLocal((*myiter)->GetPos());
+			ChVector<> localpos = rectangle_csys.TransformParentToLocal((*myiter)->GetPos());
 			if ((localpos.z>0) && (localpos.z < margin)
 				&& (fabs(localpos.x)< 0.5*Xsize+margin) 
 				&& (fabs(localpos.y)< 0.5*Ysize+margin))

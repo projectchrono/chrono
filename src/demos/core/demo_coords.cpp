@@ -100,16 +100,16 @@ int main(int argc, char* argv[])
 
 					// TRASFORM USING THE ChTransform STATIC METHODS
 
-	mvect2 = ChTransform<>::TrasformLocalToParent(mvect1, vtraslA, mrotA);
+	mvect2 = ChTransform<>::TransformLocalToParent(mvect1, vtraslA, mrotA);
 	GetLog() << mvect2 << " ..using the ChTransform- vect and rot.matrix, \n";
 
-	mvect2 = ChTransform<>::TrasformLocalToParent(mvect1, vtraslA, qrotA);
+	mvect2 = ChTransform<>::TransformLocalToParent(mvect1, vtraslA, qrotA);
 	GetLog() << mvect2 << " ..using the ChTransform- vect and quat, \n";
 
 
 					// TRASFORM USING A ChCoordys OBJECT
 
-	mvect2 = csysA.TrasformLocalToParent(mvect1); 
+	mvect2 = csysA.TransformLocalToParent(mvect1); 
 	GetLog() << mvect2 << " ..using a ChChCoordsys<> object, \n";
 
 	
@@ -118,7 +118,7 @@ int main(int argc, char* argv[])
 
 	ChFrame<> mframeA(vtraslA, qrotA);  // or ChFrame<> mframeA(vtraslA, mrotA);
 
-	mvect2 = mframeA.TrasformLocalToParent(mvect1); 
+	mvect2 = mframeA.TransformLocalToParent(mvect1); 
 	GetLog() << mvect2 << " ..using a ChFrame object function, \n";
 
 	mvect2 = mvect1 >> mframeA; 
@@ -206,23 +206,23 @@ int main(int argc, char* argv[])
 
 					// TRASFORM USING THE ChTransform STATIC METHODS
 
-	mvect1 = ChTransform<>::TrasformParentToLocal(mvect2, vtraslA, mrotA);
+	mvect1 = ChTransform<>::TransformParentToLocal(mvect2, vtraslA, mrotA);
 	GetLog() << mvect1 << " ..inv, using the ChTransform- vect and rot.matrix, \n";
 
-	mvect1 = ChTransform<>::TrasformParentToLocal(mvect2, vtraslA, qrotA);
+	mvect1 = ChTransform<>::TransformParentToLocal(mvect2, vtraslA, qrotA);
 	GetLog() << mvect1 << " ..inv, using the ChTransform- vect and quat, \n";
 
 
 					// TRASFORM USING A ChCoordys OBJECT
 
-	mvect1 = csysA.TrasformParentToLocal(mvect2); 
+	mvect1 = csysA.TransformParentToLocal(mvect2); 
 	GetLog() << mvect1 << " ..inv, using a ChChCoordsys<> object, \n";
 
 	
 
 					// TRASFORM USING A ChFrame OBJECT
 
-	mvect1 = mframeA.TrasformParentToLocal(mvect2); 
+	mvect1 = mframeA.TransformParentToLocal(mvect2); 
 	GetLog() << mvect1 << " ..inv, using a ChFrame object function, \n";
 
 	mvect1 = mvect2 >> mframeA.GetInverse(); 
@@ -296,7 +296,7 @@ int main(int argc, char* argv[])
 	testPl.SetWacc_loc(ChVector<>(0.43, 0.53, 0.63));
 	ChFrameMoving<> testPw;
 	ChFrameMoving<> testX;
-	testa.TrasformLocalToParent(testPl,testPw);
+	testa.TransformLocalToParent(testPl,testPw);
 
 	ChFrameMoving<> bres = (testPl >> testa );
 
@@ -316,10 +316,10 @@ int main(int argc, char* argv[])
   timer.start();
 	for (i= 0; i<1000000; i++)
 	{ 
-		testa.TrasformLocalToParent(testPl,testPw);
+		testa.TransformLocalToParent(testPl,testPw);
 	}
   timer.stop();
-	GetLog() << "TEST 10e6 of ChFrameMoving::TrasformLocalToParent (1.38) Time: " <<  timer() << " \n";
+	GetLog() << "TEST 10e6 of ChFrameMoving::TransformLocalToParent (1.38) Time: " <<  timer() << " \n";
 	// VC6   : 1.380
 	// VC2003: 0.861
 	// VC2005: 0.691

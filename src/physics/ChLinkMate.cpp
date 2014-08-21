@@ -234,8 +234,8 @@ void ChLinkMateGeneric::Update (double mytime)
 		ChFrame<> aframe2 = this->frame2 >> (*this->Body2);
 		ChVector<> p2_abs = aframe2.GetPos();
 		ChFrame<> bframe;  
-		static_cast<ChFrame<>*>(this->Body2)->TrasformParentToLocal(aframe, bframe);
-		this->frame2.TrasformParentToLocal(bframe, aframe);
+		static_cast<ChFrame<>*>(this->Body2)->TransformParentToLocal(aframe, bframe);
+		this->frame2.TransformParentToLocal(bframe, aframe);
 		// Now 'aframe' contains the position/rotation of frame 1 respect to frame 2, in frame 2 coords.
 
 		ChMatrix33<> Jx1, Jx2, Jr1, Jr2, Jw1, Jw2;
@@ -372,8 +372,8 @@ void ChLinkMateGeneric::Initialize(ChSharedPtr<ChBodyFrame> mbody1,	///< first b
 	else
 	{
 		// from abs to body-rel
-		static_cast<ChFrame<>*>(this->Body1)->TrasformParentToLocal(mpos1, this->frame1);
-		static_cast<ChFrame<>*>(this->Body2)->TrasformParentToLocal(mpos2, this->frame2);
+		static_cast<ChFrame<>*>(this->Body1)->TransformParentToLocal(mpos1, this->frame1);
+		static_cast<ChFrame<>*>(this->Body2)->TransformParentToLocal(mpos2, this->frame2);
 	}
 }
 
@@ -552,17 +552,17 @@ void ChLinkMateGeneric::Initialize(ChSharedPtr<ChBodyFrame> mbody1,	///< first b
 
 		ChVector<> temp=VECT_Z;
 		// from abs to body-rel
-		mN = this->Body1->TrasformDirectionParentToLocal(mnorm1);
+		mN = this->Body1->TransformDirectionParentToLocal(mnorm1);
 		mN.DirToDxDyDz(mx, my, mz, temp);
 		mrot.Set_A_axis(mx, my, mz);
 		mfr1.SetRot(mrot);
-		mfr1.SetPos(this->Body1->TrasformPointParentToLocal(mpt1));
+		mfr1.SetPos(this->Body1->TransformPointParentToLocal(mpt1));
 
-		mN = this->Body2->TrasformDirectionParentToLocal(mnorm2);
+		mN = this->Body2->TransformDirectionParentToLocal(mnorm2);
 		mN.DirToDxDyDz(mx, my, mz, temp);
 		mrot.Set_A_axis(mx, my, mz);
 		mfr2.SetRot(mrot);
-		mfr2.SetPos(this->Body2->TrasformPointParentToLocal(mpt2));
+		mfr2.SetPos(this->Body2->TransformPointParentToLocal(mpt2));
 	}
 
 	this->frame1 = mfr1;
@@ -989,8 +989,8 @@ void ChLinkMateOrthogonal::Initialize(ChSharedPtr<ChBodyFrame> mbody1,	///< firs
 	}
 	else
 	{
-		this->reldir1 = mbody1->TrasformDirectionParentToLocal(mnorm1);
-		this->reldir2 = mbody2->TrasformDirectionParentToLocal(mnorm2);
+		this->reldir1 = mbody1->TransformDirectionParentToLocal(mnorm1);
+		this->reldir2 = mbody2->TransformDirectionParentToLocal(mnorm2);
 	}
 
 	// do this asap otherwise the following Update() won't work..
@@ -1018,8 +1018,8 @@ void ChLinkMateOrthogonal::Update (double mtime)
 
 	if (this->Body1 && this->Body2)
 	{
-		mabsD1 = this->Body1->TrasformDirectionLocalToParent(this->reldir1);
-		mabsD2 = this->Body2->TrasformDirectionLocalToParent(this->reldir2);
+		mabsD1 = this->Body1->TransformDirectionLocalToParent(this->reldir1);
+		mabsD2 = this->Body2->TransformDirectionLocalToParent(this->reldir2);
 
 		ChVector<> mX = Vcross(mabsD2,mabsD1);
 		double xlen = mX.Length();
@@ -1057,8 +1057,8 @@ void ChLinkMateOrthogonal::Update (double mtime)
 		ChFrame<> absframe2(VNULL,mA2);	// position not needed for orth. constr. computation
 
 		// from abs to body-rel
-		static_cast<ChFrame<>*>(this->Body1)->TrasformParentToLocal(absframe1, this->frame1);
-		static_cast<ChFrame<>*>(this->Body2)->TrasformParentToLocal(absframe2, this->frame2);
+		static_cast<ChFrame<>*>(this->Body1)->TransformParentToLocal(absframe1, this->frame1);
+		static_cast<ChFrame<>*>(this->Body2)->TransformParentToLocal(absframe2, this->frame2);
 	}
 
 	// Parent class inherit

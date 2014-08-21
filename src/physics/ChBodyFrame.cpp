@@ -33,9 +33,9 @@ void ChBodyFrame::To_abs_forcetorque(const ChVector<>& force,
     if (local)
     {
         // local space
-		ChVector<> mforce_abs = TrasformDirectionLocalToParent(force);
+		ChVector<> mforce_abs = TransformDirectionLocalToParent(force);
         resultforce = mforce_abs;
-		resulttorque = Vcross (TrasformDirectionLocalToParent(appl_point), mforce_abs) ;
+		resulttorque = Vcross (TransformDirectionLocalToParent(appl_point), mforce_abs) ;
     }
     else
     {
@@ -51,7 +51,7 @@ void ChBodyFrame::To_abs_torque(const ChVector<>& torque,
     if (local)
     {
         // local space
-		resulttorque = this->TrasformDirectionLocalToParent(torque);
+		resulttorque = this->TransformDirectionLocalToParent(torque);
     }
     else
     {

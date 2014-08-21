@@ -144,7 +144,7 @@ void ChShaftsBody::ConstraintsBiLoad_Ct(double factor)
 void ChShaftsBody::ConstraintsLoadJacobians()
 {
 		// compute jacobians
-	//ChVector<> jacw = this->body->TrasformDirectionParentToLocal(shaft_dir);
+	//ChVector<> jacw = this->body->TransformDirectionParentToLocal(shaft_dir);
 	ChVector<> jacw = shaft_dir;
 
 	this->constraint.Get_Cq_a()->ElementN(0)=-1;

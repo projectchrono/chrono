@@ -186,7 +186,7 @@ ChFile_ps::~ChFile_ps()
 }
 
 
-		// Trasform positions from 'graph viewport space' to 'page space',
+		// Transform positions from 'graph viewport space' to 'page space',
 		// or viceversa.
 ChPageVect ChFile_ps::To_page_from_graph (ChPageVect mv_g)
 {
