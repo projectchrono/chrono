@@ -54,9 +54,9 @@ ChRoundedBox::ChRoundedBox(Vector& mC0, Vector& mC1,Vector& mC2,Vector& mC3)
 		D3 = -D3;
 	}
 
-	this->Size.x = 0.5*Vlenght(D1);
-	this->Size.y = 0.5*Vlenght(D2);
-	this->Size.z = 0.5*Vlenght(D3);
+	this->Size.x = 0.5*Vlength(D1);
+	this->Size.y = 0.5*Vlength(D2);
+	this->Size.z = 0.5*Vlength(D3);
 	this->Pos = Vadd( Vadd( Vadd(C0, 
 		 Vmul(D1,0.5) ) ,  
 		 Vmul(D2,0.5) ) ,  

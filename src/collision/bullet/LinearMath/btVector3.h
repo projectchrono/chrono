@@ -493,7 +493,7 @@ SIMD_FORCE_INLINE btVector3 btVector3::normalized() const
 
 SIMD_FORCE_INLINE btVector3 btVector3::rotate( const btVector3& wAxis, const btScalar angle ) const
 {
-	// wAxis must be a unit lenght vector
+	// wAxis must be a unit length vector
 
 	btVector3 o = wAxis * wAxis.dot( *this );
 	btVector3 x = *this - o;

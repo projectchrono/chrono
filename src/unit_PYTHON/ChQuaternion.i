@@ -114,7 +114,7 @@ public:
 typedef ChQuaternion<double> Quaternion;
 typedef ChQuaternion<float>  QuaternionF;
 
-double		Qlenght (const Quaternion& q);
+double		Qlength (const Quaternion& q);
 Quaternion	Qadd (const Quaternion& qa, const Quaternion& qb);
 Quaternion	Qsub (const Quaternion& qa, const Quaternion& qb);
 Quaternion	Qscale (const Quaternion& q, double fact);

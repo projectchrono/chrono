@@ -118,7 +118,7 @@ public:
 			/// Find the parameter resU for the nearest point on curve to "point".
 	int FindNearestLinePoint (Vector& point, double& resU, double approxU, double tol);
 
-			/// Returns curve lenght. Typical sampling 1..5 (1 already gives correct result with degree1 curves)
+			/// Returns curve length. Typical sampling 1..5 (1 already gives correct result with degree1 curves)
 	virtual double Lenght (int sampling);
 
 			/// Returns an adimensional information on "how much" this curve is similar to another

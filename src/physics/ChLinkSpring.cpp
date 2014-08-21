@@ -46,7 +46,7 @@ ChClassRegister<ChLinkSpring> a_registration_ChLinkSpring;
                 // BUILDERS
 ChLinkSpring::ChLinkSpring ()
 {
-    spr_restlenght = 0;     // custom variables
+    spr_restlength = 0;     // custom variables
     spr_k = 100;
     spr_r = 5;
     spr_f = 0;
@@ -80,7 +80,7 @@ void ChLinkSpring::Copy(ChLinkSpring* source)
     ChLinkMarkers::Copy(source);
 
     // copy custom data:
-    spr_restlenght = source->spr_restlenght;
+    spr_restlength = source->spr_restlength;
     spr_f = source->spr_f;
     spr_k = source->spr_k;
     spr_r = source->spr_r;
@@ -137,11 +137,11 @@ void ChLinkSpring::Initialize(ChSharedPtr<ChBody> mbody1,   ///< first body to l
 
 	if (auto_rest_length)
 	{
-		this->spr_restlenght = this->dist;
+		this->spr_restlength = this->dist;
 	}
 	else
 	{
-		this->spr_restlenght = mrest_length; 
+		this->spr_restlength = mrest_length; 
 	}
 }
 
@@ -206,7 +206,7 @@ void ChLinkSpring::StreamOUT(ChStreamOutBinary& mstream)
 	ChLinkMarkers::StreamOUT(mstream);
 
 		// stream out all member data
-	mstream << spr_restlenght;
+	mstream << spr_restlength;
     mstream << spr_f;
     mstream << spr_k;
     mstream << spr_r;
@@ -226,7 +226,7 @@ void ChLinkSpring::StreamIN(ChStreamInBinary& mstream)
 
 		// stream in all member data
 	ChFunction* ffoo;
-	mstream >> spr_restlenght;
+	mstream >> spr_restlength;
     mstream >> spr_f;
     mstream >> spr_k;
     mstream >> spr_r;

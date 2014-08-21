@@ -178,7 +178,7 @@ void ChLinkGear::UpdateTime (double mytime)
     Vector Trad1 = Vnorm(Vcross(Get_shaft_dir1(), Vnorm(Vcross(Get_shaft_dir1(),vbdist))));
     Vector Trad2 = Vnorm(Vcross(Vnorm(Vcross(Get_shaft_dir2(),vbdist)), Get_shaft_dir2()));
 
-	double dist = Vlenght(vbdist);
+	double dist = Vlength(vbdist);
     
 
         // compute actual rotation of the two wheels (relative to truss).

@@ -409,7 +409,7 @@ void ChLinkEngine::UpdateTime (double mytime)
                 spe_funct = new ChFunction_Recorder;
             }
                     // record point
-            double rec_spe = Vlenght(this->relWvel); // ***TO DO*** compute also with cardano mode?
+            double rec_spe = Vlength(this->relWvel); // ***TO DO*** compute also with cardano mode?
             if (this->impose_reducer)
                 rec_spe = rec_spe / this->mot_tau;
             ((ChFunction_Recorder*)spe_funct)->AddPoint(mytime, rec_spe, 1);  //  x=t
@@ -466,7 +466,7 @@ void ChLinkEngine::UpdateTime (double mytime)
 		ChMatrix33<> relA; relA.Set_A_quaternion(this->GetRelM().rot);  // ..but adjust to keep Z axis aligned to shaft, anyway!
 		ChVector<> displaced_z_axis; displaced_z_axis = relA.Get_A_Zaxis();
 		ChVector<> adjustment = Vcross(displaced_z_axis, VECT_Z);
-		deltaC.rot = Q_from_AngAxis(Vlenght(adjustment),Vnorm(adjustment)) % deltaC.rot;
+		deltaC.rot = Q_from_AngAxis(Vlength(adjustment),Vnorm(adjustment)) % deltaC.rot;
         deltaC_dt.rot = Qdt_from_AngAxis (deltaC.rot, mot_rot_dt, motion_axis);
         deltaC_dtdt.rot = Qdtdt_from_AngAxis (mot_rot_dtdt, motion_axis, deltaC.rot, deltaC_dt.rot);
     }

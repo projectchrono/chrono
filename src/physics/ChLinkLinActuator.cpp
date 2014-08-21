@@ -165,7 +165,7 @@ void ChLinkLinActuator::UpdateTime (double mytime)
             dist_funct = new ChFunction_Recorder;
         }
                 // record point
-        double rec_dist =  Vlenght(Vsub(marker1->GetAbsCoord().pos,
+        double rec_dist =  Vlength(Vsub(marker1->GetAbsCoord().pos,
                                         marker2->GetAbsCoord().pos));
         rec_dist -= offset;
         ((ChFunction_Recorder*)dist_funct)->AddPoint(mytime, rec_dist, 1);  // (x,y,w)  x=t
@@ -216,7 +216,7 @@ void ChLinkLinActuator::UpdateTime (double mytime)
         // as centripetal acc. of point sliding on a sphere surface.
      Vector tang_speed = GetRelM_dt().pos;
      tang_speed.x = 0; // only z-y coords in relative tang speed vector
-    deltaC_dtdt.pos.x -= pow(Vlenght(tang_speed), 2) / Vlenght(absdist);  // An = Adelta -(Vt^2 / r)
+    deltaC_dtdt.pos.x -= pow(Vlength(tang_speed), 2) / Vlength(absdist);  // An = Adelta -(Vt^2 / r)
 
     deltaC.rot = QUNIT;             // no relative rotations imposed!
     deltaC_dt.rot = QNULL;

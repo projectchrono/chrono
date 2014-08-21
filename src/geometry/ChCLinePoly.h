@@ -107,7 +107,7 @@ public:
 						const double parV = 0., 
 						const double parW = 0.);
 
-			/// Returns curve lenght. sampling does not matter
+			/// Returns curve length. sampling does not matter
 	double Lenght (int sampling);
 
 			/// Draw into the current graph viewport of a ChFile_ps file

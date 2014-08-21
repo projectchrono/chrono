@@ -197,7 +197,7 @@ public:
 	{
 		// defaults
 		diameter       = ChSmartPtr<ChConstantDistribution>(new ChConstantDistribution(0.02));
-		lenght_factor  = ChSmartPtr<ChConstantDistribution>(new ChConstantDistribution(2.0));
+		length_factor  = ChSmartPtr<ChConstantDistribution>(new ChConstantDistribution(2.0));
 		density = ChSmartPtr<ChConstantDistribution>(new ChConstantDistribution(1000));
 	}
 
@@ -206,7 +206,7 @@ public:
 	virtual ChSharedPtr<ChBody> RandomGenerate(ChCoordsys<> mcoords) 
 	{
 		double rad    = 0.5*diameter->GetRandom();
-		double height = lenght_factor->GetRandom() * 2.0*rad;
+		double height = length_factor->GetRandom() * 2.0*rad;
 		ChSharedPtr<ChBodyEasyCylinder> mbody(new ChBodyEasyCylinder(
 							rad,
 							height, 
@@ -219,15 +219,15 @@ public:
 
 			/// Set the statistical distribution for the diameter.
 	void SetDiameterDistribution(ChSmartPtr<ChDistribution> mdistr) {diameter = mdistr;}
-			/// Set the statistical distribution for the lenght ratio (lenght = diameter*length_factor).
-	void SetLenghtFactorDistribution(ChSmartPtr<ChDistribution> mdistr) {lenght_factor = mdistr;}
+			/// Set the statistical distribution for the length ratio (length = diameter*length_factor).
+	void SetLenghtFactorDistribution(ChSmartPtr<ChDistribution> mdistr) {length_factor = mdistr;}
 
 			/// Set the statistical distribution for the random density.
 	void SetDensityDistribution(ChSmartPtr<ChDistribution> mdistr) {density = mdistr;}
 
 private:
 	ChSmartPtr<ChDistribution> diameter;
-	ChSmartPtr<ChDistribution> lenght_factor;
+	ChSmartPtr<ChDistribution> length_factor;
 	ChSmartPtr<ChDistribution> density;
 };
 

@@ -154,7 +154,7 @@ protected:
 	  			// DATA
 				//
 
-	double unit_scale;			// (72)/(current lenght unit, in inches)
+	double unit_scale;			// (72)/(current length unit, in inches)
 	ChPageVect page_size;		// max width/height, or initial w/h of bbox for eps
 
 		// graph-viewport variables, for transformation 2d graph space <-> page space

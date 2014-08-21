@@ -126,7 +126,7 @@ bool ChTriangle::Normal(Vector& N)
 	Vector n;
 	n = Vcross(u,v);
 
-	double len = Vlenght(n);
+	double len = Vlength(n);
 
 	if (fabs (len) > EPS_TRIDEGENERATE)
 		N = Vmul(n, (1.0/len));
@@ -172,7 +172,7 @@ double ChTriangle::PointTriangleDistance(Vector B,
 	Dz= Vsub (A3, A1);
 	Dy= Vcross(Dz,Dx);
 
-	double dylen = Vlenght(Dy);
+	double dylen = Vlength(Dy);
 
 	if(fabs(dylen)<EPS_TRIDEGENERATE)	// degenere triangle
 		return mdistance;
@@ -216,8 +216,8 @@ double ChTriangle::PointLineDistance(Vector& p, Vector& dA, Vector& dB, double& 
 	Vector vdir = Vnorm(vseg);
 	Vector vray = Vsub(p,dA);
 
-	mdist = Vlenght(Vcross(vray,vdir));
-	mu = Vdot(vray,vdir)/Vlenght(vseg);
+	mdist = Vlength(Vcross(vray,vdir));
+	mu = Vdot(vray,vdir)/Vlength(vseg);
 
 	if ((mu>=0) && (mu<=1.0))
 		is_insegment = 1;

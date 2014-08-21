@@ -75,7 +75,7 @@ int ChLine::FindNearestLinePoint (Vector& point, double& resU, double approxU, d
 	{
 		mu = (double)i/(double)points;
 		this->Evaluate(vres, mu);
-		dist = Vlenght(Vsub(vres,point));
+		dist = Vlength(Vsub(vres,point));
 		if (dist < bestdist)
 		{
 			bestdist = dist;
@@ -91,14 +91,14 @@ int ChLine::FindNearestLinePoint (Vector& point, double& resU, double approxU, d
 	if (u1 < 0)
 		{ if (!closed) u1 = 0;	else u1 = u1 + 1;}
 	this->Evaluate(vres, u1);
-	d1 = Vlenght(Vsub(vres,point));
+	d1 = Vlength(Vsub(vres,point));
 	vp1 = vres;
 
 	u2 = nrU + step;
 	if (u2 > 1)
 		{ if (!closed) u2 = 1;	else u2 = u2 - 1;}
 	this->Evaluate(vres, u2);
-	d2 = Vlenght(Vsub(vres,point));
+	d2 = Vlength(Vsub(vres,point));
 	vp2 = vres;
 
 	while (TRUE)
@@ -110,7 +110,7 @@ int ChLine::FindNearestLinePoint (Vector& point, double& resU, double approxU, d
 		if (nrU > 1)
 			{ if (!closed) nrU = 1;	else nrU = nrU - 1;}
 		this->Evaluate(vres, nrU);
-		dist = Vlenght(Vsub(vres,point));
+		dist = Vlength(Vsub(vres,point));
 
 		bestU = nrU;
 
@@ -129,7 +129,7 @@ int ChLine::FindNearestLinePoint (Vector& point, double& resU, double approxU, d
 			if (d2 < dist) bestU = u2;
 		}
 
-		if ((Vlenght(Vsub(vp1, vp2)) <= tol)||(dist <= tol)) {
+		if ((Vlength(Vsub(vp1, vp2)) <= tol)||(dist <= tol)) {
 			resU = bestU;
 			return TRUE; }
 		if (iters > maxiters)  {resU = bestU;
@@ -152,7 +152,7 @@ double ChLine::CurveCurveDist (ChLine* compline, int samples)
 		Vector ptB; compline->Evaluate(ptB, par);
 		this->FindNearestLinePoint(ptB, mpos, 0, 0.00002);
 		Vector ptA; this->Evaluate(ptA, mpos);
-		mres += Vlenght(Vsub(ptA,ptB));
+		mres += Vlength(Vsub(ptA,ptB));
 	}
 	// ..and viceversa
 	for (par = 0; par < 1; par = par + 1/((double)samples))
@@ -161,7 +161,7 @@ double ChLine::CurveCurveDist (ChLine* compline, int samples)
 		Vector ptB; this->Evaluate(ptB, par);
 		compline->FindNearestLinePoint(ptB, mpos, 0, 0.00002);
 		Vector ptA; compline->Evaluate(ptA, mpos);
-		mres += Vlenght(Vsub(ptA,ptB));
+		mres += Vlength(Vsub(ptA,ptB));
 	}
 
 	return (mres/(samples*2));
@@ -179,7 +179,7 @@ double ChLine::CurveCurveDistMax (ChLine* compline, int samples)
 		Vector ptB; compline->Evaluate(ptB, par);
 		this->FindNearestLinePoint(ptB, mpos, 0, 0.00002);
 		Vector ptA; this->Evaluate(ptA, mpos);
-		mdis = Vlenght(Vsub(ptA,ptB));
+		mdis = Vlength(Vsub(ptA,ptB));
 		if (mres < mdis) mres = mdis;
 	}
 	// ..and viceversa
@@ -189,7 +189,7 @@ double ChLine::CurveCurveDistMax (ChLine* compline, int samples)
 		Vector ptB;  this->Evaluate(ptB, par);
 		compline->FindNearestLinePoint(ptB, mpos, 0, 0.00002);
 		Vector ptA;  compline->Evaluate(ptA, mpos);
-		mdis = Vlenght(Vsub(ptA,ptB));
+		mdis = Vlength(Vsub(ptA,ptB));
 		if (mres < mdis) mres = mdis;
 	}
 
@@ -208,7 +208,7 @@ double ChLine::CurveSegmentDist (ChLine* complinesegm, int samples)
 		Vector ptB;  complinesegm->Evaluate(ptB, par);
 		this->FindNearestLinePoint(ptB, mpos, 0, 0.00002);
 		Vector ptA;  this->Evaluate(ptA, mpos);
-		mres += Vlenght(Vsub(ptA,ptB));
+		mres += Vlength(Vsub(ptA,ptB));
 	}
 	return (mres/samples);
 }
@@ -225,7 +225,7 @@ double ChLine::CurveSegmentDistMax (ChLine* complinesegm, int samples)
 		Vector ptB;  complinesegm->Evaluate(ptB, par);
 		this->FindNearestLinePoint(ptB, mpos, 0, 0.00002);
 		Vector ptA;  this->Evaluate(ptA, mpos);
-		mdis = Vlenght(Vsub(ptA,ptB));
+		mdis = Vlength(Vsub(ptA,ptB));
 		if (mres < mdis) mres = mdis;
 	}
 	return (mres);
@@ -249,7 +249,7 @@ double ChLine::Lenght (int sampling)
 	for (par = 0; par <= 1.000000001; par = par + step)
 	{
 		this->Evaluate(pB, par);
-		mres += Vlenght(Vsub(pA,pB));
+		mres += Vlength(Vsub(pA,pB));
 		pA = pB;
 	}
 	return mres;

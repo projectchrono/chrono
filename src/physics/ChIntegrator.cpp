@@ -50,7 +50,7 @@ int ChIntegrator::ODEintegrate_step (
 					ChMatrix<>* Y,				// the current state (also will contain resulting state after integration)
 					double& t,				// the starting time (also will contain final time ater integration)
 					int getdy(ChMatrix<>* m_Y, double m_t, ChMatrix<>* m_dYdt, void* m_userdata), // function which computes dy/dt=f(y,t), returning TRUE if OK, FALSE if error
-					double h,				// step lenght.
+					double h,				// step length.
 					double& int_error,		// if possible, returns here the local error extimation
 					void* userdata)			// additional user data
 {

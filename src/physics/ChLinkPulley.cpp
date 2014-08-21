@@ -253,8 +253,8 @@ void ChLinkPulley::UpdateTime (double mytime)
 
 	double phase_correction_up = m_delta*r1;
 	double phase_correction_low = - phase_correction_up;
-	double hU = Vlenght(belt_up2- belt_up1)  + phase_correction_up;
-	double hL = Vlenght(belt_low2- belt_low1) + phase_correction_low;
+	double hU = Vlength(belt_up2- belt_up1)  + phase_correction_up;
+	double hL = Vlength(belt_low2- belt_low1) + phase_correction_low;
 
         // imposed relative positions/speeds
     deltaC.pos = ChVector<>(-hU, 0, 0);

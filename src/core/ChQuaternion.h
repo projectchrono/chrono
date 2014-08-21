@@ -299,13 +299,13 @@ public:
 		/// it will be defaulted as 1,0,0,0) otherwise returns true for success.
 	bool Normalize()
 		{
-			Real mlenght = this->Length();
-			if (mlenght<CH_NANOTOL)
+			Real mlength = this->Length();
+			if (mlength<CH_NANOTOL)
 			{
 				e0 = 1; e1 = e2 = e3 = 0;
 				return false;
 			}
-			this->Scale(1/mlenght);
+			this->Scale(1/mlength);
 			return true;
 		}
 
@@ -665,7 +665,7 @@ typedef ChQuaternion<float>  QuaternionF;
 // these functions - use the member functions or operators of 
 // the ChQuaternion class instead!
 
-ChApi double        Qlenght (const Quaternion& q);
+ChApi double        Qlength (const Quaternion& q);
 ChApi Quaternion    Qadd (const Quaternion& qa, const Quaternion& qb);
 ChApi Quaternion    Qsub (const Quaternion& qa, const Quaternion& qb);
 ChApi Quaternion    Qscale (const Quaternion& q, double fact);

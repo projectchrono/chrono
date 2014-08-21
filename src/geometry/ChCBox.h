@@ -133,14 +133,14 @@ public:
 	ChVector<>& GetPos() {return Pos;};
 
 		/// Access the size of the box: a vector with the 
-		/// three hemi-lengths (lenghts divided by two!)
+		/// three hemi-lengths (lengths divided by two!)
 	ChVector<>& GetSize(){return Size;};
 	
-		/// Get the x y z lenghts of this box (that is, double
+		/// Get the x y z lengths of this box (that is, double
 		/// the Size values)
 	ChVector<> GetLenghts(){return 2.0*Size;}
 
-		/// Set the x y z lenghts of this box (that is, double
+		/// Set the x y z lengths of this box (that is, double
 		/// the Size values)
 	void SetLenghts(const ChVector<>& mlen){ Size = 0.5*mlen;}
 

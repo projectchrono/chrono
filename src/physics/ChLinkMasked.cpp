@@ -57,7 +57,7 @@ ChLinkMasked::ChLinkMasked ()
     force_Ry = new ChLinkForce;
     force_Rz = new ChLinkForce;
 
-	d_restlenght = 0;
+	d_restlength = 0;
 
 	ndoc_d = ndoc_c = ndoc =0;
 
@@ -115,7 +115,7 @@ void ChLinkMasked::Copy(ChLinkMasked* source)
     force_Ry->Copy (source->force_Ry);
     force_Rz->Copy (source->force_Rz);
 
-	d_restlenght = source->d_restlenght;
+	d_restlength = source->d_restlength;
 }
 
 
@@ -495,7 +495,7 @@ void ChLinkMasked::UpdateForces(double mytime)
     if (force_D && force_D->Get_active())
     {
         double dfor;
-        dfor = force_D->Get_Force((dist - d_restlenght), dist_dt, ChTime);
+        dfor = force_D->Get_Force((dist - d_restlength), dist_dt, ChTime);
         m_force = Vmul (Vnorm(relM.pos), dfor);
 
         C_force = Vadd(C_force, m_force);
@@ -512,7 +512,7 @@ void ChLinkMasked::UpdateForces(double mytime)
         m_torque = Vmul (relAxis, tor);
         C_torque = Vadd(C_torque, m_torque);
             // 2) the tors. damper
-        double angle_dt = Vlenght (relWvel);
+        double angle_dt = Vlength (relWvel);
         tor = force_R->Get_Force(0, angle_dt, ChTime);
         m_torque = Vmul (Vnorm(relWvel), tor);
         C_torque = Vadd(C_torque, m_torque);
@@ -616,7 +616,7 @@ void ChLinkMasked::StreamOUT(ChStreamOutBinary& mstream)
 
 		// stream out all member data
 	mstream.AbstractWrite(mask);
-    mstream << d_restlenght;
+    mstream << d_restlength;
     mstream << *force_D;
     mstream << *force_R;
     mstream << *force_X;
@@ -637,7 +637,7 @@ void ChLinkMasked::StreamIN(ChStreamInBinary& mstream)
 		// stream in all member data
 	if (mask) delete (mask); mask=NULL;
 	mstream.AbstractReadCreate(&mask);
-    mstream >> d_restlenght;
+    mstream >> d_restlength;
     mstream >> *force_D;
     mstream >> *force_R;
     mstream >> *force_X;

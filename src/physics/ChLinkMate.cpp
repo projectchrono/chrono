@@ -1035,7 +1035,7 @@ void ChLinkMateOrthogonal::Update (double mtime)
 			if (fabs(mabsD1.x) < 0.9)
 				ortho_gen = VECT_X;
 			mX = Vcross(mabsD1, ortho_gen);
-			xlen = Vlenght(mX);
+			xlen = Vlength(mX);
 		}
 		mX.Scale(1.0/xlen);
 

@@ -237,8 +237,8 @@ void ChLinkClearance::UpdateTime (double mytime)
         // as centripetal acc. of point sliding on a sphere surface.
      Vector tang_speed = GetRelM_dt().pos;
       tang_speed.x = 0; // only z-y coords in relative tang speed vector
-	 double Rcurvature = Vlenght(absdist);
-    deltaC_dtdt.pos.x  = - pow(Vlenght(tang_speed), 2) / Rcurvature;  // An =  -(Vt^2 / r)
+	 double Rcurvature = Vlength(absdist);
+    deltaC_dtdt.pos.x  = - pow(Vlength(tang_speed), 2) / Rcurvature;  // An =  -(Vt^2 / r)
 
     deltaC.rot = QUNIT;             // no relative rotations imposed!
     deltaC_dt.rot = QNULL;

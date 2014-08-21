@@ -119,8 +119,8 @@ double ChCollisionUtils::PointLineDistance(Vector p, Vector dA, Vector dB, doubl
 	Vector vdir = Vnorm(vseg);
 	Vector vray = Vsub(p,dA);
 
-	mdist = Vlenght(Vcross(vray,vdir));
-	mu = Vdot(vray,vdir)/Vlenght(vseg);
+	mdist = Vlength(Vcross(vray,vdir));
+	mu = Vdot(vray,vdir)/Vlength(vseg);
 
 	if ((mu>=0) && (mu<=1.0))
 		is_insegment = 1;
@@ -151,7 +151,7 @@ double ChCollisionUtils::PointTriangleDistance(Vector B, Vector A1, Vector A2, V
 	Dz= Vsub (A3, A1);
 	Dy= Vcross(Dz,Dx);
 
-	double dylen = Vlenght(Dy);
+	double dylen = Vlength(Dy);
 
 	if(fabs(dylen)<EPS_TRIDEGEN)	// degenere triangle
 		return mdistance;

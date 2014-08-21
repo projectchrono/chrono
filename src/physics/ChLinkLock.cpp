@@ -468,7 +468,7 @@ void ChLinkLock::UpdateRelMarkerCoords()
     PQw_dt = Vsub (marker1->GetAbsCoord_dt().pos, marker2->GetAbsCoord_dt().pos);
     PQw_dtdt = Vsub (marker1->GetAbsCoord_dtdt().pos, marker2->GetAbsCoord_dtdt().pos);
 
-    dist    = Vlenght (PQw);                // distance between origins, modulus
+    dist    = Vlength (PQw);                // distance between origins, modulus
     dist_dt = Vdot (Vnorm(PQw), PQw_dt);    // speed between origins, modulus.
 
     Vector vtemp1;       // for intermediate calculus
@@ -1089,14 +1089,14 @@ void ChLinkLock::UpdateState ()
 
         Qvect = Vsub (Qvect, deltaC_dtdt.pos); // cut away effect of xyz deltas
         mQd = Vdot (vfact, Qvect);
-        mQd = mQd - (1/Vlenght(relM.pos))*Vdot(relM_dt.pos, relM_dt.pos);
+        mQd = mQd - (1/Vlength(relM.pos))*Vdot(relM_dt.pos, relM_dt.pos);
         double sq_q = Vdot(relM_dt.pos, relM.pos); sq_q = sq_q*sq_q;
-        mQd = mQd + (1/Vlenght(relM.pos))*Vdot(relM.pos, relM.pos)*sq_q;
+        mQd = mQd + (1/Vlength(relM.pos))*Vdot(relM.pos, relM.pos)*sq_q;
         mQd = mQd + deltaC_dtdt.pos.x;
 
         Qc->SetElement(index,0, mQd);
 
-        C->SetElement(index,0,      (Vlenght(relM.pos)-deltaC.pos.x));
+        C->SetElement(index,0,      (Vlength(relM.pos)-deltaC.pos.x));
         C_dt->SetElement(index,0,   ((Vdot(relM_dt.pos,   Vnorm(relM.pos)))-deltaC_dt.pos.x));
         C_dtdt->SetElement(index,0, ((Vdot(relM_dtdt.pos, Vnorm(relM.pos)))-deltaC_dtdt.pos.x));
 

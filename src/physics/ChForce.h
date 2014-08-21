@@ -198,7 +198,7 @@ public:
 					/// Gets the instant force vector -or torque vector- in rigid body coordinates.
 	Vector GetRelForce () {return relforce;};
 					/// Gets the instant force vector -or torque vector- modulus.
-	double GetForceMod () {return Vlenght(force);};
+	double GetForceMod () {return Vlength(force);};
 
 					/// Gets force-torque applied to rigid body, as lagrangian generalized force (7x1 matrix).
 	ChMatrix<>* GetQf () {return Qf;}

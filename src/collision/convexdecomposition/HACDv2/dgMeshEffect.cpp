@@ -2781,9 +2781,9 @@ class dgClusterList: public dgList<dgClusterFace>
 				  param = hacd::HaF64(1.0f);
 			  }
 			  dgBigVector dq(step.Scale(hacd::HaF32(1.0f) - param));
-			  hacd::HaF64 lenght2 = dq % dq;
-			  if (lenght2 > concavity) {
-				  concavity = lenght2;
+			  hacd::HaF64 length2 = dq % dq;
+			  if (length2 > concavity) {
+				  concavity = length2;
 			  }
 
 			  if (((head + 1) & mask) != tail) {
@@ -3470,9 +3470,9 @@ class dgClusterList: public dgList<dgClusterFace>
 				  param = hacd::HaF64(1.0f);
 			  }
 			  dgBigVector dq(step.Scale(hacd::HaF32(1.0f) - param));
-			  hacd::HaF64 lenght2 = dq % dq;
-			  if (lenght2 > concavity) {
-				  concavity = lenght2;
+			  hacd::HaF64 length2 = dq % dq;
+			  if (length2 > concavity) {
+				  concavity = length2;
 			  }
 
 			  if (((head + 1) & mask) != tail) {

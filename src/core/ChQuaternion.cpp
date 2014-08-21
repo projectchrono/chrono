@@ -41,7 +41,7 @@ namespace chrono
 
 
 
-double Qlenght (const Quaternion& q)
+double Qlength (const Quaternion& q)
 {
 	return (sqrt (pow(q.e0, 2) + pow(q.e1, 2) + pow(q.e2, 2) + pow(q.e3, 2)));
 }
@@ -79,9 +79,9 @@ Quaternion Qsub (const Quaternion& qa, const Quaternion& qb)
 
 Quaternion Qnorm (const Quaternion& q)
 {
-	double invlenght;
-	invlenght = 1/(Qlenght(q));
-	return Qscale (q, invlenght);
+	double invlength;
+	invlength = 1/(Qlength(q));
+	return Qscale (q, invlength);
 }
 
 // The conjugate of the quaternion [s,v1,v2,v3] is [s,-v1,-v2,-v3]

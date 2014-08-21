@@ -317,7 +317,7 @@ void ChLinkWheel::UpdateTime (double mytime)
             surf_normal = Vnorm (surf_normal);
             Vector real_radius;
             real_radius = Vsub(hitpoint,spindle_pos);
-            double hit_lenght = Vlenght(real_radius);
+            double hit_length = Vlength(real_radius);
              // compute position of m2
             m2_pos = hitpoint;
              // compute rotation of m2 (ground marker)
@@ -462,7 +462,7 @@ void ChLinkWheel::UpdateForces (double mytime)
                 origin = Vadd(ppos, Vmul(mnorm, this->thickness));
                 m_pos[iu][iv] = ppos;
                 m_normals[iu][iv] = mnorm;
-                m_areas[iu][iv] = (1.0/0.0001) * (1.0/0.0001) * Vlenght(Vcross(vdu, vdv));
+                m_areas[iu][iv] = (1.0/0.0001) * (1.0/0.0001) * Vlength(Vcross(vdu, vdv));
                 m_disp[iu][iv] = 0.0;
                 // findhit
                 if(Vdot(direction,VECT_Y) < -0.5)  // optimization: check only toward xz plane
@@ -476,7 +476,7 @@ void ChLinkWheel::UpdateForces (double mytime)
                         surf_normal = Vmul(surf_normal, -1.0);
                     m_normals[iu][iv] = surf_normal;
 
-                    m_disp[iu][iv] = this->thickness - Vlenght(Vsub(origin, hitpoint));
+                    m_disp[iu][iv] = this->thickness - Vlength(Vsub(origin, hitpoint));
                     if (m_disp[iu][iv] < 0.0)
                            m_disp[iu][iv] = 0.0;
 //-
@@ -555,7 +555,7 @@ void ChLinkWheel::UpdateForces (double mytime)
 
     // skip further computations if wheel do not touch ground
     //
-    if (Vlenght(mvradius) > this->radius*1.01)
+    if (Vlength(mvradius) > this->radius*1.01)
     {
         slipping = f_slip = l_slip = derive_angle = tforce = f_tforce = l_tforce = curr_friction = 0;
         return;     // <<<<<
@@ -582,7 +582,7 @@ void ChLinkWheel::UpdateForces (double mytime)
     Vector mrel_slip2 = mtra2.MatrT_x_Vect(mabs_slip);
     //Vector mrel_slip1 = mtra1.MatrT_x_Vect(mabs_slip);
 
-    this->slipping = Vlenght(mabs_slip);
+    this->slipping = Vlength(mabs_slip);
 
     this->l_slip = mrel_slip2.y;
     this->f_slip = mrel_slip2.x;

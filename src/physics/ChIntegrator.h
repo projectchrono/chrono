@@ -86,7 +86,7 @@ public:
 					double& t,				// the starting time (also will contain final time ater integration)
 											// function which computes dy/dt=f(y,t), returning TRUE if OK, FALSE if error
 					int getdy(ChMatrix<>* m_y, double m_t, ChMatrix<>* m_dydt, void* m_userdata),
-					double h,				// step lenght.
+					double h,				// step length.
 					double& error,			// if possible, returns here the local error extimation
 					void* userdata);		// generic pointer to pass aux. data to the getdy function
 };

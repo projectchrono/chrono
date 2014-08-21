@@ -249,13 +249,13 @@ public:
 		/// it will be defaulted as VECT_X) otherwise returns true for success.
 	bool Normalize()
 		{
-			Real mlenght = this->Length();
-			if (mlenght<CH_NANOTOL)
+			Real mlength = this->Length();
+			if (mlength<CH_NANOTOL)
 			{
 				x=1; y=0; z=0;
 				return false;
 			}
-			this->Scale(1/mlenght);
+			this->Scale(1/mlength);
 			return true;
 		}
 
@@ -450,7 +450,7 @@ ChVector<RealA> Vmul(const ChVector<RealA>& va, RealB fact)
 }
 
 template <class RealA>
-RealA Vlenght(const ChVector<RealA>& va)
+RealA Vlength(const ChVector<RealA>& va)
 {
 	return (RealA)va.Length();
 }
@@ -547,7 +547,7 @@ void XdirToDxDyDz(ChVector<RealA>* mVxdir,
 		mVsingular = &mdefVsingular;
 
 	*Vz = Vcross(*Vx, *mVsingular);
-	mzlen = Vlenght(*Vz);
+	mzlen = Vlength(*Vz);
 
 	if (mzlen < 0.0001) // was near singularity? change singularity reference vector!
 	{
@@ -558,7 +558,7 @@ void XdirToDxDyDz(ChVector<RealA>* mVxdir,
 		if (fabs(mVsingular->x) < 0.9)
 			*mVsingular = VECT_X;
 		*Vz = Vcross(*Vx, *mVsingular);
-		mzlen = Vlenght(*Vz);		// now should be nonzero length.
+		mzlen = Vlength(*Vz);		// now should be nonzero length.
 	}
 	// normalize Vz
 	*Vz = Vmul(*Vz, 1.0/mzlen);

@@ -164,7 +164,7 @@ int ChGeometryCollider::ComputeSphereSphereCollisions(
 {
 	Vector relPos = Vsub(*c2, *c1);
 	Vector dir = Vnorm(relPos);
-	double dist = Vlenght(relPos);
+	double dist = Vlength(relPos);
 	if (just_intersection)
 	{
  		 if (dist < (mgeo1.rad + mgeo2.rad))
@@ -223,7 +223,7 @@ int ChGeometryCollider::ComputeSphereTriangleCollisions(
 
 			// test sphere-vertexes
 	ver_cen = Vsub(v_1, v_center);
-	tdist = -mgeo1.rad+ Vlenght(ver_cen);
+	tdist = -mgeo1.rad+ Vlength(ver_cen);
 	if (tdist < 0)
 	{
 		touched = true;
@@ -233,7 +233,7 @@ int ChGeometryCollider::ComputeSphereTriangleCollisions(
 		mdist = tdist;
 	}
 	ver_cen = Vsub(v_2, v_center);
-	tdist = -mgeo1.rad+ Vlenght(ver_cen);
+	tdist = -mgeo1.rad+ Vlength(ver_cen);
 	if (tdist < 0)
 		if (tdist < mdist)
 	{
@@ -244,7 +244,7 @@ int ChGeometryCollider::ComputeSphereTriangleCollisions(
 		mdist = tdist;
 	}
 	ver_cen = Vsub(v_3, v_center);
-	tdist = -mgeo1.rad + Vlenght(ver_cen);
+	tdist = -mgeo1.rad + Vlength(ver_cen);
 	if (tdist < 0)
 		if (tdist < mdist)
 	{
@@ -1235,7 +1235,7 @@ int ChGeometryCollider::ComputeSphereBoxCollisions(
 		{
 			if (done) break;
 			Vector loc_corner = ChTransform<>::TrasformParentToLocal(mgeo2.GetPn(i), mgeo2.Pos, mgeo2.Rot);
-			if (Vlenght(loc_corner-relC) <=  mgeo1.rad )
+			if (Vlength(loc_corner-relC) <=  mgeo1.rad )
 			{
 				pt_loc = loc_corner;
 				done = true;
@@ -1282,7 +1282,7 @@ static double ChPointTriangleDistance(Vector& B, Vector& A1, Vector& A2, Vector&
 	Dz= Vsub (A3, A1);
 	Dy= Vcross(Dz,Dx);
 
-	double dylen = Vlenght(Dy);
+	double dylen = Vlength(Dy);
 
 	if(fabs(dylen)<0.000001)	// degenere triangle
 		return mdistance;

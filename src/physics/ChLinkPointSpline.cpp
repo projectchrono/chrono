@@ -155,7 +155,7 @@ void ChLinkPointSpline::UpdateTime (double time)
         marker2->Impose_Abs_Coord(newmarkpos);       // move "main" marker2 into tangent position
         marker2->SetMotionType(ChMarker::M_MOTION_EXTERNAL);   // the BDF routine won't handle speed and acc.calculus of the moved marker!
 
-        ds = Vlenght(Vsub(ptang,ptang2));
+        ds = Vlength(Vsub(ptang,ptang2));
         dh = Vdot( Vsub(ptang2, ptang), vrad);
         mrad = ((ds*ds)/(2*dh)); // radius of curvature on spline
 

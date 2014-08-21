@@ -210,7 +210,7 @@ void ChLinkMarkers::UpdateRelMarkerCoords()
     Vector PQw_dt = Vsub (marker1->GetAbsCoord_dt().pos, marker2->GetAbsCoord_dt().pos);
     Vector PQw_dtdt = Vsub (marker1->GetAbsCoord_dtdt().pos, marker2->GetAbsCoord_dtdt().pos);
 
-    dist    = Vlenght (PQw);                // distance between origins, modulus
+    dist    = Vlength (PQw);                // distance between origins, modulus
     dist_dt = Vdot (Vnorm(PQw), PQw_dt);    // speed between origins, modulus.
 
     Vector vtemp1;       // for intermediate calculus

@@ -76,7 +76,7 @@ private:
 	double Rb;			// base radius
 	double Rr;			// radius of contact wheel
 
-	double p;			// lenght of rotating mover
+	double p;			// length of rotating mover
 	double d;			// distance center of cam - center of rotation of mover
 	double b0;			// initial rotation for mover
 

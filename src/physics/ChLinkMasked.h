@@ -77,7 +77,7 @@ protected:
 	ChLinkForce* force_Rx;  // the torque acting about Rx dof
 	ChLinkForce* force_Ry;  // the torque acting about Ry dof
 	ChLinkForce* force_Rz;  // the torque acting about Rz dof
-	double d_restlenght;    // the rest lenght of the "d_spring" spring
+	double d_restlength;    // the rest length of the "d_spring" spring
 
 	ChMatrix<>* C;			// {C(q,q_dt,t)}, <<<<!!!   that is
 	ChMatrix<>* C_dt;		// the violation= relC = C(q,qdt,t)
