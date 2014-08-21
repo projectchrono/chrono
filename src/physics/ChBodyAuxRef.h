@@ -55,6 +55,25 @@ public:
   void Copy(ChBodyAuxRef* source);
 
 
+        /// Get the location of the auxiliary reference respect to COG.
+        /// Viceversa, if you need to know the COG respect to auxiliary 
+        /// reference, use GetREF_to_COG().GetInverse() 
+  virtual const ChFrame<>& GetFrame_REF_to_COG() {return auxref_to_cog;};
+
+        /// Set the location of the auxiliary reference respect to COG,
+        /// and do not move the body absolute COG (the COG is fixed).
+  virtual void SetFrame_REF_to_COG(const ChFrame<>& mloc) {auxref_to_cog = mloc;};
+
+        /// Set the location of the COG respect to the auxiliary reference,
+        /// and move the body absolute COG (the REF is fixed).
+        /// Note! the position of contained ChMarker objects, if any, is 
+        /// not changed respect to the reference!
+  virtual void SetFrame_COG_to_REF(const ChFrame<>& mloc);
+
+        /// Set the absolute location of the auxiliary reference, 
+        /// moving the entire body. The body COG is rigidly moved as well.
+  virtual void SetFrame_REF_to_abs(const ChFrame<>& mfra);
+
         /// Get the rigid body coordinate system that is used for
         /// defining the collision shapes and the ChMarker objects, respect
         /// to the absolute system.

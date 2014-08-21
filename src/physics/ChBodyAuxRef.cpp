@@ -67,6 +67,59 @@ void ChBodyAuxRef::Copy(ChBodyAuxRef* source)
 
 
 
+void ChBodyAuxRef::SetFrame_COG_to_REF(const ChFrame<>& mloc) 
+{	
+	ChFrameMoving<> old_cog_to_abs = *this;
+
+	ChFrameMoving<> tmpref_to_abs;
+	this->TransformLocalToParent(this->auxref_to_cog, tmpref_to_abs);
+	tmpref_to_abs.TransformLocalToParent(ChFrameMoving<>(mloc), *this);
+	// or, also, using overloaded operators for frames: 
+	//   tmpref_to_abs = auxref_to_cog >> *this;
+	//   *this         = ChFrameMoving<>(mloc) >> tmpref_to_abs;
+	
+	ChFrameMoving<> new_cog_to_abs = *this;
+
+	auxref_to_cog = mloc.GetInverse();
+	this->TransformLocalToParent(this->auxref_to_cog, this->auxref_to_abs);
+	// or, also, using overloaded operators for frames: 
+	//   *this->auxref_to_abs = this->auxref_to_cog.GetInverse() >> this;
+
+
+	// Restore marker/forces positions, keeping unchanged respect to aux ref.
+	ChFrameMoving<> cog_oldnew = old_cog_to_abs >> new_cog_to_abs.GetInverse();
+
+	HIER_MARKER_INIT
+	while (HIER_MARKER_NOSTOP)
+	{
+		MARKpointer->ConcatenatePreTransformation(cog_oldnew);
+		MARKpointer->Update(this->ChTime);
+
+		HIER_MARKER_NEXT
+	}
+
+	// Forces: ?? to do...
+	/*
+	HIER_FORCE_INIT
+	while (HIER_FORCE_NOSTOP)
+	{	
+		FORCEpointer->
+		FORCEpointer->Update (mytime);
+		
+		HIER_FORCE_NEXT
+	}
+	*/
+};
+
+void ChBodyAuxRef::SetFrame_REF_to_abs(const ChFrame<>& mfra)
+{
+	mfra.TransformLocalToParent(this->auxref_to_cog.GetInverse(), *this);
+	// or, also, using overloaded operators for frames: 
+	//   *this = this->auxref_to_cog.GetInverse() >> mfra;
+}
+
+
+
 void ChBodyAuxRef::Update()
 {
 		// update parent class
