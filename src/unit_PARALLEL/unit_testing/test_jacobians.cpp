@@ -71,8 +71,8 @@ int main(
       ChMatrix33<float> A1 = ChMatrix33<float>(ToChQuaternion(A_R));
       ChMatrix33<float> A2 = ChMatrix33<float>(ToChQuaternion(B_R));
 
-      ChVector<float> Pl1 = ChTrasform<float>::TrasformParentToLocal(ToChVector(p1), ChVector<float>(0, 0, 0), A1);
-      ChVector<float> Pl2 = ChTrasform<float>::TrasformParentToLocal(ToChVector(p2), ChVector<float>(0, 0, 0), A2);
+      ChVector<float> Pl1 = ChTransform<float>::TransformParentToLocal(ToChVector(p1), ChVector<float>(0, 0, 0), A1);
+      ChVector<float> Pl2 = ChTransform<float>::TransformParentToLocal(ToChVector(p2), ChVector<float>(0, 0, 0), A2);
 
       Ps1.Set_X_matrix(Pl1);
       Ps2.Set_X_matrix(Pl2);
@@ -202,8 +202,8 @@ int main(
       ChMatrix33<float> A1 = ChMatrix33<>(ToChQuaternion(A_R));
       ChMatrix33<float> A2 = ChMatrix33<>(ToChQuaternion(B_R));
 
-      ChVector<float> Pl1 = ChTrasform<float>::TrasformParentToLocal(ToChVector(p1), ChVector<float>(0, 0, 0), A1);
-      ChVector<float> Pl2 = ChTrasform<float>::TrasformParentToLocal(ToChVector(p2), ChVector<float>(0, 0, 0), A2);
+      ChVector<float> Pl1 = ChTransform<float>::TransformParentToLocal(ToChVector(p1), ChVector<float>(0, 0, 0), A1);
+      ChVector<float> Pl2 = ChTransform<float>::TransformParentToLocal(ToChVector(p2), ChVector<float>(0, 0, 0), A2);
 
       Ps1.Set_X_matrix(Pl1);
       Ps2.Set_X_matrix(Pl2);
