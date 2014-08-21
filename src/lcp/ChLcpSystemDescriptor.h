@@ -323,7 +323,7 @@ public:
 
 
 				/// The following (obsolete) function may be called after a LCP solver's 'Solve()'
-				/// operation has been performed. This gives an extimate of 'how
+				/// operation has been performed. This gives an estimate of 'how
 				/// good' the solver had been in finding the proper solution.
 				/// Resulting estimates are passed as references in member arguments.
 

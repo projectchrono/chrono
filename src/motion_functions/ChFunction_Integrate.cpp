@@ -106,7 +106,7 @@ double ChFunction_Integrate::Get_y      (double x)
 			 weightB*(array_x->GetElement(i_b,0))   );
 }
 
-void ChFunction_Integrate::Extimate_x_range (double& xmin, double& xmax)
+void ChFunction_Integrate::Estimate_x_range (double& xmin, double& xmax)
 {
 	xmin = x_start;
 	xmax = x_end;

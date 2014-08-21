@@ -78,7 +78,7 @@ public:
 	double Get_Ca_neg ();
 	double Get_Cv ();
 
-	void Extimate_x_range (double& xmin, double& xmax) {xmin = 0.0; xmax = end;};
+	void Estimate_x_range (double& xmin, double& xmax) {xmin = 0.0; xmax = end;};
 
 	int Get_Type () {return (FUNCT_CONSTACC);}
 

@@ -53,9 +53,9 @@ double ChFunction_Mirror::Get_y      (double x)
 	return fa->Get_y(2*this->mirror_axis - x);
 }
 
-void ChFunction_Mirror::Extimate_x_range (double& xmin, double& xmax)
+void ChFunction_Mirror::Estimate_x_range (double& xmin, double& xmax)
 {
-	fa->Extimate_x_range(xmin,xmax);
+	fa->Estimate_x_range(xmin,xmax);
 }
 
 int ChFunction_Mirror::MakeOptVariableTree(ChList<chjs_propdata>* mtree)

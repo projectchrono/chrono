@@ -77,7 +77,7 @@ ChFunction* ChFunction_Mocap::new_Duplicate ()
 	return (m_func);
 }
 
-void ChFunction_Mocap::Extimate_x_range (double& xmin, double& xmax)
+void ChFunction_Mocap::Estimate_x_range (double& xmin, double& xmax)
 {
 	xmin = 0.0;
 	xmax = Get_timetot();

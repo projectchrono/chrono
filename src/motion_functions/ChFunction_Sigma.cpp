@@ -45,7 +45,7 @@ ChFunction* ChFunction_Sigma::new_Duplicate ()
 	return (m_func);
 }
 
-void ChFunction_Sigma::Extimate_x_range (double& xmin, double& xmax)
+void ChFunction_Sigma::Estimate_x_range (double& xmin, double& xmax)
 {
 	double mdx = end-start;
 	xmin = start +mdx*0.1;

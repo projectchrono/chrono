@@ -94,11 +94,11 @@ double ChFunction_Operation::Get_y_dxdx (double x)
 	return res;
 }
 */
-void ChFunction_Operation::Extimate_x_range (double& xmin, double& xmax)
+void ChFunction_Operation::Estimate_x_range (double& xmin, double& xmax)
 {
 	double amin, amax, bmin, bmax;
-	fa->Extimate_x_range(amin,amax);
-	fb->Extimate_x_range(bmin,bmax);
+	fa->Estimate_x_range(amin,amax);
+	fb->Estimate_x_range(bmin,bmax);
 	xmin = ChMin(amin, bmin);
 	xmax = ChMax(amax, bmax);
 }

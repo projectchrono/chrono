@@ -88,7 +88,7 @@ public:
 	//	double Get_y_dx   (double x) ;
 	//	double Get_y_dxdx (double x) ;
 
-	void Extimate_x_range (double& xmin, double& xmax);
+	void Estimate_x_range (double& xmin, double& xmax);
 
 	int Get_Type () {return (FUNCT_OPERATION);}
 	

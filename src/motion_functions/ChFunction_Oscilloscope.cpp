@@ -49,7 +49,7 @@ ChFunction* ChFunction_Oscilloscope::new_Duplicate ()
 	return (m_func);
 }
 
-void ChFunction_Oscilloscope::Extimate_x_range (double& xmin, double& xmax)
+void ChFunction_Oscilloscope::Estimate_x_range (double& xmin, double& xmax)
 {
 	xmin = this->end_x - this->dx*(this->amount-1);
 	xmax = this->end_x;

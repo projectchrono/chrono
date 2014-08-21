@@ -54,7 +54,7 @@ ChFunction* ChFunction_Recorder::new_Duplicate ()
 	return (m_func);
 }
 
-void ChFunction_Recorder::Extimate_x_range (double& xmin, double& xmax)
+void ChFunction_Recorder::Estimate_x_range (double& xmin, double& xmax)
 {
 	if (!points.GetTail())
 	{

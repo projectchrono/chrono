@@ -118,8 +118,8 @@ public:
 	
 				/// These functions can be used to implement automatic zooming 
 				/// on the most representative range of function (if GUI is implemented)
-	virtual void Extimate_x_range (double& xmin, double& xmax) {xmin = 0.0; xmax = 1.2;};
-	virtual void Extimate_y_range (double xmin, double xmax, double& ymin, double& ymax, int derivate);
+	virtual void Estimate_x_range (double& xmin, double& xmax) {xmin = 0.0; xmax = 1.2;};
+	virtual void Estimate_y_range (double xmin, double xmax, double& ymin, double& ymax, int derivate);
 	
 				/// Generic derivative: if derivate=0 is like Get_y(), if derivate=1 
 				/// is like Get_y_dx(), etc. 

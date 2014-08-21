@@ -70,7 +70,7 @@ public:
 	
 	double Get_y      (double x) ;
 
-	void Extimate_x_range (double& xmin, double& xmax);
+	void Estimate_x_range (double& xmin, double& xmax);
 	int Get_Type () {return (FUNCT_MIRROR);}
 
 	int MakeOptVariableTree(ChList<chjs_propdata>* mtree);

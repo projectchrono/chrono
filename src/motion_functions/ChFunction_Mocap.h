@@ -85,7 +85,7 @@ public:
 	double Get_y_dx   (double x);	// see.cpp
 	double Get_y_dxdx (double x);	// see.cpp
 
-	void Extimate_x_range (double& xmin, double& xmax);
+	void Estimate_x_range (double& xmin, double& xmax);
 	int Get_Type () {return (FUNCT_MOCAP);}
 
 	void StreamOUT(ChStreamOutAscii& mstream);

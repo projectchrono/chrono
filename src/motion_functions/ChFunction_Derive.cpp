@@ -51,9 +51,9 @@ double ChFunction_Derive::Get_y      (double x)
 	return fa->Get_y_dx(x);
 }
 
-void ChFunction_Derive::Extimate_x_range (double& xmin, double& xmax)
+void ChFunction_Derive::Estimate_x_range (double& xmin, double& xmax)
 {
-	fa->Extimate_x_range(xmin,xmax);
+	fa->Estimate_x_range(xmin,xmax);
 }
 
 

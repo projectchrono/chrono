@@ -150,7 +150,7 @@ public:
 
 	double Get_weight (double x);
 
-	void Extimate_x_range (double& xmin, double& xmax);
+	void Estimate_x_range (double& xmin, double& xmax);
 
 
 	int MakeOptVariableTree(ChList<chjs_propdata>* mtree);

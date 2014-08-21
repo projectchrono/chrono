@@ -69,7 +69,7 @@ public:
 	double Get_Ca_neg () {return 5.8;};
 	double Get_Cv () {return 1.9;};
 
-	void Extimate_x_range (double& xmin, double& xmax) {xmin = 0.0; xmax = end;};
+	void Estimate_x_range (double& xmin, double& xmax) {xmin = 0.0; xmax = end;};
 
 	int Get_Type () {return (FUNCT_POLY345);}
 	

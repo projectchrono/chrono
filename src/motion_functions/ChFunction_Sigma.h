@@ -70,7 +70,7 @@ public:
 	double Get_Ca_neg () {return 6.0;};
 	double Get_Cv () {return 1.5;};
 
-	void Extimate_x_range (double& xmin, double& xmax);
+	void Estimate_x_range (double& xmin, double& xmax);
 	int Get_Type () {return (FUNCT_SIGMA);}
 
 	OPT_VARIABLES_START

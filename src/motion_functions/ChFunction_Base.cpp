@@ -57,7 +57,7 @@ double ChFunction::Get_y_dN (double x, int derivate)
 	}
 }
 
-void ChFunction::Extimate_y_range (double xmin, double xmax, double& ymin, double& ymax, int derivate)
+void ChFunction::Estimate_y_range (double xmin, double xmax, double& ymin, double& ymax, int derivate)
 {
 	ymin= 10000;
 	ymax=-10000;

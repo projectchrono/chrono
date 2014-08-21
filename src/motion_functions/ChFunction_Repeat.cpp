@@ -52,9 +52,9 @@ double ChFunction_Repeat::Get_y      (double x)
 	return fa->Get_y(this->window_start + fmod(x,this->window_length) );
 }
 
-void ChFunction_Repeat::Extimate_x_range (double& xmin, double& xmax)
+void ChFunction_Repeat::Estimate_x_range (double& xmin, double& xmax)
 {
-	fa->Extimate_x_range(xmin,xmax);
+	fa->Estimate_x_range(xmin,xmax);
 }
 
 int ChFunction_Repeat::MakeOptVariableTree(ChList<chjs_propdata>* mtree)

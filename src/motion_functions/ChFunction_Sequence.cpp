@@ -362,7 +362,7 @@ double ChFunction_Sequence::Get_weight (double x)
 	return res;
 }
 
-void ChFunction_Sequence::Extimate_x_range (double& xmin, double& xmax)
+void ChFunction_Sequence::Estimate_x_range (double& xmin, double& xmax)
 {
 	xmin = start;
 	xmax = functions.GetTail()->data->t_end;
