@@ -381,7 +381,7 @@ public:
 		return TRUE;
 	}
 
-					/// LDLt decomposition: [A]=[L][D][L]', i.e. diagonal values [D], triangular matrice [L] and
+					/// LDLt decomposition: [A]=[L][D][L]', i.e. diagonal values [D], triangular matrix [L] and
 					/// its transpose [L]'. The square [A] matrix is "this" object.
 					/// Decomposition happens in place. (matrix [A] is overwritten) 
 					/// It works only for symmetric matrices [A].

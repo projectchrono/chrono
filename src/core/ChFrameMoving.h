@@ -47,7 +47,7 @@ namespace chrono
 /// the ChFrame implements some optimizations because
 /// each ChFrame stores also a 3x3 rotation matrix, which
 /// can speed up coordinate transformations when a large
-/// amount of vectors must be transfomed by the same
+/// amount of vectors must be transformed by the same
 /// coordinate frame.
 ///
 
