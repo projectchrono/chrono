@@ -44,7 +44,7 @@
 #if defined(CH_API_COMPILE_UNIT_COSIMULATION)
 	#define ChApiCosimulation ChApiEXPORT
 #else
-	#define ChApiCosimulation ChApiINPORT
+	#define ChApiCosimulation ChApiIMPORT
 #endif
 
 #endif  // END of header

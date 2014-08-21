@@ -48,7 +48,7 @@
 #if defined(CH_API_COMPILE_UNIT_PYTHON)
 	#define ChApiPYTHON ChApiEXPORT
 #else
-	#define ChApiPYTHON ChApiINPORT	
+	#define ChApiPYTHON ChApiIMPORT	
 #endif
 
 

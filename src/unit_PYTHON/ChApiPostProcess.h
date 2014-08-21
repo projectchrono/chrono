@@ -44,7 +44,7 @@
 #if defined(CH_API_COMPILE_UNIT_POSTPROCESS)
 	#define ChApiPostProcess ChApiEXPORT
 #else
-	#define ChApiPostProcess ChApiINPORT
+	#define ChApiPostProcess ChApiIMPORT
 #endif
 
 #endif  // END of header

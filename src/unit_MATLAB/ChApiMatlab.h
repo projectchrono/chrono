@@ -44,7 +44,7 @@
 #if defined(CH_API_COMPILE_UNIT_MATLAB)
 	#define ChApiMatlab ChApiEXPORT
 #else
-	#define ChApiMatlab ChApiINPORT
+	#define ChApiMatlab ChApiIMPORT
 #endif
 
 #endif  // END of header

@@ -48,7 +48,7 @@
 #if defined(CH_API_COMPILE)
 	#define ChApi ChApiEXPORT
 #else
-	#define ChApi ChApiINPORT	
+	#define ChApi ChApiIMPORT	
 #endif
 
 

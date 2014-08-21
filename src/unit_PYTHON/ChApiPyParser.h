@@ -48,7 +48,7 @@
 #if defined(CH_API_COMPILE_UNIT_PYPARSER)
 	#define ChApiPYPARSER ChApiEXPORT
 #else
-	#define ChApiPYPARSER ChApiINPORT	
+	#define ChApiPYPARSER ChApiIMPORT	
 #endif
 
 

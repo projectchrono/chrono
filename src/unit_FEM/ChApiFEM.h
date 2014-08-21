@@ -31,7 +31,7 @@
 #if defined(CH_API_COMPILE_UNIT_FEM)
 	#define ChApiFem ChApiEXPORT
 #else
-	#define ChApiFem ChApiINPORT
+	#define ChApiFem ChApiIMPORT
 #endif
 
 #endif  // END of header

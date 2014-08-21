@@ -48,7 +48,7 @@
 #if defined(CH_API_COMPILE_UNIT_CASCADE)
 	#define ChApiCASCADE ChApiEXPORT
 #else
-	#define ChApiCASCADE ChApiINPORT	
+	#define ChApiCASCADE ChApiIMPORT	
 #endif
 
 

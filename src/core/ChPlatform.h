@@ -45,10 +45,10 @@
 
 #if (((defined WIN32)|| (defined WIN64))  || (defined(__MINGW32__) || defined(__CYGWIN__))) && defined(CH_DLL)
 		#define ChApiEXPORT __declspec(dllexport)
-		#define ChApiINPORT __declspec(dllimport)	
+		#define ChApiIMPORT __declspec(dllimport)	
 #else
 		#define ChApiEXPORT  
-		#define ChApiINPORT  
+		#define ChApiIMPORT  
 #endif
 
 

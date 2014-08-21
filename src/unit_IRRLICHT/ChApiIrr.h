@@ -29,7 +29,7 @@
 #if defined(CH_API_COMPILE_UNIT_IRRLICHT)
 	#define ChApiIrr ChApiEXPORT
 #else
-	#define ChApiIrr ChApiINPORT
+	#define ChApiIrr ChApiIMPORT
 #endif
 
 #endif
