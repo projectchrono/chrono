@@ -2,6 +2,9 @@
 
 /* Includes the header in the wrapper code */
 #include "core/ChMatrix.h"
+#include "core/ChMatrixDynamic.h"
+#include "core/ChMatrixNM.h"
+#include "core/ChMatrix33.h"
 
 using namespace chrono;
 
@@ -12,6 +15,9 @@ using namespace chrono;
 
 /* Parse the header file to generate wrappers */
 %include "../core/ChMatrix.h"    
+%include "../core/ChMatrixDynamic.h"
+%include "../core/ChMatrixNM.h"
+%include "../core/ChMatrix33.h"
 
 //%feature("notabstract") chrono::ChMatrix;
 
