@@ -24,6 +24,8 @@
 #include <core/ChVector.h>
 #include <core/ChQuaternion.h>
 #include <core/ChMatrix.h>
+#include <core/ChMatrix33.h>
+
 using namespace chrono;
 real3 ToReal3(
       const ChVector<> & a) {
