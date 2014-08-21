@@ -72,7 +72,7 @@ int main(int argc, char* argv[])
 		my_link_actuator->Initialize(my_body_B, my_body_A, false, ChVector<>(1,0, 0), ChVector<>(1,1,0));
 		my_link_actuator->Set_SpringK(0);
 		my_link_actuator->Set_SpringR(0);
-		my_link_actuator->Set_SpringRestLenght(my_link_actuator->GetDist());
+		my_link_actuator->Set_SpringRestLength(my_link_actuator->GetDist());
 		my_system.AddLink(my_link_actuator);
 
 				// Create also a spring-damper to have some load when moving:
@@ -80,7 +80,7 @@ int main(int argc, char* argv[])
 		my_link_springdamper->Initialize(my_body_B, my_body_A, false, ChVector<>(1,0, 0), ChVector<>(1,1,0));
 		my_link_springdamper->Set_SpringK(4450);
 		my_link_springdamper->Set_SpringR(284);
-		my_link_springdamper->Set_SpringRestLenght(my_link_springdamper->GetDist());
+		my_link_springdamper->Set_SpringRestLength(my_link_springdamper->GetDist());
 		my_system.AddLink(my_link_springdamper);
 
 
@@ -148,7 +148,7 @@ int main(int argc, char* argv[])
 			//      * the displacement of the hydraulic actuator
 
 			data_out(0) = my_link_actuator->GetDist_dt();
-			data_out(1) = my_link_actuator->GetDist() - my_link_actuator->Get_SpringRestLenght(); // subtract initial length so starts at 0.
+			data_out(1) = my_link_actuator->GetDist() - my_link_actuator->Get_SpringRestLength(); // subtract initial length so starts at 0.
 
 
 			//GetLog() << "Send \n";

@@ -77,7 +77,7 @@ namespace oscillator {
 	
 			// Set starting values in GUI items, as the initialized oscillator
 			this->numeric_mass->Value = Decimal(oscillator->my_body->GetBody()->GetMass());
-			this->numeric_d0->Value = Decimal(oscillator->my_spring->Get_SpringRestLenght());
+			this->numeric_d0->Value = Decimal(oscillator->my_spring->Get_SpringRestLength());
 			this->numeric_K->Value = Decimal(oscillator->my_spring->Get_SpringK());
 			this->numeric_R->Value = Decimal(oscillator->my_spring->Get_SpringR());
 			this->numeric_X0->Value = Decimal(oscillator->X0);
@@ -553,7 +553,7 @@ private: System::Void numeric_v0_ValueChanged(System::Object^  sender, System::E
 		     }
 private: System::Void numeric_d0_ValueChanged(System::Object^  sender, System::EventArgs^  e) 
 			 {
-				 this->oscillator->my_spring->Set_SpringRestLenght ( Decimal::ToDouble(this->numeric_d0->Value) );
+				 this->oscillator->my_spring->Set_SpringRestLength ( Decimal::ToDouble(this->numeric_d0->Value) );
 			 }
 
 private: System::Void checkBox_realtime_CheckedChanged(System::Object^  sender, System::EventArgs^  e) 

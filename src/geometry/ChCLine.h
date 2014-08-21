@@ -119,7 +119,7 @@ public:
 	int FindNearestLinePoint (Vector& point, double& resU, double approxU, double tol);
 
 			/// Returns curve length. Typical sampling 1..5 (1 already gives correct result with degree1 curves)
-	virtual double Lenght (int sampling);
+	virtual double Length (int sampling);
 
 			/// Returns an adimensional information on "how much" this curve is similar to another
 			/// in its overall shape (doesnot matter parametrization or start point). Try with 20 samples.

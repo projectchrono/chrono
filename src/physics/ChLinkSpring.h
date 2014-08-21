@@ -76,8 +76,8 @@ public:
 	virtual int GetType	() {return LNK_SPRING;}
 
 						// data fetch/store
-	double Get_SpringRestLenght() {return spr_restlength;};
-	void   Set_SpringRestLenght(double m_r) {spr_restlength = m_r;};
+	double Get_SpringRestLength() {return spr_restlength;};
+	void   Set_SpringRestLength(double m_r) {spr_restlength = m_r;};
 	double Get_SpringDeform() {return (dist - spr_restlength);};
 	double Get_SpringK() {return spr_k;};
 	void   Set_SpringK(double m_r) {spr_k = m_r;};

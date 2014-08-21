@@ -213,7 +213,7 @@ void create_some_falling_items(ChSystem& mphysicalSystem, ISceneManager* msceneM
 
 		// Attach some visualization shapes if needed:
 	ChSharedPtr<ChBoxShape> vshape (new ChBoxShape() );
-	vshape->GetBoxGeometry().SetLenghts( ChVector<> (20,1,20) );
+	vshape->GetBoxGeometry().SetLengths( ChVector<> (20,1,20) );
 	vshape->GetBoxGeometry().Pos = ChVector<> (0,-5,0);
 	this->AddAsset( vshape );
 	// etc. for other 4 box shapes.. 

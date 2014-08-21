@@ -77,7 +77,7 @@ MyEventReceiver::MyEventReceiver(MySimulator* asimulator)
 	scrollbar_FspringL = msimulator->device->getGUIEnvironment()->addScrollBar(
 					true, rect<s32>(10, 165, 150, 180), 0, 104);
 	scrollbar_FspringL->setMax(100); 
-	scrollbar_FspringL->setPos( FromValToSlider(msimulator->mycar->link_springRF->Get_SpringRestLenght(), 0.300, 0.380) );
+	scrollbar_FspringL->setPos( FromValToSlider(msimulator->mycar->link_springRF->Get_SpringRestLength(), 0.300, 0.380) );
 	text_FspringL = msimulator->device->getGUIEnvironment()->addStaticText(
 					L"Spring L [m]:     ", rect<s32>(150,165,250,180), false);	
 
@@ -203,10 +203,10 @@ bool MyEventReceiver::OnEvent(const SEvent& event)
 					s32 pos = ((IGUIScrollBar*)event.GUIEvent.Caller)->getPos();
 					double newlength = FromSliderToVal(pos, 0.300, 0.380);  // map in max min range
 					// set the rest length of all 4 springs
-					msimulator->mycar->link_springRF->Set_SpringRestLenght(newlength);
-					msimulator->mycar->link_springLF->Set_SpringRestLenght(newlength);
-					msimulator->mycar->link_springRB->Set_SpringRestLenght(newlength);
-					msimulator->mycar->link_springLB->Set_SpringRestLenght(newlength);
+					msimulator->mycar->link_springRF->Set_SpringRestLength(newlength);
+					msimulator->mycar->link_springLF->Set_SpringRestLength(newlength);
+					msimulator->mycar->link_springRB->Set_SpringRestLength(newlength);
+					msimulator->mycar->link_springLB->Set_SpringRestLength(newlength);
 					// show stiffness as formatted text in interface screen
 					char message[50]; sprintf(message,"Spring L [m]: %g",newlength);
 					text_FspringL->setText(core::stringw(message).c_str());

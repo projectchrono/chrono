@@ -226,7 +226,7 @@ int main(int argc, char* argv[])
 	ChParticleRemoverBox remover;
 	remover.SetRemoveOutside(true);
 	remover.GetBox().Pos = ChVector<>(0,0,0);
-	remover.GetBox().SetLenghts( ChVector<>(5,20,5) );
+	remover.GetBox().SetLengths( ChVector<>(5,20,5) );
 
 	// Test also a ChParticleProcessor configured as a
 	// counter of particles that flow into a rectangle:

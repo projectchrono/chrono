@@ -165,7 +165,7 @@ public:
 		if (visual_asset)
 		{
 			ChSharedPtr<ChBoxShape> vshape (new ChBoxShape() );
-			vshape->GetBoxGeometry().SetLenghts( ChVector<> (Xsize,Ysize,Zsize) );
+			vshape->GetBoxGeometry().SetLengths( ChVector<> (Xsize,Ysize,Zsize) );
 			this->AddAsset( vshape );
 		}
 	}

@@ -81,7 +81,7 @@ int main(int argc, char* argv[])
 				// Attach a 'box' shape asset for visualization.
 	ChSharedPtr<ChBoxShape> mboxtruss(new ChBoxShape);
 	mboxtruss->GetBoxGeometry().Pos  = ChVector<>(-0.01, 0,0);
-	mboxtruss->GetBoxGeometry().SetLenghts( ChVector<>(0.02, 0.2, 0.1) );
+	mboxtruss->GetBoxGeometry().SetLengths( ChVector<>(0.02, 0.2, 0.1) );
 	body_truss->AddAsset(mboxtruss);
 
 
@@ -98,7 +98,7 @@ int main(int argc, char* argv[])
 				// Attach a 'box' shape asset for visualization.
 	ChSharedPtr<ChBoxShape> mboxcrank(new ChBoxShape);
 	mboxcrank->GetBoxGeometry().Pos  = ChVector<>(0,0,0);
-	mboxcrank->GetBoxGeometry().SetLenghts( ChVector<>(K,0.02,0.02) );
+	mboxcrank->GetBoxGeometry().SetLengths( ChVector<>(K,0.02,0.02) );
 	body_crank->AddAsset(mboxcrank);
 
 
@@ -399,7 +399,7 @@ my_system.ChangeLcpSolverSpeed(matlab_solver_speed);
 				// Attach a 'box' shape asset for visualization.
 	ChSharedPtr<ChBoxShape> mboxtruss(new ChBoxShape);
 	mboxtruss->GetBoxGeometry().Pos  = ChVector<>(-0.01, 0, 0.4);
-	mboxtruss->GetBoxGeometry().SetLenghts( ChVector<>(0.02, 0.2, 0.8) );
+	mboxtruss->GetBoxGeometry().SetLengths( ChVector<>(0.02, 0.2, 0.8) );
 	my_body_A->AddAsset(mboxtruss);
 
 

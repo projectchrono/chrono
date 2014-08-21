@@ -231,7 +231,7 @@ double ChLine::CurveSegmentDistMax (ChLine* complinesegm, int samples)
 	return (mres);
 }
 
-double ChLine::Lenght (int sampling)
+double ChLine::Length (int sampling)
 {
 	double mres = 0;
 	double par, step;

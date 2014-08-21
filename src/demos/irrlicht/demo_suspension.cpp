@@ -557,7 +557,7 @@ public:
 				scrollbar_FspringL = mdevice->getGUIEnvironment()->addScrollBar(
 								true, rect<s32>(10, 165, 150, 180), 0, 104);
 				scrollbar_FspringL->setMax(100); 
-				scrollbar_FspringL->setPos(50 + 50.0*(acar->link_springRF->Get_SpringRestLenght()-0.9)/0.1  );
+				scrollbar_FspringL->setPos(50 + 50.0*(acar->link_springRF->Get_SpringRestLength()-0.9)/0.1  );
 				text_FspringL = mdevice->getGUIEnvironment()->addStaticText(
 								L"Spring L [m]:", rect<s32>(150,165,250,180), false);
 			}
@@ -615,10 +615,10 @@ public:
 								s32 pos = ((IGUIScrollBar*)event.GUIEvent.Caller)->getPos();
 								double newlength = 0.9 + 0.1*( ((double)(pos-50))/50.0 );
 								// set the rest length of all 4 springs
-								this->mcar->link_springRF->Set_SpringRestLenght(newlength);
-								this->mcar->link_springLF->Set_SpringRestLenght(newlength);
-								this->mcar->link_springRB->Set_SpringRestLenght(newlength);
-								this->mcar->link_springLB->Set_SpringRestLenght(newlength);
+								this->mcar->link_springRF->Set_SpringRestLength(newlength);
+								this->mcar->link_springLF->Set_SpringRestLength(newlength);
+								this->mcar->link_springRB->Set_SpringRestLength(newlength);
+								this->mcar->link_springLB->Set_SpringRestLength(newlength);
 
 								// show stiffness as formatted text in interface screen
 								char message[50]; sprintf(message,"Spring L [m]: %g",newlength);

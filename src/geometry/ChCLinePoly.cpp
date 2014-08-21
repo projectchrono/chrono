@@ -150,9 +150,9 @@ void ChLinePoly::Evaluate(Vector& pos,
 }
 
 
-double ChLinePoly::Lenght (int sampling)
+double ChLinePoly::Length (int sampling)
 {
-	return ChLine::Lenght(1);
+	return ChLine::Length(1);
 }
 
 

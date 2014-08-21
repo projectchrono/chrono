@@ -84,7 +84,7 @@ MyOscillatorSystem::MyOscillatorSystem(IrrlichtDevice* mIrrDevice)
 				this->my_spring->Initialize(my_truss->GetBody(), my_body->GetBody(), true, ChVector<>(0.0,0.0,0.0), ChVector<>(0.0,0.0,0.0));
 				this->my_spring->Set_SpringK(300);
 				this->my_spring->Set_SpringR(3);
-				this->my_spring->Set_SpringRestLenght(X0*0.8);
+				this->my_spring->Set_SpringRestLength(X0*0.8);
 				this->physical_system.AddLink(this->my_spring);
 
 				//ChFunction_Jscript* motionfunct = new ChFunction_Jscript;

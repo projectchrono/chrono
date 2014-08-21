@@ -108,7 +108,7 @@ public:
 						const double parW = 0.);
 
 			/// Returns curve length. sampling does not matter
-	double Lenght (int sampling);
+	double Length (int sampling);
 
 			/// Draw into the current graph viewport of a ChFile_ps file
 	int DrawPostscript(ChFile_ps* mfle, int markpoints, int bezier_interpolate);

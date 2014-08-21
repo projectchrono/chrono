@@ -841,10 +841,10 @@ Release 0.6
   been reduced to 0.2 instead of 1.0, otherwise it was 
   too likely a divergent value.
   
-- New Length2() and LenghtInf() in the ChVector class, to
+- New Length2() and LengthInf() in the ChVector class, to
   improve the speed of the norm of a vector in some optimised
   circumstances. 
-  Same Length2() and LenghtInf() also for ChQuaternion class.
+  Same Length2() and LengthInf() also for ChQuaternion class.
   
 - New feature: rigid body sleeping. Use my_system.SetUseSleeping(true)
   When this feature is activated, bodies that remain in a resting

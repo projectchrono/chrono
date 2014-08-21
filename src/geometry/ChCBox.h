@@ -138,11 +138,11 @@ public:
 	
 		/// Get the x y z lengths of this box (that is, double
 		/// the Size values)
-	ChVector<> GetLenghts(){return 2.0*Size;}
+	ChVector<> GetLengths(){return 2.0*Size;}
 
 		/// Set the x y z lengths of this box (that is, double
 		/// the Size values)
-	void SetLenghts(const ChVector<>& mlen){ Size = 0.5*mlen;}
+	void SetLengths(const ChVector<>& mlen){ Size = 0.5*mlen;}
 
 
 	

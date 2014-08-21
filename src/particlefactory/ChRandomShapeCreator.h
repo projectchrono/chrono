@@ -220,7 +220,7 @@ public:
 			/// Set the statistical distribution for the diameter.
 	void SetDiameterDistribution(ChSmartPtr<ChDistribution> mdistr) {diameter = mdistr;}
 			/// Set the statistical distribution for the length ratio (length = diameter*length_factor).
-	void SetLenghtFactorDistribution(ChSmartPtr<ChDistribution> mdistr) {length_factor = mdistr;}
+	void SetLengthFactorDistribution(ChSmartPtr<ChDistribution> mdistr) {length_factor = mdistr;}
 
 			/// Set the statistical distribution for the random density.
 	void SetDensityDistribution(ChSmartPtr<ChDistribution> mdistr) {density = mdistr;}
