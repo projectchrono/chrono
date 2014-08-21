@@ -75,7 +75,7 @@ void ChBox::Evaluate(Vector& pos,
 	Pr.x= Size.x * (parU-0.5);
 	Pr.y= Size.y * (parV-0.5);
 	Pr.z= Size.z * (parW-0.5);
-	pos = ChTrasform<>::TrasformLocalToParent(Pr, Pos, Rot);
+	pos = ChTransform<>::TrasformLocalToParent(Pr, Pos, Rot);
 }
 
 
@@ -86,7 +86,7 @@ Vector ChBox::GetP1()
 	P1r.x= +Size.x;
 	P1r.y= +Size.y;
 	P1r.z= +Size.z;
-	return ChTrasform<>::TrasformLocalToParent(P1r, Pos, Rot);
+	return ChTransform<>::TrasformLocalToParent(P1r, Pos, Rot);
 }
 Vector ChBox::GetP2()
 {
@@ -94,7 +94,7 @@ Vector ChBox::GetP2()
 	P2r.x= -Size.x;
 	P2r.y= +Size.y;
 	P2r.z= +Size.z;
-	return ChTrasform<>::TrasformLocalToParent(P2r, Pos, Rot);
+	return ChTransform<>::TrasformLocalToParent(P2r, Pos, Rot);
 }
 Vector ChBox::GetP3()
 {
@@ -102,7 +102,7 @@ Vector ChBox::GetP3()
 	P3r.x= -Size.x;
 	P3r.y= -Size.y;
 	P3r.z= +Size.z;
-	return ChTrasform<>::TrasformLocalToParent(P3r, Pos, Rot);
+	return ChTransform<>::TrasformLocalToParent(P3r, Pos, Rot);
 }
 Vector ChBox::GetP4()
 {
@@ -110,7 +110,7 @@ Vector ChBox::GetP4()
 	P4r.x= +Size.x;
 	P4r.y= -Size.y;
 	P4r.z= +Size.z;
-	return ChTrasform<>::TrasformLocalToParent(P4r, Pos, Rot);
+	return ChTransform<>::TrasformLocalToParent(P4r, Pos, Rot);
 }
 Vector ChBox::GetP5()
 {
@@ -118,7 +118,7 @@ Vector ChBox::GetP5()
 	P5r.x= +Size.x;
 	P5r.y= +Size.y;
 	P5r.z= -Size.z;
-	return ChTrasform<>::TrasformLocalToParent(P5r, Pos, Rot);
+	return ChTransform<>::TrasformLocalToParent(P5r, Pos, Rot);
 }
 Vector ChBox::GetP6()
 { 
@@ -126,7 +126,7 @@ Vector ChBox::GetP6()
 	P6r.x= -Size.x;
 	P6r.y= +Size.y;
 	P6r.z= -Size.z;
-	return ChTrasform<>::TrasformLocalToParent(P6r, Pos, Rot);
+	return ChTransform<>::TrasformLocalToParent(P6r, Pos, Rot);
 }
 Vector ChBox::GetP7()
 {
@@ -134,7 +134,7 @@ Vector ChBox::GetP7()
 	P7r.x= -Size.x;
 	P7r.y= -Size.y;
 	P7r.z= -Size.z;
-	return ChTrasform<>::TrasformLocalToParent(P7r, Pos, Rot);
+	return ChTransform<>::TrasformLocalToParent(P7r, Pos, Rot);
 }
 Vector ChBox::GetP8()
 {
@@ -142,7 +142,7 @@ Vector ChBox::GetP8()
 	P8r.x= +Size.x;
 	P8r.y= -Size.y;
 	P8r.z= -Size.z;
-	return ChTrasform<>::TrasformLocalToParent(P8r, Pos, Rot);
+	return ChTransform<>::TrasformLocalToParent(P8r, Pos, Rot);
 }
 
 Vector ChBox::GetPn(int ipoint)

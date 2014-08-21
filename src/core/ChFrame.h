@@ -340,12 +340,12 @@ public:
 
 	virtual ChVector<Real> TrasformLocalToParent(const ChVector<Real>& local) const
 		{
-			return ChTrasform<Real>::TrasformLocalToParent(local, coord.pos, Amatrix);
+			return ChTransform<Real>::TrasformLocalToParent(local, coord.pos, Amatrix);
 		}
 
 	virtual ChVector<Real> TrasformPointLocalToParent(const ChVector<Real>& local) const
 		{
-			return ChTrasform<Real>::TrasformLocalToParent(local, coord.pos, Amatrix);
+			return ChTransform<Real>::TrasformLocalToParent(local, coord.pos, Amatrix);
 		}
 
 
@@ -359,12 +359,12 @@ public:
 
 	virtual ChVector<Real> TrasformParentToLocal(const ChVector<Real>& parent) const
 		{
-			return ChTrasform<Real>::TrasformParentToLocal(parent, coord.pos, Amatrix);
+			return ChTransform<Real>::TrasformParentToLocal(parent, coord.pos, Amatrix);
 		}
 
 	virtual ChVector<Real> TrasformPointParentToLocal(const ChVector<Real>& parent) const
 		{
-			return ChTrasform<Real>::TrasformParentToLocal(parent, coord.pos, Amatrix);
+			return ChTransform<Real>::TrasformParentToLocal(parent, coord.pos, Amatrix);
 		}
 
 		/// This function transforms a frame from 'this' local coordinate

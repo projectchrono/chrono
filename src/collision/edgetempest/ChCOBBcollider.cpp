@@ -115,7 +115,7 @@ void CHOBBcollider::CollideRecurse(
 
 	Rc.MatrTMultiply(o1->child(c1)->Rot, boR);	
 
-	Tc = ChTrasform<>::TrasformParentToLocal(boT, o1->child(c1)->To, o1->child(c1)->Rot);
+	Tc = ChTransform<>::TrasformParentToLocal(boT, o1->child(c1)->To, o1->child(c1)->Rot);
 
     CollideRecurse(Rc,Tc,o1,c1,o2,b2,flag);
 
@@ -124,7 +124,7 @@ void CHOBBcollider::CollideRecurse(
 
     Rc.MatrTMultiply(o1->child(c2)->Rot, boR);		
  
-	Tc = ChTrasform<>::TrasformParentToLocal(boT, o1->child(c2)->To, o1->child(c2)->Rot);
+	Tc = ChTransform<>::TrasformParentToLocal(boT, o1->child(c2)->To, o1->child(c2)->Rot);
 
     CollideRecurse(Rc,Tc,o1,c2,o2,b2,flag);
   }
@@ -135,7 +135,7 @@ void CHOBBcollider::CollideRecurse(
 
     Rc.MatrMultiply(boR, o2->child(c1)->Rot);		  
 
-    Tc = ChTrasform<>::TrasformLocalToParent(o2->child(c1)->To,boT, boR); 
+    Tc = ChTransform<>::TrasformLocalToParent(o2->child(c1)->To,boT, boR); 
 
     CollideRecurse(Rc,Tc,o1,b1,o2,c1,flag);
 
@@ -144,7 +144,7 @@ void CHOBBcollider::CollideRecurse(
 
     Rc.MatrMultiply(boR, o2->child(c2)->Rot);		  
 
-    Tc = ChTrasform<>::TrasformLocalToParent(o2->child(c2)->To,boT, boR); 
+    Tc = ChTransform<>::TrasformLocalToParent(o2->child(c2)->To,boT, boR); 
 
     CollideRecurse(Rc,Tc,o1,b1,o2,c2,flag);
   }
@@ -190,7 +190,7 @@ ChNarrowPhaseCollider::eCollSuccess CHOBBcollider::ComputeCollisions(
   Rtemp.MatrMultiply(this->R,o2->child(0)->Rot);	// MxM(Rtemp,this->R,o2->child(0)->R);
   bR.MatrMultiply(o1->child(0)->Rot, Rtemp);		// MTxM(R,o1->child(0)->R,Rtemp);
 
-  Ttemp = ChTrasform<>::TrasformLocalToParent(o2->child(0)->To, this->T, this->R); // MxVpV(Ttemp,this->R,o2->child(0)->To,this->T);
+  Ttemp = ChTransform<>::TrasformLocalToParent(o2->child(0)->To, this->T, this->R); // MxVpV(Ttemp,this->R,o2->child(0)->To,this->T);
   Ttemp = Vsub(Ttemp, o1->child(0)->To);		// VmV(Ttemp,Ttemp,o1->child(0)->To);
 
   bT = o1->child(0)->Rot.MatrT_x_Vect(Ttemp);		// MTxV(T,o1->child(0)->R,Ttemp);

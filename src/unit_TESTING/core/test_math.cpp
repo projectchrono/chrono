@@ -167,7 +167,7 @@ int main(int argc,
    mxq.FillRandom(-1, 2);
    qres = mxq.Matr44_x_Quat(mquat);
 
-// How to use the ChTrasform or ChCoordsys functions to transform points
+// How to use the ChTransform or ChCoordsys functions to transform points
 // from/to local coordinates in 3D:
 
    chrono::Vector mvect2;
@@ -190,9 +190,9 @@ int main(int argc,
 // can use them equivalently!
 // (the 1st method however is a bit faster..)
 
-   mvect2 = chrono::ChTrasform<>::TrasformLocalToParent(mvect1, vtraslA, mrotA);
+   mvect2 = chrono::ChTransform<>::TrasformLocalToParent(mvect1, vtraslA, mrotA);
 
-   mvect2 = chrono::ChTrasform<>::TrasformLocalToParent(mvect1, vtraslA, qrotA);
+   mvect2 = chrono::ChTransform<>::TrasformLocalToParent(mvect1, vtraslA, qrotA);
 
    mvect2 = csysA.TrasformLocalToParent(mvect1);
 

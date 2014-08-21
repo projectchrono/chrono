@@ -110,7 +110,7 @@ void recurse_scan_OBBs (ChMatrix33<>& PrevRot, Vector& PrevPos,
 	ChMatrix33<> tempRot;
 	Vector tempPos;
 	tempRot.MatrMultiply(PrevRot, mmodel->child(nb)->Rot);
-    tempPos = ChTrasform<>::TrasformLocalToParent(mmodel->child(nb)->To, PrevPos, PrevRot);
+    tempPos = ChTransform<>::TrasformLocalToParent(mmodel->child(nb)->To, PrevPos, PrevRot);
 	Rot.CopyFromMatrix(tempRot);
 	Pos = tempPos;
 

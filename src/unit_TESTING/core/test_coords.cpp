@@ -46,7 +46,7 @@ int main(int argc,
    // Some methods to achieve coordinate transformations, and some
    // examples of how to manipulate coordinates and frames, using Chrono features.
    //
-   // You can use ChTrasform or ChChCoordsys<> or ChFrame functions to transform points
+   // You can use ChTransform or ChChCoordsys<> or ChFrame functions to transform points
    // from/to local coordinates in 3D, in ascending complexity and capabilities.
    //
 
@@ -89,13 +89,13 @@ int main(int argc,
    mvect2 = vtraslA + qrotA.Rotate(mvect1);
    GetLog() << mvect2 << " ..using quaternion rotation, \n";
 
-   // TRASFORM USING THE ChTrasform STATIC METHODS
+   // TRASFORM USING THE ChTransform STATIC METHODS
 
-   mvect2 = ChTrasform<>::TrasformLocalToParent(mvect1, vtraslA, mrotA);
-   GetLog() << mvect2 << " ..using the ChTrasform- vect and rot.matrix, \n";
+   mvect2 = ChTransform<>::TrasformLocalToParent(mvect1, vtraslA, mrotA);
+   GetLog() << mvect2 << " ..using the ChTransform- vect and rot.matrix, \n";
 
-   mvect2 = ChTrasform<>::TrasformLocalToParent(mvect1, vtraslA, qrotA);
-   GetLog() << mvect2 << " ..using the ChTrasform- vect and quat, \n";
+   mvect2 = ChTransform<>::TrasformLocalToParent(mvect1, vtraslA, qrotA);
+   GetLog() << mvect2 << " ..using the ChTransform- vect and quat, \n";
 
    // TRASFORM USING A ChCoordys OBJECT
 
@@ -187,13 +187,13 @@ int main(int argc,
    mvect1 = qrotA.RotateBack(mvect2 - vtraslA);
    GetLog() << mvect1 << " ..inv, using quaternion rotation, \n";
 
-   // TRASFORM USING THE ChTrasform STATIC METHODS
+   // TRASFORM USING THE ChTransform STATIC METHODS
 
-   mvect1 = ChTrasform<>::TrasformParentToLocal(mvect2, vtraslA, mrotA);
-   GetLog() << mvect1 << " ..inv, using the ChTrasform- vect and rot.matrix, \n";
+   mvect1 = ChTransform<>::TrasformParentToLocal(mvect2, vtraslA, mrotA);
+   GetLog() << mvect1 << " ..inv, using the ChTransform- vect and rot.matrix, \n";
 
-   mvect1 = ChTrasform<>::TrasformParentToLocal(mvect2, vtraslA, qrotA);
-   GetLog() << mvect1 << " ..inv, using the ChTrasform- vect and quat, \n";
+   mvect1 = ChTransform<>::TrasformParentToLocal(mvect2, vtraslA, qrotA);
+   GetLog() << mvect1 << " ..inv, using the ChTransform- vect and quat, \n";
 
    // TRASFORM USING A ChCoordys OBJECT
 

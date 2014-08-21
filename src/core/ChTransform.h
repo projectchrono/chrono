@@ -9,12 +9,12 @@
 // and at http://projectchrono.org/license-chrono.txt.
 //
 
-#ifndef CHTRASFORM_H
-#define CHTRASFORM_H
+#ifndef CHTRANSFORM_H
+#define CHTRANSFORM_H
 
 //////////////////////////////////////////////////
 //
-//   ChTrasform.h
+//   ChTransform.h
 //
 //   Math functions for coordinate transformations
 //   (translation and rotation).
@@ -38,7 +38,7 @@ namespace chrono
 
 
 
-/// ChTrasform: a class for fast coordinate trasformations
+/// ChTransform: a class for fast coordinate transformations
 /// in 3D space.
 ///
 ///  A coordinate system (a 'frame') has a translation and
@@ -47,13 +47,13 @@ namespace chrono
 ///  This class implements useful static functions
 /// to perform the typical local->parent or parent->local
 /// transformations of points. Such functions are static,
-/// so you don't even need to instantiate a ChTrasform object,
+/// so you don't even need to instantiate a ChTransform object,
 /// you can just call functions in this way:
-///   ChTrasform<>::SomeFunction(..)
+///   ChTransform<>::SomeFunction(..)
 ///
 
 template <class Real = double>
-class ChTrasform
+class ChTransform
 {
 public:
 
@@ -66,8 +66,8 @@ public:
 					/// This function transforms a point from the parent coordinate
 					/// system to a local coordinate system, whose relative position
 					/// is given by the 'origin' translation and 'alignment' rotation matrix.
-					///  Since the function is static, you do not need a ChTrasform object, for example
-					/// use it as: mresult=ChTrasform<>::TrasformParentToLocal(mpar, morig, malign)
+					///  Since the function is static, you do not need a ChTransform object, for example
+					/// use it as: mresult=ChTransform<>::TrasformParentToLocal(mpar, morig, malign)
 					///  This function is optimised for fast execution.
 					/// \return The point in local coordinate, as local=[A]'*(parent-origin)
 
@@ -96,8 +96,8 @@ public:
 					/// frame to the parent reference frame. The relative attitude of  
                     /// the local reference frame with respect to the parent reference frame
 					/// is given by the 'origin' translation and the 'alignment' rotation matrix.
-					/// Since the function is static, you do not need a ChTrasform object. For example,
-					/// use it as: mresult=ChTrasform<>::TrasformLocalToParent(mloc, morig, malign).
+					/// Since the function is static, you do not need a ChTransform object. For example,
+					/// use it as: mresult=ChTransform<>::TrasformLocalToParent(mloc, morig, malign).
 					/// This function is optimized for fast execution.
 					/// \return The point in the parent reference frame, as parent=origin +[A]*(local)
 
@@ -126,8 +126,8 @@ public:
 					/// This function transforms a point from the parent coordinate
 					/// system to a local coordinate system, whose relative position
 					/// is given by the 'origin' translation and 'alignment' quaternion q.
-					///  Since the function is static, you do not need a ChTrasform object, for example
-					/// use it as: mresult=ChTrasform<>::TrasformParentToLocal(mpar, morig, malign)
+					///  Since the function is static, you do not need a ChTransform object, for example
+					/// use it as: mresult=ChTransform<>::TrasformParentToLocal(mpar, morig, malign)
 					/// \return The point in local coordinate, as local=q*[(parent-origin)]*q
 
 	static ChVector<Real> TrasformParentToLocal (
@@ -162,8 +162,8 @@ public:
 					/// This function transforms a point from the local coordinate
 					/// system to the parent coordinate system. Relative position of local respect
 					/// to parent is given by the 'origin' translation and 'alignment' quaternion rotation.
-					///  Since the function is static, you do not need a ChTrasform object, for example
-					/// use it as: mresult=ChTrasform<>::TrasformLocalToParent(mloc, morig, malign)
+					///  Since the function is static, you do not need a ChTransform object, for example
+					/// use it as: mresult=ChTransform<>::TrasformLocalToParent(mloc, morig, malign)
 					/// \return The point in parent coordinate, as parent=origin +q'*(local)*q
 
 	static ChVector<Real> TrasformLocalToParent (
@@ -204,4 +204,4 @@ public:
 
 
 
-#endif  // END of ChTrasform.h
+#endif  // END of ChTransform.h

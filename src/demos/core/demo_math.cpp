@@ -211,7 +211,7 @@ int main(int argc, char* argv[])
  
 
 
-			// How to use the ChTrasform or ChCoordsys functions to transform points 
+			// How to use the ChTransform or ChCoordsys functions to transform points 
 			// from/to local coordinates in 3D:
   
 	chrono::Vector mvect2;
@@ -234,9 +234,9 @@ int main(int argc, char* argv[])
 						// can use them equivalently!
 						// (the 1st method however is a bit faster..)
 	
-	mvect2 = chrono::ChTrasform<>::TrasformLocalToParent(mvect1, vtraslA, mrotA);
+	mvect2 = chrono::ChTransform<>::TrasformLocalToParent(mvect1, vtraslA, mrotA);
 	
-	mvect2 = chrono::ChTrasform<>::TrasformLocalToParent(mvect1, vtraslA, qrotA);
+	mvect2 = chrono::ChTransform<>::TrasformLocalToParent(mvect1, vtraslA, qrotA);
 	
 	mvect2 = csysA.TrasformLocalToParent(mvect1); 
 	

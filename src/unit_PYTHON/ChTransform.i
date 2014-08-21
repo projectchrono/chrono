@@ -11,6 +11,6 @@ using namespace chrono;
 %include "../core/ChTransform.h"
 
 
-%template(ChTrasformD) chrono::ChTrasform<double>;
+%template(ChTransformD) chrono::ChTransform<double>;
 
 
