@@ -34,7 +34,7 @@
 #if defined(CH_API_COMPILE_PARALLEL)
 #define CH_PARALLEL_API ChApiEXPORT
 #else
-#define CH_PARALLEL_API ChApiINPORT
+#define CH_PARALLEL_API ChApiIMPORT
 #endif
 
 

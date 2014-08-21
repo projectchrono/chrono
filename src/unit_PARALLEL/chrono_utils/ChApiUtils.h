@@ -11,7 +11,7 @@
 #if defined(CH_API_COMPILE_UTILS)
 #define CH_UTILS_API ChApiEXPORT
 #else
-#define CH_UTILS_API ChApiINPORT
+#define CH_UTILS_API ChApiIMPORT
 #endif
 
 #endif

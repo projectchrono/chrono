@@ -26,7 +26,7 @@
 #if defined(CH_API_COMPILE_OPENGL)
 	#define CH_OPENGL_API ChApiEXPORT
 #else
-	#define CH_OPENGL_API ChApiINPORT
+	#define CH_OPENGL_API ChApiIMPORT
 #endif
 
 #endif  // END of header
