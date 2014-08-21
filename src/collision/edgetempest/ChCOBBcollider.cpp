@@ -28,7 +28,7 @@
 #include "ChCOBBcollider.h"
  
 #include "ChCGeometryCollider.h"
-#include "core/ChTrasform.h"
+#include "core/ChTransform.h"
 
 
 

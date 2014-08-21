@@ -23,7 +23,7 @@
 // ------------------------------------------------
 ///////////////////////////////////////////////////
 
-#include "core/ChTrasform.h"
+#include "core/ChTransform.h"
 #include "core/ChMatrix.h" 
 #include "core/ChLog.h"
 #include "core/ChVector.h"

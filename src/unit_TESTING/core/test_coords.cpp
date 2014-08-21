@@ -27,7 +27,7 @@
 #include <math.h>
 
 #include "core/ChLog.h"
-#include "core/ChTrasform.h"
+#include "core/ChTransform.h"
 #include "core/ChFrame.h"
 #include "core/ChFrameMoving.h"
 #include "core/ChTimer.h"

@@ -281,7 +281,7 @@ IF (BUILD_CH_SDK)
 		core/ChRealtimeStep.h 
 		core/ChStream.h 
 		core/ChTimer.h
-		core/ChTrasform.h  
+		core/ChTransform.h  
 		core/ChVector.h   
 		core/ChSpmatrix.h 
 		core/ChWrapHashmap.h 

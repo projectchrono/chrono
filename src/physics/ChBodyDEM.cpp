@@ -23,7 +23,7 @@
 #include <stdlib.h>
 #include <algorithm>
 
-#include "core/ChTrasform.h"
+#include "core/ChTransform.h"
 #include "physics/ChBodyDEM.h"
 #include "physics/ChGlobal.h"
 #include "physics/ChSystem.h"

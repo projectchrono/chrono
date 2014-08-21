@@ -29,7 +29,7 @@
 #include "geometry/ChCBox.h"
 #include "ChCOBB.h"
 
-#include "core/ChTrasform.h"
+#include "core/ChTransform.h"
 
 #define COLL_PRECISION 0.000001
 

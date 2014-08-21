@@ -26,7 +26,7 @@
 #include <float.h>
 #include <memory.h>
 
-#include "core/ChTrasform.h"
+#include "core/ChTransform.h"
 #include "collision/ChCCollisionUtils.h"
 #include "physics/ChGlobal.h"
 #include "physics/ChSolvmin.h"

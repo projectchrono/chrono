@@ -106,7 +106,7 @@ using namespace chrono::geometry;
 %include "ChMatrix.i"
 %include "ChTimer.i"
 %include "ChRealtimeStep.i"
-%include "ChTrasform.i"
+%include "ChTransform.i"
 %include "ChShared.i"
 
 // motion_functions/   classes

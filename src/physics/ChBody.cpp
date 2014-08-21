@@ -14,7 +14,7 @@
 #include <stdlib.h>
 #include <algorithm>
 
-#include "core/ChTrasform.h"
+#include "core/ChTransform.h"
 #include "physics/ChBody.h"
 #include "physics/ChGlobal.h"
 #include "physics/ChMarker.h"
