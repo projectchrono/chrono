@@ -5,7 +5,7 @@
 # ----------------------
 # Configuration options
 # ----------------------
-INCLUDE(CmakeDependentOption)
+INCLUDE(CMakeDependentOption)
 
 OPTION(HMMWV_9BODY_ENABLE "Build the HMMWV vehicle model" OFF)
 
