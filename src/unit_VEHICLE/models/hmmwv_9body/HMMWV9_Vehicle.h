@@ -50,7 +50,7 @@ public:
   virtual const chrono::ChVector<>& GetWheelPos(chrono::ChWheelId which) const;
   virtual const chrono::ChQuaternion<>& GetWheelRot(chrono::ChWheelId which) const;
   virtual const chrono::ChVector<>& GetWheelLinVel(chrono::ChWheelId which) const;
-  virtual const chrono::ChVector<>& GetWheelAngVel(chrono::ChWheelId which) const;
+  virtual chrono::ChVector<> GetWheelAngVel(chrono::ChWheelId which) const;
 
   virtual double GetWheelOmega(chrono::ChWheelId which);
 

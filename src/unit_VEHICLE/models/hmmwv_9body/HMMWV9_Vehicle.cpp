@@ -195,7 +195,7 @@ const ChVector<>& HMMWV9_Vehicle::GetWheelLinVel(ChWheelId which) const
   }
 }
 
-const ChVector<>& HMMWV9_Vehicle::GetWheelAngVel(ChWheelId which) const
+ChVector<> HMMWV9_Vehicle::GetWheelAngVel(ChWheelId which) const
 {
   switch (which) {
   case FRONT_LEFT:
