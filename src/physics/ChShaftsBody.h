@@ -129,10 +129,10 @@ public:
 				/// the 1D shaft and 3D body to join. 
 				/// Each item must belong to the same ChSystem. 
 				/// Direction is expressed in the local coordinates of the body.
-	virtual int Initialize(ChSharedPtr<ChShaft> mshaft,		 ///< shaft to join 
-						   ChSharedPtr<ChBodyFrame>  mbody,  ///< body to join 
-						   ChVector<>& mdir			 ///< the direction of the shaft on 3D body (applied on COG: pure torque)
-						   );
+	bool Initialize(ChSharedPtr<ChShaft> mshaft,      ///< shaft to join 
+	                ChSharedPtr<ChBodyFrame>  mbody,  ///< body to join 
+	                const ChVector<>& mdir            ///< the direction of the shaft on 3D body (applied on COG: pure torque)
+	               );
 
 				/// Get the shaft
 	ChShaft* GetShaft() {return shaft;}
