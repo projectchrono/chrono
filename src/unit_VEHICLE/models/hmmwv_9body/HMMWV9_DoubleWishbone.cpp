@@ -134,7 +134,7 @@ const ChVector<> HMMWV9_DoubleWishboneRear::getLocation(PointId which)
 void HMMWV9_DoubleWishboneFront::OnInitializeUpright()
 {
   ChSharedPtr<ChBoxShape> box(new ChBoxShape);
-  box->GetBoxGeometry().SetLenghts(m_uprightDims);
+  box->GetBoxGeometry().SetLengths(m_uprightDims);
   m_upright->AddAsset(box);
 
   ChSharedPtr<ChColorAsset> col(new ChColorAsset);
@@ -148,7 +148,7 @@ void HMMWV9_DoubleWishboneFront::OnInitializeUpright()
 void HMMWV9_DoubleWishboneRear::OnInitializeUpright()
 {
   ChSharedPtr<ChBoxShape> box(new ChBoxShape);
-  box->GetBoxGeometry().SetLenghts(m_uprightDims);
+  box->GetBoxGeometry().SetLengths(m_uprightDims);
   m_upright->AddAsset(box);
 
   ChSharedPtr<ChColorAsset> col(new ChColorAsset);

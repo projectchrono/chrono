@@ -11,7 +11,7 @@
 #if defined(CH_API_COMPILE_SUBSYS)
 #define CH_SUBSYS_API ChApiEXPORT
 #else
-#define CH_SUBSYS_API ChApiINPORT
+#define CH_SUBSYS_API ChApiIMPORT
 #endif
 
 #endif
