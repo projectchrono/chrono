@@ -11,9 +11,12 @@ project(ChronoEngine_Parallel)
 # command is for inter-target ordering dependencies, not
 # file-level dependencies.
 # This warning appears in Cmake 3.0
-if(COMMAND cmake_policy)
-  cmake_policy(SET CMP0046 OLD)
-endif(COMMAND cmake_policy)
+
+if(CMAKE_MAJOR_VERSION EQUAL 3)
+    if(COMMAND cmake_policy)
+      cmake_policy(SET CMP0046 OLD)
+    endif(COMMAND cmake_policy)
+endif(CMAKE_MAJOR_VERSION EQUAL 3)
 
 IF(APPLE)
   set(CMAKE_MACOSX_RPATH OFF)
