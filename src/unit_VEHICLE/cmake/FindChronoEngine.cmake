@@ -348,9 +348,8 @@ IF( ChronoEngine_FIND_COMPONENTS )
     ##### ADDITIONAL DEPENDENCIES FOR CHRONOENGINE COMPONENTS
     
     if (${CH_USE_UNIT_IRRLICHT})
-        SET(CH_IRRLICHT_SDKDIR ""  CACHE PATH   "Where is your Irrlicht SDK installed? You must set this path to compile demos with 3D display.")
-
         IF(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
+            SET(CH_IRRLICHT_SDKDIR ""  CACHE PATH   "Where is your Irrlicht SDK installed? You must set this path to compile demos with 3D display.")
             IF ("${CH_COMPILER}" STREQUAL "COMPILER_MSVC")
                 FIND_LIBRARY( CH_IRRLICHTLIB NAMES Irrlicht PATHS "${CH_IRRLICHT_SDKDIR}/lib/Win32-visualstudio")
             ELSEIF ("${CH_COMPILER}" STREQUAL "COMPILER_MSVC_X64")
