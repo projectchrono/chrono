@@ -148,8 +148,7 @@ ChDoubleWishboneReduced::Initialize(ChSharedBodyPtr   chassis,
   if (m_driven) {
     m_axle->SetInertia(getAxleInertia());
     chassis->GetSystem()->Add(m_axle);
-    ChVector<> m_direction(0, 1, 0);
-    m_axle_to_spindle->Initialize(m_axle, m_spindle, m_direction);
+    m_axle_to_spindle->Initialize(m_axle, m_spindle, ChVector<>(0, 1, 0));
     chassis->GetSystem()->Add(m_axle_to_spindle);
   }
 
