@@ -145,7 +145,7 @@ public:
 				/// Gets the name of the object as C Ascii null-terminated string.
 	std::string GetNameString () const;
 				/// Sets the name of this object, as std::string 
-	void SetNameString (std::string& myname);
+	void SetNameString (const std::string& myname);
 
 
 				/// Returns a reference to the ChExternalObject object associated

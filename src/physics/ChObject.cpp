@@ -122,7 +122,7 @@ std::string ChObj::GetNameString () const
 		return this->name;
 }
 
-void ChObj::SetNameString (std::string& myname)
+void ChObj::SetNameString (const std::string& myname)
 {
 	name = myname;
 }
