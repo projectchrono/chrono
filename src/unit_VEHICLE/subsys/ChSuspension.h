@@ -53,7 +53,7 @@ public:
   const ChVector<>& GetSpindlePos() const       { return m_spindle->GetPos(); }
   const ChQuaternion<>& GetSpindleRot() const   { return m_spindle->GetRot(); }
   const ChVector<>& GetSpindleLinVel() const    { return m_spindle->GetPos_dt(); }
-  const ChVector<>& GetSpindleAngVel() const    { return m_spindle->GetWvel_par(); }
+  ChVector<> GetSpindleAngVel() const           { return m_spindle->GetWvel_par(); }
 
   void ApplyAxleTorque(double torque);
   double GetAxleSpeed() const;
