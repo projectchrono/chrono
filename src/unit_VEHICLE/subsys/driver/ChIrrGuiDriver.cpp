@@ -242,7 +242,7 @@ void ChIrrGuiDriver::renderStats()
 {
   char msg[100];
 
-  sprintf(msg, "Camera mode: %s", m_camera.GetStateName());
+  sprintf(msg, "Camera mode: %s", m_camera.GetStateName().c_str());
   renderTextBox(std::string(msg), m_HUD_x, m_HUD_y + 10, 120, 15);
 
   sprintf(msg, "Steering: %+.2f", m_steering);
