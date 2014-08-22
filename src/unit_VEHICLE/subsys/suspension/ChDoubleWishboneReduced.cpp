@@ -96,7 +96,7 @@ ChDoubleWishboneReduced::Initialize(ChSharedBodyPtr   chassis,
     ChVector<> rel_pos = getLocation(static_cast<PointId>(i));
     if (m_side == LEFT)
       rel_pos.y = -rel_pos.y;
-    m_points[i] = chassis->GetCoord().TrasformLocalToParent(location + rel_pos);
+    m_points[i] = chassis->GetCoord().TransformLocalToParent(location + rel_pos);
   }
 
   // Set body positions and rotations, mass properties, etc.

@@ -61,7 +61,7 @@ public:
   State GetState() const                  { return m_state; }
   const std::string& GetStateName() const { return m_stateNames[m_state]; }
   const ChVector<>& GetCameraPos() const  { return (m_state == Track) ? m_lastLoc : m_loc; }
-  ChVector<> GetTargetPos() const         { return m_chassis->GetCoord().TrasformLocalToParent(m_ptOnChassis); }
+  ChVector<> GetTargetPos() const         { return m_chassis->GetCoord().TransformLocalToParent(m_ptOnChassis); }
 
   void SetHorizGain(double g)             { m_horizGain = g; }
   void SetVertGain(double g)              { m_vertGain = g; }

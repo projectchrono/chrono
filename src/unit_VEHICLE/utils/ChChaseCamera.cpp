@@ -64,7 +64,7 @@ void ChChaseCamera::Initialize(const ChVector<>& ptOnChassis,
   m_angle = 0;
 
   ChVector<> localOffset(chaseDist, 0, chaseHeight);
-  m_loc = m_chassis->GetCoord().TrasformLocalToParent(localOffset + ptOnChassis);
+  m_loc = m_chassis->GetCoord().TransformLocalToParent(localOffset + ptOnChassis);
   m_lastLoc = m_loc;
 }
 
