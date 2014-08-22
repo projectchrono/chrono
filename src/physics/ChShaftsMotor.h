@@ -124,9 +124,9 @@ public:
 				/// The torque is applied to the output shaft, while the truss shafts 
 				/// gets the same torque but with opposite sign.
 				/// Each shaft must belong to the same ChSystem. 
-	virtual int Initialize(ChSharedPtr<ChShaft> mshaft1, ///< first  shaft to join (motor output shaft)
-						   ChSharedPtr<ChShaft> mshaft2  ///< second shaft to join (motor truss)
-						   );
+	virtual bool Initialize(ChSharedPtr<ChShaft> mshaft1, ///< first  shaft to join (motor output shaft)
+	                        ChSharedPtr<ChShaft> mshaft2  ///< second shaft to join (motor truss)
+	                       );
 
 
 	enum eCh_shaftsmotor_mode {

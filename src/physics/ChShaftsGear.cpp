@@ -73,7 +73,7 @@ void ChShaftsGear::Copy(ChShaftsGear* source)
 }
 
 
-int ChShaftsGear::Initialize(ChSharedPtr<ChShaft> mshaft1, ChSharedPtr<ChShaft> mshaft2)
+bool ChShaftsGear::Initialize(ChSharedPtr<ChShaft> mshaft1, ChSharedPtr<ChShaft> mshaft2)
 {
 	// Parent initialization
 	if (!ChShaftsCouple::Initialize(mshaft1, mshaft2)) return false;

@@ -85,20 +85,20 @@ public:
 				/// Each shaft must belong to the same ChSystem. 
 				/// Children classes might overload this (here, basically it only sets the two
 				/// pointers)
-	virtual int Initialize(ChSharedPtr<ChShaft> mshaft1, ///< first  shaft to join
-						   ChSharedPtr<ChShaft> mshaft2  ///< second shaft to join
-						   )
-					{
-						ChShaft* mm1 = mshaft1.get_ptr();
-						ChShaft* mm2 = mshaft2.get_ptr();
-						assert(mm1 && mm2);
-						assert(mm1 != mm2);
-						assert(mm1->GetSystem() == mm2->GetSystem());
-						this->shaft1 = mm1;
-						this->shaft2 = mm2;
-						this->SetSystem(this->shaft1->GetSystem());
-						return true;
-					};
+	virtual bool Initialize(ChSharedPtr<ChShaft> mshaft1, ///< first  shaft to join
+	                        ChSharedPtr<ChShaft> mshaft2  ///< second shaft to join
+	                       )
+	          {
+	            ChShaft* mm1 = mshaft1.get_ptr();
+	            ChShaft* mm2 = mshaft2.get_ptr();
+	            assert(mm1 && mm2);
+	            assert(mm1 != mm2);
+	            assert(mm1->GetSystem() == mm2->GetSystem());
+	            this->shaft1 = mm1;
+	            this->shaft2 = mm2;
+	            this->SetSystem(this->shaft1->GetSystem());
+	            return true;
+	          }
 
 				/// Get the first (input) shaft
 	ChShaft* GetShaft1() {return shaft1;}
