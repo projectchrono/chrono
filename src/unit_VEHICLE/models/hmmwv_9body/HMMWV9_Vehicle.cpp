@@ -67,12 +67,12 @@ HMMWV9_Vehicle::HMMWV9_Vehicle(ChSystem&            my_system,
   case PRIMITIVES:
   {
     ChSharedPtr<ChBoxShape> box1(new ChBoxShape);
-    box1->GetBoxGeometry().SetLenghts(ChVector<>(5, 1.7, 0.4));
+    box1->GetBoxGeometry().SetLengths(ChVector<>(5, 1.7, 0.4));
     box1->Pos = ChVector<>(0, 0, -0.4);
     m_chassis->AddAsset(box1);
 
     ChSharedPtr<ChBoxShape> box2(new ChBoxShape);
-    box2->GetBoxGeometry().SetLenghts(ChVector<>(4, 1.7, 0.4));
+    box2->GetBoxGeometry().SetLengths(ChVector<>(4, 1.7, 0.4));
     box2->Pos = ChVector<>(0.5, 0, 0);
     m_chassis->AddAsset(box2);
 

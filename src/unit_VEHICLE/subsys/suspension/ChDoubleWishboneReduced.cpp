@@ -136,7 +136,7 @@ ChDoubleWishboneReduced::Initialize(ChSharedBodyPtr   chassis,
   m_shock->Initialize(chassis, m_upright, false, m_points[SHOCK_C], m_points[SHOCK_U]);
   m_shock->Set_SpringK(getSpringCoefficient());
   m_shock->Set_SpringR(getDampingCoefficient());
-  m_shock->Set_SpringRestLenght(getSpringRestLength());
+  m_shock->Set_SpringRestLength(getSpringRestLength());
   chassis->GetSystem()->AddLink(m_shock);
 
   // Save initial relative position of marker 1 of the tierod distance link,
