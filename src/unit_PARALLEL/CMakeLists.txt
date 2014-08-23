@@ -189,11 +189,26 @@ INCLUDE_DIRECTORIES(${CHRONOENGINE_INCLUDES})
 # Dependencies for ChronoEngine_OpenGL
 # ------------------------------------------------------------------------------
 IF(BUILD_OPENGL)
+
   find_package(OpenGL)
   find_package(GLM)
   find_package(GLEW)
   find_package(GLFW)
-  IF(OPENGL_FOUND AND GLM_FOUND)
+
+  IF(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
+    SET(GLEW_DLL  "" CACHE FILEPATH "The GLEW DLL")
+    SET(GLFW_DLL  "" CACHE FILEPATH "The GLFW DLL")
+
+    IF(NOT EXISTS ${GLEW_DLL})
+      SET(GLEW_FOUND 0)
+    ENDIF()
+
+    IF(NOT EXISTS ${GLFW_DLL})
+      SET(GLFW_FOUND 0)
+    ENDIF()
+  ENDIF()
+
+  IF(OPENGL_FOUND AND GLM_FOUND AND GLEW_FOUND AND GLFW_FOUND)
     SET(CHRONO_PARALLEL_HAS_OPENGL "#define CHRONO_PARALLEL_HAS_OPENGL")
   ELSE()
     # Unable to find everything, turn off OpenGL
@@ -201,6 +216,7 @@ IF(BUILD_OPENGL)
     SET(CHRONO_PARALLEL_HAS_OPENGL "")
     SET(BUILD_OPENGL  OFF  CACHE BOOL "Build the ChronoEngine_OpenGL library" FORCE) 
   ENDIF()
+
 ENDIF()
 
 # ------------------------------------------------------------------------------
@@ -227,6 +243,19 @@ IF(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
         "${CH_BINDIR}/$<CONFIGURATION>/ChronoEngine.dll"
         "${CMAKE_BINARY_DIR}/bin/$<CONFIGURATION>"
   )
+
+  IF(BUILD_OPENGL)
+    ADD_CUSTOM_COMMAND(
+      TARGET COPY_DLLS POST_BUILD
+      COMMAND ${CMAKE_COMMAND} -E copy_if_different
+          "${GLEW_DLL}"
+          "${CMAKE_BINARY_DIR}/bin/$<CONFIGURATION>"
+      COMMAND ${CMAKE_COMMAND} -E copy_if_different
+          "${GLFW_DLL}"
+          "${CMAKE_BINARY_DIR}/bin/$<CONFIGURATION>"
+    )
+
+  ENDIF()
 
 ENDIF()
 
@@ -260,7 +289,6 @@ IF(BUILD_UTILS)
 ENDIF()
 
 IF(BUILD_OPENGL)
-  message("ADD OPENGL")
   ADD_SUBDIRECTORY(chrono_opengl)
 ENDIF()
 
