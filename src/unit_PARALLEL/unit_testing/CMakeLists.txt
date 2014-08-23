@@ -54,7 +54,7 @@ SET(TESTS
     test_r
 )
 
-MESSAGE(STATUS "Executable programs...")
+MESSAGE(STATUS "Unit test programs...")
 
 FOREACH(PROGRAM ${TESTS})
     MESSAGE(STATUS "...add ${PROGRAM}")

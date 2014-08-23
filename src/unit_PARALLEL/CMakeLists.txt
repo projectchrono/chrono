@@ -37,9 +37,9 @@ INCLUDE(CMakeDependentOption)
 OPTION(BUILD_UTILS "Build the ChronoEngine_Utils library" ON)
 OPTION(BUILD_OPENGL "Build the ChronoEngine_OpenGL library" ON)
 
-# If building the Chronoengine_Utils library, provide an option to build test
-# programs (default OFF). Otherwise, do not build test programs.
-CMAKE_DEPENDENT_OPTION(BUILD_DEMOS "Build demo programs" OFF "BUILD_UTILS" OFF)
+# If building the ChronoEngine_Utils library, provide an option to build demo
+# programs (default ON). Otherwise, do not build demo programs.
+CMAKE_DEPENDENT_OPTION(BUILD_DEMOS "Build demo programs" ON "BUILD_UTILS" OFF)
 
 # ------------------------------------------------------------------------------
 # Specify output locations for libraries and executables
@@ -141,7 +141,7 @@ find_package(CUDA QUIET)
 IF(CUDA_FOUND)
     message(STATUS "CUDA found")
 ELSE()
-    message(FATAL_ERROR "CUDA not found! (you may switch off ENABLE_UNIT_GPU and build without this unit)")
+    message(FATAL_ERROR "CUDA not found!")
 ENDIF()
 
 # Detect what architecture we're on
@@ -163,7 +163,8 @@ ENDIF()
 find_library(CH_CUDART NAMES cudart libcudart PATHS ${CUDA_TOOLKIT_LIB_DIR})
 
 # These need to get straightened out
-# Anything using the SDK should only be used by nvcc, no need to include them for anything being sent to the system compiler
+# Anything using the SDK should only be used by nvcc,
+# no need to include them for anything being sent to the system compiler
 INCLUDE_DIRECTORIES(
     ${CUDA_TOOLKIT_ROOT_DIR}/include
     ${CUDA_SDK_ROOT_DIR}/common/inc
@@ -176,9 +177,21 @@ INCLUDE_DIRECTORIES(
 
 FIND_PACKAGE(ChronoEngine)
 
-# Stop now if neither debug nor release Chrono library is found
+IF(CHRONOENGINE_LIBRARY_DEBUG)
+  MESSAGE(STATUS "ChronoEngine library (debug) found")
+ENDIF()
+IF(CHRONOENGINE_LIBRARY_RELEASE)
+  MESSAGE(STATUS "ChronoEngine library (release) found")
+ENDIF()
+
+# Stop now if the path to the Chrono SDK is invalid or if we could not find
+# at least one of the debug or release Chrono libraries.
+IF(NOT EXISTS "${CH_CHRONO_SDKDIR}/physics/ChSystem.h")
+  MESSAGE(FATAL_ERROR "Cannot find the Chrono SDK. Make sure CH_CHRONO_SDKDIR is set correctly.")
+  RETURN()
+ENDIF()
 IF(NOT CHRONOENGINE_LIBRARY_DEBUG AND NOT CHRONOENGINE_LIBRARY_RELEASE)
-  MESSAGE(FATAL_ERROR "Cannot find ChronoEngine library.")
+  MESSAGE(FATAL_ERROR "Cannot find the ChronoEngine library. Check CH_LIBDIR_DEBUG and CH_LIBDIR_RELEASE.")
   RETURN()
 ENDIF()
 
@@ -195,27 +208,29 @@ IF(BUILD_OPENGL)
   find_package(GLEW)
   find_package(GLFW)
 
+  # On windows, ask for the GLEW and GLFW DLLs so that we can copy. This is
+  # optional.  If not specified, it is the user's responsibility to make them
+  # available at runtime.
   IF(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
     SET(GLEW_DLL  "" CACHE FILEPATH "The GLEW DLL")
     SET(GLFW_DLL  "" CACHE FILEPATH "The GLFW DLL")
-
-    IF(NOT EXISTS ${GLEW_DLL})
-      SET(GLEW_FOUND 0)
-    ENDIF()
-
-    IF(NOT EXISTS ${GLFW_DLL})
-      SET(GLFW_FOUND 0)
-    ENDIF()
   ENDIF()
 
+  # If all dependencies are available, enable building OpenGL support.
   IF(OPENGL_FOUND AND GLM_FOUND AND GLEW_FOUND AND GLFW_FOUND)
     SET(CHRONO_PARALLEL_HAS_OPENGL "#define CHRONO_PARALLEL_HAS_OPENGL")
+    SET(ENABLE_OPENGL ON)
   ELSE()
     # Unable to find everything, turn off OpenGL
     MESSAGE("Cannot build ChronoEngine_OpenGL (missing dependencies).")
     SET(CHRONO_PARALLEL_HAS_OPENGL "")
-    SET(BUILD_OPENGL  OFF  CACHE BOOL "Build the ChronoEngine_OpenGL library" FORCE) 
+    SET(ENABLE_OPENGL OFF)
   ENDIF()
+
+ELSE()
+
+  SET(CHRONO_PARALLEL_HAS_OPENGL "")
+  SET(ENABLE_OPENGL OFF)
 
 ENDIF()
 
@@ -244,17 +259,24 @@ IF(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
         "${CMAKE_BINARY_DIR}/bin/$<CONFIGURATION>"
   )
 
-  IF(BUILD_OPENGL)
-    ADD_CUSTOM_COMMAND(
-      TARGET COPY_DLLS POST_BUILD
-      COMMAND ${CMAKE_COMMAND} -E copy_if_different
-          "${GLEW_DLL}"
-          "${CMAKE_BINARY_DIR}/bin/$<CONFIGURATION>"
-      COMMAND ${CMAKE_COMMAND} -E copy_if_different
-          "${GLFW_DLL}"
-          "${CMAKE_BINARY_DIR}/bin/$<CONFIGURATION>"
-    )
-
+  # If building OpenGL support, also copy the DLLs for GLEW and GLFW (if specified)
+  IF(ENABLE_OPENGL)
+    IF(EXISTS ${GLEW_DLL})
+      ADD_CUSTOM_COMMAND(
+        TARGET COPY_DLLS POST_BUILD
+        COMMAND ${CMAKE_COMMAND} -E copy_if_different
+            "${GLEW_DLL}"
+            "${CMAKE_BINARY_DIR}/bin/$<CONFIGURATION>"
+      )
+    ENDIF()
+    IF(EXISTS ${GLFW_DLL})
+      ADD_CUSTOM_COMMAND(
+        TARGET COPY_DLLS POST_BUILD
+        COMMAND ${CMAKE_COMMAND} -E copy_if_different
+            "${GLFW_DLL}"
+            "${CMAKE_BINARY_DIR}/bin/$<CONFIGURATION>"
+      )
+    ENDIF()
   ENDIF()
 
 ENDIF()
@@ -288,7 +310,7 @@ IF(BUILD_UTILS)
   ADD_SUBDIRECTORY(chrono_utils)
 ENDIF()
 
-IF(BUILD_OPENGL)
+IF(ENABLE_OPENGL)
   ADD_SUBDIRECTORY(chrono_opengl)
 ENDIF()
 
