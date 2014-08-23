@@ -42,7 +42,7 @@
 
 
 
-SET (CH_SDKDIR         "" CACHE PATH "Where is your Chrono SDK source installed (the ChronoEngine src/ directory)?")
+SET (CH_CHRONO_SDKDIR         "" CACHE PATH "Where is your Chrono SDK source installed (the ChronoEngine src/ directory)?")
 SET (CH_LIBDIR_DEBUG   "" CACHE PATH "Where are your Chrono debug libraries (ChronoEngine.lib etc.) installed?")
 SET (CH_LIBDIR_RELEASE "" CACHE PATH "Where are your Chrono release libraries (ChronoEngine.lib etc.) installed?")
 
@@ -72,11 +72,11 @@ IF(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
         ADD_DEFINITIONS( "-D_SCL_SECURE_NO_DEPRECATE" )  # avoids deprecation warnings
     ENDIF(MSVC)
     IF ("${CH_COMPILER}" STREQUAL "COMPILER_MSVC")
-        SET (CH_BUILDFLAGS "-DWIN32; -DNOMINMAX; -MP")
+        SET (CH_BUILDFLAGS "-DWIN32 -DNOMINMAX -MP")
         SET (CH_LINKERFLAG_SHARED "/FORCE:MULTIPLE")
         SET(CPACK_SYSTEM_NAME "Win-x86")
     ELSEIF ("${CH_COMPILER}" STREQUAL "COMPILER_MSVC_X64")
-        SET (CH_BUILDFLAGS "-DWIN64; -D_WIN64; -DNOMINMAX; -MP")
+        SET (CH_BUILDFLAGS "-DWIN64 -D_WIN64 -DNOMINMAX -MP")
         SET (CH_LINKERFLAG_SHARED "/FORCE:MULTIPLE")
         SET(CPACK_SYSTEM_NAME "Win-x64")
     ELSEIF ("${CH_COMPILER}" STREQUAL "COMPILER_GCC")
@@ -140,10 +140,10 @@ ENDIF()
 MARK_AS_ADVANCED(CHRONOENGINE_LIBRARY_RELEASE)
 MARK_AS_ADVANCED(CHRONOENGINE_LIBRARY_DEBUG)
 
-SET(CH_INCLUDES "${CH_SDKDIR}")
-SET(CH_INCLUDES ${CH_INCLUDES} "${CH_SDKDIR}/collision/bullet" )
-SET(CH_INCLUDES ${CH_INCLUDES} "${CH_SDKDIR}/collision/gimpact" )
-SET(CH_INCLUDES ${CH_INCLUDES} "${CH_SDKDIR}/collision/convexdecomposition/HACD" )
+SET(CH_INCLUDES "${CH_CHRONO_SDKDIR}")
+SET(CH_INCLUDES ${CH_INCLUDES} "${CH_CHRONO_SDKDIR}/collision/bullet" )
+SET(CH_INCLUDES ${CH_INCLUDES} "${CH_CHRONO_SDKDIR}/collision/gimpact" )
+SET(CH_INCLUDES ${CH_INCLUDES} "${CH_CHRONO_SDKDIR}/collision/convexdecomposition/HACD" )
 
 # Append to easy collective variables
 SET(CHRONOENGINE_INCLUDES  ${CH_INCLUDES})
@@ -305,7 +305,6 @@ IF( ChronoEngine_FIND_COMPONENTS )
     ##### THE unit_IRRLICHT COMPONENT
     
     if (${CH_USE_UNIT_IRRLICHT})
-
         # Find the ChronoEngine_IRRLICHT interface library
 
         FIND_LIBRARY(CHRONOENGINE_LIBRARY_IRRLICHT_RELEASE
@@ -350,23 +349,23 @@ IF( ChronoEngine_FIND_COMPONENTS )
     
     if (${CH_USE_UNIT_IRRLICHT})
         IF(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
-            SET(CH_IRRLICHTDIR ""  CACHE PATH   "Where is your Irrlicht SDK installed? You must set this path to compile demos with 3D display.")
+            SET(CH_IRRLICHT_SDKDIR ""  CACHE PATH   "Where is your Irrlicht SDK installed? You must set this path to compile demos with 3D display.")
             IF ("${CH_COMPILER}" STREQUAL "COMPILER_MSVC")
-                FIND_LIBRARY( CH_IRRLICHTLIB NAMES Irrlicht PATHS "${CH_IRRLICHTDIR}/lib/Win32-visualstudio")
+                FIND_LIBRARY( CH_IRRLICHTLIB NAMES Irrlicht PATHS "${CH_IRRLICHT_SDKDIR}/lib/Win32-visualstudio")
             ELSEIF ("${CH_COMPILER}" STREQUAL "COMPILER_MSVC_X64")
-                FIND_LIBRARY( CH_IRRLICHTLIB NAMES Irrlicht PATHS "${CH_IRRLICHTDIR}/lib/Win64-visualStudio")
+                FIND_LIBRARY( CH_IRRLICHTLIB NAMES Irrlicht PATHS "${CH_IRRLICHT_SDKDIR}/lib/Win64-visualStudio")
             ELSEIF ("${CH_COMPILER}" STREQUAL "COMPILER_GCC")
-                FIND_LIBRARY( CH_IRRLICHTLIB NAMES Irrlicht PATHS "${CH_IRRLICHTDIR}/lib/Win32-gcc")
+                FIND_LIBRARY( CH_IRRLICHTLIB NAMES Irrlicht PATHS "${CH_IRRLICHT_SDKDIR}/lib/Win32-gcc")
             ELSEIF ("${CH_COMPILER}" STREQUAL "COMPILER_GCC_X64")
-                FIND_LIBRARY( CH_IRRLICHTLIB NAMES Irrlicht PATHS "${CH_IRRLICHTDIR}/lib/Win64-gcc")
+                FIND_LIBRARY( CH_IRRLICHTLIB NAMES Irrlicht PATHS "${CH_IRRLICHT_SDKDIR}/lib/Win64-gcc")
             ENDIF()
         ELSEIF(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
-            FIND_PATH(CH_IRRLICHTDIR NAMES irrlicht.h PATHS "/usr/include/irrlicht" "/usr/local/include/irrlicht")
-            FIND_LIBRARY(CH_IRRLICHTLIB NAMES Irrlicht PATHS "/usr/local/lib" ${CH_IRRLICHTDIR}/lib/Linux)
+            FIND_PATH(CH_IRRLICHT_SDKDIR NAMES irrlicht.h PATHS "/usr/include/irrlicht" "/usr/local/include/irrlicht")
+            FIND_LIBRARY(CH_IRRLICHTLIB NAMES Irrlicht PATHS "/usr/local/lib" ${CH_IRRLICHT_SDKDIR}/lib/Linux)
             SET (CH_IRRLICHTLIB "${CH_IRRLICHTLIB}" -lXxf86vm -lglut -lX11 -lGL)
         ELSEIF(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
-            FIND_PATH(CH_IRRLICHTDIR NAMES irrlicht.h PATHS "/usr/include/irrlicht" "/usr/local/include/irrlicht")
-            FIND_LIBRARY( CH_IRRLICHTLIB NAMES Irrlicht PATHS "/usr/local/lib" ${CH_IRRLICHTDIR}/lib/Linux)
+            FIND_PATH(CH_IRRLICHT_SDKDIR NAMES irrlicht.h PATHS "/usr/include/irrlicht" "/usr/local/include/irrlicht")
+            FIND_LIBRARY( CH_IRRLICHTLIB NAMES Irrlicht PATHS "/usr/local/lib" ${CH_IRRLICHT_SDKDIR}/lib/Linux)
             INCLUDE_DIRECTORIES ( /System/Library/Frameworks )
             FIND_LIBRARY(COCOA_LIBRARY Cocoa)
             FIND_LIBRARY(OPENGL_LIBRARY OpenGL)
@@ -375,10 +374,10 @@ IF( ChronoEngine_FIND_COMPONENTS )
             SET(CH_IRRLICHTLIB ${CH_IRRLICHTLIB} ${MAC_LIBS})
         ENDIF()
 
-        IF(EXISTS "${CH_IRRLICHTDIR}/include")
-            SET(CH_IRRLICHTINC "${CH_IRRLICHTDIR}/include")
+        IF(EXISTS "${CH_IRRLICHT_SDKDIR}/include")
+            SET(CH_IRRLICHTINC "${CH_IRRLICHT_SDKDIR}/include")
         ELSE()
-            SET(CH_IRRLICHTINC "${CH_IRRLICHTDIR}")
+            SET(CH_IRRLICHTINC "${CH_IRRLICHT_SDKDIR}")
         ENDIF()
         
         MARK_AS_ADVANCED(CH_IRRLICHTLIB)
