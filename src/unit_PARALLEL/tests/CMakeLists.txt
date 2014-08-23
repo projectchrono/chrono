@@ -11,7 +11,7 @@ SET(LIBRARIES
     ChronoEngine_Utils
 )
 
-IF (ENABLE_OPENGL)
+IF (BUILD_OPENGL)
     INCLUDE_DIRECTORIES(
         ${GLM_INCLUDE_DIRS}
         ${GLEW_INCLUDE_DIR}
@@ -61,7 +61,7 @@ SET(DEMOS
     mixerDVI
 )
 
-IF(ENABLE_OPENGL)
+IF(BUILD_OPENGL)
     SET(DEMOS ${DEMOS} benchmarkOpenGL shapesOpenGL)
 ENDIF()
 
