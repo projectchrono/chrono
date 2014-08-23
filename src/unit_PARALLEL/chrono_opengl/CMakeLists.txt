@@ -82,7 +82,7 @@ SET(ChronoEngine_OpenGL_HEADERS
 IF (MSVC)
 	# On Windows, include necessary Bullet source files.
 	SET(ChronoEngine_OpenGL_SOURCES ${ChronoEngine_OpenGL_SOURCES}
-		${CHRONO_INC}/collision/bullet/BulletCollision/NarrowPhaseCollision/btPersistentManifold.cpp
+		${CH_CHRONO_SDKDIR}/collision/bullet/BulletCollision/NarrowPhaseCollision/btPersistentManifold.cpp
 		)
 ENDIF()
 
