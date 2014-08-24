@@ -143,7 +143,6 @@ void HMMWV9_Vehicle::Initialize(const ChCoordsys<>& chassisPos)
   m_rear_left_wheel->Initialize(m_rear_left_susp->GetSpindle());
 
   // Initialize the powertrain subsystem
-  ////m_powertrain->Initialize(m_chassis, m_rear_left_susp, m_rear_right_susp);
   m_powertrain->Initialize(m_chassis, m_rear_left_susp->GetAxle(), m_rear_right_susp->GetAxle());
 
 }

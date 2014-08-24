@@ -35,12 +35,12 @@ ChSimplePowertrain::ChSimplePowertrain(ChVehicle* car)
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-void ChSimplePowertrain::Initialize(ChSharedPtr<ChBody> chassis,
-                                    ChSharedPtr<ChSuspension> rear_L_susp,
-                                    ChSharedPtr<ChSuspension> rear_R_susp)
+void ChSimplePowertrain::Initialize(ChSharedPtr<ChBody>  chassis,
+                                    ChSharedPtr<ChShaft> axle_L,
+                                    ChSharedPtr<ChShaft> axle_R)
 {
-  m_rear_L_susp = rear_L_susp;
-  m_rear_R_susp = rear_R_susp;
+  m_axle_L = axle_L;
+  m_axle_R = axle_R;
 }
 
 // -----------------------------------------------------------------------------
@@ -67,8 +67,8 @@ void ChSimplePowertrain::Update(double time,
                                 double throttle)
 {
   // Get wheel angular speeds.
-  double wheelSpeedL = m_rear_L_susp->GetAxleSpeed();
-  double wheelSpeedR = m_rear_R_susp->GetAxleSpeed();
+  double wheelSpeedL = m_axle_L->GetPos_dt();
+  double wheelSpeedR = m_axle_R->GetPos_dt();
 
   // Assume clutch is never used. Given the kinematics of differential, the
   // speed of the engine transmission shaft is the average of the two wheel
@@ -93,8 +93,8 @@ void ChSimplePowertrain::Update(double time,
   m_wheelTorque = 0.5 * shaftTorque * (1.0 / GetConicTau());
 
   // Apply torques directly to the rear suspension subsystems.
-  m_rear_L_susp->ApplyAxleTorque(-m_wheelTorque);
-  m_rear_R_susp->ApplyAxleTorque(-m_wheelTorque);
+  m_axle_L->SetAppliedTorque(-m_wheelTorque);
+  m_axle_R->SetAppliedTorque(-m_wheelTorque);
 }
 
 

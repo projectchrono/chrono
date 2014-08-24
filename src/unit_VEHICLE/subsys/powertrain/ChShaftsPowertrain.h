@@ -46,8 +46,8 @@ class CH_SUBSYS_API ChShaftsPowertrain : public ChPowertrain
 public:
 
   ChShaftsPowertrain(ChVehicle* car,
-    const ChVector<>& dir_motor_block = ChVector<>(1,0,0),
-    const ChVector<>& dir_axle = ChVector<>(0,1,0));
+                     const ChVector<>& dir_motor_block = ChVector<>(1,0,0),
+                     const ChVector<>& dir_axle = ChVector<>(0,1,0));
 
   ~ChShaftsPowertrain() {}
 
