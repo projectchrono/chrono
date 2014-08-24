@@ -4,45 +4,51 @@
 # Invoked from the main CMakeLists.txt using ADD_SUBDIRECTORY()
 #=============================================================================
 
-add_executable(embedfile embedfile.cpp)
+ADD_EXECUTABLE(embedfile embedfile.cpp)
 
-add_custom_command(
-  OUTPUT  ${CMAKE_BINARY_DIR}/text_vert.h
-  COMMAND embedfile text_vert ${CMAKE_SOURCE_DIR}/chrono_opengl/resources/text.vert ${CMAKE_BINARY_DIR}/text_vert.h
-  DEPENDS ${CMAKE_SOURCE_DIR}/chrono_opengl/resources/text.vert
-  WORKING_DIRECTORY ${CMAKE_BINARY_DIR})
+SET(GLSL_SHADERS
+  cloud_frag
+  cloud_vert
+  phong_frag
+  phong_vert
+  text_frag
+  text_vert
+  )
 
-add_custom_command(
-  OUTPUT  ${CMAKE_BINARY_DIR}/text_frag.h
-  COMMAND embedfile text_frag ${CMAKE_SOURCE_DIR}/chrono_opengl/resources/text.frag ${CMAKE_BINARY_DIR}/text_frag.h
-  DEPENDS ${CMAKE_SOURCE_DIR}/chrono_opengl/resources/text.frag
-  WORKING_DIRECTORY ${CMAKE_BINARY_DIR})
+FOREACH(GLSL_SHADER ${GLSL_SHADERS})
+  ADD_CUSTOM_COMMAND(
+    OUTPUT  ${CMAKE_BINARY_DIR}/resources/${GLSL_SHADER}.h
+    COMMAND embedfile 
+            ${GLSL_SHADER} 
+            ${CMAKE_SOURCE_DIR}/chrono_opengl/resources/${GLSL_SHADER}.glsl 
+            ${CMAKE_BINARY_DIR}/resources/${GLSL_SHADER}.h
+    DEPENDS ${CMAKE_SOURCE_DIR}/chrono_opengl/resources/${GLSL_SHADER}.glsl
+    WORKING_DIRECTORY ${CMAKE_BINARY_DIR})
+ENDFOREACH()
 
-add_custom_command(
-  OUTPUT  ${CMAKE_BINARY_DIR}/phong_vert.h
-  COMMAND embedfile phong_vert ${CMAKE_SOURCE_DIR}/chrono_opengl/resources/phong.vert ${CMAKE_BINARY_DIR}/phong_vert.h
-  DEPENDS ${CMAKE_SOURCE_DIR}/chrono_opengl/resources/phong.vert
-  WORKING_DIRECTORY ${CMAKE_BINARY_DIR})
+# ------------------------------------------------------------------------------
 
-add_custom_command(
-  OUTPUT  ${CMAKE_BINARY_DIR}/phong_frag.h
-  COMMAND embedfile phong_frag ${CMAKE_SOURCE_DIR}/chrono_opengl/resources/phong.frag ${CMAKE_BINARY_DIR}/phong_frag.h
-  DEPENDS ${CMAKE_SOURCE_DIR}/chrono_opengl/resources/phong.frag
-  WORKING_DIRECTORY ${CMAKE_BINARY_DIR})
+SET(OBJ_FILES
+  box.obj
+  cone.obj
+  cylinder.obj
+  sphere.obj
+  )
 
+IF(MSVC)
+  SET(OBJ_FILES_DEST "${CMAKE_BINARY_DIR}/bin/resources")
+ELSEIF(XCODE_VERSION)
+  SET(OBJ_FILES_DEST "${CMAKE_BINARY_DIR}/bin/resources")
+ELSE()
+  SET(OBJ_FILES_DEST "${CMAKE_BINARY_DIR}/resources")
+ENDIF()
 
-add_custom_command(
-  OUTPUT  ${CMAKE_BINARY_DIR}/cloud_vert.h
-  COMMAND embedfile cloud_vert ${CMAKE_SOURCE_DIR}/chrono_opengl/resources/cloud.vert ${CMAKE_BINARY_DIR}/cloud_vert.h
-  DEPENDS ${CMAKE_SOURCE_DIR}/chrono_opengl/resources/cloud.vert
-  WORKING_DIRECTORY ${CMAKE_BINARY_DIR})
+FOREACH(OBJ_FILE ${OBJ_FILES})
+  FILE(COPY        "${CMAKE_SOURCE_DIR}/chrono_opengl/resources/${OBJ_FILE}"
+       DESTINATION "${OBJ_FILES_DEST}")
+ENDFOREACH()
 
-add_custom_command(
-  OUTPUT  ${CMAKE_BINARY_DIR}/cloud_frag.h
-  COMMAND embedfile cloud_frag ${CMAKE_SOURCE_DIR}/chrono_opengl/resources/cloud.frag ${CMAKE_BINARY_DIR}/cloud_frag.h
-  DEPENDS ${CMAKE_SOURCE_DIR}/chrono_opengl/resources/cloud.frag
-  WORKING_DIRECTORY ${CMAKE_BINARY_DIR})
-
+# ------------------------------------------------------------------------------
 
 SET(ChronoEngine_OpenGL_SOURCES 
 	core/ChOpenGLShader.cpp
@@ -71,18 +77,18 @@ SET(ChronoEngine_OpenGL_HEADERS
 	ChOpenGLViewer.h 
 	ChOpenGLCamera.h
 	ChOpenGLWindow.h
-	${CMAKE_BINARY_DIR}/text_frag.h
-	${CMAKE_BINARY_DIR}/text_vert.h
-	${CMAKE_BINARY_DIR}/phong_frag.h
-	${CMAKE_BINARY_DIR}/phong_vert.h
-	${CMAKE_BINARY_DIR}/cloud_frag.h
-	${CMAKE_BINARY_DIR}/cloud_vert.h
+	${CMAKE_BINARY_DIR}/resources/text_frag.h
+	${CMAKE_BINARY_DIR}/resources/text_vert.h
+	${CMAKE_BINARY_DIR}/resources/phong_frag.h
+	${CMAKE_BINARY_DIR}/resources/phong_vert.h
+	${CMAKE_BINARY_DIR}/resources/cloud_frag.h
+	${CMAKE_BINARY_DIR}/resources/cloud_vert.h
 	)
 
 IF (MSVC)
 	# On Windows, include necessary Bullet source files.
 	SET(ChronoEngine_OpenGL_SOURCES ${ChronoEngine_OpenGL_SOURCES}
-		${CHRONO_INC}/collision/bullet/BulletCollision/NarrowPhaseCollision/btPersistentManifold.cpp
+		${CH_CHRONO_SDKDIR}/collision/bullet/BulletCollision/NarrowPhaseCollision/btPersistentManifold.cpp
 		)
 ENDIF()
 

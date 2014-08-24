@@ -65,7 +65,7 @@ IF(ENABLE_OPENGL)
     SET(DEMOS ${DEMOS} benchmarkOpenGL shapesOpenGL)
 ENDIF()
 
-MESSAGE(STATUS "Executable programs...")
+MESSAGE(STATUS "Demo programs...")
 
 FOREACH(PROGRAM ${DEMOS})
     MESSAGE(STATUS "...add ${PROGRAM}")
