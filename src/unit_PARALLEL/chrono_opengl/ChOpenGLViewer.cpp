@@ -15,13 +15,13 @@
 #include <omp.h>
 #include "ChOpenGLViewer.h"
 #include "FontData.h"
-#include "text_frag.h"
-#include "text_vert.h"
-#include "phong_frag.h"
-#include "phong_vert.h"
 
-#include "cloud_frag.h"
-#include "cloud_vert.h"
+#include "resources/text_frag.h"
+#include "resources/text_vert.h"
+#include "resources/phong_frag.h"
+#include "resources/phong_vert.h"
+#include "resources/cloud_frag.h"
+#include "resources/cloud_vert.h"
 
 //using namespace std;
 using namespace chrono;
@@ -105,10 +105,10 @@ bool ChOpenGLViewer::Initialize() {
       return 0;
    }
 
-   sphere.Initialize("sphere.obj", slate, &main_shader);
-   box.Initialize("box.obj", t3, &main_shader);
-   cylinder.Initialize("cylinder.obj", apple, &main_shader);
-   cone.Initialize("cone.obj", white, &main_shader);
+   sphere.Initialize("../resources/sphere.obj", slate, &main_shader);
+   box.Initialize("../resources/box.obj", t3, &main_shader);
+   cylinder.Initialize("../resources/cylinder.obj", apple, &main_shader);
+   cone.Initialize("../resources/cone.obj", white, &main_shader);
 
    // Initialize vbo and vao for text
    glGenBuffers(1, &vbo);
