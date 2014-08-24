@@ -37,11 +37,12 @@ public:
   virtual double getMass() const { return m_mass; }
   virtual const chrono::ChVector<>& getInertia() { return m_inertia; }
 
+  virtual void Initialize(chrono::ChSharedBodyPtr spindle);
+
   virtual const std::string& getMeshName() const = 0;
   virtual const std::string& getMeshFile() const = 0;
 
-protected:
-  virtual void OnInitialize(chrono::ChSharedBodyPtr body);
+private:
 
   bool               m_contact;
   float              m_mu;

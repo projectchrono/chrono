@@ -50,8 +50,6 @@ public:
   virtual void Initialize(ChSharedBodyPtr   chassis,
                           const ChVector<>& location);
 
-  virtual void AttachWheel(ChSharedPtr<ChWheel> wheel);
-
   virtual void ApplySteering(double displ);
 
 protected:

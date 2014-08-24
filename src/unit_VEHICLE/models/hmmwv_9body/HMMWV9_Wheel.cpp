@@ -77,8 +77,12 @@ HMMWV9_WheelRight::HMMWV9_WheelRight(bool               enableContact,
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-void HMMWV9_Wheel::OnInitialize(ChSharedBodyPtr body)
+void HMMWV9_Wheel::Initialize(ChSharedBodyPtr spindle)
 {
+  // First, invoke the base class method
+  ChWheel::Initialize(spindle);
+
+  // Attach visualization
   switch (m_visType) {
   case PRIMITIVES:
   {
@@ -86,11 +90,11 @@ void HMMWV9_Wheel::OnInitialize(ChSharedBodyPtr body)
     cyl->GetCylinderGeometry().rad = m_radius;
     cyl->GetCylinderGeometry().p1 = ChVector<>(0, m_width / 2, 0);
     cyl->GetCylinderGeometry().p2 = ChVector<>(0, -m_width / 2, 0);
-    body->AddAsset(cyl);
+    spindle->AddAsset(cyl);
 
     ChSharedPtr<ChTexture> tex(new ChTexture);
     tex->SetTextureFilename(GetChronoDataFile("bluwhite.png"));
-    body->AddAsset(tex);
+    spindle->AddAsset(tex);
 
     break;
   }
@@ -102,20 +106,20 @@ void HMMWV9_Wheel::OnInitialize(ChSharedBodyPtr body)
     ChSharedPtr<ChTriangleMeshShape> trimesh_shape(new ChTriangleMeshShape);
     trimesh_shape->SetMesh(trimesh);
     trimesh_shape->SetName(getMeshName());
-    body->AddAsset(trimesh_shape);
+    spindle->AddAsset(trimesh_shape);
 
     break;
   }
   }
 
-  body->SetCollide(m_contact);
+  spindle->SetCollide(m_contact);
 
   if (m_contact) {
-    body->GetCollisionModel()->ClearModel();
-    body->GetCollisionModel()->AddCylinder(m_radius, m_radius, m_width / 2);
-    body->GetCollisionModel()->BuildModel();
+    spindle->GetCollisionModel()->ClearModel();
+    spindle->GetCollisionModel()->AddCylinder(m_radius, m_radius, m_width / 2);
+    spindle->GetCollisionModel()->BuildModel();
 
-    body->GetMaterialSurface()->SetFriction(m_mu);
+    spindle->GetMaterialSurface()->SetFriction(m_mu);
   }
 }
 

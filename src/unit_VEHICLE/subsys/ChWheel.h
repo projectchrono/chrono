@@ -41,10 +41,7 @@ public:
   virtual double getMass() const = 0;
   virtual const ChVector<>& getInertia() = 0;
 
-protected:
-  virtual void OnInitialize(ChSharedBodyPtr body) {}
-
-  friend class ChDoubleWishboneReduced;
+  virtual void Initialize(ChSharedBodyPtr spindle);
 };
 
 
