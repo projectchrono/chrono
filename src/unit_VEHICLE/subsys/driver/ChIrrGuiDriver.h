@@ -46,6 +46,9 @@ class CH_SUBSYS_API ChIrrGuiDriver : public ChDriver, public irr::IEventReceiver
 public:
   ChIrrGuiDriver(irr::ChIrrApp&    app,
                  const ChVehicle&  car,
+                 const ChVector<>& ptOnChassis,
+                 double            chaseDist,
+                 double            chaseHeight,
                  int               HUD_x = 740,
                  int               HUD_y = 20);
 
@@ -53,10 +56,8 @@ public:
 
   virtual bool OnEvent(const irr::SEvent& event);
 
-  void CreateCamera(const ChVector<>&  ptOnChassis,
-                    double             chaseDist,
-                    double             chaseHeight);
-  void UpdateCamera(double step_size);
+  virtual void Advance(double step);
+
   void DrawAll();
 
   void SetTerrainHeight(double height) { m_terrainHeight = height; }
