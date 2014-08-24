@@ -51,26 +51,18 @@ const std::string HMMWV9_WheelRight::m_meshFile = utils::GetModelDataFile("hmmwv
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-HMMWV9_Wheel::HMMWV9_Wheel(bool               enableContact,
-                           float              mu,
-                           VisualizationType  visType)
-: m_contact(enableContact),
-  m_mu(mu),
-  m_visType(visType)
+HMMWV9_Wheel::HMMWV9_Wheel(VisualizationType  visType)
+: m_visType(visType)
 {
 }
 
-HMMWV9_WheelLeft::HMMWV9_WheelLeft(bool               enableContact,
-                                   float              mu,
-                                   VisualizationType  visType)
-: HMMWV9_Wheel(enableContact, mu, visType)
+HMMWV9_WheelLeft::HMMWV9_WheelLeft(VisualizationType  visType)
+: HMMWV9_Wheel(visType)
 {
 }
 
-HMMWV9_WheelRight::HMMWV9_WheelRight(bool               enableContact,
-                                     float              mu,
-                                     VisualizationType  visType)
-: HMMWV9_Wheel(enableContact, mu, visType)
+HMMWV9_WheelRight::HMMWV9_WheelRight(VisualizationType  visType)
+: HMMWV9_Wheel(visType)
 {
 }
 
@@ -110,16 +102,6 @@ void HMMWV9_Wheel::Initialize(ChSharedBodyPtr spindle)
 
     break;
   }
-  }
-
-  spindle->SetCollide(m_contact);
-
-  if (m_contact) {
-    spindle->GetCollisionModel()->ClearModel();
-    spindle->GetCollisionModel()->AddCylinder(m_radius, m_radius, m_width / 2);
-    spindle->GetCollisionModel()->BuildModel();
-
-    spindle->GetMaterialSurface()->SetFriction(m_mu);
   }
 }
 

@@ -25,6 +25,7 @@ SET(demo_HMMWV_HEADERS
 	HMMWV9_SimplePowertrain.h
 	HMMWV9_Powertrain.h
 	HMMWV9_FuncDriver.h
+	HMMWV9_RigidTire.h
 	HMMWV9_RigidTerrain.h
 )
 
@@ -36,6 +37,7 @@ SET(demo_HMMWV_SRCS
 	HMMWV9_SimplePowertrain.cpp
 	HMMWV9_Powertrain.cpp
 	HMMWV9_FuncDriver.cpp
+	HMMWV9_RigidTire.cpp
 	HMMWV9_RigidTerrain.cpp
 )
 

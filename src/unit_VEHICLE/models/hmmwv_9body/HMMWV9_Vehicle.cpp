@@ -103,10 +103,10 @@ HMMWV9_Vehicle::HMMWV9_Vehicle(const bool           fixed,
   // Create the wheels
   // -----------------
 
-  m_front_right_wheel = ChSharedPtr<HMMWV9_Wheel>(new HMMWV9_WheelRight(true, 0.7f, wheelVis));
-  m_front_left_wheel = ChSharedPtr<HMMWV9_Wheel>(new HMMWV9_WheelLeft(true, 0.7f, wheelVis));
-  m_rear_right_wheel = ChSharedPtr<HMMWV9_Wheel>(new HMMWV9_WheelRight(true, 0.7f, wheelVis));
-  m_rear_left_wheel = ChSharedPtr<HMMWV9_Wheel>(new HMMWV9_WheelLeft(true, 0.7f, wheelVis));
+  m_front_right_wheel = ChSharedPtr<HMMWV9_Wheel>(new HMMWV9_WheelRight(wheelVis));
+  m_front_left_wheel = ChSharedPtr<HMMWV9_Wheel>(new HMMWV9_WheelLeft(wheelVis));
+  m_rear_right_wheel = ChSharedPtr<HMMWV9_Wheel>(new HMMWV9_WheelRight(wheelVis));
+  m_rear_left_wheel = ChSharedPtr<HMMWV9_Wheel>(new HMMWV9_WheelLeft(wheelVis));
 
   // -------------------------------
   // Create the powertrain subsystem
@@ -151,6 +151,22 @@ void HMMWV9_Vehicle::Initialize(const ChCoordsys<>& chassisPos)
 // -----------------------------------------------------------------------------
 //
 // -----------------------------------------------------------------------------
+ChSharedBodyPtr HMMWV9_Vehicle::GetWheelBody(ChWheelId which) const
+{
+  switch (which) {
+  case FRONT_LEFT:
+    return m_front_left_susp->GetSpindle();
+  case FRONT_RIGHT:
+    return m_front_right_susp->GetSpindle();
+  case REAR_LEFT:
+    return m_rear_left_susp->GetSpindle();
+  case REAR_RIGHT:
+    return m_rear_right_susp->GetSpindle();
+  default:
+    return m_front_left_susp->GetSpindle();  // should not happen
+  }
+}
+
 const ChVector<>& HMMWV9_Vehicle::GetWheelPos(ChWheelId which) const
 {
   switch (which) {
