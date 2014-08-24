@@ -43,9 +43,15 @@
 
 
 SET (CH_CHRONO_SDKDIR         "" CACHE PATH "Where is your Chrono SDK source installed (the ChronoEngine src/ directory)?")
-SET (CH_LIBDIR_DEBUG   "" CACHE PATH "Where are your Chrono debug libraries (ChronoEngine.lib etc.) installed?")
-SET (CH_LIBDIR_RELEASE "" CACHE PATH "Where are your Chrono release libraries (ChronoEngine.lib etc.) installed?")
 
+IF(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
+  SET (CH_LIBDIR_DEBUG   "" CACHE PATH "Where are your Chrono debug libraries (ChronoEngine.lib etc.) installed?")
+  SET (CH_LIBDIR_RELEASE "" CACHE PATH "Where are your Chrono release libraries (ChronoEngine.lib etc.) installed?")
+ELSE()
+  SET (CH_LIBDIR   "" CACHE PATH "Where are your Chrono libraries (ChronoEngine.lib etc.) installed?")
+  SET(CH_LIBDIR_DEBUG ${CH_LIBDIR})
+  SET(CH_LIBDIR_RELEASE ${CH_LIBDIR})
+ENDIF()
 
 # ================================================================================
 # Generic definitions that can be useful later
