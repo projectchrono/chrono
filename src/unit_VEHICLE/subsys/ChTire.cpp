@@ -25,5 +25,10 @@
 namespace chrono {
 
 
+ChTire::ChTire(const ChTerrain& terrain)
+: m_terrain(terrain)
+{
+}
+
 
 }  // end namespace chrono

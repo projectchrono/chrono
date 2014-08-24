@@ -36,8 +36,10 @@ const double      HMMWV9_RigidTire::m_width = 10 * in2m;
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-HMMWV9_RigidTire::HMMWV9_RigidTire(float mu)
-: m_mu(mu)
+HMMWV9_RigidTire::HMMWV9_RigidTire(const ChTerrain& terrain,
+                                   float            mu)
+: ChTire(terrain),
+  m_mu(mu)
 {
 }
 

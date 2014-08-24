@@ -30,7 +30,9 @@ namespace hmmwv9 {
 class HMMWV9_RigidTire : public chrono::ChTire {
 public:
 
-  HMMWV9_RigidTire(float mu);
+  HMMWV9_RigidTire(const chrono::ChTerrain& terrain,
+                   float                    mu);
+
   ~HMMWV9_RigidTire() {}
 
   virtual chrono::ChTireForce GetTireForce() const;

@@ -28,14 +28,14 @@
 
 #include "subsys/ChApiSubsys.h"
 #include "subsys/ChVehicle.h"
-
+#include "subsys/ChTerrain.h"
 
 namespace chrono {
 
 
 class CH_SUBSYS_API ChTire : public ChShared {
 public:
-  ChTire() {}
+  ChTire(const ChTerrain& terrain);
   virtual ~ChTire() {}
 
   virtual void Update(double              time,
@@ -44,6 +44,9 @@ public:
   virtual void Advance(double step) {}
 
   virtual ChTireForce GetTireForce() const = 0;
+
+protected:
+  const ChTerrain&  m_terrain;
 
 };
 
