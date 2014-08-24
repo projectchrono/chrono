@@ -21,22 +21,35 @@
 
 namespace chrono {
 
-  ChVehicle::ChVehicle()
-  {
-    Set_G_acc(ChVector<>(0, 0, -9.81));
 
-    // Integration and Solver settings
-    SetLcpSolverType(ChSystem::LCP_ITERATIVE_SOR);
-    SetIterLCPmaxItersSpeed(150);
-    SetIterLCPmaxItersStab(150);
-    SetMaxPenetrationRecoverySpeed(4.0);
+ChVehicle::ChVehicle()
+{
+  Set_G_acc(ChVector<>(0, 0, -9.81));
 
-  }
+  // Integration and Solver settings
+  SetLcpSolverType(ChSystem::LCP_ITERATIVE_SOR);
+  SetIterLCPmaxItersSpeed(150);
+  SetIterLCPmaxItersStab(150);
+  SetMaxPenetrationRecoverySpeed(4.0);
+}
 
 
-  void ChVehicle::Advance(double step)
-  {
-    DoStepDynamics(step);
-  }
+void ChVehicle::Advance(double step)
+{
+  DoStepDynamics(step);
+}
+
+ChBodyState ChVehicle::GetWheelState(ChWheelId which)
+{
+  ChBodyState state;
+
+  state.pos = GetWheelPos(which);
+  state.rot = GetWheelRot(which);
+  state.lin_vel = GetWheelLinVel(which);
+  state.ang_vel = GetWheelAngVel(which);
+
+  return state;
+}
+
 
 }  // end namespace chrono

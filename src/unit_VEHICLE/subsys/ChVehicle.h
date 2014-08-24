@@ -35,6 +35,13 @@ enum ChWheelId {
   REAR_RIGHT
 };
 
+struct ChBodyState {
+  ChVector<>     pos;
+  ChQuaternion<> rot;
+  ChVector<>     lin_vel;
+  ChVector<>     ang_vel;
+};
+
 class ChPowertrain;
 
 class CH_SUBSYS_API ChVehicle : public ChSystem {
@@ -42,12 +49,15 @@ public:
   ChVehicle();
   virtual ~ChVehicle() {}
 
+  virtual ChSharedBodyPtr GetWheelBody(ChWheelId which) const = 0;
+
   virtual const ChVector<>& GetWheelPos(ChWheelId which) const = 0;
   virtual const ChQuaternion<>& GetWheelRot(ChWheelId which) const = 0;
   virtual const ChVector<>& GetWheelLinVel(ChWheelId which) const = 0;
   virtual ChVector<> GetWheelAngVel(ChWheelId which) const = 0;
-
   virtual double GetWheelOmega(ChWheelId which) = 0;
+
+  ChBodyState GetWheelState(ChWheelId which);
 
   virtual void Initialize(const ChCoordsys<>& chassisPos) {}
   virtual void Update(double time, double throttle, double steering) {}
