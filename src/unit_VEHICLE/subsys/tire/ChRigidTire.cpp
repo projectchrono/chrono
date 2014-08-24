@@ -12,36 +12,48 @@
 // Authors: Radu Serban
 // =============================================================================
 //
-// HMMWV wheel subsystem
+// Generic rigid tire
 //
 // =============================================================================
 
 
-#include "HMMWV9_RigidTire.h"
-#include "HMMWV9_Vehicle.h"
+#include "ChRigidTire.h"
 
-using namespace chrono;
 
-namespace hmmwv9 {
-
-// -----------------------------------------------------------------------------
-// Static variables
-// -----------------------------------------------------------------------------
-
-static const double in2m = 0.0254;
-
-const double HMMWV9_RigidTire::m_radius = 18.5 * in2m;
-const double HMMWV9_RigidTire::m_width = 10 * in2m;
+namespace chrono {
 
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-HMMWV9_RigidTire::HMMWV9_RigidTire(const ChTerrain& terrain,
-                                   float            mu)
-: ChRigidTire(terrain),
-  m_mu(mu)
+ChRigidTire::ChRigidTire(const ChTerrain& terrain)
+: ChTire(terrain)
 {
 }
 
+// -----------------------------------------------------------------------------
+// -----------------------------------------------------------------------------
+void ChRigidTire::Initialize(ChSharedBodyPtr wheel)
+{
+  wheel->SetCollide(true);
 
-} // end namespace hmmwv9
+  wheel->GetCollisionModel()->ClearModel();
+  wheel->GetCollisionModel()->AddCylinder(getRadius(), getRadius(), getWidth() / 2);
+  wheel->GetCollisionModel()->BuildModel();
+
+  wheel->GetMaterialSurface()->SetFriction(getFrictionCoefficient());
+}
+
+// -----------------------------------------------------------------------------
+// -----------------------------------------------------------------------------
+ChTireForce ChRigidTire::GetTireForce() const
+{
+  ChTireForce tire_force;
+
+  tire_force.force = ChVector<>(0, 0, 0);
+  tire_force.moment = ChVector<>(0, 0, 0);
+
+  return tire_force;
+}
+
+
+} // end namespace chrono

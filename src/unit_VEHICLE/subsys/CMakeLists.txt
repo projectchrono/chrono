@@ -55,6 +55,14 @@ SET(Chrono_Powertrain_SOURCES
     powertrain/ChShaftsPowertrain4wd.cpp
 )
 
+SET(Chrono_Tire_HEADERS
+    tire/ChRigidTire.h
+)
+
+SET(Chrono_Tire_SOURCES
+    tire/ChRigidTire.cpp
+)
+
 IF (ENABLE_IRRLICHT)
     SET(Chrono_Driver_HEADERS ${Chrono_Driver_HEADERS}
         driver/ChIrrGuiDriver.h
@@ -82,6 +90,8 @@ SOURCE_GROUP("Source Files\\driver" FILES ${Chrono_Driver_SOURCES})
 SOURCE_GROUP("Header Files\\powertrain" FILES ${Chrono_Powertrain_HEADERS})
 SOURCE_GROUP("Source Files\\powertrain" FILES ${Chrono_Powertrain_SOURCES})
 
+SOURCE_GROUP("Header Files\\tire" FILES ${Chrono_Tire_HEADERS})
+SOURCE_GROUP("Source Files\\tire" FILES ${Chrono_Tire_SOURCES})
 
 # ------------------------------------------------------------------------------
 # ADD THE Chrono_Subsys LIBRARY
@@ -96,6 +106,8 @@ ADD_LIBRARY(Chrono_Subsys SHARED
     ${Chrono_Driver_SOURCES}
     ${Chrono_Powertrain_HEADERS}
     ${Chrono_Powertrain_SOURCES}
+    ${Chrono_Tire_HEADERS}
+    ${Chrono_Tire_SOURCES}
     )
 
 SET_TARGET_PROPERTIES(Chrono_Subsys PROPERTIES

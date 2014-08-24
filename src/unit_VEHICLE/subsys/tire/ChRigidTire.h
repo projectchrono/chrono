@@ -12,37 +12,37 @@
 // Authors: Radu Serban
 // =============================================================================
 //
-// HMMWV rigid tire subsystem
+// Generic rigid tire
 //
 // =============================================================================
 
-#ifndef HMMWV9_RIGIDTIRE_H
-#define HMMWV9_RIGIDTIRE_H
+#ifndef CH_RIGIDTIRE_H
+#define CH_RIGIDTIRE_H
 
+#include "physics/ChBody.h"
 
-#include "subsys/tire/ChRigidTire.h"
+#include "subsys/ChTire.h"
+#include "subsys/ChTerrain.h"
 
-namespace hmmwv9 {
+namespace chrono {
 
-class HMMWV9_RigidTire : public chrono::ChRigidTire {
+class CH_SUBSYS_API ChRigidTire : public ChTire {
 public:
-  HMMWV9_RigidTire(const chrono::ChTerrain& terrain,
-                   float                    mu);
-  ~HMMWV9_RigidTire() {}
+  ChRigidTire(const ChTerrain& terrain);
+  virtual ~ChRigidTire() {}
 
-  virtual float getFrictionCoefficient() const { return m_mu; }
-  virtual double getRadius() const             { return m_radius; }
-  virtual double getWidth() const              { return m_width; }
+  virtual ChTireForce GetTireForce() const;
 
-private:
-  float                m_mu;
+  void Initialize(ChSharedBodyPtr wheel);
 
-  static const double  m_radius;
-  static const double  m_width;
+protected:
+  virtual float getFrictionCoefficient() const = 0;
+  virtual double getRadius() const = 0;
+  virtual double getWidth() const = 0;
 };
 
 
-} // end namespace hmmwv9
+} // end namespace chrono
 
 
 #endif
