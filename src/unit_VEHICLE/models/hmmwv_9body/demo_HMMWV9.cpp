@@ -84,35 +84,24 @@ int main(int argc, char* argv[])
 {
   SetChronoDataPath(CHRONO_DATA_DIR);
 
-  // -----------------
-  // Create the system
-  // -----------------
-
-  ChSystem m_system;
-
-  m_system.Set_G_acc(ChVector<>(0, 0, -9.81));
-
-  // Integration and Solver settings
-  m_system.SetLcpSolverType(ChSystem::LCP_ITERATIVE_SOR);
-  m_system.SetIterLCPmaxItersSpeed(150);
-  m_system.SetIterLCPmaxItersStab(150);
-  m_system.SetMaxPenetrationRecoverySpeed(4.0);
-  m_system.SetStep(step_size);
+  // ---------------------
+  // Create the subsystems
+  // ---------------------
 
   // Create the HMMWV vehicle
-  HMMWV9_Vehicle vehicle(m_system,
-                         ChCoordsys<>(initLoc, initRot),
-                         false,
+  HMMWV9_Vehicle vehicle(false,
                          hmmwv9::MESH,
                          hmmwv9::MESH);
 
+  vehicle.Initialize(ChCoordsys<>(initLoc, initRot));
+
   // Create the ground
-  HMMWV9_RigidTerrain terrain(m_system, terrainHeight, terrainLength, terrainWidth, 0.8);
+  HMMWV9_RigidTerrain terrain(vehicle, terrainHeight, terrainLength, terrainWidth, 0.8);
   //terrain.AddMovingObstacles(10);
   terrain.AddFixedObstacles();
 
 #ifdef USE_IRRLICHT
-  irr::ChIrrApp application(&m_system,
+  irr::ChIrrApp application(&vehicle,
                             L"HMMWV 9-body demo",
                             irr::core::dimension2d<irr::u32>(1000, 800),
                             false,
@@ -136,14 +125,12 @@ int main(int argc, char* argv[])
  
 
   application.AddTypicalLights(irr::core::vector3df(30.f, -30.f,  100.f),
-                               irr::core::vector3df(30.f,  50.f,  100.f), 
+                               irr::core::vector3df(30.f,  50.f,  100.f),
                                250, 130);
 
   application.SetTimestep(step_size);
 
-  ChIrrGuiDriver driver(application, vehicle);
-
-  driver.CreateCamera(trackPoint, 6, 0.5);
+  ChIrrGuiDriver driver(application, vehicle, trackPoint, 6, 0.5);
 
   // Set the time response for steering and throttle keyboard inputs.
   // NOTE: this is not exact, since we do not render quite at the specified FPS.
@@ -166,10 +153,7 @@ int main(int argc, char* argv[])
 
 #ifdef USE_IRRLICHT
 
-  //ChRealtimeStepTimer realtime_timer;
-
-  application.SetTimestep(step_size);
-  application.SetTryRealtime(true);
+  ChRealtimeStepTimer realtime_timer;
 
   // Refresh 3D view only every N simulation steps:
   int simul_substeps_num = (int) std::ceil((1 / step_size) / FPS);
@@ -178,29 +162,21 @@ int main(int argc, char* argv[])
   while (application.GetDevice()->run())
   {
     // Render scene
-    if (!simul_substep)
+    if (simul_substep == 0) {
       application.GetVideoDriver()->beginScene(true, true, irr::video::SColor(255, 140, 161, 192));
-
-    driver.UpdateCamera(application.GetTimestep());
-
-    if (!simul_substep)
       driver.DrawAll();
+      application.GetVideoDriver()->endScene();
+    }
 
     // Update subsystems 
-    double time = m_system.GetChTime();
+    double time = vehicle.GetChTime();
     driver.Update(time);
     vehicle.Update(time, driver.getThrottle(), driver.getSteering());
 
     // Advance simulation for one timestep.
-    application.DoStep();
-    // Note, alternatively you could also do:
-    //  m_system.DoStepDynamics(realtime_timer.SuggestSimulationStep(step_size));
-    // but application.DoStep()  does the same, plus it can handle the 'pause' (press spacebar)
-    // and it also manages to save screenshots to disk if wanted (pres 'print scr' key)
-
-    // Complete scene
-    if (!simul_substep)
-      application.GetVideoDriver()->endScene();
+    double step = realtime_timer.SuggestSimulationStep(step_size);
+    driver.Advance(step);
+    vehicle.Advance(step);
 
     ++simul_substep;
     if (simul_substep >= simul_substeps_num)
@@ -246,11 +222,13 @@ int main(int argc, char* argv[])
       out_frame++;
     }
 
-    // Update subsystems and advance simulation by one time step
+    // Update subsystems
     driver.Update(time);
     vehicle.Update(time, driver.getThrottle(), driver.getSteering());
 
-    m_system.DoStepDynamics(step_size);
+    // Advance simulation for one timestep.
+    driver.Advance(step_size);
+    vehicle.DoStepDynamics(step_size);
 
     time += step_size;
     frame++;
