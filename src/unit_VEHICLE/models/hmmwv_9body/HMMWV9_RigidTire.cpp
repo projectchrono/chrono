@@ -41,7 +41,6 @@ HMMWV9_RigidTire::HMMWV9_RigidTire(float mu)
 {
 }
 
-
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 void HMMWV9_RigidTire::Initialize(ChSharedBodyPtr wheel)
@@ -55,6 +54,17 @@ void HMMWV9_RigidTire::Initialize(ChSharedBodyPtr wheel)
   wheel->GetMaterialSurface()->SetFriction(m_mu);
 }
 
+// -----------------------------------------------------------------------------
+// -----------------------------------------------------------------------------
+ChTireForce HMMWV9_RigidTire::GetTireForce() const
+{
+  ChTireForce tire_force;
+
+  tire_force.force = ChVector<>(0, 0, 0);
+  tire_force.moment = ChVector<>(0, 0, 0);
+
+  return tire_force;
+}
 
 
 } // end namespace hmmwv9

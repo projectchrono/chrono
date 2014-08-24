@@ -22,6 +22,7 @@
 //
 // =============================================================================
 
+#include <vector>
 
 #include "core/ChFileutils.h"
 #include "core/ChStream.h"
@@ -163,6 +164,7 @@ int main(int argc, char* argv[])
   // Simulation loop
   // ---------------
 
+  ChTireForces tire_forces(4);
 
 #ifdef USE_IRRLICHT
 
@@ -191,7 +193,12 @@ int main(int argc, char* argv[])
     tire_rear_right.Update(time, vehicle.GetWheelState(REAR_RIGHT));
     tire_rear_left.Update(time, vehicle.GetWheelState(REAR_LEFT));
 
-    vehicle.Update(time, driver.getThrottle(), driver.getSteering());
+    tire_forces[FRONT_LEFT] = tire_front_left.GetTireForce();
+    tire_forces[FRONT_RIGHT] = tire_front_right.GetTireForce();
+    tire_forces[REAR_LEFT] = tire_rear_left.GetTireForce();
+    tire_forces[REAR_RIGHT] = tire_rear_right.GetTireForce();
+
+    vehicle.Update(time, driver.getThrottle(), driver.getSteering(), tire_forces);
 
     // Advance simulation for one timestep for all modules
     double step = realtime_timer.SuggestSimulationStep(step_size);
@@ -205,6 +212,7 @@ int main(int argc, char* argv[])
 
     vehicle.Advance(step);
 
+    // Increment frame number
     ++simul_substep;
     if (simul_substep >= simul_substeps_num)
       simul_substep = 0;
@@ -267,8 +275,9 @@ int main(int argc, char* argv[])
     tire_rear_right.Advance(step);
     tire_rear_left.Advance(step);
 
-    vehicle.DoStepDynamics(step_size);
+    vehicle.Advance(step_size);
 
+    // Increment frame number
     time += step_size;
     frame++;
   }

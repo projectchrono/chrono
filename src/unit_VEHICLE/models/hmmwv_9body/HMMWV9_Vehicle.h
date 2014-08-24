@@ -51,10 +51,13 @@ public:
   virtual const chrono::ChQuaternion<>& GetWheelRot(chrono::ChWheelId which) const;
   virtual const chrono::ChVector<>& GetWheelLinVel(chrono::ChWheelId which) const;
   virtual chrono::ChVector<> GetWheelAngVel(chrono::ChWheelId which) const;
-  virtual double GetWheelOmega(chrono::ChWheelId which);
+  virtual double GetWheelOmega(chrono::ChWheelId which) const;
 
   virtual void Initialize(const chrono::ChCoordsys<>& chassisPos);
-  virtual void Update(double time, double throttle, double steering);
+  virtual void Update(double                      time,
+                      double                      throttle,
+                      double                      steering,
+                      const chrono::ChTireForces& tire_forces);
 
   static void ExportMeshPovray(const std::string& out_dir);
 

@@ -33,8 +33,7 @@ public:
   HMMWV9_RigidTire(float mu);
   ~HMMWV9_RigidTire() {}
 
-  virtual chrono::ChVector<> GetTireForce()  { return chrono::ChVector<>(0, 0, 0); }
-  virtual chrono::ChVector<> GetTireMoment() { return chrono::ChVector<>(0, 0, 0); }
+  virtual chrono::ChTireForce GetTireForce() const;
 
   void Initialize(chrono::ChSharedBodyPtr wheel);
 

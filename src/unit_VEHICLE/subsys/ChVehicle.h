@@ -19,6 +19,8 @@
 #ifndef CH_VEHICLE_H
 #define CH_VEHICLE_H
 
+#include <vector>
+
 #include "core/ChVector.h"
 #include "physics/ChSystem.h"
 #include "physics/ChBody.h"
@@ -42,6 +44,13 @@ struct ChBodyState {
   ChVector<>     ang_vel;
 };
 
+struct ChTireForce {
+  ChVector<> force;
+  ChVector<> moment;
+};
+
+typedef std::vector<ChTireForce> ChTireForces;
+
 class ChPowertrain;
 
 class CH_SUBSYS_API ChVehicle : public ChSystem {
@@ -55,12 +64,15 @@ public:
   virtual const ChQuaternion<>& GetWheelRot(ChWheelId which) const = 0;
   virtual const ChVector<>& GetWheelLinVel(ChWheelId which) const = 0;
   virtual ChVector<> GetWheelAngVel(ChWheelId which) const = 0;
-  virtual double GetWheelOmega(ChWheelId which) = 0;
+  virtual double GetWheelOmega(ChWheelId which) const = 0;
 
   ChBodyState GetWheelState(ChWheelId which);
 
   virtual void Initialize(const ChCoordsys<>& chassisPos) {}
-  virtual void Update(double time, double throttle, double steering) {}
+  virtual void Update(double              time,
+                      double              throttle,
+                      double              steering,
+                      const ChTireForces& tire_forces) {}
   virtual void Advance(double step);
 
   const ChSharedBodyPtr GetChassis() const    { return m_chassis; }

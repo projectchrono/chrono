@@ -43,8 +43,7 @@ public:
 
   virtual void Advance(double step) {}
 
-  virtual ChVector<> GetTireForce() = 0;
-  virtual ChVector<> GetTireMoment() = 0;
+  virtual ChTireForce GetTireForce() const = 0;
 
 };
 

@@ -231,7 +231,7 @@ ChVector<> HMMWV9_Vehicle::GetWheelAngVel(ChWheelId which) const
   }
 }
 
-double HMMWV9_Vehicle::GetWheelOmega(ChWheelId which)
+double HMMWV9_Vehicle::GetWheelOmega(ChWheelId which) const
 {
   switch (which) {
   case FRONT_LEFT:
@@ -250,9 +250,10 @@ double HMMWV9_Vehicle::GetWheelOmega(ChWheelId which)
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-void HMMWV9_Vehicle::Update(double time,
-                            double throttle,
-                            double steering)
+void HMMWV9_Vehicle::Update(double              time,
+                            double              throttle,
+                            double              steering,
+                            const ChTireForces& tire_forces)
 {
   // Apply steering input.
   double displ = 0.08 * steering;
@@ -262,6 +263,8 @@ void HMMWV9_Vehicle::Update(double time,
 
   // Let the powertrain subsystem process the throttle input
   m_powertrain->Update(time, throttle);
+
+  // TODO:  apply tire forces to spindle bodies...
 }
 
 
