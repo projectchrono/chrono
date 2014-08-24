@@ -17,8 +17,8 @@
 // subsystem, the wheel's mass properties are used to update those of the
 // spindle body owned by the suspension.
 // A concrete wheel subsystem can optionally carry its own visualization assets
-// and/or contact geometry (which are associated with the suspension's spindle
-// body).
+// (which are associated with the suspension's spindle body).
+//
 // =============================================================================
 
 #include "subsys/ChWheel.h"

@@ -13,6 +13,7 @@ SET(Chrono_Subsys_HEADERS
     ChSuspension.h
     ChVehicle.h
     ChWheel.h
+    ChTire.h
     )
 
 SET(Chrono_Subsys_SOURCES
@@ -21,6 +22,7 @@ SET(Chrono_Subsys_SOURCES
     ChSuspension.cpp
     ChVehicle.cpp
     ChWheel.cpp
+    ChTire.cpp
     )
 
 SET(Chrono_Susp_HEADERS

@@ -9,38 +9,43 @@
 // http://projectchrono.org/license-chrono.txt.
 //
 // =============================================================================
-// Authors: Radu Serban, Justin Madsen
+// Authors: Radu Serban
 // =============================================================================
 //
-// Base class for a vehicle wheel.
-// A wheel subsystem does not own a body. Instead, when attached to a suspension
-// subsystem, the wheel's mass properties are used to update those of the
-// spindle body owned by the suspension.
-// A concrete wheel subsystem can optionally carry its own visualization assets
-// (which are associated with the suspension's spindle body).
+// Base class for a tire.
+// A tire subsystem is a force element. It is passed position and velocity
+// information of the wheel body and it produces ground reaction forces and
+// moments to be applied to the wheel body.
 //
 // =============================================================================
 
-#ifndef CH_WHEEL_H
-#define CH_WHEEL_H
+#ifndef CH_TIRE_H
+#define CH_TIRE_H
 
 #include "core/ChShared.h"
-#include "physics/ChBody.h"
+#include "core/ChVector.h"
+#include "core/ChQuaternion.h"
 
 #include "subsys/ChApiSubsys.h"
+#include "subsys/ChVehicle.h"
+
 
 namespace chrono {
 
 
-class CH_SUBSYS_API ChWheel : public ChShared {
+class CH_SUBSYS_API ChTire : public ChShared {
 public:
-  ChWheel() {}
-  virtual ~ChWheel() {}
+  ChTire() {}
+  virtual ~ChTire() {}
 
-  virtual double getMass() const = 0;
-  virtual const ChVector<>& getInertia() = 0;
+  virtual void Update(double              time,
+                      const ChBodyState&  wheel_state) {}
 
-  virtual void Initialize(ChSharedBodyPtr spindle);
+  virtual void Advance(double step) {}
+
+  virtual ChVector<> GetTireForce() = 0;
+  virtual ChVector<> GetTireMoment() = 0;
+
 };
 
 
