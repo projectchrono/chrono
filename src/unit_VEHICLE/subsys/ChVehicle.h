@@ -19,8 +19,8 @@
 #ifndef CH_VEHICLE_H
 #define CH_VEHICLE_H
 
-#include "core/ChShared.h"
 #include "core/ChVector.h"
+#include "physics/ChSystem.h"
 #include "physics/ChBody.h"
 
 #include "subsys/ChApiSubsys.h"
@@ -37,9 +37,9 @@ enum ChWheelId {
 
 class ChPowertrain;
 
-class CH_SUBSYS_API ChVehicle : public ChShared {
+class CH_SUBSYS_API ChVehicle : public ChSystem {
 public:
-  ChVehicle() {}
+  ChVehicle();
   virtual ~ChVehicle() {}
 
   virtual const ChVector<>& GetWheelPos(ChWheelId which) const = 0;
@@ -49,7 +49,9 @@ public:
 
   virtual double GetWheelOmega(ChWheelId which) = 0;
 
-  virtual void Update(double time, double throttle, double steering) = 0;
+  virtual void Initialize(const ChCoordsys<>& chassisPos) {}
+  virtual void Update(double time, double throttle, double steering) {}
+  virtual void Advance(double step);
 
   const ChSharedBodyPtr GetChassis() const    { return m_chassis; }
   const ChVector<>&     GetChassisPos() const { return m_chassis->GetPos(); }

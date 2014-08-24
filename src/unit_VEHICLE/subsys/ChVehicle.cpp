@@ -21,5 +21,22 @@
 
 namespace chrono {
 
+  ChVehicle::ChVehicle()
+  {
+    Set_G_acc(ChVector<>(0, 0, -9.81));
+
+    // Integration and Solver settings
+    SetLcpSolverType(ChSystem::LCP_ITERATIVE_SOR);
+    SetIterLCPmaxItersSpeed(150);
+    SetIterLCPmaxItersStab(150);
+    SetMaxPenetrationRecoverySpeed(4.0);
+
+  }
+
+
+  void ChVehicle::Advance(double step)
+  {
+    DoStepDynamics(step);
+  }
 
 }  // end namespace chrono
