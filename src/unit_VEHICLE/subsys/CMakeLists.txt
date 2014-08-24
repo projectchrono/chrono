@@ -14,6 +14,7 @@ SET(Chrono_Subsys_HEADERS
     ChVehicle.h
     ChWheel.h
     ChTire.h
+    ChTerrain.h
     )
 
 SET(Chrono_Subsys_SOURCES
@@ -23,6 +24,7 @@ SET(Chrono_Subsys_SOURCES
     ChVehicle.cpp
     ChWheel.cpp
     ChTire.cpp
+    ChTerrain.cpp
     )
 
 SET(Chrono_Susp_HEADERS
