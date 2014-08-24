@@ -97,21 +97,22 @@ int main(int argc, char* argv[])
 
   vehicle.Initialize(ChCoordsys<>(initLoc, initRot));
 
+  // Create the ground
+  HMMWV9_RigidTerrain terrain(vehicle, terrainHeight, terrainLength, terrainWidth, 0.8);
+  //terrain.AddMovingObstacles(10);
+  terrain.AddFixedObstacles();
+
   // Create the tires
-  HMMWV9_RigidTire tire_front_right(0.7f);
-  HMMWV9_RigidTire tire_front_left(0.7f);
-  HMMWV9_RigidTire tire_rear_right(0.7f);
-  HMMWV9_RigidTire tire_rear_left(0.7f);
+  HMMWV9_RigidTire tire_front_right(terrain, 0.7f);
+  HMMWV9_RigidTire tire_front_left(terrain, 0.7f);
+  HMMWV9_RigidTire tire_rear_right(terrain, 0.7f);
+  HMMWV9_RigidTire tire_rear_left(terrain, 0.7f);
 
   tire_front_right.Initialize(vehicle.GetWheelBody(FRONT_RIGHT));
   tire_front_left.Initialize(vehicle.GetWheelBody(FRONT_LEFT));
   tire_rear_right.Initialize(vehicle.GetWheelBody(REAR_RIGHT));
   tire_rear_left.Initialize(vehicle.GetWheelBody(REAR_LEFT));
 
-  // Create the ground
-  HMMWV9_RigidTerrain terrain(vehicle, terrainHeight, terrainLength, terrainWidth, 0.8);
-  //terrain.AddMovingObstacles(10);
-  terrain.AddFixedObstacles();
 
 #ifdef USE_IRRLICHT
   irr::ChIrrApp application(&vehicle,
@@ -188,6 +189,8 @@ int main(int argc, char* argv[])
 
     driver.Update(time);
 
+    terrain.Update(time);
+
     tire_front_right.Update(time, vehicle.GetWheelState(FRONT_RIGHT));
     tire_front_left.Update(time, vehicle.GetWheelState(FRONT_LEFT));
     tire_rear_right.Update(time, vehicle.GetWheelState(REAR_RIGHT));
@@ -204,6 +207,8 @@ int main(int argc, char* argv[])
     double step = realtime_timer.SuggestSimulationStep(step_size);
 
     driver.Advance(step);
+
+    terrain.Advance(step);
 
     tire_front_right.Advance(step);
     tire_front_left.Advance(step);
@@ -260,15 +265,24 @@ int main(int argc, char* argv[])
     // Update modules
     driver.Update(time);
 
+    terrain.Update(time);
+
     tire_front_right.Update(time, vehicle.GetWheelState(FRONT_RIGHT));
     tire_front_left.Update(time, vehicle.GetWheelState(FRONT_LEFT));
     tire_rear_right.Update(time, vehicle.GetWheelState(REAR_RIGHT));
     tire_rear_left.Update(time, vehicle.GetWheelState(REAR_LEFT));
 
-    vehicle.Update(time, driver.getThrottle(), driver.getSteering());
+    tire_forces[FRONT_LEFT] = tire_front_left.GetTireForce();
+    tire_forces[FRONT_RIGHT] = tire_front_right.GetTireForce();
+    tire_forces[REAR_LEFT] = tire_rear_left.GetTireForce();
+    tire_forces[REAR_RIGHT] = tire_rear_right.GetTireForce();
+
+    vehicle.Update(time, driver.getThrottle(), driver.getSteering(), tire_forces);
 
     // Advance simulation for one timestep for all modules
     driver.Advance(step_size);
+
+    terrain.Advance(step_size);
 
     tire_front_right.Advance(step);
     tire_front_left.Advance(step);
