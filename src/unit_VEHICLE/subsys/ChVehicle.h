@@ -46,6 +46,7 @@ struct ChBodyState {
 
 struct ChTireForce {
   ChVector<> force;
+  ChVector<> point;
   ChVector<> moment;
 };
 

@@ -27,7 +27,7 @@
 #include "physics/ChShaftsBody.h"
 
 #include "subsys/ChApiSubsys.h"
-#include "subsys/ChWheel.h"
+#include "subsys/ChVehicle.h"
 
 namespace chrono {
 
@@ -55,8 +55,10 @@ public:
   const ChVector<>& GetSpindleLinVel() const    { return m_spindle->GetPos_dt(); }
   ChVector<> GetSpindleAngVel() const           { return m_spindle->GetWvel_par(); }
 
-  void ApplyAxleTorque(double torque);
   double GetAxleSpeed() const;
+
+  void ApplyTireForce(const ChTireForce& tire_force);
+  void ApplyAxleTorque(double torque);
 
   virtual void Initialize(ChSharedPtr<ChBody>  chassis,
                           const ChVector<>&    location) = 0;

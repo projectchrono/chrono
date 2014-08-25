@@ -50,6 +50,7 @@ ChTireForce ChRigidTire::GetTireForce() const
   ChTireForce tire_force;
 
   tire_force.force = ChVector<>(0, 0, 0);
+  tire_force.point = ChVector<>(0, 0, 0);
   tire_force.moment = ChVector<>(0, 0, 0);
 
   return tire_force;

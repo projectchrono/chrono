@@ -261,10 +261,14 @@ void HMMWV9_Vehicle::Update(double              time,
   m_front_left_susp->ApplySteering(displ);
   m_front_right_susp->ApplySteering(displ);
 
-  // Let the powertrain subsystem process the throttle input
+  // Let the powertrain subsystem process the throttle input.
   m_powertrain->Update(time, throttle);
 
-  // TODO:  apply tire forces to spindle bodies...
+  // Apply tire forces to spindle bodies.
+  m_front_right_susp->ApplyTireForce(tire_forces[FRONT_RIGHT]);
+  m_front_left_susp->ApplyTireForce(tire_forces[FRONT_LEFT]);
+  m_rear_right_susp->ApplyTireForce(tire_forces[REAR_RIGHT]);
+  m_rear_left_susp->ApplyTireForce(tire_forces[REAR_LEFT]);
 }
 
 

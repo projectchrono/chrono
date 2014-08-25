@@ -47,4 +47,12 @@ double ChSuspension::GetAxleSpeed() const
 }
 
 
+void ChSuspension::ApplyTireForce(const ChTireForce& tire_force)
+{
+  m_spindle->Empty_forces_accumulators();
+  m_spindle->Accumulate_force(tire_force.force, tire_force.point, false);
+  m_spindle->Accumulate_torque(tire_force.moment, false);
+}
+
+
 }  // end namespace chrono
