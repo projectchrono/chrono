@@ -55,9 +55,9 @@ int main(
       //cout << n << v << w;
       //cout << ToReal3(Vx) << ToReal3(Vy) << ToReal3(Vz);
       cout << "Orthogonalize Sphere Sphere\n";
-      StrictEqual(n, ToReal3(Vx));
-      StrictEqual(v, ToReal3(Vy));
-      StrictEqual(w, ToReal3(Vz));
+      WeakEqual(n, ToReal3(Vx));
+      WeakEqual(v, ToReal3(Vy));
+      WeakEqual(w, ToReal3(Vz));
 
       //====================================================================
 
@@ -102,13 +102,13 @@ int main(
       //cout << n << v << w;
       //cout << ToReal3(Jx1.ClipVector(0, 0)) << ToReal3(Jx1.ClipVector(0, 1)) << ToReal3(Jx1.ClipVector(0, 2));
       //cout<<ToReal3(contact_plane.ClipVector(0,0))<<ToReal3(contact_plane.ClipVector(0,1))<<ToReal3(contact_plane.ClipVector(0,2));
-      StrictEqual(-n, ToReal3(Jx1.ClipVector(0, 0)));
-      StrictEqual(-v, ToReal3(Jx1.ClipVector(0, 1)));
-      StrictEqual(-w, ToReal3(Jx1.ClipVector(0, 2)));
+      WeakEqual(-n, ToReal3(Jx1.ClipVector(0, 0)));
+      WeakEqual(-v, ToReal3(Jx1.ClipVector(0, 1)));
+      WeakEqual(-w, ToReal3(Jx1.ClipVector(0, 2)));
 
-      StrictEqual(n, ToReal3(Jx2.ClipVector(0, 0)));
-      StrictEqual(v, ToReal3(Jx2.ClipVector(0, 1)));
-      StrictEqual(w, ToReal3(Jx2.ClipVector(0, 2)));
+      WeakEqual(n, ToReal3(Jx2.ClipVector(0, 0)));
+      WeakEqual(v, ToReal3(Jx2.ClipVector(0, 1)));
+      WeakEqual(w, ToReal3(Jx2.ClipVector(0, 2)));
 
       cout << "Jacobians Sphere Sphere\n";
 

@@ -121,7 +121,7 @@ void StrictEqual(
 void WeakEqual(
       const real & x,
       const real & y,
-      float COMPARE_EPS = FLT_EPSILON * 5) {
+      float COMPARE_EPS = FLT_EPSILON ) {
    if (fabs(x - y) > COMPARE_EPS) {
       std::cout << x << " does not equal " << y << " " << fabs(x - y) << std::endl;
       exit(1);
@@ -131,7 +131,7 @@ void WeakEqual(
 void WeakEqual(
       const real3 & a,
       const real3 & b,
-      float COMPARE_EPS = FLT_EPSILON * 5) {
+      float COMPARE_EPS = FLT_EPSILON ) {
    WeakEqual(a.x, b.x, COMPARE_EPS);
    WeakEqual(a.y, b.y, COMPARE_EPS);
    WeakEqual(a.z, b.z, COMPARE_EPS);
@@ -140,7 +140,7 @@ void WeakEqual(
 void WeakEqual(
       const real4 & a,
       const real4 & b,
-      float COMPARE_EPS = FLT_EPSILON * 5) {
+      float COMPARE_EPS = FLT_EPSILON ) {
    WeakEqual(a.w, b.w, COMPARE_EPS);
    WeakEqual(a.x, b.x, COMPARE_EPS);
    WeakEqual(a.y, b.y, COMPARE_EPS);
@@ -150,7 +150,7 @@ void WeakEqual(
 void WeakEqual(
       const M33 & a,
       const M33 & b,
-      float COMPARE_EPS = FLT_EPSILON * 5) {
+      float COMPARE_EPS = FLT_EPSILON ) {
    WeakEqual(a.U, b.U, COMPARE_EPS);
    WeakEqual(a.V, b.V, COMPARE_EPS);
    WeakEqual(a.W, b.W, COMPARE_EPS);

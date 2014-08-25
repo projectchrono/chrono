@@ -54,14 +54,14 @@ int main(
       //cout << cross_m1.U << cross_m1.V << cross_m1.W << endl;
       //cout << ToReal3(cross_m2.ClipVector(0, 0)) << ToReal3(cross_m2.ClipVector(0, 1)) << ToReal3(cross_m2.ClipVector(0, 2)) << endl;
 
-      StrictEqual(cross_m1, ToM33(cross_m2));
+      WeakEqual(cross_m1, ToM33(cross_m2));
    }
 
    {
       cout << "A Matrix\n";
       M33 A1 = AMat(R1);
       ChMatrix33<float> A2 = ChMatrix33<float>(ToChQuaternion(R1));
-      StrictEqual(A1, ToM33(A2));
+      WeakEqual(A1, ToM33(A2));
    }
 
    {
@@ -69,7 +69,7 @@ int main(
       M33 A1 = AMatT(R1);
       ChMatrix33<float> A2 = ChMatrix33<float>(ToChQuaternion(R1));
       A2.MatrTranspose();
-      StrictEqual(A1, ToM33(A2));
+      WeakEqual(A1, ToM33(A2));
    }
 
    M33 A1 = AMat(R1);
@@ -81,7 +81,7 @@ int main(
       cout << "Multiply Matrix\n";
       M33 Res1 = A1 * A2;
       ChMatrix33<float> Res2 = B1 * B2;
-      StrictEqual(Res1, ToM33(Res2));
+      WeakEqual(Res1, ToM33(Res2));
    }
 
    {
@@ -92,7 +92,7 @@ int main(
       ChMatrix33<float> Res2;
       Res2.MatrTMultiply(B1, B2);
 
-      StrictEqual(Res1, ToM33(Res2));
+      WeakEqual(Res1, ToM33(Res2));
    }
 
    {
@@ -103,7 +103,7 @@ int main(
       ChMatrix33<float> Res2;
       Res2.MatrMultiplyT(B1, B2);
 
-      StrictEqual(Res1, ToM33(Res2));
+      WeakEqual(Res1, ToM33(Res2));
    }
 
    return 0;

@@ -72,7 +72,7 @@ int main(
       shape.setMargin(0);
       real3 answer_b = ToReal3(shape.localGetSupportingVertex(btVector3(Dir.x, Dir.y, Dir.z)));
 
-      StrictEqual(answer_a, answer_b);
+      WeakEqual(answer_a, answer_b);
 
    }
 
@@ -113,10 +113,10 @@ int main(
 
       //cout << n << p1 << p2 << d << endl;
 
-      StrictEqual(n, real3(0, -1, 0));
-      StrictEqual(p1, real3(2, 1, 0));
-      StrictEqual(p2, real3(2, 1, 0));
-      StrictEqual(d, 0.0);
+      WeakEqual(n, real3(0, -1, 0));
+      WeakEqual(p1, real3(2, 1, 0));
+      WeakEqual(p2, real3(2, 1, 0));
+      WeakEqual(d, 0.0);
    }
    {
       cout << "special two spheres inter-penetrating" << endl;
@@ -127,10 +127,10 @@ int main(
 
       //cout << n << p1 << p2 << d << endl;
       real3 n_check = real3(sin(CH_C_PI / 4.0), -sin(CH_C_PI / 4.0), 0);
-      StrictEqual(n, n_check);
-      StrictEqual(p1, real3(1, 1, 0) + n_check * 1);
-      StrictEqual(p2, real3(2, 0, 0) - n_check * 1);
-      StrictEqual(d, dot(n_check, (real3(2, 0, 0) - n_check * 1) - (real3(1, 1, 0) + n_check * 1)));
+      WeakEqual(n, n_check);
+      WeakEqual(p1, real3(1, 1, 0) + n_check * 1);
+      WeakEqual(p2, real3(2, 0, 0) - n_check * 1);
+      WeakEqual(d, dot(n_check, (real3(2, 0, 0) - n_check * 1) - (real3(1, 1, 0) + n_check * 1)));
 
    }
 
@@ -156,10 +156,10 @@ int main(
       GetPoints(A_T, A_X, A_Y, A_Z, A_R, B_T, B_X, B_Y, B_Z, B_R, n, p, p1, p2);
 
       //cout << n << p1 << p2 << d << endl;
-      StrictEqual(n, real3(0, -1, 0));
-      StrictEqual(p1, real3(2, 1, 0));
-      StrictEqual(p2, real3(2, 1, 0));
-      StrictEqual(d, 0.0);
+      WeakEqual(n, real3(0, -1, 0));
+      WeakEqual(p1, real3(2, 1, 0));
+      WeakEqual(p2, real3(2, 1, 0));
+      WeakEqual(d, 0.0);
 
    }
 //
@@ -186,7 +186,7 @@ int main(
       d = dot(n, p2 - p1);
       //cout << n << p1 << p2 << d << endl;
       real3 n_check = real3(sin(CH_C_PI / 4.0), -sin(CH_C_PI / 4.0), 0);
-      StrictEqual(n, n_check);
+      WeakEqual(n, n_check);
       WeakEqual(p1, real3(1, 1, 0) + n_check * 1);
       WeakEqual(p2, real3(2, 0, 0) - n_check * 1);
       WeakEqual(d, dot(n_check, (real3(2, 0, 0) - n_check * 1) - (real3(1, 1, 0) + n_check * 1)));
@@ -214,10 +214,10 @@ int main(
       GetPoints(A_T, A_X, A_Y, A_Z, A_R, B_T, B_X, B_Y, B_Z, B_R, n, p, p1, p2);
 
       //cout << n << p1 << p2 << d << endl;
-      StrictEqual(n, real3(0, -1, 0));
-      StrictEqual(p1, real3(2, 1, 0));
-      StrictEqual(p2, real3(2, 1, 0));
-      StrictEqual(d, 0.0);
+      WeakEqual(n, real3(0, -1, 0));
+      WeakEqual(p1, real3(2, 1, 0));
+      WeakEqual(p2, real3(2, 1, 0));
+      WeakEqual(d, 0.0);
 
    }
 //
@@ -241,10 +241,10 @@ int main(
       CollideAndFindPoint(A_T, A_X, A_Y, A_Z, A_R, B_T, B_X, B_Y, B_Z, B_R, n, p, d);
       real3 p1, p2;
       GetPoints(A_T, A_X, A_Y, A_Z, A_R, B_T, B_X, B_Y, B_Z, B_R, n, p, p1, p2);
-
+      d = dot(n, p2 - p1);
       //cout << n << p1 << p2 << d << endl;
       real3 n_check = real3(sin(CH_C_PI / 4.0), -sin(CH_C_PI / 4.0), 0);
-      StrictEqual(n, n_check);
+      WeakEqual(n, n_check);
       WeakEqual(p1, real3(1, 1, 0) + n_check * 1);
       WeakEqual(p2, real3(2, 0, 0) - n_check * 1);
       WeakEqual(d, dot(n_check, (real3(2, 0, 0) - n_check * 1) - (real3(1, 1, 0) + n_check * 1)));
@@ -272,10 +272,10 @@ int main(
       GetPoints(A_T, A_X, A_Y, A_Z, A_R, B_T, B_X, B_Y, B_Z, B_R, n, p, p1, p2);
       //cout << n << p << d << endl << p1 << p2 << endl;
 
-      StrictEqual(n, real3(0, -1, 0));
-      StrictEqual(p1, real3(0, 0.5, 0));
-      StrictEqual(p2, real3(0, 1, 0));
-      StrictEqual(d, -0.5);
+      WeakEqual(n, real3(0, -1, 0));
+      WeakEqual(p1, real3(0, 0.5, 0));
+      WeakEqual(p2, real3(0, 1, 0));
+      WeakEqual(d, -0.5);
    }
 
    {
