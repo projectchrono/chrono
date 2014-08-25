@@ -28,23 +28,19 @@ namespace hmmwv9 {
 class HMMWV9_Wheel : public chrono::ChWheel {
 public:
 
-  HMMWV9_Wheel(bool               enableContact,
-               float              mu,
-               VisualizationType  visType);
-
-  virtual ~HMMWV9_Wheel() {}
+  HMMWV9_Wheel(VisualizationType  visType);
+  ~HMMWV9_Wheel() {}
 
   virtual double getMass() const { return m_mass; }
   virtual const chrono::ChVector<>& getInertia() { return m_inertia; }
 
+  virtual void Initialize(chrono::ChSharedBodyPtr spindle);
+
   virtual const std::string& getMeshName() const = 0;
   virtual const std::string& getMeshFile() const = 0;
 
-protected:
-  virtual void OnInitialize(chrono::ChSharedBodyPtr body);
+private:
 
-  bool               m_contact;
-  float              m_mu;
   VisualizationType  m_visType;
 
   static const double  m_radius;
@@ -56,9 +52,7 @@ protected:
 
 class HMMWV9_WheelLeft : public HMMWV9_Wheel {
 public:
-  HMMWV9_WheelLeft(bool               enableContact,
-                   float              mu,
-                   VisualizationType  visType);
+  HMMWV9_WheelLeft(VisualizationType  visType);
   ~HMMWV9_WheelLeft() {}
 
   virtual const std::string& getMeshName() const { return m_meshName; }
@@ -74,9 +68,7 @@ private:
 
 class HMMWV9_WheelRight : public HMMWV9_Wheel {
 public:
-  HMMWV9_WheelRight(bool               enableContact,
-                    float              mu,
-                    VisualizationType  visType);
+  HMMWV9_WheelRight(VisualizationType  visType);
   ~HMMWV9_WheelRight() {}
 
   virtual const std::string& getMeshName() const { return m_meshName; }

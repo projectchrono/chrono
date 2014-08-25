@@ -9,38 +9,36 @@
 // http://projectchrono.org/license-chrono.txt.
 //
 // =============================================================================
-// Authors: Radu Serban, Justin Madsen
+// Authors: Radu Serban
 // =============================================================================
 //
-// Base class for a vehicle wheel.
-// A wheel subsystem does not own a body. Instead, when attached to a suspension
-// subsystem, the wheel's mass properties are used to update those of the
-// spindle body owned by the suspension.
-// A concrete wheel subsystem can optionally carry its own visualization assets
-// (which are associated with the suspension's spindle body).
+// Generic rigid tire
 //
 // =============================================================================
 
-#ifndef CH_WHEEL_H
-#define CH_WHEEL_H
+#ifndef CH_RIGIDTIRE_H
+#define CH_RIGIDTIRE_H
 
-#include "core/ChShared.h"
 #include "physics/ChBody.h"
 
-#include "subsys/ChApiSubsys.h"
+#include "subsys/ChTire.h"
+#include "subsys/ChTerrain.h"
 
 namespace chrono {
 
-
-class CH_SUBSYS_API ChWheel : public ChShared {
+class CH_SUBSYS_API ChRigidTire : public ChTire {
 public:
-  ChWheel() {}
-  virtual ~ChWheel() {}
+  ChRigidTire(const ChTerrain& terrain);
+  virtual ~ChRigidTire() {}
 
-  virtual double getMass() const = 0;
-  virtual const ChVector<>& getInertia() = 0;
+  virtual ChTireForce GetTireForce() const;
 
-  virtual void Initialize(ChSharedBodyPtr spindle);
+  void Initialize(ChSharedBodyPtr wheel);
+
+protected:
+  virtual float getFrictionCoefficient() const = 0;
+  virtual double getRadius() const = 0;
+  virtual double getWidth() const = 0;
 };
 
 

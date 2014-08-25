@@ -19,8 +19,10 @@
 #ifndef CH_VEHICLE_H
 #define CH_VEHICLE_H
 
-#include "core/ChShared.h"
+#include <vector>
+
 #include "core/ChVector.h"
+#include "physics/ChSystem.h"
 #include "physics/ChBody.h"
 
 #include "subsys/ChApiSubsys.h"
@@ -35,21 +37,44 @@ enum ChWheelId {
   REAR_RIGHT
 };
 
+struct ChBodyState {
+  ChVector<>     pos;
+  ChQuaternion<> rot;
+  ChVector<>     lin_vel;
+  ChVector<>     ang_vel;
+};
+
+struct ChTireForce {
+  ChVector<> force;
+  ChVector<> point;
+  ChVector<> moment;
+};
+
+typedef std::vector<ChTireForce> ChTireForces;
+
 class ChPowertrain;
 
-class CH_SUBSYS_API ChVehicle : public ChShared {
+class CH_SUBSYS_API ChVehicle : public ChSystem {
 public:
-  ChVehicle() {}
+  ChVehicle();
   virtual ~ChVehicle() {}
+
+  virtual ChSharedBodyPtr GetWheelBody(ChWheelId which) const = 0;
 
   virtual const ChVector<>& GetWheelPos(ChWheelId which) const = 0;
   virtual const ChQuaternion<>& GetWheelRot(ChWheelId which) const = 0;
   virtual const ChVector<>& GetWheelLinVel(ChWheelId which) const = 0;
-  virtual const ChVector<>& GetWheelAngVel(ChWheelId which) const = 0;
+  virtual ChVector<> GetWheelAngVel(ChWheelId which) const = 0;
+  virtual double GetWheelOmega(ChWheelId which) const = 0;
 
-  virtual double GetWheelOmega(ChWheelId which) = 0;
+  ChBodyState GetWheelState(ChWheelId which);
 
-  virtual void Update(double time, double throttle, double steering) = 0;
+  virtual void Initialize(const ChCoordsys<>& chassisPos) {}
+  virtual void Update(double              time,
+                      double              throttle,
+                      double              steering,
+                      const ChTireForces& tire_forces) {}
+  virtual void Advance(double step);
 
   const ChSharedBodyPtr GetChassis() const    { return m_chassis; }
   const ChVector<>&     GetChassisPos() const { return m_chassis->GetPos(); }

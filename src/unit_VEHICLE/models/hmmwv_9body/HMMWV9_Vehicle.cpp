@@ -43,9 +43,7 @@ const std::string HMMWV9_Vehicle::m_chassisMeshFile = utils::GetModelDataFile("h
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-HMMWV9_Vehicle::HMMWV9_Vehicle(ChSystem&            my_system,
-                               const ChCoordsys<>&  chassisPos,
-                               const bool           fixed,
+HMMWV9_Vehicle::HMMWV9_Vehicle(const bool           fixed,
                                VisualizationType    chassisVis,
                                VisualizationType    wheelVis)
 {
@@ -59,8 +57,6 @@ HMMWV9_Vehicle::HMMWV9_Vehicle(ChSystem&            my_system,
   m_chassis->SetName("chassis");
   m_chassis->SetMass(m_chassisMass);
   m_chassis->SetInertiaXX(m_chassisInertia);
-  m_chassis->SetPos(chassisPos.pos);
-  m_chassis->SetRot(chassisPos.rot);
   m_chassis->SetBodyFixed(fixed);
 
   switch (chassisVis) {
@@ -92,49 +88,32 @@ HMMWV9_Vehicle::HMMWV9_Vehicle(ChSystem&            my_system,
   }
   }
 
-  my_system.Add(m_chassis);
+  Add(m_chassis);
 
   // -------------------------------------------
   // Create the suspension subsystems
   // -------------------------------------------
 
   m_front_right_susp = ChSharedPtr<HMMWV9_DoubleWishboneFront>(new HMMWV9_DoubleWishboneFront("FRsusp", ChSuspension::RIGHT));
-  m_front_right_susp->Initialize(m_chassis, in2m * ChVector<>(-85.39, 12.10, -18.914));
-
   m_front_left_susp = ChSharedPtr<HMMWV9_DoubleWishboneFront>(new HMMWV9_DoubleWishboneFront("FLsusp", ChSuspension::LEFT));
-  m_front_left_susp->Initialize(m_chassis, in2m * ChVector<>(-85.39, -12.10, -18.914));
-
   m_rear_right_susp = ChSharedPtr<HMMWV9_DoubleWishboneRear>(new HMMWV9_DoubleWishboneRear("RRsusp", ChSuspension::RIGHT, true));
-  m_rear_right_susp->Initialize(m_chassis, in2m * ChVector<>(47.60, 12.10, -18.914));
-
   m_rear_left_susp = ChSharedPtr<HMMWV9_DoubleWishboneRear>(new HMMWV9_DoubleWishboneRear("RLsusp", ChSuspension::LEFT, true));
-  m_rear_left_susp->Initialize(m_chassis, in2m * ChVector<>(47.60, -12.10, -18.914));
 
-  // -------------------------------------------
-  // Create the wheels and attach to suspension
-  // -------------------------------------------
+  // -----------------
+  // Create the wheels
+  // -----------------
 
-  ChSharedPtr<HMMWV9_Wheel> front_right_wheel(new HMMWV9_WheelRight(true, 0.7f, wheelVis));
-  m_front_right_susp->AttachWheel(front_right_wheel);
-
-  ChSharedPtr<HMMWV9_Wheel> front_left_wheel(new HMMWV9_WheelLeft(true, 0.7f, wheelVis));
-  m_front_left_susp->AttachWheel(front_left_wheel);
-
-  ChSharedPtr<HMMWV9_Wheel> rear_right_wheel(new HMMWV9_WheelRight(true, 0.7f, wheelVis));
-  m_rear_right_susp->AttachWheel(rear_right_wheel);
-
-  ChSharedPtr<HMMWV9_Wheel> rear_left_wheel(new HMMWV9_WheelLeft(true, 0.7f, wheelVis));
-  m_rear_left_susp->AttachWheel(rear_left_wheel);
+  m_front_right_wheel = ChSharedPtr<HMMWV9_Wheel>(new HMMWV9_WheelRight(wheelVis));
+  m_front_left_wheel = ChSharedPtr<HMMWV9_Wheel>(new HMMWV9_WheelLeft(wheelVis));
+  m_rear_right_wheel = ChSharedPtr<HMMWV9_Wheel>(new HMMWV9_WheelRight(wheelVis));
+  m_rear_left_wheel = ChSharedPtr<HMMWV9_Wheel>(new HMMWV9_WheelLeft(wheelVis));
 
   // -------------------------------
   // Create the powertrain subsystem
   //--------------------------------
 
   ////m_powertrain = ChSharedPtr<HMMWV9_SimplePowertrain>(new HMMWV9_SimplePowertrain(this));
-  ////m_powertrain->Initialize(m_chassis, m_rear_left_susp, m_rear_right_susp);
-
   m_powertrain = ChSharedPtr<HMMWV9_Powertrain>(new HMMWV9_Powertrain(this));
-  m_powertrain->Initialize(m_chassis, m_rear_left_susp->GetAxle(), m_rear_right_susp->GetAxle());
 
 }
 
@@ -145,8 +124,49 @@ HMMWV9_Vehicle::~HMMWV9_Vehicle()
 
 
 // -----------------------------------------------------------------------------
+// -----------------------------------------------------------------------------
+void HMMWV9_Vehicle::Initialize(const ChCoordsys<>& chassisPos)
+{
+  m_chassis->SetPos(chassisPos.pos);
+  m_chassis->SetRot(chassisPos.rot);
+
+  // Initialize the suspension subsystems
+  m_front_right_susp->Initialize(m_chassis, in2m * ChVector<>(-85.39, 12.10, -18.914));
+  m_front_left_susp->Initialize(m_chassis, in2m * ChVector<>(-85.39, -12.10, -18.914));
+  m_rear_right_susp->Initialize(m_chassis, in2m * ChVector<>(47.60, 12.10, -18.914));
+  m_rear_left_susp->Initialize(m_chassis, in2m * ChVector<>(47.60, -12.10, -18.914));
+
+  // Initialize wheels
+  m_front_right_wheel->Initialize(m_front_right_susp->GetSpindle());
+  m_front_left_wheel->Initialize(m_front_left_susp->GetSpindle());
+  m_rear_right_wheel->Initialize(m_rear_right_susp->GetSpindle());
+  m_rear_left_wheel->Initialize(m_rear_left_susp->GetSpindle());
+
+  // Initialize the powertrain subsystem
+  m_powertrain->Initialize(m_chassis, m_rear_left_susp->GetAxle(), m_rear_right_susp->GetAxle());
+
+}
+
+
+// -----------------------------------------------------------------------------
 //
 // -----------------------------------------------------------------------------
+ChSharedBodyPtr HMMWV9_Vehicle::GetWheelBody(ChWheelId which) const
+{
+  switch (which) {
+  case FRONT_LEFT:
+    return m_front_left_susp->GetSpindle();
+  case FRONT_RIGHT:
+    return m_front_right_susp->GetSpindle();
+  case REAR_LEFT:
+    return m_rear_left_susp->GetSpindle();
+  case REAR_RIGHT:
+    return m_rear_right_susp->GetSpindle();
+  default:
+    return m_front_left_susp->GetSpindle();  // should not happen
+  }
+}
+
 const ChVector<>& HMMWV9_Vehicle::GetWheelPos(ChWheelId which) const
 {
   switch (which) {
@@ -195,7 +215,7 @@ const ChVector<>& HMMWV9_Vehicle::GetWheelLinVel(ChWheelId which) const
   }
 }
 
-const ChVector<>& HMMWV9_Vehicle::GetWheelAngVel(ChWheelId which) const
+ChVector<> HMMWV9_Vehicle::GetWheelAngVel(ChWheelId which) const
 {
   switch (which) {
   case FRONT_LEFT:
@@ -211,7 +231,7 @@ const ChVector<>& HMMWV9_Vehicle::GetWheelAngVel(ChWheelId which) const
   }
 }
 
-double HMMWV9_Vehicle::GetWheelOmega(ChWheelId which)
+double HMMWV9_Vehicle::GetWheelOmega(ChWheelId which) const
 {
   switch (which) {
   case FRONT_LEFT:
@@ -230,9 +250,10 @@ double HMMWV9_Vehicle::GetWheelOmega(ChWheelId which)
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-void HMMWV9_Vehicle::Update(double time,
-                            double throttle,
-                            double steering)
+void HMMWV9_Vehicle::Update(double              time,
+                            double              throttle,
+                            double              steering,
+                            const ChTireForces& tire_forces)
 {
   // Apply steering input.
   double displ = 0.08 * steering;
@@ -240,8 +261,14 @@ void HMMWV9_Vehicle::Update(double time,
   m_front_left_susp->ApplySteering(displ);
   m_front_right_susp->ApplySteering(displ);
 
-  // Let the powertrain subsystem process the throttle input
+  // Let the powertrain subsystem process the throttle input.
   m_powertrain->Update(time, throttle);
+
+  // Apply tire forces to spindle bodies.
+  m_front_right_susp->ApplyTireForce(tire_forces[FRONT_RIGHT]);
+  m_front_left_susp->ApplyTireForce(tire_forces[FRONT_LEFT]);
+  m_rear_right_susp->ApplyTireForce(tire_forces[REAR_RIGHT]);
+  m_rear_left_susp->ApplyTireForce(tire_forces[REAR_LEFT]);
 }
 
 

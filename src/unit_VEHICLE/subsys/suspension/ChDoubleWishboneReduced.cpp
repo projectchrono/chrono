@@ -148,29 +148,10 @@ ChDoubleWishboneReduced::Initialize(ChSharedBodyPtr   chassis,
   if (m_driven) {
     m_axle->SetInertia(getAxleInertia());
     chassis->GetSystem()->Add(m_axle);
-    ChVector<> m_direction(0, 1, 0);
-    m_axle_to_spindle->Initialize(m_axle, m_spindle, m_direction);
+    m_axle_to_spindle->Initialize(m_axle, m_spindle, ChVector<>(0, 1, 0));
     chassis->GetSystem()->Add(m_axle_to_spindle);
   }
 
-}
-
-
-// -----------------------------------------------------------------------------
-//
-// -----------------------------------------------------------------------------
-void 
-ChDoubleWishboneReduced::AttachWheel(ChSharedPtr<ChWheel> wheel)
-{
-  // Update mass properties of the spindle body
-  double wheelMass = wheel->getMass();
-  ChVector<> wheelInertia = wheel->getInertia();
-
-  m_spindle->SetMass(m_spindle->GetMass() + wheelMass);
-  m_spindle->SetInertiaXX(m_spindle->GetInertiaXX() + wheelInertia);
-
-  // Allow the concrete wheel object to perform any additional initialization
-  wheel->OnInitialize(m_spindle);
 }
 
 

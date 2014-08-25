@@ -39,6 +39,9 @@ namespace chrono {
 // -----------------------------------------------------------------------------
 ChIrrGuiDriver::ChIrrGuiDriver(ChIrrApp&         app,
                                const ChVehicle&  car,
+                               const ChVector<>& ptOnChassis,
+                               double            chaseDist,
+                               double            chaseHeight,
                                int               HUD_x,
                                int               HUD_y)
 : m_app(app),
@@ -51,7 +54,22 @@ ChIrrGuiDriver::ChIrrGuiDriver(ChIrrApp&         app,
   m_camera(car.GetChassis())
 {
   app.SetUserEventReceiver(this);
+
+  // Initialize the ChChaseCamera
+  m_camera.Initialize(ptOnChassis, chaseDist, chaseHeight);
+  ChVector<> cam_pos = m_camera.GetCameraPos();
+  ChVector<> cam_target = m_camera.GetTargetPos();
+
+  // Create and initialize the Irrlicht camera
+  scene::ICameraSceneNode *camera = m_app.GetSceneManager()->addCameraSceneNode(
+    m_app.GetSceneManager()->getRootSceneNode(),
+    core::vector3df(0, 0, 0), core::vector3df(0, 0, 0));
+
+  camera->setUpVector(core::vector3df(0, 0, 1));
+  camera->setPosition(core::vector3df((f32)cam_pos.x, (f32)cam_pos.y, (f32)cam_pos.z));
+  camera->setTarget(core::vector3df((f32)cam_target.x, (f32)cam_target.y, (f32)cam_target.z));
 }
+
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
@@ -123,31 +141,13 @@ bool ChIrrGuiDriver::OnEvent(const SEvent& event)
   return false;
 }
 
+
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-void ChIrrGuiDriver::CreateCamera(const ChVector<>& ptOnChassis,
-                                  double            chaseDist,
-                                  double            chaseHeight)
-{
-  // Initialize the ChChaseCamera
-  m_camera.Initialize(ptOnChassis, chaseDist, chaseHeight);
-  ChVector<> cam_pos = m_camera.GetCameraPos();
-  ChVector<> cam_target = m_camera.GetTargetPos();
-
-  // Create and initialize the Irrlicht camera
-  scene::ICameraSceneNode *camera = m_app.GetSceneManager()->addCameraSceneNode(
-    m_app.GetSceneManager()->getRootSceneNode(),
-    core::vector3df(0, 0, 0), core::vector3df(0, 0, 0));
-
-  camera->setUpVector(core::vector3df(0, 0, 1));
-  camera->setPosition(core::vector3df((f32)cam_pos.x, (f32)cam_pos.y, (f32)cam_pos.z));
-  camera->setTarget(core::vector3df((f32)cam_target.x, (f32)cam_target.y, (f32)cam_target.z));
-}
-
-void ChIrrGuiDriver::UpdateCamera(double step_size)
+void ChIrrGuiDriver::Advance(double step)
 {
   // Update the ChChaseCamera
-  m_camera.Update(step_size);
+  m_camera.Update(step);
   ChVector<> cam_pos = m_camera.GetCameraPos();
   ChVector<> cam_target = m_camera.GetTargetPos();
 

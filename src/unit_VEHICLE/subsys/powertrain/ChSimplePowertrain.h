@@ -41,8 +41,8 @@ public:
   ~ChSimplePowertrain() {}
 
   void Initialize(ChSharedPtr<ChBody> chassis,
-                  ChSharedPtr<ChSuspension> rear_L_susp,
-                  ChSharedPtr<ChSuspension> rear_R_susp);
+                  ChSharedPtr<ChShaft> axle_L,
+                  ChSharedPtr<ChShaft> axle_R);
 
   virtual double GetMotorSpeed() const { return m_motorSpeed; }
   virtual double GetMotorTorque() const { return m_motorTorque; }
@@ -57,8 +57,8 @@ protected:
   virtual double GetMaxTorque() const = 0;  // the max torque of the motor [Nm];
   virtual double GetMaxSpeed() const = 0;   // the max rotation speed of the motor [rads/s]
 
-  ChSharedPtr<ChSuspension> m_rear_L_susp;
-  ChSharedPtr<ChSuspension> m_rear_R_susp;
+  ChSharedPtr<ChShaft> m_axle_L;
+  ChSharedPtr<ChShaft> m_axle_R;
 
   double  m_motorSpeed;
   double  m_motorTorque;

@@ -21,9 +21,12 @@
 
 #include "physics/ChSystem.h"
 
+#include "subsys/ChTerrain.h"
+
+
 namespace hmmwv9 {
 
-class HMMWV9_RigidTerrain {
+class HMMWV9_RigidTerrain : public chrono::ChTerrain {
 public:
 
   HMMWV9_RigidTerrain(chrono::ChSystem&  system,
@@ -33,6 +36,8 @@ public:
                       double             mu);
 
   ~HMMWV9_RigidTerrain() {}
+
+  virtual double GetHeight(double x, double y) const { return m_height; }
 
   void AddMovingObstacles(int numObstacles);
   void AddFixedObstacles();
