@@ -103,6 +103,19 @@ bool ChIrrGuiDriver::OnEvent(const SEvent& event)
     case KEY_KEY_3:
       m_camera.SetState(utils::ChChaseCamera::Track);
       return true;
+
+	case KEY_KEY_Z:
+      if (ChShaftsPowertrain* powertrain = dynamic_cast<ChShaftsPowertrain*>(m_car.m_powertrain))
+		  powertrain->SetDriveMode(ChShaftsPowertrain::eDriveMode::FORWARD);
+      return true;
+	case KEY_KEY_X:
+      if (ChShaftsPowertrain* powertrain = dynamic_cast<ChShaftsPowertrain*>(m_car.m_powertrain))
+		  powertrain->SetDriveMode(ChShaftsPowertrain::eDriveMode::NEUTRAL);
+      return true;
+	case KEY_KEY_C:
+      if (ChShaftsPowertrain* powertrain = dynamic_cast<ChShaftsPowertrain*>(m_car.m_powertrain))
+		  powertrain->SetDriveMode(ChShaftsPowertrain::eDriveMode::REVERSE);
+      return true;
     }
 
   }
@@ -286,6 +299,25 @@ void ChIrrGuiDriver::renderStats()
     double torque_wheelR = -powertrain->m_rear_differential->GetTorqueReactionOn3();
     sprintf(msg, "Torque wheel R: %+.2f", torque_wheelR);
     renderLinGauge(std::string(msg), torque_wheelR / 5000, false, m_HUD_x, m_HUD_y + 240, 120, 15);
+
+	int ngear = powertrain->GetSelectedGear();
+	ChShaftsPowertrain::eDriveMode drivemode = powertrain->GetDriveMode();
+	switch (drivemode)
+	{
+		case ChShaftsPowertrain::FORWARD:
+			sprintf(msg, "Gear: forward, n.gear: %d", ngear);
+			break;
+		case ChShaftsPowertrain::NEUTRAL:
+			sprintf(msg, "Gear: neutral %d", ngear);
+			break;
+		case ChShaftsPowertrain::REVERSE:
+			sprintf(msg, "Gear: reverse %d", ngear);
+			break;
+		default: 
+			sprintf(msg, ""); 
+			break;
+	}
+    renderLinGauge(std::string(msg), (double)ngear / 4.0, false, m_HUD_x, m_HUD_y + 260, 120, 15);
   }
 
 }
