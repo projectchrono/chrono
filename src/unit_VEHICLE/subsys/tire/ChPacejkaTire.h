@@ -13,10 +13,11 @@
 // =============================================================================
 //
 // Base class for a Pacjeka type Magic formula 2002 tire model
+//
 // =============================================================================
 
-#ifndef CHPACTIRE_H
-#define CHPACTIRE_H
+#ifndef CH_PACEJKATIRE_H
+#define CH_PACEJKATIRE_H
 
 #include <string>
 #include <fstream>
@@ -29,12 +30,12 @@
 namespace chrono {
 
 // @brief class that reads a ver3.0 pac2002 *.tire file upon init.
-//			calling update will calculate the current F_x, F_y and M_z
-class CH_SUBSYS_API ChPacTire : public ChTire {
+//      calling update will calculate the current F_x, F_y and M_z
+class CH_SUBSYS_API ChPacejkaTire : public ChTire {
 public:
 
-  ChPacTire(const ChTerrain& terrain);
-  virtual ~ChPacTire() {}
+  ChPacejkaTire(const ChTerrain& terrain);
+  virtual ~ChPacejkaTire() {}
   
   // @brief return the most recently computed forces
   // TODO: does Pac model return forces/moments in the wheel local ref frame, or w.r.t. global coords?
@@ -44,16 +45,17 @@ public:
   virtual void Update(double              time,
                       const ChBodyState&  wheel_state);
 
-  // @brief	have the tire do a timestep, prepare 
+  // @brief have the tire do a timestep, prepare 
 
    // @brief write output data to a file
-  void WriteOutData(ChSharedBodyPtr spindle, const double time, 
-	  const std::string outFileName);
+  void WriteOutData(ChSharedBodyPtr    spindle,
+                    const double       time,
+                    const std::string& outFileName);
 
 protected:
-  
+
   // @brief where to find the input parameter file
-  virtual const std::string& get_pacTire_paramFile() = 0;
+  virtual std::string get_pacTire_paramFile() = 0;
 
   // @brief specify the file name to read the Pactire input from
   void Initialize();
@@ -62,12 +64,13 @@ protected:
   virtual void load_pacTire_paramFile(void);
 
   // @brief once Pac tire input text file has been succesfully opened, read 
-  //		the input data as strings. Each vector contains a list of input data
-  //		corresponding to the sections of the input file.
-  //		Section descriptors are in m_inFile_sections
-  virtual void read_pactire_file(std::ifstream& m_inFile,
-	 std::vector<std::list<std::string> >& m_inFile_data,
-	 std::vector<std::string>& m_inFile_sections);
+  //    the input data as strings. Each vector contains a list of input data
+  //    corresponding to the sections of the input file.
+  //    Section descriptors are in m_inFile_sections
+  virtual void read_pactire_file(
+      std::ifstream&                        m_inFile,
+      std::vector<std::list<std::string> >& m_inFile_data,
+      std::vector<std::string>&             m_inFile_sections);
 
 
 // ----- Data members
@@ -90,4 +93,4 @@ protected:
 } // end namespace chrono
 
 
-#endif	// end #ifdef PACTIRE_H
+#endif
