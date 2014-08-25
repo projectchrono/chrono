@@ -86,7 +86,7 @@ endif()
 # ------------------------------------------------------------------------------
 # OpenMP
 # ------------------------------------------------------------------------------
-find_package("OpenMP" REQUIRED)
+find_package("OpenMP")
 
 # Add the OpenMP-specific compiler and linker flags
 SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${OpenMP_CXX_FLAGS}")
