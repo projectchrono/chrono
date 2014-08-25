@@ -9,7 +9,7 @@
 // http://projectchrono.org/license-chrono.txt.
 //
 // =============================================================================
-// Authors: Radu Serban, Justin Madsen
+// Authors: Justin Madsen, Radu Serban
 // =============================================================================
 //
 // Main driver function for the HMMWV 9-body model, using rigid tire-terrain
@@ -35,7 +35,7 @@
 #include "HMMWV9.h"
 #include "HMMWV9_Vehicle.h"
 #include "HMMWV9_FuncDriver.h"
-#include "HMMWV9_RigidTire.h"
+#include "HMMWV9_PacTire.h"
 #include "HMMWV9_RigidTerrain.h"
 
 // If Irrlicht support is available...
@@ -92,8 +92,8 @@ int main(int argc, char* argv[])
 
   // Create the HMMWV vehicle
   HMMWV9_Vehicle vehicle(false,
-                         hmmwv9::MESH,
-                         hmmwv9::MESH);
+                         pactest::MESH,
+                         pactest::MESH);
 
   vehicle.Initialize(ChCoordsys<>(initLoc, initRot));
 
@@ -103,16 +103,10 @@ int main(int argc, char* argv[])
   terrain.AddFixedObstacles();
 
   // Create the tires
-  HMMWV9_RigidTire tire_front_right(terrain, 0.7f);
-  HMMWV9_RigidTire tire_front_left(terrain, 0.7f);
-  HMMWV9_RigidTire tire_rear_right(terrain, 0.7f);
-  HMMWV9_RigidTire tire_rear_left(terrain, 0.7f);
-
-  tire_front_right.Initialize(vehicle.GetWheelBody(FRONT_RIGHT));
-  tire_front_left.Initialize(vehicle.GetWheelBody(FRONT_LEFT));
-  tire_rear_right.Initialize(vehicle.GetWheelBody(REAR_RIGHT));
-  tire_rear_left.Initialize(vehicle.GetWheelBody(REAR_LEFT));
-
+  HMMWV9_PacTire tire_front_right(terrain);
+  HMMWV9_PacTire tire_front_left(terrain);
+  HMMWV9_PacTire tire_rear_right(terrain);
+  HMMWV9_PacTire tire_rear_left(terrain);
 
 #ifdef USE_IRRLICHT
   irr::ChIrrApp application(&vehicle,
@@ -167,7 +161,7 @@ int main(int argc, char* argv[])
 
   ChTireForces tire_forces(4);
 
-#ifdef USE_IRRLICHT
+//	#ifdef USE_IRRLICHT
 
   ChRealtimeStepTimer realtime_timer;
 
@@ -225,6 +219,7 @@ int main(int argc, char* argv[])
 
   application.GetDevice()->drop();
 
+/*
 #else
 
   int out_steps = (int) std::ceil((1 / step_size) / FPS);
@@ -297,6 +292,6 @@ int main(int argc, char* argv[])
   }
 
 #endif
-
+*/
   return 0;
 }
