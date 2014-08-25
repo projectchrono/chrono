@@ -22,6 +22,7 @@
 //
 // =============================================================================
 
+#include <vector>
 
 #include "core/ChFileutils.h"
 #include "core/ChStream.h"
@@ -34,6 +35,7 @@
 #include "HMMWV9.h"
 #include "HMMWV9_Vehicle.h"
 #include "HMMWV9_FuncDriver.h"
+#include "HMMWV9_RigidTire.h"
 #include "HMMWV9_RigidTerrain.h"
 
 // If Irrlicht support is available...
@@ -84,35 +86,36 @@ int main(int argc, char* argv[])
 {
   SetChronoDataPath(CHRONO_DATA_DIR);
 
-  // -----------------
-  // Create the system
-  // -----------------
-
-  ChSystem m_system;
-
-  m_system.Set_G_acc(ChVector<>(0, 0, -9.81));
-
-  // Integration and Solver settings
-  m_system.SetLcpSolverType(ChSystem::LCP_ITERATIVE_SOR);
-  m_system.SetIterLCPmaxItersSpeed(150);
-  m_system.SetIterLCPmaxItersStab(150);
-  m_system.SetMaxPenetrationRecoverySpeed(4.0);
-  m_system.SetStep(step_size);
+  // --------------------------
+  // Create the various modules
+  // --------------------------
 
   // Create the HMMWV vehicle
-  HMMWV9_Vehicle vehicle(m_system,
-                         ChCoordsys<>(initLoc, initRot),
-                         false,
+  HMMWV9_Vehicle vehicle(false,
                          hmmwv9::MESH,
                          hmmwv9::MESH);
 
+  vehicle.Initialize(ChCoordsys<>(initLoc, initRot));
+
   // Create the ground
-  HMMWV9_RigidTerrain terrain(m_system, terrainHeight, terrainLength, terrainWidth, 0.8);
+  HMMWV9_RigidTerrain terrain(vehicle, terrainHeight, terrainLength, terrainWidth, 0.8);
   //terrain.AddMovingObstacles(10);
   terrain.AddFixedObstacles();
 
+  // Create the tires
+  HMMWV9_RigidTire tire_front_right(terrain, 0.7f);
+  HMMWV9_RigidTire tire_front_left(terrain, 0.7f);
+  HMMWV9_RigidTire tire_rear_right(terrain, 0.7f);
+  HMMWV9_RigidTire tire_rear_left(terrain, 0.7f);
+
+  tire_front_right.Initialize(vehicle.GetWheelBody(FRONT_RIGHT));
+  tire_front_left.Initialize(vehicle.GetWheelBody(FRONT_LEFT));
+  tire_rear_right.Initialize(vehicle.GetWheelBody(REAR_RIGHT));
+  tire_rear_left.Initialize(vehicle.GetWheelBody(REAR_LEFT));
+
+
 #ifdef USE_IRRLICHT
-  irr::ChIrrApp application(&m_system,
+  irr::ChIrrApp application(&vehicle,
                             L"HMMWV 9-body demo",
                             irr::core::dimension2d<irr::u32>(1000, 800),
                             false,
@@ -136,14 +139,12 @@ int main(int argc, char* argv[])
  
 
   application.AddTypicalLights(irr::core::vector3df(30.f, -30.f,  100.f),
-                               irr::core::vector3df(30.f,  50.f,  100.f), 
+                               irr::core::vector3df(30.f,  50.f,  100.f),
                                250, 130);
 
   application.SetTimestep(step_size);
 
-  ChIrrGuiDriver driver(application, vehicle);
-
-  driver.CreateCamera(trackPoint, 6, 0.5);
+  ChIrrGuiDriver driver(application, vehicle, trackPoint, 6, 0.5);
 
   // Set the time response for steering and throttle keyboard inputs.
   // NOTE: this is not exact, since we do not render quite at the specified FPS.
@@ -159,49 +160,64 @@ int main(int argc, char* argv[])
   HMMWV9_FuncDriver driver;
 #endif
 
+
   // ---------------
   // Simulation loop
   // ---------------
 
+  ChTireForces tire_forces(4);
 
 #ifdef USE_IRRLICHT
 
-  //ChRealtimeStepTimer realtime_timer;
+  ChRealtimeStepTimer realtime_timer;
 
-  application.SetTimestep(step_size);
-  application.SetTryRealtime(true);
-
-  // Refresh 3D view only every N simulation steps:
+  // Refresh 3D view only every N simulation steps
   int simul_substeps_num = (int) std::ceil((1 / step_size) / FPS);
   int simul_substep = 0;
 
   while (application.GetDevice()->run())
   {
     // Render scene
-    if (!simul_substep)
+    if (simul_substep == 0) {
       application.GetVideoDriver()->beginScene(true, true, irr::video::SColor(255, 140, 161, 192));
-
-    driver.UpdateCamera(application.GetTimestep());
-
-    if (!simul_substep)
       driver.DrawAll();
-
-    // Update subsystems 
-    double time = m_system.GetChTime();
-    driver.Update(time);
-    vehicle.Update(time, driver.getThrottle(), driver.getSteering());
-
-    // Advance simulation for one timestep.
-    application.DoStep();
-    // Note, alternatively you could also do:
-    //  m_system.DoStepDynamics(realtime_timer.SuggestSimulationStep(step_size));
-    // but application.DoStep()  does the same, plus it can handle the 'pause' (press spacebar)
-    // and it also manages to save screenshots to disk if wanted (pres 'print scr' key)
-
-    // Complete scene
-    if (!simul_substep)
       application.GetVideoDriver()->endScene();
+    }
 
+    // Update modules (inter-module communication)
+    double time = vehicle.GetChTime();
+
+    driver.Update(time);
+
+    terrain.Update(time);
+
+    tire_front_right.Update(time, vehicle.GetWheelState(FRONT_RIGHT));
+    tire_front_left.Update(time, vehicle.GetWheelState(FRONT_LEFT));
+    tire_rear_right.Update(time, vehicle.GetWheelState(REAR_RIGHT));
+    tire_rear_left.Update(time, vehicle.GetWheelState(REAR_LEFT));
+
+    tire_forces[FRONT_LEFT] = tire_front_left.GetTireForce();
+    tire_forces[FRONT_RIGHT] = tire_front_right.GetTireForce();
+    tire_forces[REAR_LEFT] = tire_rear_left.GetTireForce();
+    tire_forces[REAR_RIGHT] = tire_rear_right.GetTireForce();
+
+    vehicle.Update(time, driver.getThrottle(), driver.getSteering(), tire_forces);
+
+    // Advance simulation for one timestep for all modules
+    double step = realtime_timer.SuggestSimulationStep(step_size);
+
+    driver.Advance(step);
+
+    terrain.Advance(step);
+
+    tire_front_right.Advance(step);
+    tire_front_left.Advance(step);
+    tire_rear_right.Advance(step);
+    tire_rear_left.Advance(step);
+
+    vehicle.Advance(step);
+
+    // Increment frame number
     ++simul_substep;
     if (simul_substep >= simul_substeps_num)
       simul_substep = 0;
@@ -246,12 +262,36 @@ int main(int argc, char* argv[])
       out_frame++;
     }
 
-    // Update subsystems and advance simulation by one time step
+    // Update modules
     driver.Update(time);
-    vehicle.Update(time, driver.getThrottle(), driver.getSteering());
 
-    m_system.DoStepDynamics(step_size);
+    terrain.Update(time);
 
+    tire_front_right.Update(time, vehicle.GetWheelState(FRONT_RIGHT));
+    tire_front_left.Update(time, vehicle.GetWheelState(FRONT_LEFT));
+    tire_rear_right.Update(time, vehicle.GetWheelState(REAR_RIGHT));
+    tire_rear_left.Update(time, vehicle.GetWheelState(REAR_LEFT));
+
+    tire_forces[FRONT_LEFT] = tire_front_left.GetTireForce();
+    tire_forces[FRONT_RIGHT] = tire_front_right.GetTireForce();
+    tire_forces[REAR_LEFT] = tire_rear_left.GetTireForce();
+    tire_forces[REAR_RIGHT] = tire_rear_right.GetTireForce();
+
+    vehicle.Update(time, driver.getThrottle(), driver.getSteering(), tire_forces);
+
+    // Advance simulation for one timestep for all modules
+    driver.Advance(step_size);
+
+    terrain.Advance(step_size);
+
+    tire_front_right.Advance(step);
+    tire_front_left.Advance(step);
+    tire_rear_right.Advance(step);
+    tire_rear_left.Advance(step);
+
+    vehicle.Advance(step_size);
+
+    // Increment frame number
     time += step_size;
     frame++;
   }

@@ -17,14 +17,24 @@
 // subsystem, the wheel's mass properties are used to update those of the
 // spindle body owned by the suspension.
 // A concrete wheel subsystem can optionally carry its own visualization assets
-// and/or contact geometry (which are associated with the suspension's spindle
-// body).
+// (which are associated with the suspension's spindle body).
+//
 // =============================================================================
 
 #include "subsys/ChWheel.h"
 
 
 namespace chrono {
+
+
+// The base class initialization function attaches this wheel to the specified
+// suspension spindle body (by incrementing the spindle's mass and inertia with
+// that of the wheel.  A derived class should always invoke this base method.
+void ChWheel::Initialize(ChSharedBodyPtr spindle)
+{
+  spindle->SetMass(spindle->GetMass() + getMass());
+  spindle->SetInertiaXX(spindle->GetInertiaXX() + getInertia());
+}
 
 
 }  // end namespace chrono

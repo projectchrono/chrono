@@ -39,22 +39,25 @@ class HMMWV9_Powertrain;
 class HMMWV9_Vehicle : public chrono::ChVehicle {
 public:
 
-  HMMWV9_Vehicle(chrono::ChSystem&            my_system,
-                 const chrono::ChCoordsys<>&  chassisPos,
-                 const bool                   fixed = false,
+  HMMWV9_Vehicle(const bool                   fixed = false,
                  VisualizationType            chassisVis = NONE,
                  VisualizationType            wheelVis = PRIMITIVES);
 
   ~HMMWV9_Vehicle();
 
+  virtual chrono::ChSharedBodyPtr GetWheelBody(chrono::ChWheelId which) const;
+
   virtual const chrono::ChVector<>& GetWheelPos(chrono::ChWheelId which) const;
   virtual const chrono::ChQuaternion<>& GetWheelRot(chrono::ChWheelId which) const;
   virtual const chrono::ChVector<>& GetWheelLinVel(chrono::ChWheelId which) const;
   virtual chrono::ChVector<> GetWheelAngVel(chrono::ChWheelId which) const;
+  virtual double GetWheelOmega(chrono::ChWheelId which) const;
 
-  virtual double GetWheelOmega(chrono::ChWheelId which);
-
-  virtual void Update(double time, double throttle, double steering);
+  virtual void Initialize(const chrono::ChCoordsys<>& chassisPos);
+  virtual void Update(double                      time,
+                      double                      throttle,
+                      double                      steering,
+                      const chrono::ChTireForces& tire_forces);
 
   static void ExportMeshPovray(const std::string& out_dir);
 
@@ -64,6 +67,11 @@ private:
   chrono::ChSharedPtr<HMMWV9_DoubleWishboneFront>   m_front_left_susp;
   chrono::ChSharedPtr<HMMWV9_DoubleWishboneRear>    m_rear_right_susp;
   chrono::ChSharedPtr<HMMWV9_DoubleWishboneRear>    m_rear_left_susp;
+
+  chrono::ChSharedPtr<HMMWV9_Wheel> m_front_right_wheel;
+  chrono::ChSharedPtr<HMMWV9_Wheel> m_front_left_wheel;
+  chrono::ChSharedPtr<HMMWV9_Wheel> m_rear_right_wheel;
+  chrono::ChSharedPtr<HMMWV9_Wheel> m_rear_left_wheel;
 
   ////chrono::ChSharedPtr<HMMWV9_SimplePowertrain>  m_powertrain;
   chrono::ChSharedPtr<HMMWV9_Powertrain>  m_powertrain;

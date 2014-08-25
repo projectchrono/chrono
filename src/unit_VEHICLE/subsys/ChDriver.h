@@ -41,6 +41,7 @@ public:
   double getBraking() const  { return m_braking; }
 
   virtual void Update(double time) {}
+  virtual void Advance(double step) {}
 
 protected:
   void setSteering(double val, double min_val = -1, double max_val = 1);
