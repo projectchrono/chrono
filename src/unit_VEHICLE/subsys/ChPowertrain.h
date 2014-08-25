@@ -29,16 +29,22 @@
 namespace chrono {
 
 
-enum ChDriveType {
-  FWD,
-  RWD,
-  AWD
-};
-
 class CH_SUBSYS_API ChPowertrain : public ChShared {
 public:
 
-  ChPowertrain(ChVehicle* car, ChDriveType type);
+  enum DriveType {
+    FWD,
+    RWD,
+    AWD
+  };
+
+  enum DriveMode {
+    FORWARD,
+    NEUTRAL,
+    REVERSE
+  };
+
+  ChPowertrain(ChVehicle* car, DriveType type);
 
   virtual ~ChPowertrain() {}
 
@@ -50,7 +56,7 @@ public:
 
 protected:
   ChVehicle*    m_car;
-  ChDriveType   m_type;
+  DriveType     m_type;
 };
 
 

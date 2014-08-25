@@ -35,13 +35,13 @@ namespace chrono {
 ChShaftsPowertrain::ChShaftsPowertrain(ChVehicle*         car,
                                        const ChVector<>&  dir_motor_block,
                                        const ChVector<>&  dir_axle)
-: ChPowertrain(car, RWD),
+: ChPowertrain(car, ChPowertrain::RWD),
   m_dir_motor_block(dir_motor_block),
   m_dir_axle(dir_axle)
 {
-	drive_mode = FORWARD;
-	last_time_gearshift = 0;
-	gear_shift_latency = 0.5;
+  drive_mode = ChPowertrain::FORWARD;
+  last_time_gearshift = 0;
+  gear_shift_latency = 0.5;
 }
 
 
@@ -207,39 +207,39 @@ void ChShaftsPowertrain::SetSelectedGear(int igear)
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-void ChShaftsPowertrain::SetDriveMode(eDriveMode mmode)
+void ChShaftsPowertrain::SetDriveMode(ChPowertrain::DriveMode mmode)
 {
-	if (this->drive_mode == mmode) return;
+  if (this->drive_mode == mmode) return;
 
-	// disallow switching if motor is spinning too fast
-	//if (this->GetMotorSpeed() > 1500*CH_C_2PI/60.0)
-	//  return;
+  // disallow switching if motor is spinning too fast
+  //if (this->GetMotorSpeed() > 1500*CH_C_2PI/60.0)
+  //  return;
 
-	this->drive_mode = mmode;
+  this->drive_mode = mmode;
 
-	if(this->drive_mode == FORWARD)
-	{
-		if (m_gears)
-		{
-			this->SetSelectedGear(1);
-		}
-	}
+  if(this->drive_mode == FORWARD)
+  {
+    if (m_gears)
+    {
+      this->SetSelectedGear(1);
+    }
+  }
 
-	if(this->drive_mode == NEUTRAL)
-	{
-		if (m_gears)
-		{
-			m_gears->SetTransmissionRatio(1e20);
-		}
-	}
+  if(this->drive_mode == NEUTRAL)
+  {
+    if (m_gears)
+    {
+      m_gears->SetTransmissionRatio(1e20);
+    }
+  }
 
-	if(this->drive_mode == REVERSE)
-	{
-		if (m_gears)
-		{
-			this->SetSelectedGear(0);
-		}
-	}
+  if(this->drive_mode == REVERSE)
+  {
+    if (m_gears)
+    {
+      this->SetSelectedGear(0);
+    }
+  }
 }
 
 

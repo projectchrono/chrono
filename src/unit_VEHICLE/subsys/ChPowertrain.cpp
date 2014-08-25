@@ -23,7 +23,7 @@ namespace chrono {
 
 
 ChPowertrain::ChPowertrain(ChVehicle*   car,
-                           ChDriveType  type)
+                           DriveType    type)
 : m_car(car),
   m_type(type)
 {
