@@ -95,6 +95,15 @@ void HMMWV9_RigidTerrain::AddFixedObstacles()
   obstacle->SetBodyFixed(true);
 
   m_system.AddBody(obstacle);
+
+  for (int i= 0; i< 8; ++i)
+  {
+	  ChSharedPtr<ChBodyEasyBox> stoneslab(new ChBodyEasyBox(0.5,1.5,0.2, 2000, true, true));
+	  stoneslab->SetPos(ChVector<>(-1.2*i +22, -1, -0.05));
+	  stoneslab->SetRot(Q_from_AngAxis(15*::CH_C_DEG_TO_RAD, VECT_Y));
+	  stoneslab->SetBodyFixed(true);
+	  m_system.AddBody(stoneslab);
+  }
 }
 
 
