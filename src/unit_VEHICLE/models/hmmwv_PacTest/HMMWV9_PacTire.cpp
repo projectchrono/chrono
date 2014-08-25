@@ -25,7 +25,7 @@ const std::string HMMWV9_PacTire::outFileNameDefault = "PacTire";
 const std::string HMMWV9_PacTire::default_PacFile = utils::GetModelDataFile("hmmwv/pactest.tir");
 
 HMMWV9_PacTire::HMMWV9_PacTire(ChTerrain& terrain,	const std::string& pacTire_paramFile):
-ChPacTire(terrain)
+ChPacejkaTire(terrain)
 {
 
 	if(pacTire_paramFile == "none")
