@@ -37,10 +37,9 @@ ChPacejkaTire(terrain)
 
 
 
-const std::string& HMMWV9_PacTire::get_pacTire_paramFile()
+std::string HMMWV9_PacTire::get_pacTire_paramFile()
 {
 	return this->m_paramFile;
-
 }
 
 }		// end namespace pactest

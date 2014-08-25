@@ -55,7 +55,7 @@ public:
 protected:
 
   // @brief where to find the input parameter file
-  virtual const std::string& get_pacTire_paramFile() = 0;
+  virtual std::string get_pacTire_paramFile() = 0;
 
   // @brief specify the file name to read the Pactire input from
   void Initialize();

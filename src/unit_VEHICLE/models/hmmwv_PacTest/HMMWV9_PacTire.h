@@ -39,7 +39,7 @@ protected:
   static const std::string default_PacFile;
 
   // define the pactire parameter file to use
-  virtual const std::string& get_pacTire_paramFile();
+  virtual std::string get_pacTire_paramFile();
 };
 
 
