@@ -20,18 +20,22 @@
 #define REAL_H
 
 #include "chrono_parallel/ChParallelDefines.h"
+#include "chrono_parallel/ChConfigParallel.h"
 #include <float.h>
 
-//#define DISABLE_SSE
-//#define REAL_DOUBLE
 
-#ifdef REAL_DOUBLE
-   #ifndef DISABLE_SSE
-      #define DISABLE_SSE
+
+#ifdef CHRONO_PARALLEL_HAS_SSE
+   #ifndef ENABLE_SSE
+      #define ENABLE_SSE
    #endif
 #endif
 
-#ifdef REAL_DOUBLE
+#ifdef CHRONO_PARALLEL_USE_DOUBLE
+      #undef ENABLE_SSE
+#endif
+
+#ifdef CHRONO_PARALLEL_USE_DOUBLE
 typedef double real;
 #define ZERO_EPSILON DBL_EPSILON
 #else

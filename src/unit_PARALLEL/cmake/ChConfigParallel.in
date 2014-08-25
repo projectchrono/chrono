@@ -31,3 +31,7 @@
 // If OpenGL suppport was found, then
 //   #define CHRONO_PARALLEL_HAS_OPENGL
 @CHRONO_PARALLEL_HAS_OPENGL@
+
+// If using double precision
+//   #define CHRONO_PARALLEL_USE_DOUBLE
+@CHRONO_PARALLEL_USE_DOUBLE@

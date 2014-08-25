@@ -54,28 +54,49 @@ ENDIF()
 # ------------------------------------------------------------------------------
 # Figure out SSE level support
 # ------------------------------------------------------------------------------
-FIND_PACKAGE(SSE)
+OPTION(USE_SSE "Compile with SSE support for floating point math" ON)
+OPTION(USE_DOUBLE "Compile with double precision math (no SSE support)" OFF)
 
-# Set substitution variables for configuration file.
-IF(SSE_FOUND)
-  MESSAGE(STATUS "SSE version: ${SSE_VERSION}")
-  SET(CHRONO_PARALLEL_HAS_SSE "#define CHRONO_PARALLEL_HAS_SSE")
-  SET(CHRONO_PARALLEL_SSE_LEVEL "#define CHRONO_PARALLEL_SSE_LEVEL \"${SSE_VERSION}\"")
-ELSE()
-  MESSAGE("No SSE support")
-ENDIF()
+IF(USE_DOUBLE)
+  OPTION(USE_SSE "Compile with SSE support for floating point math" OFF)
+  SET(CHRONO_PARALLEL_USE_DOUBLE "#define CHRONO_PARALLEL_USE_DOUBLE")
+ELSEIF(USE_SSE)
+  FIND_PACKAGE(SSE)
 
-if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
-  # using Clang
-elseif ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
+  # Set substitution variables for configuration file.
+  IF(SSE_FOUND)
+    MESSAGE(STATUS "SSE version: ${SSE_VERSION}")
+    SET(CHRONO_PARALLEL_HAS_SSE "#define CHRONO_PARALLEL_HAS_SSE")
+    SET(CHRONO_PARALLEL_SSE_LEVEL "#define CHRONO_PARALLEL_SSE_LEVEL \"${SSE_VERSION}\"")
+  ELSE()
+    MESSAGE("No SSE support")
+  ENDIF()
+
+  IF ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
+    # using Clang
+  ELSEIF ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
     SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${SSE_FLAGS} -std=c++11")
     SET(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${SSE_FLAGS} -std=c++11")
-elseif ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Intel")
+  ELSEIF ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Intel")
     SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -xsse${SSE_VERSION}")
     SET(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -xsse${SSE_VERSION}")
-elseif ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "MSVC")
-  # using Visual Studio C++
-endif()
+  ELSEIF ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "MSVC")
+    # using Visual Studio C++
+  ENDIF()
+
+ENDIF()
+
+#Set c++11 flags
+IF ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
+# using Clang
+ELSEIF ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
+  SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
+  SET(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -std=c++11")
+ELSEIF ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Intel")
+ELSEIF ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "MSVC")
+# using Visual Studio C++
+ENDIF()
+
 
 # ------------------------------------------------------------------------------
 # Thrust-related settings
