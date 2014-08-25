@@ -39,6 +39,9 @@ ChShaftsPowertrain::ChShaftsPowertrain(ChVehicle*         car,
   m_dir_motor_block(dir_motor_block),
   m_dir_axle(dir_axle)
 {
+	drive_mode = FORWARD;
+	last_time_gearshift = 0;
+	gear_shift_latency = 0.5;
 }
 
 
@@ -61,6 +64,7 @@ void ChShaftsPowertrain::Initialize(ChSharedPtr<ChBody>  chassis,
   assert(m_gear_ratios.size() > 1);
   m_current_gear = 1;
 
+  drive_mode = FORWARD;
 
   // CREATE  a 1 d.o.f. object: a 'shaft' with rotational inertia.
   // In this case it is the motor block. This because the ChShaftsThermalEngine
@@ -203,6 +207,44 @@ void ChShaftsPowertrain::SetSelectedGear(int igear)
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
+void ChShaftsPowertrain::SetDriveMode(eDriveMode mmode)
+{
+	if (this->drive_mode == mmode) return;
+
+	// disallow switching if motor is spinning too fast
+	//if (this->GetMotorSpeed() > 1500*CH_C_2PI/60.0)
+	//  return;
+
+	this->drive_mode = mmode;
+
+	if(this->drive_mode == FORWARD)
+	{
+		if (m_gears)
+		{
+			this->SetSelectedGear(1);
+		}
+	}
+
+	if(this->drive_mode == NEUTRAL)
+	{
+		if (m_gears)
+		{
+			m_gears->SetTransmissionRatio(1e20);
+		}
+	}
+
+	if(this->drive_mode == REVERSE)
+	{
+		if (m_gears)
+		{
+			this->SetSelectedGear(0);
+		}
+	}
+}
+
+
+// -----------------------------------------------------------------------------
+// -----------------------------------------------------------------------------
 double ChShaftsPowertrain::GetWheelTorque(ChWheelId which) const
 {
   switch (which) {
@@ -227,6 +269,39 @@ void ChShaftsPowertrain::Update(double time,
 {
   // Just update the throttle level in the thermal engine
   m_engine->SetThrottle(throttle);
+
+
+  // Shift the gear if needed, automatically shifting up or down with 
+  // a very simple logic, for instance as in the following fixed latency 
+  // state machine:
+
+  double now_time = this->m_car->GetChassis()->GetChTime();
+
+  if(now_time-last_time_gearshift > gear_shift_latency) // avoids bursts of gear shifts
+  {
+	  if(this->drive_mode == FORWARD)
+	  {
+		  if (this->GetMotorSpeed() > 4000*CH_C_2PI/60.0)
+		  {
+			  if (this->GetSelectedGear()+1 < this->m_gear_ratios.size())
+			  {
+				  GetLog() << "SHIFT UP " << this->GetSelectedGear() << "\n";
+				  this->SetSelectedGear(this->GetSelectedGear()+1);
+				  last_time_gearshift = now_time;
+			  }
+		  }
+		  if (this->GetMotorSpeed() < 1500*CH_C_2PI/60.0)
+		  {
+			  if (this->GetSelectedGear()-1 > 0)
+			  {
+				  GetLog() << "SHIFT DOWN " << this->GetSelectedGear() << "\n";
+				  this->SetSelectedGear(this->GetSelectedGear()-1);
+				  last_time_gearshift = now_time;
+			  }
+		  }
+	  }
+  }
+
 }
 
 

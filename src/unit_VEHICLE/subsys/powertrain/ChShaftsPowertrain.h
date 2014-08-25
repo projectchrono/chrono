@@ -71,6 +71,23 @@ public:
 
   virtual void Update(double time, double throttle);
 
+    enum eDriveMode {
+    FORWARD,
+	NEUTRAL,
+	REVERSE
+  };
+
+	/// Use this function to set the mode of automatic transmission.
+  void SetDriveMode(eDriveMode mmode);
+
+  	/// Use this function to get the mode of automatic transmission.
+  eDriveMode GetDriveMode() {return drive_mode;}
+
+	/// Use this to define the gear shift latency, in seconds.
+  void SetGearShiftLatency(double ml) {gear_shift_latency= ml;}
+  	/// Use this to get the gear shift latency, in seconds.
+  double GetGearShiftLatency(double ml) {return gear_shift_latency;}
+
 protected:
 
   /// Set up the gears, i.e. the transmission ratios of the various gears.
@@ -117,6 +134,10 @@ private:
   ChVector<> m_dir_motor_block;
   ChVector<> m_dir_axle;
 
+  eDriveMode drive_mode;
+  double last_time_gearshift;
+  double gear_shift_latency;
+  
   friend class ChIrrGuiDriver;
 };
 
