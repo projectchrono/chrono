@@ -26,7 +26,7 @@
 
 using namespace chrono;
 
-namespace hmmwv9 {
+namespace pactest {
 
 // -----------------------------------------------------------------------------
 // Static variables
@@ -39,6 +39,7 @@ const ChVector<> HMMWV9_Vehicle::m_chassisInertia(125.8, 497.4, 531.4); // chass
 
 const std::string HMMWV9_Vehicle::m_chassisMeshName = "hmmwv_chassis";
 const std::string HMMWV9_Vehicle::m_chassisMeshFile = utils::GetModelDataFile("hmmwv/humvee4_scaled_rotated_decimated_centered.obj");
+
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
@@ -279,4 +280,4 @@ void HMMWV9_Vehicle::ExportMeshPovray(const std::string& out_dir)
 }
 
 
-} // end namespace hmmwv9
+} // end namespace pactest

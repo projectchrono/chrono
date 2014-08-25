@@ -47,6 +47,8 @@ SET(Chrono_Powertrain_FILES
 SET(Chrono_Tire_FILES
     tire/ChRigidTire.h
     tire/ChRigidTire.cpp
+	tire/ChPacTire.h
+	tire/ChPacTire.cpp
 )
 
 
