@@ -64,7 +64,7 @@ protected:
   //		corresponding to the sections of the input file.
   //		Section descriptors are in m_inFile_sections
   virtual void read_pactire_file(std::ifstream& m_inFile,
-	 std::vector<std::list<std::string>>& m_inFile_data,
+	 std::vector<std::list<std::string> >& m_inFile_data,
 	 std::vector<std::string>& m_inFile_sections);
 
 

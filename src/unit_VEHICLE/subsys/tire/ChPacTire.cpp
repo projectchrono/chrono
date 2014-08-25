@@ -45,7 +45,7 @@ ChTireForce ChPacTire::GetTireForce() const
 // see models/data/hmmwv/pactest.tir
 void ChPacTire::load_pacTire_paramFile(){
 	// try to load the file
-	std::ifstream inFile(this->get_pacTire_paramFile(), std::ios::in);
+	std::ifstream inFile(this->get_pacTire_paramFile().c_str(), std::ios::in);
 	// if not loaded, say something and exit
 	if(! inFile.is_open() ) 
 	{
@@ -55,7 +55,7 @@ void ChPacTire::load_pacTire_paramFile(){
 	
 	// success in opening file, load the data, broken down into sections
 	// according to what is found in the PacTire input file
-	std::vector<std::list<std::string>> inFile_data;
+	std::vector<std::list<std::string> > inFile_data;
 	std::vector<std::string> inFile_sections;
 	this->read_pactire_file(inFile, inFile_data, inFile_sections);
 
@@ -69,7 +69,7 @@ void ChPacTire::load_pacTire_paramFile(){
 }
 
 void ChPacTire::read_pactire_file(std::ifstream& m_inFile,
-	 std::vector<std::list<std::string>>& m_inFile_data,
+	 std::vector<std::list<std::string> >& m_inFile_data,
 	 std::vector<std::string>& m_inFile_sections)
 {
 	// advance to the first part of the file with data we need to read
