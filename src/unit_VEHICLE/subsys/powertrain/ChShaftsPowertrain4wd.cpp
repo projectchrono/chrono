@@ -35,7 +35,7 @@ namespace chrono {
 ChShaftsPowertrain4wd::ChShaftsPowertrain4wd(ChVehicle*         car,
                                              const ChVector<>&  dir_motor_block,
                                              const ChVector<>&  dir_axle)
-: ChPowertrain(car, RWD),
+: ChPowertrain(car, ChPowertrain::RWD),
   m_dir_motor_block(dir_motor_block),
   m_dir_axle(dir_axle)
 {

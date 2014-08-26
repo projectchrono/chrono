@@ -9,26 +9,34 @@
 // http://projectchrono.org/license-chrono.txt.
 //
 // =============================================================================
-// Authors: Radu Serban, Justin Madsen
+// Authors: Radu Serban
 // =============================================================================
 //
-// Base class for a vehicle powertrain.
 //
 // =============================================================================
 
-#include "subsys/ChPowertrain.h"
+#ifndef HMMWV9_FUNCDRIVER_H
+#define HMMWV9_FUNCDRIVER_H
 
+#include "subsys/ChDriver.h"
 
-namespace chrono {
+namespace pactest {
 
-
-ChPowertrain::ChPowertrain(ChVehicle*   car,
-                           DriveType    type)
-: m_car(car),
-  m_type(type)
+class HMMWV9_FuncDriver : public chrono::ChDriver
 {
-  car->m_powertrain = this;
-}
+public:
+
+  HMMWV9_FuncDriver() {}
+  ~HMMWV9_FuncDriver() {}
+
+  virtual void Update(double time);
+
+private:
+
+};
 
 
-}  // end namespace chrono
+} // end namespace pactest
+
+
+#endif

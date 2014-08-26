@@ -46,6 +46,23 @@ ENDIF()
 #MESSAGE(STATUS "Chrono main lib:  ${CHRONOENGINE_LIBRARY}")
 #MESSAGE(STATUS "Chrono libraries: ${CHRONOENGINE_LIBRARIES}")
 
+IF(CHRONOENGINE_LIBRARY_DEBUG)
+  MESSAGE(STATUS "ChronoEngine library (debug) found")
+ENDIF()
+IF(CHRONOENGINE_LIBRARY_RELEASE)
+  MESSAGE(STATUS "ChronoEngine library (release) found")
+ENDIF()
+
+# Stop now if the path to the Chrono SDK is invalid or if we could not find
+# at least one of the debug or release Chrono libraries.
+IF(NOT EXISTS "${CH_CHRONO_SDKDIR}/physics/ChSystem.h")
+  MESSAGE(FATAL_ERROR "Cannot find the Chrono SDK. Make sure CH_CHRONO_SDKDIR is set correctly.")
+  RETURN()
+ENDIF()
+IF(NOT CHRONOENGINE_LIBRARY_DEBUG AND NOT CHRONOENGINE_LIBRARY_RELEASE)
+  MESSAGE(FATAL_ERROR "Cannot find the ChronoEngine library. Check CH_LIBDIR_DEBUG and CH_LIBDIR_RELEASE.")
+  RETURN()
+ENDIF()
 
 # Add paths to Chrono headers
 INCLUDE_DIRECTORIES(${CHRONOENGINE_INCLUDES})

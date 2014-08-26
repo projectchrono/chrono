@@ -26,6 +26,8 @@ SET(Chrono_Subsys_FILES
 
 
 SET(Chrono_Susp_FILES
+    suspension/ChDoubleWishbone.h
+    suspension/ChDoubleWishbone.cpp
     suspension/ChDoubleWishboneReduced.h
     suspension/ChDoubleWishboneReduced.cpp
 )
@@ -47,6 +49,10 @@ SET(Chrono_Powertrain_FILES
 SET(Chrono_Tire_FILES
     tire/ChRigidTire.h
     tire/ChRigidTire.cpp
+    tire/ChPacejkaTire.h
+    tire/ChPacejkaTire.cpp
+    tire/ChLugreTire.h
+    tire/ChLugreTire.cpp
 )
 
 

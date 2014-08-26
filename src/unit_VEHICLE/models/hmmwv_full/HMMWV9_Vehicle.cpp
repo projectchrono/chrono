@@ -93,10 +93,10 @@ HMMWV9_Vehicle::HMMWV9_Vehicle(const bool           fixed,
   // Create the suspension subsystems
   // -------------------------------------------
 
-  m_front_right_susp = ChSharedPtr<HMMWV9_DoubleWishboneFront>(new HMMWV9_DoubleWishboneFront("FRsusp", ChSuspension::RIGHT));
-  m_front_left_susp = ChSharedPtr<HMMWV9_DoubleWishboneFront>(new HMMWV9_DoubleWishboneFront("FLsusp", ChSuspension::LEFT));
-  m_rear_right_susp = ChSharedPtr<HMMWV9_DoubleWishboneRear>(new HMMWV9_DoubleWishboneRear("RRsusp", ChSuspension::RIGHT, true));
-  m_rear_left_susp = ChSharedPtr<HMMWV9_DoubleWishboneRear>(new HMMWV9_DoubleWishboneRear("RLsusp", ChSuspension::LEFT, true));
+  m_front_right_susp = ChSharedPtr<HMMWV_DoubleWishboneFront>(new HMMWV_DoubleWishboneFront("FRsusp", ChSuspension::RIGHT));
+  m_front_left_susp = ChSharedPtr<HMMWV_DoubleWishboneFront>(new HMMWV_DoubleWishboneFront("FLsusp", ChSuspension::LEFT));
+  m_rear_right_susp = ChSharedPtr<HMMWV_DoubleWishboneRear>(new HMMWV_DoubleWishboneRear("RRsusp", ChSuspension::RIGHT, true));
+  m_rear_left_susp = ChSharedPtr<HMMWV_DoubleWishboneRear>(new HMMWV_DoubleWishboneRear("RLsusp", ChSuspension::LEFT, true));
 
   // -----------------
   // Create the wheels

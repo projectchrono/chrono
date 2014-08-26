@@ -42,5 +42,6 @@ ENDIF()
 ADD_SUBDIRECTORY(slider_crank)
 ADD_SUBDIRECTORY(hmmwv_full)
 ADD_SUBDIRECTORY(hmmwv_9body)
+ADD_SUBDIRECTORY(hmmwv_PacTest)
 
 

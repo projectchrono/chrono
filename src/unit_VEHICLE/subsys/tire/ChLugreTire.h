@@ -9,54 +9,43 @@
 // http://projectchrono.org/license-chrono.txt.
 //
 // =============================================================================
-// Authors: Radu Serban, Justin Madsen
+// Authors: Radu Serban, Aki Mikkola
 // =============================================================================
 //
-// Base class for a vehicle powertrain.
+// Template for LuGre tire model
 //
 // =============================================================================
 
-#ifndef CH_POWERTRAIN_H
-#define CH_POWERTRAIN_H
+#ifndef CH_LUGRETIRE_H
+#define CH_LUGRETIRE_H
 
-#include "core/ChShared.h"
-#include "core/ChVector.h"
 #include "physics/ChBody.h"
 
-#include "subsys/ChApiSubsys.h"
-#include "subsys/ChVehicle.h"
+#include "subsys/ChTire.h"
+#include "subsys/ChTerrain.h"
 
 namespace chrono {
 
-
-class CH_SUBSYS_API ChPowertrain : public ChShared {
+class CH_SUBSYS_API ChLugreTire : public ChTire {
 public:
+  ChLugreTire(const ChTerrain& terrain);
+  virtual ~ChLugreTire() {}
 
-  enum DriveType {
-    FWD,
-    RWD,
-    AWD
-  };
+  virtual ChTireForce GetTireForce() const;
 
-  enum DriveMode {
-    FORWARD,
-    NEUTRAL,
-    REVERSE
-  };
-
-  ChPowertrain(ChVehicle* car, DriveType type);
-
-  virtual ~ChPowertrain() {}
-
-  virtual double GetMotorSpeed() const = 0;
-  virtual double GetMotorTorque() const = 0;
-  virtual double GetWheelTorque(ChWheelId which) const = 0;
-
-  virtual void Update(double time, double throttle) = 0;
+  virtual void Update(double              time,
+                      const ChBodyState&  wheel_state);
+  virtual void Advance(double step);
 
 protected:
-  ChVehicle*    m_car;
-  DriveType     m_type;
+  virtual int getNumDiscs() const = 0;
+  virtual double getRadius() const = 0;
+  virtual const double* getDiscLocations() const = 0;
+
+private:
+  ChVector<>  m_force;
+  ChVector<>  m_point;
+  ChVector<>  m_moment;
 };
 
 

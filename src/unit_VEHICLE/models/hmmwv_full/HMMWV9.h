@@ -12,23 +12,23 @@
 // Authors: Radu Serban, Justin Madsen
 // =============================================================================
 //
-// Base class for a vehicle powertrain.
-//
 // =============================================================================
 
-#include "subsys/ChPowertrain.h"
+#ifndef HMMWV9_H
+#define HMMWV9_H
+
+#include "ChronoT_config.h"
+
+namespace hmmwv9 {
+
+enum VisualizationType {
+  NONE,
+  PRIMITIVES,
+  MESH
+};
 
 
-namespace chrono {
+} // end namespace hmmwv9
 
 
-ChPowertrain::ChPowertrain(ChVehicle*   car,
-                           DriveType    type)
-: m_car(car),
-  m_type(type)
-{
-  car->m_powertrain = this;
-}
-
-
-}  // end namespace chrono
+#endif
