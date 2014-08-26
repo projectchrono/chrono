@@ -26,6 +26,8 @@ SET(Chrono_Subsys_FILES
 
 
 SET(Chrono_Susp_FILES
+    suspension/ChDoubleWishbone.h
+    suspension/ChDoubleWishbone.cpp
     suspension/ChDoubleWishboneReduced.h
     suspension/ChDoubleWishboneReduced.cpp
 )
