@@ -28,6 +28,9 @@
 //
 // =============================================================================
 
+#include "assets/ChCylinderShape.h"
+#include "assets/ChColorAsset.h"
+
 #include "subsys/suspension/ChDoubleWishbone.h"
 
 
@@ -126,6 +129,7 @@ ChDoubleWishbone::Initialize(ChSharedBodyPtr   chassis,
   //m_bodyLCA->SetRot(chassis->GetCoord().rot); // TODO: Should be quaternion formed by avg(LCA_B,LCA_F) and LCA_U
   m_bodyLCA->SetMass(getLCAMass());
   m_bodyLCA->SetInertiaXX(getLCAInertia());
+  AddVisualizationLCA();
   OnInitializeLCA();
   chassis->GetSystem()->AddBody(m_bodyLCA);
 
@@ -133,6 +137,7 @@ ChDoubleWishbone::Initialize(ChSharedBodyPtr   chassis,
   m_upright->SetRot(chassis->GetCoord().rot);
   m_upright->SetMass(getUprightMass());
   m_upright->SetInertiaXX(getUprightInertia());
+  AddVisualizationUCA();
   OnInitializeUpright();
   chassis->GetSystem()->AddBody(m_upright);
 
@@ -180,6 +185,63 @@ ChDoubleWishbone::Initialize(ChSharedBodyPtr   chassis,
     chassis->GetSystem()->Add(m_axle_to_spindle);
   }
 
+}
+
+
+// -----------------------------------------------------------------------------
+// -----------------------------------------------------------------------------
+void ChDoubleWishbone::AddVisualizationLCA()
+{
+  // Express hardpoint locations in body frame.
+  ChVector<> p_F = m_bodyUCA->TransformPointParentToLocal(m_points[LCA_F]);
+  ChVector<> p_B = m_bodyUCA->TransformPointParentToLocal(m_points[LCA_B]);
+  ChVector<> p_U = m_bodyUCA->TransformPointParentToLocal(m_points[LCA_U]);
+
+  ChSharedPtr<ChCylinderShape> cyl_F(new ChCylinderShape);
+  cyl_F->GetCylinderGeometry().p1 = p_F;
+  cyl_F->GetCylinderGeometry().p2 = p_U;
+  cyl_F->GetCylinderGeometry().rad = getLCARadius();
+  m_bodyUCA->AddAsset(cyl_F);
+
+  ChSharedPtr<ChCylinderShape> cyl_B(new ChCylinderShape);
+  cyl_B->GetCylinderGeometry().p1 = p_B;
+  cyl_B->GetCylinderGeometry().p2 = p_U;
+  cyl_B->GetCylinderGeometry().rad = 0.02;
+  m_bodyUCA->AddAsset(cyl_B);
+
+  ChSharedPtr<ChColorAsset> col(new ChColorAsset);
+  switch (m_side) {
+  case RIGHT: col->SetColor(ChColor(0.6f, 0.4f, 0.4f)); break;
+  case LEFT:  col->SetColor(ChColor(0.4f, 0.6f, 0.6f)); break;
+  }
+  m_bodyUCA->AddAsset(col);
+}
+
+void ChDoubleWishbone::AddVisualizationUCA()
+{
+  // Express hardpoint locations in body frame.
+  ChVector<> p_F = m_bodyUCA->TransformPointParentToLocal(m_points[UCA_F]);
+  ChVector<> p_B = m_bodyUCA->TransformPointParentToLocal(m_points[UCA_B]);
+  ChVector<> p_U = m_bodyUCA->TransformPointParentToLocal(m_points[UCA_U]);
+
+  ChSharedPtr<ChCylinderShape> cyl_F(new ChCylinderShape);
+  cyl_F->GetCylinderGeometry().p1 = p_F;
+  cyl_F->GetCylinderGeometry().p2 = p_U;
+  cyl_F->GetCylinderGeometry().rad = getUCARadius();
+  m_bodyUCA->AddAsset(cyl_F);
+
+  ChSharedPtr<ChCylinderShape> cyl_B(new ChCylinderShape);
+  cyl_B->GetCylinderGeometry().p1 = p_B;
+  cyl_B->GetCylinderGeometry().p2 = p_U;
+  cyl_B->GetCylinderGeometry().rad = 0.02;
+  m_bodyUCA->AddAsset(cyl_B);
+
+  ChSharedPtr<ChColorAsset> col(new ChColorAsset);
+  switch (m_side) {
+  case RIGHT: col->SetColor(ChColor(0.6f, 0.4f, 0.4f)); break;
+  case LEFT:  col->SetColor(ChColor(0.4f, 0.6f, 0.6f)); break;
+  }
+  m_bodyUCA->AddAsset(col);
 }
 
 

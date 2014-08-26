@@ -77,6 +77,9 @@ protected:
   virtual double getLCAMass() const = 0;
   virtual double getUprightMass() const = 0;
 
+  virtual double getUCARadius() const = 0;
+  virtual double getLCARadius() const = 0;
+
   virtual const ChVector<>& getSpindleInertia() const = 0;
   virtual const ChVector<>& getUCAInertia() const = 0;
   virtual const ChVector<>& getLCAInertia() const = 0;
@@ -116,6 +119,8 @@ protected:
 
 private:
 
+  void   AddVisualizationUCA();
+  void   AddVisualizationLCA();
 };
 
 

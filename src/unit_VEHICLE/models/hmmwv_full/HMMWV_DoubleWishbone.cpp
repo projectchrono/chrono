@@ -41,6 +41,9 @@ const double     HMMWV_DoubleWishboneFront::m_UCAMass = 1;  // TODO: This is not
 const double     HMMWV_DoubleWishboneFront::m_LCAMass = 1;  // TODO: This is not the correct value
 const double     HMMWV_DoubleWishboneFront::m_uprightMass = 1;
 
+const double     HMMWV_DoubleWishboneFront::m_LCARadius = 0.02;
+const double     HMMWV_DoubleWishboneFront::m_UCARadius = 0.02;
+
 const ChVector<> HMMWV_DoubleWishboneFront::m_spindleInertia(1, 1, 1);
 const ChVector<> HMMWV_DoubleWishboneFront::m_UCAInertia(1, 1, 1);  // TODO: This is not the correct value
 const ChVector<> HMMWV_DoubleWishboneFront::m_LCAInertia(1, 1, 1);  // TODO: This is not the correct value
@@ -60,6 +63,9 @@ const double     HMMWV_DoubleWishboneRear::m_spindleMass = 1;
 const double     HMMWV_DoubleWishboneRear::m_UCAMass = 1;  // TODO: This is not the correct value
 const double     HMMWV_DoubleWishboneRear::m_LCAMass = 1;  // TODO: This is not the correct value
 const double     HMMWV_DoubleWishboneRear::m_uprightMass = 1;
+
+const double     HMMWV_DoubleWishboneRear::m_LCARadius = 0.02;
+const double     HMMWV_DoubleWishboneRear::m_UCARadius = 0.02;
 
 const ChVector<> HMMWV_DoubleWishboneRear::m_spindleInertia(1, 1, 1);
 const ChVector<> HMMWV_DoubleWishboneRear::m_UCAInertia(1, 1, 1);  // TODO: This is not the correct value
@@ -165,62 +171,6 @@ void HMMWV_DoubleWishboneRear::OnInitializeUpright()
   case LEFT:  col->SetColor(ChColor(0.4f, 0.6f, 0.6f)); break;
   }
   m_upright->AddAsset(col);
-}
-
-void HMMWV_DoubleWishboneFront::OnInitializeUCA()
-{
-  ChSharedPtr<ChBoxShape> box(new ChBoxShape);
-  box->GetBoxGeometry().SetLengths(m_uprightDims); // TODO: Change dimensions
-  m_bodyUCA->AddAsset(box);
-
-  ChSharedPtr<ChColorAsset> col(new ChColorAsset);
-  switch (m_side) {
-  case RIGHT: col->SetColor(ChColor(0.6f, 0.2f, 0.2f)); break;
-  case LEFT:  col->SetColor(ChColor(0.2f, 0.6f, 0.2f)); break;
-  }
-  m_bodyUCA->AddAsset(col);
-}
-
-void HMMWV_DoubleWishboneRear::OnInitializeUCA()
-{
-  ChSharedPtr<ChBoxShape> box(new ChBoxShape);
-  box->GetBoxGeometry().SetLengths(m_uprightDims); // TODO: Change dimensions
-  m_bodyUCA->AddAsset(box);
-
-  ChSharedPtr<ChColorAsset> col(new ChColorAsset);
-  switch (m_side) {
-  case RIGHT: col->SetColor(ChColor(0.6f, 0.4f, 0.4f)); break;
-  case LEFT:  col->SetColor(ChColor(0.4f, 0.6f, 0.6f)); break;
-  }
-  m_bodyUCA->AddAsset(col);
-}
-
-void HMMWV_DoubleWishboneFront::OnInitializeLCA()
-{
-  ChSharedPtr<ChBoxShape> box(new ChBoxShape);
-  box->GetBoxGeometry().SetLengths(m_uprightDims); // TODO: Change dimensions
-  m_bodyLCA->AddAsset(box);
-
-  ChSharedPtr<ChColorAsset> col(new ChColorAsset);
-  switch (m_side) {
-  case RIGHT: col->SetColor(ChColor(0.6f, 0.2f, 0.2f)); break;
-  case LEFT:  col->SetColor(ChColor(0.2f, 0.6f, 0.2f)); break;
-  }
-  m_bodyLCA->AddAsset(col);
-}
-
-void HMMWV_DoubleWishboneRear::OnInitializeLCA()
-{
-  ChSharedPtr<ChBoxShape> box(new ChBoxShape);
-  box->GetBoxGeometry().SetLengths(m_uprightDims); // TODO: Change dimensions
-  m_bodyLCA->AddAsset(box);
-
-  ChSharedPtr<ChColorAsset> col(new ChColorAsset);
-  switch (m_side) {
-  case RIGHT: col->SetColor(ChColor(0.6f, 0.4f, 0.4f)); break;
-  case LEFT:  col->SetColor(ChColor(0.4f, 0.6f, 0.6f)); break;
-  }
-  m_bodyLCA->AddAsset(col);
 }
 
 

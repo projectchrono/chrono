@@ -42,6 +42,9 @@ public:
   virtual double getLCAMass() const { return m_LCAMass; }
   virtual double getUprightMass() const { return m_uprightMass; }
 
+  virtual double getUCARadius() const { return m_UCARadius; }
+  virtual double getLCARadius() const { return m_LCARadius; }
+
   virtual const chrono::ChVector<>& getSpindleInertia() const { return m_spindleInertia; }
   virtual const chrono::ChVector<>& getUCAInertia() const { return m_UCAInertia; }
   virtual const chrono::ChVector<>& getLCAInertia() const { return m_LCAInertia; }
@@ -58,13 +61,15 @@ private:
   virtual const chrono::ChVector<> getLocation(PointId which);
 
   virtual void OnInitializeUpright();
-  virtual void OnInitializeUCA();
-  virtual void OnInitializeLCA();
 
   static const double      m_spindleMass;
   static const double      m_UCAMass;
   static const double      m_LCAMass;
   static const double      m_uprightMass;
+
+  static const double      m_UCARadius;
+  static const double      m_LCARadius;
+
   static const chrono::ChVector<>  m_spindleInertia;
   static const chrono::ChVector<>  m_UCAInertia;
   static const chrono::ChVector<>  m_LCAInertia;
@@ -94,6 +99,9 @@ public:
   virtual double getLCAMass() const { return m_LCAMass; }
   virtual double getUprightMass() const { return m_uprightMass; }
 
+  virtual double getUCARadius() const { return m_UCARadius; }
+  virtual double getLCARadius() const { return m_LCARadius; }
+
   virtual const chrono::ChVector<>& getSpindleInertia() const { return m_spindleInertia; }
   virtual const chrono::ChVector<>& getUCAInertia() const { return m_UCAInertia; }
   virtual const chrono::ChVector<>& getLCAInertia() const { return m_LCAInertia; }
@@ -110,13 +118,15 @@ private:
   virtual const chrono::ChVector<> getLocation(PointId which);
 
   virtual void OnInitializeUpright();
-  virtual void OnInitializeUCA();
-  virtual void OnInitializeLCA();
 
   static const double      m_spindleMass;
   static const double      m_UCAMass;
   static const double      m_LCAMass;
   static const double      m_uprightMass;
+
+  static const double      m_UCARadius;
+  static const double      m_LCARadius;
+
   static const chrono::ChVector<>  m_spindleInertia;
   static const chrono::ChVector<>  m_UCAInertia;
   static const chrono::ChVector<>  m_LCAInertia;
