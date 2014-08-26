@@ -58,7 +58,8 @@ private:
   virtual const chrono::ChVector<> getLocation(PointId which);
 
   virtual void OnInitializeUpright();
-
+  virtual void OnInitializeUCA();
+  virtual void OnInitializeLCA();
 
   static const double      m_spindleMass;
   static const double      m_UCAMass;
@@ -109,7 +110,8 @@ private:
   virtual const chrono::ChVector<> getLocation(PointId which);
 
   virtual void OnInitializeUpright();
-
+  virtual void OnInitializeUCA();
+  virtual void OnInitializeLCA();
 
   static const double      m_spindleMass;
   static const double      m_UCAMass;

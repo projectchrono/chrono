@@ -93,8 +93,8 @@ int main(int argc, char* argv[])
 
   // Create the HMMWV vehicle
   HMMWV_Vehicle vehicle(false,
-                        hmmwv::MESH,
-                        hmmwv::MESH);
+                        hmmwv::NONE,
+                        hmmwv::NONE);
 
   vehicle.Initialize(ChCoordsys<>(initLoc, initRot));
 
@@ -117,7 +117,7 @@ int main(int argc, char* argv[])
 
 #ifdef USE_IRRLICHT
   irr::ChIrrApp application(&vehicle,
-                            L"HMMWV 9-body demo",
+                            L"HMMWV demo",
                             irr::core::dimension2d<irr::u32>(1000, 800),
                             false,
                             true);

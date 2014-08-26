@@ -167,5 +167,61 @@ void HMMWV_DoubleWishboneRear::OnInitializeUpright()
   m_upright->AddAsset(col);
 }
 
+void HMMWV_DoubleWishboneFront::OnInitializeUCA()
+{
+  ChSharedPtr<ChBoxShape> box(new ChBoxShape);
+  box->GetBoxGeometry().SetLengths(m_uprightDims); // TODO: Change dimensions
+  m_bodyUCA->AddAsset(box);
+
+  ChSharedPtr<ChColorAsset> col(new ChColorAsset);
+  switch (m_side) {
+  case RIGHT: col->SetColor(ChColor(0.6f, 0.2f, 0.2f)); break;
+  case LEFT:  col->SetColor(ChColor(0.2f, 0.6f, 0.2f)); break;
+  }
+  m_bodyUCA->AddAsset(col);
+}
+
+void HMMWV_DoubleWishboneRear::OnInitializeUCA()
+{
+  ChSharedPtr<ChBoxShape> box(new ChBoxShape);
+  box->GetBoxGeometry().SetLengths(m_uprightDims); // TODO: Change dimensions
+  m_bodyUCA->AddAsset(box);
+
+  ChSharedPtr<ChColorAsset> col(new ChColorAsset);
+  switch (m_side) {
+  case RIGHT: col->SetColor(ChColor(0.6f, 0.4f, 0.4f)); break;
+  case LEFT:  col->SetColor(ChColor(0.4f, 0.6f, 0.6f)); break;
+  }
+  m_bodyUCA->AddAsset(col);
+}
+
+void HMMWV_DoubleWishboneFront::OnInitializeLCA()
+{
+  ChSharedPtr<ChBoxShape> box(new ChBoxShape);
+  box->GetBoxGeometry().SetLengths(m_uprightDims); // TODO: Change dimensions
+  m_bodyLCA->AddAsset(box);
+
+  ChSharedPtr<ChColorAsset> col(new ChColorAsset);
+  switch (m_side) {
+  case RIGHT: col->SetColor(ChColor(0.6f, 0.2f, 0.2f)); break;
+  case LEFT:  col->SetColor(ChColor(0.2f, 0.6f, 0.2f)); break;
+  }
+  m_bodyLCA->AddAsset(col);
+}
+
+void HMMWV_DoubleWishboneRear::OnInitializeLCA()
+{
+  ChSharedPtr<ChBoxShape> box(new ChBoxShape);
+  box->GetBoxGeometry().SetLengths(m_uprightDims); // TODO: Change dimensions
+  m_bodyLCA->AddAsset(box);
+
+  ChSharedPtr<ChColorAsset> col(new ChColorAsset);
+  switch (m_side) {
+  case RIGHT: col->SetColor(ChColor(0.6f, 0.4f, 0.4f)); break;
+  case LEFT:  col->SetColor(ChColor(0.4f, 0.6f, 0.6f)); break;
+  }
+  m_bodyLCA->AddAsset(col);
+}
+
 
 } // end namespace hmmwv

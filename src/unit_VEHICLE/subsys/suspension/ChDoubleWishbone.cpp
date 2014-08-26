@@ -115,14 +115,14 @@ ChDoubleWishbone::Initialize(ChSharedBodyPtr   chassis,
   OnInitializeSpindle();
   chassis->GetSystem()->AddBody(m_spindle);
 
-  m_bodyUCA->SetPos(m_points[SPINDLE]); // TODO: Should be average of all UCA points
+  m_bodyUCA->SetPos((m_points[UCA_F]+m_points[UCA_B]+m_points[UCA_U])/3);
   //m_bodyUCA->SetRot(chassis->GetCoord().rot); // TODO: Should be quaternion formed by avg(UCA_B,UCA_F) and UCA_U
   m_bodyUCA->SetMass(getUCAMass());
   m_bodyUCA->SetInertiaXX(getUCAInertia());
   OnInitializeUCA();
   chassis->GetSystem()->AddBody(m_bodyUCA);
 
-  m_bodyLCA->SetPos(m_points[SPINDLE]); // TODO: Should be average of all LCA points
+  m_bodyLCA->SetPos((m_points[LCA_F]+m_points[LCA_B]+m_points[LCA_U])/3);
   //m_bodyLCA->SetRot(chassis->GetCoord().rot); // TODO: Should be quaternion formed by avg(LCA_B,LCA_F) and LCA_U
   m_bodyLCA->SetMass(getLCAMass());
   m_bodyLCA->SetInertiaXX(getLCAInertia());

@@ -100,9 +100,11 @@ protected:
   ChSharedPtr<ChLinkLockRevolute>   m_revolute;
   ChSharedBodyPtr                   m_bodyUCA;
   ChSharedBodyPtr                   m_bodyLCA;
+  // TODO: Replace m_sphericalUCA_F and m_sphericalUCA_U with a single revolute joint
   ChSharedPtr<ChLinkLockSpherical>  m_sphericalUCA_F;
   ChSharedPtr<ChLinkLockSpherical>  m_sphericalUCA_B;
   ChSharedPtr<ChLinkLockSpherical>  m_sphericalUCA_U;
+  // TODO: Replace m_sphericalLCA_F and m_sphericalLCA_U with a single revolute joint
   ChSharedPtr<ChLinkLockSpherical>  m_sphericalLCA_F;
   ChSharedPtr<ChLinkLockSpherical>  m_sphericalLCA_B;
   ChSharedPtr<ChLinkLockSpherical>  m_sphericalLCA_U;
