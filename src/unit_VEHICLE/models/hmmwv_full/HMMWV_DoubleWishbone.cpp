@@ -49,8 +49,6 @@ const ChVector<> HMMWV_DoubleWishboneFront::m_uprightInertia(5, 5, 5);
 
 const double     HMMWV_DoubleWishboneFront::m_axleInertia = 0.4;
 
-const ChVector<> HMMWV_DoubleWishboneFront::m_uprightDims(0.1, 0.05, 0.1);
-
 const double     HMMWV_DoubleWishboneFront::m_springCoefficient  = 167062.0;
 const double     HMMWV_DoubleWishboneFront::m_dampingCoefficient = 22459.0;
 const double     HMMWV_DoubleWishboneFront::m_springRestLength   = 0.4062;
@@ -72,8 +70,6 @@ const ChVector<> HMMWV_DoubleWishboneRear::m_LCAInertia(1, 1, 1);  // TODO: This
 const ChVector<> HMMWV_DoubleWishboneRear::m_uprightInertia(5, 5, 5);
 
 const double     HMMWV_DoubleWishboneRear::m_axleInertia = 0.4;
-
-const ChVector<> HMMWV_DoubleWishboneRear::m_uprightDims(0.1, 0.05, 0.1);
 
 const double     HMMWV_DoubleWishboneRear::m_springCoefficient = 369149.0;
 const double     HMMWV_DoubleWishboneRear::m_dampingCoefficient = 35024.0;

@@ -77,8 +77,6 @@ private:
 
   static const double      m_axleInertia;
 
-  static const chrono::ChVector<>  m_uprightDims;
-
   static const double      m_springCoefficient;
   static const double      m_dampingCoefficient;
   static const double      m_springRestLength;
@@ -133,8 +131,6 @@ private:
   static const chrono::ChVector<>  m_uprightInertia;
 
   static const double      m_axleInertia;
-
-  static const chrono::ChVector<>  m_uprightDims;
 
   static const double      m_springCoefficient;
   static const double      m_dampingCoefficient;
