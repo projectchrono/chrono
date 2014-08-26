@@ -54,8 +54,8 @@ void HMMWV9_Powertrain::SetGearRatios(std::vector<double>& gear_ratios)
 {
   gear_ratios.push_back(-0.1); // 0: reverse gear;
   gear_ratios.push_back( 0.2); // 1: 1st gear;
-  gear_ratios.push_back( 0.3); // 2: 2nd gear;
-  gear_ratios.push_back( 0.5); // 3: 3rd gear;
+  gear_ratios.push_back( 0.4); // 2: 2nd gear;
+  gear_ratios.push_back( 0.8); // 3: 3rd gear;
 }
 
 // -----------------------------------------------------------------------------
