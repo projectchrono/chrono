@@ -12,7 +12,7 @@
 // Authors: Alessandro Tasora, Radu Serban
 // =============================================================================
 //
-// HMMWV9 powertrain model based on ChShaft objects.
+// HMMWV powertrain model based on ChShaft objects.
 //
 // =============================================================================
 
@@ -26,15 +26,15 @@
 namespace hmmwv {
 
 // Forward reference
-class HMMWV9_Vehicle;
+class chrono::ChVehicle;
 
 
-class HMMWV9_Powertrain : public chrono::ChShaftsPowertrain {
+class HMMWV_Powertrain : public chrono::ChShaftsPowertrain {
 public:
 
-  HMMWV9_Powertrain(chrono::ChVehicle* car);
+  HMMWV_Powertrain(chrono::ChVehicle* car);
 
-  ~HMMWV9_Powertrain() {}
+  ~HMMWV_Powertrain() {}
 
 
   virtual void SetGearRatios(std::vector<double>& gear_ratios);

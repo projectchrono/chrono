@@ -29,13 +29,13 @@ namespace hmmwv {
 
 static const double in2m = 0.0254;
 
-const double HMMWV9_LugreTire::m_radius = 18.5 * in2m;
-const double HMMWV9_LugreTire::m_discLocs[] = { -5 * in2m, 0 * in2m, 5 * in2m };
+const double HMMWV_LugreTire::m_radius = 18.5 * in2m;
+const double HMMWV_LugreTire::m_discLocs[] = { -5 * in2m, 0 * in2m, 5 * in2m };
 
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-HMMWV9_LugreTire::HMMWV9_LugreTire(const ChTerrain& terrain)
+HMMWV_LugreTire::HMMWV_LugreTire(const ChTerrain& terrain)
 : ChLugreTire(terrain)
 {
 }

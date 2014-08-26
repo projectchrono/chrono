@@ -23,7 +23,7 @@ namespace hmmwv {
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-void HMMWV9_FuncDriver::Update(double time)
+void HMMWV_FuncDriver::Update(double time)
 {
   if (time < 0.5)
     m_throttle = 0;

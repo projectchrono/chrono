@@ -12,7 +12,7 @@
 // Authors: Alessandro Tasora, Radu Serban
 // =============================================================================
 //
-// HMMWV9 powertrain model based on ChShaft objects.
+// HMMWV powertrain model based on ChShaft objects.
 //
 // =============================================================================
 
@@ -26,22 +26,22 @@ namespace hmmwv {
 // -----------------------------------------------------------------------------
 // Static variables
 // -----------------------------------------------------------------------------
-  const double HMMWV9_Powertrain::m_motorblock_inertia = 10.5;
-  const double HMMWV9_Powertrain::m_crankshaft_inertia = 1.1;
-  const double HMMWV9_Powertrain::m_ingear_shaft_inertia = 0.3;
-  const double HMMWV9_Powertrain::m_outgear_shaft_inertia = 0.5;
-  const double HMMWV9_Powertrain::m_differentialbox_inertia = 0.6;
+  const double HMMWV_Powertrain::m_motorblock_inertia = 10.5;
+  const double HMMWV_Powertrain::m_crankshaft_inertia = 1.1;
+  const double HMMWV_Powertrain::m_ingear_shaft_inertia = 0.3;
+  const double HMMWV_Powertrain::m_outgear_shaft_inertia = 0.5;
+  const double HMMWV_Powertrain::m_differentialbox_inertia = 0.6;
 
-  const double HMMWV9_Powertrain::m_conicalgear_ratio = -0.2;
-  const double HMMWV9_Powertrain::m_differential_ratio = -1;
+  const double HMMWV_Powertrain::m_conicalgear_ratio = -0.2;
+  const double HMMWV_Powertrain::m_differential_ratio = -1;
 
 
 // -----------------------------------------------------------------------------
-// Constructor of the HMMW9_Powertrain.
+// Constructor of the HMMW_Powertrain.
 // the direction of the motor block is along the X axis, while the directions of
 // the axles is along the Y axis (relative to the chassis coordinate frame),
 // -----------------------------------------------------------------------------
-HMMWV9_Powertrain::HMMWV9_Powertrain(ChVehicle* car)
+HMMWV_Powertrain::HMMWV_Powertrain(ChVehicle* car)
 : ChShaftsPowertrain(car, ChVector<>(1, 0, 0), ChVector<>(0, 1, 0))
 {
 }
@@ -50,7 +50,7 @@ HMMWV9_Powertrain::HMMWV9_Powertrain(ChVehicle* car)
 // -----------------------------------------------------------------------------
 // Initialize vector of gear ratios
 // -----------------------------------------------------------------------------
-void HMMWV9_Powertrain::SetGearRatios(std::vector<double>& gear_ratios)
+void HMMWV_Powertrain::SetGearRatios(std::vector<double>& gear_ratios)
 {
   gear_ratios.push_back(-0.1); // 0: reverse gear;
   gear_ratios.push_back( 0.2); // 1: 1st gear;
@@ -69,7 +69,7 @@ void HMMWV9_Powertrain::SetGearRatios(std::vector<double>& gear_ratios)
 // (3) TC torque ratio map
 //
 // -----------------------------------------------------------------------------
-void HMMWV9_Powertrain::SetEngineTorqueMap(ChSharedPtr<ChFunction_Recorder>& map)
+void HMMWV_Powertrain::SetEngineTorqueMap(ChSharedPtr<ChFunction_Recorder>& map)
 {
 	double rpm_to_radsec =  CH_C_2PI/60.;
 	/*
@@ -103,7 +103,7 @@ void HMMWV9_Powertrain::SetEngineTorqueMap(ChSharedPtr<ChFunction_Recorder>& map
   map->AddPoint(2700*rpm_to_radsec ,      -400); // fading out of engine torque
 }
 
-void HMMWV9_Powertrain::SetTorqueConverterCapacityFactorMap(ChSharedPtr<ChFunction_Recorder>& map)
+void HMMWV_Powertrain::SetTorqueConverterCapacityFactorMap(ChSharedPtr<ChFunction_Recorder>& map)
 {
 
   map->AddPoint(0.0, 15);
@@ -128,7 +128,7 @@ void HMMWV9_Powertrain::SetTorqueConverterCapacityFactorMap(ChSharedPtr<ChFuncti
 */
 }
 
-void HMMWV9_Powertrain::SetTorqeConverterTorqueRatioMap(ChSharedPtr<ChFunction_Recorder>& map)
+void HMMWV_Powertrain::SetTorqeConverterTorqueRatioMap(ChSharedPtr<ChFunction_Recorder>& map)
 {
   map->AddPoint(0.0, 2.00);
   map->AddPoint(0.25, 1.80);

@@ -25,11 +25,11 @@
 
 namespace hmmwv {
 
-class HMMWV9_Wheel : public chrono::ChWheel {
+class HMMWV_Wheel : public chrono::ChWheel {
 public:
 
-  HMMWV9_Wheel(VisualizationType  visType);
-  ~HMMWV9_Wheel() {}
+  HMMWV_Wheel(VisualizationType  visType);
+  ~HMMWV_Wheel() {}
 
   virtual double getMass() const { return m_mass; }
   virtual const chrono::ChVector<>& getInertia() { return m_inertia; }
@@ -50,10 +50,10 @@ private:
 };
 
 
-class HMMWV9_WheelLeft : public HMMWV9_Wheel {
+class HMMWV_WheelLeft : public HMMWV_Wheel {
 public:
-  HMMWV9_WheelLeft(VisualizationType  visType);
-  ~HMMWV9_WheelLeft() {}
+  HMMWV_WheelLeft(VisualizationType  visType);
+  ~HMMWV_WheelLeft() {}
 
   virtual const std::string& getMeshName() const { return m_meshName; }
   virtual const std::string& getMeshFile() const { return m_meshFile; }
@@ -66,10 +66,10 @@ private:
 };
 
 
-class HMMWV9_WheelRight : public HMMWV9_Wheel {
+class HMMWV_WheelRight : public HMMWV_Wheel {
 public:
-  HMMWV9_WheelRight(VisualizationType  visType);
-  ~HMMWV9_WheelRight() {}
+  HMMWV_WheelRight(VisualizationType  visType);
+  ~HMMWV_WheelRight() {}
 
   virtual const std::string& getMeshName() const { return m_meshName; }
   virtual const std::string& getMeshFile() const { return m_meshFile; }

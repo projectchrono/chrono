@@ -36,40 +36,40 @@ namespace hmmwv {
 
 static const double in2m = 0.0254;
 
-const double      HMMWV9_Wheel::m_radius = 18.5 * in2m;
-const double      HMMWV9_Wheel::m_width = 10 * in2m;
+const double      HMMWV_Wheel::m_radius = 18.5 * in2m;
+const double      HMMWV_Wheel::m_width = 10 * in2m;
 
-const double      HMMWV9_Wheel::m_mass = 54.7;
-const ChVector<>  HMMWV9_Wheel::m_inertia(3.7958, 7.0037, 3.7958);
+const double      HMMWV_Wheel::m_mass = 54.7;
+const ChVector<>  HMMWV_Wheel::m_inertia(3.7958, 7.0037, 3.7958);
 
-const std::string HMMWV9_WheelLeft::m_meshName = "hmmwv_wheel_L";
-const std::string HMMWV9_WheelLeft::m_meshFile = utils::GetModelDataFile("hmmwv/wheel_L.obj");
+const std::string HMMWV_WheelLeft::m_meshName = "hmmwv_wheel_L";
+const std::string HMMWV_WheelLeft::m_meshFile = utils::GetModelDataFile("hmmwv/wheel_L.obj");
 
-const std::string HMMWV9_WheelRight::m_meshName = "hmmwv_wheel_R";
-const std::string HMMWV9_WheelRight::m_meshFile = utils::GetModelDataFile("hmmwv/wheel_R.obj");
+const std::string HMMWV_WheelRight::m_meshName = "hmmwv_wheel_R";
+const std::string HMMWV_WheelRight::m_meshFile = utils::GetModelDataFile("hmmwv/wheel_R.obj");
 
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-HMMWV9_Wheel::HMMWV9_Wheel(VisualizationType  visType)
+HMMWV_Wheel::HMMWV_Wheel(VisualizationType  visType)
 : m_visType(visType)
 {
 }
 
-HMMWV9_WheelLeft::HMMWV9_WheelLeft(VisualizationType  visType)
-: HMMWV9_Wheel(visType)
+HMMWV_WheelLeft::HMMWV_WheelLeft(VisualizationType  visType)
+: HMMWV_Wheel(visType)
 {
 }
 
-HMMWV9_WheelRight::HMMWV9_WheelRight(VisualizationType  visType)
-: HMMWV9_Wheel(visType)
+HMMWV_WheelRight::HMMWV_WheelRight(VisualizationType  visType)
+: HMMWV_Wheel(visType)
 {
 }
 
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-void HMMWV9_Wheel::Initialize(ChSharedBodyPtr spindle)
+void HMMWV_Wheel::Initialize(ChSharedBodyPtr spindle)
 {
   // First, invoke the base class method
   ChWheel::Initialize(spindle);
@@ -100,8 +100,8 @@ void HMMWV9_Wheel::Initialize(ChSharedBodyPtr spindle)
     trimesh_shape->SetName(getMeshName());
     spindle->AddAsset(trimesh_shape);
 
-	ChSharedPtr<ChColorAsset> mcolor(new ChColorAsset(0.3,0.3,0.3));
-	spindle->AddAsset(mcolor);
+    ChSharedPtr<ChColorAsset> mcolor(new ChColorAsset(0.3f, 0.3f, 0.3f));
+    spindle->AddAsset(mcolor);
 
     break;
   }
@@ -111,12 +111,12 @@ void HMMWV9_Wheel::Initialize(ChSharedBodyPtr spindle)
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-void HMMWV9_WheelLeft::ExportMeshPovray(const std::string& out_dir)
+void HMMWV_WheelLeft::ExportMeshPovray(const std::string& out_dir)
 {
   utils::WriteMeshPovray(m_meshFile, m_meshName, out_dir);
 }
 
-void HMMWV9_WheelRight::ExportMeshPovray(const std::string& out_dir)
+void HMMWV_WheelRight::ExportMeshPovray(const std::string& out_dir)
 {
   utils::WriteMeshPovray(m_meshFile, m_meshName, out_dir);
 }

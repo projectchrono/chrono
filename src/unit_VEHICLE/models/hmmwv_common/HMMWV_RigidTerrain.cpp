@@ -30,11 +30,11 @@ namespace hmmwv {
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-HMMWV9_RigidTerrain::HMMWV9_RigidTerrain(ChSystem&  system,
-                                         double     height,
-                                         double     sizeX,
-                                         double     sizeY,
-                                         double     mu)
+HMMWV_RigidTerrain::HMMWV_RigidTerrain(ChSystem&  system,
+                                       double     height,
+                                       double     sizeX,
+                                       double     sizeY,
+                                       double     mu)
 : m_system(system),
   m_height(height),
   m_sizeX(sizeX),
@@ -65,7 +65,7 @@ HMMWV9_RigidTerrain::HMMWV9_RigidTerrain(ChSystem&  system,
 
 }
 
-void HMMWV9_RigidTerrain::AddMovingObstacles(int numObstacles)
+void HMMWV_RigidTerrain::AddMovingObstacles(int numObstacles)
 {
   for (int i = 0; i < numObstacles; i++) {
     double o_sizeX = 1.0 + 3.0 * ChRandom();
@@ -85,7 +85,7 @@ void HMMWV9_RigidTerrain::AddMovingObstacles(int numObstacles)
   }
 }
 
-void HMMWV9_RigidTerrain::AddFixedObstacles()
+void HMMWV_RigidTerrain::AddFixedObstacles()
 {
   double radius = 3;
   double length = 10;

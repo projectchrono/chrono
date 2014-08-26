@@ -28,14 +28,14 @@
 namespace hmmwv {
 
 // Forward reference
-class HMMWV9_Vehicle;
+class chrono::ChVehicle;
 
-class HMMWV9_SimplePowertrain : public chrono::ChSimplePowertrain {
+class HMMWV_SimplePowertrain : public chrono::ChSimplePowertrain {
 public:
 
-  HMMWV9_SimplePowertrain(chrono::ChVehicle* car);
+  HMMWV_SimplePowertrain(chrono::ChVehicle* car);
 
-  ~HMMWV9_SimplePowertrain() {}
+  ~HMMWV_SimplePowertrain() {}
 
   virtual double GetConicTau() const  { return m_conic_tau; }
   virtual double GetGearTau() const   { return m_gear_tau; }

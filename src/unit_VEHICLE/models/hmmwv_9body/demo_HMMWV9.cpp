@@ -99,15 +99,15 @@ int main(int argc, char* argv[])
   vehicle.Initialize(ChCoordsys<>(initLoc, initRot));
 
   // Create the ground
-  HMMWV9_RigidTerrain terrain(vehicle, terrainHeight, terrainLength, terrainWidth, 0.8);
+  HMMWV_RigidTerrain terrain(vehicle, terrainHeight, terrainLength, terrainWidth, 0.8);
   //terrain.AddMovingObstacles(10);
   terrain.AddFixedObstacles();
 
   // Create the tires
-  HMMWV9_RigidTire tire_front_right(terrain, 0.7f);
-  HMMWV9_RigidTire tire_front_left(terrain, 0.7f);
-  HMMWV9_RigidTire tire_rear_right(terrain, 0.7f);
-  HMMWV9_RigidTire tire_rear_left(terrain, 0.7f);
+  HMMWV_RigidTire tire_front_right(terrain, 0.7f);
+  HMMWV_RigidTire tire_front_left(terrain, 0.7f);
+  HMMWV_RigidTire tire_rear_right(terrain, 0.7f);
+  HMMWV_RigidTire tire_rear_left(terrain, 0.7f);
 
   tire_front_right.Initialize(vehicle.GetWheelBody(FRONT_RIGHT));
   tire_front_left.Initialize(vehicle.GetWheelBody(FRONT_LEFT));
@@ -172,7 +172,7 @@ int main(int argc, char* argv[])
 	application.AddShadowAll();
   }
 #else
-  HMMWV9_FuncDriver driver;
+  HMMWV_FuncDriver driver;
 #endif
 
 
@@ -258,8 +258,8 @@ int main(int argc, char* argv[])
   }
 
   HMMWV9_Vehicle::ExportMeshPovray(out_dir);
-  HMMWV9_WheelLeft::ExportMeshPovray(out_dir);
-  HMMWV9_WheelRight::ExportMeshPovray(out_dir);
+  HMMWV_WheelLeft::ExportMeshPovray(out_dir);
+  HMMWV_WheelRight::ExportMeshPovray(out_dir);
 
   char filename[100];
 

@@ -77,7 +77,7 @@ int FPS = 50;
 #else
   double tend = 20.0;
 
-  const std::string out_dir = "../HMMWV9";
+  const std::string out_dir = "../PACTEST;
   const std::string pov_dir = out_dir + "/POVRAY";
 #endif
 
@@ -99,7 +99,7 @@ int main(int argc, char* argv[])
   vehicle.Initialize(ChCoordsys<>(initLoc, initRot));
 
   // Create the ground
-  HMMWV9_RigidTerrain terrain(vehicle, terrainHeight, terrainLength, terrainWidth, 0.8);
+  HMMWV_RigidTerrain terrain(vehicle, terrainHeight, terrainLength, terrainWidth, 0.8);
   //terrain.AddMovingObstacles(10);
   terrain.AddFixedObstacles();
 
@@ -152,7 +152,7 @@ int main(int argc, char* argv[])
   application.AssetBindAll();
   application.AssetUpdateAll();
 #else
-  HMMWV9_FuncDriver driver;
+  HMMWV_FuncDriver driver;
 #endif
 
 
@@ -239,8 +239,8 @@ int main(int argc, char* argv[])
   }
 
   HMMWV9_Vehicle::ExportMeshPovray(out_dir);
-  HMMWV9_WheelLeft::ExportMeshPovray(out_dir);
-  HMMWV9_WheelRight::ExportMeshPovray(out_dir);
+  HMMWV_WheelLeft::ExportMeshPovray(out_dir);
+  HMMWV_WheelRight::ExportMeshPovray(out_dir);
 
   char filename[100];
 

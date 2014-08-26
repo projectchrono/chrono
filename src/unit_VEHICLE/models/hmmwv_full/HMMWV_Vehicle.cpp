@@ -102,17 +102,17 @@ HMMWV_Vehicle::HMMWV_Vehicle(const bool           fixed,
   // Create the wheels
   // -----------------
 
-  m_front_right_wheel = ChSharedPtr<HMMWV9_Wheel>(new HMMWV9_WheelRight(wheelVis));
-  m_front_left_wheel = ChSharedPtr<HMMWV9_Wheel>(new HMMWV9_WheelLeft(wheelVis));
-  m_rear_right_wheel = ChSharedPtr<HMMWV9_Wheel>(new HMMWV9_WheelRight(wheelVis));
-  m_rear_left_wheel = ChSharedPtr<HMMWV9_Wheel>(new HMMWV9_WheelLeft(wheelVis));
+  m_front_right_wheel = ChSharedPtr<HMMWV_Wheel>(new HMMWV_WheelRight(wheelVis));
+  m_front_left_wheel = ChSharedPtr<HMMWV_Wheel>(new HMMWV_WheelLeft(wheelVis));
+  m_rear_right_wheel = ChSharedPtr<HMMWV_Wheel>(new HMMWV_WheelRight(wheelVis));
+  m_rear_left_wheel = ChSharedPtr<HMMWV_Wheel>(new HMMWV_WheelLeft(wheelVis));
 
   // -------------------------------
   // Create the powertrain subsystem
   //--------------------------------
 
-  ////m_powertrain = ChSharedPtr<HMMWV9_SimplePowertrain>(new HMMWV9_SimplePowertrain(this));
-  m_powertrain = ChSharedPtr<HMMWV9_Powertrain>(new HMMWV9_Powertrain(this));
+  ////m_powertrain = ChSharedPtr<HMMWV_SimplePowertrain>(new HMMWV_SimplePowertrain(this));
+  m_powertrain = ChSharedPtr<HMMWV_Powertrain>(new HMMWV_Powertrain(this));
 
 }
 

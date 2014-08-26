@@ -34,8 +34,8 @@
 namespace hmmwv {
 
 // Forward reference
-class HMMWV9_SimplePowertrain;
-class HMMWV9_Powertrain;
+class HMMWV_SimplePowertrain;
+class HMMWV_Powertrain;
 
 class HMMWV9_Vehicle : public chrono::ChVehicle {
 public:
@@ -69,13 +69,13 @@ private:
   chrono::ChSharedPtr<HMMWV9_DoubleWishboneRear>    m_rear_right_susp;
   chrono::ChSharedPtr<HMMWV9_DoubleWishboneRear>    m_rear_left_susp;
 
-  chrono::ChSharedPtr<HMMWV9_Wheel> m_front_right_wheel;
-  chrono::ChSharedPtr<HMMWV9_Wheel> m_front_left_wheel;
-  chrono::ChSharedPtr<HMMWV9_Wheel> m_rear_right_wheel;
-  chrono::ChSharedPtr<HMMWV9_Wheel> m_rear_left_wheel;
+  chrono::ChSharedPtr<HMMWV_Wheel> m_front_right_wheel;
+  chrono::ChSharedPtr<HMMWV_Wheel> m_front_left_wheel;
+  chrono::ChSharedPtr<HMMWV_Wheel> m_rear_right_wheel;
+  chrono::ChSharedPtr<HMMWV_Wheel> m_rear_left_wheel;
 
-  ////chrono::ChSharedPtr<HMMWV9_SimplePowertrain>  m_powertrain;
-  chrono::ChSharedPtr<HMMWV9_Powertrain>  m_powertrain;
+  ////chrono::ChSharedPtr<HMMWV_SimplePowertrain>  m_powertrain;
+  chrono::ChSharedPtr<HMMWV_Powertrain>  m_powertrain;
 
   // Chassis visualization mesh
   static const std::string m_chassisMeshName;

@@ -24,11 +24,11 @@
 
 namespace hmmwv {
 
-class HMMWV9_RigidTire : public chrono::ChRigidTire {
+class HMMWV_RigidTire : public chrono::ChRigidTire {
 public:
-  HMMWV9_RigidTire(const chrono::ChTerrain& terrain,
-                   float                    mu);
-  ~HMMWV9_RigidTire() {}
+  HMMWV_RigidTire(const chrono::ChTerrain& terrain,
+                  float                    mu);
+  ~HMMWV_RigidTire() {}
 
   virtual float getFrictionCoefficient() const { return m_mu; }
   virtual double getRadius() const             { return m_radius; }

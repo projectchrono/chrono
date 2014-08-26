@@ -24,10 +24,10 @@
 
 namespace hmmwv {
 
-class HMMWV9_LugreTire : public chrono::ChLugreTire {
+class HMMWV_LugreTire : public chrono::ChLugreTire {
 public:
-  HMMWV9_LugreTire(const chrono::ChTerrain& terrain);
-  ~HMMWV9_LugreTire() {}
+  HMMWV_LugreTire(const chrono::ChTerrain& terrain);
+  ~HMMWV_LugreTire() {}
 
   virtual int getNumDiscs() const                { return m_numDiscs; }
   virtual double getRadius() const               { return m_radius; }

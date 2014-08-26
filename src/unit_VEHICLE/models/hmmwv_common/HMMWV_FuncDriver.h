@@ -22,12 +22,12 @@
 
 namespace hmmwv {
 
-class HMMWV9_FuncDriver : public chrono::ChDriver
+class HMMWV_FuncDriver : public chrono::ChDriver
 {
 public:
 
-  HMMWV9_FuncDriver() {}
-  ~HMMWV9_FuncDriver() {}
+  HMMWV_FuncDriver() {}
+  ~HMMWV_FuncDriver() {}
 
   virtual void Update(double time);
 

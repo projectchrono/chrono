@@ -29,14 +29,14 @@ namespace hmmwv {
 
 static const double in2m = 0.0254;
 
-const double HMMWV9_RigidTire::m_radius = 18.5 * in2m;
-const double HMMWV9_RigidTire::m_width = 10 * in2m;
+const double HMMWV_RigidTire::m_radius = 18.5 * in2m;
+const double HMMWV_RigidTire::m_width = 10 * in2m;
 
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-HMMWV9_RigidTire::HMMWV9_RigidTire(const ChTerrain& terrain,
-                                   float            mu)
+HMMWV_RigidTire::HMMWV_RigidTire(const ChTerrain& terrain,
+                                 float            mu)
 : ChRigidTire(terrain),
   m_mu(mu)
 {

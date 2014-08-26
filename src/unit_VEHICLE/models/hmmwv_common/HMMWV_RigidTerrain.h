@@ -26,16 +26,16 @@
 
 namespace hmmwv {
 
-class HMMWV9_RigidTerrain : public chrono::ChTerrain {
+class HMMWV_RigidTerrain : public chrono::ChTerrain {
 public:
 
-  HMMWV9_RigidTerrain(chrono::ChSystem&  system,
-                      double             height,
-                      double             sizeX,
-                      double             sizeY,
-                      double             mu);
+  HMMWV_RigidTerrain(chrono::ChSystem&  system,
+                     double             height,
+                     double             sizeX,
+                     double             sizeY,
+                     double             mu);
 
-  ~HMMWV9_RigidTerrain() {}
+  ~HMMWV_RigidTerrain() {}
 
   virtual double GetHeight(double x, double y) const { return m_height; }
 
