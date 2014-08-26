@@ -9,7 +9,7 @@
 // http://projectchrono.org/license-chrono.txt.
 //
 // =============================================================================
-// Authors: Radu Serban, Justin Madsen
+// Authors: Radu Serban, Justin Madsen, Daniel Melanz
 // =============================================================================
 //
 // Front and Rear HMMWV suspension subsystems (double A-arm).

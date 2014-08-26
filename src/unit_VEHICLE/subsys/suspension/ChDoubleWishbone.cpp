@@ -9,7 +9,7 @@
 // http://projectchrono.org/license-chrono.txt.
 //
 // =============================================================================
-// Authors: Radu Serban, Justin Madsen
+// Authors: Radu Serban, Justin Madsen, Daniel Melanz
 // =============================================================================
 //
 // Base class for a double-A arm suspension modeled with distance constraints.
@@ -52,17 +52,25 @@ ChDoubleWishbone::ChDoubleWishbone(const std::string& name,
   m_revolute = ChSharedPtr<ChLinkLockRevolute>(new ChLinkLockRevolute);
   m_revolute->SetNameString(name + "_revolute");
 
-  // Distance constraints to model upper control arm
-  m_distUCA_F = ChSharedPtr<ChLinkDistance>(new ChLinkDistance);
-  m_distUCA_F->SetNameString(name + "_distUCA_F");
-  m_distUCA_B = ChSharedPtr<ChLinkDistance>(new ChLinkDistance);
-  m_distUCA_B->SetNameString(name + "_distUCA_B");
+  // Bodies and constraints to model upper control arm
+  m_bodyUCA = ChSharedBodyPtr(new ChBody);
+  m_bodyUCA->SetNameString(name + "_bodyUCA");
+  m_sphericalUCA_F = ChSharedPtr<ChLinkLockSpherical>(new ChLinkLockSpherical);
+  m_sphericalUCA_F->SetNameString(name + "_sphericalUCA_F");
+  m_sphericalUCA_B = ChSharedPtr<ChLinkLockSpherical>(new ChLinkLockSpherical);
+  m_sphericalUCA_B->SetNameString(name + "_sphericalUCA_B");
+  m_sphericalUCA_U = ChSharedPtr<ChLinkLockSpherical>(new ChLinkLockSpherical);
+  m_sphericalUCA_U->SetNameString(name + "_sphericalUCA_U");
 
-  // Distance constraints to model lower control arm
-  m_distLCA_F = ChSharedPtr<ChLinkDistance>(new ChLinkDistance);
-  m_distLCA_F->SetNameString(name + "_distLCA_F");
-  m_distLCA_B = ChSharedPtr<ChLinkDistance>(new ChLinkDistance);
-  m_distLCA_B->SetNameString(name + "_distLCA_B");
+  // Bodies and constraints to model lower control arm
+  m_bodyLCA = ChSharedBodyPtr(new ChBody);
+  m_bodyLCA->SetNameString(name + "_bodyLCA");
+  m_sphericalLCA_F = ChSharedPtr<ChLinkLockSpherical>(new ChLinkLockSpherical);
+  m_sphericalLCA_F->SetNameString(name + "_sphericalLCA_F");
+  m_sphericalLCA_B = ChSharedPtr<ChLinkLockSpherical>(new ChLinkLockSpherical);
+  m_sphericalLCA_B->SetNameString(name + "_sphericalLCA_B");
+  m_sphericalLCA_U = ChSharedPtr<ChLinkLockSpherical>(new ChLinkLockSpherical);
+  m_sphericalLCA_U->SetNameString(name + "_sphericalLCA_U");
 
   // Distance constraint to model the tierod
   m_distTierod = ChSharedPtr<ChLinkDistance>(new ChLinkDistance);
@@ -107,6 +115,20 @@ ChDoubleWishbone::Initialize(ChSharedBodyPtr   chassis,
   OnInitializeSpindle();
   chassis->GetSystem()->AddBody(m_spindle);
 
+  m_bodyUCA->SetPos(m_points[SPINDLE]); // TODO: Should be average of all UCA points
+  //m_bodyUCA->SetRot(chassis->GetCoord().rot); // TODO: Should be quaternion formed by avg(UCA_B,UCA_F) and UCA_U
+  //m_bodyUCA->SetMass(getSpindleMass()); // TODO: Need to create a variable for UCA mass
+  //m_bodyUCA->SetInertiaXX(getSpindleInertia()); // TODO: Need to create a variable for UCA inertia
+  OnInitializeSuspension();
+  chassis->GetSystem()->AddBody(m_bodyUCA);
+
+  m_bodyLCA->SetPos(m_points[SPINDLE]); // TODO: Should be average of all LCA points
+  //m_bodyLCA->SetRot(chassis->GetCoord().rot); // TODO: Should be quaternion formed by avg(LCA_B,LCA_F) and LCA_U
+  //m_bodyLCA->SetMass(getSpindleMass()); // TODO: Need to create a variable for LCA mass
+  //m_bodyLCA->SetInertiaXX(getSpindleInertia()); // TODO: Need to create a variable for LCA inertia
+  OnInitializeSuspension();
+  chassis->GetSystem()->AddBody(m_bodyLCA);
+
   m_upright->SetPos(m_points[UPRIGHT]);
   m_upright->SetRot(chassis->GetCoord().rot);
   m_upright->SetMass(getUprightMass());
@@ -119,15 +141,21 @@ ChDoubleWishbone::Initialize(ChSharedBodyPtr   chassis,
   m_revolute->Initialize(m_spindle, m_upright, rev_csys);
   chassis->GetSystem()->AddLink(m_revolute);
 
-  m_distUCA_F->Initialize(chassis, m_upright, false, m_points[UCA_F], m_points[UCA_U]);
-  chassis->GetSystem()->AddLink(m_distUCA_F);
-  m_distUCA_B->Initialize(chassis, m_upright, false, m_points[UCA_B], m_points[UCA_U]);
-  chassis->GetSystem()->AddLink(m_distUCA_B);
+  // TODO: Replace m_sphericalUCA_F and m_sphericalUCA_U with a single revolute joint
+  m_sphericalUCA_F->Initialize(chassis, m_bodyUCA, ChCoordsys<>(m_points[UCA_F], QUNIT));
+  chassis->GetSystem()->AddLink(m_sphericalUCA_F);
+  m_sphericalUCA_B->Initialize(chassis, m_bodyUCA, ChCoordsys<>(m_points[UCA_B], QUNIT));
+  chassis->GetSystem()->AddLink(m_sphericalUCA_B);
+  m_sphericalUCA_U->Initialize(m_bodyUCA, m_upright, ChCoordsys<>(m_points[UCA_U], QUNIT));
+  chassis->GetSystem()->AddLink(m_sphericalUCA_U);
 
-  m_distLCA_F->Initialize(chassis, m_upright, false, m_points[LCA_F], m_points[LCA_U]);
-  chassis->GetSystem()->AddLink(m_distLCA_F);
-  m_distLCA_B->Initialize(chassis, m_upright, false, m_points[LCA_B], m_points[LCA_U]);
-  chassis->GetSystem()->AddLink(m_distLCA_B);
+  // TODO: Replace m_sphericalLCA_F and m_sphericalLCA_U with a single revolute joint
+  m_sphericalLCA_F->Initialize(chassis, m_bodyLCA, ChCoordsys<>(m_points[LCA_F], QUNIT));
+  chassis->GetSystem()->AddLink(m_sphericalLCA_F);
+  m_sphericalLCA_B->Initialize(chassis, m_bodyLCA, ChCoordsys<>(m_points[LCA_B], QUNIT));
+  chassis->GetSystem()->AddLink(m_sphericalLCA_B);
+  m_sphericalLCA_U->Initialize(m_bodyLCA, m_upright, ChCoordsys<>(m_points[LCA_U], QUNIT));
+  chassis->GetSystem()->AddLink(m_sphericalLCA_U);
 
   m_distTierod->Initialize(chassis, m_upright, false, m_points[TIEROD_C], m_points[TIEROD_U]);
   chassis->GetSystem()->AddLink(m_distTierod);

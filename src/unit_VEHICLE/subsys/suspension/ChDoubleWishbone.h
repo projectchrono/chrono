@@ -9,7 +9,7 @@
 // http://projectchrono.org/license-chrono.txt.
 //
 // =============================================================================
-// Authors: Radu Serban, Justin Madsen
+// Authors: Radu Serban, Justin Madsen, Daniel Melanz
 // =============================================================================
 //
 // Base class for a double-A arm suspension modeled with distance constraints.
@@ -84,18 +84,23 @@ protected:
   virtual double getDampingCoefficient() const = 0;
   virtual double getSpringRestLength() const = 0;
 
-  virtual void OnInitializeSpindle() {}
-  virtual void OnInitializeUpright() {}
+  virtual void OnInitializeSpindle()    {}
+  virtual void OnInitializeSuspension() {}
+  virtual void OnInitializeUpright()    {}
 
   ChVector<>        m_points[NUM_POINTS];
 
   ChSharedBodyPtr   m_upright;
 
   ChSharedPtr<ChLinkLockRevolute>   m_revolute;
-  ChSharedPtr<ChLinkDistance>       m_distUCA_F;
-  ChSharedPtr<ChLinkDistance>       m_distUCA_B;
-  ChSharedPtr<ChLinkDistance>       m_distLCA_F;
-  ChSharedPtr<ChLinkDistance>       m_distLCA_B;
+  ChSharedBodyPtr                   m_bodyUCA;
+  ChSharedBodyPtr                   m_bodyLCA;
+  ChSharedPtr<ChLinkLockSpherical>  m_sphericalUCA_F;
+  ChSharedPtr<ChLinkLockSpherical>  m_sphericalUCA_B;
+  ChSharedPtr<ChLinkLockSpherical>  m_sphericalUCA_U;
+  ChSharedPtr<ChLinkLockSpherical>  m_sphericalLCA_F;
+  ChSharedPtr<ChLinkLockSpherical>  m_sphericalLCA_B;
+  ChSharedPtr<ChLinkLockSpherical>  m_sphericalLCA_U;
   ChSharedPtr<ChLinkDistance>       m_distTierod;
 
   ChSharedPtr<ChLinkSpring>         m_shock;
