@@ -281,7 +281,8 @@ void ChShaftsPowertrain::Update(double time,
   {
 	  if(this->drive_mode == FORWARD)
 	  {
-		  if (this->GetMotorSpeed() > 4000*CH_C_2PI/60.0)
+		  //if (this->GetMotorSpeed() > 2500*CH_C_2PI/60.0)
+		  if (this->m_shaft_ingear->GetPos_dt() > 2500*CH_C_2PI/60.0)
 		  {
 			  if (this->GetSelectedGear()+1 < this->m_gear_ratios.size())
 			  {
@@ -290,7 +291,8 @@ void ChShaftsPowertrain::Update(double time,
 				  last_time_gearshift = now_time;
 			  }
 		  }
-		  if (this->GetMotorSpeed() < 1500*CH_C_2PI/60.0)
+		  //if (this->GetMotorSpeed() < 1500*CH_C_2PI/60.0)
+		  if (this->m_shaft_ingear->GetPos_dt() < 1500*CH_C_2PI/60.0)
 		  {
 			  if (this->GetSelectedGear()-1 > 0)
 			  {
