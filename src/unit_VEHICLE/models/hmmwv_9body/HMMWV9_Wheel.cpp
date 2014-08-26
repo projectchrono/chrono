@@ -19,6 +19,7 @@
 #include "assets/ChCylinderShape.h"
 #include "assets/ChTriangleMeshShape.h"
 #include "assets/ChTexture.h"
+#include "assets/ChColorAsset.h"
 
 #include "utils/ChUtilsData.h"
 #include "utils/ChUtilsInputOutput.h"
@@ -99,6 +100,9 @@ void HMMWV9_Wheel::Initialize(ChSharedBodyPtr spindle)
     trimesh_shape->SetMesh(trimesh);
     trimesh_shape->SetName(getMeshName());
     spindle->AddAsset(trimesh_shape);
+
+	ChSharedPtr<ChColorAsset> mcolor(new ChColorAsset(0.3,0.3,0.3));
+	spindle->AddAsset(mcolor);
 
     break;
   }
