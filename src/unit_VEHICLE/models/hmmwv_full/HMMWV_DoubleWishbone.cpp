@@ -28,7 +28,7 @@
 
 using namespace chrono;
 
-namespace hmmwv9 {
+namespace hmmwv {
 
 // -----------------------------------------------------------------------------
 // Static variables
@@ -168,4 +168,4 @@ void HMMWV_DoubleWishboneRear::OnInitializeUpright()
 }
 
 
-} // end namespace hmmwv9
+} // end namespace hmmwv

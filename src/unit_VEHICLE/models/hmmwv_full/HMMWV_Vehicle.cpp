@@ -9,10 +9,10 @@
 // http://projectchrono.org/license-chrono.txt.
 //
 // =============================================================================
-// Authors: Radu Serban, Justin Madsen
+// Authors: Radu Serban, Justin Madsen, Daniel Melanz
 // =============================================================================
 //
-// HMMWV 9-body vehicle model...
+// HMMWV full vehicle model...
 //
 // =============================================================================
 
@@ -22,11 +22,11 @@
 #include "utils/ChUtilsData.h"
 #include "utils/ChUtilsInputOutput.h"
 
-#include "HMMWV9_Vehicle.h"
+#include "HMMWV_Vehicle.h"
 
 using namespace chrono;
 
-namespace hmmwv9 {
+namespace hmmwv {
 
 // -----------------------------------------------------------------------------
 // Static variables
@@ -34,17 +34,17 @@ namespace hmmwv9 {
 
 static const double in2m = 0.0254;
 
-const double HMMWV9_Vehicle::m_chassisMass = 7500.0 / 2.2;
-const ChVector<> HMMWV9_Vehicle::m_chassisInertia(125.8, 497.4, 531.4); // chassis inertia (roll,pitch,yaw)
+const double     HMMWV_Vehicle::m_chassisMass = 7500.0 / 2.2;
+const ChVector<> HMMWV_Vehicle::m_chassisInertia(125.8, 497.4, 531.4); // chassis inertia (roll,pitch,yaw)
 
-const std::string HMMWV9_Vehicle::m_chassisMeshName = "hmmwv_chassis";
-const std::string HMMWV9_Vehicle::m_chassisMeshFile = utils::GetModelDataFile("hmmwv/humvee4_scaled_rotated_decimated_centered.obj");
+const std::string HMMWV_Vehicle::m_chassisMeshName = "hmmwv_chassis";
+const std::string HMMWV_Vehicle::m_chassisMeshFile = utils::GetModelDataFile("hmmwv/humvee4_scaled_rotated_decimated_centered.obj");
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-HMMWV9_Vehicle::HMMWV9_Vehicle(const bool           fixed,
-                               VisualizationType    chassisVis,
-                               VisualizationType    wheelVis)
+HMMWV_Vehicle::HMMWV_Vehicle(const bool           fixed,
+                             VisualizationType    chassisVis,
+                             VisualizationType    wheelVis)
 {
   // -------------------------------------------
   // Create the chassis body
@@ -117,14 +117,14 @@ HMMWV9_Vehicle::HMMWV9_Vehicle(const bool           fixed,
 }
 
 
-HMMWV9_Vehicle::~HMMWV9_Vehicle()
+HMMWV_Vehicle::~HMMWV_Vehicle()
 {
 }
 
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-void HMMWV9_Vehicle::Initialize(const ChCoordsys<>& chassisPos)
+void HMMWV_Vehicle::Initialize(const ChCoordsys<>& chassisPos)
 {
   m_chassis->SetPos(chassisPos.pos);
   m_chassis->SetRot(chassisPos.rot);
@@ -150,7 +150,7 @@ void HMMWV9_Vehicle::Initialize(const ChCoordsys<>& chassisPos)
 // -----------------------------------------------------------------------------
 //
 // -----------------------------------------------------------------------------
-ChSharedBodyPtr HMMWV9_Vehicle::GetWheelBody(ChWheelId which) const
+ChSharedBodyPtr HMMWV_Vehicle::GetWheelBody(ChWheelId which) const
 {
   switch (which) {
   case FRONT_LEFT:
@@ -166,7 +166,7 @@ ChSharedBodyPtr HMMWV9_Vehicle::GetWheelBody(ChWheelId which) const
   }
 }
 
-const ChVector<>& HMMWV9_Vehicle::GetWheelPos(ChWheelId which) const
+const ChVector<>& HMMWV_Vehicle::GetWheelPos(ChWheelId which) const
 {
   switch (which) {
   case FRONT_LEFT:
@@ -182,7 +182,7 @@ const ChVector<>& HMMWV9_Vehicle::GetWheelPos(ChWheelId which) const
   }
 }
 
-const ChQuaternion<>& HMMWV9_Vehicle::GetWheelRot(ChWheelId which) const
+const ChQuaternion<>& HMMWV_Vehicle::GetWheelRot(ChWheelId which) const
 {
   switch (which) {
   case FRONT_LEFT:
@@ -198,7 +198,7 @@ const ChQuaternion<>& HMMWV9_Vehicle::GetWheelRot(ChWheelId which) const
   }
 }
 
-const ChVector<>& HMMWV9_Vehicle::GetWheelLinVel(ChWheelId which) const
+const ChVector<>& HMMWV_Vehicle::GetWheelLinVel(ChWheelId which) const
 {
   switch (which) {
   case FRONT_LEFT:
@@ -214,7 +214,7 @@ const ChVector<>& HMMWV9_Vehicle::GetWheelLinVel(ChWheelId which) const
   }
 }
 
-ChVector<> HMMWV9_Vehicle::GetWheelAngVel(ChWheelId which) const
+ChVector<> HMMWV_Vehicle::GetWheelAngVel(ChWheelId which) const
 {
   switch (which) {
   case FRONT_LEFT:
@@ -230,7 +230,7 @@ ChVector<> HMMWV9_Vehicle::GetWheelAngVel(ChWheelId which) const
   }
 }
 
-double HMMWV9_Vehicle::GetWheelOmega(ChWheelId which) const
+double HMMWV_Vehicle::GetWheelOmega(ChWheelId which) const
 {
   switch (which) {
   case FRONT_LEFT:
@@ -249,10 +249,10 @@ double HMMWV9_Vehicle::GetWheelOmega(ChWheelId which) const
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-void HMMWV9_Vehicle::Update(double              time,
-                            double              throttle,
-                            double              steering,
-                            const ChTireForces& tire_forces)
+void HMMWV_Vehicle::Update(double              time,
+                           double              throttle,
+                           double              steering,
+                           const ChTireForces& tire_forces)
 {
   // Apply steering input.
   double displ = 0.08 * steering;
@@ -273,10 +273,10 @@ void HMMWV9_Vehicle::Update(double              time,
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-void HMMWV9_Vehicle::ExportMeshPovray(const std::string& out_dir)
+void HMMWV_Vehicle::ExportMeshPovray(const std::string& out_dir)
 {
   utils::WriteMeshPovray(m_chassisMeshFile, m_chassisMeshName, out_dir);
 }
 
 
-} // end namespace hmmwv9
+} // end namespace hmmwv

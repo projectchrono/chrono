@@ -9,41 +9,42 @@
 // http://projectchrono.org/license-chrono.txt.
 //
 // =============================================================================
-// Authors: Radu Serban, Justin Madsen
+// Authors: Radu Serban, Justin Madsen, Daniel Melanz
 // =============================================================================
 //
-// HMMWV 9-body vehicle model...
+// HMMWV full vehicle model...
 //
 // =============================================================================
 
-#ifndef HMMWV9_VEHICLE_H
-#define HMMWV9_VEHICLE_H
+#ifndef HMMWV_VEHICLE_H
+#define HMMWV_VEHICLE_H
 
 #include "core/ChCoordsys.h"
 #include "physics/ChSystem.h"
 
 #include "subsys/ChVehicle.h"
 
-#include "HMMWV9.h"
 #include "HMMWV_DoubleWishbone.h"
-#include "HMMWV9_Wheel.h"
-#include "HMMWV9_SimplePowertrain.h"
-#include "HMMWV9_Powertrain.h"
 
-namespace hmmwv9 {
+#include "../hmmwv_common/HMMWV.h"
+#include "../hmmwv_common/HMMWV_Wheel.h"
+#include "../hmmwv_common/HMMWV_SimplePowertrain.h"
+#include "../hmmwv_common/HMMWV_Powertrain.h"
+
+namespace hmmwv {
 
 // Forward reference
 class HMMWV9_SimplePowertrain;
 class HMMWV9_Powertrain;
 
-class HMMWV9_Vehicle : public chrono::ChVehicle {
+class HMMWV_Vehicle : public chrono::ChVehicle {
 public:
 
-  HMMWV9_Vehicle(const bool                   fixed = false,
-                 VisualizationType            chassisVis = NONE,
-                 VisualizationType            wheelVis = PRIMITIVES);
+  HMMWV_Vehicle(const bool                   fixed = false,
+                VisualizationType            chassisVis = NONE,
+                VisualizationType            wheelVis = PRIMITIVES);
 
-  ~HMMWV9_Vehicle();
+  ~HMMWV_Vehicle();
 
   virtual chrono::ChSharedBodyPtr GetWheelBody(chrono::ChWheelId which) const;
 
@@ -86,7 +87,7 @@ private:
 };
 
 
-} // end namespace hmmwv9
+} // end namespace hmmwv
 
 
 #endif

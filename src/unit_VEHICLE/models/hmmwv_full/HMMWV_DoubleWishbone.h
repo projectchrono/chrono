@@ -27,7 +27,7 @@
 
 #include "subsys/suspension/ChDoubleWishbone.h"
 
-namespace hmmwv9 {
+namespace hmmwv {
 
 class HMMWV_DoubleWishboneFront : public chrono::ChDoubleWishbone
 {
@@ -130,7 +130,7 @@ private:
 };
 
 
-} // end namespace hmmwv9
+} // end namespace hmmwv
 
 
 #endif
