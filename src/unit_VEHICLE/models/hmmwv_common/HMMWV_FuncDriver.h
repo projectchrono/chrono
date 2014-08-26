@@ -15,12 +15,12 @@
 //
 // =============================================================================
 
-#ifndef HMMWV9_FUNCDRIVER_H
-#define HMMWV9_FUNCDRIVER_H
+#ifndef HMMWV_FUNCDRIVER_H
+#define HMMWV_FUNCDRIVER_H
 
 #include "subsys/ChDriver.h"
 
-namespace hmmwv9 {
+namespace hmmwv {
 
 class HMMWV9_FuncDriver : public chrono::ChDriver
 {
@@ -36,7 +36,7 @@ private:
 };
 
 
-} // end namespace hmmwv9
+} // end namespace hmmwv
 
 
 #endif

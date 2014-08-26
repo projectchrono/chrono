@@ -16,13 +16,13 @@
 //
 // =============================================================================
 
-#ifndef HMMWV9_LUGRETIRE_H
-#define HMMWV9_LUGRETIRE_H
+#ifndef HMMWV_LUGRETIRE_H
+#define HMMWV_LUGRETIRE_H
 
 
 #include "subsys/tire/ChLugreTire.h"
 
-namespace hmmwv9 {
+namespace hmmwv {
 
 class HMMWV9_LugreTire : public chrono::ChLugreTire {
 public:
@@ -40,7 +40,7 @@ private:
 };
 
 
-} // end namespace hmmwv9
+} // end namespace hmmwv
 
 
 #endif

@@ -28,7 +28,7 @@
 
 using namespace chrono;
 
-namespace hmmwv9 {
+namespace hmmwv {
 
 // -----------------------------------------------------------------------------
 // Static variables
@@ -122,4 +122,4 @@ void HMMWV9_WheelRight::ExportMeshPovray(const std::string& out_dir)
 }
 
 
-} // end namespace hmmwv9
+} // end namespace hmmwv

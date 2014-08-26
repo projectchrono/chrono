@@ -51,7 +51,7 @@
 
 
 using namespace chrono;
-using namespace hmmwv9;
+using namespace hmmwv;
 
 
 // =============================================================================
@@ -93,8 +93,8 @@ int main(int argc, char* argv[])
 
   // Create the HMMWV vehicle
   HMMWV9_Vehicle vehicle(false,
-                         hmmwv9::MESH,
-                         hmmwv9::MESH);
+                         hmmwv::MESH,
+                         hmmwv::MESH);
 
   vehicle.Initialize(ChCoordsys<>(initLoc, initRot));
 

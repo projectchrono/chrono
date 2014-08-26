@@ -19,13 +19,13 @@
 //
 // =============================================================================
 
-#ifndef HMMWV9_SIMPLEPOWERTRAIN_H
-#define HMMWV9_SIMPLEPOWERTRAIN_H
+#ifndef HMMWV_SIMPLEPOWERTRAIN_H
+#define HMMWV_SIMPLEPOWERTRAIN_H
 
 #include "subsys/powertrain/ChSimplePowertrain.h"
 #include "subsys/ChVehicle.h"
 
-namespace hmmwv9 {
+namespace hmmwv {
 
 // Forward reference
 class HMMWV9_Vehicle;
@@ -51,7 +51,7 @@ private:
 };
 
 
-} // end namespace hmmwv9
+} // end namespace hmmwv
 
 
 #endif

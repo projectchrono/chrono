@@ -23,7 +23,7 @@
 
 using namespace chrono;
 
-namespace hmmwv9 {
+namespace hmmwv {
 
 // -----------------------------------------------------------------------------
 // Static variables
@@ -42,4 +42,4 @@ HMMWV9_SimplePowertrain::HMMWV9_SimplePowertrain(ChVehicle* car)
 }
 
 
-} // end namespace hmmwv9
+} // end namespace hmmwv

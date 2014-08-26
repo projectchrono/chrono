@@ -19,7 +19,7 @@
 
 using namespace chrono;
 
-namespace hmmwv9 {
+namespace hmmwv {
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
@@ -43,4 +43,4 @@ void HMMWV9_FuncDriver::Update(double time)
 }
 
 
-} // end namespace hmmwv9
+} // end namespace hmmwv

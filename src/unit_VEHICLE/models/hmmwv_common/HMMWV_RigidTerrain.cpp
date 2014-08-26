@@ -26,7 +26,7 @@
 
 using namespace chrono;
 
-namespace hmmwv9 {
+namespace hmmwv {
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
@@ -107,4 +107,4 @@ void HMMWV9_RigidTerrain::AddFixedObstacles()
 }
 
 
-} // end namespace hmmwv9
+} // end namespace hmmwv

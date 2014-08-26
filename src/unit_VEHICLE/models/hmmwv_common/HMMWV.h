@@ -14,12 +14,12 @@
 //
 // =============================================================================
 
-#ifndef HMMWV9_H
-#define HMMWV9_H
+#ifndef HMMWV_H
+#define HMMWV_H
 
 #include "ChronoT_config.h"
 
-namespace hmmwv9 {
+namespace hmmwv {
 
 enum VisualizationType {
   NONE,
@@ -28,7 +28,7 @@ enum VisualizationType {
 };
 
 
-} // end namespace hmmwv9
+} // end namespace hmmwv
 
 
 #endif

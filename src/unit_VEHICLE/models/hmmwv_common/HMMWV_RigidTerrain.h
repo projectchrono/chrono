@@ -16,15 +16,15 @@
 //
 // =============================================================================
 
-#ifndef HMMWV9_RIGIDTERRAIN_H
-#define HMMWV9_RIGIDTERRAIN_H
+#ifndef HMMWV_RIGIDTERRAIN_H
+#define HMMWV_RIGIDTERRAIN_H
 
 #include "physics/ChSystem.h"
 
 #include "subsys/ChTerrain.h"
 
 
-namespace hmmwv9 {
+namespace hmmwv {
 
 class HMMWV9_RigidTerrain : public chrono::ChTerrain {
 public:
@@ -52,7 +52,7 @@ private:
 };
 
 
-} // end namespace hmmwv9
+} // end namespace hmmwv
 
 
 #endif

@@ -16,13 +16,13 @@
 //
 // =============================================================================
 
-#ifndef HMMWV9_RIGIDTIRE_H
-#define HMMWV9_RIGIDTIRE_H
+#ifndef HMMWV_RIGIDTIRE_H
+#define HMMWV_RIGIDTIRE_H
 
 
 #include "subsys/tire/ChRigidTire.h"
 
-namespace hmmwv9 {
+namespace hmmwv {
 
 class HMMWV9_RigidTire : public chrono::ChRigidTire {
 public:
@@ -42,7 +42,7 @@ private:
 };
 
 
-} // end namespace hmmwv9
+} // end namespace hmmwv
 
 
 #endif

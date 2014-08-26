@@ -20,7 +20,7 @@
 
 using namespace chrono;
 
-namespace hmmwv9 {
+namespace hmmwv {
 
 
 // -----------------------------------------------------------------------------
@@ -152,4 +152,4 @@ void HMMWV9_Powertrain::SetTorqeConverterTorqueRatioMap(ChSharedPtr<ChFunction_R
 }
 
 
-} // end namespace hmmwv9
+} // end namespace hmmwv

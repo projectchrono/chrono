@@ -16,14 +16,14 @@
 //
 // =============================================================================
 
-#ifndef HMMWV9_WHEEL_H
-#define HMMWV9_WHEEL_H
+#ifndef HMMWV_WHEEL_H
+#define HMMWV_WHEEL_H
 
 #include "subsys/ChWheel.h"
 
 #include "HMMWV.h"
 
-namespace hmmwv9 {
+namespace hmmwv {
 
 class HMMWV9_Wheel : public chrono::ChWheel {
 public:
@@ -82,7 +82,7 @@ private:
 };
 
 
-} // end namespace hmmwv9
+} // end namespace hmmwv
 
 
 #endif

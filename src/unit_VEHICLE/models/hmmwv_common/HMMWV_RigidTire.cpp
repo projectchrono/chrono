@@ -21,7 +21,7 @@
 
 using namespace chrono;
 
-namespace hmmwv9 {
+namespace hmmwv {
 
 // -----------------------------------------------------------------------------
 // Static variables
@@ -43,4 +43,4 @@ HMMWV9_RigidTire::HMMWV9_RigidTire(const ChTerrain& terrain,
 }
 
 
-} // end namespace hmmwv9
+} // end namespace hmmwv

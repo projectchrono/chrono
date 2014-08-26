@@ -31,7 +31,7 @@
 #include "../hmmwv_common/HMMWV_SimplePowertrain.h"
 #include "../hmmwv_common/HMMWV_Powertrain.h"
 
-namespace hmmwv9 {
+namespace hmmwv {
 
 // Forward reference
 class HMMWV9_SimplePowertrain;
@@ -40,9 +40,9 @@ class HMMWV9_Powertrain;
 class HMMWV9_Vehicle : public chrono::ChVehicle {
 public:
 
-  HMMWV9_Vehicle(const bool                   fixed = false,
-                 VisualizationType            chassisVis = NONE,
-                 VisualizationType            wheelVis = PRIMITIVES);
+  HMMWV9_Vehicle(const bool            fixed = false,
+                 VisualizationType     chassisVis = NONE,
+                 VisualizationType     wheelVis = PRIMITIVES);
 
   ~HMMWV9_Vehicle();
 
@@ -87,7 +87,7 @@ private:
 };
 
 
-} // end namespace hmmwv9
+} // end namespace hmmwv
 
 
 #endif
