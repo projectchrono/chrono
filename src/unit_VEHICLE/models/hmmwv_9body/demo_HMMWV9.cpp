@@ -137,10 +137,20 @@ int main(int argc, char* argv[])
       map_skybox_side);
   mbox->setRotation( irr::core::vector3df(90,0,0));
  
+  bool do_shadows = false; // shadow map is experimental
 
-  application.AddTypicalLights(irr::core::vector3df(30.f, -30.f,  100.f),
-                               irr::core::vector3df(30.f,  50.f,  100.f),
-                               250, 130);
+  if (!do_shadows)
+  {
+    application.AddTypicalLights(irr::core::vector3df(30.f, -30.f,  100.f),
+                                irr::core::vector3df(30.f,  50.f,  100.f),
+                                250, 130);
+  }
+  else
+  {
+	application.AddLightWithShadow(irr::core::vector3df(20.f,   20.f,  80.f), 
+								   irr::core::vector3df(20.f,   0.f,  0.f), 
+								   150, 60,100, 40, 512, irr::video::SColorf(1,1,1));
+  }
 
   application.SetTimestep(step_size);
 
@@ -156,6 +166,10 @@ int main(int argc, char* argv[])
   // Set up the assets for rendering
   application.AssetBindAll();
   application.AssetUpdateAll();
+  if (do_shadows)
+  {
+	application.AddShadowAll();
+  }
 #else
   HMMWV9_FuncDriver driver;
 #endif
@@ -180,7 +194,7 @@ int main(int argc, char* argv[])
     // Render scene
     if (simul_substep == 0) {
       application.GetVideoDriver()->beginScene(true, true, irr::video::SColor(255, 140, 161, 192));
-      driver.DrawAll();
+	  driver.DrawAll();
       application.GetVideoDriver()->endScene();
     }
 
