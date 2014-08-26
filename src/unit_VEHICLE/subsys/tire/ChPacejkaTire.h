@@ -55,38 +55,38 @@ public:
 protected:
 
   // @brief where to find the input parameter file
-  virtual std::string get_pacTire_paramFile() = 0;
+  virtual std::string getPacTireParamFile() = 0;
 
   // @brief specify the file name to read the Pactire input from
   void Initialize();
 
   // @brief look for this data file
-  virtual void load_pacTire_paramFile(void);
+  virtual void loadPacTireParamFile(void);
 
   // @brief once Pac tire input text file has been succesfully opened, read 
   //    the input data as strings. Each vector contains a list of input data
   //    corresponding to the sections of the input file.
   //    Section descriptors are in m_inFile_sections
-  virtual void read_pactire_file(
-      std::ifstream&                        m_inFile,
-      std::vector<std::list<std::string> >& m_inFile_data,
-      std::vector<std::string>&             m_inFile_sections);
+  virtual void readPacTireInput(
+      std::ifstream&                        inFile,
+      std::vector<std::list<std::string> >& inFile_data,
+      std::vector<std::string>&             inFile_sections);
 
 
 // ----- Data members
 
   // based on pure slip
-  ChTireForce FM_pure;
+  ChTireForce m_FM_pure;
 
   // based on combined slip
-  ChTireForce FM_combined;
+  ChTireForce m_FM_combined;
 
   // write output data to this file
   std::string m_outFile;
 
   // have the tire model parameters been defined/read from file yet?
   // must call load_pacFile_tire
-  bool params_defined;
+  bool m_params_defined;
 };
 
 

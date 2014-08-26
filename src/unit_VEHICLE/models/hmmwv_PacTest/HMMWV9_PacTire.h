@@ -35,11 +35,11 @@ protected:
   std::string m_paramFile;
 
   // some default values
-  static const std::string outFileNameDefault;
-  static const std::string default_PacFile;
+  static const std::string m_defaultOutFilename;
+  static const std::string m_defaultPacTireParamFile;
 
   // define the pactire parameter file to use
-  virtual std::string get_pacTire_paramFile();
+  virtual std::string getPacTireParamFile();
 };
 
 
