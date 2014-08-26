@@ -66,18 +66,18 @@ int main(
       real3 T6, T7, T8;
       Compute_Jacobian(B_R, n, v, w, p2, T6, T7, T8);
 
-      ChMatrix33<float> Jx1, Jx2, Jr1, Jr2;
-      ChMatrix33<float> Ps1, Ps2, Jtemp;
-      ChMatrix33<float> A1 = ChMatrix33<float>(ToChQuaternion(A_R));
-      ChMatrix33<float> A2 = ChMatrix33<float>(ToChQuaternion(B_R));
+      ChMatrix33<real> Jx1, Jx2, Jr1, Jr2;
+      ChMatrix33<real> Ps1, Ps2, Jtemp;
+      ChMatrix33<real> A1 = ChMatrix33<real>(ToChQuaternion(A_R));
+      ChMatrix33<real> A2 = ChMatrix33<real>(ToChQuaternion(B_R));
 
-      ChVector<float> Pl1 = ChTransform<float>::TransformParentToLocal(ToChVector(p1), ChVector<float>(0, 0, 0), A1);
-      ChVector<float> Pl2 = ChTransform<float>::TransformParentToLocal(ToChVector(p2), ChVector<float>(0, 0, 0), A2);
+      ChVector<real> Pl1 = ChTransform<real>::TransformParentToLocal(ToChVector(p1), ChVector<real>(0, 0, 0), A1);
+      ChVector<real> Pl2 = ChTransform<real>::TransformParentToLocal(ToChVector(p2), ChVector<real>(0, 0, 0), A2);
 
       Ps1.Set_X_matrix(Pl1);
       Ps2.Set_X_matrix(Pl2);
 
-      ChMatrix33<float> contact_plane;
+      ChMatrix33<real> contact_plane;
       contact_plane.Set_A_axis(Vx, Vy, Vz);
 
       Jx1.CopyFromMatrixT(contact_plane);
@@ -199,16 +199,16 @@ int main(
       ChMatrix33<> Jx1, Jx2, Jr1, Jr2;
       ChMatrix33<> Ps1, Ps2, Jtemp;
 
-      ChMatrix33<float> A1 = ChMatrix33<>(ToChQuaternion(A_R));
-      ChMatrix33<float> A2 = ChMatrix33<>(ToChQuaternion(B_R));
+      ChMatrix33<real> A1 = ChMatrix33<>(ToChQuaternion(A_R));
+      ChMatrix33<real> A2 = ChMatrix33<>(ToChQuaternion(B_R));
 
-      ChVector<float> Pl1 = ChTransform<float>::TransformParentToLocal(ToChVector(p1), ChVector<float>(0, 0, 0), A1);
-      ChVector<float> Pl2 = ChTransform<float>::TransformParentToLocal(ToChVector(p2), ChVector<float>(0, 0, 0), A2);
+      ChVector<real> Pl1 = ChTransform<real>::TransformParentToLocal(ToChVector(p1), ChVector<real>(0, 0, 0), A1);
+      ChVector<real> Pl2 = ChTransform<real>::TransformParentToLocal(ToChVector(p2), ChVector<real>(0, 0, 0), A2);
 
       Ps1.Set_X_matrix(Pl1);
       Ps2.Set_X_matrix(Pl2);
 
-      ChMatrix33<float> contact_plane;
+      ChMatrix33<real> contact_plane;
       contact_plane.Set_A_axis(Vx, Vy, Vz);
 
       Jx1.CopyFromMatrixT(contact_plane);
