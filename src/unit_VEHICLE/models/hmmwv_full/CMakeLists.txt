@@ -7,9 +7,9 @@
 # ----------------------
 INCLUDE(CMakeDependentOption)
 
-OPTION(HMMWV_ENABLE "Build the HMMWV vehicle model" OFF)
+OPTION(HMMWV_FULL_ENABLE "Build the HMMWV vehicle model" OFF)
 
-IF(NOT HMMWV_ENABLE)
+IF(NOT HMMWV_FULL_ENABLE)
 	RETURN()
 ENDIF()
 
