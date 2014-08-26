@@ -16,7 +16,7 @@
 //
 // =============================================================================
 
-#include "HMMWV9_Powertrain.h"
+#include "HMMWV_Powertrain.h"
 
 using namespace chrono;
 
@@ -41,7 +41,7 @@ namespace hmmwv9 {
 // the direction of the motor block is along the X axis, while the directions of
 // the axles is along the Y axis (relative to the chassis coordinate frame),
 // -----------------------------------------------------------------------------
-HMMWV9_Powertrain::HMMWV9_Powertrain(HMMWV9_Vehicle* car)
+HMMWV9_Powertrain::HMMWV9_Powertrain(ChVehicle* car)
 : ChShaftsPowertrain(car, ChVector<>(1, 0, 0), ChVector<>(0, 1, 0))
 {
 }

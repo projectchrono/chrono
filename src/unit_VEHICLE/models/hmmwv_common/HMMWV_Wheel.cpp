@@ -24,8 +24,7 @@
 #include "utils/ChUtilsData.h"
 #include "utils/ChUtilsInputOutput.h"
 
-#include "HMMWV9_Wheel.h"
-#include "HMMWV9_Vehicle.h"
+#include "HMMWV_Wheel.h"
 
 using namespace chrono;
 

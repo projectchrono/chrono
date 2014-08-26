@@ -12,34 +12,32 @@
 // Authors: Radu Serban
 // =============================================================================
 //
+// HMMWV LuGre subsystem
 //
 // =============================================================================
 
-#include "HMMWV9_FuncDriver.h"
+
+#include "HMMWV_LugreTire.h"
 
 using namespace chrono;
 
 namespace hmmwv9 {
 
 // -----------------------------------------------------------------------------
+// Static variables
 // -----------------------------------------------------------------------------
-void HMMWV9_FuncDriver::Update(double time)
-{
-  if (time < 0.5)
-    m_throttle = 0;
-  else if (time < 1.5)
-    m_throttle = 0.4 * (time - 0.5);
-  else
-    m_throttle = 0.4;
 
-  if (time < 4)
-    m_steering = 0;
-  else if (time < 6)
-    m_steering = 0.25 * (time - 4);
-  else if (time < 10)
-    m_steering = -0.25 * (time - 6) + 0.5;
-  else
-    m_steering = -0.5;
+static const double in2m = 0.0254;
+
+const double HMMWV9_LugreTire::m_radius = 18.5 * in2m;
+const double HMMWV9_LugreTire::m_discLocs[] = { -5 * in2m, 0 * in2m, 5 * in2m };
+
+
+// -----------------------------------------------------------------------------
+// -----------------------------------------------------------------------------
+HMMWV9_LugreTire::HMMWV9_LugreTire(const ChTerrain& terrain)
+: ChLugreTire(terrain)
+{
 }
 
 

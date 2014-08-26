@@ -24,11 +24,12 @@
 
 #include "subsys/ChVehicle.h"
 
-#include "HMMWV9.h"
 #include "HMMWV9_DoubleWishbone.h"
-#include "HMMWV9_Wheel.h"
-#include "HMMWV9_SimplePowertrain.h"
-#include "HMMWV9_Powertrain.h"
+
+#include "../hmmwv_common/HMMWV.h"
+#include "../hmmwv_common/HMMWV_Wheel.h"
+#include "../hmmwv_common/HMMWV_SimplePowertrain.h"
+#include "../hmmwv_common/HMMWV_Powertrain.h"
 
 namespace hmmwv9 {
 

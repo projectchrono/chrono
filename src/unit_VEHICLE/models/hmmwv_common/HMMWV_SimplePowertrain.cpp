@@ -9,16 +9,17 @@
 // http://projectchrono.org/license-chrono.txt.
 //
 // =============================================================================
-// Authors: Radu Serban
+// Authors: Radu Serban, Justin Madsen
 // =============================================================================
 //
-// HMMWV wheel subsystem
+// Simple powertrain model for the HMMWV vehicle.
+// - RWD only
+// - trivial speed-torque curve
+// - no differential
 //
 // =============================================================================
 
-
-#include "HMMWV9_RigidTire.h"
-#include "HMMWV9_Vehicle.h"
+#include "HMMWV_SimplePowertrain.h"
 
 using namespace chrono;
 
@@ -27,19 +28,16 @@ namespace hmmwv9 {
 // -----------------------------------------------------------------------------
 // Static variables
 // -----------------------------------------------------------------------------
-
-static const double in2m = 0.0254;
-
-const double HMMWV9_RigidTire::m_radius = 18.5 * in2m;
-const double HMMWV9_RigidTire::m_width = 10 * in2m;
+const double HMMWV9_SimplePowertrain::m_max_torque = 2400 / 8.851;
+const double HMMWV9_SimplePowertrain::m_max_speed  = 2000;
+const double HMMWV9_SimplePowertrain::m_conic_tau = 0.2;
+const double HMMWV9_SimplePowertrain::m_gear_tau = 0.3;
 
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-HMMWV9_RigidTire::HMMWV9_RigidTire(const ChTerrain& terrain,
-                                   float            mu)
-: ChRigidTire(terrain),
-  m_mu(mu)
+HMMWV9_SimplePowertrain::HMMWV9_SimplePowertrain(ChVehicle* car)
+: ChSimplePowertrain(car)
 {
 }
 

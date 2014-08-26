@@ -32,11 +32,12 @@
 
 #include "utils/ChUtilsInputOutput.h"
 
-#include "HMMWV9.h"
 #include "HMMWV9_Vehicle.h"
-#include "HMMWV9_FuncDriver.h"
-#include "HMMWV9_RigidTire.h"
-#include "HMMWV9_RigidTerrain.h"
+
+#include "../hmmwv_common/HMMWV.h"
+#include "../hmmwv_common/HMMWV_FuncDriver.h"
+#include "../hmmwv_common/HMMWV_RigidTire.h"
+#include "../hmmwv_common/HMMWV_RigidTerrain.h"
 
 // If Irrlicht support is available...
 #if IRRLICHT_ENABLED

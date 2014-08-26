@@ -21,7 +21,7 @@
 
 #include "subsys/ChWheel.h"
 
-#include "HMMWV9.h"
+#include "HMMWV.h"
 
 namespace hmmwv9 {
 

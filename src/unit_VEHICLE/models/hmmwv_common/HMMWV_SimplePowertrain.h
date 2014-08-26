@@ -23,8 +23,7 @@
 #define HMMWV9_SIMPLEPOWERTRAIN_H
 
 #include "subsys/powertrain/ChSimplePowertrain.h"
-
-#include "HMMWV9_Vehicle.h"
+#include "subsys/ChVehicle.h"
 
 namespace hmmwv9 {
 
@@ -34,7 +33,7 @@ class HMMWV9_Vehicle;
 class HMMWV9_SimplePowertrain : public chrono::ChSimplePowertrain {
 public:
 
-  HMMWV9_SimplePowertrain(HMMWV9_Vehicle* car);
+  HMMWV9_SimplePowertrain(chrono::ChVehicle* car);
 
   ~HMMWV9_SimplePowertrain() {}
 
