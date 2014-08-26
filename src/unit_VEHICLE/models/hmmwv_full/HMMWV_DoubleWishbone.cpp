@@ -21,9 +21,6 @@
 //
 // =============================================================================
 
-#include "assets/ChBoxShape.h"
-#include "assets/ChColorAsset.h"
-
 #include "HMMWV_DoubleWishbone.h"
 
 using namespace chrono;
@@ -43,6 +40,7 @@ const double     HMMWV_DoubleWishboneFront::m_uprightMass = 1;
 
 const double     HMMWV_DoubleWishboneFront::m_LCARadius = 0.02;
 const double     HMMWV_DoubleWishboneFront::m_UCARadius = 0.02;
+const double     HMMWV_DoubleWishboneFront::m_uprightRadius = 0.02;
 
 const ChVector<> HMMWV_DoubleWishboneFront::m_spindleInertia(1, 1, 1);
 const ChVector<> HMMWV_DoubleWishboneFront::m_UCAInertia(1, 1, 1);  // TODO: This is not the correct value
@@ -66,6 +64,7 @@ const double     HMMWV_DoubleWishboneRear::m_uprightMass = 1;
 
 const double     HMMWV_DoubleWishboneRear::m_LCARadius = 0.02;
 const double     HMMWV_DoubleWishboneRear::m_UCARadius = 0.02;
+const double     HMMWV_DoubleWishboneRear::m_uprightRadius = 0.02;
 
 const ChVector<> HMMWV_DoubleWishboneRear::m_spindleInertia(1, 1, 1);
 const ChVector<> HMMWV_DoubleWishboneRear::m_UCAInertia(1, 1, 1);  // TODO: This is not the correct value
@@ -138,39 +137,6 @@ const ChVector<> HMMWV_DoubleWishboneRear::getLocation(PointId which)
   case TIEROD_U: return in2m * ChVector<>(-6.70, 20.23, -0.37);
   default:       return ChVector<>(0, 0, 0);
   }
-}
-
-// -----------------------------------------------------------------------------
-// Implementations of the OnInitializeUpright() virtual methods.
-// Add simple visualization for the upright body.
-// -----------------------------------------------------------------------------
-
-void HMMWV_DoubleWishboneFront::OnInitializeUpright()
-{
-  ChSharedPtr<ChBoxShape> box(new ChBoxShape);
-  box->GetBoxGeometry().SetLengths(m_uprightDims);
-  m_upright->AddAsset(box);
-
-  ChSharedPtr<ChColorAsset> col(new ChColorAsset);
-  switch (m_side) {
-  case RIGHT: col->SetColor(ChColor(0.6f, 0.2f, 0.2f)); break;
-  case LEFT:  col->SetColor(ChColor(0.2f, 0.6f, 0.2f)); break;
-  }
-  m_upright->AddAsset(col);
-}
-
-void HMMWV_DoubleWishboneRear::OnInitializeUpright()
-{
-  ChSharedPtr<ChBoxShape> box(new ChBoxShape);
-  box->GetBoxGeometry().SetLengths(m_uprightDims);
-  m_upright->AddAsset(box);
-
-  ChSharedPtr<ChColorAsset> col(new ChColorAsset);
-  switch (m_side) {
-  case RIGHT: col->SetColor(ChColor(0.6f, 0.4f, 0.4f)); break;
-  case LEFT:  col->SetColor(ChColor(0.4f, 0.6f, 0.6f)); break;
-  }
-  m_upright->AddAsset(col);
 }
 
 

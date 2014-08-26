@@ -79,6 +79,7 @@ protected:
 
   virtual double getUCARadius() const = 0;
   virtual double getLCARadius() const = 0;
+  virtual double getUprightRadius() const = 0;
 
   virtual const ChVector<>& getSpindleInertia() const = 0;
   virtual const ChVector<>& getUCAInertia() const = 0;
@@ -121,6 +122,7 @@ private:
 
   void   AddVisualizationUCA();
   void   AddVisualizationLCA();
+  void   AddVisualizationUpright();
 };
 
 
