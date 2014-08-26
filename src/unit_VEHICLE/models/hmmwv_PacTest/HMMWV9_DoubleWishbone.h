@@ -40,6 +40,8 @@ public:
   virtual double getSpindleMass() const { return m_spindleMass; }
   virtual double getUprightMass() const { return m_uprightMass; }
 
+  virtual double getUprightRadius() const { return m_uprightRadius; }
+
   virtual const chrono::ChVector<>& getSpindleInertia() const { return m_spindleInertia; }
   virtual const chrono::ChVector<>& getUprightInertia() const { return m_uprightInertia; }
 
@@ -53,17 +55,13 @@ private:
 
   virtual const chrono::ChVector<> getLocation(PointId which);
 
-  virtual void OnInitializeUpright();
-
-
   static const double      m_spindleMass;
   static const double      m_uprightMass;
+  static const double      m_uprightRadius;
   static const chrono::ChVector<>  m_spindleInertia;
   static const chrono::ChVector<>  m_uprightInertia;
 
   static const double      m_axleInertia;
-
-  static const chrono::ChVector<>  m_uprightDims;
 
   static const double      m_springCoefficient;
   static const double      m_dampingCoefficient;
@@ -83,6 +81,8 @@ public:
   virtual double getSpindleMass() const { return m_spindleMass; }
   virtual double getUprightMass() const { return m_uprightMass; }
 
+  virtual double getUprightRadius() const { return m_uprightRadius; }
+
   virtual const chrono::ChVector<>& getSpindleInertia() const { return m_spindleInertia; }
   virtual const chrono::ChVector<>& getUprightInertia() const { return m_uprightInertia; }
 
@@ -96,17 +96,13 @@ private:
 
   virtual const chrono::ChVector<> getLocation(PointId which);
 
-  virtual void OnInitializeUpright();
-
-
   static const double      m_spindleMass;
   static const double      m_uprightMass;
+  static const double      m_uprightRadius;
   static const chrono::ChVector<>  m_spindleInertia;
   static const chrono::ChVector<>  m_uprightInertia;
 
   static const double      m_axleInertia;
-
-  static const chrono::ChVector<>  m_uprightDims;
 
   static const double      m_springCoefficient;
   static const double      m_dampingCoefficient;

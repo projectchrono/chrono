@@ -28,6 +28,9 @@
 //
 // =============================================================================
 
+#include "assets/ChCylinderShape.h"
+#include "assets/ChColorAsset.h"
+
 #include "subsys/suspension/ChDoubleWishboneReduced.h"
 
 
@@ -111,6 +114,7 @@ ChDoubleWishboneReduced::Initialize(ChSharedBodyPtr   chassis,
   m_upright->SetRot(chassis->GetCoord().rot);
   m_upright->SetMass(getUprightMass());
   m_upright->SetInertiaXX(getUprightInertia());
+  AddVisualizationUpright();
   OnInitializeUpright();
   chassis->GetSystem()->AddBody(m_upright);
 
@@ -152,6 +156,29 @@ ChDoubleWishboneReduced::Initialize(ChSharedBodyPtr   chassis,
     chassis->GetSystem()->Add(m_axle_to_spindle);
   }
 
+}
+
+
+// -----------------------------------------------------------------------------
+// -----------------------------------------------------------------------------
+void ChDoubleWishboneReduced::AddVisualizationUpright()
+{
+  // Express hardpoint locations in body frame.
+  ChVector<> p_U = m_upright->TransformPointParentToLocal(m_points[UCA_U]);
+  ChVector<> p_L = m_upright->TransformPointParentToLocal(m_points[LCA_U]);
+
+  ChSharedPtr<ChCylinderShape> cyl(new ChCylinderShape);
+  cyl->GetCylinderGeometry().p1 = p_U;
+  cyl->GetCylinderGeometry().p2 = p_L;
+  cyl->GetCylinderGeometry().rad = getUprightRadius();
+  m_upright->AddAsset(cyl);
+
+  ChSharedPtr<ChColorAsset> col(new ChColorAsset);
+  switch (m_side) {
+  case RIGHT: col->SetColor(ChColor(0.6f, 0.1f, 0.1f)); break;
+  case LEFT:  col->SetColor(ChColor(0.1f, 0.1f, 0.6f)); break;
+  }
+  m_upright->AddAsset(col);
 }
 
 

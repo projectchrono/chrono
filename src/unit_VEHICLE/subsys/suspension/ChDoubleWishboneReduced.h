@@ -75,6 +75,8 @@ protected:
   virtual double getSpindleMass() const = 0;
   virtual double getUprightMass() const = 0;
 
+  virtual double getUprightRadius() const = 0;
+
   virtual const ChVector<>& getSpindleInertia() const = 0;
   virtual const ChVector<>& getUprightInertia() const = 0;
 
@@ -104,6 +106,7 @@ protected:
 
 private:
 
+  void   AddVisualizationUpright();
 };
 
 

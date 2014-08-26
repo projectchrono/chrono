@@ -21,9 +21,6 @@
 //
 // =============================================================================
 
-#include "assets/ChBoxShape.h"
-#include "assets/ChColorAsset.h"
-
 #include "HMMWV9_DoubleWishbone.h"
 
 using namespace chrono;
@@ -39,12 +36,12 @@ static const double in2m = 0.0254;
 const double     HMMWV9_DoubleWishboneFront::m_spindleMass = 1;
 const double     HMMWV9_DoubleWishboneFront::m_uprightMass = 1;
 
+const double     HMMWV9_DoubleWishboneFront::m_uprightRadius = 0.02;
+
 const ChVector<> HMMWV9_DoubleWishboneFront::m_spindleInertia(1, 1, 1);
 const ChVector<> HMMWV9_DoubleWishboneFront::m_uprightInertia(5, 5, 5);
 
 const double     HMMWV9_DoubleWishboneFront::m_axleInertia = 0.4;
-
-const ChVector<> HMMWV9_DoubleWishboneFront::m_uprightDims(0.1, 0.05, 0.1);
 
 const double     HMMWV9_DoubleWishboneFront::m_springCoefficient  = 167062.0;
 const double     HMMWV9_DoubleWishboneFront::m_dampingCoefficient = 22459.0;
@@ -55,12 +52,12 @@ const double     HMMWV9_DoubleWishboneFront::m_springRestLength   = 0.4062;
 const double     HMMWV9_DoubleWishboneRear::m_spindleMass = 1;
 const double     HMMWV9_DoubleWishboneRear::m_uprightMass = 1;
 
+const double     HMMWV9_DoubleWishboneRear::m_uprightRadius = 0.02;
+
 const ChVector<> HMMWV9_DoubleWishboneRear::m_spindleInertia(1, 1, 1);
 const ChVector<> HMMWV9_DoubleWishboneRear::m_uprightInertia(5, 5, 5);
 
 const double     HMMWV9_DoubleWishboneRear::m_axleInertia = 0.4;
-
-const ChVector<> HMMWV9_DoubleWishboneRear::m_uprightDims(0.1, 0.05, 0.1);
 
 const double     HMMWV9_DoubleWishboneRear::m_springCoefficient = 369149.0;
 const double     HMMWV9_DoubleWishboneRear::m_dampingCoefficient = 35024.0;
@@ -124,39 +121,6 @@ const ChVector<> HMMWV9_DoubleWishboneRear::getLocation(PointId which)
   case TIEROD_U: return in2m * ChVector<>(-6.70, 20.23, -0.37);
   default:       return ChVector<>(0, 0, 0);
   }
-}
-
-// -----------------------------------------------------------------------------
-// Implementations of the OnInitializeUpright() virtual methods.
-// Add simple visualization for the upright body.
-// -----------------------------------------------------------------------------
-
-void HMMWV9_DoubleWishboneFront::OnInitializeUpright()
-{
-  ChSharedPtr<ChBoxShape> box(new ChBoxShape);
-  box->GetBoxGeometry().SetLengths(m_uprightDims);
-  m_upright->AddAsset(box);
-
-  ChSharedPtr<ChColorAsset> col(new ChColorAsset);
-  switch (m_side) {
-  case RIGHT: col->SetColor(ChColor(0.6f, 0.2f, 0.2f)); break;
-  case LEFT:  col->SetColor(ChColor(0.2f, 0.6f, 0.2f)); break;
-  }
-  m_upright->AddAsset(col);
-}
-
-void HMMWV9_DoubleWishboneRear::OnInitializeUpright()
-{
-  ChSharedPtr<ChBoxShape> box(new ChBoxShape);
-  box->GetBoxGeometry().SetLengths(m_uprightDims);
-  m_upright->AddAsset(box);
-
-  ChSharedPtr<ChColorAsset> col(new ChColorAsset);
-  switch (m_side) {
-  case RIGHT: col->SetColor(ChColor(0.6f, 0.4f, 0.4f)); break;
-  case LEFT:  col->SetColor(ChColor(0.4f, 0.6f, 0.6f)); break;
-  }
-  m_upright->AddAsset(col);
 }
 
 
