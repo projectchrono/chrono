@@ -37,16 +37,15 @@ public:
                       const ChBodyState&  wheel_state);
   virtual void Advance(double step);
 
-  void Initialize(ChSharedBodyPtr wheel);
-
 protected:
   virtual int getNumDiscs() const = 0;
   virtual double getRadius() const = 0;
-  virtual double getWidth() const = 0;
+  virtual const double* getDiscLocations() const = 0;
 
 private:
-  void findContact();
-
+  ChVector<>  m_force;
+  ChVector<>  m_point;
+  ChVector<>  m_moment;
 };
 
 

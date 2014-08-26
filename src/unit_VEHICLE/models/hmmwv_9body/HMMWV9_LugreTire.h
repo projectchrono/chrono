@@ -29,14 +29,14 @@ public:
   HMMWV9_LugreTire(const chrono::ChTerrain& terrain);
   ~HMMWV9_LugreTire() {}
 
-  virtual int getNumDiscs() const     { return m_numDiscs; }
-  virtual double getRadius() const    { return m_radius; }
-  virtual double getWidth() const     { return m_width; }
+  virtual int getNumDiscs() const                { return m_numDiscs; }
+  virtual double getRadius() const               { return m_radius; }
+  virtual const double* getDiscLocations() const { return m_discLocs; }
 
 private:
-  static const int     m_numDiscs;
   static const double  m_radius;
-  static const double  m_width;
+  static const int     m_numDiscs = 3;
+  static const double  m_discLocs[m_numDiscs];
 };
 
 

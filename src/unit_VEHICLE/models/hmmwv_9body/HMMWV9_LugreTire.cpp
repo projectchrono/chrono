@@ -30,9 +30,8 @@ namespace hmmwv9 {
 
 static const double in2m = 0.0254;
 
-const int    HMMWV9_LugreTire::m_numDiscs = 3;
 const double HMMWV9_LugreTire::m_radius = 18.5 * in2m;
-const double HMMWV9_LugreTire::m_width = 10 * in2m;
+const double HMMWV9_LugreTire::m_discLocs[] = { -5 * in2m, 0 * in2m, 5 * in2m };
 
 
 // -----------------------------------------------------------------------------
