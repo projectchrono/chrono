@@ -26,7 +26,7 @@
 
 using namespace chrono;
 
-namespace pactest {
+namespace hmmwv {
 
 // -----------------------------------------------------------------------------
 // Static variables
@@ -280,4 +280,4 @@ void HMMWV9_Vehicle::ExportMeshPovray(const std::string& out_dir)
 }
 
 
-} // end namespace pactest
+} // end namespace hmmwv

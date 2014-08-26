@@ -20,7 +20,7 @@
 
 #include "subsys/tire/ChPacejkaTire.h"
 
-namespace pactest {
+namespace hmmwv {
 
 // @brief class that reads a ver3.0 pac2002 *.tire file upon init.
 //			calling update will calculate the current F_x, F_y and M_z
@@ -43,7 +43,7 @@ protected:
 };
 
 
-} // end namespace pactest
+} // end namespace hmmwv
 
 
-#endif	// end #ifdef HMMWV9_PACTIRE_H
+#endif

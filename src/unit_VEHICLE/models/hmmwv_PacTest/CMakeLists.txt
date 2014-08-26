@@ -17,29 +17,36 @@ ENDIF()
 
 MESSAGE(STATUS "Adding HMMWV_PACTEST...")
 
-SET(demo_HMMWV_HEADERS
-	HMMWV9.h
+SET(COMMON_HMMWV_FILES
+	../hmmwv_common/HMMWV.h
+	../hmmwv_common/HMMWV_Wheel.h
+	../hmmwv_common/HMMWV_Wheel.cpp
+	../hmmwv_common/HMMWV_SimplePowertrain.h
+	../hmmwv_common/HMMWV_SimplePowertrain.cpp
+	../hmmwv_common/HMMWV_Powertrain.h
+	../hmmwv_common/HMMWV_Powertrain.cpp
+	../hmmwv_common/HMMWV_FuncDriver.h
+	../hmmwv_common/HMMWV_FuncDriver.cpp
+	../hmmwv_common/HMMWV_RigidTire.h
+	../hmmwv_common/HMMWV_RigidTire.cpp
+	../hmmwv_common/HMMWV_LugreTire.h
+	../hmmwv_common/HMMWV_LugreTire.cpp
+	../hmmwv_common/HMMWV_RigidTerrain.h
+	../hmmwv_common/HMMWV_RigidTerrain.cpp
+	)
+
+SET(DEMO_PACTEST_FILES
+	demo_pacTest.cpp
 	HMMWV9_Vehicle.h
+	HMMWV9_Vehicle.cpp
 	HMMWV9_DoubleWishbone.h
-	HMMWV9_Wheel.h
-	HMMWV9_SimplePowertrain.h
-	HMMWV9_Powertrain.h
-	HMMWV9_FuncDriver.h
+	HMMWV9_DoubleWishbone.cpp
 	HMMWV9_PacTire.h
-	HMMWV9_RigidTerrain.h
+	HMMWV9_PacTire.cpp
 )
 
-SET(demo_HMMWV_SRCS
-	demo_pacTest.cpp
-	HMMWV9_Vehicle.cpp
-	HMMWV9_DoubleWishbone.cpp
-	HMMWV9_Wheel.cpp
-	HMMWV9_SimplePowertrain.cpp
-	HMMWV9_Powertrain.cpp
-	HMMWV9_FuncDriver.cpp
-	HMMWV9_PacTire.cpp
-	HMMWV9_RigidTerrain.cpp
-)
+SOURCE_GROUP("common" FILES ${COMMON_HMMWV_FILES})
+SOURCE_GROUP("pacTest" FILES ${DEMO_PACTEST_FILES})
 
 SET(HMMWV_LIBS 
 	${CHRONOENGINE_LIBRARIES}
@@ -52,7 +59,7 @@ IF(ENABLE_IRRLICHT AND ${CMAKE_SYSTEM_NAME} MATCHES "Windows")
 ENDIF()
 
 # Create the executable
-ADD_EXECUTABLE(demo_pacTest ${demo_HMMWV_SRCS} ${demo_HMMWV_HEADERS})
+ADD_EXECUTABLE(demo_pacTest ${DEMO_PACTEST_FILES} ${COMMON_HMMWV_FILES})
 SET_TARGET_PROPERTIES(demo_pacTest PROPERTIES 
                       COMPILE_FLAGS "${CH_BUILDFLAGS}"
                       LINK_FLAGS "${LINKERFLAG_EXE}")

@@ -32,11 +32,12 @@
 
 #include "utils/ChUtilsInputOutput.h"
 
-#include "HMMWV9.h"
 #include "HMMWV9_Vehicle.h"
-#include "HMMWV9_FuncDriver.h"
 #include "HMMWV9_PacTire.h"
-#include "HMMWV9_RigidTerrain.h"
+
+#include "../hmmwv_common/HMMWV.h"
+#include "../hmmwv_common/HMMWV_FuncDriver.h"
+#include "../hmmwv_common/HMMWV_RigidTerrain.h"
 
 // If Irrlicht support is available...
 #if IRRLICHT_ENABLED
@@ -50,7 +51,7 @@
 
 
 using namespace chrono;
-using namespace pactest;
+using namespace hmmwv;
 
 
 // =============================================================================
@@ -92,8 +93,8 @@ int main(int argc, char* argv[])
 
   // Create the HMMWV vehicle
   HMMWV9_Vehicle vehicle(false,
-                         pactest::MESH,
-                         pactest::MESH);
+                         hmmwv::MESH,
+                         hmmwv::MESH);
 
   vehicle.Initialize(ChCoordsys<>(initLoc, initRot));
 

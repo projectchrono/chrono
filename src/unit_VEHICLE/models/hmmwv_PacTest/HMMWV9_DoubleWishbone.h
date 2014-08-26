@@ -27,7 +27,7 @@
 
 #include "subsys/suspension/ChDoubleWishboneReduced.h"
 
-namespace pactest {
+namespace hmmwv {
 
 class HMMWV9_DoubleWishboneFront : public chrono::ChDoubleWishboneReduced
 {
@@ -114,7 +114,7 @@ private:
 };
 
 
-} // end namespace pactest
+} // end namespace hmmwv
 
 
 #endif

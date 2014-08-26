@@ -15,7 +15,7 @@
 #include "HMMWV9_PacTire.h"
 #include "utils/ChUtilsData.h"
 
-namespace pactest{
+namespace hmmwv {
 
 using namespace chrono;
 // -----------------------------------------------------------------------------
@@ -42,4 +42,4 @@ std::string HMMWV9_PacTire::getPacTireParamFile()
 	return m_paramFile;
 }
 
-}		// end namespace pactest
+}  // end namespace hmmwv

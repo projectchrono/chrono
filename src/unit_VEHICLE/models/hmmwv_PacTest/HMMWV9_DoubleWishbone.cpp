@@ -28,7 +28,7 @@
 
 using namespace chrono;
 
-namespace pactest {
+namespace hmmwv {
 
 // -----------------------------------------------------------------------------
 // Static variables
@@ -160,4 +160,4 @@ void HMMWV9_DoubleWishboneRear::OnInitializeUpright()
 }
 
 
-} // end namespace pactest
+} // end namespace hmmwv
