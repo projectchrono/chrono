@@ -91,7 +91,7 @@ int main(int argc, char* argv[])
   // --------------------------
 
   // Create the HMMWV vehicle
-  HMMWV9_Vehicle vehicle(true,
+  HMMWV9_Vehicle vehicle(false,
                          hmmwv9::NONE,
                          hmmwv9::PRIMITIVES);
 

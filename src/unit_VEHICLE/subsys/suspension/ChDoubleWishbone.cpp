@@ -12,7 +12,7 @@
 // Authors: Radu Serban, Justin Madsen, Daniel Melanz
 // =============================================================================
 //
-// Base class for a double-A arm suspension modeled with distance constraints.
+// Base class for a double-A arm suspension modeled with bodies and constraints.
 //
 // The suspension subsystem is modeled with respect to a right-handed frame,
 // with X pointing towards the rear, Y to the right, and Z up. By default, a
@@ -117,16 +117,16 @@ ChDoubleWishbone::Initialize(ChSharedBodyPtr   chassis,
 
   m_bodyUCA->SetPos(m_points[SPINDLE]); // TODO: Should be average of all UCA points
   //m_bodyUCA->SetRot(chassis->GetCoord().rot); // TODO: Should be quaternion formed by avg(UCA_B,UCA_F) and UCA_U
-  //m_bodyUCA->SetMass(getSpindleMass()); // TODO: Need to create a variable for UCA mass
-  //m_bodyUCA->SetInertiaXX(getSpindleInertia()); // TODO: Need to create a variable for UCA inertia
-  OnInitializeSuspension();
+  m_bodyUCA->SetMass(getUCAMass());
+  m_bodyUCA->SetInertiaXX(getUCAInertia());
+  OnInitializeUCA();
   chassis->GetSystem()->AddBody(m_bodyUCA);
 
   m_bodyLCA->SetPos(m_points[SPINDLE]); // TODO: Should be average of all LCA points
   //m_bodyLCA->SetRot(chassis->GetCoord().rot); // TODO: Should be quaternion formed by avg(LCA_B,LCA_F) and LCA_U
-  //m_bodyLCA->SetMass(getSpindleMass()); // TODO: Need to create a variable for LCA mass
-  //m_bodyLCA->SetInertiaXX(getSpindleInertia()); // TODO: Need to create a variable for LCA inertia
-  OnInitializeSuspension();
+  m_bodyLCA->SetMass(getLCAMass());
+  m_bodyLCA->SetInertiaXX(getLCAInertia());
+  OnInitializeLCA();
   chassis->GetSystem()->AddBody(m_bodyLCA);
 
   m_upright->SetPos(m_points[UPRIGHT]);

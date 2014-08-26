@@ -37,9 +37,13 @@ namespace hmmwv9 {
 static const double in2m = 0.0254;
 
 const double     HMMWV_DoubleWishboneFront::m_spindleMass = 1;
+const double     HMMWV_DoubleWishboneFront::m_UCAMass = 1;  // TODO: This is not the correct value
+const double     HMMWV_DoubleWishboneFront::m_LCAMass = 1;  // TODO: This is not the correct value
 const double     HMMWV_DoubleWishboneFront::m_uprightMass = 1;
 
 const ChVector<> HMMWV_DoubleWishboneFront::m_spindleInertia(1, 1, 1);
+const ChVector<> HMMWV_DoubleWishboneFront::m_UCAInertia(1, 1, 1);  // TODO: This is not the correct value
+const ChVector<> HMMWV_DoubleWishboneFront::m_LCAInertia(1, 1, 1);  // TODO: This is not the correct value
 const ChVector<> HMMWV_DoubleWishboneFront::m_uprightInertia(5, 5, 5);
 
 const double     HMMWV_DoubleWishboneFront::m_axleInertia = 0.4;
@@ -53,9 +57,13 @@ const double     HMMWV_DoubleWishboneFront::m_springRestLength   = 0.4062;
 // -----------------------------------------------------------------------------
 
 const double     HMMWV_DoubleWishboneRear::m_spindleMass = 1;
+const double     HMMWV_DoubleWishboneRear::m_UCAMass = 1;  // TODO: This is not the correct value
+const double     HMMWV_DoubleWishboneRear::m_LCAMass = 1;  // TODO: This is not the correct value
 const double     HMMWV_DoubleWishboneRear::m_uprightMass = 1;
 
 const ChVector<> HMMWV_DoubleWishboneRear::m_spindleInertia(1, 1, 1);
+const ChVector<> HMMWV_DoubleWishboneRear::m_UCAInertia(1, 1, 1);  // TODO: This is not the correct value
+const ChVector<> HMMWV_DoubleWishboneRear::m_LCAInertia(1, 1, 1);  // TODO: This is not the correct value
 const ChVector<> HMMWV_DoubleWishboneRear::m_uprightInertia(5, 5, 5);
 
 const double     HMMWV_DoubleWishboneRear::m_axleInertia = 0.4;

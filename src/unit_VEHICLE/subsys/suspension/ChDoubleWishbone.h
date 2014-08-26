@@ -12,8 +12,8 @@
 // Authors: Radu Serban, Justin Madsen, Daniel Melanz
 // =============================================================================
 //
-// Base class for a double-A arm suspension modeled with distance constraints.
-// Derived from ChSuspension, but still an abstract bas class.
+// Base class for a double-A arm suspension modeled with bodies and constraints.
+// Derived from ChSuspension, but still an abstract base class.
 //
 // The suspension subsystem is modeled with respect to a right-handed frame,
 // with X pointing towards the rear, Y to the right, and Z up. By default, a
@@ -73,9 +73,13 @@ protected:
   virtual const ChVector<> getLocation(PointId which) = 0;
 
   virtual double getSpindleMass() const = 0;
+  virtual double getUCAMass() const = 0;
+  virtual double getLCAMass() const = 0;
   virtual double getUprightMass() const = 0;
 
   virtual const ChVector<>& getSpindleInertia() const = 0;
+  virtual const ChVector<>& getUCAInertia() const = 0;
+  virtual const ChVector<>& getLCAInertia() const = 0;
   virtual const ChVector<>& getUprightInertia() const = 0;
 
   virtual double getAxleInertia() const = 0;
@@ -84,9 +88,10 @@ protected:
   virtual double getDampingCoefficient() const = 0;
   virtual double getSpringRestLength() const = 0;
 
-  virtual void OnInitializeSpindle()    {}
-  virtual void OnInitializeSuspension() {}
-  virtual void OnInitializeUpright()    {}
+  virtual void OnInitializeSpindle()  {}
+  virtual void OnInitializeUCA()  {}
+  virtual void OnInitializeLCA()  {}
+  virtual void OnInitializeUpright()  {}
 
   ChVector<>        m_points[NUM_POINTS];
 

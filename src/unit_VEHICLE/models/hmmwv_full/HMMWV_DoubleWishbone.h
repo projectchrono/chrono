@@ -38,9 +38,13 @@ public:
   ~HMMWV_DoubleWishboneFront() {}
 
   virtual double getSpindleMass() const { return m_spindleMass; }
+  virtual double getUCAMass() const { return m_UCAMass; }
+  virtual double getLCAMass() const { return m_LCAMass; }
   virtual double getUprightMass() const { return m_uprightMass; }
 
   virtual const chrono::ChVector<>& getSpindleInertia() const { return m_spindleInertia; }
+  virtual const chrono::ChVector<>& getUCAInertia() const { return m_UCAInertia; }
+  virtual const chrono::ChVector<>& getLCAInertia() const { return m_LCAInertia; }
   virtual const chrono::ChVector<>& getUprightInertia() const { return m_uprightInertia; }
 
   virtual double getAxleInertia() const { return m_axleInertia; }
@@ -57,8 +61,12 @@ private:
 
 
   static const double      m_spindleMass;
+  static const double      m_UCAMass;
+  static const double      m_LCAMass;
   static const double      m_uprightMass;
   static const chrono::ChVector<>  m_spindleInertia;
+  static const chrono::ChVector<>  m_UCAInertia;
+  static const chrono::ChVector<>  m_LCAInertia;
   static const chrono::ChVector<>  m_uprightInertia;
 
   static const double      m_axleInertia;
@@ -81,9 +89,13 @@ public:
   ~HMMWV_DoubleWishboneRear() {}
 
   virtual double getSpindleMass() const { return m_spindleMass; }
+  virtual double getUCAMass() const { return m_UCAMass; }
+  virtual double getLCAMass() const { return m_LCAMass; }
   virtual double getUprightMass() const { return m_uprightMass; }
 
   virtual const chrono::ChVector<>& getSpindleInertia() const { return m_spindleInertia; }
+  virtual const chrono::ChVector<>& getUCAInertia() const { return m_UCAInertia; }
+  virtual const chrono::ChVector<>& getLCAInertia() const { return m_LCAInertia; }
   virtual const chrono::ChVector<>& getUprightInertia() const { return m_uprightInertia; }
 
   virtual double getAxleInertia() const { return m_axleInertia; }
@@ -100,8 +112,12 @@ private:
 
 
   static const double      m_spindleMass;
+  static const double      m_UCAMass;
+  static const double      m_LCAMass;
   static const double      m_uprightMass;
   static const chrono::ChVector<>  m_spindleInertia;
+  static const chrono::ChVector<>  m_UCAInertia;
+  static const chrono::ChVector<>  m_LCAInertia;
   static const chrono::ChVector<>  m_uprightInertia;
 
   static const double      m_axleInertia;
