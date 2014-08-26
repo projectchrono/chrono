@@ -20,7 +20,7 @@ MESSAGE(STATUS "Adding HMMWV...")
 SET(demo_HMMWV_HEADERS
 	HMMWV9.h
 	HMMWV9_Vehicle.h
-	HMMWV9_DoubleWishbone.h
+	HMMWV_DoubleWishbone.h
 	HMMWV9_Wheel.h
 	HMMWV9_SimplePowertrain.h
 	HMMWV9_Powertrain.h
@@ -32,7 +32,7 @@ SET(demo_HMMWV_HEADERS
 SET(demo_HMMWV_SRCS
 	demo_HMMWV9.cpp
 	HMMWV9_Vehicle.cpp
-	HMMWV9_DoubleWishbone.cpp
+	HMMWV_DoubleWishbone.cpp
 	HMMWV9_Wheel.cpp
 	HMMWV9_SimplePowertrain.cpp
 	HMMWV9_Powertrain.cpp

@@ -12,30 +12,30 @@
 // Authors: Radu Serban, Justin Madsen
 // =============================================================================
 //
-// Front and Rear HMMWV suspension subsystems (reduced double A-arm)
+// Front and Rear HMMWV suspension subsystems (double A-arm)
 //
 // These concrete suspension subsystems are defined with respect to right-handed
 // frames having X pointing towards the rear, Y to the right, and Z up (as
-// imposed by the base class ChDoubleWishboneReduced) and origins at the 
+// imposed by the base class ChDoubleWishbone) and origins at the 
 // midpoint between the lower control arm's connection points to the chassis.
 //
 // =============================================================================
 
-#ifndef HMMWV9_DOUBLEWISHBONE_H
-#define HMMWV9_DOUBLEWISHBONE_H
+#ifndef HMMWV_DOUBLEWISHBONE_H
+#define HMMWV_DOUBLEWISHBONE_H
 
 
-#include "subsys/suspension/ChDoubleWishboneReduced.h"
+#include "subsys/suspension/ChDoubleWishbone.h"
 
 namespace hmmwv9 {
 
-class HMMWV9_DoubleWishboneFront : public chrono::ChDoubleWishboneReduced
+class HMMWV_DoubleWishboneFront : public chrono::ChDoubleWishbone
 {
 public:
-  HMMWV9_DoubleWishboneFront(const std::string&         name,
+  HMMWV_DoubleWishboneFront(const std::string&         name,
                              chrono::ChSuspension::Side side,
                              bool                       driven = false);
-  ~HMMWV9_DoubleWishboneFront() {}
+  ~HMMWV_DoubleWishboneFront() {}
 
   virtual double getSpindleMass() const { return m_spindleMass; }
   virtual double getUprightMass() const { return m_uprightMass; }
@@ -72,13 +72,13 @@ private:
 
 // -----------------------------------------------------------------------------
 
-class HMMWV9_DoubleWishboneRear : public chrono::ChDoubleWishboneReduced
+class HMMWV_DoubleWishboneRear : public chrono::ChDoubleWishbone
 {
 public:
-  HMMWV9_DoubleWishboneRear(const std::string&         name,
+  HMMWV_DoubleWishboneRear(const std::string&         name,
                             chrono::ChSuspension::Side side,
                             bool                       driven = false);
-  ~HMMWV9_DoubleWishboneRear() {}
+  ~HMMWV_DoubleWishboneRear() {}
 
   virtual double getSpindleMass() const { return m_spindleMass; }
   virtual double getUprightMass() const { return m_uprightMass; }

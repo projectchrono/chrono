@@ -12,11 +12,11 @@
 // Authors: Radu Serban, Justin Madsen
 // =============================================================================
 //
-// Front and Rear HMMWV suspension subsystems (reduced double A-arm).
+// Front and Rear HMMWV suspension subsystems (double A-arm).
 //
 // These concrete suspension subsystems are defined with respect to right-handed
 // frames having X pointing towards the rear, Y to the right, and Z up (as
-// imposed by the base class ChDoubleWishboneReduced) and origins at the 
+// imposed by the base class ChDoubleWishbone) and origins at the 
 // midpoint between the lower control arm's connection points to the chassis.
 //
 // =============================================================================
@@ -24,7 +24,7 @@
 #include "assets/ChBoxShape.h"
 #include "assets/ChColorAsset.h"
 
-#include "HMMWV9_DoubleWishbone.h"
+#include "HMMWV_DoubleWishbone.h"
 
 using namespace chrono;
 
@@ -36,51 +36,51 @@ namespace hmmwv9 {
 
 static const double in2m = 0.0254;
 
-const double     HMMWV9_DoubleWishboneFront::m_spindleMass = 1;
-const double     HMMWV9_DoubleWishboneFront::m_uprightMass = 1;
+const double     HMMWV_DoubleWishboneFront::m_spindleMass = 1;
+const double     HMMWV_DoubleWishboneFront::m_uprightMass = 1;
 
-const ChVector<> HMMWV9_DoubleWishboneFront::m_spindleInertia(1, 1, 1);
-const ChVector<> HMMWV9_DoubleWishboneFront::m_uprightInertia(5, 5, 5);
+const ChVector<> HMMWV_DoubleWishboneFront::m_spindleInertia(1, 1, 1);
+const ChVector<> HMMWV_DoubleWishboneFront::m_uprightInertia(5, 5, 5);
 
-const double     HMMWV9_DoubleWishboneFront::m_axleInertia = 0.4;
+const double     HMMWV_DoubleWishboneFront::m_axleInertia = 0.4;
 
-const ChVector<> HMMWV9_DoubleWishboneFront::m_uprightDims(0.1, 0.05, 0.1);
+const ChVector<> HMMWV_DoubleWishboneFront::m_uprightDims(0.1, 0.05, 0.1);
 
-const double     HMMWV9_DoubleWishboneFront::m_springCoefficient  = 167062.0;
-const double     HMMWV9_DoubleWishboneFront::m_dampingCoefficient = 22459.0;
-const double     HMMWV9_DoubleWishboneFront::m_springRestLength   = 0.4062;
+const double     HMMWV_DoubleWishboneFront::m_springCoefficient  = 167062.0;
+const double     HMMWV_DoubleWishboneFront::m_dampingCoefficient = 22459.0;
+const double     HMMWV_DoubleWishboneFront::m_springRestLength   = 0.4062;
 
 // -----------------------------------------------------------------------------
 
-const double     HMMWV9_DoubleWishboneRear::m_spindleMass = 1;
-const double     HMMWV9_DoubleWishboneRear::m_uprightMass = 1;
+const double     HMMWV_DoubleWishboneRear::m_spindleMass = 1;
+const double     HMMWV_DoubleWishboneRear::m_uprightMass = 1;
 
-const ChVector<> HMMWV9_DoubleWishboneRear::m_spindleInertia(1, 1, 1);
-const ChVector<> HMMWV9_DoubleWishboneRear::m_uprightInertia(5, 5, 5);
+const ChVector<> HMMWV_DoubleWishboneRear::m_spindleInertia(1, 1, 1);
+const ChVector<> HMMWV_DoubleWishboneRear::m_uprightInertia(5, 5, 5);
 
-const double     HMMWV9_DoubleWishboneRear::m_axleInertia = 0.4;
+const double     HMMWV_DoubleWishboneRear::m_axleInertia = 0.4;
 
-const ChVector<> HMMWV9_DoubleWishboneRear::m_uprightDims(0.1, 0.05, 0.1);
+const ChVector<> HMMWV_DoubleWishboneRear::m_uprightDims(0.1, 0.05, 0.1);
 
-const double     HMMWV9_DoubleWishboneRear::m_springCoefficient = 369149.0;
-const double     HMMWV9_DoubleWishboneRear::m_dampingCoefficient = 35024.0;
-const double     HMMWV9_DoubleWishboneRear::m_springRestLength = 0.4162;
+const double     HMMWV_DoubleWishboneRear::m_springCoefficient = 369149.0;
+const double     HMMWV_DoubleWishboneRear::m_dampingCoefficient = 35024.0;
+const double     HMMWV_DoubleWishboneRear::m_springRestLength = 0.4162;
 
 
 // -----------------------------------------------------------------------------
 // Constructors
 // -----------------------------------------------------------------------------
-HMMWV9_DoubleWishboneFront::HMMWV9_DoubleWishboneFront(const std::string& name,
+HMMWV_DoubleWishboneFront::HMMWV_DoubleWishboneFront(const std::string& name,
                                                        ChSuspension::Side side,
                                                        bool               driven)
-: ChDoubleWishboneReduced(name, side, driven)
+: ChDoubleWishbone(name, side, driven)
 {
 }
 
-HMMWV9_DoubleWishboneRear::HMMWV9_DoubleWishboneRear(const std::string& name,
+HMMWV_DoubleWishboneRear::HMMWV_DoubleWishboneRear(const std::string& name,
                                                      ChSuspension::Side side,
                                                      bool               driven)
-: ChDoubleWishboneReduced(name, side, driven)
+: ChDoubleWishbone(name, side, driven)
 {
 }
 
@@ -88,7 +88,7 @@ HMMWV9_DoubleWishboneRear::HMMWV9_DoubleWishboneRear(const std::string& name,
 // Implementations of the getLocation() virtual methods.
 // -----------------------------------------------------------------------------
 
-const ChVector<> HMMWV9_DoubleWishboneFront::getLocation(PointId which)
+const ChVector<> HMMWV_DoubleWishboneFront::getLocation(PointId which)
 {
   switch (which) {
   case SPINDLE:  return in2m * ChVector<>(1.59, 23.72, -1.0350);
@@ -107,7 +107,7 @@ const ChVector<> HMMWV9_DoubleWishboneFront::getLocation(PointId which)
   }
 }
 
-const ChVector<> HMMWV9_DoubleWishboneRear::getLocation(PointId which)
+const ChVector<> HMMWV_DoubleWishboneRear::getLocation(PointId which)
 {
   switch (which) {
   case SPINDLE:  return in2m * ChVector<>(-1.40, 23.72, -1.035);
@@ -131,7 +131,7 @@ const ChVector<> HMMWV9_DoubleWishboneRear::getLocation(PointId which)
 // Add simple visualization for the upright body.
 // -----------------------------------------------------------------------------
 
-void HMMWV9_DoubleWishboneFront::OnInitializeUpright()
+void HMMWV_DoubleWishboneFront::OnInitializeUpright()
 {
   ChSharedPtr<ChBoxShape> box(new ChBoxShape);
   box->GetBoxGeometry().SetLengths(m_uprightDims);
@@ -145,7 +145,7 @@ void HMMWV9_DoubleWishboneFront::OnInitializeUpright()
   m_upright->AddAsset(col);
 }
 
-void HMMWV9_DoubleWishboneRear::OnInitializeUpright()
+void HMMWV_DoubleWishboneRear::OnInitializeUpright()
 {
   ChSharedPtr<ChBoxShape> box(new ChBoxShape);
   box->GetBoxGeometry().SetLengths(m_uprightDims);

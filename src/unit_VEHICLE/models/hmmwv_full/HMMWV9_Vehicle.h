@@ -25,7 +25,7 @@
 #include "subsys/ChVehicle.h"
 
 #include "HMMWV9.h"
-#include "HMMWV9_DoubleWishbone.h"
+#include "HMMWV_DoubleWishbone.h"
 #include "HMMWV9_Wheel.h"
 #include "HMMWV9_SimplePowertrain.h"
 #include "HMMWV9_Powertrain.h"
@@ -63,10 +63,10 @@ public:
 
 private:
 
-  chrono::ChSharedPtr<HMMWV9_DoubleWishboneFront>   m_front_right_susp;
-  chrono::ChSharedPtr<HMMWV9_DoubleWishboneFront>   m_front_left_susp;
-  chrono::ChSharedPtr<HMMWV9_DoubleWishboneRear>    m_rear_right_susp;
-  chrono::ChSharedPtr<HMMWV9_DoubleWishboneRear>    m_rear_left_susp;
+  chrono::ChSharedPtr<HMMWV_DoubleWishboneFront>   m_front_right_susp;
+  chrono::ChSharedPtr<HMMWV_DoubleWishboneFront>   m_front_left_susp;
+  chrono::ChSharedPtr<HMMWV_DoubleWishboneRear>    m_rear_right_susp;
+  chrono::ChSharedPtr<HMMWV_DoubleWishboneRear>    m_rear_left_susp;
 
   chrono::ChSharedPtr<HMMWV9_Wheel> m_front_right_wheel;
   chrono::ChSharedPtr<HMMWV9_Wheel> m_front_left_wheel;
