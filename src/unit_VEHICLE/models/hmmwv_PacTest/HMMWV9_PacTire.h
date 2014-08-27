@@ -26,20 +26,20 @@ namespace hmmwv {
 //			calling update will calculate the current F_x, F_y and M_z
 class HMMWV9_PacTire : public chrono::ChPacejkaTire {
 public:
+
+  // @brief use the default input pacTire param file
+  HMMWV9_PacTire(chrono::ChTerrain& terrain);
+
+  // @brief use the specified pactire param file
 	HMMWV9_PacTire(chrono::ChTerrain& terrain,
-		const std::string& m_pacTire_paramFile = "none");
+		const std::string& m_pacTire_paramFile);
 
 protected:
-  
-  // pactire input parameter file
-  std::string m_paramFile;
 
   // some default values
   static const std::string m_defaultOutFilename;
   static const std::string m_defaultPacTireParamFile;
 
-  // define the pactire parameter file to use
-  virtual std::string getPacTireParamFile();
 };
 
 

@@ -26,6 +26,8 @@
 
 #include "subsys/ChTire.h"
 #include "subsys/ChTerrain.h"
+// has the data structs for the pacTire parameters
+#include "ChPac2002_data.h"
 
 namespace chrono {
 
@@ -34,7 +36,7 @@ namespace chrono {
 class CH_SUBSYS_API ChPacejkaTire : public ChTire {
 public:
 
-  ChPacejkaTire(const ChTerrain& terrain);
+  ChPacejkaTire(const ChTerrain& terrain, const std::string& pacTire_paramFile);
   virtual ~ChPacejkaTire() {}
   
   // @brief return the most recently computed forces
@@ -55,7 +57,7 @@ public:
 protected:
 
   // @brief where to find the input parameter file
-  virtual std::string getPacTireParamFile() = 0;
+  virtual std::string getPacTireParamFile();
 
   // @brief specify the file name to read the Pactire input from
   void Initialize();
@@ -64,13 +66,8 @@ protected:
   virtual void loadPacTireParamFile(void);
 
   // @brief once Pac tire input text file has been succesfully opened, read 
-  //    the input data as strings. Each vector contains a list of input data
-  //    corresponding to the sections of the input file.
-  //    Section descriptors are in m_inFile_sections
-  virtual void readPacTireInput(
-      std::ifstream&                        inFile,
-      std::vector<std::list<std::string> >& inFile_data,
-      std::vector<std::string>&             inFile_sections);
+  //    the input data, and populate the data struct
+  virtual void readPacTireInput(std::ifstream& inFile);
 
 
 // ----- Data members
@@ -81,12 +78,17 @@ protected:
   // based on combined slip
   ChTireForce m_FM_combined;
 
+  // all pactire models require an input parameter file
+  std::string m_paramFile;
   // write output data to this file
   std::string m_outFile;
 
   // have the tire model parameters been defined/read from file yet?
   // must call load_pacFile_tire
   bool m_params_defined;
+
+  // model parameter factors stored here
+  struct Pac2002_data m_params;
 };
 
 

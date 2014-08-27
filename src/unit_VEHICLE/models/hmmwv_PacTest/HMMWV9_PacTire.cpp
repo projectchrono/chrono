@@ -24,22 +24,18 @@ using namespace chrono;
 const std::string HMMWV9_PacTire::m_defaultOutFilename = "PacTire";
 const std::string HMMWV9_PacTire::m_defaultPacTireParamFile = utils::GetModelDataFile("hmmwv/pactest.tir");
 
-HMMWV9_PacTire::HMMWV9_PacTire(ChTerrain& terrain,	const std::string& pacTire_paramFile):
-ChPacejkaTire(terrain)
+HMMWV9_PacTire::HMMWV9_PacTire(ChTerrain& terrain):
+    ChPacejkaTire(terrain, m_defaultPacTireParamFile)
 {
 
-	if(pacTire_paramFile == "none")
-		m_paramFile = m_defaultPacTireParamFile;
-	else
-		m_paramFile = pacTire_paramFile;
 
 }
 
-
-
-std::string HMMWV9_PacTire::getPacTireParamFile()
+HMMWV9_PacTire::HMMWV9_PacTire(ChTerrain& terrain,	const std::string& pacTire_paramFile):
+    ChPacejkaTire(terrain, pacTire_paramFile)
 {
-	return m_paramFile;
+
+
 }
 
 }  // end namespace hmmwv
