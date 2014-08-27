@@ -263,11 +263,11 @@ light_source {
               
         // cylinder --------------
         #case (3)
-            #read (MyDataFile, ar, hl)
+            #read (MyDataFile, ar, p1x, p1y, p1z, p2x, p2y, p2z)
 			#if (render_objects)
 				#if (active)
 					cylinder {
-					   <0,0,hl>, <0,0,-hl>, ar      
+					   <p1x,p1z,p1y>, <p2x,p2z,p2y>, ar      
 					   pigment {color rgbt <1, 0.9, 0.9, 0> transmit 0.4}
 					   position(<ax,ay,az>,<e0,e1,e2,e3>)     
 					   finish {diffuse 1 ambient 0.0 specular .05 }
