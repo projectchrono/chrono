@@ -188,7 +188,7 @@ ChDoubleWishbone::Initialize(ChSharedBodyPtr   chassis,
   chassis->GetSystem()->AddLink(m_distTierod);
 
   // Initialize the spring/damper
-  m_shock->Initialize(chassis, m_upright, false, m_points[SHOCK_C], m_points[SHOCK_U]);
+  m_shock->Initialize(chassis, m_LCA, false, m_points[SHOCK_C], m_points[SHOCK_U]);
   m_shock->Set_SpringK(getSpringCoefficient());
   m_shock->Set_SpringR(getDampingCoefficient());
   m_shock->Set_SpringRestLength(getSpringRestLength());
