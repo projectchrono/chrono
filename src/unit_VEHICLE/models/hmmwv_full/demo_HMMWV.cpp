@@ -268,7 +268,7 @@ int main(int argc, char* argv[])
     if (frame % out_steps == 0) {
       // Output render data
       sprintf(filename, "%s/data_%03d.dat", pov_dir.c_str(), out_frame + 1);
-      utils::WriteShapesPovray(&m_system, filename);
+      utils::WriteShapesPovray(&vehicle, filename);
       std::cout << "Output frame:   " << out_frame << std::endl;
       std::cout << "Sim frame:      " << frame << std::endl;
       std::cout << "Time:           " << time << std::endl;
@@ -299,10 +299,10 @@ int main(int argc, char* argv[])
 
     terrain.Advance(step_size);
 
-    tire_front_right.Advance(step);
-    tire_front_left.Advance(step);
-    tire_rear_right.Advance(step);
-    tire_rear_left.Advance(step);
+    tire_front_right.Advance(step_size);
+    tire_front_left.Advance(step_size);
+    tire_rear_right.Advance(step_size);
+    tire_rear_left.Advance(step_size);
 
     vehicle.Advance(step_size);
 
