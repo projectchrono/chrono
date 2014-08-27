@@ -28,6 +28,7 @@
 #include "unit_FEM/ChVisualizationFEMmesh.h"
 #include "unit_IRRLICHT/ChIrrApp.h"
 #include "unit_MATLAB/ChMatlabEngine.h"
+#include "unit_MATLAB/ChLcpMatlabSolver.h"
 
 
 // Remember to use the namespace 'chrono' because all classes 
@@ -35,7 +36,7 @@
 
 using namespace chrono;
 using namespace fem;
-
+using namespace irr;
 
 
 
@@ -426,7 +427,7 @@ my_system.ChangeLcpSolverSpeed(matlab_solver_speed);
 	for (int nload = 0; nload < 3; ++nload)
 	{
 		int i = 0;
-		for (int rot = 0; rot <= rotmax; rot+= rotstep)
+		for (double rot = 0; rot <= rotmax; rot+= rotstep)
 		{
 			double rot_rad = rot * CH_C_DEG_TO_RAD;
 

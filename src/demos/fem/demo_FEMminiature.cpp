@@ -32,13 +32,14 @@
 #include "unit_FEM/ChVisualizationFEMmesh.h"
 #include "unit_IRRLICHT/ChIrrApp.h"
 #include "unit_MATLAB/ChMatlabEngine.h"
+#include "unit_MATLAB/ChLcpMatlabSolver.h"
 
 // Remember to use the namespace 'chrono' because all classes 
 // of Chrono::Engine belong to this namespace and its children...
 
 using namespace chrono;
 using namespace fem;
-
+using namespace irr;
 
 
 
@@ -58,9 +59,9 @@ int main(int argc, char* argv[])
 	application.AddTypicalLogo();
 	application.AddTypicalSky();
 	application.AddTypicalLights();
-	application.AddTypicalCamera(core::vector3df(0.f, scales*0.01f, scales*0.01f));
+	application.AddTypicalCamera(core::vector3df(0, (f32)(scales*0.01), (f32)(scales*0.01)));
 	application.GetSceneManager()->getActiveCamera()->setNearValue(0.001f);
-	application.GetSceneManager()->getActiveCamera()->setFarValue(scales*0.03f);
+	application.GetSceneManager()->getActiveCamera()->setFarValue((f32)(scales*0.03));
 
 	
 
@@ -318,8 +319,8 @@ int main(int argc, char* argv[])
 		vshaft->GetCylinderGeometry().p2 = vP + ChVector<> (0,  OffPin*10, 0);
 		vshaft->GetCylinderGeometry().rad = Rpinion;
 		balance->AddAsset( vshaft );
-		ChSharedPtr<ChVisualization> mcol (new ChVisualization());
-		mcol->SetColor( ChColor(0.5,0.9,0.9));
+		ChSharedPtr<ChColorAsset> mcol (new ChColorAsset());
+		mcol->SetColor( ChColor(0.5f, 0.9f, 0.9f));
 		balance->AddAsset( mcol );
 
 		my_system.Add(balance);

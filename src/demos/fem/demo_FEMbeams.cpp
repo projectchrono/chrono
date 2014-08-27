@@ -28,13 +28,14 @@
 #include "unit_FEM/ChVisualizationFEMmesh.h"
 #include "unit_IRRLICHT/ChIrrApp.h"
 #include "unit_MATLAB/ChMatlabEngine.h"
+#include "unit_MATLAB/ChLcpMatlabSolver.h"
 
 // Remember to use the namespace 'chrono' because all classes 
 // of Chrono::Engine belong to this namespace and its children...
 
 using namespace chrono;
 using namespace fem;
-
+using namespace irr;
 
 
 

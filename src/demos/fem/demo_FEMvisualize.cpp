@@ -31,6 +31,7 @@
 #include "unit_FEM/ChVisualizationFEMmesh.h"
 #include "unit_IRRLICHT/ChIrrApp.h"
 #include "unit_MATLAB/ChMatlabEngine.h"
+#include "unit_MATLAB/ChLcpMatlabSolver.h"
 
 
 // Remember to use the namespace 'chrono' because all classes 
@@ -38,7 +39,7 @@
 
 using namespace chrono;
 using namespace fem;
-
+using namespace irr;
 
 
 
@@ -56,7 +57,7 @@ int main(int argc, char* argv[])
 	application.AddTypicalLogo();
 	application.AddTypicalSky();
 	application.AddTypicalLights();
-	application.AddTypicalCamera(core::vector3df(0,0.6,-1));
+	application.AddTypicalCamera(core::vector3df(0, (f32)0.6, -1));
 
 
 
@@ -170,7 +171,7 @@ for (int e = 0; e<8; ++e)
 	
 				// Create constraints between nodes and truss
 				// (for example, fix to ground all nodes which are near y=0
-	for (int inode = 0; inode < my_mesh->GetNnodes(); ++inode)
+	for (unsigned int inode = 0; inode < my_mesh->GetNnodes(); ++inode)
 	{
 		if (my_mesh->GetNode(inode).IsType<ChNodeFEMxyz>())
 		{
