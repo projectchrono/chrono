@@ -55,10 +55,10 @@ using namespace gui;
 // Static values valid through the entire program (bad
 // programming practice, but enough for quick tests)
 
-double GLOBAL_friction = 0.3;
-double GLOBAL_cohesion =   0;
-double GLOBAL_compliance = 0;
-double GLOBAL_dampingf = 0.1;
+float GLOBAL_friction = 0.3f;
+float GLOBAL_cohesion =   0;
+float GLOBAL_compliance = 0;
+float GLOBAL_dampingf = 0.1f;
 
 
 
@@ -114,17 +114,17 @@ public:
 							if (id == 101) // id of 'flow' slider..
 							{
 								s32 pos = ((IGUIScrollBar*)event.GUIEvent.Caller)->getPos();
-								GLOBAL_friction = (double)pos/100.0;
+								GLOBAL_friction = (float)pos/100;
 							}
 							if (id == 102) // id of 'speed' slider..
 							{
 								s32 pos = ((IGUIScrollBar*)event.GUIEvent.Caller)->getPos();
-								GLOBAL_cohesion = (((double)pos)/100.0)*200000.0;
+								GLOBAL_cohesion = (((float)pos)/100)*200000.0f;
 							}
 							if (id == 103) // id of 'compliance' slider..
 							{
 								s32 pos = ((IGUIScrollBar*)event.GUIEvent.Caller)->getPos();
-								GLOBAL_compliance = (((double)pos)/100.0)/1000000.0;
+								GLOBAL_compliance = (((float)pos)/100)/1000000.0f;
 							}
 					break;
 					}
@@ -328,13 +328,13 @@ int main(int argc, char* argv[])
 			// Set compliance (normal and tangential at once)
 			material.compliance  = GLOBAL_compliance;
 			material.complianceT = GLOBAL_compliance;
-			material.dampingf	 = GLOBAL_dampingf;
+			material.dampingf    = GLOBAL_dampingf;
 
 			// Set cohesion according to user setting:
 			// Note that we must scale the cohesion force value by time step, because 
 			// the material 'cohesion' value has the dimension of an impulse.
-			double my_cohesion_force = GLOBAL_cohesion;
-			material.cohesion = msystem->GetStep() * my_cohesion_force; //<- all contacts will have this cohesion!
+			float my_cohesion_force = GLOBAL_cohesion;
+			material.cohesion = (float) msystem->GetStep() * my_cohesion_force; //<- all contacts will have this cohesion!
 
 			if (mcontactinfo.distance>0.12)
 				material.cohesion = 0;

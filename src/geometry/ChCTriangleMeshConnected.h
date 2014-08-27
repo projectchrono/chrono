@@ -101,7 +101,7 @@ public:
 			/// This is disconnected - no vertex sharing is used even if it could be..
 	virtual void addTriangle(const ChVector<>& vertex0, const ChVector<>& vertex1, const ChVector<>& vertex2)
 	{
-		size_t base_v = m_vertices.size();
+		int base_v = (int) m_vertices.size();
 		m_vertices.push_back(vertex0);
 		m_vertices.push_back(vertex1);
 		m_vertices.push_back(vertex2);
@@ -110,7 +110,7 @@ public:
 			/// Add a triangle to this triangle mesh, by specifying a ChTriangle 
 	virtual void addTriangle(const ChTriangle& atriangle)
 	{
-		size_t base_v = m_vertices.size();
+		int base_v = (int) m_vertices.size();
 		m_vertices.push_back(atriangle.p1);
 		m_vertices.push_back(atriangle.p2);
 		m_vertices.push_back(atriangle.p3);
@@ -120,7 +120,7 @@ public:
 			/// Get the number of triangles already added to this mesh
 	virtual int getNumTriangles() const
 	{
-		return m_face_v_indices.size();
+		return (int) m_face_v_indices.size();
 	}
 
 			/// Access the n-th triangle in mesh

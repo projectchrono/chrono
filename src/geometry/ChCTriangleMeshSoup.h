@@ -89,7 +89,7 @@ public:
 			/// Get the number of triangles already added to this mesh
 	virtual int getNumTriangles() const
 	{
-		return m_triangles.size();
+		return (int) m_triangles.size();
 	}
 
 			/// Access the n-th triangle in mesh

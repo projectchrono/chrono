@@ -226,7 +226,7 @@ void ChMatterMeshless::AddNode(ChVector<double> initial_state)
 	this->nodes.push_back(newp);
 
 	newp->variables.SetUserData((void*)this);  // UserData unuseful in future cuda solver?
-	((ChModelBulletNode*)newp->collision_model)->SetNode(this,nodes.size()-1);
+	((ChModelBulletNode*)newp->collision_model)->SetNode(this, (unsigned int) nodes.size()-1);
 	newp->collision_model->AddSphere(0.1); //***TEST***
 	newp->collision_model->BuildModel(); // will also add to system, if collision is on.
 }

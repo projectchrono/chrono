@@ -62,8 +62,8 @@ public:
 				/// Access the N-th element 
 	virtual ChSharedPtr<ChElementBase> GetElement(unsigned int n) {return velements[n];};
 
-	unsigned int GetNnodes () {return vnodes.size();}
-	unsigned int GetNelements () {return velements.size();}
+	unsigned int GetNnodes () {return (unsigned int) vnodes.size();}
+	unsigned int GetNelements () {return (unsigned int) velements.size();}
 	virtual  int GetDOF () {return n_dofs;}
 
 				/// - Computes the total number of degrees of freedom

@@ -181,7 +181,7 @@ public:
 			//
 
 				/// Get the number of nodes
-	unsigned int GetNnodes() {return nodes.size();}
+	unsigned int GetNnodes() {return (unsigned int) nodes.size();}
 
 				/// Access the N-th node 
 	ChSharedPtr<ChNodeBase> GetNode(unsigned int n) { assert(n<nodes.size()); return nodes[n];}

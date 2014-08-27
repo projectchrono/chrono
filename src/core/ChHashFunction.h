@@ -51,7 +51,7 @@ struct HashFunction_Generic
 {
 	unsigned operator()(const K key) const 
 	{ 
-		return key * 0xf4243;  // no need to wrap with ... % maxValue;
+		return (unsigned) (key * 0xf4243);  // no need to wrap with ... % maxValue;
 	}
 };
 
@@ -81,11 +81,11 @@ struct HashFunction_String2
 {
 	unsigned operator()(const std::string& key) const 
 	{ 
-		unsigned int n = key.length();
+		size_t n = key.length();
 		const char* d = key.c_str();
 		unsigned h = 0; 
 	      
-		for (unsigned int i = 0; i < n; ++i, ++d)
+		for (size_t i = 0; i < n; ++i, ++d)
 			  h = (h << 2) + *d;
 
 		return ((h >= 0) ? (h ) : (-h ));
@@ -101,11 +101,11 @@ struct HashFunction_String3
 {
 	unsigned operator()(const std::string& key) const 
 	{ 
-		int n = key.length();
+		size_t n = key.length();
 		const char* d = key.c_str();
-		long h = n; 
+		long h = (long) n; 
       
-		for (int i = 0; i < n; ++i, ++d)
+		for (size_t i = 0; i < n; ++i, ++d)
 			h = 613*h + *d;
 
 		return ((h >= 0) ? (h ) : (-h )); 

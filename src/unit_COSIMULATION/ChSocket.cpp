@@ -15,7 +15,7 @@ ChSocket::ChSocket(int pNumber)
 
     try
     {
-		if ( (socketId=socket(AF_INET,SOCK_STREAM,0)) == -1)
+		if ( (socketId = (int)socket(AF_INET,SOCK_STREAM,0)) == -1)
         {
 			#ifdef WINDOWS_XP
 				int errorCode;
@@ -1062,7 +1062,7 @@ ChSocketTCP* ChSocketTCP::acceptClient(string& clientHost)
     // Accepts a new client connection and stores its socket file descriptor
 	try 
 	{
-		if ((newSocket = accept(socketId, (struct sockaddr *)&clientAddress,&clientAddressLen)) == -1)
+		if ((newSocket = (int)accept(socketId, (struct sockaddr *)&clientAddress,&clientAddressLen)) == -1)
 		{
 			#ifdef WINDOWS_XP
 				int errorCode = 0;
@@ -1183,7 +1183,7 @@ int ChSocketTCP::sendMessage(string& message)
 	// Sends the message to the connected host
 	try 
 	{
-		if (numBytes = send(socketId,sendMsg.c_str(),sendMsg.size(),0) == -1)
+		if (numBytes = send(socketId,sendMsg.c_str(),(int)sendMsg.size(),0) == -1)
 		{
 			#ifdef WINDOWS_XP
 				int errorCode = 0;
@@ -1409,7 +1409,7 @@ int ChSocketTCP::receiveMessage(string& message)
 
 int ChSocketTCP::SendBuffer(	std::vector<char>& source_buf)
 {
-	int nbytes = source_buf.size();
+	int nbytes = (int) source_buf.size();
 	char* data;
 	if (nbytes)
 		data = (char*)&(source_buf[0]); // stl vectors are assured to be sequential

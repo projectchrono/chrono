@@ -53,7 +53,7 @@ using namespace gui;
 
 std::vector< ChSharedPtr<ChBody> > mspheres;
 
-double STATIC_COMPLIANCE = 0.1*   (10./1000.)/500; // as 1/K, in m/N. es: 10mm/500N
+float STATIC_COMPLIANCE = 0.1f * (10.0f/1000)/500; // as 1/K, in m/N. es: 10mm/500N
 
 
 
@@ -239,7 +239,7 @@ int main(int argc, char* argv[])
 			// Set compliance (normal and tangential at once)
 			material.compliance  = STATIC_COMPLIANCE; 
 			material.complianceT = material.compliance ;
-			material.dampingf = 0.2;
+			material.dampingf = 0.2f;
 		};
 		ChSystem* msystem;
 	};

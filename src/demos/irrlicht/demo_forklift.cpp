@@ -133,7 +133,7 @@ public:
 				truss->GetBody()->SetInertiaXX(ChVector<>(100, 100, 100));
 				truss->setMaterialFlag(irr::video::EMF_NORMALIZE_NORMALS, true);
 				truss->setMaterialTexture(0,	forkliftTiremap);
-				truss->GetChildMesh()->setPosition(-vector3df(COG_truss.x, COG_truss.y, COG_truss.z));// offset the mesh
+				truss->GetChildMesh()->setPosition(-vector3df((f32)COG_truss.x, (f32)COG_truss.y, (f32)COG_truss.z));// offset the mesh
 				truss->addShadowVolumeSceneNode();
 				truss->GetBody()->GetCollisionModel()->ClearModel();
 				truss->GetBody()->GetCollisionModel()->AddBox(1.227/2., 1.621/2., 1.864/2., ChVector<>(-0.003, 1.019, 0.192));
@@ -152,7 +152,7 @@ public:
 				wheelRF->GetBody()->SetInertiaXX(ChVector<>(2, 2, 2));
 				wheelRF->setMaterialFlag(irr::video::EMF_NORMALIZE_NORMALS, true);
 				wheelRF->setMaterialTexture(0,	forkliftTiremap);
-				wheelRF->GetChildMesh()->setPosition(-vector3df(COG_wheelRF.x, COG_wheelRF.y, COG_wheelRF.z));// offset the mesh
+				wheelRF->GetChildMesh()->setPosition(-vector3df((f32)COG_wheelRF.x, (f32)COG_wheelRF.y, (f32)COG_wheelRF.z));// offset the mesh
 				// Describe the (invisible) colliding shape
 				ChMatrix33<>Arot(chrono::Q_from_AngAxis(CH_C_PI/2, VECT_Z));
 				wheelRF->GetBody()->GetCollisionModel()->ClearModel();
@@ -177,7 +177,7 @@ public:
 				wheelLF->GetBody()->SetInertiaXX(ChVector<>(2, 2, 2));
 				wheelLF->setMaterialFlag(irr::video::EMF_NORMALIZE_NORMALS, true);
 				wheelLF->setMaterialTexture(0,	forkliftTiremap);
-				wheelLF->GetChildMesh()->setPosition(-vector3df(COG_wheelRF.x, COG_wheelRF.y, COG_wheelRF.z));// offset the mesh (reuse RF)
+				wheelLF->GetChildMesh()->setPosition(-vector3df((f32)COG_wheelRF.x, (f32)COG_wheelRF.y, (f32)COG_wheelRF.z));// offset the mesh (reuse RF)
 				// Describe the (invisible) colliding shape
 				wheelLF->GetBody()->GetCollisionModel()->ClearModel();
 				wheelLF->GetBody()->GetCollisionModel()->AddCylinder(RAD_front_wheel,RAD_front_wheel, 0.1, ChVector<>(0,0,0), Arot); 
@@ -221,7 +221,7 @@ public:
 				wheelB->GetBody()->SetInertiaXX(ChVector<>(2, 2, 2));
 				wheelB->setMaterialFlag(irr::video::EMF_NORMALIZE_NORMALS, true);
 				wheelB->setMaterialTexture(0,	forkliftTiremap);
-				wheelB->GetChildMesh()->setPosition(-vector3df(COG_wheelRF.x, COG_wheelRF.y, COG_wheelRF.z));// offset the mesh (reuse RF wheel)
+				wheelB->GetChildMesh()->setPosition(-vector3df((f32)COG_wheelRF.x, (f32)COG_wheelRF.y, (f32)COG_wheelRF.z));// offset the mesh (reuse RF wheel)
 				double rescale = RAD_back_wheel/RAD_front_wheel;
 				// Describe the (invisible) colliding shape
 				wheelB->GetBody()->GetCollisionModel()->ClearModel();
@@ -247,7 +247,7 @@ public:
 														QUNIT);
 				arm->GetBody()->SetInertiaXX(ChVector<>(30, 30, 30));
 				arm->setMaterialFlag(irr::video::EMF_NORMALIZE_NORMALS, true);
-				arm->GetChildMesh()->setPosition(-vector3df(COG_arm.x, COG_arm.y, COG_arm.z));// offset the mesh
+				arm->GetChildMesh()->setPosition(-vector3df((f32)COG_arm.x, (f32)COG_arm.y, (f32)COG_arm.z));// offset the mesh
 
 				// .. create the revolute joint between the arm and the truss
 				link_engineArm = ChSharedPtr<ChLinkEngine>(new ChLinkEngine); // right, front, upper, 1
@@ -270,7 +270,7 @@ public:
 				//fork->GetBody()->SetCollide(false);
 				fork->setMaterialFlag(irr::video::EMF_NORMALIZE_NORMALS, true);
 				//fork->setMaterialTexture(0,	forkliftTiremap);
-				fork->GetChildMesh()->setPosition(-vector3df(COG_fork.x, COG_fork.y, COG_fork.z));// offset the mesh
+				fork->GetChildMesh()->setPosition(-vector3df((f32)COG_fork.x, (f32)COG_fork.y, (f32)COG_fork.z));// offset the mesh
 				// Describe the (invisible) colliding shapes - two cubes for the two fingers, etc
 				fork->GetBody()->GetCollisionModel()->ClearModel();
 				fork->GetBody()->GetCollisionModel()->AddBox(0.1/2.,   0.032/2., 1.033/2., ChVector<>(-0.352, -0.312, 0.613)); 

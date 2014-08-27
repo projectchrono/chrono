@@ -318,10 +318,10 @@ void ChMesh::LoadFromAbaqusFile(const char* filename,
 
 			if (line.find("*NODE") == 0)
 			{
-				int nse = line.find("NSET=");
-				if (nse>0)
+				string::size_type nse = line.find("NSET=");
+				if (nse > 0)
 				{
-					int ncom = line.find(",",nse);
+					string::size_type ncom = line.find(",",nse);
 					string s_node_set = line.substr(nse+5,ncom-(nse+5));
 					GetLog() << "Parsing: nodes " << s_node_set << "\n";
 				}
@@ -329,19 +329,19 @@ void ChMesh::LoadFromAbaqusFile(const char* filename,
 			}
 			if (line.find("*ELEMENT") == 0)
 			{
-				int nty = line.find("TYPE=");
-				if (nty>0)
+				string::size_type nty = line.find("TYPE=");
+				if (nty > 0)
 				{
-					int ncom = line.find(",",nty);
+					string::size_type ncom = line.find(",",nty);
 					string s_ele_type = line.substr(nty+5,ncom-(nty+5));
 					if (s_ele_type != "C3D10" &&
 						s_ele_type != "DC3D10" )
 						throw ChException("ERROR in .inp file, TYPE=" + s_ele_type + " (only C3D10 or DC3D10 tetahedrons supported) see: \n" + line + "\n");
 				}
-				int nse = line.find("ELSET=");
-				if (nse>0)
+				string::size_type nse = line.find("ELSET=");
+				if (nse > 0)
 				{
-					int ncom = line.find(",",nse);
+					string::size_type ncom = line.find(",",nse);
 					string s_ele_set = line.substr(nse+6,ncom-(nse+6));
 					GetLog() << "Parsing: element set: " << s_ele_set << "\n";
 				}
@@ -350,10 +350,10 @@ void ChMesh::LoadFromAbaqusFile(const char* filename,
 			if (line.find("*NSET") == 0)
 			{
 				GetLog() << "Parsing: nodeset.. ";
-				int nse = line.find("NSET=",5);
-				if (nse>0)
+				string::size_type nse = line.find("NSET=",5);
+				if (nse > 0)
 				{
-					int ncom = line.find(",",nse);
+					string::size_type ncom = line.find(",",nse);
 					string s_node_set = line.substr(nse+5,ncom-(nse+5));
 					GetLog() << "Parsing: nodeset: " << s_node_set << "\n";
 					

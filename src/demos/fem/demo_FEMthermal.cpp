@@ -59,7 +59,7 @@ int main(int argc, char* argv[])
 	application.AddTypicalLogo();
 	application.AddTypicalSky();
 	application.AddTypicalLights(core::vector3df(20,20,20),core::vector3df(-20,20,-20),90,90,irr::video::SColorf(0.5,0.5,0.5));
-	application.AddTypicalCamera(core::vector3df(0,0.7,-1),core::vector3df(0,0.4,0));
+	application.AddTypicalCamera(core::vector3df(0,(f32)0.7,-1),core::vector3df(0,(f32)0.4,0));
 
 
 
@@ -91,7 +91,7 @@ int main(int argc, char* argv[])
 			return 0;
 	}
 
-	for (int inode = 0; inode < my_mesh->GetNnodes(); ++inode)
+	for (unsigned int inode = 0; inode < my_mesh->GetNnodes(); ++inode)
 	{
 		if (my_mesh->GetNode(inode).IsType<ChNodeFEMxyzP>())
 		{
@@ -117,7 +117,7 @@ int main(int argc, char* argv[])
 	mnode2->SetP(0.5); // field: temperature [K]
 
 		// Impose field on the base points:
-	for (int inode = 0; inode < my_mesh->GetNnodes(); ++inode)
+	for (unsigned int inode = 0; inode < my_mesh->GetNnodes(); ++inode)
 	{
 		if (my_mesh->GetNode(inode).IsType<ChNodeFEMxyzP>())
 		{
@@ -169,7 +169,7 @@ int main(int argc, char* argv[])
 	mvisualizemeshC->SetFEMdataType(ChVisualizationFEMmesh::E_PLOT_NONE);
 	mvisualizemeshC->SetFEMglyphType(ChVisualizationFEMmesh::E_GLYPH_ELEM_VECT_DP);
 	mvisualizemeshC->SetSymbolsScale(0.003);
-	mvisualizemeshC->SetDefaultSymbolsColor(ChColor(0.1,0.2,0.2));
+	mvisualizemeshC->SetDefaultSymbolsColor(ChColor(0.1f, 0.2f, 0.2f));
 	mvisualizemeshC->SetZbufferHide(false);
 	my_mesh->AddAsset(mvisualizemeshC);
 
@@ -223,7 +223,7 @@ int main(int argc, char* argv[])
 
 
 	// Print some node temperatures..
-	for (int inode = 0; inode < my_mesh->GetNnodes(); ++inode)
+	for (unsigned int inode = 0; inode < my_mesh->GetNnodes(); ++inode)
 	{
 		if (my_mesh->GetNode(inode).IsType<ChNodeFEMxyzP>())
 		{

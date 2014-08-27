@@ -259,7 +259,7 @@ private:
 	// density of shape primitives
 	double sphDens;
 	double boxDens;
-	double mu;	// friction coef
+	float mu;	// friction coef
 
 	// for statistics
 	double pRadMean;
@@ -296,7 +296,7 @@ public:
 										mposition  );
 
 		wheel->GetBody()->SetInertiaXX(inertia);
-		wheel->GetBody()->SetFriction(0.4);
+		wheel->GetBody()->SetFriction(0.4f);
 
 		// turn collision off to start, toggle with checkbox
 		wheel->GetBody()->SetCollide(true);	 
@@ -345,7 +345,7 @@ public:
 			ChVector<>(d2, h, d2) );
 		// set inertia, friction coef, collide
 		// wheel->GetBody()->SetInertiaXX(inertia);
-		wheel->GetBody()->SetFriction(0.4);
+		wheel->GetBody()->SetFriction(0.4f);
 		wheel->GetBody()->SetCollide(true);
     video::ITexture* cylinderMap = mapp.GetVideoDriver()->getTexture(GetChronoDataFile("rubber.jpg").c_str());
 		wheel->setMaterialTexture(0, cylinderMap);

@@ -83,7 +83,7 @@ void ChIrrNodeProxyToAsset::Update()
       return;
 
     chrono::geometry::ChTriangleMeshConnected* mmesh = &trianglemesh->GetMesh();
-    unsigned int ntriangles = mmesh->getIndicesVertexes().size();
+    unsigned int ntriangles = (unsigned int) mmesh->getIndicesVertexes().size();
     unsigned int nvertexes = ntriangles * 3; // this is suboptimal because some vertexes might be shared, but easier now..
 
     //SMeshBuffer* irrmesh = (SMeshBuffer*)amesh->getMeshBuffer(0);
@@ -197,8 +197,8 @@ void ChIrrNodeProxyToAsset::Update()
     //SMeshBuffer* irrmesh = (SMeshBuffer*)amesh->getMeshBuffer(0);
     CDynamicMeshBuffer* irrmesh = (CDynamicMeshBuffer*)amesh->getMeshBuffer(0);
 
-    unsigned int ntriangles = 0;
-    unsigned int nvertexes = 0;
+    size_t ntriangles = 0;
+    size_t nvertexes = 0;
 
     switch (mglyphs->GetDrawMode()) {
     case chrono::ChGlyphs::GLYPH_POINT:
@@ -221,8 +221,8 @@ void ChIrrNodeProxyToAsset::Update()
     if (irrmesh->getVertexBuffer().allocated_size() > nvertexes * 1.5)
       irrmesh->getVertexBuffer().reallocate(0);
 
-    irrmesh->getIndexBuffer().set_used(ntriangles*3);
-    irrmesh->getVertexBuffer().set_used(nvertexes);
+    irrmesh->getIndexBuffer().set_used((u32)ntriangles*3);
+    irrmesh->getVertexBuffer().set_used((u32)nvertexes);
 
     // set buffers
 

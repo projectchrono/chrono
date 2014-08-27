@@ -60,7 +60,7 @@ using namespace gui;
 double STATIC_rot_speed=0;
 double STATIC_x_speed=0;
 double STATIC_z_speed=0;
-double STATIC_wheelfriction=0.6;
+float STATIC_wheelfriction=0.6f;
 #define MAX_ROT_SPEED 0.8
 #define MAX_XZ_SPEED 10 
 

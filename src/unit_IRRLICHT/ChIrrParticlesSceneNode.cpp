@@ -226,7 +226,7 @@ ChIrrParticlesSceneNode::addShadowVolumeSceneNode(const IMesh*  shadowMesh,
 
 void ChIrrParticlesSceneNode::UpdateChildrenHierarchy()
 {
-  unsigned int npart = (*particlep)->GetNparticles();
+  size_t npart = (*particlep)->GetNparticles();
   if (this->Nchildren != npart)
   {
     // delete all children mesh nodes
@@ -245,7 +245,7 @@ void ChIrrParticlesSceneNode::UpdateChildrenHierarchy()
           child_mesh->setMaterialFlag(video::EMF_NORMALIZE_NORMALS, true);
       }
     }
-    this->Nchildren = npart;
+    this->Nchildren = (s32) npart;
   }
 }
 

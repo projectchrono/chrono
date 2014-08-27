@@ -58,9 +58,6 @@ using namespace gui;
 
 void create_some_falling_items(ChSystem& mphysicalSystem, ISceneManager* msceneManager, IVideoDriver* driver)
 {
-	ChBodySceneNode* mrigidBody; 
-
-
 	for (int bi = 0; bi < 29; bi++) 
 	{    
 		// Create a bunch of ChronoENGINE rigid bodies (spheres and

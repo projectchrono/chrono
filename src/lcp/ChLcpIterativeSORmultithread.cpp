@@ -367,9 +367,9 @@ double ChLcpIterativeSORmultithread::Solve(
 	for (int nth = 0; nth < numthreads; nth++)
 	{
 		unsigned int var_from = var_slice;
-		unsigned int var_to = var_from + (mvariables.size()-var_from) / (numthreads-nth);
+		unsigned int var_to = var_from + ((unsigned int) mvariables.size()-var_from) / (numthreads-nth);
 		unsigned int constr_from = constr_slice;
-		unsigned int constr_to = constr_from + (mconstraints.size()-constr_from) / (numthreads-nth);
+		unsigned int constr_to = constr_from + ((unsigned int) mconstraints.size()-constr_from) / (numthreads-nth);
 		if(constr_to < mconstraints.size()) // do not slice the three contact multipliers (or six in case of rolling)
 		{
 			if (dynamic_cast<ChLcpConstraintTwoFrictionT*>(mconstraints[constr_to]))

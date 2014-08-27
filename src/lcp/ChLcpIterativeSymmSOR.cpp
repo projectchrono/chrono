@@ -39,8 +39,8 @@ double ChLcpIterativeSymmSOR::Solve(
 	double maxdeltalambda = 0.;
 	int i_friction_comp = 0;
 	double old_lambda_friction[3];
-	const unsigned int nConstr = mconstraints.size();
-	const unsigned int nVars = mvariables.size();
+	const unsigned int nConstr = (unsigned int) mconstraints.size();
+	const unsigned int nVars = (unsigned int) mvariables.size();
 
 	// 1)  Update auxiliary data in all constraints before starting,
 	//     that is: g_i=[Cq_i]*[invM_i]*[Cq_i]' and  [Eq_i]=[invM_i]*[Cq_i]'
@@ -101,8 +101,8 @@ double ChLcpIterativeSymmSOR::Solve(
 		maxviolation = 0;
 		maxdeltalambda = 0;
 		i_friction_comp = 0;
-		int dummy = mconstraints.size();
-		for (unsigned int ic = 0; ic < dummy; ic++)
+		size_t dummy = mconstraints.size();
+		for (size_t ic = 0; ic < dummy; ic++)
 		{
 			// skip computations if constraint not active.
 			if (mconstraints[ic]->IsActive())

@@ -218,7 +218,7 @@ void ChConvexHullLibraryWrapper::ComputeHull(std::vector< ChVector<> >& points, 
 		btpoints[ip].setY( (btScalar)points[ip].y );
 		btpoints[ip].setZ( (btScalar)points[ip].z );
 	}
-	desc.mVcount       = points.size();
+	desc.mVcount       = (unsigned int) points.size();
 	desc.mVertices     = btpoints;
 	desc.mVertexStride = sizeof( btVector3 );
 

@@ -41,13 +41,12 @@ namespace chrono
 
 void ChFileutils::Change_file_ext (char* fid1, const char* fid, const char* ext, int force)
 {
-  int i,l;
   char *p,*q;
 
   strcpy (fid1, fid);
-  l=strlen(fid1);
+  size_t l = strlen(fid1);
   p=fid1;
-  for (i=0;i<l;i++)
+  for (size_t i = 0; i < l; i++)
     if (fid1[i]=='/') p=fid1+i;
 
   if (!force) {
@@ -65,24 +64,20 @@ void ChFileutils::Change_file_ext (char* fid1, const char* fid, const char* ext,
 /* ----- cut off extension on a file identifier ----- */
 void ChFileutils::Cut_file_ext (char* fid)
 {
-  int i,l;
-
-  l=strlen(fid);
-  for (i=0;i<l;i++)
+  size_t l = strlen(fid);
+  for (size_t i = 0; i < l; i++)
     if (fid[i]=='.') fid[i]='\0';
 }
 
 /* ----- getext: get extension on a file identifier ----- */
 void ChFileutils::Get_file_ext (const char* fid, char* ext)
 {
-  int i,l,k;
-
-  l=strlen(fid);
-  k=l-1;
-  for (i=0;i<l;i++)
+  size_t l = strlen(fid);
+  size_t k = l-1;
+  for (size_t i = 0; i < l; i++)
     if (fid[i]=='.') k=i;
 
-  for (i=k+1;i<l;i++)
+  for (size_t i = k+1; i < l; i++)
     ext[i-k-1]=fid[i];
   ext[l-k-1]='\0';
 }

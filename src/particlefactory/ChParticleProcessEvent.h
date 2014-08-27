@@ -149,9 +149,9 @@ public:
 		if (mprocessor.IsType<ChParticleEventFlowInRectangle>())
 		{
 			ChSharedPtr<ChParticleEventFlowInRectangle> mrectangleprocessor = mprocessor.DynamicCastTo<ChParticleEventFlowInRectangle>();
-			int irow = floor(mmass.GetRows() * mrectangleprocessor->last_intersectionUV.x);
+			int irow = (int) floor(mmass.GetRows() * mrectangleprocessor->last_intersectionUV.x);
 			if (irow >= mmass.GetRows()) irow = mmass.GetRows()-1;
-			int icol = floor(mmass.GetColumns() * mrectangleprocessor->last_intersectionUV.y);
+			int icol = (int) floor(mmass.GetColumns() * mrectangleprocessor->last_intersectionUV.y);
 			if (icol >= mmass.GetColumns()) icol = mmass.GetColumns()-1;
 
 			mmass(irow,icol) += mbody->GetMass();

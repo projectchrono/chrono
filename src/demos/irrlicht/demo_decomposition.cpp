@@ -141,9 +141,9 @@ void DecomposeModel(ChIrrAppInterface* application)
 						hacd_maxhullcount,
 						hacd_maxhullmerge,
 						hacd_maxhullvertexes,
-						hacd_concavity,
-						hacd_smallclusterthreshold,
-						hacd_fusetolerance
+						(float)hacd_concavity,
+						(float)hacd_smallclusterthreshold,
+						(float)hacd_fusetolerance
 						);			
 		mydecompositionHACDv2.ComputeConvexDecomposition();
 		used_decomposition = &mydecompositionHACDv2;
@@ -462,27 +462,27 @@ public:
 								medit->setText(irr::core::stringw((int)maxhullvert).c_str());
 								break;
 							case 103: 
-								concavity = atof( irr::core::stringc(medit->getText()).c_str() ) ;
+								concavity = (float) atof( irr::core::stringc(medit->getText()).c_str() ) ;
 								medit->setText(irr::core::stringw(concavity).c_str());
 								break;
 							case 104: 
-								merge =  atof( irr::core::stringc(medit->getText()).c_str() ) ;
+								merge =  (float) atof( irr::core::stringc(medit->getText()).c_str() ) ;
 								medit->setText(irr::core::stringw(merge).c_str());
 								break;
 							case 105: 
-								volumep =  atof( irr::core::stringc(medit->getText()).c_str() ) ;
+								volumep =  (float) atof( irr::core::stringc(medit->getText()).c_str() ) ;
 								medit->setText(irr::core::stringw(volumep).c_str());
 								break;
 							case 121: 
-								hacd_maxhullcount =  atof( irr::core::stringc(medit->getText()).c_str() ) ;
+								hacd_maxhullcount =  (int) atof( irr::core::stringc(medit->getText()).c_str() ) ;
 								medit->setText(irr::core::stringw(hacd_maxhullcount).c_str());
 								break;
 							case 122: 
-								hacd_maxhullmerge =  atof( irr::core::stringc(medit->getText()).c_str() ) ;
+								hacd_maxhullmerge =  (int) atof( irr::core::stringc(medit->getText()).c_str() ) ;
 								medit->setText(irr::core::stringw(hacd_maxhullmerge).c_str());
 								break;
 							case 123: 
-								hacd_maxhullvertexes =  atof( irr::core::stringc(medit->getText()).c_str() ) ;
+								hacd_maxhullvertexes =  (int) atof( irr::core::stringc(medit->getText()).c_str() ) ;
 								medit->setText(irr::core::stringw(hacd_maxhullvertexes).c_str());
 								break;
 							case 124: 

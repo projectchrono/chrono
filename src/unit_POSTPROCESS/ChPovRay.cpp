@@ -220,8 +220,8 @@ std::string replaceOnce(
   const std::string& replaceWhat, 
   const std::string& replaceWithWhat)
 {
-  const int pos = result.find(replaceWhat);
-  if (pos==-1) return result;
+  const std::string::size_type pos = result.find(replaceWhat);
+  if (pos==std::string::npos) return result;
   result.replace(pos,replaceWhat.size(),replaceWithWhat);
   return result;
 }
@@ -234,8 +234,8 @@ std::string replaceAll(
 {
   while(1)
   {
-    const int pos = result.find(replaceWhat);
-    if (pos==-1) break;
+    const std::string::size_type pos = result.find(replaceWhat);
+    if (pos==std::string::npos) break;
     result.replace(pos,replaceWhat.size(),replaceWithWhat);
   }
   return result;

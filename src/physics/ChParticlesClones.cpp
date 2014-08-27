@@ -162,7 +162,7 @@ void ChParticlesClones::Copy(ChParticlesClones* source)
 	
 	this->matsurface = source->matsurface;  // also copy-duplicate the material? Let the user handle this..
 
-	ResizeNparticles(source->GetNparticles());
+	ResizeNparticles((int) source->GetNparticles());
 
 	max_speed = source->max_speed;
 	max_wvel  = source->max_wvel;
@@ -215,7 +215,7 @@ void ChParticlesClones::AddParticle(ChCoordsys<double> initial_state)
 
 	newp->variables.SetSharedMass(&this->particle_mass);
 	newp->variables.SetUserData((void*)this);  // UserData unuseful in future cuda solver?
-	((ChModelBulletParticle*)newp->collision_model)->SetParticle(this,particles.size()-1);
+	((ChModelBulletParticle*)newp->collision_model)->SetParticle(this, (unsigned int) particles.size()-1);
 	// newp->collision_model->ClearModel(); // wasn't already added to system, no need to remove
 	newp->collision_model->AddCopyOfAnotherModel(this->particle_collision_model); 
 	newp->collision_model->BuildModel(); // will also add to system, if collision is on.

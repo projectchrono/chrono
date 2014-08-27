@@ -541,7 +541,7 @@ public:
 				scrollbar_FspringK = mdevice->getGUIEnvironment()->addScrollBar(
 								true, rect<s32>(10, 125, 150, 140), 0, 102);
 				scrollbar_FspringK->setMax(100); 
-				scrollbar_FspringK->setPos(50 + 50.0*(acar->link_springRF->Get_SpringK()-80000.0)/60000.0  );
+				scrollbar_FspringK->setPos((s32)(50 + 50.0*(acar->link_springRF->Get_SpringK()-80000.0)/60000.0));
 				text_FspringK = mdevice->getGUIEnvironment()->addStaticText(
 								L"Spring K [N/m]:", rect<s32>(150,125,250,140), false);
 
@@ -549,7 +549,7 @@ public:
 				scrollbar_FdamperR = mdevice->getGUIEnvironment()->addScrollBar(
 								true, rect<s32>(10, 145, 150, 160), 0, 103);
 				scrollbar_FdamperR->setMax(100); 
-				scrollbar_FdamperR->setPos(50 + 50.0*(acar->link_springRF->Get_SpringR()-800.0)/800.0  );
+				scrollbar_FdamperR->setPos((s32)(50 + 50.0*(acar->link_springRF->Get_SpringR()-800.0)/800.0));
 				text_FdamperR = mdevice->getGUIEnvironment()->addStaticText(
 								L"Damper R [Ns/m]:", rect<s32>(150,145,250,160), false);
 
@@ -557,7 +557,7 @@ public:
 				scrollbar_FspringL = mdevice->getGUIEnvironment()->addScrollBar(
 								true, rect<s32>(10, 165, 150, 180), 0, 104);
 				scrollbar_FspringL->setMax(100); 
-				scrollbar_FspringL->setPos(50 + 50.0*(acar->link_springRF->Get_SpringRestLength()-0.9)/0.1  );
+				scrollbar_FspringL->setPos((s32)(50 + 50.0*(acar->link_springRF->Get_SpringRestLength()-0.9)/0.1));
 				text_FspringL = mdevice->getGUIEnvironment()->addStaticText(
 								L"Spring L [m]:", rect<s32>(150,165,250,180), false);
 			}
@@ -752,9 +752,9 @@ int main(int argc, char* argv[])
 								ChMaterialCouple&  material )			  		///< you can modify this!	
 		{
 			if (mcontactinfo.vpA.x > 0)
-				material.static_friction = 0.7; // On the right of the plane, less friction...
+				material.static_friction = 0.7f; // On the right of the plane, less friction...
 			else
-				material.static_friction = 1.0; // On the left of the plane, more friction...
+				material.static_friction = 1.0f; // On the left of the plane, more friction...
 		};
 	};
 

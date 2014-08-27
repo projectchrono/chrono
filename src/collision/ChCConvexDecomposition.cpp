@@ -46,7 +46,7 @@ int GetIndex(ChVector<double> vertex, std::vector< ChVector<double> >& vertexOUT
 	}
 	// not found, so add it to new vertexes
 	vertexOUT.push_back(vertex);
-	return (vertexOUT.size()-1);
+	return ((int) vertexOUT.size()-1);
 }
 
 void FuseMesh(std::vector< ChVector<double> >& vertexIN,  std::vector< ChVector<int> >& triangleIN,
@@ -150,7 +150,7 @@ void ChConvexDecompositionHACD::Reset(void)
 
 bool ChConvexDecompositionHACD::AddTriangle(const ChVector<>& v1,const ChVector<>& v2,const ChVector<>& v3)
 		{
-			int lastpoint = this->points.size();
+			long lastpoint = (long) this->points.size();
 			HACD::Vec3<HACD::Real> vertex1(v1.x,v1.y,v1.z);
 			HACD::Vec3<HACD::Real> vertex2(v2.x,v2.y,v2.z);
 			HACD::Vec3<HACD::Real> vertex3(v3.x,v3.y,v3.z);
@@ -205,13 +205,13 @@ int ChConvexDecompositionHACD::ComputeConvexDecomposition()
 
 			myHACD->Compute();
 
-			return myHACD->GetNClusters();
+			return (int) myHACD->GetNClusters();
 		}
 
 	/// Get the number of computed hulls after the convex decomposition
 unsigned int ChConvexDecompositionHACD::GetHullCount() 
 		{ 
-			return this->myHACD->GetNClusters(); 
+			return (unsigned int) this->myHACD->GetNClusters(); 
 		}
 
 
@@ -305,8 +305,8 @@ void ChConvexDecompositionHACD::WriteConvexHullsAsWavefrontObj(ChStreamOutAscii&
 				HACD::Vec3<long> * trianglesCH = new HACD::Vec3<long>[nTriangles];
 				myHACD->GetCH(hullIndex, pointsCH, trianglesCH);
 
-				vcount_total+=nPoints;
-				tcount_total+=nTriangles;
+				vcount_total += (NxU32) nPoints;
+				tcount_total += (NxU32) nTriangles;
 				for (unsigned int i=0; i<nPoints; i++)
 				{
 					sprintf(buffer,"v %0.9f %0.9f %0.9f\r\n", pointsCH[i].X(), pointsCH[i].Y(), pointsCH[i].Z() );
@@ -320,7 +320,7 @@ void ChConvexDecompositionHACD::WriteConvexHullsAsWavefrontObj(ChStreamOutAscii&
 					sprintf(buffer,"f %d %d %d\r\n", i1+vcount_base, i2+vcount_base, i3+vcount_base );
 					mstream << buffer;
 				}
-				vcount_base+=nPoints;
+				vcount_base += (NxU32) nPoints;
 
 				delete[] pointsCH;
 				delete[] trianglesCH;
@@ -533,7 +533,7 @@ void ChConvexDecompositionHACDv2::Reset(void)
 
 bool ChConvexDecompositionHACDv2::AddTriangle(const ChVector<>& v1,const ChVector<>& v2,const ChVector<>& v3)
 		{
-			int lastpoint = this->points.size();
+			int lastpoint = (int) this->points.size();
 			ChVector<double> vertex1(v1.x,v1.y,v1.z);
 			ChVector<double> vertex2(v2.x,v2.y,v2.z);
 			ChVector<double> vertex3(v3.x,v3.y,v3.z);
@@ -602,8 +602,8 @@ int ChConvexDecompositionHACDv2::ComputeConvexDecomposition()
 
 			// Convert to HACD format
 
-			this->descriptor.mTriangleCount = triangles_FUSED.size();
-			this->descriptor.mVertexCount = points_FUSED.size();
+			this->descriptor.mTriangleCount = (hacd::HaU32) triangles_FUSED.size();
+			this->descriptor.mVertexCount = (hacd::HaU32) points_FUSED.size();
 			this->descriptor.mIndices = new hacd::HaU32[3*this->descriptor.mTriangleCount];
 			this->descriptor.mVertices = new hacd::HaF32[3*this->descriptor.mVertexCount];
 			for (unsigned int mv = 0; mv< points_FUSED.size(); mv++)

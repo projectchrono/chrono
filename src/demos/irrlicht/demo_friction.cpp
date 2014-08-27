@@ -78,7 +78,7 @@ void create_some_falling_items(ChSystem* mphysicalSystem, ISceneManager* msceneM
 		msphereBody->SetPos_dt(ChVector<>(initial_linspeed,0,0));
 
 		// Set a non zero value of rolling friction to have a rolling resisting torque:
-		msphereBody->SetRollingFriction( ((double)bi/10.)*0.05 );
+		msphereBody->SetRollingFriction( ((float)bi/10)*0.05f );
 
 		// Add to the system
 		mphysicalSystem->Add(msphereBody);
@@ -104,7 +104,7 @@ void create_some_falling_items(ChSystem* mphysicalSystem, ISceneManager* msceneM
 
 		// Set a non zero value of spinning friction that brakes the spinning on vertical axis
 		// of the contact: 
-		msphereBody->SetSpinningFriction( ((double)bi/10.)*0.02 );
+		msphereBody->SetSpinningFriction( ((float)bi/10)*0.02f );
 
 		// Add to the system
 		mphysicalSystem->Add(msphereBody);
@@ -147,7 +147,7 @@ void create_some_falling_items(ChSystem* mphysicalSystem, ISceneManager* msceneM
 											true));		// visualization?
 	mwallBody1->SetPos(ChVector<>(-10,0,0));
 	mwallBody1->SetBodyFixed(true);
-	mwallBody1->AddAsset( ChSharedPtr<ChColorAsset>(new ChColorAsset(0.6,0.3,0)) );
+	mwallBody1->AddAsset( ChSharedPtr<ChColorAsset>(new ChColorAsset(0.6f, 0.3f, 0.0f)) );
 	mphysicalSystem->Add(mwallBody1);
 
 
@@ -158,7 +158,7 @@ void create_some_falling_items(ChSystem* mphysicalSystem, ISceneManager* msceneM
 											true));		// visualization?
 	mwallBody2->SetPos(ChVector<>(10,0,0));
 	mwallBody2->SetBodyFixed(true);
-	mwallBody2->AddAsset( ChSharedPtr<ChColorAsset>(new ChColorAsset(0.6,0.3,0)) );
+	mwallBody2->AddAsset( ChSharedPtr<ChColorAsset>(new ChColorAsset(0.6f, 0.3f, 0.0f)) );
 	mphysicalSystem->Add(mwallBody2);
 
 
@@ -169,7 +169,7 @@ void create_some_falling_items(ChSystem* mphysicalSystem, ISceneManager* msceneM
 											true));		// visualization?
 	mwallBody3->SetPos(ChVector<>(0,0,-10));
 	mwallBody3->SetBodyFixed(true);
-	mwallBody3->AddAsset( ChSharedPtr<ChColorAsset>(new ChColorAsset(0.6,0.3,0)) );
+	mwallBody3->AddAsset( ChSharedPtr<ChColorAsset>(new ChColorAsset(0.6f, 0.3f, 0.0f)) );
 	mphysicalSystem->Add(mwallBody3);
 
 
@@ -180,7 +180,7 @@ void create_some_falling_items(ChSystem* mphysicalSystem, ISceneManager* msceneM
 											true));		// visualization?
 	mwallBody4->SetPos(ChVector<>(0,0,10));
 	mwallBody4->SetBodyFixed(true);
-	mwallBody4->AddAsset( ChSharedPtr<ChColorAsset>(new ChColorAsset(0.6,0.3,0)) );
+	mwallBody4->AddAsset( ChSharedPtr<ChColorAsset>(new ChColorAsset(0.6f, 0.3f, 0.0f)) );
 	mphysicalSystem->Add(mwallBody4);
 
 } 

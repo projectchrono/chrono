@@ -79,7 +79,7 @@ void create_some_falling_items(ChSystem& mphysicalSystem,
 	 
 	double flock_height = ((4./3.)*CH_C_PI*pow(sphereradius,3)*numspheres*(1.0/0.40))/(mwidth*mwidth);
 	double flock_size   = mwidth-sphereradius;
-	double mfriction = 0.4; 
+	float mfriction = 0.4f; 
 
 	ChCollisionModel::SetDefaultSuggestedEnvelope(sphereradius*0.2);
 
@@ -528,7 +528,7 @@ int main(int argc, char* argv[])
 		ChLcpIterativeSolver* msolver = (ChLcpIterativeSolver*)mphysicalSystem.GetLcpSolverSpeed();
 		msolver->SetRecordViolation(true);
 
-		for (double mspheres=10; (mspheres <= 330 && application.GetDevice()->run()); mspheres +=40)
+		for (int mspheres=10; (mspheres <= 330 && application.GetDevice()->run()); mspheres +=40)
 		{
 			for (int nviters = 20; (nviters <= 101 && application.GetDevice()->run()); nviters +=20)
 			{

@@ -145,8 +145,6 @@ void create_debris(ChIrrApp& application, double dt, double particles_second)
 	double sphmass = (4/3)*CH_C_PI*pow(sphrad,3)*density;
 	double sphinertia = pow(sphrad,2) * sphmass;
 
-	ChBodySceneNode* mrigidBody; 
-
 	double exact_particles_dt = dt * particles_second;
 	double particles_dt = floor(exact_particles_dt);
 	double remaind = exact_particles_dt - particles_dt;
@@ -259,7 +257,9 @@ int main(int argc, char* argv[])
 	ChIrrWizard::add_typical_Logo(application.GetDevice());
 	ChIrrWizard::add_typical_Sky(application.GetDevice());
 	ChIrrWizard::add_typical_Lights(application.GetDevice());
-	ChIrrWizard::add_typical_Camera(application.GetDevice(), core::vector3df(1.5,0.4,-1), core::vector3df(0.5,0,0) );
+	ChIrrWizard::add_typical_Camera(application.GetDevice(),
+                                  core::vector3df((f32)1.5, (f32)0.4,-1),
+                                  core::vector3df((f32)0.5, 0,  0) );
 
 
 	// This is for GUI tweaking of system parameters..
@@ -281,7 +281,7 @@ int main(int argc, char* argv[])
 											ChQuaternion<>(1,0,0,0), 
 											ChVector<>(2,0.11,0.04) );
 	mfence1->GetBody()->SetBodyFixed(true);
-	mfence1->GetBody()->SetFriction(0.1);
+	mfence1->GetBody()->SetFriction(0.1f);
 
 	ChBodySceneNode* mfence2 = (ChBodySceneNode*)addChBodySceneNode_easyBox(
 											&mphysicalSystem, application.GetSceneManager(),
@@ -290,7 +290,7 @@ int main(int argc, char* argv[])
 											ChQuaternion<>(1,0,0,0), 
 											ChVector<>(2,0.11,0.04) );
 	mfence2->GetBody()->SetBodyFixed(true);
-	mfence2->GetBody()->SetFriction(0.1);
+	mfence2->GetBody()->SetFriction(0.1f);
 
 
 
@@ -299,7 +299,7 @@ int main(int argc, char* argv[])
 
 	ChSharedPtr<ChConveyor> mconveyor (new ChConveyor(2, 0.05, 0.6));
 	mconveyor->SetBodyFixed(true);
-	mconveyor->SetFriction(0.35);
+	mconveyor->SetFriction(0.35f);
 	mconveyor->SetConveyorSpeed(STATIC_speed);
 	mconveyor->SetPos( ChVector<>(0, 0, 0) );
 

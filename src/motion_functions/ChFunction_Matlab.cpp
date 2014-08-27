@@ -52,10 +52,10 @@ double ChFunction_Matlab::Get_y      (double x)
 {
 	double ret = 0;
 
-	char m_eval_command[CHF_MATLAB_STRING_LEN+20];
-
-	#ifdef CH_MATLAB
-	 // no function: shortcut!
+#ifdef CH_MATLAB
+  char m_eval_command[CHF_MATLAB_STRING_LEN+20];
+  
+  // no function: shortcut!
 	if (*this->mat_command == NULL) return 0.0;
 
 	 // set string as "x=[x];ans=[mat_command]"
@@ -64,9 +64,9 @@ double ChFunction_Matlab::Get_y      (double x)
 	 // EVAL string, retrieving y = "ans"
 	 ret = CHGLOBALS().Mat_Eng_Eval(m_eval_command);
 
-	#else
+#else
 	 ret = 0.0;
-	#endif
+#endif
 
 	return ret;
 }

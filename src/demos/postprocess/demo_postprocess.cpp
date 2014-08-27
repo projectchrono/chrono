@@ -88,7 +88,7 @@ int main(int argc, char* argv[])
 
 			// ==Asset== attach color asset. 
 	ChSharedPtr<ChColorAsset> mfloorcolor(new ChColorAsset);
-	mfloorcolor->SetColor(ChColor(0.3,0.3,0.6));
+	mfloorcolor->SetColor(ChColor(0.3f, 0.3f, 0.6f));
 	mfloor->AddAsset(mfloorcolor);
 
 
@@ -128,7 +128,7 @@ int main(int argc, char* argv[])
 			// ==Asset== Attach color. To set colors for all assets  
 			// in the same level, just add this:
 	ChSharedPtr<ChColorAsset> mvisual(new ChColorAsset);
-	mvisual->SetColor(ChColor(0.9,0.4,0.2));
+	mvisual->SetColor(ChColor(0.9f, 0.4f, 0.2f));
 	mbody->AddAsset(mvisual);
 
 
@@ -246,7 +246,7 @@ int main(int argc, char* argv[])
 	pov_exporter.SetPictureFilebase("anim/picture");
 
 			// --Optional: modify default light
-	pov_exporter.SetLight(ChVector<>(-3,4,2), ChColor(0.15,0.15,0.12), false);
+	pov_exporter.SetLight(ChVector<>(-3, 4, 2), ChColor(0.15f, 0.15f, 0.12f), false);
 
 			// --Optional: add further POV commands, for example in this case:
 			//     create an area light for soft shadows

@@ -169,9 +169,9 @@ int ChFunction::MakeOptVariableTree(ChList<chjs_propdata>* mtree)
 
 static int _recurse_VariableTreeToFullNameVar(ChList<chjs_propdata>* mtree, ChList<chjs_fullnamevar>* mlist, char* maccumulator)
 {
-	int i= 0;
+	int i = 0;
 
-	int mentrypos = strlen (maccumulator);
+	size_t mentrypos = strlen(maccumulator);
 
 	ChNode<chjs_propdata>* mnode = mtree->GetHead();
 	while(mnode)
