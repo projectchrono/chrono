@@ -31,12 +31,12 @@ global_settings { assumed_gamma 1 }
 
 // Draw body frames?
 #declare draw_body_frame = true;
-#declare body_frame_radius = 0.01;
+#declare body_frame_radius = 0.006;
 #declare body_frame_len = 0.75;
 
 // Draw shape frames?
 #declare draw_object_frame = false;
-#declare object_frame_radius = 0.01;
+#declare object_frame_radius = 0.006;
 #declare object_frame_len = 0.5;
 
 
@@ -49,7 +49,7 @@ global_settings { assumed_gamma 1 }
 
 
 // Render environment?
-#declare draw_environment = false;
+#declare draw_environment = true;
 
      
 // ============================================================================================
@@ -384,7 +384,15 @@ light_source {
               
     #read (MyDataFile, link)
    
-	#switch (link)
+	#switch (link) 
+	    // Spherical ------
+	    #case (1)
+	        #read (MyDataFile, px, py, pz)
+	        sphere {
+			    <px,pz,py>, 3 * object_frame_radius
+			    pigment {color Red }}
+	    #break
+	    
 		// Revolute -------
 		#case (8)
 			#read (MyDataFile, px, py, pz, dx, dy, dz)
