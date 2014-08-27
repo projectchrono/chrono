@@ -60,9 +60,11 @@ protected:
     UCA_F,      // upper control arm, chassis front
     UCA_B,      // upper control arm, chassis back
     UCA_U,      // upper control arm, upright
+    UCA_CM,     // upper control arm, center of mass
     LCA_F,      // lower control arm, chassis front
     LCA_B,      // lower control arm, chassis back
     LCA_U,      // lower control arm, upright
+    LCA_CM,     // lower control arm, center of mass
     SHOCK_C,    // shock, chassis
     SHOCK_U,    // shock, upright
     TIEROD_C,   // tierod, chassis

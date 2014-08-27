@@ -29,6 +29,7 @@
 // =============================================================================
 
 #include "assets/ChCylinderShape.h"
+#include "assets/ChBoxShape.h"
 #include "assets/ChColorAsset.h"
 
 #include "subsys/suspension/ChDoubleWishbone.h"
@@ -118,16 +119,33 @@ ChDoubleWishbone::Initialize(ChSharedBodyPtr   chassis,
   OnInitializeSpindle();
   chassis->GetSystem()->AddBody(m_spindle);
 
-  m_bodyUCA->SetPos((m_points[UCA_F]+m_points[UCA_B]+m_points[UCA_U])/3);
-  //m_bodyUCA->SetRot(chassis->GetCoord().rot); // TODO: Should be quaternion formed by avg(UCA_B,UCA_F) and UCA_U
+  m_bodyUCA->SetPos(m_points[UCA_CM]);
+  // Determine the rotation matrix of the UCA based on the plane of the hard points
+  ChVector<> wRot;
+  wRot.Cross(m_points[UCA_F]-m_points[UCA_U], m_points[UCA_B]-m_points[UCA_U]);
+  wRot.Normalize();
+  ChVector<> uRot = m_points[UCA_B]-m_points[UCA_F];
+  uRot.Normalize();
+  ChVector<> vRot;
+  vRot.Cross(wRot,uRot);
+  ChMatrix33<> rotationMatrix;
+  rotationMatrix.Set_A_axis(uRot,vRot,wRot);
+  m_bodyUCA->SetRot(rotationMatrix); // Set the rotation of the UCA
   m_bodyUCA->SetMass(getUCAMass());
   m_bodyUCA->SetInertiaXX(getUCAInertia());
   AddVisualizationUCA();
   OnInitializeUCA();
   chassis->GetSystem()->AddBody(m_bodyUCA);
 
-  m_bodyLCA->SetPos((m_points[LCA_F]+m_points[LCA_B]+m_points[LCA_U])/3);
-  //m_bodyLCA->SetRot(chassis->GetCoord().rot); // TODO: Should be quaternion formed by avg(LCA_B,LCA_F) and LCA_U
+  m_bodyLCA->SetPos(m_points[LCA_CM]);
+  // Determine the rotation matrix of the LCA based on the plane of the hard points
+  wRot.Cross(m_points[LCA_F]-m_points[LCA_U], m_points[LCA_B]-m_points[LCA_U]);
+  wRot.Normalize();
+  uRot = m_points[LCA_B]-m_points[LCA_F];
+  uRot.Normalize();
+  vRot.Cross(wRot,uRot);
+  rotationMatrix.Set_A_axis(uRot,vRot,wRot);
+  m_bodyLCA->SetRot(rotationMatrix); // Set the rotation of the LCA
   m_bodyLCA->SetMass(getLCAMass());
   m_bodyLCA->SetInertiaXX(getLCAInertia());
   AddVisualizationLCA();
@@ -207,8 +225,13 @@ void ChDoubleWishbone::AddVisualizationLCA()
   ChSharedPtr<ChCylinderShape> cyl_B(new ChCylinderShape);
   cyl_B->GetCylinderGeometry().p1 = p_B;
   cyl_B->GetCylinderGeometry().p2 = p_U;
-  cyl_B->GetCylinderGeometry().rad = 0.02;
+  cyl_B->GetCylinderGeometry().rad = getLCARadius();
   m_bodyLCA->AddAsset(cyl_B);
+
+  // TODO: Get rid of this box geometry, only used for making sure orientations are correct
+  ChSharedPtr<ChBoxShape> box(new ChBoxShape);
+  box->GetBoxGeometry().Size = ChVector<>(.2,.3,0.01);
+  m_bodyLCA->AddAsset(box);
 
   ChSharedPtr<ChColorAsset> col(new ChColorAsset);
   switch (m_side) {
@@ -234,8 +257,13 @@ void ChDoubleWishbone::AddVisualizationUCA()
   ChSharedPtr<ChCylinderShape> cyl_B(new ChCylinderShape);
   cyl_B->GetCylinderGeometry().p1 = p_B;
   cyl_B->GetCylinderGeometry().p2 = p_U;
-  cyl_B->GetCylinderGeometry().rad = 0.02;
+  cyl_B->GetCylinderGeometry().rad = getUCARadius();
   m_bodyUCA->AddAsset(cyl_B);
+
+  // TODO: Get rid of this box geometry, only used for making sure orientations are correct
+  ChSharedPtr<ChBoxShape> box(new ChBoxShape);
+  box->GetBoxGeometry().Size = ChVector<>(.2,.3,0.01);
+  m_bodyUCA->AddAsset(box);
 
   ChSharedPtr<ChColorAsset> col(new ChColorAsset);
   switch (m_side) {

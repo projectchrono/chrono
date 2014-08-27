@@ -105,9 +105,11 @@ const ChVector<> HMMWV_DoubleWishboneFront::getLocation(PointId which)
   case UCA_F:    return in2m * ChVector<>(1.89, 5.46, 9.63);
   case UCA_B:    return in2m * ChVector<>(10.56, 5.46, 7.69);
   case UCA_U:    return in2m * ChVector<>(2.09, 16.07, 8.48);
+  case UCA_CM:   return in2m * ChVector<>(4.85, 9.00, 8.60); // TODO: This is not the correct value
   case LCA_F:    return in2m * ChVector<>(-8.79, 0, 0);
   case LCA_B:    return in2m * ChVector<>(8.79, 0, 0);
   case LCA_U:    return in2m * ChVector<>(1.40, 18.87, -4.65);
+  case LCA_CM:   return in2m * ChVector<>(0.47, 6.29, -1.55); // TODO: This is not the correct value
   case SHOCK_C:  return in2m * ChVector<>(-4.10, 15.77, 12.72);
   case SHOCK_U:  return in2m * ChVector<>(-3.83, 18.87, -1.52);
   case TIEROD_C: return in2m * ChVector<>(13.39, -2.29, -1.0350);
@@ -124,9 +126,11 @@ const ChVector<> HMMWV_DoubleWishboneRear::getLocation(PointId which)
   case UCA_F:    return in2m * ChVector<>(-3.07, 6.10, 8.88);
   case UCA_B:    return in2m * ChVector<>(-13.78, 6.10, 8.88);
   case UCA_U:    return in2m * ChVector<>(-1.40, 16.07, 9.28);
+  case UCA_CM:   return in2m * ChVector<>(-6.08, 9.42, 9.01); // TODO: This is not the correct value
   case LCA_F:    return in2m * ChVector<>(8.79, 0, 0);
   case LCA_B:    return in2m * ChVector<>(-8.79, 0, 0);
   case LCA_U:    return in2m * ChVector<>(-1.40, 18.87, -4.65);
+  case LCA_CM:   return in2m * ChVector<>(-0.47, 6.29, -1.55); // TODO: This is not the correct value
   case SHOCK_C:  return in2m * ChVector<>(4.09, 16.10, 12.72);
   case SHOCK_U:  return in2m * ChVector<>(4.09, 18.87, -1.51);
   case TIEROD_C: return in2m * ChVector<>(-12.70, 4.28, -0.37);
