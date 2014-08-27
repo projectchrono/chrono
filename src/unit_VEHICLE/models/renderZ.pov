@@ -29,18 +29,22 @@ global_settings { assumed_gamma 1 }
 #declare global_frame_radius = 0.01;
 #declare global_frame_len = 10;
 
+// Draw body frames?
+#declare draw_body_frame = true;
+#declare body_frame_radius = 0.01;
+#declare body_frame_len = 0.75;
 
 // Draw shape frames?
 #declare draw_object_frame = false;
 #declare object_frame_radius = 0.01;
-#declare object_frame_len = 1.25;
-                 
-                 
+#declare object_frame_len = 0.5;
+
+
 // Perspective camera?
 #declare cam_perspective = true;
        
 // Camera location and look-at (RIGHT-HAND-FRAME with Z up)
-#declare cam_loc    = <0, 4, 1>;
+#declare cam_loc    = <4, 2, 3>;
 #declare cam_lookat = <0, 0, 1>;
 
 
@@ -189,8 +193,22 @@ light_source {
 #warning concat("LOADING DATA FILE : ",  datafile, "\n")
 #fopen MyDataFile datafile read 
                                
-#read (MyDataFile, numObjects, numLinks)
-                                     
+#read (MyDataFile, numBodies, numObjects, numLinks)
+
+        // ---------------------------------------------
+        // RENDER BODY FRAMES
+        // ---------------------------------------------
+
+#for (i, 1, numBodies)
+    #read (MyDataFile, id, active, ax, ay, az, e0, e1, e2, e3)
+    #if (draw_body_frame & (render_static | active) )
+       object {
+            XYZframe(body_frame_len, body_frame_radius) 
+            position(<ax,ay,az>,<e0,e1,e2,e3>)  
+       }
+    #end
+#end
+
         // ---------------------------------------------
         //    RENDER OBJECTS (VISUAL ASSETS)
         // ---------------------------------------------
@@ -275,7 +293,7 @@ light_source {
 				#else
 					#if (render_static)
 					cylinder {
-					   <0,0,hl>, <0,0,-hl>, ar      
+					   <p1x,p1z,p1y>, <p2x,p2z,p2y>, ar      
 					   pigment {color rgbt <1, 0.9, 0.9, 0> }
 					   position(<ax,ay,az>,<e0,e1,e2,e3>)     
 					   finish {diffuse 1 ambient 0.0 specular .05 }

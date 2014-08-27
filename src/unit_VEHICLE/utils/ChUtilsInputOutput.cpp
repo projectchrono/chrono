@@ -327,10 +327,28 @@ void ReadCheckpoint(ChSystem*          system,
 // a visual asset (except for cylinders where that is implicit)!
 // -----------------------------------------------------------------------------
 void WriteShapesPovray(ChSystem*          system,
-                       const std::string& filename,
-                       const std::string& delim)
+  const std::string& filename,
+  bool               body_info,
+  const std::string& delim)
 {
   CSV_writer csv(delim);
+
+  // If requested, Loop over all bodies and write out their position and
+  // orientation.  Otherwise, body count is left at 0.
+  int b_count = 0;
+
+  if (body_info) {
+    std::vector<ChBody*>::iterator ibody = system->Get_bodylist()->begin();
+    for (; ibody != system->Get_bodylist()->end(); ++ibody)
+    {
+      const Vector&     body_pos = (*ibody)->GetPos();
+      const Quaternion& body_rot = (*ibody)->GetRot();
+
+      csv << (*ibody)->GetIdentifier() << (*ibody)->IsActive() << body_pos << body_rot << std::endl;
+
+      b_count++;
+    }
+  }
 
   // Loop over all bodies and over all their assets. Write information on 
   // selected types of visual assets.
@@ -446,7 +464,7 @@ void WriteShapesPovray(ChSystem*          system,
   // Write the output file, including a first line with number of visual assets
   // and number of links.
   std::stringstream header;
-  header << a_count << delim << l_count << delim << std::endl;
+  header << b_count << delim << a_count << delim << l_count << delim << std::endl;
 
   csv.write_to_file(filename, header.str());
 }

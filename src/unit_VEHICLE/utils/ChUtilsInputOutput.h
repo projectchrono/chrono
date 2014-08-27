@@ -95,6 +95,7 @@ void ReadCheckpoint(ChSystem*          system,
 CH_UTILS_API
 void WriteShapesPovray(ChSystem*          system,
                        const std::string& filename,
+                       bool               body_info = true,
                        const std::string& delim = ",");
 
 // Write the triangular mesh from the specified OBJ file as a macro in a PovRay
