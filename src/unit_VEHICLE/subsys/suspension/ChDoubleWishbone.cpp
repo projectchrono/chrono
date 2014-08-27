@@ -29,7 +29,6 @@
 // =============================================================================
 
 #include "assets/ChCylinderShape.h"
-#include "assets/ChBoxShape.h"
 #include "assets/ChColorAsset.h"
 
 #include "subsys/suspension/ChDoubleWishbone.h"
@@ -57,24 +56,20 @@ ChDoubleWishbone::ChDoubleWishbone(const std::string& name,
   m_revolute->SetNameString(name + "_revolute");
 
   // Bodies and constraints to model upper control arm
-  m_bodyUCA = ChSharedBodyPtr(new ChBody);
-  m_bodyUCA->SetNameString(name + "_bodyUCA");
-  m_sphericalUCA_F = ChSharedPtr<ChLinkLockSpherical>(new ChLinkLockSpherical);
-  m_sphericalUCA_F->SetNameString(name + "_sphericalUCA_F");
-  m_sphericalUCA_B = ChSharedPtr<ChLinkLockSpherical>(new ChLinkLockSpherical);
-  m_sphericalUCA_B->SetNameString(name + "_sphericalUCA_B");
-  m_sphericalUCA_U = ChSharedPtr<ChLinkLockSpherical>(new ChLinkLockSpherical);
-  m_sphericalUCA_U->SetNameString(name + "_sphericalUCA_U");
+  m_UCA = ChSharedBodyPtr(new ChBody);
+  m_UCA->SetNameString(name + "_UCA");
+  m_revoluteUCA = ChSharedPtr<ChLinkLockRevolute>(new ChLinkLockRevolute);
+  m_revoluteUCA->SetNameString(name + "_revoluteUCA");
+  m_sphericalUCA = ChSharedPtr<ChLinkLockSpherical>(new ChLinkLockSpherical);
+  m_sphericalUCA->SetNameString(name + "_sphericalUCA");
 
   // Bodies and constraints to model lower control arm
-  m_bodyLCA = ChSharedBodyPtr(new ChBody);
-  m_bodyLCA->SetNameString(name + "_bodyLCA");
-  m_sphericalLCA_F = ChSharedPtr<ChLinkLockSpherical>(new ChLinkLockSpherical);
-  m_sphericalLCA_F->SetNameString(name + "_sphericalLCA_F");
-  m_sphericalLCA_B = ChSharedPtr<ChLinkLockSpherical>(new ChLinkLockSpherical);
-  m_sphericalLCA_B->SetNameString(name + "_sphericalLCA_B");
-  m_sphericalLCA_U = ChSharedPtr<ChLinkLockSpherical>(new ChLinkLockSpherical);
-  m_sphericalLCA_U->SetNameString(name + "_sphericalLCA_U");
+  m_LCA = ChSharedBodyPtr(new ChBody);
+  m_LCA->SetNameString(name + "_LCA");
+  m_revoluteLCA = ChSharedPtr<ChLinkLockRevolute>(new ChLinkLockRevolute);
+  m_revoluteLCA->SetNameString(name + "_revoluteLCA");
+  m_sphericalLCA = ChSharedPtr<ChLinkLockSpherical>(new ChLinkLockSpherical);
+  m_sphericalLCA->SetNameString(name + "_sphericalLCA");
 
   // Distance constraint to model the tierod
   m_distTierod = ChSharedPtr<ChLinkDistance>(new ChLinkDistance);
@@ -119,7 +114,7 @@ ChDoubleWishbone::Initialize(ChSharedBodyPtr   chassis,
   OnInitializeSpindle();
   chassis->GetSystem()->AddBody(m_spindle);
 
-  m_bodyUCA->SetPos(m_points[UCA_CM]);
+  m_UCA->SetPos(m_points[UCA_CM]);
   // Determine the rotation matrix of the UCA based on the plane of the hard points
   ChVector<> wRot;
   wRot.Cross(m_points[UCA_F]-m_points[UCA_U], m_points[UCA_B]-m_points[UCA_U]);
@@ -130,14 +125,14 @@ ChDoubleWishbone::Initialize(ChSharedBodyPtr   chassis,
   vRot.Cross(wRot,uRot);
   ChMatrix33<> rotationMatrix;
   rotationMatrix.Set_A_axis(uRot,vRot,wRot);
-  m_bodyUCA->SetRot(rotationMatrix); // Set the rotation of the UCA
-  m_bodyUCA->SetMass(getUCAMass());
-  m_bodyUCA->SetInertiaXX(getUCAInertia());
+  m_UCA->SetRot(rotationMatrix); // Set the rotation of the UCA
+  m_UCA->SetMass(getUCAMass());
+  m_UCA->SetInertiaXX(getUCAInertia());
   AddVisualizationUCA();
   OnInitializeUCA();
-  chassis->GetSystem()->AddBody(m_bodyUCA);
+  chassis->GetSystem()->AddBody(m_UCA);
 
-  m_bodyLCA->SetPos(m_points[LCA_CM]);
+  m_LCA->SetPos(m_points[LCA_CM]);
   // Determine the rotation matrix of the LCA based on the plane of the hard points
   wRot.Cross(m_points[LCA_F]-m_points[LCA_U], m_points[LCA_B]-m_points[LCA_U]);
   wRot.Normalize();
@@ -145,12 +140,12 @@ ChDoubleWishbone::Initialize(ChSharedBodyPtr   chassis,
   uRot.Normalize();
   vRot.Cross(wRot,uRot);
   rotationMatrix.Set_A_axis(uRot,vRot,wRot);
-  m_bodyLCA->SetRot(rotationMatrix); // Set the rotation of the LCA
-  m_bodyLCA->SetMass(getLCAMass());
-  m_bodyLCA->SetInertiaXX(getLCAInertia());
+  m_LCA->SetRot(rotationMatrix); // Set the rotation of the LCA
+  m_LCA->SetMass(getLCAMass());
+  m_LCA->SetInertiaXX(getLCAInertia());
   AddVisualizationLCA();
   OnInitializeLCA();
-  chassis->GetSystem()->AddBody(m_bodyLCA);
+  chassis->GetSystem()->AddBody(m_LCA);
 
   m_upright->SetPos(m_points[UPRIGHT]);
   m_upright->SetRot(chassis->GetCoord().rot);
@@ -165,21 +160,29 @@ ChDoubleWishbone::Initialize(ChSharedBodyPtr   chassis,
   m_revolute->Initialize(m_spindle, m_upright, rev_csys);
   chassis->GetSystem()->AddLink(m_revolute);
 
-  // TODO: Replace m_sphericalUCA_F and m_sphericalUCA_U with a single revolute joint
-  m_sphericalUCA_F->Initialize(chassis, m_bodyUCA, ChCoordsys<>(m_points[UCA_F], QUNIT));
-  chassis->GetSystem()->AddLink(m_sphericalUCA_F);
-  m_sphericalUCA_B->Initialize(chassis, m_bodyUCA, ChCoordsys<>(m_points[UCA_B], QUNIT));
-  chassis->GetSystem()->AddLink(m_sphericalUCA_B);
-  m_sphericalUCA_U->Initialize(m_bodyUCA, m_upright, ChCoordsys<>(m_points[UCA_U], QUNIT));
-  chassis->GetSystem()->AddLink(m_sphericalUCA_U);
+  // Determine the rotation matrix of the UCA based on the plane of the hard points
+  wRot = m_points[UCA_B]-m_points[UCA_F];
+  wRot.Normalize();
+  uRot = ChVector<>(0,0,1);
+  uRot.Normalize();
+  vRot.Cross(wRot,uRot);
+  rotationMatrix.Set_A_axis(uRot,vRot,wRot);
+  m_revoluteUCA->Initialize(chassis, m_UCA, ChCoordsys<>((m_points[UCA_F]+m_points[UCA_B])/2, rotationMatrix.Get_A_quaternion()));
+  chassis->GetSystem()->AddLink(m_revoluteUCA);
+  m_sphericalUCA->Initialize(m_UCA, m_upright, ChCoordsys<>(m_points[UCA_U], QUNIT));
+  chassis->GetSystem()->AddLink(m_sphericalUCA);
 
-  // TODO: Replace m_sphericalLCA_F and m_sphericalLCA_U with a single revolute joint
-  m_sphericalLCA_F->Initialize(chassis, m_bodyLCA, ChCoordsys<>(m_points[LCA_F], QUNIT));
-  chassis->GetSystem()->AddLink(m_sphericalLCA_F);
-  m_sphericalLCA_B->Initialize(chassis, m_bodyLCA, ChCoordsys<>(m_points[LCA_B], QUNIT));
-  chassis->GetSystem()->AddLink(m_sphericalLCA_B);
-  m_sphericalLCA_U->Initialize(m_bodyLCA, m_upright, ChCoordsys<>(m_points[LCA_U], QUNIT));
-  chassis->GetSystem()->AddLink(m_sphericalLCA_U);
+  // Determine the rotation matrix of the LCA based on the plane of the hard points
+  wRot = m_points[LCA_B]-m_points[LCA_F];
+  wRot.Normalize();
+  uRot = ChVector<>(0,0,1);
+  uRot.Normalize();
+  vRot.Cross(wRot,uRot);
+  rotationMatrix.Set_A_axis(uRot,vRot,wRot);
+  m_revoluteLCA->Initialize(chassis, m_LCA, ChCoordsys<>((m_points[LCA_F]+m_points[LCA_B])/2, rotationMatrix.Get_A_quaternion()));
+  chassis->GetSystem()->AddLink(m_revoluteLCA);
+  m_sphericalLCA->Initialize(m_LCA, m_upright, ChCoordsys<>(m_points[LCA_U], QUNIT));
+  chassis->GetSystem()->AddLink(m_sphericalLCA);
 
   m_distTierod->Initialize(chassis, m_upright, false, m_points[TIEROD_C], m_points[TIEROD_U]);
   chassis->GetSystem()->AddLink(m_distTierod);
@@ -212,65 +215,55 @@ ChDoubleWishbone::Initialize(ChSharedBodyPtr   chassis,
 void ChDoubleWishbone::AddVisualizationLCA()
 {
   // Express hardpoint locations in body frame.
-  ChVector<> p_F = m_bodyLCA->TransformPointParentToLocal(m_points[LCA_F]);
-  ChVector<> p_B = m_bodyLCA->TransformPointParentToLocal(m_points[LCA_B]);
-  ChVector<> p_U = m_bodyLCA->TransformPointParentToLocal(m_points[LCA_U]);
+  ChVector<> p_F = m_LCA->TransformPointParentToLocal(m_points[LCA_F]);
+  ChVector<> p_B = m_LCA->TransformPointParentToLocal(m_points[LCA_B]);
+  ChVector<> p_U = m_LCA->TransformPointParentToLocal(m_points[LCA_U]);
 
   ChSharedPtr<ChCylinderShape> cyl_F(new ChCylinderShape);
   cyl_F->GetCylinderGeometry().p1 = p_F;
   cyl_F->GetCylinderGeometry().p2 = p_U;
   cyl_F->GetCylinderGeometry().rad = getLCARadius();
-  m_bodyLCA->AddAsset(cyl_F);
+  m_LCA->AddAsset(cyl_F);
 
   ChSharedPtr<ChCylinderShape> cyl_B(new ChCylinderShape);
   cyl_B->GetCylinderGeometry().p1 = p_B;
   cyl_B->GetCylinderGeometry().p2 = p_U;
   cyl_B->GetCylinderGeometry().rad = getLCARadius();
-  m_bodyLCA->AddAsset(cyl_B);
-
-  // TODO: Get rid of this box geometry, only used for making sure orientations are correct
-  ChSharedPtr<ChBoxShape> box(new ChBoxShape);
-  box->GetBoxGeometry().Size = ChVector<>(.2,.3,0.01);
-  m_bodyLCA->AddAsset(box);
+  m_LCA->AddAsset(cyl_B);
 
   ChSharedPtr<ChColorAsset> col(new ChColorAsset);
   switch (m_side) {
   case RIGHT: col->SetColor(ChColor(0.6f, 0.4f, 0.4f)); break;
   case LEFT:  col->SetColor(ChColor(0.4f, 0.4f, 0.6f)); break;
   }
-  m_bodyLCA->AddAsset(col);
+  m_LCA->AddAsset(col);
 }
 
 void ChDoubleWishbone::AddVisualizationUCA()
 {
   // Express hardpoint locations in body frame.
-  ChVector<> p_F = m_bodyUCA->TransformPointParentToLocal(m_points[UCA_F]);
-  ChVector<> p_B = m_bodyUCA->TransformPointParentToLocal(m_points[UCA_B]);
-  ChVector<> p_U = m_bodyUCA->TransformPointParentToLocal(m_points[UCA_U]);
+  ChVector<> p_F = m_UCA->TransformPointParentToLocal(m_points[UCA_F]);
+  ChVector<> p_B = m_UCA->TransformPointParentToLocal(m_points[UCA_B]);
+  ChVector<> p_U = m_UCA->TransformPointParentToLocal(m_points[UCA_U]);
 
   ChSharedPtr<ChCylinderShape> cyl_F(new ChCylinderShape);
   cyl_F->GetCylinderGeometry().p1 = p_F;
   cyl_F->GetCylinderGeometry().p2 = p_U;
   cyl_F->GetCylinderGeometry().rad = getUCARadius();
-  m_bodyUCA->AddAsset(cyl_F);
+  m_UCA->AddAsset(cyl_F);
 
   ChSharedPtr<ChCylinderShape> cyl_B(new ChCylinderShape);
   cyl_B->GetCylinderGeometry().p1 = p_B;
   cyl_B->GetCylinderGeometry().p2 = p_U;
   cyl_B->GetCylinderGeometry().rad = getUCARadius();
-  m_bodyUCA->AddAsset(cyl_B);
-
-  // TODO: Get rid of this box geometry, only used for making sure orientations are correct
-  ChSharedPtr<ChBoxShape> box(new ChBoxShape);
-  box->GetBoxGeometry().Size = ChVector<>(.2,.3,0.01);
-  m_bodyUCA->AddAsset(box);
+  m_UCA->AddAsset(cyl_B);
 
   ChSharedPtr<ChColorAsset> col(new ChColorAsset);
   switch (m_side) {
   case RIGHT: col->SetColor(ChColor(0.6f, 0.4f, 0.4f)); break;
   case LEFT:  col->SetColor(ChColor(0.4f, 0.4f, 0.6f)); break;
   }
-  m_bodyUCA->AddAsset(col);
+  m_UCA->AddAsset(col);
 }
 
 void ChDoubleWishbone::AddVisualizationUpright()
