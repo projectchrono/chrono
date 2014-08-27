@@ -100,10 +100,6 @@ ENDIF()
 
 INCLUDE_DIRECTORIES( ${CH_IRRLICHTINC} )
 
-# Let some variables be visible also from outside this directory
-
-SET(CH_IRRLICHTINC  "${CH_IRRLICHTINC}"  PARENT_SCOPE)
-SET(CH_IRRLICHTLIB  "${CH_IRRLICHTLIB}"  PARENT_SCOPE)
 
 SET(CH_BUILDFLAGS_IRR "${CH_BUILDFLAGS}")
 
@@ -133,6 +129,12 @@ IF(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
   )
 
 ENDIF()
+
+# Let some variables be visible also from outside this directory
+
+SET(CH_IRRLICHTINC     "${CH_IRRLICHTINC}"     PARENT_SCOPE)
+SET(CH_IRRLICHTLIB     "${CH_IRRLICHTLIB}"     PARENT_SCOPE)
+SET(CH_BUILDFLAGS_IRR  "${CH_BUILDFLAGS_IRR}"  PARENT_SCOPE)
 
 #-------------------------------------------------------------------------------
 # Create the ChronoEngine_IRRLICHT library
