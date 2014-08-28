@@ -159,7 +159,6 @@ class CH_PARALLEL_API ChSolverParallel : public ChBaseParallel {
    bool collision_inside;
    bool update_rhs;        //Updates the tilting term within the solve
    bool verbose;
-   bool tol_objective;
    ChConstraintRigidRigid *rigid_rigid;
    ChConstraintBilateral *bilateral;
 
