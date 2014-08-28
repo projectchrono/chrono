@@ -219,9 +219,10 @@ void ChPacejkaTire::readSection_MODEL(std::ifstream& inFile){
 }
 
 void ChPacejkaTire::readSection_DIMENSION(std::ifstream& inFile){
-	// skip the first line
+	// skip the first two lines
 	std::string tline;
   std::getline(inFile, tline);
+	std::getline(inFile,tline);
 	// if all the data types are the same in a subsection, life is a little easier
 	// push each token value to this vector, check the # of items added, then 
 	// create the struct by hand only
@@ -238,23 +239,112 @@ void ChPacejkaTire::readSection_DIMENSION(std::ifstream& inFile){
 		GetLog() << " error reading DIMENSION section of pactire input file!!! \n\n";
 		return;
 	}
+	// right size, create the struct
+	struct dimension dim = {dat[0], dat[1], dat[2], dat[3], dat[4]};
+	m_params.dimension = dim;
 
 }
 
 
 void ChPacejkaTire::readSection_SHAPE(std::ifstream& inFile){
-
-
+	// skip the first two lines
+	std::string tline;
+  std::getline(inFile, tline);
+	std::getline(inFile,tline);
+	// if all the data types are the same in a subsection, life is a little easier
+	// push each token value to this vector, check the # of items added, then 
+	// create the struct by hand only
+	std::vector<double> rad;
+	std::vector<double> wid;
+	std::vector<std::string> split;
+	while (std::getline(inFile, tline)) {
+  // made it to the next section
+		if (tline[0] == '$')
+			break;
+		split = utils::splitStr(tline,' ');
+		rad.push_back( std::atof(split[1].c_str() ) );
+		wid.push_back( std::atof(split[5].c_str() ) );
+	}
+	m_params.shape.radial = rad;
+	m_params.shape.width = wid;
 }
 
 
 void ChPacejkaTire::readSection_VERTICAL(std::ifstream& inFile){
+	// skip the first line
+	std::string tline;
+	std::getline(inFile,tline);
 
+	// push each token value to this vector, check the # of items added
+	std::vector<double> dat;
+
+	while (std::getline(inFile, tline)) {
+  // made it to the next section
+		if (tline[0] == '$')
+			break;
+		dat.push_back(utils::fromTline<double>(tline) );
+	}
+
+	if( dat.size() != 6) {
+		GetLog() << " error reading VERTICAL section of pactire input file!!! \n\n";
+		return;
+	}
+	// right size, create the struct
+	struct vertical vert = {dat[0], dat[1], dat[2], dat[3], dat[4], dat[5]};
+	m_params.vertical = vert;
 
 }
 
 
 void ChPacejkaTire::readSection_RANGES(std::ifstream& inFile){
+	// skip the first line
+	std::string tline;
+  std::getline(inFile, tline);
+	// if all the data types are the same in a subsection, life is a little easier
+	// push each token value to this vector, check the # of items added, then 
+	// create the struct by hand only
+	std::vector<double> dat;
+
+	// LONG_SLIP_RANGE
+	while (std::getline(inFile, tline)) {
+  // made it to the next section
+		if (tline[0] == '$')
+			break;
+		dat.push_back(utils::fromTline<double>(tline) );
+	}
+
+	if( dat.size() != 2) {
+		GetLog() << " error reading LONG_SLIP_RANGE section of pactire input file!!! \n\n";
+		return;
+	}
+	// right size, create the struct
+	struct long_slip_range long_slip = {dat[0], dat[1]};
+	m_params.long_slip_range = long_slip;
+
+	std::getline(inFile, tline);
+	// SLIP_ANGLE_RANGE
+	dat.clear();
+		while (std::getline(inFile, tline)) {
+  // made it to the next section
+		if (tline[0] == '$')
+			break;
+		dat.push_back(utils::fromTline<double>(tline) );
+	}
+
+	if( dat.size() != 2) {
+		GetLog() << " error reading LONG_SLIP_RANGE section of pactire input file!!! \n\n";
+		return;
+	}
+	// right size, create the struct
+	struct slip_angle_range slip_ang = {dat[0], dat[1]};
+	m_params.slip_angle_range = slip_ang;
+
+
+
+
+	// INCLINATION_ANGLE_RANGE
+
+	// VERTICAL_FORCE_RANGE
 
 
 }

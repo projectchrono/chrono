@@ -31,7 +31,7 @@ typedef struct vertical{
   double vertical_stiffness;  // vertical stiffness
   double vertical_damping;    // vertical damping
   double breff; // low load stiffness e.r.r. ???
-  double dreff; // peak value e.r.r.              
+  double dreff; // peak value e.r.r.
   double freff; // high load stiffness e.r.r.
   double fnomin;// nominal wheel load
 } vertical;
