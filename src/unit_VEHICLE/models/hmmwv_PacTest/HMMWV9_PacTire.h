@@ -34,6 +34,9 @@ public:
 	HMMWV9_PacTire(chrono::ChTerrain& terrain,
 		const std::string& m_pacTire_paramFile);
 
+	// @brief if the tire paramter file is the same, only the tyreside will be different
+	HMMWV9_PacTire(const HMMWV9_PacTire& tire, chrono::ChWheelId which);
+
 protected:
 
   // some default values

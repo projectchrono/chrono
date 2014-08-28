@@ -194,7 +194,7 @@ int main(int argc, char* argv[])
 
     terrain.Update(time);
 
-	// update PacTire, set the force data
+		// update PacTire, set the force data
     pacTire_FR.Update(time, vehicle.GetWheelState(FRONT_RIGHT));
     pacTire_FL.Update(time, vehicle.GetWheelState(FRONT_LEFT));
     pacTire_RR.Update(time, vehicle.GetWheelState(REAR_RIGHT));
@@ -202,22 +202,22 @@ int main(int argc, char* argv[])
 
     pacTire_forces[FRONT_RIGHT] = pacTire_FR.GetTireForce();
     pacTire_forces[FRONT_LEFT] = pacTire_FL.GetTireForce();
-	pacTire_forces[REAR_RIGHT] = pacTire_RR.GetTireForce();
+		pacTire_forces[REAR_RIGHT] = pacTire_RR.GetTireForce();
     pacTire_forces[REAR_LEFT] = pacTire_RL.GetTireForce();
 
-	// update the rigid tire, set the force data
-	rigidTire_FR.Update(time, vehicle.GetWheelState(FRONT_RIGHT));
+		// update the rigid tire, set the force data
+		rigidTire_FR.Update(time, vehicle.GetWheelState(FRONT_RIGHT));
     rigidTire_FL.Update(time, vehicle.GetWheelState(FRONT_LEFT));
     rigidTire_RR.Update(time, vehicle.GetWheelState(REAR_RIGHT));
     rigidTire_RL.Update(time, vehicle.GetWheelState(REAR_LEFT));
 
     rigidTire_forces[FRONT_RIGHT] = rigidTire_FR.GetTireForce();
     rigidTire_forces[FRONT_LEFT] = rigidTire_FL.GetTireForce();
-	rigidTire_forces[REAR_RIGHT] = rigidTire_RR.GetTireForce();
+		rigidTire_forces[REAR_RIGHT] = rigidTire_RR.GetTireForce();
     rigidTire_forces[REAR_LEFT] = rigidTire_RL.GetTireForce();
 
-	// for now, use the rigid tire to drive the vehicle, while comparing the output
-	// from the pacTire
+		// for now, use the rigid tire to drive the vehicle, while comparing the output
+		// from the pacTire
     vehicle.Update(time, driver.getThrottle(), driver.getSteering(), rigidTire_forces);
 
     // Advance simulation for one timestep for all modules
@@ -227,11 +227,11 @@ int main(int argc, char* argv[])
 
     terrain.Advance(step);
 
-	// advance both the rigid tire, pacTire
-	pacTire_FR.Advance(step);
-	pacTire_FL.Advance(step);
-	pacTire_RR.Advance(step);
-	pacTire_RL.Advance(step);
+		// advance both the rigid tire, pacTire
+		pacTire_FR.Advance(step);
+		pacTire_FL.Advance(step);
+		pacTire_RR.Advance(step);
+		pacTire_RL.Advance(step);
 
     rigidTire_FR.Advance(step);
     rigidTire_FL.Advance(step);

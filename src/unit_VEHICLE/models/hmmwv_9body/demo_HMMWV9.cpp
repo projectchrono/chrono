@@ -212,9 +212,9 @@ int main(int argc, char* argv[])
     tire_rear_left.Update(time, vehicle.GetWheelState(REAR_LEFT));
 
     tire_forces[FRONT_RIGHT] = tire_front_right.GetTireForce();
-	tire_forces[FRONT_LEFT] = tire_front_left.GetTireForce();
+		tire_forces[FRONT_LEFT] = tire_front_left.GetTireForce();
     tire_forces[REAR_RIGHT] = tire_rear_right.GetTireForce();
-	tire_forces[REAR_LEFT] = tire_rear_left.GetTireForce();
+		tire_forces[REAR_LEFT] = tire_rear_left.GetTireForce();
 
     vehicle.Update(time, driver.getThrottle(), driver.getSteering(), tire_forces);
 

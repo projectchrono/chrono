@@ -38,4 +38,16 @@ HMMWV9_PacTire::HMMWV9_PacTire(ChTerrain& terrain,	const std::string& pacTire_pa
 
 }
 
+// copy constructor, only right/left tyreside may be different
+HMMWV9_PacTire::HMMWV9_PacTire(const HMMWV9_PacTire& tire, chrono::ChWheelId which):
+	ChPacejkaTire(tire.m_terrain, tire.m_paramFile)
+{
+	if(which == FRONT_RIGHT || which == REAR_RIGHT)
+		m_params.model.tyreside = "RIGHT";
+	else
+		m_params.model.tyreside = "LEFT";
+
+}
+
+
 }  // end namespace hmmwv

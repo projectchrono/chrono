@@ -201,20 +201,20 @@ typedef struct aligning_coefficients{
 
 // collect all the subsections into the master struct
 typedef struct Pac2002_data{
-  struct model;
-  struct dimension;
-  struct shape;
-  struct vertical;
-  struct long_slip_range;
-  struct slip_angle_range;
-  struct inclination_angle_range;
-  struct vertical_force_range;
-  struct scaling_coefficients;
-  struct longitudinal_coefficients;
-  struct overturning_coefficients;
-  struct lateral_coefficients;
-  struct rolling_coefficients;
-  struct aligning_coefficients;
+  struct model model;
+  struct dimension dimension;
+  struct shape shape;
+  struct vertical vertical;
+  struct long_slip_range long_slip_range;
+  struct slip_angle_range slip_angle_range;
+  struct inclination_angle_range inclination_angle_range;
+  struct vertical_force_range vertical_force_range;
+  struct scaling_coefficients scaling_coefficients;
+  struct longitudinal_coefficients longitudinal_coefficients;
+  struct overturning_coefficients overturning_coefficients;
+  struct lateral_coefficients lateral_coefficients;
+  struct rolling_coefficients rolling_coefficients;
+  struct aligning_coefficients aligning_coefficients;
 } Pac2002_data;
 
 } // end namespace chrono
