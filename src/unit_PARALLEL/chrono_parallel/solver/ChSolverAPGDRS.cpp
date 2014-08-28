@@ -200,7 +200,6 @@ uint ChSolverAPGDRS::SolveAPGDRS(const uint max_iter,
 //         old_objective = objective;
 //      }
 
-
       if (num_bilaterals > 0) {
          real resid_bilat = -1;
          for (int i = num_unilaterals; i < x.size(); i++) {
@@ -226,8 +225,15 @@ uint ChSolverAPGDRS::SolveAPGDRS(const uint max_iter,
       //}
       real maxdeltalambda = GetObjective(x, b);
       AtIterationEnd(residual, maxdeltalambda, iter_hist.size());
-      if (residual < tolerance) {
-         break;
+
+      if (tol_objective) {
+         if (maxdeltalambda <= tolerance) {
+            break;
+         }
+      } else {
+         if (residual < tolerance) {
+            break;
+         }
       }
       data_container->system_timer.stop("ChSolverParallel_solverF");
    }
