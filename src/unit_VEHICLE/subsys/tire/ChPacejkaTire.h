@@ -37,6 +37,10 @@ class CH_SUBSYS_API ChPacejkaTire : public ChTire {
 public:
 
   ChPacejkaTire(const ChTerrain& terrain, const std::string& pacTire_paramFile);
+
+	// @brief copy constructor, only tyreside will be different
+	ChPacejkaTire(const ChPacejkaTire& tire, chrono::ChWheelId which);
+
   virtual ~ChPacejkaTire() {}
   
   // @brief return the most recently computed forces
