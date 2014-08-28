@@ -27,6 +27,12 @@ enum VisualizationType {
   MESH
 };
 
+enum TireModelType {
+  RIGID,
+  PACEJKA,
+  LUGRE
+};
+
 
 } // end namespace hmmwv
 

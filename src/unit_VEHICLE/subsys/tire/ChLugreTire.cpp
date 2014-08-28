@@ -36,6 +36,14 @@ ChLugreTire::ChLugreTire(const ChTerrain& terrain)
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
+void ChLugreTire::Initialize()
+{
+  m_discInContact.resize(getNumDiscs());
+}
+
+
+// -----------------------------------------------------------------------------
+// -----------------------------------------------------------------------------
 void ChLugreTire::Update(double              time,
                          const ChBodyState&  wheel_state)
 {
@@ -65,11 +73,18 @@ void ChLugreTire::Update(double              time,
     ChVector<> center = wheel_state.pos + discLocs[id] * normal;
 
     // Check contact with terrain and calculate contact points.
-    if (!disc_terrain_contact(center, normal, radius, roll, disc_point, terrain_point, depth))
+    m_discInContact[id] = disc_terrain_contact(center, normal, radius, roll, disc_point, terrain_point, depth);
+    if (!m_discInContact[id])
       continue;
 
-    // Generate normal contact force and add to accumulators.
+    // Generate normal contact force and add to accumulators (recall, all forces
+    // are reduced to the wheel center)
     double relVelNormal_mag = wheel_state.lin_vel.z;
+    ChVector<> Fn(0, 0, getNormalStiffness() * depth - getNormalDamping() * relVelNormal_mag);
+
+    m_force += Fn;
+    m_moment = Vcross(disc_point - m_point, Fn);
+
 
     //// TODO
 
