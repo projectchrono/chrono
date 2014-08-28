@@ -390,7 +390,7 @@ light_source {
 	    #case (1)
 	        #read (MyDataFile, px, py, pz)
 	        sphere {
-			    <px,pz,py>, 3 * object_frame_radius
+			    <px,pz,py>, 4 * object_frame_radius
 			    pigment {color Red }}
 	    #break
 	    
@@ -398,8 +398,8 @@ light_source {
 		#case (8)
 			#read (MyDataFile, px, py, pz, dx, dy, dz)
             cylinder {
-                <px-4*object_frame_radius*dx,  pz-4*object_frame_radius*dz, py-4*object_frame_radius*dy>, 
-                <px+4*object_frame_radius*dx,  pz+4*object_frame_radius*dz, py+4*object_frame_radius*dy>, 
+                <px-6*object_frame_radius*dx,  pz-6*object_frame_radius*dz, py-6*object_frame_radius*dy>, 
+                <px+6*object_frame_radius*dx,  pz+6*object_frame_radius*dz, py+6*object_frame_radius*dy>, 
                 2*object_frame_radius
                 pigment {color Blue}}
 		#break
@@ -407,8 +407,7 @@ light_source {
 		// Linkspring ------
 		#case (25)
 			#read (MyDataFile, p1x, p1y, p1z, p2x, p2y, p2z)
-			cylinder {<p1x,p1z,p1y>, <p2x,p2z,p2y>, 2 * object_frame_radius  pigment {color Red }}
-
+			cylinder {<p1x,p1z,p1y>, <p2x,p2z,p2y>, 2 * object_frame_radius  pigment {color Red }} 
 		#break
 
 		// LinkEngine ------
