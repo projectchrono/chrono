@@ -33,10 +33,16 @@ public:
   virtual double getRadius() const               { return m_radius; }
   virtual const double* getDiscLocations() const { return m_discLocs; }
 
+  virtual double getNormalStiffness() const      { return m_normalStiffness; }
+  virtual double getNormalDamping() const        { return m_normalDamping; }
+
 private:
   static const double  m_radius;
   static const int     m_numDiscs = 3;
   static const double  m_discLocs[m_numDiscs];
+
+  static const double  m_normalStiffness;
+  static const double  m_normalDamping;
 };
 
 
