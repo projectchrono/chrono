@@ -36,6 +36,8 @@ static const double in2m = 0.0254;
 const double     HMMWV9_DoubleWishboneFront::m_spindleMass = 1;
 const double     HMMWV9_DoubleWishboneFront::m_uprightMass = 1;
 
+const double     HMMWV9_DoubleWishboneFront::m_spindleRadius = 0.15;
+const double     HMMWV9_DoubleWishboneFront::m_spindleWidth = 0.06;
 const double     HMMWV9_DoubleWishboneFront::m_uprightRadius = 0.02;
 
 const ChVector<> HMMWV9_DoubleWishboneFront::m_spindleInertia(1, 1, 1);
@@ -52,6 +54,8 @@ const double     HMMWV9_DoubleWishboneFront::m_springRestLength   = 0.4062;
 const double     HMMWV9_DoubleWishboneRear::m_spindleMass = 1;
 const double     HMMWV9_DoubleWishboneRear::m_uprightMass = 1;
 
+const double     HMMWV9_DoubleWishboneRear::m_spindleRadius = 0.15;
+const double     HMMWV9_DoubleWishboneRear::m_spindleWidth = 0.06;
 const double     HMMWV9_DoubleWishboneRear::m_uprightRadius = 0.02;
 
 const ChVector<> HMMWV9_DoubleWishboneRear::m_spindleInertia(1, 1, 1);

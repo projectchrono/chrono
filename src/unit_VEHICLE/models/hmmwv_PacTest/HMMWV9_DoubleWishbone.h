@@ -40,6 +40,8 @@ public:
   virtual double getSpindleMass() const { return m_spindleMass; }
   virtual double getUprightMass() const { return m_uprightMass; }
 
+  virtual double getSpindleRadius() const { return m_spindleRadius; }
+  virtual double getSpindleWidth() const { return m_spindleWidth; }
   virtual double getUprightRadius() const { return m_uprightRadius; }
 
   virtual const chrono::ChVector<>& getSpindleInertia() const { return m_spindleInertia; }
@@ -57,7 +59,11 @@ private:
 
   static const double      m_spindleMass;
   static const double      m_uprightMass;
+
+  static const double      m_spindleRadius;
+  static const double      m_spindleWidth;
   static const double      m_uprightRadius;
+
   static const chrono::ChVector<>  m_spindleInertia;
   static const chrono::ChVector<>  m_uprightInertia;
 
@@ -81,6 +87,8 @@ public:
   virtual double getSpindleMass() const { return m_spindleMass; }
   virtual double getUprightMass() const { return m_uprightMass; }
 
+  virtual double getSpindleRadius() const { return m_spindleRadius; }
+  virtual double getSpindleWidth() const { return m_spindleWidth; }
   virtual double getUprightRadius() const { return m_uprightRadius; }
 
   virtual const chrono::ChVector<>& getSpindleInertia() const { return m_spindleInertia; }
@@ -98,7 +106,11 @@ private:
 
   static const double      m_spindleMass;
   static const double      m_uprightMass;
+
+  static const double      m_spindleRadius;
+  static const double      m_spindleWidth;
   static const double      m_uprightRadius;
+
   static const chrono::ChVector<>  m_spindleInertia;
   static const chrono::ChVector<>  m_uprightInertia;
 
