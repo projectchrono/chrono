@@ -157,7 +157,7 @@ ChDoubleWishbone::Initialize(ChSharedBodyPtr   chassis,
   chassis->GetSystem()->AddBody(m_upright);
 
   // Initialize joints
-  ChCoordsys<> rev_csys(m_points[UPRIGHT], Q_from_AngAxis(CH_C_PI / 2.0, VECT_X));
+  ChCoordsys<> rev_csys((m_points[UPRIGHT] + m_points[SPINDLE]) / 2, Q_from_AngAxis(CH_C_PI / 2.0, VECT_X));
   m_revolute->Initialize(m_spindle, m_upright, rev_csys);
   chassis->GetSystem()->AddLink(m_revolute);
 
