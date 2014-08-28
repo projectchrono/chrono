@@ -5,7 +5,7 @@
 // ============================================================================================
 #version 3.7;
 global_settings { assumed_gamma 1 }
-
+global_settings { ambient_light rgb<1, 1, 1> }
   
 // Render a sequence of frames or a single one      
 //#declare fnum=abs(frame_number); 
@@ -18,7 +18,7 @@ global_settings { assumed_gamma 1 }
 #declare render_objects = true;
 
 // Render static objects?
-#declare render_static = true;
+#declare render_static = false;
 
 //Render links?
 #declare render_links = true;
@@ -30,7 +30,7 @@ global_settings { assumed_gamma 1 }
 #declare global_frame_len = 10;
 
 // Draw body frames?
-#declare draw_body_frame = true;
+#declare draw_body_frame = false;
 #declare body_frame_radius = 0.006;
 #declare body_frame_len = 0.75;
 
@@ -44,12 +44,12 @@ global_settings { assumed_gamma 1 }
 #declare cam_perspective = true;
        
 // Camera location and look-at (RIGHT-HAND-FRAME with Z up)
-#declare cam_loc    = <4, 2, 3>;
+#declare cam_loc    = <3, -2, 2>;
 #declare cam_lookat = <0, 0, 1>;
 
 
 // Render environment?
-#declare draw_environment = true;
+#declare draw_environment = false;
 
      
 // ============================================================================================
@@ -177,15 +177,16 @@ camera {
    // direction z                        // direction and zoom
    // angle 67                           // field (overides direction zoom)
 }
-
-/*
-// Create a regular point light source 
+                              
+// Create a regular point light source                              
+#if (draw_environment = false)
 light_source { 
     1000*(cloc - clookat)  // behind the camera
     color rgb <1,1,1>      // light's color
-    //translate <-10, 1500, 2>
+    translate <0, 1500, 0>
 }
-*/
+#end
+
 
 // ============================================================================================     
 
@@ -361,7 +362,7 @@ light_source {
 			#if (render_objects)
 				#if (active)  
 					#warning concat("Mesh name: ", mesh_name, "\n")
-					RenderMesh(mesh_name, <ax,ay,az>,<e0,e1,e2,e3>, rgb<0.6,0.5,0.6>)
+					RenderMesh(mesh_name, <ax,ay,az>,<e0,e1,e2,e3>, rgb<0.4,0.4,0.4>)
 				#else
 					#if (render_static)
 					RenderMesh(mesh_name, <ax,ay,az>,<e0,e1,e2,e3>, rgb<1,0.9,0.9>)
@@ -441,6 +442,7 @@ XYZframe(global_frame_len, global_frame_radius)
  
     // sun ---------------------------------------------------------------
     light_source{<1500,2500,-2500>*100 color rgb<1,1,1> }
+    light_source{<1500,2500, 2500>*100 color rgb<0.5,0.5,0.5> shadowless}
 
     // sky ---------------------------------------------------------------
 
