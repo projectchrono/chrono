@@ -216,8 +216,8 @@ int main(int argc, char* argv[])
 		rigidTire_forces[REAR_RIGHT] = rigidTire_RR.GetTireForce();
     rigidTire_forces[REAR_LEFT] = rigidTire_RL.GetTireForce();
 
-		// for now, use the rigid tire to drive the vehicle, while comparing the output
-		// from the pacTire
+		// for now, use the rigid tire to drive the vehicle,
+		// compare the output from the pacTire
     vehicle.Update(time, driver.getThrottle(), driver.getSteering(), rigidTire_forces);
 
     // Advance simulation for one timestep for all modules
