@@ -115,7 +115,47 @@ void ChPacejkaTire::readPacTireInput(std::ifstream& inFile)
       break;
   }
 
+	// to keep things sane (and somewhat orderly), create a function to read each subsection.
+	// there may be overlap between different PacTire versions, where these section read functions can
+	// be reused
+
   // 0:  [UNITS], all token values are strings
+	readSection_UNITS(inFile);
+
+	// 1: [MODEL]
+	readSection_MODEL(inFile);
+
+	// 2: [DIMENSION]
+	readSection_DIMENSION(inFile);
+
+	// 3: [SHAPE]
+	readSection_SHAPE(inFile);
+
+	// 4: [VERTICAL]
+	readSection_VERTICAL(inFile);
+
+	// 5-8, ranges for: LONG_SLIP, SLIP_ANGLE, INCLINATION_ANGLE, VETRICAL_FORCE, in that order
+	readSection_RANGES(inFile);
+
+	// 9: [SCALING_COEFFICIENTS]
+	readSection_SCALING_COEFFICIENTS(inFile);
+
+	// 10: [LONGITUDINAL_COEFFICIENTS]
+	readSection_LONGITUDINAL_COEFFICIENTS(inFile);
+
+	// 11: [OVERTURNING_COEFFICIENTS]
+	readSection_OVERTURNING_COEFFICIENTS(inFile);
+
+	// 12: [LATERAL_COEFFICIENTS]
+	readSection_LATERAL_COEFFICIENTS(inFile);
+
+	// 13: [ROLLING_COEFFICIENTS]
+	readSection_ROLLING_COEFFICIENTS(inFile);
+
+	// 14: [ALIGNING_COEFFICIENTS]
+	readSection_ALIGNING_COEFFICIENTS(inFile);
+
+
   std::getline(inFile, m_line);
 
   // string util stuff
@@ -138,6 +178,78 @@ void ChPacejkaTire::readPacTireInput(std::ifstream& inFile)
 
   }
 }
+
+
+void ChPacejkaTire::readSection_UNITS(std::ifstream& inFile){
+
+
+
+}
+
+void ChPacejkaTire::readSection_MODEL(std::ifstream& inFile){
+
+}
+
+void ChPacejkaTire::readSection_DIMENSION(std::ifstream& inFile){
+
+
+}
+
+
+void ChPacejkaTire::readSection_SHAPE(std::ifstream& inFile){
+
+
+}
+
+
+void ChPacejkaTire::readSection_VERTICAL(std::ifstream& inFile){
+
+
+}
+
+
+void ChPacejkaTire::readSection_RANGES(std::ifstream& inFile){
+
+
+}
+
+
+void ChPacejkaTire::readSection_SCALING_COEFFICIENTS(std::ifstream& inFile){
+
+
+}
+
+
+void ChPacejkaTire::readSection_LONGITUDINAL_COEFFICIENTS(std::ifstream& inFile){
+
+
+}
+
+
+void ChPacejkaTire::readSection_OVERTURNING_COEFFICIENTS(std::ifstream& inFile){
+
+
+}
+
+
+void ChPacejkaTire::readSection_LATERAL_COEFFICIENTS(std::ifstream& inFile){
+
+
+}
+
+
+void ChPacejkaTire::readSection_ROLLING_COEFFICIENTS(std::ifstream& inFile){
+
+
+}
+
+
+void ChPacejkaTire::readSection_ALIGNING_COEFFICIENTS(std::ifstream& inFile){
+
+
+}
+
+
 
 void ChPacejkaTire::WriteOutData(ChSharedBodyPtr    spindle,
                                  const double       time,

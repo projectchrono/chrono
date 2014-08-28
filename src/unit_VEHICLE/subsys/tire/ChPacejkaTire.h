@@ -73,6 +73,19 @@ protected:
   //    the input data, and populate the data struct
   virtual void readPacTireInput(std::ifstream& inFile);
 
+	// @brief functions for reading each section in the paramter file
+	virtual void readSection_UNITS(std::ifstream& inFile);
+	virtual void readSection_MODEL(std::ifstream& inFile);
+	virtual void readSection_DIMENSION(std::ifstream& inFile);
+	virtual void readSection_SHAPE(std::ifstream& inFile);
+	virtual void readSection_VERTICAL(std::ifstream& inFile);
+	virtual void readSection_RANGES(std::ifstream& inFile);
+	virtual void readSection_SCALING_COEFFICIENTS(std::ifstream& inFile);
+	virtual void readSection_LONGITUDINAL_COEFFICIENTS(std::ifstream& inFile);
+	virtual void readSection_OVERTURNING_COEFFICIENTS(std::ifstream& inFile);
+	virtual void readSection_LATERAL_COEFFICIENTS(std::ifstream& inFile);
+	virtual void readSection_ROLLING_COEFFICIENTS(std::ifstream& inFile);
+	virtual void readSection_ALIGNING_COEFFICIENTS(std::ifstream& inFile);
 
 // ----- Data members
 
