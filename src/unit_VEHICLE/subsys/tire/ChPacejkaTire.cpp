@@ -25,7 +25,8 @@
 
 namespace chrono{
 
-ChPacejkaTire::ChPacejkaTire(const ChTerrain& terrain, const std::string& pacTire_paramFile)
+ChPacejkaTire::ChPacejkaTire(const ChTerrain& terrain, 
+														 const std::string& pacTire_paramFile)
 : ChTire(terrain),
   m_paramFile(pacTire_paramFile),
   m_params_defined(false)
@@ -34,7 +35,8 @@ ChPacejkaTire::ChPacejkaTire(const ChTerrain& terrain, const std::string& pacTir
   this->Initialize();
 }
 
-ChPacejkaTire::ChPacejkaTire(const ChPacejkaTire& tire, const chrono::ChWheelId which)
+ChPacejkaTire::ChPacejkaTire(const ChPacejkaTire& tire, 
+														 const chrono::ChWheelId which)
 	: ChTire(tire.m_terrain),
 	m_paramFile(tire.m_paramFile),
 	m_params_defined(false)
@@ -95,8 +97,6 @@ void ChPacejkaTire::loadPacTireParamFile()
   // according to what is found in the PacTire input file
   this->readPacTireInput(inFile);
 
-  // now that we have read the data, apply it
-
 
   // this bool will allow you to query the pac tire for output
   // Forces, moments based on wheel state info.
@@ -106,18 +106,18 @@ void ChPacejkaTire::loadPacTireParamFile()
 void ChPacejkaTire::readPacTireInput(std::ifstream& inFile)
 {
   // advance to the first part of the file with data we need to read
-  std::string m_line;
+  std::string tline;
 
-  while (std::getline(inFile, m_line))
+  while (std::getline(inFile, tline))
   {
     // first main break
-    if (m_line[0] == '$')
+    if (tline[0] == '$')
       break;
   }
 
-	// to keep things sane (and somewhat orderly), create a function to read each subsection.
-	// there may be overlap between different PacTire versions, where these section read functions can
-	// be reused
+	// to keep things sane (and somewhat orderly), create a function to read 
+	// each subsection. there may be overlap between different PacTire versions,
+	// where these section read functions can be reused
 
   // 0:  [UNITS], all token values are strings
 	readSection_UNITS(inFile);
@@ -134,7 +134,8 @@ void ChPacejkaTire::readPacTireInput(std::ifstream& inFile)
 	// 4: [VERTICAL]
 	readSection_VERTICAL(inFile);
 
-	// 5-8, ranges for: LONG_SLIP, SLIP_ANGLE, INCLINATION_ANGLE, VETRICAL_FORCE, in that order
+	// 5-8, ranges for: LONG_SLIP, SLIP_ANGLE, INCLINATION_ANGLE, VETRICAL_FORCE,
+	// in that order
 	readSection_RANGES(inFile);
 
 	// 9: [SCALING_COEFFICIENTS]
@@ -155,8 +156,13 @@ void ChPacejkaTire::readPacTireInput(std::ifstream& inFile)
 	// 14: [ALIGNING_COEFFICIENTS]
 	readSection_ALIGNING_COEFFICIENTS(inFile);
 
+}
 
-  std::getline(inFile, m_line);
+
+void ChPacejkaTire::readSection_UNITS(std::ifstream& inFile){
+	// skip the first line
+	std::string tline;
+  std::getline(inFile, tline);
 
   // string util stuff
   std::string tok;    // name of token
@@ -164,9 +170,9 @@ void ChPacejkaTire::readPacTireInput(std::ifstream& inFile)
   std::vector<std::string> split;
   double val_d;         // temp for double token values
   int val_i;          // temp for int token values
-  while (std::getline(inFile, m_line)) {
+  while (std::getline(inFile, tline)) {
     // made it to the next section
-    if (m_line[0] == '$')
+    if (tline[0] == '$')
       break;
     // get the token / value
     // split = utils::splitStr(m_line,'=');
@@ -174,24 +180,64 @@ void ChPacejkaTire::readPacTireInput(std::ifstream& inFile)
     // val_str = utils::splitStr(split[1],'\'')[1];
 
     // all pactire Parameters better be in MKS
-    // optionally 
+    // optionally, set up unit conversion constants here
 
   }
-}
-
-
-void ChPacejkaTire::readSection_UNITS(std::ifstream& inFile){
-
 
 
 }
 
 void ChPacejkaTire::readSection_MODEL(std::ifstream& inFile){
+	// skip the first line
+	std::string tline;
+  std::getline(inFile, tline);
+
+  // string util stuff
+  std::vector<std::string> split;
+	std::string val_str; // string token values
+
+	// token value changes type in this section, do it manually
+	std::getline(inFile, tline);
+ 
+  // get the token / value
+  split = utils::splitStr(tline,'=');
+	m_params.model.property_file_format =  utils::splitStr(split[1],'\'')[1];
+
+	std::getline(inFile, tline);
+	m_params.model.use_mode = utils::fromTline<int>(tline);
+
+	std::getline(inFile, tline);
+	m_params.model.vxlow =  utils::fromTline<double>(tline);
+
+	std::getline(inFile, tline);
+	m_params.model.longvl = utils::fromTline<double>(tline);
+
+	std::getline(inFile, tline);
+	split = utils::splitStr(tline,'=');
+	m_params.model.tyreside = utils::splitStr(split[1],'\'')[1];
 
 }
 
 void ChPacejkaTire::readSection_DIMENSION(std::ifstream& inFile){
+	// skip the first line
+	std::string tline;
+  std::getline(inFile, tline);
+	// if all the data types are the same in a subsection, life is a little easier
+	// push each token value to this vector, check the # of items added, then 
+	// create the struct by hand only
+	std::vector<double> dat;
 
+	while (std::getline(inFile, tline)) {
+  // made it to the next section
+		if (tline[0] == '$')
+			break;
+		dat.push_back(utils::fromTline<double>(tline) );
+	}
+
+	if( dat.size() != 5) {
+		GetLog() << " error reading DIMENSION section of pactire input file!!! \n\n";
+		return;
+	}
 
 }
 
