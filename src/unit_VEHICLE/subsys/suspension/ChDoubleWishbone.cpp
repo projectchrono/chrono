@@ -111,6 +111,7 @@ ChDoubleWishbone::Initialize(ChSharedBodyPtr   chassis,
   m_spindle->SetRot(chassis->GetCoord().rot);
   m_spindle->SetMass(getSpindleMass());
   m_spindle->SetInertiaXX(getSpindleInertia());
+  AddVisualizationSpindle();
   OnInitializeSpindle();
   chassis->GetSystem()->AddBody(m_spindle);
 
@@ -271,12 +272,25 @@ void ChDoubleWishbone::AddVisualizationUpright()
   // Express hardpoint locations in body frame.
   ChVector<> p_U = m_upright->TransformPointParentToLocal(m_points[UCA_U]);
   ChVector<> p_L = m_upright->TransformPointParentToLocal(m_points[LCA_U]);
+  ChVector<> p_T = m_upright->TransformPointParentToLocal(m_points[TIEROD_U]);
 
-  ChSharedPtr<ChCylinderShape> cyl(new ChCylinderShape);
-  cyl->GetCylinderGeometry().p1 = p_U;
-  cyl->GetCylinderGeometry().p2 = p_L;
-  cyl->GetCylinderGeometry().rad = getUprightRadius();
-  m_upright->AddAsset(cyl);
+  ChSharedPtr<ChCylinderShape> cyl_L(new ChCylinderShape);
+  cyl_L->GetCylinderGeometry().p1 = p_L;
+  cyl_L->GetCylinderGeometry().p2 = ChVector<>(0, 0, 0);
+  cyl_L->GetCylinderGeometry().rad = getUprightRadius();
+  m_upright->AddAsset(cyl_L);
+  
+  ChSharedPtr<ChCylinderShape> cyl_U(new ChCylinderShape);
+  cyl_U->GetCylinderGeometry().p1 = p_U;
+  cyl_U->GetCylinderGeometry().p2 = ChVector<>(0, 0, 0);
+  cyl_U->GetCylinderGeometry().rad = getUprightRadius();
+  m_upright->AddAsset(cyl_U);
+
+  ChSharedPtr<ChCylinderShape> cyl_T(new ChCylinderShape);
+  cyl_T->GetCylinderGeometry().p1 = p_T;
+  cyl_T->GetCylinderGeometry().p2 = ChVector<>(0, 0, 0);
+  cyl_T->GetCylinderGeometry().rad = getUprightRadius();
+  m_upright->AddAsset(cyl_T);
 
   ChSharedPtr<ChColorAsset> col(new ChColorAsset);
   switch (m_side) {
@@ -286,6 +300,15 @@ void ChDoubleWishbone::AddVisualizationUpright()
   m_upright->AddAsset(col);
 }
 
+void ChDoubleWishbone::AddVisualizationSpindle()
+{
+  ChSharedPtr<ChCylinderShape> cyl(new ChCylinderShape);
+  cyl->GetCylinderGeometry().p1 = ChVector<>(0, getSpindleWidth() / 2, 0);
+  cyl->GetCylinderGeometry().p2 = ChVector<>(0, -getSpindleWidth() / 2, 0);
+  cyl->GetCylinderGeometry().rad = getSpindleRadius();
+  m_spindle->AddAsset(cyl);
+
+}
 
 // -----------------------------------------------------------------------------
 //

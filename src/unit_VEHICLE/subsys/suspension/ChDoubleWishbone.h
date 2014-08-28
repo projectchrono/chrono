@@ -79,6 +79,8 @@ protected:
   virtual double getLCAMass() const = 0;
   virtual double getUprightMass() const = 0;
 
+  virtual double getSpindleRadius() const = 0;
+  virtual double getSpindleWidth() const = 0;
   virtual double getUCARadius() const = 0;
   virtual double getLCARadius() const = 0;
   virtual double getUprightRadius() const = 0;
@@ -121,6 +123,7 @@ private:
   void   AddVisualizationUCA();
   void   AddVisualizationLCA();
   void   AddVisualizationUpright();
+  void   AddVisualizationSpindle();
 };
 
 

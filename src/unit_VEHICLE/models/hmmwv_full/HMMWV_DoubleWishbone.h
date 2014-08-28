@@ -42,6 +42,8 @@ public:
   virtual double getLCAMass() const { return m_LCAMass; }
   virtual double getUprightMass() const { return m_uprightMass; }
 
+  virtual double getSpindleRadius() const { return m_spindleRadius; }
+  virtual double getSpindleWidth() const { return m_spindleWidth; }
   virtual double getUCARadius() const { return m_UCARadius; }
   virtual double getLCARadius() const { return m_LCARadius; }
   virtual double getUprightRadius() const { return m_uprightRadius; }
@@ -66,6 +68,8 @@ private:
   static const double      m_LCAMass;
   static const double      m_uprightMass;
 
+  static const double      m_spindleRadius;
+  static const double      m_spindleWidth;
   static const double      m_UCARadius;
   static const double      m_LCARadius;
   static const double      m_uprightRadius;
@@ -97,6 +101,8 @@ public:
   virtual double getLCAMass() const { return m_LCAMass; }
   virtual double getUprightMass() const { return m_uprightMass; }
 
+  virtual double getSpindleRadius() const { return m_spindleRadius; }
+  virtual double getSpindleWidth() const { return m_spindleWidth; }
   virtual double getUCARadius() const { return m_UCARadius; }
   virtual double getLCARadius() const { return m_LCARadius; }
   virtual double getUprightRadius() const { return m_uprightRadius; }
@@ -121,6 +127,8 @@ private:
   static const double      m_LCAMass;
   static const double      m_uprightMass;
 
+  static const double      m_spindleRadius;
+  static const double      m_spindleWidth;
   static const double      m_UCARadius;
   static const double      m_LCARadius;
   static const double      m_uprightRadius;

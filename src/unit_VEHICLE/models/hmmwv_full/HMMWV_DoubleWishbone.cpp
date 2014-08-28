@@ -38,6 +38,8 @@ const double     HMMWV_DoubleWishboneFront::m_UCAMass = 1;  // TODO: This is not
 const double     HMMWV_DoubleWishboneFront::m_LCAMass = 1;  // TODO: This is not the correct value
 const double     HMMWV_DoubleWishboneFront::m_uprightMass = 1;
 
+const double     HMMWV_DoubleWishboneFront::m_spindleRadius = 0.15;
+const double     HMMWV_DoubleWishboneFront::m_spindleWidth = 0.06;
 const double     HMMWV_DoubleWishboneFront::m_LCARadius = 0.02;
 const double     HMMWV_DoubleWishboneFront::m_UCARadius = 0.02;
 const double     HMMWV_DoubleWishboneFront::m_uprightRadius = 0.02;
@@ -60,6 +62,8 @@ const double     HMMWV_DoubleWishboneRear::m_UCAMass = 1;  // TODO: This is not 
 const double     HMMWV_DoubleWishboneRear::m_LCAMass = 1;  // TODO: This is not the correct value
 const double     HMMWV_DoubleWishboneRear::m_uprightMass = 1;
 
+const double     HMMWV_DoubleWishboneRear::m_spindleRadius = 0.15;
+const double     HMMWV_DoubleWishboneRear::m_spindleWidth = 0.06;
 const double     HMMWV_DoubleWishboneRear::m_LCARadius = 0.02;
 const double     HMMWV_DoubleWishboneRear::m_UCARadius = 0.02;
 const double     HMMWV_DoubleWishboneRear::m_uprightRadius = 0.02;
