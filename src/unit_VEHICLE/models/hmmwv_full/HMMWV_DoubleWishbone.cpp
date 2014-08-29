@@ -53,7 +53,7 @@ const double     HMMWV_DoubleWishboneFront::m_axleInertia = 0.4;
 
 const double     HMMWV_DoubleWishboneFront::m_springCoefficient  = 167062.0;
 const double     HMMWV_DoubleWishboneFront::m_dampingCoefficient = 22459.0;
-const double     HMMWV_DoubleWishboneFront::m_springRestLength   = 0.4062;
+const double     HMMWV_DoubleWishboneFront::m_springRestLength   = 0.4562;
 
 // -----------------------------------------------------------------------------
 
@@ -77,7 +77,7 @@ const double     HMMWV_DoubleWishboneRear::m_axleInertia = 0.4;
 
 const double     HMMWV_DoubleWishboneRear::m_springCoefficient = 369149.0;
 const double     HMMWV_DoubleWishboneRear::m_dampingCoefficient = 35024.0;
-const double     HMMWV_DoubleWishboneRear::m_springRestLength = 0.4162;
+const double     HMMWV_DoubleWishboneRear::m_springRestLength = 0.4562;
 
 
 // -----------------------------------------------------------------------------
@@ -114,8 +114,8 @@ const ChVector<> HMMWV_DoubleWishboneFront::getLocation(PointId which)
   case LCA_B:    return in2m * ChVector<>(8.79, 0, 0);
   case LCA_U:    return in2m * ChVector<>(1.40, 18.87, -4.65);
   case LCA_CM:   return in2m * ChVector<>(0.47, 6.29, -1.55); // TODO: This is not the correct value
-  case SHOCK_C:  return in2m * ChVector<>(-4.10, 15.77, 12.72);
-  case SHOCK_U:  return in2m * ChVector<>(-3.83, 18.87, -1.52);
+  case SHOCK_C:  return in2m * ChVector<>(-4.095, 7.508, 12.722);
+  case SHOCK_U:  return in2m * ChVector<>(-3.827, 9.295, -1.835);
   case TIEROD_C: return in2m * ChVector<>(13.39, -2.29, -1.0350);
   case TIEROD_U: return in2m * ChVector<>(6.92, 20.22, -1.0350);
   default:       return ChVector<>(0, 0, 0);
@@ -135,8 +135,8 @@ const ChVector<> HMMWV_DoubleWishboneRear::getLocation(PointId which)
   case LCA_B:    return in2m * ChVector<>(8.79, 0, 0);
   case LCA_U:    return in2m * ChVector<>(-1.40, 18.87, -4.65);
   case LCA_CM:   return in2m * ChVector<>(-0.47, 6.29, -1.55); // TODO: This is not the correct value
-  case SHOCK_C:  return in2m * ChVector<>(4.09, 16.10, 12.72);
-  case SHOCK_U:  return in2m * ChVector<>(4.09, 18.87, -1.51);
+  case SHOCK_C:  return in2m * ChVector<>(4.095, 7.508, 12.722);
+  case SHOCK_U:  return in2m * ChVector<>(3.827, 9.325, -1.511);
   case TIEROD_C: return in2m * ChVector<>(-12.70, 4.28, -0.37);
   case TIEROD_U: return in2m * ChVector<>(-6.70, 20.23, -0.37);
   default:       return ChVector<>(0, 0, 0);
