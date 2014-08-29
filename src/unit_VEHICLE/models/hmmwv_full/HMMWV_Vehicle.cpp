@@ -34,8 +34,8 @@ namespace hmmwv {
 
 static const double in2m = 0.0254;
 
-const double     HMMWV_Vehicle::m_chassisMass = 7747.0 / 2.2;	// chassis sprung mass
-const ChVector<> HMMWV_Vehicle::m_chassisInertia(125.8, 497.4, 531.4); // chassis inertia (roll,pitch,yaw)
+const double     HMMWV_Vehicle::m_chassisMass = 3503;	// chassis sprung mass
+const ChVector<> HMMWV_Vehicle::m_chassisInertia(1505, 5952, 6359); // chassis inertia (roll,pitch,yaw)
 
 const std::string HMMWV_Vehicle::m_chassisMeshName = "hmmwv_chassis";
 const std::string HMMWV_Vehicle::m_chassisMeshFile = utils::GetModelDataFile("hmmwv/humvee4_scaled_rotated_decimated_centered.obj");
@@ -130,10 +130,10 @@ void HMMWV_Vehicle::Initialize(const ChCoordsys<>& chassisPos)
   m_chassis->SetRot(chassisPos.rot);
 
   // Initialize the suspension subsystems
-  m_front_right_susp->Initialize(m_chassis, in2m * ChVector<>(-85.39, 12.10, -18.914));
-  m_front_left_susp->Initialize(m_chassis, in2m * ChVector<>(-85.39, -12.10, -18.914));
-  m_rear_right_susp->Initialize(m_chassis, in2m * ChVector<>(47.60, 12.10, -18.914));
-  m_rear_left_susp->Initialize(m_chassis, in2m * ChVector<>(47.60, -12.10, -18.914));
+  m_front_right_susp->Initialize(m_chassis, in2m * ChVector<>(-85.39, 11.505, -32.294/2));
+  m_front_left_susp->Initialize(m_chassis, in2m * ChVector<>(-85.39, -11.505, -32.294/2));
+  m_rear_right_susp->Initialize(m_chassis, in2m * ChVector<>(47.60, 11.505, -32.294/2));
+  m_rear_left_susp->Initialize(m_chassis, in2m * ChVector<>(47.60, -11.505, -32.294/2));
 
   // Initialize wheels
   m_front_right_wheel->Initialize(m_front_right_susp->GetSpindle());
