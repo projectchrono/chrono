@@ -7,7 +7,7 @@
 
 SET(ENABLE_UNIT_MATLAB   
     FALSE CACHE BOOL   
-    "Turn this ON to generate the Chrono::Engine demos with Matlab."
+    "Turn this ON to generate the Chrono::Engine Matlab unit."
     )
 
 IF(NOT ENABLE_UNIT_MATLAB)

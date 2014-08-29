@@ -93,7 +93,7 @@ int main(int argc, char* argv[])
 	}
 
 				// Apply a force to a node
-	ChSharedPtr<ChNodeFEMxyz> mnodelast (my_mesh->GetNode(my_mesh->GetNnodes()-1));
+	ChSharedPtr<ChNodeFEMxyz> mnodelast = (my_mesh->GetNode(my_mesh->GetNnodes()-1)).DynamicCastTo<ChNodeFEMxyz>();
 	mnodelast->SetForce( ChVector<>(100,0,0));
 
 
@@ -175,7 +175,7 @@ for (int e = 0; e<8; ++e)
 	{
 		if (my_mesh->GetNode(inode).IsType<ChNodeFEMxyz>())
 		{
-			ChSharedPtr<ChNodeFEMxyz> mnode ( my_mesh->GetNode(inode) ); // downcast
+			ChSharedPtr<ChNodeFEMxyz> mnode ( my_mesh->GetNode(inode).DynamicCastTo<ChNodeFEMxyz>() ); // downcast
 			if (mnode->GetPos().y <0.01)
 			{
 
