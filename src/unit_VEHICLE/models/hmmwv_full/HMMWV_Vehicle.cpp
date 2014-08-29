@@ -34,7 +34,7 @@ namespace hmmwv {
 
 static const double in2m = 0.0254;
 
-const double     HMMWV_Vehicle::m_chassisMass = 7500.0 / 2.2;
+const double     HMMWV_Vehicle::m_chassisMass = 7747.0 / 2.2;	// chassis sprung mass
 const ChVector<> HMMWV_Vehicle::m_chassisInertia(125.8, 497.4, 531.4); // chassis inertia (roll,pitch,yaw)
 
 const std::string HMMWV_Vehicle::m_chassisMeshName = "hmmwv_chassis";
