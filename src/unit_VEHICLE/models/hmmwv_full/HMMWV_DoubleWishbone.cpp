@@ -33,10 +33,10 @@ namespace hmmwv {
 
 static const double in2m = 0.0254;
 
-const double     HMMWV_DoubleWishboneFront::m_spindleMass = 1;
-const double     HMMWV_DoubleWishboneFront::m_UCAMass = 1;  // TODO: This is not the correct value
-const double     HMMWV_DoubleWishboneFront::m_LCAMass = 1;  // TODO: This is not the correct value
-const double     HMMWV_DoubleWishboneFront::m_uprightMass = 1;
+const double     HMMWV_DoubleWishboneFront::m_spindleMass = 1; // There is no data for this in the HMMWV description
+const double     HMMWV_DoubleWishboneFront::m_UCAMass = 5.446;
+const double     HMMWV_DoubleWishboneFront::m_LCAMass = 16.32;
+const double     HMMWV_DoubleWishboneFront::m_uprightMass = 1; // There is no data for this in the HMMWV description
 
 const double     HMMWV_DoubleWishboneFront::m_spindleRadius = 0.15;
 const double     HMMWV_DoubleWishboneFront::m_spindleWidth = 0.06;
@@ -44,23 +44,23 @@ const double     HMMWV_DoubleWishboneFront::m_LCARadius = 0.02;
 const double     HMMWV_DoubleWishboneFront::m_UCARadius = 0.02;
 const double     HMMWV_DoubleWishboneFront::m_uprightRadius = 0.02;
 
-const ChVector<> HMMWV_DoubleWishboneFront::m_spindleInertia(1, 1, 1);
-const ChVector<> HMMWV_DoubleWishboneFront::m_UCAInertia(1, 1, 1);  // TODO: This is not the correct value
-const ChVector<> HMMWV_DoubleWishboneFront::m_LCAInertia(1, 1, 1);  // TODO: This is not the correct value
-const ChVector<> HMMWV_DoubleWishboneFront::m_uprightInertia(5, 5, 5);
+const ChVector<> HMMWV_DoubleWishboneFront::m_spindleInertia(0.113, 0.113, 0.113);
+const ChVector<> HMMWV_DoubleWishboneFront::m_UCAInertia(0.113, 0.113, 0.113);
+const ChVector<> HMMWV_DoubleWishboneFront::m_LCAInertia(0.113, 0.113, 0.113);
+const ChVector<> HMMWV_DoubleWishboneFront::m_uprightInertia(1, 1, 1); // There is no data for this in the HMMWV description
 
 const double     HMMWV_DoubleWishboneFront::m_axleInertia = 0.4;
 
 const double     HMMWV_DoubleWishboneFront::m_springCoefficient  = 166546.0;
-const double     HMMWV_DoubleWishboneFront::m_dampingCoefficient = 17513;
+const double     HMMWV_DoubleWishboneFront::m_dampingCoefficient = 17513; // This value is actually associated with the tire damping
 const double     HMMWV_DoubleWishboneFront::m_springRestLength   = in2m * 13.360;
 
 // -----------------------------------------------------------------------------
 
-const double     HMMWV_DoubleWishboneRear::m_spindleMass = 1;
-const double     HMMWV_DoubleWishboneRear::m_UCAMass = 1;  // TODO: This is not the correct value
-const double     HMMWV_DoubleWishboneRear::m_LCAMass = 1;  // TODO: This is not the correct value
-const double     HMMWV_DoubleWishboneRear::m_uprightMass = 1;
+const double     HMMWV_DoubleWishboneRear::m_spindleMass = 1; // There is no data for this in the HMMWV description
+const double     HMMWV_DoubleWishboneRear::m_UCAMass = 5.446;
+const double     HMMWV_DoubleWishboneRear::m_LCAMass = 16.32;
+const double     HMMWV_DoubleWishboneRear::m_uprightMass = 1; // There is no data for this in the HMMWV description
 
 const double     HMMWV_DoubleWishboneRear::m_spindleRadius = 0.15;
 const double     HMMWV_DoubleWishboneRear::m_spindleWidth = 0.06;
@@ -68,15 +68,15 @@ const double     HMMWV_DoubleWishboneRear::m_LCARadius = 0.02;
 const double     HMMWV_DoubleWishboneRear::m_UCARadius = 0.02;
 const double     HMMWV_DoubleWishboneRear::m_uprightRadius = 0.02;
 
-const ChVector<> HMMWV_DoubleWishboneRear::m_spindleInertia(1, 1, 1);
-const ChVector<> HMMWV_DoubleWishboneRear::m_UCAInertia(1, 1, 1);  // TODO: This is not the correct value
-const ChVector<> HMMWV_DoubleWishboneRear::m_LCAInertia(1, 1, 1);  // TODO: This is not the correct value
-const ChVector<> HMMWV_DoubleWishboneRear::m_uprightInertia(5, 5, 5);
+const ChVector<> HMMWV_DoubleWishboneRear::m_spindleInertia(0.113, 0.113, 0.113);
+const ChVector<> HMMWV_DoubleWishboneRear::m_UCAInertia(0.113, 0.113, 0.113);
+const ChVector<> HMMWV_DoubleWishboneRear::m_LCAInertia(0.113, 0.113, 0.113);
+const ChVector<> HMMWV_DoubleWishboneRear::m_uprightInertia(1, 1, 1); // There is no data for this in the HMMWV description
 
 const double     HMMWV_DoubleWishboneRear::m_axleInertia = 0.4;
 
 const double     HMMWV_DoubleWishboneRear::m_springCoefficient = 369167.0;
-const double     HMMWV_DoubleWishboneRear::m_dampingCoefficient = 17513;
+const double     HMMWV_DoubleWishboneRear::m_dampingCoefficient = 17513; // This value is actually associated with the tire damping
 const double     HMMWV_DoubleWishboneRear::m_springRestLength = in2m * 15.03;
 
 
@@ -114,8 +114,8 @@ const ChVector<> HMMWV_DoubleWishboneFront::getLocation(PointId which)
   case LCA_B:    return in2m * ChVector<>(0, 0, 0);
   case LCA_U:    return in2m * ChVector<>(1.40, 18.875, -4.65);
   case LCA_CM:   return in2m * ChVector<>(0, 9.438, -2.325);
-  case SHOCK_C:  return in2m * ChVector<>(-4.095, 7.980, 7.775);
-  case SHOCK_U:  return in2m * ChVector<>(-3.827, 9.295, -1.835);
+  case SHOCK_C:  return in2m * ChVector<>(-4.095, 7.980, 7.775);  // This vector is actually associated with the SPRING bodies in the HMMWV description
+  case SHOCK_U:  return in2m * ChVector<>(-3.827, 9.295, -1.835);  // This vector is actually associated with the SPRING bodies in the HMMWV description
   case TIEROD_C: return in2m * ChVector<>(9.855, 5.565, 2.135);
   case TIEROD_U: return in2m * ChVector<>(6.922, 20.237, -0.643);
   default:       return ChVector<>(0, 0, 0);
@@ -135,8 +135,8 @@ const ChVector<> HMMWV_DoubleWishboneRear::getLocation(PointId which)
   case LCA_B:    return in2m * ChVector<>(0, 0, 0);
   case LCA_U:    return in2m * ChVector<>(-1.40, 18.875, -4.650);
   case LCA_CM:   return in2m * ChVector<>(0, 9.437, -2.325);
-  case SHOCK_C:  return in2m * ChVector<>(4.095, 7.657, 10.098);
-  case SHOCK_U:  return in2m * ChVector<>(3.827, 9.295, -1.835);
+  case SHOCK_C:  return in2m * ChVector<>(4.095, 7.657, 10.098);  // This vector is actually associated with the SPRING bodies in the HMMWV description
+  case SHOCK_U:  return in2m * ChVector<>(3.827, 9.295, -1.835);  // This vector is actually associated with the SPRING bodies in the HMMWV description
   case TIEROD_C: return in2m * ChVector<>(-8.790, 4.290, 2.310);
   case TIEROD_U: return in2m * ChVector<>(-6.704, 20.237, -0.365);
   default:       return ChVector<>(0, 0, 0);

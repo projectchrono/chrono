@@ -36,11 +36,11 @@ namespace hmmwv {
 
 static const double in2m = 0.0254;
 
-const double      HMMWV_Wheel::m_radius = 18.5 * in2m;
+const double      HMMWV_Wheel::m_radius = 18.15 * in2m;
 const double      HMMWV_Wheel::m_width = 10 * in2m;
 
-const double      HMMWV_Wheel::m_mass = 54.7;
-const ChVector<>  HMMWV_Wheel::m_inertia(3.7958, 7.0037, 3.7958);
+const double      HMMWV_Wheel::m_mass = 88.39;
+const ChVector<>  HMMWV_Wheel::m_inertia(0.113, 0.113, 0.113);
 
 const std::string HMMWV_WheelLeft::m_meshName = "hmmwv_wheel_L";
 const std::string HMMWV_WheelLeft::m_meshFile = utils::GetModelDataFile("hmmwv/wheel_L.obj");
