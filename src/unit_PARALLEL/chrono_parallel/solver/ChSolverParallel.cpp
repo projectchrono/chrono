@@ -12,6 +12,7 @@ ChSolverParallel::ChSolverParallel() {
    bilateral = NULL;
    update_rhs = false;
    verbose = false;
+   tol_objective = false;
 }
 ChSolverParallel::~ChSolverParallel() {
 
