@@ -191,7 +191,7 @@ uint ChSolverAPGDRS::SolveAPGDRS(const uint max_iter,
       theta_k = theta_k1;
       //if (current_iteration % 2 == 0) {
       real g_proj_norm = Res4(num_unilaterals, mg_tmp.data(), b.data(), ml.data(), mb_tmp.data());
-      real objective = 100;
+      //real objective = 100;
 //      if(current_iteration==0){
 //         old_objective = GetObjective(ml,b);
 //      }else{
@@ -223,7 +223,7 @@ uint ChSolverAPGDRS::SolveAPGDRS(const uint max_iter,
          UpdateContacts();
       }
       //}
-      real maxdeltalambda = GetObjective(x, b);
+      real maxdeltalambda = GetObjective(ml_candidate, b);
       AtIterationEnd(residual, maxdeltalambda, iter_hist.size());
 
       if (tol_objective) {
