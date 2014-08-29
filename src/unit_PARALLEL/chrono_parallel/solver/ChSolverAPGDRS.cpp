@@ -12,8 +12,7 @@ void ChSolverAPGDRS::SetAPGDParams(real theta_k,
 }
 
 real ChSolverAPGDRS::Res4(const int SIZE,
-                          real* mg_tmp,
-                          const real* b,
+                          real* mg_tmp2,
                           real*x,
                           real* mb_tmp) {
    real gdiff = 1e-6;
@@ -21,8 +20,7 @@ real ChSolverAPGDRS::Res4(const int SIZE,
 
 #pragma omp  parallel for
    for (int i = 0; i < SIZE; i++) {
-      real _mg_tmp2_ = mg_tmp[i] - b[i];
-      mb_tmp[i] = -gdiff * _mg_tmp2_ + x[i];
+      mb_tmp[i] = -gdiff * mg_tmp2[i] + x[i];
    }
 
    Project(mb_tmp);
@@ -63,7 +61,8 @@ uint ChSolverAPGDRS::SolveAPGDRS(const uint max_iter,
    real mb_tmp_norm = 0, mg_tmp_norm = 0;
    real obj1 = 0.0, obj2 = 0.0;
    real dot_mg_ms = 0, norm_ms = 0;
-
+   real delta_obj = 1e8;
+   real maxdeltalambda = 0;
    ml = x;
 
    custom_vector<real3> vel_data, omg_data;
@@ -190,7 +189,7 @@ uint ChSolverAPGDRS::SolveAPGDRS(const uint max_iter,
       step_grow = 2.0;
       theta_k = theta_k1;
       //if (current_iteration % 2 == 0) {
-      real g_proj_norm = Res4(num_unilaterals, mg_tmp.data(), b.data(), ml.data(), mb_tmp.data());
+      real g_proj_norm = Res4(num_unilaterals, mg_tmp2.data(), ml.data(), mb_tmp.data());
       //real objective = 100;
 //      if(current_iteration==0){
 //         old_objective = GetObjective(ml,b);
@@ -208,9 +207,14 @@ uint ChSolverAPGDRS::SolveAPGDRS(const uint max_iter,
          g_proj_norm = max(g_proj_norm, resid_bilat);
       }
 
+
+      bool update = false;
       if (g_proj_norm < lastgoodres) {
          lastgoodres = g_proj_norm;
          ml_candidate = ml;
+         maxdeltalambda = GetObjective(ml_candidate, b);
+         update = true;
+
       }
 
       residual = lastgoodres;
@@ -223,11 +227,22 @@ uint ChSolverAPGDRS::SolveAPGDRS(const uint max_iter,
          UpdateContacts();
       }
       //}
-      real maxdeltalambda = GetObjective(ml_candidate, b);
+
       AtIterationEnd(residual, maxdeltalambda, iter_hist.size());
 
+      if (update) {
+         if (iter_hist.size() > 1) {
+            delta_obj = abs(maxdeltalambda_hist[iter_hist.size() - 1] - maxdeltalambda_hist[iter_hist.size() - 2]);
+
+         }
+      }
+
+      //cout << "delta_obj " << delta_obj<<" "<< residual<<" "<<current_iteration<< endl;
       if (tol_objective) {
          if (maxdeltalambda <= tolerance) {
+            break;
+         } else if (delta_obj < 1e-8) {
+            //cout << "convergence stagnated" << endl;
             break;
          }
       } else {

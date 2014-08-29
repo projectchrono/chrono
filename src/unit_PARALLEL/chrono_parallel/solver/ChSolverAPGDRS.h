@@ -59,8 +59,7 @@ class CH_PARALLEL_API ChSolverAPGDRS : public ChSolverParallel {
    // TODO: What is the best way to explain this...
    real Res4(
              const int SIZE,
-             real* mg_tmp,
-             const real* b,
+             real* mg_tmp2,
              real*x,
              real* mb_tmp);
 
