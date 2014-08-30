@@ -9,12 +9,9 @@
 // http://projectchrono.org/license-chrono.txt.
 //
 // =============================================================================
-// Authors: Radu Serban, Justin Madsen
+// Authors: Justin Madsen, Radu Serban
 // =============================================================================
-//
-// HMMWV 9-body vehicle model...
-//
-// =============================================================================
+
 
 #include "assets/ChBoxShape.h"
 #include "assets/ChTriangleMeshShape.h"
@@ -22,7 +19,7 @@
 #include "utils/ChUtilsData.h"
 #include "utils/ChUtilsInputOutput.h"
 
-#include "HMMWV9_Vehicle.h"
+#include "HMMWV9_pacTest_Vehicle.h"
 
 using namespace chrono;
 
@@ -34,16 +31,16 @@ namespace hmmwv {
 
 static const double in2m = 0.0254;
 
-const double HMMWV9_Vehicle::m_chassisMass = 7500.0 / 2.2;
-const ChVector<> HMMWV9_Vehicle::m_chassisInertia(125.8, 497.4, 531.4); // chassis inertia (roll,pitch,yaw)
+const double HMMWV9_pacTest_Vehicle::m_chassisMass = 7500.0 / 2.2;
+const ChVector<> HMMWV9_pacTest_Vehicle::m_chassisInertia(125.8, 497.4, 531.4); // chassis inertia (roll,pitch,yaw)
 
-const std::string HMMWV9_Vehicle::m_chassisMeshName = "hmmwv_chassis";
-const std::string HMMWV9_Vehicle::m_chassisMeshFile = utils::GetModelDataFile("hmmwv/humvee4_scaled_rotated_decimated_centered.obj");
+const std::string HMMWV9_pacTest_Vehicle::m_chassisMeshName = "hmmwv_chassis";
+const std::string HMMWV9_pacTest_Vehicle::m_chassisMeshFile = utils::GetModelDataFile("hmmwv/humvee4_scaled_rotated_decimated_centered.obj");
 
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-HMMWV9_Vehicle::HMMWV9_Vehicle(const bool           fixed,
+HMMWV9_pacTest_Vehicle::HMMWV9_pacTest_Vehicle(const bool           fixed,
                                VisualizationType    chassisVis,
                                VisualizationType    wheelVis)
 {
@@ -94,10 +91,10 @@ HMMWV9_Vehicle::HMMWV9_Vehicle(const bool           fixed,
   // Create the suspension subsystems
   // -------------------------------------------
 
-  m_front_right_susp = ChSharedPtr<HMMWV9_DoubleWishboneFront>(new HMMWV9_DoubleWishboneFront("FRsusp", ChSuspension::RIGHT));
-  m_front_left_susp = ChSharedPtr<HMMWV9_DoubleWishboneFront>(new HMMWV9_DoubleWishboneFront("FLsusp", ChSuspension::LEFT));
-  m_rear_right_susp = ChSharedPtr<HMMWV9_DoubleWishboneRear>(new HMMWV9_DoubleWishboneRear("RRsusp", ChSuspension::RIGHT, true));
-  m_rear_left_susp = ChSharedPtr<HMMWV9_DoubleWishboneRear>(new HMMWV9_DoubleWishboneRear("RLsusp", ChSuspension::LEFT, true));
+  m_front_right_susp = ChSharedPtr<HMMWV9_pacTest_DoubleWishboneFront>(new HMMWV9_pacTest_DoubleWishboneFront("FRsusp", ChSuspension::RIGHT));
+  m_front_left_susp = ChSharedPtr<HMMWV9_pacTest_DoubleWishboneFront>(new HMMWV9_pacTest_DoubleWishboneFront("FLsusp", ChSuspension::LEFT));
+  m_rear_right_susp = ChSharedPtr<HMMWV9_pacTest_DoubleWishboneRear>(new HMMWV9_pacTest_DoubleWishboneRear("RRsusp", ChSuspension::RIGHT, true));
+  m_rear_left_susp = ChSharedPtr<HMMWV9_pacTest_DoubleWishboneRear>(new HMMWV9_pacTest_DoubleWishboneRear("RLsusp", ChSuspension::LEFT, true));
 
   // -----------------
   // Create the wheels
@@ -118,14 +115,14 @@ HMMWV9_Vehicle::HMMWV9_Vehicle(const bool           fixed,
 }
 
 
-HMMWV9_Vehicle::~HMMWV9_Vehicle()
+HMMWV9_pacTest_Vehicle::~HMMWV9_pacTest_Vehicle()
 {
 }
 
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-void HMMWV9_Vehicle::Initialize(const ChCoordsys<>& chassisPos)
+void HMMWV9_pacTest_Vehicle::Initialize(const ChCoordsys<>& chassisPos)
 {
   m_chassis->SetPos(chassisPos.pos);
   m_chassis->SetRot(chassisPos.rot);
@@ -151,7 +148,7 @@ void HMMWV9_Vehicle::Initialize(const ChCoordsys<>& chassisPos)
 // -----------------------------------------------------------------------------
 //
 // -----------------------------------------------------------------------------
-ChSharedBodyPtr HMMWV9_Vehicle::GetWheelBody(ChWheelId which) const
+ChSharedBodyPtr HMMWV9_pacTest_Vehicle::GetWheelBody(ChWheelId which) const
 {
   switch (which) {
   case FRONT_LEFT:
@@ -167,7 +164,7 @@ ChSharedBodyPtr HMMWV9_Vehicle::GetWheelBody(ChWheelId which) const
   }
 }
 
-const ChVector<>& HMMWV9_Vehicle::GetWheelPos(ChWheelId which) const
+const ChVector<>& HMMWV9_pacTest_Vehicle::GetWheelPos(ChWheelId which) const
 {
   switch (which) {
   case FRONT_LEFT:
@@ -183,7 +180,7 @@ const ChVector<>& HMMWV9_Vehicle::GetWheelPos(ChWheelId which) const
   }
 }
 
-const ChQuaternion<>& HMMWV9_Vehicle::GetWheelRot(ChWheelId which) const
+const ChQuaternion<>& HMMWV9_pacTest_Vehicle::GetWheelRot(ChWheelId which) const
 {
   switch (which) {
   case FRONT_LEFT:
@@ -199,7 +196,7 @@ const ChQuaternion<>& HMMWV9_Vehicle::GetWheelRot(ChWheelId which) const
   }
 }
 
-const ChVector<>& HMMWV9_Vehicle::GetWheelLinVel(ChWheelId which) const
+const ChVector<>& HMMWV9_pacTest_Vehicle::GetWheelLinVel(ChWheelId which) const
 {
   switch (which) {
   case FRONT_LEFT:
@@ -215,7 +212,7 @@ const ChVector<>& HMMWV9_Vehicle::GetWheelLinVel(ChWheelId which) const
   }
 }
 
-ChVector<> HMMWV9_Vehicle::GetWheelAngVel(ChWheelId which) const
+ChVector<> HMMWV9_pacTest_Vehicle::GetWheelAngVel(ChWheelId which) const
 {
   switch (which) {
   case FRONT_LEFT:
@@ -231,7 +228,7 @@ ChVector<> HMMWV9_Vehicle::GetWheelAngVel(ChWheelId which) const
   }
 }
 
-double HMMWV9_Vehicle::GetWheelOmega(ChWheelId which) const
+double HMMWV9_pacTest_Vehicle::GetWheelOmega(ChWheelId which) const
 {
   switch (which) {
   case FRONT_LEFT:
@@ -250,7 +247,7 @@ double HMMWV9_Vehicle::GetWheelOmega(ChWheelId which) const
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-void HMMWV9_Vehicle::Update(double              time,
+void HMMWV9_pacTest_Vehicle::Update(double              time,
                             double              throttle,
                             double              steering,
                             const ChTireForces& tire_forces)
@@ -274,7 +271,7 @@ void HMMWV9_Vehicle::Update(double              time,
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-void HMMWV9_Vehicle::ExportMeshPovray(const std::string& out_dir)
+void HMMWV9_pacTest_Vehicle::ExportMeshPovray(const std::string& out_dir)
 {
   utils::WriteMeshPovray(m_chassisMeshFile, m_chassisMeshName, out_dir);
 }

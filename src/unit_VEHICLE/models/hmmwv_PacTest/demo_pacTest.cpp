@@ -12,8 +12,8 @@
 // Authors: Justin Madsen, Radu Serban
 // =============================================================================
 //
-// Main driver function for the HMMWV 9-body model, using rigid tire-terrain
-// contact.
+// Main driver function for the HMMWV 9-body model Pacjeka and point contact
+//	tire model tests
 //
 // If using the Irrlicht interface, river inputs are obtained from the keyboard.
 //
@@ -32,7 +32,7 @@
 
 #include "utils/ChUtilsInputOutput.h"
 
-#include "HMMWV9_Vehicle.h"
+#include "HMMWV9_pacTest_Vehicle.h"
 // we will run our vehicle with default rigid tires, but calculate the output
 // for the pacjeka tire in the background
 #include "HMMWV9_PacTire.h"
@@ -94,7 +94,7 @@ int main(int argc, char* argv[])
   // --------------------------
 
   // Create the HMMWV vehicle
-  HMMWV9_Vehicle vehicle(false,
+  HMMWV9_pacTest_Vehicle vehicle(false,
                          hmmwv::MESH,
                          hmmwv::MESH);
 

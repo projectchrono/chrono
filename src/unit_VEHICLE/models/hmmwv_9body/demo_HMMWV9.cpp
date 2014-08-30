@@ -77,7 +77,7 @@ int FPS = 50;
 
 #ifdef USE_IRRLICHT
   // Point on chassis tracked by the camera
-  ChVector<> trackPoint(0.0, 0, 1.0);
+  ChVector<> trackPoint(-2.0, 1.0, 0.5);
 #else
   double tend = 20.0;
 
@@ -97,8 +97,8 @@ int main(int argc, char* argv[])
 
   // Create the HMMWV vehicle
   HMMWV9_Vehicle vehicle(false,
-                         hmmwv::MESH,
-                         hmmwv::MESH);
+                         hmmwv::NONE,
+                         hmmwv::NONE);
 
   vehicle.Initialize(ChCoordsys<>(initLoc, initRot));
 
@@ -195,7 +195,7 @@ int main(int argc, char* argv[])
 
   application.SetTimestep(step_size);
 
-  ChIrrGuiDriver driver(application, vehicle, trackPoint, 6, 0.5);
+  ChIrrGuiDriver driver(application, vehicle, trackPoint, 1.5, 0.5);
 
   // Set the time response for steering and throttle keyboard inputs.
   // NOTE: this is not exact, since we do not render quite at the specified FPS.

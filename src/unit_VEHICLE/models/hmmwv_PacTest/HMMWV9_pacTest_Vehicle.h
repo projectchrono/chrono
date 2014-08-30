@@ -9,22 +9,22 @@
 // http://projectchrono.org/license-chrono.txt.
 //
 // =============================================================================
-// Authors: Radu Serban, Justin Madsen
+// Authors: Justin Madsen, Radu Serban
 // =============================================================================
 //
-// HMMWV 9-body vehicle model...
+// HMMWV 9-body vehicle model for testing tire models
 //
 // =============================================================================
 
-#ifndef HMMWV9_VEHICLE_H
-#define HMMWV9_VEHICLE_H
+#ifndef HMMWV9_PACTEST_VEHICLE_H
+#define HMMWV9_PACTEST_VEHICLE_H
 
 #include "core/ChCoordsys.h"
 #include "physics/ChSystem.h"
 
 #include "subsys/ChVehicle.h"
 
-#include "HMMWV9_DoubleWishbone.h"
+#include "HMMWV9_pacTest_DoubleWishbone.h"
 
 #include "../hmmwv_common/HMMWV.h"
 #include "../hmmwv_common/HMMWV_Wheel.h"
@@ -37,14 +37,14 @@ namespace hmmwv {
 class HMMWV_SimplePowertrain;
 class HMMWV_Powertrain;
 
-class HMMWV9_Vehicle : public chrono::ChVehicle {
+class HMMWV9_pacTest_Vehicle : public chrono::ChVehicle {
 public:
 
-  HMMWV9_Vehicle(const bool                   fixed = false,
+  HMMWV9_pacTest_Vehicle(const bool                   fixed = false,
                  VisualizationType            chassisVis = NONE,
                  VisualizationType            wheelVis = PRIMITIVES);
 
-  ~HMMWV9_Vehicle();
+  ~HMMWV9_pacTest_Vehicle();
 
   virtual chrono::ChSharedBodyPtr GetWheelBody(chrono::ChWheelId which) const;
 
@@ -64,10 +64,10 @@ public:
 
 private:
 
-  chrono::ChSharedPtr<HMMWV9_DoubleWishboneFront>   m_front_right_susp;
-  chrono::ChSharedPtr<HMMWV9_DoubleWishboneFront>   m_front_left_susp;
-  chrono::ChSharedPtr<HMMWV9_DoubleWishboneRear>    m_rear_right_susp;
-  chrono::ChSharedPtr<HMMWV9_DoubleWishboneRear>    m_rear_left_susp;
+  chrono::ChSharedPtr<HMMWV9_pacTest_DoubleWishboneFront>   m_front_right_susp;
+  chrono::ChSharedPtr<HMMWV9_pacTest_DoubleWishboneFront>   m_front_left_susp;
+  chrono::ChSharedPtr<HMMWV9_pacTest_DoubleWishboneRear>    m_rear_right_susp;
+  chrono::ChSharedPtr<HMMWV9_pacTest_DoubleWishboneRear>    m_rear_left_susp;
 
   chrono::ChSharedPtr<HMMWV_Wheel> m_front_right_wheel;
   chrono::ChSharedPtr<HMMWV_Wheel> m_front_left_wheel;

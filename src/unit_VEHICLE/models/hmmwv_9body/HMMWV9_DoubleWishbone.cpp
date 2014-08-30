@@ -95,7 +95,7 @@ const ChVector<> HMMWV9_DoubleWishboneFront::getLocation(PointId which)
   case SPINDLE:  return in2m * ChVector<>(1.59, 23.72, -1.0350);
   case UPRIGHT:  return in2m * ChVector<>(1.59, 19.72, -1.0350);
   case UCA_F:    return in2m * ChVector<>(1.89, 5.46, 9.63);
-  case UCA_B:    return in2m * ChVector<>(10.56, 5.46, 7.69);
+ 	case UCA_B:    return in2m * ChVector<>(10.56, 6.72, 7.69);
   case UCA_U:    return in2m * ChVector<>(2.09, 16.07, 8.48);
   case LCA_F:    return in2m * ChVector<>(-8.79, 0, 0);
   case LCA_B:    return in2m * ChVector<>(8.79, 0, 0);
@@ -115,7 +115,7 @@ const ChVector<> HMMWV9_DoubleWishboneRear::getLocation(PointId which)
   case UPRIGHT:  return in2m * ChVector<>(-1.40, 19.72, -1.035);
   case UCA_F:    return in2m * ChVector<>(-13.78, 6.10, 8.88);
   case UCA_B:    return in2m * ChVector<>(-3.07, 6.10, 8.88);
-  case UCA_U:    return in2m * ChVector<>(-1.40, 16.07, 9.28);
+	case UCA_U:    return in2m * ChVector<>(-1.40, 16.07, 8.50);
   case LCA_F:    return in2m * ChVector<>(-8.79, 0, 0);
   case LCA_B:    return in2m * ChVector<>(8.79, 0, 0);
   case LCA_U:    return in2m * ChVector<>(-1.40, 18.87, -4.65);

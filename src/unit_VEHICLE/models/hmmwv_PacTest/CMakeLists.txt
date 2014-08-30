@@ -37,10 +37,10 @@ SET(COMMON_HMMWV_FILES
 
 SET(DEMO_PACTEST_FILES
 	demo_pacTest.cpp
-	HMMWV9_Vehicle.h
-	HMMWV9_Vehicle.cpp
-	HMMWV9_DoubleWishbone.h
-	HMMWV9_DoubleWishbone.cpp
+	HMMWV9_pacTest_Vehicle.h
+	HMMWV9_pacTest_Vehicle.cpp
+	HMMWV9_pacTest_DoubleWishbone.h
+	HMMWV9_pacTest_DoubleWishbone.cpp
 	HMMWV9_PacTire.h
 	HMMWV9_PacTire.cpp
 )

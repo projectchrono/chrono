@@ -9,19 +9,10 @@
 // http://projectchrono.org/license-chrono.txt.
 //
 // =============================================================================
-// Authors: Radu Serban, Justin Madsen
-// =============================================================================
-//
-// Front and Rear HMMWV suspension subsystems (reduced double A-arm).
-//
-// These concrete suspension subsystems are defined with respect to right-handed
-// frames having X pointing towards the rear, Y to the right, and Z up (as
-// imposed by the base class ChDoubleWishboneReduced) and origins at the 
-// midpoint between the lower control arm's connection points to the chassis.
-//
+// Authors: Justin Madsen, Radu Serban
 // =============================================================================
 
-#include "HMMWV9_DoubleWishbone.h"
+#include "HMMWV9_pacTest_DoubleWishbone.h"
 
 using namespace chrono;
 
@@ -33,52 +24,52 @@ namespace hmmwv {
 
 static const double in2m = 0.0254;
 
-const double     HMMWV9_DoubleWishboneFront::m_spindleMass = 1;
-const double     HMMWV9_DoubleWishboneFront::m_uprightMass = 1;
+const double     HMMWV9_pacTest_DoubleWishboneFront::m_spindleMass = 1;
+const double     HMMWV9_pacTest_DoubleWishboneFront::m_uprightMass = 1;
 
-const double     HMMWV9_DoubleWishboneFront::m_spindleRadius = 0.15;
-const double     HMMWV9_DoubleWishboneFront::m_spindleWidth = 0.06;
-const double     HMMWV9_DoubleWishboneFront::m_uprightRadius = 0.02;
+const double     HMMWV9_pacTest_DoubleWishboneFront::m_spindleRadius = 0.15;
+const double     HMMWV9_pacTest_DoubleWishboneFront::m_spindleWidth = 0.06;
+const double     HMMWV9_pacTest_DoubleWishboneFront::m_uprightRadius = 0.02;
 
-const ChVector<> HMMWV9_DoubleWishboneFront::m_spindleInertia(1, 1, 1);
-const ChVector<> HMMWV9_DoubleWishboneFront::m_uprightInertia(5, 5, 5);
+const ChVector<> HMMWV9_pacTest_DoubleWishboneFront::m_spindleInertia(1, 1, 1);
+const ChVector<> HMMWV9_pacTest_DoubleWishboneFront::m_uprightInertia(5, 5, 5);
 
-const double     HMMWV9_DoubleWishboneFront::m_axleInertia = 0.4;
+const double     HMMWV9_pacTest_DoubleWishboneFront::m_axleInertia = 0.4;
 
-const double     HMMWV9_DoubleWishboneFront::m_springCoefficient  = 167062.0;
-const double     HMMWV9_DoubleWishboneFront::m_dampingCoefficient = 22459.0;
-const double     HMMWV9_DoubleWishboneFront::m_springRestLength   = 0.4062;
+const double     HMMWV9_pacTest_DoubleWishboneFront::m_springCoefficient  = 167062.0;
+const double     HMMWV9_pacTest_DoubleWishboneFront::m_dampingCoefficient = 22459.0;
+const double     HMMWV9_pacTest_DoubleWishboneFront::m_springRestLength   = 0.4062;
 
 // -----------------------------------------------------------------------------
 
-const double     HMMWV9_DoubleWishboneRear::m_spindleMass = 1;
-const double     HMMWV9_DoubleWishboneRear::m_uprightMass = 1;
+const double     HMMWV9_pacTest_DoubleWishboneRear::m_spindleMass = 1;
+const double     HMMWV9_pacTest_DoubleWishboneRear::m_uprightMass = 1;
 
-const double     HMMWV9_DoubleWishboneRear::m_spindleRadius = 0.15;
-const double     HMMWV9_DoubleWishboneRear::m_spindleWidth = 0.06;
-const double     HMMWV9_DoubleWishboneRear::m_uprightRadius = 0.02;
+const double     HMMWV9_pacTest_DoubleWishboneRear::m_spindleRadius = 0.15;
+const double     HMMWV9_pacTest_DoubleWishboneRear::m_spindleWidth = 0.06;
+const double     HMMWV9_pacTest_DoubleWishboneRear::m_uprightRadius = 0.02;
 
-const ChVector<> HMMWV9_DoubleWishboneRear::m_spindleInertia(1, 1, 1);
-const ChVector<> HMMWV9_DoubleWishboneRear::m_uprightInertia(5, 5, 5);
+const ChVector<> HMMWV9_pacTest_DoubleWishboneRear::m_spindleInertia(1, 1, 1);
+const ChVector<> HMMWV9_pacTest_DoubleWishboneRear::m_uprightInertia(5, 5, 5);
 
-const double     HMMWV9_DoubleWishboneRear::m_axleInertia = 0.4;
+const double     HMMWV9_pacTest_DoubleWishboneRear::m_axleInertia = 0.4;
 
-const double     HMMWV9_DoubleWishboneRear::m_springCoefficient = 369149.0;
-const double     HMMWV9_DoubleWishboneRear::m_dampingCoefficient = 35024.0;
-const double     HMMWV9_DoubleWishboneRear::m_springRestLength = 0.4162;
+const double     HMMWV9_pacTest_DoubleWishboneRear::m_springCoefficient = 369149.0;
+const double     HMMWV9_pacTest_DoubleWishboneRear::m_dampingCoefficient = 35024.0;
+const double     HMMWV9_pacTest_DoubleWishboneRear::m_springRestLength = 0.4162;
 
 
 // -----------------------------------------------------------------------------
 // Constructors
 // -----------------------------------------------------------------------------
-HMMWV9_DoubleWishboneFront::HMMWV9_DoubleWishboneFront(const std::string& name,
+HMMWV9_pacTest_DoubleWishboneFront::HMMWV9_pacTest_DoubleWishboneFront(const std::string& name,
                                                        ChSuspension::Side side,
                                                        bool               driven)
 : ChDoubleWishboneReduced(name, side, driven)
 {
 }
 
-HMMWV9_DoubleWishboneRear::HMMWV9_DoubleWishboneRear(const std::string& name,
+HMMWV9_pacTest_DoubleWishboneRear::HMMWV9_pacTest_DoubleWishboneRear(const std::string& name,
                                                      ChSuspension::Side side,
                                                      bool               driven)
 : ChDoubleWishboneReduced(name, side, driven)
@@ -89,7 +80,7 @@ HMMWV9_DoubleWishboneRear::HMMWV9_DoubleWishboneRear(const std::string& name,
 // Implementations of the getLocation() virtual methods.
 // -----------------------------------------------------------------------------
 
-const ChVector<> HMMWV9_DoubleWishboneFront::getLocation(PointId which)
+const ChVector<> HMMWV9_pacTest_DoubleWishboneFront::getLocation(PointId which)
 {
   switch (which) {
   case SPINDLE:  return in2m * ChVector<>(1.59, 23.72, -1.0350);
@@ -108,7 +99,7 @@ const ChVector<> HMMWV9_DoubleWishboneFront::getLocation(PointId which)
   }
 }
 
-const ChVector<> HMMWV9_DoubleWishboneRear::getLocation(PointId which)
+const ChVector<> HMMWV9_pacTest_DoubleWishboneRear::getLocation(PointId which)
 {
   switch (which) {
   case SPINDLE:  return in2m * ChVector<>(-1.40, 23.72, -1.035);
