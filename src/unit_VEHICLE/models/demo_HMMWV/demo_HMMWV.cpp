@@ -32,12 +32,11 @@
 
 #include "utils/ChUtilsInputOutput.h"
 
-#include "HMMWV_Vehicle.h"
-
-#include "../hmmwv_common/HMMWV.h"
-#include "../hmmwv_common/HMMWV_FuncDriver.h"
-#include "../hmmwv_common/HMMWV_RigidTire.h"
-#include "../hmmwv_common/HMMWV_RigidTerrain.h"
+#include "models/hmmwv/HMMWV.h"
+#include "models/hmmwv/vehicle/HMMWV_Vehicle.h"
+#include "models/hmmwv/tire/HMMWV_RigidTire.h"
+#include "models/hmmwv/HMMWV_FuncDriver.h"
+#include "models/hmmwv/HMMWV_RigidTerrain.h"
 
 // If Irrlicht support is available...
 #if IRRLICHT_ENABLED
@@ -49,16 +48,17 @@
 # define USE_IRRLICHT
 #endif
 
+// DEBUGGING:  Uncomment the following line to print shock data
+//#define CHECK_SHOCKS
+
 
 using namespace chrono;
 using namespace hmmwv;
 
-// DEUBGGING
-#define CHECK_SHOCKS
 // =============================================================================
 
 // Initial vehicle position
-ChVector<>     initLoc(40, 0, 1.7);   // sprung mass height at design = 49.68 in
+ChVector<>     initLoc(0, 0, 1.7);   // sprung mass height at design = 49.68 in
 ChQuaternion<> initRot(1,0,0,0);      // forward is in the negative global x-direction
 
 // Rigid terrain dimensions
@@ -74,7 +74,7 @@ int FPS = 50;
 
 #ifdef USE_IRRLICHT
   // Point on chassis tracked by the camera
-  ChVector<> trackPoint(0.0, 0, 0.0);
+  ChVector<> trackPoint(0.0, 0.0, 1.0);
 #else
   double tend = 20.0;
 
@@ -156,7 +156,7 @@ int main(int argc, char* argv[])
 
   application.SetTimestep(step_size);
 
-  ChIrrGuiDriver driver(application, vehicle, trackPoint, 3, 0.5);
+  ChIrrGuiDriver driver(application, vehicle, trackPoint, 6.0, 0.5);
 
   // Set the time response for steering and throttle keyboard inputs.
   // NOTE: this is not exact, since we do not render quite at the specified FPS.

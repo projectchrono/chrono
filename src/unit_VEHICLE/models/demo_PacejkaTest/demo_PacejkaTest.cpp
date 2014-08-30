@@ -32,14 +32,14 @@
 
 #include "utils/ChUtilsInputOutput.h"
 
-#include "HMMWV9_pacTest_Vehicle.h"
 // we will run our vehicle with default rigid tires, but calculate the output
 // for the pacjeka tire in the background
-#include "HMMWV9_PacTire.h"
-#include "../hmmwv_common/HMMWV_RigidTire.h"
-#include "../hmmwv_common/HMMWV.h"
-#include "../hmmwv_common/HMMWV_FuncDriver.h"
-#include "../hmmwv_common/HMMWV_RigidTerrain.h"
+#include "models/hmmwv/HMMWV.h"
+#include "models/hmmwv/vehicle/HMMWV_VehicleReduced.h"
+#include "models/hmmwv/tire/HMMWV_PacejkaTire.h"
+#include "models/hmmwv/tire/HMMWV_RigidTire.h"
+#include "models/hmmwv/HMMWV_FuncDriver.h"
+#include "models/hmmwv/HMMWV_RigidTerrain.h"
 
 // If Irrlicht support is available...
 #if IRRLICHT_ENABLED
@@ -94,9 +94,9 @@ int main(int argc, char* argv[])
   // --------------------------
 
   // Create the HMMWV vehicle
-  HMMWV9_pacTest_Vehicle vehicle(false,
-                         hmmwv::MESH,
-                         hmmwv::MESH);
+  HMMWV_VehicleReduced vehicle(false,
+                               hmmwv::MESH,
+                               hmmwv::MESH);
 
   vehicle.Initialize(ChCoordsys<>(initLoc, initRot));
 
@@ -105,11 +105,12 @@ int main(int argc, char* argv[])
   //terrain.AddMovingObstacles(10);
   terrain.AddFixedObstacles();
 
-  // Create the Pac tires
-  HMMWV9_PacTire pacTire_FR(terrain);
-  HMMWV9_PacTire pacTire_FL(terrain);
-  HMMWV9_PacTire pacTire_RR(terrain);
-  HMMWV9_PacTire pacTire_RL(terrain);
+  // Create the Pacejka tires
+  HMMWV_PacejkaTire pacTire_FR(terrain);
+  HMMWV_PacejkaTire pacTire_FL(terrain);
+  HMMWV_PacejkaTire pacTire_RR(terrain);
+  HMMWV_PacejkaTire pacTire_RL(terrain);
+
   // create the rigid tires (which will be attached to the vehicle)
   HMMWV_RigidTire rigidTire_FR(terrain, 0.7f);
   HMMWV_RigidTire rigidTire_FL(terrain, 0.7f);
@@ -194,7 +195,7 @@ int main(int argc, char* argv[])
 
     terrain.Update(time);
 
-		// update PacTire, set the force data
+    // update PacTire, set the force data
     pacTire_FR.Update(time, vehicle.GetWheelState(FRONT_RIGHT));
     pacTire_FL.Update(time, vehicle.GetWheelState(FRONT_LEFT));
     pacTire_RR.Update(time, vehicle.GetWheelState(REAR_RIGHT));
@@ -202,22 +203,22 @@ int main(int argc, char* argv[])
 
     pacTire_forces[FRONT_RIGHT] = pacTire_FR.GetTireForce();
     pacTire_forces[FRONT_LEFT] = pacTire_FL.GetTireForce();
-		pacTire_forces[REAR_RIGHT] = pacTire_RR.GetTireForce();
+    pacTire_forces[REAR_RIGHT] = pacTire_RR.GetTireForce();
     pacTire_forces[REAR_LEFT] = pacTire_RL.GetTireForce();
 
-		// update the rigid tire, set the force data
-		rigidTire_FR.Update(time, vehicle.GetWheelState(FRONT_RIGHT));
+    // update the rigid tire, set the force data
+    rigidTire_FR.Update(time, vehicle.GetWheelState(FRONT_RIGHT));
     rigidTire_FL.Update(time, vehicle.GetWheelState(FRONT_LEFT));
     rigidTire_RR.Update(time, vehicle.GetWheelState(REAR_RIGHT));
     rigidTire_RL.Update(time, vehicle.GetWheelState(REAR_LEFT));
 
     rigidTire_forces[FRONT_RIGHT] = rigidTire_FR.GetTireForce();
     rigidTire_forces[FRONT_LEFT] = rigidTire_FL.GetTireForce();
-		rigidTire_forces[REAR_RIGHT] = rigidTire_RR.GetTireForce();
+    rigidTire_forces[REAR_RIGHT] = rigidTire_RR.GetTireForce();
     rigidTire_forces[REAR_LEFT] = rigidTire_RL.GetTireForce();
 
-		// for now, use the rigid tire to drive the vehicle,
-		// compare the output from the pacTire
+    // for now, use the rigid tire to drive the vehicle,
+    // compare the output from the pacTire
     vehicle.Update(time, driver.getThrottle(), driver.getSteering(), rigidTire_forces);
 
     // Advance simulation for one timestep for all modules
@@ -227,11 +228,11 @@ int main(int argc, char* argv[])
 
     terrain.Advance(step);
 
-		// advance both the rigid tire, pacTire
-		pacTire_FR.Advance(step);
-		pacTire_FL.Advance(step);
-		pacTire_RR.Advance(step);
-		pacTire_RL.Advance(step);
+    // advance both the rigid tire, pacTire
+    pacTire_FR.Advance(step);
+    pacTire_FL.Advance(step);
+    pacTire_RR.Advance(step);
+    pacTire_RL.Advance(step);
 
     rigidTire_FR.Advance(step);
     rigidTire_FL.Advance(step);
