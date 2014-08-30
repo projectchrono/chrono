@@ -25,6 +25,10 @@ SET(COMMON_HMMWV_FILES
 	../hmmwv/HMMWV_FuncDriver.cpp
 	../hmmwv/HMMWV_RigidTerrain.h
 	../hmmwv/HMMWV_RigidTerrain.cpp
+	../hmmwv/vehicle/HMMWV_VehicleReduced.h
+	../hmmwv/vehicle/HMMWV_VehicleReduced.cpp
+	../hmmwv/suspension/HMMWV_DoubleWishboneReduced.h
+	../hmmwv/suspension/HMMWV_DoubleWishboneReduced.cpp
 	../hmmwv/powertrain/HMMWV_SimplePowertrain.h
 	../hmmwv/powertrain/HMMWV_SimplePowertrain.cpp
 	../hmmwv/powertrain/HMMWV_Powertrain.h
