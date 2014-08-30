@@ -18,33 +18,33 @@ ENDIF()
 MESSAGE(STATUS "Adding HMMWV_9BODY...")
 
 SET(COMMON_HMMWV_FILES
-	../hmmwv_common/HMMWV.h
-	../hmmwv_common/HMMWV_Wheel.h
-	../hmmwv_common/HMMWV_Wheel.cpp
-	../hmmwv_common/HMMWV_SimplePowertrain.h
-	../hmmwv_common/HMMWV_SimplePowertrain.cpp
-	../hmmwv_common/HMMWV_Powertrain.h
-	../hmmwv_common/HMMWV_Powertrain.cpp
-	../hmmwv_common/HMMWV_FuncDriver.h
-	../hmmwv_common/HMMWV_FuncDriver.cpp
-	../hmmwv_common/HMMWV_RigidTire.h
-	../hmmwv_common/HMMWV_RigidTire.cpp
-	../hmmwv_common/HMMWV_LugreTire.h
-	../hmmwv_common/HMMWV_LugreTire.cpp
-	../hmmwv_common/HMMWV_RigidTerrain.h
-	../hmmwv_common/HMMWV_RigidTerrain.cpp
+	../hmmwv/HMMWV.h
+	../hmmwv/HMMWV_Wheel.h
+	../hmmwv/HMMWV_Wheel.cpp
+	../hmmwv/HMMWV_FuncDriver.h
+	../hmmwv/HMMWV_FuncDriver.cpp
+	../hmmwv/HMMWV_RigidTerrain.h
+	../hmmwv/HMMWV_RigidTerrain.cpp
+	../hmmwv/vehicle/HMMWV_VehicleReduced.h
+	../hmmwv/vehicle/HMMWV_VehicleReduced.cpp
+	../hmmwv/suspension/HMMWV_DoubleWishboneReduced.h
+	../hmmwv/suspension/HMMWV_DoubleWishboneReduced.cpp
+	../hmmwv/powertrain/HMMWV_SimplePowertrain.h
+	../hmmwv/powertrain/HMMWV_SimplePowertrain.cpp
+	../hmmwv/powertrain/HMMWV_Powertrain.h
+	../hmmwv/powertrain/HMMWV_Powertrain.cpp
+	../hmmwv/tire/HMMWV_RigidTire.h
+	../hmmwv/tire/HMMWV_RigidTire.cpp
+	../hmmwv/tire/HMMWV_LugreTire.h
+	../hmmwv/tire/HMMWV_LugreTire.cpp
 	)
 
 SET(DEMO_HMMWV9_FILES
 	demo_HMMWV9.cpp
-	HMMWV9_Vehicle.h
-	HMMWV9_Vehicle.cpp
-	HMMWV9_DoubleWishbone.h
-	HMMWV9_DoubleWishbone.cpp
 )
 
-SOURCE_GROUP("common" FILES ${COMMON_HMMWV_FILES})
-SOURCE_GROUP("hmmwv9" FILES ${DEMO_HMMWV9_FILES})
+SOURCE_GROUP("hmmwv" FILES ${COMMON_HMMWV_FILES})
+SOURCE_GROUP("" FILES ${DEMO_HMMWV9_FILES})
 
 SET(HMMWV_LIBS 
 	${CHRONOENGINE_LIBRARIES}

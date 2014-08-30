@@ -40,8 +40,8 @@ ENDIF()
 #--------------------------------------------------------------
 
 ADD_SUBDIRECTORY(slider_crank)
-ADD_SUBDIRECTORY(hmmwv_full)
-ADD_SUBDIRECTORY(hmmwv_9body)
-ADD_SUBDIRECTORY(hmmwv_PacTest)
+ADD_SUBDIRECTORY(demo_HMMWV9)
+ADD_SUBDIRECTORY(demo_HMMWV)
+ADD_SUBDIRECTORY(demo_PacejkaTest)
 
 
