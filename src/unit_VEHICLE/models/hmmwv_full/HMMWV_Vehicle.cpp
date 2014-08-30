@@ -278,5 +278,78 @@ void HMMWV_Vehicle::ExportMeshPovray(const std::string& out_dir)
   utils::WriteMeshPovray(m_chassisMeshFile, m_chassisMeshName, out_dir);
 }
 
+void HMMWV_Vehicle::CheckShocks(const size_t step_num, const double simTime)
+{
+	// 1) report the spring error every n_th time step, force and length @ design
+	size_t report_time_interval = 1000;	// 1 second between logging this
+
+	if( !(step_num % report_time_interval) )
+	{
+		// spring forces, front left & right (lbs)
+		double springF_FL = GetSpringForce(FRONT_LEFT)/4.45;	// design = 3491 lb.
+		double springF_FR = GetSpringForce(FRONT_RIGHT)/4.45;	// design = 3491 lb.
+		// " ", back left & right
+		double springF_RL = GetSpringForce(REAR_LEFT)/4.45;	// design = 6388 lb.
+		double springF_RR = GetSpringForce(REAR_RIGHT)/4.45;	// design = 6388 lb.
+
+		// spring lengths, front left & right (inches)
+		double springLen_FL = GetSpringLength(FRONT_LEFT)*39.37;	// design = 9.7" + 4.65"
+		double springLen_FR = GetSpringLength(FRONT_RIGHT)*39.37;	// design = 9.7" + 4.65
+			// spring lengths, rear left & right (inches)
+		double springLen_RL = GetSpringLength(REAR_LEFT)*39.37;	// design = 12.0" + 2.35"
+		double springLen_RR = GetSpringLength(REAR_RIGHT)*39.37;	// design = 12.0" + 2.35"
+
+		// springs are mounted at shock points, add the distance between top shock and spring hardpoints
+		double dl_F = 9.7 + 4.65;
+		double dl_R = 12.0 + 2.35;
+
+		GetLog() << " \n ---- Spring, Shock info, time = " << simTime <<
+			"    ---- \n Forces [lbs.]: \nFL= " <<
+			springF_FL << "\nFR= " << springF_FR << "\nRL= " << springF_RL << "\nRR= " <<
+			springF_RR <<  "\n\n Lengths [inches]: \nFL= " << springLen_FL << "\nFR= " <<
+			springLen_FR << "\nRL= " << springLen_RL <<	"\nRR= " << springLen_RR << "\n\n";
+
+		GetLog() << " ***** Spring Force, length error relative to design \n Force ERROR[lbs.]: \nFL= " <<
+			springF_FL-3491.0 << "\nFR= " << springF_FR-3491.0 << "\nRL= " <<
+			springF_RL-6388.0 << "\nRR= " << springF_RR-6388 <<
+			"\n\n Length ERROR [inches]: \nFL= " << springLen_FL-dl_F <<	"\nFR= " <<
+			springLen_FR-dl_F << "\nRL= " << springLen_RL-dl_R <<	"\nRR= " <<
+			springLen_RR-dl_R << "\n\n";
+	}
+
+}
+
+double HMMWV_Vehicle::GetSpringForce(chrono::ChWheelId which){
+	switch (which) {
+  case FRONT_LEFT:
+		return m_front_left_susp->GetSpringForce();
+  case FRONT_RIGHT:
+		return m_front_right_susp->GetSpringForce();
+  case REAR_LEFT:
+		return m_rear_left_susp->GetSpringForce();
+  case REAR_RIGHT:
+		return m_rear_right_susp->GetSpringForce();
+  default:
+		return m_front_left_susp->GetSpringForce();  // should not happen
+  }
+}
+
+double HMMWV_Vehicle::GetSpringLength(chrono::ChWheelId which){
+	switch (which) {
+  case FRONT_LEFT:
+		return m_front_left_susp->GetSpringLen();
+  case FRONT_RIGHT:
+		return m_front_right_susp->GetSpringLen();
+  case REAR_LEFT:
+		return m_rear_left_susp->GetSpringLen();
+  case REAR_RIGHT:
+		return m_rear_right_susp->GetSpringLen();
+  default:
+		return m_front_left_susp->GetSpringLen();  // should not happen
+  }
+
+}
+
+
 
 } // end namespace hmmwv

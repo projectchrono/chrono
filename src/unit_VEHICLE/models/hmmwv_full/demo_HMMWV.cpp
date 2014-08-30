@@ -53,7 +53,8 @@
 using namespace chrono;
 using namespace hmmwv;
 
-
+// DEUBGGING
+#define CHECK_SHOCKS
 // =============================================================================
 
 // Initial vehicle position
@@ -73,7 +74,7 @@ int FPS = 50;
 
 #ifdef USE_IRRLICHT
   // Point on chassis tracked by the camera
-  ChVector<> trackPoint(0.0, 0, 1.0);
+  ChVector<> trackPoint(0.0, 0, 0.0);
 #else
   double tend = 20.0;
 
@@ -94,7 +95,7 @@ int main(int argc, char* argv[])
   // Create the HMMWV vehicle
   HMMWV_Vehicle vehicle(false,
                         hmmwv::NONE,
-                        hmmwv::MESH);
+                        hmmwv::NONE);
 
   vehicle.Initialize(ChCoordsys<>(initLoc, initRot));
 
@@ -155,7 +156,7 @@ int main(int argc, char* argv[])
 
   application.SetTimestep(step_size);
 
-  ChIrrGuiDriver driver(application, vehicle, trackPoint, 6, 0.5);
+  ChIrrGuiDriver driver(application, vehicle, trackPoint, 3, 0.5);
 
   // Set the time response for steering and throttle keyboard inputs.
   // NOTE: this is not exact, since we do not render quite at the specified FPS.
@@ -189,6 +190,7 @@ int main(int argc, char* argv[])
   // Refresh 3D view only every N simulation steps
   int simul_substeps_num = (int) std::ceil((1 / step_size) / FPS);
   int simul_substep = 0;
+	int simul_steps = 0;
 
   while (application.GetDevice()->run())
   {
@@ -197,6 +199,10 @@ int main(int argc, char* argv[])
       application.GetVideoDriver()->beginScene(true, true, irr::video::SColor(255, 140, 161, 192));
       driver.DrawAll();
       application.GetVideoDriver()->endScene();
+
+#ifdef CHECK_SHOCKS
+			vehicle.CheckShocks( simul_steps, vehicle.GetChTime() );
+#endif
     }
 
     // Update modules (inter-module communication)
@@ -234,6 +240,7 @@ int main(int argc, char* argv[])
 
     // Increment frame number
     ++simul_substep;
+		++simul_steps;
     if (simul_substep >= simul_substeps_num)
       simul_substep = 0;
   }

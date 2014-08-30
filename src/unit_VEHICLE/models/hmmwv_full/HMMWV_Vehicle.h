@@ -62,6 +62,9 @@ public:
 
   static void ExportMeshPovray(const std::string& out_dir);
 
+	void CheckShocks(const size_t step_num, const double simTime);
+
+
 private:
 
   chrono::ChSharedPtr<HMMWV_DoubleWishboneFront>   m_front_right_susp;
@@ -84,6 +87,10 @@ private:
   // Chassis mass properties
   static const double  m_chassisMass;
   static const chrono::ChVector<>  m_chassisInertia;
+
+	// debugging spring/shock values
+	double GetSpringForce(chrono::ChWheelId which);
+	double GetSpringLength(chrono::ChWheelId which);
 };
 
 

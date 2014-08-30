@@ -189,10 +189,11 @@ ChDoubleWishbone::Initialize(ChSharedBodyPtr   chassis,
   chassis->GetSystem()->AddLink(m_distTierod);
 
   // Initialize the spring/damper
-  m_shock->Initialize(chassis, m_LCA, false, m_points[SHOCK_C], m_points[SHOCK_U]);
+  m_shock->Initialize(chassis, m_LCA, false, m_points[SHOCK_C], m_points[SHOCK_U], false, getSpringRestLength());
+
   m_shock->Set_SpringK(getSpringCoefficient());
   m_shock->Set_SpringR(getDampingCoefficient());
-  m_shock->Set_SpringRestLength(getSpringRestLength());
+  // m_shock->Set_SpringRestLength(getSpringRestLength());
   chassis->GetSystem()->AddLink(m_shock);
 
   // Save initial relative position of marker 1 of the tierod distance link,
@@ -320,5 +321,14 @@ void ChDoubleWishbone::ApplySteering(double displ)
   m_distTierod->SetEndPoint1Rel(r_bar);
 }
 
+
+double ChDoubleWishbone::GetSpringForce(){
+	return  m_shock->Get_SpringReact();
+}
+
+double ChDoubleWishbone::GetSpringLen(){
+	double springLen = (m_shock->GetMarker1()->GetAbsCoord().pos - m_shock->GetMarker2()->GetAbsCoord().pos ).Length();
+	return springLen;
+}
 
 } // end namespace chrono

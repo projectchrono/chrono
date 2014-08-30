@@ -52,6 +52,10 @@ public:
 
   virtual void ApplySteering(double displ);
 
+	// for checking shock info during sim
+	double GetSpringForce();
+	double GetSpringLen();
+
 protected:
 
   enum PointId {
