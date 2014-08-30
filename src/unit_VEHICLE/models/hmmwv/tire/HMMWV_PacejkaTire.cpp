@@ -9,38 +9,43 @@
 // http://projectchrono.org/license-chrono.txt.
 //
 // =============================================================================
-// Authors: Radu Serban
-// =============================================================================
-//
-// HMMWV wheel subsystem
-//
+// Authors: Justin Madsen
 // =============================================================================
 
+#include "utils/ChUtilsData.h"
 
-#include "HMMWV_RigidTire.h"
-
-using namespace chrono;
+#include "models/hmmwv/tire/HMMWV_PacejkaTire.h"
 
 namespace hmmwv {
+
+using namespace chrono;
 
 // -----------------------------------------------------------------------------
 // Static variables
 // -----------------------------------------------------------------------------
-
-static const double in2m = 0.0254;
-
-const double HMMWV_RigidTire::m_radius = 18.5 * in2m;
-const double HMMWV_RigidTire::m_width = 10 * in2m;
+const std::string HMMWV_PacejkaTire::m_defaultOutFilename = "PacTire";
+const std::string HMMWV_PacejkaTire::m_defaultPacTireParamFile = utils::GetModelDataFile("hmmwv/pactest.tir");
 
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-HMMWV_RigidTire::HMMWV_RigidTire(const ChTerrain& terrain,
-                                 float            mu)
-: ChRigidTire(terrain),
-  m_mu(mu)
+HMMWV_PacejkaTire::HMMWV_PacejkaTire(ChTerrain& terrain)
+: ChPacejkaTire(terrain, m_defaultPacTireParamFile)
+{
+}
+
+HMMWV_PacejkaTire::HMMWV_PacejkaTire(ChTerrain&         terrain,
+                                     const std::string& pacTire_paramFile)
+: ChPacejkaTire(terrain, pacTire_paramFile)
+{
+}
+
+// copy constructor, only right/left tyreside may be different
+HMMWV_PacejkaTire::HMMWV_PacejkaTire(const HMMWV_PacejkaTire& tire,
+                                     ChWheelId                which)
+: ChPacejkaTire(tire, which)
 {
 }
 
 
-} // end namespace hmmwv
+}  // end namespace hmmwv

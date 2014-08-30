@@ -16,8 +16,8 @@
 //
 // =============================================================================
 
-#ifndef HMMWV_LUGRETIRE_H
-#define HMMWV_LUGRETIRE_H
+#ifndef HMMWV_LUGRE_TIRE_H
+#define HMMWV_LUGRE_TIRE_H
 
 
 #include "subsys/tire/ChLugreTire.h"

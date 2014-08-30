@@ -17,7 +17,7 @@
 // =============================================================================
 
 
-#include "HMMWV_LugreTire.h"
+#include "models/hmmwv/tire/HMMWV_LugreTire.h"
 
 using namespace chrono;
 

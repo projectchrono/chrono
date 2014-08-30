@@ -15,31 +15,30 @@
 // Concrete class for using a pac tire model
 // =============================================================================
 
-#ifndef HMMWV9_PACTIRE_H
-#define HMMWV9_PACTIRE_H
+#ifndef HMMWV_PACEJKA_TIRE_H
+#define HMMWV_PACEJKA_TIRE_H
 
 #include "subsys/tire/ChPacejkaTire.h"
 
 namespace hmmwv {
 
 // @brief class that reads a ver3.0 pac2002 *.tire file upon init.
-//			calling update will calculate the current F_x, F_y and M_z
-class HMMWV9_PacTire : public chrono::ChPacejkaTire {
+// calling update will calculate the current F_x, F_y and M_z
+class HMMWV_PacejkaTire : public chrono::ChPacejkaTire {
 public:
 
   // @brief use the default input pacTire param file
-  HMMWV9_PacTire(chrono::ChTerrain& terrain);
+  HMMWV_PacejkaTire(chrono::ChTerrain& terrain);
 
   // @brief use the specified pactire param file
-	HMMWV9_PacTire(chrono::ChTerrain& terrain,
-		const std::string& m_pacTire_paramFile);
+ HMMWV_PacejkaTire(chrono::ChTerrain& terrain,
+                   const std::string& m_pacTire_paramFile);
 
-	// @brief if the tire paramter file is the same, only the tyreside will be different
-	HMMWV9_PacTire(const HMMWV9_PacTire& tire, chrono::ChWheelId which);
+  // @brief if the tire paramter file is the same, only the tyreside will be different
+  HMMWV_PacejkaTire(const HMMWV_PacejkaTire& tire,
+                    chrono::ChWheelId        which);
 
-protected:
-
-  // some default values
+private:
   static const std::string m_defaultOutFilename;
   static const std::string m_defaultPacTireParamFile;
 

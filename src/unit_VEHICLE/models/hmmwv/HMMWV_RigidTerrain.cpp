@@ -22,7 +22,7 @@
 
 #include "utils/ChUtilsCreators.h"
 
-#include "HMMWV_RigidTerrain.h"
+#include "models/hmmwv/HMMWV_RigidTerrain.h"
 
 using namespace chrono;
 

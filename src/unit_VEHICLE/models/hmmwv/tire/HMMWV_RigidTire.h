@@ -16,8 +16,8 @@
 //
 // =============================================================================
 
-#ifndef HMMWV_RIGIDTIRE_H
-#define HMMWV_RIGIDTIRE_H
+#ifndef HMMWV_RIGID_TIRE_H
+#define HMMWV_RIGID_TIRE_H
 
 
 #include "subsys/tire/ChRigidTire.h"

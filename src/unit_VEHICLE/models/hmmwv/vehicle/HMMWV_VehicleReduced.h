@@ -9,27 +9,26 @@
 // http://projectchrono.org/license-chrono.txt.
 //
 // =============================================================================
-// Authors: Radu Serban, Justin Madsen, Daniel Melanz
+// Authors: Radu Serban, Justin Madsen
 // =============================================================================
 //
-// HMMWV full vehicle model...
+// HMMWV 9-body vehicle model...
 //
 // =============================================================================
 
-#ifndef HMMWV_VEHICLE_H
-#define HMMWV_VEHICLE_H
+#ifndef HMMWV_VEHICLE_REDUCED_H
+#define HMMWV_VEHICLE_REDUCED_H
 
 #include "core/ChCoordsys.h"
 #include "physics/ChSystem.h"
 
 #include "subsys/ChVehicle.h"
 
-#include "HMMWV_DoubleWishbone.h"
-
-#include "../hmmwv_common/HMMWV.h"
-#include "../hmmwv_common/HMMWV_Wheel.h"
-#include "../hmmwv_common/HMMWV_SimplePowertrain.h"
-#include "../hmmwv_common/HMMWV_Powertrain.h"
+#include "models/hmmwv/HMMWV.h"
+#include "models/hmmwv/HMMWV_Wheel.h"
+#include "models/hmmwv/suspension/HMMWV_DoubleWishboneReduced.h"
+#include "models/hmmwv/powertrain/HMMWV_SimplePowertrain.h"
+#include "models/hmmwv/powertrain/HMMWV_Powertrain.h"
 
 namespace hmmwv {
 
@@ -37,14 +36,14 @@ namespace hmmwv {
 class HMMWV_SimplePowertrain;
 class HMMWV_Powertrain;
 
-class HMMWV_Vehicle : public chrono::ChVehicle {
+class HMMWV_VehicleReduced : public chrono::ChVehicle {
 public:
 
-  HMMWV_Vehicle(const bool                   fixed = false,
-                VisualizationType            chassisVis = NONE,
-                VisualizationType            wheelVis = PRIMITIVES);
+  HMMWV_VehicleReduced(const bool            fixed = false,
+                       VisualizationType     chassisVis = NONE,
+                       VisualizationType     wheelVis = PRIMITIVES);
 
-  ~HMMWV_Vehicle();
+  ~HMMWV_VehicleReduced();
 
   virtual chrono::ChSharedBodyPtr GetWheelBody(chrono::ChWheelId which) const;
 
@@ -62,15 +61,12 @@ public:
 
   static void ExportMeshPovray(const std::string& out_dir);
 
-	void CheckShocks(const size_t step_num, const double simTime);
-
-
 private:
 
-  chrono::ChSharedPtr<HMMWV_DoubleWishboneFront>   m_front_right_susp;
-  chrono::ChSharedPtr<HMMWV_DoubleWishboneFront>   m_front_left_susp;
-  chrono::ChSharedPtr<HMMWV_DoubleWishboneRear>    m_rear_right_susp;
-  chrono::ChSharedPtr<HMMWV_DoubleWishboneRear>    m_rear_left_susp;
+  chrono::ChSharedPtr<HMMWV_DoubleWishboneReducedFront>   m_front_right_susp;
+  chrono::ChSharedPtr<HMMWV_DoubleWishboneReducedFront>   m_front_left_susp;
+  chrono::ChSharedPtr<HMMWV_DoubleWishboneReducedRear>    m_rear_right_susp;
+  chrono::ChSharedPtr<HMMWV_DoubleWishboneReducedRear>    m_rear_left_susp;
 
   chrono::ChSharedPtr<HMMWV_Wheel> m_front_right_wheel;
   chrono::ChSharedPtr<HMMWV_Wheel> m_front_left_wheel;
@@ -87,10 +83,6 @@ private:
   // Chassis mass properties
   static const double  m_chassisMass;
   static const chrono::ChVector<>  m_chassisInertia;
-
-	// debugging spring/shock values
-	double GetSpringForce(chrono::ChWheelId which);
-	double GetSpringLength(chrono::ChWheelId which);
 };
 
 

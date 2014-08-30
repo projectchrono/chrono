@@ -12,34 +12,34 @@
 // Authors: Radu Serban
 // =============================================================================
 //
+// HMMWV wheel subsystem
 //
 // =============================================================================
 
-#include "HMMWV_FuncDriver.h"
+
+#include "models/hmmwv/tire/HMMWV_RigidTire.h"
 
 using namespace chrono;
 
 namespace hmmwv {
 
 // -----------------------------------------------------------------------------
+// Static variables
 // -----------------------------------------------------------------------------
-void HMMWV_FuncDriver::Update(double time)
-{
-  if (time < 0.5)
-    m_throttle = 0;
-  else if (time < 1.5)
-    m_throttle = 0.4 * (time - 0.5);
-  else
-    m_throttle = 0.4;
 
-  if (time < 4)
-    m_steering = 0;
-  else if (time < 6)
-    m_steering = 0.25 * (time - 4);
-  else if (time < 10)
-    m_steering = -0.25 * (time - 6) + 0.5;
-  else
-    m_steering = -0.5;
+static const double in2m = 0.0254;
+
+const double HMMWV_RigidTire::m_radius = 18.5 * in2m;
+const double HMMWV_RigidTire::m_width = 10 * in2m;
+
+
+// -----------------------------------------------------------------------------
+// -----------------------------------------------------------------------------
+HMMWV_RigidTire::HMMWV_RigidTire(const ChTerrain& terrain,
+                                 float            mu)
+: ChRigidTire(terrain),
+  m_mu(mu)
+{
 }
 
 

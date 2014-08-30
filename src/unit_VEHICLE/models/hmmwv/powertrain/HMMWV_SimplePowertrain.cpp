@@ -19,7 +19,7 @@
 //
 // =============================================================================
 
-#include "HMMWV_SimplePowertrain.h"
+#include "models/hmmwv/powertrain/HMMWV_SimplePowertrain.h"
 
 using namespace chrono;
 
