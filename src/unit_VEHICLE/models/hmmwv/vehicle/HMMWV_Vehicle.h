@@ -61,7 +61,7 @@ public:
 
   static void ExportMeshPovray(const std::string& out_dir);
 
-  void CheckShocks(const size_t step_num, const double simTime);
+  void CheckShocks(const double time);
 
 private:
 
