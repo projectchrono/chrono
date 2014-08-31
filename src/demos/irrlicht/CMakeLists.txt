@@ -26,6 +26,7 @@ SET(DEMOS
   demo_collisionDEM
   demo_emitter
   demo_emit_cluster
+  demo_emit_processor
   demo_aux_ref
 )
 

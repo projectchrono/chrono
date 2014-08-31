@@ -16,6 +16,8 @@
 //
 //     - using the ChParticleEmitter to create flows
 //       of random shapes 
+//     - use a ChParticleRemover to remove particles outside a volume
+//     - use a ChParticleProcessor to compute mass flow etc.
 //     - use Irrlicht to display objects.
 // 
 //  
@@ -63,13 +65,13 @@ int main(int argc, char* argv[])
 
 	// Create the Irrlicht visualization (open the Irrlicht device, 
 	// bind a simple user interface, etc. etc.)
-	ChIrrApp application(&mphysicalSystem, L"Particle emitter",core::dimension2d<u32>(800,600),false);
+	ChIrrApp application(&mphysicalSystem, L"Particle emitter, remover, processor",core::dimension2d<u32>(800,600),false);
 
 	// Easy shortcuts to add camera, lights, logo and sky in Irrlicht scene:
 	ChIrrWizard::add_typical_Logo(application.GetDevice());
 	ChIrrWizard::add_typical_Sky(application.GetDevice());
 	ChIrrWizard::add_typical_Lights(application.GetDevice());
-	ChIrrWizard::add_typical_Camera(application.GetDevice(), core::vector3df(5,7,-10));
+	ChIrrWizard::add_typical_Camera(application.GetDevice(), core::vector3df(0,7,-10));
 
  
 	//
@@ -117,13 +119,11 @@ int main(int argc, char* argv[])
 	emitter_positions->Outlet() = ChCoordsys<>( ChVector<>(0,3,0), Q_from_AngAxis(CH_C_PI_2,VECT_X) ); // center and alignment of the outlet
 	emitter_positions->OutletWidth() = 3.0;  
 	emitter_positions->OutletHeight() = 4.5; 
-
 	emitter.SetParticlePositioner(emitter_positions);
 
 
 	// ---Initialize the randomizer for alignments
 	ChSharedPtr<ChRandomParticleAlignmentUniform> emitter_rotations (new ChRandomParticleAlignmentUniform);
-
 	emitter.SetParticleAligner(emitter_rotations);
 	
 
@@ -137,15 +137,36 @@ int main(int argc, char* argv[])
 
 	// ---Initialize the randomizer for creations, with statistical distribution
 
+	 // Create a ChRandomShapeCreator object (ex. here for sphere particles)
+	ChSharedPtr<ChRandomShapeCreatorSpheres> mcreator_metal(new ChRandomShapeCreatorSpheres);
+	mcreator_metal->SetDiameterDistribution( ChSmartPtr<ChMinMaxDistribution>  (new ChMinMaxDistribution(0.2, 0.6)) );
+	mcreator_metal->SetDensityDistribution ( ChSmartPtr<ChConstantDistribution>(new ChConstantDistribution(1600)) );
+
+	 // Optional: define a callback to be exectuted at each creation of a sphere particle:
+	class MyCreator_metal : public ChCallbackPostCreation
+	{
+		// Here do custom stuff on the just-created particle:
+		public: virtual void PostCreation(ChSharedPtr<ChBody> mbody, ChCoordsys<> mcoords, ChRandomShapeCreator& mcreator)
+		{
+			  // Ex.: attach some optional assets, ex for visualization 
+			ChSharedPtr<ChColorAsset> mvisual(new ChColorAsset);
+			mvisual->SetColor(ChColor(0.9f,(float)ChRandom(),0.0f));
+			mbody->AddAsset(mvisual);
+		}
+	};
+	MyCreator_metal* callback_metal = new MyCreator_metal;
+	mcreator_metal->SetCallbackPostCreation(callback_metal);
+
+
 	 // Create a ChRandomShapeCreator object (ex. here for box particles)
-	ChSharedPtr<ChRandomShapeCreatorBoxes> mcreator_boxes(new ChRandomShapeCreatorBoxes);
-	mcreator_boxes->SetXsizeDistribution      ( ChSmartPtr<ChZhangDistribution>   (new ChZhangDistribution(0.5,0.2)) ); // Zhang parameters: average val, min val. 
-	mcreator_boxes->SetSizeRatioZDistribution ( ChSmartPtr<ChMinMaxDistribution>  (new ChMinMaxDistribution(0.2, 1.0)) );
-	mcreator_boxes->SetSizeRatioYZDistribution( ChSmartPtr<ChMinMaxDistribution>  (new ChMinMaxDistribution(0.4, 1.0)) );
-	mcreator_boxes->SetDensityDistribution    ( ChSmartPtr<ChConstantDistribution>(new ChConstantDistribution(1000)) );
+	ChSharedPtr<ChRandomShapeCreatorBoxes> mcreator_plastic(new ChRandomShapeCreatorBoxes);
+	mcreator_plastic->SetXsizeDistribution      ( ChSmartPtr<ChZhangDistribution>   (new ChZhangDistribution(0.5,0.2)) ); // Zhang parameters: average val, min val. 
+	mcreator_plastic->SetSizeRatioZDistribution ( ChSmartPtr<ChMinMaxDistribution>  (new ChMinMaxDistribution(0.2, 1.0)) );
+	mcreator_plastic->SetSizeRatioYZDistribution( ChSmartPtr<ChMinMaxDistribution>  (new ChMinMaxDistribution(0.4, 1.0)) );
+	mcreator_plastic->SetDensityDistribution    ( ChSmartPtr<ChConstantDistribution>(new ChConstantDistribution(1000)) );
 
 	 // Optional: define a callback to be exectuted at each creation of a box particle:
-	class MyCreator_boxes : public ChCallbackPostCreation
+	class MyCreator_plastic : public ChCallbackPostCreation
 	{
 		// Here do custom stuff on the just-created particle:
 		public: virtual void PostCreation(ChSharedPtr<ChBody> mbody, ChCoordsys<> mcoords, ChRandomShapeCreator& mcreator)
@@ -156,12 +177,19 @@ int main(int argc, char* argv[])
 			mbody->AddAsset(mvisual);
 		}
 	};
-	MyCreator_boxes* callback_boxes = new MyCreator_boxes;
-	mcreator_boxes->SetCallbackPostCreation(callback_boxes);
+	MyCreator_plastic* callback_plastic = new MyCreator_plastic;
+	mcreator_plastic->SetCallbackPostCreation(callback_plastic);
+
+
+	 // Create a parent ChRandomShapeCreator that 'mixes' the two generators above,
+	 // mixing them with a given percentual:
+	ChSharedPtr<ChRandomShapeCreatorFromFamilies> mcreatorTot(new ChRandomShapeCreatorFromFamilies);
+	mcreatorTot->AddFamily(mcreator_metal,   0.4);	// 1st creator family, with percentual
+	mcreatorTot->AddFamily(mcreator_plastic, 0.4);	// 2nd creator family, with percentual
+	mcreatorTot->Setup();
 
 	 // Finally, tell to the emitter that it must use the 'mixer' above:
-	emitter.SetParticleCreator(mcreator_boxes);
-
+	emitter.SetParticleCreator(mcreatorTot);
 
 
 	// --- Optional: what to do by default on ALL newly created particles? 
@@ -191,6 +219,29 @@ int main(int argc, char* argv[])
 
 
 
+	// Create the remover, i.e. an object that takes care 
+	// of removing particles that are inside or outside some volume.
+	// The fact that particles are handled with shared pointers means that,
+	// after they are removed from the ChSystem, they are also automatically
+	// deleted if no one else is referencing them.
+
+	ChParticleRemoverBox remover;
+	remover.SetRemoveOutside(true);
+	remover.GetBox().Pos = ChVector<>(0,0,0);
+	remover.GetBox().SetLengths( ChVector<>(5,20,5) );
+
+	// Test also a ChParticleProcessor configured as a
+	// counter of particles that flow into a rectangle:
+	//  -create the trigger:
+	ChSharedPtr<ChParticleEventFlowInRectangle> rectangleflow (new ChParticleEventFlowInRectangle(8,8));
+	rectangleflow->rectangle_csys = ChCoordsys<>( ChVector<>(0,2,0), Q_from_AngAxis(-CH_C_PI_2,VECT_X) ); // center and alignment of rectangle
+	rectangleflow->margin = 1;
+	//  -create the counter:
+	ChSharedPtr<ChParticleProcessEventCount> counter (new ChParticleProcessEventCount);
+	//  -create the processor and plug in the trigger and the counter:
+	ChParticleProcessor processor_flowcount;
+	processor_flowcount.SetEventTrigger(rectangleflow);
+	processor_flowcount.SetParticleEventProcessor(counter);
 
 
 
@@ -222,6 +273,13 @@ int main(int argc, char* argv[])
 		
 		// Continuosly create particle flow:
 		emitter.EmitParticles(mphysicalSystem, application.GetTimestep());
+
+		// Continuosly check if some particle must be removed:
+		remover.ProcessParticles(mphysicalSystem);
+
+		// Use the processor to count particle flow in the rectangle section:
+		processor_flowcount.ProcessParticles(mphysicalSystem);
+		GetLog() << "Particles being flown across rectangle:" << counter->counter << "\n";
 
 		application.DoStep();	
 
