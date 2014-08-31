@@ -54,10 +54,10 @@ uint ChSolverAPGD::SolveAPGD(const uint max_iter,const uint size,const custom_ve
 
    bool verbose = false;
    real lastgoodres = 10e30;
-   real theta_k = init_theta_k;
-   real theta_k1 = theta_k;
+   real theta_k = 1.0;
+   real theta_k1 = 0;
    real beta_k1 = 0.0;
-   //custom_vector<real> x_initial =x;
+
 
    ml = x;
 

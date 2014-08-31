@@ -241,10 +241,10 @@ uint ChSolverAPGDRS::SolveAPGDRS(const uint max_iter,
       if (tol_objective) {
          if (maxdeltalambda <= tolerance) {
             break;
-         } else if (delta_obj < 1e-8) {
+         } //else if (delta_obj < 1e-12) {
             //cout << "convergence stagnated" << endl;
-            break;
-         }
+         //   break;
+         //}
       } else {
          if (residual < tolerance) {
             break;
