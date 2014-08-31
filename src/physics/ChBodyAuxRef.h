@@ -79,7 +79,7 @@ public:
         /// to the absolute system.
         /// In this ChBodyAuxRef class, differently form ChBody, this is
         /// not necessarily the same reference of GetFrame_COG_to_abs().
-  virtual const ChFrame<>& GetFrame_REF_to_abs() const {return auxref_to_abs;}
+  virtual const ChFrameMoving<>& GetFrame_REF_to_abs() const {return auxref_to_abs;}
 
         /// Update all auxiliary data of the rigid body and of
         /// its children (markers, forces..)
