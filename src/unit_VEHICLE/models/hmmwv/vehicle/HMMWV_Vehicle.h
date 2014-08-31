@@ -53,6 +53,9 @@ public:
   virtual chrono::ChVector<> GetWheelAngVel(chrono::ChWheelId which) const;
   virtual double GetWheelOmega(chrono::ChWheelId which) const;
 
+  double GetSpringForce(chrono::ChWheelId which);
+  double GetSpringLength(chrono::ChWheelId which);
+
   virtual void Initialize(const chrono::ChCoordsys<>& chassisPos);
   virtual void Update(double                      time,
                       double                      throttle,
@@ -61,13 +64,10 @@ public:
 
   static void ExportMeshPovray(const std::string& out_dir);
 
-  void CheckShocks(const double time);
+  // Log debugging information (shocks, constraints, etc.)
+  void DebugLog(int what);
 
 private:
-
-  // debugging spring/shock values
-  double GetSpringForce(chrono::ChWheelId which);
-  double GetSpringLength(chrono::ChWheelId which);
 
   chrono::ChSharedPtr<HMMWV_DoubleWishboneFront>   m_front_right_susp;
   chrono::ChSharedPtr<HMMWV_DoubleWishboneFront>   m_front_left_susp;

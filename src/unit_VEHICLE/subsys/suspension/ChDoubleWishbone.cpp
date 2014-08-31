@@ -214,6 +214,75 @@ ChDoubleWishbone::Initialize(ChSharedBodyPtr   chassis,
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
+double ChDoubleWishbone::GetSpringForce()
+{
+  return  m_shock->Get_SpringReact();
+}
+
+double ChDoubleWishbone::GetSpringLen()
+{
+  return (m_shock->GetMarker1()->GetAbsCoord().pos - m_shock->GetMarker2()->GetAbsCoord().pos).Length();
+}
+
+
+// -----------------------------------------------------------------------------
+// -----------------------------------------------------------------------------
+void ChDoubleWishbone::LogConstraintViolations()
+{
+  // Revolute joints
+  {
+    ChMatrix<>* C = m_revoluteLCA->GetC();
+    GetLog() << "LCA revolute\n";
+    GetLog() << "  " << C->GetElement(0, 0) << "\n";
+    GetLog() << "  " << C->GetElement(1, 0) << "\n";
+    GetLog() << "  " << C->GetElement(2, 0) << "\n";
+    GetLog() << "  " << C->GetElement(3, 0) << "\n";
+    GetLog() << "  " << C->GetElement(4, 0) << "\n";
+  }
+  {
+    ChMatrix<>* C = m_revoluteUCA->GetC();
+    GetLog() << "UCA revolute\n";
+    GetLog() << "  " << C->GetElement(0, 0) << "\n";
+    GetLog() << "  " << C->GetElement(1, 0) << "\n";
+    GetLog() << "  " << C->GetElement(2, 0) << "\n";
+    GetLog() << "  " << C->GetElement(3, 0) << "\n";
+    GetLog() << "  " << C->GetElement(4, 0) << "\n";
+  }
+  {
+    ChMatrix<>* C = m_revolute->GetC();
+    GetLog() << "Spindle revolute\n";
+    GetLog() << "  " << C->GetElement(0, 0) << "\n";
+    GetLog() << "  " << C->GetElement(1, 0) << "\n";
+    GetLog() << "  " << C->GetElement(2, 0) << "\n";
+    GetLog() << "  " << C->GetElement(3, 0) << "\n";
+    GetLog() << "  " << C->GetElement(4, 0) << "\n";
+  }
+
+  // Spherical joints
+  {
+    ChMatrix<>* C = m_sphericalLCA->GetC();
+    GetLog() << "LCA spherical\n";
+    GetLog() << "  " << C->GetElement(0, 0) << "\n";
+    GetLog() << "  " << C->GetElement(1, 0) << "\n";
+    GetLog() << "  " << C->GetElement(2, 0) << "\n";
+  }
+  {
+    ChMatrix<>* C = m_sphericalUCA->GetC();
+    GetLog() << "UCA spherical\n";
+    GetLog() << "  " << C->GetElement(0, 0) << "\n";
+    GetLog() << "  " << C->GetElement(1, 0) << "\n";
+    GetLog() << "  " << C->GetElement(2, 0) << "\n";
+  }
+
+  // Distance constraint
+  GetLog() << "Tierod distance\n";
+  GetLog() << "  " << m_distTierod->GetCurrentDistance() - m_distTierod->GetImposedDistance() << "\n";
+
+}
+
+
+// -----------------------------------------------------------------------------
+// -----------------------------------------------------------------------------
 void ChDoubleWishbone::AddVisualizationLCA()
 {
   // Express hardpoint locations in body frame.
@@ -321,14 +390,5 @@ void ChDoubleWishbone::ApplySteering(double displ)
   m_distTierod->SetEndPoint1Rel(r_bar);
 }
 
-
-double ChDoubleWishbone::GetSpringForce(){
-	return  m_shock->Get_SpringReact();
-}
-
-double ChDoubleWishbone::GetSpringLen(){
-	double springLen = (m_shock->GetMarker1()->GetAbsCoord().pos - m_shock->GetMarker2()->GetAbsCoord().pos ).Length();
-	return springLen;
-}
 
 } // end namespace chrono

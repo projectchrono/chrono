@@ -279,40 +279,61 @@ void HMMWV_Vehicle::ExportMeshPovray(const std::string& out_dir)
 
 
 // -----------------------------------------------------------------------------
-// Log the spring error, force, and length at design
+// Log the spring error, force, and length at design.
+// Log constraint violations of suspension joints.
 // -----------------------------------------------------------------------------
-void HMMWV_Vehicle::CheckShocks(const double time)
+void HMMWV_Vehicle::DebugLog(int what)
 {
-  // spring forces, front left & right (lbs)
-  double springF_FL = GetSpringForce(FRONT_LEFT) / 4.45;       // design = 3491 lb.
-  double springF_FR = GetSpringForce(FRONT_RIGHT) / 4.45;      // design = 3491 lb.
-  // spring forces, back left & right (lbs)
-  double springF_RL = GetSpringForce(REAR_LEFT) / 4.45;        // design = 6388 lb.
-  double springF_RR = GetSpringForce(REAR_RIGHT) / 4.45;       // design = 6388 lb.
+  if (what & DBG_SHOCKS)
+  {
+    // spring forces, front left & right (lbs)
+    double springF_FL = GetSpringForce(FRONT_LEFT) / 4.45;       // design = 3491 lb.
+    double springF_FR = GetSpringForce(FRONT_RIGHT) / 4.45;      // design = 3491 lb.
+    // spring forces, back left & right (lbs)
+    double springF_RL = GetSpringForce(REAR_LEFT) / 4.45;        // design = 6388 lb.
+    double springF_RR = GetSpringForce(REAR_RIGHT) / 4.45;       // design = 6388 lb.
 
-  // spring lengths, front left & right (inches)
-  double springLen_FL = GetSpringLength(FRONT_LEFT)*39.37;   // design = 9.7" + 4.65"
-  double springLen_FR = GetSpringLength(FRONT_RIGHT)*39.37;  // design = 9.7" + 4.65
-  // spring lengths, rear left & right (inches)
-  double springLen_RL = GetSpringLength(REAR_LEFT)*39.37;    // design = 12.0" + 2.35"
-  double springLen_RR = GetSpringLength(REAR_RIGHT)*39.37;   // design = 12.0" + 2.35"
+    // spring lengths, front left & right (inches)
+    double springLen_FL = GetSpringLength(FRONT_LEFT) * 39.37;   // design = 9.7" + 4.65"
+    double springLen_FR = GetSpringLength(FRONT_RIGHT) * 39.37;  // design = 9.7" + 4.65
+    // spring lengths, rear left & right (inches)
+    double springLen_RL = GetSpringLength(REAR_LEFT) * 39.37;    // design = 12.0" + 2.35"
+    double springLen_RR = GetSpringLength(REAR_RIGHT) * 39.37;   // design = 12.0" + 2.35"
 
-  // springs are mounted at shock points, add the distance between top shock and spring hardpoints
-  double dl_F = 9.7 + 4.65;
-  double dl_R = 12.0 + 2.35;
+    // springs are mounted at shock points, add the distance between top shock
+    // and spring hardpoints
+    double dl_F = 9.7 + 4.65;
+    double dl_R = 12.0 + 2.35;
 
-  GetLog() << " \n ---- Spring, Shock info, time = " << time <<
-    "    ---- \n Forces [lbs.]: \nFL= " <<
-    springF_FL << "\nFR= " << springF_FR << "\nRL= " << springF_RL << "\nRR= " <<
-    springF_RR << "\n\n Lengths [inches]: \nFL= " << springLen_FL << "\nFR= " <<
-    springLen_FR << "\nRL= " << springLen_RL << "\nRR= " << springLen_RR << "\n\n";
+    GetLog() << "---- Spring, Shock info\n";
+    GetLog() << "Forces[lbs.]:"
+      << "\n  FL = " << springF_FL << "\n  FR= " << springF_FR
+      << "\n  RL= " << springF_RL << "\n  RR= " << springF_RR << "\n\n";
+    GetLog() << "Lengths[inches]:"
+      << "\n  FL = " << springLen_FL << "\n  FR = " << springLen_FR
+      << "\n  RL= " << springLen_RL << "\n  RR= " << springLen_RR << "\n\n";
 
-  GetLog() << " ***** Spring Force, length error relative to design \n Force ERROR[lbs.]: \nFL= " <<
-    springF_FL - 3491.0 << "\nFR= " << springF_FR - 3491.0 << "\nRL= " <<
-    springF_RL - 6388.0 << "\nRR= " << springF_RR - 6388 <<
-    "\n\n Length ERROR [inches]: \nFL= " << springLen_FL - dl_F << "\nFR= " <<
-    springLen_FR - dl_F << "\nRL= " << springLen_RL - dl_R << "\nRR= " <<
-    springLen_RR - dl_R << "\n\n";
+    GetLog() << "---- Spring Force, length error relative to design \n";
+    GetLog() << "Force ERROR[lbs.]:"
+      << "\n  FL = " << springF_FL - 3491.0 << "\n  FR= " << springF_FR - 3491.0
+      << "\n  RL= " << springF_RL - 6388.0 << "\n  RR= " << springF_RR - 6388 << "\n\n";
+    GetLog() << "Length ERROR [inches]:"
+      << "\n  FL= " << springLen_FL - dl_F << "\n  FR= " << springLen_FR - dl_F
+      << "\n  RL= " << springLen_RL - dl_R << "\n  RR= " << springLen_RR - dl_R << "\n\n";
+  }
+
+  if (what & DBG_CONSTRAINTS)
+  {
+    // Report constraint violations for the suspension joints
+    GetLog() << "\n---- FRONT-RIGHT suspension constraint violation\n\n";
+    m_front_right_susp->LogConstraintViolations();
+    GetLog() << "\n---- FRONT-LEFT suspension constraint violation\n\n";
+    m_front_left_susp->LogConstraintViolations();
+    GetLog() << "\n---- REAR-RIGHT suspension constraint violation\n\n";
+    m_rear_right_susp->LogConstraintViolations();
+    GetLog() << "\n---- REAR-LEFT suspension constraint violation\n\n";
+    m_rear_left_susp->LogConstraintViolations();
+  }
 }
 
 double HMMWV_Vehicle::GetSpringForce(chrono::ChWheelId which){

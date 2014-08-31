@@ -33,6 +33,10 @@ enum TireModelType {
   LUGRE
 };
 
+enum DebugInformation {
+  DBG_SHOCKS      = 1 << 0,
+  DBG_CONSTRAINTS = 1 << 1
+};
 
 } // end namespace hmmwv
 

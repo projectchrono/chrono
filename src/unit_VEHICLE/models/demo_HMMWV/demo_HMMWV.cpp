@@ -49,7 +49,7 @@
 #endif
 
 // DEBUGGING:  Uncomment the following line to print shock data
-//#define CHECK_SHOCKS
+//#define DEBUG_LOG
 
 
 using namespace chrono;
@@ -147,15 +147,17 @@ int main(int argc, char* argv[])
 
   if (!do_shadows)
   {
-    application.AddTypicalLights(irr::core::vector3df(30.f, -30.f,  100.f),
-                                irr::core::vector3df(30.f,  50.f,  100.f),
-                                250, 130);
+    application.AddTypicalLights(
+      irr::core::vector3df(30.f, -30.f, 100.f),
+      irr::core::vector3df(30.f, 50.f, 100.f),
+      250, 130);
   }
   else
   {
-	mlight = application.AddLightWithShadow(irr::core::vector3df(10.f,   30.f,  60.f), 
-								   irr::core::vector3df(0.f,   0.f,  0.f), 
-								   150, 60,80, 15, 512, irr::video::SColorf(1,1,1),false,false);
+    mlight = application.AddLightWithShadow(
+      irr::core::vector3df(10.f, 30.f, 60.f),
+      irr::core::vector3df(0.f, 0.f, 0.f),
+      150, 60, 80, 15, 512, irr::video::SColorf(1, 1, 1), false, false);
   }
 
   application.SetTimestep(step_size);
@@ -204,16 +206,16 @@ int main(int argc, char* argv[])
   while (application.GetDevice()->run())
   {
     // update the position of the shadow mapping so that it follows the car
-	if (do_shadows)
-	{
-		ChVector<> lightaim = vehicle.GetChassisPos();
-		ChVector<> lightpos = vehicle.GetChassisPos() + ChVector<>(10,30,60);
-		irr::core::vector3df mlightpos( lightpos.x, lightpos.y, lightpos.z);
-		irr::core::vector3df mlightaim( lightaim.x, lightaim.y, lightaim.z);
-		application.GetEffects()->getShadowLight(0).setPosition(mlightpos);
-		application.GetEffects()->getShadowLight(0).setTarget(mlightaim);
-		mlight->setPosition(mlightpos);
-	}
+    if (do_shadows)
+    {
+      ChVector<> lightaim = vehicle.GetChassisPos();
+      ChVector<> lightpos = vehicle.GetChassisPos() + ChVector<>(10, 30, 60);
+      irr::core::vector3df mlightpos((irr::f32)lightpos.x, (irr::f32)lightpos.y, (irr::f32)lightpos.z);
+      irr::core::vector3df mlightaim((irr::f32)lightaim.x, (irr::f32)lightaim.y, (irr::f32)lightaim.z);
+      application.GetEffects()->getShadowLight(0).setPosition(mlightpos);
+      application.GetEffects()->getShadowLight(0).setTarget(mlightaim);
+      mlight->setPosition(mlightpos);
+    }
 
     // Render scene
     if (step_number % render_steps == 0) {
@@ -222,9 +224,12 @@ int main(int argc, char* argv[])
       application.GetVideoDriver()->endScene();
     }
 
-#ifdef CHECK_SHOCKS
-    if (step_number % output_steps == 0)
-      vehicle.CheckShocks(time);
+#ifdef DEBUG_LOG
+    if (step_number % output_steps == 0) {
+      GetLog() << "\n\n============ System Information ============\n";
+      GetLog() << "Time = " << time << "\n\n";
+      vehicle.DebugLog(DBG_SHOCKS | DBG_CONSTRAINTS);
+    }
 #endif
 
     // Update modules (inter-module communication)

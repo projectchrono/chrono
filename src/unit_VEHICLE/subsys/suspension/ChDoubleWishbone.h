@@ -43,8 +43,8 @@ class CH_SUBSYS_API ChDoubleWishbone : public ChSuspension
 public:
 
   ChDoubleWishbone(const std::string& name,
-                          ChSuspension::Side side,
-                          bool               driven = false);
+                   ChSuspension::Side side,
+                   bool               driven = false);
   virtual ~ChDoubleWishbone() {}
 
   virtual void Initialize(ChSharedBodyPtr   chassis,
@@ -52,9 +52,10 @@ public:
 
   virtual void ApplySteering(double displ);
 
-	// for checking shock info during sim
-	double GetSpringForce();
-	double GetSpringLen();
+  double GetSpringForce();
+  double GetSpringLen();
+
+  void LogConstraintViolations();
 
 protected:
 
