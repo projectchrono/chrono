@@ -121,7 +121,7 @@ class CHRONO_ALIGN_16 real3 {
       return sqrt(x * x + y * y + z * z);
    }
    inline real rlength() const {
-      return real(1.0) / sqrt(x * x + y * y + z * z);
+      return real(1.0) / length();
    }
    inline real3 normalize() const {
       return real3(x, y, z) * rlength();
