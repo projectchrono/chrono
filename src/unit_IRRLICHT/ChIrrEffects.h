@@ -1769,6 +1769,8 @@ void EffectHandler::update(video::ITexture* outputTarget)
 	if(shadowsUnsupported || smgr->getActiveCamera() == 0)
 		return;
 	
+	this->smgr->getRootSceneNode()->OnAnimate(device->getTimer()->getTime());
+
 	if(!ShadowNodeArray.empty() && !LightList.empty())
 	{
 		driver->setRenderTarget(ScreenQuad.rt[0], true, true, AmbientColour);
