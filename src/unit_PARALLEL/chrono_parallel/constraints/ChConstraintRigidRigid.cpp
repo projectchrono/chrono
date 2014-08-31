@@ -3,28 +3,36 @@
 
 using namespace chrono;
 #define  _index_  index*6
-void chrono::Orthogonalize(
-      real3 &U,
-      real3 &V,
-      real3 &W) {
-   W = cross(U, R3(0, 1, 0));
-   real mzlen = length(W);
-   if (mzlen < .0001) {     // was near singularity? change singularity reference custom_vector!
-      real3 mVsingular = R3(1, 0, 0);
-      W = cross(U, mVsingular);
-      mzlen = length(W);
+void chrono::Orthogonalize(real3 &Vx,
+                           real3 &Vy,
+                           real3 &Vz) {
+
+//   if (U == R3(0)) {
+//      U = R3(0, 1, 0);
+//   } else {
+//      U = normalize(U);
+//   }
+   real3 mVsingular = R3(0, 1, 0);
+   Vz = cross(Vx, mVsingular);
+   real mzlen = Vz.length();
+
+   if (mzlen < real(0.0001)) {     // was near singularity? change singularity reference custom_vector!
+
+      mVsingular = R3(1, 0, 0);
+
+      Vz = cross(Vx, mVsingular);
+      mzlen = Vz.length();
    }
-   W /= mzlen;
-   V = cross(W, U);
+   Vz = Vz / mzlen;
+   Vy = cross(Vz, Vx);
 
 }
 
 //%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-bool Cone_generalized(
-      real & gamma_n,
-      real & gamma_u,
-      real & gamma_v,
-      const real & mu) {
+bool Cone_generalized(real & gamma_n,
+                      real & gamma_u,
+                      real & gamma_v,
+                      const real & mu) {
 
    real f_tang = sqrt(gamma_u * gamma_u + gamma_v * gamma_v);
 
@@ -51,10 +59,9 @@ bool Cone_generalized(
    return true;
 }
 
-void Cone_single(
-      real & gamma_n,
-      real & gamma_s,
-      const real & mu) {
+void Cone_single(real & gamma_n,
+                 real & gamma_s,
+                 const real & mu) {
 
    real f_tang = abs(gamma_s);
 
@@ -78,12 +85,11 @@ void Cone_single(
 
 }
 
-void func_Project(
-      int &index,
-      int2 *ids,
-      real3 *fric,
-      real* cohesion,
-      real *gam) {
+void func_Project(int &index,
+                  int2 *ids,
+                  real3 *fric,
+                  real* cohesion,
+                  real *gam) {
    int2 body_id = ids[index];
    real3 gamma;
    gamma.x = gam[_index_ + 0];
@@ -119,11 +125,10 @@ void func_Project(
    gam[_index_ + 2] = gamma.z;
 
 }
-void func_Project_rolling(
-      int &index,
-      int2 *ids,
-      real3 *fric,
-      real *gam) {
+void func_Project_rolling(int &index,
+                          int2 *ids,
+                          real3 *fric,
+                          real *gam) {
    //real3 gamma_roll = R3(0);
    int2 body_id = ids[index];
    real3 f_a = fric[body_id.x];
@@ -165,11 +170,10 @@ void func_Project_rolling(
 
 }
 
-void ChConstraintRigidRigid::host_Project(
-      int2 *ids,
-      real3 *friction,
-      real* cohesion,
-      real *gamma) {
+void ChConstraintRigidRigid::host_Project(int2 *ids,
+                                          real3 *friction,
+                                          real* cohesion,
+                                          real *gamma) {
    //always project normal
    if (solve_sliding) {
 #pragma omp parallel for
@@ -204,24 +208,21 @@ void ChConstraintRigidRigid::host_Project(
 }
 //%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-void ChConstraintRigidRigid::Project(
-      real* gamma) {
+void ChConstraintRigidRigid::Project(real* gamma) {
    host_Project(data_container->host_data.bids_rigid_rigid.data(), data_container->host_data.fric_data.data(), data_container->host_data.cohesion_data.data(), gamma);
 }
-void ChConstraintRigidRigid::Project_NoPar(
-      real* gamma) {
+void ChConstraintRigidRigid::Project_NoPar(real* gamma) {
    host_Project(data_container->host_data.bids_rigid_rigid.data(), data_container->host_data.fric_data.data(), data_container->host_data.cohesion_data.data(), gamma);
 }
 
-void chrono::Compute_Jacobian(
-      const real4& quat,
-      const real3& U,
-      const real3& V,
-      const real3& W,
-      const real3& point,
-      real3& T1,
-      real3& T2,
-      real3& T3) {
+void chrono::Compute_Jacobian(const real4& quat,
+                              const real3& U,
+                              const real3& V,
+                              const real3& W,
+                              const real3& point,
+                              real3& T1,
+                              real3& T2,
+                              real3& T3) {
    real4 quaternion_conjugate = ~quat;
 
    real3 sbar = quatRotate(point, quaternion_conjugate);
@@ -243,14 +244,13 @@ void chrono::Compute_Jacobian(
 
 }
 
-void chrono::Compute_Jacobian_Rolling(
-      const real4& quat,
-      const real3& U,
-      const real3& V,
-      const real3& W,
-      real3& T1,
-      real3& T2,
-      real3& T3) {
+void chrono::Compute_Jacobian_Rolling(const real4& quat,
+                                      const real3& U,
+                                      const real3& V,
+                                      const real3& W,
+                                      real3& T1,
+                                      real3& T2,
+                                      real3& T3) {
    real4 quaternion_conjugate = ~quat;
 
    T1 = quatRotate(U, quaternion_conjugate);
@@ -259,18 +259,17 @@ void chrono::Compute_Jacobian_Rolling(
 }
 
 //%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-void ChConstraintRigidRigid::host_RHS(
-      int2 *ids,
-      real *correction,
-      real alpha,
-      bool2 * active,
-      real3* norm,
-      real3 *vel,
-      real3 *omega,
-      real3 *ptA,
-      real3 *ptB,
-      real4 *rot,
-      real *rhs) {
+void ChConstraintRigidRigid::host_RHS(int2 *ids,
+                                      real *correction,
+                                      real alpha,
+                                      bool2 * active,
+                                      real3* norm,
+                                      real3 *vel,
+                                      real3 *omega,
+                                      real3 *ptA,
+                                      real3 *ptB,
+                                      real4 *rot,
+                                      real *rhs) {
 
 #pragma omp parallel for
    for (int index = 0; index < num_contacts; index++) {
@@ -317,18 +316,17 @@ void ChConstraintRigidRigid::host_RHS(
    }
 }
 
-void ChConstraintRigidRigid::host_ComputeS(
-      int2 *ids,
-      real3 *mu,
-      bool2 * active,
-      real3* norm,
-      real3 *vel,
-      real3 *omega,
-      real3 *ptA,
-      real3 *ptB,
-      real4 *rot,
-      const real *rhs,
-      real*b) {
+void ChConstraintRigidRigid::host_ComputeS(int2 *ids,
+                                           real3 *mu,
+                                           bool2 * active,
+                                           real3* norm,
+                                           real3 *vel,
+                                           real3 *omega,
+                                           real3 *ptA,
+                                           real3 *ptB,
+                                           real4 *rot,
+                                           const real *rhs,
+                                           real*b) {
 
 #pragma omp parallel for
    for (int index = 0; index < num_contacts; index++) {
@@ -370,13 +368,12 @@ void ChConstraintRigidRigid::host_ComputeS(
    }
 }
 
-void ChConstraintRigidRigid::host_RHS_spinning(
-      int2 *ids,
-      bool2 * active,
-      real3 *omega,
-      real3 *norm,
-      real4 * rot,
-      real *rhs) {
+void ChConstraintRigidRigid::host_RHS_spinning(int2 *ids,
+                                               bool2 * active,
+                                               real3 *omega,
+                                               real3 *norm,
+                                               real4 * rot,
+                                               real *rhs) {
 
 #pragma omp parallel for
    for (int index = 0; index < num_contacts; index++) {
@@ -457,11 +454,10 @@ void ChConstraintRigidRigid::UpdateRHS() {
                      data_container->host_data.norm_rigid_rigid.data(), contact_rotation.data(), data_container->host_data.rhs_data.data());
 }
 
-void ChConstraintRigidRigid::ComputeS(
-      const custom_vector<real>& rhs,
-      custom_vector<real3>& vel_data,
-      custom_vector<real3>& omg_data,
-      custom_vector<real>& b) {
+void ChConstraintRigidRigid::ComputeS(const custom_vector<real>& rhs,
+                                      custom_vector<real3>& vel_data,
+                                      custom_vector<real3>& omg_data,
+                                      custom_vector<real>& b) {
    if (solve_sliding) {
       host_ComputeS(data_container->host_data.bids_rigid_rigid.data(), data_container->host_data.fric_data.data(), contact_active_pairs.data(),
                     data_container->host_data.norm_rigid_rigid.data(), vel_data.data(), omg_data.data(), data_container->host_data.cpta_rigid_rigid.data(),
@@ -473,14 +469,13 @@ void ChConstraintRigidRigid::ComputeS(
 
 //%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-void ChConstraintRigidRigid::host_Jacobians(
-      real3* norm,
-      real3* ptA,
-      real3* ptB,
-      int2* ids,
-      real4* rot,
-      real3* JUA,
-      real3* JUB) {
+void ChConstraintRigidRigid::host_Jacobians(real3* norm,
+                                            real3* ptA,
+                                            real3* ptB,
+                                            int2* ids,
+                                            real4* rot,
+                                            real3* JUA,
+                                            real3* JUB) {
 #pragma omp parallel for
    for (int index = 0; index < num_contacts; index++) {
       real3 U = norm[index], V, W;
@@ -505,16 +500,15 @@ void ChConstraintRigidRigid::host_Jacobians(
    }
 }
 
-void ChConstraintRigidRigid::host_Jacobians_Rolling(
-      real3* norm,
-      int2* ids,
-      real4* rot,
-      real3 *JTA,
-      real3 *JTB,
-      real3 *JSA,
-      real3 *JSB,
-      real3 *JRA,
-      real3 *JRB) {
+void ChConstraintRigidRigid::host_Jacobians_Rolling(real3* norm,
+                                                    int2* ids,
+                                                    real4* rot,
+                                                    real3 *JTA,
+                                                    real3 *JTB,
+                                                    real3 *JSA,
+                                                    real3 *JSB,
+                                                    real3 *JRA,
+                                                    real3 *JRB) {
 //#pragma omp parallel for
 //	for (int index = 0; index < num_contacts; index++) {
 //		real3 U = norm[index], V, W;
@@ -562,13 +556,12 @@ void ChConstraintRigidRigid::UpdateJacobians() {
 
 //%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-void ChConstraintRigidRigid::host_shurA_normal(
-      real * gamma,
-      real3* norm,
-      real3 * JUA,
-      real3 * JUB,
-      real3 * updateV,
-      real3 * updateO) {
+void ChConstraintRigidRigid::host_shurA_normal(real * gamma,
+                                               real3* norm,
+                                               real3 * JUA,
+                                               real3 * JUB,
+                                               real3 * updateV,
+                                               real3 * updateO) {
 #pragma omp parallel for
    for (int index = 0; index < num_contacts; index++) {
       real gam = gamma[index * 6];
@@ -581,15 +574,14 @@ void ChConstraintRigidRigid::host_shurA_normal(
    }
 }
 
-void ChConstraintRigidRigid::host_shurA_sliding(
-      bool2* contact_active,
-      real3* norm,
-      real3 * ptA,
-      real3 * ptB,
-      real4 * rot,
-      real * gamma,
-      real3 * updateV,
-      real3 * updateO) {
+void ChConstraintRigidRigid::host_shurA_sliding(bool2* contact_active,
+                                                real3* norm,
+                                                real3 * ptA,
+                                                real3 * ptB,
+                                                real4 * rot,
+                                                real * gamma,
+                                                real3 * updateV,
+                                                real3 * updateO) {
 #ifdef CHRONO_PARALLEL_OMP_40
 #pragma omp parallel for simd safelen(4)
 #else
@@ -599,7 +591,7 @@ void ChConstraintRigidRigid::host_shurA_sliding(
 #ifdef ENABLE_SSE
       real3 gam(_mm_loadu_ps(&gamma[_index_]));
 #else
-      real3 gam(gamma[_index_+0], gamma[_index_+1], gamma[_index_+2]);
+      real3 gam(gamma[_index_ + 0], gamma[_index_ + 1], gamma[_index_ + 2]);
 #endif
       real3 U = norm[index], V, W;
       Orthogonalize(U, V, W);
@@ -620,21 +612,20 @@ void ChConstraintRigidRigid::host_shurA_sliding(
    }
 }
 
-void ChConstraintRigidRigid::host_shurA_spinning(
-      bool2* contact_active,
-      real3* norm,
-      real3 * ptA,
-      real3 * ptB,
-      real4 * rot,
-      real * gamma,
-      real3 * updateV,
-      real3 * updateO) {
+void ChConstraintRigidRigid::host_shurA_spinning(bool2* contact_active,
+                                                 real3* norm,
+                                                 real3 * ptA,
+                                                 real3 * ptB,
+                                                 real4 * rot,
+                                                 real * gamma,
+                                                 real3 * updateV,
+                                                 real3 * updateO) {
 #pragma omp parallel for
    for (int index = 0; index < num_contacts; index++) {
 #ifdef ENABLE_SSE
       real3 gam(_mm_loadu_ps(&gamma[_index_]));
 #else
-      real3 gam(gamma[_index_+0], gamma[_index_+1], gamma[_index_+2]);
+      real3 gam(gamma[_index_ + 0], gamma[_index_ + 1], gamma[_index_ + 2]);
 #endif
       real3 gam_roll(gamma[_index_ + 3], gamma[_index_ + 4], gamma[_index_ + 5]);
 
@@ -662,18 +653,17 @@ void ChConstraintRigidRigid::host_shurA_spinning(
    }
 }
 
-void ChConstraintRigidRigid::host_shurB_normal(
-      const real & alpha,
-      int2 * ids,
-      bool2* contact_active,
-      real3* norm,
-      real4 * compliance,
-      real * gamma,
-      real3 * JUA,
-      real3 * JUB,
-      real3 * QXYZ,
-      real3 * QUVW,
-      real * AX) {
+void ChConstraintRigidRigid::host_shurB_normal(const real & alpha,
+                                               int2 * ids,
+                                               bool2* contact_active,
+                                               real3* norm,
+                                               real4 * compliance,
+                                               real * gamma,
+                                               real3 * JUA,
+                                               real3 * JUB,
+                                               real3 * QXYZ,
+                                               real3 * QUVW,
+                                               real * AX) {
 
 #ifdef CHRONO_PARALLEL_OMP_40
 #pragma omp parallel for simd safelen(4)
@@ -706,19 +696,18 @@ void ChConstraintRigidRigid::host_shurB_normal(
 
    }
 }
-void ChConstraintRigidRigid::host_shurB_sliding(
-      const real & alpha,
-      int2 * ids,
-      bool2* contact_active,
-      real3* norm,
-      real4 * compliance,
-      real * gamma,
-      real3 * ptA,
-      real3 * ptB,
-      real4 * rot,
-      real3 * QXYZ,
-      real3 * QUVW,
-      real * AX) {
+void ChConstraintRigidRigid::host_shurB_sliding(const real & alpha,
+                                                int2 * ids,
+                                                bool2* contact_active,
+                                                real3* norm,
+                                                real4 * compliance,
+                                                real * gamma,
+                                                real3 * ptA,
+                                                real3 * ptB,
+                                                real4 * rot,
+                                                real3 * QXYZ,
+                                                real3 * QUVW,
+                                                real * AX) {
 
 #ifdef CHRONO_PARALLEL_OMP_40
 #pragma omp parallel for simd safelen(4)
@@ -758,7 +747,7 @@ void ChConstraintRigidRigid::host_shurB_sliding(
 #ifdef ENABLE_SSE
       real3 gam(_mm_loadu_ps(&gamma[_index_]));
 #else
-      real3 gam(gamma[_index_+0], gamma[_index_+1], gamma[_index_+2]);
+      real3 gam(gamma[_index_ + 0], gamma[_index_ + 1], gamma[_index_ + 2]);
 #endif
       //temp += (alpha) ? gam * real3(comp.x,comp.y,comp.y) : 0;
 
@@ -767,19 +756,18 @@ void ChConstraintRigidRigid::host_shurB_sliding(
       AX[_index_ + 2] = temp.z;
    }
 }
-void ChConstraintRigidRigid::host_shurB_spinning(
-      const real & alpha,
-      int2 * ids,
-      bool2* contact_active,
-      real3* norm,
-      real4 * compliance,
-      real * gamma,
-      real3 * ptA,
-      real3 * ptB,
-      real4 * rot,
-      real3 * QXYZ,
-      real3 * QUVW,
-      real * AX) {
+void ChConstraintRigidRigid::host_shurB_spinning(const real & alpha,
+                                                 int2 * ids,
+                                                 bool2* contact_active,
+                                                 real3* norm,
+                                                 real4 * compliance,
+                                                 real * gamma,
+                                                 real3 * ptA,
+                                                 real3 * ptB,
+                                                 real4 * rot,
+                                                 real3 * QXYZ,
+                                                 real3 * QUVW,
+                                                 real * AX) {
 
 #ifdef CHRONO_PARALLEL_OMP_40
 #pragma omp parallel for simd safelen(4)
@@ -851,17 +839,16 @@ void ChConstraintRigidRigid::host_shurB_spinning(
    }
 }
 
-void ChConstraintRigidRigid::host_Reduce_Shur(
-      bool* active,
-      real3* QXYZ,
-      real3* QUVW,
-      real * inv_mass,
-      real3 * inv_inertia,
-      real3* updateQXYZ,
-      real3* updateQUVW,
-      int* d_body_num,
-      int* counter,
-      int* reverse_offset) {
+void ChConstraintRigidRigid::host_Reduce_Shur(bool* active,
+                                              real3* QXYZ,
+                                              real3* QUVW,
+                                              real * inv_mass,
+                                              real3 * inv_inertia,
+                                              real3* updateQXYZ,
+                                              real3* updateQUVW,
+                                              int* d_body_num,
+                                              int* counter,
+                                              int* reverse_offset) {
 #pragma omp parallel for
    for (int index = 0; index < num_updates; index++) {
 
@@ -888,9 +875,8 @@ void ChConstraintRigidRigid::host_Reduce_Shur(
    }
 }
 
-void ChConstraintRigidRigid::host_Offsets(
-      int2* ids,
-      int* Body) {
+void ChConstraintRigidRigid::host_Offsets(int2* ids,
+                                          int* Body) {
 #pragma omp parallel for
    for (int index = 0; index < num_contacts; index++) {
       if (index < num_contacts) {
@@ -901,8 +887,7 @@ void ChConstraintRigidRigid::host_Offsets(
    }
 }
 
-void ChConstraintRigidRigid::ShurA(
-      real* x) {
+void ChConstraintRigidRigid::ShurA(real* x) {
 
    if (solve_spinning) {
 
@@ -944,9 +929,8 @@ void ChConstraintRigidRigid::ShurA(
    data_container->system_timer.stop("ChConstraintRigidRigid_shurA_reduce");
 
 }
-void ChConstraintRigidRigid::ShurB(
-      real*x,
-      real* output) {
+void ChConstraintRigidRigid::ShurB(real*x,
+                                   real* output) {
 
    if (solve_spinning) {
       data_container->system_timer.start("ChConstraintRigidRigid_shurB_spinning");
