@@ -71,8 +71,8 @@ double terrainWidth  = 100.0;   // size in Y directoin
 // Simulation step size
 double step_size = 0.001;
 
-// Rendering FPS
-int FPS = 50;
+// Time interval between two render frames
+double render_step_size = 1.0 / 50;   // FPS = 50
 
 #ifdef USE_IRRLICHT
   // Point on chassis tracked by the camera
@@ -179,18 +179,14 @@ int main(int argc, char* argv[])
  
   bool do_shadows = false; // shadow map is experimental
 
-  if (!do_shadows)
-  {
+  if (do_shadows)
+    application.AddLightWithShadow(irr::core::vector3df(20.f, 20.f, 80.f),
+                                   irr::core::vector3df(20.f, 0.f, 0.f),
+                                   150, 60, 100, 40, 512, irr::video::SColorf(1, 1, 1));
+  else
     application.AddTypicalLights(irr::core::vector3df(30.f, -30.f,  100.f),
                                 irr::core::vector3df(30.f,  50.f,  100.f),
                                 250, 130);
-  }
-  else
-  {
-    application.AddLightWithShadow(irr::core::vector3df(20.f,   20.f,  80.f), 
-                                   irr::core::vector3df(20.f,   0.f,  0.f), 
-                                   150, 60,100, 40, 512, irr::video::SColorf(1,1,1));
-  }
 
   application.SetTimestep(step_size);
 
@@ -200,8 +196,8 @@ int main(int argc, char* argv[])
   // NOTE: this is not exact, since we do not render quite at the specified FPS.
   double steering_time = 1.0;  // time to go from 0 to +1 (or from 0 to -1)
   double throttle_time = 1.0;  // time to go from 0 to +1
-  driver.SetSteeringDelta(1 / (steering_time * FPS));
-  driver.SetThrottleDelta(1 / (throttle_time * FPS));
+  driver.SetSteeringDelta(render_step_size / steering_time);
+  driver.SetThrottleDelta(render_step_size / throttle_time);
 
   // Set up the assets for rendering
   application.AssetBindAll();
@@ -221,25 +217,28 @@ int main(int argc, char* argv[])
 
   ChTireForces tire_forces(4);
 
+  // Number of simulation steps between two 3D view render frames
+  int render_steps = (int)std::ceil(render_step_size / step_size);
+
+  // Initialize simulation frame counter and simulation time
+  int step_number = 0;
+  double time = 0;
+
 #ifdef USE_IRRLICHT
 
   ChRealtimeStepTimer realtime_timer;
 
-  // Refresh 3D view only every N simulation steps
-  int simul_substeps_num = (int) std::ceil((1 / step_size) / FPS);
-  int simul_substep = 0;
-
   while (application.GetDevice()->run())
   {
     // Render scene
-    if (simul_substep == 0) {
+    if (step_number % render_steps == 0) {
       application.GetVideoDriver()->beginScene(true, true, irr::video::SColor(255, 140, 161, 192));
       driver.DrawAll();
       application.GetVideoDriver()->endScene();
     }
 
     // Update modules (inter-module communication)
-    double time = vehicle.GetChTime();
+    time = vehicle.GetChTime();
 
     driver.Update(time);
 
@@ -272,20 +271,14 @@ int main(int argc, char* argv[])
     vehicle.Advance(step);
 
     // Increment frame number
-    ++simul_substep;
-    if (simul_substep >= simul_substeps_num)
-      simul_substep = 0;
+    step_number++;
   }
 
   application.GetDevice()->drop();
 
 #else
 
-  int out_steps = (int) std::ceil((1 / step_size) / FPS);
-
-  double time = 0;
-  int frame = 0;
-  int out_frame = 0;
+  int render_frame = 0;
 
   if(ChFileutils::MakeDirectory(out_dir.c_str()) < 0) {
     std::cout << "Error creating directory " << out_dir << std::endl;
@@ -296,7 +289,7 @@ int main(int argc, char* argv[])
     return 1;
   }
 
-  HMMWV9_Vehicle::ExportMeshPovray(out_dir);
+  HMMWV_VehicleReduced::ExportMeshPovray(out_dir);
   HMMWV_WheelLeft::ExportMeshPovray(out_dir);
   HMMWV_WheelRight::ExportMeshPovray(out_dir);
 
@@ -304,19 +297,21 @@ int main(int argc, char* argv[])
 
   while (time < tend)
   {
-    if (frame % out_steps == 0) {
+    if (step_number % render_steps == 0) {
       // Output render data
-      sprintf(filename, "%s/data_%03d.dat", pov_dir.c_str(), out_frame + 1);
+      sprintf(filename, "%s/data_%03d.dat", pov_dir.c_str(), render_frame + 1);
       utils::WriteShapesPovray(&vehicle, filename);
-      std::cout << "Output frame:   " << out_frame << std::endl;
-      std::cout << "Sim frame:      " << frame << std::endl;
+      std::cout << "Output frame:   " << render_frame << std::endl;
+      std::cout << "Sim frame:      " << step_number << std::endl;
       std::cout << "Time:           " << time << std::endl;
       std::cout << "             throttle: " << driver.getThrottle() << " steering: " << driver.getSteering() << std::endl;
       std::cout << std::endl;
-      out_frame++;
+      render_frame++;
     }
 
     // Update modules
+    time = vehicle.GetChTime();
+
     driver.Update(time);
 
     terrain.Update(time);
@@ -346,8 +341,7 @@ int main(int argc, char* argv[])
     vehicle.Advance(step_size);
 
     // Increment frame number
-    time += step_size;
-    frame++;
+    step_number++;
   }
 
 #endif
