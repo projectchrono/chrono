@@ -64,8 +64,9 @@ public:
 
   static void ExportMeshPovray(const std::string& out_dir);
 
-  // Log debugging information (shocks, constraints, etc.)
-  void DebugLog(int what);
+  // Log debugging information
+  void LogHardpointLocations(); /// suspension hardpoints at design
+  void DebugLog(int what);      /// shock forces and lengths, constraints, etc.
 
 private:
 

@@ -279,6 +279,26 @@ void HMMWV_Vehicle::ExportMeshPovray(const std::string& out_dir)
 
 
 // -----------------------------------------------------------------------------
+// Log the hardpoint locations for the front-right and rear-right suspension
+// subsystems (display in inches)
+// -----------------------------------------------------------------------------
+void HMMWV_Vehicle::LogHardpointLocations()
+{
+  GetLog().SetNumFormat("%7.3f");
+
+  GetLog() << "\n---- FRONT-RIGHT suspension hardpoint locations\n";
+  m_front_right_susp->LogHardpointLocations(ChVector<>(37.78, 12.09, 30.77), true);
+
+  GetLog() << "\n---- REAR-RIGHT suspension hardpoint locations\n";
+  m_rear_right_susp->LogHardpointLocations(ChVector<>(170.77, 12.09, 30.77), true);
+
+  GetLog() << "\n\n";
+
+  GetLog().SetNumFormat("%g");
+}
+
+
+// -----------------------------------------------------------------------------
 // Log the spring error, force, and length at design.
 // Log constraint violations of suspension joints.
 // -----------------------------------------------------------------------------

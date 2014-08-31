@@ -187,6 +187,12 @@ int main(int argc, char* argv[])
   // Simulation loop
   // ---------------
 
+#ifdef DEBUG_LOG
+  GetLog() << "\n\n============ System Configuration ============\n";
+  vehicle.LogHardpointLocations();
+#endif
+
+
   ChTireForces tire_forces(4);
 
   // Number of simulation steps between two 3D view render frames

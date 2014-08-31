@@ -38,6 +38,27 @@ namespace chrono {
 
 
 // -----------------------------------------------------------------------------
+// Static variables
+// -----------------------------------------------------------------------------
+const std::string ChDoubleWishbone::m_pointNames[] = {
+  "SPINDLE ",
+  "UPRIGHT ",
+  "UCA_F   ",
+  "UCA_B   ",
+  "UCA_U   ",
+  "UCA_CM  ",
+  "LCA_F   ",
+  "LCA_B   ",
+  "LCA_U   ",
+  "LCA_CM  ",
+  "SHOCK_C ",
+  "SHOCK_U ",
+  "TIEROD_C",
+  "TIEROD_U"
+};
+
+
+// -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 ChDoubleWishbone::ChDoubleWishbone(const std::string& name,
                                                  ChSuspension::Side side,
@@ -222,6 +243,21 @@ double ChDoubleWishbone::GetSpringForce()
 double ChDoubleWishbone::GetSpringLen()
 {
   return (m_shock->GetMarker1()->GetAbsCoord().pos - m_shock->GetMarker2()->GetAbsCoord().pos).Length();
+}
+
+
+// -----------------------------------------------------------------------------
+// -----------------------------------------------------------------------------
+void ChDoubleWishbone::LogHardpointLocations(const ChVector<>& ref,
+                                             bool              inches)
+{
+  double unit = inches ? 1 / 0.0254 : 1.0;
+
+  for (int i = 0; i < NUM_POINTS; i++) {
+    ChVector<> pos = ref + unit * getLocation(static_cast<PointId>(i));
+
+    GetLog() << "   " << m_pointNames[i].c_str() << "  " << pos.x << "  " << pos.y << "  " << pos.z << "\n";
+  }
 }
 
 

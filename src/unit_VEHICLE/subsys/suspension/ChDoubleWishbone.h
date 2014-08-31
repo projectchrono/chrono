@@ -55,6 +55,8 @@ public:
   double GetSpringForce();
   double GetSpringLen();
 
+  void LogHardpointLocations(const ChVector<>& ref,
+                             bool              inches = false);
   void LogConstraintViolations();
 
 protected:
@@ -129,6 +131,8 @@ private:
   void   AddVisualizationLCA();
   void   AddVisualizationUpright();
   void   AddVisualizationSpindle();
+
+  static const std::string  m_pointNames[NUM_POINTS];
 };
 
 
