@@ -178,7 +178,7 @@ int main(int argc, char* argv[])
   application.AssetUpdateAll();
 
   // Simulation loop
-  double time_step = 0.001;
+  application.SetTimestep(0.001);
 
   bool log_info = true;
 
@@ -188,7 +188,7 @@ int main(int argc, char* argv[])
 
     application.DrawAll();
 
-    system.DoStepDynamics(time_step);
+	application.DoStep();
 
     if (log_info && system.GetChTime() > 1.0) {
 
