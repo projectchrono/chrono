@@ -5,7 +5,7 @@
 // ============================================================================================
 #version 3.7;
 global_settings { assumed_gamma 1 }
-
+global_settings { ambient_light rgb<1, 1, 1> }
   
 // Render a sequence of frames or a single one      
 //#declare fnum=abs(frame_number); 
@@ -18,7 +18,7 @@ global_settings { assumed_gamma 1 }
 #declare render_objects = true;
 
 // Render static objects?
-#declare render_static = true;
+#declare render_static = false;
 
 //Render links?
 #declare render_links = true;
@@ -29,18 +29,22 @@ global_settings { assumed_gamma 1 }
 #declare global_frame_radius = 0.01;
 #declare global_frame_len = 10;
 
+// Draw body frames?
+#declare draw_body_frame = false;
+#declare body_frame_radius = 0.006;
+#declare body_frame_len = 0.75;
 
 // Draw shape frames?
 #declare draw_object_frame = false;
-#declare object_frame_radius = 0.01;
-#declare object_frame_len = 1.25;
-                 
-                 
+#declare object_frame_radius = 0.006;
+#declare object_frame_len = 0.5;
+
+
 // Perspective camera?
 #declare cam_perspective = true;
        
 // Camera location and look-at (RIGHT-HAND-FRAME with Z up)
-#declare cam_loc    = <0, 4, 1>;
+#declare cam_loc    = <3, -2, 2>;
 #declare cam_lookat = <0, 0, 1>;
 
 
@@ -173,15 +177,16 @@ camera {
    // direction z                        // direction and zoom
    // angle 67                           // field (overides direction zoom)
 }
-
-/*
-// Create a regular point light source 
+                              
+// Create a regular point light source                              
+#if (draw_environment = false)
 light_source { 
     1000*(cloc - clookat)  // behind the camera
     color rgb <1,1,1>      // light's color
-    //translate <-10, 1500, 2>
+    translate <0, 1500, 0>
 }
-*/
+#end
+
 
 // ============================================================================================     
 
@@ -189,8 +194,22 @@ light_source {
 #warning concat("LOADING DATA FILE : ",  datafile, "\n")
 #fopen MyDataFile datafile read 
                                
-#read (MyDataFile, numObjects, numLinks)
-                                     
+#read (MyDataFile, numBodies, numObjects, numLinks)
+
+        // ---------------------------------------------
+        // RENDER BODY FRAMES
+        // ---------------------------------------------
+
+#for (i, 1, numBodies)
+    #read (MyDataFile, id, active, ax, ay, az, e0, e1, e2, e3)
+    #if (draw_body_frame & (render_static | active) )
+       object {
+            XYZframe(body_frame_len, body_frame_radius) 
+            position(<ax,ay,az>,<e0,e1,e2,e3>)  
+       }
+    #end
+#end
+
         // ---------------------------------------------
         //    RENDER OBJECTS (VISUAL ASSETS)
         // ---------------------------------------------
@@ -263,11 +282,11 @@ light_source {
               
         // cylinder --------------
         #case (3)
-            #read (MyDataFile, ar, hl)
+            #read (MyDataFile, ar, p1x, p1y, p1z, p2x, p2y, p2z)
 			#if (render_objects)
 				#if (active)
 					cylinder {
-					   <0,0,hl>, <0,0,-hl>, ar      
+					   <p1x,p1z,p1y>, <p2x,p2z,p2y>, ar      
 					   pigment {color rgbt <1, 0.9, 0.9, 0> transmit 0.4}
 					   position(<ax,ay,az>,<e0,e1,e2,e3>)     
 					   finish {diffuse 1 ambient 0.0 specular .05 }
@@ -275,7 +294,7 @@ light_source {
 				#else
 					#if (render_static)
 					cylinder {
-					   <0,0,hl>, <0,0,-hl>, ar      
+					   <p1x,p1z,p1y>, <p2x,p2z,p2y>, ar      
 					   pigment {color rgbt <1, 0.9, 0.9, 0> }
 					   position(<ax,ay,az>,<e0,e1,e2,e3>)     
 					   finish {diffuse 1 ambient 0.0 specular .05 }
@@ -343,7 +362,7 @@ light_source {
 			#if (render_objects)
 				#if (active)  
 					#warning concat("Mesh name: ", mesh_name, "\n")
-					RenderMesh(mesh_name, <ax,ay,az>,<e0,e1,e2,e3>, rgb<0.6,0.5,0.6>)
+					RenderMesh(mesh_name, <ax,ay,az>,<e0,e1,e2,e3>, rgb<0.4,0.4,0.4>)
 				#else
 					#if (render_static)
 					RenderMesh(mesh_name, <ax,ay,az>,<e0,e1,e2,e3>, rgb<1,0.9,0.9>)
@@ -366,13 +385,21 @@ light_source {
               
     #read (MyDataFile, link)
    
-	#switch (link)
+	#switch (link) 
+	    // Spherical ------
+	    #case (1)
+	        #read (MyDataFile, px, py, pz)
+	        sphere {
+			    <px,pz,py>, 4 * object_frame_radius
+			    pigment {color Red }}
+	    #break
+	    
 		// Revolute -------
 		#case (8)
 			#read (MyDataFile, px, py, pz, dx, dy, dz)
             cylinder {
-                <px-4*object_frame_radius*dx,  pz-4*object_frame_radius*dz, py-4*object_frame_radius*dy>, 
-                <px+4*object_frame_radius*dx,  pz+4*object_frame_radius*dz, py+4*object_frame_radius*dy>, 
+                <px-6*object_frame_radius*dx,  pz-6*object_frame_radius*dz, py-6*object_frame_radius*dy>, 
+                <px+6*object_frame_radius*dx,  pz+6*object_frame_radius*dz, py+6*object_frame_radius*dy>, 
                 2*object_frame_radius
                 pigment {color Blue}}
 		#break
@@ -380,8 +407,7 @@ light_source {
 		// Linkspring ------
 		#case (25)
 			#read (MyDataFile, p1x, p1y, p1z, p2x, p2y, p2z)
-			cylinder {<p1x,p1z,p1y>, <p2x,p2z,p2y>, 2 * object_frame_radius  pigment {color Red }}
-
+			cylinder {<p1x,p1z,p1y>, <p2x,p2z,p2y>, 2 * object_frame_radius  pigment {color Red }} 
 		#break
 
 		// LinkEngine ------
@@ -415,6 +441,7 @@ XYZframe(global_frame_len, global_frame_radius)
  
     // sun ---------------------------------------------------------------
     light_source{<1500,2500,-2500>*100 color rgb<1,1,1> }
+    light_source{<1500,2500, 2500>*100 color rgb<0.5,0.5,0.5> shadowless}
 
     // sky ---------------------------------------------------------------
 

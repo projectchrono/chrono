@@ -19,6 +19,8 @@
 #ifndef CH_LUGRETIRE_H
 #define CH_LUGRETIRE_H
 
+#include <vector>
+
 #include "physics/ChBody.h"
 
 #include "subsys/ChTire.h"
@@ -31,6 +33,8 @@ public:
   ChLugreTire(const ChTerrain& terrain);
   virtual ~ChLugreTire() {}
 
+  void Initialize();
+
   virtual ChTireForce GetTireForce() const;
 
   virtual void Update(double              time,
@@ -42,10 +46,15 @@ protected:
   virtual double getRadius() const = 0;
   virtual const double* getDiscLocations() const = 0;
 
+  virtual double getNormalStiffness() const = 0;
+  virtual double getNormalDamping() const = 0;
+
 private:
   ChVector<>  m_force;
   ChVector<>  m_point;
   ChVector<>  m_moment;
+
+  std::vector<bool> m_discInContact;
 };
 
 

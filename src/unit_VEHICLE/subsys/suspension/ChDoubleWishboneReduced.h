@@ -75,6 +75,10 @@ protected:
   virtual double getSpindleMass() const = 0;
   virtual double getUprightMass() const = 0;
 
+  virtual double getSpindleRadius() const = 0;
+  virtual double getSpindleWidth() const = 0;
+  virtual double getUprightRadius() const = 0;
+
   virtual const ChVector<>& getSpindleInertia() const = 0;
   virtual const ChVector<>& getUprightInertia() const = 0;
 
@@ -103,7 +107,8 @@ protected:
   ChVector<>                        m_tierod_marker;
 
 private:
-
+  void   AddVisualizationSpindle();
+  void   AddVisualizationUpright();
 };
 
 

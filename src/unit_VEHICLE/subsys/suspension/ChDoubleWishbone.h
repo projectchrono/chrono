@@ -52,6 +52,10 @@ public:
 
   virtual void ApplySteering(double displ);
 
+	// for checking shock info during sim
+	double GetSpringForce();
+	double GetSpringLen();
+
 protected:
 
   enum PointId {
@@ -60,9 +64,11 @@ protected:
     UCA_F,      // upper control arm, chassis front
     UCA_B,      // upper control arm, chassis back
     UCA_U,      // upper control arm, upright
+    UCA_CM,     // upper control arm, center of mass
     LCA_F,      // lower control arm, chassis front
     LCA_B,      // lower control arm, chassis back
     LCA_U,      // lower control arm, upright
+    LCA_CM,     // lower control arm, center of mass
     SHOCK_C,    // shock, chassis
     SHOCK_U,    // shock, upright
     TIEROD_C,   // tierod, chassis
@@ -76,6 +82,12 @@ protected:
   virtual double getUCAMass() const = 0;
   virtual double getLCAMass() const = 0;
   virtual double getUprightMass() const = 0;
+
+  virtual double getSpindleRadius() const = 0;
+  virtual double getSpindleWidth() const = 0;
+  virtual double getUCARadius() const = 0;
+  virtual double getLCARadius() const = 0;
+  virtual double getUprightRadius() const = 0;
 
   virtual const ChVector<>& getSpindleInertia() const = 0;
   virtual const ChVector<>& getUCAInertia() const = 0;
@@ -98,14 +110,12 @@ protected:
   ChSharedBodyPtr   m_upright;
 
   ChSharedPtr<ChLinkLockRevolute>   m_revolute;
-  ChSharedBodyPtr                   m_bodyUCA;
-  ChSharedBodyPtr                   m_bodyLCA;
-  ChSharedPtr<ChLinkLockSpherical>  m_sphericalUCA_F;
-  ChSharedPtr<ChLinkLockSpherical>  m_sphericalUCA_B;
-  ChSharedPtr<ChLinkLockSpherical>  m_sphericalUCA_U;
-  ChSharedPtr<ChLinkLockSpherical>  m_sphericalLCA_F;
-  ChSharedPtr<ChLinkLockSpherical>  m_sphericalLCA_B;
-  ChSharedPtr<ChLinkLockSpherical>  m_sphericalLCA_U;
+  ChSharedBodyPtr                   m_UCA;
+  ChSharedBodyPtr                   m_LCA;
+  ChSharedPtr<ChLinkLockRevolute>   m_revoluteUCA;
+  ChSharedPtr<ChLinkLockSpherical>  m_sphericalUCA;
+  ChSharedPtr<ChLinkLockRevolute>   m_revoluteLCA;
+  ChSharedPtr<ChLinkLockSpherical>  m_sphericalLCA;
   ChSharedPtr<ChLinkDistance>       m_distTierod;
 
   ChSharedPtr<ChLinkSpring>         m_shock;
@@ -114,6 +124,10 @@ protected:
 
 private:
 
+  void   AddVisualizationUCA();
+  void   AddVisualizationLCA();
+  void   AddVisualizationUpright();
+  void   AddVisualizationSpindle();
 };
 
 

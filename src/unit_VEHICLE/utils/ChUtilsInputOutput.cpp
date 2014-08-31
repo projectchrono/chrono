@@ -120,11 +120,11 @@ bool WriteCheckpoint(ChSystem*          system,
         const geometry::ChCapsule& geom = capsule->GetCapsuleGeometry();
         csv << collision::CAPSULE << geom.rad << geom.hlen;
       }
-      else if (ChSharedPtr<ChCylinderShape> cylinder = visual_asset.DynamicCastTo<ChCylinderShape>())
-      {
-        const geometry::ChCylinder& geom = cylinder->GetCylinderGeometry();
-        csv << collision::CYLINDER << geom.rad << (geom.p1.y - geom.p2.y) / 2;
-      }
+      ////else if (ChSharedPtr<ChCylinderShape> cylinder = visual_asset.DynamicCastTo<ChCylinderShape>())
+      ////{
+      ////  const geometry::ChCylinder& geom = cylinder->GetCylinderGeometry();
+      ////  csv << collision::CYLINDER << geom.rad << (geom.p1.y - geom.p2.y) / 2;
+      ////}
       else if (ChSharedPtr<ChConeShape> cone = visual_asset.DynamicCastTo<ChConeShape>())
       {
         const geometry::ChCone& geom = cone->GetConeGeometry();
@@ -273,13 +273,13 @@ void ReadCheckpoint(ChSystem*          system,
           AddCapsuleGeometry(body, radius, hlen, apos, arot);
         }
         break;
-      case collision::CYLINDER:
-        {
-          double radius, hlen;
-          iss >> radius >> hlen;
-          AddCylinderGeometry(body, radius, hlen, apos, arot);
-        }
-        break;
+      ////case collision::CYLINDER:
+      ////  {
+      ////    double radius, hlen;
+      ////    iss >> radius >> hlen;
+      ////    AddCylinderGeometry(body, radius, hlen, apos, arot);
+      ////  }
+      ////  break;
       case collision::CONE:
         {
           double radius, height;
@@ -327,10 +327,28 @@ void ReadCheckpoint(ChSystem*          system,
 // a visual asset (except for cylinders where that is implicit)!
 // -----------------------------------------------------------------------------
 void WriteShapesPovray(ChSystem*          system,
-                       const std::string& filename,
-                       const std::string& delim)
+  const std::string& filename,
+  bool               body_info,
+  const std::string& delim)
 {
   CSV_writer csv(delim);
+
+  // If requested, Loop over all bodies and write out their position and
+  // orientation.  Otherwise, body count is left at 0.
+  int b_count = 0;
+
+  if (body_info) {
+    std::vector<ChBody*>::iterator ibody = system->Get_bodylist()->begin();
+    for (; ibody != system->Get_bodylist()->end(); ++ibody)
+    {
+      const Vector&     body_pos = (*ibody)->GetPos();
+      const Quaternion& body_rot = (*ibody)->GetRot();
+
+      csv << (*ibody)->GetIdentifier() << (*ibody)->IsActive() << body_pos << body_rot << std::endl;
+
+      b_count++;
+    }
+  }
 
   // Loop over all bodies and over all their assets. Write information on 
   // selected types of visual assets.
@@ -382,7 +400,9 @@ void WriteShapesPovray(ChSystem*          system,
       else if (ChSharedPtr<ChCylinderShape> cylinder = visual_asset.DynamicCastTo<ChCylinderShape>())
       {
         const geometry::ChCylinder& geom = cylinder->GetCylinderGeometry();
-        gss << collision::CYLINDER << delim << geom.rad << delim << (geom.p1.y - geom.p2.y) / 2;
+        gss << collision::CYLINDER << delim << geom.rad << delim
+            << geom.p1.x << delim << geom.p1.y << delim << geom.p1.z << delim
+            << geom.p2.x << delim << geom.p2.y << delim << geom.p2.z;
         a_count++;
       }
       else if (ChSharedPtr<ChConeShape> cone = visual_asset.DynamicCastTo<ChConeShape>())
@@ -426,6 +446,14 @@ void WriteShapesPovray(ChSystem*          system,
       csv << type << frA_abs.GetPos() << frA_abs.GetA()->Get_A_Zaxis() << std::endl;
       l_count++;
     }
+    else if (ChLinkLockSpherical* link = dynamic_cast<ChLinkLockSpherical*>(*ilink))
+    {
+      chrono::ChFrame<> frA_abs = *(link->GetMarker1()) >> *(link->GetBody1());
+      chrono::ChFrame<> frB_abs = *(link->GetMarker2()) >> *(link->GetBody2());
+
+      csv << type << frA_abs.GetPos() << std::endl;
+      l_count++;
+    }
     else if (ChLinkSpring* link = dynamic_cast<ChLinkSpring*>(*ilink))
     {
       chrono::ChFrame<> frA_abs = *(link->GetMarker1()) >> *(link->GetBody1());
@@ -444,7 +472,7 @@ void WriteShapesPovray(ChSystem*          system,
   // Write the output file, including a first line with number of visual assets
   // and number of links.
   std::stringstream header;
-  header << a_count << delim << l_count << delim << std::endl;
+  header << b_count << delim << a_count << delim << l_count << delim << std::endl;
 
   csv.write_to_file(filename, header.str());
 }
