@@ -352,12 +352,27 @@ static inline quaternion slerp(const quaternion &a,
 
 static inline real3 quatRotate(const real3 &v,
                                const quaternion &q) {
-
+#ifdef ENABLE_SSE
    real3 t = 2 * cross(real3(q.x, q.y, q.z), v);
    return v + q.w * t + cross(real3(q.x, q.y, q.z), t);
    //return v+2.0*cross(cross(v,real3(q.x,q.y,q.z))+q.w*v, real3(q.x,q.y,q.z));
    //quaternion r = mult(mult(q, R4(0, v.x, v.y, v.z)), inv(q));
    //return real3(r.x, r.y, r.z);
+#else
+   real e0e0 = q.w * q.w;
+   real e1e1 = q.x * q.x;
+   real e2e2 = q.y * q.y;
+   real e3e3 = q.z * q.z;
+   real e0e1 = q.w * q.x;
+   real e0e2 = q.w * q.y;
+   real e0e3 = q.w * q.z;
+   real e1e2 = q.x * q.y;
+   real e1e3 = q.x * q.z;
+   real e2e3 = q.y * q.z;
+   return R3(((e0e0 + e1e1) * 2 - 1) * v.x + ((e1e2 - e0e3) * 2) * v.y + ((e1e3 + e0e2) * 2) * v.z,
+             ((e1e2 + e0e3) * 2) * v.x + ((e0e0 + e2e2) * 2 - 1) * v.y + ((e2e3 - e0e1) * 2) * v.z,
+             ((e1e3 - e0e2) * 2) * v.x + ((e2e3 + e0e1) * 2) * v.y + ((e0e0 + e3e3) * 2 - 1) * v.z);
+#endif
 }
 static inline real3 quatRotateMat(const real3 &v,
                                   const quaternion &q) {
@@ -366,7 +381,7 @@ static inline real3 quatRotateMat(const real3 &v,
    result.x = (q.w * q.w + q.x * q.x - q.y * q.y - q.z * q.z) * v.x + (2 * q.x * q.y - 2 * q.w * q.z) * v.y + (2 * q.x * q.z + 2 * q.w * q.y) * v.z;
    result.y = (2 * q.x * q.y + 2 * q.w * q.z) * v.x + (q.w * q.w - q.x * q.x + q.y * q.y - q.z * q.z) * v.y + (2 * q.y * q.z - 2 * q.w * q.x) * v.z;
    result.z = (2 * q.x * q.z - 2 * q.w * q.y) * v.x + (2 * q.y * q.z + 2 * q.w * q.x) * v.y + (q.w * q.w - q.x * q.x - q.y * q.y + q.z * q.z) * v.z;
-   return result;	//quatRotate(v,q);
+   return result;  //quatRotate(v,q);
 }
 static inline real3 quatRotateMatT(const real3 &v,
                                    const quaternion &q) {
