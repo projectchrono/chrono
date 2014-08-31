@@ -186,10 +186,16 @@ public:
                                              double mfar,
                                              double angle,
                                              u32 resolution=512,
-                                             video::SColorf color = video::SColorf(1.f,1.f,1.f,1.f))
+                                             video::SColorf color = video::SColorf(1.f,1.f,1.f,1.f),
+											 bool directional = false,
+											 bool clipborder = true)
   {
     scene::ILightSceneNode* mlight =  device->getSceneManager()->addLightSceneNode( 0,pos, color, (f32)radius);
-    effect->addShadowLight(SShadowLight(resolution, pos, aim, color, (f32)mnear , (f32)mfar, ((f32)angle * core::DEGTORAD)));
+    effect->addShadowLight(SShadowLight(resolution, pos, aim, color, (f32)mnear , (f32)mfar, ((f32)angle * core::DEGTORAD), directional));
+	if (clipborder == false)
+	{
+		effect->getShadowLight(effect->getShadowLightCount()-1).setClipBorder(clipborder);
+	}
     use_effects = true;
     return mlight;
   }

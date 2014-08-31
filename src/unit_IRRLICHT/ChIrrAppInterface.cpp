@@ -259,7 +259,7 @@ ChIrrAppInterface::ChIrrAppInterface(
   }
 
   // Xeffects for shadow maps!
-  effect = new EffectHandler(device, device->getVideoDriver()->getScreenSize(), true, true, true);
+  effect = new EffectHandler(device, device->getVideoDriver()->getScreenSize(), true, false, true);
   effect->setAmbientColor(video::SColor(255, 122, 122, 122));
   use_effects = false; // will be true as sson as a lightwith shadow is added.
 

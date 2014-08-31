@@ -97,6 +97,8 @@ public:
 		services->setVertexShaderConstant("MAPRES", &MapRes, 1);
 
 		services->setPixelShaderConstant("LightColour", reinterpret_cast<f32*>(&LightColour.r), 4);
+		float fclipborder = clipborder;
+		services->setPixelShaderConstant("ClipBorder", reinterpret_cast<f32*>(&fclipborder), 1);
 	}
 
 	EffectHandler* effect;
@@ -107,6 +109,7 @@ public:
 	core::matrix4 ViewLink;
 	core::vector3df LightLink;
 	f32 FarLink, MapRes;
+	bool clipborder; //***ALEX***
 };
 
 
@@ -712,6 +715,7 @@ const char* const SHADOW_PASS_2P[ESE_COUNT] = {"uniform sampler2D ShadowMapSampl
 ,
 "sampler2D ShadowMapSampler : register(s0);\n"
 "float4 LightColour;\n"
+"float ClipBorder;\n"
 "\n"
 "##ifdef VSM\n"
 "float calcShadow(float2 texCoords, float2 offset, float RealDist)"
@@ -791,6 +795,10 @@ const char* const SHADOW_PASS_2P[ESE_COUNT] = {"uniform sampler2D ShadowMapSampl
 "		finalCol = LightColour * lightFactor * MVar[1];\n"
 "##endif\n"
 "	}"
+"   else \n"
+"   { \n"
+"     if (!ClipBorder) finalCol = LightColour; \n"
+"   } \n"
 "	"
 "	return finalCol;\n"
 "}"};
@@ -1102,6 +1110,8 @@ struct SShadowLight
 			projMat.buildProjectionMatrixOrthoLH(fov, fov, nearValue, farValue);
 		else
 			projMat.buildProjectionMatrixPerspectiveFovLH(fov, 1.0f, nearValue, farValue);
+
+		clipborder = true; //***ALEX***
 	}
 
 	/// Sets the light's position.
@@ -1187,6 +1197,17 @@ struct SShadowLight
 		return mapRes;
 	}
 
+		///***ALEX***
+	void setClipBorder(bool mb) 
+	{
+		clipborder = mb;
+	}
+		///***ALEX***
+	bool getClipBorder() const 
+	{
+		return clipborder;
+	}
+
 private:
 
 	void updateViewMatrix()
@@ -1201,6 +1222,7 @@ private:
 	f32 farPlane;
 	core::matrix4 viewMat, projMat;
 	u32 mapRes;
+	bool clipborder; //***ALEX***
 };
 
 // This is a general interface that can be overidden if you want to perform operations before or after
@@ -1768,7 +1790,7 @@ void EffectHandler::update(video::ITexture* outputTarget)
 {
 	if(shadowsUnsupported || smgr->getActiveCamera() == 0)
 		return;
-	
+
 	this->smgr->getRootSceneNode()->OnAnimate(device->getTimer()->getTime());
 
 	if(!ShadowNodeArray.empty() && !LightList.empty())
@@ -1846,6 +1868,7 @@ void EffectHandler::update(video::ITexture* outputTarget)
 			shadowMC->ViewLink = LightList[l].getViewMatrix();
 			shadowMC->ProjLink = LightList[l].getProjectionMatrix();
 			shadowMC->MapRes = (f32)LightList[l].getShadowMapResolution();
+			shadowMC->clipborder = LightList[l].getClipBorder(); //***ALEX***
 
 			for(u32 i = 0;i < ShadowNodeArraySize;++i)
 			{
