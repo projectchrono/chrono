@@ -214,13 +214,12 @@ int main(int argc, char* argv[])
       GetLog() << "      " << lin_vel_1.x << "  " << lin_vel_1.y << "\n";
       GetLog() << "      " << lin_vel_2.x << "  " << lin_vel_2.y << "\n";
 
-      // To obtain the absolute linear velocity of the body reference frame, we
-      // must use the ChFrameMoving::PointSpeedLocalToParent() function for the
-      // location of the reference frame as expressed in the centroidal frame.
-      // Note that GetFrame_REF_to_COG is a constant.
-      const ChFrame<>& ref_to_cog = pend_2->GetFrame_REF_to_COG();
-      lin_vel_2 = pend_2->PointSpeedLocalToParent(ref_to_cog.GetPos());
+      // To obtain the absolute linear velocity of the body reference frame, 
+	  // we use again GetPos_dt(), but this time for the reference frame,
+	  // using GetFrame_REF_to_abs() similarly for what we did for positions:
+	  lin_vel_2 = pend_2->GetFrame_REF_to_abs().GetPos_dt();
       GetLog() << "      " << lin_vel_2.x << "  " << lin_vel_2.y << "\n";
+
 
       log_info = false;
     }
