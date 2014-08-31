@@ -24,6 +24,7 @@
 #include <core/ChVector.h>
 #include <core/ChQuaternion.h>
 #include <core/ChMatrix.h>
+#include <core/ChMatrixDynamic.h>
 #include <core/ChMatrix33.h>
 
 using namespace chrono;
@@ -121,7 +122,7 @@ void StrictEqual(
 void WeakEqual(
       const real & x,
       const real & y,
-      float COMPARE_EPS = FLT_EPSILON ) {
+      real COMPARE_EPS = ZERO_EPSILON ) {
    if (fabs(x - y) > COMPARE_EPS) {
       std::cout << x << " does not equal " << y << " " << fabs(x - y) << std::endl;
       exit(1);
@@ -131,7 +132,7 @@ void WeakEqual(
 void WeakEqual(
       const real3 & a,
       const real3 & b,
-      float COMPARE_EPS = FLT_EPSILON ) {
+      real COMPARE_EPS = ZERO_EPSILON ) {
    WeakEqual(a.x, b.x, COMPARE_EPS);
    WeakEqual(a.y, b.y, COMPARE_EPS);
    WeakEqual(a.z, b.z, COMPARE_EPS);
@@ -140,7 +141,7 @@ void WeakEqual(
 void WeakEqual(
       const real4 & a,
       const real4 & b,
-      float COMPARE_EPS = FLT_EPSILON ) {
+      real COMPARE_EPS = ZERO_EPSILON ) {
    WeakEqual(a.w, b.w, COMPARE_EPS);
    WeakEqual(a.x, b.x, COMPARE_EPS);
    WeakEqual(a.y, b.y, COMPARE_EPS);
@@ -150,8 +151,15 @@ void WeakEqual(
 void WeakEqual(
       const M33 & a,
       const M33 & b,
-      float COMPARE_EPS = FLT_EPSILON ) {
+      real COMPARE_EPS = ZERO_EPSILON ) {
    WeakEqual(a.U, b.U, COMPARE_EPS);
    WeakEqual(a.V, b.V, COMPARE_EPS);
    WeakEqual(a.W, b.W, COMPARE_EPS);
 }
+
+void OutputRowMatrix(const ChMatrixDynamic<real>& x){
+   for (unsigned int ic = 0; ic < x.GetRows(); ic++) {
+      std::cout<<x(ic,0)<<std::endl;
+   }
+}
+
