@@ -114,10 +114,11 @@ void ChSystemParallelDVI::SolveSystem() {
    data_manager->system_timer.stop("step");
 }
 void ChSystemParallelDVI::AssembleSystem() {
+   Setup();
 
    collision_system->Run();
    collision_system->ReportContacts(this->contact_container);
-
+   ChSystem::Update();
    this->contact_container->BeginAddContact();
    chrono::collision::ChCollisionInfo icontact;
    for (int i = 0; i < data_manager->num_contacts; i++) {
