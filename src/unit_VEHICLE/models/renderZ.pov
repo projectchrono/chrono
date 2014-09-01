@@ -6,14 +6,22 @@
 #version 3.7;
 global_settings { assumed_gamma 1 }
 global_settings { ambient_light rgb<1, 1, 1> }
-  
-// Render a sequence of frames or a single one      
+           
+           
+// ============================================================================================
+// OPTIONS
+// ============================================================================================
+
+// -------------------------------------------------------           
+// Render a sequence of frames or a single one  
+    
 //#declare fnum=abs(frame_number); 
 #declare fnum = 1;
 
 #declare datafile = concat("POVRAY/data_", str(fnum,-3,0), ".dat")
 
 
+// -------------------------------------------------------           
 // Render objects?
 #declare render_objects = true;
 
@@ -22,8 +30,17 @@ global_settings { ambient_light rgb<1, 1, 1> }
 
 //Render links?
 #declare render_links = true;
-
-
+                        
+                        
+// -------------------------------------------------------
+// Dimensions for rendering links           
+#declare revolute_radius = 0.02;
+#declare revolute_halflen = 0.04;                
+ 
+#declare spherical_radius = 0.035;                
+                                              
+                                              
+// -------------------------------------------------------           
 // Draw global frame?
 #declare draw_global_frame = false;
 #declare global_frame_radius = 0.01;
@@ -31,7 +48,7 @@ global_settings { ambient_light rgb<1, 1, 1> }
 
 // Draw body frames?
 #declare draw_body_frame = false;
-#declare body_frame_radius = 0.006;
+#declare body_frame_radius = 0.003;
 #declare body_frame_len = 0.75;
 
 // Draw shape frames?
@@ -40,22 +57,53 @@ global_settings { ambient_light rgb<1, 1, 1> }
 #declare object_frame_len = 0.5;
 
 
+// -------------------------------------------------------           
 // Perspective camera?
 #declare cam_perspective = true;
        
-// Camera location and look-at (RIGHT-HAND-FRAME with Z up)
-#declare cam_loc    = <3, -2, 2>;
-#declare cam_lookat = <0, 0, 1>;
+// Camera location and look-at (RIGHT-HAND-FRAME with Z up) 
+#declare cam_loc    = <-3, -3, 3>;
+#declare cam_lookat = <0, 0, 0>;
+   
+   
+// Camera presets
 
+                
+// Vehicle top-down                  
+//#declare cam_loc    = <-0.3, 0, 4.5>;
+//#declare cam_lookat = <-0.3, 0, 0>;
+                  
+ 
+// Front-left top-down                  
+//#declare cam_loc    = <-2, -0.7, 1.5>;
+//#declare cam_lookat = <-2, -0.7, 0>;
+ 
+                  
+// Behind vehicle (settled)
+//#declare cam_loc    = <3.5, -2.5, 2.3>;
+//#declare cam_lookat = <0, 0, 0.6>;
 
+ 
+// Front-left suspension                               
+//#declare dir = <-2,-1,-2>;
+//#declare cam_loc    = <-1, 0, 2.3> + 0.2*dir;
+//#declare cam_lookat = <-3, -1, 0.3> + 0.2*dir;
+                               
+                               
+// -------------------------------------------------------           
 // Render environment?
-#declare draw_environment = false;
+#declare draw_environment = true;   
 
-     
+
+// -------------------------------------------------------           
+#declare draw_shadows = true;
+                                            
+                                            
+                                            
 // ============================================================================================
 // Includes
 // ============================================================================================ 
-#include "shapes.inc"
+#include "shapes.inc"  
 #include "strings.inc"            
 #include "textures.inc"              
 #include "colors.inc"
@@ -143,18 +191,24 @@ global_settings { ambient_light rgb<1, 1, 1> }
 //
 // NOTES:
 //   (1) It is assumed that a file [mesh_name].inc exists in the search path
-//   (2) This file must define a macro "mesh_name(col)" which returns a mesh object
+//   (2) This file must define a macro "mesh_name()" which returns a mesh object
 //       the input argument is the color for the mesh
 //   (3) It is assumed that the mesh vertices are specified in a RIGHT-HAND-FRAME
 //       with Z up.
 //
-#macro RenderMesh(mesh_name, pos, rot, col)
+// Use as:
+//    object {
+//       MyMesh(mesh_name, pos, rot, col)
+//       [object_modifiers]
+//    }
+//
+#macro MyMesh(mesh_name, pos, rot)
     Parse_String(concat("#include \"", mesh_name,"\""))
-    Parse_String(concat("object{", mesh_name, "(col) position(pos,rot)}"))
+    Parse_String(concat(mesh_name, "() position(pos,rot)"))
 #end   
-   
-   
- 
+  
+  
+                                                                  
 // ============================================================================================     
     
 // Set a color of the background (sky)
@@ -172,19 +226,31 @@ camera {
         orthographic
     #end
     location cloc
-    look_at  clookat
+    look_at  clookat  
+    angle 60
    //right     x*image_width/image_height  // aspect
    // direction z                        // direction and zoom
    // angle 67                           // field (overides direction zoom)
 }
                               
 // Create a regular point light source                              
-#if (draw_environment = false)
-light_source { 
-    1000*(cloc - clookat)  // behind the camera
-    color rgb <1,1,1>      // light's color
-    translate <0, 1500, 0>
-}
+#if (draw_environment = false) 
+
+  #if (draw_shadows)
+    light_source { 
+      1000*(cloc - clookat)  // behind the camera
+      color rgb <1,1,1>      // light's color
+      translate <0, 1500, 0>
+    }         
+  #else
+    light_source { 
+      1000*(cloc - clookat)  // behind the camera
+      color rgb <1,1,1>      // light's color
+      translate <0, 1500, 0> 
+      shadowless
+    }         
+  #end
+
 #end
 
 
@@ -202,7 +268,7 @@ light_source {
 
 #for (i, 1, numBodies)
     #read (MyDataFile, id, active, ax, ay, az, e0, e1, e2, e3)
-    #if (draw_body_frame & (render_static | active) )
+    #if (draw_body_frame & (active | render_static))
        object {
             XYZframe(body_frame_len, body_frame_radius) 
             position(<ax,ay,az>,<e0,e1,e2,e3>)  
@@ -217,10 +283,8 @@ light_source {
 #for (i, 1, numObjects)                               
               
     #read (MyDataFile, id, active, ax, ay, az, e0, e1, e2, e3, shape)  
-    
-    //#warning concat("  read id: ", str(id,0,0), "  shape: ", str(shape,0,0), "\n")
-             
-    #if (draw_object_frame)
+                 
+    #if (draw_object_frame & (active | render_static))
        object {
             XYZframe(object_frame_len, object_frame_radius) 
             position(<ax,ay,az>,<e0,e1,e2,e3>)  
@@ -232,50 +296,27 @@ light_source {
         // sphere -------------  
         #case (0)
             # read (MyDataFile, ar)  
-            #if (render_objects)
-				#if (active)    
-					sphere {
-					   <0,0,0>, ar
-					   position(<ax,ay,az>,<e0,e1,e2,e3>)
-					   pigment {color rgbt <.8, 0.6, 0.6,0> }
-					   finish {diffuse 1 ambient 0.0 specular .05 } 
-					}  
-				#else
-					#if (render_static)
-					sphere {
-					   <0,0,0>, ar
-					   position(<ax,ay,az>,<e0,e1,e2,e3>)
-					   pigment {color rgbt <1, 0.9, 0.9, 0> }
-					   finish {diffuse 1 ambient 0.0 specular .05 } 
-					}
-					#end
-				#end   
+            #if (render_objects & (active | render_static))
+			    sphere {
+				    <0,0,0>, ar
+					position(<ax,ay,az>,<e0,e1,e2,e3>)
+					pigment {color rgbt <.8, 0.6, 0.6,0> }
+					finish {diffuse 1 ambient 0.0 specular .05 } 
+				}  
             #end                                             
         #break     
               
         // box ----------------
         #case (2)
             #read (MyDataFile, hx, hy, hz)
-			#if (render_objects)   
-				#if (active)    
-					box {   
-					   <-hx, -hz, -hy>, 
-					   <hx, hz, hy>     
-					   position(<ax,ay,az>,<e0,e1,e2,e3>)
-					   pigment {color rgbt <0, .7, 0.3, 0>}
-					   finish {diffuse 1 ambient 0.0 specular .05 } 
-					}   
-				#else
-					#if (render_static)
-					box {   
-					   <-hx, -hz, -hy>, 
-					   <hx, hz, hy>     
-					   position(<ax,ay,az>,<e0,e1,e2,e3>)
-					   pigment {color rgbt <1, 0.9, 0.9, 0> transmit 0.6}
-					   finish {diffuse 1 ambient 0.0 specular .05 } 
-					} 
-					#end   
-				#end
+			#if (render_objects & (active | render_static))  
+				box {   
+				    <-hx, -hz, -hy>, 
+					<hx, hz, hy>     
+					position(<ax,ay,az>,<e0,e1,e2,e3>)
+					pigment {color rgbt <0, .7, 0.3, 0>}
+					finish {diffuse 1 ambient 0.0 specular .05 } 
+				}   
 			#end
                                                                       
         #break
@@ -283,91 +324,52 @@ light_source {
         // cylinder --------------
         #case (3)
             #read (MyDataFile, ar, p1x, p1y, p1z, p2x, p2y, p2z)
-			#if (render_objects)
-				#if (active)
-					cylinder {
-					   <p1x,p1z,p1y>, <p2x,p2z,p2y>, ar      
-					   pigment {color rgbt <1, 0.9, 0.9, 0> transmit 0.4}
-					   position(<ax,ay,az>,<e0,e1,e2,e3>)     
-					   finish {diffuse 1 ambient 0.0 specular .05 }
-					}   
-				#else
-					#if (render_static)
-					cylinder {
-					   <p1x,p1z,p1y>, <p2x,p2z,p2y>, ar      
-					   pigment {color rgbt <1, 0.9, 0.9, 0> }
-					   position(<ax,ay,az>,<e0,e1,e2,e3>)     
-					   finish {diffuse 1 ambient 0.0 specular .05 }
-					}
-					#end
-				#end
+			#if (render_objects & (active | render_static))
+				cylinder {
+			        <p1x,p1z,p1y>, <p2x,p2z,p2y>, ar      
+					pigment {color rgbt <1, 0.9, 0.9, 0> transmit 0}
+					position(<ax,ay,az>,<e0,e1,e2,e3>)     
+					finish {diffuse 1 ambient 0.0 specular .05 }
+				}   
 			#end
         #break
          
         // rounded cylinder --------------
         #case (10)
             #read (MyDataFile, ar, hl, sr)
-			#if (render_objects)
-				#if (active)
-					object {
-					   Round_Cylinder(<0,0,hl + sr>, <0,0,-hl - sr>, ar+sr, sr, 0)     
-					   pigment {color rgbt <0.2, 0.4, 0.9, 0> }
-					   position(<ax,ay,az>,<e0,e1,e2,e3>)     
-					   finish {diffuse 1 ambient 0.0 specular .05 }
-					}   
-				#else
-					#if (render_static)
-					object {
-					   Round_Cylinder(<0,0,hl + sr>, <0,0,-hl - sr>, ar+sr, sr, 0)      
-					   pigment {color rgbt <1, 0.9, 0.9, 0> }
-					   position(<ax,ay,az>,<e0,e1,e2,e3>)     
-					   finish {diffuse 1 ambient 0.0 specular .05 }
-					}
-					#end
-				#end
+			#if (render_objects & (active | render_static))
+				object {
+			        Round_Cylinder(<0,0,hl + sr>, <0,0,-hl - sr>, ar+sr, sr, 0)     
+					pigment {color rgbt <0.2, 0.4, 0.9, 0> }
+					position(<ax,ay,az>,<e0,e1,e2,e3>)     
+					finish {diffuse 1 ambient 0.0 specular .05 }
+				}   
 			#end
         #break
 
         // capsule ------------
         #case (7)
             #read (MyDataFile, ar, hl)  
-			#if (render_objects)
-				#if (active)    
-					sphere_sweep {
-					   linear_spline
-					   2
-					   <0,0,-hl>,ar,<0,0,hl>,ar
-					   pigment {Candy_Cane scale 0.1}
-					   position(<ax,ay,az>,<e0,e1,e2,e3>)     
-					   finish {diffuse 1 ambient 0.0 specular .05 }
-					}
-				#else
-					#if (render_static)
-					sphere_sweep {
-					   linear_spline
-					   2
-					   <0,0,-hl>,ar,<0,0,hl>,ar
-					   pigment {color rgbt<1, 0.9, 0.9, 0>}
-					   position(<ax,ay,az>,<e0,e1,e2,e3>)     
-					   finish {diffuse 0.5 ambient 0.2 specular .05}
-					}    
-					#end
-				#end
+			#if (render_objects & (active | render_static))
+				sphere_sweep {
+			        linear_spline
+					2
+					<0,0,-hl>,ar,<0,0,hl>,ar
+					pigment {Candy_Cane scale 0.1}
+					position(<ax,ay,az>,<e0,e1,e2,e3>)     
+					finish {diffuse 1 ambient 0.0 specular .05 }
+				}
 			#end
         #break  
         
         // mesh ----------------
         #case (5)
             #read (MyDataFile, mesh_name)
-			#if (render_objects)
-				#if (active)  
-					#warning concat("Mesh name: ", mesh_name, "\n")
-					RenderMesh(mesh_name, <ax,ay,az>,<e0,e1,e2,e3>, rgb<0.4,0.4,0.4>)
-				#else
-					#if (render_static)
-					RenderMesh(mesh_name, <ax,ay,az>,<e0,e1,e2,e3>, rgb<1,0.9,0.9>)
-					#end
-				#end
+			#if (render_objects & (active | render_static))
+			    #warning concat("Mesh name: ", mesh_name, "\n")
+				object {
+			        MyMesh(mesh_name, <ax,ay,az>,<e0,e1,e2,e3>)     
+			    }
 			#end
         #break  
            
@@ -390,7 +392,7 @@ light_source {
 	    #case (1)
 	        #read (MyDataFile, px, py, pz)
 	        sphere {
-			    <px,pz,py>, 4 * object_frame_radius
+			    <px,pz,py>, spherical_radius
 			    pigment {color Red }}
 	    #break
 	    
@@ -398,9 +400,9 @@ light_source {
 		#case (8)
 			#read (MyDataFile, px, py, pz, dx, dy, dz)
             cylinder {
-                <px-6*object_frame_radius*dx,  pz-6*object_frame_radius*dz, py-6*object_frame_radius*dy>, 
-                <px+6*object_frame_radius*dx,  pz+6*object_frame_radius*dz, py+6*object_frame_radius*dy>, 
-                2*object_frame_radius
+                <px-revolute_halflen*dx,  pz-revolute_halflen*dz, py-revolute_halflen*dy>, 
+                <px+revolute_halflen*dx,  pz+revolute_halflen*dz, py+revolute_halflen*dy>, 
+                revolute_radius   
                 pigment {color Blue}}
 		#break
 
@@ -436,11 +438,15 @@ XYZframe(global_frame_len, global_frame_radius)
 #end 
       
  
- 
 #if (draw_environment) 
  
-    // sun ---------------------------------------------------------------
-    light_source{<1500,2500,-2500>*100 color rgb<1,1,1> }
+    // sun --------------------------------------------------------------- 
+    # if (draw_shadows)
+       light_source{<1500,2500,-2500>*100 color rgb<1,1,1>} 
+    #else
+       light_source{<1500,2500,-2500>*100 color rgb<1,1,1> shadowless} 
+    #end        
+    
     light_source{<1500,2500, 2500>*100 color rgb<0.5,0.5,0.5> shadowless}
 
     // sky ---------------------------------------------------------------

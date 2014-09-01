@@ -113,12 +113,12 @@ void HMMWV_Wheel::Initialize(ChSharedBodyPtr spindle)
 // -----------------------------------------------------------------------------
 void HMMWV_WheelLeft::ExportMeshPovray(const std::string& out_dir)
 {
-  utils::WriteMeshPovray(m_meshFile, m_meshName, out_dir);
+  utils::WriteMeshPovray(m_meshFile, m_meshName, out_dir, ChColor(0.15f, 0.15f, 0.15f));
 }
 
 void HMMWV_WheelRight::ExportMeshPovray(const std::string& out_dir)
 {
-  utils::WriteMeshPovray(m_meshFile, m_meshName, out_dir);
+  utils::WriteMeshPovray(m_meshFile, m_meshName, out_dir, ChColor(0.15f, 0.15f, 0.15f));
 }
 
 

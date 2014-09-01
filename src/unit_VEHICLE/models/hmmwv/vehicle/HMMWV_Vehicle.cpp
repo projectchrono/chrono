@@ -274,7 +274,7 @@ void HMMWV_Vehicle::Update(double              time,
 // -----------------------------------------------------------------------------
 void HMMWV_Vehicle::ExportMeshPovray(const std::string& out_dir)
 {
-  utils::WriteMeshPovray(m_chassisMeshFile, m_chassisMeshName, out_dir);
+  utils::WriteMeshPovray(m_chassisMeshFile, m_chassisMeshName, out_dir, ChColor(0.82f, 0.7f, 0.5f));
 }
 
 

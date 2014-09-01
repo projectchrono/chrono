@@ -327,9 +327,9 @@ void ReadCheckpoint(ChSystem*          system,
 // a visual asset (except for cylinders where that is implicit)!
 // -----------------------------------------------------------------------------
 void WriteShapesPovray(ChSystem*          system,
-  const std::string& filename,
-  bool               body_info,
-  const std::string& delim)
+                       const std::string& filename,
+                       bool               body_info,
+                       const std::string& delim)
 {
   CSV_writer csv(delim);
 
@@ -487,6 +487,7 @@ void WriteShapesPovray(ChSystem*          system,
 void WriteMeshPovray(const std::string&    obj_filename,
                      const std::string&    mesh_name,
                      const std::string&    out_dir,
+                     const ChColor&        col,
                      const ChVector<>&     pos,
                      const ChQuaternion<>& rot)
 {
@@ -502,7 +503,7 @@ void WriteMeshPovray(const std::string&    obj_filename,
   std::string pov_filename = out_dir + "/" + mesh_name + ".inc";
   std::ofstream  ofile(pov_filename.c_str());
 
-  ofile << "#macro " << mesh_name << "(col)" << std::endl;
+  ofile << "#macro " << mesh_name << "()" << std::endl;
 
   // Write vertices.
   for (int i = 0; i < trimesh.m_vertices.size(); i++) {
@@ -521,8 +522,8 @@ void WriteMeshPovray(const std::string&    obj_filename,
   }
 
   ofile << "   texture {" << std::endl;
-  ofile << "      pigment {color col}" << std::endl;
-  ofile << "      finish  {ambient 0.2  diffuse 0.7}" << std::endl;
+  ofile << "      pigment {color rgb<" << col.R << ", " << col.G << ", " << col.B << ">}" << std::endl;
+  ofile << "      finish  {phong 0.2  diffuse 0.6}" << std::endl;
   ofile << "    }" << std::endl;
   ofile << "}" << std::endl;
   ofile << "#end" << std::endl;

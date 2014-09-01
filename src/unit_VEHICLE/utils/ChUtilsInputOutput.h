@@ -106,6 +106,7 @@ CH_UTILS_API
 void WriteMeshPovray(const std::string&    obj_filename,
                      const std::string&    mesh_name,
                      const std::string&    out_dir,
+                     const ChColor&        color = ChColor(0.4f, 0.4f, 0.4f),
                      const ChVector<>&     pos = ChVector<>(0,0,0),
                      const ChQuaternion<>& rot = ChQuaternion<>(1,0,0,0));
 
