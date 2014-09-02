@@ -52,7 +52,7 @@ int main(
    real3 Dir = normalize(real3(1.123, -2.45, -8));
 
    {
-      cout << "Sphere" << endl;
+      std::cout << "Sphere" << endl;
       real3 R = real3(3.0, 1, 2);
       real3 answer_a = GetSupportPoint_Sphere(R, Dir);
 
@@ -64,7 +64,7 @@ int main(
    }
 
    {
-      cout << "Box" << endl;
+      std::cout << "Box" << endl;
       real3 R = real3(3.0, 1, 2);
       real3 answer_a = GetSupportPoint_Box(R, Dir);
 
@@ -77,7 +77,7 @@ int main(
    }
 
    {
-      cout << "Cylinder" << endl;
+      std::cout << "Cylinder" << endl;
       real3 R = real3(3.0, 1.0, 3.0);
       real3 answer_a = GetSupportPoint_Cylinder(R, Dir);
 
@@ -90,7 +90,7 @@ int main(
    }
 
    {
-      cout << "Cone" << endl;
+      std::cout << "Cone" << endl;
       real3 R = real3(3.0, 1.0, 3.0);
       real3 answer_a = GetSupportPoint_Cone(R, Dir);
 
@@ -105,13 +105,13 @@ int main(
 //Contact tests
 // =============================================================================
    {
-      cout << "special two spheres touching perfectly" << endl;
+      std::cout << "special two spheres touching perfectly" << endl;
       real3 n;
       real d = 0;
       real3 p1, p2;
       SphereSphere(real3(2, 2, 0), real3(2, 0, 0), real3(1, 0, 0), real3(1, 0, 0), n, d, p1, p2);
 
-      //cout << n << p1 << p2 << d << endl;
+      //std::cout << n << p1 << p2 << d << endl;
 
       WeakEqual(n, real3(0, -1, 0));
       WeakEqual(p1, real3(2, 1, 0));
@@ -119,13 +119,13 @@ int main(
       WeakEqual(d, 0.0);
    }
    {
-      cout << "special two spheres inter-penetrating" << endl;
+      std::cout << "special two spheres inter-penetrating" << endl;
       real3 n;
       real d = 0;
       real3 p1, p2;
       SphereSphere(real3(1, 1, 0), real3(2, 0, 0), real3(1, 0, 0), real3(1, 0, 0), n, d, p1, p2);
 
-      //cout << n << p1 << p2 << d << endl;
+      //std::cout << n << p1 << p2 << d << endl;
       real3 n_check = real3(sin(CH_C_PI / 4.0), -sin(CH_C_PI / 4.0), 0);
       WeakEqual(n, n_check);
       WeakEqual(p1, real3(1, 1, 0) + n_check * 1);
@@ -135,7 +135,7 @@ int main(
    }
 
    {
-      cout << "two spheres touching perfectly" << endl;
+      std::cout << "two spheres touching perfectly" << endl;
       real3 p, n(0, 0, 0);
       real d = 0;
 
@@ -155,7 +155,7 @@ int main(
       real3 p1, p2;
       GetPoints(A_T, A_X, A_Y, A_Z, A_R, B_T, B_X, B_Y, B_Z, B_R, n, p, p1, p2);
 
-      //cout << n << p1 << p2 << d << endl;
+      //std::cout << n << p1 << p2 << d << endl;
       WeakEqual(n, real3(0, -1, 0));
       WeakEqual(p1, real3(2, 1, 0));
       WeakEqual(p2, real3(2, 1, 0));
@@ -164,7 +164,7 @@ int main(
    }
 //
    {
-      cout << "two spheres inter-penetrating" << endl;
+      std::cout << "two spheres inter-penetrating" << endl;
       real3 p, n(0, 0, 0);
       real d = 0;
 
@@ -184,7 +184,7 @@ int main(
       real3 p1, p2;
       GetPoints(A_T, A_X, A_Y, A_Z, A_R, B_T, B_X, B_Y, B_Z, B_R, n, p, p1, p2);
       d = dot(n, p2 - p1);
-      //cout << n << p1 << p2 << d << endl;
+      //std::cout << n << p1 << p2 << d << endl;
       real3 n_check = real3(sin(CH_C_PI / 4.0), -sin(CH_C_PI / 4.0), 0);
       WeakEqual(n, n_check);
       WeakEqual(p1, real3(1, 1, 0) + n_check * 1);
@@ -193,7 +193,7 @@ int main(
    }
 
    {
-      cout << "two ellipsoids touching perfectly" << endl;
+      std::cout << "two ellipsoids touching perfectly" << endl;
       real3 p, n(0, 0, 0);
       real d = 0;
 
@@ -213,7 +213,7 @@ int main(
       real3 p1, p2;
       GetPoints(A_T, A_X, A_Y, A_Z, A_R, B_T, B_X, B_Y, B_Z, B_R, n, p, p1, p2);
 
-      //cout << n << p1 << p2 << d << endl;
+      //std::cout << n << p1 << p2 << d << endl;
       WeakEqual(n, real3(0, -1, 0));
       WeakEqual(p1, real3(2, 1, 0));
       WeakEqual(p2, real3(2, 1, 0));
@@ -222,7 +222,7 @@ int main(
    }
 //
    {
-      cout << "two ellipsoids inter-penetrating" << endl;
+      std::cout << "two ellipsoids inter-penetrating" << endl;
       real3 p, n(0, 0, 0);
       real d = 0;
 
@@ -242,7 +242,7 @@ int main(
       real3 p1, p2;
       GetPoints(A_T, A_X, A_Y, A_Z, A_R, B_T, B_X, B_Y, B_Z, B_R, n, p, p1, p2);
       d = dot(n, p2 - p1);
-      //cout << n << p1 << p2 << d << endl;
+      //std::cout << n << p1 << p2 << d << endl;
       real3 n_check = real3(sin(CH_C_PI / 4.0), -sin(CH_C_PI / 4.0), 0);
       WeakEqual(n, n_check);
       WeakEqual(p1, real3(1, 1, 0) + n_check * 1);
@@ -251,7 +251,7 @@ int main(
    }
 
    {
-      cout << "sphere on box centered" << endl;
+      std::cout << "sphere on box centered" << endl;
       real3 p, n(0, 0, 0);
       real d = 0;
 
@@ -270,7 +270,7 @@ int main(
       CollideAndFindPoint(A_T, A_X, A_Y, A_Z, A_R, B_T, B_X, B_Y, B_Z, B_R, n, p, d);
       real3 p1, p2;
       GetPoints(A_T, A_X, A_Y, A_Z, A_R, B_T, B_X, B_Y, B_Z, B_R, n, p, p1, p2);
-      //cout << n << p << d << endl << p1 << p2 << endl;
+      //std::cout << n << p << d << endl << p1 << p2 << endl;
 
       WeakEqual(n, real3(0, -1, 0));
       WeakEqual(p1, real3(0, 0.5, 0));
@@ -279,7 +279,7 @@ int main(
    }
 
    {
-      cout << "sphere on box offset" << endl;
+      std::cout << "sphere on box offset" << endl;
       real3 p, n(0, 0, 0);
       real d = 0;
 
@@ -296,11 +296,11 @@ int main(
       real4 B_R = real4(1, 0, 0, 0);
 
       if (!CollideAndFindPoint(A_T, A_X, A_Y, A_Z, A_R, B_T, B_X, B_Y, B_Z, B_R, n, p, d)) {
-         cout << "No Contact!\n";
+         std::cout << "No Contact!\n";
       }
       real3 p1, p2;
       GetPoints(A_T, A_X, A_Y, A_Z, A_R, B_T, B_X, B_Y, B_Z, B_R, n, p, p1, p2);
-      //cout << n << p << d << endl << p1 << p2 << endl;
+      //std::cout << n << p << d << endl << p1 << p2 << endl;
       WeakEqual(n, real3(0, -1, 0));
       WeakEqual(p1, real3(.1, 1, 0));
       WeakEqual(p2, real3(.1, 1, 0));
@@ -308,7 +308,7 @@ int main(
    }
 
 //   {
-//      cout << "sphere on box offset and penetrating" << endl;
+//      std::cout << "sphere on box offset and penetrating" << endl;
 //      real3 p, n(0, 0, 0);
 //      real d = 0;
 //
@@ -325,11 +325,11 @@ int main(
 //      real4 B_R = real4(1, 0, 0, 0);
 //
 //      if (!CollideAndFindPoint(A_T, A_X, A_Y, A_Z, A_R, B_T, B_X, B_Y, B_Z, B_R, n, p, d)) {
-//         cout << "No Contact!\n";
+//         std::cout << "No Contact!\n";
 //      }
 //      real3 p1, p2;
 //      GetPoints(A_T, A_X, A_Y, A_Z, A_R, B_T, B_X, B_Y, B_Z, B_R, n, p, p1, p2);
-//      cout << n << p << d << endl << p1 << p2 << endl;
+//      std::cout << n << p << d << endl << p1 << p2 << endl;
 ////      WeakEqual(n.x, 0);
 ////      WeakEqual(n.y, 1);
 ////      WeakEqual(n.z, 0);
@@ -350,7 +350,7 @@ int main(
 //   }
 //
 //   {
-//      cout << "sphere on box offset and penetrating Zup" << endl;
+//      std::cout << "sphere on box offset and penetrating Zup" << endl;
 //      real3 p, n(0, 0, 0);
 //      real d = 0;
 //
@@ -370,7 +370,7 @@ int main(
 //      real3 p1, p2;
 //      GetPoints(A_T, A_X, A_Y, A_Z, A_R, B_T, B_X, B_Y, B_Z, B_R, n, p, p1, p2);
 //      d = dot(n, p2 - p1);
-//      cout << n << p << d << endl << p1 << p2 << endl;
+//      std::cout << n << p << d << endl << p1 << p2 << endl;
 //      //      WeakEqual(n.x, 0);
 //      //      WeakEqual(n.y, 1);
 //      //      WeakEqual(n.z, 0);
@@ -391,7 +391,7 @@ int main(
 //   }
 
 //   {
-//      cout << "box on box offset" << endl;
+//      std::cout << "box on box offset" << endl;
 //      real3 p, n(0, 0, 0);
 //      real d = 0;
 //
@@ -410,7 +410,7 @@ int main(
 //      CollideAndFindPoint(A_T, A_X, A_Y, A_Z, A_R, B_T, B_X, B_Y, B_Z, B_R, n, p, d);
 //      real3 p1, p2;
 //      GetPoints(A_T, A_X, A_Y, A_Z, A_R, B_T, B_X, B_Y, B_Z, B_R, n, p, p1, p2);
-//      cout << n << p << d << endl << p1 << p2 << endl;
+//      std::cout << n << p << d << endl << p1 << p2 << endl;
 //      //      WeakEqual(n.x, 0);
 //      //      WeakEqual(n.y, 1);
 //      //      WeakEqual(n.z, 0);

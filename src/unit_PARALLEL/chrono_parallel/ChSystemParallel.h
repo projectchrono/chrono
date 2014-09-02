@@ -106,7 +106,7 @@ CH_RTTI(ChSystemParallel, ChSystem)
 
    int max_threads, current_threads, min_threads;
    int detect_optimal_bins;
-   vector<double> timer_accumulator, cd_accumulator;
+   std::vector<double> timer_accumulator, cd_accumulator;
    uint frame_threads, frame_bins, counter;
    std::list<ChLink *>::iterator it;
 };

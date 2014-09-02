@@ -238,7 +238,7 @@ void ChSystemParallel::UpdateBilaterals() {
    }
    unsigned int num_bilaterals = 0;
    std::vector<ChLcpConstraint *> &mconstraints = (*this->LCP_descriptor).GetConstraintsList();
-   vector<int> mapping;
+   std::vector<int> mapping;
 
    for (uint ic = 0; ic < mconstraints.size(); ic++) {
       if (mconstraints[ic]->IsActive() == true) {

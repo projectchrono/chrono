@@ -29,7 +29,6 @@
 #include "chrono_utils/ChUtilsCreators.h"
 #include "chrono_utils/ChUtilsInputOutput.h"
 
-using namespace std;
 using namespace chrono;
 using namespace chrono::collision;
 using namespace chrono::utils;
@@ -41,7 +40,7 @@ int main(
    real4 R2 = normalize(real4(rand(), rand(), rand(), rand()));
 
    {
-      cout << "Cross Matrix\n";
+      std::cout << "Cross Matrix\n";
 
       real3 v, w;
       Orthogonalize(n, v, w);
@@ -51,21 +50,21 @@ int main(
       ChMatrix33<real> cross_m2;
       cross_m2.Set_X_matrix(ToChVector(n));
 
-      //cout << cross_m1.U << cross_m1.V << cross_m1.W << endl;
-      //cout << ToReal3(cross_m2.ClipVector(0, 0)) << ToReal3(cross_m2.ClipVector(0, 1)) << ToReal3(cross_m2.ClipVector(0, 2)) << endl;
+      //std::cout << cross_m1.U << cross_m1.V << cross_m1.W << endl;
+      //std::cout << ToReal3(cross_m2.ClipVector(0, 0)) << ToReal3(cross_m2.ClipVector(0, 1)) << ToReal3(cross_m2.ClipVector(0, 2)) << endl;
 
       WeakEqual(cross_m1, ToM33(cross_m2));
    }
 
    {
-      cout << "A Matrix\n";
+      std::cout << "A Matrix\n";
       M33 A1 = AMat(R1);
       ChMatrix33<real> A2 = ChMatrix33<real>(ToChQuaternion(R1));
       WeakEqual(A1, ToM33(A2));
    }
 
    {
-      cout << "A Matrix T\n";
+      std::cout << "A Matrix T\n";
       M33 A1 = AMatT(R1);
       ChMatrix33<real> A2 = ChMatrix33<real>(ToChQuaternion(R1));
       A2.MatrTranspose();
@@ -78,14 +77,14 @@ int main(
    ChMatrix33<real> B2 = ChMatrix33<real>(ToChQuaternion(R2));
 
    {
-      cout << "Multiply Matrix\n";
+      std::cout << "Multiply Matrix\n";
       M33 Res1 = A1 * A2;
       ChMatrix33<real> Res2 = B1 * B2;
       WeakEqual(Res1, ToM33(Res2));
    }
 
    {
-      cout << "Multiply T Matrix \n";
+      std::cout << "Multiply T Matrix \n";
 
       M33 Res1 = MatTMult(A1, A2);
 
@@ -96,7 +95,7 @@ int main(
    }
 
    {
-      cout << "Multiply Matrix T\n";
+      std::cout << "Multiply Matrix T\n";
 
       M33 Res1 = MatMultT(A1, A2);
 

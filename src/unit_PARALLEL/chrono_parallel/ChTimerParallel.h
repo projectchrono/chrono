@@ -85,41 +85,41 @@ class CH_PARALLEL_API ChTimerParallel {
    ~ChTimerParallel() {
    }
 
-   void AddTimer(string name) {
+   void AddTimer(std::string name) {
       TimerData temp;
       timer_list[name] = temp;
       total_timers++;
    }
 
    void Reset() {
-      for (map<string, TimerData>::iterator it = timer_list.begin(); it != timer_list.end(); it++) {
+      for (std::map<std::string, TimerData>::iterator it = timer_list.begin(); it != timer_list.end(); it++) {
          it->second.Reset();
       }
 
    }
-   void SetFlop(string name,
+   void SetFlop(std::string name,
                 double f) {
 
       timer_list[name].flop = f;
       timer_list[name].compute_stats = true;
    }
 
-   void SetMemory(string name,
+   void SetMemory(std::string name,
                   double m) {
 
       timer_list[name].memory_ops = m;
       timer_list[name].compute_stats = true;
    }
 
-   void start(string name) {
+   void start(std::string name) {
       timer_list[name].start();
    }
 
-   void stop(string name) {
+   void stop(std::string name) {
       timer_list[name].stop();
 
    }
-   double GetTime(string name) {
+   double GetTime(std::string name) {
       if (timer_list.count(name) == 0) {
          return 0;
       }
@@ -127,21 +127,21 @@ class CH_PARALLEL_API ChTimerParallel {
    }
    void PrintReport() {
       total_time = average_flops = average_bandwidth = 0;
-      cout << "Timer Report:" << endl;
-      cout << "------------" << endl;
-      for (map<string, TimerData>::iterator it = timer_list.begin(); it != timer_list.end(); it++) {
+      std::cout << "Timer Report:" << std::endl;
+      std::cout << "------------" << std::endl;
+      for (std::map<std::string, TimerData>::iterator it = timer_list.begin(); it != timer_list.end(); it++) {
          it->second.Compute();
-         cout << "Name:\t" << it->first << "\t" << it->second.time;
+         std::cout << "Name:\t" << it->first << "\t" << it->second.time;
          if (it->second.compute_stats) {
-            cout << "\t" << it->second.flop_rate << "\t" << it->second.bandwidth;
+            std::cout << "\t" << it->second.flop_rate << "\t" << it->second.bandwidth;
             average_flops += it->second.flop_rate;
             average_bandwidth += it->second.bandwidth;
          }
-         cout << endl;
+         std::cout << std::endl;
          total_time += it->second.time;
 
       }
-      cout << "------------" << endl;
+      std::cout << "------------" << std::endl;
       //cout << total_time << " " << average_flops / total_timers << " " << average_bandwidth / total_timers << endl;
    }
 
@@ -149,8 +149,8 @@ class CH_PARALLEL_API ChTimerParallel {
    double average_flops;
    double average_bandwidth;
    int total_timers;
-   std::map<string, TimerData> timer_list;
-   map<string, TimerData>::iterator it;
+   std::map<std::string, TimerData> timer_list;
+   std::map<std::string, TimerData>::iterator it;
 };
 
 }

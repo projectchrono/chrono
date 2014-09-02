@@ -236,9 +236,9 @@ static inline M33 Transpose(const M33 &A) {
    return result;
 }
 
-static inline ostream &operator<<(ostream &out,
+static inline std::ostream &operator<<(std::ostream &out,
                                   const M33 &a) {
-   out << a.U << a.V << a.W << endl;
+   out << a.U << a.V << a.W << std::endl;
    return out;
 }
 

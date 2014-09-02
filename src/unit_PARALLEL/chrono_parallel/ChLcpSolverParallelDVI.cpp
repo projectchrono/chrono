@@ -176,13 +176,13 @@ void ChLcpSolverParallelDVI::RunWarmStartPostProcess() {
    real3 origin;
 
    for (int i = 0; i < N; i++) {
-      max_point.x = max(points[i].x, max_point.x);
-      max_point.y = max(points[i].y, max_point.y);
-      max_point.z = max(points[i].z, max_point.z);
+      max_point.x = std::max(points[i].x, max_point.x);
+      max_point.y = std::max(points[i].y, max_point.y);
+      max_point.z = std::max(points[i].z, max_point.z);
 
-      min_point.x = min(points[i].x, min_point.x);
-      min_point.y = min(points[i].y, min_point.y);
-      min_point.z = min(points[i].z, min_point.z);
+      min_point.x = std::min(points[i].x, min_point.x);
+      min_point.y = std::min(points[i].y, min_point.y);
+      min_point.z = std::min(points[i].z, min_point.z);
    }
 
    origin = min_point;

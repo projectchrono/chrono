@@ -63,7 +63,6 @@
 #include <omp.h>
 #include <vector>
 #include <string.h>
-using namespace std;
 //using namespace thrust;
 typedef unsigned int uint;
 

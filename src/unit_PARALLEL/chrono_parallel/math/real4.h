@@ -231,9 +231,9 @@ static inline real4 operator ~(real4 const & a) {
 #endif
 }
 
-static inline ostream &operator<<(ostream &out,
+static inline std::ostream &operator<<(std::ostream &out,
                                   const real4 &a) {
-   out << "[" << a.w << ", " << a.x << ", " << a.y << ", " << a.z << "]" << endl;
+   out << "[" << a.w << ", " << a.x << ", " << a.y << ", " << a.z << "]" << std::endl;
    return out;
 }
 

@@ -62,8 +62,8 @@ public:
   explicit CSV_writer(const std::string& delim = ",") : m_delim(delim) {}
   ~CSV_writer() {}
 
-  void write_to_file(const string& filename,
-                     const string& header = "")
+  void write_to_file(const std::string& filename,
+                     const std::string& header = "")
   {
     std::ofstream ofile(filename.c_str());
     ofile << header;

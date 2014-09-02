@@ -22,7 +22,6 @@
 #include "chrono_parallel/ChParallelDefines.h"
 #include "chrono_parallel/math/ChParallelMath.h"
 
-using namespace std;
 
 namespace chrono {
 // forward references
@@ -222,7 +221,7 @@ class CH_PARALLEL_API ChCollisionModelParallel : public ChCollisionModel {
       int type;
    };
 
-   vector<bData> mData;
+   std::vector<bData> mData;
 
  protected:
 

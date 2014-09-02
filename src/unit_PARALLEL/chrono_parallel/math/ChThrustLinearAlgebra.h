@@ -237,7 +237,7 @@ static custom_vector<real> max(const real a, const custom_vector<real> &x){
 #pragma omp parallel for
 #endif
 	for(int i=0; i<x.size(); i++) {
-		temp[i] = max(a,x[i]);
+		temp[i] = std::max(a,x[i]);
 	}
 	return temp;
 }
@@ -278,16 +278,16 @@ static real CompRes(const custom_vector<real> &res, const uint n_o_c)
 }
 
 template<class T>
-static inline ostream &operator<<(ostream &out, const thrust::device_vector<T> &x) {
+static inline std::ostream &operator<<(std::ostream &out, const thrust::device_vector<T> &x) {
 	for (uint i = 0; i < x.size(); i++) {
-		out << x[i] << endl;
+		out << x[i] << std::endl;
 	}
 	return out;
 }
 template<class T>
-static inline ostream &operator<<(ostream &out, const thrust::host_vector<T> &x) {
+static inline std::ostream &operator<<(std::ostream &out, const thrust::host_vector<T> &x) {
 	for (uint i = 0; i < x.size(); i++) {
-		out << x[i] << endl;
+		out << x[i] << std::endl;
 	}
 	return out;
 }

@@ -107,11 +107,11 @@ function_CalcContactForces(
   real E_eff = 1 / inv_E;
   real G_eff = 1 / inv_G;
 
-  real mu_eff = min(mu[body1], mu[body2]);
+  real mu_eff = std::min(mu[body1], mu[body2]);
   //real cr_eff = (cr[body1] + cr[body2]) / 2;
   real alpha_eff = (alpha[body1] + alpha[body2]) / 2;
 
-  real cohesion_eff = min(cohesion[body1], cohesion[body2]);
+  real cohesion_eff = std::min(cohesion[body1], cohesion[body2]);
 
   // Contact force
   // -------------

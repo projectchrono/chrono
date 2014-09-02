@@ -202,9 +202,9 @@ uint ChSolverAPGDRS::SolveAPGDRS(const uint max_iter,
       if (num_bilaterals > 0) {
          real resid_bilat = -1;
          for (int i = num_unilaterals; i < x.size(); i++) {
-            resid_bilat = max(resid_bilat, abs(mg_tmp2[i]));
+            resid_bilat = std::max(resid_bilat, std::abs(mg_tmp2[i]));
          }
-         g_proj_norm = max(g_proj_norm, resid_bilat);
+         g_proj_norm = std::max(g_proj_norm, resid_bilat);
       }
 
 

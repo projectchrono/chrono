@@ -118,7 +118,7 @@ class CH_PARALLEL_API ChCollisionSystemParallel : public ChCollisionSystem {
       return collision_envelope;
    }
 
-   vector<int2> GetOverlappingPairs();
+   std::vector<int2> GetOverlappingPairs();
    void GetOverlappingAABB(custom_vector<bool> &active_id,
                            real3 Amin,
                            real3 Amax);

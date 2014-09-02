@@ -48,7 +48,7 @@ uint ChSolverMinRes::SolveMinRes(const uint max_iter,
       double MNpNp = Dot(mMNp, mNp);
       if (fabs(MNpNp) < 10e-30) {
          if (verbose) {
-            cout << "Iter=" << current_iteration << " Rayleygh quotient alpha breakdown: " << zNMr << " / " << MNpNp << "\n";
+            std::cout << "Iter=" << current_iteration << " Rayleygh quotient alpha breakdown: " << zNMr << " / " << MNpNp << "\n";
          }
          MNpNp = 10e-12;
       }
@@ -73,9 +73,9 @@ uint ChSolverMinRes::SolveMinRes(const uint max_iter,
 
       double r_proj_resid = Norm(mr);
 
-      if (r_proj_resid < max(rel_tol_b, abs_tol)) {
+      if (r_proj_resid < std::max(rel_tol_b, abs_tol)) {
          if (verbose) {
-            cout << "Iter=" << current_iteration << " P(r)-converged!  |P(r)|=" << r_proj_resid << "\n";
+            std::cout << "Iter=" << current_iteration << " P(r)-converged!  |P(r)|=" << r_proj_resid << "\n";
          }
          break;
       }
@@ -93,7 +93,7 @@ uint ChSolverMinRes::SolveMinRes(const uint max_iter,
 
       if (fabs(denominator) < 10e-30 || fabs(numerator) < 10e-30) {
          if (verbose) {
-            cout << "Iter=" << current_iteration << " Ribiere quotient beta restart: " << numerator << " / " << denominator << "\n";
+            std::cout << "Iter=" << current_iteration << " Ribiere quotient beta restart: " << numerator << " / " << denominator << "\n";
          }
          beta = 0;
       }

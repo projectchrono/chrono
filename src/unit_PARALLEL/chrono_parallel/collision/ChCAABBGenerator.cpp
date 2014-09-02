@@ -10,12 +10,12 @@ static __device__ __host__ void ComputeAABBSphere(const real &radius, const real
 }
 //%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 static __device__ __host__ void ComputeAABBTriangle(const real3 &A, const real3 &B, const real3 &C, real3 &minp, real3 &maxp) {
-	minp.x = min(A.x, min(B.x, C.x));
-	minp.y = min(A.y, min(B.y, C.y));
-	minp.z = min(A.z, min(B.z, C.z));
-	maxp.x = max(A.x, max(B.x, C.x));
-	maxp.y = max(A.y, max(B.y, C.y));
-	maxp.z = max(A.z, max(B.z, C.z));
+	minp.x = std::min(A.x, std::min(B.x, C.x));
+	minp.y = std::min(A.y, std::min(B.y, C.y));
+	minp.z = std::min(A.z, std::min(B.z, C.z));
+	maxp.x = std::max(A.x, std::max(B.x, C.x));
+	maxp.y = std::max(A.y, std::max(B.y, C.y));
+	maxp.z = std::max(A.z, std::max(B.z, C.z));
 }
 //%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 static __host__ __device__ void ComputeAABBBox(const real3 &dim, const real3 &lpositon, const real3 &positon, const real4 &lrotation, const real4 &rotation, real3 &minp, real3 &maxp) {

@@ -5,8 +5,8 @@ typedef thrust::pair<real3, real3> bbox;
 // reduce a pair of bounding boxes (a,b) to a bounding box containing a and b
 struct bbox_reduction: public thrust::binary_function<bbox, bbox, bbox> {
 	bbox __host__ __device__ operator()(bbox a, bbox b) {
-		real3 ll = R3(fmin(a.first.x, b.first.x), fmin(a.first.y, b.first.y), fmin(a.first.z, b.first.z));     // lower left corner
-		real3 ur = R3(fmax(a.second.x, b.second.x), fmax(a.second.y, b.second.y), fmax(a.second.z, b.second.z));     // upper right corner
+		real3 ll = R3(std::fmin(a.first.x, b.first.x), std::fmin(a.first.y, b.first.y), std::fmin(a.first.z, b.first.z));     // lower left corner
+		real3 ur = R3(std::fmax(a.second.x, b.second.x), std::fmax(a.second.y, b.second.y), std::fmax(a.second.z, b.second.z));     // upper right corner
 		return bbox(ll, ur);
 	}
 };

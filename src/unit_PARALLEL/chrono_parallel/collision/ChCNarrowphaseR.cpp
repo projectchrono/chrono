@@ -497,7 +497,7 @@ int ChCNarrowphaseR::capsule_capsule(
 
     // Find overlap of the two axes (as signed distances along the axis of
     // the first capsule).
-    real locs[2] = {min(hlen1, pos.y + hlen2) , max(-hlen1, pos.y - hlen2)};
+    real locs[2] = {std::min(hlen1, pos.y + hlen2) , std::max(-hlen1, pos.y - hlen2)};
 
     if (locs[0] > locs[1]) {
       // The two axes overlap. Both ends of the overlapping segment represent
@@ -611,8 +611,8 @@ int ChCNarrowphaseR::box_capsule(
     real t1 = (-hdims1_exp.x - pos.x) / V.x;
     real t2 = ( hdims1_exp.x - pos.x) / V.x;
 
-    tMin = max(tMin, min(t1, t2));
-    tMax = min(tMax, max(t1, t2));
+    tMin = std::max(tMin, std::min(t1, t2));
+    tMax = std::min(tMax, std::max(t1, t2));
 
     if (tMin > tMax)
       return 0;
@@ -626,8 +626,8 @@ int ChCNarrowphaseR::box_capsule(
     real t1 = (-hdims1_exp.y - pos.y) / V.y;
     real t2 = ( hdims1_exp.y - pos.y) / V.y;
 
-    tMin = max(tMin, min(t1, t2));
-    tMax = min(tMax, max(t1, t2));
+    tMin = std::max(tMin, std::min(t1, t2));
+    tMax = std::min(tMax, std::max(t1, t2));
 
     if (tMin > tMax)
       return 0;
@@ -641,8 +641,8 @@ int ChCNarrowphaseR::box_capsule(
     real t1 = (-hdims1_exp.z - pos.z) / V.z;
     real t2 = ( hdims1_exp.z - pos.z) / V.z;
 
-    tMin = max(tMin, min(t1, t2));
-    tMax = min(tMax, max(t1, t2));
+    tMin = std::max(tMin, std::min(t1, t2));
+    tMax = std::min(tMax, std::max(t1, t2));
 
     if (tMin > tMax)
       return 0;

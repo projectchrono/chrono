@@ -215,14 +215,14 @@ inline real3 normalize(const real3& a) {
    return a.normalize();
 }
 
-static inline ostream &operator<<(ostream &out,
+static inline std::ostream &operator<<(std::ostream &out,
                                   const real3 &a) {
-   out << "[" << a.x << ", " << a.y << ", " << a.z << "]" << endl;
+   out << "[" << a.x << ", " << a.y << ", " << a.z << "]" << std::endl;
    return out;
 }
 
 static inline real3 ceil(const real3 &a) {
-   return R3(ceil(a.x), ceil(a.y), ceil(a.z));
+   return R3(std::ceil(a.x), std::ceil(a.y), std::ceil(a.z));
 }
 static inline real3 lerp(const real3 &a,
                          const real3 &b,
@@ -230,7 +230,7 @@ static inline real3 lerp(const real3 &a,
    return (a + alpha * (b - a));
 }
 static inline real3 fabs(const real3 &a) {
-   return R3(fabs(a.x), fabs(a.y), fabs(a.z));
+   return R3(std::fabs(a.x), std::fabs(a.y), std::fabs(a.z));
 }
 static inline bool isEqual(const real3 &a,
                            const real3 &b) {
