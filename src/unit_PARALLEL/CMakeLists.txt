@@ -255,6 +255,9 @@ ELSE()
 
 ENDIF()
 
+SET(BLAZE_DIR ""  CACHE PATH   "Where is Blaze located?")
+
+
 # ------------------------------------------------------------------------------
 # Automatically copy DLLs 
 # ------------------------------------------------------------------------------
@@ -315,7 +318,7 @@ CONFIGURE_FILE(
   ${PROJECT_BINARY_DIR}/chrono_parallel/ChConfigParallel.h
   )
 
-INCLUDE_DIRECTORIES(${PROJECT_BINARY_DIR})
+INCLUDE_DIRECTORIES(${PROJECT_BINARY_DIR} ${BLAZE_DIR})
 
 # ------------------------------------------------------------------------------
 # Add paths to the top of the source directory
