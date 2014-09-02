@@ -16,7 +16,6 @@
 #include <iostream>
 #include "ChOpenGLCloud.h"
 
-using namespace std;
 using namespace glm;
 using namespace chrono::opengl;
 

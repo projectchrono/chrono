@@ -16,7 +16,7 @@
 #include <iostream>
 #include "ChOpenGLMesh.h"
 
-using namespace std;
+
 using namespace glm;
 using namespace chrono::opengl;
 
@@ -128,7 +128,7 @@ void ChOpenGLMesh::TakeDown() {
  */
 void ChOpenGLMesh::Update(
       std::vector<glm::mat4> & model) {
-   vector<glm::vec3> a(model.size()), d(model.size()), s(model.size());
+   std::vector<glm::vec3> a(model.size()), d(model.size()), s(model.size());
    for (int i = 0; i < model.size(); i++) {
       a[i] = ambient;
       d[i] = diffuse;

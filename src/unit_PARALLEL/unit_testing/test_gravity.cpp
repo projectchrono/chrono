@@ -27,7 +27,7 @@
 #include "chrono_utils/ChUtilsCreators.h"
 #include "chrono_utils/ChUtilsInputOutput.h"
 
-using namespace std;
+
 using namespace chrono;
 using namespace chrono::collision;
 using namespace chrono::utils;

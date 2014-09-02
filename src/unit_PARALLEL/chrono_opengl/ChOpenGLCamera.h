@@ -18,7 +18,6 @@
 
 #include "chrono_opengl/core/ChOpenGLBase.h"
 
-using namespace std;
 namespace chrono {
 	namespace opengl{
 

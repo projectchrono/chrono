@@ -17,7 +17,6 @@
 
 #include "chrono_opengl/core/ChOpenGLObject.h"
 
-using namespace std;
 using namespace glm;
 using namespace chrono::opengl;
 

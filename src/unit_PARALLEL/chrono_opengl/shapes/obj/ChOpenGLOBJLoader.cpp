@@ -17,25 +17,24 @@
 #include "ChOpenGLOBJLoader.h"
 #include <sstream>
 #include <string>
-using namespace std;
+
 using namespace glm;
 using namespace chrono::opengl;
 ChOpenGLOBJLoader::ChOpenGLOBJLoader() {
 }
 
 //load an obj mesh. Each mesh can have multiple sub meshes
-void ChOpenGLOBJLoader::LoadObject(
-      string fname,
-      vector<vector<glm::vec3> > &vertices,
-      vector<vector<glm::vec3> > &normals,
-      vector<vector<glm::vec2> > &texcoords,
-      vector<vector<GLuint> > &indices,
-      vector<string> & names) {
+void ChOpenGLOBJLoader::LoadObject(std::string fname,
+                                   std::vector<std::vector<glm::vec3> > &vertices,
+                                   std::vector<std::vector<glm::vec3> > &normals,
+                                   std::vector<std::vector<glm::vec2> > &texcoords,
+                                   std::vector<std::vector<GLuint> > &indices,
+                                   std::vector<std::string> & names) {
    std::vector<tinyobj::shape_t> shapes;
 
    std::string err = tinyobj::LoadObj(shapes, fname.c_str());
 
-   std::cout <<fname <<" # of shapes : " << shapes.size() << std::endl;
+   std::cout << fname << " # of shapes : " << shapes.size() << std::endl;
 
    vertices.resize(shapes.size());
    normals.resize(shapes.size());
@@ -52,8 +51,8 @@ void ChOpenGLOBJLoader::LoadObject(
       indices[i].resize(shapes[i].mesh.indices.size());
       names[i] = shapes[i].name;
 
-      cout << shapes[i].mesh.positions.size() / 3 << " " << shapes[i].mesh.normals.size() / 3 << " " << shapes[i].mesh.texcoords.size() / 2 << " " << shapes[i].mesh.indices.size()
-           << endl;
+      std::cout << shapes[i].mesh.positions.size() / 3 << " " << shapes[i].mesh.normals.size() / 3 << " " << shapes[i].mesh.texcoords.size() / 2 << " "
+                << shapes[i].mesh.indices.size() << std::endl;
 
       for (size_t v = 0; v < shapes[i].mesh.positions.size() / 3; v++) {
          vertices[i][v] = vec3(shapes[i].mesh.positions[3 * v + 0], shapes[i].mesh.positions[3 * v + 1], shapes[i].mesh.positions[3 * v + 2]);

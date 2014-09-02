@@ -17,17 +17,15 @@
 #include <iostream>
 #include "ChOpenGLOBJ.h"
 
-using namespace std;
 using namespace glm;
 using namespace chrono::opengl;
 
 ChOpenGLOBJ::ChOpenGLOBJ() {
 }
 
-bool ChOpenGLOBJ::Initialize(
-      string filename,
-      ChOpenGLMaterial mat,
-      ChOpenGLShader * shader) {
+bool ChOpenGLOBJ::Initialize(std::string filename,
+                             ChOpenGLMaterial mat,
+                             ChOpenGLShader * shader) {
    if (this->GLReturnedError("ChOpenGLOBJ::Initialize - on entry")) {
       return false;
    }
@@ -59,15 +57,13 @@ void ChOpenGLOBJ::TakeDown() {
    names.clear();
 
 }
-void ChOpenGLOBJ::Update(
-      std::vector<glm::mat4> & model) {
+void ChOpenGLOBJ::Update(std::vector<glm::mat4> & model) {
    for (unsigned int i = 0; i < meshes.size(); i++) {
       meshes[i].Update(model);
    }
 }
-void ChOpenGLOBJ::Draw(
-      const mat4 & projection,
-      const mat4 & view) {
+void ChOpenGLOBJ::Draw(const mat4 & projection,
+                       const mat4 & view) {
    if (this->GLReturnedError("ChOpenGLOBJ::Draw - on entry"))
       return;
 

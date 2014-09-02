@@ -17,7 +17,7 @@
 
 #include "chrono_opengl/core/ChApiOpenGL.h"
 #include "chrono_opengl/ChOpenGLViewer.h"
-using namespace std;
+
 
 namespace chrono {
 namespace opengl {
@@ -78,7 +78,7 @@ class CH_OPENGL_API ChOpenGLWindow {
 
    //Checks if there are any errors in the opengl context
    static bool GLUGetError(
-         string err = ""     //User specified string, prints before gl error
+         std::string err = ""     //User specified string, prints before gl error
          );
    //Provides the version of the opengl context along with driver information
    static void GLFWGetVersion(

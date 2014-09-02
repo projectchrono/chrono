@@ -19,7 +19,7 @@
 // =============================================================================
 
 #include "ChOpenGLShader.h"
-using namespace std;
+
 using namespace glm;
 using namespace chrono::opengl;
 
@@ -78,12 +78,12 @@ void ChOpenGLShader::Use() {
 }
 
 bool ChOpenGLShader::CompileStrings(
-      string shader_name,
+      std::string shader_name,
       const char * vertex_shader,
       const char * fragment_shader) {
    GLint check_value;
 
-   stringstream ss;
+   std::stringstream ss;
    ss << shader_name << "Initialize - on entrance";
 
    if (GLReturnedError(ss.str().c_str()))
@@ -95,8 +95,8 @@ bool ChOpenGLShader::CompileStrings(
    glCompileShader(this->vertex_shader_id);
    glGetShaderiv(this->vertex_shader_id, GL_COMPILE_STATUS, &check_value);
    if (check_value != GL_TRUE) {
-      cerr << this->GetShaderLog(vertex_shader_id);
-      cerr << "GLSL compilation failed - vertex shader: " << shader_name << endl;
+      std::cerr << this->GetShaderLog(vertex_shader_id);
+      std::cerr << "GLSL compilation failed - vertex shader: " << shader_name << std::endl;
       return false;
    }
 
@@ -109,19 +109,19 @@ bool ChOpenGLShader::CompileStrings(
    glCompileShader(this->fragment_shader_id);
    glGetShaderiv(this->fragment_shader_id, GL_COMPILE_STATUS, &check_value);
    if (check_value != GL_TRUE) {
-      cerr << this->GetShaderLog(fragment_shader_id);
-      cerr << "GLSL compilation failed - fragment shader: " << shader_name << endl;
+      std::cerr << this->GetShaderLog(fragment_shader_id);
+      std::cerr << "GLSL compilation failed - fragment shader: " << shader_name << std::endl;
       return false;
    }
 
 }
 bool ChOpenGLShader::CompileFiles(
-      string vertex_shader_file,
-      string fragment_shader_file) {
+      std::string vertex_shader_file,
+      std::string fragment_shader_file) {
 
    GLint check_value;
 
-   stringstream ss;
+   std::stringstream ss;
    ss << vertex_shader_file << "Initialize - on entrance";
 
    if (GLReturnedError(ss.str().c_str()))
@@ -133,8 +133,8 @@ bool ChOpenGLShader::CompileFiles(
    glCompileShader(this->vertex_shader_id);
    glGetShaderiv(this->vertex_shader_id, GL_COMPILE_STATUS, &check_value);
    if (check_value != GL_TRUE) {
-      cerr << this->GetShaderLog(vertex_shader_id);
-      cerr << "GLSL compilation failed - vertex shader: " << vertex_shader_file << endl;
+      std::cerr << this->GetShaderLog(vertex_shader_id);
+      std::cerr << "GLSL compilation failed - vertex shader: " << vertex_shader_file << std::endl;
       return false;
    }
 
@@ -147,8 +147,8 @@ bool ChOpenGLShader::CompileFiles(
    glCompileShader(this->fragment_shader_id);
    glGetShaderiv(this->fragment_shader_id, GL_COMPILE_STATUS, &check_value);
    if (check_value != GL_TRUE) {
-      cerr << this->GetShaderLog(fragment_shader_id);
-      cerr << "GLSL compilation failed - fragment shader: " << fragment_shader_file << endl;
+      std::cerr << this->GetShaderLog(fragment_shader_id);
+      std::cerr << "GLSL compilation failed - fragment shader: " << fragment_shader_file << std::endl;
       return false;
    }
 
@@ -180,13 +180,13 @@ void ChOpenGLShader::CompleteInit() {
 // The shader initialization code is lifted liberally from the GLSL 4.0 Cookbook.
 // Added extra handles as needed
 bool ChOpenGLShader::InitializeFiles(
-      string vertex_shader_file,
-      string fragment_shader_file) {
+      std::string vertex_shader_file,
+      std::string fragment_shader_file) {
 
    if (CompileFiles(vertex_shader_file, fragment_shader_file)) {
       CompleteInit();
    } else {
-      cerr << "Unable to compile shader: " << vertex_shader_file << " " << fragment_shader_file;
+      std::cerr << "Unable to compile shader: " << vertex_shader_file << " " << fragment_shader_file;
       exit(0);
    }
    return !GLReturnedError("ChOpenGLShader::Initialize - on exit");
@@ -194,14 +194,14 @@ bool ChOpenGLShader::InitializeFiles(
 // The shader initialization code is lifted liberally from the GLSL 4.0 Cookbook.
 // Added extra handles as needed
 bool ChOpenGLShader::InitializeStrings(
-      string name,
+      std::string name,
       const char * vertex_shader,
       const char * fragment_shader) {
 
    if (CompileStrings(name, vertex_shader, fragment_shader)) {
       CompleteInit();
    } else {
-      cerr << "Unable to compile shader: " << name;
+      std::cerr << "Unable to compile shader: " << name;
       exit(0);
    }
 
@@ -239,7 +239,7 @@ void ChOpenGLShader::TakeDown() {
 
 // This function is adapted from OpenGL 4.0 Shading Language Cookbook by David Wolff.
 bool ChOpenGLShader::LoadShader(
-      const string file_name,
+      const std::string file_name,
       GLuint shader_id) {
 
    if (GLReturnedError("ChOpenGLShader::LoadShader - on entrance"))
@@ -247,7 +247,7 @@ bool ChOpenGLShader::LoadShader(
 
    FILE * file_handle = fopen(file_name.c_str(), "rb");
    if (file_handle == NULL) {
-      cerr << "Cannot open shader: " << file_name << endl;
+      std::cerr << "Cannot open shader: " << file_name << std::endl;
       return false;
    }
    fseek(file_handle, 0, SEEK_END);
@@ -277,18 +277,18 @@ bool ChOpenGLShader::LoadShaderString(
 }
 
 // This function is adapted from OpenGL 4.0 Shading Language Cookbook by David Wolff.
-string ChOpenGLShader::GetShaderLog(
+std::string ChOpenGLShader::GetShaderLog(
       GLuint shader_id) {
-   stringstream s;
+   std::stringstream s;
    GLint log_length;
    glGetShaderiv(shader_id, GL_INFO_LOG_LENGTH, &log_length);
    if (log_length <= 0)
-      s << "No shader log information available." << endl;
+      s << "No shader log information available." << std::endl;
    else {
       GLchar * buffer = new GLchar[log_length];
       glGetShaderInfoLog(shader_id, log_length, NULL, buffer);
-      s << "Shader log:" << endl;
-      s << buffer << endl;
+      s << "Shader log:" << std::endl;
+      s << buffer << std::endl;
       delete[] buffer;
    }
    return s.str();
@@ -319,7 +319,7 @@ void ChOpenGLShader::CheckGlProgram(
 }
 
 GLuint ChOpenGLShader::GetUniformLocation(
-      string name) {
+      std::string name) {
    return glGetUniformLocation(program_id, (const GLchar *) name.c_str());
 }
 

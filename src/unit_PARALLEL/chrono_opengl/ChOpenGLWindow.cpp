@@ -26,7 +26,7 @@ void ChOpenGLWindow::Initialize(
       ChSystem * msystem) {
 
    if (!glfwInit()) {
-      cout << "could not initialize glfw- exiting" << endl;
+      std::cout << "could not initialize glfw- exiting" << std::endl;
       exit(EXIT_FAILURE);
    }
    //glfwWindowHint(GLFW_SAMPLES, 4);
@@ -37,7 +37,7 @@ void ChOpenGLWindow::Initialize(
 
    window = glfwCreateWindow(size_x, size_y, title, NULL, NULL);
    if (!window) {
-      cout << "could not create window - exiting" << endl;
+      std::cout << "could not create window - exiting" << std::endl;
       glfwTerminate();
       exit(EXIT_FAILURE);
    }
@@ -134,7 +134,7 @@ void ChOpenGLWindow::Pause() {
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wdeprecated-declarations"
 bool ChOpenGLWindow::GLUGetError(
-      string err) {
+      std::string err) {
    bool return_error = false;
    GLenum glerror;
 //Go through list of errors until no errors remain

@@ -92,8 +92,8 @@ class CH_OPENGL_API ChOpenGLViewer : public ChOpenGLBase {
    ChOpenGLOBJ cone;
 
    ChOpenGLCloud cloud, contacts;
-   vector<glm::vec3> cloud_data;
-   vector<glm::vec3> contact_data;
+   std::vector<glm::vec3> cloud_data;
+   std::vector<glm::vec3> contact_data;
    int simulation_frame;  // The current frame number
    float simulation_h;  // The simulation step size
    float simulation_time;  // The current simulation time
@@ -113,13 +113,13 @@ class CH_OPENGL_API ChOpenGLViewer : public ChOpenGLBase {
    float old_time, current_time;
    float time_geometry, time_text, time_total, fps;
 
-   vector<glm::mat4> model_box;
-   vector<glm::mat4> model_sphere;
-   vector<glm::mat4> model_cylinder;
-   vector<glm::mat4> model_cone;
-   vector<glm::vec4> text_data;
-   map<string,ChOpenGLOBJ> obj_files;
-   map<string,vector<glm::mat4> > model_obj;
+   std::vector<glm::mat4> model_box;
+   std::vector<glm::mat4> model_sphere;
+   std::vector<glm::mat4> model_cylinder;
+   std::vector<glm::mat4> model_cone;
+   std::vector<glm::vec4> text_data;
+   std::map<std::string,ChOpenGLOBJ> obj_files;
+   std::map<std::string,std::vector<glm::mat4> > model_obj;
 };
 }
 }
