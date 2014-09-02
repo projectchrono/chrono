@@ -52,7 +52,9 @@ const std::string ChDoubleWishbone::m_pointNames[] = {
   "LCA_U   ",
   "LCA_CM  ",
   "SHOCK_C ",
-  "SHOCK_U ",
+  "SHOCK_A ",
+  "SPRING_C",
+  "SPRING_A",
   "TIEROD_C",
   "TIEROD_U"
 };
@@ -99,6 +101,9 @@ ChDoubleWishbone::ChDoubleWishbone(const std::string& name,
   // Spring-damper
   m_shock = ChSharedPtr<ChLinkSpring>(new ChLinkSpring);
   m_shock->SetNameString(name + "_shock");
+
+  m_spring = ChSharedPtr<ChLinkSpring>(new ChLinkSpring);
+  m_spring->SetNameString(name + "_spring");
 
   // If driven, create the axle shaft and its connection to the spindle.
   if (m_driven) {
@@ -147,7 +152,7 @@ ChDoubleWishbone::Initialize(ChSharedBodyPtr   chassis,
   vRot.Cross(wRot,uRot);
   ChMatrix33<> rotationMatrix;
   rotationMatrix.Set_A_axis(uRot,vRot,wRot);
-  m_UCA->SetRot(rotationMatrix); // Set the rotation of the UCA
+  m_UCA->SetRot(rotationMatrix);
   m_UCA->SetMass(getUCAMass());
   m_UCA->SetInertiaXX(getUCAInertia());
   AddVisualizationUCA();
@@ -162,7 +167,7 @@ ChDoubleWishbone::Initialize(ChSharedBodyPtr   chassis,
   uRot.Normalize();
   vRot.Cross(wRot,uRot);
   rotationMatrix.Set_A_axis(uRot,vRot,wRot);
-  m_LCA->SetRot(rotationMatrix); // Set the rotation of the LCA
+  m_LCA->SetRot(rotationMatrix);
   m_LCA->SetMass(getLCAMass());
   m_LCA->SetInertiaXX(getLCAInertia());
   AddVisualizationLCA();
@@ -210,12 +215,17 @@ ChDoubleWishbone::Initialize(ChSharedBodyPtr   chassis,
   chassis->GetSystem()->AddLink(m_distTierod);
 
   // Initialize the spring/damper
-  m_shock->Initialize(chassis, m_LCA, false, m_points[SHOCK_C], m_points[SHOCK_U], false, getSpringRestLength());
+  m_shock->Initialize(chassis, m_LCA, false, m_points[SHOCK_C], m_points[SHOCK_A], false, getSpringRestLength());
+  m_spring->Initialize(chassis, m_LCA, false, m_points[SPRING_C], m_points[SPRING_A], false, getSpringRestLength());
 
-  m_shock->Set_SpringK(getSpringCoefficient());
+  m_shock->Set_SpringK(0.0);
   m_shock->Set_SpringR(getDampingCoefficient());
-  // m_shock->Set_SpringRestLength(getSpringRestLength());
+
+  m_spring->Set_SpringK(getSpringCoefficient());
+  m_spring->Set_SpringR(0.0);
+
   chassis->GetSystem()->AddLink(m_shock);
+  chassis->GetSystem()->AddLink(m_spring);
 
   // Save initial relative position of marker 1 of the tierod distance link,
   // to be used in steering.

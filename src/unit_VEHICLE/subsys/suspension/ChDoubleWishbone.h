@@ -73,7 +73,9 @@ protected:
     LCA_U,      // lower control arm, upright
     LCA_CM,     // lower control arm, center of mass
     SHOCK_C,    // shock, chassis
-    SHOCK_U,    // shock, upright
+    SHOCK_A,    // shock, lower control arm
+    SPRING_C,   // spring, chassis
+    SPRING_A,   // spring, lower control arm
     TIEROD_C,   // tierod, chassis
     TIEROD_U,   // tierod, upright
     NUM_POINTS
@@ -122,6 +124,7 @@ protected:
   ChSharedPtr<ChLinkDistance>       m_distTierod;
 
   ChSharedPtr<ChLinkSpring>         m_shock;
+  ChSharedPtr<ChLinkSpring>         m_spring;
 
   ChVector<>                        m_tierod_marker;
 
