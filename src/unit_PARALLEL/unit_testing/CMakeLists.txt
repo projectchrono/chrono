@@ -8,6 +8,7 @@ INCLUDE_DIRECTORIES(${CMAKE_SOURCE_DIR}
 SET(LIBRARIES
     ${CHRONO_LIB}
     ChronoEngine_Parallel
+    ChronoEngine_Utils
 )
 
 #--------------------------------------------------------------
@@ -51,7 +52,10 @@ SET(TESTS
     test_mat33
     test_gravity
     test_jacobians
+    test_rhs
     test_r
+    test_apgd
+    test_shur_performance
 )
 
 MESSAGE(STATUS "Unit test programs...")
