@@ -200,6 +200,14 @@ INCLUDE_DIRECTORIES(
     ${CUDA_TOOLKIT_INCLUDE}
     )
 
+
+
+# ------------------------------------------------------------------------------
+# BLAZE -- required for some parallel solvers
+# ------------------------------------------------------------------------------
+SET(BLAZE_DIR ""  CACHE PATH   "Where is Blaze located?")
+FIND_PATH(BLAZE_DIR NAMES Blaze.h PATHS "/usr/include/blaze" "/usr/local/include/blaze" ${BLAZE_DIR})
+
 # ------------------------------------------------------------------------------
 # Find the ChronoEngine library
 # ------------------------------------------------------------------------------
@@ -262,8 +270,6 @@ ELSE()
   SET(ENABLE_OPENGL OFF)
 
 ENDIF()
-
-SET(BLAZE_DIR ""  CACHE PATH   "Where is Blaze located?")
 
 
 # ------------------------------------------------------------------------------
