@@ -162,7 +162,16 @@ enum GPUSOLVERTYPE {
    QUASAI_MINIMUM_RESIDUAL,
    APGD,
    APGDRS,
+   APGDBLAZE,
    BLOCK_JACOBI
+};
+
+
+
+enum SOLVERMODE{
+   NORMAL,
+   SLIDING,
+   SPINNING,
 };
 
 #define shape_type int

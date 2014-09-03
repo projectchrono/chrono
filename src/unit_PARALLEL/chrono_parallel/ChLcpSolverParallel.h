@@ -31,6 +31,7 @@
 
 #include "chrono_parallel/solver/ChSolverAPGD.h"
 #include "chrono_parallel/solver/ChSolverAPGDRS.h"
+#include "chrono_parallel/solver/ChSolverAPGDBlaze.h"
 #include "chrono_parallel/solver/ChSolverBiCG.h"
 #include "chrono_parallel/solver/ChSolverBiCGStab.h"
 #include "chrono_parallel/solver/ChSolverCG.h"
@@ -118,6 +119,7 @@ class CH_PARALLEL_API ChLcpSolverParallelDVI : public ChLcpSolverParallel {
    virtual void RunTimeStep(real step);
    void RunWarmStartPostProcess();
    void RunWarmStartPreprocess();
+   void ComputeN();
 
    void SetCompliance(real a) {
       data_container->alpha = a;
@@ -150,9 +152,16 @@ class CH_PARALLEL_API ChLcpSolverParallelDVI : public ChLcpSolverParallel {
          solver = new ChSolverAPGD();
       } else if (solver_type == APGDRS) {
          solver = new ChSolverAPGDRS();
+      } else if (solver_type == APGDBLAZE) {
+         solver = new ChSolverAPGDBlaze();
       }
 
    }
+
+   void SetSolverMode(SOLVERMODE mode){
+      solver_mode = mode;
+   }
+
    void SetMaxIterationNormal(uint max_iter) {
       max_iter_normal = max_iter;
    }
@@ -182,7 +191,7 @@ class CH_PARALLEL_API ChLcpSolverParallelDVI : public ChLcpSolverParallel {
 
  private:
    GPUSOLVERTYPE solver_type;
-
+   SOLVERMODE solver_mode;
    real alpha;
 
    real contact_recovery_speed;

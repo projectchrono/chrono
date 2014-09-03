@@ -3,11 +3,10 @@
 
 using namespace chrono;
 
-void ChLcpSolverParallelDVI::RunTimeStep(
-      real step) {
+void ChLcpSolverParallelDVI::RunTimeStep(real step) {
    data_container->step_size = step;
 
-   data_container->num_unilaterals = 6 * data_container->num_contacts;
+   data_container->num_unilaterals = 3 * data_container->num_contacts;
    data_container->num_constraints = data_container->num_unilaterals + data_container->num_bilaterals;
 
    Preprocess();
@@ -71,12 +70,12 @@ void ChLcpSolverParallelDVI::RunTimeStep(
    if (max_iter_bilateral > 0) {
       data_container->system_timer.start("ChLcpSolverParallel_Stab");
       //thrust::copy_n(data_container->host_data.gamma_data.begin() + data_container->num_unilaterals, data_container->num_bilaterals, data_container->host_data.gamma_bilateral.begin());
-      solver->SolveStab(max_iter_bilateral, data_container->num_bilaterals,rhs_bilateral, data_container->host_data.gamma_bilateral );
+      solver->SolveStab(max_iter_bilateral, data_container->num_bilaterals, rhs_bilateral, data_container->host_data.gamma_bilateral);
       data_container->system_timer.stop("ChLcpSolverParallel_Stab");
       thrust::copy_n(data_container->host_data.gamma_bilateral.begin(), data_container->num_bilaterals,
                      data_container->host_data.gamma_data.begin() + data_container->num_unilaterals);
    }
-
+   ComputeN();
    //cout<<"Solve normal"<<endl;
    //solve normal
    if (max_iter_normal > 0) {
@@ -384,3 +383,37 @@ void ChLcpSolverParallelDVI::RunWarmStartPreprocess() {
 
 }
 
+void ChLcpSolverParallelDVI::ComputeN() {
+
+   data_container->host_data.D.reset();
+   data_container->host_data.Nshur.reset();
+   data_container->host_data.M_inv.reset();
+
+   data_container->host_data.D.resize(data_container->num_bodies * 6, data_container->num_contacts * 3);
+   data_container->host_data.M_inv.resize(data_container->num_bodies * 6, data_container->num_bodies * 6);
+   rigid_rigid.Build_D();
+   for (int i = 0; i < data_container->num_bodies; i++) {
+      if (data_container->host_data.active_data[i]) {
+         data_container->host_data.M_inv.insert(i * 6 + 0, i * 6 + 0, data_container->host_data.mass_data[i]);
+         data_container->host_data.M_inv.insert(i * 6 + 1, i * 6 + 1, data_container->host_data.mass_data[i]);
+         data_container->host_data.M_inv.insert(i * 6 + 2, i * 6 + 2, data_container->host_data.mass_data[i]);
+         data_container->host_data.M_inv.insert(i * 6 + 3, i * 6 + 3, data_container->host_data.inr_data[i].x);
+         data_container->host_data.M_inv.insert(i * 6 + 4, i * 6 + 4, data_container->host_data.inr_data[i].y);
+         data_container->host_data.M_inv.insert(i * 6 + 5, i * 6 + 5, data_container->host_data.inr_data[i].z);
+      }
+   }
+   data_container->host_data.D_T = trans(data_container->host_data.D);
+   data_container->host_data.Nshur = data_container->host_data.D_T * data_container->host_data.M_inv * data_container->host_data.D;
+
+   std::cout << "Nsize: " << data_container->host_data.Nshur.rows() << " " << data_container->host_data.Nshur.columns() << std::endl;
+   std::cout << "Dsize: " << data_container->host_data.D.rows() << " " << data_container->host_data.D.columns() << std::endl;
+
+   //std::cout<<data_container->host_data.D<<std::endl;
+
+//   for (size_t i = 0UL; i < data_container->host_data.M_inv.rows(); ++i) {
+//      for (CompressedMatrix<real>::Iterator it = data_container->host_data.M_inv.begin(i); it != data_container->host_data.M_inv.end(i); ++it) {
+//         std::cout << i << " " << it->index() << " " << it->value() << std::endl;
+//      }
+//   }
+
+}

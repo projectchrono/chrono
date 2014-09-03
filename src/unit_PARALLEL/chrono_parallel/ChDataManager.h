@@ -25,6 +25,8 @@
 #include "chrono_parallel/ChParallelDefines.h"
 #include "chrono_parallel/math/ChParallelMath.h"
 #include "chrono_parallel/ChTimerParallel.h"
+#include <blaze/math/CompressedMatrix.h>
+using blaze::CompressedMatrix;
 namespace chrono {
 
 struct host_container {
@@ -93,6 +95,10 @@ struct host_container {
    thrust::host_vector<real> correction_bilateral;
    thrust::host_vector<int2> bids_bilateral;
    thrust::host_vector<real> gamma_bilateral;
+
+
+   CompressedMatrix<real> Nshur, D, D_T, M_inv;
+
 
 //			thrust::host_vector<real3> JXYZA_fluid_fluid, JXYZB_fluid_fluid;
 //			thrust::host_vector<real3> JXYZA_rigid_fluid, JXYZB_rigid_fluid, JUVWB_rigid_fluid;

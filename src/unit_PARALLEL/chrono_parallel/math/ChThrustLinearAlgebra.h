@@ -193,8 +193,8 @@ static custom_vector<T> operator /(const custom_vector<T> &x, const custom_vecto
 
 	return temp;
 }
-
-static real Dot(const custom_vector<real> &x, const custom_vector<real> &y)
+template<typename T>
+static real Dot(const T &x, const T &y)
 {
 	real sum=0;
 #pragma omp parallel for reduction(+:sum)
@@ -249,8 +249,8 @@ struct square {
 			return x * x;
 		}
 };
-
-static real Norm(const custom_vector<real> &x)
+template <typename T >
+static real Norm(const T &x)
 {
 	real sum=0;
 #pragma omp parallel for reduction(+:sum)

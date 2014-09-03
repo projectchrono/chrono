@@ -119,6 +119,17 @@ class CH_PARALLEL_API ChSolverParallel : public ChBaseParallel {
       return Dot(x, Nl);      // 3)  mf_p  = l_candidate'*(0.5*N*l_candidate-b_shur)
 
    }
+   real GetObjectiveBlaze(blaze::DynamicVector<real> & x,
+                          blaze::DynamicVector<real> & b) {
+      blaze::DynamicVector<real> Nl(x.size());
+      // f_p = 0.5*l_candidate'*N*l_candidate - l_candidate'*b  = l_candidate'*(0.5*Nl_candidate - b);
+      //ShurProduct(x, Nl);     // 1)  g_tmp = N*l_candidate ...        #### MATR.MULTIPLICATION!!!###
+      Nl = data_container->host_data.Nshur * x;
+      Nl = 0.5*Nl-b;
+      //SEAXMY(0.5, Nl, b, Nl);  // 2) 0.5*N*l_candidate-b_shur
+      return Dot(x, Nl);      // 3)  mf_p  = l_candidate'*(0.5*N*l_candidate-b_shur)
+
+   }
    real GetObjective() {
       custom_vector<real> Nl(data_container->host_data.gamma_data.size());
       // f_p = 0.5*l_candidate'*N*l_candidate - l_candidate'*b  = l_candidate'*(0.5*Nl_candidate - b);

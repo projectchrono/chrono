@@ -258,6 +258,7 @@ class CH_PARALLEL_API ChConstraintRigidRigid : public ChBaseParallel {
          real*output);
 
    void Build_N();
+   void Build_D();
 
    bool solve_sliding;
    bool solve_spinning;

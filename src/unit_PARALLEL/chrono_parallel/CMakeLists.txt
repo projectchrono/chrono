@@ -56,6 +56,7 @@ SET(ChronoEngine_Parallel_SOLVER
     solver/ChSolverSD.h
     solver/ChSolverAPGD.h
     solver/ChSolverAPGDRS.h
+    solver/ChSolverAPGDBlaze.h
     solver/ChSolverMinRes.h
     solver/ChSolverBiCG.h
     solver/ChSolverBiCGStab.h
@@ -68,6 +69,7 @@ SET(ChronoEngine_Parallel_SOLVER
     #solver/ChSolverFN.cpp
     solver/ChSolverAPGD.cpp
     solver/ChSolverAPGDRS.cpp
+    solver/ChSolverAPGDBlaze.cpp
     solver/ChSolverMinRes.cpp
     solver/ChSolverBiCG.cpp
     solver/ChSolverBiCGStab.cpp
