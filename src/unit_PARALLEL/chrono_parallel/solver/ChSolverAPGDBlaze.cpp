@@ -135,11 +135,10 @@ uint ChSolverAPGDBlaze::SolveAPGDBlaze(const uint max_iter,
 
       theta_k1 = (-pow(theta_k, 2) + theta_k * sqrt(pow(theta_k, 2) + 4)) / 2.0;
       beta_k1 = theta_k * (1.0 - theta_k) / (pow(theta_k, 2) + theta_k1);
-      real dot_mg_ms = 0;
 
       ms = mx - ml;
       my = beta_k1 * ms + mx;
-      dot_mg_ms = (mg, trans(ms));
+      real dot_mg_ms = (mg, trans(ms));
 
       if (dot_mg_ms > 0) {
          my = mx;

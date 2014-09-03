@@ -81,7 +81,7 @@ void ChLcpSolverParallelDVI::RunTimeStep(real step) {
                      data_container->host_data.gamma_data.begin() + data_container->num_unilaterals);
    }
    if (solver_type == APGDBLAZE) {
-      std::cout << "Compute N" << std::endl;
+      //std::cout << "Compute N" << std::endl;
       ComputeN();
    }
 
@@ -412,8 +412,8 @@ void ChLcpSolverParallelDVI::ComputeN() {
    data_container->host_data.D_T = trans(data_container->host_data.D);
    data_container->host_data.Nshur = data_container->host_data.D_T * data_container->host_data.M_inv * data_container->host_data.D;
 
-   std::cout << "Nsize: " << data_container->host_data.Nshur.rows() << " " << data_container->host_data.Nshur.columns() << std::endl;
-   std::cout << "Dsize: " << data_container->host_data.D.rows() << " " << data_container->host_data.D.columns() << std::endl;
+   //std::cout << "Nsize: " << data_container->host_data.Nshur.rows() << " " << data_container->host_data.Nshur.columns() << std::endl;
+   //std::cout << "Dsize: " << data_container->host_data.D.rows() << " " << data_container->host_data.D.columns() << std::endl;
 
    //std::cout<<data_container->host_data.D<<std::endl;
 
