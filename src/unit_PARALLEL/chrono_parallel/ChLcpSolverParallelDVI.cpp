@@ -5,17 +5,22 @@ using namespace chrono;
 
 void ChLcpSolverParallelDVI::RunTimeStep(real step) {
    data_container->step_size = step;
-
-   data_container->num_unilaterals = 3 * data_container->num_contacts;
+   if (solver_mode == NORMAL) {
+      rigid_rigid.offset = 1;
+      data_container->num_unilaterals = 1 * data_container->num_contacts;
+   } else if (solver_mode == SLIDING) {
+      rigid_rigid.offset = 3;
+      data_container->num_unilaterals = 3 * data_container->num_contacts;
+   } else if (solver_mode == SPINNING) {
+      rigid_rigid.offset = 6;
+      data_container->num_unilaterals = 6 * data_container->num_contacts;
+   }
    data_container->num_constraints = data_container->num_unilaterals + data_container->num_bilaterals;
 
    Preprocess();
 
    data_container->host_data.rhs_data.resize(data_container->num_constraints);
    data_container->host_data.diag.resize(data_container->num_constraints);
-
-   //bilateral.Diag();
-
    data_container->host_data.gamma_data.resize(data_container->num_constraints);
 
 #pragma omp parallel for
@@ -75,44 +80,46 @@ void ChLcpSolverParallelDVI::RunTimeStep(real step) {
       thrust::copy_n(data_container->host_data.gamma_bilateral.begin(), data_container->num_bilaterals,
                      data_container->host_data.gamma_data.begin() + data_container->num_unilaterals);
    }
-   ComputeN();
-   //cout<<"Solve normal"<<endl;
-   //solve normal
-   if (max_iter_normal > 0) {
+   if (solver_type == APGDBLAZE) {
+      std::cout << "Compute N" << std::endl;
+      ComputeN();
+   }
 
-      solver->SetMaxIterations(max_iter_normal);
-      rigid_rigid.solve_sliding = false;
-      rigid_rigid.solve_spinning = false;
-      data_container->system_timer.start("ChLcpSolverParallel_RHS");
-      rigid_rigid.ComputeRHS();
-      data_container->system_timer.stop("ChLcpSolverParallel_RHS");
-      data_container->system_timer.start("ChLcpSolverParallel_Solve");
-      solver->Solve();
-      data_container->system_timer.stop("ChLcpSolverParallel_Solve");
+   //solve normal
+   if (solver_mode == NORMAL || solver_mode == SLIDING || solver_mode == SPINNING) {
+
+      if (max_iter_normal > 0) {
+         solver->SetMaxIterations(max_iter_normal);
+         rigid_rigid.solve_sliding = false;
+         rigid_rigid.solve_spinning = false;
+         rigid_rigid.ComputeRHS();
+         data_container->system_timer.start("ChLcpSolverParallel_Solve");
+         solver->Solve();
+         data_container->system_timer.stop("ChLcpSolverParallel_Solve");
+      }
    }
-   //cout<<"Solve sliding"<<endl;
-   if (max_iter_sliding > 0) {
-      solver->SetMaxIterations(max_iter_sliding);
-      rigid_rigid.solve_sliding = true;
-      rigid_rigid.solve_spinning = false;
-      data_container->system_timer.start("ChLcpSolverParallel_RHS");
-      rigid_rigid.ComputeRHS();
-      data_container->system_timer.stop("ChLcpSolverParallel_RHS");
-      data_container->system_timer.start("ChLcpSolverParallel_Solve");
-      solver->Solve();
-      data_container->system_timer.stop("ChLcpSolverParallel_Solve");
+   if (solver_mode == SLIDING || solver_mode == SPINNING) {
+      if (max_iter_sliding > 0) {
+         solver->SetMaxIterations(max_iter_sliding);
+         rigid_rigid.solve_sliding = true;
+         rigid_rigid.solve_spinning = false;
+         rigid_rigid.ComputeRHS();
+         data_container->system_timer.start("ChLcpSolverParallel_Solve");
+         solver->Solve();
+         data_container->system_timer.stop("ChLcpSolverParallel_Solve");
+      }
    }
-   if (max_iter_spinning > 0) {
-      //cout<<"Solve Full"<<endl;
-      solver->SetMaxIterations(max_iter_spinning);
-      rigid_rigid.solve_sliding = true;
-      rigid_rigid.solve_spinning = true;
-      data_container->system_timer.start("ChLcpSolverParallel_RHS");
-      rigid_rigid.ComputeRHS();
-      data_container->system_timer.stop("ChLcpSolverParallel_RHS");
-      data_container->system_timer.start("ChLcpSolverParallel_Solve");
-      solver->Solve();
-      data_container->system_timer.stop("ChLcpSolverParallel_Solve");
+   if (solver_mode == SPINNING) {
+      if (max_iter_spinning > 0) {
+         //cout<<"Solve Full"<<endl;
+         solver->SetMaxIterations(max_iter_spinning);
+         rigid_rigid.solve_sliding = true;
+         rigid_rigid.solve_spinning = true;
+         rigid_rigid.ComputeRHS();
+         data_container->system_timer.start("ChLcpSolverParallel_Solve");
+         solver->Solve();
+         data_container->system_timer.stop("ChLcpSolverParallel_Solve");
+      }
    }
    thrust::copy_n(data_container->host_data.gamma_data.begin() + data_container->num_unilaterals, data_container->num_bilaterals,
                   data_container->host_data.gamma_bilateral.begin());

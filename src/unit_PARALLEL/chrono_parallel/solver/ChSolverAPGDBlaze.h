@@ -59,9 +59,9 @@ class CH_PARALLEL_API ChSolverAPGDBlaze : public ChSolverParallel {
    // TODO: What is the best way to explain this...
    real Res4(
              const int SIZE,
-             real* mg_tmp2,
-             real*x,
-             real* mb_tmp);
+             blaze::DynamicVector<real> & mg_tmp2,
+             blaze::DynamicVector<real> & x,
+             blaze::DynamicVector<real> & mb_tmp);
 
    // Set parameters for growing and shrinking the step size
    void SetAPGDParams(
@@ -70,7 +70,7 @@ class CH_PARALLEL_API ChSolverAPGDBlaze : public ChSolverParallel {
                       real grow);
 
    //APGD specific vectors
-   blaze::DynamicVector<real> obj2_temp, obj1_temp, ms, mg_tmp2, mb_tmp, mg_tmp, mg_tmp1, mg, ml, mx, my, ml_candidate, mb;
+   blaze::DynamicVector<real> obj2_temp, obj1_temp, ms, mg_tmp2, mb_tmp, mg_tmp, mg_tmp1, mg, ml, mx, my, ml_candidate, mb, mso;
 
    real init_theta_k;
    real step_shrink;

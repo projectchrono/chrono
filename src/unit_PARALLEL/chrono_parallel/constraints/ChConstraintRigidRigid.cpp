@@ -2,7 +2,8 @@
 #include "ChConstraintRigidRigid.h"
 
 using namespace chrono;
-#define  _index_  index*3
+#define   _index_  index*offset
+
 void chrono::Orthogonalize(real3 &Vx,
                            real3 &Vy,
                            real3 &Vz) {
@@ -85,27 +86,20 @@ void Cone_single(real & gamma_n,
 
 }
 
-void func_Project(int &index,
-                  int2 *ids,
-                  real3 *fric,
-                  real* cohesion,
-                  real *gam) {
-   int2 body_id = ids[index];
+void ChConstraintRigidRigid::func_Project(int &index,
+                                          int2 *ids,
+                                          real3 *fric,
+                                          real* cohesion,
+                                          real *gam) {
    real3 gamma;
    gamma.x = gam[_index_ + 0];
    gamma.y = gam[_index_ + 1];
    gamma.z = gam[_index_ + 2];
 
-   real coh = (cohesion[body_id.x] + cohesion[body_id.y]) * .5;
-   if (coh < 0) {
-      coh = 0;
-   }
+   real coh = cohesion[index];
    gamma.x += coh;
 
-   real3 f_a = fric[body_id.x];
-   real3 f_b = fric[body_id.y];
-
-   real mu = (f_a.x == 0 || f_b.x == 0) ? 0 : (f_a.x + f_b.x) * .5;
+   real mu = fric[index].x;
    if (mu == 0) {
       gamma.x = gamma.x < 0 ? 0 : gamma.x - coh;
       gamma.y = gamma.z = 0;
@@ -125,17 +119,13 @@ void func_Project(int &index,
    gam[_index_ + 2] = gamma.z;
 
 }
-void func_Project_rolling(int &index,
-                          int2 *ids,
-                          real3 *fric,
-                          real *gam) {
+void ChConstraintRigidRigid::func_Project_rolling(int &index,
+                                                  int2 *ids,
+                                                  real3 *fric,
+                                                  real *gam) {
    //real3 gamma_roll = R3(0);
-   int2 body_id = ids[index];
-   real3 f_a = fric[body_id.x];
-   real3 f_b = fric[body_id.y];
-
-   real rollingfriction = (f_a.y == 0 || f_b.y == 0) ? 0 : (f_a.y + f_b.y) * .5;
-   real spinningfriction = (f_a.z == 0 || f_b.z == 0) ? 0 : (f_a.z + f_b.z) * .5;
+   real rollingfriction = fric[index].y;
+   real spinningfriction = fric[index].z;
 
 //	if(rollingfriction||spinningfriction){
 //		gam[index + number_of_contacts * 1] = 0;
@@ -209,10 +199,10 @@ void ChConstraintRigidRigid::host_Project(int2 *ids,
 //%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 void ChConstraintRigidRigid::Project(real* gamma) {
-   host_Project(data_container->host_data.bids_rigid_rigid.data(), data_container->host_data.fric_data.data(), data_container->host_data.cohesion_data.data(), gamma);
+   host_Project(data_container->host_data.bids_rigid_rigid.data(), fric_rigid_rigid.data(), coh_rigid_rigid.data(), gamma);
 }
 void ChConstraintRigidRigid::Project_NoPar(real* gamma) {
-   host_Project(data_container->host_data.bids_rigid_rigid.data(), data_container->host_data.fric_data.data(), data_container->host_data.cohesion_data.data(), gamma);
+   host_Project(data_container->host_data.bids_rigid_rigid.data(), fric_rigid_rigid.data(), coh_rigid_rigid.data(), gamma);
 }
 
 void chrono::Compute_Jacobian(const real4& quat,
@@ -381,35 +371,33 @@ void ChConstraintRigidRigid::host_RHS_spinning(int2 *ids,
       bool2 isactive = active[index];
       real3 temp = R3(0);
 
-      if (solve_spinning) {
+      real3 U = norm[index], V, W;
+      Orthogonalize(U, V, W);     //read 3 real
 
-         real3 U = norm[index], V, W;
-         Orthogonalize(U, V, W);     //read 3 real
+      if (isactive.x) {
 
-         if (isactive.x) {
+         real4 quat = rot[index];
 
-            real4 quat = rot[index];
+         real3 TA, TB, TC;
+         Compute_Jacobian_Rolling(quat, U, V, W, TA, TB, TC);
 
-            real3 TA, TB, TC;
-            Compute_Jacobian_Rolling(quat, U, V, W, TA, TB, TC);
-
-            real3 omega_b1 = omega[bid.x];
-            temp.x = dot(-TA, omega_b1);
-            temp.y = dot(-TB, omega_b1);
-            temp.z = dot(-TC, omega_b1);
-         }
-         if (isactive.y) {
-
-            real4 quat = rot[index + num_contacts];
-            real3 TA, TB, TC;
-            Compute_Jacobian_Rolling(quat, U, V, W, TA, TB, TC);
-
-            real3 omega_b2 = omega[bid.y];
-            temp.x += dot(TA, omega_b2);
-            temp.y += dot(TB, omega_b2);
-            temp.z += dot(TC, omega_b2);
-         }
+         real3 omega_b1 = omega[bid.x];
+         temp.x = dot(-TA, omega_b1);
+         temp.y = dot(-TB, omega_b1);
+         temp.z = dot(-TC, omega_b1);
       }
+      if (isactive.y) {
+
+         real4 quat = rot[index + num_contacts];
+         real3 TA, TB, TC;
+         Compute_Jacobian_Rolling(quat, U, V, W, TA, TB, TC);
+
+         real3 omega_b2 = omega[bid.y];
+         temp.x += dot(TA, omega_b2);
+         temp.y += dot(TB, omega_b2);
+         temp.z += dot(TC, omega_b2);
+      }
+
       rhs[_index_ + 3] = -temp.x;
       rhs[_index_ + 4] = -temp.y;
       rhs[_index_ + 5] = -temp.z;
@@ -419,7 +407,11 @@ void ChConstraintRigidRigid::host_RHS_spinning(int2 *ids,
 //%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 void ChConstraintRigidRigid::ComputeRHS() {
+   data_container->system_timer.start("ChLcpSolverParallel_RHS");
    comp_rigid_rigid.resize(num_contacts);
+   coh_rigid_rigid.resize(num_contacts);
+   fric_rigid_rigid.resize(num_contacts);
+
 #pragma omp parallel for
    for (int i = 0; i < num_contacts; i++) {
       uint b1 = data_container->host_data.bids_rigid_rigid[i].x;
@@ -434,14 +426,29 @@ void ChConstraintRigidRigid::ComputeRHS() {
       compab.z = (compb1.z == 0 || compb2.z == 0) ? 0 : (compb1.z + compb2.z) * .5;
       compab.w = (compb1.w == 0 || compb2.w == 0) ? 0 : (compb1.w + compb2.w) * .5;
       comp_rigid_rigid[i] = inv_hhpa * compab;
+
+      real coh = std::max((data_container->host_data.cohesion_data[b1] + data_container->host_data.cohesion_data[b2]) * .5, 0.0);
+      coh_rigid_rigid[i] = coh;
+      real3 f_a = data_container->host_data.fric_data[b1];
+      real3 f_b = data_container->host_data.fric_data[b2];
+      real3 mu;
+
+      mu.x = (f_a.x == 0 || f_b.x == 0) ? 0 : (f_a.x + f_b.x) * .5;
+      mu.y = (f_a.y == 0 || f_b.y == 0) ? 0 : (f_a.y + f_b.y) * .5;
+      mu.z = (f_a.z == 0 || f_b.z == 0) ? 0 : (f_a.z + f_b.z) * .5;
+
+      fric_rigid_rigid[i] = mu;
+
    }
    host_RHS(data_container->host_data.bids_rigid_rigid.data(), data_container->host_data.dpth_rigid_rigid.data(), data_container->alpha, contact_active_pairs.data(),
             data_container->host_data.norm_rigid_rigid.data(), data_container->host_data.vel_data.data(), data_container->host_data.omg_data.data(),
             data_container->host_data.cpta_rigid_rigid.data(), data_container->host_data.cptb_rigid_rigid.data(), contact_rotation.data(),
             data_container->host_data.rhs_data.data());
-
-   host_RHS_spinning(data_container->host_data.bids_rigid_rigid.data(), contact_active_pairs.data(), data_container->host_data.omg_data.data(),
-                     data_container->host_data.norm_rigid_rigid.data(), contact_rotation.data(), data_container->host_data.rhs_data.data());
+   if (solve_spinning) {
+      host_RHS_spinning(data_container->host_data.bids_rigid_rigid.data(), contact_active_pairs.data(), data_container->host_data.omg_data.data(),
+                        data_container->host_data.norm_rigid_rigid.data(), contact_rotation.data(), data_container->host_data.rhs_data.data());
+   }
+   data_container->system_timer.stop("ChLcpSolverParallel_RHS");
 }
 
 void ChConstraintRigidRigid::UpdateRHS() {
@@ -449,9 +456,10 @@ void ChConstraintRigidRigid::UpdateRHS() {
             data_container->host_data.norm_rigid_rigid.data(), data_container->host_data.vel_new_data.data(), data_container->host_data.omg_new_data.data(),
             data_container->host_data.cpta_rigid_rigid.data(), data_container->host_data.cptb_rigid_rigid.data(), contact_rotation.data(),
             data_container->host_data.rhs_data.data());
-
-   host_RHS_spinning(data_container->host_data.bids_rigid_rigid.data(), contact_active_pairs.data(), data_container->host_data.omg_new_data.data(),
-                     data_container->host_data.norm_rigid_rigid.data(), contact_rotation.data(), data_container->host_data.rhs_data.data());
+   if (solve_spinning) {
+      host_RHS_spinning(data_container->host_data.bids_rigid_rigid.data(), contact_active_pairs.data(), data_container->host_data.omg_new_data.data(),
+                        data_container->host_data.norm_rigid_rigid.data(), contact_rotation.data(), data_container->host_data.rhs_data.data());
+   }
 }
 
 void ChConstraintRigidRigid::ComputeS(const custom_vector<real>& rhs,
@@ -991,7 +999,7 @@ void ChConstraintRigidRigid::Build_D() {
       Compute_Jacobian(rot[index], U, V, W, ptA[index], T3, T4, T5);
       Compute_Jacobian(rot[index + num_contacts], U, V, W, ptB[index], T6, T7, T8);
 
-      int index_mult = index*3;
+      int index_mult = index * 3;
 
       /////
       data_container->host_data.D.insert(body_id.x * 6 + 0, index_mult + 0, -U.x);
@@ -1017,7 +1025,6 @@ void ChConstraintRigidRigid::Build_D() {
       data_container->host_data.D.insert(body_id.x * 6 + 3, index_mult + 2, T5.x);
       data_container->host_data.D.insert(body_id.x * 6 + 4, index_mult + 2, T5.y);
       data_container->host_data.D.insert(body_id.x * 6 + 5, index_mult + 2, T5.z);
-
 
       /////
 

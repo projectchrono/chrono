@@ -12,27 +12,31 @@ void ChSolverAPGDBlaze::SetAPGDParams(real theta_k,
 }
 
 real ChSolverAPGDBlaze::Res4(const int SIZE,
-                             real* mg_tmp2,
-                             real*x,
-                             real* mb_tmp) {
+                             blaze::DynamicVector<real> & mg_tmp2,
+                             blaze::DynamicVector<real> &x,
+                             blaze::DynamicVector<real> & mb_tmp) {
    real gdiff = 1e-6;
    real sum = 0;
 
-#pragma omp  parallel for
-   for (int i = 0; i < SIZE; i++) {
-      mb_tmp[i] = -gdiff * mg_tmp2[i] + x[i];
-   }
+//#pragma omp  parallel for
+//   for (int i = 0; i < SIZE; i++) {
+//      mb_tmp[i] = -gdiff * mg_tmp2[i] + x[i];
+//   }
 
-   Project(mb_tmp);
+   mb_tmp = -gdiff * mg_tmp2 + x;
+
+   Project(mb_tmp.data());
    //ms = mb_tmp - x;
    //mb_tmp = (-1.0 / (gdiff)) * ms;
 
-#pragma omp  parallel for reduction(+:sum)
-   for (int i = 0; i < SIZE; i++) {
-      real _ms_ = mb_tmp[i] - x[i];
-      real _mb_tmp_ = (-1.0f / (gdiff)) * _ms_;
-      sum += _mb_tmp_ * _mb_tmp_;
-   }
+//#pragma omp  parallel for reduction(+:sum)
+//   for (int i = 0; i < SIZE; i++) {
+//      real _ms_ = mb_tmp[i] - x[i];
+//      real _mb_tmp_ = (-1.0f / (gdiff)) * _ms_;
+//      sum += _mb_tmp_ * _mb_tmp_;
+//   }
+   mb_tmp = (-1.0f / (gdiff)) * (mb_tmp - x);
+   sum = (mb_tmp, trans(mb_tmp));
 
    return sqrt(sum);
 
@@ -52,6 +56,7 @@ uint ChSolverAPGDBlaze::SolveAPGDBlaze(const uint max_iter,
    mx.resize(size);
    my.resize(size);
    mb.resize(size);
+   mso.resize(size);
 
    data_container->system_timer.start("ChSolverParallel_solverA");
    real lastgoodres = 10e30;
@@ -114,62 +119,83 @@ uint ChSolverAPGDBlaze::SolveAPGDBlaze(const uint max_iter,
       mg_tmp1 = data_container->host_data.Nshur * my;
       data_container->system_timer.stop("ChSolverParallel_solverB");
       data_container->system_timer.start("ChSolverParallel_solverC");
-#pragma omp parallel for
-      for (int i = 0; i < size; i++) {
-         real _mg_ = mg_tmp1[i] - b[i];
-         mg[i] = _mg_;
-         mx[i] = -t_k * _mg_ + my[i];
-      }
+//#pragma omp parallel for
+//      for (int i = 0; i < size; i++) {
+//         real _mg_ = mg_tmp1[i] - b[i];
+//         mg[i] = _mg_;
+//         mx[i] = -t_k * _mg_ + my[i];
+//      }
+
+      mg = mg_tmp1 - mb;
+      mx = -t_k * mg + my;
 
       Project(mx.data());
       //ShurProduct(mx, mg_tmp);
       mg_tmp = data_container->host_data.Nshur * mx;
       data_container->system_timer.stop("ChSolverParallel_solverC");
       data_container->system_timer.start("ChSolverParallel_solverD");
-#pragma omp parallel for reduction(+:obj1,obj2,dot_mg_ms,norm_ms)
-      for (int i = 0; i < size; i++) {
-         real _mg_tmp_ = mg_tmp[i];
-         real _b_ = b[i];
-         real _ms_ = .5 * _mg_tmp_ - _b_;
-         real _mx_ = mx[i];
-         real _my_ = my[i];
-         obj1 += _mx_ * _ms_;
-         mg_tmp2[i] = _mg_tmp_ - _b_;
-         _ms_ = .5 * mg_tmp1[i] - _b_;
-         obj2 += _my_ * _ms_;
-         _ms_ = _mx_ - _my_;
-         dot_mg_ms += mg[i] * _ms_;
-         norm_ms += _ms_ * _ms_;
-      }
 
-      norm_ms = sqrt(norm_ms);
+//      #pragma omp parallel for reduction(+:obj1,obj2,dot_mg_ms,norm_ms)
+//      for (int i = 0; i < size; i++) {
+//         real _mg_tmp_ = mg_tmp[i];
+//         real _b_ = b[i];
+//         real _ms_ = .5 * _mg_tmp_ - _b_;
+//         real _mx_ = mx[i];
+//         real _my_ = my[i];
+//         obj1 += _mx_ * _ms_;
+//         mg_tmp2[i] = _mg_tmp_ - _b_;
+//         _ms_ = .5 * mg_tmp1[i] - _b_;
+//         obj2 += _my_ * _ms_;
+//         _ms_ = _mx_ - _my_;
+//         dot_mg_ms += mg[i] * _ms_;
+//         norm_ms += _ms_ * _ms_;
+//      }
+      mso = .5 * mg_tmp - mb;
+      obj1 = (mx, trans(mso));
+      mg_tmp2 = mg_tmp - mb;
+      ms = .5 * mg_tmp1 - mb;
+      obj2 = (my, trans(ms));
+      ms = mx - my;
+      dot_mg_ms = (mg, trans(ms));
+      norm_ms = (ms, trans(ms));
+
       data_container->system_timer.stop("ChSolverParallel_solverD");
-      while (obj1 > obj2 + dot_mg_ms + 0.5 * L_k * pow(norm_ms, real(2.0))) {
+      while (obj1 > obj2 + dot_mg_ms + 0.5 * L_k * norm_ms) {
          data_container->system_timer.start("ChSolverParallel_solverE");
          L_k = step_grow * L_k;
          t_k = 1.0 / L_k;
          obj1 = dot_mg_ms = norm_ms = 0;
 
-#pragma omp parallel for
-         for (int i = 0; i < size; i++) {
-            mx[i] = -t_k * mg[i] + my[i];
-         }
+//#pragma omp parallel for
+//         for (int i = 0; i < size; i++) {
+//            mx[i] = -t_k * mg[i] + my[i];
+//         }
+
+         mx = -t_k * mg + my;
+
          Project(mx.data());
          //ShurProduct(mx, mg_tmp);
          mg_tmp = data_container->host_data.Nshur * mx;
-#pragma omp  parallel for reduction(+:obj1,dot_mg_ms,norm_ms)
-         for (int i = 0; i < size; i++) {
-            real _mg_tmp_ = mg_tmp[i];
-            real _b_ = b[i];
-            real _ms_ = .5 * _mg_tmp_ - _b_;
-            real _mx_ = mx[i];
-            obj1 += _mx_ * _ms_;
-            _ms_ = _mx_ - my[i];
-            dot_mg_ms += mg[i] * _ms_;
-            norm_ms += _ms_ * _ms_;
-            mg_tmp2[i] = _mg_tmp_ - _b_;
-         }
-         norm_ms = sqrt(norm_ms);
+//#pragma omp  parallel for reduction(+:obj1,dot_mg_ms,norm_ms)
+//         for (int i = 0; i < size; i++) {
+//            real _mg_tmp_ = mg_tmp[i];
+//            real _b_ = b[i];
+//            real _ms_ = .5 * _mg_tmp_ - _b_;
+//            real _mx_ = mx[i];
+//            obj1 += _mx_ * _ms_;
+//            _ms_ = _mx_ - my[i];
+//            dot_mg_ms += mg[i] * _ms_;
+//            norm_ms += _ms_ * _ms_;
+//            //mg_tmp2[i] = _mg_tmp_ - _b_;
+//         }
+
+         mso = .5 * mg_tmp - mb;
+         obj1 = (mx, trans(mso));
+         mg_tmp2 = mg_tmp - mb;
+         ms = mx - my;
+         dot_mg_ms = (mg, trans(ms));
+         norm_ms = (ms, trans(ms));
+
          //step_grow += .5;
 
          data_container->system_timer.stop("ChSolverParallel_solverE");
@@ -179,13 +205,16 @@ uint ChSolverAPGDBlaze::SolveAPGDBlaze(const uint max_iter,
       theta_k1 = (-pow(theta_k, 2) + theta_k * sqrt(pow(theta_k, 2) + 4)) / 2.0;
       beta_k1 = theta_k * (1.0 - theta_k) / (pow(theta_k, 2) + theta_k1);
       real dot_mg_ms = 0;
-#pragma omp parallel for reduction(+:dot_mg_ms)
-      for (int i = 0; i < size; i++) {
-         real _mx_ = mx[i];
-         real _ms_ = _mx_ - ml[i];
-         my[i] = beta_k1 * _ms_ + _mx_;
-         dot_mg_ms += mg[i] * _ms_;
-      }
+//#pragma omp parallel for reduction(+:dot_mg_ms)
+//      for (int i = 0; i < size; i++) {
+//         real _mx_ = mx[i];
+//         real _ms_ = _mx_ - ml[i];
+//         my[i] = beta_k1 * _ms_ + _mx_;
+//         dot_mg_ms += mg[i] * _ms_;
+//      }
+      ms = mx - ml;
+      my = beta_k1 * ms + mx;
+      dot_mg_ms = (mg, trans(ms));
 
       if (dot_mg_ms > 0) {
          my = mx;
@@ -197,7 +226,7 @@ uint ChSolverAPGDBlaze::SolveAPGDBlaze(const uint max_iter,
       step_grow = 2.0;
       theta_k = theta_k1;
       //if (current_iteration % 2 == 0) {
-      real g_proj_norm = Res4(num_unilaterals, mg_tmp2.data(), ml.data(), mb_tmp.data());
+      real g_proj_norm = Res4(num_unilaterals, mg_tmp2, ml, mb_tmp);
       //real objective = 100;
 //      if(current_iteration==0){
 //         old_objective = GetObjective(ml,b);
@@ -219,7 +248,8 @@ uint ChSolverAPGDBlaze::SolveAPGDBlaze(const uint max_iter,
       if (g_proj_norm < lastgoodres) {
          lastgoodres = g_proj_norm;
          ml_candidate = ml;
-         maxdeltalambda = GetObjectiveBlaze(ml_candidate, mb);
+         maxdeltalambda = (ml_candidate, mso);
+         //maxdeltalambda = GetObjectiveBlaze(ml_candidate, mb);
          update = true;
 
       }
@@ -227,7 +257,7 @@ uint ChSolverAPGDBlaze::SolveAPGDBlaze(const uint max_iter,
       residual = lastgoodres;
       //CompRes(b,num_contacts);     //NormInf(ms);
       //if (update_rhs) {
-         //ComputeSRhs(ml_candidate, rhs, vel_data, omg_data, b);
+      //ComputeSRhs(ml_candidate, rhs, vel_data, omg_data, b);
       //}
 //      if (collision_inside) {
 //         //UpdatePosition(ml_candidate);
@@ -236,22 +266,11 @@ uint ChSolverAPGDBlaze::SolveAPGDBlaze(const uint max_iter,
       //}
 
       AtIterationEnd(residual, maxdeltalambda, iter_hist.size());
-
-      if (update) {
-         if (iter_hist.size() > 1) {
-            delta_obj = abs(maxdeltalambda_hist[iter_hist.size() - 1] - maxdeltalambda_hist[iter_hist.size() - 2]);
-
-         }
-      }
-
       //cout << "delta_obj " << delta_obj<<" "<< residual<<" "<<current_iteration<< endl;
       if (tol_objective) {
          if (maxdeltalambda <= tolerance) {
             break;
-         }  //else if (delta_obj < 1e-12) {
-            //cout << "convergence stagnated" << endl;
-         //   break;
-         //}
+         }
       } else {
          if (residual < tolerance) {
             break;

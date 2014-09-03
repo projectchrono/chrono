@@ -105,10 +105,15 @@ class CH_PARALLEL_API ChLcpSolverParallelDVI : public ChLcpSolverParallel {
       collision_inside = false;
       update_rhs = false;
 
-      max_iteration = 1000;
-      max_iter_normal = max_iter_sliding = max_iter_spinning = 100;
+      max_iteration = 100;
+      max_iter_normal = 0;
+      max_iter_sliding = 100;
+      max_iter_spinning = 0;
 
       solver = new ChSolverAPGD();
+      solver_type = APGD;
+      solver_mode = SLIDING;
+
 
    }
 
