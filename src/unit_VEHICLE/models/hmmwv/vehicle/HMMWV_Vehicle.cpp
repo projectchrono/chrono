@@ -107,11 +107,11 @@ HMMWV_Vehicle::HMMWV_Vehicle(const bool           fixed,
   m_rear_right_wheel = ChSharedPtr<HMMWV_Wheel>(new HMMWV_WheelRight(wheelVis));
   m_rear_left_wheel = ChSharedPtr<HMMWV_Wheel>(new HMMWV_WheelLeft(wheelVis));
 
-  // -------------------------------
-  // Create the powertrain subsystem
-  //--------------------------------
+  // ----------------------------------------------
+  // Create the driveline and powertrain subsystems
+  // ----------------------------------------------
 
-  ////m_powertrain = ChSharedPtr<HMMWV_SimplePowertrain>(new HMMWV_SimplePowertrain(this));
+  m_driveline = ChSharedPtr<HMMWV_Driveline2WD>(new HMMWV_Driveline2WD(this));
   m_powertrain = ChSharedPtr<HMMWV_Powertrain>(new HMMWV_Powertrain(this));
 }
 
@@ -140,9 +140,11 @@ void HMMWV_Vehicle::Initialize(const ChCoordsys<>& chassisPos)
   m_rear_right_wheel->Initialize(m_rear_right_susp->GetSpindle());
   m_rear_left_wheel->Initialize(m_rear_left_susp->GetSpindle());
 
-  // Initialize the powertrain subsystem
-  m_powertrain->Initialize(m_chassis, m_rear_left_susp->GetAxle(), m_rear_right_susp->GetAxle());
+  // Initialize the driveline subsystem
+  m_driveline->Initialize(m_chassis, m_rear_left_susp->GetAxle(), m_rear_right_susp->GetAxle());
 
+  // Initialize the powertrain subsystem
+  m_powertrain->Initialize(m_chassis, m_driveline->GetDriveshaft());
 }
 
 

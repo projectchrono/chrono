@@ -27,17 +27,11 @@ namespace chrono {
 // dir_motor_block specifies the direction of the motor block, i.e. the
 // direction of the crankshaft, in chassis local coords. This is needed because
 // ChShaftsBody could transfer rolling torque to the chassis.
-//
-// dir_axle specifies the direction of the (rear) axle, i.e. the output of the
-// conic gear pair, in chassis local coords. This is needed because ChShaftsBody
-// could transfer pitch torque to the chassis.
 // -----------------------------------------------------------------------------
 ChShaftsPowertrain::ChShaftsPowertrain(ChVehicle*         car,
-                                       const ChVector<>&  dir_motor_block,
-                                       const ChVector<>&  dir_axle)
-: ChPowertrain(car, ChPowertrain::RWD),
-  m_dir_motor_block(dir_motor_block),
-  m_dir_axle(dir_axle)
+                                       const ChVector<>&  dir_motor_block)
+: ChPowertrain(car),
+  m_dir_motor_block(dir_motor_block)
 {
   drive_mode = ChPowertrain::FORWARD;
   last_time_gearshift = 0;
@@ -48,12 +42,10 @@ ChShaftsPowertrain::ChShaftsPowertrain(ChVehicle*         car,
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 void ChShaftsPowertrain::Initialize(ChSharedPtr<ChBody>  chassis,
-                                    ChSharedPtr<ChShaft> axle_L,
-                                    ChSharedPtr<ChShaft> axle_R)
+                                    ChSharedPtr<ChShaft> driveshaft)
 {
   assert(chassis);
-  assert(axle_L);
-  assert(axle_R);
+  assert(driveshaft);
   assert(chassis->GetSystem());
 
   ChSystem* my_system = chassis->GetSystem();
@@ -131,56 +123,16 @@ void ChShaftsPowertrain::Initialize(ChSharedPtr<ChBody>  chassis,
   m_torqueconverter->SetCurveTorqueRatio(mT);
 
 
-  // CREATE  a 1 d.o.f. object: a 'shaft' with rotational inertia.
-  // This represents the shaft that collects all inertias from the gear to the differential bevel gear.
-  m_shaft_outgear = ChSharedPtr<ChShaft>(new ChShaft);
-  m_shaft_outgear->SetInertia(GetOutgearShaftInertia());
-  my_system->Add(m_shaft_outgear);
-
-
   // CREATE a gearbox, i.e a transmission ratio constraint between two
   // shafts. Note that differently from the basic ChShaftsGear, this also provides
   // the possibility of transmitting a reaction torque to the box (the truss).
   m_gears = ChSharedPtr<ChShaftsGearbox>(new ChShaftsGearbox);
   m_gears->Initialize(m_shaft_ingear,
-                      m_shaft_outgear,
-                      chassis, 
+                      driveshaft,
+                      chassis,
                       m_dir_motor_block);
   m_gears->SetTransmissionRatio(m_gear_ratios[m_current_gear]);
   my_system->Add(m_gears);
-
-
-  // CREATE  a 1 d.o.f. object: a 'shaft' with rotational inertia.
-  // This represents the inertia of the rotating box of the differential.
-  m_shaft_rear_differentialbox = ChSharedPtr<ChShaft>(new ChShaft);
-  m_shaft_rear_differentialbox->SetInertia(GetDifferentialBoxInertia());
-  my_system->Add(m_shaft_rear_differentialbox);
-
-
-  // CREATE an angled gearbox, i.e a transmission ratio constraint between two
-  // non parallel shafts. This is the case of the 90° bevel gears in the differential.
-  // Note that differently from the basic ChShaftsGear, this also provides
-  // the possibility of transmitting a reaction torque to the box (the truss).
-  m_rear_conicalgear = ChSharedPtr<ChShaftsGearboxAngled>(new ChShaftsGearboxAngled);
-  m_rear_conicalgear->Initialize(m_shaft_outgear,
-                                 m_shaft_rear_differentialbox,
-                                 chassis,
-                                 m_dir_motor_block,
-                                 m_dir_axle);
-  m_rear_conicalgear->SetTransmissionRatio(GetConicalGearRatio());
-  my_system->Add(m_rear_conicalgear);
-
-
-  // CREATE a differential, i.e. an apicycloidal mechanism that connects three 
-  // rotating members. This class of mechanisms can be simulated using 
-  // ChShaftsPlanetary; a proper 'ordinary' transmission ratio t0 must be assigned according
-  // to Willis formula. The case of the differential is simple: t0=-1.
-  m_rear_differential = ChSharedPtr<ChShaftsPlanetary>(new ChShaftsPlanetary);
-  m_rear_differential->Initialize(m_shaft_rear_differentialbox, // the carrier
-                                  axle_L,
-                                  axle_R);
-  m_rear_differential->SetTransmissionRatioOrdinary(GetDifferentialRatio());
-  my_system->Add(m_rear_differential);
 
 
   // -------
@@ -239,25 +191,6 @@ void ChShaftsPowertrain::SetDriveMode(ChPowertrain::DriveMode mmode)
     {
       this->SetSelectedGear(0);
     }
-  }
-}
-
-
-// -----------------------------------------------------------------------------
-// -----------------------------------------------------------------------------
-double ChShaftsPowertrain::GetWheelTorque(ChWheelId which) const
-{
-  switch (which) {
-  case FRONT_LEFT:
-    return 0;
-  case FRONT_RIGHT:
-    return 0;
-  case REAR_LEFT:
-    return -m_rear_differential->GetTorqueReactionOn2();
-  case REAR_RIGHT:
-    return -m_rear_differential->GetTorqueReactionOn3();
-  default:
-    return -1;  // should not happen
   }
 }
 

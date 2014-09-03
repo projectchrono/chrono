@@ -42,11 +42,6 @@ public:
   virtual double GetMotorBlockInertia() const      { return m_motorblock_inertia; }
   virtual double GetCrankshaftInertia() const      { return m_crankshaft_inertia; }
   virtual double GetIngearShaftInertia() const     { return m_ingear_shaft_inertia; }
-  virtual double GetOutgearShaftInertia() const    { return m_outgear_shaft_inertia; }
-  virtual double GetDifferentialBoxInertia() const { return m_differentialbox_inertia; }
-
-  virtual double GetConicalGearRatio() const       { return m_conicalgear_ratio; }
-  virtual double GetDifferentialRatio() const      { return m_differential_ratio; }
 
   virtual void SetEngineTorqueMap(chrono::ChSharedPtr<chrono::ChFunction_Recorder>& map);
   virtual void SetTorqueConverterCapacityFactorMap(chrono::ChSharedPtr<chrono::ChFunction_Recorder>& map);
@@ -58,12 +53,6 @@ private:
   static const double  m_motorblock_inertia;
   static const double  m_crankshaft_inertia;
   static const double  m_ingear_shaft_inertia;
-  static const double  m_outgear_shaft_inertia;
-  static const double  m_differentialbox_inertia;
-
-  // Gear ratios.
-  static const double  m_conicalgear_ratio;
-  static const double  m_differential_ratio;
 
 };
 

@@ -12,20 +12,22 @@
 // Authors: Radu Serban, Justin Madsen
 // =============================================================================
 //
-// Base class for a vehicle powertrain.
+// Base class for a vehicle driveline.
 //
 // =============================================================================
 
-#include "subsys/ChPowertrain.h"
+#include "subsys/ChDriveline.h"
 
 
 namespace chrono {
 
 
-ChPowertrain::ChPowertrain(ChVehicle*   car)
-: m_car(car)
+ChDriveline::ChDriveline(ChVehicle*   car,
+                         DriveType    type)
+: m_car(car),
+  m_type(type)
 {
-  car->m_powertrain = this;
+  car->m_driveline = this;
 }
 
 

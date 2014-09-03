@@ -27,7 +27,7 @@
 #include "models/hmmwv/HMMWV.h"
 #include "models/hmmwv/HMMWV_Wheel.h"
 #include "models/hmmwv/suspension/HMMWV_DoubleWishboneReduced.h"
-#include "models/hmmwv/powertrain/HMMWV_SimplePowertrain.h"
+#include "models/hmmwv/driveline/HMMWV_Driveline2WD.h"
 #include "models/hmmwv/powertrain/HMMWV_Powertrain.h"
 
 namespace hmmwv {
@@ -73,8 +73,8 @@ private:
   chrono::ChSharedPtr<HMMWV_Wheel> m_rear_right_wheel;
   chrono::ChSharedPtr<HMMWV_Wheel> m_rear_left_wheel;
 
-  ////chrono::ChSharedPtr<HMMWV_SimplePowertrain>  m_powertrain;
-  chrono::ChSharedPtr<HMMWV_Powertrain>  m_powertrain;
+  chrono::ChSharedPtr<HMMWV_Driveline2WD>  m_driveline;
+  chrono::ChSharedPtr<HMMWV_Powertrain>    m_powertrain;
 
   // Chassis visualization mesh
   static const std::string m_chassisMeshName;

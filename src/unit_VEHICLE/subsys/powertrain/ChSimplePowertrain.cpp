@@ -26,7 +26,7 @@ namespace chrono {
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 ChSimplePowertrain::ChSimplePowertrain(ChVehicle* car)
-: ChPowertrain(car, ChPowertrain::RWD),
+: ChPowertrain(car),
   m_wheelTorque(0),
   m_motorSpeed(0),
   m_motorTorque(0)

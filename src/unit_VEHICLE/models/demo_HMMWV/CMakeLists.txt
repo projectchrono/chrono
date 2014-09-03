@@ -29,13 +29,13 @@ SET(COMMON_HMMWV_FILES
 	../hmmwv/vehicle/HMMWV_Vehicle.cpp
 	../hmmwv/suspension/HMMWV_DoubleWishbone.h
 	../hmmwv/suspension/HMMWV_DoubleWishbone.cpp
-	../hmmwv/powertrain/HMMWV_SimplePowertrain.h
-	../hmmwv/powertrain/HMMWV_SimplePowertrain.cpp
+	../hmmwv/driveline/HMMWV_Driveline2WD.h
+	../hmmwv/driveline/HMMWV_Driveline2WD.cpp
 	../hmmwv/powertrain/HMMWV_Powertrain.h
 	../hmmwv/powertrain/HMMWV_Powertrain.cpp
 	../hmmwv/tire/HMMWV_RigidTire.h
 	../hmmwv/tire/HMMWV_RigidTire.cpp
-	)
+)
 
 SET(DEMO_HMMWV_FILES
 	demo_HMMWV.cpp

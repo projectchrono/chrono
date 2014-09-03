@@ -29,11 +29,6 @@ namespace hmmwv {
   const double HMMWV_Powertrain::m_motorblock_inertia = 10.5;
   const double HMMWV_Powertrain::m_crankshaft_inertia = 1.1;
   const double HMMWV_Powertrain::m_ingear_shaft_inertia = 0.3;
-  const double HMMWV_Powertrain::m_outgear_shaft_inertia = 0.5;
-  const double HMMWV_Powertrain::m_differentialbox_inertia = 0.6;
-
-  const double HMMWV_Powertrain::m_conicalgear_ratio = -0.2;
-  const double HMMWV_Powertrain::m_differential_ratio = -1;
 
 
 // -----------------------------------------------------------------------------
@@ -42,7 +37,7 @@ namespace hmmwv {
 // the axles is along the Y axis (relative to the chassis coordinate frame),
 // -----------------------------------------------------------------------------
 HMMWV_Powertrain::HMMWV_Powertrain(ChVehicle* car)
-: ChShaftsPowertrain(car, ChVector<>(1, 0, 0), ChVector<>(0, 1, 0))
+: ChShaftsPowertrain(car, ChVector<>(1, 0, 0))
 {
 }
 

@@ -46,20 +46,17 @@ class CH_SUBSYS_API ChShaftsPowertrain : public ChPowertrain
 public:
 
   ChShaftsPowertrain(ChVehicle* car,
-                     const ChVector<>& dir_motor_block = ChVector<>(1,0,0),
-                     const ChVector<>& dir_axle = ChVector<>(0,1,0));
+                     const ChVector<>& dir_motor_block = ChVector<>(1,0,0));
 
   ~ChShaftsPowertrain() {}
 
   /// To be called after creation, to create all the wrapped ChShaft objects 
   /// and their constraints, torques etc. 
   void Initialize(ChSharedPtr<ChBody>  chassis,
-                  ChSharedPtr<ChShaft> axle_L,
-                  ChSharedPtr<ChShaft> axle_R);
+                  ChSharedPtr<ChShaft> driveshaft);
 
   virtual double GetMotorSpeed() const { return  m_crankshaft->GetPos_dt(); }
   virtual double GetMotorTorque() const { return  m_engine->GetTorqueReactionOn1(); }
-  virtual double GetWheelTorque(ChWheelId which) const;
 
   /// Use this function to shift from one gear to another.
   /// A zero latency shift is assumed.
@@ -93,12 +90,6 @@ protected:
   virtual double GetMotorBlockInertia() const = 0;
   virtual double GetCrankshaftInertia() const = 0;
   virtual double GetIngearShaftInertia() const = 0;
-  virtual double GetOutgearShaftInertia() const = 0;
-  virtual double GetDifferentialBoxInertia() const = 0;
-
-  /// Gear ratios.
-  virtual double GetConicalGearRatio() const = 0;
-  virtual double GetDifferentialRatio() const = 0;
 
   /// Engine speed-torque map.
   virtual void SetEngineTorqueMap(ChSharedPtr<ChFunction_Recorder>& map) = 0;
@@ -117,16 +108,11 @@ private:
   ChSharedPtr<ChShaftsTorqueConverter>  m_torqueconverter;
   ChSharedPtr<ChShaft>                  m_shaft_ingear;
   ChSharedPtr<ChShaftsGearbox>          m_gears;
-  ChSharedPtr<ChShaft>                  m_shaft_outgear;
-  ChSharedPtr<ChShaftsGearboxAngled>    m_rear_conicalgear;
-  ChSharedPtr<ChShaft>                  m_shaft_rear_differentialbox;
-  ChSharedPtr<ChShaftsPlanetary>        m_rear_differential;
 
   int m_current_gear;
   std::vector<double> m_gear_ratios;
 
   ChVector<> m_dir_motor_block;
-  ChVector<> m_dir_axle;
 
   ChPowertrain::DriveMode drive_mode;
   double last_time_gearshift;

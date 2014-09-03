@@ -53,6 +53,7 @@ struct ChTireForce {
 typedef std::vector<ChTireForce> ChTireForces;
 
 class ChPowertrain;
+class ChDriveline;
 
 class CH_SUBSYS_API ChVehicle : public ChSystem {
 public:
@@ -84,9 +85,11 @@ public:
 
 protected:
   ChSharedBodyPtr  m_chassis;
+  ChDriveline*     m_driveline;
   ChPowertrain*    m_powertrain;
 
   friend class ChPowertrain;
+  friend class ChDriveline;
   friend class ChIrrGuiDriver;
 };
 

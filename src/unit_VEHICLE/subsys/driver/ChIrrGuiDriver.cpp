@@ -29,6 +29,7 @@
 #include <algorithm>
 
 #include "subsys/driver/ChIrrGuiDriver.h"
+#include "subsys/driveline/ChShaftsDriveline2WD.h"
 #include "subsys/powertrain/ChShaftsPowertrain.h"
 
 using namespace irr;
@@ -292,14 +293,6 @@ void ChIrrGuiDriver::renderStats()
     sprintf(msg, "T.conv. out Nm: %+.2f", tc_torqueout);
     renderLinGauge(std::string(msg), tc_torqueout / 600, false, m_HUD_x, m_HUD_y + 200, 120, 15);
 
-    double torque_wheelL = -powertrain->m_rear_differential->GetTorqueReactionOn2();
-    sprintf(msg, "Torque wheel L: %+.2f", torque_wheelL);
-    renderLinGauge(std::string(msg), torque_wheelL / 5000, false, m_HUD_x, m_HUD_y + 220, 120, 15);
-
-    double torque_wheelR = -powertrain->m_rear_differential->GetTorqueReactionOn3();
-    sprintf(msg, "Torque wheel R: %+.2f", torque_wheelR);
-    renderLinGauge(std::string(msg), torque_wheelR / 5000, false, m_HUD_x, m_HUD_y + 240, 120, 15);
-
     int ngear = powertrain->GetSelectedGear();
     ChPowertrain::DriveMode drivemode = powertrain->GetDriveMode();
     switch (drivemode)
@@ -308,18 +301,30 @@ void ChIrrGuiDriver::renderStats()
       sprintf(msg, "Gear: forward, n.gear: %d", ngear);
       break;
     case ChPowertrain::NEUTRAL:
-      sprintf(msg, "Gear: neutral %d", ngear);
+      sprintf(msg, "Gear: neutral");
       break;
     case ChPowertrain::REVERSE:
-      sprintf(msg, "Gear: reverse %d", ngear);
+      sprintf(msg, "Gear: reverse");
       break;
     default:
       sprintf(msg, "Gear:");
       break;
     }
-    renderLinGauge(std::string(msg), (double)ngear / 4.0, false, m_HUD_x, m_HUD_y + 260, 120, 15);
+    renderLinGauge(std::string(msg), (double)ngear / 4.0, false, m_HUD_x, m_HUD_y + 220, 120, 15);
   }
 
+  ChDriveline* dline = m_car.m_driveline;
+
+  if (ChShaftsDriveline2WD* driveline = dynamic_cast<ChShaftsDriveline2WD*>(dline))
+  {
+    double torque_wheelL = -driveline->m_differential->GetTorqueReactionOn2();
+    sprintf(msg, "Torque wheel L: %+.2f", torque_wheelL);
+    renderLinGauge(std::string(msg), torque_wheelL / 5000, false, m_HUD_x, m_HUD_y + 260, 120, 15);
+
+    double torque_wheelR = -driveline->m_differential->GetTorqueReactionOn3();
+    sprintf(msg, "Torque wheel R: %+.2f", torque_wheelR);
+    renderLinGauge(std::string(msg), torque_wheelR / 5000, false, m_HUD_x, m_HUD_y + 280, 120, 15);
+  }
 }
 
 
