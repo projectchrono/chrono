@@ -205,9 +205,13 @@ INCLUDE_DIRECTORIES(
 # ------------------------------------------------------------------------------
 # BLAZE -- required for some parallel solvers
 # ------------------------------------------------------------------------------
+IF(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
 SET(BLAZE_DIR ""  CACHE PATH   "Where is Blaze located?")
-FIND_PATH(BLAZE_DIR NAMES Blaze.h PATHS "/usr/include/blaze" "/usr/local/include/blaze" ${BLAZE_DIR})
-
+ELSEIF(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
+FIND_PATH(BLAZE_DIR NAMES blaze/Blaze.h PATHS "/usr/include" "/usr/local/include")
+ELSEIF(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
+FIND_PATH(BLAZE_DIR NAMES blaze/Blaze.h PATHS "/usr/include" "/usr/local/include")
+ENDIF()
 # ------------------------------------------------------------------------------
 # Find the ChronoEngine library
 # ------------------------------------------------------------------------------
