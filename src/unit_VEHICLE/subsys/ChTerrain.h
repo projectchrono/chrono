@@ -20,6 +20,7 @@
 #define CH_TERRAIN_H
 
 #include "core/ChShared.h"
+#include "core/ChVector.h"
 
 #include "subsys/ChApiSubsys.h"
 
@@ -36,6 +37,9 @@ public:
   virtual void Advance(double step) {}
 
   virtual double GetHeight(double x, double y) const = 0;
+
+  //// TODO: make this a pure virtual function...
+  virtual ChVector<> GetNormal(double x, double y) const { return ChVector<>(0, 0, 1); }
 };
 
 
