@@ -35,7 +35,7 @@ public:
 
   void Initialize();
 
-  virtual ChTireForce GetTireForce() const;
+  virtual ChTireForce GetTireForce() const { return m_tireForce; }
 
   virtual void Update(double              time,
                       const ChBodyState&  wheel_state);
@@ -50,11 +50,13 @@ protected:
   virtual double getNormalDamping() const = 0;
 
 private:
-  ChVector<>  m_force;
-  ChVector<>  m_point;
-  ChVector<>  m_moment;
+  struct DiscContactData {
+    bool       contact;
+    ChVector<> slidingVel;
+  };
 
-  std::vector<bool> m_discInContact;
+  ChTireForce                  m_tireForce;
+  std::vector<DiscContactData> m_data;
 };
 
 

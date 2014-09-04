@@ -26,11 +26,11 @@ namespace chrono {
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 ChLugreTire::ChLugreTire(const ChTerrain& terrain)
-: ChTire(terrain),
-  m_force(0, 0, 0),
-  m_point(0, 0, 0),
-  m_moment(0, 0, 0)
+: ChTire(terrain)
 {
+  m_tireForce.force = ChVector<>(0, 0, 0);
+  m_tireForce.point = ChVector<>(0, 0, 0);
+  m_tireForce.moment = ChVector<>(0, 0, 0);
 }
 
 
@@ -38,7 +38,7 @@ ChLugreTire::ChLugreTire(const ChTerrain& terrain)
 // -----------------------------------------------------------------------------
 void ChLugreTire::Initialize()
 {
-  m_discInContact.resize(getNumDiscs());
+  m_data.resize(getNumDiscs());
 }
 
 
@@ -47,46 +47,50 @@ void ChLugreTire::Initialize()
 void ChLugreTire::Update(double              time,
                          const ChBodyState&  wheel_state)
 {
-  int numDiscs = getNumDiscs();
-  double radius = getRadius();
-  const double* discLocs = getDiscLocations();
+  double disc_radius = getRadius();
+  const double* disc_locs = getDiscLocations();
 
   // Clear the force accumulators and set the application point to the wheel
   // center.
-  m_force = ChVector<>(0, 0, 0);
-  m_moment = ChVector<>(0, 0, 0);
-  m_point = wheel_state.pos;
+  m_tireForce.force = ChVector<>(0, 0, 0);
+  m_tireForce.moment = ChVector<>(0, 0, 0);
+  m_tireForce.point = wheel_state.pos;
 
   // Extract the wheel normal (expressed in global frame)
   ChMatrix33<> A(wheel_state.rot);
-  ChVector<> normal = A.Get_A_Yaxis();
+  ChVector<> disc_normal = A.Get_A_Yaxis();
 
   // Loop over all discs, check contact with terrain and accumulate normal tire
   // forces.
-  ChVector<> roll;
-  ChVector<> disc_point;
-  ChVector<> terrain_point;
+  ChVector<> normal;
+  ChVector<> ptD;
+  ChVector<> ptT;
   double depth;
 
-  for (int id = 0; id < numDiscs; id++) {
+  for (int id = 0; id < getNumDiscs(); id++) {
     // Calculate center of disk (expressed in global frame)
-    ChVector<> center = wheel_state.pos + discLocs[id] * normal;
+    ChVector<> disc_center = wheel_state.pos + disc_locs[id] * disc_normal;
 
     // Check contact with terrain and calculate contact points.
-    m_discInContact[id] = disc_terrain_contact(center, normal, radius, roll, disc_point, terrain_point, depth);
-    if (!m_discInContact[id])
+    m_data[id].contact = disc_terrain_contact(disc_center, disc_normal, disc_radius,
+                                              ptD, ptT, normal, depth);
+    if (!m_data[id].contact)
       continue;
+
+    // Relative velocity at contact point (expressed in global frame)
+    ChVector<> vel = wheel_state.lin_vel + Vcross(wheel_state.ang_vel, ptD - wheel_state.pos);
 
     // Generate normal contact force and add to accumulators (recall, all forces
     // are reduced to the wheel center)
-    double relVelNormal_mag = wheel_state.lin_vel.z;
-    ChVector<> Fn(0, 0, getNormalStiffness() * depth - getNormalDamping() * relVelNormal_mag);
+    double     normalVel_mag = Vdot(vel, normal);
+    double     Fn_mag = getNormalStiffness() * depth - getNormalDamping() * normalVel_mag;
+    ChVector<> Fn = Fn_mag * normal;
 
-    m_force += Fn;
-    m_moment = Vcross(disc_point - m_point, Fn);
+    m_tireForce.force += Fn;
+    m_tireForce.moment += Vcross(ptD - m_tireForce.point, Fn);
 
-
-    //// TODO
+    // Calculate and store relative sliding velocity
+    m_data[id].slidingVel = vel - normalVel_mag * normal;
 
   }
 
@@ -97,22 +101,14 @@ void ChLugreTire::Update(double              time,
 // -----------------------------------------------------------------------------
 void ChLugreTire::Advance(double step)
 {
+  for (int id = 0; id < getNumDiscs(); id++) {
+    if (!m_data[id].contact)
+      continue;
 
+
+  }
 }
 
-
-// -----------------------------------------------------------------------------
-// -----------------------------------------------------------------------------
-ChTireForce ChLugreTire::GetTireForce() const
-{
-  ChTireForce tire_force;
-
-  tire_force.force = m_force;
-  tire_force.point = m_point;
-  tire_force.moment = m_moment;
-
-  return tire_force;
-}
 
 
 } // end namespace chrono
