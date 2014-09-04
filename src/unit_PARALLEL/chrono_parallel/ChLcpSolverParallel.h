@@ -39,6 +39,7 @@
 #include "chrono_parallel/solver/ChSolverSD.h"
 #include "chrono_parallel/solver/ChSolverGD.h"
 #include "chrono_parallel/solver/ChSolverPGS.h"
+#include "chrono_parallel/solver/ChSolverJacobi.h"
 namespace chrono {
 
 class CH_PARALLEL_API ChLcpSolverParallel : public ChLcpIterativeSolver {
@@ -157,6 +158,8 @@ class CH_PARALLEL_API ChLcpSolverParallelDVI : public ChLcpSolverParallel {
          solver = new ChSolverAPGDRS();
       } else if (solver_type == APGDBLAZE) {
          solver = new ChSolverAPGDBlaze();
+      } else if (solver_type == JACOBI) {
+         solver = new ChSolverJacobi();
       } else if (solver_type == GAUSS_SEIDEL) {
          solver = new ChSolverPGS();
       }

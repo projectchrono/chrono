@@ -1,5 +1,6 @@
 #include "ChSolverPGS.h"
-
+#include <blaze/math/SparseRow.h>
+#include <blaze/math/CompressedVector.h>
 using namespace chrono;
 
 uint ChSolverPGS::SolvePGS(const uint max_iter,
@@ -29,48 +30,17 @@ uint ChSolverPGS::SolvePGS(const uint max_iter,
    for (current_iteration = 0; current_iteration < max_iter; current_iteration++) {
       const size_t N(size / 3);
       size_t j;
-      real xold, yold, zold, maxResidual = 0;
-
-//      for (size_t i = 0; i < data_container->num_contacts; ++i) {
-//         const real residualx(-mb[i*3+0] - (data_container->host_data.Nshur * ml)[i*3+0]);
-//         const real residualy(-mb[i*3+1] - (data_container->host_data.Nshur * ml)[i*3+1]);
-//         const real residualz(-mb[i*3+2] - (data_container->host_data.Nshur * ml)[i*3+2]);
-//
-//
-//         // Updating and projecting the unknown
-//         xold = ml[i*3+0];
-//         yold = ml[i*3+1];
-//         zold = ml[i*3+2];
-//
-//         ml[i*3+0] += diagonal[i*3+0] * residualx;
-//         ml[i*3+1] += diagonal[i*3+1] * residualy;
-//         ml[i*3+2] += diagonal[i*3+2] * residualz;
-//
-//         Project_Single(i, ml.data());
-//         maxResidual = std::max(maxResidual, std::fabs(xold - ml[i*3+0]));
-//      }
+      real omega = 1.0;
 
       for (size_t i = 0; i < N; ++i) {
-
          j = i * 3;
-         residual = -mb[j] - (data_container->host_data.Nshur * ml)[j];
-         aux = std::max(0.0, ml[j] - diagonal[j] * residual);
-         rmax = std::max(rmax, std::fabs(ml[j] - aux));
-         ml[j] = aux;
+         real Dinv = 1.0 / (diagonal[j + 0] + diagonal[j + 1] + diagonal[j + 2]);
 
-         flimit = data_container->host_data.fric_rigid_rigid[i].x * ml[j];
+         ml[j + 0] = ml[j + 0] - omega * Dinv * ((row(data_container->host_data.Nshur, j + 0), ml) - mb[j + 0]);
+         ml[j + 1] = ml[j + 1] - omega * Dinv * ((row(data_container->host_data.Nshur, j + 1), ml) - mb[j + 1]);
+         ml[j + 2] = ml[j + 2] - omega * Dinv * ((row(data_container->host_data.Nshur, j + 2), ml) - mb[j + 2]);
 
-         ++j;
-         residual = -mb[j] - (data_container->host_data.Nshur * ml)[j];
-         aux = std::max(-flimit, std::min(flimit, ml[j] - diagonal[j] * residual));
-         rmax = std::max(rmax, std::fabs(ml[j] - aux));
-         ml[j] = aux;
-
-         ++j;
-         residual = -mb[j] - (data_container->host_data.Nshur * ml)[j];
-         aux = std::max(-flimit, std::min(flimit, ml[j] - diagonal[j] * residual));
-         rmax = std::max(rmax, std::fabs(ml[j] - aux));
-         ml[j] = aux;
+         Project_Single(i, ml.data());
       }
 
       AtIterationEnd(rmax, GetObjectiveBlaze(ml, mb), current_iteration);
@@ -79,9 +49,7 @@ uint ChSolverPGS::SolvePGS(const uint max_iter,
       for (int i = 0; i < size; i++) {
          x[i] = ml[i];
       }
-
    }
-
    return current_iteration;
 }
 

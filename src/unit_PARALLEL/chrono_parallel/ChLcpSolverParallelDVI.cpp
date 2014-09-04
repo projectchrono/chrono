@@ -80,7 +80,7 @@ void ChLcpSolverParallelDVI::RunTimeStep(real step) {
       thrust::copy_n(data_container->host_data.gamma_bilateral.begin(), data_container->num_bilaterals,
                      data_container->host_data.gamma_data.begin() + data_container->num_unilaterals);
    }
-   if (solver_type == APGDBLAZE|| solver_type == GAUSS_SEIDEL) {
+   if (solver_type == APGDBLAZE|| solver_type == GAUSS_SEIDEL|| solver_type == JACOBI) {
       //std::cout << "Compute N" << std::endl;
       ComputeN();
    }
@@ -399,6 +399,7 @@ void ChLcpSolverParallelDVI::ComputeN() {
    data_container->host_data.D.resize(data_container->num_bodies * 6, data_container->num_contacts * 3);
    data_container->host_data.M_inv.resize(data_container->num_bodies * 6, data_container->num_bodies * 6);
    rigid_rigid.Build_D();
+
    for (int i = 0; i < data_container->num_bodies; i++) {
       if (data_container->host_data.active_data[i]) {
          data_container->host_data.M_inv.insert(i * 6 + 0, i * 6 + 0, data_container->host_data.mass_data[i]);

@@ -50,6 +50,7 @@ SOURCE_GROUP(math FILES
 
 SET(ChronoEngine_Parallel_SOLVER
     solver/ChSolverParallel.h
+    solver/ChSolverJacobi.h
     solver/ChSolverCG.h
     solver/ChSolverCGS.h
     solver/ChSolverPGS.h
@@ -62,7 +63,7 @@ SET(ChronoEngine_Parallel_SOLVER
     solver/ChSolverBiCG.h
     solver/ChSolverBiCGStab.h
     solver/ChSolverParallel.cpp
-    #solver/ChSolverBlockJacobi.cpp
+    solver/ChSolverJacobi.cpp
     solver/ChSolverCG.cpp
     solver/ChSolverCGS.cpp
     solver/ChSolverPGS.cpp
