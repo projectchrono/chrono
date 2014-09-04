@@ -88,6 +88,12 @@ class CH_PARALLEL_API ChConstraintRigidRigid : public ChBaseParallel {
    }
    ~ChConstraintRigidRigid() {
    }
+   void host_Project_single(int index,
+                            int2 *ids,
+                            real3 *friction,
+                            real* cohesion,
+                            real *gamma);
+
    void host_Project(int2 *ids,
                      real3 *friction,
                      real *cohesion,
@@ -95,6 +101,7 @@ class CH_PARALLEL_API ChConstraintRigidRigid : public ChBaseParallel {
 
    void Project(real* gamma);
    void Project_NoPar(real* gamma);
+   void Project_Single(int index, real* gamma);
    void host_RHS(int2 *ids,
                  real *correction,
                  real alpha,
@@ -256,9 +263,8 @@ class CH_PARALLEL_API ChConstraintRigidRigid : public ChBaseParallel {
    custom_vector<real3> JUA_rigid_rigid;custom_vector<real3> JUB_rigid_rigid;
 
    custom_vector<real4> comp_rigid_rigid;
-   custom_vector<real3> fric_rigid_rigid;
-   custom_vector<real> coh_rigid_rigid;
-   custom_vector<real3> vel_update, omg_update;
+
+   custom_vector<real> coh_rigid_rigid;custom_vector<real3> vel_update, omg_update;
 
    custom_vector<int> body_num;
 

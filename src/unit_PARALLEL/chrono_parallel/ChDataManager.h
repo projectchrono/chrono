@@ -51,6 +51,8 @@ struct host_container {
    thrust::host_vector<long long> pair_rigid_rigid;
    thrust::host_vector<long long> old_pair_rigid_rigid;
 
+   thrust::host_vector<real3> fric_rigid_rigid;
+
    thrust::host_vector<real> gamma_data;
    thrust::host_vector<real> old_gamma_data;
    thrust::host_vector<real> dgm_data;

@@ -160,6 +160,38 @@ void ChConstraintRigidRigid::func_Project_rolling(int &index,
 
 }
 
+void ChConstraintRigidRigid::host_Project_single(int index,
+                                                 int2 *ids,
+                                                 real3 *friction,
+                                                 real* cohesion,
+                                                 real *gamma) {
+   //always project normal
+   if (solve_sliding) {
+      func_Project(index, ids, friction, cohesion, gamma);
+   } else {
+
+      real gamma_x = gamma[_index_ + 0];
+      int2 body_id = ids[index];
+      real coh = (cohesion[body_id.x] + cohesion[body_id.y]) * .5;
+      if (coh < 0) {
+         coh = 0;
+      }
+      gamma_x += coh;
+
+      gamma_x = gamma_x < 0 ? 0 : gamma_x - coh;
+
+      gamma[_index_ + 0] = gamma_x;
+      gamma[_index_ + 1] = 0;
+      gamma[_index_ + 2] = 0;
+   }
+   if (solve_spinning) {
+
+      func_Project_rolling(index, ids, friction, gamma);
+
+   }
+
+}
+
 void ChConstraintRigidRigid::host_Project(int2 *ids,
                                           real3 *friction,
                                           real* cohesion,
@@ -199,12 +231,15 @@ void ChConstraintRigidRigid::host_Project(int2 *ids,
 //%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 void ChConstraintRigidRigid::Project(real* gamma) {
-   host_Project(data_container->host_data.bids_rigid_rigid.data(), fric_rigid_rigid.data(), coh_rigid_rigid.data(), gamma);
+   host_Project(data_container->host_data.bids_rigid_rigid.data(), data_container->host_data.fric_rigid_rigid.data(), coh_rigid_rigid.data(), gamma);
 }
 void ChConstraintRigidRigid::Project_NoPar(real* gamma) {
-   host_Project(data_container->host_data.bids_rigid_rigid.data(), fric_rigid_rigid.data(), coh_rigid_rigid.data(), gamma);
+   host_Project(data_container->host_data.bids_rigid_rigid.data(), data_container->host_data.fric_rigid_rigid.data(), coh_rigid_rigid.data(), gamma);
 }
-
+void ChConstraintRigidRigid::Project_Single(int index,
+                                            real* gamma) {
+   host_Project_single(index, data_container->host_data.bids_rigid_rigid.data(), data_container->host_data.fric_rigid_rigid.data(), coh_rigid_rigid.data(), gamma);
+}
 void chrono::Compute_Jacobian(const real4& quat,
                               const real3& U,
                               const real3& V,
@@ -410,7 +445,7 @@ void ChConstraintRigidRigid::ComputeRHS() {
    data_container->system_timer.start("ChLcpSolverParallel_RHS");
    comp_rigid_rigid.resize(num_contacts);
    coh_rigid_rigid.resize(num_contacts);
-   fric_rigid_rigid.resize(num_contacts);
+   data_container->host_data.fric_rigid_rigid.resize(num_contacts);
 
 #pragma omp parallel for
    for (int i = 0; i < num_contacts; i++) {
@@ -437,7 +472,7 @@ void ChConstraintRigidRigid::ComputeRHS() {
       mu.y = (f_a.y == 0 || f_b.y == 0) ? 0 : (f_a.y + f_b.y) * .5;
       mu.z = (f_a.z == 0 || f_b.z == 0) ? 0 : (f_a.z + f_b.z) * .5;
 
-      fric_rigid_rigid[i] = mu;
+      data_container->host_data.fric_rigid_rigid[i] = mu;
 
    }
    host_RHS(data_container->host_data.bids_rigid_rigid.data(), data_container->host_data.dpth_rigid_rigid.data(), data_container->alpha, contact_active_pairs.data(),

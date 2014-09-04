@@ -42,6 +42,11 @@ void ChSolverParallel::Project(real* gamma) {
    rigid_rigid->Project(gamma);
    data_container->system_timer.stop("ChSolverParallel_Project");
 }
+void ChSolverParallel::Project_Single(int index, real* gamma) {
+   data_container->system_timer.start("ChSolverParallel_Project");
+   rigid_rigid->Project_Single(index, gamma);
+   data_container->system_timer.stop("ChSolverParallel_Project");
+}
 //=================================================================================================================================
 
 void ChSolverParallel::shurA(real* x) {

@@ -19,7 +19,6 @@
 #ifndef CHLCPSOLVERPARALLEL_H
 #define CHLCPSOLVERPARALLEL_H
 
-
 #include "lcp/ChLcpIterativeSolver.h"
 
 #include "chrono_parallel/ChParallelDefines.h"
@@ -39,7 +38,7 @@
 #include "chrono_parallel/solver/ChSolverMinRes.h"
 #include "chrono_parallel/solver/ChSolverSD.h"
 #include "chrono_parallel/solver/ChSolverGD.h"
-
+#include "chrono_parallel/solver/ChSolverPGS.h"
 namespace chrono {
 
 class CH_PARALLEL_API ChLcpSolverParallel : public ChLcpIterativeSolver {
@@ -114,7 +113,6 @@ class CH_PARALLEL_API ChLcpSolverParallelDVI : public ChLcpSolverParallel {
       solver_type = APGD;
       solver_mode = SLIDING;
 
-
    }
 
    ~ChLcpSolverParallelDVI() {
@@ -159,11 +157,13 @@ class CH_PARALLEL_API ChLcpSolverParallelDVI : public ChLcpSolverParallel {
          solver = new ChSolverAPGDRS();
       } else if (solver_type == APGDBLAZE) {
          solver = new ChSolverAPGDBlaze();
+      } else if (solver_type == GAUSS_SEIDEL) {
+         solver = new ChSolverPGS();
       }
 
    }
 
-   void SetSolverMode(SOLVERMODE mode){
+   void SetSolverMode(SOLVERMODE mode) {
       solver_mode = mode;
    }
 

@@ -52,6 +52,7 @@ SET(ChronoEngine_Parallel_SOLVER
     solver/ChSolverParallel.h
     solver/ChSolverCG.h
     solver/ChSolverCGS.h
+    solver/ChSolverPGS.h
     solver/ChSolverGD.h
     solver/ChSolverSD.h
     solver/ChSolverAPGD.h
@@ -64,6 +65,7 @@ SET(ChronoEngine_Parallel_SOLVER
     #solver/ChSolverBlockJacobi.cpp
     solver/ChSolverCG.cpp
     solver/ChSolverCGS.cpp
+    solver/ChSolverPGS.cpp
     solver/ChSolverGD.cpp
     solver/ChSolverSD.cpp
     #solver/ChSolverFN.cpp

@@ -80,7 +80,7 @@ void ChLcpSolverParallelDVI::RunTimeStep(real step) {
       thrust::copy_n(data_container->host_data.gamma_bilateral.begin(), data_container->num_bilaterals,
                      data_container->host_data.gamma_data.begin() + data_container->num_unilaterals);
    }
-   if (solver_type == APGDBLAZE) {
+   if (solver_type == APGDBLAZE|| solver_type == GAUSS_SEIDEL) {
       //std::cout << "Compute N" << std::endl;
       ComputeN();
    }

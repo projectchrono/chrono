@@ -42,6 +42,10 @@ class CH_PARALLEL_API ChSolverParallel : public ChBaseParallel {
    void Project(real* gamma  //Lagrange Multipliers
    );
 
+   // Project a single contact
+   void Project_Single(int index,
+                       real* gamma);
+
    // Compute the first half of the shur matrix vector multiplication (N*x)
    // Perform M_invDx=M^-1*D*x
    void shurA(real*x  //Vector that N is multiplied by
@@ -125,7 +129,7 @@ class CH_PARALLEL_API ChSolverParallel : public ChBaseParallel {
       // f_p = 0.5*l_candidate'*N*l_candidate - l_candidate'*b  = l_candidate'*(0.5*Nl_candidate - b);
       //ShurProduct(x, Nl);     // 1)  g_tmp = N*l_candidate ...        #### MATR.MULTIPLICATION!!!###
       Nl = data_container->host_data.Nshur * x;
-      Nl = 0.5*Nl-b;
+      Nl = 0.5 * Nl - b;
       //SEAXMY(0.5, Nl, b, Nl);  // 2) 0.5*N*l_candidate-b_shur
       return (x, Nl);            // 3)  mf_p  = l_candidate'*(0.5*N*l_candidate-b_shur)
 
@@ -157,7 +161,7 @@ class CH_PARALLEL_API ChSolverParallel : public ChBaseParallel {
       max_iteration = max_iteration_value;
    }
 
-   int current_iteration; // The current iteration number of the solver
+   int current_iteration;  // The current iteration number of the solver
    int max_iteration;     // The maximum number of iterations that the solver will perform
    int total_iteration;   // The total number of iterations performed, this variable accumulates
    real residual;         // Current residual for the solver
