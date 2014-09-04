@@ -16,6 +16,9 @@
 //
 // =============================================================================
 
+#include "assets/ChCylinderShape.h"
+#include "assets/ChTexture.h"
+#include "assets/ChColorAsset.h"
 
 #include "models/hmmwv/tire/HMMWV_LugreTire.h"
 
@@ -29,17 +32,40 @@ namespace hmmwv {
 
 static const double in2m = 0.0254;
 
-const double HMMWV_LugreTire::m_radius = 18.5 * in2m;
+const double HMMWV_LugreTire::m_radius = 18.15 * in2m;
 const double HMMWV_LugreTire::m_discLocs[] = { -5 * in2m, 0 * in2m, 5 * in2m };
 
-const double HMMWV_LugreTire::m_normalStiffness = 2e5;
-const double HMMWV_LugreTire::m_normalDamping = 100;
+const double HMMWV_LugreTire::m_normalStiffness = 2e6;
+const double HMMWV_LugreTire::m_normalDamping = 1e3;
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 HMMWV_LugreTire::HMMWV_LugreTire(const ChTerrain& terrain)
 : ChLugreTire(terrain)
 {
+}
+
+// -----------------------------------------------------------------------------
+// -----------------------------------------------------------------------------
+void HMMWV_LugreTire::Initialize(ChSharedBodyPtr wheel)
+{
+  // Invoke the base class Initialize function.
+  ChLugreTire::Initialize();
+
+  // Add visualization assets.
+  double discWidth = 0.04;
+
+  for (int id = 0; id < m_numDiscs; id++) {
+    ChSharedPtr<ChCylinderShape> cyl(new ChCylinderShape);
+    cyl->GetCylinderGeometry().rad = m_radius;
+    cyl->GetCylinderGeometry().p1 = ChVector<>(0, m_discLocs[id] + discWidth / 2, 0);
+    cyl->GetCylinderGeometry().p2 = ChVector<>(0, m_discLocs[id] - discWidth / 2, 0);
+    wheel->AddAsset(cyl);
+  }
+
+  ChSharedPtr<ChTexture> tex(new ChTexture);
+  tex->SetTextureFilename(GetChronoDataFile("bluwhite.png"));
+  wheel->AddAsset(tex);
 }
 
 
