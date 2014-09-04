@@ -46,12 +46,12 @@ public:
   virtual ChTireForce GetTireForce() const = 0;
 
 protected:
-  bool  disc_terrain_contact(const ChVector<>& center,
-                             const ChVector<>& normal,
-                             double            radius,
-                             ChVector<>&       roll,
-                             ChVector<>&       disc_point,
-                             ChVector<>&       terrain_point,
+  bool  disc_terrain_contact(const ChVector<>& disc_center,
+                             const ChVector<>& disc_normal,
+                             double            disc_radius,
+                             ChVector<>&       ptD,
+                             ChVector<>&       ptT,
+                             ChVector<>&       normal,
                              double&           depth);
 
   const ChTerrain&  m_terrain;
