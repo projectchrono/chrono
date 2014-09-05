@@ -15,7 +15,6 @@
 // This file contains an implementation of an iterative MinRes solver.
 // =============================================================================
 
-
 #ifndef CHSOLVERMINRES_H
 #define CHSOLVERMINRES_H
 
@@ -27,8 +26,7 @@ class CH_PARALLEL_API ChSolverMinRes : public ChSolverParallel {
  public:
 
    ChSolverMinRes()
-         :
-           ChSolverParallel() {
+         : ChSolverParallel() {
 
    }
    ~ChSolverMinRes() {
@@ -51,9 +49,7 @@ class CH_PARALLEL_API ChSolverMinRes : public ChSolverParallel {
                     custom_vector<real> &x         // The vector of unknowns
                     );
 
-   custom_vector<real> mr, ml, mp, mz, mNMr, mNp, mMNp, mtmp;
-   custom_vector<real> mz_old;
-   custom_vector<real> mNMr_old;
+   blaze::DynamicVector<real> mr, mb, ml, mp, mz, mNMr, mNp, mMNp, mtmp, mz_old, mNMr_old;
 
 };
 }

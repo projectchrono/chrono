@@ -15,17 +15,23 @@ uint ChSolverMinRes::SolveMinRes(const uint max_iter,
    mMNp.resize(size, 0);
    mtmp.resize(size, 0);
 
+   mb.resize(size);
+#pragma omp parallel for
+   for (int i = 0; i < size; i++) {
+      ml[i] = x[i];
+      mb[i] = b[i];
+   }
+
    real grad_diffstep = 0.01;
    double rel_tol = tolerance;
    double abs_tol = tolerance;
 
    double rel_tol_b = NormInf(b) * rel_tol;
    //ml = x;
-#pragma omp parallel
-   {
-      ShurProduct(ml, mr);
-   }
-   mr = b - mr;
+
+   mr = data_container->host_data.Nshur * ml;
+
+   mr = mb - mr;
 
    mr = mr * grad_diffstep + ml;
 #pragma omp parallel
@@ -38,8 +44,9 @@ uint ChSolverMinRes::SolveMinRes(const uint max_iter,
    mz = mp;
 #pragma omp parallel
    {
-      ShurProduct(mz, mNMr);
-      ShurProduct(mp, mNp);
+      mNMr = data_container->host_data.Nshur * mz;
+      mNp = data_container->host_data.Nshur * mp;
+
    }
    for (current_iteration = 0; current_iteration < max_iter; current_iteration++) {
       mMNp = mNp;
@@ -59,9 +66,10 @@ uint ChSolverMinRes::SolveMinRes(const uint max_iter,
 #pragma omp parallel
       {
          Project(ml.data());
-         ShurProduct(ml, mr);
+
+         mr = data_container->host_data.Nshur * ml;
       }
-      mr = b - mr;
+      mr = mb - mr;
 
       mr = mr * grad_diffstep + ml;
 #pragma omp parallel
@@ -85,10 +93,11 @@ uint ChSolverMinRes::SolveMinRes(const uint max_iter,
       mNMr_old = mNMr;
 #pragma omp parallel
       {
-         ShurProduct(mz, mNMr);
+         mNMr = data_container->host_data.Nshur * mz;
+
       }
-      double numerator = Dot(mz, mNMr - mNMr_old);
-      double denominator = Dot(mz_old, mNMr_old);
+      double numerator = (mz, mNMr - mNMr_old);
+      double denominator = (mz_old, mNMr_old);
       double beta = numerator / numerator;
 
       if (fabs(denominator) < 10e-30 || fabs(numerator) < 10e-30) {
@@ -105,7 +114,10 @@ uint ChSolverMinRes::SolveMinRes(const uint max_iter,
       AtIterationEnd(r_proj_resid, maxdeltalambda, current_iteration);
 
    }
-   x = ml;
+#pragma omp parallel for
+   for (int i = 0; i < size; i++) {
+      x[i] = ml[i];
+   }
 
    //	uint N = b.size();
 //	custom_vector<real> v(N, 0), v_hat(size), w(N, 0), w_old, xMR, v_old, Av(size), w_oold;
