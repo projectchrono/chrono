@@ -8,22 +8,32 @@ uint ChSolverCGS::SolveCGS(const uint max_iter,
                            custom_vector<real> &x) {
 
    r.resize(size);
-   ShurProduct(x, r);
-   r = b - r;
-   p = r;
-   q = r;
    qhat.resize(size);
    vhat.resize(size);
-   u = r;
    uhat.resize(size);
-   real normb = Norm(b);
+   ml.resize(size);
+   mb.resize(size);
+#pragma omp parallel for
+   for (int i = 0; i < size; i++) {
+      ml[i] = x[i];
+      mb[i] = b[i];
+   }
+
+   r = data_container->host_data.Nshur * ml;
+   r = mb - r;
+   p = r;
+   q = r;
+
+   u = r;
+
+   real normb = sqrt((mb, mb));
    rtilde = r;
 
    if (normb == 0.0) {
       normb = 1;
    }
 
-   if ((Norm(r) / normb) <= tolerance) {
+   if ((sqrt((r, r)) / normb) <= tolerance) {
       return 0;
    }
 
@@ -36,29 +46,32 @@ uint ChSolverCGS::SolveCGS(const uint max_iter,
 
       if (current_iteration > 0) {
          beta = rho_1 / rho_2;
-#pragma omp parallel for schedule(guided)
 
-         for (int i = 0; i < size; i++) {
-            u[i] = r[i] + beta * q[i];  //u = r + beta * q;
-            p[i] = u[i] + beta * (q[i] + beta * p[i]);  //p = u + beta * (q + beta * p);
-         }
+         u = r + beta * q;
+         p = u + beta * (q + beta * p);
       }
 
       phat = p;
-      ShurProduct(phat, vhat);
+      vhat = data_container->host_data.Nshur * phat;
       alpha = rho_1 / Dot(rtilde, vhat);
-      SEAXPY(-alpha, vhat, u, q);  //q = u - alpha * vhat;
+      q = u - alpha * vhat;
       uhat = (u + q);
-      SEAXPY(alpha, uhat, x, x);  //x = x + alpha * uhat;
-      ShurProduct(uhat, qhat);
-      SEAXPY(-alpha, qhat, r, r);  //r = r - alpha * qhat;
+      ml = ml + alpha * uhat;
+      qhat = data_container->host_data.Nshur * uhat;
+      r = r - alpha * qhat;
       rho_2 = rho_1;
-      residual = (Norm(r) / normb);
+      residual = (sqrt((r, r)) / normb);
 
       if (residual < tolerance) {
          break;
       }
    }
-   Project(x.data());
+   Project(ml.data());
+
+#pragma omp parallel for
+   for (int i = 0; i < size; i++) {
+      x[i] = ml[i];
+   }
+
    return current_iteration;
 }

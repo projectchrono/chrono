@@ -16,7 +16,6 @@
 // Squared solver.
 // =============================================================================
 
-
 #ifndef CHSOLVERCGS_H
 #define CHSOLVERCGS_H
 
@@ -28,8 +27,7 @@ class CH_PARALLEL_API ChSolverCGS : public ChSolverParallel {
  public:
 
    ChSolverCGS()
-         :
-           ChSolverParallel() {
+         : ChSolverParallel() {
 
    }
    ~ChSolverCGS() {
@@ -53,9 +51,7 @@ class CH_PARALLEL_API ChSolverCGS : public ChSolverParallel {
                  );
 
    real rho_1, rho_2, alpha, beta;
-   custom_vector<real> p, phat, q, qhat, vhat, u, uhat;
-   custom_vector<real> r;
-   custom_vector<real> rtilde;
+   blaze::DynamicVector<real> p, phat, q, qhat, vhat, u, uhat, r, rtilde, ml, mb;
 };
 }
 #endif
