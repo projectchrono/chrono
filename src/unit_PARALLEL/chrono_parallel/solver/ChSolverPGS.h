@@ -18,7 +18,7 @@
 
 
 #ifndef CHSOLVERPGS_H
-#define PGS
+#define CHSOLVERPGS_H
 
 #include "chrono_parallel/ChConfigParallel.h"
 #include "ChSolverParallel.h"

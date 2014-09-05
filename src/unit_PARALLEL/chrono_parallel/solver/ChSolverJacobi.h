@@ -17,7 +17,7 @@
 // =============================================================================
 
 #ifndef CHSOLVERJACOBI_H
-#define PGS
+#define CHSOLVERJACOBI_H
 
 #include "chrono_parallel/ChConfigParallel.h"
 #include "ChSolverParallel.h"
