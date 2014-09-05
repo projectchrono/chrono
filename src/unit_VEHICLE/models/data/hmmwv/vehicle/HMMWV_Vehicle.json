@@ -1,0 +1,25 @@
+{
+	"Name":     "HMMWV 17 bodies",
+	"Type":     "Vehicle",
+	"Template": "Vehicle",
+
+	"Chassis":
+	{
+		"mass": 3521.4,
+		"inertia": [125.8, 497.4, 531.4]
+	},
+
+	"Suspension":
+	[
+		"suspension/HMMWV_DoubleWishboneFront.json",
+		"suspension/HMMWV_DoubleWishboneRear.json"
+	],
+
+	"Driveline": "driveline/HMMWV_Driveline2WD.json",
+
+	"Visualization":
+	{
+		"Mesh File": "hmmwv/humvee4_scaled_rotated_decimated_centered.obj",
+		"Mesh Name": "hmmwv_chassis"
+	}
+}
