@@ -48,7 +48,7 @@ class CH_PARALLEL_API ChSolverBiCG : public ChSolverParallel {
                   const custom_vector<real> &b,  // Rhs vector
                   custom_vector<real> &x         // The vector of unknowns
                   );
-   custom_vector<real> z, ztilde, p, ptilde, q, qtilde,r;
+   blaze::DynamicVector<real> z, ztilde, p, ptilde, q, qtilde,r, ml, mb, rtilde;
    real rho_1, rho_2, alpha, beta;
 };
 }
