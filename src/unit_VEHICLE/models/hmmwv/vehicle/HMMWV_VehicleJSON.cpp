@@ -46,9 +46,8 @@ const std::string HMMWV_VehicleJSON::m_chassisMeshFile = utils::GetModelDataFile
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-HMMWV_VehicleJSON::HMMWV_VehicleJSON(const bool           fixed,
-                                     VisualizationType    chassisVis,
-                                     VisualizationType    wheelVis)
+HMMWV_VehicleJSON::HMMWV_VehicleJSON(const bool        fixed,
+                                     VisualizationType chassisVis)
 {
   // -------------------------------------------
   // Create the chassis body
@@ -104,10 +103,10 @@ HMMWV_VehicleJSON::HMMWV_VehicleJSON(const bool           fixed,
   // Create the wheels
   // -----------------
 
-  m_front_right_wheel = ChSharedPtr<HMMWV_Wheel>(new HMMWV_WheelRight(wheelVis));
-  m_front_left_wheel = ChSharedPtr<HMMWV_Wheel>(new HMMWV_WheelLeft(wheelVis));
-  m_rear_right_wheel = ChSharedPtr<HMMWV_Wheel>(new HMMWV_WheelRight(wheelVis));
-  m_rear_left_wheel = ChSharedPtr<HMMWV_Wheel>(new HMMWV_WheelLeft(wheelVis));
+  m_front_right_wheel = ChSharedPtr<Wheel>(new Wheel(utils::GetModelDataFile("hmmwv/wheel/HMMWV_Wheel_FrontRight.json")));
+  m_front_left_wheel = ChSharedPtr<Wheel>(new Wheel(utils::GetModelDataFile("hmmwv/wheel/HMMWV_Wheel_FrontLeft.json")));
+  m_rear_right_wheel = ChSharedPtr<Wheel>(new Wheel(utils::GetModelDataFile("hmmwv/wheel/HMMWV_Wheel_RearRight.json")));
+  m_rear_left_wheel = ChSharedPtr<Wheel>(new Wheel(utils::GetModelDataFile("hmmwv/wheel/HMMWV_Wheel_RearLeft.json")));
 
   // ----------------------------------------------
   // Create the driveline and powertrain subsystems
@@ -127,10 +126,6 @@ HMMWV_VehicleJSON::~HMMWV_VehicleJSON()
 // -----------------------------------------------------------------------------
 void HMMWV_VehicleJSON::Initialize(const ChCoordsys<>& chassisPos)
 {
-
-  m_front_susp->LogHardpointLocations(ChVector<>(0, 0, 0), false);
-  m_rear_susp->LogHardpointLocations(ChVector<>(0, 0, 0), false);
-
   m_chassis->SetPos(chassisPos.pos);
   m_chassis->SetRot(chassisPos.rot);
 

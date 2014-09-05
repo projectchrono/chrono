@@ -1,0 +1,14 @@
+{
+	"Name":     "HMMWV Wheel Rear-Right",
+	"Type":     "Wheel",
+	"Template": "Wheel",
+
+	"mass": 88.39,
+	"inertia": [0.113, 0.113, 0.113],
+
+	"Visualization":
+	{
+		"mesh_file": "hmmwv/wheel_R.obj",
+		"mesh_name": "hmmwv_wheel_R"
+	}
+}
