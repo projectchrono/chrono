@@ -152,14 +152,6 @@ uint ChSolverAPGDBlaze::SolveAPGDBlaze(const uint max_iter,
       //if (current_iteration % 2 == 0) {
       mg_tmp2 = mg_tmp - mb;
       real g_proj_norm = Res4(num_unilaterals, mg_tmp2, ml, mb_tmp);
-      //real objective = 100;
-//      if(current_iteration==0){
-//         old_objective = GetObjective(ml,b);
-//      }else{
-//         objective = GetObjective(ml,b);
-//         g_proj_norm = fabs(objective - old_objective);
-//         old_objective = objective;
-//      }
 
       if (num_bilaterals > 0) {
          real resid_bilat = -1;
@@ -173,10 +165,8 @@ uint ChSolverAPGDBlaze::SolveAPGDBlaze(const uint max_iter,
       if (g_proj_norm < lastgoodres) {
          lastgoodres = g_proj_norm;
          ml_candidate = ml;
-         maxdeltalambda = (ml_candidate, mso);
-         //maxdeltalambda = GetObjectiveBlaze(ml_candidate, mb);
+         maxdeltalambda = (ml_candidate, mso); //maxdeltalambda = GetObjectiveBlaze(ml_candidate, mb);
          update = true;
-
       }
 
       residual = lastgoodres;

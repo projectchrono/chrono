@@ -8,11 +8,10 @@ uint ChSolverPGS::SolvePGS(const uint max_iter,
                            const custom_vector<real> &b,
                            custom_vector<real> &x) {
 
-   const size_t n = size;
    real rmax = 0, residual, flimit, aux;
-   diagonal.resize(n, false);
-   ml.resize(n);
-   mb.resize(n);
+   diagonal.resize(size, false);
+   ml.resize(size);
+   mb.resize(size);
 
 #pragma omp parallel for
    for (int i = 0; i < size; i++) {
@@ -20,7 +19,7 @@ uint ChSolverPGS::SolvePGS(const uint max_iter,
       mb[i] = b[i];
    }
 
-   for (size_t i = 0; i < n; ++i) {
+   for (size_t i = 0; i < size; ++i) {
       const real tmp(data_container->host_data.Nshur(i, i));
       diagonal[i] = real(1) / tmp;
    }
@@ -32,7 +31,7 @@ uint ChSolverPGS::SolvePGS(const uint max_iter,
       size_t j;
       real omega = 1.0;
 
-      for (size_t i = 0; i < N; ++i) {
+      for (size_t i = 0; i < data_container->num_contacts; ++i) {
          j = i * 3;
          real Dinv = 1.0 / (diagonal[j + 0] + diagonal[j + 1] + diagonal[j + 2]);
 

@@ -1024,6 +1024,8 @@ void ChConstraintRigidRigid::Build_D() {
    int2 * ids = data_container->host_data.bids_rigid_rigid.data();
    real4* rot = contact_rotation.data();
 
+   data_container->host_data.D.reserve(num_contacts*36);
+
    for (int index = 0; index < num_contacts; index++) {
       real3 U = norm[index], V, W;
       Orthogonalize(U, V, W);
