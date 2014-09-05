@@ -143,6 +143,17 @@ class CH_PARALLEL_API ChSolverParallel : public ChBaseParallel {
 
    }
 
+   real GetKE() {
+      real kinetic_energy = 0;
+
+      for (int i = 0; i < data_container->num_bodies; i++) {
+         real v = length(data_container->host_data.vel_data[i]);
+         kinetic_energy += 0.5 * 1.0 / data_container->host_data.mass_data[i] * v * v;
+      }
+      return kinetic_energy;
+
+   }
+
    void AtIterationEnd(real maxd,
                        real maxdeltalambda,
                        int iter) {
