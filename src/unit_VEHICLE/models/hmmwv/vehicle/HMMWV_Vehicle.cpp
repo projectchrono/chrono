@@ -28,6 +28,7 @@ using namespace chrono;
 
 namespace hmmwv {
 
+
 // -----------------------------------------------------------------------------
 // Static variables
 // -----------------------------------------------------------------------------
@@ -39,6 +40,7 @@ const ChVector<> HMMWV_Vehicle::m_chassisInertia(125.8, 497.4, 531.4); // chassi
 
 const std::string HMMWV_Vehicle::m_chassisMeshName = "hmmwv_chassis";
 const std::string HMMWV_Vehicle::m_chassisMeshFile = utils::GetModelDataFile("hmmwv/humvee4_scaled_rotated_decimated_centered.obj");
+
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
@@ -93,10 +95,8 @@ HMMWV_Vehicle::HMMWV_Vehicle(const bool           fixed,
   // Create the suspension subsystems
   // -------------------------------------------
 
-  m_front_right_susp = ChSharedPtr<HMMWV_DoubleWishboneFront>(new HMMWV_DoubleWishboneFront("FRsusp", ChSuspension::RIGHT));
-  m_front_left_susp = ChSharedPtr<HMMWV_DoubleWishboneFront>(new HMMWV_DoubleWishboneFront("FLsusp", ChSuspension::LEFT));
-  m_rear_right_susp = ChSharedPtr<HMMWV_DoubleWishboneRear>(new HMMWV_DoubleWishboneRear("RRsusp", ChSuspension::RIGHT, true));
-  m_rear_left_susp = ChSharedPtr<HMMWV_DoubleWishboneRear>(new HMMWV_DoubleWishboneRear("RLsusp", ChSuspension::LEFT, true));
+  m_front_susp = ChSharedPtr<HMMWV_DoubleWishboneFront>(new HMMWV_DoubleWishboneFront("FrontSusp", false));
+  m_rear_susp = ChSharedPtr<HMMWV_DoubleWishboneRear>(new HMMWV_DoubleWishboneRear("RearSusp", true));
 
   // -----------------
   // Create the wheels
@@ -129,19 +129,17 @@ void HMMWV_Vehicle::Initialize(const ChCoordsys<>& chassisPos)
   m_chassis->SetRot(chassisPos.rot);
 
   // Initialize the suspension subsystems
-  m_front_right_susp->Initialize(m_chassis, in2m * ChVector<>(-85.39, 12.09, -18.914));
-  m_front_left_susp->Initialize(m_chassis, in2m * ChVector<>(-85.39, -12.09, -18.914));
-  m_rear_right_susp->Initialize(m_chassis, in2m * ChVector<>(47.60, 12.09, -18.914));
-  m_rear_left_susp->Initialize(m_chassis, in2m * ChVector<>(47.60, -12.09, -18.914));
+  m_front_susp->Initialize(m_chassis, in2m * ChVector<>(-85.39, 0, -18.914));
+  m_rear_susp->Initialize(m_chassis, in2m * ChVector<>(47.60, 0, -18.914));
 
   // Initialize wheels
-  m_front_right_wheel->Initialize(m_front_right_susp->GetSpindle());
-  m_front_left_wheel->Initialize(m_front_left_susp->GetSpindle());
-  m_rear_right_wheel->Initialize(m_rear_right_susp->GetSpindle());
-  m_rear_left_wheel->Initialize(m_rear_left_susp->GetSpindle());
+  m_front_right_wheel->Initialize(m_front_susp->GetSpindle(ChSuspension::RIGHT));
+  m_front_left_wheel->Initialize(m_front_susp->GetSpindle(ChSuspension::LEFT));
+  m_rear_right_wheel->Initialize(m_rear_susp->GetSpindle(ChSuspension::RIGHT));
+  m_rear_left_wheel->Initialize(m_rear_susp->GetSpindle(ChSuspension::LEFT));
 
-  // Initialize the driveline subsystem
-  m_driveline->Initialize(m_chassis, m_rear_left_susp->GetAxle(), m_rear_right_susp->GetAxle());
+  // Initialize the driveline subsystem (RWD)
+  m_driveline->Initialize(m_chassis, m_rear_susp->GetAxle(ChSuspension::LEFT), m_rear_susp->GetAxle(ChSuspension::RIGHT));
 
   // Initialize the powertrain subsystem
   m_powertrain->Initialize(m_chassis, m_driveline->GetDriveshaft());
@@ -149,21 +147,20 @@ void HMMWV_Vehicle::Initialize(const ChCoordsys<>& chassisPos)
 
 
 // -----------------------------------------------------------------------------
-//
 // -----------------------------------------------------------------------------
 ChSharedBodyPtr HMMWV_Vehicle::GetWheelBody(ChWheelId which) const
 {
   switch (which) {
   case FRONT_LEFT:
-    return m_front_left_susp->GetSpindle();
+    return m_front_susp->GetSpindle(ChSuspension::LEFT);
   case FRONT_RIGHT:
-    return m_front_right_susp->GetSpindle();
+    return m_front_susp->GetSpindle(ChSuspension::RIGHT);
   case REAR_LEFT:
-    return m_rear_left_susp->GetSpindle();
+    return m_rear_susp->GetSpindle(ChSuspension::LEFT);
   case REAR_RIGHT:
-    return m_rear_right_susp->GetSpindle();
+    return m_rear_susp->GetSpindle(ChSuspension::RIGHT);
   default:
-    return m_front_left_susp->GetSpindle();  // should not happen
+    return m_front_susp->GetSpindle(ChSuspension::RIGHT);  // should not happen
   }
 }
 
@@ -171,15 +168,15 @@ const ChVector<>& HMMWV_Vehicle::GetWheelPos(ChWheelId which) const
 {
   switch (which) {
   case FRONT_LEFT:
-    return m_front_left_susp->GetSpindlePos();
+    return m_front_susp->GetSpindlePos(ChSuspension::LEFT);
   case FRONT_RIGHT:
-    return m_front_right_susp->GetSpindlePos();
+    return m_front_susp->GetSpindlePos(ChSuspension::RIGHT);
   case REAR_LEFT:
-    return m_rear_left_susp->GetSpindlePos();
+    return m_rear_susp->GetSpindlePos(ChSuspension::LEFT);
   case REAR_RIGHT:
-    return m_rear_right_susp->GetSpindlePos();
+    return m_rear_susp->GetSpindlePos(ChSuspension::RIGHT);
   default:
-    return m_front_left_susp->GetSpindlePos();  // should not happen
+    return m_front_susp->GetSpindlePos(ChSuspension::RIGHT);  // should not happen
   }
 }
 
@@ -187,15 +184,15 @@ const ChQuaternion<>& HMMWV_Vehicle::GetWheelRot(ChWheelId which) const
 {
   switch (which) {
   case FRONT_LEFT:
-    return m_front_left_susp->GetSpindleRot();
+    return m_front_susp->GetSpindleRot(ChSuspension::LEFT);
   case FRONT_RIGHT:
-    return m_front_right_susp->GetSpindleRot();
+    return m_front_susp->GetSpindleRot(ChSuspension::RIGHT);
   case REAR_LEFT:
-    return m_rear_left_susp->GetSpindleRot();
+    return m_rear_susp->GetSpindleRot(ChSuspension::LEFT);
   case REAR_RIGHT:
-    return m_rear_right_susp->GetSpindleRot();
+    return m_rear_susp->GetSpindleRot(ChSuspension::RIGHT);
   default:
-    return m_front_left_susp->GetSpindleRot();  // should not happen
+    return m_front_susp->GetSpindleRot(ChSuspension::RIGHT);  // should not happen
   }
 }
 
@@ -203,15 +200,15 @@ const ChVector<>& HMMWV_Vehicle::GetWheelLinVel(ChWheelId which) const
 {
   switch (which) {
   case FRONT_LEFT:
-    return m_front_left_susp->GetSpindleLinVel();
+    return m_front_susp->GetSpindleLinVel(ChSuspension::LEFT);
   case FRONT_RIGHT:
-    return m_front_right_susp->GetSpindleLinVel();
+    return m_front_susp->GetSpindleLinVel(ChSuspension::RIGHT);
   case REAR_LEFT:
-    return m_rear_left_susp->GetSpindleLinVel();
+    return m_rear_susp->GetSpindleLinVel(ChSuspension::LEFT);
   case REAR_RIGHT:
-    return m_rear_right_susp->GetSpindleLinVel();
+    return m_rear_susp->GetSpindleLinVel(ChSuspension::RIGHT);
   default:
-    return m_front_left_susp->GetSpindleLinVel();  // should not happen
+    return m_front_susp->GetSpindleLinVel(ChSuspension::RIGHT);  // should not happen
   }
 }
 
@@ -219,15 +216,15 @@ ChVector<> HMMWV_Vehicle::GetWheelAngVel(ChWheelId which) const
 {
   switch (which) {
   case FRONT_LEFT:
-    return m_front_left_susp->GetSpindleAngVel();
+    return m_front_susp->GetSpindleAngVel(ChSuspension::LEFT);
   case FRONT_RIGHT:
-    return m_front_right_susp->GetSpindleAngVel();
+    return m_front_susp->GetSpindleAngVel(ChSuspension::RIGHT);
   case REAR_LEFT:
-    return m_rear_left_susp->GetSpindleAngVel();
+    return m_rear_susp->GetSpindleAngVel(ChSuspension::LEFT);
   case REAR_RIGHT:
-    return m_rear_right_susp->GetSpindleAngVel();
+    return m_rear_susp->GetSpindleAngVel(ChSuspension::RIGHT);
   default:
-    return m_front_left_susp->GetSpindleAngVel();  // should not happen
+    return m_front_susp->GetSpindleAngVel(ChSuspension::RIGHT);  // should not happen
   }
 }
 
@@ -235,13 +232,48 @@ double HMMWV_Vehicle::GetWheelOmega(ChWheelId which) const
 {
   switch (which) {
   case FRONT_LEFT:
-    return m_front_left_susp->GetAxleSpeed();
+    return m_front_susp->GetAxleSpeed(ChSuspension::LEFT);
   case FRONT_RIGHT:
-    return m_front_right_susp->GetAxleSpeed();
+    return m_front_susp->GetAxleSpeed(ChSuspension::RIGHT);
   case REAR_LEFT:
-    return m_rear_left_susp->GetAxleSpeed();
+    return m_rear_susp->GetAxleSpeed(ChSuspension::LEFT);
   case REAR_RIGHT:
-    return m_rear_right_susp->GetAxleSpeed();
+    return m_rear_susp->GetAxleSpeed(ChSuspension::RIGHT);
+  default:
+    return -1;  // should not happen
+  }
+}
+
+
+// -----------------------------------------------------------------------------
+// -----------------------------------------------------------------------------
+double HMMWV_Vehicle::GetSpringForce(chrono::ChWheelId which)
+{
+  switch (which) {
+  case FRONT_LEFT:
+    return m_front_susp->GetSpringForce(ChSuspension::LEFT);
+  case FRONT_RIGHT:
+    return m_front_susp->GetSpringForce(ChSuspension::RIGHT);
+  case REAR_LEFT:
+    return m_rear_susp->GetSpringForce(ChSuspension::LEFT);
+  case REAR_RIGHT:
+    return m_rear_susp->GetSpringForce(ChSuspension::RIGHT);
+  default:
+    return -1;  // should not happen
+  }
+}
+
+double HMMWV_Vehicle::GetSpringLength(chrono::ChWheelId which)
+{
+  switch (which) {
+  case FRONT_LEFT:
+    return m_front_susp->GetSpringLen(ChSuspension::LEFT);
+  case FRONT_RIGHT:
+    return m_front_susp->GetSpringLen(ChSuspension::RIGHT);
+  case REAR_LEFT:
+    return m_rear_susp->GetSpringLen(ChSuspension::LEFT);
+  case REAR_RIGHT:
+    return m_rear_susp->GetSpringLen(ChSuspension::RIGHT);
   default:
     return -1;  // should not happen
   }
@@ -258,17 +290,16 @@ void HMMWV_Vehicle::Update(double              time,
   // Apply steering input.
   double displ = 0.08 * steering;
 
-  m_front_left_susp->ApplySteering(displ);
-  m_front_right_susp->ApplySteering(displ);
+  m_front_susp->ApplySteering(displ);
 
   // Let the powertrain subsystem process the throttle input.
   m_powertrain->Update(time, throttle);
 
   // Apply tire forces to spindle bodies.
-  m_front_right_susp->ApplyTireForce(tire_forces[FRONT_RIGHT]);
-  m_front_left_susp->ApplyTireForce(tire_forces[FRONT_LEFT]);
-  m_rear_right_susp->ApplyTireForce(tire_forces[REAR_RIGHT]);
-  m_rear_left_susp->ApplyTireForce(tire_forces[REAR_LEFT]);
+  m_front_susp->ApplyTireForce(ChSuspension::RIGHT, tire_forces[FRONT_RIGHT]);
+  m_front_susp->ApplyTireForce(ChSuspension::LEFT, tire_forces[FRONT_LEFT]);
+  m_rear_susp->ApplyTireForce(ChSuspension::RIGHT, tire_forces[REAR_RIGHT]);
+  m_rear_susp->ApplyTireForce(ChSuspension::LEFT, tire_forces[REAR_LEFT]);
 }
 
 
@@ -288,11 +319,11 @@ void HMMWV_Vehicle::LogHardpointLocations()
 {
   GetLog().SetNumFormat("%7.3f");
 
-  GetLog() << "\n---- FRONT-RIGHT suspension hardpoint locations\n";
-  m_front_right_susp->LogHardpointLocations(ChVector<>(37.78, 12.09, 30.77), true);
+  GetLog() << "\n---- FRONT suspension hardpoint locations (RIGHT side)\n";
+  m_front_susp->LogHardpointLocations(ChVector<>(37.78, 0, 30.77), true);
 
-  GetLog() << "\n---- REAR-RIGHT suspension hardpoint locations\n";
-  m_rear_right_susp->LogHardpointLocations(ChVector<>(170.77, 12.09, 30.77), true);
+  GetLog() << "\n---- REAR suspension hardpoint locations (RIGHT side)\n";
+  m_rear_susp->LogHardpointLocations(ChVector<>(170.77, 0, 30.77), true);
 
   GetLog() << "\n\n";
 
@@ -348,43 +379,13 @@ void HMMWV_Vehicle::DebugLog(int what)
   {
     // Report constraint violations for the suspension joints
     GetLog() << "\n---- FRONT-RIGHT suspension constraint violation\n\n";
-    m_front_right_susp->LogConstraintViolations();
+    m_front_susp->LogConstraintViolations(ChSuspension::RIGHT);
     GetLog() << "\n---- FRONT-LEFT suspension constraint violation\n\n";
-    m_front_left_susp->LogConstraintViolations();
+    m_front_susp->LogConstraintViolations(ChSuspension::LEFT);
     GetLog() << "\n---- REAR-RIGHT suspension constraint violation\n\n";
-    m_rear_right_susp->LogConstraintViolations();
+    m_rear_susp->LogConstraintViolations(ChSuspension::RIGHT);
     GetLog() << "\n---- REAR-LEFT suspension constraint violation\n\n";
-    m_rear_left_susp->LogConstraintViolations();
-  }
-}
-
-double HMMWV_Vehicle::GetSpringForce(chrono::ChWheelId which){
-  switch (which) {
-  case FRONT_LEFT:
-    return m_front_left_susp->GetSpringForce();
-  case FRONT_RIGHT:
-    return m_front_right_susp->GetSpringForce();
-  case REAR_LEFT:
-    return m_rear_left_susp->GetSpringForce();
-  case REAR_RIGHT:
-    return m_rear_right_susp->GetSpringForce();
-  default:
-    return m_front_left_susp->GetSpringForce();  // should not happen
-  }
-}
-
-double HMMWV_Vehicle::GetSpringLength(chrono::ChWheelId which){
-  switch (which) {
-  case FRONT_LEFT:
-    return m_front_left_susp->GetSpringLen();
-  case FRONT_RIGHT:
-    return m_front_right_susp->GetSpringLen();
-  case REAR_LEFT:
-    return m_rear_left_susp->GetSpringLen();
-  case REAR_RIGHT:
-    return m_rear_right_susp->GetSpringLen();
-  default:
-    return m_front_left_susp->GetSpringLen();  // should not happen
+    m_rear_susp->LogConstraintViolations(ChSuspension::LEFT);
   }
 }
 
