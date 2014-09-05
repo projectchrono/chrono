@@ -37,28 +37,28 @@ class CH_SUBSYS_API ChSuspension : public ChShared
 public:
 
   enum Side {
-    LEFT,
-    RIGHT
+    LEFT  = 0,
+    RIGHT = 1
   };
 
   ChSuspension(const std::string& name,
-               Side               side,
+               bool               steerable = false,
                bool               driven = false);
 
   virtual ~ChSuspension() {}
 
-  const ChSharedPtr<ChBody>  GetSpindle() const { return m_spindle; }
-  const ChSharedPtr<ChShaft> GetAxle() const    { return m_axle; }
+  const ChSharedPtr<ChBody>  GetSpindle(Side side) const { return m_spindle[side]; }
+  const ChSharedPtr<ChShaft> GetAxle(Side side) const    { return m_axle[side]; }
 
-  const ChVector<>& GetSpindlePos() const       { return m_spindle->GetPos(); }
-  const ChQuaternion<>& GetSpindleRot() const   { return m_spindle->GetRot(); }
-  const ChVector<>& GetSpindleLinVel() const    { return m_spindle->GetPos_dt(); }
-  ChVector<> GetSpindleAngVel() const           { return m_spindle->GetWvel_par(); }
+  const ChVector<>& GetSpindlePos(Side side) const       { return m_spindle[side]->GetPos(); }
+  const ChQuaternion<>& GetSpindleRot(Side side) const   { return m_spindle[side]->GetRot(); }
+  const ChVector<>& GetSpindleLinVel(Side side) const    { return m_spindle[side]->GetPos_dt(); }
+  ChVector<> GetSpindleAngVel(Side side) const           { return m_spindle[side]->GetWvel_par(); }
 
-  double GetAxleSpeed() const;
+  double GetAxleSpeed(Side side) const;
 
-  void ApplyTireForce(const ChTireForce& tire_force);
-  void ApplyAxleTorque(double torque);
+  void ApplyTireForce(Side side, const ChTireForce& tire_force);
+  void ApplyAxleTorque(Side side, double torque);
 
   virtual void Initialize(ChSharedPtr<ChBody>  chassis,
                           const ChVector<>&    location) = 0;
@@ -66,13 +66,13 @@ public:
   virtual void ApplySteering(double displ) = 0;
 
 protected:
-  ChSharedPtr<ChBody>       m_spindle;
-  ChSharedPtr<ChShaft>      m_axle;
-  ChSharedPtr<ChShaftsBody> m_axle_to_spindle;
+  std::string               m_name;
+  bool                      m_driven;
+  bool                      m_steerable;
 
-  std::string       m_name;
-  Side              m_side;
-  bool              m_driven;
+  ChSharedPtr<ChBody>       m_spindle[2];
+  ChSharedPtr<ChShaft>      m_axle[2];
+  ChSharedPtr<ChShaftsBody> m_axle_to_spindle[2];
 };
 
 

@@ -63,26 +63,24 @@ public:
 
 private:
 
-  chrono::ChSharedPtr<HMMWV_DoubleWishboneReducedFront>   m_front_right_susp;
-  chrono::ChSharedPtr<HMMWV_DoubleWishboneReducedFront>   m_front_left_susp;
-  chrono::ChSharedPtr<HMMWV_DoubleWishboneReducedRear>    m_rear_right_susp;
-  chrono::ChSharedPtr<HMMWV_DoubleWishboneReducedRear>    m_rear_left_susp;
+  chrono::ChSharedPtr<HMMWV_DoubleWishboneReducedFront> m_front_susp;
+  chrono::ChSharedPtr<HMMWV_DoubleWishboneReducedRear>  m_rear_susp;
 
   chrono::ChSharedPtr<HMMWV_Wheel> m_front_right_wheel;
   chrono::ChSharedPtr<HMMWV_Wheel> m_front_left_wheel;
   chrono::ChSharedPtr<HMMWV_Wheel> m_rear_right_wheel;
   chrono::ChSharedPtr<HMMWV_Wheel> m_rear_left_wheel;
 
-  chrono::ChSharedPtr<HMMWV_Driveline2WD>  m_driveline;
-  chrono::ChSharedPtr<HMMWV_Powertrain>    m_powertrain;
+  chrono::ChSharedPtr<HMMWV_Driveline2WD> m_driveline;
+  chrono::ChSharedPtr<HMMWV_Powertrain>   m_powertrain;
 
   // Chassis visualization mesh
   static const std::string m_chassisMeshName;
   static const std::string m_chassisMeshFile;
 
   // Chassis mass properties
-  static const double  m_chassisMass;
-  static const chrono::ChVector<>  m_chassisInertia;
+  static const double             m_chassisMass;
+  static const chrono::ChVector<> m_chassisInertia;
 };
 
 

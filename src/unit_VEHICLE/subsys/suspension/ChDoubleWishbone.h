@@ -16,16 +16,13 @@
 // Derived from ChSuspension, but still an abstract base class.
 //
 // The suspension subsystem is modeled with respect to a right-handed frame,
-// with X pointing towards the rear, Y to the right, and Z up. By default, a
-// right suspension is constructed.  This can be mirrored to obtain a left
-// suspension. Note that this is done by reflecting the y coordinates of the
-// hardpoints. As such, the orientation of the suspension reference frame must
-// be as specified above. However, its location relative to the chassis is
-// arbitrary (and left up to a derived class).
+// with X pointing towards the rear, Y to the right, and Z up. All point
+// locations are assumed to be given for the right half of the supspension and
+// will be mirrored (reflecting the y coordinates) to construct the left side.
 //
 // If marked as 'driven', the suspension subsystem also creates the ChShaft axle
 // element and its connection to the spindle body (which provides the interface
-// to the powertrain subsystem).
+// to the driveline subsystem).
 //
 // =============================================================================
 
@@ -43,7 +40,7 @@ class CH_SUBSYS_API ChDoubleWishbone : public ChSuspension
 public:
 
   ChDoubleWishbone(const std::string& name,
-                   ChSuspension::Side side,
+                   bool               steerable = false,
                    bool               driven = false);
   virtual ~ChDoubleWishbone() {}
 
@@ -52,12 +49,12 @@ public:
 
   virtual void ApplySteering(double displ);
 
-  double GetSpringForce();
-  double GetSpringLen();
+  double GetSpringForce(ChSuspension::Side side);
+  double GetSpringLen(ChSuspension::Side side);
 
   void LogHardpointLocations(const ChVector<>& ref,
                              bool              inches = false);
-  void LogConstraintViolations();
+  void LogConstraintViolations(ChSuspension::Side side);
 
 protected:
 
@@ -105,35 +102,39 @@ protected:
   virtual double getDampingCoefficient() const = 0;
   virtual double getSpringRestLength() const = 0;
 
-  virtual void OnInitializeSpindle()  {}
-  virtual void OnInitializeUCA()  {}
-  virtual void OnInitializeLCA()  {}
-  virtual void OnInitializeUpright()  {}
+  virtual void OnInitializeSpindle(ChSuspension::Side side) {}
+  virtual void OnInitializeUCA(ChSuspension::Side side)     {}
+  virtual void OnInitializeLCA(ChSuspension::Side side)     {}
+  virtual void OnInitializeUpright(ChSuspension::Side side) {}
 
-  ChVector<>        m_points[NUM_POINTS];
+  ChVector<>                        m_points[NUM_POINTS];
 
-  ChSharedBodyPtr   m_upright;
+  ChSharedBodyPtr                   m_upright[2];
+  ChSharedBodyPtr                   m_UCA[2];
+  ChSharedBodyPtr                   m_LCA[2];
 
-  ChSharedPtr<ChLinkLockRevolute>   m_revolute;
-  ChSharedBodyPtr                   m_UCA;
-  ChSharedBodyPtr                   m_LCA;
-  ChSharedPtr<ChLinkLockRevolute>   m_revoluteUCA;
-  ChSharedPtr<ChLinkLockSpherical>  m_sphericalUCA;
-  ChSharedPtr<ChLinkLockRevolute>   m_revoluteLCA;
-  ChSharedPtr<ChLinkLockSpherical>  m_sphericalLCA;
-  ChSharedPtr<ChLinkDistance>       m_distTierod;
+  ChSharedPtr<ChLinkLockRevolute>   m_revolute[2];
+  ChSharedPtr<ChLinkLockRevolute>   m_revoluteUCA[2];
+  ChSharedPtr<ChLinkLockSpherical>  m_sphericalUCA[2];
+  ChSharedPtr<ChLinkLockRevolute>   m_revoluteLCA[2];
+  ChSharedPtr<ChLinkLockSpherical>  m_sphericalLCA[2];
+  ChSharedPtr<ChLinkDistance>       m_distTierod[2];
 
-  ChSharedPtr<ChLinkSpring>         m_shock;
-  ChSharedPtr<ChLinkSpring>         m_spring;
+  ChSharedPtr<ChLinkSpring>         m_shock[2];
+  ChSharedPtr<ChLinkSpring>         m_spring[2];
 
-  ChVector<>                        m_tierod_marker;
+  ChVector<>                        m_tierod_marker[2];
 
 private:
+  void   CreateSide(ChSuspension::Side side,
+                    const std::string& suffix);
+  void   InitializeSide(ChSuspension::Side side,
+                        ChSharedBodyPtr    chassis);
 
-  void   AddVisualizationUCA();
-  void   AddVisualizationLCA();
-  void   AddVisualizationUpright();
-  void   AddVisualizationSpindle();
+  void   AddVisualizationUCA(ChSuspension::Side side);
+  void   AddVisualizationLCA(ChSuspension::Side side);
+  void   AddVisualizationUpright(ChSuspension::Side side);
+  void   AddVisualizationSpindle(ChSuspension::Side side);
 
   static const std::string  m_pointNames[NUM_POINTS];
 };

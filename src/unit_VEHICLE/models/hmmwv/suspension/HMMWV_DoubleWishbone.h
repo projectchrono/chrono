@@ -17,7 +17,7 @@
 // These concrete suspension subsystems are defined with respect to right-handed
 // frames having X pointing towards the rear, Y to the right, and Z up (as
 // imposed by the base class ChDoubleWishbone) and origins at the 
-// midpoint between the lower control arm's connection points to the chassis.
+// midpoint between the lower control arms' connection points to the chassis.
 //
 // =============================================================================
 
@@ -32,9 +32,9 @@ namespace hmmwv {
 class HMMWV_DoubleWishboneFront : public chrono::ChDoubleWishbone
 {
 public:
-  HMMWV_DoubleWishboneFront(const std::string&         name,
-                            chrono::ChSuspension::Side side,
-                            bool                       driven = false);
+
+  HMMWV_DoubleWishboneFront(const std::string& name,
+                            bool               driven = false);
   ~HMMWV_DoubleWishboneFront() {}
 
   virtual double getSpindleMass() const { return m_spindleMass; }
@@ -91,9 +91,9 @@ private:
 class HMMWV_DoubleWishboneRear : public chrono::ChDoubleWishbone
 {
 public:
-  HMMWV_DoubleWishboneRear(const std::string&         name,
-                           chrono::ChSuspension::Side side,
-                           bool                       driven = false);
+
+  HMMWV_DoubleWishboneRear(const std::string& name,
+                           bool               driven = false);
   ~HMMWV_DoubleWishboneRear() {}
 
   virtual double getSpindleMass() const { return m_spindleMass; }

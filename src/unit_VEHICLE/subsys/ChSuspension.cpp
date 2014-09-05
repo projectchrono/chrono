@@ -24,34 +24,36 @@ namespace chrono {
 
 
 ChSuspension::ChSuspension(const std::string& name,
-                           Side               side,
+                           bool               steerable,
                            bool               driven)
 : m_name(name),
-  m_side(side),
+  m_steerable(steerable),
   m_driven(driven)
 {
 }
 
 
-void ChSuspension::ApplyAxleTorque(double torque)
+void ChSuspension::ApplyAxleTorque(Side   side,
+                                   double torque)
 {
   assert(m_driven);
-  m_axle->SetAppliedTorque(torque);
+  m_axle[side]->SetAppliedTorque(torque);
 }
 
 
-double ChSuspension::GetAxleSpeed() const
+double ChSuspension::GetAxleSpeed(Side side) const
 {
   assert(m_driven);
-  return m_axle->GetPos_dt();
+  return m_axle[side]->GetPos_dt();
 }
 
 
-void ChSuspension::ApplyTireForce(const ChTireForce& tire_force)
+void ChSuspension::ApplyTireForce(Side               side,
+                                  const ChTireForce& tire_force)
 {
-  m_spindle->Empty_forces_accumulators();
-  m_spindle->Accumulate_force(tire_force.force, tire_force.point, false);
-  m_spindle->Accumulate_torque(tire_force.moment, false);
+  m_spindle[side]->Empty_forces_accumulators();
+  m_spindle[side]->Accumulate_force(tire_force.force, tire_force.point, false);
+  m_spindle[side]->Accumulate_torque(tire_force.moment, false);
 }
 
 

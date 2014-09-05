@@ -16,16 +16,13 @@
 // Derived from ChSuspension, but still an abstract bas class.
 //
 // The suspension subsystem is modeled with respect to a right-handed frame,
-// with X pointing towards the rear, Y to the right, and Z up. By default, a
-// right suspension is constructed.  This can be mirrored to obtain a left
-// suspension. Note that this is done by reflecting the y coordinates of the
-// hardpoints. As such, the orientation of the suspension reference frame must
-// be as specified above. However, its location relative to the chassis is
-// arbitrary (and left up to a derived class).
+// with X pointing towards the rear, Y to the right, and Z up. All point
+// locations are assumed to be given for the right half of the supspension and
+// will be mirrored (reflecting the y coordinates) to construct the left side.
 //
 // If marked as 'driven', the suspension subsystem also creates the ChShaft axle
 // element and its connection to the spindle body (which provides the interface
-// to the powertrain subsystem).
+// to the driveline subsystem).
 //
 // =============================================================================
 
@@ -43,7 +40,7 @@ class CH_SUBSYS_API ChDoubleWishboneReduced : public ChSuspension
 public:
 
   ChDoubleWishboneReduced(const std::string& name,
-                          ChSuspension::Side side,
+                          bool               steerable = false,
                           bool               driven = false);
   virtual ~ChDoubleWishboneReduced() {}
 
@@ -88,27 +85,32 @@ protected:
   virtual double getDampingCoefficient() const = 0;
   virtual double getSpringRestLength() const = 0;
 
-  virtual void OnInitializeSpindle() {}
-  virtual void OnInitializeUpright() {}
+  virtual void OnInitializeSpindle(ChSuspension::Side side) {}
+  virtual void OnInitializeUpright(ChSuspension::Side side) {}
 
-  ChVector<>        m_points[NUM_POINTS];
+  ChVector<>                        m_points[NUM_POINTS];
 
-  ChSharedBodyPtr   m_upright;
+  ChSharedBodyPtr                   m_upright[2];
 
-  ChSharedPtr<ChLinkLockRevolute>   m_revolute;
-  ChSharedPtr<ChLinkDistance>       m_distUCA_F;
-  ChSharedPtr<ChLinkDistance>       m_distUCA_B;
-  ChSharedPtr<ChLinkDistance>       m_distLCA_F;
-  ChSharedPtr<ChLinkDistance>       m_distLCA_B;
-  ChSharedPtr<ChLinkDistance>       m_distTierod;
+  ChSharedPtr<ChLinkLockRevolute>   m_revolute[2];
+  ChSharedPtr<ChLinkDistance>       m_distUCA_F[2];
+  ChSharedPtr<ChLinkDistance>       m_distUCA_B[2];
+  ChSharedPtr<ChLinkDistance>       m_distLCA_F[2];
+  ChSharedPtr<ChLinkDistance>       m_distLCA_B[2];
+  ChSharedPtr<ChLinkDistance>       m_distTierod[2];
 
-  ChSharedPtr<ChLinkSpring>         m_shock;
+  ChSharedPtr<ChLinkSpring>         m_shock[2];
 
-  ChVector<>                        m_tierod_marker;
+  ChVector<>                        m_tierod_marker[2];
 
 private:
-  void   AddVisualizationSpindle();
-  void   AddVisualizationUpright();
+  void   CreateSide(ChSuspension::Side side,
+                    const std::string& suffix);
+  void   InitializeSide(ChSuspension::Side side,
+                        ChSharedBodyPtr    chassis);
+
+  void   AddVisualizationSpindle(ChSuspension::Side side);
+  void   AddVisualizationUpright(ChSuspension::Side side);
 };
 
 
