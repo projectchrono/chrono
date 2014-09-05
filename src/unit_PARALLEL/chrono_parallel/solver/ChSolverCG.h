@@ -51,7 +51,7 @@ class CH_PARALLEL_API ChSolverCG : public ChSolverParallel {
                 const custom_vector<real> &b,  // Rhs vector
                 custom_vector<real> &x         // The vector of unknowns
                 );
-   custom_vector<real> r, p, Ap;
+   blaze::DynamicVector<real> r, p, Ap, ml, mb;
 };
 }
 #endif
