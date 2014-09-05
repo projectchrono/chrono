@@ -29,6 +29,11 @@ uint ChSolverAPGDBlaze::SolveAPGDBlaze(const uint max_iter,
                                        const uint size,
                                        custom_vector<real> &b,
                                        custom_vector<real> &x) {
+
+
+   data_container->system_timer.start("ChSolverParallel_solverA");
+   blaze::DynamicVector<real> one(size, 1.0);
+
    ms.resize(size);
    mg_tmp2.resize(size);
    mb_tmp.resize(size);
@@ -40,17 +45,16 @@ uint ChSolverAPGDBlaze::SolveAPGDBlaze(const uint max_iter,
    my.resize(size);
    mb.resize(size);
    mso.resize(size);
-   blaze::DynamicVector<real> one(size, 1.0);
-   data_container->system_timer.start("ChSolverParallel_solverA");
-   real lastgoodres = 10e30;
-   real theta_k = init_theta_k;
-   real theta_k1 = theta_k;
-   real beta_k1 = 0.0;
-   real L_k, t_k;
-   real mb_tmp_norm = 0, mg_tmp_norm = 0;
-   real obj1 = 0.0, obj2 = 0.0;
-   real dot_mg_ms = 0, norm_ms = 0;
-   real delta_obj = 1e8;
+
+   lastgoodres = 10e30;
+   theta_k = init_theta_k;
+   theta_k1 = theta_k;
+   beta_k1 = 0.0;
+   mb_tmp_norm = 0, mg_tmp_norm = 0;
+   obj1 = 0.0, obj2 = 0.0;
+   dot_mg_ms = 0, norm_ms = 0;
+   delta_obj = 1e8;
+
 #pragma omp parallel for
    for (int i = 0; i < size; i++) {
       ml[i] = x[i];
@@ -58,17 +62,13 @@ uint ChSolverAPGDBlaze::SolveAPGDBlaze(const uint max_iter,
    }
    Project(ml.data());
    ml_candidate = ml;
-   //ShurProduct(ml, mg);  //mg is never used, only re-written
    mg = data_container->host_data.Nshur * ml;
    mg = mg - mb;
    mb_tmp = ml - one;
    mg_tmp = data_container->host_data.Nshur * mb_tmp;
 
-   mb_tmp_norm = (mb_tmp, trans(mb_tmp));
-   mb_tmp_norm = sqrt(mb_tmp_norm);
-
-   mg_tmp_norm = (mg_tmp, trans(mg_tmp));
-   mg_tmp_norm = sqrt(mg_tmp_norm);
+   mb_tmp_norm = sqrt((mb_tmp, trans(mb_tmp)));
+   mg_tmp_norm = sqrt((mg_tmp, trans(mg_tmp)));
 
    if (mb_tmp_norm == 0) {
       L_k = 1;
@@ -79,9 +79,6 @@ uint ChSolverAPGDBlaze::SolveAPGDBlaze(const uint max_iter,
    t_k = 1.0 / L_k;
    my = ml;
    mx = ml;
-   obj1 = obj2 = 0.0;
-   dot_mg_ms = 0;
-   norm_ms = 0;
    data_container->system_timer.stop("ChSolverParallel_solverA");
 
    for (current_iteration = 0; current_iteration < max_iter; current_iteration++) {

@@ -73,11 +73,19 @@ class CH_PARALLEL_API ChSolverAPGDBlaze : public ChSolverParallel {
 
    //APGD specific vectors
    blaze::DynamicVector<real> obj2_temp, obj1_temp, ms, mg_tmp2, mb_tmp, mg_tmp, mg_tmp1, mg, ml, mx, my, ml_candidate, mb, mso;
-
+   real L_k, t_k;
    real init_theta_k;
    real step_shrink;
    real step_grow;
    real old_objective;
+   real lastgoodres;
+   real theta_k;
+   real theta_k1;
+   real beta_k1;
+   real mb_tmp_norm, mg_tmp_norm;
+   real obj1, obj2;
+   real dot_mg_ms, norm_ms;
+   real delta_obj;
 
 };
 }
