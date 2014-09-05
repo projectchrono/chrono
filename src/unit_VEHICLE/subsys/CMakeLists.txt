@@ -32,6 +32,9 @@ SET(Chrono_Susp_FILES
     suspension/ChDoubleWishbone.cpp
     suspension/ChDoubleWishboneReduced.h
     suspension/ChDoubleWishboneReduced.cpp
+
+    suspension/DoubleWishbone.h
+    suspension/DoubleWishbone.cpp
 )
 
 SET(Chrono_Driveline_FILES
