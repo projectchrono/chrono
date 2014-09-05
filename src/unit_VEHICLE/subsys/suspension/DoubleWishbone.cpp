@@ -21,7 +21,7 @@
 #include "subsys/suspension/DoubleWishbone.h"
 
 #include "rapidjson/document.h"
-#include "rapidjson\filereadstream.h"
+#include "rapidjson/filereadstream.h"
 
 using namespace rapidjson;
 
@@ -31,7 +31,7 @@ namespace chrono {
 // -----------------------------------------------------------------------------
 // This utility function returns a ChVector from the specified JSON array
 // -----------------------------------------------------------------------------
-ChVector<> loadVector(const Value& a)
+static ChVector<> loadVector(const Value& a)
 {
   assert(a.IsArray());
   assert(a.Size() == 3);
