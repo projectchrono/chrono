@@ -37,6 +37,11 @@ SET(Chrono_Susp_FILES
     suspension/DoubleWishbone.cpp
 )
 
+SET(Chrono_Wheel_FILES
+    wheel/Wheel.h
+    wheel/Wheel.cpp
+)
+
 SET(Chrono_Driveline_FILES
     driveline/ChShaftsDriveline2WD.h
     driveline/ChShaftsDriveline2WD.cpp
@@ -80,6 +85,7 @@ ENDIF()
 
 SOURCE_GROUP("base" FILES ${Chrono_Subsys_FILES})
 SOURCE_GROUP("suspension" FILES ${Chrono_Susp_FILES})
+SOURCE_GROUP("wheel" FILES ${Chrono_Wheel_FILES})
 SOURCE_GROUP("driveline" FILES ${Chrono_Driveline_FILES})
 SOURCE_GROUP("driver" FILES ${Chrono_Driver_FILES})
 SOURCE_GROUP("powertrain" FILES ${Chrono_Powertrain_FILES})
@@ -92,6 +98,7 @@ SOURCE_GROUP("tire" FILES ${Chrono_Tire_FILES})
 ADD_LIBRARY(Chrono_Subsys SHARED
     ${Chrono_Subsys_FILES}
     ${Chrono_Susp_FILES}
+    ${Chrono_Wheel_FILES}
     ${Chrono_Driveline_FILES}
     ${Chrono_Driver_FILES}
     ${Chrono_Powertrain_FILES}
