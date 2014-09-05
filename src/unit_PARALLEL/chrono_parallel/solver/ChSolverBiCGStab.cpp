@@ -7,20 +7,28 @@ uint ChSolverBiCGStab::SolveBiCGStab(const uint max_iter,
                                      const custom_vector<real> &b,
                                      custom_vector<real> &x) {
    real rho_1, rho_2, alpha = 1, beta, omega = 1;
+   ml.resize(size);
+   mb.resize(size);
+#pragma omp parallel for
+   for (int i = 0; i < size; i++) {
+      ml[i] = x[i];
+      mb[i] = b[i];
+   }
+
    r.resize(size);
    t.resize(size);
    v.resize(size);
-   real normb = Norm(b);
+   real normb = sqrt((mb, mb));
 
-   ShurProduct(x, r);
-   p = r = b - r;
+   r = data_container->host_data.Nshur * ml;
+   p = r = mb - r;
    rtilde = r;
 
    if (normb == 0.0) {
       normb = 1;
    }
 
-   if ((residual = Norm(r) / normb) <= tolerance) {
+   if ((residual = sqrt((r, r)) / normb) <= tolerance) {
       return 0;
    }
 
@@ -37,23 +45,22 @@ uint ChSolverBiCGStab::SolveBiCGStab(const uint max_iter,
       }
 
       phat = p;
-      ShurProduct(phat, v);
+      v = data_container->host_data.Nshur * phat;
       alpha = rho_1 / Dot(rtilde, v);
       s = r - alpha * v;  //SEAXPY(-alpha,v,r,s);//
-      residual = Norm(s) / normb;
+      residual = sqrt((s, s)) / normb;
 
       if (residual < tolerance) {
 
-         SEAXPY(alpha, phat, x, x);  //x = x + alpha * phat;
+         ml = ml + alpha * phat;
          break;
       }
 
       shat = s;
-      ShurProduct(shat, t);
+      t = data_container->host_data.Nshur * shat;
       omega = Dot(t, s) / Dot(t, t);
-      SEAXPY(alpha, phat, x, x);
-      SEAXPY(omega, shat, x, x);  //x = x + alpha * phat + omega * shat;
-      SEAXPY(-omega, t, s, r);  //r = s - omega * t;
+      ml = ml + alpha * phat + omega * shat;
+      r = s - omega * t;
       rho_2 = rho_1;
       residual = Norm(r) / normb;
 
@@ -61,6 +68,9 @@ uint ChSolverBiCGStab::SolveBiCGStab(const uint max_iter,
          break;
       }
    }
-
+#pragma omp parallel for
+   for (int i = 0; i < size; i++) {
+      x[i] = ml[i];
+   }
    return current_iteration;
 }
