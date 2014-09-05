@@ -40,11 +40,12 @@ class CH_SUBSYS_API ChShaftsDriveline4WD : public ChDriveline
 {
 public:
 
-  ChShaftsDriveline4WD(ChVehicle* car,
-                       const ChVector<>& dir_motor_block = ChVector<>(1,0,0),
-                       const ChVector<>& dir_axle = ChVector<>(0,1,0));
+  ChShaftsDriveline4WD(ChVehicle* car);
 
   ~ChShaftsDriveline4WD() {}
+
+  void SetMotorBlockDirection(const ChVector<>& dir) { m_dir_motor_block = dir; }
+  void SetAxleDirection(const ChVector<>& dir)       { m_dir_axle = dir; }
 
   /// To be called after creation, to create all the wrapped ChShaft objects 
   /// and their constraints, torques etc. 
