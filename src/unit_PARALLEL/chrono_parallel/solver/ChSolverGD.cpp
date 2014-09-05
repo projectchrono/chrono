@@ -7,24 +7,39 @@ uint ChSolverGD::SolveGD(const uint max_iter,
                          const custom_vector<real> &b,
                          custom_vector<real> &x) {
    real eps = step_size;
+   ml.resize(size);
+   mb.resize(size);
    r.resize(size);
-   ShurProduct(x, r);
-   r = b - r;
-   real resold = 1, resnew, normb = Norm(b);
+
+#pragma omp parallel for
+   for (int i = 0; i < size; i++) {
+      ml[i] = x[i];
+      mb[i] = b[i];
+   }
+
+   r = data_container->host_data.Nshur * ml;
+   r = mb - r;
+   real resold = 1, resnew, normb = Norm(mb);
    if (normb == 0.0) {
       normb = 1;
    };
    for (current_iteration = 0; current_iteration < max_iter; current_iteration++) {
-      SEAXPY(eps, r, x, x);  //x = x + eps *r;
-      ShurProduct(x, r);
-      r = b - r;
-      resnew = Norm(x);
+      ml = ml + eps * r;
+      r = data_container->host_data.Nshur * ml;
+      r = mb - r;
+      resnew = Norm(ml);
       residual = abs(resnew - resold);
       if (residual < tolerance) {
          break;
       }
       resold = resnew;
    }
-   Project(x.data());
+   Project(ml.data());
+
+#pragma omp parallel for
+   for (int i = 0; i < size; i++) {
+      x[i] = ml[i];
+   }
+
    return current_iteration;
 }
