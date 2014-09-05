@@ -64,6 +64,9 @@ uint ChSolverBiCGStab::SolveBiCGStab(const uint max_iter,
       rho_2 = rho_1;
       residual = Norm(r) / normb;
 
+      objective_value = GetObjectiveBlaze(ml, mb);
+      AtIterationEnd(residual, objective_value, iter_hist.size());
+
       if (residual < tolerance || omega == 0) {
          break;
       }

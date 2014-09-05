@@ -41,13 +41,13 @@ uint ChSolverPGS::SolvePGS(const uint max_iter,
 
          Project_Single(i, ml.data());
       }
+      residual = Res4Blaze(ml, mb);
+      AtIterationEnd(residual, GetObjectiveBlaze(ml, mb), iter_hist.size());
 
-      AtIterationEnd(rmax, GetObjectiveBlaze(ml, mb), current_iteration);
-
+   }
 #pragma omp parallel for
-      for (int i = 0; i < size; i++) {
-         x[i] = ml[i];
-      }
+   for (int i = 0; i < size; i++) {
+      x[i] = ml[i];
    }
    return current_iteration;
 }

@@ -62,6 +62,9 @@ uint ChSolverCGS::SolveCGS(const uint max_iter,
       rho_2 = rho_1;
       residual = (sqrt((r, r)) / normb);
 
+      objective_value = GetObjectiveBlaze(ml, mb);
+      AtIterationEnd(residual, objective_value, iter_hist.size());
+
       if (residual < tolerance) {
          break;
       }

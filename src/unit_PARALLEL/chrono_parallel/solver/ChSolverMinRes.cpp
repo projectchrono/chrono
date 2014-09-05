@@ -62,7 +62,6 @@ uint ChSolverMinRes::SolveMinRes(const uint max_iter,
       double alpha = zNMr / MNpNp;
       mtmp = mp * alpha;
       ml = ml + mtmp;
-      double maxdeltalambda = Norm(mtmp);
 #pragma omp parallel
       {
          Project(ml.data());
@@ -79,11 +78,11 @@ uint ChSolverMinRes::SolveMinRes(const uint max_iter,
 
       mr = (mr - ml) * (1.0 / grad_diffstep);
 
-      double r_proj_resid = Norm(mr);
+      residual = sqrt((mr, mr));
 
-      if (r_proj_resid < std::max(rel_tol_b, abs_tol)) {
+      if (residual < std::max(rel_tol_b, abs_tol)) {
          if (verbose) {
-            std::cout << "Iter=" << current_iteration << " P(r)-converged!  |P(r)|=" << r_proj_resid << "\n";
+            std::cout << "Iter=" << current_iteration << " P(r)-converged!  |P(r)|=" << residual << "\n";
          }
          break;
       }
@@ -111,7 +110,7 @@ uint ChSolverMinRes::SolveMinRes(const uint max_iter,
       mp = mz + mtmp;
       mNp = mNp * beta + mNMr;
 
-      AtIterationEnd(r_proj_resid, maxdeltalambda, current_iteration);
+      AtIterationEnd(residual, GetObjectiveBlaze(ml, mb), iter_hist.size());
 
    }
 #pragma omp parallel for

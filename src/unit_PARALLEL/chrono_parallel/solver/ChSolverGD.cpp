@@ -29,6 +29,7 @@ uint ChSolverGD::SolveGD(const uint max_iter,
       r = mb - r;
       resnew = Norm(ml);
       residual = abs(resnew - resold);
+      AtIterationEnd(residual, GetObjectiveBlaze(ml, mb), iter_hist.size());
       if (residual < tolerance) {
          break;
       }

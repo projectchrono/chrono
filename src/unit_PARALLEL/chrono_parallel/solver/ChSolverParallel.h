@@ -127,12 +127,9 @@ class CH_PARALLEL_API ChSolverParallel : public ChBaseParallel {
                           blaze::DynamicVector<real> & b) {
       blaze::DynamicVector<real> Nl(x.size());
       // f_p = 0.5*l_candidate'*N*l_candidate - l_candidate'*b  = l_candidate'*(0.5*Nl_candidate - b);
-      //ShurProduct(x, Nl);     // 1)  g_tmp = N*l_candidate ...        #### MATR.MULTIPLICATION!!!###
-      Nl = data_container->host_data.Nshur * x;
-      Nl = 0.5 * Nl - b;
-      //SEAXMY(0.5, Nl, b, Nl);  // 2) 0.5*N*l_candidate-b_shur
+      Nl = data_container->host_data.Nshur * x;  // 1)  g_tmp = N*l_candidate ...        #### MATR.MULTIPLICATION!!!###
+      Nl = 0.5 * Nl - b;          // 2) 0.5*N*l_candidate-b_shur
       return (x, Nl);            // 3)  mf_p  = l_candidate'*(0.5*N*l_candidate-b_shur)
-
    }
    real GetObjective() {
       custom_vector<real> Nl(data_container->host_data.gamma_data.size());
@@ -141,6 +138,14 @@ class CH_PARALLEL_API ChSolverParallel : public ChBaseParallel {
       SEAXMY(0.5, Nl, data_container->host_data.rhs_data, Nl);  // 2) 0.5*N*l_candidate-b_shur
       return Dot(data_container->host_data.gamma_data, Nl);     // 3)  obj  = l_candidate'*(0.5*N*l_candidate-b_shur)
 
+   }
+   real Res4Blaze(blaze::DynamicVector<real> & x,
+                  blaze::DynamicVector<real> & b) {
+      real gdiff = .1;
+      blaze::DynamicVector<real> inside = x - gdiff * (data_container->host_data.Nshur * x - b);
+      Project(inside.data());
+      blaze::DynamicVector<real> temp = (x - inside) / (x.size() * gdiff);
+      return sqrt((temp, temp));
    }
 
    real GetKE() {
@@ -177,7 +182,7 @@ class CH_PARALLEL_API ChSolverParallel : public ChBaseParallel {
    int total_iteration;   // The total number of iterations performed, this variable accumulates
    real residual;         // Current residual for the solver
    real tolerance;        // Solver tolerance
-
+   real objective_value;
    //These three variables are used to store the convergence history of the solver
    thrust::host_vector<real> maxd_hist, maxdeltalambda_hist, iter_hist;
 

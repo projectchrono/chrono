@@ -41,8 +41,8 @@ uint ChSolverCG::SolveCG(const uint max_iter,
       p = rsnew / rsold * p + r;
       rsold = rsnew;
 
-      AtIterationEnd(residual, 0, current_iteration);
-
+      objective_value = GetObjectiveBlaze(ml, mb);
+      AtIterationEnd(residual, objective_value, iter_hist.size());
    }
    Project(ml.data());
 #pragma omp parallel for

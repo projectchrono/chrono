@@ -55,7 +55,10 @@ uint ChSolverBiCG::SolveBiCG(const uint max_iter,
       r = r - alpha * q;
       rtilde = rtilde - alpha * qtilde;
       rho_2 = rho_1;
-      residual = std::sqrt((r, r)) / normb;
+      residual = sqrt((r, r)) / normb;
+
+      objective_value = GetObjectiveBlaze(ml, mb);
+      AtIterationEnd(residual, objective_value, iter_hist.size());
 
       if (residual < tolerance) {
          break;

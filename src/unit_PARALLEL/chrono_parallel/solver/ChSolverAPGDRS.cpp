@@ -62,7 +62,6 @@ uint ChSolverAPGDRS::SolveAPGDRS(const uint max_iter,
    real obj1 = 0.0, obj2 = 0.0;
    real dot_mg_ms = 0, norm_ms = 0;
    real delta_obj = 1e8;
-   real maxdeltalambda = 0;
    ml = x;
 
    custom_vector<real3> vel_data, omg_data;
@@ -212,7 +211,7 @@ uint ChSolverAPGDRS::SolveAPGDRS(const uint max_iter,
       if (g_proj_norm < lastgoodres) {
          lastgoodres = g_proj_norm;
          ml_candidate = ml;
-         maxdeltalambda = GetObjective(ml_candidate, b);
+         objective_value = GetObjective(ml_candidate, b);
          update = true;
 
       }
@@ -228,7 +227,7 @@ uint ChSolverAPGDRS::SolveAPGDRS(const uint max_iter,
       }
       //}
 
-      AtIterationEnd(residual, maxdeltalambda, iter_hist.size());
+      AtIterationEnd(residual, objective_value, iter_hist.size());
 
       if (update) {
          if (iter_hist.size() > 1) {
@@ -239,7 +238,7 @@ uint ChSolverAPGDRS::SolveAPGDRS(const uint max_iter,
 
       //cout << "delta_obj " << delta_obj<<" "<< residual<<" "<<current_iteration<< endl;
       if (tol_objective) {
-         if (maxdeltalambda <= tolerance) {
+         if (objective_value <= tolerance) {
             break;
          } //else if (delta_obj < 1e-12) {
             //cout << "convergence stagnated" << endl;

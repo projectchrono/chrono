@@ -4,11 +4,10 @@
 using namespace chrono;
 
 uint ChSolverJacobi::SolveJacobi(const uint max_iter,
-                              const uint size,
-                              const custom_vector<real> &b,
-                              custom_vector<real> &x) {
+                                 const uint size,
+                                 const custom_vector<real> &b,
+                                 custom_vector<real> &x) {
 
-   real rmax = 0;
    diagonal.resize(size, false);
    ml.resize(size);
    ml_old.resize(size);
@@ -44,13 +43,13 @@ uint ChSolverJacobi::SolveJacobi(const uint max_iter,
       }
       Project(ml.data());
       ml_old = ml;
-
-      AtIterationEnd(rmax, GetObjectiveBlaze(ml, mb), current_iteration);
+      residual = Res4Blaze(ml, mb);
+      AtIterationEnd(residual, GetObjectiveBlaze(ml, mb), iter_hist.size());
+   }
 
 #pragma omp parallel for
-      for (int i = 0; i < size; i++) {
-         x[i] = ml[i];
-      }
+   for (int i = 0; i < size; i++) {
+      x[i] = ml[i];
    }
    return current_iteration;
 }

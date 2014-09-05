@@ -32,12 +32,17 @@ uint ChSolverSD::SolveSD(const uint max_iter,
       resnew = sqrt((ml, ml));
       residual = abs(resnew - resold);
 
-      AtIterationEnd(residual, 0, current_iteration);
+      AtIterationEnd(residual, GetObjectiveBlaze(ml, mb), iter_hist.size());
       if (residual < tolerance) {
          break;
       }
       resold = resnew;
    }
    Project(ml.data());
+
+#pragma omp parallel for
+   for (int i = 0; i < size; i++) {
+      x[i] = ml[i];
+   }
    return current_iteration;
 }

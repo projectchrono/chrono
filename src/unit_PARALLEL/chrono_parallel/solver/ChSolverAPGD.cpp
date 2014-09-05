@@ -177,9 +177,9 @@ uint ChSolverAPGD::SolveAPGD(const uint max_iter,const uint size,const custom_ve
       }
 
       residual = lastgoodres;
-      real maxdeltalambda = CompRes(b, num_contacts);     //NormInf(ms);
+      objective_value = CompRes(b, num_contacts);     //NormInf(ms);
 
-      AtIterationEnd(residual, maxdeltalambda, iter_hist.size());
+      AtIterationEnd(residual, objective_value, iter_hist.size());
       //custom_vector<real> error = (x_initial-x)/x;
       //x_initial = x;
 

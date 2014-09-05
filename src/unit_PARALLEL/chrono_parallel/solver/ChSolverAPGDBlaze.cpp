@@ -51,7 +51,6 @@ uint ChSolverAPGDBlaze::SolveAPGDBlaze(const uint max_iter,
    real obj1 = 0.0, obj2 = 0.0;
    real dot_mg_ms = 0, norm_ms = 0;
    real delta_obj = 1e8;
-   real maxdeltalambda = 0;
 #pragma omp parallel for
    for (int i = 0; i < size; i++) {
       ml[i] = x[i];
@@ -165,7 +164,7 @@ uint ChSolverAPGDBlaze::SolveAPGDBlaze(const uint max_iter,
       if (g_proj_norm < lastgoodres) {
          lastgoodres = g_proj_norm;
          ml_candidate = ml;
-         maxdeltalambda = (ml_candidate, mso);  //maxdeltalambda = GetObjectiveBlaze(ml_candidate, mb);
+         objective_value = (ml_candidate, mso);  //maxdeltalambda = GetObjectiveBlaze(ml_candidate, mb);
          update = true;
       }
 
@@ -180,10 +179,10 @@ uint ChSolverAPGDBlaze::SolveAPGDBlaze(const uint max_iter,
 //      }
       //}
 
-      AtIterationEnd(residual, maxdeltalambda, iter_hist.size());
+      AtIterationEnd(residual, objective_value, iter_hist.size());
       //cout << "delta_obj " << delta_obj<<" "<< residual<<" "<<current_iteration<< endl;
       if (tol_objective) {
-         if (maxdeltalambda <= tolerance) {
+         if (objective_value <= tolerance) {
             break;
          }
       } else {
