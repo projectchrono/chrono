@@ -112,7 +112,7 @@ HMMWV_VehicleJSON::HMMWV_VehicleJSON(const bool        fixed,
   // Create the driveline and powertrain subsystems
   // ----------------------------------------------
 
-  m_driveline = ChSharedPtr<HMMWV_Driveline2WD>(new HMMWV_Driveline2WD(this));
+  m_driveline = ChSharedPtr<ShaftsDriveline2WD>(new ShaftsDriveline2WD(this, utils::GetModelDataFile("hmmwv/driveline/HMMWV_Driveline2WD.json")));
   m_powertrain = ChSharedPtr<HMMWV_Powertrain>(new HMMWV_Powertrain(this));
 }
 
