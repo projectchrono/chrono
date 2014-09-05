@@ -8,27 +8,36 @@ uint ChSolverSD::SolveSD(const uint max_iter,
                          custom_vector<real> &x) {
    r.resize(size);
    temp.resize(size);
-   ShurProduct(x, r);
-   r = b - r;
-   real resold = 1, resnew, normb = Norm(b), alpha;
+   ml.resize(size);
+   mb.resize(size);
+#pragma omp parallel for
+   for (int i = 0; i < size; i++) {
+      ml[i] = x[i];
+      mb[i] = b[i];
+   }
+
+   r = data_container->host_data.Nshur * ml;
+
+   r = mb - r;
+   real resold = 1, resnew, normb = sqrt((mb, mb)), alpha;
    if (normb == 0.0) {
       normb = 1;
    }
    for (current_iteration = 0; current_iteration < max_iter; current_iteration++) {
-      ShurProduct(r, temp);
+      temp = data_container->host_data.Nshur * r;
       alpha = Dot(r, r) / Dot(r, temp);
-      SEAXPY(alpha, r, x, x);     //x = x + eps *r;
-      ShurProduct(x, r);
-      r = b - r;
-      resnew = Norm(x);
+      ml = ml + alpha * r;
+      r = data_container->host_data.Nshur * ml;
+      r = mb - r;
+      resnew = sqrt((ml, ml));
       residual = abs(resnew - resold);
-      real maxdeltalambda = CompRes(b, num_contacts);     //NormInf(ms);
-      AtIterationEnd(residual, maxdeltalambda, current_iteration);
+
+      AtIterationEnd(residual, 0, current_iteration);
       if (residual < tolerance) {
          break;
       }
       resold = resnew;
    }
-   Project(x.data());
+   Project(ml.data());
    return current_iteration;
 }
