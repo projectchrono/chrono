@@ -56,9 +56,6 @@ uint ChSolverAPGDBlaze::SolveAPGDBlaze(const uint max_iter,
       ml[i] = x[i];
       mb[i] = b[i];
    }
-
-   custom_vector<real3> vel_data, omg_data;
-
    Project(ml.data());
    ml_candidate = ml;
    //ShurProduct(ml, mg);  //mg is never used, only re-written
@@ -169,18 +166,11 @@ uint ChSolverAPGDBlaze::SolveAPGDBlaze(const uint max_iter,
       }
 
       residual = lastgoodres;
-      //CompRes(b,num_contacts);     //NormInf(ms);
       //if (update_rhs) {
       //ComputeSRhs(ml_candidate, rhs, vel_data, omg_data, b);
       //}
-//      if (collision_inside) {
-//         //UpdatePosition(ml_candidate);
-//         //UpdateContacts();
-//      }
-      //}
 
       AtIterationEnd(residual, objective_value, iter_hist.size());
-      //cout << "delta_obj " << delta_obj<<" "<< residual<<" "<<current_iteration<< endl;
       if (tol_objective) {
          if (objective_value <= tolerance) {
             break;

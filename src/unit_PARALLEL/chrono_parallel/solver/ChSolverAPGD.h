@@ -29,12 +29,10 @@ class CH_PARALLEL_API ChSolverAPGD : public ChSolverParallel {
    ChSolverAPGD()
          :
            ChSolverParallel() {
-
       //APGD specific
       step_shrink = .9;
       step_grow = 2.0;
       init_theta_k = 1.0;
-
    }
    ~ChSolverAPGD() {
 
