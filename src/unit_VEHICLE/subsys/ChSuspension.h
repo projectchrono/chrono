@@ -47,8 +47,17 @@ public:
 
   virtual ~ChSuspension() {}
 
-  const ChSharedPtr<ChBody>  GetSpindle(Side side) const { return m_spindle[side]; }
-  const ChSharedPtr<ChShaft> GetAxle(Side side) const    { return m_axle[side]; }
+  const std::string& GetName() const { return m_name; }
+  void SetName(const std::string& name) { m_name = name; }
+
+  bool IsSteerable() const { return m_steerable; }
+  void SetSteerable(bool val) { m_steerable = val; }
+
+  bool IsDriven() const { return m_driven; }
+  void SetDriven(bool val) { m_driven = val; }
+
+  ChSharedPtr<ChBody>  GetSpindle(Side side) const { return m_spindle[side]; }
+  ChSharedPtr<ChShaft> GetAxle(Side side) const    { return m_axle[side]; }
 
   const ChVector<>& GetSpindlePos(Side side) const       { return m_spindle[side]->GetPos(); }
   const ChQuaternion<>& GetSpindleRot(Side side) const   { return m_spindle[side]->GetRot(); }
