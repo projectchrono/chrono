@@ -47,6 +47,9 @@ SET(Chrono_Driveline_FILES
     driveline/ChShaftsDriveline2WD.cpp
     driveline/ChShaftsDriveline4WD.h
     driveline/ChShaftsDriveline4WD.cpp
+
+	driveline/ShaftsDriveline2WD.h
+	driveline/ShaftsDriveline2WD.cpp
 )
 
 SET(Chrono_Driver_FILES
