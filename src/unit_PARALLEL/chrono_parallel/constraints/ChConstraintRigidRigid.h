@@ -245,15 +245,11 @@ class CH_PARALLEL_API ChConstraintRigidRigid : public ChBaseParallel {
                              real3 *fric,
                              real *gam);
 
-   //void host_Diag(int2 *ids, bool *active, real *inv_mass, real3 *inv_inertia, real3 *JXYZA, real3 *JXYZB, real3 *JUVWA, real3 *JUVWB, real *diag);
-   void Diag();
-
    void ShurA(real * x);
    void ShurB(real*x,
               real*output);
 
-   void Build_N();
-   void Build_D();
+   void Build_D(SOLVERMODE solver_mode);
 
    bool solve_sliding;
    bool solve_spinning;

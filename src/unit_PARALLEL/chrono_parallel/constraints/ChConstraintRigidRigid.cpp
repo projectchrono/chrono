@@ -997,44 +997,20 @@ void ChConstraintRigidRigid::ShurB(real*x,
    }
 }
 
-void ChConstraintRigidRigid::Diag() {
-}
-
-void ChConstraintRigidRigid::Build_N() {
-//M^-1 * D^T
-//
-//D = eacc row is a constraint
-
-//m bodies, n constraints
-//M: mxm
-//D:mxn
-//M*D^T = mxn
-//D*M*D^T = nxn
-
-//each constraint has 6 J values, 3 pos, 3 rot
-//each row of D has two entries with 6 values each, so 12 values
-//D has 12*n entries
-//M*D^T has 2*n
-}
-
-void ChConstraintRigidRigid::Build_D() {
+void ChConstraintRigidRigid::Build_D(SOLVERMODE solver_mode) {
    real3 * norm = data_container->host_data.norm_rigid_rigid.data();
    real3 * ptA = data_container->host_data.cpta_rigid_rigid.data();
    real3 *ptB = data_container->host_data.cptb_rigid_rigid.data();
    int2 * ids = data_container->host_data.bids_rigid_rigid.data();
    real4* rot = contact_rotation.data();
 
-   data_container->host_data.D.reserve(num_contacts*36);
+
 
    for (int index = 0; index < num_contacts; index++) {
       real3 U = norm[index], V, W;
       Orthogonalize(U, V, W);
 
       int2 body_id = ids[index];
-
-      real3 T3, T4, T5, T6, T7, T8;
-      Compute_Jacobian(rot[index], U, V, W, ptA[index], T3, T4, T5);
-      Compute_Jacobian(rot[index + num_contacts], U, V, W, ptB[index], T6, T7, T8);
 
       int index_mult = index * 3;
 
@@ -1043,84 +1019,88 @@ void ChConstraintRigidRigid::Build_D() {
       data_container->host_data.D.insert(body_id.x * 6 + 1, index_mult + 0, -U.y);
       data_container->host_data.D.insert(body_id.x * 6 + 2, index_mult + 0, -U.z);
 
-      data_container->host_data.D.insert(body_id.x * 6 + 3, index_mult + 0, T3.x);
-      data_container->host_data.D.insert(body_id.x * 6 + 4, index_mult + 0, T3.y);
-      data_container->host_data.D.insert(body_id.x * 6 + 5, index_mult + 0, T3.z);
-
       data_container->host_data.D.insert(body_id.x * 6 + 0, index_mult + 1, -V.x);
       data_container->host_data.D.insert(body_id.x * 6 + 1, index_mult + 1, -V.y);
       data_container->host_data.D.insert(body_id.x * 6 + 2, index_mult + 1, -V.z);
-
-      data_container->host_data.D.insert(body_id.x * 6 + 3, index_mult + 1, T4.x);
-      data_container->host_data.D.insert(body_id.x * 6 + 4, index_mult + 1, T4.y);
-      data_container->host_data.D.insert(body_id.x * 6 + 5, index_mult + 1, T4.z);
 
       data_container->host_data.D.insert(body_id.x * 6 + 0, index_mult + 2, -W.x);
       data_container->host_data.D.insert(body_id.x * 6 + 1, index_mult + 2, -W.y);
       data_container->host_data.D.insert(body_id.x * 6 + 2, index_mult + 2, -W.z);
 
-      data_container->host_data.D.insert(body_id.x * 6 + 3, index_mult + 2, T5.x);
-      data_container->host_data.D.insert(body_id.x * 6 + 4, index_mult + 2, T5.y);
-      data_container->host_data.D.insert(body_id.x * 6 + 5, index_mult + 2, T5.z);
-
-      /////
-
       data_container->host_data.D.insert(body_id.y * 6 + 0, index_mult + 0, U.x);
       data_container->host_data.D.insert(body_id.y * 6 + 1, index_mult + 0, U.y);
       data_container->host_data.D.insert(body_id.y * 6 + 2, index_mult + 0, U.z);
-
-      data_container->host_data.D.insert(body_id.y * 6 + 3, index_mult + 0, -T6.x);
-      data_container->host_data.D.insert(body_id.y * 6 + 4, index_mult + 0, -T6.y);
-      data_container->host_data.D.insert(body_id.y * 6 + 5, index_mult + 0, -T6.z);
 
       data_container->host_data.D.insert(body_id.y * 6 + 0, index_mult + 1, V.x);
       data_container->host_data.D.insert(body_id.y * 6 + 1, index_mult + 1, V.y);
       data_container->host_data.D.insert(body_id.y * 6 + 2, index_mult + 1, V.z);
 
-      data_container->host_data.D.insert(body_id.y * 6 + 3, index_mult + 1, -T7.x);
-      data_container->host_data.D.insert(body_id.y * 6 + 4, index_mult + 1, -T7.y);
-      data_container->host_data.D.insert(body_id.y * 6 + 5, index_mult + 1, -T7.z);
-
       data_container->host_data.D.insert(body_id.y * 6 + 0, index_mult + 2, W.x);
       data_container->host_data.D.insert(body_id.y * 6 + 1, index_mult + 2, W.y);
       data_container->host_data.D.insert(body_id.y * 6 + 2, index_mult + 2, W.z);
 
-      data_container->host_data.D.insert(body_id.y * 6 + 3, index_mult + 2, -T8.x);
-      data_container->host_data.D.insert(body_id.y * 6 + 4, index_mult + 2, -T8.y);
-      data_container->host_data.D.insert(body_id.y * 6 + 5, index_mult + 2, -T8.z);
+      if (solver_mode == SLIDING || solver_mode == SPINNING) {
 
-//
-//      real3 TA, TB, TC;
-//      Compute_Jacobian_Rolling(rot[index], U, V, W, TA, TB, TC);
-//
-//
-//      real3 TD, TE, TF;
-//      Compute_Jacobian_Rolling(rot[index + num_contacts], U, V, W, TD, TE, TF);
-//
-//      data_container->host_data.D.insert(body_id.x * 6 + 3, index * 6 + 3, -TA.x);
-//      data_container->host_data.D.insert(body_id.x * 6 + 4, index * 6 + 3, -TA.y);
-//      data_container->host_data.D.insert(body_id.x * 6 + 5, index * 6 + 3, -TA.z);
-//
-//      data_container->host_data.D.insert(body_id.x * 6 + 3, index * 6 + 4, -TB.x);
-//      data_container->host_data.D.insert(body_id.x * 6 + 4, index * 6 + 4, -TB.y);
-//      data_container->host_data.D.insert(body_id.x * 6 + 5, index * 6 + 4, -TB.z);
-//
-//      data_container->host_data.D.insert(body_id.x * 6 + 3, index * 6 + 5, -TC.x);
-//      data_container->host_data.D.insert(body_id.x * 6 + 4, index * 6 + 5, -TC.y);
-//      data_container->host_data.D.insert(body_id.x * 6 + 5, index * 6 + 5, -TC.z);
-//      /////
-//      data_container->host_data.D.insert(body_id.y * 6 + 3, index * 6 + 3, TD.x);
-//      data_container->host_data.D.insert(body_id.y * 6 + 4, index * 6 + 3, TD.y);
-//      data_container->host_data.D.insert(body_id.y * 6 + 5, index * 6 + 3, TD.z);
-//
-//      data_container->host_data.D.insert(body_id.y * 6 + 3, index * 6 + 4, TE.x);
-//      data_container->host_data.D.insert(body_id.y * 6 + 4, index * 6 + 4, TE.y);
-//      data_container->host_data.D.insert(body_id.y * 6 + 5, index * 6 + 4, TE.z);
-//
-//      data_container->host_data.D.insert(body_id.y * 6 + 3, index * 6 + 5, TF.x);
-//      data_container->host_data.D.insert(body_id.y * 6 + 4, index * 6 + 5, TF.y);
-//      data_container->host_data.D.insert(body_id.y * 6 + 5, index * 6 + 5, TF.z);
+         real3 T3, T4, T5, T6, T7, T8;
+         Compute_Jacobian(rot[index], U, V, W, ptA[index], T3, T4, T5);
+         Compute_Jacobian(rot[index + num_contacts], U, V, W, ptB[index], T6, T7, T8);
 
+         data_container->host_data.D.insert(body_id.x * 6 + 3, index_mult + 0, T3.x);
+         data_container->host_data.D.insert(body_id.x * 6 + 4, index_mult + 0, T3.y);
+         data_container->host_data.D.insert(body_id.x * 6 + 5, index_mult + 0, T3.z);
+
+         data_container->host_data.D.insert(body_id.x * 6 + 3, index_mult + 1, T4.x);
+         data_container->host_data.D.insert(body_id.x * 6 + 4, index_mult + 1, T4.y);
+         data_container->host_data.D.insert(body_id.x * 6 + 5, index_mult + 1, T4.z);
+
+         data_container->host_data.D.insert(body_id.x * 6 + 3, index_mult + 2, T5.x);
+         data_container->host_data.D.insert(body_id.x * 6 + 4, index_mult + 2, T5.y);
+         data_container->host_data.D.insert(body_id.x * 6 + 5, index_mult + 2, T5.z);
+
+         /////
+
+         data_container->host_data.D.insert(body_id.y * 6 + 3, index_mult + 0, -T6.x);
+         data_container->host_data.D.insert(body_id.y * 6 + 4, index_mult + 0, -T6.y);
+         data_container->host_data.D.insert(body_id.y * 6 + 5, index_mult + 0, -T6.z);
+
+         data_container->host_data.D.insert(body_id.y * 6 + 3, index_mult + 1, -T7.x);
+         data_container->host_data.D.insert(body_id.y * 6 + 4, index_mult + 1, -T7.y);
+         data_container->host_data.D.insert(body_id.y * 6 + 5, index_mult + 1, -T7.z);
+
+         data_container->host_data.D.insert(body_id.y * 6 + 3, index_mult + 2, -T8.x);
+         data_container->host_data.D.insert(body_id.y * 6 + 4, index_mult + 2, -T8.y);
+         data_container->host_data.D.insert(body_id.y * 6 + 5, index_mult + 2, -T8.z);
+      }
+      if (solver_mode == SPINNING) {
+         real3 TA, TB, TC;
+         Compute_Jacobian_Rolling(rot[index], U, V, W, TA, TB, TC);
+
+         real3 TD, TE, TF;
+         Compute_Jacobian_Rolling(rot[index + num_contacts], U, V, W, TD, TE, TF);
+
+         data_container->host_data.D.insert(body_id.x * 6 + 3, index * 6 + 3, -TA.x);
+         data_container->host_data.D.insert(body_id.x * 6 + 4, index * 6 + 3, -TA.y);
+         data_container->host_data.D.insert(body_id.x * 6 + 5, index * 6 + 3, -TA.z);
+
+         data_container->host_data.D.insert(body_id.x * 6 + 3, index * 6 + 4, -TB.x);
+         data_container->host_data.D.insert(body_id.x * 6 + 4, index * 6 + 4, -TB.y);
+         data_container->host_data.D.insert(body_id.x * 6 + 5, index * 6 + 4, -TB.z);
+
+         data_container->host_data.D.insert(body_id.x * 6 + 3, index * 6 + 5, -TC.x);
+         data_container->host_data.D.insert(body_id.x * 6 + 4, index * 6 + 5, -TC.y);
+         data_container->host_data.D.insert(body_id.x * 6 + 5, index * 6 + 5, -TC.z);
+         /////
+         data_container->host_data.D.insert(body_id.y * 6 + 3, index * 6 + 3, TD.x);
+         data_container->host_data.D.insert(body_id.y * 6 + 4, index * 6 + 3, TD.y);
+         data_container->host_data.D.insert(body_id.y * 6 + 5, index * 6 + 3, TD.z);
+
+         data_container->host_data.D.insert(body_id.y * 6 + 3, index * 6 + 4, TE.x);
+         data_container->host_data.D.insert(body_id.y * 6 + 4, index * 6 + 4, TE.y);
+         data_container->host_data.D.insert(body_id.y * 6 + 5, index * 6 + 4, TE.z);
+
+         data_container->host_data.D.insert(body_id.y * 6 + 3, index * 6 + 5, TF.x);
+         data_container->host_data.D.insert(body_id.y * 6 + 4, index * 6 + 5, TF.y);
+         data_container->host_data.D.insert(body_id.y * 6 + 5, index * 6 + 5, TF.z);
+      }
    }
-
 }

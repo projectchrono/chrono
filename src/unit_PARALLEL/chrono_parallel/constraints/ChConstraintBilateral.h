@@ -90,6 +90,9 @@ class CH_PARALLEL_API ChConstraintBilateral: public ChBaseParallel {
 				uint* counter);
 		void host_Diag(int2 *ids, bool *active, real *inv_mass, real3 *inv_inertia, real3 *JXYZA, real3 *JXYZB, real3 *JUVWA, real3 *JUVWB, real* diag);
 		void Diag();
+
+		void Build_D();
+
 		protected:
 		custom_vector<real3> vel_update, omg_update;
 		custom_vector<uint> body_num;

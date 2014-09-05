@@ -396,22 +396,38 @@ void ChLcpSolverParallelDVI::ComputeN() {
       data_container->host_data.Nshur.reset();
       data_container->host_data.M_inv.reset();
 
-      data_container->host_data.D.resize(data_container->num_bodies * 6, data_container->num_contacts * 3);
       data_container->host_data.M_inv.resize(data_container->num_bodies * 6, data_container->num_bodies * 6);
       data_container->host_data.M_inv.reserve(data_container->num_bodies * 6);
-      rigid_rigid.Build_D();
+      data_container->host_data.D.resize(data_container->num_bodies * 6, data_container->num_constraints);
+      if (solver_mode == NORMAL) {
+         data_container->host_data.D.reserve(data_container->num_contacts * 6 * 3 + data_container->num_bilaterals * 6 * 2);
+      } else if (solver_mode == SLIDING) {
+         data_container->host_data.D.reserve(data_container->num_contacts * 6 * 6 + data_container->num_bilaterals * 6 * 2);
+      } else if (solver_mode == SPINNING) {
+         data_container->host_data.D.reserve(data_container->num_contacts * 6 * 9 + data_container->num_bilaterals * 6 * 2);
+      }
+
+      rigid_rigid.Build_D(solver_mode);
+      bilateral.Build_D();
 
       for (int i = 0; i < data_container->num_bodies; i++) {
          if (data_container->host_data.active_data[i]) {
-            data_container->host_data.M_inv.append(i * 6 + 0, i * 6 + 0, data_container->host_data.mass_data[i]);  data_container->host_data.M_inv.finalize( i * 6 + 0 );
-            data_container->host_data.M_inv.append(i * 6 + 1, i * 6 + 1, data_container->host_data.mass_data[i]);  data_container->host_data.M_inv.finalize( i * 6 + 1 );
-            data_container->host_data.M_inv.append(i * 6 + 2, i * 6 + 2, data_container->host_data.mass_data[i]);  data_container->host_data.M_inv.finalize( i * 6 + 2 );
-            data_container->host_data.M_inv.append(i * 6 + 3, i * 6 + 3, data_container->host_data.inr_data[i].x); data_container->host_data.M_inv.finalize( i * 6 + 3 );
-            data_container->host_data.M_inv.append(i * 6 + 4, i * 6 + 4, data_container->host_data.inr_data[i].y); data_container->host_data.M_inv.finalize( i * 6 + 4 );
-            data_container->host_data.M_inv.append(i * 6 + 5, i * 6 + 5, data_container->host_data.inr_data[i].z); data_container->host_data.M_inv.finalize( i * 6 + 5 );
+            data_container->host_data.M_inv.append(i * 6 + 0, i * 6 + 0, data_container->host_data.mass_data[i]);
+            data_container->host_data.M_inv.finalize(i * 6 + 0);
+            data_container->host_data.M_inv.append(i * 6 + 1, i * 6 + 1, data_container->host_data.mass_data[i]);
+            data_container->host_data.M_inv.finalize(i * 6 + 1);
+            data_container->host_data.M_inv.append(i * 6 + 2, i * 6 + 2, data_container->host_data.mass_data[i]);
+            data_container->host_data.M_inv.finalize(i * 6 + 2);
+            data_container->host_data.M_inv.append(i * 6 + 3, i * 6 + 3, data_container->host_data.inr_data[i].x);
+            data_container->host_data.M_inv.finalize(i * 6 + 3);
+            data_container->host_data.M_inv.append(i * 6 + 4, i * 6 + 4, data_container->host_data.inr_data[i].y);
+            data_container->host_data.M_inv.finalize(i * 6 + 4);
+            data_container->host_data.M_inv.append(i * 6 + 5, i * 6 + 5, data_container->host_data.inr_data[i].z);
+            data_container->host_data.M_inv.finalize(i * 6 + 5);
          }
       }
       data_container->host_data.D_T = trans(data_container->host_data.D);
-      data_container->host_data.Nshur = data_container->host_data.D_T * data_container->host_data.M_inv * data_container->host_data.D;
+      data_container->host_data.M_invD = data_container->host_data.M_inv * data_container->host_data.D;
+      data_container->host_data.Nshur = data_container->host_data.D_T * data_container->host_data.M_invD;
    }
 }
