@@ -190,7 +190,7 @@ uint ChSolverAPGDBlaze::SolveAPGDBlaze(const uint max_iter,
 }
 
 void ChSolverAPGDBlaze::ComputeImpulses() {
-   blaze::CompressedVector<real> velocities = data_container->host_data.M_inv * data_container->host_data.D * ml_candidate;
+   blaze::CompressedVector<real> velocities = data_container->host_data.M_invD * ml_candidate;
 
 #pragma omp parallel for
    for (int i = 0; i < data_container->num_bodies; i++) {

@@ -99,7 +99,7 @@ struct host_container {
    thrust::host_vector<real> gamma_bilateral;
 
 
-   CompressedMatrix<real> Nshur, D, D_T, M_inv;
+   CompressedMatrix<real> Nshur, D, D_T, M_inv, M_invD;
 
 
 //			thrust::host_vector<real3> JXYZA_fluid_fluid, JXYZB_fluid_fluid;
