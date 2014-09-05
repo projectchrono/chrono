@@ -169,6 +169,7 @@ void ChDoubleWishbone::InitializeSide(ChSuspension::Side side,
 
   // Initialize Upper Control Arm body.
   // Determine the rotation matrix of the UCA based on the plane of the hard points
+  // (z axis normal to the plane of the LCA)
   w = Vcross(m_points[UCA_F] - m_points[UCA_U], m_points[UCA_B] - m_points[UCA_U]);
   w.Normalize();
   u = m_points[UCA_B] - m_points[UCA_F];
@@ -185,7 +186,8 @@ void ChDoubleWishbone::InitializeSide(ChSuspension::Side side,
   chassis->GetSystem()->AddBody(m_UCA[side]);
 
   // Initialize Lower Control Arm body.
-  // Determine the rotation matrix of the LCA based on the plane of the hard points
+  // Determine the rotation matrix of the LCA, based on the plane of the hard points
+  // (z axis normal to the plane of the LCA)
   w = Vcross(m_points[LCA_F] - m_points[LCA_U], m_points[LCA_B] - m_points[LCA_U]);
   w.Normalize();
   u = m_points[LCA_B] - m_points[LCA_F];
@@ -208,11 +210,14 @@ void ChDoubleWishbone::InitializeSide(ChSuspension::Side side,
   chassis->GetSystem()->AddLink(m_revolute[side]);
 
   // Initialize the revolute joint between chassis and UCA.
-  // Determine the joint orientation matrix from the hardpoint locations.
+  // Determine the joint orientation matrix from the hardpoint locations by
+  // constructing a rotation matrix with the z axis along the joint direction
+  // and the y axis normal to the plane of the UCA.
+  v = Vcross(m_points[UCA_F] - m_points[UCA_U], m_points[UCA_B] - m_points[UCA_U]);
+  v.Normalize();
   w = m_points[UCA_B] - m_points[UCA_F];
   w.Normalize();
-  u = ChVector<>(0, 0, 1);
-  v = Vcross(w, u);
+  u = Vcross(v, w);
   rot.Set_A_axis(u, v, w);
 
   m_revoluteUCA[side]->Initialize(chassis, m_UCA[side], ChCoordsys<>((m_points[UCA_F]+m_points[UCA_B])/2, rot.Get_A_quaternion()));
@@ -223,11 +228,14 @@ void ChDoubleWishbone::InitializeSide(ChSuspension::Side side,
   chassis->GetSystem()->AddLink(m_sphericalUCA[side]);
 
   // Initialize the revolute joint between chassis and LCA.
-  // Determine the joint orientation matrix from the hardpoint locations.
+  // Determine the joint orientation matrix from the hardpoint locations by
+  // constructing a rotation matrix with the z axis along the joint direction
+  // and the y axis normal to the plane of the LCA.
+  v = Vcross(m_points[LCA_F] - m_points[LCA_U], m_points[LCA_B] - m_points[LCA_U]);
+  v.Normalize();
   w = m_points[LCA_B] - m_points[LCA_F];
   w.Normalize();
-  u = ChVector<>(0, 0, 1);
-  v = Vcross(w, u);
+  u = Vcross(v, w);
   rot.Set_A_axis(u, v, w);
 
   m_revoluteLCA[side]->Initialize(chassis, m_LCA[side], ChCoordsys<>((m_points[LCA_F]+m_points[LCA_B])/2, rot.Get_A_quaternion()));
