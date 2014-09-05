@@ -26,8 +26,7 @@ class CH_PARALLEL_API ChSolverAPGDBlaze : public ChSolverParallel {
  public:
 
    ChSolverAPGDBlaze()
-         :
-           ChSolverParallel() {
+         : ChSolverParallel() {
 
       //APGD specific
       step_shrink = .9;
@@ -40,7 +39,9 @@ class CH_PARALLEL_API ChSolverAPGDBlaze : public ChSolverParallel {
    }
 
    void Solve() {
-      if (num_constraints == 0) {return;}
+      if (num_constraints == 0) {
+         return;
+      }
       data_container->system_timer.start("ChSolverParallel_Solve");
       total_iteration += SolveAPGDBlaze(max_iteration, num_constraints, data_container->host_data.rhs_data, data_container->host_data.gamma_data);
       data_container->system_timer.stop("ChSolverParallel_Solve");
@@ -48,24 +49,25 @@ class CH_PARALLEL_API ChSolverAPGDBlaze : public ChSolverParallel {
    }
 
    // Solve using a more streamlined but harder to read version of the APGD method
-   uint SolveAPGDBlaze(
-                    const uint max_iter,           // Maximum number of iterations
-                    const uint size,               // Number of unknowns
-                    custom_vector<real> &b,        // Rhs vector
-                    custom_vector<real> &x         // The vector of unknowns
-                    );
+   uint SolveAPGDBlaze(const uint max_iter,           // Maximum number of iterations
+                       const uint size,               // Number of unknowns
+                       custom_vector<real> &b,        // Rhs vector
+                       custom_vector<real> &x         // The vector of unknowns
+                       );
+
+   // Compute the updated velocities
+   // The solution for gamma is already here, so use it rather than having to copy it
+   void ComputeImpulses();
 
    // Compute the residual for the solver
    // TODO: What is the best way to explain this...
-   real Res4(
-             const int SIZE,
+   real Res4(const int SIZE,
              blaze::DynamicVector<real> & mg_tmp2,
              blaze::DynamicVector<real> & x,
              blaze::DynamicVector<real> & mb_tmp);
 
    // Set parameters for growing and shrinking the step size
-   void SetAPGDParams(
-                      real theta_k,
+   void SetAPGDParams(real theta_k,
                       real shrink,
                       real grow);
 

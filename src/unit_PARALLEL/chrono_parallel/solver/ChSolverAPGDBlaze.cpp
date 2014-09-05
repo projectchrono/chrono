@@ -1,5 +1,5 @@
 #include "ChSolverAPGDBlaze.h"
-
+#include <blaze/math/CompressedVector.h>
 using namespace chrono;
 
 void ChSolverAPGDBlaze::SetAPGDParams(real theta_k,
@@ -165,7 +165,7 @@ uint ChSolverAPGDBlaze::SolveAPGDBlaze(const uint max_iter,
       if (g_proj_norm < lastgoodres) {
          lastgoodres = g_proj_norm;
          ml_candidate = ml;
-         maxdeltalambda = (ml_candidate, mso); //maxdeltalambda = GetObjectiveBlaze(ml_candidate, mb);
+         maxdeltalambda = (ml_candidate, mso);  //maxdeltalambda = GetObjectiveBlaze(ml_candidate, mb);
          update = true;
       }
 
@@ -198,4 +198,19 @@ uint ChSolverAPGDBlaze::SolveAPGDBlaze(const uint max_iter,
       x[i] = ml_candidate[i];
    }
    return current_iteration;
+}
+
+void ChSolverAPGDBlaze::ComputeImpulses() {
+   blaze::CompressedVector<real> velocities = data_container->host_data.M_inv * data_container->host_data.D * ml_candidate;
+
+#pragma omp parallel for
+   for (int i = 0; i < data_container->num_bodies; i++) {
+      real3 vel, omg;
+
+      vel = R3(velocities[i * 6 + 0], velocities[i * 6 + 1], velocities[i * 6 + 2]);
+      omg = R3(velocities[i * 6 + 3], velocities[i * 6 + 4], velocities[i * 6 + 5]);
+
+      data_container->host_data.vel_data[i] += vel;
+      data_container->host_data.omg_data[i] += omg;
+   }
 }
