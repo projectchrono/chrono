@@ -29,6 +29,8 @@
 #ifndef CH_DOUBLEWISHBONEREDUCED_H
 #define CH_DOUBLEWISHBONEREDUCED_H
 
+#include <vector>
+
 #include "subsys/ChApiSubsys.h"
 #include "subsys/ChSuspension.h"
 
@@ -85,11 +87,6 @@ protected:
   virtual double getDampingCoefficient() const = 0;
   virtual double getSpringRestLength() const = 0;
 
-  virtual void OnInitializeSpindle(ChSuspension::Side side) {}
-  virtual void OnInitializeUpright(ChSuspension::Side side) {}
-
-  ChVector<>                        m_points[NUM_POINTS];
-
   ChSharedBodyPtr                   m_upright[2];
 
   ChSharedPtr<ChLinkLockRevolute>   m_revolute[2];
@@ -104,13 +101,20 @@ protected:
   ChVector<>                        m_tierod_marker[2];
 
 private:
-  void   CreateSide(ChSuspension::Side side,
-                    const std::string& suffix);
-  void   InitializeSide(ChSuspension::Side side,
-                        ChSharedBodyPtr    chassis);
+  void CreateSide(ChSuspension::Side side,
+                  const std::string& suffix);
+  void InitializeSide(ChSuspension::Side              side,
+                      ChSharedBodyPtr                 chassis,
+                      const std::vector<ChVector<> >& points);
 
-  void   AddVisualizationSpindle(ChSuspension::Side side);
-  void   AddVisualizationUpright(ChSuspension::Side side);
+  static void AddVisualizationUpright(ChSharedBodyPtr    upright,
+                                      const ChVector<>&  pt_U,
+                                      const ChVector<>&  pt_L,
+                                      const ChVector<>&  pt_T,
+                                      double             radius);
+  static void AddVisualizationSpindle(ChSharedBodyPtr spindle,
+                                      double          radius,
+                                      double          width);
 };
 
 

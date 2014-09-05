@@ -29,6 +29,8 @@
 #ifndef CH_DOUBLEWISHBONE_H
 #define CH_DOUBLEWISHBONE_H
 
+#include <vector>
+
 #include "subsys/ChApiSubsys.h"
 #include "subsys/ChSuspension.h"
 
@@ -102,13 +104,6 @@ protected:
   virtual double getDampingCoefficient() const = 0;
   virtual double getSpringRestLength() const = 0;
 
-  virtual void OnInitializeSpindle(ChSuspension::Side side) {}
-  virtual void OnInitializeUCA(ChSuspension::Side side)     {}
-  virtual void OnInitializeLCA(ChSuspension::Side side)     {}
-  virtual void OnInitializeUpright(ChSuspension::Side side) {}
-
-  ChVector<>                        m_points[NUM_POINTS];
-
   ChSharedBodyPtr                   m_upright[2];
   ChSharedBodyPtr                   m_UCA[2];
   ChSharedBodyPtr                   m_LCA[2];
@@ -126,15 +121,26 @@ protected:
   ChVector<>                        m_tierod_marker[2];
 
 private:
-  void   CreateSide(ChSuspension::Side side,
-                    const std::string& suffix);
-  void   InitializeSide(ChSuspension::Side side,
-                        ChSharedBodyPtr    chassis);
 
-  void   AddVisualizationUCA(ChSuspension::Side side);
-  void   AddVisualizationLCA(ChSuspension::Side side);
-  void   AddVisualizationUpright(ChSuspension::Side side);
-  void   AddVisualizationSpindle(ChSuspension::Side side);
+  void CreateSide(ChSuspension::Side side,
+                  const std::string& suffix);
+  void InitializeSide(ChSuspension::Side              side,
+                      ChSharedBodyPtr                 chassis,
+                      const std::vector<ChVector<> >& points);
+
+  static void AddVisualizationControlArm(ChSharedBodyPtr    arm,
+                                         const ChVector<>&  pt_F,
+                                         const ChVector<>&  pt_B,
+                                         const ChVector<>&  pt_U,
+                                         double             radius);
+  static void AddVisualizationUpright(ChSharedBodyPtr    upright,
+                                      const ChVector<>&  pt_U,
+                                      const ChVector<>&  pt_L,
+                                      const ChVector<>&  pt_T,
+                                      double             radius);
+  static void AddVisualizationSpindle(ChSharedBodyPtr spindle,
+                                      double          radius,
+                                      double          width);
 
   static const std::string  m_pointNames[NUM_POINTS];
 };

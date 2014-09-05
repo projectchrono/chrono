@@ -93,65 +93,66 @@ void ChDoubleWishboneReduced::CreateSide(ChSuspension::Side side,
 void ChDoubleWishboneReduced::Initialize(ChSharedBodyPtr   chassis,
                                          const ChVector<>& location)
 {
+  std::vector<ChVector<> > points(NUM_POINTS);
+
   // Transform all points to absolute frame and initialize left side.
   for (int i = 0; i < NUM_POINTS; i++) {
     ChVector<> rel_pos = getLocation(static_cast<PointId>(i));
     rel_pos.y = -rel_pos.y;
-    m_points[i] = chassis->GetCoord().TransformLocalToParent(location + rel_pos);
+    points[i] = chassis->GetCoord().TransformLocalToParent(location + rel_pos);
   }
 
-  InitializeSide(LEFT, chassis);
+  InitializeSide(LEFT, chassis, points);
 
   // Transform all points to absolute frame and initialize right side.
   for (int i = 0; i < NUM_POINTS; i++) {
     ChVector<> rel_pos = getLocation(static_cast<PointId>(i));
-    m_points[i] = chassis->GetCoord().TransformLocalToParent(location + rel_pos);
+    points[i] = chassis->GetCoord().TransformLocalToParent(location + rel_pos);
   }
 
-  InitializeSide(RIGHT, chassis);
+  InitializeSide(RIGHT, chassis, points);
 }
 
 
-void ChDoubleWishboneReduced::InitializeSide(ChSuspension::Side side,
-                                             ChSharedBodyPtr    chassis)
+void ChDoubleWishboneReduced::InitializeSide(ChSuspension::Side              side,
+                                             ChSharedBodyPtr                 chassis,
+                                             const std::vector<ChVector<> >& points)
 {
   // Set body positions and rotations, mass properties, etc.
-  m_spindle[side]->SetPos(m_points[SPINDLE]);
+  m_spindle[side]->SetPos(points[SPINDLE]);
   m_spindle[side]->SetRot(chassis->GetCoord().rot);
   m_spindle[side]->SetMass(getSpindleMass());
   m_spindle[side]->SetInertiaXX(getSpindleInertia());
-  AddVisualizationSpindle(side);
-  OnInitializeSpindle(side);
+  AddVisualizationSpindle(m_spindle[side], getSpindleRadius(), getSpindleWidth());
   chassis->GetSystem()->AddBody(m_spindle[side]);
 
-  m_upright[side]->SetPos(m_points[UPRIGHT]);
+  m_upright[side]->SetPos(points[UPRIGHT]);
   m_upright[side]->SetRot(chassis->GetCoord().rot);
   m_upright[side]->SetMass(getUprightMass());
   m_upright[side]->SetInertiaXX(getUprightInertia());
-  AddVisualizationUpright(side);
-  OnInitializeUpright(side);
+  AddVisualizationUpright(m_upright[side], points[UCA_U], points[LCA_U], points[TIEROD_U], getUprightRadius());
   chassis->GetSystem()->AddBody(m_upright[side]);
 
   // Initialize joints
-  ChCoordsys<> rev_csys((m_points[UPRIGHT] + m_points[SPINDLE]) / 2, Q_from_AngAxis(CH_C_PI / 2.0, VECT_X));
+  ChCoordsys<> rev_csys((points[UPRIGHT] + points[SPINDLE]) / 2, Q_from_AngAxis(CH_C_PI / 2.0, VECT_X));
   m_revolute[side]->Initialize(m_spindle[side], m_upright[side], rev_csys);
   chassis->GetSystem()->AddLink(m_revolute[side]);
 
-  m_distUCA_F[side]->Initialize(chassis, m_upright[side], false, m_points[UCA_F], m_points[UCA_U]);
+  m_distUCA_F[side]->Initialize(chassis, m_upright[side], false, points[UCA_F], points[UCA_U]);
   chassis->GetSystem()->AddLink(m_distUCA_F[side]);
-  m_distUCA_B[side]->Initialize(chassis, m_upright[side], false, m_points[UCA_B], m_points[UCA_U]);
+  m_distUCA_B[side]->Initialize(chassis, m_upright[side], false, points[UCA_B], points[UCA_U]);
   chassis->GetSystem()->AddLink(m_distUCA_B[side]);
 
-  m_distLCA_F[side]->Initialize(chassis, m_upright[side], false, m_points[LCA_F], m_points[LCA_U]);
+  m_distLCA_F[side]->Initialize(chassis, m_upright[side], false, points[LCA_F], points[LCA_U]);
   chassis->GetSystem()->AddLink(m_distLCA_F[side]);
-  m_distLCA_B[side]->Initialize(chassis, m_upright[side], false, m_points[LCA_B], m_points[LCA_U]);
+  m_distLCA_B[side]->Initialize(chassis, m_upright[side], false, points[LCA_B], points[LCA_U]);
   chassis->GetSystem()->AddLink(m_distLCA_B[side]);
 
-  m_distTierod[side]->Initialize(chassis, m_upright[side], false, m_points[TIEROD_C], m_points[TIEROD_U]);
+  m_distTierod[side]->Initialize(chassis, m_upright[side], false, points[TIEROD_C], points[TIEROD_U]);
   chassis->GetSystem()->AddLink(m_distTierod[side]);
 
   // Initialize the spring/damper
-  m_shock[side]->Initialize(chassis, m_upright[side], false, m_points[SHOCK_C], m_points[SHOCK_U]);
+  m_shock[side]->Initialize(chassis, m_upright[side], false, points[SHOCK_C], points[SHOCK_U]);
   m_shock[side]->Set_SpringK(getSpringCoefficient());
   m_shock[side]->Set_SpringR(getDampingCoefficient());
   m_shock[side]->Set_SpringRestLength(getSpringRestLength());
@@ -175,46 +176,49 @@ void ChDoubleWishboneReduced::InitializeSide(ChSuspension::Side side,
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-void ChDoubleWishboneReduced::AddVisualizationUpright(ChSuspension::Side side)
+void ChDoubleWishboneReduced::AddVisualizationUpright(ChSharedBodyPtr    upright,
+                                                      const ChVector<>&  pt_U,
+                                                      const ChVector<>&  pt_L,
+                                                      const ChVector<>&  pt_T,
+                                                      double             radius)
 {
   // Express hardpoint locations in body frame.
-  ChVector<> p_U = m_upright[side]->TransformPointParentToLocal(m_points[UCA_U]);
-  ChVector<> p_L = m_upright[side]->TransformPointParentToLocal(m_points[LCA_U]);
-  ChVector<> p_T = m_upright[side]->TransformPointParentToLocal(m_points[TIEROD_U]);
+  ChVector<> p_U = upright->TransformPointParentToLocal(pt_U);
+  ChVector<> p_L = upright->TransformPointParentToLocal(pt_L);
+  ChVector<> p_T = upright->TransformPointParentToLocal(pt_T);
 
   ChSharedPtr<ChCylinderShape> cyl_L(new ChCylinderShape);
   cyl_L->GetCylinderGeometry().p1 = p_L;
   cyl_L->GetCylinderGeometry().p2 = ChVector<>(0, 0, 0);
-  cyl_L->GetCylinderGeometry().rad = getUprightRadius();
-  m_upright[side]->AddAsset(cyl_L);
+  cyl_L->GetCylinderGeometry().rad = radius;
+  upright->AddAsset(cyl_L);
 
   ChSharedPtr<ChCylinderShape> cyl_U(new ChCylinderShape);
   cyl_U->GetCylinderGeometry().p1 = p_U;
   cyl_U->GetCylinderGeometry().p2 = ChVector<>(0, 0, 0);
-  cyl_U->GetCylinderGeometry().rad = getUprightRadius();
-  m_upright[side]->AddAsset(cyl_U);
+  cyl_U->GetCylinderGeometry().rad = radius;
+  upright->AddAsset(cyl_U);
 
   ChSharedPtr<ChCylinderShape> cyl_T(new ChCylinderShape);
   cyl_T->GetCylinderGeometry().p1 = p_T;
   cyl_T->GetCylinderGeometry().p2 = ChVector<>(0, 0, 0);
-  cyl_T->GetCylinderGeometry().rad = getUprightRadius();
-  m_upright[side]->AddAsset(cyl_T);
+  cyl_T->GetCylinderGeometry().rad = radius;
+  upright->AddAsset(cyl_T);
 
   ChSharedPtr<ChColorAsset> col(new ChColorAsset);
-  switch (side) {
-  case RIGHT: col->SetColor(ChColor(0.6f, 0.1f, 0.1f)); break;
-  case LEFT:  col->SetColor(ChColor(0.1f, 0.1f, 0.6f)); break;
-  }
-  m_upright[side]->AddAsset(col);
+  col->SetColor(ChColor(0.2f, 0.2f, 0.6f));
+  upright->AddAsset(col);
 }
 
-void ChDoubleWishboneReduced::AddVisualizationSpindle(ChSuspension::Side side)
+void ChDoubleWishboneReduced::AddVisualizationSpindle(ChSharedBodyPtr spindle,
+                                                      double          radius,
+                                                      double          width)
 {
   ChSharedPtr<ChCylinderShape> cyl(new ChCylinderShape);
-  cyl->GetCylinderGeometry().p1 = ChVector<>(0, getSpindleWidth() / 2, 0);
-  cyl->GetCylinderGeometry().p2 = ChVector<>(0, -getSpindleWidth() / 2, 0);
-  cyl->GetCylinderGeometry().rad = getSpindleRadius();
-  m_spindle[side]->AddAsset(cyl);
+  cyl->GetCylinderGeometry().p1 = ChVector<>(0, width / 2, 0);
+  cyl->GetCylinderGeometry().p2 = ChVector<>(0, -width / 2, 0);
+  cyl->GetCylinderGeometry().rad = radius;
+  spindle->AddAsset(cyl);
 }
 
 
