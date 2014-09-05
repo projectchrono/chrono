@@ -27,6 +27,8 @@ SET(COMMON_HMMWV_FILES
 	../hmmwv/HMMWV_RigidTerrain.cpp
 	../hmmwv/vehicle/HMMWV_Vehicle.h
 	../hmmwv/vehicle/HMMWV_Vehicle.cpp
+	../hmmwv/vehicle/HMMWV_VehicleJSON.h
+	../hmmwv/vehicle/HMMWV_VehicleJSON.cpp
 	../hmmwv/suspension/HMMWV_DoubleWishbone.h
 	../hmmwv/suspension/HMMWV_DoubleWishbone.cpp
 	../hmmwv/driveline/HMMWV_Driveline2WD.h
