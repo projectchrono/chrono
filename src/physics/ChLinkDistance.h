@@ -29,7 +29,7 @@
 
 
 
-#include "physics/ChLinkGeometric.h"
+#include "physics/ChLink.h"
 #include "lcp/ChLcpConstraintTwoBodies.h"
 
 namespace chrono
@@ -49,9 +49,9 @@ namespace chrono
 /// two points which move respect to the bodies, please use 
 /// the more advanced ChLinkLinActuator.
 
-class ChApi ChLinkDistance : public ChLinkGeometric {
+class ChApi ChLinkDistance : public ChLink {
 
-	CH_RTTI(ChLinkDistance,ChLinkGeometric);
+	CH_RTTI(ChLinkDistance,ChLink);
 
 protected:
 				//

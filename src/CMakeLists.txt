@@ -416,7 +416,6 @@ IF (BUILD_CH_SDK)
 		physics/ChLinkFastContact.h
 		physics/ChLinkforce.h
 		physics/ChLinkGear.h
-		physics/ChLinkGeometric.h
 		physics/ChLinkLinActuator.h
 		physics/ChLinkLock.h
 		physics/ChLinkMarkers.h
