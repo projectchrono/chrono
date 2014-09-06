@@ -35,10 +35,6 @@
 
 namespace chrono
 {
-
-// Unique link identifier, for detecting type faster than with rtti.
-#define LNK_CONTACT	40
-
 ///
 /// Parent class for the ChLinkFastContact, ChLinkGPUcontact etc.
 /// Not used directly - look at the children classes.

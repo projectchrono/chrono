@@ -35,11 +35,6 @@
 
 namespace chrono
 {
-
-// Unique link identifier, for detecting type faster than with rtti.
-#define LNK_PULLEY		38
-
-
 ///
 /// Class to create pulleys on two rigid bodies, connected by a belt. 
 /// The two bodies must be already connected to a truss by other 

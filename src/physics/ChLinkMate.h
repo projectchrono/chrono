@@ -36,12 +36,6 @@
 
 namespace chrono
 {
-
-
-
-// Unique link identifier, for detecting type faster than with rtti. (Obsolete)
-#define LNK_MATE	41
-
 ///
 /// Base class for all 'simple' constraints between 
 /// two frames attached to two bodies. These constraints 
@@ -95,10 +89,6 @@ public:
 //////////////////////////////////////////////////////
 //////////////////////////////////////////////////////
 
-
-
-// Unique link identifier, for detecting type faster than with rtti. (Obsolete)
-#define LNK_MATEGENERIC	42
 
 ///
 /// Generic mate constraint, where one can select which 
@@ -259,13 +249,6 @@ protected:
 //////////////////////////////////////////////////////
 
 
-
-
-
-
-// Unique link identifier, for detecting type faster than with rtti. (Obsolete)
-#define LNK_MATEPLANE	43
-
 ///
 /// Mate constraint of plane-to-plane type. This correspond to the
 /// typical planar face vs planar face mating used in 3D CAD assemblies.
@@ -327,20 +310,10 @@ public:
 
 
 
-
-
-
-
 //////////////////////////////////////////////////////
 //////////////////////////////////////////////////////
 
 
-
-
-
-
-// Unique link identifier, for detecting type faster than with rtti. (Obsolete)
-#define LNK_MATECOAXIAL	44
 
 ///
 /// Mate constraint of coaxial type. This correspond to the
@@ -391,17 +364,9 @@ public:
 };
 
 
-
-
 //////////////////////////////////////////////////////
 //////////////////////////////////////////////////////
 
-
-
-
-
-// Unique link identifier, for detecting type faster than with rtti. (Obsolete)
-#define LNK_MATESPHERICAL	45
 
 ///
 /// Mate constraint of spherical type. This correspond to the
@@ -445,18 +410,9 @@ public:
 };
 
 
-
-
-
 //////////////////////////////////////////////////////
 //////////////////////////////////////////////////////
 
-
-
-
-
-// Unique link identifier, for detecting type faster than with rtti. (Obsolete)
-#define LNK_MATEXDISTANCE	48
 
 ///
 /// Mate constraining distance of origin of frame B respect to X axis of
@@ -508,17 +464,9 @@ public:
 };
 
 
-
-
 //////////////////////////////////////////////////////
 //////////////////////////////////////////////////////
 
-
-
-
-
-// Unique link identifier, for detecting type faster than with rtti. (Obsolete)
-#define LNK_MATEPARALLEL	46
 
 ///
 /// Mate constraint of parallel type. This correspond to the
@@ -570,16 +518,9 @@ public:
 };
 
 
-
 //////////////////////////////////////////////////////
 //////////////////////////////////////////////////////
 
-
-
-
-
-// Unique link identifier, for detecting type faster than with rtti. (Obsolete)
-#define LNK_MATEORTHOGONAL	47
 
 ///
 /// Mate constraint of orthogonal type. This correspond to the

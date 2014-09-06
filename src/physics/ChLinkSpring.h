@@ -37,11 +37,6 @@
 
 namespace chrono
 {
-
-// Unique link identifier, for detecting type faster than with rtti.
-#define LNK_SPRING		25
-
-
 ///
 /// Class for spring-damper systems, acting along the polar
 /// distance of two markers

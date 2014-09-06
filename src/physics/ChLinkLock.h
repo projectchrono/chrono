@@ -42,32 +42,6 @@
 
 namespace chrono
 {
-
-// Unique link identifiers, for detecting type faster than with rtti.
-// Using GetLinkType(), you will get this information. Also, the ChLinkLock
-// family of constraints supports ChangeLinkType(), exceptionally.
-
-#define LNK_LOCK		0
-#define LNK_SPHERICAL	1
-#define LNK_POINTPLANE	2
-#define LNK_POINTLINE	3
-#define LNK_CYLINDRICAL	4
-#define LNK_PRISMATIC	5
-#define LNK_PLANEPLANE	6
-#define LNK_OLDHAM		7
-#define LNK_REVOLUTE	8
-#define LNK_RACKPIN		9
-#define LNK_FREE		10
-#define LNK_HOOK		11
-#define LNK_ALIGN	    13
-#define LNK_PARALLEL	14
-#define LNK_PERPEND		15
-#define LNK_UNIVERSAL	16
-#define LNK_COUPLER		18
-#define LNK_DISTANCE    19
-#define LNK_CARDANO		28
-
-
 ///
 /// ChLinkLock class.
 /// This class implements lot of sub types like the revolute

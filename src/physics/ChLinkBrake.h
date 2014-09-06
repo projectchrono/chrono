@@ -35,10 +35,6 @@
 namespace chrono
 {
 
-// Unique link identifier, for detecting type faster than with rtti.
-#define LNK_BRAKE		32
-
-
 ///
 /// Link representing a brake between two rigid bodies, 
 /// including the sticking effect.

@@ -35,11 +35,6 @@
 
 namespace chrono
 {
-
-// Unique link identifier, for detecting type faster than with rtti.
-#define LNK_TRAJECTORY  22
-
-
 ///
 /// ChLinkTrajectory class.
 /// This class implements the 'point on an imposed 

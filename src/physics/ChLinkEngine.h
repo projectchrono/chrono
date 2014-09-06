@@ -36,11 +36,6 @@
 
 namespace chrono
 {
-
-// Unique link identifier, for detecting type faster than with rtti.
-#define LNK_ENGINE		31
-
-
 ///
 /// Class for links representing engines between two rigid bodies.
 /// Note that the engine can be in 'impose relative rotation' mode,

@@ -37,12 +37,6 @@
 
 namespace chrono
 {
-
-
-// Unique link identifier, for detecting type faster than with rtti.
-#define LNK_PNEUMATIC	33
-
-
 ///
 /// Class for pneumatic linear actuators between two markers,
 /// as the piston were joined with two spherical

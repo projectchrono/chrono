@@ -34,11 +34,6 @@
 
 namespace chrono
 {
-
-// Unique link identifier, for detecting type faster than with rtti.
-#define LNK_GEOMETRICDISTANCE	37
-
-
 /// Class for enforcing a fixed polar distance 
 /// between two points on two ChBodyFrame objects.
 /// The two points which are used to define the end points

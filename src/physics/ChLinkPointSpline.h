@@ -36,11 +36,6 @@
 
 namespace chrono
 {
-
-// Unique link identifier, for detecting type faster than with rtti.
-#define LNK_POINTSPLINE 20
-
-
 ///
 /// ChLinkPointSpline class.
 /// This class implements the 'point on a spline curve' 

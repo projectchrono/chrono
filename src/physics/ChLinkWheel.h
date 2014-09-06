@@ -36,11 +36,6 @@
 
 namespace chrono
 {
-
-// Unique link identifier, for detecting type faster than with rtti.
-#define LNK_WHEEL		26
-
-
 #define WCOLLISION_PLANE	0
 #define WCOLLISION_YCOLLIDE 1
 

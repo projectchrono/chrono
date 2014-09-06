@@ -33,10 +33,6 @@
 
 namespace chrono
 {
-
-// Unique link identifier, for detecting type faster than with rtti.
-#define LNK_CLEARANCE	34
-
 ///
 /// A class for the custom fast simulation of revolute
 /// joints with clearance.

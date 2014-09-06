@@ -34,11 +34,6 @@
 
 namespace chrono
 {
-
-// Unique link identifier, for detecting type faster than with rtti.
-#define LNK_LINACTUATOR	27
-
-
 ///
 /// Class for linear actuators between two markers,
 /// as the actuator were joined with two spherical

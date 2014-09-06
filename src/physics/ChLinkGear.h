@@ -35,11 +35,6 @@
 
 namespace chrono
 {
-
-// Unique link identifier, for detecting type faster than with rtti.
-#define LNK_GEAR		17
-
-
 ///
 /// Gear link between two rigid bodies. This can
 /// also be used to represent spur and bevel gears, and

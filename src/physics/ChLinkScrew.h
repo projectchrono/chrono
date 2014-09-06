@@ -34,11 +34,6 @@
 
 namespace chrono
 {
-
-// Unique link identifier, for detecting type faster than with rtti.
-#define LNK_SCREW		12
-
-
 ///
 /// Screw joint between two rigid bodies. This 
 /// link type is able to couple translation and rotation.

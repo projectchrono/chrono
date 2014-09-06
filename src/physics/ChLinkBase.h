@@ -25,13 +25,53 @@
 namespace chrono
 {
 
-
-
-
-// Define the link type identifier.
-
-
-#define LNK_BASE		29
+// Unique link type identifiers (for detecting type faster than with RTTI)
+// The corresponding identifier can be obtained with GetLinkType().
+// Also, the ChLinkLock family of constraints supports ChangeLinkType().
+#define LNK_LOCK                0
+#define LNK_SPHERICAL           1
+#define LNK_POINTPLANE          2
+#define LNK_POINTLINE           3
+#define LNK_CYLINDRICAL         4
+#define LNK_PRISMATIC           5
+#define LNK_PLANEPLANE          6
+#define LNK_OLDHAM              7
+#define LNK_REVOLUTE            8
+#define LNK_RACKPIN             9
+#define LNK_FREE                10
+#define LNK_HOOK                11
+#define LNK_SCREW               12
+#define LNK_ALIGN               13
+#define LNK_PARALLEL            14
+#define LNK_PERPEND             15
+#define LNK_UNIVERSAL           16
+#define LNK_GEAR                17
+#define LNK_COUPLER             18
+#define LNK_DISTANCE            19
+#define LNK_POINTSPLINE         20
+#define LNK_TRAJECTORY          22
+#define LNK_REVOLUTESPHERICAL   23
+#define LNK_SPRING              25
+#define LNK_WHEEL               26
+#define LNK_LINACTUATOR         27
+#define LNK_CARDANO             28
+#define LNK_BASE                29
+#define LNK_ENGINE              31
+#define LNK_BRAKE               32
+#define LNK_PNEUMATIC           33
+#define LNK_CLEARANCE           34
+#define LNK_FASTCONTACT         35
+#define LNK_GEOMETRICDISTANCE   37
+#define LNK_PULLEY              38
+#define LNK_CONTACT             40
+#define LNK_MATE                41
+#define LNK_MATEGENERIC         42
+#define LNK_MATEPLANE           43
+#define LNK_MATECOAXIAL         44
+#define LNK_MATESPHERICAL       45
+#define LNK_MATEXDISTANCE       48
+#define LNK_MATEPARALLEL        46
+#define LNK_MATEORTHOGONAL      47
 
 
 ///
