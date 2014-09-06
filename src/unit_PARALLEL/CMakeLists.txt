@@ -43,12 +43,19 @@ CMAKE_DEPENDENT_OPTION(BUILD_DEMOS "Build demo programs" ON "BUILD_UTILS" OFF)
 
 # ------------------------------------------------------------------------------
 # Specify output locations for libraries and executables
+# Set the build type depending on the platform
 # ------------------------------------------------------------------------------
 SET(EXECUTABLE_OUTPUT_PATH ${PROJECT_BINARY_DIR}/bin)
 SET(LIBRARY_OUTPUT_PATH ${PROJECT_BINARY_DIR}/lib)
 
 IF (MSVC OR XCODE_VERSION)
   SET(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
+  SET(CMAKE_CONFIGURATION_TYPES Release CACHE STRING "Choose the type of build.")
+  mark_as_advanced(FORCE CMAKE_BUILD_TYPE)
+  mark_as_advanced(CLEAR CMAKE_CONFIGURATION_TYPES)
+ELSE()
+    SET(CMAKE_BUILD_TYPE Release CACHE STRING "Choose the type of build.")
+    SET_PROPERTY(CACHE CMAKE_BUILD_TYPE PROPERTY STRINGS Debug Release MinSizeRel RelWithDebInfo)
 ENDIF()
 
 # ------------------------------------------------------------------------------
@@ -61,7 +68,7 @@ IF(USE_DOUBLE)
   OPTION(USE_SSE "Compile with SSE support for floating point math" OFF)
   SET(CHRONO_PARALLEL_USE_DOUBLE "#define CHRONO_PARALLEL_USE_DOUBLE")
   
-   IF ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
+    IF ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
     ELSEIF ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
       SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -march=native -Wa,-q")
       SET(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -march=native -Wa,-q")
