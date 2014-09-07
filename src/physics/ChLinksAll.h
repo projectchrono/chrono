@@ -48,6 +48,7 @@
 #include "physics/ChLinkPointSpline.h"
 //#include "physics/ChLinkPointSurf.h"
 #include "physics/ChLinkTrajectory.h"
+#include "physics/ChLinkRevoluteSpherical.h"
 
 
 #endif
