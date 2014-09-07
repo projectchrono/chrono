@@ -17,12 +17,15 @@
 #include "lcp/ChLcpConstraintTwoBodies.h"
 
 
-namespace chrono
-{
-///
-/// Class for modeling a composite revolute-spherical joint between
-/// two ChBodyFrame objects.
-///
+namespace chrono {
+
+/// Class for modeling a composite revolute-spherical joint between two
+/// two ChBodyFrame objects.  This joint is defined through a point and
+/// direction on the first body (the revolute side), a point on the second
+/// body (the spherical side), and a distance.  Kinematically, the two points
+/// are maintained at the prescribed distance while the vector between the
+/// two points is always perpendicular to the provided direction of the
+/// revolute joint.
 
 class ChApi ChLinkRevoluteSpherical : public ChLink {
 
@@ -43,22 +46,51 @@ public:
     // FUNCTIONS
     //
 
+  /// Get the type of this joint.
   virtual int GetType()  { return LNK_REVOLUTESPHERICAL; }
+
+  /// Get the number of constraints imposed by this joint.
   virtual int GetDOC_d() { return 2; }
 
+  /// Get the point on Body1 (revolute side), expressed in Body1 coordinate system.
   const ChVector<>& GetPoint1Rel() const { return m_pos1; }
+  /// Get the direction of the revolute joint, expressed in Body1 coordinate system.
   const ChVector<>& GetDir1Rel() const   { return m_dir1; }
+  /// Get the point on Body2 (spherical side), expressed in Body2 coordinate system.
   const ChVector<>& GetPoint2Rel() const { return m_pos2; }
-  
+
+  /// Get the imposed distance (length of massless connector).
   double GetImposedDistance() const { return m_dist; }
+  /// Get the current distance between the two points.
   double GetCurrentDistance() const { return m_cur_dist; }
 
+  /// Get the point on Body1 (revolute side), expressed in absolute coordinate system.
   ChVector<> GetPoint1Abs() const { return Body1->TransformPointLocalToParent(m_pos1); }
+  /// Get the direction of the revolute joint, expressed in absolute coordinate system.
   ChVector<> GetDir1Abs() const   { return Body1->TransformDirectionLocalToParent(m_dir1); }
+  /// Get the point on Body2 (spherical side), expressed in absolute coordinate system.
   ChVector<> GetPoint2Abs() const { return Body2->TransformPointLocalToParent(m_pos2); }
 
-    /// Initialize this joint by specifying the two bodies to be connected, the
-    /// ...
+  /// Initialize this joint by specifying the two bodies to be connected, a
+  /// coordinate system specified in the absolute frame, and the distance of
+  /// the massless connector.  The composite joint is constructed such that the
+  /// direction of the revolute joint is aligned with the z axis of the specified
+  /// coordinate system and the spherical joint is at the specified distance
+  /// along the x axis.
+  void Initialize(
+    ChSharedPtr<ChBodyFrame> body1,                  ///< first frame (revolute side)
+    ChSharedPtr<ChBodyFrame> body2,                  ///< second frame (spherical side)
+    const ChCoordsys<>&      csys,                   ///< joint coordinate system (in absolute frame)
+    double                   distance                ///< imposed distance
+    );
+
+  /// Initialize this joint by specifying the two bodies to be connected, a point
+  /// and a direction on body1 defining the revolute joint, and a point on the
+  /// second body defining the spherical joint. If local = true, it is assumed
+  /// that these quantities are specified in the local body frames. Otherwise,
+  /// it is assumed that they are specified in the absolute frame. The imposed
+  /// distance between the two points can be either inferred from the provided
+  /// configuration (auto_distance = true) or specified explicitly.
   void Initialize(
     ChSharedPtr<ChBodyFrame> body1,                  ///< first frame (revolute side)
     ChSharedPtr<ChBodyFrame> body2,                  ///< second frame (spherical side)
@@ -74,7 +106,8 @@ public:
     // UPDATING FUNCTIONS
     //
 
-    /// Compute jacobians, violations, etc. and cache in internal structures
+  /// Perform the update of this joint at the specified time: compute jacobians,
+  /// constraint violations, etc. and cache in internal structures
   virtual void Update(double time);
 
     //

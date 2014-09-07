@@ -81,12 +81,17 @@ int main(int argc, char* argv[])
   col_p->SetColor(ChColor(0.6f, 0, 0));
   pend->AddAsset(col_p);
 
-  // Create a revolute-spherical joint to connect pendulum to ground. We specify
-  // the link coordinate frame in the absolute frame.
+  // Create a revolute-spherical joint to connect pendulum to ground.
   ChSharedPtr<ChLinkRevoluteSpherical> rev_sph = ChSharedPtr<ChLinkRevoluteSpherical>(new ChLinkRevoluteSpherical);
-  rev_sph->Initialize(ground, pend, false, ChVector<>(0, 0, 1), ChVector<>(0, 0, 1), ChVector<>(0.5, 0, 1));
   system.AddLink(rev_sph);
 
+  // Initialize the pendulum specifying a coordinate system (expressed in the
+  // absolute frame) and a distance.
+  rev_sph->Initialize(ground, pend, ChCoordsys<>(ChVector<>(0, 0, 1), ChQuaternion<>(1, 0, 0, 0)), 0.5);
+
+  // Alternatively, the joint can be initialized by specifying a point and a
+  // direction on the first body and a point on the second body.
+  //rev_sph->Initialize(ground, pend, false, ChVector<>(0, 0, 1), ChVector<>(0, 0, 1), ChVector<>(0.5, 0, 1));
 
   // Create the Irrlicht application
   // -------------------------------

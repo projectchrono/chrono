@@ -80,13 +80,36 @@ ChLink* ChLinkRevoluteSpherical::new_Duplicate()
 void ChLinkRevoluteSpherical::Initialize(
   ChSharedPtr<ChBodyFrame> body1,           // first frame (revolute side)
   ChSharedPtr<ChBodyFrame> body2,           // second frame (spherical side)
+  const ChCoordsys<>&      csys,            // joint coordinate system (in absolute frame)
+  double                   distance)        // imposed distance
+{
+  Body1 = body1.get_ptr();
+  Body2 = body2.get_ptr();
+
+  m_cnstr_dist.SetVariables(&Body1->Variables(), &Body2->Variables());
+  m_cnstr_dot.SetVariables(&Body1->Variables(), &Body2->Variables());
+
+  ChVector<> x_Axis = csys.rot.GetXaxis();
+  ChVector<> z_axis = csys.rot.GetZaxis();
+
+  m_pos1 = Body1->TransformPointParentToLocal(csys.pos);
+  m_dir1 = Body1->TransformDirectionParentToLocal(z_axis);
+  m_pos2 = Body2->TransformPointParentToLocal(csys.pos + distance * ChVector<>(1, 0, 0));
+
+  m_dist = distance;
+  m_cur_dist = distance;
+  m_cur_dot = 0;
+}
+
+void ChLinkRevoluteSpherical::Initialize(
+  ChSharedPtr<ChBodyFrame> body1,           // first frame (revolute side)
+  ChSharedPtr<ChBodyFrame> body2,           // second frame (spherical side)
   bool                     local,           // true if data given in body local frames
   const ChVector<>&        pos1,            // point on first frame
   const ChVector<>&        dir1,            // direction of revolute on first frame
   const ChVector<>&        pos2,            // point on second frame
   bool                     auto_distance,   // true if imposed distance equal to |pos1 - po2|
-  double                   distance         // imposed distance (used only if auto_distance = false)
-  )
+  double                   distance)        // imposed distance (used only if auto_distance = false)
 {
   Body1 = body1.get_ptr();
   Body2 = body2.get_ptr();
