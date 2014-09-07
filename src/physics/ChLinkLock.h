@@ -278,6 +278,16 @@ public:
 	ChLinkLockPrismatic() {ChangeLinkType(LNK_PRISMATIC);}
 };
 
+/// Universal joint , with the 'ChLinkLock' formulation.
+/// (allows a simplier creation of a link as a sub-type of ChLinkLock). 
+
+class ChApi ChLinkLockUniversal : public ChLinkLock
+{
+  CH_RTTI(ChLinkLockUniversal, ChLinkLock);
+public:
+  ChLinkLockUniversal() { ChangeLinkType(LNK_UNIVERSAL); }
+};
+
 /// point-plane joint , with the 'ChLinkLock' formulation.
 /// (allows a simplier creation of a link as a sub-type of ChLinkLock). 
 
