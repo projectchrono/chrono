@@ -105,7 +105,9 @@ public:
 	void ImmQ_complete (const chrono::ChVector<Real>& qimm);
 	void ImmQ_dt_complete (const ChQuaternion<Real>& mq, const chrono::ChVector<Real>& qimm_dt);
 	void ImmQ_dtdt_complete (const ChQuaternion<Real>& mq, const ChQuaternion<Real>& mqdt, const chrono::ChVector<Real>& qimm_dtdt);
-	chrono::ChVector<Real> GetXaxis();
+	chrono::ChVector<Real> GetXaxis() const;
+	chrono::ChVector<Real> GetYaxis() const;
+	chrono::ChVector<Real> GetZaxis() const;
 	void StreamOUT(chrono::ChStreamOutAscii& mstream);
 	void StreamOUT(chrono::ChStreamOutBinary& mstream);
 	void StreamIN(chrono::ChStreamInBinary& mstream);
