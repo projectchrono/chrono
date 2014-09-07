@@ -592,14 +592,41 @@ public:
 			      - mqdt.e0*mqdt.e0 - mqdt.e1*mqdt.e1 - mqdt.e2*mqdt.e2 - mqdt.e3*mqdt.e3) / mq.e0;
 		}
 
-		/// Gets the X axis of a coordsystem, given the quaternion which
-		/// represents the alignment of the coordsystem. Assuming that quaternion is already normalized!
-	ChVector<Real> GetXaxis()
-		{
-			return ChVector<Real> ( (e0*e0 + e1*e1)*2 - 1 ,
-			                        ((e1*e2) + (e0*e3))*2 ,
-			                        ((e1*e3) - (e0*e2))*2  );
-		}
+    /// Gets the X axis of a coordsystem, given the quaternion which represents
+    /// the alignment of the coordsystem. Note that it is assumed that the
+    /// quaternion is already normalized.
+  ChVector<Real> GetXaxis() const
+  {
+    return ChVector<Real>(
+      (e0*e0 + e1*e1) * 2 - 1,
+      (e1*e2 + e0*e3) * 2,
+      (e1*e3 - e0*e2) * 2
+      );
+  }
+
+  /// Gets the Y axis of a coordsystem, given the quaternion which represents
+  /// the alignment of the coordsystem. Note that it is assumed that the
+  /// quaternion is already normalized.
+  ChVector<Real> GetYaxis() const
+  {
+    return ChVector<Real>(
+      (e1*e2 - e0*e3) * 2,
+      (e0*e0 + e2*e2) * 2 - 1,
+      (e2*e3 + e0*e1) * 2
+      );
+  }
+
+  /// Gets the Z axis of a coordsystem, given the quaternion which represents
+  /// the alignment of the coordsystem. Note that it is assumed that the
+  /// quaternion is already normalized.
+  ChVector<Real> GetZaxis() const
+  {
+    return ChVector<Real>(
+      (e1*e3 + e0*e2) * 2,
+      (e2*e3 - e0*e1) * 2,
+      (e0*e0 + e3*e3) * 2 - 1
+      );
+  }
 
 
 	//
