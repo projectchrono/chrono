@@ -52,6 +52,7 @@ ChIrrGuiDriver::ChIrrGuiDriver(ChIrrApp&         app,
   m_terrainHeight(0),
   m_throttleDelta(1.0/50),
   m_steeringDelta(1.0/50),
+  m_brakingDelta(1.0/50),
   m_camera(car.GetChassis())
 {
   app.SetUserEventReceiver(this);
@@ -91,9 +92,13 @@ bool ChIrrGuiDriver::OnEvent(const SEvent& event)
       return true;
     case KEY_KEY_W:
       setThrottle(m_throttle + m_throttleDelta);
+	  if (m_throttle >0)
+			setBraking(m_braking - m_brakingDelta*3.0);
       return true;
     case KEY_KEY_S:
-      setThrottle(m_throttle - m_throttleDelta);
+      setThrottle(m_throttle - m_throttleDelta*3.0);
+	  if (m_throttle <=0)
+			setBraking(m_braking + m_brakingDelta);
       return true;
 
     case KEY_DOWN:
@@ -265,9 +270,12 @@ void ChIrrGuiDriver::renderStats()
   sprintf(msg, "Throttle: %+.2f", m_throttle*100.);
   renderLinGauge(std::string(msg), m_throttle, false, m_HUD_x, m_HUD_y + 60, 120, 15);
 
+  sprintf(msg, "Braking: %+.2f", m_braking*100.);
+  renderLinGauge(std::string(msg), m_braking, false, m_HUD_x, m_HUD_y + 80, 120, 15);
+
   double speed = m_car.GetVehicleSpeed();
   sprintf(msg, "Speed: %+.2f", speed);
-  renderLinGauge(std::string(msg), speed/30, false, m_HUD_x, m_HUD_y + 80, 120, 15);
+  renderLinGauge(std::string(msg), speed/30, false, m_HUD_x, m_HUD_y + 100, 120, 15);
 
   ChPowertrain* ptrain = m_car.m_powertrain;
 

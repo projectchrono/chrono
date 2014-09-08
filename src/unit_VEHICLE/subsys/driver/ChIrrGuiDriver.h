@@ -64,6 +64,7 @@ public:
 
   void SetThrottleDelta(double delta)  { m_throttleDelta = delta; }
   void SetSteeringDelta(double delta)  { m_steeringDelta = delta; }
+  void SetBrakingDelta (double delta)  { m_brakingDelta = delta; }
 private:
 
   void renderSprings();
@@ -86,6 +87,7 @@ private:
   double m_terrainHeight;
   double m_throttleDelta;
   double m_steeringDelta;
+  double m_brakingDelta;
 
   int  m_HUD_x;
   int  m_HUD_y;
