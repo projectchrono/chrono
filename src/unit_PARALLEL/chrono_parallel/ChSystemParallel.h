@@ -96,7 +96,9 @@ CH_RTTI(ChSystemParallel, ChSystem)
    double GetTimerCollision() {
       return timer_collision;
    }
-
+   settings_container * GetSettings() {
+      return &(data_manager->settings);
+   }
    ChParallelDataManager *data_manager;
 
  private:
@@ -117,7 +119,9 @@ CH_RTTI(ChSystemParallelDVI, ChSystemParallel)
 
  public:
    ChSystemParallelDVI(unsigned int max_objects = 1000);
-
+   void ChangeSolverType(GPUSOLVERTYPE type) {
+      ((ChLcpSolverParallelDVI *) (LCP_solver_speed))->ChangeSolverType(type);
+   }
    virtual void LoadMaterialSurfaceData(ChSharedPtr<ChBody> newbody);
    virtual void UpdateBodies();
    virtual void AssembleSystem();

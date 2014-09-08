@@ -29,10 +29,11 @@ using blaze::CompressedMatrix;
 namespace chrono {
 struct collision_settings {
    collision_settings() {
-      max_body_per_bin = 100;
-      min_body_per_bin = 20;
+      max_body_per_bin = 50;
+      min_body_per_bin = 25;
       use_aabb_active = 0;
       collision_envelope = 0;
+      bins_per_axis = I3(20,20,20);
    }
 
    //Collision variables
@@ -42,6 +43,7 @@ struct collision_settings {
    int min_body_per_bin;
    int max_body_per_bin;
    real3 aabb_min, aabb_max;
+   int3 bins_per_axis;
 
 };
 

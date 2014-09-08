@@ -110,7 +110,7 @@ class CH_PARALLEL_API ChLcpSolverParallelDVI : public ChLcpSolverParallel {
    void SetCompliance(real a) {
       data_container->settings.solver.alpha = a;
    }
-   void SetSolverType(GPUSOLVERTYPE type) {
+   void ChangeSolverType(GPUSOLVERTYPE type) {
       data_container->settings.solver.solver_type = type;
 
       if (this->solver) {
@@ -148,19 +148,6 @@ class CH_PARALLEL_API ChLcpSolverParallelDVI : public ChLcpSolverParallel {
 
    }
 
-   void SetSolverMode(SOLVERMODE mode) {
-      data_container->settings.solver.solver_mode = mode;
-   }
-
-   void SetMaxIterationNormal(uint max_iter) {
-      data_container->settings.solver.max_iteration_normal = max_iter;
-   }
-   void SetMaxIterationSliding(uint max_iter) {
-      data_container->settings.solver.max_iteration_sliding = max_iter;
-   }
-   void SetMaxIterationSpinning(uint max_iter) {
-      data_container->settings.solver.max_iteration_spinning = max_iter;
-   }
    void SetMaxIteration(uint max_iter) {
       data_container->settings.solver.max_iteration = max_iter;
       data_container->settings.solver.max_iteration_normal = max_iter;
