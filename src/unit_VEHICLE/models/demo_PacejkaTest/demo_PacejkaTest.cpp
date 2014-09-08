@@ -154,8 +154,10 @@ int main(int argc, char* argv[])
   // NOTE: this is not exact, since we do not render quite at the specified FPS.
   double steering_time = 1.0;  // time to go from 0 to +1 (or from 0 to -1)
   double throttle_time = 1.0;  // time to go from 0 to +1
+  double braking_time = 0.3;   // time to go from 0 to +1
   driver.SetSteeringDelta(1 / (steering_time * FPS));
   driver.SetThrottleDelta(1 / (throttle_time * FPS));
+  driver.SetBrakingDelta(1 / (braking_time * FPS));
 
   // Set up the assets for rendering
   application.AssetBindAll();
@@ -219,7 +221,7 @@ int main(int argc, char* argv[])
 
     // for now, use the rigid tire to drive the vehicle,
     // compare the output from the pacTire
-    vehicle.Update(time, driver.getThrottle(), driver.getSteering(), rigidTire_forces);
+    vehicle.Update(time, driver.getThrottle(), driver.getSteering(), driver.getBraking(), rigidTire_forces);
 
     // Advance simulation for one timestep for all modules
     double step = realtime_timer.SuggestSimulationStep(step_size);

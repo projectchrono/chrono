@@ -143,6 +143,16 @@ void HMMWV_Vehicle::Initialize(const ChCoordsys<>& chassisPos)
 
   // Initialize the powertrain subsystem
   m_powertrain->Initialize(m_chassis, m_driveline->GetDriveshaft());
+
+  // Create & initialize, at once, the four brakes
+  m_front_right_brake = ChSharedPtr<ChBrakeSimple>(new ChBrakeSimple(m_front_susp->GetRevolute(ChSuspension::RIGHT)));
+  m_front_left_brake = ChSharedPtr<ChBrakeSimple>(new ChBrakeSimple(m_front_susp->GetRevolute(ChSuspension::LEFT)));
+  m_rear_right_brake = ChSharedPtr<ChBrakeSimple>(new ChBrakeSimple(m_rear_susp->GetRevolute(ChSuspension::RIGHT)));
+  m_rear_left_brake = ChSharedPtr<ChBrakeSimple>(new ChBrakeSimple(m_rear_susp->GetRevolute(ChSuspension::LEFT)));
+  m_front_right_brake->SetMaxBrakingTorque(4000);
+  m_front_left_brake->SetMaxBrakingTorque(4000);
+  m_rear_right_brake->SetMaxBrakingTorque(4000);
+  m_rear_left_brake->SetMaxBrakingTorque(4000);
 }
 
 
@@ -285,6 +295,7 @@ double HMMWV_Vehicle::GetSpringLength(chrono::ChWheelId which)
 void HMMWV_Vehicle::Update(double              time,
                            double              throttle,
                            double              steering,
+                           double              braking,
                            const ChTireForces& tire_forces)
 {
   // Apply steering input.
@@ -300,6 +311,12 @@ void HMMWV_Vehicle::Update(double              time,
   m_front_susp->ApplyTireForce(ChSuspension::LEFT, tire_forces[FRONT_LEFT]);
   m_rear_susp->ApplyTireForce(ChSuspension::RIGHT, tire_forces[REAR_RIGHT]);
   m_rear_susp->ApplyTireForce(ChSuspension::LEFT, tire_forces[REAR_LEFT]);
+
+  // Apply braking
+  m_front_right_brake->ApplyBrakeModulation(braking);
+  m_front_left_brake->ApplyBrakeModulation(braking);
+  m_rear_right_brake->ApplyBrakeModulation(braking);
+  m_rear_left_brake->ApplyBrakeModulation(braking);
 }
 
 

@@ -260,7 +260,7 @@ double HMMWV_VehicleReduced::GetWheelOmega(ChWheelId which) const
 void HMMWV_VehicleReduced::Update(double              time,
                                   double              throttle,
                                   double              steering,
-								  double              braking,
+                                  double              braking,
                                   const ChTireForces& tire_forces)
 {
   // Apply steering input.

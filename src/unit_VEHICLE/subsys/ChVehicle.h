@@ -74,7 +74,7 @@ public:
   virtual void Update(double              time,
                       double              throttle,
                       double              steering,
-					  double              braking,
+                      double              braking,
                       const ChTireForces& tire_forces) {}
   virtual void Advance(double step);
 

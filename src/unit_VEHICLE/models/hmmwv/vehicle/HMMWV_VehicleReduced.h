@@ -34,7 +34,6 @@
 namespace hmmwv {
 
 // Forward reference
-class HMMWV_SimplePowertrain;
 class HMMWV_Powertrain;
 
 class HMMWV_VehicleReduced : public chrono::ChVehicle {
@@ -58,7 +57,7 @@ public:
   virtual void Update(double                      time,
                       double                      throttle,
                       double                      steering,
-					  double                      braking,
+                      double                      braking,
                       const chrono::ChTireForces& tire_forces);
 
   static void ExportMeshPovray(const std::string& out_dir);
