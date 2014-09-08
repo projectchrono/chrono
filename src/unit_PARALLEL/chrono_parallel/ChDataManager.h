@@ -18,7 +18,6 @@
 // a data manager is more convenient from a development perspective.
 // =============================================================================
 
-
 #ifndef CH_DATAMANAGER_H
 #define CH_DATAMANAGER_H
 
@@ -28,7 +27,81 @@
 #include <blaze/math/CompressedMatrix.h>
 using blaze::CompressedMatrix;
 namespace chrono {
+struct collision_settings {
+   collision_settings() {
+      max_body_per_bin = 100;
+      min_body_per_bin = 20;
+      use_aabb_active = 0;
+      collision_envelope = 0;
+   }
 
+   //Collision variables
+   real3 min_bounding_point, max_bounding_point;
+   real collision_envelope;
+   bool use_aabb_active;
+   int min_body_per_bin;
+   int max_body_per_bin;
+   real3 aabb_min, aabb_max;
+
+};
+
+struct solver_settings {
+
+   solver_settings() {
+      tolerance = 1e-6;
+      collision_in_solver = false;
+      update_rhs = false;
+      verbose = false;
+      tolerance_objective = false;
+
+      alpha = .2;
+      contact_recovery_speed = .6;
+      perform_stabilation = false;
+      collision_in_solver = false;
+
+      max_iteration = 100;
+      max_iteration_normal = 0;
+      max_iteration_sliding = 100;
+      max_iteration_spinning = 0;
+      max_iteration_bilateral = 100;
+
+      solver_type = APGD;
+      solver_mode = SLIDING;
+      step_size = .01;
+   }
+
+   GPUSOLVERTYPE solver_type;
+   SOLVERMODE solver_mode;
+   real alpha;
+
+   real contact_recovery_speed;
+   bool perform_stabilation;
+   bool collision_in_solver;
+   bool update_rhs;
+   bool verbose;
+   bool tolerance_objective;
+
+   uint max_iteration;
+   uint max_iteration_normal;
+   uint max_iteration_sliding;
+   uint max_iteration_spinning;
+   uint max_iteration_bilateral;
+
+   //Solver variables
+   real step_size;
+   real tolerance;
+
+};
+
+struct settings_container {
+
+   //CD Settings
+   collision_settings collision;
+   //Solver Settings
+   solver_settings solver;
+   //System Settings
+
+};
 struct host_container {
    //collision data
    thrust::host_vector<real3> ObA_rigid;
@@ -98,9 +171,7 @@ struct host_container {
    thrust::host_vector<int2> bids_bilateral;
    thrust::host_vector<real> gamma_bilateral;
 
-
    CompressedMatrix<real> Nshur, D, D_T, M_inv, M_invD;
-
 
 //			thrust::host_vector<real3> JXYZA_fluid_fluid, JXYZB_fluid_fluid;
 //			thrust::host_vector<real3> JXYZA_rigid_fluid, JXYZB_rigid_fluid, JUVWB_rigid_fluid;
@@ -126,19 +197,12 @@ class CH_PARALLEL_API ChParallelDataManager {
    uint num_bilaterals;
    uint num_constraints;
 
-   //Collision variables
-   real3 min_bounding_point, max_bounding_point;
-   real collision_envelope;
-
    // Flag indicating whether or not effective contact radius is calculated
    bool erad_is_set;
 
-   //Solver variables
-   real step_size;
-   real alpha;
-   real contact_recovery_speed;
-
    ChTimerParallel system_timer;
+
+   settings_container settings;
 
    //real fluid_rad;
 };

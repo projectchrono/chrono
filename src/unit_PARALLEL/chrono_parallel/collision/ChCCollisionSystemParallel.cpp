@@ -14,10 +14,6 @@ namespace chrono {
 namespace collision {
 
 ChCollisionSystemParallel::ChCollisionSystemParallel() {
-   collision_envelope = 0;
-   max_body_per_bin = 100;
-   min_body_per_bin = 20;
-   use_aabb_active = 0;
    data_container = 0;
    // Default broadphase and narrowphase processing.
    broadphase = new ChCBroadphase;
@@ -39,7 +35,7 @@ void ChCollisionSystemParallel::Add(ChCollisionModel *model) {
          real3 obA = body->mData[j].A;
          real3 obB = body->mData[j].B;
          if (body->mData[j].type != TRIANGLEMESH) {
-            obB += R3(collision_envelope);
+            obB += R3(data_container->settings.collision.collision_envelope);
          }
          real3 obC = body->mData[j].C;
          real4 obR = body->mData[j].R;
@@ -78,9 +74,9 @@ void ChCollisionSystemParallel::Remove(ChCollisionModel *model) {
 
 void ChCollisionSystemParallel::Run() {
 
-   if (use_aabb_active) {
+   if (data_container->settings.collision.use_aabb_active) {
       custom_vector<bool> body_active(data_container->num_bodies, false);
-      GetOverlappingAABB(body_active, aabb_min, aabb_max);
+      GetOverlappingAABB(body_active, data_container->settings.collision.aabb_min, data_container->settings.collision.aabb_max);
       for (int i = 0; i < data_container->host_data.active_data.size(); i++) {
          if (data_container->host_data.active_data[i] == true && data_container->host_data.collide_data[i] == true) {
             data_container->host_data.active_data[i] = body_active[i];
@@ -107,8 +103,7 @@ void ChCollisionSystemParallel::Run() {
    data_container->system_timer.stop("collision_broad");
 
    data_container->system_timer.start("collision_narrow");
-   data_container->collision_envelope = collision_envelope;
-   narrowphase->SetCollisionEnvelope(collision_envelope);
+   narrowphase->SetCollisionEnvelope(data_container->settings.collision.collision_envelope);
    narrowphase->Process(data_container);
    data_container->system_timer.stop("collision_narrow");
 

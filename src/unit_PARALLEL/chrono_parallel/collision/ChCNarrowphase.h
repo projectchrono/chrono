@@ -10,7 +10,7 @@ namespace collision {
 
 class CH_PARALLEL_API ChCNarrowphase {
 public:
-	         ChCNarrowphase() : collision_envelope(0), total_possible_contacts(0) {}
+	         ChCNarrowphase() :  total_possible_contacts(0) {}
 	virtual ~ChCNarrowphase() {}
 
 	virtual void Process(ChParallelDataManager* data_container) = 0;

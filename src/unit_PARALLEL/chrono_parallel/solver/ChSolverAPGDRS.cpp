@@ -218,10 +218,10 @@ uint ChSolverAPGDRS::SolveAPGDRS(const uint max_iter,
 
       residual = lastgoodres;
       //CompRes(b,num_contacts);     //NormInf(ms);
-      if (update_rhs) {
+      if (data_container->settings.solver.update_rhs) {
          ComputeSRhs(ml_candidate, rhs, vel_data, omg_data, b);
       }
-      if (collision_inside) {
+      if (data_container->settings.solver.collision_in_solver) {
          UpdatePosition(ml_candidate);
          UpdateContacts();
       }
@@ -237,15 +237,15 @@ uint ChSolverAPGDRS::SolveAPGDRS(const uint max_iter,
       }
 
       //cout << "delta_obj " << delta_obj<<" "<< residual<<" "<<current_iteration<< endl;
-      if (tol_objective) {
-         if (objective_value <= tolerance) {
+      if (data_container->settings.solver.tolerance_objective) {
+         if (objective_value <= data_container->settings.solver.tolerance) {
             break;
          } //else if (delta_obj < 1e-12) {
             //cout << "convergence stagnated" << endl;
          //   break;
          //}
       } else {
-         if (residual < tolerance) {
+         if (residual < data_container->settings.solver.tolerance) {
             break;
          }
       }

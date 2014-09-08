@@ -4,14 +4,14 @@
 using namespace chrono;
 
 void ChLcpSolverParallelDVI::RunTimeStep(real step) {
-   data_container->step_size = step;
-   if (solver_mode == NORMAL) {
+   data_container->settings.solver.step_size = step;
+   if (data_container->settings.solver.solver_mode == NORMAL) {
       rigid_rigid.offset = 1;
       data_container->num_unilaterals = 1 * data_container->num_contacts;
-   } else if (solver_mode == SLIDING) {
+   } else if (data_container->settings.solver.solver_mode == SLIDING) {
       rigid_rigid.offset = 3;
       data_container->num_unilaterals = 3 * data_container->num_contacts;
-   } else if (solver_mode == SPINNING) {
+   } else if (data_container->settings.solver.solver_mode == SPINNING) {
       rigid_rigid.offset = 6;
       data_container->num_unilaterals = 6 * data_container->num_contacts;
    }
@@ -40,17 +40,11 @@ void ChLcpSolverParallelDVI::RunTimeStep(real step) {
    solver->maxdeltalambda_hist.clear();
    solver->iter_hist.clear();
 
-   solver->SetMaxIterations(max_iteration);
-   solver->SetTolerance(tolerance);
-
    solver->rigid_rigid = &rigid_rigid;
    solver->bilateral = &bilateral;
-   solver->do_stab = do_stab;
-   solver->update_rhs = update_rhs;
-   solver->collision_inside = collision_inside;
    solver->Setup(data_container);
    data_container->system_timer.stop("ChLcpSolverParallel_Setup");
-   if (collision_inside) {
+   if (data_container->settings.solver.collision_in_solver) {
       data_container->host_data.vel_new_data = data_container->host_data.vel_data;
       data_container->host_data.omg_new_data = data_container->host_data.omg_data;
 
@@ -72,24 +66,24 @@ void ChLcpSolverParallelDVI::RunTimeStep(real step) {
    custom_vector<real> rhs_bilateral(data_container->num_bilaterals, 0);
    thrust::copy_n(data_container->host_data.rhs_data.begin() + data_container->num_unilaterals, data_container->num_bilaterals, rhs_bilateral.begin());
 
-   if (max_iter_bilateral > 0) {
+   if (data_container->settings.solver.max_iteration_bilateral > 0) {
       data_container->system_timer.start("ChLcpSolverParallel_Stab");
       //thrust::copy_n(data_container->host_data.gamma_data.begin() + data_container->num_unilaterals, data_container->num_bilaterals, data_container->host_data.gamma_bilateral.begin());
-      solver->SolveStab(max_iter_bilateral, data_container->num_bilaterals, rhs_bilateral, data_container->host_data.gamma_bilateral);
+      solver->SolveStab(data_container->settings.solver.max_iteration_bilateral, data_container->num_bilaterals, rhs_bilateral, data_container->host_data.gamma_bilateral);
       data_container->system_timer.stop("ChLcpSolverParallel_Stab");
       thrust::copy_n(data_container->host_data.gamma_bilateral.begin(), data_container->num_bilaterals,
                      data_container->host_data.gamma_data.begin() + data_container->num_unilaterals);
    }
-   if (solver_type != APGD || solver_type == APGDRS) {
+   if (data_container->settings.solver.solver_type != APGD || data_container->settings.solver.solver_type == APGDRS) {
       //std::cout << "Compute N" << std::endl;
       ComputeN();
    }
 
    //solve normal
-   if (solver_mode == NORMAL || solver_mode == SLIDING || solver_mode == SPINNING) {
+   if (data_container->settings.solver.solver_mode == NORMAL || data_container->settings.solver.solver_mode == SLIDING || data_container->settings.solver.solver_mode == SPINNING) {
 
-      if (max_iter_normal > 0) {
-         solver->SetMaxIterations(max_iter_normal);
+      if (data_container->settings.solver.max_iteration_normal > 0) {
+         solver->SetMaxIterations(data_container->settings.solver.max_iteration_normal);
          rigid_rigid.solve_sliding = false;
          rigid_rigid.solve_spinning = false;
          rigid_rigid.ComputeRHS();
@@ -98,9 +92,9 @@ void ChLcpSolverParallelDVI::RunTimeStep(real step) {
          data_container->system_timer.stop("ChLcpSolverParallel_Solve");
       }
    }
-   if (solver_mode == SLIDING || solver_mode == SPINNING) {
-      if (max_iter_sliding > 0) {
-         solver->SetMaxIterations(max_iter_sliding);
+   if (data_container->settings.solver.solver_mode == SLIDING || data_container->settings.solver.solver_mode == SPINNING) {
+      if (data_container->settings.solver.max_iteration_sliding > 0) {
+         solver->SetMaxIterations(data_container->settings.solver.max_iteration_sliding);
          rigid_rigid.solve_sliding = true;
          rigid_rigid.solve_spinning = false;
          rigid_rigid.ComputeRHS();
@@ -109,10 +103,10 @@ void ChLcpSolverParallelDVI::RunTimeStep(real step) {
          data_container->system_timer.stop("ChLcpSolverParallel_Solve");
       }
    }
-   if (solver_mode == SPINNING) {
-      if (max_iter_spinning > 0) {
+   if (data_container->settings.solver.solver_mode == SPINNING) {
+      if (data_container->settings.solver.max_iteration_spinning > 0) {
          //cout<<"Solve Full"<<endl;
-         solver->SetMaxIterations(max_iter_spinning);
+         solver->SetMaxIterations(data_container->settings.solver.max_iteration_spinning);
          rigid_rigid.solve_sliding = true;
          rigid_rigid.solve_spinning = true;
          rigid_rigid.ComputeRHS();
@@ -399,15 +393,15 @@ void ChLcpSolverParallelDVI::ComputeN() {
       data_container->host_data.M_inv.resize(data_container->num_bodies * 6, data_container->num_bodies * 6);
       data_container->host_data.M_inv.reserve(data_container->num_bodies * 6);
       data_container->host_data.D.resize(data_container->num_bodies * 6, data_container->num_constraints);
-      if (solver_mode == NORMAL) {
+      if (data_container->settings.solver.solver_mode == NORMAL) {
          data_container->host_data.D.reserve(data_container->num_contacts * 6 * 3 + data_container->num_bilaterals * 6 * 2);
-      } else if (solver_mode == SLIDING) {
+      } else if (data_container->settings.solver.solver_mode == SLIDING) {
          data_container->host_data.D.reserve(data_container->num_contacts * 6 * 6 + data_container->num_bilaterals * 6 * 2);
-      } else if (solver_mode == SPINNING) {
+      } else if (data_container->settings.solver.solver_mode == SPINNING) {
          data_container->host_data.D.reserve(data_container->num_contacts * 6 * 9 + data_container->num_bilaterals * 6 * 2);
       }
 
-      rigid_rigid.Build_D(solver_mode);
+      rigid_rigid.Build_D(data_container->settings.solver.solver_mode);
       bilateral.Build_D();
 
       for (int i = 0; i < data_container->num_bodies; i++) {

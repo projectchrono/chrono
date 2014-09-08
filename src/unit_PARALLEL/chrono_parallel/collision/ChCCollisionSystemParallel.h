@@ -112,10 +112,10 @@ class CH_PARALLEL_API ChCollisionSystemParallel : public ChCollisionSystem {
    }
 
    void SetCollisionEnvelope(const real &envelope) {
-      collision_envelope = envelope;
+      data_container->settings.collision.collision_envelope = envelope;
    }
    real GetCollisionEnvelope() {
-      return collision_envelope;
+      return data_container->settings.collision.collision_envelope;
    }
 
    std::vector<int2> GetOverlappingPairs();
@@ -128,24 +128,24 @@ class CH_PARALLEL_API ChCollisionSystemParallel : public ChCollisionSystem {
    }
    void setBodyPerBin(int max,
                       int min) {
-      min_body_per_bin = min;
-      max_body_per_bin = max;
-      broadphase->setBodyPerBin(max_body_per_bin, min_body_per_bin);
+      data_container->settings.collision.min_body_per_bin = min;
+      data_container->settings.collision.max_body_per_bin = max;
+      broadphase->setBodyPerBin(max, min);
 
    }
    void SetAABB(real3 aabbmin,
                 real3 aabbmax) {
-      aabb_min = aabbmin;
-      aabb_max = aabbmax;
-      use_aabb_active = true;
+      data_container->settings.collision.aabb_min = aabbmin;
+      data_container->settings.collision.aabb_max = aabbmax;
+      data_container->settings.collision.use_aabb_active = true;
    }
 
    bool GetAABB(real3 &aabbmin,
                 real3 &aabbmax) {
-      aabbmin = aabb_min;
-      aabbmax = aabb_max;
+      aabbmin = data_container->settings.collision.aabb_min;
+      aabbmax = data_container->settings.collision.aabb_max;
 
-      return use_aabb_active;
+      return data_container->settings.collision.use_aabb_active;
    }
    ChParallelDataManager *data_container;
 
@@ -155,14 +155,11 @@ class CH_PARALLEL_API ChCollisionSystemParallel : public ChCollisionSystem {
    ChCNarrowphase* narrowphase;
 
  private:
-   real collision_envelope;
    /// Update data structures to pass into GPU for collision detection
    //unsigned int counter;
 
-   int min_body_per_bin;
-   int max_body_per_bin;
-   real3 aabb_min, aabb_max;
-   bool use_aabb_active;
+
+
 
 };
 

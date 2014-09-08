@@ -30,7 +30,6 @@ uint ChSolverAPGDBlaze::SolveAPGDBlaze(const uint max_iter,
                                        custom_vector<real> &b,
                                        custom_vector<real> &x) {
 
-
    data_container->system_timer.start("ChSolverParallel_solverA");
    blaze::DynamicVector<real> one(size, 1.0);
 
@@ -168,12 +167,12 @@ uint ChSolverAPGDBlaze::SolveAPGDBlaze(const uint max_iter,
       //}
 
       AtIterationEnd(residual, objective_value, iter_hist.size());
-      if (tol_objective) {
-         if (objective_value <= tolerance) {
+      if (data_container->settings.solver.tolerance_objective) {
+         if (objective_value <= data_container->settings.solver.tolerance) {
             break;
          }
       } else {
-         if (residual < tolerance) {
+         if (residual < data_container->settings.solver.tolerance) {
             break;
          }
       }

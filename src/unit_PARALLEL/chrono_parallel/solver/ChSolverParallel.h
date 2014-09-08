@@ -167,10 +167,6 @@ class CH_PARALLEL_API ChSolverParallel : public ChBaseParallel {
       iter_hist.push_back(iter);
    }
 
-   // Set the tolerance for all solvers
-   void SetTolerance(const real tolerance_value) {
-      tolerance = tolerance_value;
-   }
 
    // Set the maximum number of iterations for all solvers
    void SetMaxIterations(const int max_iteration_value) {
@@ -181,16 +177,11 @@ class CH_PARALLEL_API ChSolverParallel : public ChBaseParallel {
    int max_iteration;     // The maximum number of iterations that the solver will perform
    int total_iteration;   // The total number of iterations performed, this variable accumulates
    real residual;         // Current residual for the solver
-   real tolerance;        // Solver tolerance
    real objective_value;
+
    //These three variables are used to store the convergence history of the solver
    thrust::host_vector<real> maxd_hist, maxdeltalambda_hist, iter_hist;
 
-   bool do_stab;           //There is an alternative velocity stab that can be performed in APGD, this enables that.
-   bool collision_inside;
-   bool update_rhs;        //Updates the tilting term within the solve
-   bool verbose;
-   bool tol_objective;
    ChConstraintRigidRigid *rigid_rigid;
    ChConstraintBilateral *bilateral;
 

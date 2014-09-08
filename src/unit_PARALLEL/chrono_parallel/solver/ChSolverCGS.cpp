@@ -33,7 +33,7 @@ uint ChSolverCGS::SolveCGS(const uint max_iter,
       normb = 1;
    }
 
-   if ((sqrt((r, r)) / normb) <= tolerance) {
+   if ((sqrt((r, r)) / normb) <= data_container->settings.solver.tolerance) {
       return 0;
    }
 
@@ -65,7 +65,7 @@ uint ChSolverCGS::SolveCGS(const uint max_iter,
       objective_value = GetObjectiveBlaze(ml, mb);
       AtIterationEnd(residual, objective_value, iter_hist.size());
 
-      if (residual < tolerance) {
+      if (residual < data_container->settings.solver.tolerance) {
          break;
       }
    }

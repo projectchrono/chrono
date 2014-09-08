@@ -25,7 +25,7 @@ uint ChSolverBiCG::SolveBiCG(const uint max_iter,
       normb = 1;
    }
 
-   if ((residual = std::sqrt((r, r)) / normb) <= tolerance) {
+   if ((residual = std::sqrt((r, r)) / normb) <= data_container->settings.solver.tolerance) {
       return 0;
    }
 
@@ -60,7 +60,7 @@ uint ChSolverBiCG::SolveBiCG(const uint max_iter,
       objective_value = GetObjectiveBlaze(ml, mb);
       AtIterationEnd(residual, objective_value, iter_hist.size());
 
-      if (residual < tolerance) {
+      if (residual < data_container->settings.solver.tolerance) {
          break;
       }
 

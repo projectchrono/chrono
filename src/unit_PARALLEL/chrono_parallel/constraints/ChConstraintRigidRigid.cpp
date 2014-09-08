@@ -475,7 +475,7 @@ void ChConstraintRigidRigid::ComputeRHS() {
       data_container->host_data.fric_rigid_rigid[i] = mu;
 
    }
-   host_RHS(data_container->host_data.bids_rigid_rigid.data(), data_container->host_data.dpth_rigid_rigid.data(), data_container->alpha, contact_active_pairs.data(),
+   host_RHS(data_container->host_data.bids_rigid_rigid.data(), data_container->host_data.dpth_rigid_rigid.data(), data_container->settings.solver.alpha, contact_active_pairs.data(),
             data_container->host_data.norm_rigid_rigid.data(), data_container->host_data.vel_data.data(), data_container->host_data.omg_data.data(),
             data_container->host_data.cpta_rigid_rigid.data(), data_container->host_data.cptb_rigid_rigid.data(), contact_rotation.data(),
             data_container->host_data.rhs_data.data());
@@ -487,7 +487,7 @@ void ChConstraintRigidRigid::ComputeRHS() {
 }
 
 void ChConstraintRigidRigid::UpdateRHS() {
-   host_RHS(data_container->host_data.bids_rigid_rigid.data(), data_container->host_data.dpth_rigid_rigid.data(), data_container->alpha, contact_active_pairs.data(),
+   host_RHS(data_container->host_data.bids_rigid_rigid.data(), data_container->host_data.dpth_rigid_rigid.data(), data_container->settings.solver.alpha, contact_active_pairs.data(),
             data_container->host_data.norm_rigid_rigid.data(), data_container->host_data.vel_new_data.data(), data_container->host_data.omg_new_data.data(),
             data_container->host_data.cpta_rigid_rigid.data(), data_container->host_data.cptb_rigid_rigid.data(), contact_rotation.data(),
             data_container->host_data.rhs_data.data());
@@ -977,20 +977,20 @@ void ChConstraintRigidRigid::ShurB(real*x,
 
    if (solve_spinning) {
       data_container->system_timer.start("ChConstraintRigidRigid_shurB_spinning");
-      host_shurB_spinning(data_container->alpha, data_container->host_data.bids_rigid_rigid.data(), contact_active_pairs.data(), data_container->host_data.norm_rigid_rigid.data(),
+      host_shurB_spinning(data_container->settings.solver.alpha, data_container->host_data.bids_rigid_rigid.data(), contact_active_pairs.data(), data_container->host_data.norm_rigid_rigid.data(),
                           comp_rigid_rigid.data(), x, data_container->host_data.cpta_rigid_rigid.data(), data_container->host_data.cptb_rigid_rigid.data(), contact_rotation.data(),
                           data_container->host_data.QXYZ_data.data(), data_container->host_data.QUVW_data.data(), output);
       data_container->system_timer.stop("ChConstraintRigidRigid_shurB_spinning");
    } else if (solve_sliding) {
       data_container->system_timer.start("ChConstraintRigidRigid_shurB_sliding");
-      host_shurB_sliding(data_container->alpha, data_container->host_data.bids_rigid_rigid.data(), contact_active_pairs.data(), data_container->host_data.norm_rigid_rigid.data(),
+      host_shurB_sliding(data_container->settings.solver.alpha, data_container->host_data.bids_rigid_rigid.data(), contact_active_pairs.data(), data_container->host_data.norm_rigid_rigid.data(),
                          comp_rigid_rigid.data(), x, data_container->host_data.cpta_rigid_rigid.data(), data_container->host_data.cptb_rigid_rigid.data(), contact_rotation.data(),
                          data_container->host_data.QXYZ_data.data(), data_container->host_data.QUVW_data.data(), output);
       data_container->system_timer.stop("ChConstraintRigidRigid_shurB_sliding");
 
    } else {
       data_container->system_timer.start("ChConstraintRigidRigid_shurB_normal");
-      host_shurB_normal(data_container->alpha, data_container->host_data.bids_rigid_rigid.data(), contact_active_pairs.data(), data_container->host_data.norm_rigid_rigid.data(),
+      host_shurB_normal(data_container->settings.solver.alpha, data_container->host_data.bids_rigid_rigid.data(), contact_active_pairs.data(), data_container->host_data.norm_rigid_rigid.data(),
                         comp_rigid_rigid.data(), x, JUA_rigid_rigid.data(), JUB_rigid_rigid.data(), data_container->host_data.QXYZ_data.data(),
                         data_container->host_data.QUVW_data.data(), output);
       data_container->system_timer.stop("ChConstraintRigidRigid_shurB_normal");

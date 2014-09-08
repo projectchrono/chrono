@@ -23,8 +23,8 @@ uint ChSolverMinRes::SolveMinRes(const uint max_iter,
    }
 
    real grad_diffstep = 0.01;
-   double rel_tol = tolerance;
-   double abs_tol = tolerance;
+   double rel_tol = data_container->settings.solver.tolerance;
+   double abs_tol = data_container->settings.solver.tolerance;
 
    double rel_tol_b = NormInf(b) * rel_tol;
    //ml = x;
@@ -54,7 +54,7 @@ uint ChSolverMinRes::SolveMinRes(const uint max_iter,
       double zNMr = Dot(mz, mNMr);
       double MNpNp = Dot(mMNp, mNp);
       if (fabs(MNpNp) < 10e-30) {
-         if (verbose) {
+         if (data_container->settings.solver.verbose) {
             std::cout << "Iter=" << current_iteration << " Rayleygh quotient alpha breakdown: " << zNMr << " / " << MNpNp << "\n";
          }
          MNpNp = 10e-12;
@@ -81,7 +81,7 @@ uint ChSolverMinRes::SolveMinRes(const uint max_iter,
       residual = sqrt((mr, mr));
 
       if (residual < std::max(rel_tol_b, abs_tol)) {
-         if (verbose) {
+         if (data_container->settings.solver.verbose) {
             std::cout << "Iter=" << current_iteration << " P(r)-converged!  |P(r)|=" << residual << "\n";
          }
          break;
@@ -100,7 +100,7 @@ uint ChSolverMinRes::SolveMinRes(const uint max_iter,
       double beta = numerator / numerator;
 
       if (fabs(denominator) < 10e-30 || fabs(numerator) < 10e-30) {
-         if (verbose) {
+         if (data_container->settings.solver.verbose) {
             std::cout << "Iter=" << current_iteration << " Ribiere quotient beta restart: " << numerator << " / " << denominator << "\n";
          }
          beta = 0;

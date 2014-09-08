@@ -165,7 +165,7 @@ ChLcpSolverParallelDEM::host_CalcContactForces(
   for (int index = 0; index < data_container->num_contacts; index++) {
     function_CalcContactForces(
       index,
-      data_container->step_size,
+      data_container->settings.solver.step_size,
       data_container->host_data.pos_data.data(),
       data_container->host_data.rot_data.data(),
       data_container->host_data.vel_data.data(),
@@ -203,8 +203,8 @@ ChLcpSolverParallelDEM::host_AddContactForces(
 {
 #pragma omp parallel for
   for (int index = 0; index < ct_body_count; index++) {
-    data_container->host_data.frc_data[ct_body_id[index]] += data_container->step_size * ct_body_force[index];
-    data_container->host_data.trq_data[ct_body_id[index]] += data_container->step_size * ct_body_torque[index];
+    data_container->host_data.frc_data[ct_body_id[index]] += data_container->settings.solver.step_size * ct_body_force[index];
+    data_container->host_data.trq_data[ct_body_id[index]] += data_container->settings.solver.step_size * ct_body_torque[index];
   }
 }
 
@@ -273,7 +273,7 @@ void ChLcpSolverParallelDEM::ProcessContacts()
 void
 ChLcpSolverParallelDEM::RunTimeStep(real step)
 {
-  data_container->step_size = step;
+   data_container->settings.solver.step_size = step;
 
   data_container->num_unilaterals = 0;
   data_container->num_constraints = data_container->num_bilaterals;
@@ -309,8 +309,6 @@ ChLcpSolverParallelDEM::RunTimeStep(real step)
   solver->maxdeltalambda_hist.clear();     ////  currently not used
   solver->iter_hist.clear();               ////
 
-  solver->SetTolerance(tolerance);
-
   solver->bilateral = &bilateral;
   solver->Setup(data_container);
 
@@ -330,7 +328,7 @@ ChLcpSolverParallelDEM::RunTimeStep(real step)
 
   // Calculate velocity corrections
   data_container->system_timer.start("ChLcpSolverParallel_Stab");
-  solver->SolveStab(max_iter_bilateral,
+  solver->SolveStab(data_container->settings.solver.max_iteration_bilateral,
                    data_container->num_bilaterals,
                    data_container->host_data.rhs_data,
                    data_container->host_data.gamma_bilateral);
