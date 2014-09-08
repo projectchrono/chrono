@@ -16,8 +16,8 @@ SET(Chrono_Subsys_FILES
     ChDriveline.cpp
     ChSuspension.h
     ChSuspension.cpp
-	ChSteering.h
-	ChSteering.cpp
+    ChSteering.h
+    ChSteering.cpp
     ChVehicle.h
     ChVehicle.cpp
     ChWheel.h
@@ -47,8 +47,8 @@ SET(Chrono_Wheel_FILES
 )
 
 SET(Chrono_Steering_FILES
-	steering/ChPitmanArm.h
-	steering/ChPitmanArm.cpp
+    steering/ChPitmanArm.h
+    steering/ChPitmanArm.cpp
 )
 
 SET(Chrono_Driveline_FILES
@@ -57,8 +57,8 @@ SET(Chrono_Driveline_FILES
     driveline/ChShaftsDriveline4WD.h
     driveline/ChShaftsDriveline4WD.cpp
 
-	driveline/ShaftsDriveline2WD.h
-	driveline/ShaftsDriveline2WD.cpp
+    driveline/ShaftsDriveline2WD.h
+    driveline/ShaftsDriveline2WD.cpp
 )
 
 SET(Chrono_Driver_FILES
@@ -85,6 +85,9 @@ SET(Chrono_Tire_FILES
 SET(Chrono_Brake_FILES
     brake/ChBrakeSimple.h
     brake/ChBrakeSimple.cpp
+
+    brake/BrakeSimple.h
+    brake/BrakeSimple.cpp
 )
 
 

@@ -28,6 +28,7 @@
 #include "subsys/suspension/DoubleWishbone.h"
 #include "subsys/driveline/ShaftsDriveline2WD.h"
 #include "subsys/wheel/Wheel.h"
+#include "subsys/brake/BrakeSimple.h"
 
 #include "models/hmmwv/HMMWV.h"
 #include "models/hmmwv/powertrain/HMMWV_Powertrain.h"
@@ -60,6 +61,7 @@ public:
   virtual void Update(double                      time,
                       double                      throttle,
                       double                      steering,
+                      double                      braking,
                       const chrono::ChTireForces& tire_forces);
 
   static void ExportMeshPovray(const std::string& out_dir);
@@ -80,6 +82,11 @@ private:
 
   chrono::ChSharedPtr<chrono::ShaftsDriveline2WD> m_driveline;
   chrono::ChSharedPtr<HMMWV_Powertrain>   m_powertrain;
+
+  chrono::ChSharedPtr<chrono::BrakeSimple> m_front_right_brake;
+  chrono::ChSharedPtr<chrono::BrakeSimple> m_front_left_brake;
+  chrono::ChSharedPtr<chrono::BrakeSimple> m_rear_right_brake;
+  chrono::ChSharedPtr<chrono::BrakeSimple> m_rear_left_brake;
 
   // Chassis visualization mesh
   static const std::string m_chassisMeshName;

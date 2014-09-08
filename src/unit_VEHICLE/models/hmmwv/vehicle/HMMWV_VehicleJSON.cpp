@@ -97,16 +97,16 @@ HMMWV_VehicleJSON::HMMWV_VehicleJSON(const bool        fixed,
   // -------------------------------------------
 
   m_front_susp = ChSharedPtr<DoubleWishbone>(new DoubleWishbone(utils::GetModelDataFile("hmmwv/suspension/HMMWV_DoubleWishboneFront.json")));
-  m_rear_susp = ChSharedPtr<DoubleWishbone>(new DoubleWishbone(utils::GetModelDataFile("hmmwv/suspension/HMMWV_DoubleWishboneRear.json")));
+  m_rear_susp  = ChSharedPtr<DoubleWishbone>(new DoubleWishbone(utils::GetModelDataFile("hmmwv/suspension/HMMWV_DoubleWishboneRear.json")));
 
   // -----------------
   // Create the wheels
   // -----------------
 
   m_front_right_wheel = ChSharedPtr<Wheel>(new Wheel(utils::GetModelDataFile("hmmwv/wheel/HMMWV_Wheel_FrontRight.json")));
-  m_front_left_wheel = ChSharedPtr<Wheel>(new Wheel(utils::GetModelDataFile("hmmwv/wheel/HMMWV_Wheel_FrontLeft.json")));
-  m_rear_right_wheel = ChSharedPtr<Wheel>(new Wheel(utils::GetModelDataFile("hmmwv/wheel/HMMWV_Wheel_RearRight.json")));
-  m_rear_left_wheel = ChSharedPtr<Wheel>(new Wheel(utils::GetModelDataFile("hmmwv/wheel/HMMWV_Wheel_RearLeft.json")));
+  m_front_left_wheel  = ChSharedPtr<Wheel>(new Wheel(utils::GetModelDataFile("hmmwv/wheel/HMMWV_Wheel_FrontLeft.json")));
+  m_rear_right_wheel  = ChSharedPtr<Wheel>(new Wheel(utils::GetModelDataFile("hmmwv/wheel/HMMWV_Wheel_RearRight.json")));
+  m_rear_left_wheel   = ChSharedPtr<Wheel>(new Wheel(utils::GetModelDataFile("hmmwv/wheel/HMMWV_Wheel_RearLeft.json")));
 
   // ----------------------------------------------
   // Create the driveline and powertrain subsystems
@@ -114,6 +114,14 @@ HMMWV_VehicleJSON::HMMWV_VehicleJSON(const bool        fixed,
 
   m_driveline = ChSharedPtr<ShaftsDriveline2WD>(new ShaftsDriveline2WD(this, utils::GetModelDataFile("hmmwv/driveline/HMMWV_Driveline2WD.json")));
   m_powertrain = ChSharedPtr<HMMWV_Powertrain>(new HMMWV_Powertrain(this));
+
+  // -----------------
+  // Create the brakes
+  // -----------------
+  m_front_right_brake = ChSharedPtr<BrakeSimple>(new BrakeSimple(utils::GetModelDataFile("hmmwv/brake/HMMWV_BrakeSimple_Front.json")));
+  m_front_left_brake  = ChSharedPtr<BrakeSimple>(new BrakeSimple(utils::GetModelDataFile("hmmwv/brake/HMMWV_BrakeSimple_Front.json")));
+  m_rear_right_brake  = ChSharedPtr<BrakeSimple>(new BrakeSimple(utils::GetModelDataFile("hmmwv/brake/HMMWV_BrakeSimple_Rear.json")));
+  m_rear_left_brake   = ChSharedPtr<BrakeSimple>(new BrakeSimple(utils::GetModelDataFile("hmmwv/brake/HMMWV_BrakeSimple_Rear.json")));
 }
 
 
@@ -144,6 +152,12 @@ void HMMWV_VehicleJSON::Initialize(const ChCoordsys<>& chassisPos)
 
   // Initialize the powertrain subsystem
   m_powertrain->Initialize(m_chassis, m_driveline->GetDriveshaft());
+
+  // Initialize the four brakes
+  m_front_right_brake->Initialize(m_front_susp->GetRevolute(ChSuspension::RIGHT));
+  m_front_left_brake->Initialize(m_front_susp->GetRevolute(ChSuspension::LEFT));
+  m_rear_right_brake->Initialize(m_rear_susp->GetRevolute(ChSuspension::RIGHT));
+  m_rear_left_brake->Initialize(m_rear_susp->GetRevolute(ChSuspension::LEFT));
 }
 
 
@@ -284,9 +298,10 @@ double HMMWV_VehicleJSON::GetSpringLength(chrono::ChWheelId which)
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 void HMMWV_VehicleJSON::Update(double              time,
-                           double              throttle,
-                           double              steering,
-                           const ChTireForces& tire_forces)
+                               double              throttle,
+                               double              steering,
+                               double              braking,
+                               const ChTireForces& tire_forces)
 {
   // Apply steering input.
   double displ = 0.08 * steering;
@@ -301,6 +316,12 @@ void HMMWV_VehicleJSON::Update(double              time,
   m_front_susp->ApplyTireForce(ChSuspension::LEFT, tire_forces[FRONT_LEFT]);
   m_rear_susp->ApplyTireForce(ChSuspension::RIGHT, tire_forces[REAR_RIGHT]);
   m_rear_susp->ApplyTireForce(ChSuspension::LEFT, tire_forces[REAR_LEFT]);
+
+  // Apply braking
+  m_front_right_brake->ApplyBrakeModulation(braking);
+  m_front_left_brake->ApplyBrakeModulation(braking);
+  m_rear_right_brake->ApplyBrakeModulation(braking);
+  m_rear_left_brake->ApplyBrakeModulation(braking);
 }
 
 
