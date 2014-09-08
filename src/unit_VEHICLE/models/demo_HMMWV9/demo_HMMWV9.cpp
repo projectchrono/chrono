@@ -196,8 +196,10 @@ int main(int argc, char* argv[])
   // NOTE: this is not exact, since we do not render quite at the specified FPS.
   double steering_time = 1.0;  // time to go from 0 to +1 (or from 0 to -1)
   double throttle_time = 1.0;  // time to go from 0 to +1
+  double braking_time = 0.3;  // time to go from 0 to +1
   driver.SetSteeringDelta(render_step_size / steering_time);
   driver.SetThrottleDelta(render_step_size / throttle_time);
+  driver.SetBrakingDelta(render_step_size / braking_time);
 
   // Set up the assets for rendering
   application.AssetBindAll();
