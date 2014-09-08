@@ -254,7 +254,7 @@ int main(int argc, char* argv[])
     tire_forces[REAR_RIGHT] = tire_rear_right->GetTireForce();
     tire_forces[REAR_LEFT] = tire_rear_left->GetTireForce();
 
-    vehicle.Update(time, driver.getThrottle(), driver.getSteering(), tire_forces);
+    vehicle.Update(time, driver.getThrottle(), driver.getSteering(), driver.getBraking(), tire_forces);
 
     // Advance simulation for one timestep for all modules
     double step = realtime_timer.SuggestSimulationStep(step_size);
@@ -326,7 +326,7 @@ int main(int argc, char* argv[])
     tire_forces[REAR_RIGHT] = tire_rear_right->GetTireForce();
     tire_forces[REAR_LEFT] = tire_rear_left->GetTireForce();
 
-    vehicle.Update(time, driver.getThrottle(), driver.getSteering(), tire_forces);
+    vehicle.Update(time, driver.getThrottle(), driver.getSteering(), driver.getBraking(), tire_forces);
 
     // Advance simulation for one timestep for all modules
     driver.Advance(step_size);
