@@ -113,6 +113,14 @@ HMMWV_Vehicle::HMMWV_Vehicle(const bool           fixed,
 
   m_driveline = ChSharedPtr<HMMWV_Driveline2WD>(new HMMWV_Driveline2WD(this));
   m_powertrain = ChSharedPtr<HMMWV_Powertrain>(new HMMWV_Powertrain(this));
+
+  // -----------------
+  // Create the brakes
+  // -----------------
+  m_front_right_brake = ChSharedPtr<HMMWV_BrakeSimple>(new HMMWV_BrakeSimple);
+  m_front_left_brake = ChSharedPtr<HMMWV_BrakeSimple>(new HMMWV_BrakeSimple);
+  m_rear_right_brake = ChSharedPtr<HMMWV_BrakeSimple>(new HMMWV_BrakeSimple);
+  m_rear_left_brake = ChSharedPtr<HMMWV_BrakeSimple>(new HMMWV_BrakeSimple);
 }
 
 
@@ -144,15 +152,11 @@ void HMMWV_Vehicle::Initialize(const ChCoordsys<>& chassisPos)
   // Initialize the powertrain subsystem
   m_powertrain->Initialize(m_chassis, m_driveline->GetDriveshaft());
 
-  // Create & initialize, at once, the four brakes
-  m_front_right_brake = ChSharedPtr<ChBrakeSimple>(new ChBrakeSimple(m_front_susp->GetRevolute(ChSuspension::RIGHT)));
-  m_front_left_brake = ChSharedPtr<ChBrakeSimple>(new ChBrakeSimple(m_front_susp->GetRevolute(ChSuspension::LEFT)));
-  m_rear_right_brake = ChSharedPtr<ChBrakeSimple>(new ChBrakeSimple(m_rear_susp->GetRevolute(ChSuspension::RIGHT)));
-  m_rear_left_brake = ChSharedPtr<ChBrakeSimple>(new ChBrakeSimple(m_rear_susp->GetRevolute(ChSuspension::LEFT)));
-  m_front_right_brake->SetMaxBrakingTorque(4000);
-  m_front_left_brake->SetMaxBrakingTorque(4000);
-  m_rear_right_brake->SetMaxBrakingTorque(4000);
-  m_rear_left_brake->SetMaxBrakingTorque(4000);
+  // Initialize the four brakes
+  m_front_right_brake->Initialize(m_front_susp->GetRevolute(ChSuspension::RIGHT));
+  m_front_left_brake->Initialize(m_front_susp->GetRevolute(ChSuspension::LEFT));
+  m_rear_right_brake->Initialize(m_rear_susp->GetRevolute(ChSuspension::RIGHT));
+  m_rear_left_brake->Initialize(m_rear_susp->GetRevolute(ChSuspension::LEFT));
 }
 
 

@@ -12,7 +12,10 @@
 // Authors: Alessandro Tasora
 // =============================================================================
 //
-// Base class for a vehicle driveline.
+// Simple brake created with constant torque opposing wheel rotation.
+// It just uses a speed-dependant torque, so it fits in ODEs because it does not
+// use DVI set valued constraints (the  drawback is that it cannot simulate
+// sticking brakes).
 //
 // =============================================================================
 
@@ -22,52 +25,32 @@
 namespace chrono {
 
 
-
-
-ChBrakeSimple::ChBrakeSimple(ChSharedPtr<ChLinkLockRevolute> mhub)
+ChBrakeSimple::ChBrakeSimple()
+: m_modulation(0)
 {
-	modulation =1;
-	maxtorque =100;
-
-	ChSystem* my_system = mhub->GetSystem();
-
-	// Reuse the same bodies and link coordinate of the hub revolute joint...
-	ChSharedPtr<ChBodyFrame> mbf1(mhub->GetBody1());
-	mhub->GetBody1()->AddRef(); // because mbf1(mhub->GetBody1()) got a plain pointer, so transformed to shared 
-	ChSharedPtr<ChBodyFrame> mbf2(mhub->GetBody2());
-	mhub->GetBody2()->AddRef(); // because mbf2(mhub->GetBody2()) got a plain pointer, so transformed to shared 
-	ChSharedPtr<ChBody> mb1 = mbf1.DynamicCastTo<ChBody>();
-	ChSharedPtr<ChBody> mb2 = mbf2.DynamicCastTo<ChBody>();
-
-	this->mbrake = ChSharedPtr<ChLinkBrake>(new ChLinkBrake); 
-	this->mbrake->Initialize( mb1,  mb2,  mhub->GetMarker2()->GetCoord());
-	my_system->AddLink(this->mbrake);
-
+  m_brake = ChSharedPtr<ChLinkBrake>(new ChLinkBrake);
 }
 
-
-
-double ChBrakeSimple::GetBrakeSpeed()
+void ChBrakeSimple::Initialize(ChSharedPtr<ChLinkLockRevolute> mhub)
 {
-	return this->mbrake->GetRelWvel().Length();
+  ChSystem* my_system = mhub->GetSystem();
+
+  // Reuse the same bodies and link coordinate of the hub revolute joint...
+  ChSharedPtr<ChBodyFrame> mbf1(mhub->GetBody1());
+  mhub->GetBody1()->AddRef(); // because mbf1(mhub->GetBody1()) got a plain pointer, so transformed to shared 
+  ChSharedPtr<ChBodyFrame> mbf2(mhub->GetBody2());
+  mhub->GetBody2()->AddRef(); // because mbf2(mhub->GetBody2()) got a plain pointer, so transformed to shared 
+  ChSharedPtr<ChBody> mb1 = mbf1.DynamicCastTo<ChBody>();
+  ChSharedPtr<ChBody> mb2 = mbf2.DynamicCastTo<ChBody>();
+
+  m_brake->Initialize(mb1, mb2, mhub->GetMarker2()->GetCoord());
+  my_system->AddLink(m_brake);
 }
 
-void ChBrakeSimple::ApplyBrakeModulation(double mmodulation)
+void ChBrakeSimple::ApplyBrakeModulation(double modulation)
 {
-	this->modulation = mmodulation;
-
-	this->mbrake->Set_brake_torque(this->modulation*this->maxtorque);
-}
-		
-double ChBrakeSimple::GetBrakeTorque()
-{
-	return (this->modulation*this->maxtorque);
-}
-
-		/// Set the max braking torque (for modulation =1)
-void ChBrakeSimple::SetMaxBrakingTorque(double maxt)
-{
-	this->maxtorque = maxt;
+  m_modulation = modulation;
+  m_brake->Set_brake_torque(modulation * GetMaxBrakingTorque());
 }
 
 
