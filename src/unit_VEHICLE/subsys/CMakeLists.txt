@@ -16,6 +16,8 @@ SET(Chrono_Subsys_FILES
     ChDriveline.cpp
     ChSuspension.h
     ChSuspension.cpp
+	ChSteering.h
+	ChSteering.cpp
     ChVehicle.h
     ChVehicle.cpp
     ChWheel.h
@@ -42,6 +44,11 @@ SET(Chrono_Susp_FILES
 SET(Chrono_Wheel_FILES
     wheel/Wheel.h
     wheel/Wheel.cpp
+)
+
+SET(Chrono_Steering_FILES
+	steering/ChPitmanArm.h
+	steering/ChPitmanArm.cpp
 )
 
 SET(Chrono_Driveline_FILES
@@ -96,6 +103,7 @@ ENDIF()
 SOURCE_GROUP("base" FILES ${Chrono_Subsys_FILES})
 SOURCE_GROUP("suspension" FILES ${Chrono_Susp_FILES})
 SOURCE_GROUP("wheel" FILES ${Chrono_Wheel_FILES})
+SOURCE_GROUP("steering" FILES ${Chrono_Steering_FILES})
 SOURCE_GROUP("driveline" FILES ${Chrono_Driveline_FILES})
 SOURCE_GROUP("driver" FILES ${Chrono_Driver_FILES})
 SOURCE_GROUP("powertrain" FILES ${Chrono_Powertrain_FILES})
@@ -110,6 +118,7 @@ ADD_LIBRARY(Chrono_Subsys SHARED
     ${Chrono_Subsys_FILES}
     ${Chrono_Susp_FILES}
     ${Chrono_Wheel_FILES}
+    ${Chrono_Steering_FILES}
     ${Chrono_Driveline_FILES}
     ${Chrono_Driver_FILES}
     ${Chrono_Powertrain_FILES}
