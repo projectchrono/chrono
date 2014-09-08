@@ -58,6 +58,8 @@ public:
                              bool              inches = false);
   void LogConstraintViolations(ChSuspension::Side side);
 
+  ChSharedPtr<ChLinkLockRevolute>  GetRevolute(Side side) const { return m_revolute[side]; }
+
 protected:
 
   enum PointId {
@@ -103,6 +105,7 @@ protected:
   virtual double getSpringCoefficient() const = 0;
   virtual double getDampingCoefficient() const = 0;
   virtual double getSpringRestLength() const = 0;
+
 
   ChSharedBodyPtr                   m_upright[2];
   ChSharedBodyPtr                   m_UCA[2];

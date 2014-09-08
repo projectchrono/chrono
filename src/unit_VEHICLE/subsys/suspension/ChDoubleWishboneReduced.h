@@ -51,6 +51,8 @@ public:
 
   virtual void ApplySteering(double displ);
 
+  ChSharedPtr<ChLinkLockRevolute>  GetRevolute(Side side) const { return m_revolute[side]; }
+
 protected:
 
   enum PointId {
