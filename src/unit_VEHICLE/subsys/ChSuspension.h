@@ -59,6 +59,8 @@ public:
   ChSharedPtr<ChBody>  GetSpindle(Side side) const { return m_spindle[side]; }
   ChSharedPtr<ChShaft> GetAxle(Side side) const    { return m_axle[side]; }
 
+  ChSharedPtr<ChLinkLockRevolute>  GetRevolute(Side side) const { return m_revolute[side]; }
+
   const ChVector<>& GetSpindlePos(Side side) const       { return m_spindle[side]->GetPos(); }
   const ChQuaternion<>& GetSpindleRot(Side side) const   { return m_spindle[side]->GetRot(); }
   const ChVector<>& GetSpindleLinVel(Side side) const    { return m_spindle[side]->GetPos_dt(); }
@@ -79,9 +81,10 @@ protected:
   bool                      m_driven;
   bool                      m_steerable;
 
-  ChSharedPtr<ChBody>       m_spindle[2];
-  ChSharedPtr<ChShaft>      m_axle[2];
-  ChSharedPtr<ChShaftsBody> m_axle_to_spindle[2];
+  ChSharedPtr<ChBody>               m_spindle[2];
+  ChSharedPtr<ChShaft>              m_axle[2];
+  ChSharedPtr<ChShaftsBody>         m_axle_to_spindle[2];
+  ChSharedPtr<ChLinkLockRevolute>   m_revolute[2];
 };
 
 
