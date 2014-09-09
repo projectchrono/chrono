@@ -1,0 +1,48 @@
+{
+	"Name":		"HMMWV Pitman Arm Steering",
+	"Type":		"Steering",
+	"Template":	"PitmanArm",
+
+	"Steering Link":
+	{
+		"mass":					15.91,
+		"com":					[ 0.040,  0.910, -0.026],
+		"inertia":				[2, 4, 2],
+		"radius":				0.15,
+	},
+
+	"Pitman Arm":
+	{
+		"mass":					27.27,
+		"com":					[ 0.040,  0.751, -0.026],
+		"inertia":				[5, 5, 5],
+		"radius":				0.03
+	},
+
+	"Revolute Joint":
+	{
+		"Location":				[1, 1, 1],
+		"Direction":			[1, 1, 1]
+	},
+
+	"Universal Joint":
+	{
+		"Location":				[1, 1, 1],
+		"Direction Arm":		[1, 1, 1],
+		"Direction Link":		[1, 1, 1]
+	},
+
+	"Revolute-Spherical Joint":
+	{
+		"Location Chassis":		[1, 1, 1],
+		"Location Link":       	[1, 1, 1],
+		"Direction":			[1, 1, 1],
+		"Length":				1
+	},
+
+	"Tierod Locations":
+	{
+		"Pitman Side":			[1, 1, 1],
+		"Idler Side":			[1, 1, 1]
+	}
+}
