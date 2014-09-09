@@ -58,7 +58,7 @@ struct solver_settings {
 
       alpha = .2;
       contact_recovery_speed = .6;
-      perform_stabilation = false;
+      perform_stabilization = false;
       collision_in_solver = false;
 
       max_iteration = 100;
@@ -77,7 +77,7 @@ struct solver_settings {
    real alpha;
 
    real contact_recovery_speed;
-   bool perform_stabilation;
+   bool perform_stabilization;
    bool collision_in_solver;
    bool update_rhs;
    bool verbose;

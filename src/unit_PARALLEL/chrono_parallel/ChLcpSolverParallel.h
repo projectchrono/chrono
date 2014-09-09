@@ -159,7 +159,7 @@ class CH_PARALLEL_API ChLcpSolverParallelDVI : public ChLcpSolverParallel {
       data_container->settings.solver.contact_recovery_speed = fabs(recovery_speed);
    }
    void DoStabilization(bool stab) {
-      data_container->settings.solver.perform_stabilation = stab;
+      data_container->settings.solver.perform_stabilization = stab;
    }
    void DoCollision(bool do_collision) {
       data_container->settings.solver.collision_in_solver = do_collision;
