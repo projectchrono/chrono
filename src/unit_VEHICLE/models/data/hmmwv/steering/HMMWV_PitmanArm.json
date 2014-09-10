@@ -41,7 +41,7 @@
 
 	"Tierod Locations":
 	{
-		"Pitman Side":			[-0.196, -0.448, 0.012],
-		"Idler Side":			[-0.196,  0.448, 0.012]
+		"Pitman Side":			[-0.195, -0.448, 0.035],
+		"Idler Side":			[-0.195,  0.448, 0.035]
 	}
 }
