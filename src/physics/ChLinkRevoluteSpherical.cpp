@@ -94,7 +94,7 @@ void ChLinkRevoluteSpherical::Initialize(
 
   m_pos1 = Body1->TransformPointParentToLocal(csys.pos);
   m_dir1 = Body1->TransformDirectionParentToLocal(z_axis);
-  m_pos2 = Body2->TransformPointParentToLocal(csys.pos + distance * ChVector<>(1, 0, 0));
+  m_pos2 = Body2->TransformPointParentToLocal(csys.pos + distance * x_Axis);
 
   m_dist = distance;
   m_cur_dist = distance;
