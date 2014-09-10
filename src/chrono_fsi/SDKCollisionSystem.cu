@@ -165,6 +165,20 @@ real3 deltaVShare(
 	return deltaV;
 }
 //--------------------------------------------------------------------------------------------------------------------------------
+// modify pressure for body force
+__device__ __inline__
+void modifyPressure(real4 & rhoPresMuB, const real3 & dist3Alpha) {
+	//body force in x direction
+	rhoPresMuB.y = (dist3Alpha.x > 0.5 * paramsD.boxDims.x) ? (rhoPresMuB.y - paramsD.bodyForce4.x*paramsD.boxDims.x) : rhoPresMuB.y;
+	rhoPresMuB.y = (dist3Alpha.x < -0.5 * paramsD.boxDims.x) ? (rhoPresMuB.y + paramsD.bodyForce4.x*paramsD.boxDims.x) : rhoPresMuB.y;
+	//body force in x direction
+	rhoPresMuB.y = (dist3Alpha.y > 0.5 * paramsD.boxDims.y) ? (rhoPresMuB.y - paramsD.bodyForce4.y*paramsD.boxDims.y) : rhoPresMuB.y;
+	rhoPresMuB.y = (dist3Alpha.y < -0.5 * paramsD.boxDims.y) ? (rhoPresMuB.y + paramsD.bodyForce4.y*paramsD.boxDims.y) : rhoPresMuB.y;
+	//body force in x direction
+	rhoPresMuB.y = (dist3Alpha.z > 0.5 * paramsD.boxDims.z) ? (rhoPresMuB.y - paramsD.bodyForce4.z*paramsD.boxDims.z) : rhoPresMuB.y;
+	rhoPresMuB.y = (dist3Alpha.z < -0.5 * paramsD.boxDims.z) ? (rhoPresMuB.y + paramsD.bodyForce4.z*paramsD.boxDims.z) : rhoPresMuB.y;
+}
+//--------------------------------------------------------------------------------------------------------------------------------
 // collide a particle against all other particles in a given cell
 __device__
 real4 collideCell(
@@ -207,15 +221,7 @@ real4 collideCell(
 				real4 velMasB = FETCH(sortedVelMas, j);
 				real4 rhoPresMuB = FETCH(sortedRhoPreMu, j);
 
-				//body force in x direction
-				rhoPresMuB.y = (dist3Alpha.x > 0.5 * paramsD.boxDims.x) ? (rhoPresMuB.y - paramsD.bodyForce4.x*paramsD.boxDims.x) : rhoPresMuB.y;
-				rhoPresMuB.y = (dist3Alpha.x < -0.5 * paramsD.boxDims.x) ? (rhoPresMuB.y + paramsD.bodyForce4.x*paramsD.boxDims.x) : rhoPresMuB.y;
-				//body force in x direction
-				rhoPresMuB.y = (dist3Alpha.y > 0.5 * paramsD.boxDims.y) ? (rhoPresMuB.y - paramsD.bodyForce4.y*paramsD.boxDims.y) : rhoPresMuB.y;
-				rhoPresMuB.y = (dist3Alpha.y < -0.5 * paramsD.boxDims.y) ? (rhoPresMuB.y + paramsD.bodyForce4.y*paramsD.boxDims.y) : rhoPresMuB.y;
-				//body force in x direction
-				rhoPresMuB.y = (dist3Alpha.z > 0.5 * paramsD.boxDims.z) ? (rhoPresMuB.y - paramsD.bodyForce4.z*paramsD.boxDims.z) : rhoPresMuB.y;
-				rhoPresMuB.y = (dist3Alpha.z < -0.5 * paramsD.boxDims.z) ? (rhoPresMuB.y + paramsD.bodyForce4.z*paramsD.boxDims.z) : rhoPresMuB.y;
+				modifyPressure(rhoPresMuB, dist3Alpha);
 
 				if (rhoPresMuA.w < 0  ||  rhoPresMuB.w < 0) {
 					if (rhoPresMuA.w == 0) continue;
@@ -265,6 +271,51 @@ real4 collideCell(
 	// ff1
 //	if (rhoPresMuA.w > 0) printf("force value %f %f %f\n", 1e20*derivV.x, 1e20*derivV.y, 1e20*derivV.z);
 	return R4(derivV, derivRho);
+}//--------------------------------------------------------------------------------------------------------------------------------
+// collide a particle against all other particles in a given cell
+__device__ __inline__
+void stressCell(
+		real3 & devS3,
+		real3 & velS3,
+		int3 gridPos,
+		uint index,
+		real3 posRadA,
+		real4 velMasA,
+		real4 rhoPresMuA,
+		real3* sortedPosRad,
+		real4* sortedVelMas,
+		real4* sortedRhoPreMu,
+
+		uint* cellStart,
+		uint* cellEnd) {
+
+	uint gridHash = calcGridHash(gridPos);
+	// get start of bucket for this cell
+	real3 derivV = R3(0.0f);
+	real_ derivRho = 0.0f;
+
+	uint startIndex = FETCH(cellStart, gridHash);
+	if (startIndex != 0xffffffff) { // cell is not empty
+		// iterate over particles in this cell
+		uint endIndex = FETCH(cellEnd, gridHash);
+
+		for (uint j = startIndex; j < endIndex; j++) {
+			if (j != index) { // check not colliding with self
+				real3 posRadB = FETCH(sortedPosRad, j);
+				real3 dist3Alpha = posRadA - posRadB;
+				real3 dist3 = Distance(posRadA, posRadB);
+				real_ d = length(dist3);
+				if (d > RESOLUTION_LENGTH_MULT * paramsD.HSML) continue;
+
+				real4 velMasB = FETCH(sortedVelMas, j);
+				real4 rhoPresMuB = FETCH(sortedRhoPreMu, j);
+
+				real3 vr = R3(velMasB - velMasA);
+				real3 gradW = GradW(dist3);
+
+			}
+		}
+	}
 }
 //--------------------------------------------------------------------------------------------------------------------------------
 // collide a particle against all other particles in a given cell
@@ -581,12 +632,34 @@ __global__ void CalcBCE_Stresses_kernel(
 		uint* cellStart,
 		uint* cellEnd,
 		int numBCE) {
-	uint index = blockIdx.x * blockDim.x + threadIdx.x;
-	if (index >= numBCE) {
+	uint thIndex = blockIdx.x * blockDim.x + threadIdx.x;
+	if (thIndex >= numBCE) {
 		return;
 	}
-	uint BCE_Index = index + min(numObjectsD.startRigidMarkers, numObjectsD.startRigidMarkers); // updatePortionD = [start, end] index of the update portion
+	//Arman take care of this
+	uint BCE_Index = thIndex + min(numObjectsD.startRigidMarkers, numObjectsD.startRigidMarkers); // updatePortionD = [start, end] index of the update portion
+	uint sortedIndex = mapOriginalToSorted[BCE_Index]; //index in the sorted array
 
+	// read particle data from sorted arrays
+	real3 posRadA = FETCH(sortedPosRad, sortedIndex);
+	real4 velMasA = FETCH(sortedVelMas, sortedIndex);
+	real4 rhoPreMuA = FETCH(sortedRhoPreMu, sortedIndex);
+
+	// get address in grid
+	int3 gridPos = calcGridPos(posRadA);
+
+	real3 devS3 = R3(0);
+	real3 volS3 = R3(0);
+
+	// examine neighbouring cells
+	for (int x = -1; x <= 1; x++) {
+		for (int y = -1; y <= 1; y++) {
+			for (int z = -1; z <= 1; z++) {
+				stressCell(devS3, volS3, gridPos + I3(x, y, z), sortedIndex, posRadA, velMasA, rhoPreMuA, sortedPosRad, sortedVelMas, sortedRhoPreMu,
+						cellStart, cellEnd);
+			}
+		}
+	}
 }
 //--------------------------------------------------------------------------------------------------------------------------------
 //without normalization
