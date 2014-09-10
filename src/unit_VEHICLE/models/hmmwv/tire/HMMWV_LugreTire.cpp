@@ -68,5 +68,18 @@ void HMMWV_LugreTire::Initialize(ChSharedBodyPtr wheel)
   wheel->AddAsset(tex);
 }
 
+// -----------------------------------------------------------------------------
+// -----------------------------------------------------------------------------
+void HMMWV_LugreTire::SetLugreParams()
+{
+	m_sigma0 = 4000;
+	m_sigma1 = 1;
+	m_sigma2 = 0.02;
+
+	m_Fc = 0.9;
+	m_Fs = 0.55;
+
+	m_vs = 0.05;
+}
 
 } // end namespace hmmwv

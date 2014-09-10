@@ -39,6 +39,8 @@ public:
   using chrono::ChLugreTire::Initialize;
   void Initialize(chrono::ChSharedBodyPtr wheel);
 
+  virtual void SetLugreParams();
+
 private:
   static const double  m_radius;
   static const int     m_numDiscs = 3;
