@@ -45,7 +45,7 @@ public:
   virtual void Initialize(ChSharedPtr<ChBody> chassis,
                           const ChCoordsys<>& position) = 0;
 
-  virtual void ApplySteering(double displ) = 0;
+  virtual void ApplySteering(double steering) = 0;
 
 protected:
   std::string  m_name;

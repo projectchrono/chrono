@@ -36,6 +36,8 @@ public:
   virtual void Initialize(ChSharedPtr<ChBody> chassis,
                           const ChCoordsys<>& position);
 
+  virtual void ApplySteering(double steering) {}
+
 protected:
 
   enum PointId {
