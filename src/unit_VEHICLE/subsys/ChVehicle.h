@@ -23,7 +23,7 @@
 
 #include "core/ChVector.h"
 #include "physics/ChSystem.h"
-#include "physics/ChBody.h"
+#include "physics/ChBodyAuxRef.h"
 
 #include "subsys/ChApiSubsys.h"
 
@@ -60,7 +60,7 @@ public:
   ChVehicle();
   virtual ~ChVehicle() {}
 
-  virtual ChSharedBodyPtr GetWheelBody(ChWheelId which) const = 0;
+  virtual ChSharedPtr<ChBody> GetWheelBody(ChWheelId which) const = 0;
 
   virtual const ChVector<>& GetWheelPos(ChWheelId which) const = 0;
   virtual const ChQuaternion<>& GetWheelRot(ChWheelId which) const = 0;
@@ -78,14 +78,25 @@ public:
                       const ChTireForces& tire_forces) {}
   virtual void Advance(double step);
 
-  const ChSharedBodyPtr GetChassis() const    { return m_chassis; }
-  const ChVector<>&     GetChassisPos() const { return m_chassis->GetPos(); }
-  const ChQuaternion<>& GetChassisRot() const { return m_chassis->GetRot(); }
+  const ChSharedPtr<ChBodyAuxRef> GetChassis() const  { return m_chassis; }
 
-  double GetVehicleSpeed() const { return m_chassis->GetPos_dt().Length(); }
+  /// Return the position and orientation of the chassis reference frame
+  const ChVector<>&     GetChassisPos() const         { return m_chassis->GetFrame_REF_to_abs().GetPos(); }
+  const ChQuaternion<>& GetChassisRot() const         { return m_chassis->GetFrame_REF_to_abs().GetRot(); }
+
+  /// Return the position and orientation of the chassis COM
+  const ChVector<>&     GetChassisPosCOM() const      { return m_chassis->GetPos(); }
+  const ChQuaternion<>& GetChassisRotCOM() const      { return m_chassis->GetRot(); }
+
+  /// Return the speed measured at the origin of the chassis reference frame
+  double GetVehicleSpeed() const      { return m_chassis->GetFrame_REF_to_abs().GetPos_dt().Length(); }
+
+  /// Return the speed measured at the chassis COM
+  double GetVehicleSpeedCOM() const   { return m_chassis->GetPos_dt().Length(); }
 
 protected:
-  ChSharedBodyPtr  m_chassis;
+  ChSharedPtr<ChBodyAuxRef>  m_chassis;
+
   ChDriveline*     m_driveline;
   ChPowertrain*    m_powertrain;
 

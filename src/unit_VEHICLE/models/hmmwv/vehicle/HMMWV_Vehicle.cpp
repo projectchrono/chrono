@@ -16,7 +16,7 @@
 //
 // =============================================================================
 
-#include "assets/ChBoxShape.h"
+#include "assets/ChSphereShape.h"
 #include "assets/ChTriangleMeshShape.h"
 
 #include "utils/ChUtilsData.h"
@@ -35,8 +35,9 @@ namespace hmmwv {
 
 static const double in2m = 0.0254;
 
-const double     HMMWV_Vehicle::m_chassisMass = 7747.0 / 2.2;	// chassis sprung mass
-const ChVector<> HMMWV_Vehicle::m_chassisInertia(125.8, 497.4, 531.4); // chassis inertia (roll,pitch,yaw)
+const double     HMMWV_Vehicle::m_chassisMass = 7747.0 / 2.2;                           // chassis sprung mass
+const ChVector<> HMMWV_Vehicle::m_chassisCOM = in2m * ChVector<>(18.8, 0.585, 33.329);  // COM location
+const ChVector<> HMMWV_Vehicle::m_chassisInertia(125.8, 497.4, 531.4);                  // chassis inertia (roll,pitch,yaw)
 
 const std::string HMMWV_Vehicle::m_chassisMeshName = "hmmwv_chassis";
 const std::string HMMWV_Vehicle::m_chassisMeshFile = utils::GetModelDataFile("hmmwv/humvee4_scaled_rotated_decimated_centered.obj");
@@ -52,26 +53,22 @@ HMMWV_Vehicle::HMMWV_Vehicle(const bool           fixed,
   // Create the chassis body
   // -------------------------------------------
 
-  m_chassis = ChSharedBodyPtr(new ChBody);
+  m_chassis = ChSharedPtr<ChBodyAuxRef>(new ChBodyAuxRef);
 
   m_chassis->SetIdentifier(0);
   m_chassis->SetName("chassis");
   m_chassis->SetMass(m_chassisMass);
+  m_chassis->SetFrame_COG_to_REF(ChFrame<>(m_chassisCOM, ChQuaternion<>(1, 0, 0, 0)));
   m_chassis->SetInertiaXX(m_chassisInertia);
   m_chassis->SetBodyFixed(fixed);
 
   switch (chassisVis) {
   case PRIMITIVES:
   {
-    ChSharedPtr<ChBoxShape> box1(new ChBoxShape);
-    box1->GetBoxGeometry().SetLengths(ChVector<>(5, 1.7, 0.4));
-    box1->Pos = ChVector<>(0, 0, -0.4);
-    m_chassis->AddAsset(box1);
-
-    ChSharedPtr<ChBoxShape> box2(new ChBoxShape);
-    box2->GetBoxGeometry().SetLengths(ChVector<>(4, 1.7, 0.4));
-    box2->Pos = ChVector<>(0.5, 0, 0);
-    m_chassis->AddAsset(box2);
+    ChSharedPtr<ChSphereShape> sphere(new ChSphereShape);
+    sphere->GetSphereGeometry().rad = 0.1;
+    sphere->Pos = m_chassisCOM;
+    m_chassis->AddAsset(sphere);
 
     break;
   }
@@ -139,17 +136,18 @@ HMMWV_Vehicle::~HMMWV_Vehicle()
 // -----------------------------------------------------------------------------
 void HMMWV_Vehicle::Initialize(const ChCoordsys<>& chassisPos)
 {
-  m_chassis->SetPos(chassisPos.pos);
-  m_chassis->SetRot(chassisPos.rot);
+  m_chassis->SetFrame_REF_to_abs(ChFrame<>(chassisPos));
 
-  // Initialize the suspension subsystems
-  m_front_susp->Initialize(m_chassis, in2m * ChVector<>(-85.39, 0, -32.29));
-  m_rear_susp->Initialize(m_chassis, in2m * ChVector<>(47.60, 0, -32.29));
+  // Initialize the suspension subsystems (specify the suspension subsystems'
+  // frames relative to the chassis reference frame).
+  m_front_susp->Initialize(m_chassis, in2m * ChVector<>(-66.59, 0, 1.039));
+  m_rear_susp->Initialize(m_chassis, in2m * ChVector<>(66.4, 0, 1.039));
 
-  // Initialize the steering subsystem
-  ChVector<> offset = in2m * ChVector<>(-67.815, 0, -29.025);
+  // Initialize the steering subsystem (specify the steering subsystem's frame
+  // relative to the chassis reference frame).
+  ChVector<> offset = in2m * ChVector<>(-49.015, 0, 4.304);
   ChQuaternion<> rotation = Q_from_AngAxis(-18.5 * CH_C_PI / 180, ChVector<>(0, 1, 0));
-  m_steering->Initialize(m_chassis, ChCoordsys<>(offset, rotation));
+  m_steering->Initialize(m_chassis, offset, rotation);
 
   // Initialize wheels
   m_front_right_wheel->Initialize(m_front_susp->GetSpindle(ChSuspension::RIGHT));

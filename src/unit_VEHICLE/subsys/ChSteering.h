@@ -23,6 +23,7 @@
 
 #include "core/ChShared.h"
 #include "physics/ChSystem.h"
+#include "physics/ChBodyAuxRef.h"
 
 #include "subsys/ChApiSubsys.h"
 
@@ -42,8 +43,9 @@ public:
 
   ChSharedPtr<ChBody>  GetSteeringLink() const { return m_link; }
 
-  virtual void Initialize(ChSharedPtr<ChBody> chassis,
-                          const ChCoordsys<>& position) = 0;
+  virtual void Initialize(ChSharedPtr<ChBodyAuxRef> chassis,
+                          const ChVector<>&         location,
+                          const ChQuaternion<>&     rotation) = 0;
 
   virtual void ApplySteering(double steering) = 0;
 

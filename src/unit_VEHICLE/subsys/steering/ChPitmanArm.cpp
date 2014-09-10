@@ -57,23 +57,26 @@ ChPitmanArm::ChPitmanArm(const std::string& name)
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-void ChPitmanArm::Initialize(ChSharedPtr<ChBody> chassis,
-                             const ChCoordsys<>& position)
+void ChPitmanArm::Initialize(ChSharedPtr<ChBodyAuxRef> chassis,
+                             const ChVector<>&         location,
+                             const ChQuaternion<>&     rotation)
 {
+  // Express the steering reference frame in the absolute coordinate system.
+  ChFrame<> steering_to_abs(location, rotation);
+  steering_to_abs.ConcatenatePreTransformation(chassis->GetFrame_REF_to_abs());
+
   // Transform all points and directions to absolute frame.
   std::vector<ChVector<> > points(NUM_POINTS);
   std::vector<ChVector<> > dirs(NUM_DIRS);
 
-  ChCoordsys<> to_global = chassis->GetCoord().TransformLocalToParent(position);
-
   for (int i = 0; i < NUM_POINTS; i++) {
     ChVector<> rel_pos = getLocation(static_cast<PointId>(i));
-    points[i] = to_global.TransformPointLocalToParent(rel_pos);
+    points[i] = steering_to_abs.TransformPointLocalToParent(rel_pos);
   }
 
   for (int i = 0; i < NUM_DIRS; i++) {
     ChVector<> rel_dir = getDirection(static_cast<DirectionId>(i));
-    dirs[i] = to_global.TransformDirectionLocalToParent(rel_dir);
+    dirs[i] = steering_to_abs.TransformDirectionLocalToParent(rel_dir);
   }
 
   // Unit vectors for orientation matrices.
@@ -84,7 +87,7 @@ void ChPitmanArm::Initialize(ChSharedPtr<ChBody> chassis,
 
   // Initialize the steering link body
   m_link->SetPos(points[STEERINGLINK]);
-  m_link->SetRot(to_global.rot);
+  m_link->SetRot(steering_to_abs.GetRot());
   m_link->SetMass(getSteeringLinkMass());
   m_link->SetInertiaXX(getSteeringLinkInertia());
   AddVisualizationSteeringLink(m_link, points[UNIV], points[REVSPH_S], points[TIEROD_PA], points[TIEROD_IA], getSteeringLinkRadius());
@@ -92,7 +95,7 @@ void ChPitmanArm::Initialize(ChSharedPtr<ChBody> chassis,
 
   // Initialize the Pitman arm body
   m_arm->SetPos(points[PITMANARM]);
-  m_arm->SetRot(to_global.rot);
+  m_arm->SetRot(steering_to_abs.GetRot());
   m_arm->SetMass(getPitmanArmMass());
   m_arm->SetInertiaXX(getPitmanArmInertia());
   AddVisualizationPitmanArm(m_arm, points[REV], points[UNIV], getPitmanArmRadius());

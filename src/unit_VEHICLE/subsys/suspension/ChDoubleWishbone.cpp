@@ -122,13 +122,17 @@ void ChDoubleWishbone::CreateSide(ChSuspension::Side side,
 void ChDoubleWishbone::Initialize(ChSharedBodyPtr   chassis,
                                   const ChVector<>& location)
 {
-  std::vector<ChVector<> > points(NUM_POINTS);
+  // Express the suspension reference frame in the absolute coordinate system.
+  ChFrame<> suspension_to_abs(location);
+  suspension_to_abs.ConcatenatePreTransformation(chassis->GetFrame_REF_to_abs());
 
   // Transform all points to absolute frame and initialize left side.
+  std::vector<ChVector<> > points(NUM_POINTS);
+
   for (int i = 0; i < NUM_POINTS; i++) {
     ChVector<> rel_pos = getLocation(static_cast<PointId>(i));
     rel_pos.y = -rel_pos.y;
-    points[i] = chassis->GetCoord().TransformLocalToParent(location + rel_pos);
+    points[i] = suspension_to_abs.TransformLocalToParent(rel_pos);
   }
 
   InitializeSide(LEFT, chassis, points);
@@ -136,7 +140,7 @@ void ChDoubleWishbone::Initialize(ChSharedBodyPtr   chassis,
   // Transform all points to absolute frame and initialize right side.
   for (int i = 0; i < NUM_POINTS; i++) {
     ChVector<> rel_pos = getLocation(static_cast<PointId>(i));
-    points[i] = chassis->GetCoord().TransformLocalToParent(location + rel_pos);
+    points[i] = suspension_to_abs.TransformLocalToParent(rel_pos);
   }
 
   InitializeSide(RIGHT, chassis, points);
@@ -146,17 +150,20 @@ void ChDoubleWishbone::InitializeSide(ChSuspension::Side              side,
                                       ChSharedBodyPtr                 chassis,
                                       const std::vector<ChVector<> >& points)
 {
-  // Initialize spindle body.
+  // Chassis orientation (expressed in absolute frame)
+  ChQuaternion<> chassisRot = chassis->GetFrame_REF_to_abs().GetRot();
+
+  // Initialize spindle body (same orientation as the chassis)
   m_spindle[side]->SetPos(points[SPINDLE]);
-  m_spindle[side]->SetRot(chassis->GetCoord().rot);
+  m_spindle[side]->SetRot(chassisRot);
   m_spindle[side]->SetMass(getSpindleMass());
   m_spindle[side]->SetInertiaXX(getSpindleInertia());
   AddVisualizationSpindle(m_spindle[side], getSpindleRadius(), getSpindleWidth());
   chassis->GetSystem()->AddBody(m_spindle[side]);
 
-  // Initialize upright body.
+  // Initialize upright body (same orientation as the chassis)
   m_upright[side]->SetPos(points[UPRIGHT]);
-  m_upright[side]->SetRot(chassis->GetCoord().rot);
+  m_upright[side]->SetRot(chassisRot);
   m_upright[side]->SetMass(getUprightMass());
   m_upright[side]->SetInertiaXX(getUprightInertia());
   AddVisualizationUpright(m_upright[side], points[UCA_U], points[LCA_U], points[TIEROD_U], getUprightRadius());

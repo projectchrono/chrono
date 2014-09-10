@@ -97,6 +97,7 @@ private:
 
   // Chassis mass properties
   static const double             m_chassisMass;
+  static const chrono::ChVector<> m_chassisCOM;
   static const chrono::ChVector<> m_chassisInertia;
 };
 

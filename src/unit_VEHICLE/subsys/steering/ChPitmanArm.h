@@ -33,8 +33,9 @@ public:
   ChPitmanArm(const std::string& name);
   virtual ~ChPitmanArm() {}
 
-  virtual void Initialize(ChSharedPtr<ChBody> chassis,
-                          const ChCoordsys<>& position);
+  virtual void Initialize(ChSharedPtr<ChBodyAuxRef> chassis,
+                          const ChVector<>&         location,
+                          const ChQuaternion<>&     rotation);
 
   virtual void ApplySteering(double steering) {}
 
