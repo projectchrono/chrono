@@ -284,6 +284,17 @@ void collide(
 		uint numCells,
 		real_ dT);
 
+void CalcBCE_Stresses(
+		real3* devStressD,
+		real3* volStressD,
+		real3* sortedPosRad,
+		real4* sortedVelMas,
+		real4* sortedRhoPreMu,
+		uint* mapOriginalToSorted,
+		uint* cellStart,
+		uint* cellEnd,
+		int numBCE);
+
 void UpdatePosVelP(
 		real3* m_dSortedPosRadNew,
 		real4* m_dSortedVelMasNew,

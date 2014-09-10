@@ -1011,15 +1011,6 @@ __global__ void UpdateFlexMarkersPosition(
 	//	velMasD[absMarkerIndex] = R4(beamPointVel + cross(absOmega, dist3), markerMass); //wrong
 	velMasD[absMarkerIndex] = R4(beamPointVel, markerMass);
 }
-//calculate particles stresses
-__global__ void CalcBCE_Stresses_kernel(real3 * posRadD, real4 * velMasD, real4 * rhoPresMuD, real3 * devStressD, real3 * volStressD, int numBCE) {
-	uint index = blockIdx.x * blockDim.x + threadIdx.x;
-	if (index >= numBCE) {
-		return;
-	}
-	uint BCE_Index = index + min(numObjectsD.startRigidMarkers, numObjectsD.startRigidMarkers); // updatePortionD = [start, end] index of the update portion
-
-}
 ////--------------------------------------------------------------------------------------------------------------------------------
 void MakeRigidIdentifier(
 		thrust::device_vector<int> & rigidIdentifierD,
@@ -1193,7 +1184,7 @@ void ForceSPH(
 		thrust::device_vector<uint> & bodyIndexD,
 		thrust::device_vector<real4> & derivVelRhoD,
 		const thrust::host_vector<int3> & referenceArray,
-		int numAllMarkers,
+		const NumberOfObjects & numObjects,
 		SimParams paramsH,
 		real_ dT) {
 	// Part1: contact detection #########################################################################################################################
@@ -1207,6 +1198,7 @@ void ForceSPH(
 	uint m_numGridCells = paramsH.gridSize.x * paramsH.gridSize.y * paramsH.gridSize.z; //m_gridSize = SIDE
 	//TODO here
 
+	int numAllMarkers = numObjects.numAllMarkers;
 	// calculate grid hash
 	thrust::device_vector<real3> m_dSortedPosRad(numAllMarkers);
 	thrust::device_vector<real4> m_dSortedVelMas(numAllMarkers);
@@ -1264,6 +1256,34 @@ void ForceSPH(
 //	ProjectDensityPressureToBCandBCE(R4CAST(rhoPresMuD), R3CAST(m_dSortedPosRad), R4CAST(m_dSortedRhoPreMu),
 //				U1CAST(m_dGridMarkerIndex), U1CAST(m_dCellStart), U1CAST(m_dCellEnd), numAllMarkers);
 	//********************************************************************************************************************************
+
+
+
+
+
+
+	thrust::device_vector<float3> devStressD(numObjects.numRigid_SphMarkers + numObjects.numFlex_SphMarkers);
+	thrust::device_vector<float3> volStressD(numObjects.numRigid_SphMarkers + numObjects.numFlex_SphMarkers);
+
+	int numBCE = numObjects.numRigid_SphMarkers + numObjects.numFlex_SphMarkers;
+	CalcBCE_Stresses(R3CAST(devStressD), R3CAST(volStressD), R3CAST(m_dSortedPosRad), R4CAST(m_dSortedVelMas), R4CAST(m_dSortedRhoPreMu),
+			U1CAST(mapOriginalToSorted), U1CAST(m_dCellStart), U1CAST(m_dCellEnd),numBCE);
+
+
+
+	devStressD.clear();
+	volStressD.clear();
+
+
+
+
+
+
+
+
+
+
+
 
 	////
 	m_dSortedPosRad.clear();
@@ -1331,22 +1351,6 @@ void DensityReinitialization(
 
 	m_dCellStart.clear();
 	m_dCellEnd.clear();
-}
-//--------------------------------------------------------------------------------------------------------------------------------
-void CalcBCE_Stresses(
-		thrust::device_vector<real3> & posRadD,
-		thrust::device_vector<real4> & velMasD,
-		thrust::device_vector<real4> & rhoPresMuD,
-		thrust::device_vector<real3> & devStressD,
-		thrust::device_vector<real3> & volStressD,
-		const NumberOfObjects & numObjects) {
-
-	// thread per particle
-	int numBCE = numObjects.numRigid_SphMarkers + numObjects.numFlex_SphMarkers;
-	uint numThreads, numBlocks;
-	computeGridSize(numBCE, 128, numBlocks, numThreads);
-
-	CalcBCE_Stresses_kernel<<<numBlocks, numThreads>>>(R3CAST(posRadD), R4CAST(velMasD), R4CAST(rhoPresMuD), R3CAST(devStressD), R3CAST(volStressD), numBCE);
 }
 //--------------------------------------------------------------------------------------------------------------------------------
 //updates the fluid particles by calling UpdateKernelFluid 
@@ -1984,12 +1988,6 @@ void cudaCollisions(
 	thrust::device_vector<int> dummyIdentifier(numObjects.numFlexBodies);
 	thrust::fill(dummySum.begin(), dummySum.end(), 1);
 
-	thrust::device_vector<float3> devStressD(numObjects.numRigid_SphMarkers + numObjects.numFlex_SphMarkers);
-	thrust::device_vector<float3> volStressD(numObjects.numRigid_SphMarkers + numObjects.numFlex_SphMarkers);
-
-
-
-
 	printf("\n\n\n");
 	(void) thrust::reduce_by_key(flexIdentifierD.begin(), flexIdentifierD.end(), dummySum.begin(), dummyIdentifier.begin(), ANCF_NumMarkers_Per_BeamD.begin());
 	thrust::exclusive_scan(ANCF_NumMarkers_Per_BeamD.begin(), ANCF_NumMarkers_Per_BeamD.end(), ANCF_NumMarkers_Per_Beam_CumulD.begin());
@@ -2128,7 +2126,7 @@ void cudaCollisions(
 		thrust::device_vector<real3> ANCF_SlopesVelD2 = ANCF_SlopesVelD;
 
 		//******** RK2
-		ForceSPH(posRadD, velMasD, vel_XSPH_D, rhoPresMuD, posRigidD, rigidIdentifierD, bodyIndexD, derivVelRhoD, referenceArray, numObjects.numAllMarkers, currentParamsH, 0.5 * currentParamsH.dT); //?$ right now, it does not consider paramsH.gravity or other stuff on rigid bodies. they should be applied at rigid body solver
+		ForceSPH(posRadD, velMasD, vel_XSPH_D, rhoPresMuD, posRigidD, rigidIdentifierD, bodyIndexD, derivVelRhoD, referenceArray, numObjects, currentParamsH, 0.5 * currentParamsH.dT); //?$ right now, it does not consider paramsH.gravity or other stuff on rigid bodies. they should be applied at rigid body solver
 		UpdateFluid(posRadD2, velMasD2, vel_XSPH_D, rhoPresMuD2, derivVelRhoD, referenceArray, 0.5 * currentParamsH.dT); //assumes ...D2 is a copy of ...D
 		//UpdateBoundary(posRadD2, velMasD2, rhoPresMuD2, derivVelRhoD, referenceArray, 0.5 * currentParamsH.dT);		//assumes ...D2 is a copy of ...D
 
@@ -2166,7 +2164,7 @@ void cudaCollisions(
 		}
 		ApplyBoundary(posRadD2, rhoPresMuD2, posRigidD2, ANCF_NodesD2, ANCF_ReferenceArrayNodesOnBeamsD, numObjects);
 //		//*****
-		ForceSPH(posRadD2, velMasD2, vel_XSPH_D, rhoPresMuD2, posRigidD2, rigidIdentifierD, bodyIndexD, derivVelRhoD, referenceArray, numObjects.numAllMarkers, currentParamsH, currentParamsH.dT);
+		ForceSPH(posRadD2, velMasD2, vel_XSPH_D, rhoPresMuD2, posRigidD2, rigidIdentifierD, bodyIndexD, derivVelRhoD, referenceArray, numObjects, currentParamsH, currentParamsH.dT);
 		UpdateFluid(posRadD, velMasD, vel_XSPH_D, rhoPresMuD, derivVelRhoD, referenceArray, currentParamsH.dT);
 		//UpdateBoundary(posRadD, velMasD, rhoPresMuD, derivVelRhoD, referenceArray, currentParamsH.dT);
 
@@ -2279,9 +2277,6 @@ void cudaCollisions(
 	ANCF_NumNodesMultMarkers_Per_BeamD.clear();
 	ANCF_NumNodesMultMarkers_Per_Beam_CumulD.clear();
 	flexMapEachMarkerOnAllBeamNodesD.clear();
-
-	devStressD.clear();
-	volStressD.clear();
 
 	posRigidCumulativeD.clear();
 	velMassRigidD.clear();

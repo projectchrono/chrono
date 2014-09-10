@@ -570,6 +570,25 @@ void collideD(real4* derivVelRhoD, // output: new velocity
 	//syncthreads();
 }
 //--------------------------------------------------------------------------------------------------------------------------------
+//calculate particles stresses
+__global__ void CalcBCE_Stresses_kernel(
+		real3* devStressD,
+		real3* volStressD,
+		real3* sortedPosRad,
+		real4* sortedVelMas,
+		real4* sortedRhoPreMu,
+		uint* mapOriginalToSorted,
+		uint* cellStart,
+		uint* cellEnd,
+		int numBCE) {
+	uint index = blockIdx.x * blockDim.x + threadIdx.x;
+	if (index >= numBCE) {
+		return;
+	}
+	uint BCE_Index = index + min(numObjectsD.startRigidMarkers, numObjectsD.startRigidMarkers); // updatePortionD = [start, end] index of the update portion
+
+}
+//--------------------------------------------------------------------------------------------------------------------------------
 //without normalization
 __global__
 void ReCalcDensityD_F1(
@@ -841,6 +860,24 @@ void RecalcVelocity_XSPH(
 	//    cutilSafeCall(cudaUnbindTexture(cellStartTex));
 	//    cutilSafeCall(cudaUnbindTexture(cellEndTex));
 	//#endif
+}
+//--------------------------------------------------------------------------------------------------------------------------------
+void CalcBCE_Stresses(
+		real3* devStressD,
+		real3* volStressD,
+		real3* sortedPosRad,
+		real4* sortedVelMas,
+		real4* sortedRhoPreMu,
+		uint* mapOriginalToSorted,
+		uint* cellStart,
+		uint* cellEnd,
+		int numBCE) {
+
+	// thread per particle
+	uint numThreads, numBlocks;
+	computeGridSize(numBCE, 128, numBlocks, numThreads);
+	CalcBCE_Stresses_kernel<<<numBlocks, numThreads>>>(devStressD, volStressD, sortedPosRad, sortedVelMas, sortedRhoPreMu,
+			mapOriginalToSorted, cellStart, cellEnd, numBCE);
 }
 //--------------------------------------------------------------------------------------------------------------------------------
 void collide(
