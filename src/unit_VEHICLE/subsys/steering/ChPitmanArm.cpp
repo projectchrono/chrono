@@ -132,7 +132,8 @@ void ChPitmanArm::Initialize(ChSharedPtr<ChBody> chassis,
   u = Vcross(v, dirs[REVSPH_AXIS]);
   rot.Set_A_axis(u, v, dirs[REVSPH_AXIS]);
 
-  m_revsph->Initialize(m_arm, m_link, ChCoordsys<>(points[UNIV], rot.Get_A_quaternion()), distance);
+  m_revsph->Initialize(chassis, m_link, ChCoordsys<>(points[REVSPH_R], rot.Get_A_quaternion()), distance);
+  chassis->GetSystem()->AddLink(m_revsph);
 }
 
 
