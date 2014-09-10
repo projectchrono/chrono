@@ -230,6 +230,7 @@ void reorderDataAndFindCellStart(
 		real4* sortedRhoPreMu,
 		uint* gridMarkerHash,
 		uint* gridMarkerIndex,
+		uint* mapOriginalToSorted,
 		real3* oldPosRad,
 		real4* oldVelMas,
 		real4* oldRhoPreMu,

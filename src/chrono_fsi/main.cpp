@@ -2253,13 +2253,13 @@ int main() {
 		rigidRotMatrix.clear();
 		printf("********************\n rigid Radii: %f %f %f\n", paramsH.rigidRadius.x, paramsH.rigidRadius.y, paramsH.rigidRadius.z);
 
-		//******** write data to file  ******************************************************************************************
-		WriteEverythingToFile(mPosRad, mVelMas, mRhoPresMu, bodyIndex, referenceArray,
-				rigidPos, mQuatRot, velMassRigidH, rigidBodyOmega, rigidBody_J1, rigidBody_J2, rigidBody_InvJ1, rigidBody_InvJ2,
-				ANCF_Nodes, ANCF_Slopes, ANCF_NodesVel, ANCF_SlopesVel, ANCF_Beam_Length, ANCF_IsCantilever,
-				ANCF_ReferenceArrayNodesOnBeams, flexParametricDist,
-				channelRadius, channelCenterYZ, paramsH, flexParams, numObjects, 0);
-		//***********************************************************************************************************************
+//		//******** write data to file  ******************************************************************************************
+//		WriteEverythingToFile(mPosRad, mVelMas, mRhoPresMu, bodyIndex, referenceArray,
+//				rigidPos, mQuatRot, velMassRigidH, rigidBodyOmega, rigidBody_J1, rigidBody_J2, rigidBody_InvJ1, rigidBody_InvJ2,
+//				ANCF_Nodes, ANCF_Slopes, ANCF_NodesVel, ANCF_SlopesVel, ANCF_Beam_Length, ANCF_IsCantilever,
+//				ANCF_ReferenceArrayNodesOnBeams, flexParametricDist,
+//				channelRadius, channelCenterYZ, paramsH, flexParams, numObjects, 0);
+//		//***********************************************************************************************************************
 	}
 	//***** print numbers
 	printf("********************\n paramsH.HSML: %f\n paramsH.bodyForce4: %f %f %f\n paramsH.gravity: %f %f %f\n paramsH.rho0: %e\n paramsH.mu0: %f\n paramsH.v_Max: %f\n paramsH.dT: %e\n paramsH.tFinal: %f\n",

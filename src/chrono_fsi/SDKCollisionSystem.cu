@@ -417,6 +417,7 @@ void reorderDataAndFindCellStartD(
 		real4* sortedRhoPreMu,
 		uint * gridMarkerHash, // input: sorted grid hashes
 		uint * gridMarkerIndex, // input: sorted particle indices
+		uint * mapOriginalToSorted, // mapOriginalToSorted[originalIndex] = sortedIndex
 		real3* oldPosRad, // input: sorted position array
 		real4* oldVelMas, // input: sorted velocity array
 		real4* oldRhoPreMu,
@@ -459,7 +460,8 @@ void reorderDataAndFindCellStartD(
 		}
 
 		// Now use the sorted index to reorder the pos and vel data
-		uint sortedIndex = gridMarkerIndex[index];
+		uint sortedIndex = gridMarkerIndex[index];	  // map sorted to original
+		mapOriginalToSorted[sortedIndex] = index;
 		real3 posRad = FETCH(oldPosRad, sortedIndex); // macro does either global read or texture fetch
 		real4 velMas = FETCH(oldVelMas, sortedIndex); // see particles_kernel.cuh
 		real4 rhoPreMu = FETCH(oldRhoPreMu, sortedIndex);
@@ -756,6 +758,8 @@ void reorderDataAndFindCellStart(
 		uint* gridMarkerHash,
 		uint* gridMarkerIndex,
 
+		uint* mapOriginalToSorted,
+
 		real3* oldPosRad,
 		real4* oldVelMas,
 		real4* oldRhoPreMu,
@@ -783,6 +787,7 @@ void reorderDataAndFindCellStart(
 			sortedRhoPreMu,
 			gridMarkerHash,
 			gridMarkerIndex,
+			mapOriginalToSorted,
 			oldPosRad,
 			oldVelMas,
 			oldRhoPreMu,

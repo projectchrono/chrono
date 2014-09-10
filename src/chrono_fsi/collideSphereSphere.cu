@@ -1011,6 +1011,15 @@ __global__ void UpdateFlexMarkersPosition(
 	//	velMasD[absMarkerIndex] = R4(beamPointVel + cross(absOmega, dist3), markerMass); //wrong
 	velMasD[absMarkerIndex] = R4(beamPointVel, markerMass);
 }
+//calculate particles stresses
+__global__ void CalcBCE_Stresses_kernel(real3 * posRadD, real4 * velMasD, real4 * rhoPresMuD, real3 * devStressD, real3 * volStressD, int numBCE) {
+	uint index = blockIdx.x * blockDim.x + threadIdx.x;
+	if (index >= numBCE) {
+		return;
+	}
+	uint BCE_Index = index + min(numObjectsD.startRigidMarkers, numObjectsD.startRigidMarkers); // updatePortionD = [start, end] index of the update portion
+
+}
 ////--------------------------------------------------------------------------------------------------------------------------------
 void MakeRigidIdentifier(
 		thrust::device_vector<int> & rigidIdentifierD,
@@ -1117,6 +1126,8 @@ void MapSPH_ToGrid(
 	thrust::device_vector<uint> m_dGridMarkerHash(numAllMarkers);
 	thrust::device_vector<uint> m_dGridMarkerIndex(numAllMarkers);
 
+	thrust::device_vector<uint> mapOriginalToSorted(numAllMarkers);
+
 	thrust::device_vector<uint> m_dCellStart(m_numGridCells);
 	thrust::device_vector<uint> m_dCellEnd(m_numGridCells);
 
@@ -1127,7 +1138,7 @@ void MapSPH_ToGrid(
 
 	// reorder particle arrays into sorted order and find start and end of each cell
 	reorderDataAndFindCellStart(U1CAST(m_dCellStart), U1CAST(m_dCellEnd), R3CAST(m_dSortedPosRad), R4CAST(m_dSortedVelMas), R4CAST(m_dSortedRhoPreMu), U1CAST(m_dGridMarkerHash),
-			U1CAST(m_dGridMarkerIndex), TCAST(posRadD), R4CAST(velMasD), R4CAST(rhoPresMuD), numAllMarkers, m_numGridCells);
+			U1CAST(m_dGridMarkerIndex), U1CAST(mapOriginalToSorted), TCAST(posRadD), R4CAST(velMasD), R4CAST(rhoPresMuD), numAllMarkers, m_numGridCells);
 
 	//real_ resolution = 8 * paramsH.markerRadius;
 	cartesianGridDims = I3(paramsH.boxDims / resolution) + I3(1);
@@ -1145,10 +1156,12 @@ void MapSPH_ToGrid(
 //	freeArray(m_dSortedRhoPreMu);
 	m_dSortedPosRad.clear();
 	m_dSortedVelMas.clear();
+
 	m_dSortedRhoPreMu.clear();
 
 	m_dGridMarkerHash.clear();
 	m_dGridMarkerIndex.clear();
+	mapOriginalToSorted.clear();
 
 //	freeArray(m_dCellStart);
 //	freeArray(m_dCellEnd);
@@ -1203,6 +1216,8 @@ void ForceSPH(
 	thrust::device_vector<uint> m_dGridMarkerHash(numAllMarkers);
 	thrust::device_vector<uint> m_dGridMarkerIndex(numAllMarkers);
 
+	thrust::device_vector<uint> mapOriginalToSorted(numAllMarkers);
+
 	thrust::device_vector<uint> m_dCellStart(m_numGridCells);
 	thrust::device_vector<uint> m_dCellEnd(m_numGridCells);
 	// calculate grid hash
@@ -1218,7 +1233,7 @@ void ForceSPH(
 
 	// reorder particle arrays into sorted order and find start and end of each cell
 	reorderDataAndFindCellStart(U1CAST(m_dCellStart), U1CAST(m_dCellEnd), R3CAST(m_dSortedPosRad), R4CAST(m_dSortedVelMas), R4CAST(m_dSortedRhoPreMu), U1CAST(m_dGridMarkerHash),
-			U1CAST(m_dGridMarkerIndex), TCAST(posRadD), R4CAST(velMasD), R4CAST(rhoPresMuD), numAllMarkers, m_numGridCells);
+			U1CAST(m_dGridMarkerIndex), U1CAST(mapOriginalToSorted), TCAST(posRadD), R4CAST(velMasD), R4CAST(rhoPresMuD), numAllMarkers, m_numGridCells);
 
 	//process collisions
 	real4 totalFluidBodyForce4 = paramsH.bodyForce4 + R4(paramsH.gravity);
@@ -1259,6 +1274,8 @@ void ForceSPH(
 	m_dGridMarkerHash.clear();
 	m_dGridMarkerIndex.clear();
 
+	mapOriginalToSorted.clear();
+
 	m_dCellStart.clear();
 	m_dCellEnd.clear();
 }
@@ -1286,6 +1303,8 @@ void DensityReinitialization(
 	thrust::device_vector<uint> m_dGridMarkerHash(numAllMarkers);
 	thrust::device_vector<uint> m_dGridMarkerIndex(numAllMarkers);
 
+	thrust::device_vector<uint> mapOriginalToSorted(numAllMarkers);
+
 	thrust::device_vector<uint> m_dCellStart(m_numGridCells);
 	thrust::device_vector<uint> m_dCellEnd(m_numGridCells);
 
@@ -1296,7 +1315,7 @@ void DensityReinitialization(
 
 	// reorder particle arrays into sorted order and find start and end of each cell
 	reorderDataAndFindCellStart(U1CAST(m_dCellStart), U1CAST(m_dCellEnd), R3CAST(m_dSortedPosRad), R4CAST(m_dSortedVelMas), R4CAST(m_dSortedRhoPreMu), U1CAST(m_dGridMarkerHash),
-			U1CAST(m_dGridMarkerIndex), TCAST(posRadD), R4CAST(velMasD), R4CAST(rhoPresMuD), numAllMarkers, m_numGridCells);
+			U1CAST(m_dGridMarkerIndex), U1CAST(mapOriginalToSorted), TCAST(posRadD), R4CAST(velMasD), R4CAST(rhoPresMuD), numAllMarkers, m_numGridCells);
 
 	ReCalcDensity(R3CAST(posRadD), R4CAST(velMasD), R4CAST(rhoPresMuD), R3CAST(m_dSortedPosRad), R4CAST(m_dSortedVelMas), R4CAST(m_dSortedRhoPreMu),
 			U1CAST(m_dGridMarkerIndex), U1CAST(m_dCellStart), U1CAST(m_dCellEnd), numAllMarkers);
@@ -1308,8 +1327,26 @@ void DensityReinitialization(
 	m_dGridMarkerHash.clear();
 	m_dGridMarkerIndex.clear();
 
+	mapOriginalToSorted.clear();
+
 	m_dCellStart.clear();
 	m_dCellEnd.clear();
+}
+//--------------------------------------------------------------------------------------------------------------------------------
+void CalcBCE_Stresses(
+		thrust::device_vector<real3> & posRadD,
+		thrust::device_vector<real4> & velMasD,
+		thrust::device_vector<real4> & rhoPresMuD,
+		thrust::device_vector<real3> & devStressD,
+		thrust::device_vector<real3> & volStressD,
+		const NumberOfObjects & numObjects) {
+
+	// thread per particle
+	int numBCE = numObjects.numRigid_SphMarkers + numObjects.numFlex_SphMarkers;
+	uint numThreads, numBlocks;
+	computeGridSize(numBCE, 128, numBlocks, numThreads);
+
+	CalcBCE_Stresses_kernel<<<numBlocks, numThreads>>>(R3CAST(posRadD), R4CAST(velMasD), R4CAST(rhoPresMuD), R3CAST(devStressD), R3CAST(volStressD), numBCE);
 }
 //--------------------------------------------------------------------------------------------------------------------------------
 //updates the fluid particles by calling UpdateKernelFluid 
@@ -1947,6 +1984,8 @@ void cudaCollisions(
 	thrust::device_vector<int> dummyIdentifier(numObjects.numFlexBodies);
 	thrust::fill(dummySum.begin(), dummySum.end(), 1);
 
+	thrust::device_vector<float3> devStressD(numObjects.numRigid_SphMarkers + numObjects.numFlex_SphMarkers);
+	thrust::device_vector<float3> volStressD(numObjects.numRigid_SphMarkers + numObjects.numFlex_SphMarkers);
 
 
 
@@ -2241,6 +2280,8 @@ void cudaCollisions(
 	ANCF_NumNodesMultMarkers_Per_Beam_CumulD.clear();
 	flexMapEachMarkerOnAllBeamNodesD.clear();
 
+	devStressD.clear();
+	volStressD.clear();
 
 	posRigidCumulativeD.clear();
 	velMassRigidD.clear();
