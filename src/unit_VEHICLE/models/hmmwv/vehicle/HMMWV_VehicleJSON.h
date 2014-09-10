@@ -26,6 +26,7 @@
 
 #include "subsys/ChVehicle.h"
 #include "subsys/suspension/DoubleWishbone.h"
+#include "subsys/steering/PitmanArm.h"
 #include "subsys/driveline/ShaftsDriveline2WD.h"
 #include "subsys/wheel/Wheel.h"
 #include "subsys/brake/BrakeSimple.h"
@@ -73,7 +74,9 @@ public:
 private:
 
   chrono::ChSharedPtr<chrono::DoubleWishbone> m_front_susp;
-  chrono::ChSharedPtr<chrono::DoubleWishbone>  m_rear_susp;
+  chrono::ChSharedPtr<chrono::DoubleWishbone> m_rear_susp;
+
+  chrono::ChSharedPtr<chrono::PitmanArm> m_steering;
 
   chrono::ChSharedPtr<chrono::Wheel> m_front_right_wheel;
   chrono::ChSharedPtr<chrono::Wheel> m_front_left_wheel;
