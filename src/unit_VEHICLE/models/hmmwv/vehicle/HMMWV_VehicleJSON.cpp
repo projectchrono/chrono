@@ -144,8 +144,8 @@ void HMMWV_VehicleJSON::Initialize(const ChCoordsys<>& chassisPos)
   m_chassis->SetRot(chassisPos.rot);
 
   // Initialize the suspension subsystems
-  m_front_susp->Initialize(m_chassis, in2m * ChVector<>(-85.39, 0, -18.914));
-  m_rear_susp->Initialize(m_chassis, in2m * ChVector<>(47.60, 0, -18.914));
+  m_front_susp->Initialize(m_chassis, in2m * ChVector<>(-85.39, 0, -32.29));
+  m_rear_susp->Initialize(m_chassis, in2m * ChVector<>(47.60, 0, -32.29));
 
   // Initialize the steering subsystem
   ChVector<> offset = in2m * ChVector<>(-67.815, 0, -29.025);

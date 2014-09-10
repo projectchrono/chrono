@@ -137,8 +137,8 @@ void HMMWV_VehicleReduced::Initialize(const ChCoordsys<>& chassisPos)
   m_chassis->SetRot(chassisPos.rot);
 
   // Initialize the suspension subsystems
-  m_front_susp->Initialize(m_chassis, in2m * ChVector<>(-85.39, 0, -18.914));
-  m_rear_susp->Initialize(m_chassis, in2m * ChVector<>(47.60, 0, -18.914));
+  m_front_susp->Initialize(m_chassis, in2m * ChVector<>(-85.39, 0, -32.29));
+  m_rear_susp->Initialize(m_chassis, in2m * ChVector<>(47.60, 0, -32.29));
 
   // Initialize wheels
   m_front_right_wheel->Initialize(m_front_susp->GetSpindle(ChSuspension::RIGHT));
