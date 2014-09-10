@@ -276,7 +276,7 @@ real4 collideCell(
 __device__ __inline__
 void stressCell(
 		real3 & devS3,
-		real3 & velS3,
+		real3 & volS3,
 		int3 gridPos,
 		uint index,
 		real3 posRadA,
@@ -313,6 +313,11 @@ void stressCell(
 				real3 vr = R3(velMasB - velMasA);
 				real3 gradW = GradW(dist3);
 
+				// Randles and Libersky, 1996
+				devS3 += -paramsD.mu0 * velMasB.w / rhoPresMuB.x *
+						R3(vr.x * gradW.y + vr.y * gradW.x, vr.x * gradW.z + vr.z * gradW.x, vr.y * gradW.z + vr.z * gradW.y);
+				volS3 += -paramsD.mu0 * velMasB.w / rhoPresMuB.x * 4.0 / 3.0 *
+						R3(vr.x * gradW.x, vr.y * gradW.y, vr.z * gradW.z);
 			}
 		}
 	}
@@ -632,12 +637,12 @@ __global__ void CalcBCE_Stresses_kernel(
 		uint* cellStart,
 		uint* cellEnd,
 		int numBCE) {
-	uint thIndex = blockIdx.x * blockDim.x + threadIdx.x;
-	if (thIndex >= numBCE) {
+	uint index = blockIdx.x * blockDim.x + threadIdx.x;
+	if (index >= numBCE) {
 		return;
 	}
 	//Arman take care of this
-	uint BCE_Index = thIndex + min(numObjectsD.startRigidMarkers, numObjectsD.startRigidMarkers); // updatePortionD = [start, end] index of the update portion
+	uint BCE_Index = index + min(numObjectsD.startRigidMarkers, numObjectsD.startRigidMarkers); // updatePortionD = [start, end] index of the update portion
 	uint sortedIndex = mapOriginalToSorted[BCE_Index]; //index in the sorted array
 
 	// read particle data from sorted arrays
@@ -660,6 +665,9 @@ __global__ void CalcBCE_Stresses_kernel(
 			}
 		}
 	}
+
+	devStressD[index] = devS3;
+	volStressD[index] = volS3;
 }
 //--------------------------------------------------------------------------------------------------------------------------------
 //without normalization
