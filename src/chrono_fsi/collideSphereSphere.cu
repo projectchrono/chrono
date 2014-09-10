@@ -1339,7 +1339,7 @@ void CalcBCE_Stresses(
 		thrust::device_vector<real4> & rhoPresMuD,
 		thrust::device_vector<real3> & devStressD,
 		thrust::device_vector<real3> & volStressD,
-		const NumberOfObjects & numObjects ) {
+		const NumberOfObjects & numObjects) {
 
 	// thread per particle
 	int numBCE = numObjects.numRigid_SphMarkers + numObjects.numFlex_SphMarkers;
