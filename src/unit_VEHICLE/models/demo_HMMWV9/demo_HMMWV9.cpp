@@ -217,7 +217,12 @@ int main(int argc, char* argv[])
   // Simulation loop
   // ---------------
 
+  // Inter-module communication data
   ChTireForces tire_forces(4);
+  ChBodyState  wheel_states[4];
+  double       throttle_input;
+  double       steering_input;
+  double       braking_input;
 
   // Number of simulation steps between two 3D view render frames
   int render_steps = (int)std::ceil(render_step_size / step_size);
@@ -239,24 +244,34 @@ int main(int argc, char* argv[])
       application.GetVideoDriver()->endScene();
     }
 
-    // Update modules (inter-module communication)
+    // Collect output data from modules (for inter-module communication)
+    throttle_input = driver.getThrottle();
+    steering_input = driver.getSteering();
+    braking_input = driver.getBraking();
+
+    tire_forces[FRONT_LEFT] = tire_front_left->GetTireForce();
+    tire_forces[FRONT_RIGHT] = tire_front_right->GetTireForce();
+    tire_forces[REAR_LEFT] = tire_rear_left->GetTireForce();
+    tire_forces[REAR_RIGHT] = tire_rear_right->GetTireForce();
+
+    wheel_states[FRONT_LEFT] = vehicle.GetWheelState(FRONT_RIGHT);
+    wheel_states[FRONT_RIGHT] = vehicle.GetWheelState(FRONT_LEFT);
+    wheel_states[REAR_LEFT] = vehicle.GetWheelState(REAR_RIGHT);
+    wheel_states[REAR_RIGHT] = vehicle.GetWheelState(REAR_LEFT);
+
+    // Update modules (process inputs from other modules)
     time = vehicle.GetChTime();
 
     driver.Update(time);
 
     terrain.Update(time);
 
-    tire_front_right->Update(time, vehicle.GetWheelState(FRONT_RIGHT));
-    tire_front_left->Update(time, vehicle.GetWheelState(FRONT_LEFT));
-    tire_rear_right->Update(time, vehicle.GetWheelState(REAR_RIGHT));
-    tire_rear_left->Update(time, vehicle.GetWheelState(REAR_LEFT));
+    tire_front_right->Update(time, wheel_states[FRONT_LEFT]);
+    tire_front_left->Update(time, wheel_states[FRONT_RIGHT]);
+    tire_rear_right->Update(time, wheel_states[REAR_LEFT]);
+    tire_rear_left->Update(time, wheel_states[REAR_RIGHT]);
 
-    tire_forces[FRONT_RIGHT] = tire_front_right->GetTireForce();
-    tire_forces[FRONT_LEFT] = tire_front_left->GetTireForce();
-    tire_forces[REAR_RIGHT] = tire_rear_right->GetTireForce();
-    tire_forces[REAR_LEFT] = tire_rear_left->GetTireForce();
-
-    vehicle.Update(time, driver.getThrottle(), driver.getSteering(), driver.getBraking(), tire_forces);
+    vehicle.Update(time, throttle_input, steering_input, braking_input, tire_forces);
 
     // Advance simulation for one timestep for all modules
     double step = realtime_timer.SuggestSimulationStep(step_size);
@@ -311,24 +326,34 @@ int main(int argc, char* argv[])
       render_frame++;
     }
 
-    // Update modules
+    // Collect output data from modules (for inter-module communication)
+    throttle_input = driver.getThrottle();
+    steering_input = driver.getSteering();
+    braking_input = driver.getBraking();
+
+    tire_forces[FRONT_LEFT] = tire_front_left->GetTireForce();
+    tire_forces[FRONT_RIGHT] = tire_front_right->GetTireForce();
+    tire_forces[REAR_LEFT] = tire_rear_left->GetTireForce();
+    tire_forces[REAR_RIGHT] = tire_rear_right->GetTireForce();
+
+    wheel_states[FRONT_LEFT] = vehicle.GetWheelState(FRONT_RIGHT);
+    wheel_states[FRONT_RIGHT] = vehicle.GetWheelState(FRONT_LEFT);
+    wheel_states[REAR_LEFT] = vehicle.GetWheelState(REAR_RIGHT);
+    wheel_states[REAR_RIGHT] = vehicle.GetWheelState(REAR_LEFT);
+
+    // Update modules (process inputs from other modules)
     time = vehicle.GetChTime();
 
     driver.Update(time);
 
     terrain.Update(time);
 
-    tire_front_right->Update(time, vehicle.GetWheelState(FRONT_RIGHT));
-    tire_front_left->Update(time, vehicle.GetWheelState(FRONT_LEFT));
-    tire_rear_right->Update(time, vehicle.GetWheelState(REAR_RIGHT));
-    tire_rear_left->Update(time, vehicle.GetWheelState(REAR_LEFT));
+    tire_front_right->Update(time, wheel_states[FRONT_LEFT]);
+    tire_front_left->Update(time, wheel_states[FRONT_RIGHT]);
+    tire_rear_right->Update(time, wheel_states[REAR_LEFT]);
+    tire_rear_left->Update(time, wheel_states[REAR_RIGHT]);
 
-    tire_forces[FRONT_RIGHT] = tire_front_right->GetTireForce();
-    tire_forces[FRONT_LEFT] = tire_front_left->GetTireForce();
-    tire_forces[REAR_RIGHT] = tire_rear_right->GetTireForce();
-    tire_forces[REAR_LEFT] = tire_rear_left->GetTireForce();
-
-    vehicle.Update(time, driver.getThrottle(), driver.getSteering(), driver.getBraking(), tire_forces);
+    vehicle.Update(time, throttle_input, steering_input, braking_input, tire_forces);
 
     // Advance simulation for one timestep for all modules
     driver.Advance(step_size);
