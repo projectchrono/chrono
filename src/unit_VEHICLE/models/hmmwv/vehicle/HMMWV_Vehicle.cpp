@@ -98,6 +98,12 @@ HMMWV_Vehicle::HMMWV_Vehicle(const bool           fixed,
   m_front_susp = ChSharedPtr<HMMWV_DoubleWishboneFront>(new HMMWV_DoubleWishboneFront("FrontSusp", false));
   m_rear_susp = ChSharedPtr<HMMWV_DoubleWishboneRear>(new HMMWV_DoubleWishboneRear("RearSusp", true));
 
+  // -----------------------------
+  // Create the steering subsystem
+  // -----------------------------
+
+  m_steering = ChSharedPtr<HMMWV_PitmanArm>(new HMMWV_PitmanArm("Steering"));
+
   // -----------------
   // Create the wheels
   // -----------------
@@ -139,6 +145,11 @@ void HMMWV_Vehicle::Initialize(const ChCoordsys<>& chassisPos)
   // Initialize the suspension subsystems
   m_front_susp->Initialize(m_chassis, in2m * ChVector<>(-85.39, 0, -18.914));
   m_rear_susp->Initialize(m_chassis, in2m * ChVector<>(47.60, 0, -18.914));
+
+  // Initialize the steering subsystem
+  ChVector<> offset = in2m * ChVector<>(-67.815, 0, -29.025);
+  ChQuaternion<> rotation = Q_from_AngAxis(-18.5 * CH_C_PI / 180, ChVector<>(0, 1, 0));
+  m_steering->Initialize(m_chassis, ChCoordsys<>(offset, rotation));
 
   // Initialize wheels
   m_front_right_wheel->Initialize(m_front_susp->GetSpindle(ChSuspension::RIGHT));
