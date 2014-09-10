@@ -40,7 +40,7 @@ const ChVector<> HMMWV_VehicleReduced::m_chassisCOM = in2m * ChVector<>(18.8, 0.
 const ChVector<> HMMWV_VehicleReduced::m_chassisInertia(125.8, 497.4, 531.4);                  // chassis inertia (roll,pitch,yaw)
 
 const std::string HMMWV_VehicleReduced::m_chassisMeshName = "hmmwv_chassis";
-const std::string HMMWV_VehicleReduced::m_chassisMeshFile = utils::GetModelDataFile("hmmwv/humvee4_scaled_rotated_decimated_centered.obj");
+const std::string HMMWV_VehicleReduced::m_chassisMeshFile = utils::GetModelDataFile("hmmwv/hmmwv_chassis.obj");
 
 
 // -----------------------------------------------------------------------------
