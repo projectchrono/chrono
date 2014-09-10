@@ -12,7 +12,11 @@
 // Authors: Radu Serban, Aki Mikkola
 // =============================================================================
 //
-// Template for LuGre tire model
+// Template for a tire model based on LuGre friction
+//
+// Ref: C.Canudas de Wit, P.Tsiotras, E.Velenis, M.Basset and
+// G.Gissinger.Dynamics friction models for longitudinal road / tire
+// interaction.Vehicle System Dynamics.Oct 14, 2002.
 //
 // =============================================================================
 
@@ -26,7 +30,8 @@ namespace chrono {
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 ChLugreTire::ChLugreTire(const ChTerrain& terrain)
-: ChTire(terrain)
+: ChTire(terrain),
+  m_stepsize(1e-3)
 {
   m_tireForce.force = ChVector<>(0, 0, 0);
   m_tireForce.point = ChVector<>(0, 0, 0);
@@ -39,6 +44,13 @@ ChLugreTire::ChLugreTire(const ChTerrain& terrain)
 void ChLugreTire::Initialize()
 {
   m_data.resize(getNumDiscs());
+  m_state.resize(getNumDiscs());
+
+  SetLugreParams();
+
+  // Initialize disc states
+  for (int id = 0; id < getNumDiscs(); id++)
+	  m_state[id] = 0;
 }
 
 
@@ -77,6 +89,8 @@ void ChLugreTire::Update(double              time,
     if (!m_data[id].contact)
       continue;
 
+	m_data[id].contact_point = ptD;
+
     // Relative velocity at contact point (expressed in global frame)
     ChVector<> vel = wheel_state.lin_vel + Vcross(wheel_state.ang_vel, ptD - wheel_state.pos);
 
@@ -90,8 +104,22 @@ void ChLugreTire::Update(double              time,
     m_tireForce.moment += Vcross(ptD - m_tireForce.point, Fn);
 
     // Calculate and store relative sliding velocity
-    m_data[id].slidingVel = vel - normalVel_mag * normal;
+	ChVector<> slidingVel = vel - normalVel_mag * normal;
+	double slidingVel_mag = slidingVel.Length();
+	m_data[id].slidingVel = slidingVel;
+	m_data[id].slidingVel_mag = slidingVel_mag;
+	m_data[id].normal_force = Fn_mag;
 
+	// Calculate coefficients in the ODE for this disc
+	double tmp = exp(-sqrt(slidingVel_mag / m_vs));
+	double g = m_Fc + (m_Fs - m_Fc) * tmp; 
+	double a = slidingVel_mag;
+	double b = -m_sigma0 * slidingVel_mag / g;
+
+	m_data[id].coef_a = a;
+	m_data[id].coef_b = b;
+	m_data[id].alpha = (2 + b * m_stepsize) / (2 - b * m_stepsize);
+	m_data[id].beta = 2 * a * m_stepsize / (2 - b * m_stepsize);
   }
 
 }
@@ -105,6 +133,22 @@ void ChLugreTire::Advance(double step)
     if (!m_data[id].contact)
       continue;
 
+	// Advance disc state (using trapezoidal integration scheme)
+	double z = m_data[id].alpha * m_state[id] + m_data[id].beta; 
+	double zd = m_data[id].coef_a + m_data[id].coef_b * z;
+	m_state[id] = z;
+
+	double Fn_mag = m_data[id].normal_force;    
+	ChVector<> slidingVel = m_data[id].slidingVel;
+	double slidingVel_mag = m_data[id].slidingVel_mag;
+
+	double Ft_mag = Fn_mag * (m_sigma0 * z + m_sigma1 * zd + m_sigma2 * slidingVel_mag); //eg. 25
+
+	ChVector<> Ft = -Ft_mag * slidingVel / slidingVel_mag;
+
+	// Include tangential forces in accumulators
+	m_tireForce.force += Ft;
+	m_tireForce.moment += Vcross(m_data[id].contact_point - m_tireForce.point, Ft);
 
   }
 }
