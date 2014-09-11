@@ -33,21 +33,16 @@
 #include "physics/ChSystem.h"
 #include "unit_IRRLICHT/ChIrrApp.h"
 
+#include "ChronoT_config.h"
+
 #include "utils/ChChaseCamera.h"
 
 #include "subsys/ChApiSubsys.h"
 #include "subsys/ChDriver.h"
 #include "subsys/ChVehicle.h"
 
-// NOTE: the following should not be needed, because the CMake should take care of it, but seems it does not happen...
-#define IRRKLANG_ENABLED 1
-
-// If Irrklang sound support is available...
 #if IRRKLANG_ENABLED
-  // ...include additional headers
-# include <irrKlang.h>
-  // ...and specify whether the demo should actually use Irrklang
-# define USE_IRRKLANG
+#include <irrKlang.h>
 #endif
 
 
@@ -62,6 +57,7 @@ public:
                  const ChVector<>& ptOnChassis,
                  double            chaseDist,
                  double            chaseHeight,
+                 bool              enable_sound = false,
                  int               HUD_x = 740,
                  int               HUD_y = 20);
 
@@ -105,10 +101,12 @@ private:
   int  m_HUD_x;
   int  m_HUD_y;
 
-  #ifdef USE_IRRKLANG
-    irrklang::ISoundEngine* sound_engine;   // Sound player
-	irrklang::ISound* car_sound;			// Sound
-  #endif
+  bool m_sound;
+
+#if IRRKLANG_ENABLED
+  irrklang::ISoundEngine* m_sound_engine;   // Sound player
+  irrklang::ISound*       m_car_sound;      // Sound
+#endif
 
 };
 

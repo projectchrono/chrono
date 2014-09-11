@@ -8,3 +8,5 @@
 // Specify if Irrlicht support is available
 #define IRRLICHT_ENABLED @IRRLICHT_ENABLED@
 
+// Specify if IrrKlang support is enabled
+#define IRRKLANG_ENABLED @IRRKLANG_ENABLED@

@@ -40,24 +40,9 @@ ENDIF()
 
 OPTION(ENABLE_IRRKLANG "Use Irrklang library for sound" OFF)
 
-SET (CH_IRRKLANGLIB   "" CACHE FILE "Where is your Irrklank library?")
-SET (CH_IRRKLANGDIR   "" CACHE FILEPATH "Where is the source directory with headers .h of Irrklang?")
-IF(NOT ENABLE_IRRKLANG)
-  MARK_AS_ADVANCED(FORCE CH_IRRKLANGLIB)
-  MARK_AS_ADVANCED(FORCE CH_IRRKLANGDIR)
-  SET (CH_IRRKLANGLIB   "")
-  SET (CH_IRRKLANGDIR   "")
-  RETURN()
-ELSE()
-  MARK_AS_ADVANCED(CLEAR CH_IRRKLANGLIB)
-  MARK_AS_ADVANCED(CLEAR CH_IRRKLANGDIR)
-  MESSAGE(STATUS "...enabling IrrKlang sound unit")
-  SET(IRRKLANG_ENABLED "1")
-ENDIF()
 
 
-
-#MESSAGE(STATUS "Compiler: ${CH_COMPILER}")
+MESSAGE(STATUS "Compiler: ${CH_COMPILER}")
 #MESSAGE(STATUS "CH_BUILDFLAGS: ${CH_BUILDFLAGS}")
 #MESSAGE(STATUS "CH_LINKERFLAG_EXE: ${CH_LINKERFLAG_EXE}")
 
@@ -85,6 +70,37 @@ ENDIF()
 
 # Add paths to Chrono headers
 INCLUDE_DIRECTORIES(${CHRONOENGINE_INCLUDES})
+
+# ------------------------------------------------------------------------------
+# Find IrrKlang library
+# ------------------------------------------------------------------------------
+IF(ENABLE_IRRKLANG)
+
+  IF(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
+      SET(CH_IRRKLANG_SDKDIR ""  CACHE PATH   "Where is your IrrKlang SDK installed?")
+	  SET (CH_IRRKLANGLIB   "" CACHE FILEPATH "Where is your Irrklank library?")
+  ELSEIF(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
+      FIND_PATH(CH_IRRKLANG_SDKDIR NAMES irrlicht.h PATHS "/usr/include/irrklang" "/usr/local/include/irrklang")
+      FIND_LIBRARY(CH_IRRKLANGLIB NAMES Irrklang PATHS "/usr/local/lib" ${CH_IRRKLANG_SDKDIR}/lib/Linux)
+  ENDIF()
+
+  IF(EXISTS "${CH_IRRKLANG_SDKDIR}/include")
+      SET(CH_IRRKLANGINC "${CH_IRRKLANG_SDKDIR}/include")
+  ELSE()
+      SET(CH_IRRKLANGINC "${CH_IRRKLANG_SDKDIR}")
+  ENDIF()
+
+  INCLUDE_DIRECTORIES(${CH_IRRKLANGINC})
+
+  MARK_AS_ADVANCED(CLEAR CH_IRRKLANG_SDKDIR)
+  MARK_AS_ADVANCED(CLEAR CH_IRRKLANGLIB)
+
+ELSE()
+
+  MARK_AS_ADVANCED(FORCE CH_IRRKLANG_SDKDIR)
+  MARK_AS_ADVANCED(FORCE CH_IRRKLANGLIB)
+
+ENDIF()
 
 # ------------------------------------------------------------------------------
 # Add paths to the top of the source directory and the binary directory
@@ -139,12 +155,12 @@ IF(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
                 "${CMAKE_BINARY_DIR}/bin/$<CONFIGURATION>"
         )
     ENDIF()
-	
-	IF(ENABLE_IRRKLANG)
+
+    IF(ENABLE_IRRKLANG)
         IF("${CH_COMPILER}" STREQUAL "COMPILER_MSVC")
-            SET(CH_IRRKLANG_DLL "${CH_IRRKLANGDIR}/bin/Win32-VisualStudio/irrKlang.dll")
+            SET(CH_IRRKLANG_DLL "${CH_IRRKLANG_SDKDIR}/bin/Win32-VisualStudio/irrKlang.dll")
         ELSEIF("${CH_COMPILER}" STREQUAL "COMPILER_MSVC_X64")
-            SET(CH_IRRKLANG_DLL "${CH_IRRKLANGDIR}/bin/Win64-VisualStudio/irrKlang.dll")
+            SET(CH_IRRKLANG_DLL "${CH_IRRKLANG_SDKDIR}/bin/Winx64-VisualStudio/irrKlang.dll")
         ENDIF()
 
         ADD_CUSTOM_COMMAND(
@@ -164,18 +180,15 @@ ENDIF()
 # Prepare replacement variables
 
 IF(ENABLE_IRRLICHT)
-	SET(IRRLICHT_ENABLED "1")
+  SET(IRRLICHT_ENABLED "1")
 ELSE()
-	SET(IRRLICHT_ENABLED "0")
+  SET(IRRLICHT_ENABLED "0")
 ENDIF()
 
 IF(ENABLE_IRRKLANG)
-	MESSAGE(STATUS "  IRRKLANG_ENABLED 1")
-	SET(IRRKLANG_ENABLED "1")
-	INCLUDE_DIRECTORIES(  "${CH_IRRKLANGDIR}/include"  )
+  SET(IRRKLANG_ENABLED "1")
 ELSE()
-	MESSAGE(STATUS "  IRRKLANG_ENABLED 0")
-	SET(IRRKLANG_ENABLED "0")
+  SET(IRRKLANG_ENABLED "0")
 ENDIF()
 
 SET(CHRONO_DATA_DIR "${CH_CHRONO_SDKDIR}/demos/data/")
