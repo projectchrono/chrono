@@ -240,6 +240,12 @@ void ChIrrGuiDriver::renderLinks()
                               link->GetEndPoint2Abs(),
                               video::SColor(255, 0, 20, 0), true);
     }
+    else if (ChLinkRevoluteSpherical* link = dynamic_cast<ChLinkRevoluteSpherical*>(*ilink)) {
+      ChIrrTools::drawSegment(m_app.GetVideoDriver(),
+                              link->GetPoint1Abs(),
+                              link->GetPoint2Abs(),
+                              video::SColor(255, 180, 0, 0), true);
+    }
   }
 }
 
