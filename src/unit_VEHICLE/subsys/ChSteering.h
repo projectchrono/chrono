@@ -23,6 +23,7 @@
 
 #include "core/ChShared.h"
 #include "physics/ChSystem.h"
+#include "physics/ChBodyAuxRef.h"
 
 #include "subsys/ChApiSubsys.h"
 
@@ -40,13 +41,18 @@ public:
   const std::string& GetName() const { return m_name; }
   void SetName(const std::string& name) { m_name = name; }
 
-  virtual void Initialize(ChSharedPtr<ChBody>  chassis,
-                          const ChVector<>&    location) = 0;
+  ChSharedPtr<ChBody>  GetSteeringLink() const { return m_link; }
 
-  virtual void ApplySteering(double displ) = 0;
+  virtual void Initialize(ChSharedPtr<ChBodyAuxRef> chassis,
+                          const ChVector<>&         location,
+                          const ChQuaternion<>&     rotation) = 0;
+
+  virtual void ApplySteering(double steering) = 0;
 
 protected:
-  std::string               m_name;
+  std::string  m_name;
+
+  ChSharedPtr<ChBody>  m_link;
 };
 
 

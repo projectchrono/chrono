@@ -12,7 +12,7 @@
 // Authors: Radu Serban, Justin Madsen, Daniel Melanz
 // =============================================================================
 //
-// Base class for a double-A arm suspension modeled with bodies and constraints.
+// Base class for a solid axle suspension modeled with bodies and constraints.
 //
 // The suspension subsystem is modeled with respect to a right-handed frame,
 // with X pointing towards the rear, Y to the right, and Z up. All point
@@ -28,7 +28,7 @@
 #include "assets/ChCylinderShape.h"
 #include "assets/ChColorAsset.h"
 
-#include "subsys/suspension/ChDoubleWishbone.h"
+#include "subsys/suspension/ChSolidAxle.h"
 
 
 namespace chrono {
@@ -37,7 +37,7 @@ namespace chrono {
 // -----------------------------------------------------------------------------
 // Static variables
 // -----------------------------------------------------------------------------
-const std::string ChDoubleWishbone::m_pointNames[] = {
+const std::string ChSolidAxle::m_pointNames[] = {
   "SPINDLE ",
   "UPRIGHT ",
   "UCA_F   ",
@@ -59,7 +59,7 @@ const std::string ChDoubleWishbone::m_pointNames[] = {
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-ChDoubleWishbone::ChDoubleWishbone(const std::string& name,
+ChSolidAxle::ChSolidAxle(const std::string& name,
                                    bool               steerable,
                                    bool               driven)
 : ChSuspension(name, steerable, driven)
@@ -68,7 +68,7 @@ ChDoubleWishbone::ChDoubleWishbone(const std::string& name,
   CreateSide(RIGHT, "_R");
 }
 
-void ChDoubleWishbone::CreateSide(ChSuspension::Side side,
+void ChSolidAxle::CreateSide(ChSuspension::Side side,
                                   const std::string& suffix)
 {
   // Create the spindle and upright bodies
@@ -119,20 +119,16 @@ void ChDoubleWishbone::CreateSide(ChSuspension::Side side,
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-void ChDoubleWishbone::Initialize(ChSharedBodyPtr   chassis,
+void ChSolidAxle::Initialize(ChSharedBodyPtr   chassis,
                                   const ChVector<>& location)
 {
-  // Express the suspension reference frame in the absolute coordinate system.
-  ChFrame<> suspension_to_abs(location);
-  suspension_to_abs.ConcatenatePreTransformation(chassis->GetFrame_REF_to_abs());
-
-  // Transform all points to absolute frame and initialize left side.
   std::vector<ChVector<> > points(NUM_POINTS);
 
+  // Transform all points to absolute frame and initialize left side.
   for (int i = 0; i < NUM_POINTS; i++) {
     ChVector<> rel_pos = getLocation(static_cast<PointId>(i));
     rel_pos.y = -rel_pos.y;
-    points[i] = suspension_to_abs.TransformLocalToParent(rel_pos);
+    points[i] = chassis->GetCoord().TransformLocalToParent(location + rel_pos);
   }
 
   InitializeSide(LEFT, chassis, points);
@@ -140,30 +136,27 @@ void ChDoubleWishbone::Initialize(ChSharedBodyPtr   chassis,
   // Transform all points to absolute frame and initialize right side.
   for (int i = 0; i < NUM_POINTS; i++) {
     ChVector<> rel_pos = getLocation(static_cast<PointId>(i));
-    points[i] = suspension_to_abs.TransformLocalToParent(rel_pos);
+    points[i] = chassis->GetCoord().TransformLocalToParent(location + rel_pos);
   }
 
   InitializeSide(RIGHT, chassis, points);
 }
 
-void ChDoubleWishbone::InitializeSide(ChSuspension::Side              side,
+void ChSolidAxle::InitializeSide(ChSuspension::Side              side,
                                       ChSharedBodyPtr                 chassis,
                                       const std::vector<ChVector<> >& points)
 {
-  // Chassis orientation (expressed in absolute frame)
-  ChQuaternion<> chassisRot = chassis->GetFrame_REF_to_abs().GetRot();
-
-  // Initialize spindle body (same orientation as the chassis)
+  // Initialize spindle body.
   m_spindle[side]->SetPos(points[SPINDLE]);
-  m_spindle[side]->SetRot(chassisRot);
+  m_spindle[side]->SetRot(chassis->GetCoord().rot);
   m_spindle[side]->SetMass(getSpindleMass());
   m_spindle[side]->SetInertiaXX(getSpindleInertia());
   AddVisualizationSpindle(m_spindle[side], getSpindleRadius(), getSpindleWidth());
   chassis->GetSystem()->AddBody(m_spindle[side]);
 
-  // Initialize upright body (same orientation as the chassis)
+  // Initialize upright body.
   m_upright[side]->SetPos(points[UPRIGHT]);
-  m_upright[side]->SetRot(chassisRot);
+  m_upright[side]->SetRot(chassis->GetCoord().rot);
   m_upright[side]->SetMass(getUprightMass());
   m_upright[side]->SetInertiaXX(getUprightInertia());
   AddVisualizationUpright(m_upright[side], points[UCA_U], points[LCA_U], points[TIEROD_U], getUprightRadius());
@@ -284,12 +277,12 @@ void ChDoubleWishbone::InitializeSide(ChSuspension::Side              side,
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-double ChDoubleWishbone::GetSpringForce(ChSuspension::Side side)
+double ChSolidAxle::GetSpringForce(ChSuspension::Side side)
 {
   return  m_spring[side]->Get_SpringReact();
 }
 
-double ChDoubleWishbone::GetSpringLen(ChSuspension::Side side)
+double ChSolidAxle::GetSpringLen(ChSuspension::Side side)
 {
   return (m_spring[side]->GetMarker1()->GetAbsCoord().pos - m_spring[side]->GetMarker2()->GetAbsCoord().pos).Length();
 }
@@ -297,7 +290,7 @@ double ChDoubleWishbone::GetSpringLen(ChSuspension::Side side)
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-void ChDoubleWishbone::LogHardpointLocations(const ChVector<>& ref,
+void ChSolidAxle::LogHardpointLocations(const ChVector<>& ref,
                                              bool              inches)
 {
   double unit = inches ? 1 / 0.0254 : 1.0;
@@ -312,7 +305,7 @@ void ChDoubleWishbone::LogHardpointLocations(const ChVector<>& ref,
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-void ChDoubleWishbone::LogConstraintViolations(ChSuspension::Side side)
+void ChSolidAxle::LogConstraintViolations(ChSuspension::Side side)
 {
   // Revolute joints
   {
@@ -368,7 +361,7 @@ void ChDoubleWishbone::LogConstraintViolations(ChSuspension::Side side)
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-void ChDoubleWishbone::AddVisualizationControlArm(ChSharedBodyPtr    arm,
+void ChSolidAxle::AddVisualizationControlArm(ChSharedBodyPtr    arm,
                                                   const ChVector<>&  pt_F,
                                                   const ChVector<>&  pt_B,
                                                   const ChVector<>&  pt_U,
@@ -397,7 +390,7 @@ void ChDoubleWishbone::AddVisualizationControlArm(ChSharedBodyPtr    arm,
 }
 
 
-void ChDoubleWishbone::AddVisualizationUpright(ChSharedBodyPtr    upright,
+void ChSolidAxle::AddVisualizationUpright(ChSharedBodyPtr    upright,
                                                const ChVector<>&  pt_U,
                                                const ChVector<>&  pt_L,
                                                const ChVector<>&  pt_T,
@@ -431,7 +424,7 @@ void ChDoubleWishbone::AddVisualizationUpright(ChSharedBodyPtr    upright,
   upright->AddAsset(col);
 }
 
-void ChDoubleWishbone::AddVisualizationSpindle(ChSharedBodyPtr spindle,
+void ChSolidAxle::AddVisualizationSpindle(ChSharedBodyPtr spindle,
                                                double          radius,
                                                double          width)
 {
@@ -444,7 +437,7 @@ void ChDoubleWishbone::AddVisualizationSpindle(ChSharedBodyPtr spindle,
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-void ChDoubleWishbone::ApplySteering(double displ)
+void ChSolidAxle::ApplySteering(double displ)
 {
   {
     ChVector<> r_bar = m_tierod_marker[LEFT];

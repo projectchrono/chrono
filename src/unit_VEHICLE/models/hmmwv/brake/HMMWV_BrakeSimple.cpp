@@ -12,19 +12,28 @@
 // Authors: Alessandro Tasora
 // =============================================================================
 //
-// Base class for a wheel brake.
+// HMMWV simple brake model.
 //
 // =============================================================================
 
-#include "subsys/ChBrake.h"
+#include "models/hmmwv/brake/HMMWV_BrakeSimple.h"
+
+using namespace chrono;
+
+namespace hmmwv {
+
+// -----------------------------------------------------------------------------
+// Static variables
+// -----------------------------------------------------------------------------
+
+const double  HMMWV_BrakeSimple::m_maxtorque = 4000;
 
 
-namespace chrono {
-
-
-ChBrake::ChBrake()
+// -----------------------------------------------------------------------------
+// -----------------------------------------------------------------------------
+HMMWV_BrakeSimple::HMMWV_BrakeSimple()
 {
 }
 
 
-}  // end namespace chrono
+}  // end namespace hmmwv

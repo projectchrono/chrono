@@ -26,8 +26,10 @@
 
 #include "subsys/ChVehicle.h"
 #include "subsys/suspension/DoubleWishbone.h"
+#include "subsys/steering/PitmanArm.h"
 #include "subsys/driveline/ShaftsDriveline2WD.h"
 #include "subsys/wheel/Wheel.h"
+#include "subsys/brake/BrakeSimple.h"
 
 #include "models/hmmwv/HMMWV.h"
 #include "models/hmmwv/powertrain/HMMWV_Powertrain.h"
@@ -60,6 +62,7 @@ public:
   virtual void Update(double                      time,
                       double                      throttle,
                       double                      steering,
+                      double                      braking,
                       const chrono::ChTireForces& tire_forces);
 
   static void ExportMeshPovray(const std::string& out_dir);
@@ -71,7 +74,9 @@ public:
 private:
 
   chrono::ChSharedPtr<chrono::DoubleWishbone> m_front_susp;
-  chrono::ChSharedPtr<chrono::DoubleWishbone>  m_rear_susp;
+  chrono::ChSharedPtr<chrono::DoubleWishbone> m_rear_susp;
+
+  chrono::ChSharedPtr<chrono::PitmanArm> m_steering;
 
   chrono::ChSharedPtr<chrono::Wheel> m_front_right_wheel;
   chrono::ChSharedPtr<chrono::Wheel> m_front_left_wheel;
@@ -81,12 +86,18 @@ private:
   chrono::ChSharedPtr<chrono::ShaftsDriveline2WD> m_driveline;
   chrono::ChSharedPtr<HMMWV_Powertrain>   m_powertrain;
 
+  chrono::ChSharedPtr<chrono::BrakeSimple> m_front_right_brake;
+  chrono::ChSharedPtr<chrono::BrakeSimple> m_front_left_brake;
+  chrono::ChSharedPtr<chrono::BrakeSimple> m_rear_right_brake;
+  chrono::ChSharedPtr<chrono::BrakeSimple> m_rear_left_brake;
+
   // Chassis visualization mesh
   static const std::string m_chassisMeshName;
   static const std::string m_chassisMeshFile;
 
   // Chassis mass properties
   static const double             m_chassisMass;
+  static const chrono::ChVector<> m_chassisCOM;
   static const chrono::ChVector<> m_chassisInertia;
 };
 

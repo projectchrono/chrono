@@ -31,12 +31,18 @@ SET(COMMON_HMMWV_FILES
 	../hmmwv/vehicle/HMMWV_VehicleJSON.cpp
 	../hmmwv/suspension/HMMWV_DoubleWishbone.h
 	../hmmwv/suspension/HMMWV_DoubleWishbone.cpp
+	../hmmwv/steering/HMMWV_PitmanArm.h
+	../hmmwv/steering/HMMWV_PitmanArm.cpp
 	../hmmwv/driveline/HMMWV_Driveline2WD.h
 	../hmmwv/driveline/HMMWV_Driveline2WD.cpp
 	../hmmwv/powertrain/HMMWV_Powertrain.h
 	../hmmwv/powertrain/HMMWV_Powertrain.cpp
+	../hmmwv/brake/HMMWV_BrakeSimple.h
+	../hmmwv/brake/HMMWV_BrakeSimple.cpp
 	../hmmwv/tire/HMMWV_RigidTire.h
 	../hmmwv/tire/HMMWV_RigidTire.cpp
+	../hmmwv/tire/HMMWV_LugreTire.h
+	../hmmwv/tire/HMMWV_LugreTire.cpp
 )
 
 SET(DEMO_HMMWV_FILES

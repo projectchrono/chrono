@@ -33,6 +33,8 @@ SET(COMMON_HMMWV_FILES
 	../hmmwv/driveline/HMMWV_Driveline2WD.cpp
 	../hmmwv/powertrain/HMMWV_Powertrain.h
 	../hmmwv/powertrain/HMMWV_Powertrain.cpp
+	../hmmwv/brake/HMMWV_BrakeSimple.h
+	../hmmwv/brake/HMMWV_BrakeSimple.cpp
 	../hmmwv/tire/HMMWV_RigidTire.h
 	../hmmwv/tire/HMMWV_RigidTire.cpp
 	../hmmwv/tire/HMMWV_LugreTire.h

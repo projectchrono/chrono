@@ -12,19 +12,17 @@
 // Authors: Radu Serban, Justin Madsen, Daniel Melanz
 // =============================================================================
 //
-// HMMWV full vehicle model...
-//
-// Uses JSON input files for subsystem templates
+// HMMWV full vehicle model with solid axle suspension...
 //
 // =============================================================================
 
-#include "assets/ChSphereShape.h"
+#include "assets/ChBoxShape.h"
 #include "assets/ChTriangleMeshShape.h"
 
 #include "utils/ChUtilsData.h"
 #include "utils/ChUtilsInputOutput.h"
 
-#include "models/hmmwv/vehicle/HMMWV_VehicleJSON.h"
+#include "models/hmmwv/vehicle/HMMWV_VehicleSolidAxle.h"
 
 using namespace chrono;
 
@@ -37,39 +35,43 @@ namespace hmmwv {
 
 static const double in2m = 0.0254;
 
-const double     HMMWV_VehicleJSON::m_chassisMass = 7747.0 / 2.2;                           // chassis sprung mass
-const ChVector<> HMMWV_VehicleJSON::m_chassisCOM = in2m * ChVector<>(18.8, 0.585, 33.329);  // COM location
-const ChVector<> HMMWV_VehicleJSON::m_chassisInertia(125.8, 497.4, 531.4);                  // chassis inertia (roll,pitch,yaw)
+const double     HMMWV_VehicleSolidAxle::m_chassisMass = 7747.0 / 2.2;	// chassis sprung mass
+const ChVector<> HMMWV_VehicleSolidAxle::m_chassisInertia(125.8, 497.4, 531.4); // chassis inertia (roll,pitch,yaw)
 
-const std::string HMMWV_VehicleJSON::m_chassisMeshName = "hmmwv_chassis";
-const std::string HMMWV_VehicleJSON::m_chassisMeshFile = utils::GetModelDataFile("hmmwv/hmmwv_chassis.obj");
+const std::string HMMWV_VehicleSolidAxle::m_chassisMeshName = "hmmwv_chassis";
+const std::string HMMWV_VehicleSolidAxle::m_chassisMeshFile = utils::GetModelDataFile("hmmwv/humvee4_scaled_rotated_decimated_centered.obj");
 
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-HMMWV_VehicleJSON::HMMWV_VehicleJSON(const bool        fixed,
-                                     VisualizationType chassisVis)
+HMMWV_VehicleSolidAxle::HMMWV_VehicleSolidAxle(const bool           fixed,
+                             VisualizationType    chassisVis,
+                             VisualizationType    wheelVis)
 {
   // -------------------------------------------
   // Create the chassis body
   // -------------------------------------------
 
-  m_chassis = ChSharedPtr<ChBodyAuxRef>(new ChBodyAuxRef);
+  m_chassis = ChSharedBodyPtr(new ChBody);
 
   m_chassis->SetIdentifier(0);
   m_chassis->SetName("chassis");
   m_chassis->SetMass(m_chassisMass);
-  m_chassis->SetFrame_COG_to_REF(ChFrame<>(m_chassisCOM, ChQuaternion<>(1, 0, 0, 0)));
   m_chassis->SetInertiaXX(m_chassisInertia);
   m_chassis->SetBodyFixed(fixed);
 
   switch (chassisVis) {
   case PRIMITIVES:
   {
-    ChSharedPtr<ChSphereShape> sphere(new ChSphereShape);
-    sphere->GetSphereGeometry().rad = 0.1;
-    sphere->Pos = m_chassisCOM;
-    m_chassis->AddAsset(sphere);
+    ChSharedPtr<ChBoxShape> box1(new ChBoxShape);
+    box1->GetBoxGeometry().SetLengths(ChVector<>(5, 1.7, 0.4));
+    box1->Pos = ChVector<>(0, 0, -0.4);
+    m_chassis->AddAsset(box1);
+
+    ChSharedPtr<ChBoxShape> box2(new ChBoxShape);
+    box2->GetBoxGeometry().SetLengths(ChVector<>(4, 1.7, 0.4));
+    box2->Pos = ChVector<>(0.5, 0, 0);
+    m_chassis->AddAsset(box2);
 
     break;
   }
@@ -89,64 +91,54 @@ HMMWV_VehicleJSON::HMMWV_VehicleJSON(const bool        fixed,
 
   Add(m_chassis);
 
-  // --------------------------------
+  // -------------------------------------------
   // Create the suspension subsystems
-  // --------------------------------
+  // -------------------------------------------
 
-  m_front_susp = ChSharedPtr<DoubleWishbone>(new DoubleWishbone(utils::GetModelDataFile("hmmwv/suspension/HMMWV_DoubleWishboneFront.json")));
-  m_rear_susp  = ChSharedPtr<DoubleWishbone>(new DoubleWishbone(utils::GetModelDataFile("hmmwv/suspension/HMMWV_DoubleWishboneRear.json")));
-
-  // -----------------------------
-  // Create the steering subsystem
-  // -----------------------------
-
-  m_steering = ChSharedPtr<PitmanArm>(new PitmanArm(utils::GetModelDataFile("hmmwv/steering/HMMWV_PitmanArm.json")));
+  m_front_susp = ChSharedPtr<HMMWV_SolidAxleFront>(new HMMWV_SolidAxleFront("FrontSusp", false));
+  m_rear_susp = ChSharedPtr<HMMWV_SolidAxleRear>(new HMMWV_SolidAxleRear("RearSusp", true));
 
   // -----------------
   // Create the wheels
   // -----------------
 
-  m_front_right_wheel = ChSharedPtr<Wheel>(new Wheel(utils::GetModelDataFile("hmmwv/wheel/HMMWV_Wheel_FrontRight.json")));
-  m_front_left_wheel  = ChSharedPtr<Wheel>(new Wheel(utils::GetModelDataFile("hmmwv/wheel/HMMWV_Wheel_FrontLeft.json")));
-  m_rear_right_wheel  = ChSharedPtr<Wheel>(new Wheel(utils::GetModelDataFile("hmmwv/wheel/HMMWV_Wheel_RearRight.json")));
-  m_rear_left_wheel   = ChSharedPtr<Wheel>(new Wheel(utils::GetModelDataFile("hmmwv/wheel/HMMWV_Wheel_RearLeft.json")));
+  m_front_right_wheel = ChSharedPtr<HMMWV_Wheel>(new HMMWV_WheelRight(wheelVis));
+  m_front_left_wheel = ChSharedPtr<HMMWV_Wheel>(new HMMWV_WheelLeft(wheelVis));
+  m_rear_right_wheel = ChSharedPtr<HMMWV_Wheel>(new HMMWV_WheelRight(wheelVis));
+  m_rear_left_wheel = ChSharedPtr<HMMWV_Wheel>(new HMMWV_WheelLeft(wheelVis));
 
   // ----------------------------------------------
   // Create the driveline and powertrain subsystems
   // ----------------------------------------------
 
-  m_driveline = ChSharedPtr<ShaftsDriveline2WD>(new ShaftsDriveline2WD(this, utils::GetModelDataFile("hmmwv/driveline/HMMWV_Driveline2WD.json")));
+  m_driveline = ChSharedPtr<HMMWV_Driveline2WD>(new HMMWV_Driveline2WD(this));
   m_powertrain = ChSharedPtr<HMMWV_Powertrain>(new HMMWV_Powertrain(this));
 
   // -----------------
   // Create the brakes
   // -----------------
-  m_front_right_brake = ChSharedPtr<BrakeSimple>(new BrakeSimple(utils::GetModelDataFile("hmmwv/brake/HMMWV_BrakeSimple_Front.json")));
-  m_front_left_brake  = ChSharedPtr<BrakeSimple>(new BrakeSimple(utils::GetModelDataFile("hmmwv/brake/HMMWV_BrakeSimple_Front.json")));
-  m_rear_right_brake  = ChSharedPtr<BrakeSimple>(new BrakeSimple(utils::GetModelDataFile("hmmwv/brake/HMMWV_BrakeSimple_Rear.json")));
-  m_rear_left_brake   = ChSharedPtr<BrakeSimple>(new BrakeSimple(utils::GetModelDataFile("hmmwv/brake/HMMWV_BrakeSimple_Rear.json")));
+  m_front_right_brake = ChSharedPtr<HMMWV_BrakeSimple>(new HMMWV_BrakeSimple);
+  m_front_left_brake = ChSharedPtr<HMMWV_BrakeSimple>(new HMMWV_BrakeSimple);
+  m_rear_right_brake = ChSharedPtr<HMMWV_BrakeSimple>(new HMMWV_BrakeSimple);
+  m_rear_left_brake = ChSharedPtr<HMMWV_BrakeSimple>(new HMMWV_BrakeSimple);
 }
 
 
-HMMWV_VehicleJSON::~HMMWV_VehicleJSON()
+HMMWV_VehicleSolidAxle::~HMMWV_VehicleSolidAxle()
 {
 }
 
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-void HMMWV_VehicleJSON::Initialize(const ChCoordsys<>& chassisPos)
+void HMMWV_VehicleSolidAxle::Initialize(const ChCoordsys<>& chassisPos)
 {
-  m_chassis->SetFrame_REF_to_abs(ChFrame<>(chassisPos));
+  m_chassis->SetPos(chassisPos.pos);
+  m_chassis->SetRot(chassisPos.rot);
 
   // Initialize the suspension subsystems
-  m_front_susp->Initialize(m_chassis, in2m * ChVector<>(-66.59, 0, 1.039));
-  m_rear_susp->Initialize(m_chassis, in2m * ChVector<>(66.4, 0, 1.039));
-
-  // Initialize the steering subsystem
-  ChVector<> offset = in2m * ChVector<>(-49.015, 0, 4.304);
-  ChQuaternion<> rotation = Q_from_AngAxis(-18.5 * CH_C_PI / 180, ChVector<>(0, 1, 0));
-  m_steering->Initialize(m_chassis, offset, rotation);
+  m_front_susp->Initialize(m_chassis, in2m * ChVector<>(-85.39, 0, -18.914));
+  m_rear_susp->Initialize(m_chassis, in2m * ChVector<>(47.60, 0, -18.914));
 
   // Initialize wheels
   m_front_right_wheel->Initialize(m_front_susp->GetSpindle(ChSuspension::RIGHT));
@@ -170,7 +162,7 @@ void HMMWV_VehicleJSON::Initialize(const ChCoordsys<>& chassisPos)
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-ChSharedBodyPtr HMMWV_VehicleJSON::GetWheelBody(ChWheelId which) const
+ChSharedBodyPtr HMMWV_VehicleSolidAxle::GetWheelBody(ChWheelId which) const
 {
   switch (which) {
   case FRONT_LEFT:
@@ -186,7 +178,7 @@ ChSharedBodyPtr HMMWV_VehicleJSON::GetWheelBody(ChWheelId which) const
   }
 }
 
-const ChVector<>& HMMWV_VehicleJSON::GetWheelPos(ChWheelId which) const
+const ChVector<>& HMMWV_VehicleSolidAxle::GetWheelPos(ChWheelId which) const
 {
   switch (which) {
   case FRONT_LEFT:
@@ -202,7 +194,7 @@ const ChVector<>& HMMWV_VehicleJSON::GetWheelPos(ChWheelId which) const
   }
 }
 
-const ChQuaternion<>& HMMWV_VehicleJSON::GetWheelRot(ChWheelId which) const
+const ChQuaternion<>& HMMWV_VehicleSolidAxle::GetWheelRot(ChWheelId which) const
 {
   switch (which) {
   case FRONT_LEFT:
@@ -218,7 +210,7 @@ const ChQuaternion<>& HMMWV_VehicleJSON::GetWheelRot(ChWheelId which) const
   }
 }
 
-const ChVector<>& HMMWV_VehicleJSON::GetWheelLinVel(ChWheelId which) const
+const ChVector<>& HMMWV_VehicleSolidAxle::GetWheelLinVel(ChWheelId which) const
 {
   switch (which) {
   case FRONT_LEFT:
@@ -234,7 +226,7 @@ const ChVector<>& HMMWV_VehicleJSON::GetWheelLinVel(ChWheelId which) const
   }
 }
 
-ChVector<> HMMWV_VehicleJSON::GetWheelAngVel(ChWheelId which) const
+ChVector<> HMMWV_VehicleSolidAxle::GetWheelAngVel(ChWheelId which) const
 {
   switch (which) {
   case FRONT_LEFT:
@@ -250,7 +242,7 @@ ChVector<> HMMWV_VehicleJSON::GetWheelAngVel(ChWheelId which) const
   }
 }
 
-double HMMWV_VehicleJSON::GetWheelOmega(ChWheelId which) const
+double HMMWV_VehicleSolidAxle::GetWheelOmega(ChWheelId which) const
 {
   switch (which) {
   case FRONT_LEFT:
@@ -269,7 +261,7 @@ double HMMWV_VehicleJSON::GetWheelOmega(ChWheelId which) const
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-double HMMWV_VehicleJSON::GetSpringForce(chrono::ChWheelId which)
+double HMMWV_VehicleSolidAxle::GetSpringForce(chrono::ChWheelId which)
 {
   switch (which) {
   case FRONT_LEFT:
@@ -285,7 +277,7 @@ double HMMWV_VehicleJSON::GetSpringForce(chrono::ChWheelId which)
   }
 }
 
-double HMMWV_VehicleJSON::GetSpringLength(chrono::ChWheelId which)
+double HMMWV_VehicleSolidAxle::GetSpringLength(chrono::ChWheelId which)
 {
   switch (which) {
   case FRONT_LEFT:
@@ -304,11 +296,11 @@ double HMMWV_VehicleJSON::GetSpringLength(chrono::ChWheelId which)
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-void HMMWV_VehicleJSON::Update(double              time,
-                               double              throttle,
-                               double              steering,
-                               double              braking,
-                               const ChTireForces& tire_forces)
+void HMMWV_VehicleSolidAxle::Update(double              time,
+                           double              throttle,
+                           double              steering,
+                           double              braking,
+                           const ChTireForces& tire_forces)
 {
   // Apply steering input.
   double displ = 0.08 * steering;
@@ -334,7 +326,7 @@ void HMMWV_VehicleJSON::Update(double              time,
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-void HMMWV_VehicleJSON::ExportMeshPovray(const std::string& out_dir)
+void HMMWV_VehicleSolidAxle::ExportMeshPovray(const std::string& out_dir)
 {
   utils::WriteMeshPovray(m_chassisMeshFile, m_chassisMeshName, out_dir, ChColor(0.82f, 0.7f, 0.5f));
 }
@@ -344,7 +336,7 @@ void HMMWV_VehicleJSON::ExportMeshPovray(const std::string& out_dir)
 // Log the hardpoint locations for the front-right and rear-right suspension
 // subsystems (display in inches)
 // -----------------------------------------------------------------------------
-void HMMWV_VehicleJSON::LogHardpointLocations()
+void HMMWV_VehicleSolidAxle::LogHardpointLocations()
 {
   GetLog().SetNumFormat("%7.3f");
 
@@ -364,7 +356,7 @@ void HMMWV_VehicleJSON::LogHardpointLocations()
 // Log the spring error, force, and length at design.
 // Log constraint violations of suspension joints.
 // -----------------------------------------------------------------------------
-void HMMWV_VehicleJSON::DebugLog(int what)
+void HMMWV_VehicleSolidAxle::DebugLog(int what)
 {
   if (what & DBG_SHOCKS)
   {

@@ -9,22 +9,35 @@
 // http://projectchrono.org/license-chrono.txt.
 //
 // =============================================================================
-// Authors: Alessandro Tasora
+// Authors: Radu Serban
 // =============================================================================
 //
-// Base class for a wheel brake.
+// Vehicle simple brake model constructed with data from file (JSON format).
 //
 // =============================================================================
 
-#include "subsys/ChBrake.h"
+#ifndef BRAKE_SIMPLE_H
+#define BRAKE_SIMPLE_H
 
+#include "subsys/ChApiSubsys.h"
+#include "subsys/brake/ChBrakeSimple.h"
 
 namespace chrono {
 
 
-ChBrake::ChBrake()
-{
-}
+class CH_SUBSYS_API BrakeSimple : public ChBrakeSimple {
+public:
+  BrakeSimple(const std::string& filename);
+  ~BrakeSimple() {}
+
+  virtual double GetMaxBrakingTorque() { return m_maxtorque; }
+
+private:
+  double      m_maxtorque;
+};
 
 
-}  // end namespace chrono
+} // end namespace chrono
+
+
+#endif

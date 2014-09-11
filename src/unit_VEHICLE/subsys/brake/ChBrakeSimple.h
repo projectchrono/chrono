@@ -13,60 +13,51 @@
 // =============================================================================
 //
 // Simple brake created with constant torque opposing wheel rotation.
+// It just uses a speed-dependant torque, so it fits in ODEs because it does not
+// use DVI set valued constraints (the drawback is that it cannot simulate
+// sticking brakes).
 //
 // =============================================================================
 
 #ifndef CH_BRAKESIMPLE_H
 #define CH_BRAKESIMPLE_H
 
-
-#include "subsys/ChBrake.h"
+#include "physics/ChSystem.h"
 #include "physics/ChLinkBrake.h"
 
+#include "subsys/ChBrake.h"
+
 namespace chrono {
-
-
-	/// Simple brake created with constant torque opposing 
-	/// wheel rotation.
-	/// It just uses a speed-dependant torque, so it fits in ODEs
-	/// because it does not use DVI set valued constraints (the 
-	/// drawback is that it cannot simulate sticking brakes).
 
 class CH_SUBSYS_API ChBrakeSimple : public ChBrake {
 public:
 
-  ChBrakeSimple (ChSharedPtr<ChLinkLockRevolute> mhub);
-
+  ChBrakeSimple();
   virtual ~ChBrakeSimple() {}
 
-		/// Get the current brake angular speed, relative between disc and caliper  [rad/s]
-  virtual double GetBrakeSpeed();
+  /// Initialize the brake by providing the wheel's revolute link.
+  void Initialize(ChSharedPtr<ChLinkLockRevolute> mhub);
 
-		/// Set the brake modulation, in 0..1 range, 
-		/// when = 0 it is completely free,
-		/// when = 1 it should provide the max braking torque
-		/// This function can be called to modulate braking in realtime simulation loops.
+  /// Set the brake modulation, in 0..1 range, 
+  /// when = 0 it is completely free,
+  /// when = 1 it should provide the max braking torque
+  /// This function can be called to modulate braking in realtime simulation loops.
   virtual void ApplyBrakeModulation(double modulation);
-		
-		/// Get the current brake modulation
-  virtual double GetBrakeModulation() {return modulation;}
 
-		/// Get the current brake torque, as a result of simulation,
-		/// so it might change from time to time
-  virtual double GetBrakeTorque();
+  /// Get the current brake torque, as a result of simulation,
+  /// so it might change from time to time
+  virtual double GetBrakeTorque() { return m_modulation * GetMaxBrakingTorque(); }
 
-		/// Set the max braking torque (for modulation =1)
-  virtual void SetMaxBrakingTorque(double maxt);
-		
-		/// Get the max braking torque (for modulation =1)
-  virtual double GetMaxBrakingTorque() {return maxtorque;}
+  /// Get the current brake angular speed, relative between disc and caliper [rad/s]
+  double GetBrakeSpeed() { return m_brake->GetRelWvel().Length(); }
 
 protected:
 
-	double modulation;
-	double maxtorque;
+  /// Get the max braking torque (for modulation =1)
+  virtual double GetMaxBrakingTorque() = 0;
 
-	ChSharedPtr<ChLinkBrake> mbrake;
+  double                   m_modulation;
+  ChSharedPtr<ChLinkBrake> m_brake;
 };
 
 

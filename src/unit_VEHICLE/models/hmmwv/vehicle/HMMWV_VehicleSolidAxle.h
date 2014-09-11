@@ -12,12 +12,12 @@
 // Authors: Radu Serban, Justin Madsen, Daniel Melanz
 // =============================================================================
 //
-// HMMWV full vehicle model...
+// HMMWV full vehicle model with solid axle suspension...
 //
 // =============================================================================
 
-#ifndef HMMWV_VEHICLE_H
-#define HMMWV_VEHICLE_H
+#ifndef HMMWV_VEHICLESOLIDAXLE_H
+#define HMMWV_VEHICLESOLIDAXLE_H
 
 #include "core/ChCoordsys.h"
 #include "physics/ChSystem.h"
@@ -26,8 +26,7 @@
 
 #include "models/hmmwv/HMMWV.h"
 #include "models/hmmwv/HMMWV_Wheel.h"
-#include "models/hmmwv/suspension/HMMWV_DoubleWishbone.h"
-#include "models/hmmwv/steering/HMMWV_PitmanArm.h"
+#include "models/hmmwv/suspension/HMMWV_SolidAxle.h"
 #include "models/hmmwv/driveline/HMMWV_Driveline2WD.h"
 #include "models/hmmwv/powertrain/HMMWV_Powertrain.h"
 #include "models/hmmwv/brake/HMMWV_BrakeSimple.h"
@@ -37,14 +36,14 @@ namespace hmmwv {
 // Forward reference
 class HMMWV_Powertrain;
 
-class HMMWV_Vehicle : public chrono::ChVehicle {
+class HMMWV_VehicleSolidAxle : public chrono::ChVehicle {
 public:
 
-  HMMWV_Vehicle(const bool        fixed = false,
+  HMMWV_VehicleSolidAxle(const bool        fixed = false,
                 VisualizationType chassisVis = NONE,
                 VisualizationType wheelVis = PRIMITIVES);
 
-  ~HMMWV_Vehicle();
+  ~HMMWV_VehicleSolidAxle();
 
   virtual chrono::ChSharedBodyPtr GetWheelBody(chrono::ChWheelId which) const;
 
@@ -72,10 +71,8 @@ public:
 
 private:
 
-  chrono::ChSharedPtr<HMMWV_DoubleWishboneFront> m_front_susp;
-  chrono::ChSharedPtr<HMMWV_DoubleWishboneRear>  m_rear_susp;
-
-  chrono::ChSharedPtr<HMMWV_PitmanArm> m_steering;
+  chrono::ChSharedPtr<HMMWV_SolidAxleFront> m_front_susp;
+  chrono::ChSharedPtr<HMMWV_SolidAxleRear>  m_rear_susp;
 
   chrono::ChSharedPtr<HMMWV_Wheel> m_front_right_wheel;
   chrono::ChSharedPtr<HMMWV_Wheel> m_front_left_wheel;
@@ -96,7 +93,6 @@ private:
 
   // Chassis mass properties
   static const double             m_chassisMass;
-  static const chrono::ChVector<> m_chassisCOM;
   static const chrono::ChVector<> m_chassisInertia;
 };
 

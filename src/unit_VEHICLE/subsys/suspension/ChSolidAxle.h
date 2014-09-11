@@ -12,7 +12,7 @@
 // Authors: Radu Serban, Justin Madsen, Daniel Melanz
 // =============================================================================
 //
-// Base class for a double-A arm suspension modeled with bodies and constraints.
+// Base class for a solid axle suspension modeled with bodies and constraints.
 // Derived from ChSuspension, but still an abstract base class.
 //
 // The suspension subsystem is modeled with respect to a right-handed frame,
@@ -26,8 +26,8 @@
 //
 // =============================================================================
 
-#ifndef CH_DOUBLEWISHBONE_H
-#define CH_DOUBLEWISHBONE_H
+#ifndef CH_SOLIDAXLE_H
+#define CH_SOLIDAXLE_H
 
 #include <vector>
 
@@ -37,14 +37,14 @@
 namespace chrono {
 
 
-class CH_SUBSYS_API ChDoubleWishbone : public ChSuspension
+class CH_SUBSYS_API ChSolidAxle : public ChSuspension
 {
 public:
 
-  ChDoubleWishbone(const std::string& name,
+  ChSolidAxle(const std::string& name,
                    bool               steerable = false,
                    bool               driven = false);
-  virtual ~ChDoubleWishbone() {}
+  virtual ~ChSolidAxle() {}
 
   virtual void Initialize(ChSharedBodyPtr   chassis,
                           const ChVector<>& location);
