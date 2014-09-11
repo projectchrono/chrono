@@ -49,9 +49,7 @@ protected:
   bool  disc_terrain_contact(const ChVector<>& disc_center,
                              const ChVector<>& disc_normal,
                              double            disc_radius,
-                             ChVector<>&       ptD,
-                             ChVector<>&       ptT,
-                             ChVector<>&       normal,
+                             ChCoordsys<>&     contact,
                              double&           depth);
 
   const ChTerrain&  m_terrain;

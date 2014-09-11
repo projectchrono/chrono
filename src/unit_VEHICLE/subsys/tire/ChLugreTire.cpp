@@ -49,8 +49,10 @@ void ChLugreTire::Initialize()
   SetLugreParams();
 
   // Initialize disc states
-  for (int id = 0; id < getNumDiscs(); id++)
-	  m_state[id] = 0;
+  for (int id = 0; id < getNumDiscs(); id++) {
+    m_state[id].z0 = 0;
+    m_state[id].z1 = 0;
+  }
 }
 
 
@@ -74,9 +76,6 @@ void ChLugreTire::Update(double              time,
 
   // Loop over all discs, check contact with terrain and accumulate normal tire
   // forces.
-  ChVector<> normal;
-  ChVector<> ptD;
-  ChVector<> ptT;
   double depth;
 
   for (int id = 0; id < getNumDiscs(); id++) {
@@ -84,42 +83,41 @@ void ChLugreTire::Update(double              time,
     ChVector<> disc_center = wheel_state.pos + disc_locs[id] * disc_normal;
 
     // Check contact with terrain and calculate contact points.
-    m_data[id].contact = disc_terrain_contact(disc_center, disc_normal, disc_radius,
-                                              ptD, ptT, normal, depth);
-    if (!m_data[id].contact)
+    m_data[id].in_contact = disc_terrain_contact(disc_center, disc_normal, disc_radius,
+                                                 m_data[id].frame, depth);
+    if (!m_data[id].in_contact)
       continue;
 
-	m_data[id].contact_point = ptD;
-
-    // Relative velocity at contact point (expressed in global frame)
-    ChVector<> vel = wheel_state.lin_vel + Vcross(wheel_state.ang_vel, ptD - wheel_state.pos);
+    // Relative velocity at contact point (expressed in global frame and in the contact frame)
+    ChVector<> vel = wheel_state.lin_vel + Vcross(wheel_state.ang_vel, m_data[id].frame.pos - wheel_state.pos);
+    m_data[id].vel = m_data[id].frame.TransformDirectionParentToLocal(vel);
 
     // Generate normal contact force and add to accumulators (recall, all forces
     // are reduced to the wheel center)
-    double     normalVel_mag = Vdot(vel, normal);
-    double     Fn_mag = getNormalStiffness() * depth - getNormalDamping() * normalVel_mag;
-    ChVector<> Fn = Fn_mag * normal;
+    double     Fn_mag = getNormalStiffness() * depth - getNormalDamping() * m_data[id].vel.z;
+    ChVector<> Fn = Fn_mag * m_data[id].frame.rot.GetZaxis();
+
+    m_data[id].normal_force = Fn_mag;
 
     m_tireForce.force += Fn;
-    m_tireForce.moment += Vcross(ptD - m_tireForce.point, Fn);
+    m_tireForce.moment += Vcross(m_data[id].frame.pos - m_tireForce.point, Fn);
 
-    // Calculate and store relative sliding velocity
-	ChVector<> slidingVel = vel - normalVel_mag * normal;
-	double slidingVel_mag = slidingVel.Length();
-	m_data[id].slidingVel = slidingVel;
-	m_data[id].slidingVel_mag = slidingVel_mag;
-	m_data[id].normal_force = Fn_mag;
+    // ODE coefficients for longitudinal direction: z' = a + b * z
+    {
+      double v = abs(m_data[id].vel.x);
+      double g = m_Fc[0] + (m_Fs[0] - m_Fc[0]) * exp(-sqrt(v / m_vs[0]));
+      m_data[id].ode_coef_a[0] = v;
+      m_data[id].ode_coef_b[0] = -m_sigma0[0] * v / g;
+    }
+    
+    // ODE coefficients for lateral direction: z' = a + b * z
+    {
+      double v = abs(m_data[id].vel.y);
+      double g = m_Fc[1] + (m_Fs[1] - m_Fc[1]) * exp(-sqrt(v / m_vs[1]));
+      m_data[id].ode_coef_a[1] = v;
+      m_data[id].ode_coef_b[1] = -m_sigma0[1] * v / g;
+    }
 
-	// Calculate coefficients in the ODE for this disc
-	double tmp = exp(-sqrt(slidingVel_mag / m_vs));
-	double g = m_Fc + (m_Fs - m_Fc) * tmp; 
-	double a = slidingVel_mag;
-	double b = -m_sigma0 * slidingVel_mag / g;
-
-	m_data[id].coef_a = a;
-	m_data[id].coef_b = b;
-	m_data[id].alpha = (2 + b * m_stepsize) / (2 - b * m_stepsize);
-	m_data[id].beta = 2 * a * m_stepsize / (2 - b * m_stepsize);
   }
 
 }
@@ -130,25 +128,54 @@ void ChLugreTire::Update(double              time,
 void ChLugreTire::Advance(double step)
 {
   for (int id = 0; id < getNumDiscs(); id++) {
-    if (!m_data[id].contact)
+    if (!m_data[id].in_contact)
       continue;
 
-	// Advance disc state (using trapezoidal integration scheme)
-	double z = m_data[id].alpha * m_state[id] + m_data[id].beta; 
-	double zd = m_data[id].coef_a + m_data[id].coef_b * z;
-	m_state[id] = z;
+    // Magnitude of normal contact force for this disc
+    double Fn_mag = m_data[id].normal_force;
 
-	double Fn_mag = m_data[id].normal_force;    
-	ChVector<> slidingVel = m_data[id].slidingVel;
-	double slidingVel_mag = m_data[id].slidingVel_mag;
+    // Advance disc state (using trapezoidal integration scheme):
+    //         z_{n+1} = alpha * z_{n} + beta
+    // Evaluate friction force
+    // Add to accumulators for tire force
 
-	double Ft_mag = Fn_mag * (m_sigma0 * z + m_sigma1 * zd + m_sigma2 * slidingVel_mag); //eg. 25
+    // Longitudinal direction
+    {
+      double denom = (2 - m_data[id].ode_coef_b[0] * m_stepsize);
+      double alpha = (2 + m_data[id].ode_coef_b[0] * m_stepsize) / denom;
+      double beta = 2 * m_data[id].ode_coef_a[0] * m_stepsize / denom;
+      double z = alpha * m_state[id].z0 + beta;
+      double zd = m_data[id].ode_coef_a[0] + m_data[id].ode_coef_b[0] * z;
+      m_state[id].z0 = z;
 
-	ChVector<> Ft = -Ft_mag * slidingVel / slidingVel_mag;
+      double v = m_data[id].vel.x;
+      double Ft_mag = Fn_mag * (m_sigma0[0] * z + m_sigma1[0] * zd + m_sigma2[0] * abs(v));
+      ChVector<> dir = (v < 0) ? m_data[id].frame.rot.GetXaxis() : -m_data[id].frame.rot.GetXaxis();
+      ChVector<> Ft = -Ft_mag * dir;
 
-	// Include tangential forces in accumulators
-	m_tireForce.force += Ft;
-	m_tireForce.moment += Vcross(m_data[id].contact_point - m_tireForce.point, Ft);
+      // Include tangential forces in accumulators
+      //m_tireForce.force += Ft;
+      //m_tireForce.moment += Vcross(m_data[id].frame.pos - m_tireForce.point, Ft);
+    }
+
+    // Lateral direction
+    {
+      double denom = (2 - m_data[id].ode_coef_b[1] * m_stepsize);
+      double alpha = (2 + m_data[id].ode_coef_b[1] * m_stepsize) / denom;
+      double beta = 2 * m_data[id].ode_coef_a[1] * m_stepsize / denom;
+      double z = alpha * m_state[id].z1 + beta;
+      double zd = m_data[id].ode_coef_a[1] + m_data[id].ode_coef_b[1] * z;
+      m_state[id].z1 = z;
+
+      double v = m_data[id].vel.y;
+      double Ft_mag = Fn_mag * (m_sigma0[1] * z + m_sigma1[1] * zd + m_sigma2[1] * abs(v));
+      ChVector<> dir = (v < 0) ? m_data[id].frame.rot.GetYaxis() : -m_data[id].frame.rot.GetYaxis();
+      ChVector<> Ft = -Ft_mag * dir;
+
+      // Include tangential forces in accumulators
+      //m_tireForce.force += Ft;
+      //m_tireForce.moment += Vcross(m_data[id].frame.pos - m_tireForce.point, Ft);
+    }
 
   }
 }

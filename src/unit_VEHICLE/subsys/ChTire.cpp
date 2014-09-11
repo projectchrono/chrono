@@ -42,9 +42,7 @@ ChTire::ChTire(const ChTerrain& terrain)
 bool ChTire::disc_terrain_contact(const ChVector<>& disc_center,
                                   const ChVector<>& disc_normal,
                                   double            disc_radius,
-                                  ChVector<>&       ptD,
-                                  ChVector<>&       ptT,
-                                  ChVector<>&       normal,
+                                  ChCoordsys<>&     contact,
                                   double&           depth)
 {
   // Find terrain height below disc center. There is no contact if the disc
@@ -53,15 +51,16 @@ bool ChTire::disc_terrain_contact(const ChVector<>& disc_center,
   if (disc_center.z <= hc || disc_center.z >= hc + disc_radius)
     return false;
 
-  // Find the lowest point on the disc. Define this as the contact point on the
-  // disc.
+  // Find the lowest point on the disc. There is no contact if the disc is
+  // (almost) horizontal.
   ChVector<> dir1 = Vcross(disc_normal, ChVector<>(0, 0, 1));
   double sinTilt2 = dir1.Length2();
 
   if (sinTilt2 < 1e-3)
-    return false;  // no contact if the disc is (almost) horizontal
+    return false;
 
-  ptD = disc_center + disc_radius * Vcross(disc_normal, dir1 / sqrt(sinTilt2));
+  // Contact point (lowest point on disc).
+  ChVector<> ptD = disc_center + disc_radius * Vcross(disc_normal, dir1 / sqrt(sinTilt2));
 
   // Find terrain height at lowest point. No contact if lowest point is above
   // the terrain.
@@ -72,11 +71,18 @@ bool ChTire::disc_terrain_contact(const ChVector<>& disc_center,
 
   // Approximate the terrain with a plane. Define the projection of the lowest
   // point onto this plane as the contact point on the terrain.
-  ChVector<> P(ptD.x, ptD.y, hp);
-  normal = m_terrain.GetNormal(ptD.x, ptD.y);
-  depth = Vdot(P - ptD, normal);
+  ChVector<> normal = m_terrain.GetNormal(ptD.x, ptD.y);
+  ChVector<> longitudinal = Vcross(disc_normal, normal);
+  longitudinal.Normalize();
+  ChVector<> lateral = Vcross(normal, longitudinal);
+  ChMatrix33<> rot;
+  rot.Set_A_axis(longitudinal, lateral, normal);
+
+  contact.pos = ptD;
+  contact.rot = rot.Get_A_quaternion();
+
+  depth = Vdot(ChVector<>(0, 0, hp - ptD.z), normal);
   assert(depth > 0);
-  ptT = ptD + depth * normal;
 
   return true;
 }

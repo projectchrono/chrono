@@ -33,7 +33,7 @@ namespace hmmwv {
 static const double in2m = 0.0254;
 
 const double HMMWV_LugreTire::m_radius = 18.15 * in2m;
-const double HMMWV_LugreTire::m_discLocs[] = { -5 * in2m, 0 * in2m, 5 * in2m };
+const double HMMWV_LugreTire::m_discLocs[] = { 0 };/// { -5 * in2m, 0 * in2m, 5 * in2m };
 
 const double HMMWV_LugreTire::m_normalStiffness = 2e6;
 const double HMMWV_LugreTire::m_normalDamping = 1e3;
@@ -72,14 +72,25 @@ void HMMWV_LugreTire::Initialize(ChSharedBodyPtr wheel)
 // -----------------------------------------------------------------------------
 void HMMWV_LugreTire::SetLugreParams()
 {
-	m_sigma0 = 4000;
-	m_sigma1 = 1;
-	m_sigma2 = 0.02;
+  // Longitudinal direction
+  m_sigma0[0] = 4000;
+  m_sigma1[0] = 1;
+  m_sigma2[0] = 0.02;
 
-	m_Fc = 0.9;
-	m_Fs = 0.55;
+  m_Fc[0] = 0.9;
+  m_Fs[0] = 0.55;
 
-	m_vs = 0.05;
+  m_vs[0] = 0.05;
+
+  // Lateral direction
+  m_sigma0[1] = 4000;
+  m_sigma1[1] = 1;
+  m_sigma2[1] = 0.02;
+
+  m_Fc[1] = 0.9;
+  m_Fs[1] = 0.55;
+
+  m_vs[1] = 0.05;
 }
 
 } // end namespace hmmwv

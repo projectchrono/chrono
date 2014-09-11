@@ -43,7 +43,7 @@ public:
 
 private:
   static const double  m_radius;
-  static const int     m_numDiscs = 3;
+  static const int     m_numDiscs = 1;/// 3;
   static const double  m_discLocs[m_numDiscs];
 
   static const double  m_normalStiffness;
