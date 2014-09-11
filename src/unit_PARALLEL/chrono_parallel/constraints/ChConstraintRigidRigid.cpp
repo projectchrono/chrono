@@ -1,3 +1,5 @@
+#include <algorithm>
+
 #include "chrono_parallel/ChConfigParallel.h"
 #include "ChConstraintRigidRigid.h"
 
@@ -332,7 +334,7 @@ void ChConstraintRigidRigid::host_RHS(int2 *ids,
       if (alpha) {
          bi = inv_hpa * correction[index];
       } else {
-         bi = fmax(real(1.0) / step_size * correction[index], -contact_recovery_speed);
+         bi = std::fmax(real(1.0) / step_size * correction[index], -contact_recovery_speed);
       }
 
       rhs[_index_ + 0] = -temp.x - bi;

@@ -31,7 +31,7 @@ uint ChSolverJacobi::SolveJacobi(const uint max_iter,
       size_t j;
       real omega = 1.0;
 #pragma omp parallel for
-      for (size_t i = 0; i < data_container->num_contacts; ++i) {
+      for (int i = 0; i < data_container->num_contacts; ++i) {
          j = i * 3;
          real Dinv = 1.0 / (diagonal[j + 0] + diagonal[j + 1] + diagonal[j + 2]);
 

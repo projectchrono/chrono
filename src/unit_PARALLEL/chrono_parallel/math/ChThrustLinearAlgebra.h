@@ -18,6 +18,8 @@
 #ifndef CHTHRUSTLINEARALGEBRA_H
 #define CHTHRUSTLINEARALGEBRA_H
 
+#include <algorithm>
+
 #include "chrono_parallel/ChConfigParallel.h"
 #include "chrono_parallel/math/ChParallelMath.h"
 
@@ -204,7 +206,7 @@ static custom_vector<T> operator /(const custom_vector<T> &x,
 template<typename T>
 static real Dot(const T &x,
                 const T &y) {
-   real sum = 0;
+   double sum = 0;
 #pragma omp parallel for reduction(+:sum)
    for (int i = 0; i < x.size(); i++) {
       sum += x[i] * y[i];
@@ -278,7 +280,7 @@ static real CompRes(const custom_vector<real> &res,
    //real minval = *thrust::min_element(res.begin(), res.end());
    //real minval = *thrust::min_element(res.begin(), res.begin()+n_o_c);
    real minval = res[thrust::min_element(thrust::omp::par, res.begin(), res.begin() + n_o_c) - res.begin()];
-   return fmax(real(0.0), -minval);
+   return std::fmax(real(0.0), -minval);
 }
 
 template<class T>

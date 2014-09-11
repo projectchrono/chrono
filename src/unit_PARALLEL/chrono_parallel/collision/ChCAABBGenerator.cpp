@@ -1,3 +1,4 @@
+#include <algorithm>
 #include "ChCAABBGenerator.h"
 using namespace chrono::collision;
 

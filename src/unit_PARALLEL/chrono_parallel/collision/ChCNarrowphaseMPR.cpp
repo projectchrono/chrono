@@ -1,3 +1,5 @@
+#include <algorithm>
+
 #include "collision/ChCCollisionModel.h"
 
 #include "chrono_parallel/math/ChParallelMath.h"
@@ -207,8 +209,8 @@ int portalReachTolerance(const simplex & portal,
    real dot2 = dv4 - dv2;
    real dot3 = dv4 - dv3;
 
-   dot1 = fmin(dot1, dot2);
-   dot1 = fmin(dot1, dot3);
+   dot1 = std::fmin(dot1, dot2);
+   dot1 = std::fmin(dot1, dot3);
 
    return isEqual(dot1, MPR_TOLERANCE) || dot1 < MPR_TOLERANCE;
 
