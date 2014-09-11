@@ -37,21 +37,24 @@ public:
                             bool               driven = false);
   ~HMMWV_SolidAxleFront() {}
 
+  virtual double getAxleTubeMass() const { return m_axleTubeMass; }
   virtual double getSpindleMass() const { return m_spindleMass; }
-  virtual double getUCAMass() const { return m_UCAMass; }
-  virtual double getLCAMass() const { return m_LCAMass; }
-  virtual double getUprightMass() const { return m_uprightMass; }
+  virtual double getULMass() const { return m_ULMass; }
+  virtual double getLLMass() const { return m_LLMass; }
+  virtual double getKnuckleMass() const { return m_knuckleMass; }
 
+  virtual double getAxleTubeRadius() const { return m_axleTubeRadius; }
   virtual double getSpindleRadius() const { return m_spindleRadius; }
   virtual double getSpindleWidth() const { return m_spindleWidth; }
-  virtual double getUCARadius() const { return m_UCARadius; }
-  virtual double getLCARadius() const { return m_LCARadius; }
-  virtual double getUprightRadius() const { return m_uprightRadius; }
+  virtual double getULRadius() const { return m_ULRadius; }
+  virtual double getLLRadius() const { return m_LLRadius; }
+  virtual double getKnuckleRadius() const { return m_knuckleRadius; }
 
+  virtual const chrono::ChVector<>& getAxleTubeInertia() const { return m_axleTubeInertia; }
   virtual const chrono::ChVector<>& getSpindleInertia() const { return m_spindleInertia; }
-  virtual const chrono::ChVector<>& getUCAInertia() const { return m_UCAInertia; }
-  virtual const chrono::ChVector<>& getLCAInertia() const { return m_LCAInertia; }
-  virtual const chrono::ChVector<>& getUprightInertia() const { return m_uprightInertia; }
+  virtual const chrono::ChVector<>& getULInertia() const { return m_ULInertia; }
+  virtual const chrono::ChVector<>& getLLInertia() const { return m_LLInertia; }
+  virtual const chrono::ChVector<>& getKnuckleInertia() const { return m_knuckleInertia; }
 
   virtual double getAxleInertia() const { return m_axleInertia; }
 
@@ -63,21 +66,24 @@ private:
 
   virtual const chrono::ChVector<> getLocation(PointId which);
 
+  static const double      m_axleTubeMass;
   static const double      m_spindleMass;
-  static const double      m_UCAMass;
-  static const double      m_LCAMass;
-  static const double      m_uprightMass;
+  static const double      m_ULMass;
+  static const double      m_LLMass;
+  static const double      m_knuckleMass;
 
+  static const double      m_axleTubeRadius;
   static const double      m_spindleRadius;
   static const double      m_spindleWidth;
-  static const double      m_UCARadius;
-  static const double      m_LCARadius;
-  static const double      m_uprightRadius;
+  static const double      m_ULRadius;
+  static const double      m_LLRadius;
+  static const double      m_knuckleRadius;
 
+  static const chrono::ChVector<>  m_axleTubeInertia;
   static const chrono::ChVector<>  m_spindleInertia;
-  static const chrono::ChVector<>  m_UCAInertia;
-  static const chrono::ChVector<>  m_LCAInertia;
-  static const chrono::ChVector<>  m_uprightInertia;
+  static const chrono::ChVector<>  m_ULInertia;
+  static const chrono::ChVector<>  m_LLInertia;
+  static const chrono::ChVector<>  m_knuckleInertia;
 
   static const double      m_axleInertia;
 
@@ -96,21 +102,24 @@ public:
                            bool               driven = false);
   ~HMMWV_SolidAxleRear() {}
 
+  virtual double getAxleTubeMass() const { return m_axleTubeMass; }
   virtual double getSpindleMass() const { return m_spindleMass; }
-  virtual double getUCAMass() const { return m_UCAMass; }
-  virtual double getLCAMass() const { return m_LCAMass; }
-  virtual double getUprightMass() const { return m_uprightMass; }
+  virtual double getULMass() const { return m_ULMass; }
+  virtual double getLLMass() const { return m_LLMass; }
+  virtual double getKnuckleMass() const { return m_knuckleMass; }
 
+  virtual double getAxleTubeRadius() const { return m_axleTubeRadius; }
   virtual double getSpindleRadius() const { return m_spindleRadius; }
   virtual double getSpindleWidth() const { return m_spindleWidth; }
-  virtual double getUCARadius() const { return m_UCARadius; }
-  virtual double getLCARadius() const { return m_LCARadius; }
-  virtual double getUprightRadius() const { return m_uprightRadius; }
+  virtual double getULRadius() const { return m_ULRadius; }
+  virtual double getLLRadius() const { return m_LLRadius; }
+  virtual double getKnuckleRadius() const { return m_knuckleRadius; }
 
+  virtual const chrono::ChVector<>& getAxleTubeInertia() const { return m_axleTubeInertia; }
   virtual const chrono::ChVector<>& getSpindleInertia() const { return m_spindleInertia; }
-  virtual const chrono::ChVector<>& getUCAInertia() const { return m_UCAInertia; }
-  virtual const chrono::ChVector<>& getLCAInertia() const { return m_LCAInertia; }
-  virtual const chrono::ChVector<>& getUprightInertia() const { return m_uprightInertia; }
+  virtual const chrono::ChVector<>& getULInertia() const { return m_ULInertia; }
+  virtual const chrono::ChVector<>& getLLInertia() const { return m_LLInertia; }
+  virtual const chrono::ChVector<>& getKnuckleInertia() const { return m_knuckleInertia; }
 
   virtual double getAxleInertia() const { return m_axleInertia; }
 
@@ -122,21 +131,24 @@ private:
 
   virtual const chrono::ChVector<> getLocation(PointId which);
 
+  static const double      m_axleTubeMass;
   static const double      m_spindleMass;
-  static const double      m_UCAMass;
-  static const double      m_LCAMass;
-  static const double      m_uprightMass;
+  static const double      m_ULMass;
+  static const double      m_LLMass;
+  static const double      m_knuckleMass;
 
+  static const double      m_axleTubeRadius;
   static const double      m_spindleRadius;
   static const double      m_spindleWidth;
-  static const double      m_UCARadius;
-  static const double      m_LCARadius;
-  static const double      m_uprightRadius;
+  static const double      m_ULRadius;
+  static const double      m_LLRadius;
+  static const double      m_knuckleRadius;
 
+  static const chrono::ChVector<>  m_axleTubeInertia;
   static const chrono::ChVector<>  m_spindleInertia;
-  static const chrono::ChVector<>  m_UCAInertia;
-  static const chrono::ChVector<>  m_LCAInertia;
-  static const chrono::ChVector<>  m_uprightInertia;
+  static const chrono::ChVector<>  m_ULInertia;
+  static const chrono::ChVector<>  m_LLInertia;
+  static const chrono::ChVector<>  m_knuckleInertia;
 
   static const double      m_axleInertia;
 

@@ -61,42 +61,55 @@ public:
 protected:
 
   enum PointId {
-    SPINDLE,    // spindle location
-    UPRIGHT,    // upright location
-    UCA_F,      // upper control arm, chassis front
-    UCA_B,      // upper control arm, chassis back
-    UCA_U,      // upper control arm, upright
-    UCA_CM,     // upper control arm, center of mass
-    LCA_F,      // lower control arm, chassis front
-    LCA_B,      // lower control arm, chassis back
-    LCA_U,      // lower control arm, upright
-    LCA_CM,     // lower control arm, center of mass
+    AXLE_OUTER, // outer axle point
+    SHOCK_A,    // shock, axle
     SHOCK_C,    // shock, chassis
-    SHOCK_A,    // shock, lower control arm
+    KNUCKLE_L,  // lower knuckle point
+    KNUCKLE_U,  // upper knuckle point
+    LL_A,       // lower link, axle
+    LL_A_X,     // lower link, axle, x-direction     
+    LL_A_Z,     // lower link, axle, z-direction
+    LL_C,       // lower link, chassis
+    LL_C_X,     // lower link, chassis, x-direction
+    LL_C_Z,     // lower link, chassis, z-direction
+    UL_A,       // upper link, axle
+    UL_A_X,     // upper link, axle, x-direction     
+    UL_A_Z,     // upper link, axle, z-direction
+    UL_C,       // upper link, chassis
+    UL_C_X,     // upper link, chassis, x-direction
+    UL_C_Z,     // upper link, chassis, z-direction
+    SPRING_A,   // spring, axle
     SPRING_C,   // spring, chassis
-    SPRING_A,   // spring, lower control arm
     TIEROD_C,   // tierod, chassis
-    TIEROD_U,   // tierod, upright
+    TIEROD_K,   // tierod, knuckle
+    SPINDLE,    // spindle location
+    KNUCKLE_CM, // knuckle, center of mass
+    LL_CM,      // lower link, center of mass
+    UL_CM,      // upper link, center of mass
+    AXLE_CM,    // axle, center of mass
     NUM_POINTS
   };
 
   virtual const ChVector<> getLocation(PointId which) = 0;
 
+  virtual double getAxleTubeMass() const = 0;
   virtual double getSpindleMass() const = 0;
-  virtual double getUCAMass() const = 0;
-  virtual double getLCAMass() const = 0;
-  virtual double getUprightMass() const = 0;
+  virtual double getULMass() const = 0;
+  virtual double getLLMass() const = 0;
+  virtual double getKnuckleMass() const = 0;
 
+  virtual double getAxleTubeRadius() const = 0;
   virtual double getSpindleRadius() const = 0;
   virtual double getSpindleWidth() const = 0;
-  virtual double getUCARadius() const = 0;
-  virtual double getLCARadius() const = 0;
-  virtual double getUprightRadius() const = 0;
+  virtual double getULRadius() const = 0;
+  virtual double getLLRadius() const = 0;
+  virtual double getKnuckleRadius() const = 0;
 
+  virtual const ChVector<>& getAxleTubeInertia() const = 0;
   virtual const ChVector<>& getSpindleInertia() const = 0;
-  virtual const ChVector<>& getUCAInertia() const = 0;
-  virtual const ChVector<>& getLCAInertia() const = 0;
-  virtual const ChVector<>& getUprightInertia() const = 0;
+  virtual const ChVector<>& getULInertia() const = 0;
+  virtual const ChVector<>& getLLInertia() const = 0;
+  virtual const ChVector<>& getKnuckleInertia() const = 0;
 
   virtual double getAxleInertia() const = 0;
 
@@ -105,14 +118,16 @@ protected:
   virtual double getSpringRestLength() const = 0;
 
 
-  ChSharedBodyPtr                   m_upright[2];
-  ChSharedBodyPtr                   m_UCA[2];
-  ChSharedBodyPtr                   m_LCA[2];
+  ChSharedBodyPtr                   m_axleTube;
+  ChSharedBodyPtr                   m_knuckle[2];
+  ChSharedBodyPtr                   m_upperLink[2];
+  ChSharedBodyPtr                   m_lowerLink[2];
 
-  ChSharedPtr<ChLinkLockRevolute>   m_revoluteUCA[2];
-  ChSharedPtr<ChLinkLockSpherical>  m_sphericalUCA[2];
-  ChSharedPtr<ChLinkLockRevolute>   m_revoluteLCA[2];
-  ChSharedPtr<ChLinkLockSpherical>  m_sphericalLCA[2];
+  ChSharedPtr<ChLinkLockRevolute>   m_revoluteKingpin[2];
+  ChSharedPtr<ChLinkLockSpherical>  m_sphericalUpperLink[2];
+  ChSharedPtr<ChLinkLockSpherical>  m_sphericalLowerLink[2];
+  ChSharedPtr<ChLinkLockSpherical>  m_universalUpperLink[2];
+  ChSharedPtr<ChLinkLockSpherical>  m_universalLowerLink[2];
   ChSharedPtr<ChLinkDistance>       m_distTierod[2];
 
   ChSharedPtr<ChLinkSpring>         m_shock[2];
@@ -128,15 +143,20 @@ private:
                       ChSharedBodyPtr                 chassis,
                       const std::vector<ChVector<> >& points);
 
-  static void AddVisualizationControlArm(ChSharedBodyPtr    arm,
-                                         const ChVector<>&  pt_F,
-                                         const ChVector<>&  pt_B,
-                                         const ChVector<>&  pt_U,
-                                         double             radius);
-  static void AddVisualizationUpright(ChSharedBodyPtr    upright,
-                                      const ChVector<>&  pt_U,
-                                      const ChVector<>&  pt_L,
-                                      const ChVector<>&  pt_T,
+  static void AddVisualizationAxleTube(ChSharedBodyPtr    axle,
+                                      const ChVector<>&  pt_axleOuter,
+                                      const ChVector<>&  pt_lowerLinkAxle,
+                                      const ChVector<>&  pt_upperLinkAxle,
+                                      double             radius_axle,
+                                      double             radius_link);
+  static void AddVisualizationLink(ChSharedBodyPtr    link,
+                                      const ChVector<>&  pt_linkAxle,
+                                      const ChVector<>&  pt_linkChassis,
+                                      double             radius);
+  static void AddVisualizationKnuckle(ChSharedBodyPtr knuckle,
+                                      const ChVector<>&  pt_upperKnuckle,
+                                      const ChVector<>&  pt_lowerKnuckle,
+                                      const ChVector<>&  pt_spindle,
                                       double             radius);
   static void AddVisualizationSpindle(ChSharedBodyPtr spindle,
                                       double          radius,
