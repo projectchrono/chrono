@@ -263,12 +263,12 @@ void ChSolidAxle::InitializeSide(ChSuspension::Side              side,
   chassis->GetSystem()->AddLink(m_revolute[side]);
 
   // Initialize the spring/damper
-  m_shock[side]->Initialize(chassis, m_axleTube, false, points[SHOCK_C], points[SHOCK_A], true, getSpringRestLength());
+  m_shock[side]->Initialize(chassis, m_axleTube, false, points[SHOCK_C], points[SHOCK_A], false, getSpringRestLength());
   m_shock[side]->Set_SpringK(0.0);
   m_shock[side]->Set_SpringR(getDampingCoefficient());
   chassis->GetSystem()->AddLink(m_shock[side]);
 
-  m_spring[side]->Initialize(chassis, m_axleTube, false, points[SPRING_C], points[SPRING_A], true, getSpringRestLength());
+  m_spring[side]->Initialize(chassis, m_axleTube, false, points[SPRING_C], points[SPRING_A], false, getSpringRestLength());
   m_spring[side]->Set_SpringK(getSpringCoefficient());
   m_spring[side]->Set_SpringR(0.0);
   chassis->GetSystem()->AddLink(m_spring[side]);

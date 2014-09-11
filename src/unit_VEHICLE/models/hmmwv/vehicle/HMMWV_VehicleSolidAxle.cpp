@@ -36,10 +36,11 @@ namespace hmmwv {
 static const double in2m = 0.0254;
 
 const double     HMMWV_VehicleSolidAxle::m_chassisMass = 7747.0 / 2.2;	// chassis sprung mass
+const ChVector<> HMMWV_VehicleSolidAxle::m_chassisCOM = in2m * ChVector<>(3.8, 0.585, -18.329);  // COM location
 const ChVector<> HMMWV_VehicleSolidAxle::m_chassisInertia(125.8, 497.4, 531.4); // chassis inertia (roll,pitch,yaw)
 
 const std::string HMMWV_VehicleSolidAxle::m_chassisMeshName = "hmmwv_chassis";
-const std::string HMMWV_VehicleSolidAxle::m_chassisMeshFile = utils::GetModelDataFile("hmmwv/humvee4_scaled_rotated_decimated_centered.obj");
+const std::string HMMWV_VehicleSolidAxle::m_chassisMeshFile = utils::GetModelDataFile("hmmwv/hmmwv_chassis.obj");
 
 
 // -----------------------------------------------------------------------------
@@ -52,11 +53,12 @@ HMMWV_VehicleSolidAxle::HMMWV_VehicleSolidAxle(const bool           fixed,
   // Create the chassis body
   // -------------------------------------------
 
-  m_chassis = ChSharedBodyPtr(new ChBody);
+  m_chassis = ChSharedPtr<ChBodyAuxRef>(new ChBodyAuxRef);
 
   m_chassis->SetIdentifier(0);
   m_chassis->SetName("chassis");
   m_chassis->SetMass(m_chassisMass);
+  m_chassis->SetFrame_COG_to_REF(ChFrame<>(m_chassisCOM, ChQuaternion<>(1, 0, 0, 0)));
   m_chassis->SetInertiaXX(m_chassisInertia);
   m_chassis->SetBodyFixed(fixed);
 
@@ -137,8 +139,8 @@ void HMMWV_VehicleSolidAxle::Initialize(const ChCoordsys<>& chassisPos)
   m_chassis->SetRot(chassisPos.rot);
 
   // Initialize the suspension subsystems
-  m_front_susp->Initialize(m_chassis, in2m * ChVector<>(-85.39, 0, -18.914));
-  m_rear_susp->Initialize(m_chassis, in2m * ChVector<>(47.60, 0, -18.914));
+  m_front_susp->Initialize(m_chassis, in2m * ChVector<>(-66.59, 0, 1.039));
+  m_rear_susp->Initialize(m_chassis, in2m * ChVector<>(66.4, 0, 1.039));
 
   // Initialize wheels
   m_front_right_wheel->Initialize(m_front_susp->GetSpindle(ChSuspension::RIGHT));
