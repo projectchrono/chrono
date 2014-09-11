@@ -98,9 +98,9 @@ void ChChaseCamera::Turn(int val)
   if (val == 0 || m_state != Chase)
     return;
 
-  if (val < 0 && m_angle > -0.75 * CH_C_PI)
+  if (val < 0 && m_angle > -CH_C_PI)
     m_angle -= CH_C_PI / 100;
-  else if (val > 0 && m_angle < 0.75 * CH_C_PI)
+  else if (val > 0 && m_angle < CH_C_PI)
     m_angle += CH_C_PI / 100;
 }
 
