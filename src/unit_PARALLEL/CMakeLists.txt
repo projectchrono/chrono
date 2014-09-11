@@ -219,6 +219,14 @@ FIND_PATH(BLAZE_DIR NAMES blaze/Blaze.h PATHS "/usr/include" "/usr/local/include
 ELSEIF(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
 FIND_PATH(BLAZE_DIR NAMES blaze/Blaze.h PATHS "/usr/include" "/usr/local/include")
 ENDIF()
+
+# ------------------------------------------------------------------------------
+# BOOST -- required for BLAZE
+# ------------------------------------------------------------------------------
+IF(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
+   SET(BOOST_DIR ""  CACHE PATH   "Where is Boost located?")
+ENDIF()
+
 # ------------------------------------------------------------------------------
 # Find the ChronoEngine library
 # ------------------------------------------------------------------------------
@@ -343,7 +351,7 @@ CONFIGURE_FILE(
   ${PROJECT_BINARY_DIR}/chrono_parallel/ChConfigParallel.h
   )
 
-INCLUDE_DIRECTORIES(${PROJECT_BINARY_DIR} ${BLAZE_DIR})
+INCLUDE_DIRECTORIES(${PROJECT_BINARY_DIR} ${BLAZE_DIR} ${BOOST_DIR})
 
 # ------------------------------------------------------------------------------
 # Add paths to the top of the source directory
