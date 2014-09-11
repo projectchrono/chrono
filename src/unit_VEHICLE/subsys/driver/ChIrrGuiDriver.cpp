@@ -70,6 +70,24 @@ ChIrrGuiDriver::ChIrrGuiDriver(ChIrrApp&         app,
   camera->setUpVector(core::vector3df(0, 0, 1));
   camera->setPosition(core::vector3df((f32)cam_pos.x, (f32)cam_pos.y, (f32)cam_pos.z));
   camera->setTarget(core::vector3df((f32)cam_target.x, (f32)cam_target.y, (f32)cam_target.z));
+
+  #ifdef USE_IRRKLANG
+    sound_engine=0;   // Sound player
+	car_sound=0;	 // Sound
+
+	 // start the sound engine with default parameters
+	sound_engine = irrklang::createIrrKlangDevice();
+	if (!sound_engine)
+		GetLog() << "Cannot start sound engine Irrklang \n";
+
+	// To play a sound, we only to call play2D(). The second parameter
+	// tells the engine to play it looped.
+	if (sound_engine)
+	{
+		car_sound = sound_engine->play2D(GetChronoDataFile("carsound.ogg").c_str(), true, false, true);
+		car_sound->setIsPaused(true);
+	}
+  #endif
 }
 
 
@@ -162,6 +180,26 @@ void ChIrrGuiDriver::Advance(double step)
 
   camera->setPosition(core::vector3df((f32)cam_pos.x, (f32)cam_pos.y, (f32)cam_pos.z));
   camera->setTarget(core::vector3df((f32)cam_target.x, (f32)cam_target.y, (f32)cam_target.z));
+
+  #ifdef USE_IRRKLANG
+	static int stepsbetweensound = 0;
+	// Update sound pitch
+	if(car_sound)
+	{
+		stepsbetweensound ++;
+		double engine_rpm = m_car.m_powertrain->GetMotorSpeed() * 60 / chrono::CH_C_2PI;
+		double soundspeed = engine_rpm/(8000.); // denominator: to guess
+		if (soundspeed <0.1) soundspeed = 0.1;
+		if (stepsbetweensound > 20)
+		{
+			stepsbetweensound =0;
+			if (car_sound->getIsPaused())
+				car_sound->setIsPaused(false);
+			car_sound->setPlaybackSpeed(soundspeed);
+		}
+	}
+  #endif
+
 }
 
 

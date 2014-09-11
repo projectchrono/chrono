@@ -39,6 +39,19 @@
 #include "subsys/ChDriver.h"
 #include "subsys/ChVehicle.h"
 
+// NOTE: the following should not be needed, because the CMake should take care of it, but seems it does not happen...
+#define IRRKLANG_ENABLED 1
+
+// If Irrklang sound support is available...
+#if IRRKLANG_ENABLED
+  // ...include additional headers
+# include <irrKlang.h>
+  // ...and specify whether the demo should actually use Irrklang
+# define USE_IRRKLANG
+#endif
+
+
+
 namespace chrono {
 
 class CH_SUBSYS_API ChIrrGuiDriver : public ChDriver, public irr::IEventReceiver
@@ -91,6 +104,11 @@ private:
 
   int  m_HUD_x;
   int  m_HUD_y;
+
+  #ifdef USE_IRRKLANG
+    irrklang::ISoundEngine* sound_engine;   // Sound player
+	irrklang::ISound* car_sound;			// Sound
+  #endif
 
 };
 
