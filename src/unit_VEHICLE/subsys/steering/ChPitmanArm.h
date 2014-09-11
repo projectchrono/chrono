@@ -37,7 +37,7 @@ public:
                           const ChVector<>&         location,
                           const ChQuaternion<>&     rotation);
 
-  virtual void ApplySteering(double steering) {}
+  virtual void Update(double time, double steering);
 
 protected:
 
@@ -70,12 +70,14 @@ protected:
   virtual double getSteeringLinkRadius() const = 0;
   virtual double getPitmanArmRadius() const = 0;
 
+  virtual double getMaxAngle() const = 0;
+
   virtual const ChVector<>& getSteeringLinkInertia() const = 0;
   virtual const ChVector<>& getPitmanArmInertia() const = 0;
 
   ChSharedPtr<ChBody>                  m_arm;
 
-  ChSharedPtr<ChLinkLockRevolute>      m_revolute;
+  ChSharedPtr<ChLinkEngine>            m_revolute;
   ChSharedPtr<ChLinkRevoluteSpherical> m_revsph;
   ChSharedPtr<ChLinkLockUniversal>     m_universal;
 

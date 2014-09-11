@@ -47,7 +47,7 @@ public:
                           const ChVector<>&         location,
                           const ChQuaternion<>&     rotation) = 0;
 
-  virtual void ApplySteering(double steering) = 0;
+  virtual void Update(double time, double steering) = 0;
 
 protected:
   std::string  m_name;

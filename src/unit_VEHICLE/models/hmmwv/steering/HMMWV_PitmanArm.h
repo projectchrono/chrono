@@ -39,6 +39,8 @@ public:
   virtual const chrono::ChVector<>& getSteeringLinkInertia() const { return m_steeringLinkInertia; }
   virtual const chrono::ChVector<>& getPitmanArmInertia() const    { return m_pitmanArmInertia; }
 
+  virtual double getMaxAngle() const { return m_maxAngle; }
+
   virtual const chrono::ChVector<> getLocation(PointId which);
   virtual const chrono::ChVector<> getDirection(DirectionId which);
 
@@ -48,6 +50,8 @@ private:
 
   static const double      m_steeringLinkRadius;
   static const double      m_pitmanArmRadius;
+
+  static const double      m_maxAngle;
 
   static const chrono::ChVector<>  m_steeringLinkInertia;
   static const chrono::ChVector<>  m_pitmanArmInertia;

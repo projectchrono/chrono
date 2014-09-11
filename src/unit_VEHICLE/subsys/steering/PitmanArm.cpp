@@ -76,6 +76,7 @@ PitmanArm::PitmanArm(const std::string& filename)
   // Read data for the revolute joint (Pitman arm - chassis)
   m_points[REV] = loadVector(d["Revolute Joint"]["Location"]);
   m_dirs[REV_AXIS] = loadVector(d["Revolute Joint"]["Direction"]);
+  m_maxAngle = d["Revolute Joint"]["Maximum Angle"].GetDouble() * (CH_C_PI / 180);
 
   // Read data for the universal joint (Pitman arm - steering link)
   m_points[UNIV] = loadVector(d["Universal Joint"]["Location"]);

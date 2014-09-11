@@ -39,6 +39,8 @@ public:
   virtual const ChVector<>& getSteeringLinkInertia() const { return m_steeringLinkInertia; }
   virtual const ChVector<>& getPitmanArmInertia() const    { return m_pitmanArmInertia; }
 
+  virtual double getMaxAngle() const { return m_maxAngle; }
+
   virtual const ChVector<> getLocation(PointId which)      { return m_points[which]; }
   virtual const ChVector<> getDirection(DirectionId which) { return m_dirs[which]; }
 
@@ -51,6 +53,8 @@ private:
 
   double      m_steeringLinkRadius;
   double      m_pitmanArmRadius;
+
+  double      m_maxAngle;
 
   ChVector<>  m_steeringLinkInertia;
   ChVector<>  m_pitmanArmInertia;

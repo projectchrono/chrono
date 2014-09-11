@@ -22,7 +22,8 @@
 	"Revolute Joint":
 	{
 		"Location":				[0, -0.249, 0],
-		"Direction":			[0, 0, 1]
+		"Direction":			[0, 0, 1],
+		"Maximum Angle":        50,
 	},
 
 	"Universal Joint":

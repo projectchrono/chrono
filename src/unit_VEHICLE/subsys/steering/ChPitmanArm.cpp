@@ -41,8 +41,11 @@ ChPitmanArm::ChPitmanArm(const std::string& name)
   m_arm = ChSharedBodyPtr(new ChBody);
   m_arm->SetNameString(name + "_arm");
 
-  // Revolute joint between Pitman arm and chassis
-  m_revolute = ChSharedPtr<ChLinkLockRevolute>(new ChLinkLockRevolute);
+  // Revolute joint between Pitman arm and chassis. Note that this is modeled as
+  // a ChLinkEngine to allow driving it with imposed rotation (steering input)
+  m_revolute = ChSharedPtr<ChLinkEngine>(new ChLinkEngine);
+  m_revolute->Set_shaft_mode(ChLinkEngine::ENG_SHAFT_LOCK);
+  m_revolute->Set_eng_mode(ChLinkEngine::ENG_MODE_ROTATION);
   m_revolute->SetNameString(name + "_revolute");
 
   // Universal joint between Pitman arm and steering link
@@ -137,6 +140,15 @@ void ChPitmanArm::Initialize(ChSharedPtr<ChBodyAuxRef> chassis,
 
   m_revsph->Initialize(chassis, m_link, ChCoordsys<>(points[REVSPH_R], rot.Get_A_quaternion()), distance);
   chassis->GetSystem()->AddLink(m_revsph);
+}
+
+
+// -----------------------------------------------------------------------------
+// -----------------------------------------------------------------------------
+void ChPitmanArm::Update(double time, double steering)
+{
+  if (ChFunction_Const* fun = dynamic_cast<ChFunction_Const*>(m_revolute->Get_rot_funct()))
+    fun->Set_yconst(getMaxAngle() * steering);
 }
 
 

@@ -312,11 +312,13 @@ void HMMWV_VehicleJSON::Update(double              time,
 {
   // Apply steering input.
   double displ = 0.08 * steering;
-
   m_front_susp->ApplySteering(displ);
 
   // Let the powertrain subsystem process the throttle input.
   m_powertrain->Update(time, throttle);
+
+  // Let the steering subsystem process the steering input.
+  m_steering->Update(time, steering);
 
   // Apply tire forces to spindle bodies.
   m_front_susp->ApplyTireForce(ChSuspension::RIGHT, tire_forces[FRONT_RIGHT]);

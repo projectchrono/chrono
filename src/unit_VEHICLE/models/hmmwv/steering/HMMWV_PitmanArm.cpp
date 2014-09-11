@@ -32,6 +32,8 @@ const double      HMMWV_PitmanArm::m_pitmanArmMass = 2.259;
 const double      HMMWV_PitmanArm::m_steeringLinkRadius = 0.03;
 const double      HMMWV_PitmanArm::m_pitmanArmRadius = 0.02;
 
+const double      HMMWV_PitmanArm::m_maxAngle = 50.0 * (CH_C_PI / 180);
+
 const ChVector<>  HMMWV_PitmanArm::m_steeringLinkInertia(1, 1, 1);
 const ChVector<>  HMMWV_PitmanArm::m_pitmanArmInertia(1, 1, 1);
 
