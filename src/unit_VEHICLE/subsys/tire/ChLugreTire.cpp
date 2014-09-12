@@ -150,7 +150,7 @@ void ChLugreTire::Advance(double step)
 
       double v = m_data[id].vel.x;
       double Ft_mag = Fn_mag * (m_sigma0[0] * z + m_sigma1[0] * zd + m_sigma2[0] * abs(v));
-      ChVector<> dir = (v < 0) ? m_data[id].frame.rot.GetXaxis() : -m_data[id].frame.rot.GetXaxis();
+      ChVector<> dir = (v > 0) ? m_data[id].frame.rot.GetXaxis() : -m_data[id].frame.rot.GetXaxis();
       ChVector<> Ft = -Ft_mag * dir;
 
       // Include tangential forces in accumulators
@@ -169,7 +169,7 @@ void ChLugreTire::Advance(double step)
 
       double v = m_data[id].vel.y;
       double Ft_mag = Fn_mag * (m_sigma0[1] * z + m_sigma1[1] * zd + m_sigma2[1] * abs(v));
-      ChVector<> dir = (v < 0) ? m_data[id].frame.rot.GetYaxis() : -m_data[id].frame.rot.GetYaxis();
+      ChVector<> dir = (v > 0) ? m_data[id].frame.rot.GetYaxis() : -m_data[id].frame.rot.GetYaxis();
       ChVector<> Ft = -Ft_mag * dir;
 
       // Include tangential forces in accumulators
