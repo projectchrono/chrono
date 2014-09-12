@@ -7,6 +7,8 @@
 #include <thrust/device_vector.h>
 
 //--------------------------------------------------------------------------------------------------------------------------------
+void printMaxStress(char * fileName, real_ maxStress, int tStep);
+//--------------------------------------------------------------------------------------------------------------------------------
 void PrintToFile(
 		const thrust::device_vector<real3> & posRadD,
 		const thrust::device_vector<real4> & velMasD,

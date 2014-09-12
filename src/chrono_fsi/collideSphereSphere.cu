@@ -1185,7 +1185,6 @@ void MapSPH_ToGrid(
 	rho_Pres_CartD.clear();
 	vel_VelMag_CartD.clear();
 }
-
 //*******************************************************************************************************************************
 //builds the neighbors' list of each particle and finds the force on each particle
 //calculates the interaction force between 1- fluid-fluid, 2- fluid-solid, 3- solid-fluid particles
@@ -1204,6 +1203,7 @@ void ForceSPH(
 		const thrust::host_vector<int3> & referenceArray,
 		const NumberOfObjects & numObjects,
 		SimParams paramsH,
+		real_ & maxStress,
 		real_ dT) {
 	// Part1: contact detection #########################################################################################################################
 	// grid data for sorting method
@@ -1274,42 +1274,21 @@ void ForceSPH(
 //	ProjectDensityPressureToBCandBCE(R4CAST(rhoPresMuD), R3CAST(m_dSortedPosRad), R4CAST(m_dSortedRhoPreMu),
 //				U1CAST(m_dGridMarkerIndex), U1CAST(m_dCellStart), U1CAST(m_dCellEnd), numAllMarkers);
 	//********************************************************************************************************************************
-
-
-
-
-
-
+	//*********************** Calculate MaxStress on Particles ***********************************************************************
 	thrust::device_vector<real3> devStressD(numObjects.numRigid_SphMarkers + numObjects.numFlex_SphMarkers);
 	thrust::device_vector<real3> volStressD(numObjects.numRigid_SphMarkers + numObjects.numFlex_SphMarkers);
 	thrust::device_vector<real4> mainStressD(numObjects.numRigid_SphMarkers + numObjects.numFlex_SphMarkers);
-
 	int numBCE = numObjects.numRigid_SphMarkers + numObjects.numFlex_SphMarkers;
 	CalcBCE_Stresses(R3CAST(devStressD), R3CAST(volStressD), R4CAST(mainStressD), R3CAST(m_dSortedPosRad), R4CAST(m_dSortedVelMas), R4CAST(m_dSortedRhoPreMu),
 			U1CAST(mapOriginalToSorted), U1CAST(m_dCellStart), U1CAST(m_dCellEnd),numBCE);
 
-	real4 maxStress = *(thrust::max_element(mainStressD.begin(), mainStressD.end(), MaxReal4W()));
-	printf("maxStress %f\n", maxStress.w);
-
-
-
+	maxStress = 0;
+	maxStress = *(thrust::max_element(mainStressD.begin(), mainStressD.end(), MaxReal4W()));
 
 	devStressD.clear();
 	volStressD.clear();
 	mainStressD.clear();
-
-
-
-
-
-
-
-
-
-
-
-
-	////
+	//********************************************************************************************************************************
 	m_dSortedPosRad.clear();
 	m_dSortedVelMas.clear();
 	m_dSortedRhoPreMu.clear();
@@ -2086,6 +2065,7 @@ void cudaCollisions(
 	SimParams currentParamsH = paramsH;
 
 	real_ timeSlice = real_(paramsH.tFinal)/7;
+	real_ maxStress;
 	for (int tStep = 0; tStep < stepEnd + 1; tStep++) {
 		//************************************************
 		//edit  since yu deleted cyliderRotOmegaJD
@@ -2163,7 +2143,7 @@ void cudaCollisions(
 		thrust::device_vector<real3> ANCF_SlopesVelD2 = ANCF_SlopesVelD;
 
 		//******** RK2
-		ForceSPH(posRadD, velMasD, vel_XSPH_D, rhoPresMuD, posRigidD, rigidIdentifierD, bodyIndexD, derivVelRhoD, referenceArray, numObjects, currentParamsH, 0.5 * currentParamsH.dT); //?$ right now, it does not consider paramsH.gravity or other stuff on rigid bodies. they should be applied at rigid body solver
+		ForceSPH(posRadD, velMasD, vel_XSPH_D, rhoPresMuD, posRigidD, rigidIdentifierD, bodyIndexD, derivVelRhoD, referenceArray, numObjects, currentParamsH, maxStress, 0.5 * currentParamsH.dT); //?$ right now, it does not consider paramsH.gravity or other stuff on rigid bodies. they should be applied at rigid body solver
 		UpdateFluid(posRadD2, velMasD2, vel_XSPH_D, rhoPresMuD2, derivVelRhoD, referenceArray, 0.5 * currentParamsH.dT); //assumes ...D2 is a copy of ...D
 		//UpdateBoundary(posRadD2, velMasD2, rhoPresMuD2, derivVelRhoD, referenceArray, 0.5 * currentParamsH.dT);		//assumes ...D2 is a copy of ...D
 
@@ -2201,8 +2181,9 @@ void cudaCollisions(
 		}
 		ApplyBoundary(posRadD2, rhoPresMuD2, posRigidD2, ANCF_NodesD2, ANCF_ReferenceArrayNodesOnBeamsD, numObjects);
 //		//*****
-		ForceSPH(posRadD2, velMasD2, vel_XSPH_D, rhoPresMuD2, posRigidD2, rigidIdentifierD, bodyIndexD, derivVelRhoD, referenceArray, numObjects, currentParamsH, currentParamsH.dT);
+		ForceSPH(posRadD2, velMasD2, vel_XSPH_D, rhoPresMuD2, posRigidD2, rigidIdentifierD, bodyIndexD, derivVelRhoD, referenceArray, numObjects, currentParamsH, maxStress, currentParamsH.dT);
 		UpdateFluid(posRadD, velMasD, vel_XSPH_D, rhoPresMuD, derivVelRhoD, referenceArray, currentParamsH.dT);
+		printMaxStress("maxParticlesStress.txt", maxStress, tStep);
 		//UpdateBoundary(posRadD, velMasD, rhoPresMuD, derivVelRhoD, referenceArray, currentParamsH.dT);
 
 		if (realTime > timePauseRigidFlex) {

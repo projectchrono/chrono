@@ -19,6 +19,18 @@ real_ AngleF3F3(real3 a3, real3 b3) {
 	return acos(cosTheta);
 }
 //*******************************************************************************************************************************
+void printMaxStress(char * fileName, real_ maxStress, int tStep) {
+	int stepSaveStress = 100;
+	ofstream out;
+	if (tStep % stepSaveStress == 0) {
+		if (tStep / stepSaveStress == 0) {
+			out.open(fileName);
+		} else {
+			out.open(fileName, ios::app);
+		}
+		out << maxStress << endl;
+}
+//*******************************************************************************************************************************
 
 void PrintToFile(
 		const thrust::device_vector<real3> & posRadD,
