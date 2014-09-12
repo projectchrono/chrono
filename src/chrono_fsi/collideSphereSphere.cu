@@ -1939,6 +1939,19 @@ void cudaCollisions(
 	//thrust::copy(jInvH1.begin(), jInvH1.end(), jInvD1.begin());
 	//thrust::copy(jInvH2.begin(), jInvH2.end(), jInvD2.begin());
 
+
+
+
+
+	//Check it works!
+//	thrust::device_vector<real4> dummyV(numObjects.numAllMarkers);
+//	thrust::fill(dummyV.begin(), dummyV.end(), R4(1));
+//	real4 sum4 = thrust::reduce(dummyV.begin(), dummyV.end(), R4(0), thrust::plus<real4>());
+//	printf("sum4 %f %f %f %f numMarkers %d", sum4.x, sum4.y, sum4.z, sum4.w, numObjects.numAllMarkers);
+//	sum4 = thrust::reduce(dummyV.begin(), dummyV.end(), R4(0), PlusR4());
+//	printf("sum4B %f %f %f %f", sum4.x, sum4.y, sum4.z, sum4.w);
+//	dummyV.clear();
+
 	thrust::device_vector<uint> bodyIndexD=bodyIndex;
 	//thrust::copy(bodyIndex.begin(), bodyIndex.end(), bodyIndexD.begin());
 	thrust::device_vector<real4> derivVelRhoD(numObjects.numAllMarkers);
