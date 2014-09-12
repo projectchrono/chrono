@@ -1282,8 +1282,9 @@ void ForceSPH(
 	CalcBCE_Stresses(R3CAST(devStressD), R3CAST(volStressD), R4CAST(mainStressD), R3CAST(m_dSortedPosRad), R4CAST(m_dSortedVelMas), R4CAST(m_dSortedRhoPreMu),
 			U1CAST(mapOriginalToSorted), U1CAST(m_dCellStart), U1CAST(m_dCellEnd),numBCE);
 
-	maxStress = 0;
-	maxStress = *(thrust::max_element(mainStressD.begin(), mainStressD.end(), MaxReal4W()));
+	real4 maxStress4 = R4(0);
+	maxStress4 = *(thrust::max_element(mainStressD.begin(), mainStressD.end(), MaxReal4W()));
+	maxStress = maxStress4.w;
 
 	devStressD.clear();
 	volStressD.clear();

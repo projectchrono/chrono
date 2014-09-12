@@ -29,6 +29,7 @@ void printMaxStress(char * fileName, real_ maxStress, int tStep) {
 			out.open(fileName, ios::app);
 		}
 		out << maxStress << endl;
+	}
 }
 //*******************************************************************************************************************************
 
