@@ -287,6 +287,7 @@ void collide(
 void CalcBCE_Stresses(
 		real3* devStressD,
 		real3* volStressD,
+		real4* mainStressD,
 		real3* sortedPosRad,
 		real4* sortedVelMas,
 		real4* sortedRhoPreMu,

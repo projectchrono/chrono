@@ -670,6 +670,27 @@ __global__ void CalcBCE_Stresses_kernel(
 	volStressD[index] = volS3;
 }
 //--------------------------------------------------------------------------------------------------------------------------------
+//calculate particles stresses
+__global__ void CalcBCE_MainStresses_kernel(
+		real4* mainStressD,
+		real3* devStressD,
+		real3* volStressD,
+		int numBCE) {
+	uint index = blockIdx.x * blockDim.x + threadIdx.x;
+	if (index >= numBCE) {
+		return;
+	}
+
+	real3 devS3 = devStressD[index];
+	real3 volS3 = volStressD[index];
+	real4 mainS3 = R4(0);
+	mainS3.w = sqrt( .5 * (
+			pow(volS3.x-volS3.y, 2) + pow(volS3.x-volS3.z, 2) + pow(volS3.y-volS3.z, 2) + 6 * (devS3.x * devS3.x + devS3.y * devS3.y + devS3.z * devS3.z)
+			));
+
+	mainStressD[index] = mainS3;
+}
+//--------------------------------------------------------------------------------------------------------------------------------
 //without normalization
 __global__
 void ReCalcDensityD_F1(
@@ -946,6 +967,7 @@ void RecalcVelocity_XSPH(
 void CalcBCE_Stresses(
 		real3* devStressD,
 		real3* volStressD,
+		real4* mainStressD,
 		real3* sortedPosRad,
 		real4* sortedVelMas,
 		real4* sortedRhoPreMu,
@@ -959,6 +981,14 @@ void CalcBCE_Stresses(
 	computeGridSize(numBCE, 128, numBlocks, numThreads);
 	CalcBCE_Stresses_kernel<<<numBlocks, numThreads>>>(devStressD, volStressD, sortedPosRad, sortedVelMas, sortedRhoPreMu,
 			mapOriginalToSorted, cellStart, cellEnd, numBCE);
+
+	cudaThreadSynchronize();
+	CUT_CHECK_ERROR("Kernel execution failed: CalcBCE_Stresses_kernel");
+
+	CalcBCE_MainStresses_kernel<<<numBlocks, numThreads>>>(mainStressD, devStressD, volStressD, numBCE);
+
+	cudaThreadSynchronize();
+	CUT_CHECK_ERROR("Kernel execution failed: CalcBCE_MainStresses_kernel");
 }
 //--------------------------------------------------------------------------------------------------------------------------------
 void collide(

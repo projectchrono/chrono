@@ -26,6 +26,24 @@ __constant__ int2 updatePortionD;
 __constant__ int2 portionD;
 __constant__ int flagD;
 //--------------------------------------------------------------------------------------------------------------------------------
+struct MaxReal4W
+{
+  __host__ __device__
+  bool operator()(real4 lhs, real4 rhs)
+  {
+    return lhs.w < rhs.w;
+  }
+};
+//--------------------------------------------------------------------------------------------------------------------------------
+struct PlusR4
+{
+  __host__ __device__
+  real4 operator()(real4 lhs, real4 rhs)
+  {
+    return lhs + rhs;
+  }
+};
+//--------------------------------------------------------------------------------------------------------------------------------
 // first comp of q is rotation, last 3 components are axis of rot
 __device__ __host__ inline void RotationMatirixFromQuaternion(real3 & AD1, real3 & AD2, real3 & AD3, const real4 & q) {
 	AD1 = 2 * R3(0.5f - q.z * q.z - q.w * q.w, q.y * q.z - q.x * q.w, q.y * q.w + q.x * q.z);
@@ -1262,17 +1280,23 @@ void ForceSPH(
 
 
 
-	thrust::device_vector<float3> devStressD(numObjects.numRigid_SphMarkers + numObjects.numFlex_SphMarkers);
-	thrust::device_vector<float3> volStressD(numObjects.numRigid_SphMarkers + numObjects.numFlex_SphMarkers);
+	thrust::device_vector<real3> devStressD(numObjects.numRigid_SphMarkers + numObjects.numFlex_SphMarkers);
+	thrust::device_vector<real3> volStressD(numObjects.numRigid_SphMarkers + numObjects.numFlex_SphMarkers);
+	thrust::device_vector<real4> mainStressD(numObjects.numRigid_SphMarkers + numObjects.numFlex_SphMarkers);
 
 	int numBCE = numObjects.numRigid_SphMarkers + numObjects.numFlex_SphMarkers;
-	CalcBCE_Stresses(R3CAST(devStressD), R3CAST(volStressD), R3CAST(m_dSortedPosRad), R4CAST(m_dSortedVelMas), R4CAST(m_dSortedRhoPreMu),
+	CalcBCE_Stresses(R3CAST(devStressD), R3CAST(volStressD), R4CAST(mainStressD), R3CAST(m_dSortedPosRad), R4CAST(m_dSortedVelMas), R4CAST(m_dSortedRhoPreMu),
 			U1CAST(mapOriginalToSorted), U1CAST(m_dCellStart), U1CAST(m_dCellEnd),numBCE);
+
+	real4 maxStress = *(thrust::max_element(mainStressD.begin(), mainStressD.end(), MaxReal4W()));
+	printf("maxStress %f\n", maxStress.w);
+
 
 
 
 	devStressD.clear();
 	volStressD.clear();
+	mainStressD.clear();
 
 
 
