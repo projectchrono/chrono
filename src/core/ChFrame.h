@@ -192,7 +192,16 @@ public:
 		}
 
 		/// Performs pre-multiplication of this frame by another
+		/// frame, for example: A>>=T means  A'=T*A ; or A'=A >> T
+	ChFrame<Real>& operator >>= (const ChFrame<Real>& T)
+		{
+			ConcatenatePreTransformation(T);
+			return *this;
+		}
+
+		/// Performs pre-multiplication of this frame by another
 		/// frame, for example: A%=T means  A'=T*A ; or A'=A >> T
+		/// Note: DEPRECATED, use >>= instead.
 	ChFrame<Real>& operator %= (const ChFrame<Real>& T)
 		{
 			ConcatenatePreTransformation(T);
