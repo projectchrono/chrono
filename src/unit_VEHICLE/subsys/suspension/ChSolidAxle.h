@@ -151,10 +151,10 @@ private:
                                    const ChVector<>&  pt_2,
                                    double             radius,
                                    const ChColor&     color);
-  static void AddVisualizationKnuckle(ChSharedBodyPtr knuckle,
-                                      const ChVector<>&  pt_upperKnuckle,
-                                      const ChVector<>&  pt_lowerKnuckle,
-                                      const ChVector<>&  pt_spindle,
+  static void AddVisualizationKnuckle(ChSharedBodyPtr    knuckle,
+                                      const ChVector<>&  pt_U,
+                                      const ChVector<>&  pt_L,
+                                      const ChVector<>&  pt_T,
                                       double             radius);
   static void AddVisualizationSpindle(ChSharedBodyPtr spindle,
                                       double          radius,

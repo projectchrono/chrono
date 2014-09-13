@@ -46,7 +46,7 @@ const double     HMMWV_SolidAxleFront::m_spindleWidth = 0.06;
 const double     HMMWV_SolidAxleFront::m_ULRadius = 0.02;
 const double     HMMWV_SolidAxleFront::m_LLRadius = 0.02;
 const double     HMMWV_SolidAxleFront::m_axleTubeRadius = 0.03;
-const double     HMMWV_SolidAxleFront::m_knuckleRadius = 0.02;
+const double     HMMWV_SolidAxleFront::m_knuckleRadius = 0.01;
 
 const ChVector<> HMMWV_SolidAxleFront::m_axleTubeCOM(0, 0, 0);
 
@@ -75,7 +75,7 @@ const double     HMMWV_SolidAxleRear::m_spindleWidth = 0.06;
 const double     HMMWV_SolidAxleRear::m_ULRadius = 0.02;
 const double     HMMWV_SolidAxleRear::m_LLRadius = 0.02;
 const double     HMMWV_SolidAxleRear::m_axleTubeRadius = 0.03;
-const double     HMMWV_SolidAxleRear::m_knuckleRadius = 0.02;
+const double     HMMWV_SolidAxleRear::m_knuckleRadius = 0.01;
 
 const ChVector<> HMMWV_SolidAxleRear::m_axleTubeCOM(0, 0, 0);
 

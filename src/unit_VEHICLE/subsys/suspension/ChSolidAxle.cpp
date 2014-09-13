@@ -189,8 +189,7 @@ void ChSolidAxle::InitializeSide(ChSuspension::Side              side,
   m_knuckle[side]->SetRot(chassis->GetCoord().rot);
   m_knuckle[side]->SetMass(getKnuckleMass());
   m_knuckle[side]->SetInertiaXX(getKnuckleInertia());
-  // TODO: ADD KNUCKLE VISUALIZATION
-  //AddVisualizationKnuckle(m_knuckle[side], points[KNUCKLE_U], points[KNUCKLE_L], points[SPINDLE], getKnuckleRadius());
+  AddVisualizationKnuckle(m_knuckle[side], points[KNUCKLE_U], points[KNUCKLE_L], points[TIEROD_K], getKnuckleRadius());
   chassis->GetSystem()->AddBody(m_knuckle[side]);
 
   // Initialize spindle body.
@@ -206,7 +205,7 @@ void ChSolidAxle::InitializeSide(ChSuspension::Side              side,
   m_upperLink[side]->SetRot(chassis->GetCoord().rot);
   m_upperLink[side]->SetMass(getULMass());
   m_upperLink[side]->SetInertiaXX(getULInertia());
-  AddVisualizationLink(m_upperLink[side], points[UL_A], points[UL_C], getULRadius(), ChColor(0.2f, 0.2f, 0.6f));
+  AddVisualizationLink(m_upperLink[side], points[UL_A], points[UL_C], getULRadius(), ChColor(0.6f, 0.2f, 0.6f));
   chassis->GetSystem()->AddBody(m_upperLink[side]);
 
   // Initialize lower link body.
@@ -410,6 +409,41 @@ void ChSolidAxle::AddVisualizationSpindle(ChSharedBodyPtr spindle,
   cyl->GetCylinderGeometry().rad = radius;
   spindle->AddAsset(cyl);
 }
+
+void ChSolidAxle::AddVisualizationKnuckle(ChSharedBodyPtr knuckle,
+                                          const ChVector<>&  pt_U,
+                                          const ChVector<>&  pt_L,
+                                          const ChVector<>&  pt_T,
+                                          double             radius)
+{
+  // Express hardpoint locations in body frame.
+  ChVector<> p_U = knuckle->TransformPointParentToLocal(pt_U);
+  ChVector<> p_L = knuckle->TransformPointParentToLocal(pt_L);
+  ChVector<> p_T = knuckle->TransformPointParentToLocal(pt_T);
+
+  ChSharedPtr<ChCylinderShape> cyl_L(new ChCylinderShape);
+  cyl_L->GetCylinderGeometry().p1 = p_L;
+  cyl_L->GetCylinderGeometry().p2 = ChVector<>(0, 0, 0);
+  cyl_L->GetCylinderGeometry().rad = radius;
+  knuckle->AddAsset(cyl_L);
+
+  ChSharedPtr<ChCylinderShape> cyl_U(new ChCylinderShape);
+  cyl_U->GetCylinderGeometry().p1 = p_U;
+  cyl_U->GetCylinderGeometry().p2 = ChVector<>(0, 0, 0);
+  cyl_U->GetCylinderGeometry().rad = radius;
+  knuckle->AddAsset(cyl_U);
+
+  ChSharedPtr<ChCylinderShape> cyl_T(new ChCylinderShape);
+  cyl_T->GetCylinderGeometry().p1 = p_T;
+  cyl_T->GetCylinderGeometry().p2 = ChVector<>(0, 0, 0);
+  cyl_T->GetCylinderGeometry().rad = radius;
+  knuckle->AddAsset(cyl_T);
+
+  ChSharedPtr<ChColorAsset> col(new ChColorAsset);
+  col->SetColor(ChColor(0.2f, 0.2f, 0.6f));
+  knuckle->AddAsset(col);
+}
+
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
