@@ -236,7 +236,7 @@ void ChLcpSolverParallelDEM::ProcessContacts()
   //    torques from all contacts these bodies are involved in. The number of
   //    bodies that experience at least one contact is calculated in
   //    'ct_body_count'.
-  thrust::sort_by_key(thrust::omp::par,
+  thrust::sort_by_key(thrust_parallel,
     ext_body_id.begin(), ext_body_id.end(),
     thrust::make_zip_iterator(thrust::make_tuple(ext_body_force.begin(), ext_body_torque.begin())));
 

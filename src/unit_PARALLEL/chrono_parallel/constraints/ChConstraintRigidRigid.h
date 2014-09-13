@@ -55,8 +55,8 @@ class CH_PARALLEL_API ChConstraintRigidRigid : public ChBaseParallel {
          thrust::sequence(update_number.begin(), update_number.end());
          thrust::sequence(update_offset.begin(), update_offset.end());
          thrust::fill(offset_counter.begin(), offset_counter.end(), 0);
-         thrust::sort_by_key(thrust::omp::par, body_num.begin(), body_num.end(), update_number.begin());
-         thrust::sort_by_key(thrust::omp::par, update_number.begin(), update_number.end(), update_offset.begin());
+         thrust::sort_by_key(thrust_parallel, body_num.begin(), body_num.end(), update_number.begin());
+         thrust::sort_by_key(thrust_parallel, update_number.begin(), update_number.end(), update_offset.begin());
          body_number = body_num;
          num_updates = (thrust::reduce_by_key(body_num.begin(), body_num.end(), thrust::constant_iterator<uint>(1), update_number.begin(), offset_counter.begin()).second)
                - offset_counter.begin();
@@ -253,7 +253,7 @@ class CH_PARALLEL_API ChConstraintRigidRigid : public ChBaseParallel {
 
    bool solve_sliding;
    bool solve_spinning;
-   int offset = 3;
+   int offset;
  protected:
 
    custom_vector<real3> JUA_rigid_rigid;custom_vector<real3> JUB_rigid_rigid;

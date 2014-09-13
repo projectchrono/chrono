@@ -259,7 +259,7 @@ int ChCBroadphase::detectPossibleCollisions(custom_vector<real3> &aabb_data,cust
 		bbox init = bbox(aabb_data[0], aabb_data[0]);// create a zero volume bounding box using the first set of aabb_data (??)
 		bbox_transformation unary_op;
 		bbox_reduction binary_op;
-		bbox result = thrust::transform_reduce(thrust::omp::par,aabb_data.begin(), aabb_data.end(), unary_op, init, binary_op);
+		bbox result = thrust::transform_reduce(thrust_parallel,aabb_data.begin(), aabb_data.end(), unary_op, init, binary_op);
 		min_bounding_point = result.first;
 		max_bounding_point = result.second;
 		global_origin = (min_bounding_point);//CHANGED: removed abs
@@ -382,7 +382,7 @@ int ChCBroadphase::detectPossibleCollisions(custom_vector<real3> &aabb_data,cust
 		fam_data.data(),
 		potentialCollisions.data());
 #endif
-		thrust::stable_sort(thrust::omp::par,potentialCollisions.begin(), potentialCollisions.end());
+		thrust::stable_sort(thrust_parallel,potentialCollisions.begin(), potentialCollisions.end());
 		number_of_contacts_possible = thrust::unique(potentialCollisions.begin(),
 		potentialCollisions.end()) - potentialCollisions.begin();
 
