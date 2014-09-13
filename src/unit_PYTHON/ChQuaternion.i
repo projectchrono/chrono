@@ -35,6 +35,8 @@ public:
 	ChQuaternion<Real>& operator-=(const ChQuaternion<Real>& other);
 	ChQuaternion<Real>  operator*(const ChQuaternion<Real>& other) const;
 	ChQuaternion<Real>& operator*=(const ChQuaternion<Real>& other);
+	ChQuaternion<Real>  operator>>(const ChQuaternion<Real>& other) const;
+	ChQuaternion<Real>& operator>>=(const ChQuaternion<Real>& other);
 	ChQuaternion<Real>  operator*(const Real v) const;
 	ChQuaternion<Real>& operator*=(const Real v);
 	ChQuaternion<Real>  operator/(const ChQuaternion<Real>& other) const;
