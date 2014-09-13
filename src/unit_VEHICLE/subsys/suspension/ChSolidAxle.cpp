@@ -138,8 +138,8 @@ void ChSolidAxle::CreateSide(ChSuspension::Side side,
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-void ChSolidAxle::Initialize(ChSharedBodyPtr   chassis,
-                             const ChVector<>& location)
+void ChSolidAxle::Initialize(ChSharedPtr<ChBodyAuxRef>  chassis,
+                             const ChVector<>&          location)
 {
   // Express the suspension reference frame in the absolute coordinate system.
   ChFrame<> suspension_to_abs(location);
@@ -148,15 +148,24 @@ void ChSolidAxle::Initialize(ChSharedBodyPtr   chassis,
   // Transform the location of the axle body COM to absolute frame.
   ChVector<> axleCOM = suspension_to_abs.TransformLocalToParent(getAxleTubeCOM());
 
-  // Transform all points on right and left side to absolute frame
+  // Transform all points and directions on right and left sides to absolute frame
   std::vector<ChVector<> > points_R(NUM_POINTS);
   std::vector<ChVector<> > points_L(NUM_POINTS);
+  std::vector<ChVector<> > dirs_R(NUM_DIRS);
+  std::vector<ChVector<> > dirs_L(NUM_DIRS);
 
   for (int i = 0; i < NUM_POINTS; i++) {
     ChVector<> rel_pos = getLocation(static_cast<PointId>(i));
     points_R[i] = suspension_to_abs.TransformLocalToParent(rel_pos);
     rel_pos.y = -rel_pos.y;
     points_L[i] = suspension_to_abs.TransformLocalToParent(rel_pos);
+  }
+
+  for (int i = 0; i < NUM_DIRS; i++) {
+    ChVector<> rel_dir = getDirection(static_cast<DirectionId>(i));
+    dirs_R[i] = suspension_to_abs.TransformDirectionLocalToParent(rel_dir);
+    rel_dir.y = -rel_dir.y;
+    dirs_L[i] = suspension_to_abs.TransformDirectionLocalToParent(rel_dir);
   }
 
   // Initialize axle body.
@@ -168,17 +177,21 @@ void ChSolidAxle::Initialize(ChSharedBodyPtr   chassis,
   chassis->GetSystem()->AddBody(m_axleTube);
 
   // Initialize left and right sides.
-  InitializeSide(LEFT, chassis, points_L);
-  InitializeSide(RIGHT, chassis, points_R);
+  InitializeSide(LEFT, chassis, points_L, dirs_L);
+  InitializeSide(RIGHT, chassis, points_R, dirs_R);
 }
 
 void ChSolidAxle::InitializeSide(ChSuspension::Side              side,
-                                 ChSharedBodyPtr                 chassis,
-                                 const std::vector<ChVector<> >& points)
+                                 ChSharedPtr<ChBodyAuxRef>       chassis,
+                                 const std::vector<ChVector<> >& points,
+                                 const std::vector<ChVector<> >& dirs)
 {
+  // Chassis orientation (expressed in absolute frame)
+  ChQuaternion<> chassisRot = chassis->GetFrame_REF_to_abs().GetRot();
+
   // Initialize knuckle body.
   m_knuckle[side]->SetPos(points[KNUCKLE_CM]);
-  m_knuckle[side]->SetRot(chassis->GetCoord().rot);
+  m_knuckle[side]->SetRot(chassisRot);
   m_knuckle[side]->SetMass(getKnuckleMass());
   m_knuckle[side]->SetInertiaXX(getKnuckleInertia());
   AddVisualizationKnuckle(m_knuckle[side], points[KNUCKLE_U], points[KNUCKLE_L], points[TIEROD_K], getKnuckleRadius());
@@ -186,7 +199,7 @@ void ChSolidAxle::InitializeSide(ChSuspension::Side              side,
 
   // Initialize spindle body.
   m_spindle[side]->SetPos(points[SPINDLE]);
-  m_spindle[side]->SetRot(chassis->GetCoord().rot);
+  m_spindle[side]->SetRot(chassisRot);
   m_spindle[side]->SetMass(getSpindleMass());
   m_spindle[side]->SetInertiaXX(getSpindleInertia());
   AddVisualizationSpindle(m_spindle[side], getSpindleRadius(), getSpindleWidth());
@@ -194,7 +207,7 @@ void ChSolidAxle::InitializeSide(ChSuspension::Side              side,
 
   // Initialize upper link body.
   m_upperLink[side]->SetPos(points[UL_CM]);
-  m_upperLink[side]->SetRot(chassis->GetCoord().rot);
+  m_upperLink[side]->SetRot(chassisRot);
   m_upperLink[side]->SetMass(getULMass());
   m_upperLink[side]->SetInertiaXX(getULInertia());
   AddVisualizationLink(m_upperLink[side], points[UL_A], points[UL_C], getULRadius(), ChColor(0.6f, 0.2f, 0.6f));
@@ -202,7 +215,7 @@ void ChSolidAxle::InitializeSide(ChSuspension::Side              side,
 
   // Initialize lower link body.
   m_lowerLink[side]->SetPos(points[LL_CM]);
-  m_lowerLink[side]->SetRot(chassis->GetCoord().rot);
+  m_lowerLink[side]->SetRot(chassisRot);
   m_lowerLink[side]->SetMass(getLLMass());
   m_lowerLink[side]->SetInertiaXX(getLLInertia());
   AddVisualizationLink(m_lowerLink[side], points[LL_A], points[LL_C], getLLRadius(), ChColor(0.2f, 0.6f, 0.2f));

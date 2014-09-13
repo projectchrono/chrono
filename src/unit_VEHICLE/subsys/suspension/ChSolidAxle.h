@@ -48,8 +48,8 @@ public:
               bool               driven = false);
   virtual ~ChSolidAxle() {}
 
-  virtual void Initialize(ChSharedBodyPtr   chassis,
-                          const ChVector<>& location);
+  virtual void Initialize(ChSharedPtr<ChBodyAuxRef>  chassis,
+                          const ChVector<>&          location);
 
   virtual void ApplySteering(double displ);
 
@@ -87,7 +87,8 @@ protected:
     UNIV_AXIS_LINK_L,     // universal joint (lower link, link side)
     UNIV_AXIS_CHASSIS_L,  // universal joint (lower link, chassis side)
     UNIV_AXIS_LINK_U,     // universal joint (upper link, link side)
-    UNIV_AXIS_CHASSIS_U   // universal joint (upper link, chassis side)
+    UNIV_AXIS_CHASSIS_U,  // universal joint (upper link, chassis side)
+    NUM_DIRS
   };
 
   virtual const ChVector<> getLocation(PointId which) = 0;
@@ -143,8 +144,9 @@ private:
   void CreateSide(ChSuspension::Side side,
                   const std::string& suffix);
   void InitializeSide(ChSuspension::Side              side,
-                      ChSharedBodyPtr                 chassis,
-                      const std::vector<ChVector<> >& points);
+                      ChSharedPtr<ChBodyAuxRef>       chassis,
+                      const std::vector<ChVector<> >& points,
+                      const std::vector<ChVector<> >& dirs);
 
   static void AddVisualizationLink(ChSharedBodyPtr    body,
                                    const ChVector<>&  pt_1,
