@@ -89,6 +89,16 @@ public:
 			Set_A_quaternion(mq);
 		}
 
+		/// Constructor that builds a rotation matrix from an agle of rotation and an axis, 
+		/// defined in absolute coords. NOTE, axis must be normalized!
+	template <class RealB>
+	inline ChMatrix33( const Real angle,			///< angle of rotation, in radians
+						const ChVector<RealB>& axis)///< axis of rotation, normalized
+		{
+			this->Set_A_AngAxis(angle,axis);
+		}
+
+
 	//
 	// OPERATORS
 	//
