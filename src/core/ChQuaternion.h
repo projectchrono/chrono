@@ -130,15 +130,57 @@ public:
 			return *this;
 		}
 
-		/// Operator for element-wise multiplication (note that this is neither dot product
-		/// nor quaternion product! Quaternion product  is % operator!)
+		/// NOTE
+		/// The following * and *= operators had a different behaviour prior to 13/9/2014, 
+		/// but we assume no one used * *= in that previous form (element-by-element
+		/// product). Now * operator will be used for classical quaternion product,
+		/// as the old % operator. This is be more congruent with the * operator for ChFrames etc.
+
+		/// Operator for quaternion product: A*B means the typical quaternion product.
+		/// Note: since unit quaternions can represent rotations, the product can represent a
+		/// concatenation of rotations as:
+		///    frame_rotation_2to0 = frame_rotation_1to0 * frame_rotation_2to1
+		/// Note: pay attention to operator low precedence (see C++ precedence rules!)
+		/// Note: quaternion product is not commutative.
 	ChQuaternion<Real>  operator*(const ChQuaternion<Real>& other) const
 		{
-			return ChQuaternion<Real>(e0*other.e0, e1*other.e1, e2*other.e2, e3*other.e3);
+			ChQuaternion<Real> mr;
+			mr.Cross(*this, other);
+			return mr;
 		}
+
+		/// Operator for quaternion product and assignment: 
+		/// A*=B means A'=A*B, with typical quaternion product.
+		/// Note: since unit quaternions can represent rotations, the product can represent a
+		/// post-concatenation of a rotation in a kinematic chain.
+		/// Note: quaternion product is not commutative.
 	ChQuaternion<Real>& operator*=(const ChQuaternion<Real>& other)
 		{
-			e0*=other.e0;  e1*=other.e1;  e2*=other.e2;  e3*=other.e3;
+			this->Cross(*this, other);
+			return *this;
+		}
+
+		/// Operator for 'specular' quaternion product: A>>B = B*A . 
+		/// Note: since unit quaternions can represent rotations, the product can represent a
+		/// concatenation of rotations as:
+		///    frame_rotation_2to0 = frame_rotation_2to1 >> frame_rotation_1to0 
+		/// Note: pay attention to operator low precedence (see C++ precedence rules!)
+		/// Note: quaternion product is not commutative.
+	ChQuaternion<Real>  operator>>(const ChQuaternion<Real>& other) const
+		{
+			ChQuaternion<Real> mr;
+			mr.Cross(other,*this);
+			return mr;
+		}
+
+		/// Operator for quaternion 'specular' product and assignment: 
+		/// A>>=B means A'=A>>B, or A'=B*A with typical quaternion product.
+		/// Note: since unit quaternions can represent rotations, the product can represent a
+		/// pre-concatenation of a rotation in a kinematic chain.
+		/// Note: quaternion product is not commutative.
+	ChQuaternion<Real>& operator>>=(const ChQuaternion<Real>& other)
+		{
+			this->Cross(other, *this);
 			return *this;
 		}
 
