@@ -538,6 +538,16 @@ public:
 			this->Set_A_axis(mX,mY,mZ);
 		}
 
+		/// Sets the rotation matrix from an agle of rotation and an axis, 
+		/// defined in _absolute_ coords. NOTE, axis must be normalized!
+	void Set_A_AngAxis( const Real angle,			///< angle of rotation, in radians
+						const ChVector<Real>& axis)	///< axis of rotation, normalized
+		{
+			ChQuaternion<Real> mr;
+			mr.Q_from_AngAxis(angle, axis);
+			this->Set_A_quaternion(mr);
+		}
+
 
 		/// Given a 3x3 rotation matrix, computes the corresponding 
 		/// quaternion.
