@@ -221,13 +221,14 @@ public:
 		}
 
 		/// Operator for quaternion product: A%B means the typical quaternion product AxB
-		/// Note: pay attention to operator low precedence (see C++ precedence rules!)
+		/// Note: DEPRECATED, use the * operator instead.
 	ChQuaternion<Real> operator%(const ChQuaternion<Real>& other) const
 		{
 			ChQuaternion<Real> mr;
 			mr.Cross(*this, other);
 			return mr;
 		}
+		/// Note: DEPRECATED, use the *= operator instead.
 	ChQuaternion<Real>& operator%=(const ChQuaternion<Real>& other)
 		{
 			this->Cross(*this, other);
