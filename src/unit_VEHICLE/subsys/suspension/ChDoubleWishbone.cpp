@@ -119,8 +119,8 @@ void ChDoubleWishbone::CreateSide(ChSuspension::Side side,
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-void ChDoubleWishbone::Initialize(ChSharedBodyPtr   chassis,
-                                  const ChVector<>& location)
+void ChDoubleWishbone::Initialize(ChSharedPtr<ChBodyAuxRef>  chassis,
+                                  const ChVector<>&          location)
 {
   // Express the suspension reference frame in the absolute coordinate system.
   ChFrame<> suspension_to_abs(location);
@@ -147,7 +147,7 @@ void ChDoubleWishbone::Initialize(ChSharedBodyPtr   chassis,
 }
 
 void ChDoubleWishbone::InitializeSide(ChSuspension::Side              side,
-                                      ChSharedBodyPtr                 chassis,
+                                      ChSharedPtr<ChBodyAuxRef>       chassis,
                                       const std::vector<ChVector<> >& points)
 {
   // Chassis orientation (expressed in absolute frame)

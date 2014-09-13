@@ -23,6 +23,7 @@
 
 #include "core/ChShared.h"
 #include "physics/ChSystem.h"
+#include "physics/ChBodyAuxRef.h"
 #include "physics/ChShaft.h"
 #include "physics/ChShaftsBody.h"
 
@@ -71,8 +72,8 @@ public:
   void ApplyTireForce(Side side, const ChTireForce& tire_force);
   void ApplyAxleTorque(Side side, double torque);
 
-  virtual void Initialize(ChSharedPtr<ChBody>  chassis,
-                          const ChVector<>&    location) = 0;
+  virtual void Initialize(ChSharedPtr<ChBodyAuxRef>  chassis,
+                          const ChVector<>&          location) = 0;
 
   virtual void ApplySteering(double displ) = 0;
 

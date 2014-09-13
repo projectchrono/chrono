@@ -46,8 +46,8 @@ public:
                           bool               driven = false);
   virtual ~ChDoubleWishboneReduced() {}
 
-  virtual void Initialize(ChSharedBodyPtr   chassis,
-                          const ChVector<>& location);
+  virtual void Initialize(ChSharedPtr<ChBodyAuxRef>  chassis,
+                          const ChVector<>&          location);
 
   virtual void ApplySteering(double displ);
 
@@ -103,7 +103,7 @@ private:
   void CreateSide(ChSuspension::Side side,
                   const std::string& suffix);
   void InitializeSide(ChSuspension::Side              side,
-                      ChSharedBodyPtr                 chassis,
+                      ChSharedPtr<ChBodyAuxRef>       chassis,
                       const std::vector<ChVector<> >& points);
 
   static void AddVisualizationUpright(ChSharedBodyPtr    upright,
