@@ -68,8 +68,14 @@ public:
 	// CONSTRUCTORS
 	//
 
+		/// Default constructor. 
+		/// Note, it is a null quaternion {0,0,0,0}, not a {1,0,0,0} unit quaternion.
 	ChQuaternion(): e0(0), e1(0), e2(0), e3(0) {}
+
+		/// Constructor from four scalars. The first is the real part, others are i,j,k imaginary parts
 	ChQuaternion(const Real ne0, const Real ne1, const Real ne2,const Real ne3) : e0(ne0), e1(ne1), e2(ne2), e3(ne3) {}
+
+		/// Constructor from real part, and vector with i,j,k imaginary part.
 	ChQuaternion(const Real ns, const ChVector<Real> nv) : e0(ns), e1(nv.x), e2(nv.y), e3(nv.z) {}
 
 		/// Copy constructor 
