@@ -120,17 +120,9 @@ const ChVector<> HMMWV_SolidAxleFront::getLocation(PointId which)
   case KNUCKLE_L:  return in2m * scaleCon * ChVector<>(-5, 700, -50);
   case KNUCKLE_U:  return in2m * scaleCon * ChVector<>(15, 675, 75);
   case LL_A:       return in2m * scaleCon * ChVector<>(-10, 600, -75);
-  case LL_A_X:     return in2m * scaleCon * ChVector<>(-10, 600, 45);
-  case LL_A_Z:     return in2m * scaleCon * ChVector<>(-10, 500, -55);
   case LL_C:       return in2m * scaleCon * ChVector<>(-450, 350, -45);
-  case LL_C_X:     return in2m * scaleCon * ChVector<>(-450, 350, 55);
-  case LL_C_Z:     return in2m * scaleCon * ChVector<>(-450, 500, -455);
   case UL_A:       return in2m * scaleCon * ChVector<>(55, 475, 150);
-  case UL_A_X:     return in2m * scaleCon * ChVector<>(55, 475, 250);
-  case UL_A_Z:     return in2m * scaleCon * ChVector<>(55, 400, 150);
   case UL_C:       return in2m * scaleCon * ChVector<>(-355, 500, 150);
-  case UL_C_X:     return in2m * scaleCon * ChVector<>(-355, 500, 250);
-  case UL_C_Z:     return in2m * scaleCon * ChVector<>(-355, 400, 150);
   case SPRING_A:   return in2m * scaleCon * ChVector<>(65, 575, -25);
   case SPRING_C:   return in2m * scaleCon * ChVector<>(80, 560, 300);
   case TIEROD_C:   return in2m * scaleCon * ChVector<>(75, 325, -65);
@@ -152,17 +144,9 @@ const ChVector<> HMMWV_SolidAxleRear::getLocation(PointId which)
   case KNUCKLE_L:  return in2m * scaleCon * ChVector<>(-5, 700, -50);
   case KNUCKLE_U:  return in2m * scaleCon * ChVector<>(15, 675, 75);
   case LL_A:       return in2m * scaleCon * ChVector<>(-10, 600, -75);
-  case LL_A_X:     return in2m * scaleCon * ChVector<>(-10, 600, 45);
-  case LL_A_Z:     return in2m * scaleCon * ChVector<>(-10, 500, -55);
   case LL_C:       return in2m * scaleCon * ChVector<>(-450, 350, -45);
-  case LL_C_X:     return in2m * scaleCon * ChVector<>(-450, 350, 55);
-  case LL_C_Z:     return in2m * scaleCon * ChVector<>(-450, 500, -455);
   case UL_A:       return in2m * scaleCon * ChVector<>(55, 475, 150);
-  case UL_A_X:     return in2m * scaleCon * ChVector<>(55, 475, 250);
-  case UL_A_Z:     return in2m * scaleCon * ChVector<>(55, 400, 150);
   case UL_C:       return in2m * scaleCon * ChVector<>(-355, 500, 150);
-  case UL_C_X:     return in2m * scaleCon * ChVector<>(-355, 500, 250);
-  case UL_C_Z:     return in2m * scaleCon * ChVector<>(-355, 400, 150);
   case SPRING_A:   return in2m * scaleCon * ChVector<>(65, 575, -25);
   case SPRING_C:   return in2m * scaleCon * ChVector<>(80, 560, 300);
   case TIEROD_C:   return in2m * scaleCon * ChVector<>(75, 325, -65);
@@ -174,6 +158,33 @@ const ChVector<> HMMWV_SolidAxleRear::getLocation(PointId which)
   default:         return ChVector<>(0, 0, 0);
   }
 }
+
+// -----------------------------------------------------------------------------
+// Implementations of the getDirection() virtual methods.
+// -----------------------------------------------------------------------------
+
+const ChVector<> HMMWV_SolidAxleFront::getDirection(DirectionId which)
+{
+  switch (which) {
+  case UNIV_AXIS_LINK_L:      return ChVector<>(1, 0, 0);
+  case UNIV_AXIS_CHASSIS_L:   return ChVector<>(0, 1, 0);
+  case UNIV_AXIS_LINK_U:      return ChVector<>(1, 0, 0);
+  case UNIV_AXIS_CHASSIS_U:   return ChVector<>(0, 1, 0);
+  default:                    return ChVector<>(0, 0, 1);
+  }
+}
+
+const ChVector<> HMMWV_SolidAxleRear::getDirection(DirectionId which)
+{
+  switch (which) {
+  case UNIV_AXIS_LINK_L:      return ChVector<>(1, 0, 0);
+  case UNIV_AXIS_CHASSIS_L:   return ChVector<>(0, 1, 0);
+  case UNIV_AXIS_LINK_U:      return ChVector<>(1, 0, 0);
+  case UNIV_AXIS_CHASSIS_U:   return ChVector<>(0, 1, 0);
+  default:                    return ChVector<>(0, 0, 1);
+  }
+}
+
 
 
 } // end namespace hmmwv

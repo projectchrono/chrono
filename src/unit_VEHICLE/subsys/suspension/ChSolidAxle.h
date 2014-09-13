@@ -69,17 +69,9 @@ protected:
     KNUCKLE_L,  // lower knuckle point
     KNUCKLE_U,  // upper knuckle point
     LL_A,       // lower link, axle
-    LL_A_X,     // lower link, axle, x-direction     
-    LL_A_Z,     // lower link, axle, z-direction
     LL_C,       // lower link, chassis
-    LL_C_X,     // lower link, chassis, x-direction
-    LL_C_Z,     // lower link, chassis, z-direction
     UL_A,       // upper link, axle
-    UL_A_X,     // upper link, axle, x-direction     
-    UL_A_Z,     // upper link, axle, z-direction
     UL_C,       // upper link, chassis
-    UL_C_X,     // upper link, chassis, x-direction
-    UL_C_Z,     // upper link, chassis, z-direction
     SPRING_A,   // spring, axle
     SPRING_C,   // spring, chassis
     TIEROD_C,   // tierod, chassis
@@ -91,7 +83,15 @@ protected:
     NUM_POINTS
   };
 
+  enum DirectionId {
+    UNIV_AXIS_LINK_L,     // universal joint (lower link, link side)
+    UNIV_AXIS_CHASSIS_L,  // universal joint (lower link, chassis side)
+    UNIV_AXIS_LINK_U,     // universal joint (upper link, link side)
+    UNIV_AXIS_CHASSIS_U   // universal joint (upper link, chassis side)
+  };
+
   virtual const ChVector<> getLocation(PointId which) = 0;
+  virtual const ChVector<> getDirection(DirectionId which) = 0;
 
   virtual const ChVector<> getAxleTubeCOM() const = 0;
 

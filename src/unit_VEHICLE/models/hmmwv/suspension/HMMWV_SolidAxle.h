@@ -67,6 +67,7 @@ public:
 private:
 
   virtual const chrono::ChVector<> getLocation(PointId which);
+  virtual const chrono::ChVector<> getDirection(DirectionId which);
 
   static const double      m_axleTubeMass;
   static const double      m_spindleMass;
@@ -136,6 +137,7 @@ public:
 private:
 
   virtual const chrono::ChVector<> getLocation(PointId which);
+  virtual const chrono::ChVector<> getDirection(DirectionId which);
 
   static const double      m_axleTubeMass;
   static const double      m_spindleMass;
