@@ -9,15 +9,15 @@
 // http://projectchrono.org/license-chrono.txt.
 //
 // =============================================================================
-// Authors: Radu Serban, Justin Madsen, Daniel Melanz
+// Authors: Daniel Melanz, Radu Serban
 // =============================================================================
 //
-// Front and Rear HMMWV suspension subsystems (solid axle)
+// Front and Rear HMMWV suspension subsystems (solid axle).
 //
 // These concrete suspension subsystems are defined with respect to right-handed
 // frames having X pointing towards the rear, Y to the right, and Z up (as
-// imposed by the base class ChSolidAxle) and origins at the 
-// midpoint wheel centers.
+// imposed by the base class ChSolidAxle) and origins at the midpoint between
+// the wheel centers.
 //
 // =============================================================================
 
@@ -62,6 +62,8 @@ public:
   virtual double getDampingCoefficient() const { return m_dampingCoefficient; }
   virtual double getSpringRestLength() const { return m_springRestLength; }
 
+  virtual const chrono::ChVector<> getAxleTubeCOM() const { return m_axleTubeCOM; }
+
 private:
 
   virtual const chrono::ChVector<> getLocation(PointId which);
@@ -78,6 +80,8 @@ private:
   static const double      m_ULRadius;
   static const double      m_LLRadius;
   static const double      m_knuckleRadius;
+
+  static const chrono::ChVector<>  m_axleTubeCOM;
 
   static const chrono::ChVector<>  m_axleTubeInertia;
   static const chrono::ChVector<>  m_spindleInertia;
@@ -127,6 +131,8 @@ public:
   virtual double getDampingCoefficient() const { return m_dampingCoefficient; }
   virtual double getSpringRestLength() const { return m_springRestLength; }
 
+  virtual const chrono::ChVector<> getAxleTubeCOM() const { return m_axleTubeCOM; }
+
 private:
 
   virtual const chrono::ChVector<> getLocation(PointId which);
@@ -143,6 +149,8 @@ private:
   static const double      m_ULRadius;
   static const double      m_LLRadius;
   static const double      m_knuckleRadius;
+
+  static const chrono::ChVector<>  m_axleTubeCOM;
 
   static const chrono::ChVector<>  m_axleTubeInertia;
   static const chrono::ChVector<>  m_spindleInertia;

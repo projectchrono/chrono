@@ -16,7 +16,7 @@
 //
 // =============================================================================
 
-#include "assets/ChBoxShape.h"
+#include "assets/ChSphereShape.h"
 #include "assets/ChTriangleMeshShape.h"
 
 #include "utils/ChUtilsData.h"
@@ -35,9 +35,9 @@ namespace hmmwv {
 
 static const double in2m = 0.0254;
 
-const double     HMMWV_VehicleSolidAxle::m_chassisMass = 7747.0 / 2.2;	// chassis sprung mass
-const ChVector<> HMMWV_VehicleSolidAxle::m_chassisCOM = in2m * ChVector<>(3.8, 0.585, -18.329);  // COM location
-const ChVector<> HMMWV_VehicleSolidAxle::m_chassisInertia(125.8, 497.4, 531.4); // chassis inertia (roll,pitch,yaw)
+const double     HMMWV_VehicleSolidAxle::m_chassisMass = 7747.0 / 2.2;                           // chassis sprung mass
+const ChVector<> HMMWV_VehicleSolidAxle::m_chassisCOM = in2m * ChVector<>(18.8, 0.585, 33.329);  // COM location
+const ChVector<> HMMWV_VehicleSolidAxle::m_chassisInertia(125.8, 497.4, 531.4);                  // chassis inertia (roll,pitch,yaw)
 
 const std::string HMMWV_VehicleSolidAxle::m_chassisMeshName = "hmmwv_chassis";
 const std::string HMMWV_VehicleSolidAxle::m_chassisMeshFile = utils::GetModelDataFile("hmmwv/hmmwv_chassis.obj");
@@ -65,15 +65,10 @@ HMMWV_VehicleSolidAxle::HMMWV_VehicleSolidAxle(const bool           fixed,
   switch (chassisVis) {
   case PRIMITIVES:
   {
-    ChSharedPtr<ChBoxShape> box1(new ChBoxShape);
-    box1->GetBoxGeometry().SetLengths(ChVector<>(5, 1.7, 0.4));
-    box1->Pos = ChVector<>(0, 0, -0.4);
-    m_chassis->AddAsset(box1);
-
-    ChSharedPtr<ChBoxShape> box2(new ChBoxShape);
-    box2->GetBoxGeometry().SetLengths(ChVector<>(4, 1.7, 0.4));
-    box2->Pos = ChVector<>(0.5, 0, 0);
-    m_chassis->AddAsset(box2);
+    ChSharedPtr<ChSphereShape> sphere(new ChSphereShape);
+    sphere->GetSphereGeometry().rad = 0.1;
+    sphere->Pos = m_chassisCOM;
+    m_chassis->AddAsset(sphere);
 
     break;
   }
@@ -135,12 +130,12 @@ HMMWV_VehicleSolidAxle::~HMMWV_VehicleSolidAxle()
 // -----------------------------------------------------------------------------
 void HMMWV_VehicleSolidAxle::Initialize(const ChCoordsys<>& chassisPos)
 {
-  m_chassis->SetPos(chassisPos.pos);
-  m_chassis->SetRot(chassisPos.rot);
+  m_chassis->SetFrame_REF_to_abs(ChFrame<>(chassisPos));
 
-  // Initialize the suspension subsystems
-  m_front_susp->Initialize(m_chassis, in2m * ChVector<>(-66.59, 0, 1.039));
-  m_rear_susp->Initialize(m_chassis, in2m * ChVector<>(66.4, 0, 1.039));
+  // Initialize the suspension subsystems (specify the suspension subsystems'
+  // frames relative to the chassis reference frame).
+  m_front_susp->Initialize(m_chassis, in2m * ChVector<>(-66.59, 0, 0));
+  m_rear_susp->Initialize(m_chassis, in2m * ChVector<>(66.4, 0, 0));
 
   // Initialize wheels
   m_front_right_wheel->Initialize(m_front_susp->GetSpindle(ChSuspension::RIGHT));

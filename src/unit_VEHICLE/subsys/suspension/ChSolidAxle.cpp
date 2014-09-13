@@ -9,7 +9,7 @@
 // http://projectchrono.org/license-chrono.txt.
 //
 // =============================================================================
-// Authors: Radu Serban, Justin Madsen, Daniel Melanz
+// Authors: Daniel Melanz, Radu Serban
 // =============================================================================
 //
 // Base class for a solid axle suspension modeled with bodies and constraints.
@@ -44,13 +44,13 @@ const std::string ChSolidAxle::m_pointNames[] = {
     "KNUCKLE_L  ",
     "KNUCKLE_U  ",
     "LL_A       ",
-    "LL_A_X     ",   
+    "LL_A_X     ",
     "LL_A_Z     ",
     "LL_C       ",
     "LL_C_X     ",
     "LL_C_Z     ",
     "UL_A       ",
-    "UL_A_X     ",     
+    "UL_A_X     ",
     "UL_A_Z     ",
     "UL_C       ",
     "UL_C_X     ",
@@ -62,16 +62,15 @@ const std::string ChSolidAxle::m_pointNames[] = {
     "SPINDLE    ",
     "KNUCKLE_CM ",
     "LL_CM      ",
-    "UL_CM      ",
-    "AXLE_CM    "
+    "UL_CM      "
 };
 
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 ChSolidAxle::ChSolidAxle(const std::string& name,
-                                   bool               steerable,
-                                   bool               driven)
+                         bool               steerable,
+                         bool               driven)
 : ChSuspension(name, steerable, driven)
 {
   // Create the axle body
@@ -83,7 +82,7 @@ ChSolidAxle::ChSolidAxle(const std::string& name,
 }
 
 void ChSolidAxle::CreateSide(ChSuspension::Side side,
-                                  const std::string& suffix)
+                             const std::string& suffix)
 {
   // Create the knuckle bodies
   m_knuckle[side] = ChSharedBodyPtr(new ChBody);
@@ -148,45 +147,42 @@ void ChSolidAxle::CreateSide(ChSuspension::Side side,
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 void ChSolidAxle::Initialize(ChSharedBodyPtr   chassis,
-                                  const ChVector<>& location)
+                             const ChVector<>& location)
 {
-  std::vector<ChVector<> > points(NUM_POINTS);
+  // Express the suspension reference frame in the absolute coordinate system.
+  ChFrame<> suspension_to_abs(location);
+  suspension_to_abs.ConcatenatePreTransformation(chassis->GetFrame_REF_to_abs());
 
-  // Transform all points to absolute frame.
+  // Transform the location of the axle body COM to absolute frame.
+  ChVector<> axleCOM = suspension_to_abs.TransformLocalToParent(getAxleTubeCOM());
+
+  // Transform all points on right and left side to absolute frame
+  std::vector<ChVector<> > points_R(NUM_POINTS);
+  std::vector<ChVector<> > points_L(NUM_POINTS);
+
   for (int i = 0; i < NUM_POINTS; i++) {
     ChVector<> rel_pos = getLocation(static_cast<PointId>(i));
-    points[i] = chassis->GetCoord().TransformLocalToParent(location + rel_pos);
+    points_R[i] = suspension_to_abs.TransformLocalToParent(rel_pos);
+    rel_pos.y = -rel_pos.y;
+    points_L[i] = suspension_to_abs.TransformLocalToParent(rel_pos);
   }
 
   // Initialize axle body.
-  m_axleTube->SetPos(points[AXLE_CM]);
-  m_axleTube->SetRot(chassis->GetCoord().rot);
+  m_axleTube->SetPos(axleCOM);
+  m_axleTube->SetRot(chassis->GetFrame_REF_to_abs().GetRot());
   m_axleTube->SetMass(getAxleTubeMass());
   m_axleTube->SetInertiaXX(getAxleTubeInertia());
-  AddVisualizationAxleTube(m_axleTube, points[AXLE_OUTER], points[LL_A], points[UL_A], getAxleTubeRadius(), getULRadius());
+  AddVisualizationLink(m_axleTube, points_L[AXLE_OUTER], points_R[AXLE_OUTER], getAxleTubeRadius(), ChColor(0.7f, 0.7f, 0.7f));
   chassis->GetSystem()->AddBody(m_axleTube);
 
-  // Transform all points to absolute frame and initialize left side.
-  for (int i = 0; i < NUM_POINTS; i++) {
-    ChVector<> rel_pos = getLocation(static_cast<PointId>(i));
-    rel_pos.y = -rel_pos.y;
-    points[i] = chassis->GetCoord().TransformLocalToParent(location + rel_pos);
-  }
-
-  InitializeSide(LEFT, chassis, points);
-
-  // Transform all points to absolute frame and initialize right side.
-  for (int i = 0; i < NUM_POINTS; i++) {
-    ChVector<> rel_pos = getLocation(static_cast<PointId>(i));
-    points[i] = chassis->GetCoord().TransformLocalToParent(location + rel_pos);
-  }
-
-  InitializeSide(RIGHT, chassis, points);
+  // Initialize left and right sides.
+  InitializeSide(LEFT, chassis, points_L);
+  InitializeSide(RIGHT, chassis, points_R);
 }
 
 void ChSolidAxle::InitializeSide(ChSuspension::Side              side,
-                                      ChSharedBodyPtr                 chassis,
-                                      const std::vector<ChVector<> >& points)
+                                 ChSharedBodyPtr                 chassis,
+                                 const std::vector<ChVector<> >& points)
 {
   // Initialize knuckle body.
   m_knuckle[side]->SetPos(points[KNUCKLE_CM]);
@@ -210,7 +206,7 @@ void ChSolidAxle::InitializeSide(ChSuspension::Side              side,
   m_upperLink[side]->SetRot(chassis->GetCoord().rot);
   m_upperLink[side]->SetMass(getULMass());
   m_upperLink[side]->SetInertiaXX(getULInertia());
-  AddVisualizationLink(m_upperLink[side], points[UL_A], points[UL_C], getULRadius());
+  AddVisualizationLink(m_upperLink[side], points[UL_A], points[UL_C], getULRadius(), ChColor(0.2f, 0.2f, 0.6f));
   chassis->GetSystem()->AddBody(m_upperLink[side]);
 
   // Initialize lower link body.
@@ -218,8 +214,11 @@ void ChSolidAxle::InitializeSide(ChSuspension::Side              side,
   m_lowerLink[side]->SetRot(chassis->GetCoord().rot);
   m_lowerLink[side]->SetMass(getLLMass());
   m_lowerLink[side]->SetInertiaXX(getLLInertia());
-  AddVisualizationLink(m_lowerLink[side], points[LL_A], points[LL_C], getLLRadius());
+  AddVisualizationLink(m_lowerLink[side], points[LL_A], points[LL_C], getLLRadius(), ChColor(0.2f, 0.6f, 0.2f));
   chassis->GetSystem()->AddBody(m_lowerLink[side]);
+
+  // Append to the axle visualization
+  AddVisualizationLink(m_axleTube, points[LL_A], points[UL_A], getLLRadius(), ChColor(0.7f, 0.7f, 0.7f));
 
   // Unit vectors for orientation matrices.
   ChVector<> u;
@@ -309,7 +308,7 @@ double ChSolidAxle::GetSpringLen(ChSuspension::Side side)
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 void ChSolidAxle::LogHardpointLocations(const ChVector<>& ref,
-                                             bool              inches)
+                                        bool              inches)
 {
   double unit = inches ? 1 / 0.0254 : 1.0;
 
@@ -380,74 +379,30 @@ void ChSolidAxle::LogConstraintViolations(ChSuspension::Side side)
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-void ChSolidAxle::AddVisualizationAxleTube(ChSharedBodyPtr    axle,
-                                                  const ChVector<>&  pt_axleOuter,
-                                                  const ChVector<>&  pt_lowerLinkAxle,
-                                                  const ChVector<>&  pt_upperLinkAxle,
-                                                  double             radius_axle,
-                                                  double             radius_link)
+void ChSolidAxle::AddVisualizationLink(ChSharedBodyPtr    body,
+                                       const ChVector<>&  pt_1,
+                                       const ChVector<>&  pt_2,
+                                       double             radius,
+                                       const ChColor&     color)
 {
   // Express hardpoint locations in body frame.
-  ChVector<> pt_axleOuterR = axle->TransformPointParentToLocal(pt_axleOuter);
-  ChVector<> pt_axleOuterL = pt_axleOuter;
-  pt_axleOuterL.y = -pt_axleOuterL.y;
-  pt_axleOuterL = axle->TransformPointParentToLocal(pt_axleOuterL);
-  ChVector<> pt_lowerLinkAxleR = axle->TransformPointParentToLocal(pt_lowerLinkAxle);
-  ChVector<> pt_lowerLinkAxleL = pt_lowerLinkAxle;
-  pt_lowerLinkAxleL.y = -pt_lowerLinkAxleL.y;
-  pt_lowerLinkAxleL = axle->TransformPointParentToLocal(pt_lowerLinkAxleL);
-  ChVector<> pt_upperLinkAxleR = axle->TransformPointParentToLocal(pt_upperLinkAxle);
-  ChVector<> pt_upperLinkAxleL = pt_upperLinkAxle;
-  pt_upperLinkAxleL.y = -pt_upperLinkAxleL.y;
-  pt_upperLinkAxleL = axle->TransformPointParentToLocal(pt_upperLinkAxleL);
+  ChVector<> p_1 = body->TransformPointParentToLocal(pt_1);
+  ChVector<> p_2 = body->TransformPointParentToLocal(pt_2);
 
-  ChSharedPtr<ChCylinderShape> cyl_axle(new ChCylinderShape);
-  cyl_axle->GetCylinderGeometry().p1 = pt_axleOuterR;
-  cyl_axle->GetCylinderGeometry().p2 = pt_axleOuterL;
-  cyl_axle->GetCylinderGeometry().rad = radius_axle;
-  axle->AddAsset(cyl_axle);
-
-  ChSharedPtr<ChCylinderShape> cyl_linkR(new ChCylinderShape);
-  cyl_linkR->GetCylinderGeometry().p1 = pt_upperLinkAxleR;
-  cyl_linkR->GetCylinderGeometry().p2 = pt_lowerLinkAxleR;
-  cyl_linkR->GetCylinderGeometry().rad = radius_link;
-  axle->AddAsset(cyl_linkR);
-
-  ChSharedPtr<ChCylinderShape> cyl_linkL(new ChCylinderShape);
-  cyl_linkL->GetCylinderGeometry().p1 = pt_upperLinkAxleL;
-  cyl_linkL->GetCylinderGeometry().p2 = pt_lowerLinkAxleL;
-  cyl_linkL->GetCylinderGeometry().rad = radius_link;
-  axle->AddAsset(cyl_linkL);
+  ChSharedPtr<ChCylinderShape> cyl(new ChCylinderShape);
+  cyl->GetCylinderGeometry().p1 = p_1;
+  cyl->GetCylinderGeometry().p2 = p_2;
+  cyl->GetCylinderGeometry().rad = radius;
+  body->AddAsset(cyl);
 
   ChSharedPtr<ChColorAsset> col(new ChColorAsset);
-  col->SetColor(ChColor(0.7f, 0.7f, 0.7f));
-  axle->AddAsset(col);
-}
-
-void ChSolidAxle::AddVisualizationLink(ChSharedBodyPtr    link,
-                                               const ChVector<>&  pt_linkAxle,
-                                               const ChVector<>&  pt_linkChassis,
-                                               double             radius_link)
-{
-  // Express hardpoint locations in body frame.
-  ChVector<> pt_linkA = link->TransformPointParentToLocal(pt_linkAxle);
-  ChVector<> pt_linkC = link->TransformPointParentToLocal(pt_linkChassis);
-
-  ChSharedPtr<ChCylinderShape> cyl_link(new ChCylinderShape);
-  cyl_link->GetCylinderGeometry().p1 = pt_linkA;
-  cyl_link->GetCylinderGeometry().p2 = pt_linkC;
-  cyl_link->GetCylinderGeometry().rad = radius_link;
-  link->AddAsset(cyl_link);
-
-  ChSharedPtr<ChColorAsset> col(new ChColorAsset);
-  col->SetColor(ChColor(0.2f, 0.2f, 0.6f));
-  link->AddAsset(col);
-  
+  col->SetColor(color);
+  body->AddAsset(col);
 }
 
 void ChSolidAxle::AddVisualizationSpindle(ChSharedBodyPtr spindle,
-                                               double          radius,
-                                               double          width)
+                                          double          radius,
+                                          double          width)
 {
   ChSharedPtr<ChCylinderShape> cyl(new ChCylinderShape);
   cyl->GetCylinderGeometry().p1 = ChVector<>(0, width / 2, 0);

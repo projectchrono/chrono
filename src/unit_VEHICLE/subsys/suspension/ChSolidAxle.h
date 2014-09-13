@@ -9,7 +9,7 @@
 // http://projectchrono.org/license-chrono.txt.
 //
 // =============================================================================
-// Authors: Radu Serban, Justin Madsen, Daniel Melanz
+// Authors: Daniel Melanz, Radu Serban
 // =============================================================================
 //
 // Base class for a solid axle suspension modeled with bodies and constraints.
@@ -31,6 +31,8 @@
 
 #include <vector>
 
+#include "assets/ChColorAsset.h"
+
 #include "subsys/ChApiSubsys.h"
 #include "subsys/ChSuspension.h"
 
@@ -42,8 +44,8 @@ class CH_SUBSYS_API ChSolidAxle : public ChSuspension
 public:
 
   ChSolidAxle(const std::string& name,
-                   bool               steerable = false,
-                   bool               driven = false);
+              bool               steerable = false,
+              bool               driven = false);
   virtual ~ChSolidAxle() {}
 
   virtual void Initialize(ChSharedBodyPtr   chassis,
@@ -86,11 +88,12 @@ protected:
     KNUCKLE_CM, // knuckle, center of mass
     LL_CM,      // lower link, center of mass
     UL_CM,      // upper link, center of mass
-    AXLE_CM,    // axle, center of mass
     NUM_POINTS
   };
 
   virtual const ChVector<> getLocation(PointId which) = 0;
+
+  virtual const ChVector<> getAxleTubeCOM() const = 0;
 
   virtual double getAxleTubeMass() const = 0;
   virtual double getSpindleMass() const = 0;
@@ -143,16 +146,11 @@ private:
                       ChSharedBodyPtr                 chassis,
                       const std::vector<ChVector<> >& points);
 
-  static void AddVisualizationAxleTube(ChSharedBodyPtr    axle,
-                                      const ChVector<>&  pt_axleOuter,
-                                      const ChVector<>&  pt_lowerLinkAxle,
-                                      const ChVector<>&  pt_upperLinkAxle,
-                                      double             radius_axle,
-                                      double             radius_link);
-  static void AddVisualizationLink(ChSharedBodyPtr    link,
-                                      const ChVector<>&  pt_linkAxle,
-                                      const ChVector<>&  pt_linkChassis,
-                                      double             radius);
+  static void AddVisualizationLink(ChSharedBodyPtr    body,
+                                   const ChVector<>&  pt_1,
+                                   const ChVector<>&  pt_2,
+                                   double             radius,
+                                   const ChColor&     color);
   static void AddVisualizationKnuckle(ChSharedBodyPtr knuckle,
                                       const ChVector<>&  pt_upperKnuckle,
                                       const ChVector<>&  pt_lowerKnuckle,
