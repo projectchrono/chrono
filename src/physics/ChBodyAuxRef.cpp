@@ -116,6 +116,8 @@ void ChBodyAuxRef::SetFrame_REF_to_abs(const ChFrame<>& mfra)
 	mfra.TransformLocalToParent(this->auxref_to_cog.GetInverse(), *this);
 	// or, also, using overloaded operators for frames: 
 	//   *this = this->auxref_to_cog.GetInverse() >> mfra;
+
+  auxref_to_abs = mfra;
 }
 
 

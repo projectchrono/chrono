@@ -146,24 +146,61 @@ public:
 
 	// POINT TRANSFORMATIONS, USING POSITION AND ROTATION QUATERNION
 
-		/// This function transforms a point from the parent coordinate
-		/// system to a local coordinate system, whose relative position 
-		/// is given by this coodsys, i.e. 'origin' translation and 'alignment' quaternion.
-		/// \return The point in local coordinate, as local=q'*[0,(parent-origin)]*q
-	ChVector<Real> TransformParentToLocal(const ChVector<Real>& parent) const
-		{
-			return rot.RotateBack(parent - pos);
-		}
+    /// This function transforms a point from the local coordinate
+    /// system to the parent coordinate system. Relative position of local respect
+    /// to parent is given by this coordys, i.e. 'origin' translation and 'alignment' quaternion.
+    /// \return The point in parent coordinate, as parent=origin +q*[0,(local)]*q'
+  ChVector<Real> TransformLocalToParent(const ChVector<Real>& local) const
+  {
+    return pos + rot.Rotate(local);
+  }
 
-		/// This function transforms a point from the local coordinate
-		/// system to the parent coordinate system. Relative position of local respect
-		/// to parent is given by this coordys, i.e. 'origin' translation and 'alignment' quaternion.
-		/// \return The point in parent coordinate, as parent=origin +q*[0,(local)]*q'
-	ChVector<Real> TransformLocalToParent(const ChVector<Real>& local) const
-		{
-			return pos + rot.Rotate(local);
-		}
+  ChVector<Real> TransformPointLocalToParent(const ChVector<Real>& local) const
+  {
+    return pos + rot.Rotate(local);
+  }
 
+    /// This function transforms a point from the parent coordinate
+    /// system to a local coordinate system, whose relative position 
+    /// is given by this coodsys, i.e. 'origin' translation and 'alignment' quaternion.
+    /// \return The point in local coordinate, as local=q'*[0,(parent-origin)]*q
+  ChVector<Real> TransformParentToLocal(const ChVector<Real>& parent) const
+  {
+    return rot.RotateBack(parent - pos);
+  }
+
+  ChVector<Real> TransformPointParentToLocal(const ChVector<Real>& parent) const
+  {
+    return rot.RotateBack(parent - pos);
+  }
+
+    /// This function transforms a direction from 'this' local coordinate system
+    /// to the parent coordinate system.
+  ChVector<Real> TransformDirectionLocalToParent(const ChVector<Real>& local) const
+  {
+    return rot.Rotate(local);
+  }
+
+    /// This function transforms a direction from the parent coordinate system to
+    /// 'this' local coordinate system.
+  ChVector<Real> TransformDirectionParentToLocal(const ChVector<Real>& parent) const
+  {
+    return rot.RotateBack(parent);
+  }
+
+    /// This function transforms a coordsys given in 'this' coordinate system to
+    /// the parent coordinate system
+  ChCoordsys<Real> TransformLocalToParent(const ChCoordsys<Real>& local) const
+  {
+    return ChCoordsys<Real>(TransformLocalToParent(local.pos), rot % local.rot);
+  }
+
+    /// This function transforms a coordsys given in the parent coordinate system 
+    /// to 'this' coordinate system
+  ChCoordsys<Real> TransformParentToLocal(const ChCoordsys<Real>& parent) const
+  {
+    return ChCoordsys<Real>(TransformParentToLocal(parent.pos), rot.GetConjugate() % parent.rot);
+  }
 
 	//
 	// STREAMING
