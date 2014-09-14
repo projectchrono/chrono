@@ -44,6 +44,7 @@ public:
   virtual double GetIngearShaftInertia() const     { return m_ingear_shaft_inertia; }
 
   virtual void SetEngineTorqueMap(chrono::ChSharedPtr<chrono::ChFunction_Recorder>& map);
+  virtual void SetEngineLossesMap(chrono::ChSharedPtr<chrono::ChFunction_Recorder>& map);
   virtual void SetTorqueConverterCapacityFactorMap(chrono::ChSharedPtr<chrono::ChFunction_Recorder>& map);
   virtual void SetTorqeConverterTorqueRatioMap(chrono::ChSharedPtr<chrono::ChFunction_Recorder>& map);
 

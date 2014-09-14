@@ -98,6 +98,17 @@ void HMMWV_Powertrain::SetEngineTorqueMap(ChSharedPtr<ChFunction_Recorder>& map)
   map->AddPoint(2700*rpm_to_radsec ,      -400); // fading out of engine torque
 }
 
+void HMMWV_Powertrain::SetEngineLossesMap(ChSharedPtr<ChFunction_Recorder>& map)
+{
+	double rpm_to_radsec =  CH_C_2PI/60.;
+  map->AddPoint( -50*rpm_to_radsec ,     30); // it should never work in negative direction, anyway..
+  map->AddPoint(   0*rpm_to_radsec ,     0);
+  map->AddPoint(  50*rpm_to_radsec ,    -30);
+  map->AddPoint(1000*rpm_to_radsec ,    -50);
+  map->AddPoint(2000*rpm_to_radsec ,    -70);
+  map->AddPoint(3000*rpm_to_radsec ,    -90);
+}
+
 void HMMWV_Powertrain::SetTorqueConverterCapacityFactorMap(ChSharedPtr<ChFunction_Recorder>& map)
 {
 
