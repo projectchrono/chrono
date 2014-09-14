@@ -97,6 +97,18 @@ void ChShaftsPowertrain::Initialize(ChSharedPtr<ChBody>  chassis,
   SetEngineTorqueMap(mTw);
   m_engine->SetTorqueCurve(mTw);
 
+  // CREATE  an engine brake model that represents the losses of the engine because
+  // of inner frictions/turbolences/etc. Without this, the engine at 0% throttle
+  // in neutral position would rotate forever at contant speed.
+  m_engine_losses = ChSharedPtr<ChShaftsThermalEngine>(new ChShaftsThermalEngine);
+  m_engine_losses->Initialize(m_crankshaft,
+                       m_motorblock);
+  my_system->Add(m_engine_losses);
+    // The engine brake model requires a torque curve: 
+  ChSharedPtr<ChFunction_Recorder> mTw_losses(new ChFunction_Recorder);
+  SetEngineLossesMap(mTw_losses);
+  m_engine_losses->SetTorqueCurve(mTw_losses);
+
 
   // CREATE  a 1 d.o.f. object: a 'shaft' with rotational inertia.
   // This represents the shaft that collects all inertias from torque converter to the gear.

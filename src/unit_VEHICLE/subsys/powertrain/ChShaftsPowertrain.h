@@ -93,6 +93,8 @@ protected:
 
   /// Engine speed-torque map.
   virtual void SetEngineTorqueMap(ChSharedPtr<ChFunction_Recorder>& map) = 0;
+  /// Engine speed-torque braking effect because of losses.
+  virtual void SetEngineLossesMap(ChSharedPtr<ChFunction_Recorder>& map) = 0;
 
   /// Torque converter maps:
   /// capacity factor and torque ratio as functions of the speed ratio.
@@ -104,6 +106,7 @@ private:
   ChSharedPtr<ChShaftsBody>             m_motorblock_to_body;
   ChSharedPtr<ChShaft>                  m_motorblock;
   ChSharedPtr<ChShaftsThermalEngine>    m_engine;
+  ChSharedPtr<ChShaftsThermalEngine>    m_engine_losses;
   ChSharedPtr<ChShaft>                  m_crankshaft;
   ChSharedPtr<ChShaftsTorqueConverter>  m_torqueconverter;
   ChSharedPtr<ChShaft>                  m_shaft_ingear;
