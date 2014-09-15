@@ -189,7 +189,7 @@ int main(int   argc,
   ChSharedPtr<ChLinkEngine> engine_ground_crank(new ChLinkEngine);
   engine_ground_crank->Initialize(ground, crank, ChCoordsys<>(ChVector<>(0, 0, 0), z2y));
   engine_ground_crank->Set_eng_mode(ChLinkEngine::ENG_MODE_SPEED);
-  if (ChFunction_Const* mfun = dynamic_cast<ChFunction_Const*>(engine_ground_crank->Get_spe_funct()))
+  if (ChSharedPtr<ChFunction_Const> mfun = engine_ground_crank->Get_spe_funct().DynamicCastTo<ChFunction_Const>())
     mfun->Set_yconst(CH_C_PI);
   system.AddLink(engine_ground_crank);
 #else

@@ -147,7 +147,7 @@ void ChPitmanArm::Initialize(ChSharedPtr<ChBodyAuxRef> chassis,
 // -----------------------------------------------------------------------------
 void ChPitmanArm::Update(double time, double steering)
 {
-  if (ChFunction_Const* fun = dynamic_cast<ChFunction_Const*>(m_revolute->Get_rot_funct()))
+  if (ChSharedPtr<ChFunction_Const> fun = m_revolute->Get_rot_funct().DynamicCastTo<ChFunction_Const>())
     fun->Set_yconst(getMaxAngle() * steering);
 }
 
