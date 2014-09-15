@@ -521,7 +521,7 @@ public:
 	// for now, just use the slider value as directly as the torque
 	void applyTorque(){
 		// note: negative sign is to get Trelleborg tire to spin in the correct direction
-		if(ChFunction_Const* mfun = dynamic_cast<ChFunction_Const*>(this->torqueDriver->Get_tor_funct()))
+      if (ChSharedPtr<ChFunction_Const> mfun = torqueDriver->Get_tor_funct().DynamicCastTo<ChFunction_Const>())
 			mfun->Set_yconst( -this->currTorque);
 	}
 

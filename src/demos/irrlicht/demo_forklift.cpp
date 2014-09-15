@@ -370,52 +370,52 @@ public:
 		forklift = mlift;
 	}
 
-	bool OnEvent(const SEvent& event)
-	{
+    bool OnEvent(const SEvent& event)
+    {
 
-		// check if user presses keys
-		if (event.EventType == irr::EET_KEY_INPUT_EVENT && !event.KeyInput.PressedDown)
-		{
-			switch (event.KeyInput.Key)
-			{
-			case irr::KEY_KEY_Q: 
-				if (ChFunction_Const* mfun = dynamic_cast<ChFunction_Const*>(forklift->link_steer_engineB->Get_rot_funct())) 
-					mfun->Set_yconst(-0.6+mfun->Get_yconst());
-				return true;
-			case irr::KEY_KEY_W: 
-				if (ChFunction_Const* mfun = dynamic_cast<ChFunction_Const*>(forklift->link_steer_engineB->Get_rot_funct())) 
-					mfun->Set_yconst(+0.3+mfun->Get_yconst());
-				return true;
-			case irr::KEY_KEY_A: 
-				if (ChFunction_Const* mfun = dynamic_cast<ChFunction_Const*>(forklift->link_engineB->Get_spe_funct())) 
-					mfun->Set_yconst(0.5+mfun->Get_yconst());
-				return true;
-			case irr::KEY_KEY_Z: 
-				if (ChFunction_Const* mfun = dynamic_cast<ChFunction_Const*>(forklift->link_engineB->Get_spe_funct()))
-					mfun->Set_yconst(-0.5+mfun->Get_yconst());
-				return true;
-			case irr::KEY_KEY_S: 
-				if (ChFunction_Const* mfun = dynamic_cast<ChFunction_Const*>(forklift->link_actuatorFork->Get_dist_funct()))
-					mfun->Set_yconst(0.05+mfun->Get_yconst());
-				return true;
-			case irr::KEY_KEY_X: 
-				if (ChFunction_Const* mfun = dynamic_cast<ChFunction_Const*>(forklift->link_actuatorFork->Get_dist_funct()))
-					mfun->Set_yconst(-0.05+mfun->Get_yconst());
-				return true;
-			case irr::KEY_KEY_D: 
-				if (ChFunction_Const* mfun = dynamic_cast<ChFunction_Const*>(forklift->link_engineArm->Get_rot_funct()))
-					mfun->Set_yconst(0.005+mfun->Get_yconst());
-				return true;
-			case irr::KEY_KEY_C: 
-				if (ChFunction_Const* mfun = dynamic_cast<ChFunction_Const*>(forklift->link_engineArm->Get_rot_funct()))
-					mfun->Set_yconst(-0.005+mfun->Get_yconst());
-				return true;
+      // check if user presses keys
+      if (event.EventType == irr::EET_KEY_INPUT_EVENT && !event.KeyInput.PressedDown)
+      {
+        switch (event.KeyInput.Key)
+        {
+        case irr::KEY_KEY_Q:
+          if (ChSharedPtr<ChFunction_Const> mfun = forklift->link_steer_engineB->Get_rot_funct().DynamicCastTo<ChFunction_Const>())
+            mfun->Set_yconst(-0.6 + mfun->Get_yconst());
+          return true;
+        case irr::KEY_KEY_W:
+          if (ChSharedPtr<ChFunction_Const> mfun = forklift->link_steer_engineB->Get_rot_funct().DynamicCastTo<ChFunction_Const>())
+            mfun->Set_yconst(+0.3 + mfun->Get_yconst());
+          return true;
+        case irr::KEY_KEY_A:
+          if (ChSharedPtr<ChFunction_Const> mfun = forklift->link_engineB->Get_spe_funct().DynamicCastTo<ChFunction_Const>())
+            mfun->Set_yconst(0.5 + mfun->Get_yconst());
+          return true;
+        case irr::KEY_KEY_Z:
+          if (ChSharedPtr<ChFunction_Const> mfun = forklift->link_engineB->Get_spe_funct().DynamicCastTo<ChFunction_Const>())
+            mfun->Set_yconst(-0.5 + mfun->Get_yconst());
+          return true;
+        case irr::KEY_KEY_S:
+          if (ChFunction_Const* mfun = dynamic_cast<ChFunction_Const*>(forklift->link_actuatorFork->Get_dist_funct()))
+            mfun->Set_yconst(0.05 + mfun->Get_yconst());
+          return true;
+        case irr::KEY_KEY_X:
+          if (ChFunction_Const* mfun = dynamic_cast<ChFunction_Const*>(forklift->link_actuatorFork->Get_dist_funct()))
+            mfun->Set_yconst(-0.05 + mfun->Get_yconst());
+          return true;
+        case irr::KEY_KEY_D:
+          if (ChSharedPtr<ChFunction_Const> mfun = forklift->link_engineArm->Get_rot_funct().DynamicCastTo<ChFunction_Const>())
+            mfun->Set_yconst(0.005 + mfun->Get_yconst());
+          return true;
+        case irr::KEY_KEY_C:
+          if (ChSharedPtr<ChFunction_Const> mfun = forklift->link_engineArm->Get_rot_funct().DynamicCastTo<ChFunction_Const>())
+            mfun->Set_yconst(-0.005 + mfun->Get_yconst());
+          return true;
 
-			}
-		}  
+        }
+      }
 
-		return false;
-	}
+      return false;
+    }
 
 private: 
 	ChIrrAppInterface* app;

@@ -170,7 +170,7 @@ void AddContainer(ChIrrApp& application)
 	                     ChCoordsys<>(ChVector<>(0,0,0),
 	                     Q_from_AngAxis(CH_C_PI_2, VECT_X)) );
 	my_motor->Set_eng_mode(ChLinkEngine::ENG_MODE_SPEED);
-	if (ChFunction_Const* mfun = dynamic_cast<ChFunction_Const*>(my_motor->Get_spe_funct()))
+    if (ChSharedPtr<ChFunction_Const> mfun = my_motor->Get_spe_funct().DynamicCastTo<ChFunction_Const>())
 		mfun->Set_yconst(CH_C_PI/2); // speed w=90°/s
 
 	application.GetSystem()->AddLink(my_motor);

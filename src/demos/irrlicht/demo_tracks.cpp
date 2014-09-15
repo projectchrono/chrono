@@ -516,7 +516,7 @@ public:
 								s32 pos = ((IGUIScrollBar*)event.GUIEvent.Caller)->getPos();
 								double newthrottle =  ((double)(pos)-50)/50.0 ;
 								this->mtank->throttleL=newthrottle;
-								if (ChFunction_Const* mfun = dynamic_cast<ChFunction_Const*>(this->mtank->link_revoluteLB->Get_spe_funct()))
+                                if (ChSharedPtr<ChFunction_Const> mfun = mtank->link_revoluteLB->Get_spe_funct().DynamicCastTo<ChFunction_Const>())
 									mfun->Set_yconst(newthrottle*6);
 								return true;
 							}
@@ -525,7 +525,7 @@ public:
 								s32 pos = ((IGUIScrollBar*)event.GUIEvent.Caller)->getPos();
 								double newthrottle =  ((double)(pos)-50)/50.0 ;
 								this->mtank->throttleR=newthrottle;
-								if (ChFunction_Const* mfun = dynamic_cast<ChFunction_Const*>(this->mtank->link_revoluteRB->Get_spe_funct()))
+                                if (ChSharedPtr<ChFunction_Const> mfun = mtank->link_revoluteRB->Get_spe_funct().DynamicCastTo<ChFunction_Const>())
 									mfun->Set_yconst(newthrottle*6);
 								return true;
 							}

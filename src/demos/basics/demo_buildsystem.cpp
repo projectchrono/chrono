@@ -186,12 +186,12 @@ int main(int argc, char* argv[])
 
 				// Now create a 'motor' link between crank and truss,
 				// in 'imposed speed' mode:
-		ChSharedPtr<ChLinkEngine> my_link_AB(new ChLinkEngine);
-		my_link_AB->Initialize(my_body_A, my_body_B, ChCoordsys<>(ChVector<>(0,0,0)));
-		my_link_AB->Set_eng_mode(ChLinkEngine::ENG_MODE_SPEED);
-		if (ChFunction_Const* mfun = dynamic_cast<ChFunction_Const*>(my_link_AB->Get_spe_funct()))
-			mfun->Set_yconst(CH_C_PI); // speed w=3.145 rad/sec
-		my_system.AddLink(my_link_AB);
+    ChSharedPtr<ChLinkEngine> my_link_AB(new ChLinkEngine);
+    my_link_AB->Initialize(my_body_A, my_body_B, ChCoordsys<>(ChVector<>(0, 0, 0)));
+    my_link_AB->Set_eng_mode(ChLinkEngine::ENG_MODE_SPEED);
+    if (ChSharedPtr<ChFunction_Const> mfun = my_link_AB->Get_spe_funct().DynamicCastTo<ChFunction_Const>())
+      mfun->Set_yconst(CH_C_PI); // speed w=3.145 rad/sec
+    my_system.AddLink(my_link_AB);
 
         my_link_AB->GetMarker1()->SetName("truss_engine");
         my_link_AB->GetMarker2()->SetName("crank_engine");
