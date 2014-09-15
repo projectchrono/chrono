@@ -797,6 +797,7 @@ void CalcCartesianDataD(
 	gridLoc.z = index / (cartesianGridDimsD.x * cartesianGridDimsD.y);
 	gridLoc.y = (index % (cartesianGridDimsD.x * cartesianGridDimsD.y)) / cartesianGridDimsD.x;
 	gridLoc.x = (index % (cartesianGridDimsD.x * cartesianGridDimsD.y)) % cartesianGridDimsD.x;
+	// alias cartesianGridDimsD = Dim,  you can say:   "index = (Dim.x * Dim.y) * gridLoc.z + Dim.x * gridLoc.y + gridLoc.x"
 
 	// get address in grid
 	real3 gridNodePos3 = R3(gridLoc) * resolutionD + paramsD.worldOrigin;

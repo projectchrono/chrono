@@ -2270,6 +2270,21 @@ void cudaCollisions(
 		if (tStep % 50 == 0) {
 			printf("step: %d, realTime: %f, step Time (CUDA): %f, step Time (CPU): %f\n ", tStep, realTime, time2, 1000 * (t2 - t1));
 			//printf("a \n");
+
+			// ****** calc and print cartesian data
+			int3 cartesianGridDims;
+			thrust::host_vector<real4> rho_Pres_CartH(1);
+			thrust::host_vector<real4> vel_VelMag_CartH(1);
+			MapSPH_ToGrid(
+					8 * paramsH.HSML,
+					cartesianGridDims,
+					rho_Pres_CartH,
+					vel_VelMag_CartH,
+					posRadD,
+					velMasD,
+					rhoPresMuD,
+					numObjects.numAllMarkers,
+					paramsH);
 		}
 		fflush(stdout);
 
