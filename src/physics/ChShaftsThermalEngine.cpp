@@ -57,7 +57,7 @@ void ChShaftsThermalEngine::Copy(ChShaftsThermalEngine* source)
 		// copy class data
 	throttle = source->throttle;
 	error_backward = source->error_backward;
-	this->Tw = ChSharedPtr<ChFunction>(Tw->new_Duplicate()); // deep copy
+	this->Tw = ChSharedPtr<ChFunction>(source->Tw->new_Duplicate()); // deep copy
 }
 
 
