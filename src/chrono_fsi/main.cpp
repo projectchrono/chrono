@@ -1963,7 +1963,7 @@ int main() {
 		paramsH.solidSurfaceAdjust = .6 * (paramsH.HSML * paramsH.MULT_INITSPACE); // 0.6 for bouyant, under gravity
 		paramsH.BASEPRES = 0;
 		paramsH.LARGE_PRES = 0;//10000;
-		paramsH.nPeriod = 7;
+		paramsH.nPeriod = 1;
 		paramsH.gravity = R3(0, 0, 0);//R3(0);//R3(0, -9.81, 0);
 		paramsH.bodyForce4 = R4(.1,0,0,0);//R4(3.2e-3,0,0,0);// R4(0);;// /*Re = 100 */ //R4(3.2e-4, 0, 0, 0);/*Re = 100 */
 		paramsH.rho0 = 1000;

@@ -1283,7 +1283,9 @@ void ForceSPH(
 			U1CAST(mapOriginalToSorted), U1CAST(m_dCellStart), U1CAST(m_dCellEnd),numBCE);
 
 	real4 maxStress4 = R4(0);
-	maxStress4 = *(thrust::max_element(mainStressD.begin(), mainStressD.end(), MaxReal4W()));
+	if (numBCE > 0) {
+		maxStress4 = *(thrust::max_element(mainStressD.begin(), mainStressD.end(), MaxReal4W()));
+	}
 	maxStress = maxStress4.w;
 
 	devStressD.clear();
