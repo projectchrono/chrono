@@ -46,11 +46,8 @@ void PrintCartesianData_MidLine(
 		real3 rp = R3(rho_Pres_CartH[index]);
 //		midLineProfile << v.x << ", " << v.y << ", " << v.z << ", " << length(v) << ", " << rp.x << ", " << rp.y << endl;
 		midLineProfile << v.x << ", " ;
-
 	}
 	midLineProfile << endl;
-
-
 	static int count = 0;
 	ofstream midLineData;
 	if (count == 0) {
