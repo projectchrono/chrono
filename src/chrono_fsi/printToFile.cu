@@ -44,8 +44,13 @@ void PrintCartesianData_MidLine(
 		int index = (cartesianGridDims.x * cartesianGridDims.y) * k + cartesianGridDims.x * gridCenter.y + gridCenter.x;
 		real3 v = R3(vel_VelMag_CartH[index]);
 		real3 rp = R3(rho_Pres_CartH[index]);
-		midLineProfile << v.x << ", " << v.y << ", " << v.z << ", " << length(v) << ", " << rp.x << ", " << rp.y << endl;
+//		midLineProfile << v.x << ", " << v.y << ", " << v.z << ", " << length(v) << ", " << rp.x << ", " << rp.y << endl;
+		midLineProfile << v.x << ", " ;
+
 	}
+	midLineProfile << endl;
+
+
 	static int count = 0;
 	ofstream midLineData;
 	if (count == 0) {
