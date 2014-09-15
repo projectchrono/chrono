@@ -120,7 +120,7 @@ void AddContainer(ChSystemParallelDEM* sys) {
 
    motor->Initialize(mixer_, bin_, ChCoordsys<>(ChVector<>(0, 0, 0), ChQuaternion<>(1, 0, 0, 0)));
    motor->Set_eng_mode(ChLinkEngine::ENG_MODE_SPEED);
-   if (ChFunction_Const* mfun = dynamic_cast<ChFunction_Const*>(motor->Get_spe_funct()))
+   if (ChSharedPtr<ChFunction_Const> mfun = motor->Get_spe_funct().DynamicCastTo<ChFunction_Const>())
       mfun->Set_yconst(CH_C_PI / 2);
 
    sys->AddLink(motor);
