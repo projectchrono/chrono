@@ -32,6 +32,32 @@ void printMaxStress(char * fileName, real_ maxStress, int tStep) {
 	}
 }
 //*******************************************************************************************************************************
+void PrintCartesianData_MidLine(
+		const thrust::host_vector<real4> & rho_Pres_CartH,
+		const thrust::host_vector<real4> & vel_VelMag_CartH,
+		const int3 & cartesianGridDims,
+		const SimParams & paramsH) {
+	int3 gridCenter = I3(cartesianGridDims.x / 2, cartesianGridDims.y / 2, cartesianGridDims.z / 2);
+	stringstream midLineProfile;
+	for (int k = 0; k < cartesianGridDims.z; k ++) {
+		//Assuming flow in x Direction, walls on Z direction, periodic on y direction
+		int index = (cartesianGridDims.x * cartesianGridDims.y) * k + cartesianGridDims.x * gridCenter.y + gridCenter.x;
+		real3 v = R3(vel_VelMag_CartH[index]);
+		real3 rp = R3(rho_Pres_CartH[index]);
+		midLineProfile << v.x << ", " << v.y << ", " << v.z << ", " << length(v) << ", " << rp.x << ", " << rp.y << endl;
+	}
+	static int count = 0;
+	ofstream midLineData;
+	if (count == 0) {
+		midLineData.open("MidLineData.txt");
+	} else {
+		midLineData.open("MidLineData.txt", ios::app);
+	}
+	count ++;
+	midLineData << midLineProfile.str();
+	midLineData.close();
+}
+//*******************************************************************************************************************************
 
 void PrintToFile(
 		const thrust::device_vector<real3> & posRadD,
