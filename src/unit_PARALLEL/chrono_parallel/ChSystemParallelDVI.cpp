@@ -112,6 +112,10 @@ void ChSystemParallelDVI::SolveSystem() {
    ((ChLcpSolverParallel *) (LCP_solver_speed))->RunTimeStep(GetStep());
    data_manager->system_timer.stop("lcp");
    data_manager->system_timer.stop("step");
+   timer_update = data_manager->system_timer.GetTime("update");
+   timer_collision = data_manager->system_timer.GetTime("collision");
+   timer_lcp = data_manager->system_timer.GetTime("lcp");
+   timer_step = data_manager->system_timer.GetTime("step");
 }
 void ChSystemParallelDVI::AssembleSystem() {
    Setup();

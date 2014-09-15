@@ -101,7 +101,7 @@ CH_RTTI(ChSystemParallel, ChSystem)
    }
    ChParallelDataManager *data_manager;
 
- private:
+ protected:
 
    double timer_collision, old_timer, old_timer_cd;
    bool detect_optimal_threads, perform_thread_tuning, perform_bin_tuning;
