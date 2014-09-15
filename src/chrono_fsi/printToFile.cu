@@ -540,7 +540,7 @@ void PrintToFile(
 				real3 vel = R3(velMasH[i]);
 				real4 rP = rhoPresMuH[i];
 				real_ velMag = length(vel);
-				if (pos.y > .0002 && pos.y < .0008)
+				//if (pos.y > .0002 && pos.y < .0008)
 				ssFluidBoundaryParticles<< pos.x<<", "<< pos.y<<", "<< pos.z<<", "<< vel.x<<", "<< vel.y<<", "<< vel.z<<", "<< velMag<<", "<< rP.x<<", "<< rP.y<<", "<< rP.z<<", "<< rP.w<<", "<<endl;
 			}
 			fileNameFluidBoundaries<<ssFluidBoundaryParticles.str();
