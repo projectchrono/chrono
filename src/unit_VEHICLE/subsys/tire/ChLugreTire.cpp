@@ -154,8 +154,8 @@ void ChLugreTire::Advance(double step)
       ChVector<> Ft = -Ft_mag * dir;
 
       // Include tangential forces in accumulators
-      //m_tireForce.force += Ft;
-      //m_tireForce.moment += Vcross(m_data[id].frame.pos - m_tireForce.point, Ft);
+      m_tireForce.force += Ft;
+      m_tireForce.moment += Vcross(m_data[id].frame.pos - m_tireForce.point, Ft);
     }
 
     // Lateral direction
@@ -173,8 +173,8 @@ void ChLugreTire::Advance(double step)
       ChVector<> Ft = -Ft_mag * dir;
 
       // Include tangential forces in accumulators
-      //m_tireForce.force += Ft;
-      //m_tireForce.moment += Vcross(m_data[id].frame.pos - m_tireForce.point, Ft);
+      m_tireForce.force += Ft;
+      m_tireForce.moment += Vcross(m_data[id].frame.pos - m_tireForce.point, Ft);
     }
 
   }

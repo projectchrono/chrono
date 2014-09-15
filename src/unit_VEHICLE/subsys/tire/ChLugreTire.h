@@ -70,7 +70,7 @@ private:
     ChCoordsys<> frame;          // contact frame (x: long, y: lat, z: normal)
     ChVector<>   vel;            // relative velocity expressed in contact frame
     double       normal_force;   // magnitude of normal contact force
-    double       ode_coef_a[2];  // ODE coefficients:  z' = z + b * z
+    double       ode_coef_a[2];  // ODE coefficients:  z' = a + b * z
     double       ode_coef_b[2];  //   (longitudinal/lateral)
   };
 
