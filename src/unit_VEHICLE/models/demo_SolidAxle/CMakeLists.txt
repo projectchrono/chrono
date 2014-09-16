@@ -37,6 +37,8 @@ SET(COMMON_HMMWV_FILES
 	../hmmwv/brake/HMMWV_BrakeSimple.cpp
 	../hmmwv/tire/HMMWV_RigidTire.h
 	../hmmwv/tire/HMMWV_RigidTire.cpp
+	../hmmwv/tire/HMMWV_LugreTire.h
+	../hmmwv/tire/HMMWV_LugreTire.cpp
 )
 
 SET(DEMO_HMMWV_FILES
