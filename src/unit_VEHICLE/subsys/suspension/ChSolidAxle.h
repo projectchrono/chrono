@@ -68,7 +68,6 @@ public:
 protected:
 
   enum PointId {
-    AXLE_OUTER, // outer axle point
     SHOCK_A,    // shock, axle
     SHOCK_C,    // shock, chassis
     KNUCKLE_L,  // lower knuckle point

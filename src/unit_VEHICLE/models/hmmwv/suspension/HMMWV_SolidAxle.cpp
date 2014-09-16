@@ -114,7 +114,6 @@ HMMWV_SolidAxleRear::HMMWV_SolidAxleRear(const std::string& name,
 const ChVector<> HMMWV_SolidAxleFront::getLocation(PointId which)
 {
   switch (which) {  
-  case AXLE_OUTER: return in2m * scaleCon * ChVector<>(0, 700, 0);
   case SHOCK_A:    return in2m * scaleCon * ChVector<>(65, 575, -25);
   case SHOCK_C:    return in2m * scaleCon * ChVector<>(80, 560, 300);
   case KNUCKLE_L:  return in2m * scaleCon * ChVector<>(-5, 700, -50);
@@ -138,7 +137,6 @@ const ChVector<> HMMWV_SolidAxleFront::getLocation(PointId which)
 const ChVector<> HMMWV_SolidAxleRear::getLocation(PointId which)
 {
   switch (which) {
-  case AXLE_OUTER: return in2m * scaleCon * ChVector<>(0, 700, 0);
   case SHOCK_A:    return in2m * scaleCon * ChVector<>(65, 575, -25);
   case SHOCK_C:    return in2m * scaleCon * ChVector<>(80, 560, 300);
   case KNUCKLE_L:  return in2m * scaleCon * ChVector<>(-5, 700, -50);

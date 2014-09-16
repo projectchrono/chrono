@@ -38,7 +38,6 @@ namespace chrono {
 // Static variables
 // -----------------------------------------------------------------------------
 const std::string ChSolidAxle::m_pointNames[] = {
-    "AXLE_OUTER ",
     "SHOCK_A    ",
     "SHOCK_C    ",
     "KNUCKLE_L  ",
@@ -173,7 +172,9 @@ void ChSolidAxle::Initialize(ChSharedPtr<ChBodyAuxRef>  chassis,
   m_axleTube->SetRot(chassis->GetFrame_REF_to_abs().GetRot());
   m_axleTube->SetMass(getAxleTubeMass());
   m_axleTube->SetInertiaXX(getAxleTubeInertia());
-  AddVisualizationLink(m_axleTube, points_L[AXLE_OUTER], points_R[AXLE_OUTER], getAxleTubeRadius(), ChColor(0.7f, 0.7f, 0.7f));
+  ChVector<> axleOuterL = ChVector<>(axleCOM.x, 0.5*(points_L[KNUCKLE_L]+points_L[KNUCKLE_U]).y, axleCOM.z);
+  ChVector<> axleOuterR = ChVector<>(axleCOM.x, 0.5*(points_R[KNUCKLE_L]+points_R[KNUCKLE_U]).y, axleCOM.z);
+  AddVisualizationLink(m_axleTube, axleOuterL, axleOuterR, getAxleTubeRadius(), ChColor(0.7f, 0.7f, 0.7f));
   chassis->GetSystem()->AddBody(m_axleTube);
 
   // Initialize left and right sides.
