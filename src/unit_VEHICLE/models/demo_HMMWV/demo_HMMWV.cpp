@@ -280,7 +280,7 @@ int main(int argc, char* argv[])
     if (step_number % output_steps == 0) {
       GetLog() << "\n\n============ System Information ============\n";
       GetLog() << "Time = " << time << "\n\n";
-      vehicle.DebugLog(DBG_SHOCKS | DBG_CONSTRAINTS);
+      vehicle.DebugLog(DBG_SPRINGS | DBG_SHOCKS | DBG_CONSTRAINTS);
     }
 #endif
 

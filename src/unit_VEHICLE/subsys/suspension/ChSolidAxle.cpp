@@ -298,19 +298,6 @@ void ChSolidAxle::InitializeSide(ChSuspension::Side              side,
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-double ChSolidAxle::GetSpringForce(ChSuspension::Side side)
-{
-  return  m_spring[side]->Get_SpringReact();
-}
-
-double ChSolidAxle::GetSpringLen(ChSuspension::Side side)
-{
-  return (m_spring[side]->GetMarker1()->GetAbsCoord().pos - m_spring[side]->GetMarker2()->GetAbsCoord().pos).Length();
-}
-
-
-// -----------------------------------------------------------------------------
-// -----------------------------------------------------------------------------
 void ChSolidAxle::LogHardpointLocations(const ChVector<>& ref,
                                         bool              inches)
 {

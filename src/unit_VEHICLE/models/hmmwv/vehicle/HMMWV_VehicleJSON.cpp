@@ -36,8 +36,10 @@ namespace hmmwv {
 // -----------------------------------------------------------------------------
 
 static const double in2m = 0.0254;
+static const double lb2kg = 0.453592;
+static const double lbf2N = 4.44822162;
 
-const double     HMMWV_VehicleJSON::m_chassisMass = 7747.0 / 2.2;                           // chassis sprung mass
+const double     HMMWV_VehicleJSON::m_chassisMass = lb2kg * 7747.0;                         // chassis sprung mass
 const ChVector<> HMMWV_VehicleJSON::m_chassisCOM = in2m * ChVector<>(18.8, 0.585, 33.329);  // COM location
 const ChVector<> HMMWV_VehicleJSON::m_chassisInertia(125.8, 497.4, 531.4);                  // chassis inertia (roll,pitch,yaw)
 
@@ -269,7 +271,7 @@ double HMMWV_VehicleJSON::GetWheelOmega(ChWheelId which) const
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-double HMMWV_VehicleJSON::GetSpringForce(chrono::ChWheelId which)
+double HMMWV_VehicleJSON::GetSpringForce(chrono::ChWheelId which) const
 {
   switch (which) {
   case FRONT_LEFT:
@@ -285,17 +287,83 @@ double HMMWV_VehicleJSON::GetSpringForce(chrono::ChWheelId which)
   }
 }
 
-double HMMWV_VehicleJSON::GetSpringLength(chrono::ChWheelId which)
+double HMMWV_VehicleJSON::GetSpringLength(chrono::ChWheelId which) const
 {
   switch (which) {
   case FRONT_LEFT:
-    return m_front_susp->GetSpringLen(ChSuspension::LEFT);
+    return m_front_susp->GetSpringLength(ChSuspension::LEFT);
   case FRONT_RIGHT:
-    return m_front_susp->GetSpringLen(ChSuspension::RIGHT);
+    return m_front_susp->GetSpringLength(ChSuspension::RIGHT);
   case REAR_LEFT:
-    return m_rear_susp->GetSpringLen(ChSuspension::LEFT);
+    return m_rear_susp->GetSpringLength(ChSuspension::LEFT);
   case REAR_RIGHT:
-    return m_rear_susp->GetSpringLen(ChSuspension::RIGHT);
+    return m_rear_susp->GetSpringLength(ChSuspension::RIGHT);
+  default:
+    return -1;  // should not happen
+  }
+}
+
+double HMMWV_VehicleJSON::GetSpringDeformation(chrono::ChWheelId which) const
+{
+  switch (which) {
+  case FRONT_LEFT:
+    return m_front_susp->GetSpringDeformation(ChSuspension::LEFT);
+  case FRONT_RIGHT:
+    return m_front_susp->GetSpringDeformation(ChSuspension::RIGHT);
+  case REAR_LEFT:
+    return m_rear_susp->GetSpringDeformation(ChSuspension::LEFT);
+  case REAR_RIGHT:
+    return m_rear_susp->GetSpringDeformation(ChSuspension::RIGHT);
+  default:
+    return -1;  // should not happen
+  }
+}
+
+// -----------------------------------------------------------------------------
+// -----------------------------------------------------------------------------
+double HMMWV_VehicleJSON::GetShockForce(chrono::ChWheelId which) const
+{
+  switch (which) {
+  case FRONT_LEFT:
+    return m_front_susp->GetShockForce(ChSuspension::LEFT);
+  case FRONT_RIGHT:
+    return m_front_susp->GetShockForce(ChSuspension::RIGHT);
+  case REAR_LEFT:
+    return m_rear_susp->GetShockForce(ChSuspension::LEFT);
+  case REAR_RIGHT:
+    return m_rear_susp->GetShockForce(ChSuspension::RIGHT);
+  default:
+    return -1;  // should not happen
+  }
+}
+
+double HMMWV_VehicleJSON::GetShockLength(chrono::ChWheelId which) const
+{
+  switch (which) {
+  case FRONT_LEFT:
+    return m_front_susp->GetShockLength(ChSuspension::LEFT);
+  case FRONT_RIGHT:
+    return m_front_susp->GetShockLength(ChSuspension::RIGHT);
+  case REAR_LEFT:
+    return m_rear_susp->GetShockLength(ChSuspension::LEFT);
+  case REAR_RIGHT:
+    return m_rear_susp->GetShockLength(ChSuspension::RIGHT);
+  default:
+    return -1;  // should not happen
+  }
+}
+
+double HMMWV_VehicleJSON::GetShockVelocity(chrono::ChWheelId which) const
+{
+  switch (which) {
+  case FRONT_LEFT:
+    return m_front_susp->GetShockVelocity(ChSuspension::LEFT);
+  case FRONT_RIGHT:
+    return m_front_susp->GetShockVelocity(ChSuspension::RIGHT);
+  case REAR_LEFT:
+    return m_rear_susp->GetShockVelocity(ChSuspension::LEFT);
+  case REAR_RIGHT:
+    return m_rear_susp->GetShockVelocity(ChSuspension::RIGHT);
   default:
     return -1;  // should not happen
   }
@@ -363,47 +431,54 @@ void HMMWV_VehicleJSON::LogHardpointLocations()
 
 
 // -----------------------------------------------------------------------------
-// Log the spring error, force, and length at design.
+// Log the spring length, deformation, and force.
+// Log the shock length, velocity, and force.
 // Log constraint violations of suspension joints.
+//
+// Lengths are reported in inches, velocities in inches/s, and forces in lbf
 // -----------------------------------------------------------------------------
 void HMMWV_VehicleJSON::DebugLog(int what)
 {
+  GetLog().SetNumFormat("%10.2f");
+
+  if (what & DBG_SPRINGS)
+  {
+    GetLog() << "\n---- Spring (front-left, front-right, rear-left, rear-right)\n";
+    GetLog() << "Length [inch]       "
+      << GetSpringLength(FRONT_LEFT) / in2m << "  "
+      << GetSpringLength(FRONT_RIGHT) / in2m << "  "
+      << GetSpringLength(REAR_LEFT) / in2m << "  "
+      << GetSpringLength(REAR_RIGHT) / in2m << "\n";
+    GetLog() << "Deformation [inch]  "
+      << GetSpringDeformation(FRONT_LEFT) / in2m << "  "
+      << GetSpringDeformation(FRONT_RIGHT) / in2m << "  "
+      << GetSpringDeformation(REAR_LEFT) / in2m << "  "
+      << GetSpringDeformation(REAR_RIGHT) / in2m << "\n";
+    GetLog() << "Force [lbf]         "
+      << GetSpringForce(FRONT_LEFT) / lbf2N << "  "
+      << GetSpringForce(FRONT_RIGHT) / lbf2N << "  "
+      << GetSpringForce(REAR_LEFT) / lbf2N << "  "
+      << GetSpringForce(REAR_RIGHT) / lbf2N << "\n";
+  }
+
   if (what & DBG_SHOCKS)
   {
-    // spring forces, front left & right (lbs)
-    double springF_FL = GetSpringForce(FRONT_LEFT) / 4.45;       // design = 3491 lb.
-    double springF_FR = GetSpringForce(FRONT_RIGHT) / 4.45;      // design = 3491 lb.
-    // spring forces, back left & right (lbs)
-    double springF_RL = GetSpringForce(REAR_LEFT) / 4.45;        // design = 6388 lb.
-    double springF_RR = GetSpringForce(REAR_RIGHT) / 4.45;       // design = 6388 lb.
-
-    // spring lengths, front left & right (inches)
-    double springLen_FL = GetSpringLength(FRONT_LEFT) * 39.37;   // design = 9.7" + 4.65"
-    double springLen_FR = GetSpringLength(FRONT_RIGHT) * 39.37;  // design = 9.7" + 4.65
-    // spring lengths, rear left & right (inches)
-    double springLen_RL = GetSpringLength(REAR_LEFT) * 39.37;    // design = 12.0" + 2.35"
-    double springLen_RR = GetSpringLength(REAR_RIGHT) * 39.37;   // design = 12.0" + 2.35"
-
-    // springs are mounted at shock points, add the distance between top shock
-    // and spring hardpoints
-    double dl_F = 9.7 + 4.65;
-    double dl_R = 12.0 + 2.35;
-
-    GetLog() << "---- Spring, Shock info\n";
-    GetLog() << "Forces[lbs.]:"
-      << "\n  FL = " << springF_FL << "\n  FR= " << springF_FR
-      << "\n  RL= " << springF_RL << "\n  RR= " << springF_RR << "\n\n";
-    GetLog() << "Lengths[inches]:"
-      << "\n  FL = " << springLen_FL << "\n  FR = " << springLen_FR
-      << "\n  RL= " << springLen_RL << "\n  RR= " << springLen_RR << "\n\n";
-
-    GetLog() << "---- Spring Force, length error relative to design \n";
-    GetLog() << "Force ERROR[lbs.]:"
-      << "\n  FL = " << springF_FL - 3491.0 << "\n  FR= " << springF_FR - 3491.0
-      << "\n  RL= " << springF_RL - 6388.0 << "\n  RR= " << springF_RR - 6388 << "\n\n";
-    GetLog() << "Length ERROR [inches]:"
-      << "\n  FL= " << springLen_FL - dl_F << "\n  FR= " << springLen_FR - dl_F
-      << "\n  RL= " << springLen_RL - dl_R << "\n  RR= " << springLen_RR - dl_R << "\n\n";
+    GetLog() << "\n---- Shock (front-left, front-right, rear-left, rear-right)\n";
+    GetLog() << "Length [inch]       "
+      << GetShockLength(FRONT_LEFT) / in2m << "  "
+      << GetShockLength(FRONT_RIGHT) / in2m << "  "
+      << GetShockLength(REAR_LEFT) / in2m << "  "
+      << GetShockLength(REAR_RIGHT) / in2m << "\n";
+    GetLog() << "Velocity [inch/s]   "
+      << GetShockVelocity(FRONT_LEFT) / in2m << "  "
+      << GetShockVelocity(FRONT_RIGHT) / in2m << "  "
+      << GetShockVelocity(REAR_LEFT) / in2m << "  "
+      << GetShockVelocity(REAR_RIGHT) / in2m << "\n";
+    GetLog() << "Force [lbf]         "
+      << GetShockForce(FRONT_LEFT) / lbf2N << "  "
+      << GetShockForce(FRONT_RIGHT) / lbf2N << "  "
+      << GetShockForce(REAR_LEFT) / lbf2N << "  "
+      << GetShockForce(REAR_RIGHT) / lbf2N << "\n";
   }
 
   if (what & DBG_CONSTRAINTS)
@@ -418,6 +493,8 @@ void HMMWV_VehicleJSON::DebugLog(int what)
     GetLog() << "\n---- REAR-LEFT suspension constraint violation\n\n";
     m_rear_susp->LogConstraintViolations(ChSuspension::LEFT);
   }
+
+  GetLog().SetNumFormat("%g");
 }
 
 

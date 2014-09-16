@@ -34,8 +34,9 @@ enum TireModelType {
 };
 
 enum DebugInformation {
-  DBG_SHOCKS      = 1 << 0,
-  DBG_CONSTRAINTS = 1 << 1
+  DBG_SPRINGS     = 1 << 0,
+  DBG_SHOCKS      = 1 << 1,
+  DBG_CONSTRAINTS = 1 << 2
 };
 
 } // end namespace hmmwv

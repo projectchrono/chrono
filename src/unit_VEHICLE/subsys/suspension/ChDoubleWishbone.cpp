@@ -284,19 +284,6 @@ void ChDoubleWishbone::InitializeSide(ChSuspension::Side              side,
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-double ChDoubleWishbone::GetSpringForce(ChSuspension::Side side)
-{
-  return  m_spring[side]->Get_SpringReact();
-}
-
-double ChDoubleWishbone::GetSpringLen(ChSuspension::Side side)
-{
-  return (m_spring[side]->GetMarker1()->GetAbsCoord().pos - m_spring[side]->GetMarker2()->GetAbsCoord().pos).Length();
-}
-
-
-// -----------------------------------------------------------------------------
-// -----------------------------------------------------------------------------
 void ChDoubleWishbone::LogHardpointLocations(const ChVector<>& ref,
                                              bool              inches)
 {

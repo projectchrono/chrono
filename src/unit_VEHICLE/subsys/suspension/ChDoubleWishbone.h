@@ -51,8 +51,13 @@ public:
 
   virtual void ApplySteering(double displ);
 
-  double GetSpringForce(ChSuspension::Side side);
-  double GetSpringLen(ChSuspension::Side side);
+  double GetSpringForce(ChSuspension::Side side)       const { return m_spring[side]->Get_SpringReact(); }
+  double GetSpringLength(ChSuspension::Side side)      const { return m_spring[side]->Get_SpringLength(); }
+  double GetSpringDeformation(ChSuspension::Side side) const { return m_spring[side]->Get_SpringDeform(); }
+
+  double GetShockForce(ChSuspension::Side side)        const { return m_shock[side]->Get_SpringReact(); }
+  double GetShockLength(ChSuspension::Side side)       const { return m_shock[side]->Get_SpringLength(); }
+  double GetShockVelocity(ChSuspension::Side side)     const { return m_shock[side]->Get_SpringVelocity(); }
 
   void LogHardpointLocations(const ChVector<>& ref,
                              bool              inches = false);

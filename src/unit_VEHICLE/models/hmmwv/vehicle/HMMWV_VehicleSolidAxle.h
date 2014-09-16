@@ -53,8 +53,13 @@ public:
   virtual chrono::ChVector<> GetWheelAngVel(chrono::ChWheelId which) const;
   virtual double GetWheelOmega(chrono::ChWheelId which) const;
 
-  double GetSpringForce(chrono::ChWheelId which);
-  double GetSpringLength(chrono::ChWheelId which);
+  double GetSpringForce(chrono::ChWheelId which) const;
+  double GetSpringLength(chrono::ChWheelId which) const;
+  double GetSpringDeformation(chrono::ChWheelId which) const;
+
+  double GetShockForce(chrono::ChWheelId which) const;
+  double GetShockLength(chrono::ChWheelId which) const;
+  double GetShockVelocity(chrono::ChWheelId which) const;
 
   virtual void Initialize(const chrono::ChCoordsys<>& chassisPos);
   virtual void Update(double                      time,

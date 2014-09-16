@@ -34,8 +34,10 @@ namespace hmmwv {
 // -----------------------------------------------------------------------------
 
 static const double in2m = 0.0254;
+static const double lb2kg = 0.453592;
+static const double lbf2N = 4.44822162;
 
-const double     HMMWV_VehicleReduced::m_chassisMass = 7747.0 / 2.2;                           // chassis sprung mass
+const double     HMMWV_VehicleReduced::m_chassisMass = lb2kg * 7747.0;                         // chassis sprung mass
 const ChVector<> HMMWV_VehicleReduced::m_chassisCOM = in2m * ChVector<>(18.8, 0.585, 33.329);  // COM location
 const ChVector<> HMMWV_VehicleReduced::m_chassisInertia(125.8, 497.4, 531.4);                  // chassis inertia (roll,pitch,yaw)
 
