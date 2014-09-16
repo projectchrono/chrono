@@ -55,23 +55,25 @@ public:
   virtual int GetType() { return LNK_SPRING; }
 
       // data fetch/store
-  double Get_SpringRestLength() { return spr_restlength; }
-  double Get_SpringDeform()     { return (dist - spr_restlength); }
-  double Get_SpringK()          { return spr_k; }
-  double Get_SpringR()          { return spr_r; }
-  double Get_SpringF()          { return spr_f; }
-  double Get_SpringReact()      { return spr_react; }
+  double Get_SpringRestLength() const { return spr_restlength; }
+  double Get_SpringDeform()     const { return (dist - spr_restlength); }
+  double Get_SpringLength()     const { return dist; }
+  double Get_SpringVelocity()   const { return dist_dt; }
+  double Get_SpringK()          const { return spr_k; }
+  double Get_SpringR()          const { return spr_r; }
+  double Get_SpringF()          const { return spr_f; }
+  double Get_SpringReact()      const { return spr_react; }
 
   void Set_SpringRestLength(double m_r) { spr_restlength = m_r; }
   void Set_SpringK(double m_r)          { spr_k = m_r; }
   void Set_SpringR(double m_r)          { spr_r = m_r; }
   void Set_SpringF(double m_r)          { spr_f = m_r; }
 
-  ChSharedPtr<ChFunction> Get_mod_f_time()  { return mod_f_time; }
-  ChSharedPtr<ChFunction> Get_mod_k_d()     { return mod_k_d; }
-  ChSharedPtr<ChFunction> Get_mod_r_d()     { return mod_r_d; }
-  ChSharedPtr<ChFunction> Get_mod_k_speed() { return mod_k_speed; }
-  ChSharedPtr<ChFunction> Get_mod_r_speed() { return mod_r_speed; }
+  ChSharedPtr<ChFunction> Get_mod_f_time()  const { return mod_f_time; }
+  ChSharedPtr<ChFunction> Get_mod_k_d()     const { return mod_k_d; }
+  ChSharedPtr<ChFunction> Get_mod_r_d()     const { return mod_r_d; }
+  ChSharedPtr<ChFunction> Get_mod_k_speed() const { return mod_k_speed; }
+  ChSharedPtr<ChFunction> Get_mod_r_speed() const { return mod_r_speed; }
 
   void Set_mod_f_time(ChSharedPtr<ChFunction> mf)  { mod_f_time = mf; }
   void Set_mod_k_d(ChSharedPtr<ChFunction> mf)     { mod_k_d = mf; }
