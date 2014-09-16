@@ -35,6 +35,7 @@
 #include "models/hmmwv/HMMWV.h"
 #include "models/hmmwv/vehicle/HMMWV_VehicleSolidAxle.h"
 #include "models/hmmwv/tire/HMMWV_RigidTire.h"
+#include "models/hmmwv/tire/HMMWV_LugreTire.h"
 #include "models/hmmwv/HMMWV_FuncDriver.h"
 #include "models/hmmwv/HMMWV_RigidTerrain.h"
 
@@ -61,6 +62,9 @@ using namespace hmmwv;
 ChVector<>     initLoc(0, 0, 1.7);   // sprung mass height at design = 49.68 in
 ChQuaternion<> initRot(1,0,0,0);      // forward is in the negative global x-direction
 
+// Type of tire model (RIGID, PACEJKA, or LUGRE)
+TireModelType tire_model = RIGID;
+
 // Rigid terrain dimensions
 double terrainHeight = 0;
 double terrainLength = 100.0;   // size in X direction
@@ -81,7 +85,7 @@ double output_step_size = 1.0 / 1;    // once a second
 #else
   double tend = 20.0;
 
-  const std::string out_dir = "../HMMWV";
+  const std::string out_dir = "../HMMWV_SOLIDAXLE";
   const std::string pov_dir = out_dir + "/POVRAY";
 #endif
 
@@ -108,20 +112,56 @@ int main(int argc, char* argv[])
   terrain.AddFixedObstacles();
 
   // Create the tires
-  HMMWV_RigidTire tire_front_right(terrain, 0.7f);
-  HMMWV_RigidTire tire_front_left(terrain, 0.7f);
-  HMMWV_RigidTire tire_rear_right(terrain, 0.7f);
-  HMMWV_RigidTire tire_rear_left(terrain, 0.7f);
+  ChSharedPtr<ChTire> tire_front_right;
+  ChSharedPtr<ChTire> tire_front_left;
+  ChSharedPtr<ChTire> tire_rear_right;
+  ChSharedPtr<ChTire> tire_rear_left;
 
-  tire_front_right.Initialize(vehicle.GetWheelBody(FRONT_RIGHT));
-  tire_front_left.Initialize(vehicle.GetWheelBody(FRONT_LEFT));
-  tire_rear_right.Initialize(vehicle.GetWheelBody(REAR_RIGHT));
-  tire_rear_left.Initialize(vehicle.GetWheelBody(REAR_LEFT));
+  switch (tire_model) {
+  case RIGID:
+  {
+    ChSharedPtr<HMMWV_RigidTire> tire_FR = ChSharedPtr<HMMWV_RigidTire>(new HMMWV_RigidTire(terrain, 0.7f));
+    ChSharedPtr<HMMWV_RigidTire> tire_FL = ChSharedPtr<HMMWV_RigidTire>(new HMMWV_RigidTire(terrain, 0.7f));
+    ChSharedPtr<HMMWV_RigidTire> tire_RR = ChSharedPtr<HMMWV_RigidTire>(new HMMWV_RigidTire(terrain, 0.7f));
+    ChSharedPtr<HMMWV_RigidTire> tire_RL = ChSharedPtr<HMMWV_RigidTire>(new HMMWV_RigidTire(terrain, 0.7f));
+
+    tire_FR->Initialize(vehicle.GetWheelBody(FRONT_RIGHT));
+    tire_FL->Initialize(vehicle.GetWheelBody(FRONT_LEFT));
+    tire_RR->Initialize(vehicle.GetWheelBody(REAR_RIGHT));
+    tire_RL->Initialize(vehicle.GetWheelBody(REAR_LEFT));
+
+    tire_front_right = tire_FR;
+    tire_front_left = tire_FL;
+    tire_rear_right = tire_RR;
+    tire_rear_left = tire_RL;
+
+    break;
+  }
+  case LUGRE:
+  {
+    ChSharedPtr<HMMWV_LugreTire> tire_FR = ChSharedPtr<HMMWV_LugreTire>(new HMMWV_LugreTire(terrain));
+    ChSharedPtr<HMMWV_LugreTire> tire_FL = ChSharedPtr<HMMWV_LugreTire>(new HMMWV_LugreTire(terrain));
+    ChSharedPtr<HMMWV_LugreTire> tire_RR = ChSharedPtr<HMMWV_LugreTire>(new HMMWV_LugreTire(terrain));
+    ChSharedPtr<HMMWV_LugreTire> tire_RL = ChSharedPtr<HMMWV_LugreTire>(new HMMWV_LugreTire(terrain));
+
+    tire_FR->Initialize();
+    tire_FL->Initialize();
+    tire_RR->Initialize();
+    tire_RL->Initialize();
+
+    tire_front_right = tire_FR;
+    tire_front_left = tire_FL;
+    tire_rear_right = tire_RR;
+    tire_rear_left = tire_RL;
+
+    break;
+  }
+  }
 
 
 #ifdef USE_IRRLICHT
   irr::ChIrrApp application(&vehicle,
-                            L"HMMWV demo",
+                            L"HMMWV Solid-Axle demo",
                             irr::core::dimension2d<irr::u32>(1000, 800),
                             false,
                             true);
@@ -162,7 +202,7 @@ int main(int argc, char* argv[])
 
   application.SetTimestep(step_size);
 
-  ChIrrGuiDriver driver(application, vehicle, trackPoint, 6.0, 0.5);
+  ChIrrGuiDriver driver(application, vehicle, trackPoint, 6.0, 0.5, true);
 
   // Set the time response for steering and throttle keyboard inputs.
   // NOTE: this is not exact, since we do not render quite at the specified FPS.
@@ -194,8 +234,12 @@ int main(int argc, char* argv[])
   vehicle.LogHardpointLocations();
 #endif
 
-
+  // Inter-module communication data
   ChTireForces tire_forces(4);
+  ChBodyState  wheel_states[4];
+  double       throttle_input;
+  double       steering_input;
+  double       braking_input;
 
   // Number of simulation steps between two 3D view render frames
   int render_steps = (int)std::ceil(render_step_size / step_size);
@@ -240,24 +284,34 @@ int main(int argc, char* argv[])
     }
 #endif
 
-    // Update modules (inter-module communication)
+    // Collect output data from modules (for inter-module communication)
+    throttle_input = driver.getThrottle();
+    steering_input = driver.getSteering();
+    braking_input = driver.getBraking();
+
+    tire_forces[FRONT_LEFT] = tire_front_left->GetTireForce();
+    tire_forces[FRONT_RIGHT] = tire_front_right->GetTireForce();
+    tire_forces[REAR_LEFT] = tire_rear_left->GetTireForce();
+    tire_forces[REAR_RIGHT] = tire_rear_right->GetTireForce();
+
+    wheel_states[FRONT_LEFT] = vehicle.GetWheelState(FRONT_RIGHT);
+    wheel_states[FRONT_RIGHT] = vehicle.GetWheelState(FRONT_LEFT);
+    wheel_states[REAR_LEFT] = vehicle.GetWheelState(REAR_RIGHT);
+    wheel_states[REAR_RIGHT] = vehicle.GetWheelState(REAR_LEFT);
+
+    // Update modules (process inputs from other modules)
     time = vehicle.GetChTime();
 
     driver.Update(time);
 
     terrain.Update(time);
 
-    tire_front_right.Update(time, vehicle.GetWheelState(FRONT_RIGHT));
-    tire_front_left.Update(time, vehicle.GetWheelState(FRONT_LEFT));
-    tire_rear_right.Update(time, vehicle.GetWheelState(REAR_RIGHT));
-    tire_rear_left.Update(time, vehicle.GetWheelState(REAR_LEFT));
+    tire_front_right->Update(time, wheel_states[FRONT_LEFT]);
+    tire_front_left->Update(time, wheel_states[FRONT_RIGHT]);
+    tire_rear_right->Update(time, wheel_states[REAR_LEFT]);
+    tire_rear_left->Update(time, wheel_states[REAR_RIGHT]);
 
-    tire_forces[FRONT_LEFT] = tire_front_left.GetTireForce();
-    tire_forces[FRONT_RIGHT] = tire_front_right.GetTireForce();
-    tire_forces[REAR_LEFT] = tire_rear_left.GetTireForce();
-    tire_forces[REAR_RIGHT] = tire_rear_right.GetTireForce();
-
-    vehicle.Update(time, driver.getThrottle(), driver.getSteering(), driver.getBraking(), tire_forces);
+    vehicle.Update(time, throttle_input, steering_input, braking_input, tire_forces);
 
     // Advance simulation for one timestep for all modules
     double step = realtime_timer.SuggestSimulationStep(step_size);
@@ -266,10 +320,10 @@ int main(int argc, char* argv[])
 
     terrain.Advance(step);
 
-    tire_front_right.Advance(step);
-    tire_front_left.Advance(step);
-    tire_rear_right.Advance(step);
-    tire_rear_left.Advance(step);
+    tire_front_right->Advance(step);
+    tire_front_left->Advance(step);
+    tire_rear_right->Advance(step);
+    tire_rear_left->Advance(step);
 
     vehicle.Advance(step);
 
@@ -292,7 +346,7 @@ int main(int argc, char* argv[])
     return 1;
   }
 
-  HMMWV_Vehicle::ExportMeshPovray(out_dir);
+  HMMWV_VehicleSolidAxle::ExportMeshPovray(out_dir);
   HMMWV_WheelLeft::ExportMeshPovray(out_dir);
   HMMWV_WheelRight::ExportMeshPovray(out_dir);
 
@@ -312,34 +366,44 @@ int main(int argc, char* argv[])
       render_frame++;
     }
 
-    // Update modules
+    // Collect output data from modules (for inter-module communication)
+    throttle_input = driver.getThrottle();
+    steering_input = driver.getSteering();
+    braking_input = driver.getBraking();
+
+    tire_forces[FRONT_LEFT] = tire_front_left->GetTireForce();
+    tire_forces[FRONT_RIGHT] = tire_front_right->GetTireForce();
+    tire_forces[REAR_LEFT] = tire_rear_left->GetTireForce();
+    tire_forces[REAR_RIGHT] = tire_rear_right->GetTireForce();
+
+    wheel_states[FRONT_LEFT] = vehicle.GetWheelState(FRONT_RIGHT);
+    wheel_states[FRONT_RIGHT] = vehicle.GetWheelState(FRONT_LEFT);
+    wheel_states[REAR_LEFT] = vehicle.GetWheelState(REAR_RIGHT);
+    wheel_states[REAR_RIGHT] = vehicle.GetWheelState(REAR_LEFT);
+
+    // Update modules (process inputs from other modules)
     time = vehicle.GetChTime();
 
     driver.Update(time);
 
     terrain.Update(time);
 
-    tire_front_right.Update(time, vehicle.GetWheelState(FRONT_RIGHT));
-    tire_front_left.Update(time, vehicle.GetWheelState(FRONT_LEFT));
-    tire_rear_right.Update(time, vehicle.GetWheelState(REAR_RIGHT));
-    tire_rear_left.Update(time, vehicle.GetWheelState(REAR_LEFT));
+    tire_front_right->Update(time, wheel_states[FRONT_LEFT]);
+    tire_front_left->Update(time, wheel_states[FRONT_RIGHT]);
+    tire_rear_right->Update(time, wheel_states[REAR_LEFT]);
+    tire_rear_left->Update(time, wheel_states[REAR_RIGHT]);
 
-    tire_forces[FRONT_LEFT] = tire_front_left.GetTireForce();
-    tire_forces[FRONT_RIGHT] = tire_front_right.GetTireForce();
-    tire_forces[REAR_LEFT] = tire_rear_left.GetTireForce();
-    tire_forces[REAR_RIGHT] = tire_rear_right.GetTireForce();
-
-    vehicle.Update(time, driver.getThrottle(), driver.getSteering(), driver.getBraking(), tire_forces);
+    vehicle.Update(time, throttle_input, steering_input, braking_input, tire_forces);
 
     // Advance simulation for one timestep for all modules
     driver.Advance(step_size);
 
     terrain.Advance(step_size);
 
-    tire_front_right.Advance(step_size);
-    tire_front_left.Advance(step_size);
-    tire_rear_right.Advance(step_size);
-    tire_rear_left.Advance(step_size);
+    tire_front_right->Advance(step_size);
+    tire_front_left->Advance(step_size);
+    tire_rear_right->Advance(step_size);
+    tire_rear_left->Advance(step_size);
 
     vehicle.Advance(step_size);
 
