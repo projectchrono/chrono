@@ -2275,7 +2275,7 @@ void cudaCollisions(
 			int3 cartesianGridDims;
 			thrust::host_vector<real4> rho_Pres_CartH(1);
 			thrust::host_vector<real4> vel_VelMag_CartH(1);
-			MapSPH_ToGrid(8 * paramsH.HSML, cartesianGridDims, rho_Pres_CartH, vel_VelMag_CartH,
+			MapSPH_ToGrid(4 * paramsH.HSML, cartesianGridDims, rho_Pres_CartH, vel_VelMag_CartH,
 					posRadD, velMasD, rhoPresMuD, numObjects.numAllMarkers, paramsH);
 			PrintCartesianData_MidLine(rho_Pres_CartH, vel_VelMag_CartH, cartesianGridDims, paramsH);
 			// *******************************************************************************
