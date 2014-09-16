@@ -35,12 +35,13 @@ using namespace irr;
 
 // =============================================================================
 
-double mass = 1.0;
-double length = 4.0;
-ChVector<> inertiaXX(1, 1, 1);
+ChVector<> loc(0, 0, 0);          // location of revolute joint (in global frame)
+
+double mass = 1.0;                // mass of pendulum
+double length = 4.0;              // length of pendulum
+ChVector<> inertiaXX(1, 1, 1);    // moments of inertia of pendulum
 
 double timeRecord = 5;
-double timeElapsed = 0;
 double timeStep = 0.001;
 
 // =============================================================================
@@ -70,22 +71,30 @@ int main(int argc, char* argv[])
   my_system.AddBody(ground);
   ground->SetBodyFixed(true);
 
+  ChSharedPtr<ChCylinderShape> cyl_g(new ChCylinderShape);
+  cyl_g->GetCylinderGeometry().p1 = loc + ChVector<>(0, -0.2, 0);
+  cyl_g->GetCylinderGeometry().p2 = loc + ChVector<>(0, 0.2, 0);
+  cyl_g->GetCylinderGeometry().rad = 0.1;
+  ground->AddAsset(cyl_g);
+
   // ..the pendulum
   ChSharedBodyPtr  pendulum(new ChBody);
   my_system.AddBody(pendulum);
-  pendulum->SetPos(ChVector<>(length / 2, 0, 0));   // position of COG of pendulum
+  pendulum->SetPos(loc + ChVector<>(length / 2, 0, 0));   // position of COG of pendulum
   pendulum->SetMass(mass);
   pendulum->SetInertiaXX(inertiaXX);
 
-  ChSharedMarkerPtr pendEndMrkr(new ChMarker);
-  pendEndMrkr->SetPos(ChVector<>(length, 0, 0));  // position of end of crank (beginning is at origin)
-  pendulum->AddMarker(pendEndMrkr);
+  ChSharedPtr<ChCylinderShape> cyl_p(new ChCylinderShape);
+  cyl_p->GetCylinderGeometry().p1 = ChVector<>(-length / 2, 0, 0);
+  cyl_p->GetCylinderGeometry().p2 = ChVector<>(length / 2, 0, 0);
+  cyl_p->GetCylinderGeometry().rad = 0.1;
+  pendulum->AddAsset(cyl_p);
 
   // 3- Create constraints: the mechanical joints between the rigid bodies.
 
   // .. a revolute joint between pendulum and ground
   ChSharedPtr<ChLinkLockRevolute>  revoluteJoint(new ChLinkLockRevolute);
-  revoluteJoint->Initialize(pendulum, ground, ChCoordsys<>(ChVector<>(0, 0, 0), Q_from_AngX(CH_C_PI_2)));
+  revoluteJoint->Initialize(pendulum, ground, ChCoordsys<>(loc, Q_from_AngX(CH_C_PI_2)));
   my_system.AddLink(revoluteJoint);
 
   // Create the Irrlicht application
@@ -95,7 +104,8 @@ int main(int argc, char* argv[])
   application.AddTypicalLogo();
   application.AddTypicalSky();
   application.AddTypicalLights();
-  application.AddTypicalCamera(core::vector3df(0, 3, 6));
+  core::vector3df lookat((f32)loc.x, (f32)loc.y, (f32)loc.z);
+  application.AddTypicalCamera(lookat + core::vector3df(0, 3, -6), lookat);
 
   application.AssetBindAll();
   application.AssetUpdateAll();
@@ -118,8 +128,9 @@ int main(int argc, char* argv[])
     std::cout << "Output file is invalid" << std::endl;
   }
 
-
   application.SetTimestep(timeStep);
+
+  double timeElapsed = 0;
 
   while (application.GetDevice()->run())
   {
@@ -130,20 +141,8 @@ int main(int argc, char* argv[])
     // Draw a grid
     ChIrrTools::drawGrid(
       application.GetVideoDriver(), 0.5, 0.5, 20, 20,
-      ChCoordsys<>(ChVector<>(0, 0, 0), Q_from_AngX(CH_C_PI_2)),
+      ChCoordsys<>(loc, Q_from_AngX(CH_C_PI_2)),
       video::SColor(255, 80, 100, 100), true);
-
-    // Draw the pendulum (from revolute joint to the end marker)
-    ChIrrTools::drawSegment(
-      application.GetVideoDriver(),
-      revoluteJoint->GetMarker1()->GetAbsCoord().pos,
-      pendEndMrkr->GetAbsCoord().pos,
-      video::SColor(255, 255, 0, 0));
-
-    // Draw a small circle at pendulum origin
-    ChIrrTools::drawCircle(
-      application.GetVideoDriver(), 0.1,
-      ChCoordsys<>(ChVector<>(0, 0, 0), Q_from_AngX(CH_C_PI_2)));
 
     // Write current position, velocity, acceleration, reaction force, and 
     // reaction torque of pendulum to output file
@@ -153,7 +152,7 @@ int main(int argc, char* argv[])
 
       // Position
       ChVector<double> position = pendulum->GetPos();
-      outf << position.x << "\t" << position.y << "\t" << position.z << "\t" << position.Length() << "\t";
+      outf << position.x << "\t" << position.y << "\t" << position.z << "\t" << (position - loc).Length() << "\t";
 
       // Velocity
       ChVector<double> velocity = pendulum->GetPos_dt();
@@ -163,14 +162,17 @@ int main(int argc, char* argv[])
       ChVector<double> acceleration = pendulum->GetPos_dtdt();
       outf << acceleration.x << "\t" << acceleration.y << "\t" << acceleration.z << "\t" << acceleration.Length() << "\t";
 
-      // Reaction Force
+      // Reaction Force and Torque
+      // These are expressed in the link coordinate system. We convert them to
+      // the coordinate system of Body2 (in our case this is the ground).
+      ChCoordsys<> linkCoordsys = revoluteJoint->GetLinkRelativeCoords();
       ChVector<double> reactForce = revoluteJoint->Get_react_force();
-      ChVector<double> reactForceGlobal = revoluteJoint->GetLinkRelativeCoords().TransformLocalToParent(reactForce);
+      ChVector<double> reactForceGlobal = linkCoordsys.TransformDirectionLocalToParent(reactForce);
       outf << reactForceGlobal.x << "\t" << reactForceGlobal.y << "\t" << reactForceGlobal.z << "\t" << reactForceGlobal.Length() << "\t";
 
-      // Reaction Torque
-      ChVector<double> reactTorque = pendulum->Get_Xtorque();
-      outf << reactTorque.x << "\t" << reactTorque.y << "\t" << reactTorque.z << "\t" << reactTorque.Length() << std::endl;
+      ChVector<double> reactTorque = revoluteJoint->Get_react_torque();
+      ChVector<double> reactTorqueGlobal = linkCoordsys.TransformDirectionLocalToParent(reactTorque);
+      outf << reactTorqueGlobal.x << "\t" << reactTorqueGlobal.y << "\t" << reactTorqueGlobal.z << "\t" << reactTorqueGlobal.Length() << std::endl;
     }
 
     // Advance simulation by one step
