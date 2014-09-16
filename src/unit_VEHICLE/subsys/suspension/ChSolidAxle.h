@@ -135,8 +135,8 @@ protected:
   ChSharedPtr<ChLinkLockRevolute>   m_revoluteKingpin[2];
   ChSharedPtr<ChLinkLockSpherical>  m_sphericalUpperLink[2];
   ChSharedPtr<ChLinkLockSpherical>  m_sphericalLowerLink[2];
-  ChSharedPtr<ChLinkLockSpherical>  m_universalUpperLink[2];
-  ChSharedPtr<ChLinkLockSpherical>  m_universalLowerLink[2];
+  ChSharedPtr<ChLinkLockUniversal>  m_universalUpperLink[2];
+  ChSharedPtr<ChLinkLockUniversal>  m_universalLowerLink[2];
   ChSharedPtr<ChLinkDistance>       m_distTierod[2];
 
   ChSharedPtr<ChLinkSpring>         m_shock[2];

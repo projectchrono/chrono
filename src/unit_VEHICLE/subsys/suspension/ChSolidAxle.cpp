@@ -101,7 +101,7 @@ void ChSolidAxle::CreateSide(ChSuspension::Side side,
   m_sphericalUpperLink[side]->SetNameString(m_name + "_sphericalUpperLink" + suffix);
 
   // Create the upper link - chassis universal joints
-  m_universalUpperLink[side] = ChSharedPtr<ChLinkLockSpherical>(new ChLinkLockSpherical);
+  m_universalUpperLink[side] = ChSharedPtr<ChLinkLockUniversal>(new ChLinkLockUniversal);
   m_universalUpperLink[side]->SetNameString(m_name + "_universalUpperLink" + suffix);
 
   // Create the lower link bodies
@@ -113,7 +113,7 @@ void ChSolidAxle::CreateSide(ChSuspension::Side side,
   m_sphericalLowerLink[side]->SetNameString(m_name + "_sphericalLowerLink" + suffix);
 
   // Create the lower link - chassis universal joints
-  m_universalLowerLink[side] = ChSharedPtr<ChLinkLockSpherical>(new ChLinkLockSpherical);
+  m_universalLowerLink[side] = ChSharedPtr<ChLinkLockUniversal>(new ChLinkLockUniversal);
   m_universalLowerLink[side]->SetNameString(m_name + "_universalLowerLink" + suffix);
 
   // Distance constraint to model the tierod
@@ -186,6 +186,12 @@ void ChSolidAxle::InitializeSide(ChSuspension::Side              side,
                                  const std::vector<ChVector<> >& points,
                                  const std::vector<ChVector<> >& dirs)
 {
+  // Unit vectors for orientation matrices.
+  ChVector<> u;
+  ChVector<> v;
+  ChVector<> w;
+  ChMatrix33<> rot;
+
   // Chassis orientation (expressed in absolute frame)
   ChQuaternion<> chassisRot = chassis->GetFrame_REF_to_abs().GetRot();
 
@@ -206,16 +212,34 @@ void ChSolidAxle::InitializeSide(ChSuspension::Side              side,
   chassis->GetSystem()->AddBody(m_spindle[side]);
 
   // Initialize upper link body.
+  // Determine the rotation matrix of the upper link based on the plane of the hard points
+  // (z-axis along the length of the upper link)
+  v = Vcross(points[UL_A] - points[LL_A], points[UL_C] - points[LL_A]);
+  v.Normalize();
+  w = points[UL_A] - points[UL_C];
+  w.Normalize();
+  u = Vcross(v, w);
+  rot.Set_A_axis(u, v, w);
+
   m_upperLink[side]->SetPos(points[UL_CM]);
-  m_upperLink[side]->SetRot(chassisRot);
+  m_upperLink[side]->SetRot(rot);
   m_upperLink[side]->SetMass(getULMass());
   m_upperLink[side]->SetInertiaXX(getULInertia());
   AddVisualizationLink(m_upperLink[side], points[UL_A], points[UL_C], getULRadius(), ChColor(0.6f, 0.2f, 0.6f));
   chassis->GetSystem()->AddBody(m_upperLink[side]);
 
   // Initialize lower link body.
+  // Determine the rotation matrix of the lower link based on the plane of the hard points
+  // (z-axis along the length of the lower link)
+  v = Vcross(points[LL_A] - points[UL_A], points[LL_C] - points[UL_A]);
+  v.Normalize();
+  w = points[LL_A] - points[LL_C];
+  w.Normalize();
+  u = Vcross(v, w);
+  rot.Set_A_axis(u, v, w);
+
   m_lowerLink[side]->SetPos(points[LL_CM]);
-  m_lowerLink[side]->SetRot(chassisRot);
+  m_lowerLink[side]->SetRot(rot);
   m_lowerLink[side]->SetMass(getLLMass());
   m_lowerLink[side]->SetInertiaXX(getLLInertia());
   AddVisualizationLink(m_lowerLink[side], points[LL_A], points[LL_C], getLLRadius(), ChColor(0.2f, 0.6f, 0.2f));
@@ -223,12 +247,6 @@ void ChSolidAxle::InitializeSide(ChSuspension::Side              side,
 
   // Append to the axle visualization
   AddVisualizationLink(m_axleTube, points[LL_A], points[UL_A], getLLRadius(), ChColor(0.7f, 0.7f, 0.7f));
-
-  // Unit vectors for orientation matrices.
-  ChVector<> u;
-  ChVector<> v;
-  ChVector<> w;
-  ChMatrix33<> rot;
 
   // Initialize the revolute joint between axle and knuckle.
   // Determine the joint orientation matrix from the hardpoint locations by
@@ -253,11 +271,19 @@ void ChSolidAxle::InitializeSide(ChSuspension::Side              side,
   chassis->GetSystem()->AddLink(m_sphericalLowerLink[side]);
 
   // Initialize the universal joint between chassis and upper link.
-  m_universalUpperLink[side]->Initialize(chassis, m_upperLink[side], ChCoordsys<>(points[UL_C], QUNIT));
+  u = UNIV_AXIS_CHASSIS_U;
+  v = UNIV_AXIS_LINK_U;
+  w = Vcross(u, v);
+  rot.Set_A_axis(u, v, w);
+  m_universalUpperLink[side]->Initialize(chassis, m_upperLink[side], ChCoordsys<>(points[UL_C], rot.Get_A_quaternion()));
   chassis->GetSystem()->AddLink(m_universalUpperLink[side]);
 
   // Initialize the universal joint between chassis and lower link.
-  m_universalLowerLink[side]->Initialize(chassis, m_lowerLink[side], ChCoordsys<>(points[LL_C], QUNIT));
+  u = UNIV_AXIS_CHASSIS_L;
+  v = UNIV_AXIS_LINK_L;
+  w = Vcross(u, v);
+  rot.Set_A_axis(u, v, w);
+  m_universalLowerLink[side]->Initialize(chassis, m_lowerLink[side], ChCoordsys<>(points[LL_C], rot.Get_A_quaternion()));
   chassis->GetSystem()->AddLink(m_universalLowerLink[side]);
 
   // Initialize the revolute joint between upright and spindle.

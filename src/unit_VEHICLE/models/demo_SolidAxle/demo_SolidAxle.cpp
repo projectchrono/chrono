@@ -102,7 +102,7 @@ int main(int argc, char* argv[])
   // Create the HMMWV vehicle
   HMMWV_VehicleSolidAxle vehicle(false,
                         hmmwv::PRIMITIVES,
-                        hmmwv::NONE);
+                        hmmwv::MESH);
 
   vehicle.Initialize(ChCoordsys<>(initLoc, initRot));
 
