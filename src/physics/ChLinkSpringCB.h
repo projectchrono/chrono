@@ -65,6 +65,7 @@ public:
 
       // data fetch/store
   double Get_SpringRestLength() const { return m_rest_length; }
+  double Get_SpringDeform()     const { return dist - m_rest_length; }
   double Get_SpringLength()     const { return dist; }
   double Get_SpringVelocity()   const { return dist_dt; }
   double Get_SpringReact()      const { return m_force; }
