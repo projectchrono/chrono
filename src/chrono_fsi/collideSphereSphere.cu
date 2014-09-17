@@ -2255,7 +2255,7 @@ void cudaCollisions(
 
 		//density re-initialization
 		if (tStep % 10 == 0) {
-//			DensityReinitialization(posRadD, velMasD, rhoPresMuD, numObjects.numAllMarkers, SIDE); //does not work for analytical boundaries (non-meshed) and free surfaces
+			DensityReinitialization(posRadD, velMasD, rhoPresMuD, numObjects.numAllMarkers, SIDE); //does not work for analytical boundaries (non-meshed) and free surfaces
 		}
 
 		myGpuTimer.Stop();
@@ -2275,7 +2275,7 @@ void cudaCollisions(
 			int3 cartesianGridDims;
 			thrust::host_vector<real4> rho_Pres_CartH(1);
 			thrust::host_vector<real4> vel_VelMag_CartH(1);
-			MapSPH_ToGrid(4 * paramsH.HSML, cartesianGridDims, rho_Pres_CartH, vel_VelMag_CartH,
+			MapSPH_ToGrid(2 * paramsH.HSML, cartesianGridDims, rho_Pres_CartH, vel_VelMag_CartH,
 					posRadD, velMasD, rhoPresMuD, numObjects.numAllMarkers, paramsH);
 			PrintCartesianData_MidLine(rho_Pres_CartH, vel_VelMag_CartH, cartesianGridDims, paramsH);
 			// *******************************************************************************
