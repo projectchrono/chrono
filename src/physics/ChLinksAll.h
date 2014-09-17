@@ -34,6 +34,7 @@
 #include "physics/ChLink.h"
 #include "physics/ChLinkLock.h"
 #include "physics/ChLinkSpring.h"
+#include "physics/ChLinkSpringCB.h"
 #include "physics/ChLinkLinActuator.h"
 #include "physics/ChLinkPneumaticActuator.h"
 #include "physics/ChLinkEngine.h"
