@@ -20,6 +20,9 @@
 //
 // =============================================================================
 
+#include "assets/ChCylinderShape.h"
+#include "assets/ChTexture.h"
+#include "assets/ChColorAsset.h"
 
 #include "ChLugreTire.h"
 
@@ -55,6 +58,28 @@ void ChLugreTire::Initialize()
   }
 }
 
+void ChLugreTire::Initialize(ChSharedPtr<ChBody> wheel)
+{
+  // Perform the actual initialization
+  Initialize();
+
+  // Add visualization assets.
+  double discWidth = 0.04;
+  double disc_radius = getRadius();
+  const double* disc_locs = getDiscLocations();
+
+  for (int id = 0; id < getNumDiscs(); id++) {
+    ChSharedPtr<ChCylinderShape> cyl(new ChCylinderShape);
+    cyl->GetCylinderGeometry().rad = disc_radius;
+    cyl->GetCylinderGeometry().p1 = ChVector<>(0, disc_locs[id] + discWidth / 2, 0);
+    cyl->GetCylinderGeometry().p2 = ChVector<>(0, disc_locs[id] - discWidth / 2, 0);
+    wheel->AddAsset(cyl);
+  }
+
+  ChSharedPtr<ChTexture> tex(new ChTexture);
+  tex->SetTextureFilename(GetChronoDataFile("bluwhite.png"));
+  wheel->AddAsset(tex);
+}
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
@@ -109,7 +134,7 @@ void ChLugreTire::Update(double              time,
       m_data[id].ode_coef_a[0] = v;
       m_data[id].ode_coef_b[0] = -m_sigma0[0] * v / g;
     }
-    
+
     // ODE coefficients for lateral direction: z' = a + b * z
     {
       double v = abs(m_data[id].vel.y);

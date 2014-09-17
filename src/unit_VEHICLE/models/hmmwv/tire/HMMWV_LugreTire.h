@@ -36,9 +36,6 @@ public:
   virtual double getNormalStiffness() const      { return m_normalStiffness; }
   virtual double getNormalDamping() const        { return m_normalDamping; }
 
-  using chrono::ChLugreTire::Initialize;
-  void Initialize(chrono::ChSharedBodyPtr wheel);
-
   virtual void SetLugreParams();
 
 private:

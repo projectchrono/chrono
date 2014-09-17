@@ -34,6 +34,7 @@ public:
   virtual ~ChLugreTire() {}
 
   void Initialize();
+  void Initialize(ChSharedPtr<ChBody> wheel);
 
   virtual ChTireForce GetTireForce() const { return m_tireForce; }
 

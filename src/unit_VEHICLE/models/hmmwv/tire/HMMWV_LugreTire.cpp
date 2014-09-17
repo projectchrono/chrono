@@ -47,29 +47,6 @@ HMMWV_LugreTire::HMMWV_LugreTire(const ChTerrain& terrain)
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-void HMMWV_LugreTire::Initialize(ChSharedBodyPtr wheel)
-{
-  // Invoke the base class Initialize function.
-  ChLugreTire::Initialize();
-
-  // Add visualization assets.
-  double discWidth = 0.04;
-
-  for (int id = 0; id < m_numDiscs; id++) {
-    ChSharedPtr<ChCylinderShape> cyl(new ChCylinderShape);
-    cyl->GetCylinderGeometry().rad = m_radius;
-    cyl->GetCylinderGeometry().p1 = ChVector<>(0, m_discLocs[id] + discWidth / 2, 0);
-    cyl->GetCylinderGeometry().p2 = ChVector<>(0, m_discLocs[id] - discWidth / 2, 0);
-    wheel->AddAsset(cyl);
-  }
-
-  ChSharedPtr<ChTexture> tex(new ChTexture);
-  tex->SetTextureFilename(GetChronoDataFile("bluwhite.png"));
-  wheel->AddAsset(tex);
-}
-
-// -----------------------------------------------------------------------------
-// -----------------------------------------------------------------------------
 void HMMWV_LugreTire::SetLugreParams()
 {
   // Longitudinal direction
