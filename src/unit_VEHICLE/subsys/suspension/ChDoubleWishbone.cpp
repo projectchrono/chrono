@@ -58,16 +58,74 @@ const std::string ChDoubleWishbone::m_pointNames[] = {
 
 
 // -----------------------------------------------------------------------------
+// Default shock and spring functors (used for linear elements)
+// -----------------------------------------------------------------------------
+class LinearSpringForce : public ChSpringForceCallback
+{
+public:
+  LinearSpringForce(double k) : m_k(k) {}
+
+  virtual double operator()(double time,         // current time
+                            double rest_length,  // undeformed length
+                            double length,       // current length
+                            double vel)          // current velocity (positive when extending)
+  {
+    return -m_k * (length - rest_length);
+  }
+
+private:
+  double  m_k;
+};
+
+class LinearShockForce : public ChSpringForceCallback
+{
+public:
+  LinearShockForce(double c) : m_c(c) {}
+
+  virtual double operator()(double time,         // current time
+                            double rest_length,  // undeformed length
+                            double length,       // current length
+                            double vel)          // current velocity (positive when extending)
+  {
+    return -m_c * vel;
+  }
+
+private:
+  double  m_c;
+};
+
+
+// -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 ChDoubleWishbone::ChDoubleWishbone(const std::string& name,
                                    bool               steerable,
                                    bool               driven)
-: ChSuspension(name, steerable, driven)
+: ChSuspension(name, steerable, driven),
+  m_nonlinearShock(false),
+  m_nonlinearSpring(false),
+  m_shockCB(NULL),
+  m_springCB(NULL)
 {
   CreateSide(LEFT, "_L");
   CreateSide(RIGHT, "_R");
 }
 
+ChDoubleWishbone::~ChDoubleWishbone()
+{
+  // If we own the shock or spring callbacks, delete them.
+  // Note: this is the only reason why the booleans m_nonlinearShock and
+  // m_nonlinearSpring had to be cashed (we cannot call a virtual method in the
+  // destructor of the base class).
+
+  if (!m_nonlinearShock)
+    delete m_shockCB;
+
+  if (!m_nonlinearSpring)
+    delete m_springCB;
+}
+
+// -----------------------------------------------------------------------------
+// -----------------------------------------------------------------------------
 void ChDoubleWishbone::CreateSide(ChSuspension::Side side,
                                   const std::string& suffix)
 {
@@ -102,9 +160,9 @@ void ChDoubleWishbone::CreateSide(ChSuspension::Side side,
   m_distTierod[side]->SetNameString(m_name + "_distTierod" + suffix);
 
   // Spring-damper
-  m_shock[side] = ChSharedPtr<ChLinkSpring>(new ChLinkSpring);
+  m_shock[side] = ChSharedPtr<ChLinkSpringCB>(new ChLinkSpringCB);
   m_shock[side]->SetNameString(m_name + "_shock" + suffix);
-  m_spring[side] = ChSharedPtr<ChLinkSpring>(new ChLinkSpring);
+  m_spring[side] = ChSharedPtr<ChLinkSpringCB>(new ChLinkSpringCB);
   m_spring[side]->SetNameString(m_name + "_spring" + suffix);
 
   // If driven, create the axle shaft and its connection to the spindle.
@@ -116,12 +174,18 @@ void ChDoubleWishbone::CreateSide(ChSuspension::Side side,
   }
 }
 
-
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 void ChDoubleWishbone::Initialize(ChSharedPtr<ChBodyAuxRef>  chassis,
                                   const ChVector<>&          location)
 {
+  // Set the shock and spring force callbacks (use the user-provided functor if
+  // a nonlinear element was specified; otherwise, use the default functor).
+  m_nonlinearShock = useNonlinearShock();
+  m_nonlinearSpring = useNonlinearSpring();
+  m_shockCB = m_nonlinearShock ? getShockForceCallback() : new LinearShockForce(getDampingCoefficient());
+  m_springCB = m_nonlinearSpring ? getSpringForceCallback() : new LinearSpringForce(getSpringCoefficient());
+
   // Express the suspension reference frame in the absolute coordinate system.
   ChFrame<> suspension_to_abs(location);
   suspension_to_abs.ConcatenatePreTransformation(chassis->GetFrame_REF_to_abs());
@@ -256,14 +320,12 @@ void ChDoubleWishbone::InitializeSide(ChSuspension::Side              side,
   chassis->GetSystem()->AddLink(m_distTierod[side]);
 
   // Initialize the spring/damper
-  m_shock[side]->Initialize(chassis, m_LCA[side], false, points[SHOCK_C], points[SHOCK_A], false, getSpringRestLength());
-  m_shock[side]->Set_SpringK(0.0);
-  m_shock[side]->Set_SpringR(getDampingCoefficient());
+  m_shock[side]->Initialize(chassis, m_LCA[side], false, points[SHOCK_C], points[SHOCK_A]);
+  m_shock[side]->Set_SpringCallback(m_shockCB);
   chassis->GetSystem()->AddLink(m_shock[side]);
 
   m_spring[side]->Initialize(chassis, m_LCA[side], false, points[SPRING_C], points[SPRING_A], false, getSpringRestLength());
-  m_spring[side]->Set_SpringK(getSpringCoefficient());
-  m_spring[side]->Set_SpringR(0.0);
+  m_spring[side]->Set_SpringCallback(m_springCB);
   chassis->GetSystem()->AddLink(m_spring[side]);
 
   // Save initial relative position of marker 1 of the tierod distance link,

@@ -44,7 +44,7 @@ public:
   ChDoubleWishbone(const std::string& name,
                    bool               steerable = false,
                    bool               driven = false);
-  virtual ~ChDoubleWishbone() {}
+  virtual ~ChDoubleWishbone();
 
   virtual void Initialize(ChSharedPtr<ChBodyAuxRef>  chassis,
                           const ChVector<>&          location);
@@ -105,10 +105,15 @@ protected:
 
   virtual double getAxleInertia() const = 0;
 
-  virtual double getSpringCoefficient() const = 0;
-  virtual double getDampingCoefficient() const = 0;
+  virtual bool useNonlinearSpring() const { return false; }
+  virtual bool useNonlinearShock() const  { return false; }
+
+  virtual double getSpringCoefficient() const  { return 1.0; }
+  virtual double getDampingCoefficient() const { return 1.0; }
   virtual double getSpringRestLength() const = 0;
 
+  virtual ChSpringForceCallback* getSpringForceCallback() const { return NULL; }
+  virtual ChSpringForceCallback* getShockForceCallback()  const { return NULL; }
 
   ChSharedBodyPtr                   m_upright[2];
   ChSharedBodyPtr                   m_UCA[2];
@@ -120,8 +125,14 @@ protected:
   ChSharedPtr<ChLinkLockSpherical>  m_sphericalLCA[2];
   ChSharedPtr<ChLinkDistance>       m_distTierod[2];
 
-  ChSharedPtr<ChLinkSpring>         m_shock[2];
-  ChSharedPtr<ChLinkSpring>         m_spring[2];
+  bool                              m_nonlinearShock;
+  bool                              m_nonlinearSpring;
+
+  ChSpringForceCallback*            m_shockCB;
+  ChSpringForceCallback*            m_springCB;
+
+  ChSharedPtr<ChLinkSpringCB>       m_shock[2];
+  ChSharedPtr<ChLinkSpringCB>       m_spring[2];
 
   ChVector<>                        m_tierod_marker[2];
 
