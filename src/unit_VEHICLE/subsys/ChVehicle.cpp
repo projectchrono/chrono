@@ -16,13 +16,19 @@
 //
 // =============================================================================
 
+#include <algorithm>
+
 #include "subsys/ChVehicle.h"
 
 
 namespace chrono {
 
 
+// -----------------------------------------------------------------------------
+// Constructor for a ChVehicle: specify default step size and solver parameters.
+// -----------------------------------------------------------------------------
 ChVehicle::ChVehicle()
+: m_stepsize(1e-3)
 {
   Set_G_acc(ChVector<>(0, 0, -9.81));
 
@@ -34,11 +40,24 @@ ChVehicle::ChVehicle()
 }
 
 
+// -----------------------------------------------------------------------------
+// Advance the state of the system, taking as many steps as needed to exactly
+// reach the specified value 'step'.
+// ---------------------------------------------------------------------------- -
 void ChVehicle::Advance(double step)
 {
-  DoStepDynamics(step);
+  double t = 0;
+  while (t < step) {
+    double h = std::min<>(m_stepsize, step - t);
+    DoStepDynamics(h);
+    t += h;
+  }
 }
 
+// -----------------------------------------------------------------------------
+// Return the complete state (expressed in the global frame) for the specified
+// wheel body.
+// -----------------------------------------------------------------------------
 ChBodyState ChVehicle::GetWheelState(ChWheelId which)
 {
   ChBodyState state;

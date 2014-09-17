@@ -94,11 +94,17 @@ public:
   /// Return the speed measured at the chassis COM
   double GetVehicleSpeedCOM() const   { return m_chassis->GetPos_dt().Length(); }
 
+  /// Set/get the integration step size for the vehicle subsystem
+  void SetStepsize(double val) { m_stepsize = val; }
+  double GetStepsize() const { return m_stepsize; }
+
 protected:
   ChSharedPtr<ChBodyAuxRef>  m_chassis;
 
   ChDriveline*     m_driveline;
   ChPowertrain*    m_powertrain;
+
+  double  m_stepsize;
 
   friend class ChPowertrain;
   friend class ChDriveline;

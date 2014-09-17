@@ -20,6 +20,8 @@
 //
 // =============================================================================
 
+#include <algorithm>
+
 #include "assets/ChCylinderShape.h"
 #include "assets/ChTexture.h"
 #include "assets/ChColorAsset.h"
@@ -99,8 +101,8 @@ void ChLugreTire::Update(double              time,
   ChMatrix33<> A(wheel_state.rot);
   ChVector<> disc_normal = A.Get_A_Yaxis();
 
-  // Loop over all discs, check contact with terrain and accumulate normal tire
-  // forces.
+  // Loop over all discs, check contact with terrain, accumulate normal tire
+  // forces, and cache data that only depends on wheel state.
   double depth;
 
   for (int id = 0; id < getNumDiscs(); id++) {
@@ -113,7 +115,8 @@ void ChLugreTire::Update(double              time,
     if (!m_data[id].in_contact)
       continue;
 
-    // Relative velocity at contact point (expressed in global frame and in the contact frame)
+    // Relative velocity at contact point (expressed in the global frame and in
+    // the contact frame)
     ChVector<> vel = wheel_state.lin_vel + Vcross(wheel_state.ang_vel, m_data[id].frame.pos - wheel_state.pos);
     m_data[id].vel = m_data[id].frame.TransformDirectionParentToLocal(vel);
 
@@ -143,7 +146,7 @@ void ChLugreTire::Update(double              time,
       m_data[id].ode_coef_b[1] = -m_sigma0[1] * v / g;
     }
 
-  }
+  } // end loop over discs
 
 }
 
@@ -153,56 +156,79 @@ void ChLugreTire::Update(double              time,
 void ChLugreTire::Advance(double step)
 {
   for (int id = 0; id < getNumDiscs(); id++) {
+
+    // Nothing to do if this disc is not in contact
     if (!m_data[id].in_contact)
       continue;
+
+    // Advance disc states, for longitudinal and lateral directions, using the
+    // trapezoidal integration scheme, written in the form:
+    //         z_{n+1} = alpha * z_{n} + beta
+    double denom;
+    double alpha;
+    double beta;
+
+    // Start from the current cached values
+    double z0 = m_state[id].z0;
+    double z1 = m_state[id].z1;
+
+    // Take as many integration steps as needed to reach the value 'step'
+    double t = 0;
+    while (t < step) {
+      // Ensure we integrate exactly to 'step'
+      double h = std::min<>(m_stepsize, step - t);
+
+      // Advance state for longitudinal direction
+      denom = (2 - m_data[id].ode_coef_b[0] * h);
+      alpha = (2 + m_data[id].ode_coef_b[0] * h) / denom;
+      beta = 2 * m_data[id].ode_coef_a[0] * h / denom;
+      z0 = alpha * z0 + beta;
+
+      // Advance state for lateral direction
+      denom = (2 - m_data[id].ode_coef_b[1] * h);
+      alpha = (2 + m_data[id].ode_coef_b[1] * h) / denom;
+      beta = 2 * m_data[id].ode_coef_a[1] * h / denom;
+      z1 = alpha * z1 + beta;
+
+      t += h;
+    }
+
+    // Cache the states for use at subsequent calls.
+    m_state[id].z0 = z0;
+    m_state[id].z1 = z1;
 
     // Magnitude of normal contact force for this disc
     double Fn_mag = m_data[id].normal_force;
 
-    // Advance disc state (using trapezoidal integration scheme):
-    //         z_{n+1} = alpha * z_{n} + beta
-    // Evaluate friction force
-    // Add to accumulators for tire force
-
-    // Longitudinal direction
+    // Evaluate friction force and add to accumulators for tire force
     {
-      double denom = (2 - m_data[id].ode_coef_b[0] * m_stepsize);
-      double alpha = (2 + m_data[id].ode_coef_b[0] * m_stepsize) / denom;
-      double beta = 2 * m_data[id].ode_coef_a[0] * m_stepsize / denom;
-      double z = alpha * m_state[id].z0 + beta;
-      double zd = m_data[id].ode_coef_a[0] + m_data[id].ode_coef_b[0] * z;
-      m_state[id].z0 = z;
+      // Longitudinal direction
+      double zd0 = m_data[id].ode_coef_a[0] + m_data[id].ode_coef_b[0] * z0;
 
       double v = m_data[id].vel.x;
-      double Ft_mag = Fn_mag * (m_sigma0[0] * z + m_sigma1[0] * zd + m_sigma2[0] * abs(v));
+      double Ft_mag = Fn_mag * (m_sigma0[0] * z0 + m_sigma1[0] * zd0 + m_sigma2[0] * abs(v));
       ChVector<> dir = (v > 0) ? m_data[id].frame.rot.GetXaxis() : -m_data[id].frame.rot.GetXaxis();
       ChVector<> Ft = -Ft_mag * dir;
 
-      // Include tangential forces in accumulators
       m_tireForce.force += Ft;
       m_tireForce.moment += Vcross(m_data[id].frame.pos - m_tireForce.point, Ft);
     }
 
-    // Lateral direction
     {
-      double denom = (2 - m_data[id].ode_coef_b[1] * m_stepsize);
-      double alpha = (2 + m_data[id].ode_coef_b[1] * m_stepsize) / denom;
-      double beta = 2 * m_data[id].ode_coef_a[1] * m_stepsize / denom;
-      double z = alpha * m_state[id].z1 + beta;
-      double zd = m_data[id].ode_coef_a[1] + m_data[id].ode_coef_b[1] * z;
-      m_state[id].z1 = z;
+      // Lateral direction
+      double zd1 = m_data[id].ode_coef_a[1] + m_data[id].ode_coef_b[1] * z1;
 
       double v = m_data[id].vel.y;
-      double Ft_mag = Fn_mag * (m_sigma0[1] * z + m_sigma1[1] * zd + m_sigma2[1] * abs(v));
+      double Ft_mag = Fn_mag * (m_sigma0[1] * z1 + m_sigma1[1] * zd1 + m_sigma2[1] * abs(v));
       ChVector<> dir = (v > 0) ? m_data[id].frame.rot.GetYaxis() : -m_data[id].frame.rot.GetYaxis();
       ChVector<> Ft = -Ft_mag * dir;
 
-      // Include tangential forces in accumulators
       m_tireForce.force += Ft;
       m_tireForce.moment += Vcross(m_data[id].frame.pos - m_tireForce.point, Ft);
     }
 
-  }
+  } // end loop over discs
+
 }
 
 

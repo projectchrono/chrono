@@ -52,6 +52,7 @@ namespace chrono {
 class CH_SUBSYS_API ChIrrGuiDriver : public ChDriver, public irr::IEventReceiver
 {
 public:
+
   ChIrrGuiDriver(irr::ChIrrApp&    app,
                  const ChVehicle&  car,
                  const ChVector<>& ptOnChassis,
@@ -74,6 +75,10 @@ public:
   void SetThrottleDelta(double delta)  { m_throttleDelta = delta; }
   void SetSteeringDelta(double delta)  { m_steeringDelta = delta; }
   void SetBrakingDelta (double delta)  { m_brakingDelta = delta; }
+
+  void SetStepsize(double val) { m_stepsize = val; }
+  double GetStepsize() const { return m_stepsize; }
+
 private:
 
   void renderSprings();
@@ -92,6 +97,8 @@ private:
   const ChVehicle&          m_car;
 
   utils::ChChaseCamera      m_camera;
+
+  double m_stepsize;
 
   double m_terrainHeight;
   double m_throttleDelta;

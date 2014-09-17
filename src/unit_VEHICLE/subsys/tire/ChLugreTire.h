@@ -30,6 +30,7 @@ namespace chrono {
 
 class CH_SUBSYS_API ChLugreTire : public ChTire {
 public:
+
   ChLugreTire(const ChTerrain& terrain);
   virtual ~ChLugreTire() {}
 
@@ -46,6 +47,7 @@ public:
   double GetStepsize() const { return m_stepsize; }
 
 protected:
+
   virtual int getNumDiscs() const = 0;
   virtual double getRadius() const = 0;
   virtual const double* getDiscLocations() const = 0;
@@ -66,6 +68,7 @@ protected:
   double   m_vs[2];
 
 private:
+
   struct DiscContactData {
     bool         in_contact;     // true if disc in contact with terrain
     ChCoordsys<> frame;          // contact frame (x: long, y: lat, z: normal)

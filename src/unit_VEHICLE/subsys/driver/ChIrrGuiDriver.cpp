@@ -55,6 +55,7 @@ ChIrrGuiDriver::ChIrrGuiDriver(ChIrrApp&         app,
   m_steeringDelta(1.0/50),
   m_brakingDelta(1.0/50),
   m_camera(car.GetChassis()),
+  m_stepsize(1e-3),
   m_sound(enable_sound)
 {
   app.SetUserEventReceiver(this);
@@ -172,12 +173,19 @@ bool ChIrrGuiDriver::OnEvent(const SEvent& event)
 // -----------------------------------------------------------------------------
 void ChIrrGuiDriver::Advance(double step)
 {
-  // Update the ChChaseCamera
-  m_camera.Update(step);
+  // Update the ChChaseCamera: take as many integration steps as needed to
+  // exactly reach the value 'step'
+  double t = 0;
+  while (t < step) {
+    double h = std::min<>(m_stepsize, step - t);
+    m_camera.Update(step);
+    t += h;
+  }
+
+  // Update the Irrlicht camera
   ChVector<> cam_pos = m_camera.GetCameraPos();
   ChVector<> cam_target = m_camera.GetTargetPos();
 
-  // Update the Irrlicht camera
   scene::ICameraSceneNode *camera = m_app.GetSceneManager()->getActiveCamera();
 
   camera->setPosition(core::vector3df((f32)cam_pos.x, (f32)cam_pos.y, (f32)cam_pos.z));
