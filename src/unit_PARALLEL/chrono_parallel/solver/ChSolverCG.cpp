@@ -19,7 +19,7 @@ uint ChSolverCG::SolveCG(const uint max_iter,
    if (normb == 0.0) {
       normb = 1;
    }
-   r = data_container->host_data.Nshur * ml;
+   r = data_container->host_data.D_T * data_container->host_data.M_invD * ml;
    p = r = mb - r;
    rsold = (r, r);
    normb = 1.0 / normb;
@@ -27,7 +27,7 @@ uint ChSolverCG::SolveCG(const uint max_iter,
       return 0;
    }
    for (current_iteration = 0; current_iteration < max_iter; current_iteration++) {
-      Ap = data_container->host_data.Nshur * p;
+      Ap = data_container->host_data.D_T * data_container->host_data.M_invD * p;
       alpha = rsold / Dot(p, Ap);
       rsnew = 0;
       ml = alpha * p + ml;

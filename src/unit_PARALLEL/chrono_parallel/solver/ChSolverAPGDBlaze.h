@@ -42,9 +42,9 @@ class CH_PARALLEL_API ChSolverAPGDBlaze : public ChSolverParallel {
       if (num_constraints == 0) {
          return;
       }
-      data_container->system_timer.start("ChSolverParallel_Solve");
+
       total_iteration += SolveAPGDBlaze(max_iteration, num_constraints, data_container->host_data.rhs_data, data_container->host_data.gamma_data);
-      data_container->system_timer.stop("ChSolverParallel_Solve");
+
       current_iteration = total_iteration;
    }
 

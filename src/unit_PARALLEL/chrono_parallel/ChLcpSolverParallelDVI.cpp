@@ -422,7 +422,7 @@ void ChLcpSolverParallelDVI::ComputeN() {
       }
       data_container->host_data.D_T = trans(data_container->host_data.D);
       data_container->host_data.M_invD = data_container->host_data.M_inv * data_container->host_data.D;
-      data_container->host_data.Nshur = data_container->host_data.D_T * data_container->host_data.M_invD;
+      //data_container->host_data.Nshur = data_container->host_data.D_T * data_container->host_data.M_invD;
 //      for (int i = 0; i < data_container->host_data.Nshur.rows(); i++) {
 //         for (int j = 0; j < data_container->host_data.Nshur.columns(); j++) {
 //            std::cout << data_container->host_data.Nshur(i, j) << std::endl;

@@ -30,9 +30,9 @@ uint ChSolverAPGDBlaze::SolveAPGDBlaze(const uint max_iter,
                                        custom_vector<real> &b,
                                        custom_vector<real> &x) {
 
-   data_container->system_timer.start("ChSolverParallel_solverA");
+   //data_container->system_timer.start("ChSolverParallel_solverA");
    blaze::DynamicVector<real> one(size, 1.0);
-
+   data_container->system_timer.start("ChSolverParallel_Solve");
    ms.resize(size);
    mg_tmp2.resize(size);
    mb_tmp.resize(size);
@@ -59,12 +59,13 @@ uint ChSolverAPGDBlaze::SolveAPGDBlaze(const uint max_iter,
       ml[i] = x[i];
       mb[i] = b[i];
    }
+
    Project(ml.data());
    ml_candidate = ml;
-   mg = data_container->host_data.Nshur * ml;
+   mg = data_container->host_data.D_T * data_container->host_data.M_invD * ml;
    mg = mg - mb;
    mb_tmp = ml - one;
-   mg_tmp = data_container->host_data.Nshur * mb_tmp;
+   mg_tmp = data_container->host_data.D_T * data_container->host_data.M_invD * mb_tmp;
 
    mb_tmp_norm = sqrt((mb_tmp, trans(mb_tmp)));
    mg_tmp_norm = sqrt((mg_tmp, trans(mg_tmp)));
@@ -78,23 +79,23 @@ uint ChSolverAPGDBlaze::SolveAPGDBlaze(const uint max_iter,
    t_k = 1.0 / L_k;
    my = ml;
    mx = ml;
-   data_container->system_timer.stop("ChSolverParallel_solverA");
+   //data_container->system_timer.stop("ChSolverParallel_solverA");
 
    for (current_iteration = 0; current_iteration < max_iter; current_iteration++) {
 
-      data_container->system_timer.start("ChSolverParallel_solverB");
+      // data_container->system_timer.start("ChSolverParallel_solverB");
 
-      mg_tmp1 = data_container->host_data.Nshur * my;
-      data_container->system_timer.stop("ChSolverParallel_solverB");
-      data_container->system_timer.start("ChSolverParallel_solverC");
+      mg_tmp1 = data_container->host_data.D_T * data_container->host_data.M_invD * my;
+      //data_container->system_timer.stop("ChSolverParallel_solverB");
+      //data_container->system_timer.start("ChSolverParallel_solverC");
 
       mg = mg_tmp1 - mb;
       mx = -t_k * mg + my;
 
       Project(mx.data());
-      mg_tmp = data_container->host_data.Nshur * mx;
-      data_container->system_timer.stop("ChSolverParallel_solverC");
-      data_container->system_timer.start("ChSolverParallel_solverD");
+      mg_tmp = data_container->host_data.D_T * data_container->host_data.M_invD * mx;
+      // data_container->system_timer.stop("ChSolverParallel_solverC");
+      // data_container->system_timer.start("ChSolverParallel_solverD");
 
       //mg_tmp2 = mg_tmp - mb;
       mso = .5 * mg_tmp - mb;
@@ -105,15 +106,15 @@ uint ChSolverAPGDBlaze::SolveAPGDBlaze(const uint max_iter,
       dot_mg_ms = (mg, trans(ms));
       norm_ms = (ms, trans(ms));
 
-      data_container->system_timer.stop("ChSolverParallel_solverD");
+      //data_container->system_timer.stop("ChSolverParallel_solverD");
       while (obj1 > obj2 + dot_mg_ms + 0.5 * L_k * norm_ms) {
-         data_container->system_timer.start("ChSolverParallel_solverE");
+         // data_container->system_timer.start("ChSolverParallel_solverE");
          L_k = 2.0 * L_k;
          t_k = 1.0 / L_k;
          mx = -t_k * mg + my;
          Project(mx.data());
 
-         mg_tmp = data_container->host_data.Nshur * mx;
+         mg_tmp = data_container->host_data.D_T * data_container->host_data.M_invD * mx;
 
          mso = .5 * mg_tmp - mb;
          obj1 = (mx, trans(mso));
@@ -121,9 +122,9 @@ uint ChSolverAPGDBlaze::SolveAPGDBlaze(const uint max_iter,
          dot_mg_ms = (mg, trans(ms));
          norm_ms = (ms, trans(ms));
 
-         data_container->system_timer.stop("ChSolverParallel_solverE");
+         //data_container->system_timer.stop("ChSolverParallel_solverE");
       }
-      data_container->system_timer.start("ChSolverParallel_solverF");
+      //data_container->system_timer.start("ChSolverParallel_solverF");
 
       theta_k1 = (-pow(theta_k, 2) + theta_k * sqrt(pow(theta_k, 2) + 4)) / 2.0;
       beta_k1 = theta_k * (1.0 - theta_k) / (pow(theta_k, 2) + theta_k1);
@@ -176,12 +177,14 @@ uint ChSolverAPGDBlaze::SolveAPGDBlaze(const uint max_iter,
             break;
          }
       }
-      data_container->system_timer.stop("ChSolverParallel_solverF");
+      // data_container->system_timer.stop("ChSolverParallel_solverF");
    }
+
 #pragma omp parallel for
    for (int i = 0; i < size; i++) {
       x[i] = ml_candidate[i];
    }
+   data_container->system_timer.stop("ChSolverParallel_Solve");
    return current_iteration;
 }
 

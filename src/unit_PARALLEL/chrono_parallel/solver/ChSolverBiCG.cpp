@@ -16,7 +16,7 @@ uint ChSolverBiCG::SolveBiCG(const uint max_iter,
 
    q.resize(size), qtilde.resize(size), r.resize(size);
    real normb = std::sqrt((mb, mb));
-   r = data_container->host_data.Nshur * ml;
+   r = data_container->host_data.D_T * data_container->host_data.M_invD * ml;
    r = mb - r;
 
    rtilde = r;
@@ -47,8 +47,8 @@ uint ChSolverBiCG::SolveBiCG(const uint max_iter,
          ptilde = ztilde + beta * ptilde;
       }
 
-      q = data_container->host_data.Nshur * p;
-      qtilde = data_container->host_data.Nshur * ptilde;
+      q = data_container->host_data.D_T * data_container->host_data.M_invD * p;
+      qtilde = data_container->host_data.D_T * data_container->host_data.M_invD * ptilde;
 
       alpha = rho_1 / Dot(ptilde, q);
       ml = ml + alpha * p;
