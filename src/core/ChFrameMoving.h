@@ -616,7 +616,7 @@ ChFrame<Real> operator* (const ChFrameMoving<Real>& Fa, const ChFrame<Real>& Fb)
 		{
 			//GetLog() << "Mixed * operator 1 \n";
 			ChFrame<Real> res;
-			Fa.ChFrame::TransformLocalToParent(Fb,res);
+			Fa.ChFrame<Real>::TransformLocalToParent(Fb,res);
 			return res;
 		}
 
@@ -634,7 +634,7 @@ ChFrameMoving<Real> operator* (const ChFrame<Real>& Fa, const ChFrameMoving<Real
 			//GetLog() << "Mixed * operator 2 \n";
 			ChFrameMoving<Real> res;
 			ChFrameMoving<Real> Fam(Fa);
-			Fam.ChFrame::TransformLocalToParent(Fb,res);
+			Fam.TransformLocalToParent(Fb,res);
 			return res;
 		}
 
@@ -649,7 +649,7 @@ ChFrame<Real> operator>> (const ChFrame<Real>& Fa, const ChFrameMoving<Real>& Fb
 		{
 			//GetLog() << "Mixed * operator 3 \n";
 			ChFrame<Real> res;
-			Fb.ChFrame::TransformLocalToParent(Fa,res);
+			Fb.ChFrame<Real>::TransformLocalToParent(Fa,res);
 			return res;
 		}
 
@@ -667,7 +667,7 @@ ChFrameMoving<Real> operator>> (const ChFrameMoving<Real>& Fa, const ChFrame<Rea
 			//GetLog() << "Mixed * operator 4 \n";
 			ChFrameMoving<Real> res;
 			ChFrameMoving<Real> Fbm(Fb);
-			Fbm.ChFrame::TransformLocalToParent(Fa,res);
+			Fbm.TransformLocalToParent(Fa,res);
 			return res;
 		}
 
