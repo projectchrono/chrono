@@ -9,24 +9,9 @@
 // and at http://projectchrono.org/license-chrono.txt.
 //
 
+
 #ifndef CHLINKENGINE_H
 #define CHLINKENGINE_H
-
-///////////////////////////////////////////////////
-//
-//   ChLinkEngine.h
-//
-//
-//   Classes for rotating actuators (motors)
-//
-//   HEADER file for CHRONO,
-//	 Multibody dynamics engine
-//
-// ------------------------------------------------
-//             www.deltaknowledge.com
-// ------------------------------------------------
-///////////////////////////////////////////////////
-
 
 
 #include "physics/ChLinkLock.h"
@@ -48,10 +33,10 @@ class ChApi ChLinkEngine : public ChLinkLock {
 	CH_RTTI(ChLinkEngine,ChLinkLock);
 
 protected:
-	ChFunction* rot_funct;	// rotation(t) function
-	ChFunction* spe_funct;	// speed(t) function
-	ChFunction* tor_funct;	// torque(t) function
-	ChFunction* torque_w;	// torque(w) function
+	ChSharedPtr<ChFunction> rot_funct;  // rotation(t) function
+	ChSharedPtr<ChFunction> spe_funct;  // speed(t) function
+	ChSharedPtr<ChFunction> tor_funct;  // torque(t) function
+	ChSharedPtr<ChFunction> torque_w;   // torque(w) function
 
 	int	learn;				// if TRUE, the actuator does not apply constraint, just
 							// records the motion into its rot_function.
@@ -75,8 +60,8 @@ protected:
 
 	int shaft_mode;			// mode of imposing constraints on extra (non-z) degrees of freedom
 
-	ChFunction* rot_funct_x;	// rotation(t) function for keyframe polar motor
-	ChFunction* rot_funct_y;	// rotation(t) function for keyframe polar motor
+	ChSharedPtr<ChFunction> rot_funct_x;	// rotation(t) function for keyframe polar motor
+	ChSharedPtr<ChFunction> rot_funct_y;	// rotation(t) function for keyframe polar motor
 	double last_r3time;			// internal:for backward differentiation to compute speed in keyframe mode
 	double last_r3mot_rot;		// internal:for backward differentiation to compute speed in keyframe mode
 	double last_r3mot_rot_dt;	// internal:for backward differentiation to compute speed in keyframe mode
@@ -117,23 +102,23 @@ public:
     virtual void SetUpMarkers(ChMarker* mark1, ChMarker* mark2);
 
 			// data get/set
-  ChFunction* Get_rot_funct() const      {return rot_funct;}
-  ChFunction* Get_spe_funct() const      { return spe_funct; }
-  ChFunction* Get_tor_funct() const      { return tor_funct; }
-  ChFunction* Get_torque_w_funct() const { return torque_w; }
+  ChSharedPtr<ChFunction> Get_rot_funct() const      { return rot_funct; }
+  ChSharedPtr<ChFunction> Get_spe_funct() const      { return spe_funct; }
+  ChSharedPtr<ChFunction> Get_tor_funct() const      { return tor_funct; }
+  ChSharedPtr<ChFunction> Get_torque_w_funct() const { return torque_w; }
 
-  void Set_rot_funct(ChFunction* m_funct);
-  void Set_spe_funct(ChFunction* m_funct);
-  void Set_tor_funct(ChFunction* m_funct);
-  void Set_torque_w_funct(ChFunction* m_funct);
+  void Set_rot_funct(ChSharedPtr<ChFunction> mf)      { rot_funct = mf; }
+  void Set_spe_funct(ChSharedPtr<ChFunction> mf)      { spe_funct = mf; }
+  void Set_tor_funct(ChSharedPtr<ChFunction> mf)      { tor_funct = mf; }
+  void Set_torque_w_funct(ChSharedPtr<ChFunction> mf) { torque_w = mf; }
 
-  ChFunction* Get_rot_funct_x() const      {return rot_funct_x;}
-  ChFunction* Get_rot_funct_y() const      { return rot_funct_y; }
+  ChSharedPtr<ChFunction> Get_rot_funct_x() const { return rot_funct_x; }
+  ChSharedPtr<ChFunction> Get_rot_funct_y() const { return rot_funct_y; }
   const Quaternion& GetKeyedPolarRotation() const { return keyed_polar_rotation; }
 
-  void Set_rot_funct_x(ChFunction* m_funct);
-  void Set_rot_funct_y(ChFunction* m_funct);
-  void SetKeyedPolarRotation(const Quaternion& mq);
+  void Set_rot_funct_x(ChSharedPtr<ChFunction> mf) { rot_funct_x = mf; }
+  void Set_rot_funct_y(ChSharedPtr<ChFunction> mf) { rot_funct_y = mf; }
+  void SetKeyedPolarRotation(const Quaternion& mq) { keyed_polar_rotation = mq; }
 
   int   Get_learn() const          {return learn;}
   int   Get_impose_reducer() const { return impose_reducer; }

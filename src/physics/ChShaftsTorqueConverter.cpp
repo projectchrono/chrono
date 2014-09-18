@@ -68,8 +68,8 @@ void ChShaftsTorqueConverter::Copy(ChShaftsTorqueConverter* source)
 	state_warning_reverseflow = source->state_warning_reverseflow;
 	state_warning_wrongimpellerdirection = source->state_warning_wrongimpellerdirection;
 
-	this->K = ChSharedPtr<ChFunction>(K->new_Duplicate()); // deep copy
-	this->T = ChSharedPtr<ChFunction>(T->new_Duplicate()); // deep copy
+	this->K = ChSharedPtr<ChFunction>(source->K->new_Duplicate()); // deep copy
+	this->T = ChSharedPtr<ChFunction>(source->T->new_Duplicate()); // deep copy
 }
 
 

@@ -141,7 +141,7 @@ int main(int argc, char* argv[])
 	my_link_AB->Initialize(my_body_A, my_body_B, ChCoordsys<>(ChVector<>(0,0,0)));
 	my_link_AB->Set_eng_mode(ChLinkEngine::ENG_MODE_SPEED);
 	my_link_AB->SetName("RevJointEngine");
-	if (ChFunction_Const* mfun = dynamic_cast<ChFunction_Const*>(my_link_AB->Get_spe_funct()))
+    if (ChSharedPtr<ChFunction_Const> mfun = my_link_AB->Get_spe_funct().DynamicCastTo<ChFunction_Const>())
 		mfun->Set_yconst(CH_C_PI); // speed w=3.145 rad/sec
 	my_system.AddLink(my_link_AB);
 
