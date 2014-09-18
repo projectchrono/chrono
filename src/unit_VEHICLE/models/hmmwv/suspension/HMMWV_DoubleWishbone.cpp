@@ -32,17 +32,20 @@ namespace hmmwv {
 // -----------------------------------------------------------------------------
 
 static const double in2m = 0.0254;
+static const double lb2kg = 0.453592;
+static const double lbf2N = 4.44822162;
+static const double lbfpin2Npm = 175.12677;
 
-const double     HMMWV_DoubleWishboneFront::m_UCAMass = 12.0/2.2; 
-const double     HMMWV_DoubleWishboneFront::m_LCAMass = 36.0/2.2;
+const double     HMMWV_DoubleWishboneFront::m_UCAMass = lb2kg * 12.0; 
+const double     HMMWV_DoubleWishboneFront::m_LCAMass = lb2kg * 36.0;
 // entire wheel assembly = 195 lbs, includes upright, spindle and tire.
 // HMMWV tires run ~ 100 lbs, so the spindle and upright should be ~ 95 lbs combined
-const double     HMMWV_DoubleWishboneFront::m_uprightMass = 60.0/2.2;
-const double     HMMWV_DoubleWishboneFront::m_spindleMass = 35.0/2.2;
+const double     HMMWV_DoubleWishboneFront::m_uprightMass = lb2kg * 60.0;
+const double     HMMWV_DoubleWishboneFront::m_spindleMass = lb2kg * 35.0;
 
 const double     HMMWV_DoubleWishboneFront::m_spindleRadius = 0.15;
 const double     HMMWV_DoubleWishboneFront::m_spindleWidth = 0.06;
-const double     HMMWV_DoubleWishboneFront::m_LCARadius = 0.03;        // LCA is much thicker than UCA
+const double     HMMWV_DoubleWishboneFront::m_LCARadius = 0.03;
 const double     HMMWV_DoubleWishboneFront::m_UCARadius = 0.02;
 const double     HMMWV_DoubleWishboneFront::m_uprightRadius = 0.03;
 
@@ -53,18 +56,17 @@ const ChVector<> HMMWV_DoubleWishboneFront::m_uprightInertia(5, 5, 5); // TODO: 
 
 const double     HMMWV_DoubleWishboneFront::m_axleInertia = 0.4;
 
-const double     HMMWV_DoubleWishboneFront::m_springCoefficient  = 167062.0;
-const double     HMMWV_DoubleWishboneFront::m_dampingCoefficient = 22459.0;
+const double     HMMWV_DoubleWishboneFront::m_springCoefficient  = lbfpin2Npm * 954;
 const double     HMMWV_DoubleWishboneFront::m_springRestLength   = in2m * 13.36;
 
 // -----------------------------------------------------------------------------
 
-const double     HMMWV_DoubleWishboneRear::m_UCAMass = 12.0/2.2;
-const double     HMMWV_DoubleWishboneRear::m_LCAMass = 36.0/2.2;
+const double     HMMWV_DoubleWishboneRear::m_UCAMass = lb2kg * 12.0;
+const double     HMMWV_DoubleWishboneRear::m_LCAMass = lb2kg * 36.0;
 // entire wheel assembly = 195 lbs, includes upright, spindle and tire.
 // HMMWV tires run ~ 100 lbs, so the spindle and upright should be ~ 95 lbs combined
-const double     HMMWV_DoubleWishboneRear::m_uprightMass = 60.0/2.2;
-const double     HMMWV_DoubleWishboneRear::m_spindleMass = 35.0/2.2;
+const double     HMMWV_DoubleWishboneRear::m_uprightMass = lb2kg * 60.0;
+const double     HMMWV_DoubleWishboneRear::m_spindleMass = lb2kg * 35.0;
 
 const double     HMMWV_DoubleWishboneRear::m_spindleRadius = 0.15;
 const double     HMMWV_DoubleWishboneRear::m_spindleWidth = 0.06;
@@ -79,9 +81,72 @@ const ChVector<> HMMWV_DoubleWishboneRear::m_uprightInertia(5, 5, 5);  // TODO: 
 
 const double     HMMWV_DoubleWishboneRear::m_axleInertia = 0.4;
 
-const double     HMMWV_DoubleWishboneRear::m_springCoefficient = 369149.0;
-const double     HMMWV_DoubleWishboneRear::m_dampingCoefficient = 35024.0;
+const double     HMMWV_DoubleWishboneRear::m_springCoefficient = lbfpin2Npm * 2108;
 const double     HMMWV_DoubleWishboneRear::m_springRestLength = in2m * 15.03;
+
+
+// -----------------------------------------------------------------------------
+// HMMWV shock functor class - implements a nonlinear damper
+// -----------------------------------------------------------------------------
+class HMMWV_ShockForce : public ChSpringForceCallback
+{
+public:
+  HMMWV_ShockForce(double midstroke_compression_slope,
+                   double midstroke_rebound_slope,
+                   double bumpstop_compression_slope,
+                   double bumpstop_rebound_slope,
+                   double min_bumpstop_compression_force,
+                   double midstroke_lower_bound,
+                   double midstroke_upper_bound);
+
+  virtual double operator()(double time,
+                            double rest_length,
+                            double length,
+                            double vel);
+
+private:
+  double m_ms_compr;
+  double m_ms_rebound;
+  double m_bs_compr;
+  double m_bs_rebound;
+  double m_F0;
+  double m_min_length;
+  double m_max_length;
+};
+
+HMMWV_ShockForce::HMMWV_ShockForce(double midstroke_compression_slope,
+                                   double midstroke_rebound_slope,
+                                   double bumpstop_compression_slope,
+                                   double bumpstop_rebound_slope,
+                                   double min_bumpstop_compression_force,
+                                   double midstroke_lower_bound,
+                                   double midstroke_upper_bound)
+: m_ms_compr(midstroke_compression_slope),
+  m_ms_rebound(midstroke_rebound_slope),
+  m_bs_compr(bumpstop_compression_slope),
+  m_bs_rebound(bumpstop_rebound_slope),
+  m_F0(min_bumpstop_compression_force),
+  m_min_length(midstroke_lower_bound),
+  m_max_length(midstroke_upper_bound)
+{
+}
+
+double HMMWV_ShockForce::operator()(double time,
+                                    double rest_length,
+                                    double length,
+                                    double vel)
+{
+  /*
+  // On midstroke curve
+  if (length >= m_min_length && length <= m_max_length)
+    return (vel >= 0) ? -m_ms_rebound * vel : -m_ms_compr * vel;
+
+  // Hydraulic bump engaged
+  return (vel >= 0) ? -m_bs_rebound * vel : -m_bs_compr * vel + m_F0;
+  */
+
+  return -m_bs_rebound * vel;
+}
 
 
 // -----------------------------------------------------------------------------
@@ -91,13 +156,46 @@ HMMWV_DoubleWishboneFront::HMMWV_DoubleWishboneFront(const std::string& name,
                                                      bool               driven)
 : ChDoubleWishbone(name, true, driven)
 {
+  m_shockForceCB = new HMMWV_ShockForce(
+    lbfpin2Npm * 71.50,     // midstroke_compression_slope
+    lbfpin2Npm * 128.25,    // midstroke_rebound_slope
+    lbfpin2Npm * 33.67,     // bumpstop_compression_slope
+    lbfpin2Npm * 343.00,    // bumpstop_rebound_slope
+    lbf2N * 3350,           // min_bumpstop_compression_force
+    in2m * 13.76,           // midstroke_lower_bound
+    in2m * 15.85            // midstroke_upper_bound
+    );
 }
 
 HMMWV_DoubleWishboneRear::HMMWV_DoubleWishboneRear(const std::string& name,
                                                    bool               driven)
 : ChDoubleWishbone(name, false, driven)
 {
+  m_shockForceCB = new HMMWV_ShockForce(
+    lbfpin2Npm * 83.00,     // midstroke_compression_slope
+    lbfpin2Npm * 200.00,    // midstroke_rebound_slope
+    lbfpin2Npm * 48.75,     // bumpstop_compression_slope
+    lbfpin2Npm * 365.00,    // bumpstop_rebound_slope
+    lbf2N * 3350,           // min_bumpstop_compression_force
+    in2m * 13.76,           // midstroke_lower_bound
+    in2m * 15.85            // midstroke_upper_bound
+    );
 }
+
+
+// -----------------------------------------------------------------------------
+// Destructors
+// -----------------------------------------------------------------------------
+HMMWV_DoubleWishboneFront::~HMMWV_DoubleWishboneFront()
+{
+  delete m_shockForceCB;
+}
+
+HMMWV_DoubleWishboneRear::~HMMWV_DoubleWishboneRear()
+{
+  delete m_shockForceCB;
+}
+
 
 // -----------------------------------------------------------------------------
 // Implementations of the getLocation() virtual methods.

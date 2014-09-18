@@ -35,7 +35,7 @@ public:
 
   HMMWV_DoubleWishboneFront(const std::string& name,
                             bool               driven = false);
-  ~HMMWV_DoubleWishboneFront() {}
+  ~HMMWV_DoubleWishboneFront();
 
   virtual double getSpindleMass() const { return m_spindleMass; }
   virtual double getUCAMass() const { return m_UCAMass; }
@@ -56,12 +56,16 @@ public:
   virtual double getAxleInertia() const { return m_axleInertia; }
 
   virtual double getSpringCoefficient() const { return m_springCoefficient; }
-  virtual double getDampingCoefficient() const { return m_dampingCoefficient; }
   virtual double getSpringRestLength() const { return m_springRestLength; }
+
+  virtual bool useNonlinearShock() const { return true; }
+  virtual chrono::ChSpringForceCallback* getShockForceCallback()  const { return m_shockForceCB; }
 
 private:
 
   virtual const chrono::ChVector<> getLocation(PointId which);
+
+  chrono::ChSpringForceCallback* m_shockForceCB;
 
   static const double      m_spindleMass;
   static const double      m_UCAMass;
@@ -82,7 +86,6 @@ private:
   static const double      m_axleInertia;
 
   static const double      m_springCoefficient;
-  static const double      m_dampingCoefficient;
   static const double      m_springRestLength;
 };
 
@@ -94,7 +97,7 @@ public:
 
   HMMWV_DoubleWishboneRear(const std::string& name,
                            bool               driven = false);
-  ~HMMWV_DoubleWishboneRear() {}
+  ~HMMWV_DoubleWishboneRear();
 
   virtual double getSpindleMass() const { return m_spindleMass; }
   virtual double getUCAMass() const { return m_UCAMass; }
@@ -115,12 +118,16 @@ public:
   virtual double getAxleInertia() const { return m_axleInertia; }
 
   virtual double getSpringCoefficient() const { return m_springCoefficient; }
-  virtual double getDampingCoefficient() const { return m_dampingCoefficient; }
   virtual double getSpringRestLength() const { return m_springRestLength; }
+
+  virtual bool useNonlinearShock() const { return true; }
+  virtual chrono::ChSpringForceCallback* getShockForceCallback()  const { return m_shockForceCB; }
 
 private:
 
   virtual const chrono::ChVector<> getLocation(PointId which);
+
+  chrono::ChSpringForceCallback* m_shockForceCB;
 
   static const double      m_spindleMass;
   static const double      m_UCAMass;
@@ -141,7 +148,6 @@ private:
   static const double      m_axleInertia;
 
   static const double      m_springCoefficient;
-  static const double      m_dampingCoefficient;
   static const double      m_springRestLength;
 };
 
