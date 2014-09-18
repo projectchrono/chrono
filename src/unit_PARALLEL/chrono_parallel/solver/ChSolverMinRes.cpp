@@ -29,7 +29,7 @@ uint ChSolverMinRes::SolveMinRes(const uint max_iter,
    double rel_tol_b = NormInf(b) * rel_tol;
    //ml = x;
 
-   mr = data_container->host_data.D_T * data_container->host_data.M_invD * ml;
+   mr = data_container->host_data.D_T * (data_container->host_data.M_invD * ml);
 
    mr = mb - mr;
 
@@ -44,8 +44,8 @@ uint ChSolverMinRes::SolveMinRes(const uint max_iter,
    mz = mp;
 #pragma omp parallel
    {
-      mNMr = data_container->host_data.D_T * data_container->host_data.M_invD * mz;
-      mNp = data_container->host_data.D_T * data_container->host_data.M_invD * mp;
+      mNMr = data_container->host_data.D_T * (data_container->host_data.M_invD * mz);
+      mNp = data_container->host_data.D_T * (data_container->host_data.M_invD * mp);
 
    }
    for (current_iteration = 0; current_iteration < max_iter; current_iteration++) {
@@ -66,7 +66,7 @@ uint ChSolverMinRes::SolveMinRes(const uint max_iter,
       {
          Project(ml.data());
 
-         mr = data_container->host_data.D_T * data_container->host_data.M_invD * ml;
+         mr = data_container->host_data.D_T * (data_container->host_data.M_invD * ml);
       }
       mr = mb - mr;
 
@@ -92,7 +92,7 @@ uint ChSolverMinRes::SolveMinRes(const uint max_iter,
       mNMr_old = mNMr;
 #pragma omp parallel
       {
-         mNMr = data_container->host_data.D_T * data_container->host_data.M_invD * mz;
+         mNMr = data_container->host_data.D_T * (data_container->host_data.M_invD * mz);
 
       }
       double numerator = (mz, mNMr - mNMr_old);

@@ -127,7 +127,7 @@ class CH_PARALLEL_API ChSolverParallel : public ChBaseParallel {
                           blaze::DynamicVector<real> & b) {
       blaze::DynamicVector<real> Nl(x.size());
       // f_p = 0.5*l_candidate'*N*l_candidate - l_candidate'*b  = l_candidate'*(0.5*Nl_candidate - b);
-      Nl = data_container->host_data.D_T * data_container->host_data.M_invD * x;  // 1)  g_tmp = N*l_candidate ...        #### MATR.MULTIPLICATION!!!###
+      Nl = data_container->host_data.D_T * (data_container->host_data.M_invD * x);  // 1)  g_tmp = N*l_candidate ...        #### MATR.MULTIPLICATION!!!###
       Nl = 0.5 * Nl - b;          // 2) 0.5*N*l_candidate-b_shur
       return (x, Nl);            // 3)  mf_p  = l_candidate'*(0.5*N*l_candidate-b_shur)
    }
@@ -142,7 +142,7 @@ class CH_PARALLEL_API ChSolverParallel : public ChBaseParallel {
    real Res4Blaze(blaze::DynamicVector<real> & x,
                   blaze::DynamicVector<real> & b) {
       real gdiff = .1;
-      blaze::DynamicVector<real> inside = x - gdiff * (data_container->host_data.D_T * data_container->host_data.M_invD * x - b);
+      blaze::DynamicVector<real> inside = x - gdiff * (data_container->host_data.D_T * (data_container->host_data.M_invD * x) - b);
       Project(inside.data());
       blaze::DynamicVector<real> temp = (x - inside) / (x.size() * gdiff);
       return sqrt((temp, temp));
