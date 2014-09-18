@@ -366,6 +366,14 @@ int main(int argc, char* argv[])
       render_frame++;
     }
 
+#ifdef DEBUG_LOG
+    if (step_number % output_steps == 0) {
+      GetLog() << "\n\n============ System Information ============\n";
+      GetLog() << "Time = " << time << "\n\n";
+      vehicle.DebugLog(DBG_SHOCKS);
+    }
+#endif
+
     // Collect output data from modules (for inter-module communication)
     throttle_input = driver.getThrottle();
     steering_input = driver.getSteering();
