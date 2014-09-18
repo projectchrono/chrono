@@ -17,7 +17,7 @@ uint ChSolverGD::SolveGD(const uint max_iter,
       mb[i] = b[i];
    }
 
-   r = data_container->host_data.D_T * data_container->host_data.M_invD * ml;
+   r = data_container->host_data.D_T * (data_container->host_data.M_invD * ml);
    r = mb - r;
    real resold = 1, resnew, normb = Norm(mb);
    if (normb == 0.0) {
@@ -25,7 +25,7 @@ uint ChSolverGD::SolveGD(const uint max_iter,
    };
    for (current_iteration = 0; current_iteration < max_iter; current_iteration++) {
       ml = ml + eps * r;
-      r = data_container->host_data.D_T * data_container->host_data.M_invD * ml;
+      r = data_container->host_data.D_T * (data_container->host_data.M_invD * ml);
       r = mb - r;
       resnew = Norm(ml);
       residual = abs(resnew - resold);

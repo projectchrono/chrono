@@ -16,7 +16,7 @@ uint ChSolverSD::SolveSD(const uint max_iter,
       mb[i] = b[i];
    }
 
-   r = data_container->host_data.D_T * data_container->host_data.M_invD * ml;
+   r = data_container->host_data.D_T * (data_container->host_data.M_invD * ml);
 
    r = mb - r;
    real resold = 1, resnew, normb = sqrt((mb, mb)), alpha;
@@ -24,10 +24,10 @@ uint ChSolverSD::SolveSD(const uint max_iter,
       normb = 1;
    }
    for (current_iteration = 0; current_iteration < max_iter; current_iteration++) {
-      temp = data_container->host_data.D_T * data_container->host_data.M_invD * r;
+      temp = data_container->host_data.D_T * (data_container->host_data.M_invD * r);
       alpha = Dot(r, r) / Dot(r, temp);
       ml = ml + alpha * r;
-      r = data_container->host_data.D_T * data_container->host_data.M_invD * ml;
+      r = data_container->host_data.D_T * (data_container->host_data.M_invD * ml);
       r = mb - r;
       resnew = sqrt((ml, ml));
       residual = abs(resnew - resold);

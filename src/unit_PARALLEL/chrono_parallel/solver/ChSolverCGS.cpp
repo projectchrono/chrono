@@ -19,7 +19,7 @@ uint ChSolverCGS::SolveCGS(const uint max_iter,
       mb[i] = b[i];
    }
 
-   r = data_container->host_data.D_T * data_container->host_data.M_invD * ml;
+   r = data_container->host_data.D_T * (data_container->host_data.M_invD * ml);
    r = mb - r;
    p = r;
    q = r;
@@ -52,12 +52,12 @@ uint ChSolverCGS::SolveCGS(const uint max_iter,
       }
 
       phat = p;
-      vhat = data_container->host_data.D_T * data_container->host_data.M_invD * phat;
+      vhat = data_container->host_data.D_T * (data_container->host_data.M_invD * phat);
       alpha = rho_1 / Dot(rtilde, vhat);
       q = u - alpha * vhat;
       uhat = (u + q);
       ml = ml + alpha * uhat;
-      qhat = data_container->host_data.D_T * data_container->host_data.M_invD * uhat;
+      qhat = data_container->host_data.D_T * (data_container->host_data.M_invD * uhat);
       r = r - alpha * qhat;
       rho_2 = rho_1;
       residual = (sqrt((r, r)) / normb);

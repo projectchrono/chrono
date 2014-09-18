@@ -20,7 +20,7 @@ uint ChSolverBiCGStab::SolveBiCGStab(const uint max_iter,
    v.resize(size);
    real normb = sqrt((mb, mb));
 
-   r = data_container->host_data.D_T * data_container->host_data.M_invD * ml;
+   r = data_container->host_data.D_T * (data_container->host_data.M_invD * ml);
    p = r = mb - r;
    rtilde = r;
 
@@ -45,7 +45,7 @@ uint ChSolverBiCGStab::SolveBiCGStab(const uint max_iter,
       }
 
       phat = p;
-      v = data_container->host_data.D_T * data_container->host_data.M_invD * phat;
+      v = data_container->host_data.D_T * (data_container->host_data.M_invD * phat);
       alpha = rho_1 / Dot(rtilde, v);
       s = r - alpha * v;  //SEAXPY(-alpha,v,r,s);//
       residual = sqrt((s, s)) / normb;
@@ -57,7 +57,7 @@ uint ChSolverBiCGStab::SolveBiCGStab(const uint max_iter,
       }
 
       shat = s;
-      t = data_container->host_data.D_T * data_container->host_data.M_invD * shat;
+      t = data_container->host_data.D_T * (data_container->host_data.M_invD * shat);
       omega = Dot(t, s) / Dot(t, t);
       ml = ml + alpha * phat + omega * shat;
       r = s - omega * t;

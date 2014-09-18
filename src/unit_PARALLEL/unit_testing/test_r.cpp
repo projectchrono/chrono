@@ -32,6 +32,12 @@ using namespace chrono::collision;
 using std::cout;
 using std::endl;
 
+#ifdef CHRONO_PARALLEL_USE_DOUBLE
+const double precision = 1e-10;
+#else
+const float precision = 1e-6f;
+#endif
+
 // =============================================================================
 // Tests for various utility functions
 // =============================================================================
@@ -102,7 +108,7 @@ void test_snap_to_cylinder()
     real3 loc(2.0, 0.5, 1.0);
     int code = snap_to_cylinder(rad, hlen, loc);
     StrictEqual(code, 2);
-    WeakEqual(loc, real3(4/sqrt(5.0), 0.5, 2/sqrt(5.0)));
+    WeakEqual(loc, real3(4 / sqrt(5.0), 0.5, 2 / sqrt(5.0)), precision);
   }
 
   {
@@ -110,7 +116,7 @@ void test_snap_to_cylinder()
     real3 loc(2.0, 2.0, 1.0);
     int code = snap_to_cylinder(rad, hlen, loc);
     StrictEqual(code, 3);
-    WeakEqual(loc, real3(4/sqrt(5.0), 1.5, 2/sqrt(5.0)));
+    WeakEqual(loc, real3(4 / sqrt(5.0), 1.5, 2 / sqrt(5.0)), precision);
   }
 }
 
@@ -158,11 +164,11 @@ void test_sphere_sphere()
       cout << "    test failed" << endl;
       exit(1);
     }
-    WeakEqual(norm, real3(1, 0, 0));
-    WeakEqual(depth, -0.5);
-    WeakEqual(pt1, real3(2, 1, 0));
-    WeakEqual(pt2, real3(1.5, 1, 0));
-    WeakEqual(eff_rad, 0.5);
+    WeakEqual(norm, real3(1, 0, 0), precision);
+    WeakEqual(depth, -0.5, precision);
+    WeakEqual(pt1, real3(2, 1, 0), precision);
+    WeakEqual(pt2, real3(1.5, 1, 0), precision);
+    WeakEqual(eff_rad, 0.5, precision);
   }
 }
 
@@ -186,7 +192,7 @@ void test_box_sphere()
   real3 pt2;
   real  eff_rad;
 
-  float oosqrt2 = sqrt(0.5);   // 1/sqrt(2)
+  real oosqrt2 = sqrt(0.5);   // 1/sqrt(2)
 
   {
     cout << "  sphere center inside box" << endl;
@@ -222,11 +228,11 @@ void test_box_sphere()
       cout << "    test failed" << endl;
       exit(1);
     }
-    WeakEqual(norm, real3(oosqrt2, oosqrt2, 0.0));
-    WeakEqual(depth, -0.5);
-    WeakEqual(pt1, real3(3.0 * oosqrt2, oosqrt2, 1.0));
-    WeakEqual(pt2, real3(2.5 * oosqrt2, 0.5 * oosqrt2, 1.0));
-    WeakEqual(eff_rad, s_rad);
+    WeakEqual(norm, real3(oosqrt2, oosqrt2, 0.0), precision);
+    WeakEqual(depth, -0.5, precision);
+    WeakEqual(pt1, real3(3.0 * oosqrt2, oosqrt2, 1.0), precision);
+    WeakEqual(pt2, real3(2.5 * oosqrt2, 0.5 * oosqrt2, 1.0), precision);
+    WeakEqual(eff_rad, s_rad, precision);
   }
 
   {
@@ -251,11 +257,11 @@ void test_box_sphere()
       cout << "    test failed" << endl;
       exit(1);
     }
-    WeakEqual(norm, real3(0.0, 1.0, 0.0));
-    WeakEqual(depth, -0.5);
-    WeakEqual(pt1, real3(oosqrt2, 3.0 * oosqrt2, 1.0));
-    WeakEqual(pt2, real3(oosqrt2, 3.0 * oosqrt2 - 0.5, 1.0));
-    WeakEqual(eff_rad, s_rad * ChCNarrowphaseR::edge_radius/(s_rad + ChCNarrowphaseR::edge_radius));
+    WeakEqual(norm, real3(0.0, 1.0, 0.0), precision);
+    WeakEqual(depth, -0.5, precision);
+    WeakEqual(pt1, real3(oosqrt2, 3.0 * oosqrt2, 1.0), precision);
+    WeakEqual(pt2, real3(oosqrt2, 3.0 * oosqrt2 - 0.5, 1.0), precision);
+    WeakEqual(eff_rad, s_rad * ChCNarrowphaseR::edge_radius / (s_rad + ChCNarrowphaseR::edge_radius), precision);
   }
 
   {
@@ -280,11 +286,11 @@ void test_box_sphere()
       cout << "    test failed" << endl;
       exit(1);
     }
-    WeakEqual(norm, real3(0.0, oosqrt2, oosqrt2));
-    WeakEqual(depth, -0.5);
-    WeakEqual(pt1, real3(oosqrt2, 3.0 * oosqrt2, 3.0));
-    WeakEqual(pt2, s_pos - s_rad * norm);
-    WeakEqual(eff_rad, s_rad * ChCNarrowphaseR::edge_radius/(s_rad + ChCNarrowphaseR::edge_radius));
+    WeakEqual(norm, real3(0.0, oosqrt2, oosqrt2), precision);
+    WeakEqual(depth, -0.5, precision);
+    WeakEqual(pt1, real3(oosqrt2, 3.0 * oosqrt2, 3.0), precision);
+    WeakEqual(pt2, s_pos - s_rad * norm, precision);
+    WeakEqual(eff_rad, s_rad * ChCNarrowphaseR::edge_radius / (s_rad + ChCNarrowphaseR::edge_radius), precision);
   }
 }
 
@@ -310,7 +316,7 @@ void test_capsule_sphere()
   real3 pt2;
   real  eff_rad;
 
-  float oosqrt2 = sqrt(0.5);   // 1/sqrt(2)
+  real oosqrt2 = sqrt(0.5);   // 1/sqrt(2)
 
   {
     cout << "  sphere center on capsule axis" << endl;
@@ -346,11 +352,11 @@ void test_capsule_sphere()
       cout << "    test failed" << endl;
       exit(1);
     }
-    WeakEqual(norm, real3(oosqrt2, oosqrt2, 0));
-    WeakEqual(depth, sqrt(2.0) - 1.5);
-    WeakEqual(pt1, real3(4.0 + 0.5*oosqrt2, 0.5*oosqrt2, 0));
-    WeakEqual(pt2, real3(5.0 - oosqrt2, 1.0 - oosqrt2, 0));
-    WeakEqual(eff_rad, s_rad * c_rad/(s_rad + c_rad));
+    WeakEqual(norm, real3(oosqrt2, oosqrt2, 0), precision);
+    WeakEqual(depth, sqrt(2.0) - 1.5, precision);
+    WeakEqual(pt1, real3(4.0 + 0.5*oosqrt2, 0.5*oosqrt2, 0), precision);
+    WeakEqual(pt2, real3(5.0 - oosqrt2, 1.0 - oosqrt2, 0), precision);
+    WeakEqual(eff_rad, s_rad * c_rad / (s_rad + c_rad), precision);
   }
 
   {
@@ -375,11 +381,11 @@ void test_capsule_sphere()
       cout << "    test failed" << endl;
       exit(1);
     }
-    WeakEqual(norm, real3(0, 1, 0));
-    WeakEqual(depth, -0.25);
-    WeakEqual(pt1, real3(2.5, 0.5, 0));
-    WeakEqual(pt2, real3(2.5, 0.25, 0));
-    WeakEqual(eff_rad, s_rad * c_rad/(s_rad + c_rad));
+    WeakEqual(norm, real3(0, 1, 0), precision);
+    WeakEqual(depth, -0.25, precision);
+    WeakEqual(pt1, real3(2.5, 0.5, 0), precision);
+    WeakEqual(pt2, real3(2.5, 0.25, 0), precision);
+    WeakEqual(eff_rad, s_rad * c_rad / (s_rad + c_rad), precision);
   }
 }
 
@@ -402,7 +408,7 @@ void test_cylinder_sphere()
   real3 pt2;
   real  eff_rad;
 
-  float oosqrt2 = sqrt(0.5);   // 1/sqrt(2)
+  real oosqrt2 = sqrt(0.5);   // 1/sqrt(2)
 
   {
     cout << "  sphere center inside cylinder" << endl;
@@ -438,11 +444,11 @@ void test_cylinder_sphere()
       cout << "    test failed" << endl;
       exit(1);
     }
-    WeakEqual(norm, real3(1, 0, 0));
-    WeakEqual(depth, -0.25);
-    WeakEqual(pt1, real3(3, 1.5, 0));
-    WeakEqual(pt2, real3(2.75, 1.5, 0));
-    WeakEqual(eff_rad, s_rad);
+    WeakEqual(norm, real3(1, 0, 0), precision);
+    WeakEqual(depth, -0.25, precision);
+    WeakEqual(pt1, real3(3, 1.5, 0), precision);
+    WeakEqual(pt2, real3(2.75, 1.5, 0), precision);
+    WeakEqual(eff_rad, s_rad, precision);
   }
 
   {
@@ -467,11 +473,11 @@ void test_cylinder_sphere()
       cout << "    test failed" << endl;
       exit(1);
     }
-    WeakEqual(norm, real3(0, 1, 0));
-    WeakEqual(depth, -0.5);
-    WeakEqual(pt1, real3(2.5, 2.0, 0));
-    WeakEqual(pt2, real3(2.5, 1.5, 0));
-    WeakEqual(eff_rad, s_rad * c_rad/(s_rad + c_rad));
+    WeakEqual(norm, real3(0, 1, 0), precision);
+    WeakEqual(depth, -0.5, precision);
+    WeakEqual(pt1, real3(2.5, 2.0, 0), precision);
+    WeakEqual(pt2, real3(2.5, 1.5, 0), precision);
+    WeakEqual(eff_rad, s_rad * c_rad / (s_rad + c_rad), precision);
   }
 
   {
@@ -496,11 +502,11 @@ void test_cylinder_sphere()
       cout << "    test failed" << endl;
       exit(1);
     }
-    WeakEqual(norm, real3(oosqrt2, oosqrt2, 0));
-    WeakEqual(depth, -1 + oosqrt2);
-    WeakEqual(pt1, real3(3.0, 2.0, 0));
-    WeakEqual(pt2, real3(3.5 - oosqrt2, 2.5 - oosqrt2, 0));
-    WeakEqual(eff_rad, s_rad * ChCNarrowphaseR::edge_radius/(s_rad + ChCNarrowphaseR::edge_radius));
+    WeakEqual(norm, real3(oosqrt2, oosqrt2, 0), precision);
+    WeakEqual(depth, -1 + oosqrt2, precision);
+    WeakEqual(pt1, real3(3.0, 2.0, 0), precision);
+    WeakEqual(pt2, real3(3.5 - oosqrt2, 2.5 - oosqrt2, 0), precision);
+    WeakEqual(eff_rad, s_rad * ChCNarrowphaseR::edge_radius / (s_rad + ChCNarrowphaseR::edge_radius), precision);
   }
 }
 
@@ -527,7 +533,7 @@ void test_roundedcyl_sphere()
   real3 pt2;
   real  eff_rad;
 
-  float oosqrt2 = sqrt(0.5);   // 1/sqrt(2)
+  real oosqrt2 = sqrt(0.5);   // 1/sqrt(2)
 
   {
     cout << "  sphere center inside cylinder" << endl;
@@ -563,11 +569,11 @@ void test_roundedcyl_sphere()
       cout << "    test failed" << endl;
       exit(1);
     }
-    WeakEqual(norm, real3(1, 0, 0));
-    WeakEqual(depth, -0.35);
-    WeakEqual(pt1, real3(3.1, 1.5, 0));
-    WeakEqual(pt2, real3(2.75, 1.5, 0));
-    WeakEqual(eff_rad, s_rad);
+    WeakEqual(norm, real3(1, 0, 0), precision);
+    WeakEqual(depth, -0.35, precision);
+    WeakEqual(pt1, real3(3.1, 1.5, 0), precision);
+    WeakEqual(pt2, real3(2.75, 1.5, 0), precision);
+    WeakEqual(eff_rad, s_rad, precision);
   }
 
   {
@@ -592,11 +598,11 @@ void test_roundedcyl_sphere()
       cout << "    test failed" << endl;
       exit(1);
     }
-    WeakEqual(norm, real3(0, 1, 0));
-    WeakEqual(depth, -0.6);
-    WeakEqual(pt1, real3(2.5, 2.1, 0));
-    WeakEqual(pt2, real3(2.5, 1.5, 0));
-    WeakEqual(eff_rad, s_rad * c_rad/(s_rad + c_rad));
+    WeakEqual(norm, real3(0, 1, 0), precision);
+    WeakEqual(depth, -0.6, precision);
+    WeakEqual(pt1, real3(2.5, 2.1, 0), precision);
+    WeakEqual(pt2, real3(2.5, 1.5, 0), precision);
+    WeakEqual(eff_rad, s_rad * c_rad / (s_rad + c_rad), precision);
   }
 
   {
@@ -621,11 +627,11 @@ void test_roundedcyl_sphere()
       cout << "    test failed" << endl;
       exit(1);
     }
-    WeakEqual(norm, real3(oosqrt2, oosqrt2, 0));
-    WeakEqual(depth, -1.1 + oosqrt2);
-    WeakEqual(pt1, real3(3.0 + 0.1*oosqrt2, 2.0 + 0.1*oosqrt2, 0));
-    WeakEqual(pt2, real3(3.5 - oosqrt2, 2.5 - oosqrt2, 0));
-    WeakEqual(eff_rad, s_rad * c_srad/(s_rad + c_srad));
+    WeakEqual(norm, real3(oosqrt2, oosqrt2, 0), precision);
+    WeakEqual(depth, -1.1 + oosqrt2, precision);
+    WeakEqual(pt1, real3(3.0 + 0.1*oosqrt2, 2.0 + 0.1*oosqrt2, 0), precision);
+    WeakEqual(pt2, real3(3.5 - oosqrt2, 2.5 - oosqrt2, 0), precision);
+    WeakEqual(eff_rad, s_rad * c_srad / (s_rad + c_srad), precision);
   }
 }
 

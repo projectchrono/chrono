@@ -18,6 +18,8 @@
 #ifndef CHTIMERPARALLEL_H
 #define CHTIMERPARALLEL_H
 
+#include <map>
+
 #include "core/ChTimer.h"
 
 #include "chrono_parallel/ChParallelDefines.h"
