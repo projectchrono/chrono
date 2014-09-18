@@ -64,7 +64,11 @@
 #include <omp.h>
 #include <vector>
 #include <string.h>
+#ifdef _MSC_VER
+#define thrust_parallel thrust::cpp::par
+#else
 #define thrust_parallel thrust::omp::par
+#endif
 //using namespace thrust;
 typedef unsigned int uint;
 
