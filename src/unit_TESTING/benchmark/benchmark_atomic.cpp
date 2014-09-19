@@ -4,8 +4,9 @@
 #include <libkern/OSAtomic.h>
 #endif
 #include <iostream>
-using namespace std;
+
 using namespace chrono;
+using namespace std;
 
 static volatile int first = 100000;
 

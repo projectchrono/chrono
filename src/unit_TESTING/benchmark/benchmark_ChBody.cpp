@@ -1,9 +1,8 @@
 #include "../ChTestConfig.h"
 #include "physics/ChSystem.h"
 #include <iostream>
-using namespace std;
 using namespace chrono;
-
+using namespace std;
 #define TIME(X, Y) timer.start(); for (int i = 0; i < body_list->size(); i++) { X; } timer.stop(); cout<<Y<<timer()<<endl;
 
 #define TIMEBODY(X, Y) TIME(body_list->at(i)->X, Y)
