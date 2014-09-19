@@ -323,6 +323,7 @@ IF (BUILD_CH_SDK)
 		physics/ChLinkPneumaticActuator.cpp 
 		physics/ChLinkScrew.cpp 
 		physics/ChLinkSpring.cpp 
+		physics/ChLinkSpringCB.cpp
 		physics/ChLinkWheel.cpp 
 		physics/ChLinkClearance.cpp
 		physics/ChLinkPointSpline.cpp 
@@ -429,6 +430,7 @@ IF (BUILD_CH_SDK)
 		physics/ChLinksAll.h
 		physics/ChLinkScrew.h
 		physics/ChLinkSpring.h
+		physics/ChLinkSpringCB.h
 		physics/ChLinkTrajectory.h
 		physics/ChLinkWheel.h
 		physics/ChLinkClearance.h

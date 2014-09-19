@@ -44,10 +44,18 @@ namespace particlefactory {
 class ChParticleEmitter
 {
 public:
+
+	enum eChFlowMode {
+		FLOW_PARTICLESPERSECOND,
+		FLOW_MASSPERSECOND,
+	};
+
 	ChParticleEmitter() 
 		{
 			// defaults:
+			flow_mode = FLOW_PARTICLESPERSECOND; 
 			particles_per_second = 100;
+			mass_per_second = 1;
 			particle_creator     = ChSharedPtr<ChRandomShapeCreatorSpheres>(new ChRandomShapeCreatorSpheres);
 			particle_positioner  = ChSharedPtr<ChRandomParticlePositionRectangleOutlet>(new ChRandomParticlePositionRectangleOutlet);
 			particle_aligner     = ChSharedPtr<ChRandomParticleAlignmentUniform> (new ChRandomParticleAlignmentUniform);
@@ -55,8 +63,13 @@ public:
 			particle_angular_velocity = ChSharedPtr<ChRandomParticleVelocity> (new ChRandomParticleVelocity);
 			creation_callback	 = 0;
 			use_praticle_reservoir = false;
+			use_mass_reservoir = false;
 			particle_reservoir = 1000;
+			mass_reservoir =  1;
 			created_particles	= 0;
+			created_mass	= 0;
+			off_mass = 0;
+			off_count = 0;
 		}
 
 			/// Function that creates random particles with random shape, position
@@ -64,17 +77,42 @@ public:
 			/// Typically, one calls this function once per timestep.
 	void EmitParticles(ChSystem& msystem, double dt)
 		{
-			// get n.of particles to generate in this dt timestep, with floor roundoff
-			int particles_per_step = (int)floor(dt*particles_per_second);
-			// since int->double roundoff, adjust to have correct flow rate on large n. of steps
-			if ((dt*particles_per_second - floor(dt*particles_per_second)) > ChRandom())
-				particles_per_step++;
+			double done_particles_per_step = this->off_count;
+			double done_mass_per_step = this->off_mass;
 
-			// create the particles for this timestep
-			for (int i = 0; i < particles_per_step; ++i)
+			double particles_per_step = dt*particles_per_second;
+			double mass_per_step = dt*mass_per_second;
+
+			// Loop for creating particles at the timestep. Note that 
+			// it would run forever, if there were no returns when flow amount is reached.
+			while (true)
 			{
 				if ((use_praticle_reservoir)&&(this->particle_reservoir <= 0))
 					return;
+
+				if ((use_mass_reservoir)&&(this->mass_reservoir <= 0))
+					return;
+
+				// Flow control: break cycle when done 
+				// enough particles, even with non-integer cases
+				if (this->flow_mode == FLOW_PARTICLESPERSECOND)
+				{
+					if (done_particles_per_step > particles_per_step)
+					{
+						this->off_count = done_particles_per_step - particles_per_step;
+						return;
+					}
+				}
+				if (this->flow_mode == FLOW_MASSPERSECOND)
+				{
+					if (done_mass_per_step > mass_per_step)
+					{
+						this->off_mass = done_mass_per_step - mass_per_step;
+						return;
+					}
+				}
+
+				// Create the particle
 
 				ChCoordsys<> mcoords;
 				mcoords.pos = particle_positioner->RandomPosition();
@@ -90,8 +128,16 @@ public:
 
 				msystem.Add(mbody);
 
-				--this->particle_reservoir;
-				++this->created_particles;
+				this->particle_reservoir	-= 1;
+				this->mass_reservoir		-= mbody->GetMass();;
+
+				this->created_particles +=1;
+				this->created_mass		+= mbody->GetMass();
+	
+				// Increment counters for flow control
+				done_particles_per_step		+= 1;
+				done_mass_per_step			+= mbody->GetMass();
+
 			}
 		}
 
@@ -115,18 +161,43 @@ public:
 			/// Set the generator of angular velocities, for different initial angular velocity for each particle
 	void SetParticleAngularVelocity  (ChSharedPtr<ChRandomParticleVelocity> mc) {particle_angular_velocity = mc;}
 
-			/// Access the flow rate, measured as n.of particles per second.
+			/// define a flow rate measured as n.of particles per second [part/s], as by default
+			/// or a flow rate measured as kg per second  [kg/s]. 
+			/// Then, use ParticlesPerSecond() or MassPerSecond() to tune the flow.
+	void SetFlowControlMode( eChFlowMode mymode) {this->flow_mode = mymode;}
+
+			/// Access the flow rate, measured as n.of particles per second [part/s].
+			/// This is meaningful only if in 
 	double& ParticlesPerSecond() {return particles_per_second;}
 
-			/// Turn on this to limit the limit on max amount of particles.
+			/// Access the flow rate, measured as kg per second  [kg/s].
+	double& MassPerSecond() {return mass_per_second;}
+
+			/// Turn on this to limit on max amount of particles.
 	void SetUseParticleReservoir(bool ml) {this->use_praticle_reservoir = ml;}
+
+			/// Turn on this to limit on max mass of particles.
+	void SetUseMassReservoir(bool ml) {this->use_mass_reservoir = ml;}
 
 			/// Access the max number of particles to create - after this goes to 0, the creation stops.
 			/// Remember to turn on this limit with SetLimitParticleAmount()
 	int& ParticleReservoirAmount() {return particle_reservoir;}
 
+			/// Access the max mass of particles to create - after this goes to 0, the creation stops.
+			/// Remember to turn on this limit with SetLimitMassAmount()
+	int& MassReservoirAmount() {return mass_reservoir;}
+
+			/// Get the total amount of created particles
+	int GetTotCreatedParticles() {return created_particles;}
+
+			/// Get the total mass of created particles
+	int GetTotCreatedMass() {return created_mass;}
+
+
 private:
+	eChFlowMode flow_mode;
 	double particles_per_second;
+	double mass_per_second;
 	ChSharedPtr<ChRandomShapeCreator>	   particle_creator;
 	ChSharedPtr<ChRandomParticlePosition>  particle_positioner;
 	ChSharedPtr<ChRandomParticleAlignment> particle_aligner;
@@ -136,7 +207,15 @@ private:
 	
 	int  particle_reservoir;
 	bool use_praticle_reservoir;
+	
+	int  mass_reservoir;
+	bool use_mass_reservoir;
+
 	int  created_particles;
+	double created_mass;
+
+	double	off_count;
+	double	off_mass;
 };
 
 

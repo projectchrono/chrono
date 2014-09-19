@@ -56,6 +56,7 @@ namespace chrono
 #define LNK_LINACTUATOR         27
 #define LNK_CARDANO             28
 #define LNK_BASE                29
+#define LNK_SPRING_CALLBACK     30
 #define LNK_ENGINE              31
 #define LNK_BRAKE               32
 #define LNK_PNEUMATIC           33

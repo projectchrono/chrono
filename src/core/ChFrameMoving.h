@@ -600,6 +600,78 @@ public:
 };
 
 
+//
+// MIXED ARGUMENT OPERATORS
+//
+
+
+	/// The '*' operator that transforms a coordinate system of 'mixed' type: 
+	///  frame_C = frame_A * frame_B;
+	/// where frame_A is  a ChFrameMoving  
+	///       frame_B is  a ChFrame 
+	/// Returns a ChFrame. 
+	/// The effect is like applying the transformation frame_A to frame_B and get frame_C.
+template <class Real>
+ChFrame<Real> operator* (const ChFrameMoving<Real>& Fa, const ChFrame<Real>& Fb) 
+		{
+			//GetLog() << "Mixed * operator 1 \n";
+			ChFrame<Real> res;
+			Fa.ChFrame<Real>::TransformLocalToParent(Fb,res);
+			return res;
+		}
+
+	/// The '*' operator that transforms a coordinate system of 'mixed' type: 
+	///  frame_C = frame_A * frame_B;
+	/// where frame_A is  a ChFrame  
+	///       frame_B is  a ChFrameMoving 
+	/// Returns a ChFrameMoving. 
+	/// The effect is like applying the transformation frame_A to frame_B and get frame_C.
+	/// Also speeds and accelerations are transformed.
+	/// Performance warning: this operator promotes frame_A to a temporary ChFrameMoving.
+template <class Real>
+ChFrameMoving<Real> operator* (const ChFrame<Real>& Fa, const ChFrameMoving<Real>& Fb) 
+		{
+			//GetLog() << "Mixed * operator 2 \n";
+			ChFrameMoving<Real> res;
+			ChFrameMoving<Real> Fam(Fa);
+			Fam.TransformLocalToParent(Fb,res);
+			return res;
+		}
+
+	/// The '>>' operator that transforms a coordinate system of 'mixed' type: 
+	///  frame_C = frame_A >> frame_B;
+	/// where frame_A is  a ChFrame  
+	///       frame_B is  a ChFrameMoving
+	/// Returns a ChFrame. 
+	/// The effect is like applying the transformation frame_B to frame_A and get frame_C.
+template <class Real>
+ChFrame<Real> operator>> (const ChFrame<Real>& Fa, const ChFrameMoving<Real>& Fb) 
+		{
+			//GetLog() << "Mixed * operator 3 \n";
+			ChFrame<Real> res;
+			Fb.ChFrame<Real>::TransformLocalToParent(Fa,res);
+			return res;
+		}
+
+	/// The '>>' operator that transforms a coordinate system of 'mixed' type: 
+	///  frame_C = frame_A >> frame_B;
+	/// where frame_A is  a ChFrameMoving 
+	///       frame_B is  a ChFrame 
+	/// Returns a ChFrameMoving. 
+	/// The effect is like applying the transformation frame_B to frame_A and get frame_C.
+	/// Also speeds and accelerations are transformed.
+	/// Performance warning: this operator promotes frame_B to a temporary ChFrameMoving.
+template <class Real>
+ChFrameMoving<Real> operator>> (const ChFrameMoving<Real>& Fa, const ChFrame<Real>& Fb) 
+		{
+			//GetLog() << "Mixed * operator 4 \n";
+			ChFrameMoving<Real> res;
+			ChFrameMoving<Real> Fbm(Fb);
+			Fbm.TransformLocalToParent(Fa,res);
+			return res;
+		}
+
+
 
 } // END_OF_NAMESPACE____
 
