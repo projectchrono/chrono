@@ -181,6 +181,13 @@ enum SOLVERMODE{
    SPINNING,
 };
 
+
+enum NARROWPHASETYPE {
+  NARROWPHASE_MPR,
+  NARROWPHASE_R
+};
+
+
 #define shape_type int
 
 //#define SPHERE 0

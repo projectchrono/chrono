@@ -207,15 +207,17 @@ int main(int argc,
    msystem.SetTolSpeeds(1e-3);
    msystem.SetStep(time_step);
 
+   // Settings for the broad-phase collision detection
    msystem.GetSettings()->collision.bins_per_axis = I3(10, 10, 10);
    msystem.GetSettings()->collision.min_body_per_bin = 50;
    msystem.GetSettings()->collision.max_body_per_bin = 100;
 
-   ((ChCollisionSystemParallel*) msystem.GetCollisionSystem())->ChangeNarrowphase(new ChCNarrowphaseR);
+   // Select the narrow phase collision algorithm
+   msystem.ChangeCollisionNarrowphase(NARROWPHASE_R);
 
    // Set tolerance and maximum number of iterations for bilateral constraint solver
-   ((ChLcpSolverParallelDEM*) msystem.GetLcpSolverSpeed())->SetMaxIteration(max_iteration);
-   ((ChLcpSolverParallelDEM*) msystem.GetLcpSolverSpeed())->SetTolerance(tolerance);
+   msystem.GetSettings()->solver.max_iteration_bilateral = max_iteration;
+   msystem.GetSettings()->solver.tolerance = tolerance;
 
    // Create the fixed and moving bodies
    // ----------------------------------

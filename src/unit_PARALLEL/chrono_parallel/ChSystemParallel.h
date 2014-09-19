@@ -38,6 +38,8 @@
 #include "chrono_parallel/ChLcpSystemDescriptorParallel.h"
 #include "chrono_parallel/collision/ChCCollisionSystemParallel.h"
 #include "chrono_parallel/collision/ChCCollisionSystemBulletParallel.h"
+#include "chrono_parallel/collision/ChCNarrowphaseMPR.h"
+#include "chrono_parallel/collision/ChCNarrowphaseR.h"
 #include "chrono_parallel/math/ChParallelMath.h"
 
 namespace chrono {
@@ -64,6 +66,8 @@ CH_RTTI(ChSystemParallel, ChSystem)
 
    virtual void LoadMaterialSurfaceData(ChSharedPtr<ChBody> newbody) = 0;
    virtual void ChangeCollisionSystem(collision::ChCollisionSystem *newcollsystem);
+
+   void ChangeCollisionNarrowphase(NARROWPHASETYPE type);
 
    virtual void PrintStepStats() {
       data_manager->system_timer.PrintReport();

@@ -441,3 +441,18 @@ void ChSystemParallel::ChangeCollisionSystem(ChCollisionSystem *newcollsystem) {
    }
 
 }
+
+
+void ChSystemParallel::ChangeCollisionNarrowphase(NARROWPHASETYPE type)
+{
+  if (ChCollisionSystemParallel* coll_sys = dynamic_cast<ChCollisionSystemParallel*>(collision_system)) {
+    switch (type) {
+    case NARROWPHASE_MPR:
+      coll_sys->ChangeNarrowphase(new ChCNarrowphaseMPR);
+      break;
+    case NARROWPHASE_R:
+      coll_sys->ChangeNarrowphase(new ChCNarrowphaseR);
+      break;
+    }
+  }
+}
