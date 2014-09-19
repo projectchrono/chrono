@@ -261,7 +261,7 @@ public:
 											ChVector<Real>& dir2,
 											ChVector<Real>& dir3)
 	{
-		ComputeEigenvectors(e1,e2,e3, dir1,dir2,dir3);
+	   ChVoightTensor<Real>::ComputeEigenvectors(e1,e2,e3, dir1,dir2,dir3);
 	}
 
 };
@@ -290,7 +290,7 @@ public:
 											ChVector<Real>& dir2,
 											ChVector<Real>& dir3)
 	{
-		ComputeEigenvectors(e1,e2,e3, dir1,dir2,dir3);
+	   ChVoightTensor<Real>::ComputeEigenvectors(e1,e2,e3, dir1,dir2,dir3);
 	}
 
 };
