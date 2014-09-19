@@ -32,6 +32,13 @@
 #include "BulletCollision/CollisionShapes/btMultiSphereShape.h"
 using namespace chrono;
 using namespace chrono::collision;
+
+#ifdef CHRONO_PARALLEL_USE_DOUBLE
+const double precision = 5e-7;
+#else
+const float precision = 1e-6f;
+#endif
+
 real3 ToReal3(
       const btVector3& v) {
    return real3(v.x(), v.y(), v.z());
@@ -59,7 +66,7 @@ int main(
       shape.setMargin(0);
       real3 answer_b = R.x * Dir;  //ToReal3(shape.localGetSupportingVertex(btVector3(Dir.x, Dir.y, Dir.z)));
 
-      WeakEqual(answer_a, answer_b);
+      WeakEqual(answer_a, answer_b,precision);
    }
 
    {
@@ -71,7 +78,7 @@ int main(
       shape.setMargin(0);
       real3 answer_b = ToReal3(shape.localGetSupportingVertex(btVector3(Dir.x, Dir.y, Dir.z)));
 
-      WeakEqual(answer_a, answer_b);
+      WeakEqual(answer_a, answer_b,precision);
 
    }
 
@@ -84,7 +91,7 @@ int main(
       shape.setMargin(0);
       real3 answer_b = ToReal3(shape.localGetSupportingVertex(btVector3(Dir.x, Dir.y, Dir.z)));
 
-      WeakEqual(answer_a, answer_b);
+      WeakEqual(answer_a, answer_b,precision);
 
    }
 
@@ -97,7 +104,7 @@ int main(
       shape.setMargin(0);
       real3 answer_b = ToReal3(shape.localGetSupportingVertex(btVector3(Dir.x, Dir.y, Dir.z)));
 
-      WeakEqual(answer_a, answer_b);
+      WeakEqual(answer_a, answer_b,precision);
    }
    //TODO: Add Ellipsoid test
 
@@ -112,9 +119,9 @@ int main(
 
       //std::cout << n << p1 << p2 << d << std::endl;
 
-      WeakEqual(n, real3(0, -1, 0));
-      WeakEqual(p1, real3(2, 1, 0));
-      WeakEqual(p2, real3(2, 1, 0));
+      WeakEqual(n, real3(0, -1, 0),precision);
+      WeakEqual(p1, real3(2, 1, 0),precision);
+      WeakEqual(p2, real3(2, 1, 0),precision);
       WeakEqual(d, 0.0);
    }
    {
@@ -126,10 +133,10 @@ int main(
 
       //std::cout << n << p1 << p2 << d << std::endl;
       real3 n_check = real3(sin(CH_C_PI / 4.0), -sin(CH_C_PI / 4.0), 0);
-      WeakEqual(n, n_check);
-      WeakEqual(p1, real3(1, 1, 0) + n_check * 1);
-      WeakEqual(p2, real3(2, 0, 0) - n_check * 1);
-      WeakEqual(d, dot(n_check, (real3(2, 0, 0) - n_check * 1) - (real3(1, 1, 0) + n_check * 1)));
+      WeakEqual(n, n_check,precision);
+      WeakEqual(p1, real3(1, 1, 0) + n_check * 1,precision);
+      WeakEqual(p2, real3(2, 0, 0) - n_check * 1,precision);
+      WeakEqual(d, dot(n_check, (real3(2, 0, 0) - n_check * 1) - (real3(1, 1, 0) + n_check * 1)),precision);
 
    }
 
@@ -155,10 +162,10 @@ int main(
       GetPoints(A_T, A_X, A_Y, A_Z, A_R, B_T, B_X, B_Y, B_Z, B_R, n, p, p1, p2);
 
       //std::cout << n << p1 << p2 << d << std::endl;
-      WeakEqual(n, real3(0, -1, 0));
-      WeakEqual(p1, real3(2, 1, 0));
-      WeakEqual(p2, real3(2, 1, 0));
-      WeakEqual(d, 0.0);
+      WeakEqual(n, real3(0, -1, 0),precision);
+      WeakEqual(p1, real3(2, 1, 0),precision);
+      WeakEqual(p2, real3(2, 1, 0),precision);
+      WeakEqual(d, 0.0,precision);
 
    }
 //
@@ -185,10 +192,10 @@ int main(
       d = dot(n, p2 - p1);
       //std::cout << n << p1 << p2 << d << std::endl;
       real3 n_check = real3(sin(CH_C_PI / 4.0), -sin(CH_C_PI / 4.0), 0);
-      WeakEqual(n, n_check);
-      WeakEqual(p1, real3(1, 1, 0) + n_check * 1);
-      WeakEqual(p2, real3(2, 0, 0) - n_check * 1);
-      WeakEqual(d, dot(n_check, (real3(2, 0, 0) - n_check * 1) - (real3(1, 1, 0) + n_check * 1)));
+      WeakEqual(n, n_check,precision);
+      WeakEqual(p1, real3(1, 1, 0) + n_check * 1,precision);
+      WeakEqual(p2, real3(2, 0, 0) - n_check * 1,precision);
+      WeakEqual(d, dot(n_check, (real3(2, 0, 0) - n_check * 1) - (real3(1, 1, 0) + n_check * 1)),precision);
    }
 
    {
@@ -213,10 +220,10 @@ int main(
       GetPoints(A_T, A_X, A_Y, A_Z, A_R, B_T, B_X, B_Y, B_Z, B_R, n, p, p1, p2);
 
       //std::cout << n << p1 << p2 << d << std::endl;
-      WeakEqual(n, real3(0, -1, 0));
-      WeakEqual(p1, real3(2, 1, 0));
-      WeakEqual(p2, real3(2, 1, 0));
-      WeakEqual(d, 0.0);
+      WeakEqual(n, real3(0, -1, 0),precision);
+      WeakEqual(p1, real3(2, 1, 0),precision);
+      WeakEqual(p2, real3(2, 1, 0),precision);
+      WeakEqual(d, 0.0,precision);
 
    }
 //
@@ -243,10 +250,10 @@ int main(
       d = dot(n, p2 - p1);
       //std::cout << n << p1 << p2 << d << std::endl;
       real3 n_check = real3(sin(CH_C_PI / 4.0), -sin(CH_C_PI / 4.0), 0);
-      WeakEqual(n, n_check);
-      WeakEqual(p1, real3(1, 1, 0) + n_check * 1);
-      WeakEqual(p2, real3(2, 0, 0) - n_check * 1);
-      WeakEqual(d, dot(n_check, (real3(2, 0, 0) - n_check * 1) - (real3(1, 1, 0) + n_check * 1)));
+      WeakEqual(n, n_check,precision);
+      WeakEqual(p1, real3(1, 1, 0) + n_check * 1,precision);
+      WeakEqual(p2, real3(2, 0, 0) - n_check * 1,precision);
+      WeakEqual(d, dot(n_check, (real3(2, 0, 0) - n_check * 1) - (real3(1, 1, 0) + n_check * 1)),precision);
    }
 
    {
@@ -271,10 +278,10 @@ int main(
       GetPoints(A_T, A_X, A_Y, A_Z, A_R, B_T, B_X, B_Y, B_Z, B_R, n, p, p1, p2);
       //std::cout << n << p << d << std::endl << p1 << p2 << std::endl;
 
-      WeakEqual(n, real3(0, -1, 0));
-      WeakEqual(p1, real3(0, 0.5, 0));
-      WeakEqual(p2, real3(0, 1, 0));
-      WeakEqual(d, -0.5);
+      WeakEqual(n, real3(0, -1, 0),precision);
+      WeakEqual(p1, real3(0, 0.5, 0),precision);
+      WeakEqual(p2, real3(0, 1, 0),precision);
+      WeakEqual(d, -0.5,precision);
    }
 
    {
@@ -300,10 +307,10 @@ int main(
       real3 p1, p2;
       GetPoints(A_T, A_X, A_Y, A_Z, A_R, B_T, B_X, B_Y, B_Z, B_R, n, p, p1, p2);
       //std::cout << n << p << d << std::endl << p1 << p2 << std::endl;
-      WeakEqual(n, real3(0, -1, 0));
-      WeakEqual(p1, real3(.1, 1, 0));
-      WeakEqual(p2, real3(.1, 1, 0));
-      WeakEqual(d, 0);
+      WeakEqual(n, real3(0, -1, 0),precision);
+      WeakEqual(p1, real3(.1, 1, 0),precision);
+      WeakEqual(p2, real3(.1, 1, 0),precision);
+      WeakEqual(d, 0,precision);
    }
 
 //   {
