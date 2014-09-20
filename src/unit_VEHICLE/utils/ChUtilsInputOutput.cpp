@@ -415,11 +415,13 @@ void WriteShapesPovray(ChSystem*          system,
       {
         const geometry::ChRoundedBox& geom = rbox->GetRoundedBoxGeometry();
         gss << collision::ROUNDEDBOX << delim << geom.Size.x << delim << geom.Size.y << delim << geom.Size.z << delim << geom.radsphere;
+        a_count++;
       }
       else if (ChSharedPtr<ChRoundedCylinderShape> rcyl = visual_asset.DynamicCastTo<ChRoundedCylinderShape>())
       {
         const geometry::ChRoundedCylinder& geom = rcyl->GetRoundedCylinderGeometry();
         gss << collision::ROUNDEDCYL << delim << geom.rad << delim << geom.hlen << delim << geom.radsphere;
+        a_count++;
       }
       else if (ChSharedPtr<ChTriangleMeshShape> mesh = visual_asset.DynamicCastTo<ChTriangleMeshShape>())
       {
@@ -469,8 +471,8 @@ void WriteShapesPovray(ChSystem*          system,
     }
   }
 
-  // Write the output file, including a first line with number of visual assets
-  // and number of links.
+  // Write the output file, including a first line with number of bodies, visual
+  // assets, and links.
   std::stringstream header;
   header << b_count << delim << a_count << delim << l_count << delim << std::endl;
 
