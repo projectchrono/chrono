@@ -149,16 +149,18 @@ void ReadCheckpoint(ChSystem*          system,
 CH_UTILS_API
 void WriteShapesPovray(ChSystem*          system,
                        const std::string& filename,
+                       bool               body_info = true,
                        const std::string& delim = ",");
 
 // Write the triangular mesh from the specified OBJ file as a macro in a PovRay
 // include file. The output file will be "[out_dir]/[mesh_name].inc". The mesh
-// vertices will be tranformed to the frame with specified offset and
+// vertices will be transformed to the frame with specified offset and
 // orientation.
 CH_UTILS_API
 void WriteMeshPovray(const std::string&    obj_filename,
                      const std::string&    mesh_name,
                      const std::string&    out_dir,
+                     const ChColor&        color = ChColor(0.4f, 0.4f, 0.4f),
                      const ChVector<>&     pos = ChVector<>(0,0,0),
                      const ChQuaternion<>& rot = ChQuaternion<>(1,0,0,0));
 
