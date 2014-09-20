@@ -152,7 +152,7 @@ class CH_PARALLEL_API ChCollisionSystemParallel : public ChCollisionSystem {
 
    ChParallelDataManager *data_container;
 
-   friend class ChSystemParallel;
+   friend class chrono::ChSystemParallel;
 };
 
 }     // END_OF_NAMESPACE____

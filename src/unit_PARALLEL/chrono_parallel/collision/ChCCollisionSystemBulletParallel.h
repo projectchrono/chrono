@@ -111,7 +111,7 @@ namespace chrono {
 
                 uint counter;
 
-                friend class ChSystemParallel;
+                friend class chrono::ChSystemParallel;
 
 		};
 	} // END_OF_NAMESPACE____
