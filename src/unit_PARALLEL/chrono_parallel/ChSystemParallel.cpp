@@ -11,7 +11,7 @@ ChSystemParallel::ChSystemParallel(unsigned int max_objects)
 
    contact_container = new ChContactContainerParallel();
    collision_system = new ChCollisionSystemParallel();
-   ((ChCollisionSystemParallel *) (collision_system))->data_container = data_manager;
+   ((ChCollisionSystemParallel *) collision_system)->data_container = data_manager;
    ((ChContactContainerParallel*) contact_container)->data_container = data_manager;
 
    counter = 0;
@@ -327,48 +327,39 @@ void ChSystemParallel::RecomputeThreads() {
 void ChSystemParallel::PerturbBins(bool increase,
                                    int number) {
 
-   if (increase) {
-      int3 grid_size = ((ChCollisionSystemParallel *) (GetCollisionSystem()))->broadphase->getBinsPerAxis();
+  ChCollisionSystemParallel* coll_sys = (ChCollisionSystemParallel *) collision_system;
+
+  int3 grid_size = coll_sys->broadphase->getBinsPerAxis();
 #if PRINT_LEVEL==1
-      cout << "initial: " << grid_size.x << " " << grid_size.y << " " << grid_size.z << endl;
+  cout << "initial: " << grid_size.x << " " << grid_size.y << " " << grid_size.z << endl;
 #endif
+
+   if (increase) {
       grid_size.x = grid_size.x + number;
       grid_size.y = grid_size.y + number;
       grid_size.z = grid_size.z + number;
-#if PRINT_LEVEL==1
-      cout << "final: " << grid_size.x << " " << grid_size.y << " " << grid_size.z << endl;
-#endif
-      ((ChCollisionSystemParallel *) (GetCollisionSystem()))->broadphase->setBinsPerAxis(grid_size);
    } else {
-
-      int3 grid_size = ((ChCollisionSystemParallel *) (GetCollisionSystem()))->broadphase->getBinsPerAxis();
-#if PRINT_LEVEL==1
-      cout << "initial: " << grid_size.x << " " << grid_size.y << " " << grid_size.z << endl;
-#endif
       grid_size.x = grid_size.x - number;
       grid_size.y = grid_size.y - number;
       grid_size.z = grid_size.z - number;
 
-      if (grid_size.x < 2) {
-         grid_size.x = 2;
-      }
-      if (grid_size.y < 2) {
-         grid_size.y = 2;
-      }
-      if (grid_size.z < 2) {
-         grid_size.z = 2;
-      }
-#if PRINT_LEVEL==1
-      cout << "final: " << grid_size.x << " " << grid_size.y << " " << grid_size.z << endl;
-#endif
-      ((ChCollisionSystemParallel *) (GetCollisionSystem()))->broadphase->setBinsPerAxis(grid_size);
-
+      if (grid_size.x < 2)  grid_size.x = 2;
+      if (grid_size.y < 2)  grid_size.y = 2;
+      if (grid_size.z < 2)  grid_size.z = 2;
    }
+
+#if PRINT_LEVEL==1
+   cout << "final: " << grid_size.x << " " << grid_size.y << " " << grid_size.z << endl;
+#endif
+   coll_sys->broadphase->setBinsPerAxis(grid_size);
 
    frame_bins++;
 }
 
 void ChSystemParallel::RecomputeBins() {
+  // Do nothing if the current collision system does not support this feature
+  if (!dynamic_cast<ChCollisionSystemParallel*>(collision_system))
+    return;
 
    cd_accumulator.insert(cd_accumulator.begin(), timer_collision);
    cd_accumulator.pop_back();
