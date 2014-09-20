@@ -13,7 +13,7 @@ ChSystemParallelDEM::ChSystemParallelDEM(unsigned int                       max_
 {
   LCP_descriptor = new ChLcpSystemDescriptorParallelDEM();
   LCP_solver_speed = new ChLcpSolverParallelDEM();
-  ((ChLcpSystemDescriptorParallelDEM*) (LCP_descriptor))->data_container = data_manager;
+  ((ChLcpSystemDescriptorParallelDEM*) LCP_descriptor)->data_container = data_manager;
   ((ChLcpSolverParallel*) LCP_solver_speed)->data_container = data_manager;
 
   ((ChCollisionSystemParallel *) collision_system)->SetCollisionEnvelope(0);
@@ -118,7 +118,9 @@ void ChSystemParallelDEM::UpdateBodies()
 void ChSystemParallelDEM::ChangeCollisionSystem(ChCollisionSystem* newcollsystem)
 {
   ChSystemParallel::ChangeCollisionSystem(newcollsystem);
-  ((ChCollisionSystemParallel *) collision_system)->SetCollisionEnvelope(0);
+
+  if (ChCollisionSystemParallel* coll_sys = dynamic_cast<ChCollisionSystemParallel*>(collision_system))
+    coll_sys->SetCollisionEnvelope(0);
 }
 
 void ChSystemParallelDEM::PrintStepStats()
