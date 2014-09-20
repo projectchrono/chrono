@@ -185,13 +185,13 @@ public:
 
 			/// Access the max mass of particles to create - after this goes to 0, the creation stops.
 			/// Remember to turn on this limit with SetLimitMassAmount()
-	int& MassReservoirAmount() {return mass_reservoir;}
+	double& MassReservoirAmount() {return mass_reservoir;}
 
 			/// Get the total amount of created particles
 	int GetTotCreatedParticles() {return created_particles;}
 
 			/// Get the total mass of created particles
-	int GetTotCreatedMass() {return created_mass;}
+	double GetTotCreatedMass() {return created_mass;}
 
 
 private:
@@ -208,7 +208,7 @@ private:
 	int  particle_reservoir;
 	bool use_praticle_reservoir;
 	
-	int  mass_reservoir;
+	double  mass_reservoir;
 	bool use_mass_reservoir;
 
 	int  created_particles;
