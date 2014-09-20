@@ -31,6 +31,9 @@
 #include "chrono_parallel/collision/ChCBroadphase.h"
 
 namespace chrono {
+
+  class ChSystemParallel;  // forward declaration
+
 namespace collision {
 ///
 /// Class for collision engine based on the spatial subdivision method.
@@ -93,24 +96,6 @@ class CH_PARALLEL_API ChCollisionSystemParallel : public ChCollisionSystem {
       return false;
    }
 
-   void ChangeBroadphase(ChCBroadphase* new_broadphase) {
-      delete broadphase;
-      broadphase = new_broadphase;
-   }
-
-   ChCBroadphase* GetBroadphase() {
-      return broadphase;
-   }
-
-   void ChangeNarrowphase(ChCNarrowphase* new_narrowphase) {
-      delete narrowphase;
-      narrowphase = new_narrowphase;
-   }
-
-   ChCNarrowphase* GetNarrowphase() {
-      return narrowphase;
-   }
-
    void SetCollisionEnvelope(const real &envelope) {
       data_container->settings.collision.collision_envelope = envelope;
    }
@@ -147,20 +132,27 @@ class CH_PARALLEL_API ChCollisionSystemParallel : public ChCollisionSystem {
 
       return data_container->settings.collision.use_aabb_active;
    }
-   ChParallelDataManager *data_container;
 
-   ChCAABBGenerator aabb_generator;
+ private:
+
+   void ChangeBroadphase(ChCBroadphase* new_broadphase) {
+     delete broadphase;
+     broadphase = new_broadphase;
+   }
+
+   void ChangeNarrowphase(ChCNarrowphase* new_narrowphase) {
+     delete narrowphase;
+     narrowphase = new_narrowphase;
+   }
 
    ChCBroadphase* broadphase;
    ChCNarrowphase* narrowphase;
 
- private:
-   /// Update data structures to pass into GPU for collision detection
-   //unsigned int counter;
+   ChCAABBGenerator aabb_generator;
 
+   ChParallelDataManager *data_container;
 
-
-
+   friend class ChSystemParallel;
 };
 
 }     // END_OF_NAMESPACE____

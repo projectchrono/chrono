@@ -40,6 +40,9 @@
 
 
 namespace chrono {
+
+  class ChSystemParallel;  // forward declaration
+
 	namespace collision {
 ///
 /// Class for collision engine based on the spatial subdivision method.
@@ -97,7 +100,6 @@ namespace chrono {
 				btCollisionWorld* GetBulletCollisionWorld() {
 					return bt_collision_world;
 				}
-				ChParallelDataManager* data_container;
 
 			private:
 				btCollisionConfiguration* bt_collision_configuration;
@@ -105,7 +107,11 @@ namespace chrono {
 				btBroadphaseInterface* bt_broadphase;
 				btCollisionWorld* bt_collision_world;
 
-				uint counter;
+                ChParallelDataManager* data_container;
+
+                uint counter;
+
+                friend class ChSystemParallel;
 
 		};
 	} // END_OF_NAMESPACE____
