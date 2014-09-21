@@ -13,7 +13,8 @@
 @CHRONO_PARALLEL_HAS_SSE@
 @CHRONO_PARALLEL_SSE_LEVEL@
 
-
+// If OpenMP is found the following define is set
+//   #define CHRONO_PARALLEL_OMP_FOUND
 // Set the highest OpenMP version supported, one of:
 //   #define CHRONO_PARALLEL_OMP_VERSION "2.0"
 //   #define CHRONO_PARALLEL_OMP_VERSION "3.0"
@@ -22,6 +23,7 @@
 //   #define CHRONO_PARALLEL_OMP_20
 //   #define CHRONO_PARALLEL_OMP_30
 //   #define CHRONO_PARALLEL_OMP_40
+@CHRONO_PARALLEL_OMP_FOUND@
 @CHRONO_PARALLEL_OMP_VERSION@
 @CHRONO_PARALLEL_OMP_20@
 @CHRONO_PARALLEL_OMP_30@
