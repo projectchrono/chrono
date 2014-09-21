@@ -61,9 +61,11 @@ public:
 		ChSystem::IteratorBodies myiter = msystem.IterBeginBodies();
 		while (myiter != msystem.IterEndBodies())
 		{
-			if (this->trigger->TriggerEvent((*myiter), msystem))
+			ChSharedPtr<ChBody> mybody = (*myiter);
+
+			if (this->trigger->TriggerEvent(mybody, msystem))
 			{
-					this->particle_processor->ParticleProcessEvent((*myiter), msystem, this->trigger);
+					this->particle_processor->ParticleProcessEvent(mybody, msystem, this->trigger);
 					++nprocessed;
 			}
 

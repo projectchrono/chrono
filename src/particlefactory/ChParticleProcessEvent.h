@@ -64,13 +64,32 @@ public:
 	/// referenced only by the ChSystem, this also leads to deletion.
 class ChParticleProcessEventRemove : public ChParticleProcessEvent
 {
+private:
+	std::list< ChSharedPtr<ChBody> > to_delete;
+
 public:
 		/// Remove the particle from the system. 
 	virtual void ParticleProcessEvent(ChSharedPtr<ChBody> mbody, 
 									  ChSystem& msystem, 
 									  ChSharedPtr<ChParticleEventTrigger> mprocessor ) 
 	{
-		msystem.Remove(mbody);
+		//msystem.Remove(mbody);
+		to_delete.push_back(mbody);
+	}
+
+	virtual void SetupPreProcess(ChSystem& msystem) 
+	{
+		to_delete.clear();
+	}
+
+	virtual void SetupPostProcess(ChSystem& msystem) 
+	{
+		std::list< ChSharedPtr<ChBody> >::iterator ibody = to_delete.begin();
+		while(ibody != to_delete.end())
+		{
+			msystem.Remove((*ibody));
+			++ibody;
+		}
 	}
 };
 
