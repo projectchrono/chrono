@@ -164,7 +164,14 @@ public:
 			/// define a flow rate measured as n.of particles per second [part/s], as by default
 			/// or a flow rate measured as kg per second  [kg/s]. 
 			/// Then, use ParticlesPerSecond() or MassPerSecond() to tune the flow.
-	void SetFlowControlMode( eChFlowMode mymode) {this->flow_mode = mymode;}
+	void SetFlowControlMode( eChFlowMode mymode) 
+			{
+				this->flow_mode = mymode;
+				this->off_count = 0;
+				this->off_mass = 0;
+			}
+			/// Report if flow rate is measured as [part/s] or [kg/s]. 
+	eChFlowMode GetFlowControlMode() {return this->flow_mode;}
 
 			/// Access the flow rate, measured as n.of particles per second [part/s].
 			/// This is meaningful only if in 
