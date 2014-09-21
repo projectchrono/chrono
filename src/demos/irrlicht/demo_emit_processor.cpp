@@ -185,9 +185,11 @@ int main(int argc, char* argv[])
 	 // mixing them with a given percentual:
 	ChSharedPtr<ChRandomShapeCreatorFromFamilies> mcreatorTot(new ChRandomShapeCreatorFromFamilies);
 	mcreatorTot->AddFamily(mcreator_metal,   0.4);	// 1st creator family, with percentual
-	mcreatorTot->AddFamily(mcreator_plastic, 0.4);	// 2nd creator family, with percentual
+	mcreatorTot->AddFamily(mcreator_plastic, 0.6);	// 2nd creator family, with percentual
 	mcreatorTot->Setup();
-
+	 // By default, percentuals are in terms of number of generated particles, 
+	 // but you can optionally enforce percentuals in terms of masses:
+	mcreatorTot->SetProbabilityMode(ChRandomShapeCreatorFromFamilies::MASS_PROBABILITY);
 	 // Finally, tell to the emitter that it must use the 'mixer' above:
 	emitter.SetParticleCreator(mcreatorTot);
 

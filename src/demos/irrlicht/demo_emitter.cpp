@@ -96,13 +96,23 @@ int main(int argc, char* argv[])
 	// Ok, that object will take care of generating particle flows for you.
 	// It accepts a lot of settings, for creating many different types of particle
 	// flows, like fountains, outlets of various shapes etc. 
-	// For instance, set the flow rate, etc:
-	
+
+	// Set the flow rate [particles/s]:
 	emitter.ParticlesPerSecond() = 20;
 
+	// Alternative: flow defined by mass, [kg/s]:
+	emitter.SetFlowControlMode(ChParticleEmitter::FLOW_MASSPERSECOND);
+	emitter.MassPerSecond() = 1000;
+
+	// Optional: limit the total n. of particles that can be generated
 	emitter.SetUseParticleReservoir(true);
 	emitter.ParticleReservoirAmount() = 200;
+
+	// Optional: limit the total mass that can be generated
+	emitter.SetUseMassReservoir(true);
+	emitter.MassReservoirAmount() = 5000;
 	
+
 	// Our ChParticleEmitter object, among the main settings, it requires 
 	// that you give him four 'randomizer' objects: one is in charge of 
 	// generating random shapes, one is in charge of generating
