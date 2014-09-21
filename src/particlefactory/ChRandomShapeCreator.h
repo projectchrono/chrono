@@ -426,17 +426,79 @@ public:
 	ChRandomShapeCreatorFromFamilies() 
 		{
 			// defaults
+			probability_mode = PARTICLE_PROBABILITY;
+
 			Reset();
 		}
 
+	enum eChFamilyProbabilityMode {
+		PARTICLE_PROBABILITY,
+		MASS_PROBABILITY,
+	};
 			/// Function that creates a random ChBody particle each
 			/// time it is called.
+	
 	virtual ChSharedPtr<ChBody> RandomGenerate(ChCoordsys<> mcoords) 
 		{
 			if (family_generators.size() ==0) 
 				throw ChException("Error, cannot randomize particles from a zero length vector of samples");
 
 			ChSharedPtr<ChBody> sample; // default null
+
+			// normalize probability of already generated particles
+			generated_probability.resize(generated_stats.size());
+			double sum = 0;
+			for (unsigned int i= 0; i< generated_stats.size(); ++i)
+			{
+				sum += generated_stats[i];
+			}
+			if (sum>0)
+			{
+				for (unsigned int i= 0; i< generated_stats.size(); ++i)
+				{
+					generated_probability[i] = generated_stats[i] / sum;
+				}
+			}
+			// Scan families, starting from randomied index, and see which is 
+			// 'lagging behind'.
+			unsigned int tested_family = (int)floor((double)(family_generators.size()-1)*ChRandom());
+			unsigned int ntests =0;
+			while(true)
+			{
+				// windup tested family to scan all families if reached end
+				if (tested_family >= family_generators.size())
+					tested_family = 0;
+
+				// it should never cycle more than once all the families, but for more safety:
+				if (ntests >= family_generators.size())
+					break;
+
+				if (generated_probability[tested_family] < family_probability[tested_family])
+					break; // Found family to be incremented!
+
+				++ntests;
+				++tested_family;
+			}
+
+			// Generate particle
+			sample = family_generators[tested_family]->RandomGenerateAndCallbacks(mcoords);
+
+			if (probability_mode == PARTICLE_PROBABILITY)
+				generated_stats[tested_family] += 1;
+			if (probability_mode == MASS_PROBABILITY)
+				generated_stats[tested_family] += sample->GetMass();
+				
+			sample->SetCoord(mcoords);
+			return sample;
+		};
+	/*
+		virtual ChSharedPtr<ChBody> RandomGenerate(ChCoordsys<> mcoords) 
+		{
+			if (family_generators.size() ==0) 
+				throw ChException("Error, cannot randomize particles from a zero length vector of samples");
+
+			ChSharedPtr<ChBody> sample; // default null
+
 			double rand = ::chrono::ChRandom();
 			for (unsigned int i=0; i <  cumulative_probability.size(); ++i)
 			{
@@ -446,16 +508,17 @@ public:
 					break;
 				}
 			}
-
 			sample->SetCoord(mcoords);
 			return sample;
 		};
-	
+*/
 			/// Call this BEFORE adding a set of samples via AddSample()
 	void Reset() 
 		{
 			family_probability.clear();
 			cumulative_probability.clear();
+			generated_stats.clear();
+			generated_probability.clear();
 			sum = 0;
 			family_generators.clear();
 		}
@@ -469,6 +532,8 @@ public:
 			sum += mprobability;
 			cumulative_probability.push_back(sum);
 			family_generators.push_back(family_generator);
+			generated_stats.push_back(0.);
+			generated_probability.push_back(0.);
 		}
 			/// Call this when you finished adding samples via AddSample()
 	void Setup()
@@ -481,11 +546,36 @@ public:
 			{
 				family_probability[i] *= scale;
 				cumulative_probability[i]*= scale;
+				generated_stats[i]=0.;
+				generated_probability[i]=0.;
 			}
 		}
+			/// Choose how the probability of each family must be considered:
+			/// either in terms of number of particles, as by default,
+			/// or either in terms of mass. 
+	void SetProbabilityMode( eChFamilyProbabilityMode mymode) 
+		{
+			this->probability_mode = mymode;
+			for (unsigned int i= 0; i< generated_stats.size(); ++i)
+			{
+				generated_stats[i]=0.;
+				generated_probability[i]=0.;
+			}
+		}
+			/// Report if the probability of each family is in terms of n.of particles or mass
+	eChFamilyProbabilityMode GetProbabilityMode() { return this->probability_mode;}
+			
+			/// For debugging. For various reasons (ex. very odd masses in generated particles), especially with a
+			/// small number of particles, the desired percentuals of masses or n.of particles for
+			/// the families are only approximated. Use this vector to get the actual percentuals obtained so far.
+	std::vector<double>& GetObtainedPercentuals() {return generated_probability;}
+
 private:
+	eChFamilyProbabilityMode probability_mode;
 	std::vector<double> family_probability;
 	std::vector<double> cumulative_probability;
+	std::vector<double> generated_stats;
+	std::vector<double> generated_probability;
 	double sum;
 	std::vector< ChSharedPtr<ChRandomShapeCreator> > family_generators;
 };
