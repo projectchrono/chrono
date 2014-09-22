@@ -28,6 +28,7 @@
 //#define THRUST_DEVICE_SYSTEM THRUST_DEVICE_SYSTEM_OMP
 //#define THRUST_HOST_SYSTEM THRUST_HOST_SYSTEM_OMP
 #endif
+
 #ifndef _MSC_VER
 #include <fenv.h>
 #endif
@@ -38,6 +39,8 @@
 #include <thrust/host_vector.h>
 #include <thrust/device_vector.h>
 #include <math.h>
+#include <vector>
+#include <string.h>
 #include <thrust/transform.h>
 #include <thrust/functional.h>
 #include <thrust/inner_product.h>
@@ -60,17 +63,21 @@
 //#include <thrust/system/tbb/execution_policy.h>
 #include <thrust/execution_policy.h>
 #include "chrono_parallel/ChApiParallel.h"
-//#include <mpi.h>
-#include <omp.h>
-#include <vector>
-#include <string.h>
-#ifdef _MSC_VER
-#define thrust_parallel thrust::cpp::par
-#else
-#define thrust_parallel thrust::omp::par
+#include "chrono_parallel/ChConfigParallel.h"
+
+#ifdef CHRONO_PARALLEL_OMP_FOUND
+   #include <omp.h>
 #endif
-//using namespace thrust;
+
+
+#ifdef _MSC_VER
+   #define thrust_parallel thrust::cpp::par
+#else
+   #define thrust_parallel thrust::omp::par
+#endif
+
 typedef unsigned int uint;
+typedef int  shape_type;
 
 //#ifdef __CDT_PARSER__
 //#define __host__
@@ -87,14 +94,14 @@ typedef unsigned int uint;
 
 //#define SIM_ENABLE_GPU_MODE
 #ifdef SIM_ENABLE_GPU_MODE
-#define custom_vector thrust::device_vector
-#else
-#ifndef __CDT_PARSER__
-#define custom_vector thrust::host_vector
-#else
-using namespace thrust;
-#define custom_vector host_vector
-#endif
+   #define custom_vector thrust::device_vector
+   #else
+   #ifndef __CDT_PARSER__
+      #define custom_vector thrust::host_vector
+   #else
+      using namespace thrust;
+      #define custom_vector host_vector
+   #endif
 #endif
 
 //Output Verbosity Level
@@ -174,38 +181,16 @@ enum SOLVERTYPE {
 };
 
 
-
 enum SOLVERMODE{
    NORMAL,
    SLIDING,
    SPINNING,
 };
 
-
 enum NARROWPHASETYPE {
   NARROWPHASE_MPR,
   NARROWPHASE_R
 };
-
-
-#define shape_type int
-
-//#define SPHERE 0
-//#define ELLIPSOID 1
-//#define BOX 2
-//#define CYLINDER 3
-//#define CONVEXHULL 4
-//#define TRIANGLEMESH 5
-//#define BARREL 6
-//#define RECT 7             //Currently implemented on GPU only
-//#define DISC 8             //Currently implemented on GPU only
-//#define ELLIPSE 9          //Currently implemented on GPU only
-//#define CAPSULE 10         //Currently implemented on GPU only
-//#define CONE 11            //Currently implemented on GPU only
-
-#define Vector_ZERO_EPSILON 1e-8
-#define MIN_ZERO_EPSILON 1.1754943508222875E-38
-#define EPS FLT_EPSILON
 
 #endif
 
