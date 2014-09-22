@@ -20,7 +20,6 @@
 #define REAL_H
 
 #include "chrono_parallel/ChParallelDefines.h"
-#include "chrono_parallel/ChConfigParallel.h"
 #include <float.h>
 
 

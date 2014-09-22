@@ -92,7 +92,7 @@ void ChLcpSolverParallelDVI::RunTimeStep(real step) {
          data_container->system_timer.stop("ChLcpSolverParallel_Solve");
       }
    }
-   if (data_container->settings.solver.solver_mode == SLIDING || data_container->settings.solver.solver_mode == SPINNING) {
+   if (data_container->settings.solver.solver_mode != NORMAL) {
       if (data_container->settings.solver.max_iteration_sliding > 0) {
          solver->SetMaxIterations(data_container->settings.solver.max_iteration_sliding);
          rigid_rigid.solve_sliding = true;

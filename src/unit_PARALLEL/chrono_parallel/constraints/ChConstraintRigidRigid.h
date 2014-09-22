@@ -83,8 +83,6 @@ class CH_PARALLEL_API ChConstraintRigidRigid : public ChBaseParallel {
       }
       solve_sliding = false;
       solve_spinning = false;
-      count_shur_a_sliding = 0;
-
    }
    ~ChConstraintRigidRigid() {
    }
@@ -266,7 +264,6 @@ class CH_PARALLEL_API ChConstraintRigidRigid : public ChBaseParallel {
 
    custom_vector<int> update_number;custom_vector<int> update_offset;custom_vector<int2> update_offset_pairs;custom_vector<bool2> contact_active_pairs;custom_vector<real4> contact_rotation;custom_vector<
          int> update_offset_bodies;custom_vector<int> offset_counter;custom_vector<int> body_number;
-   int count_shur_a_sliding;
 
    uint num_updates;
 

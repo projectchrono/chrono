@@ -43,8 +43,9 @@ class CH_PARALLEL_API ChSolverParallel : public ChBaseParallel {
    );
 
    // Project a single contact
-   void Project_Single(int index,
-                       real* gamma);
+   void Project_Single(int index,  //index of contact
+                       real* gamma  //Lagrange Multipliers
+                       );
 
    // Compute the first half of the shur matrix vector multiplication (N*x)
    // Perform M_invDx=M^-1*D*x
