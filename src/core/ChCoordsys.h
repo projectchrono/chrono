@@ -236,8 +236,8 @@ public:
 		/// by the other csys T:   this'= T * this; or this' = this >> T
 	void ConcatenatePreTransformation(const ChCoordsys<Real>& T)
 		{
-			this->pos = T.TransformLocalToParent(coord.pos);
-			this->rot = T.coord.rot * coord.rot;
+			this->pos = T.TransformLocalToParent(this->pos);
+			this->rot = T.coord.rot * this->rot;
 		}
 
 		/// Apply a transformation (rotation and translation) represented by
@@ -245,8 +245,8 @@ public:
 		/// post-multiply this csys by the other csys T:   this'= this * T; or this'= T >> this
 	void ConcatenatePostTransformation(const ChCoordsys<Real>& T)
 		{
-			this->pos = TransformLocalToParent(T.coord.pos);
-			this->rot = coord.rot * T.coord.rot;
+			this->pos = this->TransformLocalToParent(T.pos);
+			this->rot = this->rot * T.rot;
 		}
 
 	// FUNCTIONS FOR COORDINATE TRANSFORMATIONS
