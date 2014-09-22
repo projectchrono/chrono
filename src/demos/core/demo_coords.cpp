@@ -112,11 +112,17 @@ int main(int argc, char* argv[])
 	mvect2 = csysA.TransformLocalToParent(mvect1); 
 	GetLog() << mvect2 << " ..using a ChChCoordsys<> object, \n";
 
+	mvect2 = mvect1 >> csysA; 
+	GetLog() << mvect2 << " ..using a ChChCoordsys<> '>>' operator, \n";
+
+	mvect2 = csysA * mvect1; 
+	GetLog() << mvect2 << " ..using a ChChCoordsys<> '*' operator, \n";
+
 	
 
 					// TRASFORM USING A ChFrame OBJECT
 
-	ChFrame<> mframeA(vtraslA, qrotA);  // or ChFrame<> mframeA(vtraslA, mrotA);
+	ChFrame<> mframeA(vtraslA, qrotA);  // or ChFrame<> mframeA(csysA);
 
 	mvect2 = mframeA.TransformLocalToParent(mvect1); 
 	GetLog() << mvect2 << " ..using a ChFrame object function, \n";
@@ -169,7 +175,7 @@ int main(int argc, char* argv[])
 	mvect3 = tempf * mvect1;
 	GetLog() << mvect3 << " ..triple vector trsf. with ChFrame '*' operator, \n";
 
-					// Not only vectors, but also frames can be transformed
+					// Not only vectors, but also ChFrame can be transformed
 					// with ">>" or "*" operators.
 
 	ChFrame<> f_3 (mvect1);
@@ -180,7 +186,13 @@ int main(int argc, char* argv[])
 	f_0 = f10 *  f21 *  f32 *  f_3;
 	GetLog() << f_0 << " ..triple frame trsf. with ChFrame '*' operator,  \n";
 
+					// Test the  ">>" or "*" operators also for ChCoordsys:
+	ChCoordsys<> c_0;
+	c_0 = f_3.GetCoord() >> f32.GetCoord() >> f21.GetCoord() >> f10.GetCoord();
+	GetLog() << f_0 << " ..triple frame trsf. with ChCoordsys '>>' operator,  \n";
 
+	c_0 = f10.GetCoord() *  f21.GetCoord() *  f32.GetCoord() *  f_3.GetCoord();
+	GetLog() << f_0 << " ..triple frame trsf. with ChCoordsys '*' operator,  \n";
 
 
 	//
@@ -226,10 +238,10 @@ int main(int argc, char* argv[])
 	GetLog() << mvect1 << " ..inv, using a ChFrame object function, \n";
 
 	mvect1 = mvect2 >> mframeA.GetInverse(); 
-	GetLog() << mvect1 << " ..inv, using a ChFrame '>>' operator, \n";
+	GetLog() << mvect1 << " ..inv, using a ChFrame inverse and '>>' operator, \n";
 
 	mvect1 = mframeA.GetInverse() * mvect2; 
-	GetLog() << mvect1 << " ..inv, using a ChFrame '*' operator, \n";
+	GetLog() << mvect1 << " ..inv, using a ChFrame inverse and  '*' operator, \n";
 
 	mvect1 = mframeA / mvect2; 
 	GetLog() << mvect1 << " ..inv, using a ChFrame '/' operator, \n";
@@ -259,6 +271,14 @@ int main(int argc, char* argv[])
 	GetLog() << mvect1 << " ..inv three transf (another method) \n";
 
 
+	//
+	// Now test the * and >> operators with mixed-types operators
+	//
+
+	ChFrame<> mframeA1(vtraslA, qrotA); 
+	ChFrameMoving<> mframemovingB1(vtraslA, qrotA);
+	ChFrame<> mresf = mframemovingB1 * mframeA1;
+	ChFrame<> mresg = mframeA1 * mframemovingB1;
 
 	//
 	// BENCHMARK FOR EXECUTION SPEED
