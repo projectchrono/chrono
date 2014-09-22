@@ -110,7 +110,7 @@ class CH_PARALLEL_API ChLcpSolverParallelDVI : public ChLcpSolverParallel {
    void SetCompliance(real a) {
       data_container->settings.solver.alpha = a;
    }
-   void ChangeSolverType(GPUSOLVERTYPE type) {
+   void ChangeSolverType(SOLVERTYPE type) {
       data_container->settings.solver.solver_type = type;
 
       if (this->solver) {

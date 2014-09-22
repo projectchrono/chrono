@@ -157,7 +157,7 @@ using namespace thrust;
 #define Thrust_Total(x)                 thrust::reduce(x.begin(),x.end())
 #define DBG(x)                          printf(x);
 
-enum GPUSOLVERTYPE {
+enum SOLVERTYPE {
    STEEPEST_DESCENT,
    GRADIENT_DESCENT,
    CONJUGATE_GRADIENT,

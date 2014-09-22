@@ -72,7 +72,7 @@ struct solver_settings {
       step_size = .01;
    }
 
-   GPUSOLVERTYPE solver_type;
+   SOLVERTYPE solver_type;
    SOLVERMODE solver_mode;
    real alpha;
 

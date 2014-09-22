@@ -123,7 +123,7 @@ CH_RTTI(ChSystemParallelDVI, ChSystemParallel)
 
  public:
    ChSystemParallelDVI(unsigned int max_objects = 1000);
-   void ChangeSolverType(GPUSOLVERTYPE type) {
+   void ChangeSolverType(SOLVERTYPE type) {
       ((ChLcpSolverParallelDVI *) (LCP_solver_speed))->ChangeSolverType(type);
    }
    virtual void LoadMaterialSurfaceData(ChSharedPtr<ChBody> newbody);
