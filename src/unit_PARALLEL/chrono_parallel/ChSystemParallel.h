@@ -85,18 +85,6 @@ CH_RTTI(ChSystemParallel, ChSystem)
       return data_manager->num_bilaterals;
    }
 
-   void DoThreadTuning(bool m) {
-      perform_thread_tuning = m;
-   }
-
-   void DoBinTuning(bool m) {
-      perform_bin_tuning = m;
-   }
-
-   void SetMinThreads(int m) {
-      min_threads = m;
-   }
-
    double GetTimerCollision() {
       return timer_collision;
    }
@@ -108,9 +96,9 @@ CH_RTTI(ChSystemParallel, ChSystem)
  protected:
 
    double timer_collision, old_timer, old_timer_cd;
-   bool detect_optimal_threads, perform_thread_tuning, perform_bin_tuning;
+   bool detect_optimal_threads;
 
-   int max_threads, current_threads, min_threads;
+   int current_threads;
    int detect_optimal_bins;
    std::vector<double> timer_accumulator, cd_accumulator;
    uint frame_threads, frame_bins, counter;

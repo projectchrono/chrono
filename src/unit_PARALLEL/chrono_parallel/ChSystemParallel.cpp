@@ -25,10 +25,6 @@ ChSystemParallel::ChSystemParallel(unsigned int max_objects)
    detect_optimal_threads = false;
    detect_optimal_bins = false;
    current_threads = 2;
-   perform_thread_tuning = true;
-   perform_bin_tuning = true;
-   min_threads = 1;
-   max_threads = CHOMPfunctions::GetNumProcs();
 
 
    data_manager->system_timer.AddTimer("step");
@@ -132,10 +128,10 @@ int ChSystemParallel::Integrate_Y() {
    timer_lcp = data_manager->system_timer.GetTime("lcp");
    timer_step = data_manager->system_timer.GetTime("step");
 
-   if (perform_thread_tuning) {
+   if (data_manager->settings.perform_thread_tuning) {
       RecomputeThreads();
    }
-   if (perform_bin_tuning) {
+   if (data_manager->settings.perform_bin_tuning) {
       RecomputeBins();
    }
 
@@ -289,7 +285,7 @@ void ChSystemParallel::RecomputeThreads() {
 
    if (frame_threads == 50 && detect_optimal_threads == false) {
       frame_threads = 0;
-      if (current_threads + 2 < max_threads) {
+      if (current_threads + 2 < data_manager->settings.max_threads) {
          detect_optimal_threads = true;
          old_timer = sum_of_elems / 10.0;
          current_threads += 2;
@@ -298,8 +294,8 @@ void ChSystemParallel::RecomputeThreads() {
          cout << "current threads increased to " << current_threads << endl;
 #endif
       } else {
-         current_threads = max_threads;
-         omp_set_num_threads(max_threads);
+         current_threads = data_manager->settings.max_threads;
+         omp_set_num_threads(data_manager->settings.max_threads);
 #if PRINT_LEVEL==1
          cout << "current threads increased to " << current_threads << endl;
 #endif
@@ -317,9 +313,9 @@ void ChSystemParallel::RecomputeThreads() {
       }
    }
 
-   if (current_threads < min_threads) {
-      current_threads = min_threads;
-      omp_set_num_threads(min_threads);
+   if (current_threads < data_manager->settings.min_threads) {
+      current_threads = data_manager->settings.min_threads;
+      omp_set_num_threads(data_manager->settings.min_threads);
    }
    frame_threads++;
 }

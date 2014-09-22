@@ -51,7 +51,6 @@ class CH_PARALLEL_API ChLcpSolverParallel : public ChLcpIterativeSolver {
    }
 
    virtual ~ChLcpSolverParallel() {
-
    }
 
    virtual double Solve(ChLcpSystemDescriptor &sysd) {
@@ -73,14 +72,6 @@ class CH_PARALLEL_API ChLcpSolverParallel : public ChLcpIterativeSolver {
    virtual void RunTimeStep(real step) = 0;
    void Preprocess();
 
-   void SetTolerance(real tol) {
-      tolerance = tol;
-      data_container->settings.solver.tolerance = tolerance;
-   }
-
-   void SetMaxIterationBilateral(uint max_iter) {
-      data_container->settings.solver.max_iteration_bilateral = max_iter;
-   }
    real GetResidual() {
       return residual;
    }
@@ -107,16 +98,12 @@ class CH_PARALLEL_API ChLcpSolverParallelDVI : public ChLcpSolverParallel {
    void RunWarmStartPreprocess();
    void ComputeN();
 
-   void SetCompliance(real a) {
-      data_container->settings.solver.alpha = a;
-   }
    void ChangeSolverType(SOLVERTYPE type) {
       data_container->settings.solver.solver_type = type;
 
       if (this->solver) {
          delete (this->solver);
       }
-
       if (type == STEEPEST_DESCENT) {
          solver = new ChSolverSD();
       } else if (type == GRADIENT_DESCENT) {
@@ -145,32 +132,9 @@ class CH_PARALLEL_API ChLcpSolverParallelDVI : public ChLcpSolverParallel {
       } else if (type == GAUSS_SEIDEL) {
          solver = new ChSolverPGS();
       }
-
-   }
-
-   void SetMaxIteration(uint max_iter) {
-      data_container->settings.solver.max_iteration = max_iter;
-      data_container->settings.solver.max_iteration_normal = max_iter;
-      data_container->settings.solver.max_iteration_sliding = max_iter;
-      data_container->settings.solver.max_iteration_spinning = max_iter;
-      data_container->settings.solver.max_iteration_bilateral = max_iter;
-   }
-   void SetContactRecoverySpeed(real recovery_speed) {
-      data_container->settings.solver.contact_recovery_speed = fabs(recovery_speed);
-   }
-   void DoStabilization(bool stab) {
-      data_container->settings.solver.perform_stabilization = stab;
-   }
-   void DoCollision(bool do_collision) {
-      data_container->settings.solver.collision_in_solver = do_collision;
-   }
-   void DoUpdateRHS(bool do_update_rhs) {
-      data_container->settings.solver.update_rhs = do_update_rhs;
    }
    ChSolverParallel *solver;
-
  private:
-
    ChConstraintRigidRigid rigid_rigid;
 };
 

@@ -25,6 +25,9 @@
 #include "chrono_parallel/math/ChParallelMath.h"
 #include "chrono_parallel/ChTimerParallel.h"
 #include <blaze/math/CompressedMatrix.h>
+#include "parallel/ChOpenMP.h"
+
+
 using blaze::CompressedMatrix;
 namespace chrono {
 struct collision_settings {
@@ -97,11 +100,26 @@ struct solver_settings {
 
 struct settings_container {
 
+   settings_container(){
+      min_threads = 1;
+      max_threads = CHOMPfunctions::GetNumProcs();
+      // Only perform thread tuning if max threads is greater than min_threads;
+      // I don't really check to see if max_threads is > than min_threads
+      // not sure if that is a huge issue
+      perform_thread_tuning = min_threads == max_threads? false: true;
+      perform_bin_tuning = true;
+
+   }
+
    //CD Settings
    collision_settings collision;
    //Solver Settings
    solver_settings solver;
    //System Settings
+   bool perform_thread_tuning;
+   bool perform_bin_tuning;
+   int min_threads;
+   int max_threads;
 
 };
 struct host_container {
