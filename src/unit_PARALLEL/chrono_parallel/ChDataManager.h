@@ -106,7 +106,7 @@ struct settings_container {
       // Only perform thread tuning if max threads is greater than min_threads;
       // I don't really check to see if max_threads is > than min_threads
       // not sure if that is a huge issue
-      perform_thread_tuning = min_threads == max_threads? false: true;
+      perform_thread_tuning = ((min_threads == max_threads) ? false: true);
       perform_bin_tuning = true;
 
    }

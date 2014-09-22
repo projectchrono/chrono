@@ -385,7 +385,7 @@ void ChLcpSolverParallelDVI::RunWarmStartPreprocess() {
 }
 
 void ChLcpSolverParallelDVI::ComputeN() {
-   if (data_container->num_contacts > 0) {
+   if (data_container->num_constraints > 0) {
       data_container->host_data.D.reset();
       data_container->host_data.Nshur.reset();
       data_container->host_data.M_inv.reset();
