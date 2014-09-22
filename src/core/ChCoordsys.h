@@ -115,6 +115,89 @@ public:
 	bool operator==(const ChCoordsys<Real>& other) const { return rot==other.rot && pos==other.pos;}
 	bool operator!=(const ChCoordsys<Real>& other) const { return rot!=other.rot || pos!=other.pos;}
 
+		/// The '>>' operator transforms a coordinate system, so
+		/// transformations can be represented with this syntax:
+		///  new_frame = old_frame >> tr_frame;
+		/// For a sequence of transformations, i.e. a chain of coordinate
+		/// systems, you can also write this (like you would do with
+		/// a sequence of Denavitt-Hartemberg matrix multiplications,
+		/// but in the _opposite_ order...)
+		///  new_frame = old_frame >> frame3to2 >> frame2to1 >> frame1to0;
+		/// This operation is not commutative.
+	ChCoordsys<Real> operator >> (const ChCoordsys<Real>& Fb) const
+		{
+			return Fb.TransformLocalToParent(*this);
+		}
+
+		/// The '>>' operator transforms a vector, so transformations
+		/// can be represented with this syntax:
+		///  new_v = old_v >> tr_frame;
+		/// For a sequence of transformations, i.e. a chain of coordinate
+		/// systems, you can also write this (like you would do with
+		/// a sequence of Denavitt-Hartemberg matrix multiplications,
+		/// but in the opposite order...)
+		///  new_v = old_v >> frame3to2 >> frame2to1 >> frame1to0;
+		/// This operation is not commutative.
+	friend ChVector<Real> operator >> (const ChVector<Real>& V, const ChCoordsys<Real>& mcsys)
+		{
+			return mcsys.TransformLocalToParent(V);
+		}
+
+		/// The '*' operator transforms a coordinate system, so
+		/// transformations can be represented with this syntax:
+		///  new_frame = tr_frame * old_frame;
+		/// For a sequence of transformations, i.e. a chain of coordinate
+		/// systems, you can also write this (just like you would do with
+		/// a sequence of Denavitt-Hartemberg matrix multiplications!)
+		///  new_frame = frame1to0 * frame2to1 * frame3to2 * old_frame;
+		/// This operation is not commutative.
+		///  NOTE: since c++ operator execution is from left to right, in
+		/// case of multiple transformations like w=A*B*C*v, the >> operator
+		/// performs faster, like  w=v>>C>>B>>A;
+	ChCoordsys<Real> operator * (const ChCoordsys<Real>& Fb) const
+		{
+			return this->TransformLocalToParent(Fb);
+		}
+
+		/// The '*' operator transforms a vector, so
+		/// transformations can be represented with this syntax:
+		///  new_v = tr_frame * old_v;
+		/// For a sequence of transformations, i.e. a chain of coordinate
+		/// systems, you can also write this (just like you would do with
+		/// a sequence of Denavitt-Hartemberg matrix multiplications!)
+		///  new_v = frame1to0 * frame2to1 * frame3to2 * old_v;
+		/// This operation is not commutative.
+		///  NOTE: since c++ operator execution is from left to right, in
+		/// case of multiple transformations like w=A*B*C*v, the >> operator
+		/// performs faster, like  w=v>>C>>B>>A;
+	ChVector<Real> operator * (const ChVector<Real>& V) const
+		{
+				return this->TransformLocalToParent(V);
+		}
+
+		/// The '/' is like the '*' operator (see), but uses the inverse
+		/// transformation for A, in A/b. (with A ChFrame, b ChVector)
+		/// That is: c=A*b ; b=A/c;
+	ChVector<Real> operator / (const ChVector<Real>& V) const
+		{
+			return TransformParentToLocal(V);
+		}
+
+		/// Performs pre-multiplication of this frame by another
+		/// frame, for example: A>>=T means  A'=T*A ; or A'=A >> T
+	ChCoordsys<Real>& operator >>= (const ChCoordsys<Real>& T)
+		{
+			ConcatenatePreTransformation(T);
+			return *this;
+		}
+
+		/// Performs post-multiplication of this frame by another
+		/// frame, for example: A*=T means  A'=A*T ; or A'=T >> A
+	ChCoordsys<Real>& operator *= (const ChCoordsys<Real>& T)
+		{
+			ConcatenatePostTransformation(T);
+			return *this;
+		}
 
 	//
 	// FUNCTIONS
@@ -144,63 +227,85 @@ public:
 			rot = ChQuaternion<Real>(1, 0, 0, 0);
 		}
 
-	// POINT TRANSFORMATIONS, USING POSITION AND ROTATION QUATERNION
 
-    /// This function transforms a point from the local coordinate
-    /// system to the parent coordinate system. Relative position of local respect
-    /// to parent is given by this coordys, i.e. 'origin' translation and 'alignment' quaternion.
-    /// \return The point in parent coordinate, as parent=origin +q*[0,(local)]*q'
-  ChVector<Real> TransformLocalToParent(const ChVector<Real>& local) const
-  {
-    return pos + rot.Rotate(local);
-  }
+	// FUNCTIONS TO TRANSFORM THE FRAME ITSELF
 
-  ChVector<Real> TransformPointLocalToParent(const ChVector<Real>& local) const
-  {
-    return pos + rot.Rotate(local);
-  }
 
-    /// This function transforms a point from the parent coordinate
-    /// system to a local coordinate system, whose relative position 
-    /// is given by this coodsys, i.e. 'origin' translation and 'alignment' quaternion.
-    /// \return The point in local coordinate, as local=q'*[0,(parent-origin)]*q
-  ChVector<Real> TransformParentToLocal(const ChVector<Real>& parent) const
-  {
-    return rot.RotateBack(parent - pos);
-  }
+		/// Apply a transformation (rotation and translation) represented by
+		/// another ChCoordsys T. This is equivalent to pre-multiply this csys
+		/// by the other csys T:   this'= T * this; or this' = this >> T
+	void ConcatenatePreTransformation(const ChCoordsys<Real>& T)
+		{
+			this->pos = T.TransformLocalToParent(coord.pos);
+			this->rot = T.coord.rot * coord.rot;
+		}
 
-  ChVector<Real> TransformPointParentToLocal(const ChVector<Real>& parent) const
-  {
-    return rot.RotateBack(parent - pos);
-  }
+		/// Apply a transformation (rotation and translation) represented by
+		/// another ChCoordsys T in local coordinate. This is equivalent to
+		/// post-multiply this csys by the other csys T:   this'= this * T; or this'= T >> this
+	void ConcatenatePostTransformation(const ChCoordsys<Real>& T)
+		{
+			this->pos = TransformLocalToParent(T.coord.pos);
+			this->rot = coord.rot * T.coord.rot;
+		}
 
-    /// This function transforms a direction from 'this' local coordinate system
-    /// to the parent coordinate system.
-  ChVector<Real> TransformDirectionLocalToParent(const ChVector<Real>& local) const
-  {
-    return rot.Rotate(local);
-  }
+	// FUNCTIONS FOR COORDINATE TRANSFORMATIONS
 
-    /// This function transforms a direction from the parent coordinate system to
-    /// 'this' local coordinate system.
-  ChVector<Real> TransformDirectionParentToLocal(const ChVector<Real>& parent) const
-  {
-    return rot.RotateBack(parent);
-  }
+		/// This function transforms a point from the local coordinate
+		/// system to the parent coordinate system. Relative position of local respect
+		/// to parent is given by this coordys, i.e. 'origin' translation and 'alignment' quaternion.
+		/// \return The point in parent coordinate, as parent=origin +q*[0,(local)]*q'
+	ChVector<Real> TransformLocalToParent(const ChVector<Real>& local) const
+	{
+		return pos + rot.Rotate(local);
+	}
 
-    /// This function transforms a coordsys given in 'this' coordinate system to
-    /// the parent coordinate system
-  ChCoordsys<Real> TransformLocalToParent(const ChCoordsys<Real>& local) const
-  {
-    return ChCoordsys<Real>(TransformLocalToParent(local.pos), rot % local.rot);
-  }
+	ChVector<Real> TransformPointLocalToParent(const ChVector<Real>& local) const
+	{
+		return pos + rot.Rotate(local);
+	}
 
-    /// This function transforms a coordsys given in the parent coordinate system 
-    /// to 'this' coordinate system
-  ChCoordsys<Real> TransformParentToLocal(const ChCoordsys<Real>& parent) const
-  {
-    return ChCoordsys<Real>(TransformParentToLocal(parent.pos), rot.GetConjugate() % parent.rot);
-  }
+		/// This function transforms a point from the parent coordinate
+		/// system to a local coordinate system, whose relative position 
+		/// is given by this coodsys, i.e. 'origin' translation and 'alignment' quaternion.
+		/// \return The point in local coordinate, as local=q'*[0,(parent-origin)]*q
+	ChVector<Real> TransformParentToLocal(const ChVector<Real>& parent) const
+	{
+		return rot.RotateBack(parent - pos);
+	}
+
+	ChVector<Real> TransformPointParentToLocal(const ChVector<Real>& parent) const
+	{
+		return rot.RotateBack(parent - pos);
+	}
+
+		/// This function transforms a direction from 'this' local coordinate system
+		/// to the parent coordinate system.
+	ChVector<Real> TransformDirectionLocalToParent(const ChVector<Real>& local) const
+	{
+		return rot.Rotate(local);
+	}
+
+		/// This function transforms a direction from the parent coordinate system to
+		/// 'this' local coordinate system.
+	ChVector<Real> TransformDirectionParentToLocal(const ChVector<Real>& parent) const
+	{
+		return rot.RotateBack(parent);
+	}
+
+		/// This function transforms a coordsys given in 'this' coordinate system to
+		/// the parent coordinate system
+	ChCoordsys<Real> TransformLocalToParent(const ChCoordsys<Real>& local) const
+	{
+		return ChCoordsys<Real>(TransformLocalToParent(local.pos), rot % local.rot);
+	}
+
+		/// This function transforms a coordsys given in the parent coordinate system 
+		/// to 'this' coordinate system
+	ChCoordsys<Real> TransformParentToLocal(const ChCoordsys<Real>& parent) const
+	{
+		return ChCoordsys<Real>(TransformParentToLocal(parent.pos), rot.GetConjugate() % parent.rot);
+	}
 
 	//
 	// STREAMING
