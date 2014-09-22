@@ -1,0 +1,7 @@
+/**
+\mainpage Description
+
+Chrono-parallel, an extension of <a href="http://www.chronoengine.info/chronoengine/">Chrono</a>, is a C++ library for high-performance parallel solution of large-scale problems with friction and contact.
+
+
+*/
