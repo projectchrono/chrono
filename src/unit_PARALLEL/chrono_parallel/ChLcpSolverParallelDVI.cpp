@@ -385,23 +385,26 @@ void ChLcpSolverParallelDVI::RunWarmStartPreprocess() {
 
 void ChLcpSolverParallelDVI::ComputeN() {
    if (data_container->num_constraints > 0) {
-      data_container->host_data.D.reset();
+      data_container->host_data.D_T.reset();
       data_container->host_data.Nshur.reset();
       data_container->host_data.M_inv.reset();
 
       data_container->host_data.M_inv.resize(data_container->num_bodies * 6, data_container->num_bodies * 6);
       data_container->host_data.M_inv.reserve(data_container->num_bodies * 6);
-      data_container->host_data.D.resize(data_container->num_bodies * 6, data_container->num_constraints);
+      data_container->host_data.D_T.resize(data_container->num_constraints, data_container->num_bodies * 6);
       if (data_container->settings.solver.solver_mode == NORMAL) {
-         data_container->host_data.D.reserve(data_container->num_contacts * 6 * 3 + data_container->num_bilaterals * 6 * 2);
+         data_container->host_data.D_T.reserve(data_container->num_contacts * 6 * 3 + data_container->num_bilaterals * 6 * 2);
       } else if (data_container->settings.solver.solver_mode == SLIDING) {
-         data_container->host_data.D.reserve(data_container->num_contacts * 6 * 6 + data_container->num_bilaterals * 6 * 2);
+         data_container->host_data.D_T.reserve(data_container->num_contacts * 6 * 6 + data_container->num_bilaterals * 6 * 2);
       } else if (data_container->settings.solver.solver_mode == SPINNING) {
-         data_container->host_data.D.reserve(data_container->num_contacts * 6 * 9 + data_container->num_bilaterals * 6 * 2);
+         data_container->host_data.D_T.reserve(data_container->num_contacts * 6 * 9 + data_container->num_bilaterals * 6 * 2);
       }
-
+      //std::cout << data_container->host_data.D_T.rows() << " " << data_container->host_data.D_T.columns() << std::endl;
       rigid_rigid.Build_D(data_container->settings.solver.solver_mode);
       bilateral.Build_D();
+
+      // std::cout<<data_container->host_data.cohesion_data.size()<<std::endl;
+      // std::cout<<data_container->num_bodies<<std::endl;
 
       for (int i = 0; i < data_container->num_bodies; i++) {
          if (data_container->host_data.active_data[i]) {
@@ -419,7 +422,7 @@ void ChLcpSolverParallelDVI::ComputeN() {
             data_container->host_data.M_inv.finalize(i * 6 + 5);
          }
       }
-      data_container->host_data.D_T = trans(data_container->host_data.D);
+      data_container->host_data.D = trans(data_container->host_data.D_T);
       data_container->host_data.M_invD = data_container->host_data.M_inv * data_container->host_data.D;
       //data_container->host_data.Nshur = data_container->host_data.D_T * data_container->host_data.M_invD;
 //      for (int i = 0; i < data_container->host_data.Nshur.rows(); i++) {
@@ -433,7 +436,6 @@ void ChLcpSolverParallelDVI::ComputeN() {
 //            std::cout <<"("<<i<<","<<j<<") = "<< data_container->host_data.D(i, j) << std::endl;
 //         }
 //      }
-
 
    }
 }

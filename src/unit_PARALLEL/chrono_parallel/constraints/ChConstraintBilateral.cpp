@@ -309,24 +309,25 @@ void ChConstraintBilateral::Build_D() {
       int2 body_id = data_container->host_data.bids_bilateral[index];
 
       XYZ = data_container->host_data.JXYZA_bilateral[index];
-      data_container->host_data.D.insert(body_id.x * 6 + 0, index + num_unilaterals, XYZ.x);
-      data_container->host_data.D.insert(body_id.x * 6 + 1, index + num_unilaterals, XYZ.y);
-      data_container->host_data.D.insert(body_id.x * 6 + 2, index + num_unilaterals, XYZ.z);
+      data_container->host_data.D_T.append( index + num_unilaterals,body_id.x * 6 + 0, XYZ.x);
+      data_container->host_data.D_T.append( index + num_unilaterals,body_id.x * 6 + 1, XYZ.y);
+      data_container->host_data.D_T.append( index + num_unilaterals,body_id.x * 6 + 2, XYZ.z);
 
       UVW = data_container->host_data.JUVWA_bilateral[index];
-      data_container->host_data.D.insert(body_id.x * 6 + 3, index + num_unilaterals, UVW.x);
-      data_container->host_data.D.insert(body_id.x * 6 + 4, index + num_unilaterals, UVW.y);
-      data_container->host_data.D.insert(body_id.x * 6 + 5, index + num_unilaterals, UVW.z);
-
+      data_container->host_data.D_T.append( index + num_unilaterals,body_id.x * 6 + 3, UVW.x);
+      data_container->host_data.D_T.append( index + num_unilaterals,body_id.x * 6 + 4, UVW.y);
+      data_container->host_data.D_T.append( index + num_unilaterals,body_id.x * 6 + 5, UVW.z);
       XYZ = data_container->host_data.JXYZB_bilateral[index];
-      data_container->host_data.D.insert(body_id.y * 6 + 0, index + num_unilaterals, XYZ.x);
-      data_container->host_data.D.insert(body_id.y * 6 + 1, index + num_unilaterals, XYZ.y);
-      data_container->host_data.D.insert(body_id.y * 6 + 2, index + num_unilaterals, XYZ.z);
+      data_container->host_data.D_T.append( index + num_unilaterals,body_id.y * 6 + 0, XYZ.x);
+      data_container->host_data.D_T.append( index + num_unilaterals,body_id.y * 6 + 1, XYZ.y);
+      data_container->host_data.D_T.append( index + num_unilaterals,body_id.y * 6 + 2, XYZ.z);
 
       UVW = data_container->host_data.JUVWB_bilateral[index];
-      data_container->host_data.D.insert(body_id.y * 6 + 3, index + num_unilaterals, UVW.x);
-      data_container->host_data.D.insert(body_id.y * 6 + 4, index + num_unilaterals, UVW.y);
-      data_container->host_data.D.insert(body_id.y * 6 + 5, index + num_unilaterals, UVW.z);
+      data_container->host_data.D_T.append( index + num_unilaterals,body_id.y * 6 + 3, UVW.x);
+      data_container->host_data.D_T.append( index + num_unilaterals,body_id.y * 6 + 4, UVW.y);
+      data_container->host_data.D_T.append( index + num_unilaterals,body_id.y * 6 + 5, UVW.z);
+
+      data_container->host_data.D_T.finalize(index + num_unilaterals);
    }
 }
 
