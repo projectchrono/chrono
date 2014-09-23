@@ -216,6 +216,7 @@ private:
 
   ChSystem*                          m_system;
   SystemType                         m_sysType;
+  CollisionType						 m_collisionType;
 
   std::uniform_real_distribution<>   m_mixDist;
 

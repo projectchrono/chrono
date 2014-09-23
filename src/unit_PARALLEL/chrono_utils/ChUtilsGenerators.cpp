@@ -281,6 +281,7 @@ Generator::Generator(ChSystem* system)
   m_totalVolume(0)
 {
   m_sysType = GetSystemType(system);
+  m_collisionType = GetCollisionType(system);
 }
 
 // Destructor
@@ -501,7 +502,14 @@ void Generator::createObjects(const PointVector& points,
       m_mixture[index]->setMaterialProperties(((ChBodyDEM*) body)->GetMaterialSurfaceDEM());
       break;
     case PARALLEL_DVI:
-      body = new ChBody(new collision::ChCollisionModelParallel);
+      switch (m_collisionType) {
+      case BULLET_CD:
+    	  body = new ChBody();
+    	  break;
+      case PARALLEL_CD:
+    	  body = new ChBody(new collision::ChCollisionModelParallel);
+    	  break;
+      }
       m_mixture[index]->setMaterialProperties(body->GetMaterialSurface());
       break;
     case PARALLEL_DEM:
