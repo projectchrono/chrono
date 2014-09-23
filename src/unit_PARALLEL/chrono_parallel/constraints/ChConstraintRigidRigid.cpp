@@ -609,7 +609,7 @@ void ChConstraintRigidRigid::host_shurA_normal(real * gamma,
                                                real3 * updateO) {
 #pragma omp parallel for
    for (int index = 0; index < num_contacts; index++) {
-      real gam = gamma[index * 6];
+      real gam = gamma[_index_];
       real3 U = norm[index];
       updateV[index] = -U * gam;
       //updateV[index + num_contacts] = U * gam;
