@@ -174,10 +174,8 @@ void ChConstraintRigidRigid::host_Project_single(int index,
 
       real gamma_x = gamma[_index_ + 0];
       int2 body_id = ids[index];
-      real coh = (cohesion[body_id.x] + cohesion[body_id.y]) * .5;
-      if (coh < 0) {
-         coh = 0;
-      }
+      real coh = cohesion[index];
+
       gamma_x += coh;
 
       gamma_x = gamma_x < 0 ? 0 : gamma_x - coh;
@@ -209,10 +207,8 @@ void ChConstraintRigidRigid::host_Project(int2 *ids,
       for (int index = 0; index < num_contacts; index++) {
          real gamma_x = gamma[_index_ + 0];
          int2 body_id = ids[index];
-         real coh = (cohesion[body_id.x] + cohesion[body_id.y]) * .5;
-         if (coh < 0) {
-            coh = 0;
-         }
+         real coh = cohesion[index];
+
          gamma_x += coh;
 
          gamma_x = gamma_x < 0 ? 0 : gamma_x - coh;
