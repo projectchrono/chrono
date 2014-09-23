@@ -95,6 +95,10 @@ SET(Chrono_Brake_FILES
     brake/BrakeSimple.cpp
 )
 
+SET(Chrono_terrain_FILES
+	terrain/FlatTerrain.h
+	terrain/FlatTerrain.cpp
+)
 
 IF (ENABLE_IRRLICHT)
     SET(Chrono_Driver_FILES ${Chrono_Driver_FILES}
@@ -117,6 +121,7 @@ SOURCE_GROUP("driver" FILES ${Chrono_Driver_FILES})
 SOURCE_GROUP("powertrain" FILES ${Chrono_Powertrain_FILES})
 SOURCE_GROUP("tire" FILES ${Chrono_Tire_FILES})
 SOURCE_GROUP("brake" FILES ${Chrono_Brake_FILES})
+SOURCE_GROUP("terrain" FILES ${Chrono_terrain_FILES})
 
 # ------------------------------------------------------------------------------
 # ADD THE Chrono_Subsys LIBRARY
@@ -132,6 +137,7 @@ ADD_LIBRARY(Chrono_Subsys SHARED
     ${Chrono_Powertrain_FILES}
     ${Chrono_Tire_FILES}
     ${Chrono_Brake_FILES}
+	${Chrono_terrain_FILES}
 )
 
 SET_TARGET_PROPERTIES(Chrono_Subsys PROPERTIES

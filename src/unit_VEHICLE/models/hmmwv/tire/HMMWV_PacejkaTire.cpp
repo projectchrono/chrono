@@ -12,14 +12,12 @@
 // Authors: Justin Madsen
 // =============================================================================
 
+#include "HMMWV_PacejkaTire.h"
 #include "utils/ChUtilsData.h"
-
-#include "models/hmmwv/tire/HMMWV_PacejkaTire.h"
 
 namespace hmmwv {
 
 using namespace chrono;
-
 // -----------------------------------------------------------------------------
 // Static variables
 // -----------------------------------------------------------------------------
@@ -27,24 +25,29 @@ const std::string HMMWV_PacejkaTire::m_defaultOutFilename = "PacTire";
 const std::string HMMWV_PacejkaTire::m_defaultPacTireParamFile = utils::GetModelDataFile("hmmwv/pactest.tir");
 
 
-// -----------------------------------------------------------------------------
-// -----------------------------------------------------------------------------
-HMMWV_PacejkaTire::HMMWV_PacejkaTire(ChTerrain& terrain)
-: ChPacejkaTire(terrain, m_defaultPacTireParamFile)
+HMMWV_PacejkaTire::HMMWV_PacejkaTire(ChTerrain& terrain, const ChBodyState& ICs):
+    ChPacejkaTire(m_defaultPacTireParamFile,terrain,ICs,false)
 {
+
+
 }
 
-HMMWV_PacejkaTire::HMMWV_PacejkaTire(ChTerrain&         terrain,
-                                     const std::string& pacTire_paramFile)
-: ChPacejkaTire(terrain, pacTire_paramFile)
+HMMWV_PacejkaTire::HMMWV_PacejkaTire(const std::string& pacTire_paramFile, ChTerrain& terrain,
+															 const ChBodyState& ICs, 
+															 const double step_size, 
+															 const bool use_transient_slip,
+															 const double Fz_override):
+    ChPacejkaTire(pacTire_paramFile, terrain, ICs, step_size, use_transient_slip, Fz_override)
 {
+
+
 }
 
 // copy constructor, only right/left tyreside may be different
-HMMWV_PacejkaTire::HMMWV_PacejkaTire(const HMMWV_PacejkaTire& tire,
-                                     ChWheelId                which)
-: ChPacejkaTire(tire, which)
+HMMWV_PacejkaTire::HMMWV_PacejkaTire(const HMMWV_PacejkaTire& tire, chrono::ChWheelId which):
+	ChPacejkaTire(tire, which)
 {
+
 }
 
 

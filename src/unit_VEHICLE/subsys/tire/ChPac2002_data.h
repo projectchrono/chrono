@@ -5,7 +5,37 @@
 
 namespace chrono{
 
-// all the sections are declared first
+// important slip quantities
+typedef struct slips{
+	double kappa;			// INPUT desired slip rate
+	double alpha;			// INPUT turn slip angle
+	double alpha_star;// INPUT tan(alpha)
+	double gamma;			// INPUT camber angle
+
+	double V_cx;	// tire c-sys  x-vel.
+	double V_cy;	// tire c-sys y-vel
+	double V_sx;	// tire c-sys x-dir slip velocity
+	double V_sy;	// y-dir slip vel
+	double psi_dot;	// turn slip angular velocity
+
+	double cosPrime_alpha;
+
+	// slip displacements
+	double u;	// contact patch slip displacement
+	double v_alpha;
+	double v_gamma;
+	double v_phi;
+	
+	//  slips used in all calculations (can be INPUTs or transient slips)
+	double alphaP;
+	double kappaP;
+	double gammaP;
+	double phiT;
+	double phiP;
+} slips;
+
+
+// input data file structs
 typedef struct model{
   std::string property_file_format;
   int use_mode;
@@ -216,6 +246,126 @@ typedef struct Pac2002_data{
   struct rolling_coefficients rolling_coefficients;
   struct aligning_coefficients aligning_coefficients;
 } Pac2002_data;
+
+
+
+// -----------
+// debugging
+
+typedef struct pureLongCoefs{
+	double S_Hx;
+	double kappa_x;
+	double mu_x;
+	double K_xKappa;
+	double B_x;
+	double C_x;
+	double D_x;
+	double E_x;
+	double F_x;
+	double S_Vx;
+
+} pureLongCoefs;
+
+
+typedef struct pureLatCoefs{
+	double S_Hy;
+	double alpha_y;
+	double mu_y;
+	double K_yAlpha;
+	double K_yGamma_0;
+	double S_VyGamma;
+	double S_Vy;
+	double B_y;
+	double C_y;
+	double D_y;
+	double E_y;
+	double F_y;
+} pureLatCoefs;
+
+typedef struct zetaCoefs{
+	double z0;
+	double z1;
+	double z2;
+	double z3;
+	double z4;
+	double z5;
+	double z6;
+	double z7;
+	double z8;
+} zetaCoefs;
+
+typedef struct PureTorqueCoefs{
+	double S_Hf;
+	double alpha_r;
+	double S_Ht;
+	double alpha_t;
+	double cosPAlpha;
+	double KP_yAlpha;
+
+	double B_r;
+	double C_r;
+	double D_r;
+
+	double B_t;
+	double C_t;
+	double D_t0;
+	double D_t;
+	double E_t;
+	double t0;
+
+	double MP_z0;
+	double M_zr0;
+	
+
+} pureTorqueCoefs;
+
+
+typedef struct combinedLongCoefs {
+	double S_HxAlpha;
+	double alpha_S;
+	double B_xAlpha;
+	double C_xAlpha;
+	double E_xAlpha;
+	double G_xAlpha0;
+	double G_xAlpha;
+	
+} combinedLongCoefs;
+
+
+typedef struct combinedLatCoefs{
+	double S_HyKappa;
+	double kappa_S;
+	double B_yKappa;
+	double C_yKappa;
+	double E_yKappa;
+	double D_VyKappa;
+	double S_VyKappa;
+	double G_yKappa0;
+	double G_yKappa;
+
+} combinedLatCoefs;
+
+
+typedef struct combinedTorqueCoefs{
+	double cosPAlpha;
+	double FP_y;
+	double s;
+	double alpha_t_eq;
+	double alpha_r_eq;
+	double M_zr;
+	double t;
+	double MP_z;
+
+} combinedTorqueCoefs;
+
+typedef struct relaxationL{
+	double C_Falpha;
+	double sigma_alpha;
+	double C_Fkappa;
+	double sigma_kappa;
+	double C_Fgamma;
+	double C_Fphi;
+} relaxationL;
 
 } // end namespace chrono
 #endif
