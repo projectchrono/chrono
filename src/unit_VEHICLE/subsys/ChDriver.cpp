@@ -44,17 +44,17 @@ double clamp(double val, double min_val, double max_val)
   return val;
 }
 
-void ChDriver::setSteering(double val, double min_val, double max_val)
+void ChDriver::SetSteering(double val, double min_val, double max_val)
 {
   m_steering = clamp(val, min_val, max_val);
 }
 
-void ChDriver::setThrottle(double val, double min_val, double max_val)
+void ChDriver::SetThrottle(double val, double min_val, double max_val)
 {
   m_throttle = clamp(val, min_val, max_val);
 }
 
-void ChDriver::setBraking(double val, double min_val, double max_val)
+void ChDriver::SetBraking(double val, double min_val, double max_val)
 {
   m_braking = clamp(val, min_val, max_val);
 }

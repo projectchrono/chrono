@@ -106,20 +106,20 @@ bool ChIrrGuiDriver::OnEvent(const SEvent& event)
 
     switch (event.KeyInput.Key) {
     case KEY_KEY_A:
-      setSteering(m_steering - m_steeringDelta);
+      SetSteering(m_steering - m_steeringDelta);
       return true;
     case KEY_KEY_D:
-      setSteering(m_steering + m_steeringDelta);
+      SetSteering(m_steering + m_steeringDelta);
       return true;
     case KEY_KEY_W:
-      setThrottle(m_throttle + m_throttleDelta);
+      SetThrottle(m_throttle + m_throttleDelta);
       if (m_throttle > 0)
-        setBraking(m_braking - m_brakingDelta*3.0);
+        SetBraking(m_braking - m_brakingDelta*3.0);
       return true;
     case KEY_KEY_S:
-      setThrottle(m_throttle - m_throttleDelta*3.0);
+      SetThrottle(m_throttle - m_throttleDelta*3.0);
       if (m_throttle <= 0)
-        setBraking(m_braking + m_brakingDelta);
+        SetBraking(m_braking + m_brakingDelta);
       return true;
 
     case KEY_DOWN:

@@ -13,9 +13,7 @@
 // =============================================================================
 //
 // Base class for a vehicle driver. A driver object must be able to report the
-// current values of the inputs (throttle, steering, braking). To set these
-// values, a concrete driver class can implement the virtual method Update()
-// which will be invoked at each time step.
+// current values of the inputs (throttle, steering, braking).
 //
 // =============================================================================
 
@@ -29,24 +27,29 @@
 
 namespace chrono {
 
-
+///
+/// Base class for a vehicle driver system.
+/// A driver object must be able to report the current values of the inputs
+/// (throttle, steering, braking). A concrete driver class must set the member
+/// variables m_throttle, m_steering, and m_braking.
+///
 class CH_SUBSYS_API ChDriver : public ChShared
 {
 public:
   ChDriver();
   virtual ~ChDriver() {}
 
-  double getThrottle() const { return m_throttle; }
-  double getSteering() const { return m_steering; }
-  double getBraking() const  { return m_braking; }
+  double GetThrottle() const { return m_throttle; }
+  double GetSteering() const { return m_steering; }
+  double GetBraking() const  { return m_braking; }
 
   virtual void Update(double time) {}
   virtual void Advance(double step) {}
 
 protected:
-  void setSteering(double val, double min_val = -1, double max_val = 1);
-  void setThrottle(double val, double min_val = 0, double max_val = 1);
-  void setBraking(double val, double min_val = 0, double max_val = 1);
+  void SetSteering(double val, double min_val = -1, double max_val = 1);
+  void SetThrottle(double val, double min_val = 0, double max_val = 1);
+  void SetBraking(double val, double min_val = 0, double max_val = 1);
 
   double m_throttle;
   double m_steering;

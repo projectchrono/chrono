@@ -245,9 +245,9 @@ int main(int argc, char* argv[])
     }
 
     // Collect output data from modules (for inter-module communication)
-    throttle_input = driver.getThrottle();
-    steering_input = driver.getSteering();
-    braking_input = driver.getBraking();
+    throttle_input = driver.GetThrottle();
+    steering_input = driver.GetSteering();
+    braking_input = driver.GetBraking();
 
     tire_forces[FRONT_LEFT] = tire_front_left->GetTireForce();
     tire_forces[FRONT_RIGHT] = tire_front_right->GetTireForce();
@@ -321,15 +321,15 @@ int main(int argc, char* argv[])
       std::cout << "Output frame:   " << render_frame << std::endl;
       std::cout << "Sim frame:      " << step_number << std::endl;
       std::cout << "Time:           " << time << std::endl;
-      std::cout << "             throttle: " << driver.getThrottle() << " steering: " << driver.getSteering() << std::endl;
+      std::cout << "             throttle: " << driver.GetThrottle() << " steering: " << driver.GetSteering() << std::endl;
       std::cout << std::endl;
       render_frame++;
     }
 
     // Collect output data from modules (for inter-module communication)
-    throttle_input = driver.getThrottle();
-    steering_input = driver.getSteering();
-    braking_input = driver.getBraking();
+    throttle_input = driver.GetThrottle();
+    steering_input = driver.GetSteering();
+    braking_input = driver.GetBraking();
 
     tire_forces[FRONT_LEFT] = tire_front_left->GetTireForce();
     tire_forces[FRONT_RIGHT] = tire_front_right->GetTireForce();
