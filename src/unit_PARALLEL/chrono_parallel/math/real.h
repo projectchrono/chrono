@@ -25,9 +25,24 @@
 
 
 #ifdef CHRONO_PARALLEL_HAS_SSE
+
+#ifdef CHRONO_PARALLEL_SSE_1_0
+#include <xmmintrin.h>
+#elif defined CHRONO_PARALLEL_SSE_2_0
+#include <emmintrin.h>
+#elif defined CHRONO_PARALLEL_SSE_3_0
+#include <pmmintrin.h>
+#elif defined CHRONO_PARALLEL_SSE_4_1
+#include <smmintrin.h>
+#elif defined CHRONO_PARALLEL_SSE_4_2
+#include <nmmintrin.h>
+#endif
+
    #ifndef ENABLE_SSE
       #define ENABLE_SSE
    #endif
+#else
+#undef ENABLE_SSE
 #endif
 
 #ifdef CHRONO_PARALLEL_USE_DOUBLE
