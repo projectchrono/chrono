@@ -28,33 +28,49 @@
 
 namespace chrono {
 
-
-class CH_SUBSYS_API ChDriveline : public ChShared {
+///
+/// Base class for a driveline subsystem.
+///
+class CH_SUBSYS_API ChDriveline : public ChShared
+{
 public:
 
   enum DriveType {
-    FWD,
-    RWD,
-    AWD
+    FWD,   ///< Front wheel drive
+    RWD,   ///< Rear wheel drive
+    AWD    ///< All wheel drive
   };
 
-  ChDriveline(ChVehicle* car,
-              DriveType  type);
-
+  ChDriveline(
+    ChVehicle* car,    ///< [in] the vehicle subsystem
+    DriveType  type    ///< [in] driveline type
+    );
   virtual ~ChDriveline() {}
 
+  /// Get a handle to the driveshaft.
+  /// Return a shared pointer to the shaft that connects this driveline to a
+  /// powertrain system (i.e., right after the transmission box).
   ChSharedPtr<ChShaft> GetDriveshaft() const { return m_driveshaft; }
 
-  double GetDriveshaftSpeed() const          { return m_driveshaft->GetPos_dt(); }
+  /// Get the angular speed of the driveshaft.
+  /// This represents the output from the driveline subsystem that is passed to
+  /// the powertrain system.
+  double GetDriveshaftSpeed() const { return m_driveshaft->GetPos_dt(); }
+
+  /// Apply the specified motor torque.
+  /// This represents the input to the driveline subsystem from the powertrain
+  /// system.
   void ApplyDriveshaftTorque(double torque)  { m_driveshaft->SetAppliedTorque(torque); }
 
+  /// Get the motor torque to be applied to the specified wheel.
   virtual double GetWheelTorque(ChWheelId which) const = 0;
 
 protected:
-  ChVehicle*            m_car;
-  DriveType             m_type;
 
-  ChSharedPtr<ChShaft>  m_driveshaft;
+  ChVehicle*            m_car;       ///< parent vehicle system
+  DriveType             m_type;      ///< type of driveline
+
+  ChSharedPtr<ChShaft>  m_driveshaft;   ///< handle to the shaft connection to the powertrain
 };
 
 

@@ -13,7 +13,7 @@
 // =============================================================================
 //
 // Base class for a tire.
-// A tire subsystem is a force element. It is passed position and velocity
+// A tire system is a force element. It is passed position and velocity
 // information of the wheel body and it produces ground reaction forces and
 // moments to be applied to the wheel body.
 //
@@ -32,28 +32,58 @@
 
 namespace chrono {
 
-
-class CH_SUBSYS_API ChTire : public ChShared {
+///
+/// Base class for a tire system.
+/// A tire subsystem is a force element. It is passed position and velocity
+/// information of the wheel body and it produces ground reaction forces and
+/// moments to be applied to the wheel body.
+///
+class CH_SUBSYS_API ChTire : public ChShared
+{
 public:
-  ChTire(const ChTerrain& terrain);
+
+  ChTire(
+    const ChTerrain& terrain  ///< [in] reference to the terrain system
+    );
   virtual ~ChTire() {}
 
-  virtual void Update(double              time,
-                      const ChBodyState&  wheel_state) {}
+  /// Update the state of this tire system at the current time.
+  /// The tire system is provided the current state of its associated wheel.
+  virtual void Update(
+    double              time,          ///< [in] current time
+    const ChBodyState&  wheel_state    ///< [in] current state of associated wheel body
+    ) {}
 
+  /// Advance the state of this tire by the specified time step.
   virtual void Advance(double step) {}
 
+  /// Get the tire force and moment.
+  /// This represents the output from this tire system that is passed to the
+  /// vehicle system.  Typically, the vehicle subsystem will pass the tire force
+  /// to the appropriate suspension subsystem which applies it as an external
+  /// force one the wheel body.
   virtual ChTireForce GetTireForce() const = 0;
 
 protected:
-  bool  disc_terrain_contact(const ChVector<>& disc_center,
-                             const ChVector<>& disc_normal,
-                             double            disc_radius,
-                             ChCoordsys<>&     contact,
-                             double&           depth);
 
-  const ChTerrain&  m_terrain;
+  /// Perform disc-terrain collision detection.
+  /// This utility function checks for contact between a disc of specified 
+  /// radius with given position and orientation (specified as the location of
+  /// its center and a unit vector normal to the disc plane) and the terrain
+  /// system associated with this tire. It returns true if the disc contacts the
+  /// terrain and false otherwise.  If contact occurrs, it returns a coordinate
+  /// system with the Z axis along the contact normal and the X axis along the
+  /// "rolling" direction, as well as a positive penetration depth (i.e. the
+  /// height below the terrain of the lowest point on the disc).
+  bool  disc_terrain_contact(
+    const ChVector<>& disc_center,    ///< [in] global location of the disc center
+    const ChVector<>& disc_normal,    ///< [in] disc normal, expressed in the global frame
+    double            disc_radius,    ///< [in] disc radius
+    ChCoordsys<>&     contact,        ///< [out] contact coordinate system (relative to the global frame)
+    double&           depth           ///< [out] penetration depth (positive if contact occurred)
+    );
 
+  const ChTerrain&  m_terrain;   ///< reference to the terrain system
 };
 
 

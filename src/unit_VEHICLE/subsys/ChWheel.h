@@ -46,10 +46,17 @@ public:
   ChWheel() {}
   virtual ~ChWheel() {}
 
+  /// Get the wheel mass.
   virtual double GetMass() const = 0;
+
+  /// Get the wheel moments of inertia.
   virtual const ChVector<>& GetInertia() const = 0;
 
-  virtual void Initialize(ChSharedBodyPtr spindle);
+  /// Initialize this wheel subsystem.
+  /// The wheel mass and inertia are used to increment those of the spindle.
+  virtual void Initialize(
+    ChSharedPtr<ChBody> spindle    ///< handle to the associated spindle body
+    );
 };
 
 

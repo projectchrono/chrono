@@ -26,23 +26,24 @@
 
 namespace chrono {
 
-class CH_SUBSYS_API ChBrake : public ChShared {
+///
+/// Base class for a brake subsystem
+///
+class CH_SUBSYS_API ChBrake : public ChShared
+{
 public:
 
   ChBrake();
   virtual ~ChBrake() {}
 
-  /// Set the brake modulation, in 0..1 range, 
-  /// when = 0 it is completely free,
-  /// when = 1 it should provide the max braking torque
-  /// This function can be called to modulate braking in realtime simulation loops.
+  /// Set the brake modulation.
+  /// The input value is in the range [0,1].<br>
+  ///   modulation = 0 indicates no braking<br>
+  ///   modulation = 1 indicates that the subsystem should provide maximum braking torque
   virtual void ApplyBrakeModulation(double modulation) = 0;
 
-  /// Get the current brake torque, as a result of simulation,
-  /// so it might change from time to time
+  /// Get the current brake torque.
   virtual double GetBrakeTorque() = 0;
-
-protected:
 };
 
 

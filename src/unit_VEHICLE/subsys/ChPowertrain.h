@@ -28,8 +28,11 @@
 
 namespace chrono {
 
-
-class CH_SUBSYS_API ChPowertrain : public ChShared {
+///
+/// Base class for a powertrain system.
+///
+class CH_SUBSYS_API ChPowertrain : public ChShared
+{
 public:
 
   enum DriveMode {
@@ -42,13 +45,23 @@ public:
 
   virtual ~ChPowertrain() {}
 
+  /// Get the engine speed.
   virtual double GetMotorSpeed() const = 0;
+
+  /// Get the engine torque.
   virtual double GetMotorTorque() const = 0;
 
-  virtual void Update(double time, double throttle) = 0;
+  /// Update the state of this powertrain system at the current time.
+  /// The powertrain system is provided the current driver throttle input, a
+  /// value in the range [0,1].
+  virtual void Update(
+    double time,       ///< [in] current time
+    double throttle    ///< [in] current throttle input [0,1]
+    ) = 0;
 
 protected:
-  ChVehicle*    m_car;
+
+  ChVehicle*    m_car;   ///< parent vehicle system
 };
 
 

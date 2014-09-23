@@ -27,18 +27,23 @@
 
 namespace chrono {
 
-
-class CH_SUBSYS_API ChTerrain : public ChShared {
+///
+/// Base class for a height-field terrain system.
+///
+class CH_SUBSYS_API ChTerrain : public ChShared
+{
 public:
+
   ChTerrain() {}
   virtual ~ChTerrain() {}
 
   virtual void Update(double time) {}
   virtual void Advance(double step) {}
 
+  /// Get the terrain height at the specified (x,y) location.
   virtual double GetHeight(double x, double y) const = 0;
 
-  //// TODO: make this a pure virtual function...
+  /// Get the terrain normal at the specified (x,y) location.
   virtual ChVector<> GetNormal(double x, double y) const { return ChVector<>(0, 0, 1); }
 };
 
