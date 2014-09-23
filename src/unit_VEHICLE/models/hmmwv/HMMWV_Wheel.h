@@ -31,8 +31,8 @@ public:
   HMMWV_Wheel(VisualizationType  visType);
   ~HMMWV_Wheel() {}
 
-  virtual double getMass() const { return m_mass; }
-  virtual const chrono::ChVector<>& getInertia() { return m_inertia; }
+  virtual double GetMass() const { return m_mass; }
+  virtual const chrono::ChVector<>& GetInertia() const { return m_inertia; }
 
   virtual void Initialize(chrono::ChSharedBodyPtr spindle);
 

@@ -32,8 +32,8 @@ namespace chrono {
 // that of the wheel.  A derived class should always invoke this base method.
 void ChWheel::Initialize(ChSharedBodyPtr spindle)
 {
-  spindle->SetMass(spindle->GetMass() + getMass());
-  spindle->SetInertiaXX(spindle->GetInertiaXX() + getInertia());
+  spindle->SetMass(spindle->GetMass() + GetMass());
+  spindle->SetInertiaXX(spindle->GetInertiaXX() + GetInertia());
 }
 
 

@@ -30,8 +30,8 @@ public:
   Wheel(const std::string& filename);
   ~Wheel() {}
 
-  virtual double getMass() const         { return m_mass; }
-  virtual const ChVector<>& getInertia() { return m_inertia; }
+  virtual double GetMass() const { return m_mass; }
+  virtual const ChVector<>& GetInertia() const { return m_inertia; }
 
   virtual void Initialize(ChSharedBodyPtr spindle);
 

@@ -31,14 +31,23 @@
 
 namespace chrono {
 
-
-class CH_SUBSYS_API ChWheel : public ChShared {
+///
+/// Base class for a vehicle wheel subsystem.
+/// A wheel subsystem does not own a body. Instead, when attached to a suspension
+/// subsystem, the wheel's mass properties are used to update those of the
+/// spindle body owned by the suspension.
+/// A concrete wheel subsystem can optionally carry its own visualization assets
+/// (which are associated with the suspension's spindle body).
+///
+class CH_SUBSYS_API ChWheel : public ChShared
+{
 public:
+
   ChWheel() {}
   virtual ~ChWheel() {}
 
-  virtual double getMass() const = 0;
-  virtual const ChVector<>& getInertia() = 0;
+  virtual double GetMass() const = 0;
+  virtual const ChVector<>& GetInertia() const = 0;
 
   virtual void Initialize(ChSharedBodyPtr spindle);
 };
