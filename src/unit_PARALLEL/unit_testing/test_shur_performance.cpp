@@ -173,7 +173,7 @@ int main(int argc,
 
    ChTimer<double> timer;
    timer.start();
-   DynamicVector<double> result_1 = MinvsqrtD_t * MinvsqrtD * rhs_vector;
+   DynamicVector<double> result_1 = MinvsqrtD_t * (MinvsqrtD * rhs_vector);
    timer.stop();
    std::cout << "MinvsqrtD_t * MinvsqrtD * rhs_vector: " << timer() << std::endl;
    timer.start();
@@ -185,7 +185,7 @@ int main(int argc,
    timer.stop();
    std::cout << "N_sym * rhs_vector: " << timer() << std::endl;
    timer.start();
-   DynamicVector<double> result_4 = D_t * MinvD * rhs_vector;
+   DynamicVector<double> result_4 = D_t * (MinvD * rhs_vector);
    timer.stop();
    std::cout << "D_t * MinvD * rhs_vector: " << timer() << std::endl;
 
