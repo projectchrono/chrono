@@ -208,8 +208,9 @@ INCLUDE_DIRECTORIES(
     ${CUDA_SDK_ROOT_DIR}/common/inc
     ${CUDA_TOOLKIT_INCLUDE}
     )
-
-
+    
+set(CUDA_NVCC_FLAGS ${CUDA_NVCC_FLAGS};-gencode arch=compute_20,code=sm_20;-std=c++11 )
+SET( CUDA_PROPAGATE_HOST_FLAGS ON ) 
 
 # ------------------------------------------------------------------------------
 # BLAZE -- required for some parallel solvers

@@ -25,11 +25,11 @@
 #include "collision/ChCCollisionModel.h"
 #include "core/ChMathematics.h"
 
-#include "chrono_utils/ChUtilsCreators.h"
 #include "chrono_utils/ChUtilsInputOutput.h"
 #include <blaze/math/CompressedMatrix.h>
 #include <blaze/math/DynamicVector.h>
-#include <blaze/math/SymmetricMatrix.h>
+#include "test_matvec.h"
+
 using blaze::CompressedMatrix;
 using blaze::DynamicVector;
 using namespace std;
@@ -37,16 +37,18 @@ using namespace chrono;
 using namespace chrono::collision;
 using namespace chrono::utils;
 double timestep = .001;
-double factor = 1.0 / timestep;
 
 int main(int argc,
          char* argv[]) {
    omp_set_num_threads(8);
    ChSystemParallelDVI * system_gpu = new ChSystemParallelDVI;
    system_gpu->SetIntegrationType(ChSystem::INT_ANITESCU);
-
+   int size = 5;
+   if (argc > 1) {
+      size = atoi(argv[1]);
+   }
    std::stringstream ss;
-   ss << "container_checkpoint_50_settled.txt";
+   ss << "container_checkpoint_" << size << "_settled.txt";
 
    ChCollisionSystemBulletParallel * bullet_coll = new ChCollisionSystemBulletParallel();
    system_gpu->ChangeCollisionSystem(bullet_coll);
@@ -63,7 +65,7 @@ int main(int argc,
 
    ChMatrixDynamic<> mb(nOfConstraints, 1);
 
-//#########
+   //#########
    for (unsigned int ic = 0; ic < nOfConstraints; ic++) {
       mconstraints[ic]->Update_auxiliary();
    }
@@ -117,14 +119,14 @@ int main(int argc,
    cout << mdM.GetRows() << " " << mdM.GetColumns() << endl;
    cout << mdCq.GetRows() << " " << mdCq.GetColumns() << endl;
 
-//   int mn_c = 0;
-//   for (unsigned int ic = 0; ic < mconstraints.size(); ic++) {
-//      if (mconstraints[ic]->IsActive())
-//         if (!((mconstraints[ic]->GetMode() == CONSTRAINT_FRIC)))
-//            if (!((dynamic_cast<ChLcpConstraintTwoFrictionT*>(mconstraints[ic])))) {
-//               mn_c++;
-//            }
-//   }
+   //   int mn_c = 0;
+   //   for (unsigned int ic = 0; ic < mconstraints.size(); ic++) {
+   //      if (mconstraints[ic]->IsActive())
+   //         if (!((mconstraints[ic]->GetMode() == CONSTRAINT_FRIC)))
+   //            if (!((dynamic_cast<ChLcpConstraintTwoFrictionT*>(mconstraints[ic])))) {
+   //               mn_c++;
+   //            }
+   //   }
 
    // Count active variables, by scanning through all variable blocks,
    // and set offsets
@@ -157,11 +159,11 @@ int main(int argc,
    CompressedMatrix<double> MinvsqrtD = Mass_invsqt * D;
    CompressedMatrix<double> MinvsqrtD_t = trans(MinvsqrtD);
    CompressedMatrix<double> N = D_t * Mass_inv * D;
-   blaze::SymmetricMatrix<CompressedMatrix<double> > N_sym = D_t * Mass_inv * D;
-//
-//      cout << D.rows() << " " << D.columns() << endl;
-//      cout << D_t.rows() << " " << D_t.columns() << endl;
-//      cout << Mass_inv.rows() << " " << Mass_inv.columns() << endl;
+   CompressedMatrix<double> N_sym = D_t * (Mass_inv * D);
+
+   //      cout << D.rows() << " " << D.columns() << endl;
+   //      cout << D_t.rows() << " " << D_t.columns() << endl;
+   //      cout << Mass_inv.rows() << " " << Mass_inv.columns() << endl;
 
    DynamicVector<double> rhs_vector(nOfConstraints);
 
@@ -189,7 +191,32 @@ int main(int argc,
    timer.stop();
    std::cout << "D_t * MinvD * rhs_vector: " << timer() << std::endl;
 
+   thrust::host_vector<int> h_row;
+   thrust::host_vector<int> h_col;
+   thrust::host_vector<float> h_val;
+   thrust::host_vector<float> h_rhs(mconstraints.size());
+   thrust::host_vector<float> h_x(mconstraints.size());
+
+   for (int i = 0; i < N.rows(); i++) {
+      for (int j = 0; j < N.columns(); j++) {
+
+         h_row.push_back(i);
+         h_col.push_back(j);
+         h_val.push_back(N(i, j));
+
+      }
+   }
+
+   for (unsigned int ic = 0; ic < mconstraints.size(); ic++) {
+      h_rhs[ic] = mb(ic, 0);
+      h_x[ic] = 0;
+   }
+   std::cout << "START CUDA" << std::endl;
+
+   timer.start();
+   mat_vec_cusparse(h_row, h_col, h_val, h_rhs, h_x, N.rows(), N.columns(), N.nonZeros());
+   timer.stop();
+   std::cout << "N * rhs_vector _ GPU: " << timer() << std::endl;
+
    return 0;
-
 }
-

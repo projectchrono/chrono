@@ -80,6 +80,18 @@ FOREACH(PROGRAM ${TESTS})
 
 ENDFOREACH(PROGRAM)
 
+
+ CUDA_ADD_EXECUTABLE(test_cusparse  test_cusparse.cu test_matvec.cpp)
+ SOURCE_GROUP(""  FILES "test_cusparse.cu test_matvec.cpp")
+ SET_TARGET_PROPERTIES(test_cusparse PROPERTIES
+        FOLDER demos
+        COMPILE_FLAGS "${CH_BUILDFLAGS}"
+        LINK_FLAGS "${CH_LINKERFLAG_EXE}"
+ )
+    TARGET_LINK_LIBRARIES(test_cusparse ${LIBRARIES} ${CUDA_cusparse_LIBRARY})
+    ADD_DEPENDENCIES(test_cusparse ${LIBRARIES})
+
+    INSTALL(TARGETS test_cusparse DESTINATION bin)
 #--------------------------------------------------------------
 # Executables that use Bullet
 
