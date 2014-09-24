@@ -6,7 +6,7 @@
 namespace chrono{
 
 // important slip quantities
-typedef struct slips{
+struct slips {
 	double kappa;			// INPUT desired slip rate
 	double alpha;			// INPUT turn slip angle
 	double alpha_star;// INPUT tan(alpha)
@@ -32,61 +32,61 @@ typedef struct slips{
 	double gammaP;
 	double phiT;
 	double phiP;
-} slips;
+};
 
 
 // input data file structs
-typedef struct model{
+struct model {
   std::string property_file_format;
   int use_mode;
   double vxlow;
   double longvl;
   std::string tyreside;
-} model;
+};
 
-typedef struct dimension{
+struct dimension {
   double unloaded_radius;
   double width;
   double aspect_ratio;
   double rim_radius;
   double rim_width;
-} dimension;
+};
 
-typedef struct shape{
+struct shape{
   std::vector<double> radial;
   std::vector<double> width;
-} shape;
+};
 
-typedef struct vertical{
+struct vertical{
   double vertical_stiffness;  // vertical stiffness
   double vertical_damping;    // vertical damping
   double breff; // low load stiffness e.r.r. ???
   double dreff; // peak value e.r.r.
   double freff; // high load stiffness e.r.r.
   double fnomin;// nominal wheel load
-} vertical;
+};
 
-typedef struct long_slip_range{
+struct long_slip_range{
   double kpumin;  // min valid slip
   double kpumax;  // max valid slip
-} long_slip_range;
+};
 
-typedef struct slip_angle_range{
+struct slip_angle_range {
   double alpmin;  // min. valid slip angle
   double alpmax;  // max valid slip angle
-} slip_angle_range;
+};
 
-typedef struct inclination_angle_range{
+struct inclination_angle_range{
   double cammin;  // min valid camber angle (rads)
   double cammax;  // max
-} inclination_angle_range;
+};
 
-typedef struct vertical_force_range{
+struct vertical_force_range{
   double fzmin; // min. allowable wheel load
   double fzmax; // max
-} vertical_force_range;
+};
 
-typedef struct scaling_coefficients{
+struct scaling_coefficients{
   double lfzo;  // scale factor, rated load
   double lcx;   // " ", Fx shape
   double lmux;  // " ", Fx peak friction coef.
@@ -115,9 +115,9 @@ typedef struct scaling_coefficients{
   double lmx;   // overturning couple
   double lvmx;  // vertical shift, Mx
   double lmy;   // rolling resistance torque
-} scaling_coefficients;
+};
 
-typedef struct longitudinal_coefficients{
+struct longitudinal_coefficients{
   double pcx1;  // shape factor C,fx
   double pdx1;  // long. friction Mux at Fz,nom
   double pdx2;  // variation of friction Mux w/ load
@@ -142,16 +142,16 @@ typedef struct longitudinal_coefficients{
   double ptx1;  // relaxation length sigkap0/Fz @ Fz,nom
   double ptx2;  // variation of " w/ load
   double ptx3;  // variation of " w/ exponent of load
-} longitudinal_coefficients;
+};
 
 
-typedef struct overturning_coefficients {
+struct overturning_coefficients {
   double qsx1;  // lateral force induced overturning moment
   double qsx2;  // camber induced overturning couple
   double qsx3;  // Fy induced overturning couple
-} overturning_coefficients;
+};
 
-typedef struct lateral_coefficients{
+struct lateral_coefficients{
   double pcy1;  // shape factor C,Fy
   double pdy1;  // lateral friction Muy
   double pdy2;  // variation of friction Muy w/ load
@@ -186,16 +186,16 @@ typedef struct lateral_coefficients{
   double rvy6;  // " w/ arctan(kappa)
   double pty1;  // peak val of relaxation length SigAlpha,0/R,0
   double pty2;  // val of Fz/Fz,nom where SigAlpha,0 is extreme
-} lateral_coefficients;
+};
 
-typedef struct rolling_coefficients{
+struct rolling_coefficients{
   double qsy1;  // rolling resistance, torque
   double qsy2;  // rolling resistance dep. on Fx
   double qsy3;  // " dep. on speed
   double qsy4;  // " dep. on speed^4
-} rolling_coefficients;
+};
 
-typedef struct aligning_coefficients{
+struct aligning_coefficients{
   double qbz1;  // trail slope B,pt @ Fz,nom
   double qbz2;  // variation of slope B,pt w/ load
   double qbz3;  // " w/ load^2
@@ -227,10 +227,10 @@ typedef struct aligning_coefficients{
   double ssz4;  // " w/ load and camber
   double qtz1;  // gyration torque constant
   double mbelt; // belt mass
-} aligning_coefficients;
+};
 
 // collect all the subsections into the master struct
-typedef struct Pac2002_data{
+struct Pac2002_data{
   struct model model;
   struct dimension dimension;
   struct shape shape;
@@ -245,14 +245,14 @@ typedef struct Pac2002_data{
   struct lateral_coefficients lateral_coefficients;
   struct rolling_coefficients rolling_coefficients;
   struct aligning_coefficients aligning_coefficients;
-} Pac2002_data;
+};
 
 
 
 // -----------
 // debugging
 
-typedef struct pureLongCoefs{
+struct pureLongCoefs {
 	double S_Hx;
 	double kappa_x;
 	double mu_x;
@@ -263,11 +263,10 @@ typedef struct pureLongCoefs{
 	double E_x;
 	double F_x;
 	double S_Vx;
+};
 
-} pureLongCoefs;
 
-
-typedef struct pureLatCoefs{
+struct pureLatCoefs {
 	double S_Hy;
 	double alpha_y;
 	double mu_y;
@@ -280,9 +279,9 @@ typedef struct pureLatCoefs{
 	double D_y;
 	double E_y;
 	double F_y;
-} pureLatCoefs;
+};
 
-typedef struct zetaCoefs{
+struct zetaCoefs {
 	double z0;
 	double z1;
 	double z2;
@@ -292,9 +291,9 @@ typedef struct zetaCoefs{
 	double z6;
 	double z7;
 	double z8;
-} zetaCoefs;
+};
 
-typedef struct PureTorqueCoefs{
+struct pureTorqueCoefs {
 	double S_Hf;
 	double alpha_r;
 	double S_Ht;
@@ -317,10 +316,10 @@ typedef struct PureTorqueCoefs{
 	double M_zr0;
 	
 
-} pureTorqueCoefs;
+};
 
 
-typedef struct combinedLongCoefs {
+struct combinedLongCoefs {
 	double S_HxAlpha;
 	double alpha_S;
 	double B_xAlpha;
@@ -329,10 +328,10 @@ typedef struct combinedLongCoefs {
 	double G_xAlpha0;
 	double G_xAlpha;
 	
-} combinedLongCoefs;
+};
 
 
-typedef struct combinedLatCoefs{
+struct combinedLatCoefs {
 	double S_HyKappa;
 	double kappa_S;
 	double B_yKappa;
@@ -343,10 +342,10 @@ typedef struct combinedLatCoefs{
 	double G_yKappa0;
 	double G_yKappa;
 
-} combinedLatCoefs;
+};
 
 
-typedef struct combinedTorqueCoefs{
+struct combinedTorqueCoefs{
 	double cosPAlpha;
 	double FP_y;
 	double s;
@@ -356,16 +355,19 @@ typedef struct combinedTorqueCoefs{
 	double t;
 	double MP_z;
 
-} combinedTorqueCoefs;
+};
 
-typedef struct relaxationL{
+struct relaxationL {
 	double C_Falpha;
 	double sigma_alpha;
 	double C_Fkappa;
 	double sigma_kappa;
 	double C_Fgamma;
 	double C_Fphi;
-} relaxationL;
+};
+
 
 } // end namespace chrono
+
+
 #endif
