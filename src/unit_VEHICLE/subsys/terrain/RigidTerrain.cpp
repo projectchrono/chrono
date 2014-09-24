@@ -12,7 +12,7 @@
 // Authors: Radu Serban, Justin Madsen
 // =============================================================================
 //
-// Simple rigid terrain...
+// Simple flat rigid terrain
 //
 // =============================================================================
 
@@ -22,25 +22,24 @@
 
 #include "utils/ChUtilsCreators.h"
 
-#include "models/hmmwv/HMMWV_RigidTerrain.h"
+#include "subsys/terrain/RigidTerrain.h"
 
-using namespace chrono;
 
-namespace hmmwv {
+namespace chrono {
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-HMMWV_RigidTerrain::HMMWV_RigidTerrain(ChSystem&  system,
-                                       double     height,
-                                       double     sizeX,
-                                       double     sizeY,
-                                       double     mu)
+RigidTerrain::RigidTerrain(ChSystem&  system,
+                           double     height,
+                           double     sizeX,
+                           double     sizeY,
+                           double     mu)
 : m_system(system),
   m_height(height),
   m_sizeX(sizeX),
   m_sizeY(sizeY)
 {
-  ChSharedBodyPtr ground = ChSharedBodyPtr(new ChBody);
+  ChSharedPtr<ChBody> ground(new ChBody);
 
   ground->SetIdentifier(-1);
   ground->SetName("ground");
@@ -65,7 +64,7 @@ HMMWV_RigidTerrain::HMMWV_RigidTerrain(ChSystem&  system,
 
 }
 
-void HMMWV_RigidTerrain::AddMovingObstacles(int numObstacles)
+void RigidTerrain::AddMovingObstacles(int numObstacles)
 {
   for (int i = 0; i < numObstacles; i++) {
     double o_sizeX = 1.0 + 3.0 * ChRandom();
@@ -85,7 +84,7 @@ void HMMWV_RigidTerrain::AddMovingObstacles(int numObstacles)
   }
 }
 
-void HMMWV_RigidTerrain::AddFixedObstacles()
+void RigidTerrain::AddFixedObstacles()
 {
   double radius = 3;
   double length = 10;
@@ -96,15 +95,14 @@ void HMMWV_RigidTerrain::AddFixedObstacles()
 
   m_system.AddBody(obstacle);
 
-  for (int i= 0; i< 8; ++i)
-  {
-	  ChSharedPtr<ChBodyEasyBox> stoneslab(new ChBodyEasyBox(0.5,1.5,0.2, 2000, true, true));
-	  stoneslab->SetPos(ChVector<>(-1.2*i +22, -1, -0.05));
-	  stoneslab->SetRot(Q_from_AngAxis(15*::CH_C_DEG_TO_RAD, VECT_Y));
-	  stoneslab->SetBodyFixed(true);
-	  m_system.AddBody(stoneslab);
+  for (int i= 0; i< 8; ++i) {
+    ChSharedPtr<ChBodyEasyBox> stoneslab(new ChBodyEasyBox(0.5, 1.5, 0.2, 2000, true, true));
+    stoneslab->SetPos(ChVector<>(-1.2*i + 22, -1, -0.05));
+    stoneslab->SetRot(Q_from_AngAxis(15 * CH_C_DEG_TO_RAD, VECT_Y));
+    stoneslab->SetBodyFixed(true);
+    m_system.AddBody(stoneslab);
   }
 }
 
 
-} // end namespace hmmwv
+} // end namespace chrono

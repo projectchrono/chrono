@@ -23,8 +23,6 @@ SET(COMMON_HMMWV_FILES
 	../hmmwv/HMMWV_Wheel.cpp
 	../hmmwv/HMMWV_FuncDriver.h
 	../hmmwv/HMMWV_FuncDriver.cpp
-	../hmmwv/HMMWV_RigidTerrain.h
-	../hmmwv/HMMWV_RigidTerrain.cpp
 	../hmmwv/vehicle/HMMWV_VehicleReduced.h
 	../hmmwv/vehicle/HMMWV_VehicleReduced.cpp
 	../hmmwv/suspension/HMMWV_DoubleWishboneReduced.h

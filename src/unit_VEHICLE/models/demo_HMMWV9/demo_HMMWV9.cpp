@@ -31,13 +31,13 @@
 #include "physics/ChLinkDistance.h"
 
 #include "utils/ChUtilsInputOutput.h"
+#include "subsys/terrain/RigidTerrain.h"
 
 #include "models/hmmwv/HMMWV.h"
 #include "models/hmmwv/vehicle/HMMWV_VehicleReduced.h"
 #include "models/hmmwv/tire/HMMWV_RigidTire.h"
 #include "models/hmmwv/tire/HMMWV_LugreTire.h"
 #include "models/hmmwv/HMMWV_FuncDriver.h"
-#include "models/hmmwv/HMMWV_RigidTerrain.h"
 
 // If Irrlicht support is available...
 #if IRRLICHT_ENABLED
@@ -102,7 +102,7 @@ int main(int argc, char* argv[])
   vehicle.Initialize(ChCoordsys<>(initLoc, initRot));
 
   // Create the ground
-  HMMWV_RigidTerrain terrain(vehicle, terrainHeight, terrainLength, terrainWidth, 0.8);
+  RigidTerrain terrain(vehicle, terrainHeight, terrainLength, terrainWidth, 0.8);
   //terrain.AddMovingObstacles(10);
   terrain.AddFixedObstacles();
 
