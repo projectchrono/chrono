@@ -25,10 +25,6 @@
 
 namespace hmmwv {
 
-// Forward reference
-class chrono::ChVehicle;
-
-
 class HMMWV_Powertrain : public chrono::ChShaftsPowertrain {
 public:
 

@@ -25,10 +25,6 @@
 
 namespace hmmwv {
 
-// Forward reference
-class chrono::ChVehicle;
-
-
 class HMMWV_Driveline2WD : public chrono::ChShaftsDriveline2WD {
 public:
 
