@@ -1498,8 +1498,8 @@ int2 CreateFluidMarkers(thrust::host_vector<real3> & mPosRad,
 				///penDist = IsInsideSerpentine(posRad);
 				//*** straightChannelBoundaryMin   should be taken care of
 				//*** straightChannelBoundaryMax   should be taken care of
-				///penDist = IsInsideStraightChannel(posRad);
-				penDist = IsInsideStraightChannel_XZ(posRad);
+				penDist = IsInsideStraightChannel(posRad);
+				///penDist = IsInsideStraightChannel_XZ(posRad);
 				///penDist = IsInsideTube(posRad);
 				///penDist = IsInsideStepTube(posRad);
 
@@ -2003,34 +2003,34 @@ int main() {
 		//*** initialize straight channel
 //		straightChannelBoundaryMin = R3(0, 0, 0) * paramsH.sizeScale;
 //		straightChannelBoundaryMax = R3(paramsH.nPeriod * distance + 0, 1, 1) * paramsH.sizeScale;
-		straightChannelBoundaryMin = R3(0, 0, 0); //2D channel
-		straightChannelBoundaryMax = R3(1 * mm, .2 * mm, 1 * mm) * paramsH.sizeScale;
+//		straightChannelBoundaryMin = R3(0, 0, 0); //2D channel
+//		straightChannelBoundaryMax = R3(1 * mm, .2 * mm, 1 * mm) * paramsH.sizeScale;
+		straightChannelBoundaryMin = R3(0, 0, 0); //3D channel
+		straightChannelBoundaryMax = R3(0.7 * mm, 1 * mm, 3 * mm) * paramsH.sizeScale;
 
 		//(void) cudaSetDevice(0);
 		//********************************************************************************************************
 
 		//**  reminiscent of the past******************************************************************************
-		//paramsH.cMin = R3(0, -0.2, -1.2) * paramsH.sizeScale; 							//for channel and serpentine
-//		paramsH.cMin = R3(0, -2 * paramsH.toleranceZone, -2.5 * mm); 							//for channel and serpentine
-		paramsH.cMin = R3(0, 0, -2 * paramsH.toleranceZone);						// 2D channel
-	//	paramsH.cMin = R3(0, -2, -2) * paramsH.sizeScale;							//for tube
-
-	//	paramsH.cMin = R3(0, -.1, -.1) * paramsH.sizeScale;							//for tube
-
 		//paramsH.cMax = R3( paramsH.nPeriod * 4.6 + 0, 1.5,  4.0) * paramsH.sizeScale;  //for only CurvedSerpentine (w/out straight part)
-		///paramsH.cMax = R3( paramsH.nPeriod * sPeriod + 8 * paramsH.sizeScale, 1.5 * paramsH.sizeScale,  4.0 * paramsH.sizeScale);  //for old serpentine
-		paramsH.cMax = R3( 1 * mm, 0.2 * mm,  1 * mm + 2 * paramsH.toleranceZone);  // 2D channel
+		//********
+//		paramsH.cMin = R3(0, -2 * paramsH.toleranceZone, -2.5 * mm); 							//for serpentine
 //		paramsH.cMax = R3( paramsH.nPeriod * sPeriod + r3_2.x + 2 * r4_2.x + r6_2.x + x_FirstChannel + 2 * x_SecondChannel, 1.5 * mm,  r6_2.y + 2 * paramsH.toleranceZone);  //for serpentine
 
-		///paramsH.cMax = R3( paramsH.nPeriod * sPeriod, 1.5 * paramsH.sizeScale,  4.0 * paramsH.sizeScale);  //for serpentine
+//		paramsH.cMin = R3(0, 0, -2 * paramsH.toleranceZone);						// 2D channel
+//		paramsH.cMax = R3( 1 * mm, 0.2 * mm,  1 * mm + 2 * paramsH.toleranceZone);
 
-		//paramsH.cMax = R3( paramsH.nPeriod * 1.0 + 0, 1.5,  4.0) * paramsH.sizeScale;  //for  straight channel
-	//	paramsH.cMax = R3( paramsH.nPeriod * 20.0 + 0, 11.2 + 2,  11.2 + 2) * paramsH.sizeScale;  //for  tube
+		paramsH.cMin = R3(0, -2 * paramsH.toleranceZone, -2 * paramsH.toleranceZone);						// 3D channel
+		paramsH.cMax = R3( 0.7 * mm, 1 * mm + 2 * paramsH.toleranceZone,  3 * mm + 2 * paramsH.toleranceZone);
 
 		//	paramsH.cMax = R3(paramsH.nPeriod * 1.0 + 0, .5,  3.5) * paramsH.sizeScale;  //for straight channel, sphere
 		//	paramsH.cMin = R3(0, -0.1, 0.5) * paramsH.sizeScale;
+
 		//	paramsH.cMax = R3(paramsH.nPeriod * 1.0 + 0, 1.5, 1.5) * paramsH.sizeScale;  //for tube channel, sphere
 		//	paramsH.cMin = R3(0, -0.5, -0.5) * paramsH.sizeScale;
+
+		//	paramsH.cMax = R3( paramsH.nPeriod * 20.0 + 0, 11.2 + 2,  11.2 + 2) * paramsH.sizeScale;  //for  Segre Silberberg tube
+		//	paramsH.cMin = R3(0, -2, -2) * paramsH.sizeScale;							//for tube
 		//**  end of reminiscent of the past   ******************************************************************
 
 		//printf("a1  paramsH.cMax.x, y, z %f %f %f,  binSize %f\n", paramsH.cMax.x, paramsH.cMax.y, paramsH.cMax.z, 2 * paramsH.HSML);
@@ -2043,7 +2043,7 @@ int main() {
 				(paramsH.cMax.z - paramsH.cMin.z) / side0.z);
 		paramsH.binSize0 = (binSize3.x > binSize3.y) ? binSize3.x : binSize3.y;
 	//	paramsH.binSize0 = (paramsH.binSize0 > binSize3.z) ? paramsH.binSize0 : binSize3.z;
-		paramsH.binSize0 = binSize3.y; //for effect of distance. Periodic BC in x direction. we do not care about paramsH.cMax y and z.
+		paramsH.binSize0 = binSize3.x; //for effect of distance. Periodic BC in x direction. we do not care about paramsH.cMax y and z.
 		paramsH.cMax = paramsH.cMin + paramsH.binSize0 * R3(side0);
 
 		//printf("side0 %d %d %d \n", side0.x, side0.y, side0.z);
