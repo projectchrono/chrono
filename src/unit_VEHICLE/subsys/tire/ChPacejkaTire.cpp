@@ -1184,7 +1184,7 @@ void ChPacejkaTire::WriteOutData(const double       time,
 	// first time thru, write headers
 	if( m_Num_WriteOutData == 0 ) {
 		m_outFilename = outFilename;
-		std::ofstream oFile = std::ofstream( outFilename, std::ios::out);
+		std::ofstream oFile(outFilename.c_str(), std::ios_base::out);
 		if( !oFile.is_open() ) {
 			std::cout << " couldn't open file for writing: " << outFilename << " \n\n";
 			return;
@@ -1201,7 +1201,7 @@ void ChPacejkaTire::WriteOutData(const double       time,
 	// ensure file was able to be opened, headers are written
 	if( m_Num_WriteOutData > 0 ) {
 		// open file, append
-		std::ofstream appFile = std::ofstream( outFilename, std::ios::app);
+		std::ofstream appFile(outFilename.c_str(), std::ios_base::app);
 		// write the slip info, reaction forces for pure & combined slip cases
 		appFile << time <<","<< m_slip.kappa <<","<< m_slip.alpha*180./3.14159 <<","<<m_slip.gamma<<","
 			<< m_slip.kappaP <<","<< atan(m_slip.alphaP)*180./3.14159 <<","<< m_slip.gammaP <<","

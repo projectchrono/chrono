@@ -164,7 +164,7 @@ protected:
 													const double v_gamma);
 
 	// @brief calculate the ODE dphi/dt = f(phi), return the increment delta_phi
-	double ChPacejkaTire::calc_ODE_RK_phi(const double C_Fphi,
+	double calc_ODE_RK_phi(const double C_Fphi,
 																			const double C_Falpha,
 																			const double V_cx,
 																			const double psi_dot,
