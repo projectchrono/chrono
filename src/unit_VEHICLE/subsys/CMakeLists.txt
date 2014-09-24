@@ -96,8 +96,10 @@ SET(Chrono_Brake_FILES
 )
 
 SET(Chrono_terrain_FILES
-	terrain/FlatTerrain.h
-	terrain/FlatTerrain.cpp
+    terrain/FlatTerrain.h
+    terrain/FlatTerrain.cpp
+    terrain/RigidTerrain.h
+    terrain/RigidTerrain.cpp
 )
 
 IF (ENABLE_IRRLICHT)
