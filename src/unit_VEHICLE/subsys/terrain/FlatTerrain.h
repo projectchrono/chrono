@@ -11,33 +11,52 @@
 // =============================================================================
 // Authors: Justin Madsen
 // =============================================================================
-// Rigid, flat terrain, no obstacles
+//
+// Simple flat horizontal terrain (infinite x-y extent)
+//
+// =============================================================================
 
 
 #ifndef FLATTERRAIN_H
 #define FLATTERRAIN_H
 
-#include "subsys/ChTerrain.h"
 #include "subsys/ChApiSubsys.h"
+#include "subsys/ChTerrain.h"
 
-namespace hmmwv {
+namespace chrono {
 
-class CH_SUBSYS_API FlatTerrain : public chrono::ChTerrain {
+///
+/// Concrete class for a flat horizontal terrain.
+/// This class implements a terrain modeled as an infinite horizontal plane at
+/// a specified height.  This type of terrain can be used in conjunction with
+/// tire models that perform their own collision detection (e.g. ChPacejkaTire
+/// and ChLugreTire).
+///
+class CH_SUBSYS_API FlatTerrain : public ChTerrain
+{
 public:
 
-	FlatTerrain(const int height);
+  FlatTerrain(
+    const int height   ///< [in] terrain height
+    );
 
   ~FlatTerrain() {}
 
+  /// Get the terrain height at the specified (x,y) location.
+  /// Returns the constant value passed at construction.
   virtual double GetHeight(double x, double y) const { return m_height; }
 
-private:
-	double m_height;
+  /// Get the terrain normal at the specified (x,y) location.
+  /// Returns a constant unit vector along the Z axis.
+  virtual ChVector<> GetNormal(double x, double y) const { return ChVector<>(0, 0, 1); }
 
+private:
+
+  double m_height;
 };
 
 
-} // end namespace hmmwv
+} // end namespace chrono
 
 
 #endif

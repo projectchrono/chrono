@@ -11,17 +11,22 @@
 // =============================================================================
 // Authors: Justin Madsen
 // =============================================================================
+//
+// Simple flat horizontal terrain (infinite x-y extent)
+//
+// =============================================================================
 
 
-#include "FlatTerrain.h"
+#include "subsys/terrain/FlatTerrain.h"
 
 
-namespace hmmwv {
+namespace chrono {
+
 
 FlatTerrain::FlatTerrain(const int height)
 : m_height(height)
 {
-
 }
 
-}
+
+} // end namespace chrono

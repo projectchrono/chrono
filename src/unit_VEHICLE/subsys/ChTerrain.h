@@ -44,7 +44,7 @@ public:
   virtual double GetHeight(double x, double y) const = 0;
 
   /// Get the terrain normal at the specified (x,y) location.
-  virtual ChVector<> GetNormal(double x, double y) const { return ChVector<>(0, 0, 1); }
+  virtual ChVector<> GetNormal(double x, double y) const = 0;
 };
 
 
