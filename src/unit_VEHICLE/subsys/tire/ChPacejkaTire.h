@@ -64,7 +64,7 @@ public:
     ChWheelId            which   ///< [in] 
     );
 
-  virtual ~ChPacejkaTire();
+  ~ChPacejkaTire();
 
   /// Update the state of this tire system at the current time.
   /// Set the PacTire spindle state data from the global wheel body state.
