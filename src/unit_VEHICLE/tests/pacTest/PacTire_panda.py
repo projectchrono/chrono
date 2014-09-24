@@ -242,88 +242,90 @@ if __name__ == '__main__':
     lg.basicConfig(fileName = 'logFile.log', level=lg.WARN, format='%(message)s')
     # default font size
     font = {'size' : 14}
-    matplotlib.rc('font', **font)   
+    matplotlib.rc('font', **font)       
+    
+    # directory location on my laptop
+    dir_ChronoT = 'E:/Chrono-T_Build/bin/Debug/'
+    dir_Adams = 'C:/Users/justin/Google Drive/shareWith_Radu/PacTire/ACar_validation_tests/'
+    
+    # desktop 
+    #buildDir_ChronoT = 'D:/Chrono-T_Build/bin/Debug/'
+    #dir_AdamsData = 'C:/Users/newJustin/Google Drive/shareWith_Radu/PacTire/ACar_validation_tests/'
     
     
-    # ****************** STEADY STATE SLIP
     
-    '''
+    # ****************** STEADY STATE SLIP    
+
+    '''    
     # pure longitudinal slip case. (alpha = 0)
-    longSlip = PacTire_panda("D:/Chrono-T_Build/bin/Debug/test_pacTire_pureLongSlip.csv")
+    longSlip = PacTire_panda(dir_ChronoT + "test_pacTire_pureLongSlip.csv")
     # validate pure Fx, Fy, Mz, vs. kappa    
-    longSlip.plot_kappa_FMpure("C:/Users/newJustin/Google Drive/shareWith_Radu/PacTire/ACar_validation_tests/pureLong_Fx.tab",
-                               "C:/Users/newJustin/Google Drive/shareWith_Radu/PacTire/ACar_validation_tests/pureLong_Mz.tab")
-    # Fxc should = Fx for pure longitudinal slip case
-    # longSlip.plot_combined_kappa()
-    '''
+    longSlip.plot_kappa_FMpure(dir_Adams + "pureLong_Fx.tab", dir_Adams + "pureLong_Mz.tab")
+    '''                           
+    
     
     '''
     # make two custom plots. Function usage depends on y-series units
-    # e.g., are they the same? (use custom), or two different unitt types?
     #       longSlip.plot_custom('Fx',['Fy','Fz'])
     #       longSlip.plot_custom_two('Fx','Fy','Mz')
     
     # pure lateral slip case, free rolling tire (kappa ~= 0)
-    latSlip = PacTire_panda("D:/Chrono-T_Build/bin/Debug/test_pacTire_pureLatSlip.csv")
-    latSlip.plot_alpha_FMpure("C:/Users/newJustin/Google Drive/shareWith_Radu/PacTire/ACar_validation_tests/pureLat_Fy.tab",
-                              "C:/Users/newJustin/Google Drive/shareWith_Radu/PacTire/ACar_validation_tests/pureLat_Mz.tab")
+    latSlip = PacTire_panda(dir_ChronoT + "test_pacTire_pureLatSlip.csv")
+    latSlip.plot_alpha_FMpure(dir_Adams + "pureLat_Fy.tab",
+                              dir_Adams + "pureLat_Mz.tab")
     # Fyc should = Fy for pure lateral slip case
     latSlip.plot_custom('alpha',['Fxc','Fyc','Fy'],'pure lateral slip')
     
-    # random things
+    # overturning and rolling resistance moments
     # latSlip.plot_custom('alpha',['Mx','My'])
     # latSlip.plot_custom('alpha',['Mx'])
-    '''
+    '''    
     
     
     '''
     # combined slip case, (-a_lim,a_lim) and (-k_lim,k_lim) for alpha, kappa, respectively
-    combinedSlip = PacTire_panda("D:/Chrono-T_Build/bin/Debug/test_pacTire_combinedSlip.csv")
-    combinedSlip.plot_combined_kappa("C:/Users/newJustin/Google Drive/shareWith_Radu/PacTire/ACar_validation_tests/combined_Fx.tab",
-                                     "none","C:/Users/newJustin/Google Drive/shareWith_Radu/PacTire/ACar_validation_tests/combined_Mz.tab")
-    combinedSlip.plot_combined_alpha("none","C:/Users/newJustin/Google Drive/shareWith_Radu/PacTire/ACar_validation_tests/combined_Fy.tab")
+    combinedSlip = PacTire_panda(dir_ChronoT + "test_pacTire_combinedSlip.csv")
+    combinedSlip.plot_combined_kappa(dir_Adams + "combined_Fx.tab",
+                                     "none",dir_Adams + "combined_Mz.tab")
+    combinedSlip.plot_combined_alpha("none",dir_Adams + "combined_Fy.tab")
     
     # combinedSlip.plot_custom('Fxc',['Fyc'])
     
-    # more random things
+    # compare overturning and rolling resistance moments to pure lateral slip case
     # combinedSlip.plot_custom('alpha',['Mx','My'],'combined slip')
     '''
     
-    '''
+    
     # *************   TRANSIENT SLIP
     
     # pure longitudinal slip case
-    longSlip = PacTire_panda("D:/Chrono-T_Build/bin/Debug/test_pacTire_pureLongSlip.csv",
-                            "D:/Chrono-T_Build/bin/Debug/test_pacTire_pureLongSlip_transient.csv")
-    longSlip.plot_kappa_FMpure("C:/Users/newJustin/Google Drive/shareWith_Radu/PacTire/ACar_validation_tests/pureLong_Fx.tab",
-                               "C:/Users/newJustin/Google Drive/shareWith_Radu/PacTire/ACar_validation_tests/pureLong_Mz.tab")
-    '''
-                      
-    # pure lateral slip case, free rolling tire (kappa ~= 0)
-    latSlip = PacTire_panda("D:/Chrono-T_Build/bin/Debug/test_pacTire_pureLatSlip.csv",
-                            "D:/Chrono-T_Build/bin/Debug/test_pacTire_pureLatSlip_transient.csv")
-    # TODO: get the .tab data files with the 2 second maneuver data
-    latSlip.plot_alpha_FMpure("C:/Users/newJustin/Google Drive/shareWith_Radu/PacTire/ACar_validation_tests/pureLat_Fy.tab",
-                              "C:/Users/newJustin/Google Drive/shareWith_Radu/PacTire/ACar_validation_tests/pureLat_Mz.tab")
-
-
+    longSlip = PacTire_panda(dir_ChronoT + 'test_pacTire_pureLongSlip.csv',
+                            dir_ChronoT + 'test_pacTire_pureLongSlip_transient.csv')
+    longSlip.plot_kappa_FMpure(dir_Adams + 'pureLong_Fx.tab',
+                               dir_Adams + 'pureLong_Mz.tab')
     
-    # try combined slip
-    combinedSlip = PacTire_panda("D:/Chrono-T_Build/bin/Debug/test_pacTire_combinedSlip.csv",
-                                 "D:/Chrono-T_Build/bin/Debug/test_pacTire_combinedSlip_transient.csv")
+       
+    latSlip = PacTire_panda(dir_ChronoT + "test_pacTire_pureLatSlip.csv",
+                        dir_ChronoT + "test_pacTire_pureLatSlip_transient.csv")
+    # TODO: get the .tab data files with the 2 second maneuver data
+    latSlip.plot_alpha_FMpure(dir_Adams + "pureLat_Fy.tab",
+                              dir_Adams + "pureLat_Mz.tab")    
+    
+    
+    # combined slip
+    combinedSlip = PacTire_panda(dir_ChronoT + "test_pacTire_combinedSlip.csv",
+                                 dir_ChronoT + "test_pacTire_combinedSlip_transient.csv")
                                  
     # TODO: get the  Adams .tab files with the fast maneuver data (2 seconds)
-    combinedSlip.plot_combined_kappa("C:/Users/newJustin/Google Drive/shareWith_Radu/PacTire/ACar_validation_tests/combined_Fx.tab",
-                                     "none","C:/Users/newJustin/Google Drive/shareWith_Radu/PacTire/ACar_validation_tests/combined_Mz.tab")
-    combinedSlip.plot_combined_alpha("none","C:/Users/newJustin/Google Drive/shareWith_Radu/PacTire/ACar_validation_tests/combined_Fy.tab")
+    combinedSlip.plot_combined_kappa(dir_Adams + "combined_Fx.tab",
+                                     "none", dir_Adams + "combined_Mz.tab")
+    combinedSlip.plot_combined_alpha("none",dir_Adams + "combined_Fy.tab")
     
     # combinedSlip.plot_custom('Fxc',['Fyc'])
     
     # more random things
     # combinedSlip.plot_custom('alpha',['Mx','My'],'combined slip')
     
-    
-        
     
     
     py.show()

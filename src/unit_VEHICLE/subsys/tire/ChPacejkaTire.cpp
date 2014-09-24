@@ -722,7 +722,7 @@ void ChPacejkaTire::calcMz_combined(void)
 void ChPacejkaTire::calc_overturningCouple(void)
 {
 	double M_x = m_FM.force.z * m_R0 * (m_params.overturning_coefficients.qsx1 - m_params.overturning_coefficients.qsx2 * m_slip.gammaP
-		+ m_params.overturning_coefficients.qsx3 * (m_FM_combined.force.y / m_params.vertical.fnomin)) * m_params.scaling_coefficients.lmx;
+		- m_params.overturning_coefficients.qsx3 * (m_FM_combined.force.y / m_params.vertical.fnomin)) * m_params.scaling_coefficients.lmx;
 	m_FM.moment.x = M_x;
 	m_FM_combined.moment.x = M_x;
 }
@@ -731,7 +731,7 @@ void ChPacejkaTire::calc_overturningCouple(void)
 void ChPacejkaTire::calc_rollingResistance(void)
 {
 	double V_r = m_tireState.ang_vel.y * m_R_eff;
-	double M_y = -m_FM.force.z * m_R0 * (m_params.rolling_coefficients.qsy1 * atan(V_r / m_params.model.longvl) + m_params.rolling_coefficients.qsy2 * (m_FM_combined.force.x / m_params.vertical.fnomin)) * m_params.scaling_coefficients.lmy;
+	double M_y = -m_FM.force.z * m_R0 * (m_params.rolling_coefficients.qsy1 * atan(V_r / m_params.model.longvl) - m_params.rolling_coefficients.qsy2 * (m_FM_combined.force.x / m_params.vertical.fnomin)) * m_params.scaling_coefficients.lmy;
 	m_FM.moment.y = M_y;
 	m_FM_combined.moment.y = M_y;
 }
