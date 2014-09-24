@@ -1,3 +1,21 @@
+// =============================================================================
+// PROJECT CHRONO - http://projectchrono.org
+//
+// Copyright (c) 2014 projectchrono.org
+// All right reserved.
+//
+// Use of this source code is governed by a BSD-style license that can be found
+// in the LICENSE file at the top level of the distribution and at
+// http://projectchrono.org/license-chrono.txt.
+//
+// =============================================================================
+// Authors: Radu Serban
+// =============================================================================
+//
+// A set of utility classes and functions for I/O.
+//
+// =============================================================================
+
 #ifndef CH_UTILS_INOUT_H
 #define CH_UTILS_INOUT_H
 
@@ -23,44 +41,44 @@ namespace utils {
 // -----------------------------------------------------------------------------
 class CH_UTILS_API CSV_writer {
 public:
-	explicit CSV_writer(const std::string& delim = ",") : m_delim(delim) {}
-	~CSV_writer() {}
+  explicit CSV_writer(const std::string& delim = ",") : m_delim(delim) {}
+  ~CSV_writer() {}
 
-	void write_to_file(const std::string& filename,
-	                   const std::string& header = "")
-	{
-		std::ofstream ofile(filename.c_str());
-		ofile << header;
-		ofile << m_ss.str();
-		ofile.close();
-	}
+  void write_to_file(const std::string& filename,
+                     const std::string& header = "")
+  {
+    std::ofstream ofile(filename.c_str());
+    ofile << header;
+    ofile << m_ss.str();
+    ofile.close();
+  }
 
-	const std::string&  delim() const {return m_delim;}
-	std::ostringstream& stream() {return m_ss;}
+  const std::string&  delim() const { return m_delim; }
+  std::ostringstream& stream() { return m_ss; }
 
-	template <typename T>
-	CSV_writer& operator<< (const T& t)                          {m_ss << t << m_delim; return *this;}
-	
-	CSV_writer& operator<<(std::ostream& (*t)(std::ostream&))    {m_ss << t; return *this;}
-	CSV_writer& operator<<(std::ios& (*t)(std::ios&))            {m_ss << t; return *this;}
-	CSV_writer& operator<<(std::ios_base& (*t)(std::ios_base&))  {m_ss << t; return *this;}
+  template <typename T>
+  CSV_writer& operator<< (const T& t)                          { m_ss << t << m_delim; return *this; }
+
+  CSV_writer& operator<<(std::ostream& (*t)(std::ostream&))    { m_ss << t; return *this; }
+  CSV_writer& operator<<(std::ios& (*t)(std::ios&))            { m_ss << t; return *this; }
+  CSV_writer& operator<<(std::ios_base& (*t)(std::ios_base&))  { m_ss << t; return *this; }
 
 private:
-	std::string m_delim;
-	std::ostringstream m_ss;
+  std::string m_delim;
+  std::ostringstream m_ss;
 };
 
 
 inline CSV_writer& operator<< (CSV_writer& out, const ChVector<>& v)
 {
-   out << v.x << v.y << v.z;
-   return out;
+  out << v.x << v.y << v.z;
+  return out;
 }
 
 inline CSV_writer& operator<< (CSV_writer& out, const ChQuaternion<>& q)
 {
-   out << q.e0 << q.e1 << q.e2 << q.e3;
-   return out;
+  out << q.e0 << q.e1 << q.e2 << q.e3;
+  return out;
 }
 
 
@@ -107,8 +125,8 @@ void WriteMeshPovray(const std::string&    obj_filename,
                      const std::string&    mesh_name,
                      const std::string&    out_dir,
                      const ChColor&        color = ChColor(0.4f, 0.4f, 0.4f),
-                     const ChVector<>&     pos = ChVector<>(0,0,0),
-                     const ChQuaternion<>& rot = ChQuaternion<>(1,0,0,0));
+                     const ChVector<>&     pos = ChVector<>(0, 0, 0),
+                     const ChQuaternion<>& rot = ChQuaternion<>(1, 0, 0, 0));
 
 
 } // namespace utils
