@@ -1957,14 +1957,14 @@ int main() {
 		paramsH.sizeScale = 1; //don't change it.
 		paramsH.HSML = 0.00004;
 		paramsH.MULT_INITSPACE = 1.0;
-		paramsH.NUM_BOUNDARY_LAYERS = 3;
+		paramsH.NUM_BOUNDARY_LAYERS = 4;
 		paramsH.toleranceZone = paramsH.NUM_BOUNDARY_LAYERS * (paramsH.HSML * paramsH.MULT_INITSPACE);
 		paramsH.NUM_BCE_LAYERS = 2;
 		paramsH.solidSurfaceAdjust = .6 * (paramsH.HSML * paramsH.MULT_INITSPACE); // 0.6 for bouyant, under gravity
 		paramsH.BASEPRES = 0;
 		paramsH.LARGE_PRES = 0;//10000;
 		paramsH.nPeriod = 7;
-		paramsH.gravity = R3(0, 0, 0);//R3(0);//R3(0, -9.81, 0);
+		paramsH.gravity = R3(0, -9.8, 0);//R3(0);//R3(0, -9.81, 0);
 		paramsH.bodyForce4 = R4(.1,0,0,0);//R4(3.2e-3,0,0,0);// R4(0);;// /*Re = 100 */ //R4(3.2e-4, 0, 0, 0);/*Re = 100 */
 		paramsH.rho0 = 1000;
 		paramsH.mu0 = .001;
@@ -1982,7 +1982,7 @@ int main() {
 
 		flexParams.E = 2.0e5;
 		flexParams.r = paramsH.HSML * paramsH.MULT_INITSPACE * (paramsH.NUM_BCE_LAYERS - 1);
-		flexParams.rho = 1000;//7200;
+		flexParams.rho = 1050;//7200;
 		flexParams.ne = 4;
 		flexParams.A = PI * pow(flexParams.r, 2.0f);
 		flexParams.I = .25 * PI * pow(flexParams.r, 4.0f);
@@ -2006,7 +2006,7 @@ int main() {
 //		straightChannelBoundaryMin = R3(0, 0, 0); //2D channel
 //		straightChannelBoundaryMax = R3(1 * mm, .2 * mm, 1 * mm) * paramsH.sizeScale;
 		straightChannelBoundaryMin = R3(0, 0, 0); //3D channel
-		straightChannelBoundaryMax = R3(0.7 * mm, 1 * mm, 3 * mm) * paramsH.sizeScale;
+		straightChannelBoundaryMax = R3(1.4 * mm, 1 * mm, 3 * mm) * paramsH.sizeScale;
 
 		//(void) cudaSetDevice(0);
 		//********************************************************************************************************
@@ -2021,7 +2021,7 @@ int main() {
 //		paramsH.cMax = R3( 1 * mm, 0.2 * mm,  1 * mm + 2 * paramsH.toleranceZone);
 
 		paramsH.cMin = R3(0, -2 * paramsH.toleranceZone, -2 * paramsH.toleranceZone);						// 3D channel
-		paramsH.cMax = R3( 0.7 * mm, 1 * mm + 2 * paramsH.toleranceZone,  3 * mm + 2 * paramsH.toleranceZone);
+		paramsH.cMax = R3( 1.4 * mm, 1 * mm + 2 * paramsH.toleranceZone,  3 * mm + 2 * paramsH.toleranceZone);
 
 		//	paramsH.cMax = R3(paramsH.nPeriod * 1.0 + 0, .5,  3.5) * paramsH.sizeScale;  //for straight channel, sphere
 		//	paramsH.cMin = R3(0, -0.1, 0.5) * paramsH.sizeScale;
