@@ -19,6 +19,7 @@ SET(Chrono_Utils_HEADERS
     ChUtilsGeometry.h
     ChUtilsCreators.h
     ChUtilsInputOutput.h
+    ChUtilsStringFunctions.h
     ChChaseCamera.h
     )
 

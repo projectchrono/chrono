@@ -20,7 +20,7 @@
 
 #include "utils/ChUtilsData.h"
 #include "utils/ChUtilsInputOutput.h"
-#include "include/strUtils.h"
+#include "utils/ChUtilsStringFunctions.h"
 
 #include "subsys/tire/ChPac2002_data.h"
 
