@@ -69,9 +69,9 @@ int main(int argc, char* argv[])
   FlatTerrain flat_terrain(0);
 
   // Create the Pac tires, try to open param file and load empirical constants
-  ChPacejkaTire tire_long(pacParamFile, flat_terrain, use_transient_slip, F_z);
-  ChPacejkaTire tire_lat(pacParamFile, flat_terrain, use_transient_slip, F_z);
-  ChPacejkaTire tire_combined(pacParamFile, flat_terrain, use_transient_slip, F_z);
+  ChPacejkaTire tire_long(pacParamFile, flat_terrain, F_z, use_transient_slip);
+  ChPacejkaTire tire_lat(pacParamFile, flat_terrain, F_z, use_transient_slip);
+  ChPacejkaTire tire_combined(pacParamFile, flat_terrain, F_z, use_transient_slip);
 
   // record pacTire output for each of the 3 slip cases
   ChTireForces long_forces(1);

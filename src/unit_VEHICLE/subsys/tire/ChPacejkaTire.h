@@ -49,18 +49,20 @@ class CH_SUBSYS_API ChPacejkaTire : public ChTire
 {
 public:
 
-
+  /// Default constructor for a Pacejka tire.
+  /// Construct a Pacejka tire for which the vertical load is calculated
+  /// internally.  The model includes transient slip calculations.
   ChPacejkaTire(
     const std::string& pacTire_paramFile,
     const ChTerrain&   terrain
     );
 
-
+  /// Construct a Pacejka tire with specified vertical load.
   ChPacejkaTire(
     const std::string& pacTire_paramFile,
     const ChTerrain&   terrain,
-    bool               use_transient_slip = true,
-    double             Fz_override = -1
+    double             Fz_override,
+    bool               use_transient_slip = true
     );
 
   /// Copy constructor, only tire side will be different

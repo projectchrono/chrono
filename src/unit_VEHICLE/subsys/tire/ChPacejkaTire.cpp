@@ -44,8 +44,8 @@ ChPacejkaTire::ChPacejkaTire(const std::string& pacTire_paramFile,
 
 ChPacejkaTire::ChPacejkaTire(const std::string& pacTire_paramFile,
                              const ChTerrain&   terrain,
-                             bool               use_transient_slip,
-                             double             Fz_override)
+                             double             Fz_override,
+                             bool               use_transient_slip)
 : ChTire(terrain),
   m_paramFile(pacTire_paramFile),
   m_params_defined(false),
@@ -62,7 +62,9 @@ ChPacejkaTire::ChPacejkaTire(const ChPacejkaTire& tire,
 : ChTire(tire.m_terrain),
   m_paramFile(tire.m_paramFile),
   m_params_defined(false),
-  m_use_transient_slip(tire.m_use_transient_slip)
+  m_use_transient_slip(tire.m_use_transient_slip),
+  m_use_Fz_override(tire.m_use_Fz_override),
+  m_Fz_override(tire.m_Fz_override)
 {
   Initialize();
 
