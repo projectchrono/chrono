@@ -50,23 +50,15 @@ ChPacejkaTire::ChPacejkaTire(const std::string& pacTire_paramFile,
   m_paramFile(pacTire_paramFile),
   m_params_defined(false),
   m_use_transient_slip(use_transient_slip),
+  m_use_Fz_override(Fz_override > 0),
+  m_Fz_override(Fz_override),
   m_step_size(0.01)
 {
-  // user input vertical load? (for testing)
-  if (Fz_override > 0)
-  {
-    m_use_Fz_override = true;
-    m_Fz_override = Fz_override;
-  }
-  else {
-    m_use_Fz_override = false;
-  }
-
   Initialize();
 }
 
 ChPacejkaTire::ChPacejkaTire(const ChPacejkaTire& tire,
-                             const ChWheelId      which)
+                             ChWheelId            which)
 : ChTire(tire.m_terrain),
   m_paramFile(tire.m_paramFile),
   m_params_defined(false),
@@ -103,7 +95,7 @@ ChPacejkaTire::~ChPacejkaTire()
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 // NOTE: no initial conditions passed in at this point, e.g. m_tireState is empty
-void ChPacejkaTire::Initialize(void)
+void ChPacejkaTire::Initialize()
 {
   // Create private structures
   m_slip = new slips;
@@ -134,8 +126,8 @@ void ChPacejkaTire::Initialize(void)
 
     // assume rho decreases with increasing w_y
     double qV1 = 1.5;
-		// omega_y ~= V0/ R_eff ~= V0/(.05*R0)
-		m_rho = (m_R0 - m_R_l) * exp(-qV1 * m_R0 * pow(1.05 * m_params->model.longvl / m_params->model.longvl, 2));
+    // omega_y ~= V0/ R_eff ~= V0/(.05*R0)
+    m_rho = (m_R0 - m_R_l) * exp(-qV1 * m_R0 * pow(1.05 * m_params->model.longvl / m_params->model.longvl, 2));
 
     // Note: rho is always > 0 with the modified eq.
     m_R_eff = m_R0 - m_rho;
@@ -165,6 +157,7 @@ void ChPacejkaTire::Initialize(void)
 
 
 // -----------------------------------------------------------------------------
+// Functions providing access to private structures
 // -----------------------------------------------------------------------------
 double ChPacejkaTire::get_kappa() const
 {
@@ -204,8 +197,8 @@ double ChPacejkaTire::get_longvl() const
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-void ChPacejkaTire::Update(const double time,
-  const ChBodyState&  state)
+void ChPacejkaTire::Update(double              time,
+                           const ChBodyState&  state)
 {
   // check that input tire model parameters are defined
   if (!m_params_defined)
@@ -216,13 +209,10 @@ void ChPacejkaTire::Update(const double time,
 
   // check x velocity, vertical load (only when not using transient slip model)
   double v_mag = ChVector<>(state.lin_vel.x, state.lin_vel.y, 0).Length();
-  if (!m_use_transient_slip)
+  if (!m_use_transient_slip && (v_mag < 0.1))
   {
-    if (v_mag < 0.1) {
-      GetLog() << " ERROR: forward velocity below threshold.... \n\n";
-      return;
-    }
-
+    GetLog() << " ERROR: forward velocity below threshold.... \n\n";
+    return;
   }
 
   // update tire input state
@@ -247,7 +237,8 @@ void ChPacejkaTire::Update(const double time,
   // note: kappaP, alphaP, gammaP can be overridden in Advance
 }
 
-void ChPacejkaTire::Advance(double step) {
+void ChPacejkaTire::Advance(double step)
+{
   // check that input tire model parameters are defined
   if (!m_params_defined)
   {
@@ -256,7 +247,7 @@ void ChPacejkaTire::Advance(double step) {
   }
 
   // if using single point contact model, slips are calculated from
-  //	compliance between tire and contact patch
+  // compliance between tire and contact patch
   if (m_use_transient_slip)
   {
     // 1 of 2 ways to deal with user input time step increment
@@ -284,11 +275,11 @@ void ChPacejkaTire::Advance(double step) {
 
   // update M_y, apply to both m_FM and m_FM_combined
   calc_rollingResistance();
-
-
 }
 
-void ChPacejkaTire::calc_rho(const double F_z) {
+
+void ChPacejkaTire::calc_rho(double F_z)
+{
   double qV1 = 1.5;	// guess
   // first, set the vertical force
   m_FM.force.z = F_z;
@@ -311,9 +302,9 @@ void ChPacejkaTire::calc_rho(const double F_z) {
 }
 
 
-void ChPacejkaTire::calc_Fz() // const double step_size)
+void ChPacejkaTire::calc_Fz()
 {
-  double qV1 = 0.8;	// guess
+  double qV1 = 0.8;  // guess
   double h_ground = m_terrain.GetHeight(m_tireState.pos.x, m_tireState.pos.y);
   // dz should be negative
   double dz = (m_tireState.pos.z - m_R0) - h_ground;
@@ -376,11 +367,11 @@ void ChPacejkaTire::calc_slip_kinematic()
   // can get in here when use_transient_slip = true when v_mag is low or zero.
   if (v_mag < m_params->model.vxlow)
   {
-		kappa = (m_R_eff * m_tireState.ang_vel.y - V_cx) / abs(m_params->model.vxlow);
+    kappa = (m_R_eff * m_tireState.ang_vel.y - V_cx) / abs(m_params->model.vxlow);
   }
   else {
     // s_x = (w_y * r_rolling - |v|) / |v|
-		kappa = (m_R_eff * m_tireState.ang_vel.y - V_cx) / abs(V_cx);
+    kappa = (m_R_eff * m_tireState.ang_vel.y - V_cx) / abs(V_cx);
   }
 
 
@@ -422,7 +413,7 @@ void ChPacejkaTire::calc_slip_kinematic()
 
 }
 
-void ChPacejkaTire::advance_slip_transient(const double step_size)
+void ChPacejkaTire::advance_slip_transient(double step_size)
 {
   // hard-coded, for now
   double EPS_GAMMA = 0.6;
@@ -484,11 +475,11 @@ void ChPacejkaTire::advance_slip_transient(const double step_size)
 }
 
 
-double ChPacejkaTire::calc_ODE_RK_uv(const double V_s,
-  const double sigma,
-  const double V_cx,
-  const double step_size,
-  const double x_curr)
+double ChPacejkaTire::calc_ODE_RK_uv(double V_s,
+                                     double sigma,
+                                     double V_cx,
+                                     double step_size,
+                                     double x_curr)
 {
   double k1 = V_s - (1.0 / sigma) * abs(V_cx) * x_curr;
   double k2 = V_s - (1.0 / sigma) * abs(V_cx) * (x_curr + 0.5 * step_size * k1);
@@ -502,7 +493,7 @@ double ChPacejkaTire::calc_ODE_RK_uv(const double V_s,
 
 // pure slip reactions. If Lateral slip isn't nearly 0, calculate
 // pure longitudinal slip case, else pure lateral slip case.
-void ChPacejkaTire::calc_pureSlipReactions(void)
+void ChPacejkaTire::calc_pureSlipReactions()
 {
   // calculate Fx, pure long. slip condition
   calcFx_pureLong();
@@ -516,13 +507,13 @@ void ChPacejkaTire::calc_pureSlipReactions(void)
 }
 
 
-double ChPacejkaTire::calc_ODE_RK_gamma(const double C_Fgamma,
-  const double C_Falpha,
-  const double sigma_alpha,
-  const double V_cx,
-  const double step_size,
-  const double gamma,
-  const double v_gamma)
+double ChPacejkaTire::calc_ODE_RK_gamma(double C_Fgamma,
+                                        double C_Falpha,
+                                        double sigma_alpha,
+                                        double V_cx,
+                                        double step_size,
+                                        double gamma,
+                                        double v_gamma)
 {
   double g0 = C_Fgamma / C_Falpha * abs(V_cx) * gamma;
   double g1 = abs(V_cx) / sigma_alpha;
@@ -536,16 +527,16 @@ double ChPacejkaTire::calc_ODE_RK_gamma(const double C_Fgamma,
   return delta_g;
 }
 
-double ChPacejkaTire::calc_ODE_RK_phi(const double C_Fphi,
-  const double C_Falpha,
-  const double V_cx,
-  const double psi_dot,
-  const double w_y,
-  const double gamma,
-  const double sigma_alpha,
-  const double v_phi,
-  const double eps_gamma,
-  const double step_size)
+double ChPacejkaTire::calc_ODE_RK_phi(double C_Fphi,
+                                      double C_Falpha,
+                                      double V_cx,
+                                      double psi_dot,
+                                      double w_y,
+                                      double gamma,
+                                      double sigma_alpha,
+                                      double v_phi,
+                                      double eps_gamma,
+                                      double step_size)
 {
   int sign_Vcx = 0;
   if (V_cx < 0)
@@ -567,7 +558,7 @@ double ChPacejkaTire::calc_ODE_RK_phi(const double C_Fphi,
 }
 
 
-void ChPacejkaTire::calc_slip_from_uv(void)
+void ChPacejkaTire::calc_slip_from_uv()
 {
   // Markus adds artificial damping at low velocity (Besselink)
   // damp gradually to zero velocity at low velocity
@@ -595,7 +586,7 @@ void ChPacejkaTire::calc_slip_from_uv(void)
 
 
 //  combined slip reactions
-void ChPacejkaTire::calc_combinedSlipReactions(void)
+void ChPacejkaTire::calc_combinedSlipReactions()
 {
   // calculate Fx for combined slip
   calcFx_combined();
@@ -608,7 +599,7 @@ void ChPacejkaTire::calc_combinedSlipReactions(void)
 
 }
 
-void ChPacejkaTire::calc_relaxationLengths(void)
+void ChPacejkaTire::calc_relaxationLengths()
 {
   double p_Ky4 = 2;
   double C_Fx = 154000;	// calibrated using Fx - pure long slip case
@@ -633,7 +624,8 @@ void ChPacejkaTire::calc_relaxationLengths(void)
 }
 
 
-void ChPacejkaTire::calcFx_pureLong(void){
+void ChPacejkaTire::calcFx_pureLong()
+{
   // Fx, pure long slip
   double S_Hx = (m_params->longitudinal_coefficients.phx1 + m_params->longitudinal_coefficients.phx2*m_dF_z)*m_params->scaling_coefficients.lhx;
   double kappa_x = m_slip->kappaP + S_Hx;	// * 0.1;
@@ -663,7 +655,8 @@ void ChPacejkaTire::calcFx_pureLong(void){
   }
 }
 
-void ChPacejkaTire::calcFy_pureLat(void){
+void ChPacejkaTire::calcFy_pureLat()
+{
   double p_Ky4 = 2.0;
   double p_Ky5 = 0;
   double p_Ky6 = 0.92;	// not in the default pac2002 file
@@ -705,7 +698,8 @@ void ChPacejkaTire::calcFy_pureLat(void){
   }
 }
 
-void ChPacejkaTire::calcMz_pure(void){
+void ChPacejkaTire::calcMz_pure()
+{
   // some constants
   int sign_Vx = 0;
   if (m_tireState.lin_vel.x >= 0)
@@ -748,7 +742,7 @@ void ChPacejkaTire::calcMz_pure(void){
 
 
 // calculate Fx for combined slip
-void ChPacejkaTire::calcFx_combined(void)
+void ChPacejkaTire::calcFx_combined()
 {
   double rbx3 = 1.0;
 
@@ -774,7 +768,7 @@ void ChPacejkaTire::calcFx_combined(void)
 }
 
 // calc Fy for combined slip
-void ChPacejkaTire::calcFy_combined(void)
+void ChPacejkaTire::calcFy_combined()
 {
   double S_HyKappa = m_params->lateral_coefficients.rhy1 + m_params->lateral_coefficients.rhy2 * m_dF_z;
   double kappa_S = m_slip->kappaP + S_HyKappa;
@@ -796,7 +790,7 @@ void ChPacejkaTire::calcFy_combined(void)
 }
 
 // calc Mz for combined slip
-void ChPacejkaTire::calcMz_combined(void)
+void ChPacejkaTire::calcMz_combined()
 {
   double FP_y = m_FM_combined.force.y - m_combinedLat->S_VyKappa;
   double s = m_R0 * (m_params->aligning_coefficients.ssz1 + m_params->aligning_coefficients.ssz2 * (-m_FM_combined.force.y / m_params->vertical.fnomin) + (m_params->aligning_coefficients.ssz3 + m_params->aligning_coefficients.ssz4 * m_dF_z) * m_slip->gammaP) * m_params->scaling_coefficients.ls;
@@ -835,7 +829,7 @@ void ChPacejkaTire::calcMz_combined(void)
 
 
 
-void ChPacejkaTire::calc_overturningCouple(void)
+void ChPacejkaTire::calc_overturningCouple()
 {
   double M_x = m_FM.force.z * m_R0 * (m_params->overturning_coefficients.qsx1 - m_params->overturning_coefficients.qsx2 * m_slip->gammaP
     - m_params->overturning_coefficients.qsx3 * (m_FM_combined.force.y / m_params->vertical.fnomin)) * m_params->scaling_coefficients.lmx;
@@ -844,7 +838,7 @@ void ChPacejkaTire::calc_overturningCouple(void)
 }
 
 
-void ChPacejkaTire::calc_rollingResistance(void)
+void ChPacejkaTire::calc_rollingResistance()
 {
   double V_r = m_tireState.ang_vel.y * m_R_eff;
   double M_y = -m_FM.force.z * m_R0 * (m_params->rolling_coefficients.qsy1 * atan(V_r / m_params->model.longvl) - m_params->rolling_coefficients.qsy2 * (m_FM_combined.force.x / m_params->vertical.fnomin)) * m_params->scaling_coefficients.lmy;
@@ -855,7 +849,7 @@ void ChPacejkaTire::calc_rollingResistance(void)
 
 // what does the PacTire in file look like?
 // see models/data/hmmwv/pactest.tir
-void ChPacejkaTire::loadPacTireParamFile(void)
+void ChPacejkaTire::loadPacTireParamFile()
 {
   // try to load the file
   std::ifstream inFile(this->getPacTireParamFile().c_str(), std::ios::in);
@@ -933,7 +927,8 @@ void ChPacejkaTire::readPacTireInput(std::ifstream& inFile)
 }
 
 
-void ChPacejkaTire::readSection_UNITS(std::ifstream& inFile){
+void ChPacejkaTire::readSection_UNITS(std::ifstream& inFile)
+{
   // skip the first line
   std::string tline;
   std::getline(inFile, tline);
@@ -947,14 +942,11 @@ void ChPacejkaTire::readSection_UNITS(std::ifstream& inFile){
     // made it to the next section
     if (tline[0] == '$')
       break;
-
-
   }
-
-
 }
 
-void ChPacejkaTire::readSection_MODEL(std::ifstream& inFile){
+void ChPacejkaTire::readSection_MODEL(std::ifstream& inFile)
+{
   // skip the first line
   std::string tline;
   std::getline(inFile, tline);
@@ -985,7 +977,8 @@ void ChPacejkaTire::readSection_MODEL(std::ifstream& inFile){
 
 }
 
-void ChPacejkaTire::readSection_DIMENSION(std::ifstream& inFile){
+void ChPacejkaTire::readSection_DIMENSION(std::ifstream& inFile)
+{
   // skip the first two lines
   std::string tline;
   std::getline(inFile, tline);
@@ -1013,7 +1006,8 @@ void ChPacejkaTire::readSection_DIMENSION(std::ifstream& inFile){
 }
 
 
-void ChPacejkaTire::readSection_SHAPE(std::ifstream& inFile){
+void ChPacejkaTire::readSection_SHAPE(std::ifstream& inFile)
+{
   // skip the first two lines
   std::string tline;
   std::getline(inFile, tline);
@@ -1143,7 +1137,8 @@ void ChPacejkaTire::readSection_RANGES(std::ifstream& inFile){
 }
 
 
-void ChPacejkaTire::readSection_SCALING_COEFFICIENTS(std::ifstream& inFile){
+void ChPacejkaTire::readSection_SCALING_COEFFICIENTS(std::ifstream& inFile)
+{
   std::string tline;
   std::getline(inFile, tline);
   // if all the data types are the same in a subsection, life is a little easier
@@ -1169,7 +1164,8 @@ void ChPacejkaTire::readSection_SCALING_COEFFICIENTS(std::ifstream& inFile){
 }
 
 
-void ChPacejkaTire::readSection_LONGITUDINAL_COEFFICIENTS(std::ifstream& inFile){
+void ChPacejkaTire::readSection_LONGITUDINAL_COEFFICIENTS(std::ifstream& inFile)
+{
   std::string tline;
   std::getline(inFile, tline);
   std::vector<double> dat;
@@ -1193,7 +1189,8 @@ void ChPacejkaTire::readSection_LONGITUDINAL_COEFFICIENTS(std::ifstream& inFile)
 }
 
 
-void ChPacejkaTire::readSection_OVERTURNING_COEFFICIENTS(std::ifstream& inFile){
+void ChPacejkaTire::readSection_OVERTURNING_COEFFICIENTS(std::ifstream& inFile)
+{
   std::string tline;
   std::getline(inFile, tline);
   std::vector<double> dat;
@@ -1215,7 +1212,8 @@ void ChPacejkaTire::readSection_OVERTURNING_COEFFICIENTS(std::ifstream& inFile){
 }
 
 
-void ChPacejkaTire::readSection_LATERAL_COEFFICIENTS(std::ifstream& inFile){
+void ChPacejkaTire::readSection_LATERAL_COEFFICIENTS(std::ifstream& inFile)
+{
   std::string tline;
   std::getline(inFile, tline);
   std::vector<double> dat;
@@ -1240,7 +1238,8 @@ void ChPacejkaTire::readSection_LATERAL_COEFFICIENTS(std::ifstream& inFile){
 }
 
 
-void ChPacejkaTire::readSection_ROLLING_COEFFICIENTS(std::ifstream& inFile){
+void ChPacejkaTire::readSection_ROLLING_COEFFICIENTS(std::ifstream& inFile)
+{
   std::string tline;
   std::getline(inFile, tline);
   std::vector<double> dat;
@@ -1262,7 +1261,8 @@ void ChPacejkaTire::readSection_ROLLING_COEFFICIENTS(std::ifstream& inFile){
 }
 
 
-void ChPacejkaTire::readSection_ALIGNING_COEFFICIENTS(std::ifstream& inFile){
+void ChPacejkaTire::readSection_ALIGNING_COEFFICIENTS(std::ifstream& inFile)
+{
   std::string tline;
   std::getline(inFile, tline);
   std::vector<double> dat;
@@ -1289,8 +1289,8 @@ void ChPacejkaTire::readSection_ALIGNING_COEFFICIENTS(std::ifstream& inFile){
 
 // write for output to python pandas module
 // 
-void ChPacejkaTire::WriteOutData(const double       time,
-  const std::string& outFilename)
+void ChPacejkaTire::WriteOutData(double             time,
+                                 const std::string& outFilename)
 {
   // first time thru, write headers
   if (m_Num_WriteOutData == 0) {
@@ -1329,8 +1329,10 @@ void ChPacejkaTire::WriteOutData(const double       time,
 }
 
 
-ChBodyState ChPacejkaTire::getState_from_KAG(const double kappa, const double alpha,
-  const double gamma, const double Vxy)
+ChBodyState ChPacejkaTire::getState_from_KAG(double kappa,
+                                             double alpha,
+                                             double gamma,
+                                             double Vxy)
 {
   ChBodyState state;
 

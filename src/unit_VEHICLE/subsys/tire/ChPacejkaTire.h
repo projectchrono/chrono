@@ -96,7 +96,7 @@ public:
     );
 
   /// Manually set the vertical wheel load as an input.
-  void set_Fz_override(const double Fz) { m_Fz_override = Fz; }
+  void set_Fz_override(double Fz) { m_Fz_override = Fz; }
 
   /// Return orientation, Vx, Vy (global) and omega_y (local).
   ChBodyState getState_from_KAG(
@@ -148,7 +148,7 @@ private:
   void Initialize();
 
   // look for this data file
-  virtual void loadPacTireParamFile(void);
+  virtual void loadPacTireParamFile();
 
   // once Pac tire input text file has been succesfully opened, read the input
   // data, and populate the data struct
@@ -198,57 +198,58 @@ private:
     double v_gamma);
 
   // calculate the ODE dphi/dt = f(phi), return the increment delta_phi
-  double calc_ODE_RK_phi(const double C_Fphi,
-    const double C_Falpha,
-    const double V_cx,
-    const double psi_dot,
-    const double w_y,
-    const double gamma,
-    const double sigma_alpha,
-    const double v_phi,
-    const double eps_gamma,
-    const double step_size);
+  double calc_ODE_RK_phi(
+    double C_Fphi,
+    double C_Falpha,
+    double V_cx,
+    double psi_dot,
+    double w_y,
+    double gamma,
+    double sigma_alpha,
+    double v_phi,
+    double eps_gamma,
+    double step_size);
 
   // calculate and set the transient slip values (kappaP, alphaP, gammaP) from
   // u, v deflections
-  void calc_slip_from_uv(void);
+  void calc_slip_from_uv();
 
   // calculate the forces, moments when Update() is called
   // calculate pure longitudinal, pure lateral slip reactions
-  void calc_pureSlipReactions(void);
+  void calc_pureSlipReactions();
 
   // calculate combined slip reactions
-  void calc_combinedSlipReactions(void);
+  void calc_combinedSlipReactions();
 
   // calculate the current effective rolling radius, w.r.t. wy, Fz as inputs
-  void calc_rho(const double F_z);
+  void calc_rho(double F_z);
 
   // calculate the force for pure longitudinal slip
-  void calcFx_pureLong(void);
+  void calcFx_pureLong();
 
   // calculate the force for pure lateral slip
-  void calcFy_pureLat(void);
+  void calcFy_pureLat();
 
   // find the vertical load
   void calc_Fz();
 
   // calc aligning torque, pure slip case
-  void calcMz_pure(void);
+  void calcMz_pure();
 
   // calculate Fx for combined slip
-  void calcFx_combined(void);
+  void calcFx_combined();
 
   // calculate Fy for combined slip
-  void calcFy_combined(void);
+  void calcFy_combined();
 
   // calculate Mz for combined slip
-  void calcMz_combined(void);
+  void calcMz_combined();
 
   // update M_x, apply to both m_FM and m_FM_combined
-  void calc_overturningCouple(void);
+  void calc_overturningCouple();
 
   // update M_y, apply to both m_FM and m_FM_combined
-  void calc_rollingResistance(void);
+  void calc_rollingResistance();
 
   // ----- Data members
 
