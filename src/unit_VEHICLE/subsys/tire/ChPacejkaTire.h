@@ -72,10 +72,10 @@ public:
   ~ChPacejkaTire();
 
   /// Return the most recently computed forces as a function of slip rates.
-  virtual ChTireForce GetTireForce() const { return m_FM; }
+  virtual ChTireForce GetTireForce() const { return m_FM_combined; }
 
   ///  Return the most recently computed forces as a function of slip rates.
-  ChTireForce GetTireForce_combined() const { return m_FM_combined; }
+  ChTireForce GetTireForce_pureSlip() const { return m_FM; }
 
   /// Update the state of this tire system at the current time.
   /// Set the PacTire spindle state data from the global wheel body state.
