@@ -27,8 +27,20 @@
 namespace chrono{
 
 // -----------------------------------------------------------------------------
-// Constrcutors
+// Constructors
 // -----------------------------------------------------------------------------
+ChPacejkaTire::ChPacejkaTire(const std::string& pacTire_paramFile,
+                             const ChTerrain&   terrain)
+: ChTire(terrain),
+  m_paramFile(pacTire_paramFile),
+  m_params_defined(false),
+  m_use_transient_slip(true),
+  m_use_Fz_override(false),
+  m_step_size(0.01)
+{
+  Initialize();
+}
+
 ChPacejkaTire::ChPacejkaTire(const std::string& pacTire_paramFile,
                              const ChTerrain&   terrain,
                              const ChBodyState& ICs,

@@ -51,6 +51,11 @@ public:
 
   ChPacejkaTire(
     const std::string& pacTire_paramFile,
+    const ChTerrain&   terrain
+    );
+
+  ChPacejkaTire(
+    const std::string& pacTire_paramFile,
     const ChTerrain&   terrain,
     const ChBodyState& ICs,
     double             step_size = 0.01,
@@ -65,6 +70,12 @@ public:
     );
 
   ~ChPacejkaTire();
+
+  /// Return the most recently computed forces as a function of slip rates.
+  virtual ChTireForce GetTireForce() const { return m_FM; }
+
+  ///  Return the most recently computed forces as a function of slip rates.
+  ChTireForce GetTireForce_combined() const { return m_FM_combined; }
 
   /// Update the state of this tire system at the current time.
   /// Set the PacTire spindle state data from the global wheel body state.
@@ -122,11 +133,11 @@ public:
   /// Get the tire rolling radius, ideally updated each step.
   double get_tire_rolling_rad() const { return m_R_eff; }
 
-  /// Return the most recently computed forces as a function of slip rates.
-  virtual ChTireForce GetTireForce() const { return m_FM; }
+  /// Set the value of the integration step size.
+  void SetStepsize(double val) { m_step_size = val; }
 
-  ///  Return the most recently computed forces as a function of slip rates.
-  ChTireForce GetTireForce_combined() const { return m_FM_combined; }
+  /// Get the current value of the integration step size.
+  double GetStepsize() const { return m_step_size; }
 
 private:
 
