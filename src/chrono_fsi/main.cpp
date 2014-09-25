@@ -1953,7 +1953,6 @@ int main() {
 			//***		paramsH.cellSize;
 			//***		paramsH.numBodies;
 			//***		paramsH.boxDims;
-
 		paramsH.sizeScale = 1; //don't change it.
 		paramsH.HSML = 0.00004;
 		paramsH.MULT_INITSPACE = 1.0;
