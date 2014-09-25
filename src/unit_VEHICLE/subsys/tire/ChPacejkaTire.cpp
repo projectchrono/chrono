@@ -319,7 +319,7 @@ void ChPacejkaTire::calc_Fz()
     m_R_l = m_R0;
     m_rho = 0;
     m_R_eff = m_R0;
-    GetLog() << " no contact detected on this tire \n";
+    ////GetLog() << " no contact detected on this tire \n";
   }
   else {
     // spring force from deflection
@@ -1366,6 +1366,44 @@ ChWheelState ChPacejkaTire::getState_from_KAG(double kappa,
 // -----------------------------------------------------------------------------
 ChVector<> ChPacejkaTire::getKAG_from_State(const ChWheelState& state)
 {
+  // ATTENTION: with the current reference frames, when the vehicle moves
+  // forward, typically V_cx is negative and the wheel omega is negative!!!
+  // Here, we want to use a frame with Z up, X forward, and Y to the left.
+  // Until the chrono-T reference frames change, we explicitly convert
+  // everything here, by applying a rotation of 180 degrees around Z.
+  // The only two quantities we must adjust are the wheel normal and the wheel
+  // angular speed.
+  ChQuaternion<> R = Q_from_AngZ(CH_C_PI);
+
+  // Wheel normal (expressed in global frame)
+  ChVector<> wheel_normal = state.rot.GetYaxis();
+  wheel_normal = R.Rotate(wheel_normal);           // reference frame conversion
+
+  double omega = -state.omega;                     // reference frame conversion
+
+  // Terrain normal at wheel center location (expressed in global frame)
+  ChVector<> Z_dir = m_terrain.GetNormal(state.pos.x, state.pos.y);
+
+  // Longitudinal (heading) and lateral directions, in the terrain plane.
+  ChVector<> X_dir = Vcross(wheel_normal, Z_dir);
+  ChVector<> Y_dir = Vcross(Z_dir, X_dir);
+
+  // Decompose the wheel velocity in the X and Y directions and calculate the
+  // slip angle, alpha.
+  double V_x = Vdot(state.lin_vel, X_dir);
+  double V_y = Vdot(state.lin_vel, Y_dir);
+  double alpha = atan2(V_y, V_x);
+
+  // Decompose the wheel normal in the Z and Y directions and calculate the
+  // wheel camber angle, gamma.
+  double n_z = Vdot(wheel_normal, Z_dir);
+  double n_y = Vdot(wheel_normal, Y_dir);
+  double gamma = atan2(n_z, n_y);
+
+  // Longitudinal slip rate.
+  double kappa = (m_R_eff * omega - V_x) / abs(V_x);
+
+  /*
   // alpha, gamma from wheel orientation
   double alpha = chrono::Q_to_NasaAngles(state.rot).z;
   double gamma = chrono::Q_to_NasaAngles(state.rot).x;
@@ -1376,6 +1414,7 @@ ChVector<> ChPacejkaTire::getKAG_from_State(const ChWheelState& state)
   double kappa = (m_R_eff * state.ang_vel.y - Vcx) / (Vcx);
 
   double check_a1 = atan(-Vcy / Vcx);
+  */
 
   ChVector<> kag(kappa, alpha, gamma);
 
