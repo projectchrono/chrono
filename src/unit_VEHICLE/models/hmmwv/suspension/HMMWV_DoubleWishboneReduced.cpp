@@ -32,9 +32,14 @@ namespace hmmwv {
 // -----------------------------------------------------------------------------
 
 static const double in2m = 0.0254;
+static const double lb2kg = 0.453592;
+static const double lbf2N = 4.44822162;
+static const double lbfpin2Npm = 175.12677;
 
-const double     HMMWV_DoubleWishboneReducedFront::m_spindleMass = 1;
-const double     HMMWV_DoubleWishboneReducedFront::m_uprightMass = 1;
+// entire wheel assembly = 195 lbs, includes upright, spindle and tire.
+// HMMWV tires run ~ 100 lbs, so the spindle and upright should be ~ 95 lbs combined
+const double     HMMWV_DoubleWishboneReducedFront::m_uprightMass = lb2kg * 60.0;
+const double     HMMWV_DoubleWishboneReducedFront::m_spindleMass = lb2kg * 35.0;
 
 const double     HMMWV_DoubleWishboneReducedFront::m_spindleRadius = 0.15;
 const double     HMMWV_DoubleWishboneReducedFront::m_spindleWidth  = 0.06;
@@ -45,14 +50,14 @@ const ChVector<> HMMWV_DoubleWishboneReducedFront::m_uprightInertia(5, 5, 5);
 
 const double     HMMWV_DoubleWishboneReducedFront::m_axleInertia = 0.4;
 
-const double     HMMWV_DoubleWishboneReducedFront::m_springCoefficient  = 167062.0;
-const double     HMMWV_DoubleWishboneReducedFront::m_dampingCoefficient = 22459.0;
-const double     HMMWV_DoubleWishboneReducedFront::m_springRestLength   = 0.4062;
+const double     HMMWV_DoubleWishboneReducedFront::m_springCoefficient  = lbfpin2Npm * 954;
+const double     HMMWV_DoubleWishboneReducedFront::m_dampingCoefficient = lbfpin2Npm * 128.25;
+const double     HMMWV_DoubleWishboneReducedFront::m_springRestLength   = in2m * 13.36;
 
 // -----------------------------------------------------------------------------
 
-const double     HMMWV_DoubleWishboneReducedRear::m_spindleMass = 1;
-const double     HMMWV_DoubleWishboneReducedRear::m_uprightMass = 1;
+const double     HMMWV_DoubleWishboneReducedRear::m_uprightMass = lb2kg * 60.0;
+const double     HMMWV_DoubleWishboneReducedRear::m_spindleMass = lb2kg * 35.0;
 
 const double     HMMWV_DoubleWishboneReducedRear::m_spindleRadius = 0.15;
 const double     HMMWV_DoubleWishboneReducedRear::m_spindleWidth  = 0.06;
@@ -63,9 +68,9 @@ const ChVector<> HMMWV_DoubleWishboneReducedRear::m_uprightInertia(5, 5, 5);
 
 const double     HMMWV_DoubleWishboneReducedRear::m_axleInertia = 0.4;
 
-const double     HMMWV_DoubleWishboneReducedRear::m_springCoefficient  = 369149.0;
-const double     HMMWV_DoubleWishboneReducedRear::m_dampingCoefficient = 35024.0;
-const double     HMMWV_DoubleWishboneReducedRear::m_springRestLength   = 0.4162;
+const double     HMMWV_DoubleWishboneReducedRear::m_springCoefficient  = lbfpin2Npm * 2108;
+const double     HMMWV_DoubleWishboneReducedRear::m_dampingCoefficient = lbfpin2Npm * 200.00;
+const double     HMMWV_DoubleWishboneReducedRear::m_springRestLength   = in2m * 15.03;
 
 
 // -----------------------------------------------------------------------------
