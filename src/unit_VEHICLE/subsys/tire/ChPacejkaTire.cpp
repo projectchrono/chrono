@@ -130,7 +130,10 @@ void ChPacejkaTire::Initialize(void)
     m_R_eff = m_R0 - m_rho;
 
     // not sure what these are used for
-    *m_zeta = { 1, 1, 1, 1, 1, 1, 1, 1, 1 };
+    {
+      zetaCoefs tmp = { 1, 1, 1, 1, 1, 1, 1, 1, 1 };
+      *m_zeta = tmp;
+    }
 
     // any of the structs associated with multipliers in reaction calcs
     m_combinedTorque->alpha_r_eq = 0.0;
@@ -138,7 +141,10 @@ void ChPacejkaTire::Initialize(void)
 
     // init all other variables
     m_Num_WriteOutData = 0;
-    *m_slip = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
+    {
+      slips tmp = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
+      *m_slip = tmp;
+    }
   }
   else {
     GetLog() << " couldn't load pacTire parameters from file, not updating initial quantities \n\n";
@@ -609,7 +615,10 @@ void ChPacejkaTire::calc_relaxationLengths(void)
   double C_Fgamma = m_FM.force.z * (p_Ky6 + p_Ky7 * m_dF_z) * m_params->scaling_coefficients.lgay;
   double C_Fphi = (C_Fgamma * m_R0) / (1 - 0.5);
 
-  *m_relaxation = { C_Falpha, sigma_alpha, C_Fkappa, sigma_kappa, C_Fgamma, C_Fphi };
+  {
+    relaxationL tmp = { C_Falpha, sigma_alpha, C_Fkappa, sigma_kappa, C_Fgamma, C_Fphi };
+    *m_relaxation = tmp;
+  }
 }
 
 
@@ -637,7 +646,10 @@ void ChPacejkaTire::calcFx_pureLong(void){
   m_FM.force.x = F_x;
 
   // hold onto these coefs
-  *m_pureLong = { S_Hx, kappa_x, mu_x, K_xKappa, B_x, C_x, D_x, E_x, F_x, S_Vx };
+  {
+    pureLongCoefs tmp = { S_Hx, kappa_x, mu_x, K_xKappa, B_x, C_x, D_x, E_x, F_x, S_Vx };
+    *m_pureLong = tmp;
+  }
 }
 
 void ChPacejkaTire::calcFy_pureLat(void){
@@ -676,7 +688,10 @@ void ChPacejkaTire::calcFy_pureLat(void){
   m_FM.force.y = F_y;
 
   // hold onto coefs
-  *m_pureLat = { S_Hy, alpha_y, mu_y, K_yAlpha, K_yGamma_0, S_VyGamma, S_Vy, B_y, C_y, D_y, E_y, F_y };
+  {
+    pureLatCoefs tmp = { S_Hy, alpha_y, mu_y, K_yAlpha, K_yGamma_0, S_VyGamma, S_Vy, B_y, C_y, D_y, E_y, F_y };
+    *m_pureLat = tmp;
+  }
 }
 
 void ChPacejkaTire::calcMz_pure(void){
@@ -710,12 +725,14 @@ void ChPacejkaTire::calcMz_pure(void){
   m_FM.moment.z = M_z;
 
   // hold onto coefs
-  *m_pureTorque = {
-    S_Hf, alpha_r, S_Ht, alpha_t, m_slip->cosPrime_alpha, KP_yAlpha,
-    B_r, C_r, D_r,
-    B_t, C_t, D_t0, D_t, E_t, t0,
-    MP_z0, M_zr0
-  };
+  {
+    pureTorqueCoefs tmp = {
+      S_Hf, alpha_r, S_Ht, alpha_t, m_slip->cosPrime_alpha, KP_yAlpha,
+      B_r, C_r, D_r,
+      B_t, C_t, D_t0, D_t, E_t, t0,
+      MP_z0, M_zr0};
+    *m_pureTorque = tmp;
+  }
 }
 
 
@@ -739,7 +756,10 @@ void ChPacejkaTire::calcFx_combined(void)
   double F_x = G_xAlpha * m_FM.force.x;
   m_FM_combined.force.x = F_x;
 
-  *m_combinedLong = { S_HxAlpha, alpha_S, B_xAlpha, C_xAlpha, E_xAlpha, G_xAlpha0, G_xAlpha };
+  {
+    combinedLongCoefs tmp = { S_HxAlpha, alpha_S, B_xAlpha, C_xAlpha, E_xAlpha, G_xAlpha0, G_xAlpha };
+    *m_combinedLong = tmp;
+  }
 }
 
 // calc Fy for combined slip
@@ -758,7 +778,10 @@ void ChPacejkaTire::calcFy_combined(void)
   double F_y = G_yKappa * m_FM.force.y + S_VyKappa;
   m_FM_combined.force.y = F_y;
 
-  *m_combinedLat = { S_HyKappa, kappa_S, B_yKappa, C_yKappa, E_yKappa, D_VyKappa, S_VyKappa, G_yKappa0, G_yKappa };
+  {
+    combinedLatCoefs tmp = { S_HyKappa, kappa_S, B_yKappa, C_yKappa, E_yKappa, D_VyKappa, S_VyKappa, G_yKappa0, G_yKappa };
+    *m_combinedLat = tmp;
+  }
 }
 
 // calc Mz for combined slip
@@ -793,7 +816,10 @@ void ChPacejkaTire::calcMz_combined(void)
   double M_z = MP_z + M_zr + (s * m_FM_combined.force.x);
   m_FM_combined.moment.z = M_z;
 
-  *m_combinedTorque = { m_slip->cosPrime_alpha, FP_y, s, alpha_t_eq, alpha_r_eq, M_zr, t, MP_z };
+  {
+    combinedTorqueCoefs tmp = { m_slip->cosPrime_alpha, FP_y, s, alpha_t_eq, alpha_r_eq, M_zr, t, MP_z };
+    *m_combinedTorque = tmp;
+  }
 }
 
 
