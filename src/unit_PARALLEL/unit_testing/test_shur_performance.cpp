@@ -29,7 +29,7 @@
 #include "chrono_utils/ChUtilsInputOutput.h"
 #include <blaze/math/CompressedMatrix.h>
 #include <blaze/math/DynamicVector.h>
-#include <blaze/math/SymmetricMatrix.h>
+//#include <blaze/math/SymmetricMatrix.h>
 using blaze::CompressedMatrix;
 using blaze::DynamicVector;
 using namespace std;
@@ -157,7 +157,7 @@ int main(int argc,
    CompressedMatrix<double> MinvsqrtD = Mass_invsqt * D;
    CompressedMatrix<double> MinvsqrtD_t = trans(MinvsqrtD);
    CompressedMatrix<double> N = D_t * Mass_inv * D;
-   blaze::SymmetricMatrix<CompressedMatrix<double> > N_sym = D_t * Mass_inv * D;
+   //blaze::SymmetricMatrix<CompressedMatrix<double> > N_sym = D_t * Mass_inv * D;
 //
 //      cout << D.rows() << " " << D.columns() << endl;
 //      cout << D_t.rows() << " " << D_t.columns() << endl;
@@ -180,10 +180,10 @@ int main(int argc,
    DynamicVector<double> result_2 = N * rhs_vector;
    timer.stop();
    std::cout << "N * rhs_vector: " << timer() << std::endl;
-   timer.start();
-   DynamicVector<double> result_3 = N_sym * rhs_vector;
-   timer.stop();
-   std::cout << "N_sym * rhs_vector: " << timer() << std::endl;
+   //timer.start();
+   //DynamicVector<double> result_3 = N_sym * rhs_vector;
+   //timer.stop();
+   //std::cout << "N_sym * rhs_vector: " << timer() << std::endl;
    timer.start();
    DynamicVector<double> result_4 = D_t * (MinvD * rhs_vector);
    timer.stop();
