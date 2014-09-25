@@ -26,7 +26,6 @@
 
 namespace chrono{
 
-	/*
 // -----------------------------------------------------------------------------
 // Constructors
 // -----------------------------------------------------------------------------
@@ -41,19 +40,17 @@ ChPacejkaTire::ChPacejkaTire(const std::string& pacTire_paramFile,
 {
   Initialize();
 }
-*/
+
+
 ChPacejkaTire::ChPacejkaTire(const std::string& pacTire_paramFile,
                              const ChTerrain&   terrain,
-                             // const ChBodyState& ICs,
-                             double             step_size,
                              bool               use_transient_slip,
                              double             Fz_override)
 : ChTire(terrain),
   m_paramFile(pacTire_paramFile),
   m_params_defined(false),
-  // m_tireState(ICs),
   m_use_transient_slip(use_transient_slip),
-  m_step_size(step_size)
+  m_step_size(0.01)
 {
   // user input vertical load? (for testing)
   if (Fz_override > 0)
@@ -65,7 +62,6 @@ ChPacejkaTire::ChPacejkaTire(const std::string& pacTire_paramFile,
     m_use_Fz_override = false;
   }
 
-  // use a test file for now
   Initialize();
 }
 

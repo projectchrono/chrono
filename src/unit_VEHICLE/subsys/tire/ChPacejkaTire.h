@@ -49,18 +49,16 @@ class CH_SUBSYS_API ChPacejkaTire : public ChTire
 {
 public:
 
-/*
+
   ChPacejkaTire(
     const std::string& pacTire_paramFile,
     const ChTerrain&   terrain
     );
-*/
+
 
   ChPacejkaTire(
     const std::string& pacTire_paramFile,
     const ChTerrain&   terrain,
-    // const ChBodyState& ICs,
-    double             step_size = 0.01,
     bool               use_transient_slip = true,
     double             Fz_override = -1
     );
@@ -273,6 +271,7 @@ private:
   ChTireForce m_FM_combined;   // based on combined slip
 
   ChBodyState m_tireState;     // current tire state
+	ChCoordsys<> m_tire_frame;	// 
 
   std::string m_paramFile;     // input parameter file
   std::string m_outFilename;   // output filename
