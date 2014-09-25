@@ -59,8 +59,8 @@ using namespace hmmwv;
 // =============================================================================
 
 // Initial vehicle position
-ChVector<>     initLoc(0, 0, 1.7);   // sprung mass height at design = 49.68 in
-ChQuaternion<> initRot(1,0,0,0);      // forward is in the negative global x-direction
+ChVector<>     initLoc(0, 0, 1.0);
+ChQuaternion<> initRot(1,0,0,0);
 
 // Type of tire model (RIGID, PACEJKA, or LUGRE)
 TireModelType tire_model = RIGID;
@@ -195,16 +195,23 @@ int main(int argc, char* argv[])
       map_skybox_side);
   mbox->setRotation( irr::core::vector3df(90,0,0));
  
-  bool do_shadows = false; // shadow map is experimental
+  bool do_shadows = true; // shadow map is experimental
+  irr::scene::ILightSceneNode* mlight = 0;
 
   if (do_shadows)
-    application.AddLightWithShadow(irr::core::vector3df(20.f, 20.f, 80.f),
-                                   irr::core::vector3df(20.f, 0.f, 0.f),
-                                   150, 60, 100, 40, 512, irr::video::SColorf(1, 1, 1));
+  {
+    mlight = application.AddLightWithShadow(
+      irr::core::vector3df(10.f, 30.f, 60.f),
+      irr::core::vector3df(0.f, 0.f, 0.f),
+      150, 60, 80, 15, 512, irr::video::SColorf(1, 1, 1), false, false);
+  }
   else
-    application.AddTypicalLights(irr::core::vector3df(30.f, -30.f,  100.f),
-                                irr::core::vector3df(30.f,  50.f,  100.f),
-                                250, 130);
+  {
+    application.AddTypicalLights(
+      irr::core::vector3df(30.f, -30.f, 100.f),
+      irr::core::vector3df(30.f, 50.f, 100.f),
+      250, 130);
+  }
 
   application.SetTimestep(step_size);
 
@@ -255,6 +262,18 @@ int main(int argc, char* argv[])
 
   while (application.GetDevice()->run())
   {
+    // update the position of the shadow mapping so that it follows the car
+    if (do_shadows)
+    {
+      ChVector<> lightaim = vehicle.GetChassisPos();
+      ChVector<> lightpos = vehicle.GetChassisPos() + ChVector<>(10, 30, 60);
+      irr::core::vector3df mlightpos((irr::f32)lightpos.x, (irr::f32)lightpos.y, (irr::f32)lightpos.z);
+      irr::core::vector3df mlightaim((irr::f32)lightaim.x, (irr::f32)lightaim.y, (irr::f32)lightaim.z);
+      application.GetEffects()->getShadowLight(0).setPosition(mlightpos);
+      application.GetEffects()->getShadowLight(0).setTarget(mlightaim);
+      mlight->setPosition(mlightpos);
+    }
+
     // Render scene
     if (step_number % render_steps == 0) {
       application.GetVideoDriver()->beginScene(true, true, irr::video::SColor(255, 140, 161, 192));

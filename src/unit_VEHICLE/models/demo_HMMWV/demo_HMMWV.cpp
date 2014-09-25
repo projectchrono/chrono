@@ -31,7 +31,9 @@
 #include "physics/ChLinkDistance.h"
 
 #include "utils/ChUtilsInputOutput.h"
+#include "utils/ChUtilsData.h"
 #include "subsys/terrain/RigidTerrain.h"
+#include "subsys/tire/ChPacejkaTire.h"
 
 #include "models/hmmwv/HMMWV.h"
 #include "models/hmmwv/vehicle/HMMWV_Vehicle.h"
@@ -59,8 +61,8 @@ using namespace hmmwv;
 // =============================================================================
 
 // Initial vehicle position
-ChVector<>     initLoc(0, 0, 1.7);   // sprung mass height at design = 49.68 in
-ChQuaternion<> initRot(1, 0, 0, 0);      // forward is in the negative global x-direction
+ChVector<>     initLoc(0, 0, 1.0);
+ChQuaternion<> initRot(1, 0, 0, 0);
 
 // Type of tire model (RIGID, PACEJKA, or LUGRE)
 TireModelType tire_model = RIGID;
@@ -111,7 +113,7 @@ int main(int argc, char* argv[])
   //terrain.AddMovingObstacles(10);
   terrain.AddFixedObstacles();
 
-  // Create the tires
+  // Create and initialize the tires
   ChSharedPtr<ChTire> tire_front_right;
   ChSharedPtr<ChTire> tire_front_left;
   ChSharedPtr<ChTire> tire_rear_right;
@@ -120,10 +122,10 @@ int main(int argc, char* argv[])
   switch (tire_model) {
   case RIGID:
   {
-    ChSharedPtr<HMMWV_RigidTire> tire_FR = ChSharedPtr<HMMWV_RigidTire>(new HMMWV_RigidTire(terrain, 0.7f));
-    ChSharedPtr<HMMWV_RigidTire> tire_FL = ChSharedPtr<HMMWV_RigidTire>(new HMMWV_RigidTire(terrain, 0.7f));
-    ChSharedPtr<HMMWV_RigidTire> tire_RR = ChSharedPtr<HMMWV_RigidTire>(new HMMWV_RigidTire(terrain, 0.7f));
-    ChSharedPtr<HMMWV_RigidTire> tire_RL = ChSharedPtr<HMMWV_RigidTire>(new HMMWV_RigidTire(terrain, 0.7f));
+    ChSharedPtr<HMMWV_RigidTire> tire_FR(new HMMWV_RigidTire(terrain, 0.7f));
+    ChSharedPtr<HMMWV_RigidTire> tire_FL(new HMMWV_RigidTire(terrain, 0.7f));
+    ChSharedPtr<HMMWV_RigidTire> tire_RR(new HMMWV_RigidTire(terrain, 0.7f));
+    ChSharedPtr<HMMWV_RigidTire> tire_RL(new HMMWV_RigidTire(terrain, 0.7f));
 
     tire_FR->Initialize(vehicle.GetWheelBody(FRONT_RIGHT));
     tire_FL->Initialize(vehicle.GetWheelBody(FRONT_LEFT));
@@ -139,15 +141,31 @@ int main(int argc, char* argv[])
   }
   case LUGRE:
   {
-    ChSharedPtr<HMMWV_LugreTire> tire_FR = ChSharedPtr<HMMWV_LugreTire>(new HMMWV_LugreTire(terrain));
-    ChSharedPtr<HMMWV_LugreTire> tire_FL = ChSharedPtr<HMMWV_LugreTire>(new HMMWV_LugreTire(terrain));
-    ChSharedPtr<HMMWV_LugreTire> tire_RR = ChSharedPtr<HMMWV_LugreTire>(new HMMWV_LugreTire(terrain));
-    ChSharedPtr<HMMWV_LugreTire> tire_RL = ChSharedPtr<HMMWV_LugreTire>(new HMMWV_LugreTire(terrain));
+    ChSharedPtr<HMMWV_LugreTire> tire_FR(new HMMWV_LugreTire(terrain));
+    ChSharedPtr<HMMWV_LugreTire> tire_FL(new HMMWV_LugreTire(terrain));
+    ChSharedPtr<HMMWV_LugreTire> tire_RR(new HMMWV_LugreTire(terrain));
+    ChSharedPtr<HMMWV_LugreTire> tire_RL(new HMMWV_LugreTire(terrain));
 
     tire_FR->Initialize();
     tire_FL->Initialize();
     tire_RR->Initialize();
     tire_RL->Initialize();
+
+    tire_front_right = tire_FR;
+    tire_front_left = tire_FL;
+    tire_rear_right = tire_RR;
+    tire_rear_left = tire_RL;
+
+    break;
+  }
+  case PACEJKA:
+  {
+    std::string param_file = utils::GetModelDataFile("hmmwv/pactest.tir");
+
+    ChSharedPtr<ChPacejkaTire> tire_FR(new ChPacejkaTire(param_file, terrain));
+    ChSharedPtr<ChPacejkaTire> tire_FL(new ChPacejkaTire(param_file, terrain));
+    ChSharedPtr<ChPacejkaTire> tire_RR(new ChPacejkaTire(param_file, terrain));
+    ChSharedPtr<ChPacejkaTire> tire_RL(new ChPacejkaTire(param_file, terrain));
 
     tire_front_right = tire_FR;
     tire_front_left = tire_FL;
@@ -185,19 +203,19 @@ int main(int argc, char* argv[])
   bool do_shadows = true; // shadow map is experimental
   irr::scene::ILightSceneNode* mlight = 0;
 
-  if (!do_shadows)
-  {
-    application.AddTypicalLights(
-      irr::core::vector3df(30.f, -30.f, 100.f),
-      irr::core::vector3df(30.f, 50.f, 100.f),
-      250, 130);
-  }
-  else
+  if (do_shadows)
   {
     mlight = application.AddLightWithShadow(
       irr::core::vector3df(10.f, 30.f, 60.f),
       irr::core::vector3df(0.f, 0.f, 0.f),
       150, 60, 80, 15, 512, irr::video::SColorf(1, 1, 1), false, false);
+  }
+  else
+  {
+    application.AddTypicalLights(
+      irr::core::vector3df(30.f, -30.f, 100.f),
+      irr::core::vector3df(30.f, 50.f, 100.f),
+      250, 130);
   }
 
   application.SetTimestep(step_size);
