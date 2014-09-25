@@ -49,15 +49,17 @@ class CH_SUBSYS_API ChPacejkaTire : public ChTire
 {
 public:
 
+/*
   ChPacejkaTire(
     const std::string& pacTire_paramFile,
     const ChTerrain&   terrain
     );
+*/
 
   ChPacejkaTire(
     const std::string& pacTire_paramFile,
     const ChTerrain&   terrain,
-    const ChBodyState& ICs,
+    // const ChBodyState& ICs,
     double             step_size = 0.01,
     bool               use_transient_slip = true,
     double             Fz_override = -1

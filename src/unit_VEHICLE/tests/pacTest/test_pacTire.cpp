@@ -68,23 +68,21 @@ int main(int argc, char* argv[])
   // flat rigid terrain, height = 0 for all (x,y)
   FlatTerrain flat_terrain(0);
 
-  // update body state based on varying input variables to pacTire:
-  // alpha, kappa and gamma
-  ChBodyState long_state;
-  ChBodyState lat_state;
-  ChBodyState combined_state;
-  // only omega_y matters for IC (for R_eff calc)
-  lat_state.ang_vel.y = 51.4;
-
   // Create the Pac tires, try to open param file and load empirical constants
-  ChPacejkaTire tire_long(pacParamFile, flat_terrain, long_state, step_size, use_transient_slip, F_z);
-  ChPacejkaTire tire_lat(pacParamFile, flat_terrain, lat_state, step_size, use_transient_slip, F_z);
-  ChPacejkaTire tire_combined(pacParamFile, flat_terrain, combined_state, step_size, use_transient_slip, F_z);
+  ChPacejkaTire tire_long(pacParamFile, flat_terrain, step_size, use_transient_slip, F_z);
+  ChPacejkaTire tire_lat(pacParamFile, flat_terrain, step_size, use_transient_slip, F_z);
+  ChPacejkaTire tire_combined(pacParamFile, flat_terrain, step_size, use_transient_slip, F_z);
 
   // record pacTire output for each of the 3 slip cases
   ChTireForces long_forces(1);
   ChTireForces lat_forces(1);
   ChTireForces combined_forces(1);
+
+	// update body state based on varying input variables to pacTire:
+  // alpha, kappa and gamma
+  ChBodyState long_state;
+  ChBodyState lat_state;
+  ChBodyState combined_state;
 
   // keep track of the input variable values
   std::vector<double> latSlip_range;

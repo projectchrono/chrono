@@ -26,6 +26,7 @@
 
 namespace chrono{
 
+	/*
 // -----------------------------------------------------------------------------
 // Constructors
 // -----------------------------------------------------------------------------
@@ -40,17 +41,17 @@ ChPacejkaTire::ChPacejkaTire(const std::string& pacTire_paramFile,
 {
   Initialize();
 }
-
+*/
 ChPacejkaTire::ChPacejkaTire(const std::string& pacTire_paramFile,
                              const ChTerrain&   terrain,
-                             const ChBodyState& ICs,
+                             // const ChBodyState& ICs,
                              double             step_size,
                              bool               use_transient_slip,
                              double             Fz_override)
 : ChTire(terrain),
   m_paramFile(pacTire_paramFile),
   m_params_defined(false),
-  m_tireState(ICs),
+  // m_tireState(ICs),
   m_use_transient_slip(use_transient_slip),
   m_step_size(step_size)
 {
@@ -105,6 +106,7 @@ ChPacejkaTire::~ChPacejkaTire()
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
+// NOTE: no initial conditions passed in at this point, e.g. m_tireState is empty
 void ChPacejkaTire::Initialize(void)
 {
   // Create private structures
@@ -136,7 +138,8 @@ void ChPacejkaTire::Initialize(void)
 
     // assume rho decreases with increasing w_y
     double qV1 = 1.5;
-    m_rho = (m_R0 - m_R_l) * exp(-qV1 * m_R0 * pow(m_tireState.ang_vel.y * m_R0 / m_params->model.longvl, 2));
+		// omega_y ~= V0/ R_eff ~= V0/(.05*R0)
+		m_rho = (m_R0 - m_R_l) * exp(-qV1 * m_R0 * pow(1.05 * m_params->model.longvl / m_params->model.longvl, 2));
 
     // Note: rho is always > 0 with the modified eq.
     m_R_eff = m_R0 - m_rho;
@@ -377,11 +380,11 @@ void ChPacejkaTire::calc_slip_kinematic()
   // can get in here when use_transient_slip = true when v_mag is low or zero.
   if (v_mag < m_params->model.vxlow)
   {
-    kappa = (get_tire_rolling_rad() * m_tireState.ang_vel.y - V_cx) / abs(m_params->model.vxlow);
+		kappa = (m_R_eff * m_tireState.ang_vel.y - V_cx) / abs(m_params->model.vxlow);
   }
   else {
     // s_x = (w_y * r_rolling - |v|) / |v|
-    kappa = (get_tire_rolling_rad() * m_tireState.ang_vel.y - V_cx) / abs(V_cx);
+		kappa = (m_R_eff * m_tireState.ang_vel.y - V_cx) / abs(V_cx);
   }
 
 
