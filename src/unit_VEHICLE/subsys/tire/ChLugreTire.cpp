@@ -121,8 +121,13 @@ void ChLugreTire::Update(double               time,
     m_data[id].vel = m_data[id].frame.TransformDirectionParentToLocal(vel);
 
     // Generate normal contact force and add to accumulators (recall, all forces
-    // are reduced to the wheel center)
-    double     Fn_mag = getNormalStiffness() * depth - getNormalDamping() * m_data[id].vel.z;
+    // are reduced to the wheel center). If the resulting force is negative, the
+    // disc is moving away from the terrain so fast that no contact force is
+    // generated.
+    double Fn_mag = getNormalStiffness() * depth - getNormalDamping() * m_data[id].vel.z;
+    
+    if (Fn_mag < 0) Fn_mag = 0;
+
     ChVector<> Fn = Fn_mag * m_data[id].frame.rot.GetZaxis();
 
     m_data[id].normal_force = Fn_mag;
