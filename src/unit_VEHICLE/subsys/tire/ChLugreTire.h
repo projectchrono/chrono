@@ -39,8 +39,8 @@ public:
 
   virtual ChTireForce GetTireForce() const { return m_tireForce; }
 
-  virtual void Update(double              time,
-                      const ChBodyState&  wheel_state);
+  virtual void Update(double               time,
+                      const ChWheelState&  wheel_state);
   virtual void Advance(double step);
 
   void SetStepsize(double val) { m_stepsize = val; }

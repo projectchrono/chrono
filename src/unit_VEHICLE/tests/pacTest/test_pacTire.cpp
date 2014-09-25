@@ -13,8 +13,8 @@
 // =============================================================================
 //
 // test the pacTire for 3 distinct slip cases, then compare force/moment output
-//	v. slip (kappa, alpha) to Adams/Car testrig output
-//  1) pure longitudinal slip (V_yc = tan(alpha) = 0)
+// v. slip (kappa, alpha) to Adams/Car testrig output
+// 1) pure longitudinal slip (V_yc = tan(alpha) = 0)
 // 2) pure lateral slip, (kappa ~= 0)
 // 3) combined slip
 //
@@ -78,11 +78,11 @@ int main(int argc, char* argv[])
   ChTireForces lat_forces(1);
   ChTireForces combined_forces(1);
 
-	// update body state based on varying input variables to pacTire:
+  // update body state based on varying input variables to pacTire:
   // alpha, kappa and gamma
-  ChBodyState long_state;
-  ChBodyState lat_state;
-  ChBodyState combined_state;
+  ChWheelState long_state;
+  ChWheelState lat_state;
+  ChWheelState combined_state;
 
   // keep track of the input variable values
   std::vector<double> latSlip_range;
@@ -148,9 +148,9 @@ int main(int argc, char* argv[])
     combined_state = tire_combined.getState_from_KAG(kappa_t, alpha_t, gamma_t, vel_xy);
 
     // check states calculated for this step
-    // ChBodyState kag_long = tire_long.getState_from_KAG(kappa_t, 0, gamma_t, vel_xy);
-    // ChBodyState kag_lat = tire_lat.getState_from_KAG(0, alpha_t, gamma_t, vel_xy;
-    // ChBodyState kag_combined = tire_combined.getState_from_KAG(kappa_t, alpha_t, gamma_t, vel_xy);
+    // ChWheelState kag_long = tire_long.getState_from_KAG(kappa_t, 0, gamma_t, vel_xy);
+    // ChWheelState kag_lat = tire_lat.getState_from_KAG(0, alpha_t, gamma_t, vel_xy;
+    // ChWheelState kag_combined = tire_combined.getState_from_KAG(kappa_t, alpha_t, gamma_t, vel_xy);
 
 
     // DEBUGGING

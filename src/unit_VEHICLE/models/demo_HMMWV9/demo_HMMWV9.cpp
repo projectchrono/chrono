@@ -218,11 +218,11 @@ int main(int argc, char* argv[])
   // ---------------
 
   // Inter-module communication data
-  ChTireForces tire_forces(4);
-  ChBodyState  wheel_states[4];
-  double       throttle_input;
-  double       steering_input;
-  double       braking_input;
+  ChTireForces  tire_forces(4);
+  ChWheelState  wheel_states[4];
+  double        throttle_input;
+  double        steering_input;
+  double        braking_input;
 
   // Number of simulation steps between two 3D view render frames
   int render_steps = (int)std::ceil(render_step_size / step_size);

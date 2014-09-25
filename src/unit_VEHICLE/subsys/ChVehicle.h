@@ -44,6 +44,14 @@ struct ChBodyState {
   ChVector<>     ang_vel;  ///< angular velocity, expressed in the global frame
 };
 
+struct ChWheelState {
+  ChVector<>     pos;      ///< global position
+  ChQuaternion<> rot;      ///< orientation with respect to global frame
+  ChVector<>     lin_vel;  ///< linear velocity, expressed in the global frame
+  ChVector<>     ang_vel;  ///< angular velocity, expressed in the global frame
+  double         omega;    ///< wheel angular speed about its rotation axis
+};
+
 struct ChTireForce {
   ChVector<> force;        ///< force vector, epxressed in the global frame
   ChVector<> point;        ///< global location of the force application point
@@ -121,8 +129,9 @@ public:
 
   /// Get the complete state for the specified wheel.
   /// This includes the location, orientation, linear and angular velocities,
-  /// all expressed in the global reference frame.
-  ChBodyState GetWheelState(ChWheelId which);
+  /// all expressed in the global reference frame, as well as the wheel angular
+  /// speed about its rotation axis.
+  ChWheelState GetWheelState(ChWheelId which);
 
   /// Initialize this vehicle at the specified global location and orientation.
   virtual void Initialize(

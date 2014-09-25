@@ -50,8 +50,8 @@ public:
   /// Update the state of this tire system at the current time.
   /// The tire system is provided the current state of its associated wheel.
   virtual void Update(
-    double              time,          ///< [in] current time
-    const ChBodyState&  wheel_state    ///< [in] current state of associated wheel body
+    double               time,          ///< [in] current time
+    const ChWheelState&  wheel_state    ///< [in] current state of associated wheel body
     ) {}
 
   /// Advance the state of this tire by the specified time step.

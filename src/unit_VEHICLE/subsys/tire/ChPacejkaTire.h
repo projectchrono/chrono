@@ -80,8 +80,8 @@ public:
   /// Update the state of this tire system at the current time.
   /// Set the PacTire spindle state data from the global wheel body state.
   virtual void Update(
-    double              time,          ///< [in] current time
-    const ChBodyState&  wheel_state    ///< [in] current state of associated wheel body
+    double               time,          ///< [in] current time
+    const ChWheelState&  wheel_state    ///< [in] current state of associated wheel body
     );
 
   /// Advance the state of this tire by the specified time step.
@@ -99,7 +99,7 @@ public:
   void set_Fz_override(double Fz) { m_Fz_override = Fz; }
 
   /// Return orientation, Vx, Vy (global) and omega_y (local).
-  ChBodyState getState_from_KAG(
+  ChWheelState getState_from_KAG(
     double kappa,   ///< [in] ...
     double alpha,   ///< [in] ...
     double gamma,   ///< [in] ...
@@ -107,7 +107,7 @@ public:
     );
 
   /// Return kappa, alpha, gamma.
-  ChVector<> getKAG_from_State(const ChBodyState& state);
+  ChVector<> getKAG_from_State(const ChWheelState& state);
 
   /// Get current long slip rate.
   double get_kappa() const;
@@ -271,8 +271,8 @@ private:
   ChTireForce m_FM;            // based on pure slip
   ChTireForce m_FM_combined;   // based on combined slip
 
-  ChBodyState m_tireState;     // current tire state
-	ChCoordsys<> m_tire_frame;	// 
+  ChWheelState m_tireState;     // current tire state
+  ChCoordsys<> m_tire_frame;    // 
 
   std::string m_paramFile;     // input parameter file
   std::string m_outFilename;   // output filename

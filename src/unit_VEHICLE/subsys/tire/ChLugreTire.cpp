@@ -85,8 +85,8 @@ void ChLugreTire::Initialize(ChSharedPtr<ChBody> wheel)
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-void ChLugreTire::Update(double              time,
-                         const ChBodyState&  wheel_state)
+void ChLugreTire::Update(double               time,
+                         const ChWheelState&  wheel_state)
 {
   double disc_radius = getRadius();
   const double* disc_locs = getDiscLocations();

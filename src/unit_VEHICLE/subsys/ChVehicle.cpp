@@ -58,14 +58,17 @@ void ChVehicle::Advance(double step)
 // Return the complete state (expressed in the global frame) for the specified
 // wheel body.
 // -----------------------------------------------------------------------------
-ChBodyState ChVehicle::GetWheelState(ChWheelId which)
+ChWheelState ChVehicle::GetWheelState(ChWheelId which)
 {
-  ChBodyState state;
+  ChWheelState state;
 
   state.pos = GetWheelPos(which);
   state.rot = GetWheelRot(which);
   state.lin_vel = GetWheelLinVel(which);
   state.ang_vel = GetWheelAngVel(which);
+
+  ChVector<> ang_vel_loc = state.rot.RotateBack(state.ang_vel);
+  state.omega = ang_vel_loc.y;
 
   return state;
 }

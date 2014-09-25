@@ -197,8 +197,8 @@ double ChPacejkaTire::get_longvl() const
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-void ChPacejkaTire::Update(double              time,
-                           const ChBodyState&  state)
+void ChPacejkaTire::Update(double               time,
+                           const ChWheelState&  state)
 {
   // check that input tire model parameters are defined
   if (!m_params_defined)
@@ -1329,12 +1329,15 @@ void ChPacejkaTire::WriteOutData(double             time,
 }
 
 
-ChBodyState ChPacejkaTire::getState_from_KAG(double kappa,
-                                             double alpha,
-                                             double gamma,
-                                             double Vxy)
+// -----------------------------------------------------------------------------
+// Calculate the wheel state from the current kappa, alpha, and gamma values.
+// -----------------------------------------------------------------------------
+ChWheelState ChPacejkaTire::getState_from_KAG(double kappa,
+                                              double alpha,
+                                              double gamma,
+                                              double Vxy)
 {
-  ChBodyState state;
+  ChWheelState state;
 
   // orientation is purely a function of gamma, alpha
   ChQuaternion<> m_quat = chrono::Q_from_NasaAngles(ChVector<>(gamma, 0, alpha));
@@ -1356,8 +1359,10 @@ ChBodyState ChPacejkaTire::getState_from_KAG(double kappa,
   return state;
 }
 
-
-ChVector<> ChPacejkaTire::getKAG_from_State(const ChBodyState& state)
+// -----------------------------------------------------------------------------
+// Calculate kappa, alpha, and gamma from the specified wheel state.
+// -----------------------------------------------------------------------------
+ChVector<> ChPacejkaTire::getKAG_from_State(const ChWheelState& state)
 {
   // alpha, gamma from wheel orientation
   double alpha = chrono::Q_to_NasaAngles(state.rot).z;
