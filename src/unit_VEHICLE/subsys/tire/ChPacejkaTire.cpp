@@ -705,6 +705,9 @@ void ChPacejkaTire::calc_relaxationLengths()
   double C_Fgamma = m_FM.force.z * (p_Ky6 + p_Ky7 * m_dF_z) * m_params->scaling_coefficients.lgay;
   double C_Fphi = (C_Fgamma * m_R0) / (1 - 0.5);
 
+	double sigma_kappa_adams = m_FM.force.z * (m_params->longitudinal_coefficients.ptx1 + m_params->longitudinal_coefficients.ptx2 * m_dF_z)*(m_R0*m_params->scaling_coefficients.lsgkp / m_params->vertical.fnomin) * exp( m_params->longitudinal_coefficients.ptx3 * m_dF_z);
+	double sigma_alpha_adams = m_params->lateral_coefficients.pty1 * (1.0 - m_params->lateral_coefficients.pky3 * abs( m_slip->gammaP ) ) * m_R0 * m_params->scaling_coefficients.lsgal * sin(p_Ky4 * atan(m_FM.force.z / (m_params->lateral_coefficients.pty2 * m_params->vertical.fnomin) ) );
+
   {
     relaxationL tmp = { C_Falpha, sigma_alpha, C_Fkappa, sigma_kappa, C_Fgamma, C_Fphi };
     *m_relaxation = tmp;
