@@ -51,16 +51,20 @@
 # define USE_IRRLICHT
 #endif
 
-
 using namespace chrono;
 using namespace hmmwv;
-
 
 // =============================================================================
 
 // Initial vehicle position
-ChVector<>     initLoc(0, 0, 1.0);
-ChQuaternion<> initRot(1,0,0,0);
+ChVector<> initLoc(0, 0, 1.0);
+
+// Initial vehicle orientation
+ChQuaternion<> initRot(1, 0, 0, 0);
+//ChQuaternion<> initRot(0.866025, 0, 0, 0.5);
+//ChQuaternion<> initRot(0.7071068, 0, 0, 0.7071068);
+//ChQuaternion<> initRot(0.25882, 0, 0, 0.965926);
+//ChQuaternion<> initRot(0, 0, 0, 1);
 
 // Type of tire model (RIGID, PACEJKA, or LUGRE)
 TireModelType tire_model = RIGID;
@@ -68,7 +72,7 @@ TireModelType tire_model = RIGID;
 // Rigid terrain dimensions
 double terrainHeight = 0;
 double terrainLength = 100.0;   // size in X direction
-double terrainWidth  = 100.0;   // size in Y directoin
+double terrainWidth  = 100.0;   // size in Y direction
 
 // Simulation step size
 double step_size = 0.001;
