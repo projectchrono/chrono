@@ -245,8 +245,8 @@ private:
   // find the vertical load
   void calc_Fz();
 
-  // calc aligning torque, pure slip case
-  void calcMz_pure();
+  // calc aligning torque, pure lateral slip case
+  void calcMz_pureLat();
 
   // calculate Fx for combined slip
   void calcFx_combined();

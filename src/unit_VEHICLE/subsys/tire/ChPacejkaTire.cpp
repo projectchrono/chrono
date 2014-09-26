@@ -547,7 +547,7 @@ void ChPacejkaTire::calc_pureSlipReactions()
   calcFy_pureLat();
 
   // calc Mz, pure lateral slip
-  calcMz_pure();
+  calcMz_pureLat();
 
 }
 
@@ -690,8 +690,8 @@ void ChPacejkaTire::update_tireFrame(void)
 void ChPacejkaTire::calc_relaxationLengths()
 {
   double p_Ky4 = 2;
-  double C_Fx = 154000;	// calibrated using Fx - pure long slip case
-  double C_Fy = 130000;	// calibrated using Fy - pure lateral slip case
+  double C_Fx = 77000;	// calibrated using Fx - pure long slip case.		77000
+  double C_Fy = 144000;	// calibrated using Fy - pure lateral slip case.	144000
   double p_Ky5 = 0;
   double p_Ky6 = 0.92;
   double p_Ky7 = 0.24;
@@ -789,7 +789,7 @@ void ChPacejkaTire::calcFy_pureLat()
   }
 }
 
-void ChPacejkaTire::calcMz_pure()
+void ChPacejkaTire::calcMz_pureLat()
 {
   // some constants
   int sign_Vx = 0;
@@ -806,16 +806,16 @@ void ChPacejkaTire::calcMz_pure()
   double D_t0 = m_FM.force.z * (m_R0 / m_params->vertical.fnomin) * (m_params->aligning_coefficients.qdz1 + m_params->aligning_coefficients.qdz2 * m_dF_z) * m_params->scaling_coefficients.ltr * sign_Vx;
   double D_t = D_t0 * (1.0 + m_params->aligning_coefficients.qdz3 * abs(m_slip->gammaP) + m_params->aligning_coefficients.qdz4 * m_slip->gammaP * m_slip->gammaP) * m_zeta->z5;
   double KP_yAlpha = m_pureLat->K_yAlpha + 0.1;
-  double S_Hf = m_pureLat->S_Hy - m_pureLat->S_Vy / KP_yAlpha;
+  double S_Hf = m_pureLat->S_Hy + m_pureLat->S_Vy / KP_yAlpha;
 
-  double alpha_r = m_slip->alphaP + S_Hf;
+  double alpha_r = -m_slip->alphaP + S_Hf;
   double S_Ht = m_params->aligning_coefficients.qhz1 + m_params->aligning_coefficients.qhz2 * m_dF_z + (m_params->aligning_coefficients.qhz3 + m_params->aligning_coefficients.qhz4 * m_dF_z) * m_slip->gammaP;
-  double alpha_t = m_slip->alphaP + S_Ht;
+  double alpha_t = -m_slip->alphaP + S_Ht;
   double E_t = (m_params->aligning_coefficients.qez1 + m_params->aligning_coefficients.qez2 * m_dF_z + m_params->aligning_coefficients.qez3 * m_dF_z*m_dF_z) * (1.0 + (m_params->aligning_coefficients.qez4 + m_params->aligning_coefficients.qez5 * m_slip->gammaP) * (4.0 / chrono::CH_C_2PI) * atan(B_t * C_t * alpha_t));
   double t0 = D_t * cos(C_t * atan(B_t * alpha_t - E_t * (B_t * alpha_t - atan(B_t * alpha_t)))) * m_slip->cosPrime_alpha;
 
   double MP_z0 = -t0 * m_FM.force.y;
-  double M_zr0 = D_r * cos(C_r * atan(B_r * alpha_r));
+  double M_zr0 = -D_r * cos(C_r * atan(B_r * alpha_r));
 
   double M_z = MP_z0 + M_zr0;
   m_FM.moment.z = M_z;
@@ -838,7 +838,7 @@ void ChPacejkaTire::calcFx_combined()
   double rbx3 = 1.0;
 
   double S_HxAlpha = m_params->longitudinal_coefficients.rhx1;
-  double alpha_S = m_slip->alphaP + S_HxAlpha;
+  double alpha_S = -m_slip->alphaP - S_HxAlpha;
   double B_xAlpha = (m_params->longitudinal_coefficients.rbx1 + rbx3 * pow(m_slip->gammaP, 2)) * cos(atan(m_params->longitudinal_coefficients.rbx2 * m_slip->kappaP)) * m_params->scaling_coefficients.lxal;
   double C_xAlpha = m_params->longitudinal_coefficients.rcx1;
   double E_xAlpha = m_params->longitudinal_coefficients.pex1 + m_params->longitudinal_coefficients.rex2 * m_dF_z;
