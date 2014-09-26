@@ -36,21 +36,25 @@
 namespace chrono {
 namespace utils {
 
-class CH_UTILS_API ChChaseCamera {
+class CH_UTILS_API ChChaseCamera
+{
 public:
 
   enum State {
     Chase,
     Follow,
-    Track
+    Track,
+    Inside
   };
 
   ChChaseCamera(const ChSharedBodyPtr chassis);
   ~ChChaseCamera() {}
 
-  void Initialize(const ChVector<>& ptOnChassis,
-                  double            chaseDist,
-                  double            chaseHeight);
+  void Initialize(
+    const ChVector<>&   ptOnChassis,
+    const ChCoordsys<>& driverCoordsys,
+    double              chaseDist,
+    double              chaseHeight);
 
   void Update(double step);
 
@@ -60,21 +64,24 @@ public:
 
   State GetState() const                  { return m_state; }
   const std::string& GetStateName() const { return m_stateNames[m_state]; }
-  const ChVector<>& GetCameraPos() const  { return (m_state == Track) ? m_lastLoc : m_loc; }
-  ChVector<> GetTargetPos() const         { return m_chassis->GetCoord().TransformLocalToParent(m_ptOnChassis); }
+
+  ChVector<> GetCameraPos() const;
+  ChVector<> GetTargetPos() const;
 
   void SetHorizGain(double g)             { m_horizGain = g; }
   void SetVertGain(double g)              { m_vertGain = g; }
-  void SetMultLimits(double minMult,
-                     double maxMult)      { m_minMult = minMult; m_maxMult = maxMult; }
+
+  void SetMultLimits(double minMult, double maxMult);
 
 private:
+
   ChVector<> calcDeriv(const ChVector<>& loc);
 
   State m_state;
 
   ChSharedBodyPtr m_chassis;
   ChVector<> m_ptOnChassis;
+  ChCoordsys<> m_driverCsys;
   double m_dist;
   double m_height;
   double m_mult;
@@ -89,7 +96,7 @@ private:
   double m_maxMult;
 
   static const double m_maxTrackDist2;
-  static const std::string  m_stateNames[3];
+  static const std::string  m_stateNames[4];
 };
 
 

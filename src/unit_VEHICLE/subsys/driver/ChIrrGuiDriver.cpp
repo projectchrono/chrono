@@ -38,14 +38,14 @@ namespace chrono {
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-ChIrrGuiDriver::ChIrrGuiDriver(ChIrrApp&         app,
-                               const ChVehicle&  car,
-                               const ChVector<>& ptOnChassis,
-                               double            chaseDist,
-                               double            chaseHeight,
-                               bool              enable_sound,
-                               int               HUD_x,
-                               int               HUD_y)
+ChIrrGuiDriver::ChIrrGuiDriver(ChIrrApp&           app,
+                               const ChVehicle&    car,
+                               const ChVector<>&   ptOnChassis,
+                               double              chaseDist,
+                               double              chaseHeight,
+                               bool                enable_sound,
+                               int                 HUD_x,
+                               int                 HUD_y)
 : m_app(app),
   m_car(car),
   m_HUD_x(HUD_x),
@@ -61,7 +61,7 @@ ChIrrGuiDriver::ChIrrGuiDriver(ChIrrApp&         app,
   app.SetUserEventReceiver(this);
 
   // Initialize the ChChaseCamera
-  m_camera.Initialize(ptOnChassis, chaseDist, chaseHeight);
+  m_camera.Initialize(ptOnChassis, car.GetLocalDriverCoordsys(), chaseDist, chaseHeight);
   ChVector<> cam_pos = m_camera.GetCameraPos();
   ChVector<> cam_target = m_camera.GetTargetPos();
 
@@ -147,6 +147,9 @@ bool ChIrrGuiDriver::OnEvent(const SEvent& event)
       return true;
     case KEY_KEY_3:
       m_camera.SetState(utils::ChChaseCamera::Track);
+      return true;
+    case KEY_KEY_4:
+      m_camera.SetState(utils::ChChaseCamera::Inside);
       return true;
 
     case KEY_KEY_Z:

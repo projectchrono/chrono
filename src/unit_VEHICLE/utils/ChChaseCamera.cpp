@@ -36,7 +36,7 @@ namespace utils {
 // -----------------------------------------------------------------------------
 
 const double ChChaseCamera::m_maxTrackDist2 = 100 * 100;
-const std::string ChChaseCamera::m_stateNames[] = { "Chase", "Follow", "Track" };
+const std::string ChChaseCamera::m_stateNames[] = { "Chase", "Follow", "Track", "Inside" };
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
@@ -49,16 +49,18 @@ ChChaseCamera::ChChaseCamera(const ChSharedBodyPtr chassis)
   m_vertGain(2.0f),
   m_state(Chase)
 {
-  Initialize(ChVector<>(0, 0, 0), 5, 1);
+  Initialize(ChVector<>(0, 0, 0), ChCoordsys<>(), 5, 1);
 }
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-void ChChaseCamera::Initialize(const ChVector<>& ptOnChassis,
-                               double            chaseDist,
-                               double            chaseHeight)
+void ChChaseCamera::Initialize(const ChVector<>&   ptOnChassis,
+                               const ChCoordsys<>& driverCoordsys,
+                               double              chaseDist,
+                               double              chaseHeight)
 {
   m_ptOnChassis = ptOnChassis;
+  m_driverCsys = driverCoordsys;
   m_dist = chaseDist;
   m_height = chaseHeight;
   m_angle = 0;
@@ -85,10 +87,18 @@ void ChChaseCamera::Zoom(int val)
   if (val == 0 || m_state == Track)
     return;
 
-  if (val < 0 && m_mult > m_minMult)
-    m_mult /= 1.01;
-  else if (val > 0 && m_mult < m_maxMult)
-    m_mult *= 1.01;
+  if (m_state != Inside) {
+    if (val < 0 && m_mult > m_minMult)
+      m_mult /= 1.01;
+    else if (val > 0 && m_mult < m_maxMult)
+      m_mult *= 1.01;
+
+    if (m_mult <= m_minMult)
+      SetState(Inside);
+  }
+  else if (val > 0) {
+    SetState(Chase);
+  }
 }
 
 // -----------------------------------------------------------------------------
@@ -102,6 +112,41 @@ void ChChaseCamera::Turn(int val)
     m_angle -= CH_C_PI / 100;
   else if (val > 0 && m_angle < CH_C_PI)
     m_angle += CH_C_PI / 100;
+}
+
+// -----------------------------------------------------------------------------
+// Return the camera location and the camera target (look at) location,
+// respectively.
+// Note that in Inside mode, in order to accomodate a narrow field of view, we
+// set the target location to be at the current driver location and move back
+// the camera position.
+// -----------------------------------------------------------------------------
+ChVector<> ChChaseCamera::GetCameraPos() const
+{
+  if (m_state == Inside) {
+    ChVector<> driverPos = m_chassis->GetCoord().TransformPointLocalToParent(m_driverCsys.pos);
+    ChVector<> driverViewDir = m_chassis->GetCoord().TransformDirectionLocalToParent(m_driverCsys.rot.GetXaxis());
+    return driverPos - 2.0 * driverViewDir;
+  }
+
+  return (m_state == Track) ? m_lastLoc : m_loc;
+}
+
+ChVector<> ChChaseCamera::GetTargetPos() const
+{
+  if (m_state == Inside) {
+    return m_chassis->GetCoord().TransformPointLocalToParent(m_driverCsys.pos);
+  }
+
+  return m_chassis->GetCoord().TransformLocalToParent(m_ptOnChassis);
+}
+
+// -----------------------------------------------------------------------------
+// -----------------------------------------------------------------------------
+void ChChaseCamera::SetMultLimits(double minMult, double maxMult)
+{
+  m_minMult = minMult;
+  m_maxMult = maxMult;
 }
 
 // -----------------------------------------------------------------------------
