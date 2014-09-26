@@ -73,5 +73,13 @@ ChWheelState ChVehicle::GetWheelState(ChWheelId which)
   return state;
 }
 
+// -----------------------------------------------------------------------------
+// Return the global driver position
+// -----------------------------------------------------------------------------
+ChVector<> ChVehicle::GetDriverPos() const
+{
+  return m_chassis->GetCoord().TransformPointLocalToParent(GetLocalDriverCoordsys().pos);
+}
+
 
 }  // end namespace chrono

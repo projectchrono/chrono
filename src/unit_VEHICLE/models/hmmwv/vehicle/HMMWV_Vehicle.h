@@ -54,6 +54,8 @@ public:
   virtual chrono::ChVector<> GetWheelAngVel(chrono::ChWheelId which) const;
   virtual double GetWheelOmega(chrono::ChWheelId which) const;
 
+  virtual chrono::ChCoordsys<> GetLocalDriverCoordsys() const { return m_driverCsys; }
+
   double GetSpringForce(chrono::ChWheelId which) const;
   double GetSpringLength(chrono::ChWheelId which) const;
   double GetSpringDeformation(chrono::ChWheelId which) const;
@@ -103,6 +105,9 @@ private:
   static const double             m_chassisMass;
   static const chrono::ChVector<> m_chassisCOM;
   static const chrono::ChVector<> m_chassisInertia;
+
+  // Driver local coordinate system
+  static const chrono::ChCoordsys<> m_driverCsys;
 };
 
 

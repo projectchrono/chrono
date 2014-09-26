@@ -53,6 +53,8 @@ public:
   virtual chrono::ChVector<> GetWheelAngVel(chrono::ChWheelId which) const;
   virtual double GetWheelOmega(chrono::ChWheelId which) const;
 
+  virtual chrono::ChCoordsys<> GetLocalDriverCoordsys() const { return m_driverCsys; }
+
   virtual void Initialize(const chrono::ChCoordsys<>& chassisPos);
   virtual void Update(double                      time,
                       double                      throttle,
@@ -88,6 +90,9 @@ private:
   static const double             m_chassisMass;
   static const chrono::ChVector<> m_chassisCOM;
   static const chrono::ChVector<> m_chassisInertia;
+
+  // Driver local coordinate system
+  static const chrono::ChCoordsys<> m_driverCsys;
 };
 
 

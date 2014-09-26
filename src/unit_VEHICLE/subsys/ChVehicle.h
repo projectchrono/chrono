@@ -79,7 +79,7 @@ public:
   const ChSharedPtr<ChBodyAuxRef> GetChassis() const { return m_chassis; }
 
   /// Get the global location of the chassis reference frame origin.
-  const ChVector<>&     GetChassisPos() const { return m_chassis->GetFrame_REF_to_abs().GetPos(); }
+  const ChVector<>& GetChassisPos() const { return m_chassis->GetFrame_REF_to_abs().GetPos(); }
 
   /// Get the orientation of the chassis reference frame.
   /// The chassis orientation is returned as a quaternion representing a
@@ -87,7 +87,7 @@ public:
   const ChQuaternion<>& GetChassisRot() const { return m_chassis->GetFrame_REF_to_abs().GetRot(); }
 
   /// Get the global location of the chassis center of mass.
-  const ChVector<>&     GetChassisPosCOM() const { return m_chassis->GetPos(); }
+  const ChVector<>& GetChassisPosCOM() const { return m_chassis->GetPos(); }
 
   /// Get the orientation of the chassis centroidal frame.
   /// The chassis orientation is returned as a quaternion representing a
@@ -132,6 +132,13 @@ public:
   /// all expressed in the global reference frame, as well as the wheel angular
   /// speed about its rotation axis.
   ChWheelState GetWheelState(ChWheelId which);
+
+  /// Get the local driver position and orientation.
+  /// This is a coordinate system relative to the chassis reference frame.
+  virtual ChCoordsys<> GetLocalDriverCoordsys() const = 0;
+
+  /// Get the global location of the driver.
+  ChVector<> GetDriverPos() const;
 
   /// Initialize this vehicle at the specified global location and orientation.
   virtual void Initialize(
