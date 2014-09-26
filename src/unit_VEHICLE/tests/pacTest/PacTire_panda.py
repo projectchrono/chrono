@@ -245,12 +245,12 @@ if __name__ == '__main__':
     matplotlib.rc('font', **font)       
     
     # directory location on my laptop
-    dir_ChronoT = 'E:/Chrono-T_Build/bin/Debug/'
-    dir_Adams = 'C:/Users/justin/Google Drive/shareWith_Radu/PacTire/ACar_validation_tests/'
+    #dir_ChronoT = 'E:/Chrono-T_Build/bin/Debug/'
+    #dir_Adams = 'C:/Users/justin/Google Drive/shareWith_Radu/PacTire/ACar_validation_tests/'
     
     # desktop 
-    #buildDir_ChronoT = 'D:/Chrono-T_Build/bin/Debug/'
-    #dir_AdamsData = 'C:/Users/newJustin/Google Drive/shareWith_Radu/PacTire/ACar_validation_tests/'
+    dir_ChronoT = 'D:/Chrono-T_Build/bin/Debug/'
+    dir_Adams = 'C:/Users/newJustin/Google Drive/shareWith_Radu/PacTire/ACar_validation_tests/'
     
     
     
