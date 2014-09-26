@@ -314,7 +314,8 @@ void PrintToFile(
 
 		stringstream ssParticleCenterVsTime;
 		if (numRigidBodies > 0) {
-			for (int j = 0; j < numRigidBodiesInOnePeriod; j++) {
+//			for (int j = 0; j < numRigidBodiesInOnePeriod; j++) {
+			for (int j = 0; j < numRigidBodies; j++) {
 				real3 p_rigid = posRigidH[j];
 				real3 v_rigid = R3(velMassRigidH[j]);
 				real3 omega_rigid = omegaLRF_H[j];

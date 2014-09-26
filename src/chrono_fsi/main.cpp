@@ -1989,7 +1989,7 @@ int main() {
 		flexParams.bobRad = .1;
 
 		//3D cylinder params:
-		real_ rhoRigid = 1.0 * paramsH.rho0;//7200; //1.0 * paramsH.rho0;
+		real_ rhoRigid = flexParams.rho;//1.05 * paramsH.rho0;//7200; //1.0 * paramsH.rho0;
 
 		// note: for 3D pipe Poiseuille: f = 32*Re*mu^2/(rho^2 * D^3), where f: body force, Re = rho * u_ave * D / mu --> V=rho * D^2 f / (32 mu)
 		// note: for 2D pipe Poiseuille: f = 12*Re*mu^2/(rho^2 * W^3), where f: body force, Re = rho * u_ave * W / mu --> V=rho * W^2 f / (12 mu)
