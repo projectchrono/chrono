@@ -38,7 +38,7 @@
 #include <numeric>
 #include <thrust/host_vector.h>
 #include <thrust/device_vector.h>
-#include <math.h>
+#include <cmath>
 #include <vector>
 #include <string.h>
 #include <thrust/transform.h>
