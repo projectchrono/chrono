@@ -1495,10 +1495,10 @@ int2 CreateFluidMarkers(thrust::host_vector<real3> & mPosRad,
 				real_ penDist = 0;
 				bool flag = true;
 				///penDist = IsInsideCurveOfSerpentineBeta(posRad);
-				///penDist = IsInsideSerpentine(posRad);
+				penDist = IsInsideSerpentine(posRad);
 				//*** straightChannelBoundaryMin   should be taken care of
 				//*** straightChannelBoundaryMax   should be taken care of
-				penDist = IsInsideStraightChannel(posRad);
+				///penDist = IsInsideStraightChannel(posRad);
 				///penDist = IsInsideStraightChannel_XZ(posRad);
 				///penDist = IsInsideTube(posRad);
 				///penDist = IsInsideStepTube(posRad);
@@ -1954,9 +1954,9 @@ int main() {
 			//***		paramsH.numBodies;
 			//***		paramsH.boxDims;
 		paramsH.sizeScale = 1; //don't change it.
-		paramsH.HSML = 0.00004;
+		paramsH.HSML = 0.0001;
 		paramsH.MULT_INITSPACE = 1.0;
-		paramsH.NUM_BOUNDARY_LAYERS = 4;
+		paramsH.NUM_BOUNDARY_LAYERS = 3;
 		paramsH.toleranceZone = paramsH.NUM_BOUNDARY_LAYERS * (paramsH.HSML * paramsH.MULT_INITSPACE);
 		paramsH.NUM_BCE_LAYERS = 2;
 		paramsH.solidSurfaceAdjust = .6 * (paramsH.HSML * paramsH.MULT_INITSPACE); // 0.6 for bouyant, under gravity
@@ -2013,14 +2013,14 @@ int main() {
 		//**  reminiscent of the past******************************************************************************
 		//paramsH.cMax = R3( paramsH.nPeriod * 4.6 + 0, 1.5,  4.0) * paramsH.sizeScale;  //for only CurvedSerpentine (w/out straight part)
 		//********
-//		paramsH.cMin = R3(0, -2 * paramsH.toleranceZone, -2.5 * mm); 							//for serpentine
-//		paramsH.cMax = R3( paramsH.nPeriod * sPeriod + r3_2.x + 2 * r4_2.x + r6_2.x + x_FirstChannel + 2 * x_SecondChannel, 1.5 * mm,  r6_2.y + 2 * paramsH.toleranceZone);  //for serpentine
+		paramsH.cMin = R3(0, -2 * paramsH.toleranceZone, -2.5 * mm); 							//for serpentine
+		paramsH.cMax = R3( paramsH.nPeriod * sPeriod + r3_2.x + 2 * r4_2.x + r6_2.x + x_FirstChannel + 2 * x_SecondChannel, 1.5 * mm,  r6_2.y + 2 * paramsH.toleranceZone);  //for serpentine
 
 //		paramsH.cMin = R3(0, 0, -2 * paramsH.toleranceZone);						// 2D channel
 //		paramsH.cMax = R3( 1 * mm, 0.2 * mm,  1 * mm + 2 * paramsH.toleranceZone);
 
-		paramsH.cMin = R3(0, -2 * paramsH.toleranceZone, -2 * paramsH.toleranceZone);						// 3D channel
-		paramsH.cMax = R3( 1.4 * mm, 1 * mm + 2 * paramsH.toleranceZone,  3 * mm + 2 * paramsH.toleranceZone);
+//		paramsH.cMin = R3(0, -2 * paramsH.toleranceZone, -2 * paramsH.toleranceZone);						// 3D channel
+//		paramsH.cMax = R3( 1.4 * mm, 1 * mm + 2 * paramsH.toleranceZone,  3 * mm + 2 * paramsH.toleranceZone);
 
 		//	paramsH.cMax = R3(paramsH.nPeriod * 1.0 + 0, .5,  3.5) * paramsH.sizeScale;  //for straight channel, sphere
 		//	paramsH.cMin = R3(0, -0.1, 0.5) * paramsH.sizeScale;
