@@ -72,14 +72,14 @@ public:
     );
 
   ~ChPacejkaTire();
-	/// return the reactions for the combined slip EQs, in global coords
+  /// return the reactions for the combined slip EQs, in global coords
   virtual ChTireForce GetTireForce() const;
 
   ///  Return the reactions for the pure slip EQs, in local or global coords
   ChTireForce GetTireForce_pureSlip(const bool local = true) const;
 
-	/// Return the reactions for the combined slip EQs, in local or global coords
-	ChTireForce GetTireForce_combinedSlip(const bool local = true) const;
+  /// Return the reactions for the combined slip EQs, in local or global coords
+  ChTireForce GetTireForce_combinedSlip(const bool local = true) const;
 
   /// Update the state of this tire system at the current time.
   /// Set the PacTire spindle state data from the global wheel body state.
@@ -103,8 +103,8 @@ public:
   void set_Fz_override(double Fz) { m_Fz_override = Fz; }
 
   /// Return orientation, Vx (global) and omega/omega_y (global).
-	/// Assumes the tire is going straight forward (global x-dir), and the
-	/// returned state's orientation yields gamma and alpha, as x and z NASA angles
+  /// Assumes the tire is going straight forward (global x-dir), and the
+  /// returned state's orientation yields gamma and alpha, as x and z NASA angles
   ChWheelState getState_from_KAG(
     double kappa,   ///< [in] ...
     double alpha,   ///< [in] ...
@@ -120,6 +120,9 @@ public:
 
   /// Get current slip angle.
   double get_alpha() const;
+
+  /// Get current camber angle
+  double get_gamma() const;
 
   /// Get minimum longitudinal slip rate.
   double get_min_long_slip() const;
@@ -174,11 +177,11 @@ private:
   void readSection_ROLLING_COEFFICIENTS(std::ifstream& inFile);
   void readSection_ALIGNING_COEFFICIENTS(std::ifstream& inFile);
 
-	// update the wheel state, and associated variables;
-	void update_stateVars(const ChWheelState& state);
+  // update the wheel state, and associated variables;
+  void update_stateVars(const ChWheelState& state);
 
-	// update the tire coordinate system with new global ChWheelState data
-	void update_tireFrame(void);
+  // update the tire coordinate system with new global ChWheelState data
+  void update_tireFrame();
 
   // calculate the various stiffness/relaxation lengths
   void calc_relaxationLengths();
@@ -267,7 +270,7 @@ private:
 
   bool m_use_transient_slip;
 
-	ChWheelState m_tireState;     // current tire state
+  ChWheelState m_tireState;     // current tire state
   ChCoordsys<> m_tire_frame;    // current tire coordinate system
 
   double m_R0;              // unloaded radius
