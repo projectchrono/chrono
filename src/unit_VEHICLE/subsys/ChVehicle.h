@@ -14,6 +14,9 @@
 //
 // Base class for a vehicle system.
 //
+// The reference frame for a vehicle follows the ISO standard: Z-axis up, X-axis
+// pointing forward, and Y-axis towards the left of the vehicle.
+//
 // =============================================================================
 
 #ifndef CH_VEHICLE_H

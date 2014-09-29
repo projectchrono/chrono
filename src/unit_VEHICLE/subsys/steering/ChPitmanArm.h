@@ -15,6 +15,12 @@
 // Base class for a Pitman Arm steering subsystem.
 // Derived from ChSteering, but still an abstract base class.
 //
+// The steering subsystem is modeled with respect to a right-handed frame with
+// with X pointing towards the front, Y to the left, and Z up (ISO standard).
+//
+// When attached to a chassis, both an offset and a rotation (as a quaternion)
+// are provided.
+//
 // =============================================================================
 
 #ifndef CH_PITMANARM_H
@@ -42,14 +48,14 @@ public:
 protected:
 
   enum PointId {
-    STEERINGLINK,   // steering link location (com)
-    PITMANARM,      // Pitman arm location (com)
-    REV,            // location of joint between Pitman arm and chassis
-    UNIV,           // location of joint between Pitman arm and steering link
-    REVSPH_R,       // location of revolute joint for the idler arm
-    REVSPH_S,       // location of spherical joint for the idler arm
-    TIEROD_PA,      // tierod connection point (Pitman arm side)
-    TIEROD_IA,      // tierod connection point (idler arm side)
+    STEERINGLINK,   ///< steering link location (com)
+    PITMANARM,      ///< Pitman arm location (com)
+    REV,            ///< location of joint between Pitman arm and chassis
+    UNIV,           ///< location of joint between Pitman arm and steering link
+    REVSPH_R,       ///< location of revolute joint for the idler arm
+    REVSPH_S,       ///< location of spherical joint for the idler arm
+    TIEROD_PA,      ///< tierod connection point (Pitman arm side)
+    TIEROD_IA,      ///< tierod connection point (idler arm side)
     NUM_POINTS
   };
 

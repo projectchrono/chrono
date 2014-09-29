@@ -66,8 +66,8 @@ public:
 
   /// Update the state of this steering subsystem at the current time.
   /// The steering subsystem is provided the current steering driver input (a
-  /// value between -1 and +1).  This function is called during the vehicle
-  /// update.
+  /// value between -1 and +1).  Positive steering input indicates steering
+  /// to the left. This function is called during the vehicle update.
   virtual void Update(
     double time,       ///< [in] current time
     double steering    ///< [in] current steering input [-1,+1]
