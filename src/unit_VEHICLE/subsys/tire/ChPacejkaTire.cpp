@@ -261,7 +261,8 @@ void ChPacejkaTire::Update(double               time,
   }
 
   // update tire input state, and associated tire local coordinate system
-	update_stateVars(state);
+	m_tireState = state;
+  update_tireFrame();
   
   // Is the vertical load specified as an input?
   if (m_use_Fz_override)
@@ -645,17 +646,8 @@ void ChPacejkaTire::calc_combinedSlipReactions()
 }
 
 
-void ChPacejkaTire::update_stateVars(const ChWheelState& state)
-{
-	// update state struct, all global variables (except omega)
-	m_tireState = state;
 
-	update_tireFrame();
-
-}
-
-
-void ChPacejkaTire::update_tireFrame(void)
+void ChPacejkaTire::update_tireFrame( )
 {
 	// need a local frame to transform output forces/moments to global frame
 	//  Pacejka (2006), Fig 2.3, all forces are calculated at the contact point "C"
