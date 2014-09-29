@@ -12,16 +12,16 @@
 // Authors: Radu Serban
 // =============================================================================
 //
-// Generic chase camera.  Such a camera tracks a s[pecified point on a specified
+// Generic chase camera.  Such a camera tracks a specified point on a specified
 // body. It supports three different modes:
-// - Chase:  camera attached to a flexible cantilever behind the body.
-// - Follow: camera attached to a flexible beam articulated on the body
-// - Track:  camera is fixed and tracks the body
+// - Chase:  camera attached to a flexible cantilever behind the body;
+// - Follow: camera attached to a flexible beam articulated on the body;
+// - Track:  camera is fixed and tracks the body;
+// - Inside: camera is fixed at a given point on the body.
 //
 // TODO: 
-// - relax current assumption that the body forward direction is in the negative
+// - relax current assumption that the body forward direction is in the positive
 //   X direction.
-// - add 'Inside' mode (driver POV attached to body)
 //
 // =============================================================================
 
@@ -65,8 +65,8 @@ void ChChaseCamera::Initialize(const ChVector<>&   ptOnChassis,
   m_height = chaseHeight;
   m_angle = 0;
 
-  ChVector<> localOffset(chaseDist, 0, chaseHeight);
-  m_loc = m_chassis->GetCoord().TransformLocalToParent(localOffset + ptOnChassis);
+  ChVector<> localOffset(-chaseDist, 0, chaseHeight);
+  m_loc = m_chassis->GetFrame_REF_to_abs().TransformPointLocalToParent(ptOnChassis + localOffset);
   m_lastLoc = m_loc;
 }
 
@@ -124,8 +124,8 @@ void ChChaseCamera::Turn(int val)
 ChVector<> ChChaseCamera::GetCameraPos() const
 {
   if (m_state == Inside) {
-    ChVector<> driverPos = m_chassis->GetCoord().TransformPointLocalToParent(m_driverCsys.pos);
-    ChVector<> driverViewDir = m_chassis->GetCoord().TransformDirectionLocalToParent(m_driverCsys.rot.GetXaxis());
+    ChVector<> driverPos = m_chassis->GetFrame_REF_to_abs().TransformPointLocalToParent(m_driverCsys.pos);
+    ChVector<> driverViewDir = m_chassis->GetFrame_REF_to_abs().TransformDirectionLocalToParent(m_driverCsys.rot.GetXaxis());
     return driverPos - 2.0 * driverViewDir;
   }
 
@@ -135,10 +135,10 @@ ChVector<> ChChaseCamera::GetCameraPos() const
 ChVector<> ChChaseCamera::GetTargetPos() const
 {
   if (m_state == Inside) {
-    return m_chassis->GetCoord().TransformPointLocalToParent(m_driverCsys.pos);
+    return m_chassis->GetFrame_REF_to_abs().TransformPointLocalToParent(m_driverCsys.pos);
   }
 
-  return m_chassis->GetCoord().TransformLocalToParent(m_ptOnChassis);
+  return m_chassis->GetFrame_REF_to_abs().TransformPointLocalToParent(m_ptOnChassis);
 }
 
 // -----------------------------------------------------------------------------
@@ -160,7 +160,7 @@ void ChChaseCamera::Update(double step)
     return;
 
   // If in 'Track' mode, force a state change if too far from tracked body.
-  double dist2 = (m_chassis->GetPos() - m_lastLoc).Length2();
+  double dist2 = (m_chassis->GetFrame_REF_to_abs().GetPos() - m_lastLoc).Length2();
   if (dist2 > m_maxTrackDist2)
     SetState(Chase);
 }
@@ -179,7 +179,7 @@ ChVector<> ChChaseCamera::calcDeriv(const ChVector<>& loc)
     uC2T = targetLoc - m_loc;
   else {
     ChQuaternion<> rot = Q_from_AngAxis(m_angle, ChVector<>(0, 0, 1));
-    uC2T = rot.Rotate(-m_chassis->GetA()->Get_A_Xaxis());
+    uC2T = rot.Rotate(m_chassis->GetA()->Get_A_Xaxis());
   }
 
   uC2T.z = 0;

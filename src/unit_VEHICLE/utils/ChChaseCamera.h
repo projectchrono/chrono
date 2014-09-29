@@ -12,16 +12,16 @@
 // Authors: Radu Serban
 // =============================================================================
 //
-// Generic chase camera.  Such a camera tracks a s[pecified point on a specified
+// Generic chase camera.  Such a camera tracks a specified point on a specified
 // body. It supports three different modes:
-// - Chase:  camera attached to a flexible cantilever behind the body.
-// - Follow: camera attached to a flexible beam articulated on the body
-// - Track:  camera is fixed and tracks the body
+// - Chase:  camera attached to a flexible cantilever behind the body;
+// - Follow: camera attached to a flexible beam articulated on the body;
+// - Track:  camera is fixed and tracks the body;
+// - Inside: camera is fixed at a given point on the body.
 //
 // TODO: 
-// - relax current assumption that the body forward direction is in the negative
+// - relax current assumption that the body forward direction is in the positive
 //   X direction.
-// - add 'Inside' mode (driver POV attached to body)
 //
 // =============================================================================
 
