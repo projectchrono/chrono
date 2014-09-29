@@ -9,7 +9,12 @@ IF(NOT PACTEST_ENABLE)
   RETURN()
 ENDIF()
 
-MESSAGE(STATUS "Adding ChPacejkaTire single tire tests...")
+MESSAGE(STATUS "Adding ChPacejkaTire tests...")
+
+SET(TEST_PROGRAMS
+  test_pacTire
+  test_pacUpdate
+  )
 
 SET(LIBRARIES 
     ${CHRONOENGINE_LIBRARIES}
@@ -21,19 +26,22 @@ IF(ENABLE_IRRLICHT AND ${CMAKE_SYSTEM_NAME} MATCHES "Windows")
   SET(CH_BUILDFLAGS "${CH_BUILDFLAGS} /wd4275")
 ENDIF()
 
-SET(TEST_PACTIRE_FILES
-  test_pacTire.cpp
-  )
+# Add executables
+FOREACH(PROGRAM ${TEST_PROGRAMS})
+  MESSAGE(STATUS "... ${PROGRAM}")
+  
+  ADD_EXECUTABLE(${PROGRAM}  "${PROGRAM}.cpp")
+  SOURCE_GROUP(""  FILES  "${PROGRAM}.cpp")
 
-SOURCE_GROUP("" FILES ${TEST_PACTIRE_FILES} )
+  SET_TARGET_PROPERTIES(${PROGRAM}  PROPERTIES
+    FOLDER tests
+    COMPILE_FLAGS "${CH_BUILDFLAGS}"
+    LINK_FLAGS "${CH_LINKERFLAG_EXE}"
+    )
 
-# create a test of the pac tire for kinematically driven cases
-# e.g., validation
-ADD_EXECUTABLE(test_pacTire ${TEST_PACTIRE_FILES})
-SET_TARGET_PROPERTIES(test_pacTire PROPERTIES
-                      FOLDER tests
-                      COMPILE_FLAGS "${CH_BUILDFLAGS}"
-                      LINK_FLAGS "${CH_LINKERFLAG_EXE}")
+  TARGET_LINK_LIBRARIES(${PROGRAM} ${LIBRARIES})
 
-TARGET_LINK_LIBRARIES(test_pacTire ${LIBRARIES})
-INSTALL(TARGETS test_pacTire DESTINATION bin)
+  INSTALL(TARGETS ${PROGRAM} DESTINATION bin)
+
+ENDFOREACH()
+
