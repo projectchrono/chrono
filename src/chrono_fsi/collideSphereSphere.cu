@@ -2254,7 +2254,7 @@ void cudaCollisions(
 		ANCF_SlopesVelD2.clear();
 
 		//density re-initialization
-		if (tStep % 10 == 0) {
+		if ((tStep % 10 == 0) && (paramsH.densityReinit != 0)) {
 			DensityReinitialization(posRadD, velMasD, rhoPresMuD, numObjects.numAllMarkers, SIDE); //does not work for analytical boundaries (non-meshed) and free surfaces
 		}
 

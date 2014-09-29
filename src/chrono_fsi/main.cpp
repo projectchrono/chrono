@@ -1978,6 +1978,8 @@ int main() {
 //		paramsH.cMax = R3(paramsH.nPeriod * distance + 0, 1 + .1, 1 + .1)* paramsH.sizeScale;
 		// ************
 		paramsH.binSize0; // will be changed
+		paramsH.rigidRadius; //will be changed
+		paramsH.densityReinit = 1;
 
 		flexParams.E = 2.0e5;
 		flexParams.r = paramsH.HSML * paramsH.MULT_INITSPACE * (paramsH.NUM_BCE_LAYERS - 1);
@@ -2265,9 +2267,9 @@ int main() {
 //		//***********************************************************************************************************************
 	}
 	//***** print numbers
-	printf("********************\n paramsH.HSML: %f\n paramsH.bodyForce4: %f %f %f\n paramsH.gravity: %f %f %f\n paramsH.rho0: %e\n paramsH.mu0: %f\n paramsH.v_Max: %f\n paramsH.dT: %e\n paramsH.tFinal: %f\n",
+	printf("********************\n paramsH.HSML: %f\n paramsH.bodyForce4: %f %f %f\n paramsH.gravity: %f %f %f\n paramsH.rho0: %e\n paramsH.mu0: %f\n paramsH.v_Max: %f\n paramsH.dT: %e\n paramsH.tFinal: %f\n paramsH.densityReinit: %d\n",
 			paramsH.HSML, paramsH.bodyForce4.x, paramsH.bodyForce4.y, paramsH.bodyForce4.z, paramsH.gravity.x, paramsH.gravity.y, paramsH.gravity.z,
-			paramsH.rho0, paramsH.mu0, paramsH.v_Max, paramsH.dT, paramsH.tFinal);
+			paramsH.rho0, paramsH.mu0, paramsH.v_Max, paramsH.dT, paramsH.tFinal, paramsH.densityReinit);
 	printf(" paramsH.cMin: %f %f %f, paramsH.cMax: %f %f %f\n binSize: %f\n",
 			paramsH.cMin.x, paramsH.cMin.y, paramsH.cMin.z, paramsH.cMax.x,
 			paramsH.cMax.y, paramsH.cMax.z, paramsH.binSize0);

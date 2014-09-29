@@ -60,6 +60,7 @@ struct SimParams {
 		real_ binSize0;
 
 		real3 rigidRadius;
+		int densityReinit; //0: no; 1: yes
 };
 struct NumberOfObjects {
 		int numRigidBodies;
