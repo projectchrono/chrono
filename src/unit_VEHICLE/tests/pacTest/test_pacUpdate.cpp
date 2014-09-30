@@ -40,26 +40,23 @@ const std::string pacParamFile = utils::GetModelDataFile("hmmwv/pactest.tir");
 void processState(ChSharedPtr<ChPacejkaTire> tire,
                   const ChWheelState&        state)
 {
+  cout << "--------------------------------------------------" << endl;
   cout << "Position:     " << state.pos.x << "  " << state.pos.y << "  " << state.pos.z << endl;
   cout << "Orientation:  " << state.rot.e0 << "  " << state.rot.e1 << "  " << state.rot.e2 << "  " << state.rot.e3 << endl;
   cout << "Linear vel.:  " << state.lin_vel.x << "  " << state.lin_vel.y << "  " << state.lin_vel.z << endl;
   cout << "Angular vel.: " << state.ang_vel.x << "  " << state.ang_vel.y << "  " << state.ang_vel.z << endl;
   cout << "Wheel omega:  " << state.omega << endl << endl;
 
-  ChVector<> kag = tire->getKAG_from_State(state);
-  cout << "getKAG_from_State()" << endl;
-  cout << "  kappa = " << kag.x << endl;
-  cout << "  alpha = " << kag.y << " rad = " << kag.y * rad2deg << " deg" << endl;
-  cout << "  gamma = " << kag.z << " rad = " << kag.z * rad2deg << " deg" << endl << endl;
-
   tire->Update(0, state);
   double kappa = tire->get_kappa();
   double alpha = tire->get_alpha();
   double gamma = tire->get_gamma();
+  double R_eff = tire->get_tire_rolling_rad();
   cout << "Update()" << endl;
-  cout << "  kappa = " << kappa << endl;
   cout << "  alpha = " << alpha << " rad = " << alpha * rad2deg << " deg" << endl;
   cout << "  gamma = " << gamma << " rad = " << gamma * rad2deg << " deg" << endl << endl;
+  cout << "  R_eff = " << R_eff << endl;
+  cout << "  kappa = " << kappa << endl;
 }
 
 
