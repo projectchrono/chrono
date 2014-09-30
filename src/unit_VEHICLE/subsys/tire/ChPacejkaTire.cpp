@@ -412,65 +412,68 @@ void ChPacejkaTire::calc_Fz()
   }
 }
 
+// -----------------------------------------------------------------------------
+// Calculate kinematic slip quantities from the current wheel state.
+//
+// The wheel state strcture contains the following member variables:
+//   ChVector<>     pos;        global position
+//   ChQuaternion<> rot;        orientation with respect to global frame
+//   ChVector<>     lin_vel;    linear velocity, expressed in the global frame
+//   ChVector<>     ang_vel;    angular velocity, expressed in the global frame
+//   double         omega;      wheel angular speed about its rotation axis
+// -----------------------------------------------------------------------------
 void ChPacejkaTire::calc_slip_kinematic()
 {
-  // absolaute angle of the wheel velocity vector
-  double Vx_ang = atan(m_tireState.lin_vel.y / m_tireState.lin_vel.x);
-  // find alpha from orientation matrix
-  double ang_z = chrono::Q_to_NasaAngles(m_tireState.rot).z;
-  double gamma = chrono::Q_to_NasaAngles(m_tireState.rot).x;
-  // note: should find alpha relative to wheel center velocity
-  double alpha = ang_z - Vx_ang;
+  // Wheel normal (expressed in global frame)
+  ChVector<> wheel_normal = m_tireState.rot.GetYaxis();
 
-  double v_mag = ChVector<>(m_tireState.lin_vel.x, m_tireState.lin_vel.y, 0).Length();
-  // local c-sys velocities
-  double V_cx = v_mag * cos(alpha);
-  double V_cy = v_mag * sin(alpha);
+  // Terrain normal at wheel center location (expressed in global frame)
+  ChVector<> Z_dir = m_terrain.GetNormal(m_tireState.pos.x, m_tireState.pos.y);
 
-  double kappa = 0;
-  // can get in here when use_transient_slip = true when v_mag is low or zero.
-  if (v_mag < m_params->model.vxlow)
-  {
-    kappa = (m_R_eff * m_tireState.ang_vel.y - V_cx) / abs(m_params->model.vxlow);
-  }
-  else {
-    // s_x = (w_y * r_rolling - |v|) / |v|
-    kappa = (m_R_eff * m_tireState.ang_vel.y - V_cx) / abs(V_cx);
-  }
+  // Longitudinal (heading) and lateral directions, in the terrain plane.
+  ChVector<> X_dir = Vcross(wheel_normal, Z_dir);
+  ChVector<> Y_dir = Vcross(Z_dir, X_dir);
 
+  // Decompose the wheel velocity in the X and Y directions and calculate the
+  // slip angle, alpha.
+  double V_cx = Vdot(m_tireState.lin_vel, X_dir);
+  double V_cy = Vdot(m_tireState.lin_vel, Y_dir);
+  double alpha = atan2(V_cy, V_cx);
+
+  // Decompose the wheel normal in the Z and Y directions and calculate the
+  // wheel camber angle, gamma.
+  double n_z = Vdot(wheel_normal, Z_dir);
+  double n_y = Vdot(wheel_normal, Y_dir);
+  double gamma = atan2(n_z, n_y);
+
+  // Longitudinal slip rate.
+  double V_mag = std::sqrt(V_cx * V_cx + V_cy * V_cy);
+  double kappa = (V_mag < m_params->model.vxlow) ?
+    (m_R_eff * m_tireState.omega - V_cx) / abs(m_params->model.vxlow) :
+    (m_R_eff * m_tireState.omega - V_cx) / abs(V_cx);
 
   // alpha_star = tan(alpha) = v_y / v_x  (no negative since I use z-up)
-  double alpha_star = 0;
-  // don't use rightmost eq. when v_x is too small
-  if (v_mag < m_params->model.vxlow)
-  {
-    alpha_star = tan(alpha);
-  }
-  else {
-    alpha_star = V_cy / abs(V_cx);
-  }
+  double alpha_star = (V_mag < m_params->model.vxlow) ? tan(alpha) : V_cy / abs(V_cx);
 
-  // set the struct data members, input slips to wheel
+  // Set the struct data members, input slips to wheel
   m_slip->kappa = kappa;
   m_slip->alpha = alpha;
   m_slip->alpha_star = alpha_star;
   m_slip->gamma = gamma;
 
-  m_slip->V_cx = V_cx;	// tire center x-vel, tire c-sys
-  m_slip->V_cy = V_cy;	// tire center y-vel, tire c-sys
-  m_slip->V_sx = V_cx - m_tireState.ang_vel.y * m_R_eff;   // x-slip vel, tire c-sys
-  m_slip->V_sy = V_cy;	// approx.
-  // psi_dot is turn slip velocity, in global coords (always normal to road)
-  ChCoordsys<> loc_csys(ChVector<>(), m_tireState.rot);
-  // global omega vector
-  ChVector<> omega_global = loc_csys.TransformLocalToParent(m_tireState.ang_vel);
-  m_slip->psi_dot = omega_global.z;
+  m_slip->V_cx = V_cx;    // tire center x-vel, tire c-sys
+  m_slip->V_cy = V_cy;    // tire center y-vel, tire c-sys
+  m_slip->V_sx = V_cx - m_tireState.omega * m_R_eff;  // x-slip vel, tire c-sys
+  m_slip->V_sy = V_cy;                                // approx.
 
-  // for aligning torque, to handle large slips, and backwards operation
-  m_slip->cosPrime_alpha = V_cx / (v_mag + 0.1);
+  // Turn slip velocity, in global coords (always normal to road)
+  m_slip->psi_dot = Vdot(m_tireState.ang_vel, Z_dir);
 
-  // finally, if non-transient, use wheel slips as input to Magic Formula
-  // these get over-written if enable transient slips to be calculated
+  // For aligning torque, to handle large slips, and backwards operation
+  m_slip->cosPrime_alpha = V_cx / (V_mag + 0.1);
+
+  // Finally, if non-transient, use wheel slips as input to Magic Formula.
+  // These get over-written if enable transient slips to be calculated
   m_slip->kappaP = kappa;
   m_slip->alphaP = alpha_star;
   m_slip->gammaP = sin(gamma);
