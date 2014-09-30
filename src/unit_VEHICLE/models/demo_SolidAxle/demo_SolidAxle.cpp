@@ -15,10 +15,10 @@
 // Main driver function for the HMMWV full model with solid axle suspension, 
 // using rigid tire-terrain contact.
 //
-// If using the Irrlicht interface, river inputs are obtained from the keyboard.
+// If using the Irrlicht interface, driver inputs are obtained from the keyboard.
 //
-// The global reference frame has Z up, X towards the back of the vehicle, and
-// Y pointing to the right.
+// The vehicle reference frame has Z up, X towards the front of the vehicle, and
+// Y pointing to the left.
 //
 // =============================================================================
 
@@ -86,7 +86,7 @@ double output_step_size = 1.0 / 1;    // once a second
 
 #ifdef USE_IRRLICHT
   // Point on chassis tracked by the camera
-  ChVector<> trackPoint(0.0, 0.0, 1.0);
+  ChVector<> trackPoint(0.0, 0.0, 1.75);
 #else
   double tend = 20.0;
 
@@ -106,8 +106,8 @@ int main(int argc, char* argv[])
 
   // Create the HMMWV vehicle
   HMMWV_VehicleSolidAxle vehicle(false,
-                        hmmwv::PRIMITIVES,
-                        hmmwv::NONE);
+                                 hmmwv::PRIMITIVES,
+                                 hmmwv::MESH);
 
   vehicle.Initialize(ChCoordsys<>(initLoc, initRot));
 
