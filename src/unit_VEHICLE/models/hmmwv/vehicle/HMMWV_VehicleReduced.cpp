@@ -37,14 +37,14 @@ static const double in2m = 0.0254;
 static const double lb2kg = 0.453592;
 static const double lbf2N = 4.44822162;
 
-const double     HMMWV_VehicleReduced::m_chassisMass = lb2kg * 7740.7;                         // chassis sprung mass
-const ChVector<> HMMWV_VehicleReduced::m_chassisCOM = in2m * ChVector<>(18.8, 0.585, 33.329);  // COM location
-const ChVector<> HMMWV_VehicleReduced::m_chassisInertia(125.8, 497.4, 531.4);                  // chassis inertia (roll,pitch,yaw)
+const double     HMMWV_VehicleReduced::m_chassisMass = lb2kg * 7740.7;                           // chassis sprung mass
+const ChVector<> HMMWV_VehicleReduced::m_chassisCOM = in2m * ChVector<>(-18.8, -0.585, 33.329);  // COM location
+const ChVector<> HMMWV_VehicleReduced::m_chassisInertia(125.8, 497.4, 531.4);                    // chassis inertia (roll,pitch,yaw)
 
 const std::string HMMWV_VehicleReduced::m_chassisMeshName = "hmmwv_chassis";
 const std::string HMMWV_VehicleReduced::m_chassisMeshFile = utils::GetModelDataFile("hmmwv/hmmwv_chassis.obj");
 
-const ChCoordsys<> HMMWV_VehicleReduced::m_driverCsys(ChVector<>(-0.5, -0.5, 0.5), ChQuaternion<>(0, 0, 0, 1));
+const ChCoordsys<> HMMWV_VehicleReduced::m_driverCsys(ChVector<>(0.0, 0.5, 1.2), ChQuaternion<>(1, 0, 0, 0));
 
 
 // -----------------------------------------------------------------------------
@@ -138,8 +138,8 @@ void HMMWV_VehicleReduced::Initialize(const ChCoordsys<>& chassisPos)
 
   // Initialize the suspension subsystems (specify the suspension subsystems'
   // frames relative to the chassis reference frame).
-  m_front_susp->Initialize(m_chassis, in2m * ChVector<>(-66.59, 0, 1.039));
-  m_rear_susp->Initialize(m_chassis, in2m * ChVector<>(66.4, 0, 1.039));
+  m_front_susp->Initialize(m_chassis, in2m * ChVector<>(66.59, 0, 1.039));
+  m_rear_susp->Initialize(m_chassis, in2m * ChVector<>(-66.4, 0, 1.039));
 
   // Initialize wheels
   m_front_right_wheel->Initialize(m_front_susp->GetSpindle(ChSuspension::RIGHT));

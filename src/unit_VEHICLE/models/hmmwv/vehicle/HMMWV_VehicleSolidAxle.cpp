@@ -37,21 +37,21 @@ static const double in2m = 0.0254;
 static const double lb2kg = 0.453592;
 static const double lbf2N = 4.44822162;
 
-const double     HMMWV_VehicleSolidAxle::m_chassisMass = lb2kg * 7747.0;                         // chassis sprung mass
-const ChVector<> HMMWV_VehicleSolidAxle::m_chassisCOM = in2m * ChVector<>(18.8, 0.585, 33.329);  // COM location
-const ChVector<> HMMWV_VehicleSolidAxle::m_chassisInertia(125.8, 497.4, 531.4);                  // chassis inertia (roll,pitch,yaw)
+const double     HMMWV_VehicleSolidAxle::m_chassisMass = lb2kg * 7747.0;                           // chassis sprung mass
+const ChVector<> HMMWV_VehicleSolidAxle::m_chassisCOM = in2m * ChVector<>(-18.8, -0.585, 33.329);  // COM location
+const ChVector<> HMMWV_VehicleSolidAxle::m_chassisInertia(125.8, 497.4, 531.4);                    // chassis inertia (roll,pitch,yaw)
 
 const std::string HMMWV_VehicleSolidAxle::m_chassisMeshName = "hmmwv_chassis";
 const std::string HMMWV_VehicleSolidAxle::m_chassisMeshFile = utils::GetModelDataFile("hmmwv/hmmwv_chassis.obj");
 
-const ChCoordsys<> HMMWV_VehicleSolidAxle::m_driverCsys(ChVector<>(-0.5, -0.5, 0.5), ChQuaternion<>(0, 0, 0, 1));
+const ChCoordsys<> HMMWV_VehicleSolidAxle::m_driverCsys(ChVector<>(0.0, 0.5, 1.2), ChQuaternion<>(1, 0, 0, 0));
 
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 HMMWV_VehicleSolidAxle::HMMWV_VehicleSolidAxle(const bool           fixed,
-                             VisualizationType    chassisVis,
-                             VisualizationType    wheelVis)
+                                               VisualizationType    chassisVis,
+                                               VisualizationType    wheelVis)
 {
   // -------------------------------------------
   // Create the chassis body
@@ -138,8 +138,8 @@ void HMMWV_VehicleSolidAxle::Initialize(const ChCoordsys<>& chassisPos)
 
   // Initialize the suspension subsystems (specify the suspension subsystems'
   // frames relative to the chassis reference frame).
-  m_front_susp->Initialize(m_chassis, in2m * ChVector<>(-66.59, 0, 0));
-  m_rear_susp->Initialize(m_chassis, in2m * ChVector<>(66.4, 0, 0));
+  m_front_susp->Initialize(m_chassis, in2m * ChVector<>(66.59, 0, 0));
+  m_rear_susp->Initialize(m_chassis, in2m * ChVector<>(-66.4, 0, 0));
 
   // Initialize wheels
   m_front_right_wheel->Initialize(m_front_susp->GetSpindle(ChSuspension::RIGHT));
@@ -408,10 +408,10 @@ void HMMWV_VehicleSolidAxle::LogHardpointLocations()
   GetLog().SetNumFormat("%7.3f");
 
   GetLog() << "\n---- FRONT suspension hardpoint locations (RIGHT side)\n";
-  m_front_susp->LogHardpointLocations(ChVector<>(37.78, 0, 30.77), true);
+  m_front_susp->LogHardpointLocations(ChVector<>(0, 0, 0), true);
 
   GetLog() << "\n---- REAR suspension hardpoint locations (RIGHT side)\n";
-  m_rear_susp->LogHardpointLocations(ChVector<>(170.77, 0, 30.77), true);
+  m_rear_susp->LogHardpointLocations(ChVector<>(0, 0, 0), true);
 
   GetLog() << "\n\n";
 

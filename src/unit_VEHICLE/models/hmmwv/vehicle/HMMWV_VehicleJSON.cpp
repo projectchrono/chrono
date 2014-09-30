@@ -39,14 +39,14 @@ static const double in2m = 0.0254;
 static const double lb2kg = 0.453592;
 static const double lbf2N = 4.44822162;
 
-const double     HMMWV_VehicleJSON::m_chassisMass = lb2kg * 7747.0;                         // chassis sprung mass
-const ChVector<> HMMWV_VehicleJSON::m_chassisCOM = in2m * ChVector<>(18.8, 0.585, 33.329);  // COM location
-const ChVector<> HMMWV_VehicleJSON::m_chassisInertia(125.8, 497.4, 531.4);                  // chassis inertia (roll,pitch,yaw)
+const double     HMMWV_VehicleJSON::m_chassisMass = lb2kg * 7747.0;                           // chassis sprung mass
+const ChVector<> HMMWV_VehicleJSON::m_chassisCOM = in2m * ChVector<>(-18.8, -0.585, 33.329);  // COM location
+const ChVector<> HMMWV_VehicleJSON::m_chassisInertia(125.8, 497.4, 531.4);                    // chassis inertia (roll,pitch,yaw)
 
 const std::string HMMWV_VehicleJSON::m_chassisMeshName = "hmmwv_chassis";
 const std::string HMMWV_VehicleJSON::m_chassisMeshFile = utils::GetModelDataFile("hmmwv/hmmwv_chassis.obj");
 
-const ChCoordsys<> HMMWV_VehicleJSON::m_driverCsys(ChVector<>(-0.5, -0.5, 0.5), ChQuaternion<>(0, 0, 0, 1));
+const ChCoordsys<> HMMWV_VehicleJSON::m_driverCsys(ChVector<>(0.0, 0.5, 1.2), ChQuaternion<>(1, 0, 0, 0));
 
 
 // -----------------------------------------------------------------------------
@@ -144,12 +144,13 @@ void HMMWV_VehicleJSON::Initialize(const ChCoordsys<>& chassisPos)
   m_chassis->SetFrame_REF_to_abs(ChFrame<>(chassisPos));
 
   // Initialize the suspension subsystems
-  m_front_susp->Initialize(m_chassis, in2m * ChVector<>(-66.59, 0, 1.039));
-  m_rear_susp->Initialize(m_chassis, in2m * ChVector<>(66.4, 0, 1.039));
+  m_front_susp->Initialize(m_chassis, in2m * ChVector<>(66.59, 0, 1.039));
+  m_rear_susp->Initialize(m_chassis, in2m * ChVector<>(-66.4, 0, 1.039));
 
-  // Initialize the steering subsystem
-  ChVector<> offset = in2m * ChVector<>(-49.015, 0, 4.304);
-  ChQuaternion<> rotation = Q_from_AngAxis(-18.5 * CH_C_PI / 180, ChVector<>(0, 1, 0));
+  // Initialize the steering subsystem (specify the steering subsystem's frame
+  // relative to the chassis reference frame).
+  ChVector<> offset = in2m * ChVector<>(49.015, 0, 4.304);
+  ChQuaternion<> rotation = Q_from_AngAxis(18.5 * CH_C_PI / 180, ChVector<>(0, 1, 0));
   m_steering->Initialize(m_chassis, offset, rotation);
 
   // Initialize wheels
@@ -421,10 +422,10 @@ void HMMWV_VehicleJSON::LogHardpointLocations()
   GetLog().SetNumFormat("%7.3f");
 
   GetLog() << "\n---- FRONT suspension hardpoint locations (RIGHT side)\n";
-  m_front_susp->LogHardpointLocations(ChVector<>(37.78, 0, 30.77), true);
+  m_front_susp->LogHardpointLocations(ChVector<>(-37.78, 0, 30.77), true);
 
   GetLog() << "\n---- REAR suspension hardpoint locations (RIGHT side)\n";
-  m_rear_susp->LogHardpointLocations(ChVector<>(170.77, 0, 30.77), true);
+  m_rear_susp->LogHardpointLocations(ChVector<>(-170.77, 0, 30.77), true);
 
   GetLog() << "\n\n";
 
