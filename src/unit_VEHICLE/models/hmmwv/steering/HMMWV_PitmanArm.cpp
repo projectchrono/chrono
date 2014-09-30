@@ -51,14 +51,14 @@ HMMWV_PitmanArm::HMMWV_PitmanArm(const std::string& name)
 const ChVector<> HMMWV_PitmanArm::getLocation(PointId which)
 {
   switch (which) {
-  case STEERINGLINK:   return ChVector<>(-0.192, 0, 0);
-  case PITMANARM:      return ChVector<>(-0.064, -0.249, 0);
-  case REV:            return ChVector<>(0, -0.249, 0);
-  case UNIV:           return ChVector<>(-0.129, -0.249, 0);
-  case REVSPH_R:       return ChVector<>(0, 0.325, 0);
-  case REVSPH_S:       return ChVector<>(-0.129, 0.325, 0);
-  case TIEROD_PA:      return ChVector<>(-0.195, -0.448, 0.035);
-  case TIEROD_IA:      return ChVector<>(-0.195, 0.448, 0.035);
+  case STEERINGLINK:   return ChVector<>(0.192, 0, 0);
+  case PITMANARM:      return ChVector<>(0.064, 0.249, 0);
+  case REV:            return ChVector<>(0, 0.249, 0);
+  case UNIV:           return ChVector<>(0.129, 0.249, 0);
+  case REVSPH_R:       return ChVector<>(0, -0.325, 0);
+  case REVSPH_S:       return ChVector<>(0.129, -0.325, 0);
+  case TIEROD_PA:      return ChVector<>(0.195, 0.448, 0.035);
+  case TIEROD_IA:      return ChVector<>(0.195, -0.448, 0.035);
   default:             return ChVector<>(0, 0, 0);
   }
 }
