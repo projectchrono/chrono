@@ -311,18 +311,17 @@ void ChPacejkaTire::Advance(double step)
     advance_slip_transient(remaining_time);
   }
 
-  // all states, variables are updated. calculate the pure and combined reactions
-  // updates m_FM.forces, m_FM.moment.z
+  // calculate the force and moment reaction, pure slip case
   calc_pureSlipReactions();
 
   // updates m_FM_combined.forces, m_FM_combined.moment.z
   calc_combinedSlipReactions();
 
   // update M_x, apply to both m_FM and m_FM_combined
-  calc_overturningCouple();
+  calc_Mx();
 
   // update M_y, apply to both m_FM and m_FM_combined
-  calc_rollingResistance();
+  calc_My();
 }
 
 
@@ -683,7 +682,7 @@ void ChPacejkaTire::update_tireFrame()
 void ChPacejkaTire::calc_relaxationLengths()
 {
   double p_Ky4 = 2;
-  double C_Fx = 77000;  // calibrated using Fx - pure long slip case.      77000
+  double C_Fx = 177000;  // calibrated using Fx - pure long slip case.      77000
   double C_Fy = 144000; // calibrated using Fy - pure lateral slip case.  144000
   double p_Ky5 = 0;
   double p_Ky6 = 0.92;
@@ -691,15 +690,15 @@ void ChPacejkaTire::calc_relaxationLengths()
 
   // all these C values should probably be positive, since negative stiffness doesn't make sense
   // parameter pky1 from A/Car parameter file is negative? not correct, force to positive
-  double C_Falpha = abs(m_params->lateral_coefficients.pky1 * m_params->vertical.fnomin * sin(p_Ky4 * atan(m_FM.force.z / (m_params->lateral_coefficients.pky2 * m_params->vertical.fnomin))) * m_zeta->z3 * m_params->scaling_coefficients.lyka);
+  double C_Falpha = abs(m_params->lateral.pky1 * m_params->vertical.fnomin * sin(p_Ky4 * atan(m_FM.force.z / (m_params->lateral.pky2 * m_params->vertical.fnomin))) * m_zeta->z3 * m_params->scaling.lyka);
   double sigma_alpha = abs(C_Falpha / C_Fy);
-  double C_Fkappa = m_FM.force.z * (m_params->longitudinal_coefficients.pkx1 + m_params->longitudinal_coefficients.pkx2 * m_dF_z) * exp(m_params->longitudinal_coefficients.pkx3 * m_dF_z) * m_params->scaling_coefficients.lky;
+  double C_Fkappa = m_FM.force.z * (m_params->longitudinal.pkx1 + m_params->longitudinal.pkx2 * m_dF_z) * exp(m_params->longitudinal.pkx3 * m_dF_z) * m_params->scaling.lky;
   double sigma_kappa = C_Fkappa / C_Fx;
-  double C_Fgamma = m_FM.force.z * (p_Ky6 + p_Ky7 * m_dF_z) * m_params->scaling_coefficients.lgay;
+  double C_Fgamma = m_FM.force.z * (p_Ky6 + p_Ky7 * m_dF_z) * m_params->scaling.lgay;
   double C_Fphi = (C_Fgamma * m_R0) / (1 - 0.5);
 
-	double sigma_kappa_adams = m_FM.force.z * (m_params->longitudinal_coefficients.ptx1 + m_params->longitudinal_coefficients.ptx2 * m_dF_z)*(m_R0*m_params->scaling_coefficients.lsgkp / m_params->vertical.fnomin) * exp( m_params->longitudinal_coefficients.ptx3 * m_dF_z);
-	double sigma_alpha_adams = m_params->lateral_coefficients.pty1 * (1.0 - m_params->lateral_coefficients.pky3 * abs( m_slip->gammaP ) ) * m_R0 * m_params->scaling_coefficients.lsgal * sin(p_Ky4 * atan(m_FM.force.z / (m_params->lateral_coefficients.pty2 * m_params->vertical.fnomin) ) );
+	double sigma_kappa_adams = m_FM.force.z * (m_params->longitudinal.ptx1 + m_params->longitudinal.ptx2 * m_dF_z)*(m_R0*m_params->scaling.lsgkp / m_params->vertical.fnomin) * exp( m_params->longitudinal.ptx3 * m_dF_z);
+	double sigma_alpha_adams = m_params->lateral.pty1 * (1.0 - m_params->lateral.pky3 * abs( m_slip->gammaP ) ) * m_R0 * m_params->scaling.lsgal * sin(p_Ky4 * atan(m_FM.force.z / (m_params->lateral.pty2 * m_params->vertical.fnomin) ) );
 
   {
     relaxationL tmp = { C_Falpha, sigma_alpha, C_Fkappa, sigma_kappa, C_Fgamma, C_Fphi };
@@ -710,24 +709,26 @@ void ChPacejkaTire::calc_relaxationLengths()
 
 void ChPacejkaTire::calcFx_pureLong()
 {
+  // double eps_Vx = 0.6;
+  double eps_x = 0;
   // Fx, pure long slip
-  double S_Hx = (m_params->longitudinal_coefficients.phx1 + m_params->longitudinal_coefficients.phx2*m_dF_z)*m_params->scaling_coefficients.lhx;
-  double kappa_x = m_slip->kappaP + S_Hx;  // * 0.1;
+  double S_Hx = (m_params->longitudinal.phx1 + m_params->longitudinal.phx2*m_dF_z)*m_params->scaling.lhx;
+  double kappa_x = -m_slip->kappaP + S_Hx;  // * 0.1;
 
-  double mu_x = (m_params->longitudinal_coefficients.pdx1 + m_params->longitudinal_coefficients.pdx2*m_dF_z) * m_params->scaling_coefficients.lmux;	// >0
-  double K_xKappa = m_FM.force.z * (m_params->longitudinal_coefficients.pkx1 + m_params->longitudinal_coefficients.pkx2 * m_dF_z) * exp(m_params->longitudinal_coefficients.pkx3 * m_dF_z) * m_params->scaling_coefficients.lkx;
-  double C_x = m_params->longitudinal_coefficients.pcx1 * m_params->scaling_coefficients.lcx;	// >0
+  double mu_x = (m_params->longitudinal.pdx1 + m_params->longitudinal.pdx2*m_dF_z) * (1.0 - m_params->longitudinal.pdx3 * pow(m_slip->gammaP,2) ) * m_params->scaling.lmux;	// >0
+  double K_xKappa = m_FM.force.z * (m_params->longitudinal.pkx1 + m_params->longitudinal.pkx2 * m_dF_z) * exp(m_params->longitudinal.pkx3 * m_dF_z) * m_params->scaling.lkx;
+  double C_x = m_params->longitudinal.pcx1 * m_params->scaling.lcx;	// >0
   double D_x = mu_x * m_FM.force.z * m_zeta->z1;  // >0
-  double B_x = K_xKappa / (C_x * D_x + 0.1);
+  double B_x = K_xKappa / (C_x * D_x + eps_x);
 
   double sign_kap = 0;
   if (kappa_x >= 0)
     sign_kap = 1;
   else
     sign_kap = -1;
-  double E_x = (m_params->longitudinal_coefficients.pex1 + m_params->longitudinal_coefficients.pex2 * m_dF_z + m_params->longitudinal_coefficients.pex3 * m_dF_z*m_dF_z) * (1.0 - m_params->longitudinal_coefficients.pex4*sign_kap)*m_params->scaling_coefficients.lex;
-  double S_Vx = m_FM.force.z * (m_params->longitudinal_coefficients.pvx1 + m_params->longitudinal_coefficients.pvx2 * m_dF_z) * abs(m_tireState.lin_vel.x) / (0.1 + abs(m_tireState.lin_vel.x)) * m_params->scaling_coefficients.lvx * m_params->scaling_coefficients.lmux * m_zeta->z1;
-  double F_x = D_x * sin(C_x * atan(B_x * kappa_x - E_x * (B_x * kappa_x - atan(B_x * kappa_x)))) + S_Vx;
+  double E_x = (m_params->longitudinal.pex1 + m_params->longitudinal.pex2 * m_dF_z + m_params->longitudinal.pex3 *  pow(m_dF_z,2) ) * (1.0 - m_params->longitudinal.pex4*sign_kap)*m_params->scaling.lex;
+  double S_Vx = m_FM.force.z * (m_params->longitudinal.pvx1 + m_params->longitudinal.pvx2 * m_dF_z) * m_params->scaling.lvx * m_params->scaling.lmux * m_zeta->z1; //  * abs(m_tireState.lin_vel.x) / (eps_Vx + abs(m_tireState.lin_vel.x))
+  double F_x = -D_x * sin(C_x * atan(B_x * kappa_x - E_x * (B_x * kappa_x - atan(B_x * kappa_x)))) - S_Vx;
 
   // set the longitudinal force
   m_FM.force.x = F_x;
@@ -743,41 +744,43 @@ void ChPacejkaTire::calcFy_pureLat()
 {
   double p_Ky4 = 2.0;
   double p_Ky5 = 0;
-  double p_Ky6 = 0.92;	// not in the default pac2002 file
-  double p_Ky7 = 0.24;	// "
+  // double p_Ky6 = 0.92;	// not in the default pac2002 file
+  // double p_Ky7 = 0.24;	// "
   double p_Ey5 = 0;
 
-  double K_yGamma_0 = m_FM.force.z * (p_Ky6 + p_Ky7 * m_dF_z) * m_params->scaling_coefficients.lgay;
-  double C_y = m_params->lateral_coefficients.pcy1 * m_params->scaling_coefficients.lcy;	// > 0
-  double mu_y = ((m_params->lateral_coefficients.pdy1 + m_params->lateral_coefficients.pdy2 * m_dF_z) / (1.0 + m_params->lateral_coefficients.pdy3 * m_slip->gammaP)) * m_params->scaling_coefficients.lmuy;	// > 0
+  // double K_y0 = m_FM.force.z * (p_Ky6 + p_Ky7 * m_dF_z) * m_params->scaling.lgay;
+  double C_y = m_params->lateral.pcy1 * m_params->scaling.lcy;	// > 0
+  double mu_y = (m_params->lateral.pdy1 + m_params->lateral.pdy2 * m_dF_z) * (1.0 - m_params->lateral.pdy3 * pow(m_slip->gammaP,2) ) * m_params->scaling.lmuy;	// > 0
   double D_y = mu_y * m_FM.force.z * m_zeta->z2;
-  double K_yAlpha = abs(m_params->lateral_coefficients.pky1 * m_params->vertical.fnomin * sin(p_Ky4 * atan(m_FM.force.z / ((m_params->lateral_coefficients.pky2 + p_Ky5 * m_slip->gammaP*m_slip->gammaP) * m_params->vertical.fnomin))) / (1.0 + m_params->lateral_coefficients.pky3 * m_slip->gammaP * m_slip->gammaP) * m_zeta->z3 * m_params->scaling_coefficients.lyka);
+
+  // TODO: does this become negative??? 
+  double K_y = m_params->lateral.pky1 * m_params->vertical.fnomin * sin(p_Ky4 * atan(m_FM.force.z / ( (m_params->lateral.pky2 + p_Ky5 * pow(m_slip->gammaP,2) )* m_params->vertical.fnomin))) * (1.0 - m_params->lateral.pky3 * abs(m_slip->gammaP) ) * m_zeta->z3 * m_params->scaling.lyka;
 
   // doesn't make sense to ever have K_yAlpha be negative (it can be interpreted as lateral stiffnesss)
-  double B_y = K_yAlpha / (C_y * D_y + 0.1);
+  double B_y = K_y/ (C_y * D_y + 0.1);
 
-  double S_VyGamma = m_FM.force.z * (m_params->lateral_coefficients.pvy3 + m_params->lateral_coefficients.pvy4 * m_dF_z) * m_slip->gammaP * m_params->scaling_coefficients.lyka * mu_y * m_zeta->z2;
-  double S_Hy = (m_params->lateral_coefficients.phy1 + m_params->lateral_coefficients.phy2 * m_dF_z) * m_params->scaling_coefficients.lhy + (K_yGamma_0 * m_slip->gammaP - S_VyGamma) * m_zeta->z0 / (K_yAlpha + 0.1) + m_zeta->z4 - 1.0;
+  // double S_Hy = (m_params->lateral.phy1 + m_params->lateral.phy2 * m_dF_z) * m_params->scaling.lhy + (K_yGamma_0 * m_slip->gammaP - S_VyGamma) * m_zeta->z0 / (K_yAlpha + 0.1) + m_zeta->z4 - 1.0;
+  // Adasms S_Hy is a bit different
+  double S_Hy =  (m_params->lateral.phy1 + m_params->lateral.phy2 * m_dF_z) * m_params->scaling.lhy + (m_params->lateral.phy3 * m_slip->gammaP * m_zeta->z0) + m_zeta->z4 - 1;
 
-  double alpha_y = m_slip->alphaP - S_Hy;
+  double alpha_y = m_slip->alphaP + S_Hy;
 
   int sign_alpha = 0;
   if (alpha_y >= 0)
-    sign_alpha = -1;
-  else
     sign_alpha = 1;
+  else
+    sign_alpha = -1;
 
-  double E_y = (m_params->lateral_coefficients.pey1 + m_params->lateral_coefficients.pey2 * m_dF_z) * (1.0 + p_Ey5 * m_slip->gammaP * m_slip->gammaP - (m_params->lateral_coefficients.pey3 + m_params->lateral_coefficients.pey4 * m_slip->gammaP) * sign_alpha) * m_params->scaling_coefficients.ley;
-  double S_Vy = m_FM.force.z * (m_params->lateral_coefficients.pvy1 + m_params->lateral_coefficients.pvy2 * m_dF_z) * m_params->scaling_coefficients.lvy * m_params->scaling_coefficients.lmuy * m_zeta->z2 + S_VyGamma;
+  double E_y = (m_params->lateral.pey1 + m_params->lateral.pey2 * m_dF_z) * (1.0 + p_Ey5 * pow(m_slip->gammaP,2) - (m_params->lateral.pey3 + m_params->lateral.pey4 * m_slip->gammaP) * sign_alpha) * m_params->scaling.ley;
+  double S_Vy = m_FM.force.z * ((m_params->lateral.pvy1 + m_params->lateral.pvy2 * m_dF_z) * m_params->scaling.lvy + (m_params->lateral.pvy3 + m_params->lateral.pvy4 * m_dF_z) * m_slip->gammaP) * m_params->scaling.lmuy * m_zeta->z2;
 
   double F_y = D_y * sin(C_y * atan(B_y * alpha_y - E_y * (B_y * alpha_y - atan(B_y * alpha_y)))) + S_Vy;
-  // double F_y = D_y * sin(C_y * atan(B_y * alpha_y - E_y * (B_y * alpha_y - atan(B_y * alpha_y)) ) ) + S_Vy;
 
   m_FM.force.y = F_y;
 
   // hold onto coefs
   {
-    pureLatCoefs tmp = { S_Hy, alpha_y, mu_y, K_yAlpha, K_yGamma_0, S_VyGamma, S_Vy, B_y, C_y, D_y, E_y, F_y };
+    pureLatCoefs tmp = { S_Hy, alpha_y, mu_y, K_y, S_Vy, B_y, C_y, D_y, E_y, F_y };
     *m_pureLat = tmp;
   }
 }
@@ -791,20 +794,20 @@ void ChPacejkaTire::calcMz_pureLat()
   else
     sign_Vx = -1;
 
-  double B_r = (m_params->aligning_coefficients.qbz9 * (m_params->scaling_coefficients.lky / m_params->scaling_coefficients.lmuy) + m_params->aligning_coefficients.qbz10 * m_pureLat->B_y * m_pureLat->C_y) * m_zeta->z6;
+  double B_r = (m_params->aligning.qbz9 * (m_params->scaling.lky / m_params->scaling.lmuy) + m_params->aligning.qbz10 * m_pureLat->B_y * m_pureLat->C_y) * m_zeta->z6;
   double C_r = m_zeta->z7;
-  double D_r = m_FM.force.z * m_R0 * ( (m_params->aligning_coefficients.qdz6 + m_params->aligning_coefficients.qdz7 * m_dF_z) * m_params->scaling_coefficients.lgyr * m_zeta->z2 + (m_params->aligning_coefficients.qdz8 + m_params->aligning_coefficients.qdz9 * m_dF_z) * m_slip->gammaP * m_params->scaling_coefficients.lgaz * m_zeta->z0 ) * m_slip->cosPrime_alpha * m_params->scaling_coefficients.lmuy * sign_Vx + m_zeta->z8 - 1.0;
-  double B_t = (m_params->aligning_coefficients.qbz1 + m_params->aligning_coefficients.qbz2 * m_dF_z + m_params->aligning_coefficients.qbz3 * pow(m_dF_z,2) ) * (1.0 + m_params->aligning_coefficients.qbz4 * abs(m_slip->gammaP) + m_params->aligning_coefficients.qbz5 * m_slip->gammaP) * m_params->scaling_coefficients.lvyka / m_params->scaling_coefficients.lmuy;
-  double C_t = m_params->aligning_coefficients.qcz1;
-  double D_t0 = m_FM.force.z * (m_R0 / m_params->vertical.fnomin) * (m_params->aligning_coefficients.qdz1 + m_params->aligning_coefficients.qdz2 * m_dF_z) * m_params->scaling_coefficients.ltr * sign_Vx;
-  double D_t = D_t0 * (1.0 + m_params->aligning_coefficients.qdz3 * abs(m_slip->gammaP) + m_params->aligning_coefficients.qdz4 * pow(m_slip->gammaP,2) ) * m_zeta->z5;
-  double KP_yAlpha = m_pureLat->K_yAlpha + 0.1;
+  double D_r = m_FM.force.z * m_R0 * ( (m_params->aligning.qdz6 + m_params->aligning.qdz7 * m_dF_z) * m_params->scaling.lgyr * m_zeta->z2 + (m_params->aligning.qdz8 + m_params->aligning.qdz9 * m_dF_z) * m_slip->gammaP * m_params->scaling.lgaz * m_zeta->z0 ) * m_slip->cosPrime_alpha * m_params->scaling.lmuy * sign_Vx + m_zeta->z8 - 1.0;
+  double B_t = (m_params->aligning.qbz1 + m_params->aligning.qbz2 * m_dF_z + m_params->aligning.qbz3 * pow(m_dF_z,2) ) * (1.0 + m_params->aligning.qbz4 * abs(m_slip->gammaP) + m_params->aligning.qbz5 * m_slip->gammaP) * m_params->scaling.lvyka / m_params->scaling.lmuy;
+  double C_t = m_params->aligning.qcz1;
+  double D_t0 = m_FM.force.z * (m_R0 / m_params->vertical.fnomin) * (m_params->aligning.qdz1 + m_params->aligning.qdz2 * m_dF_z) * m_params->scaling.ltr * sign_Vx;
+  double D_t = D_t0 * (1.0 + m_params->aligning.qdz3 * abs(m_slip->gammaP) + m_params->aligning.qdz4 * pow(m_slip->gammaP,2) ) * m_zeta->z5;
+  double KP_yAlpha = m_pureLat->K_y + 0.1;
   double S_Hf = m_pureLat->S_Hy + m_pureLat->S_Vy / KP_yAlpha;
 
-  double alpha_r = m_slip->alphaP - S_Hf;
-  double S_Ht = m_params->aligning_coefficients.qhz1 + m_params->aligning_coefficients.qhz2 * m_dF_z + (m_params->aligning_coefficients.qhz3 + m_params->aligning_coefficients.qhz4 * m_dF_z) * m_slip->gammaP;
-  double alpha_t = m_slip->alphaP - S_Ht;
-  double E_t = (m_params->aligning_coefficients.qez1 + m_params->aligning_coefficients.qez2 * m_dF_z + m_params->aligning_coefficients.qez3 * pow(m_dF_z,2) ) * (1.0 + (m_params->aligning_coefficients.qez4 + m_params->aligning_coefficients.qez5 * m_slip->gammaP) * (2.0 / chrono::CH_C_PI) * atan(B_t * C_t * alpha_t) );
+  double alpha_r = -m_slip->alphaP + S_Hf;
+  double S_Ht = m_params->aligning.qhz1 + m_params->aligning.qhz2 * m_dF_z + (m_params->aligning.qhz3 + m_params->aligning.qhz4 * m_dF_z) * m_slip->gammaP;
+  double alpha_t = -m_slip->alphaP + S_Ht;
+  double E_t = (m_params->aligning.qez1 + m_params->aligning.qez2 * m_dF_z + m_params->aligning.qez3 * pow(m_dF_z,2) ) * (1.0 + (m_params->aligning.qez4 + m_params->aligning.qez5 * m_slip->gammaP) * (2.0 / chrono::CH_C_PI) * atan(B_t * C_t * alpha_t) );
   double t0 = D_t * cos(C_t * atan(B_t * alpha_t - E_t * (B_t * alpha_t - atan(B_t * alpha_t)))) * m_slip->cosPrime_alpha;
 
   double MP_z0 = -t0 * m_FM.force.y;
@@ -830,11 +833,11 @@ void ChPacejkaTire::calcFx_combined()
 {
   double rbx3 = 1.0;
 
-  double S_HxAlpha = m_params->longitudinal_coefficients.rhx1;
-  double alpha_S = m_slip->alphaP + S_HxAlpha;
-  double B_xAlpha = (m_params->longitudinal_coefficients.rbx1 + rbx3 * pow(m_slip->gammaP, 2)) * cos(atan(m_params->longitudinal_coefficients.rbx2 * m_slip->kappaP)) * m_params->scaling_coefficients.lxal;
-  double C_xAlpha = m_params->longitudinal_coefficients.rcx1;
-  double E_xAlpha = m_params->longitudinal_coefficients.pex1 + m_params->longitudinal_coefficients.rex2 * m_dF_z;
+  double S_HxAlpha = m_params->longitudinal.rhx1;
+  double alpha_S = -m_slip->alphaP - S_HxAlpha;
+  double B_xAlpha = (m_params->longitudinal.rbx1 + rbx3 * pow(m_slip->gammaP, 2)) * cos(atan(m_params->longitudinal.rbx2 * m_slip->kappa)) * m_params->scaling.lxal;
+  double C_xAlpha = m_params->longitudinal.rcx1;
+  double E_xAlpha = m_params->longitudinal.rex1 + m_params->longitudinal.rex2 * m_dF_z;
 
   // double G_xAlpha0 = cos(C_xAlpha * atan(B_xAlpha * S_HxAlpha - E_xAlpha * (B_xAlpha * S_HxAlpha - atan(B_xAlpha * S_HxAlpha)) ) );
   double G_xAlpha0 = cos(C_xAlpha * atan(B_xAlpha * S_HxAlpha - E_xAlpha * (B_xAlpha * S_HxAlpha - atan(B_xAlpha * S_HxAlpha))));
@@ -854,13 +857,15 @@ void ChPacejkaTire::calcFx_combined()
 // calc Fy for combined slip
 void ChPacejkaTire::calcFy_combined()
 {
-  double S_HyKappa = m_params->lateral_coefficients.rhy1 + m_params->lateral_coefficients.rhy2 * m_dF_z;
-  double kappa_S = -m_slip->kappaP - S_HyKappa;
-  double B_yKappa = m_params->lateral_coefficients.rby1 * cos(atan(m_params->lateral_coefficients.rby2 * (m_slip->alphaP - m_params->lateral_coefficients.rby3))) * m_params->scaling_coefficients.lyka;
-  double C_yKappa = m_params->lateral_coefficients.rcy1;
-  double E_yKappa = m_params->lateral_coefficients.rey1 + m_params->lateral_coefficients.rey2 * m_dF_z;
-  double D_VyKappa = m_pureLat->mu_y * m_FM.force.z * (m_params->lateral_coefficients.rvy1 + m_params->lateral_coefficients.rvy2 * m_dF_z + m_params->lateral_coefficients.rvy3 * m_slip->gammaP) * cos(atan(m_params->lateral_coefficients.rvy4 * m_slip->alphaP)) * m_zeta->z2;
-  double S_VyKappa = D_VyKappa * sin(m_params->lateral_coefficients.rvy5 * atan(m_params->lateral_coefficients.rvy6 * m_slip->kappaP)) * m_params->scaling_coefficients.lvyka;
+  double rby4 = 0;
+
+  double S_HyKappa = m_params->lateral.rhy1 + m_params->lateral.rhy2 * m_dF_z;
+  double kappa_S = -m_slip->kappaP + S_HyKappa;
+  double B_yKappa = (m_params->lateral.rby1 + rby4 * pow(m_slip->gammaP,2) ) * cos(atan(m_params->lateral.rby2 * (-m_slip->alphaP - m_params->lateral.rby3))) * m_params->scaling.lyka;
+  double C_yKappa = m_params->lateral.rcy1;
+  double E_yKappa = m_params->lateral.rey1 + m_params->lateral.rey2 * m_dF_z;
+  double D_VyKappa = m_pureLat->mu_y * m_FM.force.z * (m_params->lateral.rvy1 + m_params->lateral.rvy2 * m_dF_z + m_params->lateral.rvy3 * m_slip->gammaP) * cos(atan(m_params->lateral.rvy4 * -m_slip->alphaP)) * m_zeta->z2;
+  double S_VyKappa = D_VyKappa * sin(m_params->lateral.rvy5 * atan(m_params->lateral.rvy6 * m_slip->kappaP)) * m_params->scaling.lvyka;
   double G_yKappa0 = cos(C_yKappa * atan(B_yKappa * S_HyKappa - E_yKappa * (B_yKappa * S_HyKappa - atan(B_yKappa * S_HyKappa))));
   double G_yKappa = cos(C_yKappa * atan(B_yKappa * kappa_S - E_yKappa * (B_yKappa * kappa_S - atan(B_yKappa * kappa_S)))) / G_yKappa0;
 
@@ -877,7 +882,7 @@ void ChPacejkaTire::calcFy_combined()
 void ChPacejkaTire::calcMz_combined()
 {
   double FP_y = m_FM_combined.force.y - m_combinedLat->S_VyKappa;
-  double s = m_R0 * (m_params->aligning_coefficients.ssz1 + m_params->aligning_coefficients.ssz2 * (-m_FM_combined.force.y / m_params->vertical.fnomin) + (m_params->aligning_coefficients.ssz3 + m_params->aligning_coefficients.ssz4 * m_dF_z) * m_slip->gammaP) * m_params->scaling_coefficients.ls;
+  double s = m_R0 * (m_params->aligning.ssz1 + m_params->aligning.ssz2 * (m_FM_combined.force.y / m_params->vertical.fnomin) + (m_params->aligning.ssz3 + m_params->aligning.ssz4 * m_dF_z) * m_slip->gammaP) * m_params->scaling.ls;
   int sign_alpha_t = 0;
   int sign_alpha_r = 0;
   if (m_pureTorque->alpha_t >= 0){
@@ -902,7 +907,7 @@ void ChPacejkaTire::calcMz_combined()
   double t = m_pureTorque->D_t * cos(m_pureTorque->C_t * atan(m_pureTorque->B_t*alpha_t_eq - m_pureTorque->E_t * (m_pureTorque->B_t * alpha_t_eq - atan(m_pureTorque->B_t * alpha_t_eq)))) * m_slip->cosPrime_alpha;
   double MP_z = -t * FP_y;
 
-  double M_z = MP_z + M_zr + (s * m_FM_combined.force.x);
+  double M_z = MP_z + M_zr  + (s * m_FM_combined.force.x);
   m_FM_combined.moment.z = M_z;
 
   {
@@ -913,19 +918,19 @@ void ChPacejkaTire::calcMz_combined()
 
 
 
-void ChPacejkaTire::calc_overturningCouple()
+void ChPacejkaTire::calc_Mx()
 {
-  double M_x = m_FM.force.z * m_R0 * (m_params->overturning_coefficients.qsx1 - m_params->overturning_coefficients.qsx2 * m_slip->gammaP
-    - m_params->overturning_coefficients.qsx3 * (m_FM_combined.force.y / m_params->vertical.fnomin)) * m_params->scaling_coefficients.lmx;
+  double M_x = m_FM.force.z * m_R0 * (m_params->overturning.qsx1 - m_params->overturning.qsx2 * m_slip->gammaP
+    - m_params->overturning.qsx3 * (m_FM_combined.force.y / m_params->vertical.fnomin)) * m_params->scaling.lmx;
   m_FM.moment.x = M_x;
   m_FM_combined.moment.x = M_x;
 }
 
 
-void ChPacejkaTire::calc_rollingResistance()
+void ChPacejkaTire::calc_My()
 {
   double V_r = m_tireState.ang_vel.y * m_R_eff;
-  double M_y = -m_FM.force.z * m_R0 * (m_params->rolling_coefficients.qsy1 * atan(V_r / m_params->model.longvl) - m_params->rolling_coefficients.qsy2 * (m_FM_combined.force.x / m_params->vertical.fnomin)) * m_params->scaling_coefficients.lmy;
+  double M_y = -m_FM.force.z * m_R0 * (m_params->rolling.qsy1 * atan(V_r / m_params->model.longvl) - m_params->rolling.qsy2 * (m_FM_combined.force.x / m_params->vertical.fnomin)) * m_params->scaling.lmy;
   m_FM.moment.y = M_y;
   m_FM_combined.moment.y = M_y;
 }
@@ -990,23 +995,23 @@ void ChPacejkaTire::readPacTireInput(std::ifstream& inFile)
   // in that order
   readSection_RANGES(inFile);
 
-  // 9: [SCALING_COEFFICIENTS]
-  readSection_SCALING_COEFFICIENTS(inFile);
+  // 9: [scaling]
+  readSection_scaling(inFile);
 
-  // 10: [LONGITUDINAL_COEFFICIENTS]
-  readSection_LONGITUDINAL_COEFFICIENTS(inFile);
+  // 10: [longitudinal]
+  readSection_longitudinal(inFile);
 
-  // 11: [OVERTURNING_COEFFICIENTS]
-  readSection_OVERTURNING_COEFFICIENTS(inFile);
+  // 11: [overturning]
+  readSection_overturning(inFile);
 
-  // 12: [LATERAL_COEFFICIENTS]
-  readSection_LATERAL_COEFFICIENTS(inFile);
+  // 12: [lateral]
+  readSection_lateral(inFile);
 
-  // 13: [ROLLING_COEFFICIENTS]
-  readSection_ROLLING_COEFFICIENTS(inFile);
+  // 13: [rolling]
+  readSection_rolling(inFile);
 
-  // 14: [ALIGNING_COEFFICIENTS]
-  readSection_ALIGNING_COEFFICIENTS(inFile);
+  // 14: [aligning]
+  readSection_aligning(inFile);
 
 }
 
@@ -1221,7 +1226,7 @@ void ChPacejkaTire::readSection_RANGES(std::ifstream& inFile){
 }
 
 
-void ChPacejkaTire::readSection_SCALING_COEFFICIENTS(std::ifstream& inFile)
+void ChPacejkaTire::readSection_scaling(std::ifstream& inFile)
 {
   std::string tline;
   std::getline(inFile, tline);
@@ -1238,17 +1243,17 @@ void ChPacejkaTire::readSection_SCALING_COEFFICIENTS(std::ifstream& inFile)
   }
 
   if (dat.size() != 28) {
-    GetLog() << " error reading SCALING_COEFFICIENTS section of pactire input file!!! \n\n";
+    GetLog() << " error reading scaling section of pactire input file!!! \n\n";
     return;
   }
   struct scaling_coefficients coefs = { dat[0], dat[1], dat[2], dat[3], dat[4], dat[5], dat[6], dat[7],
     dat[8], dat[9], dat[10], dat[11], dat[12], dat[13], dat[14], dat[15], dat[16], dat[17],
     dat[18], dat[19], dat[20], dat[21], dat[22], dat[23], dat[24], dat[25], dat[26], dat[27] };
-  m_params->scaling_coefficients = coefs;
+  m_params->scaling = coefs;
 }
 
 
-void ChPacejkaTire::readSection_LONGITUDINAL_COEFFICIENTS(std::ifstream& inFile)
+void ChPacejkaTire::readSection_longitudinal(std::ifstream& inFile)
 {
   std::string tline;
   std::getline(inFile, tline);
@@ -1262,18 +1267,18 @@ void ChPacejkaTire::readSection_LONGITUDINAL_COEFFICIENTS(std::ifstream& inFile)
   }
 
   if (dat.size() != 24) {
-    GetLog() << " error reading LONGITUDINAL_COEFFICIENTS section of pactire input file!!! \n\n";
+    GetLog() << " error reading longitudinal section of pactire input file!!! \n\n";
     return;
   }
   struct longitudinal_coefficients coefs = { dat[0], dat[1], dat[2], dat[3], dat[4], dat[5], dat[6], dat[7],
     dat[8], dat[9], dat[10], dat[11], dat[12], dat[13], dat[14], dat[15], dat[16], dat[17],
     dat[18], dat[19], dat[20], dat[21], dat[22], dat[23] };
-  m_params->longitudinal_coefficients = coefs;
+  m_params->longitudinal = coefs;
 
 }
 
 
-void ChPacejkaTire::readSection_OVERTURNING_COEFFICIENTS(std::ifstream& inFile)
+void ChPacejkaTire::readSection_overturning(std::ifstream& inFile)
 {
   std::string tline;
   std::getline(inFile, tline);
@@ -1287,16 +1292,16 @@ void ChPacejkaTire::readSection_OVERTURNING_COEFFICIENTS(std::ifstream& inFile)
   }
 
   if (dat.size() != 3) {
-    GetLog() << " error reading  OVERTURNING_COEFFICIENTS section of pactire input file!!! \n\n";
+    GetLog() << " error reading  overturning section of pactire input file!!! \n\n";
     return;
   }
   struct overturning_coefficients coefs = { dat[0], dat[1], dat[2] };
-  m_params->overturning_coefficients = coefs;
+  m_params->overturning = coefs;
 
 }
 
 
-void ChPacejkaTire::readSection_LATERAL_COEFFICIENTS(std::ifstream& inFile)
+void ChPacejkaTire::readSection_lateral(std::ifstream& inFile)
 {
   std::string tline;
   std::getline(inFile, tline);
@@ -1310,19 +1315,19 @@ void ChPacejkaTire::readSection_LATERAL_COEFFICIENTS(std::ifstream& inFile)
   }
 
   if (dat.size() != 34) {
-    GetLog() << " error reading LATERAL_COEFFICIENTS section of pactire input file!!! \n\n";
+    GetLog() << " error reading lateral section of pactire input file!!! \n\n";
     return;
   }
   struct lateral_coefficients coefs = { dat[0], dat[1], dat[2], dat[3], dat[4], dat[5], dat[6], dat[7],
     dat[8], dat[9], dat[10], dat[11], dat[12], dat[13], dat[14], dat[15], dat[16], dat[17],
     dat[18], dat[19], dat[20], dat[21], dat[22], dat[23], dat[24], dat[25], dat[26], dat[27],
     dat[28], dat[29], dat[30], dat[31], dat[32], dat[33] };
-  m_params->lateral_coefficients = coefs;
+  m_params->lateral = coefs;
 
 }
 
 
-void ChPacejkaTire::readSection_ROLLING_COEFFICIENTS(std::ifstream& inFile)
+void ChPacejkaTire::readSection_rolling(std::ifstream& inFile)
 {
   std::string tline;
   std::getline(inFile, tline);
@@ -1336,16 +1341,16 @@ void ChPacejkaTire::readSection_ROLLING_COEFFICIENTS(std::ifstream& inFile)
   }
 
   if (dat.size() != 4) {
-    GetLog() << " error reading ROLLING_COEFFICIENTS section of pactire input file!!! \n\n";
+    GetLog() << " error reading rolling section of pactire input file!!! \n\n";
     return;
   }
   struct rolling_coefficients coefs = { dat[0], dat[1], dat[2], dat[3] };
-  m_params->rolling_coefficients = coefs;
+  m_params->rolling = coefs;
 
 }
 
 
-void ChPacejkaTire::readSection_ALIGNING_COEFFICIENTS(std::ifstream& inFile)
+void ChPacejkaTire::readSection_aligning(std::ifstream& inFile)
 {
   std::string tline;
   std::getline(inFile, tline);
@@ -1366,7 +1371,7 @@ void ChPacejkaTire::readSection_ALIGNING_COEFFICIENTS(std::ifstream& inFile)
     dat[8], dat[9], dat[10], dat[11], dat[12], dat[13], dat[14], dat[15], dat[16], dat[17],
     dat[18], dat[19], dat[20], dat[21], dat[22], dat[23], dat[24], dat[25], dat[26], dat[27],
     dat[28], dat[29], dat[30] };
-  m_params->aligning_coefficients = coefs;
+  m_params->aligning = coefs;
 
 }
 

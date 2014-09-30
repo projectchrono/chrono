@@ -239,12 +239,12 @@ struct Pac2002_data{
   struct slip_angle_range slip_angle_range;
   struct inclination_angle_range inclination_angle_range;
   struct vertical_force_range vertical_force_range;
-  struct scaling_coefficients scaling_coefficients;
-  struct longitudinal_coefficients longitudinal_coefficients;
-  struct overturning_coefficients overturning_coefficients;
-  struct lateral_coefficients lateral_coefficients;
-  struct rolling_coefficients rolling_coefficients;
-  struct aligning_coefficients aligning_coefficients;
+  struct scaling_coefficients scaling;
+  struct longitudinal_coefficients longitudinal;
+  struct overturning_coefficients overturning;
+  struct lateral_coefficients lateral;
+  struct rolling_coefficients rolling;
+  struct aligning_coefficients aligning;
 };
 
 
@@ -270,9 +270,7 @@ struct pureLatCoefs {
 	double S_Hy;
 	double alpha_y;
 	double mu_y;
-	double K_yAlpha;
-	double K_yGamma_0;
-	double S_VyGamma;
+	double K_y;
 	double S_Vy;
 	double B_y;
 	double C_y;

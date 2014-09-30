@@ -170,12 +170,12 @@ private:
   void readSection_SHAPE(std::ifstream& inFile);
   void readSection_VERTICAL(std::ifstream& inFile);
   void readSection_RANGES(std::ifstream& inFile);
-  void readSection_SCALING_COEFFICIENTS(std::ifstream& inFile);
-  void readSection_LONGITUDINAL_COEFFICIENTS(std::ifstream& inFile);
-  void readSection_OVERTURNING_COEFFICIENTS(std::ifstream& inFile);
-  void readSection_LATERAL_COEFFICIENTS(std::ifstream& inFile);
-  void readSection_ROLLING_COEFFICIENTS(std::ifstream& inFile);
-  void readSection_ALIGNING_COEFFICIENTS(std::ifstream& inFile);
+  void readSection_scaling(std::ifstream& inFile);
+  void readSection_longitudinal(std::ifstream& inFile);
+  void readSection_overturning(std::ifstream& inFile);
+  void readSection_lateral(std::ifstream& inFile);
+  void readSection_rolling(std::ifstream& inFile);
+  void readSection_aligning(std::ifstream& inFile);
 
   // update the wheel state, and associated variables;
   void update_stateVars(const ChWheelState& state);
@@ -229,42 +229,58 @@ private:
   // u, v deflections
   void calc_slip_from_uv();
 
-  // calculate the forces, moments when Update() is called
-  // calculate pure longitudinal, pure lateral slip reactions
+  /// calculate the reaction forces and moments, pure slip cases
+  /// assign longitudinal, lateral force, aligning moment:
+  /// Fx, Fy and Mz
   void calc_pureSlipReactions();
 
-  // calculate combined slip reactions
+  /// calculate combined slip reactions
+  /// assign Fx, Fy, Mz
   void calc_combinedSlipReactions();
 
   // calculate the current effective rolling radius, w.r.t. wy, Fz as inputs
   void calc_rho(double F_z);
 
-  // calculate the force for pure longitudinal slip
+  /// calculate the longitudinal force, alpha ~= 0
+  /// assign to m_FM.force.x
+  /// assign m_pureLong, trionometric function calculated constants
   void calcFx_pureLong();
 
-  // calculate the force for pure lateral slip
+  /// calculate the lateral force,  kappa ~= 0
+  /// assign to m_FM.force.y
+  /// assign m_pureLong, trionometric function calculated constants
   void calcFy_pureLat();
 
-  // find the vertical load
+  // find the vertical load, based on the wheel center and ground height
   void calc_Fz();
 
-  // calc aligning torque, pure lateral slip case
+  /// calculate the aligning moment,  kappa ~= 0
+  /// assign to m_FM.force.z
+  /// assign m_pureLong, trionometric function calculated constants
   void calcMz_pureLat();
 
-  // calculate Fx for combined slip
+  /// calculate longitudinal force, combined slip (general case)
+  /// assign m_FM_combined.force.x
+  /// assign m_combinedLong
   void calcFx_combined();
 
-  // calculate Fy for combined slip
+  /// calculate lateral force, combined slip (general case)
+  /// assign m_FM_combined.force.y
+  /// assign m_combinedLat
   void calcFy_combined();
 
-  // calculate Mz for combined slip
+  // calculate aligning torque, combined slip (gernal case)
+  /// assign m_FM_combined.moment.z
+  /// assign m_combinedTorque
   void calcMz_combined();
 
-  // update M_x, apply to both m_FM and m_FM_combined
-  void calc_overturningCouple();
+  /// calculate the overturning couple moment
+  /// assign m_FM.moment.x and m_FM_combined.moment.x
+  void calc_Mx();
 
-  // update M_y, apply to both m_FM and m_FM_combined
-  void calc_rollingResistance();
+  /// calculate the rolling resistance moment,
+  /// assign m_FM.moment.y and m_FM_combined.moment.y
+  void calc_My();
 
   // ----- Data members
 
