@@ -159,9 +159,37 @@ void ChPacejkaTire::Initialize()
   }
 }
 
-
+// -----------------------------------------------------------------------------
+// Return computed tire forces and moment (pure slip or combined slip and in
+// local or global frame). The main GetTireForce() function returns the combined
+// slip tire forces, expressed in the global frame.
+// -----------------------------------------------------------------------------
 ChTireForce ChPacejkaTire::GetTireForce() const
 {
+  return GetTireForce_combinedSlip(false);
+}
+
+ChTireForce ChPacejkaTire::GetTireForce_pureSlip(const bool local) const
+{
+  if (local)
+    return m_FM;
+
+  // reactions are on wheel CM
+  ChTireForce m_FM_global;
+  m_FM_global.point = m_tireState.pos;
+  // only transform the directions of the forces, moments, from local to global
+  m_FM_global.force = m_tire_frame.TransformDirectionLocalToParent(m_FM.force);
+  m_FM_global.moment = m_tire_frame.TransformDirectionLocalToParent(m_FM.moment);
+
+  return m_FM_global;
+}
+
+/// Return the reactions for the combined slip EQs, in local or global coords
+ChTireForce ChPacejkaTire::GetTireForce_combinedSlip(const bool local) const
+{
+  if (local)
+    return m_FM_combined;
+
   // reactions are on wheel CM
   ChTireForce m_FM_global;
   m_FM_global.point = m_tireState.pos;
@@ -170,33 +198,6 @@ ChTireForce ChPacejkaTire::GetTireForce() const
   m_FM_global.moment = m_tire_frame.TransformDirectionLocalToParent(m_FM_combined.moment);
 
   return m_FM_global;
-}
-
-
-ChTireForce ChPacejkaTire::GetTireForce_pureSlip(const bool local) const
-{
-  if (local)
-    return m_FM;
-  else
-  {
-    // reactions are on wheel CM
-    ChTireForce m_FM_global;
-    m_FM_global.point = m_tireState.pos;
-    // only transform the directions of the forces, moments, from local to global
-    m_FM_global.force = m_tire_frame.TransformDirectionLocalToParent(m_FM.force);
-    m_FM_global.moment = m_tire_frame.TransformDirectionLocalToParent(m_FM.moment);
-
-    return m_FM_global;
-  }
-}
-
-/// Return the reactions for the combined slip EQs, in local or global coords
-ChTireForce ChPacejkaTire::GetTireForce_combinedSlip(const bool local) const
-{
-  if (local)
-    return m_FM_combined;
-  else
-    return GetTireForce();
 }
 
 
@@ -304,13 +305,6 @@ void ChPacejkaTire::Update(double               time,
 
 void ChPacejkaTire::Advance(double step)
 {
-  // check that input tire model parameters are defined
-  if (!m_params_defined)
-  {
-    GetLog() << " ERROR: cannot update tire w/o setting the model parameters first! \n\n\n";
-    return;
-  }
-
   // if using single point contact model, slips are calculated from
   // compliance between tire and contact patch
   if (m_use_transient_slip)
