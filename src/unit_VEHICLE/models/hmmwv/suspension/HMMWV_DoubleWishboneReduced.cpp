@@ -15,9 +15,11 @@
 // Front and Rear HMMWV suspension subsystems (reduced double A-arm).
 //
 // These concrete suspension subsystems are defined with respect to right-handed
-// frames having X pointing towards the rear, Y to the right, and Z up (as
-// imposed by the base class ChDoubleWishboneReduced) and origins at the 
-// midpoint between the lower control arms' connection points to the chassis.
+// frames with X pointing towards the front, Y to the left, and Z up (as imposed
+// by the base class ChDoubleWishboneReduced) and origins at the midpoint
+// between the lower control arms' connection points to the chassis.
+//
+// All point locations are provided for the left half of the supspension.
 //
 // =============================================================================
 
@@ -95,18 +97,18 @@ HMMWV_DoubleWishboneReducedRear::HMMWV_DoubleWishboneReducedRear(const std::stri
 const ChVector<> HMMWV_DoubleWishboneReducedFront::getLocation(PointId which)
 {
   switch (which) {
-  case SPINDLE:  return in2m * ChVector<>(1.59, 35.815, -1.0350);
-  case UPRIGHT:  return in2m * ChVector<>(1.59, 31.81, -1.0350);
-  case UCA_F:    return in2m * ChVector<>(1.89, 17.55, 9.63);
-  case UCA_B:    return in2m * ChVector<>(10.56, 18.81, 7.69);
-  case UCA_U:    return in2m * ChVector<>(2.09, 28.16, 8.48);
-  case LCA_F:    return in2m * ChVector<>(-8.79, 12.09, 0);
-  case LCA_B:    return in2m * ChVector<>(8.79, 12.09, 0);
-  case LCA_U:    return in2m * ChVector<>(1.40, 30.96, -4.65);
-  case SHOCK_C:  return in2m * ChVector<>(-4.10, 27.86, 12.72);
-  case SHOCK_U:  return in2m * ChVector<>(-3.83, 30.96, -1.52);
-  case TIEROD_C: return in2m * ChVector<>(13.39, 9.8, -1.0350);
-  case TIEROD_U: return in2m * ChVector<>(6.92, 32.31, -1.0350);
+  case SPINDLE:  return in2m * ChVector<>(-1.59, 35.815, -1.0350);
+  case UPRIGHT:  return in2m * ChVector<>(-1.59, 31.81, -1.0350);
+  case UCA_F:    return in2m * ChVector<>(-1.89, 17.55, 9.63);
+  case UCA_B:    return in2m * ChVector<>(-10.56, 18.81, 7.69);
+  case UCA_U:    return in2m * ChVector<>(-2.09, 28.16, 8.48);
+  case LCA_F:    return in2m * ChVector<>(8.79, 12.09, 0);
+  case LCA_B:    return in2m * ChVector<>(-8.79, 12.09, 0);
+  case LCA_U:    return in2m * ChVector<>(-1.40, 30.96, -4.65);
+  case SHOCK_C:  return in2m * ChVector<>(4.10, 27.86, 12.72);
+  case SHOCK_U:  return in2m * ChVector<>(3.83, 30.96, -1.52);
+  case TIEROD_C: return in2m * ChVector<>(-13.39, 9.8, -1.0350);
+  case TIEROD_U: return in2m * ChVector<>(-6.92, 32.31, -1.0350);
   default:       return ChVector<>(0, 0, 0);
   }
 }
@@ -114,18 +116,18 @@ const ChVector<> HMMWV_DoubleWishboneReducedFront::getLocation(PointId which)
 const ChVector<> HMMWV_DoubleWishboneReducedRear::getLocation(PointId which)
 {
   switch (which) {
-  case SPINDLE:  return in2m * ChVector<>(-1.40, 35.815, -1.035);
-  case UPRIGHT:  return in2m * ChVector<>(-1.40, 31.81, -1.035);
-  case UCA_F:    return in2m * ChVector<>(-13.78, 18.19, 8.88);
-  case UCA_B:    return in2m * ChVector<>(-3.07, 18.19, 8.88);
-  case UCA_U:    return in2m * ChVector<>(-1.40, 28.16, 8.50);
-  case LCA_F:    return in2m * ChVector<>(-8.79, 12.09, 0);
-  case LCA_B:    return in2m * ChVector<>(8.79, 12.09, 0);
-  case LCA_U:    return in2m * ChVector<>(-1.40, 30.96, -4.65);
-  case SHOCK_C:  return in2m * ChVector<>(4.09, 28.19, 12.72);
-  case SHOCK_U:  return in2m * ChVector<>(4.09, 30.96, -1.51);
-  case TIEROD_C: return in2m * ChVector<>(-12.70, 16.37, -0.37);
-  case TIEROD_U: return in2m * ChVector<>(-6.70, 32.32, -0.37);
+  case SPINDLE:  return in2m * ChVector<>(1.40, 35.815, -1.035);
+  case UPRIGHT:  return in2m * ChVector<>(1.40, 31.81, -1.035);
+  case UCA_F:    return in2m * ChVector<>(13.78, 18.19, 8.88);
+  case UCA_B:    return in2m * ChVector<>(3.07, 18.19, 8.88);
+  case UCA_U:    return in2m * ChVector<>(1.40, 28.16, 8.50);
+  case LCA_F:    return in2m * ChVector<>(8.79, 12.09, 0);
+  case LCA_B:    return in2m * ChVector<>(-8.79, 12.09, 0);
+  case LCA_U:    return in2m * ChVector<>(1.40, 30.96, -4.65);
+  case SHOCK_C:  return in2m * ChVector<>(-4.09, 28.19, 12.72);
+  case SHOCK_U:  return in2m * ChVector<>(-4.09, 30.96, -1.51);
+  case TIEROD_C: return in2m * ChVector<>(12.70, 16.37, -0.37);
+  case TIEROD_U: return in2m * ChVector<>(6.70, 32.32, -0.37);
   default:       return ChVector<>(0, 0, 0);
   }
 }

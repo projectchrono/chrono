@@ -15,9 +15,11 @@
 // Front and Rear HMMWV suspension subsystems (solid axle).
 //
 // These concrete suspension subsystems are defined with respect to right-handed
-// frames having X pointing towards the rear, Y to the right, and Z up (as
-// imposed by the base class ChSolidAxle) and origins at the midpoint between
-// the wheel centers.
+// frames with X pointing towards the front, Y to the left, and Z up (as imposed
+// by the base class ChSolidAxle) and origins at the midpoint between the wheel
+// centers.
+//
+// All point locations are provided for the left half of the supspension.
 //
 // =============================================================================
 
@@ -114,22 +116,22 @@ HMMWV_SolidAxleRear::HMMWV_SolidAxleRear(const std::string& name,
 const ChVector<> HMMWV_SolidAxleFront::getLocation(PointId which)
 {
   switch (which) {  
-  case SHOCK_A:    return in2m * scaleCon * ChVector<>(65, 575, -25);
-  case SHOCK_C:    return in2m * scaleCon * ChVector<>(80, 560, 300);
-  case KNUCKLE_L:  return in2m * scaleCon * ChVector<>(-5, 700, -50);
-  case KNUCKLE_U:  return in2m * scaleCon * ChVector<>(15, 675, 75);
-  case LL_A:       return in2m * scaleCon * ChVector<>(-10, 600, -75);
-  case LL_C:       return in2m * scaleCon * ChVector<>(-450, 350, -45);
-  case UL_A:       return in2m * scaleCon * ChVector<>(55, 475, 150);
-  case UL_C:       return in2m * scaleCon * ChVector<>(-355, 500, 150);
-  case SPRING_A:   return in2m * scaleCon * ChVector<>(65, 575, -25);
-  case SPRING_C:   return in2m * scaleCon * ChVector<>(80, 560, 300);
-  case TIEROD_C:   return in2m * scaleCon * ChVector<>(75, 325, -65);
-  case TIEROD_K:   return in2m * scaleCon * ChVector<>(75, 680, -65);
+  case SHOCK_A:    return in2m * scaleCon * ChVector<>(-65, 575, -25);
+  case SHOCK_C:    return in2m * scaleCon * ChVector<>(-80, 560, 300);
+  case KNUCKLE_L:  return in2m * scaleCon * ChVector<>(5, 700, -50);
+  case KNUCKLE_U:  return in2m * scaleCon * ChVector<>(-15, 675, 75);
+  case LL_A:       return in2m * scaleCon * ChVector<>(10, 600, -75);
+  case LL_C:       return in2m * scaleCon * ChVector<>(450, 350, -45);
+  case UL_A:       return in2m * scaleCon * ChVector<>(-55, 475, 150);
+  case UL_C:       return in2m * scaleCon * ChVector<>(355, 500, 150);
+  case SPRING_A:   return in2m * scaleCon * ChVector<>(-65, 575, -25);
+  case SPRING_C:   return in2m * scaleCon * ChVector<>(-80, 560, 300);
+  case TIEROD_C:   return in2m * scaleCon * ChVector<>(-75, 325, -65);
+  case TIEROD_K:   return in2m * scaleCon * ChVector<>(-75, 680, -65);
   case SPINDLE:    return in2m * scaleCon * ChVector<>(0, 750, 0);
-  case KNUCKLE_CM: return in2m * scaleCon * ChVector<>(-5, 700, -50);
-  case LL_CM:      return in2m * scaleCon * ChVector<>(-10, 600, -75);
-  case UL_CM:      return in2m * scaleCon * ChVector<>(55, 475, 150);
+  case KNUCKLE_CM: return in2m * scaleCon * ChVector<>(5, 700, -50);
+  case LL_CM:      return in2m * scaleCon * ChVector<>(10, 600, -75);
+  case UL_CM:      return in2m * scaleCon * ChVector<>(-55, 475, 150);
   default:         return ChVector<>(0, 0, 0);
   }
 }
@@ -137,22 +139,22 @@ const ChVector<> HMMWV_SolidAxleFront::getLocation(PointId which)
 const ChVector<> HMMWV_SolidAxleRear::getLocation(PointId which)
 {
   switch (which) {
-  case SHOCK_A:    return in2m * scaleCon * ChVector<>(65, 575, -25);
-  case SHOCK_C:    return in2m * scaleCon * ChVector<>(80, 560, 300);
-  case KNUCKLE_L:  return in2m * scaleCon * ChVector<>(-5, 700, -50);
-  case KNUCKLE_U:  return in2m * scaleCon * ChVector<>(15, 675, 75);
-  case LL_A:       return in2m * scaleCon * ChVector<>(-10, 600, -75);
-  case LL_C:       return in2m * scaleCon * ChVector<>(-450, 350, -45);
-  case UL_A:       return in2m * scaleCon * ChVector<>(55, 475, 150);
-  case UL_C:       return in2m * scaleCon * ChVector<>(-355, 500, 150);
-  case SPRING_A:   return in2m * scaleCon * ChVector<>(65, 575, -25);
-  case SPRING_C:   return in2m * scaleCon * ChVector<>(80, 560, 300);
-  case TIEROD_C:   return in2m * scaleCon * ChVector<>(75, 325, -65);
-  case TIEROD_K:   return in2m * scaleCon * ChVector<>(75, 680, -65);
+  case SHOCK_A:    return in2m * scaleCon * ChVector<>(-65, 575, -25);
+  case SHOCK_C:    return in2m * scaleCon * ChVector<>(-80, 560, 300);
+  case KNUCKLE_L:  return in2m * scaleCon * ChVector<>(5, 700, -50);
+  case KNUCKLE_U:  return in2m * scaleCon * ChVector<>(-15, 675, 75);
+  case LL_A:       return in2m * scaleCon * ChVector<>(10, 600, -75);
+  case LL_C:       return in2m * scaleCon * ChVector<>(450, 350, -45);
+  case UL_A:       return in2m * scaleCon * ChVector<>(-55, 475, 150);
+  case UL_C:       return in2m * scaleCon * ChVector<>(355, 500, 150);
+  case SPRING_A:   return in2m * scaleCon * ChVector<>(-65, 575, -25);
+  case SPRING_C:   return in2m * scaleCon * ChVector<>(-80, 560, 300);
+  case TIEROD_C:   return in2m * scaleCon * ChVector<>(-75, 325, -65);
+  case TIEROD_K:   return in2m * scaleCon * ChVector<>(-75, 680, -65);
   case SPINDLE:    return in2m * scaleCon * ChVector<>(0, 750, 0);
-  case KNUCKLE_CM: return in2m * scaleCon * ChVector<>(-5, 700, -50);
-  case LL_CM:      return in2m * scaleCon * ChVector<>(-10, 600, -75);
-  case UL_CM:      return in2m * scaleCon * ChVector<>(55, 475, 150);
+  case KNUCKLE_CM: return in2m * scaleCon * ChVector<>(5, 700, -50);
+  case LL_CM:      return in2m * scaleCon * ChVector<>(10, 600, -75);
+  case UL_CM:      return in2m * scaleCon * ChVector<>(-55, 475, 150);
   default:         return ChVector<>(0, 0, 0);
   }
 }

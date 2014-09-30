@@ -15,9 +15,11 @@
 // Front and Rear HMMWV suspension subsystems (solid axle).
 //
 // These concrete suspension subsystems are defined with respect to right-handed
-// frames having X pointing towards the rear, Y to the right, and Z up (as
-// imposed by the base class ChSolidAxle) and origins at the midpoint between
-// the wheel centers.
+// frames with X pointing towards the front, Y to the left, and Z up (as imposed
+// by the base class ChSolidAxle) and origins at the midpoint between the wheel
+// centers.
+//
+// All point locations are provided for the left half of the supspension.
 //
 // =============================================================================
 
@@ -34,7 +36,7 @@ class HMMWV_SolidAxleFront : public chrono::ChSolidAxle
 public:
 
   HMMWV_SolidAxleFront(const std::string& name,
-                            bool               driven = false);
+                       bool               driven = false);
   ~HMMWV_SolidAxleFront() {}
 
   virtual double getAxleTubeMass() const { return m_axleTubeMass; }

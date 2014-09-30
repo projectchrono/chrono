@@ -15,9 +15,11 @@
 // Front and Rear HMMWV suspension subsystems (double A-arm).
 //
 // These concrete suspension subsystems are defined with respect to right-handed
-// frames having X pointing towards the rear, Y to the right, and Z up (as
-// imposed by the base class ChDoubleWishbone) and origins at the 
-// midpoint between the lower control arms' connection points to the chassis.
+// frames with X pointing towards the front, Y to the left, and Z up (as imposed
+// by the base class ChDoubleWishbone) and origins at the midpoint between the
+// lower control arms' connection points to the chassis.
+//
+// All point locations are provided for the left half of the supspension.
 //
 // =============================================================================
 
@@ -204,22 +206,22 @@ HMMWV_DoubleWishboneRear::~HMMWV_DoubleWishboneRear()
 const ChVector<> HMMWV_DoubleWishboneFront::getLocation(PointId which)
 {
   switch (which) {
-  case SPINDLE:  return in2m * ChVector<>(1.59, 35.815, -1.035);
-  case UPRIGHT:  return in2m * ChVector<>(1.59, 29.5675, -1.0350);
-  case UCA_F:    return in2m * ChVector<>(1.8864, 17.5575, 9.6308);
-  case UCA_B:    return in2m * ChVector<>(10.5596, 18.8085, 7.6992);
-  case UCA_U:    return in2m * ChVector<>(2.088, 28.17, 8.484);
-  case UCA_CM:   return in2m * ChVector<>(4.155, 23.176, 8.575);
-  case LCA_F:    return in2m * ChVector<>(-8.7900, 12.09, 0);
-  case LCA_B:    return in2m * ChVector<>(8.7900, 12.09, 0);
-  case LCA_U:    return in2m * ChVector<>(1.40, 30.965, -4.65);
+  case SPINDLE:  return in2m * ChVector<>(-1.59, 35.815, -1.035);
+  case UPRIGHT:  return in2m * ChVector<>(-1.59, 29.5675, -1.0350);
+  case UCA_F:    return in2m * ChVector<>(-1.8864, 17.5575, 9.6308);
+  case UCA_B:    return in2m * ChVector<>(-10.5596, 18.8085, 7.6992);
+  case UCA_U:    return in2m * ChVector<>(-2.088, 28.17, 8.484);
+  case UCA_CM:   return in2m * ChVector<>(-4.155, 23.176, 8.575);
+  case LCA_F:    return in2m * ChVector<>(8.7900, 12.09, 0);
+  case LCA_B:    return in2m * ChVector<>(-8.7900, 12.09, 0);
+  case LCA_U:    return in2m * ChVector<>(-1.40, 30.965, -4.65);
   case LCA_CM:   return in2m * ChVector<>(0, 21.528, -2.325);
-  case SHOCK_C:  return in2m * ChVector<>(-4.095, 19.598, 12.722);
-  case SHOCK_A:  return in2m * ChVector<>(-3.827, 21.385, -1.835);
-  case SPRING_C: return in2m * ChVector<>(-4.095, 20.07, 7.775);
-  case SPRING_A: return in2m * ChVector<>(-3.827, 21.385, -1.835);
-  case TIEROD_C: return in2m * ChVector<>(9.855, 17.655, 2.135);
-  case TIEROD_U: return in2m * ChVector<>(6.922, 32.327, -0.643);
+  case SHOCK_C:  return in2m * ChVector<>(4.095, 19.598, 12.722);
+  case SHOCK_A:  return in2m * ChVector<>(3.827, 21.385, -1.835);
+  case SPRING_C: return in2m * ChVector<>(4.095, 20.07, 7.775);
+  case SPRING_A: return in2m * ChVector<>(3.827, 21.385, -1.835);
+  case TIEROD_C: return in2m * ChVector<>(-9.855, 17.655, 2.135);
+  case TIEROD_U: return in2m * ChVector<>(-6.922, 32.327, -0.643);
   default:       return ChVector<>(0, 0, 0);
   }
 }
@@ -227,22 +229,22 @@ const ChVector<> HMMWV_DoubleWishboneFront::getLocation(PointId which)
 const ChVector<> HMMWV_DoubleWishboneRear::getLocation(PointId which)
 {
   switch (which) {
-  case SPINDLE:  return in2m * ChVector<>(-1.40, 35.815, -1.035);
-  case UPRIGHT:  return in2m * ChVector<>(-1.40, 29.5675, -1.035);
-  case UCA_F:    return in2m * ChVector<>(-13.7445, 18.1991, 8.9604);
-  case UCA_B:    return in2m * ChVector<>(-3.0355, 18.1909, 8.8096);
-  case UCA_U:    return in2m * ChVector<>(-1.40, 28.17, 8.5);
-  case UCA_CM:   return in2m * ChVector<>(-4.895, 23.183, 8.692);
-  case LCA_F:    return in2m * ChVector<>(-8.7900, 12.09, 0);
-  case LCA_B:    return in2m * ChVector<>(8.7900, 12.09, 0);
-  case LCA_U:    return in2m * ChVector<>(-1.40, 30.965, -4.650);
+  case SPINDLE:  return in2m * ChVector<>(1.40, 35.815, -1.035);
+  case UPRIGHT:  return in2m * ChVector<>(1.40, 29.5675, -1.035);
+  case UCA_F:    return in2m * ChVector<>(13.7445, 18.1991, 8.9604);
+  case UCA_B:    return in2m * ChVector<>(3.0355, 18.1909, 8.8096);
+  case UCA_U:    return in2m * ChVector<>(1.40, 28.17, 8.5);
+  case UCA_CM:   return in2m * ChVector<>(4.895, 23.183, 8.692);
+  case LCA_F:    return in2m * ChVector<>(8.7900, 12.09, 0);
+  case LCA_B:    return in2m * ChVector<>(-8.7900, 12.09, 0);
+  case LCA_U:    return in2m * ChVector<>(1.40, 30.965, -4.650);
   case LCA_CM:   return in2m * ChVector<>(0, 21.527, -2.325);
-  case SHOCK_C:  return in2m * ChVector<>(4.095, 19.598, 12.722);
-  case SHOCK_A:  return in2m * ChVector<>(3.827, 21.415, -1.511);
-  case SPRING_C: return in2m * ChVector<>(4.095, 19.747, 10.098);
-  case SPRING_A: return in2m * ChVector<>(3.827, 21.385, -1.835);
-  case TIEROD_C: return in2m * ChVector<>(-8.790, 16.38, 2.310);
-  case TIEROD_U: return in2m * ChVector<>(-6.704, 32.327, -0.365);
+  case SHOCK_C:  return in2m * ChVector<>(-4.095, 19.598, 12.722);
+  case SHOCK_A:  return in2m * ChVector<>(-3.827, 21.415, -1.511);
+  case SPRING_C: return in2m * ChVector<>(-4.095, 19.747, 10.098);
+  case SPRING_A: return in2m * ChVector<>(-3.827, 21.385, -1.835);
+  case TIEROD_C: return in2m * ChVector<>(8.790, 16.38, 2.310);
+  case TIEROD_U: return in2m * ChVector<>(6.704, 32.327, -0.365);
   default:       return ChVector<>(0, 0, 0);
   }
 }
