@@ -256,7 +256,7 @@ struct pureLongCoefs {
 	double S_Hx;
 	double kappa_x;
 	double mu_x;
-	double K_xKappa;
+	double K_x;
 	double B_x;
 	double C_x;
 	double D_x;
@@ -276,7 +276,6 @@ struct pureLatCoefs {
 	double C_y;
 	double D_y;
 	double E_y;
-	double F_y;
 };
 
 struct zetaCoefs {
@@ -297,7 +296,7 @@ struct pureTorqueCoefs {
 	double S_Ht;
 	double alpha_t;
 	double cosPAlpha;
-	double KP_yAlpha;
+	double K_y;
 
 	double B_r;
 	double C_r;
@@ -351,7 +350,7 @@ struct combinedTorqueCoefs{
 	double alpha_r_eq;
 	double M_zr;
 	double t;
-	double MP_z;
+	// double MP_z; // = -t * FP_y
 
 };
 

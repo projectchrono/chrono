@@ -115,14 +115,23 @@ public:
   /// Return kappa, alpha, gamma.
   ChVector<> getKAG_from_State(const ChWheelState& state);
 
-  /// Get current long slip rate.
+  /// Get current wheel longitudinal slip.
   double get_kappa() const;
 
-  /// Get current slip angle.
+  /// Get current wheel slip angle.
   double get_alpha() const;
 
-  /// Get current camber angle
+  /// Get current wheel camber angle.
   double get_gamma() const;
+
+  /// Get current long slip rate used in Magic Formula EQs.
+  double get_kappaPrime() const;
+
+  /// Get current slip angle using in Magic Formula.
+  double get_alphaPrime() const;
+
+  /// Get current camber angle used in Magic Formula.
+  double get_gammaPrime() const;
 
   /// Get minimum longitudinal slip rate.
   double get_min_long_slip() const;
