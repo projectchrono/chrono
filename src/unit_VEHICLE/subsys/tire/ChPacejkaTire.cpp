@@ -336,6 +336,38 @@ void ChPacejkaTire::Advance(double step)
 }
 
 
+// -----------------------------------------------------------------------------
+// Calculate the current tire coordinate system, centered at the wheel origin,
+// with the Z-axis normal to the terrain and X-axis in the heading direction.
+//
+//// TODO: check comment below...
+// need a local frame to transform output forces/moments to global frame
+// Pacejka (2006), Fig 2.3, all forces are calculated at the contact point "C"
+// Moment calculations take this into account, so all reactions are global
+// -----------------------------------------------------------------------------
+void ChPacejkaTire::update_tireFrame()
+{
+  // Wheel normal (expressed in global frame)
+  ChVector<> wheel_normal = m_tireState.rot.GetYaxis();
+
+  // Terrain normal at wheel center location (expressed in global frame)
+  ChVector<> Z_dir = m_terrain.GetNormal(m_tireState.pos.x, m_tireState.pos.y);
+
+  // Longitudinal (heading) and lateral directions, in the terrain plane.
+  ChVector<> X_dir = Vcross(wheel_normal, Z_dir);
+  X_dir.Normalize();
+  ChVector<> Y_dir = Vcross(Z_dir, X_dir);
+
+  // Create a rotation matrix from the three unit vectors
+  ChMatrix33<> rot;
+  rot.Set_A_axis(X_dir, Y_dir, Z_dir);
+
+  // Construct the tire coordinate system.
+  m_tire_frame.pos = m_tireState.pos;
+  m_tire_frame.rot = rot.Get_A_quaternion();
+}
+
+
 void ChPacejkaTire::calc_rho(double F_z)
 {
   double qV1 = 1.5;  // guess
@@ -406,6 +438,7 @@ void ChPacejkaTire::calc_Fz()
   }
 }
 
+
 // -----------------------------------------------------------------------------
 // Calculate kinematic slip quantities from the current wheel state.
 //
@@ -418,36 +451,24 @@ void ChPacejkaTire::calc_Fz()
 // -----------------------------------------------------------------------------
 void ChPacejkaTire::calc_slip_kinematic()
 {
-  // Wheel normal (expressed in global frame)
-  ChVector<> wheel_normal = m_tireState.rot.GetYaxis();
+  // Express the wheel velocity in the tire coordinate system and calculate the
+  // slip angle alpha
+  ChVector<> V = m_tire_frame.TransformDirectionParentToLocal(m_tireState.lin_vel);
+  double alpha = std::atan2(V.y, V.x);
 
-  // Terrain normal at wheel center location (expressed in global frame)
-  ChVector<> Z_dir = m_terrain.GetNormal(m_tireState.pos.x, m_tireState.pos.y);
-
-  // Longitudinal (heading) and lateral directions, in the terrain plane.
-  ChVector<> X_dir = Vcross(wheel_normal, Z_dir);
-  ChVector<> Y_dir = Vcross(Z_dir, X_dir);
-
-  // Decompose the wheel velocity in the X and Y directions and calculate the
-  // slip angle, alpha.
-  double V_cx = Vdot(m_tireState.lin_vel, X_dir);
-  double V_cy = Vdot(m_tireState.lin_vel, Y_dir);
-  double alpha = atan2(V_cy, V_cx);
-
-  // Decompose the wheel normal in the Z and Y directions and calculate the
-  // wheel camber angle, gamma.
-  double n_z = Vdot(wheel_normal, Z_dir);
-  double n_y = Vdot(wheel_normal, Y_dir);
-  double gamma = atan2(n_z, n_y);
+  // Express the wheel normal in the tire coordinate system and calculate the
+  // wheel camber angle gamma.
+  ChVector<> n = m_tire_frame.TransformDirectionParentToLocal(m_tireState.rot.GetYaxis());
+  double gamma = std::atan2(n.z, n.y);
 
   // Longitudinal slip rate.
-  double V_mag = std::sqrt(V_cx * V_cx + V_cy * V_cy);
+  double V_mag = std::sqrt(V.x * V.x + V.y * V.y);
   double kappa = (V_mag < m_params->model.vxlow) ?
-    (m_R_eff * m_tireState.omega - V_cx) / abs(m_params->model.vxlow) :
-    (m_R_eff * m_tireState.omega - V_cx) / abs(V_cx);
+    (m_R_eff * m_tireState.omega - V.x) / abs(m_params->model.vxlow) :
+    (m_R_eff * m_tireState.omega - V.x) / abs(V.x);
 
   // alpha_star = tan(alpha) = v_y / v_x  (no negative since I use z-up)
-  double alpha_star = (V_mag < m_params->model.vxlow) ? tan(alpha) : V_cy / abs(V_cx);
+  double alpha_star = (V_mag < m_params->model.vxlow) ? tan(alpha) : V.y / abs(V.x);
 
   // Set the struct data members, input slips to wheel
   m_slip->kappa = kappa;
@@ -455,16 +476,18 @@ void ChPacejkaTire::calc_slip_kinematic()
   m_slip->alpha_star = alpha_star;
   m_slip->gamma = gamma;
 
-  m_slip->V_cx = V_cx;    // tire center x-vel, tire c-sys
-  m_slip->V_cy = V_cy;    // tire center y-vel, tire c-sys
-  m_slip->V_sx = V_cx - m_tireState.omega * m_R_eff;  // x-slip vel, tire c-sys
-  m_slip->V_sy = V_cy;                                // approx.
+  m_slip->V_cx = V.x;    // tire center x-vel, tire c-sys
+  m_slip->V_cy = V.y;    // tire center y-vel, tire c-sys
+  m_slip->V_sx = V.x - m_tireState.omega * m_R_eff;  // x-slip vel, tire c-sys
+  m_slip->V_sy = V.y;                                // approx.
 
-  // Turn slip velocity, in global coords (always normal to road)
-  m_slip->psi_dot = Vdot(m_tireState.ang_vel, Z_dir);
+  // Express the wheel angular velocity in the tire coordinate system and 
+  // extract the turn slip velocity, psi_dot
+  ChVector<> w = m_tire_frame.TransformDirectionParentToLocal(m_tireState.ang_vel);
+  m_slip->psi_dot = w.z;
 
   // For aligning torque, to handle large slips, and backwards operation
-  m_slip->cosPrime_alpha = V_cx / (V_mag + 0.1);
+  m_slip->cosPrime_alpha = V.x / (V_mag + 0.1);
 
   // Finally, if non-transient, use wheel slips as input to Magic Formula.
   // These get over-written if enable transient slips to be calculated
@@ -660,38 +683,6 @@ void ChPacejkaTire::calc_combinedSlipReactions()
 
 }
 
-
-
-void ChPacejkaTire::update_tireFrame()
-{
-  // need a local frame to transform output forces/moments to global frame
-  // Pacejka (2006), Fig 2.3, all forces are calculated at the contact point "C"
-  // Moment calculations take this into account, so all reactions are global
-
-  // z-axis is parallel to global, x-y plane orientation is needed
-  m_tire_frame.pos = m_tireState.pos;
-  ChMatrix33<> A_state(m_tireState.rot);
-  // z_hat = (0,0,1)
-  // the wheel body spins about the y-axis, assume not vertical.
-  ChVector<> y_hat(A_state(0, 1), A_state(1, 1), 0);
-  y_hat.Normalize();
-  // y cross z = x
-  ChVector<> x_hat(0, 0, 0);
-  x_hat.Cross(y_hat, ChVector<>(0, 0, 1));
-  x_hat.Normalize();
-
-  ChVector<> z_hat(0, 0, 1);
-  ChMatrix33<> A_hat(0);
-  // A_hat = [ x_i  y_i  0
-  //           x_j  y_j  0
-  //            0    0   1 ]
-  A_hat(0, 0) = x_hat.x;
-  A_hat(1, 0) = x_hat.y;
-  A_hat(0, 1) = y_hat.x;
-  A_hat(1, 1) = y_hat.y;
-  A_hat(2, 2) = 1;
-  m_tire_frame.rot = A_hat.Get_A_quaternion();
-}
 
 void ChPacejkaTire::calc_relaxationLengths()
 {
@@ -1461,44 +1452,6 @@ ChWheelState ChPacejkaTire::getState_from_KAG(double kappa,
   state.omega = w_y;
 
   return state;
-}
-
-// -----------------------------------------------------------------------------
-// Calculate kappa, alpha, and gamma from the specified wheel state.
-// -----------------------------------------------------------------------------
-ChVector<> ChPacejkaTire::getKAG_from_State(const ChWheelState& state)
-{
-  // Wheel normal (expressed in global frame)
-  ChVector<> wheel_normal = state.rot.GetYaxis();
-
-  // Terrain normal at wheel center location (expressed in global frame)
-  ChVector<> Z_dir = m_terrain.GetNormal(state.pos.x, state.pos.y);
-
-  // Longitudinal (heading) and lateral directions, in the terrain plane.
-  ChVector<> X_dir = Vcross(wheel_normal, Z_dir);
-  ChVector<> Y_dir = Vcross(Z_dir, X_dir);
-
-  // Decompose the wheel velocity in the X and Y directions and calculate the
-  // slip angle, alpha.
-  double V_x = Vdot(state.lin_vel, X_dir);
-  double V_y = Vdot(state.lin_vel, Y_dir);
-  double alpha = atan2(V_y, V_x);
-
-  // Decompose the wheel normal in the Z and Y directions and calculate the
-  // wheel camber angle, gamma.
-  double n_z = Vdot(wheel_normal, Z_dir);
-  double n_y = Vdot(wheel_normal, Y_dir);
-  double gamma = atan2(n_z, n_y);
-
-  // Longitudinal slip rate.
-  double V_xy_mag = std::sqrt(V_x * V_x + V_y * V_y);
-  double kappa = (V_xy_mag < m_params->model.vxlow) ?
-    (m_R_eff * state.omega - V_x) / abs(m_params->model.vxlow) :
-    (m_R_eff * state.omega - V_x) / abs(V_x);
-
-  ChVector<> kag(kappa, alpha, gamma);
-
-  return kag;
 }
 
 

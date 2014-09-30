@@ -112,9 +112,6 @@ public:
     double Vx      ///< [in] tire forward velocity x-dir
     );
 
-  /// Return kappa, alpha, gamma.
-  ChVector<> getKAG_from_State(const ChWheelState& state);
-
   /// Get current wheel longitudinal slip.
   double get_kappa() const;
 
