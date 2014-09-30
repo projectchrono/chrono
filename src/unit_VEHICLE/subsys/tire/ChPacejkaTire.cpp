@@ -16,6 +16,8 @@
 //
 // =============================================================================
 
+#include <cmath>
+
 #include "subsys/tire/ChPacejkaTire.h"
 
 #include "utils/ChUtilsData.h"
@@ -327,7 +329,7 @@ void ChPacejkaTire::Advance(double step)
 
 void ChPacejkaTire::calc_rho(double F_z)
 {
-  double qV1 = 1.5;	// guess
+  double qV1 = 1.5;  // guess
   // first, set the vertical force
   m_FM.force.z = F_z;
   m_FM_combined.force.z = F_z;
@@ -441,7 +443,7 @@ void ChPacejkaTire::calc_slip_kinematic()
 
   m_slip->V_cx = V_cx;	// tire center x-vel, tire c-sys
   m_slip->V_cy = V_cy;	// tire center y-vel, tire c-sys
-  m_slip->V_sx = V_cx - m_tireState.ang_vel.y * m_R_eff;	// x-slip vel, tire c-sys
+  m_slip->V_sx = V_cx - m_tireState.ang_vel.y * m_R_eff;   // x-slip vel, tire c-sys
   m_slip->V_sy = V_cy;	// approx.
   // psi_dot is turn slip velocity, in global coords (always normal to road)
   ChCoordsys<> loc_csys(ChVector<>(), m_tireState.rot);
@@ -470,7 +472,7 @@ void ChPacejkaTire::advance_slip_transient(double step_size)
   double v_mag = ChVector<>(m_tireState.lin_vel.x, m_tireState.lin_vel.y, 0).Length();
   // local c-sys velocities
   double V_cx = v_mag * cos(m_slip->alpha);
-  double V_cx_low = 2.5;	// cut-off for low velocity zone
+  double V_cx_low = 2.5;   // cut-off for low velocity zone
 
   // see if low velocity considerations should be made
   double alpha_sl = 3.0 * m_pureLat->D_y / m_relaxation->C_Falpha;
@@ -651,7 +653,7 @@ void ChPacejkaTire::calc_combinedSlipReactions()
 void ChPacejkaTire::update_tireFrame()
 {
   // need a local frame to transform output forces/moments to global frame
-  //  Pacejka (2006), Fig 2.3, all forces are calculated at the contact point "C"
+  // Pacejka (2006), Fig 2.3, all forces are calculated at the contact point "C"
   // Moment calculations take this into account, so all reactions are global
 
   // z-axis is parallel to global, x-y plane orientation is needed
@@ -668,8 +670,8 @@ void ChPacejkaTire::update_tireFrame()
 
   ChVector<> z_hat(0, 0, 1);
   ChMatrix33<> A_hat(0);
-  // A_hat = [ x_i  y_i  0  
-  //					 x_j  y_j  0
+  // A_hat = [ x_i  y_i  0
+  //           x_j  y_j  0
   //            0    0   1 ]
   A_hat(0, 0) = x_hat.x;
   A_hat(1, 0) = x_hat.y;
@@ -683,7 +685,7 @@ void ChPacejkaTire::calc_relaxationLengths()
 {
   double p_Ky4 = 2;
   double C_Fx = 177000;  // calibrated using Fx - pure long slip case.      77000
-  double C_Fy = 144000; // calibrated using Fy - pure lateral slip case.  144000
+  double C_Fy = 144000;  // calibrated using Fy - pure lateral slip case.  144000
   double p_Ky5 = 0;
   double p_Ky6 = 0.92;
   double p_Ky7 = 0.24;
@@ -697,8 +699,8 @@ void ChPacejkaTire::calc_relaxationLengths()
   double C_Fgamma = m_FM.force.z * (p_Ky6 + p_Ky7 * m_dF_z) * m_params->scaling.lgay;
   double C_Fphi = (C_Fgamma * m_R0) / (1 - 0.5);
 
-	double sigma_kappa_adams = m_FM.force.z * (m_params->longitudinal.ptx1 + m_params->longitudinal.ptx2 * m_dF_z)*(m_R0*m_params->scaling.lsgkp / m_params->vertical.fnomin) * exp( m_params->longitudinal.ptx3 * m_dF_z);
-	double sigma_alpha_adams = m_params->lateral.pty1 * (1.0 - m_params->lateral.pky3 * abs( m_slip->gammaP ) ) * m_R0 * m_params->scaling.lsgal * sin(p_Ky4 * atan(m_FM.force.z / (m_params->lateral.pty2 * m_params->vertical.fnomin) ) );
+  double sigma_kappa_adams = m_FM.force.z * (m_params->longitudinal.ptx1 + m_params->longitudinal.ptx2 * m_dF_z)*(m_R0*m_params->scaling.lsgkp / m_params->vertical.fnomin) * exp(m_params->longitudinal.ptx3 * m_dF_z);
+  double sigma_alpha_adams = m_params->lateral.pty1 * (1.0 - m_params->lateral.pky3 * abs(m_slip->gammaP)) * m_R0 * m_params->scaling.lsgal * sin(p_Ky4 * atan(m_FM.force.z / (m_params->lateral.pty2 * m_params->vertical.fnomin)));
 
   {
     relaxationL tmp = { C_Falpha, sigma_alpha, C_Fkappa, sigma_kappa, C_Fgamma, C_Fphi };
@@ -1443,8 +1445,8 @@ ChWheelState ChPacejkaTire::getState_from_KAG(double kappa,
   // set the orientation, 1 lin vel and 1 ang vel (in 2 places)
   state.rot = m_quat;
   state.lin_vel.x = Vx;
-	state.ang_vel.y = w_y;
-	state.omega = w_y;
+  state.ang_vel.y = w_y;
+  state.omega = w_y;
 
   return state;
 }
@@ -1454,20 +1456,8 @@ ChWheelState ChPacejkaTire::getState_from_KAG(double kappa,
 // -----------------------------------------------------------------------------
 ChVector<> ChPacejkaTire::getKAG_from_State(const ChWheelState& state)
 {
-  // ATTENTION: with the current reference frames, when the vehicle moves
-  // forward, typically V_cx is negative and the wheel omega is negative!!!
-  // Here, we want to use a frame with Z up, X forward, and Y to the left.
-  // Until the chrono-T reference frames change, we explicitly convert
-  // everything here, by applying a rotation of 180 degrees around Z.
-  // The only two quantities we must adjust are the wheel normal and the wheel
-  // angular speed.
-  ChQuaternion<> R = Q_from_AngZ(CH_C_PI);
-
   // Wheel normal (expressed in global frame)
   ChVector<> wheel_normal = state.rot.GetYaxis();
-  wheel_normal = R.Rotate(wheel_normal);           // reference frame conversion
-
-  double omega = -state.omega;                     // reference frame conversion
 
   // Terrain normal at wheel center location (expressed in global frame)
   ChVector<> Z_dir = m_terrain.GetNormal(state.pos.x, state.pos.y);
@@ -1489,20 +1479,10 @@ ChVector<> ChPacejkaTire::getKAG_from_State(const ChWheelState& state)
   double gamma = atan2(n_z, n_y);
 
   // Longitudinal slip rate.
-  double kappa = (m_R_eff * omega - V_x) / abs(V_x);
-
-  /*
-  // alpha, gamma from wheel orientation
-  double alpha = chrono::Q_to_NasaAngles(state.rot).z;
-  double gamma = chrono::Q_to_NasaAngles(state.rot).x;
-
-  // kappa = r_e*w_y - v_x / v_x
-  double Vcx = state.lin_vel.x * cos(alpha) + state.lin_vel.y * sin(alpha);
-  double Vcy = -state.lin_vel.x * sin(alpha) + state.lin_vel.y * cos(alpha);
-  double kappa = (m_R_eff * state.ang_vel.y - Vcx) / (Vcx);
-
-  double check_a1 = atan(-Vcy / Vcx);
-  */
+  double V_xy_mag = std::sqrt(V_x * V_x + V_y * V_y);
+  double kappa = (V_xy_mag < m_params->model.vxlow) ?
+    (m_R_eff * state.omega - V_x) / abs(m_params->model.vxlow) :
+    (m_R_eff * state.omega - V_x) / abs(V_x);
 
   ChVector<> kag(kappa, alpha, gamma);
 

@@ -79,10 +79,10 @@ int main(int argc, char* argv[])
   {
     ChWheelState state;
     state.pos = ChVector<>(2, 1, 0);
-    state.rot = ChQuaternion<>(0.25882, 0, 0, 0.965926);  // rotate 150 deg. about Z, no camber
-    state.lin_vel = ChVector<>(6.427876, -7.660444, 0);   // ||V|| = 10, away 20 deg from heading direction
-    state.ang_vel = ChVector<>(2.5, 4.33013, 0);          // ||omega|| = 5
-    state.omega = -5;                                     // omega < 0, wheel moves forward
+    state.rot = ChQuaternion<>(0.965926, 0, 0, -0.25882);  // rotate -30 deg. about Z, no camber
+    state.lin_vel = ChVector<>(6.427876, -7.660444, 0);    // ||V|| = 10, away 20 deg from heading direction
+    state.ang_vel = ChVector<>(2.5, 4.33013, 0);           // ||omega|| = 5
+    state.omega = +5;                                      // omega > 0, wheel moves forward
 
     processState(tire, state);
   }
