@@ -297,14 +297,14 @@ if __name__ == '__main__':
     
     
     # *************   TRANSIENT SLIP
-    '''
+    
     # pure longitudinal slip case
     longSlip = PacTire_panda(dir_ChronoT + 'test_pacTire_pureLongSlip.csv',
                             dir_ChronoT + 'test_pacTire_pureLongSlip_transient.csv')
     longSlip.plot_kappa_FMpure(dir_Adams + 'pureLong_Fx.tab',
                                dir_Adams + 'pureLong_Mz.tab')
     
-    '''   
+     
     latSlip = PacTire_panda(dir_ChronoT + "test_pacTire_pureLatSlip.csv",
                         dir_ChronoT + "test_pacTire_pureLatSlip_transient.csv")
     # TODO: get the .tab data files with the 2 second maneuver data
