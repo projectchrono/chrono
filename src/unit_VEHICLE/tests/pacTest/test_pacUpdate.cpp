@@ -77,11 +77,32 @@ int main(int argc, char* argv[])
 
   // Create different wheel state and let the tire process them
   {
+    // Wheel with heading = -30 deg and camber = 0 deg
+    ChQuaternion<> rz(0.965926, 0, 0, -0.25882);   // rot_z(-30)
+    ChQuaternion<> rx(1, 0, 0, 0);                 // rot_x(0)
+    ChQuaternion<> rot = rz * rx;
+
     ChWheelState state;
     state.pos = ChVector<>(2, 1, 0);
-    state.rot = ChQuaternion<>(0.965926, 0, 0, -0.25882);  // rotate -30 deg. about Z, no camber
-    state.lin_vel = ChVector<>(6.427876, -7.660444, 0);    // ||V|| = 10, away 20 deg from heading direction
-    state.ang_vel = ChVector<>(2.5, 4.33013, 0);           // ||omega|| = 5
+    state.rot = rot;
+    state.lin_vel = ChVector<>(6.427876, -7.660444, 0);    // ||V|| = 10, away -20 deg from heading direction
+    state.ang_vel = 5.0 * rot.GetYaxis();                  // ||omega|| = 5
+    state.omega = +5;                                      // omega > 0, wheel moves forward
+
+    processState(tire, state);
+  }
+
+  {
+    // Wheel with heading = 135 deg and camber = 10 deg
+    ChQuaternion<> rz(0.3826834, 0, 0, 0.9238795);   // rot_z(135)
+    ChQuaternion<> rx(0.9961947, 0.08715574, 0, 0);  // rot_x(10)
+    ChQuaternion<> rot = rz * rx;
+
+    ChWheelState state;
+    state.pos = ChVector<>(2, 1, 0);
+    state.rot = rot;
+    state.lin_vel = ChVector<>(-10, 0, 0);                 // ||V|| = 10
+    state.ang_vel = 5.0 * rot.GetYaxis();                  // ||omega|| = 5
     state.omega = +5;                                      // omega > 0, wheel moves forward
 
     processState(tire, state);
