@@ -272,17 +272,18 @@ void ChPacejkaTire::Update(double               time,
     return;
   }
 
-  // check x velocity, vertical load (only when not using transient slip model)
-  double v_mag = ChVector<>(state.lin_vel.x, state.lin_vel.y, 0).Length();
-  if (!m_use_transient_slip && (v_mag < 0.1))
-  {
-    GetLog() << " ERROR: forward velocity below threshold.... \n\n";
-    return;
-  }
-
-  // update tire input state, and associated tire local coordinate system
+  // Cache the wheel state and update the tire coordinate system.
   m_tireState = state;
   update_tireFrame();
+
+  // If not using the transient slip model, check that the tangential forward
+  // velocity is not too small.
+  ChVector<> V = m_tire_frame.TransformDirectionParentToLocal(m_tireState.lin_vel);
+  if (!m_use_transient_slip && std::abs(V.x) < 0.1)
+  {
+    GetLog() << " ERROR: tangential forward velocity below threshold.... \n\n";
+    return;
+  }
 
   // Is the vertical load specified as an input?
   if (m_use_Fz_override)
@@ -507,9 +508,8 @@ void ChPacejkaTire::advance_slip_transient(double step_size)
   // update relaxation lengths
   calc_relaxationLengths();
 
-  double v_mag = ChVector<>(m_tireState.lin_vel.x, m_tireState.lin_vel.y, 0).Length();
   // local c-sys velocities
-  double V_cx = v_mag * cos(m_slip->alpha);
+  double V_cx = m_slip->V_cx;
   double V_cx_low = 2.5;   // cut-off for low velocity zone
 
   // see if low velocity considerations should be made
