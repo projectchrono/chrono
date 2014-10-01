@@ -30,7 +30,7 @@ uint ChSolverSD::SolveSD(const uint max_iter,
       r = data_container->host_data.D_T * (data_container->host_data.M_invD * ml);
       r = mb - r;
       resnew = sqrt((ml, ml));
-      residual = abs(resnew - resold);
+      residual = std::abs(resnew - resold);
 
       AtIterationEnd(residual, GetObjectiveBlaze(ml, mb), iter_hist.size());
       if (residual < data_container->settings.solver.tolerance) {

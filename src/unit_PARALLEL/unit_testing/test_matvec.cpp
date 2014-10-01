@@ -22,6 +22,7 @@
 #include "chrono_parallel/collision/ChCNarrowphaseMPR.h"
 #include "chrono_parallel/collision/ChCNarrowphaseMPRUtils.h"
 #include "chrono_parallel/constraints/ChConstraintRigidRigid.h"
+
 #include "collision/ChCCollisionModel.h"
 #include "core/ChMathematics.h"
 
@@ -32,7 +33,6 @@
 
 using blaze::CompressedMatrix;
 using blaze::DynamicVector;
-using namespace std;
 using namespace chrono;
 using namespace chrono::collision;
 using namespace chrono::utils;
@@ -40,7 +40,7 @@ double timestep = .001;
 
 int main(int argc,
          char* argv[]) {
-   omp_set_num_threads(8);
+   omp_set_num_threads(12);
    ChSystemParallelDVI * system_gpu = new ChSystemParallelDVI;
    system_gpu->SetIntegrationType(ChSystem::INT_ANITESCU);
    int size = 5;
@@ -54,169 +54,106 @@ int main(int argc,
    system_gpu->ChangeCollisionSystem(bullet_coll);
    system_gpu->SetStep(timestep);
    system_gpu->SetMaxPenetrationRecoverySpeed(10000);
+
+   system_gpu->GetSettings()->solver.solver_mode = SLIDING;
+   system_gpu->GetSettings()->solver.max_iteration_normal = 1;
+   system_gpu->GetSettings()->solver.max_iteration_sliding = 1;
+   system_gpu->GetSettings()->solver.max_iteration_spinning = 0;
+   system_gpu->GetSettings()->solver.alpha = 0;
+   system_gpu->GetSettings()->solver.contact_recovery_speed = 1;
+   system_gpu->ChangeSolverType(APGDBLAZE);
+
    utils::ReadCheckpoint(system_gpu, ss.str());
-   system_gpu->AssembleSystem();
-   ChContactContainer* container = (ChContactContainer *) system_gpu->GetContactContainer();
+   system_gpu->DoStepDynamics(0.0025);
 
-   std::vector<ChLcpConstraint*>& mconstraints = system_gpu->GetLcpSystemDescriptor()->GetConstraintsList();
-   std::vector<ChLcpVariables*>& mvariables = system_gpu->GetLcpSystemDescriptor()->GetVariablesList();
-   size_t nOfVars = mvariables.size();
-   size_t nOfConstraints = mconstraints.size();
+   CompressedMatrix<real> Mass_inv(system_gpu->data_manager->host_data.M_inv);
 
-   ChMatrixDynamic<> mb(nOfConstraints, 1);
+   CompressedMatrix<real> D_t = system_gpu->data_manager->host_data.D_T;
+   CompressedMatrix<real> Mass_invsqt = system_gpu->data_manager->host_data.M_inv;
 
-   //#########
-   for (unsigned int ic = 0; ic < nOfConstraints; ic++) {
-      mconstraints[ic]->Update_auxiliary();
-   }
-
-   // Average all g_i for the triplet of contact constraints n,u,v.
-   //  Can be used for the fixed point phase and/or by preconditioner.
-   int j_friction_comp = 0;
-   double gi_values[3];
-   for (unsigned int ic = 0; ic < nOfConstraints; ic++) {
-      if (mconstraints[ic]->GetMode() == CONSTRAINT_FRIC) {
-         gi_values[j_friction_comp] = mconstraints[ic]->Get_g_i();
-         j_friction_comp++;
-         if (j_friction_comp == 3) {
-            double average_g_i = (gi_values[0] + gi_values[1] + gi_values[2]) / 3.0;
-            mconstraints[ic - 2]->Set_g_i(average_g_i);
-            mconstraints[ic - 1]->Set_g_i(average_g_i);
-            mconstraints[ic - 0]->Set_g_i(average_g_i);
-            j_friction_comp = 0;
-         }
-      }
-   }
-
-   for (unsigned int iv = 0; iv < nOfVars; iv++) {
-      if (mvariables[iv]->IsActive()) {
-         mvariables[iv]->Compute_invMb_v(mvariables[iv]->Get_qb(), mvariables[iv]->Get_fb());  // q = [M]'*fb
-      }
-   }
-   ChMatrixDynamic<> mb_tmp(nOfConstraints, 1);
-   int s_i = 0;
-   for (unsigned int ic = 0; ic < nOfConstraints; ic++)
-      if (mconstraints[ic]->IsActive()) {
-         mb(s_i, 0) = -mconstraints[ic]->Compute_Cq_q();
-         ++s_i;
-      }
-   system_gpu->GetLcpSystemDescriptor()->BuildBiVector(mb_tmp);   // b_i   =   -c   = phi/h
-   mb.MatrDec(mb_tmp);
-   ChLcpSystemDescriptor* sysd = system_gpu->GetLcpSystemDescriptor();
-
-   //ChMatrixDynamic<> mq;
-   //sysd->FromVariablesToVector(mq, true);
-   //#########
-   chrono::ChSparseMatrix mdM;
-   chrono::ChSparseMatrix mdCq;
-   chrono::ChSparseMatrix mdE;
-   chrono::ChMatrixDynamic<double> mdf;
-   chrono::ChMatrixDynamic<double> mdb;
-   chrono::ChMatrixDynamic<double> mdfric;
-   chrono::ChMatrixDynamic<double> mdgamma;
-   sysd->ConvertToMatrixForm(&mdCq, &mdM, &mdE, &mdf, &mdb, &mdfric);
-
-   cout << mdM.GetRows() << " " << mdM.GetColumns() << endl;
-   cout << mdCq.GetRows() << " " << mdCq.GetColumns() << endl;
-
-   //   int mn_c = 0;
-   //   for (unsigned int ic = 0; ic < mconstraints.size(); ic++) {
-   //      if (mconstraints[ic]->IsActive())
-   //         if (!((mconstraints[ic]->GetMode() == CONSTRAINT_FRIC)))
-   //            if (!((dynamic_cast<ChLcpConstraintTwoFrictionT*>(mconstraints[ic])))) {
-   //               mn_c++;
-   //            }
-   //   }
-
-   // Count active variables, by scanning through all variable blocks,
-   // and set offsets
-
-   int n_q = sysd->CountActiveVariables();
-
-   CompressedMatrix<double> Mass_inv(n_q, n_q), D_t(mdCq.GetRows(), mdCq.GetColumns());
-   CompressedMatrix<double> Mass_invsqt(n_q, n_q);
-
-   for (int ii = 0; ii < mdM.GetRows(); ii++) {
-      for (int jj = 0; jj < mdM.GetColumns(); jj++) {
-         double elVal = mdM.GetElement(ii, jj);
-         if (elVal || (ii + 1 == mdM.GetRows() && jj + 1 == mdM.GetColumns())) {
-            Mass_inv.insert(ii, jj, 1.0 / elVal);
-            Mass_invsqt.insert(ii, jj, 1.0 / sqrt(elVal));
-         }
-      }
-   }
-
-   for (int ii = 0; ii < mdCq.GetRows(); ii++) {
-      for (int jj = 0; jj < mdCq.GetColumns(); jj++) {
-         double elVal = mdCq.GetElement(ii, jj);
-         if (elVal || (ii + 1 == mdCq.GetRows() && jj + 1 == mdCq.GetColumns())) {
-            D_t.insert(ii, jj, elVal);
-         }
-      }
-   }
-   CompressedMatrix<double> D = trans(D_t);
-   CompressedMatrix<double> MinvD = Mass_inv * D;
-   CompressedMatrix<double> MinvsqrtD = Mass_invsqt * D;
-   CompressedMatrix<double> MinvsqrtD_t = trans(MinvsqrtD);
-   CompressedMatrix<double> N = D_t * Mass_inv * D;
-   CompressedMatrix<double> N_sym = D_t * (Mass_inv * D);
+   CompressedMatrix<real> D = trans(D_t);
+   CompressedMatrix<real> MinvD = Mass_inv * D;
+   CompressedMatrix<real> MinvsqrtD = Mass_invsqt * D;
+   CompressedMatrix<real> MinvsqrtD_t = trans(MinvsqrtD);
+   CompressedMatrix<real> N = D_t * MinvD;
+   CompressedMatrix<real> N_sym = D_t * (Mass_inv * D);
 
    //      cout << D.rows() << " " << D.columns() << endl;
    //      cout << D_t.rows() << " " << D_t.columns() << endl;
    //      cout << Mass_inv.rows() << " " << Mass_inv.columns() << endl;
 
-   DynamicVector<double> rhs_vector(nOfConstraints);
+   DynamicVector<real> rhs_vector(system_gpu->data_manager->host_data.rhs_data.size());
+   DynamicVector<real> result_1, result_2, result_3, result_4;
 
-   for (unsigned int ic = 0; ic < mconstraints.size(); ic++) {
-      rhs_vector[ic] = mb(ic, 0);
+   for (unsigned int ic = 0; ic < system_gpu->data_manager->host_data.rhs_data.size(); ic++) {
+      rhs_vector[ic] = system_gpu->data_manager->host_data.rhs_data[ic];
    }
-
-   cout << N.rows() << " " << N.columns() << endl;
-
+   result_1 = result_2 = result_3 = result_4 = rhs_vector;
+   std::cout << N.rows() << " " << N.columns() << std::endl;
+   int runs = 100;
    ChTimer<double> timer;
    timer.start();
-   DynamicVector<double> result_1 = MinvsqrtD_t * MinvsqrtD * rhs_vector;
+   for (int i = 0; i < runs; i++) {
+      result_1 = MinvsqrtD_t * MinvsqrtD * rhs_vector;
+   }
    timer.stop();
-   std::cout << "MinvsqrtD_t * MinvsqrtD * rhs_vector: " << timer() << std::endl;
+   std::cout << timer() << " ";
    timer.start();
-   DynamicVector<double> result_2 = N * rhs_vector;
+   for (int i = 0; i < runs; i++) {
+      result_2 = N * rhs_vector;
+   }
    timer.stop();
-   std::cout << "N * rhs_vector: " << timer() << std::endl;
+   std::cout << timer() << " ";
    timer.start();
-   DynamicVector<double> result_3 = N_sym * rhs_vector;
+   for (int i = 0; i < runs; i++) {
+      result_3 = N_sym * rhs_vector;
+   }
    timer.stop();
-   std::cout << "N_sym * rhs_vector: " << timer() << std::endl;
+   std::cout << timer() << " ";
    timer.start();
-   DynamicVector<double> result_4 = D_t * MinvD * rhs_vector;
+   for (int i = 0; i < runs; i++) {
+      result_4 = D_t * MinvD * rhs_vector;
+   }
    timer.stop();
-   std::cout << "D_t * MinvD * rhs_vector: " << timer() << std::endl;
+   std::cout << timer() << " ";
 
    thrust::host_vector<int> h_row;
    thrust::host_vector<int> h_col;
-   thrust::host_vector<float> h_val;
-   thrust::host_vector<float> h_rhs(mconstraints.size());
-   thrust::host_vector<float> h_x(mconstraints.size());
-
+   thrust::host_vector<real> h_val;
+   thrust::host_vector<real> h_rhs = system_gpu->data_manager->host_data.rhs_data;
+   thrust::host_vector<real> h_x = h_rhs;
+   //int counter = 0;
    for (int i = 0; i < N.rows(); i++) {
-      for (int j = 0; j < N.columns(); j++) {
-
+      for (blaze::CompressedMatrix<real>::Iterator it = N.begin(i); it != N.end(i); ++it) {
          h_row.push_back(i);
-         h_col.push_back(j);
-         h_val.push_back(N(i, j));
-
+         h_col.push_back(it->index());
+         h_val.push_back(it->value());
+         //std::cout<<h_val[counter]<<" "<<N(i,it->index())<<std::endl;
+         //counter++;
       }
+
    }
 
-   for (unsigned int ic = 0; ic < mconstraints.size(); ic++) {
-      h_rhs[ic] = mb(ic, 0);
-      h_x[ic] = 0;
-   }
-   std::cout << "START CUDA" << std::endl;
+   //std::cout << "START CUDA" << std::endl;
 
-   timer.start();
-   mat_vec_cusparse(h_row, h_col, h_val, h_rhs, h_x, N.rows(), N.columns(), N.nonZeros());
-   timer.stop();
-   std::cout << "N * rhs_vector _ GPU: " << timer() << std::endl;
+   //timer.start();
+   mat_vec_cusparse(h_row, h_col, h_val, h_rhs, h_x, N.rows(), N.columns(), h_row.size());
+
+   real sum_1 = 0, sum_2 = 0, sum_3 = 0, sum_4 = 0, sum_5 = 0;
+
+   //timer.stop();
+   //std::cout << "N * rhs_vector _ GPU: " << timer() << std::endl;
+//   for (unsigned int ic = 0; ic < system_gpu->data_manager->host_data.rhs_data.size(); ic++) {
+//
+//      sum_1 += result_1[ic];
+//      sum_2 += result_2[ic];
+//      sum_3 += result_3[ic];
+//      sum_4 += result_4[ic];
+//      sum_5 += h_x[ic];
+//
+//   }
+//
+//   std::cout << sum_1 << " " << sum_2 << " " << sum_3 << " " << sum_4 << " " << sum_5 << std::endl;
 
    return 0;
 }

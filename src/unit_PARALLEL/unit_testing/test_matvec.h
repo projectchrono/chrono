@@ -15,11 +15,11 @@
 // ChronoParallel unit test for MPR collision detection
 // =============================================================================
 #include <thrust/host_vector.h>
-
+#include "chrono_parallel/math/real.h"
 void mat_vec_cusparse(
       thrust::host_vector<int> & h_row,
       thrust::host_vector<int> & h_col,
-      thrust::host_vector<float> & h_val,
-      thrust::host_vector<float> & h_rhs,
-      thrust::host_vector<float> & h_x,
+      thrust::host_vector<real> & h_val,
+      thrust::host_vector<real> & h_rhs,
+      thrust::host_vector<real> & h_x,
       int M, int N, int NNZ);

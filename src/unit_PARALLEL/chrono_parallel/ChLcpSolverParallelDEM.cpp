@@ -130,7 +130,7 @@ function_CalcContactForces(
 
   // Tangential force: Simple Coulomb sliding
   if (relvel_t_mag > 1e-4) {
-    real forceT = mu_eff * abs(forceN);
+    real forceT = mu_eff * fabs(forceN);
 
     force -= (forceT / relvel_t_mag) * relvel_t;
   }

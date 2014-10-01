@@ -257,7 +257,7 @@ uint ChSolverParallel::SolveStab(const uint max_iter,
    //
    //			double zNMr = Dot(mz,mNMr);
    //			double MNpNp = Dot(mMNp, mNp);
-   //			if (fabs(MNpNp)<10e-30)
+   //			if (std::abs(MNpNp)<10e-30)
    //			{
    //				if (verbose) {cout << "Iter=" << current_iteration << " Rayleygh quotient alpha breakdown: " << zNMr << " / " << MNpNp << "\n";}
    //				MNpNp=10e-12;
@@ -290,7 +290,7 @@ uint ChSolverParallel::SolveStab(const uint max_iter,
    //			double denominator = Dot(mz_old,mNMr_old);
    //			double beta =numerator /numerator;
    //
-   //			if (fabs(denominator)<10e-30 || fabs(numerator)<10e-30)
+   //			if (std::abs(denominator)<10e-30 || std::abs(numerator)<10e-30)
    //			{
    //				if (verbose)
    //				{
@@ -348,7 +348,7 @@ uint ChSolverParallel::SolveStab(const uint max_iter,
       w_old = w;
       w = r1 * (v - r3 * w_oold - r2 * w_old);
       x = x + c * eta * w;
-      norm_rMR = norm_rMR * abs(s);
+      norm_rMR = norm_rMR * std::abs(s);
       eta = -s * eta;
       residual = norm_rMR / norm_r0;
 

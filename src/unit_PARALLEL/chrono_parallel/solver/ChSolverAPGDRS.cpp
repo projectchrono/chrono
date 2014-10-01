@@ -194,7 +194,7 @@ uint ChSolverAPGDRS::SolveAPGDRS(const uint max_iter,
 //         old_objective = GetObjective(ml,b);
 //      }else{
 //         objective = GetObjective(ml,b);
-//         g_proj_norm = fabs(objective - old_objective);
+//         g_proj_norm = std::abs(objective - old_objective);
 //         old_objective = objective;
 //      }
 
@@ -231,7 +231,7 @@ uint ChSolverAPGDRS::SolveAPGDRS(const uint max_iter,
 
       if (update) {
          if (iter_hist.size() > 1) {
-            delta_obj = abs(maxdeltalambda_hist[iter_hist.size() - 1] - maxdeltalambda_hist[iter_hist.size() - 2]);
+            delta_obj = std::abs(maxdeltalambda_hist[iter_hist.size() - 1] - maxdeltalambda_hist[iter_hist.size() - 2]);
 
          }
       }

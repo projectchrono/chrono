@@ -603,9 +603,9 @@ int ChCNarrowphaseR::box_capsule(
   real  tMin = -FLT_MAX;  //// TODO: should define a REAL_MAX to be used here
   real  tMax =  FLT_MAX;
 
-  if (abs(V.x) < 1e-5) {
+  if (fabs(V.x) < 1e-5) {
     // Capsule axis parallel to the box x-faces
-    if (abs(pos.x) > hdims1_exp.x)
+    if (fabs(pos.x) > hdims1_exp.x)
       return 0;
   } else {
     real t1 = (-hdims1_exp.x - pos.x) / V.x;
@@ -618,9 +618,9 @@ int ChCNarrowphaseR::box_capsule(
       return 0;
   }
 
-  if (abs(V.y) < 1e-5) {
+  if (fabs(V.y) < 1e-5) {
     // Capsule axis parallel to the box y-faces
-    if (abs(pos.y) > hdims1_exp.y)
+    if (fabs(pos.y) > hdims1_exp.y)
       return 0;
   } else {
     real t1 = (-hdims1_exp.y - pos.y) / V.y;
@@ -633,9 +633,9 @@ int ChCNarrowphaseR::box_capsule(
       return 0;
   }
 
-  if (abs(V.z) < 1e-5) {
+  if (fabs(V.z) < 1e-5) {
     // Capsule axis parallel to the box z-faces
-    if (abs(pos.z) > hdims1_exp.z)
+    if (fabs(pos.z) > hdims1_exp.z)
       return 0;
   } else {
     real t1 = (-hdims1_exp.z - pos.z) / V.z;

@@ -66,7 +66,7 @@ void Cone_single(real & gamma_n,
                  real & gamma_s,
                  const real & mu) {
 
-   real f_tang = abs(gamma_s);
+   real f_tang = fabs(gamma_s);
 
    // inside upper cone? keep untouched!
    if (f_tang < (mu * gamma_n)) {
@@ -134,7 +134,7 @@ void ChConstraintRigidRigid::func_Project_rolling(int &index,
 //		gam[index + number_of_contacts * 2] = 0;
 //	}
 
-   real gamma_n = abs(gam[_index_ + 0]);
+   real gamma_n = fabs(gam[_index_ + 0]);
    real gamma_s = gam[_index_ + 3];
    real gamma_tu = gam[_index_ + 4];
    real gamma_tv = gam[_index_ + 5];
