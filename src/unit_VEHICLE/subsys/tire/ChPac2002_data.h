@@ -350,7 +350,9 @@ struct combinedTorqueCoefs{
 	double alpha_r_eq;
 	double M_zr;
 	double t;
-	// double MP_z; // = -t * FP_y
+  double M_z_x; // Mz due to Fx
+  double M_z_y; // Mz due to Fy
+  // double MP_z; // = -t * FP_y
 
 };
 
