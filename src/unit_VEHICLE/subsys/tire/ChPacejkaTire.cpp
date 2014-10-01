@@ -1428,7 +1428,16 @@ void ChPacejkaTire::WriteOutData(double             time,
 
 
 // -----------------------------------------------------------------------------
-// Calculate the wheel state from the current kappa, alpha, and gamma values.
+// Utility function for validation studies.
+//
+// Calculate a wheel state consistent with the specified kinematic slip
+// quantities (kappa, alpha, and gamma) and magnitude of tangential velocity.
+// Out of the infinitely many consistent wheel states, we
+// - set position at origin
+// - set linear velocity along global X direction with given magnitude
+// - set orientation based on given alpha and gamma
+// - set omega from given kappa and using current R_eff
+// - set angular velocity along the local wheel Y axis
 // -----------------------------------------------------------------------------
 ChWheelState ChPacejkaTire::getState_from_KAG(double kappa,
                                               double alpha,
@@ -1437,23 +1446,28 @@ ChWheelState ChPacejkaTire::getState_from_KAG(double kappa,
 {
   ChWheelState state;
 
-  // orientation is purely a function of gamma, alpha
-  ChQuaternion<> m_quat = chrono::Q_from_NasaAngles(ChVector<>(gamma, 0, alpha));
+  // Set wheel position at origin.
+  state.pos = ChVector<>(0, 0, 0);
 
-  // wheel center velocity, tire coords
-  double Vcx = Vx * cos(alpha);
-  double Vcy = Vcx * tan(alpha);
-  // double Vcy_check = Vx * sin(alpha);
-  // kappa = r_e*w_y - |v| / |v|
+  // Set the wheel velocity aligned with the global X axis.
+  state.lin_vel = ChVector<>(Vx, 0, 0);
 
-  // wheel spin rate, tire coords
-  double w_y = (kappa*Vcx + Vcx) / m_R_eff;
+  // Rotate wheel to satisfy specified camber angle and slip angle.  For this,
+  // we first rotate the wheel about the global Z-axis by an angle (-alpha),
+  // followed by a rotation about the new X-axis by an angle gamma.
+  state.rot = Q_from_AngZ(-alpha) * Q_from_AngX(gamma);
 
-  // set the orientation, 1 lin vel and 1 ang vel (in 2 places)
-  state.rot = m_quat;
-  state.lin_vel.x = Vx;
-  state.ang_vel.y = w_y;
-  state.omega = w_y;
+  // Calculate forward tangential velocity.
+  double Vcx = Vx * std::cos(alpha);
+
+  // Set the wheel angular velocity about its axis, calculated from the given
+  // value kappa and using the current value m_R_eff.
+  // Note that here we assume that the specified velocity is such that Vcx is
+  // larger than the threshold model.vxlow.
+  state.omega = (kappa * std::abs(Vcx) + Vcx) / m_R_eff;
+
+  // Set the wheel angular velocity (expressed in global frame).
+  state.ang_vel = state.rot.RotateBack(ChVector<>(0, state.omega, 0));
 
   return state;
 }

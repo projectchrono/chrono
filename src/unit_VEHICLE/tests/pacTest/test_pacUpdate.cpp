@@ -82,9 +82,21 @@ int main(int argc, char* argv[])
     ChWheelState state;
     state.pos = ChVector<>(2, 1, 0);
     state.rot = rot;
-    state.lin_vel = ChVector<>(6.427876, -7.660444, 0);    // ||V|| = 10, away -20 deg from heading direction
+    state.lin_vel = ChVector<>(6.427876, -7.660444, 0);    // ||V|| = 10, alpha = -20 degrees
     state.ang_vel = 5.0 * rot.GetYaxis();                  // ||omega|| = 5
     state.omega = +5;                                      // omega > 0, wheel moves forward
+
+    processState(tire, state);
+  }
+
+  {
+    // Test the utility function getState_from_KAG
+    ChWheelState state = tire->getState_from_KAG(
+      tire->get_kappa(),
+      tire->get_alpha(),
+      tire->get_gamma(),
+      10
+      );
 
     processState(tire, state);
   }
@@ -98,12 +110,25 @@ int main(int argc, char* argv[])
     ChWheelState state;
     state.pos = ChVector<>(2, 1, 0);
     state.rot = rot;
-    state.lin_vel = ChVector<>(-10, 0, 0);                 // ||V|| = 10
+    state.lin_vel = ChVector<>(-10, 0, 0);                 // ||V|| = 10, alpha = 45 degrees
     state.ang_vel = 5.0 * rot.GetYaxis();                  // ||omega|| = 5
     state.omega = +5;                                      // omega > 0, wheel moves forward
 
     processState(tire, state);
   }
+
+  {
+    // Test the utility function getState_from_KAG
+    ChWheelState state = tire->getState_from_KAG(
+      tire->get_kappa(),
+      tire->get_alpha(),
+      tire->get_gamma(),
+      10
+      );
+
+    processState(tire, state);
+  }
+
 
   return 0;
 }
