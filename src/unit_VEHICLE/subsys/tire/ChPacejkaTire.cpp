@@ -303,6 +303,9 @@ void ChPacejkaTire::Update(double               time,
   // note: kappaP, alphaP, gammaP can be overridden in Advance
 }
 
+
+// -----------------------------------------------------------------------------
+// -----------------------------------------------------------------------------
 void ChPacejkaTire::Advance(double step)
 {
   // if using single point contact model, slips are calculated from
@@ -378,7 +381,7 @@ void ChPacejkaTire::calc_rho(double F_z)
   // loaded radius: if the tire were loaded statically
   m_R_l = m_R0 - F_z / m_params->vertical.vertical_stiffness;
   // assume rho decreases with increasing w_y
-  double rho = (m_R0 - m_R_l) * exp(-qV1 * m_R0 * pow((m_tireState.ang_vel.y * m_R0 / m_params->model.longvl), 2));
+  double rho = (m_R0 - m_R_l) * exp(-qV1 * m_R0 * pow((m_tireState.omega * m_R0 / m_params->model.longvl), 2));
 
   // Note: rho is always > 0 with the modified eq.
   // if( rho > 0.0 ) {
@@ -425,7 +428,7 @@ void ChPacejkaTire::calc_Fz()
     // set the tire deflections, vertical force
     m_R_l = m_R0 + dz;
 
-    double rho = (m_R0 - m_R_l) * (1.0 - qV1 * m_R0  * pow((m_tireState.ang_vel.y * m_R0 / m_params->model.longvl), 2));
+    double rho = (m_R0 - m_R_l) * (1.0 - qV1 * m_R0  * pow((m_tireState.omega * m_R0 / m_params->model.longvl), 2));
     if (rho > 0.0) {
       m_rho = rho;
       m_R_eff = m_R0 - m_rho;
@@ -549,7 +552,7 @@ void ChPacejkaTire::advance_slip_transient(double step_size)
 
   // Eq. 7.12, total spin, phi, including slip and camber
   double delta_phi = calc_ODE_RK_phi(m_relaxation->C_Fphi, m_relaxation->C_Falpha,
-    V_cx, m_slip->psi_dot, m_tireState.ang_vel.y, m_slip->gamma, m_relaxation->sigma_alpha,
+    V_cx, m_slip->psi_dot, m_tireState.omega, m_slip->gamma, m_relaxation->sigma_alpha,
     m_slip->v_phi, EPS_GAMMA, step_size);
   m_slip->v_phi += delta_phi;
 
@@ -615,7 +618,7 @@ double ChPacejkaTire::calc_ODE_RK_phi(double C_Fphi,
                                       double C_Falpha,
                                       double V_cx,
                                       double psi_dot,
-                                      double w_y,
+                                      double omega,
                                       double gamma,
                                       double sigma_alpha,
                                       double v_phi,
@@ -628,7 +631,7 @@ double ChPacejkaTire::calc_ODE_RK_phi(double C_Fphi,
   else
     sign_Vcx = 1;
 
-  double p0 = (C_Fphi / C_Falpha) * sign_Vcx * (psi_dot - (1.0 - eps_gamma) * w_y * sin(gamma));
+  double p0 = (C_Fphi / C_Falpha) * sign_Vcx * (psi_dot - (1.0 - eps_gamma) * omega * sin(gamma));
   double p1 = (1.0 / sigma_alpha) * abs(V_cx);
 
   double k1 = -p0 - p1 * v_phi;
@@ -937,7 +940,7 @@ void ChPacejkaTire::calc_Mx()
 
 void ChPacejkaTire::calc_My()
 {
-  double V_r = m_tireState.ang_vel.y * m_R_eff;
+  double V_r = m_tireState.omega * m_R_eff;
   double M_y = -m_FM.force.z * m_R0 * (m_params->rolling.qsy1 * atan(V_r / m_params->model.longvl) - m_params->rolling.qsy2 * (m_FM_combined.force.x / m_params->vertical.fnomin)) * m_params->scaling.lmy;
   m_FM.moment.y = M_y;
   m_FM_combined.moment.y = M_y;

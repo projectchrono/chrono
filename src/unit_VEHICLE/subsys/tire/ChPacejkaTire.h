@@ -224,7 +224,7 @@ private:
     double C_Falpha,
     double V_cx,
     double psi_dot,
-    double w_y,
+    double omega,
     double gamma,
     double sigma_alpha,
     double v_phi,
