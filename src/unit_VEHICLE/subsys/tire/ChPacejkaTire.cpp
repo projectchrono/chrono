@@ -151,7 +151,7 @@ void ChPacejkaTire::Initialize()
   // init all other variables
   m_Num_WriteOutData = 0;
   {
-    slips tmp = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
+    slips tmp = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
     *m_slip = tmp;
   }
 }
