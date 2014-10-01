@@ -119,43 +119,40 @@ void ChPacejkaTire::Initialize()
   // load all the empirical tire parameters from *.tir file
   loadPacTireParamFile();
 
-  if (m_params_defined) {
-    // any variables that are calculated once
-    m_R0 = m_params->dimension.unloaded_radius;
-    // find a better way to calculate rolling radius
-    // m_R_eff_0 = m_R0*(1.0 - 0.05);
-
-    // m_R_l = m_R0 - m_params->vertical.fnomin / m_params->vertical.vertical_stiffness;
-    m_R_l = m_R0 - 8000.0 / m_params->vertical.vertical_stiffness;
-
-    // assume rho decreases with increasing w_y
-    double qV1 = 1.5;
-    // omega_y ~= V0/ R_eff ~= V0/(.05*R0)
-    m_rho = (m_R0 - m_R_l) * exp(-qV1 * m_R0 * pow(1.05 * m_params->model.longvl / m_params->model.longvl, 2));
-
-    // Note: rho is always > 0 with the modified eq.
-    m_R_eff = m_R0 - m_rho;
-
-    // not sure what these are used for
-    {
-      zetaCoefs tmp = { 1, 1, 1, 1, 1, 1, 1, 1, 1 };
-      *m_zeta = tmp;
-    }
-
-    // any of the structs associated with multipliers in reaction calcs
-    m_combinedTorque->alpha_r_eq = 0.0;
-    m_pureLat->D_y = m_params->vertical.fnomin;	// initial approximation
-
-    // init all other variables
-    m_Num_WriteOutData = 0;
-    {
-      slips tmp = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
-      *m_slip = tmp;
-    }
-  }
-  else {
+  //// TODO:  Need to figure out a better way of indicating errors
+  ////        Right now, we cannot have this function throw an exception since
+  ////        it's called from the constructor!   Must fix this...
+  if (!m_params_defined) {
     GetLog() << " couldn't load pacTire parameters from file, not updating initial quantities \n\n";
+    return;
+  }
 
+  // any variables that are calculated once
+  m_R0 = m_params->dimension.unloaded_radius;
+
+  //// TODO:  why do we have to initialize m_R_l and m_R_eff here?
+  ////        This is done in Update(), when we have a proper wheel state.
+
+  m_R_l = m_R0 - 8000.0 / m_params->vertical.vertical_stiffness;
+  double qV1 = 1.5;
+  double rho = (m_R0 - m_R_l) * exp(-qV1 * m_R0 * pow(1.05 * m_params->model.longvl / m_params->model.longvl, 2));
+  m_R_eff = m_R0 - rho;
+
+  // not sure what these are used for
+  {
+    zetaCoefs tmp = { 1, 1, 1, 1, 1, 1, 1, 1, 1 };
+    *m_zeta = tmp;
+  }
+
+  // any of the structs associated with multipliers in reaction calcs
+  m_combinedTorque->alpha_r_eq = 0.0;
+  m_pureLat->D_y = m_params->vertical.fnomin;  // initial approximation
+
+  // init all other variables
+  m_Num_WriteOutData = 0;
+  {
+    slips tmp = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
+    *m_slip = tmp;
   }
 }
 
@@ -285,16 +282,9 @@ void ChPacejkaTire::Update(double               time,
     return;
   }
 
-  // Is the vertical load specified as an input?
-  if (m_use_Fz_override)
-  {
-    // update tire deflection, rho, based on input vertical load, wheel state
-    calc_rho(m_Fz_override);
-  }
-  else {
-    // not specified or in applicable range, calculate vertical force
-    calc_Fz();
-  }
+  // Calculate the vertical load and update tire deflection and tire rolling
+  // radius.
+  update_verticalLoad();
 
   m_dF_z = (m_FM.force.z - m_params->vertical.fnomin) / m_params->vertical.fnomin;
 
@@ -372,75 +362,80 @@ void ChPacejkaTire::update_tireFrame()
 }
 
 
-void ChPacejkaTire::calc_rho(double F_z)
+// -----------------------------------------------------------------------------
+// Calculate the tire vertical load at the current configuration and update the
+// tire deflection and tire rolling radius.
+// -----------------------------------------------------------------------------
+void ChPacejkaTire::update_verticalLoad()
 {
-  double qV1 = 1.5;  // guess
-  // first, set the vertical force
-  m_FM.force.z = F_z;
-  m_FM_combined.force.z = F_z;
+  double Fz;
 
-  // loaded radius: if the tire were loaded statically
-  m_R_l = m_R0 - F_z / m_params->vertical.vertical_stiffness;
-  // assume rho decreases with increasing w_y
-  double rho = (m_R0 - m_R_l) * exp(-qV1 * m_R0 * pow((m_tireState.omega * m_R0 / m_params->model.longvl), 2));
+  if (m_use_Fz_override) {
+    // Vertical load specified as input.
+    Fz = m_Fz_override;
 
-  // Note: rho is always > 0 with the modified eq.
-  // if( rho > 0.0 ) {
-  m_rho = rho;
-  m_R_eff = m_R0 - m_rho;
-  // } else {
-  //	GetLog () << " this step rho < 0 !  \n";
-  //	m_rho = 0;
-  //	m_R_eff = m_R0;
-  // }
-}
-
-
-void ChPacejkaTire::calc_Fz()
-{
-  double qV1 = 0.8;  // guess
-  double h_ground = m_terrain.GetHeight(m_tireState.pos.x, m_tireState.pos.y);
-  // dz should be negative
-  double dz = (m_tireState.pos.z - m_R0) - h_ground;
-
-  // is the bottom center of a circle below the ground?
-  if (dz > 0)
-  {
-    m_FM.force.z = 0;
-    m_FM_combined.force.z = 0;
-    m_R_l = m_R0;
-    m_rho = 0;
-    m_R_eff = m_R0;
-    ////GetLog() << " no contact detected on this tire \n";
+    // Estimate the tire deformation and set the relaxation length (assuming
+    // static loading).
+    m_R_l = m_R0 - Fz / m_params->vertical.vertical_stiffness;
   }
   else {
-    // spring force from deflection
-    double f_k = -dz * m_params->vertical.vertical_stiffness;
-    // dz_dt is a finite difference for rho
-    double dz_dt = -dz - (m_R0 - m_R_l);
-    // damper force from deflection_dt
-    double f_c = dz_dt * m_params->vertical.vertical_damping;
-
-    // use a simple spring damper to find the vertical force
-    double Fz = f_k + f_c;
-
-    m_FM.force.z = Fz;
-    m_FM_combined.force.z = Fz;
-    // set the tire deflections, vertical force
-    m_R_l = m_R0 + dz;
-
-    double rho = (m_R0 - m_R_l) * (1.0 - qV1 * m_R0  * pow((m_tireState.omega * m_R0 / m_params->model.longvl), 2));
-    if (rho > 0.0) {
-      m_rho = rho;
-      m_R_eff = m_R0 - m_rho;
-    }
-    else {
-      m_rho = 0;
-      m_R_eff = m_R0;
-    }
-
+    // Calculate the tire vertical load using a spring-damper model. Note that
+    // this also sets the tire relaxation length m_R_l.
+    Fz = calc_Fz();
   }
+
+  // Calculate tire vertical deflection, rho.
+  double qV1 = 0.000071;      // from example
+  double K1 = pow(m_tireState.omega * m_R0 / m_params->model.longvl, 2);
+  double rho = m_R0 - m_R_l + qV1 * m_R0 * K1;
+  double rho_Fz0 = m_params->vertical.fnomin / (m_params->vertical.vertical_stiffness);
+  double rho_d = rho / rho_Fz0;
+
+  // Calculate tire rolling radius, R_eff.  Clamp this value to R0.
+  m_R_eff = m_R0 + qV1 * m_R0 * K1 - rho_Fz0 * (m_params->vertical.dreff * std::atan(m_params->vertical.breff * rho_d) + m_params->vertical.freff * rho_d);
+  if (m_R_eff > m_R0)
+    m_R_eff = m_R0;
+
+  // Load vertical component of tire force.
+  m_FM.force.z = Fz;
+  m_FM_combined.force.z = Fz;
 }
+
+
+double ChPacejkaTire::calc_Fz()
+{
+  // Initialize the relaxation length to R0.  This is the returned value if no
+  // vertical force is generated.
+  m_R_l = m_R0;
+
+  // Check contact with terrain, using a disc of radius R0.
+  ChCoordsys<> contact_frame;
+  double       depth;
+
+  bool in_contact = disc_terrain_contact(m_tireState.pos, m_tireState.rot.GetYaxis(), m_R0,
+                                         contact_frame, depth);
+
+  if (!in_contact)
+    return 0;
+
+  // Calculate relative velocity (wheel - terrain) at contact point, in the
+  // global frame and then express it in the contact frame.
+  ChVector<> relvel_abs = m_tireState.lin_vel + Vcross(m_tireState.ang_vel, contact_frame.pos - m_tireState.pos);
+  ChVector<> relvel_loc = contact_frame.TransformDirectionParentToLocal(relvel_abs);
+
+  // Calculate normal contact force, using a spring-damper model. If the
+  // resulting force is negative, the wheel is moving away from the terrain so
+  // fast that no contact force is generated.
+  double Fz = m_params->vertical.vertical_stiffness * depth - m_params->vertical.vertical_damping * relvel_loc.z;
+
+  if (Fz < 0)
+    return 0;
+
+  m_R_l = m_R0 - depth;
+
+  return Fz;
+}
+
 
 
 // -----------------------------------------------------------------------------

@@ -183,11 +183,14 @@ private:
   void readSection_rolling(std::ifstream& inFile);
   void readSection_aligning(std::ifstream& inFile);
 
-  // update the wheel state, and associated variables;
-  void update_stateVars(const ChWheelState& state);
-
   // update the tire coordinate system with new global ChWheelState data
   void update_tireFrame();
+
+  // update the vertical load, tire deflection, and tire rolling radius
+  void update_verticalLoad();
+
+  // find the vertical load, using a spring-damper model
+  double calc_Fz();
 
   // calculate the various stiffness/relaxation lengths
   void calc_relaxationLengths();
@@ -244,9 +247,6 @@ private:
   /// assign Fx, Fy, Mz
   void calc_combinedSlipReactions();
 
-  // calculate the current effective rolling radius, w.r.t. wy, Fz as inputs
-  void calc_rho(double F_z);
-
   /// calculate the longitudinal force, alpha ~= 0
   /// assign to m_FM.force.x
   /// assign m_pureLong, trionometric function calculated constants
@@ -256,9 +256,6 @@ private:
   /// assign to m_FM.force.y
   /// assign m_pureLong, trionometric function calculated constants
   void calcFy_pureLat();
-
-  // find the vertical load, based on the wheel center and ground height
-  void calc_Fz();
 
   /// calculate the aligning moment,  kappa ~= 0
   /// assign to m_FM.force.z
@@ -298,7 +295,6 @@ private:
   double m_R0;              // unloaded radius
   double m_R_eff;           // current effect rolling radius
   double m_R_l;             // relaxation length
-  double m_rho;             // vertical deflection w.r.t. R0
 
   double m_dF_z;            // (Fz - Fz,nom) / Fz,nom
   bool m_use_Fz_override;   // calculate Fz using collision, or user input
