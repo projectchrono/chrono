@@ -393,8 +393,8 @@ void ChPacejkaTire::update_verticalLoad()
     // Vertical load specified as input.
     Fz = m_Fz_override;
 
-    // Estimate the tire deformation and set the relaxation length (assuming
-    // static loading).
+    // Estimate the tire deformation and set the statically loaded radius
+    // (assuming static loading).
     m_R_l = m_R0 - Fz / m_params->vertical.vertical_stiffness;
 
     // In this case, the tire is always assumed to be in contact with the
@@ -403,7 +403,7 @@ void ChPacejkaTire::update_verticalLoad()
   }
   else {
     // Calculate the tire vertical load using a spring-damper model. Note that
-    // this also sets the tire relaxation length m_R_l, as well as the boolean
+    // this also sets the statically loaded radius m_R_l, as well as the boolean
     // flag m_in_contact.
     Fz = calc_Fz();
   }
@@ -428,8 +428,8 @@ void ChPacejkaTire::update_verticalLoad()
 
 double ChPacejkaTire::calc_Fz()
 {
-  // Initialize the relaxation length to R0.  This is the returned value if no
-  // vertical force is generated.
+  // Initialize the statically loaded radius to R0.  This is the returned value
+  // if no vertical force is generated.
   m_R_l = m_R0;
 
   // Check contact with terrain, using a disc of radius R0.
@@ -473,9 +473,17 @@ double ChPacejkaTire::calc_Fz()
 // -----------------------------------------------------------------------------
 void ChPacejkaTire::calc_slip_kinematic()
 {
+  double v_x_threshold = 0.1;
+
   // Express the wheel velocity in the tire coordinate system and calculate the
-  // slip angle alpha
+  // slip angle alpha. (Override V.x if too small)
   ChVector<> V = m_tire_frame.TransformDirectionParentToLocal(m_tireState.lin_vel);
+
+  if (V.x < 0 && V.x > -v_x_threshold)
+    V.x = -v_x_threshold;
+  else if (V.x > 0 && V.x < v_x_threshold)
+    V.x = v_x_threshold;
+
   double alpha = std::atan2(V.y, V.x);
 
   // Express the wheel normal in the tire coordinate system and calculate the
@@ -484,13 +492,11 @@ void ChPacejkaTire::calc_slip_kinematic()
   double gamma = std::atan2(n.z, n.y);
 
   // Longitudinal slip rate.
-  double V_mag = std::sqrt(V.x * V.x + V.y * V.y);
-  double kappa = (V_mag < m_params->model.vxlow) ?
-    (m_R_eff * m_tireState.omega - V.x) / std::abs(m_params->model.vxlow) :
-    (m_R_eff * m_tireState.omega - V.x) / std::abs(V.x);
+  double V_x_abs = std::abs(V.x);
+  double kappa = (m_R_eff * m_tireState.omega - V.x) / V_x_abs;
 
-  // alpha_star = tan(alpha) = v_y / v_x  (no negative since I use z-up)
-  double alpha_star = (V_mag < m_params->model.vxlow) ? tan(alpha) : V.y / std::abs(V.x);
+  // alpha_star = tan(alpha) = v_y / v_x
+  double alpha_star = V.y / V_x_abs;
 
   // Set the struct data members, input slips to wheel
   m_slip->kappa = kappa;
@@ -509,6 +515,7 @@ void ChPacejkaTire::calc_slip_kinematic()
   m_slip->psi_dot = w.z;
 
   // For aligning torque, to handle large slips, and backwards operation
+  double V_mag = std::sqrt(V.x * V.x + V.y * V.y);
   m_slip->cosPrime_alpha = V.x / (V_mag + 0.1);
 
   // Finally, if non-transient, use wheel slips as input to Magic Formula.
@@ -516,7 +523,6 @@ void ChPacejkaTire::calc_slip_kinematic()
   m_slip->kappaP = kappa;
   m_slip->alphaP = alpha_star;
   m_slip->gammaP = std::sin(gamma);
-
 }
 
 // -----------------------------------------------------------------------------
@@ -779,16 +785,16 @@ void ChPacejkaTire::calcFy_pureLat()
 {
   double p_Ky4 = 2.0;
   double p_Ky5 = 0;
-  // double p_Ky6 = 0.92;	// not in the default pac2002 file
-  // double p_Ky7 = 0.24;	// "
+  // double p_Ky6 = 0.92;   // not in the default pac2002 file
+  // double p_Ky7 = 0.24;   // "
   double p_Ey5 = 0;
 
   // double K_y0 = m_FM.force.z * (p_Ky6 + p_Ky7 * m_dF_z) * m_params->scaling.lgay;
-  double C_y = m_params->lateral.pcy1 * m_params->scaling.lcy;	// > 0
+  double C_y = m_params->lateral.pcy1 * m_params->scaling.lcy;  // > 0
   double mu_y = (m_params->lateral.pdy1 + m_params->lateral.pdy2 * m_dF_z) * (1.0 - m_params->lateral.pdy3 * pow(m_slip->gammaP,2) ) * m_params->scaling.lmuy;	// > 0
   double D_y = mu_y * m_FM.force.z * m_zeta->z2;
 
-  // TODO: does this become negative??? 
+  //// TODO: does this become negative??? 
   double K_y = std::abs(m_params->lateral.pky1 * m_params->vertical.fnomin * std::sin(p_Ky4 * std::atan(m_FM.force.z / ( (m_params->lateral.pky2 + p_Ky5 * pow(m_slip->gammaP,2) )* m_params->vertical.fnomin))) * (1.0 - m_params->lateral.pky3 * std::abs(m_slip->gammaP) ) * m_zeta->z3 * m_params->scaling.lyka);
 
   // doesn't make sense to ever have K_yAlpha be negative (it can be interpreted as lateral stiffnesss)

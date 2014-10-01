@@ -296,7 +296,7 @@ private:
 
   double m_R0;                 // unloaded radius
   double m_R_eff;              // current effect rolling radius
-  double m_R_l;                // relaxation length
+  double m_R_l;                // statically loaded radius
 
   double m_dF_z;               // (Fz - Fz,nom) / Fz,nom
   bool m_use_Fz_override;      // calculate Fz using collision, or user input
