@@ -293,6 +293,10 @@ void ChPacejkaTire::Update(double               time,
   m_FM.force = ChVector<>(0, 0, 0);
   m_FM.moment = ChVector<>(0, 0, 0);
 
+  m_FM_combined.point = ChVector<>(0, 0, 0);
+  m_FM_combined.force = ChVector<>(0, 0, 0);
+  m_FM_combined.moment = ChVector<>(0, 0, 0);
+
   // Calculate the vertical load and update tire deflection and tire rolling
   // radius.
   update_verticalLoad();
