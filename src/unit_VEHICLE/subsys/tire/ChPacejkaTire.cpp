@@ -483,10 +483,9 @@ void ChPacejkaTire::calc_slip_kinematic()
   // slip angle alpha. (Override V.x if too small)
   ChVector<> V = m_tire_frame.TransformDirectionParentToLocal(m_tireState.lin_vel);
 
-  if (V.x < 0 && V.x > -v_x_threshold)
-    V.x = -v_x_threshold;
-  else if (V.x > 0 && V.x < v_x_threshold)
-    V.x = v_x_threshold;
+  if (std::abs(V.x) < v_x_threshold) {
+    V.x = (V.x < 0) ? -v_x_threshold : v_x_threshold;
+  }
 
   double alpha = std::atan2(V.y, V.x);
 
