@@ -727,8 +727,8 @@ void ChPacejkaTire::calc_combinedSlipReactions()
 void ChPacejkaTire::calc_relaxationLengths()
 {
   double p_Ky4 = 2;
-  double C_Fx = 77000;  // calibrated using Fx - pure long slip case.      157000
-  double C_Fy = 129000; // calibrated using Fy - pure lateral slip case.  129000
+  double C_Fx = 161000;  // calibrated, sigma_kappa = sigma_kappa_ref = 1.29
+  double C_Fy = 144000; // calibrated, sigma_alpha = sigma_alpha_ref = 0.725
   double p_Ky5 = 0;
   double p_Ky6 = 0.92;
   double p_Ky7 = 0.24;
@@ -741,13 +741,13 @@ void ChPacejkaTire::calc_relaxationLengths()
   double sigma_kappa = C_Fkappa / C_Fx;
   double C_Fgamma = m_FM.force.z * (p_Ky6 + p_Ky7 * m_dF_z) * m_params->scaling.lgay;
   double C_Fphi = (C_Fgamma * m_R0) / (1 - 0.5);
-
-  double sigma_kappa_adams = m_FM.force.z * (m_params->longitudinal.ptx1 + m_params->longitudinal.ptx2 * m_dF_z)*(m_R0*m_params->scaling.lsgkp / m_params->vertical.fnomin) * exp(m_params->longitudinal.ptx3 * m_dF_z);
-  double sigma_alpha_adams = m_params->lateral.pty1 * (1.0 - m_params->lateral.pky3 * std::abs(m_slip->gammaP)) * m_R0 * m_params->scaling.lsgal * std::sin(p_Ky4 * std::atan(m_FM.force.z / (m_params->lateral.pty2 * m_params->vertical.fnomin)));
-
+  
+  // NOTE: reference does not include the negative in the exponent for sigma_kappa_ref
+  // double sigma_kappa_ref = m_FM.force.z * (m_params->longitudinal.ptx1 + m_params->longitudinal.ptx2 * m_dF_z)*(m_R0*m_params->scaling.lsgkp / m_params->vertical.fnomin) * exp( -m_params->longitudinal.ptx3 * m_dF_z);
+  // double sigma_alpha_ref = m_params->lateral.pty1 * (1.0 - m_params->lateral.pky3 * abs( m_slip->gammaP ) ) * m_R0 * m_params->scaling.lsgal * sin(p_Ky4 * atan(m_FM.force.z / (m_params->lateral.pty2 * m_params->vertical.fnomin) ) );
   {
     relaxationL tmp = { C_Falpha, sigma_alpha, C_Fkappa, sigma_kappa, C_Fgamma, C_Fphi };
-    // relaxationL tmp = { C_Falpha, sigma_alpha_adams, C_Fkappa, sigma_kappa_adams, C_Fgamma, C_Fphi };
+    // relaxationL tmp = { C_Falpha, sigma_alpha_ref, C_Fkappa, sigma_kappa_ref, C_Fgamma, C_Fphi };
     *m_relaxation = tmp;
   }
 }
