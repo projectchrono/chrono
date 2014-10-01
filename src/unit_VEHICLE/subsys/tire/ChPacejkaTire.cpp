@@ -633,7 +633,8 @@ void ChPacejkaTire::calc_slip_from_uv()
 
   // Besselink is RH term in kappa_p, alpha_p
   double kappa_p = m_slip->u / m_relaxation->sigma_kappa - d_vlow * m_slip->V_sx / m_relaxation->C_Fkappa;
-  double alpha_p = -atan(m_slip->v_alpha / m_relaxation->sigma_alpha) - d_vlow * m_slip->V_sy / m_relaxation->C_Falpha;
+  // double alpha_p = -atan(m_slip->v_alpha / m_relaxation->sigma_alpha) - d_vlow * m_slip->V_sy / m_relaxation->C_Falpha;
+  double alpha_p = -m_slip->v_alpha / m_relaxation->sigma_alpha - d_vlow * m_slip->V_sy / m_relaxation->C_Falpha;
   double gamma_p = m_relaxation->C_Falpha * m_slip->v_gamma / (m_relaxation->C_Fgamma * m_relaxation->sigma_alpha);
   double phi_p = (m_relaxation->C_Falpha * m_slip->v_phi) / (m_relaxation->C_Fphi * m_relaxation->sigma_alpha);	// turn slip
   double phi_t = -m_slip->psi_dot / (m_slip->V_cx + 0.1);	// for turn slip
@@ -697,8 +698,8 @@ void ChPacejkaTire::update_tireFrame()
 void ChPacejkaTire::calc_relaxationLengths()
 {
   double p_Ky4 = 2;
-  double C_Fx = 177000;  // calibrated using Fx - pure long slip case.      77000
-  double C_Fy = 144000; // calibrated using Fy - pure lateral slip case.  144000
+  double C_Fx = 77000;  // calibrated using Fx - pure long slip case.      157000
+  double C_Fy = 129000; // calibrated using Fy - pure lateral slip case.  129000
   double p_Ky5 = 0;
   double p_Ky6 = 0.92;
   double p_Ky7 = 0.24;
@@ -716,8 +717,8 @@ void ChPacejkaTire::calc_relaxationLengths()
 	double sigma_alpha_adams = m_params->lateral.pty1 * (1.0 - m_params->lateral.pky3 * abs( m_slip->gammaP ) ) * m_R0 * m_params->scaling.lsgal * sin(p_Ky4 * atan(m_FM.force.z / (m_params->lateral.pty2 * m_params->vertical.fnomin) ) );
 
   {
-    // relaxationL tmp = { C_Falpha, sigma_alpha, C_Fkappa, sigma_kappa, C_Fgamma, C_Fphi };
-    relaxationL tmp = { C_Falpha, sigma_alpha_adams, C_Fkappa, sigma_kappa_adams, C_Fgamma, C_Fphi };
+    relaxationL tmp = { C_Falpha, sigma_alpha, C_Fkappa, sigma_kappa, C_Fgamma, C_Fphi };
+    // relaxationL tmp = { C_Falpha, sigma_alpha_adams, C_Fkappa, sigma_kappa_adams, C_Fgamma, C_Fphi };
     *m_relaxation = tmp;
   }
 }
@@ -773,7 +774,7 @@ void ChPacejkaTire::calcFy_pureLat()
   double K_y = abs(m_params->lateral.pky1 * m_params->vertical.fnomin * sin(p_Ky4 * atan(m_FM.force.z / ( (m_params->lateral.pky2 + p_Ky5 * pow(m_slip->gammaP,2) )* m_params->vertical.fnomin))) * (1.0 - m_params->lateral.pky3 * abs(m_slip->gammaP) ) * m_zeta->z3 * m_params->scaling.lyka);
 
   // doesn't make sense to ever have K_yAlpha be negative (it can be interpreted as lateral stiffnesss)
-  double B_y = K_y/ (C_y * D_y + 0.1);
+  double B_y = -K_y/ (C_y * D_y + 0.1);
 
   // double S_Hy = (m_params->lateral.phy1 + m_params->lateral.phy2 * m_dF_z) * m_params->scaling.lhy + (K_yGamma_0 * m_slip->gammaP - S_VyGamma) * m_zeta->z0 / (K_yAlpha + 0.1) + m_zeta->z4 - 1.0;
   // Adasms S_Hy is a bit different
@@ -822,8 +823,8 @@ void ChPacejkaTire::calcMz_pureLat()
   
   double B_t = (m_params->aligning.qbz1 + m_params->aligning.qbz2 * m_dF_z + m_params->aligning.qbz3 * pow(m_dF_z,2) ) * (1.0 + m_params->aligning.qbz4 * m_slip->gammaP + m_params->aligning.qbz5 * abs(m_slip->gammaP) ) * m_params->scaling.lvyka / m_params->scaling.lmuy;
   double C_t = m_params->aligning.qcz1;
-  double D_t0 = m_FM.force.z * (m_R0 / m_params->vertical.fnomin) * (m_params->aligning.qdz1 + m_params->aligning.qdz2 * m_dF_z) * m_params->scaling.ltr;
-  double D_t = D_t0 * (1.0 + m_params->aligning.qdz3 * abs(m_slip->gammaP) + m_params->aligning.qdz4 * pow(m_slip->gammaP,2) ) * m_zeta->z5;
+  double D_t0 = m_FM.force.z * (m_R0 / m_params->vertical.fnomin) * (m_params->aligning.qdz1 + m_params->aligning.qdz2 * m_dF_z);
+  double D_t = D_t0 * (1.0 + m_params->aligning.qdz3 * m_slip->gammaP + m_params->aligning.qdz4 * pow(m_slip->gammaP,2) ) * m_zeta->z5 * m_params->scaling.ltr;
   
   double E_t = (m_params->aligning.qez1 + m_params->aligning.qez2 * m_dF_z + m_params->aligning.qez3 * pow(m_dF_z,2) ) * (1.0 + (m_params->aligning.qez4 + m_params->aligning.qez5 * m_slip->gammaP) * (2.0 / chrono::CH_C_PI) * atan(B_t * C_t * alpha_t) );
   double t0 = D_t * cos(C_t * atan(B_t * alpha_t - E_t * (B_t * alpha_t - atan(B_t * alpha_t)))) * m_slip->cosPrime_alpha;
@@ -879,7 +880,7 @@ void ChPacejkaTire::calcFy_combined()
 
   double S_HyKappa = m_params->lateral.rhy1 + m_params->lateral.rhy2 * m_dF_z;
   double kappa_S = m_slip->kappaP + S_HyKappa;
-  double B_yKappa = (m_params->lateral.rby1 + rby4 * pow(m_slip->gammaP,2) ) * cos(atan(m_params->lateral.rby2 * (m_slip->alphaP - m_params->lateral.rby3) ) )*m_params->scaling.lyka;
+  double B_yKappa = (m_params->lateral.rby1 + rby4 * pow(m_slip->gammaP,2) ) * cos( atan(m_params->lateral.rby2 * (m_slip->alphaP - m_params->lateral.rby3) ) )*m_params->scaling.lyka;
   double C_yKappa = m_params->lateral.rcy1;
   double E_yKappa = m_params->lateral.rey1 + m_params->lateral.rey2 * m_dF_z;
   double D_VyKappa = m_pureLat->mu_y * m_FM.force.z * (m_params->lateral.rvy1 + m_params->lateral.rvy2 * m_dF_z + m_params->lateral.rvy3 * m_slip->gammaP) * cos(atan(m_params->lateral.rvy4 * m_slip->alphaP)) * m_zeta->z2;
@@ -913,20 +914,22 @@ void ChPacejkaTire::calcMz_combined()
     sign_alpha_r = -1;
  
 
-  double alpha_t_eq = atan( pow(tan(m_pureTorque->alpha_t), 2) + pow(m_pureLong->K_x / m_pureTorque->K_y, 2)
-    * pow(m_slip->kappaP, 2) * sign_alpha_t);
-  double alpha_r_eq = sqrt( pow(tan(m_pureTorque->alpha_r), 2) + pow(m_pureLong->K_x / m_pureTorque->K_y, 2)
-    * pow(m_slip->kappaP, 2) * sign_alpha_r );
+  double alpha_t_eq = sign_alpha_t * sqrt( pow(m_pureTorque->alpha_t, 2) + pow(m_pureLong->K_x / m_pureTorque->K_y, 2)
+    * pow(m_slip->kappaP, 2));
+  double alpha_r_eq = sign_alpha_r * sqrt( pow(m_pureTorque->alpha_r, 2) + pow(m_pureLong->K_x / m_pureTorque->K_y, 2)
+    * pow(m_slip->kappaP, 2) );
 
   // TODO: cos(alpha) is in Adams/Car, not in Pacejka. why???
   double M_zr = m_pureTorque->D_r * cos(m_pureTorque->C_r * atan(m_pureTorque->B_r * alpha_r_eq)) * m_slip->cosPrime_alpha;
   double t = m_pureTorque->D_t * cos(m_pureTorque->C_t * atan(m_pureTorque->B_t*alpha_t_eq - m_pureTorque->E_t * (m_pureTorque->B_t * alpha_t_eq - atan(m_pureTorque->B_t * alpha_t_eq)))) * m_slip->cosPrime_alpha;
 
   double M_z = (-t * FP_y) + M_zr  + (s * m_FM_combined.force.x);
+  double M_z_y = -t * FP_y;
+  double M_z_x = s * m_FM_combined.force.x;
   m_FM_combined.moment.z = M_z;
 
   {
-    combinedTorqueCoefs tmp = { m_slip->cosPrime_alpha, FP_y, s, alpha_t_eq, alpha_r_eq, M_zr, t };
+    combinedTorqueCoefs tmp = { m_slip->cosPrime_alpha, FP_y, s, alpha_t_eq, alpha_r_eq, M_zr, t, M_z_x, M_z_y };
     *m_combinedTorque = tmp;
   }
 }
@@ -1406,7 +1409,7 @@ void ChPacejkaTire::WriteOutData(double             time,
     }
     else {
       // write the headers
-      oFile << "time,kappa,alpha,gamma,kappaP,alphaP,gammaP,Vx,Vy,Fx,Fy,Fz,Mx,My,Mz,Fxc,Fyc,Mzc" << std::endl;
+      oFile << "time,kappa,alpha,gamma,kappaP,alphaP,gammaP,Vx,Vy,Fx,Fy,Fz,Mx,My,Mz,Fxc,Fyc,Mzc,Mzx,Mzy" << std::endl;
       m_Num_WriteOutData++;
       oFile.close();
     }
@@ -1425,7 +1428,8 @@ void ChPacejkaTire::WriteOutData(double             time,
       << m_tireState.lin_vel.x << "," << m_tireState.lin_vel.y << ","
       << m_FM.force.x << "," << m_FM.force.y << "," << m_FM.force.z << ","
       << m_FM.moment.x << "," << m_FM.moment.y << "," << m_FM.moment.z << ","
-      << m_FM_combined.force.x << "," << m_FM_combined.force.y << "," << m_FM_combined.moment.z
+      << m_FM_combined.force.x << "," << m_FM_combined.force.y << "," << m_FM_combined.moment.z <<","
+      << m_combinedTorque->M_z_x <<","<< m_combinedTorque->M_z_y
       << std::endl;
     // close the file
     appFile.close();

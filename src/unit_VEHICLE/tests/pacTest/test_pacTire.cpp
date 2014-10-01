@@ -154,7 +154,7 @@ int main(int argc, char* argv[])
 
 
     // DEBUGGING
-    if (step == 20)
+    if (step == 350)
       int arg = 2;
 
 

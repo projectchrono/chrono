@@ -133,8 +133,9 @@ class PacTire_panda:
         # plot transient slip output?
         if( self._use_transient_slip):
             # Fx here
-            df_T = pd.DataFrame(self._m_df_T, columns = ['kappa','Fxc'])
+            df_T = pd.DataFrame(self._m_df_T, columns = ['kappa','Fxc','Fyc'])
             axF.plot(df_T['kappa'], df_T['Fxc'],'k-*',linewidth=1.0,label='Fxc transient')
+            # axF.plot(df_T['kappa'], df_T['Fyc'],'c--',linewidth=1.5,label='Fyc transient')
         axF.set_xlabel(r'$\kappa $')
         axF.set_ylabel('Force [N]')
         axF.legend(loc='best')
@@ -152,12 +153,24 @@ class PacTire_panda:
         # plot transient slip output for Mz?
         if( self._use_transient_slip):
             # Mzc here
-            df_T_M = pd.DataFrame(self._m_df_T, columns = ['kappa','Mzc'])
-            axM.plot(df_T_M['kappa'], df_T_M['Mzc'],'k-*',linewidth=1.0,label='Mzc transient')    
-        
+            df_T_M = pd.DataFrame(self._m_df_T, columns = ['kappa','Mzc','Fyc','Fxc','Mzx','Mzy'])
+            axM.plot(df_T_M['kappa'], df_T_M['Mzc'],'k-*',linewidth=1.0,label='Mzc transient')
+            # overlay the components of the moment from the x and y forces, respectively
+            axM.plot(df_T_M['kappa'], df_T_M['Mzx'],'y--',linewidth=1.5,label='Mz,x')
+            axM.plot(df_T_M['kappa'], df_T_M['Mzy'],'b--',linewidth=1.5,label='Mz,y')
+            # overlay the forces, to see what is happening on those curves when
+            # Mz deviates from validation data values
+            '''
+            ax2 = axM.twinx()
+            ax2.plot(df_T_M['kappa'], df_T_M['Fxc'],'g-.',linewidth=1.5,label='Fxc transient')
+            ax2.plot(df_T_M['kappa'], df_T_M['Fyc'],'c-.',linewidth=1.5,label='Fyc transient')
+            ax2.set_ylabel('Force [N]')
+            ax2.legend(loc='lower right')
+            '''
         axM.set_xlabel(r'$\kappa $')
         axM.set_ylabel('Moment [N-m]')
-        axM.legend(loc='best')
+        axM.legend(loc='upper left')
+        
         axM.set_title(r'$\kappa $, combined slip')
     
     # @brief plot Fy combined vs. kappa and alpha
