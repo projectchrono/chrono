@@ -258,11 +258,16 @@ double ChPacejkaTire::get_longvl() const
 
 
 // -----------------------------------------------------------------------------
+// Update the internal state of this tire using the specified wheel state. The
+// quantities calculated here will be kept constant until the next call to the
+// Update() function.
 // -----------------------------------------------------------------------------
 void ChPacejkaTire::Update(double               time,
                            const ChWheelState&  state)
 {
-  // check that input tire model parameters are defined
+  //// TODO: This must be removed from here.  A tire with unspecified or
+  ////       incorrect parameters should have been invalidate at initialization.
+  // Check that input tire model parameters are defined
   if (!m_params_defined)
   {
     GetLog() << " ERROR: cannot update tire w/o setting the model parameters first! \n\n\n";
@@ -282,25 +287,39 @@ void ChPacejkaTire::Update(double               time,
     return;
   }
 
+  // Initialize the output tire forces to ensure that we do not report any tire
+  // forces if the wheel does not contact the terrain.
+  m_FM.point = ChVector<>(0, 0, 0);
+  m_FM.force = ChVector<>(0, 0, 0);
+  m_FM.moment = ChVector<>(0, 0, 0);
+
   // Calculate the vertical load and update tire deflection and tire rolling
   // radius.
   update_verticalLoad();
 
   m_dF_z = (m_FM.force.z - m_params->vertical.fnomin) / m_params->vertical.fnomin;
 
-  // calculate slips based on wheel body info first
-  // assume input to wheel spindle instantly affect tire contact
+  // Calculate kinematic slip quantities, based on specified wheel state. This
+  // assumes that the inputs to wheel spindle instantly affect tire contact.
+  // Note: kappaP, alphaP, gammaP may be overridden in Advance
   calc_slip_kinematic();
-  // note: kappaP, alphaP, gammaP can be overridden in Advance
 }
 
 
 // -----------------------------------------------------------------------------
+// Advance the state of this tire by the specified time step. If using the
+// transient slip model, perform integration taking as many integration steps
+// as needed.
 // -----------------------------------------------------------------------------
 void ChPacejkaTire::Advance(double step)
 {
-  // if using single point contact model, slips are calculated from
-  // compliance between tire and contact patch
+  // Do nothing if the wheel does not contact the terrain.  In this case, all
+  // reported tire forces will be zero.
+  if (!m_in_contact)
+    return;
+
+  // If using single point contact model, slips are calculated from compliance
+  // between tire and contact patch.
   if (m_use_transient_slip)
   {
     // 1 of 2 ways to deal with user input time step increment
@@ -312,20 +331,20 @@ void ChPacejkaTire::Advance(double step)
       advance_slip_transient(m_step_size);
       remaining_time -= m_step_size;
     }
-    // now, remaining_time <= m_step_size, use that to get final slip displacements
+    // take one final step to reach the specified time.
     advance_slip_transient(remaining_time);
   }
 
-  // calculate the force and moment reaction, pure slip case
+  // Calculate the force and moment reaction, pure slip case
   calc_pureSlipReactions();
 
-  // updates m_FM_combined.forces, m_FM_combined.moment.z
+  // Update m_FM_combined.forces, m_FM_combined.moment.z
   calc_combinedSlipReactions();
 
-  // update M_x, apply to both m_FM and m_FM_combined
+  // Update M_x, apply to both m_FM and m_FM_combined
   calc_Mx();
 
-  // update M_y, apply to both m_FM and m_FM_combined
+  // Update M_y, apply to both m_FM and m_FM_combined
   calc_My();
 }
 
@@ -334,7 +353,7 @@ void ChPacejkaTire::Advance(double step)
 // Calculate the current tire coordinate system, centered at the wheel origin,
 // with the Z-axis normal to the terrain and X-axis in the heading direction.
 //
-//// TODO: check comment below...
+//// TODO: check comment below for correctness.
 // need a local frame to transform output forces/moments to global frame
 // Pacejka (2006), Fig 2.3, all forces are calculated at the contact point "C"
 // Moment calculations take this into account, so all reactions are global
@@ -377,10 +396,15 @@ void ChPacejkaTire::update_verticalLoad()
     // Estimate the tire deformation and set the relaxation length (assuming
     // static loading).
     m_R_l = m_R0 - Fz / m_params->vertical.vertical_stiffness;
+
+    // In this case, the tire is always assumed to be in contact with the
+    // terrain.
+    m_in_contact = true;
   }
   else {
     // Calculate the tire vertical load using a spring-damper model. Note that
-    // this also sets the tire relaxation length m_R_l.
+    // this also sets the tire relaxation length m_R_l, as well as the boolean
+    // flag m_in_contact.
     Fz = calc_Fz();
   }
 
@@ -412,10 +436,10 @@ double ChPacejkaTire::calc_Fz()
   ChCoordsys<> contact_frame;
   double       depth;
 
-  bool in_contact = disc_terrain_contact(m_tireState.pos, m_tireState.rot.GetYaxis(), m_R0,
-                                         contact_frame, depth);
+  m_in_contact = disc_terrain_contact(m_tireState.pos, m_tireState.rot.GetYaxis(), m_R0,
+                                      contact_frame, depth);
 
-  if (!in_contact)
+  if (!m_in_contact)
     return 0;
 
   // Calculate relative velocity (wheel - terrain) at contact point, in the
@@ -435,7 +459,6 @@ double ChPacejkaTire::calc_Fz()
 
   return Fz;
 }
-
 
 
 // -----------------------------------------------------------------------------
@@ -496,6 +519,10 @@ void ChPacejkaTire::calc_slip_kinematic()
 
 }
 
+// -----------------------------------------------------------------------------
+// Calculate transient slip properties, using first order ODEs to find slip
+// displacements from velocities.
+// -----------------------------------------------------------------------------
 void ChPacejkaTire::advance_slip_transient(double step_size)
 {
   // hard-coded, for now
@@ -668,7 +695,9 @@ void ChPacejkaTire::calc_slip_from_uv()
 }
 
 
-//  combined slip reactions
+// -----------------------------------------------------------------------------
+// Calculate tire reactions.
+// -----------------------------------------------------------------------------
 void ChPacejkaTire::calc_combinedSlipReactions()
 {
   // calculate Fx for combined slip
@@ -679,9 +708,7 @@ void ChPacejkaTire::calc_combinedSlipReactions()
 
   // calc Mz for combined slip
   calcMz_combined();
-
 }
-
 
 void ChPacejkaTire::calc_relaxationLengths()
 {
@@ -710,7 +737,6 @@ void ChPacejkaTire::calc_relaxationLengths()
     *m_relaxation = tmp;
   }
 }
-
 
 void ChPacejkaTire::calcFx_pureLong()
 {
@@ -834,8 +860,6 @@ void ChPacejkaTire::calcMz_pureLat()
   }
 }
 
-
-// calculate Fx for combined slip
 void ChPacejkaTire::calcFx_combined()
 {
   double rbx3 = 1.0;
@@ -861,7 +885,6 @@ void ChPacejkaTire::calcFx_combined()
   }
 }
 
-// calc Fy for combined slip
 void ChPacejkaTire::calcFy_combined()
 {
   double rby4 = 0;
@@ -885,7 +908,6 @@ void ChPacejkaTire::calcFy_combined()
   }
 }
 
-// calc Mz for combined slip
 void ChPacejkaTire::calcMz_combined()
 {
   double FP_y = m_FM_combined.force.y - m_combinedLat->S_VyKappa;
@@ -922,8 +944,6 @@ void ChPacejkaTire::calcMz_combined()
   }
 }
 
-
-
 void ChPacejkaTire::calc_Mx()
 {
   double M_x = m_FM.force.z * m_R0 * (m_params->overturning.qsx1 - m_params->overturning.qsx2 * m_slip->gammaP
@@ -941,9 +961,11 @@ void ChPacejkaTire::calc_My()
   m_FM_combined.moment.y = M_y;
 }
 
-
-// what does the PacTire in file look like?
-// see models/data/hmmwv/pactest.tir
+// -----------------------------------------------------------------------------
+// Load a PacTire specification file.
+//
+// For an example, see the file models/data/hmmwv/pactest.tir
+// -----------------------------------------------------------------------------
 void ChPacejkaTire::loadPacTireParamFile()
 {
   // try to load the file
@@ -1018,9 +1040,7 @@ void ChPacejkaTire::readPacTireInput(std::ifstream& inFile)
 
   // 14: [aligning]
   readSection_aligning(inFile);
-
 }
-
 
 void ChPacejkaTire::readSection_UNITS(std::ifstream& inFile)
 {
@@ -1069,7 +1089,6 @@ void ChPacejkaTire::readSection_MODEL(std::ifstream& inFile)
   std::getline(inFile, tline);
   split = utils::splitStr(tline, '=');
   m_params->model.tyreside = utils::splitStr(split[1], '\'')[1];
-
 }
 
 void ChPacejkaTire::readSection_DIMENSION(std::ifstream& inFile)
@@ -1097,9 +1116,7 @@ void ChPacejkaTire::readSection_DIMENSION(std::ifstream& inFile)
   // right size, create the struct
   struct dimension dim = { dat[0], dat[1], dat[2], dat[3], dat[4] };
   m_params->dimension = dim;
-
 }
-
 
 void ChPacejkaTire::readSection_SHAPE(std::ifstream& inFile)
 {
@@ -1125,7 +1142,6 @@ void ChPacejkaTire::readSection_SHAPE(std::ifstream& inFile)
   m_params->shape.width = wid;
 }
 
-
 void ChPacejkaTire::readSection_VERTICAL(std::ifstream& inFile){
   // skip the first line
   std::string tline;
@@ -1148,9 +1164,7 @@ void ChPacejkaTire::readSection_VERTICAL(std::ifstream& inFile){
   // right size, create the struct
   struct vertical vert = { dat[0], dat[1], dat[2], dat[3], dat[4], dat[5] };
   m_params->vertical = vert;
-
 }
-
 
 void ChPacejkaTire::readSection_RANGES(std::ifstream& inFile){
   // skip the first line
@@ -1228,9 +1242,7 @@ void ChPacejkaTire::readSection_RANGES(std::ifstream& inFile){
   }
   struct vertical_force_range vert_range = { dat[0], dat[1] };
   m_params->vertical_force_range = vert_range;
-
 }
-
 
 void ChPacejkaTire::readSection_scaling(std::ifstream& inFile)
 {
@@ -1258,7 +1270,6 @@ void ChPacejkaTire::readSection_scaling(std::ifstream& inFile)
   m_params->scaling = coefs;
 }
 
-
 void ChPacejkaTire::readSection_longitudinal(std::ifstream& inFile)
 {
   std::string tline;
@@ -1280,9 +1291,7 @@ void ChPacejkaTire::readSection_longitudinal(std::ifstream& inFile)
     dat[8], dat[9], dat[10], dat[11], dat[12], dat[13], dat[14], dat[15], dat[16], dat[17],
     dat[18], dat[19], dat[20], dat[21], dat[22], dat[23] };
   m_params->longitudinal = coefs;
-
 }
-
 
 void ChPacejkaTire::readSection_overturning(std::ifstream& inFile)
 {
@@ -1303,9 +1312,7 @@ void ChPacejkaTire::readSection_overturning(std::ifstream& inFile)
   }
   struct overturning_coefficients coefs = { dat[0], dat[1], dat[2] };
   m_params->overturning = coefs;
-
 }
-
 
 void ChPacejkaTire::readSection_lateral(std::ifstream& inFile)
 {
@@ -1329,9 +1336,7 @@ void ChPacejkaTire::readSection_lateral(std::ifstream& inFile)
     dat[18], dat[19], dat[20], dat[21], dat[22], dat[23], dat[24], dat[25], dat[26], dat[27],
     dat[28], dat[29], dat[30], dat[31], dat[32], dat[33] };
   m_params->lateral = coefs;
-
 }
-
 
 void ChPacejkaTire::readSection_rolling(std::ifstream& inFile)
 {
@@ -1352,9 +1357,7 @@ void ChPacejkaTire::readSection_rolling(std::ifstream& inFile)
   }
   struct rolling_coefficients coefs = { dat[0], dat[1], dat[2], dat[3] };
   m_params->rolling = coefs;
-
 }
-
 
 void ChPacejkaTire::readSection_aligning(std::ifstream& inFile)
 {
@@ -1378,12 +1381,11 @@ void ChPacejkaTire::readSection_aligning(std::ifstream& inFile)
     dat[18], dat[19], dat[20], dat[21], dat[22], dat[23], dat[24], dat[25], dat[26], dat[27],
     dat[28], dat[29], dat[30] };
   m_params->aligning = coefs;
-
 }
 
-
-// write for output to python pandas module
-// 
+// -----------------------------------------------------------------------------
+// Write output file for post-processing with the Python pandas module.
+// -----------------------------------------------------------------------------
 void ChPacejkaTire::WriteOutData(double             time,
                                  const std::string& outFilename)
 {

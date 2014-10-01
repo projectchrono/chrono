@@ -289,23 +289,23 @@ private:
 
   bool m_use_transient_slip;
 
-  ChWheelState m_tireState;     // current tire state
-  ChCoordsys<> m_tire_frame;    // current tire coordinate system
+  ChWheelState m_tireState;    // current tire state
+  ChCoordsys<> m_tire_frame;   // current tire coordinate system
 
-  double m_R0;              // unloaded radius
-  double m_R_eff;           // current effect rolling radius
-  double m_R_l;             // relaxation length
+  bool m_in_contact;           // indicates if there is tire-terrain contact
 
-  double m_dF_z;            // (Fz - Fz,nom) / Fz,nom
-  bool m_use_Fz_override;   // calculate Fz using collision, or user input
-  double m_Fz_override;     // if manually inputting the vertical wheel load
+  double m_R0;                 // unloaded radius
+  double m_R_eff;              // current effect rolling radius
+  double m_R_l;                // relaxation length
 
-  double m_step_size;       // integration step size
+  double m_dF_z;               // (Fz - Fz,nom) / Fz,nom
+  bool m_use_Fz_override;      // calculate Fz using collision, or user input
+  double m_Fz_override;        // if manually inputting the vertical wheel load
 
-  // OUTPUTS
+  double m_step_size;          // integration step size
 
-  ChTireForce m_FM;            // based on pure slip
-  ChTireForce m_FM_combined;   // based on combined slip
+  ChTireForce m_FM;            // output tire forces, based on pure slip
+  ChTireForce m_FM_combined;   // output tire forces, based on combined slip
 
   std::string m_paramFile;     // input parameter file
   std::string m_outFilename;   // output filename
