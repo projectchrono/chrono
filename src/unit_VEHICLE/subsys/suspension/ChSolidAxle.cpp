@@ -149,7 +149,24 @@ void ChSolidAxle::Initialize(ChSharedPtr<ChBodyAuxRef>  chassis,
   suspension_to_abs.ConcatenatePreTransformation(chassis->GetFrame_REF_to_abs());
 
   // Transform the location of the axle body COM to absolute frame.
-  ChVector<> axleCOM = suspension_to_abs.TransformLocalToParent(getAxleTubeCOM());
+  ChVector<> axleCOM_local = getAxleTubeCOM();
+  ChVector<> axleCOM = suspension_to_abs.TransformLocalToParent(axleCOM_local);
+
+  // Calculate end points on the axle body, expressed in the absolute frame
+  // (for visualization)
+  ChVector<> midpoint_local = 0.5 * (getLocation(KNUCKLE_U) + getLocation(KNUCKLE_L));
+  ChVector<> outer_local(axleCOM_local.x, midpoint_local.y, axleCOM_local.z);
+  ChVector<> axleOuterL = suspension_to_abs.TransformPointLocalToParent(outer_local);
+  outer_local.y = -outer_local.y;
+  ChVector<> axleOuterR = suspension_to_abs.TransformPointLocalToParent(outer_local);
+
+  // Initialize axle body.
+  m_axleTube->SetPos(axleCOM);
+  m_axleTube->SetRot(chassis->GetFrame_REF_to_abs().GetRot());
+  m_axleTube->SetMass(getAxleTubeMass());
+  m_axleTube->SetInertiaXX(getAxleTubeInertia());
+  AddVisualizationLink(m_axleTube, axleOuterL, axleOuterR, getAxleTubeRadius(), ChColor(0.7f, 0.7f, 0.7f));
+  chassis->GetSystem()->AddBody(m_axleTube);
 
   // Transform all points and directions on right and left sides to absolute frame
   std::vector<ChVector<> > points_R(NUM_POINTS);
@@ -170,16 +187,6 @@ void ChSolidAxle::Initialize(ChSharedPtr<ChBodyAuxRef>  chassis,
     rel_dir.y = -rel_dir.y;
     dirs_R[i] = suspension_to_abs.TransformDirectionLocalToParent(rel_dir);
   }
-
-  // Initialize axle body.
-  m_axleTube->SetPos(axleCOM);
-  m_axleTube->SetRot(chassis->GetFrame_REF_to_abs().GetRot());
-  m_axleTube->SetMass(getAxleTubeMass());
-  m_axleTube->SetInertiaXX(getAxleTubeInertia());
-  ChVector<> axleOuterL = ChVector<>(axleCOM.x, 0.5*(points_L[KNUCKLE_L]+points_L[KNUCKLE_U]).y, axleCOM.z);
-  ChVector<> axleOuterR = ChVector<>(axleCOM.x, 0.5*(points_R[KNUCKLE_L]+points_R[KNUCKLE_U]).y, axleCOM.z);
-  AddVisualizationLink(m_axleTube, axleOuterL, axleOuterR, getAxleTubeRadius(), ChColor(0.7f, 0.7f, 0.7f));
-  chassis->GetSystem()->AddBody(m_axleTube);
 
   // Initialize left and right sides.
   InitializeSide(LEFT, chassis, points_L, dirs_L);
@@ -292,7 +299,7 @@ void ChSolidAxle::InitializeSide(ChSuspension::Side              side,
   chassis->GetSystem()->AddLink(m_universalLowerLink[side]);
 
   // Initialize the revolute joint between upright and spindle.
-  ChCoordsys<> rev_csys(points[SPINDLE], Q_from_AngAxis(CH_C_PI / 2.0, VECT_X));
+  ChCoordsys<> rev_csys(points[SPINDLE], chassisRot * Q_from_AngAxis(CH_C_PI / 2.0, VECT_X));
   m_revolute[side]->Initialize(m_spindle[side], m_knuckle[side], rev_csys);
   chassis->GetSystem()->AddLink(m_revolute[side]);
 
