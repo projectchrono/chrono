@@ -55,30 +55,39 @@ public:
   void Initialize(ChSharedPtr<ChBody>  chassis,
                   ChSharedPtr<ChShaft> driveshaft);
 
+  /// Return the current engine speed.
   virtual double GetMotorSpeed() const { return  m_crankshaft->GetPos_dt(); }
+
+  /// Return the current engine torque.
   virtual double GetMotorTorque() const { return  m_engine->GetTorqueReactionOn1(); }
+
+  /// Return the value of slippage in the torque converter.
+  virtual double GetTorqueConverterSlippage() const { return m_torqueconverter->GetSlippage(); }
+
+  /// Return the input torque to the torque converter.
+  virtual double GetTorqueConverterInputTorque() const { return -m_torqueconverter->GetTorqueReactionOnInput(); }
+
+  /// Return the output torque from the torque converter.
+  virtual double GetTorqueConverterOutputTorque() const { return m_torqueconverter->GetTorqueReactionOnOutput(); }
+
+  /// Return the current transmission gear
+  virtual int GetCurrentTransmissionGear() const { return m_current_gear; }
+
+  /// Use this function to set the mode of automatic transmission.
+  virtual void SetDriveMode(ChPowertrain::DriveMode mmode);
 
   /// Use this function to shift from one gear to another.
   /// A zero latency shift is assumed.
   /// Note, index starts from 0.
   void SetSelectedGear(int igear);
 
-  /// Tell which is the actual gear number.
-  int GetSelectedGear() const { return m_current_gear; }
-
-  virtual void Update(double time, double throttle);
-
-  /// Use this function to set the mode of automatic transmission.
-  void SetDriveMode(ChPowertrain::DriveMode mmode);
-
-  /// Use this function to get the mode of automatic transmission.
-  ChPowertrain::DriveMode GetDriveMode() { return m_drive_mode; }
-
   /// Use this to define the gear shift latency, in seconds.
   void SetGearShiftLatency(double ml) {m_gear_shift_latency= ml;}
 
   /// Use this to get the gear shift latency, in seconds.
   double GetGearShiftLatency(double ml) {return m_gear_shift_latency;}
+
+  virtual void Update(double time, double throttle);
 
 protected:
 
@@ -118,7 +127,6 @@ private:
 
   ChVector<> m_dir_motor_block;
 
-  ChPowertrain::DriveMode m_drive_mode;
   double m_last_time_gearshift;
   double m_gear_shift_latency;
 

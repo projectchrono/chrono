@@ -153,16 +153,13 @@ bool ChIrrGuiDriver::OnEvent(const SEvent& event)
       return true;
 
     case KEY_KEY_Z:
-      if (ChShaftsPowertrain* powertrain = dynamic_cast<ChShaftsPowertrain*>(m_car.m_powertrain))
-        powertrain->SetDriveMode(ChPowertrain::FORWARD);
+      m_car.m_powertrain->SetDriveMode(ChPowertrain::FORWARD);
       return true;
     case KEY_KEY_X:
-      if (ChShaftsPowertrain* powertrain = dynamic_cast<ChShaftsPowertrain*>(m_car.m_powertrain))
-        powertrain->SetDriveMode(ChPowertrain::NEUTRAL);
+      m_car.m_powertrain->SetDriveMode(ChPowertrain::NEUTRAL);
       return true;
     case KEY_KEY_C:
-      if (ChShaftsPowertrain* powertrain = dynamic_cast<ChShaftsPowertrain*>(m_car.m_powertrain))
-        powertrain->SetDriveMode(ChPowertrain::REVERSE);
+      m_car.m_powertrain->SetDriveMode(ChPowertrain::REVERSE);
       return true;
     }
 
@@ -339,6 +336,7 @@ void ChIrrGuiDriver::renderStats()
   sprintf(msg, "Speed: %+.2f", speed);
   renderLinGauge(std::string(msg), speed/30, false, m_HUD_x, m_HUD_y + 100, 120, 15);
 
+
   ChPowertrain* ptrain = m_car.m_powertrain;
 
   double engine_rpm = ptrain->GetMotorSpeed() * 60 / chrono::CH_C_2PI;
@@ -349,39 +347,37 @@ void ChIrrGuiDriver::renderStats()
   sprintf(msg, "Eng. Nm: %+.2f", engine_torque);
   renderLinGauge(std::string(msg), engine_torque / 600, false, m_HUD_x, m_HUD_y + 140, 120, 15);
 
-  if (ChShaftsPowertrain* powertrain = dynamic_cast<ChShaftsPowertrain*>(ptrain))
+  double tc_slip = ptrain->GetTorqueConverterSlippage();
+  sprintf(msg, "T.conv. slip: %+.2f", tc_slip);
+  renderLinGauge(std::string(msg), tc_slip / 1, false, m_HUD_x, m_HUD_y + 160, 120, 15);
+
+  double tc_torquein = ptrain->GetTorqueConverterInputTorque();
+  sprintf(msg, "T.conv. in  Nm: %+.2f", tc_torquein);
+  renderLinGauge(std::string(msg), tc_torquein / 600, false, m_HUD_x, m_HUD_y + 180, 120, 15);
+
+  double tc_torqueout = ptrain->GetTorqueConverterOutputTorque();
+  sprintf(msg, "T.conv. out Nm: %+.2f", tc_torqueout);
+  renderLinGauge(std::string(msg), tc_torqueout / 600, false, m_HUD_x, m_HUD_y + 200, 120, 15);
+
+  int ngear = ptrain->GetCurrentTransmissionGear();
+  ChPowertrain::DriveMode drivemode = ptrain->GetDriveMode();
+  switch (drivemode)
   {
-    double tc_slip = powertrain->m_torqueconverter->GetSlippage();
-    sprintf(msg, "T.conv. slip: %+.2f", tc_slip);
-    renderLinGauge(std::string(msg), tc_slip / 1, false, m_HUD_x, m_HUD_y + 160, 120, 15);
-
-    double tc_torquein = -powertrain->m_torqueconverter->GetTorqueReactionOnInput();
-    sprintf(msg, "T.conv. in  Nm: %+.2f", tc_torquein);
-    renderLinGauge(std::string(msg), tc_torquein / 600, false, m_HUD_x, m_HUD_y + 180, 120, 15);
-
-    double tc_torqueout = powertrain->m_torqueconverter->GetTorqueReactionOnOutput();
-    sprintf(msg, "T.conv. out Nm: %+.2f", tc_torqueout);
-    renderLinGauge(std::string(msg), tc_torqueout / 600, false, m_HUD_x, m_HUD_y + 200, 120, 15);
-
-    int ngear = powertrain->GetSelectedGear();
-    ChPowertrain::DriveMode drivemode = powertrain->GetDriveMode();
-    switch (drivemode)
-    {
-    case ChPowertrain::FORWARD:
-      sprintf(msg, "Gear: forward, n.gear: %d", ngear);
-      break;
-    case ChPowertrain::NEUTRAL:
-      sprintf(msg, "Gear: neutral");
-      break;
-    case ChPowertrain::REVERSE:
-      sprintf(msg, "Gear: reverse");
-      break;
-    default:
-      sprintf(msg, "Gear:");
-      break;
-    }
-    renderLinGauge(std::string(msg), (double)ngear / 4.0, false, m_HUD_x, m_HUD_y + 220, 120, 15);
+  case ChPowertrain::FORWARD:
+    sprintf(msg, "Gear: forward, n.gear: %d", ngear);
+    break;
+  case ChPowertrain::NEUTRAL:
+    sprintf(msg, "Gear: neutral");
+    break;
+  case ChPowertrain::REVERSE:
+    sprintf(msg, "Gear: reverse");
+    break;
+  default:
+    sprintf(msg, "Gear:");
+    break;
   }
+  renderLinGauge(std::string(msg), (double)ngear / 4.0, false, m_HUD_x, m_HUD_y + 220, 120, 15);
+
 
   ChDriveline* dline = m_car.m_driveline;
 

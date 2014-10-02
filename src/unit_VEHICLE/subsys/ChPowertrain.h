@@ -45,11 +45,29 @@ public:
 
   virtual ~ChPowertrain() {}
 
-  /// Get the engine speed.
+  /// Return the current engine speed.
   virtual double GetMotorSpeed() const = 0;
 
-  /// Get the engine torque.
+  /// Return the current engine torque.
   virtual double GetMotorTorque() const = 0;
+
+  /// Return the value of slippage in the torque converter.
+  virtual double GetTorqueConverterSlippage() const = 0;
+
+  /// Return the input torque to the torque converter.
+  virtual double GetTorqueConverterInputTorque() const = 0;
+
+  /// Return the output torque from the torque converter.
+  virtual double GetTorqueConverterOutputTorque() const = 0;
+
+  /// Return the current transmission gear.
+  virtual int GetCurrentTransmissionGear() const = 0;
+
+  /// Return the current mode of the transmission.
+  DriveMode GetDriveMode() { return m_drive_mode; }
+
+  /// Set the mode of the transmission.
+  virtual void SetDriveMode(DriveMode mmode) = 0;
 
   /// Update the state of this powertrain system at the current time.
   /// The powertrain system is provided the current driver throttle input, a
@@ -58,6 +76,9 @@ public:
     double time,       ///< [in] current time
     double throttle    ///< [in] current throttle input [0,1]
     ) = 0;
+
+protected:
+  DriveMode m_drive_mode;
 };
 
 

@@ -32,7 +32,6 @@ ChShaftsPowertrain::ChShaftsPowertrain(ChVehicle*         car,
                                        const ChVector<>&  dir_motor_block)
 : ChPowertrain(car),
   m_dir_motor_block(dir_motor_block),
-  m_drive_mode(FORWARD),
   m_last_time_gearshift(0),
   m_gear_shift_latency(0.5)
 {
@@ -55,8 +54,6 @@ void ChShaftsPowertrain::Initialize(ChSharedPtr<ChBody>  chassis,
   SetGearRatios(m_gear_ratios);
   assert(m_gear_ratios.size() > 1);
   m_current_gear = 1;
-
-  m_drive_mode = FORWARD;
 
   // CREATE  a 1 d.o.f. object: a 'shaft' with rotational inertia.
   // In this case it is the motor block. This because the ChShaftsThermalEngine
