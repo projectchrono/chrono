@@ -102,13 +102,11 @@ class CHRONO_ALIGN_16 real3 {
    inline real3 normalize() const {
       return _mm_div_ps(mmvalue, _mm_sqrt_ps(_mm_dp_ps(mmvalue, mmvalue, 0x7F)));
    }
-   inline real length2() const {
-      return dot(real3(this));
-   }
    inline real3 cross(const real3 &b) const {
       return _mm_sub_ps(_mm_mul_ps(_mm_shuffle_ps(mmvalue, mmvalue, _MM_SHUFFLE(3, 0, 2, 1)), _mm_shuffle_ps(b.mmvalue, b.mmvalue, _MM_SHUFFLE(3, 1, 0, 2))),
                         _mm_mul_ps(_mm_shuffle_ps(mmvalue, mmvalue, _MM_SHUFFLE(3, 1, 0, 2)), _mm_shuffle_ps(b.mmvalue, b.mmvalue, _MM_SHUFFLE(3, 0, 2, 1))));
    }
+
 #else
    inline real3()
    : x(0), y(0), z(0) {
@@ -163,9 +161,7 @@ class CHRONO_ALIGN_16 real3 {
    inline real3 normalize() const {
       return real3(x, y, z) * rlength();
    }
-   inline real length2() const {
-      return dot(real3(x,y,z));
-   }
+
    inline real3 cross(const real3 &b) const {
       real3 result;
       result.x = (y * b.z) - (z * b.y);
@@ -212,7 +208,19 @@ class CHRONO_ALIGN_16 real3 {
       *this = *this / b;
       return *this;
    }
-   inline real& operator[](unsigned int i){ return array[i];}
+   inline real& operator[](unsigned int i) {
+      return array[i];
+   }
+   inline real length2() const {
+      return dot(real3(this));
+   }
+   inline real distance(const real3 & b) {
+      return (b - *this).length();
+   }
+   inline real distance2(const real3 & b) {
+      return (b - *this).length2();
+   }
+
 };
 
 inline real3 operator+(real a,
