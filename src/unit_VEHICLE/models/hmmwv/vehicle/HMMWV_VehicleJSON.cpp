@@ -382,7 +382,7 @@ void HMMWV_VehicleJSON::Update(double              time,
   m_front_susp->ApplySteering(displ);
 
   // Apply powertrain torque to the driveline's input shaft.
-  //// TODO
+  m_driveline->ApplyDriveshaftTorque(powertrain_torque);
 
   // Let the steering subsystem process the steering input.
   m_steering->Update(time, steering);

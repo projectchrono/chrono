@@ -371,7 +371,7 @@ void HMMWV_VehicleSolidAxle::Update(double              time,
   m_front_susp->ApplySteering(displ);
 
   // Apply powertrain torque to the driveline's input shaft.
-  //// TODO
+  m_driveline->ApplyDriveshaftTorque(powertrain_torque);
 
   // Apply tire forces to spindle bodies.
   m_front_susp->ApplyTireForce(ChSuspension::RIGHT, tire_forces[FRONT_RIGHT]);
