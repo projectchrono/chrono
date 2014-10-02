@@ -29,6 +29,13 @@
 namespace chrono{
 
 // -----------------------------------------------------------------------------
+// Static variables
+// -----------------------------------------------------------------------------
+
+// Threshold value for small forward tangential velocity.
+static const double v_x_threshold = 0.1;
+
+// -----------------------------------------------------------------------------
 // Constructors
 // -----------------------------------------------------------------------------
 ChPacejkaTire::ChPacejkaTire(const std::string& pacTire_paramFile,
@@ -477,8 +484,6 @@ double ChPacejkaTire::calc_Fz()
 // -----------------------------------------------------------------------------
 void ChPacejkaTire::calc_slip_kinematic()
 {
-  double v_x_threshold = 0.1;
-
   // Express the wheel velocity in the tire coordinate system and calculate the
   // slip angle alpha. (Override V.x if too small)
   ChVector<> V = m_tire_frame.TransformDirectionParentToLocal(m_tireState.lin_vel);
@@ -519,7 +524,7 @@ void ChPacejkaTire::calc_slip_kinematic()
 
   // For aligning torque, to handle large slips, and backwards operation
   double V_mag = std::sqrt(V.x * V.x + V.y * V.y);
-  m_slip->cosPrime_alpha = V.x / (V_mag + 0.1);
+  m_slip->cosPrime_alpha = V.x / V_mag;
 
   // Finally, if non-transient, use wheel slips as input to Magic Formula.
   // These get over-written if enable transient slips to be calculated
@@ -697,7 +702,7 @@ void ChPacejkaTire::calc_slip_from_uv()
   double alpha_p = -m_slip->v_alpha / m_relaxation->sigma_alpha - d_vlow * m_slip->V_sy / m_relaxation->C_Falpha;
   double gamma_p = m_relaxation->C_Falpha * m_slip->v_gamma / (m_relaxation->C_Fgamma * m_relaxation->sigma_alpha);
   double phi_p = (m_relaxation->C_Falpha * m_slip->v_phi) / (m_relaxation->C_Fphi * m_relaxation->sigma_alpha);	// turn slip
-  double phi_t = -m_slip->psi_dot / (m_slip->V_cx + 0.1);	// for turn slip
+  double phi_t = -m_slip->psi_dot / m_slip->V_cx;   // for turn slip
 
   // set transient slips
   m_slip->alphaP = alpha_p;
@@ -801,7 +806,7 @@ void ChPacejkaTire::calcFy_pureLat()
   double K_y = std::abs(m_params->lateral.pky1 * m_params->vertical.fnomin * std::sin(p_Ky4 * std::atan(m_FM.force.z / ( (m_params->lateral.pky2 + p_Ky5 * pow(m_slip->gammaP,2) )* m_params->vertical.fnomin))) * (1.0 - m_params->lateral.pky3 * std::abs(m_slip->gammaP) ) * m_zeta->z3 * m_params->scaling.lyka);
 
   // doesn't make sense to ever have K_yAlpha be negative (it can be interpreted as lateral stiffnesss)
-  double B_y = -K_y/ (C_y * D_y + 0.1);
+  double B_y = -K_y / (C_y * D_y);
 
   // double S_Hy = (m_params->lateral.phy1 + m_params->lateral.phy2 * m_dF_z) * m_params->scaling.lhy + (K_yGamma_0 * m_slip->gammaP - S_VyGamma) * m_zeta->z0 / (K_yAlpha + 0.1) + m_zeta->z4 - 1.0;
   // Adasms S_Hy is a bit different
