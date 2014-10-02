@@ -115,12 +115,11 @@ HMMWV_VehicleJSON::HMMWV_VehicleJSON(const bool        fixed,
   m_rear_right_wheel  = ChSharedPtr<Wheel>(new Wheel(utils::GetModelDataFile("hmmwv/wheel/HMMWV_Wheel_RearRight.json")));
   m_rear_left_wheel   = ChSharedPtr<Wheel>(new Wheel(utils::GetModelDataFile("hmmwv/wheel/HMMWV_Wheel_RearLeft.json")));
 
-  // ----------------------------------------------
-  // Create the driveline and powertrain subsystems
-  // ----------------------------------------------
+  // --------------------
+  // Create the driveline
+  // --------------------
 
   m_driveline = ChSharedPtr<ShaftsDriveline2WD>(new ShaftsDriveline2WD(this, utils::GetModelDataFile("hmmwv/driveline/HMMWV_Driveline2WD.json")));
-  m_powertrain = ChSharedPtr<HMMWV_Powertrain>(new HMMWV_Powertrain(this));
 
   // -----------------
   // Create the brakes
@@ -161,9 +160,6 @@ void HMMWV_VehicleJSON::Initialize(const ChCoordsys<>& chassisPos)
 
   // Initialize the driveline subsystem (RWD)
   m_driveline->Initialize(m_chassis, m_rear_susp->GetAxle(ChSuspension::LEFT), m_rear_susp->GetAxle(ChSuspension::RIGHT));
-
-  // Initialize the powertrain subsystem
-  m_powertrain->Initialize(m_chassis, m_driveline->GetDriveshaft());
 
   // Initialize the four brakes
   m_front_right_brake->Initialize(m_front_susp->GetRevolute(ChSuspension::RIGHT));
@@ -385,9 +381,6 @@ void HMMWV_VehicleJSON::Update(double              time,
   // Apply steering input.
   double displ = 0.08 * steering;
   m_front_susp->ApplySteering(displ);
-
-  // Let the powertrain subsystem process the throttle input.
-  m_powertrain->Update(time, throttle, 0);
 
   // Apply powertrain torque to the driveline's input shaft.
   //// TODO

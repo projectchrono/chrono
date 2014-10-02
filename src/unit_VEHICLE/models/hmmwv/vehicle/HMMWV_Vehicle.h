@@ -29,7 +29,6 @@
 #include "models/hmmwv/suspension/HMMWV_DoubleWishbone.h"
 #include "models/hmmwv/steering/HMMWV_PitmanArm.h"
 #include "models/hmmwv/driveline/HMMWV_Driveline2WD.h"
-#include "models/hmmwv/powertrain/HMMWV_Powertrain.h"
 #include "models/hmmwv/brake/HMMWV_BrakeSimple.h"
 
 namespace hmmwv {
@@ -91,7 +90,6 @@ private:
   chrono::ChSharedPtr<HMMWV_Wheel> m_rear_left_wheel;
 
   chrono::ChSharedPtr<HMMWV_Driveline2WD> m_driveline;
-  chrono::ChSharedPtr<HMMWV_Powertrain>   m_powertrain;
 
   chrono::ChSharedPtr<HMMWV_BrakeSimple> m_front_right_brake;
   chrono::ChSharedPtr<HMMWV_BrakeSimple> m_front_left_brake;

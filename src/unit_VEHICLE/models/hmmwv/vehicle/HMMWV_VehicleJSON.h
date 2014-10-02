@@ -32,7 +32,6 @@
 #include "subsys/brake/BrakeSimple.h"
 
 #include "models/hmmwv/HMMWV.h"
-#include "models/hmmwv/powertrain/HMMWV_Powertrain.h"
 
 namespace hmmwv {
 
@@ -92,7 +91,6 @@ private:
   chrono::ChSharedPtr<chrono::Wheel> m_rear_left_wheel;
 
   chrono::ChSharedPtr<chrono::ShaftsDriveline2WD> m_driveline;
-  chrono::ChSharedPtr<HMMWV_Powertrain>   m_powertrain;
 
   chrono::ChSharedPtr<chrono::BrakeSimple> m_front_right_brake;
   chrono::ChSharedPtr<chrono::BrakeSimple> m_front_left_brake;

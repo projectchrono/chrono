@@ -108,12 +108,11 @@ HMMWV_VehicleSolidAxle::HMMWV_VehicleSolidAxle(const bool           fixed,
   m_rear_right_wheel = ChSharedPtr<HMMWV_Wheel>(new HMMWV_WheelRight(wheelVis));
   m_rear_left_wheel = ChSharedPtr<HMMWV_Wheel>(new HMMWV_WheelLeft(wheelVis));
 
-  // ----------------------------------------------
-  // Create the driveline and powertrain subsystems
-  // ----------------------------------------------
+  // --------------------
+  // Create the driveline
+  // --------------------
 
   m_driveline = ChSharedPtr<HMMWV_Driveline2WD>(new HMMWV_Driveline2WD(this));
-  m_powertrain = ChSharedPtr<HMMWV_Powertrain>(new HMMWV_Powertrain(this));
 
   // -----------------
   // Create the brakes
@@ -149,9 +148,6 @@ void HMMWV_VehicleSolidAxle::Initialize(const ChCoordsys<>& chassisPos)
 
   // Initialize the driveline subsystem (RWD)
   m_driveline->Initialize(m_chassis, m_rear_susp->GetAxle(ChSuspension::LEFT), m_rear_susp->GetAxle(ChSuspension::RIGHT));
-
-  // Initialize the powertrain subsystem
-  m_powertrain->Initialize(m_chassis, m_driveline->GetDriveshaft());
 
   // Initialize the four brakes
   m_front_right_brake->Initialize(m_front_susp->GetRevolute(ChSuspension::RIGHT));
@@ -374,9 +370,6 @@ void HMMWV_VehicleSolidAxle::Update(double              time,
   double displ = 0.08 * steering;
 
   m_front_susp->ApplySteering(displ);
-
-  // Let the powertrain subsystem process the throttle input.
-  m_powertrain->Update(time, throttle, 0);
 
   // Apply powertrain torque to the driveline's input shaft.
   //// TODO
