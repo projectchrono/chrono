@@ -24,7 +24,6 @@
 #include "physics/ChBody.h"
 
 #include "subsys/ChApiSubsys.h"
-#include "subsys/ChVehicle.h"
 
 namespace chrono {
 
@@ -41,7 +40,7 @@ public:
     REVERSE
   };
 
-  ChPowertrain(ChVehicle* car);
+  ChPowertrain();
 
   virtual ~ChPowertrain() {}
 

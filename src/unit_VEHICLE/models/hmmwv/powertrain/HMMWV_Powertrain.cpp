@@ -36,8 +36,8 @@ namespace hmmwv {
 // the direction of the motor block is along the X axis, while the directions of
 // the axles is along the Y axis (relative to the chassis coordinate frame),
 // -----------------------------------------------------------------------------
-HMMWV_Powertrain::HMMWV_Powertrain(ChVehicle* car)
-: ChShaftsPowertrain(car, ChVector<>(1, 0, 0))
+HMMWV_Powertrain::HMMWV_Powertrain()
+: ChShaftsPowertrain(ChVector<>(1, 0, 0))
 {
 }
 

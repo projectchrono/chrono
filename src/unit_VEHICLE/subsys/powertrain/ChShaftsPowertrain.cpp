@@ -28,9 +28,8 @@ namespace chrono {
 // direction of the crankshaft, in chassis local coords. This is needed because
 // ChShaftsBody could transfer rolling torque to the chassis.
 // -----------------------------------------------------------------------------
-ChShaftsPowertrain::ChShaftsPowertrain(ChVehicle*         car,
-                                       const ChVector<>&  dir_motor_block)
-: ChPowertrain(car),
+ChShaftsPowertrain::ChShaftsPowertrain(const ChVector<>&  dir_motor_block)
+: ChPowertrain(),
   m_dir_motor_block(dir_motor_block),
   m_last_time_gearshift(0),
   m_gear_shift_latency(0.5)

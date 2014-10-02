@@ -22,10 +22,9 @@
 namespace chrono {
 
 
-ChPowertrain::ChPowertrain(ChVehicle*   car)
+ChPowertrain::ChPowertrain()
 : m_drive_mode(FORWARD)
 {
-  car->m_powertrain = this;
 }
 
 

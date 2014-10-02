@@ -120,7 +120,7 @@ int main(int argc, char* argv[])
   terrain.AddFixedObstacles();
 
   // Create and initialize the powertrain system
-  HMMWV_Powertrain powertrain(&vehicle);
+  HMMWV_Powertrain powertrain;
 
   powertrain.Initialize(vehicle.GetChassis(), vehicle.GetDriveshaft());
 

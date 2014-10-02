@@ -24,7 +24,6 @@
 
 #include "subsys/ChApiSubsys.h"
 #include "subsys/ChPowertrain.h"
-#include "subsys/ChVehicle.h"
 #include "subsys/ChSuspension.h"
 
 namespace chrono {
@@ -36,7 +35,7 @@ class CH_SUBSYS_API ChSimplePowertrain : public ChPowertrain
 {
 public:
 
-  ChSimplePowertrain(ChVehicle* car);
+  ChSimplePowertrain();
 
   ~ChSimplePowertrain() {}
 

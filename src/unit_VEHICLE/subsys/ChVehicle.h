@@ -63,7 +63,6 @@ struct ChTireForce {
 
 typedef std::vector<ChTireForce> ChTireForces;
 
-class ChPowertrain;
 class ChDriveline;
 
 ///
@@ -184,7 +183,6 @@ protected:
   ChSharedPtr<ChBodyAuxRef>  m_chassis;  ///< handle to the chassis body
 
   ChDriveline*     m_driveline;          ///< pointer to the driveline subsystem
-  ChPowertrain*    m_powertrain;         ///< pointer to the powertrain subsystem
 
   double  m_stepsize;                    ///< integration step-size for the vehicle system
 

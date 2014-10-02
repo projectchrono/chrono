@@ -21,7 +21,6 @@
 
 #include "subsys/ChApiSubsys.h"
 #include "subsys/ChPowertrain.h"
-#include "subsys/ChVehicle.h"
 
 #include "physics/ChShaftsGear.h" 
 #include "physics/ChShaftsGearbox.h"
@@ -45,8 +44,7 @@ class CH_SUBSYS_API ChShaftsPowertrain : public ChPowertrain
 {
 public:
 
-  ChShaftsPowertrain(ChVehicle* car,
-                     const ChVector<>& dir_motor_block = ChVector<>(1,0,0));
+  ChShaftsPowertrain(const ChVector<>& dir_motor_block = ChVector<>(1,0,0));
 
   ~ChShaftsPowertrain() {}
 
