@@ -75,70 +75,75 @@ DoubleWishbone::DoubleWishbone(const std::string& filename)
   assert(d.HasMember("Spindle"));
   assert(d["Spindle"].IsObject());
 
-  m_spindleMass = d["Spindle"]["mass"].GetDouble();
-  m_points[SPINDLE] = loadVector(d["Spindle"]["com"]);
-  m_spindleInertia = loadVector(d["Spindle"]["inertia"]);
-  m_spindleRadius = d["Spindle"]["radius"].GetDouble();
-  m_spindleWidth = d["Spindle"]["width"].GetDouble();
+  m_spindleMass = d["Spindle"]["Mass"].GetDouble();
+  m_points[SPINDLE] = loadVector(d["Spindle"]["COM"]);
+  m_spindleInertia = loadVector(d["Spindle"]["Inertia"]);
+  m_spindleRadius = d["Spindle"]["Radius"].GetDouble();
+  m_spindleWidth = d["Spindle"]["Width"].GetDouble();
 
   // Read Upright data
   assert(d.HasMember("Upright"));
   assert(d["Upright"].IsObject());
 
-  m_uprightMass = d["Upright"]["mass"].GetDouble();
-  m_points[UPRIGHT] = loadVector(d["Upright"]["com"]);
-  m_uprightInertia = loadVector(d["Upright"]["inertia"]);
-  m_uprightRadius = d["Upright"]["radius"].GetDouble();
+  m_uprightMass = d["Upright"]["Mass"].GetDouble();
+  m_points[UPRIGHT] = loadVector(d["Upright"]["COM"]);
+  m_uprightInertia = loadVector(d["Upright"]["Inertia"]);
+  m_uprightRadius = d["Upright"]["Radius"].GetDouble();
 
   // Read UCA data
-  assert(d.HasMember("UCA"));
-  assert(d["UCA"].IsObject());
+  assert(d.HasMember("Upper Control Arm"));
+  assert(d["Upper Control Arm"].IsObject());
 
-  m_UCAMass = d["UCA"]["mass"].GetDouble();
-  m_points[UCA_CM] = loadVector(d["UCA"]["com"]);
-  m_UCAInertia = loadVector(d["UCA"]["inertia"]);
-  m_UCARadius = d["UCA"]["radius"].GetDouble();
-  m_points[UCA_F] = loadVector(d["UCA"]["point_chassis_F"]);
-  m_points[UCA_B] = loadVector(d["UCA"]["point_chassis_B"]);
-  m_points[UCA_U] = loadVector(d["UCA"]["point_upright"]);
+  m_UCAMass = d["Upper Control Arm"]["Mass"].GetDouble();
+  m_points[UCA_CM] = loadVector(d["Upper Control Arm"]["COM"]);
+  m_UCAInertia = loadVector(d["Upper Control Arm"]["Inertia"]);
+  m_UCARadius = d["Upper Control Arm"]["Radius"].GetDouble();
+  m_points[UCA_F] = loadVector(d["Upper Control Arm"]["Location Chassis Front"]);
+  m_points[UCA_B] = loadVector(d["Upper Control Arm"]["Location Chassis Back"]);
+  m_points[UCA_U] = loadVector(d["Upper Control Arm"]["Location Upright"]);
 
   // Read LCA data
-  assert(d.HasMember("LCA"));
-  assert(d["LCA"].IsObject());
+  assert(d.HasMember("Lower Control Arm"));
+  assert(d["Lower Control Arm"].IsObject());
 
-  m_LCAMass = d["LCA"]["mass"].GetDouble();
-  m_points[LCA_CM] = loadVector(d["LCA"]["com"]);
-  m_LCAInertia = loadVector(d["LCA"]["inertia"]);
-  m_LCARadius = d["LCA"]["radius"].GetDouble();
-  m_points[LCA_F] = loadVector(d["LCA"]["point_chassis_F"]);
-  m_points[LCA_B] = loadVector(d["LCA"]["point_chassis_B"]);
-  m_points[LCA_U] = loadVector(d["LCA"]["point_upright"]);
+  m_LCAMass = d["Lower Control Arm"]["Mass"].GetDouble();
+  m_points[LCA_CM] = loadVector(d["Lower Control Arm"]["COM"]);
+  m_LCAInertia = loadVector(d["Lower Control Arm"]["Inertia"]);
+  m_LCARadius = d["Lower Control Arm"]["Radius"].GetDouble();
+  m_points[LCA_F] = loadVector(d["Lower Control Arm"]["Location Chassis Front"]);
+  m_points[LCA_B] = loadVector(d["Lower Control Arm"]["Location Chassis Back"]);
+  m_points[LCA_U] = loadVector(d["Lower Control Arm"]["Location Upright"]);
 
   // Read Tierod data
   assert(d.HasMember("Tierod"));
   assert(d["Tierod"].IsObject());
 
-  m_points[TIEROD_C] = loadVector(d["Tierod"]["point_chassis"]);
-  m_points[TIEROD_U] = loadVector(d["Tierod"]["point_upright"]);
+  m_points[TIEROD_C] = loadVector(d["Tierod"]["Location Chassis"]);
+  m_points[TIEROD_U] = loadVector(d["Tierod"]["Location Upright"]);
 
-  // Read spring-damper data
-  assert(d.HasMember("TSDA"));
-  assert(d["TSDA"].IsObject());
+  // Read spring data
+  assert(d.HasMember("Spring"));
+  assert(d["Spring"].IsObject());
 
-  m_points[SHOCK_C] = loadVector(d["TSDA"]["point_shock_C"]);
-  m_points[SHOCK_A] = loadVector(d["TSDA"]["point_shock_A"]);
-  m_points[SPRING_C] = loadVector(d["TSDA"]["point_spring_C"]);
-  m_points[SPRING_A] = loadVector(d["TSDA"]["point_spring_A"]);
-  m_springCoefficient = d["TSDA"]["spring_coef"].GetDouble();
-  m_dampingCoefficient = d["TSDA"]["damping_coef"].GetDouble();
-  m_springRestLength = d["TSDA"]["free_length"].GetDouble();
+  m_points[SPRING_C] = loadVector(d["Spring"]["Location Chassis"]);
+  m_points[SPRING_A] = loadVector(d["Spring"]["Location Arm"]);
+  m_springCoefficient = d["Spring"]["Spring Coefficient"].GetDouble();
+  m_springRestLength = d["Spring"]["Free Length"].GetDouble();
+
+  // Read shock data
+  assert(d.HasMember("Shock"));
+  assert(d["Shock"].IsObject());
+
+  m_points[SHOCK_C] = loadVector(d["Shock"]["Location Chassis"]);
+  m_points[SHOCK_A] = loadVector(d["Shock"]["Location Arm"]);
+  m_dampingCoefficient = d["Shock"]["Damping Coefficient"].GetDouble();
 
   // Read axle inertia
   if (IsDriven()) {
     assert(d.HasMember("Axle"));
     assert(d["Axle"].IsObject());
 
-    m_axleInertia = d["Axle"]["inertia"].GetDouble();
+    m_axleInertia = d["Axle"]["Inertia"].GetDouble();
   }
 }
 
