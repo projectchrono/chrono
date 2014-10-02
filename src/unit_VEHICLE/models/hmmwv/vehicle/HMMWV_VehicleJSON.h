@@ -66,7 +66,6 @@ public:
 
   virtual void Initialize(const chrono::ChCoordsys<>& chassisPos);
   virtual void Update(double                      time,
-                      double                      throttle,
                       double                      steering,
                       double                      powertrain_torque,
                       double                      braking,

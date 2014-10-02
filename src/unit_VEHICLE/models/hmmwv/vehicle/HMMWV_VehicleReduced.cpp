@@ -259,7 +259,6 @@ double HMMWV_VehicleReduced::GetWheelOmega(ChWheelId which) const
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 void HMMWV_VehicleReduced::Update(double              time,
-                                  double              throttle,
                                   double              steering,
                                   double              braking,
                                   double              powertrain_torque,

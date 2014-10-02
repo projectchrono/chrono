@@ -326,7 +326,7 @@ int main(int argc, char* argv[])
 
     powertrain.Update(time, throttle_input, driveshaft_speed);
 
-    vehicle.Update(time, throttle_input, steering_input, braking_input, powertrain_torque, tire_forces);
+    vehicle.Update(time, steering_input, braking_input, powertrain_torque, tire_forces);
 
     // Advance simulation for one timestep for all modules
     double step = realtime_timer.SuggestSimulationStep(step_size);
@@ -416,7 +416,7 @@ int main(int argc, char* argv[])
 
     powertrain.Update(time, throttle_input, driveshaft_speed);
 
-    vehicle.Update(time, throttle_input, steering_input, braking_input, powertrain_torque, tire_forces);
+    vehicle.Update(time, steering_input, braking_input, powertrain_torque, tire_forces);
 
     // Advance simulation for one timestep for all modules
     driver.Advance(step_size);

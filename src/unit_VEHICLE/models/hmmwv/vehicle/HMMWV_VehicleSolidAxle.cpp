@@ -360,7 +360,6 @@ double HMMWV_VehicleSolidAxle::GetShockVelocity(chrono::ChWheelId which) const
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 void HMMWV_VehicleSolidAxle::Update(double              time,
-                                    double              throttle,
                                     double              steering,
                                     double              braking,
                                     double              powertrain_torque,

@@ -372,7 +372,6 @@ double HMMWV_VehicleJSON::GetShockVelocity(chrono::ChWheelId which) const
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 void HMMWV_VehicleJSON::Update(double              time,
-                               double              throttle,
                                double              steering,
                                double              braking,
                                double              powertrain_torque,

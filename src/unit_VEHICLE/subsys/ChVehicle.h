@@ -163,7 +163,6 @@ public:
   /// frame).
   virtual void Update(
     double              time,               ///< [in] current time
-    double              throttle,           ///< [in] current throttle input [0,1]
     double              steering,           ///< [in] current steering input [-1,+1]
     double              braking,            ///< [in] current braking input [0,1]
     double              powertrain_torque,  ///< [in] input torque from powertrain
