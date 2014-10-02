@@ -31,11 +31,11 @@ namespace chrono {
 ChShaftsPowertrain::ChShaftsPowertrain(ChVehicle*         car,
                                        const ChVector<>&  dir_motor_block)
 : ChPowertrain(car),
-  m_dir_motor_block(dir_motor_block)
+  m_dir_motor_block(dir_motor_block),
+  m_drive_mode(FORWARD),
+  m_last_time_gearshift(0),
+  m_gear_shift_latency(0.5)
 {
-  drive_mode = ChPowertrain::FORWARD;
-  last_time_gearshift = 0;
-  gear_shift_latency = 0.5;
 }
 
 
@@ -56,7 +56,7 @@ void ChShaftsPowertrain::Initialize(ChSharedPtr<ChBody>  chassis,
   assert(m_gear_ratios.size() > 1);
   m_current_gear = 1;
 
-  drive_mode = FORWARD;
+  m_drive_mode = FORWARD;
 
   // CREATE  a 1 d.o.f. object: a 'shaft' with rotational inertia.
   // In this case it is the motor block. This because the ChShaftsThermalEngine
@@ -163,9 +163,7 @@ void ChShaftsPowertrain::SetSelectedGear(int igear)
 
   m_current_gear = igear;
   if (m_gears)
-  {
     m_gears->SetTransmissionRatio(m_gear_ratios[igear]);
-  }
 }
 
 
@@ -173,36 +171,16 @@ void ChShaftsPowertrain::SetSelectedGear(int igear)
 // -----------------------------------------------------------------------------
 void ChShaftsPowertrain::SetDriveMode(ChPowertrain::DriveMode mmode)
 {
-  if (this->drive_mode == mmode) return;
+  if (m_drive_mode == mmode) return;
 
-  // disallow switching if motor is spinning too fast
-  //if (this->GetMotorSpeed() > 1500*CH_C_2PI/60.0)
-  //  return;
+  m_drive_mode = mmode;
 
-  this->drive_mode = mmode;
+  if (!m_gears) return;
 
-  if(this->drive_mode == FORWARD)
-  {
-    if (m_gears)
-    {
-      this->SetSelectedGear(1);
-    }
-  }
-
-  if(this->drive_mode == NEUTRAL)
-  {
-    if (m_gears)
-    {
-      m_gears->SetTransmissionRatio(1e20);
-    }
-  }
-
-  if(this->drive_mode == REVERSE)
-  {
-    if (m_gears)
-    {
-      this->SetSelectedGear(0);
-    }
+  switch (m_drive_mode) {
+  case FORWARD: SetSelectedGear(1); break;
+  case NEUTRAL: m_gears->SetTransmissionRatio(1e20); break;
+  case REVERSE: SetSelectedGear(0); break;
   }
 }
 
@@ -215,37 +193,32 @@ void ChShaftsPowertrain::Update(double time,
   // Just update the throttle level in the thermal engine
   m_engine->SetThrottle(throttle);
 
+  // To avoid bursts of gear shifts, do nothing if the last shift was too recent
+  if (time - m_last_time_gearshift < m_gear_shift_latency)
+    return;
 
   // Shift the gear if needed, automatically shifting up or down with 
   // a very simple logic, for instance as in the following fixed latency 
   // state machine:
+  if (m_drive_mode != FORWARD)
+    return;
 
-  double now_time = this->m_car->GetChassis()->GetChTime();
+  double shaft_speed = m_shaft_ingear->GetPos_dt();
 
-  if(now_time-last_time_gearshift > gear_shift_latency) // avoids bursts of gear shifts
-  {
-    if (this->drive_mode == FORWARD)
-    {
-      //if (this->GetMotorSpeed() > 2500*CH_C_2PI/60.0)
-      if (this->m_shaft_ingear->GetPos_dt() > 2500 * CH_C_2PI / 60.0)
-      {
-        if (this->GetSelectedGear() + 1 < this->m_gear_ratios.size())
-        {
-          GetLog() << "SHIFT UP " << this->GetSelectedGear() << "\n";
-          this->SetSelectedGear(this->GetSelectedGear() + 1);
-          last_time_gearshift = now_time;
-        }
-      }
-      //if (this->GetMotorSpeed() < 1500*CH_C_2PI/60.0)
-      if (this->m_shaft_ingear->GetPos_dt() < 1500 * CH_C_2PI / 60.0)
-      {
-        if (this->GetSelectedGear() - 1 > 0)
-        {
-          GetLog() << "SHIFT DOWN " << this->GetSelectedGear() << "\n";
-          this->SetSelectedGear(this->GetSelectedGear() - 1);
-          last_time_gearshift = now_time;
-        }
-      }
+  if (shaft_speed > 2500 * CH_C_2PI / 60.0) {
+    // upshift if possible
+    if (m_current_gear + 1 < m_gear_ratios.size()) {
+      GetLog() << "SHIFT UP " << m_current_gear << "\n";
+      SetSelectedGear(m_current_gear + 1);
+      m_last_time_gearshift = time;
+    }
+  }
+  else if (shaft_speed < 1500 * CH_C_2PI / 60.0) {
+    // downshift if possible
+    if (m_current_gear - 1 > 0) {
+      GetLog() << "SHIFT DOWN " << m_current_gear << "\n";
+      SetSelectedGear(m_current_gear - 1);
+      m_last_time_gearshift = time;
     }
   }
 

@@ -58,10 +58,6 @@ public:
     double time,       ///< [in] current time
     double throttle    ///< [in] current throttle input [0,1]
     ) = 0;
-
-protected:
-
-  ChVehicle*    m_car;   ///< parent vehicle system
 };
 
 

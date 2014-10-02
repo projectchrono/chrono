@@ -23,7 +23,6 @@ namespace chrono {
 
 
 ChPowertrain::ChPowertrain(ChVehicle*   car)
-: m_car(car)
 {
   car->m_powertrain = this;
 }

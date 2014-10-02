@@ -72,12 +72,13 @@ public:
   void SetDriveMode(ChPowertrain::DriveMode mmode);
 
   /// Use this function to get the mode of automatic transmission.
-  ChPowertrain::DriveMode GetDriveMode() {return drive_mode;}
+  ChPowertrain::DriveMode GetDriveMode() { return m_drive_mode; }
 
   /// Use this to define the gear shift latency, in seconds.
-  void SetGearShiftLatency(double ml) {gear_shift_latency= ml;}
+  void SetGearShiftLatency(double ml) {m_gear_shift_latency= ml;}
+
   /// Use this to get the gear shift latency, in seconds.
-  double GetGearShiftLatency(double ml) {return gear_shift_latency;}
+  double GetGearShiftLatency(double ml) {return m_gear_shift_latency;}
 
 protected:
 
@@ -117,9 +118,9 @@ private:
 
   ChVector<> m_dir_motor_block;
 
-  ChPowertrain::DriveMode drive_mode;
-  double last_time_gearshift;
-  double gear_shift_latency;
+  ChPowertrain::DriveMode m_drive_mode;
+  double m_last_time_gearshift;
+  double m_gear_shift_latency;
 
   friend class ChIrrGuiDriver;
 };
