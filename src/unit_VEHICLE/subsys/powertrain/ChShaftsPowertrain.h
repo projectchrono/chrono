@@ -73,6 +73,13 @@ public:
   /// Return the current transmission gear
   virtual int GetCurrentTransmissionGear() const { return m_current_gear; }
 
+  /// Return the ouput torque from the powertrain.
+  /// This is the torque that is passed to a vehicle system, thus providing the
+  /// interface between the powertrain and vehcicle cosimulation modules.
+  /// Since a ShaftsPowertrain is directly connected to the vehicle's driveline,
+  /// this function returns 0.
+  virtual double GetOutputTorque() const { return 0; }
+
   /// Use this function to set the mode of automatic transmission.
   virtual void SetDriveMode(ChPowertrain::DriveMode mmode);
 
@@ -87,7 +94,20 @@ public:
   /// Use this to get the gear shift latency, in seconds.
   double GetGearShiftLatency(double ml) {return m_gear_shift_latency;}
 
-  virtual void Update(double time, double throttle);
+  /// Update the state of this powertrain system at the current time.
+  /// The powertrain system is provided the current driver throttle input, a
+  /// value in the range [0,1], and the current angular speed of the transmission
+  /// shaft (from the driveline).
+  virtual void Update(
+    double time,       ///< [in] current time
+    double throttle,   ///< [in] current throttle input [0,1]
+    double shaft_speed ///< [in] current angular speed of the transmission shaft
+    );
+
+  /// Advance the state of this powertrain system by the specified time step.
+  /// Since the state of a ShaftsPowertrain is advanced as part of the vehicle
+  /// state, this function does nothing.
+  virtual void Advance(double step) {}
 
 protected:
 

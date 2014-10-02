@@ -69,6 +69,7 @@ public:
   virtual void Update(double                      time,
                       double                      throttle,
                       double                      steering,
+                      double                      powertrain_torque,
                       double                      braking,
                       const chrono::ChTireForces& tire_forces);
 

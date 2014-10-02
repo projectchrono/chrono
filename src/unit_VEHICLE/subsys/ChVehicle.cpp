@@ -19,6 +19,7 @@
 #include <algorithm>
 
 #include "subsys/ChVehicle.h"
+#include "subsys/ChDriveline.h"
 
 
 namespace chrono {
@@ -79,6 +80,13 @@ ChWheelState ChVehicle::GetWheelState(ChWheelId which)
 ChVector<> ChVehicle::GetDriverPos() const
 {
   return m_chassis->GetCoord().TransformPointLocalToParent(GetLocalDriverCoordsys().pos);
+}
+
+// -----------------------------------------------------------------------------
+// -----------------------------------------------------------------------------
+double ChVehicle::GetDriveshaftSpeed() const
+{
+  return m_driveline->GetDriveshaftSpeed();
 }
 
 

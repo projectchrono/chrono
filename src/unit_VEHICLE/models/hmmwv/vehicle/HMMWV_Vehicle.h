@@ -69,6 +69,7 @@ public:
                       double                      throttle,
                       double                      steering,
                       double                      braking,
+                      double                      powertrain_torque,
                       const chrono::ChTireForces& tire_forces);
 
   static void ExportMeshPovray(const std::string& out_dir);

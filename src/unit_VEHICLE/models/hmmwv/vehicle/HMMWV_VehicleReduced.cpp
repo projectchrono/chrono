@@ -266,6 +266,7 @@ void HMMWV_VehicleReduced::Update(double              time,
                                   double              throttle,
                                   double              steering,
                                   double              braking,
+                                  double              powertrain_torque,
                                   const ChTireForces& tire_forces)
 {
   // Apply steering input.
@@ -274,7 +275,10 @@ void HMMWV_VehicleReduced::Update(double              time,
   m_front_susp->ApplySteering(displ);
 
   // Let the powertrain subsystem process the throttle input.
-  m_powertrain->Update(time, throttle);
+  m_powertrain->Update(time, throttle, 0);
+
+  // Apply powertrain torque to the driveline's input shaft.
+  //// TODO
 
   // Apply tire forces to spindle bodies.
   m_front_susp->ApplyTireForce(ChSuspension::RIGHT, tire_forces[FRONT_RIGHT]);

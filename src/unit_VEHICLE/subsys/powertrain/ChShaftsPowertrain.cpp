@@ -185,7 +185,8 @@ void ChShaftsPowertrain::SetDriveMode(ChPowertrain::DriveMode mmode)
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 void ChShaftsPowertrain::Update(double time,
-                                double throttle)
+                                double throttle,
+                                double shaft_speed)
 {
   // Just update the throttle level in the thermal engine
   m_engine->SetThrottle(throttle);
@@ -200,20 +201,20 @@ void ChShaftsPowertrain::Update(double time,
   if (m_drive_mode != FORWARD)
     return;
 
-  double shaft_speed = m_shaft_ingear->GetPos_dt();
+  double gearshaft_speed = m_shaft_ingear->GetPos_dt();
 
-  if (shaft_speed > 2500 * CH_C_2PI / 60.0) {
+  if (gearshaft_speed > 2500 * CH_C_2PI / 60.0) {
     // upshift if possible
     if (m_current_gear + 1 < m_gear_ratios.size()) {
-      GetLog() << "SHIFT UP " << m_current_gear << "\n";
+      GetLog() << "SHIFT UP " << m_current_gear << " -> " << m_current_gear + 1 << "\n";
       SetSelectedGear(m_current_gear + 1);
       m_last_time_gearshift = time;
     }
   }
-  else if (shaft_speed < 1500 * CH_C_2PI / 60.0) {
+  else if (gearshaft_speed < 1500 * CH_C_2PI / 60.0) {
     // downshift if possible
     if (m_current_gear - 1 > 0) {
-      GetLog() << "SHIFT DOWN " << m_current_gear << "\n";
+      GetLog() << "SHIFT DOWN " << m_current_gear << " -> " << m_current_gear - 1 << "\n";
       SetSelectedGear(m_current_gear - 1);
       m_last_time_gearshift = time;
     }
