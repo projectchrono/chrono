@@ -16,9 +16,13 @@
 // Derived from ChSuspension, but still an abstract base class.
 //
 // The suspension subsystem is modeled with respect to a right-handed frame,
-// with X pointing towards the rear, Y to the right, and Z up. All point
-// locations are assumed to be given for the right half of the supspension and
-// will be mirrored (reflecting the y coordinates) to construct the left side.
+// with X pointing towards the front, Y to the left, and Z up (ISO standard).
+// The suspension reference frame is assumed to be always aligned with that of
+// the vehicle.  When attached to a chassis, only an offset is provided.
+//
+// All point locations are assumed to be given for the left half of the
+// supspension and will be mirrored (reflecting the y coordinates) to construct
+// the right side.
 //
 // If marked as 'driven', the suspension subsystem also creates the ChShaft axle
 // element and its connection to the spindle body (which provides the interface
@@ -68,30 +72,30 @@ public:
 protected:
 
   enum PointId {
-    SHOCK_A,    // shock, axle
-    SHOCK_C,    // shock, chassis
-    KNUCKLE_L,  // lower knuckle point
-    KNUCKLE_U,  // upper knuckle point
-    LL_A,       // lower link, axle
-    LL_C,       // lower link, chassis
-    UL_A,       // upper link, axle
-    UL_C,       // upper link, chassis
-    SPRING_A,   // spring, axle
-    SPRING_C,   // spring, chassis
-    TIEROD_C,   // tierod, chassis
-    TIEROD_K,   // tierod, knuckle
-    SPINDLE,    // spindle location
-    KNUCKLE_CM, // knuckle, center of mass
-    LL_CM,      // lower link, center of mass
-    UL_CM,      // upper link, center of mass
+    SHOCK_A,    ///< shock, axle
+    SHOCK_C,    ///< shock, chassis
+    KNUCKLE_L,  ///< lower knuckle point
+    KNUCKLE_U,  ///< upper knuckle point
+    LL_A,       ///< lower link, axle
+    LL_C,       ///< lower link, chassis
+    UL_A,       ///< upper link, axle
+    UL_C,       ///< upper link, chassis
+    SPRING_A,   ///< spring, axle
+    SPRING_C,   ///< spring, chassis
+    TIEROD_C,   ///< tierod, chassis
+    TIEROD_K,   ///< tierod, knuckle
+    SPINDLE,    ///< spindle location
+    KNUCKLE_CM, ///< knuckle, center of mass
+    LL_CM,      ///< lower link, center of mass
+    UL_CM,      ///< upper link, center of mass
     NUM_POINTS
   };
 
   enum DirectionId {
-    UNIV_AXIS_LINK_L,     // universal joint (lower link, link side)
-    UNIV_AXIS_CHASSIS_L,  // universal joint (lower link, chassis side)
-    UNIV_AXIS_LINK_U,     // universal joint (upper link, link side)
-    UNIV_AXIS_CHASSIS_U,  // universal joint (upper link, chassis side)
+    UNIV_AXIS_LINK_L,     ///< universal joint (lower link, link side)
+    UNIV_AXIS_CHASSIS_L,  ///< universal joint (lower link, chassis side)
+    UNIV_AXIS_LINK_U,     ///< universal joint (upper link, link side)
+    UNIV_AXIS_CHASSIS_U,  ///< universal joint (upper link, chassis side)
     NUM_DIRS
   };
 

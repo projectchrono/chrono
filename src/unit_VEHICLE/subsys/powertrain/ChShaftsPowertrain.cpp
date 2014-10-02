@@ -102,7 +102,7 @@ void ChShaftsPowertrain::Initialize(ChSharedPtr<ChBody>  chassis,
   // in neutral position would rotate forever at contant speed.
   m_engine_losses = ChSharedPtr<ChShaftsThermalEngine>(new ChShaftsThermalEngine);
   m_engine_losses->Initialize(m_crankshaft,
-                       m_motorblock);
+                              m_motorblock);
   my_system->Add(m_engine_losses);
     // The engine brake model requires a torque curve: 
   ChSharedPtr<ChFunction_Recorder> mTw_losses(new ChFunction_Recorder);
@@ -224,29 +224,29 @@ void ChShaftsPowertrain::Update(double time,
 
   if(now_time-last_time_gearshift > gear_shift_latency) // avoids bursts of gear shifts
   {
-	  if(this->drive_mode == FORWARD)
-	  {
-		  //if (this->GetMotorSpeed() > 2500*CH_C_2PI/60.0)
-		  if (this->m_shaft_ingear->GetPos_dt() > 2500*CH_C_2PI/60.0)
-		  {
-			  if (this->GetSelectedGear()+1 < this->m_gear_ratios.size())
-			  {
-				  GetLog() << "SHIFT UP " << this->GetSelectedGear() << "\n";
-				  this->SetSelectedGear(this->GetSelectedGear()+1);
-				  last_time_gearshift = now_time;
-			  }
-		  }
-		  //if (this->GetMotorSpeed() < 1500*CH_C_2PI/60.0)
-		  if (this->m_shaft_ingear->GetPos_dt() < 1500*CH_C_2PI/60.0)
-		  {
-			  if (this->GetSelectedGear()-1 > 0)
-			  {
-				  GetLog() << "SHIFT DOWN " << this->GetSelectedGear() << "\n";
-				  this->SetSelectedGear(this->GetSelectedGear()-1);
-				  last_time_gearshift = now_time;
-			  }
-		  }
-	  }
+    if (this->drive_mode == FORWARD)
+    {
+      //if (this->GetMotorSpeed() > 2500*CH_C_2PI/60.0)
+      if (this->m_shaft_ingear->GetPos_dt() > 2500 * CH_C_2PI / 60.0)
+      {
+        if (this->GetSelectedGear() + 1 < this->m_gear_ratios.size())
+        {
+          GetLog() << "SHIFT UP " << this->GetSelectedGear() << "\n";
+          this->SetSelectedGear(this->GetSelectedGear() + 1);
+          last_time_gearshift = now_time;
+        }
+      }
+      //if (this->GetMotorSpeed() < 1500*CH_C_2PI/60.0)
+      if (this->m_shaft_ingear->GetPos_dt() < 1500 * CH_C_2PI / 60.0)
+      {
+        if (this->GetSelectedGear() - 1 > 0)
+        {
+          GetLog() << "SHIFT DOWN " << this->GetSelectedGear() << "\n";
+          this->SetSelectedGear(this->GetSelectedGear() - 1);
+          last_time_gearshift = now_time;
+        }
+      }
+    }
   }
 
 }

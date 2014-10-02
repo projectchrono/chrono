@@ -16,9 +16,13 @@
 // Derived from ChSuspension, but still an abstract base class.
 //
 // The suspension subsystem is modeled with respect to a right-handed frame,
-// with X pointing towards the rear, Y to the right, and Z up. All point
-// locations are assumed to be given for the right half of the supspension and
-// will be mirrored (reflecting the y coordinates) to construct the left side.
+// with X pointing towards the front, Y to the left, and Z up (ISO standard).
+// The suspension reference frame is assumed to be always aligned with that of
+// the vehicle.  When attached to a chassis, only an offset is provided.
+//
+// All point locations are assumed to be given for the left half of the
+// supspension and will be mirrored (reflecting the y coordinates) to construct
+// the right side.
 //
 // If marked as 'driven', the suspension subsystem also creates the ChShaft axle
 // element and its connection to the spindle body (which provides the interface
@@ -66,22 +70,22 @@ public:
 protected:
 
   enum PointId {
-    SPINDLE,    // spindle location
-    UPRIGHT,    // upright location
-    UCA_F,      // upper control arm, chassis front
-    UCA_B,      // upper control arm, chassis back
-    UCA_U,      // upper control arm, upright
-    UCA_CM,     // upper control arm, center of mass
-    LCA_F,      // lower control arm, chassis front
-    LCA_B,      // lower control arm, chassis back
-    LCA_U,      // lower control arm, upright
-    LCA_CM,     // lower control arm, center of mass
-    SHOCK_C,    // shock, chassis
-    SHOCK_A,    // shock, lower control arm
-    SPRING_C,   // spring, chassis
-    SPRING_A,   // spring, lower control arm
-    TIEROD_C,   // tierod, chassis
-    TIEROD_U,   // tierod, upright
+    SPINDLE,    ///< spindle location
+    UPRIGHT,    ///< upright location
+    UCA_F,      ///< upper control arm, chassis front
+    UCA_B,      ///< upper control arm, chassis back
+    UCA_U,      ///< upper control arm, upright
+    UCA_CM,     ///< upper control arm, center of mass
+    LCA_F,      ///< lower control arm, chassis front
+    LCA_B,      ///< lower control arm, chassis back
+    LCA_U,      ///< lower control arm, upright
+    LCA_CM,     ///< lower control arm, center of mass
+    SHOCK_C,    ///< shock, chassis
+    SHOCK_A,    ///< shock, lower control arm
+    SPRING_C,   ///< spring, chassis
+    SPRING_A,   ///< spring, lower control arm
+    TIEROD_C,   ///< tierod, chassis
+    TIEROD_U,   ///< tierod, upright
     NUM_POINTS
   };
 

@@ -15,9 +15,13 @@
 // Base class for a solid axle suspension modeled with bodies and constraints.
 //
 // The suspension subsystem is modeled with respect to a right-handed frame,
-// with X pointing towards the rear, Y to the right, and Z up. All point
-// locations are assumed to be given for the right half of the supspension and
-// will be mirrored (reflecting the y coordinates) to construct the left side.
+// with X pointing towards the front, Y to the left, and Z up (ISO standard).
+// The suspension reference frame is assumed to be always aligned with that of
+// the vehicle.  When attached to a chassis, only an offset is provided.
+//
+// All point locations are assumed to be given for the left half of the
+// supspension and will be mirrored (reflecting the y coordinates) to construct
+// the right side.
 //
 // If marked as 'driven', the suspension subsystem also creates the ChShaft axle
 // element and its connection to the spindle body (which provides the interface
@@ -145,7 +149,24 @@ void ChSolidAxle::Initialize(ChSharedPtr<ChBodyAuxRef>  chassis,
   suspension_to_abs.ConcatenatePreTransformation(chassis->GetFrame_REF_to_abs());
 
   // Transform the location of the axle body COM to absolute frame.
-  ChVector<> axleCOM = suspension_to_abs.TransformLocalToParent(getAxleTubeCOM());
+  ChVector<> axleCOM_local = getAxleTubeCOM();
+  ChVector<> axleCOM = suspension_to_abs.TransformLocalToParent(axleCOM_local);
+
+  // Calculate end points on the axle body, expressed in the absolute frame
+  // (for visualization)
+  ChVector<> midpoint_local = 0.5 * (getLocation(KNUCKLE_U) + getLocation(KNUCKLE_L));
+  ChVector<> outer_local(axleCOM_local.x, midpoint_local.y, axleCOM_local.z);
+  ChVector<> axleOuterL = suspension_to_abs.TransformPointLocalToParent(outer_local);
+  outer_local.y = -outer_local.y;
+  ChVector<> axleOuterR = suspension_to_abs.TransformPointLocalToParent(outer_local);
+
+  // Initialize axle body.
+  m_axleTube->SetPos(axleCOM);
+  m_axleTube->SetRot(chassis->GetFrame_REF_to_abs().GetRot());
+  m_axleTube->SetMass(getAxleTubeMass());
+  m_axleTube->SetInertiaXX(getAxleTubeInertia());
+  AddVisualizationLink(m_axleTube, axleOuterL, axleOuterR, getAxleTubeRadius(), ChColor(0.7f, 0.7f, 0.7f));
+  chassis->GetSystem()->AddBody(m_axleTube);
 
   // Transform all points and directions on right and left sides to absolute frame
   std::vector<ChVector<> > points_R(NUM_POINTS);
@@ -155,27 +176,17 @@ void ChSolidAxle::Initialize(ChSharedPtr<ChBodyAuxRef>  chassis,
 
   for (int i = 0; i < NUM_POINTS; i++) {
     ChVector<> rel_pos = getLocation(static_cast<PointId>(i));
-    points_R[i] = suspension_to_abs.TransformLocalToParent(rel_pos);
-    rel_pos.y = -rel_pos.y;
     points_L[i] = suspension_to_abs.TransformLocalToParent(rel_pos);
+    rel_pos.y = -rel_pos.y;
+    points_R[i] = suspension_to_abs.TransformLocalToParent(rel_pos);
   }
 
   for (int i = 0; i < NUM_DIRS; i++) {
     ChVector<> rel_dir = getDirection(static_cast<DirectionId>(i));
-    dirs_R[i] = suspension_to_abs.TransformDirectionLocalToParent(rel_dir);
-    rel_dir.y = -rel_dir.y;
     dirs_L[i] = suspension_to_abs.TransformDirectionLocalToParent(rel_dir);
+    rel_dir.y = -rel_dir.y;
+    dirs_R[i] = suspension_to_abs.TransformDirectionLocalToParent(rel_dir);
   }
-
-  // Initialize axle body.
-  m_axleTube->SetPos(axleCOM);
-  m_axleTube->SetRot(chassis->GetFrame_REF_to_abs().GetRot());
-  m_axleTube->SetMass(getAxleTubeMass());
-  m_axleTube->SetInertiaXX(getAxleTubeInertia());
-  ChVector<> axleOuterL = ChVector<>(axleCOM.x, 0.5*(points_L[KNUCKLE_L]+points_L[KNUCKLE_U]).y, axleCOM.z);
-  ChVector<> axleOuterR = ChVector<>(axleCOM.x, 0.5*(points_R[KNUCKLE_L]+points_R[KNUCKLE_U]).y, axleCOM.z);
-  AddVisualizationLink(m_axleTube, axleOuterL, axleOuterR, getAxleTubeRadius(), ChColor(0.7f, 0.7f, 0.7f));
-  chassis->GetSystem()->AddBody(m_axleTube);
 
   // Initialize left and right sides.
   InitializeSide(LEFT, chassis, points_L, dirs_L);
@@ -194,9 +205,10 @@ void ChSolidAxle::InitializeSide(ChSuspension::Side              side,
   ChMatrix33<> rot;
 
   // Chassis orientation (expressed in absolute frame)
+  // Recall that the suspension reference frame is aligned with the chassis.
   ChQuaternion<> chassisRot = chassis->GetFrame_REF_to_abs().GetRot();
 
-  // Initialize knuckle body.
+  // Initialize knuckle body (same orientation as the chassis)
   m_knuckle[side]->SetPos(points[KNUCKLE_CM]);
   m_knuckle[side]->SetRot(chassisRot);
   m_knuckle[side]->SetMass(getKnuckleMass());
@@ -204,7 +216,7 @@ void ChSolidAxle::InitializeSide(ChSuspension::Side              side,
   AddVisualizationKnuckle(m_knuckle[side], points[KNUCKLE_U], points[KNUCKLE_L], points[TIEROD_K], getKnuckleRadius());
   chassis->GetSystem()->AddBody(m_knuckle[side]);
 
-  // Initialize spindle body.
+  // Initialize spindle body (same orientation as the chassis)
   m_spindle[side]->SetPos(points[SPINDLE]);
   m_spindle[side]->SetRot(chassisRot);
   m_spindle[side]->SetMass(getSpindleMass());
@@ -217,7 +229,7 @@ void ChSolidAxle::InitializeSide(ChSuspension::Side              side,
   // (z-axis along the length of the upper link)
   v = Vcross(points[UL_A] - points[LL_A], points[UL_C] - points[LL_A]);
   v.Normalize();
-  w = points[UL_A] - points[UL_C];
+  w = points[UL_C] - points[UL_A];
   w.Normalize();
   u = Vcross(v, w);
   rot.Set_A_axis(u, v, w);
@@ -232,9 +244,9 @@ void ChSolidAxle::InitializeSide(ChSuspension::Side              side,
   // Initialize lower link body.
   // Determine the rotation matrix of the lower link based on the plane of the hard points
   // (z-axis along the length of the lower link)
-  v = Vcross(points[LL_A] - points[UL_A], points[LL_C] - points[UL_A]);
+  v = Vcross(points[LL_C] - points[UL_A], points[LL_A] - points[UL_A]);
   v.Normalize();
-  w = points[LL_A] - points[LL_C];
+  w = points[LL_C] - points[LL_A];
   w.Normalize();
   u = Vcross(v, w);
   rot.Set_A_axis(u, v, w);
@@ -251,13 +263,12 @@ void ChSolidAxle::InitializeSide(ChSuspension::Side              side,
 
   // Initialize the revolute joint between axle and knuckle.
   // Determine the joint orientation matrix from the hardpoint locations by
-  // constructing a rotation matrix with the z axis along the joint direction
-  // and the y axis normal to the plane of the knuckle.
-  v = Vcross(points[KNUCKLE_U] - points[SPINDLE], points[KNUCKLE_L] - points[SPINDLE]);
-  v.Normalize();
-  w = points[KNUCKLE_L] - points[KNUCKLE_U];
+  // constructing a rotation matrix with the z axis along the joint direction.
+  w = points[KNUCKLE_U] - points[KNUCKLE_L];
   w.Normalize();
-  u = Vcross(v, w);
+  u = Vcross(points[KNUCKLE_U] - points[SPINDLE], points[KNUCKLE_L] - points[SPINDLE]);
+  u.Normalize();
+  v = Vcross(w, u);
   rot.Set_A_axis(u, v, w);
 
   m_revoluteKingpin[side]->Initialize(m_axleTube, m_knuckle[side], ChCoordsys<>((points[KNUCKLE_U]+points[KNUCKLE_L])/2, rot.Get_A_quaternion()));
@@ -272,23 +283,23 @@ void ChSolidAxle::InitializeSide(ChSuspension::Side              side,
   chassis->GetSystem()->AddLink(m_sphericalLowerLink[side]);
 
   // Initialize the universal joint between chassis and upper link.
-  u = UNIV_AXIS_CHASSIS_U;
-  v = UNIV_AXIS_LINK_U;
+  u = dirs[UNIV_AXIS_CHASSIS_U];
+  v = dirs[UNIV_AXIS_LINK_U];
   w = Vcross(u, v);
   rot.Set_A_axis(u, v, w);
   m_universalUpperLink[side]->Initialize(chassis, m_upperLink[side], ChCoordsys<>(points[UL_C], rot.Get_A_quaternion()));
   chassis->GetSystem()->AddLink(m_universalUpperLink[side]);
 
   // Initialize the universal joint between chassis and lower link.
-  u = UNIV_AXIS_CHASSIS_L;
-  v = UNIV_AXIS_LINK_L;
+  u = dirs[UNIV_AXIS_CHASSIS_L];
+  v = dirs[UNIV_AXIS_LINK_L];
   w = Vcross(u, v);
   rot.Set_A_axis(u, v, w);
   m_universalLowerLink[side]->Initialize(chassis, m_lowerLink[side], ChCoordsys<>(points[LL_C], rot.Get_A_quaternion()));
   chassis->GetSystem()->AddLink(m_universalLowerLink[side]);
 
   // Initialize the revolute joint between upright and spindle.
-  ChCoordsys<> rev_csys(points[SPINDLE], Q_from_AngAxis(CH_C_PI / 2.0, VECT_X));
+  ChCoordsys<> rev_csys(points[SPINDLE], chassisRot * Q_from_AngAxis(CH_C_PI / 2.0, VECT_X));
   m_revolute[side]->Initialize(m_spindle[side], m_knuckle[side], rev_csys);
   chassis->GetSystem()->AddLink(m_revolute[side]);
 
@@ -317,7 +328,7 @@ void ChSolidAxle::InitializeSide(ChSuspension::Side              side,
     m_axle[side]->SetInertia(getAxleInertia());
     chassis->GetSystem()->Add(m_axle[side]);
 
-    m_axle_to_spindle[side]->Initialize(m_axle[side], m_spindle[side], ChVector<>(0, 1, 0));
+    m_axle_to_spindle[side]->Initialize(m_axle[side], m_spindle[side], ChVector<>(0, -1, 0));
     chassis->GetSystem()->Add(m_axle_to_spindle[side]);
   }
 }
@@ -470,12 +481,12 @@ void ChSolidAxle::ApplySteering(double displ)
 {
   {
     ChVector<> r_bar = m_tierod_marker[LEFT];
-    r_bar.y += displ;
+    r_bar.y -= displ;
     m_distTierod[LEFT]->SetEndPoint1Rel(r_bar);
   }
   {
     ChVector<> r_bar = m_tierod_marker[RIGHT];
-    r_bar.y += displ;
+    r_bar.y -= displ;
     m_distTierod[RIGHT]->SetEndPoint1Rel(r_bar);
   }
 }

@@ -112,9 +112,6 @@ public:
     double Vx      ///< [in] tire forward velocity x-dir
     );
 
-  /// Return kappa, alpha, gamma.
-  ChVector<> getKAG_from_State(const ChWheelState& state);
-
   /// Get current wheel longitudinal slip.
   double get_kappa() const;
 
@@ -186,11 +183,14 @@ private:
   void readSection_rolling(std::ifstream& inFile);
   void readSection_aligning(std::ifstream& inFile);
 
-  // update the wheel state, and associated variables;
-  void update_stateVars(const ChWheelState& state);
-
   // update the tire coordinate system with new global ChWheelState data
   void update_tireFrame();
+
+  // update the vertical load, tire deflection, and tire rolling radius
+  void update_verticalLoad();
+
+  // find the vertical load, using a spring-damper model
+  double calc_Fz();
 
   // calculate the various stiffness/relaxation lengths
   void calc_relaxationLengths();
@@ -227,7 +227,7 @@ private:
     double C_Falpha,
     double V_cx,
     double psi_dot,
-    double w_y,
+    double omega,
     double gamma,
     double sigma_alpha,
     double v_phi,
@@ -247,9 +247,6 @@ private:
   /// assign Fx, Fy, Mz
   void calc_combinedSlipReactions();
 
-  // calculate the current effective rolling radius, w.r.t. wy, Fz as inputs
-  void calc_rho(double F_z);
-
   /// calculate the longitudinal force, alpha ~= 0
   /// assign to m_FM.force.x
   /// assign m_pureLong, trionometric function calculated constants
@@ -259,9 +256,6 @@ private:
   /// assign to m_FM.force.y
   /// assign m_pureLong, trionometric function calculated constants
   void calcFy_pureLat();
-
-  // find the vertical load, based on the wheel center and ground height
-  void calc_Fz();
 
   /// calculate the aligning moment,  kappa ~= 0
   /// assign to m_FM.force.z
@@ -295,24 +289,23 @@ private:
 
   bool m_use_transient_slip;
 
-  ChWheelState m_tireState;     // current tire state
-  ChCoordsys<> m_tire_frame;    // current tire coordinate system
+  ChWheelState m_tireState;    // current tire state
+  ChCoordsys<> m_tire_frame;   // current tire coordinate system
 
-  double m_R0;              // unloaded radius
-  double m_R_eff;           // current effect rolling radius
-  double m_R_l;             // relaxation length
-  double m_rho;             // vertical deflection w.r.t. R0
+  bool m_in_contact;           // indicates if there is tire-terrain contact
 
-  double m_dF_z;            // (Fz - Fz,nom) / Fz,nom
-  bool m_use_Fz_override;   // calculate Fz using collision, or user input
-  double m_Fz_override;     // if manually inputting the vertical wheel load
+  double m_R0;                 // unloaded radius
+  double m_R_eff;              // current effect rolling radius
+  double m_R_l;                // statically loaded radius
 
-  double m_step_size;       // integration step size
+  double m_dF_z;               // (Fz - Fz,nom) / Fz,nom
+  bool m_use_Fz_override;      // calculate Fz using collision, or user input
+  double m_Fz_override;        // if manually inputting the vertical wheel load
 
-  // OUTPUTS
+  double m_step_size;          // integration step size
 
-  ChTireForce m_FM;            // based on pure slip
-  ChTireForce m_FM_combined;   // based on combined slip
+  ChTireForce m_FM;            // output tire forces, based on pure slip
+  ChTireForce m_FM_combined;   // output tire forces, based on combined slip
 
   std::string m_paramFile;     // input parameter file
   std::string m_outFilename;   // output filename

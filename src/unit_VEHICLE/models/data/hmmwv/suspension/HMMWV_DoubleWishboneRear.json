@@ -3,13 +3,13 @@
 	"Type": "Suspension",
 	"Template": "DoubleWishbone",
 
-	"Steerable": false,
-	"Driven":    true,
+	"Steerable":	false,
+	"Driven":		true,
 
 	"Spindle":
 	{
 		"mass": 15.91,
-		"com": [-0.036, 0.910, -0.026],
+		"com": [ 0.036, 0.910, -0.026],
 		"inertia": [2, 4, 2],
 		"radius": 0.15,
 		"width": 0.06
@@ -18,7 +18,7 @@
 	"Upright":
 	{
 		"mass": 27.27,
-		"com": [-0.036, 0.751, -0.026],
+		"com": [ 0.036, 0.751, -0.026],
 		"inertia": [5, 5, 5],
 		"radius": 0.03
 	},
@@ -26,12 +26,12 @@
 	"UCA":
 	{
 		"mass":				5.45,
-		"com":				[-0.124,  0.589,  0.221],
+		"com":				[ 0.124,  0.589,  0.221],
 		"inertia":			[2, 2, 2],
 		"radius":			0.02,
-		"point_chassis_F":	[-0.349,  0.462,  0.228],
-		"point_chassis_B":	[-0.077,  0.462,  0.224],
-		"point_upright":	[-0.036,  0.716,  0.216]
+		"point_chassis_F":	[ 0.349,  0.462,  0.228],
+		"point_chassis_B":	[ 0.077,  0.462,  0.224],
+		"point_upright":	[ 0.036,  0.716,  0.216]
 	},
 
 	"LCA":
@@ -40,28 +40,28 @@
 		"com":				[ 0.000,  0.547, -0.059],
 		"inertia":			[3, 3, 3],
 		"radius":			0.03,
-		"point_chassis_F":	[-0.223,  0.307,  0.000],
-		"point_chassis_B":	[ 0.223,  0.307,  0.000],
-		"point_upright":	[-0.036,  0.787, -0.118]
+		"point_chassis_F":	[ 0.223,  0.307,  0.000],
+		"point_chassis_B":	[-0.223,  0.307,  0.000],
+		"point_upright":	[ 0.036,  0.787, -0.118]
 	},
 
 	"Tierod":
 	{
-		"point_chassis":	[-0.223,  0.416,  0.059],
-		"point_upright":	[-0.170,  0.821, -0.009]
+		"point_chassis":	[ 0.223,  0.416,  0.059],
+		"point_upright":	[ 0.170,  0.821, -0.009]
 	},
 
 	"TSDA":
 	{
-      	"point_shock_C":	[ 0.104,  0.498,  0.323],
-   		"point_shock_A":	[ 0.097,  0.544, -0.038],
-   		"point_spring_C":	[ 0.104,  0.502,  0.256],
-   		"point_spring_A":	[ 0.097,  0.543, -0.047],
-   		"spring_coef":		369149.000,
-   		"damping_coef":		35024.000,
-   		"free_length":		0.382
-   	},
-   	
+		"point_shock_C":	[-0.104,  0.498,  0.323],
+		"point_shock_A":	[-0.097,  0.544, -0.038],
+		"point_spring_C":	[-0.104,  0.502,  0.256],
+		"point_spring_A":	[-0.097,  0.543, -0.047],
+		"spring_coef":		369149.000,
+		"damping_coef":		35024.000,
+		"free_length":		0.382
+	},
+	
 	
 	"Axle":
 	{

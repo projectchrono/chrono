@@ -238,6 +238,12 @@ void ChIrrGuiDriver::renderSprings()
         link->GetEndPoint2Abs(),
         video::SColor(255, 150, 20, 20), 80, 15, true);
     }
+    else if (ChLinkSpringCB* link = dynamic_cast<ChLinkSpringCB*>(*ilink)) {
+      ChIrrTools::drawSpring(m_app.GetVideoDriver(), 0.05,
+        link->GetEndPoint1Abs(),
+        link->GetEndPoint2Abs(),
+        video::SColor(255, 150, 20, 20), 80, 15, true);
+    }
   }
 }
 

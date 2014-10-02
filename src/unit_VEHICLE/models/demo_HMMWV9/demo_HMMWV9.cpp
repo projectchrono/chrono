@@ -15,10 +15,10 @@
 // Main driver function for the HMMWV 9-body model, using rigid tire-terrain
 // contact.
 //
-// If using the Irrlicht interface, river inputs are obtained from the keyboard.
+// If using the Irrlicht interface, driver inputs are obtained from the keyboard.
 //
-// The global reference frame has Z up, X towards the back of the vehicle, and
-// Y pointing to the right.
+// The vehicle reference frame has Z up, X towards the front of the vehicle, and
+// Y pointing to the left.
 //
 // =============================================================================
 
@@ -82,7 +82,7 @@ double render_step_size = 1.0 / 50;   // FPS = 50
 
 #ifdef USE_IRRLICHT
   // Point on chassis tracked by the camera
-  ChVector<> trackPoint(0.0, 0.0, 1.0);
+  ChVector<> trackPoint(0.0, 0.0, 1.75);
 #else
   double tend = 20.0;
 
@@ -121,39 +121,39 @@ int main(int argc, char* argv[])
   switch (tire_model) {
   case RIGID:
   {
-    ChSharedPtr<HMMWV_RigidTire> tire_FR(new HMMWV_RigidTire(terrain, 0.7f));
     ChSharedPtr<HMMWV_RigidTire> tire_FL(new HMMWV_RigidTire(terrain, 0.7f));
-    ChSharedPtr<HMMWV_RigidTire> tire_RR(new HMMWV_RigidTire(terrain, 0.7f));
+    ChSharedPtr<HMMWV_RigidTire> tire_FR(new HMMWV_RigidTire(terrain, 0.7f));
     ChSharedPtr<HMMWV_RigidTire> tire_RL(new HMMWV_RigidTire(terrain, 0.7f));
+    ChSharedPtr<HMMWV_RigidTire> tire_RR(new HMMWV_RigidTire(terrain, 0.7f));
 
-    tire_FR->Initialize(vehicle.GetWheelBody(FRONT_RIGHT));
     tire_FL->Initialize(vehicle.GetWheelBody(FRONT_LEFT));
-    tire_RR->Initialize(vehicle.GetWheelBody(REAR_RIGHT));
+    tire_FR->Initialize(vehicle.GetWheelBody(FRONT_RIGHT));
     tire_RL->Initialize(vehicle.GetWheelBody(REAR_LEFT));
+    tire_RR->Initialize(vehicle.GetWheelBody(REAR_RIGHT));
 
-    tire_front_right = tire_FR;
     tire_front_left = tire_FL;
-    tire_rear_right = tire_RR;
+    tire_front_right = tire_FR;
     tire_rear_left = tire_RL;
+    tire_rear_right = tire_RR;
 
     break;
   }
   case LUGRE:
   {
-    ChSharedPtr<HMMWV_LugreTire> tire_FR(new HMMWV_LugreTire(terrain));
     ChSharedPtr<HMMWV_LugreTire> tire_FL(new HMMWV_LugreTire(terrain));
-    ChSharedPtr<HMMWV_LugreTire> tire_RR(new HMMWV_LugreTire(terrain));
+    ChSharedPtr<HMMWV_LugreTire> tire_FR(new HMMWV_LugreTire(terrain));
     ChSharedPtr<HMMWV_LugreTire> tire_RL(new HMMWV_LugreTire(terrain));
+    ChSharedPtr<HMMWV_LugreTire> tire_RR(new HMMWV_LugreTire(terrain));
 
-    tire_FR->Initialize();
     tire_FL->Initialize();
-    tire_RR->Initialize();
+    tire_FR->Initialize();
     tire_RL->Initialize();
+    tire_RR->Initialize();
 
-    tire_front_right = tire_FR;
     tire_front_left = tire_FL;
-    tire_rear_right = tire_RR;
+    tire_front_right = tire_FR;
     tire_rear_left = tire_RL;
+    tire_rear_right = tire_RR;
 
     break;
   }
@@ -161,15 +161,15 @@ int main(int argc, char* argv[])
   {
     std::string param_file = utils::GetModelDataFile("hmmwv/pactest.tir");
 
-    ChSharedPtr<ChPacejkaTire> tire_FR(new ChPacejkaTire(param_file, terrain));
     ChSharedPtr<ChPacejkaTire> tire_FL(new ChPacejkaTire(param_file, terrain));
-    ChSharedPtr<ChPacejkaTire> tire_RR(new ChPacejkaTire(param_file, terrain));
+    ChSharedPtr<ChPacejkaTire> tire_FR(new ChPacejkaTire(param_file, terrain));
     ChSharedPtr<ChPacejkaTire> tire_RL(new ChPacejkaTire(param_file, terrain));
+    ChSharedPtr<ChPacejkaTire> tire_RR(new ChPacejkaTire(param_file, terrain));
 
-    tire_front_right = tire_FR;
     tire_front_left = tire_FL;
-    tire_rear_right = tire_RR;
+    tire_front_right = tire_FR;
     tire_rear_left = tire_RL;
+    tire_rear_right = tire_RR;
 
     break;
   }
@@ -295,10 +295,10 @@ int main(int argc, char* argv[])
     tire_forces[REAR_LEFT] = tire_rear_left->GetTireForce();
     tire_forces[REAR_RIGHT] = tire_rear_right->GetTireForce();
 
-    wheel_states[FRONT_LEFT] = vehicle.GetWheelState(FRONT_RIGHT);
-    wheel_states[FRONT_RIGHT] = vehicle.GetWheelState(FRONT_LEFT);
-    wheel_states[REAR_LEFT] = vehicle.GetWheelState(REAR_RIGHT);
-    wheel_states[REAR_RIGHT] = vehicle.GetWheelState(REAR_LEFT);
+    wheel_states[FRONT_LEFT] = vehicle.GetWheelState(FRONT_LEFT);
+    wheel_states[FRONT_RIGHT] = vehicle.GetWheelState(FRONT_RIGHT);
+    wheel_states[REAR_LEFT] = vehicle.GetWheelState(REAR_LEFT);
+    wheel_states[REAR_RIGHT] = vehicle.GetWheelState(REAR_RIGHT);
 
     // Update modules (process inputs from other modules)
     time = vehicle.GetChTime();
@@ -307,10 +307,10 @@ int main(int argc, char* argv[])
 
     terrain.Update(time);
 
-    tire_front_right->Update(time, wheel_states[FRONT_LEFT]);
-    tire_front_left->Update(time, wheel_states[FRONT_RIGHT]);
-    tire_rear_right->Update(time, wheel_states[REAR_LEFT]);
-    tire_rear_left->Update(time, wheel_states[REAR_RIGHT]);
+    tire_front_left->Update(time, wheel_states[FRONT_LEFT]);
+    tire_front_right->Update(time, wheel_states[FRONT_RIGHT]);
+    tire_rear_left->Update(time, wheel_states[REAR_LEFT]);
+    tire_rear_right->Update(time, wheel_states[REAR_RIGHT]);
 
     vehicle.Update(time, throttle_input, steering_input, braking_input, tire_forces);
 
@@ -377,10 +377,10 @@ int main(int argc, char* argv[])
     tire_forces[REAR_LEFT] = tire_rear_left->GetTireForce();
     tire_forces[REAR_RIGHT] = tire_rear_right->GetTireForce();
 
-    wheel_states[FRONT_LEFT] = vehicle.GetWheelState(FRONT_RIGHT);
-    wheel_states[FRONT_RIGHT] = vehicle.GetWheelState(FRONT_LEFT);
-    wheel_states[REAR_LEFT] = vehicle.GetWheelState(REAR_RIGHT);
-    wheel_states[REAR_RIGHT] = vehicle.GetWheelState(REAR_LEFT);
+    wheel_states[FRONT_LEFT] = vehicle.GetWheelState(FRONT_LEFT);
+    wheel_states[FRONT_RIGHT] = vehicle.GetWheelState(FRONT_RIGHT);
+    wheel_states[REAR_LEFT] = vehicle.GetWheelState(REAR_LEFT);
+    wheel_states[REAR_RIGHT] = vehicle.GetWheelState(REAR_RIGHT);
 
     // Update modules (process inputs from other modules)
     time = vehicle.GetChTime();
@@ -389,10 +389,10 @@ int main(int argc, char* argv[])
 
     terrain.Update(time);
 
-    tire_front_right->Update(time, wheel_states[FRONT_LEFT]);
-    tire_front_left->Update(time, wheel_states[FRONT_RIGHT]);
-    tire_rear_right->Update(time, wheel_states[REAR_LEFT]);
-    tire_rear_left->Update(time, wheel_states[REAR_RIGHT]);
+    tire_front_left->Update(time, wheel_states[FRONT_LEFT]);
+    tire_front_right->Update(time, wheel_states[FRONT_RIGHT]);
+    tire_rear_left->Update(time, wheel_states[REAR_LEFT]);
+    tire_rear_right->Update(time, wheel_states[REAR_RIGHT]);
 
     vehicle.Update(time, throttle_input, steering_input, braking_input, tire_forces);
 

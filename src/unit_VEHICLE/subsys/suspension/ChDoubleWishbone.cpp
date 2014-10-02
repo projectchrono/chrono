@@ -15,9 +15,13 @@
 // Base class for a double-A arm suspension modeled with bodies and constraints.
 //
 // The suspension subsystem is modeled with respect to a right-handed frame,
-// with X pointing towards the rear, Y to the right, and Z up. All point
-// locations are assumed to be given for the right half of the supspension and
-// will be mirrored (reflecting the y coordinates) to construct the left side.
+// with X pointing towards the front, Y to the left, and Z up (ISO standard).
+// The suspension reference frame is assumed to be always aligned with that of
+// the vehicle.  When attached to a chassis, only an offset is provided.
+//
+// All point locations are assumed to be given for the left half of the
+// supspension and will be mirrored (reflecting the y coordinates) to construct
+// the right side.
 //
 // If marked as 'driven', the suspension subsystem also creates the ChShaft axle
 // element and its connection to the spindle body (which provides the interface
@@ -195,7 +199,6 @@ void ChDoubleWishbone::Initialize(ChSharedPtr<ChBodyAuxRef>  chassis,
 
   for (int i = 0; i < NUM_POINTS; i++) {
     ChVector<> rel_pos = getLocation(static_cast<PointId>(i));
-    rel_pos.y = -rel_pos.y;
     points[i] = suspension_to_abs.TransformLocalToParent(rel_pos);
   }
 
@@ -204,6 +207,7 @@ void ChDoubleWishbone::Initialize(ChSharedPtr<ChBodyAuxRef>  chassis,
   // Transform all points to absolute frame and initialize right side.
   for (int i = 0; i < NUM_POINTS; i++) {
     ChVector<> rel_pos = getLocation(static_cast<PointId>(i));
+    rel_pos.y = -rel_pos.y;
     points[i] = suspension_to_abs.TransformLocalToParent(rel_pos);
   }
 
@@ -215,6 +219,7 @@ void ChDoubleWishbone::InitializeSide(ChSuspension::Side              side,
                                       const std::vector<ChVector<> >& points)
 {
   // Chassis orientation (expressed in absolute frame)
+  // Recall that the suspension reference frame is aligned with the chassis.
   ChQuaternion<> chassisRot = chassis->GetFrame_REF_to_abs().GetRot();
 
   // Initialize spindle body (same orientation as the chassis)
@@ -241,10 +246,10 @@ void ChDoubleWishbone::InitializeSide(ChSuspension::Side              side,
 
   // Initialize Upper Control Arm body.
   // Determine the rotation matrix of the UCA based on the plane of the hard points
-  // (z axis normal to the plane of the LCA)
-  w = Vcross(points[UCA_F] - points[UCA_U], points[UCA_B] - points[UCA_U]);
+  // (z axis normal to the plane of the UCA)
+  w = Vcross(points[UCA_B] - points[UCA_U], points[UCA_F] - points[UCA_U]);
   w.Normalize();
-  u = points[UCA_B] - points[UCA_F];
+  u = points[UCA_F] - points[UCA_B];
   u.Normalize();
   v = Vcross(w, u);
   rot.Set_A_axis(u, v, w);
@@ -259,9 +264,9 @@ void ChDoubleWishbone::InitializeSide(ChSuspension::Side              side,
   // Initialize Lower Control Arm body.
   // Determine the rotation matrix of the LCA, based on the plane of the hard points
   // (z axis normal to the plane of the LCA)
-  w = Vcross(points[LCA_F] - points[LCA_U], points[LCA_B] - points[LCA_U]);
+  w = Vcross(points[LCA_B] - points[LCA_U], points[LCA_F] - points[LCA_U]);
   w.Normalize();
-  u = points[LCA_B] - points[LCA_F];
+  u = points[LCA_F] - points[LCA_B];
   u.Normalize();
   v = Vcross(w, u);
   rot.Set_A_axis(u, v, w);
@@ -275,7 +280,7 @@ void ChDoubleWishbone::InitializeSide(ChSuspension::Side              side,
 
 
   // Initialize the revolute joint between upright and spindle.
-  ChCoordsys<> rev_csys((points[UPRIGHT] + points[SPINDLE]) / 2, Q_from_AngAxis(CH_C_PI / 2.0, VECT_X));
+  ChCoordsys<> rev_csys((points[UPRIGHT] + points[SPINDLE]) / 2, chassisRot * Q_from_AngAxis(CH_C_PI / 2.0, VECT_X));
   m_revolute[side]->Initialize(m_spindle[side], m_upright[side], rev_csys);
   chassis->GetSystem()->AddLink(m_revolute[side]);
 
@@ -283,9 +288,9 @@ void ChDoubleWishbone::InitializeSide(ChSuspension::Side              side,
   // Determine the joint orientation matrix from the hardpoint locations by
   // constructing a rotation matrix with the z axis along the joint direction
   // and the y axis normal to the plane of the UCA.
-  v = Vcross(points[UCA_F] - points[UCA_U], points[UCA_B] - points[UCA_U]);
+  v = Vcross(points[UCA_B] - points[UCA_U], points[UCA_F] - points[UCA_U]);
   v.Normalize();
-  w = points[UCA_B] - points[UCA_F];
+  w = points[UCA_F] - points[UCA_B];
   w.Normalize();
   u = Vcross(v, w);
   rot.Set_A_axis(u, v, w);
@@ -301,9 +306,9 @@ void ChDoubleWishbone::InitializeSide(ChSuspension::Side              side,
   // Determine the joint orientation matrix from the hardpoint locations by
   // constructing a rotation matrix with the z axis along the joint direction
   // and the y axis normal to the plane of the LCA.
-  v = Vcross(points[LCA_F] - points[LCA_U], points[LCA_B] - points[LCA_U]);
+  v = Vcross(points[LCA_B] - points[LCA_U], points[LCA_F] - points[LCA_U]);
   v.Normalize();
-  w = points[LCA_B] - points[LCA_F];
+  w = points[LCA_F] - points[LCA_B];
   w.Normalize();
   u = Vcross(v, w);
   rot.Set_A_axis(u, v, w);
@@ -338,7 +343,7 @@ void ChDoubleWishbone::InitializeSide(ChSuspension::Side              side,
     m_axle[side]->SetInertia(getAxleInertia());
     chassis->GetSystem()->Add(m_axle[side]);
 
-    m_axle_to_spindle[side]->Initialize(m_axle[side], m_spindle[side], ChVector<>(0, 1, 0));
+    m_axle_to_spindle[side]->Initialize(m_axle[side], m_spindle[side], ChVector<>(0, -1, 0));
     chassis->GetSystem()->Add(m_axle_to_spindle[side]);
   }
 }
@@ -497,12 +502,12 @@ void ChDoubleWishbone::ApplySteering(double displ)
 {
   {
     ChVector<> r_bar = m_tierod_marker[LEFT];
-    r_bar.y += displ;
+    r_bar.y -= displ;
     m_distTierod[LEFT]->SetEndPoint1Rel(r_bar);
   }
   {
     ChVector<> r_bar = m_tierod_marker[RIGHT];
-    r_bar.y += displ;
+    r_bar.y -= displ;
     m_distTierod[RIGHT]->SetEndPoint1Rel(r_bar);
   }
 }
