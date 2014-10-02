@@ -1,14 +1,14 @@
 {
-	"Name":     "HMMWV Wheel Front-Left",
-	"Type":     "Wheel",
-	"Template": "Wheel",
+  "Name":                       "HMMWV Wheel Front-Left",
+  "Type":                       "Wheel",
+  "Template":                   "Wheel",
 
-	"mass": 88.39,
-	"inertia": [0.113, 0.113, 0.113],
+  "Mass":                       88.39,
+  "Inertia":                    [0.113, 0.113, 0.113],
 
-	"Visualization":
-	{
-		"radius": 0.461,
-		"width": 0.254
-	}
+  "Visualization":
+  {
+    "Radius":                   0.461,
+    "Width":                    0.254
+  }
 }

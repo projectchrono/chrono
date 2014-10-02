@@ -1,14 +1,14 @@
 {
-	"Name":     "HMMWV Wheel Rear-Left",
-	"Type":     "Wheel",
-	"Template": "Wheel",
+  "Name":                       "HMMWV Wheel Rear-Left",
+  "Type":                       "Wheel",
+  "Template":                   "Wheel",
 
-	"mass": 88.39,
-	"inertia": [0.113, 0.113, 0.113],
+  "Mass":                       88.39,
+  "Inertia":                    [0.113, 0.113, 0.113],
 
-	"Visualization":
-	{
-		"mesh_file": "hmmwv/wheel_L.obj",
-		"mesh_name": "hmmwv_wheel_L"
-	}
+  "Visualization":
+  {
+    "Mesh Filename":            "hmmwv/wheel_L.obj",
+    "Mesh Name":                "hmmwv_wheel_L"
+  }
 }

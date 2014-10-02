@@ -1,7 +1,7 @@
 {
-	"Name":     "HMMWV Brake Front",
-	"Type":     "Brake",
-	"Template": "BrakeSimple",
+  "Name":                       "HMMWV Brake Front",
+  "Type":                       "Brake",
+  "Template":                   "BrakeSimple",
 
-	"Maximum Torque": 4000
+  "Maximum Torque":             4000
 }

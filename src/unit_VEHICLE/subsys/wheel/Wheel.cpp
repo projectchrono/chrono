@@ -66,19 +66,19 @@ Wheel::Wheel(const std::string& filename)
   assert(d.HasMember("Name"));
 
   // Read mass and inertia
-  m_mass = d["mass"].GetDouble();
-  m_inertia = loadVector(d["inertia"]);
+  m_mass = d["Mass"].GetDouble();
+  m_inertia = loadVector(d["Inertia"]);
 
   // Check how to visualize this wheel.
   if (d.HasMember("Visualization")) {
-    if (d["Visualization"].HasMember("mesh_file")) {
-      m_meshFile = d["Visualization"]["mesh_file"].GetString();
-      m_meshName = d["Visualization"]["mesh_name"].GetString();
+    if (d["Visualization"].HasMember("Mesh Filename")) {
+      m_meshFile = d["Visualization"]["Mesh Filename"].GetString();
+      m_meshName = d["Visualization"]["Mesh Name"].GetString();
       m_vis = MESH;
     }
     else {
-      m_radius = d["Visualization"]["radius"].GetDouble();
-      m_width = d["Visualization"]["width"].GetDouble();
+      m_radius = d["Visualization"]["Radius"].GetDouble();
+      m_width = d["Visualization"]["Width"].GetDouble();
       m_vis = PRIMITIVES;
     }
   }

@@ -62,16 +62,16 @@ PitmanArm::PitmanArm(const std::string& filename)
   SetName(d["Name"].GetString());
 
   // Read steering link data
-  m_steeringLinkMass = d["Steering Link"]["mass"].GetDouble();
-  m_points[STEERINGLINK] = loadVector(d["Steering Link"]["com"]);
-  m_steeringLinkInertia = loadVector(d["Steering Link"]["inertia"]);
-  m_steeringLinkRadius = d["Steering Link"]["radius"].GetDouble();
+  m_steeringLinkMass = d["Steering Link"]["Mass"].GetDouble();
+  m_points[STEERINGLINK] = loadVector(d["Steering Link"]["COM"]);
+  m_steeringLinkInertia = loadVector(d["Steering Link"]["Inertia"]);
+  m_steeringLinkRadius = d["Steering Link"]["Radius"].GetDouble();
 
   // Read Pitman arm data
-  m_pitmanArmMass = d["Pitman Arm"]["mass"].GetDouble();
-  m_points[PITMANARM] = loadVector(d["Pitman Arm"]["com"]);
-  m_pitmanArmInertia = loadVector(d["Pitman Arm"]["inertia"]);
-  m_pitmanArmRadius = d["Pitman Arm"]["radius"].GetDouble();
+  m_pitmanArmMass = d["Pitman Arm"]["Mass"].GetDouble();
+  m_points[PITMANARM] = loadVector(d["Pitman Arm"]["COM"]);
+  m_pitmanArmInertia = loadVector(d["Pitman Arm"]["Inertia"]);
+  m_pitmanArmRadius = d["Pitman Arm"]["Radius"].GetDouble();
 
   // Read data for the revolute joint (Pitman arm - chassis)
   m_points[REV] = loadVector(d["Revolute Joint"]["Location"]);
