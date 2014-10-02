@@ -19,115 +19,53 @@ struct simplex {
    support s0, s1, s2, s3, s4;
 };
 
-bool chrono::collision::SphereSphere(const real3 &A_X,
-                                     const real3 &B_X,
-                                     const real3 &A_Y,
-                                     const real3 &B_Y,
+bool chrono::collision::SphereSphere(const ConvexShape &ShapeA,
+                                     const ConvexShape &ShapeB,
                                      real3 & N,
                                      real & depth,
                                      real3 & p1,
                                      real3 & p2) {
-   real3 relpos = B_X - A_X;
+   real3 relpos = ShapeB.A - ShapeA.A;
    real d2 = dot(relpos, relpos);
-   real collide_dist = A_Y.x + B_Y.x;
+   real collide_dist = ShapeA.B.x + ShapeB.B.x;
    if (d2 <= collide_dist * collide_dist) {
       //depth = sqrtf(d2)-collide_dist;
       N = normalize(relpos);
-      p1 = A_X + N * A_Y.x;
-      p2 = B_X - N * B_Y.x;
+      p1 = ShapeA.A + N * ShapeA.B.x;
+      p2 = ShapeB.A - N * ShapeB.B.x;
       depth = dot(N, p2 - p1);
       return true;
    }
    return false;
 }
 
-__device__ __host__ real3 GetCenter(const shape_type &type,
-                                    const real3 &A,
-                                    const real3 &B,
-                                    const real3 &C) {
-   if (type == TRIANGLEMESH) {
-      return GetCenter_Triangle(A, B, C);     //triangle center
+__device__ __host__ real3 GetCenter(const ConvexShape &Shape) {
+   if (Shape.type == TRIANGLEMESH) {
+      return GetCenter_Triangle(Shape.A, Shape.B, Shape.C);     //triangle center
    } else {
-      return R3(0, 0, 0) + A;     //All other shapes assumed to be locally centered
+      return R3(0, 0, 0) + Shape.A;     //All other shapes assumed to be locally centered
    }
 }
 
-__device__ __host__ real3 TransformSupportVert(const shape_type &type,
-                                               const real3 &A,
-                                               const real3 &B,
-                                               const real3 &C,
-                                               const real4 &R,
-                                               const real3 &n) {
-   real3 localSupport;
-   real3 rotated_n = quatRotateMatT(n, R);
-   switch (type) {
-      case chrono::collision::SPHERE:
-         localSupport = GetSupportPoint_Sphere(B, rotated_n);
-         break;
-      case chrono::collision::ELLIPSOID:
-         localSupport = GetSupportPoint_Ellipsoid(B, rotated_n);
-         break;
-      case chrono::collision::BOX:
-         localSupport = GetSupportPoint_Box(B, rotated_n);
-         break;
-      case chrono::collision::CYLINDER:
-         localSupport = GetSupportPoint_Cylinder(B, rotated_n);
-         break;
-      case chrono::collision::CONE:
-         localSupport = GetSupportPoint_Cone(B, rotated_n);
-         break;
-      case chrono::collision::CAPSULE:
-         localSupport = GetSupportPoint_Capsule(B, rotated_n);
-         break;
-      case chrono::collision::ROUNDEDBOX:
-         localSupport = GetSupportPoint_RoundedBox(B, C, rotated_n);
-         break;
-      case chrono::collision::ROUNDEDCYL:
-         localSupport = GetSupportPoint_RoundedCylinder(B, C, rotated_n);
-         break;
-      case chrono::collision::ROUNDEDCONE:
-         localSupport = GetSupportPoint_RoundedCone(B, C, rotated_n);
-         break;
-      case chrono::collision::TRIANGLEMESH:
-         return GetSupportPoint_Triangle(A, B, C, n);
-         break;
-   }
 
-   return quatRotateMat(localSupport, R) + A;     //globalSupport
-}
-
-void FindCenter(const shape_type &typeA,
-                const real3 &A_X,
-                const real3 &A_Y,
-                const real3 &A_Z,
-                const shape_type &typeB,
-                const real3 &B_X,
-                const real3 &B_Y,
-                const real3 &B_Z,
+void FindCenter(const ConvexShape & shapeA,
+                const ConvexShape & shapeB,
                 simplex & portal) {
 
    // v0 = center of Minkowski sum
-   portal.s0.v1 = GetCenter(typeA, A_X, A_Y, A_Z);
-   portal.s0.v2 = GetCenter(typeB, B_X, B_Y, B_Z);
+   portal.s0.v1 = GetCenter(shapeA);
+   portal.s0.v2 = GetCenter(shapeB);
    portal.s0.v = portal.s0.v2 - portal.s0.v1;
 
 }
 
-void MPRSupport(const shape_type &typeA,
-                const real3 &A_X,
-                const real3 &A_Y,
-                const real3 &A_Z,
-                const real4 &A_R,
-                const shape_type &typeB,
-                const real3 &B_X,
-                const real3 &B_Y,
-                const real3 &B_Z,
-                const real4 &B_R,
+void MPRSupport(const ConvexShape & shapeA,
+                const ConvexShape & shapeB,
                 const real3 & n,
                 support & s) {
 
-   s.v1 = TransformSupportVert(typeA, A_X, A_Y, A_Z, A_R, -n);
-   s.v2 = TransformSupportVert(typeB, B_X, B_Y, B_Z, B_R, n);
+   s.v1 = TransformSupportVert(shapeA, -n);
+   s.v2 = TransformSupportVert(shapeB, n);
    s.v = s.v2 - s.v1;
 
 }
@@ -190,8 +128,8 @@ int portalEncapsulesOrigin(const simplex & portal,
 
 }
 
-int portalCanEncapsulesOrigin(const simplex & portal,
-                              const real3 &n) {
+int portalCanEncapsuleOrigin(const simplex & portal,
+                             const real3 &n) {
 
    return dot(portal.s4.v, n) >= 0.0;
 
@@ -215,6 +153,37 @@ int portalReachTolerance(const simplex & portal,
    return isEqual(dot1, MPR_TOLERANCE) || dot1 < MPR_TOLERANCE;
 
 }
+real Vec3Dist2(const real3 a,
+               const real3 b) {
+   real3 ab = a - b;
+   return dot(ab, ab);
+}
+real Vec3PointSegmentDist2(const real3 & P,
+                           const real3 & x0,
+                           const real3 & b,
+                           real3 & witness) {
+   real dist, t;
+   real3 d, a;
+   d = b - x0;     // direction of segment
+   a = x0 - P;     // precompute vector from P to x0
+   t = -(1.f) * dot(a, d);
+   t = t / dot(d, d);
+
+   if (t < 0.0f || IsZero(t)) {
+      dist = Vec3Dist2(x0, P);
+      witness = x0;
+   } else if (t > 1.0f || isEqual(t, 1.0f)) {
+      dist = Vec3Dist2(b, P);
+      witness = b;
+   } else {
+      witness = d;
+      witness *= t;
+      witness += x0;
+      dist = Vec3Dist2(witness, P);
+   }
+
+   return dist;
+}
 
 real Vec3PointSegmentDist2(const real3 & P,
                            const real3 & x0,
@@ -227,68 +196,72 @@ real Vec3PointSegmentDist2(const real3 & P,
    t = t / dot(d, d);
 
    if (t < 0.0f || IsZero(t)) {
-      dist = dot(x0 - P, x0 - P);
+      dist = Vec3Dist2(x0, P);
 
    } else if (t > 1.0f || isEqual(t, 1.0f)) {
-      dist = dot(b - P, b - P);
+      dist = Vec3Dist2(b, P);
 
    } else {
       d = d * t;
       d = d * a;
-      d = dot(d, d);
+      dist = dot(d, d);
    }
 
    return dist;
 }
-__device__ __host__ real Vec3PointTriDist2(const real3 & P,
-                                           const real3 & V0,
-                                           const real3 & V1,
-                                           const real3 & V2) {
-//   real3 d1, d2, a;
-//   real u, v, w, p, q, r;
-//   real s, t, dist, dist2;
-//
-//   d1 = B - x0;
-//   d2 = C - x0;
-//   a = x0 - P;
-//
-//   u = dot(a, a);
-//   v = dot(d1, d1);
-//   w = dot(d2, d2);
-//   p = dot(a, d1);
-//   q = dot(a, d2);
-//   r = dot(d1, d2);
-//
-//   s = (q * r - w * p) / (w * v - r * r);
-//   t = (-s * r - q) / w;
-//
-//   if ((IsZero(s) || s > 0.0f) && (isEqual(s, 1.0f) || s < 1.0f) && (IsZero(t) || t > 0.0f) && (isEqual(t, 1.0f) || t < 1.0f) && (isEqual(t + s, 1.0f) || t + s < 1.0f)) {
-//
-//      dist = s * s * v;
-//      dist += t * t * w;
-//      dist += 2.f * s * t * r;
-//      dist += 2.f * s * p;
-//      dist += 2.f * t * q;
-//      dist += u;
-//
-//   } else {
-//
-//      dist = Vec3PointSegmentDist2(P, x0, B);
-//      dist2 = Vec3PointSegmentDist2(P, x0, C);
-//
-//      if (dist2 < dist) {
-//         dist = dist2;
-//      }
-//
-//      dist2 = Vec3PointSegmentDist2(P, B, C);
-//
-//      if (dist2 < dist) {
-//         dist = dist2;
-//
-//      }
-//   }
-//
-//   return dist;
+
+real Vec3PointTriDist2(const real3 & P,
+                       const real3 & x0,
+                       const real3 & B,
+                       const real3 & C,
+                       real3 &witness) {
+   real3 d1, d2, a;
+   real u, v, w, p, q, r;
+   real s, t, dist, dist2;
+   real3 witness2;
+
+   d1 = B - x0;
+   d2 = C - x0;
+   a = x0 - P;
+
+   u = dot(a, a);
+   v = dot(d1, d1);
+   w = dot(d2, d2);
+   p = dot(a, d1);
+   q = dot(a, d2);
+   r = dot(d1, d2);
+
+   s = (q * r - w * p) / (w * v - r * r);
+   t = (-s * r - q) / w;
+
+   if ((IsZero(s) || s > 0.0f) && (isEqual(s, 1.0f) || s < 1.0f) && (IsZero(t) || t > 0.0f) && (isEqual(t, 1.0f) || t < 1.0f) && (isEqual(t + s, 1.0f) || t + s < 1.0f)) {
+      d1 *= s;
+      d2 *= t;
+      witness = x0;
+      witness += d1;
+      witness += d2;
+
+      dist = Vec3Dist2(witness, P);
+   } else {
+      dist = Vec3PointSegmentDist2(P, x0, B, witness);
+      dist2 = Vec3PointSegmentDist2(P, x0, C, witness2);
+      if (dist2 < dist) {
+         dist = dist2;
+         witness = witness2;
+      }
+      dist2 = Vec3PointSegmentDist2(P, B, C);
+      if (dist2 < dist) {
+         dist = dist2;
+         witness = witness2;
+      }
+   }
+   return dist;
+}
+
+real Vec3PointTriDist2(const real3 & P,
+                       const real3 & V0,
+                       const real3 & V1,
+                       const real3 & V2) {
 
    real3 diff = V0 - P;
    real3 edge0 = V1 - V0;
@@ -462,62 +435,62 @@ __device__ __host__ real Vec3PointTriDist2(const real3 & P,
 
 }
 
-void FindPenetration(const shape_type & typeA,
-                     const real3 & A_X,
-                     const real3 & A_Y,
-                     const real3 & A_Z,
-                     const real4 & A_R,
-                     const shape_type & typeB,
-                     const real3 & B_X,
-                     const real3 & B_Y,
-                     const real3 & B_Z,
-                     const real4 & B_R,
+void FindPenetration(const ConvexShape & shapeA,
+                     const ConvexShape & shapeB,
                      simplex & portal,
                      real & depth,
                      real3 & n,
                      real3 & point) {
    real3 zero = real3(0);
+   real3 dir;
 
    for (int i = 0; i < MAX_ITERATIONS; i++) {
+      //std::cout<<i<<std::endl;
+      dir = PortalDir(portal);
+      MPRSupport(shapeA, shapeB, dir, portal.s4);
 
-      n = PortalDir(portal);
-      //cout<<"PortalDir"<<n<<endl;
-      MPRSupport(typeA, A_X, A_Y, A_Z, A_R, typeB, B_X, B_Y, B_Z, B_R, n, portal.s4);
-
-      real delta = dot((portal.s4.v - portal.s3.v), n);
-
-      if (portalReachTolerance(portal, n) || i == MAX_ITERATIONS) {
-         //depth = -sqrtf(Vec3PointTriDist2(zero, portal.s1.v, portal.s2.v, portal.s3.v));
-         //if (depth != depth) {
-         //   depth = 0;
-         //}
-         //dir = n;
+      real delta = dot((portal.s4.v - portal.s3.v), dir);
+      //std::cout<<dir<<" "<<delta<<std::endl;
+      if (portalReachTolerance(portal, dir) || i == MAX_ITERATIONS - 1) {
+         depth = -sqrt(Vec3PointTriDist2(zero, portal.s1.v, portal.s2.v, portal.s3.v, n));
+         if (IsZero(n)) {
+            n = dir;
+         }
+         n = normalize(n);
          FindPos(portal, point);
 
          return;
       }
       ExpandPortal(portal);
    }
-
-//   real3 n = PortalDir(portal);
-//   depth = -sqrtf(Vec3PointTriDist2(zero, portal.s1.v, portal.s2.v, portal.s3.v));
-//   if (depth != depth) {
-//      depth = 0;
-//   }
-//   dir = n;
-//   FindPos(portal, point);
 }
 
-bool FindPortal(const shape_type & typeA,
-                const real3 &A_X,
-                const real3 &A_Y,
-                const real3 &A_Z,
-                const real4 &A_R,
-                const shape_type &typeB,
-                const real3 &B_X,
-                const real3 &B_Y,
-                const real3 &B_Z,
-                const real4 &B_R,
+void FindPenetrationTouch(const ConvexShape & shapeA,
+                          const ConvexShape & shapeB,
+                          simplex & portal,
+                          real & depth,
+                          real3 & n,
+                          real3 & point) {
+   depth = 0;
+   n = normalize(portal.s1.v - portal.s0.v);
+   point = (portal.s1.v1 + portal.s1.v2) * .5;
+}
+
+void FindPenetrationSegment(const ConvexShape & shapeA,
+                            const ConvexShape & shapeB,
+                            simplex & portal,
+                            real & depth,
+                            real3 & n,
+                            real3 & point) {
+   point = (portal.s1.v1 + portal.s1.v2) * .5;
+   n = portal.s1.v;
+   depth = -length(n);
+   n = normalize(n);
+
+}
+
+bool FindPortal(const ConvexShape & shapeA,
+                const ConvexShape & shapeB,
                 simplex & portal,
                 real3 & n) {
 
@@ -526,7 +499,7 @@ bool FindPortal(const shape_type & typeA,
 
       // Obtain the support point in a direction perpendicular to the existing plane
       // Note: This point is guaranteed to lie off the plane
-      MPRSupport(typeA, A_X, A_Y, A_Z, A_R, typeB, B_X, B_Y, B_Z, B_R, n, portal.s3);
+      MPRSupport(shapeA, shapeB, n, portal.s3);
 
       if (dot(portal.s3.v, n) <= 0.0) {
          //cout << "FAIL C" << endl;
@@ -549,140 +522,143 @@ bool FindPortal(const shape_type & typeA,
    return true;
 
 }
-//Code for Convex-Convex Collision detection, adopted from xeno-collide
-bool chrono::collision::CollideAndFindPoint(const shape_type &typeA,
-                                            const real3 &A_X,
-                                            const real3 &A_Y,
-                                            const real3 &A_Z,
-                                            const real4 &A_R,
-                                            const shape_type &typeB,
-                                            const real3 &B_X,
-                                            const real3 &B_Y,
-                                            const real3 &B_Z,
-                                            const real4 &B_R,
-                                            real3 &returnNormal,
-                                            real3 &point,
-                                            real &depth) {
 
-   real3 n;
-   simplex portal;
+int DiscoverPortal(const ConvexShape & shapeA,
+                   const ConvexShape & shapeB,
+                   simplex &portal) {
 
-   FindCenter(typeA, A_X, A_Y, A_Z, typeB, B_X, B_Y, B_Z, portal);
+   real3 n, va, vb;
+   // vertex 0 is center of portal
+   FindCenter(shapeA, shapeB, portal);
 
-// Avoid case where centers overlap -- any direction is fine in this case
+   // Avoid case where centers overlap -- any direction is fine in this case
    if (IsZero(portal.s0.v)) {
       portal.s0.v = R3(1, 0, 0);
    }
-// v1 = support in direction of origin
+   // v1 = support in direction of origin
    n = normalize(-portal.s0.v);
-   MPRSupport(typeA, A_X, A_Y, A_Z, A_R, typeB, B_X, B_Y, B_Z, B_R, n, portal.s1);
-
+   MPRSupport(shapeA, shapeB, n, portal.s1);
+   // test if origin isn't outside of v1
    if (dot(portal.s1.v, n) < 0.0) {
       //no contact
       //cout << "FAIL A " << dot(portal.s1.v, n) << endl;
-      return false;
+      return -1;
    }
 
-// v2 - support perpendicular to v1,v0
-   n = cross(portal.s1.v, portal.s0.v);
+   // v2 - support perpendicular to v1,v0
+   n = cross(portal.s0.v, portal.s1.v);
 
    if (IsZero(n)) {
       if (IsZero(portal.s1.v)) {
-         depth = 0;
-         n = portal.s1.v - portal.s0.v;
+         return 1;
       } else {
-         n = portal.s1.v;
-         depth = -length(n);
+         return 2;
       }
-      point = (portal.s1.v1 + portal.s1.v2) * .5;
-      n = normalize(n);
-      returnNormal = n;
-      //n = portal.s1.v - portal.s0.v;
-      //n = normalize(n);
-      //cout << "EXIT A" << endl;
-      return true;
    }
    n = normalize(n);
 
-   MPRSupport(typeA, A_X, A_Y, A_Z, A_R, typeB, B_X, B_Y, B_Z, B_R, n, portal.s2);
+   MPRSupport(shapeA, shapeB, n, portal.s2);
    if (dot(portal.s2.v, n) <= 0.0) {
-      //cout << "FAIL B" << endl;
-      return false;
+      return -1;
    }
 
-// Determine whether origin is on + or - side of plane (v1,v0,v2)
+   // Determine whether origin is on + or - side of plane (v1,v0,v2)
    n = normalize(cross((portal.s1.v - portal.s0.v), (portal.s2.v - portal.s0.v)));
-// If the origin is on the - side of the plane, reverse the direction of the plane
+   // If the origin is on the - side of the plane, reverse the direction of the plane
    if (dot(n, portal.s0.v) > 0.0) {
       Swap(portal.s1, portal.s2);
       n = -n;
    }
-//   cout << n << " " << portal.s0.v << portal.s1.v << portal.s2.v << (portal.s1.v - portal.s0.v) << (portal.s2.v - portal.s0.v)
-//        << cross((portal.s1.v - portal.s0.v), (portal.s2.v - portal.s0.v)) << endl;
-   if (!FindPortal(typeA, A_X, A_Y, A_Z, A_R, typeB, B_X, B_Y, B_Z, B_R, portal, n)) {
-      return false;
+   int cont;
+   //FindPortal code
+   while (true) {
+
+      // Obtain the support point in a direction perpendicular to the existing plane
+      // Note: This point is guaranteed to lie off the plane
+      MPRSupport(shapeA, shapeB, n, portal.s3);
+
+      if (dot(portal.s3.v, n) <= 0.0) {
+         return -1;
+      }
+      // If origin is outside (v1,v0,v3), then eliminate v2 and loop
+      if (dot(cross(portal.s1.v, portal.s3.v), portal.s0.v) < 0.0) {
+         portal.s2 = portal.s3;
+         n = normalize(cross((portal.s1.v - portal.s0.v), (portal.s3.v - portal.s0.v)));
+         continue;
+      }
+      // If origin is outside (v3,v0,v2), then eliminate v1 and loop
+      if (dot(cross(portal.s3.v, portal.s2.v), portal.s0.v) < 0.0) {
+         portal.s1 = portal.s3;
+         n = normalize(cross((portal.s3.v - portal.s0.v), (portal.s2.v - portal.s0.v)));
+         continue;
+      }
+      break;
    }
-   // Phase Two: Refine the portal
-   // We are now inside of a wedge...
-   bool hit = false;
+   return 0;
+
+}
+int RefinePortal(const ConvexShape & shapeA,
+                 const ConvexShape & shapeB,
+                 simplex &portal) {
+   real3 n;
    for (int i = 0; i < MAX_ITERATIONS; i++) {
       // Compute normal of the wedge face
       n = PortalDir(portal);
+
+      if (portalEncapsulesOrigin(portal, n)) {
+         return 0;
+      }
+
       // Find the support point in the direction of the wedge face
-      MPRSupport(typeA, A_X, A_Y, A_Z, A_R, typeB, B_X, B_Y, B_Z, B_R, n, portal.s4);
+      MPRSupport(shapeA, shapeB, n, portal.s4);
 
       // If the boundary is thin enough or the origin is outside the support plane for the newly discovered vertex, then we can terminate
-      if (portalReachTolerance(portal, n) || !portalEncapsulesOrigin(portal, n)) {
-         //FindPortal(typeA, A_X, A_Y, A_Z, A_R, typeB, B_X, B_Y, B_Z, B_R, portal, n);
-         // Compute distance from origin to wedge face
-         // If the origin is inside the wedge, we have a hit
-         if (portalEncapsulesOrigin(portal, n) >= 0.0 && !hit) {
-            //cout << "Hit" << n << endl;
-            hit = true;     // HIT!!!
-         }
-         break;
+      if (portalReachTolerance(portal, n) || !portalCanEncapsuleOrigin(portal, n)) {
+         return -1;
       }
       ExpandPortal(portal);
 
    }
-   if (hit) {
-      //depth = dot(portal.s4.v, n);
-      FindPenetration(typeA, A_X, A_Y, A_Z, A_R, typeB, B_X, B_Y, B_Z, B_R, portal, depth, returnNormal, point);
-      //cout<<returnNormal<<endl;
-
-      //
-//      if (depth > 0) {
-//         return false;
-//      }
-      //cout<<A_X<<A_Y<<B_X<<B_Y<<endl;//
-
-      //cout<<portal.s0.v<<portal.s1.v<<portal.s2.v<<portal.s3.v<<portal.s4.v<<endl;
-      //n = PortalDir(portal);
-      //FindPos(portal, point);
-      //returnNormal = normalize(n);
-      //exit(0);
-   }
-   return hit;
-
+   return -1;
 }
-void chrono::collision::GetPoints(
-                                  shape_type A_T,
-                                  real3 A_X,
-                                  real3 A_Y,
-                                  real3 A_Z,
-                                  real4 A_R,
-                                  shape_type B_T,
-                                  real3 B_X,
-                                  real3 B_Y,
-                                  real3 B_Z,
-                                  real4 B_R,
+//Code for Convex-Convex Collision detection, adopted from xeno-collide
+bool chrono::collision::CollideAndFindPoint(const ConvexShape & shapeA,
+                                            const ConvexShape & shapeB,
+                                            real3 &returnNormal,
+                                            real3 &point,
+                                            real &depth) {
+
+   simplex portal;
+
+   int result = DiscoverPortal(shapeA, shapeB, portal);
+   //std::cout << result << std::endl;
+
+   if (result == 0) {
+      result = RefinePortal(shapeA, shapeB, portal);
+      //std::cout << result << std::endl;
+
+      if (result < 0) {
+         return 0;
+      }
+      FindPenetration(shapeA, shapeB, portal, depth, returnNormal, point);
+   } else if (result == 1) {
+      FindPenetrationTouch(shapeA, shapeB, portal, depth, returnNormal, point);
+   } else if (result == 2) {
+      FindPenetrationSegment(shapeA, shapeB, portal, depth, returnNormal, point);
+   } else {
+      return 0;
+   }
+   return 1;
+}
+void chrono::collision::GetPoints(const ConvexShape & shapeA,
+                                  const ConvexShape & shapeB,
                                   real3 &N,
                                   real3 p0,
                                   real3 & p1,
                                   real3 & p2) {
 
-   p1 = dot((TransformSupportVert(A_T, A_X, A_Y, A_Z, A_R, -N) - p0), N) * N + p0;
-   p2 = dot((TransformSupportVert(B_T, B_X, B_Y, B_Z, B_R, N) - p0), N) * N + p0;
+   p1 = dot((TransformSupportVert(shapeA, -N) - p0), N) * N + p0;
+   p2 = dot((TransformSupportVert(shapeB, N) - p0), N) * N + p0;
    N = -N;
 
 }
@@ -718,36 +694,44 @@ void ChCNarrowphaseMPR::function_MPR_Store(const uint &index,
    if (ID_A == ID_B) {
       return;
    }
+   ConvexShape shapeA, shapeB;
 
-   shape_type A_T = obj_data_T[pair.x], B_T = obj_data_T[pair.y];     //Get the type data for each object in the collision pair
+   shapeA.type = obj_data_T[pair.x];
+   shapeB.type = obj_data_T[pair.y];     //Get the type data for each object in the collision pair
    real3 posA = body_pos[ID_A], posB = body_pos[ID_B];     //Get the global object position
    real4 rotA = (body_rot[ID_A]), rotB = (body_rot[ID_B]);     //Get the global object rotation
-   real3 A_X = obj_data_A[pair.x], B_X = obj_data_A[pair.y];
-   real3 A_Y = obj_data_B[pair.x], B_Y = obj_data_B[pair.y];
-   real3 A_Z = obj_data_C[pair.x], B_Z = obj_data_C[pair.y];
-   real4 A_R = (mult(rotA, obj_data_R[pair.x]));
-   real4 B_R = (mult(rotB, obj_data_R[pair.y]));
+   shapeA.A = obj_data_A[pair.x];
+   shapeB.A = obj_data_A[pair.y];
+   shapeA.B = obj_data_B[pair.x];
+   shapeB.B = obj_data_B[pair.y];
+   shapeA.C = obj_data_C[pair.x];
+   shapeB.C = obj_data_C[pair.y];
+   shapeA.R = (mult(rotA, obj_data_R[pair.x]));
+   shapeB.R = (mult(rotB, obj_data_R[pair.y]));
 
    real envelope = collision_envelope;
 
    real3 N = R3(1, 0, 0), p1 = R3(0), p2 = R3(0), p0 = R3(0);
    real depth = 0;
 
-   if (A_T == SPHERE && B_T == SPHERE) {
-      if (!SphereSphere(A_X, B_X, A_Y, B_Y, N, depth, p1, p2)) {
+   if (shapeA.type == SPHERE && shapeB.type == SPHERE) {
+      if (!SphereSphere(shapeA, shapeB, N, depth, p1, p2)) {
          return;
       }
    } else {
-      if (!CollideAndFindPoint(A_T, A_X, A_Y, A_Z, A_R, B_T, B_X, B_Y, B_Z, B_R, N, p0, depth)) {
+      if (!CollideAndFindPoint(shapeA, shapeB, N, p0, depth)) {
          return;
       }
 //      A_Y -= envelope;
 //      B_Y -= envelope;
-      GetPoints(A_T, A_X, A_Y, A_Z, A_R, B_T, B_X, B_Y, B_Z, B_R, N, p0, p1, p2);
+      GetPoints(shapeA, shapeB, N, p0, p1, p2);
    }
    //if(depth>0){swap(p1,p2); depth = -depth;}
-   //cout << N << p0 << p1 << p2 << depth << endl;
+   std::cout << N << p0 << p1 << p2 << depth << std::endl;
+
    depth = dot(N, p2 - p1) + envelope * 2.0;
+   std::cout << N << p0 << p1 << p2 << depth << std::endl;
+
    p1 = p1 - (N) * envelope;
    p2 = p2 + (N) * envelope;
    //cout << depth << endl;
@@ -816,49 +800,38 @@ void ChCNarrowphaseMPR::function_MPR_Update(const uint &index,
       return;
    }
 
+   ConvexShape shapeA, shapeB;
+
+   shapeA.type = obj_data_T[pair.x];
+   shapeB.type = obj_data_T[pair.y];     //Get the type data for each object in the collision pair
    real3 posA = body_pos[ID_A], posB = body_pos[ID_B];     //Get the global object position
-   real4 rotA = body_rot[ID_A], rotB = body_rot[ID_B];     //Get the global object rotation
-   real3 A_X = obj_data_A[pair.x], B_X = obj_data_A[pair.y];
-   real3 A_Y = obj_data_B[pair.x], B_Y = obj_data_B[pair.y];
-   real3 A_Z = obj_data_C[pair.x], B_Z = obj_data_C[pair.y];
-   real4 A_R = (mult(rotA, obj_data_R[pair.x]));
-   real4 B_R = (mult(rotB, obj_data_R[pair.y]));
+   real4 rotA = (body_rot[ID_A]), rotB = (body_rot[ID_B]);     //Get the global object rotation
+   shapeA.A = obj_data_A[pair.x];
+   shapeB.A = obj_data_A[pair.y];
+   shapeA.B = obj_data_B[pair.x];
+   shapeB.B = obj_data_B[pair.y];
+   shapeA.C = obj_data_C[pair.x];
+   shapeB.C = obj_data_C[pair.y];
+   shapeA.R = (mult(rotA, obj_data_R[pair.x]));
+   shapeB.R = (mult(rotB, obj_data_R[pair.y]));
 
    real envelope = collision_envelope;
-
-   if (A_T == SPHERE || A_T == ELLIPSOID || A_T == BOX || A_T == CYLINDER || A_T == CONE) {
-      A_X = quatRotate(A_X, rotA) + posA;
-   } else if (A_T == TRIANGLEMESH) {
-      envelope = 0;
-      A_X = quatRotate(A_X, rotA) + posA;
-      A_Y = quatRotate(A_Y, rotA) + posA;
-      A_Z = quatRotate(A_Z, rotA) + posA;
-   }
-
-   if (B_T == SPHERE || B_T == ELLIPSOID || B_T == BOX || B_T == CYLINDER || B_T == CONE) {
-      B_X = quatRotate(B_X, rotB) + posB;
-   } else if (B_T == TRIANGLEMESH) {
-      envelope = 0;
-      B_X = quatRotate(B_X, rotB) + posB;
-      B_Y = quatRotate(B_Y, rotB) + posB;
-      B_Z = quatRotate(B_Z, rotB) + posB;
-   }
 
    real3 N = R3(1, 0, 0), p1 = R3(0), p2 = R3(0), p0 = R3(0);
    real depth = 0;
 
    if (A_T == SPHERE && B_T == SPHERE) {
-      if (!SphereSphere(A_X, B_X, A_Y, B_Y, N, depth, p1, p2)) {
+      if (!SphereSphere(shapeA, shapeB, N, depth, p1, p2)) {
          return;
       }
    } else {
 
-      if (!CollideAndFindPoint(A_T, A_X, A_Y, A_Z, A_R, B_T, B_X, B_Y, B_Z, B_R, N, p0, depth)) {
+      if (!CollideAndFindPoint(shapeA, shapeB, N, p0, depth)) {
          //contactDepth[index] = 0;
          return;
       }
 
-      GetPoints(A_T, A_X, A_Y, A_Z, A_R, B_T, B_X, B_Y, B_Z, B_R, N, p0, p1, p2);
+      GetPoints(shapeA, shapeB, N, p0, p1, p2);
 
    }
 

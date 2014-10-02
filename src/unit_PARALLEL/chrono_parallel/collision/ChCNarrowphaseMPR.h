@@ -7,42 +7,23 @@ namespace chrono {
 namespace collision {
 
 CH_PARALLEL_API
-bool CollideAndFindPoint(const shape_type &typeA,
-                         const real3 &A_X,
-                         const real3 &A_Y,
-                         const real3 &A_Z,
-                         const real4 &A_R,
-                         const shape_type &typeB,
-                         const real3 &B_X,
-                         const real3 &B_Y,
-                         const real3 &B_Z,
-                         const real4 &B_R,
+bool CollideAndFindPoint(const ConvexShape &ShapeA,
+                         const ConvexShape &ShapeB,
                          real3 &returnNormal,
                          real3 &point,
                          real &depth);
 
 CH_PARALLEL_API
-void GetPoints(
-               shape_type A_T,
-               real3 A_X,
-               real3 A_Y,
-               real3 A_Z,
-               real4 A_R,
-               shape_type B_T,
-               real3 B_X,
-               real3 B_Y,
-               real3 B_Z,
-               real4 B_R,
+void GetPoints(const ConvexShape &ShapeA,
+               const ConvexShape &ShapeB,
                real3 &N,
                real3 p0,
                real3 & p1,
                real3 & p2);
 
 CH_PARALLEL_API
-bool SphereSphere(const real3 &A_X,
-                  const real3 &B_X,
-                  const real3 &A_Y,
-                  const real3 &B_Y,
+bool SphereSphere(const ConvexShape &ShapeA,
+                  const ConvexShape &ShapeB,
                   real3 & N,
                   real & dist,
                   real3 & p1,
@@ -171,11 +152,7 @@ class CH_PARALLEL_API ChCNarrowphaseMPR : public ChCNarrowphase {
                         real *contactDepth,
                         int2 *ids);
 
-
-   custom_vector<real3> obj_data_A_mod;
-   custom_vector<real3> obj_data_B_mod;
-   custom_vector<real3> obj_data_C_mod;
-
+   custom_vector<real3> obj_data_A_mod;custom_vector<real3> obj_data_B_mod;custom_vector<real3> obj_data_C_mod;
 
 };
 

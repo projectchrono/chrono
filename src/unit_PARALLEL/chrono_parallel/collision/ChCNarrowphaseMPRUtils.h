@@ -1,19 +1,20 @@
 #ifndef CHC_NARROWPHASE_MPR_UTILS_H
 #define CHC_NARROWPHASE_MPR_UTILS_H
 
-inline real3 GetSupportPoint_Sphere(
-      const real3 &B,
-      const real3 &n) {
+#include "chrono_parallel/collision/ChCNarrowphase.h"
+#include "collision/ChCCollisionModel.h"
+
+inline real3 GetSupportPoint_Sphere(const real3 &B,
+                                    const real3 &n) {
    real3 b = real3(B.x);
    return b * b * n / length(b * n);
    //the ellipsoid support function provides a cleaner solution for some reason
    //return B.x * n;
 }
-inline real3 GetSupportPoint_Triangle(
-      const real3 &A,
-      const real3 &B,
-      const real3 &C,
-      const real3 &n) {
+inline real3 GetSupportPoint_Triangle(const real3 &A,
+                                      const real3 &B,
+                                      const real3 &C,
+                                      const real3 &n) {
    real dist = dot(A, n);
    real3 point = A;
 
@@ -29,18 +30,16 @@ inline real3 GetSupportPoint_Triangle(
 
    return point;
 }
-inline real3 GetSupportPoint_Box(
-      const real3 &B,
-      const real3 &n) {
+inline real3 GetSupportPoint_Box(const real3 &B,
+                                 const real3 &n) {
    real3 result = R3(0, 0, 0);
    result.x = sign(n.x) * B.x;
    result.y = sign(n.y) * B.y;
    result.z = sign(n.z) * B.z;
    return result;
 }
-inline real3 GetSupportPoint_Ellipsoid(
-      const real3 &B,
-      const real3 &n) {
+inline real3 GetSupportPoint_Ellipsoid(const real3 &B,
+                                       const real3 &n) {
 
    real3 normal = n;
    real3 result = B * B * normal / length(B * normal);
@@ -54,9 +53,8 @@ inline real3 GetSupportPoint_Ellipsoid(
 //	return k*norm;
 }
 
-inline real3 GetSupportPoint_Cylinder(
-      const real3 &B,
-      const real3 &n) {
+inline real3 GetSupportPoint_Cylinder(const real3 &B,
+                                      const real3 &n) {
 //   real3 u = R3(0, 1, 0);
 //   real3 w = n - (dot(u, n)) * u;
 //   real3 result;
@@ -82,9 +80,8 @@ inline real3 GetSupportPoint_Cylinder(
    return tmp;
 
 }
-inline real3 GetSupportPoint_Plane(
-      const real3 &B,
-      const real3 &n) {
+inline real3 GetSupportPoint_Plane(const real3 &B,
+                                   const real3 &n) {
    real3 result = B;
 
    if (n.x < 0)
@@ -95,9 +92,8 @@ inline real3 GetSupportPoint_Plane(
 
    return result;
 }
-inline real3 GetSupportPoint_Cone(
-      const real3 &B,
-      const real3 &n) {
+inline real3 GetSupportPoint_Cone(const real3 &B,
+                                  const real3 &n) {
    real radius = B.x;
    real height = B.y;
 
@@ -122,24 +118,21 @@ inline real3 GetSupportPoint_Cone(
       }
    }
 }
-inline real3 GetSupportPoint_Seg(
-      const real3 &B,
-      const real3 &n) {
+inline real3 GetSupportPoint_Seg(const real3 &B,
+                                 const real3 &n) {
    real3 result = R3(0, 0, 0);
    result.x = sign(n.x) * B.x;
 
    return result;
 }
-inline real3 GetSupportPoint_Capsule(
-      const real3 &B,
-      const real3 &n) {
+inline real3 GetSupportPoint_Capsule(const real3 &B,
+                                     const real3 &n) {
    return GetSupportPoint_Seg(B, n) + GetSupportPoint_Sphere(R3(B.y), n);
 
 }
 
-inline real3 GetSupportPoint_Disk(
-      const real3 &B,
-      const real3 &n) {
+inline real3 GetSupportPoint_Disk(const real3 &B,
+                                  const real3 &n) {
    real3 n2 = R3(n.x, n.y, 0);
    n2 = normalize(n2);
 
@@ -149,9 +142,8 @@ inline real3 GetSupportPoint_Disk(
 
 }
 
-inline real3 GetSupportPoint_Rect(
-      const real3 &B,
-      const real3 &n) {
+inline real3 GetSupportPoint_Rect(const real3 &B,
+                                  const real3 &n) {
    real3 result = R3(0, 0, 0);
    result.x = sign(n.x) * B.x;
    result.z = sign(n.z) * B.z;
@@ -159,26 +151,23 @@ inline real3 GetSupportPoint_Rect(
 
 }
 
-inline real3 GetSupportPoint_RoundedBox(
-      const real3 &B,
-      const real3 &C,
-      const real3 &n) {
+inline real3 GetSupportPoint_RoundedBox(const real3 &B,
+                                        const real3 &C,
+                                        const real3 &n) {
 
    return GetSupportPoint_Box(B, n) + GetSupportPoint_Sphere(R3(C.x), n);
 
 }
-inline real3 GetSupportPoint_RoundedCylinder(
-      const real3 &B,
-      const real3 &C,
-      const real3 &n) {
+inline real3 GetSupportPoint_RoundedCylinder(const real3 &B,
+                                             const real3 &C,
+                                             const real3 &n) {
 
    return GetSupportPoint_Cylinder(B, n) + GetSupportPoint_Sphere(R3(C.x), n);
 
 }
-inline real3 GetSupportPoint_RoundedCone(
-      const real3 &B,
-      const real3 &C,
-      const real3 &n) {
+inline real3 GetSupportPoint_RoundedCone(const real3 &B,
+                                         const real3 &C,
+                                         const real3 &n) {
 
    return GetSupportPoint_Cone(B, n) + GetSupportPoint_Sphere(R3(C.x), n);
 
@@ -186,10 +175,9 @@ inline real3 GetSupportPoint_RoundedCone(
 inline real3 GetCenter_Sphere() {
    return ZERO_VECTOR;
 }
-inline real3 GetCenter_Triangle(
-      const real3 &A,
-      const real3 &B,
-      const real3 &C) {
+inline real3 GetCenter_Triangle(const real3 &A,
+                                const real3 &B,
+                                const real3 &C) {
    return R3((A.x + B.x + C.x) / 3.0f, (A.y + B.y + C.y) / 3.0f, (A.z + B.z + C.z) / 3.0f);
 }
 inline real3 GetCenter_Box() {
@@ -204,8 +192,48 @@ inline real3 GetCenter_Cylinder() {
 inline real3 GetCenter_Plane() {
    return ZERO_VECTOR;
 }
-inline real3 GetCenter_Cone(
-      const real3 &B) {
+inline real3 GetCenter_Cone(const real3 &B) {
    return ZERO_VECTOR;
 }
+
+inline real3 TransformSupportVert(const chrono::collision::ConvexShape &Shape,
+                           const real3 &n) {
+   real3 localSupport;
+   real3 rotated_n = quatRotateMatT(n, Shape.R);
+   switch (Shape.type) {
+      case chrono::collision::SPHERE:
+         localSupport = GetSupportPoint_Sphere(Shape.B, rotated_n);
+         break;
+      case chrono::collision::ELLIPSOID:
+         localSupport = GetSupportPoint_Ellipsoid(Shape.B, rotated_n);
+         break;
+      case chrono::collision::BOX:
+         localSupport = GetSupportPoint_Box(Shape.B, rotated_n);
+         break;
+      case chrono::collision::CYLINDER:
+         localSupport = GetSupportPoint_Cylinder(Shape.B, rotated_n);
+         break;
+      case chrono::collision::CONE:
+         localSupport = GetSupportPoint_Cone(Shape.B, rotated_n);
+         break;
+      case chrono::collision::CAPSULE:
+         localSupport = GetSupportPoint_Capsule(Shape.B, rotated_n);
+         break;
+      case chrono::collision::ROUNDEDBOX:
+         localSupport = GetSupportPoint_RoundedBox(Shape.B, Shape.C, rotated_n);
+         break;
+      case chrono::collision::ROUNDEDCYL:
+         localSupport = GetSupportPoint_RoundedCylinder(Shape.B, Shape.C, rotated_n);
+         break;
+      case chrono::collision::ROUNDEDCONE:
+         localSupport = GetSupportPoint_RoundedCone(Shape.B, Shape.C, rotated_n);
+         break;
+      case chrono::collision::TRIANGLEMESH:
+         return GetSupportPoint_Triangle(Shape.A, Shape.B, Shape.C, n);
+         break;
+   }
+
+   return quatRotateMat(localSupport, Shape.R) + Shape.A;     //globalSupport
+};
+
 #endif
