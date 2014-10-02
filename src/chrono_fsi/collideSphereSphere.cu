@@ -1548,6 +1548,7 @@ void UpdateRigidBody(
 		const thrust::device_vector<real3> & jInvD1,
 		const thrust::device_vector<real3> & jInvD2,
 		real3 gravity,
+		SimParams paramsH,
 		NumberOfObjects numObjects,
 		float fracSimulation,
 		real_ dT) {
@@ -1630,8 +1631,16 @@ void UpdateRigidBody(
 	cudaThreadSynchronize();
 	CUT_CHECK_ERROR("Kernel execution failed: MapTorqueToLRFKernel");
 	totalTorqueOfAcc3.clear();
-	Add_ContactForces(
-			R3CAST(totalAccRigid3), R3CAST(posRigidD), R4CAST(velMassRigidD));
+
+	if (paramsH.contactBoundary == 0) {
+		Add_ContactForces_StraightCh(
+				R3CAST(totalAccRigid3), R3CAST(posRigidD), R4CAST(velMassRigidD));
+	} else if (paramsH.contactBoundary == 1) {
+		Add_ContactForces_Serpentine(
+				R3CAST(totalAccRigid3), R3CAST(posRigidD), R4CAST(velMassRigidD));
+	} else {
+		printf("wrong contact boundary \n");
+	}
 
 	//################################################### update rigid body motion
 	//####### Translation
@@ -2055,8 +2064,8 @@ void cudaCollisions(
 	real_ delTOrig = paramsH.dT;
 	real_ realTime = 0;
 
-	real_ timePause = .0002 * paramsH.tFinal; // keep it as small as possible. the time step will be 1/10 * dT
-	real_ timePauseRigidFlex = .004 * paramsH.tFinal;
+	real_ timePause = 0;//.000002 * paramsH.tFinal;//.0002 * paramsH.tFinal; // keep it as small as possible. the time step will be 1/10 * dT
+	real_ timePauseRigidFlex = 0;//.000000 * paramsH.tFinal;//.004 * paramsH.tFinal;
 	SimParams paramsH_B = paramsH;
 	paramsH_B.bodyForce4 = R4(0);
 	paramsH_B.gravity = R3(0);
@@ -2157,7 +2166,7 @@ void cudaCollisions(
 					posRadD,
 					posRigidD, posRigidCumulativeD, velMassRigidD, qD1, AD1, AD2, AD3, omegaLRF_D,
 					derivVelRhoD, rigidIdentifierD,
-					rigidSPH_MeshPos_LRF_D, referenceArray, jD1, jD2, jInvD1, jInvD2, flexParams.gravity, numObjects, realTime / (paramsH.tFinal), 0.5 * currentParamsH.dT);
+					rigidSPH_MeshPos_LRF_D, referenceArray, jD1, jD2, jInvD1, jInvD2, flexParams.gravity, paramsH, numObjects, realTime / (paramsH.tFinal), 0.5 * currentParamsH.dT);
 
 			UpdateFlexibleBody(posRadD2, velMasD2,
 					ANCF_NodesD2, ANCF_SlopesD2, ANCF_NodesVelD2, ANCF_SlopesVelD2,
@@ -2196,7 +2205,7 @@ void cudaCollisions(
 					posRadD2,
 					posRigidD2, posRigidCumulativeD2, velMassRigidD2, qD2, AD1_2, AD2_2, AD3_2, omegaLRF_D2,
 					derivVelRhoD, rigidIdentifierD,
-					rigidSPH_MeshPos_LRF_D, referenceArray, jD1, jD2, jInvD1, jInvD2, flexParams.gravity, numObjects, realTime / (paramsH.tFinal), currentParamsH.dT);
+					rigidSPH_MeshPos_LRF_D, referenceArray, jD1, jD2, jInvD1, jInvD2, flexParams.gravity, paramsH, numObjects, realTime / (paramsH.tFinal), currentParamsH.dT);
 
 			UpdateFlexibleBody(posRadD, velMasD,
 					ANCF_NodesD, ANCF_SlopesD, ANCF_NodesVelD, ANCF_SlopesVelD,

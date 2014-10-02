@@ -58,8 +58,6 @@ real2 channelCenterYZ;
 
 //&&& some other definitions for boundary and such
 
-real3 straightChannelBoundaryMin;
-real3 straightChannelBoundaryMax;
 //&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
 struct CylinderGeometry {
 	real3 pa3;
@@ -442,14 +440,14 @@ void CreateRigidBodiesPattern(thrust::host_vector<real3> & rigidPos,
 		const real_ rhoRigid, int3 stride) {
 
 	printf("referenceR %f %f %f \n", referenceR.x, referenceR.y, referenceR.z);
-	//printf("paramsH.cMin %f %f %f, paramsH.cMax %f %f %f\n", straightChannelBoundaryMin.x, straightChannelBoundaryMin.y, straightChannelBoundaryMin.z, straightChannelBoundaryMax.x, straightChannelBoundaryMax.y, straightChannelBoundaryMax.z);
+	//printf("paramsH.cMin %f %f %f, paramsH.cMax %f %f %f\n", paramsH.straightChannelBoundaryMin.x, paramsH.straightChannelBoundaryMin.y, paramsH.straightChannelBoundaryMin.z, paramsH.straightChannelBoundaryMax.x, paramsH.straightChannelBoundaryMax.y, paramsH.straightChannelBoundaryMax.z);
 	real3 spaceRigids = 2 * (referenceR + 0.6 * R3(paramsH.HSML));
-	real3 n3Rigids = (straightChannelBoundaryMax - straightChannelBoundaryMin)
+	real3 n3Rigids = (paramsH.straightChannelBoundaryMax - paramsH.straightChannelBoundaryMin)
 			/ spaceRigids;
 	for (int i = 1; i < n3Rigids.x - 1; i += stride.x) {
 		for (int j = 1; j < n3Rigids.y - 1; j += stride.y) {
 			for (int k = 1; k < n3Rigids.z - 1; k += stride.z) {
-				real3 pos = straightChannelBoundaryMin
+				real3 pos = paramsH.straightChannelBoundaryMin
 						+ R3(i, j, k) * spaceRigids;
 				//printf("rigidPos %f %f %f\n", pos.x, pos.y, pos.z);
 				real4 q = R4(1, 0, 0, 0);
@@ -479,14 +477,14 @@ void CreateRigidBodiesPatternWithinBeams(thrust::host_vector<real3> & rigidPos,
 	//************************************************
 
 	printf("referenceR %f %f %f \n", referenceR.x, referenceR.y, referenceR.z);
-	//printf("paramsH.cMin %f %f %f, paramsH.cMax %f %f %f\n", straightChannelBoundaryMin.x, straightChannelBoundaryMin.y, straightChannelBoundaryMin.z, straightChannelBoundaryMax.x, straightChannelBoundaryMax.y, straightChannelBoundaryMax.z);
+	//printf("paramsH.cMin %f %f %f, paramsH.cMax %f %f %f\n", paramsH.straightChannelBoundaryMin.x, paramsH.straightChannelBoundaryMin.y, paramsH.straightChannelBoundaryMin.z, paramsH.straightChannelBoundaryMax.x, paramsH.straightChannelBoundaryMax.y, paramsH.straightChannelBoundaryMax.z);
 	real3 spaceRigids = 2 * (referenceR + .6 * R3(paramsH.HSML));
-	real3 n3Rigids = (straightChannelBoundaryMax - straightChannelBoundaryMin)
+	real3 n3Rigids = (paramsH.straightChannelBoundaryMax - paramsH.straightChannelBoundaryMin)
 			/ spaceRigids;
 	for (int i = 1; i < n3Rigids.x - 1; i += stride.x) {
 		for (int j = 1; j < n3Rigids.y - 1; j += stride.y) {
 			for (int k = 1; k < n3Rigids.z - 1; k += stride.z) {
-				real3 pos = straightChannelBoundaryMin
+				real3 pos = paramsH.straightChannelBoundaryMin
 						+ R3(i, j, k) * spaceRigids;
 				real2 distFromBeam = R2(fmod(pos.x, spaceFlex), fmod(pos.y, spaceFlex));
 				distFromBeam.x = min(distFromBeam.x, spaceFlex - distFromBeam.x);
@@ -675,8 +673,8 @@ void CreateRigidBodiesChannelRandom(thrust::host_vector<real3> & rigidPos,
 	for (int i = 0; i < numRigids; i++) {
 		real_ maxR = Max(referenceR.x, referenceR.y);
 		maxR = Max(maxR, referenceR.z);
-		real3 channelMin = straightChannelBoundaryMin + R3(maxR);
-		real3 channelBox = straightChannelBoundaryMax - straightChannelBoundaryMin - 2 * R3(maxR);
+		real3 channelMin = paramsH.straightChannelBoundaryMin + R3(maxR);
+		real3 channelBox = paramsH.straightChannelBoundaryMax - paramsH.straightChannelBoundaryMin - 2 * R3(maxR);
 		real3 pos = R3(myRand(), myRand(), myRand()) *  channelBox + channelMin;
 		real4 q = R4(2 * myRand() - 1, 2 * myRand() - 1, 2 * myRand() - 1, 2 * myRand() - 1);
 		q = normalize(q);
@@ -880,18 +878,18 @@ void CreateManyFlexBodiesChannelGoodWithRigids(thrust::host_vector<real3> & ANCF
 	real_ spaceFlex = 2 * (flexParams.r + margin);
 	//************************************************
 	int numElementsPerBeam = flexParams.ne;
-	real_ beamLength = (straightChannelBoundaryMax.z - straightChannelBoundaryMin.z) - 6 * margin;//paramsH.HSML * 40;
+	real_ beamLength = (paramsH.straightChannelBoundaryMax.z - paramsH.straightChannelBoundaryMin.z) - 6 * margin;//paramsH.HSML * 40;
 	printf("beamLength %f\n", beamLength);
 	real_ beamLengthWithSpacing = beamLength + margin;
 
-	real3 n3Flex = R3( (straightChannelBoundaryMax.x - straightChannelBoundaryMin.x) / spaceFlex, (straightChannelBoundaryMax.y - straightChannelBoundaryMin.y) / spaceFlex,
-			(straightChannelBoundaryMax.z - straightChannelBoundaryMin.z) / beamLengthWithSpacing );
+	real3 n3Flex = R3( (paramsH.straightChannelBoundaryMax.x - paramsH.straightChannelBoundaryMin.x) / spaceFlex, (paramsH.straightChannelBoundaryMax.y - paramsH.straightChannelBoundaryMin.y) / spaceFlex,
+			(paramsH.straightChannelBoundaryMax.z - paramsH.straightChannelBoundaryMin.z) / beamLengthWithSpacing );
 	printf("\nn3Flex %f %f %f\n", n3Flex.x, n3Flex.y, n3Flex.z);
 	int beamCounter = 0;
 	for (int i = 1; i < n3Flex.x - 1; i += 1) {
 		for (int j = 1; j < n3Flex.y - 1; j += 1) {
 			for (int k = 0; k < n3Flex.z - 1; k += 1) {
-				real3 pa3 = straightChannelBoundaryMin
+				real3 pa3 = paramsH.straightChannelBoundaryMin
 						+ R3(i * spaceFlex, j * spaceFlex, k * beamLengthWithSpacing + margin);
 				real3 pb3 = pa3 + R3(0, 0, beamLength);
 
@@ -1329,26 +1327,26 @@ real_ IsInsideSerpentine(real3 posRad) {
 	return penDist2;
 }
 //&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
-//*** straightChannelBoundaryMin   should be taken care of
-//*** straightChannelBoundaryMax   should be taken care of
+//*** paramsH.straightChannelBoundaryMin   should be taken care of
+//*** paramsH.straightChannelBoundaryMax   should be taken care of
 real_ IsInsideStraightChannel(real3 posRad) {
 	const real_ sphR = paramsH.HSML;
 	real_ penDist1 = 0;
 	real_ penDist2 = 0;
 	real_ largePenet = -5 * sphR; //like a large number. Should be negative (assume large initial penetration)
 
-	if (posRad.z > straightChannelBoundaryMax.z) {
-		penDist1 = straightChannelBoundaryMax.z - posRad.z;
+	if (posRad.z > paramsH.straightChannelBoundaryMax.z) {
+		penDist1 = paramsH.straightChannelBoundaryMax.z - posRad.z;
 	}
-	if (posRad.z < straightChannelBoundaryMin.z) {
-		penDist1 = posRad.z - straightChannelBoundaryMin.z;
+	if (posRad.z < paramsH.straightChannelBoundaryMin.z) {
+		penDist1 = posRad.z - paramsH.straightChannelBoundaryMin.z;
 	}
 
-	if (posRad.y < straightChannelBoundaryMin.y) {
-		penDist2 = posRad.y - straightChannelBoundaryMin.y;
+	if (posRad.y < paramsH.straightChannelBoundaryMin.y) {
+		penDist2 = posRad.y - paramsH.straightChannelBoundaryMin.y;
 	}
-	if (posRad.y > straightChannelBoundaryMax.y) {
-		penDist2 = straightChannelBoundaryMax.y - posRad.y;
+	if (posRad.y > paramsH.straightChannelBoundaryMax.y) {
+		penDist2 = paramsH.straightChannelBoundaryMax.y - posRad.y;
 	}
 	if (penDist1 < 0 && penDist2 < 0) {
 		return Min(penDist1, penDist2);
@@ -1365,11 +1363,11 @@ real_ IsInsideStraightChannel_XZ(real3 posRad) {
 	real_ penDist1 = 0;
 	real_ largePenet = -5 * sphR; //like a large number. Should be negative (assume large initial penetration)
 
-	if (posRad.z > straightChannelBoundaryMax.z) {
-		penDist1 = straightChannelBoundaryMax.z - posRad.z;
+	if (posRad.z > paramsH.straightChannelBoundaryMax.z) {
+		penDist1 = paramsH.straightChannelBoundaryMax.z - posRad.z;
 	}
-	if (posRad.z < straightChannelBoundaryMin.z) {
-		penDist1 = posRad.z - straightChannelBoundaryMin.z;
+	if (posRad.z < paramsH.straightChannelBoundaryMin.z) {
+		penDist1 = posRad.z - paramsH.straightChannelBoundaryMin.z;
 	}
 	if (penDist1 < 0)
 		return penDist1;
@@ -1449,8 +1447,8 @@ int2 CreateFluidMarkers(thrust::host_vector<real3> & mPosRad,
 		const thrust::host_vector<real3> & ANCF_Nodes,
 		const thrust::host_vector<int2> & ANCF_ReferenceArrayNodesOnBeams,
 		const ANCF_Params & flexParams) {
-//	printf("\n\n\nStraightChannelBoundaries: \n   min: %f %f %f\n   max %f %f %f\n\n\n", straightChannelBoundaryMin.x, straightChannelBoundaryMin.y, straightChannelBoundaryMin.z,
-//			straightChannelBoundaryMax.x, straightChannelBoundaryMax.y, straightChannelBoundaryMax.z);
+//	printf("\n\n\nStraightChannelBoundaries: \n   min: %f %f %f\n   max %f %f %f\n\n\n", paramsH.straightChannelBoundaryMin.x, paramsH.straightChannelBoundaryMin.y, paramsH.straightChannelBoundaryMin.z,
+//			paramsH.straightChannelBoundaryMax.x, paramsH.straightChannelBoundaryMax.y, paramsH.straightChannelBoundaryMax.z);
 //	printf("\n\n\nPipeSpecs: \n   channelRadius: %f \n   channelCenterYZ %f %f\n\n\n", channelRadius, channelCenterYZ.x, channelCenterYZ.y);
 
 	//real2 rad2 = .5 * R2(paramsH.cMax.y - paramsH.cMin.y, paramsH.cMax.z - paramsH.cMin.z);
@@ -1496,8 +1494,8 @@ int2 CreateFluidMarkers(thrust::host_vector<real3> & mPosRad,
 				bool flag = true;
 				///penDist = IsInsideCurveOfSerpentineBeta(posRad);
 				///penDist = IsInsideSerpentine(posRad);
-				//*** straightChannelBoundaryMin   should be taken care of
-				//*** straightChannelBoundaryMax   should be taken care of
+				//*** paramsH.straightChannelBoundaryMin   should be taken care of
+				//*** paramsH.straightChannelBoundaryMax   should be taken care of
 				penDist = IsInsideStraightChannel(posRad);
 				///penDist = IsInsideStraightChannel_XZ(posRad);
 				///penDist = IsInsideTube(posRad);
@@ -1893,6 +1891,8 @@ int main() {
 	time_t rawtime;
 	struct tm * timeinfo;
 
+	//(void) cudaSetDevice(0);
+
 	time(&rawtime);
 	timeinfo = localtime(&rawtime);
 	printf("Job was submittet at date/time is: %s\n", asctime(timeinfo));
@@ -1954,32 +1954,33 @@ int main() {
 			//***		paramsH.numBodies;
 			//***		paramsH.boxDims;
 		paramsH.sizeScale = 1; //don't change it.
-		paramsH.HSML = 0.0001;
+		paramsH.HSML = 0.00006;
 		paramsH.MULT_INITSPACE = 1.0;
-		paramsH.NUM_BOUNDARY_LAYERS = 3;
-		paramsH.toleranceZone = paramsH.NUM_BOUNDARY_LAYERS * (paramsH.HSML * paramsH.MULT_INITSPACE);
-		paramsH.NUM_BCE_LAYERS = 2;
-		paramsH.solidSurfaceAdjust = .6 * (paramsH.HSML * paramsH.MULT_INITSPACE); // 0.6 for bouyant, under gravity
-		paramsH.BASEPRES = 0;
-		paramsH.LARGE_PRES = paramsH.BASEPRES;//10000;
-		paramsH.nPeriod = 1;
+			paramsH.NUM_BOUNDARY_LAYERS = 3;
+			paramsH.toleranceZone = paramsH.NUM_BOUNDARY_LAYERS * (paramsH.HSML * paramsH.MULT_INITSPACE);
+			paramsH.NUM_BCE_LAYERS = 2;
+			paramsH.solidSurfaceAdjust = .6 * (paramsH.HSML * paramsH.MULT_INITSPACE); // 0.6 for bouyant, under gravity
+		paramsH.BASEPRES = 10;
+			paramsH.LARGE_PRES = paramsH.BASEPRES;//10000;
+			paramsH.nPeriod = 1;
 		paramsH.gravity = R3(0, -9.81, 0);//R3(0);//R3(0, -9.81, 0);
-		paramsH.bodyForce4 = R4(.1,0,0,0);//R4(3.2e-3,0,0,0);// R4(0);;// /*Re = 100 */ //R4(3.2e-4, 0, 0, 0);/*Re = 100 */
-		paramsH.rho0 = 1000;
-		paramsH.mu0 = .001;
+		paramsH.bodyForce4 = R4(0,0,0,0);//R4(3.2e-3,0,0,0);// R4(0);;// /*Re = 100 */ //R4(3.2e-4, 0, 0, 0);/*Re = 100 */
+			paramsH.rho0 = 1000;
+			paramsH.mu0 = .001;
 		paramsH.v_Max = 50e-3;//18e-3;//1.5;//2e-1; /*0.2 for Re = 100 */ //2e-3;
-		paramsH.EPS_XSPH = .5f;
-		paramsH.dT = 1e-4;//.001; //sph alone: .01 for Re 10;
-		paramsH.tFinal = 1000;//20 * paramsH.dT; //400
-		paramsH.kdT = 5;
-		paramsH.gammaBB = 0.5;
+			paramsH.EPS_XSPH = .5f;
+		paramsH.dT = 1e-5;//.001; //sph alone: .01 for Re 10;
+			paramsH.tFinal = 1000;//20 * paramsH.dT; //400
+			paramsH.kdT = 5;
+			paramsH.gammaBB = 0.5;
 		// *** cMax cMin, see below
 //		paramsH.cMin = R3(0, -.1, -.1) * paramsH.sizeScale;
 //		paramsH.cMax = R3(paramsH.nPeriod * distance + 0, 1 + .1, 1 + .1)* paramsH.sizeScale;
 		// ************
-		paramsH.binSize0; // will be changed
-		paramsH.rigidRadius; //will be changed
-		paramsH.densityReinit = 1;
+			paramsH.binSize0; // will be changed
+			paramsH.rigidRadius; //will be changed
+		paramsH.densityReinit = 0;
+		paramsH.contactBoundary = 0; // 0: straight channel, 1: serpentine
 
 		flexParams.E = 2.0e5;
 		flexParams.r = paramsH.HSML * paramsH.MULT_INITSPACE * (paramsH.NUM_BCE_LAYERS - 1);
@@ -2002,19 +2003,16 @@ int main() {
 		//*** some other definitions for boundary and such
 		//****************************************************************************************
 		//*** initialize straight channel
-//		straightChannelBoundaryMin = R3(0, 0, 0) * paramsH.sizeScale;
-//		straightChannelBoundaryMax = R3(paramsH.nPeriod * distance + 0, 1, 1) * paramsH.sizeScale;
-//		straightChannelBoundaryMin = R3(0, 0, 0); //2D channel
-//		straightChannelBoundaryMax = R3(1 * mm, .2 * mm, 1 * mm) * paramsH.sizeScale;
-		straightChannelBoundaryMin = R3(0, 0, 0); //3D channel
-		straightChannelBoundaryMax = R3(1.4 * mm, 1 * mm, 3 * mm) * paramsH.sizeScale;
-
-		//(void) cudaSetDevice(0);
+//		paramsH.straightChannelBoundaryMin = R3(0, 0, 0) * paramsH.sizeScale;
+//		paramsH.straightChannelBoundaryMax = R3(paramsH.nPeriod * distance + 0, 1, 1) * paramsH.sizeScale;
+//		paramsH.straightChannelBoundaryMin = R3(0, 0, 0); //2D channel
+//		paramsH.straightChannelBoundaryMax = R3(1 * mm, .2 * mm, 1 * mm) * paramsH.sizeScale;
+		paramsH.straightChannelBoundaryMin = R3(0, 0, 0); //3D channel
+		paramsH.straightChannelBoundaryMax = R3(1.4 * mm, 1 * mm, 3 * mm) * paramsH.sizeScale;
 		//********************************************************************************************************
-
 		//**  reminiscent of the past******************************************************************************
 		//paramsH.cMax = R3( paramsH.nPeriod * 4.6 + 0, 1.5,  4.0) * paramsH.sizeScale;  //for only CurvedSerpentine (w/out straight part)
-		//********
+		//**  end of reminiscent of the past   ******************************************************************
 //		paramsH.cMin = R3(0, -2 * paramsH.toleranceZone, -2.5 * mm); 							//for serpentine
 //		paramsH.cMax = R3( paramsH.nPeriod * sPeriod + r3_2.x + 2 * r4_2.x + r6_2.x + x_FirstChannel + 2 * x_SecondChannel, 1.5 * mm,  r6_2.y + 2 * paramsH.toleranceZone);  //for serpentine
 
@@ -2032,8 +2030,7 @@ int main() {
 
 		//	paramsH.cMax = R3( paramsH.nPeriod * 20.0 + 0, 11.2 + 2,  11.2 + 2) * paramsH.sizeScale;  //for  Segre Silberberg tube
 		//	paramsH.cMin = R3(0, -2, -2) * paramsH.sizeScale;							//for tube
-		//**  end of reminiscent of the past   ******************************************************************
-
+		//****************************************************************************************
 		//printf("a1  paramsH.cMax.x, y, z %f %f %f,  binSize %f\n", paramsH.cMax.x, paramsH.cMax.y, paramsH.cMax.z, 2 * paramsH.HSML);
 		int3 side0 = I3(
 				floor((paramsH.cMax.x - paramsH.cMin.x) / (2 * paramsH.HSML)),
@@ -2114,8 +2111,8 @@ int main() {
 	//			channelRadius,
 	//			paramsH.cMax.x - paramsH.cMin.x, pipeInPoint3, 0.5 * beamLength, flexParams);
 		//**
-		//*** straightChannelBoundaryMin   should be taken care of
-		//*** straightChannelBoundaryMax   should be taken care of
+		//*** paramsH.straightChannelBoundaryMin   should be taken care of
+		//*** paramsH.straightChannelBoundaryMax   should be taken care of
 //		CreateManyFlexBodiesChannelGoodWithRigids(ANCF_Nodes, ANCF_Slopes, ANCF_NodesVel, ANCF_SlopesVel,
 //				ANCF_Beam_Length, ANCF_ReferenceArrayNodesOnBeams, ANCF_IsCantilever, flexParams);
 		//**

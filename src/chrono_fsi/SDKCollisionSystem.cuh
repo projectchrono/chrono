@@ -57,10 +57,14 @@ struct SimParams {
 		real_ gammaBB;
 		real3 cMin;
 		real3 cMax;
+		real3 straightChannelBoundaryMin;
+		real3 straightChannelBoundaryMax;
 		real_ binSize0;
 
 		real3 rigidRadius;
 		int densityReinit; //0: no; 1: yes
+		int contactBoundary; //0: straight channel, 1: serpentine
+
 };
 struct NumberOfObjects {
 		int numRigidBodies;

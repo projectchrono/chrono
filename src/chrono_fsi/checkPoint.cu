@@ -185,9 +185,12 @@ void WriteEverythingToFile(
 	outProbParams << paramsH.gammaBB << endl;
 	outProbParams << paramsH.cMin.x << ", "  << paramsH.cMin.y << ", " << paramsH.cMin.z << endl;
 	outProbParams << paramsH.cMax.x << ", " << paramsH.cMax.y << ", " << paramsH.cMax.z << endl;
+	outProbParams << paramsH.straightChannelBoundaryMin.x << ", "  << paramsH.straightChannelBoundaryMin.y << ", " << paramsH.straightChannelBoundaryMin.z << endl;
+	outProbParams << paramsH.straightChannelBoundaryMax.x << ", " << paramsH.straightChannelBoundaryMax.y << ", " << paramsH.straightChannelBoundaryMax.z << endl;
 	outProbParams << paramsH.binSize0 << endl;
 	outProbParams << paramsH.rigidRadius.x << ", "  << paramsH.rigidRadius.y << ", " << paramsH.rigidRadius.z << endl;
 	outProbParams << paramsH.densityReinit << endl;
+	outProbParams << paramsH.contactBoundary << endl;
 
 
 	outProbParams << "#" <<endl;
@@ -551,9 +554,12 @@ void ReadEverythingFromFile(
 	inProbParams >> paramsH.gammaBB ;
 	inProbParams >> paramsH.cMin.x >> ddCh  >> paramsH.cMin.y >> ddCh >> paramsH.cMin.z ;
 	inProbParams >> paramsH.cMax.x >> ddCh >> paramsH.cMax.y >> ddCh >> paramsH.cMax.z ;
+	inProbParams >> paramsH.straightChannelBoundaryMin.x >> ddCh  >> paramsH.straightChannelBoundaryMin.y >> ddCh >> paramsH.straightChannelBoundaryMin.z ;
+	inProbParams >> paramsH.straightChannelBoundaryMax.x >> ddCh >> paramsH.straightChannelBoundaryMax.y >> ddCh >> paramsH.straightChannelBoundaryMax.z ;
 	inProbParams >> paramsH.binSize0 ;
 	inProbParams >> paramsH.rigidRadius.x >> ddCh  >> paramsH.rigidRadius.y >> ddCh >> paramsH.rigidRadius.z;
 	inProbParams >> paramsH.densityReinit;
+	inProbParams >> paramsH.contactBoundary;
 
 
 	inProbParams >> ddCh;

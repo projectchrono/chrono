@@ -21,6 +21,23 @@ struct SerpentineParams {
 };
 ////*************
 __constant__ SerpentineParams serpGeomD;
+//--------------------------------------------------------------------------------------------------------------------------------
+// Hunt-Crossley model
+__device__ inline real3 DEM_Force(real_ penetration, real3 n3, real_ rRigidDEM1, real_ rRigidDEM2, real4 velMasRigidA, real4 velMasRigidB) {
+	real_ E = 1e3;
+
+	real_ E_eff = 0.5 * E;
+	real_ r_eff = rRigidDEM1 * rRigidDEM2 / (rRigidDEM1 + rRigidDEM2);
+	real_ Kn = 4.0/3 * E_eff * sqrt(r_eff);
+	real_ Fe = Kn * powf(fabs(penetration), 1.5);
+
+	real_ alpha_eff = .6;
+	real3 v_n = dot( R3(velMasRigidA - velMasRigidB) , n3) * n3;
+
+	real3 demForce = Fe * n3 -  1.5 * alpha_eff * Fe * v_n;
+
+	return demForce;
+}
 //&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
 __device__ inline real_ IsInEllipse(real2 pos, real2 radii) {
 //	printf(" pos %f %f  r2 %f %f\n", pos.x, pos.y, radii.x, radii.y);
@@ -64,19 +81,64 @@ __device__ inline real_ IsInBoundaryEllipsoid(real2 & n2, real2 coord, real2 cen
 	}
 }
 //&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
-__device__ inline real_ ContactWith_YPlanes(real3 & n3, real3 posRad, real_ rRigidDEM) {
-	if (posRad.y < 0 + rRigidDEM) {
-		n3 = R3(0, 1, 0);
-//		if (posRad.y - rRigidDEM < 0) printf("a22 %f\n", posRad.y - rRigidDEM);
-		return (posRad.y - rRigidDEM);
+__device__ inline real_ ContactWith_XPlanes(real3 & n3, real3 posRad, real_ rRigidDEM) {
+	if (posRad.x < paramsD.straightChannelBoundaryMin.x + rRigidDEM) {
+		n3 = R3(1, 0, 0);
+		return (posRad.x - paramsD.straightChannelBoundaryMin.x - rRigidDEM);
 	}
-	if (posRad.y > 1.0 * serpGeomD.mm - rRigidDEM) {
-		n3 = R3(0, -1, 0);
-//		if (1.0 * serpGeomD.mm - rRigidDEM - posRad.y < 0) printf("a22 %f\n", 1.0 * serpGeomD.mm - rRigidDEM - posRad.y);
-		return (1.0 * serpGeomD.mm - rRigidDEM - posRad.y);
+	if (posRad.x > paramsD.straightChannelBoundaryMax.x - rRigidDEM) {
+		n3 = R3(-1, 0, 0);
+		return (paramsD.straightChannelBoundaryMax.x - rRigidDEM - posRad.x);
 	}
 	n3 = R3(1, 0, 0); // just because. no penetration
 	return 1;
+}
+//&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
+__device__ inline real_ ContactWith_YPlanes(real3 & n3, real3 posRad, real_ rRigidDEM) {
+	if (posRad.y < paramsD.straightChannelBoundaryMin.y + rRigidDEM) {
+		n3 = R3(0, 1, 0);
+//		if (posRad.y - rRigidDEM < 0) printf("a22 %f\n", posRad.y - rRigidDEM);
+		return (posRad.y - paramsD.straightChannelBoundaryMin.y - rRigidDEM);
+	}
+	if (posRad.y > paramsD.straightChannelBoundaryMax.y - rRigidDEM) {
+		n3 = R3(0, -1, 0);
+//		if (1.0 * serpGeomD.mm - rRigidDEM - posRad.y < 0) printf("a22 %f\n", 1.0 * serpGeomD.mm - rRigidDEM - posRad.y);
+		return (paramsD.straightChannelBoundaryMax.y - rRigidDEM - posRad.y);
+	}
+	n3 = R3(1, 0, 0); // just because. no penetration
+	return 1;
+}
+//&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
+__device__ inline real_ ContactWith_ZPlanes(real3 & n3, real3 posRad, real_ rRigidDEM) {
+	if (posRad.z < paramsD.straightChannelBoundaryMin.z + rRigidDEM) {
+		n3 = R3(0, 0, 1);
+		return (posRad.z - paramsD.straightChannelBoundaryMin.z - rRigidDEM);
+	}
+	if (posRad.z > paramsD.straightChannelBoundaryMax.z - rRigidDEM) {
+		n3 = R3(0, 0, -1);
+		return (paramsD.straightChannelBoundaryMax.z - rRigidDEM - posRad.z);
+	}
+	n3 = R3(1, 0, 0); // just because. no penetration
+	return 1;
+}
+//&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
+__device__ inline void ContactWithOtherSpheres(real3 & force3, real3 & n3, uint rigidSphereA, const real3 & posRigidA, const real4 & dummyVelMasA,
+		real3 * posRigidD, real4 * velMassRigidD, real_ rad) {
+
+	for (uint rigidSphereB = 0; rigidSphereB < numObjectsD.numRigidBodies; rigidSphereB ++) { //n^2 operation
+		real_ penDist;
+		if (rigidSphereB == rigidSphereA) {
+			continue; //avoid self contact
+		}
+		real3 posRigidB = posRigidD[rigidSphereB];
+		real4 dummyVelMasB = velMassRigidD[rigidSphereB];
+		penDist = length(posRigidB - posRigidA) - 2 * rad;
+		if (penDist < 0) {
+//			printf("a24 %f\n", penDist);
+			n3 = (posRigidA - posRigidB) / length(posRigidB - posRigidA);
+			force3 += DEM_Force(-penDist, n3, rad, rad, dummyVelMasA, dummyVelMasB);
+		}
+	}
 }
 //&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
 //return +: no interpenetration. -: there is interpenetration and the value is the amount of interpenetration
@@ -275,7 +337,12 @@ __device__ inline real_ ContactWithSerpentineCurve(real3 & n3, real3 posRad, rea
 //--------------------------------------------------------------------------------------------------------------------------------
 void setParameters2(SimParams *hostParams, NumberOfObjects *numObjects);
 //--------------------------------------------------------------------------------------------------------------------------------
-void Add_ContactForces(
+void Add_ContactForces_Serpentine(
+		real3* totalAccRigid3,
+		real3* posRigidD,
+		real4* velMassRigidD);
+//--------------------------------------------------------------------------------------------------------------------------------
+void Add_ContactForces_StraightCh(
 		real3* totalAccRigid3,
 		real3* posRigidD,
 		real4* velMassRigidD);

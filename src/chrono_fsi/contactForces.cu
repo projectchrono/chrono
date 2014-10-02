@@ -1,24 +1,7 @@
 #include "contactForces.cuh"
 
 //--------------------------------------------------------------------------------------------------------------------------------
-// Hunt-Crossley model
-__device__ inline real3 DEM_Force(real_ penetration, real3 n3, real_ rRigidDEM1, real_ rRigidDEM2, real4 velMasRigidA, real4 velMasRigidB) {
-	real_ E = 1e3;
-
-	real_ E_eff = 0.5 * E;
-	real_ r_eff = rRigidDEM1 * rRigidDEM2 / (rRigidDEM1 + rRigidDEM2);
-	real_ Kn = 4.0/3 * E_eff * sqrt(r_eff);
-	real_ Fe = Kn * powf(fabs(penetration), 1.5);
-
-	real_ alpha_eff = .6;
-	real3 v_n = dot( R3(velMasRigidA - velMasRigidB) , n3) * n3;
-
-	real3 demForce = Fe * n3 -  1.5 * alpha_eff * Fe * v_n;
-
-	return demForce;
-}
-//--------------------------------------------------------------------------------------------------------------------------------
-__global__ void Add_ContactForcesD(real3 * totalAccRigid3, real3 * posRigidD, real4 * velMassRigidD) {
+__global__ void Add_ContactForces_SerpentineD(real3 * totalAccRigid3, real3 * posRigidD, real4 * velMassRigidD) {
 	uint rigidSphereA = blockIdx.x * blockDim.x + threadIdx.x;
 	if (rigidSphereA >= numObjectsD.numRigidBodies) {
 		return;
@@ -39,20 +22,34 @@ __global__ void Add_ContactForcesD(real3 * totalAccRigid3, real3 * posRigidD, re
 		force3 += DEM_Force(-penDist, n3, rad, 20 * rad, dummyVelMasA, R4(0)); //approximate the curve with straight line
 	}
 
+	ContactWithOtherSpheres(force3, n3, rigidSphereA, posRigidA, dummyVelMasA, posRigidD, velMassRigidD, rad);
 
-	for (uint rigidSphereB = 0; rigidSphereB < numObjectsD.numRigidBodies; rigidSphereB ++) { //n^2 operation
-		if (rigidSphereB == rigidSphereA) {
-			continue; //avoid self contact
-		}
-		real3 posRigidB = posRigidD[rigidSphereB];
-		real4 dummyVelMasB = velMassRigidD[rigidSphereB];
-		penDist = length(posRigidB - posRigidA) - 2 * rad;
-		if (penDist < 0) {
-//			printf("a24 %f\n", penDist);
-			n3 = (posRigidA - posRigidB) / length(posRigidB - posRigidA);
-			force3 += DEM_Force(-penDist, n3, rad, rad, dummyVelMasA, dummyVelMasB);
-		}
+	real3 totalAcc = totalAccRigid3[rigidSphereA];
+	totalAcc += force3 / dummyVelMasA.w;
+	totalAccRigid3[rigidSphereA] = totalAcc;
+}
+//--------------------------------------------------------------------------------------------------------------------------------
+__global__ void Add_ContactForces_StraightChD(real3 * totalAccRigid3, real3 * posRigidD, real4 * velMassRigidD) {
+	uint rigidSphereA = blockIdx.x * blockDim.x + threadIdx.x;
+	if (rigidSphereA >= numObjectsD.numRigidBodies) {
+		return;
 	}
+	real3 posRigidA = posRigidD[rigidSphereA];
+	real4 dummyVelMasA = velMassRigidD[rigidSphereA];
+	real3 n3;
+
+	real3 force3 = R3(0);
+	real_ rad = paramsD.rigidRadius.x + paramsD.HSML;
+	real_ penDist = ContactWith_YPlanes(n3, posRigidA, rad);
+	if (penDist < 0) {
+		force3 += DEM_Force(-penDist, n3, rad, 20 * rad, dummyVelMasA, R4(0));
+	}
+	penDist = ContactWith_ZPlanes(n3, posRigidA, rad);
+	if (penDist < 0) {
+		force3 += DEM_Force(-penDist, n3, rad, 20 * rad, dummyVelMasA, R4(0));
+	}
+
+	ContactWithOtherSpheres(force3, n3, rigidSphereA, posRigidA, dummyVelMasA, posRigidD, velMassRigidD, rad);
 
 	real3 totalAcc = totalAccRigid3[rigidSphereA];
 	totalAcc += force3 / dummyVelMasA.w;
@@ -65,7 +62,7 @@ void setParameters2(SimParams *hostParams, NumberOfObjects *numObjects) {
 	cutilSafeCall( cudaMemcpyToSymbolAsync(numObjectsD, numObjects, sizeof(NumberOfObjects)));
 }
 //--------------------------------------------------------------------------------------------------------------------------------
-void Add_ContactForces(
+void Add_ContactForces_Serpentine(
 		real3* totalAccRigid3,
 		real3* posRigidD,
 		real4* velMassRigidD) {
@@ -93,7 +90,23 @@ void Add_ContactForces(
 	uint nThreads_rigidParticles;
 	computeGridSize(numObjectsH.numRigidBodies, 128, nBlock_UpdateRigid, nThreads_rigidParticles);
 
-	Add_ContactForcesD<<<nBlock_UpdateRigid, nThreads_rigidParticles>>>(totalAccRigid3, posRigidD, velMassRigidD);
+	Add_ContactForces_SerpentineD<<<nBlock_UpdateRigid, nThreads_rigidParticles>>>(totalAccRigid3, posRigidD, velMassRigidD);
+
+}
+//--------------------------------------------------------------------------------------------------------------------------------
+void Add_ContactForces_StraightCh(
+		real3* totalAccRigid3,
+		real3* posRigidD,
+		real4* velMassRigidD) {
+	NumberOfObjects numObjectsH;
+	cudaMemcpyFromSymbolAsync(&numObjectsH, numObjectsD, sizeof(NumberOfObjects));
+	//**********************************************************************
+
+	uint nBlock_UpdateRigid;
+	uint nThreads_rigidParticles;
+	computeGridSize(numObjectsH.numRigidBodies, 128, nBlock_UpdateRigid, nThreads_rigidParticles);
+
+	Add_ContactForces_StraightChD<<<nBlock_UpdateRigid, nThreads_rigidParticles>>>(totalAccRigid3, posRigidD, velMassRigidD);
 
 }
 
