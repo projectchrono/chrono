@@ -159,7 +159,7 @@ int main(int argc, char* argv[])
   }
   case PACEJKA:
   {
-    std::string param_file = utils::GetModelDataFile("hmmwv/pactest.tir");
+    std::string param_file = utils::GetModelDataFile("hmmwv/tire/HMMWV_pacejka.tir");
 
     ChSharedPtr<ChPacejkaTire> tire_FL(new ChPacejkaTire(param_file, terrain));
     ChSharedPtr<ChPacejkaTire> tire_FR(new ChPacejkaTire(param_file, terrain));

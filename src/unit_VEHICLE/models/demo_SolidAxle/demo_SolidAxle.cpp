@@ -31,7 +31,9 @@
 #include "physics/ChLinkDistance.h"
 
 #include "utils/ChUtilsInputOutput.h"
+#include "utils/ChUtilsData.h"
 #include "subsys/terrain/RigidTerrain.h"
+#include "subsys/tire/ChPacejkaTire.h"
 
 #include "models/hmmwv/HMMWV.h"
 #include "models/hmmwv/vehicle/HMMWV_VehicleSolidAxle.h"
@@ -153,6 +155,22 @@ int main(int argc, char* argv[])
     tire_FR->Initialize();
     tire_RL->Initialize();
     tire_RR->Initialize();
+
+    tire_front_left = tire_FL;
+    tire_front_right = tire_FR;
+    tire_rear_left = tire_RL;
+    tire_rear_right = tire_RR;
+
+    break;
+  }
+  case PACEJKA:
+  {
+    std::string param_file = utils::GetModelDataFile("hmmwv/tire/HMMWV_pacejka.tir");
+
+    ChSharedPtr<ChPacejkaTire> tire_FL(new ChPacejkaTire(param_file, terrain));
+    ChSharedPtr<ChPacejkaTire> tire_FR(new ChPacejkaTire(param_file, terrain));
+    ChSharedPtr<ChPacejkaTire> tire_RL(new ChPacejkaTire(param_file, terrain));
+    ChSharedPtr<ChPacejkaTire> tire_RR(new ChPacejkaTire(param_file, terrain));
 
     tire_front_left = tire_FL;
     tire_front_right = tire_FR;
