@@ -35,52 +35,91 @@ class CHRONO_ALIGN_16 real3 {
       struct {
          real x, y, z;
       };
+      real array[3];
 #ifdef ENABLE_SSE
       __m128 mmvalue;
 #endif
    };
 
 #ifdef ENABLE_SSE
-   inline real3() : mmvalue(_mm_setzero_ps()) {}
-   inline real3(real a) : mmvalue(_mm_set1_ps(a)) {}
-   inline real3(real a, real b, real c) : mmvalue(_mm_setr_ps(a,b,c,0)) {}
-   inline real3(__m128 m) : mmvalue(m) {}
-
-   inline operator __m128() const {return mmvalue;}
-
-   inline real3 operator+(const real3& b) const {return _mm_add_ps(mmvalue, b.mmvalue);}
-   inline real3 operator-(const real3& b) const {return _mm_sub_ps(mmvalue, b.mmvalue);}
-   inline real3 operator*(const real3& b) const {return _mm_mul_ps(mmvalue, b.mmvalue);}
-   inline real3 operator/(const real3& b) const {return _mm_div_ps(mmvalue, b.mmvalue);}
-   inline real3 operator-() const {return _mm_xor_ps(mmvalue, SIGNMASK);}
-
-   inline real3 operator+(real b) const {return _mm_add_ps(mmvalue, _mm_set1_ps(b));}
-   inline real3 operator-(real b) const {return _mm_sub_ps(mmvalue, _mm_set1_ps(b));}
-   inline real3 operator*(real b) const {return _mm_mul_ps(mmvalue, _mm_set1_ps(b));}
-   inline real3 operator/(real b) const {return _mm_div_ps(mmvalue, _mm_set1_ps(b));}
-
-   inline real dot(const real3 &b) const {return _mm_cvtss_f32(_mm_dp_ps(mmvalue, b.mmvalue, 0x71));}
-   inline real length() const {return _mm_cvtss_f32(_mm_sqrt_ss(_mm_dp_ps(mmvalue, mmvalue, 0x71)));}
-   inline real rlength() const {return _mm_cvtss_f32(_mm_rsqrt_ss(_mm_dp_ps(mmvalue, mmvalue, 0x71)));}
-   inline real3 normalize() const {return _mm_div_ps(mmvalue, _mm_sqrt_ps(_mm_dp_ps(mmvalue, mmvalue, 0x7F)));}
-
-   inline real3 cross(const real3 &b) const {
-      return _mm_sub_ps(
-            _mm_mul_ps(_mm_shuffle_ps(mmvalue, mmvalue, _MM_SHUFFLE(3, 0, 2, 1)), _mm_shuffle_ps(b.mmvalue, b.mmvalue, _MM_SHUFFLE(3, 1, 0, 2))),
-            _mm_mul_ps(_mm_shuffle_ps(mmvalue, mmvalue, _MM_SHUFFLE(3, 1, 0, 2)), _mm_shuffle_ps(b.mmvalue, b.mmvalue, _MM_SHUFFLE(3, 0, 2, 1)))
-      );
-   }
-#else
    inline real3()
-         : x(0), y(0), z(0) {
+         : mmvalue(_mm_setzero_ps()) {
    }
    inline real3(real a)
-         : x(a), y(a), z(a) {
+         : mmvalue(_mm_set1_ps(a)) {
    }
    inline real3(real a,
                 real b,
                 real c)
-         : x(a), y(b), z(c) {
+         : mmvalue(_mm_setr_ps(a, b, c, 0)) {
+   }
+   inline real3(__m128 m)
+         : mmvalue(m) {
+   }
+
+   inline operator __m128() const {
+      return mmvalue;
+   }
+
+   inline real3 operator+(const real3& b) const {
+      return _mm_add_ps(mmvalue, b.mmvalue);
+   }
+   inline real3 operator-(const real3& b) const {
+      return _mm_sub_ps(mmvalue, b.mmvalue);
+   }
+   inline real3 operator*(const real3& b) const {
+      return _mm_mul_ps(mmvalue, b.mmvalue);
+   }
+   inline real3 operator/(const real3& b) const {
+      return _mm_div_ps(mmvalue, b.mmvalue);
+   }
+   inline real3 operator-() const {
+      return _mm_xor_ps(mmvalue, SIGNMASK);
+   }
+
+   inline real3 operator+(real b) const {
+      return _mm_add_ps(mmvalue, _mm_set1_ps(b));
+   }
+   inline real3 operator-(real b) const {
+      return _mm_sub_ps(mmvalue, _mm_set1_ps(b));
+   }
+   inline real3 operator*(real b) const {
+      return _mm_mul_ps(mmvalue, _mm_set1_ps(b));
+   }
+   inline real3 operator/(real b) const {
+      return _mm_div_ps(mmvalue, _mm_set1_ps(b));
+   }
+
+   inline real dot(const real3 &b) const {
+      return _mm_cvtss_f32(_mm_dp_ps(mmvalue, b.mmvalue, 0x71));
+   }
+   inline real length() const {
+      return _mm_cvtss_f32(_mm_sqrt_ss(_mm_dp_ps(mmvalue, mmvalue, 0x71)));
+   }
+   inline real rlength() const {
+      return _mm_cvtss_f32(_mm_rsqrt_ss(_mm_dp_ps(mmvalue, mmvalue, 0x71)));
+   }
+   inline real3 normalize() const {
+      return _mm_div_ps(mmvalue, _mm_sqrt_ps(_mm_dp_ps(mmvalue, mmvalue, 0x7F)));
+   }
+   inline real length2() const {
+      return dot(real3(this));
+   }
+   inline real3 cross(const real3 &b) const {
+      return _mm_sub_ps(_mm_mul_ps(_mm_shuffle_ps(mmvalue, mmvalue, _MM_SHUFFLE(3, 0, 2, 1)), _mm_shuffle_ps(b.mmvalue, b.mmvalue, _MM_SHUFFLE(3, 1, 0, 2))),
+                        _mm_mul_ps(_mm_shuffle_ps(mmvalue, mmvalue, _MM_SHUFFLE(3, 1, 0, 2)), _mm_shuffle_ps(b.mmvalue, b.mmvalue, _MM_SHUFFLE(3, 0, 2, 1))));
+   }
+#else
+   inline real3()
+   : x(0), y(0), z(0) {
+   }
+   inline real3(real a)
+   : x(a), y(a), z(a) {
+   }
+   inline real3(real a,
+         real b,
+         real c)
+   : x(a), y(b), z(c) {
    }
 
    inline real3 operator+(const real3& b) const {
@@ -124,7 +163,9 @@ class CHRONO_ALIGN_16 real3 {
    inline real3 normalize() const {
       return real3(x, y, z) * rlength();
    }
-
+   inline real length2() const {
+      return dot(real3(x,y,z));
+   }
    inline real3 cross(const real3 &b) const {
       real3 result;
       result.x = (y * b.z) - (z * b.y);
@@ -171,7 +212,7 @@ class CHRONO_ALIGN_16 real3 {
       *this = *this / b;
       return *this;
    }
-
+   inline real& operator[](unsigned int i){ return array[i];}
 };
 
 inline real3 operator+(real a,
@@ -214,7 +255,7 @@ inline real3 normalize(const real3& a) {
 }
 
 static inline std::ostream &operator<<(std::ostream &out,
-                                  const real3 &a) {
+                                       const real3 &a) {
    out << "[" << a.x << ", " << a.y << ", " << a.z << "]" << std::endl;
    return out;
 }
