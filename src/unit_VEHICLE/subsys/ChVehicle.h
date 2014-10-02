@@ -81,6 +81,9 @@ public:
   /// Get a handle to the vehicle's chassis body.
   const ChSharedPtr<ChBodyAuxRef> GetChassis() const { return m_chassis; }
 
+  /// Get a handle to the vehicle's driveshaft body.
+  const ChSharedPtr<ChShaft> GetDriveshaft() const;
+
   /// Get the global location of the chassis reference frame origin.
   const ChVector<>& GetChassisPos() const { return m_chassis->GetFrame_REF_to_abs().GetPos(); }
 
