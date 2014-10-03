@@ -414,7 +414,7 @@ void ChDoubleWishbone::LogConstraintViolations(ChSuspension::Side side)
   }
 
   // Distance constraint
-  GetLog() << "Tierod distance         ";
+  GetLog() << "Tierod distance       ";
   GetLog() << "  " << m_distTierod[side]->GetCurrentDistance() - m_distTierod[side]->GetImposedDistance() << "\n";
 
 }

@@ -268,19 +268,19 @@ void ChDoubleWishboneReduced::LogConstraintViolations(ChSuspension::Side side)
   }
 
   // Distance constraints
-  GetLog() << "UCA front distance      ";
+  GetLog() << "UCA front distance    ";
   GetLog() << "  " << m_distUCA_F[side]->GetCurrentDistance() - m_distUCA_F[side]->GetImposedDistance() << "\n";
 
-  GetLog() << "UCA back distance       ";
+  GetLog() << "UCA back distance     ";
   GetLog() << "  " << m_distUCA_B[side]->GetCurrentDistance() - m_distUCA_B[side]->GetImposedDistance() << "\n";
 
-  GetLog() << "LCA front distance      ";
+  GetLog() << "LCA front distance    ";
   GetLog() << "  " << m_distLCA_F[side]->GetCurrentDistance() - m_distLCA_F[side]->GetImposedDistance() << "\n";
 
-  GetLog() << "LCA back distance       ";
+  GetLog() << "LCA back distance     ";
   GetLog() << "  " << m_distLCA_B[side]->GetCurrentDistance() - m_distLCA_B[side]->GetImposedDistance() << "\n";
 
-  GetLog() << "Tierod distance         ";
+  GetLog() << "Tierod distance       ";
   GetLog() << "  " << m_distTierod[side]->GetCurrentDistance() - m_distTierod[side]->GetImposedDistance() << "\n";
 
 }
