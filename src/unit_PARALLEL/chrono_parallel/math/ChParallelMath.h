@@ -94,7 +94,7 @@ static inline void Swap(T &a,
 static inline real3 TransformLocalToParent(const real3& p,
                                            const quaternion& q,
                                            const real3& rl) {
-   return p + quatRotateMat(rl, q);
+   return p + quatRotate(rl, q);
 }
 
 // Given a frame with origin 'p' and orientation 'q', transform the
@@ -103,7 +103,7 @@ static inline real3 TransformLocalToParent(const real3& p,
 static inline real3 TransformParentToLocal(const real3& p,
                                            const quaternion& q,
                                            const real3& rp) {
-   return quatRotateMatT(rp - p, q);
+   return quatRotateT(rp - p, q);
 }
 
 #endif
