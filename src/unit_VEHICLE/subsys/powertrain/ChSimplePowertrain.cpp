@@ -27,74 +27,31 @@ namespace chrono {
 // -----------------------------------------------------------------------------
 ChSimplePowertrain::ChSimplePowertrain()
 : ChPowertrain(),
-  m_wheelTorque(0),
   m_motorSpeed(0),
-  m_motorTorque(0)
+  m_motorTorque(0),
+  m_shaftTorque(0)
 {
 }
 
-// -----------------------------------------------------------------------------
-// -----------------------------------------------------------------------------
-void ChSimplePowertrain::Initialize(ChSharedPtr<ChBody>  chassis,
-                                    ChSharedPtr<ChShaft> axle_L,
-                                    ChSharedPtr<ChShaft> axle_R)
-{
-  m_axle_L = axle_L;
-  m_axle_R = axle_R;
-}
-
-// -----------------------------------------------------------------------------
-// -----------------------------------------------------------------------------
-double ChSimplePowertrain::GetWheelTorque(ChWheelId which) const
-{
-  switch (which) {
-  case FRONT_LEFT:
-    return 0;
-  case FRONT_RIGHT:
-    return 0;
-  case REAR_LEFT:
-    return m_wheelTorque;
-  case REAR_RIGHT:
-    return m_wheelTorque;
-  default:
-    return -1;  // should not happen
-  }
-}
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 void ChSimplePowertrain::Update(double time,
-                                double throttle)
+                                double throttle,
+                                double shaft_speed)
 {
-  // Get wheel angular speeds.
-  double wheelSpeedL = m_axle_L->GetPos_dt();
-  double wheelSpeedR = m_axle_R->GetPos_dt();
-
-  // Assume clutch is never used. Given the kinematics of differential, the
-  // speed of the engine transmission shaft is the average of the two wheel
-  // speeds, multiplied the conic gear transmission ratio inversed:
-  double shaftSpeed = (1.0 / GetConicTau()) * 0.5 * (wheelSpeedL + wheelSpeedR);
-
   // The motorspeed is the shaft speed multiplied by gear ratio inversed:
-  m_motorSpeed = shaftSpeed * (1.0 / GetGearTau());
+  m_motorSpeed = shaft_speed * (1.0 / GetGearRatio());
 
   // The torque depends on speed-torque curve of the motor: here we assume a 
   // very simplified model a bit like in DC motors:
-  m_motorTorque = GetMaxTorque() - m_motorSpeed*(GetMaxTorque() / GetMaxSpeed());
+  m_motorTorque = GetMaxTorque() - m_motorSpeed * (GetMaxTorque() / GetMaxSpeed());
 
   // Motor torque is linearly modulated by throttle gas value:
   m_motorTorque *= throttle;
 
   // The torque at motor shaft:
-  double shaftTorque = m_motorTorque * (1.0 / GetGearTau());
-
-  // The torque at wheels - for each wheel, given the differential transmission, 
-  // it is half of the shaft torque  (multiplied the conic gear transmission ratio)
-  m_wheelTorque = 0.5 * shaftTorque * (1.0 / GetConicTau());
-
-  // Apply torques directly to the rear suspension subsystems.
-  m_axle_L->SetAppliedTorque(-m_wheelTorque);
-  m_axle_R->SetAppliedTorque(-m_wheelTorque);
+  m_shaftTorque = m_motorTorque * (1.0 / GetGearRatio());
 }
 
 

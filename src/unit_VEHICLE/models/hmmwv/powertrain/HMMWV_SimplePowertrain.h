@@ -33,21 +33,19 @@ class chrono::ChVehicle;
 class HMMWV_SimplePowertrain : public chrono::ChSimplePowertrain {
 public:
 
-  HMMWV_SimplePowertrain(chrono::ChVehicle* car);
+  HMMWV_SimplePowertrain();
 
   ~HMMWV_SimplePowertrain() {}
 
-  virtual double GetConicTau() const  { return m_conic_tau; }
-  virtual double GetGearTau() const   { return m_gear_tau; }
+  virtual double GetGearRatio() const { return m_gear_ratio; }
   virtual double GetMaxTorque() const { return m_max_torque; }
   virtual double GetMaxSpeed() const  { return m_max_speed; }
 
 private:
 
-  static const double m_conic_tau;   // the transmission ratio of the conic gears at the rear axle
-  static const double m_gear_tau;    // the actual tau of the gear
-  static const double m_max_torque;  // the max torque of the motor [Nm];
-  static const double m_max_speed;   // the max rotation speed of the motor [rads/s]
+  static const double m_gear_ratio;  // gear ratio (single gear transmission)
+  static const double m_max_torque;  // maximum motor torque
+  static const double m_max_speed;   // maximum motor speed
 };
 
 

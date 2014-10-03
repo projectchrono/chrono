@@ -30,14 +30,13 @@ namespace hmmwv {
 // -----------------------------------------------------------------------------
 const double HMMWV_SimplePowertrain::m_max_torque = 2400 / 8.851;
 const double HMMWV_SimplePowertrain::m_max_speed  = 2000;
-const double HMMWV_SimplePowertrain::m_conic_tau = 0.2;
-const double HMMWV_SimplePowertrain::m_gear_tau = 0.3;
+const double HMMWV_SimplePowertrain::m_gear_ratio = 0.3;
 
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-HMMWV_SimplePowertrain::HMMWV_SimplePowertrain(ChVehicle* car)
-: ChSimplePowertrain(car)
+HMMWV_SimplePowertrain::HMMWV_SimplePowertrain()
+: ChSimplePowertrain()
 {
 }
 
