@@ -33,6 +33,24 @@ ChSimplePowertrain::ChSimplePowertrain()
 {
 }
 
+// -----------------------------------------------------------------------------
+// -----------------------------------------------------------------------------
+void ChSimplePowertrain::Initialize()
+{
+  m_current_gear_ratio = GetForwardGearRatio();
+}
+
+// -----------------------------------------------------------------------------
+// -----------------------------------------------------------------------------
+void ChSimplePowertrain::SetDriveMode(ChPowertrain::DriveMode mode)
+{
+  m_drive_mode = mode;
+  switch (mode) {
+  case FORWARD: m_current_gear_ratio = GetForwardGearRatio(); break;
+  case REVERSE: m_current_gear_ratio = GetReverseGearRatio(); break;
+  case NEUTRAL: m_current_gear_ratio = 1e20; break;
+  }
+}
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
@@ -41,17 +59,17 @@ void ChSimplePowertrain::Update(double time,
                                 double shaft_speed)
 {
   // The motorspeed is the shaft speed multiplied by gear ratio inversed:
-  m_motorSpeed = shaft_speed * (1.0 / GetGearRatio());
+  m_motorSpeed = shaft_speed / m_current_gear_ratio;
 
-  // The torque depends on speed-torque curve of the motor: here we assume a 
-  // very simplified model a bit like in DC motors:
+  // The torque depends on speed-torque curve of the motor; here we assume a 
+  // very simplified model a bit like in DC motors.
   m_motorTorque = GetMaxTorque() - m_motorSpeed * (GetMaxTorque() / GetMaxSpeed());
 
   // Motor torque is linearly modulated by throttle gas value:
   m_motorTorque *= throttle;
 
   // The torque at motor shaft:
-  m_shaftTorque = m_motorTorque * (1.0 / GetGearRatio());
+  m_shaftTorque = m_motorTorque / m_current_gear_ratio;
 }
 
 

@@ -134,6 +134,7 @@ int main(int argc, char* argv[])
   {
     ChSharedPtr<HMMWV_SimplePowertrain> ptrain(new HMMWV_SimplePowertrain);
 
+    ptrain->Initialize();
     powertrain = ptrain;
 
     break;

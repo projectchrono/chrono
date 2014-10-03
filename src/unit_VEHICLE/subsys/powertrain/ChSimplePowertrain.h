@@ -39,6 +39,9 @@ public:
 
   ~ChSimplePowertrain() {}
 
+  /// Initialize the powertrain system.
+  void Initialize();
+
   /// Return the current engine speed.
   virtual double GetMotorSpeed() const { return m_motorSpeed; }
 
@@ -70,7 +73,7 @@ public:
 
   /// Use this function to set the mode of automatic transmission.
   /// This simplified model does not have a transmission box.
-  virtual void SetDriveMode(ChPowertrain::DriveMode mmode) {}
+  virtual void SetDriveMode(ChPowertrain::DriveMode mmode);
 
   /// Update the state of this powertrain system at the current time.
   /// The powertrain system is provided the current driver throttle input, a
@@ -88,8 +91,11 @@ public:
 
 protected:
 
-  /// Return the gear ratio (single gear transmission)
-  virtual double GetGearRatio() const = 0;
+  /// Return the forward gear ratio (single gear transmission)
+  virtual double GetForwardGearRatio() const = 0;
+
+  /// Return the reverse gear ratio
+  virtual double GetReverseGearRatio() const = 0;
 
   /// Return the maximum motor torque
   virtual double GetMaxTorque() const = 0;
@@ -98,7 +104,7 @@ protected:
   virtual double GetMaxSpeed() const = 0;
 
 private:
-
+  double  m_current_gear_ratio;
   double  m_motorSpeed;
   double  m_motorTorque;
   double  m_shaftTorque;
