@@ -43,18 +43,18 @@ class CHRONO_ALIGN_16 real3 {
 
 #ifdef ENABLE_SSE
    inline real3()
-         : mmvalue(_mm_setzero_ps()) {
+   : mmvalue(_mm_setzero_ps()) {
    }
    inline real3(real a)
-         : mmvalue(_mm_set1_ps(a)) {
+   : mmvalue(_mm_set1_ps(a)) {
    }
    inline real3(real a,
-                real b,
-                real c)
-         : mmvalue(_mm_setr_ps(a, b, c, 0)) {
+         real b,
+         real c)
+   : mmvalue(_mm_setr_ps(a, b, c, 0)) {
    }
    inline real3(__m128 m)
-         : mmvalue(m) {
+   : mmvalue(m) {
    }
 
    inline operator __m128() const {
@@ -104,20 +104,20 @@ class CHRONO_ALIGN_16 real3 {
    }
    inline real3 cross(const real3 &b) const {
       return _mm_sub_ps(_mm_mul_ps(_mm_shuffle_ps(mmvalue, mmvalue, _MM_SHUFFLE(3, 0, 2, 1)), _mm_shuffle_ps(b.mmvalue, b.mmvalue, _MM_SHUFFLE(3, 1, 0, 2))),
-                        _mm_mul_ps(_mm_shuffle_ps(mmvalue, mmvalue, _MM_SHUFFLE(3, 1, 0, 2)), _mm_shuffle_ps(b.mmvalue, b.mmvalue, _MM_SHUFFLE(3, 0, 2, 1))));
+            _mm_mul_ps(_mm_shuffle_ps(mmvalue, mmvalue, _MM_SHUFFLE(3, 1, 0, 2)), _mm_shuffle_ps(b.mmvalue, b.mmvalue, _MM_SHUFFLE(3, 0, 2, 1))));
    }
 
 #else
    inline real3()
-   : x(0), y(0), z(0) {
+         : x(0), y(0), z(0) {
    }
    inline real3(real a)
-   : x(a), y(a), z(a) {
+         : x(a), y(a), z(a) {
    }
    inline real3(real a,
-         real b,
-         real c)
-   : x(a), y(b), z(c) {
+                real b,
+                real c)
+         : x(a), y(b), z(c) {
    }
 
    inline real3 operator+(const real3& b) const {
@@ -212,7 +212,7 @@ class CHRONO_ALIGN_16 real3 {
       return array[i];
    }
    inline real length2() const {
-      return dot(real3(this));
+      return dot(*this);
    }
    inline real distance(const real3 & b) {
       return (b - *this).length();
@@ -241,7 +241,7 @@ inline real3 operator/(real a,
 }
 inline bool operator ==(const real3 &a,
                         const real3 &b) {
-   return a == b;
+   return (a.x == b.x) && (a.y == b.y) && (a.z == b.z);
 }
 
 inline real dot(const real3& a,
