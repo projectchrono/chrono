@@ -395,11 +395,11 @@ public:
             mfun->Set_yconst(-0.5 + mfun->Get_yconst());
           return true;
         case irr::KEY_KEY_S:
-          if (ChFunction_Const* mfun = dynamic_cast<ChFunction_Const*>(forklift->link_actuatorFork->Get_dist_funct()))
+          if (ChSharedPtr<ChFunction_Const> mfun = forklift->link_actuatorFork->Get_dist_funct().DynamicCastTo<ChFunction_Const>())
             mfun->Set_yconst(0.05 + mfun->Get_yconst());
           return true;
         case irr::KEY_KEY_X:
-          if (ChFunction_Const* mfun = dynamic_cast<ChFunction_Const*>(forklift->link_actuatorFork->Get_dist_funct()))
+          if (ChSharedPtr<ChFunction_Const> mfun = forklift->link_actuatorFork->Get_dist_funct().DynamicCastTo<ChFunction_Const>())
             mfun->Set_yconst(-0.05 + mfun->Get_yconst());
           return true;
         case irr::KEY_KEY_D:
