@@ -73,6 +73,9 @@ public:
     double steering    ///< [in] current steering input [-1,+1]
     ) = 0;
 
+  /// Log current constraint violations.
+  virtual void LogConstraintViolations() {}
+
 protected:
 
   std::string  m_name;          ///< name of the subsystem

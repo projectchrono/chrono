@@ -56,7 +56,7 @@ public:
 
   ChIrrGuiDriver(
     irr::ChIrrApp&      app,
-    const ChVehicle&    car,
+    ChVehicle&          car,
     ChPowertrain&       powertrain,
     const ChVector<>&   ptOnChassis,
     double              chaseDist,
@@ -98,7 +98,7 @@ private:
                      int length = 120, int height = 15);
 
   irr::ChIrrAppInterface&   m_app;
-  const ChVehicle&          m_car;
+  ChVehicle&                m_car;
   ChPowertrain&             m_powertrain;
 
   utils::ChChaseCamera      m_camera;

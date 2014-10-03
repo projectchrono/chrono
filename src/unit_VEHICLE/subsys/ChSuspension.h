@@ -125,6 +125,9 @@ public:
   /// SOON TO BE OBSOLETED
   virtual void ApplySteering(double displ) = 0;
 
+  /// Log current constraint violations.
+  virtual void LogConstraintViolations(Side side) {}
+
 protected:
 
   std::string               m_name;       ///< name of the subsystem

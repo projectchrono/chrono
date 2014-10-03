@@ -294,4 +294,26 @@ void HMMWV_VehicleReduced::ExportMeshPovray(const std::string& out_dir)
 }
 
 
+// -----------------------------------------------------------------------------
+// Log constraint violations
+// -----------------------------------------------------------------------------
+void HMMWV_VehicleReduced::LogConstraintViolations()
+{
+  GetLog().SetNumFormat("%16.4e");
+
+  // Report constraint violations for the suspension joints
+  GetLog() << "\n---- FRONT-RIGHT suspension constraint violation\n\n";
+  m_front_susp->LogConstraintViolations(ChSuspension::RIGHT);
+  GetLog() << "\n---- FRONT-LEFT suspension constraint violation\n\n";
+  m_front_susp->LogConstraintViolations(ChSuspension::LEFT);
+  GetLog() << "\n---- REAR-RIGHT suspension constraint violation\n\n";
+  m_rear_susp->LogConstraintViolations(ChSuspension::RIGHT);
+  GetLog() << "\n---- REAR-LEFT suspension constraint violation\n\n";
+  m_rear_susp->LogConstraintViolations(ChSuspension::LEFT);
+
+  GetLog().SetNumFormat("%g");
+
+}
+
+
 } // end namespace hmmwv

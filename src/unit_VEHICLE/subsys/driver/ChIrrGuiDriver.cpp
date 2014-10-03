@@ -39,7 +39,7 @@ namespace chrono {
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 ChIrrGuiDriver::ChIrrGuiDriver(ChIrrApp&           app,
-                               const ChVehicle&    car,
+                               ChVehicle&          car,
                                ChPowertrain&       powertrain,
                                const ChVector<>&   ptOnChassis,
                                double              chaseDist,
@@ -162,6 +162,10 @@ bool ChIrrGuiDriver::OnEvent(const SEvent& event)
       return true;
     case KEY_KEY_C:
       m_powertrain.SetDriveMode(ChPowertrain::REVERSE);
+      return true;
+
+    case KEY_KEY_V:
+      m_car.LogConstraintViolations();
       return true;
     }
 

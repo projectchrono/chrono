@@ -75,6 +75,8 @@ public:
   void LogHardpointLocations(); /// suspension hardpoints at design
   void DebugLog(int what);      /// shock forces and lengths, constraints, etc.
 
+  virtual void LogConstraintViolations();
+
 private:
 
   chrono::ChSharedPtr<HMMWV_SolidAxleFront> m_front_susp;

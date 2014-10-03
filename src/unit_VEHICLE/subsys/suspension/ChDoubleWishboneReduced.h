@@ -55,6 +55,8 @@ public:
 
   virtual void ApplySteering(double displ);
 
+  virtual void LogConstraintViolations(ChSuspension::Side side);
+
 protected:
 
   enum PointId {

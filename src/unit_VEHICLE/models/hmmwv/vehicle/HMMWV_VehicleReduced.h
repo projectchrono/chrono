@@ -63,6 +63,8 @@ public:
 
   static void ExportMeshPovray(const std::string& out_dir);
 
+  virtual void LogConstraintViolations();
+
 private:
 
   chrono::ChSharedPtr<HMMWV_DoubleWishboneReducedFront> m_front_susp;

@@ -430,6 +430,32 @@ void HMMWV_VehicleJSON::LogHardpointLocations()
 
 
 // -----------------------------------------------------------------------------
+// Log constraint violations
+// -----------------------------------------------------------------------------
+void HMMWV_VehicleJSON::LogConstraintViolations()
+{
+  GetLog().SetNumFormat("%16.4e");
+
+  // Report constraint violations for the suspension joints
+  GetLog() << "\n---- FRONT-RIGHT suspension constraint violation\n\n";
+  m_front_susp->LogConstraintViolations(ChSuspension::RIGHT);
+  GetLog() << "\n---- FRONT-LEFT suspension constraint violation\n\n";
+  m_front_susp->LogConstraintViolations(ChSuspension::LEFT);
+  GetLog() << "\n---- REAR-RIGHT suspension constraint violation\n\n";
+  m_rear_susp->LogConstraintViolations(ChSuspension::RIGHT);
+  GetLog() << "\n---- REAR-LEFT suspension constraint violation\n\n";
+  m_rear_susp->LogConstraintViolations(ChSuspension::LEFT);
+
+  // Report constraint violations for the steering joints
+  GetLog() << "\n---- STEERING constrain violation\n\n";
+  m_steering->LogConstraintViolations();
+
+  GetLog().SetNumFormat("%g");
+
+}
+
+
+// -----------------------------------------------------------------------------
 // Log the spring length, deformation, and force.
 // Log the shock length, velocity, and force.
 // Log constraint violations of suspension joints.
@@ -482,15 +508,8 @@ void HMMWV_VehicleJSON::DebugLog(int what)
 
   if (what & DBG_CONSTRAINTS)
   {
-    // Report constraint violations for the suspension joints
-    GetLog() << "\n---- FRONT-RIGHT suspension constraint violation\n\n";
-    m_front_susp->LogConstraintViolations(ChSuspension::RIGHT);
-    GetLog() << "\n---- FRONT-LEFT suspension constraint violation\n\n";
-    m_front_susp->LogConstraintViolations(ChSuspension::LEFT);
-    GetLog() << "\n---- REAR-RIGHT suspension constraint violation\n\n";
-    m_rear_susp->LogConstraintViolations(ChSuspension::RIGHT);
-    GetLog() << "\n---- REAR-LEFT suspension constraint violation\n\n";
-    m_rear_susp->LogConstraintViolations(ChSuspension::LEFT);
+    // Report constraint violations for all joints
+    LogConstraintViolations();
   }
 
   GetLog().SetNumFormat("%g");

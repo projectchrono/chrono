@@ -211,4 +211,45 @@ void ChPitmanArm::AddVisualizationSteeringLink(ChSharedPtr<ChBody> link,
 }
 
 
+// -----------------------------------------------------------------------------
+// -----------------------------------------------------------------------------
+void ChPitmanArm::LogConstraintViolations()
+{
+  // Revolute joint
+  {
+    ChMatrix<>* C = m_revolute->GetC();
+    GetLog() << "Revolute              ";
+    GetLog() << "  " << C->GetElement(0, 0) << "  ";
+    GetLog() << "  " << C->GetElement(1, 0) << "  ";
+    GetLog() << "  " << C->GetElement(2, 0) << "  ";
+    GetLog() << "  " << C->GetElement(3, 0) << "  ";
+    GetLog() << "  " << C->GetElement(4, 0) << "\n";
+  }
+
+  // Universal joint
+  {
+    ChMatrix<>* C = m_universal->GetC();
+    GetLog() << "Universal             ";
+    GetLog() << "  " << C->GetElement(0, 0) << "  ";
+    GetLog() << "  " << C->GetElement(1, 0) << "  ";
+    GetLog() << "  " << C->GetElement(2, 0) << "  ";
+    GetLog() << "  " << C->GetElement(3, 0) << "\n";
+  }
+
+  /*
+  //// TODO
+  // Revolute-spherical joint
+  {
+    ChMatrix<>* C = m_revsph->GetC();
+    GetLog() << "Revolute-spherical    ";
+    GetLog() << "  " << C->GetElement(0, 0) << "  ";
+    GetLog() << "  " << C->GetElement(1, 0) << "  ";
+    GetLog() << "  " << C->GetElement(2, 0) << "  ";
+    GetLog() << "  " << C->GetElement(3, 0) << "  ";
+    GetLog() << "  " << C->GetElement(4, 0) << "\n";
+  }
+  */
+}
+
+
 }  // end namespace chrono

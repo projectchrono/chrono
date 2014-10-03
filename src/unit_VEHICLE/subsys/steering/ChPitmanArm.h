@@ -45,6 +45,8 @@ public:
 
   virtual void Update(double time, double steering);
 
+  virtual void LogConstraintViolations();
+
 protected:
 
   enum PointId {

@@ -77,6 +77,8 @@ public:
   void LogHardpointLocations(); /// suspension hardpoints at design
   void DebugLog(int what);      /// shock forces and lengths, constraints, etc.
 
+  virtual void LogConstraintViolations();
+
 private:
 
   chrono::ChSharedPtr<chrono::DoubleWishbone> m_front_susp;

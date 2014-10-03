@@ -63,9 +63,10 @@ public:
   double GetShockLength(ChSuspension::Side side)       const { return m_shock[side]->Get_SpringLength(); }
   double GetShockVelocity(ChSuspension::Side side)     const { return m_shock[side]->Get_SpringVelocity(); }
 
+  virtual void LogConstraintViolations(ChSuspension::Side side);
+
   void LogHardpointLocations(const ChVector<>& ref,
                              bool              inches = false);
-  void LogConstraintViolations(ChSuspension::Side side);
 
 protected:
 

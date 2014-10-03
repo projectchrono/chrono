@@ -178,6 +178,9 @@ public:
   /// subsystem.
   double GetStepsize() const { return m_stepsize; }
 
+  /// Log current constraint violations.
+  virtual void LogConstraintViolations() {}
+
 protected:
 
   ChSharedPtr<ChBodyAuxRef>  m_chassis;  ///< handle to the chassis body

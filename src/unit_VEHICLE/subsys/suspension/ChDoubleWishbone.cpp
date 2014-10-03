@@ -371,50 +371,50 @@ void ChDoubleWishbone::LogConstraintViolations(ChSuspension::Side side)
   // Revolute joints
   {
     ChMatrix<>* C = m_revoluteLCA[side]->GetC();
-    GetLog() << "LCA revolute\n";
-    GetLog() << "  " << C->GetElement(0, 0) << "\n";
-    GetLog() << "  " << C->GetElement(1, 0) << "\n";
-    GetLog() << "  " << C->GetElement(2, 0) << "\n";
-    GetLog() << "  " << C->GetElement(3, 0) << "\n";
+    GetLog() << "LCA revolute          ";
+    GetLog() << "  " << C->GetElement(0, 0) << "  ";
+    GetLog() << "  " << C->GetElement(1, 0) << "  ";
+    GetLog() << "  " << C->GetElement(2, 0) << "  ";
+    GetLog() << "  " << C->GetElement(3, 0) << "  ";
     GetLog() << "  " << C->GetElement(4, 0) << "\n";
   }
   {
     ChMatrix<>* C = m_revoluteUCA[side]->GetC();
-    GetLog() << "UCA revolute\n";
-    GetLog() << "  " << C->GetElement(0, 0) << "\n";
-    GetLog() << "  " << C->GetElement(1, 0) << "\n";
-    GetLog() << "  " << C->GetElement(2, 0) << "\n";
-    GetLog() << "  " << C->GetElement(3, 0) << "\n";
+    GetLog() << "UCA revolute          ";
+    GetLog() << "  " << C->GetElement(0, 0) << "  ";
+    GetLog() << "  " << C->GetElement(1, 0) << "  ";
+    GetLog() << "  " << C->GetElement(2, 0) << "  ";
+    GetLog() << "  " << C->GetElement(3, 0) << "  ";
     GetLog() << "  " << C->GetElement(4, 0) << "\n";
   }
   {
     ChMatrix<>* C = m_revolute[side]->GetC();
-    GetLog() << "Spindle revolute\n";
-    GetLog() << "  " << C->GetElement(0, 0) << "\n";
-    GetLog() << "  " << C->GetElement(1, 0) << "\n";
-    GetLog() << "  " << C->GetElement(2, 0) << "\n";
-    GetLog() << "  " << C->GetElement(3, 0) << "\n";
+    GetLog() << "Spindle revolute      ";
+    GetLog() << "  " << C->GetElement(0, 0) << "  ";
+    GetLog() << "  " << C->GetElement(1, 0) << "  ";
+    GetLog() << "  " << C->GetElement(2, 0) << "  ";
+    GetLog() << "  " << C->GetElement(3, 0) << "  ";
     GetLog() << "  " << C->GetElement(4, 0) << "\n";
   }
 
   // Spherical joints
   {
     ChMatrix<>* C = m_sphericalLCA[side]->GetC();
-    GetLog() << "LCA spherical\n";
-    GetLog() << "  " << C->GetElement(0, 0) << "\n";
-    GetLog() << "  " << C->GetElement(1, 0) << "\n";
+    GetLog() << "LCA spherical         ";
+    GetLog() << "  " << C->GetElement(0, 0) << "  ";
+    GetLog() << "  " << C->GetElement(1, 0) << "  ";
     GetLog() << "  " << C->GetElement(2, 0) << "\n";
   }
   {
     ChMatrix<>* C = m_sphericalUCA[side]->GetC();
-    GetLog() << "UCA spherical\n";
-    GetLog() << "  " << C->GetElement(0, 0) << "\n";
-    GetLog() << "  " << C->GetElement(1, 0) << "\n";
+    GetLog() << "UCA spherical         ";
+    GetLog() << "  " << C->GetElement(0, 0) << "  ";
+    GetLog() << "  " << C->GetElement(1, 0) << "  ";
     GetLog() << "  " << C->GetElement(2, 0) << "\n";
   }
 
   // Distance constraint
-  GetLog() << "Tierod distance\n";
+  GetLog() << "Tierod distance         ";
   GetLog() << "  " << m_distTierod[side]->GetCurrentDistance() - m_distTierod[side]->GetImposedDistance() << "\n";
 
 }
