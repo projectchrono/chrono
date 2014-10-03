@@ -51,9 +51,11 @@
 
 #ifdef CHRONO_PARALLEL_USE_DOUBLE
 typedef double real;
+#define LARGE_REAL 1e30
 #define ZERO_EPSILON DBL_EPSILON
 #else
 typedef float real;
+#define LARGE_REAL 1e18f
 #define ZERO_EPSILON FLT_EPSILON
 #endif
 
