@@ -37,7 +37,7 @@ public:
     //
 
   ChLinkRevoluteSpherical();
-  ~ChLinkRevoluteSpherical() {}
+  ~ChLinkRevoluteSpherical();
 
   virtual void Copy(ChLinkRevoluteSpherical* source);
   virtual ChLink* new_Duplicate();
@@ -70,6 +70,9 @@ public:
   ChVector<> GetDir1Abs() const   { return Body1->TransformDirectionLocalToParent(m_dir1); }
   /// Get the point on Body2 (spherical side), expressed in absolute coordinate system.
   ChVector<> GetPoint2Abs() const { return Body2->TransformPointLocalToParent(m_pos2); }
+
+  /// Get the joint violation (residuals of the constraint equations)
+  ChMatrix<>* GetC() { return m_C; }
 
   /// Initialize this joint by specifying the two bodies to be connected, a
   /// coordinate system specified in the absolute frame, and the distance of
@@ -136,6 +139,9 @@ private:
   // The constraint objects
   ChLcpConstraintTwoBodies m_cnstr_dist;  // ||pos2_abs - pos1_abs|| - dist = 0
   ChLcpConstraintTwoBodies m_cnstr_dot;   // dot(dir1_abs, pos2_abs - pos1_abs) = 0
+
+  // Current constraint violations
+  ChMatrix<>* m_C;
 
   // Caching of multipliers to allow warm starting
   double m_cache_speed[2];

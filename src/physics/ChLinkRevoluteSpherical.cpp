@@ -23,16 +23,18 @@ ChClassRegister<ChLinkRevoluteSpherical> a_registration_ChLinkRevoluteSpherical;
 
 
 // -----------------------------------------------------------------------------
-// Constructor
+// Constructor and destructor
 // -----------------------------------------------------------------------------
 ChLinkRevoluteSpherical::ChLinkRevoluteSpherical()
-  : m_pos1(ChVector<>(0, 0, 0)),
+: m_pos1(ChVector<>(0, 0, 0)),
   m_pos2(ChVector<>(0, 0, 0)),
   m_dir1(ChVector<>(0, 0, 1)),
   m_dist(0),
   m_cur_dist(0),
   m_cur_dot(0)
 {
+  m_C = new ChMatrixDynamic<>(2, 1);
+
   m_cache_speed[0] = 0;
   m_cache_speed[1] = 0;
 
@@ -40,6 +42,14 @@ ChLinkRevoluteSpherical::ChLinkRevoluteSpherical()
   m_cache_pos[1] = 0;
 }
 
+ChLinkRevoluteSpherical::~ChLinkRevoluteSpherical()
+{
+  delete m_C;
+}
+
+
+// -----------------------------------------------------------------------------
+// -----------------------------------------------------------------------------
 void ChLinkRevoluteSpherical::Copy(ChLinkRevoluteSpherical* source)
 {
   // first copy the parent class data...
@@ -174,6 +184,9 @@ void ChLinkRevoluteSpherical::Update(double time)
   // Express the direction vector in the frame of body 2
   ChVector<> dir1_loc2 = Body2->TransformDirectionParentToLocal(dir1_abs);
 
+  // Cache violation of the distance constraint
+  m_C->SetElement(0, 0, m_cur_dist - m_dist);
+
   // Compute Jacobian of the distance constraint
   //    ||pos2_abs - pos1_abs|| - dist = 0
   {
@@ -199,6 +212,9 @@ void ChLinkRevoluteSpherical::Update(double time)
     m_cnstr_dist.Get_Cq_b()->ElementN(4) = (float)Phi_pi2.y;
     m_cnstr_dist.Get_Cq_b()->ElementN(5) = (float)Phi_pi2.z;
   }
+
+  // Cache violation of the dot constraint
+  m_C->SetElement(1, 0, m_cur_dot);
 
   // Compute Jacobian of the dot constraint
   //    dot(dir1_abs, pos2_abs - pos1_abs) = 0
