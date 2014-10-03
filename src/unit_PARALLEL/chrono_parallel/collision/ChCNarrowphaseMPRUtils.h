@@ -196,44 +196,67 @@ inline real3 GetCenter_Cone(const real3 &B) {
    return ZERO_VECTOR;
 }
 
-inline real3 TransformSupportVert(const chrono::collision::ConvexShape &Shape,
-                           const real3 &n) {
+inline real3 SupportVert(const chrono::collision::ConvexShape &Shape,
+                         const real3 &n) {
    real3 localSupport;
-   real3 rotated_n = quatRotateMatT(n, Shape.R);
+
    switch (Shape.type) {
       case chrono::collision::SPHERE:
-         localSupport = GetSupportPoint_Sphere(Shape.B, rotated_n);
+         localSupport = GetSupportPoint_Sphere(Shape.B, n);
          break;
       case chrono::collision::ELLIPSOID:
-         localSupport = GetSupportPoint_Ellipsoid(Shape.B, rotated_n);
+         localSupport = GetSupportPoint_Ellipsoid(Shape.B, n);
          break;
       case chrono::collision::BOX:
-         localSupport = GetSupportPoint_Box(Shape.B, rotated_n);
+         localSupport = GetSupportPoint_Box(Shape.B, n);
          break;
       case chrono::collision::CYLINDER:
-         localSupport = GetSupportPoint_Cylinder(Shape.B, rotated_n);
+         localSupport = GetSupportPoint_Cylinder(Shape.B, n);
          break;
       case chrono::collision::CONE:
-         localSupport = GetSupportPoint_Cone(Shape.B, rotated_n);
+         localSupport = GetSupportPoint_Cone(Shape.B, n);
          break;
       case chrono::collision::CAPSULE:
-         localSupport = GetSupportPoint_Capsule(Shape.B, rotated_n);
+         localSupport = GetSupportPoint_Capsule(Shape.B, n);
          break;
       case chrono::collision::ROUNDEDBOX:
-         localSupport = GetSupportPoint_RoundedBox(Shape.B, Shape.C, rotated_n);
+         localSupport = GetSupportPoint_RoundedBox(Shape.B, Shape.C, n);
          break;
       case chrono::collision::ROUNDEDCYL:
-         localSupport = GetSupportPoint_RoundedCylinder(Shape.B, Shape.C, rotated_n);
+         localSupport = GetSupportPoint_RoundedCylinder(Shape.B, Shape.C, n);
          break;
       case chrono::collision::ROUNDEDCONE:
-         localSupport = GetSupportPoint_RoundedCone(Shape.B, Shape.C, rotated_n);
+         localSupport = GetSupportPoint_RoundedCone(Shape.B, Shape.C, n);
          break;
-      case chrono::collision::TRIANGLEMESH:
+   }
+
+   return localSupport;
+}
+;
+
+inline real3 LocalSupportVert(const chrono::collision::ConvexShape &Shape,
+                              const real3 &n) {
+   real3 rotated_n = quatRotateMatT(n, Shape.R);
+   return SupportVert(Shape, rotated_n);
+}
+;
+
+inline real3 TransformSupportVert(const chrono::collision::ConvexShape &Shape,
+                                  const real3 &n) {
+   real3 localSupport;
+
+   switch (Shape.type) {
+      case chrono::collision::TRIANGLEMESH: {
          return GetSupportPoint_Triangle(Shape.A, Shape.B, Shape.C, n);
+         break;
+      }
+      default:
+         localSupport = LocalSupportVert(Shape, n);
          break;
    }
 
    return quatRotateMat(localSupport, Shape.R) + Shape.A;     //globalSupport
-};
+}
+;
 
 #endif
