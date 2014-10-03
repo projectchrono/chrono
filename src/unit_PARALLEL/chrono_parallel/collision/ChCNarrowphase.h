@@ -12,7 +12,7 @@ struct ConvexShape {
    real3 A;  //location
    real3 B;  //dimensions
    real3 C;  //extra
-   real4 R;  //rotation
+   quaternion R;  //rotation
 };
 
 class CH_PARALLEL_API ChCNarrowphase {
