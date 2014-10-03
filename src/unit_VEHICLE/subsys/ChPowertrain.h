@@ -24,7 +24,6 @@
 #include "physics/ChBody.h"
 
 #include "subsys/ChApiSubsys.h"
-#include "subsys/ChVehicle.h"
 
 namespace chrono {
 
@@ -41,27 +40,54 @@ public:
     REVERSE
   };
 
-  ChPowertrain(ChVehicle* car);
+  ChPowertrain();
 
   virtual ~ChPowertrain() {}
 
-  /// Get the engine speed.
+  /// Return the current engine speed.
   virtual double GetMotorSpeed() const = 0;
 
-  /// Get the engine torque.
+  /// Return the current engine torque.
   virtual double GetMotorTorque() const = 0;
+
+  /// Return the value of slippage in the torque converter.
+  virtual double GetTorqueConverterSlippage() const = 0;
+
+  /// Return the input torque to the torque converter.
+  virtual double GetTorqueConverterInputTorque() const = 0;
+
+  /// Return the output torque from the torque converter.
+  virtual double GetTorqueConverterOutputTorque() const = 0;
+
+  /// Return the current transmission gear.
+  virtual int GetCurrentTransmissionGear() const = 0;
+
+  /// Return the ouput torque from the powertrain.
+  /// This is the torque that is passed to a vehicle system, thus providing the
+  /// interface between the powertrain and vehcicle cosimulation modules.
+  virtual double GetOutputTorque() const = 0;
+
+  /// Return the current mode of the transmission.
+  DriveMode GetDriveMode() { return m_drive_mode; }
+
+  /// Set the mode of the transmission.
+  virtual void SetDriveMode(DriveMode mmode) = 0;
 
   /// Update the state of this powertrain system at the current time.
   /// The powertrain system is provided the current driver throttle input, a
-  /// value in the range [0,1].
+  /// value in the range [0,1], and the current angular speed of the transmission
+  /// shaft (from the driveline).
   virtual void Update(
     double time,       ///< [in] current time
-    double throttle    ///< [in] current throttle input [0,1]
+    double throttle,   ///< [in] current throttle input [0,1]
+    double shaft_speed ///< [in] current angular speed of the transmission shaft
     ) = 0;
 
-protected:
+  /// Advance the state of this powertrain system by the specified time step.
+  virtual void Advance(double step) = 0;
 
-  ChVehicle*    m_car;   ///< parent vehicle system
+protected:
+  DriveMode m_drive_mode;
 };
 
 

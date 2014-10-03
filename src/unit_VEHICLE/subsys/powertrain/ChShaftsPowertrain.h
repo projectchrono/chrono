@@ -21,7 +21,6 @@
 
 #include "subsys/ChApiSubsys.h"
 #include "subsys/ChPowertrain.h"
-#include "subsys/ChVehicle.h"
 
 #include "physics/ChShaftsGear.h" 
 #include "physics/ChShaftsGearbox.h"
@@ -45,8 +44,7 @@ class CH_SUBSYS_API ChShaftsPowertrain : public ChPowertrain
 {
 public:
 
-  ChShaftsPowertrain(ChVehicle* car,
-                     const ChVector<>& dir_motor_block = ChVector<>(1,0,0));
+  ChShaftsPowertrain(const ChVector<>& dir_motor_block = ChVector<>(1,0,0));
 
   ~ChShaftsPowertrain() {}
 
@@ -55,29 +53,59 @@ public:
   void Initialize(ChSharedPtr<ChBody>  chassis,
                   ChSharedPtr<ChShaft> driveshaft);
 
+  /// Return the current engine speed.
   virtual double GetMotorSpeed() const { return  m_crankshaft->GetPos_dt(); }
+
+  /// Return the current engine torque.
   virtual double GetMotorTorque() const { return  m_engine->GetTorqueReactionOn1(); }
+
+  /// Return the value of slippage in the torque converter.
+  virtual double GetTorqueConverterSlippage() const { return m_torqueconverter->GetSlippage(); }
+
+  /// Return the input torque to the torque converter.
+  virtual double GetTorqueConverterInputTorque() const { return -m_torqueconverter->GetTorqueReactionOnInput(); }
+
+  /// Return the output torque from the torque converter.
+  virtual double GetTorqueConverterOutputTorque() const { return m_torqueconverter->GetTorqueReactionOnOutput(); }
+
+  /// Return the current transmission gear
+  virtual int GetCurrentTransmissionGear() const { return m_current_gear; }
+
+  /// Return the ouput torque from the powertrain.
+  /// This is the torque that is passed to a vehicle system, thus providing the
+  /// interface between the powertrain and vehcicle cosimulation modules.
+  /// Since a ShaftsPowertrain is directly connected to the vehicle's driveline,
+  /// this function returns 0.
+  virtual double GetOutputTorque() const { return 0; }
+
+  /// Use this function to set the mode of automatic transmission.
+  virtual void SetDriveMode(ChPowertrain::DriveMode mmode);
 
   /// Use this function to shift from one gear to another.
   /// A zero latency shift is assumed.
   /// Note, index starts from 0.
   void SetSelectedGear(int igear);
 
-  /// Tell which is the actual gear number.
-  int GetSelectedGear() const { return m_current_gear; }
-
-  virtual void Update(double time, double throttle);
-
-  /// Use this function to set the mode of automatic transmission.
-  void SetDriveMode(ChPowertrain::DriveMode mmode);
-
-  /// Use this function to get the mode of automatic transmission.
-  ChPowertrain::DriveMode GetDriveMode() {return drive_mode;}
-
   /// Use this to define the gear shift latency, in seconds.
-  void SetGearShiftLatency(double ml) {gear_shift_latency= ml;}
+  void SetGearShiftLatency(double ml) {m_gear_shift_latency= ml;}
+
   /// Use this to get the gear shift latency, in seconds.
-  double GetGearShiftLatency(double ml) {return gear_shift_latency;}
+  double GetGearShiftLatency(double ml) {return m_gear_shift_latency;}
+
+  /// Update the state of this powertrain system at the current time.
+  /// The powertrain system is provided the current driver throttle input, a
+  /// value in the range [0,1], and the current angular speed of the transmission
+  /// shaft (from the driveline).
+  virtual void Update(
+    double time,       ///< [in] current time
+    double throttle,   ///< [in] current throttle input [0,1]
+    double shaft_speed ///< [in] current angular speed of the transmission shaft
+    );
+
+  /// Advance the state of this powertrain system by the specified time step.
+  /// Since the state of a ShaftsPowertrain is advanced as part of the vehicle
+  /// state, this function does nothing.
+  virtual void Advance(double step) {}
 
 protected:
 
@@ -117,9 +145,8 @@ private:
 
   ChVector<> m_dir_motor_block;
 
-  ChPowertrain::DriveMode drive_mode;
-  double last_time_gearshift;
-  double gear_shift_latency;
+  double m_last_time_gearshift;
+  double m_gear_shift_latency;
 
   friend class ChIrrGuiDriver;
 };

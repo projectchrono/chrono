@@ -40,6 +40,7 @@
 #include "subsys/ChApiSubsys.h"
 #include "subsys/ChDriver.h"
 #include "subsys/ChVehicle.h"
+#include "subsys/ChPowertrain.h"
 
 #if IRRKLANG_ENABLED
 #include <irrKlang.h>
@@ -56,6 +57,7 @@ public:
   ChIrrGuiDriver(
     irr::ChIrrApp&      app,
     const ChVehicle&    car,
+    ChPowertrain&       powertrain,
     const ChVector<>&   ptOnChassis,
     double              chaseDist,
     double              chaseHeight,
@@ -97,6 +99,7 @@ private:
 
   irr::ChIrrAppInterface&   m_app;
   const ChVehicle&          m_car;
+  ChPowertrain&             m_powertrain;
 
   utils::ChChaseCamera      m_camera;
 

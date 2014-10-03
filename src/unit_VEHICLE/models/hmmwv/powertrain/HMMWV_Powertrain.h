@@ -28,7 +28,7 @@ namespace hmmwv {
 class HMMWV_Powertrain : public chrono::ChShaftsPowertrain {
 public:
 
-  HMMWV_Powertrain(chrono::ChVehicle* car);
+  HMMWV_Powertrain();
 
   ~HMMWV_Powertrain() {}
 

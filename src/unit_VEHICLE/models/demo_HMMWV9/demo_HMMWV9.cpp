@@ -37,6 +37,8 @@
 
 #include "models/hmmwv/HMMWV.h"
 #include "models/hmmwv/vehicle/HMMWV_VehicleReduced.h"
+#include "models/hmmwv/powertrain/HMMWV_Powertrain.h"
+#include "models/hmmwv/powertrain/HMMWV_SimplePowertrain.h"
 #include "models/hmmwv/tire/HMMWV_RigidTire.h"
 #include "models/hmmwv/tire/HMMWV_LugreTire.h"
 #include "models/hmmwv/HMMWV_FuncDriver.h"
@@ -65,6 +67,9 @@ ChQuaternion<> initRot(1, 0, 0, 0);
 //ChQuaternion<> initRot(0.7071068, 0, 0, 0.7071068);
 //ChQuaternion<> initRot(0.25882, 0, 0, 0.965926);
 //ChQuaternion<> initRot(0, 0, 0, 1);
+
+// Type of powertrain model (SHAFTS, SIMPLE)
+PowertrainModelType powertrain_model = SHAFTS;
 
 // Type of tire model (RIGID, PACEJKA, or LUGRE)
 TireModelType tire_model = RIGID;
@@ -111,6 +116,30 @@ int main(int argc, char* argv[])
   RigidTerrain terrain(vehicle, terrainHeight, terrainLength, terrainWidth, 0.8);
   //terrain.AddMovingObstacles(10);
   terrain.AddFixedObstacles();
+
+  // Create and initialize the powertrain system
+  ChSharedPtr<ChPowertrain> powertrain;
+
+  switch (powertrain_model) {
+  case SHAFTS:
+  {
+    ChSharedPtr<HMMWV_Powertrain> ptrain(new HMMWV_Powertrain);
+
+    ptrain->Initialize(vehicle.GetChassis(), vehicle.GetDriveshaft());
+    powertrain = ptrain;
+
+    break;
+  }
+  case SIMPLE:
+  {
+    ChSharedPtr<HMMWV_SimplePowertrain> ptrain(new HMMWV_SimplePowertrain);
+
+    ptrain->Initialize();
+    powertrain = ptrain;
+
+    break;
+  }
+  }
 
   // Create and initialize the tires
   ChSharedPtr<ChTire> tire_front_right;
@@ -219,7 +248,7 @@ int main(int argc, char* argv[])
 
   application.SetTimestep(step_size);
 
-  ChIrrGuiDriver driver(application, vehicle, trackPoint, 6.0, 0.5, true);
+  ChIrrGuiDriver driver(application, vehicle, *powertrain.get_ptr(), trackPoint, 6.0, 0.5, true);
 
   // Set the time response for steering and throttle keyboard inputs.
   // NOTE: this is not exact, since we do not render quite at the specified FPS.
@@ -249,6 +278,8 @@ int main(int argc, char* argv[])
   // Inter-module communication data
   ChTireForces  tire_forces(4);
   ChWheelState  wheel_states[4];
+  double        driveshaft_speed;
+  double        powertrain_torque;
   double        throttle_input;
   double        steering_input;
   double        braking_input;
@@ -290,10 +321,14 @@ int main(int argc, char* argv[])
     steering_input = driver.GetSteering();
     braking_input = driver.GetBraking();
 
+    powertrain_torque = powertrain->GetOutputTorque();
+
     tire_forces[FRONT_LEFT] = tire_front_left->GetTireForce();
     tire_forces[FRONT_RIGHT] = tire_front_right->GetTireForce();
     tire_forces[REAR_LEFT] = tire_rear_left->GetTireForce();
     tire_forces[REAR_RIGHT] = tire_rear_right->GetTireForce();
+
+    driveshaft_speed = vehicle.GetDriveshaftSpeed();
 
     wheel_states[FRONT_LEFT] = vehicle.GetWheelState(FRONT_LEFT);
     wheel_states[FRONT_RIGHT] = vehicle.GetWheelState(FRONT_RIGHT);
@@ -312,7 +347,9 @@ int main(int argc, char* argv[])
     tire_rear_left->Update(time, wheel_states[REAR_LEFT]);
     tire_rear_right->Update(time, wheel_states[REAR_RIGHT]);
 
-    vehicle.Update(time, throttle_input, steering_input, braking_input, tire_forces);
+    powertrain->Update(time, throttle_input, driveshaft_speed);
+
+    vehicle.Update(time, steering_input, braking_input, powertrain_torque, tire_forces);
 
     // Advance simulation for one timestep for all modules
     double step = realtime_timer.SuggestSimulationStep(step_size);
@@ -325,6 +362,8 @@ int main(int argc, char* argv[])
     tire_front_left->Advance(step);
     tire_rear_right->Advance(step);
     tire_rear_left->Advance(step);
+
+    powertrain->Advance(step);
 
     vehicle.Advance(step);
 
@@ -372,10 +411,14 @@ int main(int argc, char* argv[])
     steering_input = driver.GetSteering();
     braking_input = driver.GetBraking();
 
+    powertrain_torque = powertrain->GetOutputTorque();
+
     tire_forces[FRONT_LEFT] = tire_front_left->GetTireForce();
     tire_forces[FRONT_RIGHT] = tire_front_right->GetTireForce();
     tire_forces[REAR_LEFT] = tire_rear_left->GetTireForce();
     tire_forces[REAR_RIGHT] = tire_rear_right->GetTireForce();
+
+    driveshaft_speed = vehicle.GetDriveshaftSpeed();
 
     wheel_states[FRONT_LEFT] = vehicle.GetWheelState(FRONT_LEFT);
     wheel_states[FRONT_RIGHT] = vehicle.GetWheelState(FRONT_RIGHT);
@@ -394,7 +437,9 @@ int main(int argc, char* argv[])
     tire_rear_left->Update(time, wheel_states[REAR_LEFT]);
     tire_rear_right->Update(time, wheel_states[REAR_RIGHT]);
 
-    vehicle.Update(time, throttle_input, steering_input, braking_input, tire_forces);
+    powertrain->Update(time, throttle_input, driveshaft_speed);
+
+    vehicle.Update(time, steering_input, braking_input, powertrain_torque, tire_forces);
 
     // Advance simulation for one timestep for all modules
     driver.Advance(step_size);
@@ -405,6 +450,8 @@ int main(int argc, char* argv[])
     tire_front_left->Advance(step_size);
     tire_rear_right->Advance(step_size);
     tire_rear_left->Advance(step_size);
+
+    powertrain->Advance(step);
 
     vehicle.Advance(step_size);
 

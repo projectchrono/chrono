@@ -63,7 +63,6 @@ struct ChTireForce {
 
 typedef std::vector<ChTireForce> ChTireForces;
 
-class ChPowertrain;
 class ChDriveline;
 
 ///
@@ -80,6 +79,9 @@ public:
 
   /// Get a handle to the vehicle's chassis body.
   const ChSharedPtr<ChBodyAuxRef> GetChassis() const { return m_chassis; }
+
+  /// Get a handle to the vehicle's driveshaft body.
+  const ChSharedPtr<ChShaft> GetDriveshaft() const;
 
   /// Get the global location of the chassis reference frame origin.
   const ChVector<>& GetChassisPos() const { return m_chassis->GetFrame_REF_to_abs().GetPos(); }
@@ -136,6 +138,11 @@ public:
   /// speed about its rotation axis.
   ChWheelState GetWheelState(ChWheelId which);
 
+  /// Get the angular speed of the driveshaft.
+  /// This function provides the interface between a vehicle system and a
+  /// powertrain system.
+  double GetDriveshaftSpeed() const;
+
   /// Get the local driver position and orientation.
   /// This is a coordinate system relative to the chassis reference frame.
   virtual ChCoordsys<> GetLocalDriverCoordsys() const = 0;
@@ -150,14 +157,15 @@ public:
 
   /// Update the state of this vehicle at the current time.
   /// The vehicle system is provided the current driver inputs (throttle between
-  /// 0 and 1, steering between -1 and +1, braking between 0 and 1) and tire
-  /// forces (expressed in the global reference frame).
+  /// 0 and 1, steering between -1 and +1, braking between 0 and 1), the torque
+  /// from the powertrain, and tire forces (expressed in the global reference
+  /// frame).
   virtual void Update(
-    double              time,         ///< [in] current time
-    double              throttle,     ///< [in] current throttle input [0,1]
-    double              steering,     ///< [in] current steering input [-1,+1]
-    double              braking,      ///< [in] current braking input [0,1]
-    const ChTireForces& tire_forces   ///< [in] vector of tire force structures
+    double              time,               ///< [in] current time
+    double              steering,           ///< [in] current steering input [-1,+1]
+    double              braking,            ///< [in] current braking input [0,1]
+    double              powertrain_torque,  ///< [in] input torque from powertrain
+    const ChTireForces& tire_forces         ///< [in] vector of tire force structures
     ) {}
 
   /// Advance the state of this vehicle by the specified time step.
@@ -175,7 +183,6 @@ protected:
   ChSharedPtr<ChBodyAuxRef>  m_chassis;  ///< handle to the chassis body
 
   ChDriveline*     m_driveline;          ///< pointer to the driveline subsystem
-  ChPowertrain*    m_powertrain;         ///< pointer to the powertrain subsystem
 
   double  m_stepsize;                    ///< integration step-size for the vehicle system
 
