@@ -33,6 +33,11 @@ enum TireModelType {
   LUGRE
 };
 
+enum PowertrainModelType {
+  SHAFTS,
+  SIMPLE
+};
+
 enum DebugInformation {
   DBG_SPRINGS     = 1 << 0,
   DBG_SHOCKS      = 1 << 1,

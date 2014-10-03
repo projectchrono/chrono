@@ -33,6 +33,8 @@ SET(COMMON_HMMWV_FILES
 	../hmmwv/steering/HMMWV_PitmanArm.cpp
 	../hmmwv/driveline/HMMWV_Driveline2WD.h
 	../hmmwv/driveline/HMMWV_Driveline2WD.cpp
+	../hmmwv/powertrain/HMMWV_SimplePowertrain.h
+	../hmmwv/powertrain/HMMWV_SimplePowertrain.cpp
 	../hmmwv/powertrain/HMMWV_Powertrain.h
 	../hmmwv/powertrain/HMMWV_Powertrain.cpp
 	../hmmwv/brake/HMMWV_BrakeSimple.h
