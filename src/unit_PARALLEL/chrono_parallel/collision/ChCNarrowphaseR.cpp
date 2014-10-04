@@ -25,6 +25,168 @@
 using namespace chrono;
 using namespace chrono::collision;
 
+// This is the main worker function for narrow phase check of the collision
+// candidate pair 'icoll'.  Each candidate pair of shapes can result in 0, 1,
+// or more contacts.  For each actual contact, we calculate various geometrical
+// quantities and load them in the output arrays beginning at the 'start_index'
+// for the processed collision pair:
+//   - ct_flag:     if contact actually occurs, set to 0
+//   - ct_pt1:      contact point on first shape (in global frame)
+//   - ct_pt2:      contact point on second shape (in global frame)
+//   - ct_depth:    penetration distance (negative if overlap exists)
+//   - ct_norm:     contact normal, from ct_pt2 to ct_pt1 (in global frame)
+//   - ct_eff_rad:  effective contact radius
+//   - ct_body_ids: IDs of the bodies for the two contact shapes
+void chrono::collision::RCollision(const uint& icoll,           // index of this contact pair candidate
+                                   const ConvexShape &shapeA,
+                                   const ConvexShape &shapeB,
+                                   const int& body1,
+                                   const int& body2,
+                                   uint* ct_flag,         // [output] flag for actual contact (per contact pair)
+                                   real3* ct_norm,         // [output] contact normal (per contact pair)
+                                   real3* ct_pt1,          // [output] point on shape1 (per contact pair)
+                                   real3* ct_pt2,          // [output] point on shape2 (per contact pair)
+                                   real* ct_depth,        // [output] penetration depth (per contact pair)
+                                   real* ct_eff_rad,      // [output] effective contact radius (per contact pair)
+                                   int2* ct_body_ids)     // [output] body IDs (per contact pair)
+                                   {
+   // Special-case the collision detection based on the types of the
+   // two potentially colliding shapes.
+
+   if (shapeA.type == SPHERE && shapeB.type == SPHERE) {
+      if (sphere_sphere(shapeA.A, shapeA.B.x, shapeB.A, shapeB.B.x, ct_norm[icoll], ct_depth[icoll], ct_pt1[icoll], ct_pt2[icoll], ct_eff_rad[icoll])) {
+         ct_flag[icoll] = 0;
+         ct_body_ids[icoll] = I2(body1, body2);
+      }
+      return;
+   }
+
+   if (shapeA.type == CAPSULE && shapeB.type == SPHERE) {
+      if (capsule_sphere(shapeA.A, shapeA.R, shapeA.B.x, shapeA.B.y, shapeB.A, shapeB.B.x, ct_norm[icoll], ct_depth[icoll], ct_pt1[icoll], ct_pt2[icoll], ct_eff_rad[icoll])) {
+         ct_flag[icoll] = 0;
+         ct_body_ids[icoll] = I2(body1, body2);
+      }
+      return;
+   }
+
+   if (shapeA.type == SPHERE && shapeB.type == CAPSULE) {
+      if (capsule_sphere(shapeB.A, shapeB.R, shapeB.B.x, shapeB.B.y, shapeA.A, shapeA.B.x, ct_norm[icoll], ct_depth[icoll], ct_pt2[icoll], ct_pt1[icoll], ct_eff_rad[icoll])) {
+         ct_norm[icoll] = -ct_norm[icoll];
+         ct_flag[icoll] = 0;
+         ct_body_ids[icoll] = I2(body1, body2);
+      }
+      return;
+   }
+
+   if (shapeA.type == CYLINDER && shapeB.type == SPHERE) {
+      if (cylinder_sphere(shapeA.A, shapeA.R, shapeA.B.x, shapeA.B.y, shapeB.A, shapeB.B.x, ct_norm[icoll], ct_depth[icoll], ct_pt1[icoll], ct_pt2[icoll], ct_eff_rad[icoll])) {
+         ct_flag[icoll] = 0;
+         ct_body_ids[icoll] = I2(body1, body2);
+      }
+      return;
+   }
+
+   if (shapeA.type == SPHERE && shapeB.type == CYLINDER) {
+      if (cylinder_sphere(shapeB.A, shapeB.R, shapeB.B.x, shapeB.B.y, shapeA.A, shapeA.B.x, ct_norm[icoll], ct_depth[icoll], ct_pt2[icoll], ct_pt1[icoll], ct_eff_rad[icoll])) {
+         ct_norm[icoll] = -ct_norm[icoll];
+         ct_flag[icoll] = 0;
+         ct_body_ids[icoll] = I2(body1, body2);
+      }
+      return;
+   }
+
+   if (shapeA.type == ROUNDEDCYL && shapeB.type == SPHERE) {
+      if (roundedcyl_sphere(shapeA.A, shapeA.R, shapeA.B.x, shapeA.B.y, shapeA.C.x, shapeB.A, shapeB.B.x, ct_norm[icoll], ct_depth[icoll], ct_pt1[icoll], ct_pt2[icoll],
+                            ct_eff_rad[icoll])) {
+         ct_flag[icoll] = 0;
+         ct_body_ids[icoll] = I2(body1, body2);
+      }
+      return;
+   }
+
+   if (shapeA.type == SPHERE && shapeB.type == ROUNDEDCYL) {
+      if (roundedcyl_sphere(shapeB.A, shapeB.R, shapeB.B.x, shapeB.B.y, shapeB.C.x, shapeA.A, shapeA.B.x, ct_norm[icoll], ct_depth[icoll], ct_pt2[icoll], ct_pt1[icoll],
+                            ct_eff_rad[icoll])) {
+         ct_norm[icoll] = -ct_norm[icoll];
+         ct_flag[icoll] = 0;
+         ct_body_ids[icoll] = I2(body1, body2);
+      }
+      return;
+   }
+
+   if (shapeA.type == BOX && shapeB.type == SPHERE) {
+      if (box_sphere(shapeA.A, shapeA.R, shapeA.B, shapeB.A, shapeB.B.x, ct_norm[icoll], ct_depth[icoll], ct_pt1[icoll], ct_pt2[icoll], ct_eff_rad[icoll])) {
+         ct_flag[icoll] = 0;
+         ct_body_ids[icoll] = I2(body1, body2);
+      }
+      return;
+   }
+
+   if (shapeA.type == SPHERE && shapeB.type == BOX) {
+      if (box_sphere(shapeB.A, shapeB.R, shapeB.B, shapeA.A, shapeA.B.x, ct_norm[icoll], ct_depth[icoll], ct_pt2[icoll], ct_pt1[icoll], ct_eff_rad[icoll])) {
+         ct_norm[icoll] = -ct_norm[icoll];
+         ct_flag[icoll] = 0;
+         ct_body_ids[icoll] = I2(body1, body2);
+      }
+      return;
+   }
+
+   if (shapeA.type == TRIANGLEMESH && shapeB.type == SPHERE) {
+      if (face_sphere(shapeA.A, shapeA.B, shapeA.C, shapeB.A, shapeB.B.x, ct_norm[icoll], ct_depth[icoll], ct_pt1[icoll], ct_pt2[icoll], ct_eff_rad[icoll])) {
+         ct_flag[icoll] = 0;
+         ct_body_ids[icoll] = I2(body1, body2);
+      }
+   }
+
+   if (shapeA.type == SPHERE && shapeB.type == TRIANGLEMESH) {
+      if (face_sphere(shapeB.A, shapeB.B, shapeB.C, shapeA.A, shapeA.B.x, ct_norm[icoll], ct_depth[icoll], ct_pt2[icoll], ct_pt1[icoll], ct_eff_rad[icoll])) {
+         ct_norm[icoll] = -ct_norm[icoll];
+         ct_flag[icoll] = 0;
+         ct_body_ids[icoll] = I2(body1, body2);
+      }
+   }
+
+   if (shapeA.type == CAPSULE && shapeB.type == CAPSULE) {
+      int nC = capsule_capsule(shapeA.A, shapeA.R, shapeA.B.x, shapeA.B.y, shapeB.A, shapeB.R, shapeB.B.x, shapeB.B.y, &ct_norm[icoll], &ct_depth[icoll], &ct_pt1[icoll],
+                               &ct_pt2[icoll], &ct_eff_rad[icoll]);
+      for (int i = 0; i < nC; i++) {
+         ct_flag[icoll + i] = 0;
+         ct_body_ids[icoll + i] = I2(body1, body2);
+      }
+      return;
+   }
+
+   if (shapeA.type == BOX && shapeB.type == CAPSULE) {
+      int nC = box_capsule(shapeA.A, shapeA.R, shapeA.B, shapeB.A, shapeB.R, shapeB.B.x, shapeB.B.y, &ct_norm[icoll], &ct_depth[icoll], &ct_pt1[icoll], &ct_pt2[icoll],
+                           &ct_eff_rad[icoll]);
+      for (int i = 0; i < nC; i++) {
+         ct_flag[icoll + i] = 0;
+         ct_body_ids[icoll + i] = I2(body1, body2);
+      }
+      return;
+   }
+
+   if (shapeA.type == CAPSULE && shapeB.type == BOX) {
+      int nC = box_capsule(shapeB.A, shapeB.R, shapeB.B, shapeA.A, shapeA.R, shapeA.B.x, shapeA.B.y, &ct_norm[icoll], &ct_depth[icoll], &ct_pt2[icoll], &ct_pt1[icoll],
+                           &ct_eff_rad[icoll]);
+      for (int i = 0; i < nC; i++) {
+         ct_norm[icoll + i] = -ct_norm[icoll + i];
+         ct_flag[icoll + i] = 0;
+         ct_body_ids[icoll + i] = I2(body1, body2);
+      }
+      return;
+   }
+
+   if (shapeA.type == BOX && shapeB.type == BOX) {
+      int nC = box_box(shapeA.A, shapeA.R, shapeA.B, shapeB.A, shapeB.R, shapeB.B, &ct_norm[icoll], &ct_depth[icoll], &ct_pt1[icoll], &ct_pt2[icoll], &ct_eff_rad[icoll]);
+      for (int i = 0; i < nC; i++) {
+         ct_flag[icoll + i] = 0;
+         ct_body_ids[icoll + i] = I2(body1, body2);
+      }
+      return;
+   }
+}
+
 // =============================================================================
 //              SPHERE - SPHERE
 
@@ -32,15 +194,15 @@ using namespace chrono::collision;
 // In:  sphere centered at pos1 with radius1
 //      sphere centered at pos2 with radius2
 __host__ __device__
-bool sphere_sphere(const real3& pos1,
-                   const real& radius1,
-                   const real3& pos2,
-                   const real& radius2,
-                   real3& norm,
-                   real& depth,
-                   real3& pt1,
-                   real3& pt2,
-                   real& eff_radius) {
+bool chrono::collision::sphere_sphere(const real3& pos1,
+                                      const real& radius1,
+                                      const real3& pos2,
+                                      const real& radius2,
+                                      real3& norm,
+                                      real& depth,
+                                      real3& pt1,
+                                      real3& pt2,
+                                      real& eff_radius) {
    real3 delta = pos2 - pos1;
    real dist2 = dot(delta, delta);
    real radSum = radius1 + radius2;
@@ -70,17 +232,17 @@ bool sphere_sphere(const real3& pos1,
 //              capsule has radius1 and half-length hlen1 (in Y direction)
 //      sphere centered at pos2 with radius2
 __host__ __device__
-bool capsule_sphere(const real3& pos1,
-                    const real4& rot1,
-                    const real& radius1,
-                    const real& hlen1,
-                    const real3& pos2,
-                    const real& radius2,
-                    real3& norm,
-                    real& depth,
-                    real3& pt1,
-                    real3& pt2,
-                    real& eff_radius) {
+bool chrono::collision::capsule_sphere(const real3& pos1,
+                                       const real4& rot1,
+                                       const real& radius1,
+                                       const real& hlen1,
+                                       const real3& pos2,
+                                       const real& radius2,
+                                       real3& norm,
+                                       real& depth,
+                                       real3& pt1,
+                                       real3& pt2,
+                                       real& eff_radius) {
    // Working in the global frame, project the sphere center onto the
    // capsule's centerline and clamp the resulting location to the extent
    // of the capsule length.
@@ -120,17 +282,17 @@ bool capsule_sphere(const real3& pos1,
 //              cylinder has radius1 and half-length hlen1 (in Y direction)
 //      sphere centered at pos2 with radius2
 __host__ __device__
-bool cylinder_sphere(const real3& pos1,
-                     const real4& rot1,
-                     const real& radius1,
-                     const real& hlen1,
-                     const real3& pos2,
-                     const real& radius2,
-                     real3& norm,
-                     real& depth,
-                     real3& pt1,
-                     real3& pt2,
-                     real& eff_radius) {
+bool chrono::collision::cylinder_sphere(const real3& pos1,
+                                        const real4& rot1,
+                                        const real& radius1,
+                                        const real& hlen1,
+                                        const real3& pos2,
+                                        const real& radius2,
+                                        real3& norm,
+                                        real& depth,
+                                        real3& pt1,
+                                        real3& pt2,
+                                        real& eff_radius) {
    // Express the sphere position in the frame of the cylinder.
    real3 spherePos = TransformParentToLocal(pos1, rot1, pos2);
 
@@ -183,18 +345,18 @@ bool cylinder_sphere(const real3& pos1,
 //              radius of the sweeping sphere is srad1
 //      sphere centered at pos2 with radius2
 __host__ __device__
-bool roundedcyl_sphere(const real3& pos1,
-                       const real4& rot1,
-                       const real& radius1,
-                       const real& hlen1,
-                       const real& srad1,
-                       const real3& pos2,
-                       const real& radius2,
-                       real3& norm,
-                       real& depth,
-                       real3& pt1,
-                       real3& pt2,
-                       real& eff_radius) {
+bool chrono::collision::roundedcyl_sphere(const real3& pos1,
+                                          const real4& rot1,
+                                          const real& radius1,
+                                          const real& hlen1,
+                                          const real& srad1,
+                                          const real3& pos2,
+                                          const real& radius2,
+                                          real3& norm,
+                                          real& depth,
+                                          real3& pt1,
+                                          real3& pt2,
+                                          real& eff_radius) {
    // Express the sphere position in the frame of the rounded cylinder.
    real3 spherePos = TransformParentToLocal(pos1, rot1, pos2);
 
@@ -249,16 +411,16 @@ bool roundedcyl_sphere(const real3& pos1,
 // In:  box at position pos1, with orientation rot1, and half-dimensions hdims1
 //      sphere centered at pos2 and with radius2
 __host__ __device__
-bool box_sphere(const real3& pos1,
-                const real4& rot1,
-                const real3& hdims1,
-                const real3& pos2,
-                const real& radius2,
-                real3& norm,
-                real& depth,
-                real3& pt1,
-                real3& pt2,
-                real& eff_radius) {
+bool chrono::collision::box_sphere(const real3& pos1,
+                                   const real4& rot1,
+                                   const real3& hdims1,
+                                   const real3& pos2,
+                                   const real& radius2,
+                                   real3& norm,
+                                   real& depth,
+                                   real3& pt1,
+                                   real3& pt2,
+                                   real& eff_radius) {
    // Express the sphere position in the frame of the box.
    real3 spherePos = TransformParentToLocal(pos1, rot1, pos2);
 
@@ -299,16 +461,16 @@ bool box_sphere(const real3& pos1,
 //     sphere sphere centered at pos2 and with radius2
 
 __host__ __device__
-bool face_sphere(const real3& A1,
-                 const real3& B1,
-                 const real3& C1,
-                 const real3& pos2,
-                 const real& radius2,
-                 real3& norm,
-                 real& depth,
-                 real3& pt1,
-                 real3& pt2,
-                 real& eff_radius) {
+bool chrono::collision::face_sphere(const real3& A1,
+                                    const real3& B1,
+                                    const real3& C1,
+                                    const real3& pos2,
+                                    const real& radius2,
+                                    real3& norm,
+                                    real& depth,
+                                    real3& pt1,
+                                    real3& pt2,
+                                    real& eff_radius) {
    // Calculate face normal.
    real3 nrm1 = face_normal(A1, B1, C1);
 
@@ -363,19 +525,19 @@ bool face_sphere(const real3& A1,
 // Note: a capsule-capsule collision may return 0, 1, or 2 contacts
 
 __host__ __device__
-int capsule_capsule(const real3& pos1,
-                    const real4& rot1,
-                    const real& radius1,
-                    const real& hlen1,
-                    const real3& pos2,
-                    const real4& rot2,
-                    const real& radius2,
-                    const real& hlen2,
-                    real3* norm,
-                    real* depth,
-                    real3* pt1,
-                    real3* pt2,
-                    real* eff_radius) {
+int chrono::collision::capsule_capsule(const real3& pos1,
+                                       const real4& rot1,
+                                       const real& radius1,
+                                       const real& hlen1,
+                                       const real3& pos2,
+                                       const real4& rot2,
+                                       const real& radius2,
+                                       const real& hlen2,
+                                       real3* norm,
+                                       real* depth,
+                                       real3* pt1,
+                                       real3* pt2,
+                                       real* eff_radius) {
    // Express the second capule in the frame of the first one.
    real3 pos = quatRotateMatT(pos2 - pos1, rot1);
    real4 rot = mult(inv(rot1), rot2);
@@ -490,18 +652,18 @@ int capsule_capsule(const real3& pos1,
 // Note: a box-capsule collision may return 0, 1, or 2 contacts
 
 __host__ __device__
-int box_capsule(const real3& pos1,
-                const real4& rot1,
-                const real3& hdims1,
-                const real3& pos2,
-                const real4& rot2,
-                const real& radius2,
-                const real& hlen2,
-                real3* norm,
-                real* depth,
-                real3* pt1,
-                real3* pt2,
-                real* eff_radius) {
+int chrono::collision::box_capsule(const real3& pos1,
+                                   const real4& rot1,
+                                   const real3& hdims1,
+                                   const real3& pos2,
+                                   const real4& rot2,
+                                   const real& radius2,
+                                   const real& hlen2,
+                                   real3* norm,
+                                   real* depth,
+                                   real3* pt1,
+                                   real3* pt2,
+                                   real* eff_radius) {
    // Express the capsule in the frame of the box.
    // (this is a bit cryptic with the functions we have available)
    real3 pos = quatRotateMatT(pos2 - pos1, rot1);
@@ -628,17 +790,17 @@ int box_capsule(const real3& pos1,
 //      box at position pos2, with orientation rot2, and half-dimensions hdims2
 
 __host__ __device__
-int box_box(const real3& pos1,
-            const real4& rot1,
-            const real3& hdims1,
-            const real3& pos2,
-            const real4& rot2,
-            const real3& hdims2,
-            real3* norm,
-            real* depth,
-            real3* pt1,
-            real3* pt2,
-            real* eff_radius) {
+int chrono::collision::box_box(const real3& pos1,
+                               const real4& rot1,
+                               const real3& hdims1,
+                               const real3& pos2,
+                               const real4& rot2,
+                               const real3& hdims2,
+                               real3* norm,
+                               real* depth,
+                               real3* pt1,
+                               real3* pt2,
+                               real* eff_radius) {
    // Express the second box into the frame of the first box.
    // (this is a bit cryptic with the functions we have available)
    real3 pos = quatRotateMatT(pos2 - pos1, rot1);
@@ -669,167 +831,4 @@ int box_box(const real3& pos1,
 }
 
 // =============================================================================
-
-// This is the main worker function for narrow phase check of the collision
-// candidate pair 'icoll'.  Each candidate pair of shapes can result in 0, 1,
-// or more contacts.  For each actual contact, we calculate various geometrical
-// quantities and load them in the output arrays beginning at the 'start_index'
-// for the processed collision pair:
-//   - ct_flag:     if contact actually occurs, set to 0
-//   - ct_pt1:      contact point on first shape (in global frame)
-//   - ct_pt2:      contact point on second shape (in global frame)
-//   - ct_depth:    penetration distance (negative if overlap exists)
-//   - ct_norm:     contact normal, from ct_pt2 to ct_pt1 (in global frame)
-//   - ct_eff_rad:  effective contact radius
-//   - ct_body_ids: IDs of the bodies for the two contact shapes
-void chrono::collision::RCollision(const uint& icoll,           // index of this contact pair candidate
-                                   const ConvexShape &shapeA,
-                                   const ConvexShape &shapeB,
-                                   const int& body1,
-                                   const int& body2,
-                                   uint* ct_flag,         // [output] flag for actual contact (per contact pair)
-                                   real3* ct_norm,         // [output] contact normal (per contact pair)
-                                   real3* ct_pt1,          // [output] point on shape1 (per contact pair)
-                                   real3* ct_pt2,          // [output] point on shape2 (per contact pair)
-                                   real* ct_depth,        // [output] penetration depth (per contact pair)
-                                   real* ct_eff_rad,      // [output] effective contact radius (per contact pair)
-                                   int2* ct_body_ids)     // [output] body IDs (per contact pair)
-                                   {
-   // Special-case the collision detection based on the types of the
-   // two potentially colliding shapes.
-
-
-   if (shapeA.type == SPHERE && shapeB.type == SPHERE) {
-      if (sphere_sphere(shapeA.A, shapeA.B.x, shapeB.A, shapeB.B.x, ct_norm[index], ct_depth[index], ct_pt1[index], ct_pt2[index], ct_eff_rad[index])) {
-         ct_flag[index] = 0;
-         ct_body_ids[index] = I2(body1, body2);
-      }
-      return;
-   }
-
-   if (shapeA.type == CAPSULE && shapeB.type == SPHERE) {
-      if (capsule_sphere(shapeA.A, shapeA.R, shapeA.B.x, shapeA.B.y, shapeB.A, shapeB.B.x, ct_norm[index], ct_depth[index], ct_pt1[index], ct_pt2[index], ct_eff_rad[index])) {
-         ct_flag[index] = 0;
-         ct_body_ids[index] = I2(body1, body2);
-      }
-      return;
-   }
-
-   if (shapeA.type == SPHERE && shapeB.type == CAPSULE) {
-      if (capsule_sphere(shapeB.A, shapeB.R, shapeB.B.x, shapeB.B.y, shapeA.A, shapeA.B.x, ct_norm[index], ct_depth[index], ct_pt2[index], ct_pt1[index], ct_eff_rad[index])) {
-         ct_norm[index] = -ct_norm[index];
-         ct_flag[index] = 0;
-         ct_body_ids[index] = I2(body1, body2);
-      }
-      return;
-   }
-
-   if (shapeA.type == CYLINDER && shapeB.type == SPHERE) {
-      if (cylinder_sphere(shapeA.A, shapeA.R, shapeA.B.x, shapeA.B.y, shapeB.A, shapeB.B.x, ct_norm[index], ct_depth[index], ct_pt1[index], ct_pt2[index], ct_eff_rad[index])) {
-         ct_flag[index] = 0;
-         ct_body_ids[index] = I2(body1, body2);
-      }
-      return;
-   }
-
-   if (shapeA.type == SPHERE && shapeB.type == CYLINDER) {
-      if (cylinder_sphere(shapeB.A, shapeB.R, shapeB.B.x, shapeB.B.y, shapeA.A, shapeA.B.x, ct_norm[index], ct_depth[index], ct_pt2[index], ct_pt1[index], ct_eff_rad[index])) {
-         ct_norm[index] = -ct_norm[index];
-         ct_flag[index] = 0;
-         ct_body_ids[index] = I2(body1, body2);
-      }
-      return;
-   }
-
-   if (shapeA.type == ROUNDEDCYL && shapeB.type == SPHERE) {
-      if (roundedcyl_sphere(shapeA.A, shapeA.R, shapeA.B.x, shapeA.B.y, shapeA.C.x, shapeB.A, shapeB.B.x, ct_norm[index], ct_depth[index], ct_pt1[index], ct_pt2[index],
-                            ct_eff_rad[index])) {
-         ct_flag[index] = 0;
-         ct_body_ids[index] = I2(body1, body2);
-      }
-      return;
-   }
-
-   if (shapeA.type == SPHERE && shapeB.type == ROUNDEDCYL) {
-      if (roundedcyl_sphere(shapeB.A, shapeB.R, shapeB.B.x, shapeB.B.y, shapeB.C.x, shapeA.A, shapeA.B.x, ct_norm[index], ct_depth[index], ct_pt2[index], ct_pt1[index],
-                            ct_eff_rad[index])) {
-         ct_norm[index] = -ct_norm[index];
-         ct_flag[index] = 0;
-         ct_body_ids[index] = I2(body1, body2);
-      }
-      return;
-   }
-
-   if (shapeA.type == BOX && shapeB.type == SPHERE) {
-      if (box_sphere(shapeA.A, shapeA.R, shapeA.B, shapeB.A, shapeB.B.x, ct_norm[index], ct_depth[index], ct_pt1[index], ct_pt2[index], ct_eff_rad[index])) {
-         ct_flag[index] = 0;
-         ct_body_ids[index] = I2(body1, body2);
-      }
-      return;
-   }
-
-   if (shapeA.type == SPHERE && shapeB.type == BOX) {
-      if (box_sphere(shapeB.A, shapeB.R, shapeB.B, shapeA.A, shapeA.B.x, ct_norm[index], ct_depth[index], ct_pt2[index], ct_pt1[index], ct_eff_rad[index])) {
-         ct_norm[index] = -ct_norm[index];
-         ct_flag[index] = 0;
-         ct_body_ids[index] = I2(body1, body2);
-      }
-      return;
-   }
-
-   if (shapeA.type == TRIANGLEMESH && shapeB.type == SPHERE) {
-      if (face_sphere(shapeA.A, shapeA.B, shapeA.C, shapeB.A, shapeB.B.x, ct_norm[index], ct_depth[index], ct_pt1[index], ct_pt2[index], ct_eff_rad[index])) {
-         ct_flag[index] = 0;
-         ct_body_ids[index] = I2(body1, body2);
-      }
-   }
-
-   if (shapeA.type == SPHERE && shapeB.type == TRIANGLEMESH) {
-      if (face_sphere(shapeB.A, shapeB.B, shapeB.C, shapeA.A, shapeA.B.x, ct_norm[index], ct_depth[index], ct_pt2[index], ct_pt1[index], ct_eff_rad[index])) {
-         ct_norm[index] = -ct_norm[index];
-         ct_flag[index] = 0;
-         ct_body_ids[index] = I2(body1, body2);
-      }
-   }
-
-   if (shapeA.type == CAPSULE && shapeB.type == CAPSULE) {
-      int nC = capsule_capsule(shapeA.A, shapeA.R, shapeA.B.x, shapeA.B.y, shapeB.A, shapeB.R, shapeB.B.x, shapeB.B.y, &ct_norm[index], &ct_depth[index], &ct_pt1[index],
-                               &ct_pt2[index], &ct_eff_rad[index]);
-      for (int i = 0; i < nC; i++) {
-         ct_flag[index + i] = 0;
-         ct_body_ids[index + i] = I2(body1, body2);
-      }
-      return;
-   }
-
-   if (shapeA.type == BOX && shapeB.type == CAPSULE) {
-      int nC = box_capsule(shapeA.A, shapeA.R, shapeA.B, shapeB.A, shapeB.R, shapeB.B.x, shapeB.B.y, &ct_norm[index], &ct_depth[index], &ct_pt1[index], &ct_pt2[index],
-                           &ct_eff_rad[index]);
-      for (int i = 0; i < nC; i++) {
-         ct_flag[index + i] = 0;
-         ct_body_ids[index + i] = I2(body1, body2);
-      }
-      return;
-   }
-
-   if (shapeA.type == CAPSULE && shapeB.type == BOX) {
-      int nC = box_capsule(shapeB.A, shapeB.R, shapeB.B, shapeA.A, shapeA.R, shapeA.B.x, shapeA.B.y, &ct_norm[index], &ct_depth[index], &ct_pt2[index], &ct_pt1[index],
-                           &ct_eff_rad[index]);
-      for (int i = 0; i < nC; i++) {
-         ct_norm[index + i] = -ct_norm[index + i];
-         ct_flag[index + i] = 0;
-         ct_body_ids[index + i] = I2(body1, body2);
-      }
-      return;
-   }
-
-   if (shapeA.type == BOX && shapeB.type == BOX) {
-      int nC = box_box(shapeA.A, shapeA.R, shapeA.B, shapeB.A, shapeB.R, shapeB.B, &ct_norm[index], &ct_depth[index], &ct_pt1[index], &ct_pt2[index], &ct_eff_rad[index]);
-      for (int i = 0; i < nC; i++) {
-         ct_flag[index + i] = 0;
-         ct_body_ids[index + i] = I2(body1, body2);
-      }
-      return;
-   }
-}
 

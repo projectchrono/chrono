@@ -1,5 +1,5 @@
-#ifndef CHC_NARROWPHASE_H
-#define CHC_NARROWPHASE_H
+#ifndef CHC_NARROWPHASEDISPATCH_H
+#define CHC_NARROWPHASEDISPATCH_H
 
 #include "chrono_parallel/ChParallelDefines.h"
 #include "chrono_parallel/ChDataManager.h"
@@ -22,7 +22,7 @@ class CH_PARALLEL_API ChCNarrowphaseDispatch {
    ~ChCNarrowphaseDispatch() {
    }
    //Perform collision detection
-   void Process(ChParallelDataManager* data_container) = 0;
+   void Process(ChParallelDataManager* data_container);
 
    void PreprocessCount(const shape_type* obj_data_T,
                         const long long* collision_pair,
@@ -74,7 +74,6 @@ class CH_PARALLEL_API ChCNarrowphaseDispatch {
    custom_vector<uint> contact_index;
    unsigned int num_potentialCollisions;
    real collision_envelope;
-   real edge_radius;
    uint number_of_contacts;
    NARROWPHASETYPE narrowphase_algorithm;
 

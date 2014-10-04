@@ -4,6 +4,8 @@
 #include "chrono_parallel/math/ChParallelMath.h"
 #include "ChCNarrowphaseDispatch.h"
 #include "ChCNarrowphaseMPRUtils.h"
+#include "ChCNarrowphaseMPR.h"
+#include "ChCNarrowphaseR.h"
 
 using namespace chrono::collision;
 
@@ -30,7 +32,6 @@ void ChCNarrowphaseDispatch::Process(ChParallelDataManager* data_container) {
    custom_vector<long long> & potentialCollisions = data_container->host_data.pair_rigid_rigid;
 
    collision_envelope = data_container->settings.collision.collision_envelope;
-   edge_radius = data_container->settings.collision.edge_radius;
    number_of_contacts = data_container->num_contacts;
    narrowphase_algorithm = data_container->settings.collision.narrowphase_algorithm;
 
@@ -197,6 +198,9 @@ bool host_DispatchMPR(const uint& icoll,
                       const ConvexShape &shapeB,
                       const int& body1,
                       const int& body2,
+                      const real3& posA,
+                      const real3& posB,
+                      const real & envelope,
                       uint* contact_active,
                       real3* norm,
                       real3* ptA,
@@ -220,8 +224,8 @@ bool host_DispatchMPR(const uint& icoll,
    pointB -= (normal) * envelope;
 
    norm[icoll] = normal;
-   ptA[icoll] = pointA - pointA;
-   ptB[icoll] = pointB - pointB;
+   ptA[icoll] = pointA - posA;
+   ptB[icoll] = pointB - posB;
    contactDepth[icoll] = depth;
    ids[icoll] = I2(body1, body2);
    contact_active[icoll] = 0;
@@ -242,10 +246,7 @@ bool host_DispatchR(const uint& icoll,
                     real* effective_radius,
                     int2* body_ids) {
 
-   if (!RCollision(icoll, shapeA, shapeB, body1, body2, flag, normal, pointA, pointB, depth, effective_radius, body_ids)) {
-      return false;
-   }
-
+   RCollision(icoll, shapeA, shapeB, body1, body2, flag, normal, pointA, pointB, depth, effective_radius, body_ids);
    return true;
 }
 
@@ -306,14 +307,14 @@ void host_Dispatch(const uint &index,
    real depth;
    switch (narrowphase_algorithm) {
       case NARROWPHASE_MPR:
-         host_DispatchMPR(icoll, shapeA, shapeB, ID_A, ID_B, contact_active, norm, ptA, ptB, contactDepth, ids);
+         host_DispatchMPR(icoll, shapeA, shapeB, ID_A, ID_B, posA, posB, collision_envelope, contact_active, norm, ptA, ptB, contactDepth, ids);
 
          break;
       case NARROWPHASE_GJK:
          //host_DispatchGJK(shapeA, shapeB, normal, depth, pointA, pointB);
          break;
       case NARROWPHASE_R:
-         host_DispatchR(icoll, shapeA, shapeB, ID_A, ID_B, contact_active, norm, ptA, ptB, contactDepth, ids);
+         host_DispatchR(icoll, shapeA, shapeB, ID_A, ID_B, contact_active, norm, ptA, ptB, contactDepth, erad, ids);
          break;
       case NARROWPHASE_HYBRID_MPR:
          //host_DispatchHYBRID_MPR(shapeA, shapeB, normal, depth, pointA, pointB);
@@ -346,7 +347,7 @@ void ChCNarrowphaseDispatch::Dispatch(const shape_type *obj_data_T,
 #pragma omp parallel for
    for (int index = 0; index < num_potentialCollisions; index++) {
       host_Dispatch(index, obj_data_T, obj_data_A, obj_data_B, obj_data_C, obj_data_R, obj_data_ID, obj_active, body_pos, body_rot, collision_envelope, narrowphase_algorithm,
-                    contact_pair, contact_active, norm, ptA, ptB, contactDepth, ids, start_index);
+                    contact_pair, contact_active, norm, ptA, ptB, contactDepth, erad, ids, start_index);
    }
 }
 
