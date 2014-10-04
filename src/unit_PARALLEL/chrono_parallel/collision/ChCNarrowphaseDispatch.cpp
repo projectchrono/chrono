@@ -9,13 +9,96 @@ using namespace chrono::collision;
 
 void ChCNarrowphaseDispatch::Process(ChParallelDataManager* data_container) {
 
-   PerformNarrowphase(data_container->host_data.typ_rigid, data_container->host_data.ObA_rigid, data_container->host_data.ObB_rigid, data_container->host_data.ObC_rigid,
-                      data_container->host_data.ObR_rigid, data_container->host_data.id_rigid, data_container->host_data.active_data, data_container->host_data.pos_data,
-                      data_container->host_data.rot_data, data_container->settings.collision.collision_envelope, data_container->settings.collision.narrowphase_algorithm,
-                      data_container->host_data.pair_rigid_rigid, data_container->host_data.norm_rigid_rigid, data_container->host_data.cpta_rigid_rigid,
-                      data_container->host_data.cptb_rigid_rigid, data_container->host_data.dpth_rigid_rigid, data_container->host_data.erad_rigid_rigid,
-                      data_container->host_data.bids_rigid_rigid, data_container->num_contacts);
+   custom_vector<real3>& norm_data = data_container->host_data.norm_rigid_rigid;
+   custom_vector<real3>& cpta_data = data_container->host_data.cpta_rigid_rigid;
+   custom_vector<real3>& cptb_data = data_container->host_data.cptb_rigid_rigid;
+   custom_vector<real>& dpth_data = data_container->host_data.dpth_rigid_rigid;
+   custom_vector<real>& erad_data = data_container->host_data.erad_rigid_rigid;
+   custom_vector<int2>& bids_data = data_container->host_data.bids_rigid_rigid;
 
+   custom_vector<int> & obj_data_T = data_container->host_data.typ_rigid;
+   custom_vector<real3> & obj_data_A = data_container->host_data.ObA_rigid;
+   custom_vector<real3> & obj_data_B = data_container->host_data.ObB_rigid;
+   custom_vector<real3> & obj_data_C = data_container->host_data.ObC_rigid;
+   custom_vector<real4> & obj_data_R = data_container->host_data.ObR_rigid;
+   custom_vector<uint> & obj_data_ID = data_container->host_data.id_rigid;
+
+   custom_vector<bool> & obj_active = data_container->host_data.active_data;
+   custom_vector<real3> & body_pos = data_container->host_data.pos_data;
+   custom_vector<real4> & body_rot = data_container->host_data.rot_data;
+
+   custom_vector<long long> & potentialCollisions = data_container->host_data.pair_rigid_rigid;
+
+   collision_envelope = data_container->settings.collision.collision_envelope;
+   edge_radius = data_container->settings.collision.edge_radius;
+   number_of_contacts = data_container->num_contacts;
+   narrowphase_algorithm = data_container->settings.collision.narrowphase_algorithm;
+
+   //The number of possible contacts based on the broadphase pair list
+   num_potentialCollisions = potentialCollisions.size();
+
+   // Return now if no potential collisions.
+   if (num_potentialCollisions == 0) {
+      norm_data.resize(0);
+      cpta_data.resize(0);
+      cptb_data.resize(0);
+      dpth_data.resize(0);
+      erad_data.resize(0);
+      bids_data.resize(0);
+      number_of_contacts = 0;
+      return;
+   }
+
+   uint num_shapes = obj_data_T.size();
+
+   obj_data_A_global.resize(num_shapes);
+   obj_data_B_global.resize(num_shapes);
+   obj_data_C_global.resize(num_shapes);
+   //Transform to global coordinate system
+   PreprocessLocalToParent(num_shapes, obj_data_T.data(), obj_data_A.data(), obj_data_B.data(), obj_data_C.data(), obj_data_R.data(), obj_data_ID.data(), obj_active.data(),
+                           body_pos.data(), body_rot.data(), obj_data_A_global.data(), obj_data_B_global.data(), obj_data_C_global.data());
+
+   contact_index.resize(num_potentialCollisions);
+
+   //Count Number of Contacts
+   PreprocessCount(obj_data_T.data(), potentialCollisions.data(), contact_index.data());
+   //scan to find starting index
+   int num_potentialContacts = contact_index.back();
+   thrust::exclusive_scan(contact_index.begin(), contact_index.end(), contact_index.begin());
+   num_potentialContacts += contact_index.back();
+
+   //This counter will keep track of which pairs are actually in contact
+   contact_active.resize(num_potentialCollisions);
+   //Fill the counter with 1, if the contact is active set the value to zero
+   //POSSIBLE PERF IMPROVEMENT:, use bool for this?
+   thrust::fill(contact_active.begin(), contact_active.end(), 1);
+   //Create storage to hold maximum number of contacts in worse case
+   norm_data.resize(num_potentialCollisions);
+   cpta_data.resize(num_potentialCollisions);
+   cptb_data.resize(num_potentialCollisions);
+   dpth_data.resize(num_potentialCollisions);
+   erad_data.resize(num_potentialCollisions);
+   bids_data.resize(num_potentialCollisions);
+
+   Dispatch(obj_data_T.data(), obj_data_A_global.data(), obj_data_B_global.data(), obj_data_C_global.data(), obj_data_R.data(), obj_data_ID.data(), obj_active.data(),
+            body_pos.data(), body_rot.data(), potentialCollisions.data(), contact_active.data(), norm_data.data(), cpta_data.data(), cptb_data.data(), dpth_data.data(),
+            erad_data.data(), bids_data.data(), contact_index.data());
+
+   number_of_contacts = num_potentialCollisions - thrust::count(contact_active.begin(), contact_active.end(), 1);
+   //remove any entries where the counter is equal to one, these are contacts that do not exist
+   thrust::remove_if(norm_data.begin(), norm_data.end(), contact_active.begin(), thrust::identity<int>());
+   thrust::remove_if(cpta_data.begin(), cpta_data.end(), contact_active.begin(), thrust::identity<int>());
+   thrust::remove_if(cptb_data.begin(), cptb_data.end(), contact_active.begin(), thrust::identity<int>());
+   thrust::remove_if(dpth_data.begin(), dpth_data.end(), contact_active.begin(), thrust::identity<int>());
+   thrust::remove_if(bids_data.begin(), bids_data.end(), contact_active.begin(), thrust::identity<int>());
+   thrust::remove_if(potentialCollisions.begin(), potentialCollisions.end(), contact_active.begin(), thrust::identity<int>());
+   //Resize all lists so that we don't access invalid contacts
+   potentialCollisions.resize(number_of_contacts);
+   norm_data.resize(number_of_contacts);
+   cpta_data.resize(number_of_contacts);
+   cptb_data.resize(number_of_contacts);
+   dpth_data.resize(number_of_contacts);
+   bids_data.resize(number_of_contacts);
    data_container->erad_is_set = true;
 
 }
@@ -53,7 +136,6 @@ void host_count(const int& index,                   // index of this potential c
 }
 void ChCNarrowphaseDispatch::PreprocessCount(const shape_type* obj_data_T,       // shape type (per shape)
                                              const long long* collision_pair,    // encoded shape IDs (per collision pair)
-                                             const NARROWPHASETYPE &narrowphase_algorithm,  //Type of narrowphase being used
                                              uint* max_contacts) {
 #pragma omp parallel for
    for (int icoll = 0; icoll < num_potentialCollisions; icoll++) {
@@ -110,18 +192,23 @@ void ChCNarrowphaseDispatch::PreprocessLocalToParent(const int num_shapes,
    }
 }
 
-bool host_DispatchMPR(const ConvexShape & shapeA,
-                      const ConvexShape & shapeB,
-                      real3 &normal,
-                      real & depth,
-                      real3 & pointA,
-                      real3 & pointB) {
+bool host_DispatchMPR(const uint& icoll,
+                      const ConvexShape &shapeA,
+                      const ConvexShape &shapeB,
+                      const int& body1,
+                      const int& body2,
+                      uint* contact_active,
+                      real3* norm,
+                      real3* ptA,
+                      real3* ptB,
+                      real* contactDepth,
+                      int2* ids) {
 
    real3 point = R3(0);
-   normal = R3(1, 0, 0);
-   pointA = R3(0);
-   pointB = R3(0);
-   depth = 0;
+   real3 normal = R3(1, 0, 0);
+   real3 pointA = R3(0);
+   real3 pointB = R3(0);
+   real depth = 0;
 
    if (!MPRCollision(shapeA, shapeB, normal, point, depth)) {
       return false;
@@ -129,13 +216,22 @@ bool host_DispatchMPR(const ConvexShape & shapeA,
 
    MPRGetPoints(shapeA, shapeB, normal, point, pointA, pointB);
 
+   pointA -= (normal) * envelope;
+   pointB -= (normal) * envelope;
+
+   norm[icoll] = normal;
+   ptA[icoll] = pointA - pointA;
+   ptB[icoll] = pointB - pointB;
+   contactDepth[icoll] = depth;
+   ids[icoll] = I2(body1, body2);
+   contact_active[icoll] = 0;
+
    return true;
 }
 
 bool host_DispatchR(const uint& icoll,
                     const ConvexShape &shapeA,
                     const ConvexShape &shapeB,
-                    const uint* start_index,
                     const int& body1,
                     const int& body2,
                     uint* flag,
@@ -146,13 +242,7 @@ bool host_DispatchR(const uint& icoll,
                     real* effective_radius,
                     int2* body_ids) {
 
-   real3 point = R3(0);
-   normal = R3(1, 0, 0);
-   pointA = R3(0);
-   pointB = R3(0);
-   depth = 0;
-
-   if (!RCollision(shapeA, shapeB, normal, point, depth)) {
+   if (!RCollision(icoll, shapeA, shapeB, body1, body2, flag, normal, pointA, pointB, depth, effective_radius, body_ids)) {
       return false;
    }
 
@@ -177,6 +267,7 @@ void host_Dispatch(const uint &index,
                    real3 *ptA,
                    real3 *ptB,
                    real *contactDepth,
+                   real *erad,
                    int2 *ids,
                    uint * start_index) {
    long long p = contact_pair[index];
@@ -215,24 +306,14 @@ void host_Dispatch(const uint &index,
    real depth;
    switch (narrowphase_algorithm) {
       case NARROWPHASE_MPR:
-         host_DispatchMPR(shapeA, shapeB, normal, depth, pointA, pointB);
-         pointA -= (normal) * envelope;
-         pointB -= (normal) * envelope;
-
-         norm[icoll] = normal;
-         ptA[icoll] = pointA - posA;
-         ptB[icoll] = pointB - posB;
-         contactDepth[icoll] = depth;
-         ids[icoll] = I2(ID_A, ID_B);
-         contact_active[icoll] = 0;
-
+         host_DispatchMPR(icoll, shapeA, shapeB, ID_A, ID_B, contact_active, norm, ptA, ptB, contactDepth, ids);
 
          break;
       case NARROWPHASE_GJK:
          //host_DispatchGJK(shapeA, shapeB, normal, depth, pointA, pointB);
          break;
       case NARROWPHASE_R:
-         host_DispatchR(shapeA, shapeB, normal, depth, pointA, pointB);
+         host_DispatchR(icoll, shapeA, shapeB, ID_A, ID_B, contact_active, norm, ptA, ptB, contactDepth, ids);
          break;
       case NARROWPHASE_HYBRID_MPR:
          //host_DispatchHYBRID_MPR(shapeA, shapeB, normal, depth, pointA, pointB);
@@ -241,8 +322,6 @@ void host_Dispatch(const uint &index,
          //host_DispatchHYBRID_GJK(shapeA, shapeB, normal, depth, pointA, pointB);
          break;
    }
-
-
 
 }
 
@@ -255,14 +334,13 @@ void ChCNarrowphaseDispatch::Dispatch(const shape_type *obj_data_T,
                                       const bool * obj_active,
                                       const real3 *body_pos,
                                       const real4 *body_rot,
-                                      const real & collision_envelope,
-                                      const NARROWPHASETYPE &narrowphase_algorithm,
                                       long long *contact_pair,
                                       uint *contact_active,
                                       real3 *norm,
                                       real3 *ptA,
                                       real3 *ptB,
                                       real *contactDepth,
+                                      real* erad,
                                       int2 *ids,
                                       uint* start_index) {
 #pragma omp parallel for
@@ -272,88 +350,3 @@ void ChCNarrowphaseDispatch::Dispatch(const shape_type *obj_data_T,
    }
 }
 
-void ChCNarrowphaseDispatch::PerformNarrowphase(const custom_vector<shape_type> &obj_data_T,
-                                                const custom_vector<real3> &obj_data_A,
-                                                const custom_vector<real3> &obj_data_B,
-                                                const custom_vector<real3> &obj_data_C,
-                                                const custom_vector<real4> &obj_data_R,
-                                                const custom_vector<uint> &obj_data_ID,
-                                                const custom_vector<bool> & obj_active,
-                                                const custom_vector<real3> &body_pos,
-                                                const custom_vector<real4> &body_rot,
-                                                const real & collision_envelope,
-                                                const NARROWPHASETYPE &narrowphase_algorithm,
-                                                custom_vector<long long> &potentialCollisions,
-                                                custom_vector<real3> &norm_data,
-                                                custom_vector<real3> &cpta_data,
-                                                custom_vector<real3> &cptb_data,
-                                                custom_vector<real> &dpth_data,
-                                                custom_vector<real> &erad_data,
-                                                custom_vector<int2> &bids_data,
-                                                uint & number_of_contacts) {
-//The number of possible contacts based on the broadphase pair list
-   num_potentialCollisions = potentialCollisions.size();
-
-// Return now if no potential collisions.
-   if (num_potentialCollisions == 0) {
-      norm_data.resize(0);
-      cpta_data.resize(0);
-      cptb_data.resize(0);
-      dpth_data.resize(0);
-      erad_data.resize(0);
-      bids_data.resize(0);
-      number_of_contacts = 0;
-      return;
-   }
-
-   uint num_shapes = obj_data_T.size();
-
-   obj_data_A_global.resize(num_shapes);
-   obj_data_B_global.resize(num_shapes);
-   obj_data_C_global.resize(num_shapes);
-//Transform to global coordinate system
-   PreprocessLocalToParent(num_shapes, obj_data_T.data(), obj_data_A.data(), obj_data_B.data(), obj_data_C.data(), obj_data_R.data(), obj_data_ID.data(), obj_active.data(),
-                           body_pos.data(), body_rot.data(), obj_data_A_global.data(), obj_data_B_global.data(), obj_data_C_global.data());
-
-   custom_vector<uint> contact_index(num_potentialCollisions);
-
-//Count Number of Contacts
-   PreprocessCount(obj_data_T.data(), potentialCollisions.data(), narrowphase_algorithm, contact_index.data());
-//scan to find starting index
-   int num_potentialContacts = contact_index.back();
-   thrust::exclusive_scan(contact_index.begin(), contact_index.end(), contact_index.begin());
-   num_potentialContacts += contact_index.back();
-
-//This counter will keep track of which pairs are actually in contact
-   contact_active.resize(num_potentialCollisions);
-//Fill the counter with 1, if the contact is active set the value to zero
-//POSSIBLE PERF IMPROVEMENT:, use bool for this?
-   thrust::fill(contact_active.begin(), contact_active.end(), 1);
-//Create storage to hold maximum number of contacts in worse case
-   norm_data.resize(num_potentialCollisions);
-   cpta_data.resize(num_potentialCollisions);
-   cptb_data.resize(num_potentialCollisions);
-   dpth_data.resize(num_potentialCollisions);
-   bids_data.resize(num_potentialCollisions);
-
-   Dispatch(obj_data_T.data(), obj_data_A_global.data(), obj_data_B_global.data(), obj_data_C_global.data(), obj_data_R.data(), obj_data_ID.data(), obj_active.data(),
-            body_pos.data(), body_rot.data(), collision_envelope, narrowphase_algorithm, potentialCollisions.data(), contact_active.data(), norm_data.data(), cpta_data.data(),
-            cptb_data.data(), dpth_data.data(), bids_data.data(), contact_index.data());
-
-   number_of_contacts = num_potentialCollisions - thrust::count(contact_active.begin(), contact_active.end(), 1);
-//remove any entries where the counter is equal to one, these are contacts that do not exist
-   thrust::remove_if(norm_data.begin(), norm_data.end(), contact_active.begin(), thrust::identity<int>());
-   thrust::remove_if(cpta_data.begin(), cpta_data.end(), contact_active.begin(), thrust::identity<int>());
-   thrust::remove_if(cptb_data.begin(), cptb_data.end(), contact_active.begin(), thrust::identity<int>());
-   thrust::remove_if(dpth_data.begin(), dpth_data.end(), contact_active.begin(), thrust::identity<int>());
-   thrust::remove_if(bids_data.begin(), bids_data.end(), contact_active.begin(), thrust::identity<int>());
-   thrust::remove_if(potentialCollisions.begin(), potentialCollisions.end(), contact_active.begin(), thrust::identity<int>());
-//Resize all lists so that we don't access invalid contacts
-   potentialCollisions.resize(number_of_contacts);
-   norm_data.resize(number_of_contacts);
-   cpta_data.resize(number_of_contacts);
-   cptb_data.resize(number_of_contacts);
-   dpth_data.resize(number_of_contacts);
-   bids_data.resize(number_of_contacts);
-
-}

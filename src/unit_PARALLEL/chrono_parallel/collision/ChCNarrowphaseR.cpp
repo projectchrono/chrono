@@ -685,7 +685,6 @@ int box_box(const real3& pos1,
 void chrono::collision::RCollision(const uint& icoll,           // index of this contact pair candidate
                                    const ConvexShape &shapeA,
                                    const ConvexShape &shapeB,
-                                   const uint* start_index,     // start index in output arrays (per collision pair)
                                    const int& body1,
                                    const int& body2,
                                    uint* ct_flag,         // [output] flag for actual contact (per contact pair)
@@ -700,24 +699,24 @@ void chrono::collision::RCollision(const uint& icoll,           // index of this
    // two potentially colliding shapes.
 
 
-   if (ShapeA.type == SPHERE && ShapeB.type == SPHERE) {
-      if (sphere_sphere(ShapeA.A, ShapeA.B.x, ShapeB.A, ShapeB.B.x, ct_norm[index], ct_depth[index], ct_pt1[index], ct_pt2[index], ct_eff_rad[index])) {
+   if (shapeA.type == SPHERE && shapeB.type == SPHERE) {
+      if (sphere_sphere(shapeA.A, shapeA.B.x, shapeB.A, shapeB.B.x, ct_norm[index], ct_depth[index], ct_pt1[index], ct_pt2[index], ct_eff_rad[index])) {
          ct_flag[index] = 0;
          ct_body_ids[index] = I2(body1, body2);
       }
       return;
    }
 
-   if (ShapeA.type == CAPSULE && ShapeB.type == SPHERE) {
-      if (capsule_sphere(ShapeA.A, ShapeA.R, ShapeA.B.x, ShapeA.B.y, ShapeB.A, ShapeB.B.x, ct_norm[index], ct_depth[index], ct_pt1[index], ct_pt2[index], ct_eff_rad[index])) {
+   if (shapeA.type == CAPSULE && shapeB.type == SPHERE) {
+      if (capsule_sphere(shapeA.A, shapeA.R, shapeA.B.x, shapeA.B.y, shapeB.A, shapeB.B.x, ct_norm[index], ct_depth[index], ct_pt1[index], ct_pt2[index], ct_eff_rad[index])) {
          ct_flag[index] = 0;
          ct_body_ids[index] = I2(body1, body2);
       }
       return;
    }
 
-   if (ShapeA.type == SPHERE && ShapeB.type == CAPSULE) {
-      if (capsule_sphere(ShapeB.A, ShapeB.R, ShapeB.B.x, ShapeB.B.y, ShapeA.A, ShapeA.B.x, ct_norm[index], ct_depth[index], ct_pt2[index], ct_pt1[index], ct_eff_rad[index])) {
+   if (shapeA.type == SPHERE && shapeB.type == CAPSULE) {
+      if (capsule_sphere(shapeB.A, shapeB.R, shapeB.B.x, shapeB.B.y, shapeA.A, shapeA.B.x, ct_norm[index], ct_depth[index], ct_pt2[index], ct_pt1[index], ct_eff_rad[index])) {
          ct_norm[index] = -ct_norm[index];
          ct_flag[index] = 0;
          ct_body_ids[index] = I2(body1, body2);
@@ -725,16 +724,16 @@ void chrono::collision::RCollision(const uint& icoll,           // index of this
       return;
    }
 
-   if (ShapeA.type == CYLINDER && ShapeB.type == SPHERE) {
-      if (cylinder_sphere(ShapeA.A, ShapeA.R, ShapeA.B.x, ShapeA.B.y, ShapeB.A, ShapeB.B.x, ct_norm[index], ct_depth[index], ct_pt1[index], ct_pt2[index], ct_eff_rad[index])) {
+   if (shapeA.type == CYLINDER && shapeB.type == SPHERE) {
+      if (cylinder_sphere(shapeA.A, shapeA.R, shapeA.B.x, shapeA.B.y, shapeB.A, shapeB.B.x, ct_norm[index], ct_depth[index], ct_pt1[index], ct_pt2[index], ct_eff_rad[index])) {
          ct_flag[index] = 0;
          ct_body_ids[index] = I2(body1, body2);
       }
       return;
    }
 
-   if (ShapeA.type == SPHERE && ShapeB.type == CYLINDER) {
-      if (cylinder_sphere(ShapeB.A, ShapeB.R, ShapeB.B.x, ShapeB.B.y, ShapeA.A, ShapeA.B.x, ct_norm[index], ct_depth[index], ct_pt2[index], ct_pt1[index], ct_eff_rad[index])) {
+   if (shapeA.type == SPHERE && shapeB.type == CYLINDER) {
+      if (cylinder_sphere(shapeB.A, shapeB.R, shapeB.B.x, shapeB.B.y, shapeA.A, shapeA.B.x, ct_norm[index], ct_depth[index], ct_pt2[index], ct_pt1[index], ct_eff_rad[index])) {
          ct_norm[index] = -ct_norm[index];
          ct_flag[index] = 0;
          ct_body_ids[index] = I2(body1, body2);
@@ -742,8 +741,8 @@ void chrono::collision::RCollision(const uint& icoll,           // index of this
       return;
    }
 
-   if (ShapeA.type == ROUNDEDCYL && ShapeB.type == SPHERE) {
-      if (roundedcyl_sphere(ShapeA.A, ShapeA.R, ShapeA.B.x, ShapeA.B.y, ShapeA.C.x, ShapeB.A, ShapeB.B.x, ct_norm[index], ct_depth[index], ct_pt1[index], ct_pt2[index],
+   if (shapeA.type == ROUNDEDCYL && shapeB.type == SPHERE) {
+      if (roundedcyl_sphere(shapeA.A, shapeA.R, shapeA.B.x, shapeA.B.y, shapeA.C.x, shapeB.A, shapeB.B.x, ct_norm[index], ct_depth[index], ct_pt1[index], ct_pt2[index],
                             ct_eff_rad[index])) {
          ct_flag[index] = 0;
          ct_body_ids[index] = I2(body1, body2);
@@ -751,8 +750,8 @@ void chrono::collision::RCollision(const uint& icoll,           // index of this
       return;
    }
 
-   if (ShapeA.type == SPHERE && ShapeB.type == ROUNDEDCYL) {
-      if (roundedcyl_sphere(ShapeB.A, ShapeB.R, ShapeB.B.x, ShapeB.B.y, ShapeB.C.x, ShapeA.A, ShapeA.B.x, ct_norm[index], ct_depth[index], ct_pt2[index], ct_pt1[index],
+   if (shapeA.type == SPHERE && shapeB.type == ROUNDEDCYL) {
+      if (roundedcyl_sphere(shapeB.A, shapeB.R, shapeB.B.x, shapeB.B.y, shapeB.C.x, shapeA.A, shapeA.B.x, ct_norm[index], ct_depth[index], ct_pt2[index], ct_pt1[index],
                             ct_eff_rad[index])) {
          ct_norm[index] = -ct_norm[index];
          ct_flag[index] = 0;
@@ -761,16 +760,16 @@ void chrono::collision::RCollision(const uint& icoll,           // index of this
       return;
    }
 
-   if (ShapeA.type == BOX && ShapeB.type == SPHERE) {
-      if (box_sphere(ShapeA.A, ShapeA.R, ShapeA.B, ShapeB.A, ShapeB.B.x, ct_norm[index], ct_depth[index], ct_pt1[index], ct_pt2[index], ct_eff_rad[index])) {
+   if (shapeA.type == BOX && shapeB.type == SPHERE) {
+      if (box_sphere(shapeA.A, shapeA.R, shapeA.B, shapeB.A, shapeB.B.x, ct_norm[index], ct_depth[index], ct_pt1[index], ct_pt2[index], ct_eff_rad[index])) {
          ct_flag[index] = 0;
          ct_body_ids[index] = I2(body1, body2);
       }
       return;
    }
 
-   if (ShapeA.type == SPHERE && ShapeB.type == BOX) {
-      if (box_sphere(ShapeB.A, ShapeB.R, ShapeB.B, ShapeA.A, ShapeA.B.x, ct_norm[index], ct_depth[index], ct_pt2[index], ct_pt1[index], ct_eff_rad[index])) {
+   if (shapeA.type == SPHERE && shapeB.type == BOX) {
+      if (box_sphere(shapeB.A, shapeB.R, shapeB.B, shapeA.A, shapeA.B.x, ct_norm[index], ct_depth[index], ct_pt2[index], ct_pt1[index], ct_eff_rad[index])) {
          ct_norm[index] = -ct_norm[index];
          ct_flag[index] = 0;
          ct_body_ids[index] = I2(body1, body2);
@@ -778,23 +777,23 @@ void chrono::collision::RCollision(const uint& icoll,           // index of this
       return;
    }
 
-   if (ShapeA.type == TRIANGLEMESH && ShapeB.type == SPHERE) {
-      if (face_sphere(ShapeA.A, ShapeA.B, ShapeA.C, ShapeB.A, ShapeB.B.x, ct_norm[index], ct_depth[index], ct_pt1[index], ct_pt2[index], ct_eff_rad[index])) {
+   if (shapeA.type == TRIANGLEMESH && shapeB.type == SPHERE) {
+      if (face_sphere(shapeA.A, shapeA.B, shapeA.C, shapeB.A, shapeB.B.x, ct_norm[index], ct_depth[index], ct_pt1[index], ct_pt2[index], ct_eff_rad[index])) {
          ct_flag[index] = 0;
          ct_body_ids[index] = I2(body1, body2);
       }
    }
 
-   if (ShapeA.type == SPHERE && ShapeB.type == TRIANGLEMESH) {
-      if (face_sphere(ShapeB.A, ShapeB.B, ShapeB.C, ShapeA.A, ShapeA.B.x, ct_norm[index], ct_depth[index], ct_pt2[index], ct_pt1[index], ct_eff_rad[index])) {
+   if (shapeA.type == SPHERE && shapeB.type == TRIANGLEMESH) {
+      if (face_sphere(shapeB.A, shapeB.B, shapeB.C, shapeA.A, shapeA.B.x, ct_norm[index], ct_depth[index], ct_pt2[index], ct_pt1[index], ct_eff_rad[index])) {
          ct_norm[index] = -ct_norm[index];
          ct_flag[index] = 0;
          ct_body_ids[index] = I2(body1, body2);
       }
    }
 
-   if (ShapeA.type == CAPSULE && ShapeB.type == CAPSULE) {
-      int nC = capsule_capsule(ShapeA.A, ShapeA.R, ShapeA.B.x, ShapeA.B.y, ShapeB.A, ShapeB.R, ShapeB.B.x, ShapeB.B.y, &ct_norm[index], &ct_depth[index], &ct_pt1[index],
+   if (shapeA.type == CAPSULE && shapeB.type == CAPSULE) {
+      int nC = capsule_capsule(shapeA.A, shapeA.R, shapeA.B.x, shapeA.B.y, shapeB.A, shapeB.R, shapeB.B.x, shapeB.B.y, &ct_norm[index], &ct_depth[index], &ct_pt1[index],
                                &ct_pt2[index], &ct_eff_rad[index]);
       for (int i = 0; i < nC; i++) {
          ct_flag[index + i] = 0;
@@ -803,8 +802,8 @@ void chrono::collision::RCollision(const uint& icoll,           // index of this
       return;
    }
 
-   if (ShapeA.type == BOX && ShapeB.type == CAPSULE) {
-      int nC = box_capsule(ShapeA.A, ShapeA.R, ShapeA.B, ShapeB.A, ShapeB.R, ShapeB.B.x, ShapeB.B.y, &ct_norm[index], &ct_depth[index], &ct_pt1[index], &ct_pt2[index],
+   if (shapeA.type == BOX && shapeB.type == CAPSULE) {
+      int nC = box_capsule(shapeA.A, shapeA.R, shapeA.B, shapeB.A, shapeB.R, shapeB.B.x, shapeB.B.y, &ct_norm[index], &ct_depth[index], &ct_pt1[index], &ct_pt2[index],
                            &ct_eff_rad[index]);
       for (int i = 0; i < nC; i++) {
          ct_flag[index + i] = 0;
@@ -813,8 +812,8 @@ void chrono::collision::RCollision(const uint& icoll,           // index of this
       return;
    }
 
-   if (ShapeA.type == CAPSULE && ShapeB.type == BOX) {
-      int nC = box_capsule(ShapeB.A, ShapeB.R, ShapeB.B, ShapeA.A, ShapeA.R, ShapeA.B.x, ShapeA.B.y, &ct_norm[index], &ct_depth[index], &ct_pt2[index], &ct_pt1[index],
+   if (shapeA.type == CAPSULE && shapeB.type == BOX) {
+      int nC = box_capsule(shapeB.A, shapeB.R, shapeB.B, shapeA.A, shapeA.R, shapeA.B.x, shapeA.B.y, &ct_norm[index], &ct_depth[index], &ct_pt2[index], &ct_pt1[index],
                            &ct_eff_rad[index]);
       for (int i = 0; i < nC; i++) {
          ct_norm[index + i] = -ct_norm[index + i];
@@ -824,8 +823,8 @@ void chrono::collision::RCollision(const uint& icoll,           // index of this
       return;
    }
 
-   if (ShapeA.type == BOX && ShapeB.type == BOX) {
-      int nC = box_box(ShapeA.A, ShapeA.R, ShapeA.B, ShapeB.A, ShapeB.R, ShapeB.B, &ct_norm[index], &ct_depth[index], &ct_pt1[index], &ct_pt2[index], &ct_eff_rad[index]);
+   if (shapeA.type == BOX && shapeB.type == BOX) {
+      int nC = box_box(shapeA.A, shapeA.R, shapeA.B, shapeB.A, shapeB.R, shapeB.B, &ct_norm[index], &ct_depth[index], &ct_pt1[index], &ct_pt2[index], &ct_eff_rad[index]);
       for (int i = 0; i < nC; i++) {
          ct_flag[index + i] = 0;
          ct_body_ids[index + i] = I2(body1, body2);

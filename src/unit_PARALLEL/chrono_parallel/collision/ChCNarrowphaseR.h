@@ -106,7 +106,6 @@ namespace collision {
   void RCollision(const uint& icoll,
                         const ConvexShape &shapeA,
                         const ConvexShape &shapeB,
-                        const uint* start_index,
                         const int& body1,
                         const int& body2,
                         uint* ct_flag,

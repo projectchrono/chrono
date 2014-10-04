@@ -5,6 +5,19 @@
 
 namespace chrono {
 namespace collision {
+
+struct sResults {
+   enum eStatus {
+      Separated, /* Shapes does not penetrate                                   */
+      Penetrating, /* Shapes are penetrating                                  */
+      GJK_Failed, /* GJK phase fail, no big issue, shapes are probably just 'touching' */
+      EPA_Failed /* EPA phase fail, bigger problem, need to save parameters, and debug */
+   } status;
+   real3 witnesses[2];
+   real3 normal;
+   real distance;
+};
+
 CH_PARALLEL_API
 bool GJKDistance(const ConvexShape& shape0,
                  const ConvexShape& shape1,
@@ -26,23 +39,6 @@ bool GJKFindPenetration(const ConvexShape& shape0,
                 const ConvexShape& shape1,
                 sResults& results);
 
-// Minkovski Portal Refinement narrowphase collision detection
-class CH_PARALLEL_API ChCNarrowphaseGJK_EPA : public ChCNarrowphase {
- public:
-   ChCNarrowphaseGJK_EPA() {
-   }
-
-   virtual void Process(ChParallelDataManager* data_container) {
-
-   }
-
-   virtual void Update(ChParallelDataManager* data_container) {
-
-   }
-
- private:
-
-};
 
 }  // end namespace collision
 }  // end namespace chrono
