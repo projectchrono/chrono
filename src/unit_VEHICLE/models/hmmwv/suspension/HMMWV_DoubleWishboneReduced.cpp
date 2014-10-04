@@ -107,8 +107,8 @@ const ChVector<> HMMWV_DoubleWishboneReducedFront::getLocation(PointId which)
   case LCA_U:    return in2m * ChVector<>(-1.40, 30.96, -4.65);
   case SHOCK_C:  return in2m * ChVector<>(4.10, 27.86, 12.72);
   case SHOCK_U:  return in2m * ChVector<>(3.83, 30.96, -1.52);
-  case TIEROD_C: return in2m * ChVector<>(-13.39, 9.8, -1.0350);
-  case TIEROD_U: return in2m * ChVector<>(-6.92, 32.31, -1.0350);
+  case TIEROD_C: return in2m * ChVector<>(-9.855, 17.655, 2.135);
+  case TIEROD_U: return in2m * ChVector<>(-6.922, 32.327, -0.643);
   default:       return ChVector<>(0, 0, 0);
   }
 }
@@ -126,8 +126,8 @@ const ChVector<> HMMWV_DoubleWishboneReducedRear::getLocation(PointId which)
   case LCA_U:    return in2m * ChVector<>(1.40, 30.96, -4.65);
   case SHOCK_C:  return in2m * ChVector<>(-4.09, 28.19, 12.72);
   case SHOCK_U:  return in2m * ChVector<>(-4.09, 30.96, -1.51);
-  case TIEROD_C: return in2m * ChVector<>(12.70, 16.37, -0.37);
-  case TIEROD_U: return in2m * ChVector<>(6.70, 32.32, -0.37);
+  case TIEROD_C: return in2m * ChVector<>(8.790, 16.38, 2.310);
+  case TIEROD_U: return in2m * ChVector<>(6.704, 32.327, -0.365);
   default:       return ChVector<>(0, 0, 0);
   }
 }
