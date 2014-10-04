@@ -317,12 +317,8 @@ void ChSolidAxle::InitializeSide(ChSuspension::Side              side,
   chassis->GetSystem()->AddLink(m_spring[side]);
 
   // Initialize the tierod distance constraint between chassis and upright.
-  m_distTierod[side]->Initialize(chassis, m_knuckle[side], false, points[TIEROD_C], points[TIEROD_K]);
+  m_distTierod[side]->Initialize(tierod_body, m_knuckle[side], false, points[TIEROD_C], points[TIEROD_K]);
   chassis->GetSystem()->AddLink(m_distTierod[side]);
-
-  // Save initial relative position of marker 1 of the tierod distance link,
-  // to be used in steering.
-  m_tierod_marker[side] = m_distTierod[side]->GetEndPoint1Rel();
 
   // Initialize the axle shaft and its connection to the spindle. Note that the
   // spindle rotates about the Y axis.
@@ -474,23 +470,6 @@ void ChSolidAxle::AddVisualizationKnuckle(ChSharedBodyPtr knuckle,
   ChSharedPtr<ChColorAsset> col(new ChColorAsset);
   col->SetColor(ChColor(0.2f, 0.2f, 0.6f));
   knuckle->AddAsset(col);
-}
-
-
-// -----------------------------------------------------------------------------
-// -----------------------------------------------------------------------------
-void ChSolidAxle::ApplySteering(double displ)
-{
-  {
-    ChVector<> r_bar = m_tierod_marker[LEFT];
-    r_bar.y -= displ;
-    m_distTierod[LEFT]->SetEndPoint1Rel(r_bar);
-  }
-  {
-    ChVector<> r_bar = m_tierod_marker[RIGHT];
-    r_bar.y -= displ;
-    m_distTierod[RIGHT]->SetEndPoint1Rel(r_bar);
-  }
 }
 
 

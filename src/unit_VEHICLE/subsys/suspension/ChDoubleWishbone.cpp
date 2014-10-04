@@ -323,7 +323,7 @@ void ChDoubleWishbone::InitializeSide(ChSuspension::Side              side,
   chassis->GetSystem()->AddLink(m_sphericalLCA[side]);
 
   // Initialize the tierod distance constraint between chassis and upright.
-  m_distTierod[side]->Initialize(chassis, m_upright[side], false, points[TIEROD_C], points[TIEROD_U]);
+  m_distTierod[side]->Initialize(tierod_body, m_upright[side], false, points[TIEROD_C], points[TIEROD_U]);
   chassis->GetSystem()->AddLink(m_distTierod[side]);
 
   // Initialize the spring/damper
@@ -334,10 +334,6 @@ void ChDoubleWishbone::InitializeSide(ChSuspension::Side              side,
   m_spring[side]->Initialize(chassis, m_LCA[side], false, points[SPRING_C], points[SPRING_A], false, getSpringRestLength());
   m_spring[side]->Set_SpringCallback(m_springCB);
   chassis->GetSystem()->AddLink(m_spring[side]);
-
-  // Save initial relative position of marker 1 of the tierod distance link,
-  // to be used in steering.
-  m_tierod_marker[side] = m_distTierod[side]->GetEndPoint1Rel();
 
   // Initialize the axle shaft and its connection to the spindle. Note that the
   // spindle rotates about the Y axis.
@@ -496,22 +492,6 @@ void ChDoubleWishbone::AddVisualizationSpindle(ChSharedBodyPtr spindle,
   cyl->GetCylinderGeometry().p2 = ChVector<>(0, -width / 2, 0);
   cyl->GetCylinderGeometry().rad = radius;
   spindle->AddAsset(cyl);
-}
-
-// -----------------------------------------------------------------------------
-// -----------------------------------------------------------------------------
-void ChDoubleWishbone::ApplySteering(double displ)
-{
-  {
-    ChVector<> r_bar = m_tierod_marker[LEFT];
-    r_bar.y -= displ;
-    m_distTierod[LEFT]->SetEndPoint1Rel(r_bar);
-  }
-  {
-    ChVector<> r_bar = m_tierod_marker[RIGHT];
-    r_bar.y -= displ;
-    m_distTierod[RIGHT]->SetEndPoint1Rel(r_bar);
-  }
 }
 
 

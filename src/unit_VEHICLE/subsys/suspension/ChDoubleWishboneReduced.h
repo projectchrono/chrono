@@ -54,8 +54,6 @@ public:
                           const ChVector<>&          location,
                           ChSharedPtr<ChBody>        tierod_body);
 
-  virtual void ApplySteering(double displ);
-
   virtual void LogConstraintViolations(ChSuspension::Side side);
 
 protected:
@@ -103,8 +101,6 @@ protected:
   ChSharedPtr<ChLinkDistance>       m_distTierod[2];
 
   ChSharedPtr<ChLinkSpring>         m_shock[2];
-
-  ChVector<>                        m_tierod_marker[2];
 
 private:
   void CreateSide(ChSuspension::Side side,

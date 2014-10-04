@@ -377,10 +377,6 @@ void HMMWV_VehicleJSON::Update(double              time,
                                double              powertrain_torque,
                                const ChTireForces& tire_forces)
 {
-  // Apply steering input.
-  double displ = 0.08 * steering;
-  m_front_susp->ApplySteering(displ);
-
   // Apply powertrain torque to the driveline's input shaft.
   m_driveline->ApplyDriveshaftTorque(powertrain_torque);
 

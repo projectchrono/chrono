@@ -126,9 +126,6 @@ public:
     ChSharedPtr<ChBody>        tierod_body  ///< [in] body to which tireods are connected
     ) = 0;
 
-  /// SOON TO BE OBSOLETED
-  virtual void ApplySteering(double displ) = 0;
-
   /// Log current constraint violations.
   virtual void LogConstraintViolations(Side side) {}
 

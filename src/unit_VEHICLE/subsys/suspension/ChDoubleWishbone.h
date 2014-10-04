@@ -54,8 +54,6 @@ public:
                           const ChVector<>&          location,
                           ChSharedPtr<ChBody>        tierod_body);
 
-  virtual void ApplySteering(double displ);
-
   double GetSpringForce(ChSuspension::Side side)       const { return m_spring[side]->Get_SpringReact(); }
   double GetSpringLength(ChSuspension::Side side)      const { return m_spring[side]->Get_SpringLength(); }
   double GetSpringDeformation(ChSuspension::Side side) const { return m_spring[side]->Get_SpringDeform(); }
@@ -139,8 +137,6 @@ protected:
 
   ChSharedPtr<ChLinkSpringCB>       m_shock[2];
   ChSharedPtr<ChLinkSpringCB>       m_spring[2];
-
-  ChVector<>                        m_tierod_marker[2];
 
 private:
 

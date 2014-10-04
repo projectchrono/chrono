@@ -376,15 +376,11 @@ void HMMWV_VehicleSolidAxle::Update(double              time,
                                     double              powertrain_torque,
                                     const ChTireForces& tire_forces)
 {
-  // Apply steering input.
-  double displ = 0.05 * steering;
-  m_front_susp->ApplySteering(displ);
-
   // Apply powertrain torque to the driveline's input shaft.
   m_driveline->ApplyDriveshaftTorque(powertrain_torque);
 
   // Let the steering subsystem process the steering input.
-  m_steering->Update(time, steering);
+  m_steering->Update(time, 0.5 * steering);
 
   // Apply tire forces to spindle bodies.
   m_front_susp->ApplyTireForce(ChSuspension::RIGHT, tire_forces[FRONT_RIGHT]);
