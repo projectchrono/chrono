@@ -99,6 +99,12 @@ HMMWV_VehicleSolidAxle::HMMWV_VehicleSolidAxle(const bool           fixed,
   m_front_susp = ChSharedPtr<HMMWV_SolidAxleFront>(new HMMWV_SolidAxleFront("FrontSusp", false));
   m_rear_susp = ChSharedPtr<HMMWV_SolidAxleRear>(new HMMWV_SolidAxleRear("RearSusp", true));
 
+  // -----------------------------
+  // Create the steering subsystem
+  // -----------------------------
+
+  m_steering = ChSharedPtr<HMMWV_RackPinion>(new HMMWV_RackPinion("Steering"));
+
   // -----------------
   // Create the wheels
   // -----------------
@@ -134,6 +140,11 @@ HMMWV_VehicleSolidAxle::~HMMWV_VehicleSolidAxle()
 void HMMWV_VehicleSolidAxle::Initialize(const ChCoordsys<>& chassisPos)
 {
   m_chassis->SetFrame_REF_to_abs(ChFrame<>(chassisPos));
+
+  // Initialize the steering subsystem (specify the steering subsystem's frame
+  // relative to the chassis reference frame).
+  ChVector<> offset = in2m * ChVector<>(63, 0, -3.1);
+  m_steering->Initialize(m_chassis, offset, ChQuaternion<>(1, 0, 0, 0));
 
   // Initialize the suspension subsystems (specify the suspension subsystems'
   // frames relative to the chassis reference frame).
@@ -367,11 +378,13 @@ void HMMWV_VehicleSolidAxle::Update(double              time,
 {
   // Apply steering input.
   double displ = 0.08 * steering;
-
   m_front_susp->ApplySteering(displ);
 
   // Apply powertrain torque to the driveline's input shaft.
   m_driveline->ApplyDriveshaftTorque(powertrain_torque);
+
+  // Let the steering subsystem process the steering input.
+  m_steering->Update(time, steering);
 
   // Apply tire forces to spindle bodies.
   m_front_susp->ApplyTireForce(ChSuspension::RIGHT, tire_forces[FRONT_RIGHT]);
@@ -431,6 +444,10 @@ void HMMWV_VehicleSolidAxle::LogConstraintViolations()
   m_rear_susp->LogConstraintViolations(ChSuspension::RIGHT);
   GetLog() << "\n---- REAR-LEFT suspension constraint violation\n\n";
   m_rear_susp->LogConstraintViolations(ChSuspension::LEFT);
+
+  // Report constraint violations for the steering joints
+  GetLog() << "\n---- STEERING constrain violation\n\n";
+  m_steering->LogConstraintViolations();
 
   GetLog().SetNumFormat("%g");
 
