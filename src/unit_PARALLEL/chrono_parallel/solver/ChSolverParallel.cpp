@@ -151,20 +151,22 @@ custom_vector<real> &x) {
 }
 
 void ChSolverParallel::UpdateContacts() {
-   if (rigid_rigid->solve_sliding == true || rigid_rigid->solve_spinning == true) {
-      return;
-   }
 
-   //// TODO:  This ASSUMES that we are using an MPR narrowphase!!
-   ////        Instead of constructing a narrowphaseMPR object here,
-   ////        modify so that we can use the CHCNarrowphase object
-   ////        from the CollisionSystemParallel.
-   collision::ChCNarrowphaseMPR narrowphase;
-   narrowphase.SetCollisionEnvelope(data_container->settings.collision.collision_envelope);
-   narrowphase.Update(data_container);
-
-   rigid_rigid->UpdateJacobians();
-   rigid_rigid->UpdateRHS();
+////TODO: Re-implement this using new dispatch
+//   if (rigid_rigid->solve_sliding == true || rigid_rigid->solve_spinning == true) {
+//      return;
+//   }
+//
+//   //// TODO:  This ASSUMES that we are using an MPR narrowphase!!
+//   ////        Instead of constructing a narrowphaseMPR object here,
+//   ////        modify so that we can use the CHCNarrowphase object
+//   ////        from the CollisionSystemParallel.
+//   collision::ChCNarrowphaseMPR narrowphase;
+//   narrowphase.SetCollisionEnvelope(data_container->settings.collision.collision_envelope);
+//   narrowphase.Update(data_container);
+//
+//   rigid_rigid->UpdateJacobians();
+//   rigid_rigid->UpdateRHS();
 
 }
 //
