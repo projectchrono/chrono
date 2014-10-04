@@ -142,7 +142,8 @@ void ChSolidAxle::CreateSide(ChSuspension::Side side,
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 void ChSolidAxle::Initialize(ChSharedPtr<ChBodyAuxRef>  chassis,
-                             const ChVector<>&          location)
+                             const ChVector<>&          location,
+                             ChSharedPtr<ChBody>        tierod_body)
 {
   // Express the suspension reference frame in the absolute coordinate system.
   ChFrame<> suspension_to_abs(location);
@@ -189,12 +190,13 @@ void ChSolidAxle::Initialize(ChSharedPtr<ChBodyAuxRef>  chassis,
   }
 
   // Initialize left and right sides.
-  InitializeSide(LEFT, chassis, points_L, dirs_L);
-  InitializeSide(RIGHT, chassis, points_R, dirs_R);
+  InitializeSide(LEFT, chassis, tierod_body, points_L, dirs_L);
+  InitializeSide(RIGHT, chassis, tierod_body, points_R, dirs_R);
 }
 
 void ChSolidAxle::InitializeSide(ChSuspension::Side              side,
                                  ChSharedPtr<ChBodyAuxRef>       chassis,
+                                 ChSharedPtr<ChBody>             tierod_body,
                                  const std::vector<ChVector<> >& points,
                                  const std::vector<ChVector<> >& dirs)
 {

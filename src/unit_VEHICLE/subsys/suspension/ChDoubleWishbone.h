@@ -51,7 +51,8 @@ public:
   virtual ~ChDoubleWishbone();
 
   virtual void Initialize(ChSharedPtr<ChBodyAuxRef>  chassis,
-                          const ChVector<>&          location);
+                          const ChVector<>&          location,
+                          ChSharedPtr<ChBody>        tierod_body);
 
   virtual void ApplySteering(double displ);
 
@@ -147,6 +148,7 @@ private:
                   const std::string& suffix);
   void InitializeSide(ChSuspension::Side              side,
                       ChSharedPtr<ChBodyAuxRef>       chassis,
+                      ChSharedPtr<ChBody>             tierod_body,
                       const std::vector<ChVector<> >& points);
 
   static void AddVisualizationControlArm(ChSharedBodyPtr    arm,

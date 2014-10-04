@@ -181,7 +181,8 @@ void ChDoubleWishbone::CreateSide(ChSuspension::Side side,
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 void ChDoubleWishbone::Initialize(ChSharedPtr<ChBodyAuxRef>  chassis,
-                                  const ChVector<>&          location)
+                                  const ChVector<>&          location,
+                                  ChSharedPtr<ChBody>        tierod_body)
 {
   // Set the shock and spring force callbacks (use the user-provided functor if
   // a nonlinear element was specified; otherwise, use the default functor).
@@ -202,7 +203,7 @@ void ChDoubleWishbone::Initialize(ChSharedPtr<ChBodyAuxRef>  chassis,
     points[i] = suspension_to_abs.TransformLocalToParent(rel_pos);
   }
 
-  InitializeSide(LEFT, chassis, points);
+  InitializeSide(LEFT, chassis, tierod_body, points);
 
   // Transform all points to absolute frame and initialize right side.
   for (int i = 0; i < NUM_POINTS; i++) {
@@ -211,11 +212,12 @@ void ChDoubleWishbone::Initialize(ChSharedPtr<ChBodyAuxRef>  chassis,
     points[i] = suspension_to_abs.TransformLocalToParent(rel_pos);
   }
 
-  InitializeSide(RIGHT, chassis, points);
+  InitializeSide(RIGHT, chassis, tierod_body, points);
 }
 
 void ChDoubleWishbone::InitializeSide(ChSuspension::Side              side,
                                       ChSharedPtr<ChBodyAuxRef>       chassis,
+                                      ChSharedPtr<ChBody>             tierod_body,
                                       const std::vector<ChVector<> >& points)
 {
   // Chassis orientation (expressed in absolute frame)

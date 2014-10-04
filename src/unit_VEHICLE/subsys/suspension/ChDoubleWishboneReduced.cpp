@@ -95,7 +95,8 @@ void ChDoubleWishboneReduced::CreateSide(ChSuspension::Side side,
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 void ChDoubleWishboneReduced::Initialize(ChSharedPtr<ChBodyAuxRef>  chassis,
-                                         const ChVector<>&          location)
+                                         const ChVector<>&          location,
+                                         ChSharedPtr<ChBody>        tierod_body)
 {
   // Express the suspension reference frame in the absolute coordinate system.
   ChFrame<> suspension_to_abs(location);
@@ -109,7 +110,7 @@ void ChDoubleWishboneReduced::Initialize(ChSharedPtr<ChBodyAuxRef>  chassis,
     points[i] = suspension_to_abs.TransformLocalToParent(rel_pos);
   }
 
-  InitializeSide(LEFT, chassis, points);
+  InitializeSide(LEFT, chassis, tierod_body, points);
 
   // Transform all points to absolute frame and initialize right side.
   for (int i = 0; i < NUM_POINTS; i++) {
@@ -118,12 +119,13 @@ void ChDoubleWishboneReduced::Initialize(ChSharedPtr<ChBodyAuxRef>  chassis,
     points[i] = suspension_to_abs.TransformLocalToParent(rel_pos);
   }
 
-  InitializeSide(RIGHT, chassis, points);
+  InitializeSide(RIGHT, chassis, tierod_body, points);
 }
 
 
 void ChDoubleWishboneReduced::InitializeSide(ChSuspension::Side              side,
                                              ChSharedPtr<ChBodyAuxRef>       chassis,
+                                             ChSharedPtr<ChBody>             tierod_body,
                                              const std::vector<ChVector<> >& points)
 {
   // Chassis orientation (expressed in absolute frame)

@@ -117,9 +117,13 @@ public:
   /// chassis body at the specified location (with respect to and expressed in
   /// the reference frame of the chassis). It is assumed that the suspension
   /// reference frame is always aligned with the chassis reference frame.
+  /// Finally, tierod_body is a handle to the body to which the suspension
+  /// tierods are to be attached. For a steerable suspension, this will be the
+  /// steering link of a suspension subsystem.  Otherwise, this is the chassis.
   virtual void Initialize(
-    ChSharedPtr<ChBodyAuxRef>  chassis,  ///< [in] handle to the chassis body
-    const ChVector<>&          location  ///< [in] location relative to the chassis frame
+    ChSharedPtr<ChBodyAuxRef>  chassis,     ///< [in] handle to the chassis body
+    const ChVector<>&          location,    ///< [in] location relative to the chassis frame
+    ChSharedPtr<ChBody>        tierod_body  ///< [in] body to which tireods are connected
     ) = 0;
 
   /// SOON TO BE OBSOLETED

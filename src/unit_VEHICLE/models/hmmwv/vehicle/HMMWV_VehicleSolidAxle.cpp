@@ -148,8 +148,8 @@ void HMMWV_VehicleSolidAxle::Initialize(const ChCoordsys<>& chassisPos)
 
   // Initialize the suspension subsystems (specify the suspension subsystems'
   // frames relative to the chassis reference frame).
-  m_front_susp->Initialize(m_chassis, in2m * ChVector<>(66.59, 0, 0));
-  m_rear_susp->Initialize(m_chassis, in2m * ChVector<>(-66.4, 0, 0));
+  m_front_susp->Initialize(m_chassis, in2m * ChVector<>(66.59, 0, 0), m_steering->GetSteeringLink());
+  m_rear_susp->Initialize(m_chassis, in2m * ChVector<>(-66.4, 0, 0), m_chassis);
 
   // Initialize wheels
   m_front_right_wheel->Initialize(m_front_susp->GetSpindle(ChSuspension::RIGHT));
@@ -377,7 +377,7 @@ void HMMWV_VehicleSolidAxle::Update(double              time,
                                     const ChTireForces& tire_forces)
 {
   // Apply steering input.
-  double displ = 0.08 * steering;
+  double displ = 0.05 * steering;
   m_front_susp->ApplySteering(displ);
 
   // Apply powertrain torque to the driveline's input shaft.
