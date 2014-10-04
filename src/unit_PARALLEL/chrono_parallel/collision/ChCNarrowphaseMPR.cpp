@@ -19,12 +19,12 @@ struct simplex {
    support s0, s1, s2, s3, s4;
 };
 
-bool chrono::collision::SphereSphere(const ConvexShape &ShapeA,
-                                     const ConvexShape &ShapeB,
-                                     real3 & N,
-                                     real & depth,
-                                     real3 & p1,
-                                     real3 & p2) {
+bool chrono::collision::MPRSphereSphere(const ConvexShape &ShapeA,
+                                        const ConvexShape &ShapeB,
+                                        real3 & N,
+                                        real & depth,
+                                        real3 & p1,
+                                        real3 & p2) {
    real3 relpos = ShapeB.A - ShapeA.A;
    real d2 = dot(relpos, relpos);
    real collide_dist = ShapeA.B.x + ShapeB.B.x;
@@ -39,14 +39,13 @@ bool chrono::collision::SphereSphere(const ConvexShape &ShapeA,
    return false;
 }
 
-__device__ __host__ real3 GetCenter(const ConvexShape &Shape) {
+real3 GetCenter(const ConvexShape &Shape) {
    if (Shape.type == TRIANGLEMESH) {
       return GetCenter_Triangle(Shape.A, Shape.B, Shape.C);     //triangle center
    } else {
       return R3(0, 0, 0) + Shape.A;     //All other shapes assumed to be locally centered
    }
 }
-
 
 void FindCenter(const ConvexShape & shapeA,
                 const ConvexShape & shapeB,
@@ -622,11 +621,11 @@ int RefinePortal(const ConvexShape & shapeA,
    return -1;
 }
 //Code for Convex-Convex Collision detection, adopted from xeno-collide
-bool chrono::collision::CollideAndFindPoint(const ConvexShape & shapeA,
-                                            const ConvexShape & shapeB,
-                                            real3 &returnNormal,
-                                            real3 &point,
-                                            real &depth) {
+bool chrono::collision::MPRCollision(const ConvexShape & shapeA,
+                                  const ConvexShape & shapeB,
+                                  real3 &returnNormal,
+                                  real3 &point,
+                                  real &depth) {
 
    simplex portal;
 
@@ -650,363 +649,17 @@ bool chrono::collision::CollideAndFindPoint(const ConvexShape & shapeA,
    }
    return 1;
 }
-void chrono::collision::GetPoints(const ConvexShape & shapeA,
-                                  const ConvexShape & shapeB,
-                                  real3 &N,
-                                  real3 p0,
-                                  real3 & p1,
-                                  real3 & p2) {
+void chrono::collision::MPRGetPoints(const ConvexShape & shapeA,
+                                     const ConvexShape & shapeB,
+                                     real3 &N,
+                                     real3 p0,
+                                     real3 & p1,
+                                     real3 & p2) {
 
    p1 = dot((TransformSupportVert(shapeA, -N) - p0), N) * N + p0;
    p2 = dot((TransformSupportVert(shapeB, N) - p0), N) * N + p0;
    N = -N;
 
 }
-void ChCNarrowphaseMPR::function_MPR_Store(const uint &index,
-                                           const shape_type *obj_data_T,
-                                           const real3 *obj_data_A,
-                                           const real3 *obj_data_B,
-                                           const real3 *obj_data_C,
-                                           const real4 *obj_data_R,
-                                           const uint *obj_data_ID,
-                                           const bool * obj_active,
-                                           const real3 *body_pos,
-                                           const real4 *body_rot,
-                                           const real & collision_envelope,
-                                           long long *contact_pair,
-                                           uint *contact_active,
-                                           real3 *norm,
-                                           real3 *ptA,
-                                           real3 *ptB,
-                                           real *contactDepth,
-                                           int2 *ids
 
-                                           ) {
-
-   long long p = contact_pair[index];
-   int2 pair = I2(int(p >> 32), int(p & 0xffffffff));
-   uint ID_A = obj_data_ID[pair.x];
-   uint ID_B = obj_data_ID[pair.y];
-
-   if (obj_active[ID_A] == false && obj_active[ID_B] == false) {
-      return;
-   }
-   if (ID_A == ID_B) {
-      return;
-   }
-   ConvexShape shapeA, shapeB;
-
-   shapeA.type = obj_data_T[pair.x];
-   shapeB.type = obj_data_T[pair.y];     //Get the type data for each object in the collision pair
-   real3 posA = body_pos[ID_A], posB = body_pos[ID_B];     //Get the global object position
-   real4 rotA = (body_rot[ID_A]), rotB = (body_rot[ID_B]);     //Get the global object rotation
-   shapeA.A = obj_data_A[pair.x];
-   shapeB.A = obj_data_A[pair.y];
-   shapeA.B = obj_data_B[pair.x];
-   shapeB.B = obj_data_B[pair.y];
-   shapeA.C = obj_data_C[pair.x];
-   shapeB.C = obj_data_C[pair.y];
-   shapeA.R = (mult(rotA, obj_data_R[pair.x]));
-   shapeB.R = (mult(rotB, obj_data_R[pair.y]));
-
-   real envelope = collision_envelope;
-
-   real3 N = R3(1, 0, 0), p1 = R3(0), p2 = R3(0), p0 = R3(0);
-   real depth = 0;
-
-   if (shapeA.type == SPHERE && shapeB.type == SPHERE) {
-      if (!SphereSphere(shapeA, shapeB, N, depth, p1, p2)) {
-         return;
-      }
-   } else {
-      if (!CollideAndFindPoint(shapeA, shapeB, N, p0, depth)) {
-         return;
-      }
-//      A_Y -= envelope;
-//      B_Y -= envelope;
-      GetPoints(shapeA, shapeB, N, p0, p1, p2);
-   }
-   //if(depth>0){swap(p1,p2); depth = -depth;}
-   std::cout << N << p0 << p1 << p2 << depth << std::endl;
-
-   depth = dot(N, p2 - p1) + envelope * 2.0;
-   std::cout << N << p0 << p1 << p2 << depth << std::endl;
-
-   p1 = p1 - (N) * envelope;
-   p2 = p2 + (N) * envelope;
-   //cout << depth << endl;
-
-//   if (depth > envelope) {
-//      return;
-//   }
-
-   norm[index] = N;
-   ptA[index] = p1 - posA;
-   ptB[index] = p2 - posB;
-   contactDepth[index] = depth;
-   ids[index] = I2(ID_A, ID_B);
-   contact_active[index] = 0;
-}
-
-void ChCNarrowphaseMPR::host_MPR_Store(const shape_type *obj_data_T,
-                                       const real3 *obj_data_A,
-                                       const real3 *obj_data_B,
-                                       const real3 *obj_data_C,
-                                       const real4 *obj_data_R,
-                                       const uint *obj_data_ID,
-                                       const bool * obj_active,
-                                       const real3 *body_pos,
-                                       const real4 *body_rot,
-                                       long long *contact_pair,
-                                       uint *contact_active,
-                                       real3 *norm,
-                                       real3 *ptA,
-                                       real3 *ptB,
-                                       real *contactDepth,
-                                       int2 *ids) {
-#pragma omp parallel for
-   for (int index = 0; index < total_possible_contacts; index++) {
-      function_MPR_Store(index, obj_data_T, obj_data_A, obj_data_B, obj_data_C, obj_data_R, obj_data_ID, obj_active, body_pos, body_rot, collision_envelope, contact_pair,
-                         contact_active, norm, ptA, ptB, contactDepth, ids);
-   }
-}
-
-void ChCNarrowphaseMPR::function_MPR_Update(const uint &index,
-                                            const shape_type *obj_data_T,
-                                            const real3 *obj_data_A,
-                                            const real3 *obj_data_B,
-                                            const real3 *obj_data_C,
-                                            const real4 *obj_data_R,
-                                            const uint *obj_data_ID,
-                                            const bool * obj_active,
-                                            const real3 *body_pos,
-                                            const real4 *body_rot,
-                                            const real & collision_envelope,
-                                            real3 *norm,
-                                            real3 *ptA,
-                                            real3 *ptB,
-                                            real *contactDepth,
-                                            int2 *ids) {
-
-   int2 pair = ids[index];
-   shape_type A_T = obj_data_T[pair.x], B_T = obj_data_T[pair.y];     //Get the type data for each object in the collision pair
-   uint ID_A = obj_data_ID[pair.x];
-   uint ID_B = obj_data_ID[pair.y];
-
-   if (obj_active[ID_A] == false && obj_active[ID_B] == false) {
-      return;
-   }
-   if (ID_A == ID_B) {
-      return;
-   }
-
-   ConvexShape shapeA, shapeB;
-
-   shapeA.type = obj_data_T[pair.x];
-   shapeB.type = obj_data_T[pair.y];     //Get the type data for each object in the collision pair
-   real3 posA = body_pos[ID_A], posB = body_pos[ID_B];     //Get the global object position
-   real4 rotA = (body_rot[ID_A]), rotB = (body_rot[ID_B]);     //Get the global object rotation
-   shapeA.A = obj_data_A[pair.x];
-   shapeB.A = obj_data_A[pair.y];
-   shapeA.B = obj_data_B[pair.x];
-   shapeB.B = obj_data_B[pair.y];
-   shapeA.C = obj_data_C[pair.x];
-   shapeB.C = obj_data_C[pair.y];
-   shapeA.R = (mult(rotA, obj_data_R[pair.x]));
-   shapeB.R = (mult(rotB, obj_data_R[pair.y]));
-
-   real envelope = collision_envelope;
-
-   real3 N = R3(1, 0, 0), p1 = R3(0), p2 = R3(0), p0 = R3(0);
-   real depth = 0;
-
-   if (A_T == SPHERE && B_T == SPHERE) {
-      if (!SphereSphere(shapeA, shapeB, N, depth, p1, p2)) {
-         return;
-      }
-   } else {
-
-      if (!CollideAndFindPoint(shapeA, shapeB, N, p0, depth)) {
-         //contactDepth[index] = 0;
-         return;
-      }
-
-      GetPoints(shapeA, shapeB, N, p0, p1, p2);
-
-   }
-
-   p1 = p1 - (N) * envelope;
-   p2 = p2 + (N) * envelope;
-
-   depth = dot(N, p2 - p1);
-   norm[index] = N;
-   ptA[index] = p1;
-   ptB[index] = p2;
-
-//contactDepth[index] = depth;
-
-}
-
-void ChCNarrowphaseMPR::host_MPR_Update(const shape_type *obj_data_T,
-                                        const real3 *obj_data_A,
-                                        const real3 *obj_data_B,
-                                        const real3 *obj_data_C,
-                                        const real4 *obj_data_R,
-                                        const uint *obj_data_ID,
-                                        const bool * obj_active,
-                                        const real3 *body_pos,
-                                        const real4 *body_rot,
-                                        real3 *norm,
-                                        real3 *ptA,
-                                        real3 *ptB,
-                                        real *contactDepth,
-                                        int2 *ids) {
-//#pragma omp parallel for
-   for (int index = 0; index < total_possible_contacts; index++) {
-      function_MPR_Update(index, obj_data_T, obj_data_A, obj_data_B, obj_data_C, obj_data_R, obj_data_ID, obj_active, body_pos, body_rot, collision_envelope, norm, ptA, ptB,
-                          contactDepth, ids);
-   }
-}
-
-void host_Preprocess(const uint &index,
-                     const shape_type *obj_data_T,
-                     const real3 *obj_data_A,
-                     const real3 *obj_data_B,
-                     const real3 *obj_data_C,
-                     const real4 *obj_data_R,
-                     const uint *obj_data_ID,
-                     const bool * obj_active,
-                     const real3 *body_pos,
-                     const real4 *body_rot,
-                     real3 *obj_data_A_mod,
-                     real3 *obj_data_B_mod,
-                     real3 *obj_data_C_mod) {
-
-   shape_type T = obj_data_T[index];
-
-   uint ID = obj_data_ID[index];
-
-   real3 pos = body_pos[ID];     //Get the global object position
-   real4 rot = body_rot[ID];     //Get the global object rotation
-   real3 X = obj_data_A[index];
-
-   if (T == SPHERE || T == ELLIPSOID || T == BOX || T == CYLINDER || T == CONE) {
-      obj_data_A_mod[index] = quatRotate(X, rot) + pos;
-   } else if (T == TRIANGLEMESH) {
-      real3 Y = obj_data_B[index];
-      real3 Z = obj_data_C[index];
-      obj_data_A_mod[index] = quatRotate(X, rot) + pos;
-      obj_data_B_mod[index] = quatRotate(Y, rot) + pos;
-      obj_data_C_mod[index] = quatRotate(Z, rot) + pos;
-   }
-
-}
-
-void Preprocess(const int numAABB,
-                const shape_type *obj_data_T,
-                const real3 *obj_data_A,
-                const real3 *obj_data_B,
-                const real3 *obj_data_C,
-                const real4 *obj_data_R,
-                const uint *obj_data_ID,
-                const bool * obj_active,
-                const real3 *body_pos,
-                const real4 *body_rot,
-                real3 *obj_data_A_mod,
-                real3 *obj_data_B_mod,
-                real3 *obj_data_C_mod) {
-#pragma omp parallel for
-   for (int index = 0; index < numAABB; index++) {
-      host_Preprocess(index, obj_data_T, obj_data_A, obj_data_B, obj_data_C, obj_data_R, obj_data_ID, obj_active, body_pos, body_rot, obj_data_A_mod, obj_data_B_mod,
-                      obj_data_C_mod);
-   }
-}
-
-void ChCNarrowphaseMPR::DoNarrowphase(const custom_vector<shape_type> &obj_data_T,
-                                      const custom_vector<real3> &obj_data_A,
-                                      const custom_vector<real3> &obj_data_B,
-                                      const custom_vector<real3> &obj_data_C,
-                                      const custom_vector<real4> &obj_data_R,
-                                      const custom_vector<uint> &obj_data_ID,
-                                      const custom_vector<bool> & obj_active,
-                                      const custom_vector<real3> &body_pos,
-                                      const custom_vector<real4> &body_rot,
-                                      custom_vector<long long> &potentialCollisions,
-                                      custom_vector<real3> &norm_data,
-                                      custom_vector<real3> &cpta_data,
-                                      custom_vector<real3> &cptb_data,
-                                      custom_vector<real> &dpth_data,
-                                      custom_vector<int2> &bids_data,
-                                      uint & number_of_contacts) {
-
-   total_possible_contacts = potentialCollisions.size();
-
-#if PRINT_LEVEL==2
-   cout << "Number of total_possible_contacts: " << total_possible_contacts << endl;
-#endif
-   custom_vector<uint> generic_counter(total_possible_contacts);
-   thrust::fill(generic_counter.begin(), generic_counter.end(), 1);
-   norm_data.resize(total_possible_contacts);
-   cpta_data.resize(total_possible_contacts);
-   cptb_data.resize(total_possible_contacts);
-   dpth_data.resize(total_possible_contacts);
-   bids_data.resize(total_possible_contacts);
-
-   obj_data_A_mod = obj_data_A;
-   obj_data_B_mod = obj_data_B;
-   obj_data_C_mod = obj_data_C;
-
-   Preprocess(obj_data_T.size(), obj_data_T.data(), obj_data_A.data(), obj_data_B.data(), obj_data_C.data(), obj_data_R.data(), obj_data_ID.data(), obj_active.data(),
-              body_pos.data(), body_rot.data(), obj_data_A_mod.data(), obj_data_B_mod.data(), obj_data_C_mod.data());
-
-   host_MPR_Store(obj_data_T.data(), obj_data_A_mod.data(), obj_data_B_mod.data(), obj_data_C_mod.data(), obj_data_R.data(), obj_data_ID.data(), obj_active.data(), body_pos.data(),
-                  body_rot.data(), potentialCollisions.data(), generic_counter.data(), norm_data.data(), cpta_data.data(), cptb_data.data(), dpth_data.data(), bids_data.data());
-
-   number_of_contacts = total_possible_contacts - thrust::count(generic_counter.begin(), generic_counter.end(), 1);
-#if PRINT_LEVEL==2
-   cout << "Number of number_of_contacts: " << number_of_contacts << endl;
-#endif
-   thrust::remove_if(norm_data.begin(), norm_data.end(), generic_counter.begin(), thrust::identity<int>());
-   thrust::remove_if(cpta_data.begin(), cpta_data.end(), generic_counter.begin(), thrust::identity<int>());
-   thrust::remove_if(cptb_data.begin(), cptb_data.end(), generic_counter.begin(), thrust::identity<int>());
-   thrust::remove_if(dpth_data.begin(), dpth_data.end(), generic_counter.begin(), thrust::identity<int>());
-   thrust::remove_if(bids_data.begin(), bids_data.end(), generic_counter.begin(), thrust::identity<int>());
-   thrust::remove_if(potentialCollisions.begin(), potentialCollisions.end(), generic_counter.begin(), thrust::identity<int>());
-
-   potentialCollisions.resize(number_of_contacts);
-   norm_data.resize(number_of_contacts);
-   cpta_data.resize(number_of_contacts);
-   cptb_data.resize(number_of_contacts);
-   dpth_data.resize(number_of_contacts);
-   bids_data.resize(number_of_contacts);
-
-// thrust::sort_by_key(thrust::omp::par,
-// potentialCollisions.begin(),
-// potentialCollisions.end(),
-// thrust::make_zip_iterator(thrust::make_tuple(norm_data.begin(), cpta_data.begin(), cptb_data.begin(), dpth_data.begin(), bids_data.begin()))
-// );
-
-}
-
-void ChCNarrowphaseMPR::UpdateNarrowphase(const custom_vector<shape_type> &obj_data_T,
-                                          const custom_vector<real3> &obj_data_A,
-                                          const custom_vector<real3> &obj_data_B,
-                                          const custom_vector<real3> &obj_data_C,
-                                          const custom_vector<real4> &obj_data_R,
-                                          const custom_vector<uint> &obj_data_ID,
-                                          const custom_vector<bool> & obj_active,
-                                          const custom_vector<real3> &body_pos,
-                                          const custom_vector<real4> &body_rot,
-                                          const uint & number_of_contacts,
-                                          custom_vector<real3> &norm_data,
-                                          custom_vector<real3> &cpta_data,
-                                          custom_vector<real3> &cptb_data,
-                                          custom_vector<real> &dpth_data,
-                                          custom_vector<int2> &bids_data) {
-   total_possible_contacts = number_of_contacts;
-
-   host_MPR_Update(obj_data_T.data(), obj_data_A.data(), obj_data_B.data(), obj_data_C.data(), obj_data_R.data(), obj_data_ID.data(), obj_active.data(), body_pos.data(),
-                   body_rot.data(), norm_data.data(), cpta_data.data(), cptb_data.data(), dpth_data.data(), bids_data.data());
-
-}
 

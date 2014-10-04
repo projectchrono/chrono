@@ -15,6 +15,18 @@ struct ConvexShape {
    quaternion R;  //rotation
 };
 
+struct sResults {
+   enum eStatus {
+      Separated, /* Shapes does not penetrate                                   */
+      Penetrating, /* Shapes are penetrating                                  */
+      GJK_Failed, /* GJK phase fail, no big issue, shapes are probably just 'touching' */
+      EPA_Failed /* EPA phase fail, bigger problem, need to save parameters, and debug */
+   } status;
+   real3 witnesses[2];
+   real3 normal;
+   real distance;
+};
+
 class CH_PARALLEL_API ChCNarrowphase {
  public:
    ChCNarrowphase()

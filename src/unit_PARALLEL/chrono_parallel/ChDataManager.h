@@ -27,7 +27,6 @@
 #include <blaze/math/CompressedMatrix.h>
 #include "parallel/ChOpenMP.h"
 
-
 using blaze::CompressedMatrix;
 namespace chrono {
 struct collision_settings {
@@ -36,7 +35,9 @@ struct collision_settings {
       min_body_per_bin = 25;
       use_aabb_active = 0;
       collision_envelope = 0;
-      bins_per_axis = I3(20,20,20);
+      bins_per_axis = I3(20, 20, 20);
+      narrowphase_algorithm = NARROWPHASE_MPR;
+      edge_radius = 0.1;
    }
 
    //Collision variables
@@ -47,6 +48,8 @@ struct collision_settings {
    int max_body_per_bin;
    real3 aabb_min, aabb_max;
    int3 bins_per_axis;
+   NARROWPHASETYPE narrowphase_algorithm;
+   real edge_radius;
 
 };
 
@@ -100,13 +103,13 @@ struct solver_settings {
 
 struct settings_container {
 
-   settings_container(){
+   settings_container() {
       min_threads = 1;
       max_threads = CHOMPfunctions::GetNumProcs();
       // Only perform thread tuning if max threads is greater than min_threads;
       // I don't really check to see if max_threads is > than min_threads
       // not sure if that is a huge issue
-      perform_thread_tuning = ((min_threads == max_threads) ? false: true);
+      perform_thread_tuning = ((min_threads == max_threads) ? false : true);
       perform_bin_tuning = true;
 
    }

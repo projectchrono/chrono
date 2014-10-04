@@ -18,7 +18,6 @@
 #ifndef CHPARALLELDEFINES_H
 #define CHPARALLELDEFINES_H
 
-
 #undef _GLIBCXX_ATOMIC_BUILTINS
 #undef _GLIBCXX_USE_INT128 
 
@@ -66,18 +65,17 @@
 #include "chrono_parallel/ChConfigParallel.h"
 
 #ifdef CHRONO_PARALLEL_OMP_FOUND
-   #include <omp.h>
+#include <omp.h>
 #endif
 
-
 #ifdef _MSC_VER
-   #define thrust_parallel thrust::cpp::par
+#define thrust_parallel thrust::cpp::par
 #else
-   #define thrust_parallel thrust::omp::par
+#define thrust_parallel thrust::omp::par
 #endif
 
 typedef unsigned int uint;
-typedef int  shape_type;
+typedef int shape_type;
 
 //#ifdef __CDT_PARSER__
 //#define __host__
@@ -94,14 +92,14 @@ typedef int  shape_type;
 
 //#define SIM_ENABLE_GPU_MODE
 #ifdef SIM_ENABLE_GPU_MODE
-   #define custom_vector thrust::device_vector
-   #else
-   #ifndef __CDT_PARSER__
-      #define custom_vector thrust::host_vector
-   #else
-      using namespace thrust;
-      #define custom_vector host_vector
-   #endif
+#define custom_vector thrust::device_vector
+#else
+#ifndef __CDT_PARSER__
+#define custom_vector thrust::host_vector
+#else
+using namespace thrust;
+#define custom_vector host_vector
+#endif
 #endif
 
 //Output Verbosity Level
@@ -180,16 +178,18 @@ enum SOLVERTYPE {
    GAUSS_SEIDEL
 };
 
-
-enum SOLVERMODE{
+enum SOLVERMODE {
    NORMAL,
    SLIDING,
    SPINNING,
 };
 
 enum NARROWPHASETYPE {
-  NARROWPHASE_MPR,
-  NARROWPHASE_R
+   NARROWPHASE_MPR,
+   NARROWPHASE_GJK,
+   NARROWPHASE_R,
+   NARROWPHASE_HYBRID_MPR,
+   NARROWPHASE_HYBRID_GJK
 };
 
 #endif

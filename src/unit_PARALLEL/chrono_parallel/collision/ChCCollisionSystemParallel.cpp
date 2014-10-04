@@ -17,7 +17,7 @@ ChCollisionSystemParallel::ChCollisionSystemParallel() {
    data_container = 0;
    // Default broadphase and narrowphase processing.
    broadphase = new ChCBroadphase;
-   narrowphase = new ChCNarrowphaseMPR;
+   narrowphase = new ChCNarrowphaseDispatch;
 }
 
 ChCollisionSystemParallel::~ChCollisionSystemParallel() {
@@ -103,7 +103,6 @@ void ChCollisionSystemParallel::Run() {
    data_container->system_timer.stop("collision_broad");
 
    data_container->system_timer.start("collision_narrow");
-   narrowphase->SetCollisionEnvelope(data_container->settings.collision.collision_envelope);
    narrowphase->Process(data_container);
    data_container->system_timer.stop("collision_narrow");
 

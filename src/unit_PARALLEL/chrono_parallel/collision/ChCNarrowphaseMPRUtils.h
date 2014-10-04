@@ -6,10 +6,10 @@
 
 inline real3 GetSupportPoint_Sphere(const real3 &B,
                                     const real3 &n) {
-   real3 b = real3(B.x);
-   return b * b * n / length(b * n);
+   //real3 b = real3(B.x);
+   //return b * b * n / length(b * n);
    //the ellipsoid support function provides a cleaner solution for some reason
-   //return B.x * n;
+   return B.x * n;
 }
 inline real3 GetSupportPoint_Triangle(const real3 &A,
                                       const real3 &B,
@@ -70,7 +70,7 @@ inline real3 GetSupportPoint_Cylinder(const real3 &B,
    if (s != 0) {
       tmp.x = n.x * B.x / s;
       tmp.y = n.y < 0.0 ? -B.y : B.y;
-      tmp.z = n.z * B.z / s;
+      tmp.z = n.z * B.x / s;
    } else {
       tmp.x = B.x;
       tmp.y = n.y < 0.0 ? -B.y : B.y;

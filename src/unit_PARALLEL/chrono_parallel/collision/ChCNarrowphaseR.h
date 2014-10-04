@@ -38,18 +38,6 @@
 namespace chrono {
 namespace collision {
 
-
-class CH_PARALLEL_API ChCNarrowphaseR : public ChCNarrowphase {
-public:
-  ChCNarrowphaseR() {}
-
-  virtual void Process(ChParallelDataManager* data_container);
-
-  virtual void Update(ChParallelDataManager* data_container)
-  {
-    //// TODO
-  }
-
   // Primitive collision functions
   static __host__ __device__
   bool sphere_sphere(const real3& pos1, const real& radius1,
@@ -114,18 +102,20 @@ public:
               real3* pt1, real3* pt2,
               real* eff_radius);
 
-  // Implicit radius of curvature for edge contact.
-  static const real edge_radius;
 
-private:
-  void host_process(ChParallelDataManager* data_container,
-                    uint                   num_potentialCollisions,
-                    custom_vector<uint>&   contact_index,
-                    custom_vector<uint>&   contact_flag);
-  void host_count(ChParallelDataManager* data_container,
-                    uint                   num_potentialCollisions,
-                    custom_vector<uint>&   max_contacts);
-};
+  void RCollision(const uint& icoll,
+                        const ConvexShape &shapeA,
+                        const ConvexShape &shapeB,
+                        const uint* start_index,
+                        const int& body1,
+                        const int& body2,
+                        uint* ct_flag,
+                        real3* ct_norm,
+                        real3* ct_pt1,
+                        real3* ct_pt2,
+                        real* ct_depth,
+                        real* ct_eff_rad,
+                        int2* ct_body_ids);
 
 
 } // end namespace collision

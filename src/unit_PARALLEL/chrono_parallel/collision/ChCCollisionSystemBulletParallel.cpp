@@ -98,6 +98,7 @@ void ChCollisionSystemBulletParallel::Remove(ChCollisionModel* model) {
 
 void ChCollisionSystemBulletParallel::Run() {
    data_container->system_timer.start("collision_broad");
+   printf("inside Run\n");
    if (bt_collision_world) {
       bt_collision_world->performDiscreteCollisionDetection();
    }

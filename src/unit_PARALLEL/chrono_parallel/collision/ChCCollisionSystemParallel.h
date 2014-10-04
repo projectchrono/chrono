@@ -26,8 +26,7 @@
 #include "chrono_parallel/collision/ChContactContainerParallel.h"
 #include "chrono_parallel/collision/ChCCollisionModelParallel.h"
 #include "chrono_parallel/collision/ChCAABBGenerator.h"
-#include "chrono_parallel/collision/ChCNarrowphaseMPR.h"
-#include "chrono_parallel/collision/ChCNarrowphaseR.h"
+#include "chrono_parallel/collision/ChCNarrowphaseDispatch.h"
 #include "chrono_parallel/collision/ChCBroadphase.h"
 
 namespace chrono {
@@ -135,18 +134,8 @@ class CH_PARALLEL_API ChCollisionSystemParallel : public ChCollisionSystem {
 
  private:
 
-   void ChangeBroadphase(ChCBroadphase* new_broadphase) {
-     delete broadphase;
-     broadphase = new_broadphase;
-   }
-
-   void ChangeNarrowphase(ChCNarrowphase* new_narrowphase) {
-     delete narrowphase;
-     narrowphase = new_narrowphase;
-   }
-
    ChCBroadphase* broadphase;
-   ChCNarrowphase* narrowphase;
+   ChCNarrowphaseDispatch* narrowphase;
 
    ChCAABBGenerator aabb_generator;
 
