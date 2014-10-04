@@ -213,7 +213,7 @@ int main(int argc,
    msystem.GetSettings()->collision.max_body_per_bin = 100;
 
    // Select the narrow phase collision algorithm
-   msystem.ChangeCollisionNarrowphase(NARROWPHASE_R);
+   msystem.GetSettings()->collision.narrowphase_algorithm = NARROWPHASE_R;
 
    // Set tolerance and maximum number of iterations for bilateral constraint solver
    msystem.GetSettings()->solver.max_iteration_bilateral = max_iteration;

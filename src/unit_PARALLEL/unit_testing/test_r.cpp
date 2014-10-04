@@ -135,7 +135,7 @@ void test_sphere_sphere()
 
     {
     cout << "  separated" << endl;
-    bool res = ChCNarrowphaseR::sphere_sphere(real3(2, 2, 0), 1.0,
+    bool res = sphere_sphere(real3(2, 2, 0), 1.0,
                                               real3(2, 0, 0), 0.5,
                                               norm, depth, pt1, pt2, eff_rad);
     if (res) {
@@ -146,7 +146,7 @@ void test_sphere_sphere()
 
   {
     cout << "  touching" << endl;
-    bool res = ChCNarrowphaseR::sphere_sphere(real3(2, 2, 0), 1.0,
+    bool res = sphere_sphere(real3(2, 2, 0), 1.0,
                                               real3(2, 0, 0), 1.0,
                                               norm, depth, pt1, pt2, eff_rad);
     if (res) {
@@ -157,7 +157,7 @@ void test_sphere_sphere()
 
   {
     cout << "  penetrated" << endl;
-    bool res = ChCNarrowphaseR::sphere_sphere(real3(1, 1, 0), 1.0,
+    bool res = sphere_sphere(real3(1, 1, 0), 1.0,
                                               real3(2.5, 1, 0), 1.0,
                                               norm, depth, pt1, pt2, eff_rad);
     if (!res) {
@@ -197,7 +197,7 @@ void test_box_sphere()
   {
     cout << "  sphere center inside box" << endl;
     real3 s_pos(0.5, 0.5, 1.0);
-    bool res = ChCNarrowphaseR::box_sphere(b_pos, b_rot, b_hdims,
+    bool res = box_sphere(b_pos, b_rot, b_hdims,
                                            s_pos, s_rad,
                                            norm, depth, pt1, pt2, eff_rad);
     if (res) {
@@ -209,7 +209,7 @@ void test_box_sphere()
   {
     cout << "  face interaction (separated)" << endl;
     real3 s_pos(3.0, 2.0, 1.0);
-    bool res = ChCNarrowphaseR::box_sphere(b_pos, b_rot, b_hdims,
+    bool res = box_sphere(b_pos, b_rot, b_hdims,
                                            s_pos, s_rad,
                                            norm, depth, pt1, pt2, eff_rad);
     if (res) {
@@ -221,7 +221,7 @@ void test_box_sphere()
   {
     cout << "  face interaction (separated)" << endl;
     real3 s_pos(4 * oosqrt2, 2.0 * oosqrt2, 1.0);
-    bool res = ChCNarrowphaseR::box_sphere(b_pos, b_rot, b_hdims,
+    bool res = box_sphere(b_pos, b_rot, b_hdims,
                                            s_pos, s_rad,
                                            norm, depth, pt1, pt2, eff_rad);
     if (!res) {
@@ -238,7 +238,7 @@ void test_box_sphere()
   {
     cout << "  edge interaction (separated)" << endl;
     real3 s_pos(oosqrt2, 4.0, 1.0);
-    bool res = ChCNarrowphaseR::box_sphere(b_pos, b_rot, b_hdims,
+    bool res = box_sphere(b_pos, b_rot, b_hdims,
                                            s_pos, s_rad,
                                            norm, depth, pt1, pt2, eff_rad);
     if (res) {
@@ -250,7 +250,7 @@ void test_box_sphere()
   {
     cout << "  edge interaction (penetrated)" << endl;
     real3 s_pos(oosqrt2, 3.0 * oosqrt2 + 1.0, 1.0);
-    bool res = ChCNarrowphaseR::box_sphere(b_pos, b_rot, b_hdims,
+    bool res = box_sphere(b_pos, b_rot, b_hdims,
                                            s_pos, s_rad,
                                            norm, depth, pt1, pt2, eff_rad);
     if (!res) {
@@ -261,13 +261,13 @@ void test_box_sphere()
     WeakEqual(depth, -0.5, precision);
     WeakEqual(pt1, real3(oosqrt2, 3.0 * oosqrt2, 1.0), precision);
     WeakEqual(pt2, real3(oosqrt2, 3.0 * oosqrt2 - 0.5, 1.0), precision);
-    WeakEqual(eff_rad, s_rad * ChCNarrowphaseR::edge_radius / (s_rad + ChCNarrowphaseR::edge_radius), precision);
+    WeakEqual(eff_rad, s_rad * edge_radius / (s_rad + edge_radius), precision);
   }
 
   {
     cout << "  corner interaction (separated)" << endl;
     real3 s_pos(oosqrt2, 4.0, 4.0);
-    bool res = ChCNarrowphaseR::box_sphere(b_pos, b_rot, b_hdims,
+    bool res = box_sphere(b_pos, b_rot, b_hdims,
                                            s_pos, s_rad,
                                            norm, depth, pt1, pt2, eff_rad);
     if (res) {
@@ -279,7 +279,7 @@ void test_box_sphere()
   {
     cout << "  corner interaction (penetrated)" << endl;
     real3 s_pos(oosqrt2, 4.0 * oosqrt2, 3.0 + oosqrt2);
-    bool res = ChCNarrowphaseR::box_sphere(b_pos, b_rot, b_hdims,
+    bool res = box_sphere(b_pos, b_rot, b_hdims,
                                            s_pos, s_rad,
                                            norm, depth, pt1, pt2, eff_rad);
     if (!res) {
@@ -290,7 +290,7 @@ void test_box_sphere()
     WeakEqual(depth, -0.5, precision);
     WeakEqual(pt1, real3(oosqrt2, 3.0 * oosqrt2, 3.0), precision);
     WeakEqual(pt2, s_pos - s_rad * norm, precision);
-    WeakEqual(eff_rad, s_rad * ChCNarrowphaseR::edge_radius / (s_rad + ChCNarrowphaseR::edge_radius), precision);
+    WeakEqual(eff_rad, s_rad * edge_radius / (s_rad + edge_radius), precision);
   }
 }
 
@@ -321,7 +321,7 @@ void test_capsule_sphere()
   {
     cout << "  sphere center on capsule axis" << endl;
     real3 s_pos(3.0, 0.0, 0.0);
-    bool res = ChCNarrowphaseR::capsule_sphere(c_pos, c_rot, c_rad, c_hlen,
+    bool res = capsule_sphere(c_pos, c_rot, c_rad, c_hlen,
                                                s_pos, s_rad,
                                                norm, depth, pt1, pt2, eff_rad);
     if (res) {
@@ -333,7 +333,7 @@ void test_capsule_sphere()
   {
     cout << "  cap interaction (separated)" << endl;
     real3 s_pos(5.0, 1.5, 0.0);
-    bool res = ChCNarrowphaseR::capsule_sphere(c_pos, c_rot, c_rad, c_hlen,
+    bool res = capsule_sphere(c_pos, c_rot, c_rad, c_hlen,
                                                s_pos, s_rad,
                                                norm, depth, pt1, pt2, eff_rad);
     if (res) {
@@ -345,7 +345,7 @@ void test_capsule_sphere()
   {
     cout << "  cap interaction (penetrated)" << endl;
     real3 s_pos(5.0, 1.0, 0.0);
-    bool res = ChCNarrowphaseR::capsule_sphere(c_pos, c_rot, c_rad, c_hlen,
+    bool res = capsule_sphere(c_pos, c_rot, c_rad, c_hlen,
                                                s_pos, s_rad,
                                                norm, depth, pt1, pt2, eff_rad);
     if (!res) {
@@ -362,7 +362,7 @@ void test_capsule_sphere()
   {
     cout << "  side interaction (separated)" << endl;
     real3 s_pos(2.5, 2.0, 0);
-    bool res = ChCNarrowphaseR::capsule_sphere(c_pos, c_rot, c_rad, c_hlen,
+    bool res = capsule_sphere(c_pos, c_rot, c_rad, c_hlen,
                                                s_pos, s_rad,
                                                norm, depth, pt1, pt2, eff_rad);
     if (res) {
@@ -374,7 +374,7 @@ void test_capsule_sphere()
   {
     cout << "  side interaction (penetrated)" << endl;
     real3 s_pos(2.5, 1.25, 0);
-    bool res = ChCNarrowphaseR::capsule_sphere(c_pos, c_rot, c_rad, c_hlen,
+    bool res = capsule_sphere(c_pos, c_rot, c_rad, c_hlen,
                                                s_pos, s_rad,
                                                norm, depth, pt1, pt2, eff_rad);
     if (!res) {
@@ -413,7 +413,7 @@ void test_cylinder_sphere()
   {
     cout << "  sphere center inside cylinder" << endl;
     real3 s_pos(2.5, 1.5, 0);
-    bool res = ChCNarrowphaseR::cylinder_sphere(c_pos, c_rot, c_rad, c_hlen,
+    bool res = cylinder_sphere(c_pos, c_rot, c_rad, c_hlen,
                                                 s_pos, s_rad,
                                                 norm, depth, pt1, pt2, eff_rad);
     if (res) {
@@ -425,7 +425,7 @@ void test_cylinder_sphere()
   {
     cout << "  cap interaction (separated)" << endl;
     real3 s_pos(4.5, 1.5, 0);
-    bool res = ChCNarrowphaseR::cylinder_sphere(c_pos, c_rot, c_rad, c_hlen,
+    bool res = cylinder_sphere(c_pos, c_rot, c_rad, c_hlen,
                                                 s_pos, s_rad,
                                                 norm, depth, pt1, pt2, eff_rad);
     if (res) {
@@ -437,7 +437,7 @@ void test_cylinder_sphere()
   {
     cout << "  cap interaction (penetrated)" << endl;
     real3 s_pos(3.75, 1.5, 0);
-    bool res = ChCNarrowphaseR::cylinder_sphere(c_pos, c_rot, c_rad, c_hlen,
+    bool res = cylinder_sphere(c_pos, c_rot, c_rad, c_hlen,
                                                 s_pos, s_rad,
                                                 norm, depth, pt1, pt2, eff_rad);
     if (!res) {
@@ -454,7 +454,7 @@ void test_cylinder_sphere()
   {
     cout << "  side interaction (separated)" << endl;
     real3 s_pos(2.5, 3.5, 0);
-    bool res = ChCNarrowphaseR::cylinder_sphere(c_pos, c_rot, c_rad, c_hlen,
+    bool res = cylinder_sphere(c_pos, c_rot, c_rad, c_hlen,
                                                 s_pos, s_rad,
                                                 norm, depth, pt1, pt2, eff_rad);
     if (res) {
@@ -466,7 +466,7 @@ void test_cylinder_sphere()
   {
     cout << "  side interaction (penetrated)" << endl;
     real3 s_pos(2.5, 2.5, 0);
-    bool res = ChCNarrowphaseR::cylinder_sphere(c_pos, c_rot, c_rad, c_hlen,
+    bool res = cylinder_sphere(c_pos, c_rot, c_rad, c_hlen,
                                                 s_pos, s_rad,
                                                 norm, depth, pt1, pt2, eff_rad);
     if (!res) {
@@ -483,7 +483,7 @@ void test_cylinder_sphere()
   {
     cout << "  edge interaction (separated)" << endl;
     real3 s_pos(4, 3, 0);
-    bool res = ChCNarrowphaseR::cylinder_sphere(c_pos, c_rot, c_rad, c_hlen,
+    bool res = cylinder_sphere(c_pos, c_rot, c_rad, c_hlen,
                                                 s_pos, s_rad,
                                                 norm, depth, pt1, pt2, eff_rad);
     if (res) {
@@ -495,7 +495,7 @@ void test_cylinder_sphere()
   {
     cout << "  edge interaction (penetrated)" << endl;
     real3 s_pos(3.5, 2.5, 0);
-    bool res = ChCNarrowphaseR::cylinder_sphere(c_pos, c_rot, c_rad, c_hlen,
+    bool res = cylinder_sphere(c_pos, c_rot, c_rad, c_hlen,
                                                 s_pos, s_rad,
                                                 norm, depth, pt1, pt2, eff_rad);
     if (!res) {
@@ -506,7 +506,7 @@ void test_cylinder_sphere()
     WeakEqual(depth, -1 + oosqrt2, precision);
     WeakEqual(pt1, real3(3.0, 2.0, 0), precision);
     WeakEqual(pt2, real3(3.5 - oosqrt2, 2.5 - oosqrt2, 0), precision);
-    WeakEqual(eff_rad, s_rad * ChCNarrowphaseR::edge_radius / (s_rad + ChCNarrowphaseR::edge_radius), precision);
+    WeakEqual(eff_rad, s_rad * edge_radius / (s_rad + edge_radius), precision);
   }
 }
 
@@ -538,7 +538,7 @@ void test_roundedcyl_sphere()
   {
     cout << "  sphere center inside cylinder" << endl;
     real3 s_pos(2.5, 1.5, 0);
-    bool res = ChCNarrowphaseR::roundedcyl_sphere(c_pos, c_rot, c_rad, c_hlen, c_srad,
+    bool res = roundedcyl_sphere(c_pos, c_rot, c_rad, c_hlen, c_srad,
                                                   s_pos, s_rad,
                                                   norm, depth, pt1, pt2, eff_rad);
     if (res) {
@@ -550,7 +550,7 @@ void test_roundedcyl_sphere()
   {
     cout << "  cap interaction (separated)" << endl;
     real3 s_pos(4.5, 1.5, 0);
-    bool res = ChCNarrowphaseR::roundedcyl_sphere(c_pos, c_rot, c_rad, c_hlen, c_srad,
+    bool res = roundedcyl_sphere(c_pos, c_rot, c_rad, c_hlen, c_srad,
                                                   s_pos, s_rad,
                                                   norm, depth, pt1, pt2, eff_rad);
     if (res) {
@@ -562,7 +562,7 @@ void test_roundedcyl_sphere()
   {
     cout << "  cap interaction (penetrated)" << endl;
     real3 s_pos(3.75, 1.5, 0);
-    bool res = ChCNarrowphaseR::roundedcyl_sphere(c_pos, c_rot, c_rad, c_hlen, c_srad,
+    bool res = roundedcyl_sphere(c_pos, c_rot, c_rad, c_hlen, c_srad,
                                                   s_pos, s_rad,
                                                   norm, depth, pt1, pt2, eff_rad);
     if (!res) {
@@ -579,7 +579,7 @@ void test_roundedcyl_sphere()
   {
     cout << "  side interaction (separated)" << endl;
     real3 s_pos(2.5, 3.5, 0);
-    bool res = ChCNarrowphaseR::roundedcyl_sphere(c_pos, c_rot, c_rad, c_hlen, c_srad,
+    bool res = roundedcyl_sphere(c_pos, c_rot, c_rad, c_hlen, c_srad,
                                                   s_pos, s_rad,
                                                   norm, depth, pt1, pt2, eff_rad);
     if (res) {
@@ -591,7 +591,7 @@ void test_roundedcyl_sphere()
   {
     cout << "  side interaction (penetrated)" << endl;
     real3 s_pos(2.5, 2.5, 0);
-    bool res = ChCNarrowphaseR::roundedcyl_sphere(c_pos, c_rot, c_rad, c_hlen, c_srad,
+    bool res = roundedcyl_sphere(c_pos, c_rot, c_rad, c_hlen, c_srad,
                                                   s_pos, s_rad,
                                                   norm, depth, pt1, pt2, eff_rad);
     if (!res) {
@@ -608,7 +608,7 @@ void test_roundedcyl_sphere()
   {
     cout << "  edge interaction (separated)" << endl;
     real3 s_pos(4, 3, 0);
-    bool res = ChCNarrowphaseR::roundedcyl_sphere(c_pos, c_rot, c_rad, c_hlen, c_srad,
+    bool res = roundedcyl_sphere(c_pos, c_rot, c_rad, c_hlen, c_srad,
                                                   s_pos, s_rad,
                                                   norm, depth, pt1, pt2, eff_rad);
     if (res) {
@@ -620,7 +620,7 @@ void test_roundedcyl_sphere()
   {
     cout << "  edge interaction (penetrated)" << endl;
     real3 s_pos(3.5, 2.5, 0);
-    bool res = ChCNarrowphaseR::roundedcyl_sphere(c_pos, c_rot, c_rad, c_hlen, c_srad,
+    bool res = roundedcyl_sphere(c_pos, c_rot, c_rad, c_hlen, c_srad,
                                                   s_pos, s_rad,
                                                   norm, depth, pt1, pt2, eff_rad);
     if (!res) {
