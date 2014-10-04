@@ -37,7 +37,7 @@ struct collision_settings {
       collision_envelope = 0;
       bins_per_axis = I3(20, 20, 20);
       narrowphase_algorithm = NARROWPHASE_MPR;
-      edge_radius = 0.1;
+      //edge_radius = 0.1;
    }
 
    //Collision variables
@@ -49,7 +49,7 @@ struct collision_settings {
    real3 aabb_min, aabb_max;
    int3 bins_per_axis;
    NARROWPHASETYPE narrowphase_algorithm;
-   real edge_radius;
+   //real edge_radius;
 
 };
 
