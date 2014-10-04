@@ -32,7 +32,7 @@ void ChCNarrowphaseDispatch::Process(ChParallelDataManager* data_container) {
    custom_vector<long long> & potentialCollisions = data_container->host_data.pair_rigid_rigid;
 
    collision_envelope = data_container->settings.collision.collision_envelope;
-   number_of_contacts = data_container->num_contacts;
+   uint & number_of_contacts = data_container->num_contacts;
    narrowphase_algorithm = data_container->settings.collision.narrowphase_algorithm;
 
    //The number of possible contacts based on the broadphase pair list

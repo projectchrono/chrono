@@ -74,7 +74,6 @@ class CH_PARALLEL_API ChCNarrowphaseDispatch {
    custom_vector<uint> contact_index;
    unsigned int num_potentialCollisions;
    real collision_envelope;
-   uint number_of_contacts;
    NARROWPHASETYPE narrowphase_algorithm;
 
 };
