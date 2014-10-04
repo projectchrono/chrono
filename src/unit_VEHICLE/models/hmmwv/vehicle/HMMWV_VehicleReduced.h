@@ -27,6 +27,7 @@
 #include "models/hmmwv/HMMWV.h"
 #include "models/hmmwv/HMMWV_Wheel.h"
 #include "models/hmmwv/suspension/HMMWV_DoubleWishboneReduced.h"
+#include "models/hmmwv/steering/HMMWV_RackPinion.h"
 #include "models/hmmwv/driveline/HMMWV_Driveline2WD.h"
 #include "models/hmmwv/brake/HMMWV_BrakeSimple.h"
 
@@ -69,6 +70,8 @@ private:
 
   chrono::ChSharedPtr<HMMWV_DoubleWishboneReducedFront> m_front_susp;
   chrono::ChSharedPtr<HMMWV_DoubleWishboneReducedRear>  m_rear_susp;
+
+  chrono::ChSharedPtr<HMMWV_RackPinion> m_steering;
 
   chrono::ChSharedPtr<HMMWV_Wheel> m_front_right_wheel;
   chrono::ChSharedPtr<HMMWV_Wheel> m_front_left_wheel;

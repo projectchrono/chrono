@@ -27,6 +27,8 @@ SET(COMMON_HMMWV_FILES
 	../hmmwv/vehicle/HMMWV_VehicleReduced.cpp
 	../hmmwv/suspension/HMMWV_DoubleWishboneReduced.h
 	../hmmwv/suspension/HMMWV_DoubleWishboneReduced.cpp
+	../hmmwv/steering/HMMWV_RackPinion.h
+	../hmmwv/steering/HMMWV_RackPinion.cpp
 	../hmmwv/driveline/HMMWV_Driveline2WD.h
 	../hmmwv/driveline/HMMWV_Driveline2WD.cpp
 	../hmmwv/powertrain/HMMWV_SimplePowertrain.h

@@ -99,6 +99,12 @@ HMMWV_VehicleReduced::HMMWV_VehicleReduced(const bool           fixed,
   m_front_susp = ChSharedPtr<HMMWV_DoubleWishboneReducedFront>(new HMMWV_DoubleWishboneReducedFront("FrontSusp", false));
   m_rear_susp = ChSharedPtr<HMMWV_DoubleWishboneReducedRear>(new HMMWV_DoubleWishboneReducedRear("RearSusp", true));
 
+  // -----------------------------
+  // Create the steering subsystem
+  // -----------------------------
+
+  m_steering = ChSharedPtr<HMMWV_RackPinion>(new HMMWV_RackPinion("Steering"));
+
   // -----------------
   // Create the wheels
   // -----------------
@@ -139,6 +145,11 @@ void HMMWV_VehicleReduced::Initialize(const ChCoordsys<>& chassisPos)
   // frames relative to the chassis reference frame).
   m_front_susp->Initialize(m_chassis, in2m * ChVector<>(66.59, 0, 1.039));
   m_rear_susp->Initialize(m_chassis, in2m * ChVector<>(-66.4, 0, 1.039));
+
+  // Initialize the steering subsystem (specify the steering subsystem's frame
+  // relative to the chassis reference frame).
+  ChVector<> offset = in2m * ChVector<>(56.735, 0, 3.174);
+  m_steering->Initialize(m_chassis, offset, ChQuaternion<>(1,0,0,0));
 
   // Initialize wheels
   m_front_right_wheel->Initialize(m_front_susp->GetSpindle(ChSuspension::RIGHT));
@@ -266,11 +277,13 @@ void HMMWV_VehicleReduced::Update(double              time,
 {
   // Apply steering input.
   double displ = 0.08 * steering;
-
   m_front_susp->ApplySteering(displ);
 
   // Apply powertrain torque to the driveline's input shaft.
   m_driveline->ApplyDriveshaftTorque(powertrain_torque);
+
+  // Let the steering subsystem process the steering input.
+  m_steering->Update(time, steering);
 
   // Apply tire forces to spindle bodies.
   m_front_susp->ApplyTireForce(ChSuspension::RIGHT, tire_forces[FRONT_RIGHT]);
@@ -310,6 +323,10 @@ void HMMWV_VehicleReduced::LogConstraintViolations()
   m_rear_susp->LogConstraintViolations(ChSuspension::RIGHT);
   GetLog() << "\n---- REAR-LEFT suspension constraint violation\n\n";
   m_rear_susp->LogConstraintViolations(ChSuspension::LEFT);
+
+  // Report constraint violations for the steering joints
+  GetLog() << "\n---- STEERING constrain violation\n\n";
+  m_steering->LogConstraintViolations();
 
   GetLog().SetNumFormat("%g");
 
