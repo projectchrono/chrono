@@ -51,6 +51,8 @@ SET(Chrono_Wheel_FILES
 SET(Chrono_Steering_FILES
     steering/ChPitmanArm.h
     steering/ChPitmanArm.cpp
+    steering/ChRackPinion.h
+    steering/ChRackPinion.cpp
 
     steering/PitmanArm.h
     steering/PitmanArm.cpp
