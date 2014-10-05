@@ -36,7 +36,7 @@ struct collision_settings {
       use_aabb_active = 0;
       collision_envelope = 0;
       bins_per_axis = I3(20, 20, 20);
-      narrowphase_algorithm = NARROWPHASE_MPR;
+      narrowphase_algorithm = NARROWPHASE_HYBRID_MPR;
       //edge_radius = 0.1;
    }
 
