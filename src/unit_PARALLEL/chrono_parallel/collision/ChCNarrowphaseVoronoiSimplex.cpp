@@ -1,3 +1,27 @@
+/*
+Bullet Continuous Collision Detection and Physics Library
+Copyright (c) 2003-2006 Erwin Coumans  http://continuousphysics.com/Bullet/
+
+This software is provided 'as-is', without any express or implied warranty.
+In no event will the authors be held liable for any damages arising from the use of this software.
+Permission is granted to anyone to use this software for any purpose,
+including commercial applications, and to alter it and redistribute it freely,
+subject to the following restrictions:
+
+1. The origin of this software must not be misrepresented; you must not claim that you wrote the original software. If you use this software in a product, an acknowledgment in the product documentation would be appreciated but is not required.
+2. Altered source versions must be plainly marked as such, and must not be misrepresented as being the original software.
+3. This notice may not be removed or altered from any source distribution.
+
+   Elsevier CDROM license agreements grants nonexclusive license to use the software
+   for any purpose, commercial or non-commercial as long as the following credit is included
+   identifying the original source of the software:
+
+   Parts of the source are "from the book Real-Time Collision Detection by
+   Christer Ericson, published by Morgan Kaufmann Publishers,
+   (c) 2005 Elsevier Inc."
+
+*/
+
 #include <algorithm>
 
 #include "collision/ChCCollisionModel.h"

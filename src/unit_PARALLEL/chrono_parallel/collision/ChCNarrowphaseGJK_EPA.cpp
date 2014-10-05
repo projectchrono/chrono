@@ -1,3 +1,28 @@
+/*
+ Bullet Continuous Collision Detection and Physics Library
+ Copyright (c) 2003-2008 Erwin Coumans  http://continuousphysics.com/Bullet/
+
+ This software is provided 'as-is', without any express or implied warranty.
+ In no event will the authors be held liable for any damages arising from the
+ use of this software.
+ Permission is granted to anyone to use this software for any purpose,
+ including commercial applications, and to alter it and redistribute it
+ freely,
+ subject to the following restrictions:
+
+ 1. The origin of this software must not be misrepresented; you must not
+ claim that you wrote the original software. If you use this software in a
+ product, an acknowledgment in the product documentation would be appreciated
+ but is not required.
+ 2. Altered source versions must be plainly marked as such, and must not be
+ misrepresented as being the original software.
+ 3. This notice may not be removed or altered from any source distribution.
+ */
+
+/*
+ GJK-EPA collision solver by Nathanael Presson, 2008
+ */
+
 #include <algorithm>
 
 #include "collision/ChCCollisionModel.h"
@@ -836,9 +861,9 @@ bool chrono::collision::GJKCollide(const ConvexShape& shape0,
    int m_catchDegeneracies;
    printf("start\n");
    while (true) {
-      std::cout << "---------------------------" << std::endl;
-      std::cout << shape0.R << shape1.R << std::endl;
-      printf("m_cachedSeparatingAxis: %f, %f, %f  ", m_cachedSeparatingAxis.x, m_cachedSeparatingAxis.y, m_cachedSeparatingAxis.z);
+      //std::cout << "---------------------------" << std::endl;
+      //std::cout << shape0.R << shape1.R << std::endl;
+      //printf("m_cachedSeparatingAxis: %f, %f, %f  ", m_cachedSeparatingAxis.x, m_cachedSeparatingAxis.y, m_cachedSeparatingAxis.z);
       real3 positionOffset = (shape0.A + shape1.A) * real(0.5);
       M33 RA(0, 0, 0), RB;
 
@@ -849,7 +874,7 @@ bool chrono::collision::GJKCollide(const ConvexShape& shape0,
       // M33 TEST;
       // std::cout <<"TESTTT"<<GetQuat(TEST);
 
-      std::cout << RA << RB << std::endl;
+      //std::cout << RA << RB << std::endl;
 
       real3 seperatingAxisInA = MatMult(RA, -m_cachedSeparatingAxis);
       ;  //quatRotateMat(-m_cachedSeparatingAxis, shape0.R);
@@ -858,30 +883,30 @@ bool chrono::collision::GJKCollide(const ConvexShape& shape0,
 //      std::cout << seperatingAxisInA << std::endl;
 //      std::cout << seperatingAxisInB << std::endl;
 
-      printf("seperatingAxisInA: %f, %f, %f  ", seperatingAxisInA.x, seperatingAxisInA.y, seperatingAxisInA.z);
-      printf("seperatingAxisInB: %f, %f, %f  \n", seperatingAxisInB.x, seperatingAxisInB.y, seperatingAxisInB.z);
+      //printf("seperatingAxisInA: %f, %f, %f  ", seperatingAxisInA.x, seperatingAxisInA.y, seperatingAxisInA.z);
+      //printf("seperatingAxisInB: %f, %f, %f  \n", seperatingAxisInB.x, seperatingAxisInB.y, seperatingAxisInB.z);
 
       real3 pWorld = SupportVert(shape0, seperatingAxisInA);
       real3 qWorld = SupportVert(shape1, seperatingAxisInB);
-      printf("pInA: %f, %f, %f  ", pWorld.x, pWorld.y, pWorld.z);
-      printf("qInB: %f, %f, %f  \n", qWorld.x, qWorld.y, qWorld.z);
+      //printf("pInA: %f, %f, %f  ", pWorld.x, pWorld.y, pWorld.z);
+      //printf("qInB: %f, %f, %f  \n", qWorld.x, qWorld.y, qWorld.z);
 
       pWorld = quatRotate(pWorld, shape0.R) + shape0.A - positionOffset;
       qWorld = quatRotate(qWorld, shape1.R) + shape1.A - positionOffset;
 
-      printf("pWorld: %f, %f, %f  ", pWorld.x, pWorld.y, pWorld.z);
-      printf("qWorld: %f, %f, %f  \n", qWorld.x, qWorld.y, qWorld.z);
+      //printf("pWorld: %f, %f, %f  ", pWorld.x, pWorld.y, pWorld.z);
+      //printf("qWorld: %f, %f, %f  \n", qWorld.x, qWorld.y, qWorld.z);
 
       // std::cout <<TransformSupportVert(shape1, seperatingAxisInB) <<LocalSupportVert(shape1, seperatingAxisInB) <<SupportVert(shape1, seperatingAxisInB);
 
       real3 w = pWorld - qWorld;
       delta = m_cachedSeparatingAxis.dot(w);
-      printf("BEFORE %f, %f, %f \n", delta, delta * delta, squaredDistance);
+      //printf("BEFORE %f, %f, %f \n", delta, delta * delta, squaredDistance);
       if ((delta > real(0.0)) && (delta * delta > squaredDistance)) {
          m_degenerateSimplex = 10;
          checkSimplex = true;
          //checkPenetration = false;
-         printf("exit a\n");
+         //printf("exit a\n");
          break;
       }
 
@@ -889,7 +914,7 @@ bool chrono::collision::GJKCollide(const ConvexShape& shape0,
       if (m_simplexSolver.inSimplex(w)) {
          m_degenerateSimplex = 1;
          checkSimplex = true;
-         printf("exit 0\n");
+         //printf("exit 0\n");
          break;
       }
       real f0 = squaredDistance - delta;
@@ -902,10 +927,10 @@ bool chrono::collision::GJKCollide(const ConvexShape& shape0,
             m_degenerateSimplex = 11;
          }
          checkSimplex = true;
-         printf("exit 1\n");
+         //printf("exit 1\n");
          break;
       }
-      printf("addVertex 1\n");
+      //printf("addVertex 1\n");
 
       m_simplexSolver.addVertex(w, pWorld, qWorld);
       real3 newCachedSeparatingAxis(0);
@@ -913,7 +938,7 @@ bool chrono::collision::GJKCollide(const ConvexShape& shape0,
       if (!m_simplexSolver.closest(newCachedSeparatingAxis)) {
          m_degenerateSimplex = 3;
          checkSimplex = true;
-         printf("exit 2\n");
+         //printf("exit 2\n");
          break;
       }
 
@@ -921,10 +946,10 @@ bool chrono::collision::GJKCollide(const ConvexShape& shape0,
          m_cachedSeparatingAxis = newCachedSeparatingAxis;
          m_degenerateSimplex = 6;
          checkSimplex = true;
-         printf("exit 3\n");
+         //printf("exit 3\n");
          break;
       }
-      printf("newCachedSeparatingAxis: %f, %f, %f  \n", newCachedSeparatingAxis.x, newCachedSeparatingAxis.y, newCachedSeparatingAxis.z);
+      //printf("newCachedSeparatingAxis: %f, %f, %f  \n", newCachedSeparatingAxis.x, newCachedSeparatingAxis.y, newCachedSeparatingAxis.z);
 
       real previousSquaredDistance = squaredDistance;
       squaredDistance = newCachedSeparatingAxis.length2();
@@ -934,12 +959,12 @@ bool chrono::collision::GJKCollide(const ConvexShape& shape0,
          m_simplexSolver.backup_closest(m_cachedSeparatingAxis);
          checkSimplex = true;
          m_degenerateSimplex = 12;
-         printf("exit 4\n");
+         //printf("exit 4\n");
          break;
       }
 
       if (m_curIter++ > gGjkMaxIter) {
-         printf("exit max\n");
+         //printf("exit max\n");
          break;
       }
       bool check = (!m_simplexSolver.fullSimplex());
@@ -947,7 +972,7 @@ bool chrono::collision::GJKCollide(const ConvexShape& shape0,
          //do we need this backup_closest here ?
          m_simplexSolver.backup_closest(m_cachedSeparatingAxis);
          m_degenerateSimplex = 13;
-         printf("exit 5\n");
+         //printf("exit 5\n");
          break;
       }
    }
@@ -969,7 +994,7 @@ bool chrono::collision::GJKCollide(const ConvexShape& shape0,
          pointOnB += m_cachedSeparatingAxis * (marginB / s);
          distance = ((real(1.) / rlen) - margin);
          isValid = true;
-         printf("d: %f \n", distance);
+         //printf("d: %f \n", distance);
 
          results.witnesses[0] = pointOnA;
          results.witnesses[1] = pointOnB;
