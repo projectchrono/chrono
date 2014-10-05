@@ -236,7 +236,7 @@ inline real3 SupportVert(const chrono::collision::ConvexShape &Shape,
 
 inline real3 LocalSupportVert(const chrono::collision::ConvexShape &Shape,
                               const real3 &n) {
-   real3 rotated_n = quatRotateMatT(n, Shape.R);
+   real3 rotated_n = quatRotateT(n, Shape.R);
    return SupportVert(Shape, rotated_n);
 }
 ;
@@ -255,7 +255,10 @@ inline real3 TransformSupportVert(const chrono::collision::ConvexShape &Shape,
          break;
    }
 
-   return quatRotateMat(localSupport, Shape.R) + Shape.A;     //globalSupport
+   return TransformLocalToParent(Shape.A,Shape.R,localSupport ) ;
+
+
+       //  quatRotateMat(localSupport, Shape.R) + Shape.A;     //globalSupport
 }
 ;
 
