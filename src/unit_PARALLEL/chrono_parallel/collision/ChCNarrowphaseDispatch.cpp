@@ -230,8 +230,6 @@ int host_DispatchMPR(const uint& icoll,
 
    MPRGetPoints(shapeA, shapeB, normal, point, pointA, pointB);
 
-   pointA -= (normal) * envelope;
-   pointB -= (normal) * envelope;
    norm[icoll] = normal;
    ptA[icoll] = pointA;
    ptB[icoll] = pointB;
@@ -363,8 +361,10 @@ void host_Dispatch(const uint &index,
    if (system_type == SYSTEM_DVI) {
       //perform offset for DVI
       for (int i = 0; i < nC; i++) {
-         ptA[icoll + i] -= posA;
-         ptB[icoll + i] -= posB;
+         //printf("%f %f \n", contactDepth[icoll + 1], contactDepth[icoll + 1] + collision_envelope * 2);
+         ptA[icoll + i] = ptA[icoll + i] - posA - (norm[icoll + i]) * collision_envelope;
+         ptB[icoll + i] = ptB[icoll + i] - posB + (norm[icoll + i]) * collision_envelope;
+         contactDepth[icoll + 1] += collision_envelope*2;
       }
    }
 
