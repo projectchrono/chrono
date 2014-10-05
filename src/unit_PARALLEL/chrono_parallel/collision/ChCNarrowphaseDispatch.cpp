@@ -120,9 +120,9 @@ void host_count(const int& index,                   // index of this potential c
    if (narrowphase_algorithm == NARROWPHASE_MPR) {
       max_contacts[index] = 1;
       return;
-   //} else if (narrowphase_algorithm == NARROWPHASE_GJK) {
-   //   max_contacts[index] = 1;
-   //   return;
+      //} else if (narrowphase_algorithm == NARROWPHASE_GJK) {
+      //   max_contacts[index] = 1;
+      //   return;
    } else if (narrowphase_algorithm == NARROWPHASE_HYBRID_MPR) {
       max_contacts[index] = 1;
       if (type1 == SPHERE || type2 == SPHERE) {
@@ -131,13 +131,13 @@ void host_count(const int& index,                   // index of this potential c
          max_contacts[index] = 2;
       }
       return;
-   //} else if (narrowphase_algorithm == NARROWPHASE_HYBRID_GJK) {
-   //   max_contacts[index] = 1;
-   //   if (type1 == SPHERE || type2 == SPHERE) {
-   //      max_contacts[index] = 1;
-   //   } else if (type1 == CAPSULE || type2 == CAPSULE) {
-   //      max_contacts[index] = 2;
-   //   }
+      //} else if (narrowphase_algorithm == NARROWPHASE_HYBRID_GJK) {
+      //   max_contacts[index] = 1;
+      //   if (type1 == SPHERE || type2 == SPHERE) {
+      //      max_contacts[index] = 1;
+      //   } else if (type1 == CAPSULE || type2 == CAPSULE) {
+      //      max_contacts[index] = 2;
+      //   }
    }
 
 // Set the maximum number of possible contacts for this particular pair
@@ -281,7 +281,7 @@ int host_DispatchHybridMPR(const uint& icoll,
       //this is needed for DVI
 
    } else {
-      host_DispatchMPR(icoll, shapeA, shapeB, body1, body2, envelope, flag, norm, ptA, ptB, contactDepth, effective_radius, body_ids);
+      nC = host_DispatchMPR(icoll, shapeA, shapeB, body1, body2, envelope, flag, norm, ptA, ptB, contactDepth, effective_radius, body_ids);
    }
 
    return nC;

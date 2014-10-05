@@ -54,12 +54,13 @@ bool chrono::collision::RCollision(const uint& icoll,           // index of this
    // Special-case the collision detection based on the types of the
    // two potentially colliding shapes.
 
-   nC = 1;
+   nC = 0;
 
    if (shapeA.type == SPHERE && shapeB.type == SPHERE) {
       if (sphere_sphere(shapeA.A, shapeA.B.x, shapeB.A, shapeB.B.x, ct_norm[icoll], ct_depth[icoll], ct_pt1[icoll], ct_pt2[icoll], ct_eff_rad[icoll])) {
          ct_flag[icoll] = 0;
          ct_body_ids[icoll] = I2(body1, body2);
+         nC = 1;
       }
       return true;
    }
@@ -68,6 +69,7 @@ bool chrono::collision::RCollision(const uint& icoll,           // index of this
       if (capsule_sphere(shapeA.A, shapeA.R, shapeA.B.x, shapeA.B.y, shapeB.A, shapeB.B.x, ct_norm[icoll], ct_depth[icoll], ct_pt1[icoll], ct_pt2[icoll], ct_eff_rad[icoll])) {
          ct_flag[icoll] = 0;
          ct_body_ids[icoll] = I2(body1, body2);
+         nC = 1;
       }
       return true;
    }
@@ -77,6 +79,7 @@ bool chrono::collision::RCollision(const uint& icoll,           // index of this
          ct_norm[icoll] = -ct_norm[icoll];
          ct_flag[icoll] = 0;
          ct_body_ids[icoll] = I2(body1, body2);
+         nC = 1;
       }
       return true;
    }
@@ -85,6 +88,7 @@ bool chrono::collision::RCollision(const uint& icoll,           // index of this
       if (cylinder_sphere(shapeA.A, shapeA.R, shapeA.B.x, shapeA.B.y, shapeB.A, shapeB.B.x, ct_norm[icoll], ct_depth[icoll], ct_pt1[icoll], ct_pt2[icoll], ct_eff_rad[icoll])) {
          ct_flag[icoll] = 0;
          ct_body_ids[icoll] = I2(body1, body2);
+         nC = 1;
       }
       return true;
    }
@@ -94,6 +98,7 @@ bool chrono::collision::RCollision(const uint& icoll,           // index of this
          ct_norm[icoll] = -ct_norm[icoll];
          ct_flag[icoll] = 0;
          ct_body_ids[icoll] = I2(body1, body2);
+         nC = 1;
       }
       return true;
    }
@@ -103,6 +108,7 @@ bool chrono::collision::RCollision(const uint& icoll,           // index of this
                             ct_eff_rad[icoll])) {
          ct_flag[icoll] = 0;
          ct_body_ids[icoll] = I2(body1, body2);
+         nC = 1;
       }
       return true;
    }
@@ -113,6 +119,7 @@ bool chrono::collision::RCollision(const uint& icoll,           // index of this
          ct_norm[icoll] = -ct_norm[icoll];
          ct_flag[icoll] = 0;
          ct_body_ids[icoll] = I2(body1, body2);
+         nC = 1;
       }
       return true;
    }
@@ -121,6 +128,7 @@ bool chrono::collision::RCollision(const uint& icoll,           // index of this
       if (box_sphere(shapeA.A, shapeA.R, shapeA.B, shapeB.A, shapeB.B.x, ct_norm[icoll], ct_depth[icoll], ct_pt1[icoll], ct_pt2[icoll], ct_eff_rad[icoll])) {
          ct_flag[icoll] = 0;
          ct_body_ids[icoll] = I2(body1, body2);
+         nC = 1;
       }
       return true;
    }
@@ -130,6 +138,7 @@ bool chrono::collision::RCollision(const uint& icoll,           // index of this
          ct_norm[icoll] = -ct_norm[icoll];
          ct_flag[icoll] = 0;
          ct_body_ids[icoll] = I2(body1, body2);
+         nC = 1;
       }
       return true;
    }
@@ -138,6 +147,7 @@ bool chrono::collision::RCollision(const uint& icoll,           // index of this
       if (face_sphere(shapeA.A, shapeA.B, shapeA.C, shapeB.A, shapeB.B.x, ct_norm[icoll], ct_depth[icoll], ct_pt1[icoll], ct_pt2[icoll], ct_eff_rad[icoll])) {
          ct_flag[icoll] = 0;
          ct_body_ids[icoll] = I2(body1, body2);
+         nC = 1;
       }
       return true;
    }
@@ -147,6 +157,7 @@ bool chrono::collision::RCollision(const uint& icoll,           // index of this
          ct_norm[icoll] = -ct_norm[icoll];
          ct_flag[icoll] = 0;
          ct_body_ids[icoll] = I2(body1, body2);
+         nC = 1;
       }
       return true;
    }
