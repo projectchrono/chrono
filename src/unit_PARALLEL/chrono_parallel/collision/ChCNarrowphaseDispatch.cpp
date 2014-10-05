@@ -120,9 +120,9 @@ void host_count(const int& index,                   // index of this potential c
    if (narrowphase_algorithm == NARROWPHASE_MPR) {
       max_contacts[index] = 1;
       return;
-   } else if (narrowphase_algorithm == NARROWPHASE_GJK) {
-      max_contacts[index] = 1;
-      return;
+   //} else if (narrowphase_algorithm == NARROWPHASE_GJK) {
+   //   max_contacts[index] = 1;
+   //   return;
    } else if (narrowphase_algorithm == NARROWPHASE_HYBRID_MPR) {
       max_contacts[index] = 1;
       if (type1 == SPHERE || type2 == SPHERE) {
@@ -131,13 +131,13 @@ void host_count(const int& index,                   // index of this potential c
          max_contacts[index] = 2;
       }
       return;
-   } else if (narrowphase_algorithm == NARROWPHASE_HYBRID_GJK) {
-      max_contacts[index] = 1;
-      if (type1 == SPHERE || type2 == SPHERE) {
-         max_contacts[index] = 1;
-      } else if (type1 == CAPSULE || type2 == CAPSULE) {
-         max_contacts[index] = 2;
-      }
+   //} else if (narrowphase_algorithm == NARROWPHASE_HYBRID_GJK) {
+   //   max_contacts[index] = 1;
+   //   if (type1 == SPHERE || type2 == SPHERE) {
+   //      max_contacts[index] = 1;
+   //   } else if (type1 == CAPSULE || type2 == CAPSULE) {
+   //      max_contacts[index] = 2;
+   //   }
    }
 
 // Set the maximum number of possible contacts for this particular pair
@@ -346,18 +346,18 @@ void host_Dispatch(const uint &index,
       case NARROWPHASE_MPR:
          nC = host_DispatchMPR(icoll, shapeA, shapeB, ID_A, ID_B, collision_envelope, contact_active, norm, ptA, ptB, contactDepth, erad, ids);
          break;
-      case NARROWPHASE_GJK:
+         //case NARROWPHASE_GJK:
          //host_DispatchGJK(shapeA, shapeB, normal, depth, pointA, pointB);
-         break;
+         //   break;
       case NARROWPHASE_R:
          nC = host_DispatchR(icoll, shapeA, shapeB, ID_A, ID_B, contact_active, norm, ptA, ptB, contactDepth, erad, ids);
          break;
       case NARROWPHASE_HYBRID_MPR:
          nC = host_DispatchHybridMPR(icoll, shapeA, shapeB, ID_A, ID_B, collision_envelope, contact_active, norm, ptA, ptB, contactDepth, erad, ids);
          break;
-      case NARROWPHASE_HYBRID_GJK:
+         //case NARROWPHASE_HYBRID_GJK:
          //host_DispatchHYBRID_GJK(shapeA, shapeB, normal, depth, pointA, pointB);
-         break;
+         //   break;
    }
 
    if (system_type == SYSTEM_DVI) {
