@@ -186,10 +186,10 @@ enum SOLVERMODE {
 
 enum NARROWPHASETYPE {
    NARROWPHASE_MPR,
-   NARROWPHASE_GJK,
+   //NARROWPHASE_GJK, //TODO: implement/test this
    NARROWPHASE_R,
    NARROWPHASE_HYBRID_MPR,
-   NARROWPHASE_HYBRID_GJK
+   //NARROWPHASE_HYBRID_GJK //TODO: implement/test this
 };
 
 //This is set so that parts of the code that have been "flattened" can know what
