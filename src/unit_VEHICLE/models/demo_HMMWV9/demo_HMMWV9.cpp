@@ -76,14 +76,15 @@ TireModelType tire_model = RIGID;
 
 // Rigid terrain dimensions
 double terrainHeight = 0;
-double terrainLength = 100.0;   // size in X direction
+double terrainLength = 200.0;   // size in X direction
 double terrainWidth  = 100.0;   // size in Y direction
 
 // Simulation step size
 double step_size = 0.001;
 
 // Time interval between two render frames
-double render_step_size = 1.0 / 50;   // FPS = 50
+int FPS = 50;
+double render_step_size = 1.0 / FPS;   // FPS = 50
 
 #ifdef USE_IRRLICHT
   // Point on chassis tracked by the camera
@@ -94,6 +95,11 @@ double render_step_size = 1.0 / 50;   // FPS = 50
   const std::string out_dir = "../HMMWV9";
   const std::string pov_dir = out_dir + "/POVRAY";
 #endif
+
+
+const bool test_pactire = false;
+// PacTire output file base file name, add "ChWheelId.csv", for debugging
+std::string pac_ofilename_base = "test_HMMWV9_pacTire";
 
 // =============================================================================
 
@@ -199,10 +205,30 @@ int main(int argc, char* argv[])
     tire_front_right = tire_FR;
     tire_rear_left = tire_RL;
     tire_rear_right = tire_RR;
-
+  
     break;
   }
   }
+
+
+  // DEBUGGING pactire
+  ChSharedPtr<ChPacejkaTire> pac_FR;
+  ChSharedPtr<ChPacejkaTire> pac_FL;
+  ChSharedPtr<ChPacejkaTire> pac_RR;
+  ChSharedPtr<ChPacejkaTire> pac_RL;
+  if(test_pactire)
+  {
+    std::string param_file = utils::GetModelDataFile("hmmwv/tire/HMMWV_pacejka.tir");
+
+    ChSharedPtr<ChPacejkaTire> FL(new ChPacejkaTire(param_file, terrain));
+    ChSharedPtr<ChPacejkaTire> FR(new ChPacejkaTire(param_file, terrain));
+    ChSharedPtr<ChPacejkaTire> RL(new ChPacejkaTire(param_file, terrain));
+    ChSharedPtr<ChPacejkaTire> RR(new ChPacejkaTire(param_file, terrain));
+    pac_FL = FL;
+    pac_FR = FR;
+    pac_RL = RL;
+    pac_RR = RR;
+  } 
 
 
 #ifdef USE_IRRLICHT
@@ -284,6 +310,10 @@ int main(int argc, char* argv[])
   double        steering_input;
   double        braking_input;
 
+  // DEBUGGING
+  ChTireForces pac_forces(4);
+
+
   // Number of simulation steps between two 3D view render frames
   int render_steps = (int)std::ceil(render_step_size / step_size);
 
@@ -328,6 +358,16 @@ int main(int argc, char* argv[])
     tire_forces[REAR_LEFT] = tire_rear_left->GetTireForce();
     tire_forces[REAR_RIGHT] = tire_rear_right->GetTireForce();
 
+    // DEBUGGING
+    if(test_pactire)
+    {
+      pac_forces[FRONT_LEFT] = pac_FL->GetTireForce();
+      pac_forces[FRONT_RIGHT] = pac_FR->GetTireForce();
+      pac_forces[REAR_LEFT] = pac_RL->GetTireForce();
+      pac_forces[REAR_RIGHT] = pac_RR->GetTireForce();
+    }
+
+
     driveshaft_speed = vehicle.GetDriveshaftSpeed();
 
     wheel_states[FRONT_LEFT] = vehicle.GetWheelState(FRONT_LEFT);
@@ -347,6 +387,17 @@ int main(int argc, char* argv[])
     tire_rear_left->Update(time, wheel_states[REAR_LEFT]);
     tire_rear_right->Update(time, wheel_states[REAR_RIGHT]);
 
+
+    // DEBUGGING
+    if(test_pactire)
+    {
+      pac_FL->Update(time, wheel_states[FRONT_LEFT]);
+      pac_FR->Update(time, wheel_states[FRONT_RIGHT]);
+      pac_RL->Update(time, wheel_states[REAR_LEFT]);
+      pac_RR->Update(time, wheel_states[REAR_RIGHT]);
+    }
+
+
     powertrain->Update(time, throttle_input, driveshaft_speed);
 
     vehicle.Update(time, steering_input, braking_input, powertrain_torque, tire_forces);
@@ -362,6 +413,23 @@ int main(int argc, char* argv[])
     tire_front_left->Advance(step);
     tire_rear_right->Advance(step);
     tire_rear_left->Advance(step);
+
+
+    // DEBUGGING
+    if(test_pactire)
+    {
+      pac_FR->Advance(step);
+      pac_FL->Advance(step);
+      pac_RR->Advance(step);
+      pac_RL->Advance(step);
+
+      pac_FR->WriteOutData(time, pac_ofilename_base + "_FR.csv");
+      pac_FL->WriteOutData(time, pac_ofilename_base + "_FL.csv");
+      pac_RR->WriteOutData(time, pac_ofilename_base + "_RR.csv");
+      pac_RL->WriteOutData(time, pac_ofilename_base + "_RL.csv");
+    }
+
+
 
     powertrain->Advance(step);
 

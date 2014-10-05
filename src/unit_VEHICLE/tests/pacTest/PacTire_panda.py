@@ -312,13 +312,13 @@ if __name__ == '__main__':
     # *************   TRANSIENT SLIP
     
     # pure longitudinal slip case
-    longSlip = PacTire_panda(dir_ChronoT + 'test_pacTire_pureLongSlip.csv',
+    longSlip = PacTire_panda(dir_ChronoT + 'test_pacTire_pureLongSlip_transient.csv',
                             dir_ChronoT + 'test_pacTire_pureLongSlip_transient.csv')
     longSlip.plot_kappa_FMpure(dir_Adams + 'pureLong_Fx.tab',
                                dir_Adams + 'pureLong_Mz.tab')
     
      
-    latSlip = PacTire_panda(dir_ChronoT + "test_pacTire_pureLatSlip.csv",
+    latSlip = PacTire_panda(dir_ChronoT + "test_pacTire_pureLatSlip_transient.csv",
                         dir_ChronoT + "test_pacTire_pureLatSlip_transient.csv")
     # TODO: get the .tab data files with the 2 second maneuver data
     latSlip.plot_alpha_FMpure(dir_Adams + "pureLat_Fy.tab",
@@ -326,7 +326,7 @@ if __name__ == '__main__':
     
     
     # combined slip
-    combinedSlip = PacTire_panda(dir_ChronoT + "test_pacTire_combinedSlip.csv",
+    combinedSlip = PacTire_panda(dir_ChronoT + "test_pacTire_combinedSlip_transient.csv",
                                  dir_ChronoT + "test_pacTire_combinedSlip_transient.csv")
                                  
     # TODO: get the  Adams .tab files with the fast maneuver data (2 seconds)
