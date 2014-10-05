@@ -36,7 +36,7 @@ public:
   virtual ~ChBrakeSimple() {}
 
   /// Initialize the brake by providing the wheel's revolute link.
-  void Initialize(ChSharedPtr<ChLinkLockRevolute> mhub);
+  virtual void Initialize(ChSharedPtr<ChLinkLockRevolute> hub);
 
   /// Set the brake modulation, in 0..1 range, 
   /// when = 0 it is completely free,
