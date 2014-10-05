@@ -37,7 +37,7 @@ using namespace chrono::collision;
 //   - ct_norm:     contact normal, from ct_pt2 to ct_pt1 (in global frame)
 //   - ct_eff_rad:  effective contact radius
 //   - ct_body_ids: IDs of the bodies for the two contact shapes
-void chrono::collision::RCollision(const uint& icoll,           // index of this contact pair candidate
+bool chrono::collision::RCollision(const uint& icoll,           // index of this contact pair candidate
                                    const ConvexShape &shapeA,
                                    const ConvexShape &shapeB,
                                    const int& body1,
@@ -48,17 +48,20 @@ void chrono::collision::RCollision(const uint& icoll,           // index of this
                                    real3* ct_pt2,          // [output] point on shape2 (per contact pair)
                                    real* ct_depth,        // [output] penetration depth (per contact pair)
                                    real* ct_eff_rad,      // [output] effective contact radius (per contact pair)
-                                   int2* ct_body_ids)     // [output] body IDs (per contact pair)
+                                   int2* ct_body_ids,     // [output] body IDs (per contact pair)
+                                   int & nC)              // [output] number of contacts found
                                    {
    // Special-case the collision detection based on the types of the
    // two potentially colliding shapes.
+
+   nC = 1;
 
    if (shapeA.type == SPHERE && shapeB.type == SPHERE) {
       if (sphere_sphere(shapeA.A, shapeA.B.x, shapeB.A, shapeB.B.x, ct_norm[icoll], ct_depth[icoll], ct_pt1[icoll], ct_pt2[icoll], ct_eff_rad[icoll])) {
          ct_flag[icoll] = 0;
          ct_body_ids[icoll] = I2(body1, body2);
       }
-      return;
+      return true;
    }
 
    if (shapeA.type == CAPSULE && shapeB.type == SPHERE) {
@@ -66,7 +69,7 @@ void chrono::collision::RCollision(const uint& icoll,           // index of this
          ct_flag[icoll] = 0;
          ct_body_ids[icoll] = I2(body1, body2);
       }
-      return;
+      return true;
    }
 
    if (shapeA.type == SPHERE && shapeB.type == CAPSULE) {
@@ -75,7 +78,7 @@ void chrono::collision::RCollision(const uint& icoll,           // index of this
          ct_flag[icoll] = 0;
          ct_body_ids[icoll] = I2(body1, body2);
       }
-      return;
+      return true;
    }
 
    if (shapeA.type == CYLINDER && shapeB.type == SPHERE) {
@@ -83,7 +86,7 @@ void chrono::collision::RCollision(const uint& icoll,           // index of this
          ct_flag[icoll] = 0;
          ct_body_ids[icoll] = I2(body1, body2);
       }
-      return;
+      return true;
    }
 
    if (shapeA.type == SPHERE && shapeB.type == CYLINDER) {
@@ -92,7 +95,7 @@ void chrono::collision::RCollision(const uint& icoll,           // index of this
          ct_flag[icoll] = 0;
          ct_body_ids[icoll] = I2(body1, body2);
       }
-      return;
+      return true;
    }
 
    if (shapeA.type == ROUNDEDCYL && shapeB.type == SPHERE) {
@@ -101,7 +104,7 @@ void chrono::collision::RCollision(const uint& icoll,           // index of this
          ct_flag[icoll] = 0;
          ct_body_ids[icoll] = I2(body1, body2);
       }
-      return;
+      return true;
    }
 
    if (shapeA.type == SPHERE && shapeB.type == ROUNDEDCYL) {
@@ -111,7 +114,7 @@ void chrono::collision::RCollision(const uint& icoll,           // index of this
          ct_flag[icoll] = 0;
          ct_body_ids[icoll] = I2(body1, body2);
       }
-      return;
+      return true;
    }
 
    if (shapeA.type == BOX && shapeB.type == SPHERE) {
@@ -119,7 +122,7 @@ void chrono::collision::RCollision(const uint& icoll,           // index of this
          ct_flag[icoll] = 0;
          ct_body_ids[icoll] = I2(body1, body2);
       }
-      return;
+      return true;
    }
 
    if (shapeA.type == SPHERE && shapeB.type == BOX) {
@@ -128,7 +131,7 @@ void chrono::collision::RCollision(const uint& icoll,           // index of this
          ct_flag[icoll] = 0;
          ct_body_ids[icoll] = I2(body1, body2);
       }
-      return;
+      return true;
    }
 
    if (shapeA.type == TRIANGLEMESH && shapeB.type == SPHERE) {
@@ -136,6 +139,7 @@ void chrono::collision::RCollision(const uint& icoll,           // index of this
          ct_flag[icoll] = 0;
          ct_body_ids[icoll] = I2(body1, body2);
       }
+      return true;
    }
 
    if (shapeA.type == SPHERE && shapeB.type == TRIANGLEMESH) {
@@ -144,47 +148,51 @@ void chrono::collision::RCollision(const uint& icoll,           // index of this
          ct_flag[icoll] = 0;
          ct_body_ids[icoll] = I2(body1, body2);
       }
+      return true;
    }
 
    if (shapeA.type == CAPSULE && shapeB.type == CAPSULE) {
-      int nC = capsule_capsule(shapeA.A, shapeA.R, shapeA.B.x, shapeA.B.y, shapeB.A, shapeB.R, shapeB.B.x, shapeB.B.y, &ct_norm[icoll], &ct_depth[icoll], &ct_pt1[icoll],
+       nC = capsule_capsule(shapeA.A, shapeA.R, shapeA.B.x, shapeA.B.y, shapeB.A, shapeB.R, shapeB.B.x, shapeB.B.y, &ct_norm[icoll], &ct_depth[icoll], &ct_pt1[icoll],
                                &ct_pt2[icoll], &ct_eff_rad[icoll]);
       for (int i = 0; i < nC; i++) {
          ct_flag[icoll + i] = 0;
          ct_body_ids[icoll + i] = I2(body1, body2);
       }
-      return;
+      return true;
    }
 
    if (shapeA.type == BOX && shapeB.type == CAPSULE) {
-      int nC = box_capsule(shapeA.A, shapeA.R, shapeA.B, shapeB.A, shapeB.R, shapeB.B.x, shapeB.B.y, &ct_norm[icoll], &ct_depth[icoll], &ct_pt1[icoll], &ct_pt2[icoll],
+       nC = box_capsule(shapeA.A, shapeA.R, shapeA.B, shapeB.A, shapeB.R, shapeB.B.x, shapeB.B.y, &ct_norm[icoll], &ct_depth[icoll], &ct_pt1[icoll], &ct_pt2[icoll],
                            &ct_eff_rad[icoll]);
       for (int i = 0; i < nC; i++) {
          ct_flag[icoll + i] = 0;
          ct_body_ids[icoll + i] = I2(body1, body2);
       }
-      return;
+      return true;
    }
 
    if (shapeA.type == CAPSULE && shapeB.type == BOX) {
-      int nC = box_capsule(shapeB.A, shapeB.R, shapeB.B, shapeA.A, shapeA.R, shapeA.B.x, shapeA.B.y, &ct_norm[icoll], &ct_depth[icoll], &ct_pt2[icoll], &ct_pt1[icoll],
+       nC = box_capsule(shapeB.A, shapeB.R, shapeB.B, shapeA.A, shapeA.R, shapeA.B.x, shapeA.B.y, &ct_norm[icoll], &ct_depth[icoll], &ct_pt2[icoll], &ct_pt1[icoll],
                            &ct_eff_rad[icoll]);
       for (int i = 0; i < nC; i++) {
          ct_norm[icoll + i] = -ct_norm[icoll + i];
          ct_flag[icoll + i] = 0;
          ct_body_ids[icoll + i] = I2(body1, body2);
       }
-      return;
+      return true;
    }
 
    if (shapeA.type == BOX && shapeB.type == BOX) {
-      int nC = box_box(shapeA.A, shapeA.R, shapeA.B, shapeB.A, shapeB.R, shapeB.B, &ct_norm[icoll], &ct_depth[icoll], &ct_pt1[icoll], &ct_pt2[icoll], &ct_eff_rad[icoll]);
+       nC = box_box(shapeA.A, shapeA.R, shapeA.B, shapeB.A, shapeB.R, shapeB.B, &ct_norm[icoll], &ct_depth[icoll], &ct_pt1[icoll], &ct_pt2[icoll], &ct_eff_rad[icoll]);
       for (int i = 0; i < nC; i++) {
          ct_flag[icoll + i] = 0;
          ct_body_ids[icoll + i] = I2(body1, body2);
       }
-      return;
+      //TODO: Change to true when this is implemented
+      return false;
    }
+   //Contact could not checked using this CD algorithm
+   return false;
 }
 
 // =============================================================================

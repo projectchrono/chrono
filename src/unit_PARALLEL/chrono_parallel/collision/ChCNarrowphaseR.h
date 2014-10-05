@@ -105,7 +105,7 @@ static const real edge_radius = 0.1;
               real* eff_radius);
 
 
-  void RCollision(const uint& icoll,
+  bool RCollision(const uint& icoll,
                         const ConvexShape &shapeA,
                         const ConvexShape &shapeB,
                         const int& body1,
@@ -116,7 +116,8 @@ static const real edge_radius = 0.1;
                         real3* ct_pt2,
                         real* ct_depth,
                         real* ct_eff_rad,
-                        int2* ct_body_ids);
+                        int2* ct_body_ids,
+                        int & nC);
 
 
 } // end namespace collision
