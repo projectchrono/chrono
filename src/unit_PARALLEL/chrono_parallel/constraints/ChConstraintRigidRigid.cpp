@@ -327,10 +327,14 @@ void ChConstraintRigidRigid::host_RHS(int2 *ids,
          }
       }
       real bi = 0;
-      if (alpha) {
+      if (alpha > 0) {
          bi = inv_hpa * correction[index];
       } else {
-         bi = std::fmax(real(1.0) / step_size * correction[index], -contact_recovery_speed);
+         if (contact_recovery_speed < 0) {
+            bi = real(1.0) / step_size * correction[index];
+         } else {
+            bi = std::fmax(real(1.0) / step_size * correction[index], -contact_recovery_speed);
+         }
       }
 
       rhs[_index_ + 0] = -temp.x - bi;
