@@ -28,44 +28,77 @@
 
 namespace chrono {
 
-class CH_SUBSYS_API ChLugreTire : public ChTire {
+///
+/// Tire model based on LuGre friction model.
+///
+class CH_SUBSYS_API ChLugreTire : public ChTire
+{
 public:
 
-  ChLugreTire(const ChTerrain& terrain);
+  ChLugreTire(
+    const ChTerrain& terrain   ///< [in] reference to the terrain system
+    );
+
   virtual ~ChLugreTire() {}
 
+  /// Initialize this tire system.
   void Initialize();
-  void Initialize(ChSharedPtr<ChBody> wheel);
 
+  /// Initialize this tire system and enable visualization of the discs.
+  void Initialize(
+    ChSharedPtr<ChBody> wheel   ///< handle to the associated wheel body
+    );
+
+  /// Get the tire force and moment.
+  /// This represents the output from this tire system that is passed to the
+  /// vehicle system.  Typically, the vehicle subsystem will pass the tire force
+  /// to the appropriate suspension subsystem which applies it as an external
+  /// force one the wheel body.
   virtual ChTireForce GetTireForce() const { return m_tireForce; }
 
-  virtual void Update(double               time,
-                      const ChWheelState&  wheel_state);
+  /// Update the state of this tire system at the current time.
+  /// The tire system is provided the current state of its associated wheel.
+  virtual void Update(
+    double               time,          ///< [in] current time
+    const ChWheelState&  wheel_state    ///< [in] current state of associated wheel body
+    );
+
+  /// Advance the state of this tire by the specified time step.
   virtual void Advance(double step);
 
+  /// Set the value of the integration step size for the underlying dynamics.
   void SetStepsize(double val) { m_stepsize = val; }
+
+  /// Get the current value of the integration step size.
   double GetStepsize() const { return m_stepsize; }
 
 protected:
 
+  /// Return the number of discs used to model this tire.
   virtual int getNumDiscs() const = 0;
+
+  /// Return the tire radius.
   virtual double getRadius() const = 0;
+
+  /// Return the laterla disc locations.
+  /// These locations are relative to the tire center.
   virtual const double* getDiscLocations() const = 0;
 
+  /// Return the vertical tire stiffness (for normal force calculation).
   virtual double getNormalStiffness() const = 0;
+  /// Return the vertical tire damping coefficient (for normal force calculation).
   virtual double getNormalDamping() const = 0;
 
+  /// Set the parameters in the LuGre friction model.
   virtual void SetLugreParams() = 0;
 
-  double   m_stepsize;
-
-  // Lugre friction model parameters (longitudinal/lateral)
-  double   m_sigma0[2];
-  double   m_sigma1[2];
-  double   m_sigma2[2];
-  double   m_Fc[2];
-  double   m_Fs[2];
-  double   m_vs[2];
+  /// Lugre friction model parameters (longitudinal/lateral)
+  double   m_sigma0[2];    ///<
+  double   m_sigma1[2];    ///<
+  double   m_sigma2[2];    ///<
+  double   m_Fc[2];        ///<
+  double   m_Fs[2];        ///<
+  double   m_vs[2];        ///< Stribeck velocity
 
 private:
 
@@ -82,6 +115,8 @@ private:
     double       z0;             // longitudinal direction
     double       z1;             // lateral direction
   };
+
+  double   m_stepsize;
 
   ChTireForce                  m_tireForce;
   std::vector<DiscContactData> m_data;

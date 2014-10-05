@@ -40,35 +40,79 @@
 
 namespace chrono {
 
-
+///
+/// Base class for a double-A arm suspension modeled with bodies and constraints.
+/// Derived from ChSuspension, but still an abstract base class.
+///
+/// The suspension subsystem is modeled with respect to a right-handed frame,
+/// with X pointing towards the front, Y to the left, and Z up (ISO standard).
+/// The suspension reference frame is assumed to be always aligned with that of
+/// the vehicle.  When attached to a chassis, only an offset is provided.
+///
+/// All point locations are assumed to be given for the left half of the
+/// supspension and will be mirrored (reflecting the y coordinates) to construct
+/// the right side.
+///
+/// If marked as 'driven', the suspension subsystem also creates the ChShaft axle
+/// element and its connection to the spindle body (which provides the interface
+///
 class CH_SUBSYS_API ChDoubleWishbone : public ChSuspension
 {
 public:
 
-  ChDoubleWishbone(const std::string& name,
-                   bool               steerable = false,
-                   bool               driven = false);
+  ChDoubleWishbone(
+    const std::string& name,               ///< [in] name of the subsystem
+    bool               steerable = false,  ///< [in] true if attached to steering subsystem
+    bool               driven = false      ///< [in] true if attached to driveline subsystem
+    );
+
   virtual ~ChDoubleWishbone();
 
-  virtual void Initialize(ChSharedPtr<ChBodyAuxRef>  chassis,
-                          const ChVector<>&          location,
-                          ChSharedPtr<ChBody>        tierod_body);
+  /// Initialize this suspension subsystem.
+  /// The suspension subsystem is initialized by attaching it to the specified
+  /// chassis body at the specified location (with respect to and expressed in
+  /// the reference frame of the chassis). It is assumed that the suspension
+  /// reference frame is always aligned with the chassis reference frame.
+  /// Finally, tierod_body is a handle to the body to which the suspension
+  /// tierods are to be attached. For a steerable suspension, this will be the
+  /// steering link of a suspension subsystem.  Otherwise, this is the chassis.
+  virtual void Initialize(
+    ChSharedPtr<ChBodyAuxRef>  chassis,     ///< [in] handle to the chassis body
+    const ChVector<>&          location,    ///< [in] location relative to the chassis frame
+    ChSharedPtr<ChBody>        tierod_body  ///< [in] body to which tireods are connected
+    );
 
-  double GetSpringForce(ChSuspension::Side side)       const { return m_spring[side]->Get_SpringReact(); }
-  double GetSpringLength(ChSuspension::Side side)      const { return m_spring[side]->Get_SpringLength(); }
+  /// Get the force in the spring element.
+  double GetSpringForce(ChSuspension::Side side) const { return m_spring[side]->Get_SpringReact(); }
+
+  /// Get the current length of the spring element
+  double GetSpringLength(ChSuspension::Side side) const { return m_spring[side]->Get_SpringLength(); }
+
+  /// Get the current deformation of the spring element.
   double GetSpringDeformation(ChSuspension::Side side) const { return m_spring[side]->Get_SpringDeform(); }
 
-  double GetShockForce(ChSuspension::Side side)        const { return m_shock[side]->Get_SpringReact(); }
-  double GetShockLength(ChSuspension::Side side)       const { return m_shock[side]->Get_SpringLength(); }
-  double GetShockVelocity(ChSuspension::Side side)     const { return m_shock[side]->Get_SpringVelocity(); }
+  /// Get the force in the shock (damper) element.
+  double GetShockForce(ChSuspension::Side side) const { return m_shock[side]->Get_SpringReact(); }
 
+  /// Get the current length of the shock (damper) element.
+  double GetShockLength(ChSuspension::Side side) const { return m_shock[side]->Get_SpringLength(); }
+
+  /// Get the current deformation velocity of the shock (damper) element.
+  double GetShockVelocity(ChSuspension::Side side) const { return m_shock[side]->Get_SpringVelocity(); }
+
+  /// Log current constraint violations.
   virtual void LogConstraintViolations(ChSuspension::Side side);
 
+  /// Log the locations of all hardpoints.
+  /// The reported locations are expressed in the suspension reference frame.
+  /// By default, these values are reported in SI units (meters), but can be
+  /// optionally reported in inches.
   void LogHardpointLocations(const ChVector<>& ref,
                              bool              inches = false);
 
 protected:
 
+  /// Identifiers for the various hardpoints.
   enum PointId {
     SPINDLE,    ///< spindle location
     UPRIGHT,    ///< upright location
@@ -89,54 +133,82 @@ protected:
     NUM_POINTS
   };
 
+  /// Return the location of the specified hardpoint.
+  /// The returned location must be expressed in the suspension reference frame.
   virtual const ChVector<> getLocation(PointId which) = 0;
 
+  /// Return the mass of the spindle body.
   virtual double getSpindleMass() const = 0;
+  /// Return the mass of the upper control arm body.
   virtual double getUCAMass() const = 0;
+  /// Return the mass of the lower control body.
   virtual double getLCAMass() const = 0;
+  /// Return the mass of the upright body.
   virtual double getUprightMass() const = 0;
 
-  virtual double getSpindleRadius() const = 0;
-  virtual double getSpindleWidth() const = 0;
-  virtual double getUCARadius() const = 0;
-  virtual double getLCARadius() const = 0;
-  virtual double getUprightRadius() const = 0;
-
+  /// Return the moments of inertia of the spindle body.
   virtual const ChVector<>& getSpindleInertia() const = 0;
+  /// Return the moments of inertia of the upper control arm body.
   virtual const ChVector<>& getUCAInertia() const = 0;
+  /// Return the moments of inertia of the lower control arm body.
   virtual const ChVector<>& getLCAInertia() const = 0;
+  /// Return the moments of inertia of the upright body.
   virtual const ChVector<>& getUprightInertia() const = 0;
 
+  /// Return the inertia of the axle shaft.
   virtual double getAxleInertia() const = 0;
 
+  /// Return the radius of the spindle body (visualization only).
+  virtual double getSpindleRadius() const = 0;
+  /// Return the width of the spindle body (visualization only).
+  virtual double getSpindleWidth() const = 0;
+  /// Return the radius of the upper control arm body (visualization only).
+  virtual double getUCARadius() const = 0;
+  /// Return the radius of the lower control arm body (visualization only).
+  virtual double getLCARadius() const = 0;
+  /// Return the radius of the upright body (visualization only).
+  virtual double getUprightRadius() const = 0;
+
+  /// Indicate whether the spring is modeled as a nonlinear element.
+  /// If true, the concrete class must provide a callback function to calculate
+  /// the force in the spring element (see getSpringForceCallback).
   virtual bool useNonlinearSpring() const { return false; }
+  /// Indicate whether the shock is modeled as a nonlinear element.
+  /// If true, the concrete class must provide a callback function to calculate
+  /// the force in the shock element (see getShockForceCallback).
   virtual bool useNonlinearShock() const  { return false; }
 
+  /// Return the spring coefficient (for linear spring elements).
   virtual double getSpringCoefficient() const  { return 1.0; }
+  /// Return the damping coefficient (for linear shock elements).
   virtual double getDampingCoefficient() const { return 1.0; }
+
+  /// Return the free (rest) length of the spring element.
   virtual double getSpringRestLength() const = 0;
 
+  /// Return the callback function for spring force (for nonlinear spring).
   virtual ChSpringForceCallback* getSpringForceCallback() const { return NULL; }
+  /// Return the callback function for shock force (for nonlinear shock).
   virtual ChSpringForceCallback* getShockForceCallback()  const { return NULL; }
 
-  ChSharedBodyPtr                   m_upright[2];
-  ChSharedBodyPtr                   m_UCA[2];
-  ChSharedBodyPtr                   m_LCA[2];
+  ChSharedBodyPtr                   m_upright[2];      ///< handles to the upright bodies (left/right)
+  ChSharedBodyPtr                   m_UCA[2];          ///< handles to the upper control arm bodies (left/right)
+  ChSharedBodyPtr                   m_LCA[2];          ///< handles to the lower control arm bodies (left/right)
 
-  ChSharedPtr<ChLinkLockRevolute>   m_revoluteUCA[2];
-  ChSharedPtr<ChLinkLockSpherical>  m_sphericalUCA[2];
-  ChSharedPtr<ChLinkLockRevolute>   m_revoluteLCA[2];
-  ChSharedPtr<ChLinkLockSpherical>  m_sphericalLCA[2];
-  ChSharedPtr<ChLinkDistance>       m_distTierod[2];
+  ChSharedPtr<ChLinkLockRevolute>   m_revoluteUCA[2];  ///< handles to the chassis-UCA revolute joints (left/right)
+  ChSharedPtr<ChLinkLockSpherical>  m_sphericalUCA[2]; ///< handles to the upright-UCA spherical joints (left/right)
+  ChSharedPtr<ChLinkLockRevolute>   m_revoluteLCA[2];  ///< handles to the chassis-LCA revolute joints (left/right)
+  ChSharedPtr<ChLinkLockSpherical>  m_sphericalLCA[2]; ///< handles to the upright-LCA spherical joints (left/right)
+  ChSharedPtr<ChLinkDistance>       m_distTierod[2];   ///< handles to the tierod distance constraints (left/right)
 
-  bool                              m_nonlinearShock;
-  bool                              m_nonlinearSpring;
+  bool                              m_nonlinearShock;  ///< true if using a callback function to calculate shock forces.
+  bool                              m_nonlinearSpring; ///< true if using a callback function to calculate spring forces.
 
-  ChSpringForceCallback*            m_shockCB;
-  ChSpringForceCallback*            m_springCB;
+  ChSpringForceCallback*            m_shockCB;         ///< callback function for calculating shock forces
+  ChSpringForceCallback*            m_springCB;        ///< callback function for calculating spring forces
 
-  ChSharedPtr<ChLinkSpringCB>       m_shock[2];
-  ChSharedPtr<ChLinkSpringCB>       m_spring[2];
+  ChSharedPtr<ChLinkSpringCB>       m_shock[2];        ///< handles to the spring links (left/right)
+  ChSharedPtr<ChLinkSpringCB>       m_spring[2];       ///< handles to the shock links (left/right)
 
 private:
 

@@ -31,24 +31,52 @@
 
 namespace chrono {
 
-
+///
+/// Base class for a Pitman Arm steering subsystem.
+/// Derived from ChSteering, but still an abstract base class.
+///
+/// The steering subsystem is modeled with respect to a right-handed frame with
+/// with X pointing towards the front, Y to the left, and Z up (ISO standard).
+///
+/// When attached to a chassis, both an offset and a rotation (as a quaternion)
+/// are provided.
+///
 class CH_SUBSYS_API ChPitmanArm : public ChSteering
 {
 public:
 
-  ChPitmanArm(const std::string& name);
+  ChPitmanArm(
+    const std::string& name    ///< [in] name of the subsystem
+    );
+
   virtual ~ChPitmanArm() {}
 
-  virtual void Initialize(ChSharedPtr<ChBodyAuxRef> chassis,
-                          const ChVector<>&         location,
-                          const ChQuaternion<>&     rotation);
+  /// Initialize this steering subsystem.
+  /// The steering subsystem is initialized by attaching it to the specified 
+  /// chassis body at the specified location (with respect to and expressed in
+  /// the reference frame of the chassis) and with specified orientation (with
+  /// respect to the chassis reference frame).
+  virtual void Initialize(
+    ChSharedPtr<ChBodyAuxRef> chassis,   ///< [in] handle to the chassis body
+    const ChVector<>&         location,  ///< [in] location relative to the chassis frame
+    const ChQuaternion<>&     rotation   ///< [in] orientation relative to the chassis frame
+    );
 
-  virtual void Update(double time, double steering);
+  /// Update the state of this steering subsystem at the current time.
+  /// The steering subsystem is provided the current steering driver input (a
+  /// value between -1 and +1).  Positive steering input indicates steering
+  /// to the left. This function is called during the vehicle update.
+  virtual void Update(
+    double time,       ///< [in] current time
+    double steering    ///< [in] current steering input [-1,+1]
+    );
 
+  /// Log current constraint violations.
   virtual void LogConstraintViolations();
 
 protected:
 
+  /// Identifiers for the various hardpoints.
   enum PointId {
     STEERINGLINK,   ///< steering link location (com)
     PITMANARM,      ///< Pitman arm location (com)
@@ -61,33 +89,45 @@ protected:
     NUM_POINTS
   };
 
+  /// Identifiers for the various direction unit vectors.
   enum DirectionId {
-    REV_AXIS,       // revolute joint
-    UNIV_AXIS_ARM,  // universal joint (Pitman arm side)
-    UNIV_AXIS_LINK, // universal joint (steering link side)
-    REVSPH_AXIS,    // revolute joint for idler arm
+    REV_AXIS,       ///< revolute joint
+    UNIV_AXIS_ARM,  ///< universal joint (Pitman arm side)
+    UNIV_AXIS_LINK, ///< universal joint (steering link side)
+    REVSPH_AXIS,    ///< revolute joint for idler arm
     NUM_DIRS
   };
 
+  /// Return the location of the specified hardpoint.
+  /// The returned location must be expressed in the suspension reference frame.
   virtual const ChVector<> getLocation(PointId which) = 0;
+  /// Return the unit vector for the specified direction.
+  /// The returned vector must be expressed in the suspension reference frame.
   virtual const ChVector<> getDirection(DirectionId which) = 0;
 
+  /// Return the mass of the steering link body.
   virtual double getSteeringLinkMass() const = 0;
+  /// Return the mass of the Pitman arm body.
   virtual double getPitmanArmMass() const = 0;
 
-  virtual double getSteeringLinkRadius() const = 0;
-  virtual double getPitmanArmRadius() const = 0;
-
-  virtual double getMaxAngle() const = 0;
-
+  /// Return the moments of inertia of the steering link body.
   virtual const ChVector<>& getSteeringLinkInertia() const = 0;
+  /// Return the moments of inertia of the Pitman arm body.
   virtual const ChVector<>& getPitmanArmInertia() const = 0;
 
-  ChSharedPtr<ChBody>                  m_arm;
+  /// Return the radius of the steering link body (visualization only).
+  virtual double getSteeringLinkRadius() const = 0;
+  /// Return the radius of the Pitman arm body (visualization only).
+  virtual double getPitmanArmRadius() const = 0;
 
-  ChSharedPtr<ChLinkEngine>            m_revolute;
-  ChSharedPtr<ChLinkRevoluteSpherical> m_revsph;
-  ChSharedPtr<ChLinkLockUniversal>     m_universal;
+  /// Return the maximum rotation angle of the revolute joint.
+  virtual double getMaxAngle() const = 0;
+
+  ChSharedPtr<ChBody>                  m_arm;        ///< handle to the Pitman arm body
+
+  ChSharedPtr<ChLinkEngine>            m_revolute;   ///< handle to the chassis-arm revolute joint
+  ChSharedPtr<ChLinkRevoluteSpherical> m_revsph;     ///< handle to the revolute-spherical joint (idler arm)
+  ChSharedPtr<ChLinkLockUniversal>     m_universal;  ///< handle to the arm-link universal joint
 
 private:
 

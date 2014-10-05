@@ -26,18 +26,43 @@
 
 namespace chrono {
 
-class CH_SUBSYS_API ChRigidTire : public ChTire {
+///
+/// Rigid tire model.
+/// This tire is modeled as a rigid cylinder.  Requires a terrain system that
+/// supports rigid contact with friction.
+///
+class CH_SUBSYS_API ChRigidTire : public ChTire
+{
 public:
-  ChRigidTire(const ChTerrain& terrain);
+
+  ChRigidTire(
+    const ChTerrain& terrain   ///< [in] reference to the terrain system
+    );
+
   virtual ~ChRigidTire() {}
 
+  /// Get the tire force and moment.
+  /// For a rigid tire, the tire forces are automatically applied to the
+  /// associated wheel (through Chrono's frictional contact system). The values
+  /// returned here are never used.
   virtual ChTireForce GetTireForce() const;
 
-  void Initialize(ChSharedBodyPtr wheel);
+  /// Initialize this tire system.
+  /// This function creates the tire contact shape and attaches it to the 
+  /// associated wheel body.
+  void Initialize(
+    ChSharedBodyPtr wheel  ///< handle to the associated wheel body
+    );
 
 protected:
+
+  /// Return the coefficient of friction for the tire material.
   virtual float getFrictionCoefficient() const = 0;
+
+  /// Return the tire radius.
   virtual double getRadius() const = 0;
+
+  /// Return the tire width.
   virtual double getWidth() const = 0;
 };
 

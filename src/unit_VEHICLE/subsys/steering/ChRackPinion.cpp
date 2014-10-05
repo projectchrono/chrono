@@ -79,7 +79,10 @@ void ChRackPinion::Initialize(ChSharedPtr<ChBodyAuxRef> chassis,
   chassis->GetSystem()->AddLink(m_prismatic);
 
   // Initialize the linear actuator.
-  //// TODO: Hack to work around limitations of ChLinkLinActuator
+  // The offset value here must be larger than any possible displacement of the
+  // steering link body (the rack) so that we do not reach the singular
+  // configuration of the ChLinkLinActuator (when the distance between the two
+  // markers becomes zero).
   double offset = 10;
   ChVector<> pt1 = link_abs;
   ChVector<> pt2 = link_abs - offset * steering_to_abs.GetRot().GetYaxis();

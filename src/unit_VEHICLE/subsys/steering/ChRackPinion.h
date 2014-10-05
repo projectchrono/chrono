@@ -31,13 +31,24 @@
 
 namespace chrono {
 
-
+///
+/// Base class for a Rack-Pinion steering subsystem.
+/// Derived from ChSteering, but still an abstract base class.
+///
+/// The steering subsystem is modeled with respect to a right-handed frame with
+/// with X pointing towards the front, Y to the left, and Z up (ISO standard).
+/// The steering link translates along the Y axis. We do not explicitly model the
+/// pinion but instead use the implied rack-pinion constraint to calculate the
+/// rack displacement from a given pinion rotation angle.
+///
 class CH_SUBSYS_API ChRackPinion : public ChSteering
 {
 public:
 
   /// Construct a rack-pinion steering mechanism with given base name.
-  ChRackPinion(const std::string& name);
+  ChRackPinion(
+    const std::string& name    ///< [in] name of the subsystem
+    );
 
   virtual ~ChRackPinion() {}
 
@@ -85,8 +96,8 @@ protected:
   /// Return the maximum rotation angle of the pinion (in either direction).
   virtual double GetMaxAngle() const = 0;
 
-  ChSharedPtr<ChLinkLockPrismatic> m_prismatic;  ///< prismatic joint chassis-link
-  ChSharedPtr<ChLinkLinActuator> m_actuator;     ///< linear actuator on steering link
+  ChSharedPtr<ChLinkLockPrismatic> m_prismatic;  ///< handle to the prismatic joint chassis-link
+  ChSharedPtr<ChLinkLinActuator> m_actuator;     ///< handle to the linear actuator on steering link
 
 private:
 
