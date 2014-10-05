@@ -192,5 +192,12 @@ enum NARROWPHASETYPE {
    NARROWPHASE_HYBRID_GJK
 };
 
+//This is set so that parts of the code that have been "flattened" can know what
+//type of system is used.
+enum SYSTEMTYPE{
+   SYSTEM_DVI,
+   SYSTEM_DEM
+};
+
 #endif
 

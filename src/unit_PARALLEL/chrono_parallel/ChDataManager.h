@@ -111,7 +111,7 @@ struct settings_container {
       // not sure if that is a huge issue
       perform_thread_tuning = ((min_threads == max_threads) ? false : true);
       perform_bin_tuning = true;
-
+      system_type = SYSTEM_DVI;
    }
 
    //CD Settings
@@ -123,6 +123,7 @@ struct settings_container {
    bool perform_bin_tuning;
    int min_threads;
    int max_threads;
+   SYSTEMTYPE system_type;
 
 };
 struct host_container {
