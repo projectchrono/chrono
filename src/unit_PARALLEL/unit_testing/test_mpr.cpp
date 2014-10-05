@@ -151,7 +151,7 @@ void test_sphere_sphere() {
 
       MPRSphereSphere(sphereA, sphereB, n, d, p1, p2);
 
-      cout << n << p1 << p2 << d << endl;
+      //cout << n << p1 << p2 << d << endl;
       real3 n_check = real3(-sin(CH_C_PI / 4.0), -sin(CH_C_PI / 4.0), 0);
       WeakEqual(n, n_check, precision);
       WeakEqual(p1, real3(1, 1, 0) + n_check * 1, precision);
@@ -272,12 +272,12 @@ void test_ellipsoid_ellipsoid() {
       real3 p1, p2;
       MPRGetPoints(shapeA, shapeB, n, p, p1, p2);
       d = dot(n, p2 - p1);
-     // cout << n << p1 << p2 << d << endl;
+      // cout << n << p1 << p2 << d << endl;
 
-     // sResults res;
-     // GJKCollide(shapeA, shapeB, res);
+      // sResults res;
+      // GJKCollide(shapeA, shapeB, res);
 
-     // cout << res.normal << res.witnesses[0] << res.witnesses[1] << res.distance << " " << res.status << endl;
+      // cout << res.normal << res.witnesses[0] << res.witnesses[1] << res.distance << " " << res.status << endl;
       //cout << n << p1 << p2 << d << endl;
 
       real3 n_check = real3(sin(CH_C_PI / 4.0), -sin(CH_C_PI / 4.0), 0);
@@ -672,7 +672,7 @@ void test_cylinder_sphere() {
       real3 s_pos(3.5, 0, 2.5);
       c_hlen = 3.0;
       ConvexShape shapeA, shapeB;
-      c_pos =real3(0, 0, 0);
+      c_pos = real3(0, 0, 0);
       shapeA.type = ShapeType::CYLINDER;
       shapeA.A = c_pos;
       shapeA.B = real3(c_rad, c_hlen, c_rad);
@@ -688,10 +688,10 @@ void test_cylinder_sphere() {
       MPRGetPoints(shapeA, shapeB, norm, pt, pt1, pt2);
       depth = dot(norm, pt2 - pt1);
 
-      sResults sres;
-      GJKCollide(shapeB, shapeA, sres);
+      //sResults sres;
+      //GJKCollide(shapeB, shapeA, sres);
 
-      cout << sres.normal << sres.witnesses[0] << sres.witnesses[1] << sres.distance << " " << sres.status << endl;
+      //cout << sres.normal << sres.witnesses[0] << sres.witnesses[1] << sres.distance << " " << sres.status << endl;
 
       if (!res) {
          cout << "    test failed" << endl;
