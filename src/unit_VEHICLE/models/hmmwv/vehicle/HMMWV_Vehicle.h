@@ -33,10 +33,8 @@
 
 namespace hmmwv {
 
-// Forward reference
-class HMMWV_Powertrain;
-
-class HMMWV_Vehicle : public chrono::ChVehicle {
+class HMMWV_Vehicle : public chrono::ChVehicle
+{
 public:
 
   HMMWV_Vehicle(const bool        fixed = false,
