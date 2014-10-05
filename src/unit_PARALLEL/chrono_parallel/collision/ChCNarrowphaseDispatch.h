@@ -75,6 +75,7 @@ class CH_PARALLEL_API ChCNarrowphaseDispatch {
    unsigned int num_potentialCollisions;
    real collision_envelope;
    NARROWPHASETYPE narrowphase_algorithm;
+   SYSTEMTYPE system_type;
 
 };
 }  // end namespace collision
