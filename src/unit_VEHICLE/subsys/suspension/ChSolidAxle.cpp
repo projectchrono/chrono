@@ -64,9 +64,8 @@ const std::string ChSolidAxle::m_pointNames[] = {
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 ChSolidAxle::ChSolidAxle(const std::string& name,
-                         bool               steerable,
                          bool               driven)
-: ChSuspension(name, steerable, driven)
+: ChSuspension(name, driven)
 {
   // Create the axle body
   m_axleTube = ChSharedBodyPtr(new ChBody);

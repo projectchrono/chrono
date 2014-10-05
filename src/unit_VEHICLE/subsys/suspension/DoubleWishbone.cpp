@@ -42,13 +42,10 @@ static ChVector<> loadVector(const Value& a)
 // -----------------------------------------------------------------------------
 // Construct a double wishbone suspension using data from the specified JSON
 // file.
-//
-// TODO: for now, we must always construct a driven suspension (i.e. we always
-//       construct the axle shaft) since this is done in the ChDoubleWishbone
-//       constructor.  Figure out a clean way of fixing this...  
 // -----------------------------------------------------------------------------
-DoubleWishbone::DoubleWishbone(const std::string& filename)
-: ChDoubleWishbone("", false, true)
+DoubleWishbone::DoubleWishbone(const std::string& filename,
+                               bool               driven)
+: ChDoubleWishbone("", driven)
 {
   FILE* fp = fopen(filename.c_str(), "r");
 
@@ -64,12 +61,8 @@ DoubleWishbone::DoubleWishbone(const std::string& filename)
   assert(d.HasMember("Type"));
   assert(d.HasMember("Template"));
   assert(d.HasMember("Name"));
-  assert(d.HasMember("Steerable"));
-  assert(d.HasMember("Driven"));
 
   SetName(d["Name"].GetString());
-  SetSteerable(d["Steerable"].GetBool());
-  SetDriven(d["Driven"].GetBool());
 
   // Read Spindle data
   assert(d.HasMember("Spindle"));

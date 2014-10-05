@@ -29,7 +29,8 @@ class CH_SUBSYS_API DoubleWishbone : public ChDoubleWishbone
 {
 public:
 
-  DoubleWishbone(const std::string& filename);
+  DoubleWishbone(const std::string& filename,
+                 bool               driven);
   virtual ~DoubleWishbone() {}
 
   virtual double getSpindleMass() const { return m_spindleMass; }

@@ -99,13 +99,13 @@ const double     HMMWV_SolidAxleRear::m_springRestLength   = in2m * 13.36;
 // -----------------------------------------------------------------------------
 HMMWV_SolidAxleFront::HMMWV_SolidAxleFront(const std::string& name,
                                            bool               driven)
-: ChSolidAxle(name, true, driven)
+: ChSolidAxle(name, driven)
 {
 }
 
 HMMWV_SolidAxleRear::HMMWV_SolidAxleRear(const std::string& name,
                                          bool               driven)
-: ChSolidAxle(name, false, driven)
+: ChSolidAxle(name, driven)
 {
 }
 

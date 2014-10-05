@@ -24,10 +24,8 @@ namespace chrono {
 
 
 ChSuspension::ChSuspension(const std::string& name,
-                           bool               steerable,
                            bool               driven)
 : m_name(name),
-  m_steerable(steerable),
   m_driven(driven)
 {
 }

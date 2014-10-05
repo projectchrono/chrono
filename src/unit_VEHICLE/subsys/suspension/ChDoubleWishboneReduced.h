@@ -63,11 +63,13 @@ public:
 
   ChDoubleWishboneReduced(
     const std::string& name,               ///< [in] name of the subsystem
-    bool               steerable = false,  ///< [in] true if attached to steering subsystem
     bool               driven = false      ///< [in] true if attached to driveline subsystem
     );
 
   virtual ~ChDoubleWishboneReduced() {}
+
+  /// Specify whether or not this suspension can be steered.
+  virtual bool IsSteerable() const { return true; }
 
   /// Initialize this suspension subsystem.
   /// The suspension subsystem is initialized by attaching it to the specified

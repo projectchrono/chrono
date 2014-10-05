@@ -48,9 +48,10 @@ class CH_SUBSYS_API ChSolidAxle : public ChSuspension
 public:
 
   ChSolidAxle(const std::string& name,
-              bool               steerable = false,
               bool               driven = false);
   virtual ~ChSolidAxle() {}
+
+  virtual bool IsSteerable() const { return true; }
 
   virtual void Initialize(ChSharedPtr<ChBodyAuxRef>  chassis,
                           const ChVector<>&          location,

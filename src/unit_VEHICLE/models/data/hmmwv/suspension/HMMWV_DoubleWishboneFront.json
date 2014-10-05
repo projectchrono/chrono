@@ -3,9 +3,6 @@
   "Type":                       "Suspension",
   "Template":                   "DoubleWishbone",
 
-  "Steerable":                  true,
-  "Driven":                     false,
-
   "Spindle" :
   {
     "Mass":                     15.91,

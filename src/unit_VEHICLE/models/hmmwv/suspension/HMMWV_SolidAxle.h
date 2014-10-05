@@ -106,7 +106,7 @@ class HMMWV_SolidAxleRear : public chrono::ChSolidAxle
 public:
 
   HMMWV_SolidAxleRear(const std::string& name,
-                           bool               driven = false);
+                      bool               driven = false);
   ~HMMWV_SolidAxleRear() {}
 
   virtual double getAxleTubeMass() const { return m_axleTubeMass; }

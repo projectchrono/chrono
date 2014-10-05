@@ -41,9 +41,8 @@ namespace chrono {
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 ChDoubleWishboneReduced::ChDoubleWishboneReduced(const std::string& name,
-                                                 bool               steerable,
                                                  bool               driven)
-: ChSuspension(name, steerable, driven)
+: ChSuspension(name, driven)
 {
   CreateSide(LEFT, "_L");
   CreateSide(RIGHT, "_R");

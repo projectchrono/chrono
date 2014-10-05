@@ -102,9 +102,8 @@ private:
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 ChDoubleWishbone::ChDoubleWishbone(const std::string& name,
-                                   bool               steerable,
                                    bool               driven)
-: ChSuspension(name, steerable, driven),
+: ChSuspension(name, driven),
   m_nonlinearShock(false),
   m_nonlinearSpring(false),
   m_shockCB(NULL),

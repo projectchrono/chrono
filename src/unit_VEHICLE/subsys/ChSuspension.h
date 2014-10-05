@@ -46,11 +46,13 @@ public:
 
   ChSuspension(
     const std::string& name,               ///< [in] name of the subsystem
-    bool               steerable = false,  ///< [in] true if attached to steering subsystem
     bool               driven = false      ///< [in] true if attached to driveline subsystem
     );
 
   virtual ~ChSuspension() {}
+
+  /// Specify whether or not this suspension can be steered.
+  virtual bool IsSteerable() const = 0;
 
   /// Get the name identifier for this suspension subsystem.
   const std::string& GetName() const { return m_name; }
@@ -58,17 +60,8 @@ public:
   /// Set the name identifier for this suspension subsystem.
   void SetName(const std::string& name) { m_name = name; }
 
-  /// Return true if attached to steering subsystem and false otherwise.
-  bool IsSteerable() const { return m_steerable; }
-
-  /// Specify whether or not the suspension is attached to steering subsystem.
-  void SetSteerable(bool val) { m_steerable = val; }
-
   /// Return true if attached to driveline subsystem and false otherwise.
   bool IsDriven() const { return m_driven; }
-
-  /// Specify whether or not the suspension is attached to driveline subsystem.
-  void SetDriven(bool val) { m_driven = val; }
 
   /// Get a handle to the spindle body on the specified side.
   ChSharedPtr<ChBody>  GetSpindle(Side side) const { return m_spindle[side]; }
@@ -133,7 +126,6 @@ protected:
 
   std::string               m_name;       ///< name of the subsystem
   bool                      m_driven;     ///< true if attached to steering subsystem
-  bool                      m_steerable;  ///< true if attached to driveline subsystem
 
   ChSharedPtr<ChBody>               m_spindle[2];         ///< handles to spindle bodies
   ChSharedPtr<ChShaft>              m_axle[2];            ///< handles to axle shafts
