@@ -20,7 +20,6 @@
 
 #include "subsys/suspension/DoubleWishbone.h"
 
-#include "rapidjson/document.h"
 #include "rapidjson/filereadstream.h"
 
 using namespace rapidjson;
@@ -57,6 +56,18 @@ DoubleWishbone::DoubleWishbone(const std::string& filename,
   Document d;
   d.ParseStream(is);
 
+  Create(d);
+}
+
+DoubleWishbone::DoubleWishbone(const Document& d,
+                               bool            driven)
+: ChDoubleWishbone("", driven)
+{
+  Create(d);
+}
+
+void DoubleWishbone::Create(const Document& d)
+{
   // Read top-level data
   assert(d.HasMember("Type"));
   assert(d.HasMember("Template"));

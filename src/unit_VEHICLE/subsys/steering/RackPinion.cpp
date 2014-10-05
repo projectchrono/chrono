@@ -20,7 +20,6 @@
 #include "utils/ChUtilsInputOutput.h"
 #include "utils/ChUtilsData.h"
 
-#include "rapidjson/document.h"
 #include "rapidjson/filereadstream.h"
 
 using namespace rapidjson;
@@ -54,6 +53,17 @@ RackPinion::RackPinion(const std::string& filename)
   Document d;
   d.ParseStream(is);
 
+  Create(d);
+}
+
+RackPinion::RackPinion(const Document& d)
+: ChRackPinion("")
+{
+  Create(d);
+}
+
+void RackPinion::Create(const Document& d)
+{
   // Read top-level data
   assert(d.HasMember("Type"));
   assert(d.HasMember("Template"));

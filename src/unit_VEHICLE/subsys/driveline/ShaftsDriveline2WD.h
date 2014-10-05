@@ -23,6 +23,7 @@
 #include "subsys/ChApiSubsys.h"
 #include "subsys/driveline/ChShaftsDriveline2WD.h"
 
+#include "rapidjson/document.h"
 
 namespace chrono {
 
@@ -33,7 +34,8 @@ public:
 
   ShaftsDriveline2WD(ChVehicle*         car,
                      const std::string& filename);
-
+  ShaftsDriveline2WD(ChVehicle*                 car,
+                     const rapidjson::Document& d);
   ~ShaftsDriveline2WD() {}
 
   virtual double GetDriveshaftInertia() const      { return m_driveshaft_inertia; }
@@ -43,6 +45,8 @@ public:
   virtual double GetDifferentialRatio() const      { return m_differential_ratio; }
 
 private:
+  void Create(const rapidjson::Document& d);
+
   // Shaft inertias.
   double  m_driveshaft_inertia;
   double  m_differentialbox_inertia;

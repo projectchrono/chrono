@@ -20,7 +20,6 @@
 #include "utils/ChUtilsInputOutput.h"
 #include "utils/ChUtilsData.h"
 
-#include "rapidjson/document.h"
 #include "rapidjson/filereadstream.h"
 
 using namespace rapidjson;
@@ -42,6 +41,16 @@ BrakeSimple::BrakeSimple(const std::string& filename)
   Document d;
   d.ParseStream(is);
 
+  Create(d);
+}
+
+BrakeSimple::BrakeSimple(const Document& d)
+{
+  Create(d);
+}
+
+void BrakeSimple::Create(const Document& d)
+{
   // Read top-level data
   assert(d.HasMember("Type"));
   assert(d.HasMember("Template"));

@@ -22,6 +22,8 @@
 #include "subsys/ChApiSubsys.h"
 #include "subsys/suspension/ChDoubleWishbone.h"
 
+#include "rapidjson/document.h"
+
 namespace chrono {
 
 
@@ -31,6 +33,8 @@ public:
 
   DoubleWishbone(const std::string& filename,
                  bool               driven);
+  DoubleWishbone(const rapidjson::Document& d,
+                 bool                       driven);
   virtual ~DoubleWishbone() {}
 
   virtual double getSpindleMass() const { return m_spindleMass; }
@@ -58,6 +62,8 @@ public:
 private:
 
   virtual const ChVector<> getLocation(PointId which) { return m_points[which]; }
+
+  void Create(const rapidjson::Document& d);
 
   ChVector<>  m_points[NUM_POINTS];
 

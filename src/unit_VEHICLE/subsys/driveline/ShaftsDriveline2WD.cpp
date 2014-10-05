@@ -19,7 +19,6 @@
 
 #include "subsys/driveline/ShaftsDriveline2WD.h"
 
-#include "rapidjson/document.h"
 #include "rapidjson/filereadstream.h"
 
 using namespace rapidjson;
@@ -54,6 +53,18 @@ ShaftsDriveline2WD::ShaftsDriveline2WD(ChVehicle*         car,
   Document d;
   d.ParseStream(is);
 
+  Create(d);
+}
+
+ShaftsDriveline2WD::ShaftsDriveline2WD(ChVehicle*      car,
+                                       const Document& d)
+: ChShaftsDriveline2WD(car)
+{
+  Create(d);
+}
+
+void ShaftsDriveline2WD::Create(const Document& d)
+{
   // Read top-level data.
   assert(d.HasMember("Type"));
   assert(d.HasMember("Template"));

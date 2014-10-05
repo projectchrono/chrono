@@ -22,17 +22,25 @@
 #include "subsys/ChApiSubsys.h"
 #include "subsys/brake/ChBrakeSimple.h"
 
+#include "rapidjson/document.h"
+
 namespace chrono {
 
 
-class CH_SUBSYS_API BrakeSimple : public ChBrakeSimple {
+class CH_SUBSYS_API BrakeSimple : public ChBrakeSimple
+{
 public:
+
   BrakeSimple(const std::string& filename);
+  BrakeSimple(const rapidjson::Document& d);
   ~BrakeSimple() {}
 
   virtual double GetMaxBrakingTorque() { return m_maxtorque; }
 
 private:
+
+  void Create(const rapidjson::Document& d);
+
   double      m_maxtorque;
 };
 

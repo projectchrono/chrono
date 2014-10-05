@@ -22,6 +22,8 @@
 #include "subsys/ChApiSubsys.h"
 #include "subsys/steering/ChRackPinion.h"
 
+#include "rapidjson/document.h"
+
 namespace chrono {
 
 
@@ -30,6 +32,7 @@ class CH_SUBSYS_API RackPinion : public ChRackPinion
 public:
 
   RackPinion(const std::string& filename);
+  RackPinion(const rapidjson::Document& d);
   ~RackPinion() {}
 
   virtual double GetSteeringLinkMass() const               { return m_steeringLinkMass; }
@@ -43,6 +46,8 @@ public:
   virtual double GetMaxAngle() const                       { return m_maxAngle; }
 
 private:
+
+  void Create(const rapidjson::Document& d);
 
   double      m_steeringLinkMass;
   ChVector<>  m_steeringLinkInertia;

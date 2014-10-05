@@ -22,12 +22,17 @@
 #include "subsys/ChApiSubsys.h"
 #include "subsys/ChWheel.h"
 
+#include "rapidjson/document.h"
+
 namespace chrono {
 
 
-class CH_SUBSYS_API Wheel : public ChWheel {
+class CH_SUBSYS_API Wheel : public ChWheel
+{
 public:
+
   Wheel(const std::string& filename);
+  Wheel(const rapidjson::Document& d);
   ~Wheel() {}
 
   virtual double GetMass() const { return m_mass; }
@@ -38,11 +43,14 @@ public:
   void ExportMeshPovray(const std::string& out_dir);
 
 private:
+
   enum VisMode {
     NONE,
     PRIMITIVES,
     MESH
   };
+
+  void Create(const rapidjson::Document& d);
 
   double      m_mass;
   ChVector<>  m_inertia;

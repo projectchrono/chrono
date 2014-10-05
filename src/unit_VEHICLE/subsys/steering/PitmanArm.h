@@ -22,12 +22,17 @@
 #include "subsys/ChApiSubsys.h"
 #include "subsys/steering/ChPitmanArm.h"
 
+#include "rapidjson/document.h"
+
 namespace chrono {
 
 
-class CH_SUBSYS_API PitmanArm : public ChPitmanArm {
+class CH_SUBSYS_API PitmanArm : public ChPitmanArm
+{
 public:
+
   PitmanArm(const std::string& filename);
+  PitmanArm(const rapidjson::Document& d);
   ~PitmanArm() {}
 
   virtual double getSteeringLinkMass() const { return m_steeringLinkMass; }
@@ -45,6 +50,9 @@ public:
   virtual const ChVector<> getDirection(DirectionId which) { return m_dirs[which]; }
 
 private:
+
+  void Create(const rapidjson::Document& d);
+
   ChVector<>  m_points[NUM_POINTS];
   ChVector<>  m_dirs[NUM_DIRS];
 
