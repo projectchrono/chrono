@@ -20,6 +20,7 @@
 #define CH_SUSPENSION_H
 
 #include <string>
+#include <vector>
 
 #include "core/ChShared.h"
 #include "physics/ChSystem.h"
@@ -132,6 +133,9 @@ protected:
   ChSharedPtr<ChShaftsBody>         m_axle_to_spindle[2]; ///< handles to spindle-shaft connectors
   ChSharedPtr<ChLinkLockRevolute>   m_revolute[2];        ///< handles to spindle revolute joints
 };
+
+/// Vector of handles to suspension subsystems.
+typedef std::vector<ChSharedPtr<ChSuspension> >  ChSuspensionList;
 
 
 } // end namespace chrono

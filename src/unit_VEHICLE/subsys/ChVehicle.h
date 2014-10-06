@@ -61,8 +61,10 @@ struct ChTireForce {
   ChVector<> moment;       ///< moment vector, expressed in the global frame
 };
 
+/// Vector of tire force structures.
 typedef std::vector<ChTireForce> ChTireForces;
 
+// Forward declaration.
 class ChDriveline;
 
 ///

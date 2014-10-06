@@ -19,6 +19,8 @@
 #ifndef CH_BRAKE_H
 #define CH_BRAKE_H
 
+#include <vector>
+
 #include "core/ChShared.h"
 #include "physics/ChLinkLock.h"
 
@@ -48,6 +50,10 @@ public:
   /// Get the current brake torque.
   virtual double GetBrakeTorque() = 0;
 };
+
+
+/// Vector of handles to brake subsystems.
+typedef std::vector<ChSharedPtr<ChBrake> >  ChBrakeList;
 
 
 } // end namespace chrono

@@ -24,6 +24,8 @@
 #ifndef CH_WHEEL_H
 #define CH_WHEEL_H
 
+#include <vector>
+
 #include "core/ChShared.h"
 #include "physics/ChBody.h"
 
@@ -58,6 +60,10 @@ public:
     ChSharedPtr<ChBody> spindle    ///< handle to the associated spindle body
     );
 };
+
+
+/// Vector of handles to wheel subsystems.
+typedef std::vector<ChSharedPtr<ChWheel> >  ChWheelList;
 
 
 } // end namespace chrono
