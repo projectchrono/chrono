@@ -186,7 +186,7 @@ struct GJK {
          }
          /* Check for termination            */
          const real omega = dot(m_ray, w) / rl;
-         alpha = fmax(omega, alpha);
+         alpha = std::max(omega, alpha);
          if (((rl - alpha) - (GJK_ACCURARY * rl)) <= 0) {/* Return old simplex            */
             removevertice(m_simplices[m_current]);
             break;
@@ -643,7 +643,7 @@ struct EPA {
          } else {
             // Pick distance to edge a->b
             const real a_dot_b = dot(a->w, b->w);
-            dist = sqrt(fmax((a->w.length2() * b->w.length2() - a_dot_b * a_dot_b) / ba_l2, (real) 0));
+            dist = std::sqrt(std::max((a->w.length2() * b->w.length2() - a_dot_b * a_dot_b) / ba_l2, (real) 0));
          }
 
          return true;
