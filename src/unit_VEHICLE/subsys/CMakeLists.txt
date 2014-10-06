@@ -30,6 +30,10 @@ SET(Chrono_Subsys_FILES
     ChBrake.cpp
 )
 
+SET(Chrono_Vehicle_FILES
+    vehicle/Vehicle.h
+    vehicle/Vehicle.cpp
+)
 
 SET(Chrono_Susp_FILES
     suspension/ChDoubleWishbone.h
@@ -123,6 +127,7 @@ IF (ENABLE_IRRLICHT)
 ENDIF()
 
 SOURCE_GROUP("base" FILES ${Chrono_Subsys_FILES})
+SOURCE_GROUP("vehicle" FILES ${Chrono_Vehicle_FILES})
 SOURCE_GROUP("suspension" FILES ${Chrono_Susp_FILES})
 SOURCE_GROUP("wheel" FILES ${Chrono_Wheel_FILES})
 SOURCE_GROUP("steering" FILES ${Chrono_Steering_FILES})
@@ -139,6 +144,7 @@ SOURCE_GROUP("terrain" FILES ${Chrono_terrain_FILES})
 
 ADD_LIBRARY(Chrono_Subsys SHARED
     ${Chrono_Subsys_FILES}
+    ${Chrono_Vehicle_FILES}
     ${Chrono_Susp_FILES}
     ${Chrono_Wheel_FILES}
     ${Chrono_Steering_FILES}
