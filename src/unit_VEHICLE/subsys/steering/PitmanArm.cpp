@@ -56,13 +56,13 @@ PitmanArm::PitmanArm(const std::string& filename)
   Create(d);
 }
 
-PitmanArm::PitmanArm(const Document& d)
+PitmanArm::PitmanArm(const rapidjson::Document& d)
 : ChPitmanArm("")
 {
   Create(d);
 }
 
-void PitmanArm::Create(const Document& d)
+void PitmanArm::Create(const rapidjson::Document& d)
 {
   // Read top-level data
   assert(d.HasMember("Type"));

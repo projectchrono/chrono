@@ -62,13 +62,13 @@ Wheel::Wheel(const std::string& filename)
   Create(d);
 }
 
-Wheel::Wheel(const Document& d)
+Wheel::Wheel(const rapidjson::Document& d)
 : m_vis(NONE)
 {
   Create(d);
 }
 
-void Wheel::Create(const Document& d)
+void Wheel::Create(const rapidjson::Document& d)
 {
   // Read top-level data
   assert(d.HasMember("Type"));

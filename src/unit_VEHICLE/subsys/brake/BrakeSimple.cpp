@@ -44,12 +44,12 @@ BrakeSimple::BrakeSimple(const std::string& filename)
   Create(d);
 }
 
-BrakeSimple::BrakeSimple(const Document& d)
+BrakeSimple::BrakeSimple(const rapidjson::Document& d)
 {
   Create(d);
 }
 
-void BrakeSimple::Create(const Document& d)
+void BrakeSimple::Create(const rapidjson::Document& d)
 {
   // Read top-level data
   assert(d.HasMember("Type"));

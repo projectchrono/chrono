@@ -59,14 +59,14 @@ DoubleWishbone::DoubleWishbone(const std::string& filename,
   Create(d);
 }
 
-DoubleWishbone::DoubleWishbone(const Document& d,
-                               bool            driven)
+DoubleWishbone::DoubleWishbone(const rapidjson::Document& d,
+                               bool                       driven)
 : ChDoubleWishbone("", driven)
 {
   Create(d);
 }
 
-void DoubleWishbone::Create(const Document& d)
+void DoubleWishbone::Create(const rapidjson::Document& d)
 {
   // Read top-level data
   assert(d.HasMember("Type"));

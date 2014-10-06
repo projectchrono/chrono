@@ -43,7 +43,7 @@ static ChVector<> loadVector(const Value& a)
 // file.
 // -----------------------------------------------------------------------------
 SolidAxle::SolidAxle(const std::string& filename,
-                               bool               driven)
+                     bool               driven)
 : ChSolidAxle("", driven)
 {
   FILE* fp = fopen(filename.c_str(), "r");
@@ -59,14 +59,14 @@ SolidAxle::SolidAxle(const std::string& filename,
   Create(d);
 }
 
-SolidAxle::SolidAxle(const Document& d,
-                               bool            driven)
+SolidAxle::SolidAxle(const rapidjson::Document& d,
+                     bool                       driven)
 : ChSolidAxle("", driven)
 {
   Create(d);
 }
 
-void SolidAxle::Create(const Document& d)
+void SolidAxle::Create(const rapidjson::Document& d)
 {
   // Read top-level data
   assert(d.HasMember("Type"));

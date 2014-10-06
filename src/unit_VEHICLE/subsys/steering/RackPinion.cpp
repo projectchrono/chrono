@@ -56,13 +56,13 @@ RackPinion::RackPinion(const std::string& filename)
   Create(d);
 }
 
-RackPinion::RackPinion(const Document& d)
+RackPinion::RackPinion(const rapidjson::Document& d)
 : ChRackPinion("")
 {
   Create(d);
 }
 
-void RackPinion::Create(const Document& d)
+void RackPinion::Create(const rapidjson::Document& d)
 {
   // Read top-level data
   assert(d.HasMember("Type"));

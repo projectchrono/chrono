@@ -56,14 +56,14 @@ ShaftsDriveline2WD::ShaftsDriveline2WD(ChVehicle*         car,
   Create(d);
 }
 
-ShaftsDriveline2WD::ShaftsDriveline2WD(ChVehicle*      car,
-                                       const Document& d)
+ShaftsDriveline2WD::ShaftsDriveline2WD(ChVehicle*                 car,
+                                       const rapidjson::Document& d)
 : ChShaftsDriveline2WD(car)
 {
   Create(d);
 }
 
-void ShaftsDriveline2WD::Create(const Document& d)
+void ShaftsDriveline2WD::Create(const rapidjson::Document& d)
 {
   // Read top-level data.
   assert(d.HasMember("Type"));
