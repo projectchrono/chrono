@@ -7,7 +7,6 @@
 #include "ChCNarrowphaseMPR.h"
 #include "ChCNarrowphaseR.h"
 
-
 namespace chrono {
 namespace collision {
 
@@ -363,22 +362,10 @@ void host_Dispatch(const uint &index,
    if (system_type == SYSTEM_DVI) {
       //perform offset for DVI
       for (int i = 0; i < nC; i++) {
+         ptA[icoll + i] = ptA[icoll + i] - (norm[icoll + i]) * collision_envelope - posA;
+         ptB[icoll + i] = ptB[icoll + i] + (norm[icoll + i]) * collision_envelope - posB;
 
-         //printf("%f %f \n", contactDepth[icoll + 1], contactDepth[icoll + 1] + collision_envelope * 2);
-         //norm[icoll + i] = -norm[icoll + i];
-
-         ptA[icoll + i] = ptA[icoll + i] - (norm[icoll + i]) * collision_envelope;
-         ptB[icoll + i] = ptB[icoll + i] + (norm[icoll + i]) * collision_envelope;
-         //contactDepth[icoll + i] = dot(norm[icoll + i], ptB[icoll + i] - ptA[icoll + i]);
-
-         //std::cout << "A" << ptA[icoll + i];
-         //std::cout << "B" << ptB[icoll + i];
-         ptA[icoll + i] = ptA[icoll + i] - posA;
-         ptB[icoll + i] = ptB[icoll + i] - posB;
          contactDepth[icoll + i] += collision_envelope * 2;
-
-
-         //Swap(ptA[icoll + i],ptB[icoll + i]);
 
 //         std::cout << "N" << norm[icoll + i];
 //         std::cout << "A" << ptA[icoll + i];
