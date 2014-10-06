@@ -1,0 +1,82 @@
+{
+  "Name":                       	"Generic Solid Axle Front",
+  "Type":                       	"Suspension",
+  "Template":                   	"SolidAxle",
+
+  "Spindle" :
+  {
+    "Mass":                     	15.91,
+    "COM":                      	[0, 0.910, 0],
+    "Inertia":                  	[2, 4, 2],
+    "Radius":                   	0.15,
+    "Width":                    	0.06
+  },
+
+  "Knuckle":
+  {
+    "Mass":                     	27.27,
+    "COM":                      	[0.006, 0.849, -0.061],
+    "Inertia":                  	[5, 5, 5],
+    "Radius":                   	0.01,
+	"Location Lower":				[0.006, 0.849, -0.061],
+	"Location Upper":				[-0.018, 0.819, 0.091]
+  },
+
+  "Upper Link":
+  {
+    "Mass":							5.45,
+    "COM":							[-0.067, 0.576, 0.182],
+    "Inertia":						[2, 2, 2],
+    "Radius":						0.02,
+    "Location Axle":   				[-0.067, 0.576, 0.182],
+    "Location Chassis":         	[0.431, 0.606, 0.182],
+	"Universal Joint Axis Link":	[1, 0, 0],
+	"Universal Joint Axis Chassis":	[0, 1, 0]
+  },
+
+  "Lower Link":
+  {
+    "Mass":                     	16.36,
+    "COM":                      	[0.012, 0.728, -0.091],
+    "Inertia":                  	[3, 3, 3],
+    "Radius":                   	0.02,
+    "Location Axle":   				[0.012, 0.728, -0.091],
+    "Location Chassis":         	[0.546, 0.425, -0.055],
+	"Universal Joint Axis Link":	[1, 0, 0],
+	"Universal Joint Axis Chassis":	[0, 1, 0]
+  },
+  
+  "Axle Tube" :
+  {
+    "Mass":                     	15.91,
+    "COM":                      	[0, 0, 0],
+    "Inertia":                  	[2, 4, 2],
+    "Radius":                   	0.03
+  },
+
+  "Tierod":
+  {
+    "Location Chassis":         	[-0.091, 0.394, -0.079],
+    "Location Knuckle":         	[-0.091, 0.825, -0.079]
+  },
+
+  "Spring":
+  {
+    "Location Chassis":         	[-0.097, 0.679, 0.364],
+    "Location Axle":            	[-0.079, 0.697, -0.030],
+    "Spring Coefficient":       	267062.000,
+    "Free Length":              	0.339
+  },
+
+  "Shock":
+  {
+    "Location Chassis":         	[-0.097, 0.679, 0.364],
+    "Location Axle":            	[-0.079, 0.697, -0.030],
+    "Damping Coefficient":      	22459.000
+  },
+
+  "Axle":
+  {
+    "Inertia":                  	0.4
+  }
+}
