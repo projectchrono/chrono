@@ -22,6 +22,9 @@
 #include "utils/ChUtilsData.h"
 #include "utils/ChUtilsInputOutput.h"
 
+#include "subsys/suspension/SolidAxle.h"
+#include "models/hmmwv/suspension/HMMWV_SolidAxle.h"
+
 #include "models/hmmwv/vehicle/HMMWV_VehicleSolidAxle.h"
 
 using namespace chrono;
@@ -46,6 +49,10 @@ const std::string HMMWV_VehicleSolidAxle::m_chassisMeshFile = utils::GetModelDat
 
 const ChCoordsys<> HMMWV_VehicleSolidAxle::m_driverCsys(ChVector<>(0.0, 0.5, 1.2), ChQuaternion<>(1, 0, 0, 0));
 
+
+// -----------------------------------------------------------------------------
+// -----------------------------------------------------------------------------
+bool use_JSON = false;
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
@@ -96,8 +103,16 @@ HMMWV_VehicleSolidAxle::HMMWV_VehicleSolidAxle(const bool           fixed,
   // Create the suspension subsystems
   // -------------------------------------------
 
-  m_front_susp = ChSharedPtr<HMMWV_SolidAxleFront>(new HMMWV_SolidAxleFront("FrontSusp", false));
-  m_rear_susp = ChSharedPtr<HMMWV_SolidAxleRear>(new HMMWV_SolidAxleRear("RearSusp", true));
+  if (use_JSON)
+  {
+    m_front_susp = ChSharedPtr<ChSolidAxle>(new SolidAxle(utils::GetModelDataFile("hmmwv/suspension/Generic_SolidAxleFront.json"), false));
+    m_rear_susp = ChSharedPtr<ChSolidAxle>(new SolidAxle(utils::GetModelDataFile("hmmwv/suspension/Generic_SolidAxleRear.json"), true));
+  }
+  else
+  {
+    m_front_susp = ChSharedPtr<ChSolidAxle>(new HMMWV_SolidAxleFront("FrontSusp", false));
+    m_rear_susp = ChSharedPtr<ChSolidAxle>(new HMMWV_SolidAxleRear("RearSusp", true));
+  }
 
   // -----------------------------
   // Create the steering subsystem

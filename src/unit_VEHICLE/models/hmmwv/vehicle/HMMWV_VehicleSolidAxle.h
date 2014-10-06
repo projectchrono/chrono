@@ -23,10 +23,10 @@
 #include "physics/ChSystem.h"
 
 #include "subsys/ChVehicle.h"
+#include "subsys/suspension/ChSolidAxle.h"
 
 #include "models/hmmwv/HMMWV.h"
 #include "models/hmmwv/HMMWV_Wheel.h"
-#include "models/hmmwv/suspension/HMMWV_SolidAxle.h"
 #include "models/hmmwv/steering/HMMWV_RackPinion.h"
 #include "models/hmmwv/driveline/HMMWV_Driveline2WD.h"
 #include "models/hmmwv/brake/HMMWV_BrakeSimple.h"
@@ -38,8 +38,8 @@ class HMMWV_VehicleSolidAxle : public chrono::ChVehicle
 public:
 
   HMMWV_VehicleSolidAxle(const bool        fixed = false,
-                VisualizationType chassisVis = NONE,
-                VisualizationType wheelVis = PRIMITIVES);
+                         VisualizationType chassisVis = NONE,
+                         VisualizationType wheelVis = PRIMITIVES);
 
   ~HMMWV_VehicleSolidAxle();
 
@@ -78,8 +78,8 @@ public:
 
 private:
 
-  chrono::ChSharedPtr<HMMWV_SolidAxleFront> m_front_susp;
-  chrono::ChSharedPtr<HMMWV_SolidAxleRear>  m_rear_susp;
+  chrono::ChSharedPtr<chrono::ChSolidAxle> m_front_susp;
+  chrono::ChSharedPtr<chrono::ChSolidAxle> m_rear_susp;
 
   chrono::ChSharedPtr<HMMWV_RackPinion> m_steering;
 
