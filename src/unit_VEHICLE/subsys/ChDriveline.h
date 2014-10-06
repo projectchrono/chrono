@@ -25,6 +25,7 @@
 
 #include "subsys/ChApiSubsys.h"
 #include "subsys/ChVehicle.h"
+#include "subsys/ChSuspension.h"
 
 namespace chrono {
 
@@ -46,6 +47,16 @@ public:
     DriveType  type    ///< [in] driveline type
     );
   virtual ~ChDriveline() {}
+
+  /// Initialize the driveline subsystem.
+  /// This function connects this driveline subsystem to the axles of the
+  /// provided suspension subsystems.  Note that it is the responsibility of
+  /// the caller to provide a number of suspension subsystems consistent with
+  /// the driveline type.
+  virtual void Initialize(
+    ChSharedPtr<ChBody>     chassis,     ///< handle to the chassis body
+    const ChSuspensionList& suspensions  ///< list of driven suspension subsystems
+    ) = 0;
 
   /// Get a handle to the driveshaft.
   /// Return a shared pointer to the shaft that connects this driveline to a

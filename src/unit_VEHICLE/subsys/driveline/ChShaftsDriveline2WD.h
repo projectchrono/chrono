@@ -63,12 +63,13 @@ public:
   void SetAxleDirection(const ChVector<>& dir) { m_dir_axle = dir; }
 
   /// Initialize the driveline subsystem.
-  /// To be called after creation, to create all the wrapped ChShaft objects 
-  /// and their constraints, torques etc. 
-  void Initialize(
-    ChSharedPtr<ChBody>  chassis,    ///< handle to the chassis body
-    ChSharedPtr<ChShaft> axle_L,     ///< handle to the left driven wheel axle
-    ChSharedPtr<ChShaft> axle_R      ///< handle to the right driven wheel axle
+  /// This function connects this driveline subsystem to the axles of the
+  /// provided suspension subsystems.  Note that it is the responsibility of
+  /// the caller to provide a number of suspension subsystems consistent with
+  /// the driveline type (in this case a single suspension).
+  virtual void Initialize(
+    ChSharedPtr<ChBody>     chassis,     ///< handle to the chassis body
+    const ChSuspensionList& suspensions  ///< list of driven suspension subsystems
     );
 
   /// Get the motor torque to be applied to the specified wheel.

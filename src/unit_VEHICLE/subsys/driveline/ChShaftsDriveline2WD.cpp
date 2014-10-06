@@ -39,16 +39,20 @@ ChShaftsDriveline2WD::ChShaftsDriveline2WD(ChVehicle* car)
 {
 }
 
-
 // -----------------------------------------------------------------------------
+// Initialize the driveline subsystem.
+// This function connects this driveline subsystem to the axles of the provided
+// suspension subsystems.  Note that it is the responsibility of the caller to
+// provide a number of suspension subsystems consistent with the driveline type
+// (in this case a single suspension).
 // -----------------------------------------------------------------------------
-void ChShaftsDriveline2WD::Initialize(ChSharedPtr<ChBody>  chassis,
-                                      ChSharedPtr<ChShaft> axle_L,
-                                      ChSharedPtr<ChShaft> axle_R)
+void ChShaftsDriveline2WD::Initialize(ChSharedPtr<ChBody>     chassis,
+                                      const ChSuspensionList& suspensions)
 {
   assert(chassis);
-  assert(axle_L);
-  assert(axle_R);
+  assert(suspensions.size() > 0);
+  assert(suspensions[0]->GetAxle(ChSuspension::LEFT));
+  assert(suspensions[0]->GetAxle(ChSuspension::RIGHT));
   assert(chassis->GetSystem());
 
   ChSystem* my_system = chassis->GetSystem();
@@ -73,10 +77,10 @@ void ChShaftsDriveline2WD::Initialize(ChSharedPtr<ChBody>  chassis,
   // (the truss).
   m_conicalgear = ChSharedPtr<ChShaftsGearboxAngled>(new ChShaftsGearboxAngled);
   m_conicalgear->Initialize(m_driveshaft,
-                            m_differentialbox,
-                            chassis,
-                            m_dir_motor_block,
-                            m_dir_axle);
+    m_differentialbox,
+    chassis,
+    m_dir_motor_block,
+    m_dir_axle);
   m_conicalgear->SetTransmissionRatio(GetConicalGearRatio());
   my_system->Add(m_conicalgear);
 
@@ -86,9 +90,9 @@ void ChShaftsDriveline2WD::Initialize(ChSharedPtr<ChBody>  chassis,
   // assigned according to Willis formula. The case of the differential is
   // simple: t0=-1.
   m_differential = ChSharedPtr<ChShaftsPlanetary>(new ChShaftsPlanetary);
-  m_differential->Initialize(m_differentialbox, // the carrier
-                             axle_L,
-                             axle_R);
+  m_differential->Initialize(m_differentialbox,
+                             suspensions[0]->GetAxle(ChSuspension::LEFT),
+                             suspensions[0]->GetAxle(ChSuspension::RIGHT));
   m_differential->SetTransmissionRatioOrdinary(GetDifferentialRatio());
   my_system->Add(m_differential);
 }

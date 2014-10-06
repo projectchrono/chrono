@@ -158,7 +158,8 @@ void HMMWV_VehicleReduced::Initialize(const ChCoordsys<>& chassisPos)
   m_rear_left_wheel->Initialize(m_rear_susp->GetSpindle(ChSuspension::LEFT));
 
   // Initialize the driveline subsystem (RWD)
-  m_driveline->Initialize(m_chassis, m_rear_susp->GetAxle(ChSuspension::LEFT), m_rear_susp->GetAxle(ChSuspension::RIGHT));
+  ChSuspensionList susp(1, m_rear_susp);
+  m_driveline->Initialize(m_chassis, susp);
 
   // Initialize the four brakes
   m_front_right_brake->Initialize(m_front_susp->GetRevolute(ChSuspension::RIGHT));
