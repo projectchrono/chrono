@@ -7,7 +7,9 @@
 #include "ChCNarrowphaseMPR.h"
 #include "ChCNarrowphaseR.h"
 
-using namespace chrono::collision;
+
+namespace chrono {
+namespace collision {
 
 void ChCNarrowphaseDispatch::Process(ChParallelDataManager* data_container) {
 
@@ -395,3 +397,5 @@ void ChCNarrowphaseDispatch::Dispatch(const shape_type *obj_data_T,
    }
 }
 
+}
+}
