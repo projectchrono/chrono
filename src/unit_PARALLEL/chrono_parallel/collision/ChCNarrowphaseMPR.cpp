@@ -613,6 +613,9 @@ int RefinePortal(const ConvexShape & shapeA,
 
       // If the boundary is thin enough or the origin is outside the support plane for the newly discovered vertex, then we can terminate
       if (portalReachTolerance(portal, n) || !portalCanEncapsuleOrigin(portal, n)) {
+         if (portalEncapsulesOrigin(portal, n)) {
+            return 0;
+         }
          return -1;
       }
       ExpandPortal(portal);
@@ -622,10 +625,10 @@ int RefinePortal(const ConvexShape & shapeA,
 }
 //Code for Convex-Convex Collision detection, adopted from xeno-collide
 bool chrono::collision::MPRCollision(const ConvexShape & shapeA,
-                                  const ConvexShape & shapeB,
-                                  real3 &returnNormal,
-                                  real3 &point,
-                                  real &depth) {
+                                     const ConvexShape & shapeB,
+                                     real3 &returnNormal,
+                                     real3 &point,
+                                     real &depth) {
 
    simplex portal;
 
