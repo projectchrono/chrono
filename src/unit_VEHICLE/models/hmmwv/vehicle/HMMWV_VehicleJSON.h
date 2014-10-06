@@ -44,6 +44,8 @@ public:
 
   ~HMMWV_VehicleJSON();
 
+  virtual int GetNumberAxles() const { return 2; }
+
   virtual chrono::ChSharedBodyPtr GetWheelBody(chrono::ChWheelId which) const;
 
   virtual const chrono::ChVector<>& GetWheelPos(chrono::ChWheelId which) const;

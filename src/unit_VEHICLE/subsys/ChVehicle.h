@@ -109,6 +109,9 @@ public:
   /// Return the speed measured at the chassis center of mass.
   double GetVehicleSpeedCOM() const { return m_chassis->GetPos_dt().Length(); }
 
+  /// Return the number of axles for this vehicle.
+  virtual int GetNumberAxles() const = 0;
+
   /// Get a handle to the specified wheel body.
   virtual ChSharedPtr<ChBody> GetWheelBody(ChWheelId which) const = 0;
 
