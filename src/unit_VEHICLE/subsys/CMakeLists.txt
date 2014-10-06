@@ -41,6 +41,8 @@ SET(Chrono_Susp_FILES
 
     suspension/DoubleWishbone.h
     suspension/DoubleWishbone.cpp
+	suspension/DoubleWishboneReduced.h
+    suspension/DoubleWishboneReduced.cpp
     suspension/SolidAxle.h
     suspension/SolidAxle.cpp
 )
