@@ -27,9 +27,6 @@
 
 namespace hmmwv {
 
-// Forward reference
-class chrono::ChVehicle;
-
 class HMMWV_SimplePowertrain : public chrono::ChSimplePowertrain {
 public:
 
