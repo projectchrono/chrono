@@ -177,7 +177,7 @@ void test_sphere_sphere() {
       shapeB.C = real3(0);
       shapeB.R = real4(1, 0, 0, 0);
 
-      MPRCollision(shapeA, shapeB, n, p, d);
+      MPRContact(shapeA, shapeB, n, p, d);
       real3 p1, p2;
       MPRGetPoints(shapeA, shapeB, n, p, p1, p2);
 
@@ -205,7 +205,7 @@ void test_sphere_sphere() {
       shapeB.C = real3(0);
       shapeB.R = real4(1, 0, 0, 0);
 
-      MPRCollision(shapeA, shapeB, n, p, d);
+      MPRContact(shapeA, shapeB, n, p, d);
       real3 p1, p2;
       MPRGetPoints(shapeA, shapeB, n, p, p1, p2);
       d = dot(n, p2 - p1);
@@ -240,7 +240,7 @@ void test_ellipsoid_ellipsoid() {
       shapeB.C = real3(0);
       shapeB.R = real4(1, 0, 0, 0);
 
-      MPRCollision(shapeA, shapeB, n, p, d);
+      MPRContact(shapeA, shapeB, n, p, d);
       real3 p1, p2;
       MPRGetPoints(shapeA, shapeB, n, p, p1, p2);
 
@@ -268,7 +268,7 @@ void test_ellipsoid_ellipsoid() {
       shapeB.C = real3(0);
       shapeB.R = real4(1, 0, 0, 0);
 
-      MPRCollision(shapeA, shapeB, n, p, d);
+      MPRContact(shapeA, shapeB, n, p, d);
       real3 p1, p2;
       MPRGetPoints(shapeA, shapeB, n, p, p1, p2);
       d = dot(n, p2 - p1);
@@ -310,7 +310,7 @@ void test_sphere_box() {
       shapeB.C = real3(0);
       shapeB.R = real4(1, 0, 0, 0);
 
-      MPRCollision(shapeA, shapeB, n, p, d);
+      MPRContact(shapeA, shapeB, n, p, d);
       real3 p1, p2;
       MPRGetPoints(shapeA, shapeB, n, p, p1, p2);
       //cout << n << p << d << endl << p1 << p2 << endl;
@@ -338,7 +338,7 @@ void test_sphere_box() {
       shapeB.C = real3(0);
       shapeB.R = real4(1, 0, 0, 0);
 
-      if (!MPRCollision(shapeA, shapeB, n, p, d)) {
+      if (!MPRContact(shapeA, shapeB, n, p, d)) {
          cout << "No Contact!\n";
       }
       real3 p1, p2;
@@ -525,7 +525,7 @@ void test_cylinder_sphere() {
       shapeB.C = real3(0);
       shapeB.R = real4(1, 0, 0, 0);
 
-      bool res = MPRCollision(shapeA, shapeB, norm, pt, depth);
+      bool res = MPRContact(shapeA, shapeB, norm, pt, depth);
 
       //// TODO:  WHAT IS EXPECTED HERE?
       /*
@@ -553,7 +553,7 @@ void test_cylinder_sphere() {
       shapeB.C = real3(0);
       shapeB.R = real4(1, 0, 0, 0);
 
-      bool res = MPRCollision(shapeA, shapeB, norm, pt, depth);
+      bool res = MPRContact(shapeA, shapeB, norm, pt, depth);
 
       if (res) {
          cout << "    test failed" << endl;
@@ -576,7 +576,7 @@ void test_cylinder_sphere() {
       shapeB.B = real3(s_rad, 0, 0);
       shapeB.C = real3(0);
       shapeB.R = real4(1, 0, 0, 0);
-      bool res = MPRCollision(shapeA, shapeB, norm, pt, depth);
+      bool res = MPRContact(shapeA, shapeB, norm, pt, depth);
       MPRGetPoints(shapeA, shapeB, norm, pt, pt1, pt2);
       depth = dot(norm, pt2 - pt1);
 
@@ -605,7 +605,7 @@ void test_cylinder_sphere() {
       shapeB.B = real3(s_rad, 0, 0);
       shapeB.C = real3(0);
       shapeB.R = real4(1, 0, 0, 0);
-      bool res = MPRCollision(shapeA, shapeB, norm, pt, depth);
+      bool res = MPRContact(shapeA, shapeB, norm, pt, depth);
 
       if (res) {
          cout << "    test failed" << endl;
@@ -628,7 +628,7 @@ void test_cylinder_sphere() {
       shapeB.B = real3(s_rad, 0, 0);
       shapeB.C = real3(0);
       shapeB.R = real4(1, 0, 0, 0);
-      bool res = MPRCollision(shapeA, shapeB, norm, pt, depth);
+      bool res = MPRContact(shapeA, shapeB, norm, pt, depth);
       MPRGetPoints(shapeA, shapeB, norm, pt, pt1, pt2);
       depth = dot(norm, pt2 - pt1);
 
@@ -657,7 +657,7 @@ void test_cylinder_sphere() {
       shapeB.B = real3(s_rad, 0, 0);
       shapeB.C = real3(0);
       shapeB.R = real4(1, 0, 0, 0);
-      bool res = MPRCollision(shapeA, shapeB, norm, pt, depth);
+      bool res = MPRContact(shapeA, shapeB, norm, pt, depth);
 
       if (res) {
          cout << "    test failed" << endl;
@@ -684,7 +684,7 @@ void test_cylinder_sphere() {
     shapeB.B = real3(s_rad, s_rad, s_rad);
     shapeB.C = real3(0);
     shapeB.R = real4(.5, 0, 0, 0);
-    bool res = MPRCollision(shapeA, shapeB, norm, pt, depth);
+    bool res = MPRContact(shapeA, shapeB, norm, pt, depth);
     MPRGetPoints(shapeA, shapeB, norm, pt, pt1, pt2);
     depth = dot(norm, pt2 - pt1);
 
@@ -748,7 +748,7 @@ void test_roundedcyl_sphere() {
       shapeB.B = real3(s_rad, 0, 0);
       shapeB.C = real3(0);
       shapeB.R = real4(1, 0, 0, 0);
-      bool res = MPRCollision(shapeA, shapeB, norm, pt, depth);
+      bool res = MPRContact(shapeA, shapeB, norm, pt, depth);
 
       //// TODO: WHAT IS EXPECTED HERE?
       /*
@@ -774,7 +774,7 @@ void test_roundedcyl_sphere() {
       shapeB.B = real3(s_rad, 0, 0);
       shapeB.C = real3(0);
       shapeB.R = real4(1, 0, 0, 0);
-      bool res = MPRCollision(shapeA, shapeB, norm, pt, depth);
+      bool res = MPRContact(shapeA, shapeB, norm, pt, depth);
 
       if (res) {
          cout << "    test failed" << endl;
@@ -797,7 +797,7 @@ void test_roundedcyl_sphere() {
       shapeB.B = real3(s_rad, 0, 0);
       shapeB.C = real3(0);
       shapeB.R = real4(1, 0, 0, 0);
-      bool res = MPRCollision(shapeA, shapeB, norm, pt, depth);
+      bool res = MPRContact(shapeA, shapeB, norm, pt, depth);
       MPRGetPoints(shapeA, shapeB, norm, pt, pt1, pt2);
       depth = dot(norm, pt2 - pt1);
 
@@ -826,7 +826,7 @@ void test_roundedcyl_sphere() {
       shapeB.B = real3(s_rad, 0, 0);
       shapeB.C = real3(0);
       shapeB.R = real4(1, 0, 0, 0);
-      bool res = MPRCollision(shapeA, shapeB, norm, pt, depth);
+      bool res = MPRContact(shapeA, shapeB, norm, pt, depth);
       if (res) {
          cout << "    test failed" << endl;
          exit(1);
@@ -848,7 +848,7 @@ void test_roundedcyl_sphere() {
       shapeB.B = real3(s_rad, 0, 0);
       shapeB.C = real3(0);
       shapeB.R = real4(1, 0, 0, 0);
-      bool res = MPRCollision(shapeA, shapeB, norm, pt, depth);
+      bool res = MPRContact(shapeA, shapeB, norm, pt, depth);
       MPRGetPoints(shapeA, shapeB, norm, pt, pt1, pt2);
       depth = dot(norm, pt2 - pt1);
 
@@ -877,7 +877,7 @@ void test_roundedcyl_sphere() {
       shapeB.B = real3(s_rad, 0, 0);
       shapeB.C = real3(0);
       shapeB.R = real4(1, 0, 0, 0);
-      bool res = MPRCollision(shapeA, shapeB, norm, pt, depth);
+      bool res = MPRContact(shapeA, shapeB, norm, pt, depth);
       if (res) {
          cout << "    test failed" << endl;
          exit(1);
@@ -901,7 +901,7 @@ void test_roundedcyl_sphere() {
     shapeB.B = real3(s_rad, 0, 0);
     shapeB.C = real3(0);
     shapeB.R = real4(1, 0, 0, 0);
-    bool res = MPRCollision(shapeA, shapeB, norm, pt, depth);
+    bool res = MPRContact(shapeA, shapeB, norm, pt, depth);
     MPRGetPoints(shapeA, shapeB, norm, pt, pt1, pt2);
     depth = dot(norm, pt2 - pt1);
 

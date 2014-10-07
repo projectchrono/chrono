@@ -112,6 +112,8 @@ struct settings_container {
       perform_thread_tuning = ((min_threads == max_threads) ? false : true);
       perform_bin_tuning = true;
       system_type = SYSTEM_DVI;
+      bin_perturb_size = 2; //increase or decrease the number of bins by 2
+      bin_tuning_frequency = 20; //bins will be tuned every 20 frames
    }
 
    //CD Settings
@@ -121,6 +123,8 @@ struct settings_container {
    //System Settings
    bool perform_thread_tuning;
    bool perform_bin_tuning;
+   int bin_perturb_size;
+   int bin_tuning_frequency;
    int min_threads;
    int max_threads;
    SYSTEMTYPE system_type;
