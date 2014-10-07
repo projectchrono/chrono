@@ -43,13 +43,17 @@ SET(Chrono_Susp_FILES
     suspension/ChDoubleWishboneReduced.cpp
     suspension/ChSolidAxle.h
     suspension/ChSolidAxle.cpp
+    suspension/ChMultiLink.h
+    suspension/ChMultiLink.cpp
 
     suspension/DoubleWishbone.h
     suspension/DoubleWishbone.cpp
-	suspension/DoubleWishboneReduced.h
+    suspension/DoubleWishboneReduced.h
     suspension/DoubleWishboneReduced.cpp
     suspension/SolidAxle.h
     suspension/SolidAxle.cpp
+    suspension/MultiLink.h
+    suspension/MultiLink.cpp
 )
 
 SET(Chrono_Wheel_FILES
