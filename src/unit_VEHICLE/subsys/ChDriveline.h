@@ -24,10 +24,12 @@
 #include "physics/ChShaft.h"
 
 #include "subsys/ChApiSubsys.h"
-#include "subsys/ChVehicle.h"
 #include "subsys/ChSuspension.h"
 
 namespace chrono {
+
+// Forward declaration
+class ChVehicle;
 
 ///
 /// Base class for a driveline subsystem.

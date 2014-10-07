@@ -17,7 +17,7 @@
 // =============================================================================
 
 #include "subsys/ChDriveline.h"
-
+#include "subsys/ChVehicle.h"
 
 namespace chrono {
 

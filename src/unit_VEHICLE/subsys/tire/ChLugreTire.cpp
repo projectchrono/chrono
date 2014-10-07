@@ -22,11 +22,15 @@
 
 #include <algorithm>
 
+#include "physics/ChGlobal.h"
+
 #include "assets/ChCylinderShape.h"
 #include "assets/ChTexture.h"
 #include "assets/ChColorAsset.h"
 
-#include "ChLugreTire.h"
+#include "utils/ChUtilsData.h"
+
+#include "subsys/tire/ChLugreTire.h"
 
 
 namespace chrono {

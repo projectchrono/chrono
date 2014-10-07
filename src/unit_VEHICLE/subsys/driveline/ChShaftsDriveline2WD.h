@@ -22,7 +22,6 @@
 
 #include "subsys/ChApiSubsys.h"
 #include "subsys/ChDriveline.h"
-#include "subsys/ChVehicle.h"
 
 #include "physics/ChShaftsGear.h" 
 #include "physics/ChShaftsGearboxAngled.h"

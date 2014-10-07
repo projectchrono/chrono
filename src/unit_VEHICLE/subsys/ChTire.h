@@ -25,9 +25,10 @@
 #include "core/ChShared.h"
 #include "core/ChVector.h"
 #include "core/ChQuaternion.h"
+#include "core/ChCoordsys.h"
 
 #include "subsys/ChApiSubsys.h"
-#include "subsys/ChVehicle.h"
+#include "subsys/ChSubsysDefs.h"
 #include "subsys/ChTerrain.h"
 
 namespace chrono {

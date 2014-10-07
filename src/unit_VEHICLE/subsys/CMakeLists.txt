@@ -8,6 +8,7 @@
 
 SET(Chrono_Subsys_FILES
     ChApiSubsys.h
+    ChSubsysDefs.h
     ChDriver.h
     ChDriver.cpp
     ChPowertrain.h

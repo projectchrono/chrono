@@ -29,7 +29,7 @@
 #include "physics/ChShaftsBody.h"
 
 #include "subsys/ChApiSubsys.h"
-#include "subsys/ChVehicle.h"
+#include "subsys/ChSubsysDefs.h"
 
 namespace chrono {
 
