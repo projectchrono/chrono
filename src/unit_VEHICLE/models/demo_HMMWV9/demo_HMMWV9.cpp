@@ -161,10 +161,10 @@ int main(int argc, char* argv[])
     ChSharedPtr<HMMWV_RigidTire> tire_RL(new HMMWV_RigidTire(terrain, 0.7f));
     ChSharedPtr<HMMWV_RigidTire> tire_RR(new HMMWV_RigidTire(terrain, 0.7f));
 
-    tire_FL->Initialize(vehicle.GetWheelBody(ChWheelID(0, LEFT)));
-    tire_FR->Initialize(vehicle.GetWheelBody(ChWheelID(0, RIGHT)));
-    tire_RL->Initialize(vehicle.GetWheelBody(ChWheelID(1, LEFT)));
-    tire_RR->Initialize(vehicle.GetWheelBody(ChWheelID(1, RIGHT)));
+    tire_FL->Initialize(vehicle.GetWheelBody(FRONT_LEFT));
+    tire_FR->Initialize(vehicle.GetWheelBody(FRONT_RIGHT));
+    tire_RL->Initialize(vehicle.GetWheelBody(REAR_LEFT));
+    tire_RR->Initialize(vehicle.GetWheelBody(REAR_RIGHT));
 
     tire_front_left = tire_FL;
     tire_front_right = tire_FR;
@@ -353,27 +353,27 @@ int main(int argc, char* argv[])
 
     powertrain_torque = powertrain->GetOutputTorque();
 
-    tire_forces[0] = tire_front_left->GetTireForce();
-    tire_forces[1] = tire_front_right->GetTireForce();
-    tire_forces[2] = tire_rear_left->GetTireForce();
-    tire_forces[3] = tire_rear_right->GetTireForce();
+    tire_forces[FRONT_LEFT.id()] = tire_front_left->GetTireForce();
+    tire_forces[FRONT_RIGHT.id()] = tire_front_right->GetTireForce();
+    tire_forces[REAR_LEFT.id()] = tire_rear_left->GetTireForce();
+    tire_forces[REAR_RIGHT.id()] = tire_rear_right->GetTireForce();
 
     // DEBUGGING
     if(test_pactire)
     {
-      pac_forces[0] = pac_FL->GetTireForce();
-      pac_forces[1] = pac_FR->GetTireForce();
-      pac_forces[2] = pac_RL->GetTireForce();
-      pac_forces[3] = pac_RR->GetTireForce();
+      pac_forces[FRONT_LEFT.id()] = pac_FL->GetTireForce();
+      pac_forces[FRONT_RIGHT.id()] = pac_FR->GetTireForce();
+      pac_forces[REAR_LEFT.id()] = pac_RL->GetTireForce();
+      pac_forces[REAR_RIGHT.id()] = pac_RR->GetTireForce();
     }
 
 
     driveshaft_speed = vehicle.GetDriveshaftSpeed();
 
-    wheel_states[0] = vehicle.GetWheelState(ChWheelID(0, LEFT));
-    wheel_states[1] = vehicle.GetWheelState(ChWheelID(0, RIGHT));
-    wheel_states[2] = vehicle.GetWheelState(ChWheelID(1, LEFT));
-    wheel_states[3] = vehicle.GetWheelState(ChWheelID(1, RIGHT));
+    wheel_states[FRONT_LEFT.id()] = vehicle.GetWheelState(FRONT_LEFT);
+    wheel_states[FRONT_RIGHT.id()] = vehicle.GetWheelState(FRONT_RIGHT);
+    wheel_states[REAR_LEFT.id()] = vehicle.GetWheelState(REAR_LEFT);
+    wheel_states[REAR_RIGHT.id()] = vehicle.GetWheelState(REAR_RIGHT);
 
     // Update modules (process inputs from other modules)
     time = vehicle.GetChTime();
@@ -382,19 +382,19 @@ int main(int argc, char* argv[])
 
     terrain.Update(time);
 
-    tire_front_left->Update(time, wheel_states[0]);
-    tire_front_right->Update(time, wheel_states[1]);
-    tire_rear_left->Update(time, wheel_states[2]);
-    tire_rear_right->Update(time, wheel_states[3]);
+    tire_front_left->Update(time, wheel_states[FRONT_LEFT.id()]);
+    tire_front_right->Update(time, wheel_states[FRONT_RIGHT.id()]);
+    tire_rear_left->Update(time, wheel_states[REAR_LEFT.id()]);
+    tire_rear_right->Update(time, wheel_states[REAR_RIGHT.id()]);
 
 
     // DEBUGGING
     if(test_pactire)
     {
-      pac_FL->Update(time, wheel_states[0]);
-      pac_FR->Update(time, wheel_states[1]);
-      pac_RL->Update(time, wheel_states[2]);
-      pac_RR->Update(time, wheel_states[3]);
+      pac_FL->Update(time, wheel_states[FRONT_LEFT.id()]);
+      pac_FR->Update(time, wheel_states[FRONT_RIGHT.id()]);
+      pac_RL->Update(time, wheel_states[REAR_LEFT.id()]);
+      pac_RR->Update(time, wheel_states[REAR_RIGHT.id()]);
     }
 
 
@@ -481,17 +481,17 @@ int main(int argc, char* argv[])
 
     powertrain_torque = powertrain->GetOutputTorque();
 
-    tire_forces[0] = tire_front_left->GetTireForce();
-    tire_forces[1] = tire_front_right->GetTireForce();
-    tire_forces[2] = tire_rear_left->GetTireForce();
-    tire_forces[3] = tire_rear_right->GetTireForce();
+    tire_forces[FRONT_LEFT.id()] = tire_front_left->GetTireForce();
+    tire_forces[FRONT_RIGHT.id()] = tire_front_right->GetTireForce();
+    tire_forces[REAR_LEFT.id()] = tire_rear_left->GetTireForce();
+    tire_forces[REAR_RIGHT.id()] = tire_rear_right->GetTireForce();
 
     driveshaft_speed = vehicle.GetDriveshaftSpeed();
 
-    wheel_states[0] = vehicle.GetWheelState(ChWheelID(0, LEFT));
-    wheel_states[1] = vehicle.GetWheelState(ChWheelID(0, RIGHT));
-    wheel_states[2] = vehicle.GetWheelState(ChWheelID(1, LEFT));
-    wheel_states[3] = vehicle.GetWheelState(ChWheelID(1, RIGHT));
+    wheel_states[FRONT_LEFT.id()] = vehicle.GetWheelState(FRONT_LEFT);
+    wheel_states[FRONT_RIGHT.id()] = vehicle.GetWheelState(FRONT_RIGHT);
+    wheel_states[REAR_LEFT.id()] = vehicle.GetWheelState(REAR_LEFT);
+    wheel_states[REAR_RIGHT.id()] = vehicle.GetWheelState(REAR_RIGHT);
 
     // Update modules (process inputs from other modules)
     time = vehicle.GetChTime();
@@ -500,10 +500,10 @@ int main(int argc, char* argv[])
 
     terrain.Update(time);
 
-    tire_front_left->Update(time, wheel_states[0]);
-    tire_front_right->Update(time, wheel_states[1]);
-    tire_rear_left->Update(time, wheel_states[2]);
-    tire_rear_right->Update(time, wheel_states[3]);
+    tire_front_left->Update(time, wheel_states[FRONT_LEFT.id()]);
+    tire_front_right->Update(time, wheel_states[FRONT_RIGHT.id()]);
+    tire_rear_left->Update(time, wheel_states[REAR_LEFT.id()]);
+    tire_rear_right->Update(time, wheel_states[REAR_RIGHT.id()]);
 
     powertrain->Update(time, throttle_input, driveshaft_speed);
 

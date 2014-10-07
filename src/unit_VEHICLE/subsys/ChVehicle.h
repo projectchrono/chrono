@@ -33,8 +33,8 @@
 namespace chrono {
 
 enum ChVehicleSide {
-  LEFT = 0,
-  RIGHT = 1
+  LEFT = 0,     ///< left side of vehicle is always 0
+  RIGHT = 1     ///< right side of vehicle is always 1
 };
 
 ///
@@ -68,7 +68,15 @@ private:
   ChVehicleSide m_side;   ///< vehicle side (LEFT: 0, RIGHT: 1)
 };
 
+/// Global constant wheel IDs for the common topology of a 2-axle vehicle.
+static const ChWheelID  FRONT_LEFT(0, LEFT);
+static const ChWheelID  FRONT_RIGHT(0, RIGHT);
+static const ChWheelID  REAR_LEFT(1, LEFT);
+static const ChWheelID  REAR_RIGHT(1, RIGHT);
 
+///
+/// Structure to communicate a full body state.
+///
 struct ChBodyState {
   ChVector<>     pos;      ///< global position
   ChQuaternion<> rot;      ///< orientation with respect to global frame
@@ -76,6 +84,11 @@ struct ChBodyState {
   ChVector<>     ang_vel;  ///< angular velocity, expressed in the global frame
 };
 
+///
+/// Structure to communicate a fulle wheel body state.
+/// In addition to the quantities communicated for a generic body, the wheel
+/// state also includes the wheel angular speed about its axis of rotation.
+///
 struct ChWheelState {
   ChVector<>     pos;      ///< global position
   ChQuaternion<> rot;      ///< orientation with respect to global frame
@@ -84,6 +97,9 @@ struct ChWheelState {
   double         omega;    ///< wheel angular speed about its rotation axis
 };
 
+///
+/// Structure to communicate a set of generalized tire forces.
+///
 struct ChTireForce {
   ChVector<> force;        ///< force vector, epxressed in the global frame
   ChVector<> point;        ///< global location of the force application point

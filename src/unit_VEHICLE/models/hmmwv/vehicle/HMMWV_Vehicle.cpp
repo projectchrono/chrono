@@ -300,10 +300,10 @@ void HMMWV_Vehicle::Update(double              time,
   m_steering->Update(time, steering);
 
   // Apply tire forces to spindle bodies.
-  m_front_susp->ApplyTireForce(LEFT, tire_forces[0]);
-  m_front_susp->ApplyTireForce(RIGHT, tire_forces[1]);
-  m_rear_susp->ApplyTireForce(LEFT, tire_forces[2]);
-  m_rear_susp->ApplyTireForce(RIGHT, tire_forces[3]);
+  m_front_susp->ApplyTireForce(LEFT, tire_forces[FRONT_LEFT.id()]);
+  m_front_susp->ApplyTireForce(RIGHT, tire_forces[FRONT_RIGHT.id()]);
+  m_rear_susp->ApplyTireForce(LEFT, tire_forces[REAR_LEFT.id()]);
+  m_rear_susp->ApplyTireForce(RIGHT, tire_forces[REAR_RIGHT.id()]);
 
   // Apply braking
   m_front_left_brake->ApplyBrakeModulation(braking);
@@ -381,40 +381,40 @@ void HMMWV_Vehicle::DebugLog(int what)
   {
     GetLog() << "\n---- Spring (front-left, front-right, rear-left, rear-right)\n";
     GetLog() << "Length [inch]       "
-      << GetSpringLength(ChWheelID(0, LEFT)) / in2m << "  "
-      << GetSpringLength(ChWheelID(0, RIGHT)) / in2m << "  "
-      << GetSpringLength(ChWheelID(1, LEFT)) / in2m << "  "
-      << GetSpringLength(ChWheelID(1, RIGHT)) / in2m << "\n";
+      << GetSpringLength(FRONT_LEFT) / in2m << "  "
+      << GetSpringLength(FRONT_RIGHT) / in2m << "  "
+      << GetSpringLength(REAR_LEFT) / in2m << "  "
+      << GetSpringLength(REAR_RIGHT) / in2m << "\n";
     GetLog() << "Deformation [inch]  "
-      << GetSpringDeformation(ChWheelID(0, LEFT)) / in2m << "  "
-      << GetSpringDeformation(ChWheelID(0, RIGHT)) / in2m << "  "
-      << GetSpringDeformation(ChWheelID(1, LEFT)) / in2m << "  "
-      << GetSpringDeformation(ChWheelID(1, RIGHT)) / in2m << "\n";
+      << GetSpringDeformation(FRONT_LEFT) / in2m << "  "
+      << GetSpringDeformation(FRONT_RIGHT) / in2m << "  "
+      << GetSpringDeformation(REAR_LEFT) / in2m << "  "
+      << GetSpringDeformation(REAR_RIGHT) / in2m << "\n";
     GetLog() << "Force [lbf]         "
-      << GetSpringForce(ChWheelID(0, LEFT)) / lbf2N << "  "
-      << GetSpringForce(ChWheelID(0, RIGHT)) / lbf2N << "  "
-      << GetSpringForce(ChWheelID(1, LEFT)) / lbf2N << "  "
-      << GetSpringForce(ChWheelID(1, RIGHT)) / lbf2N << "\n";
+      << GetSpringForce(FRONT_LEFT) / lbf2N << "  "
+      << GetSpringForce(FRONT_RIGHT) / lbf2N << "  "
+      << GetSpringForce(REAR_LEFT) / lbf2N << "  "
+      << GetSpringForce(REAR_RIGHT) / lbf2N << "\n";
   }
 
   if (what & DBG_SHOCKS)
   {
     GetLog() << "\n---- Shock (front-left, front-right, rear-left, rear-right)\n";
     GetLog() << "Length [inch]       "
-      << GetShockLength(ChWheelID(0, LEFT)) / in2m << "  "
-      << GetShockLength(ChWheelID(0, RIGHT)) / in2m << "  "
-      << GetShockLength(ChWheelID(1, LEFT)) / in2m << "  "
-      << GetShockLength(ChWheelID(1, RIGHT)) / in2m << "\n";
+      << GetShockLength(FRONT_LEFT) / in2m << "  "
+      << GetShockLength(FRONT_RIGHT) / in2m << "  "
+      << GetShockLength(REAR_LEFT) / in2m << "  "
+      << GetShockLength(REAR_RIGHT) / in2m << "\n";
     GetLog() << "Velocity [inch/s]   "
-      << GetShockVelocity(ChWheelID(0, LEFT)) / in2m << "  "
-      << GetShockVelocity(ChWheelID(0, RIGHT)) / in2m << "  "
-      << GetShockVelocity(ChWheelID(1, LEFT)) / in2m << "  "
-      << GetShockVelocity(ChWheelID(1, RIGHT)) / in2m << "\n";
+      << GetShockVelocity(FRONT_LEFT) / in2m << "  "
+      << GetShockVelocity(FRONT_RIGHT) / in2m << "  "
+      << GetShockVelocity(REAR_LEFT) / in2m << "  "
+      << GetShockVelocity(REAR_RIGHT) / in2m << "\n";
     GetLog() << "Force [lbf]         "
-      << GetShockForce(ChWheelID(0, LEFT)) / lbf2N << "  "
-      << GetShockForce(ChWheelID(0, RIGHT)) / lbf2N << "  "
-      << GetShockForce(ChWheelID(1, LEFT)) / lbf2N << "  "
-      << GetShockForce(ChWheelID(1, RIGHT)) / lbf2N << "\n";
+      << GetShockForce(FRONT_LEFT) / lbf2N << "  "
+      << GetShockForce(FRONT_RIGHT) / lbf2N << "  "
+      << GetShockForce(REAR_LEFT) / lbf2N << "  "
+      << GetShockForce(REAR_RIGHT) / lbf2N << "\n";
   }
 
   if (what & DBG_CONSTRAINTS)

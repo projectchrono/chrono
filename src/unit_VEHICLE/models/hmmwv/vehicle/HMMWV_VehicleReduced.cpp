@@ -241,10 +241,10 @@ void HMMWV_VehicleReduced::Update(double              time,
   m_steering->Update(time, steering);
 
   // Apply tire forces to spindle bodies.
-  m_front_susp->ApplyTireForce(LEFT, tire_forces[0]);
-  m_front_susp->ApplyTireForce(RIGHT, tire_forces[1]);
-  m_rear_susp->ApplyTireForce(LEFT, tire_forces[2]);
-  m_rear_susp->ApplyTireForce(RIGHT, tire_forces[3]);
+  m_front_susp->ApplyTireForce(LEFT, tire_forces[FRONT_LEFT.id()]);
+  m_front_susp->ApplyTireForce(RIGHT, tire_forces[FRONT_RIGHT.id()]);
+  m_rear_susp->ApplyTireForce(LEFT, tire_forces[REAR_LEFT.id()]);
+  m_rear_susp->ApplyTireForce(RIGHT, tire_forces[REAR_RIGHT.id()]);
 
   // Apply braking
   m_front_left_brake->ApplyBrakeModulation(braking);
