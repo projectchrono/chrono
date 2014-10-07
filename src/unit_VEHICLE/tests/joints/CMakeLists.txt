@@ -15,6 +15,9 @@ MESSAGE(STATUS "Adding joint validation tests...")
 
 SET(TEST_PROGRAMS
     test_revolute
+    test_spherical
+    test_universal
+    test_hooke
     test_revsph
 )
 
