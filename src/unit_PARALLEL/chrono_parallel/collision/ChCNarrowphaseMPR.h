@@ -7,12 +7,18 @@ namespace chrono {
 namespace collision {
 
 CH_PARALLEL_API
-bool MPRCollision(const ConvexShape &ShapeA,
+bool MPRContact(const ConvexShape &ShapeA,
                   const ConvexShape &ShapeB,
                   real3 &returnNormal,
                   real3 &point,
                   real &depth);
-
+CH_PARALLEL_API
+bool MPRCollision(const ConvexShape &ShapeA,
+                  const ConvexShape &ShapeB,
+                  real3 &returnNormal,
+                  real3 &pointA,
+                  real3 &pointB,
+                  real &depth);
 CH_PARALLEL_API
 void MPRGetPoints(const ConvexShape &ShapeA,
                   const ConvexShape &ShapeB,

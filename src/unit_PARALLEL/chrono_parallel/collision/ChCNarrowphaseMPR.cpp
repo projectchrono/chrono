@@ -624,11 +624,11 @@ int RefinePortal(const ConvexShape & shapeA,
    return -1;
 }
 //Code for Convex-Convex Collision detection, adopted from xeno-collide
-bool chrono::collision::MPRCollision(const ConvexShape & shapeA,
-                                     const ConvexShape & shapeB,
-                                     real3 &returnNormal,
-                                     real3 &point,
-                                     real &depth) {
+bool chrono::collision::MPRContact(const ConvexShape & shapeA,
+                                   const ConvexShape & shapeB,
+                                   real3 &returnNormal,
+                                   real3 &point,
+                                   real &depth) {
 
    simplex portal;
 
@@ -652,6 +652,7 @@ bool chrono::collision::MPRCollision(const ConvexShape & shapeA,
    }
    return 1;
 }
+
 void chrono::collision::MPRGetPoints(const ConvexShape & shapeA,
                                      const ConvexShape & shapeB,
                                      real3 &N,
@@ -665,4 +666,19 @@ void chrono::collision::MPRGetPoints(const ConvexShape & shapeA,
 
 }
 
+//Code for Convex-Convex Collision detection, adopted from xeno-collide
+bool chrono::collision::MPRCollision(const ConvexShape & shapeA,
+                                     const ConvexShape & shapeB,
+                                     real3 &normal,
+                                     real3 &pointA,
+                                     real3 &pointB,
+                                     real &depth) {
+   real3 point;
+   if (!MPRContact(shapeA, shapeB, normal, point, depth)) {
+      return false;
+   }
+
+   MPRGetPoints(shapeA, shapeB, normal, point, pointA, pointB);
+   return true;
+}
 

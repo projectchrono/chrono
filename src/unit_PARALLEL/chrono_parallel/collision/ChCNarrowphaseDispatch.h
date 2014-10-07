@@ -57,15 +57,15 @@ class CH_PARALLEL_API ChCNarrowphaseDispatch {
                  const bool * obj_active,
                  const real3 *body_pos,
                  const real4 *body_rot,
-                 long long *contact_pair,
+                 const long long *contact_pair,
+                 const uint* start_index,
                  uint *contact_active,
                  real3 *norm,
                  real3 *ptA,
                  real3 *ptB,
                  real *contactDepth,
                  real* erad,
-                 int2 *ids,
-                 uint* start_index);
+                 int2 *ids);
 
  private:
 
