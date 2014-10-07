@@ -1,0 +1,9 @@
+{
+  "Name":                       "HMMWV Rigid Tire",
+  "Type":                       "Tire",
+  "Template":                   "RigidTire",
+
+  "Radius":                     0.4699,
+  "Inertia":                    0.254,
+  "Coefficient of Friction":    0.7
+}

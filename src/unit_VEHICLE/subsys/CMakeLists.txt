@@ -102,6 +102,11 @@ SET(Chrono_Tire_FILES
     tire/ChPacejkaTire.cpp
     tire/ChLugreTire.h
     tire/ChLugreTire.cpp
+
+    tire/RigidTire.h
+    tire/RigidTire.cpp
+    tire/LugreTire.h
+    tire/LugreTire.cpp
 )
 
 SET(Chrono_Brake_FILES
