@@ -51,8 +51,8 @@ void ChShaftsDriveline2WD::Initialize(ChSharedPtr<ChBody>     chassis,
 {
   assert(chassis);
   assert(suspensions.size() > 0);
-  assert(suspensions[0]->GetAxle(ChSuspension::LEFT));
-  assert(suspensions[0]->GetAxle(ChSuspension::RIGHT));
+  assert(suspensions[0]->GetAxle(LEFT));
+  assert(suspensions[0]->GetAxle(RIGHT));
   assert(chassis->GetSystem());
 
   ChSystem* my_system = chassis->GetSystem();
