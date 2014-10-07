@@ -792,9 +792,9 @@ public:
      /// Convert to a 2-dimensional array
    void To_Marray(double marr[3][3])
    {
-     marr[0][0] = Get33Element(0, 0);  marr[0][1] = Get33Element(0, 1);  marr[0][2] = Get33Element(0, 2);
-     marr[1][0] = Get33Element(1, 0);  marr[1][1] = Get33Element(1, 1);  marr[1][2] = Get33Element(1, 2);
-     marr[2][0] = Get33Element(2, 0);  marr[2][1] = Get33Element(2, 1);  marr[2][2] = Get33Element(2, 2);
+     marr[0][0] = this->Get33Element(0, 0);  marr[0][1] = this->Get33Element(0, 1);  marr[0][2] = this->Get33Element(0, 2);
+     marr[1][0] = this->Get33Element(1, 0);  marr[1][1] = this->Get33Element(1, 1);  marr[1][2] = this->Get33Element(1, 2);
+     marr[2][0] = this->Get33Element(2, 0);  marr[2][1] = this->Get33Element(2, 1);  marr[2][2] = this->Get33Element(2, 2);
    }
 
      /// Convert from a 2-dimensional array
