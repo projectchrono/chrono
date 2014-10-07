@@ -37,14 +37,6 @@ public:
 
   virtual int GetNumberAxles() const { return m_num_axles; }
 
-  virtual ChSharedPtr<ChBody> GetWheelBody(const ChWheelID& wheelID) const;
-
-  virtual const ChVector<>& GetWheelPos(const ChWheelID& wheel_id) const;
-  virtual const ChQuaternion<>& GetWheelRot(const ChWheelID& wheel_id) const;
-  virtual const ChVector<>& GetWheelLinVel(const ChWheelID& wheel_id) const;
-  virtual ChVector<> GetWheelAngVel(const ChWheelID& wheel_id) const;
-  virtual double GetWheelOmega(const ChWheelID& wheel_id) const;
-
   virtual ChCoordsys<> GetLocalDriverCoordsys() const { return m_driverCsys; }
 
   virtual void Initialize(const ChCoordsys<>& chassisPos);
@@ -53,8 +45,6 @@ public:
                       double              powertrain_torque,
                       double              braking,
                       const ChTireForces& tire_forces);
-
-  virtual void LogConstraintViolations();
 
   void ExportMeshPovray(const std::string& out_dir);
 

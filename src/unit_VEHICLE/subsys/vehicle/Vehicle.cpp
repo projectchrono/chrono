@@ -313,9 +313,10 @@ Vehicle::Vehicle(const std::string& filename,
 
   Add(m_chassis);
 
-  // ----------------------------------
-  // More validations of the JSON file.
-  // ----------------------------------
+  // ---------------------------------
+  // More validations of the JSON file
+  // ---------------------------------
+
   assert(d.HasMember("Steering"));
   assert(d.HasMember("Driveline"));
   assert(d.HasMember("Axles"));
@@ -432,39 +433,6 @@ void Vehicle::Initialize(const ChCoordsys<>& chassisPos)
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-ChSharedPtr<ChBody> Vehicle::GetWheelBody(const ChWheelID& wheel_id) const
-{
-  return m_suspensions[wheel_id.axle()]->GetSpindle(wheel_id.side());
-}
-
-const ChVector<>& Vehicle::GetWheelPos(const ChWheelID& wheel_id) const
-{
-  return m_suspensions[wheel_id.axle()]->GetSpindlePos(wheel_id.side());
-}
-
-const ChQuaternion<>& Vehicle::GetWheelRot(const ChWheelID& wheel_id) const
-{
-  return m_suspensions[wheel_id.axle()]->GetSpindleRot(wheel_id.side());
-}
-
-const ChVector<>& Vehicle::GetWheelLinVel(const ChWheelID& wheel_id) const
-{
-  return m_suspensions[wheel_id.axle()]->GetSpindleLinVel(wheel_id.side());
-}
-
-ChVector<> Vehicle::GetWheelAngVel(const ChWheelID& wheel_id) const
-{
-  return m_suspensions[wheel_id.axle()]->GetSpindleAngVel(wheel_id.side());
-}
-
-double Vehicle::GetWheelOmega(const ChWheelID& wheel_id) const
-{
-  return m_suspensions[wheel_id.axle()]->GetAxleSpeed(wheel_id.side());
-}
-
-
-// -----------------------------------------------------------------------------
-// -----------------------------------------------------------------------------
 void Vehicle::Update(double              time,
                      double              steering,
                      double              braking,
@@ -485,30 +453,6 @@ void Vehicle::Update(double              time,
     m_brakes[2 * i]->ApplyBrakeModulation(braking);
     m_brakes[2 * i + 1]->ApplyBrakeModulation(braking);
   }
-}
-
-
-// -----------------------------------------------------------------------------
-// Log constraint violations
-// -----------------------------------------------------------------------------
-void Vehicle::LogConstraintViolations()
-{
-  GetLog().SetNumFormat("%16.4e");
-
-  // Report constraint violations for the suspension joints
-  for (int i = 0; i < m_num_axles; i++) {
-    GetLog() << "\n---- AXLE " << i << " LEFT side suspension constraint violations\n\n";
-    m_suspensions[i]->LogConstraintViolations(LEFT);
-    GetLog() << "\n---- AXLE " << i << " RIGHT side suspension constraint violations\n\n";
-    m_suspensions[i]->LogConstraintViolations(RIGHT);
-  }
-
-  // Report constraint violations for the steering joints
-  GetLog() << "\n---- STEERING constrain violations\n\n";
-  m_steering->LogConstraintViolations();
-
-  GetLog().SetNumFormat("%g");
-
 }
 
 // -----------------------------------------------------------------------------

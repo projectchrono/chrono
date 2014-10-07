@@ -45,14 +45,6 @@ public:
 
   virtual int GetNumberAxles() const { return 2; }
 
-  virtual chrono::ChSharedPtr<chrono::ChBody> GetWheelBody(const chrono::ChWheelID& wheel_id) const;
-
-  virtual const chrono::ChVector<>& GetWheelPos(const chrono::ChWheelID& wheel_id) const;
-  virtual const chrono::ChQuaternion<>& GetWheelRot(const chrono::ChWheelID& wheel_id) const;
-  virtual const chrono::ChVector<>& GetWheelLinVel(const chrono::ChWheelID& wheel_id) const;
-  virtual chrono::ChVector<> GetWheelAngVel(const chrono::ChWheelID& wheel_id) const;
-  virtual double GetWheelOmega(const chrono::ChWheelID& wheel_id) const;
-
   virtual chrono::ChCoordsys<> GetLocalDriverCoordsys() const { return m_driverCsys; }
 
   virtual void Initialize(const chrono::ChCoordsys<>& chassisPos);
@@ -64,12 +56,7 @@ public:
 
   static void ExportMeshPovray(const std::string& out_dir);
 
-  virtual void LogConstraintViolations();
-
 private:
-
-  chrono::ChSharedPtr<HMMWV_DoubleWishboneReducedFront> m_front_susp;
-  chrono::ChSharedPtr<HMMWV_DoubleWishboneReducedRear>  m_rear_susp;
 
   chrono::ChSharedPtr<HMMWV_Wheel> m_front_right_wheel;
   chrono::ChSharedPtr<HMMWV_Wheel> m_front_left_wheel;

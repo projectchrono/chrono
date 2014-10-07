@@ -84,29 +84,29 @@ public:
   virtual int GetNumberAxles() const = 0;
 
   /// Get a handle to the specified wheel body.
-  virtual ChSharedPtr<ChBody> GetWheelBody(const ChWheelID& wheelID) const = 0;
+  ChSharedPtr<ChBody> GetWheelBody(const ChWheelID& wheelID) const;
 
   /// Get the global location of the specified wheel.
-  virtual const ChVector<>& GetWheelPos(const ChWheelID& wheel_id) const = 0;
+  const ChVector<>& GetWheelPos(const ChWheelID& wheel_id) const;
 
   /// Get the orientation of the specified wheel.
   /// The wheel orientation is returned as a quaternion representing a rotation
   /// with respect to the global reference frame.
-  virtual const ChQuaternion<>& GetWheelRot(const ChWheelID& wheel_id) const = 0;
+  const ChQuaternion<>& GetWheelRot(const ChWheelID& wheel_id) const;
 
   /// Get the linear velocity of the specified wheel.
   /// Return the linear velocity of the wheel center, expressed in the global
   /// reference frame.
-  virtual const ChVector<>& GetWheelLinVel(const ChWheelID& wheel_id) const = 0;
+  const ChVector<>& GetWheelLinVel(const ChWheelID& wheel_id) const;
 
   /// Get the angular velocity of the specified wheel.
   /// Return the angular velocity of the wheel frame, expressed in the global
   /// reference frame.
-  virtual ChVector<> GetWheelAngVel(const ChWheelID& wheel_id) const = 0;
+  ChVector<> GetWheelAngVel(const ChWheelID& wheel_id) const;
 
   /// Get the angular speed of the specified wheel.
   /// This is the angular speed of the wheel axle.
-  virtual double GetWheelOmega(const ChWheelID& wheel_id) const = 0;
+  double GetWheelOmega(const ChWheelID& wheel_id) const;
 
   /// Get the complete state for the specified wheel.
   /// This includes the location, orientation, linear and angular velocities,
@@ -155,7 +155,7 @@ public:
   double GetStepsize() const { return m_stepsize; }
 
   /// Log current constraint violations.
-  virtual void LogConstraintViolations() {}
+  void LogConstraintViolations();
 
 protected:
 

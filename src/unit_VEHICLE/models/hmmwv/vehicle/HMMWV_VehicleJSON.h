@@ -46,14 +46,6 @@ public:
 
   virtual int GetNumberAxles() const { return 2; }
 
-  virtual chrono::ChSharedPtr<chrono::ChBody> GetWheelBody(const chrono::ChWheelID& wheel_id) const;
-
-  virtual const chrono::ChVector<>& GetWheelPos(const chrono::ChWheelID& wheel_id) const;
-  virtual const chrono::ChQuaternion<>& GetWheelRot(const chrono::ChWheelID& wheel_id) const;
-  virtual const chrono::ChVector<>& GetWheelLinVel(const chrono::ChWheelID& wheel_id) const;
-  virtual chrono::ChVector<> GetWheelAngVel(const chrono::ChWheelID& wheel_id) const;
-  virtual double GetWheelOmega(const chrono::ChWheelID& wheel_id) const;
-
   virtual chrono::ChCoordsys<> GetLocalDriverCoordsys() const { return m_driverCsys; }
 
   double GetSpringForce(const chrono::ChWheelID& wheel_id) const;
@@ -77,12 +69,7 @@ public:
   void LogHardpointLocations(); /// suspension hardpoints at design
   void DebugLog(int what);      /// shock forces and lengths, constraints, etc.
 
-  virtual void LogConstraintViolations();
-
 private:
-
-  chrono::ChSharedPtr<chrono::DoubleWishbone> m_front_susp;
-  chrono::ChSharedPtr<chrono::DoubleWishbone> m_rear_susp;
 
   chrono::ChSharedPtr<chrono::Wheel> m_front_right_wheel;
   chrono::ChSharedPtr<chrono::Wheel> m_front_left_wheel;
