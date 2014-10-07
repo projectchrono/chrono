@@ -19,7 +19,7 @@
 //
 // =============================================================================
 
-#include "core/ChMatrix33.h"
+#include "physics/ChSystem.h"
 
 #include "subsys/ChTire.h"
 
