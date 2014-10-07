@@ -67,7 +67,7 @@ ChPacejkaTire::ChPacejkaTire(const std::string& pacTire_paramFile,
 }
 
 ChPacejkaTire::ChPacejkaTire(const ChPacejkaTire& tire,
-                             ChWheelId            which)
+                             ChVehicleSide        side)
 : ChTire(tire.m_terrain),
   m_paramFile(tire.m_paramFile),
   m_params_defined(false),
@@ -77,10 +77,7 @@ ChPacejkaTire::ChPacejkaTire(const ChPacejkaTire& tire,
 {
   Initialize();
 
-  if (which == FRONT_RIGHT || which == REAR_RIGHT)
-    m_params->model.tyreside = "RIGHT";
-  else
-    m_params->model.tyreside = "LEFT";
+  m_params->model.tyreside = (side == LEFT) ? "LEFT" : "RIGHT";
 }
 
 // -----------------------------------------------------------------------------

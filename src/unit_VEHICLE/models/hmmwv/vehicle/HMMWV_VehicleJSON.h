@@ -46,23 +46,23 @@ public:
 
   virtual int GetNumberAxles() const { return 2; }
 
-  virtual chrono::ChSharedBodyPtr GetWheelBody(chrono::ChWheelId which) const;
+  virtual chrono::ChSharedPtr<chrono::ChBody> GetWheelBody(const chrono::ChWheelID& wheel_id) const;
 
-  virtual const chrono::ChVector<>& GetWheelPos(chrono::ChWheelId which) const;
-  virtual const chrono::ChQuaternion<>& GetWheelRot(chrono::ChWheelId which) const;
-  virtual const chrono::ChVector<>& GetWheelLinVel(chrono::ChWheelId which) const;
-  virtual chrono::ChVector<> GetWheelAngVel(chrono::ChWheelId which) const;
-  virtual double GetWheelOmega(chrono::ChWheelId which) const;
+  virtual const chrono::ChVector<>& GetWheelPos(const chrono::ChWheelID& wheel_id) const;
+  virtual const chrono::ChQuaternion<>& GetWheelRot(const chrono::ChWheelID& wheel_id) const;
+  virtual const chrono::ChVector<>& GetWheelLinVel(const chrono::ChWheelID& wheel_id) const;
+  virtual chrono::ChVector<> GetWheelAngVel(const chrono::ChWheelID& wheel_id) const;
+  virtual double GetWheelOmega(const chrono::ChWheelID& wheel_id) const;
 
   virtual chrono::ChCoordsys<> GetLocalDriverCoordsys() const { return m_driverCsys; }
 
-  double GetSpringForce(chrono::ChWheelId which) const;
-  double GetSpringLength(chrono::ChWheelId which) const;
-  double GetSpringDeformation(chrono::ChWheelId which) const;
+  double GetSpringForce(const chrono::ChWheelID& wheel_id) const;
+  double GetSpringLength(const chrono::ChWheelID& wheel_id) const;
+  double GetSpringDeformation(const chrono::ChWheelID& wheel_id) const;
 
-  double GetShockForce(chrono::ChWheelId which) const;
-  double GetShockLength(chrono::ChWheelId which) const;
-  double GetShockVelocity(chrono::ChWheelId which) const;
+  double GetShockForce(const chrono::ChWheelID& wheel_id) const;
+  double GetShockLength(const chrono::ChWheelID& wheel_id) const;
+  double GetShockVelocity(const chrono::ChWheelID& wheel_id) const;
 
   virtual void Initialize(const chrono::ChCoordsys<>& chassisPos);
   virtual void Update(double                      time,

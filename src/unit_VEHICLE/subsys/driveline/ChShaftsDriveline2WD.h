@@ -73,7 +73,7 @@ public:
     );
 
   /// Get the motor torque to be applied to the specified wheel.
-  virtual double GetWheelTorque(ChWheelId which) const;
+  virtual double GetWheelTorque(const ChWheelID& wheel_id) const;
 
 protected:
 

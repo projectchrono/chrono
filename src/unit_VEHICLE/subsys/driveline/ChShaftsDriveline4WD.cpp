@@ -122,8 +122,8 @@ void ChShaftsDriveline4WD::Initialize(ChSharedPtr<ChBody>     chassis,
   // simple: t0=-1.
   m_rear_differential = ChSharedPtr<ChShaftsPlanetary>(new ChShaftsPlanetary);
   m_rear_differential->Initialize(m_rear_differentialbox,
-                                  suspensions[1]->GetAxle(ChSuspension::LEFT),
-                                  suspensions[1]->GetAxle(ChSuspension::RIGHT));
+                                  suspensions[1]->GetAxle(LEFT),
+                                  suspensions[1]->GetAxle(RIGHT));
   m_rear_differential->SetTransmissionRatioOrdinary(GetRearDifferentialRatio());
   my_system->Add(m_rear_differential);
 
@@ -156,8 +156,8 @@ void ChShaftsDriveline4WD::Initialize(ChSharedPtr<ChBody>     chassis,
   // simple: t0=-1.
   m_front_differential = ChSharedPtr<ChShaftsPlanetary>(new ChShaftsPlanetary);
   m_front_differential->Initialize(m_front_differentialbox,
-                                   suspensions[0]->GetAxle(ChSuspension::LEFT),
-                                   suspensions[0]->GetAxle(ChSuspension::RIGHT));
+                                   suspensions[0]->GetAxle(LEFT),
+                                   suspensions[0]->GetAxle(RIGHT));
   m_front_differential->SetTransmissionRatioOrdinary(GetFrontDifferentialRatio());
   my_system->Add(m_front_differential);
 }
@@ -165,20 +165,24 @@ void ChShaftsDriveline4WD::Initialize(ChSharedPtr<ChBody>     chassis,
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-double ChShaftsDriveline4WD::GetWheelTorque(ChWheelId which) const
+double ChShaftsDriveline4WD::GetWheelTorque(const ChWheelID& wheel_id) const
 {
-  switch (which) {
-  case FRONT_LEFT:
-    return -m_front_differential->GetTorqueReactionOn2();
-  case FRONT_RIGHT:
-    return -m_front_differential->GetTorqueReactionOn3();
-  case REAR_LEFT:
-    return -m_rear_differential->GetTorqueReactionOn2();
-  case REAR_RIGHT:
-    return -m_rear_differential->GetTorqueReactionOn3();
-  default:
-    return -1;  // should not happen
+  switch (wheel_id.axle()) {
+  case 0:
+    switch (wheel_id.side()) {
+    case LEFT:  return -m_front_differential->GetTorqueReactionOn2();
+    case RIGHT: return -m_front_differential->GetTorqueReactionOn3();
+    }
+    break;
+  case 1:
+    switch (wheel_id.side()) {
+    case LEFT:  return -m_rear_differential->GetTorqueReactionOn2();
+    case RIGHT: return -m_rear_differential->GetTorqueReactionOn3();
+    }
+    break;
   }
+
+  return -1;  // should not happen
 }
 
 

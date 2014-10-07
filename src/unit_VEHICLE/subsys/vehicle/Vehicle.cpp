@@ -415,11 +415,11 @@ void Vehicle::Initialize(const ChCoordsys<>& chassisPos)
     else
       m_suspensions[i]->Initialize(m_chassis, m_suspLocations[i], m_chassis);
 
-    m_wheels[2 * i]->Initialize(m_suspensions[i]->GetSpindle(ChSuspension::LEFT));
-    m_wheels[2 * i + 1]->Initialize(m_suspensions[i]->GetSpindle(ChSuspension::RIGHT));
+    m_wheels[2 * i]->Initialize(m_suspensions[i]->GetSpindle(LEFT));
+    m_wheels[2 * i + 1]->Initialize(m_suspensions[i]->GetSpindle(RIGHT));
 
-    m_brakes[2 * i]->Initialize(m_suspensions[i]->GetRevolute(ChSuspension::LEFT));
-    m_brakes[2 * i + 1]->Initialize(m_suspensions[i]->GetRevolute(ChSuspension::RIGHT));
+    m_brakes[2 * i]->Initialize(m_suspensions[i]->GetRevolute(LEFT));
+    m_brakes[2 * i + 1]->Initialize(m_suspensions[i]->GetRevolute(RIGHT));
   }
 
   // Initialize the driveline
@@ -432,100 +432,34 @@ void Vehicle::Initialize(const ChCoordsys<>& chassisPos)
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-ChSharedBodyPtr Vehicle::GetWheelBody(ChWheelId which) const
+ChSharedPtr<ChBody> Vehicle::GetWheelBody(const ChWheelID& wheel_id) const
 {
-  switch (which) {
-  case FRONT_LEFT:
-    return m_suspensions[0]->GetSpindle(ChSuspension::LEFT);
-  case FRONT_RIGHT:
-    return m_suspensions[0]->GetSpindle(ChSuspension::RIGHT);
-  case REAR_LEFT:
-    return m_suspensions[1]->GetSpindle(ChSuspension::LEFT);
-  case REAR_RIGHT:
-    return m_suspensions[1]->GetSpindle(ChSuspension::RIGHT);
-  default:
-    return m_suspensions[0]->GetSpindle(ChSuspension::RIGHT);  // should not happen
-  }
+  return m_suspensions[wheel_id.axle()]->GetSpindle(wheel_id.side());
 }
 
-const ChVector<>& Vehicle::GetWheelPos(ChWheelId which) const
+const ChVector<>& Vehicle::GetWheelPos(const ChWheelID& wheel_id) const
 {
-  switch (which) {
-  case FRONT_LEFT:
-    return m_suspensions[0]->GetSpindlePos(ChSuspension::LEFT);
-  case FRONT_RIGHT:
-    return m_suspensions[0]->GetSpindlePos(ChSuspension::RIGHT);
-  case REAR_LEFT:
-    return m_suspensions[1]->GetSpindlePos(ChSuspension::LEFT);
-  case REAR_RIGHT:
-    return m_suspensions[1]->GetSpindlePos(ChSuspension::RIGHT);
-  default:
-    return m_suspensions[0]->GetSpindlePos(ChSuspension::RIGHT);  // should not happen
-  }
+  return m_suspensions[wheel_id.axle()]->GetSpindlePos(wheel_id.side());
 }
 
-const ChQuaternion<>& Vehicle::GetWheelRot(ChWheelId which) const
+const ChQuaternion<>& Vehicle::GetWheelRot(const ChWheelID& wheel_id) const
 {
-  switch (which) {
-  case FRONT_LEFT:
-    return m_suspensions[0]->GetSpindleRot(ChSuspension::LEFT);
-  case FRONT_RIGHT:
-    return m_suspensions[0]->GetSpindleRot(ChSuspension::RIGHT);
-  case REAR_LEFT:
-    return m_suspensions[1]->GetSpindleRot(ChSuspension::LEFT);
-  case REAR_RIGHT:
-    return m_suspensions[1]->GetSpindleRot(ChSuspension::RIGHT);
-  default:
-    return m_suspensions[0]->GetSpindleRot(ChSuspension::RIGHT);  // should not happen
-  }
+  return m_suspensions[wheel_id.axle()]->GetSpindleRot(wheel_id.side());
 }
 
-const ChVector<>& Vehicle::GetWheelLinVel(ChWheelId which) const
+const ChVector<>& Vehicle::GetWheelLinVel(const ChWheelID& wheel_id) const
 {
-  switch (which) {
-  case FRONT_LEFT:
-    return m_suspensions[0]->GetSpindleLinVel(ChSuspension::LEFT);
-  case FRONT_RIGHT:
-    return m_suspensions[0]->GetSpindleLinVel(ChSuspension::RIGHT);
-  case REAR_LEFT:
-    return m_suspensions[1]->GetSpindleLinVel(ChSuspension::LEFT);
-  case REAR_RIGHT:
-    return m_suspensions[1]->GetSpindleLinVel(ChSuspension::RIGHT);
-  default:
-    return m_suspensions[0]->GetSpindleLinVel(ChSuspension::RIGHT);  // should not happen
-  }
+  return m_suspensions[wheel_id.axle()]->GetSpindleLinVel(wheel_id.side());
 }
 
-ChVector<> Vehicle::GetWheelAngVel(ChWheelId which) const
+ChVector<> Vehicle::GetWheelAngVel(const ChWheelID& wheel_id) const
 {
-  switch (which) {
-  case FRONT_LEFT:
-    return m_suspensions[0]->GetSpindleAngVel(ChSuspension::LEFT);
-  case FRONT_RIGHT:
-    return m_suspensions[0]->GetSpindleAngVel(ChSuspension::RIGHT);
-  case REAR_LEFT:
-    return m_suspensions[1]->GetSpindleAngVel(ChSuspension::LEFT);
-  case REAR_RIGHT:
-    return m_suspensions[1]->GetSpindleAngVel(ChSuspension::RIGHT);
-  default:
-    return m_suspensions[0]->GetSpindleAngVel(ChSuspension::RIGHT);  // should not happen
-  }
+  return m_suspensions[wheel_id.axle()]->GetSpindleAngVel(wheel_id.side());
 }
 
-double Vehicle::GetWheelOmega(ChWheelId which) const
+double Vehicle::GetWheelOmega(const ChWheelID& wheel_id) const
 {
-  switch (which) {
-  case FRONT_LEFT:
-    return m_suspensions[0]->GetAxleSpeed(ChSuspension::LEFT);
-  case FRONT_RIGHT:
-    return m_suspensions[0]->GetAxleSpeed(ChSuspension::RIGHT);
-  case REAR_LEFT:
-    return m_suspensions[1]->GetAxleSpeed(ChSuspension::LEFT);
-  case REAR_RIGHT:
-    return m_suspensions[1]->GetAxleSpeed(ChSuspension::RIGHT);
-  default:
-    return -1;  // should not happen
-  }
+  return m_suspensions[wheel_id.axle()]->GetAxleSpeed(wheel_id.side());
 }
 
 
@@ -545,8 +479,8 @@ void Vehicle::Update(double              time,
 
   // Apply tire forces to spindle bodies and apply braking.
   for (int i = 0; i < m_num_axles; i++) {
-    m_suspensions[i]->ApplyTireForce(ChSuspension::LEFT, tire_forces[2 * i]);
-    m_suspensions[i]->ApplyTireForce(ChSuspension::RIGHT, tire_forces[2 * i + 1]);
+    m_suspensions[i]->ApplyTireForce(LEFT, tire_forces[2 * i]);
+    m_suspensions[i]->ApplyTireForce(RIGHT, tire_forces[2 * i + 1]);
 
     m_brakes[2 * i]->ApplyBrakeModulation(braking);
     m_brakes[2 * i + 1]->ApplyBrakeModulation(braking);
@@ -564,9 +498,9 @@ void Vehicle::LogConstraintViolations()
   // Report constraint violations for the suspension joints
   for (int i = 0; i < m_num_axles; i++) {
     GetLog() << "\n---- AXLE " << i << " LEFT side suspension constraint violations\n\n";
-    m_suspensions[i]->LogConstraintViolations(ChSuspension::LEFT);
+    m_suspensions[i]->LogConstraintViolations(LEFT);
     GetLog() << "\n---- AXLE " << i << " RIGHT side suspension constraint violations\n\n";
-    m_suspensions[i]->LogConstraintViolations(ChSuspension::RIGHT);
+    m_suspensions[i]->LogConstraintViolations(RIGHT);
   }
 
   // Report constraint violations for the steering joints

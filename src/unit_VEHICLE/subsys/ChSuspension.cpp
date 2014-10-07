@@ -31,22 +31,22 @@ ChSuspension::ChSuspension(const std::string& name,
 }
 
 
-void ChSuspension::ApplyAxleTorque(Side   side,
-                                   double torque)
+void ChSuspension::ApplyAxleTorque(ChVehicleSide side,
+                                   double        torque)
 {
   assert(m_driven);
   m_axle[side]->SetAppliedTorque(torque);
 }
 
 
-double ChSuspension::GetAxleSpeed(Side side) const
+double ChSuspension::GetAxleSpeed(ChVehicleSide side) const
 {
   assert(m_driven);
   return m_axle[side]->GetPos_dt();
 }
 
 
-void ChSuspension::ApplyTireForce(Side               side,
+void ChSuspension::ApplyTireForce(ChVehicleSide      side,
                                   const ChTireForce& tire_force)
 {
   m_spindle[side]->Empty_forces_accumulators();

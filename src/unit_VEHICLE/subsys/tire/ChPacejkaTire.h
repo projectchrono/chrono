@@ -67,8 +67,8 @@ public:
 
   /// Copy constructor, only tire side will be different
   ChPacejkaTire(
-    const ChPacejkaTire& tire,   ///< [in] source object
-    ChWheelId            which   ///< [in] 
+    const ChPacejkaTire& tire,      ///< [in] source object
+    ChVehicleSide        side   ///< [in] 
     );
 
   ~ChPacejkaTire();

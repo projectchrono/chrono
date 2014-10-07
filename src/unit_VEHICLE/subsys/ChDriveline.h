@@ -74,7 +74,7 @@ public:
   void ApplyDriveshaftTorque(double torque)  { m_driveshaft->SetAppliedTorque(torque); }
 
   /// Get the motor torque to be applied to the specified wheel.
-  virtual double GetWheelTorque(ChWheelId which) const = 0;
+  virtual double GetWheelTorque(const ChWheelID& wheel_id) const = 0;
 
 protected:
 

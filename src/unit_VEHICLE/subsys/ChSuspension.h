@@ -40,11 +40,6 @@ class CH_SUBSYS_API ChSuspension : public ChShared
 {
 public:
 
-  enum Side {
-    LEFT  = 0,
-    RIGHT = 1
-  };
-
   ChSuspension(
     const std::string& name,               ///< [in] name of the subsystem
     bool               driven = false      ///< [in] true if attached to driveline subsystem
@@ -65,46 +60,52 @@ public:
   bool IsDriven() const { return m_driven; }
 
   /// Get a handle to the spindle body on the specified side.
-  ChSharedPtr<ChBody>  GetSpindle(Side side) const { return m_spindle[side]; }
+  ChSharedPtr<ChBody>  GetSpindle(ChVehicleSide side) const { return m_spindle[side]; }
 
   /// Get a handle to the axle shaft on the specified side.
-  ChSharedPtr<ChShaft> GetAxle(Side side) const { return m_axle[side]; }
+  ChSharedPtr<ChShaft> GetAxle(ChVehicleSide side) const { return m_axle[side]; }
 
   /// Get a handle to the revolute joint on the specified side.
-  ChSharedPtr<ChLinkLockRevolute>  GetRevolute(Side side) const { return m_revolute[side]; }
+  ChSharedPtr<ChLinkLockRevolute>  GetRevolute(ChVehicleSide side) const { return m_revolute[side]; }
 
   /// Get the global location of the spindle on the specified side.
-  const ChVector<>& GetSpindlePos(Side side) const { return m_spindle[side]->GetPos(); }
+  const ChVector<>& GetSpindlePos(ChVehicleSide side) const { return m_spindle[side]->GetPos(); }
 
   /// Get the orientation of the spindle body on the specified side.
   /// The spindle body orientation is returned as a quaternion representing a
   /// rotation with respect to the global reference frame.
-  const ChQuaternion<>& GetSpindleRot(Side side) const { return m_spindle[side]->GetRot(); }
+  const ChQuaternion<>& GetSpindleRot(ChVehicleSide side) const { return m_spindle[side]->GetRot(); }
 
   /// Get the linear velocity of the spindle body on the specified side.
   /// Return the linear velocity of the spindle center, expressed in the global
   /// reference frame.
-  const ChVector<>& GetSpindleLinVel(Side side) const { return m_spindle[side]->GetPos_dt(); }
+  const ChVector<>& GetSpindleLinVel(ChVehicleSide side) const { return m_spindle[side]->GetPos_dt(); }
 
   /// Get the angular velocity of the spindle body on the specified side.
   /// Return the angular velocity of the spindle frame, expressed in the global
   /// reference frame.
-  ChVector<> GetSpindleAngVel(Side side) const { return m_spindle[side]->GetWvel_par(); }
+  ChVector<> GetSpindleAngVel(ChVehicleSide side) const { return m_spindle[side]->GetWvel_par(); }
 
   /// Get the angular speed of the axle on the specified side.
-  double GetAxleSpeed(Side side) const;
+  double GetAxleSpeed(ChVehicleSide side) const;
 
   /// Apply the provided tire forces.
   /// The given tire force and moment is applied to the specified (left or
   /// right) spindle body.  This function provides the interface to the tire
   /// system (intermediated by the vehicle system).
-  void ApplyTireForce(Side side, const ChTireForce& tire_force);
+  void ApplyTireForce(
+    ChVehicleSide side,             ///< indicates the spindle body (left or right) where the forces should be applied
+    const ChTireForce& tire_force   ///< generalized tire forces
+    );
 
   /// Apply the provided motor torque.
   /// The given torque is applied to the specified (left or right) axle. This
   /// function provides the interface to the drivetrain subsystem (intermediated
   /// by the vehicle system).
-  void ApplyAxleTorque(Side side, double torque);
+  void ApplyAxleTorque(
+    ChVehicleSide side,   ///< indicates the axle (left or right) where the torque should be applied
+    double torque         ///< value of applied torque
+    );
 
   /// Initialize this suspension subsystem.
   /// The suspension subsystem is initialized by attaching it to the specified
@@ -121,17 +122,17 @@ public:
     ) = 0;
 
   /// Log current constraint violations.
-  virtual void LogConstraintViolations(Side side) {}
+  virtual void LogConstraintViolations(ChVehicleSide side) {}
 
 protected:
 
-  std::string               m_name;       ///< name of the subsystem
-  bool                      m_driven;     ///< true if attached to steering subsystem
+  std::string                      m_name;               ///< name of the subsystem
+  bool                             m_driven;             ///< true if attached to steering subsystem
 
-  ChSharedPtr<ChBody>               m_spindle[2];         ///< handles to spindle bodies
-  ChSharedPtr<ChShaft>              m_axle[2];            ///< handles to axle shafts
-  ChSharedPtr<ChShaftsBody>         m_axle_to_spindle[2]; ///< handles to spindle-shaft connectors
-  ChSharedPtr<ChLinkLockRevolute>   m_revolute[2];        ///< handles to spindle revolute joints
+  ChSharedPtr<ChBody>              m_spindle[2];         ///< handles to spindle bodies
+  ChSharedPtr<ChShaft>             m_axle[2];            ///< handles to axle shafts
+  ChSharedPtr<ChShaftsBody>        m_axle_to_spindle[2]; ///< handles to spindle-shaft connectors
+  ChSharedPtr<ChLinkLockRevolute>  m_revolute[2];        ///< handles to spindle revolute joints
 };
 
 /// Vector of handles to suspension subsystems.

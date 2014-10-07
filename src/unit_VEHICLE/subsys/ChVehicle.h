@@ -32,13 +32,42 @@
 
 namespace chrono {
 
-
-enum ChWheelId {
-  FRONT_LEFT,
-  FRONT_RIGHT,
-  REAR_LEFT,
-  REAR_RIGHT
+enum ChVehicleSide {
+  LEFT = 0,
+  RIGHT = 1
 };
+
+///
+/// Class to encode the ID of a vehicle wheel.
+/// By convention, wheels are counted front to rear and left to right. In other
+/// words, for a vehicle with 2 axles, the order is: front-left, front-right,
+/// rear-left, rear-right.
+///
+class ChWheelID
+{
+public:
+
+  ChWheelID(int id) : m_id(id), m_axle(id / 2), m_side(ChVehicleSide(id % 2)) {}
+  ChWheelID(int axle, ChVehicleSide side) : m_id(2 * axle + side), m_axle(axle), m_side(side) {}
+
+  /// Return the wheel ID.
+  int id() const { return m_id; }
+
+  /// Return the axle index for this wheel ID.
+  /// Axles are counted from the front of the vehicle.
+  int axle() const { return m_axle; }
+
+  /// Return the side for this wheel ID.
+  /// By convention, left is 0 and right is 1.
+  ChVehicleSide side() const { return m_side; }
+
+private:
+
+  int           m_id;     ///< wheel ID
+  int           m_axle;   ///< axle index (counted from the front)
+  ChVehicleSide m_side;   ///< vehicle side (LEFT: 0, RIGHT: 1)
+};
+
 
 struct ChBodyState {
   ChVector<>     pos;      ///< global position
@@ -113,35 +142,35 @@ public:
   virtual int GetNumberAxles() const = 0;
 
   /// Get a handle to the specified wheel body.
-  virtual ChSharedPtr<ChBody> GetWheelBody(ChWheelId which) const = 0;
+  virtual ChSharedPtr<ChBody> GetWheelBody(const ChWheelID& wheelID) const = 0;
 
   /// Get the global location of the specified wheel.
-  virtual const ChVector<>& GetWheelPos(ChWheelId which) const = 0;
+  virtual const ChVector<>& GetWheelPos(const ChWheelID& wheel_id) const = 0;
 
   /// Get the orientation of the specified wheel.
   /// The wheel orientation is returned as a quaternion representing a rotation
   /// with respect to the global reference frame.
-  virtual const ChQuaternion<>& GetWheelRot(ChWheelId which) const = 0;
+  virtual const ChQuaternion<>& GetWheelRot(const ChWheelID& wheel_id) const = 0;
 
   /// Get the linear velocity of the specified wheel.
   /// Return the linear velocity of the wheel center, expressed in the global
   /// reference frame.
-  virtual const ChVector<>& GetWheelLinVel(ChWheelId which) const = 0;
+  virtual const ChVector<>& GetWheelLinVel(const ChWheelID& wheel_id) const = 0;
 
   /// Get the angular velocity of the specified wheel.
   /// Return the angular velocity of the wheel frame, expressed in the global
   /// reference frame.
-  virtual ChVector<> GetWheelAngVel(ChWheelId which) const = 0;
+  virtual ChVector<> GetWheelAngVel(const ChWheelID& wheel_id) const = 0;
 
   /// Get the angular speed of the specified wheel.
   /// This is the angular speed of the wheel axle.
-  virtual double GetWheelOmega(ChWheelId which) const = 0;
+  virtual double GetWheelOmega(const ChWheelID& wheel_id) const = 0;
 
   /// Get the complete state for the specified wheel.
   /// This includes the location, orientation, linear and angular velocities,
   /// all expressed in the global reference frame, as well as the wheel angular
   /// speed about its rotation axis.
-  ChWheelState GetWheelState(ChWheelId which);
+  ChWheelState GetWheelState(const ChWheelID& wheel_id);
 
   /// Get the angular speed of the driveshaft.
   /// This function provides the interface between a vehicle system and a
@@ -188,11 +217,11 @@ public:
 
 protected:
 
-  ChSharedPtr<ChBodyAuxRef>  m_chassis;  ///< handle to the chassis body
+  ChSharedPtr<ChBodyAuxRef>  m_chassis;    ///< handle to the chassis body
 
-  ChDriveline*     m_driveline;          ///< pointer to the driveline subsystem
+  ChDriveline*               m_driveline;  ///< pointer to the driveline subsystem
 
-  double  m_stepsize;                    ///< integration step-size for the vehicle system
+  double                     m_stepsize;   ///< integration step-size for the vehicle system
 
   friend class ChPowertrain;
   friend class ChDriveline;

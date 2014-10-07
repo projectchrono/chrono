@@ -169,9 +169,9 @@ int main(int argc, char* argv[])
     tire_combined.Advance(step_size);
 
     // see what the calculated reactions are
-    long_forces[FRONT_LEFT] = tire_long.GetTireForce();
-    lat_forces[FRONT_LEFT] = tire_lat.GetTireForce();
-    combined_forces[FRONT_LEFT] = tire_combined.GetTireForce();
+    long_forces[0] = tire_long.GetTireForce();
+    lat_forces[0] = tire_lat.GetTireForce();
+    combined_forces[0] = tire_combined.GetTireForce();
 
     // output any data at the end of the step
     tire_long.WriteOutData(time, outData_filename_long);

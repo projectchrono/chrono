@@ -85,25 +85,25 @@ public:
                           );
 
   /// Get the force in the spring element.
-  double GetSpringForce(ChSuspension::Side side)       const { return m_spring[side]->Get_SpringReact(); }
+  double GetSpringForce(ChVehicleSide side) const { return m_spring[side]->Get_SpringReact(); }
 
   /// Get the current length of the spring element
-  double GetSpringLength(ChSuspension::Side side)      const { return m_spring[side]->Get_SpringLength(); }
+  double GetSpringLength(ChVehicleSide side) const { return m_spring[side]->Get_SpringLength(); }
 
   /// Get the current deformation of the spring element.
-  double GetSpringDeformation(ChSuspension::Side side) const { return m_spring[side]->Get_SpringDeform(); }
+  double GetSpringDeformation(ChVehicleSide side) const { return m_spring[side]->Get_SpringDeform(); }
 
   /// Get the force in the shock (damper) element.
-  double GetShockForce(ChSuspension::Side side)        const { return m_shock[side]->Get_SpringReact(); }
+  double GetShockForce(ChVehicleSide side) const { return m_shock[side]->Get_SpringReact(); }
 
   /// Get the current length of the shock (damper) element.
-  double GetShockLength(ChSuspension::Side side)       const { return m_shock[side]->Get_SpringLength(); }
+  double GetShockLength(ChVehicleSide side) const { return m_shock[side]->Get_SpringLength(); }
 
   /// Get the current deformation velocity of the shock (damper) element.
-  double GetShockVelocity(ChSuspension::Side side)     const { return m_shock[side]->Get_SpringVelocity(); }
+  double GetShockVelocity(ChVehicleSide side) const { return m_shock[side]->Get_SpringVelocity(); }
 
   /// Log current constraint violations.
-  virtual void LogConstraintViolations(ChSuspension::Side side);
+  virtual void LogConstraintViolations(ChVehicleSide side);
 
   void LogHardpointLocations(const ChVector<>& ref,
                              bool              inches = false);
@@ -214,9 +214,9 @@ protected:
 
 private:
 
-  void CreateSide(ChSuspension::Side side,
+  void CreateSide(ChVehicleSide      side,
                   const std::string& suffix);
-  void InitializeSide(ChSuspension::Side              side,
+  void InitializeSide(ChVehicleSide                   side,
                       ChSharedPtr<ChBodyAuxRef>       chassis,
                       ChSharedPtr<ChBody>             tierod_body,
                       const std::vector<ChVector<> >& points,

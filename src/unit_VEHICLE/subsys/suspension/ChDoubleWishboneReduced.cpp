@@ -48,7 +48,7 @@ ChDoubleWishboneReduced::ChDoubleWishboneReduced(const std::string& name,
   CreateSide(RIGHT, "_R");
 }
 
-void ChDoubleWishboneReduced::CreateSide(ChSuspension::Side side,
+void ChDoubleWishboneReduced::CreateSide(ChVehicleSide      side,
                                          const std::string& suffix)
 {
   // Create the spindle and upright bodies
@@ -122,7 +122,7 @@ void ChDoubleWishboneReduced::Initialize(ChSharedPtr<ChBodyAuxRef>  chassis,
 }
 
 
-void ChDoubleWishboneReduced::InitializeSide(ChSuspension::Side              side,
+void ChDoubleWishboneReduced::InitializeSide(ChVehicleSide                   side,
                                              ChSharedPtr<ChBodyAuxRef>       chassis,
                                              ChSharedPtr<ChBody>             tierod_body,
                                              const std::vector<ChVector<> >& points)
@@ -234,7 +234,7 @@ void ChDoubleWishboneReduced::AddVisualizationSpindle(ChSharedBodyPtr spindle,
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-void ChDoubleWishboneReduced::LogConstraintViolations(ChSuspension::Side side)
+void ChDoubleWishboneReduced::LogConstraintViolations(ChVehicleSide side)
 {
   // Revolute joint
   {

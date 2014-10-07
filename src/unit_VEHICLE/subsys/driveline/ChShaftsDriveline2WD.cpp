@@ -91,8 +91,8 @@ void ChShaftsDriveline2WD::Initialize(ChSharedPtr<ChBody>     chassis,
   // simple: t0=-1.
   m_differential = ChSharedPtr<ChShaftsPlanetary>(new ChShaftsPlanetary);
   m_differential->Initialize(m_differentialbox,
-                             suspensions[0]->GetAxle(ChSuspension::LEFT),
-                             suspensions[0]->GetAxle(ChSuspension::RIGHT));
+                             suspensions[0]->GetAxle(LEFT),
+                             suspensions[0]->GetAxle(RIGHT));
   m_differential->SetTransmissionRatioOrdinary(GetDifferentialRatio());
   my_system->Add(m_differential);
 }
@@ -100,19 +100,12 @@ void ChShaftsDriveline2WD::Initialize(ChSharedPtr<ChBody>     chassis,
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-double ChShaftsDriveline2WD::GetWheelTorque(ChWheelId which) const
+double ChShaftsDriveline2WD::GetWheelTorque(const ChWheelID& wheel_id) const
 {
-  switch (which) {
-  case FRONT_LEFT:
-    return 0;
-  case FRONT_RIGHT:
-    return 0;
-  case REAR_LEFT:
-    return -m_differential->GetTorqueReactionOn2();
-  case REAR_RIGHT:
-    return -m_differential->GetTorqueReactionOn3();
-  default:
-    return -1;  // should not happen
+  switch (wheel_id.side()) {
+  case LEFT:  return -m_differential->GetTorqueReactionOn2();
+  case RIGHT: return -m_differential->GetTorqueReactionOn3();
+  default:    return -1;
   }
 }
 

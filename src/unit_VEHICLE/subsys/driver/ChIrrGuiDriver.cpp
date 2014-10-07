@@ -387,11 +387,11 @@ void ChIrrGuiDriver::renderStats()
 
   if (ChShaftsDriveline2WD* driveline = dynamic_cast<ChShaftsDriveline2WD*>(dline))
   {
-    double torque_wheelL = -driveline->m_differential->GetTorqueReactionOn2();
+    double torque_wheelL = driveline->GetWheelTorque(ChWheelID(0, LEFT));
     sprintf(msg, "Torque wheel L: %+.2f", torque_wheelL);
     renderLinGauge(std::string(msg), torque_wheelL / 5000, false, m_HUD_x, m_HUD_y + 260, 120, 15);
 
-    double torque_wheelR = -driveline->m_differential->GetTorqueReactionOn3();
+    double torque_wheelR = driveline->GetWheelTorque(ChWheelID(0, RIGHT));
     sprintf(msg, "Torque wheel R: %+.2f", torque_wheelR);
     renderLinGauge(std::string(msg), torque_wheelR / 5000, false, m_HUD_x, m_HUD_y + 280, 120, 15);
   }

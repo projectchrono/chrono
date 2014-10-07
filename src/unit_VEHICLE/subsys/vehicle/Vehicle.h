@@ -42,13 +42,13 @@ public:
 
   virtual int GetNumberAxles() const { return m_num_axles; }
 
-  virtual chrono::ChSharedBodyPtr GetWheelBody(ChWheelId which) const;
+  virtual ChSharedPtr<ChBody> GetWheelBody(const ChWheelID& wheelID) const;
 
-  virtual const ChVector<>& GetWheelPos(ChWheelId which) const;
-  virtual const ChQuaternion<>& GetWheelRot(ChWheelId which) const;
-  virtual const ChVector<>& GetWheelLinVel(ChWheelId which) const;
-  virtual ChVector<> GetWheelAngVel(ChWheelId which) const;
-  virtual double GetWheelOmega(ChWheelId which) const;
+  virtual const ChVector<>& GetWheelPos(const ChWheelID& wheel_id) const;
+  virtual const ChQuaternion<>& GetWheelRot(const ChWheelID& wheel_id) const;
+  virtual const ChVector<>& GetWheelLinVel(const ChWheelID& wheel_id) const;
+  virtual ChVector<> GetWheelAngVel(const ChWheelID& wheel_id) const;
+  virtual double GetWheelOmega(const ChWheelID& wheel_id) const;
 
   virtual ChCoordsys<> GetLocalDriverCoordsys() const { return m_driverCsys; }
 

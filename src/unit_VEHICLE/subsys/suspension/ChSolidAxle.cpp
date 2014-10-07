@@ -75,7 +75,7 @@ ChSolidAxle::ChSolidAxle(const std::string& name,
   CreateSide(RIGHT, "_R");
 }
 
-void ChSolidAxle::CreateSide(ChSuspension::Side side,
+void ChSolidAxle::CreateSide(ChVehicleSide      side,
                              const std::string& suffix)
 {
   // Create the knuckle bodies
@@ -193,7 +193,7 @@ void ChSolidAxle::Initialize(ChSharedPtr<ChBodyAuxRef>  chassis,
   InitializeSide(RIGHT, chassis, tierod_body, points_R, dirs_R);
 }
 
-void ChSolidAxle::InitializeSide(ChSuspension::Side              side,
+void ChSolidAxle::InitializeSide(ChVehicleSide                   side,
                                  ChSharedPtr<ChBodyAuxRef>       chassis,
                                  ChSharedPtr<ChBody>             tierod_body,
                                  const std::vector<ChVector<> >& points,
@@ -348,7 +348,7 @@ void ChSolidAxle::LogHardpointLocations(const ChVector<>& ref,
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-void ChSolidAxle::LogConstraintViolations(ChSuspension::Side side)
+void ChSolidAxle::LogConstraintViolations(ChVehicleSide side)
 {
   // Revolute joints
   {

@@ -86,7 +86,7 @@ public:
     );
 
   /// Log current constraint violations.
-  virtual void LogConstraintViolations(ChSuspension::Side side);
+  virtual void LogConstraintViolations(ChVehicleSide side);
 
 protected:
 
@@ -150,9 +150,9 @@ protected:
 
 private:
 
-  void CreateSide(ChSuspension::Side side,
+  void CreateSide(ChVehicleSide      side,
                   const std::string& suffix);
-  void InitializeSide(ChSuspension::Side              side,
+  void InitializeSide(ChVehicleSide                   side,
                       ChSharedPtr<ChBodyAuxRef>       chassis,
                       ChSharedPtr<ChBody>             tierod_body,
                       const std::vector<ChVector<> >& points);
