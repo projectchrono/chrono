@@ -39,9 +39,8 @@ static ChVector<> loadVector(const Value& a)
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-ShaftsDriveline2WD::ShaftsDriveline2WD(ChVehicle*         car,
-                                       const std::string& filename)
-: ChShaftsDriveline2WD(car)
+ShaftsDriveline2WD::ShaftsDriveline2WD(const std::string& filename)
+: ChShaftsDriveline2WD()
 {
   FILE* fp = fopen(filename.c_str(), "r");
 
@@ -56,9 +55,8 @@ ShaftsDriveline2WD::ShaftsDriveline2WD(ChVehicle*         car,
   Create(d);
 }
 
-ShaftsDriveline2WD::ShaftsDriveline2WD(ChVehicle*                 car,
-                                       const rapidjson::Document& d)
-: ChShaftsDriveline2WD(car)
+ShaftsDriveline2WD::ShaftsDriveline2WD(const rapidjson::Document& d)
+: ChShaftsDriveline2WD()
 {
   Create(d);
 }

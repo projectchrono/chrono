@@ -33,11 +33,10 @@
 #include "subsys/ChSuspension.h"
 #include "subsys/ChDriveline.h"
 #include "subsys/ChSteering.h"
+#include "subsys/ChWheel.h"
+#include "subsys/ChBrake.h"
 
 namespace chrono {
-
-// Forward declaration.
-class ChDriveline;
 
 ///
 /// Base class for chrono vehicle systems.
@@ -160,13 +159,15 @@ public:
 
 protected:
 
-  ChSharedPtr<ChBodyAuxRef>  m_chassis;    ///< handle to the chassis body
-
-  ChDriveline*               m_driveline;  ///< pointer to the driveline subsystem
+  ChSharedPtr<ChBodyAuxRef>  m_chassis;      ///< handle to the chassis body
+  ChSuspensionList           m_suspensions;  ///< list of handles to suspension subsystems
+  ChSharedPtr<ChDriveline>   m_driveline;    ///< handle to the driveline subsystem
+  ChSharedPtr<ChSteering>    m_steering;     ///< handle to the steering subsystem
+  ChWheelList                m_wheels;       ///< list of handles to wheel subsystems
+  ChBrakeList                m_brakes;       ///< list of handles to brake subsystems
 
   double                     m_stepsize;   ///< integration step-size for the vehicle system
 
-  friend class ChDriveline;
   friend class ChIrrGuiDriver;
 };
 

@@ -102,7 +102,7 @@ HMMWV_Vehicle::HMMWV_Vehicle(const bool           fixed,
   // Create the steering subsystem
   // -----------------------------
 
-  m_steering = ChSharedPtr<HMMWV_PitmanArm>(new HMMWV_PitmanArm("Steering"));
+  m_steering = ChSharedPtr<ChSteering>(new HMMWV_PitmanArm("Steering"));
 
   // -----------------
   // Create the wheels
@@ -117,7 +117,7 @@ HMMWV_Vehicle::HMMWV_Vehicle(const bool           fixed,
   // Create the driveline
   // --------------------
 
-  m_driveline = ChSharedPtr<HMMWV_Driveline2WD>(new HMMWV_Driveline2WD(this));
+  m_driveline = ChSharedPtr<ChDriveline>(new HMMWV_Driveline2WD);
 
   // -----------------
   // Create the brakes

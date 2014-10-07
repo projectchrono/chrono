@@ -32,10 +32,8 @@ class CH_SUBSYS_API ShaftsDriveline2WD : public ChShaftsDriveline2WD
 {
 public:
 
-  ShaftsDriveline2WD(ChVehicle*         car,
-                     const std::string& filename);
-  ShaftsDriveline2WD(ChVehicle*                 car,
-                     const rapidjson::Document& d);
+  ShaftsDriveline2WD(const std::string& filename);
+  ShaftsDriveline2WD(const rapidjson::Document& d);
   ~ShaftsDriveline2WD() {}
 
   virtual double GetDriveshaftInertia() const      { return m_driveshaft_inertia; }

@@ -132,11 +132,11 @@ void Vehicle::LoadDriveline(const std::string& filename)
   // Create the driveline using the appropriate template.
   if (subtype.compare("ShaftsDriveline2WD") == 0)
   {
-    m_driveline = ChSharedPtr<ChDriveline>(new ShaftsDriveline2WD(this, d));
+    m_driveline = ChSharedPtr<ChDriveline>(new ShaftsDriveline2WD(d));
   }
   else if (subtype.compare("ShaftsDriveline4WD") == 0)
   {
-    ////m_driveline = ChSharedPtr<ChDriveline>(new ShaftsDriveline4WD(this, d));
+    ////m_driveline = ChSharedPtr<ChDriveline>(new ShaftsDriveline4WD(d));
   }
 }
 

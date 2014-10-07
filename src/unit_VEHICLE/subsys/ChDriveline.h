@@ -28,9 +28,6 @@
 
 namespace chrono {
 
-// Forward declaration
-class ChVehicle;
-
 ///
 /// Base class for a driveline subsystem.
 ///
@@ -39,13 +36,11 @@ class CH_SUBSYS_API ChDriveline : public ChShared
 public:
 
   enum DriveType {
-    FWD,   ///< Front wheel drive
-    RWD,   ///< Rear wheel drive
-    AWD    ///< All wheel drive
+    TWO_WHEEL_DRIVE,    ///< front or rear wheel drive
+    FOUR_WHEEL_DRIVE    ///< All wheel drive
   };
 
   ChDriveline(
-    ChVehicle* car,    ///< [in] the vehicle subsystem
     DriveType  type    ///< [in] driveline type
     );
   virtual ~ChDriveline() {}
@@ -80,8 +75,7 @@ public:
 
 protected:
 
-  ChVehicle*            m_car;       ///< parent vehicle system
-  DriveType             m_type;      ///< type of driveline
+  DriveType             m_type;         ///< type of driveline
 
   ChSharedPtr<ChShaft>  m_driveshaft;   ///< handle to the shaft connection to the powertrain
 };

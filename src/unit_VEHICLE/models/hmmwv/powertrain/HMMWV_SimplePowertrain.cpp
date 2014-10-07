@@ -13,9 +13,9 @@
 // =============================================================================
 //
 // Simple powertrain model for the HMMWV vehicle.
-// - RWD only
 // - trivial speed-torque curve
-// - no differential
+// - no torque converter
+// - no transmission box
 //
 // =============================================================================
 

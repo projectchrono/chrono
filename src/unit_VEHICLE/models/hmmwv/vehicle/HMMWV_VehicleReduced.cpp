@@ -103,7 +103,7 @@ HMMWV_VehicleReduced::HMMWV_VehicleReduced(const bool           fixed,
   // Create the steering subsystem
   // -----------------------------
 
-  m_steering = ChSharedPtr<HMMWV_RackPinion>(new HMMWV_RackPinion("Steering"));
+  m_steering = ChSharedPtr<ChSteering>(new HMMWV_RackPinion("Steering"));
 
   // -----------------
   // Create the wheels
@@ -118,7 +118,7 @@ HMMWV_VehicleReduced::HMMWV_VehicleReduced(const bool           fixed,
   // Create the driveline
   // --------------------
 
-  m_driveline = ChSharedPtr<HMMWV_Driveline2WD>(new HMMWV_Driveline2WD(this));
+  m_driveline = ChSharedPtr<ChDriveline>(new HMMWV_Driveline2WD);
 
   // -----------------
   // Create the brakes

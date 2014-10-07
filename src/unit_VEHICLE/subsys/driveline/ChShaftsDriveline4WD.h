@@ -31,9 +31,6 @@
 
 namespace chrono {
 
-// Forward reference
-class ChVehicle;
-
 ///
 /// 4WD driveline model template based on ChShaft objects.
 ///
@@ -41,9 +38,7 @@ class CH_SUBSYS_API ChShaftsDriveline4WD : public ChDriveline
 {
 public:
 
-  ChShaftsDriveline4WD(
-    ChVehicle* car         ///< [in] the vehicle subsystem
-    );
+  ChShaftsDriveline4WD();
 
   ~ChShaftsDriveline4WD() {}
 

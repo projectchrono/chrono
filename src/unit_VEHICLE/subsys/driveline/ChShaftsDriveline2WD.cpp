@@ -32,8 +32,8 @@ namespace chrono {
 // conic gear pair, in chassis local coords. This is needed because ChShaftsBody
 // could transfer pitch torque to the chassis.
 // -----------------------------------------------------------------------------
-ChShaftsDriveline2WD::ChShaftsDriveline2WD(ChVehicle* car)
-: ChDriveline(car, ChDriveline::RWD),
+ChShaftsDriveline2WD::ChShaftsDriveline2WD()
+: ChDriveline(ChDriveline::TWO_WHEEL_DRIVE),
   m_dir_motor_block(ChVector<>(1, 0, 0)),
   m_dir_axle(ChVector<>(0, 1, 0))
 {

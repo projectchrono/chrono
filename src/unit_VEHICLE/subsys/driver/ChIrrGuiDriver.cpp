@@ -383,9 +383,7 @@ void ChIrrGuiDriver::renderStats()
   renderLinGauge(std::string(msg), (double)ngear / 4.0, false, m_HUD_x, m_HUD_y + 220, 120, 15);
 
 
-  ChDriveline* dline = m_car.m_driveline;
-
-  if (ChShaftsDriveline2WD* driveline = dynamic_cast<ChShaftsDriveline2WD*>(dline))
+  if (ChSharedPtr<ChShaftsDriveline2WD> driveline = m_car.m_driveline.DynamicCastTo<ChShaftsDriveline2WD>())
   {
     double torque_wheelL = driveline->GetWheelTorque(ChWheelID(0, LEFT));
     sprintf(msg, "Torque wheel L: %+.2f", torque_wheelL);

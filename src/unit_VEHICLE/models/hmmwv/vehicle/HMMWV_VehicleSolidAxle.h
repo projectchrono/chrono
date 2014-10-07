@@ -83,14 +83,10 @@ private:
   chrono::ChSharedPtr<chrono::ChSolidAxle> m_front_susp;
   chrono::ChSharedPtr<chrono::ChSolidAxle> m_rear_susp;
 
-  chrono::ChSharedPtr<HMMWV_RackPinion> m_steering;
-
   chrono::ChSharedPtr<HMMWV_Wheel> m_front_right_wheel;
   chrono::ChSharedPtr<HMMWV_Wheel> m_front_left_wheel;
   chrono::ChSharedPtr<HMMWV_Wheel> m_rear_right_wheel;
   chrono::ChSharedPtr<HMMWV_Wheel> m_rear_left_wheel;
-
-  chrono::ChSharedPtr<HMMWV_Driveline2WD> m_driveline;
 
   chrono::ChSharedPtr<HMMWV_BrakeSimple> m_front_right_brake;
   chrono::ChSharedPtr<HMMWV_BrakeSimple> m_front_left_brake;

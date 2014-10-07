@@ -104,7 +104,7 @@ HMMWV_VehicleJSON::HMMWV_VehicleJSON(const bool        fixed,
   // Create the steering subsystem
   // -----------------------------
 
-  m_steering = ChSharedPtr<PitmanArm>(new PitmanArm(utils::GetModelDataFile("hmmwv/steering/HMMWV_PitmanArm.json")));
+  m_steering = ChSharedPtr<ChSteering>(new PitmanArm(utils::GetModelDataFile("hmmwv/steering/HMMWV_PitmanArm.json")));
 
   // -----------------
   // Create the wheels
@@ -119,7 +119,7 @@ HMMWV_VehicleJSON::HMMWV_VehicleJSON(const bool        fixed,
   // Create the driveline
   // --------------------
 
-  m_driveline = ChSharedPtr<ShaftsDriveline2WD>(new ShaftsDriveline2WD(this, utils::GetModelDataFile("hmmwv/driveline/HMMWV_Driveline2WD.json")));
+  m_driveline = ChSharedPtr<ChDriveline>(new ShaftsDriveline2WD(utils::GetModelDataFile("hmmwv/driveline/HMMWV_Driveline2WD.json")));
 
   // -----------------
   // Create the brakes

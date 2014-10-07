@@ -17,17 +17,13 @@
 // =============================================================================
 
 #include "subsys/ChDriveline.h"
-#include "subsys/ChVehicle.h"
 
 namespace chrono {
 
 
-ChDriveline::ChDriveline(ChVehicle*   car,
-                         DriveType    type)
-: m_car(car),
-  m_type(type)
+ChDriveline::ChDriveline(DriveType  type)
+: m_type(type)
 {
-  car->m_driveline = this;
 }
 
 

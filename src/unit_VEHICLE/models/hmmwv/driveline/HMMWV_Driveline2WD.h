@@ -20,15 +20,13 @@
 #define HMMWV_DRIVELINE_2WD_H
 
 #include "subsys/driveline/ChShaftsDriveline2WD.h"
-#include "subsys/ChVehicle.h"
-
 
 namespace hmmwv {
 
 class HMMWV_Driveline2WD : public chrono::ChShaftsDriveline2WD {
 public:
 
-  HMMWV_Driveline2WD(chrono::ChVehicle* car);
+  HMMWV_Driveline2WD();
 
   ~HMMWV_Driveline2WD() {}
 

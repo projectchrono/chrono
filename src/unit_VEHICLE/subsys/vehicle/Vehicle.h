@@ -23,15 +23,10 @@
 #include "physics/ChSystem.h"
 
 #include "subsys/ChVehicle.h"
-#include "subsys/ChSuspension.h"
-#include "subsys/ChSteering.h"
-#include "subsys/ChDriveline.h"
-#include "subsys/ChWheel.h"
-#include "subsys/ChBrake.h"
 
 namespace chrono {
 
-class CH_SUBSYS_API Vehicle : public chrono::ChVehicle
+class CH_SUBSYS_API Vehicle : public ChVehicle
 {
 public:
 
@@ -75,19 +70,13 @@ private:
 
   int                      m_num_axles;       // number of axles for this vehicle
 
-  ChSuspensionList         m_suspensions;     // list of handles to suspension subsystems
   std::vector<ChVector<> > m_suspLocations;   // locations of the suspensions relative to chassis
 
-  ChSharedPtr<ChSteering>  m_steering;        // handle to the steering subsystem
   ChVector<>               m_steeringLoc;     // location of the steering relative to chassis
   ChQuaternion<>           m_steeringRot;     // orientation of the steering relative to chassis
   int                      m_steer_susp;      // index of the steered suspension
 
-  ChSharedPtr<ChDriveline> m_driveline;       // handle to the driveline subsystem
   std::vector<int>         m_driven_susp;     // indexes of the driven suspensions
-
-  ChWheelList              m_wheels;          // list of handles to wheel subsystems
-  ChBrakeList              m_brakes;          // list of handles to brake subsystems
 
   bool        m_chassisUseMesh;               // true if using a mesh for chassis visualization
   std::string m_chassisMeshName;              // name of the chassis visualization mesh

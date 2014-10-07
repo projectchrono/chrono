@@ -38,8 +38,8 @@ namespace hmmwv {
 // the direction of the motor block is along the X axis, while the directions of
 // the axles is along the Y axis (relative to the chassis coordinate frame),
 // -----------------------------------------------------------------------------
-HMMWV_Driveline2WD::HMMWV_Driveline2WD(ChVehicle* car)
-: ChShaftsDriveline2WD(car)
+HMMWV_Driveline2WD::HMMWV_Driveline2WD()
+: ChShaftsDriveline2WD()
 {
   SetMotorBlockDirection(ChVector<>(1, 0, 0));
   SetAxleDirection(ChVector<>(0, 1, 0));
