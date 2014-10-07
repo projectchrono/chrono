@@ -123,7 +123,7 @@ void TestRevolute(ChVector<> loc, ChQuaternion<> revAxisRot, double simTimeStep,
 
   // Create output file for results & add in column headers (tab deliminated)
   // ------------------------------------------------------------------------
-  std::ofstream outf(outputFilename);
+  std::ofstream outf(outputFilename.c_str());
   if (outf) {
     outf << "timeElapsed(s)\t";
     outf << "X_Pos(m)\tY_Pos(m)\tZ_Pos\tLength_Pos(m)\t";
