@@ -59,7 +59,7 @@ void ChVehicle::Advance(double step)
 // Return the complete state (expressed in the global frame) for the specified
 // wheel body.
 // -----------------------------------------------------------------------------
-ChWheelState ChVehicle::GetWheelState(const ChWheelID& wheel_id)
+ChWheelState ChVehicle::GetWheelState(const ChWheelID& wheel_id) const
 {
   ChWheelState state;
 

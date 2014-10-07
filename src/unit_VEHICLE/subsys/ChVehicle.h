@@ -186,7 +186,7 @@ public:
   /// This includes the location, orientation, linear and angular velocities,
   /// all expressed in the global reference frame, as well as the wheel angular
   /// speed about its rotation axis.
-  ChWheelState GetWheelState(const ChWheelID& wheel_id);
+  ChWheelState GetWheelState(const ChWheelID& wheel_id) const;
 
   /// Get the angular speed of the driveshaft.
   /// This function provides the interface between a vehicle system and a
@@ -239,7 +239,6 @@ protected:
 
   double                     m_stepsize;   ///< integration step-size for the vehicle system
 
-  friend class ChPowertrain;
   friend class ChDriveline;
   friend class ChIrrGuiDriver;
 };
