@@ -19,14 +19,7 @@
 //
 // =============================================================================
 // TO DO:
-//  Create Case 2 where the revolute joint is at say (1,2,3) and axis of 
-//    rotation is along the vector (0,1,1) - Is this case a seperate file?
-//    ChQuaternion<> revAxisRot(Q_from_AngX(-CH_C_PI_4));
-//  Create Unit Test versions of both cases with no animations
-//    "You can advance the simulation directly, by calling 
-//      ChSystem::DoStepDynamics()"
 //    Report test run time & test pass/fail (determine what the criteria is)
-//      Determine interface for unit test results
 // =============================================================================
 
 #include <ostream>
@@ -44,27 +37,24 @@ using namespace irr;
 
 
 // =============================================================================
-// Settings 
-// =============================================================================
-// There are no units in Chrono, so values must be consistant (MKS is used in this example)
-ChVector<> loc(0, 0, 0);          // location of revolute joint (in global frame)
-// Rotation of the Revolute free DOF(rotation about joint z axis only)
-//   Aligns the revolute z axis with the global y axis in this case
-ChQuaternion<> revAxisRot(Q_from_AngX(-CH_C_PI_2)); 
 
-double mass = 1.0;                // mass of pendulum
-double length = 4.0;              // length of pendulum
-ChVector<> inertiaXX(1, 1, 1);    // mass moments of inertia of pendulum
-double g = 9.80665;
-
-double timeRecord = 5;
-double timeStep = 0.001;
-
-// =============================================================================
-
-int main(int argc, char* argv[])
+void TestRevolute(ChVector<> loc, ChQuaternion<> revAxisRot, double simTimeStep, std::string outputFilename, bool Animate)
 {
+
+  //Settings
+  //----------------------------------------------------------------------------
+  // There are no units in Chrono, so values must be consistant (MKS is used in this example)
+
+  double mass = 1.0;                // mass of pendulum
+  double length = 4.0;              // length of pendulum
+  ChVector<> inertiaXX(1, 1, 1);    // mass moments of inertia of pendulum
+  double g = 9.80665;
+
+  double timeRecord = 5;            // Stop recording to the file after this much simulated time
+  double printTimeStep = 0.001;     // Write the output file at this simulation time step
+
   SetChronoDataPath(CHRONO_DATA_DIR);
+
 
   // Create the mechanical system
   // ----------------------------
@@ -116,23 +106,24 @@ int main(int argc, char* argv[])
 
   // Create the Irrlicht application for visualization
   // -------------------------------------------------
+  ChIrrApp * application;
+  if(Animate){
+    application = new ChIrrApp(&my_system, L"ChLinkRevolute demo", core::dimension2d<u32>(800, 600), false, true);
+    application->AddTypicalLogo();
+    application->AddTypicalSky();
+    application->AddTypicalLights();
+    core::vector3df lookat((f32)loc.x, (f32)loc.y, (f32)loc.z);
+    application->AddTypicalCamera(lookat + core::vector3df(0, 3, -6), lookat);
 
-  ChIrrApp application(&my_system, L"ChLinkRevolute demo", core::dimension2d<u32>(800, 600), false, true);
-  application.AddTypicalLogo();
-  application.AddTypicalSky();
-  application.AddTypicalLights();
-  core::vector3df lookat((f32)loc.x, (f32)loc.y, (f32)loc.z);
-  application.AddTypicalCamera(lookat + core::vector3df(0, 3, -6), lookat);
+    application->AssetBindAll();     //Now have the visulization tool (Irrlicht) create its geometry from the assets defined above
+    application->AssetUpdateAll();
 
-  application.AssetBindAll();
-  application.AssetUpdateAll();
-
-
-  // Simulation loop
-  // ---------------
+    application->SetTimestep(simTimeStep);
+  }
 
   // Create output file for results & add in column headers (tab deliminated)
-  std::ofstream outf("RevoluteJointData.txt");
+  // ------------------------------------------------------------------------
+  std::ofstream outf(outputFilename);
   if (outf) {
     outf << "timeElapsed(s)\t";
     outf << "X_Pos(m)\tY_Pos(m)\tZ_Pos\tLength_Pos(m)\t";
@@ -150,27 +141,23 @@ int main(int argc, char* argv[])
     std::cout << "Output file is invalid" << std::endl;
   }
 
-  application.SetTimestep(timeStep);
+
+  // Simulation loop
+  // ---------------
 
   double timeElapsed = 0;
+  double lastPrint = -printTimeStep;
+  bool continueSimulation = true;
 
-  while (application.GetDevice()->run())
+  while (continueSimulation)
   {
-    application.BeginScene();
-
-    application.DrawAll();
-
-    // Draw an XZ grid at the global origin to add in visualization
-    ChIrrTools::drawGrid(
-      application.GetVideoDriver(), 1, 1, 20, 20,
-      ChCoordsys<>(ChVector<>(0, 0, 0), Q_from_AngX(CH_C_PI_2)),
-      video::SColor(255, 80, 100, 100), true);
-
     // Write current translational and rotational position, velocity, acceleration, 
     // reaction force, and reaction torque of pendulum to output file
 
     //Add a little error tolerance on the end time to ensure that the final data point is recorded
-    if (outf && timeElapsed <= timeRecord+timeStep/2) {
+    if (outf && (timeElapsed <= timeRecord+simTimeStep/2) && (timeElapsed+simTimeStep/2>=lastPrint+printTimeStep)) {
+      lastPrint = lastPrint + printTimeStep;
+
       // Time elapsed
       outf << timeElapsed << "\t";
 
@@ -223,21 +210,59 @@ int main(int argc, char* argv[])
       outf << totalKE  << "\t" << transKE  << "\t" << rotKE  << "\t" << deltaPE  << "\t"  << std::endl;;
     }
 
+
     // Output a message to the command window once timeRecord has been reached
     //   Add a little error tolerance to make sure this event is captured
-    if ((timeElapsed >= timeRecord-timeStep/2) && (timeElapsed <= timeRecord+timeStep/2)) {
-       std::cout << "All Simulation Results have been recorded.  Continuing to solve and animate." << std::endl;
+    if ((timeElapsed >= timeRecord-simTimeStep/2) && (timeElapsed <= timeRecord+simTimeStep/2)) {
+        std::cout << "All Simulation Results have been recorded to file." << std::endl;
     }
 
     // Advance simulation by one step
-    application.DoStep();
-    timeElapsed += timeStep;
+    timeElapsed += simTimeStep;
+    if(Animate) {
+      application->BeginScene();
+      application->DrawAll();
 
-    application.EndScene();
+      // Draw an XZ grid at the global origin to add in visualization
+      ChIrrTools::drawGrid(
+        application->GetVideoDriver(), 1, 1, 20, 20,
+        ChCoordsys<>(ChVector<>(0, 0, 0), Q_from_AngX(CH_C_PI_2)),
+        video::SColor(255, 80, 100, 100), true);
+
+      application->DoStep();  //Take one step in time
+      application->EndScene();
+
+      continueSimulation = application->GetDevice()->run();
+    }
+    else{
+      my_system.DoStepDynamics(simTimeStep);  //Take one step in time
+      continueSimulation = (timeElapsed <= timeRecord+simTimeStep/2);
+    }
   }
 
   // Close output file
   outf.close();
+
+
+}
+
+// =============================================================================
+
+int main(int argc, char* argv[])
+{
+
+  std::cout << "\nStarting Revolute Test Case 01\n\n";
+  //Case 1 - Revolute Joint at the origin, and aligned with the global Y axis
+  //  Note the revolute joint only allows 1 DOF(rotation about joint z axis)
+  //    Therefore, the joint must be rotated -pi/2 about the global x-axis
+  TestRevolute(ChVector<> (0, 0, 0), ChQuaternion<> (Q_from_AngX(-CH_C_PI_2)), .001, "RevoluteJointData_Case01.txt",true);
+
+  std::cout << "\nStarting Revolute Test Case 02\n\n";
+  //Case 2 - Revolute Joint at (1,2,3), and aligned with the global axis along Y = Z
+  //  Note the revolute joint only allows 1 DOF(rotation about joint z axis)
+  //    Therefore, the joint must be rotated -pi/4 about the global x-axis
+  TestRevolute(ChVector<> (1, 2, 3), ChQuaternion<> (Q_from_AngX(-CH_C_PI_4)), .001, "RevoluteJointData_Case02.txt",false);
+
 
   return 0;
 }
