@@ -28,9 +28,6 @@
 
 namespace chrono {
 
-// Forward reference
-class ChVehicle;
-
 class CH_SUBSYS_API ChSimplePowertrain : public ChPowertrain
 {
 public:
