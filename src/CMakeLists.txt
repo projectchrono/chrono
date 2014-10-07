@@ -243,10 +243,6 @@ IF (BUILD_CH_SDK)
 		core/ChVector.cpp 
 		core/ChQuaternion.cpp 
 		core/ChCoordsys.cpp 
-		core/ChMatrix.cpp 
-		core/ChMatrixDynamic.cpp
-		core/ChMatrixNM.cpp
-		core/ChMatrix33.cpp   
 		core/ChMemory.cpp 
 		core/ChSpmatrix.cpp 
 		core/ChQuadrature.cpp

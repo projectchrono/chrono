@@ -21,10 +21,6 @@ using namespace chrono;
 
 //%feature("notabstract") chrono::ChMatrix;
 
-%ignore chrono::Chrono_to_Marray(ChMatrix33<>& ma, double marr[3][3]);
-%ignore chrono::Chrono_from_Marray(ChMatrix33<>& ma, double marr[3][3]);
-
-
 %template(ChMatrixD) chrono::ChMatrix<double>;
 %template(ChMatrixNMD) chrono::ChMatrixNM<double>; 
 %template(ChMatrix33D) chrono::ChMatrix33<double>; 
