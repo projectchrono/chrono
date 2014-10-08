@@ -31,7 +31,7 @@ namespace chrono{
 // -----------------------------------------------------------------------------
 // Static variables
 // -----------------------------------------------------------------------------
-
+static const double default_step_size = 0.01;
 // Threshold value for small forward tangential velocity.
 static const double v_x_threshold = 0.1;
 
@@ -49,14 +49,13 @@ static double Mz_thresh = 1000;
 // -----------------------------------------------------------------------------
 ChPacejkaTire::ChPacejkaTire(const std::string& pacTire_paramFile,
                              const ChTerrain&   terrain,
-                             const ChWheelID&   id,
-                             double             chrono_step_size)
+                             const ChWheelID&   id)
 : ChTire(terrain),
   m_paramFile(pacTire_paramFile),
   m_params_defined(false),
   m_use_transient_slip(true),
   m_use_Fz_override(false),
-  m_step_size(chrono_step_size),
+  m_step_size(default_step_size),
   m_wheelID(id)
 {
   Initialize();
@@ -66,7 +65,6 @@ ChPacejkaTire::ChPacejkaTire(const std::string& pacTire_paramFile,
 ChPacejkaTire::ChPacejkaTire(const std::string& pacTire_paramFile,
                              const ChTerrain&   terrain,
                              const ChWheelID&   id,
-                             double             chrono_step_size,
                              double             Fz_override,
                              bool               use_transient_slip)
 : ChTire(terrain),
@@ -75,7 +73,7 @@ ChPacejkaTire::ChPacejkaTire(const std::string& pacTire_paramFile,
   m_use_transient_slip(use_transient_slip),
   m_use_Fz_override(Fz_override > 0),
   m_Fz_override(Fz_override),
-  m_step_size(chrono_step_size),
+  m_step_size(default_step_size),
   m_wheelID( id.id() )
 {
   Initialize();

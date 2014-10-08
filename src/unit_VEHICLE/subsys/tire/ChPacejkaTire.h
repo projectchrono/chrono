@@ -56,8 +56,7 @@ public:
   ChPacejkaTire(
     const std::string& pacTire_paramFile,
     const ChTerrain&   terrain,
-    const ChWheelID&   id = FRONT_LEFT,
-    double             chrono_step_size = 0.01
+    const ChWheelID&   id = FRONT_LEFT
     );
 
   /// Construct a Pacejka tire with specified vertical load, for testing purposes
@@ -65,7 +64,6 @@ public:
     const std::string& pacTire_paramFile,
     const ChTerrain&   terrain,
     const ChWheelID&   id,
-    double             chrono_step_size,
     double             Fz_override,
     bool               use_transient_slip = true
     );

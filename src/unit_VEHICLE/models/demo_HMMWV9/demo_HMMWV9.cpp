@@ -97,7 +97,6 @@ double render_step_size = 1.0 / FPS;   // FPS = 50
 #endif
 
 // ******  PacejkaTire simulation settings
-const bool test_pactire = false;  // calc pac tires, not used for dynamics
 const bool save_pactire_data = true;
 std::string pac_ofilename_base = "test_HMMWV9_pacTire";
 
@@ -196,10 +195,10 @@ int main(int argc, char* argv[])
   {
     std::string param_file = utils::GetModelDataFile("hmmwv/tire/HMMWV_pacejka.tir");
 
-    ChSharedPtr<ChPacejkaTire> tire_FL(new ChPacejkaTire(param_file, terrain, FRONT_LEFT.id(), step_size ));
-    ChSharedPtr<ChPacejkaTire> tire_FR(new ChPacejkaTire(param_file, terrain, FRONT_RIGHT.id(), step_size ));
-    ChSharedPtr<ChPacejkaTire> tire_RL(new ChPacejkaTire(param_file, terrain, REAR_LEFT.id(), step_size ));
-    ChSharedPtr<ChPacejkaTire> tire_RR(new ChPacejkaTire(param_file, terrain, REAR_RIGHT.id(), step_size ));
+    ChSharedPtr<ChPacejkaTire> tire_FL(new ChPacejkaTire(param_file, terrain, FRONT_LEFT.id() ));
+    ChSharedPtr<ChPacejkaTire> tire_FR(new ChPacejkaTire(param_file, terrain, FRONT_RIGHT.id() ));
+    ChSharedPtr<ChPacejkaTire> tire_RL(new ChPacejkaTire(param_file, terrain, REAR_LEFT.id() ));
+    ChSharedPtr<ChPacejkaTire> tire_RR(new ChPacejkaTire(param_file, terrain, REAR_RIGHT.id() ));
 
     tire_front_left = tire_FL;
     tire_front_right = tire_FR;
@@ -209,27 +208,6 @@ int main(int argc, char* argv[])
     break;
   }
   }
-
-
-  // DEBUGGING pactire
-  ChSharedPtr<ChPacejkaTire> pac_FR;
-  ChSharedPtr<ChPacejkaTire> pac_FL;
-  ChSharedPtr<ChPacejkaTire> pac_RR;
-  ChSharedPtr<ChPacejkaTire> pac_RL;
-  if(test_pactire)
-  {
-    std::string param_file = utils::GetModelDataFile("hmmwv/tire/HMMWV_pacejka.tir");
-
-    ChSharedPtr<ChPacejkaTire> FL(new ChPacejkaTire(param_file, terrain, FRONT_LEFT.id() ));
-    ChSharedPtr<ChPacejkaTire> FR(new ChPacejkaTire(param_file, terrain, FRONT_RIGHT.id() ));
-    ChSharedPtr<ChPacejkaTire> RL(new ChPacejkaTire(param_file, terrain, REAR_LEFT.id() ));
-    ChSharedPtr<ChPacejkaTire> RR(new ChPacejkaTire(param_file, terrain, REAR_RIGHT.id() ));
-    pac_FL = FL;
-    pac_FR = FR;
-    pac_RL = RL;
-    pac_RR = RR;
-  } 
-
 
 #ifdef USE_IRRLICHT
   irr::ChIrrApp application(&vehicle,
@@ -296,7 +274,6 @@ int main(int argc, char* argv[])
   HMMWV_FuncDriver driver;
 #endif
 
-
   // ---------------
   // Simulation loop
   // ---------------
@@ -312,7 +289,6 @@ int main(int argc, char* argv[])
 
   // DEBUGGING
   ChTireForces pac_forces(4);
-
 
   // Number of simulation steps between two 3D view render frames
   int render_steps = (int)std::ceil(render_step_size / step_size);
@@ -358,16 +334,6 @@ int main(int argc, char* argv[])
     tire_forces[REAR_LEFT.id()] = tire_rear_left->GetTireForce();
     tire_forces[REAR_RIGHT.id()] = tire_rear_right->GetTireForce();
 
-    // DEBUGGING
-    if(test_pactire)
-    {
-      pac_forces[FRONT_LEFT.id()] = pac_FL->GetTireForce();
-      pac_forces[FRONT_RIGHT.id()] = pac_FR->GetTireForce();
-      pac_forces[REAR_LEFT.id()] = pac_RL->GetTireForce();
-      pac_forces[REAR_RIGHT.id()] = pac_RR->GetTireForce();
-    }
-
-
     driveshaft_speed = vehicle.GetDriveshaftSpeed();
 
     wheel_states[FRONT_LEFT.id()] = vehicle.GetWheelState(FRONT_LEFT);
@@ -387,17 +353,6 @@ int main(int argc, char* argv[])
     tire_rear_left->Update(time, wheel_states[REAR_LEFT.id()]);
     tire_rear_right->Update(time, wheel_states[REAR_RIGHT.id()]);
 
-
-    // DEBUGGING
-    if(test_pactire)
-    {
-      pac_FL->Update(time, wheel_states[FRONT_LEFT.id()]);
-      pac_FR->Update(time, wheel_states[FRONT_RIGHT.id()]);
-      pac_RL->Update(time, wheel_states[REAR_LEFT.id()]);
-      pac_RR->Update(time, wheel_states[REAR_RIGHT.id()]);
-    }
-
-
     powertrain->Update(time, throttle_input, driveshaft_speed);
 
     vehicle.Update(time, steering_input, braking_input, powertrain_torque, tire_forces);
@@ -414,16 +369,6 @@ int main(int argc, char* argv[])
     tire_rear_right->Advance(step);
     tire_rear_left->Advance(step);
 
-
-    // DEBUGGING
-    if(test_pactire)
-    {
-      pac_FL->Advance(step);
-      pac_FR->Advance(step);
-      pac_RR->Advance(step);
-      pac_RL->Advance(step);
-    }
-
     // write output data if useing PACEJKA tire
     if(tire_model == PACEJKA && save_pactire_data)
     {
@@ -433,18 +378,6 @@ int main(int argc, char* argv[])
         tire_rear_right.DynamicCastTo<ChPacejkaTire>()->WriteOutData(time, pac_ofilename_base + "_RR.csv");
         tire_rear_left.DynamicCastTo<ChPacejkaTire>()->WriteOutData(time, pac_ofilename_base + "_RL.csv");
       //}
-    }
-
-    // write output data if debugging the pac tire, separate set of tires
-    // than those used on the vehicle (even when TireModelType == PACEJKA)
-    if(test_pactire && save_pactire_data)
-    {
-      if (step_number % render_steps == 0) {
-        pac_FL->WriteOutData(time, pac_ofilename_base + "_FL.csv");
-        pac_FR->WriteOutData(time, pac_ofilename_base + "_FR.csv");
-        pac_RR->WriteOutData(time, pac_ofilename_base + "_RR.csv");
-        pac_RL->WriteOutData(time, pac_ofilename_base + "_RL.csv");
-      }
     }
 
     powertrain->Advance(step);
