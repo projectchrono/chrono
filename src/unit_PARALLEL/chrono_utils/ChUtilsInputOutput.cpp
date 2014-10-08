@@ -136,11 +136,11 @@ bool WriteCheckpoint(ChSystem*          system,
         const geometry::ChCapsule& geom = capsule->GetCapsuleGeometry();
         csv << collision::CAPSULE << geom.rad << geom.hlen;
       }
-      ////else if (ChSharedPtr<ChCylinderShape> cylinder = visual_asset.DynamicCastTo<ChCylinderShape>())
-      ////{
-      ////  const geometry::ChCylinder& geom = cylinder->GetCylinderGeometry();
-      ////  csv << collision::CYLINDER << geom.rad << (geom.p1.y - geom.p2.y) / 2;
-      ////}
+      else if (ChSharedPtr<ChCylinderShape> cylinder = visual_asset.DynamicCastTo<ChCylinderShape>())
+      {
+        const geometry::ChCylinder& geom = cylinder->GetCylinderGeometry();
+        csv << collision::CYLINDER << geom.rad << (geom.p1.y - geom.p2.y) / 2;
+      }
       else if (ChSharedPtr<ChConeShape> cone = visual_asset.DynamicCastTo<ChConeShape>())
       {
         const geometry::ChCone& geom = cone->GetConeGeometry();
@@ -292,13 +292,13 @@ void ReadCheckpoint(ChSystem*          system,
           AddCapsuleGeometry(body, radius, hlen, apos, arot);
         }
         break;
-      ////case collision::CYLINDER:
-      ////  {
-      ////    double radius, hlen;
-      ////    iss >> radius >> hlen;
-      ////    AddCylinderGeometry(body, radius, hlen, apos, arot);
-      ////  }
-      ////  break;
+      case collision::CYLINDER:
+        {
+          double radius, hlen;
+          iss >> radius >> hlen;
+          AddCylinderGeometry(body, radius, hlen, apos, arot);
+        }
+        break;
       case collision::CONE:
         {
           double radius, height;
