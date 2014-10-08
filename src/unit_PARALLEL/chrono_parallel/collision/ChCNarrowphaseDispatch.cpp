@@ -83,15 +83,18 @@ void ChCNarrowphaseDispatch::Process(ChParallelDataManager* data_container) {
    bids_data.resize(num_potentialContacts);
 
    Dispatch(obj_data_T.data(), obj_data_A_global.data(), obj_data_B_global.data(), obj_data_C_global.data(), obj_data_R.data(), obj_data_ID.data(), obj_active.data(),
-            body_pos.data(), body_rot.data(), potentialCollisions.data(), contact_index.data(), contact_active.data(), norm_data.data(), cpta_data.data(), cptb_data.data(),
+            body_pos.data(), body_rot.data(), potentialCollisions.data(), contact_index.data(), 
+            contact_active.data(), norm_data.data(), cpta_data.data(), cptb_data.data(),
             dpth_data.data(), erad_data.data(), bids_data.data());
 
    number_of_contacts = num_potentialContacts - thrust::count(contact_active.begin(), contact_active.end(), 1);
+
    //remove any entries where the counter is equal to one, these are contacts that do not exist
    thrust::remove_if(norm_data.begin(), norm_data.end(), contact_active.begin(), thrust::identity<int>());
    thrust::remove_if(cpta_data.begin(), cpta_data.end(), contact_active.begin(), thrust::identity<int>());
    thrust::remove_if(cptb_data.begin(), cptb_data.end(), contact_active.begin(), thrust::identity<int>());
    thrust::remove_if(dpth_data.begin(), dpth_data.end(), contact_active.begin(), thrust::identity<int>());
+   thrust::remove_if(erad_data.begin(), erad_data.end(), contact_active.begin(), thrust::identity<int>());
    thrust::remove_if(bids_data.begin(), bids_data.end(), contact_active.begin(), thrust::identity<int>());
    thrust::remove_if(potentialCollisions.begin(), potentialCollisions.end(), contact_active.begin(), thrust::identity<int>());
    //Resize all lists so that we don't access invalid contacts
@@ -100,6 +103,7 @@ void ChCNarrowphaseDispatch::Process(ChParallelDataManager* data_container) {
    cpta_data.resize(number_of_contacts);
    cptb_data.resize(number_of_contacts);
    dpth_data.resize(number_of_contacts);
+   erad_data.resize(number_of_contacts);
    bids_data.resize(number_of_contacts);
    data_container->erad_is_set = true;
 
