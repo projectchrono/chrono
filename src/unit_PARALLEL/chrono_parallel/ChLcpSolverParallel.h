@@ -149,10 +149,6 @@ class CH_PARALLEL_API ChLcpSolverParallelDEM : public ChLcpSolverParallel {
 
    virtual void RunTimeStep(real step);
 
-   void SetMaxIteration(uint max_iter) {
-      data_container->settings.solver.max_iteration_bilateral = max_iter;
-   }
-
    void ProcessContacts();
 
  private:
