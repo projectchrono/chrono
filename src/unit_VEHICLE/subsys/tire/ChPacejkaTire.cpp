@@ -116,7 +116,9 @@ void ChPacejkaTire::Initialize()
   m_combinedLong = new combinedLongCoefs;
   m_combinedLat = new combinedLatCoefs;
   m_combinedTorque = new combinedTorqueCoefs;
-
+  m_combinedTorque->M_zr = 0;
+  m_combinedTorque->M_z_x = 0;
+  m_combinedTorque->M_z_y = 0;
   m_zeta = new zetaCoefs;
   m_relaxation = new relaxationL;
 

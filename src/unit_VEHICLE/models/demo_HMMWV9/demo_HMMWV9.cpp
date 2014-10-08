@@ -72,7 +72,7 @@ ChQuaternion<> initRot(1, 0, 0, 0);
 PowertrainModelType powertrain_model = SHAFTS;
 
 // Type of tire model (RIGID, PACEJKA, or LUGRE)
-TireModelType tire_model = RIGID;
+TireModelType tire_model = PACEJKA;
 
 // Rigid terrain dimensions
 double terrainHeight = 0;
@@ -96,9 +96,9 @@ double render_step_size = 1.0 / FPS;   // FPS = 50
   const std::string pov_dir = out_dir + "/POVRAY";
 #endif
 
-
-const bool test_pactire = false;
-// PacTire output file base file name, add "ChWheelId.csv", for debugging
+// ******  PacejkaTire simulation settings
+const bool test_pactire = false;  // calc pac tires, not used for dynamics
+const bool save_pactire_data = true;
 std::string pac_ofilename_base = "test_HMMWV9_pacTire";
 
 // =============================================================================
@@ -220,10 +220,10 @@ int main(int argc, char* argv[])
   {
     std::string param_file = utils::GetModelDataFile("hmmwv/tire/HMMWV_pacejka.tir");
 
-    ChSharedPtr<ChPacejkaTire> FL(new ChPacejkaTire(param_file, terrain));
-    ChSharedPtr<ChPacejkaTire> FR(new ChPacejkaTire(param_file, terrain));
-    ChSharedPtr<ChPacejkaTire> RL(new ChPacejkaTire(param_file, terrain));
-    ChSharedPtr<ChPacejkaTire> RR(new ChPacejkaTire(param_file, terrain));
+    ChSharedPtr<ChPacejkaTire> FL(new ChPacejkaTire(param_file, terrain, true));
+    ChSharedPtr<ChPacejkaTire> FR(new ChPacejkaTire(param_file, terrain, true));
+    ChSharedPtr<ChPacejkaTire> RL(new ChPacejkaTire(param_file, terrain, true));
+    ChSharedPtr<ChPacejkaTire> RR(new ChPacejkaTire(param_file, terrain, true));
     pac_FL = FL;
     pac_FR = FR;
     pac_RL = RL;
@@ -370,6 +370,9 @@ int main(int argc, char* argv[])
 
     driveshaft_speed = vehicle.GetDriveshaftSpeed();
 
+    if( time > .441)
+      int arg = 2;
+
     wheel_states[FRONT_LEFT.id()] = vehicle.GetWheelState(FRONT_LEFT);
     wheel_states[FRONT_RIGHT.id()] = vehicle.GetWheelState(FRONT_RIGHT);
     wheel_states[REAR_LEFT.id()] = vehicle.GetWheelState(REAR_LEFT);
@@ -422,14 +425,30 @@ int main(int argc, char* argv[])
       pac_FL->Advance(step);
       pac_RR->Advance(step);
       pac_RL->Advance(step);
-
-      pac_FR->WriteOutData(time, pac_ofilename_base + "_FR.csv");
-      pac_FL->WriteOutData(time, pac_ofilename_base + "_FL.csv");
-      pac_RR->WriteOutData(time, pac_ofilename_base + "_RR.csv");
-      pac_RL->WriteOutData(time, pac_ofilename_base + "_RL.csv");
     }
 
+    // write output data if useing PACEJKA tire
+    if(tire_model == PACEJKA && save_pactire_data)
+    {
+      if (step_number % render_steps == 0) {
+        tire_front_right.DynamicCastTo<ChPacejkaTire>()->WriteOutData(time, pac_ofilename_base + "_FR.csv");
+        tire_front_left.DynamicCastTo<ChPacejkaTire>()->WriteOutData(time, pac_ofilename_base + "_FL.csv");
+        tire_rear_right.DynamicCastTo<ChPacejkaTire>()->WriteOutData(time, pac_ofilename_base + "_RR.csv");
+        tire_rear_left.DynamicCastTo<ChPacejkaTire>()->WriteOutData(time, pac_ofilename_base + "_RL.csv");
+      }
+    }
 
+    // write output data if debugging the pac tire, separate set of tires
+    // than those used on the vehicle (even when TireModelType == PACEJKA)
+    if(test_pactire && save_pactire_data)
+    {
+      if (step_number % render_steps == 0) {
+        pac_FR->WriteOutData(time, pac_ofilename_base + "_FR.csv");
+        pac_FL->WriteOutData(time, pac_ofilename_base + "_FL.csv");
+        pac_RR->WriteOutData(time, pac_ofilename_base + "_RR.csv");
+        pac_RL->WriteOutData(time, pac_ofilename_base + "_RL.csv");
+      }
+    }
 
     powertrain->Advance(step);
 
