@@ -115,6 +115,12 @@ public:
     double Vx      ///< [in] tire forward velocity x-dir
     );
 
+  /// Get the average simulation time per step spent in advance()
+  double get_average_Advance_time() { return m_sum_Advance_time/(double)m_num_Advance_calls; }
+
+  /// Get the average simulation time per step spent in calculating ODEs
+  double get_average_ODE_time() { return m_sum_ODE_time/(double)m_num_ODE_calls; }
+
   /// Get current wheel longitudinal slip.
   double get_kappa() const;
 
@@ -315,9 +321,18 @@ private:
   double m_Fz_override;        // if manually inputting the vertical wheel load
 
   double m_step_size;          // integration step size
+  double m_time_since_last_step; // init. to -1 in Initialize()
+  bool m_initial_step;         // so Advance() gets called at time = 0
+  int m_num_ODE_calls;
+  double m_sum_ODE_time;
+  int m_num_Advance_calls;
+  double m_sum_Advance_time;
 
   ChTireForce m_FM;            // output tire forces, based on pure slip
   ChTireForce m_FM_combined;   // output tire forces, based on combined slip
+  // previous steps calculated reaction
+  ChTireForce m_FM_last;
+  ChTireForce m_FM_combined_last;
 
   std::string m_paramFile;     // input parameter file
   std::string m_outFilename;   // output filename

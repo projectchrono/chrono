@@ -25,6 +25,7 @@
 #include "utils/ChUtilsStringFunctions.h"
 
 #include "subsys/tire/ChPac2002_data.h"
+#include "core/ChTimer.h"
 
 namespace chrono{
 
@@ -136,6 +137,14 @@ void ChPacejkaTire::Initialize()
   m_combinedTorque->M_z_y = 0;
   m_zeta = new zetaCoefs;
   m_relaxation = new relaxationL;
+
+  // negative number indicates no steps have been taken yet
+  m_time_since_last_step = 0;
+  m_initial_step = false; // have not taken a step at time = 0 yet
+  m_num_ODE_calls = 0;
+  m_sum_ODE_time = 0.0;
+  m_num_Advance_calls = 0;
+  m_sum_Advance_time = 0.0;
 
   // load all the empirical tire parameters from *.tir file
   loadPacTireParamFile();
@@ -309,6 +318,10 @@ void ChPacejkaTire::Update(double               time,
     return;
   }
 
+  // keep the last calculated reaction force or moment, to use later
+  m_FM_last = m_FM;
+  m_FM_combined_last = m_FM_combined;
+
   // Initialize the output tire forces to ensure that we do not report any tire
   // forces if the wheel does not contact the terrain.
   m_FM.point = ChVector<>();
@@ -337,6 +350,9 @@ void ChPacejkaTire::Update(double               time,
 // -----------------------------------------------------------------------------
 void ChPacejkaTire::Advance(double step)
 {
+  // increment the counter
+  ChTimer<double> advance_time;
+  m_num_Advance_calls++;
   // Do nothing if the wheel does not contact the terrain.  In this case, all
   // reported tire forces will be zero.
   if (!m_in_contact)
@@ -344,11 +360,15 @@ void ChPacejkaTire::Advance(double step)
     reset_contact();
     return;
   }
+
   // If using single point contact model, slips are calculated from compliance
   // between tire and contact patch.
   if (m_use_transient_slip)
   {
     // 1 of 2 ways to deal with user input time step increment
+
+    /*
+    // 1) ...
     // a) step <= m_step_size, so integrate using input step
     // b) step > m_step_size, use m_step_size until step <= m_step_size
     double remaining_time = step;
@@ -359,6 +379,32 @@ void ChPacejkaTire::Advance(double step)
     }
     // take one final step to reach the specified time.
     advance_slip_transient(remaining_time);
+    */
+
+    // ... or, 2)
+    // assume input step is smaller than it has to be. Then, take x steps
+    // until actually re-calculating reactions.
+    m_time_since_last_step =+ step;
+    // enough time has accumulated to do a macro step, OR, it's the first step
+    if( m_time_since_last_step >= m_step_size || !m_initial_step)
+    {
+      // only count the time take to do actual calculations in Adanvce time
+      advance_time.start();
+      // keep track of the ODE calculation time
+      ChTimer<double> ODE_timer;
+      ODE_timer.start();
+      advance_slip_transient(m_time_since_last_step);
+      ODE_timer.stop();
+      // increment the timer, counter
+      m_num_ODE_calls++;
+      m_sum_ODE_time += ODE_timer();
+
+      m_time_since_last_step = 0;
+      m_initial_step = true;  // 2nd term in if() above will always be false
+    } else {
+      return;
+    }
+
   }
 
   // Calculate the force and moment reaction, pure slip case
@@ -373,6 +419,10 @@ void ChPacejkaTire::Advance(double step)
   // Update M_y, apply to both m_FM and m_FM_combined
   calc_My();
   
+  // all the reactions have been calculated, stop the advance timer
+  advance_time.stop();
+  m_sum_Advance_time += advance_time();
+
   // evaluate the reaction forces calculated
   evaluate();
 }

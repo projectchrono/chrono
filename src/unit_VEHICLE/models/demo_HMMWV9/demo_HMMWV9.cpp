@@ -97,8 +97,11 @@ double render_step_size = 1.0 / FPS;   // FPS = 50
 #endif
 
 // ******  PacejkaTire simulation settings
-const bool save_pactire_data = true;
+const bool save_pactire_data = false;
+double pac_step_size = step_size;
 std::string pac_ofilename_base = "test_HMMWV9_pacTire";
+double pac_out_step_size = 0.01;
+int pac_out_steps = (int)std::ceil(pac_out_step_size / step_size);
 
 // =============================================================================
 
@@ -199,6 +202,11 @@ int main(int argc, char* argv[])
     ChSharedPtr<ChPacejkaTire> tire_FR(new ChPacejkaTire(param_file, terrain, FRONT_RIGHT.id() ));
     ChSharedPtr<ChPacejkaTire> tire_RL(new ChPacejkaTire(param_file, terrain, REAR_LEFT.id() ));
     ChSharedPtr<ChPacejkaTire> tire_RR(new ChPacejkaTire(param_file, terrain, REAR_RIGHT.id() ));
+      
+    tire_FL->SetStepsize(pac_step_size);
+    tire_FR->SetStepsize(pac_step_size);
+    tire_RL->SetStepsize(pac_step_size);
+    tire_RR->SetStepsize(pac_step_size);
 
     tire_front_left = tire_FL;
     tire_front_right = tire_FR;
@@ -296,13 +304,18 @@ int main(int argc, char* argv[])
   // Initialize simulation frame counter and simulation time
   int step_number = 0;
   double time = 0;
-
+  int timer_info_steps = 1000;
 #ifdef USE_IRRLICHT
 
   ChRealtimeStepTimer realtime_timer;
 
+  double sum_sim_time = 0;
   while (application.GetDevice()->run())
   {
+    // keep track of the time spent calculating each sim step
+    ChTimer<double> step_time;
+    step_time.start();
+
     // update the position of the shadow mapping so that it follows the car
     if (do_shadows)
     {
@@ -372,20 +385,34 @@ int main(int argc, char* argv[])
     // write output data if useing PACEJKA tire
     if(tire_model == PACEJKA && save_pactire_data)
     {
-      //if (step_number % render_steps == 0) {
+      if (step_number % pac_out_steps == 0) {
         tire_front_left.DynamicCastTo<ChPacejkaTire>()->WriteOutData(time, pac_ofilename_base + "_FL.csv");
         tire_front_right.DynamicCastTo<ChPacejkaTire>()->WriteOutData(time, pac_ofilename_base + "_FR.csv");
         tire_rear_right.DynamicCastTo<ChPacejkaTire>()->WriteOutData(time, pac_ofilename_base + "_RR.csv");
         tire_rear_left.DynamicCastTo<ChPacejkaTire>()->WriteOutData(time, pac_ofilename_base + "_RL.csv");
-      //}
+      }
     }
 
     powertrain->Advance(step);
 
     vehicle.Advance(step);
 
-    // Increment frame number
+    // Increment frame number, timer
     step_number++;
+    step_time.stop();
+    sum_sim_time += step_time();
+
+    // check the average simulation times here, after a certain amount of time
+    // (vehicle in free-fall, not in contact with the ground, so no tire calculations in first few moments)
+    if( step_number % timer_info_steps == 0 && step_number > timer_info_steps)
+    {
+      double avg_chrono_step_time = sum_sim_time / (double)step_number;
+      double avg_ODE_time = tire_front_left.DynamicCastTo<ChPacejkaTire>()->get_average_ODE_time();
+      double avg_advance_time = tire_front_left.DynamicCastTo<ChPacejkaTire>()->get_average_Advance_time();
+      GetLog() << " \n ///////////  average times, (time, fraction of total) \n chrono = " << avg_chrono_step_time
+        << "\n  ODE time = (" << avg_ODE_time <<", "<< avg_ODE_time /avg_chrono_step_time <<")" 
+        << "\n Advance time = (" << avg_advance_time <<", "<< avg_advance_time / avg_chrono_step_time <<") \n";
+    }
   }
 
   application.GetDevice()->drop();
