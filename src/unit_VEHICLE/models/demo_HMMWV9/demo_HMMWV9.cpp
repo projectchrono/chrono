@@ -196,10 +196,10 @@ int main(int argc, char* argv[])
   {
     std::string param_file = utils::GetModelDataFile("hmmwv/tire/HMMWV_pacejka.tir");
 
-    ChSharedPtr<ChPacejkaTire> tire_FL(new ChPacejkaTire(param_file, terrain));
-    ChSharedPtr<ChPacejkaTire> tire_FR(new ChPacejkaTire(param_file, terrain));
-    ChSharedPtr<ChPacejkaTire> tire_RL(new ChPacejkaTire(param_file, terrain));
-    ChSharedPtr<ChPacejkaTire> tire_RR(new ChPacejkaTire(param_file, terrain));
+    ChSharedPtr<ChPacejkaTire> tire_FL(new ChPacejkaTire(param_file, terrain, FRONT_LEFT.id(), step_size ));
+    ChSharedPtr<ChPacejkaTire> tire_FR(new ChPacejkaTire(param_file, terrain, FRONT_RIGHT.id(), step_size ));
+    ChSharedPtr<ChPacejkaTire> tire_RL(new ChPacejkaTire(param_file, terrain, REAR_LEFT.id(), step_size ));
+    ChSharedPtr<ChPacejkaTire> tire_RR(new ChPacejkaTire(param_file, terrain, REAR_RIGHT.id(), step_size ));
 
     tire_front_left = tire_FL;
     tire_front_right = tire_FR;
@@ -220,10 +220,10 @@ int main(int argc, char* argv[])
   {
     std::string param_file = utils::GetModelDataFile("hmmwv/tire/HMMWV_pacejka.tir");
 
-    ChSharedPtr<ChPacejkaTire> FL(new ChPacejkaTire(param_file, terrain, true));
-    ChSharedPtr<ChPacejkaTire> FR(new ChPacejkaTire(param_file, terrain, true));
-    ChSharedPtr<ChPacejkaTire> RL(new ChPacejkaTire(param_file, terrain, true));
-    ChSharedPtr<ChPacejkaTire> RR(new ChPacejkaTire(param_file, terrain, true));
+    ChSharedPtr<ChPacejkaTire> FL(new ChPacejkaTire(param_file, terrain, FRONT_LEFT.id() ));
+    ChSharedPtr<ChPacejkaTire> FR(new ChPacejkaTire(param_file, terrain, FRONT_RIGHT.id() ));
+    ChSharedPtr<ChPacejkaTire> RL(new ChPacejkaTire(param_file, terrain, REAR_LEFT.id() ));
+    ChSharedPtr<ChPacejkaTire> RR(new ChPacejkaTire(param_file, terrain, REAR_RIGHT.id() ));
     pac_FL = FL;
     pac_FR = FR;
     pac_RL = RL;
@@ -370,9 +370,6 @@ int main(int argc, char* argv[])
 
     driveshaft_speed = vehicle.GetDriveshaftSpeed();
 
-    if( time > .441)
-      int arg = 2;
-
     wheel_states[FRONT_LEFT.id()] = vehicle.GetWheelState(FRONT_LEFT);
     wheel_states[FRONT_RIGHT.id()] = vehicle.GetWheelState(FRONT_RIGHT);
     wheel_states[REAR_LEFT.id()] = vehicle.GetWheelState(REAR_LEFT);
@@ -412,8 +409,8 @@ int main(int argc, char* argv[])
 
     terrain.Advance(step);
 
-    tire_front_right->Advance(step);
     tire_front_left->Advance(step);
+    tire_front_right->Advance(step);
     tire_rear_right->Advance(step);
     tire_rear_left->Advance(step);
 
@@ -421,8 +418,8 @@ int main(int argc, char* argv[])
     // DEBUGGING
     if(test_pactire)
     {
-      pac_FR->Advance(step);
       pac_FL->Advance(step);
+      pac_FR->Advance(step);
       pac_RR->Advance(step);
       pac_RL->Advance(step);
     }
@@ -430,12 +427,12 @@ int main(int argc, char* argv[])
     // write output data if useing PACEJKA tire
     if(tire_model == PACEJKA && save_pactire_data)
     {
-      if (step_number % render_steps == 0) {
-        tire_front_right.DynamicCastTo<ChPacejkaTire>()->WriteOutData(time, pac_ofilename_base + "_FR.csv");
+      //if (step_number % render_steps == 0) {
         tire_front_left.DynamicCastTo<ChPacejkaTire>()->WriteOutData(time, pac_ofilename_base + "_FL.csv");
+        tire_front_right.DynamicCastTo<ChPacejkaTire>()->WriteOutData(time, pac_ofilename_base + "_FR.csv");
         tire_rear_right.DynamicCastTo<ChPacejkaTire>()->WriteOutData(time, pac_ofilename_base + "_RR.csv");
         tire_rear_left.DynamicCastTo<ChPacejkaTire>()->WriteOutData(time, pac_ofilename_base + "_RL.csv");
-      }
+      //}
     }
 
     // write output data if debugging the pac tire, separate set of tires
@@ -443,8 +440,8 @@ int main(int argc, char* argv[])
     if(test_pactire && save_pactire_data)
     {
       if (step_number % render_steps == 0) {
-        pac_FR->WriteOutData(time, pac_ofilename_base + "_FR.csv");
         pac_FL->WriteOutData(time, pac_ofilename_base + "_FL.csv");
+        pac_FR->WriteOutData(time, pac_ofilename_base + "_FR.csv");
         pac_RR->WriteOutData(time, pac_ofilename_base + "_RR.csv");
         pac_RL->WriteOutData(time, pac_ofilename_base + "_RL.csv");
       }
@@ -533,8 +530,8 @@ int main(int argc, char* argv[])
 
     terrain.Advance(step_size);
 
-    tire_front_right->Advance(step_size);
     tire_front_left->Advance(step_size);
+    tire_front_right->Advance(step_size);
     tire_rear_right->Advance(step_size);
     tire_rear_left->Advance(step_size);
 

@@ -52,15 +52,20 @@ public:
   /// Default constructor for a Pacejka tire.
   /// Construct a Pacejka tire for which the vertical load is calculated
   /// internally.  The model includes transient slip calculations.
-  ChPacejkaTire(
-    const std::string& pacTire_paramFile,
-    const ChTerrain&   terrain
-    );
-
-  /// Construct a Pacejka tire with specified vertical load.
+  /// chrono can suggest a time step for use with the ODE slips
   ChPacejkaTire(
     const std::string& pacTire_paramFile,
     const ChTerrain&   terrain,
+    const ChWheelID&   id = FRONT_LEFT,
+    double             chrono_step_size = 0.01
+    );
+
+  /// Construct a Pacejka tire with specified vertical load, for testing purposes
+  ChPacejkaTire(
+    const std::string& pacTire_paramFile,
+    const ChTerrain&   terrain,
+    const ChWheelID&   id,
+    double             chrono_step_size,
     double             Fz_override,
     bool               use_transient_slip = true
     );
@@ -199,6 +204,12 @@ private:
   // instantaneous effect on contact patch slips
   void calc_slip_kinematic();
 
+  // when not in contact, reset (modify?) accumulated slip variables
+  void reset_contact();
+
+  // after calculating all the reactions, evaluate output for any fishy business
+  void evaluate();
+
   // calculate transient slip properties, using first order ODEs to find slip
   // displacements from velocities
   void advance_slip_transient(double step_size);
@@ -258,7 +269,7 @@ private:
   void calcFy_pureLat();
 
   /// calculate the aligning moment,  kappa ~= 0
-  /// assign to m_FM.force.z
+  /// assign to m_FM.moment.z
   /// assign m_pureLong, trionometric function calculated constants
   void calcMz_pureLat();
 
@@ -291,6 +302,8 @@ private:
 
   ChWheelState m_tireState;    // current tire state
   ChCoordsys<> m_tire_frame;   // current tire coordinate system
+  double m_simTime;            // current Chrono simulation time
+  ChWheelID m_wheelID;
 
   bool m_in_contact;           // indicates if there is tire-terrain contact
 
@@ -298,6 +311,7 @@ private:
   double m_R_eff;              // current effect rolling radius
   double m_R_l;                // statically loaded radius
 
+  double m_Fz;                 // vertical load to use in Magic Formula
   double m_dF_z;               // (Fz - Fz,nom) / Fz,nom
   bool m_use_Fz_override;      // calculate Fz using collision, or user input
   double m_Fz_override;        // if manually inputting the vertical wheel load

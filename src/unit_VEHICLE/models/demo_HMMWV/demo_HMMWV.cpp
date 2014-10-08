@@ -196,10 +196,10 @@ int main(int argc, char* argv[])
   {
     std::string param_file = utils::GetModelDataFile("hmmwv/tire/HMMWV_pacejka.tir");
 
-    ChSharedPtr<ChPacejkaTire> tire_FL(new ChPacejkaTire(param_file, terrain));
-    ChSharedPtr<ChPacejkaTire> tire_FR(new ChPacejkaTire(param_file, terrain));
-    ChSharedPtr<ChPacejkaTire> tire_RL(new ChPacejkaTire(param_file, terrain));
-    ChSharedPtr<ChPacejkaTire> tire_RR(new ChPacejkaTire(param_file, terrain));
+    ChSharedPtr<ChPacejkaTire> tire_FL(new ChPacejkaTire(param_file, terrain, FRONT_LEFT.id() ));
+    ChSharedPtr<ChPacejkaTire> tire_FR(new ChPacejkaTire(param_file, terrain, FRONT_RIGHT.id() ));
+    ChSharedPtr<ChPacejkaTire> tire_RL(new ChPacejkaTire(param_file, terrain, REAR_LEFT.id() ));
+    ChSharedPtr<ChPacejkaTire> tire_RR(new ChPacejkaTire(param_file, terrain, REAR_RIGHT.id() ));
 
     tire_front_left = tire_FL;
     tire_front_right = tire_FR;
@@ -380,8 +380,8 @@ int main(int argc, char* argv[])
 
     terrain.Advance(step);
 
-    tire_front_right->Advance(step);
     tire_front_left->Advance(step);
+    tire_front_right->Advance(step);
     tire_rear_right->Advance(step);
     tire_rear_left->Advance(step);
 
