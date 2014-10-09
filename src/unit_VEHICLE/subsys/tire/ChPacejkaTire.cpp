@@ -1567,7 +1567,7 @@ void ChPacejkaTire::WriteOutData(double             time,
       return;
     }
     else {
-      // write the headers
+      // write the headers, Fx, Fy are pure forces, Fxc and Fyc are the combined forces
       oFile << "time,kappa,alpha,gamma,kappaP,alphaP,gammaP,Vx,Vy,Fx,Fy,Fz,Mx,My,Mz,Fxc,Fyc,Mzc,Mzx,Mzy,contact,m_Fz,m_dF_z" << std::endl;
       m_Num_WriteOutData++;
       oFile.close();
@@ -1588,7 +1588,7 @@ void ChPacejkaTire::WriteOutData(double             time,
       << m_FM.force.x << "," << m_FM.force.y << "," << m_FM.force.z << ","
       << m_FM.moment.x << "," << m_FM.moment.y << "," << m_FM.moment.z << ","
       << m_FM_combined.force.x << "," << m_FM_combined.force.y << "," << m_FM_combined.moment.z <<","
-      << m_combinedTorque->M_z_x <<","<< m_combinedTorque->M_z_y <<","<< (int)m_in_contact
+      << m_combinedTorque->M_z_x <<","<< m_combinedTorque->M_z_y <<","<< (int)m_in_contact <<","
       << m_Fz <<","<< m_dF_z
       << std::endl;
     // close the file
