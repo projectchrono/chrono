@@ -33,26 +33,26 @@
 
   "Track Rod":
   {
-    "Mass":                     16.36,
-    "COM":                      [-0.200, 0.591, -0.086],
-    "Inertia":                  [3, 3, 3],
-    "Radius":                   0.03,
-    "Location Chassis":		[-0.257, 0.320, -0.116],
-    "Location Upright":         [-0.144, 0.862, -0.056],
-    "Universal Joint Axis Link":	[1, 0, 0],
-    "Universal Joint Axis Chassis":	[0, 1, 0]
+    "Mass":                             16.36,
+    "COM":                              [-0.200, 0.591, -0.086],
+    "Inertia":                          [3, 3, 3],
+    "Radius":                           0.03,
+    "Location Chassis":		        [-0.257, 0.320, -0.116],
+    "Location Upright":                 [-0.144, 0.862, -0.056],
+    "Universal Joint Axis Link":	[0.996, -0.062, 0.057],
+    "Universal Joint Axis Chassis":	[0.057, -0.062, 0.996]
   },
 
   "Trailing Link":
   {
-    "Mass":                     16.36,
-    "COM":                      [0.361, 0.731, -0.114],
-    "Inertia":                  [3, 3, 3],
-    "Radius":                   0.06,
-    "Location Chassis":		[0.723, 0.599, -0.072],
-    "Location Upright":         [-0.000, 0.864, -0.156],
-    "Universal Joint Axis Link":	[1, 0, 0],
-    "Universal Joint Axis Chassis":	[0, 1, 0]
+    "Mass":                             16.36,
+    "COM":                              [0.361, 0.731, -0.114],
+    "Inertia":                          [3, 3, 3],
+    "Radius":                           0.06,
+    "Location Chassis":		        [0.723, 0.599, -0.072],
+    "Location Upright":                 [-0.000, 0.864, -0.156],
+    "Universal Joint Axis Link":	[0.962, -0.272, 0],
+    "Universal Joint Axis Chassis":	[-0.272, 0.962, 0]
   },
 
   "Tierod":
