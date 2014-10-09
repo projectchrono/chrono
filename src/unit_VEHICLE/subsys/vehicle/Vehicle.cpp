@@ -461,9 +461,7 @@ void Vehicle::ExportMeshPovray(const std::string& out_dir)
     utils::WriteMeshPovray(utils::GetModelDataFile(m_chassisMeshFile),
                            m_chassisMeshName,
                            out_dir,
-                           ChColor(0.82f, 0.7f, 0.5f),
-                           m_chassis->GetFrame_REF_to_COG().GetPos(),
-                           m_chassis->GetFrame_REF_to_COG().GetRot());
+                           ChColor(0.82f, 0.7f, 0.5f));
   }
 
   for (int i = 0; i < m_num_axles; i++) {
