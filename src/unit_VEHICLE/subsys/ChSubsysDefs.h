@@ -97,7 +97,7 @@ struct ChWheelState {
 };
 
 /// Vector of wheel state structures
-typedef std::vector<ChWheelState> ChwheelStates;
+typedef std::vector<ChWheelState> ChWheelStates;
 
 ///
 /// Structure to communicate a set of generalized tire forces.
