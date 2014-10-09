@@ -100,7 +100,7 @@ double render_step_size = 1.0 / FPS;   // FPS = 50
 const bool save_pactire_data = true;
 double pac_step_size = step_size;
 std::string pac_ofilename_base = "test_HMMWV9_pacTire";
-double pac_out_step_size = 0.001;
+double pac_out_step_size = 0.005;
 int pac_out_steps = (int)std::ceil(pac_out_step_size / step_size);
 
 // =============================================================================
@@ -383,7 +383,7 @@ int main(int argc, char* argv[])
     tire_rear_left->Advance(step);
 
     // write output data if useing PACEJKA tire
-    if(tire_model == PACEJKA && save_pactire_data)
+    if(tire_model == PACEJKA && save_pactire_data && time > 0.3)
     {
       if (step_number % pac_out_steps == 0) {
         tire_front_left.DynamicCastTo<ChPacejkaTire>()->WriteOutData(time, pac_ofilename_base + "_FL.csv");

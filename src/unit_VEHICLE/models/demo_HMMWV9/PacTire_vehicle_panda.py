@@ -31,119 +31,107 @@ class PacTire_vehicle_panda:
             print 'must have same length input arrays'
             return
         
-        self._fileanmes = []
+        self._filenames = []
         self._DF = []
         self._tires = []
-        for i in range(0,len(filename_list)):
+        self._num_tires = len(filename_list)
+        
+        for i in range(0, self._num_tires):
             self._filenames.append(filename_list[i])
             DF_curr = pd.read_csv(filename_list[i], header=0, sep=',')   # index_col=0,
             self._DF.append( DF_curr )
             self._tires.append(tire_names[i])
             
-    # @brief plot combined forces, moments vs. kappa
-    def plot_kappa(self):
+    # @brief plot forces, moments vs. kappa for one of the tires in the array
+    def plot_kappa(self, tire_num = 0, titleStr = ''):
+        if(tire_num > self.__num_tires):
+            print 'specified tire_num is out of range'
+            return
+        # plot Fx, Fy
         figF = plt.figure()
-        df_sy = pd.DataFrame(self._m_df, columns = ['kappa','Fxc','Fyc','m_Fz'])
-        axF = df_sy.plot(linewidth=1.5,x='kappa',y=['Fxc','Fyc'])   # ,'Fz'])
-        # check to see if adams data is avaiable
-        if( adams_Fx_tab_filename != "none"):
-             # load in the adams junk data, Fx vs. kappa %
-            dfx_adams = pd.read_table(adams_Fx_tab_filename,sep='\t',header=0)
-            dfx_adams['longitudinal slip'] = dfx_adams['longitudinal slip'] / 100.0
-            axF.plot(dfx_adams['longitudinal slip'],dfx_adams['longitudinal force'],'r--',linewidth=1.5,label="Fx Adams")
-        if( adams_Fy_tab_filename != "none"):
-            # load in adams tabular data for Fy vs. alpha [deg]
-            dfy_adams = pd.read_table(adams_Fy_tab_filename,sep='\t',header=0)
-            axF.plot(dfy_adams['slip_angle'],dfy_adams['lateral_force'],'g--',linewidth=1.5,label="Fy Adams")
-        
-        # plot transient slip output?
-        if( self._use_transient_slip):
-            # Fx here
-            df_T = pd.DataFrame(self._m_df_T, columns = ['kappa','Fxc','Fyc'])
-            axF.plot(df_T['kappa'], df_T['Fxc'],'k-*',linewidth=1.0,label='Fxc transient')
-            # axF.plot(df_T['kappa'], df_T['Fyc'],'c--',linewidth=1.5,label='Fyc transient')
+        df_F = pd.DataFrame(self._DF[tire_num], columns = ['kappa','Fxc','Fyc'])
+        axF = df_F.plot(linewidth=1.5,x='kappa',y=['Fxc','Fyc'])   # ,'Fz'])
         axF.set_xlabel(r'$\kappa $')
         axF.set_ylabel('Force [N]')
         axF.legend(loc='best')
-        axF.set_title(r'$\kappa $, combined slip')
+        axF.set_title(r'$\kappa $' + titleStr)
         
+        # plot Mx, My, Mzc
         figM = plt.figure()
-        df_M = pd.DataFrame(self._m_df, columns = ['kappa','Mx','My','Mzc'])
+        df_M = pd.DataFrame(self._DF[tire_num], columns = ['kappa','Mx','My','Mzc'])
         axM = df_M.plot(linewidth=1.5,x='kappa',y=['Mx','My','Mzc'])
-        # chceck for adams tabular data        
-        if( adams_Mz_tab_filename != "none"):
-            dfmz_adams = pd.read_table(adams_Mz_tab_filename,sep='\t',header=0)
-            dfmz_adams['longitudinal_slip'] = dfmz_adams['longitudinal_slip'] / 100.0
-            axM.plot(dfmz_adams['longitudinal_slip'], dfmz_adams['aligning_moment'],'r--',linewidth=1.5,label="Mz Adams")
-    
-        # plot transient slip output for Mz?
-        if( self._use_transient_slip):
-            # Mzc here
-            df_T_M = pd.DataFrame(self._m_df_T, columns = ['kappa','Mzc','Fyc','Fxc','Mzx','Mzy'])
-            axM.plot(df_T_M['kappa'], df_T_M['Mzc'],'k-*',linewidth=1.0,label='Mzc transient')
-            # overlay the components of the moment from the x and y forces, respectively
-            axM.plot(df_T_M['kappa'], df_T_M['Mzx'],'y--',linewidth=1.5,label='Mz,x')
-            axM.plot(df_T_M['kappa'], df_T_M['Mzy'],'b--',linewidth=1.5,label='Mz,y')
-            # overlay the forces, to see what is happening on those curves when
-            # Mz deviates from validation data values
-            '''
-            ax2 = axM.twinx()
-            ax2.plot(df_T_M['kappa'], df_T_M['Fxc'],'g-.',linewidth=1.5,label='Fxc transient')
-            ax2.plot(df_T_M['kappa'], df_T_M['Fyc'],'c-.',linewidth=1.5,label='Fyc transient')
-            ax2.set_ylabel('Force [N]')
-            ax2.legend(loc='lower right')
-            '''
+       
         axM.set_xlabel(r'$\kappa $')
         axM.set_ylabel('Moment [N-m]')
         axM.legend(loc='upper left')
-        
-        axM.set_title(r'$\kappa $, combined slip')
+        axM.set_title(r'$\kappa $, ' + titleStr)
     
-    # @brief plot Fy combined vs. kappa and alpha
-    def plot_combined_alpha(self,adams_Fx_tab_filename="none",adams_Fy_tab_filename="none",adams_Mz_tab_filename="none"):
+    # @brief plot forces, moments vs. alpha
+    def plot_alpha(self, tire_num = 0, titleStr = ''):
+        if(tire_num > self.__num_tires):
+            print 'specified tire_num is out of range'
+            return
+        # plot the forces vs alpha
         figF = plt.figure()
-        df_sy = pd.DataFrame(self._m_df, columns = ['alpha','Fxc','Fyc','Fz'])
-        axF = df_sy.plot(linewidth=1.5,x='alpha',y=['Fxc','Fyc'])   # ,'Fz'])
-        # check to see if adams data is avaiable
-        if( adams_Fx_tab_filename != "none"):
-             # load in the adams junk data, Fx vs. kappa %
-            dfx_adams = pd.read_table(adams_Fx_tab_filename,sep='\t',header=0)
-            dfx_adams['longitudinal slip'] = dfx_adams['longitudinal slip'] / 100.0
-            axF.plot(dfx_adams['longitudinal slip'],dfx_adams['longitudinal force'],'r--',linewidth=1.5,label="Fx Adams")
-        if( adams_Fy_tab_filename != "none"):
-            # load in adams tabular data for Fy vs. alpha [deg]
-            dfy_adams = pd.read_table(adams_Fy_tab_filename,sep='\t',header=0)
-            axF.plot(dfy_adams['slip_angle'],dfy_adams['lateral_force'],'g--',linewidth=1.5,label="Fy Adams")
-      
-        if( self._use_transient_slip):
-            # Fy here
-            df_T = pd.DataFrame(self._m_df_T, columns = ['alpha','Fyc'])
-            axF.plot(df_T['alpha'], df_T['Fyc'],'k-*',linewidth=1.0,label='Fyc transient')
-            
+        df_F = pd.DataFrame(self._DF[tire_num], columns = ['alpha','Fxc','Fyc'])
+        axF = df_F.plot(linewidth=1.5,x='alpha',y=['Fxc','Fyc']) 
+       
         axF.set_xlabel(r'$\alpha $[deg]')
         axF.set_ylabel('Force [N]')
         axF.legend(loc='best')
-        axF.set_title(r'$\alpha $ , combined slip')
+        axF.set_title(r'$\alpha $,' + titleStr)
         
+        # plot moments vs. alpha
         figM = plt.figure()
-        df_M = pd.DataFrame(self._m_df, columns = ['alpha','Mx','My','Mzc'])
+        df_M = pd.DataFrame(self._DF[tire_num], columns = ['alpha','Mx','My','Mzc'])
         axM = df_M.plot(linewidth=2.0,x='alpha',y=['Mx','My','Mzc'])
-         # chceck for adams tabular data
-        if( adams_Mz_tab_filename != "none"):
-            dfmz_adams = pd.read_table(adams_Mz_tab_filename,sep='\t',header=0)
-            axM.plot(dfmz_adams['slip_angle'], dfmz_adams['aligning_moment'],'r--',linewidth=1.5,label="Mz Adams")
-            
-        # plot transient slip output
-        if( self._use_transient_slip):
-            # Fx here
-            df_T_M = pd.DataFrame(self._m_df_T, columns = ['alpha','Mzc'])
-            axM.plot(df_T_M['alpha'], df_T_M['Mzc'],'k-*',linewidth=1.0,label='Mzc transient')
-            
+        
         axM.set_xlabel(r'$\alpha $[deg]')
         axM.set_ylabel('Moment [N-m]')
         axM.legend(loc='best')
         axM.set_title(r'$\alpha $, combined slip')
+        
+    # @brief plot reactions vs. time
+    def plot_time(self, tire_num = 0, titleStr = 'time vs. '):
+        if(tire_num > self._num_tires):
+            print 'specified tire_num is out of range'
+            return
+        # plot the forces vs time
+        figF = plt.figure()
+        df_F = pd.DataFrame(self._DF[tire_num], columns = ['time','Fxc','Fyc'])
+        axF = df_F.plot(linewidth=1.5,x='time',y=['Fxc','Fyc']) 
+       
+        axF.set_xlabel('time [sec]')
+        axF.set_ylabel('Force [N]')
+        axF.legend(loc='best')
+        axF.set_title(titleStr)
+        
+        # plot moments vs. time
+        figM = plt.figure()
+        df_M = pd.DataFrame(self._DF[tire_num], columns = ['time','Mx','My','Mzc'])
+        axM = df_M.plot(linewidth=2.0,x='time',y=['Mx','My','Mzc'])
+        
+        axM.set_xlabel(r'$time $[sec]')
+        axM.set_ylabel('Moment [N-m]')
+        axM.legend(loc='best')
+        axM.set_title(titleStr)        
     
+        # check the displacements, u, v vs. time
+        fig_uv = plt.figure()
+        df_uv = pd.DataFrame(self._DF[tire_num], columns = ['time','u','valpha','du','dvalpha','vgamma','dvgamma'])
+        ax_uv = df_uv.plot(linewidth=1.5, x='time', y=['u','valpha'])
+        ax_uv.set_xlabel('time [sec]')
+        ax_uv.legend(loc='best')
+        ax_uv.set_title(titleStr)
+        
+        fig_duv = plt.figure()
+        ax_duv = df_uv.plot(linewidth=2.0,x='time',y=['du','dvalpha'])
+        ax_duv.set_xlabel('time [sec]')
+        ax_duv.legend(loc='best')
+        ax_duv.set_title(titleStr)
+        
+        
+    '''
     # @brief plot what you please
     # @param x_col the column name of the x-series data frame
     # @param y_col_list list of col names of y-series data frames
@@ -173,7 +161,7 @@ class PacTire_vehicle_panda:
         
         ax.legend(loc='best')
         ax.set_title(fig_title)    
-    
+    '''
     
 if __name__ == '__main__':
     
@@ -184,14 +172,13 @@ if __name__ == '__main__':
     font = {'size' : 14}
     matplotlib.rc('font', **font)       
     
-    # directory location on my laptop
+    # laptop data dir
     
-    # desktop 
-    dir_ChronoT = 'D:/Chrono-T_Build/bin/Release/'
+    # desktop data dir
+    data_dir = 'D:/Chrono-T_Build/bin/Release/'
     
-    # create the 4 tires
-    
-    tire_LF = tire.PacTire_panda(dir_ChronoT + 'test_HMMWV9_pacTire_FL.csv')
+    # create a tire using the single tire python plotting code
+    tire_LF = tire.PacTire_panda(data_dir + 'test_HMMWV9_pacTire_FL.csv')
     
     tire_LF.plot_custom('time',['m_Fz'],'vertical Force [N]')
     tire_LF.plot_custom('time',['Fxc','Fyc'],'vertical Force [N]')
@@ -202,5 +189,22 @@ if __name__ == '__main__':
     tire_LF.plot_combined_kappa()
     tire_LF.plot_combined_alpha()
     
+    # use the new python code for plotting any/all of the pacTire outputs on a vehicle
+    # there are 4 pacTire files associated with a HMMWV model
+    dat_FL = 'test_HMMWV9_pacTire_FL.csv'
+    dat_FR = 'test_HMMWV9_pacTire_FR.csv'
+    dat_RL = 'test_HMMWV9_pacTire_RL.csv'
+    dat_RR = 'test_HMMWV9_pacTire_RR.csv'
+    vehicle_output = PacTire_vehicle_panda([data_dir+dat_FL, data_dir+dat_FR, data_dir+dat_RL, data_dir+dat_RR],
+                                           ['FL','FR','RL','RR'])
+    
+    # plot w.r.t. to time
+    vehicle_output.plot_time(0,'Front Left')
+    vehicle_output.plot_time(1,'Front Right')
+    vehicle_output.plot_time(2,'Rear Left')
+    vehicle_output.plot_time(3,'Rear Right')
+    # plot w.r.t. long slip
+    
+    # plot w.r.t. lateral slip angle
 
 py.show()
