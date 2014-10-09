@@ -25,8 +25,9 @@ namespace chrono {
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-ChRigidTire::ChRigidTire(const ChTerrain& terrain)
-: ChTire(terrain)
+ChRigidTire::ChRigidTire(const std::string& name,
+                         const ChTerrain&   terrain)
+: ChTire(name, terrain)
 {
 }
 

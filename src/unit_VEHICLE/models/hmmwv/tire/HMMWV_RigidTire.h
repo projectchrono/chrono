@@ -26,7 +26,8 @@ namespace hmmwv {
 
 class HMMWV_RigidTire : public chrono::ChRigidTire {
 public:
-  HMMWV_RigidTire(const chrono::ChTerrain& terrain,
+  HMMWV_RigidTire(const std::string&       name,
+                  const chrono::ChTerrain& terrain,
                   float                    mu);
   ~HMMWV_RigidTire() {}
 

@@ -44,9 +44,16 @@ class CH_SUBSYS_API ChTire : public ChShared
 public:
 
   ChTire(
-    const ChTerrain& terrain  ///< [in] reference to the terrain system
+    const std::string& name,    ///< [in] name of this tire system
+    const ChTerrain&   terrain  ///< [in] reference to the terrain system
     );
   virtual ~ChTire() {}
+
+  /// Get the name of this tire.
+  const std::string& GetName() const { return m_name; }
+
+  /// Set the name for this tire.
+  void SetName(const std::string& name) { m_name = name; }
 
   /// Update the state of this tire system at the current time.
   /// The tire system is provided the current state of its associated wheel.
@@ -84,6 +91,7 @@ protected:
     double&           depth           ///< [out] penetration depth (positive if contact occurred)
     );
 
+  std::string       m_name;      ///< name of this tire subsystem
   const ChTerrain&  m_terrain;   ///< reference to the terrain system
 };
 

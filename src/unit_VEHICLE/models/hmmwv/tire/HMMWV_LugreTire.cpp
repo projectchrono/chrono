@@ -40,8 +40,9 @@ const double HMMWV_LugreTire::m_normalDamping = 1e3;
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-HMMWV_LugreTire::HMMWV_LugreTire(const ChTerrain& terrain)
-: ChLugreTire(terrain)
+HMMWV_LugreTire::HMMWV_LugreTire(const std::string& name,
+                                 const ChTerrain&   terrain)
+: ChLugreTire(name, terrain)
 {
 }
 

@@ -54,24 +54,25 @@ public:
   /// internally.  The model includes transient slip calculations.
   /// chrono can suggest a time step for use with the ODE slips
   ChPacejkaTire(
-    const std::string& pacTire_paramFile,
-    const ChTerrain&   terrain,
-    const ChWheelID&   id = FRONT_LEFT
+    const std::string& name,              ///< [in] name of this tire
+    const std::string& pacTire_paramFile, ///< [in] name of the parameter file
+    const ChTerrain&   terrain            ///< [in] reference to the terrain system
     );
 
   /// Construct a Pacejka tire with specified vertical load, for testing purposes
   ChPacejkaTire(
-    const std::string& pacTire_paramFile,
-    const ChTerrain&   terrain,
-    const ChWheelID&   id,
-    double             Fz_override,
-    bool               use_transient_slip = true
+    const std::string& name,                       ///< [in] name of this tire
+    const std::string& pacTire_paramFile,          ///< [in] name of the parameter file
+    const ChTerrain&   terrain,                    ///< [in] reference to the terrain system
+    double             Fz_override,                ///< [in] prescribed vertical load
+    bool               use_transient_slip = true   ///< [in] indicate if using transient slip model
     );
 
   /// Copy constructor, only tire side will be different
   ChPacejkaTire(
     const ChPacejkaTire& tire,      ///< [in] source object
-    ChVehicleSide        side   ///< [in] 
+    const std::string&   name,      ///< [in] name of this tire
+    ChVehicleSide        side       ///< [in] 
     );
 
   ~ChPacejkaTire();
@@ -307,7 +308,6 @@ private:
   ChWheelState m_tireState;    // current tire state
   ChCoordsys<> m_tire_frame;   // current tire coordinate system
   double m_simTime;            // current Chrono simulation time
-  ChWheelID m_wheelID;
 
   bool m_in_contact;           // indicates if there is tire-terrain contact
 

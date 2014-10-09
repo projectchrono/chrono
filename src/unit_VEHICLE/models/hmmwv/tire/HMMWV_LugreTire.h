@@ -26,7 +26,8 @@ namespace hmmwv {
 
 class HMMWV_LugreTire : public chrono::ChLugreTire {
 public:
-  HMMWV_LugreTire(const chrono::ChTerrain& terrain);
+  HMMWV_LugreTire(const std::string&       name,
+                  const chrono::ChTerrain& terrain);
   ~HMMWV_LugreTire() {}
 
   virtual int getNumDiscs() const                { return m_numDiscs; }

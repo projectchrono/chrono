@@ -38,8 +38,9 @@ namespace chrono {
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-ChLugreTire::ChLugreTire(const ChTerrain& terrain)
-: ChTire(terrain),
+ChLugreTire::ChLugreTire(const std::string& name,
+                         const ChTerrain&   terrain)
+: ChTire(name, terrain),
   m_stepsize(1e-3)
 {
   m_tireForce.force = ChVector<>(0, 0, 0);

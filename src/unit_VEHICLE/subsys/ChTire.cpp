@@ -27,8 +27,9 @@
 namespace chrono {
 
 
-ChTire::ChTire(const ChTerrain& terrain)
-: m_terrain(terrain)
+ChTire::ChTire(const std::string& name, const ChTerrain& terrain)
+: m_name(name),
+  m_terrain(terrain)
 {
 }
 

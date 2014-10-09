@@ -48,48 +48,46 @@ static double Mz_thresh = 1000;
 // -----------------------------------------------------------------------------
 // Constructors
 // -----------------------------------------------------------------------------
-ChPacejkaTire::ChPacejkaTire(const std::string& pacTire_paramFile,
-                             const ChTerrain&   terrain,
-                             const ChWheelID&   id)
-: ChTire(terrain),
+ChPacejkaTire::ChPacejkaTire(const std::string& name,
+                             const std::string& pacTire_paramFile,
+                             const ChTerrain&   terrain)
+: ChTire(name, terrain),
   m_paramFile(pacTire_paramFile),
   m_params_defined(false),
   m_use_transient_slip(true),
   m_use_Fz_override(false),
-  m_step_size(default_step_size),
-  m_wheelID(id)
+  m_step_size(default_step_size)
 {
   Initialize();
 }
 
 
-ChPacejkaTire::ChPacejkaTire(const std::string& pacTire_paramFile,
+ChPacejkaTire::ChPacejkaTire(const std::string& name,
+                             const std::string& pacTire_paramFile,
                              const ChTerrain&   terrain,
-                             const ChWheelID&   id,
                              double             Fz_override,
                              bool               use_transient_slip)
-: ChTire(terrain),
+: ChTire(name, terrain),
   m_paramFile(pacTire_paramFile),
   m_params_defined(false),
   m_use_transient_slip(use_transient_slip),
   m_use_Fz_override(Fz_override > 0),
   m_Fz_override(Fz_override),
-  m_step_size(default_step_size),
-  m_wheelID( id.id() )
+  m_step_size(default_step_size)
 {
   Initialize();
 }
 
 ChPacejkaTire::ChPacejkaTire(const ChPacejkaTire& tire,
+                             const std::string&   name,
                              ChVehicleSide        side)
-: ChTire(tire.m_terrain),
+: ChTire(name, tire.m_terrain),
   m_paramFile(tire.m_paramFile),
   m_params_defined(false),
   m_use_transient_slip(tire.m_use_transient_slip),
   m_use_Fz_override(tire.m_use_Fz_override),
   m_Fz_override(tire.m_Fz_override),
-  m_step_size(tire.m_step_size),
-  m_wheelID(tire.m_wheelID)
+  m_step_size(tire.m_step_size)
 {
   Initialize();
 
@@ -704,37 +702,37 @@ void ChPacejkaTire::evaluate()
 
   if( abs(m_FM_combined.force.x) > Fx_thresh)
   {
-    GetLog() << "\n ***  !!!  ***  Fx exceeded threshold, tire " << m_wheelID.id() << ", = " << m_FM_combined.force.x << "\n";
+    GetLog() << "\n ***  !!!  ***  Fx exceeded threshold, tire " << m_name << ", = " << m_FM_combined.force.x << "\n";
     output_slip_to_console = true;
   }
   if(abs(m_FM_combined.force.y) > Fy_thresh)
   {
-     GetLog() << "\n ***  !!!  ***  Fy exceeded threshold, tire " << m_wheelID.id() << m_FM_combined.force.y << "\n";
+     GetLog() << "\n ***  !!!  ***  Fy exceeded threshold, tire " << m_name << ", = " << m_FM_combined.force.y << "\n";
      output_slip_to_console = true;
   }
   
   // now that I'm limiting m_Fz to the Fz_threshold, should never need this
   if(abs(m_Fz) > Fz_thresh)
   {
-    GetLog() << "\n ***  !!!  ***  Fz exceeded threshold:, tire " << m_wheelID.id() << ", = " << m_Fz << "\n";
+    GetLog() << "\n ***  !!!  ***  Fz exceeded threshold:, tire " << m_name << ", = " << m_Fz << "\n";
     output_slip_to_console = true;
   }
 
   if( abs(m_FM_combined.moment.x) > Mx_thresh )
   {
-    GetLog() << " ***  !!!  ***  Mx exceeded threshold, tire " << m_wheelID.id() << ", = " << m_FM_combined.moment.x << "\n";
+    GetLog() << " ***  !!!  ***  Mx exceeded threshold, tire " << m_name << ", = " << m_FM_combined.moment.x << "\n";
     output_slip_to_console = true;
   }
   
   if(abs(m_FM_combined.moment.y) > My_thresh )
   {
-    GetLog() << " ***  !!!  ***  My exceeded threshold, tire " << m_wheelID.id() << ", = " << m_FM_combined.moment.y << "\n";
+    GetLog() << " ***  !!!  ***  My exceeded threshold, tire " << m_name << ", = " << m_FM_combined.moment.y << "\n";
     output_slip_to_console = true;
   }
   
   if(abs(m_FM_combined.moment.z) > Mz_thresh)
   {
-    GetLog() << " ***  !!!  ***  Mz exceeded threshold, tire " << m_wheelID.id() << ", = " << m_FM_combined.moment.z << "\n";
+    GetLog() << " ***  !!!  ***  Mz exceeded threshold, tire " << m_name << ", = " << m_FM_combined.moment.z << "\n";
     output_slip_to_console = true;
   }
 

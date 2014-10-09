@@ -70,7 +70,7 @@ int main(int argc, char* argv[])
   FlatTerrain flat_terrain(0);
 
   // Create a Pacejka tire
-  ChSharedPtr<ChPacejkaTire> tire(new ChPacejkaTire(pacParamFile, flat_terrain));
+  ChSharedPtr<ChPacejkaTire> tire(new ChPacejkaTire("TEST", pacParamFile, flat_terrain));
 
   // Create different wheel state and let the tire process them
   {

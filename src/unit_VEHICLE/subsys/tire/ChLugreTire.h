@@ -36,7 +36,8 @@ class CH_SUBSYS_API ChLugreTire : public ChTire
 public:
 
   ChLugreTire(
-    const ChTerrain& terrain   ///< [in] reference to the terrain system
+    const std::string& name,     ///< [in] name of this tire system
+    const ChTerrain&   terrain   ///< [in] reference to the terrain system
     );
 
   virtual ~ChLugreTire() {}

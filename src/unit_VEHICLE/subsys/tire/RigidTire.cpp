@@ -31,7 +31,7 @@ namespace chrono {
 // -----------------------------------------------------------------------------
 RigidTire::RigidTire(const std::string&       filename,
                      const chrono::ChTerrain& terrain)
-: ChRigidTire(terrain)
+: ChRigidTire("", terrain)
 {
   FILE* fp = fopen(filename.c_str(), "r");
 
@@ -48,7 +48,7 @@ RigidTire::RigidTire(const std::string&       filename,
 
 RigidTire::RigidTire(const rapidjson::Document& d,
                      const chrono::ChTerrain&   terrain)
-: ChRigidTire(terrain)
+: ChRigidTire("", terrain)
 {
   Create(d);
 }
@@ -59,7 +59,9 @@ void RigidTire::Create(const rapidjson::Document& d)
   assert(d.HasMember("Type"));
   assert(d.HasMember("Template"));
   assert(d.HasMember("Name"));
-  
+
+  SetName(d["Name"].GetString());
+
   m_mu = d["Coefficient of Friction"].GetDouble();
   m_radius = d["Radius"].GetDouble();
   m_width = d["Width"].GetDouble();

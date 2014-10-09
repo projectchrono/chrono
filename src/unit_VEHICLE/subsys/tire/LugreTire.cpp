@@ -42,7 +42,7 @@ static ChVector<> loadVector(const Value& a)
 // -----------------------------------------------------------------------------
 LugreTire::LugreTire(const std::string&       filename,
                      const chrono::ChTerrain& terrain)
-: ChLugreTire(terrain),
+: ChLugreTire("", terrain),
   m_discLocs(NULL)
 {
   FILE* fp = fopen(filename.c_str(), "r");
@@ -60,7 +60,7 @@ LugreTire::LugreTire(const std::string&       filename,
 
 LugreTire::LugreTire(const rapidjson::Document& d,
                      const chrono::ChTerrain&   terrain)
-: ChLugreTire(terrain),
+: ChLugreTire("", terrain),
   m_discLocs(NULL)
 {
   Create(d);
@@ -77,6 +77,8 @@ void LugreTire::Create(const rapidjson::Document& d)
   assert(d.HasMember("Type"));
   assert(d.HasMember("Template"));
   assert(d.HasMember("Name"));
+
+  SetName(d["Name"].GetString());
 
   // Read tire radius
   m_radius = d["Radius"].GetDouble();
