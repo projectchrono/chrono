@@ -14,9 +14,6 @@
 //
 // Vehicle model constructed from a JSON specification file
 //
-////  TODO: fix the enumeration of wheels, tires, etc.
-////        must be able to support more than 2 axles!
-//
 // =============================================================================
 
 #include <cstdio>
@@ -459,7 +456,23 @@ void Vehicle::Update(double              time,
 // -----------------------------------------------------------------------------
 void Vehicle::ExportMeshPovray(const std::string& out_dir)
 {
-  utils::WriteMeshPovray(m_chassisMeshFile, m_chassisMeshName, out_dir, ChColor(0.82f, 0.7f, 0.5f));
+  if (m_chassisUseMesh) {
+    
+    utils::WriteMeshPovray(utils::GetModelDataFile(m_chassisMeshFile),
+                           m_chassisMeshName,
+                           out_dir,
+                           ChColor(0.82f, 0.7f, 0.5f),
+                           m_chassis->GetFrame_REF_to_COG().GetPos(),
+                           m_chassis->GetFrame_REF_to_COG().GetRot());
+  }
+
+  for (int i = 0; i < m_num_axles; i++) {
+    Wheel* wL = static_cast<Wheel*>(m_wheels[2 * i].get_ptr());
+    Wheel* wR = static_cast<Wheel*>(m_wheels[2 * i + 1].get_ptr());
+
+    wL->ExportMeshPovray(out_dir);
+    wR->ExportMeshPovray(out_dir);
+  }
 }
 
 

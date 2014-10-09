@@ -54,7 +54,7 @@ public:
                       double                      powertrain_torque,
                       const chrono::ChTireForces& tire_forces);
 
-  static void ExportMeshPovray(const std::string& out_dir);
+  void ExportMeshPovray(const std::string& out_dir);
 
 private:
 

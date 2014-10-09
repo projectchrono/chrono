@@ -63,7 +63,7 @@ public:
                       double                      braking,
                       const chrono::ChTireForces& tire_forces);
 
-  static void ExportMeshPovray(const std::string& out_dir);
+  void ExportMeshPovray(const std::string& out_dir);
 
   // Log debugging information
   void LogHardpointLocations(); /// suspension hardpoints at design

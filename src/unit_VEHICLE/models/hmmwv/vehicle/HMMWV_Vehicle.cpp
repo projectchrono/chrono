@@ -232,7 +232,15 @@ void HMMWV_Vehicle::Update(double              time,
 // -----------------------------------------------------------------------------
 void HMMWV_Vehicle::ExportMeshPovray(const std::string& out_dir)
 {
-  utils::WriteMeshPovray(m_chassisMeshFile, m_chassisMeshName, out_dir, ChColor(0.82f, 0.7f, 0.5f));
+  utils::WriteMeshPovray(m_chassisMeshFile,
+                         m_chassisMeshName,
+                         out_dir,
+                         ChColor(0.82f, 0.7f, 0.5f),
+                         m_chassis->GetFrame_REF_to_COG().GetPos(),
+                         m_chassis->GetFrame_REF_to_COG().GetRot());
+
+  m_front_left_wheel->ExportMeshPovray(out_dir);
+  m_front_right_wheel->ExportMeshPovray(out_dir);
 }
 
 

@@ -141,7 +141,8 @@ void Wheel::Initialize(ChSharedBodyPtr spindle)
 // -----------------------------------------------------------------------------
 void Wheel::ExportMeshPovray(const std::string& out_dir)
 {
-  utils::WriteMeshPovray(m_meshFile, m_meshName, out_dir, ChColor(0.15f, 0.15f, 0.15f));
+  if (m_vis == MESH)
+    utils::WriteMeshPovray(utils::GetModelDataFile(m_meshFile), m_meshName, out_dir, ChColor(0.15f, 0.15f, 0.15f));
 }
 
 

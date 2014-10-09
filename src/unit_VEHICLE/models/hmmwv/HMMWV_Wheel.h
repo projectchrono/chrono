@@ -39,6 +39,8 @@ public:
   virtual const std::string& getMeshName() const = 0;
   virtual const std::string& getMeshFile() const = 0;
 
+  virtual void ExportMeshPovray(const std::string& out_dir) = 0;
+
 private:
 
   VisualizationType  m_visType;
@@ -58,7 +60,7 @@ public:
   virtual const std::string& getMeshName() const { return m_meshName; }
   virtual const std::string& getMeshFile() const { return m_meshFile; }
 
-  static void ExportMeshPovray(const std::string& out_dir);
+  virtual void ExportMeshPovray(const std::string& out_dir);
 
 private:
   static const std::string  m_meshName;
@@ -74,7 +76,7 @@ public:
   virtual const std::string& getMeshName() const { return m_meshName; }
   virtual const std::string& getMeshFile() const { return m_meshFile; }
 
-  static void ExportMeshPovray(const std::string& out_dir);
+  virtual void ExportMeshPovray(const std::string& out_dir);
 
 private:
   static const std::string  m_meshName;
