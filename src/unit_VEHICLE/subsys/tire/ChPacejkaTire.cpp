@@ -130,9 +130,9 @@ void ChPacejkaTire::Initialize()
   m_combinedLong = new combinedLongCoefs;
   m_combinedLat = new combinedLatCoefs;
   m_combinedTorque = new combinedTorqueCoefs;
-  m_combinedTorque->M_zr = 0;
-  m_combinedTorque->M_z_x = 0;
-  m_combinedTorque->M_z_y = 0;
+  // m_combinedTorque->M_zr = 0;
+  // m_combinedTorque->M_z_x = 0;
+  // m_combinedTorque->M_z_y = 0;
   m_zeta = new zetaCoefs;
   m_relaxation = new relaxationL;
 
@@ -178,10 +178,7 @@ void ChPacejkaTire::Initialize()
 
   // init all other variables
   m_Num_WriteOutData = 0;
-  {
-    slips tmp = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
-    *m_slip = tmp;
-  }
+  reset_contact();  // zeros slips, and some other vars
 }
 
 // -----------------------------------------------------------------------------
@@ -620,8 +617,8 @@ void ChPacejkaTire::calc_slip_kinematic()
 
 void ChPacejkaTire::reset_contact( )
 {
-  // TODO: reset relevant slip variables here
-  slips zero_slip = {0,0,0,0, 0,0,0,0,0, 0, 0,0,0,0, 0,0,0,0,0};
+  // reset relevant slip variables here
+  slips zero_slip = {0,0,0,0, 0,0,0,0,0,0, 0,0,0,0, 0,0,0,0, 0,0,0,0,0};
   *m_slip = zero_slip;
 
   m_combinedTorque->M_zr = 0;
@@ -647,22 +644,22 @@ void ChPacejkaTire::advance_slip_transient(double step_size)
 
   // see if low velocity considerations should be made
   double alpha_sl = 3.0 * m_pureLat->D_y / m_relaxation->C_Falpha;
-  // Eq. 7.25 from Pacejka (2006)
+  // Eq. 7.25 from Pacejka (2006), solve du_dt and dvalpha_dt
   if ((std::abs(m_combinedTorque->alpha_r_eq) > alpha_sl) && (V_cx_abs < V_cx_low))
   {
     // Eq. 7.9, else du/dt = 0 and u remains unchanged
     if ((m_slip->V_sx + V_cx_abs * m_slip->u / m_relaxation->sigma_kappa) * m_slip->u >= 0)
     {
       // solve the ODE using RK - 45 integration
-      double delta_u = calc_ODE_RK_uv(m_slip->V_sx, m_relaxation->sigma_kappa, V_cx, step_size, m_slip->u);
-      m_slip->u += delta_u;
+      m_slip->Idu_dt = calc_ODE_RK_uv(m_slip->V_sx, m_relaxation->sigma_kappa, V_cx, step_size, m_slip->u);
+      m_slip->u += m_slip->Idu_dt;
     }
 
     // Eq. 7.7, else dv/dt = 0 and v remains unchanged
     if ((m_slip->V_sy + std::abs(V_cx) * m_slip->v_alpha / m_relaxation->sigma_alpha) * m_slip->v_alpha >= 0)
     {
-      double delta_v = calc_ODE_RK_uv(m_slip->V_sy, m_relaxation->sigma_alpha, V_cx, step_size, m_slip->v_alpha);
-      m_slip->v_alpha += delta_v;
+      m_slip->Idv_alpha_dt = calc_ODE_RK_uv(m_slip->V_sy, m_relaxation->sigma_alpha, V_cx, step_size, m_slip->v_alpha);
+      m_slip->v_alpha +=  m_slip->Idv_alpha_dt ;
     }
 
   }
@@ -670,24 +667,24 @@ void ChPacejkaTire::advance_slip_transient(double step_size)
     // don't check for du/dt =0 or dv/dt = 0
 
     // Eq 7.9 
-    double delta_u = calc_ODE_RK_uv(m_slip->V_sx, m_relaxation->sigma_kappa, V_cx, step_size, m_slip->u);
-    m_slip->u += delta_u;
+    m_slip->Idu_dt = calc_ODE_RK_uv(m_slip->V_sx, m_relaxation->sigma_kappa, V_cx, step_size, m_slip->u);
+    m_slip->u += m_slip->Idu_dt;
     // Eq. 7.7
-    double delta_v = calc_ODE_RK_uv(m_slip->V_sy, m_relaxation->sigma_alpha, V_cx, step_size, m_slip->v_alpha);
-    m_slip->v_alpha += delta_v;
+    m_slip->Idv_alpha_dt = calc_ODE_RK_uv(m_slip->V_sy, m_relaxation->sigma_alpha, V_cx, step_size, m_slip->v_alpha);
+    m_slip->v_alpha +=  m_slip->Idv_alpha_dt ;
 
   }
 
   // Eq. 7.11, lateral force from wheel camber
-  double delta_gamma = calc_ODE_RK_gamma(m_relaxation->C_Fgamma, m_relaxation->C_Falpha, m_relaxation->sigma_alpha,
+  m_slip->Idv_gamma_dt = calc_ODE_RK_gamma(m_relaxation->C_Fgamma, m_relaxation->C_Falpha, m_relaxation->sigma_alpha,
     V_cx, step_size, m_slip->gamma, m_slip->v_gamma);
-  m_slip->v_gamma += delta_gamma;
+  m_slip->v_gamma += m_slip->Idv_gamma_dt;
 
   // Eq. 7.12, total spin, phi, including slip and camber
-  double delta_phi = calc_ODE_RK_phi(m_relaxation->C_Fphi, m_relaxation->C_Falpha,
+  m_slip->Idv_phi_dt = calc_ODE_RK_phi(m_relaxation->C_Fphi, m_relaxation->C_Falpha,
     V_cx, m_slip->psi_dot, m_tireState.omega, m_slip->gamma, m_relaxation->sigma_alpha,
     m_slip->v_phi, EPS_GAMMA, step_size);
-  m_slip->v_phi += delta_phi;
+  m_slip->v_phi += m_slip->Idv_phi_dt;
 
   // calculate slips from contact point deflections u and v
   calc_slip_from_uv();
@@ -755,31 +752,15 @@ double ChPacejkaTire::calc_ODE_RK_uv(double V_s,
                                      double x_curr)
 {
   double V_cx_abs = std::abs(V_cx);
-  double k1 = -V_s - (1.0 / sigma) * V_cx_abs * x_curr;
-  double k2 = -V_s - (1.0 / sigma) * V_cx_abs * (x_curr + 0.5 * step_size * k1);
-  double k3 = -V_s - (1.0 / sigma) * V_cx_abs * (x_curr + 0.5 * step_size * k2);
-  double k4 = -V_s - (1.0 / sigma) * V_cx_abs * (x_curr + step_size * k3);
+  double k1 = -V_s - (V_cx_abs / sigma) * x_curr;
+  double k2 = -V_s - (V_cx_abs / sigma) * (x_curr + 0.5 * step_size * k1);
+  double k3 = -V_s - (V_cx_abs / sigma) * (x_curr + 0.5 * step_size * k2);
+  double k4 = -V_s - (V_cx_abs / sigma) * (x_curr + step_size * k3);
 
   double delta_x = (step_size / 6.0) * (k1 + 2.0*k2 + 2.0*k3 + k4);
 
   return delta_x;
 }
-
-// pure slip reactions. If Lateral slip isn't nearly 0, calculate
-// pure longitudinal slip case, else pure lateral slip case.
-void ChPacejkaTire::calc_pureSlipReactions()
-{
-  // calculate Fx, pure long. slip condition
-  calcFx_pureLong();
-
-  // calc. Fy, pure lateral slip
-  calcFy_pureLat();
-
-  // calc Mz, pure lateral slip
-  calcMz_pureLat();
-
-}
-
 
 double ChPacejkaTire::calc_ODE_RK_gamma(double C_Fgamma,
                                         double C_Falpha,
@@ -865,6 +846,22 @@ void ChPacejkaTire::calc_slip_from_uv()
 // -----------------------------------------------------------------------------
 // Calculate tire reactions.
 // -----------------------------------------------------------------------------
+// pure slip reactions
+// calcFx               alphaP ~= 0
+// calcFy and calcMz    kappaP ~= 0
+void ChPacejkaTire::calc_pureSlipReactions()
+{
+  // calculate Fx, pure long. slip condition
+  calcFx_pureLong();
+
+  // calc. Fy, pure lateral slip
+  calcFy_pureLat();
+
+  // calc Mz, pure lateral slip
+  calcMz_pureLat();
+
+}
+
 void ChPacejkaTire::calc_combinedSlipReactions()
 {
   // calculate Fx for combined slip
@@ -1566,7 +1563,7 @@ void ChPacejkaTire::WriteOutData(double             time,
     }
     else {
       // write the headers, Fx, Fy are pure forces, Fxc and Fyc are the combined forces
-      oFile << "time,kappa,alpha,gamma,kappaP,alphaP,gammaP,Vx,Vy,Fx,Fy,Fz,Mx,My,Mz,Fxc,Fyc,Mzc,Mzx,Mzy,contact,m_Fz,m_dF_z" << std::endl;
+      oFile << "time,kappa,alpha,gamma,kappaP,alphaP,gammaP,Vx,Vy,Fx,Fy,Fz,Mx,My,Mz,Fxc,Fyc,Mzc,Mzx,Mzy,contact,m_Fz,m_dF_z,u,valpha,vgamma,du,dvalpha,dvgamma" << std::endl;
       m_Num_WriteOutData++;
       oFile.close();
     }
@@ -1587,7 +1584,9 @@ void ChPacejkaTire::WriteOutData(double             time,
       << m_FM.moment.x << "," << m_FM.moment.y << "," << m_FM.moment.z << ","
       << m_FM_combined.force.x << "," << m_FM_combined.force.y << "," << m_FM_combined.moment.z <<","
       << m_combinedTorque->M_z_x <<","<< m_combinedTorque->M_z_y <<","<< (int)m_in_contact <<","
-      << m_Fz <<","<< m_dF_z
+      << m_Fz <<","<< m_dF_z <<","
+      << m_slip->u <<","<< m_slip->v_alpha << "," << m_slip->v_gamma <<"," << m_slip->v_phi <<","
+      << m_slip->Idu_dt <<","<< m_slip->Idv_alpha_dt <<"," << m_slip->Idv_gamma_dt <<"," << m_slip->Idv_phi_dt
       << std::endl;
     // close the file
     appFile.close();

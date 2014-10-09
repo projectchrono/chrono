@@ -17,14 +17,19 @@ struct slips {
 	double V_sx;	// tire c-sys x-dir slip velocity
 	double V_sy;	// y-dir slip vel
 	double psi_dot;	// turn slip angular velocity
-
-	double cosPrime_alpha;
+	double cosPrime_alpha;  // ratio,  V.x / V_mag;
 
 	// slip displacements
 	double u;	// contact patch slip displacement
 	double v_alpha;
 	double v_gamma;
 	double v_phi;
+
+  // integrated slip velocity terms over time step increment, using ODE-45
+  double Idu_dt;
+  double Idv_alpha_dt;
+  double Idv_gamma_dt;
+  double Idv_phi_dt;
 	
 	//  slips used in all calculations (can be INPUTs or transient slips)
 	double alphaP;

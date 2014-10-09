@@ -217,6 +217,7 @@ private:
 
   // calculate transient slip properties, using first order ODEs to find slip
   // displacements from velocities
+  // appends m_slips for the slip displacements, and integrated slip velocity terms
   void advance_slip_transient(double step_size);
 
   // calculate the increment delta_x using RK 45 integration
