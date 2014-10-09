@@ -367,6 +367,11 @@ void ChPacejkaTire::Advance(double step)
     // a) step <= m_step_size, so integrate using input step
     // b) step > m_step_size, use m_step_size until step <= m_step_size
     double remaining_time = step;
+    // only count the time take to do actual calculations in Adanvce time
+    advance_time.start();
+    // keep track of the ODE calculation time
+    ChTimer<double> ODE_timer;
+    ODE_timer.start();
     while (remaining_time > m_step_size)
     {
       advance_slip_transient(m_step_size);
@@ -375,6 +380,11 @@ void ChPacejkaTire::Advance(double step)
     // take one final step to reach the specified time.
     advance_slip_transient(remaining_time);
     
+    // stop the timers
+    ODE_timer.stop();
+    m_num_ODE_calls++;
+    m_sum_ODE_time += ODE_timer();
+
 
     /*
     
