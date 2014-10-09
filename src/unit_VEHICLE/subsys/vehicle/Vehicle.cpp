@@ -287,28 +287,28 @@ Vehicle::Vehicle(const std::string& filename,
 
   if (d.HasMember("Visualization"))
   {
-    if (d["Visualization"].HasMember("Mesh Filename"))
-    {
-      m_chassisMeshFile = d["Visualization"]["Mesh Filename"].GetString();
-      m_chassisMeshName = d["Visualization"]["Mesh Name"].GetString();
+    assert(d["Visualization"].HasMember("Mesh Filename"));
+    assert(d["Visualization"].HasMember("Mesh Name"));
 
-      geometry::ChTriangleMeshConnected trimesh;
-      trimesh.LoadWavefrontMesh(utils::GetModelDataFile(m_chassisMeshFile), false, false);
+    m_chassisMeshFile = d["Visualization"]["Mesh Filename"].GetString();
+    m_chassisMeshName = d["Visualization"]["Mesh Name"].GetString();
 
-      ChSharedPtr<ChTriangleMeshShape> trimesh_shape(new ChTriangleMeshShape);
-      trimesh_shape->SetMesh(trimesh);
-      trimesh_shape->SetName(m_chassisMeshName);
-      m_chassis->AddAsset(trimesh_shape);
+    geometry::ChTriangleMeshConnected trimesh;
+    trimesh.LoadWavefrontMesh(utils::GetModelDataFile(m_chassisMeshFile), false, false);
 
-      m_chassisUseMesh = true;
-    }
-    else
-    {
-      ChSharedPtr<ChSphereShape> sphere(new ChSphereShape);
-      sphere->GetSphereGeometry().rad = 0.1;
-      sphere->Pos = m_chassisCOM;
-      m_chassis->AddAsset(sphere);
-    }
+    ChSharedPtr<ChTriangleMeshShape> trimesh_shape(new ChTriangleMeshShape);
+    trimesh_shape->SetMesh(trimesh);
+    trimesh_shape->SetName(m_chassisMeshName);
+    m_chassis->AddAsset(trimesh_shape);
+
+    m_chassisUseMesh = true;
+  }
+  else
+  {
+    ChSharedPtr<ChSphereShape> sphere(new ChSphereShape);
+    sphere->GetSphereGeometry().rad = 0.1;
+    sphere->Pos = m_chassisCOM;
+    m_chassis->AddAsset(sphere);
   }
 
   Add(m_chassis);
