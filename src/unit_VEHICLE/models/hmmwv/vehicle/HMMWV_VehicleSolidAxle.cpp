@@ -104,8 +104,8 @@ HMMWV_VehicleSolidAxle::HMMWV_VehicleSolidAxle(const bool           fixed,
   m_suspensions.resize(2);
   if (use_JSON)
   {
-    m_suspensions[0] = ChSharedPtr<ChSuspension>(new SolidAxle(utils::GetModelDataFile("hmmwv/suspension/Generic_SolidAxleFront.json"), false));
-    m_suspensions[1] = ChSharedPtr<ChSuspension>(new SolidAxle(utils::GetModelDataFile("hmmwv/suspension/Generic_SolidAxleRear.json"), true));
+    m_suspensions[0] = ChSharedPtr<ChSuspension>(new SolidAxle(utils::GetModelDataFile("generic/suspension/SolidAxleFront.json"), false));
+    m_suspensions[1] = ChSharedPtr<ChSuspension>(new SolidAxle(utils::GetModelDataFile("generic/suspension/SolidAxleRear.json"), true));
   }
   else
   {
