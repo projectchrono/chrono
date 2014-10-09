@@ -220,13 +220,25 @@ private:
   // appends m_slips for the slip displacements, and integrated slip velocity terms
   void advance_slip_transient(double step_size);
 
-  // calculate the increment delta_x using RK 45 integration
+  // calculate the increment delta_x using RK 45 integration for linear u, v_alpha
+  // Eq. 7.9 and 7.7, respectively
   double calc_ODE_RK_uv(
     double V_s,          // slip velocity
     double sigma,        // either sigma_kappa or sigma_alpha
     double V_cx,         // wheel body center velocity
     double step_size,    // the simulation timestep size
     double x_curr);      // f(x_curr)
+
+  // calculate the linearized slope of Fy vs. alphaP at the current value
+  double get_dFy_dtan_alphaP(double x_curr);
+
+  // calculate v_alpha differently at low speeds
+  // relaxation length is non-linear
+  double ChPacejkaTire::calc_ODE_RK_v_nonlinear(double V_sy,
+                                     double V_cx,
+                                     double C_Fy,
+                                     double step_size,
+                                     double x_curr);
 
   // calculate the increment delta_gamma of the gamma ODE
   double calc_ODE_RK_gamma(
@@ -267,40 +279,40 @@ private:
   /// calculate the longitudinal force, alpha ~= 0
   /// assign to m_FM.force.x
   /// assign m_pureLong, trionometric function calculated constants
-  void calcFx_pureLong();
+  double calcFx_pureLong(double gamma, double kappa);
 
   /// calculate the lateral force,  kappa ~= 0
   /// assign to m_FM.force.y
   /// assign m_pureLong, trionometric function calculated constants
-  void calcFy_pureLat();
+  double calcFy_pureLat(double alpha, double gamma);
 
   /// calculate the aligning moment,  kappa ~= 0
   /// assign to m_FM.moment.z
   /// assign m_pureLong, trionometric function calculated constants
-  void calcMz_pureLat();
+  double calcMz_pureLat(double alpha, double gamma);
 
   /// calculate longitudinal force, combined slip (general case)
   /// assign m_FM_combined.force.x
   /// assign m_combinedLong
-  void calcFx_combined();
+  double calcFx_combined(double alpha, double gamma, double kappa);
 
   /// calculate lateral force, combined slip (general case)
   /// assign m_FM_combined.force.y
   /// assign m_combinedLat
-  void calcFy_combined();
+  double calcFy_combined(double alpha, double gamma, double kappa);
 
   // calculate aligning torque, combined slip (gernal case)
   /// assign m_FM_combined.moment.z
   /// assign m_combinedTorque
-  void calcMz_combined();
+  double calcMz_combined(double alpha_r, double alpha_t, double gamma, double kappa, double Fx, double Fy);
 
   /// calculate the overturning couple moment
   /// assign m_FM.moment.x and m_FM_combined.moment.x
-  void calc_Mx();
+  double calc_Mx(double Fy, double gamma);
 
   /// calculate the rolling resistance moment,
   /// assign m_FM.moment.y and m_FM_combined.moment.y
-  void calc_My();
+  double calc_My(double Fx);
 
   // ----- Data members
 
