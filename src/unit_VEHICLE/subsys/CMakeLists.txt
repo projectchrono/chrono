@@ -93,6 +93,9 @@ SET(Chrono_Powertrain_FILES
     powertrain/ChSimplePowertrain.cpp
     powertrain/ChShaftsPowertrain.h
     powertrain/ChShaftsPowertrain.cpp
+
+    powertrain/SimplePowertrain.h
+    powertrain/SimplePowertrain.cpp
 )
 
 SET(Chrono_Tire_FILES
