@@ -38,19 +38,22 @@ public:
   virtual ~MultiLink() {}
 
   virtual double getSpindleMass() const { return m_spindleMass; }
-  virtual double getUCAMass() const { return m_UCAMass; }
-  virtual double getLCAMass() const { return m_LCAMass; }
+  virtual double getUpperArmMass() const { return m_upperArmMass; }
+  virtual double getTrackRodMass() const { return m_trackRodMass; }
+  virtual double getTrailingLinkMass() const { return m_trailingLinkMass; }
   virtual double getUprightMass() const { return m_uprightMass; }
 
   virtual double getSpindleRadius() const { return m_spindleRadius; }
   virtual double getSpindleWidth() const { return m_spindleWidth; }
-  virtual double getUCARadius() const { return m_UCARadius; }
-  virtual double getLCARadius() const { return m_LCARadius; }
+  virtual double getUpperArmRadius() const { return m_upperArmRadius; }
+  virtual double getTrackRodRadius() const { return m_trackRodRadius; }
+  virtual double getTrailingLinkRadius() const { return m_trailingLinkRadius; }
   virtual double getUprightRadius() const { return m_uprightRadius; }
 
   virtual const ChVector<>& getSpindleInertia() const { return m_spindleInertia; }
-  virtual const ChVector<>& getUCAInertia() const { return m_UCAInertia; }
-  virtual const ChVector<>& getLCAInertia() const { return m_LCAInertia; }
+  virtual const ChVector<>& getUpperArmInertia() const { return m_upperArmInertia; }
+  virtual const ChVector<>& getTrackRodInertia() const { return m_trackRodInertia; }
+  virtual const ChVector<>& getTrailingLinkInertia() const { return m_trailingLinkInertia; }
   virtual const ChVector<>& getUprightInertia() const { return m_uprightInertia; }
 
   virtual double getAxleInertia() const { return m_axleInertia; }
@@ -62,25 +65,30 @@ public:
 private:
 
   virtual const ChVector<> getLocation(PointId which) { return m_points[which]; }
+  virtual const ChVector<> getDirection(DirectionId which) { return m_directions[which]; }
 
   void Create(const rapidjson::Document& d);
 
   ChVector<>  m_points[NUM_POINTS];
+  ChVector<>  m_directions[NUM_DIRS];
 
   double      m_spindleMass;
-  double      m_UCAMass;
-  double      m_LCAMass;
+  double      m_upperArmMass;
+  double      m_trackRodMass;
+  double      m_trailingLinkMass;
   double      m_uprightMass;
 
   double      m_spindleRadius;
   double      m_spindleWidth;
-  double      m_UCARadius;
-  double      m_LCARadius;
+  double      m_upperArmRadius;
+  double      m_trackRodRadius;
+  double      m_trailingLinkRadius;
   double      m_uprightRadius;
 
   ChVector<>  m_spindleInertia;
-  ChVector<>  m_UCAInertia;
-  ChVector<>  m_LCAInertia;
+  ChVector<>  m_upperArmInertia;
+  ChVector<>  m_trackRodInertia;
+  ChVector<>  m_trailingLinkInertia;
   ChVector<>  m_uprightInertia;
 
   double      m_axleInertia;

@@ -20,7 +20,7 @@
 // the vehicle.  When attached to a chassis, only an offset is provided.
 //
 // All point locations are assumed to be given for the left half of the
-// supspension and will be mirrored (reflecting the y coordinates) to construct
+// suspension and will be mirrored (reflecting the y coordinates) to construct
 // the right side.
 //
 // If marked as 'driven', the suspension subsystem also creates the ChShaft axle
@@ -42,22 +42,24 @@ namespace chrono {
 // Static variables
 // -----------------------------------------------------------------------------
 const std::string ChMultiLink::m_pointNames[] = {
-  "SPINDLE ",
-  "UPRIGHT ",
-  "UCA_F   ",
-  "UCA_B   ",
-  "UCA_U   ",
-  "UCA_CM  ",
-  "LCA_F   ",
-  "LCA_B   ",
-  "LCA_U   ",
-  "LCA_CM  ",
-  "SHOCK_C ",
-  "SHOCK_A ",
-  "SPRING_C",
-  "SPRING_A",
-  "TIEROD_C",
-  "TIEROD_U"
+    "SPINDLE  ",
+    "UPRIGHT  ",
+    "UA_F     ",
+    "UA_B     ",
+    "UA_U     ",
+    "UA_CM    ",
+    "TR_C     ",
+    "TR_U     ",
+    "TR_CM    ",
+    "TL_C     ",
+    "TL_U     ",
+    "TL_CM    ",
+    "SHOCK_C  ",
+    "SHOCK_L  ",
+    "SPRING_C ",
+    "SPRING_L ",
+    "TIEROD_C ",
+    "TIEROD_U "
 };
 
 
@@ -142,21 +144,29 @@ void ChMultiLink::CreateSide(ChVehicleSide      side,
   m_revolute[side] = ChSharedPtr<ChLinkLockRevolute>(new ChLinkLockRevolute);
   m_revolute[side]->SetNameString(m_name + "_revolute" + suffix);
 
-  // Bodies and constraints to model upper control arm
-  m_UCA[side] = ChSharedBodyPtr(new ChBody);
-  m_UCA[side]->SetNameString(m_name + "_UCA" + suffix);
-  m_revoluteUCA[side] = ChSharedPtr<ChLinkLockRevolute>(new ChLinkLockRevolute);
-  m_revoluteUCA[side]->SetNameString(m_name + "_revoluteUCA" + suffix);
-  m_sphericalUCA[side] = ChSharedPtr<ChLinkLockSpherical>(new ChLinkLockSpherical);
-  m_sphericalUCA[side]->SetNameString(m_name + "_sphericalUCA" + suffix);
+  // Bodies and constraints to model upper arm
+  m_upperArm[side] = ChSharedBodyPtr(new ChBody);
+  m_upperArm[side]->SetNameString(m_name + "_upperArm" + suffix);
+  m_revoluteUA[side] = ChSharedPtr<ChLinkLockRevolute>(new ChLinkLockRevolute);
+  m_revoluteUA[side]->SetNameString(m_name + "_revoluteUA" + suffix);
+  m_sphericalUA[side] = ChSharedPtr<ChLinkLockSpherical>(new ChLinkLockSpherical);
+  m_sphericalUA[side]->SetNameString(m_name + "_sphericalUA" + suffix);
 
-  // Bodies and constraints to model lower control arm
-  m_LCA[side] = ChSharedBodyPtr(new ChBody);
-  m_LCA[side]->SetNameString(m_name + "_LCA" + suffix);
-  m_revoluteLCA[side] = ChSharedPtr<ChLinkLockRevolute>(new ChLinkLockRevolute);
-  m_revoluteLCA[side]->SetNameString(m_name + "_revoluteLCA" + suffix);
-  m_sphericalLCA[side] = ChSharedPtr<ChLinkLockSpherical>(new ChLinkLockSpherical);
-  m_sphericalLCA[side]->SetNameString(m_name + "_sphericalLCA" + suffix);
+  // Bodies and constraints to model track rod
+  m_trackRod[side] = ChSharedBodyPtr(new ChBody);
+  m_trackRod[side]->SetNameString(m_name + "_trackRod" + suffix);
+  m_universalTRChassis[side] = ChSharedPtr<ChLinkLockUniversal>(new ChLinkLockUniversal);
+  m_universalTRChassis[side]->SetNameString(m_name + "_universalTRChassis" + suffix);
+  m_sphericalTRUpright[side] = ChSharedPtr<ChLinkLockSpherical>(new ChLinkLockSpherical);
+  m_sphericalTRUpright[side]->SetNameString(m_name + "_sphericalTRUpright" + suffix);
+
+  // Bodies and constraints to model trailing link
+  m_trailingLink[side] = ChSharedBodyPtr(new ChBody);
+  m_trailingLink[side]->SetNameString(m_name + "_trailingLink" + suffix);
+  m_universalTLChassis[side] = ChSharedPtr<ChLinkLockUniversal>(new ChLinkLockUniversal);
+  m_universalTLChassis[side]->SetNameString(m_name + "_universalTLChassis" + suffix);
+  m_sphericalTLUpright[side] = ChSharedPtr<ChLinkLockSpherical>(new ChLinkLockSpherical);
+  m_sphericalTLUpright[side]->SetNameString(m_name + "_sphericalTLUpright" + suffix);
 
   // Distance constraint to model the tierod
   m_distTierod[side] = ChSharedPtr<ChLinkDistance>(new ChLinkDistance);
@@ -195,29 +205,35 @@ void ChMultiLink::Initialize(ChSharedPtr<ChBodyAuxRef>  chassis,
   suspension_to_abs.ConcatenatePreTransformation(chassis->GetFrame_REF_to_abs());
 
   // Transform all points to absolute frame and initialize left side.
-  std::vector<ChVector<> > points(NUM_POINTS);
+  std::vector<ChVector<> > points_R(NUM_POINTS);
+  std::vector<ChVector<> > points_L(NUM_POINTS);
+  std::vector<ChVector<> > dirs_R(NUM_DIRS);
+  std::vector<ChVector<> > dirs_L(NUM_DIRS);
 
   for (int i = 0; i < NUM_POINTS; i++) {
     ChVector<> rel_pos = getLocation(static_cast<PointId>(i));
-    points[i] = suspension_to_abs.TransformLocalToParent(rel_pos);
-  }
-
-  InitializeSide(LEFT, chassis, tierod_body, points);
-
-  // Transform all points to absolute frame and initialize right side.
-  for (int i = 0; i < NUM_POINTS; i++) {
-    ChVector<> rel_pos = getLocation(static_cast<PointId>(i));
+    points_L[i] = suspension_to_abs.TransformLocalToParent(rel_pos);
     rel_pos.y = -rel_pos.y;
-    points[i] = suspension_to_abs.TransformLocalToParent(rel_pos);
+    points_R[i] = suspension_to_abs.TransformLocalToParent(rel_pos);
   }
 
-  InitializeSide(RIGHT, chassis, tierod_body, points);
+  for (int i = 0; i < NUM_DIRS; i++) {
+    ChVector<> rel_dir = getDirection(static_cast<DirectionId>(i));
+    dirs_L[i] = suspension_to_abs.TransformDirectionLocalToParent(rel_dir);
+    rel_dir.y = -rel_dir.y;
+    dirs_R[i] = suspension_to_abs.TransformDirectionLocalToParent(rel_dir);
+  }
+
+  // Initialize left and right sides.
+  InitializeSide(LEFT, chassis, tierod_body, points_L, dirs_L);
+  InitializeSide(RIGHT, chassis, tierod_body, points_R, dirs_R);
 }
 
 void ChMultiLink::InitializeSide(ChVehicleSide                   side,
                                       ChSharedPtr<ChBodyAuxRef>       chassis,
                                       ChSharedPtr<ChBody>             tierod_body,
-                                      const std::vector<ChVector<> >& points)
+                                      const std::vector<ChVector<> >& points,
+                                      const std::vector<ChVector<> >& dirs)
 {
   // Chassis orientation (expressed in absolute frame)
   // Recall that the suspension reference frame is aligned with the chassis.
@@ -236,7 +252,7 @@ void ChMultiLink::InitializeSide(ChVehicleSide                   side,
   m_upright[side]->SetRot(chassisRot);
   m_upright[side]->SetMass(getUprightMass());
   m_upright[side]->SetInertiaXX(getUprightInertia());
-  AddVisualizationUpright(m_upright[side], points[UCA_U], points[LCA_U], points[TIEROD_U], getUprightRadius());
+  AddVisualizationUpright(m_upright[side], points[UA_U], points[TR_U], points[TL_U], points[TIEROD_U], points[UPRIGHT], getUprightRadius());
   chassis->GetSystem()->AddBody(m_upright[side]);
 
   // Unit vectors for orientation matrices.
@@ -245,92 +261,114 @@ void ChMultiLink::InitializeSide(ChVehicleSide                   side,
   ChVector<> w;
   ChMatrix33<> rot;
 
-  // Initialize Upper Control Arm body.
-  // Determine the rotation matrix of the UCA based on the plane of the hard points
-  // (z axis normal to the plane of the UCA)
-  w = Vcross(points[UCA_B] - points[UCA_U], points[UCA_F] - points[UCA_U]);
+  // Initialize Upper Arm body.
+  // Determine the rotation matrix of the upper arm based on the plane of the hard points
+  // (z axis normal to the plane of the upper arm)
+  w = Vcross(points[UA_B] - points[UA_U], points[UA_F] - points[UA_U]);
   w.Normalize();
-  u = points[UCA_F] - points[UCA_B];
+  u = points[UA_F] - points[UA_B];
   u.Normalize();
   v = Vcross(w, u);
   rot.Set_A_axis(u, v, w);
 
-  m_UCA[side]->SetPos(points[UCA_CM]);
-  m_UCA[side]->SetRot(rot);
-  m_UCA[side]->SetMass(getUCAMass());
-  m_UCA[side]->SetInertiaXX(getUCAInertia());
-  AddVisualizationControlArm(m_UCA[side], points[UCA_F], points[UCA_B], points[UCA_U], getUCARadius());
-  chassis->GetSystem()->AddBody(m_UCA[side]);
+  m_upperArm[side]->SetPos(points[UA_CM]);
+  m_upperArm[side]->SetRot(rot);
+  m_upperArm[side]->SetMass(getUpperArmMass());
+  m_upperArm[side]->SetInertiaXX(getUpperArmInertia());
+  AddVisualizationUpperArm(m_upperArm[side], points[UA_F], points[UA_B], points[UA_U], getUpperArmRadius());
+  chassis->GetSystem()->AddBody(m_upperArm[side]);
 
-  // Initialize Lower Control Arm body.
-  // Determine the rotation matrix of the LCA, based on the plane of the hard points
-  // (z axis normal to the plane of the LCA)
-  w = Vcross(points[LCA_B] - points[LCA_U], points[LCA_F] - points[LCA_U]);
+  // Initialize track rod body.
+  // Determine the rotation matrix of the track rod based on the plane of the hard points
+  // (z-axis along the length of the track rod)
+  v = Vcross(points[TR_U] - points[TL_U], points[TR_C] - points[TL_U]);
+  v.Normalize();
+  w = points[TR_C] - points[TR_U];
   w.Normalize();
-  u = points[LCA_F] - points[LCA_B];
-  u.Normalize();
-  v = Vcross(w, u);
+  u = Vcross(v, w);
   rot.Set_A_axis(u, v, w);
 
-  m_LCA[side]->SetPos(points[LCA_CM]);
-  m_LCA[side]->SetRot(rot);
-  m_LCA[side]->SetMass(getLCAMass());
-  m_LCA[side]->SetInertiaXX(getLCAInertia());
-  AddVisualizationControlArm(m_LCA[side], points[LCA_F], points[LCA_B], points[LCA_U], getLCARadius());
-  chassis->GetSystem()->AddBody(m_LCA[side]);
+  m_trackRod[side]->SetPos(points[TR_CM]);
+  m_trackRod[side]->SetRot(rot);
+  m_trackRod[side]->SetMass(getTrackRodMass());
+  m_trackRod[side]->SetInertiaXX(getTrackRodInertia());
+  AddVisualizationTrackRod(m_trackRod[side], points[TR_U], points[TR_C], getTrackRodRadius());
+  chassis->GetSystem()->AddBody(m_trackRod[side]);
 
+  // Initialize trailing link body.
+  // Determine the rotation matrix of the trailing link based on the plane of the hard points
+  // (z-axis along the length of the trailing link)
+  v = Vcross(points[TL_U] - points[SPRING_L], points[TL_C] - points[SPRING_L]);
+  v.Normalize();
+  w = points[TL_C] - points[TL_U];
+  w.Normalize();
+  u = Vcross(v, w);
+  rot.Set_A_axis(u, v, w);
+
+  m_trailingLink[side]->SetPos(points[TL_CM]);
+  m_trailingLink[side]->SetRot(rot);
+  m_trailingLink[side]->SetMass(getTrailingLinkMass());
+  m_trailingLink[side]->SetInertiaXX(getTrailingLinkInertia());
+  AddVisualizationTrailingLink(m_trailingLink[side], points[TL_C], points[SPRING_L], points[TL_U], getTrailingLinkRadius());
+  chassis->GetSystem()->AddBody(m_trailingLink[side]);
 
   // Initialize the revolute joint between upright and spindle.
   ChCoordsys<> rev_csys((points[UPRIGHT] + points[SPINDLE]) / 2, chassisRot * Q_from_AngAxis(CH_C_PI / 2.0, VECT_X));
   m_revolute[side]->Initialize(m_spindle[side], m_upright[side], rev_csys);
   chassis->GetSystem()->AddLink(m_revolute[side]);
 
-  // Initialize the revolute joint between chassis and UCA.
+  // Initialize the revolute joint between chassis and upper arm.
   // Determine the joint orientation matrix from the hardpoint locations by
   // constructing a rotation matrix with the z axis along the joint direction
-  // and the y axis normal to the plane of the UCA.
-  v = Vcross(points[UCA_B] - points[UCA_U], points[UCA_F] - points[UCA_U]);
+  // and the y axis normal to the plane of the upper arm.
+  v = Vcross(points[UA_B] - points[UA_U], points[UA_F] - points[UA_U]);
   v.Normalize();
-  w = points[UCA_F] - points[UCA_B];
+  w = points[UA_F] - points[UA_B];
   w.Normalize();
   u = Vcross(v, w);
   rot.Set_A_axis(u, v, w);
 
-  m_revoluteUCA[side]->Initialize(chassis, m_UCA[side], ChCoordsys<>((points[UCA_F]+points[UCA_B])/2, rot.Get_A_quaternion()));
-  chassis->GetSystem()->AddLink(m_revoluteUCA[side]);
+  m_revoluteUA[side]->Initialize(chassis, m_upperArm[side], ChCoordsys<>((points[UA_F]+points[UA_B])/2, rot.Get_A_quaternion()));
+  chassis->GetSystem()->AddLink(m_revoluteUA[side]);
 
-  // Initialize the spherical joint between upright and UCA.
-  m_sphericalUCA[side]->Initialize(m_UCA[side], m_upright[side], ChCoordsys<>(points[UCA_U], QUNIT));
-  chassis->GetSystem()->AddLink(m_sphericalUCA[side]);
+  // Initialize the spherical joint between upright and upper arm.
+  m_sphericalUA[side]->Initialize(m_upperArm[side], m_upright[side], ChCoordsys<>(points[UA_U], QUNIT));
+  chassis->GetSystem()->AddLink(m_sphericalUA[side]);
 
-  // Initialize the revolute joint between chassis and LCA.
-  // Determine the joint orientation matrix from the hardpoint locations by
-  // constructing a rotation matrix with the z axis along the joint direction
-  // and the y axis normal to the plane of the LCA.
-  v = Vcross(points[LCA_B] - points[LCA_U], points[LCA_F] - points[LCA_U]);
-  v.Normalize();
-  w = points[LCA_F] - points[LCA_B];
-  w.Normalize();
-  u = Vcross(v, w);
+  // Initialize the spherical joint between upright and track rod.
+  m_sphericalTRUpright[side]->Initialize(m_trackRod[side], m_upright[side], ChCoordsys<>(points[TR_U], QUNIT));
+  chassis->GetSystem()->AddLink(m_sphericalTRUpright[side]);
+
+  // Initialize the universal joint between chassis and track rod.
+  u = dirs[UNIV_AXIS_CHASSIS_TR];
+  v = dirs[UNIV_AXIS_LINK_TR];
+  w = Vcross(u, v);
   rot.Set_A_axis(u, v, w);
+  m_universalTRChassis[side]->Initialize(m_trackRod[side], chassis, ChCoordsys<>(points[TR_C], rot.Get_A_quaternion()));
+  chassis->GetSystem()->AddLink(m_universalTRChassis[side]);
 
-  m_revoluteLCA[side]->Initialize(chassis, m_LCA[side], ChCoordsys<>((points[LCA_F]+points[LCA_B])/2, rot.Get_A_quaternion()));
-  chassis->GetSystem()->AddLink(m_revoluteLCA[side]);
+  // Initialize the spherical joint between upright and trailing link.
+  m_sphericalTLUpright[side]->Initialize(m_trailingLink[side], m_upright[side], ChCoordsys<>(points[TL_U], QUNIT));
+  chassis->GetSystem()->AddLink(m_sphericalTLUpright[side]);
 
-  // Initialize the spherical joint between upright and LCA.
-  m_sphericalLCA[side]->Initialize(m_LCA[side], m_upright[side], ChCoordsys<>(points[LCA_U], QUNIT));
-  chassis->GetSystem()->AddLink(m_sphericalLCA[side]);
+  // Initialize the universal joint between chassis and trailing link.
+  u = dirs[UNIV_AXIS_CHASSIS_TL];
+  v = dirs[UNIV_AXIS_LINK_TL];
+  w = Vcross(u, v);
+  rot.Set_A_axis(u, v, w);
+  m_universalTLChassis[side]->Initialize(m_trailingLink[side], chassis, ChCoordsys<>(points[TL_C], rot.Get_A_quaternion()));
+  chassis->GetSystem()->AddLink(m_universalTLChassis[side]);
 
   // Initialize the tierod distance constraint between chassis and upright.
   m_distTierod[side]->Initialize(tierod_body, m_upright[side], false, points[TIEROD_C], points[TIEROD_U]);
   chassis->GetSystem()->AddLink(m_distTierod[side]);
 
   // Initialize the spring/damper
-  m_shock[side]->Initialize(chassis, m_LCA[side], false, points[SHOCK_C], points[SHOCK_A]);
+  m_shock[side]->Initialize(chassis, m_trailingLink[side], false, points[SHOCK_C], points[SHOCK_L]);
   m_shock[side]->Set_SpringCallback(m_shockCB);
   chassis->GetSystem()->AddLink(m_shock[side]);
 
-  m_spring[side]->Initialize(chassis, m_LCA[side], false, points[SPRING_C], points[SPRING_A], false, getSpringRestLength());
+  m_spring[side]->Initialize(chassis, m_trailingLink[side], false, points[SPRING_C], points[SPRING_L], false, getSpringRestLength());
   m_spring[side]->Set_SpringCallback(m_springCB);
   chassis->GetSystem()->AddLink(m_spring[side]);
 
@@ -367,17 +405,8 @@ void ChMultiLink::LogConstraintViolations(ChVehicleSide side)
 {
   // Revolute joints
   {
-    ChMatrix<>* C = m_revoluteLCA[side]->GetC();
-    GetLog() << "LCA revolute          ";
-    GetLog() << "  " << C->GetElement(0, 0) << "  ";
-    GetLog() << "  " << C->GetElement(1, 0) << "  ";
-    GetLog() << "  " << C->GetElement(2, 0) << "  ";
-    GetLog() << "  " << C->GetElement(3, 0) << "  ";
-    GetLog() << "  " << C->GetElement(4, 0) << "\n";
-  }
-  {
-    ChMatrix<>* C = m_revoluteUCA[side]->GetC();
-    GetLog() << "UCA revolute          ";
+    ChMatrix<>* C = m_revoluteUA[side]->GetC();
+    GetLog() << "Upper arm revolute    ";
     GetLog() << "  " << C->GetElement(0, 0) << "  ";
     GetLog() << "  " << C->GetElement(1, 0) << "  ";
     GetLog() << "  " << C->GetElement(2, 0) << "  ";
@@ -396,18 +425,43 @@ void ChMultiLink::LogConstraintViolations(ChVehicleSide side)
 
   // Spherical joints
   {
-    ChMatrix<>* C = m_sphericalLCA[side]->GetC();
-    GetLog() << "LCA spherical         ";
+    ChMatrix<>* C = m_sphericalUA[side]->GetC();
+    GetLog() << "Upper arm spherical   ";
     GetLog() << "  " << C->GetElement(0, 0) << "  ";
     GetLog() << "  " << C->GetElement(1, 0) << "  ";
     GetLog() << "  " << C->GetElement(2, 0) << "\n";
   }
   {
-    ChMatrix<>* C = m_sphericalUCA[side]->GetC();
-    GetLog() << "UCA spherical         ";
+    ChMatrix<>* C = m_sphericalTRUpright[side]->GetC();
+    GetLog() << "TR-Upright spherical  ";
     GetLog() << "  " << C->GetElement(0, 0) << "  ";
     GetLog() << "  " << C->GetElement(1, 0) << "  ";
     GetLog() << "  " << C->GetElement(2, 0) << "\n";
+  }
+  {
+    ChMatrix<>* C = m_sphericalTLUpright[side]->GetC();
+    GetLog() << "TL-Upright spherical  ";
+    GetLog() << "  " << C->GetElement(0, 0) << "  ";
+    GetLog() << "  " << C->GetElement(1, 0) << "  ";
+    GetLog() << "  " << C->GetElement(2, 0) << "\n";
+  }
+
+  // Universal joints
+  {
+    ChMatrix<>* C = m_universalTRChassis[side]->GetC();
+    GetLog() << "TR-Chassis universal  ";
+    GetLog() << "  " << C->GetElement(0, 0) << "  ";
+    GetLog() << "  " << C->GetElement(1, 0) << "  ";
+    GetLog() << "  " << C->GetElement(2, 0) << "  ";
+    GetLog() << "  " << C->GetElement(3, 0) << "\n";
+  }
+  {
+    ChMatrix<>* C = m_universalTLChassis[side]->GetC();
+    GetLog() << "TL-Chassis universal  ";
+    GetLog() << "  " << C->GetElement(0, 0) << "  ";
+    GetLog() << "  " << C->GetElement(1, 0) << "  ";
+    GetLog() << "  " << C->GetElement(2, 0) << "  ";
+    GetLog() << "  " << C->GetElement(3, 0) << "\n";
   }
 
   // Distance constraint
@@ -419,7 +473,7 @@ void ChMultiLink::LogConstraintViolations(ChVehicleSide side)
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-void ChMultiLink::AddVisualizationControlArm(ChSharedBodyPtr    arm,
+void ChMultiLink::AddVisualizationUpperArm(ChSharedBodyPtr    arm,
                                                   const ChVector<>&  pt_F,
                                                   const ChVector<>&  pt_B,
                                                   const ChVector<>&  pt_U,
@@ -447,29 +501,38 @@ void ChMultiLink::AddVisualizationControlArm(ChSharedBodyPtr    arm,
   arm->AddAsset(col);
 }
 
-
 void ChMultiLink::AddVisualizationUpright(ChSharedBodyPtr    upright,
-                                               const ChVector<>&  pt_U,
-                                               const ChVector<>&  pt_L,
-                                               const ChVector<>&  pt_T,
-                                               double             radius)
+                                       const ChVector<>&  pt_UA,
+                                       const ChVector<>&  pt_TR,
+                                       const ChVector<>&  pt_TL,
+                                       const ChVector<>&  pt_T,
+                                       const ChVector<>&  pt_U,
+                                       double             radius)
 {
   // Express hardpoint locations in body frame.
-  ChVector<> p_U = upright->TransformPointParentToLocal(pt_U);
-  ChVector<> p_L = upright->TransformPointParentToLocal(pt_L);
+  ChVector<> p_UA = upright->TransformPointParentToLocal(pt_UA);
+  ChVector<> p_TR = upright->TransformPointParentToLocal(pt_TR);
+  ChVector<> p_TL = upright->TransformPointParentToLocal(pt_TL);
   ChVector<> p_T = upright->TransformPointParentToLocal(pt_T);
+  ChVector<> p_U = upright->TransformPointParentToLocal(pt_U);
 
-  ChSharedPtr<ChCylinderShape> cyl_L(new ChCylinderShape);
-  cyl_L->GetCylinderGeometry().p1 = p_L;
-  cyl_L->GetCylinderGeometry().p2 = ChVector<>(0, 0, 0);
-  cyl_L->GetCylinderGeometry().rad = radius;
-  upright->AddAsset(cyl_L);
+  ChSharedPtr<ChCylinderShape> cyl_UA(new ChCylinderShape);
+  cyl_UA->GetCylinderGeometry().p1 = p_UA;
+  cyl_UA->GetCylinderGeometry().p2 = ChVector<>(0, 0, 0);
+  cyl_UA->GetCylinderGeometry().rad = radius;
+  upright->AddAsset(cyl_UA);
 
-  ChSharedPtr<ChCylinderShape> cyl_U(new ChCylinderShape);
-  cyl_U->GetCylinderGeometry().p1 = p_U;
-  cyl_U->GetCylinderGeometry().p2 = ChVector<>(0, 0, 0);
-  cyl_U->GetCylinderGeometry().rad = radius;
-  upright->AddAsset(cyl_U);
+  ChSharedPtr<ChCylinderShape> cyl_TR(new ChCylinderShape);
+  cyl_TR->GetCylinderGeometry().p1 = p_TR;
+  cyl_TR->GetCylinderGeometry().p2 = ChVector<>(0, 0, 0);
+  cyl_TR->GetCylinderGeometry().rad = radius;
+  upright->AddAsset(cyl_TR);
+
+  ChSharedPtr<ChCylinderShape> cyl_TL(new ChCylinderShape);
+  cyl_TL->GetCylinderGeometry().p1 = p_TL;
+  cyl_TL->GetCylinderGeometry().p2 = ChVector<>(0, 0, 0);
+  cyl_TL->GetCylinderGeometry().rad = radius;
+  upright->AddAsset(cyl_TL);
 
   ChSharedPtr<ChCylinderShape> cyl_T(new ChCylinderShape);
   cyl_T->GetCylinderGeometry().p1 = p_T;
@@ -477,10 +540,65 @@ void ChMultiLink::AddVisualizationUpright(ChSharedBodyPtr    upright,
   cyl_T->GetCylinderGeometry().rad = radius;
   upright->AddAsset(cyl_T);
 
+  ChSharedPtr<ChCylinderShape> cyl_U(new ChCylinderShape);
+  cyl_U->GetCylinderGeometry().p1 = p_U;
+  cyl_U->GetCylinderGeometry().p2 = ChVector<>(0, 0, 0);
+  cyl_U->GetCylinderGeometry().rad = radius;
+  upright->AddAsset(cyl_U);
+
   ChSharedPtr<ChColorAsset> col(new ChColorAsset);
   col->SetColor(ChColor(0.2f, 0.2f, 0.6f));
   upright->AddAsset(col);
 }
+
+void ChMultiLink::AddVisualizationTrackRod(ChSharedBodyPtr    rod,
+                                       const ChVector<>&  pt_C,
+                                       const ChVector<>&  pt_U,
+                                       double             radius)
+{
+  // Express hardpoint locations in body frame.
+  ChVector<> p_C = rod->TransformPointParentToLocal(pt_C);
+  ChVector<> p_U = rod->TransformPointParentToLocal(pt_U);
+
+  ChSharedPtr<ChCylinderShape> cyl(new ChCylinderShape);
+  cyl->GetCylinderGeometry().p1 = p_C;
+  cyl->GetCylinderGeometry().p2 = p_U;
+  cyl->GetCylinderGeometry().rad = radius;
+  rod->AddAsset(cyl);
+
+  ChSharedPtr<ChColorAsset> col(new ChColorAsset);
+  col->SetColor(ChColor(0.2f, 0.2f, 0.6f));
+  rod->AddAsset(col);
+}
+
+void ChMultiLink::AddVisualizationTrailingLink(ChSharedBodyPtr    link,
+                                       const ChVector<>&  pt_C,
+                                       const ChVector<>&  pt_S,
+                                       const ChVector<>&  pt_U,
+                                       double             radius)
+{
+  // Express hardpoint locations in body frame.
+  ChVector<> p_C = link->TransformPointParentToLocal(pt_C);
+  ChVector<> p_S = link->TransformPointParentToLocal(pt_S);
+  ChVector<> p_U = link->TransformPointParentToLocal(pt_U);
+
+  ChSharedPtr<ChCylinderShape> cyl1(new ChCylinderShape);
+  cyl1->GetCylinderGeometry().p1 = p_C;
+  cyl1->GetCylinderGeometry().p2 = p_S;
+  cyl1->GetCylinderGeometry().rad = radius;
+  link->AddAsset(cyl1);
+
+  ChSharedPtr<ChCylinderShape> cyl2(new ChCylinderShape);
+  cyl2->GetCylinderGeometry().p1 = p_S;
+  cyl2->GetCylinderGeometry().p2 = p_U;
+  cyl2->GetCylinderGeometry().rad = radius;
+  link->AddAsset(cyl2);
+
+  ChSharedPtr<ChColorAsset> col(new ChColorAsset);
+  col->SetColor(ChColor(0.2f, 0.2f, 0.6f));
+  link->AddAsset(col);
+}
+
 
 void ChMultiLink::AddVisualizationSpindle(ChSharedBodyPtr spindle,
                                                double          radius,

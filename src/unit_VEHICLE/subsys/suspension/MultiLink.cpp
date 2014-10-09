@@ -68,6 +68,7 @@ MultiLink::MultiLink(const rapidjson::Document& d,
 
 void MultiLink::Create(const rapidjson::Document& d)
 {
+
   // Read top-level data
   assert(d.HasMember("Type"));
   assert(d.HasMember("Template"));
@@ -94,29 +95,43 @@ void MultiLink::Create(const rapidjson::Document& d)
   m_uprightInertia = loadVector(d["Upright"]["Inertia"]);
   m_uprightRadius = d["Upright"]["Radius"].GetDouble();
 
-  // Read UCA data
-  assert(d.HasMember("Upper Control Arm"));
-  assert(d["Upper Control Arm"].IsObject());
+  // Read Upper Arm data
+  assert(d.HasMember("Upper Arm"));
+  assert(d["Upper Arm"].IsObject());
 
-  m_UCAMass = d["Upper Control Arm"]["Mass"].GetDouble();
-  m_points[UCA_CM] = loadVector(d["Upper Control Arm"]["COM"]);
-  m_UCAInertia = loadVector(d["Upper Control Arm"]["Inertia"]);
-  m_UCARadius = d["Upper Control Arm"]["Radius"].GetDouble();
-  m_points[UCA_F] = loadVector(d["Upper Control Arm"]["Location Chassis Front"]);
-  m_points[UCA_B] = loadVector(d["Upper Control Arm"]["Location Chassis Back"]);
-  m_points[UCA_U] = loadVector(d["Upper Control Arm"]["Location Upright"]);
+  m_upperArmMass = d["Upper Arm"]["Mass"].GetDouble();
+  m_points[UA_CM] = loadVector(d["Upper Arm"]["COM"]);
+  m_upperArmInertia = loadVector(d["Upper Arm"]["Inertia"]);
+  m_upperArmRadius = d["Upper Arm"]["Radius"].GetDouble();
+  m_points[UA_F] = loadVector(d["Upper Arm"]["Location Chassis Front"]);
+  m_points[UA_B] = loadVector(d["Upper Arm"]["Location Chassis Back"]);
+  m_points[UA_U] = loadVector(d["Upper Arm"]["Location Upright"]);
 
-  // Read LCA data
-  assert(d.HasMember("Lower Control Arm"));
-  assert(d["Lower Control Arm"].IsObject());
+  // Read Track Rod data
+  assert(d.HasMember("Track Rod"));
+  assert(d["Track Rod"].IsObject());
 
-  m_LCAMass = d["Lower Control Arm"]["Mass"].GetDouble();
-  m_points[LCA_CM] = loadVector(d["Lower Control Arm"]["COM"]);
-  m_LCAInertia = loadVector(d["Lower Control Arm"]["Inertia"]);
-  m_LCARadius = d["Lower Control Arm"]["Radius"].GetDouble();
-  m_points[LCA_F] = loadVector(d["Lower Control Arm"]["Location Chassis Front"]);
-  m_points[LCA_B] = loadVector(d["Lower Control Arm"]["Location Chassis Back"]);
-  m_points[LCA_U] = loadVector(d["Lower Control Arm"]["Location Upright"]);
+  m_trackRodMass = d["Track Rod"]["Mass"].GetDouble();
+  m_points[TR_CM] = loadVector(d["Track Rod"]["COM"]);
+  m_trackRodInertia = loadVector(d["Track Rod"]["Inertia"]);
+  m_trackRodRadius = d["Track Rod"]["Radius"].GetDouble();
+  m_points[TR_C] = loadVector(d["Track Rod"]["Location Chassis"]);
+  m_points[TR_U] = loadVector(d["Track Rod"]["Location Upright"]);
+  m_directions[UNIV_AXIS_LINK_TR] = loadVector(d["Track Rod"]["Universal Joint Axis Link"]);
+  m_directions[UNIV_AXIS_CHASSIS_TR] = loadVector(d["Track Rod"]["Universal Joint Axis Chassis"]);
+
+  // Read Trailing Link data
+  assert(d.HasMember("Trailing Link"));
+  assert(d["Trailing Link"].IsObject());
+
+  m_trailingLinkMass = d["Trailing Link"]["Mass"].GetDouble();
+  m_points[TL_CM] = loadVector(d["Trailing Link"]["COM"]);
+  m_trailingLinkInertia = loadVector(d["Trailing Link"]["Inertia"]);
+  m_trailingLinkRadius = d["Trailing Link"]["Radius"].GetDouble();
+  m_points[TL_C] = loadVector(d["Trailing Link"]["Location Chassis"]);
+  m_points[TL_U] = loadVector(d["Trailing Link"]["Location Upright"]);
+  m_directions[UNIV_AXIS_LINK_TL] = loadVector(d["Trailing Link"]["Universal Joint Axis Link"]);
+  m_directions[UNIV_AXIS_CHASSIS_TL] = loadVector(d["Trailing Link"]["Universal Joint Axis Chassis"]);
 
   // Read Tierod data
   assert(d.HasMember("Tierod"));
@@ -130,7 +145,7 @@ void MultiLink::Create(const rapidjson::Document& d)
   assert(d["Spring"].IsObject());
 
   m_points[SPRING_C] = loadVector(d["Spring"]["Location Chassis"]);
-  m_points[SPRING_A] = loadVector(d["Spring"]["Location Arm"]);
+  m_points[SPRING_L] = loadVector(d["Spring"]["Location Link"]);
   m_springCoefficient = d["Spring"]["Spring Coefficient"].GetDouble();
   m_springRestLength = d["Spring"]["Free Length"].GetDouble();
 
@@ -139,7 +154,7 @@ void MultiLink::Create(const rapidjson::Document& d)
   assert(d["Shock"].IsObject());
 
   m_points[SHOCK_C] = loadVector(d["Shock"]["Location Chassis"]);
-  m_points[SHOCK_A] = loadVector(d["Shock"]["Location Arm"]);
+  m_points[SHOCK_L] = loadVector(d["Shock"]["Location Link"]);
   m_dampingCoefficient = d["Shock"]["Damping Coefficient"].GetDouble();
 
   // Read axle inertia

@@ -118,42 +118,60 @@ protected:
   enum PointId {
     SPINDLE,    ///< spindle location
     UPRIGHT,    ///< upright location
-    UCA_F,      ///< upper control arm, chassis front
-    UCA_B,      ///< upper control arm, chassis back
-    UCA_U,      ///< upper control arm, upright
-    UCA_CM,     ///< upper control arm, center of mass
-    LCA_F,      ///< lower control arm, chassis front
-    LCA_B,      ///< lower control arm, chassis back
-    LCA_U,      ///< lower control arm, upright
-    LCA_CM,     ///< lower control arm, center of mass
+    UA_F,       ///< upper arm, chassis front
+    UA_B,       ///< upper arm, chassis back
+    UA_U,       ///< upper arm, upright
+    UA_CM,      ///< upper arm, center of mass
+    TR_C,       ///< track rod, chassis
+    TR_U,       ///< track rod, upright
+    TR_CM,      ///< track rod, center of mass
+    TL_C,       ///< trailing link, chassis
+    TL_U,       ///< trailing link, upright
+    TL_CM,      ///< trailing link, center of mass
     SHOCK_C,    ///< shock, chassis
-    SHOCK_A,    ///< shock, lower control arm
+    SHOCK_L,    ///< shock, trailing link
     SPRING_C,   ///< spring, chassis
-    SPRING_A,   ///< spring, lower control arm
+    SPRING_L,   ///< spring, trailing link
     TIEROD_C,   ///< tierod, chassis
     TIEROD_U,   ///< tierod, upright
     NUM_POINTS
+  };
+
+  /// Identifiers for the various vectors.
+  enum DirectionId {
+    UNIV_AXIS_LINK_TL,     ///< universal joint (trailing link, link side)
+    UNIV_AXIS_CHASSIS_TL,  ///< universal joint (trailing link, chassis side)
+    UNIV_AXIS_LINK_TR,     ///< universal joint (track rod, link side)
+    UNIV_AXIS_CHASSIS_TR,  ///< universal joint (track rod, chassis side)
+    NUM_DIRS
   };
 
   /// Return the location of the specified hardpoint.
   /// The returned location must be expressed in the suspension reference frame.
   virtual const ChVector<> getLocation(PointId which) = 0;
 
+  /// Return the vector of the specified direction.
+  virtual const ChVector<> getDirection(DirectionId which) = 0;
+
   /// Return the mass of the spindle body.
   virtual double getSpindleMass() const = 0;
-  /// Return the mass of the upper control arm body.
-  virtual double getUCAMass() const = 0;
-  /// Return the mass of the lower control body.
-  virtual double getLCAMass() const = 0;
+  /// Return the mass of the upper arm body.
+  virtual double getUpperArmMass() const = 0;
+  /// Return the mass of the track rod body.
+  virtual double getTrackRodMass() const = 0;
+  /// Return the mass of the trailing link body.
+  virtual double getTrailingLinkMass() const = 0;
   /// Return the mass of the upright body.
   virtual double getUprightMass() const = 0;
 
   /// Return the moments of inertia of the spindle body.
   virtual const ChVector<>& getSpindleInertia() const = 0;
-  /// Return the moments of inertia of the upper control arm body.
-  virtual const ChVector<>& getUCAInertia() const = 0;
-  /// Return the moments of inertia of the lower control arm body.
-  virtual const ChVector<>& getLCAInertia() const = 0;
+  /// Return the moments of inertia of the upper arm body.
+  virtual const ChVector<>& getUpperArmInertia() const = 0;
+  /// Return the moments of inertia of the track rod body.
+  virtual const ChVector<>& getTrackRodInertia() const = 0;
+  /// Return the moments of inertia of the trailing link body.
+  virtual const ChVector<>& getTrailingLinkInertia() const = 0;
   /// Return the moments of inertia of the upright body.
   virtual const ChVector<>& getUprightInertia() const = 0;
 
@@ -164,10 +182,12 @@ protected:
   virtual double getSpindleRadius() const = 0;
   /// Return the width of the spindle body (visualization only).
   virtual double getSpindleWidth() const = 0;
-  /// Return the radius of the upper control arm body (visualization only).
-  virtual double getUCARadius() const = 0;
-  /// Return the radius of the lower control arm body (visualization only).
-  virtual double getLCARadius() const = 0;
+  /// Return the radius of the upper arm body (visualization only).
+  virtual double getUpperArmRadius() const = 0;
+  /// Return the radius of the track rod body (visualization only).
+  virtual double getTrackRodRadius() const = 0;
+  /// Return the radius of the trailing link body (visualization only).
+  virtual double getTrailingLinkRadius() const = 0;
   /// Return the radius of the upright body (visualization only).
   virtual double getUprightRadius() const = 0;
 
@@ -194,14 +214,17 @@ protected:
   virtual ChSpringForceCallback* getShockForceCallback()  const { return NULL; }
 
   ChSharedBodyPtr                   m_upright[2];      ///< handles to the upright bodies (left/right)
-  ChSharedBodyPtr                   m_UCA[2];          ///< handles to the upper control arm bodies (left/right)
-  ChSharedBodyPtr                   m_LCA[2];          ///< handles to the lower control arm bodies (left/right)
+  ChSharedBodyPtr                   m_upperArm[2];     ///< handles to the upper arm bodies (left/right)
+  ChSharedBodyPtr                   m_trackRod[2];     ///< handles to the track arm bodies (left/right)
+  ChSharedBodyPtr                   m_trailingLink[2]; ///< handles to the trailing link bodies (left/right)
 
-  ChSharedPtr<ChLinkLockRevolute>   m_revoluteUCA[2];  ///< handles to the chassis-UCA revolute joints (left/right)
-  ChSharedPtr<ChLinkLockSpherical>  m_sphericalUCA[2]; ///< handles to the upright-UCA spherical joints (left/right)
-  ChSharedPtr<ChLinkLockRevolute>   m_revoluteLCA[2];  ///< handles to the chassis-LCA revolute joints (left/right)
-  ChSharedPtr<ChLinkLockSpherical>  m_sphericalLCA[2]; ///< handles to the upright-LCA spherical joints (left/right)
-  ChSharedPtr<ChLinkDistance>       m_distTierod[2];   ///< handles to the tierod distance constraints (left/right)
+  ChSharedPtr<ChLinkLockRevolute>   m_revoluteUA[2];          ///< handles to the chassis-UA revolute joints (left/right)
+  ChSharedPtr<ChLinkLockSpherical>  m_sphericalUA[2];         ///< handles to the upright-UA spherical joints (left/right)
+  ChSharedPtr<ChLinkLockUniversal>  m_universalTRChassis[2];  ///< handles to the chassis-track rod universal joints (left/right)
+  ChSharedPtr<ChLinkLockSpherical>  m_sphericalTRUpright[2];  ///< handles to the upright-track rod spherical joints (left/right)
+  ChSharedPtr<ChLinkLockUniversal>  m_universalTLChassis[2];  ///< handles to the chassis-trailing link universal joints (left/right)
+  ChSharedPtr<ChLinkLockSpherical>  m_sphericalTLUpright[2];  ///< handles to the upright-trailing link spherical joints (left/right)
+  ChSharedPtr<ChLinkDistance>       m_distTierod[2];          ///< handles to the tierod distance constraints (left/right)
 
   bool                              m_nonlinearShock;  ///< true if using a callback function to calculate shock forces.
   bool                              m_nonlinearSpring; ///< true if using a callback function to calculate spring forces.
@@ -219,21 +242,33 @@ private:
   void InitializeSide(ChVehicleSide                   side,
                       ChSharedPtr<ChBodyAuxRef>       chassis,
                       ChSharedPtr<ChBody>             tierod_body,
-                      const std::vector<ChVector<> >& points);
+                      const std::vector<ChVector<> >& points,
+                      const std::vector<ChVector<> >& dirs);
 
-  static void AddVisualizationControlArm(ChSharedBodyPtr    arm,
+  static void AddVisualizationUpperArm(ChSharedBodyPtr    arm,
                                          const ChVector<>&  pt_F,
                                          const ChVector<>&  pt_B,
                                          const ChVector<>&  pt_U,
                                          double             radius);
+  static void AddVisualizationTrackRod(ChSharedBodyPtr    rod,
+                                         const ChVector<>&  pt_C,
+                                         const ChVector<>&  pt_U,
+                                         double             radius);
+  static void AddVisualizationTrailingLink(ChSharedBodyPtr    link,
+                                         const ChVector<>&  pt_C,
+                                         const ChVector<>&  pt_S,
+                                         const ChVector<>&  pt_U,
+                                         double             radius);
   static void AddVisualizationUpright(ChSharedBodyPtr    upright,
-                                      const ChVector<>&  pt_U,
-                                      const ChVector<>&  pt_L,
-                                      const ChVector<>&  pt_T,
-                                      double             radius);
+                                         const ChVector<>&  pt_UA,
+                                         const ChVector<>&  pt_TR,
+                                         const ChVector<>&  pt_TL,
+                                         const ChVector<>&  pt_T,
+                                         const ChVector<>&  pt_U,
+                                         double             radius);
   static void AddVisualizationSpindle(ChSharedBodyPtr spindle,
-                                      double          radius,
-                                      double          width);
+                                         double          radius,
+                                         double          width);
 
   static const std::string  m_pointNames[NUM_POINTS];
 };

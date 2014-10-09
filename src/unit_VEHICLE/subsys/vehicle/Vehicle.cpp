@@ -29,6 +29,7 @@
 #include "subsys/suspension/DoubleWishbone.h"
 #include "subsys/suspension/DoubleWishboneReduced.h"
 #include "subsys/suspension/SolidAxle.h"
+#include "subsys/suspension/MultiLink.h"
 
 #include "subsys/steering/PitmanArm.h"
 #include "subsys/steering/RackPinion.h"
@@ -175,6 +176,10 @@ void Vehicle::LoadSuspension(const std::string& filename,
   else if (subtype.compare("SolidAxle") == 0)
   {
     m_suspensions[axle] = ChSharedPtr<ChSuspension>(new SolidAxle(d, driven));
+  }
+  else if (subtype.compare("MultiLink") == 0)
+  {
+    m_suspensions[axle] = ChSharedPtr<ChSuspension>(new MultiLink(d, driven));
   }
 }
 
