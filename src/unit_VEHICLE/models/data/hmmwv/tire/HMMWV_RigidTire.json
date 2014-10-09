@@ -4,6 +4,6 @@
   "Template":                   "RigidTire",
 
   "Radius":                     0.4699,
-  "Inertia":                    0.254,
+  "Width":                      0.254,
   "Coefficient of Friction":    0.7
 }
