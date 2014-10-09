@@ -362,7 +362,7 @@ void ChPacejkaTire::Advance(double step)
   {
     // 1 of 2 ways to deal with user input time step increment
 
-    /*
+    
     // 1) ...
     // a) step <= m_step_size, so integrate using input step
     // b) step > m_step_size, use m_step_size until step <= m_step_size
@@ -374,8 +374,10 @@ void ChPacejkaTire::Advance(double step)
     }
     // take one final step to reach the specified time.
     advance_slip_transient(remaining_time);
-    */
+    
 
+    /*
+    
     // ... or, 2)
     // assume input step is smaller than it has to be. Then, take x steps
     // until actually re-calculating reactions.
@@ -399,6 +401,7 @@ void ChPacejkaTire::Advance(double step)
     } else {
       return;
     }
+    */
 
   }
 
