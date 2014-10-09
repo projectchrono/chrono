@@ -1984,7 +1984,7 @@ int main() {
 
 		flexParams.E = 2.0e5;
 		flexParams.r = paramsH.HSML * paramsH.MULT_INITSPACE * (paramsH.NUM_BCE_LAYERS - 1);
-		flexParams.rho = 1050;//7200;
+		flexParams.rho = 1000;//7200;
 		flexParams.ne = 4;
 		flexParams.A = PI * pow(flexParams.r, 2.0f);
 		flexParams.I = .25 * PI * pow(flexParams.r, 4.0f);
