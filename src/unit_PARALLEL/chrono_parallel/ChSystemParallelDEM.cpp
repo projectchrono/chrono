@@ -18,6 +18,8 @@ ChSystemParallelDEM::ChSystemParallelDEM(unsigned int                       max_
 
   ((ChCollisionSystemParallel *) collision_system)->SetCollisionEnvelope(0);
 
+  //Set this so that the CD can check what type of system it is (needed for narrowphase)
+  data_manager->settings.system_type = SYSTEM_DEM;
   data_manager->system_timer.AddTimer("ChLcpSolverParallelDEM_ProcessContact");
 }
 

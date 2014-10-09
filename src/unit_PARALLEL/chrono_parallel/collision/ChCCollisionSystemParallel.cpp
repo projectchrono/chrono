@@ -17,7 +17,7 @@ ChCollisionSystemParallel::ChCollisionSystemParallel() {
    data_container = 0;
    // Default broadphase and narrowphase processing.
    broadphase = new ChCBroadphase;
-   narrowphase = new ChCNarrowphaseMPR;
+   narrowphase = new ChCNarrowphaseDispatch;
 }
 
 ChCollisionSystemParallel::~ChCollisionSystemParallel() {
@@ -98,12 +98,11 @@ void ChCollisionSystemParallel::Run() {
                                data_container->host_data.aabb_rigid);
 
    //aabb_generator.GenerateAABBFluid(data_container->host_data.fluid_pos, data_container->fluid_rad, data_container->host_data.aabb_fluid);
-
+   broadphase->setBinsPerAxis(data_container->settings.collision.bins_per_axis);
    broadphase->detectPossibleCollisions(data_container->host_data.aabb_rigid, data_container->host_data.fam_rigid, data_container->host_data.pair_rigid_rigid);
    data_container->system_timer.stop("collision_broad");
 
    data_container->system_timer.start("collision_narrow");
-   narrowphase->SetCollisionEnvelope(data_container->settings.collision.collision_envelope);
    narrowphase->Process(data_container);
    data_container->system_timer.stop("collision_narrow");
 

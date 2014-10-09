@@ -237,9 +237,77 @@ static inline M33 Transpose(const M33 &A) {
 }
 
 static inline std::ostream &operator<<(std::ostream &out,
-                                  const M33 &a) {
+                                       const M33 &a) {
    out << a.U << a.V << a.W << std::endl;
    return out;
+}
+
+static inline real4 GetQuat(M33 A) {
+   real4 q;
+   real s, tr;
+   real half = (real) 0.5;
+
+   // for speed reasons: ..
+   real m00 = A.U.x;
+   real m01 = A.U.y;
+   real m02 = A.U.z;
+   real m10 = A.V.x;
+   real m11 = A.V.y;
+   real m12 = A.V.z;
+   real m20 = A.W.x;
+   real m21 = A.W.y;
+   real m22 = A.W.z;
+
+   tr = m00 + m11 + m22;     // diag sum
+
+   if (tr >= 0) {
+      s = sqrt(tr + 1);
+      q.w = half * s;
+      s = half / s;
+      q.x = (m21 - m12) * s;
+      q.y = (m02 - m20) * s;
+      q.z = (m10 - m01) * s;
+   } else {
+      int i = 0;
+
+      if (m11 > m00) {
+         i = 1;
+         if (m22 > m11)
+            i = 2;
+      } else {
+         if (m22 > m00)
+            i = 2;
+      }
+
+      switch (i) {
+         case 0:
+            s = sqrt(m00 - m11 - m22 + 1);
+            q.x = half * s;
+            s = half / s;
+            q.y = (m01 + m10) * s;
+            q.z = (m20 + m02) * s;
+            q.w = (m21 - m12) * s;
+            break;
+         case 1:
+            s = sqrt(m11 - m22 - m00 + 1);
+            q.y = half * s;
+            s = half / s;
+            q.z = (m12 + m21) * s;
+            q.x = (m01 + m10) * s;
+            q.w = (m02 - m20) * s;
+            break;
+         case 2:
+            s = sqrt(m22 - m00 - m11 + 1);
+            q.z = half * s;
+            s = half / s;
+            q.x = (m20 + m02) * s;
+            q.y = (m12 + m21) * s;
+            q.w = (m10 - m01) * s;
+            break;
+      }
+   }
+
+   return q;
 }
 
 //[U.x,V.x,W.x]

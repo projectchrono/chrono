@@ -67,8 +67,6 @@ CH_RTTI(ChSystemParallel, ChSystem)
    virtual void LoadMaterialSurfaceData(ChSharedPtr<ChBody> newbody) = 0;
    virtual void ChangeCollisionSystem(collision::ChCollisionSystem *newcollsystem);
 
-   void ChangeCollisionNarrowphase(NARROWPHASETYPE type);
-
    virtual void PrintStepStats() {
       data_manager->system_timer.PrintReport();
    }

@@ -7,27 +7,16 @@
 namespace chrono {
 namespace collision {
 
-
-class CH_PARALLEL_API ChCNarrowphase {
-public:
-	         ChCNarrowphase() :  total_possible_contacts(0) {}
-	virtual ~ChCNarrowphase() {}
-
-	virtual void Process(ChParallelDataManager* data_container) = 0;
-	virtual void Update(ChParallelDataManager* data_container) = 0;
-
-	void SetCollisionEnvelope(const real &envelope) {collision_envelope = envelope;}
-	real GetCollisionEnvelope()                     {return collision_envelope;}
-
-protected:
-	uint total_possible_contacts;
-	real collision_envelope;
+struct ConvexShape {
+   shape_type type;  //type of shape
+   real3 A;  //location
+   real3 B;  //dimensions
+   real3 C;  //extra
+   quaternion R;  //rotation
 };
 
-
-} // end namespace collision
-} // end namespace chrono
-
+}  // end namespace collision
+}  // end namespace chrono
 
 #endif
 

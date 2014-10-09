@@ -38,94 +38,87 @@
 namespace chrono {
 namespace collision {
 
+static const real edge_radius = 0.1;
 
-class CH_PARALLEL_API ChCNarrowphaseR : public ChCNarrowphase {
-public:
-  ChCNarrowphaseR() {}
-
-  virtual void Process(ChParallelDataManager* data_container);
-
-  virtual void Update(ChParallelDataManager* data_container)
-  {
-    //// TODO
-  }
-
-  // Primitive collision functions
-  static __host__ __device__
+// Primitive collision functions
+   __host__ __device__
   bool sphere_sphere(const real3& pos1, const real& radius1,
                      const real3& pos2, const real& radius2,
                      real3& norm, real& depth,
                      real3& pt1, real3& pt2,
                      real& eff_radius);
 
-  static __host__ __device__
+   __host__ __device__
   bool capsule_sphere(const real3& pos1, const real4& rot1, const real& radius1, const real& hlen1,
                       const real3& pos2, const real& radius2,
                       real3& norm, real& depth,
                       real3& pt1, real3& pt2,
                       real& eff_radius);
 
-  static __host__ __device__
+   __host__ __device__
   bool cylinder_sphere(const real3& pos1, const real4& rot1, const real& radius1, const real& hlen1,
                        const real3& pos2, const real& radius2,
                        real3& norm, real& depth,
                        real3& pt1, real3& pt2,
                        real& eff_radius);
 
-  static __host__ __device__
+   __host__ __device__
   bool roundedcyl_sphere(const real3& pos1, const real4& rot1, const real& radius1, const real& hlen1, const real& srad1,
                          const real3& pos2, const real& radius2,
                          real3& norm, real& depth,
                          real3& pt1, real3& pt2,
                          real& eff_radius);
 
-  static __host__ __device__
+   __host__ __device__
   bool box_sphere(const real3& pos1, const real4& rot1, const real3& hdims1,
                   const real3& pos2, const real& radius2,
                   real3& norm, real& depth,
                   real3& pt1, real3& pt2,
                   real& eff_radius);
 
-  static __host__ __device__
+   __host__ __device__
   bool face_sphere(const real3& A1, const real3& B1, const real3& C1,
                    const real3& pos2, const real& radius2,
                    real3& norm, real& depth,
                    real3& pt1, real3& pt2,
                    real& eff_radius);
 
-  static __host__ __device__
+   __host__ __device__
   int capsule_capsule(const real3& pos1, const real4& rot1, const real& radius1, const real& hlen1,
                       const real3& pos2, const real4& rot2, const real& radius2, const real& hlen2,
                       real3* norm, real* depth,
                       real3* pt1, real3* pt2,
                       real* eff_radius);
 
-  static __host__ __device__
+   __host__ __device__
   int box_capsule(const real3& pos1, const real4& rot1, const real3& hdims1,
                   const real3& pos2, const real4& rot2, const real& radius2, const real& hlen2,
                   real3* norm, real* depth,
                   real3* pt1, real3* pt2,
                   real* eff_radius);
 
-  static __host__ __device__
+   __host__ __device__
   int box_box(const real3& pos1, const real4& rot1, const real3& hdims1,
               const real3& pos2, const real4& rot2, const real3& hdims2,
               real3* norm, real* depth,
               real3* pt1, real3* pt2,
               real* eff_radius);
 
-  // Implicit radius of curvature for edge contact.
-  static const real edge_radius;
 
-private:
-  void host_process(ChParallelDataManager* data_container,
-                    uint                   num_potentialCollisions,
-                    custom_vector<uint>&   contact_index,
-                    custom_vector<uint>&   contact_flag);
-  void host_count(ChParallelDataManager* data_container,
-                    uint                   num_potentialCollisions,
-                    custom_vector<uint>&   max_contacts);
-};
+  CH_PARALLEL_API
+  bool RCollision(const uint& icoll,
+                  const ConvexShape &shapeA,
+                  const ConvexShape &shapeB,
+                  const int& body1,
+                  const int& body2,
+                  uint* ct_flag,
+                  real3* ct_norm,
+                  real3* ct_pt1,
+                  real3* ct_pt2,
+                  real* ct_depth,
+                  real* ct_eff_rad,
+                  int2* ct_body_ids,
+                  int & nC);
 
 
 } // end namespace collision

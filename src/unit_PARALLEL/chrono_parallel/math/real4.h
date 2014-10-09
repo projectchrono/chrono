@@ -232,7 +232,7 @@ static inline real4 operator ~(real4 const & a) {
 }
 
 static inline std::ostream &operator<<(std::ostream &out,
-                                  const real4 &a) {
+                                       const real4 &a) {
    out << "[" << a.w << ", " << a.x << ", " << a.y << ", " << a.z << "]" << std::endl;
    return out;
 }
@@ -374,6 +374,12 @@ static inline real3 quatRotate(const real3 &v,
              ((e1e3 - e0e2) * 2) * v.x + ((e2e3 + e0e1) * 2) * v.y + ((e0e0 + e3e3) * 2 - 1) * v.z);
 #endif
 }
+
+static inline real3 quatRotateT(const real3 &v,
+                                const quaternion &q) {
+   return quatRotate(v, ~q);
+}
+
 static inline real3 quatRotateMat(const real3 &v,
                                   const quaternion &q) {
 

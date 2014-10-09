@@ -10,6 +10,9 @@ ChSystemParallelDVI::ChSystemParallelDVI(unsigned int max_objects)
    ((ChLcpSystemDescriptorParallelDVI*) LCP_descriptor)->data_container = data_manager;
    ((ChLcpSolverParallel*) LCP_solver_speed)->data_container = data_manager;
 
+   //Set this so that the CD can check what type of system it is (needed for narrowphase)
+   data_manager->settings.system_type = SYSTEM_DVI;
+
    data_manager->system_timer.AddTimer("ChConstraintRigidRigid_shurA_normal");
    data_manager->system_timer.AddTimer("ChConstraintRigidRigid_shurA_sliding");
    data_manager->system_timer.AddTimer("ChConstraintRigidRigid_shurA_spinning");

@@ -26,7 +26,6 @@ ChSystemParallel::ChSystemParallel(unsigned int max_objects)
    detect_optimal_bins = false;
    current_threads = 2;
 
-
    data_manager->system_timer.AddTimer("step");
    data_manager->system_timer.AddTimer("update");
    data_manager->system_timer.AddTimer("collision");
@@ -323,11 +322,11 @@ void ChSystemParallel::RecomputeThreads() {
 void ChSystemParallel::PerturbBins(bool increase,
                                    int number) {
 
-  ChCollisionSystemParallel* coll_sys = (ChCollisionSystemParallel *) collision_system;
+   ChCollisionSystemParallel* coll_sys = (ChCollisionSystemParallel *) collision_system;
 
-  int3 grid_size = coll_sys->broadphase->getBinsPerAxis();
+   int3 grid_size = coll_sys->broadphase->getBinsPerAxis();
 #if PRINT_LEVEL==1
-  cout << "initial: " << grid_size.x << " " << grid_size.y << " " << grid_size.z << endl;
+   cout << "initial: " << grid_size.x << " " << grid_size.y << " " << grid_size.z << endl;
 #endif
 
    if (increase) {
@@ -339,9 +338,12 @@ void ChSystemParallel::PerturbBins(bool increase,
       grid_size.y = grid_size.y - number;
       grid_size.z = grid_size.z - number;
 
-      if (grid_size.x < 2)  grid_size.x = 2;
-      if (grid_size.y < 2)  grid_size.y = 2;
-      if (grid_size.z < 2)  grid_size.z = 2;
+      if (grid_size.x < 2)
+         grid_size.x = 2;
+      if (grid_size.y < 2)
+         grid_size.y = 2;
+      if (grid_size.z < 2)
+         grid_size.z = 2;
    }
 
 #if PRINT_LEVEL==1
@@ -353,30 +355,31 @@ void ChSystemParallel::PerturbBins(bool increase,
 }
 
 void ChSystemParallel::RecomputeBins() {
-  // Do nothing if the current collision system does not support this feature
-  if (!dynamic_cast<ChCollisionSystemParallel*>(collision_system))
-    return;
-
+   // Do nothing if the current collision system does not support this feature
+   if (!dynamic_cast<ChCollisionSystemParallel*>(collision_system))
+      return;
+   //Insert the current collision time into a list
    cd_accumulator.insert(cd_accumulator.begin(), timer_collision);
+   //remove the last one from the list
    cd_accumulator.pop_back();
-
+   //find the sum of all elements
    double sum_of_elems_cd = std::accumulate(cd_accumulator.begin(), cd_accumulator.end(), 0.0);
+   //and then get the average time taken;
+   double average_time = sum_of_elems_cd / 10.0;
 
    //if 0 increase and then measure
    //if 1 decrease and then measure
-   if (frame_bins == 25 && detect_optimal_bins == 0) {
+   if (frame_bins == data_manager->settings.bin_tuning_frequency && detect_optimal_bins == 0) {
       frame_bins = 0;
       detect_optimal_bins = 1;
-      old_timer_cd = sum_of_elems_cd / 10.0;
+      old_timer_cd = average_time;
 
       PerturbBins(true);
 #if PRINT_LEVEL==1
       cout << "current bins increased" << endl;
 #endif
    } else if (frame_bins == 10 && detect_optimal_bins == 1) {
-      double current_timer = sum_of_elems_cd / 10.0;
-      //cout << old_timer_cd << " " << current_timer << endl;
-
+      double current_timer = average_time;
       if (old_timer_cd < current_timer) {
          PerturbBins(false);
 #if PRINT_LEVEL==1
@@ -386,26 +389,22 @@ void ChSystemParallel::RecomputeBins() {
       detect_optimal_bins = 2;
       frame_bins = 0;
    }
-
-   if (frame_bins == 25 && detect_optimal_bins == 2) {
+   if (frame_bins == data_manager->settings.bin_tuning_frequency && detect_optimal_bins == 2) {
       frame_bins = 0;
       detect_optimal_bins = 3;
-      old_timer_cd = sum_of_elems_cd / 10.0;
+      old_timer_cd = average_time;
       PerturbBins(false);
 #if PRINT_LEVEL==1
       cout << "current bins decreased" << endl;
 #endif
    } else if (frame_bins == 10 && detect_optimal_bins == 3) {
-      double current_timer = sum_of_elems_cd / 10.0;
-      //cout << old_timer_cd << " " << current_timer << endl;
-
+      double current_timer = average_time;
       if (old_timer_cd < current_timer) {
          PerturbBins(true);
 #if PRINT_LEVEL==1
          cout << "current bins increased back" << endl;
 #endif
       }
-
       detect_optimal_bins = 0;
       frame_bins = 0;
    }
@@ -427,19 +426,4 @@ void ChSystemParallel::ChangeCollisionSystem(ChCollisionSystem *newcollsystem) {
       coll_sys->data_container = data_manager;
    }
 
-}
-
-
-void ChSystemParallel::ChangeCollisionNarrowphase(NARROWPHASETYPE type)
-{
-  if (ChCollisionSystemParallel* coll_sys = dynamic_cast<ChCollisionSystemParallel*>(collision_system)) {
-    switch (type) {
-    case NARROWPHASE_MPR:
-      coll_sys->ChangeNarrowphase(new ChCNarrowphaseMPR);
-      break;
-    case NARROWPHASE_R:
-      coll_sys->ChangeNarrowphase(new ChCNarrowphaseR);
-      break;
-    }
-  }
 }

@@ -27,7 +27,6 @@
 #include <blaze/math/CompressedMatrix.h>
 #include "parallel/ChOpenMP.h"
 
-
 using blaze::CompressedMatrix;
 namespace chrono {
 struct collision_settings {
@@ -36,7 +35,9 @@ struct collision_settings {
       min_body_per_bin = 25;
       use_aabb_active = 0;
       collision_envelope = 0;
-      bins_per_axis = I3(20,20,20);
+      bins_per_axis = I3(20, 20, 20);
+      narrowphase_algorithm = NARROWPHASE_HYBRID_MPR;
+      //edge_radius = 0.1;
    }
 
    //Collision variables
@@ -47,6 +48,8 @@ struct collision_settings {
    int max_body_per_bin;
    real3 aabb_min, aabb_max;
    int3 bins_per_axis;
+   NARROWPHASETYPE narrowphase_algorithm;
+   //real edge_radius;
 
 };
 
@@ -100,15 +103,17 @@ struct solver_settings {
 
 struct settings_container {
 
-   settings_container(){
+   settings_container() {
       min_threads = 1;
       max_threads = CHOMPfunctions::GetNumProcs();
       // Only perform thread tuning if max threads is greater than min_threads;
       // I don't really check to see if max_threads is > than min_threads
       // not sure if that is a huge issue
-      perform_thread_tuning = ((min_threads == max_threads) ? false: true);
+      perform_thread_tuning = ((min_threads == max_threads) ? false : true);
       perform_bin_tuning = true;
-
+      system_type = SYSTEM_DVI;
+      bin_perturb_size = 2; //increase or decrease the number of bins by 2
+      bin_tuning_frequency = 20; //bins will be tuned every 20 frames
    }
 
    //CD Settings
@@ -118,8 +123,11 @@ struct settings_container {
    //System Settings
    bool perform_thread_tuning;
    bool perform_bin_tuning;
+   int bin_perturb_size;
+   int bin_tuning_frequency;
    int min_threads;
    int max_threads;
+   SYSTEMTYPE system_type;
 
 };
 struct host_container {
