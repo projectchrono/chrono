@@ -33,9 +33,9 @@
 
   "Steering":
   {
-    "Input File":           "hmmwv/steering/HMMWV_PitmanArm.json",
-    "Location":             [1.24498, 0, 0.109322],
-    "Orientation":          [0.98699637, 0, 0.16074256, 0],
+    "Input File":           "hmmwv/steering/HMMWV_RackPinion.json",
+    "Location":             [1.6002, 0, -0.07],
+    "Orientation":          [1, 0, 0, 0],
     "Suspension Index":     0
   },
 
