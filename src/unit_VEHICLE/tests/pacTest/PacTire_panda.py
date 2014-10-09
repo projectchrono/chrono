@@ -38,6 +38,7 @@ class PacTire_panda:
         df = pd.read_csv(self._m_filename_SS, header=0, sep=',')    # index_col=0, 
         self._m_df = df
         
+    
     # @brief plot Forces, moments, pure slip vs. kappa
     def plot_kappa_FMpure(self,adams_Fx_tab_filename="none",adams_Mz_tab_filename="none"):
         # force v. kappa
@@ -117,8 +118,8 @@ class PacTire_panda:
     # @brief plot combined forces, moments vs. kappa
     def plot_combined_kappa(self, adams_Fx_tab_filename="none",adams_Fy_tab_filename="none",adams_Mz_tab_filename="none"):
         figF = plt.figure()
-        df_sy = pd.DataFrame(self._m_df, columns = ['kappa','Fxc','Fyc','Fz'])
-        axF = df_sy.plot(linewidth=1.5,x='kappa',y=['Fxc','Fyc','Fz'])
+        df_sy = pd.DataFrame(self._m_df, columns = ['kappa','Fxc','Fyc','m_Fz'])
+        axF = df_sy.plot(linewidth=1.5,x='kappa',y=['Fxc','Fyc'])   # ,'Fz'])
         # check to see if adams data is avaiable
         if( adams_Fx_tab_filename != "none"):
              # load in the adams junk data, Fx vs. kappa %
@@ -177,7 +178,7 @@ class PacTire_panda:
     def plot_combined_alpha(self,adams_Fx_tab_filename="none",adams_Fy_tab_filename="none",adams_Mz_tab_filename="none"):
         figF = plt.figure()
         df_sy = pd.DataFrame(self._m_df, columns = ['alpha','Fxc','Fyc','Fz'])
-        axF = df_sy.plot(linewidth=1.5,x='alpha',y=['Fxc','Fyc','Fz'])
+        axF = df_sy.plot(linewidth=1.5,x='alpha',y=['Fxc','Fyc'])   # ,'Fz'])
         # check to see if adams data is avaiable
         if( adams_Fx_tab_filename != "none"):
              # load in the adams junk data, Fx vs. kappa %

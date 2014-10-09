@@ -100,7 +100,7 @@ double render_step_size = 1.0 / FPS;   // FPS = 50
 const bool save_pactire_data = false;
 double pac_step_size = step_size;
 std::string pac_ofilename_base = "test_HMMWV9_pacTire";
-double pac_out_step_size = 0.01;
+double pac_out_step_size = 0.02;
 int pac_out_steps = (int)std::ceil(pac_out_step_size / step_size);
 
 // =============================================================================
@@ -409,7 +409,7 @@ int main(int argc, char* argv[])
       double avg_chrono_step_time = sum_sim_time / (double)step_number;
       double avg_ODE_time = tire_front_left.DynamicCastTo<ChPacejkaTire>()->get_average_ODE_time();
       double avg_advance_time = tire_front_left.DynamicCastTo<ChPacejkaTire>()->get_average_Advance_time();
-      GetLog() << " \n ///////////  average times, (time, fraction of total) \n chrono = " << avg_chrono_step_time
+      GetLog() << " \n ///////////  simtime = " << time << "\n timers, average (time, fraction of total) \n chrono = " << avg_chrono_step_time
         << "\n  ODE time = (" << avg_ODE_time <<", "<< avg_ODE_time /avg_chrono_step_time <<")" 
         << "\n Advance time = (" << avg_advance_time <<", "<< avg_advance_time / avg_chrono_step_time <<") \n";
     }
