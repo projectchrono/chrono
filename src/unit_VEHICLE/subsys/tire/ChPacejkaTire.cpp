@@ -677,12 +677,12 @@ void ChPacejkaTire::advance_slip_transient(double step_size)
 
   // Eq. 7.11, lateral force from wheel camber
   m_slip->Idv_gamma_dt = calc_ODE_RK_gamma(m_relaxation->C_Fgamma, m_relaxation->C_Falpha, m_relaxation->sigma_alpha,
-    V_cx, step_size, m_slip->gamma, m_slip->v_gamma);
+    V_cx, step_size, m_slip->gammaP, m_slip->v_gamma);
   m_slip->v_gamma += m_slip->Idv_gamma_dt;
 
   // Eq. 7.12, total spin, phi, including slip and camber
   m_slip->Idv_phi_dt = calc_ODE_RK_phi(m_relaxation->C_Fphi, m_relaxation->C_Falpha,
-    V_cx, m_slip->psi_dot, m_tireState.omega, m_slip->gamma, m_relaxation->sigma_alpha,
+    V_cx, m_slip->psi_dot, m_tireState.omega, m_slip->gammaP, m_relaxation->sigma_alpha,
     m_slip->v_phi, EPS_GAMMA, step_size);
   m_slip->v_phi += m_slip->Idv_phi_dt;
 
