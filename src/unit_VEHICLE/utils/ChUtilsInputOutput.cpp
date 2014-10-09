@@ -359,8 +359,8 @@ void WriteShapesPovray(ChSystem*          system,
     std::vector<ChBody*>::iterator ibody = system->Get_bodylist()->begin();
     for (; ibody != system->Get_bodylist()->end(); ++ibody)
     {
-      const Vector&     body_pos = (*ibody)->GetPos();
-      const Quaternion& body_rot = (*ibody)->GetRot();
+      const ChVector<>& body_pos = (*ibody)->GetFrame_REF_to_abs().GetPos();
+      const ChQuaternion<>& body_rot = (*ibody)->GetFrame_REF_to_abs().GetRot();
 
       csv << (*ibody)->GetIdentifier() << (*ibody)->IsActive() << body_pos << body_rot << std::endl;
 
@@ -374,9 +374,8 @@ void WriteShapesPovray(ChSystem*          system,
   std::vector<ChBody*>::iterator ibody = system->Get_bodylist()->begin();
   for (; ibody != system->Get_bodylist()->end(); ++ibody)
   {
-    const Vector&     body_pos = (*ibody)->GetPos();
-    const Quaternion& body_rot = (*ibody)->GetRot();
-    const Vector&     body_vel = (*ibody)->GetPos_dt();
+    const ChVector<>& body_pos = (*ibody)->GetFrame_REF_to_abs().GetPos();
+    const ChQuaternion<>& body_rot = (*ibody)->GetFrame_REF_to_abs().GetRot();
 
     std::vector<ChSharedPtr<ChAsset> >::iterator iasset = (*ibody)->GetAssets().begin();
     for (; iasset != (*ibody)->GetAssets().end(); ++iasset)
@@ -474,7 +473,23 @@ void WriteShapesPovray(ChSystem*          system,
       csv << type << frA_abs.GetPos() << std::endl;
       l_count++;
     }
+    else if (ChLinkLockUniversal* link = dynamic_cast<ChLinkLockUniversal*>(*ilink))
+    {
+      chrono::ChFrame<> frA_abs = *(link->GetMarker1()) >> *(link->GetBody1());
+      chrono::ChFrame<> frB_abs = *(link->GetMarker2()) >> *(link->GetBody2());
+
+      csv << type << frA_abs.GetPos() << frA_abs.GetA()->Get_A_Xaxis() << frA_abs.GetA()->Get_A_Yaxis() << std::endl;
+      l_count++;
+    }
     else if (ChLinkSpring* link = dynamic_cast<ChLinkSpring*>(*ilink))
+    {
+      chrono::ChFrame<> frA_abs = *(link->GetMarker1()) >> *(link->GetBody1());
+      chrono::ChFrame<> frB_abs = *(link->GetMarker2()) >> *(link->GetBody2());
+
+      csv << type << frA_abs.GetPos() << frB_abs.GetPos() << std::endl;
+      l_count++;
+    }
+    else if (ChLinkSpringCB* link = dynamic_cast<ChLinkSpringCB*>(*ilink))
     {
       chrono::ChFrame<> frA_abs = *(link->GetMarker1()) >> *(link->GetBody1());
       chrono::ChFrame<> frB_abs = *(link->GetMarker2()) >> *(link->GetBody2());
@@ -487,6 +502,15 @@ void WriteShapesPovray(ChSystem*          system,
       csv << type << link->GetEndPoint1Abs() << link->GetEndPoint2Abs() << std::endl;
       l_count++;
     }
+    else if (ChLinkEngine* link = dynamic_cast<ChLinkEngine*>(*ilink))
+    {
+      chrono::ChFrame<> frA_abs = *(link->GetMarker1()) >> *(link->GetBody1());
+      chrono::ChFrame<> frB_abs = *(link->GetMarker2()) >> *(link->GetBody2());
+
+      csv << type << frA_abs.GetPos() << frA_abs.GetA()->Get_A_Zaxis() << std::endl;
+      l_count++;
+    }
+
   }
 
   // Write the output file, including a first line with number of bodies, visual

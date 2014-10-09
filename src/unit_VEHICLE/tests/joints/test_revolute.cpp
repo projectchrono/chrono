@@ -25,6 +25,8 @@
 #include <ostream>
 #include <fstream>
 
+#include "core/ChFileutils.h"
+
 #include "physics/ChSystem.h"
 #include "physics/ChBody.h"
 
@@ -38,29 +40,93 @@ using namespace irr;
 
 // =============================================================================
 
-void TestRevolute(ChVector<> loc, ChQuaternion<> revAxisRot, double simTimeStep, std::string outputFilename, bool Animate)
+void WriteOutput(std::ofstream&                  outf,
+                 double                          time,
+                 ChSharedPtr<ChBody>             pendulum,
+                 ChSharedPtr<ChLinkLockRevolute> revoluteJoint)
+{
+  // Time elapsed
+  outf << time << "\t";
+
+  // Position of the Pendulum's CG in the Global Reference Frame
+  ChVector<> jointLoc = revoluteJoint->GetMarker1()->GetAbsCoord().pos;
+  ChVector<> position = pendulum->GetPos();
+  outf << position.x << "\t" << position.y << "\t" << position.z << "\t" << (position - jointLoc).Length() << "\t";
+
+  // Velocity of the Pendulum's CG in the Global Reference Frame
+  ChVector<> velocity = pendulum->GetPos_dt();
+  outf << velocity.x << "\t" << velocity.y << "\t" << velocity.z << "\t" << velocity.Length() << "\t";
+
+  // Acceleration of the Pendulum's CG in the Global Reference Frame
+  ChVector<> acceleration = pendulum->GetPos_dtdt();
+  outf << acceleration.x << "\t" << acceleration.y << "\t" << acceleration.z << "\t" << acceleration.Length() << "\t";
+
+  // Angular Position quaternion of the Pendulum with respect to the Global Reference Frame
+  ChQuaternion<> rot = pendulum->GetRot();
+  outf << rot.e0 << "\t" << rot.e1 << "\t" << rot.e2 << "\t" << rot.e3 << "\t";
+
+  // Angular Velocity of the Pendulum with respect to the Global Reference Frame
+  ChVector<> angVel = pendulum->GetWvel_par();
+  outf << angVel.x << "\t" << angVel.y << "\t" << angVel.z << "\t" << angVel.Length() << "\t";
+
+  // Angular Acceleration of the Pendulum with respect to the Global Reference Frame
+  ChVector<> angAccel = pendulum->GetWacc_par();
+  outf << angAccel.x << "\t" << angAccel.y << "\t" << angAccel.z << "\t" << angAccel.Length() << "\t";
+
+  // Reaction Force and Torque
+  // These are expressed in the link coordinate system. We convert them to
+  // the coordinate system of Body2 (in our case this is the ground).
+  ChCoordsys<> linkCoordsys = revoluteJoint->GetLinkRelativeCoords();
+  ChVector<> reactForce = revoluteJoint->Get_react_force();
+  ChVector<> reactForceGlobal = linkCoordsys.TransformDirectionLocalToParent(reactForce);
+  outf << reactForceGlobal.x << "\t" << reactForceGlobal.y << "\t" << reactForceGlobal.z << "\t" << reactForceGlobal.Length() << "\t";
+
+  ChVector<> reactTorque = revoluteJoint->Get_react_torque();
+  ChVector<> reactTorqueGlobal = linkCoordsys.TransformDirectionLocalToParent(reactTorque);
+  outf << reactTorqueGlobal.x << "\t" << reactTorqueGlobal.y << "\t" << reactTorqueGlobal.z << "\t" << reactTorqueGlobal.Length() << "\t";
+
+  // Conservation of Energy
+  // Translational Kinetic Energy (1/2*m*||v||^2)
+  // Rotational Kinetic Energy (1/2 w'*I*w)  ChMatrix33*vector is valid since [3x3]*[3x1] = [3x1]
+  // Delta Potential Energy (m*g*dz)
+  double g = pendulum->GetSystem()->Get_G_acc().z;
+  double mass = pendulum->GetMass();
+  ChMatrix33<> inertia = pendulum->GetInertia(); //3x3 Inertia Tensor in the local coordinate frame
+  ChVector<> angVelLoc = pendulum->GetWvel_loc();
+  double transKE = 0.5 * mass * velocity.Length2();
+  double rotKE = 0.5 * Vdot(angVelLoc, inertia * angVelLoc);
+  double deltaPE = mass * g * (position.z - jointLoc.z);
+  double totalKE = transKE + rotKE;
+  outf << totalKE << "\t" << transKE << "\t" << rotKE << "\t" << deltaPE << "\t" << std::endl;;
+}
+
+// =============================================================================
+
+void TestRevolute(const ChVector<>&     jointLoc,         // absolute location of joint
+                  const ChQuaternion<>& jointRot,         // orientation of joint
+                  double                simTimeStep,      // simulation time step
+                  double                outTimeStep,      // output time step
+                  const std::string&    outputFilename,   // output file name
+                  bool                  animate)          // if true, animate with Irrlich
 {
 
   //Settings
   //----------------------------------------------------------------------------
-  // There are no units in Chrono, so values must be consistant (MKS is used in this example)
+  // There are no units in Chrono, so values must be consistent
+  // (MKS is used in this example)
 
-  double mass = 1.0;                // mass of pendulum
-  double length = 4.0;              // length of pendulum
-  ChVector<> inertiaXX(1, 1, 1);    // mass moments of inertia of pendulum
+  double mass = 1.0;              // mass of pendulum
+  double length = 4.0;            // length of pendulum
+  ChVector<> inertiaXX(1, 1, 1);  // mass moments of inertia of pendulum (centroidal frame)
   double g = 9.80665;
 
-  double timeRecord = 5;            // Stop recording to the file after this much simulated time
-  double printTimeStep = 0.001;     // Write the output file at this simulation time step
-
-  SetChronoDataPath(CHRONO_DATA_DIR);
-
+  double timeRecord = 5;          // Stop recording to the file after this much simulated time
 
   // Create the mechanical system
   // ----------------------------
 
-  // 1- Create a ChronoENGINE physical system: all bodies and constraints
-  //    will be handled by this ChSystem object.
+  // Create a ChronoENGINE physical system: all bodies and constraints will be
+  // handled by this ChSystem object.
 
   ChSystem my_system;
   my_system.Set_G_acc(ChVector<>(0.0, 0.0, -g));
@@ -70,25 +136,26 @@ void TestRevolute(ChVector<> loc, ChQuaternion<> revAxisRot, double simTimeStep,
   my_system.SetIterLCPmaxItersStab(100); //Tasora stepper uses this, Anitescu does not
   my_system.SetLcpSolverType(ChSystem::LCP_ITERATIVE_SOR);
 
-  // 2- Create the rigid bodies of the system
+  // Create the ground body
 
-  // ..the ground
   ChSharedBodyPtr  ground(new ChBody);
   my_system.AddBody(ground);
   ground->SetBodyFixed(true);
   // Add some geometry to the ground body for visualizing the revolute joint
   ChSharedPtr<ChCylinderShape> cyl_g(new ChCylinderShape);
-  cyl_g->GetCylinderGeometry().p1 = loc + revAxisRot.Rotate(ChVector<>(0, 0, -0.2));
-  cyl_g->GetCylinderGeometry().p2 = loc + revAxisRot.Rotate(ChVector<>(0, 0, 0.2));
+  cyl_g->GetCylinderGeometry().p1 = jointLoc + jointRot.Rotate(ChVector<>(0, 0, -0.2));
+  cyl_g->GetCylinderGeometry().p2 = jointLoc + jointRot.Rotate(ChVector<>(0, 0, 0.2));
   cyl_g->GetCylinderGeometry().rad = 0.1;
   ground->AddAsset(cyl_g);
 
-  // ..the pendulum (Assumes the pendulum's CG is at half its length)
+  // Create the pendulum body, in an initial configuration at rest, aligned with
+  // the global X axis. The pendulum CG is assumed to be at half its length.
+
   ChSharedBodyPtr  pendulum(new ChBody);
   my_system.AddBody(pendulum);
-  pendulum->SetPos(loc + ChVector<>(length / 2, 0, 0));   // position of COG of pendulum in the Global Reference Frame
+  pendulum->SetPos(jointLoc + ChVector<>(length / 2, 0, 0));
   pendulum->SetMass(mass);
-  pendulum->SetInertiaXX(inertiaXX);   // Set the body's inertia about the CG in the Global Reference Frame 
+  pendulum->SetInertiaXX(inertiaXX);
   // Add some geometry to the pendulum for visualization
   ChSharedPtr<ChCylinderShape> cyl_p(new ChCylinderShape);
   cyl_p->GetCylinderGeometry().p1 = ChVector<>(-length / 2, 0, 0);
@@ -96,130 +163,37 @@ void TestRevolute(ChVector<> loc, ChQuaternion<> revAxisRot, double simTimeStep,
   cyl_p->GetCylinderGeometry().rad = 0.1;
   pendulum->AddAsset(cyl_p);
 
-  // 3- Create constraints: the mechanical joints between the rigid bodies.
+  // Create revolute joint between pendulum and ground at "loc" in the global
+  // reference frame. The revolute joint's axis of rotation will be the Z axis
+  // of the specified rotation matrix.
 
-  // .. a revolute joint between pendulum and ground at "loc" in the global reference frame with the applied rotation
   ChSharedPtr<ChLinkLockRevolute>  revoluteJoint(new ChLinkLockRevolute);
-  revoluteJoint->Initialize(pendulum, ground, ChCoordsys<>(loc, revAxisRot));
+  revoluteJoint->Initialize(pendulum, ground, ChCoordsys<>(jointLoc, jointRot));
   my_system.AddLink(revoluteJoint);
 
+  // Perform the simulation
+  // ----------------------
 
-  // Create the Irrlicht application for visualization
-  // -------------------------------------------------
-  ChIrrApp * application;
-  if(Animate){
-    application = new ChIrrApp(&my_system, L"ChLinkRevolute demo", core::dimension2d<u32>(800, 600), false, true);
+  if (animate)     //  ----  IRRLICHT ANIMATION
+  {
+    // Create the Irrlicht application for visualization
+    ChIrrApp * application = new ChIrrApp(&my_system, L"ChLinkRevolute demo", core::dimension2d<u32>(800, 600), false, true);
     application->AddTypicalLogo();
     application->AddTypicalSky();
     application->AddTypicalLights();
-    core::vector3df lookat((f32)loc.x, (f32)loc.y, (f32)loc.z);
+    core::vector3df lookat((f32)jointLoc.x, (f32)jointLoc.y, (f32)jointLoc.z);
     application->AddTypicalCamera(lookat + core::vector3df(0, 3, -6), lookat);
 
-    application->AssetBindAll();     //Now have the visulization tool (Irrlicht) create its geometry from the assets defined above
+    // Now have the visulization tool (Irrlicht) create its geometry from the
+    // assets defined above
+    application->AssetBindAll();
     application->AssetUpdateAll();
 
     application->SetTimestep(simTimeStep);
-  }
 
-  // Create output file for results & add in column headers (tab deliminated)
-  // ------------------------------------------------------------------------
-  std::ofstream outf(outputFilename.c_str());
-  if (outf) {
-    outf << "timeElapsed(s)\t";
-    outf << "X_Pos(m)\tY_Pos(m)\tZ_Pos\tLength_Pos(m)\t";
-    outf << "X_Vel(m/s)\tY_Vel(m/s)\tZ_Vel(m/s)\tLength_Vel(m/s)\t";
-    outf << "X_Accel(m/s^2)\tY_Accel(m/s^2)\tZ_Accell(m/s^2)\tLength_Accel(m/s^2)\t";
-    outf << "e0_quaternion\te1_quaternion\te2_quaternion\te3_quaternion\t";
-    outf << "X_AngVel(rad/s)\tY_AngVel(rad/s)\tZ_AngVel(rad/s)\tLength_AngVel(rad/s)\t";
-    outf << "X_AngAccel(rad/s^2)\tY_AngAccel(rad/s^2)\tZ_AngAccell(rad/s^2)\tLength_AngAccel(rad/s^2)\t";
-    outf << "X_Glb_ReactionFrc(N)\tY_Glb_ReactionFrc(N)\tZ_Glb_ReactionFrc(N)\tLength_Glb_ReactionFrc(N)\t";
-    outf << "X_Glb_ReactionTrq(Nm)\tY_Glb_ReactionTrq(Nm)\tZ_Glb_ReactionTrq(Nm)\tLength_Glb_ReactionTrq(Nm)\t";
-    outf << "Total_Kinetic_Energy(J)\tTranslational_Kinetic_Energy(J)\tAngular_Kinetic_Energy(J)\tDelta_Potential_Energy(J)\t";
-    outf << std::endl;
-  }
-  else {
-    std::cout << "Output file is invalid" << std::endl;
-  }
-
-
-  // Simulation loop
-  // ---------------
-
-  double timeElapsed = 0;
-  double lastPrint = -printTimeStep;
-  bool continueSimulation = true;
-
-  while (continueSimulation)
-  {
-    // Write current translational and rotational position, velocity, acceleration, 
-    // reaction force, and reaction torque of pendulum to output file
-
-    //Add a little error tolerance on the end time to ensure that the final data point is recorded
-    if (outf && (timeElapsed <= timeRecord+simTimeStep/2) && (timeElapsed+simTimeStep/2>=lastPrint+printTimeStep)) {
-      lastPrint = lastPrint + printTimeStep;
-
-      // Time elapsed
-      outf << timeElapsed << "\t";
-
-      // Position of the Pendulum's CG in the Global Reference Frame
-      ChVector<double> position = pendulum->GetPos();
-      outf << position.x << "\t" << position.y << "\t" << position.z << "\t" << (position - loc).Length() << "\t";
-
-      // Velocity of the Pendulum's CG in the Global Reference Frame
-      ChVector<double> velocity = pendulum->GetPos_dt();
-      outf << velocity.x << "\t" << velocity.y << "\t" << velocity.z << "\t" << velocity.Length() << "\t";
-
-      // Acceleration of the Pendulum's CG in the Global Reference Frame
-      ChVector<double> acceleration = pendulum->GetPos_dtdt();
-      outf << acceleration.x << "\t" << acceleration.y << "\t" << acceleration.z << "\t" << acceleration.Length() << "\t";
-
-      // Angular Position quaternion of the Pendulum with respect to the Global Reference Frame
-      ChQuaternion<double> rot = pendulum->GetRot();
-      outf << rot.e0 << "\t" << rot.e1 << "\t" << rot.e2 << "\t" << rot.e3 << "\t";
-
-      // Angular Velocity of the Pendulum with respect to the Global Reference Frame
-      ChVector<double> angVel = pendulum->GetWvel_par();
-      outf << angVel.x << "\t" << angVel.y << "\t" << angVel.z << "\t" << angVel.Length() << "\t";
-
-      // Angular Acceleration of the Pendulum with respect to the Global Reference Frame
-      ChVector<double> angAccel = pendulum->GetWacc_par();
-      outf << angAccel.x << "\t" << angAccel.y << "\t" << angAccel.z << "\t" << angAccel.Length() << "\t";
-
-      // Reaction Force and Torque
-      // These are expressed in the link coordinate system. We convert them to
-      // the coordinate system of Body2 (in our case this is the ground).
-      ChCoordsys<> linkCoordsys = revoluteJoint->GetLinkRelativeCoords();
-      ChVector<double> reactForce = revoluteJoint->Get_react_force();
-      ChVector<double> reactForceGlobal = linkCoordsys.TransformDirectionLocalToParent(reactForce);
-      outf << reactForceGlobal.x << "\t" << reactForceGlobal.y << "\t" << reactForceGlobal.z << "\t" << reactForceGlobal.Length() << "\t";
-
-      ChVector<double> reactTorque = revoluteJoint->Get_react_torque();
-      ChVector<double> reactTorqueGlobal = linkCoordsys.TransformDirectionLocalToParent(reactTorque);
-      outf << reactTorqueGlobal.x << "\t" << reactTorqueGlobal.y << "\t" << reactTorqueGlobal.z << "\t" << reactTorqueGlobal.Length() << "\t";
-
-      // Conservation of Energy
-      //Translational Kinetic Energy (1/2*m*||v||^2)
-      //Rotational Kinetic Energy (1/2 w'*I*w)  ChMatrix33*vector is valid since [3x3]*[3x1] = [3x1]
-      //Delta Potential Energy (m*g*dz)
-      ChMatrix33<> inertia = pendulum->GetInertia(); //3x3 Inertia Tensor in the local coordinate frame
-      ChVector<> angVelLoc = pendulum->GetWvel_loc();
-      double transKE = 0.5*mass*velocity.Length2();
-      double rotKE = 0.5*Vdot(angVelLoc, inertia * angVelLoc);
-      double deltaPE = mass*g*(position.z-loc.z);
-      double totalKE = transKE + rotKE;
-      outf << totalKE  << "\t" << transKE  << "\t" << rotKE  << "\t" << deltaPE  << "\t"  << std::endl;;
-    }
-
-
-    // Output a message to the command window once timeRecord has been reached
-    //   Add a little error tolerance to make sure this event is captured
-    if ((timeElapsed >= timeRecord-simTimeStep/2) && (timeElapsed <= timeRecord+simTimeStep/2)) {
-        std::cout << "All Simulation Results have been recorded to file." << std::endl;
-    }
-
-    // Advance simulation by one step
-    timeElapsed += simTimeStep;
-    if(Animate) {
+    // Simulation loop
+    while (application->GetDevice()->run())
+    {
       application->BeginScene();
       application->DrawAll();
 
@@ -231,18 +205,61 @@ void TestRevolute(ChVector<> loc, ChQuaternion<> revAxisRot, double simTimeStep,
 
       application->DoStep();  //Take one step in time
       application->EndScene();
-
-      continueSimulation = application->GetDevice()->run();
-    }
-    else{
-      my_system.DoStepDynamics(simTimeStep);  //Take one step in time
-      continueSimulation = (timeElapsed <= timeRecord+simTimeStep/2);
     }
   }
+  else             //  ----  RECORD SIMULATION RESULTS
+  {
+    // Create output file for results
+    std::ofstream outf(outputFilename.c_str());
 
-  // Close output file
-  outf.close();
+    if (!outf) {
+      std::cout << "Output file is invalid" << std::endl;
+      return;
+    }
 
+    // Write column headers (tab delimitated)
+    outf << "timeElapsed(s)\t";
+    outf << "X_Pos(m)\tY_Pos(m)\tZ_Pos\tLength_Pos(m)\t";
+    outf << "X_Vel(m/s)\tY_Vel(m/s)\tZ_Vel(m/s)\tLength_Vel(m/s)\t";
+    outf << "X_Accel(m/s^2)\tY_Accel(m/s^2)\tZ_Accell(m/s^2)\tLength_Accel(m/s^2)\t";
+    outf << "e0_quaternion\te1_quaternion\te2_quaternion\te3_quaternion\t";
+    outf << "X_AngVel(rad/s)\tY_AngVel(rad/s)\tZ_AngVel(rad/s)\tLength_AngVel(rad/s)\t";
+    outf << "X_AngAccel(rad/s^2)\tY_AngAccel(rad/s^2)\tZ_AngAccell(rad/s^2)\tLength_AngAccel(rad/s^2)\t";
+    outf << "X_Glb_ReactionFrc(N)\tY_Glb_ReactionFrc(N)\tZ_Glb_ReactionFrc(N)\tLength_Glb_ReactionFrc(N)\t";
+    outf << "X_Glb_ReactionTrq(Nm)\tY_Glb_ReactionTrq(Nm)\tZ_Glb_ReactionTrq(Nm)\tLength_Glb_ReactionTrq(Nm)\t";
+    outf << "Total_Kinetic_Energy(J)\tTranslational_Kinetic_Energy(J)\tAngular_Kinetic_Energy(J)\tDelta_Potential_Energy(J)\t";
+    outf << std::endl;
+
+    // Simulation loop
+    // ---------------
+
+    double timeElapsed = 0;
+    double lastPrint = -outTimeStep;
+    bool continueSimulation = true;
+
+    while (timeElapsed <= timeRecord + simTimeStep / 2)
+    {
+      // Write current translational and rotational position, velocity, and
+      // acceleration, as well as the reaction force and reaction torque in the
+      // revolute joint.
+
+      //Add a little error tolerance on the end time to ensure that the final data point is recorded
+      if ((timeElapsed <= timeRecord + simTimeStep / 2) && (timeElapsed + simTimeStep / 2 >= lastPrint + outTimeStep))
+      {
+        lastPrint = lastPrint + outTimeStep;
+        WriteOutput(outf, timeElapsed, pendulum, revoluteJoint);
+      }
+
+      // Advance simulation by one step
+      my_system.DoStepDynamics(simTimeStep);
+
+      // Increment time
+      timeElapsed += simTimeStep;
+    }
+
+    // Close output file
+    outf.close();
+  }
 
 }
 
@@ -250,19 +267,34 @@ void TestRevolute(ChVector<> loc, ChQuaternion<> revAxisRot, double simTimeStep,
 
 int main(int argc, char* argv[])
 {
+  bool animate = (argc > 1);
 
-  std::cout << "\nStarting Revolute Test Case 01\n\n";
+  // Set the path to the Chrono data folder
+  SetChronoDataPath(CHRONO_DATA_DIR);
+
+  // Create output directory (if it does not already exist)
+  std::string out_dir = "../VALIDATION";
+
+  if (ChFileutils::MakeDirectory(out_dir.c_str()) < 0) {
+    std::cout << "Error creating directory " << out_dir << std::endl;
+    return 1;
+  }
+
+  std::string filename;
+
   //Case 1 - Revolute Joint at the origin, and aligned with the global Y axis
   //  Note the revolute joint only allows 1 DOF(rotation about joint z axis)
   //    Therefore, the joint must be rotated -pi/2 about the global x-axis
-  TestRevolute(ChVector<> (0, 0, 0), ChQuaternion<> (Q_from_AngX(-CH_C_PI_2)), .001, "RevoluteJointData_Case01.txt",true);
+  std::cout << "\nStarting Revolute Test Case 01\n\n";
+  filename = out_dir + "/RevoluteJointData_Case01.txt";
+  TestRevolute(ChVector<>(0, 0, 0), Q_from_AngX(-CH_C_PI_2), 1e-3, 1e-2, filename, animate);
 
-  std::cout << "\nStarting Revolute Test Case 02\n\n";
   //Case 2 - Revolute Joint at (1,2,3), and aligned with the global axis along Y = Z
   //  Note the revolute joint only allows 1 DOF(rotation about joint z axis)
   //    Therefore, the joint must be rotated -pi/4 about the global x-axis
-  TestRevolute(ChVector<> (1, 2, 3), ChQuaternion<> (Q_from_AngX(-CH_C_PI_4)), .001, "RevoluteJointData_Case02.txt",false);
-
+  std::cout << "\nStarting Revolute Test Case 02\n\n";
+  filename = out_dir + "/RevoluteJointData_Case02.txt";
+  TestRevolute(ChVector<>(1, 2, 3), Q_from_AngX(-CH_C_PI_4), 1e-3, 1e-2, filename, animate);
 
   return 0;
 }

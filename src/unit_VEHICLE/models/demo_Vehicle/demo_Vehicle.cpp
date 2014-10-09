@@ -65,7 +65,7 @@ std::string rigidtire_file = utils::GetModelDataFile("hmmwv/tire/HMMWV_RigidTire
 std::string simplepowertrain_file = utils::GetModelDataFile("hmmwv/powertrain/HMMWV_SimplePowertrain.json");
 
 // Driver input file (if not using Irrlicht)
-std::string driver_file = utils::GetModelDataFile("foo"); ////  TODO
+std::string driver_file = utils::GetModelDataFile("generic/driver/Sample_Maneuver.txt");
 
 // Initial vehicle position
 ChVector<> initLoc(0, 0, 1.0);
@@ -309,7 +309,9 @@ int main(int argc, char* argv[])
       std::cout << "Output frame:   " << render_frame << std::endl;
       std::cout << "Sim frame:      " << step_number << std::endl;
       std::cout << "Time:           " << time << std::endl;
-      std::cout << "             throttle: " << driver.GetThrottle() << " steering: " << driver.GetSteering() << std::endl;
+      std::cout << "   throttle: " << driver.GetThrottle()
+                << "   steering: " << driver.GetSteering()
+                << "   braking:  " << driver.GetBraking() << std::endl;
       std::cout << std::endl;
       render_frame++;
     }

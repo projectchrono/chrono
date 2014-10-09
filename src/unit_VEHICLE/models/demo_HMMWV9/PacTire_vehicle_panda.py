@@ -119,13 +119,13 @@ class PacTire_vehicle_panda:
         # check the displacements, u, v vs. time
         fig_uv = plt.figure()
         df_uv = pd.DataFrame(self._DF[tire_num], columns = ['time','u','valpha','du','dvalpha','vgamma','dvgamma'])
-        ax_uv = df_uv.plot(linewidth=1.5, x='time', y=['u','valpha'])
+        ax_uv = df_uv.plot(linewidth=1.5, x='time', y=['u','valpha','vgamma'])
         ax_uv.set_xlabel('time [sec]')
         ax_uv.legend(loc='best')
         ax_uv.set_title(titleStr)
         
         fig_duv = plt.figure()
-        ax_duv = df_uv.plot(linewidth=2.0,x='time',y=['du','dvalpha'])
+        ax_duv = df_uv.plot(linewidth=2.0,x='time',y=['du','dvalpha','dvgamma'])
         ax_duv.set_xlabel('time [sec]')
         ax_duv.legend(loc='best')
         ax_duv.set_title(titleStr)
@@ -175,19 +175,19 @@ if __name__ == '__main__':
     # laptop data dir
     
     # desktop data dir
-    data_dir = 'D:/Chrono-T_Build/bin/Release/'
+    data_dir = 'D:/Chrono-T_Build/bin/Debug/'
     
     # create a tire using the single tire python plotting code
     tire_LF = tire.PacTire_panda(data_dir + 'test_HMMWV9_pacTire_FL.csv')
     
     tire_LF.plot_custom('time',['m_Fz'],'vertical Force [N]')
-    tire_LF.plot_custom('time',['Fxc','Fyc'],'vertical Force [N]')
+    tire_LF.plot_custom('time',['Fxc','Fyc'],'Fx, Fy [N]')
     
     tire_LF.plot_custom('time',['kappa'],'longitudinal slip [-]')
     tire_LF.plot_custom('time',['alpha'],'lateral slip [deg]')
     
-    tire_LF.plot_combined_kappa()
-    tire_LF.plot_combined_alpha()
+    # tire_LF.plot_combined_kappa()
+    # tire_LF.plot_combined_alpha()
     
     # use the new python code for plotting any/all of the pacTire outputs on a vehicle
     # there are 4 pacTire files associated with a HMMWV model

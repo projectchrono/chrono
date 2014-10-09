@@ -454,28 +454,36 @@ void ChDoubleWishbone::AddVisualizationUpright(ChSharedBodyPtr    upright,
                                                const ChVector<>&  pt_T,
                                                double             radius)
 {
+  static const double threshold2 = 1e-6;
+
   // Express hardpoint locations in body frame.
   ChVector<> p_U = upright->TransformPointParentToLocal(pt_U);
   ChVector<> p_L = upright->TransformPointParentToLocal(pt_L);
   ChVector<> p_T = upright->TransformPointParentToLocal(pt_T);
 
-  ChSharedPtr<ChCylinderShape> cyl_L(new ChCylinderShape);
-  cyl_L->GetCylinderGeometry().p1 = p_L;
-  cyl_L->GetCylinderGeometry().p2 = ChVector<>(0, 0, 0);
-  cyl_L->GetCylinderGeometry().rad = radius;
-  upright->AddAsset(cyl_L);
+  if (p_L.Length2() > threshold2) {
+    ChSharedPtr<ChCylinderShape> cyl_L(new ChCylinderShape);
+    cyl_L->GetCylinderGeometry().p1 = p_L;
+    cyl_L->GetCylinderGeometry().p2 = ChVector<>(0, 0, 0);
+    cyl_L->GetCylinderGeometry().rad = radius;
+    upright->AddAsset(cyl_L);
+  }
 
-  ChSharedPtr<ChCylinderShape> cyl_U(new ChCylinderShape);
-  cyl_U->GetCylinderGeometry().p1 = p_U;
-  cyl_U->GetCylinderGeometry().p2 = ChVector<>(0, 0, 0);
-  cyl_U->GetCylinderGeometry().rad = radius;
-  upright->AddAsset(cyl_U);
+  if (p_U.Length2() > threshold2) {
+    ChSharedPtr<ChCylinderShape> cyl_U(new ChCylinderShape);
+    cyl_U->GetCylinderGeometry().p1 = p_U;
+    cyl_U->GetCylinderGeometry().p2 = ChVector<>(0, 0, 0);
+    cyl_U->GetCylinderGeometry().rad = radius;
+    upright->AddAsset(cyl_U);
+  }
 
-  ChSharedPtr<ChCylinderShape> cyl_T(new ChCylinderShape);
-  cyl_T->GetCylinderGeometry().p1 = p_T;
-  cyl_T->GetCylinderGeometry().p2 = ChVector<>(0, 0, 0);
-  cyl_T->GetCylinderGeometry().rad = radius;
-  upright->AddAsset(cyl_T);
+  if (p_T.Length2() > threshold2) {
+    ChSharedPtr<ChCylinderShape> cyl_T(new ChCylinderShape);
+    cyl_T->GetCylinderGeometry().p1 = p_T;
+    cyl_T->GetCylinderGeometry().p2 = ChVector<>(0, 0, 0);
+    cyl_T->GetCylinderGeometry().rad = radius;
+    upright->AddAsset(cyl_T);
+  }
 
   ChSharedPtr<ChColorAsset> col(new ChColorAsset);
   col->SetColor(ChColor(0.2f, 0.2f, 0.6f));

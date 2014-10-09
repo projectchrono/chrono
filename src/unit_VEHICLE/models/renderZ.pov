@@ -406,16 +406,42 @@ camera {
                 pigment {color Blue}}
 		#break
 
+    // Universal ----
+    #case (16)
+        #read (MyDataFile, px, py, pz, ux, uy, uz, vx, vy, vz)
+        cylinder {
+            <px-revolute_halflen*ux,  pz-revolute_halflen*uz, py-revolute_halflen*uy>, 
+            <px+revolute_halflen*ux,  pz+revolute_halflen*uz, py+revolute_halflen*uy>, 
+            revolute_radius   
+            pigment {color Green}}  
+        cylinder {
+            <px-revolute_halflen*vx,  pz-revolute_halflen*vz, py-revolute_halflen*vy>, 
+            <px+revolute_halflen*vx,  pz+revolute_halflen*vz, py+revolute_halflen*vy>, 
+            revolute_radius   
+            pigment {color Green}}                  
+    #break
+
 		// Linkspring ------
 		#case (25)
 			#read (MyDataFile, p1x, p1y, p1z, p2x, p2y, p2z)
-			cylinder {<p1x,p1z,p1y>, <p2x,p2z,p2y>, 2 * object_frame_radius  pigment {color Red }} 
+			cylinder {<p1x,p1z,p1y>, <p2x,p2z,p2y>, 2 * object_frame_radius  pigment {color Yellow }} 
+		#break
+
+		// LinkspringCB ------
+		#case (30)
+			#read (MyDataFile, p1x, p1y, p1z, p2x, p2y, p2z)
+			cylinder {<p1x,p1z,p1y>, <p2x,p2z,p2y>, 2 * object_frame_radius  pigment {color Yellow }} 
 		#break
 
 		// LinkEngine ------
-		//#case (31)
-		//
-		//#break
+		#case (31)
+			#read (MyDataFile, px, py, pz, dx, dy, dz)
+            cylinder {
+                <px-revolute_halflen*dx,  pz-revolute_halflen*dz, py-revolute_halflen*dy>, 
+                <px+revolute_halflen*dx,  pz+revolute_halflen*dz, py+revolute_halflen*dy>, 
+                revolute_radius   
+                pigment {color Cyan}}
+		#break
 
 		// Distance constraint -------
 		#case (37)
