@@ -56,8 +56,8 @@
 
   "Tierod":
   {
-    "Location Chassis":         	[-0.091, 0.825, -0.079],
-    "Location Knuckle":         	[-0.006, 0.91, 0.015]
+    "Location Chassis":         	[-0.091, 0.400, -0.079],
+    "Location Knuckle":         	[-0.091, 0.825, -0.079]
   },
 
   "Spring":
