@@ -18,20 +18,20 @@
     "COM":                      	[-0.006, 0.834, 0.015],
     "Inertia":                  	[0.00255, 0.00134, 0.00196],
     "Radius":                   	0.01,
-	"Location Lower":				[0.006, 0.849, -0.061],
-	"Location Upper":				[-0.018, 0.819, 0.091]
+    "Location Lower":			[0.006, 0.849, -0.061],
+    "Location Upper":			[-0.018, 0.819, 0.091]
   },
 
   "Upper Link":
   {
-    "Mass":							1.446,
-    "COM":							[-0.182, 0.591, 0.182],
-    "Inertia":						[0.011, 0.011, 0.000142],
-    "Radius":						0.02,
-    "Location Axle":   				[-0.067, 0.576, 0.182],
+    "Mass":				1.446,
+    "COM":				[-0.182, 0.591, 0.182],
+    "Inertia":				[0.011, 0.011, 0.000142],
+    "Radius":			 	0.02,
+    "Location Axle":   			[-0.067, 0.576, 0.182],
     "Location Chassis":         	[0.431, 0.606, 0.182],
-	"Universal Joint Axis Link":	[0, -1, 0],
-	"Universal Joint Axis Chassis":	[0, 0, 1]
+    "Universal Joint Axis Link":	[0, -1, 0],
+    "Universal Joint Axis Chassis":	[0, 0, 1]
   },
 
   "Lower Link":
@@ -40,10 +40,10 @@
     "COM":                      	[-0.279, 0.577, -0.073],
     "Inertia":                  	[0.0514, 0.0514, 0.00037],
     "Radius":                   	0.02,
-    "Location Axle":   				[0.012, 0.728, -0.091],
+    "Location Axle":   			[0.012, 0.728, -0.091],
     "Location Chassis":         	[0.546, 0.425, -0.055],
-	"Universal Joint Axis Link":	[0, 1, 0],
-	"Universal Joint Axis Chassis":	[0, 0, 1]
+    "Universal Joint Axis Link":	[0, 1, 0],
+    "Universal Joint Axis Chassis":	[0, 0, 1]
   },
   
   "Axle Tube" :
@@ -65,7 +65,7 @@
     "Location Chassis":         	[-0.097, 0.679, 0.364],
     "Location Axle":            	[-0.079, 0.697, -0.030],
     "Spring Coefficient":       	267062.000,
-    "Free Length":              	0.339
+    "Free Length":              	0.3948
   },
 
   "Shock":
