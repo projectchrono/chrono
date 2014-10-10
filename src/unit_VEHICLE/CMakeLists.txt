@@ -174,6 +174,19 @@ IF(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
 ENDIF()
 
 # ------------------------------------------------------------------------------
+# Copy the data folder to the bin directory
+# ------------------------------------------------------------------------------
+
+IF(MSVC)
+  FILE( COPY ${CMAKE_SOURCE_DIR}/data/ DESTINATION ${CMAKE_BINARY_DIR}/bin/data/)
+ELSEIF(XCODE_VERSION)
+  FILE( COPY ${CMAKE_SOURCE_DIR}/data/ DESTINATION ${CMAKE_BINARY_DIR}/bin/data/)
+ELSE()
+  FILE( COPY ${CMAKE_SOURCE_DIR}/data/ DESTINATION ${CMAKE_BINARY_DIR}/data/)
+ENDIF()
+
+
+# ------------------------------------------------------------------------------
 # Create configuration file
 # ------------------------------------------------------------------------------
 
