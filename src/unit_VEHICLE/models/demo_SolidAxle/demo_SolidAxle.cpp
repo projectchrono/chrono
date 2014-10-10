@@ -408,9 +408,7 @@ int main(int argc, char* argv[])
     return 1;
   }
 
-  HMMWV_VehicleSolidAxle::ExportMeshPovray(out_dir);
-  HMMWV_WheelLeft::ExportMeshPovray(out_dir);
-  HMMWV_WheelRight::ExportMeshPovray(out_dir);
+  vehicle.ExportMeshPovray(out_dir);
 
   char filename[100];
 
@@ -473,7 +471,7 @@ int main(int argc, char* argv[])
     tire_rear_right->Advance(step_size);
     tire_rear_left->Advance(step_size);
 
-    powertrain->Advance(step);
+    powertrain->Advance(step_size);
 
     vehicle.Advance(step_size);
 
