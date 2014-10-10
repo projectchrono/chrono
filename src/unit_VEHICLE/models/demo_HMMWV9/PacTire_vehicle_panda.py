@@ -200,8 +200,8 @@ if __name__ == '__main__':
     
     # plot w.r.t. to time
     vehicle_output.plot_time(0,'Front Left')
-    vehicle_output.plot_time(1,'Front Right')
-    vehicle_output.plot_time(2,'Rear Left')
+    #vehicle_output.plot_time(1,'Front Right')
+    #vehicle_output.plot_time(2,'Rear Left')
     vehicle_output.plot_time(3,'Rear Right')
     
     # plot w.r.t. long slip

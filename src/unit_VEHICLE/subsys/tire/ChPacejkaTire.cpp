@@ -34,16 +34,16 @@ namespace chrono{
 // -----------------------------------------------------------------------------
 static const double default_step_size = 0.01;
 // Threshold value for small forward tangential velocity.
-static const double v_x_threshold = 0.1;
+static const double v_x_threshold = 0.2;
 
 // large Fz leads to large m_dF_z, leads to large Fx, Fy, etc.
-static  double Fz_thresh = 25000;  
+static  double Fz_thresh = 40000;  
 // max reaction threshold
-static double Fx_thresh = 15000;
-static double Fy_thresh = 15000;
-static double Mx_thresh = 1000;
-static double My_thresh = 1000;
-static double Mz_thresh = 1000;
+static double Fx_thresh = Fz_thresh/2.0;
+static double Fy_thresh = Fz_thresh/2.0;
+static double Mx_thresh = Fz_thresh/40.0;
+static double My_thresh = Fz_thresh/40.0;
+static double Mz_thresh = Fz_thresh/40.0;
 
 // -----------------------------------------------------------------------------
 // Constructors
@@ -526,9 +526,11 @@ void ChPacejkaTire::update_verticalLoad()
   if (m_R_eff > m_R0)
     m_R_eff = m_R0;
 
-  // Load vertical component of tire force.
-  m_FM_pure.force.z = Fz;
-  m_FM_combined.force.z = Fz;
+  // Load vertical component of tire force. Use threshold force
+  m_FM_pure.force.z = m_Fz;
+  m_FM_combined.force.z = m_Fz;
+  // m_FM_pure.force.z = Fz;
+  // m_FM_combined.force.z = Fz;
 }
 
 
@@ -901,7 +903,7 @@ void ChPacejkaTire::slip_from_uv()
   // tan(alpha') ~= alpha' for small slip
   double v_sigma = -m_slip->v_alpha / m_relaxation->sigma_alpha;
   // double v_sigma = std::atan(m_slip->v_alpha / m_relaxation->sigma_alpha);
-  double v_Bessel = d_vlow * m_slip->V_sy / m_relaxation->C_Falpha;
+  double v_Bessel = -d_vlow * m_slip->V_sy / m_relaxation->C_Falpha;
   double alpha_p = v_sigma - v_Bessel;
 
   
