@@ -203,11 +203,11 @@ private:
   double calc_Fz();
 
   // calculate the various stiffness/relaxation lengths
-  void calc_relaxationLengths();
+  void relaxationLengths();
 
   // calculate the slips assume the steer/throttle/brake input to wheel has an
   // instantaneous effect on contact patch slips
-  void calc_slip_kinematic();
+  void slip_kinematic();
 
   // when not in contact, reset (modify?) accumulated slip variables
   void reset_contact();
@@ -222,7 +222,7 @@ private:
 
   // calculate the increment delta_x using RK 45 integration for linear u, v_alpha
   // Eq. 7.9 and 7.7, respectively
-  double calc_ODE_RK_uv(
+  double ODE_RK_uv(
     double V_s,          // slip velocity
     double sigma,        // either sigma_kappa or sigma_alpha
     double V_cx,         // wheel body center velocity
@@ -234,14 +234,14 @@ private:
 
   // calculate v_alpha differently at low speeds
   // relaxation length is non-linear
-  double ChPacejkaTire::calc_ODE_RK_v_nonlinear(double V_sy,
+  double ChPacejkaTire::ODE_RK_v_nonlinear(double V_sy,
                                      double V_cx,
                                      double C_Fy,
                                      double step_size,
                                      double x_curr);
 
   // calculate the increment delta_gamma of the gamma ODE
-  double calc_ODE_RK_gamma(
+  double ODE_RK_gamma(
     double C_Fgamma,
     double C_Falpha,
     double sigma_alpha,
@@ -251,7 +251,7 @@ private:
     double v_gamma);
 
   // calculate the ODE dphi/dt = f(phi), return the increment delta_phi
-  double calc_ODE_RK_phi(
+  double ODE_RK_phi(
     double C_Fphi,
     double C_Falpha,
     double V_cx,
@@ -265,46 +265,46 @@ private:
 
   // calculate and set the transient slip values (kappaP, alphaP, gammaP) from
   // u, v deflections
-  void calc_slip_from_uv();
+  void slip_from_uv();
 
   /// calculate the reaction forces and moments, pure slip cases
   /// assign longitudinal, lateral force, aligning moment:
   /// Fx, Fy and Mz
-  void calc_pureSlipReactions();
+  void pureSlipReactions();
 
   /// calculate combined slip reactions
   /// assign Fx, Fy, Mz
-  void calc_combinedSlipReactions();
+  void combinedSlipReactions();
 
-  /// calculate the longitudinal force, alpha ~= 0
+  /// longitudinal force, alpha ~= 0
   /// assign to m_FM.force.x
   /// assign m_pureLong, trionometric function calculated constants
-  double calcFx_pureLong(double gamma, double kappa);
+  double Fx_pureLong(double gamma, double kappa);
 
-  /// calculate the lateral force,  kappa ~= 0
+  /// lateral force,  kappa ~= 0
   /// assign to m_FM.force.y
   /// assign m_pureLong, trionometric function calculated constants
-  double calcFy_pureLat(double alpha, double gamma);
+  double Fy_pureLat(double alpha, double gamma);
 
-  /// calculate the aligning moment,  kappa ~= 0
+  /// aligning moment,  kappa ~= 0
   /// assign to m_FM.moment.z
   /// assign m_pureLong, trionometric function calculated constants
-  double calcMz_pureLat(double alpha, double gamma);
+  double Mz_pureLat(double alpha, double gamma);
 
-  /// calculate longitudinal force, combined slip (general case)
+  /// longitudinal force, combined slip (general case)
   /// assign m_FM_combined.force.x
   /// assign m_combinedLong
-  double calcFx_combined(double alpha, double gamma, double kappa);
+  double Fx_combined(double alpha, double gamma, double kappa);
 
   /// calculate lateral force, combined slip (general case)
   /// assign m_FM_combined.force.y
   /// assign m_combinedLat
-  double calcFy_combined(double alpha, double gamma, double kappa);
+  double Fy_combined(double alpha, double gamma, double kappa);
 
   // calculate aligning torque, combined slip (gernal case)
   /// assign m_FM_combined.moment.z
   /// assign m_combinedTorque
-  double calcMz_combined(double alpha_r, double alpha_t, double gamma, double kappa, double Fx, double Fy);
+  double Mz_combined(double alpha_r, double alpha_t, double gamma, double kappa, double Fx, double Fy);
 
   /// calculate the overturning couple moment
   /// assign m_FM.moment.x and m_FM_combined.moment.x
@@ -346,6 +346,11 @@ private:
   // previous steps calculated reaction
   ChTireForce m_FM_last;
   ChTireForce m_FM_combined_last;
+
+  // TODO: could calculate these using sigma_kappa_adams and sigma_alpha_adams, in getRelaxationLengths()
+  // HARDCODED IN Initialize() for now
+  double m_C_Fx;
+  double m_C_Fy;
 
   std::string m_paramFile;     // input parameter file
   std::string m_outFilename;   // output filename
