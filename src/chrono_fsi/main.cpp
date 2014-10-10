@@ -1469,7 +1469,7 @@ int2 CreateFluidMarkers(thrust::host_vector<real3> & mPosRad,
 	printf("nFX Y Z %d %d %d, max distY %f, initSpaceY %f\n", nFX, nFY, nFZ,
 			(nFY - 1) * initSpaceY, initSpaceY);
 	sphMarkerMass = (initSpaceX * initSpaceY * initSpaceZ) * paramsH.rho0;
-	printf("sphMarkerMass *%e\n", (initSpaceX * initSpaceY * initSpaceZ) * paramsH.rho0);
+//	printf("sphMarkerMass *%e\n", (initSpaceX * initSpaceY * initSpaceZ) * paramsH.rho0);
 
 	//printf("** nFX, nFX, nFX %d %d %d\n", nFX, nFY, nFZ);
 	//printf("paramsH.cMin.z + initSpaceZ * (nFZ - 1) %f paramsH.cMax.z %f initSpaceZ %f initSpace0 %f\n", paramsH.cMin.z + initSpaceZ * (nFZ - 1), paramsH.cMax.z, initSpaceZ, initSpace0);
@@ -1964,13 +1964,13 @@ int main() {
 			paramsH.LARGE_PRES = paramsH.BASEPRES;//10000;
 			paramsH.nPeriod = 1;
 		paramsH.gravity = R3(0, -9.81, 0);//R3(0);//R3(0, -9.81, 0);
-		paramsH.bodyForce4 = R4(0,0,0,0);//R4(3.2e-3,0,0,0);// R4(0);;// /*Re = 100 */ //R4(3.2e-4, 0, 0, 0);/*Re = 100 */
+		paramsH.bodyForce4 = R4(0.1,0,0,0);//R4(3.2e-3,0,0,0);// R4(0);;// /*Re = 100 */ //R4(3.2e-4, 0, 0, 0);/*Re = 100 */
 			paramsH.rho0 = 1000;
 			paramsH.mu0 = .001;
 		paramsH.v_Max = 50e-3;//18e-3;//1.5;//2e-1; /*0.2 for Re = 100 */ //2e-3;
 			paramsH.EPS_XSPH = .5f;
 		paramsH.dT = 1e-5;//.001; //sph alone: .01 for Re 10;
-			paramsH.tFinal = 10;//20 * paramsH.dT; //400
+			paramsH.tFinal = 20;//20 * paramsH.dT; //400
 			paramsH.kdT = 5;
 			paramsH.gammaBB = 0.5;
 		// *** cMax cMin, see below
@@ -1979,12 +1979,12 @@ int main() {
 		// ************
 			paramsH.binSize0; // will be changed
 			paramsH.rigidRadius; //will be changed
-		paramsH.densityReinit = 0;
+		paramsH.densityReinit = 0; //0: no re-initialization, 1: with initialization
 		paramsH.contactBoundary = 0; // 0: straight channel, 1: serpentine
 
 		flexParams.E = 2.0e5;
 		flexParams.r = paramsH.HSML * paramsH.MULT_INITSPACE * (paramsH.NUM_BCE_LAYERS - 1);
-		flexParams.rho = 1000;//7200;
+		flexParams.rho = 1050;//7200;
 		flexParams.ne = 4;
 		flexParams.A = PI * pow(flexParams.r, 2.0f);
 		flexParams.I = .25 * PI * pow(flexParams.r, 4.0f);
@@ -2008,7 +2008,7 @@ int main() {
 //		paramsH.straightChannelBoundaryMin = R3(0, 0, 0); //2D channel
 //		paramsH.straightChannelBoundaryMax = R3(1 * mm, .2 * mm, 1 * mm) * paramsH.sizeScale;
 		paramsH.straightChannelBoundaryMin = R3(0, 0, 0); //3D channel
-		paramsH.straightChannelBoundaryMax = R3(.8 * mm, 1 * mm, 3 * mm) * paramsH.sizeScale;
+		paramsH.straightChannelBoundaryMax = R3(1.4 * mm, 1 * mm, 3 * mm) * paramsH.sizeScale;
 		//********************************************************************************************************
 		//**  reminiscent of the past******************************************************************************
 		//paramsH.cMax = R3( paramsH.nPeriod * 4.6 + 0, 1.5,  4.0) * paramsH.sizeScale;  //for only CurvedSerpentine (w/out straight part)
@@ -2020,7 +2020,7 @@ int main() {
 //		paramsH.cMax = R3( 1 * mm, 0.2 * mm,  1 * mm + 2 * paramsH.toleranceZone);
 
 		paramsH.cMin = R3(0, -2 * paramsH.toleranceZone, -2 * paramsH.toleranceZone);						// 3D channel
-		paramsH.cMax = R3( .8 * mm, 1 * mm + 2 * paramsH.toleranceZone,  3 * mm + 2 * paramsH.toleranceZone);
+		paramsH.cMax = R3( 1.4 * mm, 1 * mm + 2 * paramsH.toleranceZone,  3 * mm + 2 * paramsH.toleranceZone);
 
 		//	paramsH.cMax = R3(paramsH.nPeriod * 1.0 + 0, .5,  3.5) * paramsH.sizeScale;  //for straight channel, sphere
 		//	paramsH.cMin = R3(0, -0.1, 0.5) * paramsH.sizeScale;
