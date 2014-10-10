@@ -795,7 +795,7 @@ double ChPacejkaTire::get_dFy_dtan_alphaP(double x_curr)
   // for now, just use forward differencing
   double dx = 0.01; // x_curr is tan(alpha'), range (-1,1) over x < (-pi/2,pi/2)
   // changing tan(alpha') has no effect on kappa', gamma'
-  double Fy_x_dx = Fy_combined(m_slip->alphaP + dx, m_slip->gammaP, m_slip->kappaP);
+  double Fy_x_dx = Fy_combined(m_slip->alphaP + dx, m_slip->gammaP, m_slip->kappaP, m_FM_combined.force.y);
   // dFy_dx = (f(x+dx) - f(x)) / dx
   double d_Fy = Fy_x_dx - m_FM_combined.force.y;
 
@@ -887,7 +887,7 @@ void ChPacejkaTire::slip_from_uv()
   double V_cx_abs = std::abs(m_slip->V_cx);
   if (V_cx_abs <= V_low)
   {
-    d_vlow = 335.0 * (1.0 + std::cos(CH_C_PI * V_cx_abs / V_low));
+    d_vlow = 35.0 * (1.0 + std::cos(CH_C_PI * V_cx_abs / V_low));
   }
 
   // Besselink is RH term in kappa_p, alpha_p
@@ -941,23 +941,23 @@ void ChPacejkaTire::slip_from_uv()
 void ChPacejkaTire::pureSlipReactions()
 {
   // calculate Fx, pure long. slip condition
-  m_FM.force.x = (m_slip->gammaP, m_slip->kappaP);
+  m_FM.force.x = Fx_pureLong(m_slip->gammaP, m_slip->kappaP);
 
   // calc. Fy, pure lateral slip
-  m_FM.force.y = (m_slip->alphaP, m_slip->gammaP);
+  m_FM.force.y = Fy_pureLat(m_slip->alphaP, m_slip->gammaP);
 
   // calc Mz, pure lateral slip
-  m_FM.moment.z = (m_slip->alphaP, m_slip->gammaP);
+  m_FM.moment.z = Mz_pureLat(m_slip->alphaP, m_slip->gammaP);
 
 }
 
 void ChPacejkaTire::combinedSlipReactions()
 {
   // calculate Fx for combined slip
-  m_FM_combined.force.x = Fx_combined(m_slip->alphaP, m_slip->gammaP, m_slip->kappaP);
+  m_FM_combined.force.x = Fx_combined(m_slip->alphaP, m_slip->gammaP, m_slip->kappaP, m_FM_combined.force.x);
 
   // calc Fy for combined slip
-  m_FM_combined.force.y = Fy_combined(m_slip->alphaP, m_slip->gammaP, m_slip->kappaP);
+  m_FM_combined.force.y = Fy_combined(m_slip->alphaP, m_slip->gammaP, m_slip->kappaP, m_FM_combined.force.y);
 
   // calc Mz for combined slip
   m_FM_combined.moment.z = Mz_combined(m_pureTorque->alpha_r, m_pureTorque->alpha_t, m_slip->gammaP, m_slip->kappaP, m_FM_combined.force.x, m_FM_combined.force.y);
@@ -1112,7 +1112,7 @@ double ChPacejkaTire::Mz_pureLat(double alpha, double gamma)
   return M_z;
 }
 
-double ChPacejkaTire::Fx_combined(double alpha, double gamma, double kappa)
+double ChPacejkaTire::Fx_combined(double alpha, double gamma, double kappa, double Fx)
 {
   double rbx3 = 1.0;
 
@@ -1128,7 +1128,7 @@ double ChPacejkaTire::Fx_combined(double alpha, double gamma, double kappa)
   // double G_xAlpha = std::cos(C_xAlpha * std::atan(B_xAlpha * alpha_S - E_xAlpha * (B_xAlpha * alpha_S - std::atan(B_xAlpha * alpha_S)) ) ) / G_xAlpha0;
   double G_xAlpha = std::cos(C_xAlpha * std::atan(B_xAlpha * alpha_S - E_xAlpha * (B_xAlpha * alpha_S - std::atan(B_xAlpha * alpha_S)))) / G_xAlpha0;
 
-  double F_x = G_xAlpha * m_FM.force.x;
+  double F_x = G_xAlpha * Fx;
 
   {
     combinedLongCoefs tmp = { S_HxAlpha, alpha_S, B_xAlpha, C_xAlpha, E_xAlpha, G_xAlpha0, G_xAlpha };
@@ -1138,7 +1138,7 @@ double ChPacejkaTire::Fx_combined(double alpha, double gamma, double kappa)
   return F_x;
 }
 
-double ChPacejkaTire::Fy_combined(double alpha, double gamma, double kappa)
+double ChPacejkaTire::Fy_combined(double alpha, double gamma, double kappa, double Fy)
 {
   double rby4 = 0;
 
@@ -1152,7 +1152,7 @@ double ChPacejkaTire::Fy_combined(double alpha, double gamma, double kappa)
   double G_yKappa0 = std::cos(C_yKappa * std::atan(B_yKappa * S_HyKappa - E_yKappa * (B_yKappa * S_HyKappa - std::atan(B_yKappa * S_HyKappa))));
   double G_yKappa = std::cos(C_yKappa * std::atan(B_yKappa * kappa_S - E_yKappa * (B_yKappa * kappa_S - std::atan(B_yKappa * kappa_S)))) / G_yKappa0;
 
-  double F_y = G_yKappa * m_FM.force.y + S_VyKappa;
+  double F_y = G_yKappa * Fy + S_VyKappa;
 
   {
     combinedLatCoefs tmp = { S_HyKappa, kappa_S, B_yKappa, C_yKappa, E_yKappa, D_VyKappa, S_VyKappa, G_yKappa0, G_yKappa };

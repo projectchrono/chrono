@@ -294,12 +294,12 @@ private:
   /// longitudinal force, combined slip (general case)
   /// assign m_FM_combined.force.x
   /// assign m_combinedLong
-  double Fx_combined(double alpha, double gamma, double kappa);
+  double Fx_combined(double alpha, double gamma, double kappa, double Fx);
 
   /// calculate lateral force, combined slip (general case)
   /// assign m_FM_combined.force.y
   /// assign m_combinedLat
-  double Fy_combined(double alpha, double gamma, double kappa);
+  double Fy_combined(double alpha, double gamma, double kappa, double Fy);
 
   // calculate aligning torque, combined slip (gernal case)
   /// assign m_FM_combined.moment.z
