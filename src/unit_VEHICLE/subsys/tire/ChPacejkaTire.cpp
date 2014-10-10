@@ -882,7 +882,7 @@ void ChPacejkaTire::slip_from_uv()
 {
   // Markus adds artificial damping at low velocity (Besselink)
   // damp gradually to zero velocity at low velocity
-  double V_low = 1.7;
+  double V_low = 2.5;
   double d_vlow = 0;
   double V_cx_abs = std::abs(m_slip->V_cx);
   if (V_cx_abs <= V_low)
@@ -894,12 +894,29 @@ void ChPacejkaTire::slip_from_uv()
   int sign_u = 1;
   if(m_slip->u < 0)
     sign_u = -1;
-  double kappa_p = sign_u * (std::abs(m_slip->u / m_relaxation->sigma_kappa) - std::abs(d_vlow * m_slip->V_sx / m_relaxation->C_Fkappa) );
+  double u_sigma = m_slip->u / m_relaxation->sigma_kappa;
+  double u_Bessel = d_vlow * m_slip->V_sx / m_relaxation->C_Fkappa;
+  double kappa_p = sign_u * (std::abs(u_sigma) - std::abs(u_Bessel) );
+  // make sure Besselink didn't switch signs on us!
+  if( std::abs(u_sigma) - std::abs(u_Bessel) < 0 )
+  {
+    kappa_p = 0;
+  }
+
   // double alpha_p = -std::atan(m_slip->v_alpha / m_relaxation->sigma_alpha) - d_vlow * m_slip->V_sy / m_relaxation->C_Falpha;
   int sign_v_alpha = 1;
   if(m_slip->v_alpha < 0)
     sign_v_alpha = -1;
-  double alpha_p = -sign_v_alpha *(std::abs(m_slip->v_alpha / m_relaxation->sigma_alpha) - std::abs(d_vlow * m_slip->V_sy / m_relaxation->C_Falpha) );
+  // tan(alpha') ~= alpha' for small slip
+  // double v_sigma = m_slip->v_alpha / m_relaxation->sigma_alpha;
+  double v_sigma = std::atan(m_slip->v_alpha / m_relaxation->sigma_alpha);
+  double v_Bessel = d_vlow * m_slip->V_sy / m_relaxation->C_Falpha;
+  double alpha_p = -sign_v_alpha *(std::abs(v_sigma) - std::abs(v_Bessel) );
+  // don't let the Besselink switch signs
+  if( std::abs(v_sigma) - std::abs(v_Bessel) < 0 )
+  {
+    alpha_p = 0;
+  }
   
   // gammaP, phiP, phiT not effected by Besselink
   double gamma_p = m_relaxation->C_Falpha * m_slip->v_gamma / (m_relaxation->C_Fgamma * m_relaxation->sigma_alpha);
