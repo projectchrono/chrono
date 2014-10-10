@@ -33,6 +33,9 @@
 #include "unit_IRRLICHT/ChIrrApp.h"
 
 #include "ChronoT_config.h"
+#include "utils/ChUtilsData.h"
+#include "utils/ChUtilsInputOutput.h"
+#include "utils/ChUtilsValidation.h"
 
 using namespace chrono;
 using namespace irr;
@@ -40,78 +43,18 @@ using namespace irr;
 
 // =============================================================================
 
-void WriteOutput(std::ofstream&                  outf,
-                 double                          time,
-                 ChSharedPtr<ChBody>             pendulum,
-                 ChSharedPtr<ChLinkLockRevolute> revoluteJoint)
-{
-  // Time elapsed
-  outf << time << "\t";
-
-  // Position of the Pendulum's CG in the Global Reference Frame
-  ChVector<> jointLoc = revoluteJoint->GetMarker1()->GetAbsCoord().pos;
-  ChVector<> position = pendulum->GetPos();
-  outf << position.x << "\t" << position.y << "\t" << position.z << "\t" << (position - jointLoc).Length() << "\t";
-
-  // Velocity of the Pendulum's CG in the Global Reference Frame
-  ChVector<> velocity = pendulum->GetPos_dt();
-  outf << velocity.x << "\t" << velocity.y << "\t" << velocity.z << "\t" << velocity.Length() << "\t";
-
-  // Acceleration of the Pendulum's CG in the Global Reference Frame
-  ChVector<> acceleration = pendulum->GetPos_dtdt();
-  outf << acceleration.x << "\t" << acceleration.y << "\t" << acceleration.z << "\t" << acceleration.Length() << "\t";
-
-  // Angular Position quaternion of the Pendulum with respect to the Global Reference Frame
-  ChQuaternion<> rot = pendulum->GetRot();
-  outf << rot.e0 << "\t" << rot.e1 << "\t" << rot.e2 << "\t" << rot.e3 << "\t";
-
-  // Angular Velocity of the Pendulum with respect to the Global Reference Frame
-  ChVector<> angVel = pendulum->GetWvel_par();
-  outf << angVel.x << "\t" << angVel.y << "\t" << angVel.z << "\t" << angVel.Length() << "\t";
-
-  // Angular Acceleration of the Pendulum with respect to the Global Reference Frame
-  ChVector<> angAccel = pendulum->GetWacc_par();
-  outf << angAccel.x << "\t" << angAccel.y << "\t" << angAccel.z << "\t" << angAccel.Length() << "\t";
-
-  // Reaction Force and Torque
-  // These are expressed in the link coordinate system. We convert them to
-  // the coordinate system of Body2 (in our case this is the ground).
-  ChCoordsys<> linkCoordsys = revoluteJoint->GetLinkRelativeCoords();
-  ChVector<> reactForce = revoluteJoint->Get_react_force();
-  ChVector<> reactForceGlobal = linkCoordsys.TransformDirectionLocalToParent(reactForce);
-  outf << reactForceGlobal.x << "\t" << reactForceGlobal.y << "\t" << reactForceGlobal.z << "\t" << reactForceGlobal.Length() << "\t";
-
-  ChVector<> reactTorque = revoluteJoint->Get_react_torque();
-  ChVector<> reactTorqueGlobal = linkCoordsys.TransformDirectionLocalToParent(reactTorque);
-  outf << reactTorqueGlobal.x << "\t" << reactTorqueGlobal.y << "\t" << reactTorqueGlobal.z << "\t" << reactTorqueGlobal.Length() << "\t";
-
-  // Conservation of Energy
-  // Translational Kinetic Energy (1/2*m*||v||^2)
-  // Rotational Kinetic Energy (1/2 w'*I*w)  ChMatrix33*vector is valid since [3x3]*[3x1] = [3x1]
-  // Delta Potential Energy (m*g*dz)
-  double g = pendulum->GetSystem()->Get_G_acc().z;
-  double mass = pendulum->GetMass();
-  ChMatrix33<> inertia = pendulum->GetInertia(); //3x3 Inertia Tensor in the local coordinate frame
-  ChVector<> angVelLoc = pendulum->GetWvel_loc();
-  double transKE = 0.5 * mass * velocity.Length2();
-  double rotKE = 0.5 * Vdot(angVelLoc, inertia * angVelLoc);
-  double deltaPE = mass * g * (position.z - jointLoc.z);
-  double totalKE = transKE + rotKE;
-  outf << totalKE << "\t" << transKE << "\t" << rotKE << "\t" << deltaPE << "\t" << std::endl;;
-}
-
-// =============================================================================
-
-void TestRevolute(const ChVector<>&     jointLoc,         // absolute location of joint
+bool TestRevolute(const ChVector<>&     jointLoc,         // absolute location of joint
                   const ChQuaternion<>& jointRot,         // orientation of joint
                   double                simTimeStep,      // simulation time step
                   double                outTimeStep,      // output time step
-                  const std::string&    outputFilename,   // output file name
+                  const std::string&    outDir,           // output directory
+                  const std::string&    testName,         // name of this test
                   bool                  animate)          // if true, animate with Irrlich
 {
 
-  //Settings
-  //----------------------------------------------------------------------------
+  // Settings
+  //---------
+
   // There are no units in Chrono, so values must be consistent
   // (MKS is used in this example)
 
@@ -171,10 +114,10 @@ void TestRevolute(const ChVector<>&     jointLoc,         // absolute location o
   revoluteJoint->Initialize(pendulum, ground, ChCoordsys<>(jointLoc, jointRot));
   my_system.AddLink(revoluteJoint);
 
-  // Perform the simulation
-  // ----------------------
+  // Perform the simulation (animation with Irrlicht)
+  // ------------------------------------------------
 
-  if (animate)     //  ----  IRRLICHT ANIMATION
+  if (animate)
   {
     // Create the Irrlicht application for visualization
     ChIrrApp * application = new ChIrrApp(&my_system, L"ChLinkRevolute demo", core::dimension2d<u32>(800, 600), false, true);
@@ -206,61 +149,118 @@ void TestRevolute(const ChVector<>&     jointLoc,         // absolute location o
       application->DoStep();  //Take one step in time
       application->EndScene();
     }
+
+    return true;
   }
-  else             //  ----  RECORD SIMULATION RESULTS
+
+  // Perform the simulation (record results)
+  // ------------------------------------------------
+
+  // Create the CSV_Writer output objects (TAB delimited)
+  utils::CSV_writer out_pos("\t");
+  utils::CSV_writer out_vel("\t");
+  utils::CSV_writer out_acc("\t");
+
+  utils::CSV_writer out_quat("\t");
+  utils::CSV_writer out_avel("\t");
+  utils::CSV_writer out_aacc("\t");
+
+  utils::CSV_writer out_rfrc("\t");
+  utils::CSV_writer out_rtrq("\t");
+
+  utils::CSV_writer out_energy("\t");
+
+  // Write headers
+  out_pos << "Time" << "X_Pos" << "Y_Pos" << "Z_Pos" << "Length_Pos" << std::endl;
+  out_vel << "Time" << "X_Vel" << "Y_Vel" << "Z_Vel" << "Length_Vel" << std::endl;
+  out_acc << "Time" << "X_Acc" << "Y_Acc" << "Z_Acc" << "Length_Acc" << std::endl;
+
+  out_quat << "Time" << "e0" << "e1" << "e2" << "e3" << std::endl;
+  out_avel << "Time" << "X_AngVel" << "Y_AngVel" << "Z_AngVel" << "Length_AngVel" << std::endl;
+  out_aacc << "Time" << "X_AngAcc" << "Y_AngAcc" << "Z_AngAcc" << "Length_AngAcc" << std::endl;
+
+  out_rfrc << "Time" << "X_Force" << "Y_Force" << "Z_Force" << "Length_Force" << std::endl;
+  out_rfrc << "Time" << "X_Torque" << "Y_Torque" << "Z_Torque" << "Length_Torque" << std::endl;
+
+  out_energy << "Time" << "Total KE" << "Transl. KE" << "Rot. KE" << "Delta PE" << std::endl;
+
+  // Simulation loop
+
+  double simTime = 0;
+  double outTime = 0;
+
+  while (simTime <= timeRecord + simTimeStep / 2)
   {
-    // Create output file for results
-    std::ofstream outf(outputFilename.c_str());
-
-    if (!outf) {
-      std::cout << "Output file is invalid" << std::endl;
-      return;
-    }
-
-    // Write column headers (tab delimitated)
-    outf << "timeElapsed(s)\t";
-    outf << "X_Pos(m)\tY_Pos(m)\tZ_Pos\tLength_Pos(m)\t";
-    outf << "X_Vel(m/s)\tY_Vel(m/s)\tZ_Vel(m/s)\tLength_Vel(m/s)\t";
-    outf << "X_Accel(m/s^2)\tY_Accel(m/s^2)\tZ_Accell(m/s^2)\tLength_Accel(m/s^2)\t";
-    outf << "e0_quaternion\te1_quaternion\te2_quaternion\te3_quaternion\t";
-    outf << "X_AngVel(rad/s)\tY_AngVel(rad/s)\tZ_AngVel(rad/s)\tLength_AngVel(rad/s)\t";
-    outf << "X_AngAccel(rad/s^2)\tY_AngAccel(rad/s^2)\tZ_AngAccell(rad/s^2)\tLength_AngAccel(rad/s^2)\t";
-    outf << "X_Glb_ReactionFrc(N)\tY_Glb_ReactionFrc(N)\tZ_Glb_ReactionFrc(N)\tLength_Glb_ReactionFrc(N)\t";
-    outf << "X_Glb_ReactionTrq(Nm)\tY_Glb_ReactionTrq(Nm)\tZ_Glb_ReactionTrq(Nm)\tLength_Glb_ReactionTrq(Nm)\t";
-    outf << "Total_Kinetic_Energy(J)\tTranslational_Kinetic_Energy(J)\tAngular_Kinetic_Energy(J)\tDelta_Potential_Energy(J)\t";
-    outf << std::endl;
-
-    // Simulation loop
-    // ---------------
-
-    double timeElapsed = 0;
-    double lastPrint = -outTimeStep;
-    bool continueSimulation = true;
-
-    while (timeElapsed <= timeRecord + simTimeStep / 2)
+    // Ensure that the final data point is recorded.
+    if (simTime >= outTime - simTimeStep / 2)
     {
-      // Write current translational and rotational position, velocity, and
-      // acceleration, as well as the reaction force and reaction torque in the
-      // revolute joint.
 
-      //Add a little error tolerance on the end time to ensure that the final data point is recorded
-      if ((timeElapsed <= timeRecord + simTimeStep / 2) && (timeElapsed + simTimeStep / 2 >= lastPrint + outTimeStep))
-      {
-        lastPrint = lastPrint + outTimeStep;
-        WriteOutput(outf, timeElapsed, pendulum, revoluteJoint);
-      }
+      // CM position, velocity, and acceleration (expressed in global frame).
+      const ChVector<>& position = pendulum->GetPos();
+      const ChVector<>& velocity = pendulum->GetPos_dt();
+      out_pos << simTime << position << (position - jointLoc).Length() << std::endl;
+      out_vel << simTime << velocity << velocity.Length() << std::endl;
+      out_acc << simTime << pendulum->GetPos_dtdt() << pendulum->GetPos_dtdt().Length() << std::endl;
 
-      // Advance simulation by one step
-      my_system.DoStepDynamics(simTimeStep);
+      // Orientation, angular velocity, and angular acceleration (expressed in
+      // global frame).
+      out_quat << simTime << pendulum->GetRot() << std::endl;
+      out_avel << simTime << pendulum->GetWvel_par() << pendulum->GetWvel_par().Length() << std::endl;
+      out_aacc << simTime << pendulum->GetWacc_par() << pendulum->GetWacc_par().Length() << std::endl;
 
-      // Increment time
-      timeElapsed += simTimeStep;
+      // Reaction Force and Torque
+      // These are expressed in the link coordinate system. We convert them to
+      // the coordinate system of Body2 (in our case this is the ground).
+      ChCoordsys<> linkCoordsys = revoluteJoint->GetLinkRelativeCoords();
+      ChVector<> reactForce = revoluteJoint->Get_react_force();
+      ChVector<> reactForceGlobal = linkCoordsys.TransformDirectionLocalToParent(reactForce);
+      out_rfrc << simTime << reactForceGlobal << reactForceGlobal.Length() << std::endl;
+
+      ChVector<> reactTorque = revoluteJoint->Get_react_torque();
+      ChVector<> reactTorqueGlobal = linkCoordsys.TransformDirectionLocalToParent(reactTorque);
+      out_rtrq << simTime << reactTorqueGlobal << reactTorqueGlobal.Length() << std::endl;
+
+      // Conservation of Energy
+      // Translational Kinetic Energy (1/2*m*||v||^2)
+      // Rotational Kinetic Energy (1/2 w'*I*w)  ChMatrix33*vector is valid since [3x3]*[3x1] = [3x1]
+      // Delta Potential Energy (m*g*dz)
+      double g = pendulum->GetSystem()->Get_G_acc().z;
+      double mass = pendulum->GetMass();
+      ChMatrix33<> inertia = pendulum->GetInertia(); //3x3 Inertia Tensor in the local coordinate frame
+      ChVector<> angVelLoc = pendulum->GetWvel_loc();
+      double transKE = 0.5 * mass * velocity.Length2();
+      double rotKE = 0.5 * Vdot(angVelLoc, inertia * angVelLoc);
+      double deltaPE = mass * g * (position.z - jointLoc.z);
+      double totalKE = transKE + rotKE;
+      out_energy << simTime << totalKE << transKE << rotKE << deltaPE << std::endl;;
+
+      // Increment output time
+      outTime += outTimeStep;
+
     }
 
-    // Close output file
-    outf.close();
+    // Advance simulation by one step
+    my_system.DoStepDynamics(simTimeStep);
+
+    // Increment simulation time
+    simTime += simTimeStep;
   }
 
+  // Write output files
+  out_pos.write_to_file(outDir + "/" + testName + "_CHRONO_Pos.txt", testName + "\n\n");
+  out_vel.write_to_file(outDir + "/" + testName + "_CHRONO_Vel.txt", testName + "\n\n");
+  out_acc.write_to_file(outDir + "/" + testName + "_CHRONO_Acc.txt", testName + "\n\n");
+
+  out_quat.write_to_file(outDir + "/" + testName + "_CHRONO_Quat.txt", testName + "\n\n");
+  out_avel.write_to_file(outDir + "/" + testName + "_CHRONO_Avel.txt", testName + "\n\n");
+  out_aacc.write_to_file(outDir + "/" + testName + "_CHRONO_Aacc.txt", testName + "\n\n");
+
+  out_rfrc.write_to_file(outDir + "/" + testName + "_CHRONO_Rforce.txt", testName + "\n\n");
+  out_rtrq.write_to_file(outDir + "/" + testName + "_CHRONO_Rtorque.txt", testName + "\n\n");
+
+  out_energy.write_to_file(outDir + "/" + testName + "_CHRONO_Energy.txt", testName + "\n\n");
+
+  return true;
 }
 
 // =============================================================================
@@ -280,21 +280,31 @@ int main(int argc, char* argv[])
     return 1;
   }
 
-  std::string filename;
-
-  //Case 1 - Revolute Joint at the origin, and aligned with the global Y axis
-  //  Note the revolute joint only allows 1 DOF(rotation about joint z axis)
+  // Case 1 - Revolute Joint at the origin, and aligned with the global Y axis
+  // Note the revolute joint only allows 1 DOF(rotation about joint z axis)
   //    Therefore, the joint must be rotated -pi/2 about the global x-axis
   std::cout << "\nStarting Revolute Test Case 01\n\n";
-  filename = out_dir + "/RevoluteJointData_Case01.txt";
-  TestRevolute(ChVector<>(0, 0, 0), Q_from_AngX(-CH_C_PI_2), 1e-3, 1e-2, filename, animate);
+  TestRevolute(ChVector<>(0, 0, 0), Q_from_AngX(-CH_C_PI_2), 1e-3, 1e-2, out_dir, "Revolute_Case01", animate);
 
-  //Case 2 - Revolute Joint at (1,2,3), and aligned with the global axis along Y = Z
-  //  Note the revolute joint only allows 1 DOF(rotation about joint z axis)
+
+  utils::ChValidation validator;
+
+  validator.Process(
+    out_dir + "/Revolute_Case01_CHRONO_Pos.txt",
+    utils::GetModelDataFile("validation/revolute_joint/test_Revolute_ADAMS_Pos.txt"),
+    501,
+    '\t');
+
+  const utils::DataVector& L2_norms = validator.GetDiffL2norms();
+  const utils::DataVector& RMS_norms = validator.GetDiffRMSnorms();
+  const utils::DataVector& INF_norms = validator.GetDiffINFnorms();
+
+
+  // Case 2 - Revolute Joint at (1,2,3), and aligned with the global axis along Y = Z
+  // Note the revolute joint only allows 1 DOF(rotation about joint z axis)
   //    Therefore, the joint must be rotated -pi/4 about the global x-axis
   std::cout << "\nStarting Revolute Test Case 02\n\n";
-  filename = out_dir + "/RevoluteJointData_Case02.txt";
-  TestRevolute(ChVector<>(1, 2, 3), Q_from_AngX(-CH_C_PI_4), 1e-3, 1e-2, filename, animate);
+  TestRevolute(ChVector<>(1, 2, 3), Q_from_AngX(-CH_C_PI_4), 1e-3, 1e-2, out_dir, "Revolute_Case02", animate);
 
   return 0;
 }
