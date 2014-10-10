@@ -175,7 +175,7 @@ if __name__ == '__main__':
     # laptop data dir
     
     # desktop data dir
-    data_dir = 'D:/Chrono-T_Build/bin/Debug/'
+    data_dir = 'D:/Chrono-T_Build/bin/Release/'
     
     # create a tire using the single tire python plotting code
     tire_LF = tire.PacTire_panda(data_dir + 'test_HMMWV9_pacTire_FL.csv')
@@ -203,6 +203,7 @@ if __name__ == '__main__':
     vehicle_output.plot_time(1,'Front Right')
     vehicle_output.plot_time(2,'Rear Left')
     vehicle_output.plot_time(3,'Rear Right')
+    
     # plot w.r.t. long slip
     
     # plot w.r.t. lateral slip angle

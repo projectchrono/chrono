@@ -289,30 +289,31 @@ private:
   /// aligning moment,  kappa ~= 0
   /// assign to m_FM.moment.z
   /// assign m_pureLong, trionometric function calculated constants
-  double Mz_pureLat(double alpha, double gamma);
+  double Mz_pureLat(double alpha, double gamma, double Fy_pureSlip);
 
   /// longitudinal force, combined slip (general case)
   /// assign m_FM_combined.force.x
   /// assign m_combinedLong
-  double Fx_combined(double alpha, double gamma, double kappa, double Fx);
+  double Fx_combined(double alpha, double gamma, double kappa, double Fx_pureSlip);
 
   /// calculate lateral force, combined slip (general case)
   /// assign m_FM_combined.force.y
   /// assign m_combinedLat
-  double Fy_combined(double alpha, double gamma, double kappa, double Fy);
+  double Fy_combined(double alpha, double gamma, double kappa, double Fy_pureSlip);
 
   // calculate aligning torque, combined slip (gernal case)
   /// assign m_FM_combined.moment.z
   /// assign m_combinedTorque
-  double Mz_combined(double alpha_r, double alpha_t, double gamma, double kappa, double Fx, double Fy);
+  double Mz_combined(double alpha_r, double alpha_t, double gamma, double kappa,
+    double Fx_combined, double Fy_combined);
 
   /// calculate the overturning couple moment
   /// assign m_FM.moment.x and m_FM_combined.moment.x
-  double calc_Mx(double Fy, double gamma);
+  double calc_Mx(double gamma, double Fy_combined);
 
   /// calculate the rolling resistance moment,
   /// assign m_FM.moment.y and m_FM_combined.moment.y
-  double calc_My(double Fx);
+  double calc_My(double Fx_combined);
 
   // ----- Data members
 
@@ -341,10 +342,10 @@ private:
   int m_num_Advance_calls;
   double m_sum_Advance_time;
 
-  ChTireForce m_FM;            // output tire forces, based on pure slip
+  ChTireForce m_FM_pure;            // output tire forces, based on pure slip
   ChTireForce m_FM_combined;   // output tire forces, based on combined slip
   // previous steps calculated reaction
-  ChTireForce m_FM_last;
+  ChTireForce m_FM_pure_last;
   ChTireForce m_FM_combined_last;
 
   // TODO: could calculate these using sigma_kappa_adams and sigma_alpha_adams, in getRelaxationLengths()
