@@ -47,13 +47,13 @@ global_settings { ambient_light rgb<1, 1, 1> }
 #declare global_frame_len = 10;
 
 // Draw body frames?
-#declare draw_body_frame = false;
+#declare draw_body_frame = true;
 #declare body_frame_radius = 0.003;
 #declare body_frame_len = 0.75;
 
 // Draw shape frames?
 #declare draw_object_frame = false;
-#declare object_frame_radius = 0.006;
+#declare object_frame_radius = 0.003;
 #declare object_frame_len = 0.5;
 
 
@@ -62,37 +62,48 @@ global_settings { ambient_light rgb<1, 1, 1> }
 #declare cam_perspective = true;
        
 // Camera location and look-at (RIGHT-HAND-FRAME with Z up) 
-#declare cam_loc    = <-3, -3, 3>;
-#declare cam_lookat = <0, 0, 0>;
+#declare cam_loc    = <-4, 1, 2>;
+#declare cam_lookat = <2, -1, 0>;
    
+
    
 // Camera presets
 
-                
-// Vehicle top-down                  
-//#declare cam_loc    = <-0.3, 0, 4.5>;
-//#declare cam_lookat = <-0.3, 0, 0>;
-                  
- 
-// Front-left top-down                  
-//#declare cam_loc    = <-2, -0.7, 1.5>;
-//#declare cam_lookat = <-2, -0.7, 0>;
- 
-                  
-// Behind vehicle (settled)
-//#declare cam_loc    = <3.5, -2.5, 2.3>;
-//#declare cam_lookat = <0, 0, 0.6>;
+// Vehicle top-down    
+//#declare cam_perspective = false;              
+//#declare cam_loc    = <0, 0, 4.2>;
+//#declare cam_lookat = <0, 0, 0>;
 
  
-// Front-left suspension                               
-//#declare dir = <-2,-1,-2>;
-//#declare cam_loc    = <-1, 0, 2.3> + 0.2*dir;
-//#declare cam_lookat = <-3, -1, 0.3> + 0.2*dir;
-                               
+// Front-right suspension (from rear)
+//#declare cam_perspective = true;
+//#declare cam_loc    = <0.9, -1.2, 1.3>;
+//#declare cam_lookat = <4, -0.2, 0>;
+   
+   
+// Front-right top-down                  
+//#declare cam_perspective = false;              
+//#declare cam_loc    = <1.8, -0.7, 1.3>;
+//#declare cam_lookat = <1.8, -0.7, 0>;
+   
+ 
+// Rear-right suspension (from rear)
+//#declare cam_perspective = true;
+//#declare cam_loc    = <-2.5, -1.2, 1.3>;
+//#declare cam_lookat = <1, -0.2, 0>;
+                  
+ 
+// Rear-right top-down                  
+//#declare cam_perspective = false;              
+//#declare cam_loc    = <-1.8, -0.7, 1.3>;
+//#declare cam_lookat = <-1.8, -0.7, 0>;
+ 
+                                     
+      
                                
 // -------------------------------------------------------           
 // Render environment?
-#declare draw_environment = true;   
+#declare draw_environment = false;   
 
 
 // -------------------------------------------------------           
@@ -234,8 +245,6 @@ camera {
 }
                               
 // Create a regular point light source                              
-#if (draw_environment = false) 
-
   #if (draw_shadows)
     light_source { 
       1000*(cloc - clookat)  // behind the camera
@@ -251,7 +260,6 @@ camera {
     }         
   #end
 
-#end
 
 
 // ============================================================================================     
@@ -282,7 +290,7 @@ camera {
                                            
 #for (i, 1, numObjects)                               
               
-    #read (MyDataFile, id, active, ax, ay, az, e0, e1, e2, e3, shape)  
+    #read (MyDataFile, id, active, ax, ay, az, e0, e1, e2, e3, cR, cG, cB, shape)  
                  
     #if (draw_object_frame & (active | render_static))
        object {
@@ -300,7 +308,7 @@ camera {
 			    sphere {
 				    <0,0,0>, ar
 					position(<ax,ay,az>,<e0,e1,e2,e3>)
-					pigment {color rgbt <.8, 0.6, 0.6,0> }
+					pigment {color rgbt <cR, cG, cB, 0> }
 					finish {diffuse 1 ambient 0.0 specular .05 } 
 				}  
             #end                                             
@@ -314,7 +322,7 @@ camera {
 				    <-hx, -hz, -hy>, 
 					<hx, hz, hy>     
 					position(<ax,ay,az>,<e0,e1,e2,e3>)
-					pigment {color rgbt <0, .7, 0.3, 0>}
+					pigment {color rgbt <cR, cG, cB, 0>}
 					finish {diffuse 1 ambient 0.0 specular .05 } 
 				}   
 			#end
@@ -323,11 +331,14 @@ camera {
               
         // cylinder --------------
         #case (3)
-            #read (MyDataFile, ar, p1x, p1y, p1z, p2x, p2y, p2z)
+            #read (MyDataFile, ar, p1x, p1y, p1z, p2x, p2y, p2z)   
+            #if (p1x = p2x & p1y = p2y & p1z = p2z) 
+                 #warning concat("DEGENERATE CYLINDER : ",  str(id,-3,0), "\n")
+            #end
 			#if (render_objects & (active | render_static))
 				cylinder {
 			        <p1x,p1z,p1y>, <p2x,p2z,p2y>, ar      
-					pigment {color rgbt <1, 0.9, 0.9, 0> transmit 0}
+					pigment {color rgbt <cR, cG, cB, 0> transmit 0}
 					position(<ax,ay,az>,<e0,e1,e2,e3>)     
 					finish {diffuse 1 ambient 0.0 specular .05 }
 				}   
@@ -340,7 +351,7 @@ camera {
 			#if (render_objects & (active | render_static))
 				object {
 			        Round_Cylinder(<0,0,hl + sr>, <0,0,-hl - sr>, ar+sr, sr, 0)     
-					pigment {color rgbt <0.2, 0.4, 0.9, 0> }
+					pigment {color rgbt <cR, cG, cB, 0> }
 					position(<ax,ay,az>,<e0,e1,e2,e3>)     
 					finish {diffuse 1 ambient 0.0 specular .05 }
 				}   
@@ -355,7 +366,7 @@ camera {
 			        linear_spline
 					2
 					<0,0,-hl>,ar,<0,0,hl>,ar
-					pigment {Candy_Cane scale 0.1}
+					pigment {color rgbt <cR, cG, cB, 0> }
 					position(<ax,ay,az>,<e0,e1,e2,e3>)     
 					finish {diffuse 1 ambient 0.0 specular .05 }
 				}
@@ -380,8 +391,8 @@ camera {
  
         // ---------------------------------------------
         //    RENDER LINKS
-        // ---------------------------------------------
-
+        // ---------------------------------------------   
+        
 #if (render_links)                                           
 #for (i, 1, numLinks)                               
               
@@ -393,7 +404,8 @@ camera {
 	        #read (MyDataFile, px, py, pz)
 	        sphere {
 			    <px,pz,py>, spherical_radius
-			    pigment {color Red }}
+			    pigment{Bronze2}
+			}
 	    #break
 	    
 		// Revolute -------
@@ -403,34 +415,43 @@ camera {
                 <px-revolute_halflen*dx,  pz-revolute_halflen*dz, py-revolute_halflen*dy>, 
                 <px+revolute_halflen*dx,  pz+revolute_halflen*dz, py+revolute_halflen*dy>, 
                 revolute_radius   
-                pigment {color Blue}}
+                pigment{Bronze2}
+            }
 		#break
-
-    // Universal ----
-    #case (16)
-        #read (MyDataFile, px, py, pz, ux, uy, uz, vx, vy, vz)
-        cylinder {
-            <px-revolute_halflen*ux,  pz-revolute_halflen*uz, py-revolute_halflen*uy>, 
-            <px+revolute_halflen*ux,  pz+revolute_halflen*uz, py+revolute_halflen*uy>, 
-            revolute_radius   
-            pigment {color Green}}  
-        cylinder {
-            <px-revolute_halflen*vx,  pz-revolute_halflen*vz, py-revolute_halflen*vy>, 
-            <px+revolute_halflen*vx,  pz+revolute_halflen*vz, py+revolute_halflen*vy>, 
-            revolute_radius   
-            pigment {color Green}}                  
-    #break
-
+                     
+        // Universal ----
+        #case (16)
+            #read (MyDataFile, px, py, pz, ux, uy, uz, vx, vy, vz)
+            cylinder {
+                <px-revolute_halflen*ux,  pz-revolute_halflen*uz, py-revolute_halflen*uy>, 
+                <px+revolute_halflen*ux,  pz+revolute_halflen*uz, py+revolute_halflen*uy>, 
+                revolute_radius   
+                pigment{Bronze2}
+            }  
+            cylinder {
+                <px-revolute_halflen*vx,  pz-revolute_halflen*vz, py-revolute_halflen*vy>, 
+                <px+revolute_halflen*vx,  pz+revolute_halflen*vz, py+revolute_halflen*vy>, 
+                revolute_radius   
+                pigment{Bronze2}
+            }                  
+        #break
+                     
 		// Linkspring ------
 		#case (25)
 			#read (MyDataFile, p1x, p1y, p1z, p2x, p2y, p2z)
-			cylinder {<p1x,p1z,p1y>, <p2x,p2z,p2y>, 2 * object_frame_radius  pigment {color Yellow }} 
+			cylinder {
+			   <p1x,p1z,p1y>, <p2x,p2z,p2y>, 2 * object_frame_radius
+			   pigment{Scarlet}
+			} 
 		#break
 
 		// LinkspringCB ------
 		#case (30)
 			#read (MyDataFile, p1x, p1y, p1z, p2x, p2y, p2z)
-			cylinder {<p1x,p1z,p1y>, <p2x,p2z,p2y>, 2 * object_frame_radius  pigment {color Yellow }} 
+			cylinder {
+			   <p1x,p1z,p1y>, <p2x,p2z,p2y>, 2 * object_frame_radius
+			   pigment{Scarlet}
+			} 
 		#break
 
 		// LinkEngine ------
@@ -440,14 +461,17 @@ camera {
                 <px-revolute_halflen*dx,  pz-revolute_halflen*dz, py-revolute_halflen*dy>, 
                 <px+revolute_halflen*dx,  pz+revolute_halflen*dz, py+revolute_halflen*dy>, 
                 revolute_radius   
-                pigment {color Cyan}}
+                pigment{Scarlet}
+            }
 		#break
 
 		// Distance constraint -------
 		#case (37)
 			#read (MyDataFile, p1x, p1y, p1z, p2x, p2y, p2z)
-			cylinder {<p1x,p1z,p1y>, <p2x,p2z,p2y>, object_frame_radius  pigment {color Black }}
-
+			cylinder {
+			   <p1x,p1z,p1y>, <p2x,p2z,p2y>, object_frame_radius
+			   pigment {color DarkSlateGray }
+			}
 		#break
 
 	#end  // switch (link)
@@ -465,7 +489,7 @@ XYZframe(global_frame_len, global_frame_radius)
       
  
 #if (draw_environment) 
- 
+  /*
     // sun --------------------------------------------------------------- 
     # if (draw_shadows)
        light_source{<1500,2500,-2500>*100 color rgb<1,1,1>} 
@@ -474,7 +498,7 @@ XYZframe(global_frame_len, global_frame_radius)
     #end        
     
     light_source{<1500,2500, 2500>*100 color rgb<0.5,0.5,0.5> shadowless}
-
+   */
     // sky ---------------------------------------------------------------
 
     // optional with ground fog

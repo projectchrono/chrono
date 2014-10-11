@@ -16,6 +16,8 @@
 //
 // =============================================================================
 
+#include "assets/ChColorAsset.h"
+
 #include "utils/ChUtilsInputOutput.h"
 
 namespace chrono {
@@ -368,8 +370,7 @@ void WriteShapesPovray(ChSystem*          system,
     }
   }
 
-  // Loop over all bodies and over all their assets. Write information on 
-  // selected types of visual assets.
+  // Loop over all bodies and over all their assets.
   int a_count = 0;
   std::vector<ChBody*>::iterator ibody = system->Get_bodylist()->begin();
   for (; ibody != system->Get_bodylist()->end(); ++ibody)
@@ -377,7 +378,18 @@ void WriteShapesPovray(ChSystem*          system,
     const ChVector<>& body_pos = (*ibody)->GetFrame_REF_to_abs().GetPos();
     const ChQuaternion<>& body_rot = (*ibody)->GetFrame_REF_to_abs().GetRot();
 
+    ChColor color(0.8f, 0.8f, 0.8f);
+
+    // First loop over assets -- search for a color asset
     std::vector<ChSharedPtr<ChAsset> >::iterator iasset = (*ibody)->GetAssets().begin();
+    for (; iasset != (*ibody)->GetAssets().end(); ++iasset)
+    {
+      if (ChSharedPtr<ChColorAsset> color_asset = (*iasset).DynamicCastTo<ChColorAsset>())
+        color = color_asset->GetColor();
+    }
+
+    // Loop over assets once again -- write information for supported types.
+    iasset = (*ibody)->GetAssets().begin();
     for (; iasset != (*ibody)->GetAssets().end(); ++iasset)
     {
       ChSharedPtr<ChVisualization> visual_asset = (*iasset).DynamicCastTo<ChVisualization>();
@@ -446,7 +458,10 @@ void WriteShapesPovray(ChSystem*          system,
         a_count++;
       }
 
-      csv << (*ibody)->GetIdentifier() << (*ibody)->IsActive() << pos << rot << gss.str() << std::endl;
+      csv << (*ibody)->GetIdentifier() << (*ibody)->IsActive() 
+          << pos << rot 
+          << color
+          << gss.str() << std::endl;
     }
   }
 

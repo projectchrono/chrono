@@ -25,6 +25,7 @@
 #include <fstream>
 
 #include "physics/ChSystem.h"
+#include "assets/ChColor.h"
 
 #include "utils/ChApiUtils.h"
 #include "utils/ChUtilsCreators.h"
@@ -78,6 +79,12 @@ inline CSV_writer& operator<< (CSV_writer& out, const ChVector<>& v)
 inline CSV_writer& operator<< (CSV_writer& out, const ChQuaternion<>& q)
 {
   out << q.e0 << q.e1 << q.e2 << q.e3;
+  return out;
+}
+
+inline CSV_writer& operator<< (CSV_writer& out, const ChColor& c)
+{
+  out << c.R << c.G << c.B;
   return out;
 }
 
