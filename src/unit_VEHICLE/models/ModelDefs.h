@@ -14,8 +14,8 @@
 //
 // =============================================================================
 
-#ifndef HMMWV_H
-#define HMMWV_H
+#ifndef MODEL_DEFS_H
+#define MODEL_DEFS_H
 
 #include "ChronoT_config.h"
 
