@@ -19,8 +19,6 @@
 
 #include "ChronoT_config.h"
 
-namespace hmmwv {
-
 enum VisualizationType {
   NONE,
   PRIMITIVES,
@@ -43,8 +41,6 @@ enum DebugInformation {
   DBG_SHOCKS      = 1 << 1,
   DBG_CONSTRAINTS = 1 << 2
 };
-
-} // end namespace hmmwv
 
 
 #endif

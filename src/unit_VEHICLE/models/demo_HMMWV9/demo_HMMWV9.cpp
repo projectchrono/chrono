@@ -116,8 +116,8 @@ int main(int argc, char* argv[])
 
   // Create the HMMWV vehicle
   HMMWV_VehicleReduced vehicle(false,
-                               hmmwv::PRIMITIVES,
-                               hmmwv::MESH);
+                               PRIMITIVES,
+                               MESH);
 
   vehicle.Initialize(ChCoordsys<>(initLoc, initRot));
 
