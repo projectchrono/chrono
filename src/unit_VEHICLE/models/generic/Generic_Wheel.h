@@ -38,6 +38,10 @@ public:
 
   virtual void Initialize(chrono::ChSharedBodyPtr spindle)
   {
+    // First, invoke the base class method
+    chrono::ChWheel::Initialize(spindle);
+
+    // Attach visualization
     if (m_visType == PRIMITIVES) {
       double radius = 0.47;
       double width = 0.25;
