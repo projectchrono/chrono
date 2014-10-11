@@ -79,7 +79,7 @@ protected:
   virtual double GetSteeringLinkMass() const = 0;
 
   /// Return the moments of inertia of the steering link.
-  virtual const ChVector<>& GetSteeringLinkInertia() const = 0;
+  virtual ChVector<> GetSteeringLinkInertia() const = 0;
 
   /// Return the steering link COM offset in Y direction (positive to the left).
   virtual double GetSteeringLinkCOM() const = 0;

@@ -28,15 +28,15 @@ public:
   Generic_RackPinion(const std::string& name) : ChRackPinion(name) {}
   ~Generic_RackPinion() {}
 
-  virtual double GetSteeringLinkMass() const                       { return 9.0; }
-  virtual const chrono::ChVector<>& GetSteeringLinkInertia() const { return chrono::ChVector<>(1, 1, 1); }
-  virtual double GetSteeringLinkCOM() const                        { return 0.0; }
-  virtual double GetSteeringLinkRadius() const                     { return 0.03; }
-  virtual double GetSteeringLinkLength() const                     { return 0.896; }
+  virtual double GetSteeringLinkMass() const                 { return 9.0; }
+  virtual chrono::ChVector<> GetSteeringLinkInertia() const  { return chrono::ChVector<>(1, 1, 1); }
+  virtual double GetSteeringLinkCOM() const                  { return 0.0; }
+  virtual double GetSteeringLinkRadius() const               { return 0.03; }
+  virtual double GetSteeringLinkLength() const               { return 0.896; }
 
-  virtual double GetPinionRadius() const                           { return 0.1; }
+  virtual double GetPinionRadius() const                     { return 0.1; }
 
-  virtual double GetMaxAngle() const                               { return 0.87; }
+  virtual double GetMaxAngle() const                         { return 0.87; }
 };
 
 

@@ -30,11 +30,11 @@ class Generic_Wheel : public chrono::ChWheel
 {
 public:
 
-  Generic_Wheel(VisualizationType  visType) : m_visType(visType);
+  Generic_Wheel(VisualizationType  visType) : m_visType(visType) {}
   ~Generic_Wheel() {}
 
   virtual double GetMass() const { return 45.4; }
-  virtual const chrono::ChVector<>& GetInertia() const { return chrono::ChVector<>(0.113, 0.113, 0.113); }
+  virtual chrono::ChVector<> GetInertia() const { return chrono::ChVector<>(0.113, 0.113, 0.113); }
 
   virtual void Initialize(chrono::ChSharedBodyPtr spindle)
   {
@@ -43,8 +43,8 @@ public:
       double width = 0.25;
       chrono::ChSharedPtr<chrono::ChCylinderShape> cyl(new chrono::ChCylinderShape);
       cyl->GetCylinderGeometry().rad = radius;
-      cyl->GetCylinderGeometry().p1 = ChVector<>(0, width / 2, 0);
-      cyl->GetCylinderGeometry().p2 = ChVector<>(0, -width / 2, 0);
+      cyl->GetCylinderGeometry().p1 = chrono::ChVector<>(0, width / 2, 0);
+      cyl->GetCylinderGeometry().p2 = chrono::ChVector<>(0, -width / 2, 0);
       spindle->AddAsset(cyl);
 
       chrono::ChSharedPtr<chrono::ChTexture> tex(new chrono::ChTexture);

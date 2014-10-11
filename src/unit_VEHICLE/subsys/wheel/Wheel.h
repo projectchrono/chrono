@@ -36,7 +36,7 @@ public:
   ~Wheel() {}
 
   virtual double GetMass() const { return m_mass; }
-  virtual const ChVector<>& GetInertia() const { return m_inertia; }
+  virtual ChVector<> GetInertia() const { return m_inertia; }
 
   virtual void Initialize(ChSharedBodyPtr spindle);
 

@@ -32,15 +32,15 @@ public:
   HMMWV_RackPinion(const std::string& name);
   ~HMMWV_RackPinion() {}
 
-  virtual double GetSteeringLinkMass() const                       { return m_steeringLinkMass; }
-  virtual const chrono::ChVector<>& GetSteeringLinkInertia() const { return m_steeringLinkInertia; }
-  virtual double GetSteeringLinkCOM() const                        { return m_steeringLinkCOM; }
-  virtual double GetSteeringLinkRadius() const                     { return m_steeringLinkRadius; }
-  virtual double GetSteeringLinkLength() const                     { return m_steeringLinkLength; }
+  virtual double GetSteeringLinkMass() const                 { return m_steeringLinkMass; }
+  virtual chrono::ChVector<> GetSteeringLinkInertia() const  { return m_steeringLinkInertia; }
+  virtual double GetSteeringLinkCOM() const                  { return m_steeringLinkCOM; }
+  virtual double GetSteeringLinkRadius() const               { return m_steeringLinkRadius; }
+  virtual double GetSteeringLinkLength() const               { return m_steeringLinkLength; }
 
-  virtual double GetPinionRadius() const                           { return m_pinionRadius; }
+  virtual double GetPinionRadius() const                     { return m_pinionRadius; }
 
-  virtual double GetMaxAngle() const                               { return m_maxAngle; }
+  virtual double GetMaxAngle() const                         { return m_maxAngle; }
 
 private:
 

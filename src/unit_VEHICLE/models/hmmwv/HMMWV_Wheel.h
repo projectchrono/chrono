@@ -32,7 +32,7 @@ public:
   ~HMMWV_Wheel() {}
 
   virtual double GetMass() const { return m_mass; }
-  virtual const chrono::ChVector<>& GetInertia() const { return m_inertia; }
+  virtual chrono::ChVector<> GetInertia() const { return m_inertia; }
 
   virtual void Initialize(chrono::ChSharedBodyPtr spindle);
 

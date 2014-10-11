@@ -52,7 +52,7 @@ public:
   virtual double GetMass() const = 0;
 
   /// Get the wheel moments of inertia.
-  virtual const ChVector<>& GetInertia() const = 0;
+  virtual ChVector<> GetInertia() const = 0;
 
   /// Initialize this wheel subsystem.
   /// The wheel mass and inertia are used to increment those of the spindle.
