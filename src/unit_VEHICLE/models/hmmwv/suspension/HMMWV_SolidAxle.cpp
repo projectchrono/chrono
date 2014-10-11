@@ -126,8 +126,8 @@ const ChVector<> HMMWV_SolidAxleFront::getLocation(PointId which)
   case TIEROD_K:   return ChVector<>(-0.091, 0.825, -0.079);
   case SPINDLE:    return ChVector<>(0, 0.910, 0);
   case KNUCKLE_CM: return ChVector<>(-0.006, 0.834, 0.015);
-  case LL_CM:      return ChVector<>(-0.279, 0.577, -0.073);
-  case UL_CM:      return ChVector<>(-0.182, 0.591, 0.182);
+  case LL_CM:      return ChVector<>(0.279, 0.577, -0.073);
+  case UL_CM:      return ChVector<>(0.182, 0.591, 0.182);
   default:         return ChVector<>(0, 0, 0);
   }
 }
@@ -149,8 +149,8 @@ const ChVector<> HMMWV_SolidAxleRear::getLocation(PointId which)
   case TIEROD_K:   return ChVector<>(-0.091, 0.825, -0.079);
   case SPINDLE:    return ChVector<>(0, 0.910, 0);
   case KNUCKLE_CM: return ChVector<>(-0.006, 0.834, 0.015);
-  case LL_CM:      return ChVector<>(-0.279, 0.577, -0.073);
-  case UL_CM:      return ChVector<>(-0.182, 0.591, 0.182);
+  case LL_CM:      return ChVector<>(0.279, 0.577, -0.073);
+  case UL_CM:      return ChVector<>(0.182, 0.591, 0.182);
   default:         return ChVector<>(0, 0, 0);
   }
 }
