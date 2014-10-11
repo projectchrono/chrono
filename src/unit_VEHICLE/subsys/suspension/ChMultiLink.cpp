@@ -104,7 +104,7 @@ private:
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 ChMultiLink::ChMultiLink(const std::string& name,
-                                   bool               driven)
+                         bool               driven)
 : ChSuspension(name, driven),
   m_nonlinearShock(false),
   m_nonlinearSpring(false),
@@ -132,7 +132,7 @@ ChMultiLink::~ChMultiLink()
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 void ChMultiLink::CreateSide(ChVehicleSide      side,
-                                  const std::string& suffix)
+                             const std::string& suffix)
 {
   // Create the spindle and upright bodies
   m_spindle[side] = ChSharedBodyPtr(new ChBody);
@@ -190,8 +190,8 @@ void ChMultiLink::CreateSide(ChVehicleSide      side,
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 void ChMultiLink::Initialize(ChSharedPtr<ChBodyAuxRef>  chassis,
-                                  const ChVector<>&          location,
-                                  ChSharedPtr<ChBody>        tierod_body)
+                             const ChVector<>&          location,
+                             ChSharedPtr<ChBody>        tierod_body)
 {
   // Set the shock and spring force callbacks (use the user-provided functor if
   // a nonlinear element was specified; otherwise, use the default functor).
@@ -230,10 +230,10 @@ void ChMultiLink::Initialize(ChSharedPtr<ChBodyAuxRef>  chassis,
 }
 
 void ChMultiLink::InitializeSide(ChVehicleSide                   side,
-                                      ChSharedPtr<ChBodyAuxRef>       chassis,
-                                      ChSharedPtr<ChBody>             tierod_body,
-                                      const std::vector<ChVector<> >& points,
-                                      const std::vector<ChVector<> >& dirs)
+                                 ChSharedPtr<ChBodyAuxRef>       chassis,
+                                 ChSharedPtr<ChBody>             tierod_body,
+                                 const std::vector<ChVector<> >& points,
+                                 const std::vector<ChVector<> >& dirs)
 {
   // Chassis orientation (expressed in absolute frame)
   // Recall that the suspension reference frame is aligned with the chassis.
@@ -387,7 +387,7 @@ void ChMultiLink::InitializeSide(ChVehicleSide                   side,
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 void ChMultiLink::LogHardpointLocations(const ChVector<>& ref,
-                                             bool              inches)
+                                        bool              inches)
 {
   double unit = inches ? 1 / 0.0254 : 1.0;
 
@@ -474,10 +474,10 @@ void ChMultiLink::LogConstraintViolations(ChVehicleSide side)
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 void ChMultiLink::AddVisualizationUpperArm(ChSharedBodyPtr    arm,
-                                                  const ChVector<>&  pt_F,
-                                                  const ChVector<>&  pt_B,
-                                                  const ChVector<>&  pt_U,
-                                                  double             radius)
+                                           const ChVector<>&  pt_F,
+                                           const ChVector<>&  pt_B,
+                                           const ChVector<>&  pt_U,
+                                           double             radius)
 {
   // Express hardpoint locations in body frame.
   ChVector<> p_F = arm->TransformPointParentToLocal(pt_F);
@@ -502,13 +502,15 @@ void ChMultiLink::AddVisualizationUpperArm(ChSharedBodyPtr    arm,
 }
 
 void ChMultiLink::AddVisualizationUpright(ChSharedBodyPtr    upright,
-                                       const ChVector<>&  pt_UA,
-                                       const ChVector<>&  pt_TR,
-                                       const ChVector<>&  pt_TL,
-                                       const ChVector<>&  pt_T,
-                                       const ChVector<>&  pt_U,
-                                       double             radius)
+                                          const ChVector<>&  pt_UA,
+                                          const ChVector<>&  pt_TR,
+                                          const ChVector<>&  pt_TL,
+                                          const ChVector<>&  pt_T,
+                                          const ChVector<>&  pt_U,
+                                          double             radius)
 {
+  static const double threshold2 = 1e-6;
+
   // Express hardpoint locations in body frame.
   ChVector<> p_UA = upright->TransformPointParentToLocal(pt_UA);
   ChVector<> p_TR = upright->TransformPointParentToLocal(pt_TR);
@@ -516,35 +518,45 @@ void ChMultiLink::AddVisualizationUpright(ChSharedBodyPtr    upright,
   ChVector<> p_T = upright->TransformPointParentToLocal(pt_T);
   ChVector<> p_U = upright->TransformPointParentToLocal(pt_U);
 
-  ChSharedPtr<ChCylinderShape> cyl_UA(new ChCylinderShape);
-  cyl_UA->GetCylinderGeometry().p1 = p_UA;
-  cyl_UA->GetCylinderGeometry().p2 = ChVector<>(0, 0, 0);
-  cyl_UA->GetCylinderGeometry().rad = radius;
-  upright->AddAsset(cyl_UA);
+  if (p_UA.Length2() > threshold2) {
+    ChSharedPtr<ChCylinderShape> cyl_UA(new ChCylinderShape);
+    cyl_UA->GetCylinderGeometry().p1 = p_UA;
+    cyl_UA->GetCylinderGeometry().p2 = ChVector<>(0, 0, 0);
+    cyl_UA->GetCylinderGeometry().rad = radius;
+    upright->AddAsset(cyl_UA);
+  }
 
-  ChSharedPtr<ChCylinderShape> cyl_TR(new ChCylinderShape);
-  cyl_TR->GetCylinderGeometry().p1 = p_TR;
-  cyl_TR->GetCylinderGeometry().p2 = ChVector<>(0, 0, 0);
-  cyl_TR->GetCylinderGeometry().rad = radius;
-  upright->AddAsset(cyl_TR);
+  if (p_TR.Length2() > threshold2) {
+    ChSharedPtr<ChCylinderShape> cyl_TR(new ChCylinderShape);
+    cyl_TR->GetCylinderGeometry().p1 = p_TR;
+    cyl_TR->GetCylinderGeometry().p2 = ChVector<>(0, 0, 0);
+    cyl_TR->GetCylinderGeometry().rad = radius;
+    upright->AddAsset(cyl_TR);
+  }
 
-  ChSharedPtr<ChCylinderShape> cyl_TL(new ChCylinderShape);
-  cyl_TL->GetCylinderGeometry().p1 = p_TL;
-  cyl_TL->GetCylinderGeometry().p2 = ChVector<>(0, 0, 0);
-  cyl_TL->GetCylinderGeometry().rad = radius;
-  upright->AddAsset(cyl_TL);
+  if (p_TL.Length2() > threshold2) {
+    ChSharedPtr<ChCylinderShape> cyl_TL(new ChCylinderShape);
+    cyl_TL->GetCylinderGeometry().p1 = p_TL;
+    cyl_TL->GetCylinderGeometry().p2 = ChVector<>(0, 0, 0);
+    cyl_TL->GetCylinderGeometry().rad = radius;
+    upright->AddAsset(cyl_TL);
+  }
 
-  ChSharedPtr<ChCylinderShape> cyl_T(new ChCylinderShape);
-  cyl_T->GetCylinderGeometry().p1 = p_T;
-  cyl_T->GetCylinderGeometry().p2 = ChVector<>(0, 0, 0);
-  cyl_T->GetCylinderGeometry().rad = radius;
-  upright->AddAsset(cyl_T);
+  if (p_T.Length2() > threshold2) {
+    ChSharedPtr<ChCylinderShape> cyl_T(new ChCylinderShape);
+    cyl_T->GetCylinderGeometry().p1 = p_T;
+    cyl_T->GetCylinderGeometry().p2 = ChVector<>(0, 0, 0);
+    cyl_T->GetCylinderGeometry().rad = radius;
+    upright->AddAsset(cyl_T);
+  }
 
-  ChSharedPtr<ChCylinderShape> cyl_U(new ChCylinderShape);
-  cyl_U->GetCylinderGeometry().p1 = p_U;
-  cyl_U->GetCylinderGeometry().p2 = ChVector<>(0, 0, 0);
-  cyl_U->GetCylinderGeometry().rad = radius;
-  upright->AddAsset(cyl_U);
+  if (p_U.Length2() > threshold2) {
+    ChSharedPtr<ChCylinderShape> cyl_U(new ChCylinderShape);
+    cyl_U->GetCylinderGeometry().p1 = p_U;
+    cyl_U->GetCylinderGeometry().p2 = ChVector<>(0, 0, 0);
+    cyl_U->GetCylinderGeometry().rad = radius;
+    upright->AddAsset(cyl_U);
+  }
 
   ChSharedPtr<ChColorAsset> col(new ChColorAsset);
   col->SetColor(ChColor(0.2f, 0.2f, 0.6f));
@@ -552,9 +564,9 @@ void ChMultiLink::AddVisualizationUpright(ChSharedBodyPtr    upright,
 }
 
 void ChMultiLink::AddVisualizationTrackRod(ChSharedBodyPtr    rod,
-                                       const ChVector<>&  pt_C,
-                                       const ChVector<>&  pt_U,
-                                       double             radius)
+                                           const ChVector<>&  pt_C,
+                                           const ChVector<>&  pt_U,
+                                           double             radius)
 {
   // Express hardpoint locations in body frame.
   ChVector<> p_C = rod->TransformPointParentToLocal(pt_C);
@@ -572,10 +584,10 @@ void ChMultiLink::AddVisualizationTrackRod(ChSharedBodyPtr    rod,
 }
 
 void ChMultiLink::AddVisualizationTrailingLink(ChSharedBodyPtr    link,
-                                       const ChVector<>&  pt_C,
-                                       const ChVector<>&  pt_S,
-                                       const ChVector<>&  pt_U,
-                                       double             radius)
+                                               const ChVector<>&  pt_C,
+                                               const ChVector<>&  pt_S,
+                                               const ChVector<>&  pt_U,
+                                               double             radius)
 {
   // Express hardpoint locations in body frame.
   ChVector<> p_C = link->TransformPointParentToLocal(pt_C);
@@ -601,8 +613,8 @@ void ChMultiLink::AddVisualizationTrailingLink(ChSharedBodyPtr    link,
 
 
 void ChMultiLink::AddVisualizationSpindle(ChSharedBodyPtr spindle,
-                                               double          radius,
-                                               double          width)
+                                          double          radius,
+                                          double          width)
 {
   ChSharedPtr<ChCylinderShape> cyl(new ChCylinderShape);
   cyl->GetCylinderGeometry().p1 = ChVector<>(0, width / 2, 0);
