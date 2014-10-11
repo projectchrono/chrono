@@ -35,7 +35,7 @@
 #include "subsys/terrain/RigidTerrain.h"
 #include "subsys/tire/ChPacejkaTire.h"
 
-#include "models/hmmwv/HMMWV.h"
+#include "models/ModelDefs.h"
 #include "models/hmmwv/vehicle/HMMWV_VehicleSolidAxle.h"
 #include "models/hmmwv/powertrain/HMMWV_Powertrain.h"
 #include "models/hmmwv/powertrain/HMMWV_SimplePowertrain.h"

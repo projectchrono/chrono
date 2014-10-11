@@ -24,7 +24,7 @@
 
 #include "subsys/ChVehicle.h"
 
-#include "models/hmmwv/HMMWV.h"
+#include "models/ModelDefs.h"
 #include "models/hmmwv/HMMWV_Wheel.h"
 #include "models/hmmwv/suspension/HMMWV_DoubleWishboneReduced.h"
 #include "models/hmmwv/steering/HMMWV_RackPinion.h"

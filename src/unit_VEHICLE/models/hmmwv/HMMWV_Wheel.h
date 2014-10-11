@@ -21,7 +21,7 @@
 
 #include "subsys/ChWheel.h"
 
-#include "HMMWV.h"
+#include "models/ModelDefs.h"
 
 namespace hmmwv {
 

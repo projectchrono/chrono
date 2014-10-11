@@ -18,7 +18,7 @@ ENDIF()
 MESSAGE(STATUS "Adding HMMWV_SOLIDAXLE...")
 
 SET(COMMON_HMMWV_FILES
-	../hmmwv/HMMWV.h
+	../ModelDefs.h
 	../hmmwv/HMMWV_Wheel.h
 	../hmmwv/HMMWV_Wheel.cpp
 	../hmmwv/HMMWV_FuncDriver.h

@@ -31,7 +31,7 @@
 #include "subsys/wheel/Wheel.h"
 #include "subsys/brake/BrakeSimple.h"
 
-#include "models/hmmwv/HMMWV.h"
+#include "models/ModelDefs.h"
 
 namespace hmmwv {
 
