@@ -451,11 +451,11 @@ void FindPenetration(const ConvexShape & shapeA,
       real delta = dot((portal.s4.v - portal.s3.v), dir);
       //std::cout<<dir<<" "<<delta<<std::endl;
       if (portalReachTolerance(portal, dir) || i == MAX_ITERATIONS - 1) {
-         depth = -sqrt(Vec3PointTriDist2(zero, portal.s1.v, portal.s2.v, portal.s3.v, n));
-         if (IsZero(n)) {
-            n = dir;
-         }
-         n = normalize(n);
+//         depth = -sqrt(Vec3PointTriDist2(zero, portal.s1.v, portal.s2.v, portal.s3.v, n));
+//         if (IsZero(n)) {
+//            n = dir;
+//         }
+         n = normalize(dir);
          FindPos(portal, point);
 
          return;
@@ -679,6 +679,9 @@ bool chrono::collision::MPRCollision(const ConvexShape & shapeA,
    }
 
    MPRGetPoints(shapeA, shapeB, normal, point, pointA, pointB);
+
+   depth = dot(normal, pointB - pointA);
+
    return true;
 }
 
