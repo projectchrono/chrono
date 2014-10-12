@@ -12,7 +12,7 @@
 // Authors: Daniel Melanz, Radu Serban
 // =============================================================================
 //
-// Front and Rear HMMWV suspension subsystems (solid axle).
+// Front and Rear solid axle suspension subsystems.
 //
 // These concrete suspension subsystems are defined with respect to right-handed
 // frames with X pointing towards the front, Y to the left, and Z up (as imposed
@@ -23,84 +23,82 @@
 //
 // =============================================================================
 
-#include "HMMWV_SolidAxle.h"
+#include "models/generic/Generic_SolidAxle.h"
 
 using namespace chrono;
-
-namespace hmmwv {
 
 // -----------------------------------------------------------------------------
 // Static variables
 // -----------------------------------------------------------------------------
 
-const double     HMMWV_SolidAxleFront::m_ULMass = 1.446;
-const double     HMMWV_SolidAxleFront::m_LLMass = 2.892;
-const double     HMMWV_SolidAxleFront::m_knuckleMass = 1.356;
-const double     HMMWV_SolidAxleFront::m_spindleMass = 0.248;
-const double     HMMWV_SolidAxleFront::m_axleTubeMass = 44.958;
+const double     Generic_SolidAxleFront::m_ULMass = 1.446;
+const double     Generic_SolidAxleFront::m_LLMass = 2.892;
+const double     Generic_SolidAxleFront::m_knuckleMass = 1.356;
+const double     Generic_SolidAxleFront::m_spindleMass = 0.248;
+const double     Generic_SolidAxleFront::m_axleTubeMass = 44.958;
 
-const double     HMMWV_SolidAxleFront::m_spindleRadius = 0.06;
-const double     HMMWV_SolidAxleFront::m_spindleWidth = 0.04;
-const double     HMMWV_SolidAxleFront::m_ULRadius = 0.02;
-const double     HMMWV_SolidAxleFront::m_LLRadius = 0.02;
-const double     HMMWV_SolidAxleFront::m_axleTubeRadius = 0.03;
-const double     HMMWV_SolidAxleFront::m_knuckleRadius = 0.01;
+const double     Generic_SolidAxleFront::m_spindleRadius = 0.06;
+const double     Generic_SolidAxleFront::m_spindleWidth = 0.04;
+const double     Generic_SolidAxleFront::m_ULRadius = 0.02;
+const double     Generic_SolidAxleFront::m_LLRadius = 0.02;
+const double     Generic_SolidAxleFront::m_axleTubeRadius = 0.03;
+const double     Generic_SolidAxleFront::m_knuckleRadius = 0.01;
 
-const ChVector<> HMMWV_SolidAxleFront::m_axleTubeCOM(0, 0, 0);
+const ChVector<> Generic_SolidAxleFront::m_axleTubeCOM(0, 0, 0);
 
-const ChVector<> HMMWV_SolidAxleFront::m_axleTubeInertia(7.744, 0.045, 7.744);
-const ChVector<> HMMWV_SolidAxleFront::m_spindleInertia(0.0000558, 0.0000279, 0.0000558);
-const ChVector<> HMMWV_SolidAxleFront::m_ULInertia(0.011, 0.011, 0.000142);
-const ChVector<> HMMWV_SolidAxleFront::m_LLInertia(0.0514, 0.0514, 0.00037);
-const ChVector<> HMMWV_SolidAxleFront::m_knuckleInertia(0.00255, 0.00134, 0.00196);
+const ChVector<> Generic_SolidAxleFront::m_axleTubeInertia(7.744, 0.045, 7.744);
+const ChVector<> Generic_SolidAxleFront::m_spindleInertia(0.0000558, 0.0000279, 0.0000558);
+const ChVector<> Generic_SolidAxleFront::m_ULInertia(0.011, 0.011, 0.000142);
+const ChVector<> Generic_SolidAxleFront::m_LLInertia(0.0514, 0.0514, 0.00037);
+const ChVector<> Generic_SolidAxleFront::m_knuckleInertia(0.00255, 0.00134, 0.00196);
 
-const double     HMMWV_SolidAxleFront::m_axleInertia = 0.4;
+const double     Generic_SolidAxleFront::m_axleInertia = 0.4;
 
-const double     HMMWV_SolidAxleFront::m_springCoefficient  = 267062.0;
-const double     HMMWV_SolidAxleFront::m_dampingCoefficient = 22459.0;
-const double     HMMWV_SolidAxleFront::m_springRestLength = 0.3948;
+const double     Generic_SolidAxleFront::m_springCoefficient  = 267062.0;
+const double     Generic_SolidAxleFront::m_dampingCoefficient = 22459.0;
+const double     Generic_SolidAxleFront::m_springRestLength = 0.3948;
 
 // -----------------------------------------------------------------------------
 
-const double     HMMWV_SolidAxleRear::m_ULMass = 1.446;
-const double     HMMWV_SolidAxleRear::m_LLMass = 2.892;
-const double     HMMWV_SolidAxleRear::m_knuckleMass = 1.356;
-const double     HMMWV_SolidAxleRear::m_spindleMass = 0.248;
-const double     HMMWV_SolidAxleRear::m_axleTubeMass = 44.958;
+const double     Generic_SolidAxleRear::m_ULMass = 1.446;
+const double     Generic_SolidAxleRear::m_LLMass = 2.892;
+const double     Generic_SolidAxleRear::m_knuckleMass = 1.356;
+const double     Generic_SolidAxleRear::m_spindleMass = 0.248;
+const double     Generic_SolidAxleRear::m_axleTubeMass = 44.958;
 
-const double     HMMWV_SolidAxleRear::m_spindleRadius = 0.06;
-const double     HMMWV_SolidAxleRear::m_spindleWidth = 0.04;
-const double     HMMWV_SolidAxleRear::m_ULRadius = 0.02;
-const double     HMMWV_SolidAxleRear::m_LLRadius = 0.02;
-const double     HMMWV_SolidAxleRear::m_axleTubeRadius = 0.03;
-const double     HMMWV_SolidAxleRear::m_knuckleRadius = 0.01;
+const double     Generic_SolidAxleRear::m_spindleRadius = 0.06;
+const double     Generic_SolidAxleRear::m_spindleWidth = 0.04;
+const double     Generic_SolidAxleRear::m_ULRadius = 0.02;
+const double     Generic_SolidAxleRear::m_LLRadius = 0.02;
+const double     Generic_SolidAxleRear::m_axleTubeRadius = 0.03;
+const double     Generic_SolidAxleRear::m_knuckleRadius = 0.01;
 
-const ChVector<> HMMWV_SolidAxleRear::m_axleTubeCOM(0, 0, 0);
+const ChVector<> Generic_SolidAxleRear::m_axleTubeCOM(0, 0, 0);
 
-const ChVector<> HMMWV_SolidAxleRear::m_axleTubeInertia(7.744, 0.045, 7.744);
-const ChVector<> HMMWV_SolidAxleRear::m_spindleInertia(0.0000558, 0.0000279, 0.0000558);
-const ChVector<> HMMWV_SolidAxleRear::m_ULInertia(0.011, 0.011, 0.000142);
-const ChVector<> HMMWV_SolidAxleRear::m_LLInertia(0.0514, 0.0514, 0.00037);
-const ChVector<> HMMWV_SolidAxleRear::m_knuckleInertia(0.00255, 0.00134, 0.00196);
+const ChVector<> Generic_SolidAxleRear::m_axleTubeInertia(7.744, 0.045, 7.744);
+const ChVector<> Generic_SolidAxleRear::m_spindleInertia(0.0000558, 0.0000279, 0.0000558);
+const ChVector<> Generic_SolidAxleRear::m_ULInertia(0.011, 0.011, 0.000142);
+const ChVector<> Generic_SolidAxleRear::m_LLInertia(0.0514, 0.0514, 0.00037);
+const ChVector<> Generic_SolidAxleRear::m_knuckleInertia(0.00255, 0.00134, 0.00196);
 
-const double     HMMWV_SolidAxleRear::m_axleInertia = 0.4;
+const double     Generic_SolidAxleRear::m_axleInertia = 0.4;
 
-const double     HMMWV_SolidAxleRear::m_springCoefficient = 267062.0;
-const double     HMMWV_SolidAxleRear::m_dampingCoefficient = 22459.0;
-const double     HMMWV_SolidAxleRear::m_springRestLength = 0.3948;
+const double     Generic_SolidAxleRear::m_springCoefficient = 267062.0;
+const double     Generic_SolidAxleRear::m_dampingCoefficient = 22459.0;
+const double     Generic_SolidAxleRear::m_springRestLength = 0.3948;
 
 
 // -----------------------------------------------------------------------------
 // Constructors
 // -----------------------------------------------------------------------------
-HMMWV_SolidAxleFront::HMMWV_SolidAxleFront(const std::string& name,
-                                           bool               driven)
+Generic_SolidAxleFront::Generic_SolidAxleFront(const std::string& name,
+                                               bool               driven)
 : ChSolidAxle(name, driven)
 {
 }
 
-HMMWV_SolidAxleRear::HMMWV_SolidAxleRear(const std::string& name,
-                                         bool               driven)
+Generic_SolidAxleRear::Generic_SolidAxleRear(const std::string& name,
+                                             bool               driven)
 : ChSolidAxle(name, driven)
 {
 }
@@ -109,7 +107,7 @@ HMMWV_SolidAxleRear::HMMWV_SolidAxleRear(const std::string& name,
 // Implementations of the getLocation() virtual methods.
 // -----------------------------------------------------------------------------
 
-const ChVector<> HMMWV_SolidAxleFront::getLocation(PointId which)
+const ChVector<> Generic_SolidAxleFront::getLocation(PointId which)
 {
   switch (which) {  
   case SHOCK_A:    return ChVector<>(-0.079, 0.697, -0.030);
@@ -132,7 +130,7 @@ const ChVector<> HMMWV_SolidAxleFront::getLocation(PointId which)
   }
 }
 
-const ChVector<> HMMWV_SolidAxleRear::getLocation(PointId which)
+const ChVector<> Generic_SolidAxleRear::getLocation(PointId which)
 {
   switch (which) {
   case SHOCK_A:    return ChVector<>(-0.079, 0.697, -0.030);
@@ -159,7 +157,7 @@ const ChVector<> HMMWV_SolidAxleRear::getLocation(PointId which)
 // Implementations of the getDirection() virtual methods.
 // -----------------------------------------------------------------------------
 
-const ChVector<> HMMWV_SolidAxleFront::getDirection(DirectionId which)
+const ChVector<> Generic_SolidAxleFront::getDirection(DirectionId which)
 {
   switch (which) {
   case UNIV_AXIS_LINK_L:      return ChVector<>(0, 1, 0);
@@ -170,7 +168,7 @@ const ChVector<> HMMWV_SolidAxleFront::getDirection(DirectionId which)
   }
 }
 
-const ChVector<> HMMWV_SolidAxleRear::getDirection(DirectionId which)
+const ChVector<> Generic_SolidAxleRear::getDirection(DirectionId which)
 {
   switch (which) {
   case UNIV_AXIS_LINK_L:      return ChVector<>(0, 1, 0);
@@ -181,6 +179,3 @@ const ChVector<> HMMWV_SolidAxleRear::getDirection(DirectionId which)
   }
 }
 
-
-
-} // end namespace hmmwv

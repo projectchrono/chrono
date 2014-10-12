@@ -12,7 +12,7 @@
 // Authors: Daniel Melanz, Radu Serban
 // =============================================================================
 //
-// Front and Rear HMMWV suspension subsystems (solid axle).
+// Front and Rear solid axle suspension subsystems.
 //
 // These concrete suspension subsystems are defined with respect to right-handed
 // frames with X pointing towards the front, Y to the left, and Z up (as imposed
@@ -23,21 +23,20 @@
 //
 // =============================================================================
 
-#ifndef HMMWV_SOLIDAXLE_H
-#define HMMWV_SOLIDAXLE_H
+#ifndef GENERIC_SOLIDAXLE_H
+#define GENERIC_SOLIDAXLE_H
 
 
 #include "subsys/suspension/ChSolidAxle.h"
 
-namespace hmmwv {
 
-class HMMWV_SolidAxleFront : public chrono::ChSolidAxle
+class Generic_SolidAxleFront : public chrono::ChSolidAxle
 {
 public:
 
-  HMMWV_SolidAxleFront(const std::string& name,
-                       bool               driven = false);
-  ~HMMWV_SolidAxleFront() {}
+  Generic_SolidAxleFront(const std::string& name,
+                         bool               driven = false);
+  ~Generic_SolidAxleFront() {}
 
   virtual double getAxleTubeMass() const { return m_axleTubeMass; }
   virtual double getSpindleMass() const { return m_spindleMass; }
@@ -101,13 +100,13 @@ private:
 
 // -----------------------------------------------------------------------------
 
-class HMMWV_SolidAxleRear : public chrono::ChSolidAxle
+class Generic_SolidAxleRear : public chrono::ChSolidAxle
 {
 public:
 
-  HMMWV_SolidAxleRear(const std::string& name,
-                      bool               driven = false);
-  ~HMMWV_SolidAxleRear() {}
+  Generic_SolidAxleRear(const std::string& name,
+                        bool               driven = false);
+  ~Generic_SolidAxleRear() {}
 
   virtual double getAxleTubeMass() const { return m_axleTubeMass; }
   virtual double getSpindleMass() const { return m_spindleMass; }
@@ -168,9 +167,6 @@ private:
   static const double      m_dampingCoefficient;
   static const double      m_springRestLength;
 };
-
-
-} // end namespace hmmwv
 
 
 #endif

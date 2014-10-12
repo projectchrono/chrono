@@ -12,12 +12,12 @@
 // Authors: Radu Serban, Justin Madsen, Daniel Melanz
 // =============================================================================
 //
-// HMMWV full vehicle model with solid axle suspension...
+// Generic vehicle model with solid axle suspensions
 //
 // =============================================================================
 
-#ifndef HMMWV_VEHICLESOLIDAXLE_H
-#define HMMWV_VEHICLESOLIDAXLE_H
+#ifndef GENERIC_VEHICLESOLIDAXLE_H
+#define GENERIC_VEHICLESOLIDAXLE_H
 
 #include "core/ChCoordsys.h"
 #include "physics/ChSystem.h"
@@ -26,22 +26,19 @@
 #include "subsys/suspension/ChSolidAxle.h"
 
 #include "models/ModelDefs.h"
-#include "models/hmmwv/HMMWV_Wheel.h"
-#include "models/hmmwv/steering/HMMWV_RackPinion.h"
-#include "models/hmmwv/driveline/HMMWV_Driveline2WD.h"
-#include "models/hmmwv/brake/HMMWV_BrakeSimple.h"
+#include "models/generic/Generic_Wheel.h"
+#include "models/generic/Generic_RackPinion.h"
+#include "models/generic/Generic_Driveline2WD.h"
+#include "models/generic/Generic_BrakeSimple.h"
 
-namespace hmmwv {
-
-class HMMWV_VehicleSolidAxle : public chrono::ChVehicle
+class Generic_VehicleSolidAxle : public chrono::ChVehicle
 {
 public:
 
-  HMMWV_VehicleSolidAxle(const bool        fixed = false,
-                         VisualizationType chassisVis = NONE,
-                         VisualizationType wheelVis = PRIMITIVES);
+  Generic_VehicleSolidAxle(const bool        fixed = false,
+                           VisualizationType wheelVis = PRIMITIVES);
 
-  ~HMMWV_VehicleSolidAxle();
+  ~Generic_VehicleSolidAxle() {}
 
   virtual int GetNumberAxles() const { return 2; }
 
@@ -62,27 +59,21 @@ public:
                       double                      powertrain_torque,
                       const chrono::ChTireForces& tire_forces);
 
-  void ExportMeshPovray(const std::string& out_dir);
-
   // Log debugging information
   void LogHardpointLocations(); /// suspension hardpoints at design
   void DebugLog(int what);      /// shock forces and lengths, constraints, etc.
 
 private:
 
-  chrono::ChSharedPtr<HMMWV_Wheel> m_front_right_wheel;
-  chrono::ChSharedPtr<HMMWV_Wheel> m_front_left_wheel;
-  chrono::ChSharedPtr<HMMWV_Wheel> m_rear_right_wheel;
-  chrono::ChSharedPtr<HMMWV_Wheel> m_rear_left_wheel;
+  chrono::ChSharedPtr<Generic_Wheel> m_front_right_wheel;
+  chrono::ChSharedPtr<Generic_Wheel> m_front_left_wheel;
+  chrono::ChSharedPtr<Generic_Wheel> m_rear_right_wheel;
+  chrono::ChSharedPtr<Generic_Wheel> m_rear_left_wheel;
 
-  chrono::ChSharedPtr<HMMWV_BrakeSimple> m_front_right_brake;
-  chrono::ChSharedPtr<HMMWV_BrakeSimple> m_front_left_brake;
-  chrono::ChSharedPtr<HMMWV_BrakeSimple> m_rear_right_brake;
-  chrono::ChSharedPtr<HMMWV_BrakeSimple> m_rear_left_brake;
-
-  // Chassis visualization mesh
-  static const std::string m_chassisMeshName;
-  static const std::string m_chassisMeshFile;
+  chrono::ChSharedPtr<Generic_BrakeSimple> m_front_right_brake;
+  chrono::ChSharedPtr<Generic_BrakeSimple> m_front_left_brake;
+  chrono::ChSharedPtr<Generic_BrakeSimple> m_rear_right_brake;
+  chrono::ChSharedPtr<Generic_BrakeSimple> m_rear_left_brake;
 
   // Chassis mass properties
   static const double             m_chassisMass;
@@ -92,9 +83,6 @@ private:
   // Driver local coordinate system
   static const chrono::ChCoordsys<> m_driverCsys;
 };
-
-
-} // end namespace hmmwv
 
 
 #endif

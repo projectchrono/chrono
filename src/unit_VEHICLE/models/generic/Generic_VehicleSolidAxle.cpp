@@ -12,7 +12,7 @@
 // Authors: Radu Serban, Justin Madsen, Daniel Melanz
 // =============================================================================
 //
-// HMMWV full vehicle model with solid axle suspension...
+// Generic vehicle model with solid axle suspension.
 //
 // =============================================================================
 
@@ -23,13 +23,11 @@
 #include "utils/ChUtilsInputOutput.h"
 
 #include "subsys/suspension/SolidAxle.h"
-#include "models/hmmwv/suspension/HMMWV_SolidAxle.h"
+#include "models/generic/Generic_SolidAxle.h"
 
-#include "models/hmmwv/vehicle/HMMWV_VehicleSolidAxle.h"
+#include "models/generic/Generic_VehicleSolidAxle.h"
 
 using namespace chrono;
-
-namespace hmmwv {
 
 
 // -----------------------------------------------------------------------------
@@ -40,14 +38,11 @@ static const double in2m = 0.0254;
 static const double lb2kg = 0.453592;
 static const double lbf2N = 4.44822162;
 
-const double     HMMWV_VehicleSolidAxle::m_chassisMass = lb2kg * 7747.0;                           // chassis sprung mass
-const ChVector<> HMMWV_VehicleSolidAxle::m_chassisCOM = in2m * ChVector<>(-18.8, -0.585, 33.329);  // COM location
-const ChVector<> HMMWV_VehicleSolidAxle::m_chassisInertia(125.8, 497.4, 531.4);                    // chassis inertia (roll,pitch,yaw)
+const double     Generic_VehicleSolidAxle::m_chassisMass = lb2kg * 7747.0;                           // chassis sprung mass
+const ChVector<> Generic_VehicleSolidAxle::m_chassisCOM = in2m * ChVector<>(-18.8, -0.585, 33.329);  // COM location
+const ChVector<> Generic_VehicleSolidAxle::m_chassisInertia(125.8, 497.4, 531.4);                    // chassis inertia (roll,pitch,yaw)
 
-const std::string HMMWV_VehicleSolidAxle::m_chassisMeshName = "hmmwv_chassis";
-const std::string HMMWV_VehicleSolidAxle::m_chassisMeshFile = utils::GetModelDataFile("hmmwv/hmmwv_chassis.obj");
-
-const ChCoordsys<> HMMWV_VehicleSolidAxle::m_driverCsys(ChVector<>(0.0, 0.5, 1.2), ChQuaternion<>(1, 0, 0, 0));
+const ChCoordsys<> Generic_VehicleSolidAxle::m_driverCsys(ChVector<>(0.0, 0.5, 1.2), ChQuaternion<>(1, 0, 0, 0));
 
 
 // -----------------------------------------------------------------------------
@@ -56,9 +51,8 @@ bool use_JSON = false;
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-HMMWV_VehicleSolidAxle::HMMWV_VehicleSolidAxle(const bool           fixed,
-                                               VisualizationType    chassisVis,
-                                               VisualizationType    wheelVis)
+Generic_VehicleSolidAxle::Generic_VehicleSolidAxle(const bool        fixed,
+                                                   VisualizationType wheelVis)
 {
   // -------------------------------------------
   // Create the chassis body
@@ -72,29 +66,10 @@ HMMWV_VehicleSolidAxle::HMMWV_VehicleSolidAxle(const bool           fixed,
   m_chassis->SetInertiaXX(m_chassisInertia);
   m_chassis->SetBodyFixed(fixed);
 
-  switch (chassisVis) {
-  case PRIMITIVES:
-  {
-    ChSharedPtr<ChSphereShape> sphere(new ChSphereShape);
-    sphere->GetSphereGeometry().rad = 0.1;
-    sphere->Pos = m_chassisCOM;
-    m_chassis->AddAsset(sphere);
-
-    break;
-  }
-  case MESH:
-  {
-    geometry::ChTriangleMeshConnected trimesh;
-    trimesh.LoadWavefrontMesh(m_chassisMeshFile, false, false);
-
-    ChSharedPtr<ChTriangleMeshShape> trimesh_shape(new ChTriangleMeshShape);
-    trimesh_shape->SetMesh(trimesh);
-    trimesh_shape->SetName(m_chassisMeshName);
-    m_chassis->AddAsset(trimesh_shape);
-
-    break;
-  }
-  }
+  ChSharedPtr<ChSphereShape> sphere(new ChSphereShape);
+  sphere->GetSphereGeometry().rad = 0.1;
+  sphere->Pos = m_chassisCOM;
+  m_chassis->AddAsset(sphere);
 
   Add(m_chassis);
 
@@ -109,46 +84,41 @@ HMMWV_VehicleSolidAxle::HMMWV_VehicleSolidAxle(const bool           fixed,
   }
   else
   {
-    m_suspensions[0] = ChSharedPtr<ChSuspension>(new HMMWV_SolidAxleFront("FrontSusp", false));
-    m_suspensions[1] = ChSharedPtr<ChSuspension>(new HMMWV_SolidAxleRear("RearSusp", true));
+    m_suspensions[0] = ChSharedPtr<ChSuspension>(new Generic_SolidAxleFront("FrontSusp", false));
+    m_suspensions[1] = ChSharedPtr<ChSuspension>(new Generic_SolidAxleRear("RearSusp", true));
   }
 
   // -----------------------------
   // Create the steering subsystem
   // -----------------------------
-  m_steering = ChSharedPtr<ChSteering>(new HMMWV_RackPinion("Steering"));
+  m_steering = ChSharedPtr<ChSteering>(new Generic_RackPinion("Steering"));
 
   // -----------------
   // Create the wheels
   // -----------------
-  m_front_right_wheel = ChSharedPtr<HMMWV_Wheel>(new HMMWV_WheelRight(wheelVis));
-  m_front_left_wheel = ChSharedPtr<HMMWV_Wheel>(new HMMWV_WheelLeft(wheelVis));
-  m_rear_right_wheel = ChSharedPtr<HMMWV_Wheel>(new HMMWV_WheelRight(wheelVis));
-  m_rear_left_wheel = ChSharedPtr<HMMWV_Wheel>(new HMMWV_WheelLeft(wheelVis));
+  m_front_right_wheel = ChSharedPtr<Generic_Wheel>(new Generic_Wheel(wheelVis));
+  m_front_left_wheel = ChSharedPtr<Generic_Wheel>(new Generic_Wheel(wheelVis));
+  m_rear_right_wheel = ChSharedPtr<Generic_Wheel>(new Generic_Wheel(wheelVis));
+  m_rear_left_wheel = ChSharedPtr<Generic_Wheel>(new Generic_Wheel(wheelVis));
 
   // --------------------
   // Create the driveline
   // --------------------
-  m_driveline = ChSharedPtr<ChDriveline>(new HMMWV_Driveline2WD);
+  m_driveline = ChSharedPtr<ChDriveline>(new Generic_Driveline2WD);
 
   // -----------------
   // Create the brakes
   // -----------------
-  m_front_right_brake = ChSharedPtr<HMMWV_BrakeSimple>(new HMMWV_BrakeSimple);
-  m_front_left_brake = ChSharedPtr<HMMWV_BrakeSimple>(new HMMWV_BrakeSimple);
-  m_rear_right_brake = ChSharedPtr<HMMWV_BrakeSimple>(new HMMWV_BrakeSimple);
-  m_rear_left_brake = ChSharedPtr<HMMWV_BrakeSimple>(new HMMWV_BrakeSimple);
-}
-
-
-HMMWV_VehicleSolidAxle::~HMMWV_VehicleSolidAxle()
-{
+  m_front_right_brake = ChSharedPtr<Generic_BrakeSimple>(new Generic_BrakeSimple);
+  m_front_left_brake = ChSharedPtr<Generic_BrakeSimple>(new Generic_BrakeSimple);
+  m_rear_right_brake = ChSharedPtr<Generic_BrakeSimple>(new Generic_BrakeSimple);
+  m_rear_left_brake = ChSharedPtr<Generic_BrakeSimple>(new Generic_BrakeSimple);
 }
 
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-void HMMWV_VehicleSolidAxle::Initialize(const ChCoordsys<>& chassisPos)
+void Generic_VehicleSolidAxle::Initialize(const ChCoordsys<>& chassisPos)
 {
   m_chassis->SetFrame_REF_to_abs(ChFrame<>(chassisPos));
 
@@ -182,17 +152,17 @@ void HMMWV_VehicleSolidAxle::Initialize(const ChCoordsys<>& chassisPos)
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-double HMMWV_VehicleSolidAxle::GetSpringForce(const ChWheelID& wheel_id) const
+double Generic_VehicleSolidAxle::GetSpringForce(const ChWheelID& wheel_id) const
 {
   return m_suspensions[wheel_id.axle()].StaticCastTo<ChSolidAxle>()->GetSpringForce(wheel_id.side());
 }
 
-double HMMWV_VehicleSolidAxle::GetSpringLength(const ChWheelID& wheel_id) const
+double Generic_VehicleSolidAxle::GetSpringLength(const ChWheelID& wheel_id) const
 {
   return m_suspensions[wheel_id.axle()].StaticCastTo<ChSolidAxle>()->GetSpringLength(wheel_id.side());
 }
 
-double HMMWV_VehicleSolidAxle::GetSpringDeformation(const ChWheelID& wheel_id) const
+double Generic_VehicleSolidAxle::GetSpringDeformation(const ChWheelID& wheel_id) const
 {
   return m_suspensions[wheel_id.axle()].StaticCastTo<ChSolidAxle>()->GetSpringDeformation(wheel_id.side());
 }
@@ -200,17 +170,17 @@ double HMMWV_VehicleSolidAxle::GetSpringDeformation(const ChWheelID& wheel_id) c
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-double HMMWV_VehicleSolidAxle::GetShockForce(const ChWheelID& wheel_id) const
+double Generic_VehicleSolidAxle::GetShockForce(const ChWheelID& wheel_id) const
 {
   return m_suspensions[wheel_id.axle()].StaticCastTo<ChSolidAxle>()->GetShockForce(wheel_id.side());
 }
 
-double HMMWV_VehicleSolidAxle::GetShockLength(const ChWheelID& wheel_id) const
+double Generic_VehicleSolidAxle::GetShockLength(const ChWheelID& wheel_id) const
 {
   return m_suspensions[wheel_id.axle()].StaticCastTo<ChSolidAxle>()->GetShockLength(wheel_id.side());
 }
 
-double HMMWV_VehicleSolidAxle::GetShockVelocity(const ChWheelID& wheel_id) const
+double Generic_VehicleSolidAxle::GetShockVelocity(const ChWheelID& wheel_id) const
 {
   return m_suspensions[wheel_id.axle()].StaticCastTo<ChSolidAxle>()->GetShockVelocity(wheel_id.side());
 }
@@ -218,11 +188,11 @@ double HMMWV_VehicleSolidAxle::GetShockVelocity(const ChWheelID& wheel_id) const
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-void HMMWV_VehicleSolidAxle::Update(double              time,
-                                    double              steering,
-                                    double              braking,
-                                    double              powertrain_torque,
-                                    const ChTireForces& tire_forces)
+void Generic_VehicleSolidAxle::Update(double              time,
+                                      double              steering,
+                                      double              braking,
+                                      double              powertrain_torque,
+                                      const ChTireForces& tire_forces)
 {
   // Apply powertrain torque to the driveline's input shaft.
   m_driveline->ApplyDriveshaftTorque(powertrain_torque);
@@ -245,24 +215,10 @@ void HMMWV_VehicleSolidAxle::Update(double              time,
 
 
 // -----------------------------------------------------------------------------
-// -----------------------------------------------------------------------------
-void HMMWV_VehicleSolidAxle::ExportMeshPovray(const std::string& out_dir)
-{
-  utils::WriteMeshPovray(m_chassisMeshFile,
-    m_chassisMeshName,
-    out_dir,
-    ChColor(0.82f, 0.7f, 0.5f));
-
-  m_front_left_wheel->ExportMeshPovray(out_dir);
-  m_front_right_wheel->ExportMeshPovray(out_dir);
-}
-
-
-// -----------------------------------------------------------------------------
 // Log the hardpoint locations for the front-right and rear-right suspension
 // subsystems (display in inches)
 // -----------------------------------------------------------------------------
-void HMMWV_VehicleSolidAxle::LogHardpointLocations()
+void Generic_VehicleSolidAxle::LogHardpointLocations()
 {
   GetLog().SetNumFormat("%7.3f");
 
@@ -285,7 +241,7 @@ void HMMWV_VehicleSolidAxle::LogHardpointLocations()
 //
 // Lengths are reported in inches, velocities in inches/s, and forces in lbf
 // -----------------------------------------------------------------------------
-void HMMWV_VehicleSolidAxle::DebugLog(int what)
+void Generic_VehicleSolidAxle::DebugLog(int what)
 {
   GetLog().SetNumFormat("%10.2f");
 
@@ -337,6 +293,3 @@ void HMMWV_VehicleSolidAxle::DebugLog(int what)
 
   GetLog().SetNumFormat("%g");
 }
-
-
-} // end namespace hmmwv
