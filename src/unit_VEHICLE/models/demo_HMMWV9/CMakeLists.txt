@@ -1,15 +1,14 @@
-# HMMWV vehicle model, 9 bodies, simplified suspension dynamic setup
+# HMMWV reduced vehicle model, simplified suspension
 # Works with and without Irrlicht run-time visualization
-# will always be able to output PovRay data files for post-process animations
 
 # ----------------------
 # Configuration options
 # ----------------------
 INCLUDE(CMakeDependentOption)
 
-OPTION(HMMWV_9BODY_ENABLE "Build the HMMWV vehicle model" OFF)
+OPTION(ENABLE_HMMWV_REDUCED_DEMO "Build the reduced HMMWV vehicle demo" OFF)
 
-IF(NOT HMMWV_9BODY_ENABLE)
+IF(NOT ENABLE_HMMWV_REDUCED_DEMO)
 	RETURN()
 ENDIF()
 
@@ -17,7 +16,7 @@ ENDIF()
 
 MESSAGE(STATUS "Adding HMMWV_9BODY...")
 
-SET(COMMON_HMMWV_FILES
+SET(MODEL_FILES
 	../ModelDefs.h
 	../hmmwv/HMMWV_Wheel.h
 	../hmmwv/HMMWV_Wheel.cpp
@@ -43,14 +42,14 @@ SET(COMMON_HMMWV_FILES
 	../hmmwv/tire/HMMWV_LugreTire.cpp
 	)
 
-SET(DEMO_HMMWV9_FILES
+SET(DEMO_FILES
 	demo_HMMWV9.cpp
 )
 
-SOURCE_GROUP("hmmwv" FILES ${COMMON_HMMWV_FILES})
-SOURCE_GROUP("" FILES ${DEMO_HMMWV9_FILES})
+SOURCE_GROUP("subsystems" FILES ${MODEL_FILES})
+SOURCE_GROUP("" FILES ${DEMO_FILES})
 
-SET(HMMWV_LIBS 
+SET(LIBRARIES 
 	${CHRONOENGINE_LIBRARIES}
 	Chrono_Utils
 	Chrono_Subsys
@@ -61,10 +60,10 @@ IF(ENABLE_IRRLICHT AND ${CMAKE_SYSTEM_NAME} MATCHES "Windows")
 ENDIF()
 
 # Create the executable
-ADD_EXECUTABLE(demo_HMMWV9 ${DEMO_HMMWV9_FILES} ${COMMON_HMMWV_FILES})
+ADD_EXECUTABLE(demo_HMMWV9 ${DEMO_FILES} ${MODEL_FILES})
 SET_TARGET_PROPERTIES(demo_HMMWV9 PROPERTIES 
                       COMPILE_FLAGS "${CH_BUILDFLAGS}"
                       LINK_FLAGS "${LINKERFLAG_EXE}")
-TARGET_LINK_LIBRARIES(demo_HMMWV9 ${HMMWV_LIBS})
+TARGET_LINK_LIBRARIES(demo_HMMWV9 ${LIBRARIES})
 INSTALL(TARGETS demo_HMMWV9 DESTINATION bin)
 

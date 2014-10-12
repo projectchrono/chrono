@@ -3,9 +3,9 @@
 # ----------------------
 INCLUDE(CMakeDependentOption)
 
-OPTION(TEST_JOINTS_ENABLE "Enable validation tests" OFF)
+OPTION(ENABLE_JOINTS_TESTS "Enable Chrono joint validation tests" OFF)
 
-IF(NOT TEST_JOINTS_ENABLE)
+IF(NOT ENABLE_JOINTS_TESTS)
     RETURN()
 ENDIF()
 

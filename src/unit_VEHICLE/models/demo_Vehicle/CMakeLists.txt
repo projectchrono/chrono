@@ -3,15 +3,15 @@
 # ----------------------
 INCLUDE(CMakeDependentOption)
 
-OPTION(VEHICLE_DEMO_ENABLE "Build the generic vehicle demo" OFF)
+OPTION(ENABLE_JSON_VEHICLE_DEMO "Build the JSON-based generic vehicle demo" OFF)
 
-IF(NOT VEHICLE_DEMO_ENABLE)
+IF(NOT ENABLE_JSON_VEHICLE_DEMO)
 	RETURN()
 ENDIF()
 
 # ----------------------
 
-MESSAGE(STATUS "Adding demo_Vehicle...")
+MESSAGE(STATUS "Adding JSON_VEHICLE demo...")
 
 
 SET(DEMO_FILES
@@ -20,7 +20,7 @@ SET(DEMO_FILES
 
 SOURCE_GROUP("" FILES ${DEMO_FILES})
 
-SET(HMMWV_LIBS 
+SET(LIBRARIES 
 	${CHRONOENGINE_LIBRARIES}
 	Chrono_Utils
 	Chrono_Subsys
@@ -35,6 +35,6 @@ ADD_EXECUTABLE(demo_Vehicle ${DEMO_FILES})
 SET_TARGET_PROPERTIES(demo_Vehicle PROPERTIES 
                       COMPILE_FLAGS "${CH_BUILDFLAGS}"
                       LINK_FLAGS "${LINKERFLAG_EXE}")
-TARGET_LINK_LIBRARIES(demo_Vehicle ${HMMWV_LIBS})
+TARGET_LINK_LIBRARIES(demo_Vehicle ${LIBRARIES})
 INSTALL(TARGETS demo_Vehicle DESTINATION bin)
 

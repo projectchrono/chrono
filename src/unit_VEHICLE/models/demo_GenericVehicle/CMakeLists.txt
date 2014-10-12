@@ -13,9 +13,9 @@ ENDIF()
 
 # ----------------------
 
-MESSAGE(STATUS "Adding GENERIC_VEHICLE...")
+MESSAGE(STATUS "Adding GENERIC_VEHICLE demo...")
 
-SET(COMMON_GENERIC_FILES
+SET(MODEL_FILES
 	../ModelDefs.h
 	../generic/Generic_Wheel.h
 	../generic/Generic_FuncDriver.h
@@ -30,12 +30,12 @@ SET(COMMON_GENERIC_FILES
 	../generic/Generic_RigidTire.h
 )
 
-SET(DEMO_GENERIC_FILES
+SET(DEMO_FILES
 	demo_GenericVehicle.cpp
 )
 
-SOURCE_GROUP("subsystems" FILES ${COMMON_GENERIC_FILES})
-SOURCE_GROUP("" FILES ${DEMO_GENERIC_FILES})
+SOURCE_GROUP("subsystems" FILES ${MODEL_FILES})
+SOURCE_GROUP("" FILES ${DEMO_FILES})
 
 SET(LIBRARIES 
 	${CHRONOENGINE_LIBRARIES}
@@ -48,7 +48,7 @@ IF(ENABLE_IRRLICHT AND ${CMAKE_SYSTEM_NAME} MATCHES "Windows")
 ENDIF()
 
 # Create the executable
-ADD_EXECUTABLE(demo_GenericVehicle ${DEMO_GENERIC_FILES} ${COMMON_GENERIC_FILES})
+ADD_EXECUTABLE(demo_GenericVehicle ${DEMO_FILES} ${MODEL_FILES})
 SET_TARGET_PROPERTIES(demo_GenericVehicle PROPERTIES 
                       COMPILE_FLAGS "${CH_BUILDFLAGS}"
                       LINK_FLAGS "${LINKERFLAG_EXE}")
