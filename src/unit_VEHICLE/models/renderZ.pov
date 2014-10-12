@@ -49,7 +49,7 @@ global_settings { ambient_light rgb<1, 1, 1> }
 // Draw body frames?
 #declare draw_body_frame = true;
 #declare body_frame_radius = 0.003;
-#declare body_frame_len = 0.75;
+#declare body_frame_len = 0.3;
 
 // Draw shape frames?
 #declare draw_object_frame = false;
@@ -57,47 +57,83 @@ global_settings { ambient_light rgb<1, 1, 1> }
 #declare object_frame_len = 0.5;
 
 
-// -------------------------------------------------------           
-// Perspective camera?
+// -------------------------------------------------------------
+// CAMERA SETTINGS (perspective/ortographic and location/lookat)
+//
+// RIGHT-HAND FRAME WITH Z UP
+
+  
+         // Vehicle view from front
 #declare cam_perspective = true;
-       
-// Camera location and look-at (RIGHT-HAND-FRAME with Z up) 
-#declare cam_loc    = <-4, 1, 2>;
-#declare cam_lookat = <2, -1, 0>;
-   
-
-   
-// Camera presets
-
-// Vehicle top-down    
+#declare cam_loc    = <4, 2, 2>;
+#declare cam_lookat = <-2, -1, 0>;
+ 
+         // Vehicle view from rear
+//#declare cam_perspective = true;
+//#declare cam_loc    = <-4, 1, 2>;
+//#declare cam_lookat = <2, -1, 0>;
+ 
+         // Vehicle top-down    
 //#declare cam_perspective = false;              
 //#declare cam_loc    = <0, 0, 4.2>;
 //#declare cam_lookat = <0, 0, 0>;
 
- 
-// Front-right suspension (from rear)
+
+
+         // Front-left suspension (from rear-right)
 //#declare cam_perspective = true;
-//#declare cam_loc    = <0.9, -1.2, 1.3>;
-//#declare cam_lookat = <4, -0.2, 0>;
+//#declare cam_loc    = <0.4, 0.2, 1.5>;
+//#declare cam_lookat = <4.2, 1.4, 0>;
    
-   
-// Front-right top-down                  
+         // Front-left top-down
 //#declare cam_perspective = false;              
-//#declare cam_loc    = <1.8, -0.7, 1.3>;
+//#declare cam_loc    = <1.8, 0.7, 1.5>;
+//#declare cam_lookat = <1.8, 0.7, 0>;
+
+         // Front-left back view   
+//#declare cam_perspective = false;              
+//#declare cam_loc    = <0.8, 0.7, 1>;
+//#declare cam_lookat = <1.8, 0.7, 1>;
+
+
+         // Front-right suspension (from rear-right)
+//#declare cam_perspective = true;
+//#declare cam_loc    = <0.8, -1.2, 1.5>;
+//#declare cam_lookat = <4, -0.2, 0>;
+
+         // Front-right top-down                  
+//#declare cam_perspective = false;              
+//#declare cam_loc    = <1.8, -0.7, 1.5>;
 //#declare cam_lookat = <1.8, -0.7, 0>;
-   
  
-// Rear-right suspension (from rear)
+         // Front-right back view   
+//#declare cam_perspective = false;              
+//#declare cam_loc    = <0.8, -0.7, 1>;
+//#declare cam_lookat = <1.8, -0.7, 1>;
+      
+      
+    
+         // Rear-left suspension (from rear)
+//#declare cam_perspective = true;
+//#declare cam_loc    = <-3, 0.2, 1.5>;
+//#declare cam_lookat = <1.2, 1.4, 0>;
+
+         // Rear-left top-down                  
+//#declare cam_perspective = false;              
+//#declare cam_loc    = <-1.6, 0.7, 1.5>;
+//#declare cam_lookat = <-1.6, 0.7, 0>;
+       
+       
+
+         // Rear-right suspension (from rear)
 //#declare cam_perspective = true;
 //#declare cam_loc    = <-2.5, -1.2, 1.3>;
 //#declare cam_lookat = <1, -0.2, 0>;
-                  
- 
-// Rear-right top-down                  
+  
+         // Rear-right top-down                  
 //#declare cam_perspective = false;              
-//#declare cam_loc    = <-1.8, -0.7, 1.3>;
-//#declare cam_lookat = <-1.8, -0.7, 0>;
- 
+//#declare cam_loc    = <-1.6, -0.7, 1.5>;
+//#declare cam_lookat = <-1.6, -0.7, 0>;
                                      
       
                                
