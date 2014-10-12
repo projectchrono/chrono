@@ -2,14 +2,17 @@
 // Render simulation data
 // 
 // DATA ASSUMED TO BE SPECIFIED IN A RIGHT-HAND-FRAME WITH Z UP
-// ============================================================================================
+// ============================================================================================   
+
 #version 3.7;
 global_settings { assumed_gamma 1 }
 global_settings { ambient_light rgb<1, 1, 1> }
            
            
-// ============================================================================================
+// ============================================================================================ 
+//
 // OPTIONS
+//
 // ============================================================================================
 
 // -------------------------------------------------------           
@@ -38,8 +41,12 @@ global_settings { ambient_light rgb<1, 1, 1> }
 #declare revolute_halflen = 0.04;                
  
 #declare spherical_radius = 0.035;                
-                                              
-                                              
+ 
+#declare spring_radius = 0.02;                                              
+  
+#declare distance_cnstr_radius = 0.007;
+
+                                             
 // -------------------------------------------------------           
 // Draw global frame?
 #declare draw_global_frame = false;
@@ -48,13 +55,8 @@ global_settings { ambient_light rgb<1, 1, 1> }
 
 // Draw body frames?
 #declare draw_body_frame = true;
-#declare body_frame_radius = 0.003;
+#declare body_frame_radius = 0.004;
 #declare body_frame_len = 0.3;
-
-// Draw shape frames?
-#declare draw_object_frame = false;
-#declare object_frame_radius = 0.003;
-#declare object_frame_len = 0.5;
 
 
 // -------------------------------------------------------------
@@ -147,17 +149,22 @@ global_settings { ambient_light rgb<1, 1, 1> }
                                             
                                             
                                             
-// ============================================================================================
-// Includes
-// ============================================================================================ 
+// ============================================================================================  
+// 
+// INCLUDES
+//
+// ============================================================================================   
+
 #include "shapes.inc"  
 #include "strings.inc"            
 #include "textures.inc"              
 #include "colors.inc"
   
    
-// ============================================================================================
-// Macro definitions
+// ============================================================================================ 
+//
+// MACRO DEFINITIONS                                                                          
+//
 // ============================================================================================     
 
 // --------------------------------------------------------------------------------------------          
@@ -224,14 +231,52 @@ global_settings { ambient_light rgb<1, 1, 1> }
 // --------------------------------------------------------------------------------------------          
 // Render a RIGHT-HAND-FRAME with Z up
 //    
-#macro XYZframe(len, rad)
-   union {
-        cylinder{<0,0,0>, <len,  0,  0>, rad pigment{color rgb<1,0,0>} no_shadow}
-        cylinder{<0,0,0>, < 0,  0, len>, rad pigment{color rgb<0,1,0>} no_shadow}
-        cylinder{<0,0,0>, < 0, len,  0>, rad pigment{color rgb<0,0,1>} no_shadow}
+#macro XYZframe(len, rad)  
+   #local White_texture = texture {pigment{color rgb<1,1,1>}   finish{phong 1}}
+   #local Red_texture   = texture {pigment{color rgb<0.8,0,0>} finish{phong 1}}
+   #local Green_texture = texture {pigment{color rgb<0,0.8,0>} finish{phong 1}}
+   #local Blue_texture  = texture {pigment{color rgb<0,0,0.8>} finish{phong 1}}  
+   
+   union {  
+        // X-axis
+        cylinder{
+          <0,0,0>, <len,  0,  0>, rad
+          texture{checker texture{Red_texture} texture{White_texture} scale len/10 translate<0,rad,rad>}
+          no_shadow
+        }  
+        cone{
+          <len, 0, 0>, 4*rad, <len + 8*rad, 0, 0>, 0
+          texture{Red_texture}
+          no_shadow
+        } 
+              
+        // Y-axis
+        cylinder{
+          <0,0,0>, < 0,  0, len>, rad
+          texture{checker texture{Green_texture} texture{White_texture} scale len/10 translate<rad,rad,0>}
+          no_shadow
+        }   
+        cone{
+          <0, 0, len>, 4*rad, <0, 0, len + 8*rad>, 0
+          texture{Green_texture}
+          no_shadow
+        }
+            
+        // Z-axis
+        cylinder{
+          <0,0,0>, < 0, len,  0>, rad
+          texture{checker texture{Blue_texture} texture{White_texture} scale len/10 translate<rad,0,rad>}
+          no_shadow
+        } 
+        cone{
+          <0, len, 0>, 4*rad, <0, len + 8*rad, 0>, 0
+          texture{Blue_texture}
+          no_shadow
+        }
    }
 #end
- 
+
+
  
 // --------------------------------------------------------------------------------------------          
 // Render a mesh at specified location and with specified orientation
@@ -255,49 +300,11 @@ global_settings { ambient_light rgb<1, 1, 1> }
 #end   
   
   
-                                                                  
+
 // ============================================================================================     
-    
-// Set a color of the background (sky)
-background { color rgb <1, 1, 1> }
-       
-// Convert camera location and look_at to LEFT-HAND-FRAME with Y up  
-#declare cloc = <cam_loc.x, cam_loc.z, cam_loc.y>;
-#declare clookat = <cam_lookat.x, cam_lookat.z,  cam_lookat.y>;     
-       
-// Perspective (default, not required) camera
-camera { 
-    #if (cam_perspective)
-        perspective   
-    #else
-        orthographic
-    #end
-    location cloc
-    look_at  clookat  
-    angle 60
-   //right     x*image_width/image_height  // aspect
-   // direction z                        // direction and zoom
-   // angle 67                           // field (overides direction zoom)
-}
-                              
-// Create a regular point light source                              
-  #if (draw_shadows)
-    light_source { 
-      1000*(cloc - clookat)  // behind the camera
-      color rgb <1,1,1>      // light's color
-      translate <0, 1500, 0>
-    }         
-  #else
-    light_source { 
-      1000*(cloc - clookat)  // behind the camera
-      color rgb <1,1,1>      // light's color
-      translate <0, 1500, 0> 
-      shadowless
-    }         
-  #end
-
-
-
+//
+// READ DATA AND RENDER SCENE
+//
 // ============================================================================================     
 
 // Read datafile
@@ -327,14 +334,7 @@ camera {
 #for (i, 1, numObjects)                               
               
     #read (MyDataFile, id, active, ax, ay, az, e0, e1, e2, e3, cR, cG, cB, shape)  
-                 
-    #if (draw_object_frame & (active | render_static))
-       object {
-            XYZframe(object_frame_len, object_frame_radius) 
-            position(<ax,ay,az>,<e0,e1,e2,e3>)  
-       }
-    #end
-          
+                           
     #switch (shape)
                        
         // sphere -------------  
@@ -476,18 +476,23 @@ camera {
 		#case (25)
 			#read (MyDataFile, p1x, p1y, p1z, p2x, p2y, p2z)
 			cylinder {
-			   <p1x,p1z,p1y>, <p2x,p2z,p2y>, 2 * object_frame_radius
-			   pigment{Scarlet}
+			   <p1x,p1z,p1y>, <p2x,p2z,p2y>, spring_radius
+			   texture{Peel scale revolute_halflen/2}
 			} 
+			//sphere {<p1x,p1z,p1y> 1.01 * spring_radius pigment{Orange}} 
+			//sphere {<p2x,p2z,p2y> 1.01 * spring_radius pigment{Orange}} 
 		#break
-
-		// LinkspringCB ------
+  
+  
+ 		// LinkspringCB ------
 		#case (30)
 			#read (MyDataFile, p1x, p1y, p1z, p2x, p2y, p2z)
 			cylinder {
-			   <p1x,p1z,p1y>, <p2x,p2z,p2y>, 2 * object_frame_radius
-			   pigment{Scarlet}
-			} 
+			   <p1x,p1z,p1y>, <p2x,p2z,p2y>, spring_radius  
+			   texture{Peel scale revolute_halflen/2}
+			}
+			//sphere {<p1x,p1z,p1y> 1.01 * spring_radius pigment{Orange}} 
+			//sphere {<p2x,p2z,p2y> 1.01 * spring_radius pigment{Orange}} 
 		#break
 
 		// LinkEngine ------
@@ -496,7 +501,7 @@ camera {
             cylinder {
                 <px-revolute_halflen*dx,  pz-revolute_halflen*dz, py-revolute_halflen*dy>, 
                 <px+revolute_halflen*dx,  pz+revolute_halflen*dz, py+revolute_halflen*dy>, 
-                revolute_radius   
+                spring_radius   
                 pigment{Scarlet}
             }
 		#break
@@ -505,7 +510,7 @@ camera {
 		#case (37)
 			#read (MyDataFile, p1x, p1y, p1z, p2x, p2y, p2z)
 			cylinder {
-			   <p1x,p1z,p1y>, <p2x,p2z,p2y>, object_frame_radius
+			   <p1x,p1z,p1y>, <p2x,p2z,p2y>, distance_cnstr_radius
 			   pigment {color DarkSlateGray }
 			}
 		#break
@@ -523,10 +528,42 @@ camera {
 XYZframe(global_frame_len, global_frame_radius) 
 #end 
       
- 
+                    
+                    
+// ============================================================================================     
+//
+// CAMERA
+//                     
+// ============================================================================================     
+    
+       
+// Convert camera location and look_at to LEFT-HAND-FRAME with Y up  
+#declare cloc = <cam_loc.x, cam_loc.z, cam_loc.y>;
+#declare clookat = <cam_lookat.x, cam_lookat.z,  cam_lookat.y>;     
+       
+// Create the camera
+camera { 
+    #if (cam_perspective)
+        perspective   
+    #else
+        orthographic
+    #end
+    location cloc
+    look_at  clookat  
+    angle 60
+}
+                    
+                    
+                                   
+// ============================================================================================     
+//
+// ENVIRONMENT
+//                     
+// ============================================================================================     
+                    
 #if (draw_environment) 
-  /*
-    // sun --------------------------------------------------------------- 
+  
+    // Lights
     # if (draw_shadows)
        light_source{<1500,2500,-2500>*100 color rgb<1,1,1>} 
     #else
@@ -534,22 +571,19 @@ XYZframe(global_frame_len, global_frame_radius)
     #end        
     
     light_source{<1500,2500, 2500>*100 color rgb<0.5,0.5,0.5> shadowless}
-   */
-    // sky ---------------------------------------------------------------
-
-    // optional with ground fog
+   
+    // Sky with fog
     sky_sphere{ pigment{ color rgb<0.15,0.28,0.75>*0.5}   } 
-    // ground fog at the horizon -----------------------------------------
+
     fog{ fog_type   2
-        distance   500
+        distance   1000
         color      rgb<1,1,1>*0.9
         fog_offset 0.1
         fog_alt    30
         turbulence 1.8
-    } //---------------------------------------------------------------
-            
+    }           
 
-/*
+    /*
     // without ground fog
     sky_sphere{
         pigment{ gradient y
@@ -561,15 +595,15 @@ XYZframe(global_frame_len, global_frame_radius)
           translate<0,-0.05,0>
         }
     }  
-*/
+    */
 
-    // spherical cloud layer --------------------------------------------
+    // Spherical cloud layer
     #declare R_planet = 6000000 ;
     #declare R_sky    = R_planet + 2000 ;
 
-    sphere{ <0, -R_planet, 0>, R_sky  hollow
-       
-        texture{ pigment{ bozo turbulence 0.75
+    sphere{
+      <0, -R_planet, 0>, R_sky  hollow   
+      texture{ pigment{ bozo turbulence 0.75
                           octaves 6  omega 0.7 lambda 2  phase 0.00 //0.15*clock
                          color_map {
                           [0.00 color rgb <0.95, 0.95, 0.95> ]
@@ -590,14 +624,33 @@ XYZframe(global_frame_len, global_frame_radius)
         // no_shadow 
     }
 
-    // ground ------------------------------------------------------------
-    sphere{ <0, -R_planet, 0>, R_planet+0.05  
- 
-         texture{ pigment{color rgb<0.35,0.65,0.0>*0.8}
-                  normal {bumps 0.75 scale 0.015}
-                } // end of texture
+    // Ground
+    sphere{
+      <0, -R_planet, 0>, R_planet+0.05  
+      texture{ pigment{color rgb<0.35,0.65,0.0>*0.8} normal {bumps 0.75 scale 0.015} }
     }
-    //--------------------------------------------------------------------
+    
+#else
+
+  // Set a color of the background (sky)
+  background { color rgb <0.95, 0.95, 0.95> }
+   
+   // Create a regular point light source behind the camera
+  #if (draw_shadows)
+    light_source { 
+      1500*(cloc - clookat)
+      color rgb <1,1,1>
+      translate <0, 1500, 0>
+    }         
+  #else
+    light_source { 
+      1500*(cloc - clookat)
+      color rgb <1,1,1>
+      translate <0, 1500, 0> 
+      shadowless
+    }         
+  #end
+
     
 #end
 
