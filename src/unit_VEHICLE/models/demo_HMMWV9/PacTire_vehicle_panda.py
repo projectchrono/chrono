@@ -130,6 +130,13 @@ class PacTire_vehicle_panda:
         ax_duv.legend(loc='best')
         ax_duv.set_title(titleStr)
         
+        fig_slip = plt.figure()
+        df_slip = pd.DataFrame(self._DF[tire_num], columns = ['time','alphaP','kappaP','gammaP'])
+        ax_slip = df_slip.plot(linewidth=1.5, x='time', y=['alphaP','gammaP','kappaP'])
+        ax_slip.set_xlabel('time [sec]')
+        ax_slip.legend(loc='best')
+        ax_slip.set_title(titleStr)
+        
         
     '''
     # @brief plot what you please
@@ -181,10 +188,9 @@ if __name__ == '__main__':
     tire_LF = tire.PacTire_panda(data_dir + 'test_HMMWV9_pacTire_FL.csv')
     
     tire_LF.plot_custom('time',['m_Fz'],'vertical Force [N]')
-    tire_LF.plot_custom('time',['Fxc','Fyc'],'Fx, Fy [N]')
-    
-    tire_LF.plot_custom('time',['kappa'],'longitudinal slip [-]')
-    tire_LF.plot_custom('time',['alpha'],'lateral slip [deg]')
+    # tire_LF.plot_custom('time',['Fxc','Fyc'],'Fx, Fy [N]')
+    # tire_LF.plot_custom('time',['kappa'],'longitudinal slip [-]')
+    # tire_LF.plot_custom('time',['alpha'],'lateral slip [deg]')
     
     # tire_LF.plot_combined_kappa()
     # tire_LF.plot_combined_alpha()
@@ -200,9 +206,9 @@ if __name__ == '__main__':
     
     # plot w.r.t. to time
     vehicle_output.plot_time(0,'Front Left')
-    #vehicle_output.plot_time(1,'Front Right')
-    #vehicle_output.plot_time(2,'Rear Left')
-    vehicle_output.plot_time(3,'Rear Right')
+    # vehicle_output.plot_time(1,'Front Right')
+    vehicle_output.plot_time(2,'Rear Left')
+    # vehicle_output.plot_time(3,'Rear Right')
     
     # plot w.r.t. long slip
     

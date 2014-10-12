@@ -197,7 +197,7 @@ private:
   void update_tireFrame();
 
   // update the vertical load, tire deflection, and tire rolling radius
-  void update_verticalLoad();
+  void update_verticalLoad(double step);
 
   // find the vertical load, using a spring-damper model
   double calc_Fz();
@@ -215,10 +215,12 @@ private:
   // after calculating all the reactions, evaluate output for any fishy business
   void evaluate();
 
+  void advance_tire(double step);
+
   // calculate transient slip properties, using first order ODEs to find slip
   // displacements from velocities
   // appends m_slips for the slip displacements, and integrated slip velocity terms
-  void advance_slip_transient(double step_size);
+  void advance_slip_transient(double step);
 
   // calculate the increment delta_x using RK 45 integration for linear u, v_alpha
   // Eq. 7.9 and 7.7, respectively
@@ -324,6 +326,8 @@ private:
   double m_simTime;            // current Chrono simulation time
 
   bool m_in_contact;           // indicates if there is tire-terrain contact
+  double m_depth;              // if in contact, this is the contact depth
+  ChCoordsys<> m_contact_frame;// the contact frame
 
   double m_R0;                 // unloaded radius
   double m_R_eff;              // current effect rolling radius
