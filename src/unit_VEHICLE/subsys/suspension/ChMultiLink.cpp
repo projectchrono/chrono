@@ -497,7 +497,7 @@ void ChMultiLink::AddVisualizationUpperArm(ChSharedBodyPtr    arm,
   arm->AddAsset(cyl_B);
 
   ChSharedPtr<ChColorAsset> col(new ChColorAsset);
-  col->SetColor(ChColor(0.7f, 0.7f, 0.7f));
+  col->SetColor(ChColor(0.6f, 0.2f, 0.6f));
   arm->AddAsset(col);
 }
 
@@ -579,7 +579,7 @@ void ChMultiLink::AddVisualizationTrackRod(ChSharedBodyPtr    rod,
   rod->AddAsset(cyl);
 
   ChSharedPtr<ChColorAsset> col(new ChColorAsset);
-  col->SetColor(ChColor(0.2f, 0.2f, 0.6f));
+  col->SetColor(ChColor(0.2f, 0.6f, 0.2f));
   rod->AddAsset(col);
 }
 
@@ -607,7 +607,7 @@ void ChMultiLink::AddVisualizationTrailingLink(ChSharedBodyPtr    link,
   link->AddAsset(cyl2);
 
   ChSharedPtr<ChColorAsset> col(new ChColorAsset);
-  col->SetColor(ChColor(0.2f, 0.2f, 0.6f));
+  col->SetColor(ChColor(0.2f, 0.6f, 0.6f));
   link->AddAsset(col);
 }
 
