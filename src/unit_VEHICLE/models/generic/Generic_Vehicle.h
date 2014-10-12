@@ -12,12 +12,14 @@
 // Authors: Radu Serban, Justin Madsen, Daniel Melanz
 // =============================================================================
 //
-// Generic vehicle model with solid axle suspensions
+// Generic vehicle model. 
+// Can be constructed either with solid-axle or with multi-link suspensions.
+// Always uses a generic rack-pinion steering and a 2WD driveline model.
 //
 // =============================================================================
 
-#ifndef GENERIC_VEHICLESOLIDAXLE_H
-#define GENERIC_VEHICLESOLIDAXLE_H
+#ifndef GENERIC_VEHICLE_H
+#define GENERIC_VEHICLE_H
 
 #include "core/ChCoordsys.h"
 #include "physics/ChSystem.h"
@@ -31,14 +33,15 @@
 #include "models/generic/Generic_Driveline2WD.h"
 #include "models/generic/Generic_BrakeSimple.h"
 
-class Generic_VehicleSolidAxle : public chrono::ChVehicle
+class Generic_Vehicle : public chrono::ChVehicle
 {
 public:
 
-  Generic_VehicleSolidAxle(const bool        fixed = false,
-                           VisualizationType wheelVis = PRIMITIVES);
+  Generic_Vehicle(const bool        fixed,
+                  SuspensionType    suspType,
+                  VisualizationType wheelVis);
 
-  ~Generic_VehicleSolidAxle() {}
+  ~Generic_Vehicle() {}
 
   virtual int GetNumberAxles() const { return 2; }
 
@@ -64,6 +67,8 @@ public:
   void DebugLog(int what);      /// shock forces and lengths, constraints, etc.
 
 private:
+
+  SuspensionType m_suspType;
 
   chrono::ChSharedPtr<Generic_Wheel> m_front_right_wheel;
   chrono::ChSharedPtr<Generic_Wheel> m_front_left_wheel;

@@ -12,7 +12,9 @@
 // Authors: Radu Serban, Justin Madsen, Daniel Melanz
 // =============================================================================
 //
-// Generic vehicle model with solid axle suspension.
+// Generic vehicle model. 
+// Can be constructed either with solid-axle or with multi-link suspensions.
+// Always uses a generic rack-pinion steering and a 2WD driveline model.
 //
 // =============================================================================
 
@@ -22,10 +24,10 @@
 #include "utils/ChUtilsData.h"
 #include "utils/ChUtilsInputOutput.h"
 
-#include "subsys/suspension/SolidAxle.h"
 #include "models/generic/Generic_SolidAxle.h"
+#include "models/generic/Generic_MultiLink.h"
 
-#include "models/generic/Generic_VehicleSolidAxle.h"
+#include "models/generic/Generic_Vehicle.h"
 
 using namespace chrono;
 
@@ -34,25 +36,19 @@ using namespace chrono;
 // Static variables
 // -----------------------------------------------------------------------------
 
-static const double in2m = 0.0254;
-static const double lb2kg = 0.453592;
-static const double lbf2N = 4.44822162;
+const double     Generic_Vehicle::m_chassisMass = 3500;                   // chassis sprung mass
+const ChVector<> Generic_Vehicle::m_chassisCOM (-0.2, 0, 0.8);            // COM location
+const ChVector<> Generic_Vehicle::m_chassisInertia(125.8, 497.4, 531.4);  // chassis inertia (roll,pitch,yaw)
 
-const double     Generic_VehicleSolidAxle::m_chassisMass = lb2kg * 7747.0;                           // chassis sprung mass
-const ChVector<> Generic_VehicleSolidAxle::m_chassisCOM = in2m * ChVector<>(-18.8, -0.585, 33.329);  // COM location
-const ChVector<> Generic_VehicleSolidAxle::m_chassisInertia(125.8, 497.4, 531.4);                    // chassis inertia (roll,pitch,yaw)
-
-const ChCoordsys<> Generic_VehicleSolidAxle::m_driverCsys(ChVector<>(0.0, 0.5, 1.2), ChQuaternion<>(1, 0, 0, 0));
+const ChCoordsys<> Generic_Vehicle::m_driverCsys(ChVector<>(0.0, 0.5, 1.2), ChQuaternion<>(1, 0, 0, 0));
 
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-bool use_JSON = false;
-
-// -----------------------------------------------------------------------------
-// -----------------------------------------------------------------------------
-Generic_VehicleSolidAxle::Generic_VehicleSolidAxle(const bool        fixed,
-                                                   VisualizationType wheelVis)
+Generic_Vehicle::Generic_Vehicle(const bool        fixed,
+                                 SuspensionType    suspType,
+                                 VisualizationType wheelVis)
+: m_suspType(suspType)
 {
   // -------------------------------------------
   // Create the chassis body
@@ -77,15 +73,18 @@ Generic_VehicleSolidAxle::Generic_VehicleSolidAxle(const bool        fixed,
   // Create the suspension subsystems
   // -------------------------------------------
   m_suspensions.resize(2);
-  if (use_JSON)
-  {
-    m_suspensions[0] = ChSharedPtr<ChSuspension>(new SolidAxle(utils::GetModelDataFile("generic/suspension/SolidAxleFront.json"), false));
-    m_suspensions[1] = ChSharedPtr<ChSuspension>(new SolidAxle(utils::GetModelDataFile("generic/suspension/SolidAxleRear.json"), true));
-  }
-  else
-  {
+
+  assert(m_suspType == SOLID_AXLE || m_suspType == MULTI_LINK);
+
+  switch (m_suspType) {
+  case SOLID_AXLE:
     m_suspensions[0] = ChSharedPtr<ChSuspension>(new Generic_SolidAxleFront("FrontSusp", false));
     m_suspensions[1] = ChSharedPtr<ChSuspension>(new Generic_SolidAxleRear("RearSusp", true));
+    break;
+  case MULTI_LINK:
+    m_suspensions[0] = ChSharedPtr<ChSuspension>(new Generic_MultiLinkFront("FrontSusp", false));
+    m_suspensions[1] = ChSharedPtr<ChSuspension>(new Generic_MultiLinkRear("RearSusp", true));
+    break;
   }
 
   // -----------------------------
@@ -118,19 +117,23 @@ Generic_VehicleSolidAxle::Generic_VehicleSolidAxle(const bool        fixed,
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-void Generic_VehicleSolidAxle::Initialize(const ChCoordsys<>& chassisPos)
+void Generic_Vehicle::Initialize(const ChCoordsys<>& chassisPos)
 {
   m_chassis->SetFrame_REF_to_abs(ChFrame<>(chassisPos));
 
   // Initialize the steering subsystem (specify the steering subsystem's frame
   // relative to the chassis reference frame).
-  ChVector<> offset = in2m * ChVector<>(63, 0, -3.1);
+  ChVector<> offset;
+  switch (m_suspType) {
+  case SOLID_AXLE: offset = ChVector<>(1.60, 0, -0.07); break;
+  case MULTI_LINK: offset = ChVector<>(1.65, 0, -0.12); break;
+  }
   m_steering->Initialize(m_chassis, offset, ChQuaternion<>(1, 0, 0, 0));
 
   // Initialize the suspension subsystems (specify the suspension subsystems'
   // frames relative to the chassis reference frame).
-  m_suspensions[0]->Initialize(m_chassis, in2m * ChVector<>(66.59, 0, 0), m_steering->GetSteeringLink());
-  m_suspensions[1]->Initialize(m_chassis, in2m * ChVector<>(-66.4, 0, 0), m_chassis);
+  m_suspensions[0]->Initialize(m_chassis, ChVector<>(1.6914, 0, 0), m_steering->GetSteeringLink());
+  m_suspensions[1]->Initialize(m_chassis, ChVector<>(-1.6865, 0, 0), m_chassis);
 
   // Initialize wheels
   m_front_left_wheel->Initialize(m_suspensions[0]->GetSpindle(LEFT));
@@ -152,47 +155,88 @@ void Generic_VehicleSolidAxle::Initialize(const ChCoordsys<>& chassisPos)
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-double Generic_VehicleSolidAxle::GetSpringForce(const ChWheelID& wheel_id) const
+double Generic_Vehicle::GetSpringForce(const ChWheelID& wheel_id) const
 {
-  return m_suspensions[wheel_id.axle()].StaticCastTo<ChSolidAxle>()->GetSpringForce(wheel_id.side());
+  switch (m_suspType) {
+  case SOLID_AXLE:
+    return m_suspensions[wheel_id.axle()].StaticCastTo<ChSolidAxle>()->GetSpringForce(wheel_id.side());
+  case MULTI_LINK:
+    return m_suspensions[wheel_id.axle()].StaticCastTo<ChMultiLink>()->GetSpringForce(wheel_id.side());
+  default:
+    return -1;
+  }
 }
 
-double Generic_VehicleSolidAxle::GetSpringLength(const ChWheelID& wheel_id) const
+double Generic_Vehicle::GetSpringLength(const ChWheelID& wheel_id) const
 {
-  return m_suspensions[wheel_id.axle()].StaticCastTo<ChSolidAxle>()->GetSpringLength(wheel_id.side());
+  switch (m_suspType) {
+  case SOLID_AXLE:
+    return m_suspensions[wheel_id.axle()].StaticCastTo<ChSolidAxle>()->GetSpringLength(wheel_id.side());
+  case MULTI_LINK:
+    return m_suspensions[wheel_id.axle()].StaticCastTo<ChMultiLink>()->GetSpringLength(wheel_id.side());
+  default:
+    return -1;
+  }
 }
 
-double Generic_VehicleSolidAxle::GetSpringDeformation(const ChWheelID& wheel_id) const
+double Generic_Vehicle::GetSpringDeformation(const ChWheelID& wheel_id) const
 {
-  return m_suspensions[wheel_id.axle()].StaticCastTo<ChSolidAxle>()->GetSpringDeformation(wheel_id.side());
+  switch (m_suspType) {
+  case SOLID_AXLE:
+    return m_suspensions[wheel_id.axle()].StaticCastTo<ChSolidAxle>()->GetSpringDeformation(wheel_id.side());
+  case MULTI_LINK:
+    return m_suspensions[wheel_id.axle()].StaticCastTo<ChMultiLink>()->GetSpringDeformation(wheel_id.side());
+  default:
+    return -1;
+  }
 }
 
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-double Generic_VehicleSolidAxle::GetShockForce(const ChWheelID& wheel_id) const
+double Generic_Vehicle::GetShockForce(const ChWheelID& wheel_id) const
 {
-  return m_suspensions[wheel_id.axle()].StaticCastTo<ChSolidAxle>()->GetShockForce(wheel_id.side());
+  switch (m_suspType) {
+  case SOLID_AXLE:
+    return m_suspensions[wheel_id.axle()].StaticCastTo<ChSolidAxle>()->GetShockForce(wheel_id.side());
+  case MULTI_LINK:
+    return m_suspensions[wheel_id.axle()].StaticCastTo<ChMultiLink>()->GetShockForce(wheel_id.side());
+  default:
+    return -1;
+  }
 }
 
-double Generic_VehicleSolidAxle::GetShockLength(const ChWheelID& wheel_id) const
+double Generic_Vehicle::GetShockLength(const ChWheelID& wheel_id) const
 {
-  return m_suspensions[wheel_id.axle()].StaticCastTo<ChSolidAxle>()->GetShockLength(wheel_id.side());
+  switch (m_suspType) {
+  case SOLID_AXLE:
+    return m_suspensions[wheel_id.axle()].StaticCastTo<ChSolidAxle>()->GetShockLength(wheel_id.side());
+  case MULTI_LINK:
+    return m_suspensions[wheel_id.axle()].StaticCastTo<ChMultiLink>()->GetShockLength(wheel_id.side());
+  default:
+    return -1;
+  }
 }
 
-double Generic_VehicleSolidAxle::GetShockVelocity(const ChWheelID& wheel_id) const
+double Generic_Vehicle::GetShockVelocity(const ChWheelID& wheel_id) const
 {
-  return m_suspensions[wheel_id.axle()].StaticCastTo<ChSolidAxle>()->GetShockVelocity(wheel_id.side());
+  switch (m_suspType) {
+  case SOLID_AXLE:
+    return m_suspensions[wheel_id.axle()].StaticCastTo<ChSolidAxle>()->GetShockVelocity(wheel_id.side());
+  case MULTI_LINK:
+    return m_suspensions[wheel_id.axle()].StaticCastTo<ChMultiLink>()->GetShockVelocity(wheel_id.side());
+  default:
+    return -1;
+  }
 }
-
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-void Generic_VehicleSolidAxle::Update(double              time,
-                                      double              steering,
-                                      double              braking,
-                                      double              powertrain_torque,
-                                      const ChTireForces& tire_forces)
+void Generic_Vehicle::Update(double              time,
+                             double              steering,
+                             double              braking,
+                             double              powertrain_torque,
+                             const ChTireForces& tire_forces)
 {
   // Apply powertrain torque to the driveline's input shaft.
   m_driveline->ApplyDriveshaftTorque(powertrain_torque);
@@ -218,15 +262,24 @@ void Generic_VehicleSolidAxle::Update(double              time,
 // Log the hardpoint locations for the front-right and rear-right suspension
 // subsystems (display in inches)
 // -----------------------------------------------------------------------------
-void Generic_VehicleSolidAxle::LogHardpointLocations()
+void Generic_Vehicle::LogHardpointLocations()
 {
   GetLog().SetNumFormat("%7.3f");
 
-  GetLog() << "\n---- FRONT suspension hardpoint locations (RIGHT side)\n";
-  m_suspensions[0].StaticCastTo<ChSolidAxle>()->LogHardpointLocations(ChVector<>(0, 0, 0), true);
-
-  GetLog() << "\n---- REAR suspension hardpoint locations (RIGHT side)\n";
-  m_suspensions[1].StaticCastTo<ChSolidAxle>()->LogHardpointLocations(ChVector<>(0, 0, 0), true);
+  switch (m_suspType) {
+  case SOLID_AXLE:
+    GetLog() << "\n---- FRONT suspension hardpoint locations (RIGHT side)\n";
+    m_suspensions[0].StaticCastTo<ChSolidAxle>()->LogHardpointLocations(ChVector<>(0, 0, 0), true);
+    GetLog() << "\n---- REAR suspension hardpoint locations (RIGHT side)\n";
+    m_suspensions[1].StaticCastTo<ChSolidAxle>()->LogHardpointLocations(ChVector<>(0, 0, 0), true);
+    break;
+  case MULTI_LINK:
+    GetLog() << "\n---- FRONT suspension hardpoint locations (RIGHT side)\n";
+    m_suspensions[0].StaticCastTo<ChMultiLink>()->LogHardpointLocations(ChVector<>(0, 0, 0), true);
+    GetLog() << "\n---- REAR suspension hardpoint locations (RIGHT side)\n";
+    m_suspensions[1].StaticCastTo<ChMultiLink>()->LogHardpointLocations(ChVector<>(0, 0, 0), true);
+    break;
+  }
 
   GetLog() << "\n\n";
 
@@ -241,7 +294,7 @@ void Generic_VehicleSolidAxle::LogHardpointLocations()
 //
 // Lengths are reported in inches, velocities in inches/s, and forces in lbf
 // -----------------------------------------------------------------------------
-void Generic_VehicleSolidAxle::DebugLog(int what)
+void Generic_Vehicle::DebugLog(int what)
 {
   GetLog().SetNumFormat("%10.2f");
 
@@ -249,40 +302,40 @@ void Generic_VehicleSolidAxle::DebugLog(int what)
   {
     GetLog() << "\n---- Spring (front-left, front-right, rear-left, rear-right)\n";
     GetLog() << "Length [inch]       "
-      << GetSpringLength(FRONT_LEFT) / in2m << "  "
-      << GetSpringLength(FRONT_RIGHT) / in2m << "  "
-      << GetSpringLength(REAR_LEFT) / in2m << "  "
-      << GetSpringLength(REAR_RIGHT) / in2m << "\n";
+      << GetSpringLength(FRONT_LEFT) << "  "
+      << GetSpringLength(FRONT_RIGHT) << "  "
+      << GetSpringLength(REAR_LEFT) << "  "
+      << GetSpringLength(REAR_RIGHT) << "\n";
     GetLog() << "Deformation [inch]  "
-      << GetSpringDeformation(FRONT_LEFT) / in2m << "  "
-      << GetSpringDeformation(FRONT_RIGHT) / in2m << "  "
-      << GetSpringDeformation(REAR_LEFT) / in2m << "  "
-      << GetSpringDeformation(REAR_RIGHT) / in2m << "\n";
+      << GetSpringDeformation(FRONT_LEFT) << "  "
+      << GetSpringDeformation(FRONT_RIGHT) << "  "
+      << GetSpringDeformation(REAR_LEFT) << "  "
+      << GetSpringDeformation(REAR_RIGHT) << "\n";
     GetLog() << "Force [lbf]         "
-      << GetSpringForce(FRONT_LEFT) / lbf2N << "  "
-      << GetSpringForce(FRONT_RIGHT) / lbf2N << "  "
-      << GetSpringForce(REAR_LEFT) / lbf2N << "  "
-      << GetSpringForce(REAR_RIGHT) / lbf2N << "\n";
+      << GetSpringForce(FRONT_LEFT) << "  "
+      << GetSpringForce(FRONT_RIGHT) << "  "
+      << GetSpringForce(REAR_LEFT) << "  "
+      << GetSpringForce(REAR_RIGHT) << "\n";
   }
 
   if (what & DBG_SHOCKS)
   {
     GetLog() << "\n---- Shock (front-left, front-right, rear-left, rear-right)\n";
     GetLog() << "Length [inch]       "
-      << GetShockLength(FRONT_LEFT) / in2m << "  "
-      << GetShockLength(FRONT_RIGHT) / in2m << "  "
-      << GetShockLength(REAR_LEFT) / in2m << "  "
-      << GetShockLength(REAR_RIGHT) / in2m << "\n";
+      << GetShockLength(FRONT_LEFT) << "  "
+      << GetShockLength(FRONT_RIGHT) << "  "
+      << GetShockLength(REAR_LEFT) << "  "
+      << GetShockLength(REAR_RIGHT) << "\n";
     GetLog() << "Velocity [inch/s]   "
-      << GetShockVelocity(FRONT_LEFT) / in2m << "  "
-      << GetShockVelocity(FRONT_RIGHT) / in2m << "  "
-      << GetShockVelocity(REAR_LEFT) / in2m << "  "
-      << GetShockVelocity(REAR_RIGHT) / in2m << "\n";
+      << GetShockVelocity(FRONT_LEFT) << "  "
+      << GetShockVelocity(FRONT_RIGHT) << "  "
+      << GetShockVelocity(REAR_LEFT) << "  "
+      << GetShockVelocity(REAR_RIGHT) << "\n";
     GetLog() << "Force [lbf]         "
-      << GetShockForce(FRONT_LEFT) / lbf2N << "  "
-      << GetShockForce(FRONT_RIGHT) / lbf2N << "  "
-      << GetShockForce(REAR_LEFT) / lbf2N << "  "
-      << GetShockForce(REAR_RIGHT) / lbf2N << "\n";
+      << GetShockForce(FRONT_LEFT) << "  "
+      << GetShockForce(FRONT_RIGHT) << "  "
+      << GetShockForce(REAR_LEFT) << "  "
+      << GetShockForce(REAR_RIGHT) << "\n";
   }
 
   if (what & DBG_CONSTRAINTS)

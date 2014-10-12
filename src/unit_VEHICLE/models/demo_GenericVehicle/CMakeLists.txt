@@ -19,8 +19,8 @@ SET(MODEL_FILES
 	../ModelDefs.h
 	../generic/Generic_Wheel.h
 	../generic/Generic_FuncDriver.h
-	../generic/Generic_VehicleSolidAxle.h
-	../generic/Generic_VehicleSolidAxle.cpp
+	../generic/Generic_Vehicle.h
+	../generic/Generic_Vehicle.cpp
 	../generic/Generic_SolidAxle.h
 	../generic/Generic_SolidAxle.cpp
 	../generic/Generic_MultiLink.h

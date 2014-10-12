@@ -35,7 +35,7 @@
 #include "subsys/tire/ChPacejkaTire.h"
 
 #include "models/ModelDefs.h"
-#include "models/generic/Generic_VehicleSolidAxle.h"
+#include "models/generic/Generic_Vehicle.h"
 #include "models/generic/Generic_SimplePowertrain.h"
 #include "models/generic/Generic_RigidTire.h"
 #include "models/generic/Generic_FuncDriver.h"
@@ -101,9 +101,11 @@ int main(int argc, char* argv[])
   // Create the various modules
   // --------------------------
 
-  // Create the vehicle
-  Generic_VehicleSolidAxle vehicle(false,
-                                   PRIMITIVES);
+  // Create the vehicle: specify if chassis is fixed, the suspension type
+  // (SOLID_AXLE or MULTI_LINK) and the wheel visualization (PRIMITIVES or NONE)
+  Generic_Vehicle vehicle(false,
+                          MULTI_LINK,
+                          PRIMITIVES);
 
   vehicle.Initialize(ChCoordsys<>(initLoc, initRot));
 

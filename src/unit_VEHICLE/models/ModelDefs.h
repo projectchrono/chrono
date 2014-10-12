@@ -36,6 +36,11 @@ enum PowertrainModelType {
   SIMPLE
 };
 
+enum SuspensionType {
+  SOLID_AXLE,
+  MULTI_LINK
+};
+
 enum DebugInformation {
   DBG_SPRINGS     = 1 << 0,
   DBG_SHOCKS      = 1 << 1,
