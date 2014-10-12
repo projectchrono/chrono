@@ -23,6 +23,8 @@ SET(MODEL_FILES
 	../generic/Generic_VehicleSolidAxle.cpp
 	../generic/Generic_SolidAxle.h
 	../generic/Generic_SolidAxle.cpp
+	../generic/Generic_MultiLink.h
+	../generic/Generic_MultiLink.cpp
 	../generic/Generic_RackPinion.h
 	../generic/Generic_Driveline2WD.h
 	../generic/Generic_SimplePowertrain.h
