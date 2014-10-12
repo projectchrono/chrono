@@ -18,8 +18,6 @@ MESSAGE(STATUS "Adding HMMWV demo...")
 
 SET(MODEL_FILES
 	../ModelDefs.h
-	../hmmwv/HMMWV_Wheel.h
-	../hmmwv/HMMWV_Wheel.cpp
 	../hmmwv/HMMWV_FuncDriver.h
 	../hmmwv/HMMWV_FuncDriver.cpp
 	../hmmwv/vehicle/HMMWV_Vehicle.h
@@ -38,6 +36,8 @@ SET(MODEL_FILES
 	../hmmwv/powertrain/HMMWV_Powertrain.cpp
 	../hmmwv/brake/HMMWV_BrakeSimple.h
 	../hmmwv/brake/HMMWV_BrakeSimple.cpp
+	../hmmwv/wheel/HMMWV_Wheel.h
+	../hmmwv/wheel/HMMWV_Wheel.cpp
 	../hmmwv/tire/HMMWV_RigidTire.h
 	../hmmwv/tire/HMMWV_RigidTire.cpp
 	../hmmwv/tire/HMMWV_LugreTire.h
