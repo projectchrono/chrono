@@ -590,9 +590,23 @@ double ChPacejkaTire::calc_Fz()
 
   // Calculate normal contact force, using a spring-damper model.
   // Note: depth is always positive, so the damping should always subtract
-  double Fz = m_params->vertical.vertical_stiffness * m_depth - m_params->vertical.vertical_damping * std::abs(relvel_loc.z);
-  
-  
+  double Fz = m_params->vertical.vertical_stiffness * m_depth - m_params->vertical.vertical_damping * relvel_loc.z;
+
+  // Adams reference, Fz = Fz(omega, Fx, Fy, gamma, m_depth, relvel_loc.z)
+  double q_v2 = 2.0;    // linear stiffness increase with spin
+  double q_Fcx = 0.2;   // Fx stiffness reduction
+  double q_Fcy = 0.35;   // Fy stiffness reduction
+  double q_FcG = 0.001; // camber stiffness reduction
+  double C_Fz =  m_params->vertical.vertical_damping; // damping
+  double q_Fz1 = m_params->vertical.vertical_stiffness; // linear stiffness
+  double q_Fz2 = 5.0;  // 2nd order stiffness
+  // scale the stiffness by considering forces and spin rate
+  double force_term = (1.0 + q_v2 * std::abs(m_tireState.omega)*m_R0/m_params->model.longvl - pow(q_Fcx * m_FM_combined_last.force.x / m_params->vertical.fnomin,2)
+  - pow(q_Fcy*m_FM_combined_last.force.y/m_params->vertical.fnomin,2) + q_FcG * m_slip->gammaP);
+  double rho_term = q_Fz1 * m_depth / m_R0 + q_Fz2 * pow(m_depth / m_R0, 2);
+  //  Fz = force_term*rho_term*Fz0 + C_Fz * v_z
+  double Fz_adams = force_term * rho_term * m_params->vertical.fnomin + C_Fz * relvel_loc.z;
+
   // for a 37x12.5 R16.5 Wrangler MT @ 30 psi
   // double k1 = 550000.0;
   // double k2 = 1e5;

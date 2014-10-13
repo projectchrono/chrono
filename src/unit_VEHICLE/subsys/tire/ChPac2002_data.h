@@ -42,17 +42,17 @@ struct slips {
 
 // input data file structs
 struct model {
-  std::string property_file_format;
-  int use_mode;
-  double vxlow;
-  double longvl;
-  std::string tyreside;
+  std::string property_file_format; // pac tire model type
+  int use_mode; // used in Adams/Car
+  double vxlow; // minimum horizontal velocity
+  double longvl;// tire horizontal velocity at measurements
+  std::string tyreside; // left or right
 };
 
 struct dimension {
-  double unloaded_radius;
-  double width;
-  double aspect_ratio;
+  double unloaded_radius; // R0
+  double width; // nominal section width
+  double aspect_ratio;  // section height / width
   double rim_radius;
   double rim_width;
 };
