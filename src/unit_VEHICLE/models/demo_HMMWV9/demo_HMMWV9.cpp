@@ -97,7 +97,7 @@ double render_step_size = 1.0 / FPS;   // FPS = 50
 #endif
 
 // ******  PacejkaTire simulation settings
-bool save_pactire_data = true;
+bool save_pactire_data = false;
 double time_start_output = 1.0;
 double pac_step_size = step_size;
 std::string pac_ofilename_base = "test_HMMWV9_pacTire";
