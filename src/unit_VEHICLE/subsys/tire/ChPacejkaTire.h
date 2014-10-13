@@ -313,11 +313,11 @@ private:
 
   /// calculate the overturning couple moment
   /// assign m_FM.moment.x and m_FM_combined.moment.x
-  double calc_Mx(double gamma, double Fy_combined);
+  double calc_Mx(double gamma, double Fy_combined, bool in_contact);
 
   /// calculate the rolling resistance moment,
   /// assign m_FM.moment.y and m_FM_combined.moment.y
-  double calc_My(double Fx_combined);
+  double calc_My(double Fx_combined, bool in_contact);
 
   // ----- Data members
 

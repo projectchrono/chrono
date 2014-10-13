@@ -119,9 +119,13 @@ class PacTire_vehicle_panda:
         # check the displacements, u, v vs. time
         fig_uv = plt.figure()
         df_uv = pd.DataFrame(self._DF[tire_num], columns = ['time','u','valpha','du','dvalpha','vgamma','dvgamma','Vx','Vy'])
-        ax_uv = df_uv.plot(linewidth=1.5, x='time', y=['u','valpha','vgamma','Vx','Vy'])
+        ax_uv = df_uv.plot(linewidth=1.5, x='time', y=['u','valpha','vgamma'])
+        ax_uv_2 = ax_uv.twinx()
+        ax_uv_2.plot(df_uv['time'], df_uv['Vx'], 'c--', linewidth = 1.5, label = 'Vx')
+        ax_uv_2.plot(df_uv['time'], df_uv['Vy'], 'b--', linewidth = 1.5, label = 'Vy')
         ax_uv.set_xlabel('time [sec]')
         ax_uv.legend(loc='best')
+        ax_uv_2.legend(loc='upper right')
         ax_uv.set_title(titleStr)
         
         fig_duv = plt.figure()
@@ -132,9 +136,12 @@ class PacTire_vehicle_panda:
         
         fig_slip = plt.figure()
         df_slip = pd.DataFrame(self._DF[tire_num], columns = ['time','alphaP','kappaP','gammaP','Vx','Vy'])
-        ax_slip = df_slip.plot(linewidth=1.5, x='time', y=['alphaP','gammaP','kappaP','Vx','Vy'])
+        ax_slip = df_slip.plot(linewidth=1.5, x='time', y=['alphaP','gammaP','Vx','Vy'])
+        ax_slip_2 = ax_slip.twinx()
+        ax_slip_2.plot(df_slip['time'], df_slip['kappaP'], 'r', linewidth = 1.5, label = 'kappaP')
         ax_slip.set_xlabel('time [sec]')
         ax_slip.legend(loc='best')
+        ax_slip_2.legend(loc = 'upper right')
         ax_slip.set_title(titleStr)
         
         

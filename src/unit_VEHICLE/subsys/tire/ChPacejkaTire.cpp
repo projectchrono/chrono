@@ -438,12 +438,12 @@ void ChPacejkaTire::Advance(double step)
   combinedSlipReactions(m_in_contact);
 
   // Update M_x, apply to both m_FM and m_FM_combined
-  double Mx = calc_Mx(m_FM_combined.force.y, m_slip->gammaP);
+  double Mx = calc_Mx(m_FM_combined.force.y, m_slip->gammaP, m_in_contact);
   m_FM_pure.moment.x = Mx;
   m_FM_combined.moment.x = Mx;
 
   // Update M_y, apply to both m_FM and m_FM_combined
-  double My = calc_My(m_FM_combined.force.x);
+  double My = calc_My(m_FM_combined.force.x, m_in_contact);
   m_FM_pure.moment.y = My;
   m_FM_combined.moment.y = My;
 
@@ -551,26 +551,28 @@ void ChPacejkaTire::update_verticalLoad(double step)
     // }
   }
 
-  // ratio of actual load to nominal
-  m_dF_z = (m_Fz - m_params->vertical.fnomin) / m_params->vertical.fnomin;
 
-  // Calculate tire vertical deflection, rho.
-  double qV1 = 0.000071;      // from example
-  double K1 = pow(m_tireState.omega * m_R0 / m_params->model.longvl, 2);
-  double rho = m_R0 - m_R_l + qV1 * m_R0 * K1;
-  double rho_Fz0 = m_params->vertical.fnomin / (m_params->vertical.vertical_stiffness);
-  double rho_d = rho / rho_Fz0;
+    // ratio of actual load to nominal
+    m_dF_z = (m_Fz - m_params->vertical.fnomin) / m_params->vertical.fnomin;
 
-  // Calculate tire rolling radius, R_eff.  Clamp this value to R0.
-  m_R_eff = m_R0 + qV1 * m_R0 * K1 - rho_Fz0 * (m_params->vertical.dreff * std::atan(m_params->vertical.breff * rho_d) + m_params->vertical.freff * rho_d);
-  if (m_R_eff > m_R0)
-    m_R_eff = m_R0;
+    // Calculate tire vertical deflection, rho.
+    double qV1 = 0.000071;      // from example
+    double K1 = pow(m_tireState.omega * m_R0 / m_params->model.longvl, 2);
+    double rho = m_R0 - m_R_l + qV1 * m_R0 * K1;
+    double rho_Fz0 = m_params->vertical.fnomin / (m_params->vertical.vertical_stiffness);
+    double rho_d = rho / rho_Fz0;
 
-  // Load vertical component of tire force. Use threshold force
-  m_FM_pure.force.z = Fz;
-  m_FM_combined.force.z = Fz;
-  // m_FM_pure.force.z = Fz;
-  // m_FM_combined.force.z = Fz;
+    // Calculate tire rolling radius, R_eff.  Clamp this value to R0.
+    m_R_eff = m_R0 + qV1 * m_R0 * K1 - rho_Fz0 * (m_params->vertical.dreff * std::atan(m_params->vertical.breff * rho_d) + m_params->vertical.freff * rho_d);
+    if (m_R_eff > m_R0)
+      m_R_eff = m_R0;
+
+    if(m_in_contact)
+    {
+      // Load vertical component of tire force
+      m_FM_pure.force.z = Fz;
+      m_FM_combined.force.z = Fz;
+    } 
 }
 
 // NOTE: must 
@@ -596,16 +598,17 @@ double ChPacejkaTire::calc_Fz()
   double q_v2 = 2.0;    // linear stiffness increase with spin
   double q_Fcx = 0.2;   // Fx stiffness reduction
   double q_Fcy = 0.35;   // Fy stiffness reduction
-  double q_FcG = 0.001; // camber stiffness reduction
+  double q_FcG = 0.001; // camber stiffness increase
   double C_Fz =  m_params->vertical.vertical_damping; // damping
   double q_Fz1 = m_params->vertical.vertical_stiffness; // linear stiffness
-  double q_Fz2 = 5.0;  // 2nd order stiffness
+  double q_Fz2 = 500.0;  // 2nd order stiffness
   // scale the stiffness by considering forces and spin rate
-  double force_term = (1.0 + q_v2 * std::abs(m_tireState.omega)*m_R0/m_params->model.longvl - pow(q_Fcx * m_FM_combined_last.force.x / m_params->vertical.fnomin,2)
-  - pow(q_Fcy*m_FM_combined_last.force.y/m_params->vertical.fnomin,2) + q_FcG * m_slip->gammaP);
-  double rho_term = q_Fz1 * m_depth / m_R0 + q_Fz2 * pow(m_depth / m_R0, 2);
+  double force_term = 1.0 + q_v2 * std::abs(m_tireState.omega) * m_R0 / m_params->model.longvl 
+    - pow(q_Fcx * m_FM_combined_last.force.x / m_params->vertical.fnomin,2)
+    - pow(q_Fcy * m_FM_combined_last.force.y / m_params->vertical.fnomin,2) + q_FcG * pow(m_slip->gammaP,2);
+  double rho_term = q_Fz1 * m_depth + q_Fz2 * pow(m_depth, 2);
   //  Fz = force_term*rho_term*Fz0 + C_Fz * v_z
-  double Fz_adams = force_term * rho_term * m_params->vertical.fnomin + C_Fz * relvel_loc.z;
+  double Fz_adams = force_term * rho_term - C_Fz * relvel_loc.z;
 
   // for a 37x12.5 R16.5 Wrangler MT @ 30 psi
   // double k1 = 550000.0;
@@ -614,12 +617,14 @@ double ChPacejkaTire::calc_Fz()
   // double c = 0.001 * k1;
   // double Fz = k1 * m_depth - c * relvel_loc.z; // + k2 * pow(m_depth,2);
   
-  if (Fz < m_params->vertical_force_range.fzmin)
+  // if (Fz < m_params->vertical_force_range.fzmin)
+  if (Fz_adams < m_params->vertical_force_range.fzmin)
     return m_params->vertical_force_range.fzmin;
 
   m_R_l = m_R0 - m_depth;
 
   return Fz;
+  // return Fz_adams;
 }
 
 
@@ -1296,18 +1301,28 @@ double ChPacejkaTire::Mz_combined(double alpha_r, double alpha_t, double gamma, 
   return M_z;
 }
 
-double ChPacejkaTire::calc_Mx(double gamma, double Fy_combined)
+double ChPacejkaTire::calc_Mx(double gamma, double Fy_combined, bool in_contact)
 {
-  double M_x = m_Fz * m_R0 * (m_params->overturning.qsx1 - m_params->overturning.qsx2 * gamma
-    - m_params->overturning.qsx3 * (Fy_combined / m_params->vertical.fnomin)) * m_params->scaling.lmx;
+  double M_x = 0;
+  if(in_contact)
+  {
+    M_x = m_Fz * m_R0 * (m_params->overturning.qsx1 - m_params->overturning.qsx2 * gamma 
+      - m_params->overturning.qsx3 * (Fy_combined / m_params->vertical.fnomin)) * m_params->scaling.lmx;
+  }
+
   return M_x;
 }
 
 
-double ChPacejkaTire::calc_My(double Fx_combined)
+double ChPacejkaTire::calc_My(double Fx_combined, bool in_contact)
 {
-  double V_r = m_tireState.omega * m_R_eff;
-  double M_y = -m_Fz * m_R0 * (m_params->rolling.qsy1 * std::atan(V_r / m_params->model.longvl) + m_params->rolling.qsy2 * (Fx_combined / m_params->vertical.fnomin)) * m_params->scaling.lmy;
+  double M_y = 0;
+  if(in_contact)
+  {
+    double V_r = m_tireState.omega * m_R_eff;
+    M_y = -m_Fz * m_R0 * (m_params->rolling.qsy1 * std::atan(V_r / m_params->model.longvl) 
+      + m_params->rolling.qsy2 * (Fx_combined / m_params->vertical.fnomin)) * m_params->scaling.lmy;
+  }
   return M_y;
 }
 
