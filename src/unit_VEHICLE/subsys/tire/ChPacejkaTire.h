@@ -207,13 +207,15 @@ private:
 
   // calculate the slips assume the steer/throttle/brake input to wheel has an
   // instantaneous effect on contact patch slips
-  void slip_kinematic();
+  void slip_kinematic(bool in_contact);
 
-  // when not in contact, reset (modify?) accumulated slip variables
-  void reset_contact();
+  // set the tire m_slip vector to all zeros
+  void zero_slips();
 
   // after calculating all the reactions, evaluate output for any fishy business
-  void evaluate();
+  // write_violations: any output threshold exceeded gets written to console
+  // enforce_threshold: enforce the limits when forces/moments exceed thresholds (except on Fz)
+  void evaluate(bool write_violations, bool enforce_threshold);
 
   void advance_tire(double step);
 
@@ -266,17 +268,17 @@ private:
     double step_size);
 
   // calculate and set the transient slip values (kappaP, alphaP, gammaP) from
-  // u, v deflections
-  void slip_from_uv();
+  // u, v deflections. optionally turn on/off besselink low velocity damping
+  void slip_from_uv(bool use_besselink = true, double bessel_c = 500.0);
 
   /// calculate the reaction forces and moments, pure slip cases
   /// assign longitudinal, lateral force, aligning moment:
   /// Fx, Fy and Mz
-  void pureSlipReactions();
+  void pureSlipReactions(bool in_contact);
 
   /// calculate combined slip reactions
   /// assign Fx, Fy, Mz
-  void combinedSlipReactions();
+  void combinedSlipReactions(bool in_contact);
 
   /// longitudinal force, alpha ~= 0
   /// assign to m_FM.force.x

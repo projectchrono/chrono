@@ -88,7 +88,7 @@ double render_step_size = 1.0 / FPS;   // FPS = 50
 
 #ifdef USE_IRRLICHT
   // Point on chassis tracked by the camera
-  ChVector<> trackPoint(0.0, 0.0, 1.75);
+  ChVector<> trackPoint(0.0, 0.0, .75);
 #else
   double tend = 20.0;
 
@@ -97,11 +97,11 @@ double render_step_size = 1.0 / FPS;   // FPS = 50
 #endif
 
 // ******  PacejkaTire simulation settings
-bool save_pactire_data = false;
-double time_start_output = 2.0;
+bool save_pactire_data = true;
+double time_start_output = 1.0;
 double pac_step_size = step_size;
 std::string pac_ofilename_base = "test_HMMWV9_pacTire";
-double pac_out_step_size = 0.001;
+double pac_out_step_size = 0.01;
 int pac_out_steps = (int)std::ceil(pac_out_step_size / step_size);
 
 // =============================================================================
@@ -261,7 +261,7 @@ int main(int argc, char* argv[])
 
   application.SetTimestep(step_size);
 
-  ChIrrGuiDriver driver(application, vehicle, *powertrain.get_ptr(), trackPoint, 6.0, 0.5, true);
+  ChIrrGuiDriver driver(application, vehicle, *powertrain.get_ptr(), trackPoint, 4.0, 0.5, true);
 
   // Set the time response for steering and throttle keyboard inputs.
   // NOTE: this is not exact, since we do not render quite at the specified FPS.
