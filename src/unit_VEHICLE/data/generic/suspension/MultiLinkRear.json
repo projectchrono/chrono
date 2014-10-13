@@ -31,14 +31,14 @@
     "Location Upright":             [0.056, 0.864, 0.151]
   },
 
-  "Track Rod":
+  "Lateral":
   {
     "Mass":                         16.36,
     "COM":                          [-0.200, 0.591, -0.086],
     "Inertia":                      [3, 3, 3],
     "Radius":                       0.02,
-    "Location Chassis":             [-0.257, 0.320, -0.116],
-    "Location Upright":             [-0.144, 0.862, -0.056],
+    "Location Chassis":             [0.036, 0.338, -0.133],
+    "Location Upright":             [0.029, 0.842, -0.093],
     "Universal Joint Axis Link":    [-0.978950, 0.204099, 0.0],
     "Universal Joint Axis Chassis": [-0.021990, -0.105472, 0.994179]
   },
@@ -57,8 +57,8 @@
 
   "Tierod":
   {
-    "Location Chassis":             [0.036, 0.338, -0.133],
-    "Location Upright":             [0.029, 0.842, -0.093]
+    "Location Chassis":             [-0.257, 0.320, -0.116],
+    "Location Upright":             [-0.144, 0.862, -0.056]
   },
 
   "Spring":

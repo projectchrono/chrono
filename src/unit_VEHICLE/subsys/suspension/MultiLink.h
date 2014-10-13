@@ -39,20 +39,20 @@ public:
 
   virtual double getSpindleMass() const { return m_spindleMass; }
   virtual double getUpperArmMass() const { return m_upperArmMass; }
-  virtual double getTrackRodMass() const { return m_trackRodMass; }
+  virtual double getLateralMass() const { return m_lateralMass; }
   virtual double getTrailingLinkMass() const { return m_trailingLinkMass; }
   virtual double getUprightMass() const { return m_uprightMass; }
 
   virtual double getSpindleRadius() const { return m_spindleRadius; }
   virtual double getSpindleWidth() const { return m_spindleWidth; }
   virtual double getUpperArmRadius() const { return m_upperArmRadius; }
-  virtual double getTrackRodRadius() const { return m_trackRodRadius; }
+  virtual double getLateralRadius() const { return m_lateralRadius; }
   virtual double getTrailingLinkRadius() const { return m_trailingLinkRadius; }
   virtual double getUprightRadius() const { return m_uprightRadius; }
 
   virtual const ChVector<>& getSpindleInertia() const { return m_spindleInertia; }
   virtual const ChVector<>& getUpperArmInertia() const { return m_upperArmInertia; }
-  virtual const ChVector<>& getTrackRodInertia() const { return m_trackRodInertia; }
+  virtual const ChVector<>& getLateralInertia() const { return m_lateralInertia; }
   virtual const ChVector<>& getTrailingLinkInertia() const { return m_trailingLinkInertia; }
   virtual const ChVector<>& getUprightInertia() const { return m_uprightInertia; }
 
@@ -74,20 +74,20 @@ private:
 
   double      m_spindleMass;
   double      m_upperArmMass;
-  double      m_trackRodMass;
+  double      m_lateralMass;
   double      m_trailingLinkMass;
   double      m_uprightMass;
 
   double      m_spindleRadius;
   double      m_spindleWidth;
   double      m_upperArmRadius;
-  double      m_trackRodRadius;
+  double      m_lateralRadius;
   double      m_trailingLinkRadius;
   double      m_uprightRadius;
 
   ChVector<>  m_spindleInertia;
   ChVector<>  m_upperArmInertia;
-  ChVector<>  m_trackRodInertia;
+  ChVector<>  m_lateralInertia;
   ChVector<>  m_trailingLinkInertia;
   ChVector<>  m_uprightInertia;
 

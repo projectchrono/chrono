@@ -40,20 +40,20 @@ public:
 
   virtual double getSpindleMass() const { return m_spindleMass; }
   virtual double getUpperArmMass() const { return m_upperArmMass; }
-  virtual double getTrackRodMass() const { return m_trackRodMass; }
+  virtual double getLateralMass() const { return m_lateralMass; }
   virtual double getTrailingLinkMass() const { return m_trailingLinkMass; }
   virtual double getUprightMass() const { return m_uprightMass; }
 
   virtual double getSpindleRadius() const { return m_spindleRadius; }
   virtual double getSpindleWidth() const { return m_spindleWidth; }
   virtual double getUpperArmRadius() const { return m_upperArmRadius; }
-  virtual double getTrackRodRadius() const { return m_trackRodRadius; }
+  virtual double getLateralRadius() const { return m_lateralRadius; }
   virtual double getTrailingLinkRadius() const { return m_trailingLinkRadius; }
   virtual double getUprightRadius() const { return m_uprightRadius; }
 
   virtual const chrono::ChVector<>& getSpindleInertia() const { return m_spindleInertia; }
   virtual const chrono::ChVector<>& getUpperArmInertia() const { return m_upperArmInertia; }
-  virtual const chrono::ChVector<>& getTrackRodInertia() const { return m_trackRodInertia; }
+  virtual const chrono::ChVector<>& getLateralInertia() const { return m_lateralInertia; }
   virtual const chrono::ChVector<>& getTrailingLinkInertia() const { return m_trailingLinkInertia; }
   virtual const chrono::ChVector<>& getUprightInertia() const { return m_uprightInertia; }
 
@@ -70,20 +70,20 @@ private:
 
   static const double      m_spindleMass;
   static const double      m_upperArmMass;
-  static const double      m_trackRodMass;
+  static const double      m_lateralMass;
   static const double      m_trailingLinkMass;
   static const double      m_uprightMass;
 
   static const double      m_spindleRadius;
   static const double      m_spindleWidth;
   static const double      m_upperArmRadius;
-  static const double      m_trackRodRadius;
+  static const double      m_lateralRadius;
   static const double      m_trailingLinkRadius;
   static const double      m_uprightRadius;
 
   static const chrono::ChVector<>  m_spindleInertia;
   static const chrono::ChVector<>  m_upperArmInertia;
-  static const chrono::ChVector<>  m_trackRodInertia;
+  static const chrono::ChVector<>  m_lateralInertia;
   static const chrono::ChVector<>  m_trailingLinkInertia;
   static const chrono::ChVector<>  m_uprightInertia;
 
@@ -106,20 +106,20 @@ public:
 
   virtual double getSpindleMass() const { return m_spindleMass; }
   virtual double getUpperArmMass() const { return m_upperArmMass; }
-  virtual double getTrackRodMass() const { return m_trackRodMass; }
+  virtual double getLateralMass() const { return m_lateralMass; }
   virtual double getTrailingLinkMass() const { return m_trailingLinkMass; }
   virtual double getUprightMass() const { return m_uprightMass; }
 
   virtual double getSpindleRadius() const { return m_spindleRadius; }
   virtual double getSpindleWidth() const { return m_spindleWidth; }
   virtual double getUpperArmRadius() const { return m_upperArmRadius; }
-  virtual double getTrackRodRadius() const { return m_trackRodRadius; }
+  virtual double getLateralRadius() const { return m_lateralRadius; }
   virtual double getTrailingLinkRadius() const { return m_trailingLinkRadius; }
   virtual double getUprightRadius() const { return m_uprightRadius; }
 
   virtual const chrono::ChVector<>& getSpindleInertia() const { return m_spindleInertia; }
   virtual const chrono::ChVector<>& getUpperArmInertia() const { return m_upperArmInertia; }
-  virtual const chrono::ChVector<>& getTrackRodInertia() const { return m_trackRodInertia; }
+  virtual const chrono::ChVector<>& getLateralInertia() const { return m_lateralInertia; }
   virtual const chrono::ChVector<>& getTrailingLinkInertia() const { return m_trailingLinkInertia; }
   virtual const chrono::ChVector<>& getUprightInertia() const { return m_uprightInertia; }
 
@@ -136,20 +136,20 @@ private:
 
   static const double      m_spindleMass;
   static const double      m_upperArmMass;
-  static const double      m_trackRodMass;
+  static const double      m_lateralMass;
   static const double      m_trailingLinkMass;
   static const double      m_uprightMass;
 
   static const double      m_spindleRadius;
   static const double      m_spindleWidth;
   static const double      m_upperArmRadius;
-  static const double      m_trackRodRadius;
+  static const double      m_lateralRadius;
   static const double      m_trailingLinkRadius;
   static const double      m_uprightRadius;
 
   static const chrono::ChVector<>  m_spindleInertia;
   static const chrono::ChVector<>  m_upperArmInertia;
-  static const chrono::ChVector<>  m_trackRodInertia;
+  static const chrono::ChVector<>  m_lateralInertia;
   static const chrono::ChVector<>  m_trailingLinkInertia;
   static const chrono::ChVector<>  m_uprightInertia;
 

@@ -122,9 +122,9 @@ protected:
     UA_B,       ///< upper arm, chassis back
     UA_U,       ///< upper arm, upright
     UA_CM,      ///< upper arm, center of mass
-    TR_C,       ///< track rod, chassis
-    TR_U,       ///< track rod, upright
-    TR_CM,      ///< track rod, center of mass
+    LAT_C,      ///< lateral, chassis
+    LAT_U,      ///< lateral, upright
+    LAT_CM,     ///< lateral, center of mass
     TL_C,       ///< trailing link, chassis
     TL_U,       ///< trailing link, upright
     TL_CM,      ///< trailing link, center of mass
@@ -141,8 +141,8 @@ protected:
   enum DirectionId {
     UNIV_AXIS_LINK_TL,     ///< universal joint (trailing link, link side)
     UNIV_AXIS_CHASSIS_TL,  ///< universal joint (trailing link, chassis side)
-    UNIV_AXIS_LINK_TR,     ///< universal joint (track rod, link side)
-    UNIV_AXIS_CHASSIS_TR,  ///< universal joint (track rod, chassis side)
+    UNIV_AXIS_LINK_LAT,    ///< universal joint (lateral, link side)
+    UNIV_AXIS_CHASSIS_LAT, ///< universal joint (lateral, chassis side)
     NUM_DIRS
   };
 
@@ -157,8 +157,8 @@ protected:
   virtual double getSpindleMass() const = 0;
   /// Return the mass of the upper arm body.
   virtual double getUpperArmMass() const = 0;
-  /// Return the mass of the track rod body.
-  virtual double getTrackRodMass() const = 0;
+  /// Return the mass of the lateral body.
+  virtual double getLateralMass() const = 0;
   /// Return the mass of the trailing link body.
   virtual double getTrailingLinkMass() const = 0;
   /// Return the mass of the upright body.
@@ -168,8 +168,8 @@ protected:
   virtual const ChVector<>& getSpindleInertia() const = 0;
   /// Return the moments of inertia of the upper arm body.
   virtual const ChVector<>& getUpperArmInertia() const = 0;
-  /// Return the moments of inertia of the track rod body.
-  virtual const ChVector<>& getTrackRodInertia() const = 0;
+  /// Return the moments of inertia of the lateral body.
+  virtual const ChVector<>& getLateralInertia() const = 0;
   /// Return the moments of inertia of the trailing link body.
   virtual const ChVector<>& getTrailingLinkInertia() const = 0;
   /// Return the moments of inertia of the upright body.
@@ -184,8 +184,8 @@ protected:
   virtual double getSpindleWidth() const = 0;
   /// Return the radius of the upper arm body (visualization only).
   virtual double getUpperArmRadius() const = 0;
-  /// Return the radius of the track rod body (visualization only).
-  virtual double getTrackRodRadius() const = 0;
+  /// Return the radius of the lateral body (visualization only).
+  virtual double getLateralRadius() const = 0;
   /// Return the radius of the trailing link body (visualization only).
   virtual double getTrailingLinkRadius() const = 0;
   /// Return the radius of the upright body (visualization only).
@@ -215,16 +215,16 @@ protected:
 
   ChSharedBodyPtr                   m_upright[2];      ///< handles to the upright bodies (left/right)
   ChSharedBodyPtr                   m_upperArm[2];     ///< handles to the upper arm bodies (left/right)
-  ChSharedBodyPtr                   m_trackRod[2];     ///< handles to the track arm bodies (left/right)
+  ChSharedBodyPtr                   m_lateral[2];      ///< handles to the lateral bodies (left/right)
   ChSharedBodyPtr                   m_trailingLink[2]; ///< handles to the trailing link bodies (left/right)
 
-  ChSharedPtr<ChLinkLockRevolute>   m_revoluteUA[2];          ///< handles to the chassis-UA revolute joints (left/right)
-  ChSharedPtr<ChLinkLockSpherical>  m_sphericalUA[2];         ///< handles to the upright-UA spherical joints (left/right)
-  ChSharedPtr<ChLinkLockUniversal>  m_universalTRChassis[2];  ///< handles to the chassis-track rod universal joints (left/right)
-  ChSharedPtr<ChLinkLockSpherical>  m_sphericalTRUpright[2];  ///< handles to the upright-track rod spherical joints (left/right)
-  ChSharedPtr<ChLinkLockUniversal>  m_universalTLChassis[2];  ///< handles to the chassis-trailing link universal joints (left/right)
-  ChSharedPtr<ChLinkLockSpherical>  m_sphericalTLUpright[2];  ///< handles to the upright-trailing link spherical joints (left/right)
-  ChSharedPtr<ChLinkDistance>       m_distTierod[2];          ///< handles to the tierod distance constraints (left/right)
+  ChSharedPtr<ChLinkLockRevolute>   m_revoluteUA[2];              ///< handles to the chassis-UA revolute joints (left/right)
+  ChSharedPtr<ChLinkLockSpherical>  m_sphericalUA[2];             ///< handles to the upright-UA spherical joints (left/right)
+  ChSharedPtr<ChLinkLockUniversal>  m_universalLateralChassis[2]; ///< handles to the chassis-lateral universal joints (left/right)
+  ChSharedPtr<ChLinkLockSpherical>  m_sphericalLateralUpright[2]; ///< handles to the upright-lateral spherical joints (left/right)
+  ChSharedPtr<ChLinkLockUniversal>  m_universalTLChassis[2];      ///< handles to the chassis-trailing link universal joints (left/right)
+  ChSharedPtr<ChLinkLockSpherical>  m_sphericalTLUpright[2];      ///< handles to the upright-trailing link spherical joints (left/right)
+  ChSharedPtr<ChLinkDistance>       m_distTierod[2];              ///< handles to the tierod distance constraints (left/right)
 
   bool                              m_nonlinearShock;  ///< true if using a callback function to calculate shock forces.
   bool                              m_nonlinearSpring; ///< true if using a callback function to calculate spring forces.
@@ -250,7 +250,7 @@ private:
                                          const ChVector<>&  pt_B,
                                          const ChVector<>&  pt_U,
                                          double             radius);
-  static void AddVisualizationTrackRod(ChSharedBodyPtr    rod,
+  static void AddVisualizationLateral(ChSharedBodyPtr    rod,
                                          const ChVector<>&  pt_C,
                                          const ChVector<>&  pt_U,
                                          double             radius);

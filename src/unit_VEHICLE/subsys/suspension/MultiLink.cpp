@@ -39,7 +39,7 @@ static ChVector<> loadVector(const Value& a)
 }
 
 // -----------------------------------------------------------------------------
-// Construct a double wishbone suspension using data from the specified JSON
+// Construct a multi-link suspension using data from the specified JSON
 // file.
 // -----------------------------------------------------------------------------
 MultiLink::MultiLink(const std::string& filename,
@@ -107,18 +107,18 @@ void MultiLink::Create(const rapidjson::Document& d)
   m_points[UA_B] = loadVector(d["Upper Arm"]["Location Chassis Back"]);
   m_points[UA_U] = loadVector(d["Upper Arm"]["Location Upright"]);
 
-  // Read Track Rod data
-  assert(d.HasMember("Track Rod"));
-  assert(d["Track Rod"].IsObject());
+  // Read Lateral data
+  assert(d.HasMember("Lateral"));
+  assert(d["Lateral"].IsObject());
 
-  m_trackRodMass = d["Track Rod"]["Mass"].GetDouble();
-  m_points[TR_CM] = loadVector(d["Track Rod"]["COM"]);
-  m_trackRodInertia = loadVector(d["Track Rod"]["Inertia"]);
-  m_trackRodRadius = d["Track Rod"]["Radius"].GetDouble();
-  m_points[TR_C] = loadVector(d["Track Rod"]["Location Chassis"]);
-  m_points[TR_U] = loadVector(d["Track Rod"]["Location Upright"]);
-  m_directions[UNIV_AXIS_LINK_TR] = loadVector(d["Track Rod"]["Universal Joint Axis Link"]);
-  m_directions[UNIV_AXIS_CHASSIS_TR] = loadVector(d["Track Rod"]["Universal Joint Axis Chassis"]);
+  m_lateralMass = d["Lateral"]["Mass"].GetDouble();
+  m_points[LAT_CM] = loadVector(d["Lateral"]["COM"]);
+  m_lateralInertia = loadVector(d["Lateral"]["Inertia"]);
+  m_lateralRadius = d["Lateral"]["Radius"].GetDouble();
+  m_points[LAT_C] = loadVector(d["Lateral"]["Location Chassis"]);
+  m_points[LAT_U] = loadVector(d["Lateral"]["Location Upright"]);
+  m_directions[UNIV_AXIS_LINK_LAT] = loadVector(d["Lateral"]["Universal Joint Axis Link"]);
+  m_directions[UNIV_AXIS_CHASSIS_LAT] = loadVector(d["Lateral"]["Universal Joint Axis Chassis"]);
 
   // Read Trailing Link data
   assert(d.HasMember("Trailing Link"));

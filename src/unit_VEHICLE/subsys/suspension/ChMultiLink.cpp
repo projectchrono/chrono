@@ -48,9 +48,9 @@ const std::string ChMultiLink::m_pointNames[] = {
     "UA_B     ",
     "UA_U     ",
     "UA_CM    ",
-    "TR_C     ",
-    "TR_U     ",
-    "TR_CM    ",
+    "LAT_C    ",
+    "LAT_U    ",
+    "LAT_CM   ",
     "TL_C     ",
     "TL_U     ",
     "TL_CM    ",
@@ -152,13 +152,13 @@ void ChMultiLink::CreateSide(ChVehicleSide      side,
   m_sphericalUA[side] = ChSharedPtr<ChLinkLockSpherical>(new ChLinkLockSpherical);
   m_sphericalUA[side]->SetNameString(m_name + "_sphericalUA" + suffix);
 
-  // Bodies and constraints to model track rod
-  m_trackRod[side] = ChSharedBodyPtr(new ChBody);
-  m_trackRod[side]->SetNameString(m_name + "_trackRod" + suffix);
-  m_universalTRChassis[side] = ChSharedPtr<ChLinkLockUniversal>(new ChLinkLockUniversal);
-  m_universalTRChassis[side]->SetNameString(m_name + "_universalTRChassis" + suffix);
-  m_sphericalTRUpright[side] = ChSharedPtr<ChLinkLockSpherical>(new ChLinkLockSpherical);
-  m_sphericalTRUpright[side]->SetNameString(m_name + "_sphericalTRUpright" + suffix);
+  // Bodies and constraints to model lateral
+  m_lateral[side] = ChSharedBodyPtr(new ChBody);
+  m_lateral[side]->SetNameString(m_name + "_lateral" + suffix);
+  m_universalLateralChassis[side] = ChSharedPtr<ChLinkLockUniversal>(new ChLinkLockUniversal);
+  m_universalLateralChassis[side]->SetNameString(m_name + "_universalLateralChassis" + suffix);
+  m_sphericalLateralUpright[side] = ChSharedPtr<ChLinkLockSpherical>(new ChLinkLockSpherical);
+  m_sphericalLateralUpright[side]->SetNameString(m_name + "_sphericalLateralUpright" + suffix);
 
   // Bodies and constraints to model trailing link
   m_trailingLink[side] = ChSharedBodyPtr(new ChBody);
@@ -252,7 +252,7 @@ void ChMultiLink::InitializeSide(ChVehicleSide                   side,
   m_upright[side]->SetRot(chassisRot);
   m_upright[side]->SetMass(getUprightMass());
   m_upright[side]->SetInertiaXX(getUprightInertia());
-  AddVisualizationUpright(m_upright[side], points[UA_U], points[TR_U], points[TL_U], points[TIEROD_U], points[UPRIGHT], getUprightRadius());
+  AddVisualizationUpright(m_upright[side], points[UA_U], points[LAT_U], points[TL_U], points[TIEROD_U], points[UPRIGHT], getUprightRadius());
   chassis->GetSystem()->AddBody(m_upright[side]);
 
   // Unit vectors for orientation matrices.
@@ -278,22 +278,22 @@ void ChMultiLink::InitializeSide(ChVehicleSide                   side,
   AddVisualizationUpperArm(m_upperArm[side], points[UA_F], points[UA_B], points[UA_U], getUpperArmRadius());
   chassis->GetSystem()->AddBody(m_upperArm[side]);
 
-  // Initialize track rod body.
-  // Determine the rotation matrix of the track rod based on the plane of the hard points
+  // Initialize lateral body.
+  // Determine the rotation matrix of the lateral based on the plane of the hard points
   // (z-axis along the length of the track rod)
-  v = Vcross(points[TR_U] - points[TL_U], points[TR_C] - points[TL_U]);
+  v = Vcross(points[LAT_U] - points[TL_U], points[LAT_C] - points[TL_U]);
   v.Normalize();
-  w = points[TR_C] - points[TR_U];
+  w = points[LAT_C] - points[LAT_U];
   w.Normalize();
   u = Vcross(v, w);
   rot.Set_A_axis(u, v, w);
 
-  m_trackRod[side]->SetPos(points[TR_CM]);
-  m_trackRod[side]->SetRot(rot);
-  m_trackRod[side]->SetMass(getTrackRodMass());
-  m_trackRod[side]->SetInertiaXX(getTrackRodInertia());
-  AddVisualizationTrackRod(m_trackRod[side], points[TR_U], points[TR_C], getTrackRodRadius());
-  chassis->GetSystem()->AddBody(m_trackRod[side]);
+  m_lateral[side]->SetPos(points[LAT_CM]);
+  m_lateral[side]->SetRot(rot);
+  m_lateral[side]->SetMass(getLateralMass());
+  m_lateral[side]->SetInertiaXX(getLateralInertia());
+  AddVisualizationLateral(m_lateral[side], points[LAT_U], points[LAT_C], getLateralRadius());
+  chassis->GetSystem()->AddBody(m_lateral[side]);
 
   // Initialize trailing link body.
   // Determine the rotation matrix of the trailing link based on the plane of the hard points
@@ -336,16 +336,16 @@ void ChMultiLink::InitializeSide(ChVehicleSide                   side,
   chassis->GetSystem()->AddLink(m_sphericalUA[side]);
 
   // Initialize the spherical joint between upright and track rod.
-  m_sphericalTRUpright[side]->Initialize(m_trackRod[side], m_upright[side], ChCoordsys<>(points[TR_U], QUNIT));
-  chassis->GetSystem()->AddLink(m_sphericalTRUpright[side]);
+  m_sphericalLateralUpright[side]->Initialize(m_lateral[side], m_upright[side], ChCoordsys<>(points[LAT_U], QUNIT));
+  chassis->GetSystem()->AddLink(m_sphericalLateralUpright[side]);
 
   // Initialize the universal joint between chassis and track rod.
-  u = dirs[UNIV_AXIS_CHASSIS_TR];
-  v = dirs[UNIV_AXIS_LINK_TR];
+  u = dirs[UNIV_AXIS_CHASSIS_LAT];
+  v = dirs[UNIV_AXIS_LINK_LAT];
   w = Vcross(u, v);
   rot.Set_A_axis(u, v, w);
-  m_universalTRChassis[side]->Initialize(m_trackRod[side], chassis, ChCoordsys<>(points[TR_C], rot.Get_A_quaternion()));
-  chassis->GetSystem()->AddLink(m_universalTRChassis[side]);
+  m_universalLateralChassis[side]->Initialize(m_lateral[side], chassis, ChCoordsys<>(points[LAT_C], rot.Get_A_quaternion()));
+  chassis->GetSystem()->AddLink(m_universalLateralChassis[side]);
 
   // Initialize the spherical joint between upright and trailing link.
   m_sphericalTLUpright[side]->Initialize(m_trailingLink[side], m_upright[side], ChCoordsys<>(points[TL_U], QUNIT));
@@ -432,8 +432,8 @@ void ChMultiLink::LogConstraintViolations(ChVehicleSide side)
     GetLog() << "  " << C->GetElement(2, 0) << "\n";
   }
   {
-    ChMatrix<>* C = m_sphericalTRUpright[side]->GetC();
-    GetLog() << "TR-Upright spherical  ";
+    ChMatrix<>* C = m_sphericalLateralUpright[side]->GetC();
+    GetLog() << "Lateral-Upright spherical  ";
     GetLog() << "  " << C->GetElement(0, 0) << "  ";
     GetLog() << "  " << C->GetElement(1, 0) << "  ";
     GetLog() << "  " << C->GetElement(2, 0) << "\n";
@@ -448,8 +448,8 @@ void ChMultiLink::LogConstraintViolations(ChVehicleSide side)
 
   // Universal joints
   {
-    ChMatrix<>* C = m_universalTRChassis[side]->GetC();
-    GetLog() << "TR-Chassis universal  ";
+    ChMatrix<>* C = m_universalLateralChassis[side]->GetC();
+    GetLog() << "Lateral-Chassis universal  ";
     GetLog() << "  " << C->GetElement(0, 0) << "  ";
     GetLog() << "  " << C->GetElement(1, 0) << "  ";
     GetLog() << "  " << C->GetElement(2, 0) << "  ";
@@ -563,7 +563,7 @@ void ChMultiLink::AddVisualizationUpright(ChSharedBodyPtr    upright,
   upright->AddAsset(col);
 }
 
-void ChMultiLink::AddVisualizationTrackRod(ChSharedBodyPtr    rod,
+void ChMultiLink::AddVisualizationLateral(ChSharedBodyPtr    rod,
                                            const ChVector<>&  pt_C,
                                            const ChVector<>&  pt_U,
                                            double             radius)
