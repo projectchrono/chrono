@@ -82,16 +82,28 @@ bool ChValidation::Process(const std::string& sim_filename,
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-void ChValidation::GetDiffMetrics(size_t  col,
-                                  double& L2_norm,
-                                  double& RMS_norm,
-                                  double& INF_norm) const
+bool ChValidation::Process(const std::string& sim_filename,
+                           size_t             num_data_points,
+                           char               delim)
 {
-  L2_norm = m_L2_norms[col];
-  RMS_norm = m_RMS_norms[col];
-  INF_norm = m_INF_norms[col];
-}
+  // Read the simulation results file.
+  m_num_rows = ReadDataFile(sim_filename, delim, num_data_points, m_sim_headers, m_sim_data);
+  m_num_cols = m_sim_headers.size();
 
+  // Resize arrays of norms.
+  m_L2_norms.resize(m_num_cols - 1);
+  m_RMS_norms.resize(m_num_cols - 1);
+  m_INF_norms.resize(m_num_cols - 1);
+
+  // Calculate norms of the column vectors.
+  for (size_t col = 0; col < m_num_cols - 1; col++) {
+    m_L2_norms[col] = L2norm(m_sim_data[col + 1]);
+    m_RMS_norms[col] = RMSnorm(m_sim_data[col + 1]);
+    m_INF_norms[col] = INFnorm(m_sim_data[col + 1]);
+  }
+
+  return true;
+}
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
@@ -151,6 +163,75 @@ size_t ChValidation::ReadDataFile(const std::string& filename,
   }
 
   return row;
+}
+
+
+// -----------------------------------------------------------------------------
+// Compare the data in the two specified files.
+// The comparison is done using the specified norm type and tolerance. The
+// function returns true if the norms of all column differences are below the
+// given tolerance and false otherwise.
+// -----------------------------------------------------------------------------
+bool Validate(const std::string& sim_filename,
+              const std::string& ref_filename,
+              size_t             num_data_points,
+              ChNormType         norm_type,
+              double             tolerance)
+
+{
+  ChValidation validator;
+
+  validator.Process(sim_filename, ref_filename, num_data_points);
+
+  size_t num_cols = validator.GetNumColumns() - 1;
+  DataVector norms(num_cols);
+
+  switch (norm_type) {
+  case L2_NORM:  norms = validator.GetL2norms(); break;
+  case RMS_NORM: norms = validator.GetRMSnorms(); break;
+  case INF_NORM: norms = validator.GetINFnorms(); break;
+  }
+
+  for (size_t col = 0; col < num_cols; col++) {
+    if (norms[col] > tolerance)
+      return false;
+  }
+
+  return true;
+}
+
+
+// -----------------------------------------------------------------------------
+// Validation of a constraint violation data file.
+// The validation is done using the specified norm type and tolerance. The
+// function returns true if the norms of all columns, excluding the first one,
+// are below the given tolerance and false otherwise.
+// -----------------------------------------------------------------------------
+bool Validate(const std::string& sim_filename,
+              size_t             num_data_points,
+              ChNormType         norm_type,
+              double             tolerance)
+
+{
+  ChValidation validator;
+
+  validator.Process(sim_filename, num_data_points);
+
+  size_t num_cols = validator.GetNumColumns() - 1;
+  DataVector norms(num_cols);
+
+  switch (norm_type) {
+  case L2_NORM:  norms = validator.GetL2norms(); break;
+  case RMS_NORM: norms = validator.GetRMSnorms(); break;
+  case INF_NORM: norms = validator.GetINFnorms(); break;
+  }
+
+  for (size_t col = 0; col < num_cols; col++) {
+    if (norms[col] > tolerance)
+      return false;
+  }
+
+  return true;
 }
 
 
