@@ -123,6 +123,11 @@ function_CalcContactForces(
   real forceN_dissipation = 1.5 * alpha_eff * forceN_elastic * relvel_n_mag;
   real forceN = forceN_elastic - forceN_dissipation;
 
+  // If the resulting force is negative, the two shapes are moving away from
+  // each other so fast that no contact force is generated.
+  if (forceN < 0)
+    forceN = 0;
+
   // Include cohesion force
   forceN -= cohesion_eff;
 

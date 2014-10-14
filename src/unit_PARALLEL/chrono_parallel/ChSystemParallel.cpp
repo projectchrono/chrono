@@ -374,14 +374,14 @@ void ChSystemParallel::RecomputeBins() {
       detect_optimal_bins = 1;
       old_timer_cd = average_time;
 
-      PerturbBins(true);
+      PerturbBins(true, data_manager->settings.bin_perturb_size);
 #if PRINT_LEVEL==1
       cout << "current bins increased" << endl;
 #endif
    } else if (frame_bins == 10 && detect_optimal_bins == 1) {
       double current_timer = average_time;
       if (old_timer_cd < current_timer) {
-         PerturbBins(false);
+         PerturbBins(false, data_manager->settings.bin_perturb_size);
 #if PRINT_LEVEL==1
          cout << "current bins reduced back" << endl;
 #endif
@@ -393,14 +393,14 @@ void ChSystemParallel::RecomputeBins() {
       frame_bins = 0;
       detect_optimal_bins = 3;
       old_timer_cd = average_time;
-      PerturbBins(false);
+      PerturbBins(false, data_manager->settings.bin_perturb_size);
 #if PRINT_LEVEL==1
       cout << "current bins decreased" << endl;
 #endif
    } else if (frame_bins == 10 && detect_optimal_bins == 3) {
       double current_timer = average_time;
       if (old_timer_cd < current_timer) {
-         PerturbBins(true);
+         PerturbBins(true, data_manager->settings.bin_perturb_size);
 #if PRINT_LEVEL==1
          cout << "current bins increased back" << endl;
 #endif
