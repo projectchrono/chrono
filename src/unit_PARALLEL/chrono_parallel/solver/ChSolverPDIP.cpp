@@ -116,7 +116,7 @@ void ChSolverPDIP::conjugateGradient(blaze::DynamicVector<real> & x)
   real rsold_cg = 0;
   real rsnew_cg = 0;
   real alpha_cg = 0;
-  r_cg = (B*Dinv*r_g-r_d) - (data_container->host_data.D_T*data_container->host_data.M_invD+M_hat+B*Dinv*diaglambda*grad_f) * x;
+  r_cg = (B*(Dinv*r_g)-r_d) - (data_container->host_data.D_T*data_container->host_data.M_invD+M_hat+B*Dinv*diaglambda*grad_f) * x;
   p_cg = r_cg;
   rsold_cg = (r_cg, r_cg);
 
@@ -234,7 +234,7 @@ uint ChSolverPDIP::SolvePDIP(const uint max_iter, const uint size, custom_vector
 
     // (9) Solve the linear system A * y = -r_t
     conjugateGradient(delta_gamma);
-    delta_lambda = Dinv*(diaglambda*grad_f*delta_gamma-r_g);
+    delta_lambda = Dinv*(diaglambda*(grad_f*delta_gamma)-r_g);
 
     // (10) s_max = sup{s in [0,1]|lambda+s*delta_lambda>=0} = min{1,min{-lambda_i/delta_lambda_i|delta_lambda_i < 0 }}
 #pragma omp parallel for
