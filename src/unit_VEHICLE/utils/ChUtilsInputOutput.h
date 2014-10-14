@@ -43,6 +43,7 @@ namespace utils {
 class CH_UTILS_API CSV_writer {
 public:
   explicit CSV_writer(const std::string& delim = ",") : m_delim(delim) {}
+  CSV_writer(const CSV_writer& source) : m_delim(source.m_delim) {}
   ~CSV_writer() {}
 
   void write_to_file(const std::string& filename,
