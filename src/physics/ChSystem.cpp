@@ -1098,7 +1098,7 @@ void ChSystem::RemoveAllControls()
 
  
 
-ChSharedPtr<ChBody> ChSystem::SearchBody (char* m_name)
+ChSharedPtr<ChBody> ChSystem::SearchBody (const char* m_name)
 {
 	ChBody* mbody = ChContainerSearchFromName<ChBody, std::vector<ChBody*>::iterator>
 				(m_name, 
@@ -1112,7 +1112,7 @@ ChSharedPtr<ChBody> ChSystem::SearchBody (char* m_name)
 	return (ChSharedPtr<ChBody>()); // not found? return a void shared ptr.
 }
 
-ChSharedPtr<ChLink> ChSystem::SearchLink (char* m_name)
+ChSharedPtr<ChLink> ChSystem::SearchLink (const char* m_name)
 {
 	ChLink* mlink = ChContainerSearchFromName<ChLink, std::list<ChLink*>::iterator>
 				(m_name, 
@@ -1126,7 +1126,7 @@ ChSharedPtr<ChLink> ChSystem::SearchLink (char* m_name)
 	return (ChSharedPtr<ChLink>()); // not found? return a void shared ptr.
 }
 
-ChSharedPtr<ChPhysicsItem> ChSystem::SearchOtherPhysicsItem (char* m_name)
+ChSharedPtr<ChPhysicsItem> ChSystem::SearchOtherPhysicsItem (const char* m_name)
 {
 	ChPhysicsItem* mitem = ChContainerSearchFromName<ChPhysicsItem, std::list<ChPhysicsItem*>::iterator>
 				(m_name, 
@@ -1140,7 +1140,7 @@ ChSharedPtr<ChPhysicsItem> ChSystem::SearchOtherPhysicsItem (char* m_name)
 	return (ChSharedPtr<ChPhysicsItem>()); // not found? return a void shared ptr.
 }
 
-ChSharedPtr<ChPhysicsItem> ChSystem::Search (char* m_name)
+ChSharedPtr<ChPhysicsItem> ChSystem::Search (const char* m_name)
 {
 	ChSharedPtr<ChBody> mbo = SearchBody(m_name);
 	if (!mbo.IsNull())
@@ -1155,7 +1155,7 @@ ChSharedPtr<ChPhysicsItem> ChSystem::Search (char* m_name)
 }
 
 
-ChSharedPtr<ChMarker> ChSystem::SearchMarker (char* m_name)
+ChSharedPtr<ChMarker> ChSystem::SearchMarker (const char* m_name)
 {
 	HIER_BODY_INIT
 	while HIER_BODY_NOSTOP

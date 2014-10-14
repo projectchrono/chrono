@@ -533,16 +533,16 @@ public:
 	ChContactContainerBase* GetContactContainer() {return contact_container;}
 
 				/// Searches a body from its ChObject name
-	ChSharedPtr<ChBody> SearchBody  (char* m_name);
+	ChSharedPtr<ChBody> SearchBody(const char* m_name);
 				/// Searches a link from its ChObject name
-	ChSharedPtr<ChLink> SearchLink  (char* m_name);
+	ChSharedPtr<ChLink> SearchLink(const char* m_name);
 				/// Searches from other ChPhysics items (not bodies or links) from name
-	ChSharedPtr<ChPhysicsItem> SearchOtherPhysicsItem  (char* m_name);
+	ChSharedPtr<ChPhysicsItem> SearchOtherPhysicsItem(const char* m_name);
 				/// Searches whatever item (body, link or other ChPhysics items) 
-	ChSharedPtr<ChPhysicsItem> Search(char* m_name);
+	ChSharedPtr<ChPhysicsItem> Search(const char* m_name);
 	
 				/// Searches a marker from its ChObject name -OBSOLETE
-	ChSharedPtr<ChMarker> SearchMarker(char* m_name);
+	ChSharedPtr<ChMarker> SearchMarker(const char* m_name);
 				/// Searches a marker from its unique ID -OBSOLETE
 	ChSharedPtr<ChMarker> SearchMarker(int markID);
 

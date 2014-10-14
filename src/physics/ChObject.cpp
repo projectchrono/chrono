@@ -100,7 +100,7 @@ void ChObj::SetNoExternalObject()
 // OTHER FUNCTIONS
 //
 
-char* ChObj::GetName () const
+const char* ChObj::GetName () const
 {
 	if (this->external_obj)
 		return external_obj->GetName();
