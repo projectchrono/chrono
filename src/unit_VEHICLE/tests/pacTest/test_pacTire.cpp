@@ -73,6 +73,10 @@ int main(int argc, char* argv[])
   ChPacejkaTire tire_lat("LATERAL", pacParamFile, flat_terrain, F_z, use_transient_slip);
   ChPacejkaTire tire_combined("COMBINED", pacParamFile, flat_terrain, F_z, use_transient_slip);
 
+  tire_long.Initialize(LEFT);
+  tire_lat.Initialize(LEFT);
+  tire_combined.Initialize(LEFT);
+
   // record pacTire output for each of the 3 slip cases
   ChTireForces long_forces(1);
   ChTireForces lat_forces(1);
