@@ -58,7 +58,7 @@ ChPacejkaTire::ChPacejkaTire(const std::string& name,
   m_use_Fz_override(false),
   m_step_size(default_step_size)
 {
-  Initialize();
+
 }
 
 
@@ -75,24 +75,9 @@ ChPacejkaTire::ChPacejkaTire(const std::string& name,
   m_Fz_override(Fz_override),
   m_step_size(default_step_size)
 {
-  Initialize();
+
 }
 
-ChPacejkaTire::ChPacejkaTire(const ChPacejkaTire& tire,
-                             const std::string&   name,
-                             ChVehicleSide        side)
-: ChTire(name, tire.m_terrain),
-  m_paramFile(tire.m_paramFile),
-  m_params_defined(false),
-  m_use_transient_slip(tire.m_use_transient_slip),
-  m_use_Fz_override(tire.m_use_Fz_override),
-  m_Fz_override(tire.m_Fz_override),
-  m_step_size(tire.m_step_size)
-{
-  Initialize();
-
-  m_params->model.tyreside = (side == LEFT) ? "LEFT" : "RIGHT";
-}
 
 // -----------------------------------------------------------------------------
 // Destructor
@@ -117,7 +102,7 @@ ChPacejkaTire::~ChPacejkaTire()
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 // NOTE: no initial conditions passed in at this point, e.g. m_tireState is empty
-void ChPacejkaTire::Initialize()
+void ChPacejkaTire::Initialize(ChVehicleSide side)
 {
   // Create private structures
   m_slip = new slips;
@@ -155,6 +140,8 @@ void ChPacejkaTire::Initialize()
     return;
   }
 
+  // LEFT or RIGHT side of the vehicle?
+  m_side = side;
   // any variables that are calculated once
   m_R0 = m_params->dimension.unloaded_radius;
 
@@ -622,7 +609,7 @@ double ChPacejkaTire::calc_Fz()
     return m_params->vertical_force_range.fzmin;
 
   m_R_l = m_R0 - m_depth;
-
+  
   return Fz;
   // return Fz_adams;
 }
@@ -996,6 +983,8 @@ void ChPacejkaTire::slip_from_uv(bool use_besselink, double bessel_c)
   if (V_cx_abs <= V_low && use_besselink)
   {
     d_vlow = bessel_c * (1.0 + std::cos(CH_C_PI * V_cx_abs / V_low));
+  } else {
+    int noBessel = 1;
   }
 
   // Besselink is RH term in kappa_p, alpha_p
@@ -1007,9 +996,9 @@ void ChPacejkaTire::slip_from_uv(bool use_besselink, double bessel_c)
   // double alpha_p = -std::atan(m_slip->v_alpha / m_relaxation->sigma_alpha) - d_vlow * m_slip->V_sy / m_relaxation->C_Falpha;
 
   // tan(alpha') ~= alpha' for small slip
-  double v_sigma = -m_slip->v_alpha / m_relaxation->sigma_alpha;
+  double v_sigma = m_slip->v_alpha / m_relaxation->sigma_alpha;
   // double v_sigma = std::atan(m_slip->v_alpha / m_relaxation->sigma_alpha);
-  double v_Bessel = -d_vlow * m_slip->V_sy / m_relaxation->C_Falpha;
+  double v_Bessel = d_vlow * m_slip->V_sy / m_relaxation->C_Falpha;
   double alpha_p = v_sigma - v_Bessel;
 
   
@@ -1083,11 +1072,11 @@ void ChPacejkaTire::relaxationLengths()
   double C_Fphi = (C_Fgamma * m_R0) / (1 - 0.5);
   
   // NOTE: reference does not include the negative in the exponent for sigma_kappa_ref
-  // double sigma_kappa_ref = m_Fz * (m_params->longitudinal.ptx1 + m_params->longitudinal.ptx2 * m_dF_z)*(m_R0*m_params->scaling.lsgkp / m_params->vertical.fnomin) * exp( -m_params->longitudinal.ptx3 * m_dF_z);
-  // double sigma_alpha_ref = m_params->lateral.pty1 * (1.0 - m_params->lateral.pky3 * abs( m_slip->gammaP ) ) * m_R0 * m_params->scaling.lsgal * sin(p_Ky4 * atan(m_Fz / (m_params->lateral.pty2 * m_params->vertical.fnomin) ) );
+  double sigma_kappa_ref = m_Fz * (m_params->longitudinal.ptx1 + m_params->longitudinal.ptx2 * m_dF_z)*(m_R0*m_params->scaling.lsgkp / m_params->vertical.fnomin) * exp( -m_params->longitudinal.ptx3 * m_dF_z);
+  double sigma_alpha_ref = m_params->lateral.pty1 * (1.0 - m_params->lateral.pky3 * std::abs( m_slip->gammaP ) ) * m_R0 * m_params->scaling.lsgal * sin(p_Ky4 * atan(m_Fz / (m_params->lateral.pty2 * m_params->vertical.fnomin) ) );
   {
-    relaxationL tmp = { C_Falpha, sigma_alpha, C_Fkappa, sigma_kappa, C_Fgamma, C_Fphi };
-    // relaxationL tmp = { C_Falpha, sigma_alpha_ref, C_Fkappa, sigma_kappa_ref, C_Fgamma, C_Fphi };
+    // relaxationL tmp = { C_Falpha, sigma_alpha, C_Fkappa, sigma_kappa, C_Fgamma, C_Fphi };
+    relaxationL tmp = { C_Falpha, sigma_alpha_ref, C_Fkappa, sigma_kappa_ref, C_Fgamma, C_Fphi };
     *m_relaxation = tmp;
   }
 }
@@ -1126,22 +1115,13 @@ double ChPacejkaTire::Fx_pureLong(double gamma, double kappa)
 
 double ChPacejkaTire::Fy_pureLat(double alpha, double gamma)
 {
-  double p_Ky4 = 2.0;
-  double p_Ky5 = 0;
-  // double p_Ky6 = 0.92;   // not in the default pac2002 file
-  // double p_Ky7 = 0.24;   // "
-  double p_Ey5 = 0;
-
-  // double K_y0 = m_Fz * (p_Ky6 + p_Ky7 * m_dF_z) * m_params->scaling.lgay;
   double C_y = m_params->lateral.pcy1 * m_params->scaling.lcy;  // > 0
   double mu_y = (m_params->lateral.pdy1 + m_params->lateral.pdy2 * m_dF_z) * (1.0 - m_params->lateral.pdy3 * pow(gamma,2) ) * m_params->scaling.lmuy;	// > 0
   double D_y = mu_y * m_Fz * m_zeta->z2;
 
-  //// TODO: does this become negative??? 
-  double K_y = std::abs(m_params->lateral.pky1 * m_params->vertical.fnomin * std::sin(p_Ky4 * std::atan(m_Fz / ( (m_params->lateral.pky2 + p_Ky5 * pow(gamma,2) )* m_params->vertical.fnomin))) * (1.0 - m_params->lateral.pky3 * std::abs(gamma) ) * m_zeta->z3 * m_params->scaling.lyka);
-
-  // doesn't make sense to ever have K_yAlpha be negative (it can be interpreted as lateral stiffnesss)
-  double B_y = -K_y / (C_y * D_y);
+  // doesn't make sense to ever have K_y be negative (it can be interpreted as lateral stiffnesss)
+  double K_y = m_params->lateral.pky1 * m_params->vertical.fnomin * std::sin(2.0 * std::atan(m_Fz / (m_params->lateral.pky2 * m_params->vertical.fnomin) ) ) * (1.0 - m_params->lateral.pky3 * std::abs(gamma) ) * m_zeta->z3 * m_params->scaling.lyka;
+  double B_y = K_y / (C_y * D_y);
 
   // double S_Hy = (m_params->lateral.phy1 + m_params->lateral.phy2 * m_dF_z) * m_params->scaling.lhy + (K_yGamma_0 * m_slip->gammaP - S_VyGamma) * m_zeta->z0 / (K_yAlpha + 0.1) + m_zeta->z4 - 1.0;
   // Adasms S_Hy is a bit different
@@ -1155,9 +1135,9 @@ double ChPacejkaTire::Fy_pureLat(double alpha, double gamma)
   else
     sign_alpha = -1;
 
-  double E_y = (m_params->lateral.pey1 + m_params->lateral.pey2 * m_dF_z) * (1.0 + p_Ey5 * pow(gamma,2) - (m_params->lateral.pey3 + m_params->lateral.pey4 *gamma) * sign_alpha) * m_params->scaling.ley;
+  double E_y = (m_params->lateral.pey1 + m_params->lateral.pey2 * m_dF_z) * (1.0 - (m_params->lateral.pey3 + m_params->lateral.pey4 *gamma) * sign_alpha) * m_params->scaling.ley;  // + p_Ey5 * pow(gamma,2)
   double S_Vy = m_Fz * ((m_params->lateral.pvy1 + m_params->lateral.pvy2 * m_dF_z) * m_params->scaling.lvy + (m_params->lateral.pvy3 + m_params->lateral.pvy4 * m_dF_z) * gamma) * m_params->scaling.lmuy * m_zeta->z2;
-
+  
   double F_y = D_y * std::sin(C_y * std::atan(B_y * alpha_y - E_y * (B_y * alpha_y - std::atan(B_y * alpha_y)))) + S_Vy;
 
   // hold onto coefs
@@ -1764,7 +1744,7 @@ void ChPacejkaTire::WriteOutData(double             time,
     }
     else {
       // write the headers, Fx, Fy are pure forces, Fxc and Fyc are the combined forces
-      oFile << "time,kappa,alpha,gamma,kappaP,alphaP,gammaP,Vx,Vy,Fx,Fy,Fz,Mx,My,Mz,Fxc,Fyc,Mzc,Mzx,Mzy,contact,m_Fz,m_dF_z,u,valpha,vgamma,vphi,du,dvalpha,dvgamma,dvphi" << std::endl;
+      oFile << "time,kappa,alpha,gamma,kappaP,alphaP,gammaP,Vx,Vy,omega,Fx,Fy,Fz,Mx,My,Mz,Fxc,Fyc,Mzc,Mzx,Mzy,contact,m_Fz,m_dF_z,u,valpha,vgamma,vphi,du,dvalpha,dvgamma,dvphi" << std::endl;
       m_Num_WriteOutData++;
       oFile.close();
     }
@@ -1780,7 +1760,7 @@ void ChPacejkaTire::WriteOutData(double             time,
     // write the slip info, reaction forces for pure & combined slip cases
     appFile << time << "," << m_slip->kappa << "," << m_slip->alpha*180. / 3.14159 << "," << m_slip->gamma << ","
       << m_slip->kappaP << "," << m_slip->alphaP << "," << m_slip->gammaP << ","
-      << m_tireState.lin_vel.x << "," << m_tireState.lin_vel.y << ","
+      << m_tireState.lin_vel.x << "," << m_tireState.lin_vel.y << "," << m_tireState.omega << ","
       << m_FM_pure.force.x << "," << m_FM_pure.force.y << "," << m_FM_pure.force.z << ","
       << m_FM_pure.moment.x << "," << m_FM_pure.moment.y << "," << m_FM_pure.moment.z << ","
       << m_FM_combined.force.x << "," << m_FM_combined.force.y << "," << m_FM_combined.moment.z <<","

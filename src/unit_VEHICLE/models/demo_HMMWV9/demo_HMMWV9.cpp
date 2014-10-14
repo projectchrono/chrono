@@ -203,7 +203,13 @@ int main(int argc, char* argv[])
     ChSharedPtr<ChPacejkaTire> tire_FR(new ChPacejkaTire("FR", param_file, terrain));
     ChSharedPtr<ChPacejkaTire> tire_RL(new ChPacejkaTire("RL", param_file, terrain));
     ChSharedPtr<ChPacejkaTire> tire_RR(new ChPacejkaTire("RR", param_file, terrain));
-      
+    
+    tire_FL->SetStepsize(LEFT);
+    tire_FR->SetStepsize(RIGHT);
+    tire_RL->SetStepsize(LEFT);
+    tire_RR->SetStepsize(RIGHT);
+
+
     tire_FL->SetStepsize(pac_step_size);
     tire_FR->SetStepsize(pac_step_size);
     tire_RL->SetStepsize(pac_step_size);

@@ -68,14 +68,14 @@ public:
     bool               use_transient_slip = true   ///< [in] indicate if using transient slip model
     );
 
-  /// Copy constructor, only tire side will be different
-  ChPacejkaTire(
-    const ChPacejkaTire& tire,      ///< [in] source object
-    const std::string&   name,      ///< [in] name of this tire
+
+  ~ChPacejkaTire();
+
+  /// specify the file name to read the Pactire input from
+  void Initialize(
     ChVehicleSide        side       ///< [in] 
     );
 
-  ~ChPacejkaTire();
   /// return the reactions for the combined slip EQs, in global coords
   virtual ChTireForce GetTireForce() const;
 
@@ -168,9 +168,6 @@ private:
 
   // where to find the input parameter file
   const std::string& getPacTireParamFile() const { return m_paramFile; }
-
-  // specify the file name to read the Pactire input from
-  void Initialize();
 
   // look for this data file
   virtual void loadPacTireParamFile();
@@ -320,8 +317,8 @@ private:
   double calc_My(double Fx_combined, bool in_contact);
 
   // ----- Data members
-
   bool m_use_transient_slip;
+  ChVehicleSide m_side;
 
   ChWheelState m_tireState;    // current tire state
   ChCoordsys<> m_tire_frame;   // current tire coordinate system
