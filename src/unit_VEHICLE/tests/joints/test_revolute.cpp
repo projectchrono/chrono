@@ -42,6 +42,21 @@ using namespace irr;
 
 
 // =============================================================================
+//
+// Utility function to create a CSV output stream and set output format options.
+//
+utils::CSV_writer OutStream()
+{
+  utils::CSV_writer out("\t");
+
+  out.stream().setf(std::ios::scientific | std::ios::showpos);
+  out.stream().precision(6);
+
+  return out;
+}
+
+
+// =============================================================================
 
 bool TestRevolute(const ChVector<>&     jointLoc,         // absolute location of joint
                   const ChQuaternion<>& jointRot,         // orientation of joint
@@ -157,32 +172,36 @@ bool TestRevolute(const ChVector<>&     jointLoc,         // absolute location o
   // ------------------------------------------------
 
   // Create the CSV_Writer output objects (TAB delimited)
-  utils::CSV_writer out_pos("\t");
-  utils::CSV_writer out_vel("\t");
-  utils::CSV_writer out_acc("\t");
+  utils::CSV_writer out_pos = OutStream();
+  utils::CSV_writer out_vel = OutStream();
+  utils::CSV_writer out_acc = OutStream();
 
-  utils::CSV_writer out_quat("\t");
-  utils::CSV_writer out_avel("\t");
-  utils::CSV_writer out_aacc("\t");
+  utils::CSV_writer out_quat = OutStream();
+  utils::CSV_writer out_avel = OutStream();
+  utils::CSV_writer out_aacc = OutStream();
 
-  utils::CSV_writer out_rfrc("\t");
-  utils::CSV_writer out_rtrq("\t");
+  utils::CSV_writer out_rfrc = OutStream();
+  utils::CSV_writer out_rtrq = OutStream();
 
-  utils::CSV_writer out_energy("\t");
+  utils::CSV_writer out_energy = OutStream();
+
+  utils::CSV_writer out_cnstr = OutStream();
 
   // Write headers
-  out_pos << "Time" << "X_Pos" << "Y_Pos" << "Z_Pos" << "Length_Pos" << std::endl;
-  out_vel << "Time" << "X_Vel" << "Y_Vel" << "Z_Vel" << "Length_Vel" << std::endl;
-  out_acc << "Time" << "X_Acc" << "Y_Acc" << "Z_Acc" << "Length_Acc" << std::endl;
+  out_pos << "Time" << "X_Pos" << "Y_Pos" << "Z_Pos" << std::endl;
+  out_vel << "Time" << "X_Vel" << "Y_Vel" << "Z_Vel" << std::endl;
+  out_acc << "Time" << "X_Acc" << "Y_Acc" << "Z_Acc" << std::endl;
 
   out_quat << "Time" << "e0" << "e1" << "e2" << "e3" << std::endl;
-  out_avel << "Time" << "X_AngVel" << "Y_AngVel" << "Z_AngVel" << "Length_AngVel" << std::endl;
-  out_aacc << "Time" << "X_AngAcc" << "Y_AngAcc" << "Z_AngAcc" << "Length_AngAcc" << std::endl;
+  out_avel << "Time" << "X_AngVel" << "Y_AngVel" << "Z_AngVel" << std::endl;
+  out_aacc << "Time" << "X_AngAcc" << "Y_AngAcc" << "Z_AngAcc" << std::endl;
 
-  out_rfrc << "Time" << "X_Force" << "Y_Force" << "Z_Force" << "Length_Force" << std::endl;
-  out_rfrc << "Time" << "X_Torque" << "Y_Torque" << "Z_Torque" << "Length_Torque" << std::endl;
+  out_rfrc << "Time" << "X_Force" << "Y_Force" << "Z_Force" << std::endl;
+  out_rfrc << "Time" << "X_Torque" << "Y_Torque" << "Z_Torque" << std::endl;
 
-  out_energy << "Time" << "Total KE" << "Transl. KE" << "Rot. KE" << "Delta PE" << std::endl;
+  out_energy << "Time" << "Total_KE" << "Transl_KE" << "Rot_KE" << "Delta_PE" << std::endl;
+
+  out_cnstr << "Time" << "Cnstr_1" << "Cnstr_2" << "Cnstr_3" << "Constraint_4" << "Cnstr_5" << std::endl;
 
   // Simulation loop
 
@@ -198,15 +217,15 @@ bool TestRevolute(const ChVector<>&     jointLoc,         // absolute location o
       // CM position, velocity, and acceleration (expressed in global frame).
       const ChVector<>& position = pendulum->GetPos();
       const ChVector<>& velocity = pendulum->GetPos_dt();
-      out_pos << simTime << position << (position - jointLoc).Length() << std::endl;
-      out_vel << simTime << velocity << velocity.Length() << std::endl;
-      out_acc << simTime << pendulum->GetPos_dtdt() << pendulum->GetPos_dtdt().Length() << std::endl;
+      out_pos << simTime << position << std::endl;
+      out_vel << simTime << velocity << std::endl;
+      out_acc << simTime << pendulum->GetPos_dtdt() << std::endl;
 
       // Orientation, angular velocity, and angular acceleration (expressed in
       // global frame).
       out_quat << simTime << pendulum->GetRot() << std::endl;
-      out_avel << simTime << pendulum->GetWvel_par() << pendulum->GetWvel_par().Length() << std::endl;
-      out_aacc << simTime << pendulum->GetWacc_par() << pendulum->GetWacc_par().Length() << std::endl;
+      out_avel << simTime << pendulum->GetWvel_par() << std::endl;
+      out_aacc << simTime << pendulum->GetWacc_par() << std::endl;
 
       // Reaction Force and Torque
       // These are expressed in the link coordinate system. We convert them to
@@ -214,19 +233,17 @@ bool TestRevolute(const ChVector<>&     jointLoc,         // absolute location o
       ChCoordsys<> linkCoordsys = revoluteJoint->GetLinkRelativeCoords();
       ChVector<> reactForce = revoluteJoint->Get_react_force();
       ChVector<> reactForceGlobal = linkCoordsys.TransformDirectionLocalToParent(reactForce);
-      out_rfrc << simTime << reactForceGlobal << reactForceGlobal.Length() << std::endl;
+      out_rfrc << simTime << reactForceGlobal << std::endl;
 
       ChVector<> reactTorque = revoluteJoint->Get_react_torque();
       ChVector<> reactTorqueGlobal = linkCoordsys.TransformDirectionLocalToParent(reactTorque);
-      out_rtrq << simTime << reactTorqueGlobal << reactTorqueGlobal.Length() << std::endl;
+      out_rtrq << simTime << reactTorqueGlobal << std::endl;
 
       // Conservation of Energy
       // Translational Kinetic Energy (1/2*m*||v||^2)
-      // Rotational Kinetic Energy (1/2 w'*I*w)  ChMatrix33*vector is valid since [3x3]*[3x1] = [3x1]
+      // Rotational Kinetic Energy (1/2 w'*I*w)
       // Delta Potential Energy (m*g*dz)
-      double g = pendulum->GetSystem()->Get_G_acc().z;
-      double mass = pendulum->GetMass();
-      ChMatrix33<> inertia = pendulum->GetInertia(); //3x3 Inertia Tensor in the local coordinate frame
+      ChMatrix33<> inertia = pendulum->GetInertia();
       ChVector<> angVelLoc = pendulum->GetWvel_loc();
       double transKE = 0.5 * mass * velocity.Length2();
       double rotKE = 0.5 * Vdot(angVelLoc, inertia * angVelLoc);
@@ -234,9 +251,17 @@ bool TestRevolute(const ChVector<>&     jointLoc,         // absolute location o
       double totalKE = transKE + rotKE;
       out_energy << simTime << totalKE << transKE << rotKE << deltaPE << std::endl;;
 
+      // Constraint violations
+      ChMatrix<>* C = revoluteJoint->GetC();
+      out_cnstr << simTime
+                << C->GetElement(0, 0)
+                << C->GetElement(1, 0)
+                << C->GetElement(2, 0)
+                << C->GetElement(3, 0)
+                << C->GetElement(4, 0) << std::endl;
+
       // Increment output time
       outTime += outTimeStep;
-
     }
 
     // Advance simulation by one step
@@ -247,18 +272,20 @@ bool TestRevolute(const ChVector<>&     jointLoc,         // absolute location o
   }
 
   // Write output files
-  out_pos.write_to_file(outDir + "/" + testName + "_CHRONO_Pos.txt", testName + "\n\n");
-  out_vel.write_to_file(outDir + "/" + testName + "_CHRONO_Vel.txt", testName + "\n\n");
-  out_acc.write_to_file(outDir + "/" + testName + "_CHRONO_Acc.txt", testName + "\n\n");
+  out_pos.write_to_file(outDir + testName + "_CHRONO_Pos.txt", testName + "\n\n");
+  out_vel.write_to_file(outDir + testName + "_CHRONO_Vel.txt", testName + "\n\n");
+  out_acc.write_to_file(outDir + testName + "_CHRONO_Acc.txt", testName + "\n\n");
 
-  out_quat.write_to_file(outDir + "/" + testName + "_CHRONO_Quat.txt", testName + "\n\n");
-  out_avel.write_to_file(outDir + "/" + testName + "_CHRONO_Avel.txt", testName + "\n\n");
-  out_aacc.write_to_file(outDir + "/" + testName + "_CHRONO_Aacc.txt", testName + "\n\n");
+  out_quat.write_to_file(outDir + testName + "_CHRONO_Quat.txt", testName + "\n\n");
+  out_avel.write_to_file(outDir + testName + "_CHRONO_Avel.txt", testName + "\n\n");
+  out_aacc.write_to_file(outDir + testName + "_CHRONO_Aacc.txt", testName + "\n\n");
 
-  out_rfrc.write_to_file(outDir + "/" + testName + "_CHRONO_Rforce.txt", testName + "\n\n");
-  out_rtrq.write_to_file(outDir + "/" + testName + "_CHRONO_Rtorque.txt", testName + "\n\n");
+  out_rfrc.write_to_file(outDir + testName + "_CHRONO_Rforce.txt", testName + "\n\n");
+  out_rtrq.write_to_file(outDir + testName + "_CHRONO_Rtorque.txt", testName + "\n\n");
 
-  out_energy.write_to_file(outDir + "/" + testName + "_CHRONO_Energy.txt", testName + "\n\n");
+  out_energy.write_to_file(outDir + testName + "_CHRONO_Energy.txt", testName + "\n\n");
+
+  out_cnstr.write_to_file(outDir + testName + "_CHRONO_Constraints.txt", testName + "\n\n");
 
   return true;
 }
@@ -270,41 +297,74 @@ int main(int argc, char* argv[])
   bool animate = (argc > 1);
 
   // Set the path to the Chrono data folder
+  // --------------------------------------
+
   SetChronoDataPath(CHRONO_DATA_DIR);
 
   // Create output directory (if it does not already exist)
-  std::string out_dir = "../VALIDATION";
-
-  if (ChFileutils::MakeDirectory(out_dir.c_str()) < 0) {
-    std::cout << "Error creating directory " << out_dir << std::endl;
+  if (ChFileutils::MakeDirectory("../VALIDATION") < 0) {
+    std::cout << "Error creating directory '../VALIDATION'" << std::endl;
+    return 1;
+  }
+  if (ChFileutils::MakeDirectory("../VALIDATION/REVOLUTE_JOINT") < 0) {
+    std::cout << "Error creating directory '../VALIDATION/REVOLUTE_JOINT'" << std::endl;
     return 1;
   }
 
-  // Case 1 - Revolute Joint at the origin, and aligned with the global Y axis
-  // Note the revolute joint only allows 1 DOF(rotation about joint z axis)
-  //    Therefore, the joint must be rotated -pi/2 about the global x-axis
-  std::cout << "\nStarting Revolute Test Case 01\n\n";
+  std::string out_dir = "../VALIDATION/REVOLUTE_JOINT/";
+  std::string ref_dir = "validation/revolute_joint/";
+
+  bool check;
+  bool test_passed = true;
+
+  // Case 1 - Joint at the origin, and aligned with the global Y axis
+  // --------------------------------------------------------------------------
+
+  // Note: the axis of rotation of a revolute joint is the Z-axis.
+  // Therefore, the joint must be rotated -pi/2 about the global X-axis
+  std::cout << "\nRevolute Test Case 01\n";
   TestRevolute(ChVector<>(0, 0, 0), Q_from_AngX(-CH_C_PI_2), 1e-3, 1e-2, out_dir, "Revolute_Case01", animate);
 
+  // Validate positions
+  check = utils::Validate(
+    out_dir + "Revolute_Case01_CHRONO_Pos.txt",
+    utils::GetModelDataFile(ref_dir + "Revolute_Case01_ADAMS_Pos.txt"),
+    501, utils::RMS_NORM, 2e-2);
+  test_passed &= check;
+  std::cout << "   validate positions     " << (check ? "Passed" : "Failed") << std::endl;
 
-  utils::ChValidation validator;
+  // Validate energy
+  check = utils::Validate(
+    out_dir + "Revolute_Case01_CHRONO_Energy.txt",
+    utils::GetModelDataFile(ref_dir + "Revolute_Case01_ADAMS_Energy.txt"),
+    501, utils::RMS_NORM, 2e-2);
+  test_passed &= check;
+  std::cout << "   validate energy        " << (check ? "Passed" : "Failed") << std::endl;
 
-  validator.Process(
-    out_dir + "/Revolute_Case01_CHRONO_Pos.txt",
-    utils::GetModelDataFile("validation/revolute_joint/test_Revolute_ADAMS_Pos.txt"),
-    501,
-    '\t');
+  // Validate constraint violations
+  check = utils::Validate(
+    out_dir + "Revolute_Case01_CHRONO_Constraints.txt",
+    501, utils::RMS_NORM, 1e-5);
+  test_passed &= check;
+  std::cout << "   validate constraints   " << (check ? "Passed" : "Failed") << std::endl;
 
-  const utils::DataVector& L2_norms = validator.GetDiffL2norms();
-  const utils::DataVector& RMS_norms = validator.GetDiffRMSnorms();
-  const utils::DataVector& INF_norms = validator.GetDiffINFnorms();
+  // Case 2 - Joint at (1,2,3), and aligned with the global axis along Y = Z
+  // -----------------------------------------------------------------------
 
-
-  // Case 2 - Revolute Joint at (1,2,3), and aligned with the global axis along Y = Z
-  // Note the revolute joint only allows 1 DOF(rotation about joint z axis)
-  //    Therefore, the joint must be rotated -pi/4 about the global x-axis
-  std::cout << "\nStarting Revolute Test Case 02\n\n";
+  // Note: the axis of rotation of a revolute joint is the Z-axis.
+  // Therefore, the joint must be rotated -pi/4 about the global X-axis
+  std::cout << "\nRevolute Test Case 02\n";
   TestRevolute(ChVector<>(1, 2, 3), Q_from_AngX(-CH_C_PI_4), 1e-3, 1e-2, out_dir, "Revolute_Case02", animate);
 
-  return 0;
+  // Validate constraint violations
+  check = utils::Validate(
+    out_dir + "Revolute_Case01_CHRONO_Constraints.txt",
+    501, utils::RMS_NORM, 1e-5);
+  test_passed &= check;
+  std::cout << "   validate constraints   " << (check ? "Passed" : "Failed") << std::endl;
+
+  // Return 0 if all test passed and 1 otherwise
+  // -------------------------------------------
+
+  return !test_passed;
 }
