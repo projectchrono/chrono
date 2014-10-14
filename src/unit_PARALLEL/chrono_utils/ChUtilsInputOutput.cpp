@@ -218,7 +218,7 @@ void ReadCheckpoint(ChSystem*          system,
       iss2 >> mat->restitution >> mat->cohesion >> mat->dampingf;
       iss2 >> mat->compliance >> mat->complianceT >> mat->complianceRoll >> mat->complianceSpin;
     } else {
-      body = sys_par ? new ChBodyDEM(new collision::ChCollisionModelParallel) : new ChBodyDEM();
+      body = (sys_par && cd_par) ? new ChBodyDEM(new collision::ChCollisionModelParallel) : new ChBodyDEM();
       ChSharedPtr<ChMaterialSurfaceDEM>& mat = static_cast<ChBodyDEM*>(body)->GetMaterialSurfaceDEM();
       iss2 >> mat->young_modulus >> mat->poisson_ratio;
       iss2 >> mat->static_friction >> mat->sliding_friction;

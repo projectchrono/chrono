@@ -504,16 +504,23 @@ void Generator::createObjects(const PointVector& points,
     case PARALLEL_DVI:
       switch (m_collisionType) {
       case BULLET_CD:
-    	  body = new ChBody();
-    	  break;
+        body = new ChBody();
+        break;
       case PARALLEL_CD:
-    	  body = new ChBody(new collision::ChCollisionModelParallel);
-    	  break;
+        body = new ChBody(new collision::ChCollisionModelParallel);
+        break;
       }
       m_mixture[index]->setMaterialProperties(body->GetMaterialSurface());
       break;
     case PARALLEL_DEM:
-      body = new ChBodyDEM(new collision::ChCollisionModelParallel);
+      switch (m_collisionType) {
+      case BULLET_CD:
+        body = new ChBodyDEM();
+        break;
+      case PARALLEL_CD:
+        body = new ChBodyDEM(new collision::ChCollisionModelParallel);
+        break;
+      }
       m_mixture[index]->setMaterialProperties(((ChBodyDEM*) body)->GetMaterialSurfaceDEM());
       break;
     }

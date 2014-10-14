@@ -39,10 +39,12 @@ enum SystemType {
   PARALLEL_DVI,
   PARALLEL_DEM
 };
+
 enum CollisionType {
   BULLET_CD,
   PARALLEL_CD
 };
+
 // -----------------------------------------------------------------------------
 // Construct a single random engine (on first use)
 //
