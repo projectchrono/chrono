@@ -68,180 +68,96 @@ namespace utils {
 // AddTorusGeometry
 // Utility functions for adding contact and asset geometry shapes to a body
 // -----------------------------------------------------------------------------
-inline
-void AddSphereGeometry(ChBody*               body,
-                       double                radius,
-                       const ChVector<>&     pos = ChVector<>(0,0,0),
-                       const ChQuaternion<>& rot = ChQuaternion<>(1,0,0,0))
-{
-  body->GetCollisionModel()->AddSphere(radius, pos);
+CH_UTILS_API
+void AddSphereGeometry(
+      ChBody*               body,
+      double                radius,
+      const ChVector<>&     pos = ChVector<>(0, 0, 0),
+      const ChQuaternion<>& rot = ChQuaternion<>(1, 0, 0, 0)
+      );
 
-  ChSharedPtr<ChSphereShape> sphere(new ChSphereShape);
-  sphere->GetSphereGeometry().rad = radius;
-  sphere->Pos = pos;
-  sphere->Rot = rot;
+CH_UTILS_API
+void AddEllipsoidGeometry(
+      ChBody*               body,
+      const ChVector<>&     size,
+      const ChVector<>&     pos = ChVector<>(0, 0, 0),
+      const ChQuaternion<>& rot = ChQuaternion<>(1, 0, 0, 0)
+      );
 
-  body->GetAssets().push_back(sphere);
-}
+CH_UTILS_API
+void AddBoxGeometry(
+      ChBody*               body,
+      const ChVector<>&     size,
+      const ChVector<>&     pos = ChVector<>(0, 0, 0),
+      const ChQuaternion<>& rot = ChQuaternion<>(1, 0, 0, 0)
+      );
 
-inline
-void AddEllipsoidGeometry(ChBody*               body,
-                          const ChVector<>&     size,
-                          const ChVector<>&     pos = ChVector<>(0,0,0),
-                          const ChQuaternion<>& rot = ChQuaternion<>(1,0,0,0))
-{
-  body->GetCollisionModel()->AddEllipsoid(size.x, size.y, size.z, pos, rot);
+CH_UTILS_API
+void AddCapsuleGeometry(
+      ChBody*               body,
+      double                radius,
+      double                hlen,
+      const ChVector<>&     pos = ChVector<>(0, 0, 0),
+      const ChQuaternion<>& rot = ChQuaternion<>(1, 0, 0, 0)
+      );
 
-  ChSharedPtr<ChEllipsoidShape> ellipsoid(new ChEllipsoidShape);
-  ellipsoid->GetEllipsoidGeometry().rad = size;
-  ellipsoid->Pos = pos;
-  ellipsoid->Rot = rot;
+CH_UTILS_API
+void AddCylinderGeometry(
+      ChBody*               body,
+      double                radius,
+      double                hlen,
+      const ChVector<>&     pos = ChVector<>(0, 0, 0),
+      const ChQuaternion<>& rot = ChQuaternion<>(1, 0, 0, 0)
+      );
 
-  body->GetAssets().push_back(ellipsoid);
-}
+CH_UTILS_API
+void AddConeGeometry(
+      ChBody*               body,
+      double                radius,
+      double                height,
+      const ChVector<>&     pos = ChVector<>(0, 0, 0),
+      const ChQuaternion<>& rot = ChQuaternion<>(1, 0, 0, 0)
+      );
 
-inline
-void AddBoxGeometry(ChBody*               body,
-                    const ChVector<>&     size,
-                    const ChVector<>&     pos = ChVector<>(0,0,0),
-                    const ChQuaternion<>& rot = ChQuaternion<>(1,0,0,0))
-{
-  body->GetCollisionModel()->AddBox(size.x, size.y, size.z, pos, rot);
+CH_UTILS_API
+void AddTriangleMeshGeometry(
+      ChBody*               body,
+      const std::string&    obj_filename,
+      const std::string&    name,
+      const ChVector<>&     pos = ChVector<>(0, 0, 0),
+      const ChQuaternion<>& rot = ChQuaternion<>(1, 0, 0, 0)
+      );
 
-  ChSharedPtr<ChBoxShape> box(new ChBoxShape);
-  box->GetBoxGeometry().Size = size;
-  box->Pos = pos;
-  box->Rot = rot;
-
-  body->GetAssets().push_back(box);
-}
-
-inline
-void AddCapsuleGeometry(ChBody*               body,
-                        double                radius,
-                        double                hlen,
-                        const ChVector<>&     pos = ChVector<>(0,0,0),
-                        const ChQuaternion<>& rot = ChQuaternion<>(1,0,0,0))
-{
-  body->GetCollisionModel()->AddCapsule(radius, hlen, pos, rot);
-
-  ChSharedPtr<ChCapsuleShape> capsule(new ChCapsuleShape);
-  capsule->GetCapsuleGeometry().rad = radius;
-  capsule->GetCapsuleGeometry().hlen = hlen;
-  capsule->Pos = pos;
-  capsule->Rot = rot;
-
-  body->GetAssets().push_back(capsule);
-}
-
-inline
-void AddCylinderGeometry(ChBody*               body,
-                         double                radius,
-                         double                hlen,
-                         const ChVector<>&     pos = ChVector<>(0,0,0),
-                         const ChQuaternion<>& rot = ChQuaternion<>(1,0,0,0))
-{
-  body->GetCollisionModel()->AddCylinder(radius, radius, hlen, pos, rot);
-
-  ChSharedPtr<ChCylinderShape> cylinder(new ChCylinderShape);
-  cylinder->GetCylinderGeometry().rad = radius;
-  cylinder->GetCylinderGeometry().p1 = ChVector<>(0,  hlen, 0);
-  cylinder->GetCylinderGeometry().p2 = ChVector<>(0, -hlen, 0);
-  cylinder->Pos = pos;
-  cylinder->Rot = rot;
-
-  body->GetAssets().push_back(cylinder);
-}
-
-inline
-void AddConeGeometry(ChBody*               body,
-                     double                radius,
-                     double                height,
-                     const ChVector<>&     pos = ChVector<>(0,0,0),
-                     const ChQuaternion<>& rot = ChQuaternion<>(1,0,0,0))
-{
-  body->GetCollisionModel()->AddCone(radius, radius, height, pos, rot);
-
-  ChSharedPtr<ChConeShape> cone(new ChConeShape);
-  cone->GetConeGeometry().rad = ChVector<>(radius, height, radius);
-  cone->Pos = pos;
-  cone->Rot = rot;
-
-  body->GetAssets().push_back(cone);
-}
-
-inline
-void AddTriangleMeshGeometry(ChBody*               body,
-                             const std::string&    obj_filename,
-                             const std::string&    name,
-                             const ChVector<>&     pos = ChVector<>(0,0,0),
-                             const ChQuaternion<>& rot = ChQuaternion<>(1,0,0,0))
-{
-  geometry::ChTriangleMeshConnected trimesh;
-  trimesh.LoadWavefrontMesh(obj_filename, false, false);
-
-  for (int i = 0; i < trimesh.m_vertices.size(); i++)
-    trimesh.m_vertices[i] = pos + rot.Rotate(trimesh.m_vertices[i]);
-
-  body->GetCollisionModel()->AddTriangleMesh(trimesh, false, false);
-
-  ChSharedPtr<ChTriangleMeshShape> trimesh_shape(new ChTriangleMeshShape);
-  trimesh_shape->SetMesh(trimesh);
-  trimesh_shape->SetName(name);
-  trimesh_shape->Pos = ChVector<>(0,0,0);
-  trimesh_shape->Rot = ChQuaternion<>(1,0,0,0);
-
-  body->GetAssets().push_back(trimesh_shape);
-}
-
-inline
+CH_UTILS_API
 void AddRoundedBoxGeometry(
-          ChBody*               body,
-          const ChVector<>&     size,
-          double                srad,
-          const ChVector<>&     pos = ChVector<>(0,0,0),
-          const ChQuaternion<>& rot = ChQuaternion<>(1,0,0,0))
-{
-   body->GetCollisionModel()->AddRoundedBox(size.x, size.y, size.z, srad, pos, rot);
+      ChBody*               body,
+      const ChVector<>&     size,
+      double                srad,
+      const ChVector<>&     pos = ChVector<>(0, 0, 0),
+      const ChQuaternion<>& rot = ChQuaternion<>(1, 0, 0, 0)
+      );
 
-   ChSharedPtr<ChRoundedBoxShape> box(new ChRoundedBoxShape);
-   box->GetRoundedBoxGeometry().Size = size;
-   box->GetRoundedBoxGeometry().radsphere = srad;
-   box->Pos = pos;
-   box->Rot = rot;
-   body->GetAssets().push_back(box);
-}
-
-inline
+CH_UTILS_API
 void AddRoundedCylinderGeometry(
-          ChBody*               body,
-          double                radius,
-          double                hlen,
-          double                srad,
-          const ChVector<>&     pos = ChVector<>(0,0,0),
-          const ChQuaternion<>& rot = ChQuaternion<>(1,0,0,0))
-{
-  body->GetCollisionModel()->AddRoundedCylinder(radius, radius, hlen, srad, pos, rot);
+      ChBody*               body,
+      double                radius,
+      double                hlen,
+      double                srad,
+      const ChVector<>&     pos = ChVector<>(0, 0, 0),
+      const ChQuaternion<>& rot = ChQuaternion<>(1, 0, 0, 0)
+      );
 
-  ChSharedPtr<ChRoundedCylinderShape> rcyl(new ChRoundedCylinderShape);
-  rcyl->GetRoundedCylinderGeometry().rad = radius;
-  rcyl->GetRoundedCylinderGeometry().hlen = hlen;
-  rcyl->GetRoundedCylinderGeometry().radsphere = srad;
-  rcyl->Pos = pos;
-  rcyl->Rot = rot;
-  body->GetAssets().push_back(rcyl);
-}
-
-//Creates a compound torus shape using cylinders
+// Creates a compound torus shape using cylinders
 CH_UTILS_API
 void AddTorusGeometry(
-          ChBody*               body,
-          double                radius,
-          double                thickness,
-          int                   segments = 20,
-          int                   angle = 360,
-          const ChVector<>&     pos = ChVector<>(0,0,0),
-          const ChQuaternion<>& rot = ChQuaternion<>(1,0,0,0));
+      ChBody*               body,
+      double                radius,
+      double                thickness,
+      int                   segments = 20,
+      int                   angle = 360,
+      const ChVector<>&     pos = ChVector<>(0, 0, 0),
+      const ChQuaternion<>& rot = ChQuaternion<>(1, 0, 0, 0)
+      );
 
 
 // -----------------------------------------------------------------------------
@@ -255,40 +171,49 @@ void AddTorusGeometry(
 // Create a fixed body with contact and asset geometry representing a box with 5
 // walls (no top).
 CH_UTILS_API
-void CreateBoxContainerDEM(ChSystem*                           system,
-                           int                                 id,
-                           ChSharedPtr<ChMaterialSurfaceDEM>&  mat,
-                           const ChVector<>&                   hdim,
-                           double                              hthick,
-                           const ChVector<>&                   pos = ChVector<>(0,0,0),
-                           const ChQuaternion<>&               rot = ChQuaternion<>(1,0,0,0),
-                           bool                                collide = true,
-                           bool                                y_up = false);
+void CreateBoxContainerDEM(
+      ChSystem*                           system,
+      int                                 id,
+      ChSharedPtr<ChMaterialSurfaceDEM>&  mat,
+      const ChVector<>&                   hdim,
+      double                              hthick,
+      const ChVector<>&                   pos = ChVector<>(0,0,0),
+      const ChQuaternion<>&               rot = ChQuaternion<>(1,0,0,0),
+      bool                                collide = true,
+      bool                                y_up = false
+      );
 
 CH_UTILS_API
-void CreateBoxContainerDVI(ChSystem*                           system,
-                           int                                 id,
-                           ChSharedPtr<ChMaterialSurface>&     mat,
-                           const ChVector<>&                   hdim,
-                           double                              hthick,
-                           const ChVector<>&                   pos = ChVector<>(0,0,0),
-                           const ChQuaternion<>&               rot = ChQuaternion<>(1,0,0,0),
-                           bool                                collide = true,
-                           bool                                y_up = false);
+void CreateBoxContainerDVI(
+      ChSystem*                           system,
+      int                                 id,
+      ChSharedPtr<ChMaterialSurface>&     mat,
+      const ChVector<>&                   hdim,
+      double                              hthick,
+      const ChVector<>&                   pos = ChVector<>(0,0,0),
+      const ChQuaternion<>&               rot = ChQuaternion<>(1,0,0,0),
+      bool                                collide = true,
+      bool                                y_up = false
+      );
 
 CH_UTILS_API
-void InitializeObject(ChSharedBodyPtr                     body,
-                      double                              mass,
-                      ChSharedPtr<ChMaterialSurface>&     mat,
-                      const ChVector<>&                   pos = ChVector<>(0,0,0),
-                      const ChQuaternion<>&               rot = ChQuaternion<>(1,0,0,0),
-                      bool                                collide = true,
-                      bool                                fixed = false,
-                      int                                 collision_family = 2,
-                      int                                 do_not_collide_with = 4);
+void InitializeObject(
+      ChSharedBodyPtr                     body,
+      double                              mass,
+      ChSharedPtr<ChMaterialSurface>&     mat,
+      const ChVector<>&                   pos = ChVector<>(0,0,0),
+      const ChQuaternion<>&               rot = ChQuaternion<>(1,0,0,0),
+      bool                                collide = true,
+      bool                                fixed = false,
+      int                                 collision_family = 2,
+      int                                 do_not_collide_with = 4
+      );
+
 CH_UTILS_API
-void FinalizeObject(ChSharedBodyPtr                     body,
-                    ChSystem*                           system);
+void FinalizeObject(
+      ChSharedBodyPtr                     body,
+      ChSystem*                           system
+      );
 
 
 
