@@ -419,18 +419,18 @@ void ChPacejkaTire::Advance(double step)
   }
 
   // Calculate the force and moment reaction, pure slip case
-  pureSlipReactions(m_in_contact);
+  pureSlipReactions( );
 
   // Update m_FM_combined.forces, m_FM_combined.moment.z
-  combinedSlipReactions(m_in_contact);
+  combinedSlipReactions( );
 
   // Update M_x, apply to both m_FM and m_FM_combined
-  double Mx = calc_Mx(m_FM_combined.force.y, m_slip->gammaP, m_in_contact);
+  double Mx = calc_Mx(m_FM_combined.force.y, m_slip->gammaP);
   m_FM_pure.moment.x = Mx;
   m_FM_combined.moment.x = Mx;
 
   // Update M_y, apply to both m_FM and m_FM_combined
-  double My = calc_My(m_FM_combined.force.x, m_in_contact);
+  double My = calc_My(m_FM_combined.force.x);
   m_FM_pure.moment.y = My;
   m_FM_combined.moment.y = My;
 
@@ -452,7 +452,7 @@ void ChPacejkaTire::advance_tire(double step)
   // Calculate kinematic slip quantities, based on specified wheel state. This
   // assumes that the inputs to wheel spindle instantly affect tire contact.
   // Note: kappaP, alphaP, gammaP may be overridden in Advance
-  slip_kinematic(m_in_contact);
+  slip_kinematic();
 
   advance_slip_transient(step);
 }
@@ -625,66 +625,66 @@ double ChPacejkaTire::calc_Fz()
 //   ChVector<>     ang_vel;    angular velocity, expressed in the global frame
 //   double         omega;      wheel angular speed about its rotation axis
 // -----------------------------------------------------------------------------
-void ChPacejkaTire::slip_kinematic(bool in_contact)
+void ChPacejkaTire::slip_kinematic( )
 {
-  if(in_contact)
-  {
-  // Express the wheel velocity in the tire coordinate system and calculate the
-  // slip angle alpha. (Override V.x if too small)
-  ChVector<> V = m_tire_frame.TransformDirectionParentToLocal(m_tireState.lin_vel);
+  if(m_in_contact)
+    {
+    // Express the wheel velocity in the tire coordinate system and calculate the
+    // slip angle alpha. (Override V.x if too small)
+    ChVector<> V = m_tire_frame.TransformDirectionParentToLocal(m_tireState.lin_vel);
 
-  // if (std::abs(V.x) < v_x_threshold) {
-  //   V.x = (V.x < 0) ? -v_x_threshold : v_x_threshold;
-  // }
+    // if (std::abs(V.x) < v_x_threshold) {
+    //   V.x = (V.x < 0) ? -v_x_threshold : v_x_threshold;
+    // }
 
-  // lateral slip angle, in the range: (-pi/2 ,-pi/2)
-  double alpha = std::atan(V.y / abs(V.x) );
-  // V.x switches signs readily at low velocity, adding and subtracting pi to alpha irregularily
-  // double alpha = std::atan2(V.y, V.x); 
+    // lateral slip angle, in the range: (-pi/2 ,-pi/2)
+    double alpha = std::atan(V.y / abs(V.x) );
+    // V.x switches signs readily at low velocity, adding and subtracting pi to alpha irregularily
+    // double alpha = std::atan2(V.y, V.x); 
 
-  // Express the wheel normal in the tire coordinate system and calculate the
-  // wheel camber angle gamma.
-  ChVector<> n = m_tire_frame.TransformDirectionParentToLocal(m_tireState.rot.GetYaxis());
-  double gamma = std::atan2(n.z, n.y);
+    // Express the wheel normal in the tire coordinate system and calculate the
+    // wheel camber angle gamma.
+    ChVector<> n = m_tire_frame.TransformDirectionParentToLocal(m_tireState.rot.GetYaxis());
+    double gamma = std::atan2(n.z, n.y);
 
-  // Longitudinal slip rate.
-  double V_x_abs = std::abs(V.x);
-  double V_x_cap = V.x;
-  if(V_x_abs < v_x_threshold)
-  {
-    V_x_abs = std::abs(v_x_threshold);
-    V_x_cap = (V_x_cap < 0) ? -v_x_threshold: v_x_threshold;
-  }
-  double kappa = (m_R_eff * m_tireState.omega - V_x_cap) / V_x_abs;
+    // Longitudinal slip rate.
+    double V_x_abs = std::abs(V.x);
+    double V_x_cap = V.x;
+    if(V_x_abs < v_x_threshold)
+    {
+      V_x_abs = std::abs(v_x_threshold);
+      V_x_cap = (V_x_cap < 0) ? -v_x_threshold: v_x_threshold;
+    }
+    double kappa = (m_R_eff * m_tireState.omega - V_x_cap) / V_x_abs;
 
-  // alpha_star = tan(alpha) = v_y / v_x
-  double alpha_star = V.y / V_x_abs;
+    // alpha_star = tan(alpha) = v_y / v_x
+    double alpha_star = V.y / V_x_abs;
 
-  // Set the struct data members, input slips to wheel
-  m_slip->kappa = kappa;
-  m_slip->alpha = alpha;
-  m_slip->alpha_star = alpha_star;
-  m_slip->gamma = gamma;
+    // Set the struct data members, input slips to wheel
+    m_slip->kappa = kappa;
+    m_slip->alpha = alpha;
+    m_slip->alpha_star = alpha_star;
+    m_slip->gamma = gamma;
 
-  m_slip->V_cx = V.x;    // tire center x-vel, tire c-sys
-  m_slip->V_cy = V.y;    // tire center y-vel, tire c-sys
-  m_slip->V_sx = V.x - m_tireState.omega * m_R_eff;  // x-slip vel, tire c-sys
-  m_slip->V_sy = V.y;                                // approx.
+    m_slip->V_cx = V.x;    // tire center x-vel, tire c-sys
+    m_slip->V_cy = V.y;    // tire center y-vel, tire c-sys
+    m_slip->V_sx = V.x - m_tireState.omega * m_R_eff;  // x-slip vel, tire c-sys
+    m_slip->V_sy = V.y;                                // approx.
 
-  // Express the wheel angular velocity in the tire coordinate system and 
-  // extract the turn slip velocity, psi_dot
-  ChVector<> w = m_tire_frame.TransformDirectionParentToLocal(m_tireState.ang_vel);
-  m_slip->psi_dot = w.z;
+    // Express the wheel angular velocity in the tire coordinate system and 
+    // extract the turn slip velocity, psi_dot
+    ChVector<> w = m_tire_frame.TransformDirectionParentToLocal(m_tireState.ang_vel);
+    m_slip->psi_dot = w.z;
 
-  // For aligning torque, to handle large slips, and backwards operation
-  double V_mag = std::sqrt(V.x * V.x + V.y * V.y);
-  m_slip->cosPrime_alpha = V.x / V_mag;
+    // For aligning torque, to handle large slips, and backwards operation
+    double V_mag = std::sqrt(V.x * V.x + V.y * V.y);
+    m_slip->cosPrime_alpha = V.x / V_mag;
 
-  // Finally, if non-transient, use wheel slips as input to Magic Formula.
-  // These get over-written if enable transient slips to be calculated
-  m_slip->kappaP = kappa;
-  m_slip->alphaP = alpha_star;
-  m_slip->gammaP = std::sin(gamma);
+    // Finally, if non-transient, use wheel slips as input to Magic Formula.
+    // These get over-written if enable transient slips to be calculated
+    m_slip->kappaP = kappa;
+    m_slip->alphaP = alpha_star;
+    m_slip->gammaP = std::sin(gamma);
   } else {
     // not in contact, set input slips to 0
     m_slip->kappa = 0;
@@ -1022,9 +1022,9 @@ void ChPacejkaTire::slip_from_uv(bool use_besselink, double bessel_c)
 // pure slip reactions if the tire is in contact with the ground
 // calcFx               alphaP ~= 0
 // calcFy and calcMz    kappaP ~= 0
-void ChPacejkaTire::pureSlipReactions(bool in_contact)
+void ChPacejkaTire::pureSlipReactions()
 {
-  if(in_contact)
+  if(m_in_contact)
   {
     // calculate Fx, pure long. slip condition
     m_FM_pure.force.x = Fx_pureLong(m_slip->gammaP, m_slip->kappaP);
@@ -1039,9 +1039,9 @@ void ChPacejkaTire::pureSlipReactions(bool in_contact)
 }
 
 // combined slip reactions, if the tire is in contact with the ground
-void ChPacejkaTire::combinedSlipReactions(bool in_contact)
+void ChPacejkaTire::combinedSlipReactions( )
 {
-  if(in_contact)
+  if(m_in_contact)
   {
     // calculate Fx for combined slip
     m_FM_combined.force.x = Fx_combined(m_slip->alphaP, m_slip->gammaP, m_slip->kappaP, m_FM_pure.force.x);
@@ -1281,10 +1281,10 @@ double ChPacejkaTire::Mz_combined(double alpha_r, double alpha_t, double gamma, 
   return M_z;
 }
 
-double ChPacejkaTire::calc_Mx(double gamma, double Fy_combined, bool in_contact)
+double ChPacejkaTire::calc_Mx(double gamma, double Fy_combined)
 {
   double M_x = 0;
-  if(in_contact)
+  if(m_in_contact)
   {
     M_x = m_Fz * m_R0 * (m_params->overturning.qsx1 - m_params->overturning.qsx2 * gamma 
       - m_params->overturning.qsx3 * (Fy_combined / m_params->vertical.fnomin)) * m_params->scaling.lmx;
@@ -1294,10 +1294,10 @@ double ChPacejkaTire::calc_Mx(double gamma, double Fy_combined, bool in_contact)
 }
 
 
-double ChPacejkaTire::calc_My(double Fx_combined, bool in_contact)
+double ChPacejkaTire::calc_My(double Fx_combined)
 {
   double M_y = 0;
-  if(in_contact)
+  if(m_in_contact)
   {
     double V_r = m_tireState.omega * m_R_eff;
     M_y = -m_Fz * m_R0 * (m_params->rolling.qsy1 * std::atan(V_r / m_params->model.longvl) 

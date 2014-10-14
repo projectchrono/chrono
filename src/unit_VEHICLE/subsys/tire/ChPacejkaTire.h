@@ -204,7 +204,7 @@ private:
 
   // calculate the slips assume the steer/throttle/brake input to wheel has an
   // instantaneous effect on contact patch slips
-  void slip_kinematic(bool in_contact);
+  void slip_kinematic( );
 
   // set the tire m_slip vector to all zeros
   void zero_slips();
@@ -271,11 +271,11 @@ private:
   /// calculate the reaction forces and moments, pure slip cases
   /// assign longitudinal, lateral force, aligning moment:
   /// Fx, Fy and Mz
-  void pureSlipReactions(bool in_contact);
+  void pureSlipReactions( );
 
   /// calculate combined slip reactions
   /// assign Fx, Fy, Mz
-  void combinedSlipReactions(bool in_contact);
+  void combinedSlipReactions( );
 
   /// longitudinal force, alpha ~= 0
   /// assign to m_FM.force.x
@@ -310,11 +310,11 @@ private:
 
   /// calculate the overturning couple moment
   /// assign m_FM.moment.x and m_FM_combined.moment.x
-  double calc_Mx(double gamma, double Fy_combined, bool in_contact);
+  double calc_Mx(double gamma, double Fy_combined);
 
   /// calculate the rolling resistance moment,
   /// assign m_FM.moment.y and m_FM_combined.moment.y
-  double calc_My(double Fx_combined, bool in_contact);
+  double calc_My(double Fx_combined);
 
   // ----- Data members
   bool m_use_transient_slip;
