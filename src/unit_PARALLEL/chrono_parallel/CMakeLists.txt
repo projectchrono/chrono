@@ -62,6 +62,7 @@ SET(ChronoEngine_Parallel_SOLVER
     solver/ChSolverMinRes.h
     solver/ChSolverBiCG.h
     solver/ChSolverBiCGStab.h
+    solver/ChSolverPDIP.h
     solver/ChSolverParallel.cpp
     solver/ChSolverJacobi.cpp
     solver/ChSolverCG.cpp
@@ -76,6 +77,7 @@ SET(ChronoEngine_Parallel_SOLVER
     solver/ChSolverMinRes.cpp
     solver/ChSolverBiCG.cpp
     solver/ChSolverBiCGStab.cpp
+    solver/ChSolverPDIP.cpp
     )
 
 SOURCE_GROUP(solver FILES
