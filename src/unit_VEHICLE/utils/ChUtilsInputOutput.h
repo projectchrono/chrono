@@ -43,7 +43,14 @@ namespace utils {
 class CH_UTILS_API CSV_writer {
 public:
   explicit CSV_writer(const std::string& delim = ",") : m_delim(delim) {}
-  CSV_writer(const CSV_writer& source) : m_delim(source.m_delim) {}
+
+  CSV_writer(const CSV_writer& source) : m_delim(source.m_delim)
+  {
+    // Note that we do not copy the stream buffer (as then it would be shared!)
+    m_ss.copyfmt(source.m_ss);          // copy all data
+    m_ss.clear(source.m_ss.rdstate());  // copy the error state
+  }
+
   ~CSV_writer() {}
 
   void write_to_file(const std::string& filename,
@@ -69,7 +76,6 @@ private:
   std::string m_delim;
   std::ostringstream m_ss;
 };
-
 
 inline CSV_writer& operator<< (CSV_writer& out, const ChVector<>& v)
 {
