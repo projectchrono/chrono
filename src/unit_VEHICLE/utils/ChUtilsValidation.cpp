@@ -37,6 +37,12 @@ bool ChValidation::Process(const std::string& sim_filename,
   // Read the reference data file.
   size_t num_ref_rows = ReadDataFile(ref_filename, delim, num_data_points, m_ref_headers, m_ref_data);
 
+  // Resize the arrays of norms to zero length
+  // (needed if we return with an error below)
+  m_L2_norms.resize(0);
+  m_RMS_norms.resize(0);
+  m_INF_norms.resize(0);
+
   // Perform some sanity checks.
   if (m_num_cols != m_ref_headers.size()) {
     std::cout << "ERROR: the number of columns in the two files is different:" << std::endl;
