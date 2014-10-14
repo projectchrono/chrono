@@ -27,15 +27,14 @@ namespace utils {
 // -----------------------------------------------------------------------------
 bool ChValidation::Process(const std::string& sim_filename,
                            const std::string& ref_filename,
-                           size_t             num_data_points,
                            char               delim)
 {
   // Read the simulation results file.
-  m_num_rows = ReadDataFile(sim_filename, delim, num_data_points, m_sim_headers, m_sim_data);
+  m_num_rows = ReadDataFile(sim_filename, delim, m_sim_headers, m_sim_data);
   m_num_cols = m_sim_headers.size();
 
   // Read the reference data file.
-  size_t num_ref_rows = ReadDataFile(ref_filename, delim, num_data_points, m_ref_headers, m_ref_data);
+  size_t num_ref_rows = ReadDataFile(ref_filename, delim, m_ref_headers, m_ref_data);
 
   // Resize the arrays of norms to zero length
   // (needed if we return with an error below)
@@ -83,11 +82,10 @@ bool ChValidation::Process(const std::string& sim_filename,
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 bool ChValidation::Process(const std::string& sim_filename,
-                           size_t             num_data_points,
                            char               delim)
 {
   // Read the simulation results file.
-  m_num_rows = ReadDataFile(sim_filename, delim, num_data_points, m_sim_headers, m_sim_data);
+  m_num_rows = ReadDataFile(sim_filename, delim, m_sim_headers, m_sim_data);
   m_num_cols = m_sim_headers.size();
 
   // Resize arrays of norms.
@@ -127,12 +125,18 @@ double ChValidation::INFnorm(const DataVector& v)
 // -----------------------------------------------------------------------------
 size_t ChValidation::ReadDataFile(const std::string& filename,
                                   char               delim,
-                                  size_t             num_data_points,
                                   Headers&           headers,
                                   Data&              data)
 {
   std::ifstream ifile(filename.c_str());
   std::string   line;
+
+  // Count the number of lines in the file then rewind the input file stream.
+  size_t num_lines = std::count(std::istreambuf_iterator<char>(ifile),
+                                std::istreambuf_iterator<char>(), '\n');
+  ifile.seekg(0, ifile.beg);
+
+  size_t num_data_points = num_lines - 3;
 
   // Skip the first two lines.
   std::getline(ifile, line);
@@ -171,17 +175,16 @@ size_t ChValidation::ReadDataFile(const std::string& filename,
 // The comparison is done using the specified norm type and tolerance. The
 // function returns true if the norms of all column differences are below the
 // given tolerance and false otherwise.
+// It is assumed that the input files are TAB-delimited.
 // -----------------------------------------------------------------------------
 bool Validate(const std::string& sim_filename,
               const std::string& ref_filename,
-              size_t             num_data_points,
               ChNormType         norm_type,
               double             tolerance)
-
 {
   ChValidation validator;
 
-  validator.Process(sim_filename, ref_filename, num_data_points);
+  validator.Process(sim_filename, ref_filename);
 
   size_t num_cols = validator.GetNumColumns() - 1;
   DataVector norms(num_cols);
@@ -206,16 +209,15 @@ bool Validate(const std::string& sim_filename,
 // The validation is done using the specified norm type and tolerance. The
 // function returns true if the norms of all columns, excluding the first one,
 // are below the given tolerance and false otherwise.
+// It is assumed that the input file is TAB-delimited.
 // -----------------------------------------------------------------------------
 bool Validate(const std::string& sim_filename,
-              size_t             num_data_points,
               ChNormType         norm_type,
               double             tolerance)
-
 {
   ChValidation validator;
 
-  validator.Process(sim_filename, num_data_points);
+  validator.Process(sim_filename);
 
   size_t num_cols = validator.GetNumColumns() - 1;
   DataVector norms(num_cols);

@@ -329,7 +329,7 @@ int main(int argc, char* argv[])
   check = utils::Validate(
     out_dir + "Revolute_Case01_CHRONO_Pos.txt",
     utils::GetModelDataFile(ref_dir + "Revolute_Case01_ADAMS_Pos.txt"),
-    501, utils::RMS_NORM, 2e-2);
+    utils::RMS_NORM, 2e-2);
   test_passed &= check;
   std::cout << "   validate positions     " << (check ? "Passed" : "Failed") << std::endl;
 
@@ -337,14 +337,14 @@ int main(int argc, char* argv[])
   check = utils::Validate(
     out_dir + "Revolute_Case01_CHRONO_Energy.txt",
     utils::GetModelDataFile(ref_dir + "Revolute_Case01_ADAMS_Energy.txt"),
-    501, utils::RMS_NORM, 2e-2);
+    utils::RMS_NORM, 2e-2);
   test_passed &= check;
   std::cout << "   validate energy        " << (check ? "Passed" : "Failed") << std::endl;
 
   // Validate constraint violations
   check = utils::Validate(
     out_dir + "Revolute_Case01_CHRONO_Constraints.txt",
-    501, utils::RMS_NORM, 1e-5);
+    utils::RMS_NORM, 1e-5);
   test_passed &= check;
   std::cout << "   validate constraints   " << (check ? "Passed" : "Failed") << std::endl;
 
@@ -359,7 +359,7 @@ int main(int argc, char* argv[])
   // Validate constraint violations
   check = utils::Validate(
     out_dir + "Revolute_Case01_CHRONO_Constraints.txt",
-    501, utils::RMS_NORM, 1e-5);
+    utils::RMS_NORM, 1e-5);
   test_passed &= check;
   std::cout << "   validate constraints   " << (check ? "Passed" : "Failed") << std::endl;
 

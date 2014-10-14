@@ -28,7 +28,6 @@
 #include <cmath>
 #include <numeric>
 #include <algorithm>
-#include <functional>
 
 #include "utils/ChApiUtils.h"
 
@@ -75,7 +74,6 @@ public:
   bool Process(
     const std::string& sim_filename,    ///< name of the file with simulation results
     const std::string& ref_filename,    ///< name of the file with reference data
-    size_t             num_data_points, ///< number of data points
     char               delim = '\t'     ///< delimiter (default TAB)
     );
 
@@ -83,7 +81,6 @@ public:
   /// We calculate the vector norms of all columns except the first one.
   bool Process(
     const std::string& sim_filename,    ///< name of the file with simulation results
-    size_t             num_data_points, ///< number of data points
     char               delim = '\t'     ///< delimiter (default TAB)
     );
 
@@ -122,7 +119,6 @@ public:
   static size_t ReadDataFile(
     const std::string& filename,        ///< [in] name of the data file
     char               delim,           ///< [in] delimiter
-    size_t             num_data_points, ///< [in] number of data points
     Headers&           headers,         ///< [out] vector of column header strings
     Data&              data             ///< [out] table of data values
     );
@@ -156,12 +152,12 @@ private:
 /// The comparison is done using the specified norm type and tolerance. The
 /// function returns true if the norms of all column differences are below the
 /// given tolerance and false otherwise.
+/// It is assumed that the input files are TAB-delimited.
 ///
 CH_UTILS_API
 bool Validate(
           const std::string& sim_filename,
           const std::string& ref_filename,
-          size_t             num_data_points,
           ChNormType         norm_type,
           double             tolerance
           );
@@ -171,11 +167,11 @@ bool Validate(
 /// The validation is done using the specified norm type and tolerance. The
 /// function returns true if the norms of all columns, excluding the first one,
 /// are below the given tolerance and false otherwise.
+/// It is assumed that the input file is TAB-delimited.
 ///
 CH_UTILS_API
 bool Validate(
           const std::string& sim_filename,
-          size_t             num_data_points,
           ChNormType         norm_type,
           double             tolerance
           );
