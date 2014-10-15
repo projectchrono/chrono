@@ -184,7 +184,8 @@ bool Validate(const std::string& sim_filename,
 {
   ChValidation validator;
 
-  validator.Process(sim_filename, ref_filename);
+  if (!validator.Process(sim_filename, ref_filename))
+    return false;
 
   size_t num_cols = validator.GetNumColumns() - 1;
   DataVector norms(num_cols);
@@ -217,7 +218,8 @@ bool Validate(const std::string& sim_filename,
 {
   ChValidation validator;
 
-  validator.Process(sim_filename);
+  if (!validator.Process(sim_filename))
+    return false;
 
   size_t num_cols = validator.GetNumColumns() - 1;
   DataVector norms(num_cols);
