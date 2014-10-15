@@ -8,7 +8,7 @@
 
 using namespace chrono;
 
-real MU = 0.5;
+
 unsigned int offset = 3;
 
 #define _index_ i*offset
@@ -36,7 +36,7 @@ void ChSolverPDIP::getConstraintVector(blaze::DynamicVector<real> & src,
                                        const uint size) {
 #pragma omp parallel for
    for (int i = 0; i < num_contacts; i++) {
-      dst[i] = 0.5 * (pow(src[_index_ + 1], 2) + pow(src[_index_ + 2], 2) - pow(MU, 2) * pow(src[_index_], 2));
+      dst[i] = 0.5 * (pow(src[_index_ + 1], 2) + pow(src[_index_ + 2], 2) - pow(data_container->host_data.fric_rigid_rigid[i].x, 2) * pow(src[_index_], 2));
       dst[i + num_contacts] = -src[_index_];
    }
 }
@@ -45,7 +45,7 @@ void ChSolverPDIP::initializeConstraintGradient(blaze::DynamicVector<real> & src
                                                 const uint size) {
 //#pragma omp parallel for
    for (int i = 0; i < num_contacts; i++) {
-      grad_f.append(i, _index_ + 0, -pow(MU, 2) * src[_index_ + 0]);
+      grad_f.append(i, _index_ + 0, -pow(data_container->host_data.fric_rigid_rigid[i].x, 2) * src[_index_ + 0]);
       grad_f.append(i, _index_ + 1, src[_index_ + 1]);
       grad_f.append(i, _index_ + 2, src[_index_ + 2]);
       grad_f.finalize(i);
@@ -60,7 +60,7 @@ void ChSolverPDIP::updateConstraintGradient(blaze::DynamicVector<real> & src,
                                             const uint size) {
 #pragma omp parallel for
    for (int i = 0; i < num_contacts; i++) {
-      grad_f(i, _index_ + 0) = -pow(MU, 2) * src[_index_ + 0];
+      grad_f(i, _index_ + 0) = -pow(data_container->host_data.fric_rigid_rigid[i].x, 2) * src[_index_ + 0];
       grad_f(i, _index_ + 1) = src[_index_ + 1];
       grad_f(i, _index_ + 2) = src[_index_ + 2];
    }
@@ -75,7 +75,7 @@ void ChSolverPDIP::initializeNewtonStepMatrix(blaze::DynamicVector<real> & gamma
                                               blaze::DynamicVector<real> & f,
                                               const uint size) {
    for (int i = 0; i < num_contacts; i++) {
-      M_hat.append(_index_ + 0, _index_ + 0, -pow(MU, 2) * lambda[i]);
+      M_hat.append(_index_ + 0, _index_ + 0, -pow(data_container->host_data.fric_rigid_rigid[i].x, 2) * lambda[i]);
       M_hat.finalize(_index_ + 0);
       M_hat.append(_index_ + 1, _index_ + 1, lambda[i]);
       M_hat.finalize(_index_ + 1);
@@ -100,7 +100,7 @@ void ChSolverPDIP::updateNewtonStepMatrix(blaze::DynamicVector<real> & gamma,
                                           const uint size) {
 #pragma omp parallel for
    for (int i = 0; i < num_contacts; i++) {
-      M_hat(_index_ + 0, _index_ + 0) = -pow(MU, 2) * lambda[i];
+      M_hat(_index_ + 0, _index_ + 0) = -pow(data_container->host_data.fric_rigid_rigid[i].x, 2) * lambda[i];
       M_hat(_index_ + 1, _index_ + 1) = lambda[i];
       M_hat(_index_ + 2, _index_ + 2) = lambda[i];
    }

@@ -13,8 +13,6 @@
 // =============================================================================
 //
 // This file contains an implementation of PDIP.
-// TODO: Enable correct friction values to be used (all mu = 0.5 now)
-// TODO: Add code to handle friction values of 0
 // TODO: Add code to handle bilaterals
 // TODO: Replace the Dinv matrix with a function
 // TODO: Get rid of as many matrices as possible (diaglambda could be replaced)
