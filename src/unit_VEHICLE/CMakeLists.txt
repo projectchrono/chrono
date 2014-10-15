@@ -10,6 +10,10 @@ project(Chrono-T)
 # Location of additional CMAKE modules
 SET(CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/cmake)
 
+# Enable CTest
+ENABLE_TESTING()
+INCLUDE(CTest)
+
 # ------------------------------------------------------------------------------
 # Specify output locations for libraries and executables
 # ------------------------------------------------------------------------------
