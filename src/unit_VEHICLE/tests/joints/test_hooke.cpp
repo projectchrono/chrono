@@ -292,13 +292,13 @@ int main(int argc, char* argv[])
   //Case 1 - Hooke Joint at the origin, and aligned with the global Y axis
   //  Note the hooke joint only allows 2 DOF(rotation about joint x & z axes)
   //    Therefore, the joint must be rotated -pi/2 about the global x-axis
-  TestHooke(ChVector<> (0, 0, 0), ChQuaternion<> (Q_from_AngX(-CH_C_PI_2)), .001, "HookeJointData_Case01.txt",true);
+  TestHooke(ChVector<> (0, 0, 0), ChQuaternion<> (Q_from_AngX(-CH_C_PI_2)), .001, "HookeJointData_Case01.txt",animate);
 
   std::cout << "\nStarting Hooke Test Case 02\n\n";
   //Case 2 - Hooke Joint at (1,2,3), and joint z aligned with the global axis along Y = Z
   //  Note the revolute joint only allows 1 DOF(rotation about joint z axis)
   //    Therefore, the joint must be rotated -pi/4 about the global x-axis
-  TestHooke(ChVector<> (1, 2, 3), ChQuaternion<> (Q_from_AngX(-CH_C_PI_4)), .001, "HookeJointData_Case02.txt",true);
+  TestHooke(ChVector<> (1, 2, 3), ChQuaternion<> (Q_from_AngX(-CH_C_PI_4)), .001, "HookeJointData_Case02.txt",animate);
 
 
   // Return 0 if all test passed and 1 otherwise
