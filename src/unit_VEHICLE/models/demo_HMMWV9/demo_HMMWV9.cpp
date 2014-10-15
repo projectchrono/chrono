@@ -98,7 +98,7 @@ double render_step_size = 1.0 / FPS;   // FPS = 50
 
 // ******  PacejkaTire simulation settings
 bool save_pactire_data = false;
-double time_start_output = 0.1;
+double time_start_output = 1.0;
 double pac_step_size = step_size;
 std::string pac_ofilename_base = "test_HMMWV9_pacTire";
 double pac_out_step_size = 0.01;
@@ -204,11 +204,10 @@ int main(int argc, char* argv[])
     ChSharedPtr<ChPacejkaTire> tire_RL(new ChPacejkaTire("RL", param_file, terrain));
     ChSharedPtr<ChPacejkaTire> tire_RR(new ChPacejkaTire("RR", param_file, terrain));
     
-    tire_FL->SetStepsize(LEFT);
-    tire_FR->SetStepsize(RIGHT);
-    tire_RL->SetStepsize(LEFT);
-    tire_RR->SetStepsize(RIGHT);
-
+    tire_FL->Initialize(LEFT);
+    tire_FR->Initialize(RIGHT);
+    tire_RL->Initialize(LEFT);
+    tire_RR->Initialize(RIGHT);
 
     tire_FL->SetStepsize(pac_step_size);
     tire_FR->SetStepsize(pac_step_size);

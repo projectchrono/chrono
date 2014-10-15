@@ -142,6 +142,14 @@ void ChPacejkaTire::Initialize(ChVehicleSide side)
 
   // LEFT or RIGHT side of the vehicle?
   m_side = side;
+  if( m_side == LEFT )
+  {
+    m_sameSide = (!m_params->model.tyreside.compare("LEFT")) ? 1: -1;
+  } else {
+     // on right
+    m_sameSide = (!m_params->model.tyreside.compare("RIGHT")) ? 1: -1;
+  }
+
   // any variables that are calculated once
   m_R0 = m_params->dimension.unloaded_radius;
 
@@ -416,6 +424,12 @@ void ChPacejkaTire::Advance(double step)
     }
     */
 
+  } else {
+    // Calculate the vertical load and update tire deflection and rolling radius
+    update_verticalLoad(step);
+
+    // Calculate kinematic slip quantities
+    slip_kinematic();
   }
 
   // Calculate the force and moment reaction, pure slip case
@@ -756,13 +770,21 @@ void ChPacejkaTire::advance_slip_transient(double step_size)
       // solve the ODE using RK - 45 integration
       m_slip->Idu_dt = ODE_RK_uv(m_slip->V_sx, m_relaxation->sigma_kappa, V_cx, step_size, m_slip->u);
       m_slip->u += m_slip->Idu_dt;
+
+      // try finding kapap directly
+      // double Idk_dt = ODE_RK_kappaAlpha(m_slip->V_sx, m_relaxation->sigma_kappa, V_cx, step_size, m_slip->kP);
+      // m_slip->m_kP += Idk_dt;
     }
 
     // Eq. 7.7, else dv/dt = 0 and v remains unchanged
     if ((m_slip->V_sy + std::abs(V_cx) * m_slip->v_alpha / m_relaxation->sigma_alpha) * m_slip->v_alpha >= 0)
     {
       m_slip->Idv_alpha_dt = ODE_RK_uv(m_slip->V_sy, m_relaxation->sigma_alpha, V_cx, step_size, m_slip->v_alpha);
-      m_slip->v_alpha +=  m_slip->Idv_alpha_dt ;
+      m_slip->v_alpha +=  m_slip->Idv_alpha_dt;
+
+      // try finding alpha directly
+      // double Ida_dt = ODE_RK_kappaAlpha(m_slip->V_sy, m_relaxation->sigma_alpha, V_cx, step_size, m_slip->aP);
+      // m_slip->aP += Ida_dt;
     }
 
   }
@@ -772,9 +794,18 @@ void ChPacejkaTire::advance_slip_transient(double step_size)
     // Eq 7.9 
     m_slip->Idu_dt = ODE_RK_uv(m_slip->V_sx, m_relaxation->sigma_kappa, V_cx, step_size, m_slip->u);
     m_slip->u += m_slip->Idu_dt;
+
+    // try finding kappa directly
+    // double Idk_dt = ODE_RK_kappaAlpha(m_slip->V_sx, m_relaxation->sigma_kappa, V_cx, step_size, m_slip->kP);
+    // m_slip->kP += Idk_dt;
+
     // Eq. 7.7
     m_slip->Idv_alpha_dt = ODE_RK_uv(m_slip->V_sy, m_relaxation->sigma_alpha, V_cx, step_size, m_slip->v_alpha);
-    m_slip->v_alpha +=  m_slip->Idv_alpha_dt ;
+    m_slip->v_alpha +=  m_slip->Idv_alpha_dt;
+
+    // try finding alpha directly
+    // double Ida_dt = ODE_RK_kappaAlpha(m_slip->V_sy, m_relaxation->sigma_alpha, V_cx, step_size, m_slip->aP);
+    // m_slip->aP += Ida_dt;
 
   }
 
@@ -788,14 +819,6 @@ void ChPacejkaTire::advance_slip_transient(double step_size)
     V_cx, m_slip->psi_dot, m_tireState.omega, m_slip->gammaP, m_relaxation->sigma_alpha,
     m_slip->v_phi, EPS_GAMMA, step_size);
   m_slip->v_phi += m_slip->Idv_phi_dt;
-
-  // DEBUGGING
-  // compare dv_dt at low speeds
-  if( V_cx_abs < V_cx_low )
-  {
-    double check_Idvdt = ODE_RK_v_nonlinear(m_slip->V_sy, V_cx, m_C_Fy, step_size, m_slip->alphaP);
-    double abs_diff = std::abs( check_Idvdt - m_slip->Idv_alpha_dt);
-  }
 
   // calculate slips from contact point deflections u and v
   slip_from_uv(m_in_contact, 550.0);
@@ -902,24 +925,22 @@ double ChPacejkaTire::get_dFy_dtan_alphaP(double x_curr)
 // small alpha, use Eq. 7.37
 // here, we integrate d[tan(alphaP)]/dt for the step size
 // returns delta_v_alpha = delta_tan_alphaP * sigma_a
-double ChPacejkaTire::ODE_RK_v_nonlinear(double V_sy,
+double ChPacejkaTire::ODE_RK_kappaAlpha(double V_s,
+                                     double sigma,
                                      double V_cx,
-                                     double C_Fy,
                                      double step_size,
                                      double x_curr)
 {
   double V_cx_abs = std::abs(V_cx);
-  double sigma_alpha = get_dFy_dtan_alphaP(x_curr) / C_Fy;
-  double k1 = (-V_sy - V_cx_abs * x_curr) / sigma_alpha;
-  double k2 = (-V_sy - V_cx_abs  * (x_curr + 0.5 * step_size * k1) )/ sigma_alpha;
-  double k3 = (-V_sy - V_cx_abs * (x_curr + 0.5 * step_size * k2) ) / sigma_alpha;
-  double k4 = (-V_sy - V_cx_abs * (x_curr + step_size * k3) ) / sigma_alpha;
+  // double sigma_alpha = get_dFy_dtan_alphaP(x_curr) / C_Fy;
+  double k1 = (-V_s - V_cx_abs * x_curr) / sigma;
+  double k2 = (-V_s - V_cx_abs  * (x_curr + 0.5 * step_size * k1) ) / sigma;
+  double k3 = (-V_s - V_cx_abs * (x_curr + 0.5 * step_size * k2) ) / sigma;
+  double k4 = (-V_s - V_cx_abs * (x_curr + step_size * k3) ) / sigma;
 
-  // tan(alphaP) = v_alpha / sigma_alpha
-  double delta_tan_alphaP = (step_size / 6.0) * (k1 + 2.0*k2 + 2.0*k3 + k4);
-  double delta_va = sigma_alpha * delta_tan_alphaP;
+  double delta_x = (step_size / 6.0) * (k1 + 2.0*k2 + 2.0*k3 + k4);
 
-  return delta_va;
+  return delta_x;
 }
 
 double ChPacejkaTire::ODE_RK_gamma(double C_Fgamma,
@@ -992,16 +1013,12 @@ void ChPacejkaTire::slip_from_uv(bool use_besselink, double bessel_c)
   double u_Bessel = d_vlow * m_slip->V_sx / m_relaxation->C_Fkappa;
   double kappa_p = u_sigma - u_Bessel;
 
-
-  // double alpha_p = -std::atan(m_slip->v_alpha / m_relaxation->sigma_alpha) - d_vlow * m_slip->V_sy / m_relaxation->C_Falpha;
-
   // tan(alpha') ~= alpha' for small slip
-  double v_sigma = m_slip->v_alpha / m_relaxation->sigma_alpha;
+  double v_sigma = -m_slip->v_alpha / m_relaxation->sigma_alpha;
   // double v_sigma = std::atan(m_slip->v_alpha / m_relaxation->sigma_alpha);
   double v_Bessel = d_vlow * m_slip->V_sy / m_relaxation->C_Falpha;
   double alpha_p = v_sigma - v_Bessel;
 
-  
   // gammaP, phiP, phiT not effected by Besselink
   double gamma_p = m_relaxation->C_Falpha * m_slip->v_gamma / (m_relaxation->C_Fgamma * m_relaxation->sigma_alpha);
   double phi_p = (m_relaxation->C_Falpha * m_slip->v_phi) / (m_relaxation->C_Fphi * m_relaxation->sigma_alpha);	// turn slip
@@ -1013,6 +1030,7 @@ void ChPacejkaTire::slip_from_uv(bool use_besselink, double bessel_c)
   m_slip->gammaP = gamma_p;
   m_slip->phiP = phi_p;
   m_slip->phiT = phi_t;
+
 }
 
 
@@ -1064,7 +1082,7 @@ void ChPacejkaTire::relaxationLengths()
 
   // all these C values should probably be positive, since negative stiffness doesn't make sense
   // parameter pky1 from A/Car parameter file is negative? not correct, force to positive
-  double C_Falpha = std::abs(m_params->lateral.pky1 * m_params->vertical.fnomin * std::sin(p_Ky4 * std::atan(m_Fz / (m_params->lateral.pky2 * m_params->vertical.fnomin))) * m_zeta->z3 * m_params->scaling.lyka);
+  double C_Falpha = m_params->lateral.pky1 * m_params->vertical.fnomin * std::sin(p_Ky4 * std::atan(m_Fz / (m_params->lateral.pky2 * m_params->vertical.fnomin))) * m_zeta->z3 * m_params->scaling.lyka;
   double sigma_alpha = std::abs(C_Falpha / m_C_Fy);
   double C_Fkappa = m_Fz * (m_params->longitudinal.pkx1 + m_params->longitudinal.pkx2 * m_dF_z) * exp(m_params->longitudinal.pkx3 * m_dF_z) * m_params->scaling.lky;
   double sigma_kappa = C_Fkappa / m_C_Fx;
@@ -1072,11 +1090,10 @@ void ChPacejkaTire::relaxationLengths()
   double C_Fphi = (C_Fgamma * m_R0) / (1 - 0.5);
   
   // NOTE: reference does not include the negative in the exponent for sigma_kappa_ref
-  double sigma_kappa_ref = m_Fz * (m_params->longitudinal.ptx1 + m_params->longitudinal.ptx2 * m_dF_z)*(m_R0*m_params->scaling.lsgkp / m_params->vertical.fnomin) * exp( -m_params->longitudinal.ptx3 * m_dF_z);
-  double sigma_alpha_ref = m_params->lateral.pty1 * (1.0 - m_params->lateral.pky3 * std::abs( m_slip->gammaP ) ) * m_R0 * m_params->scaling.lsgal * sin(p_Ky4 * atan(m_Fz / (m_params->lateral.pty2 * m_params->vertical.fnomin) ) );
+  // double sigma_kappa_ref = m_Fz * (m_params->longitudinal.ptx1 + m_params->longitudinal.ptx2 * m_dF_z)*(m_R0*m_params->scaling.lsgkp / m_params->vertical.fnomin) * exp( -m_params->longitudinal.ptx3 * m_dF_z);
+  // double sigma_alpha_ref = m_params->lateral.pty1 * (1.0 - m_params->lateral.pky3 * std::abs( m_slip->gammaP ) ) * m_R0 * m_params->scaling.lsgal * sin(p_Ky4 * atan(m_Fz / (m_params->lateral.pty2 * m_params->vertical.fnomin) ) );
   {
-    // relaxationL tmp = { C_Falpha, sigma_alpha, C_Fkappa, sigma_kappa, C_Fgamma, C_Fphi };
-    relaxationL tmp = { C_Falpha, sigma_alpha_ref, C_Fkappa, sigma_kappa_ref, C_Fgamma, C_Fphi };
+    relaxationL tmp = {C_Falpha, sigma_alpha, C_Fkappa, sigma_kappa, C_Fgamma, C_Fphi };
     *m_relaxation = tmp;
   }
 }

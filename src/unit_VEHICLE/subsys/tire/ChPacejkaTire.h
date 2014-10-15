@@ -235,7 +235,7 @@ private:
 
   // calculate v_alpha differently at low speeds
   // relaxation length is non-linear
-  double ChPacejkaTire::ODE_RK_v_nonlinear(double V_sy,
+  double ChPacejkaTire::ODE_RK_kappaAlpha(double V_sy,
                                      double V_cx,
                                      double C_Fy,
                                      double step_size,
@@ -319,6 +319,7 @@ private:
   // ----- Data members
   bool m_use_transient_slip;
   ChVehicleSide m_side;
+  int m_sameSide;             // does parameter file side equal m_side? 1 = true, -1 opposite
 
   ChWheelState m_tireState;    // current tire state
   ChCoordsys<> m_tire_frame;   // current tire coordinate system
