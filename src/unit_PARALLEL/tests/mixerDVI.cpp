@@ -114,9 +114,9 @@ void AddContainer(ChSystemParallelDVI* sys) {
    ChSharedPtr<ChLinkEngine> motor(new ChLinkEngine);
 
    motor->Initialize(mixer, bin, ChCoordsys<>(ChVector<>(0, 0, 0), ChQuaternion<>(1, 0, 0, 0)));
-   motor->Set_eng_mode(ChLinkEngine::ENG_MODE_SPEED);
-   if (ChSharedPtr<ChFunction_Const> mfun = motor->Get_spe_funct().DynamicCastTo<ChFunction_Const>())
-      mfun->Set_yconst(CH_C_PI / 2);
+
+   motor->Set_eng_mode(ChLinkEngine::ENG_MODE_ROTATION);
+   motor->Set_rot_funct(ChSharedPtr<ChFunction>(new ChFunction_Ramp(0, CH_C_PI / 2)));
 
    sys->AddLink(motor);
 }
@@ -208,7 +208,7 @@ int main(int argc,
    msystem.GetSettings()->solver.max_iteration_bilateral = max_iteration / 3;
    msystem.GetSettings()->solver.tolerance = 1e-3;
    msystem.GetSettings()->solver.alpha = 0;
-   msystem.GetSettings()->solver.contact_recovery_speed = 1;
+   msystem.GetSettings()->solver.contact_recovery_speed = 10000;
    msystem.ChangeSolverType(APGDRS);
    msystem.GetSettings()->collision.narrowphase_algorithm = NARROWPHASE_HYBRID_MPR;
 
