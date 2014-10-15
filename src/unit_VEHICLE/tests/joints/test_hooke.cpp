@@ -25,12 +25,17 @@
 #include <ostream>
 #include <fstream>
 
+#include "core/ChFileutils.h"
+
 #include "physics/ChSystem.h"
 #include "physics/ChBody.h"
 
 #include "unit_IRRLICHT/ChIrrApp.h"
 
 #include "ChronoT_config.h"
+#include "utils/ChUtilsData.h"
+#include "utils/ChUtilsInputOutput.h"
+#include "utils/ChUtilsValidation.h"
 
 using namespace chrono;
 using namespace irr;
@@ -38,7 +43,11 @@ using namespace irr;
 
 // =============================================================================
 
-void TestHooke(ChVector<> loc, ChQuaternion<> revAxisRot, double simTimeStep, std::string outputFilename, bool animate)
+void TestHooke(const ChVector<>&     loc,
+               const ChQuaternion<>& revAxisRot,
+               double                simTimeStep,
+               const std::string&    outputFilename,
+               bool                  animate)
 {
 
   //Settings
@@ -255,6 +264,29 @@ void TestHooke(ChVector<> loc, ChQuaternion<> revAxisRot, double simTimeStep, st
 
 int main(int argc, char* argv[])
 {
+  bool animate = (argc > 1);
+
+  // Set the path to the Chrono data folder
+  // --------------------------------------
+
+  SetChronoDataPath(CHRONO_DATA_DIR);
+
+  // Create output directory (if it does not already exist)
+  if (ChFileutils::MakeDirectory("../VALIDATION") < 0) {
+    std::cout << "Error creating directory '../VALIDATION'" << std::endl;
+    return 1;
+  }
+  if (ChFileutils::MakeDirectory("../VALIDATION/HOOKE_JOINT") < 0) {
+    std::cout << "Error creating directory '../VALIDATION/HOOKE_JOINT'" << std::endl;
+    return 1;
+  }
+
+  std::string out_dir = "../VALIDATION/HOOKE_JOINT/";
+  std::string ref_dir = "validation/hooke_joint/";
+
+  bool check;
+  bool test_passed = true;
+
 
   std::cout << "\nStarting Hooke Test Case 01\n\n";
   //Case 1 - Hooke Joint at the origin, and aligned with the global Y axis
@@ -269,5 +301,8 @@ int main(int argc, char* argv[])
   TestHooke(ChVector<> (1, 2, 3), ChQuaternion<> (Q_from_AngX(-CH_C_PI_4)), .001, "HookeJointData_Case02.txt",true);
 
 
-  return 0;
+  // Return 0 if all test passed and 1 otherwise
+  // -------------------------------------------
+
+  return !test_passed;
 }

@@ -19,7 +19,10 @@
 //
 // =============================================================================
 
-#include <stdio.h>
+#include <ostream>
+#include <fstream>
+
+#include "core/ChFileutils.h"
 
 #include "physics/ChSystem.h"
 #include "physics/ChBody.h"
@@ -27,6 +30,9 @@
 #include "unit_IRRLICHT/ChIrrApp.h"
 
 #include "ChronoT_config.h"
+#include "utils/ChUtilsData.h"
+#include "utils/ChUtilsInputOutput.h"
+#include "utils/ChUtilsValidation.h"
 
 using namespace chrono;
 using namespace irr;
@@ -34,7 +40,33 @@ using namespace irr;
 
 int main(int argc, char* argv[])
 {
+  bool animate = (argc > 1);
+
+  // Set the path to the Chrono data folder
+  // --------------------------------------
+
   SetChronoDataPath(CHRONO_DATA_DIR);
+
+  // Create output directory (if it does not already exist)
+  if (ChFileutils::MakeDirectory("../VALIDATION") < 0) {
+    std::cout << "Error creating directory '../VALIDATION'" << std::endl;
+    return 1;
+  }
+  if (ChFileutils::MakeDirectory("../VALIDATION/REVSPH_JOINT") < 0) {
+    std::cout << "Error creating directory '../VALIDATION/REVSPH_JOINT'" << std::endl;
+    return 1;
+  }
+
+  std::string out_dir = "../VALIDATION/REVSPH_JOINT/";
+  std::string ref_dir = "validation/revsph_joint/";
+
+  bool check;
+  bool test_passed = true;
+
+  //// TODO: temporary hack....
+  if (!animate)
+    return 0;
+
 
 
   ChSystem system;
@@ -137,7 +169,11 @@ int main(int argc, char* argv[])
     application.EndScene();
   }
 
-  return 0;
+
+  // Return 0 if all test passed and 1 otherwise
+  // -------------------------------------------
+
+  return !test_passed;
 }
 
 
