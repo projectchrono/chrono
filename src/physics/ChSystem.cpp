@@ -76,7 +76,7 @@ namespace chrono
 #define HIER_LINK_NEXT	    iterlink++;
 
 #define PHpointer		    (*iterotherphysics)
-#define HIER_OTHERPHYSICS_INIT    std::list<ChPhysicsItem*>::iterator iterotherphysics = otherphysicslist.begin();
+#define HIER_OTHERPHYSICS_INIT    std::vector<ChPhysicsItem*>::iterator iterotherphysics = otherphysicslist.begin();
 #define HIER_OTHERPHYSICS_NOSTOP  (iterotherphysics != otherphysicslist.end())
 #define HIER_OTHERPHYSICS_NEXT	  iterotherphysics++;
 
@@ -265,8 +265,8 @@ private:
    std::vector<ChBody*>* list_bodies;
    std::list<ChLink*>::iterator node_link;
    std::list<ChLink*>* list_links;
-   std::list<ChPhysicsItem*>::iterator node_otherphysics;
-   std::list<ChPhysicsItem*>* list_otherphysics;
+   std::vector<ChPhysicsItem*>::iterator node_otherphysics;
+   std::vector<ChPhysicsItem*>* list_otherphysics;
    ChPhysicsItem* mptr;
    int stage;
    ChSystem* msystem;
@@ -944,7 +944,7 @@ void ChSystem::RemoveLink (ChSharedPtr<ChLink> mlink)
 
 void ChSystem::AddOtherPhysicsItem (ChSharedPtr<ChPhysicsItem> newitem)
 {
-	assert(std::find<std::list<ChPhysicsItem*>::iterator>(otherphysicslist.begin(), otherphysicslist.end(), newitem.get_ptr())==otherphysicslist.end());
+	assert(std::find<std::vector<ChPhysicsItem*>::iterator>(otherphysicslist.begin(), otherphysicslist.end(), newitem.get_ptr())==otherphysicslist.end());
 	//assert(newitem->GetSystem()==0); // should remove from other system before adding here
 
 	newitem->AddRef();
@@ -958,14 +958,14 @@ void ChSystem::AddOtherPhysicsItem (ChSharedPtr<ChPhysicsItem> newitem)
 
 void ChSystem::RemoveOtherPhysicsItem (ChSharedPtr<ChPhysicsItem> mitem)
 {
-	assert(std::find<std::list<ChPhysicsItem*>::iterator>(otherphysicslist.begin(), otherphysicslist.end(), mitem.get_ptr())!=otherphysicslist.end());
+	assert(std::find<std::vector<ChPhysicsItem*>::iterator>(otherphysicslist.begin(), otherphysicslist.end(), mitem.get_ptr())!=otherphysicslist.end());
 
 	// remove from collision system
 	if (mitem->GetCollide())
 		mitem->RemoveCollisionModelsFromSystem();
  
 	// warning! linear time search, to erase pointer from container.
-	otherphysicslist.erase(std::find<std::list<ChPhysicsItem*>::iterator>(otherphysicslist.begin(), otherphysicslist.end(), mitem.get_ptr() ) );
+	otherphysicslist.erase(std::find<std::vector<ChPhysicsItem*>::iterator>(otherphysicslist.begin(), otherphysicslist.end(), mitem.get_ptr() ) );
 	
 	// nullify backward link to system
 	mitem->SetSystem(0);
@@ -1128,7 +1128,7 @@ ChSharedPtr<ChLink> ChSystem::SearchLink (char* m_name)
 
 ChSharedPtr<ChPhysicsItem> ChSystem::SearchOtherPhysicsItem (char* m_name)
 {
-	ChPhysicsItem* mitem = ChContainerSearchFromName<ChPhysicsItem, std::list<ChPhysicsItem*>::iterator>
+	ChPhysicsItem* mitem = ChContainerSearchFromName<ChPhysicsItem, std::vector<ChPhysicsItem*>::iterator>
 				(m_name, 
 				otherphysicslist.begin(), 
 				otherphysicslist.end());

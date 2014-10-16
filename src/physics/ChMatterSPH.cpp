@@ -339,7 +339,7 @@ void ChMatterSPH::VariablesFbLoadForces(double factor)
 	// in the system,
 
 	ChProximityContainerSPH* edges =0;
-	std::list<ChPhysicsItem*>::iterator iterotherphysics = this->GetSystem()->Get_otherphysicslist()->begin();
+	std::vector<ChPhysicsItem*>::iterator iterotherphysics = this->GetSystem()->Get_otherphysicslist()->begin();
 	while (iterotherphysics != this->GetSystem()->Get_otherphysicslist()->end())
 	{
 		if (edges=dynamic_cast<ChProximityContainerSPH*>(*iterotherphysics))

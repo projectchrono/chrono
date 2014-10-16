@@ -461,7 +461,7 @@ public:
 	class ChApi IteratorOtherPhysicsItems
 	{
     public:
-      IteratorOtherPhysicsItems(std::list<ChPhysicsItem*>::iterator p) : node_(p) {}
+      IteratorOtherPhysicsItems(std::vector<ChPhysicsItem*>::iterator p) : node_(p) {}
       IteratorOtherPhysicsItems& operator=(const IteratorOtherPhysicsItems& other);
 	  ~IteratorOtherPhysicsItems(){}
       bool operator==(const IteratorOtherPhysicsItems& other);
@@ -470,7 +470,7 @@ public:
       ChSharedPtr<ChPhysicsItem> operator*();
 	  IteratorOtherPhysicsItems(){};
 	 private:
-	    std::list<ChPhysicsItem*>::iterator node_;
+	    std::vector<ChPhysicsItem*>::iterator node_;
     };
 				/// Get a ChPhysics iterator, initialized at the beginning of additional ChPhysicsItems
 	IteratorOtherPhysicsItems IterBeginOtherPhysicsItems();
@@ -498,7 +498,7 @@ public:
 	 private:
 	   std::vector<ChBody*>::iterator node_body;
 	   std::list<ChLink*>::iterator node_link;
-	   std::list<ChPhysicsItem*>::iterator node_otherphysics;
+	   std::vector<ChPhysicsItem*>::iterator node_otherphysics;
 	   int stage;
 	   ChPhysicsItem* mptr;
 	   ChSystem* msystem;
@@ -521,7 +521,7 @@ public:
 				/// NOTE! use this list only to enumerate etc., but NOT to
 				/// remove or add items (use the appropriate Remove.. and Add.. 
 				/// functions instead!)
-	std::list<ChPhysicsItem*>* Get_otherphysicslist() {return &otherphysicslist;}
+	std::vector<ChPhysicsItem*>* Get_otherphysicslist() {return &otherphysicslist;}
 
 				/// For higher performance (ex. when GPU coprocessors are available) you can create your own
 				/// custom contact container (suffice it is inherited from ChContactContainerBase) and plug
@@ -983,7 +983,7 @@ protected:
 	std::list<ChLink*>   linklist; 
 
 						// list of other physic objects that are not bodies or links
-	std::list<ChPhysicsItem*> otherphysicslist; 
+	std::vector<ChPhysicsItem*> otherphysicslist;
 
 						// list of 'probes' (variable-recording objects, exp. for
 						// 3rd party apps)
