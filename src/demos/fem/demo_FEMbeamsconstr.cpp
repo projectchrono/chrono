@@ -125,8 +125,7 @@ int main(int argc, char* argv[])
 			} 
 	};
 
-	ChFunction_myf* f_ramp = new ChFunction_myf;
-
+    ChSharedPtr<ChFunction_myf> f_ramp(new ChFunction_myf);
 	constr_motor->Set_eng_mode(ChLinkEngine::ENG_MODE_ROTATION);
 	constr_motor->Set_rot_funct(f_ramp);
 

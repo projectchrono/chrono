@@ -138,7 +138,7 @@ public:
 
 
 				/// Gets the name of the object as C Ascii null-terminated string -for reading only!
-	char* GetName () const;
+	const char* GetName () const;
 				/// Sets the name of this object, as ascii string
 	void SetName (const char myname[]);
 
@@ -194,7 +194,7 @@ public:
 // Functions to manipulate STL containers of ChObj objects
 
 template <class T, class Iterator>
-T* ChContainerSearchFromName(char* m_name, Iterator from, Iterator to)
+T* ChContainerSearchFromName(const char* m_name, Iterator from, Iterator to)
 {
 	Iterator iter = from;
 	while (iter != to)

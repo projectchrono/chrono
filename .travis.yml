@@ -1,22 +1,24 @@
 language: cpp
 compiler:
-  - gcc
-before_install:
+- gcc
+before_install: 
 before_script:
-    - mkdir build && cd build && cmake ../src
+- mkdir build && cd build && cmake ../src
 script: make
 branches:
-    - except:
-        - feature/mpi
+- except:
+  - feature/mpi
 notifications:
   recipients:
-    - info@projectchrono.org
+  - info@projectchrono.org
   email:
     on_success: change
     on_failure: always
   irc:
     channels:
-      - "chat.freenode.net#projectchrono"
+    - chat.freenode.net#projectchrono
     template:
-      - "%{repository}/%{branch} (%{commit} - %{author}): %{message}"
-env:
+    - "%{repository}/%{branch} (%{commit} - %{author}): %{message}"
+  slack:
+    secure: BoCl/C15tcYX+55PQWPBEVCt/nw3j07qONSNecvuUEJ6UbyUKPbt+0HT0Vc2q6f7uphvvw8hRkTyk0XEGEcXAccmRJr9RsOCBvd3kQPdidooDBJ4dI1ZU9y2XcFUjB5VJuKzPgBYSfQSLbt1OVBNZ6ISw02UF1JNaC9DKtFRtSI=
+env: 

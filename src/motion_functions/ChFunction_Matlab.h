@@ -56,7 +56,7 @@ public:
 	void Copy (ChFunction_Matlab* source);
 	ChFunction* new_Duplicate ();
 
-	void Set_Command  (char* m_command)  {strcpy (mat_command, m_command);};
+	void Set_Command  (const char* m_command)  {strcpy (mat_command, m_command);};
 	char* Get_Command  ()  {return mat_command;};
 
 	double Get_y      (double x);

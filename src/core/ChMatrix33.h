@@ -789,21 +789,26 @@ public:
          return temp;
       }
 
+     /// Convert to a 2-dimensional array
+   void To_Marray(double marr[3][3])
+   {
+     marr[0][0] = this->Get33Element(0, 0);  marr[0][1] = this->Get33Element(0, 1);  marr[0][2] = this->Get33Element(0, 2);
+     marr[1][0] = this->Get33Element(1, 0);  marr[1][1] = this->Get33Element(1, 1);  marr[1][2] = this->Get33Element(1, 2);
+     marr[2][0] = this->Get33Element(2, 0);  marr[2][1] = this->Get33Element(2, 1);  marr[2][2] = this->Get33Element(2, 2);
+   }
+
+     /// Convert from a 2-dimensional array
+   ChMatrix33<Real>  From_Marray(double marr[3][3])
+   {
+     ChMatrix33<Real> mma;
+
+     mma(0, 0) = marr[0][0];  mma(0, 1) = marr[0][1];  mma(0, 2) = marr[0][2];
+     mma(1, 0) = marr[1][0];  mma(1, 1) = marr[1][1];  mma(1, 2) = marr[1][2];
+     mma(2, 0) = marr[2][0];  mma(2, 1) = marr[2][1];  mma(2, 2) = marr[2][2];
+
+     return mma;
+   }
 };
-
-
-
-
-//
-// Conversion from/to matrix declarated as double[3][3]  \todo implement as class members
-//
-ChApi
-void Chrono_to_Marray   (ChMatrix33<>& ma, double marr[3][3]);
-
-ChApi
-void Chrono_from_Marray (ChMatrix33<>& ma, double marr[3][3]);
-
-
 
 
 
