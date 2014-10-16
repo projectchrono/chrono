@@ -46,7 +46,7 @@ class PacTire_panda:
         df_kappa = pd.DataFrame(self._m_df, columns = ['kappa','Fx','Fz','Fxc'])
         
         # always create the plot, axes handle
-        axF = df_kappa.plot(linewidth=2.0,x='kappa',y=['Fx','Fxc','Fz'])
+        axF = df_kappa.plot(linewidth=2.0,x='kappa',y=['Fxc','Fz'])
         axF.set_xlabel(r'$\kappa $ ')
         axF.set_ylabel('Force [N]')
         axF.set_title(r'$\kappa *$, pure long. slip')
@@ -65,7 +65,7 @@ class PacTire_panda:
         
         figM = plt.figure()
         df_kappaM = pd.DataFrame(self._m_df, columns = ['kappa','Mx','My','Mz','Mzc'])
-        axM = df_kappaM.plot(linewidth=2.0,x='kappa',y=['Mx','My','Mz','Mzc'])
+        axM = df_kappaM.plot(linewidth=2.0,x='kappa',y=['Mx','My','Mzc'])
         if( adams_Mz_tab_filename != "none"):
             dfmz_adams = pd.read_table(adams_Mz_tab_filename,sep='\t',header=0)
             dfmz_adams['longitudinal_slip'] = dfmz_adams['longitudinal_slip']/100.
@@ -224,38 +224,116 @@ class PacTire_panda:
     # @param y_col_list list of col names of y-series data frames
     # Usage: tire.plot_custom('Fx',['Fy','Fyc'])
     # NOTE: y_col_list should be of the same units
-    def plot_custom(self,x_col, y_col_list,fig_title='custom plot'):
+    def plot_custom(self,x_col, y_col_list,fig_title='custom plot',compare_transient=False,compare_adams_file="none"):
         fig = plt.figure()
         df_cols = []
         df_cols = list(y_col_list)
         df_cols.append(x_col)
         df_sy = pd.DataFrame(self._m_df, columns = df_cols)
-        ax = df_sy.plot(linewidth=1.5, x=x_col, y=y_col_list)
-        ax.set_xlabel(x_col)
+        ax = df_sy.plot(linewidth=1.5, x=x_col, y=y_col_list)        
+        if(self._use_transient_slip and compare_transient):
+            df_fxfy = pd.DataFrame(self._m_df_T, columns = df_cols)
+            ax.plot(df_fxfy[x_col], df_fxfy[y_col_list[0]], 'k-', linewidth=2,label='transient')
+
         
-        ax.legend(loc='best')
+        if( compare_adams_file != "none"):
+            dfy_adams = pd.read_table(compare_adams_file, sep='\t', header=0)
+            time = py.arange(0,8,8.0/len(dfy_adams['slip_angle'] ))
+            angToRad = 3.14159/180.0
+            ax.plot(time, dfy_adams['slip_angle']*angToRad,'r--',linewidth=2,label="Adams")
+        
+
+        ax.set_xlabel(x_col)
+        ax.legend(loc='best')    
         ax.set_title(fig_title)
 
     # @brief similar as above, but y_col_2 will be on a second y-axis
-    def plot_custom_two(self,x_col, y_col_1, y_secondary, fig_title='custom plot 2'):
+    def plot_custom_two(self,x_col, y_col_1, y_secondary, figTitle ='custom2 plot'):
         fig = plt.figure()
         df_cols = [x_col , y_col_1 , y_secondary]
         df_sy = pd.DataFrame(self._m_df, columns = df_cols)
-        ax = df_sy.plot(linewidth=1.5, x= x_col, secondary_y= y_secondary)
+        ax = df_sy.plot(linewidth=1.5, x= x_col, y= y_col_1, label = y_col_1)
+        ax_2 = ax.twinx()
+        ax_2.plot(df_sy[x_col], df_sy[y_secondary], 'c--', linewidth = 1.5, label = y_secondary)
+       
         ax.set_xlabel(x_col)
-        ax.set_ylabel(y_col_1)
-        ax.right_ax.set_ylabel(y_secondary)
-        
         ax.legend(loc='best')
-        ax.set_title(fig_title)    
+        ax_2.legend(loc='upper right')
+        ax.set_title(figTitle)
+        
+    #  @brief plot (Fx,Fy)
+    def plot_FxFy(self, adams_Fx_tab_filename="none",adams_Fy_tab_filename="none"):
+        fig = plt.figure()
+        df_ss = pd.DataFrame(self._m_df, columns = ['Fxc','Fyc'])
+        ax = df_ss.plot(linewidth=1.5, x='Fxc', y='Fyc')        
+        if(self._use_transient_slip):
+            df_t = pd.DataFrame(self._m_df_T, columns = ['Fxc','Fyc'])
+            ax.plot(df_t['Fxc'], df_t['Fyc'], 'k*-', linewidth=1.5,label='transient')
+
+        if( adams_Fx_tab_filename != "none"):
+            dfx_adams = pd.read_table(adams_Fx_tab_filename,sep='\t',header=0)
+            dfy_adams = pd.read_table(adams_Fy_tab_filename,sep='\t',header=0)
+            ax.plot(dfx_adams['longitudinal force'], dfy_adams['lateral_force'],'r--',linewidth=2,label="Adams")
+            
+        ax.set_xlabel(r'$F_x $[N]')
+        ax.set_ylabel(r'$F_y $ [N]')
+        ax.legend(loc='best')    
+        ax.set_title('combined slip')
+        
+    # @brief plot (Fx, Mz)
+    def plot_FxMz(self, adams_Fx_name="none", adams_Fy_name="none"):
+        fig = plt.figure()
+        df_ss = pd.DataFrame(self._m_df, columns = ['Fxc','Mzc'])
+        ax = df_ss.plot(linewidth=1.5, x='Fxc', y='Mzc')        
+        if(self._use_transient_slip):
+            df_t = pd.DataFrame(self._m_df_T, columns = ['Fxc','Mzc'])
+            ax.plot(df_t['Fxc'], df_t['Mzc'], 'k*-', linewidth=1.5,label='transient')
+
+        if( adams_Fx_name != "none"):
+            dfx_adams = pd.read_table(adams_Fx_name,sep='\t',header=0)
+            dfy_adams = pd.read_table(adams_Fy_name,sep='\t',header=0)
+            ax.plot(dfx_adams['longitudinal force'], dfy_adams['aligning_moment'],'r--',linewidth=2,label="Adams")
+
+        ax.set_xlabel(r'$F_x $[N]')
+        ax.set_ylabel(r'$M_z $ [Nm]')
+        ax.legend(loc='best')    
+        ax.set_title('combined slip')        
     
+    
+    # @brief plot reactions vs. alpha between similar runs w/ different gamma
+    # assuming tire_gamma0 is the zero (or lower) of the two gamma values
+    def plot_gammaComparison(self, tire_gamma0):
+        
+        figFy = plt.figure()
+        df_G = pd.DataFrame(self._m_df_T, columns = ['alpha','Fyc'])
+        axFy = df_G.plot(linewidth=2.0,x='alpha', y=['Fyc'])
+        # compare to Fy from other tire
+        df_G0 = pd.DataFrame(tire_gamma0._m_df_T, columns =   ['alpha','Fyc'] )
+        axFy.plot(df_G0['alpha'], df_G0['Fyc'],'k-*',linewidth=1.0,label="Fy, gamma = 0")
+        axFy.set_xlabel(r'$\alpha $[deg]')
+        axFy.set_ylabel('Force [N]')
+        axFy.legend(loc='best')
+        axFy.set_title(r'Fy vs. $\alpha $, pure lateral slip')
+        
+        figMz = plt.figure()
+        df_Mz = pd.DataFrame(self._m_df_T, columns = ['alpha','Mzc'])
+        axMz = df_Mz.plot(linewidth=2.0, x='alpha',y=['Mzc'])
+ 
+        df_MzG0 = pd.DataFrame(tire_gamma0._m_df_T, columns = ['alpha','Mzc'] )
+        axMz.plot(df_MzG0['alpha'], df_MzG0['Mzc'],'k-*',linewidth=1.0,label="Mzc, gamma = 0")        
+        
+        axMz.set_xlabel(r'$\alpha  $[deg]')
+        axMz.set_ylabel('Moment [N-m]')
+        axMz.legend(loc='best')
+        axMz.set_title(r'Mz vs. $\alpha $, pure lateral slip')        
+        
     
 if __name__ == '__main__':
     # logger
     import logging as lg
     lg.basicConfig(fileName = 'logFile.log', level=lg.WARN, format='%(message)s')
     # default font size
-    font = {'size' : 14}
+    font = {'size' : 16}
     matplotlib.rc('font', **font)       
     
     # directory location on my laptop
@@ -313,26 +391,33 @@ if __name__ == '__main__':
     # *************   TRANSIENT SLIP
     
     # pure longitudinal slip case
-    longSlip = PacTire_panda(dir_ChronoT + 'test_pacTire_pureLongSlip_transient.csv',
+    longSlip = PacTire_panda(dir_ChronoT + 'test_pacTire_pureLongSlip.csv',
                             dir_ChronoT + 'test_pacTire_pureLongSlip_transient.csv')
+    # plot rea;ctions vs. kappa
     longSlip.plot_kappa_FMpure(dir_Adams + 'pureLong_Fx.tab',
                                dir_Adams + 'pureLong_Mz.tab')
     
-     
-    latSlip = PacTire_panda(dir_ChronoT + "test_pacTire_pureLatSlip_transient.csv",
+    # pure lateral slip case, gamma = 0
+    latSlip = PacTire_panda(dir_ChronoT + "test_pacTire_pureLatSlip.csv",
                         dir_ChronoT + "test_pacTire_pureLatSlip_transient.csv")
-    # TODO: get the .tab data files with the 2 second maneuver data
+    # plot reactions vs. alpha
     latSlip.plot_alpha_FMpure(dir_Adams + "pureLat_Fy.tab",
                               dir_Adams + "pureLat_Mz.tab")    
     
+    # pure lateral slip, gamma = 10 deg.
+    latGammaSlip = PacTire_panda(dir_ChronoT + "test_pacTire_pureLatSlipGamma.csv",
+                                 dir_ChronoT + "test_pacTire_pacLatSlipGamma_transient.csv")
+    # plot reactions vs. alpha, compared to the previous tire that had gamma = 0
+    latGammaSlip.plot_gammaComparison(latSlip)
     
     # combined slip
-    combinedSlip = PacTire_panda(dir_ChronoT + "test_pacTire_combinedSlip_transient.csv",
+    combinedSlip = PacTire_panda(dir_ChronoT + "test_pacTire_combinedSlip.csv",
                                  dir_ChronoT + "test_pacTire_combinedSlip_transient.csv")
                                  
-    # TODO: get the  Adams .tab files with the fast maneuver data (2 seconds)
+    # plot some reactions vs. kappa
     combinedSlip.plot_combined_kappa(dir_Adams + "combined_Fx.tab",
                                      "none", dir_Adams + "combined_Mz.tab")
+    # and others vs. alpha
     combinedSlip.plot_combined_alpha("none",dir_Adams + "combined_Fy.tab")
     
     # combinedSlip.plot_custom('Fxc',['Fyc'])
@@ -340,6 +425,11 @@ if __name__ == '__main__':
     # more random things
     # combinedSlip.plot_custom('alpha',['Mx','My'],'combined slip')
     
+    # combinedSlip.plot_custom('Fxc',['Fyc'],'combined slip',True)
+    combinedSlip.plot_FxFy(dir_Adams + "combined_Fx.tab",dir_Adams + "combined_Fy.tab")
+    combinedSlip.plot_FxMz(dir_Adams + "combined_Fx.tab",dir_Adams + "combined_Mz.tab")
     
-    
+    # DEBUGGING
+    combinedSlip.plot_custom('time',['alphaP'],'alpha',True, dir_Adams + "combined_Fy.tab")
+
     py.show()

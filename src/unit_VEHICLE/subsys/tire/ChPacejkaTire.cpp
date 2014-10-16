@@ -651,8 +651,10 @@ void ChPacejkaTire::slip_kinematic( )
     //   V.x = (V.x < 0) ? -v_x_threshold : v_x_threshold;
     // }
 
+
+    double V_x_abs = std::abs(V.x);
     // lateral slip angle, in the range: (-pi/2 ,-pi/2)
-    double alpha = std::atan(V.y / abs(V.x) );
+    double alpha = std::atan(V.y / V_x_abs );
     // V.x switches signs readily at low velocity, adding and subtracting pi to alpha irregularily
     // double alpha = std::atan2(V.y, V.x); 
 
@@ -661,8 +663,7 @@ void ChPacejkaTire::slip_kinematic( )
     ChVector<> n = m_tire_frame.TransformDirectionParentToLocal(m_tireState.rot.GetYaxis());
     double gamma = std::atan2(n.z, n.y);
 
-    // Longitudinal slip rate.
-    double V_x_abs = std::abs(V.x);
+    
     double V_x_cap = V.x;
     if(V_x_abs < v_x_threshold)
     {
@@ -691,8 +692,8 @@ void ChPacejkaTire::slip_kinematic( )
     m_slip->psi_dot = w.z;
 
     // For aligning torque, to handle large slips, and backwards operation
-    double V_mag = std::sqrt(V.x * V.x + V.y * V.y);
-    m_slip->cosPrime_alpha = V.x / V_mag;
+    double V_mag = std::sqrt(V_x_cap * V_x_cap + V.y * V.y);
+    m_slip->cosPrime_alpha = V_x_cap / V_mag;
 
     // Finally, if non-transient, use wheel slips as input to Magic Formula.
     // These get over-written if enable transient slips to be calculated
@@ -1045,13 +1046,13 @@ void ChPacejkaTire::pureSlipReactions()
   if(m_in_contact)
   {
     // calculate Fx, pure long. slip condition
-    m_FM_pure.force.x = Fx_pureLong(m_slip->gammaP, m_slip->kappaP);
+    m_FM_pure.force.x = Fx_pureLong(m_slip->gammaP * m_sameSide, m_slip->kappaP);
 
     // calc. Fy, pure lateral slip
-    m_FM_pure.force.y = Fy_pureLat(m_slip->alphaP, m_slip->gammaP);
+    m_FM_pure.force.y = m_sameSide * Fy_pureLat(m_slip->alphaP * m_sameSide, m_slip->gammaP * m_sameSide);
 
     // calc Mz, pure lateral slip
-    m_FM_pure.moment.z = Mz_pureLat(m_slip->alphaP, m_slip->gammaP, m_FM_pure.force.y);
+    m_FM_pure.moment.z = Mz_pureLat(m_slip->alphaP * m_sameSide, m_slip->gammaP * m_sameSide, m_FM_pure.force.y);
   }
 
 }
@@ -1062,13 +1063,13 @@ void ChPacejkaTire::combinedSlipReactions( )
   if(m_in_contact)
   {
     // calculate Fx for combined slip
-    m_FM_combined.force.x = Fx_combined(m_slip->alphaP, m_slip->gammaP, m_slip->kappaP, m_FM_pure.force.x);
+    m_FM_combined.force.x = Fx_combined(m_slip->alphaP * m_sameSide, m_slip->gammaP * m_sameSide, m_slip->kappaP, m_FM_pure.force.x);
 
     // calc Fy for combined slip
-    m_FM_combined.force.y = Fy_combined(m_slip->alphaP, m_slip->gammaP, m_slip->kappaP, m_FM_pure.force.y);
+    m_FM_combined.force.y = Fy_combined(m_slip->alphaP * m_sameSide, m_slip->gammaP * m_sameSide, m_slip->kappaP, m_FM_pure.force.y);
 
     // calc Mz for combined slip
-    m_FM_combined.moment.z = Mz_combined(m_pureTorque->alpha_r, m_pureTorque->alpha_t, m_slip->gammaP, m_slip->kappaP, m_FM_combined.force.x, m_FM_combined.force.y);
+    m_FM_combined.moment.z = Mz_combined(m_pureTorque->alpha_r, m_pureTorque->alpha_t, m_slip->gammaP * m_sameSide, m_slip->kappaP, m_FM_combined.force.x, m_FM_combined.force.y);
   }
 }
 
@@ -1183,7 +1184,7 @@ double ChPacejkaTire::Mz_pureLat(double alpha, double gamma, double Fy_pureSlip)
   double B_r = (m_params->aligning.qbz9 * (m_params->scaling.lky / m_params->scaling.lmuy) + m_params->aligning.qbz10 * m_pureLat->B_y * m_pureLat->C_y) * m_zeta->z6;
   double C_r = m_zeta->z7;
   // double D_r = m_Fz * m_R0 * ( (m_params->aligning.qdz6 + m_params->aligning.qdz7 * m_dF_z) * m_params->scaling.lgyr * m_zeta->z2 + (m_params->aligning.qdz8 + m_params->aligning.qdz9 * m_dF_z) * m_slip->gammaP * m_params->scaling.lgaz * m_zeta->z0 ) * m_slip->cosPrime_alpha * m_params->scaling.lmuy * sign_Vx + m_zeta->z8 - 1.0;
-  double D_r = m_Fz * m_R0 * ( (m_params->aligning.qdz6 + m_params->aligning.qdz7 * m_dF_z) * m_params->scaling.lgyr + (m_params->aligning.qdz8 + m_params->aligning.qdz9 * m_dF_z) * gamma ) * m_params->scaling.lmuy + m_zeta->z8 - 1.0;
+  double D_r = m_Fz * m_R0 * ( (m_params->aligning.qdz6 + m_params->aligning.qdz7 * m_dF_z) * m_params->scaling.lres + (m_params->aligning.qdz8 + m_params->aligning.qdz9 * m_dF_z) * gamma ) * m_params->scaling.lmuy + m_zeta->z8 - 1.0;
   
   double B_t = (m_params->aligning.qbz1 + m_params->aligning.qbz2 * m_dF_z + m_params->aligning.qbz3 * pow(m_dF_z,2) ) * (1.0 + m_params->aligning.qbz4 * gamma + m_params->aligning.qbz5 * std::abs(gamma) ) * m_params->scaling.lvyka / m_params->scaling.lmuy;
   double C_t = m_params->aligning.qcz1;
@@ -1194,7 +1195,7 @@ double ChPacejkaTire::Mz_pureLat(double alpha, double gamma, double Fy_pureSlip)
   double t0 = D_t * std::cos(C_t * std::atan(B_t * alpha_t - E_t * (B_t * alpha_t - std::atan(B_t * alpha_t)))) * m_slip->cosPrime_alpha;
 
   double MP_z0 = -t0 * Fy_pureSlip;
-  double M_zr0 = D_r * std::cos(C_r * std::atan(B_r * alpha_r));
+  double M_zr0 = D_r * std::cos(C_r * std::atan(B_r * alpha_r)) * m_slip->cosPrime_alpha;
 
   double M_z = MP_z0 + M_zr0;
 
@@ -1282,7 +1283,6 @@ double ChPacejkaTire::Mz_combined(double alpha_r, double alpha_t, double gamma, 
   double alpha_r_eq = sign_alpha_r * sqrt( pow(alpha_r, 2) + pow(m_pureLong->K_x / m_pureTorque->K_y, 2)
     * pow(kappa, 2) );
 
-  // TODO: cos(alpha) is in Adams/Car, not in Pacejka. why???
   double M_zr = m_pureTorque->D_r * std::cos(m_pureTorque->C_r * std::atan(m_pureTorque->B_r * alpha_r_eq)) * m_slip->cosPrime_alpha;
   double t = m_pureTorque->D_t * std::cos(m_pureTorque->C_t * std::atan(m_pureTorque->B_t*alpha_t_eq - m_pureTorque->E_t * (m_pureTorque->B_t * alpha_t_eq - std::atan(m_pureTorque->B_t * alpha_t_eq)))) * m_slip->cosPrime_alpha;
 
