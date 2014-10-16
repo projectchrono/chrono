@@ -49,17 +49,21 @@ const double step_size = 0.01;            // seconds, arbitrary unless calculati
 const double alpha_lim = CH_C_PI_4/3.0;   // slip angle in range [-lim,lim] or [0,lim]
 const double kappa_lim = 1;               // slip rate in range [-lim,lim] or [0,lim]
 const double F_z = 8000;                  // vertical force, [N]
-const double time_end = (num_pts - 1)*step_size;
+const ChVehicleSide m_side = LEFT;
+const double gamma = 10.0 * CH_C_PI/180.0; // gamma, in radians
 
 // for the transient model
 const bool use_transient_slip = true;    // use kinematic or transient contact slips?
 
 const std::string pacParamFile = utils::GetModelDataFile("hmmwv/pactest.tir");
 
-std::string outData_filename_long = "test_pacTire_pureLongSlip.csv";
-std::string outData_filename_lat = "test_pacTire_pureLatSlip.csv";
-std::string outData_filename_combined = "test_pacTire_combinedSlip.csv";
+// output data filenames
+std::string out_name_long = "test_pacTire_pureLongSlip.csv";
+std::string out_name_lat = "test_pacTire_pureLatSlip.csv";
+std::string out_name_latGamma = "test_pacTire_pureLatSlipGamma.csv";
+std::string out_name_combined = "test_pacTire_combinedSlip.csv";
 
+const double time_end = (num_pts - 1)*step_size;
 
 int main(int argc, char* argv[])
 {
@@ -71,21 +75,26 @@ int main(int argc, char* argv[])
   // Create the Pac tires, try to open param file and load empirical constants
   ChPacejkaTire tire_long("LONGITUDINAL", pacParamFile, flat_terrain, F_z, use_transient_slip);
   ChPacejkaTire tire_lat("LATERAL", pacParamFile, flat_terrain, F_z, use_transient_slip);
+  ChPacejkaTire tire_lat_gamma("LATERAL_GAMMA", pacParamFile, flat_terrain, F_z, use_transient_slip);
   ChPacejkaTire tire_combined("COMBINED", pacParamFile, flat_terrain, F_z, use_transient_slip);
 
-  tire_long.Initialize(LEFT);
-  tire_lat.Initialize(LEFT);
-  tire_combined.Initialize(LEFT);
+  // initialize the tire on the left or right side
+  tire_long.Initialize(m_side);
+  tire_lat.Initialize(m_side);
+  tire_lat_gamma.Initialize(m_side);
+  tire_combined.Initialize(m_side);
 
   // record pacTire output for each of the 3 slip cases
   ChTireForces long_forces(1);
   ChTireForces lat_forces(1);
+  ChTireForces latGamma_forces(1);
   ChTireForces combined_forces(1);
 
   // update body state based on varying input variables to pacTire:
   // alpha, kappa and gamma
   ChWheelState long_state;
   ChWheelState lat_state;
+  ChWheelState latGamma_state;
   ChWheelState combined_state;
 
   // keep track of the input variable values
@@ -117,9 +126,10 @@ int main(int argc, char* argv[])
     gamma_t = 0.1 * alpha_t;
   }
   else {
-    outData_filename_long = "test_pacTire_pureLongSlip_transient.csv";
-    outData_filename_lat = "test_pacTire_pureLatSlip_transient.csv";
-    outData_filename_combined = "test_pacTire_combinedSlip_transient.csv";
+    out_name_long = "test_pacTire_pureLongSlip_transient.csv";
+    out_name_lat = "test_pacTire_pureLatSlip_transient.csv";
+    out_name_latGamma = "test_pacTire_pacLatSlipGamma_transient.csv";
+    out_name_combined = "test_pacTire_combinedSlip_transient.csv";
   }
 
   // calculate the increments for each slip case (assuming constant per step)
@@ -135,10 +145,6 @@ int main(int argc, char* argv[])
     // tire input slip quantities
     tanalpha_t = tan(alpha_t);
 
-    // DEBUGGING
-    gamma_t = 0;   // 0.1 * alpha_t;
-
-
     latSlip_range[step] = tanalpha_t;
     longSlip_range[step] = kappa_t;
 
@@ -146,41 +152,41 @@ int main(int argc, char* argv[])
     long_state = tire_long.getState_from_KAG(kappa_t, 0, 0, vel_xy);
 
     // **** lateral states
-    lat_state = tire_lat.getState_from_KAG(0, alpha_t, gamma_t, vel_xy);
+    lat_state = tire_lat.getState_from_KAG(0, alpha_t, 0, vel_xy);
+
+    // ***** lateral w/ specified gamma
+    latGamma_state = tire_lat_gamma.getState_from_KAG(0, alpha_t, gamma, vel_xy);
 
     // ****  combined states
     combined_state = tire_combined.getState_from_KAG(kappa_t, alpha_t, gamma_t, vel_xy);
 
-    // check states calculated for this step
-    // ChWheelState kag_long = tire_long.getState_from_KAG(kappa_t, 0, gamma_t, vel_xy);
-    // ChWheelState kag_lat = tire_lat.getState_from_KAG(0, alpha_t, gamma_t, vel_xy;
-    // ChWheelState kag_combined = tire_combined.getState_from_KAG(kappa_t, alpha_t, gamma_t, vel_xy);
-
-
     // DEBUGGING
-    if (step == 250)
+    if (step == 200)
       int arg = 2;
 
-
-    // update all 3 types of tires, with current wheel state data
+    // update all 4 types of tires, with current wheel state data
     tire_long.Update(time, long_state);
     tire_lat.Update(time, lat_state);
+    tire_lat_gamma.Update(time, latGamma_state);
     tire_combined.Update(time, combined_state);
 
     // advance the slip displacements, calculate reactions
     tire_long.Advance(step_size);
     tire_lat.Advance(step_size);
+    tire_lat_gamma.Advance(step_size);
     tire_combined.Advance(step_size);
 
     // see what the calculated reactions are
     long_forces[0] = tire_long.GetTireForce();
     lat_forces[0] = tire_lat.GetTireForce();
+    latGamma_forces[0] = tire_lat_gamma.GetTireForce();
     combined_forces[0] = tire_combined.GetTireForce();
 
     // output any data at the end of the step
-    tire_long.WriteOutData(time, outData_filename_long);
-    tire_lat.WriteOutData(time, outData_filename_lat);
-    tire_combined.WriteOutData(time, outData_filename_combined);
+    tire_long.WriteOutData(time, out_name_long);
+    tire_lat.WriteOutData(time, out_name_lat);
+    tire_lat_gamma.WriteOutData(time, out_name_latGamma);
+    tire_combined.WriteOutData(time, out_name_combined);
 
     // std::cout << "step: " << step << ", kappa = " << kappa_t << ", alpha = " << alpha_t << ", tan(alpha) = " << tanalpha_t << std::endl;
 
