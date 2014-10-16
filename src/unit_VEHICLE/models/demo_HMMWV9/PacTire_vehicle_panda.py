@@ -129,20 +129,33 @@ class PacTire_vehicle_panda:
         ax_uv.set_title(titleStr)
         
         fig_duv = plt.figure()
-        ax_duv = df_uv.plot(linewidth=2.0,x='time',y=['du','dvalpha','dvgamma','Vx','Vy'])
+        ax_duv = df_uv.plot(linewidth=2.0,x='time',y=['du','dvalpha','dvgamma'])
+        ax_duv_2 = ax_duv.twinx()
+        ax_duv_2.plot(df_uv['time'], df_uv['Vx'], 'c--', linewidth = 1.5, label = 'Vx')
+        ax_duv_2.plot(df_uv['time'], df_uv['Vy'], 'b--', linewidth = 1.5, label = 'Vy')
         ax_duv.set_xlabel('time [sec]')
         ax_duv.legend(loc='best')
+        ax_duv_2.legend(loc='upper center')
         ax_duv.set_title(titleStr)
         
         fig_slip = plt.figure()
         df_slip = pd.DataFrame(self._DF[tire_num], columns = ['time','alphaP','kappaP','gammaP','Vx','Vy'])
-        ax_slip = df_slip.plot(linewidth=1.5, x='time', y=['alphaP','gammaP','Vx','Vy'])
+        ax_slip = df_slip.plot(linewidth=1.5, x='time', y=['alphaP','gammaP'])
         ax_slip_2 = ax_slip.twinx()
         ax_slip_2.plot(df_slip['time'], df_slip['kappaP'], 'r', linewidth = 1.5, label = 'kappaP')
+        ax_slip_2.plot(df_slip['time'], df_slip['Vx'], 'c--', linewidth = 1.5, label = 'Vx')
+        ax_slip_2.plot(df_slip['time'], df_slip['Vy'], 'b--', linewidth = 1.5, label = 'Vy')
         ax_slip.set_xlabel('time [sec]')
         ax_slip.legend(loc='best')
         ax_slip_2.legend(loc = 'upper right')
         ax_slip.set_title(titleStr)
+        
+        fig_vel = plt.figure()
+        df_vel = pd.DataFrame(self._DF[tire_num], columns = ['time','Vx','omega'])
+        ax_vel = df_vel.plot(linewidth=1.5, x='time', y=['Vx','omega'])
+        ax_vel.set_xlabel('time [sec]')
+        ax_vel.legend(loc='best')
+        ax_vel.set_title(titleStr)
         
         
     '''
