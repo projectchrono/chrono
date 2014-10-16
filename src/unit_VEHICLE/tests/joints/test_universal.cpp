@@ -25,12 +25,17 @@
 #include <ostream>
 #include <fstream>
 
+#include "core/ChFileutils.h"
+
 #include "physics/ChSystem.h"
 #include "physics/ChBody.h"
 
 #include "unit_IRRLICHT/ChIrrApp.h"
 
 #include "ChronoT_config.h"
+#include "utils/ChUtilsData.h"
+#include "utils/ChUtilsInputOutput.h"
+#include "utils/ChUtilsValidation.h"
 
 using namespace chrono;
 using namespace irr;
@@ -38,7 +43,11 @@ using namespace irr;
 
 // =============================================================================
 
-void TestUniversal(ChVector<> loc, ChQuaternion<> revAxisRot, double simTimeStep, std::string outputFilename, bool animate)
+void TestUniversal(const ChVector<>&     loc,
+                   const ChQuaternion<>& revAxisRot,
+                   double                simTimeStep,
+                   const std::string&    outputFilename,
+                   bool                  animate)
 {
 
   //Settings
@@ -255,18 +264,44 @@ void TestUniversal(ChVector<> loc, ChQuaternion<> revAxisRot, double simTimeStep
 
 int main(int argc, char* argv[])
 {
+  bool animate = (argc > 1);
+
+  // Set the path to the Chrono data folder
+  // --------------------------------------
+
+  SetChronoDataPath(CHRONO_DATA_DIR);
+
+  // Create output directory (if it does not already exist)
+  if (ChFileutils::MakeDirectory("../VALIDATION") < 0) {
+    std::cout << "Error creating directory '../VALIDATION'" << std::endl;
+    return 1;
+  }
+  if (ChFileutils::MakeDirectory("../VALIDATION/UNIVERSAL_JOINT") < 0) {
+    std::cout << "Error creating directory '../VALIDATION/UNIVERSAL_JOINT'" << std::endl;
+    return 1;
+  }
+
+  std::string out_dir = "../VALIDATION/UNIVERSAL_JOINT/";
+  std::string ref_dir = "validation/universal_joint/";
+
+  bool check;
+  bool test_passed = true;
+
 
   std::cout << "\nStarting Universal Test Case 01\n\n";
   //Case 1 - Universal Joint at the origin, and aligned with the global coordinate system
   //  Note the universal joint only allows 2 DOF(rotation about joint x & y axes)
-  TestUniversal(ChVector<> (0, 0, 0), ChQuaternion<> (Q_from_AngX(0)), .001, "UniversalJointData_Case01.txt",true);
+  TestUniversal(ChVector<> (0, 0, 0), ChQuaternion<> (Q_from_AngX(0)), .001, "UniversalJointData_Case01.txt",animate);
 
   std::cout << "\nStarting Universal Test Case 02\n\n";
   //Case 2 - Universal Joint at (1,2,3), and joint z aligned with the global axis along Y = Z
   //  Note the universal joint only allows 2 DOF(rotation about joint x & y axes)
   //    Therefore, the joint must be rotated -pi/4 about the global x-axis
-  TestUniversal(ChVector<> (1, 2, 3), ChQuaternion<> (Q_from_AngX(-CH_C_PI_4)), .001, "UniversalJointData_Case02.txt",true);
+  TestUniversal(ChVector<> (1, 2, 3), ChQuaternion<> (Q_from_AngX(-CH_C_PI_4)), .001, "UniversalJointData_Case02.txt",animate);
 
 
-  return 0;
+  // Return 0 if all test passed and 1 otherwise
+  // -------------------------------------------
+
+  return !test_passed;
 }

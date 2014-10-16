@@ -50,5 +50,11 @@ FOREACH(PROGRAM ${TEST_PROGRAMS})
 
   INSTALL(TARGETS ${PROGRAM} DESTINATION bin)
 
+  # Note: this is not intended to work on Windows!
+  ADD_TEST(NAME ${PROGRAM}
+           WORKING_DIRECTORY ${PROJECT_BINARY_DIR}/bin
+           COMMAND ${PROJECT_BINARY_DIR}/bin/${PROGRAM}
+           )
+
 ENDFOREACH()
 

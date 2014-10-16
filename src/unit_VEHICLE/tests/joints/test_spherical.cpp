@@ -25,12 +25,17 @@
 #include <ostream>
 #include <fstream>
 
+#include "core/ChFileutils.h"
+
 #include "physics/ChSystem.h"
 #include "physics/ChBody.h"
 
 #include "unit_IRRLICHT/ChIrrApp.h"
 
 #include "ChronoT_config.h"
+#include "utils/ChUtilsData.h"
+#include "utils/ChUtilsInputOutput.h"
+#include "utils/ChUtilsValidation.h"
 
 using namespace chrono;
 using namespace irr;
@@ -38,7 +43,11 @@ using namespace irr;
 
 // =============================================================================
 
-void TestSpherical(ChVector<> loc, ChQuaternion<> revAxisRot, double simTimeStep, std::string outputFilename, bool animate)
+void TestSpherical(const ChVector<>&     loc,
+                   const ChQuaternion<>& revAxisRot,
+                   double                simTimeStep,
+                   const std::string&    outputFilename,
+                   bool                  animate)
 {
 
   //Settings
@@ -249,18 +258,44 @@ void TestSpherical(ChVector<> loc, ChQuaternion<> revAxisRot, double simTimeStep
 
 int main(int argc, char* argv[])
 {
+  bool animate = (argc > 1);
+
+  // Set the path to the Chrono data folder
+  // --------------------------------------
+
+  SetChronoDataPath(CHRONO_DATA_DIR);
+
+  // Create output directory (if it does not already exist)
+  if (ChFileutils::MakeDirectory("../VALIDATION") < 0) {
+    std::cout << "Error creating directory '../VALIDATION'" << std::endl;
+    return 1;
+  }
+  if (ChFileutils::MakeDirectory("../VALIDATION/SPHERICAL_JOINT") < 0) {
+    std::cout << "Error creating directory '../VALIDATION/SPHERICAL_JOINT'" << std::endl;
+    return 1;
+  }
+
+  std::string out_dir = "../VALIDATION/SPHERICAL_JOINT/";
+  std::string ref_dir = "validation/spherical_joint/";
+
+  bool check;
+  bool test_passed = true;
+
 
   std::cout << "\nStarting Spherical Test Case 01\n\n";
   //Case 1 - Spherical Joint at the origin, and aligned with the global coordinate system
   //  Note the spherical joint only allows 3 DOF(all 3 rotations)
-  TestSpherical(ChVector<> (0, 0, 0), ChQuaternion<> (Q_from_AngX(0)), .001, "SphericalJointData_Case01.txt",true);
+  TestSpherical(ChVector<> (0, 0, 0), ChQuaternion<> (Q_from_AngX(0)), .001, "SphericalJointData_Case01.txt",animate);
 
   std::cout << "\nStarting Spherical Test Case 02\n\n";
   //Case 2 - Spherical Joint at (1,2,3), and rotated to align the z axis with line Y=Z
   //  Note the spherical joint only allows 3 DOF(all 3 rotations)
   //    A joint rotation here does not change the kinematics, its just for test purposes
-  TestSpherical(ChVector<> (1, 2, 3), ChQuaternion<> (Q_from_AngX(-CH_C_PI_4)), .001, "SphericalJointData_Case02.txt",true);
+  TestSpherical(ChVector<> (1, 2, 3), ChQuaternion<> (Q_from_AngX(-CH_C_PI_4)), .001, "SphericalJointData_Case02.txt",animate);
 
 
-  return 0;
+  // Return 0 if all test passed and 1 otherwise
+  // -------------------------------------------
+
+  return !test_passed;
 }
