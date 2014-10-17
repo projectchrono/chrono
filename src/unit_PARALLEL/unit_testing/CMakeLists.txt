@@ -145,3 +145,41 @@ FOREACH(PROGRAM ${TESTS_B})
     ADD_TEST(${PROGRAM} ${PROJECT_BINARY_DIR}/bin/${PROGRAM})
 
 ENDFOREACH(PROGRAM)
+
+
+#--------------------------------------------------------------
+# Executables that use OpenGL
+
+IF (ENABLE_OPENGL)
+    INCLUDE_DIRECTORIES(
+        ${GLM_INCLUDE_DIRS}
+        ${GLEW_INCLUDE_DIR}
+        ${GLFW_INCLUDE_DIR}
+    )
+
+    SET(LIBRARIES ${LIBRARIES} ChronoEngine_OpenGL)
+ENDIF()
+
+SET(TESTS_G
+    test_linactuator
+)
+
+FOREACH(PROGRAM ${TESTS_G})
+    MESSAGE(STATUS "...add ${PROGRAM}")
+
+    ADD_EXECUTABLE(${PROGRAM}  "${PROGRAM}.cpp")
+    SOURCE_GROUP(""  FILES "${PROGRAM}.cpp")
+
+    SET_TARGET_PROPERTIES(${PROGRAM} PROPERTIES
+        FOLDER demos
+        COMPILE_FLAGS "${CH_BUILDFLAGS}"
+        LINK_FLAGS "${CH_LINKERFLAG_EXE}"
+    )
+
+    TARGET_LINK_LIBRARIES(${PROGRAM} ${LIBRARIES})
+    ADD_DEPENDENCIES(${PROGRAM} ${LIBRARIES})
+
+    INSTALL(TARGETS ${PROGRAM} DESTINATION bin)
+
+ENDFOREACH(PROGRAM)
+
