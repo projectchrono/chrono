@@ -52,10 +52,18 @@ void WriteBodies(ChSystem*          system,
 // WriteCheckpoint
 //
 // Create a CSV file with a checkpoint ...
+//
+//// TODO: currently, collision family information is processed only for the
+////       parallel collision system and is disregarded for Bullet.
+//
 // -----------------------------------------------------------------------------
 bool WriteCheckpoint(ChSystem*          system,
                      const std::string& filename)
 {
+  // Infer collision system type (true: parallel, false: bullet)
+  bool cd_par = dynamic_cast<collision::ChCollisionSystemParallel*>(system->GetCollisionSystem());
+
+  // Create the CSV stream.
   CSV_writer csv(" ");
 
   std::vector<ChBody*>::iterator ibody = system->Get_bodylist()->begin();
@@ -68,7 +76,17 @@ bool WriteCheckpoint(ChSystem*          system,
 
     // Write body type, body identifier, the body fixed flag, and the collide flag
     csv << btype << body->GetIdentifier() << body->GetBodyFixed() << body->GetCollide();
-    
+
+    // Write collision family information.
+    int coll_fam = -999;
+    int no_coll_fam = -999;
+    if (cd_par) {
+      collision::ChCollisionModelParallel* cmodel = static_cast<collision::ChCollisionModelParallel*>(body->GetCollisionModel());
+      coll_fam = cmodel->GetFamily();
+      no_coll_fam = cmodel->GetNoCollFamily();
+    }
+    csv << coll_fam << no_coll_fam;
+
     // Write body mass and inertia
     csv << body->GetMass() << body->GetInertiaXX();
 
@@ -174,15 +192,19 @@ bool WriteCheckpoint(ChSystem*          system,
 // -----------------------------------------------------------------------------
 // ReadCheckpoint
 //
+//// TODO: currently, collision family information is processed only for the
+////       parallel collision system and is disregarded for Bullet.
 //
 // -----------------------------------------------------------------------------
 void ReadCheckpoint(ChSystem*          system,
                     const std::string& filename)
 {
-  // Infer system type (false: sequential, true: parallel)
+  // Infer system type (true: parallel, false: sequential)
   bool sys_par = dynamic_cast<ChSystemParallelDVI*>(system) || dynamic_cast<ChSystemParallelDEM*>(system);
-  // Infer collision system type (false: bullet, true: parallel)
+
+  // Infer collision system type (true: parallel, false: bullet)
   bool cd_par = dynamic_cast<collision::ChCollisionSystemParallel*>(system->GetCollisionSystem());
+
   // Open input file stream
   std::ifstream      ifile(filename.c_str());
   std::string        line;
@@ -191,8 +213,8 @@ void ReadCheckpoint(ChSystem*          system,
     std::istringstream iss1(line);
 
     // Read body type, Id, flags
-    int btype, bid, bfixed, bcollide;
-    iss1 >> btype >> bid >> bfixed >> bcollide;
+    int btype, bid, bfixed, bcollide, coll_fam, no_coll_fam;
+    iss1 >> btype >> bid >> bfixed >> bcollide >> coll_fam >> no_coll_fam;
 
     // Read body mass and inertia
     double     mass;
@@ -322,6 +344,14 @@ void ReadCheckpoint(ChSystem*          system,
         }
         break;
       }
+    }
+
+    // If using the parallel collision system, set the collision family and the
+    // no-collision family. Note that in this case 'no_coll_fam' represents an
+    // actual collision family (and not a mask!).
+    if (cd_par) {
+      body->GetCollisionModel()->SetFamily(coll_fam);
+      body->GetCollisionModel()->SetFamilyMaskNoCollisionWithFamily(no_coll_fam);
     }
 
     body->GetCollisionModel()->BuildModel();
