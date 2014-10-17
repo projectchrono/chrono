@@ -12,6 +12,7 @@ SET(ChronoEngine_Parallel_SOURCES
     physics/ChSystemParallel.cpp
     physics/ChSystemParallelDVI.cpp
     physics/ChSystemParallelDEM.cpp
+    physics/ChNodeFluid.cpp
     lcp/ChLcpSolverParallel.cpp
     lcp/ChLcpSolverParallelDVI.cpp
     lcp/ChLcpSolverParallelDEM.cpp
@@ -24,6 +25,7 @@ SET(ChronoEngine_Parallel_HEADERS
     ChBaseParallel.h
     ChParallelDefines.h
     physics/ChSystemParallel.h
+    physics/ChNodeFluid.h
     ChDataManager.h
     lcp/ChLcpSolverParallel.h
     lcp/ChLcpSystemDescriptorParallel.h
@@ -113,6 +115,8 @@ SET(ChronoEngine_Parallel_COLLISION
     collision/ChCNarrowphaseR.cpp
     collision/ChCCollisionModelParallel.h
     collision/ChCCollisionModelParallel.cpp
+    collision/ChCCollisionModelSphere.h
+    collision/ChCCollisionModelSphere.cpp
     collision/ChCCollisionSystemParallel.h
     collision/ChCCollisionSystemParallel.cpp
     collision/ChCCollisionSystemBulletParallel.h
