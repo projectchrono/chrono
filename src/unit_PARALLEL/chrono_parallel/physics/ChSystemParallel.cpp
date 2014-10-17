@@ -207,7 +207,9 @@ void ChSystemParallel::UpdateBilaterals() {
    for (it = linklist.begin(); it != linklist.end(); it++) {
       (*it)->Update(ChTime);
       (*it)->ConstraintsBiReset();
-      (*it)->ConstraintsBiLoad_C(1.0 / GetStep(), max_penetration_recovery_speed, true);
+      (*it)->ConstraintsBiLoad_C(1.0 / GetStep(),
+                                 data_manager->settings.solver.bilateral_clamp_speed,
+                                 data_manager->settings.solver.clamp_bilaterals);
       (*it)->ConstraintsBiLoad_Ct(1);
       (*it)->ConstraintsFbLoadForces(GetStep());
       (*it)->ConstraintsLoadJacobians();

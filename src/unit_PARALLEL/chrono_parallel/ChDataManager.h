@@ -64,6 +64,8 @@ struct solver_settings {
 
       alpha = .2;
       contact_recovery_speed = .6;
+      bilateral_clamp_speed = .6;
+      clamp_bilaterals = true;
       perform_stabilization = false;
       collision_in_solver = false;
 
@@ -83,6 +85,8 @@ struct solver_settings {
    real alpha;
 
    real contact_recovery_speed;
+   real bilateral_clamp_speed;
+   bool clamp_bilaterals;
    bool perform_stabilization;
    bool collision_in_solver;
    bool update_rhs;
