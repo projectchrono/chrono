@@ -1,4 +1,4 @@
-#include "ChIntegratorParallel.h"
+#include "chrono_parallel/physics/ChIntegratorParallel.h"
 using namespace chrono;
 uint number_of_objects_const;
 real step_size_const;

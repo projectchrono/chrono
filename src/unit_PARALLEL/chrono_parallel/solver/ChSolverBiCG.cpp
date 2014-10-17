@@ -1,4 +1,4 @@
-#include "ChSolverBiCG.h"
+#include "chrono_parallel/solver/ChSolverBiCG.h"
 
 using namespace chrono;
 

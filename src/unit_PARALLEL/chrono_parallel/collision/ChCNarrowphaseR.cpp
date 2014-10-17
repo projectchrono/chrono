@@ -19,8 +19,8 @@
 #include "collision/ChCCollisionModel.h"
 
 #include "chrono_parallel/math/ChParallelMath.h"
-#include "ChCNarrowphaseR.h"
-#include "ChCNarrowphaseRUtils.h"
+#include "chrono_parallel/collision/ChCNarrowphaseR.h"
+#include "chrono_parallel/collision/ChCNarrowphaseRUtils.h"
 
 using namespace chrono;
 using namespace chrono::collision;

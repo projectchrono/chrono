@@ -8,7 +8,7 @@
 // ------------------------------------------------
 ///////////////////////////////////////////////////
 
-#include "ChCCollisionModelParallel.h"
+#include "chrono_parallel/collision/ChCCollisionModelParallel.h"
 #include "physics/ChBody.h"
 #include "physics/ChSystem.h"
 

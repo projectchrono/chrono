@@ -20,7 +20,7 @@
 #define CHSOLVERMATLAB_H
 
 #include "chrono_parallel/ChConfigParallel.h"
-#include "ChSolverParallel.h"
+#include "chrono_parallel/solver/ChSolverParallel.h"
 #include "unit_MATLAB/ChMatlabEngine.h"
 
 namespace chrono {

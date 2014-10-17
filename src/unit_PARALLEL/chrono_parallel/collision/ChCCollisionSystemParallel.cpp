@@ -8,7 +8,7 @@
 // ------------------------------------------------
 ///////////////////////////////////////////////////
 
-#include "ChCCollisionSystemParallel.h"
+#include "chrono_parallel/collision/ChCCollisionSystemParallel.h"
 
 namespace chrono {
 namespace collision {

@@ -1,4 +1,4 @@
-#include "ChConstraintRigidFluid.h"
+#include "chrono_parallel/constraints/ChConstraintRigidFluid.h"
 using namespace chrono;
 
 //%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

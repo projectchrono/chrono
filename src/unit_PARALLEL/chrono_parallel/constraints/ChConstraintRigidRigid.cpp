@@ -1,7 +1,7 @@
 #include <algorithm>
 
 #include "chrono_parallel/ChConfigParallel.h"
-#include "ChConstraintRigidRigid.h"
+#include "chrono_parallel/constraints/ChConstraintRigidRigid.h"
 
 using namespace chrono;
 #define   _index_  index*offset

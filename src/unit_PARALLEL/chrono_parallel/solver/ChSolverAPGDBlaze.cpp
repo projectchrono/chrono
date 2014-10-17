@@ -1,4 +1,4 @@
-#include "ChSolverAPGDBlaze.h"
+#include "chrono_parallel/solver/ChSolverAPGDBlaze.h"
 #include <blaze/math/CompressedVector.h>
 using namespace chrono;
 

@@ -1,5 +1,5 @@
 #include <algorithm>
-#include "ChCBroadphase.h"
+#include "chrono_parallel/collision/ChCBroadphase.h"
 using namespace chrono::collision;
 
 typedef thrust::pair<real3, real3> bbox;

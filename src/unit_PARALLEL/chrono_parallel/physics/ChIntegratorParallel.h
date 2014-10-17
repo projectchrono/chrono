@@ -11,6 +11,9 @@ namespace chrono {
 		public:
 
 			ChIntegratorParallel() {
+			   number_of_objects = 0;
+			   step_size = 0;
+			   gpu_data = 0;
 			}
 			void IntegrateSemiImplicit(real step, host_container& gpu_data_);
 			void host_Integrate_Timestep_Semi_Implicit(bool* active, real3* acc, real4* rot, real3* vel, real3* omega, real3* pos, real3* lim);

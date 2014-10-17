@@ -20,7 +20,7 @@
 #define CHSOLVERAPGD_H
 
 #include "chrono_parallel/ChConfigParallel.h"
-#include "ChSolverParallel.h"
+#include "chrono_parallel/solver/ChSolverParallel.h"
 
 namespace chrono {
 class CH_PARALLEL_API ChSolverAPGD : public ChSolverParallel {

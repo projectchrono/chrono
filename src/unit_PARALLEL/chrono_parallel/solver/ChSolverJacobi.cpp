@@ -1,4 +1,4 @@
-#include "ChSolverJacobi.h"
+#include "chrono_parallel/solver/ChSolverJacobi.h"
 #include <blaze/math/SparseRow.h>
 #include <blaze/math/CompressedVector.h>
 using namespace chrono;

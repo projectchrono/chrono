@@ -8,7 +8,7 @@
 // ------------------------------------------------
 ///////////////////////////////////////////////////
 
-#include "ChContactContainerParallel.h"
+#include "chrono_parallel/collision/ChContactContainerParallel.h"
 
 #include "physics/ChSystem.h"
 #include "physics/ChBody.h"

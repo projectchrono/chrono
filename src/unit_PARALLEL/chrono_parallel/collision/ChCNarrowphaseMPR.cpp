@@ -3,8 +3,8 @@
 #include "collision/ChCCollisionModel.h"
 
 #include "chrono_parallel/math/ChParallelMath.h"
-#include "ChCNarrowphaseMPR.h"
-#include "ChCNarrowphaseMPRUtils.h"
+#include "chrono_parallel/collision/ChCNarrowphaseMPR.h"
+#include "chrono_parallel/collision/ChCNarrowphaseMPRUtils.h"
 
 using namespace chrono::collision;
 

@@ -1,4 +1,4 @@
-#include "ChSolverMatlab.h"
+#include "chrono_parallel/solver/ChSolverMatlab.h"
 
 using namespace chrono;
 

@@ -1,4 +1,4 @@
-#include "ChSolverPDIP.h"
+#include "chrono_parallel/solver/ChSolverPDIP.h"
 #include <blaze/math/CompressedVector.h>
 
 #include "core/ChFileutils.h"

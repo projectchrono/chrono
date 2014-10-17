@@ -1,4 +1,4 @@
-#include "ChConstraintBilateral.h"
+#include "chrono_parallel/constraints/ChConstraintBilateral.h"
 
 using namespace chrono;
 

@@ -1,5 +1,5 @@
 #include <algorithm>
-#include "ChCAABBGenerator.h"
+#include "chrono_parallel/collision/ChCAABBGenerator.h"
 using namespace chrono::collision;
 
 __constant__ uint numAABB_const;

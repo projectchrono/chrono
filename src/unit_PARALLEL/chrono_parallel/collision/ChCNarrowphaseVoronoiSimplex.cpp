@@ -27,7 +27,7 @@ subject to the following restrictions:
 #include "collision/ChCCollisionModel.h"
 
 #include "chrono_parallel/math/ChParallelMath.h"
-#include "ChCNarrowphaseVoronoiSimplex.h"
+#include "chrono_parallel/collision/ChCNarrowphaseVoronoiSimplex.h"
 
 using namespace chrono::collision;
 

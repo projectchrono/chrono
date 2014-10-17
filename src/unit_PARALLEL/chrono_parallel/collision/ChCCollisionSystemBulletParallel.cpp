@@ -8,7 +8,7 @@
 // ------------------------------------------------
 ///////////////////////////////////////////////////
 
-#include "ChCCollisionSystemBulletParallel.h"
+#include "chrono_parallel/collision/ChCCollisionSystemBulletParallel.h"
 
 namespace chrono {
 namespace collision {
@@ -47,6 +47,7 @@ ChCollisionSystemBulletParallel::ChCollisionSystemBulletParallel(unsigned int ma
    btGImpactCollisionAlgorithm::registerAlgorithm(bt_dispatcher);
 
    counter = 0;
+   data_container = 0;
 
 }
 

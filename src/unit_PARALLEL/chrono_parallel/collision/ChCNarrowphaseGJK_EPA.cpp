@@ -28,9 +28,9 @@
 #include "collision/ChCCollisionModel.h"
 
 #include "chrono_parallel/math/ChParallelMath.h"
-#include "ChCNarrowphaseGJK_EPA.h"
-#include "ChCNarrowphaseVoronoiSimplex.h"
-#include "ChCNarrowphaseMPRUtils.h"
+#include "chrono_parallel/collision/ChCNarrowphaseGJK_EPA.h"
+#include "chrono_parallel/collision/ChCNarrowphaseVoronoiSimplex.h"
+#include "chrono_parallel/collision/ChCNarrowphaseMPRUtils.h"
 
 using namespace chrono::collision;
 
