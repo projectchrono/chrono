@@ -180,7 +180,9 @@ size_t ChValidation::ReadDataFile(const std::string& filename,
 bool Validate(const std::string& sim_filename,
               const std::string& ref_filename,
               ChNormType         norm_type,
-              double             tolerance)
+              double             tolerance,
+              DataVector&        norms
+              )
 {
   ChValidation validator;
 
@@ -188,7 +190,7 @@ bool Validate(const std::string& sim_filename,
     return false;
 
   size_t num_cols = validator.GetNumColumns() - 1;
-  DataVector norms(num_cols);
+  norms.resize(num_cols);
 
   switch (norm_type) {
   case L2_NORM:  norms = validator.GetL2norms(); break;
@@ -214,7 +216,8 @@ bool Validate(const std::string& sim_filename,
 // -----------------------------------------------------------------------------
 bool Validate(const std::string& sim_filename,
               ChNormType         norm_type,
-              double             tolerance)
+              double             tolerance,
+              DataVector&        norms)
 {
   ChValidation validator;
 
@@ -222,7 +225,7 @@ bool Validate(const std::string& sim_filename,
     return false;
 
   size_t num_cols = validator.GetNumColumns() - 1;
-  DataVector norms(num_cols);
+  norms.resize(num_cols);
 
   switch (norm_type) {
   case L2_NORM:  norms = validator.GetL2norms(); break;

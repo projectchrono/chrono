@@ -159,7 +159,8 @@ bool Validate(
           const std::string& sim_filename,
           const std::string& ref_filename,
           ChNormType         norm_type,
-          double             tolerance
+          double             tolerance,
+          DataVector&        norms
           );
 
 ///
@@ -173,7 +174,8 @@ CH_UTILS_API
 bool Validate(
           const std::string& sim_filename,
           ChNormType         norm_type,
-          double             tolerance
+          double             tolerance,
+          DataVector&        norms
           );
 
 
