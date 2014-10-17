@@ -18,9 +18,6 @@
 // left and right flipped.
 //
 // =============================================================================
-// TO DO:
-//    Report test run time & test pass/fail (determine what the criteria is)
-// =============================================================================
 
 #include <ostream>
 #include <fstream>
@@ -42,30 +39,103 @@ using namespace irr;
 
 
 // =============================================================================
+// Local variables
 //
-// Utility function to create a CSV output stream and set output format options.
-//
-utils::CSV_writer OutStream()
-{
-  utils::CSV_writer out("\t");
-
-  out.stream().setf(std::ios::scientific | std::ios::showpos);
-  out.stream().precision(6);
-
-  return out;
-}
-
+static const std::string val_dir = "../VALIDATION/";
+static const std::string out_dir = val_dir + "REVOLUTE_JOINT/";
+static const std::string ref_dir = "validation/revolute_joint/";
 
 // =============================================================================
+// Prototypes of local functions
+//
+bool TestRevolute(const ChVector<>& jointLoc, const ChQuaternion<>& jointRot,
+                  double simTimeStep, double outTimeStep,
+                  const std::string& testName, bool animate);
+bool ValidateReference(const std::string& testName, const std::string& what, double tolerance);
+bool ValidateConstraints(const std::string& testName, double tolerance);
+utils::CSV_writer OutStream();
 
+// =============================================================================
+//
+// Main driver function for running the simulation and validating the results.
+//
+int main(int argc, char* argv[])
+{
+  bool animate = (argc > 1);
+
+  // Set the path to the Chrono data folder
+  SetChronoDataPath(CHRONO_DATA_DIR);
+
+  // Create output directory (if it does not already exist)
+  if (ChFileutils::MakeDirectory(val_dir.c_str()) < 0) {
+    std::cout << "Error creating directory " << val_dir << std::endl;
+    return 1;
+  }
+  if (ChFileutils::MakeDirectory(out_dir.c_str()) < 0) {
+    std::cout << "Error creating directory " << out_dir << std::endl;
+    return 1;
+  }
+
+  // Set the simulation and output step sizes
+  double sim_step = 1e-3;
+  double out_step = 1e-2;
+
+  std::string test_name;
+  bool test_passed = true;
+
+  // Case 1 - Joint at the origin and aligned with the global Y axis.
+  // Since the axis of rotation of a revolute joint is the Z-axis, the joint
+  // must be rotated -pi/2 about the global X-axis.
+
+  test_name = "Revolute_Case01";
+  TestRevolute(ChVector<>(0, 0, 0), Q_from_AngX(-CH_C_PI_2), sim_step, out_step, test_name, animate);
+  if (!animate) {
+    test_passed &= ValidateReference(test_name, "Pos", 2e-3);
+    test_passed &= ValidateReference(test_name, "Vel", 1e-3);
+    test_passed &= ValidateReference(test_name, "Acc", 2e-2);
+    test_passed &= ValidateReference(test_name, "Quat", 1e-3);
+    test_passed &= ValidateReference(test_name, "Avel", 2e-2);
+    test_passed &= ValidateReference(test_name, "Aacc", 2e-2);
+    test_passed &= ValidateReference(test_name, "Rforce", 2e-2);
+    test_passed &= ValidateReference(test_name, "Rtorque", 1e-10);
+    test_passed &= ValidateReference(test_name, "Energy", 2e-2);
+    test_passed &= ValidateConstraints(test_name, 1e-5);
+  }
+
+  // Case 2 - Joint at (1,2,3) and aligned with the global axis along Y = Z.
+  // In this case, the joint must be rotated -pi/4 about the global X-axis.
+
+  test_name = "Revolute_Case02";
+  TestRevolute(ChVector<>(1, 2, 3), Q_from_AngX(-CH_C_PI_4), sim_step, out_step, test_name, animate);
+  if (!animate) {
+    test_passed &= ValidateReference(test_name, "Pos", 2e-3);
+    test_passed &= ValidateReference(test_name, "Vel", 1e-3);
+    test_passed &= ValidateReference(test_name, "Acc", 2e-2);
+    test_passed &= ValidateReference(test_name, "Quat", 1e-3);
+    test_passed &= ValidateReference(test_name, "Avel", 2e-2);
+    test_passed &= ValidateReference(test_name, "Aacc", 2e-2);
+    test_passed &= ValidateReference(test_name, "Rforce", 2e-2);
+    test_passed &= ValidateReference(test_name, "Rtorque", 1e-10);
+    test_passed &= ValidateReference(test_name, "Energy", 2e-2);
+    test_passed &= ValidateConstraints(test_name, 1e-5);
+  }
+
+  // Return 0 if all tests passed and 1 otherwise
+  return !test_passed;
+}
+
+// =============================================================================
+//
+// Worker function for performing the simulation with specified parameters.
+//
 bool TestRevolute(const ChVector<>&     jointLoc,         // absolute location of joint
                   const ChQuaternion<>& jointRot,         // orientation of joint
                   double                simTimeStep,      // simulation time step
                   double                outTimeStep,      // output time step
-                  const std::string&    outDir,           // output directory
                   const std::string&    testName,         // name of this test
                   bool                  animate)          // if true, animate with Irrlich
 {
+  std::cout << "TEST: " << testName << std::endl;
 
   // Settings
   //---------
@@ -197,14 +267,17 @@ bool TestRevolute(const ChVector<>&     jointLoc,         // absolute location o
   out_aacc << "Time" << "X_AngAcc" << "Y_AngAcc" << "Z_AngAcc" << std::endl;
 
   out_rfrc << "Time" << "X_Force" << "Y_Force" << "Z_Force" << std::endl;
-  out_rfrc << "Time" << "X_Torque" << "Y_Torque" << "Z_Torque" << std::endl;
+  out_rtrq << "Time" << "X_Torque" << "Y_Torque" << "Z_Torque" << std::endl;
 
   out_energy << "Time" << "Total_KE" << "Transl_KE" << "Rot_KE" << "Delta_PE" << std::endl;
 
   out_cnstr << "Time" << "Cnstr_1" << "Cnstr_2" << "Cnstr_3" << "Constraint_4" << "Cnstr_5" << std::endl;
 
-  // Simulation loop
+  // Perform a system assembly to ensure we have the correct accelerations at
+  // the initial time.
+  my_system.DoFullAssembly();
 
+  // Simulation loop
   double simTime = 0;
   double outTime = 0;
 
@@ -272,99 +345,74 @@ bool TestRevolute(const ChVector<>&     jointLoc,         // absolute location o
   }
 
   // Write output files
-  out_pos.write_to_file(outDir + testName + "_CHRONO_Pos.txt", testName + "\n\n");
-  out_vel.write_to_file(outDir + testName + "_CHRONO_Vel.txt", testName + "\n\n");
-  out_acc.write_to_file(outDir + testName + "_CHRONO_Acc.txt", testName + "\n\n");
+  out_pos.write_to_file(out_dir + testName + "_CHRONO_Pos.txt", testName + "\n\n");
+  out_vel.write_to_file(out_dir + testName + "_CHRONO_Vel.txt", testName + "\n\n");
+  out_acc.write_to_file(out_dir + testName + "_CHRONO_Acc.txt", testName + "\n\n");
 
-  out_quat.write_to_file(outDir + testName + "_CHRONO_Quat.txt", testName + "\n\n");
-  out_avel.write_to_file(outDir + testName + "_CHRONO_Avel.txt", testName + "\n\n");
-  out_aacc.write_to_file(outDir + testName + "_CHRONO_Aacc.txt", testName + "\n\n");
+  out_quat.write_to_file(out_dir + testName + "_CHRONO_Quat.txt", testName + "\n\n");
+  out_avel.write_to_file(out_dir + testName + "_CHRONO_Avel.txt", testName + "\n\n");
+  out_aacc.write_to_file(out_dir + testName + "_CHRONO_Aacc.txt", testName + "\n\n");
 
-  out_rfrc.write_to_file(outDir + testName + "_CHRONO_Rforce.txt", testName + "\n\n");
-  out_rtrq.write_to_file(outDir + testName + "_CHRONO_Rtorque.txt", testName + "\n\n");
+  out_rfrc.write_to_file(out_dir + testName + "_CHRONO_Rforce.txt", testName + "\n\n");
+  out_rtrq.write_to_file(out_dir + testName + "_CHRONO_Rtorque.txt", testName + "\n\n");
 
-  out_energy.write_to_file(outDir + testName + "_CHRONO_Energy.txt", testName + "\n\n");
+  out_energy.write_to_file(out_dir + testName + "_CHRONO_Energy.txt", testName + "\n\n");
 
-  out_cnstr.write_to_file(outDir + testName + "_CHRONO_Constraints.txt", testName + "\n\n");
+  out_cnstr.write_to_file(out_dir + testName + "_CHRONO_Constraints.txt", testName + "\n\n");
 
   return true;
 }
 
 // =============================================================================
-
-int main(int argc, char* argv[])
+//
+// Wrapper function for comparing the specified simulation quantities against a
+// reference file.
+//
+bool ValidateReference(const std::string& testName,    // name of this test
+                       const std::string& what,        // identifier for test quantity
+                       double             tolerance)   // validation tolerance
 {
-  bool animate = (argc > 1);
+  std::string& sim_file = out_dir + testName + "_CHRONO_" + what + ".txt";
+  std::string& ref_file = ref_dir + testName + "_ADAMS_" + what + ".txt";
+  utils::DataVector norms;
 
-  // Set the path to the Chrono data folder
-  // --------------------------------------
+  bool check = utils::Validate(sim_file, utils::GetModelDataFile(ref_file), utils::RMS_NORM, tolerance, norms);
+  std::cout << "   validate " << what << (check ? ": Passed" : ": Failed") << "  [  ";
+  for (size_t col = 0; col < norms.size(); col++)
+    std::cout << norms[col] << "  ";
+  std::cout << "  ]" << std::endl;
 
-  SetChronoDataPath(CHRONO_DATA_DIR);
+  return check;
+}
 
-  // Create output directory (if it does not already exist)
-  if (ChFileutils::MakeDirectory("../VALIDATION") < 0) {
-    std::cout << "Error creating directory '../VALIDATION'" << std::endl;
-    return 1;
-  }
-  if (ChFileutils::MakeDirectory("../VALIDATION/REVOLUTE_JOINT") < 0) {
-    std::cout << "Error creating directory '../VALIDATION/REVOLUTE_JOINT'" << std::endl;
-    return 1;
-  }
+// Wrapper function for checking constraint violations.
+//
+bool ValidateConstraints(const std::string& testName,  // name of this test
+                         double             tolerance) // validation tolerance
+{
+  std::string& sim_file = out_dir + testName + "_CHRONO_Constraints.txt";
+  utils::DataVector norms;
 
-  std::string out_dir = "../VALIDATION/REVOLUTE_JOINT/";
-  std::string ref_dir = "validation/revolute_joint/";
+  bool check = utils::Validate(sim_file, utils::RMS_NORM, tolerance, norms);
+  std::cout << "   validate Constraints" << (check ? ": Passed" : ": Failed") << "  [  ";
+  for (size_t col = 0; col < norms.size(); col++)
+    std::cout << norms[col] << "  ";
+  std::cout << "  ]" << std::endl;
 
-  bool check;
-  bool test_passed = true;
+  return check;
+}
 
-  // Case 1 - Joint at the origin, and aligned with the global Y axis
-  // --------------------------------------------------------------------------
 
-  // Note: the axis of rotation of a revolute joint is the Z-axis.
-  // Therefore, the joint must be rotated -pi/2 about the global X-axis
-  std::cout << "\nRevolute Test Case 01\n";
-  TestRevolute(ChVector<>(0, 0, 0), Q_from_AngX(-CH_C_PI_2), 1e-3, 1e-2, out_dir, "Revolute_Case01", animate);
+// =============================================================================
+//
+// Utility function to create a CSV output stream and set output format options.
+//
+utils::CSV_writer OutStream()
+{
+  utils::CSV_writer out("\t");
 
-  // Validate positions
-  check = utils::Validate(
-    out_dir + "Revolute_Case01_CHRONO_Pos.txt",
-    utils::GetModelDataFile(ref_dir + "Revolute_Case01_ADAMS_Pos.txt"),
-    utils::RMS_NORM, 2e-2);
-  test_passed &= check;
-  std::cout << "   validate positions     " << (check ? "Passed" : "Failed") << std::endl;
+  out.stream().setf(std::ios::scientific | std::ios::showpos);
+  out.stream().precision(6);
 
-  // Validate energy
-  check = utils::Validate(
-    out_dir + "Revolute_Case01_CHRONO_Energy.txt",
-    utils::GetModelDataFile(ref_dir + "Revolute_Case01_ADAMS_Energy.txt"),
-    utils::RMS_NORM, 2e-2);
-  test_passed &= check;
-  std::cout << "   validate energy        " << (check ? "Passed" : "Failed") << std::endl;
-
-  // Validate constraint violations
-  check = utils::Validate(
-    out_dir + "Revolute_Case01_CHRONO_Constraints.txt",
-    utils::RMS_NORM, 1e-5);
-  test_passed &= check;
-  std::cout << "   validate constraints   " << (check ? "Passed" : "Failed") << std::endl;
-
-  // Case 2 - Joint at (1,2,3), and aligned with the global axis along Y = Z
-  // -----------------------------------------------------------------------
-
-  // Note: the axis of rotation of a revolute joint is the Z-axis.
-  // Therefore, the joint must be rotated -pi/4 about the global X-axis
-  std::cout << "\nRevolute Test Case 02\n";
-  TestRevolute(ChVector<>(1, 2, 3), Q_from_AngX(-CH_C_PI_4), 1e-3, 1e-2, out_dir, "Revolute_Case02", animate);
-
-  // Validate constraint violations
-  check = utils::Validate(
-    out_dir + "Revolute_Case01_CHRONO_Constraints.txt",
-    utils::RMS_NORM, 1e-5);
-  test_passed &= check;
-  std::cout << "   validate constraints   " << (check ? "Passed" : "Failed") << std::endl;
-
-  // Return 0 if all test passed and 1 otherwise
-  // -------------------------------------------
-
-  return !test_passed;
+  return out;
 }
