@@ -284,7 +284,6 @@ int main(int argc, char* argv[])
   std::string out_dir = "../VALIDATION/HOOKE_JOINT/";
   std::string ref_dir = "validation/hooke_joint/";
 
-  bool check;
   bool test_passed = true;
 
 

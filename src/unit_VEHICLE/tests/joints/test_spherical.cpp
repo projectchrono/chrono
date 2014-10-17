@@ -278,7 +278,6 @@ int main(int argc, char* argv[])
   std::string out_dir = "../VALIDATION/SPHERICAL_JOINT/";
   std::string ref_dir = "validation/spherical_joint/";
 
-  bool check;
   bool test_passed = true;
 
 

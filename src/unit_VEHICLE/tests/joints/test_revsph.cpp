@@ -60,7 +60,6 @@ int main(int argc, char* argv[])
   std::string out_dir = "../VALIDATION/REVSPH_JOINT/";
   std::string ref_dir = "validation/revsph_joint/";
 
-  bool check;
   bool test_passed = true;
 
   //// TODO: temporary hack....
