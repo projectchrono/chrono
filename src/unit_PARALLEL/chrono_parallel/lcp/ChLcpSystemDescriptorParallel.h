@@ -18,7 +18,7 @@
 #include "lcp/ChLcpSystemDescriptor.h"
 
 #include "chrono_parallel/ChParallelDefines.h"
-#include "chrono_parallel/ChLcpSolverParallel.h"
+#include "chrono_parallel/lcp/ChLcpSolverParallel.h"
 #include "chrono_parallel/math/ChParallelMath.h"
 
 namespace chrono {

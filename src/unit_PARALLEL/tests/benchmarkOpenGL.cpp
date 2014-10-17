@@ -17,7 +17,7 @@
 // A Random Set of Geometries in Space
 // The global reference frame has Z up.
 
-#include "chrono_parallel/ChSystemParallel.h"
+#include "chrono_parallel/physics/ChSystemParallel.h"
 
 #include "chrono_utils/ChUtilsCreators.h"
 #include "chrono_utils/ChUtilsGenerators.h"

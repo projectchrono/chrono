@@ -10,14 +10,6 @@
 
 #include "ChCCollisionSystemBulletParallel.h"
 
-#include "collision/ChCModelBullet.h"
-#include "collision/ChCCollisionSystem.h"
-#include "physics/ChBody.h"
-#include "physics/ChProximityContainerBase.h"
-
-#include "chrono_parallel/ChParallelDefines.h"
-#include "chrono_parallel/ChLcpSystemDescriptorParallel.h"
-
 namespace chrono {
 namespace collision {
 

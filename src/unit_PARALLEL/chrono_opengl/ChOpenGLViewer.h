@@ -34,7 +34,7 @@
 #include "assets/ChRoundedConeShape.h"
 #include "assets/ChRoundedCylinderShape.h"
 #include "assets/ChTriangleMeshShape.h"
-#include "chrono_parallel/ChSystemParallel.h"
+#include "chrono_parallel/physics/ChSystemParallel.h"
 
 namespace chrono {
 namespace opengl {

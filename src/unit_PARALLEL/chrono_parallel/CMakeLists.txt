@@ -9,12 +9,12 @@
 # ------------------------------------------------------------------------------
 
 SET(ChronoEngine_Parallel_SOURCES
-    ChSystemParallel.cpp
-    ChSystemParallelDVI.cpp
-    ChSystemParallelDEM.cpp
-    ChLcpSolverParallel.cpp
-    ChLcpSolverParallelDVI.cpp
-    ChLcpSolverParallelDEM.cpp
+    physics/ChSystemParallel.cpp
+    physics/ChSystemParallelDVI.cpp
+    physics/ChSystemParallelDEM.cpp
+    lcp/ChLcpSolverParallel.cpp
+    lcp/ChLcpSolverParallelDVI.cpp
+    lcp/ChLcpSolverParallelDEM.cpp
     ChBaseParallel.cpp
     ChDataManager.cpp
     )
@@ -23,10 +23,10 @@ SET(ChronoEngine_Parallel_HEADERS
     ChApiParallel.h
     ChBaseParallel.h
     ChParallelDefines.h
-    ChSystemParallel.h
+    physics/ChSystemParallel.h
     ChDataManager.h
-    ChLcpSolverParallel.h
-    ChLcpSystemDescriptorParallel.h
+    lcp/ChLcpSolverParallel.h
+    lcp/ChLcpSystemDescriptorParallel.h
     ChTimerParallel.h
     )
 

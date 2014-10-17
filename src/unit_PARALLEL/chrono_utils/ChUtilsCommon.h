@@ -25,7 +25,7 @@
 #include "physics/ChSystem.h"
 #include "physics/ChSystemDEM.h"
 
-#include "chrono_parallel/ChSystemParallel.h"
+#include "chrono_parallel/physics/ChSystemParallel.h"
 #include "chrono_parallel/collision/ChCCollisionSystemParallel.h"
 #include "collision/ChCCollisionSystemBullet.h"
 

@@ -20,7 +20,7 @@
 // on the velocity manifold of the bilateral constraints.
 // =============================================================================
 
-#include "chrono_parallel/ChLcpSolverParallel.h"
+#include "chrono_parallel/lcp/ChLcpSolverParallel.h"
 #include "chrono_parallel/math/ChThrustLinearAlgebra.h"
 
 using namespace chrono;

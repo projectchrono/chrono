@@ -38,7 +38,7 @@
 #include "physics/ChMaterialSurface.h"
 #include "physics/ChMaterialSurfaceDEM.h"
 
-#include "chrono_parallel/ChSystemParallel.h"
+#include "chrono_parallel/physics/ChSystemParallel.h"
 
 #include "chrono_utils/ChApiUtils.h"
 #include "chrono_utils/ChUtilsCommon.h"

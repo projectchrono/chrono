@@ -23,7 +23,7 @@
 
 #include "chrono_parallel/ChParallelDefines.h"
 #include "chrono_parallel/ChDataManager.h"
-#include "chrono_parallel/ChIntegratorParallel.h"
+#include "chrono_parallel/physics/ChIntegratorParallel.h"
 #include "chrono_parallel/constraints/ChConstraintRigidRigid.h"
 #include "chrono_parallel/constraints/ChConstraintBilateral.h"
 #include "chrono_parallel/math/ChParallelMath.h"

@@ -1,4 +1,4 @@
-#include "chrono_parallel/ChSystemParallel.h"
+#include "chrono_parallel/physics/ChSystemParallel.h"
 #include <omp.h>
 
 using namespace chrono;
