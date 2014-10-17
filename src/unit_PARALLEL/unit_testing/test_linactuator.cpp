@@ -49,7 +49,6 @@ bool VerifySolution(
   double                           time,      // current time
   const ChQuaternion<>&            rot,       // translation along Z axis
   double                           speed,     // imposed translation speed
-  ChSystemParallel*                system,    // pointer to Chrono system
   ChSharedPtr<ChBody>              plate,     // handle to plate body
   ChSharedPtr<ChLinkLockPrismatic> prismatic, // handle to prismatic joint
   ChSharedPtr<ChLinkLinActuator>   actuator)  // handle to linear actuator
@@ -248,10 +247,14 @@ bool VerifySolution(
 // Worker function for performing the simulation with specified parameters.
 // -----------------------------------------------------------------------------
 bool TestLinActuator(
+  utils::SystemType     sys_type,   // type of system (PARALLEL_DEM or PARALLEL_DVI)
+  const char*           test_name,  // name of this test
   const ChQuaternion<>& rot,        // translation along Z axis
   double                speed,      // imposed translation speed
   bool                  animate)    // if true, animate with OpenGL
 {
+  std::cout << test_name << std::endl;
+
   // Unit vector along translation axis, expressed in global frame
   ChVector<> axis = rot.GetZaxis();
 
@@ -263,42 +266,70 @@ bool TestLinActuator(
 
   double time_end = 5;
   double time_step = 1e-3;
-  bool clamp_bilaterals = false;
-  double bilateral_clamp_speed = 1000;
-  int max_iteration_bilateral = 100;
+
   double tolerance = 1e-4;
 
+  int max_iteration_bilateral = 100;
+  int max_iteration_normal = 50;
+  int max_iteration_sliding = 100;
+  int max_iteration_spinning = 0;
+
+  bool clamp_bilaterals = false;
+  double bilateral_clamp_speed = 1000;
+
+  double contact_recovery_speed = 1;
 
 
   // Create the mechanical system
   // ----------------------------
 
-  ChSystemParallelDEM msystem;
-  msystem.Set_G_acc(gravity);
+  ChSystemParallel* msystem;
+
+  switch (sys_type) {
+  case utils::PARALLEL_DEM: msystem = new ChSystemParallelDEM(); break;
+  case utils::PARALLEL_DVI: msystem = new ChSystemParallelDVI(); break;
+  }
+  msystem->Set_G_acc(gravity);
 
   // Set number of threads.
-  int max_threads = msystem.GetParallelThreadNumber();
+  int max_threads = msystem->GetParallelThreadNumber();
   if (threads > max_threads) threads = max_threads;
-  msystem.SetParallelThreadNumber(threads);
+  msystem->SetParallelThreadNumber(threads);
   omp_set_num_threads(threads);
 
-  msystem.GetSettings()->max_threads = threads;
-  msystem.GetSettings()->perform_thread_tuning = thread_tuning;
+  msystem->GetSettings()->max_threads = threads;
+  msystem->GetSettings()->perform_thread_tuning = thread_tuning;
 
   // Edit system settings
-  msystem.SetTol(tolerance);
-  msystem.SetTolSpeeds(tolerance);
-  msystem.SetStep(time_step);
+  msystem->SetTol(tolerance);
+  msystem->SetTolSpeeds(tolerance);
+  msystem->SetStep(time_step);
 
-  msystem.GetSettings()->solver.tolerance = tolerance;
-  msystem.GetSettings()->solver.max_iteration_bilateral = max_iteration_bilateral;
-  msystem.GetSettings()->solver.clamp_bilaterals = clamp_bilaterals;
-  msystem.GetSettings()->solver.bilateral_clamp_speed = bilateral_clamp_speed;
+  msystem->GetSettings()->solver.tolerance = tolerance;
+  msystem->GetSettings()->solver.max_iteration_bilateral = max_iteration_bilateral;
+  msystem->GetSettings()->solver.clamp_bilaterals = clamp_bilaterals;
+  msystem->GetSettings()->solver.bilateral_clamp_speed = bilateral_clamp_speed;
+
+  if (sys_type == utils::PARALLEL_DVI) {
+    ChSystemParallelDVI* msystemDVI = static_cast<ChSystemParallelDVI*>(msystem);
+    msystemDVI->GetSettings()->solver.solver_mode = SLIDING;
+    msystemDVI->GetSettings()->solver.max_iteration_normal = max_iteration_normal;
+    msystemDVI->GetSettings()->solver.max_iteration_sliding = max_iteration_sliding;
+    msystemDVI->GetSettings()->solver.max_iteration_spinning = max_iteration_spinning;
+    msystemDVI->ChangeSolverType(APGDBLAZE);
+  }
 
   // Create the ground body.
 
-  ChSharedPtr<ChBodyDEM> ground(new ChBodyDEM(new ChCollisionModelParallel));
-  msystem.AddBody(ground);
+  ChBody* ground_ptr;
+  switch (sys_type) {
+  case utils::PARALLEL_DEM: ground_ptr = new ChBodyDEM(new ChCollisionModelParallel); break;
+  case utils::PARALLEL_DVI: ground_ptr = new ChBody(new ChCollisionModelParallel); break;
+  }
+  ChSharedPtr<ChBody> ground(ground_ptr);
+  ground_ptr->AddRef();
+
+  msystem->AddBody(ground);
   ground->SetBodyFixed(true);
 
   ChSharedPtr<ChBoxShape> box_g(new ChBoxShape);
@@ -309,8 +340,15 @@ bool TestLinActuator(
 
   // Create the plate body.
 
-  ChSharedPtr<ChBodyDEM> plate(new ChBodyDEM(new ChCollisionModelParallel));
-  msystem.AddBody(plate);
+  ChBody* plate_ptr;
+  switch (sys_type) {
+  case utils::PARALLEL_DEM: plate_ptr = new ChBodyDEM(new ChCollisionModelParallel); break;
+  case utils::PARALLEL_DVI: plate_ptr = new ChBody(new ChCollisionModelParallel); break;
+  }
+  ChSharedPtr<ChBody> plate(plate_ptr);
+  ground_ptr->AddRef();
+
+  msystem->AddBody(plate);
   plate->SetPos(ChVector<>(0, 0, 0));
   plate->SetRot(rot);
   plate->SetPos_dt(speed * axis);
@@ -327,7 +365,7 @@ bool TestLinActuator(
 
   ChSharedPtr<ChLinkLockPrismatic> prismatic(new ChLinkLockPrismatic);
   prismatic->Initialize(plate, ground, ChCoordsys<>(ChVector<>(0, 0, 0), rot));
-  msystem.AddLink(prismatic);
+  msystem->AddLink(prismatic);
 
   // Create a ramp function to impose constant speed.  This function returns
   //   y(t) = 0 + t * speed
@@ -346,7 +384,7 @@ bool TestLinActuator(
   actuator->Initialize(ground, plate, false, ChCoordsys<>(pt1, rot), ChCoordsys<>(pt2, rot));
   actuator->Set_lin_offset(1);
   actuator->Set_dist_funct(actuator_fun);
-  msystem.AddLink(actuator);
+  msystem->AddLink(actuator);
 
   // Perform the simulation
   // ----------------------
@@ -358,7 +396,7 @@ bool TestLinActuator(
   {
 #   ifdef CHRONO_PARALLEL_HAS_OPENGL
     opengl::ChOpenGLWindow &gl_window = opengl::ChOpenGLWindow::getInstance();
-    gl_window.Initialize(1280, 720, "Direct Shear Test", &msystem);
+    gl_window.Initialize(1280, 720, test_name, msystem);
     gl_window.SetCamera(ChVector<>(0, -10, 0), ChVector<>(0, 0, 0), ChVector<>(0, 0, 1));
     gl_window.SetRenderMode(opengl::WIREFRAME);
 
@@ -368,7 +406,7 @@ bool TestLinActuator(
       gl_window.DoStepDynamics(time_step);
       gl_window.Render();
       time += time_step;
-      if (!VerifySolution(time, rot, speed, &msystem, plate, prismatic, actuator))
+      if (!VerifySolution(time, rot, speed, plate, prismatic, actuator))
         passed = false;
     }
 #   else
@@ -380,9 +418,9 @@ bool TestLinActuator(
   {
     while (time < time_end)
     {
-      msystem.DoStepDynamics(time_step);
+      msystem->DoStepDynamics(time_step);
       time += time_step;
-      if (!VerifySolution(time, rot, speed, &msystem, plate, prismatic, actuator))
+      if (!VerifySolution(time, rot, speed, plate, prismatic, actuator))
         passed = false;
     }
   }
@@ -407,12 +445,12 @@ int main(int argc, char* argv[])
   bool test_passed = true;
 
   // Case 1 - Translation axis vertical, imposed speed 1 m/s
-  std::cout << "LinActuator Case 1" << std::endl;
-  test_passed &= TestLinActuator(QUNIT, 1, animate);
+  test_passed &= TestLinActuator(utils::PARALLEL_DEM, "Case 1 (DEM)", QUNIT, 1, animate);
+  test_passed &= TestLinActuator(utils::PARALLEL_DVI, "Case 1 (DVI)", QUNIT, 1, animate);
 
   // Case 2 - Translation axis along X = Z, imposed speed 0.5 m/s
-  std::cout << "LinActuator Case 2" << std::endl;
-  test_passed &= TestLinActuator(Q_from_AngY(CH_C_PI / 4), 0.5, animate);
+  test_passed &= TestLinActuator(utils::PARALLEL_DEM, "Case 2 (DEM)", Q_from_AngY(CH_C_PI / 4), 0.5, animate);
+  test_passed &= TestLinActuator(utils::PARALLEL_DVI, "Case 2 (DVI)", Q_from_AngY(CH_C_PI / 4), 0.5, animate);
 
   // Return 0 if all tests passed and 1 otherwise
   return !test_passed;
