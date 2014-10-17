@@ -10,11 +10,6 @@ void chrono::Orthogonalize(real3 &Vx,
                            real3 &Vy,
                            real3 &Vz) {
 
-//   if (U == R3(0)) {
-//      U = R3(0, 1, 0);
-//   } else {
-//      U = normalize(U);
-//   }
    real3 mVsingular = R3(0, 1, 0);
    Vz = cross(Vx, mVsingular);
    real mzlen = Vz.length();
