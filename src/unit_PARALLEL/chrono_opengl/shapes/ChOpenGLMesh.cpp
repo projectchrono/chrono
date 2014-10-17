@@ -14,7 +14,7 @@
 // =============================================================================
 
 #include <iostream>
-#include "ChOpenGLMesh.h"
+#include "chrono_opengl/shapes/ChOpenGLMesh.h"
 
 
 using namespace glm;

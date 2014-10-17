@@ -18,7 +18,7 @@
 // Authors: Hammad Mazhar
 // =============================================================================
 
-#include "ChOpenGLShader.h"
+#include "chrono_opengl/core/ChOpenGLShader.h"
 
 using namespace glm;
 using namespace chrono::opengl;

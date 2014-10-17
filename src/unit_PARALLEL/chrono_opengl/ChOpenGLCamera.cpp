@@ -13,7 +13,7 @@
 // Authors: Hammad Mazhar
 // =============================================================================
 
-#include "ChOpenGLCamera.h"
+#include "chrono_opengl/ChOpenGLCamera.h"
 using namespace chrono;
 using namespace chrono::opengl;
 

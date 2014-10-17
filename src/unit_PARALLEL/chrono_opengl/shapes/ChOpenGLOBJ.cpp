@@ -15,7 +15,7 @@
 // =============================================================================
 
 #include <iostream>
-#include "ChOpenGLOBJ.h"
+#include "chrono_opengl/shapes/ChOpenGLOBJ.h"
 
 using namespace glm;
 using namespace chrono::opengl;

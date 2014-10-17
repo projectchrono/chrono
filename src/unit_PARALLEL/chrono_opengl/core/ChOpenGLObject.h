@@ -18,10 +18,10 @@
 #ifndef CHOPENGLOBJECT_H
 #define CHOPENGLOBJECT_H
 
-#include "ChOpenGLBase.h"
-#include "ChOpenGLShader.h"
-#include "ChOpenGLVertexAttributes.h"
-#include "ChOpenGLMaterial.h"
+#include "chrono_opengl/core/ChOpenGLBase.h"
+#include "chrono_opengl/core/ChOpenGLShader.h"
+#include "chrono_opengl/core/ChOpenGLVertexAttributes.h"
+#include "chrono_opengl/core/ChOpenGLMaterial.h"
 
 namespace chrono {
 namespace opengl {

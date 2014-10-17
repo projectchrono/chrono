@@ -13,7 +13,7 @@
 // Authors: Hammad Mazhar
 // =============================================================================
 
-#include "ChOpenGLWindow.h"
+#include "chrono_opengl/ChOpenGLWindow.h"
 
 //using namespace glm;
 using namespace chrono;

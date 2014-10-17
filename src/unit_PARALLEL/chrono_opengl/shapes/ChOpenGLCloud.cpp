@@ -14,7 +14,7 @@
 // =============================================================================
 
 #include <iostream>
-#include "ChOpenGLCloud.h"
+#include "chrono_opengl/shapes/ChOpenGLCloud.h"
 
 using namespace glm;
 using namespace chrono::opengl;

@@ -23,7 +23,7 @@
 // Authors: Hammad Mazhar
 // =============================================================================
 
-#include "ChOpenGLVertexAttributes.h"
+#include "chrono_opengl/core/ChOpenGLVertexAttributes.h"
 
 using namespace glm;
 using namespace chrono::opengl;

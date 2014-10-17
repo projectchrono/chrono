@@ -18,7 +18,7 @@
 #ifndef CHOPENGLMATERIAL_H
 #define CHOPENGLMATERIAL_H
 
-#include "ChOpenGLShader.h"
+#include "chrono_opengl/core/ChOpenGLShader.h"
 
 namespace chrono {
 	namespace opengl{

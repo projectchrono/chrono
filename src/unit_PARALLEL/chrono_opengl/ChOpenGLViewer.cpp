@@ -13,9 +13,10 @@
 // Authors: Hammad Mazhar
 // =============================================================================
 #include <omp.h>
-#include "ChOpenGLViewer.h"
-#include "FontData.h"
+#include "chrono_opengl/ChOpenGLViewer.h"
+#include "chrono_opengl/FontData.h"
 
+// Includes are generated at compile time!
 #include "resources/text_frag.h"
 #include "resources/text_vert.h"
 #include "resources/phong_frag.h"
