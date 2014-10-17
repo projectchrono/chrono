@@ -18,6 +18,7 @@ SET(TEST_PROGRAMS
     test_spherical
     test_universal
     test_hooke
+    test_linactuator
     test_revsph
 )
 
