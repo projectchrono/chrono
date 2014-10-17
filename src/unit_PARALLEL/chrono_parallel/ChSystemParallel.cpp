@@ -182,35 +182,18 @@ void ChSystemParallel::AddBody(ChSharedPtr<ChBody> newbody) {
    data_manager->num_bodies = counter;
 }
 
-void ChSystemParallel::RemoveBody(ChSharedPtr<ChBody> mbody) {
-   assert(std::find<std::vector<ChBody *>::iterator>(bodylist.begin(), bodylist.end(), mbody.get_ptr()) != bodylist.end());
+void ChSystemParallel::AddOtherPhysicsItem(ChSharedPtr<ChPhysicsItem> newitem) {
+   //assert(std::find<std::vector<ChPhysicsItem*>::iterator>(otherphysicslist.begin(), otherphysicslist.end(), newitem.get_ptr()) == otherphysicslist.end());
+   //assert(newitem->GetSystem()==0); // should remove from other system before adding here
 
-   // remove from collision system
-   if (mbody->GetCollide())
-      mbody->RemoveCollisionModelsFromSystem();
+   newitem->AddRef();
+   newitem->SetSystem(this);
+   otherphysicslist.push_back((newitem).get_ptr());
 
-   // warning! linear time search, to erase pointer from container.
-   bodylist.erase(std::find<std::vector<ChBody *>::iterator>(bodylist.begin(), bodylist.end(), mbody.get_ptr()));
-   // nullify backward link to system
-   mbody->SetSystem(0);
-   // this may delete the body, if none else's still referencing it..
-   mbody->RemoveRef();
-}
-
-void ChSystemParallel::RemoveBody(int body) {
-   //assert( std::find<std::vector<ChBody*>::iterator>(bodylist.begin(), bodylist.end(), mbody.get_ptr()) != bodylist.end());
-   ChBody *mbody = ((ChBody *) (bodylist[body]));
-
-   // remove from collision system
-   if (mbody->GetCollide())
-      mbody->RemoveCollisionModelsFromSystem();
-
-   // warning! linear time search, to erase pointer from container.
-   //bodylist.erase(std::find<std::vector<ChBody*>::iterator>(bodylist.begin(), bodylist.end(), mbody.get_ptr()));
-   // nullify backward link to system
-   //mbody->SetSystem(0);
-   // this may delete the body, if none else's still referencing it..
-   //mbody->RemoveRef();
+   // add to collision system too
+   if (newitem->GetCollide()) {
+      newitem->AddCollisionModelsToSystem();
+   }
 }
 
 void ChSystemParallel::Update() {
