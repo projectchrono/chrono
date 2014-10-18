@@ -242,6 +242,7 @@ private:
                                      double x_curr);
 
   // calculate the increment delta_gamma of the gamma ODE
+  // Note: gamma should be the kinematic camber, gamma
   double ODE_RK_gamma(
     double C_Fgamma,
     double C_Falpha,
