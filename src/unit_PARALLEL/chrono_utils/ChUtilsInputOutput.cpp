@@ -53,9 +53,6 @@ void WriteBodies(ChSystem*          system,
 //
 // Create a CSV file with a checkpoint ...
 //
-//// TODO: currently, collision family information is processed only for the
-////       parallel collision system and is disregarded for Bullet.
-//
 // -----------------------------------------------------------------------------
 bool WriteCheckpoint(ChSystem*          system,
                      const std::string& filename)
@@ -78,14 +75,18 @@ bool WriteCheckpoint(ChSystem*          system,
     csv << btype << body->GetIdentifier() << body->GetBodyFixed() << body->GetCollide();
 
     // Write collision family information.
-    int coll_fam = -999;
-    int no_coll_fam = -999;
+    short family_group = 1;
+    short family_mask = 0x7FFF;
     if (cd_par) {
       collision::ChCollisionModelParallel* cmodel = static_cast<collision::ChCollisionModelParallel*>(body->GetCollisionModel());
-      coll_fam = cmodel->GetFamily();
-      no_coll_fam = cmodel->GetNoCollFamily();
+      family_group = cmodel->GetFamilyGroup();
+      family_mask = cmodel->GetFamilyMask();
+    } else {
+      collision::ChModelBullet* cmodel = static_cast<collision::ChModelBullet*>(body->GetCollisionModel());
+      family_group = cmodel->GetFamilyGroup();
+      family_mask = cmodel->GetFamilyMask();
     }
-    csv << coll_fam << no_coll_fam;
+    csv << family_group << family_mask;
 
     // Write body mass and inertia
     csv << body->GetMass() << body->GetInertiaXX();
@@ -192,8 +193,7 @@ bool WriteCheckpoint(ChSystem*          system,
 // -----------------------------------------------------------------------------
 // ReadCheckpoint
 //
-//// TODO: currently, collision family information is processed only for the
-////       parallel collision system and is disregarded for Bullet.
+// Read a CSV file with checkpoint data and create the bodies.
 //
 // -----------------------------------------------------------------------------
 void ReadCheckpoint(ChSystem*          system,
@@ -213,8 +213,9 @@ void ReadCheckpoint(ChSystem*          system,
     std::istringstream iss1(line);
 
     // Read body type, Id, flags
-    int btype, bid, bfixed, bcollide, coll_fam, no_coll_fam;
-    iss1 >> btype >> bid >> bfixed >> bcollide >> coll_fam >> no_coll_fam;
+    int btype, bid, bfixed, bcollide;
+    short family_group, family_mask;
+    iss1 >> btype >> bid >> bfixed >> bcollide >> family_group >> family_mask;
 
     // Read body mass and inertia
     double     mass;
@@ -247,6 +248,9 @@ void ReadCheckpoint(ChSystem*          system,
       iss2 >> mat->restitution >> mat->dissipation_factor;
       iss2 >> mat->cohesion;
     }
+
+    // Add the body to the system.
+    system->AddBody(ChSharedPtr<ChBody>(body));
 
     // Set body properties and state
     body->SetPos(bpos);
@@ -281,7 +285,7 @@ void ReadCheckpoint(ChSystem*          system,
       iss >> apos.x >> apos.y >> apos.z >> arot.e0 >> arot.e1 >> arot.e2 >> arot.e3;
 
       // Get visualization asset type and geometry data.
-      // Create the appropriate 
+      // Create the appropriate shape (both visualization and contact).
       int atype;
       iss >> atype;
 
@@ -346,18 +350,19 @@ void ReadCheckpoint(ChSystem*          system,
       }
     }
 
-    // If using the parallel collision system, set the collision family and the
-    // no-collision family. Note that in this case 'no_coll_fam' represents an
-    // actual collision family (and not a mask!).
+    // Set the collision family group and the collision family mask.
     if (cd_par) {
-      body->GetCollisionModel()->SetFamily(coll_fam);
-      body->GetCollisionModel()->SetFamilyMaskNoCollisionWithFamily(no_coll_fam);
+      collision::ChCollisionModelParallel* cmodel = static_cast<collision::ChCollisionModelParallel*>(body->GetCollisionModel());
+      cmodel->SetFamilyGroup(family_group);
+      cmodel->SetFamilyMask(family_mask);
+    } else {
+      collision::ChModelBullet* cmodel = static_cast<collision::ChModelBullet*>(body->GetCollisionModel());
+      cmodel->SetFamilyGroup(family_group);
+      cmodel->SetFamilyMask(family_mask);
     }
 
+    // Complete construction of the collision model.
     body->GetCollisionModel()->BuildModel();
-
-    // Attach the body to the system.
-    system->AddBody(ChSharedPtr<ChBody>(body));
   }
 }
 

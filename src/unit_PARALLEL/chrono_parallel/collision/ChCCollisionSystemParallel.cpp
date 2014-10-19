@@ -27,24 +27,24 @@ ChCollisionSystemParallel::~ChCollisionSystemParallel() {
 
 void ChCollisionSystemParallel::Add(ChCollisionModel *model) {
    if (model->GetPhysicsItem()->GetCollide() == true) {
-      ChCollisionModelParallel *body = (ChCollisionModelParallel *) model;
-      int body_id = body->GetBody()->GetId();
-      int2 fam = I2(body->GetFamily(), body->GetNoCollFamily());
+      ChCollisionModelParallel* pmodel = static_cast<ChCollisionModelParallel*>(model);
+      int body_id = pmodel->GetBody()->GetId();
+      short2 fam = S2(pmodel->GetFamilyGroup(), pmodel->GetFamilyMask());
 
-      for (int j = 0; j < body->GetNObjects(); j++) {
-         real3 obA = body->mData[j].A;
-         real3 obB = body->mData[j].B;
-         if (body->mData[j].type != TRIANGLEMESH) {
+      for (int j = 0; j < pmodel->GetNObjects(); j++) {
+         real3 obA = pmodel->mData[j].A;
+         real3 obB = pmodel->mData[j].B;
+         if (pmodel->mData[j].type != TRIANGLEMESH) {
             obB += R3(data_container->settings.collision.collision_envelope);
          }
-         real3 obC = body->mData[j].C;
-         real4 obR = body->mData[j].R;
+         real3 obC = pmodel->mData[j].C;
+         real4 obR = pmodel->mData[j].R;
          data_container->host_data.ObA_rigid.push_back(obA);
          data_container->host_data.ObB_rigid.push_back(obB);
          data_container->host_data.ObC_rigid.push_back(obC);
          data_container->host_data.ObR_rigid.push_back(obR);
          data_container->host_data.fam_rigid.push_back(fam);
-         data_container->host_data.typ_rigid.push_back(body->mData[j].type);
+         data_container->host_data.typ_rigid.push_back(pmodel->mData[j].type);
          data_container->host_data.id_rigid.push_back(body_id);
          data_container->num_models++;
       }

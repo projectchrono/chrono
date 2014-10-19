@@ -167,31 +167,45 @@ class CH_PARALLEL_API ChCollisionModelParallel : public ChCollisionModel {
    /// The 'another' model must be of ChModelBullet subclass.
    virtual bool AddCopyOfAnotherModel(ChCollisionModel *another);
 
-   ///returns the axis aligned bounding box for this collision model
+   /// Return the axis aligned bounding box for this collision model.
    virtual void GetAABB(ChVector<> &bbmin,
                         ChVector<> &bbmax) const;
-   /// Set the collision family for this object
+
+   /// Set the collision family for this object.
    virtual void SetFamily(int mfamily);
-   /// Get the collision family for this object
+   /// Get the collision family for this object.
    virtual int GetFamily();
-
-   /// Set the collision family mask for families to not collide with
+   /// Set the family mask to disable collision with the specified family.
    virtual void SetFamilyMaskNoCollisionWithFamily(int mfamily);
-   /// Set the collision family mask for families to collide with
+   /// Set the family mask to enable collision with the specified family.
    virtual void SetFamilyMaskDoCollisionWithFamily(int mfamily);
-   /// Check if the model collides with a family
+   /// Check if the model collides with the specified family.
    virtual bool GetFamilyMaskDoesCollisionWithFamily(int mfamily);
-   /// Return a pointer to the body
-   ChBody *GetBody() const {
-      return mbody;
-   }
 
-   /// Get the number of objects in this model
-   int GetNObjects() {
-      return nObjects;
-   }
-   ///Get family to not collide with
-   int GetNoCollFamily();
+   /// Return the collision family group of this model.
+   /// The collision family of this model is the position of the single set bit
+   /// in the return value.
+   short GetFamilyGroup() const { return family_group; }
+   /// Set the collision family group of this model.
+   /// This is an alternative way of specifying the collision family for this
+   /// object.  The value family_group must have a single bit set (i.e. it must
+   /// be a power of 2). The corresponding family is then the bit position.
+   void SetFamilyGroup(short group);
+
+   /// Return the collision mask for this model.
+   /// Each bit of the return value indicates whether this model collides with
+   /// the corresponding family (bit set) or not (bit unset).
+   short GetFamilyMask() const { return family_mask; }
+   /// Set the collision mask for this model.
+   /// Any set bit in the specified mask indicates that this model collides with
+   /// all objects whose family is equal to the bit position.
+   void SetFamilyMask(short mask);
+
+   /// Return a pointer to the body
+   ChBody *GetBody() const { return mbody; }
+
+   /// Return the number of objects in this model.
+   int GetNObjects() const { return nObjects; }
 
    float getVolume();
 
@@ -207,9 +221,10 @@ class CH_PARALLEL_API ChCollisionModelParallel : public ChCollisionModel {
 
  protected:
 
-   real3 inertia;
    unsigned int nObjects;
-   int colFam, noCollWith;
+   short family_group;
+   short family_mask;
+   real3 inertia;
    float total_volume;
 };
 

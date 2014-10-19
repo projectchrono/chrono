@@ -71,21 +71,20 @@ void ChCollisionSystemBulletParallel::Clear(void) {
 }
 
 void ChCollisionSystemBulletParallel::Add(ChCollisionModel* model) {
-   if (((ChModelBullet*) model)->GetBulletModel()->getCollisionShape()) {
-      model->SyncPosition();
-      btCollisionObject* collision_object = ((ChModelBullet*) model)->GetBulletModel();
-      collision_object->setCompanionId(counter);
-      int family_group = ((ChModelBullet*) model)->GetFamilyGroup();
-      int family_mask = ((ChModelBullet*) model)->GetFamilyMask();
-      bt_collision_world->addCollisionObject(collision_object, family_group, family_mask);
+   ChModelBullet* bmodel = static_cast<ChModelBullet*>(model);
+   if (bmodel->GetBulletModel()->getCollisionShape()) {
+      bmodel->SyncPosition();
+      bmodel->GetBulletModel()->setCompanionId(counter);
+      bt_collision_world->addCollisionObject(bmodel->GetBulletModel(), bmodel->GetFamilyGroup(), bmodel->GetFamilyMask());
       counter++;
       data_container->num_models++;
    }
 }
 
 void ChCollisionSystemBulletParallel::Remove(ChCollisionModel* model) {
-   if (((ChModelBullet*) model)->GetBulletModel()->getCollisionShape()) {
-      bt_collision_world->removeCollisionObject(((ChModelBullet*) model)->GetBulletModel());
+  ChModelBullet* bmodel = static_cast<ChModelBullet*>(model);
+  if (bmodel->GetBulletModel()->getCollisionShape()) {
+      bt_collision_world->removeCollisionObject(bmodel->GetBulletModel());
    }
 }
 

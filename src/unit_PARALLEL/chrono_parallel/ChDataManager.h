@@ -140,7 +140,7 @@ struct host_container {
    thrust::host_vector<real3> ObB_rigid;
    thrust::host_vector<real3> ObC_rigid;
    thrust::host_vector<real4> ObR_rigid;
-   thrust::host_vector<int2> fam_rigid;
+   thrust::host_vector<short2> fam_rigid;
    thrust::host_vector<int> typ_rigid;
    thrust::host_vector<uint> id_rigid;
    thrust::host_vector<real3> aabb_rigid;

@@ -16,11 +16,6 @@ namespace chrono {
 namespace collision {
 
 ChCollisionModelSphere::ChCollisionModelSphere(real rad) {
-   nObjects = 0;
-   colFam = -1;
-   noCollWith = -2;
-   inertia = R3(0);
-   total_volume = 0;
    mData.resize(1);
 
    model_type = SPHERE;
@@ -34,7 +29,6 @@ ChCollisionModelSphere::ChCollisionModelSphere(real rad) {
    tData.type = SPHERE;
    mData[0] = tData;
    total_volume = 4.0 / 3.0 * CH_C_PI * pow(radius, 3.0);
-
 }
 
 ChCollisionModelSphere::~ChCollisionModelSphere() {

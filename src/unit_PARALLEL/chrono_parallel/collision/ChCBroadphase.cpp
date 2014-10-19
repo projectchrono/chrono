@@ -148,6 +148,25 @@ void ChCBroadphase::host_Store_AABB_BIN_Intersection(const real3 *aabb_data,
 }
 //%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
+// Check if two bodies interact using their collision family data.
+inline bool __host__ __device__ collide(short2 fam_data_A,
+                                        short2 fam_data_B)
+{
+  // Return true only if the bit corresponding to family of B is set in the mask
+  // of A and vice-versa.
+  return (fam_data_A.y & fam_data_B.x) && (fam_data_B.y & fam_data_A.x);
+}
+
+// Check if two AABBs overlap using their min/max corners.
+inline bool __host__ __device__ overlap(real3 Amin,
+                                        real3 Amax,
+                                        real3 Bmin,
+                                        real3 Bmax)
+{
+  // Return true only if the two AABBs overlap in all 3 directions.
+  return (Amin.x <= Bmax.x && Bmin.x <= Amax.x) && (Amin.y <= Bmax.y && Bmin.y <= Amax.y) && (Amin.z <= Bmax.z && Bmin.z <= Amax.z);
+}
+
 //%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 //Function to count AABB AABB intersection
 
@@ -157,33 +176,28 @@ inline void __host__ __device__ function_Count_AABB_AABB_Intersection(const uint
                                                                       const uint *bin_number,
                                                                       const uint *body_number,
                                                                       const uint *bin_start_index,
-                                                                      const int2 * fam_data,
+                                                                      const short2 *fam_data,
                                                                       uint *Num_ContactD) {
-   uint end = bin_start_index[index], count = 0, i = (!index) ? 0 : bin_start_index[index - 1];
-   uint tempa, tempb;
-   real3 Amin, Amax, Bmin, Bmax;
+  uint start = (index == 0) ? 0 : bin_start_index[index - 1];
+  uint end = bin_start_index[index];
+  uint count = 0;
 
-   for (; i < end; i++) {
-      tempa = body_number[i];
-      Amin = aabb_data[tempa];
-      Amax = aabb_data[tempa + number_of_particles];
+  for (uint i = start; i < end; i++) {
+    uint bodyA = body_number[i];
+    real3 Amin = aabb_data[bodyA];
+    real3 Amax = aabb_data[bodyA + number_of_particles];
+    short2 famA = fam_data[bodyA];
 
-      for (int k = i + 1; k < end; k++) {
-         tempb = body_number[k];
-         if (tempa != tempb) {
-            Bmin = aabb_data[tempb];
-            Bmax = aabb_data[tempb + number_of_particles];
-            bool inContact = (Amin.x <= Bmax.x && Bmin.x <= Amax.x) && (Amin.y <= Bmax.y && Bmin.y <= Amax.y) && (Amin.z <= Bmax.z && Bmin.z <= Amax.z);
-            if (fam_data[body_number[k]].x != fam_data[body_number[i]].y && fam_data[body_number[i]].x != fam_data[body_number[k]].y) {
-               if (inContact) {
-                  count++;
-               }
-            }
-         }
-      }
-   }
+    for (uint k = i + 1; k < end; k++) {
+      uint bodyB = body_number[k];
+      if (bodyA == bodyB) continue;
+      if (!collide(famA, fam_data[bodyB])) continue;
+      if (!overlap(Amin, Amax, aabb_data[bodyB], aabb_data[bodyB + number_of_particles])) continue;
+      count++;
+    }
+  }
 
-   Num_ContactD[index] = count;
+  Num_ContactD[index] = count;
 }
 
 //--------------------------------------------------------------------------
@@ -191,7 +205,7 @@ void ChCBroadphase::host_Count_AABB_AABB_Intersection(const real3 *aabb_data,
                                                       const uint *bin_number,
                                                       const uint *body_number,
                                                       const uint *bin_start_index,
-                                                      const int2 * fam_data,
+                                                      const short2 *fam_data,
                                                       uint *Num_ContactD) {
 #pragma omp parallel for schedule(dynamic)
    for (int i = 0; i < last_active_bin; i++) {
@@ -209,49 +223,41 @@ inline void __host__ __device__ function_Store_AABB_AABB_Intersection(const uint
                                                                       const uint *body_number,
                                                                       const uint *bin_start_index,
                                                                       const uint *Num_ContactD,
-                                                                      const int2 * fam_data,
+                                                                      const short2 *fam_data,
                                                                       long long *potential_contacts) {
-   uint end = bin_start_index[index], count = 0, i = (!index) ? 0 : bin_start_index[index - 1], Bin = bin_number[index];
-   uint offset = (!index) ? 0 : Num_ContactD[index - 1];
 
-   if (end - i == 1) {
-      return;
-   }
+  uint start = (index == 0) ? 0 : bin_start_index[index - 1];
+  uint end = bin_start_index[index];
 
-   uint tempa, tempb;
-   real3 Amin, Amax, Bmin, Bmax;
+  if (end - start == 1) return;
 
-   for (; i < end; i++) {
+  uint Bin = bin_number[index];
+  uint offset = (index == 0) ? 0 : Num_ContactD[index - 1];
+  uint count = 0;
 
-      tempa = body_number[i];
-      Amin = aabb_data[tempa];
-      Amax = aabb_data[tempa + number_of_particles];
+  for (uint i = start; i < end; i++) {
+    uint bodyA = body_number[i];
+    real3 Amin = aabb_data[bodyA];
+    real3 Amax = aabb_data[bodyA + number_of_particles];
+    short2 famA = fam_data[bodyA];
 
-      for (int k = i + 1; k < end; k++) {
-         tempb = body_number[k];
-         if (tempa != tempb) {
-            Bmin = aabb_data[tempb];
-            Bmax = aabb_data[tempb + number_of_particles];
-            bool inContact = (Amin.x <= Bmax.x && Bmin.x <= Amax.x) && (Amin.y <= Bmax.y && Bmin.y <= Amax.y) && (Amin.z <= Bmax.z && Bmin.z <= Amax.z);
-            if (fam_data[body_number[k]].x != fam_data[body_number[i]].y && fam_data[body_number[i]].x != fam_data[body_number[k]].y) {
-               if (inContact == true) {
-                  int a = tempa;
-                  int b = tempb;
+    for (int k = i + 1; k < end; k++) {
+      uint bodyB = body_number[k];
+      if (bodyA == bodyB) continue;
+      if (!collide(famA, fam_data[bodyB])) continue;
+      if (!overlap(Amin, Amax, aabb_data[bodyB], aabb_data[bodyB + number_of_particles])) continue;
 
-                  if (b < a) {
-                     int t = a;
-                     a = b;
-                     b = t;
-                  }
-
-                  potential_contacts[offset + count] = ((long long) a << 32 | (long long) b);     //the two indicies of the objects that make up the contact
-                  count++;
-               }
-            }
-         }
+      if (bodyB < bodyA) {
+        uint t = bodyA;
+        bodyA = bodyB;
+        bodyB = t;
       }
-   }
+      potential_contacts[offset + count] = ((long long)bodyA << 32 | (long long)bodyB);     //the two indicies of the objects that make up the contact
+      count++;
+    }
+  }
 }
+
 //--------------------------------------------------------------------------
 
 void ChCBroadphase::host_Store_AABB_AABB_Intersection(const real3 *aabb_data,
@@ -259,7 +265,7 @@ void ChCBroadphase::host_Store_AABB_AABB_Intersection(const real3 *aabb_data,
                                                       const uint *body_number,
                                                       const uint *bin_start_index,
                                                       const uint *Num_ContactD,
-                                                      const int2 * fam_data,
+                                                      const short2 *fam_data,
                                                       long long *potential_contacts) {
 #pragma omp parallel for schedule (dynamic)
    for (int index = 0; index < last_active_bin; index++) {
@@ -271,7 +277,7 @@ void ChCBroadphase::host_Store_AABB_AABB_Intersection(const real3 *aabb_data,
 //%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 // use spatial subdivision to detect the list of POSSIBLE collisions (let user define their own narrow-phase collision detection)
 int ChCBroadphase::detectPossibleCollisions(custom_vector<real3> &aabb_data,
-                                            custom_vector<int2> &fam_data,
+                                            custom_vector<short2> &fam_data,
                                             custom_vector<long long> &potentialCollisions) {
 
    double startTime = omp_get_wtime();
@@ -392,7 +398,7 @@ int ChCBroadphase::detectPossibleCollisions(custom_vector<real3> &aabb_data,
          CASTU1(bin_number),
          CASTU1(body_number),
          CASTU1(bin_start_index),
-         CASTI2(fam_data),
+         CASTS2(fam_data),
          CASTU1(Num_ContactD));
 #else
    host_Count_AABB_AABB_Intersection(aabb_data.data(), bin_number.data(), body_number.data(), bin_start_index.data(), fam_data.data(), Num_ContactD.data());
@@ -412,7 +418,7 @@ int ChCBroadphase::detectPossibleCollisions(custom_vector<real3> &aabb_data,
          CASTU1(body_number),
          CASTU1(bin_start_index),
          CASTU1(Num_ContactD),
-         CASTI2(fam_data),
+         CASTS2(fam_data),
          CASTLL(potentialCollisions));
 #else
    host_Store_AABB_AABB_Intersection(aabb_data.data(), bin_number.data(), body_number.data(), bin_start_index.data(), Num_ContactD.data(), fam_data.data(),

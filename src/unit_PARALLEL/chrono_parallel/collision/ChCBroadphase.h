@@ -15,7 +15,7 @@ class CH_PARALLEL_API ChCBroadphase {
    // functions
    ChCBroadphase();
    int detectPossibleCollisions(custom_vector<real3> &aabb_data,
-                                custom_vector<int2> & fam_data,
+                                custom_vector<short2> & fam_data,
                                 custom_vector<long long> &potentialCollisions);
    void setBinsPerAxis(int3 binsPerAxis);
    int3 getBinsPerAxis();
@@ -51,14 +51,14 @@ class CH_PARALLEL_API ChCBroadphase {
                                           const uint *bin_number,
                                           const uint *body_number,
                                           const uint *bin_start_index,
-                                          const int2 * fam_data,
+                                          const short2 * fam_data,
                                           uint *Num_ContactD);
    void host_Store_AABB_AABB_Intersection(const real3 *aabb_data,
                                           const uint *bin_number,
                                           const uint *body_number,
                                           const uint *bin_start_index,
                                           const uint *Num_ContactD,
-                                          const int2 * fam_data,
+                                          const short2 * fam_data,
                                           long long *potentialCollisions);
 
 };

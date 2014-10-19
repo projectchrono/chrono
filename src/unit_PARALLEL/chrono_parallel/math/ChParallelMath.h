@@ -24,10 +24,11 @@
 #include "real4.h"
 #include "mat33.h"
 
+#define S2 _make_short2
 //#define I4  int4
 #define I3  _make_int3
 #define I2  _make_int2
-#define U3  make_uint3
+//#define U3  make_uint3
 
 typedef unsigned int uint;
 
@@ -40,6 +41,15 @@ struct bool2 {
          : x(a), y(b) {
    }
 };
+
+static inline short2 _make_short2(const short& a,
+                                  const short& b)
+{
+  short2 t;
+  t.x = a;
+  t.y = b;
+  return t;
+}
 
 static inline int3 _make_int3(const int &a,
                               const int &b,

@@ -22,12 +22,13 @@
 namespace chrono {
 namespace collision {
 
-ChCollisionModelParallel::ChCollisionModelParallel() {
-   nObjects = 0;
-   colFam = -1;
-   noCollWith = -2;
-   inertia = R3(0);
-   total_volume = 0;
+ChCollisionModelParallel::ChCollisionModelParallel()
+: nObjects(0),
+  family_group(1),
+  family_mask(0x7FFF),
+  inertia(ZERO_VECTOR),
+  total_volume(0)
+{
 }
 
 ChCollisionModelParallel::~ChCollisionModelParallel() {
@@ -40,8 +41,8 @@ int ChCollisionModelParallel::ClearModel() {
 
    mData.clear();
    nObjects = 0;
-   colFam = -1;
-   noCollWith = -2;
+   family_group = 1;
+   family_mask = 0x7FFF;
    return 1;
 }
 
@@ -380,29 +381,54 @@ void ChCollisionModelParallel::GetAABB(ChVector<> &bbmin,
 }
 
 void ChCollisionModelParallel::SetFamily(int mfamily) {
-   colFam = mfamily;
+  // Set family_group to a power of 2, with the set bit in position mfamily.
+  assert(mfamily >= 0 && mfamily < 15);
+  family_group = (1 << mfamily);
 }
 
 int ChCollisionModelParallel::GetFamily() {
-   return colFam;
+  // Return the position of the single bit set in family_group.
+  unsigned i = 1;
+  int pos = 1;
+  while (!(i & family_group)) {
+    i << 1;
+    pos++;
+  }
+  return pos;
 }
 
 void ChCollisionModelParallel::SetFamilyMaskNoCollisionWithFamily(int mfamily) {
-   noCollWith = mfamily;
+  // Clear the family_mask bit in position mfamily.
+  assert(mfamily >= 0 && mfamily < 15);
+  family_mask &= ~(1 << mfamily);
 }
 
 void ChCollisionModelParallel::SetFamilyMaskDoCollisionWithFamily(int mfamily) {
-   if (noCollWith == mfamily) {
-      noCollWith = -1;
-   }
-}
-bool ChCollisionModelParallel::GetFamilyMaskDoesCollisionWithFamily(int mfamily) {
-   return (noCollWith != mfamily);
+  // Set the family_mask bit in position mfamily.
+  assert(mfamily >= 0 && mfamily < 15);
+  family_mask |= (1 << mfamily);
 }
 
-int ChCollisionModelParallel::GetNoCollFamily() {
-   return noCollWith;
+bool ChCollisionModelParallel::GetFamilyMaskDoesCollisionWithFamily(int mfamily) {
+  // Return true if the family_mask bit in position mfamily is set.
+  assert(mfamily >= 0 && mfamily < 15);
+  return family_mask & (1 << mfamily);
 }
+
+void ChCollisionModelParallel::SetFamilyGroup(short group) {
+  // In orer to properly encode a collision family, the value 'group' must be a
+  // power of 2.
+  assert(group > 0 && !(group & (group - 1)));
+  family_group = group;
+}
+
+void ChCollisionModelParallel::SetFamilyMask(short mask) {
+  // In order to properly encode a collision mask, the value 'mask' must not
+  // exceed 0x7FFFF (i.e. 15 right bits all set)
+  assert(mask >= 0 && mask <= 0x7FFF);
+  family_mask = mask;
+}
+
 void ChCollisionModelParallel::SyncPosition() {
    ChBody *bpointer = GetBody();
    assert(bpointer);
@@ -416,6 +442,6 @@ float ChCollisionModelParallel::getVolume() {
 ChPhysicsItem *ChCollisionModelParallel::GetPhysicsItem() {
    return (ChPhysicsItem *) GetBody();
 }
-}     // END_OF_NAMESPACE____
-}     // END_OF_NAMESPACE____
 
+}     // END_OF_NAMESPACE____
+}     // END_OF_NAMESPACE____

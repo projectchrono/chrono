@@ -115,6 +115,7 @@ using namespace thrust;
 #define CASTU3(x) (uint3*)thrust::raw_pointer_cast(&x[0])
 #define CASTI1(x) (int*)thrust::raw_pointer_cast(&x[0])
 #define CASTLL(x) (long long*)thrust::raw_pointer_cast(&x[0])
+#define CASTS2(x) (short2*)thrust::raw_pointer_cast(&x[0])
 #define CASTI2(x) (int2*)thrust::raw_pointer_cast(&x[0])
 #define CASTI3(x) (int3*)thrust::raw_pointer_cast(&x[0])
 #define CASTI4(x) (int4*)thrust::raw_pointer_cast(&x[0])
