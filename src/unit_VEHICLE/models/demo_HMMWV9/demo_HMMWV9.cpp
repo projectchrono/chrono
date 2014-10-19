@@ -385,8 +385,8 @@ int main(int argc, char* argv[])
 
     tire_front_left->Advance(step);
     tire_front_right->Advance(step);
-    tire_rear_right->Advance(step);
     tire_rear_left->Advance(step);
+    tire_rear_right->Advance(step);
 
     // write output data if useing PACEJKA tire
     if(tire_model == PACEJKA && save_pactire_data && time > time_start_output)

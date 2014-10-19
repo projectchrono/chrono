@@ -124,8 +124,7 @@ int main(int argc, char* argv[])
     alpha_t = a_min;
     tanalpha_t = tan(alpha_t);
     gamma_t = 0.1 * alpha_t;
-  }
-  else {
+  } else {
     out_name_long = "test_pacTire_pureLongSlip_transient.csv";
     out_name_lat = "test_pacTire_pureLatSlip_transient.csv";
     out_name_latGamma = "test_pacTire_pacLatSlipGamma_transient.csv";
