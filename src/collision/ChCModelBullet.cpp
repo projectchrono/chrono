@@ -562,87 +562,72 @@ bool ChModelBullet::AddCopyOfAnotherModel (ChCollisionModel* another)
 }
 
 
-void  ChModelBullet::SetFamily(int mfamily)
+void ChModelBullet::SetFamily(int mfamily)
 {
-	assert(mfamily<16);
-
-	this->family_group = (short int)0x1 << mfamily;
-
-	if (!bt_collision_object->getBroadphaseHandle()) return;
-
-	this->SyncPosition();
-
-	// Trick to avoid troubles if setting mask or family when model is already overlapping to some other model
-	ChCollisionSystem* mcosys =this->GetPhysicsItem()->GetSystem()->GetCollisionSystem();
-	//short int original_mask = bt_collision_object->getBroadphaseHandle()->m_collisionFilterMask;
-	mcosys->Remove(this);
-
-	ChCollisionSystemBullet* mcs = (ChCollisionSystemBullet*) mcosys;
-	mcs->GetBulletCollisionWorld()->addCollisionObject(bt_collision_object, this->family_group , this->family_mask);
+  assert(mfamily < 16);
+  this->family_group = (short int)0x1 << mfamily;
+  onFamilyChange();
 }
 
-int   ChModelBullet::GetFamily()
+int ChModelBullet::GetFamily()
 {
-	int fam;
-	if (!bt_collision_object->getBroadphaseHandle()) return -1;
-	for (fam = 0; fam < 16; fam++)
-		if (((short int)0x1 << fam) &	bt_collision_object->getBroadphaseHandle()->m_collisionFilterGroup)
-			return fam;
-	return fam;
+  int fam;
+  if (!bt_collision_object->getBroadphaseHandle()) return -1;
+  for (fam = 0; fam < 16; fam++)
+    if (((short int)0x1 << fam) &	bt_collision_object->getBroadphaseHandle()->m_collisionFilterGroup)
+      return fam;
+  return fam;
 }
 
-void  ChModelBullet::SetFamilyMaskNoCollisionWithFamily(int mfamily)
+void ChModelBullet::SetFamilyMaskNoCollisionWithFamily(int mfamily)
 {
-	assert(mfamily<16);
-
-	short int familyflag = (short int)0x1 << mfamily;
-	this->family_mask = this->family_mask & ~familyflag;
-
-	if (!bt_collision_object->getBroadphaseHandle()) return;
-
-	this->SyncPosition();
-
-	// Trick to avoid troubles if setting mask or family when model is already overlapping to some other model
-	ChCollisionSystem* mcosys =this->GetPhysicsItem()->GetSystem()->GetCollisionSystem();
-	//short int original_family = bt_collision_object->getBroadphaseHandle()->m_collisionFilterGroup;
-	//short int original_mask   = bt_collision_object->getBroadphaseHandle()->m_collisionFilterMask;
-	mcosys->Remove(this);
-
-	ChCollisionSystemBullet* mcs = (ChCollisionSystemBullet*) mcosys;
-	mcs->GetBulletCollisionWorld()->addCollisionObject(bt_collision_object, this->family_group , this->family_mask);
+  assert(mfamily < 16);
+  family_mask &= ~(1 << mfamily);
+  onFamilyChange();
 } 
 
-void  ChModelBullet::SetFamilyMaskDoCollisionWithFamily(int mfamily)
+void ChModelBullet::SetFamilyMaskDoCollisionWithFamily(int mfamily)
 {
-	assert(mfamily<16);
-
-	short int familyflag = (short int)0x1 << mfamily;
-	this->family_mask = this->family_mask | familyflag;
-
-	if (!bt_collision_object->getBroadphaseHandle()) return;
-
-	this->SyncPosition();
-
-	// Trick to avoid troubles if setting mask or family when model is already overlapping to some other model
-	ChCollisionSystem* mcosys =this->GetPhysicsItem()->GetSystem()->GetCollisionSystem();
-	//short int original_family = bt_collision_object->getBroadphaseHandle()->m_collisionFilterGroup;
-	//short int original_mask   = bt_collision_object->getBroadphaseHandle()->m_collisionFilterMask;
-	mcosys->Remove(this);
-
-	ChCollisionSystemBullet* mcs = (ChCollisionSystemBullet*) mcosys;
-	mcs->GetBulletCollisionWorld()->addCollisionObject(bt_collision_object, this->family_group , this->family_mask);
+  assert(mfamily < 16);
+  family_mask |= (1 << mfamily);
+  onFamilyChange();
 }
 
 bool ChModelBullet::GetFamilyMaskDoesCollisionWithFamily(int mfamily)
 {
-	assert(mfamily<16);
-	if (!bt_collision_object->getBroadphaseHandle()) return false;
-	short int familyflag = (short int)0x1 << mfamily;
-	return (bt_collision_object->getBroadphaseHandle()->m_collisionFilterMask & familyflag) != 0;
+  assert(mfamily < 16);
+  if (!bt_collision_object->getBroadphaseHandle()) return false;
+  short familyflag = (1 << mfamily);
+  return (bt_collision_object->getBroadphaseHandle()->m_collisionFilterMask & familyflag) != 0;
 }
 
+void ChModelBullet::SetFamilyGroup(short group)
+{
+  assert(group > 0 && !(group & (group - 1)));
+  family_group = group;
+  onFamilyChange();
+}
 
+void ChModelBullet::SetFamilyMask(short mask)
+{
+  assert(mask > 0);
+  family_mask = mask;
+  onFamilyChange();
+}
 
+void ChModelBullet::onFamilyChange()
+{
+  if (!bt_collision_object->getBroadphaseHandle()) return;
+
+  this->SyncPosition();
+
+  // Trick to avoid troubles if setting mask or family when model is already overlapping to some other model
+  ChCollisionSystem* mcosys = this->GetPhysicsItem()->GetSystem()->GetCollisionSystem();
+  mcosys->Remove(this);
+
+  ChCollisionSystemBullet* mcs = static_cast<ChCollisionSystemBullet*>(mcosys);
+  mcs->GetBulletCollisionWorld()->addCollisionObject(bt_collision_object, family_group, family_mask);
+}
 
 
 void ChModelBullet::GetAABB(ChVector<>& bbmin, ChVector<>& bbmax) const

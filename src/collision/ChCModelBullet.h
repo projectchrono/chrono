@@ -250,11 +250,29 @@ public:
 		/// Return the pointer to the Bullet model
   btCollisionObject* GetBulletModel() {return this->bt_collision_object;}
 
-  short int GetFamilyGroup() {return this->family_group;}
-  short int GetFamilyMask() {return this->family_mask;}
+  /// Return the collision family group of this model.
+  /// The collision family of this model is the position of the single set bit
+  /// in the return value.
+  short GetFamilyGroup() { return family_group; }
+  /// Set the collision family group of this model.
+  /// This is an alternative way of specifying the collision family for this
+  /// object.  The value family_group must have a single bit set (i.e. it must
+  /// be a power of 2). The corresponding family is then the bit position.
+  void SetFamilyGroup(short group);
+
+  /// Return the collision mask for this model.
+  /// Each bit of the return value indicates whether this model collides with
+  /// the corresponding family (bit set) or not (bit unset).
+  short GetFamilyMask() { return family_mask; }
+  /// Set the collision mask for this model.
+  /// Any set bit in the specified mask indicates that this model collides with
+  /// all objects whose family is equal to the bit position.
+  void SetFamilyMask(short mask);
 
 private:
 	void _injectShape(const ChVector<>& pos, const ChMatrix33<>& rot, btCollisionShape* mshape);
+
+    void onFamilyChange();
 };
 
 
