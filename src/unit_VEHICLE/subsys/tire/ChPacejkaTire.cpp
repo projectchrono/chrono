@@ -975,12 +975,18 @@ void ChPacejkaTire::slip_from_uv(bool use_besselink, double bessel_c)
   double u_sigma = m_slip->u / m_relaxation->sigma_kappa;
   double u_Bessel = d_vlow * m_slip->V_sx / m_relaxation->C_Fkappa;
   double kappa_p = u_sigma - u_Bessel;
+  // don't allow damping to switch sign of kappa
+  if( u_sigma * kappa_p < 0)
+    kappa_p = 0;
 
   // tan(alpha') ~= alpha' for small slip
   double v_sigma = -m_slip->v_alpha / m_relaxation->sigma_alpha;
   // double v_sigma = std::atan(m_slip->v_alpha / m_relaxation->sigma_alpha);
   double v_Bessel = -d_vlow * m_slip->V_sy / m_relaxation->C_Falpha;
   double alpha_p = v_sigma - v_Bessel;
+  // don't allow damping to switch sign of alpha
+  if( v_sigma * alpha_p < 0)
+    alpha_p = 0;
 
   // gammaP, phiP, phiT not effected by Besselink
   double gamma_p = m_relaxation->C_Falpha * m_slip->v_gamma / (m_relaxation->C_Fgamma * m_relaxation->sigma_alpha);
