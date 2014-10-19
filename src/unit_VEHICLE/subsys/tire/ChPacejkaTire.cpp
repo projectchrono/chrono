@@ -34,7 +34,7 @@ namespace chrono{
 // -----------------------------------------------------------------------------
 static const double default_step_size = 0.01;
 // Threshold value for small forward tangential velocity.
-static const double v_x_threshold = 0.2;
+// static const double v_x_threshold = 0.2;
 
 // large Fz leads to large m_dF_z, leads to large Fx, Fy, etc.
 static double Fz_thresh = 30000;  
@@ -647,14 +647,15 @@ void ChPacejkaTire::slip_kinematic( )
   // regardless of contact
   m_slip->V_cx = V.x;    // tire center x-vel, tire c-sys
   m_slip->V_cy = V.y;    // tire center y-vel, tire c-sys
-  m_slip->V_sx = V.x - m_tireState.omega * m_R_eff;  // x-slip vel, tire c-sys
-  m_slip->V_sy = V.y;                                // approx.
 
   if(m_in_contact)
   {
+    m_slip->V_sx = V.x - m_tireState.omega * m_R_eff;  // x-slip vel, tire c-sys
+    m_slip->V_sy = V.y;                                // approx.
+
     // ensure V_x is not too small, else scale V_x to the threshold
-    if (std::abs(V.x) < v_x_threshold) {
-      V.x = (V.x < 0) ? -v_x_threshold : v_x_threshold;
+    if (std::abs(V.x) < m_params->model.vxlow) {
+      V.x = (V.x < 0) ? -m_params->model.vxlow : m_params->model.vxlow;
     }
 
     double V_x_abs = std::abs(V.x);
@@ -693,6 +694,9 @@ void ChPacejkaTire::slip_kinematic( )
     m_slip->gammaP = std::sin(gamma);
   } else {
     // not in contact, set input slips to 0
+    m_slip->V_sx = 0; 
+    m_slip->V_sy = 0;                             
+
     m_slip->kappa = 0;
     m_slip->alpha = 0;
     m_slip->alpha_star = 0;
@@ -735,7 +739,7 @@ void ChPacejkaTire::advance_slip_transient(double step_size)
   double V_cx_low = 2.5;   // cut-off for low velocity zone
 
   // see if low velocity considerations should be made
-  double alpha_sl = 3.0 * m_pureLat->D_y / m_relaxation->C_Falpha;
+  double alpha_sl = std::abs( 3.0 * m_pureLat->D_y / m_relaxation->C_Falpha);
   // Eq. 7.25 from Pacejka (2006), solve du_dt and dvalpha_dt
   if ((std::abs(m_combinedTorque->alpha_r_eq) > alpha_sl) && (V_cx_abs < V_cx_low))
   {
@@ -975,7 +979,7 @@ void ChPacejkaTire::slip_from_uv(bool use_besselink, double bessel_c)
   // tan(alpha') ~= alpha' for small slip
   double v_sigma = -m_slip->v_alpha / m_relaxation->sigma_alpha;
   // double v_sigma = std::atan(m_slip->v_alpha / m_relaxation->sigma_alpha);
-  double v_Bessel = d_vlow * m_slip->V_sy / m_relaxation->C_Falpha;
+  double v_Bessel = -d_vlow * m_slip->V_sy / m_relaxation->C_Falpha;
   double alpha_p = v_sigma - v_Bessel;
 
   // gammaP, phiP, phiT not effected by Besselink
@@ -1033,21 +1037,27 @@ void ChPacejkaTire::combinedSlipReactions( )
 
 void ChPacejkaTire::relaxationLengths()
 {
-  double p_Ky4 = 2;
-
+  double p_Ky4 = 2; // according to Pac2002 model
   double p_Ky5 = 0;
   double p_Ky6 = 2.5; // 0.92;
   double p_Ky7 = 0.24;
 
-  // all these C values should probably be positive, since negative stiffness doesn't make sense
-  // parameter pky1 from A/Car parameter file is negative? not correct, force to positive
-  double C_Falpha = m_params->lateral.pky1 * m_params->vertical.fnomin * std::sin(p_Ky4 * std::atan(m_Fz / (m_params->lateral.pky2 * m_params->vertical.fnomin))) * m_zeta->z3 * m_params->scaling.lyka;
-  double sigma_alpha = std::abs(C_Falpha / m_C_Fy);
+  // NOTE: C_Falpha is positive according to Pacejka, negative in Pac2002.
+  // Positive stiffness makes sense, so ensure all these are positive
+  double C_Falpha = std::abs(m_params->lateral.pky1 * m_params->vertical.fnomin * std::sin(p_Ky4 * std::atan(m_Fz / (m_params->lateral.pky2 * m_params->vertical.fnomin))) * m_zeta->z3 * m_params->scaling.lyka);
+  double sigma_alpha = C_Falpha / m_C_Fy;
   double C_Fkappa = m_Fz * (m_params->longitudinal.pkx1 + m_params->longitudinal.pkx2 * m_dF_z) * exp(m_params->longitudinal.pkx3 * m_dF_z) * m_params->scaling.lky;
   double sigma_kappa = C_Fkappa / m_C_Fx;
   double C_Fgamma = m_Fz * (p_Ky6 + p_Ky7 * m_dF_z) * m_params->scaling.lgay;
   double C_Fphi = 2.0 * (C_Fgamma * m_R0);
   
+  assert( C_Falpha > 0);
+  assert( sigma_alpha > 0);
+  assert( C_Fkappa > 0);
+  assert( sigma_kappa > 0);
+  assert( C_Fgamma > 0);
+  assert( C_Fphi > 0);
+
   // NOTE: reference does not include the negative in the exponent for sigma_kappa_ref
   // double sigma_kappa_ref = m_Fz * (m_params->longitudinal.ptx1 + m_params->longitudinal.ptx2 * m_dF_z)*(m_R0*m_params->scaling.lsgkp / m_params->vertical.fnomin) * exp( -m_params->longitudinal.ptx3 * m_dF_z);
   // double sigma_alpha_ref = m_params->lateral.pty1 * (1.0 - m_params->lateral.pky3 * std::abs( m_slip->gammaP ) ) * m_R0 * m_params->scaling.lsgal * sin(p_Ky4 * atan(m_Fz / (m_params->lateral.pty2 * m_params->vertical.fnomin) ) );
