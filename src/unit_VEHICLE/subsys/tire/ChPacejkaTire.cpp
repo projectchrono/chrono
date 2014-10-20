@@ -1012,8 +1012,8 @@ void ChPacejkaTire::slip_from_uv(bool use_besselink, double bessel_c)
 // calcFx               alphaP ~= 0
 // calcFy and calcMz    kappaP ~= 0
 // NOTE: alphaP and gammaP have already been modified for being on the L/R side
-// e.g., positive alpha = turn toward vehicle centerline, and
-// e.g., positive gamme = wheel vertical axis top pointing toward vehicle center
+// e.g., positive alpha = turn wheel toward vehicle centerline
+// e.g., positive gamma = wheel vertical axis top pointing toward vehicle center
 void ChPacejkaTire::pureSlipReactions()
 {
   if(m_in_contact)
@@ -1025,15 +1025,15 @@ void ChPacejkaTire::pureSlipReactions()
     m_FM_pure.force.y = m_sameSide * Fy_pureLat(m_slip->alphaP, m_slip->gammaP);
 
     // calc Mz, pure lateral slip
-    m_FM_pure.moment.z = Mz_pureLat(m_slip->alphaP, m_slip->gammaP, m_FM_pure.force.y);
+    m_FM_pure.moment.z = m_sameSide * Mz_pureLat(m_slip->alphaP, m_slip->gammaP, m_sameSide * m_FM_pure.force.y);
   }
-  m_pure_called = true;
 }
 
 // combined slip reactions, if the tire is in contact with the ground
+// MUST call pureSlipReactions() first, as these functions rely on intermediate values
 // NOTE: alphaP and gammaP have already been modified for being on the L/R side
-// e.g., positive alpha = turn toward vehicle centerline, and
-// e.g., positive gamme = wheel vertical axis top pointing toward vehicle center
+// e.g., positive alpha = turn wheel toward vehicle centerline
+// e.g., positive gamma = wheel vertical axis top pointing toward vehicle center
 void ChPacejkaTire::combinedSlipReactions( )
 {
   if(m_in_contact)
