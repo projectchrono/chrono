@@ -138,10 +138,10 @@ public:
 		/// but in the opposite order...)
 		///  new_v = old_v >> frame3to2 >> frame2to1 >> frame1to0;
 		/// This operation is not commutative.
-	friend ChVector<Real> operator >> (const ChVector<Real>& V, const ChCoordsys<Real>& mcsys)
-		{
-			return mcsys.TransformLocalToParent(V);
-		}
+	//friend ChVector<Real> operator >> (const ChVector<Real>& V, const ChCoordsys<Real>& mcsys)
+	//	{
+	//		return mcsys.TransformLocalToParent(V);
+	//	}
 
 		/// The '*' operator transforms a coordinate system, so
 		/// transformations can be represented with this syntax:
@@ -170,10 +170,10 @@ public:
 		///  NOTE: since c++ operator execution is from left to right, in
 		/// case of multiple transformations like w=A*B*C*v, the >> operator
 		/// performs faster, like  w=v>>C>>B>>A;
-	ChVector<Real> operator * (const ChVector<Real>& V) const
-		{
-				return this->TransformLocalToParent(V);
-		}
+	//ChVector<Real> operator * (const ChVector<Real>& V) const
+	//	{
+	//			return this->TransformLocalToParent(V);
+	//	}
 
 		/// The '/' is like the '*' operator (see), but uses the inverse
 		/// transformation for A, in A/b. (with A ChFrame, b ChVector)
@@ -253,7 +253,7 @@ public:
 	void ConcatenatePreTransformation(const ChCoordsys<Real>& T)
 		{
 			this->pos = T.TransformLocalToParent(this->pos);
-			this->rot = T.coord.rot * this->rot;
+			this->rot = T.rot * this->rot;
 		}
 
 		/// Apply a transformation (rotation and translation) represented by
@@ -352,6 +352,121 @@ public:
 		}
 
 };
+
+
+
+//
+// MIXED ARGUMENT OPERATORS
+//
+
+// Mixing with ChVector :
+
+	/// The '*' operator that transforms 'mixed' types: 
+	///  vector_C = frame_A * vector_B;
+	/// where frame_A  is  a ChCoordsys  
+	///       vector_B is  a ChVector 
+	/// Returns a ChVector. 
+	/// The effect is like applying the transformation frame_A to vector_B and get vector_C.
+template <class Real>
+ChVector<Real> operator* (const ChCoordsys<Real>& Fa, const ChVector<Real>& Fb) 
+		{
+			return Fa.TransformPointLocalToParent(Fb);
+		}
+
+	/// The '*' operator that transforms 'mixed' types: 
+	///  frame_C = vector_A * frame_B;
+	/// where vector_A is  a ChVector  
+	///       frame_B  is  a ChCoordsys 
+	/// Returns a ChCoordsys. 
+	/// The effect is like applying the translation vector_A to frame_B and get frame_C.
+template <class Real>
+ChCoordsys<Real> operator* (const ChVector<Real>& Fa, const ChCoordsys<Real>& Fb) 
+		{
+			ChCoordsys<Real> res(Fb);
+			res.pos += Fa;
+			return res;
+		}
+
+	/// The '>>' operator that transforms 'mixed' types: 
+	///  vector_C = vector_A >> frame_B;
+	/// where vector_A is  a ChVector  
+	///       frame_B  is  a ChCoordsys
+	/// Returns a ChVector. 
+	/// The effect is like applying the transformation frame_B to frame_A and get frame_C.
+template <class Real>
+ChVector<Real> operator>> (const ChVector<Real>& Fa, const ChCoordsys<Real>& Fb) 
+		{
+			return Fb.TransformPointLocalToParent(Fa);
+		}
+
+	/// The '>>' operator that transforms 'mixed' types: 
+	///  frame_C = frame_A >> vector_B;
+	/// where frame_A  is  a ChCoordsys 
+	///       vector_B is  a ChVector 
+	/// Returns a ChCoordsys. 
+	/// The effect is like applying the translation vector_B to frame_A and get frame_C.
+template <class Real>
+ChCoordsys<Real> operator>> (const ChCoordsys<Real>& Fa, const ChVector<Real>& Fb) 
+		{
+			ChCoordsys<Real> res(Fa);
+			res.pos += Fb;
+			return res;
+		}
+
+
+// Mixing with ChQuaternion :
+
+	/// The '*' operator that transforms 'mixed' types: 
+	///  quat_C = frame_A * quat_B;
+	/// where frame_A  is  a ChCoordsys  
+	///       quat_B   is  a ChQuaternion 
+	/// Returns a ChQuaternion. 
+	/// The effect is like applying the transformation frame_A to quat_B and get quat_C.
+template <class Real>
+ChQuaternion<Real> operator* (const ChCoordsys<Real>& Fa, const ChQuaternion<Real>& Fb) 
+		{
+			return Fa.rot * Fb;
+		}
+
+	/// The '*' operator that transforms 'mixed' types: 
+	///  frame_C = quat_A * frame_B;
+	/// where quat_A   is  a ChQuaternion  
+	///       frame_B  is  a ChCoordsys 
+	/// Returns a ChCoordsys. 
+	/// The effect is like applying the rotation quat_A to frame_B and get frame_C.
+template <class Real>
+ChCoordsys<Real> operator* (const ChQuaternion<Real>& Fa, const ChCoordsys<Real>& Fb) 
+		{
+			ChCoordsys<Real> res(Fa.Rotate(Fb.pos),
+								 Fa * Fb.rot);
+			return res;
+		}
+
+	/// The '>>' operator that transforms 'mixed' types: 
+	///  quat_C = quat_A >> frame_B;
+	/// where quat_A   is  a ChQuaternion  
+	///       frame_B  is  a ChCoordsys
+	/// Returns a ChQuaternion. 
+	/// The effect is like applying the transformation frame_B to quat_A and get quat_C.
+template <class Real>
+ChQuaternion<Real> operator>> (const ChQuaternion<Real>& Fa, const ChCoordsys<Real>& Fb) 
+		{
+			return Fa >> Fb.rot;
+		}
+
+	/// The '>>' operator that transforms 'mixed' types: 
+	///  frame_C = frame_A >> quat_B;
+	/// where frame_A is  a ChCoordsys 
+	///       frame_B is  a ChQuaternion 
+	/// Returns a ChCoordsys. 
+	/// The effect is like applying the rotation quat_B to frame_A and get frame_C.
+template <class Real>
+ChCoordsys<Real> operator>> (const ChCoordsys<Real>& Fa, const ChQuaternion<Real>& Fb) 
+		{
+			ChCoordsys<Real> res( Fb.Rotate(Fa.pos),
+								  Fa.rot >> Fb);
+			return res;
+		}
 
 
 /// Shortcut for faster use of typical double-precision coordsys.
