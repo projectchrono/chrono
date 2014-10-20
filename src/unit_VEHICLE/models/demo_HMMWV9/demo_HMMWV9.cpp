@@ -415,9 +415,9 @@ int main(int argc, char* argv[])
       double avg_chrono_step_time = sum_sim_time / (double)step_number;
       double avg_ODE_time = tire_front_left.DynamicCastTo<ChPacejkaTire>()->get_average_ODE_time();
       double avg_advance_time = tire_front_left.DynamicCastTo<ChPacejkaTire>()->get_average_Advance_time();
-      GetLog() << " \n ///////////  simtime = " << time << "\n timers, average (time, fraction of total) \n chrono = " << avg_chrono_step_time
-        << "\n  ODE time = (" << avg_ODE_time <<", "<< avg_ODE_time /avg_chrono_step_time <<")" 
-        << "\n Advance time = (" << avg_advance_time <<", "<< avg_advance_time / avg_chrono_step_time <<") \n";
+      GetLog() << " \n ///////////  simtime = " << time << "\n timers, average (time, fraction of total) \n chrono = " << avg_chrono_step_time;
+      //  << "\n  ODE time = (" << avg_ODE_time <<", "<< avg_ODE_time /avg_chrono_step_time <<")" 
+      //  << "\n Advance time = (" << avg_advance_time <<", "<< avg_advance_time / avg_chrono_step_time <<") \n";
     }
   }
 

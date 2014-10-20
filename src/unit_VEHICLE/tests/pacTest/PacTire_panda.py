@@ -301,18 +301,22 @@ class PacTire_panda:
     
     
     # @brief plot reactions vs. alpha between similar runs w/ different gamma
-    # assuming tire_gamma0 is the zero (or lower) of the two gamma values
+    # assuming tire_gamma0 is the zero (or lower) of the two gamma value
     def plot_gammaComparison(self, tire_gamma0):
         
         figFy = plt.figure()
-        df_G = pd.DataFrame(self._m_df_T, columns = ['alpha','Fyc'])
+        df_G = pd.DataFrame(self._m_df_T, columns = ['alpha','Fyc','gammaP'])
         axFy = df_G.plot(linewidth=2.0,x='alpha', y=['Fyc'])
         # compare to Fy from other tire
-        df_G0 = pd.DataFrame(tire_gamma0._m_df_T, columns =   ['alpha','Fyc'] )
+        df_G0 = pd.DataFrame(tire_gamma0._m_df_T, columns =   ['alpha','Fyc','gammaP'] )
         axFy.plot(df_G0['alpha'], df_G0['Fyc'],'k-*',linewidth=1.0,label="Fy, gamma = 0")
+        axFy2 = axFy.twinx()
+        axFy2.plot(df_G['alpha'], df_G['gammaP'], 'r--', linewidth = 2.0, label="gammaP")
+        
         axFy.set_xlabel(r'$\alpha $[deg]')
         axFy.set_ylabel('Force [N]')
         axFy.legend(loc='best')
+        axFy2.legend(loc='lower left')
         axFy.set_title(r'Fy vs. $\alpha $, pure lateral slip')
         
         figMz = plt.figure()
@@ -325,7 +329,8 @@ class PacTire_panda:
         axMz.set_xlabel(r'$\alpha  $[deg]')
         axMz.set_ylabel('Moment [N-m]')
         axMz.legend(loc='best')
-        axMz.set_title(r'Mz vs. $\alpha $, pure lateral slip')        
+        axMz.set_title(r'Mz vs. $\alpha $, pure lateral slip')
+        
         
     
 if __name__ == '__main__':

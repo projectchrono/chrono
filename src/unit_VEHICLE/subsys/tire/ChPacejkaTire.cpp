@@ -540,8 +540,8 @@ void ChPacejkaTire::update_verticalLoad(double step)
     {
       // large Fz leads to large m_dF_z, leads to large Fx, Fy, etc.
       capped_Fz = Fz_thresh;
-    } else
-    {
+    } 
+    else {
       capped_Fz = Fz;
     }
 
@@ -554,28 +554,28 @@ void ChPacejkaTire::update_verticalLoad(double step)
     // }
   }
 
+  assert( m_Fz > 0);
+  // ratio of actual load to nominal
+  m_dF_z = (m_Fz - m_params->vertical.fnomin) / m_params->vertical.fnomin;
 
-    // ratio of actual load to nominal
-    m_dF_z = (m_Fz - m_params->vertical.fnomin) / m_params->vertical.fnomin;
+  // Calculate tire vertical deflection, rho.
+  double qV1 = 0.000071;      // from example
+  double K1 = pow(m_tireState.omega * m_R0 / m_params->model.longvl, 2);
+  double rho = m_R0 - m_R_l + qV1 * m_R0 * K1;
+  double rho_Fz0 = m_params->vertical.fnomin / (m_params->vertical.vertical_stiffness);
+  double rho_d = rho / rho_Fz0;
 
-    // Calculate tire vertical deflection, rho.
-    double qV1 = 0.000071;      // from example
-    double K1 = pow(m_tireState.omega * m_R0 / m_params->model.longvl, 2);
-    double rho = m_R0 - m_R_l + qV1 * m_R0 * K1;
-    double rho_Fz0 = m_params->vertical.fnomin / (m_params->vertical.vertical_stiffness);
-    double rho_d = rho / rho_Fz0;
+  // Calculate tire rolling radius, R_eff.  Clamp this value to R0.
+  m_R_eff = m_R0 + qV1 * m_R0 * K1 - rho_Fz0 * (m_params->vertical.dreff * std::atan(m_params->vertical.breff * rho_d) + m_params->vertical.freff * rho_d);
+  if (m_R_eff > m_R0)
+    m_R_eff = m_R0;
 
-    // Calculate tire rolling radius, R_eff.  Clamp this value to R0.
-    m_R_eff = m_R0 + qV1 * m_R0 * K1 - rho_Fz0 * (m_params->vertical.dreff * std::atan(m_params->vertical.breff * rho_d) + m_params->vertical.freff * rho_d);
-    if (m_R_eff > m_R0)
-      m_R_eff = m_R0;
-
-    if(m_in_contact)
-    {
-      // Load vertical component of tire force
-      m_FM_pure.force.z = Fz;
-      m_FM_combined.force.z = Fz;
-    } 
+  if(m_in_contact)
+  {
+    // Load vertical component of tire force
+    m_FM_pure.force.z = Fz;
+    m_FM_combined.force.z = Fz;
+  } 
 }
 
 // NOTE: must 
@@ -786,7 +786,7 @@ void ChPacejkaTire::advance_slip_transient(double step_size)
   m_slip->v_phi += m_slip->Idv_phi_dt;
 
   // calculate slips from contact point deflections u and v
-  slip_from_uv(m_in_contact, 550.0);
+  slip_from_uv(m_in_contact, 350.0);
 
 }
 
@@ -1321,7 +1321,7 @@ void ChPacejkaTire::loadPacTireParamFile()
   if (!inFile.is_open())
   {
     GetLog() << "\n\n !!!!!!! couldn't load the pac tire file: " << getPacTireParamFile().c_str() << "\n\n";
-    GetLog() << " I bet you have the pacTire param file opened in a text editor somewhere.... \n\n\n";
+    GetLog() << " pacTire param file opened in a text editor somewhere ??? \n\n\n";
     return;
   }
 
@@ -1745,7 +1745,7 @@ void ChPacejkaTire::WriteOutData(double             time,
     }
     else {
       // write the headers, Fx, Fy are pure forces, Fxc and Fyc are the combined forces
-      oFile << "time,kappa,alpha,gamma,kappaP,alphaP,gammaP,Vx,Vy,omega,Fx,Fy,Fz,Mx,My,Mz,Fxc,Fyc,Mzc,Mzx,Mzy,contact,m_Fz,m_dF_z,u,valpha,vgamma,vphi,du,dvalpha,dvgamma,dvphi" << std::endl;
+      oFile << "time,kappa,alpha,gamma,kappaP,alphaP,gammaP,Vx,Vy,omega,Fx,Fy,Fz,Mx,My,Mz,Fxc,Fyc,Mzc,Mzx,Mzy,contact,m_Fz,m_dF_z,u,valpha,vgamma,vphi,du,dvalpha,dvgamma,dvphi,R0,R_l,Reff" << std::endl;
       m_Num_WriteOutData++;
       oFile.close();
     }
@@ -1768,7 +1768,8 @@ void ChPacejkaTire::WriteOutData(double             time,
       << m_combinedTorque->M_z_x <<","<< m_combinedTorque->M_z_y <<","<< (int)m_in_contact <<","
       << m_Fz <<","<< m_dF_z <<","
       << m_slip->u <<","<< m_slip->v_alpha << "," << m_slip->v_gamma <<"," << m_slip->v_phi <<","
-      << m_slip->Idu_dt <<","<< m_slip->Idv_alpha_dt <<"," << m_slip->Idv_gamma_dt <<"," << m_slip->Idv_phi_dt
+      << m_slip->Idu_dt <<","<< m_slip->Idv_alpha_dt <<"," << m_slip->Idv_gamma_dt <<"," << m_slip->Idv_phi_dt<<","
+      << m_R0 <<","<< m_R_l << "," << m_R_eff
       << std::endl;
     // close the file
     appFile.close();

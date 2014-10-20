@@ -128,6 +128,7 @@ class PacTire_vehicle_panda:
         ax_uv_2.legend(loc='upper right')
         ax_uv.set_title(titleStr)
         
+        # plot integrated ODE values for each slip displacement
         fig_duv = plt.figure()
         ax_duv = df_uv.plot(linewidth=2.0,x='time',y=['du','dvalpha','dvgamma'])
         ax_duv_2 = ax_duv.twinx()
@@ -138,6 +139,7 @@ class PacTire_vehicle_panda:
         ax_duv_2.legend(loc='upper center')
         ax_duv.set_title(titleStr)
         
+        # plot the calculated transient slips
         fig_slip = plt.figure()
         df_slip = pd.DataFrame(self._DF[tire_num], columns = ['time','alphaP','kappaP','gammaP','Vx','Vy'])
         ax_slip = df_slip.plot(linewidth=1.5, x='time', y=['alphaP','gammaP'])
@@ -146,10 +148,11 @@ class PacTire_vehicle_panda:
         ax_slip_2.plot(df_slip['time'], df_slip['Vx'], 'c--', linewidth = 1.5, label = 'Vx')
         ax_slip_2.plot(df_slip['time'], df_slip['Vy'], 'b--', linewidth = 1.5, label = 'Vy')
         ax_slip.set_xlabel('time [sec]')
-        ax_slip.legend(loc='best')
+        ax_slip.legend(loc='upper left')
         ax_slip_2.legend(loc = 'upper right')
         ax_slip.set_title(titleStr)
         
+        # forward velocity, spin
         fig_vel = plt.figure()
         df_vel = pd.DataFrame(self._DF[tire_num], columns = ['time','Vx','omega'])
         ax_vel = df_vel.plot(linewidth=1.5, x='time', y=['Vx','omega'])
@@ -157,6 +160,15 @@ class PacTire_vehicle_panda:
         ax_vel.legend(loc='best')
         ax_vel.set_title(titleStr)
         
+        # plot radius vs. m_F_z on second axis
+        fig_rad = plt.figure()
+        df_rad = pd.DataFrame(self._DF[tire_num], columns = ['time','R0','R_l','Reff','m_Fz'])
+        ax_rad = df_rad.plot(linewidth=1.5, x='time', y=['R0','R_l','Reff'])
+        ax_rad.set_xlabel('time [sec]')
+        ax_rad2 = ax_rad.twinx()
+        ax_rad2.plot(df_rad['time'], df_rad['m_Fz'], 'r--', linewidth=1.5, label='m_Fz')
+        ax_rad.legend(loc='best')
+        ax_rad2.legend(loc='lower right')
         
     '''
     # @brief plot what you please
@@ -215,7 +227,7 @@ if __name__ == '__main__':
     # create a tire using the single tire python plotting code
     tire_LF = tire.PacTire_panda(data_dir + dat_FL)
     
-    tire_LF.plot_custom('time',['m_Fz'],'vertical Force [N]')
+    # tire_LF.plot_custom_two('time','m_Fz','Vx','FL')
     # tire_LF.plot_custom('time',['Fxc','Fyc'],'Fx, Fy [N]')
     # tire_LF.plot_custom('time',['kappa'],'longitudinal slip [-]')
     # tire_LF.plot_custom('time',['alpha'],'lateral slip [deg]')
@@ -232,8 +244,8 @@ if __name__ == '__main__':
     # plot w.r.t. to time
     vehicle_output.plot_time(0,'Front Left')
     # vehicle_output.plot_time(1,'Front Right')
-    vehicle_output.plot_time(2,'Rear Left')
-    # vehicle_output.plot_time(3,'Rear Right')
+    # vehicle_output.plot_time(2,'Rear Left')
+    vehicle_output.plot_time(3,'Rear Right')
     
     # plot w.r.t. long slip
     
