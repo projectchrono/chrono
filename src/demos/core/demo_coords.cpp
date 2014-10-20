@@ -272,13 +272,31 @@ int main(int argc, char* argv[])
 
 
 	//
-	// Now test the * and >> operators with mixed-types operators
+	// Now test the * and >> operators with some mixed-types operators
 	//
 
 	ChFrame<> mframeA1(vtraslA, qrotA); 
 	ChFrameMoving<> mframemovingB1(vtraslA, qrotA);
 	ChFrame<> mresf = mframemovingB1 * mframeA1;
-	ChFrame<> mresg = mframeA1 * mframemovingB1;
+	ChFrameMoving<> mresg = mframeA1 * mframemovingB1;
+
+
+	//
+	// Test some in-place operators, even with mixed-types. Some examples.
+	//
+
+					// Transform mframeA1 by rotating & translating by another frame,
+					// using the in-place >>= operator, as in  A >>= B,
+					// that means:   frameA' = frameA >> frameB  = frameB * frameA
+	mframeA1 >>= f10;
+
+					// Transform mframeA1 by translating by a vector:
+	mframeA1 >>= ChVector<>(1,2,3);
+
+					// Transform mframeA1 by rotating it 30 degrees on axis Y, using a quaternion:
+	mframeA1 >>= Q_from_AngAxis(30*CH_C_DEG_TO_RAD, VECT_Y);
+
+
 
 	//
 	// BENCHMARK FOR EXECUTION SPEED
@@ -450,6 +468,8 @@ ChVector<> mv(1, 2, 3);
  
 
 */
+
+
 
 	GetLog() << "\n  CHRONO execution terminated.";
 	
