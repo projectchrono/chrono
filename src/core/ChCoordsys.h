@@ -199,6 +199,22 @@ public:
 			return *this;
 		}
 
+			// Mixed type operators:
+
+		/// Performs pre-multiplication of this frame by a vector D, to 'move' by a displacement D:
+	ChCoordsys<Real>& operator >>= (const ChVector<Real>& D)
+		{
+			this->pos += D;
+			return *this;
+		}
+		/// Performs pre-multiplication of this frame by a quaternion R, to 'rotate' it by R:
+	ChCoordsys<Real>& operator >>= (const ChQuaternion<Real>& R)
+		{
+			this->pos =  R.Rotate(this->pos);
+			this->rot =  R * this->rot;
+			return *this;
+		}
+
 	//
 	// FUNCTIONS
 	//
