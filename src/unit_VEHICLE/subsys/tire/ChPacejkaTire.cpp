@@ -439,12 +439,14 @@ void ChPacejkaTire::Advance(double step)
   combinedSlipReactions( );
 
   // Update M_x, apply to both m_FM and m_FM_combined
-  double Mx = calc_Mx(m_FM_combined.force.y, m_slip->gammaP);
+  // gamma should already be corrected for L/R side, so need to swap Fy if on opposite side
+  double Mx = m_sameSide * calc_Mx(m_sameSide * m_FM_combined.force.y, m_slip->gammaP);
   m_FM_pure.moment.x = Mx;
   m_FM_combined.moment.x = Mx;
 
   // Update M_y, apply to both m_FM and m_FM_combined
-  double My = calc_My(m_FM_combined.force.x);
+  // be sure to switch sign on opposite side, else it becomes self-energizing
+  double My = m_sameSide * calc_My(m_FM_combined.force.x);
   m_FM_pure.moment.y = My;
   m_FM_combined.moment.y = My;
 
@@ -1009,6 +1011,9 @@ void ChPacejkaTire::slip_from_uv(bool use_besselink, double bessel_c)
 // pure slip reactions if the tire is in contact with the ground
 // calcFx               alphaP ~= 0
 // calcFy and calcMz    kappaP ~= 0
+// NOTE: alphaP and gammaP have already been modified for being on the L/R side
+// e.g., positive alpha = turn toward vehicle centerline, and
+// e.g., positive gamme = wheel vertical axis top pointing toward vehicle center
 void ChPacejkaTire::pureSlipReactions()
 {
   if(m_in_contact)
@@ -1017,15 +1022,18 @@ void ChPacejkaTire::pureSlipReactions()
     m_FM_pure.force.x = Fx_pureLong(m_slip->gammaP, m_slip->kappaP);
 
     // calc. Fy, pure lateral slip
-    m_FM_pure.force.y = m_sameSide * Fy_pureLat(m_slip->alphaP, m_slip->gammaP );
+    m_FM_pure.force.y = m_sameSide * Fy_pureLat(m_slip->alphaP, m_slip->gammaP);
 
     // calc Mz, pure lateral slip
     m_FM_pure.moment.z = Mz_pureLat(m_slip->alphaP, m_slip->gammaP, m_FM_pure.force.y);
   }
-
+  m_pure_called = true;
 }
 
 // combined slip reactions, if the tire is in contact with the ground
+// NOTE: alphaP and gammaP have already been modified for being on the L/R side
+// e.g., positive alpha = turn toward vehicle centerline, and
+// e.g., positive gamme = wheel vertical axis top pointing toward vehicle center
 void ChPacejkaTire::combinedSlipReactions( )
 {
   if(m_in_contact)
@@ -1033,11 +1041,11 @@ void ChPacejkaTire::combinedSlipReactions( )
     // calculate Fx for combined slip
     m_FM_combined.force.x = Fx_combined(m_slip->alphaP, m_slip->gammaP, m_slip->kappaP, m_FM_pure.force.x);
 
-    // calc Fy for combined slip
-    m_FM_combined.force.y = Fy_combined(m_slip->alphaP, m_slip->gammaP, m_slip->kappaP, m_FM_pure.force.y);
+    // calc Fy for combined slip.
+    m_FM_combined.force.y = m_sameSide * Fy_combined(m_slip->alphaP, m_slip->gammaP, m_slip->kappaP, m_sameSide * m_FM_pure.force.y);
 
     // calc Mz for combined slip
-    m_FM_combined.moment.z = Mz_combined(m_pureTorque->alpha_r, m_pureTorque->alpha_t, m_slip->gammaP, m_slip->kappaP, m_FM_combined.force.x, m_FM_combined.force.y);
+    m_FM_combined.moment.z = m_sameSide * Mz_combined(m_pureTorque->alpha_r, m_pureTorque->alpha_t, m_slip->gammaP, m_slip->kappaP, m_FM_combined.force.x, m_sameSide * m_FM_combined.force.y);
   }
 }
 
@@ -1290,9 +1298,11 @@ double ChPacejkaTire::calc_My(double Fx_combined)
   double M_y = 0;
   if(m_in_contact)
   {
-    double V_r = m_tireState.omega * m_R_eff;
+    double V_r = m_sameSide * m_tireState.omega * m_R_eff;
     M_y = -m_Fz * m_R0 * (m_params->rolling.qsy1 * std::atan(V_r / m_params->model.longvl) 
       + m_params->rolling.qsy2 * (Fx_combined / m_params->vertical.fnomin)) * m_params->scaling.lmy;
+    // reference calc
+    // M_y = m_R0 * m_Fz * (m_params->rolling.qsy1 + m_params->rolling.qsy2 * Fx_combined / m_params->vertical.fnomin + m_params->rolling.qsy3 * std::abs( m_slip->V_cx / m_params->model.longvl) + m_params->rolling.qsy4 * pow(m_slip->V_cx / m_params->model.longvl, 4) );
   }
   return M_y;
 }
