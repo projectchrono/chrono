@@ -235,11 +235,11 @@ private:
 
   // calculate v_alpha differently at low speeds
   // relaxation length is non-linear
-  double ChPacejkaTire::ODE_RK_kappaAlpha(double V_sy,
-                                     double V_cx,
-                                     double C_Fy,
-                                     double step_size,
-                                     double x_curr);
+  double ODE_RK_kappaAlpha(double V_sy,
+                           double V_cx,
+                           double C_Fy,
+                           double step_size,
+                           double x_curr);
 
   // calculate the increment delta_gamma of the gamma ODE
   // Note: gamma should be the kinematic camber, gamma
