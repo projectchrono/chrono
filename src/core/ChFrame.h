@@ -144,10 +144,10 @@ public:
 		/// but in the opposite order...)
 		///  new_v = old_v >> frame3to2 >> frame2to1 >> frame1to0;
 		/// This operation is not commutative.
-	friend ChVector<Real> operator >> (const ChVector<Real>& V, const ChFrame<Real>& mframe)
-		{
-			return mframe.TransformLocalToParent(V);
-		}
+//	friend ChVector<Real> operator >> (const ChVector<Real>& V, const ChFrame<Real>& mframe)
+//		{
+//			return mframe.TransformLocalToParent(V);
+//		}
 
 		/// The '*' operator transforms a coordinate system, so
 		/// transformations can be represented with this syntax:
@@ -586,6 +586,188 @@ public:
 		}
 
 };
+
+
+
+//
+// MIXED ARGUMENT OPERATORS
+//
+
+// Mixing with ChCoordsys :
+
+	/// The '*' operator that transforms a coordinate system of 'mixed' type: 
+	///  frame_C = frame_A * frame_B;
+	/// where frame_A is  a ChFrame  
+	///       frame_B is  a ChCoordsys 
+	/// Returns a ChCoordsys. 
+	/// The effect is like applying the transformation frame_A to frame_B and get frame_C.
+template <class Real>
+ChCoordsys<Real> operator* (const ChFrame<Real>& Fa, const ChCoordsys<Real>& Fb) 
+		{
+			return Fa.coord.TransformLocalToParent(Fb);
+		}
+
+	/// The '*' operator that transforms a coordinate system of 'mixed' type: 
+	///  frame_C = frame_A * frame_B;
+	/// where frame_A is  a ChCoordsys  
+	///       frame_B is  a ChFrame 
+	/// Returns a ChFrame. 
+	/// The effect is like applying the transformation frame_A to frame_B and get frame_C.
+	/// Performance warning: this operator promotes frame_A to a temporary ChFrame.
+template <class Real>
+ChFrame<Real> operator* (const ChCoordsys<Real>& Fa, const ChFrame<Real>& Fb) 
+		{
+			ChFrame<Real> res;
+			ChFrame<Real> Fam(Fa);
+			Fam.TransformLocalToParent(Fb,res);
+			return res;
+		}
+
+	/// The '>>' operator that transforms a coordinate system of 'mixed' type: 
+	///  frame_C = frame_A >> frame_B;
+	/// where frame_A is  a ChCoordsys  
+	///       frame_B is  a ChFrame
+	/// Returns a ChCoordsys. 
+	/// The effect is like applying the transformation frame_B to frame_A and get frame_C.
+template <class Real>
+ChCoordsys<Real> operator>> (const ChCoordsys<Real>& Fa, const ChFrame<Real>& Fb) 
+		{
+			return Fb.coord.TransformLocalToParent(Fa);
+		}
+
+	/// The '>>' operator that transforms a coordinate system of 'mixed' type: 
+	///  frame_C = frame_A >> frame_B;
+	/// where frame_A is  a ChFrame 
+	///       frame_B is  a ChCoordsys 
+	/// Returns a ChFrame. 
+	/// The effect is like applying the transformation frame_B to frame_A and get frame_C.
+	/// Performance warning: this operator promotes frame_B to a temporary ChFrame.
+template <class Real>
+ChFrame<Real> operator>> (const ChFrame<Real>& Fa, const ChCoordsys<Real>& Fb) 
+		{
+			ChFrame<Real> res;
+			ChFrame<Real> Fbm(Fb);
+			Fbm.TransformLocalToParent(Fa,res);
+			return res;
+		}
+
+
+// Mixing with ChVector :
+
+	/// The '*' operator that transforms 'mixed' types: 
+	///  vector_C = frame_A * vector_B;
+	/// where frame_A   is  a ChFrame  
+	///       vector_B is  a ChVector 
+	/// Returns a ChVector. 
+	/// The effect is like applying the transformation frame_A to vector_B and get vector_C.
+template <class Real>
+ChVector<Real> operator* (const ChFrame<Real>& Fa, const ChVector<Real>& Fb) 
+		{
+			return Fa.TransformLocalToParent(Fb);
+		}
+
+	/// The '*' operator that transforms 'mixed' types: 
+	///  frame_C = vector_A * frame_B;
+	/// where vector_A is  a ChVector  
+	///       frame_B  is  a ChFrame 
+	/// Returns a ChFrame. 
+	/// The effect is like applying the translation vector_A to frame_B and get frame_C.
+template <class Real>
+ChFrame<Real> operator* (const ChVector<Real>& Fa, const ChFrame<Real>& Fb) 
+		{
+			ChFrame<Real> res(Fb);
+			res.coord.pos += Fa;
+			return res;
+		}
+
+	/// The '>>' operator that transforms 'mixed' types: 
+	///  vector_C = vector_A >> frame_B;
+	/// where vector_A is  a ChVector  
+	///       frame_B  is  a ChFrame
+	/// Returns a ChVector. 
+	/// The effect is like applying the transformation frame_B to vector_A and get vector_C.
+	/// For a sequence of transformations, i.e. a chain of coordinate
+	/// systems, you can also write this (like you would do with
+	/// a sequence of Denavitt-Hartemberg matrix multiplications,
+	/// but in the opposite order...)
+	///  new_v = old_v >> frame3to2 >> frame2to1 >> frame1to0;
+	/// This operation is not commutative.
+template <class Real>
+ChVector<Real> operator>> (const ChVector<Real>& Fa, const ChFrame<Real>& Fb) 
+		{
+			return Fb.TransformLocalToParent(Fa);
+		}
+
+	/// The '>>' operator that transforms 'mixed' types: 
+	///  frame_C = frame_A >> vector_B;
+	/// where frame_A is  a ChFrame 
+	///       frame_B is  a ChVector 
+	/// Returns a ChFrame. 
+	/// The effect is like applying the translation vector_B to frame_A and get frame_C.
+template <class Real>
+ChFrame<Real> operator>> (const ChFrame<Real>& Fa, const ChVector<Real>& Fb) 
+		{
+			ChFrame<Real> res(Fa);
+			res.coord.pos += Fb;
+			return res;
+		}
+
+
+// Mixing with ChQuaternion :
+
+	/// The '*' operator that transforms 'mixed' types: 
+	///  quat_C = frame_A * quat_B;
+	/// where frame_A  is  a ChFrame  
+	///       quat_B   is  a ChQuaternion 
+	/// Returns a ChQuaternion. 
+	/// The effect is like applying the transformation frame_A to quat_B and get quat_C.
+template <class Real>
+ChQuaternion<Real> operator* (const ChFrame<Real>& Fa, const ChQuaternion<Real>& Fb) 
+		{
+			return Fa.coord.rot * Fb;
+		}
+
+	/// The '*' operator that transforms 'mixed' types: 
+	///  frame_C = quat_A * frame_B;
+	/// where quat_A   is  a ChQuaternion  
+	///       frame_B  is  a ChFrame 
+	/// Returns a ChFrame. 
+	/// The effect is like applying the rotation quat_A to frame_B and get frame_C.
+template <class Real>
+ChFrame<Real> operator* (const ChQuaternion<Real>& Fa, const ChFrame<Real>& Fb) 
+		{
+			ChFrame<Real>    res(Fa.Rotate(Fb.coord.pos),
+								 Fa * Fb.coord.rot);
+			return res;
+		}
+
+	/// The '>>' operator that transforms 'mixed' types: 
+	///  quat_C = quat_A >> frame_B;
+	/// where quat_A   is  a ChQuaternion  
+	///       frame_B  is  a ChFrame
+	/// Returns a ChQuaternion. 
+	/// The effect is like applying the transformation frame_B to quat_A and get quat_C.
+template <class Real>
+ChQuaternion<Real> operator>> (const ChQuaternion<Real>& Fa, const ChFrame<Real>& Fb) 
+		{
+			return Fa >> Fb.coord.rot;
+		}
+
+	/// The '>>' operator that transforms 'mixed' types: 
+	///  frame_C = frame_A >> quat_B;
+	/// where frame_A is  a ChFrame 
+	///       frame_B is  a ChQuaternion 
+	/// Returns a ChFrame. 
+	/// The effect is like applying the rotation quat_B to frame_A and get frame_C.
+template <class Real>
+ChFrame<Real> operator>> (const ChFrame<Real>& Fa, const ChQuaternion<Real>& Fb) 
+		{
+			ChFrame<Real> res( Fb.Rotate(Fa.coord.pos),
+							   Fa.coord.rot >> Fb);
+			return res;
+		}
+
+
 
 
 
