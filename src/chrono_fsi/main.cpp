@@ -42,9 +42,14 @@ SimParams paramsH;
 
 ////************ note: paramsH is zero here. These expressions are wrong
 const real_ mm = .001;
+//const real2 r1_2 = R2(1.351, 1.750) * mm;
+//const real2 r2_2 = R2(1.341, 1.754) * mm;
+//const real2 r3_2 = R2(2.413, 3.532) * mm;
+//const real2 r4_2 = R2(0.279, 0.413) * mm;
+
 const real2 r1_2 = R2(1.351, 1.750) * mm;
-const real2 r2_2 = R2(1.341, 1.754) * mm;
-const real2 r3_2 = R2(2.413, 3.532) * mm;
+const real2 r2_2 = R2(1.341, 1.2) * mm;
+const real2 r3_2 = R2(2.413, 4.272) * mm;
 const real2 r4_2 = R2(0.279, 0.413) * mm;
 
 const real2 r5_2 = R2(1.675, 1.235) * mm; //r5_2 = R2(1.727, 1.235);  	//the smaller one
