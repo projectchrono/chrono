@@ -40,33 +40,36 @@
 
 using namespace chrono;
 
-const std::string out_dir = "../PACTEST";
-const std::string pov_dir = out_dir + "/POVRAY";
-
-// ============== PacTire settings go here
-const int num_pts = 801;                  // # of data points in the slip ranges
-const double step_size = 0.01;            // seconds, arbitrary unless calculating transient slip
-const double alpha_lim = CH_C_PI_4/3.0;   // slip angle in range [-lim,lim] or [0,lim]
-const double kappa_lim = 1;               // slip rate in range [-lim,lim] or [0,lim]
-const double F_z = 8000;                  // vertical force, [N]
-const ChVehicleSide m_side = LEFT;
-const double gamma = 10.0 * CH_C_PI/180.0; // gamma, in radians
-
-// for the transient model
-const bool use_transient_slip = true;    // use kinematic or transient contact slips?
-
-const std::string pacParamFile = utils::GetModelDataFile("hmmwv/pactest.tir");
-
-// output data filenames
-std::string out_name_long = "test_pacTire_pureLongSlip.csv";
-std::string out_name_lat = "test_pacTire_pureLatSlip.csv";
-std::string out_name_latGamma = "test_pacTire_pureLatSlipGamma.csv";
-std::string out_name_combined = "test_pacTire_combinedSlip.csv";
-
-const double time_end = (num_pts - 1)*step_size;
 
 int main(int argc, char* argv[])
 {
+  // Output directory names
+  const std::string out_dir = "../PACTEST";
+  const std::string pov_dir = out_dir + "/POVRAY";
+
+  // ============== PacTire settings go here
+  const int num_pts = 801;                  // # of data points in the slip ranges
+  const double step_size = 0.01;            // seconds, arbitrary unless calculating transient slip
+  const double alpha_lim = CH_C_PI_4 / 3.0;   // slip angle in range [-lim,lim] or [0,lim]
+  const double kappa_lim = 1;               // slip rate in range [-lim,lim] or [0,lim]
+  const double F_z = 8000;                  // vertical force, [N]
+  const ChVehicleSide m_side = LEFT;
+  const double gamma = 10.0 * CH_C_PI / 180.0; // gamma, in radians
+
+  // for the transient model
+  const bool use_transient_slip = true;    // use kinematic or transient contact slips?
+
+  const std::string pacParamFile = utils::GetModelDataFile("hmmwv/pactest.tir");
+
+  // output data filenames
+  std::string out_name_long = "test_pacTire_pureLongSlip.csv";
+  std::string out_name_lat = "test_pacTire_pureLatSlip.csv";
+  std::string out_name_latGamma = "test_pacTire_pureLatSlipGamma.csv";
+  std::string out_name_combined = "test_pacTire_combinedSlip.csv";
+
+  const double time_end = (num_pts - 1)*step_size;
+
+  // Set the path to the Chrono data files.
   SetChronoDataPath(CHRONO_DATA_DIR);
 
   // flat rigid terrain, height = 0 for all (x,y)
