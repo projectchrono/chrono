@@ -193,6 +193,36 @@ public:
 			return *this;
 		}
 
+				// Mixed type operators:
+
+		/// Performs pre-multiplication of this frame by a vector D, to 'move' by a displacement D:
+	ChFrameMoving<Real>& operator >>= (const ChVector<Real>& D)
+		{
+			this->coord.pos += D;
+			return *this;
+		}
+		/// Performs pre-multiplication of this frame by a quaternion R, to 'rotate' it by R:
+	ChFrameMoving<Real>& operator >>= (const ChQuaternion<Real>& R)
+		{
+			ChFrameMoving<Real> Fm(VNULL,R); 
+			ConcatenatePreTransformation(Fm);
+			return *this;
+		}
+		/// Performs pre-multiplication of this frame by a ChCoordsys F:
+	ChFrameMoving<Real>& operator >>= (const ChCoordsys<Real>& F)
+		{
+			ChFrameMoving<Real> Fm(F); 
+			ConcatenatePreTransformation(Fm);
+			return *this;
+		}
+		/// Performs pre-multiplication of this frame by a ChFrame F:
+	ChFrameMoving<Real>& operator >>= (const ChFrame<Real>& F)
+		{
+			ChFrameMoving<Real> Fm(F); 
+			ConcatenatePreTransformation(Fm);
+			return *this;
+		}
+
 
 	//
 	// FUNCTIONS
