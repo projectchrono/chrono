@@ -325,7 +325,9 @@ void stressCell(
 //--------------------------------------------------------------------------------------------------------------------------------
 // collide a particle against all other particles in a given cell
 __device__
-real_ collideCellDensityReInit_F1(
+void collideCellDensityReInit(
+		real_ & densityShare,
+		real_ & denominator,
 		int3 gridPos,
 		uint index,
 		real3 posRadA,
@@ -338,7 +340,8 @@ real_ collideCellDensityReInit_F1(
 	//?c2 printf("grid pos %d %d %d \n", gridPos.x, gridPos.y, gridPos.z);
 	uint gridHash = calcGridHash(gridPos);
 	// get start of bucket for this cell
-	real_ densityShare = 0.0f;
+	real_ densityShare2 = 0.0f;
+	real_ denominator2 = 0.0f;
 
 	uint startIndex = FETCH(cellStart, gridHash);
 	if (startIndex != 0xffffffff) { // cell is not empty
@@ -353,14 +356,17 @@ real_ collideCellDensityReInit_F1(
 				real3 dist3 = Distance(posRadA, posRadB);
 				real_ d = length(dist3);
 				if (d > RESOLUTION_LENGTH_MULT * paramsD.HSML) continue;
-				densityShare += velMasB.w * W3(d); //optimize it ?$
+				real_ partialDensity = velMasB.w * W3(d); //optimize it ?$
+				densityShare2 += partialDensity;
+				denominator2 += partialDensity / rhoPreMuB.x;
 				//if (fabs(W3(d)) < .00000001) {printf("good evening, distance %f %f %f\n", dist3.x, dist3.y, dist3.z);
 				//printf("posRadA %f %f %f, posRadB, %f %f %f\n", posRadA.x, posRadA.y, posRadA.z, posRadB.x, posRadB.y, posRadB.z);
 				//}
 			}
 		}
 	}
-	return densityShare;
+	densityShare += densityShare2;
+	denominator += denominator2;
 }
 //--------------------------------------------------------------------------------------------------------------------------------
 // collide a particle against all other particles in a given cell
@@ -718,12 +724,13 @@ void ReCalcDensityD_F1(
 	int3 gridPos = calcGridPos(posRadA);
 
 	real_ densityShare = 0.0f;
+	real_ denominator = 0.0f;
 	// examine neighbouring cells
 	for (int z = -1; z <= 1; z++) {
 		for (int y = -1; y <= 1; y++) {
 			for (int x = -1; x <= 1; x++) {
 				int3 neighbourPos = gridPos + I3(x, y, z);
-				densityShare += collideCellDensityReInit_F1(neighbourPos, index, posRadA, sortedPosRad, sortedVelMas, sortedRhoPreMu, cellStart,
+				collideCellDensityReInit(densityShare, denominator, neighbourPos, index, posRadA, sortedPosRad, sortedVelMas, sortedRhoPreMu, cellStart,
 						cellEnd);
 			}
 		}
@@ -732,8 +739,10 @@ void ReCalcDensityD_F1(
 	uint originalIndex = gridMarkerIndex[index];
 
 	real_ newDensity = densityShare + velMasA.w * W3(0); //?$ include the particle in its summation as well
+	real_ newDenominator = denominator + velMasA.w * W3(0) / rhoPreMuA.x;
 	if (rhoPreMuA.w < 0) {
-		rhoPreMuA.x = newDensity;
+//		rhoPreMuA.x = newDensity; // old version
+		rhoPreMuA.x = newDensity/newDenominator; // correct version
 	}
 	rhoPreMuA.y = Eos(rhoPreMuA.x, rhoPreMuA.w);
 	oldRhoPreMu[originalIndex] = rhoPreMuA;
