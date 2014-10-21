@@ -1174,20 +1174,20 @@ double ChPacejkaTire::Mz_pureLat(double alpha, double gamma, double Fy_pureSlip)
   double D_t = D_t0 * (1.0 + m_params->aligning.qdz3 * gamma + m_params->aligning.qdz4 * pow(gamma,2) ) * m_zeta->z5 * m_params->scaling.ltr;
   
   double E_t = (m_params->aligning.qez1 + m_params->aligning.qez2 * m_dF_z + m_params->aligning.qez3 * pow(m_dF_z,2) ) * (1.0 + (m_params->aligning.qez4 + m_params->aligning.qez5 * gamma) * (2.0 / chrono::CH_C_PI) * std::atan(B_t * C_t * alpha_t) );
-  double t0 = D_t * std::cos(C_t * std::atan(B_t * alpha_t - E_t * (B_t * alpha_t - std::atan(B_t * alpha_t)))) * m_slip->cosPrime_alpha;
+  double t = D_t * std::cos(C_t * std::atan(B_t * alpha_t - E_t * (B_t * alpha_t - std::atan(B_t * alpha_t)))) * m_slip->cosPrime_alpha;
 
-  double MP_z0 = -t0 * Fy_pureSlip;
-  double M_zr0 = D_r * std::cos(C_r * std::atan(B_r * alpha_r)) * m_slip->cosPrime_alpha;
+  double MP_z = -t * Fy_pureSlip;
+  double M_zr = D_r * std::cos(C_r * std::atan(B_r * alpha_r)) * m_slip->cosPrime_alpha;
 
-  double M_z = MP_z0 + M_zr0;
+  double M_z = MP_z + M_zr;
 
   // hold onto coefs
   {
     pureTorqueCoefs tmp = {
       S_Hf, alpha_r, S_Ht, alpha_t, m_slip->cosPrime_alpha, m_pureLat->K_y,
       B_r, C_r, D_r,
-      B_t, C_t, D_t0, D_t, E_t, t0,
-      MP_z0, M_zr0 };
+      B_t, C_t, D_t0, D_t, E_t, t,
+      MP_z, M_zr };
     *m_pureTorque = tmp;
   }
 
@@ -1745,7 +1745,7 @@ void ChPacejkaTire::WriteOutData(double             time,
     }
     else {
       // write the headers, Fx, Fy are pure forces, Fxc and Fyc are the combined forces
-      oFile << "time,kappa,alpha,gamma,kappaP,alphaP,gammaP,Vx,Vy,omega,Fx,Fy,Fz,Mx,My,Mz,Fxc,Fyc,Mzc,Mzx,Mzy,contact,m_Fz,m_dF_z,u,valpha,vgamma,vphi,du,dvalpha,dvgamma,dvphi,R0,R_l,Reff" << std::endl;
+      oFile << "time,kappa,alpha,gamma,kappaP,alphaP,gammaP,Vx,Vy,omega,Fx,Fy,Fz,Mx,My,Mz,Fxc,Fyc,Mzc,Mzx,Mzy,M_zrc,contact,m_Fz,m_dF_z,u,valpha,vgamma,vphi,du,dvalpha,dvgamma,dvphi,R0,R_l,Reff,MP_z,M_zr" << std::endl;
       m_Num_WriteOutData++;
       oFile.close();
     }
@@ -1765,11 +1765,12 @@ void ChPacejkaTire::WriteOutData(double             time,
       << m_FM_pure.force.x << "," << m_FM_pure.force.y << "," << m_FM_pure.force.z << ","
       << m_FM_pure.moment.x << "," << m_FM_pure.moment.y << "," << m_FM_pure.moment.z << ","
       << m_FM_combined.force.x << "," << m_FM_combined.force.y << "," << m_FM_combined.moment.z <<","
-      << m_combinedTorque->M_z_x <<","<< m_combinedTorque->M_z_y <<","<< (int)m_in_contact <<","
+      << m_combinedTorque->M_z_x <<","<< m_combinedTorque->M_z_y <<","<< m_combinedTorque->M_zr <<","<< (int)m_in_contact <<","
       << m_Fz <<","<< m_dF_z <<","
       << m_slip->u <<","<< m_slip->v_alpha << "," << m_slip->v_gamma <<"," << m_slip->v_phi <<","
       << m_slip->Idu_dt <<","<< m_slip->Idv_alpha_dt <<"," << m_slip->Idv_gamma_dt <<"," << m_slip->Idv_phi_dt<<","
-      << m_R0 <<","<< m_R_l << "," << m_R_eff
+      << m_R0 <<","<< m_R_l << "," << m_R_eff <<","
+      << m_pureTorque->MP_z <<","<< m_pureTorque->M_zr
       << std::endl;
     // close the file
     appFile.close();
