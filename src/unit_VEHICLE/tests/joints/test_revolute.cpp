@@ -372,8 +372,8 @@ bool ValidateReference(const std::string& testName,    // name of this test
                        const std::string& what,        // identifier for test quantity
                        double             tolerance)   // validation tolerance
 {
-  std::string& sim_file = out_dir + testName + "_CHRONO_" + what + ".txt";
-  std::string& ref_file = ref_dir + testName + "_ADAMS_" + what + ".txt";
+  std::string sim_file = out_dir + testName + "_CHRONO_" + what + ".txt";
+  std::string ref_file = ref_dir + testName + "_ADAMS_" + what + ".txt";
   utils::DataVector norms;
 
   bool check = utils::Validate(sim_file, utils::GetModelDataFile(ref_file), utils::RMS_NORM, tolerance, norms);
@@ -390,7 +390,7 @@ bool ValidateReference(const std::string& testName,    // name of this test
 bool ValidateConstraints(const std::string& testName,  // name of this test
                          double             tolerance) // validation tolerance
 {
-  std::string& sim_file = out_dir + testName + "_CHRONO_Constraints.txt";
+  std::string sim_file = out_dir + testName + "_CHRONO_Constraints.txt";
   utils::DataVector norms;
 
   bool check = utils::Validate(sim_file, utils::RMS_NORM, tolerance, norms);
