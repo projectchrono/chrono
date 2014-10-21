@@ -1747,7 +1747,7 @@ void ChPacejkaTire::WriteOutData(double             time,
     }
     else {
       // write the headers, Fx, Fy are pure forces, Fxc and Fyc are the combined forces
-      oFile << "time,kappa,alpha,gamma,kappaP,alphaP,gammaP,Vx,Vy,omega,Fx,Fy,Fz,Mx,My,Mz,Fxc,Fyc,Mzc,Mzx,Mzy,M_zrc,contact,m_Fz,m_dF_z,u,valpha,vgamma,vphi,du,dvalpha,dvgamma,dvphi,R0,R_l,Reff,MP_z,M_zr" << std::endl;
+      oFile << "time,kappa,alpha,gamma,kappaP,alphaP,gammaP,Vx,Vy,omega,Fx,Fy,Fz,Mx,My,Mz,Fxc,Fyc,Mzc,Mzx,Mzy,M_zrc,contact,m_Fz,m_dF_z,u,valpha,vgamma,vphi,du,dvalpha,dvgamma,dvphi,R0,R_l,Reff,MP_z,M_zr,t,s" << std::endl;
       m_Num_WriteOutData++;
       oFile.close();
     }
@@ -1772,7 +1772,7 @@ void ChPacejkaTire::WriteOutData(double             time,
       << m_slip->u <<","<< m_slip->v_alpha << "," << m_slip->v_gamma <<"," << m_slip->v_phi <<","
       << m_slip->Idu_dt <<","<< m_slip->Idv_alpha_dt <<"," << m_slip->Idv_gamma_dt <<"," << m_slip->Idv_phi_dt<<","
       << m_R0 <<","<< m_R_l << "," << m_R_eff <<","
-      << m_pureTorque->MP_z <<","<< m_pureTorque->M_zr
+      << m_pureTorque->MP_z <<","<< m_pureTorque->M_zr <<"," << m_combinedTorque->t <<","<< m_combinedTorque->s
       << std::endl;
     // close the file
     appFile.close();

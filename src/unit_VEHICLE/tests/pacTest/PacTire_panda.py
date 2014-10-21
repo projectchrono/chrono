@@ -71,8 +71,17 @@ class PacTire_panda:
             dfmz_adams['longitudinal_slip'] = dfmz_adams['longitudinal_slip']/100.
             axM.plot(dfmz_adams['longitudinal_slip'], dfmz_adams['aligning_moment'],'r--',linewidth=1.5,label="Mz Adams")
         if( self._use_transient_slip):
-            df_tsM = pd.DataFrame(self._m_df_T, columns = ['kappa','Mzc'])
+            df_tsM = pd.DataFrame(self._m_df_T, columns = ['kappa','Mzc','Mzx','Mzy','M_zrc','t','s'])
             axM.plot(df_tsM['kappa'],df_tsM['Mzc'],'k-*',linewidth=1.0,label='Mzc transient')
+            axM.plot(df_tsM['kappa'], df_tsM['Mzx'],'b--',linewidth=2,label='Mz,x')
+            axM.plot(df_tsM['kappa'], df_tsM['Mzy'],'g--',linewidth=2,label='Mz,y')
+            axM.plot(df_tsM['kappa'], df_tsM['M_zrc'],'y--',linewidth=2,label='M_zrc')
+            axM2 = axM.twinx()
+            axM2.plot(df_tsM['kappa'], df_tsM['t'],'b.',linewidth=1.0,label='p trail')
+            axM2.plot(df_tsM['kappa'], df_tsM['s'],'c.',linewidth=1.0,label='s arm')
+            axM2.set_ylabel('length [m]')
+            axM2.legend(loc='lower right')            
+            
         axM.set_xlabel(r'$\kappa $ ')
         axM.set_ylabel('Moment [N-m]')
         axM.legend(loc='best')
@@ -107,11 +116,17 @@ class PacTire_panda:
         # also plot transient slip outputs
         if(self._use_transient_slip):
             # already have this in df_T
-            df_tsM = pd.DataFrame(self._m_df_T, columns = ['alpha','Mz','Mzc','MP_z','M_zr'] )
+            df_tsM = pd.DataFrame(self._m_df_T, columns = ['alpha','Mz','Mzc','MP_z','M_zr','t','s'] )
             # axM.plot(df_tsM['alpha'], df_tsM['Mz'],'k-*',linewidth=1.0,label="Mz Transient")
             axM.plot(df_tsM['alpha'], df_tsM['Mzc'],'k-*',linewidth=1.0,label="Mzc Transient")    
-            axM.plot(df_tsM['alpha'], df_tsM['MP_z'],'g--',linewidth=1.5,label="MP_z")
-            axM.plot(df_tsM['alpha'], df_tsM['M_zr'],'y--',linewidth=1.5,label="M_zr")
+            axM.plot(df_tsM['alpha'], df_tsM['MP_z'],'g--',linewidth=2,label="MP_z")
+            axM.plot(df_tsM['alpha'], df_tsM['M_zr'],'y--',linewidth=2,label="M_zr")
+            axM2 = axM.twinx()
+            axM2.plot(df_tsM['alpha'], df_tsM['t'],'b.',linewidth=1.0,label='p trail')
+            axM2.plot(df_tsM['alpha'], df_tsM['s'],'c.',linewidth=1.0,label='s arm')
+            axM2.legend(loc='lower right')
+            axM2.set_ylabel('length [m]')
+            
         axM.set_xlabel(r'$\alpha  $[deg]')
         axM.set_ylabel('Moment [N-m]')
         axM.legend(loc='best')
@@ -156,12 +171,17 @@ class PacTire_panda:
         # plot transient slip output for Mz?
         if( self._use_transient_slip):
             # Mzc here
-            df_T_M = pd.DataFrame(self._m_df_T, columns = ['kappa','Mzc','Fyc','Fxc','Mzx','Mzy','M_zrc'])
+            df_T_M = pd.DataFrame(self._m_df_T, columns = ['kappa','Mzc','Fyc','Fxc','Mzx','Mzy','M_zrc','t','s'])
             axM.plot(df_T_M['kappa'], df_T_M['Mzc'],'k-*',linewidth=1.0,label='Mzc transient')
             # overlay the components of the moment from the x and y forces, respectively
-            axM.plot(df_T_M['kappa'], df_T_M['Mzx'],'b--',linewidth=1.5,label='Mz,x')
-            axM.plot(df_T_M['kappa'], df_T_M['Mzy'],'g--',linewidth=1.5,label='Mz,y')
-            axM.plot(df_T_M['kappa'], df_T_M['M_zrc'],'y--',linewidth=1.5,label='M_zrc')
+            axM.plot(df_T_M['kappa'], df_T_M['Mzx'],'b--',linewidth=2,label='Mz,x')
+            axM.plot(df_T_M['kappa'], df_T_M['Mzy'],'g--',linewidth=2,label='Mz,y')
+            axM.plot(df_T_M['kappa'], df_T_M['M_zrc'],'y--',linewidth=2,label='M_zrc')
+            axM2 = axM.twinx()
+            axM2.plot(df_T_M['kappa'], df_T_M['t'],'b.',linewidth=1.0,label='p trail')
+            axM2.plot(df_T_M['kappa'], df_T_M['s'],'c.',linewidth=1.0,label='s arm')
+            axM2.set_ylabel('length [m]')
+            axM2.legend(loc='lower right')
             # overlay the forces, to see what is happening on those curves when
             # Mz deviates from validation data values
             '''
@@ -305,7 +325,7 @@ class PacTire_panda:
     
     # @brief plot reactions vs. alpha between similar runs w/ different gamma
     # assuming tire_gamma0 is the zero (or lower) of the two gamma value
-    def plot_gammaComparison(self, tire_gamma0):
+    def plot_gammaComparison(self, tire_gamma0, gamma_val = 10):
         
         figFy = plt.figure()
         df_G = pd.DataFrame(self._m_df_T, columns = ['alpha','Fyc','gammaP'])
@@ -322,17 +342,29 @@ class PacTire_panda:
         axFy2.legend(loc='lower left')
         axFy.set_title(r'Fy vs. $\alpha $, pure lateral slip')
         
+        # plot self, which is assumed to have results for a non-zero gamme = gamma_val
         figMz = plt.figure()
-        df_Mz = pd.DataFrame(self._m_df_T, columns = ['alpha','Mzc'])
+        df_Mz = pd.DataFrame(self._m_df_T, columns = ['alpha','Mzc','Mzx','Mzy','M_zrc','t','s'])
         axMz = df_Mz.plot(linewidth=2.0, x='alpha',y=['Mzc'])
- 
+        # overlay plot for input PacTire_panda object, results when gamma = 0
         df_MzG0 = pd.DataFrame(tire_gamma0._m_df_T, columns = ['alpha','Mzc'] )
         axMz.plot(df_MzG0['alpha'], df_MzG0['Mzc'],'k-*',linewidth=1.0,label="Mzc, gamma = 0")        
+                
+        # overlay the components of the moment from the x and y forces, respectively
+        # when gamma is nonzero
+        axMz.plot(df_Mz['alpha'], df_Mz['Mzx'],'b--',linewidth=2,label='Mz,x')
+        axMz.plot(df_Mz['alpha'], df_Mz['Mzy'],'g--',linewidth=2,label='Mz,y')
+        axMz.plot(df_Mz['alpha'], df_Mz['M_zrc'],'y--',linewidth=2,label='M_zrc')
+        axMz2 = axMz.twinx()
+        axMz2.plot(df_Mz['alpha'], df_Mz['t'],'b.',linewidth=1.0,label='p trail')
+        axMz2.plot(df_Mz['alpha'], df_Mz['s'],'c.',linewidth=1.0,label='s arm')
+        axMz2.set_ylabel('length [m]')
+        axMz2.legend(loc='lower right')        
         
         axMz.set_xlabel(r'$\alpha  $[deg]')
         axMz.set_ylabel('Moment [N-m]')
         axMz.legend(loc='best')
-        axMz.set_title(r'Mz vs. $\alpha $, pure lateral slip')
+        axMz.set_title(r'Mz vs. $\alpha $, pure lateral slip, $\gamma$='+str(gamma_val) +' deg.')
         
         
     
