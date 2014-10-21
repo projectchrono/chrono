@@ -42,15 +42,15 @@ SimParams paramsH;
 
 ////************ note: paramsH is zero here. These expressions are wrong
 const real_ mm = .001;
-//const real2 r1_2 = R2(1.351, 1.750) * mm;
-//const real2 r2_2 = R2(1.341, 1.754) * mm;
-//const real2 r3_2 = R2(2.413, 3.532) * mm;
-//const real2 r4_2 = R2(0.279, 0.413) * mm;
-
 const real2 r1_2 = R2(1.351, 1.750) * mm;
-const real2 r2_2 = R2(1.341, 1.2) * mm;
-const real2 r3_2 = R2(2.413, 4.272) * mm;
+const real2 r2_2 = R2(1.341, 1.754) * mm;
+const real2 r3_2 = R2(2.413, 3.532) * mm;
 const real2 r4_2 = R2(0.279, 0.413) * mm;
+
+//const real2 r1_2 = R2(1.351, 1.750) * mm;
+//const real2 r2_2 = R2(1.341, 1.2) * mm;
+//const real2 r3_2 = R2(2.413, 4.272) * mm;
+//const real2 r4_2 = R2(0.279, 0.413) * mm;
 
 const real2 r5_2 = R2(1.675, 1.235) * mm; //r5_2 = R2(1.727, 1.235);  	//the smaller one
 const real2 r6_2 = R2(2.747, 4.272) * mm; //the larger one
@@ -1965,7 +1965,7 @@ int main() {
 			paramsH.toleranceZone = paramsH.NUM_BOUNDARY_LAYERS * (paramsH.HSML * paramsH.MULT_INITSPACE);
 			paramsH.NUM_BCE_LAYERS = 2;
 			paramsH.solidSurfaceAdjust = .6 * (paramsH.HSML * paramsH.MULT_INITSPACE); // 0.6 for bouyant, under gravity
-		paramsH.BASEPRES = 10;
+		paramsH.BASEPRES = 0;//10;
 			paramsH.LARGE_PRES = paramsH.BASEPRES;//10000;
 			paramsH.nPeriod = 7;
 		paramsH.gravity = R3(0, 0, 0);//R3(0);//R3(0, -9.81, 0);
@@ -2283,6 +2283,9 @@ int main() {
 			numObjects.numFlexBodies, numObjects.numRigidBodies, numObjects.numFluidMarkers, numObjects.numBoundaryMarkers,
 			numObjects.numRigid_SphMarkers, numObjects.numFlex_SphMarkers, numObjects.numAllMarkers);
 	printf("********************\n");
+	DOUBLEPRECISION ? printf("Double Precision\n") : printf("Single Precision\n");
+	printf("********************\n");
+
 	if (numObjects.numAllMarkers != 0) {
 		cudaCollisions(mPosRad, mVelMas, mRhoPresMu, bodyIndex, referenceArray,
 				rigidPos, mQuatRot, velMassRigidH, rigidBodyOmega, rigidBody_J1, rigidBody_J2, rigidBody_InvJ1, rigidBody_InvJ2,

@@ -2064,8 +2064,8 @@ void cudaCollisions(
 	real_ delTOrig = paramsH.dT;
 	real_ realTime = 0;
 
-	real_ timePause = .002 * paramsH.tFinal; // keep it as small as possible. the time step will be 1/10 * dT
-	real_ timePauseRigidFlex = .1 * paramsH.tFinal;
+	real_ timePause = .0005 * paramsH.tFinal; // keep it as small as possible. the time step will be 1/10 * dT
+	real_ timePauseRigidFlex = .01 * paramsH.tFinal;
 	SimParams paramsH_B = paramsH;
 	paramsH_B.bodyForce4 = R4(0);
 	paramsH_B.gravity = R3(0);
