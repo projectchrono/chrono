@@ -181,6 +181,8 @@ void WriteEverythingToFile(
 	outProbParams << paramsH.EPS_XSPH << endl;
 	outProbParams << paramsH.dT << endl;
 	outProbParams << paramsH.tFinal << endl;
+	outProbParams << paramsH.timePause << endl;
+	outProbParams << paramsH.timePauseRigidFlex << endl;
 	outProbParams << paramsH.kdT << endl;
 	outProbParams << paramsH.gammaBB << endl;
 	outProbParams << paramsH.cMin.x << ", "  << paramsH.cMin.y << ", " << paramsH.cMin.z << endl;
@@ -550,6 +552,8 @@ void ReadEverythingFromFile(
 	inProbParams >> paramsH.EPS_XSPH;
 	inProbParams >> paramsH.dT;
 	inProbParams >> paramsH.tFinal ;
+	inProbParams >> paramsH.timePause ;
+	inProbParams >> paramsH.timePauseRigidFlex ;
 	inProbParams >> paramsH.kdT ;
 	inProbParams >> paramsH.gammaBB ;
 	inProbParams >> paramsH.cMin.x >> ddCh  >> paramsH.cMin.y >> ddCh >> paramsH.cMin.z ;

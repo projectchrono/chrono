@@ -2064,15 +2064,13 @@ void cudaCollisions(
 	real_ delTOrig = paramsH.dT;
 	real_ realTime = 0;
 
-	real_ timePause = .0005 * paramsH.tFinal; // keep it as small as possible. the time step will be 1/10 * dT
-	real_ timePauseRigidFlex = .01 * paramsH.tFinal;
 	SimParams paramsH_B = paramsH;
 	paramsH_B.bodyForce4 = R4(0);
 	paramsH_B.gravity = R3(0);
 	paramsH_B.dT = .1 * paramsH.dT;
 
-	printf("\ntimePause %f, numPause %d\n", timePause, int(timePause/paramsH_B.dT));
-	printf("timePauseRigidFlex %f, numPauseRigidFlex %d\n\n", timePauseRigidFlex, int((timePauseRigidFlex-timePause)/paramsH.dT + timePause/paramsH_B.dT));
+	printf("\ntimePause %f, numPause %d\n", paramsH.timePause, int(paramsH.timePause/paramsH_B.dT));
+	printf("paramsH.timePauseRigidFlex %f, numPauseRigidFlex %d\n\n", paramsH.timePauseRigidFlex, int((paramsH.timePauseRigidFlex-paramsH.timePause)/paramsH.dT + paramsH.timePause/paramsH_B.dT));
 
 	SimParams currentParamsH = paramsH;
 
@@ -2101,7 +2099,7 @@ void cudaCollisions(
 		gettimeofday(&cpuT_start, &cpuT_timezone);
 
 		//***********
-		if (realTime <= timePause) 	{
+		if (realTime <= paramsH.timePause) 	{
 			currentParamsH = paramsH_B;
 		} else {
 			currentParamsH = paramsH;
@@ -2159,7 +2157,7 @@ void cudaCollisions(
 		UpdateFluid(posRadD2, velMasD2, vel_XSPH_D, rhoPresMuD2, derivVelRhoD, referenceArray, 0.5 * currentParamsH.dT); //assumes ...D2 is a copy of ...D
 		//UpdateBoundary(posRadD2, velMasD2, rhoPresMuD2, derivVelRhoD, referenceArray, 0.5 * currentParamsH.dT);		//assumes ...D2 is a copy of ...D
 
-		if (realTime > timePauseRigidFlex) {
+		if (realTime > paramsH.timePauseRigidFlex) {
 			UpdateRigidBody(
 					posRadD2, velMasD2,
 					posRigidD2, posRigidCumulativeD2, velMassRigidD2, qD2, AD1_2, AD2_2, AD3_2, omegaLRF_D2,
@@ -2198,7 +2196,7 @@ void cudaCollisions(
 		printMaxStress("maxParticlesStress.txt", maxStress, tStep);
 		//UpdateBoundary(posRadD, velMasD, rhoPresMuD, derivVelRhoD, referenceArray, currentParamsH.dT);
 
-		if (realTime > timePauseRigidFlex) {
+		if (realTime > paramsH.timePauseRigidFlex) {
 			UpdateRigidBody(
 					posRadD, velMasD,
 					posRigidD, posRigidCumulativeD, velMassRigidD, qD1, AD1, AD2, AD3, omegaLRF_D,

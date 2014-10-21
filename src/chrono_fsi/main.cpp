@@ -1976,6 +1976,8 @@ int main() {
 			paramsH.EPS_XSPH = .5f;
 		paramsH.dT = 1e-4;//.001; //sph alone: .01 for Re 10;
 			paramsH.tFinal = 400;//20 * paramsH.dT; //400
+			paramsH.timePause = .0005 * paramsH.tFinal; // keep it as small as possible. the time step will be 1/10 * dT
+			paramsH.timePauseRigidFlex = .01 * paramsH.tFinal;
 			paramsH.kdT = 5;
 			paramsH.gammaBB = 0.5;
 		// *** cMax cMin, see below
@@ -2269,9 +2271,9 @@ int main() {
 //		//***********************************************************************************************************************
 	}
 	//***** print numbers
-	printf("********************\n paramsH.HSML: %f\n paramsH.bodyForce4: %f %f %f\n paramsH.gravity: %f %f %f\n paramsH.rho0: %e\n paramsH.mu0: %f\n paramsH.v_Max: %f\n paramsH.dT: %e\n paramsH.tFinal: %f\n paramsH.densityReinit: %d\n",
+	printf("********************\n paramsH.HSML: %f\n paramsH.bodyForce4: %f %f %f\n paramsH.gravity: %f %f %f\n paramsH.rho0: %e\n paramsH.mu0: %f\n paramsH.v_Max: %f\n paramsH.dT: %e\n paramsH.tFinal: %f\n  paramsH.timePause: %f\n  paramsH.timePauseRigidFlex: %f\n paramsH.densityReinit: %d\n",
 			paramsH.HSML, paramsH.bodyForce4.x, paramsH.bodyForce4.y, paramsH.bodyForce4.z, paramsH.gravity.x, paramsH.gravity.y, paramsH.gravity.z,
-			paramsH.rho0, paramsH.mu0, paramsH.v_Max, paramsH.dT, paramsH.tFinal, paramsH.densityReinit);
+			paramsH.rho0, paramsH.mu0, paramsH.v_Max, paramsH.dT, paramsH.tFinal, paramsH.timePause, paramsH.timePauseRigidFlex, paramsH.densityReinit);
 	printf(" paramsH.cMin: %f %f %f, paramsH.cMax: %f %f %f\n binSize: %f\n",
 			paramsH.cMin.x, paramsH.cMin.y, paramsH.cMin.z, paramsH.cMax.x,
 			paramsH.cMax.y, paramsH.cMax.z, paramsH.binSize0);

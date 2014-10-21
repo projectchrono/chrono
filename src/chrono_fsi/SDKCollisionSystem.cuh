@@ -53,6 +53,8 @@ struct SimParams {
 		real_ EPS_XSPH;
 		real_ dT;
 		real_ tFinal;
+		real_ timePause; 			//run the fluid only during this time, with dTm = 0.1 * dT
+		real_ timePauseRigidFlex; 	//keep the rigid and flex stationary during this time (timePause + timePauseRigidFlex) until the fluid is fully developed
 		real_ kdT;
 		real_ gammaBB;
 		real3 cMin;
