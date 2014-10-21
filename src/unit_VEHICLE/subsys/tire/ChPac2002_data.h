@@ -312,10 +312,10 @@ struct pureTorqueCoefs {
 	double D_t0;
 	double D_t;
 	double E_t;
-	double t0;
+	double t;
 
-	double MP_z0;
-	double M_zr0;
+	double MP_z;
+	double M_zr;
 	
 
 };

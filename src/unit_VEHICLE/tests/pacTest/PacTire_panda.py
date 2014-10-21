@@ -156,12 +156,12 @@ class PacTire_panda:
         # plot transient slip output for Mz?
         if( self._use_transient_slip):
             # Mzc here
-            df_T_M = pd.DataFrame(self._m_df_T, columns = ['kappa','Mzc','Fyc','Fxc','Mzx','Mzy','M_zr'])
+            df_T_M = pd.DataFrame(self._m_df_T, columns = ['kappa','Mzc','Fyc','Fxc','Mzx','Mzy','M_zrc'])
             axM.plot(df_T_M['kappa'], df_T_M['Mzc'],'k-*',linewidth=1.0,label='Mzc transient')
             # overlay the components of the moment from the x and y forces, respectively
             axM.plot(df_T_M['kappa'], df_T_M['Mzx'],'b--',linewidth=1.5,label='Mz,x')
             axM.plot(df_T_M['kappa'], df_T_M['Mzy'],'g--',linewidth=1.5,label='Mz,y')
-            axM.plot(df_T_M['kappa'], df_T_M['M_zr'],'y--',linewidth=1.5,label='M_zr')
+            axM.plot(df_T_M['kappa'], df_T_M['M_zrc'],'y--',linewidth=1.5,label='M_zrc')
             # overlay the forces, to see what is happening on those curves when
             # Mz deviates from validation data values
             '''

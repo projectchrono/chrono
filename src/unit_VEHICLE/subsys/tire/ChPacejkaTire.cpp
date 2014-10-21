@@ -1165,9 +1165,11 @@ double ChPacejkaTire::Mz_pureLat(double alpha, double gamma, double Fy_pureSlip)
 
   double B_r = (m_params->aligning.qbz9 * (m_params->scaling.lky / m_params->scaling.lmuy) + m_params->aligning.qbz10 * m_pureLat->B_y * m_pureLat->C_y) * m_zeta->z6;
   double C_r = m_zeta->z7;
-  // double D_r = m_Fz * m_R0 * ( (m_params->aligning.qdz6 + m_params->aligning.qdz7 * m_dF_z) * m_params->scaling.lgyr * m_zeta->z2 + (m_params->aligning.qdz8 + m_params->aligning.qdz9 * m_dF_z) * m_slip->gammaP * m_params->scaling.lgaz * m_zeta->z0 ) * m_slip->cosPrime_alpha * m_params->scaling.lmuy * sign_Vx + m_zeta->z8 - 1.0;
-  double D_r = m_Fz * m_R0 * ( (m_params->aligning.qdz6 + m_params->aligning.qdz7 * m_dF_z) * m_params->scaling.lres + (m_params->aligning.qdz8 + m_params->aligning.qdz9 * m_dF_z) * gamma ) * m_params->scaling.lmuy + m_zeta->z8 - 1.0;
-  
+  // no terms (Dz10, Dz11) for gamma^2 term seen in Pacejka
+  // double D_r = m_Fz*m_R0 * ((m_params->aligning.qdz6 + m_params->aligning.qdz7 * m_dF_z)*m_params->scaling.lres*m_zeta->z2 + (m_params->aligning.qdz8 + m_params->aligning.qdz9 * m_dF_z)*gamma*m_params->scaling.lgaz*m_zeta->z0) * m_slip->cosPrime_alpha*m_params->scaling.lmuy*sign_Vx + m_zeta->z8 - 1.0;
+  // reference
+  double D_r = m_Fz*m_R0 * ((m_params->aligning.qdz6 + m_params->aligning.qdz7*m_dF_z)*m_params->scaling.lres + (m_params->aligning.qdz8 + m_params->aligning.qdz9*m_dF_z)*gamma) * m_params->scaling.lmuy*m_slip->cosPrime_alpha*sign_Vx + m_zeta->z8 - 1.0;
+
   double B_t = (m_params->aligning.qbz1 + m_params->aligning.qbz2 * m_dF_z + m_params->aligning.qbz3 * pow(m_dF_z,2) ) * (1.0 + m_params->aligning.qbz4 * gamma + m_params->aligning.qbz5 * std::abs(gamma) ) * m_params->scaling.lvyka / m_params->scaling.lmuy;
   double C_t = m_params->aligning.qcz1;
   double D_t0 = m_Fz * (m_R0 / m_params->vertical.fnomin) * (m_params->aligning.qdz1 + m_params->aligning.qdz2 * m_dF_z);
