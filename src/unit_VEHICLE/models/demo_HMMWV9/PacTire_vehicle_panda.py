@@ -171,13 +171,18 @@ class PacTire_vehicle_panda:
         ax_rad2.legend(loc='lower right')
         
     # @brief a subplot for each forces, all 4 tires, vs. time    
-    def plotall_forces(self):
+    def plotall_forces(self,plot_global=False):
         # plot the forces vs time
         fig, (ax1, ax2, ax3) = plt.subplots(3, sharex=True)
-        df_FL = pd.DataFrame(self._DF[0], columns = ['time','Fxc','Fyc','m_Fz'])
-        df_FR = pd.DataFrame(self._DF[1], columns = ['time','Fxc','Fyc','m_Fz'])
-        df_RL = pd.DataFrame(self._DF[2], columns = ['time','Fxc','Fyc','m_Fz'])
-        df_RR = pd.DataFrame(self._DF[3], columns = ['time','Fxc','Fyc','m_Fz'])
+        data_cols = []
+        if(plot_global):
+            data_cols = ['time','Fxc','Fyc','m_Fz','FX','FY','FZ']
+        else:
+            data_cols = ['time','Fxc','Fyc','m_Fz']
+        df_FL = pd.DataFrame(self._DF[0], columns = data_cols)
+        df_FR = pd.DataFrame(self._DF[1], columns = data_cols)
+        df_RL = pd.DataFrame(self._DF[2], columns = data_cols)
+        df_RR = pd.DataFrame(self._DF[3], columns = data_cols)
         df_list = [df_FL, df_FR, df_RL, df_RR]
         marker_list = ['k-','k--','r-','r--']
         leg_list = ['FL','FR','RL','RR']
@@ -200,21 +205,47 @@ class PacTire_vehicle_panda:
         ax2.grid(True)
         ax3.grid(True)
         
-        
+        # a new plot for the total global reactions applied to the wheel rigid body
+        if( plot_global ):
+            figG, (axG1, axG2, axG3) = plt.subplots(3, sharex=True)
+            # plot Fx, Fy and m_Fz
+            for i in range(4):
+                axG1.plot(df_list[i]['time'], df_list[i]['FX'], marker_list[i], linewidth=1.5, label=leg_list[i]+' global')
+                axG2.plot(df_list[i]['time'], df_list[i]['FY'], marker_list[i], linewidth=1.5, label=leg_list[i]+' global')
+                axG3.plot(df_list[i]['time'], df_list[i]['FZ'], marker_list[i], linewidth=1.5, label=leg_list[i]+' global')
+               
+                axG1.set_title('Forces, all tires')
+                axG3.set_xlabel('time [sec]')
+                axG1.set_ylabel('Fx [N]')
+                axG2.set_ylabel('Fy [N]')
+                axG3.set_ylabel('Fz [N]')
+                axG1.legend(loc='best')
+                axG2.legend(loc='best')
+                axG3.legend(loc='best')
+                axG1.grid(True)
+                axG2.grid(True)
+                axG3.grid(True)        
+            
         
     # @brief a subplot for each moment, all 4 tires, vs. time    
-    def plotall_moments(self):
+    def plotall_moments(self,plot_global=False):
         # plot the forces vs time
         fig, (ax1, ax2, ax3) = plt.subplots(3, sharex=True)
-        df_FL = pd.DataFrame(self._DF[0], columns = ['time','Mx','My','Mzc'])
-        df_FR = pd.DataFrame(self._DF[1], columns = ['time','Mx','My','Mzc'])
-        df_RL = pd.DataFrame(self._DF[2], columns = ['time','Mx','My','Mzc'])
-        df_RR = pd.DataFrame(self._DF[3], columns = ['time','Mx','My','Mzc'])
+        data_cols = []
+        if(plot_global):
+            data_cols = ['time','Mx','My','Mzc','MX','MY','MZ']
+        else:
+            data_cols = ['time','Mx','My','Mzc']
+            
+        df_FL = pd.DataFrame(self._DF[0], columns = data_cols)
+        df_FR = pd.DataFrame(self._DF[1], columns = data_cols)
+        df_RL = pd.DataFrame(self._DF[2], columns = data_cols)
+        df_RR = pd.DataFrame(self._DF[3], columns = data_cols)
         df_list = [df_FL, df_FR, df_RL, df_RR]
         marker_list = ['k-','k--','r-','r--']
         leg_list = ['FL','FR','RL','RR']
         
-        # plot Fx, Fy and m_Fz
+        # plot Mx, My, Mzc, in tire contact frame
         for i in range(4):
             ax1.plot(df_list[i]['time'], df_list[i]['Mx'], marker_list[i], linewidth=1.5, label=leg_list[i])
             ax2.plot(df_list[i]['time'], df_list[i]['My'], marker_list[i], linewidth=1.5, label=leg_list[i])
@@ -232,6 +263,30 @@ class PacTire_vehicle_panda:
         ax2.grid(True)
         ax3.grid(True)   
         
+        
+        # a new plot for the total global reactions applied to the wheel rigid body
+        if( plot_global ):
+            figG, (axG1, axG2, axG3) = plt.subplots(3, sharex=True)
+            
+            # plot MX, MY, MZ, caps indicate global coords
+            for i in range(4):
+                axG1.plot(df_list[i]['time'], df_list[i]['MX'], marker_list[i], linewidth=1.5, label=leg_list[i]+' global')
+                axG2.plot(df_list[i]['time'], df_list[i]['MY'], marker_list[i], linewidth=1.5, label=leg_list[i]+' global')
+                axG3.plot(df_list[i]['time'], df_list[i]['MZ'], marker_list[i], linewidth=1.5, label=leg_list[i]+' global')
+               
+                axG1.set_title('Forces, all tires')
+                axG3.set_xlabel('time [sec]')
+                axG1.set_ylabel('MX [Nm]')
+                axG2.set_ylabel('MY [Nm]')
+                axG3.set_ylabel('MZ [Nm]')
+                axG1.legend(loc='best')
+                axG2.legend(loc='best')
+                axG3.legend(loc='best')
+                axG1.grid(True)
+                axG2.grid(True)
+                axG3.grid(True)        
+        
+        
     # @brief detailed subplot for each wheel Mz, one for each of the 4 tires, vs. time    
     def plotall_Mz_detailed(self):
         # plot the forces vs time
@@ -247,9 +302,9 @@ class PacTire_vehicle_panda:
         
         # plot Mzc, Mzx, Mzy, M_zrc, t and s for each tire here
         for i in range(4):
-            ax_list[i].plot(df_list[i]['time'], df_list[i]['Mzc'],'k-*',linewidth=1.0,label=leg_list[i]+' Mzc')
+            ax_list[i].plot(df_list[i]['time'], df_list[i]['Mzc'],'k--',linewidth=2,label=leg_list[i]+' Mzc')
             ax_list[i].plot(df_list[i]['time'], df_list[i]['Mzx'],'b--',linewidth=2,label=leg_list[i]+' Mz,x')
-            ax_list[i].plot(df_list[i]['time'], df_list[i]['Mzy'],'g--',linewidth=2,label=leg_list[i]+' Mz,y')
+            ax_list[i].plot(df_list[i]['time'], df_list[i]['Mzy'],'r--',linewidth=2,label=leg_list[i]+' Mz,y')
             ax_list[i].plot(df_list[i]['time'], df_list[i]['M_zrc'],'y--',linewidth=2,label=leg_list[i]+' M_zrc')
             ax_list[i].legend(loc= 'upper right')
             ax_list[i].set_ylabel('Moment [N-m]')
@@ -258,10 +313,57 @@ class PacTire_vehicle_panda:
             axM2.plot(df_list[i]['time'], df_list[i]['t'],'b.',linewidth=1.0,label=leg_list[i]+' t trail')
             axM2.plot(df_list[i]['time'], df_list[i]['s'],'c.',linewidth=1.0,label=leg_list[i]+' s arm')
             axM2.set_ylabel('length [m]')
-            axM2.legend(loc='lower right')        
+            axM2.legend(loc='upper left')        
     
         ax1.set_title('Detailed Mz plot for each tire')
         ax4.set_xlabel('time [sec]')       
+        
+    # @brief plot input slips, and the 4 main reactions (Fxc, Fyc, My, Mzc)  
+    # plot input slips to the force/moment equations (alphaP, kappaP, gammaP)
+    # plot the kinematic slips from rigid body info (alpha, kappa, gamma)
+    def plotall_slips(self, plot_kinematic = False):    
+        # plot the forces vs time
+        fig, (ax1, ax2, ax3, ax4) = plt.subplots(4, sharex=True)
+        data_cols = []
+        if( plot_kinematic):
+            data_cols = ['time','Fxc','Fyc','My','Mzc','alpha','kappa','gamma']
+        else:
+            data_cols = ['time','Fxc','Fyc','My','Mzc','alphaP','kappaP','gammaP']
+            
+        df_FL = pd.DataFrame(self._DF[0], columns = data_cols)
+        df_FR = pd.DataFrame(self._DF[1], columns = data_cols)
+        df_RL = pd.DataFrame(self._DF[2], columns = data_cols)
+        df_RR = pd.DataFrame(self._DF[3], columns = data_cols)            
+        
+        df_list = [df_FL, df_FR, df_RL, df_RR]
+        ax_list = [ax1, ax2, ax3, ax4]
+        leg_list = ['FL','FR','RL','RR']
+        
+        # plot Mzc, Mzx, Mzy, M_zrc, t and s for each tire here
+        for i in range(4):
+            if(plot_kinematic):
+                ax_list[i].plot(df_list[i]['time'], df_list[i]['alpha'],'b--',linewidth=1.0,label=leg_list[i]+' alpha')
+                ax_list[i].plot(df_list[i]['time'], df_list[i]['kappa'],'k--',linewidth=1.0,label=leg_list[i]+' kappa')
+                ax_list[i].plot(df_list[i]['time'], df_list[i]['gamma'],'r--',linewidth=1.0,label=leg_list[i]+' gamma')
+            else:
+                ax_list[i].plot(df_list[i]['time'], df_list[i]['alphaP'],'b--',linewidth=1.0,label=leg_list[i]+' alphaP')
+                ax_list[i].plot(df_list[i]['time'], df_list[i]['kappaP'],'k--',linewidth=1.0,label=leg_list[i]+' kappaP')
+                ax_list[i].plot(df_list[i]['time'], df_list[i]['gammaP'],'r--',linewidth=1.0,label=leg_list[i]+' gammaP')
+            axM2 = ax_list[i].twinx()            
+            axM2.plot(df_list[i]['time'], df_list[i]['Fxc'],'k-',linewidth=1.5,label=leg_list[i]+' Fx')
+            axM2.plot(df_list[i]['time'], df_list[i]['Fyc'],'b-',linewidth=1.5,label=leg_list[i]+' Fy')
+            axM2.plot(df_list[i]['time'], df_list[i]['My'],'g-',linewidth=1.5,label=leg_list[i]+' My')
+            axM2.plot(df_list[i]['time'], df_list[i]['Mzc'],'r-',linewidth=1.5,label=leg_list[i]+' Mz')
+            axM2.legend(loc= 'upper right')
+            axM2.set_ylabel('F [N] M [N-m]')
+            axM2.grid(True)
+
+            ax_list[i].set_ylabel('slip [-]')
+            ax_list[i].legend(loc='upper left')        
+    
+        ax1.set_title('Slips and reactions for each tire')
+        ax4.set_xlabel('time [sec]')       
+        
         
     
 if __name__ == '__main__':
@@ -309,9 +411,10 @@ if __name__ == '__main__':
     # vehicle_output.plot_time(2,'Rear Left')
     # vehicle_output.plot_time(3,'Rear Right')
     
-    # overlay all 4 tires for
-    vehicle_output.plotall_forces()
-    vehicle_output.plotall_moments()
+    # overlay all 4 tires for slip, reactions calculated.
+    vehicle_output.plotall_slips()
+    vehicle_output.plotall_forces(False)     # also plot global forces?
+    vehicle_output.plotall_moments(False)    # also plot global moments?
     vehicle_output.plotall_Mz_detailed()
     
     # plot w.r.t. lateral slip angle
