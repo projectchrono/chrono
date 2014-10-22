@@ -170,37 +170,99 @@ class PacTire_vehicle_panda:
         ax_rad.legend(loc='best')
         ax_rad2.legend(loc='lower right')
         
-    '''
-    # @brief plot what you please
-    # @param x_col the column name of the x-series data frame
-    # @param y_col_list list of col names of y-series data frames
-    # Usage: tire.plot_custom('Fx',['Fy','Fyc'])
-    # NOTE: y_col_list should be of the same units
-    def plot_custom(self,x_col, y_col_list,fig_title='custom plot'):
-        fig = plt.figure()
-        df_cols = []
-        df_cols = list(y_col_list)
-        df_cols.append(x_col)
-        df_sy = pd.DataFrame(self._m_df, columns = df_cols)
-        ax = df_sy.plot(linewidth=1.5, x=x_col, y=y_col_list)
-        ax.set_xlabel(x_col)
+    # @brief a subplot for each forces, all 4 tires, vs. time    
+    def plotall_forces(self):
+        # plot the forces vs time
+        fig, (ax1, ax2, ax3) = plt.subplots(3, sharex=True)
+        df_FL = pd.DataFrame(self._DF[0], columns = ['time','Fxc','Fyc','m_Fz'])
+        df_FR = pd.DataFrame(self._DF[1], columns = ['time','Fxc','Fyc','m_Fz'])
+        df_RL = pd.DataFrame(self._DF[2], columns = ['time','Fxc','Fyc','m_Fz'])
+        df_RR = pd.DataFrame(self._DF[3], columns = ['time','Fxc','Fyc','m_Fz'])
+        df_list = [df_FL, df_FR, df_RL, df_RR]
+        marker_list = ['k-','k--','r-','r--']
+        leg_list = ['FL','FR','RL','RR']
         
-        ax.legend(loc='best')
-        ax.set_title(fig_title)
-
-    # @brief similar as above, but y_col_2 will be on a second y-axis
-    def plot_custom_two(self,x_col, y_col_1, y_secondary, fig_title='custom plot 2'):
-        fig = plt.figure()
-        df_cols = [x_col , y_col_1 , y_secondary]
-        df_sy = pd.DataFrame(self._m_df, columns = df_cols)
-        ax = df_sy.plot(linewidth=1.5, x= x_col, secondary_y= y_secondary)
-        ax.set_xlabel(x_col)
-        ax.set_ylabel(y_col_1)
-        ax.right_ax.set_ylabel(y_secondary)
+        # plot Fx, Fy and m_Fz
+        for i in range(4):
+            ax1.plot(df_list[i]['time'], df_list[i]['Fxc'], marker_list[i], linewidth=1.5, label=leg_list[i])
+            ax2.plot(df_list[i]['time'], df_list[i]['Fyc'], marker_list[i], linewidth=1.5, label=leg_list[i])
+            ax3.plot(df_list[i]['time'], df_list[i]['m_Fz'], marker_list[i], linewidth=1.5, label=leg_list[i])
+       
+        ax1.set_title('Forces, all tires')
+        ax3.set_xlabel('time [sec]')
+        ax1.set_ylabel('Fx [N]')
+        ax2.set_ylabel('Fy [N]')
+        ax3.set_ylabel('Fz [N]')
+        ax1.legend(loc='best')
+        ax2.legend(loc='best')
+        ax3.legend(loc='best')
+        ax1.grid(True)
+        ax2.grid(True)
+        ax3.grid(True)
         
-        ax.legend(loc='best')
-        ax.set_title(fig_title)    
-    '''
+        
+        
+    # @brief a subplot for each moment, all 4 tires, vs. time    
+    def plotall_moments(self):
+        # plot the forces vs time
+        fig, (ax1, ax2, ax3) = plt.subplots(3, sharex=True)
+        df_FL = pd.DataFrame(self._DF[0], columns = ['time','Mx','My','Mzc'])
+        df_FR = pd.DataFrame(self._DF[1], columns = ['time','Mx','My','Mzc'])
+        df_RL = pd.DataFrame(self._DF[2], columns = ['time','Mx','My','Mzc'])
+        df_RR = pd.DataFrame(self._DF[3], columns = ['time','Mx','My','Mzc'])
+        df_list = [df_FL, df_FR, df_RL, df_RR]
+        marker_list = ['k-','k--','r-','r--']
+        leg_list = ['FL','FR','RL','RR']
+        
+        # plot Fx, Fy and m_Fz
+        for i in range(4):
+            ax1.plot(df_list[i]['time'], df_list[i]['Mx'], marker_list[i], linewidth=1.5, label=leg_list[i])
+            ax2.plot(df_list[i]['time'], df_list[i]['My'], marker_list[i], linewidth=1.5, label=leg_list[i])
+            ax3.plot(df_list[i]['time'], df_list[i]['Mzc'], marker_list[i], linewidth=1.5, label=leg_list[i])
+       
+        ax1.set_title('Moments, all tires')
+        ax3.set_xlabel('time [sec]')
+        ax1.set_ylabel('Mx [N-m]')
+        ax2.set_ylabel('My [N-m]')
+        ax3.set_ylabel('Mzc [N-m]')
+        ax1.legend(loc='best')
+        ax2.legend(loc='best')
+        ax3.legend(loc='best')
+        ax1.grid(True)
+        ax2.grid(True)
+        ax3.grid(True)   
+        
+    # @brief detailed subplot for each wheel Mz, one for each of the 4 tires, vs. time    
+    def plotall_Mz_detailed(self):
+        # plot the forces vs time
+        fig, (ax1, ax2, ax3, ax4) = plt.subplots(4, sharex=True)
+        df_FL = pd.DataFrame(self._DF[0], columns = ['time','Mzc','Mzx','Mzy','M_zrc','t','s'])
+        df_FR = pd.DataFrame(self._DF[1], columns = ['time','Mzc','Mzx','Mzy','M_zrc','t','s'])
+        df_RL = pd.DataFrame(self._DF[2], columns = ['time','Mzc','Mzx','Mzy','M_zrc','t','s'])
+        df_RR = pd.DataFrame(self._DF[3], columns = ['time','Mzc','Mzx','Mzy','M_zrc','t','s'])
+        
+        df_list = [df_FL, df_FR, df_RL, df_RR]
+        ax_list = [ax1, ax2, ax3, ax4]
+        leg_list = ['FL','FR','RL','RR']
+        
+        # plot Mzc, Mzx, Mzy, M_zrc, t and s for each tire here
+        for i in range(4):
+            ax_list[i].plot(df_list[i]['time'], df_list[i]['Mzc'],'k-*',linewidth=1.0,label=leg_list[i]+' Mzc')
+            ax_list[i].plot(df_list[i]['time'], df_list[i]['Mzx'],'b--',linewidth=2,label=leg_list[i]+' Mz,x')
+            ax_list[i].plot(df_list[i]['time'], df_list[i]['Mzy'],'g--',linewidth=2,label=leg_list[i]+' Mz,y')
+            ax_list[i].plot(df_list[i]['time'], df_list[i]['M_zrc'],'y--',linewidth=2,label=leg_list[i]+' M_zrc')
+            ax_list[i].legend(loc= 'upper right')
+            ax_list[i].set_ylabel('Moment [N-m]')
+            ax_list[i].grid(True)
+            axM2 = ax_list[i].twinx()
+            axM2.plot(df_list[i]['time'], df_list[i]['t'],'b.',linewidth=1.0,label=leg_list[i]+' t trail')
+            axM2.plot(df_list[i]['time'], df_list[i]['s'],'c.',linewidth=1.0,label=leg_list[i]+' s arm')
+            axM2.set_ylabel('length [m]')
+            axM2.legend(loc='lower right')        
+    
+        ax1.set_title('Detailed Mz plot for each tire')
+        ax4.set_xlabel('time [sec]')       
+        
     
 if __name__ == '__main__':
     
@@ -242,12 +304,15 @@ if __name__ == '__main__':
                                            ['FL','FR','RL','RR'])
     
     # plot w.r.t. to time
-    vehicle_output.plot_time(0,'Front Left')
+    # vehicle_output.plot_time(0,'Front Left')
     # vehicle_output.plot_time(1,'Front Right')
     # vehicle_output.plot_time(2,'Rear Left')
-    vehicle_output.plot_time(3,'Rear Right')
+    # vehicle_output.plot_time(3,'Rear Right')
     
-    # plot w.r.t. long slip
+    # overlay all 4 tires for
+    vehicle_output.plotall_forces()
+    vehicle_output.plotall_moments()
+    vehicle_output.plotall_Mz_detailed()
     
     # plot w.r.t. lateral slip angle
 

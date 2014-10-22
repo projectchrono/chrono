@@ -77,7 +77,7 @@ class PacTire_panda:
             axM.plot(df_tsM['kappa'], df_tsM['Mzy'],'g--',linewidth=2,label='Mz,y')
             axM.plot(df_tsM['kappa'], df_tsM['M_zrc'],'y--',linewidth=2,label='M_zrc')
             axM2 = axM.twinx()
-            axM2.plot(df_tsM['kappa'], df_tsM['t'],'b.',linewidth=1.0,label='p trail')
+            axM2.plot(df_tsM['kappa'], df_tsM['t'],'b.',linewidth=1.0,label='t trail')
             axM2.plot(df_tsM['kappa'], df_tsM['s'],'c.',linewidth=1.0,label='s arm')
             axM2.set_ylabel('length [m]')
             axM2.legend(loc='lower right')            
@@ -122,7 +122,7 @@ class PacTire_panda:
             axM.plot(df_tsM['alpha'], df_tsM['MP_z'],'g--',linewidth=2,label="MP_z")
             axM.plot(df_tsM['alpha'], df_tsM['M_zr'],'y--',linewidth=2,label="M_zr")
             axM2 = axM.twinx()
-            axM2.plot(df_tsM['alpha'], df_tsM['t'],'b.',linewidth=1.0,label='p trail')
+            axM2.plot(df_tsM['alpha'], df_tsM['t'],'b.',linewidth=1.0,label='t trail')
             axM2.plot(df_tsM['alpha'], df_tsM['s'],'c.',linewidth=1.0,label='s arm')
             axM2.legend(loc='lower right')
             axM2.set_ylabel('length [m]')
@@ -178,7 +178,7 @@ class PacTire_panda:
             axM.plot(df_T_M['kappa'], df_T_M['Mzy'],'g--',linewidth=2,label='Mz,y')
             axM.plot(df_T_M['kappa'], df_T_M['M_zrc'],'y--',linewidth=2,label='M_zrc')
             axM2 = axM.twinx()
-            axM2.plot(df_T_M['kappa'], df_T_M['t'],'b.',linewidth=1.0,label='p trail')
+            axM2.plot(df_T_M['kappa'], df_T_M['t'],'b.',linewidth=1.0,label='t trail')
             axM2.plot(df_T_M['kappa'], df_T_M['s'],'c.',linewidth=1.0,label='s arm')
             axM2.set_ylabel('length [m]')
             axM2.legend(loc='lower right')
@@ -332,9 +332,9 @@ class PacTire_panda:
         axFy = df_G.plot(linewidth=2.0,x='alpha', y=['Fyc'])
         # compare to Fy from other tire
         df_G0 = pd.DataFrame(tire_gamma0._m_df_T, columns =   ['alpha','Fyc','gammaP'] )
-        axFy.plot(df_G0['alpha'], df_G0['Fyc'],'k-*',linewidth=1.0,label="Fy, gamma = 0")
+        axFy.plot(df_G0['alpha'], df_G0['Fyc'],'k-*',linewidth=1.0,label=r'Fy, $\gamma$ =0')
         axFy2 = axFy.twinx()
-        axFy2.plot(df_G['alpha'], df_G['gammaP'], 'r--', linewidth = 2.0, label="gammaP")
+        axFy2.plot(df_G['alpha'], df_G['gammaP'], 'r--', linewidth = 2.0, label=r'$\gamma $P ')
         
         axFy.set_xlabel(r'$\alpha $[deg]')
         axFy.set_ylabel('Force [N]')
@@ -346,20 +346,29 @@ class PacTire_panda:
         figMz = plt.figure()
         df_Mz = pd.DataFrame(self._m_df_T, columns = ['alpha','Mzc','Mzx','Mzy','M_zrc','t','s'])
         axMz = df_Mz.plot(linewidth=2.0, x='alpha',y=['Mzc'])
-        # overlay plot for input PacTire_panda object, results when gamma = 0
-        df_MzG0 = pd.DataFrame(tire_gamma0._m_df_T, columns = ['alpha','Mzc'] )
-        axMz.plot(df_MzG0['alpha'], df_MzG0['Mzc'],'k-*',linewidth=1.0,label="Mzc, gamma = 0")        
-                
         # overlay the components of the moment from the x and y forces, respectively
         # when gamma is nonzero
         axMz.plot(df_Mz['alpha'], df_Mz['Mzx'],'b--',linewidth=2,label='Mz,x')
         axMz.plot(df_Mz['alpha'], df_Mz['Mzy'],'g--',linewidth=2,label='Mz,y')
         axMz.plot(df_Mz['alpha'], df_Mz['M_zrc'],'y--',linewidth=2,label='M_zrc')
+        # trailing and side arms in meters
         axMz2 = axMz.twinx()
-        axMz2.plot(df_Mz['alpha'], df_Mz['t'],'b.',linewidth=1.0,label='p trail')
+        axMz2.plot(df_Mz['alpha'], df_Mz['t'],'b.',linewidth=1.0,label='t trail')
         axMz2.plot(df_Mz['alpha'], df_Mz['s'],'c.',linewidth=1.0,label='s arm')
+
+        # overlay plot for input PacTire_panda object, results when gamma = 0
+        df_MzG0 = pd.DataFrame(tire_gamma0._m_df_T, columns = ['alpha','Mzc','Mzx','Mzy','M_zrc','t','s'] )
+        axMz.plot(df_MzG0['alpha'], df_MzG0['Mzc'],'k-*',linewidth=1.0,label=r'Mzc, $\gamma $=0')        
+        # also overlay components for the gamma = 0 case
+        axMz.plot(df_MzG0['alpha'], df_MzG0['Mzx'],'b-',linewidth=1,label=r'Mz,x, $\gamma $=0')
+        axMz.plot(df_MzG0['alpha'], df_MzG0['Mzy'],'g-',linewidth=1,label=r'Mz,y,  $\gamma $=0')
+        axMz.plot(df_MzG0['alpha'], df_MzG0['M_zrc'],'y-',linewidth=1,label=r'M_zrc,  $\gamma $=0')
+        axMz2.plot(df_MzG0['alpha'], df_MzG0['t'],'b-',linewidth=1.0,label='t trail, $\gamma $=0')
+        axMz2.plot(df_MzG0['alpha'], df_MzG0['s'],'c-',linewidth=1.0,label='s arm, $\gamma $=0')
+
         axMz2.set_ylabel('length [m]')
-        axMz2.legend(loc='lower right')        
+        axMz2.legend(loc='lower right')
+     
         
         axMz.set_xlabel(r'$\alpha  $[deg]')
         axMz.set_ylabel('Moment [N-m]')
