@@ -40,6 +40,7 @@ struct combinedLatCoefs;
 struct combinedTorqueCoefs;
 struct zetaCoefs;
 struct relaxationL;
+struct bessel;
 
 ///
 /// Concrete tire class that implements the Pacejka tire model.
@@ -73,7 +74,8 @@ public:
 
   /// specify the file name to read the Pactire input from
   void Initialize(
-    ChVehicleSide        side       ///< [in] 
+    ChVehicleSide        side,       ///< [in] 
+    bool                driven
     );
 
   /// return the reactions for the combined slip EQs, in global coords
@@ -320,6 +322,7 @@ private:
   // ----- Data members
   bool m_use_transient_slip;
   ChVehicleSide m_side;
+  bool m_driven;  // is this a driven tire?
   int m_sameSide;             // does parameter file side equal m_side? 1 = true, -1 opposite
 
   ChWheelState m_tireState;    // current tire state
@@ -386,6 +389,7 @@ private:
 
   // for transient contact point tire model
   relaxationL*         m_relaxation;
+  bessel* m_bessel;
 
 };
 

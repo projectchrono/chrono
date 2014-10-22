@@ -201,10 +201,10 @@ int main(int argc, char* argv[])
     ChSharedPtr<ChPacejkaTire> tire_RL(new ChPacejkaTire("RL", param_file, terrain));
     ChSharedPtr<ChPacejkaTire> tire_RR(new ChPacejkaTire("RR", param_file, terrain));
 
-    tire_FL->Initialize(LEFT);
-    tire_FR->Initialize(RIGHT);
-    tire_RL->Initialize(LEFT);
-    tire_RR->Initialize(RIGHT);
+    tire_FL->Initialize(LEFT,false);
+    tire_FR->Initialize(RIGHT,false);
+    tire_RL->Initialize(LEFT,true);
+    tire_RR->Initialize(RIGHT,true);
 
     tire_front_left = tire_FL;
     tire_front_right = tire_FR;

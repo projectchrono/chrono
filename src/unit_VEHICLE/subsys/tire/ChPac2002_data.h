@@ -370,6 +370,16 @@ struct relaxationL {
 	double C_Fphi;
 };
 
+struct bessel {
+  double d_vlow;
+  double d_tow;
+  double u_Bessel;
+  double u_tow;
+  double v_Bessel;
+  double v_tow;
+  double u_sigma;
+  double v_sigma;
+};
 
 } // end namespace chrono
 

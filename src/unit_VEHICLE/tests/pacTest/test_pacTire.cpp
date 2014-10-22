@@ -82,10 +82,10 @@ int main(int argc, char* argv[])
   ChPacejkaTire tire_combined("COMBINED", pacParamFile, flat_terrain, F_z, use_transient_slip);
 
   // initialize the tire on the left or right side
-  tire_long.Initialize(m_side);
-  tire_lat.Initialize(m_side);
-  tire_lat_gamma.Initialize(m_side);
-  tire_combined.Initialize(m_side);
+  tire_long.Initialize(m_side,true);
+  tire_lat.Initialize(m_side,true);
+  tire_lat_gamma.Initialize(m_side,true);
+  tire_combined.Initialize(m_side,true);
 
   // record pacTire output for each of the 3 slip cases
   ChTireForces long_forces(1);

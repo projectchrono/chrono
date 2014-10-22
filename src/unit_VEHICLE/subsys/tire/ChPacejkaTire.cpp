@@ -96,14 +96,16 @@ ChPacejkaTire::~ChPacejkaTire()
   delete m_combinedTorque;
   delete m_zeta;
   delete m_relaxation;
+  delete m_bessel;
 }
 
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 // NOTE: no initial conditions passed in at this point, e.g. m_tireState is empty
-void ChPacejkaTire::Initialize(ChVehicleSide side)
+void ChPacejkaTire::Initialize(ChVehicleSide side, bool driven)
 {
+  m_driven = driven;
   // Create private structures
   m_slip = new slips;
   m_params = new Pac2002_data;
@@ -120,6 +122,7 @@ void ChPacejkaTire::Initialize(ChVehicleSide side)
   // m_combinedTorque->M_z_y = 0;
   m_zeta = new zetaCoefs;
   m_relaxation = new relaxationL;
+  m_bessel = new bessel;
 
   // negative number indicates no steps have been taken yet
   m_time_since_last_step = 0;
@@ -461,8 +464,14 @@ void ChPacejkaTire::Advance(double step)
   advance_time.stop();
   m_sum_Advance_time += advance_time();
 
+
+  // DEBUGGING
+  m_FM_combined.moment.y = 0;
+  m_FM_combined.moment.z = 0;
+
+
   // evaluate the reaction forces calculated
-  evaluate(false, true);
+  evaluate(false, false);
 }
 
 void ChPacejkaTire::advance_tire(double step)
@@ -793,7 +802,7 @@ void ChPacejkaTire::advance_slip_transient(double step_size)
   m_slip->v_phi += m_slip->Idv_phi_dt;
 
   // calculate slips from contact point deflections u and v
-  slip_from_uv(m_in_contact, 350.0);
+  slip_from_uv(m_in_contact, 1000.0);
 
 }
 
@@ -970,21 +979,31 @@ double ChPacejkaTire::ODE_RK_phi(double C_Fphi,
 void ChPacejkaTire::slip_from_uv(bool use_besselink, double bessel_c)
 {
   // damp gradually to zero velocity at low velocity
-  double V_low = 2.5;
+  double V_low = 8.5;
   double d_vlow = 0;
+  double d_tow = 0;
   double V_cx_abs = std::abs(m_slip->V_cx);
   if (V_cx_abs <= V_low && use_besselink)
   {
-    d_vlow = bessel_c * (1.0 + std::cos(CH_C_PI * V_cx_abs / V_low));
-  } else {
-    int noBessel = 1;
+    // d_vlow = bessel_c * (1.0 + std::cos(CH_C_PI * V_cx_abs / V_low));
+    d_vlow = bessel_c * (1.0 + std::cos(CH_C_PI * V_cx_abs / 2.0 * V_low));
+  } else
+  {
+    // if(!m_driven && use_besselink)
+    if(use_besselink)
+    {
+      // still damp kappa toward zero
+      d_tow = bessel_c * (1.0 + std::exp( -V_cx_abs / 4.0 * m_params->model.longvl));
+    }
   }
 
   // Besselink is RH term in kappa_p, alpha_p
   double u_sigma = m_slip->u / m_relaxation->sigma_kappa;
   double u_Bessel = d_vlow * m_slip->V_sx / m_relaxation->C_Fkappa;
-  double kappa_p = u_sigma - u_Bessel;
-  // don't allow damping to switch sign of kappa
+  double u_tow = d_tow * m_slip->V_sx / m_relaxation->C_Fkappa;
+  // either u_Bessel or u_tow should be zero (or both)
+  double kappa_p = u_sigma - u_Bessel - u_tow;
+  // don't allow damping to switch sign of kappa, clamp to zero
   if( u_sigma * kappa_p < 0)
     kappa_p = 0;
 
@@ -992,6 +1011,8 @@ void ChPacejkaTire::slip_from_uv(bool use_besselink, double bessel_c)
   double v_sigma = -m_slip->v_alpha / m_relaxation->sigma_alpha;
   // double v_sigma = std::atan(m_slip->v_alpha / m_relaxation->sigma_alpha);
   double v_Bessel = -d_vlow * m_slip->V_sy / m_relaxation->C_Falpha;
+  double v_tow = -d_tow * m_slip->V_sy / m_relaxation->C_Falpha;
+
   double alpha_p = v_sigma - v_Bessel;
   // don't allow damping to switch sign of alpha
   if( v_sigma * alpha_p < 0)
@@ -1009,6 +1030,8 @@ void ChPacejkaTire::slip_from_uv(bool use_besselink, double bessel_c)
   m_slip->phiP = phi_p;
   m_slip->phiT = phi_t;
 
+  bessel tmp = {d_vlow, d_tow, u_Bessel, u_tow, v_Bessel, v_tow, u_sigma, v_sigma};
+  *m_bessel = tmp;
 }
 
 
@@ -1052,7 +1075,7 @@ void ChPacejkaTire::combinedSlipReactions( )
     m_FM_combined.force.y = m_sameSide * Fy_combined(m_slip->alphaP, m_slip->gammaP, m_slip->kappaP, m_sameSide * m_FM_pure.force.y);
 
     // calc Mz for combined slip
-    m_FM_combined.moment.z = m_sameSide * Mz_combined(m_pureTorque->alpha_r, m_pureTorque->alpha_t, m_slip->gammaP, m_slip->kappaP, m_FM_combined.force.x, m_sameSide * m_FM_combined.force.y);
+    m_FM_combined.moment.z = m_sameSide * Mz_combined(m_pureTorque->alpha_r, m_pureTorque->alpha_t, m_slip->gammaP, m_slip->kappaP, m_FM_combined.force.x, m_FM_combined.force.y);
   }
 }
 
@@ -1752,7 +1775,7 @@ void ChPacejkaTire::WriteOutData(double             time,
     }
     else {
       // write the headers, Fx, Fy are pure forces, Fxc and Fyc are the combined forces
-      oFile << "time,kappa,alpha,gamma,kappaP,alphaP,gammaP,Vx,Vy,omega,Fx,Fy,Fz,Mx,My,Mz,Fxc,Fyc,Mzc,Mzx,Mzy,M_zrc,contact,m_Fz,m_dF_z,u,valpha,vgamma,vphi,du,dvalpha,dvgamma,dvphi,R0,R_l,Reff,MP_z,M_zr,t,s,FX,FY,FZ,MX,MY,MZ" << std::endl;
+      oFile << "time,kappa,alpha,gamma,kappaP,alphaP,gammaP,Vx,Vy,omega,Fx,Fy,Fz,Mx,My,Mz,Fxc,Fyc,Mzc,Mzx,Mzy,M_zrc,contact,m_Fz,m_dF_z,u,valpha,vgamma,vphi,du,dvalpha,dvgamma,dvphi,R0,R_l,Reff,MP_z,M_zr,t,s,FX,FY,FZ,MX,MY,MZ,d_vlow,d_tow,u_Bessel,u_tow,v_Bessel,v_tow,u_sigma,v_sigma" << std::endl;
       m_Num_WriteOutData++;
       oFile.close();
     }
@@ -1781,7 +1804,9 @@ void ChPacejkaTire::WriteOutData(double             time,
       << m_R0 <<","<< m_R_l << "," << m_R_eff <<","
       << m_pureTorque->MP_z <<","<< m_pureTorque->M_zr <<"," << m_combinedTorque->t <<","<< m_combinedTorque->s<<","
       << global_FM.force.x <<","<< global_FM.force.y <<","<< global_FM.force.z <<"," 
-      << global_FM.moment.x <<","<< global_FM.moment.y <<","<< global_FM.moment.z
+      << global_FM.moment.x <<","<< global_FM.moment.y <<","<< global_FM.moment.z <<","
+      << m_bessel->d_vlow <<","<< m_bessel->d_tow <<","<< m_bessel->u_Bessel <<","<< m_bessel->u_tow <<","
+      << m_bessel->v_Bessel <<","<< m_bessel->v_tow <<","<< m_bessel->u_sigma<<","<< m_bessel->v_sigma
       << std::endl;
     // close the file
     appFile.close();

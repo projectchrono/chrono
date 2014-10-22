@@ -69,7 +69,7 @@ ChQuaternion<> initRot(1, 0, 0, 0);
 //ChQuaternion<> initRot(0, 0, 0, 1);
 
 // Type of powertrain model (SHAFTS, SIMPLE)
-PowertrainModelType powertrain_model = SHAFTS;
+PowertrainModelType powertrain_model = SIMPLE;
 
 // Type of tire model (RIGID, PACEJKA, or LUGRE)
 TireModelType tire_model = PACEJKA;
@@ -204,10 +204,10 @@ int main(int argc, char* argv[])
     ChSharedPtr<ChPacejkaTire> tire_RL(new ChPacejkaTire("RL", param_file, terrain));
     ChSharedPtr<ChPacejkaTire> tire_RR(new ChPacejkaTire("RR", param_file, terrain));
     
-    tire_FL->Initialize(LEFT);
-    tire_FR->Initialize(RIGHT);
-    tire_RL->Initialize(LEFT);
-    tire_RR->Initialize(RIGHT);
+    tire_FL->Initialize(LEFT, false);
+    tire_FR->Initialize(RIGHT, false);
+    tire_RL->Initialize(LEFT, true);
+    tire_RR->Initialize(RIGHT, true);
 
     tire_FL->SetStepsize(pac_step_size);
     tire_FR->SetStepsize(pac_step_size);
