@@ -31,11 +31,11 @@ using namespace chrono;
 // Static variables
 // -----------------------------------------------------------------------------
 
-const double      Generic_MultiLinkFront::m_spindleMass = 15.91;
-const double      Generic_MultiLinkFront::m_upperArmMass = 5.45;
-const double      Generic_MultiLinkFront::m_lateralMass = 16.36;
-const double      Generic_MultiLinkFront::m_trailingLinkMass = 16.36;
-const double      Generic_MultiLinkFront::m_uprightMass = 15.91;
+const double      Generic_MultiLinkFront::m_spindleMass = 1.103;
+const double      Generic_MultiLinkFront::m_upperArmMass = 4.744;
+const double      Generic_MultiLinkFront::m_lateralMass = 1.910;
+const double      Generic_MultiLinkFront::m_trailingLinkMass = 15.204;
+const double      Generic_MultiLinkFront::m_uprightMass = 3.201;
 
 const double      Generic_MultiLinkFront::m_spindleRadius = 0.15;
 const double      Generic_MultiLinkFront::m_spindleWidth = 0.03;
@@ -44,13 +44,13 @@ const double      Generic_MultiLinkFront::m_lateralRadius = 0.02;
 const double      Generic_MultiLinkFront::m_trailingLinkRadius = 0.03;
 const double      Generic_MultiLinkFront::m_uprightRadius = 0.02;
 
-const ChVector<>  Generic_MultiLinkFront::m_spindleInertia(1, 2, 1);
-const ChVector<>  Generic_MultiLinkFront::m_upperArmInertia(2, 2, 2);
-const ChVector<>  Generic_MultiLinkFront::m_lateralInertia(3, 3, 3);
-const ChVector<>  Generic_MultiLinkFront::m_trailingLinkInertia(3, 3, 3);
-const ChVector<>  Generic_MultiLinkFront::m_uprightInertia(1, 1, 1);
+const ChVector<>  Generic_MultiLinkFront::m_spindleInertia(0.000478, 0.000478, 0.000496);
+const ChVector<>  Generic_MultiLinkFront::m_upperArmInertia(0.0237, 0.0294, 0.00612);
+const ChVector<>  Generic_MultiLinkFront::m_lateralInertia(0.0543, 0.0541, 0.000279);
+const ChVector<>  Generic_MultiLinkFront::m_trailingLinkInertia(0.0762, 0.527, 0.567);
+const ChVector<>  Generic_MultiLinkFront::m_uprightInertia(0.0250, 0.00653, 0.0284);
 
-const double      Generic_MultiLinkFront::m_axleInertia = 0.4;
+const double      Generic_MultiLinkFront::m_axleInertia = 0.166;
 
 const double      Generic_MultiLinkFront::m_springCoefficient = 167062.000;
 const double      Generic_MultiLinkFront::m_dampingCoefficient = 60068.000;
@@ -58,11 +58,11 @@ const double      Generic_MultiLinkFront::m_springRestLength = 0.339;
 
 // -----------------------------------------------------------------------------
 
-const double      Generic_MultiLinkRear::m_spindleMass = 15.91;
-const double      Generic_MultiLinkRear::m_upperArmMass = 5.45;
-const double      Generic_MultiLinkRear::m_lateralMass = 16.36;
-const double      Generic_MultiLinkRear::m_trailingLinkMass = 16.36;
-const double      Generic_MultiLinkRear::m_uprightMass = 15.91;
+const double      Generic_MultiLinkRear::m_spindleMass = 1.103;
+const double      Generic_MultiLinkRear::m_upperArmMass = 4.744;
+const double      Generic_MultiLinkRear::m_lateralMass = 1.910;
+const double      Generic_MultiLinkRear::m_trailingLinkMass = 15.204;
+const double      Generic_MultiLinkRear::m_uprightMass = 3.201;
 
 const double      Generic_MultiLinkRear::m_spindleRadius = 0.15;
 const double      Generic_MultiLinkRear::m_spindleWidth = 0.03;
@@ -71,13 +71,13 @@ const double      Generic_MultiLinkRear::m_lateralRadius = 0.02;
 const double      Generic_MultiLinkRear::m_trailingLinkRadius = 0.03;
 const double      Generic_MultiLinkRear::m_uprightRadius = 0.02;
 
-const ChVector<>  Generic_MultiLinkRear::m_spindleInertia(1, 2, 1);
-const ChVector<>  Generic_MultiLinkRear::m_upperArmInertia(2, 2, 2);
-const ChVector<>  Generic_MultiLinkRear::m_lateralInertia(3, 3, 3);
-const ChVector<>  Generic_MultiLinkRear::m_trailingLinkInertia(3, 3, 3);
-const ChVector<>  Generic_MultiLinkRear::m_uprightInertia(1, 1, 1);
+const ChVector<>  Generic_MultiLinkRear::m_spindleInertia(0.000478, 0.000478, 0.000496);
+const ChVector<>  Generic_MultiLinkRear::m_upperArmInertia(0.0237, 0.0294, 0.00612);
+const ChVector<>  Generic_MultiLinkRear::m_lateralInertia(0.0543, 0.0541, 0.000279);
+const ChVector<>  Generic_MultiLinkRear::m_trailingLinkInertia(0.0762, 0.527, 0.567);
+const ChVector<>  Generic_MultiLinkRear::m_uprightInertia(0.0250, 0.00653, 0.0284);
 
-const double      Generic_MultiLinkRear::m_axleInertia = 0.4;
+const double      Generic_MultiLinkRear::m_axleInertia = 0.166;
 
 const double      Generic_MultiLinkRear::m_springCoefficient = 167062.000;
 const double      Generic_MultiLinkRear::m_dampingCoefficient = 60068.000;
@@ -114,10 +114,10 @@ const ChVector<> Generic_MultiLinkFront::getLocation(PointId which)
   case UA_CM:     return ChVector<>(-0.014, 0.640, 0.098);
   case LAT_C:     return ChVector<>(0.036, 0.338, -0.133);
   case LAT_U:     return ChVector<>(0.029, 0.842, -0.093);
-  case LAT_CM:    return ChVector<>(-0.200, 0.591, -0.086);
+  case LAT_CM:    return ChVector<>(0.033, 0.590, -0.113);
   case TL_C:      return ChVector<>(0.723, 0.599, -0.072);
   case TL_U:      return ChVector<>(-0.000, 0.864, -0.156);
-  case TL_CM:     return ChVector<>(0.361, 0.731, -0.114);
+  case TL_CM:     return ChVector<>(0.279, 0.693, -0.132);
   case SHOCK_C:   return ChVector<>(0.171, 0.628, 0.315);
   case SHOCK_L:   return ChVector<>(0.181, 0.669, -0.162);
   case SPRING_C:  return ChVector<>(0.181, 0.641, 0.110);
@@ -139,10 +139,10 @@ const ChVector<> Generic_MultiLinkRear::getLocation(PointId which)
   case UA_CM:     return ChVector<>(-0.014, 0.640, 0.098);
   case LAT_C:     return ChVector<>(0.036, 0.338, -0.133);
   case LAT_U:     return ChVector<>(0.029, 0.842, -0.093);
-  case LAT_CM:    return ChVector<>(-0.200, 0.591, -0.086);
+  case LAT_CM:    return ChVector<>(0.033, 0.590, -0.113);
   case TL_C:      return ChVector<>(0.723, 0.599, -0.072);
   case TL_U:      return ChVector<>(-0.000, 0.864, -0.156);
-  case TL_CM:     return ChVector<>(0.361, 0.731, -0.114);
+  case TL_CM:     return ChVector<>(0.279, 0.693, -0.132);
   case SHOCK_C:   return ChVector<>(0.171, 0.628, 0.315);
   case SHOCK_L:   return ChVector<>(0.181, 0.669, -0.162);
   case SPRING_C:  return ChVector<>(0.181, 0.641, 0.110);
