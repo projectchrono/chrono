@@ -1975,8 +1975,8 @@ int main() {
 		paramsH.v_Max = 50e-3;//18e-3;//1.5;//2e-1; /*0.2 for Re = 100 */ //2e-3;
 			paramsH.EPS_XSPH = .5f;
 		paramsH.dT = 1e-4;//.001; //sph alone: .01 for Re 10;
-			paramsH.tFinal = 400;//20 * paramsH.dT; //400
-			paramsH.timePause = .0005 * paramsH.tFinal; // keep it as small as possible. the time step will be 1/10 * dT
+			paramsH.tFinal = 1000;//20 * paramsH.dT; //400
+			paramsH.timePause = .00001 * paramsH.tFinal; // keep it as small as possible. the time step will be 1/10 * dT
 			paramsH.timePauseRigidFlex = .01 * paramsH.tFinal;
 			paramsH.kdT = 5;
 			paramsH.gammaBB = 0.5;
