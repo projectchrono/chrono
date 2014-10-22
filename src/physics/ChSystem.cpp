@@ -2263,147 +2263,152 @@ int ChSystem::Integrate_Y_impulse_Tasora()
 
 int ChSystem::DoAssembly(int action, int mflags)
 {
-	Setup();
-	Update();
+  Setup();
+  Update();
 
+  //
+  // (1)--------  POSITION
+  //
+  if (action & ASS_POSITION)
+  {
 
-	if (action & ASS_POSITION)		// (1)--------  POSITION
-	{
+    for (int m_iter = 0; m_iter < maxiter; m_iter++)
+    {
 
-		for (int m_iter = 0; m_iter < maxiter; m_iter++)
-		{
+      if (mflags & ASF_COLLISIONS)
+      {
+        // Compute new contacts and create contact constraints
+        ComputeCollisions();
 
-			if (mflags & ASF_COLLISIONS)
-			{
-				// Compute new contacts and create contact constraints
-				ComputeCollisions();
+        Setup();    // Counts dofs, statistics, etc.
+        Update();   // Update everything
+      }
 
-				Setup();	// Counts dofs, statistics, etc.
-				Update();	// Update everything
-			}
-			
+      // Reset known-term vectors
+      LCPprepare_reset();
 
-			// reset known-term vectors
-			LCPprepare_reset();
+      // Fill known-term vectors with proper terms 0 and -C :
+      //
+      // | M -Cq'|*|Dpos|- |0 |= |0| ,  c>=0, l>=0, l*c=0;
+      // | Cq  0 | |l   |  |-C|  |c|
+      //
+      LCPprepare_load(true,  // calculate Jacobian Cq
+                      false,  // no addition of M*v in known term 
+                      0,      // no forces
+                      0,      // no K matrix
+                      0,      // no R matrix
+                      1.0,    // M (for FEM with non-lumped masses, add their mass-matrices)
+                      0,      // no Ct term
+                      1.0,    // C
+                      0.0,    // 
+                      false); // no clamping on -C/dt
 
-			// Fill known-term vectors with proper terms 0 and -C :
-			//
-			// | M -Cq'|*|Dpos|- |0 |= |0| ,  c>=0, l>=0, l*c=0;
-			// | Cq  0 | |l   |  |-C|  |c|
-			//
+      // Make the vectors of pointers to constraint and variables, for LCP solver
+      LCPprepare_inject(*this->LCP_descriptor);
 
-			LCPprepare_load(true,  // Cq 
-					false,	// no addition of M*v in known term 
-					0,		// no forces
-					0,		// no K matrix
-					0,		// no R matrix
-					1.0,	// M (for FEM with non-lumped masses, add their mass-matrices)
-					0,		// no Ct term
-					1.0,	// C
-					0.0,	// 
-					false);	// no clamping on -C/dt
-			
-			// make the vectors of pointers to constraint and variables, for LCP solver
-			LCPprepare_inject(*this->LCP_descriptor);
+      // Check violation and exit Newton loop if reached tolerance.
+      double max_res, max_LCPerr;
+      this->LCP_descriptor->ComputeFeasabilityViolation(max_res, max_LCPerr);
+      if (max_res <= this->tol)
+        break;
 
-			// exit Newton loop if reached tolerance..
-			double max_res, max_LCPerr;
-			this->LCP_descriptor->ComputeFeasabilityViolation(max_res, max_LCPerr);
-			if (max_res <= this->tol)
-			{
-				//reached_tolerance = TRUE;
-				break;		// stop Newton when reached C tolerance |||||||| :-)
-			}
+      // Solve the LCP problem.
+      // Solution variables are 'Dpos', delta positions.
+      // Note: use settings of the 'speed' lcp solver (i.e. use max number
+      // of iterations as you would use for the speed probl., if iterative solver)
+      GetLcpSolverSpeed()->Solve(
+        *this->LCP_descriptor
+        );
 
+      // Update bodies and other physics items at new positions
+      HIER_BODY_INIT
+      while HIER_BODY_NOSTOP
+      {
+        Bpointer->VariablesQbIncrementPosition(1.0); // pos += Dpos
+        Bpointer->Update(this->ChTime);
+        HIER_BODY_NEXT
+      }
 
-				// Solve the LCP problem.
-				// Solution variables are 'Dpos', delta positions.
-				// Note: use settings of the 'speed' lcp solver (i.e. use max number
-				// of iterations as you would use for the speed probl., if iterative solver)
-			GetLcpSolverSpeed()->Solve(
-									*this->LCP_descriptor
-									);
+      HIER_OTHERPHYSICS_INIT
+      while HIER_OTHERPHYSICS_NOSTOP
+      {
+          PHpointer->VariablesQbIncrementPosition(1.0); // pos += Dpos
+          PHpointer->Update(this->ChTime);
+          HIER_OTHERPHYSICS_NEXT
+      }
 
-			// Move bodies to updated position
-			HIER_BODY_INIT
-			while HIER_BODY_NOSTOP
-			{
-				Bpointer->VariablesQbIncrementPosition(1.0); // pos+=Dpos
-				Bpointer->Update(this->ChTime);
-				HIER_BODY_NEXT
-			}
-			HIER_OTHERPHYSICS_INIT
-			while HIER_OTHERPHYSICS_NOSTOP
-			{
-				PHpointer->VariablesQbIncrementPosition(1.0); // pos+=Dpos
-				PHpointer->Update(this->ChTime);
-				HIER_OTHERPHYSICS_NEXT
-			}
+      Update(); // Update everything
 
-			Update(); // Update everything
+    } // end loop Newton iterations
 
-		} // end loop Newton iterations
+  }
 
-	}
+  //
+  // 2) -------- SPEEDS and ACCELERATIONS
+  //
+  if ((action & ASS_SPEED) || (action & ASS_ACCEL))
+  {
+    // Save current value of the time step.
+    double step_saved = step;
 
-	if ((action & ASS_SPEED)||(action & ASS_ACCEL))			// 2) -------- SPEEDS and ACCELERATIONS
-	{
-		double foo_dt = 1e-7;
+    // Use a small time step for assembly.
+    step = 1e-7;
 
-		// reset known-term vectors
-		LCPprepare_reset();
+    // Reset known-term vectors
+    LCPprepare_reset();
 
-		// fill LCP known-term vectors with proper terms
-		//
-		// | M -Cq'|*|v_new|- | [M]*v_old +f*dt | = |0| ,  c>=0, l>=0, l*c=0;
-		// | Cq  0 | |l    |  |  - Ct           |   |c|
-		//
-		LCPprepare_load(false,  // Cq are already there.. 
-					true,	    // adds [M]*v_old to the known vector
-					foo_dt,		// f*dt
-					foo_dt*foo_dt,// dt^2*K  (nb only non-Schur based solvers support K matrix blocks)
-					foo_dt,		// dt*R   (nb only non-Schur based solvers support K matrix blocks)
-					1.0,			// M (for FEM with non-lumped masses, add their mass-matrices)
-					1.0,		// Ct term
-					0,			// no C term
-					0.0,		// 
-					false);		// no clamping on -C/dt
+    // Fill LCP known-term vectors with proper terms
+    //
+    // | M -Cq'|*|v_new|- | [M]*v_old +f*dt | = |0| ,  c>=0, l>=0, l*c=0;
+    // | Cq  0 | |l    |  |  - Ct           |   |c|
+    //
+    LCPprepare_load(false,  // Cq are already there.. 
+                    true,       // adds [M]*v_old to the known vector
+                    step,       // f*dt
+                    step*step,  // dt^2*K  (nb only non-Schur based solvers support K matrix blocks)
+                    step,       // dt*R   (nb only non-Schur based solvers support K matrix blocks)
+                    1.0,        // M (for FEM with non-lumped masses, add their mass-matrices)
+                    1.0,        // Ct term
+                    0,          // no C term
+                    0.0,        // 
+                    false);     // no clamping on -C/dt
 
-		
-		// make the vectors of pointers to constraint and variables, for LCP solver
-		LCPprepare_inject(*this->LCP_descriptor);
+    // Make the vectors of pointers to constraint and variables, for LCP solver
+    LCPprepare_inject(*this->LCP_descriptor);
 
-		// Solve the LCP problem with iterative Gauss-Seidel solver. Solution
-		// variables are new speeds 'v_new'
-		GetLcpSolverSpeed()->Solve(
-								*this->LCP_descriptor
-								);	
+    // Solve the LCP problem using the speed solver. Solution variables are new
+    // speeds 'v_new'
+    GetLcpSolverSpeed()->Solve(
+      *this->LCP_descriptor
+      );
 
-        // Update the constraint reaction forces.
-        LCPresult_Li_into_reactions(1 / foo_dt);
+    // Update the constraint reaction forces.
+    LCPresult_Li_into_reactions(1 / step);
 
-		HIER_BODY_INIT
-		while HIER_BODY_NOSTOP
-		{
-			// Set body speed -  and approximates the acceleration by BDF, with step foo_dt
-			Bpointer->VariablesQbSetSpeed(foo_dt);
-			// Now also updates all markers & forces
-			Bpointer->Update(this->ChTime);
-			HIER_BODY_NEXT
-		}
-		HIER_OTHERPHYSICS_INIT
-		while HIER_OTHERPHYSICS_NOSTOP
-		{
-			// Set speed -  and approximates the acceleration by BDF, with step foo_dt
-			PHpointer->VariablesQbSetSpeed(foo_dt);
-			// Now also updates all markers & forces
-			PHpointer->Update(this->ChTime);
-			HIER_OTHERPHYSICS_NEXT
-		}
+    // Loop over all bodies and other physics items; approximate speeds using
+    // finite diferences (with the local, small time step value) and update all
+    // markers and forces.
+    HIER_BODY_INIT
+    while HIER_BODY_NOSTOP
+    {
+      Bpointer->VariablesQbSetSpeed(step);
+      Bpointer->Update(this->ChTime);
+      HIER_BODY_NEXT
+    }
 
-	}
+    HIER_OTHERPHYSICS_INIT
+    while HIER_OTHERPHYSICS_NOSTOP
+    {
+      PHpointer->VariablesQbSetSpeed(step);
+      PHpointer->Update(this->ChTime);
+      HIER_OTHERPHYSICS_NEXT
+    }
 
-	return 0;
+    // Restore the time step value.
+    step = step_saved;
+  }
+
+  return 0;
 }
 
 
