@@ -318,7 +318,7 @@ ChSystem::ChSystem(unsigned int max_objects, double scene_size, bool init_sys)
 	step_min = 0.002;
 	step_max = 0.04;
 	tol = 0.0002;
-	tol_speeds = 1e-6;
+    tol_force = 1e-3;
 	normtype = NORM_INF;
 	maxiter = 6;
 
@@ -423,7 +423,7 @@ void ChSystem::Copy(ChSystem* source)
 	step_max = source->GetStepMax();
 	SetIntegrationType (source->GetIntegrationType());
 	tol = source->GetTol();
-	tol_speeds = source->tol_speeds;
+    tol_force = source->tol_force;
 	normtype = source->GetNormType();
 	maxiter = source->GetMaxiter();
 	nbodies = source->GetNbodies();
@@ -582,26 +582,30 @@ void ChSystem::SetLcpSolverType(eCh_lcpSolver mval)
 
 ChLcpSolver* ChSystem::GetLcpSolverSpeed()
 {
-	// in case the solver is iterative, pre-configure it with max.iter.number
-	if (ChLcpIterativeSolver* iter_solver = dynamic_cast<ChLcpIterativeSolver*>(LCP_solver_speed))
-	{
-		iter_solver->SetMaxIterations(GetIterLCPmaxItersSpeed());
-		iter_solver->SetTolerance(this->tol_speeds);
-	}
+  // In case the solver is iterative, pre-configure it with the max. number of
+  // iterations and with the convergence tolerance (convert the user-specified
+  // tolerance for forces into a tolerance for impulses).
+  if (ChLcpIterativeSolver* iter_solver = dynamic_cast<ChLcpIterativeSolver*>(LCP_solver_speed))
+  {
+    iter_solver->SetMaxIterations(GetIterLCPmaxItersSpeed());
+    iter_solver->SetTolerance(tol_force * step);
+  }
 
-	return LCP_solver_speed;
+  return LCP_solver_speed;
 }
 
 ChLcpSolver* ChSystem::GetLcpSolverStab()
 {
-	// in case the solver is iterative, pre-configure it with max.iter.number
-	if (ChLcpIterativeSolver* iter_solver = dynamic_cast<ChLcpIterativeSolver*>(LCP_solver_stab))
-	{
-		iter_solver->SetMaxIterations(GetIterLCPmaxItersSpeed());
-		iter_solver->SetTolerance(this->tol_speeds);
-	}
+  // In case the solver is iterative, pre-configure it with the max. number of
+  // iterations and with the convergence tolerance (convert the user-specified
+  // tolerance for forces into a tolerance for impulses).
+  if (ChLcpIterativeSolver* iter_solver = dynamic_cast<ChLcpIterativeSolver*>(LCP_solver_stab))
+  {
+    iter_solver->SetMaxIterations(GetIterLCPmaxItersSpeed());
+    iter_solver->SetTolerance(tol_force * step);
+  }
 
-	return LCP_solver_stab;
+  return LCP_solver_stab;
 }
 
 void ChSystem::SetIterLCPwarmStarting(bool usewarm)
