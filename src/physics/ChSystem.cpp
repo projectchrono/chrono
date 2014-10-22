@@ -2379,6 +2379,8 @@ int ChSystem::DoAssembly(int action, int mflags)
 								*this->LCP_descriptor
 								);	
 
+        // Update the constraint reaction forces.
+        LCPresult_Li_into_reactions(1 / foo_dt);
 
 		HIER_BODY_INIT
 		while HIER_BODY_NOSTOP
