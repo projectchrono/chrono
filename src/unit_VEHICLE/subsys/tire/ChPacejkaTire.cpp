@@ -323,6 +323,13 @@ void ChPacejkaTire::Update(double               time,
   if(m_in_contact)
   {
     m_contact_frame = contact_frame;
+    // project the point to the surface of the terrain, z=0
+    ChVector<> n_hat = m_contact_frame.rot.GetZaxis();
+    // z_hat dot n_hat = cos(theta), z_hat = (0,0,1)T
+    double costheta = n_hat.z;
+    double mag = std::abs(m_contact_frame.pos.z) / costheta;
+    // contact point should be at ground level
+    m_contact_frame.pos = m_contact_frame.pos + mag * n_hat;
     m_depth = depth;
   } else {
     m_contact_frame = ChCoordsys<>();
@@ -445,8 +452,8 @@ void ChPacejkaTire::Advance(double step)
   m_FM_combined.moment.x = Mx;
 
   // Update M_y, apply to both m_FM and m_FM_combined
-  // be sure to switch sign on opposite side, else it becomes self-energizing
-  double My = m_sameSide * calc_My(m_FM_combined.force.x);
+  // be sure signs ARE THE SAME, else it becomes self-energizing on one side
+  double My = calc_My(m_FM_combined.force.x);
   m_FM_pure.moment.y = My;
   m_FM_combined.moment.y = My;
 
