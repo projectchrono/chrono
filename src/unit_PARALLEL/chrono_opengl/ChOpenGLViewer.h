@@ -53,7 +53,7 @@ class CH_OPENGL_API ChOpenGLViewer : public ChOpenGLBase {
    ~ChOpenGLViewer();
    void TakeDown();
    bool Initialize();
-   bool Update();
+   bool Update(double time_step);
    void Render();
    void DrawObject(
          ChBody * abody);

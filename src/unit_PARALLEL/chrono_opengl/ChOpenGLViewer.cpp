@@ -143,12 +143,12 @@ bool ChOpenGLViewer::Initialize() {
    GenerateFontIndex();
 
 }
-bool ChOpenGLViewer::Update() {
+bool ChOpenGLViewer::Update(double time_step) {
    if (pause_sim == true && single_step == false) {
       return false;
    }
 
-   physics_system->DoStepDynamics(physics_system->GetStep());
+   physics_system->DoStepDynamics(time_step);
    single_step = false;
    return true;
 }

@@ -40,12 +40,14 @@ class CH_OPENGL_API ChOpenGLWindow {
          );
    // This starts the drawing loop and takes control away from the main program
    // This function is the easiest way to start rendering
-   void StartDrawLoop();
+   void StartDrawLoop(
+         double time_step  // integration step size
+         );
 
    // Perform a dynamics step, the user needs to use this so that pausing the
    // simulation works correctly
    bool DoStepDynamics(
-         double time_step  //The step size
+         double time_step  // integration step size
          );
 
    // Render the ChSystem and the HUD

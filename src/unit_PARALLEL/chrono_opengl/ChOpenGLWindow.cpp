@@ -81,18 +81,18 @@ void ChOpenGLWindow::Initialize(
    poll_frame = 0;
 }
 
-void ChOpenGLWindow::StartDrawLoop() {
+void ChOpenGLWindow::StartDrawLoop(double time_step) {
    GLUGetError("Start Draw Loop");
    ChOpenGLViewer* pointer = ((ChOpenGLViewer *) (glfwGetWindowUserPointer(window)));
    while (Active()) {
-      pointer->Update();
+      pointer->Update(time_step);
       Render();
    }
 }
 bool ChOpenGLWindow::DoStepDynamics(
       double time_step) {
    ChOpenGLViewer* pointer = ((ChOpenGLViewer *) (glfwGetWindowUserPointer(window)));
-   return pointer->Update();
+   return pointer->Update(time_step);
 }
 void ChOpenGLWindow::Render() {
 
