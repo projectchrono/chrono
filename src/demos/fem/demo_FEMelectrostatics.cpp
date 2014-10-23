@@ -188,7 +188,7 @@ int main(int argc, char* argv[])
 	msolver->SetTolerance(1e-20);
 	msolver->SetVerbose(true);
 	msolver->SetDiagonalPreconditioning(true);
-	my_system.SetTolSpeeds(1e-20);
+    my_system.SetTolForce(1e-20);
 my_system.SetParallelThreadNumber(1);
 
 	// Note: if you are interested only in a single LINEAR STATIC solution 
