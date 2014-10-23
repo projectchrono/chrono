@@ -320,7 +320,6 @@ struct pureTorqueCoefs {
 
 };
 
-
 struct combinedLongCoefs {
 	double S_HxAlpha;
 	double alpha_S;
@@ -371,13 +370,11 @@ struct relaxationL {
 };
 
 struct bessel {
-  double d_vlow;
-  double d_tow;
   double u_Bessel;
   double u_tow;
+  double u_sigma;
   double v_Bessel;
   double v_tow;
-  double u_sigma;
   double v_sigma;
 };
 
