@@ -107,7 +107,7 @@ void test_1()
 	msolver->SetDiagonalPreconditioning(true);
 	msolver->SetVerbose(true);
 	my_system.SetIterLCPmaxItersSpeed(40);
-	my_system.SetTolSpeeds(1e-10);
+	my_system.SetTolForce(1e-10);
 
 	my_system.DoStaticLinear();
 
@@ -216,7 +216,7 @@ void test_2()
 	msolver->SetDiagonalPreconditioning(true);
 	msolver->SetVerbose(true);
 	my_system.SetIterLCPmaxItersSpeed(100);
-	my_system.SetTolSpeeds(1e-10);
+    my_system.SetTolForce(1e-10);
 
 	my_system.DoStaticLinear();
 
@@ -340,7 +340,7 @@ void test_3()
 	msolver->SetDiagonalPreconditioning(true);
 	msolver->SetVerbose(true);
 	my_system.SetIterLCPmaxItersSpeed(100);
-	my_system.SetTolSpeeds(1e-12);
+    my_system.SetTolForce(1e-12);
 
 	my_system.DoStaticLinear();
 
@@ -469,7 +469,7 @@ void test_4()
 	msolver->SetDiagonalPreconditioning(true);
 	msolver->SetVerbose(true);
 	my_system.SetIterLCPmaxItersSpeed(100);
-	my_system.SetTolSpeeds(1e-12);
+    my_system.SetTolForce(1e-12);
 
 	my_system.DoStaticLinear();
 
@@ -633,7 +633,7 @@ void test_5()
 	msolver->SetDiagonalPreconditioning(true);
 	msolver->SetVerbose(true);
 	my_system.SetIterLCPmaxItersSpeed(100);
-	my_system.SetTolSpeeds(1e-12);
+    my_system.SetTolForce(1e-12);
 
 	my_system.DoStaticLinear();
 
