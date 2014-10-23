@@ -194,13 +194,6 @@ int main(int argc,
    msystem.Set_G_acc(ChVector<>(0, 0, -gravity));
 
    // Set solver parameters
-   msystem.SetMaxiter(max_iteration);
-   msystem.SetIterLCPmaxItersSpeed(max_iteration);
-   msystem.SetTol(1e-3);
-   msystem.SetTolSpeeds(1e-3);
-   msystem.SetStep(time_step);
-   msystem.SetMaxPenetrationRecoverySpeed(1e9);
-
    msystem.GetSettings()->solver.solver_mode = SLIDING;
    msystem.GetSettings()->solver.max_iteration_normal = max_iteration / 3;
    msystem.GetSettings()->solver.max_iteration_sliding = max_iteration / 3;
@@ -233,7 +226,7 @@ int main(int argc,
 
    // Uncomment the following two lines for the OpenGL manager to automatically
    // run the simulation in an infinite loop.
-   //gl_window.StartDrawLoop();
+   //gl_window.StartDrawLoop(time_step);
    //return 0;
 #endif
 

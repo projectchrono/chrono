@@ -200,13 +200,6 @@ int main(int argc,
    // Set gravitational acceleration
    msystem.Set_G_acc(ChVector<>(0, 0, -gravity));
 
-   // Set solver parameters
-   msystem.SetMaxiter(max_iteration);
-   msystem.SetIterLCPmaxItersSpeed(max_iteration);
-   msystem.SetTol(1e-3);
-   msystem.SetTolSpeeds(1e-3);
-   msystem.SetStep(time_step);
-
    // Settings for the broad-phase collision detection
    msystem.GetSettings()->collision.bins_per_axis = I3(10, 10, 10);
    msystem.GetSettings()->collision.min_body_per_bin = 50;
@@ -235,7 +228,7 @@ int main(int argc,
 
    // Uncomment the following two lines for the OpenGL manager to automatically
    // run the simulation in an infinite loop.
-   //gl_window.StartDrawLoop();
+   //gl_window.StartDrawLoop(time_step);
    //return 0;
 #endif
 

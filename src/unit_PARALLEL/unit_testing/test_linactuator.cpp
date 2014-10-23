@@ -301,10 +301,6 @@ bool TestLinActuator(
   msystem->GetSettings()->perform_thread_tuning = thread_tuning;
 
   // Edit system settings
-  msystem->SetTol(tolerance);
-  msystem->SetTolSpeeds(tolerance);
-  msystem->SetStep(time_step);
-
   msystem->GetSettings()->solver.tolerance = tolerance;
   msystem->GetSettings()->solver.max_iteration_bilateral = max_iteration_bilateral;
   msystem->GetSettings()->solver.clamp_bilaterals = clamp_bilaterals;
