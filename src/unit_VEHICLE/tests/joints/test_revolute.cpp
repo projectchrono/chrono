@@ -143,12 +143,12 @@ bool TestRevolute(const ChVector<>&     jointLoc,         // absolute location o
   // There are no units in Chrono, so values must be consistent
   // (MKS is used in this example)
 
-  double mass = 1.0;              // mass of pendulum
-  double length = 4.0;            // length of pendulum
-  ChVector<> inertiaXX(1, 1, 1);  // mass moments of inertia of pendulum (centroidal frame)
+  double mass = 1.0;                     // mass of pendulum
+  double length = 4.0;                   // length of pendulum
+  ChVector<> inertiaXX(0.04, 0.1, 0.1);  // mass moments of inertia of pendulum (centroidal frame)
   double g = 9.80665;
 
-  double timeRecord = 5;          // Stop recording to the file after this much simulated time
+  double timeRecord = 5;                 // simulation length
 
   // Create the mechanical system
   // ----------------------------
@@ -171,25 +171,33 @@ bool TestRevolute(const ChVector<>&     jointLoc,         // absolute location o
   ground->SetBodyFixed(true);
   // Add some geometry to the ground body for visualizing the revolute joint
   ChSharedPtr<ChCylinderShape> cyl_g(new ChCylinderShape);
-  cyl_g->GetCylinderGeometry().p1 = jointLoc + jointRot.Rotate(ChVector<>(0, 0, -0.2));
-  cyl_g->GetCylinderGeometry().p2 = jointLoc + jointRot.Rotate(ChVector<>(0, 0, 0.2));
-  cyl_g->GetCylinderGeometry().rad = 0.1;
+  cyl_g->GetCylinderGeometry().p1 = jointLoc + jointRot.Rotate(ChVector<>(0, 0, -0.4));
+  cyl_g->GetCylinderGeometry().p2 = jointLoc + jointRot.Rotate(ChVector<>(0, 0, 0.4));
+  cyl_g->GetCylinderGeometry().rad = 0.05;
   ground->AddAsset(cyl_g);
 
-  // Create the pendulum body, in an initial configuration at rest, aligned with
-  // the global X axis. The pendulum CG is assumed to be at half its length.
+  // Create the pendulum body in an initial configuration at rest, with an 
+  // orientatoin that matches the specified joint orientation and a position
+  // consistent with the specified joint location.
+  // The pendulum CG is assumed to be at half its length.
 
   ChSharedBodyPtr  pendulum(new ChBody);
   my_system.AddBody(pendulum);
-  pendulum->SetPos(jointLoc + ChVector<>(length / 2, 0, 0));
+  pendulum->SetPos(jointLoc + jointRot.Rotate(ChVector<>(length / 2, 0, 0)));
+  pendulum->SetRot(jointRot);
   pendulum->SetMass(mass);
   pendulum->SetInertiaXX(inertiaXX);
   // Add some geometry to the pendulum for visualization
-  ChSharedPtr<ChCylinderShape> cyl_p(new ChCylinderShape);
-  cyl_p->GetCylinderGeometry().p1 = ChVector<>(-length / 2, 0, 0);
-  cyl_p->GetCylinderGeometry().p2 = ChVector<>(length / 2, 0, 0);
-  cyl_p->GetCylinderGeometry().rad = 0.1;
-  pendulum->AddAsset(cyl_p);
+  ChSharedPtr<ChCylinderShape> cyl_p1(new ChCylinderShape);
+  cyl_p1->GetCylinderGeometry().p1 = ChVector<>(-length / 2, 0, 0);
+  cyl_p1->GetCylinderGeometry().p2 = ChVector<>(length / 2, 0, 0);
+  cyl_p1->GetCylinderGeometry().rad = 0.1;
+  pendulum->AddAsset(cyl_p1);
+  ChSharedPtr<ChCylinderShape> cyl_p2(new ChCylinderShape);
+  cyl_p2->GetCylinderGeometry().p1 = ChVector<>(-length / 2, 0, -0.2);
+  cyl_p2->GetCylinderGeometry().p2 = ChVector<>(-length / 2, 0, 0.2);
+  cyl_p2->GetCylinderGeometry().rad = 0.1;
+  pendulum->AddAsset(cyl_p2);
 
   // Create revolute joint between pendulum and ground at "loc" in the global
   // reference frame. The revolute joint's axis of rotation will be the Z axis
