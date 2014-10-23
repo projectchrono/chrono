@@ -376,7 +376,7 @@ class PacTire_vehicle_panda:
     def plotall_bessel_kappa(self):    
         # plot the forces vs time
         fig, (ax1, ax2, ax3, ax4) = plt.subplots(4, sharex=True)
-        data_cols = ['time','u_Bessel','u_tow','u_sigma','kappaP'] # 'd_vlow','d_tow',
+        data_cols = ['time','du','u_Bessel','u_tow','u_sigma','kappaP']
 
         df_FL = pd.DataFrame(self._DF[0], columns = data_cols)
         df_FR = pd.DataFrame(self._DF[1], columns = data_cols)
@@ -391,11 +391,9 @@ class PacTire_vehicle_panda:
         for i in range(4):
             ax_list[i].plot(df_list[i]['time'], df_list[i]['kappaP'],'k-',linewidth=2.0,label=leg_list[i]+' kappaP')
             ax_list[i].plot(df_list[i]['time'], df_list[i]['u_sigma'],'r-',linewidth=1.5,label=leg_list[i]+' u_sigma')
-            axM2 = ax_list[i].twinx()
-            axM2.plot(df_list[i]['time'], df_list[i]['u_Bessel'],'b--',linewidth=2.0,label=leg_list[i]+' u_Bessel')
-            axM2.plot(df_list[i]['time'], df_list[i]['u_tow'],'g--',linewidth=2.0,label=leg_list[i]+' u_tow')
+            ax_list[i].plot(df_list[i]['time'], df_list[i]['u_Bessel'],'b--',linewidth=2.0,label=leg_list[i]+' u_Bessel')
+            ax_list[i].plot(df_list[i]['time'], df_list[i]['u_tow'],'g--',linewidth=2.0,label=leg_list[i]+' u_tow')
 
-            axM2.legend(loc= 'upper right')
             ax_list[i].set_ylabel('slip [-]')
             ax_list[i].grid(True)
             ax_list[i].legend(loc='upper left')        
@@ -408,7 +406,7 @@ class PacTire_vehicle_panda:
     def plotall_bessel_alpha(self):    
         # plot the forces vs time
         fig, (ax1, ax2, ax3, ax4) = plt.subplots(4, sharex=True)
-        data_cols = ['time','v_Bessel','v_tow','v_sigma','alphaP'] # 'd_vlow','d_tow',
+        data_cols = ['time','dvalpha','v_Bessel','v_tow','v_sigma','alphaP']
 
         df_FL = pd.DataFrame(self._DF[0], columns = data_cols)
         df_FR = pd.DataFrame(self._DF[1], columns = data_cols)
@@ -423,16 +421,16 @@ class PacTire_vehicle_panda:
         for i in range(4):
             ax_list[i].plot(df_list[i]['time'], df_list[i]['alphaP'],'k-',linewidth=2.0,label=leg_list[i]+' alphaP')
             ax_list[i].plot(df_list[i]['time'], df_list[i]['v_sigma'],'r-',linewidth=1.5,label=leg_list[i]+' v_sigma')
-            axM2 = ax_list[i].twinx()
-            axM2.plot(df_list[i]['time'], df_list[i]['v_Bessel'],'b--',linewidth=2.0,label=leg_list[i]+' v_Bessel')
-            axM2.plot(df_list[i]['time'], df_list[i]['v_tow'],'g--',linewidth=2.0,label=leg_list[i]+' v_tow')
-
-            axM2.legend(loc= 'upper right')
+            ax_list[i].plot(df_list[i]['time'], df_list[i]['v_Bessel'],'b--',linewidth=2.0,label=leg_list[i]+' v_Bessel')
+            # axM2 = ax_list[i].twinx()
+            # axM2.plot(df_list[i]['time'], df_list[i]['v_tow'],'g--',linewidth=2.0,label=leg_list[i]+' v_tow')
+            # axM2.plot(df_list[i]['time'], df_list[i]['dvalpha'],'y--',linewidth=2.0,label=leg_list[i]+' I_dv')
+            # axM2.legend(loc= 'upper right')
             ax_list[i].set_ylabel('slip [-]')
             ax_list[i].grid(True)
-            ax_list[i].legend(loc='upper left')        
+            ax_list[i].legend(loc='lower right')        
     
-        ax1.set_title('alphaP = v_sigma - v_Bessel - v_tow')
+        ax1.set_title('alphaP = v_sigma - v_Bessel')
         ax4.set_xlabel('time [sec]')               
           
 if __name__ == '__main__':

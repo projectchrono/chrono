@@ -802,7 +802,7 @@ void ChPacejkaTire::advance_slip_transient(double step_size)
   m_slip->v_phi += m_slip->Idv_phi_dt;
 
   // calculate slips from contact point deflections u and v
-  slip_from_uv(m_in_contact, 1000.0, 200.0);
+  slip_from_uv(m_in_contact, 200.0, 100.0, 2.0);
 
 }
 
@@ -976,11 +976,13 @@ double ChPacejkaTire::ODE_RK_phi(double C_Fphi,
 }
 
 
-void ChPacejkaTire::slip_from_uv(bool use_besselink, double bessel_Cx, double bessel_Cy)
+void ChPacejkaTire::slip_from_uv(bool use_besselink, 
+                                 double bessel_Cx, 
+                                 double bessel_Cy, 
+                                 double V_low)
 {
   // damp gradually to zero velocity at low velocity
   // separate long and lateral components
-  double V_low = 8.5;
   double d_Vxlow = 0;
   double d_Vylow = 0;
   double d_xtow = 0;
@@ -998,7 +1000,7 @@ void ChPacejkaTire::slip_from_uv(bool use_besselink, double bessel_Cx, double be
     {
       // still damp kappa toward zero
       d_xtow = bessel_Cx * (1.0 + std::exp( -V_cx_abs / 4.0 * m_params->model.longvl));
-      d_ytow = bessel_Cy * (1.0 + std::exp( -V_cx_abs / 4.0 * m_params->model.longvl));
+      // d_ytow = bessel_Cy * (1.0 + std::exp( -V_cx_abs / 4.0 * m_params->model.longvl));
     }
   }
 

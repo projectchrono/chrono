@@ -269,7 +269,9 @@ private:
 
   // calculate and set the transient slip values (kappaP, alphaP, gammaP) from
   // u, v deflections. optionally turn on/off besselink low velocity damping
-  void slip_from_uv(bool use_besselink = true, double bessel_Cx = 350.0, double bessel_Cy = 200.0);
+  void slip_from_uv(bool use_besselink = true,
+    double bessel_Cx = 350.0, double bessel_Cy = 200.0,
+    double V_low = 5.0);
 
   /// calculate the reaction forces and moments, pure slip cases
   /// assign longitudinal, lateral force, aligning moment:
