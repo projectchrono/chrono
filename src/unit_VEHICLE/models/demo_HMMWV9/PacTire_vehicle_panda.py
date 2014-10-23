@@ -302,7 +302,7 @@ class PacTire_vehicle_panda:
         
         # plot Mzc, Mzx, Mzy, M_zrc, t and s for each tire here
         for i in range(4):
-            ax_list[i].plot(df_list[i]['time'], df_list[i]['Mzc'],'k--',linewidth=2,label=leg_list[i]+' Mzc')
+            ax_list[i].plot(df_list[i]['time'], df_list[i]['Mzc'],'k-',linewidth=2,label=leg_list[i]+' Mzc')
             ax_list[i].plot(df_list[i]['time'], df_list[i]['Mzx'],'b--',linewidth=2,label=leg_list[i]+' Mz,x')
             ax_list[i].plot(df_list[i]['time'], df_list[i]['Mzy'],'r--',linewidth=2,label=leg_list[i]+' Mz,y')
             ax_list[i].plot(df_list[i]['time'], df_list[i]['M_zrc'],'y--',linewidth=2,label=leg_list[i]+' M_zrc')
@@ -310,12 +310,12 @@ class PacTire_vehicle_panda:
             ax_list[i].set_ylabel('Moment [N-m]')
             ax_list[i].grid(True)
             axM2 = ax_list[i].twinx()
-            axM2.plot(df_list[i]['time'], df_list[i]['t'],'b.',linewidth=1.0,label=leg_list[i]+' t trail')
-            axM2.plot(df_list[i]['time'], df_list[i]['s'],'c.',linewidth=1.0,label=leg_list[i]+' s arm')
+            axM2.plot(df_list[i]['time'], df_list[i]['t'],'g-',linewidth=1.5,label=leg_list[i]+' t trail')
+            axM2.plot(df_list[i]['time'], df_list[i]['s'],'c-',linewidth=1.5,label=leg_list[i]+' s arm')
             axM2.set_ylabel('length [m]')
             axM2.legend(loc='upper left')        
     
-        ax1.set_title('Detailed Mz plot for each tire')
+        ax1.set_title('M_zc = Mz,x + Mz,y + M_zrc')
         ax4.set_xlabel('time [sec]')       
         
     # @brief plot input slips, and the 4 main reactions (Fxc, Fyc, My, Mzc)  
@@ -372,11 +372,11 @@ class PacTire_vehicle_panda:
         ax4.set_xlabel('time [sec]')       
         
         
-    # @brief plot contributions to bessel link: s = s0 - s_vlow - s_tow 
-    def plotall_bessel(self):    
+    # @brief plot contributions to bessel link: kappa = u_sigma - u_bessel - u_tow 
+    def plotall_bessel_kappa(self):    
         # plot the forces vs time
         fig, (ax1, ax2, ax3, ax4) = plt.subplots(4, sharex=True)
-        data_cols = ['time','d_vlow','d_tow','u_Bessel','u_tow','v_bessel','v_tow','u_sigma','v_sigma','alphaP','kappaP']
+        data_cols = ['time','u_Bessel','u_tow','u_sigma','kappaP'] # 'd_vlow','d_tow',
 
         df_FL = pd.DataFrame(self._DF[0], columns = data_cols)
         df_FR = pd.DataFrame(self._DF[1], columns = data_cols)
@@ -389,31 +389,52 @@ class PacTire_vehicle_panda:
         
         # plot x contributions
         for i in range(4):
-            ax_list[i].plot(df_list[i]['time'], df_list[i]['kappaP'],'k-',linewidth=1.5,label=leg_list[i]+' kappaP')
-            ax_list[i].plot(df_list[i]['time'], df_list[i]['u_sigma'],'r-',linewidth=2.0,label=leg_list[i]+' u_sigma')
+            ax_list[i].plot(df_list[i]['time'], df_list[i]['kappaP'],'k-',linewidth=2.0,label=leg_list[i]+' kappaP')
+            ax_list[i].plot(df_list[i]['time'], df_list[i]['u_sigma'],'r-',linewidth=1.5,label=leg_list[i]+' u_sigma')
             axM2 = ax_list[i].twinx()
             axM2.plot(df_list[i]['time'], df_list[i]['u_Bessel'],'b--',linewidth=2.0,label=leg_list[i]+' u_Bessel')
             axM2.plot(df_list[i]['time'], df_list[i]['u_tow'],'g--',linewidth=2.0,label=leg_list[i]+' u_tow')
 
-            '''
-            axM2.plot(df_list[i]['time'], df_list[i]['Fxc'],'k-',linewidth=1.5,label=leg_list[i]+' Fx')
-            axM2.plot(df_list[i]['time'], df_list[i]['Fyc'],'b-',linewidth=1.5,label=leg_list[i]+' Fy')
-            axM2.plot(df_list[i]['time'], df_list[i]['My'],'g-',linewidth=1.5,label=leg_list[i]+' My')
-            axM2.plot(df_list[i]['time'], df_list[i]['Mzc'],'r-',linewidth=1.5,label=leg_list[i]+' Mz')
-            axM2.set_ylabel('F [N] M [N-m]')
-            '''            
-            # axM2.plot(df_list[i]['time'], df_list[i]['Vx'],'y-',linewidth=1.5,label=leg_list[i]+' Vx')
-            # axM2.plot(df_list[i]['time'], df_list[i]['omega'],'g-',linewidth=1.5,label=leg_list[i]+' omega')
             axM2.legend(loc= 'upper right')
-            # axM2.grid(True)
-
             ax_list[i].set_ylabel('slip [-]')
             ax_list[i].grid(True)
             ax_list[i].legend(loc='upper left')        
     
-        ax1.set_title('Slips and reactions for each tire')
+        ax1.set_title('kappaP = u_sigma - u_Bessel - u_tow')
         ax4.set_xlabel('time [sec]')               
+        
+        
+    # @brief plot contributions to bessel link: alpha = v_sigma - v_bessel - v_tow 
+    def plotall_bessel_alpha(self):    
+        # plot the forces vs time
+        fig, (ax1, ax2, ax3, ax4) = plt.subplots(4, sharex=True)
+        data_cols = ['time','v_Bessel','v_tow','v_sigma','alphaP'] # 'd_vlow','d_tow',
+
+        df_FL = pd.DataFrame(self._DF[0], columns = data_cols)
+        df_FR = pd.DataFrame(self._DF[1], columns = data_cols)
+        df_RL = pd.DataFrame(self._DF[2], columns = data_cols)
+        df_RR = pd.DataFrame(self._DF[3], columns = data_cols)            
+        
+        df_list = [df_FL, df_FR, df_RL, df_RR]
+        ax_list = [ax1, ax2, ax3, ax4]
+        leg_list = ['FL','FR','RL','RR']
+        
+        # plot x contributions
+        for i in range(4):
+            ax_list[i].plot(df_list[i]['time'], df_list[i]['alphaP'],'k-',linewidth=2.0,label=leg_list[i]+' alphaP')
+            ax_list[i].plot(df_list[i]['time'], df_list[i]['v_sigma'],'r-',linewidth=1.5,label=leg_list[i]+' v_sigma')
+            axM2 = ax_list[i].twinx()
+            axM2.plot(df_list[i]['time'], df_list[i]['v_Bessel'],'b--',linewidth=2.0,label=leg_list[i]+' v_Bessel')
+            axM2.plot(df_list[i]['time'], df_list[i]['v_tow'],'g--',linewidth=2.0,label=leg_list[i]+' v_tow')
+
+            axM2.legend(loc= 'upper right')
+            ax_list[i].set_ylabel('slip [-]')
+            ax_list[i].grid(True)
+            ax_list[i].legend(loc='upper left')        
     
+        ax1.set_title('alphaP = v_sigma - v_Bessel - v_tow')
+        ax4.set_xlabel('time [sec]')               
+          
 if __name__ == '__main__':
     
     # logger
@@ -464,7 +485,8 @@ if __name__ == '__main__':
     vehicle_output.plotall_forces(False)     # also plot global forces?
     vehicle_output.plotall_moments(False)    # also plot global moments?
     vehicle_output.plotall_Mz_detailed()
-    vehicle_output.plotall_bessel()
+    vehicle_output.plotall_bessel_kappa()
+    vehicle_output.plotall_bessel_alpha()
     
     # plot w.r.t. lateral slip angle
 
