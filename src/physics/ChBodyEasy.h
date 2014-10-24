@@ -275,16 +275,22 @@ public:
 		for (unsigned int i= 0; i< positions.size(); ++i)
 		{
 			double sphmass = mdensity * ( (4.0/3.0) * CH_C_PI* pow (radii[i],3) );
-			double sphinertia = (2.0/5.0)* sphmass * pow (radii[i],2);
 			baricenter = (baricenter*totmass + positions[i]*sphmass)/(totmass+sphmass);
 			totmass += sphmass;
+		}
+		for (unsigned int i= 0; i< positions.size(); ++i)
+		{
+			double sphmass = mdensity * ( (4.0/3.0) * CH_C_PI* pow (radii[i],3) );
+			double sphinertia = (2.0/5.0)* sphmass * pow (radii[i],2);
+
 			// Huygens-Steiner parallel axis theorem:
-			totinertia(0,0) += sphinertia + sphmass* (positions[i].Length2() - positions[i].x*positions[i].x);
-			totinertia(1,1) += sphinertia + sphmass* (positions[i].Length2() - positions[i].y*positions[i].y);
-			totinertia(2,2) += sphinertia + sphmass* (positions[i].Length2() - positions[i].z*positions[i].z);
-			totinertia(0,1) += sphmass* ( - positions[i].x*positions[i].y);
-			totinertia(0,2) += sphmass* ( - positions[i].x*positions[i].z);
-			totinertia(1,2) += sphmass* ( - positions[i].y*positions[i].z);
+			ChVector<> dist = positions[i]-baricenter;
+			totinertia(0,0) += sphinertia + sphmass* (dist.Length2() - dist.x*dist.x);
+			totinertia(1,1) += sphinertia + sphmass* (dist.Length2() - dist.y*dist.y);
+			totinertia(2,2) += sphinertia + sphmass* (dist.Length2() - dist.z*dist.z);
+			totinertia(0,1) += sphmass* ( - dist.x*dist.y);
+			totinertia(0,2) += sphmass* ( - dist.x*dist.z);
+			totinertia(1,2) += sphmass* ( - dist.y*dist.z);
 			totinertia(1,0) = totinertia(0,1);
 			totinertia(2,0) = totinertia(0,2);
 			totinertia(2,1) = totinertia(1,2);
