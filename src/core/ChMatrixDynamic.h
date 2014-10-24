@@ -142,7 +142,7 @@ public:
 
 		/// Negates sign of the matrix. 
 		/// Performance warning: a new object is created.
-	ChMatrixDynamic<Real> operator-()
+	ChMatrixDynamic<Real> operator-() const
 		{
 			ChMatrixDynamic<Real> result(*this);
 			result.MatrNeg();
@@ -152,7 +152,7 @@ public:
 		/// Sums this matrix and another matrix.
 		/// Performance warning: a new object is created.
 	template <class RealB>
-	ChMatrixDynamic<Real> operator+(const ChMatrix<RealB>& matbis)
+	ChMatrixDynamic<Real> operator+(const ChMatrix<RealB>& matbis) const
 		{
 			ChMatrixDynamic<Real> result(this->rows, this->columns);
 			result.MatrAdd(*this, matbis);
@@ -162,7 +162,7 @@ public:
 		/// Subtracts this matrix and another matrix.
 		/// Performance warning: a new object is created.
 	template <class RealB>
-	ChMatrixDynamic<Real> operator-(const ChMatrix<RealB>& matbis)
+	ChMatrixDynamic<Real> operator-(const ChMatrix<RealB>& matbis) const
 		{
 			ChMatrixDynamic<Real> result(this->rows, this->columns);
 			result.MatrSub(*this, matbis);
@@ -172,7 +172,7 @@ public:
 		/// Multiplies this matrix and another matrix. 
 		/// Performance warning: a new object is created.
 	template <class RealB>
-	ChMatrixDynamic<Real> operator*(const ChMatrix<RealB>& matbis)
+	ChMatrixDynamic<Real> operator*(const ChMatrix<RealB>& matbis) const
 		{
 			ChMatrixDynamic<Real> result(this->rows, matbis.GetColumns());
 			result.MatrMultiply(*this, matbis);
@@ -181,7 +181,7 @@ public:
 
 		/// Multiplies this matrix by a scalar value.
 		/// Performance warning: a new object is created.
-	ChMatrixDynamic<Real> operator*(const Real factor)
+	ChMatrixDynamic<Real> operator*(const Real factor) const
 		{
 			ChMatrixDynamic<Real> result(*this);
 			result.MatrScale(factor);

@@ -108,7 +108,7 @@ public:
 
 		/// Negates sign of the matrix. 
 		/// Performance warning: a new object is created.
-	ChMatrixNM<Real,preall_rows,preall_columns> operator-()
+	ChMatrixNM<Real,preall_rows,preall_columns> operator-() const
 		{
 			ChMatrixNM<Real,preall_rows,preall_columns> result(*this);
 			result.MatrNeg();
@@ -118,7 +118,7 @@ public:
 		/// Sums this matrix and another matrix (of same size)
 		/// Performance warning: a new object is created.
 	template <class RealB>
-	ChMatrixNM<Real,preall_rows,preall_columns> operator+(const ChMatrix<RealB>& matbis)
+	ChMatrixNM<Real,preall_rows,preall_columns> operator+(const ChMatrix<RealB>& matbis) const
 		{
 			ChMatrixNM<Real,preall_rows,preall_columns> result;
 			result.MatrAdd(*this, matbis);
@@ -128,7 +128,7 @@ public:
 		/// Subtracts this matrix and another matrix (of same size). 
 		/// Performance warning: a new object is created.
 	template <class RealB>
-	ChMatrixNM<Real,preall_rows,preall_columns> operator-(const ChMatrix<RealB>& matbis)
+	ChMatrixNM<Real,preall_rows,preall_columns> operator-(const ChMatrix<RealB>& matbis) const
 		{
 			ChMatrixNM<Real,preall_rows,preall_columns> result;
 			result.MatrSub(*this, matbis);
@@ -139,7 +139,7 @@ public:
 		/// This is optimized: it returns another ChMatrixMN because size of matbis is known statically.
 		/// Performance warning: a new object is created.
 	template <class RealB, int B_rows, int B_columns>
-	ChMatrixNM<Real,preall_rows,B_columns> operator*(const ChMatrixNM<RealB,preall_columns,B_columns>& matbis)
+	ChMatrixNM<Real,preall_rows,B_columns> operator*(const ChMatrixNM<RealB,preall_columns,B_columns>& matbis) const
 		{
 			ChMatrixNM<Real, preall_rows,B_columns> result;
 			result.MatrMultiply(*this, matbis);
@@ -150,7 +150,7 @@ public:
 		/// Returns a ChMatrixDynamic matrix, because size of matbis is not known at compile time.
 		/// Performance warning: a new object is created.
 	template <class RealB>
-	ChMatrixDynamic<Real> operator*(const ChMatrix<RealB>& matbis)
+	ChMatrixDynamic<Real> operator*(const ChMatrix<RealB>& matbis) const
 		{
 			ChMatrixDynamic<Real> result(this->rows, matbis.GetColumns());
 			result.MatrMultiply(*this, matbis);
@@ -159,7 +159,7 @@ public:
 
 		/// Multiplies this matrix by a scalar value
 		/// Performance warning: a new object is created.
-	ChMatrixNM<Real,preall_rows,preall_columns> operator*(const Real factor)
+	ChMatrixNM<Real,preall_rows,preall_columns> operator*(const Real factor) const
 		{
 			ChMatrixNM<Real,preall_rows,preall_columns> result(*this);
 			result.MatrScale(factor);
