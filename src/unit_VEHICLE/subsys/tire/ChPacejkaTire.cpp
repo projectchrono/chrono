@@ -767,6 +767,8 @@ void ChPacejkaTire::advance_slip_transient(double step_size)
       // solve the ODE using RK - 45 integration
       m_slip->Idu_dt = ODE_RK_uv(m_slip->V_sx, m_relaxation->sigma_kappa, V_cx, step_size, m_slip->u);
       m_slip->u += m_slip->Idu_dt;
+    } else {
+      m_slip->Idu_dt = 0;
     }
 
     // Eq. 7.7, else dv/dt = 0 and v remains unchanged
@@ -774,8 +776,9 @@ void ChPacejkaTire::advance_slip_transient(double step_size)
     {
       m_slip->Idv_alpha_dt = ODE_RK_uv(m_slip->V_sy, m_relaxation->sigma_alpha, V_cx, step_size, m_slip->v_alpha);
       m_slip->v_alpha +=  m_slip->Idv_alpha_dt;
+    } else {
+      m_slip->Idv_alpha_dt = 0;
     }
-
   }
   else {
     // don't check for du/dt =0 or dv/dt = 0
@@ -787,7 +790,6 @@ void ChPacejkaTire::advance_slip_transient(double step_size)
     // Eq. 7.7
     m_slip->Idv_alpha_dt = ODE_RK_uv(m_slip->V_sy, m_relaxation->sigma_alpha, V_cx, step_size, m_slip->v_alpha);
     m_slip->v_alpha +=  m_slip->Idv_alpha_dt;
-
   }
 
   // Eq. 7.11, lateral force from wheel camber
@@ -1812,7 +1814,7 @@ void ChPacejkaTire::WriteOutData(double             time,
       << m_pureTorque->MP_z <<","<< m_pureTorque->M_zr <<"," << m_combinedTorque->t <<","<< m_combinedTorque->s<<","
       << global_FM.force.x <<","<< global_FM.force.y <<","<< global_FM.force.z <<"," 
       << global_FM.moment.x <<","<< global_FM.moment.y <<","<< global_FM.moment.z <<","
-      << m_bessel->u_Bessel <<","<< m_bessel->u_tow <<","<<  m_bessel->u_sigma
+      << m_bessel->u_Bessel <<","<< m_bessel->u_tow <<","<<  m_bessel->u_sigma <<","
       << m_bessel->v_Bessel <<","<< m_bessel->v_tow <<","<< m_bessel->v_sigma
       << std::endl;
     // close the file
