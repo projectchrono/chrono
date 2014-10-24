@@ -53,6 +53,7 @@ bool TestRevolute(const ChVector<>& jointLoc, const ChQuaternion<>& jointRot,
                   const std::string& testName, bool animate);
 bool ValidateReference(const std::string& testName, const std::string& what, double tolerance);
 bool ValidateConstraints(const std::string& testName, double tolerance);
+bool ValidateEnergy(const std::string& testName, double tolerance);
 utils::CSV_writer OutStream();
 
 // =============================================================================
@@ -77,7 +78,7 @@ int main(int argc, char* argv[])
   }
 
   // Set the simulation and output step sizes
-  double sim_step = 1e-3;
+  double sim_step = 5e-4;
   double out_step = 1e-2;
 
   std::string test_name;
@@ -91,14 +92,14 @@ int main(int argc, char* argv[])
   TestRevolute(ChVector<>(0, 0, 0), Q_from_AngX(-CH_C_PI_2), sim_step, out_step, test_name, animate);
   if (!animate) {
     test_passed &= ValidateReference(test_name, "Pos", 2e-3);
-    test_passed &= ValidateReference(test_name, "Vel", 1e-3);
+    test_passed &= ValidateReference(test_name, "Vel", 1e-4);
     test_passed &= ValidateReference(test_name, "Acc", 2e-2);
     test_passed &= ValidateReference(test_name, "Quat", 1e-3);
     test_passed &= ValidateReference(test_name, "Avel", 2e-2);
     test_passed &= ValidateReference(test_name, "Aacc", 2e-2);
     test_passed &= ValidateReference(test_name, "Rforce", 2e-2);
-    test_passed &= ValidateReference(test_name, "Rtorque", 1e-10);
-    test_passed &= ValidateReference(test_name, "Energy", 2e-2);
+    test_passed &= ValidateReference(test_name, "Rtorque", 1e-6);
+    test_passed &= ValidateEnergy(test_name, 1e-2);
     test_passed &= ValidateConstraints(test_name, 1e-5);
   }
 
@@ -109,14 +110,14 @@ int main(int argc, char* argv[])
   TestRevolute(ChVector<>(1, 2, 3), Q_from_AngX(-CH_C_PI_4), sim_step, out_step, test_name, animate);
   if (!animate) {
     test_passed &= ValidateReference(test_name, "Pos", 2e-3);
-    test_passed &= ValidateReference(test_name, "Vel", 1e-3);
+    test_passed &= ValidateReference(test_name, "Vel", 1e-4);
     test_passed &= ValidateReference(test_name, "Acc", 2e-2);
     test_passed &= ValidateReference(test_name, "Quat", 1e-3);
     test_passed &= ValidateReference(test_name, "Avel", 2e-2);
     test_passed &= ValidateReference(test_name, "Aacc", 2e-2);
     test_passed &= ValidateReference(test_name, "Rforce", 2e-2);
-    test_passed &= ValidateReference(test_name, "Rtorque", 1e-10);
-    test_passed &= ValidateReference(test_name, "Energy", 2e-2);
+    test_passed &= ValidateReference(test_name, "Rtorque", 1e-6);
+    test_passed &= ValidateEnergy(test_name, 1e-2);
     test_passed &= ValidateConstraints(test_name, 1e-5);
   }
 
@@ -163,6 +164,8 @@ bool TestRevolute(const ChVector<>&     jointLoc,         // absolute location o
   my_system.SetIterLCPmaxItersSpeed(100);
   my_system.SetIterLCPmaxItersStab(100); //Tasora stepper uses this, Anitescu does not
   my_system.SetLcpSolverType(ChSystem::LCP_ITERATIVE_SOR);
+  my_system.SetTol(1e-6);
+  my_system.SetTolForce(1e-4);
 
   // Create the ground body
 
@@ -277,13 +280,21 @@ bool TestRevolute(const ChVector<>&     jointLoc,         // absolute location o
   out_rfrc << "Time" << "X_Force" << "Y_Force" << "Z_Force" << std::endl;
   out_rtrq << "Time" << "X_Torque" << "Y_Torque" << "Z_Torque" << std::endl;
 
-  out_energy << "Time" << "Total_KE" << "Transl_KE" << "Rot_KE" << "Delta_PE" << std::endl;
+  out_energy << "Time" << "Transl_KE" << "Rot_KE" << "Delta_PE" << "KE+PE" << std::endl;
 
   out_cnstr << "Time" << "Cnstr_1" << "Cnstr_2" << "Cnstr_3" << "Constraint_4" << "Cnstr_5" << std::endl;
 
   // Perform a system assembly to ensure we have the correct accelerations at
   // the initial time.
   my_system.DoFullAssembly();
+
+  // Total energy at initial time.
+  ChMatrix33<> inertia = pendulum->GetInertia();
+  ChVector<> angVelLoc = pendulum->GetWvel_loc();
+  double transKE = 0.5 * mass * pendulum->GetPos_dt().Length2();
+  double rotKE = 0.5 * Vdot(angVelLoc, inertia * angVelLoc);
+  double deltaPE = mass * g * (pendulum->GetPos().z - jointLoc.z);
+  double totalE0 = transKE + rotKE + deltaPE;
 
   // Simulation loop
   double simTime = 0;
@@ -329,8 +340,8 @@ bool TestRevolute(const ChVector<>&     jointLoc,         // absolute location o
       double transKE = 0.5 * mass * velocity.Length2();
       double rotKE = 0.5 * Vdot(angVelLoc, inertia * angVelLoc);
       double deltaPE = mass * g * (position.z - jointLoc.z);
-      double totalKE = transKE + rotKE;
-      out_energy << simTime << totalKE << transKE << rotKE << deltaPE << std::endl;;
+      double totalE = transKE + rotKE + deltaPE;
+      out_energy << simTime << transKE << rotKE << deltaPE << totalE - totalE0 << std::endl;;
 
       // Constraint violations
       ChMatrix<>* C = revoluteJoint->GetC();
@@ -410,6 +421,22 @@ bool ValidateConstraints(const std::string& testName,  // name of this test
   return check;
 }
 
+// wrapper function for checking energy conservation.
+//
+bool ValidateEnergy(const std::string& testName,  // name of this test
+                    double             tolerance) // validation tolerance
+{
+  std::string sim_file = out_dir + testName + "_CHRONO_Energy.txt";
+  utils::DataVector norms;
+
+  utils::Validate(sim_file, utils::RMS_NORM, tolerance, norms);
+
+  bool check = norms[norms.size() - 1] <= tolerance;
+  std::cout << "   validate Energy" << (check ? ": Passed" : ": Failed") 
+            << "  [  " << norms[norms.size() - 1] << "  ]" << std::endl;
+
+  return check;
+}
 
 // =============================================================================
 //
