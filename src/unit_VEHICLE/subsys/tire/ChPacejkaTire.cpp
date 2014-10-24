@@ -322,18 +322,30 @@ void ChPacejkaTire::Update(double               time,
   m_in_contact = disc_terrain_contact(m_tireState.pos, m_tireState.rot.GetYaxis(), m_R0,
                                       contact_frame, depth);
   
-  // set the contact frame and depth
+  // set the contact frame and depth. contact_frame gives the disk position, contact normal
+  // w.r.t. to the inclination angle.
   if(m_in_contact)
   {
-    m_contact_frame = contact_frame;
     // project the point to the surface of the terrain, z=0
-    ChVector<> n_hat = m_contact_frame.rot.GetZaxis();
+    ChVector<> n_hat = contact_frame.rot.GetZaxis();
     // z_hat dot n_hat = cos(theta), z_hat = (0,0,1)T
     double costheta = n_hat.z;
-    double mag = std::abs(m_contact_frame.pos.z) / costheta;
-    // contact point should be at ground level
-    m_contact_frame.pos = m_contact_frame.pos + mag * n_hat;
-    m_depth = depth;
+    double mag = std::abs(contact_frame.pos.z) / costheta;
+    contact_frame.pos = contact_frame.pos + mag * n_hat;
+    // contact frame should have n_hat = (0,0,1), x and y hat z-components = 0
+    ChVector<> x_hat = contact_frame.rot.GetXaxis();
+    x_hat.z = 0;
+    x_hat.Normalize();
+    ChVector<> y_hat = contact_frame.rot.GetYaxis();
+    y_hat.z = 0;
+    y_hat.Normalize();
+    // rotation matrix
+    ChMatrix33<> rot_frame;
+    rot_frame.Set_A_axis(x_hat, y_hat, ChVector<>(0,0,1) );
+    contact_frame.rot = rot_frame.Get_A_quaternion();
+    
+    m_contact_frame = contact_frame;
+    m_depth = depth;  // may want to check if this is normal or vertical depth
   } else {
     m_contact_frame = ChCoordsys<>();
     m_depth = 0;
