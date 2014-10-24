@@ -475,6 +475,7 @@ IF (BUILD_CH_SDK)
 		physics/ChContactDEM.h
 		physics/ChTensors.h
 		physics/ChContinuumMaterial.h
+		physics/ChInertiaUtils.h
 	)
 	SOURCE_GROUP(physics FILES  
 			${ChronoEngine_physics_SOURCES}
