@@ -59,11 +59,12 @@ enum ShapeType {
    TRIANGLEMESH,
    BARREL,
    CAPSULE,       //Currently implemented in parallel only
-   CONE,          //Currently implemented on parallel only
-   ROUNDEDBOX,    //Currently implemented on parallel only
-   ROUNDEDCYL,    //Currently implemented on parallel only
-   ROUNDEDCONE,   //Currently implemented on parallel only
-   CONVEX         //Currently implemented on parallel only
+   CONE,          //Currently implemented in parallel only
+   ROUNDEDBOX,    //Currently implemented in parallel only
+   ROUNDEDCYL,    //Currently implemented in parallel only
+   ROUNDEDCONE,   //Currently implemented in parallel only
+   CONVEX,        //Currently implemented in parallel only
+   FLUID          //Currently implemented in parallel only
 };
 
 

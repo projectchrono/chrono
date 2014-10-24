@@ -200,11 +200,14 @@ public:
 				/// Gets current tolerance for assembly constraints. 
 	double GetTol () {return tol;}
 
-				/// Sets tolerance for satisfying speeds in constraints. Speeds in constraints must be made compatible:
-				/// the iterative process is stopped if this tolerance (or max.number of iterations ) is reached.
-	void   SetTolSpeeds (double m_tol) {tol_speeds = m_tol;}
-				/// Gets current tolerance (in m/s) for satisfying constraints at the speed level. 
-	double GetTolSpeeds () {return tol_speeds;}
+    /// Sets tolerance for satisfying constraints at the velocity level.
+    /// The tolerance specified here is in fact a tolerance at the force level.
+    /// this value is multiplied by the value of the current time step and then
+    /// used as a stopping criteria for the iterative speed solver.
+    void SetTolForce(double mtol) { tol_force = mtol; }
+
+    /// Return the current value of the tolerance used in the speed solver.
+    double GetTolForce() const { return tol_force; }
 
 				/// Sets the method used to compute the norm of constraint violation (NORM_INF, NORM_TWO)
 	void SetNormType (int m_normtype) {normtype = m_normtype;}
@@ -1005,7 +1008,7 @@ protected:
 	double step_max;	// max time step
 
 	double tol;			// tolerance
-	double tol_speeds;	// tolerance for speeds
+    double tol_force;   // tolerance for forces (used to obtain a tolerance for impulses)
 	int normtype;		// type of norm
 	int maxiter;		// max iterations for tolerance convergence
 
