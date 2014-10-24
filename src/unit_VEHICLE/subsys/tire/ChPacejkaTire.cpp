@@ -466,8 +466,8 @@ void ChPacejkaTire::Advance(double step)
 
 
   // DEBUGGING
-  m_FM_combined.moment.y = 0;
-  m_FM_combined.moment.z = 0;
+  //m_FM_combined.moment.y = 0;
+  // m_FM_combined.moment.z = 0;
 
 
   // evaluate the reaction forces calculated
@@ -804,7 +804,7 @@ void ChPacejkaTire::advance_slip_transient(double step_size)
   m_slip->v_phi += m_slip->Idv_phi_dt;
 
   // calculate slips from contact point deflections u and v
-  slip_from_uv(m_in_contact, 200.0, 100.0, 2.0);
+  slip_from_uv(m_in_contact, 600.0, 100.0, 2.0);
 
 }
 
@@ -1022,7 +1022,7 @@ void ChPacejkaTire::slip_from_uv(bool use_besselink,
   double v_Bessel = -d_Vylow * m_slip->V_sy / m_relaxation->C_Falpha;
   double v_tow = -d_ytow * m_slip->V_sy / m_relaxation->C_Falpha;
 
-  double alpha_p = v_sigma - v_Bessel;
+  double alpha_p = v_sigma - v_Bessel; //  - v_tow;
   // don't allow damping to switch sign of alpha
   if( v_sigma * alpha_p < 0)
     alpha_p = 0;
@@ -1300,14 +1300,13 @@ double ChPacejkaTire::Mz_combined(double alpha_r, double alpha_t, double gamma, 
   else 
     sign_alpha_r = -1;
  
-
   double alpha_t_eq = sign_alpha_t * sqrt(pow(alpha_t,2) + pow(m_pureLong->K_x/m_pureTorque->K_y,2)*pow(kappa,2) );
   double alpha_r_eq = sign_alpha_r * sqrt(pow(alpha_r,2) + pow(m_pureLong->K_x/m_pureTorque->K_y,2)*pow(kappa,2) );
 
   double M_zr = m_pureTorque->D_r * std::cos(m_pureTorque->C_r * std::atan(m_pureTorque->B_r * alpha_r_eq)) * m_slip->cosPrime_alpha;
   double t = m_pureTorque->D_t * std::cos(m_pureTorque->C_t * std::atan(m_pureTorque->B_t*alpha_t_eq - m_pureTorque->E_t * (m_pureTorque->B_t * alpha_t_eq - std::atan(m_pureTorque->B_t * alpha_t_eq)))) * m_slip->cosPrime_alpha;
 
-  double M_z_y = -t * FP_y;
+  double M_z_y = -t * FP_y * m_sameSide;
   double M_z_x = s * Fx_combined;
   double M_z = M_z_y + M_zr  + M_z_x;
 
