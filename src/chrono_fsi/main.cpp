@@ -1965,16 +1965,16 @@ int main() {
 			paramsH.toleranceZone = paramsH.NUM_BOUNDARY_LAYERS * (paramsH.HSML * paramsH.MULT_INITSPACE);
 			paramsH.NUM_BCE_LAYERS = 2;
 			paramsH.solidSurfaceAdjust = .6 * (paramsH.HSML * paramsH.MULT_INITSPACE); // 0.6 for bouyant, under gravity
-		paramsH.BASEPRES = 0;//10;
+		paramsH.BASEPRES = 5;//10;
 			paramsH.LARGE_PRES = paramsH.BASEPRES;//10000;
 			paramsH.nPeriod = 7;
 		paramsH.gravity = R3(0, 0, 0);//R3(0);//R3(0, -9.81, 0);
-		paramsH.bodyForce4 = R4(0.1,0,0,0);//R4(3.2e-3,0,0,0);// R4(0);;// /*Re = 100 */ //R4(3.2e-4, 0, 0, 0);/*Re = 100 */
+		paramsH.bodyForce4 = R4(0.2,0,0,0);//R4(3.2e-3,0,0,0);// R4(0);;// /*Re = 100 */ //R4(3.2e-4, 0, 0, 0);/*Re = 100 */
 			paramsH.rho0 = 1000;
 			paramsH.mu0 = .001;
 		paramsH.v_Max = 50e-3;//18e-3;//1.5;//2e-1; /*0.2 for Re = 100 */ //2e-3;
 			paramsH.EPS_XSPH = .5f;
-		paramsH.dT = 1e-4;//.001; //sph alone: .01 for Re 10;
+		paramsH.dT = 0.5e-4;//.001; //sph alone: .01 for Re 10;
 			paramsH.tFinal = 400;//20 * paramsH.dT; //400
 			paramsH.timePause = .0005 * paramsH.tFinal; // keep it as small as possible. the time step will be 1/10 * dT
 			paramsH.timePauseRigidFlex = .05 * paramsH.tFinal;
