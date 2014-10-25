@@ -545,7 +545,7 @@ ChStreamOutBinary& ChStreamOutBinary::operator <<(const float	Val)
 	return (*this);
 }
 
-ChStreamOutBinary& ChStreamOutBinary::operator <<(char*		str)
+ChStreamOutBinary& ChStreamOutBinary::operator <<(const char* str)
 {
 	// save string length, including null termination
 	int mlength = (int)strlen(str)+1;

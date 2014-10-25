@@ -378,7 +378,7 @@ public:
 	ChStreamOutBinary& operator <<(std::string	&str);
 
 				/// Specialized operator for C strings.
-	ChStreamOutBinary& operator <<(char*	str);
+	ChStreamOutBinary& operator <<(const char* str);
 
 
 
