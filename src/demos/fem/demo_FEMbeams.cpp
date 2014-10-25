@@ -222,7 +222,7 @@ int main(int argc, char* argv[])
 	my_system.SetIterLCPwarmStarting(true); // this helps a lot to speedup convergence in this class of problems
 	my_system.SetIterLCPmaxItersSpeed(460);
 	my_system.SetIterLCPmaxItersStab(460);
-	my_system.SetTolSpeeds(1e-13);
+	my_system.SetTolForce(1e-13);
 	chrono::ChLcpIterativeMINRES* msolver = (chrono::ChLcpIterativeMINRES*)my_system.GetLcpSolverSpeed();
 	msolver->SetVerbose(false);
 	msolver->SetDiagonalPreconditioning(true);

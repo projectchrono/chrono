@@ -324,7 +324,7 @@ int main(int argc, char* argv[])
 	my_system.SetIterLCPwarmStarting(true); // this helps a lot to speedup convergence in this class of problems
 	my_system.SetIterLCPmaxItersSpeed(600);
 	my_system.SetIterLCPmaxItersStab(600);
-	my_system.SetTolSpeeds(1e-20);
+	my_system.SetTolForce(1e-20);
 	chrono::ChLcpIterativeMINRES* msolver = (chrono::ChLcpIterativeMINRES*)my_system.GetLcpSolverSpeed();
 	msolver->SetVerbose(true);
 	msolver->SetDiagonalPreconditioning(false);
@@ -538,7 +538,7 @@ my_system.ChangeLcpSolverSpeed(matlab_solver_speed);
 	my_system.SetIterLCPwarmStarting(true); // this helps a lot to speedup convergence in this class of problems
 	my_system.SetIterLCPmaxItersSpeed(600);
 	my_system.SetIterLCPmaxItersStab(600);
-	my_system.SetTolSpeeds(1e-12);
+	my_system.SetTolForce(1e-12);
 	chrono::ChLcpIterativeMINRES* msolver = (chrono::ChLcpIterativeMINRES*)my_system.GetLcpSolverSpeed();
 	msolver->SetDiagonalPreconditioning(true);
 

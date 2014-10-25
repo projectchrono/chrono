@@ -264,7 +264,7 @@ for (int e = 0; e<8; ++e)
 	my_system.SetLcpSolverType(ChSystem::LCP_ITERATIVE_MINRES); // <- NEEDED because other solvers can't handle stiffness matrices
 	my_system.SetIterLCPwarmStarting(true); // this helps a lot to speedup convergence in this class of problems
 	my_system.SetIterLCPmaxItersSpeed(40);
-	my_system.SetTolSpeeds(1e-10);
+	my_system.SetTolForce(1e-10);
 	//chrono::ChLcpIterativeMINRES* msolver = (chrono::ChLcpIterativeMINRES*)my_system.GetLcpSolverSpeed();
 	//msolver->SetVerbose(true);
 	//msolver->SetDiagonalPreconditioning(true);
