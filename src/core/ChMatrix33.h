@@ -180,7 +180,10 @@ public:
 		}
 
 		/// Multiplies this matrix by a vector.
-	ChVector<Real> operator*(const ChVector<Real>& myvect) { return (this->Matr_x_Vect (myvect)); } const
+	ChVector<Real> operator*(const ChVector<Real>& myvect) const 
+    {
+      return this->Matr_x_Vect (myvect); 
+    }
 
 	//
 	// FUNCTIONS
