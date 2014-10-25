@@ -781,6 +781,7 @@ __global__ void UpdateKernelRigidTranstalation(
 
 	real3 derivV_SPH = totalAccRigid3[rigidSphereA]; //in fact, totalBodyForce4 is originially sum of dV/dt of sph particles and should be multiplied by m to produce force. paramsD.gravity is applied in the force kernel
 	real3 deltaVel = derivV_SPH * dTD;
+
 	velMassRigidD2[rigidSphereA] += R4(deltaVel, 0);
 }
 //--------------------------------------------------------------------------------------------------------------------------------
