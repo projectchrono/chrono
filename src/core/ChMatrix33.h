@@ -55,14 +55,14 @@ public:
 	//
 
 		/// Default constructor builds a 3x3 matrix with zeroes.
-	inline ChMatrix33() : ChMatrixNM<Real,3,3>() {}
+	ChMatrix33() : ChMatrixNM<Real,3,3>() {}
 
 		/// Copy constructor
-	inline ChMatrix33(const ChMatrix33<Real>& msource) : ChMatrixNM<Real,3,3>(msource) {}
+	ChMatrix33(const ChMatrix33<Real>& msource) : ChMatrixNM<Real,3,3>(msource) {}
 
 		/// Copy constructor from all types of base matrices (only with same size)
 	template <class RealB>
-	inline ChMatrix33(const ChMatrix<RealB>& msource)
+	ChMatrix33(const ChMatrix<RealB>& msource)
 		{
 			assert(msource.GetColumns()==3 && msource.GetRows()==3);
 			this->rows= 3;
@@ -72,7 +72,7 @@ public:
 		}
 
 		/// Construct a diagonal 3x3 matrix with all diagonal elements equal to the specified value.
-	inline ChMatrix33(Real val) : ChMatrixNM<Real,3,3>()
+	ChMatrix33(Real val) : ChMatrixNM<Real,3,3>()
 		{
 			this->Set33Element(0, 0, val);
 			this->Set33Element(1, 1, val);
@@ -81,7 +81,7 @@ public:
 
 		/// The constructor which builds a 3x3 matrix given a quaternion representing rotation.
 	template <class RealB>
-	inline ChMatrix33(const ChQuaternion<RealB>& mq)
+	ChMatrix33(const ChQuaternion<RealB>& mq)
 		{ 
 			this->rows= 3;
 			this->columns = 3;
@@ -92,7 +92,7 @@ public:
 		/// Constructor that builds a rotation matrix from an agle of rotation and an axis, 
 		/// defined in absolute coords. NOTE, axis must be normalized!
 	template <class RealB>
-	inline ChMatrix33( const Real angle,			///< angle of rotation, in radians
+	ChMatrix33( const Real angle,			///< angle of rotation, in radians
 						const ChVector<RealB>& axis)///< axis of rotation, normalized
 		{
 			this->Set_A_AngAxis(angle,axis);
@@ -104,7 +104,7 @@ public:
 	//
 
 		/// Assignment operator (from generic other matrix, acceptable only if other matrix has 3x3 size)
-	inline ChMatrix33<Real>& operator=(const ChMatrix<Real>& matbis)
+	ChMatrix33<Real>& operator=(const ChMatrix<Real>& matbis)
 		{
 			assert(matbis.GetColumns()==3 && matbis.GetRows()==3);
 			ChMatrix<Real>::operator=(matbis);
@@ -210,7 +210,7 @@ public:
 		/// Multiplies this matrix by a vector, like in coordinate rotation [M]*v.
 		///  \return The result of the multiplication, i.e. a vector.
 	template <class RealB>
-	inline ChVector<Real> Matr_x_Vect(const ChVector<RealB>& va) const
+	ChVector<Real> Matr_x_Vect(const ChVector<RealB>& va) const
 		{
 			return ChVector<Real>(
 			  this->Get33Element(0,0) * (Real)va.x + this->Get33Element(0,1) * (Real)va.y + this->Get33Element(0,2) * (Real)va.z ,
@@ -221,7 +221,7 @@ public:
 		/// Multiplies this matrix (transposed) by a vector, as [M]'*v
 		///  \return The result of the multiplication, i.e. a vector.
 	template <class RealB>
-	inline ChVector<Real> MatrT_x_Vect(const ChVector<RealB>& va) const
+	ChVector<Real> MatrT_x_Vect(const ChVector<RealB>& va) const
 		{
 			return ChVector<Real>(
 			  this->Get33Element(0,0) * (Real)va.x + this->Get33Element(1,0) * (Real)va.y + this->Get33Element(2,0) * (Real)va.z ,

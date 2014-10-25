@@ -108,12 +108,12 @@ public:
 		/// supplying the row and the column (indexes start from 0).
 		/// For example: m(3,5) gets the element at the 4th row, 6th column.
 		/// Value is returned by reference, so it can be modified, like in m(1,2)=10.
-	inline Real& operator()(const int row, const int col)
+	Real& operator()(const int row, const int col)
 		{
 			assert (row >= 0 && col >= 0 && row < rows && col < columns);
 			return (*(address + col +(row*columns)));
 		}
-	inline const Real& operator()(const int row, const int col) const
+	const Real& operator()(const int row, const int col) const
 		{
 			assert (row >= 0 && col >= 0 && row < rows && col < columns);
 			return (*(address + col +(row*columns)));
@@ -124,12 +124,12 @@ public:
 		/// For example: m(3) gets the 4th element, counting row by row. 
 		/// Mostly useful if the matrix is Nx1 sized (i.e. a N-element vector).
 		/// Value is returned by reference, so it can be modified, like in m(1,2)=10.
-	inline Real& operator()(const int el)
+	Real& operator()(const int el)
 		{
 			assert (el >= 0 && el < rows*columns);
 			return (*(address + el));
 		}
-	inline const Real& operator()(const int el) const
+	const Real& operator()(const int el) const
 		{
 			assert (el >= 0 && el < rows*columns);
 			return (*(address + el));
@@ -138,12 +138,12 @@ public:
 		/// The [] operator returns the address of the n-th row. This is mostly
 		/// for compatibility with old matrix programming styles (2d array-like) 
 		/// where to access an element at row i, column j, one can write mymatrix[i][j]. 
-	inline Real* operator[](const int row)
+	Real* operator[](const int row)
 		{
 			assert (row >= 0 && row < rows);
 			return ((address +(row*columns)));
 		}
-	inline const Real* operator[](const int row) const
+	const Real* operator[](const int row) const
 		{
 			assert (row >= 0 && row < rows);
 			return ((address +(row*columns)));
@@ -166,14 +166,14 @@ public:
 	bool operator!=(const ChMatrix<Real>& other) { return !Equals(other); }
 
 		/// Assignment operator
-	inline ChMatrix<Real>& operator=(const ChMatrix<Real>& matbis)
+	ChMatrix<Real>& operator=(const ChMatrix<Real>& matbis)
 		{
 			if (&matbis != this)
 				CopyFromMatrix(matbis);
 			return *this;
 		}
 	template <class RealB>
-	inline ChMatrix<Real>& operator=(const ChMatrix<RealB>& matbis)
+	ChMatrix<Real>& operator=(const ChMatrix<RealB>& matbis)
 		{
 			CopyFromMatrix(matbis);
 			return *this;
@@ -184,7 +184,7 @@ public:
 	//
 
 		/// Sets the element at row,col position. Indexes start with zero.
-	inline void SetElement(int row, int col, Real elem)
+	void SetElement(int row, int col, Real elem)
 		{
 			assert (row >= 0 && col >= 0 && row < rows && col < columns);   // boundary checks
 			*(address + col +(row*columns)) = elem;
@@ -193,31 +193,31 @@ public:
 		/// Gets the element at row,col position. Indexes start with zero.
 		/// The return value is a copy of original value. Use Element() instead if you
 		/// want to access directly by reference the original element.
-	inline Real GetElement(int row, int col)
+	Real GetElement(int row, int col)
 		{
 			assert (row >= 0 && col >= 0 && row < rows && col < columns);   // boundary checks
 			return(*(address + col +(row*columns)));
 		}
-	inline Real GetElement(int row, int col) const
+	Real GetElement(int row, int col) const
 		{
 			assert (row >= 0 && col >= 0 && row < rows && col < columns);   // boundary checks
 			return(*(address + col +(row*columns)));
 		}
 
 		/// Sets the Nth element, counting row after row.
-	inline void SetElementN(int index, Real elem)
+	void SetElementN(int index, Real elem)
 		{
 			assert (index >=0 && index < (rows*columns));   // boundary checks
 			*(address+index) = elem;
 		}
 
 		/// Gets the Nth element, counting row after row.
-	inline Real GetElementN(int index)
+	Real GetElementN(int index)
 		{
 			assert (index >=0 && index < (rows*columns));
 			return(*(address+index));
 		}
-	inline const Real GetElementN(int index) const
+	const Real GetElementN(int index) const
 		{
 			assert (index >=0 && index < (rows*columns));
 			return(*(address+index));
@@ -226,12 +226,12 @@ public:
 		/// Access a single element of the matrix, by
 		/// supplying the row and the column (indexes start from 0).
 		/// Value is returned by reference, so it can be modified, like in m.Element(1,2)=10.
-	inline Real& Element(int row, int col)
+	Real& Element(int row, int col)
 		{
 			assert (row >= 0 && col >= 0 && row < rows && col < columns);
 			return(*(address + col +(row*columns)));
 		}
-	inline const Real& Element(int row, int col) const
+	const Real& Element(int row, int col) const
 		{
 			assert (row >= 0 && col >= 0 && row < rows && col < columns);
 			return(*(address + col +(row*columns)));
@@ -239,12 +239,12 @@ public:
 
 		/// Access a single element of the matrix, the Nth element, counting row after row.
 		/// Value is returned by reference, so it can be modified, like in m.Element(5)=10.
- 	inline Real& ElementN(int index)
+ 	Real& ElementN(int index)
 		{
 			assert (index >=0 && index < (rows*columns));
 			return(*(address+index));
 		}
- 	inline const Real& ElementN(int index) const
+ 	const Real& ElementN(int index) const
 		{
 			assert (index >=0 && index < (rows*columns));
 			return(*(address+index));
@@ -252,17 +252,17 @@ public:
 
 		/// Access directly the "Real* address" buffer. Warning! this is a low level
 		/// function, it should be used in rare cases, if really needed!
-	inline Real* GetAddress()             { return address; }
-	inline const Real* GetAddress() const { return address; }
+	Real* GetAddress()             { return address; }
+	const Real* GetAddress() const { return address; }
 
 		/// Gets the number of rows
-	inline int GetRows() const { return rows; }
+	int GetRows() const { return rows; }
 
 		/// Gets the number of columns
-	inline int GetColumns() const { return columns; }
+	int GetColumns() const { return columns; }
 
 		/// Reallocate memory for a new size. VIRTUAL! Must be implemented by child classes!
-	virtual inline void Resize(int nrows, int ncols) {}
+	virtual void Resize(int nrows, int ncols) {}
 
 		/// Swaps the columns a and b
 	void SwapColumns(int a, int b)

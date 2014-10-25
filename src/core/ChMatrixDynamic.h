@@ -86,7 +86,7 @@ public:
 	//
 
 		/// The default constructor builds a 3x3 matrix.
-	inline ChMatrixDynamic()
+	ChMatrixDynamic()
 		{
 			this->rows= 3;
 			this->columns = 3;
@@ -95,7 +95,7 @@ public:
 		}
 
 		/// Copy constructor
-	inline ChMatrixDynamic(const ChMatrixDynamic<Real>& msource)
+	ChMatrixDynamic(const ChMatrixDynamic<Real>& msource)
 		{
 			this->rows= msource.GetRows();
 			this->columns= msource.GetColumns();
@@ -105,7 +105,7 @@ public:
 
 		/// Copy constructor from all types of base matrices
 	template <class RealB>
-	inline ChMatrixDynamic(const ChMatrix<RealB>& msource)
+	ChMatrixDynamic(const ChMatrix<RealB>& msource)
 		{
 			this->rows= msource.GetRows();
 			this->columns= msource.GetColumns();
@@ -115,7 +115,7 @@ public:
 
 		/// The constructor for a generic nxm matrix. 
 		/// Rows and columns cannot be zero or negative.
-	inline ChMatrixDynamic(const int row, const int col )
+	ChMatrixDynamic(const int row, const int col )
 		{
 			assert (row >=0 && col >=0);
 			this->rows= row;
@@ -127,14 +127,14 @@ public:
 
 		/// Destructor
 		/// Delete allocated heap mem.
-	virtual inline ~ChMatrixDynamic() { delete[]this->address; }
+	virtual ~ChMatrixDynamic() { delete[]this->address; }
 
 	//
 	// OPERATORS
 	//
 
 		/// Assignment operator (from generic other matrix, it always work)
-	inline	ChMatrixDynamic<Real>& operator=(const ChMatrix<Real>& matbis)
+	ChMatrixDynamic<Real>& operator=(const ChMatrix<Real>& matbis)
 		{
 			ChMatrix<Real>::operator=(matbis);
 			return *this;
@@ -194,7 +194,7 @@ public:
 	//
 
 		/// Reallocate memory for a new size.
-	virtual inline void Resize(int nrows, int ncols)
+	virtual void Resize(int nrows, int ncols)
 		{
 			assert (nrows >= 0 && ncols >= 0);
 			if ((nrows != this->rows) || (ncols != this->columns))
