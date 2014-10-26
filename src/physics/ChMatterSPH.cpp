@@ -302,7 +302,7 @@ void ChMatterSPH::FillBox (const ChVector<> size,
 		assert(!mnode.IsNull());
 
 		mnode->SetKernelRadius(kernelrad);
-		mnode->SetCollisionRadius(spacing*0.1); 
+		mnode->SetCollisionRadius(spacing*0.05); 
 		mnode->SetMass(nodemass);
 	}
 

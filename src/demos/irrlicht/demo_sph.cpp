@@ -74,15 +74,15 @@ void create_some_falling_items(ChIrrAppInterface& mapp)
 
 		// Use the FillBox easy way to create the set of SPH particles
 	myfluid->FillBox(ChVector<>(xsize-0.2,height,zsize), // size of box 
-					xsize/11.0,			// resolution step
+					xsize/16.0,			// resolution step
 					1000,				// initial density
 					ChCoordsys<>(ChVector<>(0.1,height*0.5+0.1,0),QUNIT), // position & rotation of box
 					true,				// do a centered cubic lattice initial arrangement 
-					2.2,				// set the kernel radius (as multiples of step)
+					1.5,				// set the kernel radius (as multiples of step)
 					0.3);				// the randomness to avoid too regular initial lattice
 
 		// Set some material properties of the SPH fluid
-	myfluid->GetMaterial().Set_viscosity(0.05);
+	myfluid->GetMaterial().Set_viscosity(0.5);
 	myfluid->GetMaterial().Set_pressure_stiffness(300);
 
 		// Add the SPH fluid matter to the system
@@ -121,7 +121,7 @@ void create_some_falling_items(ChIrrAppInterface& mapp)
 											ChQuaternion<>(1,0,0,0), 
 											ChVector<>(xsize+2*thick,thick,zsize+2*thick) );
 	mrigidBody->GetBody()->SetBodyFixed(true);
-	mrigidBody->GetBody()->SetFriction(0.2f); 
+	mrigidBody->GetBody()->SetFriction(0.0f); 
 
   video::ITexture* cubeMap = driver->getTexture(GetChronoDataFile("blu.png").c_str());
 	mrigidBody->setMaterialTexture(0,	cubeMap);
@@ -131,9 +131,11 @@ void create_some_falling_items(ChIrrAppInterface& mapp)
 											100.0,
 											ChVector<>(-xsize*0.5-thick*0.5, height*0.5,0),
 											ChQuaternion<>(1,0,0,0), 
-											ChVector<>(thick,height,zsize) );
+											ChVector<>(thick,height,zsize+2*thick) );
 	mrigidBody->GetBody()->SetBodyFixed(true);
+	mrigidBody->GetBody()->SetFriction(0.0f);
 	mrigidBody->setMaterialTexture(0,	cubeMap);
+	
 
 
 	mrigidBody = (ChBodySceneNode*)addChBodySceneNode_easyBox(
@@ -141,8 +143,9 @@ void create_some_falling_items(ChIrrAppInterface& mapp)
 											100.0,
 											ChVector<>(xsize*0.5+thick*0.5, height*0.5,0),
 											ChQuaternion<>(1,0,0,0), 
-											ChVector<>(thick,height,zsize) );
+											ChVector<>(thick,height,zsize+2*thick) );
 	mrigidBody->GetBody()->SetBodyFixed(true);
+	mrigidBody->GetBody()->SetFriction(0.0f);
 	mrigidBody->setMaterialTexture(0,	cubeMap);
 
 	mrigidBody = (ChBodySceneNode*)addChBodySceneNode_easyBox(
@@ -152,15 +155,18 @@ void create_some_falling_items(ChIrrAppInterface& mapp)
 											ChQuaternion<>(1,0,0,0), 
 											ChVector<>(xsize+2*thick,height,thick) );
 	mrigidBody->GetBody()->SetBodyFixed(true);
+	mrigidBody->GetBody()->SetFriction(0.0f);
 	mrigidBody->setMaterialTexture(0,	cubeMap);
 
+	double opening = 0;//=0.2
 	mrigidBody = (ChBodySceneNode*)addChBodySceneNode_easyBox(
 											mphysicalSystem, msceneManager,
 											100.0,
-											ChVector<>(0.2, height*0.5, zsize*0.5+thick*0.5),
+											ChVector<>(opening, height*0.5, zsize*0.5+thick*0.5),
 											ChQuaternion<>(1,0,0,0), 
 											ChVector<>(xsize+2*thick,height,thick) );
 	mrigidBody->GetBody()->SetBodyFixed(true);
+	mrigidBody->GetBody()->SetFriction(0.0f);
 	mrigidBody->setMaterialTexture(0,	cubeMap);
  
 	// another floor
@@ -171,7 +177,7 @@ void create_some_falling_items(ChIrrAppInterface& mapp)
 											ChVector<>(0,-0.5,0),
 											ChQuaternion<>(1,0,0,0), 
 											ChVector<>(2,0.1,2) );
-	mrigidBody->GetBody()->SetBodyFixed(true); 
+	mrigidBody->GetBody()->SetBodyFixed(true);
 	mrigidBody->GetBody()->SetFriction(0.2f);
 
 
@@ -225,7 +231,7 @@ int main(int argc, char* argv[])
 	//
 
 	application.SetStepManage(true);
-	application.SetTimestep(0.01);
+	application.SetTimestep(0.005);
 
 	while(application.GetDevice()->run()) 
 	{
@@ -240,7 +246,9 @@ int main(int argc, char* argv[])
 			{
 				for (unsigned int ip = 0; ip < myfluid->GetNnodes(); ip++)
 				{
-          ChNodeSPH* mnode = (ChNodeSPH*)(myfluid->GetNode(ip).get_ptr());
+					//ChNodeSPH* mnode = (ChNodeSPH*)(myfluid->GetNode(ip).get_ptr());
+					ChSharedPtr<ChNodeSPH> mnode = myfluid->GetNode(ip).DynamicCastTo<ChNodeSPH>();
+
 					ChVector<> mv = mnode->GetPos();
 					float rad = (float)mnode->GetKernelRadius(); 
 					core::vector3df mpos((irr::f32)mv.x, (irr::f32)mv.y, (irr::f32)mv.z);
