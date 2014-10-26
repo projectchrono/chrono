@@ -199,7 +199,7 @@ bool ChModelBullet::AddSphere(double            radius,
 
 	mshape->setMargin((btScalar)this->GetSuggestedFullMargin() );
 
-	_injectShape(pos, 0, mshape);
+	_injectShape(pos, ChMatrix33<>(1), mshape);
 
 	model_type=SPHERE;
 	return true;
