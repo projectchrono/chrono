@@ -79,17 +79,32 @@ real_ CalcChannelParabolicVel(real3 posRad) {
 	real_ z = posRad.z - paramsH.straightChannelBoundaryMin.z;
 	real_ hy = paramsH.straightChannelBoundaryMax.y - paramsH.straightChannelBoundaryMin.y;
 	real_ hz = paramsH.straightChannelBoundaryMax.z - paramsH. straightChannelBoundaryMin.z;
-	real_ vx1 = vMaxParabolic * (1 - 4.0 / (hy*hy) * pow(z - 0.5* hy,2));
-	real_ vx2 = vMaxParabolic * (1 - 4.0 / (hy*hy) * pow( hz - z - 0.5* hy,2));
-	real_ vx3 = vMaxParabolic * (1 - 4.0 / (hy*hy) * pow(posRad.y - 0.5* hy,2));
-	if (z < (paramsH.straightChannelBoundaryMin.z + 0.5 * hy)) {
-		return min(vx1, vx3);
-	} else if (z > (paramsH.straightChannelBoundaryMax.z - 0.5 * hy)) {
-		return min(vx2, vx3);
-	} else {
-		return vx3;
+
+	real_ alpha = (hy < hz) ? hy / hz : hz / hy;    //Aspect ratio of the domain
+	real_ m = 1.7 + 0.5*pow(alpha,-1.4); 				//Some constants
+	real_ n = 2;
+	if (alpha > 1.0/3.0) {
+	    n = 2 + 0.3 * (alpha - 1.0/3.0);
 	}
-	return 0;
+
+	// Reference:
+	// Shah and London, "Laminar Flow Forced Convection in Ducts", 1978, Eqn. 335-338
+	real_ vAve = vMaxParabolic / 2;
+	real_ vx = vAve * ((m+1)/m) * ((n+1)/n) * (1 - pow(fabs((y-0.5*hy)/(0.5*hy)), n)) * (1 - pow(fabs((z-0.5*hz)/(0.5*hz)), m));
+	return vx;
+
+
+//	real_ vx1 = vMaxParabolic * (1 - 4.0 / (hy*hy) * pow(z - 0.5* hy,2));
+//	real_ vx2 = vMaxParabolic * (1 - 4.0 / (hy*hy) * pow( hz - z - 0.5* hy,2));
+//	real_ vx3 = vMaxParabolic * (1 - 4.0 / (hy*hy) * pow(posRad.y - 0.5* hy,2));
+//	if (z < (paramsH.straightChannelBoundaryMin.z + 0.5 * hy)) {
+//		return min(vx1, vx3);
+//	} else if (z > (paramsH.straightChannelBoundaryMax.z - 0.5 * hy)) {
+//		return min(vx2, vx3);
+//	} else {
+//		return vx3;
+//	}
+//	return 0;
 }
 //&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
 void ConvertQuatArray2RotArray(thrust::host_vector<Rotation> & rotArray,
