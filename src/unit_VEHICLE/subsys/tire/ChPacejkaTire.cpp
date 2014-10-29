@@ -948,10 +948,10 @@ void ChPacejkaTire::slip_from_uv(bool use_besselink,
   } else
   {
     // also damp if not a driven wheel (can linger around slip = 0)
-    if(!m_driven && use_besselink)
+    // if(!m_driven && use_besselink)
     {
-      // d_Vxlow = bessel_Cx * (1.0 - (V_cx_abs - V_low ) / (2.0 * m_params->model.longvl) );
-      // d_Vylow = bessel_Cy * (1.0 + (V_cx_abs - V_low) / (2.0 * m_params->model.longvl) );
+      d_Vxlow = bessel_Cx * ( std::exp( -(V_cx_abs - V_low ) / m_params->model.longvl ));
+      d_Vylow = bessel_Cy * ( std::exp( -(V_cx_abs - V_low) / m_params->model.longvl ));
     }
   }
 
@@ -968,7 +968,7 @@ void ChPacejkaTire::slip_from_uv(bool use_besselink,
   // tan(alpha') ~= alpha' for small slip
   double v_sigma = -m_slip->v_alpha / m_relaxation->sigma_alpha;
   // double v_sigma = std::atan(m_slip->v_alpha / m_relaxation->sigma_alpha);
-  double v_Bessel = -d_Vylow * m_slip->V_sy / m_relaxation->C_Falpha;
+  double v_Bessel = -d_Vylow * m_slip->V_sy * m_sameSide / m_relaxation->C_Falpha;
 
   double alpha_p = v_sigma - v_Bessel; //  - v_tow;
   // don't allow damping to switch sign of alpha
