@@ -126,7 +126,7 @@ ChVector<> ChChaseCamera::GetCameraPos() const
   if (m_state == Inside) {
     ChVector<> driverPos = m_chassis->GetFrame_REF_to_abs().TransformPointLocalToParent(m_driverCsys.pos);
     ChVector<> driverViewDir = m_chassis->GetFrame_REF_to_abs().TransformDirectionLocalToParent(m_driverCsys.rot.GetXaxis());
-    return driverPos - 2.0 * driverViewDir;
+    return driverPos - 1.1 * driverViewDir;
   }
 
   return (m_state == Track) ? m_lastLoc : m_loc;

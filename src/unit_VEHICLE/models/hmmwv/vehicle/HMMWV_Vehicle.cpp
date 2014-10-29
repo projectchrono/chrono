@@ -44,7 +44,7 @@ const ChVector<> HMMWV_Vehicle::m_chassisInertia(125.8, 497.4, 531.4);          
 const std::string HMMWV_Vehicle::m_chassisMeshName = "hmmwv_chassis";
 const std::string HMMWV_Vehicle::m_chassisMeshFile = utils::GetModelDataFile("hmmwv/hmmwv_chassis.obj");
 
-const ChCoordsys<> HMMWV_Vehicle::m_driverCsys(ChVector<>(0.0, 0.5, 1.2), ChQuaternion<>(1, 0, 0, 0));
+const ChCoordsys<> HMMWV_Vehicle::m_driverCsys(ChVector<>(0.8735, -0.27475, 1.052), ChQuaternion<>(1, 0, 0, 0));
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
