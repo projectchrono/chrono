@@ -371,10 +371,8 @@ struct relaxationL {
 
 struct bessel {
   double u_Bessel;
-  double u_tow;
   double u_sigma;
   double v_Bessel;
-  double v_tow;
   double v_sigma;
 };
 
