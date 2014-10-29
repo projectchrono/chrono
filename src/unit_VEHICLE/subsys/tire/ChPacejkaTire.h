@@ -192,8 +192,9 @@ private:
   void readSection_rolling(std::ifstream& inFile);
   void readSection_aligning(std::ifstream& inFile);
 
-  // update the tire coordinate system with new global ChWheelState data
-  void update_tireFrame();
+  /// update the tire contact coordinate system, TYDEX W-Axis
+  /// checks for contact, sets m_in_contact and m_depth
+  void update_W_frame();
 
   // update the vertical load, tire deflection, and tire rolling radius
   void update_verticalLoad(double step);
@@ -211,10 +212,13 @@ private:
   // set the tire m_slip vector to all zeros
   void zero_slips();
 
+  // check if slips fall within a specified valid range
+  void evaluate_slips();
+
   // after calculating all the reactions, evaluate output for any fishy business
   // write_violations: any output threshold exceeded gets written to console
   // enforce_threshold: enforce the limits when forces/moments exceed thresholds (except on Fz)
-  void evaluate(bool write_violations, bool enforce_threshold);
+  void evaluate_reactions(bool write_violations, bool enforce_threshold);
 
   void advance_tire(double step);
 
@@ -327,13 +331,12 @@ private:
   bool m_driven;  // is this a driven tire?
   int m_sameSide;             // does parameter file side equal m_side? 1 = true, -1 opposite
 
-  ChWheelState m_tireState;    // current tire state
-  ChCoordsys<> m_tire_frame;   // current tire coordinate system
-  double m_simTime;            // current Chrono simulation time
+  ChWheelState m_tireState;    // tire state, global coordinates
+  ChCoordsys<> m_W_frame;      // tire contact coordinate system, TYDEX W-Axis
+  double m_simTime;            // Chrono simulation time
 
   bool m_in_contact;           // indicates if there is tire-terrain contact
   double m_depth;              // if in contact, this is the contact depth
-  ChCoordsys<> m_contact_frame;// the contact frame
 
   double m_R0;                 // unloaded radius
   double m_R_eff;              // current effect rolling radius

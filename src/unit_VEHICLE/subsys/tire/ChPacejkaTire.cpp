@@ -45,6 +45,12 @@ static double Mx_thresh = Fz_thresh/20.0;
 static double My_thresh = Fx_thresh/20.0;
 static double Mz_thresh = Fz_thresh/20.0;
 
+static double kappaP_thresh = 0.01;
+static double alphaP_thresh = 0.1;
+static double gammaP_thresh = 0.05;
+static double phiP_thresh = 99;
+static double phiT_thresh = 99;
+
 // -----------------------------------------------------------------------------
 // Constructors
 // -----------------------------------------------------------------------------
@@ -183,6 +189,7 @@ void ChPacejkaTire::Initialize(ChVehicleSide side, bool driven)
   zero_slips();  // zeros slips, and some other vars
 }
 
+
 // -----------------------------------------------------------------------------
 // Return computed tire forces and moment (pure slip or combined slip and in
 // local or global frame). The main GetTireForce() function returns the combined
@@ -202,8 +209,8 @@ ChTireForce ChPacejkaTire::GetTireForce_pureSlip(const bool local) const
   ChTireForce m_FM_global;
   m_FM_global.point = m_tireState.pos;
   // only transform the directions of the forces, moments, from local to global
-  m_FM_global.force = m_tire_frame.TransformDirectionLocalToParent(m_FM_pure.force);
-  m_FM_global.moment = m_tire_frame.TransformDirectionLocalToParent(m_FM_pure.moment);
+  m_FM_global.force = m_W_frame.TransformDirectionLocalToParent(m_FM_pure.force);
+  m_FM_global.moment = m_W_frame.TransformDirectionLocalToParent(m_FM_pure.moment);
 
   return m_FM_global;
 }
@@ -216,71 +223,12 @@ ChTireForce ChPacejkaTire::GetTireForce_combinedSlip(const bool local) const
 
   // reactions are on wheel CM
   ChTireForce m_FM_global;
-  m_FM_global.point = m_contact_frame.pos;
+  m_FM_global.point = m_W_frame.pos;
   // only transform the directions of the forces, moments, from local to global
-  m_FM_global.force = m_tire_frame.TransformDirectionLocalToParent(m_FM_combined.force);
-  m_FM_global.moment = m_tire_frame.TransformDirectionLocalToParent(m_FM_combined.moment);
+  m_FM_global.force = m_W_frame.TransformDirectionLocalToParent(m_FM_combined.force);
+  m_FM_global.moment = m_W_frame.TransformDirectionLocalToParent(m_FM_combined.moment);
 
   return m_FM_global;
-}
-
-
-// -----------------------------------------------------------------------------
-// Functions providing access to private structures
-// -----------------------------------------------------------------------------
-double ChPacejkaTire::get_kappa() const
-{
-  return m_slip->kappa;
-}
-
-double ChPacejkaTire::get_alpha() const
-{
-  return m_slip->alpha;
-}
-
-double ChPacejkaTire::get_gamma() const
-{
-  return m_slip->gamma;
-}
-
-double ChPacejkaTire::get_kappaPrime() const
-{
-  return m_slip->kappaP;
-}
-
-double ChPacejkaTire::get_alphaPrime() const
-{
-  return m_slip->alphaP;
-}
-
-double ChPacejkaTire::get_gammaPrime() const
-{
-  return m_slip->gammaP;
-}
-
-double ChPacejkaTire::get_min_long_slip() const
-{
-  return m_params->long_slip_range.kpumin;
-}
-
-double ChPacejkaTire::get_max_long_slip() const
-{
-  return m_params->long_slip_range.kpumax;
-}
-
-double ChPacejkaTire::get_min_lat_slip() const
-{
-  return m_params->slip_angle_range.alpmin;
-}
-
-double ChPacejkaTire::get_max_lat_slip() const
-{
-  return m_params->slip_angle_range.alpmax;
-}
-
-double ChPacejkaTire::get_longvl() const
-{
-  return m_params->model.longvl;
 }
 
 
@@ -304,51 +252,15 @@ void ChPacejkaTire::Update(double               time,
   // Cache the wheel state and update the tire coordinate system.
   m_tireState = state;
   m_simTime = time;
-  update_tireFrame();
+  update_W_frame();
 
   // If not using the transient slip model, check that the tangential forward
   // velocity is not too small.
-  ChVector<> V = m_tire_frame.TransformDirectionParentToLocal(m_tireState.lin_vel);
+  ChVector<> V = m_W_frame.TransformDirectionParentToLocal(m_tireState.lin_vel);
   if (!m_use_transient_slip && std::abs(V.x) < 0.1)
   {
     GetLog() << " ERROR: tangential forward velocity below threshold.... \n\n";
     return;
-  }
-
-  // Check contact with terrain, using a disc of radius R0.
-  ChCoordsys<> contact_frame;
-  double       depth;
-
-  m_in_contact = disc_terrain_contact(m_tireState.pos, m_tireState.rot.GetYaxis(), m_R0,
-                                      contact_frame, depth);
-  
-  // set the contact frame and depth. contact_frame gives the disk position, contact normal
-  // w.r.t. to the inclination angle.
-  if(m_in_contact)
-  {
-    // project the point to the surface of the terrain, z=0
-    ChVector<> n_hat = contact_frame.rot.GetZaxis();
-    // z_hat dot n_hat = cos(theta), z_hat = (0,0,1)T
-    double costheta = n_hat.z;
-    double mag = std::abs(contact_frame.pos.z) / costheta;
-    contact_frame.pos = contact_frame.pos + mag * n_hat;
-    // contact frame should have n_hat = (0,0,1), x and y hat z-components = 0
-    ChVector<> x_hat = contact_frame.rot.GetXaxis();
-    x_hat.z = 0;
-    x_hat.Normalize();
-    ChVector<> y_hat = contact_frame.rot.GetYaxis();
-    y_hat.z = 0;
-    y_hat.Normalize();
-    // rotation matrix
-    ChMatrix33<> rot_frame;
-    rot_frame.Set_A_axis(x_hat, y_hat, ChVector<>(0,0,1) );
-    contact_frame.rot = rot_frame.Get_A_quaternion();
-    
-    m_contact_frame = contact_frame;
-    m_depth = depth;  // may want to check if this is normal or vertical depth
-  } else {
-    m_contact_frame = ChCoordsys<>();
-    m_depth = 0;
   }
 
   // keep the last calculated reaction force or moment, to use later
@@ -483,7 +395,7 @@ void ChPacejkaTire::Advance(double step)
 
 
   // evaluate the reaction forces calculated
-  evaluate(false, false);
+  evaluate_reactions(false, false);
 }
 
 void ChPacejkaTire::advance_tire(double step)
@@ -502,17 +414,23 @@ void ChPacejkaTire::advance_tire(double step)
 }
 
 
-// -----------------------------------------------------------------------------
-// Calculate the current tire coordinate system, centered at the wheel origin,
-// with the Z-axis normal to the terrain and X-axis in the heading direction.
-//
-//// TODO: check comment below for correctness.
-// need a local frame to transform output forces/moments to global frame
+// Calculate the tire contact coordinate system.
+// TYDEX W-axis system is at the contact point "C", Z-axis normal to the terrain
+//  and X-axis along the wheel centerline.
+// Local frame transforms output forces/moments to global frame, to be applied
+//  to the wheel body CM.
 // Pacejka (2006), Fig 2.3, all forces are calculated at the contact point "C"
-// Moment calculations take this into account, so all reactions are global
-// -----------------------------------------------------------------------------
-void ChPacejkaTire::update_tireFrame()
+void ChPacejkaTire::update_W_frame()
 {
+  // Check contact with terrain, using a disc of radius R0.
+  ChCoordsys<> contact_frame;
+  double       depth;
+  m_in_contact = disc_terrain_contact(m_tireState.pos, m_tireState.rot.GetYaxis(), m_R0,
+                                      contact_frame, depth);
+
+  // set the depth if there is contact with terrain
+  m_depth = (m_in_contact) ? depth : 0;
+
   // Wheel normal (expressed in global frame)
   ChVector<> wheel_normal = m_tireState.rot.GetYaxis();
 
@@ -528,9 +446,9 @@ void ChPacejkaTire::update_tireFrame()
   ChMatrix33<> rot;
   rot.Set_A_axis(X_dir, Y_dir, Z_dir);
 
-  // Construct the tire coordinate system.
-  m_tire_frame.pos = m_tireState.pos;
-  m_tire_frame.rot = rot.Get_A_quaternion();
+  // W-Axis system position at the contact point
+  m_W_frame.pos = contact_frame.pos;
+  m_W_frame.rot = rot.Get_A_quaternion();
 }
 
 
@@ -618,8 +536,8 @@ double ChPacejkaTire::calc_Fz()
 
   // Calculate relative velocity (wheel - terrain) at contact point, in the
   // global frame and then express it in the contact frame.
-  ChVector<> relvel_abs = m_tireState.lin_vel + Vcross(m_tireState.ang_vel, m_contact_frame.pos - m_tireState.pos);
-  ChVector<> relvel_loc = m_contact_frame.TransformDirectionParentToLocal(relvel_abs);
+  ChVector<> relvel_abs = m_tireState.lin_vel + Vcross(m_tireState.ang_vel, m_W_frame.pos - m_tireState.pos);
+  ChVector<> relvel_loc = m_W_frame.TransformDirectionParentToLocal(relvel_abs);
 
   // Calculate normal contact force, using a spring-damper model.
   // Note: depth is always positive, so the damping should always subtract
@@ -673,7 +591,7 @@ void ChPacejkaTire::slip_kinematic( )
 {
   // Express the wheel velocity in the tire coordinate system and calculate the
   // slip angle alpha. (Override V.x if too small)
-  ChVector<> V = m_tire_frame.TransformDirectionParentToLocal(m_tireState.lin_vel);
+  ChVector<> V = m_W_frame.TransformDirectionParentToLocal(m_tireState.lin_vel);
   // regardless of contact
   m_slip->V_cx = V.x;    // tire center x-vel, tire c-sys
   m_slip->V_cy = V.y;    // tire center y-vel, tire c-sys
@@ -694,7 +612,7 @@ void ChPacejkaTire::slip_kinematic( )
 
     // Express the wheel normal in the tire coordinate system and calculate the
     // wheel camber angle gamma.
-    ChVector<> n = m_tire_frame.TransformDirectionParentToLocal(m_tireState.rot.GetYaxis());
+    ChVector<> n = m_W_frame.TransformDirectionParentToLocal(m_tireState.rot.GetYaxis());
     double gamma = std::atan2(n.z, n.y);
 
     double kappa = -m_slip->V_sx / V_x_abs;
@@ -710,7 +628,7 @@ void ChPacejkaTire::slip_kinematic( )
 
     // Express the wheel angular velocity in the tire coordinate system and 
     // extract the turn slip velocity, psi_dot
-    ChVector<> w = m_tire_frame.TransformDirectionParentToLocal(m_tireState.ang_vel);
+    ChVector<> w = m_W_frame.TransformDirectionParentToLocal(m_tireState.ang_vel);
     m_slip->psi_dot = w.z;
 
     // For aligning torque, to handle large slips, and backwards operation
@@ -740,7 +658,7 @@ void ChPacejkaTire::slip_kinematic( )
 
     // Express the wheel angular velocity in the tire coordinate system and 
     // extract the turn slip velocity, psi_dot
-    ChVector<> w = m_tire_frame.TransformDirectionParentToLocal(m_tireState.ang_vel);
+    ChVector<> w = m_W_frame.TransformDirectionParentToLocal(m_tireState.ang_vel);
     m_slip->psi_dot = w.z;
   }
 }
@@ -820,8 +738,28 @@ void ChPacejkaTire::advance_slip_transient(double step_size)
 
 }
 
+// don't have to call this each advance_tire(), but once per macro-step (at least)
+void ChPacejkaTire::evaluate_slips()
+{
+  if( std::abs(m_slip->kappaP) > kappaP_thresh ) {
+    GetLog() << "\n ~~~~~~~~~  kappaP exceeded threshold:, tire " << m_name << ", = " << m_slip->kappaP << "\n";
+  }
+  if( std::abs(m_slip->alphaP) > alphaP_thresh) {
+     GetLog() << "\n ~~~~~~~~~  alphaP exceeded threshold:, tire " << m_name << ", = " << m_slip->alphaP << "\n";
+  }
+  if( std::abs(m_slip->gammaP) > gammaP_thresh) {
+     GetLog() << "\n ~~~~~~~~~  gammaP exceeded threshold:, tire " << m_name << ", = " << m_slip->gammaP << "\n";
+  }
+  if( std::abs(m_slip->phiP) > phiP_thresh) {
+     GetLog() << "\n ~~~~~~~~~  phiP exceeded threshold:, tire " << m_name << ", = " << m_slip->phiP << "\n";
+  }
+  if( std::abs(m_slip->phiT) > phiT_thresh) {
+     GetLog() << "\n ~~~~~~~~~  phiT exceeded threshold:, tire " << m_name << ", = " << m_slip->phiT << "\n";
+  }
+}
+
 // after calculating all the reactions, evaluate output for any fishy business
-void ChPacejkaTire::evaluate(bool write_violations, bool enforce_threshold)
+void ChPacejkaTire::evaluate_reactions(bool write_violations, bool enforce_threshold)
 {
   // any thresholds exceeded? then print some details about slip state
   bool output_slip_to_console = false;
@@ -1204,7 +1142,7 @@ double ChPacejkaTire::Mz_pureLat(double alpha, double gamma, double Fy_pureSlip)
 {
   // some constants
   int sign_Vx = 0;
-  if (m_tireState.lin_vel.x >= 0)
+  if (m_slip->V_cx >= 0)
     sign_Vx = 1;
   else
     sign_Vx = -1;
@@ -1779,6 +1717,66 @@ void ChPacejkaTire::readSection_aligning(std::ifstream& inFile)
   m_params->aligning = coefs;
 }
 
+
+
+// -----------------------------------------------------------------------------
+// Functions providing access to private structures
+// -----------------------------------------------------------------------------
+double ChPacejkaTire::get_kappa() const
+{
+  return m_slip->kappa;
+}
+
+double ChPacejkaTire::get_alpha() const
+{
+  return m_slip->alpha;
+}
+
+double ChPacejkaTire::get_gamma() const
+{
+  return m_slip->gamma;
+}
+
+double ChPacejkaTire::get_kappaPrime() const
+{
+  return m_slip->kappaP;
+}
+
+double ChPacejkaTire::get_alphaPrime() const
+{
+  return m_slip->alphaP;
+}
+
+double ChPacejkaTire::get_gammaPrime() const
+{
+  return m_slip->gammaP;
+}
+
+double ChPacejkaTire::get_min_long_slip() const
+{
+  return m_params->long_slip_range.kpumin;
+}
+
+double ChPacejkaTire::get_max_long_slip() const
+{
+  return m_params->long_slip_range.kpumax;
+}
+
+double ChPacejkaTire::get_min_lat_slip() const
+{
+  return m_params->slip_angle_range.alpmin;
+}
+
+double ChPacejkaTire::get_max_lat_slip() const
+{
+  return m_params->slip_angle_range.alpmax;
+}
+
+double ChPacejkaTire::get_longvl() const
+{
+  return m_params->model.longvl;
+}
+
 // -----------------------------------------------------------------------------
 // Write output file for post-processing with the Python pandas module.
 // -----------------------------------------------------------------------------
@@ -1813,7 +1811,7 @@ void ChPacejkaTire::WriteOutData(double             time,
     // write the slip info, reaction forces for pure & combined slip cases
     appFile << time << "," << m_slip->kappa << "," << m_slip->alpha*180. / 3.14159 << "," << m_slip->gamma << ","
       << m_slip->kappaP << "," << m_slip->alphaP << "," << m_slip->gammaP << ","
-      << m_tireState.lin_vel.x << "," << m_tireState.lin_vel.y << "," << m_tireState.omega << ","
+      << m_slip->V_cx <<"," << m_slip->V_cy <<","<< m_tireState.omega << ","    // m_tireState.lin_vel.x <<","<< m_tireState.lin_vel.y <<"," 
       << m_FM_pure.force.x << "," << m_FM_pure.force.y << "," << m_FM_pure.force.z << ","
       << m_FM_pure.moment.x << "," << m_FM_pure.moment.y << "," << m_FM_pure.moment.z << ","
       << m_FM_combined.force.x << "," << m_FM_combined.force.y << "," << m_FM_combined.moment.z <<","
