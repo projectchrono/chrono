@@ -73,7 +73,7 @@ struct CylinderGeometry {
 };
 //&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
 const bool initParabolic = true;
-real_ vMaxParabolic = .009;
+real_ vMaxParabolic = .00561;
 real_ CalcChannelParabolicVel(real3 posRad) {
 	real_ y = posRad.y - paramsH.straightChannelBoundaryMin.y;
 	real_ z = posRad.z - paramsH.straightChannelBoundaryMin.z;
@@ -89,7 +89,7 @@ real_ CalcChannelParabolicVel(real3 posRad) {
 
 	// Reference:
 	// Shah and London, "Laminar Flow Forced Convection in Ducts", 1978, Eqn. 335-338
-	real_ vAve = vMaxParabolic / 2;
+	real_ vAve = 0.5341 * vMaxParabolic; // according to the Matlab file
 	real_ vx = vAve * ((m+1)/m) * ((n+1)/n) * (1 - pow(fabs((y-0.5*hy)/(0.5*hy)), n)) * (1 - pow(fabs((z-0.5*hz)/(0.5*hz)), m));
 	return vx;
 
@@ -2012,17 +2012,17 @@ int main() {
 			paramsH.NUM_BOUNDARY_LAYERS = 3;
 			paramsH.toleranceZone = paramsH.NUM_BOUNDARY_LAYERS * (paramsH.HSML * paramsH.MULT_INITSPACE);
 			paramsH.NUM_BCE_LAYERS = 2;
-			paramsH.solidSurfaceAdjust = .6 * (paramsH.HSML * paramsH.MULT_INITSPACE); // 0.6 for bouyant, under gravity
+			paramsH.solidSurfaceAdjust = .7 * (paramsH.HSML * paramsH.MULT_INITSPACE); // 0.6 for bouyant, under gravity
 		paramsH.BASEPRES = 0;//10;
 			paramsH.LARGE_PRES = paramsH.BASEPRES;//10000;
 			paramsH.nPeriod = 7;
 		paramsH.gravity = R3(0, -9.81, 0);//R3(0);//R3(0, -9.81, 0);
-		paramsH.bodyForce4 = R4(0.2,0,0,0);//R4(3.2e-3,0,0,0);// R4(0);;// /*Re = 100 */ //R4(3.2e-4, 0, 0, 0);/*Re = 100 */
+		paramsH.bodyForce4 = R4(0.1,0,0,0);//R4(3.2e-3,0,0,0);// R4(0);;// /*Re = 100 */ //R4(3.2e-4, 0, 0, 0);/*Re = 100 */
 			paramsH.rho0 = 1000;
 			paramsH.mu0 = .001;
 		paramsH.v_Max = 150e-3;//18e-3;//1.5;//2e-1; /*0.2 for Re = 100 */ //2e-3;
 			paramsH.EPS_XSPH = .5f;
-		paramsH.dT = 0.25e-5;//.001; //sph alone: .01 for Re 10;
+		paramsH.dT = 0.5e-5;//.001; //sph alone: .01 for Re 10;
 			paramsH.tFinal = 20;//20 * paramsH.dT; //400
 			paramsH.timePause = 0;//.0001 * paramsH.tFinal; // keep it as small as possible. the time step will be 1/10 * dT
 			paramsH.timePauseRigidFlex = 0;//.05 * paramsH.tFinal;
@@ -2063,7 +2063,7 @@ int main() {
 //		paramsH.straightChannelBoundaryMin = R3(0, 0, 0); //2D channel
 //		paramsH.straightChannelBoundaryMax = R3(1 * mm, .2 * mm, 1 * mm) * paramsH.sizeScale;
 		paramsH.straightChannelBoundaryMin = R3(0, 0, 0); //3D channel
-		paramsH.straightChannelBoundaryMax = R3(3 * mm, 1 * mm, 3 * mm) * paramsH.sizeScale;
+		paramsH.straightChannelBoundaryMax = R3(2 * mm, 1 * mm, 3 * mm) * paramsH.sizeScale;
 		//********************************************************************************************************
 		//**  reminiscent of the past******************************************************************************
 		//paramsH.cMax = R3( paramsH.nPeriod * 4.6 + 0, 1.5,  4.0) * paramsH.sizeScale;  //for only CurvedSerpentine (w/out straight part)
@@ -2075,7 +2075,7 @@ int main() {
 //		paramsH.cMax = R3( 1 * mm, 0.2 * mm,  1 * mm + 2 * paramsH.toleranceZone);
 
 		paramsH.cMin = R3(0, -2 * paramsH.toleranceZone, -2 * paramsH.toleranceZone);						// 3D channel
-		paramsH.cMax = R3( 3 * mm, 1 * mm + 2 * paramsH.toleranceZone,  3 * mm + 2 * paramsH.toleranceZone);
+		paramsH.cMax = R3( 2 * mm, 1 * mm + 2 * paramsH.toleranceZone,  3 * mm + 2 * paramsH.toleranceZone);
 
 		//	paramsH.cMax = R3(paramsH.nPeriod * 1.0 + 0, .5,  3.5) * paramsH.sizeScale;  //for straight channel, sphere
 		//	paramsH.cMin = R3(0, -0.1, 0.5) * paramsH.sizeScale;
