@@ -105,4 +105,10 @@ void RigidTerrain::AddFixedObstacles()
 }
 
 
+void RigidTerrain::AddTexture(const std::string& filename)
+{
+
+}
+
+
 } // end namespace chrono

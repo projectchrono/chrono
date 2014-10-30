@@ -63,6 +63,9 @@ public:
   /// Add a few contact objects, rigidly attached to the terrain.
   void AddFixedObstacles();
 
+  /// add a texture to the terrain surface
+  void AddTexture(const std::string& filename);
+
 private:
 
   ChSystem&  m_system;
