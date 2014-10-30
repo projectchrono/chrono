@@ -2007,12 +2007,12 @@ int main() {
 			//***		paramsH.numBodies;
 			//***		paramsH.boxDims;
 		paramsH.sizeScale = 1; //don't change it.
-		paramsH.HSML = 0.00004;
+		paramsH.HSML = 0.00003;
 		paramsH.MULT_INITSPACE = 1.0;
 			paramsH.NUM_BOUNDARY_LAYERS = 3;
 			paramsH.toleranceZone = paramsH.NUM_BOUNDARY_LAYERS * (paramsH.HSML * paramsH.MULT_INITSPACE);
 			paramsH.NUM_BCE_LAYERS = 2;
-			paramsH.solidSurfaceAdjust = .7 * (paramsH.HSML * paramsH.MULT_INITSPACE); // 0.6 for bouyant, under gravity
+			paramsH.solidSurfaceAdjust = .6 * (paramsH.HSML * paramsH.MULT_INITSPACE); // 0.6 for bouyant, under gravity
 		paramsH.BASEPRES = 0;//10;
 			paramsH.LARGE_PRES = paramsH.BASEPRES;//10000;
 			paramsH.nPeriod = 7;
