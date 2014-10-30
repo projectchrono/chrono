@@ -195,12 +195,12 @@ class PacTire_vehicle_panda:
        
         ax1.set_title('Forces, all tires')
         ax3.set_xlabel('time [sec]')
-        ax1.set_ylabel('Fx [N]')
-        ax2.set_ylabel('Fy [N]')
+        ax1.set_ylabel('Fxc [N]')
+        ax2.set_ylabel('Fyc [N]')
         ax3.set_ylabel('Fz [N]')
-        ax1.legend(loc='best')
-        ax2.legend(loc='best')
-        ax3.legend(loc='best')
+        ax1.legend(loc='upper right')
+        ax2.legend(loc='upper right')
+        ax3.legend(loc='upper right')
         ax1.grid(True)
         ax2.grid(True)
         ax3.grid(True)
@@ -288,9 +288,9 @@ class PacTire_vehicle_panda:
         ax1.set_ylabel('Mx [N-m]')
         ax2.set_ylabel('My [N-m]')
         ax3.set_ylabel('Mzc [N-m]')
-        ax1.legend(loc='best')
-        ax2.legend(loc='best')
-        ax3.legend(loc='best')
+        ax1.legend(loc='upper right')
+        ax2.legend(loc='upper right')
+        ax3.legend(loc='upper right')
         ax1.grid(True)
         ax2.grid(True)
         ax3.grid(True)   
@@ -380,11 +380,11 @@ class PacTire_vehicle_panda:
             if(plot_kinematic):
                 ax_list[i].plot(df_list[i]['time'], df_list[i]['alpha'],'b-',linewidth=1.5,label=leg_list[i]+r" $\alpha$")
                 ax_list[i].plot(df_list[i]['time'], df_list[i]['kappa'],'r-',linewidth=1.5,label=leg_list[i]+r" $\kappa$")
-                ax_list[i].plot(df_list[i]['time'], df_list[i]['gamma'],'k-',linewidth=1.5,label=leg_list[i]+r" $\gamma$")
+                ax_list[i].plot(df_list[i]['time'], df_list[i]['gamma'],'g-',linewidth=1.5,label=leg_list[i]+r" $\gamma$")
             else:
                 ax_list[i].plot(df_list[i]['time'], df_list[i]['alphaP'],'b-',linewidth=1.5,label=leg_list[i]+r" $\alpha$'")
                 ax_list[i].plot(df_list[i]['time'], df_list[i]['kappaP'],'r-',linewidth=1.5,label=leg_list[i]+r" $\kappa$'")
-                ax_list[i].plot(df_list[i]['time'], df_list[i]['gammaP'],'k-',linewidth=1.5,label=leg_list[i]+r" $\gamma$'")
+                ax_list[i].plot(df_list[i]['time'], df_list[i]['gammaP'],'g-',linewidth=1.5,label=leg_list[i]+r" $\gamma$'")
             axM2 = ax_list[i].twinx()
             axM2.plot(df_list[i]['time'], df_list[i]['Vx'],'k--',linewidth=2.0,label=leg_list[i]+' Vx')
             # ax_list[i].plot(df_list[i]['time'], df_list[i]['Vx'],'k--',linewidth=2.0,label=leg_list[i]+' Vx')
@@ -454,7 +454,7 @@ class PacTire_vehicle_panda:
             # axM2.legend(loc= 'upper right')
             ax_list[i].set_ylabel('slip [-]')
             ax_list[i].grid(True)
-            ax_list[i].legend(loc='upper center')        
+            ax_list[i].legend(loc='upper left')        
     
         ax1.set_title('alphaP = v_sigma - v_Bessel')
         ax4.set_xlabel('time [sec]')               
@@ -539,9 +539,9 @@ if __name__ == '__main__':
     vehicle_output.plotall_Mz_detailed()
     vehicle_output.plotall_bessel_kappa()
     vehicle_output.plotall_bessel_alpha()
-    vehicle_output.plotall_ts()
+    # vehicle_output.plotall_ts()
     
-    vehicle_output.plotall_pureForces()
-    # plot w.r.t. lateral slip angle
+    # vehicle_output.plotall_pureForces()
+
 
 py.show()
