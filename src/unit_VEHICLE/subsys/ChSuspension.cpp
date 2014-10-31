@@ -23,10 +23,8 @@
 namespace chrono {
 
 
-ChSuspension::ChSuspension(const std::string& name,
-                           bool               driven)
-: m_name(name),
-  m_driven(driven)
+ChSuspension::ChSuspension(const std::string& name)
+: m_name(name)
 {
 }
 
@@ -34,15 +32,7 @@ ChSuspension::ChSuspension(const std::string& name,
 void ChSuspension::ApplyAxleTorque(ChVehicleSide side,
                                    double        torque)
 {
-  assert(m_driven);
   m_axle[side]->SetAppliedTorque(torque);
-}
-
-
-double ChSuspension::GetAxleSpeed(ChVehicleSide side) const
-{
-  assert(m_driven);
-  return m_axle[side]->GetPos_dt();
 }
 
 

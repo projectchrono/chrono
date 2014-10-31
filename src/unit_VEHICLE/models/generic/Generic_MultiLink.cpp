@@ -87,15 +87,13 @@ const double      Generic_MultiLinkRear::m_springRestLength = 0.339;
 // -----------------------------------------------------------------------------
 // Constructors
 // -----------------------------------------------------------------------------
-Generic_MultiLinkFront::Generic_MultiLinkFront(const std::string& name,
-                                               bool               driven)
-: ChMultiLink(name, driven)
+Generic_MultiLinkFront::Generic_MultiLinkFront(const std::string& name)
+: ChMultiLink(name)
 {
 }
 
-Generic_MultiLinkRear::Generic_MultiLinkRear(const std::string& name,
-                                             bool               driven)
-: ChMultiLink(name, driven)
+Generic_MultiLinkRear::Generic_MultiLinkRear(const std::string& name)
+: ChMultiLink(name)
 {
 }
 

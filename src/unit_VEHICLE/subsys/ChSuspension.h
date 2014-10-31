@@ -41,8 +41,7 @@ class CH_SUBSYS_API ChSuspension : public ChShared
 public:
 
   ChSuspension(
-    const std::string& name,               ///< [in] name of the subsystem
-    bool               driven = false      ///< [in] true if attached to driveline subsystem
+    const std::string& name               ///< [in] name of the subsystem
     );
 
   virtual ~ChSuspension() {}
@@ -55,9 +54,6 @@ public:
 
   /// Set the name identifier for this suspension subsystem.
   void SetName(const std::string& name) { m_name = name; }
-
-  /// Return true if attached to driveline subsystem and false otherwise.
-  bool IsDriven() const { return m_driven; }
 
   /// Get a handle to the spindle body on the specified side.
   ChSharedPtr<ChBody>  GetSpindle(ChVehicleSide side) const { return m_spindle[side]; }
@@ -87,7 +83,7 @@ public:
   ChVector<> GetSpindleAngVel(ChVehicleSide side) const { return m_spindle[side]->GetWvel_par(); }
 
   /// Get the angular speed of the axle on the specified side.
-  double GetAxleSpeed(ChVehicleSide side) const;
+  double GetAxleSpeed(ChVehicleSide side) const { return m_axle[side]->GetPos_dt(); }
 
   /// Apply the provided tire forces.
   /// The given tire force and moment is applied to the specified (left or
@@ -127,7 +123,6 @@ public:
 protected:
 
   std::string                      m_name;               ///< name of the subsystem
-  bool                             m_driven;             ///< true if attached to steering subsystem
 
   ChSharedPtr<ChBody>              m_spindle[2];         ///< handles to spindle bodies
   ChSharedPtr<ChShaft>             m_axle[2];            ///< handles to axle shafts

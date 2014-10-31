@@ -24,10 +24,6 @@
 // supspension and will be mirrored (reflecting the y coordinates) to construct
 // the right side.
 //
-// If marked as 'driven', the suspension subsystem also creates the ChShaft axle
-// element and its connection to the spindle body (which provides the interface
-// to the driveline subsystem).
-//
 // =============================================================================
 
 #ifndef CH_DOUBLEWISHBONE_H
@@ -53,16 +49,12 @@ namespace chrono {
 /// supspension and will be mirrored (reflecting the y coordinates) to construct
 /// the right side.
 ///
-/// If marked as 'driven', the suspension subsystem also creates the ChShaft axle
-/// element and its connection to the spindle body (which provides the interface
-///
 class CH_SUBSYS_API ChDoubleWishbone : public ChSuspension
 {
 public:
 
   ChDoubleWishbone(
-    const std::string& name,               ///< [in] name of the subsystem
-    bool               driven = false      ///< [in] true if attached to driveline subsystem
+    const std::string& name               ///< [in] name of the subsystem
     );
 
   virtual ~ChDoubleWishbone();

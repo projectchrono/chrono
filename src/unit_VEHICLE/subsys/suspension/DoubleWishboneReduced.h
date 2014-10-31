@@ -31,10 +31,8 @@ class CH_SUBSYS_API DoubleWishboneReduced : public ChDoubleWishboneReduced
 {
 public:
 
-  DoubleWishboneReduced(const std::string& filename,
-                 bool               driven);
-  DoubleWishboneReduced(const rapidjson::Document& d,
-                 bool                       driven);
+  DoubleWishboneReduced(const std::string& filename);
+  DoubleWishboneReduced(const rapidjson::Document& d);
   virtual ~DoubleWishboneReduced() {}
 
   virtual double getSpindleMass() const { return m_spindleMass; }

@@ -31,10 +31,8 @@ class CH_SUBSYS_API MultiLink : public ChMultiLink
 {
 public:
 
-  MultiLink(const std::string& filename,
-                 bool               driven);
-  MultiLink(const rapidjson::Document& d,
-                 bool                       driven);
+  MultiLink(const std::string& filename);
+  MultiLink(const rapidjson::Document& d);
   virtual ~MultiLink() {}
 
   virtual double getSpindleMass() const { return m_spindleMass; }

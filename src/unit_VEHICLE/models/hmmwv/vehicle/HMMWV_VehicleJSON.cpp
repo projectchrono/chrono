@@ -96,8 +96,8 @@ HMMWV_VehicleJSON::HMMWV_VehicleJSON(const bool        fixed,
   // Create the suspension subsystems
   // --------------------------------
   m_suspensions.resize(2);
-  m_suspensions[0] = ChSharedPtr<ChSuspension>(new DoubleWishbone(utils::GetModelDataFile("hmmwv/suspension/HMMWV_DoubleWishboneFront.json"), false));
-  m_suspensions[1] = ChSharedPtr<ChSuspension>(new DoubleWishbone(utils::GetModelDataFile("hmmwv/suspension/HMMWV_DoubleWishboneRear.json"), true));
+  m_suspensions[0] = ChSharedPtr<ChSuspension>(new DoubleWishbone(utils::GetModelDataFile("hmmwv/suspension/HMMWV_DoubleWishboneFront.json")));
+  m_suspensions[1] = ChSharedPtr<ChSuspension>(new DoubleWishbone(utils::GetModelDataFile("hmmwv/suspension/HMMWV_DoubleWishboneRear.json")));
 
   // -----------------------------
   // Create the steering subsystem

@@ -142,8 +142,7 @@ void Vehicle::LoadDriveline(const std::string& filename)
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 void Vehicle::LoadSuspension(const std::string& filename,
-                             int                axle,
-                             bool               driven)
+                             int                axle)
 {
   FILE* fp = fopen(filename.c_str(), "r");
 
@@ -167,19 +166,19 @@ void Vehicle::LoadSuspension(const std::string& filename,
   // Create the suspension using the appropriate template.
   if (subtype.compare("DoubleWishbone") == 0)
   {
-    m_suspensions[axle] = ChSharedPtr<ChSuspension>(new DoubleWishbone(d, driven));
+    m_suspensions[axle] = ChSharedPtr<ChSuspension>(new DoubleWishbone(d));
   }
   else if (subtype.compare("DoubleWishboneReduced") == 0)
   {
-    m_suspensions[axle] = ChSharedPtr<ChSuspension>(new DoubleWishboneReduced(d, driven));
+    m_suspensions[axle] = ChSharedPtr<ChSuspension>(new DoubleWishboneReduced(d));
   }
   else if (subtype.compare("SolidAxle") == 0)
   {
-    m_suspensions[axle] = ChSharedPtr<ChSuspension>(new SolidAxle(d, driven));
+    m_suspensions[axle] = ChSharedPtr<ChSuspension>(new SolidAxle(d));
   }
   else if (subtype.compare("MultiLink") == 0)
   {
-    m_suspensions[axle] = ChSharedPtr<ChSuspension>(new MultiLink(d, driven));
+    m_suspensions[axle] = ChSharedPtr<ChSuspension>(new MultiLink(d));
   }
 }
 
@@ -333,9 +332,6 @@ Vehicle::Vehicle(const std::string& filename,
   m_wheels.resize(2 * m_num_axles);
   m_brakes.resize(2 * m_num_axles);
 
-  // Array of flags for driven suspensions.
-  std::vector<bool> driven(m_num_axles, false);
-
   // -----------------------------
   // Create the steering subsystem
   // -----------------------------
@@ -359,7 +355,6 @@ Vehicle::Vehicle(const std::string& filename,
     m_driven_susp.resize(num_driven_susp);
     for (SizeType i = 0; i < num_driven_susp; i++) {
       m_driven_susp[i] = d["Driveline"]["Suspension Indexes"][i].GetInt();
-      driven[m_driven_susp[i]] = true;
     }
   }
 
@@ -370,7 +365,7 @@ Vehicle::Vehicle(const std::string& filename,
   for (int i = 0; i < m_num_axles; i++) {
     // Suspension
     std::string file_name = d["Axles"][i]["Suspension Input File"].GetString();
-    LoadSuspension(utils::GetModelDataFile(file_name), i, driven[i]);
+    LoadSuspension(utils::GetModelDataFile(file_name), i);
     m_suspLocations[i] = loadVector(d["Axles"][i]["Suspension Location"]);
 
     // Left and right wheels

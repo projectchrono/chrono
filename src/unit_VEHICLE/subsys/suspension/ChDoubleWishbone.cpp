@@ -23,10 +23,6 @@
 // supspension and will be mirrored (reflecting the y coordinates) to construct
 // the right side.
 //
-// If marked as 'driven', the suspension subsystem also creates the ChShaft axle
-// element and its connection to the spindle body (which provides the interface
-// to the driveline subsystem).
-//
 // =============================================================================
 
 #include "assets/ChCylinderShape.h"
@@ -101,9 +97,8 @@ private:
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-ChDoubleWishbone::ChDoubleWishbone(const std::string& name,
-                                   bool               driven)
-: ChSuspension(name, driven),
+ChDoubleWishbone::ChDoubleWishbone(const std::string& name)
+: ChSuspension(name),
   m_nonlinearShock(false),
   m_nonlinearSpring(false),
   m_shockCB(NULL),
@@ -168,13 +163,11 @@ void ChDoubleWishbone::CreateSide(ChVehicleSide      side,
   m_spring[side] = ChSharedPtr<ChLinkSpringCB>(new ChLinkSpringCB);
   m_spring[side]->SetNameString(m_name + "_spring" + suffix);
 
-  // If driven, create the axle shaft and its connection to the spindle.
-  if (m_driven) {
-    m_axle[side] = ChSharedPtr<ChShaft>(new ChShaft);
-    m_axle[side]->SetNameString(m_name + "_axle" + suffix);
-    m_axle_to_spindle[side] = ChSharedPtr<ChShaftsBody>(new ChShaftsBody);
-    m_axle_to_spindle[side]->SetNameString(m_name + "_axle_to_spindle" + suffix);
-  }
+  // Create the axle shaft and its connection to the spindle.
+  m_axle[side] = ChSharedPtr<ChShaft>(new ChShaft);
+  m_axle[side]->SetNameString(m_name + "_axle" + suffix);
+  m_axle_to_spindle[side] = ChSharedPtr<ChShaftsBody>(new ChShaftsBody);
+  m_axle_to_spindle[side]->SetNameString(m_name + "_axle_to_spindle" + suffix);
 }
 
 // -----------------------------------------------------------------------------
@@ -336,13 +329,11 @@ void ChDoubleWishbone::InitializeSide(ChVehicleSide                   side,
 
   // Initialize the axle shaft and its connection to the spindle. Note that the
   // spindle rotates about the Y axis.
-  if (m_driven) {
-    m_axle[side]->SetInertia(getAxleInertia());
-    chassis->GetSystem()->Add(m_axle[side]);
+  m_axle[side]->SetInertia(getAxleInertia());
+  chassis->GetSystem()->Add(m_axle[side]);
 
-    m_axle_to_spindle[side]->Initialize(m_axle[side], m_spindle[side], ChVector<>(0, -1, 0));
-    chassis->GetSystem()->Add(m_axle_to_spindle[side]);
-  }
+  m_axle_to_spindle[side]->Initialize(m_axle[side], m_spindle[side], ChVector<>(0, -1, 0));
+  chassis->GetSystem()->Add(m_axle_to_spindle[side]);
 }
 
 

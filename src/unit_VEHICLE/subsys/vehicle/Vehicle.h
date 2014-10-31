@@ -52,7 +52,7 @@ private:
 
   void LoadSteering(const std::string& filename);
   void LoadDriveline(const std::string& filename);
-  void LoadSuspension(const std::string& filename, int axle, bool driven);
+  void LoadSuspension(const std::string& filename, int axle);
   void LoadWheel(const std::string& filename, int axle, int side);
   void LoadBrake(const std::string& filename, int axle, int side);
 

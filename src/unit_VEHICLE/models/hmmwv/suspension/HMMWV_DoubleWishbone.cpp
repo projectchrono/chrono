@@ -154,9 +154,8 @@ double HMMWV_ShockForce::operator()(double time,
 // -----------------------------------------------------------------------------
 // Constructors
 // -----------------------------------------------------------------------------
-HMMWV_DoubleWishboneFront::HMMWV_DoubleWishboneFront(const std::string& name,
-                                                     bool               driven)
-: ChDoubleWishbone(name, driven)
+HMMWV_DoubleWishboneFront::HMMWV_DoubleWishboneFront(const std::string& name)
+: ChDoubleWishbone(name)
 {
   m_shockForceCB = new HMMWV_ShockForce(
     lbfpin2Npm * 71.50,     // midstroke_compression_slope
@@ -169,9 +168,8 @@ HMMWV_DoubleWishboneFront::HMMWV_DoubleWishboneFront(const std::string& name,
     );
 }
 
-HMMWV_DoubleWishboneRear::HMMWV_DoubleWishboneRear(const std::string& name,
-                                                   bool               driven)
-: ChDoubleWishbone(name, driven)
+HMMWV_DoubleWishboneRear::HMMWV_DoubleWishboneRear(const std::string& name)
+: ChDoubleWishbone(name)
 {
   m_shockForceCB = new HMMWV_ShockForce(
     lbfpin2Npm * 83.00,     // midstroke_compression_slope

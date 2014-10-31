@@ -95,8 +95,8 @@ HMMWV_VehicleReduced::HMMWV_VehicleReduced(const bool           fixed,
   // Create the suspension subsystems
   // -------------------------------------------
   m_suspensions.resize(2);
-  m_suspensions[0] = ChSharedPtr<ChSuspension>(new HMMWV_DoubleWishboneReducedFront("FrontSusp", false));
-  m_suspensions[1] = ChSharedPtr<ChSuspension>(new HMMWV_DoubleWishboneReducedRear("RearSusp", true));
+  m_suspensions[0] = ChSharedPtr<ChSuspension>(new HMMWV_DoubleWishboneReducedFront("FrontSusp"));
+  m_suspensions[1] = ChSharedPtr<ChSuspension>(new HMMWV_DoubleWishboneReducedRear("RearSusp"));
 
   // -----------------------------
   // Create the steering subsystem
