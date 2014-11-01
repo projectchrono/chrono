@@ -36,6 +36,12 @@ enum PowertrainModelType {
   SIMPLE
 };
 
+enum DrivelineType {
+  FWD,
+  RWD,
+  AWD
+};
+
 enum SuspensionType {
   SOLID_AXLE,
   MULTI_LINK

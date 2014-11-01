@@ -50,8 +50,10 @@ const ChCoordsys<> HMMWV_VehicleReduced::m_driverCsys(ChVector<>(0.0, 0.5, 1.2),
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 HMMWV_VehicleReduced::HMMWV_VehicleReduced(const bool           fixed,
+                                           DrivelineType        driveType,
                                            VisualizationType    chassisVis,
                                            VisualizationType    wheelVis)
+: m_driveType(driveType)
 {
   // -------------------------------------------
   // Create the chassis body
@@ -114,7 +116,15 @@ HMMWV_VehicleReduced::HMMWV_VehicleReduced(const bool           fixed,
   // --------------------
   // Create the driveline
   // --------------------
-  m_driveline = ChSharedPtr<ChDriveline>(new HMMWV_Driveline2WD);
+  switch (m_driveType) {
+  case FWD:
+  case RWD:
+    m_driveline = ChSharedPtr<ChDriveline>(new HMMWV_Driveline2WD);
+    break;
+  case AWD:
+    m_driveline = ChSharedPtr<ChDriveline>(new HMMWV_Driveline4WD);
+    break;
+  }
 
   // -----------------
   // Create the brakes
@@ -153,10 +163,29 @@ void HMMWV_VehicleReduced::Initialize(const ChCoordsys<>& chassisPos)
   m_rear_left_wheel->Initialize(m_suspensions[1]->GetSpindle(LEFT));
   m_rear_right_wheel->Initialize(m_suspensions[1]->GetSpindle(RIGHT));
 
-  // Initialize the driveline subsystem (RWD)
-  ChSuspensionList susp(1, m_suspensions[1]);
-  std::vector<int> driven_susp(1, 1);
-  m_driveline->Initialize(m_chassis, susp, driven_susp);
+  // Initialize the driveline subsystem.
+  int num_da = m_driveline->GetNumDrivenAxles();
+  ChSuspensionList driven_susp(num_da);
+  std::vector<int> driven_susp_indexes(num_da);
+
+  switch (m_driveType) {
+  case FWD:
+    driven_susp[0] = m_suspensions[0];
+    driven_susp_indexes[0] = 0;
+    break;
+  case RWD:
+    driven_susp[0] = m_suspensions[1];
+    driven_susp_indexes[0] = 1;
+    break;
+  case AWD:
+    driven_susp[0] = m_suspensions[0];
+    driven_susp[1] = m_suspensions[1];
+    driven_susp_indexes[0] = 0;
+    driven_susp_indexes[1] = 1;
+    break;
+  }
+
+  m_driveline->Initialize(m_chassis, driven_susp, driven_susp_indexes);
 
   // Initialize the four brakes
   m_front_left_brake->Initialize(m_suspensions[0]->GetRevolute(LEFT));

@@ -116,6 +116,7 @@ int main(int argc, char* argv[])
 
   // Create the HMMWV vehicle
   HMMWV_VehicleReduced vehicle(false,
+                               RWD,
                                PRIMITIVES,
                                MESH);
 
