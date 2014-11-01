@@ -41,17 +41,14 @@ ChShaftsDriveline4WD::ChShaftsDriveline4WD()
 
 // -----------------------------------------------------------------------------
 // Initialize the driveline subsystem.
-// This function connects this driveline subsystem to the axles of the provided
-// suspension subsystems.  Note that it is the responsibility of the caller to
-// provide a number of suspension subsystems consistent with the driveline type
-// (in this case two). It is assumed that the order of the suspension subsystems
-// is consistent with the provided array of axle indexes.
+// This function connects this driveline subsystem to the axles of the specified
+// suspension subsystems.
 // -----------------------------------------------------------------------------
 void ChShaftsDriveline4WD::Initialize(ChSharedPtr<ChBody>     chassis,
                                       const ChSuspensionList& suspensions,
                                       const std::vector<int>& driven_axles)
 {
-  assert(suspensions.size() == 2);
+  assert(suspensions.size() >= 2);
   assert(driven_axles.size() == 2);
 
   m_driven_axles = driven_axles;
@@ -120,8 +117,8 @@ void ChShaftsDriveline4WD::Initialize(ChSharedPtr<ChBody>     chassis,
   // simple: t0=-1.
   m_rear_differential = ChSharedPtr<ChShaftsPlanetary>(new ChShaftsPlanetary);
   m_rear_differential->Initialize(m_rear_differentialbox,
-                                  suspensions[1]->GetAxle(LEFT),
-                                  suspensions[1]->GetAxle(RIGHT));
+                                  suspensions[m_driven_axles[1]]->GetAxle(LEFT),
+                                  suspensions[m_driven_axles[1]]->GetAxle(RIGHT));
   m_rear_differential->SetTransmissionRatioOrdinary(GetRearDifferentialRatio());
   my_system->Add(m_rear_differential);
 
@@ -154,8 +151,8 @@ void ChShaftsDriveline4WD::Initialize(ChSharedPtr<ChBody>     chassis,
   // simple: t0=-1.
   m_front_differential = ChSharedPtr<ChShaftsPlanetary>(new ChShaftsPlanetary);
   m_front_differential->Initialize(m_front_differentialbox,
-                                   suspensions[0]->GetAxle(LEFT),
-                                   suspensions[0]->GetAxle(RIGHT));
+                                   suspensions[m_driven_axles[0]]->GetAxle(LEFT),
+                                   suspensions[m_driven_axles[0]]->GetAxle(RIGHT));
   m_front_differential->SetTransmissionRatioOrdinary(GetFrontDifferentialRatio());
   my_system->Add(m_front_differential);
 }

@@ -62,14 +62,10 @@ public:
 
   /// Initialize the driveline subsystem.
   /// This function connects this driveline subsystem to the axles of the
-  /// provided suspension subsystems.  Note that it is the responsibility of
-  /// the caller to provide a number of suspension subsystems consistent with
-  /// the driveline type (in this case a single suspension). It is assumed that
-  /// the order of the suspension subsystems is consistent with the provided
-  /// array of axle indexes.
+  /// specified suspension subsystems.
   virtual void Initialize(
     ChSharedPtr<ChBody>     chassis,     ///< handle to the chassis body
-    const ChSuspensionList& suspensions, ///< list of driven suspension subsystems
+    const ChSuspensionList& suspensions, ///< list of all vehicle suspension subsystems
     const std::vector<int>& driven_axles ///< indexes of the driven vehicle axles
     );
 

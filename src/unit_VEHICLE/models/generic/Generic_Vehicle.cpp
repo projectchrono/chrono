@@ -142,9 +142,8 @@ void Generic_Vehicle::Initialize(const ChCoordsys<>& chassisPos)
   m_rear_right_wheel->Initialize(m_suspensions[1]->GetSpindle(RIGHT));
 
   // Initialize the driveline subsystem (RWD)
-  ChSuspensionList susp(1, m_suspensions[1]);
   std::vector<int> driven_susp(1, 1);
-  m_driveline->Initialize(m_chassis, susp, driven_susp);
+  m_driveline->Initialize(m_chassis, m_suspensions, driven_susp);
 
   // Initialize the four brakes
   m_front_left_brake->Initialize(m_suspensions[0]->GetRevolute(LEFT));

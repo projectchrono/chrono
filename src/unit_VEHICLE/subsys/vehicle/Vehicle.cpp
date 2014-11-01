@@ -421,10 +421,7 @@ void Vehicle::Initialize(const ChCoordsys<>& chassisPos)
   }
 
   // Initialize the driveline
-  ChSuspensionList susp(m_driven_susp.size());
-  for (size_t i = 0; i < m_driven_susp.size(); i++)
-    susp[i] = m_suspensions[m_driven_susp[i]];
-  m_driveline->Initialize(m_chassis, susp, m_driven_susp);
+  m_driveline->Initialize(m_chassis, m_suspensions, m_driven_susp);
 }
 
 

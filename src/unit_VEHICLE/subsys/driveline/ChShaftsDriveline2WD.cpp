@@ -41,17 +41,14 @@ ChShaftsDriveline2WD::ChShaftsDriveline2WD()
 
 // -----------------------------------------------------------------------------
 // Initialize the driveline subsystem.
-// This function connects this driveline subsystem to the axles of the provided
-// suspension subsystems.  Note that it is the responsibility of the caller to
-// provide a number of suspension subsystems consistent with the driveline type
-// (in this case a single suspension). It is assumed that the order of the
-// suspension subsystems is consistent with the provided array of axle indexes.
+// This function connects this driveline subsystem to the axles of the specified
+// suspension subsystems.
 // -----------------------------------------------------------------------------
 void ChShaftsDriveline2WD::Initialize(ChSharedPtr<ChBody>     chassis,
                                       const ChSuspensionList& suspensions,
                                       const std::vector<int>& driven_axles)
 {
-  assert(suspensions.size() == 1);
+  assert(suspensions.size() >= 1);
   assert(driven_axles.size() == 1);
 
   m_driven_axles = driven_axles;
@@ -92,8 +89,8 @@ void ChShaftsDriveline2WD::Initialize(ChSharedPtr<ChBody>     chassis,
   // simple: t0=-1.
   m_differential = ChSharedPtr<ChShaftsPlanetary>(new ChShaftsPlanetary);
   m_differential->Initialize(m_differentialbox,
-                             suspensions[0]->GetAxle(LEFT),
-                             suspensions[0]->GetAxle(RIGHT));
+                             suspensions[m_driven_axles[0]]->GetAxle(LEFT),
+                             suspensions[m_driven_axles[0]]->GetAxle(RIGHT));
   m_differential->SetTransmissionRatioOrdinary(GetDifferentialRatio());
   my_system->Add(m_differential);
 }

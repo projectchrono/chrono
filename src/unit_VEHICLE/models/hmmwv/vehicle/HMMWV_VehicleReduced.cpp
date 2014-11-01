@@ -164,28 +164,22 @@ void HMMWV_VehicleReduced::Initialize(const ChCoordsys<>& chassisPos)
   m_rear_right_wheel->Initialize(m_suspensions[1]->GetSpindle(RIGHT));
 
   // Initialize the driveline subsystem.
-  int num_da = m_driveline->GetNumDrivenAxles();
-  ChSuspensionList driven_susp(num_da);
-  std::vector<int> driven_susp_indexes(num_da);
+  std::vector<int> driven_susp_indexes(m_driveline->GetNumDrivenAxles());
 
   switch (m_driveType) {
   case FWD:
-    driven_susp[0] = m_suspensions[0];
     driven_susp_indexes[0] = 0;
     break;
   case RWD:
-    driven_susp[0] = m_suspensions[1];
     driven_susp_indexes[0] = 1;
     break;
   case AWD:
-    driven_susp[0] = m_suspensions[0];
-    driven_susp[1] = m_suspensions[1];
     driven_susp_indexes[0] = 0;
     driven_susp_indexes[1] = 1;
     break;
   }
 
-  m_driveline->Initialize(m_chassis, driven_susp, driven_susp_indexes);
+  m_driveline->Initialize(m_chassis, m_suspensions, driven_susp_indexes);
 
   // Initialize the four brakes
   m_front_left_brake->Initialize(m_suspensions[0]->GetRevolute(LEFT));
