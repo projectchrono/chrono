@@ -88,8 +88,8 @@ void ChShaftsDriveline4WD::Initialize(ChSharedPtr<ChBody>     chassis,
   m_central_differential->Initialize(m_driveshaft, // the carrier
                                      m_rear_shaft,
                                      m_front_shaft);
-  m_rear_differential->SetTransmissionRatioOrdinary(GetCentralDifferentialRatio());
-  my_system->Add(m_rear_differential);
+  m_central_differential->SetTransmissionRatioOrdinary(GetCentralDifferentialRatio());
+  my_system->Add(m_central_differential);
 
   // ---Rear differential and axles:
 
