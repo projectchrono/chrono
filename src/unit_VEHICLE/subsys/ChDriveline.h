@@ -35,24 +35,22 @@ class CH_SUBSYS_API ChDriveline : public ChShared
 {
 public:
 
-  enum DriveType {
-    TWO_WHEEL_DRIVE,    ///< front or rear wheel drive
-    FOUR_WHEEL_DRIVE    ///< All wheel drive
-  };
-
-  ChDriveline(
-    DriveType  type    ///< [in] driveline type
-    );
+  ChDriveline();
   virtual ~ChDriveline() {}
+
+  /// Return the number of driven axles.
+  virtual int GetNumDrivenAxles() const = 0;
 
   /// Initialize the driveline subsystem.
   /// This function connects this driveline subsystem to the axles of the
   /// provided suspension subsystems.  Note that it is the responsibility of
   /// the caller to provide a number of suspension subsystems consistent with
-  /// the driveline type.
+  /// the driveline type. It is assumed that the order of the suspension
+  /// subsystems is consistent with the provided array of axle indexes.
   virtual void Initialize(
     ChSharedPtr<ChBody>     chassis,     ///< handle to the chassis body
-    const ChSuspensionList& suspensions  ///< list of driven suspension subsystems
+    const ChSuspensionList& suspensions, ///< list of driven suspension subsystems
+    const std::vector<int>& driven_axles ///< indexes of the driven vehicle axles
     ) = 0;
 
   /// Get a handle to the driveshaft.
@@ -75,9 +73,9 @@ public:
 
 protected:
 
-  DriveType             m_type;         ///< type of driveline
-
   ChSharedPtr<ChShaft>  m_driveshaft;   ///< handle to the shaft connection to the powertrain
+
+  std::vector<int>      m_driven_axles; ///< indexes of the driven vehicle axles
 };
 
 
