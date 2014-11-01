@@ -28,6 +28,8 @@ SET(MODEL_FILES
 	../hmmwv/steering/HMMWV_RackPinion.cpp
 	../hmmwv/driveline/HMMWV_Driveline2WD.h
 	../hmmwv/driveline/HMMWV_Driveline2WD.cpp
+	../hmmwv/driveline/HMMWV_Driveline4WD.h
+	../hmmwv/driveline/HMMWV_Driveline4WD.cpp
 	../hmmwv/powertrain/HMMWV_SimplePowertrain.h
 	../hmmwv/powertrain/HMMWV_SimplePowertrain.cpp
 	../hmmwv/powertrain/HMMWV_Powertrain.h
