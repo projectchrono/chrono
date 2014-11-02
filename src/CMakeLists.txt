@@ -476,6 +476,7 @@ IF (BUILD_CH_SDK)
 		physics/ChTensors.h
 		physics/ChContinuumMaterial.h
 		physics/ChInertiaUtils.h
+		physics/ChTimestepper.h
 	)
 	SOURCE_GROUP(physics FILES  
 			${ChronoEngine_physics_SOURCES}
