@@ -347,7 +347,8 @@ void ChMatterSPH::VariablesFbLoadForces(double factor)
 		iterotherphysics++;
 	}
 	assert(edges); // If using a ChMatterSPH, you must add also a ChProximityContainerSPH.
-	
+	if (! edges) 
+		return;
 
 	// 1- Per-node initialization
 
