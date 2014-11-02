@@ -24,26 +24,18 @@ ENDIF()
 # NOTE: to add a new source to this unit, just add its name
 # here and re-run the CMake.
 #
-#include(ExternalProject)
-#ExternalProject_Add( "TinyXML2" PREFIX "${CMAKE_BINARY_DIR}/tinyxml2/" GIT_REPOSITORY "git://github.com/leethomason/tinyxml2.git" CONFIGURE_COMMAND "" BUILD_COMMAND "" INSTALL_COMMAND "")
 
-#find_file(TINYXML2_CPP "tinyxml2.cpp" "${CMAKE_BINARY_DIR}/tinyxml2/src/TinyXML2")
-#find_file(TINYXML2_H "tinyxml2.h" "${CMAKE_BINARY_DIR}/tinyxml2/src/TinyXML2")
 
 SET(ChronoEngine_UNIT_POSTPROCESS_SOURCES 
 	ChPovRay.cpp
 	ChPovRayAssetCustom.cpp
-	ChMitsubaRender.cpp
-   	xml/tinyxml2.cpp
 	)
 SET(ChronoEngine_UNIT_POSTPROCESS_HEADERS
 	ChApiPostProcess.h 
 	ChPovRay.h
 	ChPovRayAsset.h
 	ChPovRayAssetCustom.h
-	ChMitsubaRender.h
 	ChPostProcessBase.h
-    xml/tinyxml2.h
 	)
 #SET_SOURCE_FILES_PROPERTIES(ChronoEngine_UNIT_POSTPROCESS_HEADERS PROPERTIES  HEADER_FILE_ONLY)
 SOURCE_GROUP(unit_POSTPROCESS FILES 
@@ -56,7 +48,6 @@ SOURCE_GROUP(unit_POSTPROCESS FILES
 # In most cases, you do not need to edit the lines below.
 
 INCLUDE_DIRECTORIES( ${CH_POSTPROCESSINC} )
-INCLUDE_DIRECTORIES( ${CMAKE_BINARY_DIR}/tinyxml2/src/TinyXML2 )
 
 # The POSTPROCESS library is added to the project,
 # and some custom properties of this target are set.

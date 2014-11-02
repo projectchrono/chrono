@@ -143,7 +143,7 @@ public:
 				/// so you can plot a graph of how the residual decreases
 				/// during iterations until solution is reached)
 	void   SetRecordViolation(bool mval) {record_violation_history = mval;}
-	double GetRecordViolation() {return record_violation_history;}
+	bool GetRecordViolation() {return record_violation_history;}
 
 				/// Access the vector with the (hopefully decreasing:)
 				/// history of values showing the max constraint violation 
