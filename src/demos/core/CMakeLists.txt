@@ -42,7 +42,18 @@ TARGET_LINK_LIBRARIES(demo_stream ChronoEngine)
 ADD_DEPENDENCIES (demo_stream ChronoEngine)
 
 
+ADD_EXECUTABLE(demo_timestepping	demo_timestepping.cpp)
+SOURCE_GROUP(demos\\basics FILES  	demo_timestepping.cpp)
+SET_TARGET_PROPERTIES(demo_timestepping PROPERTIES 
+	FOLDER demos
+	LINK_FLAGS "${CH_LINKERFLAG_EXE}"
+	)
+TARGET_LINK_LIBRARIES(demo_timestepping ChronoEngine)
+ADD_DEPENDENCIES (demo_timestepping ChronoEngine)
+
+
 install(TARGETS demo_coords DESTINATION bin)
 install(TARGETS demo_math DESTINATION bin)
 install(TARGETS demo_sharedptr DESTINATION bin)
 install(TARGETS demo_stream DESTINATION bin)
+install(TARGETS demo_timestepping DESTINATION bin)
