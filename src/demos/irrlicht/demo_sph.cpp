@@ -29,6 +29,7 @@
    
  
 #include "physics/ChSystem.h"
+#include "physics/ChBodyEasy.h"
 #include "physics/ChProximityContainerSPH.h"
 #include "physics/ChMatterSPH.h"
 #include "physics/ChContactContainerNodes.h"
@@ -62,7 +63,7 @@ void create_some_falling_items(ChIrrAppInterface& mapp)
 	// box data
 	double xsize =0.5;
 	double zsize =0.5;
-	double height=0.3;
+	double height=0.5;
 	double thick =0.1;
 
 	ChSystem* mphysicalSystem = mapp.GetSystem();
@@ -76,9 +77,9 @@ void create_some_falling_items(ChIrrAppInterface& mapp)
 	myfluid->FillBox(ChVector<>(xsize-0.2,height,zsize), // size of box 
 					xsize/16.0,			// resolution step
 					1000,				// initial density
-					ChCoordsys<>(ChVector<>(0.1,height*0.5+0.1,0),QUNIT), // position & rotation of box
+					ChCoordsys<>(ChVector<>(0.1,height*0.5+0.0,0),QUNIT), // position & rotation of box
 					true,				// do a centered cubic lattice initial arrangement 
-					1.5,				// set the kernel radius (as multiples of step)
+					1.6,				// set the kernel radius (as multiples of step)
 					0.3);				// the randomness to avoid too regular initial lattice
 
 		// Set some material properties of the SPH fluid
@@ -89,6 +90,7 @@ void create_some_falling_items(ChIrrAppInterface& mapp)
 	myfluid->SetCollide(true);
 	mphysicalSystem->Add(myfluid);
 
+	GetLog() << "Added " << myfluid->GetNnodes() << " SPH particles \n\n";
 
 
 	// Create some spheres that will fall
@@ -158,7 +160,7 @@ void create_some_falling_items(ChIrrAppInterface& mapp)
 	mrigidBody->GetBody()->SetFriction(0.0f);
 	mrigidBody->setMaterialTexture(0,	cubeMap);
 
-	double opening = 0;//=0.2
+	double opening = 0.2;//=0.2
 	mrigidBody = (ChBodySceneNode*)addChBodySceneNode_easyBox(
 											mphysicalSystem, msceneManager,
 											100.0,
@@ -181,6 +183,23 @@ void create_some_falling_items(ChIrrAppInterface& mapp)
 	mrigidBody->GetBody()->SetFriction(0.2f);
 
 
+		// Create floating balls 
+	for (int ib= 0; ib<12; ib++)
+	{
+		ChSharedPtr<ChBodyEasySphere> mrigidBall(new ChBodyEasySphere(
+												0.02+ChRandom()*0.02,		// radius
+												100,		// density
+												true,		// collide enable?
+												true));		// visualization?
+		mrigidBall->SetPos(ChVector<>(ChRandom()*0.3-0.15,0.2,ChRandom()*0.3-0.15));
+		mrigidBall->GetMaterialSurface()->SetFriction(0.0f); 
+		mphysicalSystem->Add(mrigidBall);
+
+		// optional, attach a texture for better visualization
+		ChSharedPtr<ChTexture> mtextureball(new ChTexture());
+		mtextureball->SetTextureFilename(GetChronoDataFile("bluwhite.png"));
+		mrigidBall->AddAsset(mtextureball);
+	}
 } 
      
   
@@ -195,7 +214,7 @@ int main(int argc, char* argv[])
 
 	// Create the Irrlicht visualization (open the Irrlicht device, 
 	// bind a simple user interface, etc. etc.)
-	ChIrrAppInterface application(&mphysicalSystem, L"SPH fluid",core::dimension2d<u32>(800,600),false);
+	ChIrrApp application(&mphysicalSystem, L"SPH fluid",core::dimension2d<u32>(800,600),false);
 
 
 	// Easy shortcuts to add camera, lights, logo and sky in Irrlicht scene:
@@ -209,6 +228,15 @@ int main(int argc, char* argv[])
 
 	create_some_falling_items(application);
  
+	// Use this function for adding a ChIrrNodeAsset to all items
+	// If you need a finer control on which item really needs a visualization proxy in 
+	// Irrlicht, just use application.AssetBind(myitem); on a per-item basis.
+	application.AssetBindAll();
+
+	// Use this function for 'converting' into Irrlicht meshes the assets 
+	// into Irrlicht-visualizable meshes
+	application.AssetUpdateAll();
+
 
 	// IMPORTANT!
 	// This takes care of the interaction between the particles of the SPH material
@@ -223,7 +251,7 @@ int main(int argc, char* argv[])
 	
 	// Modify some setting of the physical system for the simulation, if you want
 
-	mphysicalSystem.SetIterLCPmaxItersSpeed(8); // lower the LCP iters, no needed here
+	mphysicalSystem.SetIterLCPmaxItersSpeed(6); // lower the LCP iters, no needed here
 
 
 	// 
@@ -231,7 +259,7 @@ int main(int argc, char* argv[])
 	//
 
 	application.SetStepManage(true);
-	application.SetTimestep(0.005);
+	application.SetTimestep(0.0025);
 
 	while(application.GetDevice()->run()) 
 	{

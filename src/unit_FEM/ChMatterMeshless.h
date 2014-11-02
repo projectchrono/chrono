@@ -175,6 +175,11 @@ public:
 	void  SetCollide (bool mcoll);
 	bool  GetCollide() {return do_collide;}
 
+			// STATISTICS  - override these in child classes if needed
+			// 
+
+				/// Get the number of scalar coordinates (variables), if any, in this item 
+	virtual int GetDOF  ()   {return 3*this->GetNnodes();}
 
 			//
 	  		// FUNCTIONS
