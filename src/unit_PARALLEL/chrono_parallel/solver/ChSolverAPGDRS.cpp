@@ -237,8 +237,8 @@ uint ChSolverAPGDRS::SolveAPGDRS(const uint max_iter,
       }
 
       //cout << "delta_obj " << delta_obj<<" "<< residual<<" "<<current_iteration<< endl;
-      if (data_container->settings.solver.tolerance_objective) {
-         if (objective_value <= data_container->settings.solver.tolerance) {
+      if (data_container->settings.solver.test_objective) {
+         if (objective_value <= data_container->settings.solver.tolerance_objective) {
             break;
          } //else if (delta_obj < 1e-12) {
             //cout << "convergence stagnated" << endl;

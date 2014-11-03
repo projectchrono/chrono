@@ -303,8 +303,8 @@ uint ChSolverPDIP::SolvePDIP(const uint max_iter,
       SchurComplementProduct(gamma, gamma_tmp);
       objective_value = 0.5 * (gamma_tmp, gamma) + (r, gamma);
       AtIterationEnd(residual, objective_value, iter_hist.size());
-      if (data_container->settings.solver.tolerance_objective) {
-         if (objective_value <= data_container->settings.solver.tolerance) {
+      if (data_container->settings.solver.test_objective) {
+         if (objective_value <= data_container->settings.solver.tolerance_objective) {
             break;
          }
       } else {

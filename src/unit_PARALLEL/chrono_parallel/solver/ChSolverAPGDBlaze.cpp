@@ -168,8 +168,8 @@ uint ChSolverAPGDBlaze::SolveAPGDBlaze(const uint max_iter,
       //}
 
       AtIterationEnd(residual, objective_value, iter_hist.size());
-      if (data_container->settings.solver.tolerance_objective) {
-         if (objective_value <= data_container->settings.solver.tolerance) {
+      if (data_container->settings.solver.test_objective) {
+         if (objective_value <= data_container->settings.solver.tolerance_objective) {
             break;
          }
       } else {
