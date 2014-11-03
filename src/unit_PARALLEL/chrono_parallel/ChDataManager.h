@@ -56,7 +56,7 @@ struct collision_settings {
 struct solver_settings {
 
    solver_settings() {
-      tolerance = 1e-6;
+      tolerance = 1e-4;
       tolerance_objective = 1e-6;
       collision_in_solver = false;
       update_rhs = false;

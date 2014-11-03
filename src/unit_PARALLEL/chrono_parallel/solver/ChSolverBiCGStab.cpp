@@ -28,7 +28,7 @@ uint ChSolverBiCGStab::SolveBiCGStab(const uint max_iter,
       normb = 1;
    }
 
-   if ((residual = sqrt((r, r)) / normb) <= data_container->settings.solver.tolerance) {
+   if ((residual = sqrt((r, r)) / normb) <= tol_speed) {
       return 0;
    }
 
@@ -50,7 +50,7 @@ uint ChSolverBiCGStab::SolveBiCGStab(const uint max_iter,
       s = r - alpha * v;  //SEAXPY(-alpha,v,r,s);//
       residual = sqrt((s, s)) / normb;
 
-      if (residual < data_container->settings.solver.tolerance) {
+      if (residual < tol_speed) {
 
          ml = ml + alpha * phat;
          break;
@@ -67,7 +67,7 @@ uint ChSolverBiCGStab::SolveBiCGStab(const uint max_iter,
       objective_value = GetObjectiveBlaze(ml, mb);
       AtIterationEnd(residual, objective_value, iter_hist.size());
 
-      if (residual < data_container->settings.solver.tolerance || omega == 0) {
+      if (residual < tol_speed || omega == 0) {
          break;
       }
    }

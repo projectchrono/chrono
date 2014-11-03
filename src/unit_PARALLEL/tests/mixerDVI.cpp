@@ -176,7 +176,7 @@ int main(int argc,
    double out_fps = 50;
 
    uint max_iteration = 30;
-   real tolerance = 1e-8;
+   real tolerance = 1e-3;
 
    // Create system
    // -------------
@@ -199,7 +199,7 @@ int main(int argc,
    msystem.GetSettings()->solver.max_iteration_sliding = max_iteration / 3;
    msystem.GetSettings()->solver.max_iteration_spinning = 0;
    msystem.GetSettings()->solver.max_iteration_bilateral = max_iteration / 3;
-   msystem.GetSettings()->solver.tolerance = 1e-3;
+   msystem.GetSettings()->solver.tolerance = tolerance;
    msystem.GetSettings()->solver.alpha = 0;
    msystem.GetSettings()->solver.contact_recovery_speed = 10000;
    msystem.ChangeSolverType(APGDRS);

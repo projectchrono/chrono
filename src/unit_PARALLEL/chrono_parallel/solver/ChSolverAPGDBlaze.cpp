@@ -173,9 +173,9 @@ uint ChSolverAPGDBlaze::SolveAPGDBlaze(const uint max_iter,
             break;
          }
       } else {
-         if (residual < data_container->settings.solver.tolerance) {
-            break;
-         }
+        if (residual < tol_speed) {
+          break;
+        }
       }
       // data_container->system_timer.stop("ChSolverParallel_solverF");
    }

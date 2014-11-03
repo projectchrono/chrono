@@ -320,7 +320,7 @@ uint ChSolverParallel::SolveStab(const uint max_iter,
    norm_rMR = beta;
    norm_r0 = beta;
 
-   if (beta == 0 || norm_rMR / norm_r0 < data_container->settings.solver.tolerance) {
+   if (beta == 0 || norm_rMR / norm_r0 < tol_speed) {
       return 0;
    }
 
@@ -357,7 +357,7 @@ uint ChSolverParallel::SolveStab(const uint max_iter,
       real maxdeltalambda = CompRes(mb, num_contacts);      //NormInf(ms);
       AtIterationEnd(residual, maxdeltalambda, iter_hist.size() + current_iteration);
 
-      if (residual < data_container->settings.solver.tolerance) {
+      if (residual < tol_speed) {
          break;
       }
    }

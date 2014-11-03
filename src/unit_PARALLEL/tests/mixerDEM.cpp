@@ -183,7 +183,7 @@ int main(int argc,
    double out_fps = 50;
 
    uint max_iteration = 50;
-   real tolerance = 1e-8;
+   real tolerance = 1e-3;
 
    // Create system
    // -------------

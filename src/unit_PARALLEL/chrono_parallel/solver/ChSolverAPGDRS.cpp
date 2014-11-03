@@ -245,7 +245,7 @@ uint ChSolverAPGDRS::SolveAPGDRS(const uint max_iter,
          //   break;
          //}
       } else {
-         if (residual < data_container->settings.solver.tolerance) {
+        if (residual < tol_speed) {
             break;
          }
       }

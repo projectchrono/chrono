@@ -23,8 +23,8 @@ uint ChSolverMinRes::SolveMinRes(const uint max_iter,
    }
 
    real grad_diffstep = 0.01;
-   double rel_tol = data_container->settings.solver.tolerance;
-   double abs_tol = data_container->settings.solver.tolerance;
+   double rel_tol = 0.0;      // For now, use pure absolute tolerance test. Should provide mechanism for setting this.
+   double abs_tol = tol_speed;
 
    double rel_tol_b = NormInf(b) * rel_tol;
    //ml = x;

@@ -190,7 +190,7 @@ uint ChSolverAPGD::SolveAPGD(const uint max_iter,const uint size,const custom_ve
       //}
       //summary_stats_data<real> result = Statistics(error);
       //cout<<"current_iteration: "<<current_iteration<<" Max: "<<result.max<<" Mean: "<<result.mean<<" StdDev: "<<std::sqrt(result.variance_n())<<" Variance: "<<result.variance()<<endl;
-      if (residual < data_container->settings.solver.tolerance) {
+      if (residual < tol_speed) {
          break;
       }
    }

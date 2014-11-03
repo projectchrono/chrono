@@ -23,7 +23,7 @@ uint ChSolverCG::SolveCG(const uint max_iter,
    p = r = mb - r;
    rsold = (r, r);
    normb = 1.0 / normb;
-   if (sqrt(rsold) * normb <= data_container->settings.solver.tolerance) {
+   if (sqrt(rsold) * normb <= tol_speed) {
       return 0;
    }
    for (current_iteration = 0; current_iteration < max_iter; current_iteration++) {
@@ -35,7 +35,7 @@ uint ChSolverCG::SolveCG(const uint max_iter,
       rsnew = (r, r);
 
       residual = sqrt(rsnew) * normb;
-      if (residual < data_container->settings.solver.tolerance) {
+      if (residual < tol_speed) {
          break;
       }
       p = rsnew / rsold * p + r;

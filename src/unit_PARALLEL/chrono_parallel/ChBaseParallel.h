@@ -42,6 +42,7 @@ class CH_PARALLEL_API ChBaseParallel {
    uint num_constraints;
 
    real step_size;
+   real tol_speed;
    real alpha;
    real contact_recovery_speed;
 };
