@@ -35,6 +35,7 @@
 #include "subsys/steering/RackPinion.h"
 
 #include "subsys/driveline/ShaftsDriveline2WD.h"
+#include "subsys/driveline/ShaftsDriveline4WD.h"
 #include "subsys/wheel/Wheel.h"
 #include "subsys/brake/BrakeSimple.h"
 
@@ -134,7 +135,7 @@ void Vehicle::LoadDriveline(const std::string& filename)
   }
   else if (subtype.compare("ShaftsDriveline4WD") == 0)
   {
-    ////m_driveline = ChSharedPtr<ChDriveline>(new ShaftsDriveline4WD(d));
+    m_driveline = ChSharedPtr<ChDriveline>(new ShaftsDriveline4WD(d));
   }
 }
 
@@ -356,6 +357,8 @@ Vehicle::Vehicle(const std::string& filename,
     for (SizeType i = 0; i < num_driven_susp; i++) {
       m_driven_susp[i] = d["Driveline"]["Suspension Indexes"][i].GetInt();
     }
+
+    assert(num_driven_susp == GetDriveline()->GetNumDrivenAxles());
   }
 
   // ---------------------------------------------------
