@@ -50,7 +50,7 @@ HMMWV_SuspensionTest::HMMWV_SuspensionTest(VisualizationType    wheelVis)
 
   // -------------------------------------------
   // Create the chassis body, fixed in place
-  m_chassis = ChSharedPtr<ChBody>(new ChBody);
+  m_chassis = ChSharedPtr<ChBodyAuxRef>(new ChBodyAuxRef);
   m_chassis->SetIdentifier(0);
   m_chassis->SetName("chassis");
   m_chassis->SetMass(chassisMass);
@@ -95,11 +95,11 @@ void HMMWV_SuspensionTest::Initialize(const ChCoordsys<>& chassisPos)
   // relative to the chassis reference frame).
   ChVector<> offset = in2m * ChVector<>(49.015, 0, 4.304);
   ChQuaternion<> rotation = Q_from_AngAxis(18.5 * CH_C_PI / 180, ChVector<>(0, 1, 0));
-  m_steering->Initialize(m_chassis.DynamicCastTo<ChBodyAuxRef>(), offset, rotation);
+  m_steering->Initialize(m_chassis, offset, rotation);
 
   // Initialize the suspension subsystems (specify the suspension subsystems'
   // frames relative to the chassis reference frame).
-  m_suspensions[0]->Initialize(m_chassis.DynamicCastTo<ChBodyAuxRef>(), in2m * ChVector<>(66.59, 0, 1.039), m_steering->GetSteeringLink());
+  m_suspensions[0]->Initialize(m_chassis, in2m * ChVector<>(66.59, 0, 1.039), m_steering->GetSteeringLink());
 
   // Initialize wheels
   m_front_left_wheel->Initialize(m_suspensions[0]->GetSpindle(LEFT));

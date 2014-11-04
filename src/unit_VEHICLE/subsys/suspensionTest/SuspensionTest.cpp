@@ -266,10 +266,10 @@ SuspensionTest::~SuspensionTest()
 void SuspensionTest::Initialize(const ChCoordsys<>& chassisPos)
 {
   // Initialize the steering subsystem. ChPhysicsItem has a virtual destructor, should be able to cast to ChBody
-  m_steering->Initialize(m_chassis.DynamicCastTo<ChBodyAuxRef>(), m_steeringLoc, m_steeringRot);
+  m_steering->Initialize(m_chassis, m_steeringLoc, m_steeringRot);
 
   // Initialize the suspension subsys
-  m_suspensions[0]->Initialize(m_chassis.DynamicCastTo<ChBodyAuxRef>(), m_suspLocations[0], m_steering->GetSteeringLink());
+  m_suspensions[0]->Initialize(m_chassis, m_suspLocations[0], m_steering->GetSteeringLink());
 
   // initialize the two wheels
   m_wheels[0]->Initialize(m_suspensions[0]->GetSpindle(LEFT));

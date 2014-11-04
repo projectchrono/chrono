@@ -124,7 +124,7 @@ public:
 
 protected:
 
-  ChSharedPtr<ChBody>        m_chassis;      ///< handle to the chassis body, fixed to ground
+  ChSharedPtr<ChBodyAuxRef>  m_chassis;      ///< handle to the chassis body, fixed to ground
   ChSuspensionList           m_suspensions;  ///< list of handles to suspension subsystems, only 1 in this case.
  
   ChSharedPtr<ChSteering>    m_steering;     ///< handle to the steering subsystem.
