@@ -91,15 +91,13 @@ const double     Generic_SolidAxleRear::m_springRestLength = 0.3948;
 // -----------------------------------------------------------------------------
 // Constructors
 // -----------------------------------------------------------------------------
-Generic_SolidAxleFront::Generic_SolidAxleFront(const std::string& name,
-                                               bool               driven)
-: ChSolidAxle(name, driven)
+Generic_SolidAxleFront::Generic_SolidAxleFront(const std::string& name)
+: ChSolidAxle(name)
 {
 }
 
-Generic_SolidAxleRear::Generic_SolidAxleRear(const std::string& name,
-                                             bool               driven)
-: ChSolidAxle(name, driven)
+Generic_SolidAxleRear::Generic_SolidAxleRear(const std::string& name)
+: ChSolidAxle(name)
 {
 }
 

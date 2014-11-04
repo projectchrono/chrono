@@ -54,15 +54,17 @@ public:
   /// system, this is typically [0, 1, 0]).
   void SetAxleDirection(const ChVector<>& dir) { m_dir_axle = dir; }
 
+  /// Return the number of driven axles.
+  /// A ChShaftsDriveline4WD driveline connects to two axles.
+  virtual int GetNumDrivenAxles() const { return 2; }
+
   /// Initialize the driveline subsystem.
   /// This function connects this driveline subsystem to the axles of the
-  /// provided suspension subsystems.  Note that it is the responsibility of
-  /// the caller to provide a number of suspension subsystems consistent with
-  /// the driveline type (in this case two suspension subsystems, with the first
-  /// one being the front suspension and the second one the rear suspension).
+  /// specified suspension subsystems.
   virtual void Initialize(
     ChSharedPtr<ChBody>     chassis,     ///< handle to the chassis body
-    const ChSuspensionList& suspensions  ///< list of driven suspension subsystems
+    const ChSuspensionList& suspensions, ///< list of all vehicle suspension subsystems
+    const std::vector<int>& driven_axles ///< indexes of the driven vehicle axles
     );
 
   /// Get the motor torque to be applied to the specified wheel.

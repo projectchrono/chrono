@@ -29,6 +29,7 @@
 #include "models/hmmwv/suspension/HMMWV_DoubleWishboneReduced.h"
 #include "models/hmmwv/steering/HMMWV_RackPinion.h"
 #include "models/hmmwv/driveline/HMMWV_Driveline2WD.h"
+#include "models/hmmwv/driveline/HMMWV_Driveline4WD.h"
 #include "models/hmmwv/brake/HMMWV_BrakeSimple.h"
 
 namespace hmmwv {
@@ -38,6 +39,7 @@ class HMMWV_VehicleReduced : public chrono::ChVehicle
 public:
 
   HMMWV_VehicleReduced(const bool            fixed = false,
+                       DrivelineType         driveType = AWD,
                        VisualizationType     chassisVis = NONE,
                        VisualizationType     wheelVis = PRIMITIVES);
 
@@ -67,6 +69,8 @@ private:
   chrono::ChSharedPtr<HMMWV_BrakeSimple> m_front_left_brake;
   chrono::ChSharedPtr<HMMWV_BrakeSimple> m_rear_right_brake;
   chrono::ChSharedPtr<HMMWV_BrakeSimple> m_rear_left_brake;
+
+  DrivelineType m_driveType;
 
   // Chassis visualization mesh
   static const std::string m_chassisMeshName;

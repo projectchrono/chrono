@@ -42,9 +42,8 @@ static ChVector<> loadVector(const Value& a)
 // Construct a double wishbone suspension using data from the specified JSON
 // file.
 // -----------------------------------------------------------------------------
-DoubleWishbone::DoubleWishbone(const std::string& filename,
-                               bool               driven)
-: ChDoubleWishbone("", driven)
+DoubleWishbone::DoubleWishbone(const std::string& filename)
+: ChDoubleWishbone("")
 {
   FILE* fp = fopen(filename.c_str(), "r");
 
@@ -59,9 +58,8 @@ DoubleWishbone::DoubleWishbone(const std::string& filename,
   Create(d);
 }
 
-DoubleWishbone::DoubleWishbone(const rapidjson::Document& d,
-                               bool                       driven)
-: ChDoubleWishbone("", driven)
+DoubleWishbone::DoubleWishbone(const rapidjson::Document& d)
+: ChDoubleWishbone("")
 {
   Create(d);
 }
@@ -143,12 +141,10 @@ void DoubleWishbone::Create(const rapidjson::Document& d)
   m_dampingCoefficient = d["Shock"]["Damping Coefficient"].GetDouble();
 
   // Read axle inertia
-  if (IsDriven()) {
-    assert(d.HasMember("Axle"));
-    assert(d["Axle"].IsObject());
+  assert(d.HasMember("Axle"));
+  assert(d["Axle"].IsObject());
 
-    m_axleInertia = d["Axle"]["Inertia"].GetDouble();
-  }
+  m_axleInertia = d["Axle"]["Inertia"].GetDouble();
 }
 
 

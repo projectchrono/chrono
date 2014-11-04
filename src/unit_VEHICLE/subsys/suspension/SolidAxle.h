@@ -31,10 +31,8 @@ class CH_SUBSYS_API SolidAxle : public ChSolidAxle
 {
 public:
 
-  SolidAxle(const std::string& filename,
-                 bool               driven);
-  SolidAxle(const rapidjson::Document& d,
-                 bool                       driven);
+  SolidAxle(const std::string& filename);
+  SolidAxle(const rapidjson::Document& d);
   virtual ~SolidAxle() {}
 
   virtual double getAxleTubeMass() const { return m_axleTubeMass; }

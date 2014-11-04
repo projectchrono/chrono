@@ -1,0 +1,70 @@
+{
+  "Name":                       "HMMWV DoubleWishbone Rear (ADAMS)",
+  "Type":                       "Suspension",
+  "Template":                   "DoubleWishbone",
+
+  "Spindle" :
+  {
+    "Mass":                     1.505,
+    "COM":                      [0.036, 0.910, -0.026],
+    "Inertia":                  [0.000775, 0.000924, 0.000775],
+    "Radius":                   0.15,
+    "Width":                    0.06
+  },
+
+  "Upright":
+  {
+    "Mass":                     3.638,
+    "COM":                      [0.036, 0.910, -0.026],
+    "Inertia":                  [0.0408, 0.0423, 0.00834],
+    "Radius":                   0.03
+  },
+
+  "Upper Control Arm":
+  {
+    "Mass":                     5.923,
+    "COM":                      [0.154, 0.547, 0.223],
+    "Inertia":                  [0.0684, 0.0240, 0.0914],
+    "Radius":                   0.02,
+    "Location Chassis Front":   [0.350, 0.462, 0.226],
+    "Location Chassis Back":    [0.077, 0.462, 0.226],
+    "Location Upright":         [0.036, 0.716, 0.216]
+  },
+
+  "Lower Control Arm":
+  {
+    "Mass":                     16.287,
+    "COM":                      [0.012, 0.467, -0.039],
+    "Inertia":                  [0.290, 0.518, 0.232],
+    "Radius":                   0.03,
+    "Location Chassis Front":   [0.224, 0.307, 0.000],
+    "Location Chassis Back":    [-0.223, 0.307, 0.000],
+    "Location Upright":         [0.036, 0.787, -0.118]
+  },
+
+  "Tierod":
+  {
+    "Location Chassis":         [0.224, 0.416, 0.059],
+    "Location Upright":         [0.171, 0.821, -0.009]
+  },
+
+  "Spring":
+  {
+    "Location Chassis":         [-0.104, 0.521, 0.143],
+    "Location Arm":             [-0.104, 0.544, -0.038],
+    "Spring Coefficient":       202610.000,
+    "Free Length":              0.315722
+  },
+
+  "Shock":
+  {
+    "Location Chassis":         [-0.104, 0.498, 0.323],
+    "Location Arm":             [-0.104, 0.544, -0.038],
+    "Damping Coefficient":      36725.2201
+  },
+
+  "Axle":
+  {
+    "Inertia":                  0.4
+  }
+}

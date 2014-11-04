@@ -34,8 +34,7 @@ namespace hmmwv {
 class HMMWV_DoubleWishboneReducedFront : public chrono::ChDoubleWishboneReduced
 {
 public:
-  HMMWV_DoubleWishboneReducedFront(const std::string& name,
-                                   bool               driven = false);
+  HMMWV_DoubleWishboneReducedFront(const std::string& name);
   ~HMMWV_DoubleWishboneReducedFront() {}
 
   virtual double getSpindleMass() const { return m_spindleMass; }
@@ -80,8 +79,7 @@ private:
 class HMMWV_DoubleWishboneReducedRear : public chrono::ChDoubleWishboneReduced
 {
 public:
-  HMMWV_DoubleWishboneReducedRear(const std::string& name,
-                                  bool               driven = false);
+  HMMWV_DoubleWishboneReducedRear(const std::string& name);
   ~HMMWV_DoubleWishboneReducedRear() {}
 
   virtual double getSpindleMass() const { return m_spindleMass; }

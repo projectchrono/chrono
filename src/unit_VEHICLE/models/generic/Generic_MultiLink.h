@@ -34,8 +34,7 @@ class Generic_MultiLinkFront : public chrono::ChMultiLink
 {
 public:
 
-  Generic_MultiLinkFront(const std::string& name,
-                         bool               driven = false);
+  Generic_MultiLinkFront(const std::string& name);
   ~Generic_MultiLinkFront() {}
 
   virtual double getSpindleMass() const { return m_spindleMass; }
@@ -100,8 +99,7 @@ class Generic_MultiLinkRear : public chrono::ChMultiLink
 {
 public:
 
-  Generic_MultiLinkRear(const std::string& name,
-                        bool               driven = false);
+  Generic_MultiLinkRear(const std::string& name);
   ~Generic_MultiLinkRear() {}
 
   virtual double getSpindleMass() const { return m_spindleMass; }

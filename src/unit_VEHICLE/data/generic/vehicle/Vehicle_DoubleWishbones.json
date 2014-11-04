@@ -1,5 +1,5 @@
 {
-  "Name":     "Test vehicle - 3 axles",
+  "Name":     "Test vehicle - Double Wishbone",
   "Type":     "Vehicle",
   "Template": "Vehicle",
 
@@ -13,7 +13,7 @@
   "Axles":
   [
     {
-      "Suspension Input File":   "hmmwv/suspension/HMMWV_DoubleWishboneFront.json",
+      "Suspension Input File":   "generic/suspension/DoubleWishboneFront.json",
       "Suspension Location":     [1.6914, 0, 0.0264],
       "Left Wheel Input File":   "hmmwv/wheel/HMMWV_Wheel_FrontLeft.json",
       "Right Wheel Input File":  "hmmwv/wheel/HMMWV_Wheel_FrontRight.json",
@@ -22,37 +22,27 @@
     },
 
     {
-      "Suspension Input File":   "generic/suspension/SolidAxleRear.json",
-      "Suspension Location":     [-0.5, 0, 0.0264],
-      "Left Wheel Input File":   "hmmwv/wheel/HMMWV_Wheel_RearLeft.json",
-      "Right Wheel Input File":  "hmmwv/wheel/HMMWV_Wheel_RearRight.json",
-      "Left Brake Input File":   "hmmwv/brake/HMMWV_BrakeSimple_Rear.json",
-      "Right Brake Input File":  "hmmwv/brake/HMMWV_BrakeSimple_Rear.json"
-    },
-
-    {
-      "Suspension Input File":   "generic/suspension/SolidAxleRear.json",
-      "Suspension Location":     [-1.8, 0, 0.0264],
+      "Suspension Input File":   "generic/suspension/DoubleWishboneRear.json",
+      "Suspension Location":     [-1.6866, 0, 0.0264],
       "Left Wheel Input File":   "hmmwv/wheel/HMMWV_Wheel_RearLeft.json",
       "Right Wheel Input File":  "hmmwv/wheel/HMMWV_Wheel_RearRight.json",
       "Left Brake Input File":   "hmmwv/brake/HMMWV_BrakeSimple_Rear.json",
       "Right Brake Input File":  "hmmwv/brake/HMMWV_BrakeSimple_Rear.json"
     }
-
   ],
 
   "Steering":
   {
     "Input File":           "hmmwv/steering/HMMWV_PitmanArm.json",
-    "Location":             [1.24498, 0, 0.109322],
+    "Location":             [1.46, 0, -0.08],
     "Orientation":          [0.98699637, 0, 0.16074256, 0],
     "Suspension Index":     0
   },
 
   "Driveline":
   {
-    "Input File":           "hmmwv/driveline/HMMWV_Driveline4WD.json",
-    "Suspension Indexes":   [0, 2]
+    "Input File":           "hmmwv/driveline/HMMWV_Driveline2WD.json",
+    "Suspension Indexes":   [1]
   },
 
   "Driver Position":
@@ -60,5 +50,4 @@
     "Location":     [0, 0.5, 1.2],
     "Orientation":  [1, 0, 0, 0]
   }
-
 }

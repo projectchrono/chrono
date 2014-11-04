@@ -34,8 +34,7 @@ class Generic_SolidAxleFront : public chrono::ChSolidAxle
 {
 public:
 
-  Generic_SolidAxleFront(const std::string& name,
-                         bool               driven = false);
+  Generic_SolidAxleFront(const std::string& name);
   ~Generic_SolidAxleFront() {}
 
   virtual double getAxleTubeMass() const { return m_axleTubeMass; }
@@ -104,8 +103,7 @@ class Generic_SolidAxleRear : public chrono::ChSolidAxle
 {
 public:
 
-  Generic_SolidAxleRear(const std::string& name,
-                        bool               driven = false);
+  Generic_SolidAxleRear(const std::string& name);
   ~Generic_SolidAxleRear() {}
 
   virtual double getAxleTubeMass() const { return m_axleTubeMass; }

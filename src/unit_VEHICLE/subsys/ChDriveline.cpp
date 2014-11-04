@@ -21,8 +21,7 @@
 namespace chrono {
 
 
-ChDriveline::ChDriveline(DriveType  type)
-: m_type(type)
+ChDriveline::ChDriveline()
 {
 }
 

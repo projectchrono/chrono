@@ -94,8 +94,8 @@ HMMWV_Vehicle::HMMWV_Vehicle(const bool           fixed,
   // Create the suspension subsystems
   // -------------------------------------------
   m_suspensions.resize(2);
-  m_suspensions[0] = ChSharedPtr<ChSuspension>(new HMMWV_DoubleWishboneFront("FrontSusp", false));
-  m_suspensions[1] = ChSharedPtr<ChSuspension>(new HMMWV_DoubleWishboneRear("RearSusp", true));
+  m_suspensions[0] = ChSharedPtr<ChSuspension>(new HMMWV_DoubleWishboneFront("FrontSusp"));
+  m_suspensions[1] = ChSharedPtr<ChSuspension>(new HMMWV_DoubleWishboneRear("RearSusp"));
 
   // -----------------------------
   // Create the steering subsystem
@@ -154,8 +154,8 @@ void HMMWV_Vehicle::Initialize(const ChCoordsys<>& chassisPos)
   m_rear_right_wheel->Initialize(m_suspensions[1]->GetSpindle(RIGHT));
 
   // Initialize the driveline subsystem (RWD)
-  ChSuspensionList susp(1, m_suspensions[1]);
-  m_driveline->Initialize(m_chassis, susp);
+  std::vector<int> driven_susp(1, 1);
+  m_driveline->Initialize(m_chassis, m_suspensions, driven_susp);
 
   // Initialize the four brakes
   m_front_left_brake->Initialize(m_suspensions[0]->GetRevolute(LEFT));

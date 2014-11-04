@@ -43,7 +43,8 @@ public:
     double             height,   ///< [in] terrain height
     double             sizeX,    ///< [in] terrain dimension in the X direction
     double             sizeY,    ///< [in] terrain dimension in the Y direction
-    double             mu        ///< [in] coefficient of friction
+    double             mu,        ///< [in] coefficient of friction
+    const std::string  road_file = "none"
     );
 
   ~RigidTerrain() {}
@@ -64,7 +65,7 @@ public:
   void AddFixedObstacles();
 
   /// add a texture to the terrain surface
-  void AddTexture(const std::string& filename);
+  void AddTexture(const std::string& filename, ChSharedPtr<ChBody> body);
 
 private:
 

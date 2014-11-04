@@ -33,7 +33,7 @@ namespace chrono {
 // could transfer pitch torque to the chassis.
 // -----------------------------------------------------------------------------
 ChShaftsDriveline2WD::ChShaftsDriveline2WD()
-: ChDriveline(ChDriveline::TWO_WHEEL_DRIVE),
+: ChDriveline(),
   m_dir_motor_block(ChVector<>(1, 0, 0)),
   m_dir_axle(ChVector<>(0, 1, 0))
 {
@@ -41,58 +41,56 @@ ChShaftsDriveline2WD::ChShaftsDriveline2WD()
 
 // -----------------------------------------------------------------------------
 // Initialize the driveline subsystem.
-// This function connects this driveline subsystem to the axles of the provided
-// suspension subsystems.  Note that it is the responsibility of the caller to
-// provide a number of suspension subsystems consistent with the driveline type
-// (in this case a single suspension).
+// This function connects this driveline subsystem to the axles of the specified
+// suspension subsystems.
 // -----------------------------------------------------------------------------
 void ChShaftsDriveline2WD::Initialize(ChSharedPtr<ChBody>     chassis,
-                                      const ChSuspensionList& suspensions)
+                                      const ChSuspensionList& suspensions,
+                                      const std::vector<int>& driven_axles)
 {
-  assert(chassis);
-  assert(suspensions.size() > 0);
-  assert(suspensions[0]->GetAxle(LEFT));
-  assert(suspensions[0]->GetAxle(RIGHT));
-  assert(chassis->GetSystem());
+  assert(suspensions.size() >= 1);
+  assert(driven_axles.size() == 1);
+
+  m_driven_axles = driven_axles;
 
   ChSystem* my_system = chassis->GetSystem();
 
 
-  // CREATE  the driveshaft, a 1 d.o.f. object with rotational inertia which 
+  // Create the driveshaft, a 1 d.o.f. object with rotational inertia which 
   // represents the connection of the driveline to the transmission box.
   m_driveshaft = ChSharedPtr<ChShaft>(new ChShaft);
   m_driveshaft->SetInertia(GetDriveshaftInertia());
   my_system->Add(m_driveshaft);
 
-  // CREATE  a 1 d.o.f. object: a 'shaft' with rotational inertia.
+  // Create a 1 d.o.f. object: a 'shaft' with rotational inertia.
   // This represents the inertia of the rotating box of the differential.
   m_differentialbox = ChSharedPtr<ChShaft>(new ChShaft);
   m_differentialbox->SetInertia(GetDifferentialBoxInertia());
   my_system->Add(m_differentialbox);
 
-  // CREATE an angled gearbox, i.e a transmission ratio constraint between two
+  // Create an angled gearbox, i.e a transmission ratio constraint between two
   // non parallel shafts. This is the case of the 90° bevel gears in the
   // differential. Note that, differently from the basic ChShaftsGear, this also
   // provides the possibility of transmitting a reaction torque to the box
   // (the truss).
   m_conicalgear = ChSharedPtr<ChShaftsGearboxAngled>(new ChShaftsGearboxAngled);
   m_conicalgear->Initialize(m_driveshaft,
-    m_differentialbox,
-    chassis,
-    m_dir_motor_block,
-    m_dir_axle);
+                            m_differentialbox,
+                            chassis,
+                            m_dir_motor_block,
+                            m_dir_axle);
   m_conicalgear->SetTransmissionRatio(GetConicalGearRatio());
   my_system->Add(m_conicalgear);
 
-  // CREATE a differential, i.e. an apicycloidal mechanism that connects three 
+  // Create a differential, i.e. an apicycloidal mechanism that connects three 
   // rotating members. This class of mechanisms can be simulated using 
   // ChShaftsPlanetary; a proper 'ordinary' transmission ratio t0 must be
   // assigned according to Willis formula. The case of the differential is
   // simple: t0=-1.
   m_differential = ChSharedPtr<ChShaftsPlanetary>(new ChShaftsPlanetary);
   m_differential->Initialize(m_differentialbox,
-                             suspensions[0]->GetAxle(LEFT),
-                             suspensions[0]->GetAxle(RIGHT));
+                             suspensions[m_driven_axles[0]]->GetAxle(LEFT),
+                             suspensions[m_driven_axles[0]]->GetAxle(RIGHT));
   m_differential->SetTransmissionRatioOrdinary(GetDifferentialRatio());
   my_system->Add(m_differential);
 }
@@ -102,11 +100,14 @@ void ChShaftsDriveline2WD::Initialize(ChSharedPtr<ChBody>     chassis,
 // -----------------------------------------------------------------------------
 double ChShaftsDriveline2WD::GetWheelTorque(const ChWheelID& wheel_id) const
 {
-  switch (wheel_id.side()) {
-  case LEFT:  return -m_differential->GetTorqueReactionOn2();
-  case RIGHT: return -m_differential->GetTorqueReactionOn3();
-  default:    return -1;
+  if (wheel_id.axle() == m_driven_axles[0]) {
+    switch (wheel_id.side()) {
+    case LEFT:  return -m_differential->GetTorqueReactionOn2();
+    case RIGHT: return -m_differential->GetTorqueReactionOn3();
+    }
   }
+
+  return 0;
 }
 
 

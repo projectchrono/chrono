@@ -78,15 +78,13 @@ const double     HMMWV_DoubleWishboneReducedRear::m_springRestLength   = in2m * 
 // -----------------------------------------------------------------------------
 // Constructors
 // -----------------------------------------------------------------------------
-HMMWV_DoubleWishboneReducedFront::HMMWV_DoubleWishboneReducedFront(const std::string& name,
-                                                                   bool               driven)
-: ChDoubleWishboneReduced(name, driven)
+HMMWV_DoubleWishboneReducedFront::HMMWV_DoubleWishboneReducedFront(const std::string& name)
+: ChDoubleWishboneReduced(name)
 {
 }
 
-HMMWV_DoubleWishboneReducedRear::HMMWV_DoubleWishboneReducedRear(const std::string& name,
-                                                                 bool               driven)
-: ChDoubleWishboneReduced(name, driven)
+HMMWV_DoubleWishboneReducedRear::HMMWV_DoubleWishboneReducedRear(const std::string& name)
+: ChDoubleWishboneReduced(name)
 {
 }
 

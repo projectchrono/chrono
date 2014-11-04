@@ -42,9 +42,8 @@ static ChVector<> loadVector(const Value& a)
 // Construct a reduced double wishbone suspension using data from the specified
 // JSON file.
 // -----------------------------------------------------------------------------
-DoubleWishboneReduced::DoubleWishboneReduced(const std::string& filename,
-                               bool               driven)
-                               : ChDoubleWishboneReduced("", driven)
+DoubleWishboneReduced::DoubleWishboneReduced(const std::string& filename)
+: ChDoubleWishboneReduced("")
 {
   FILE* fp = fopen(filename.c_str(), "r");
 
@@ -59,9 +58,8 @@ DoubleWishboneReduced::DoubleWishboneReduced(const std::string& filename,
   Create(d);
 }
 
-DoubleWishboneReduced::DoubleWishboneReduced(const rapidjson::Document& d,
-                               bool                       driven)
-: ChDoubleWishboneReduced("", driven)
+DoubleWishboneReduced::DoubleWishboneReduced(const rapidjson::Document& d)
+: ChDoubleWishboneReduced("")
 {
   Create(d);
 }
@@ -133,12 +131,10 @@ void DoubleWishboneReduced::Create(const rapidjson::Document& d)
   m_dampingCoefficient = d["Shock"]["Damping Coefficient"].GetDouble();
 
   // Read axle inertia
-  if (IsDriven()) {
-    assert(d.HasMember("Axle"));
-    assert(d["Axle"].IsObject());
+  assert(d.HasMember("Axle"));
+  assert(d["Axle"].IsObject());
 
-    m_axleInertia = d["Axle"]["Inertia"].GetDouble();
-  }
+  m_axleInertia = d["Axle"]["Inertia"].GetDouble();
 }
 
 

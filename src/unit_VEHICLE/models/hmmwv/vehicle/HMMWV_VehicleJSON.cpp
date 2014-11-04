@@ -96,8 +96,8 @@ HMMWV_VehicleJSON::HMMWV_VehicleJSON(const bool        fixed,
   // Create the suspension subsystems
   // --------------------------------
   m_suspensions.resize(2);
-  m_suspensions[0] = ChSharedPtr<ChSuspension>(new DoubleWishbone(utils::GetModelDataFile("hmmwv/suspension/HMMWV_DoubleWishboneFront.json"), false));
-  m_suspensions[1] = ChSharedPtr<ChSuspension>(new DoubleWishbone(utils::GetModelDataFile("hmmwv/suspension/HMMWV_DoubleWishboneRear.json"), true));
+  m_suspensions[0] = ChSharedPtr<ChSuspension>(new DoubleWishbone(utils::GetModelDataFile("hmmwv/suspension/HMMWV_DoubleWishboneFront.json")));
+  m_suspensions[1] = ChSharedPtr<ChSuspension>(new DoubleWishbone(utils::GetModelDataFile("hmmwv/suspension/HMMWV_DoubleWishboneRear.json")));
 
   // -----------------------------
   // Create the steering subsystem
@@ -155,8 +155,8 @@ void HMMWV_VehicleJSON::Initialize(const ChCoordsys<>& chassisPos)
   m_rear_right_wheel->Initialize(m_suspensions[1]->GetSpindle(RIGHT));
 
   // Initialize the driveline subsystem (RWD)
-  ChSuspensionList susp(1, m_suspensions[1]);
-  m_driveline->Initialize(m_chassis, susp);
+  std::vector<int> driven_susp(1, 1);
+  m_driveline->Initialize(m_chassis, m_suspensions, driven_susp);
 
   // Initialize the four brakes
   m_front_left_brake->Initialize(m_suspensions[0]->GetRevolute(LEFT));

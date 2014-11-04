@@ -35,8 +35,7 @@ class HMMWV_DoubleWishboneFront : public chrono::ChDoubleWishbone
 {
 public:
 
-  HMMWV_DoubleWishboneFront(const std::string& name,
-                            bool               driven = false);
+  HMMWV_DoubleWishboneFront(const std::string& name);
   ~HMMWV_DoubleWishboneFront();
 
   virtual double getSpindleMass() const { return m_spindleMass; }
@@ -97,8 +96,7 @@ class HMMWV_DoubleWishboneRear : public chrono::ChDoubleWishbone
 {
 public:
 
-  HMMWV_DoubleWishboneRear(const std::string& name,
-                           bool               driven = false);
+  HMMWV_DoubleWishboneRear(const std::string& name);
   ~HMMWV_DoubleWishboneRear();
 
   virtual double getSpindleMass() const { return m_spindleMass; }

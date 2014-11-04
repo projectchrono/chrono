@@ -78,12 +78,12 @@ Generic_Vehicle::Generic_Vehicle(const bool        fixed,
 
   switch (m_suspType) {
   case SOLID_AXLE:
-    m_suspensions[0] = ChSharedPtr<ChSuspension>(new Generic_SolidAxleFront("FrontSusp", false));
-    m_suspensions[1] = ChSharedPtr<ChSuspension>(new Generic_SolidAxleRear("RearSusp", true));
+    m_suspensions[0] = ChSharedPtr<ChSuspension>(new Generic_SolidAxleFront("FrontSusp"));
+    m_suspensions[1] = ChSharedPtr<ChSuspension>(new Generic_SolidAxleRear("RearSusp"));
     break;
   case MULTI_LINK:
-    m_suspensions[0] = ChSharedPtr<ChSuspension>(new Generic_MultiLinkFront("FrontSusp", false));
-    m_suspensions[1] = ChSharedPtr<ChSuspension>(new Generic_MultiLinkRear("RearSusp", true));
+    m_suspensions[0] = ChSharedPtr<ChSuspension>(new Generic_MultiLinkFront("FrontSusp"));
+    m_suspensions[1] = ChSharedPtr<ChSuspension>(new Generic_MultiLinkRear("RearSusp"));
     break;
   }
 
@@ -142,8 +142,8 @@ void Generic_Vehicle::Initialize(const ChCoordsys<>& chassisPos)
   m_rear_right_wheel->Initialize(m_suspensions[1]->GetSpindle(RIGHT));
 
   // Initialize the driveline subsystem (RWD)
-  ChSuspensionList susp(1, m_suspensions[1]);
-  m_driveline->Initialize(m_chassis, susp);
+  std::vector<int> driven_susp(1, 1);
+  m_driveline->Initialize(m_chassis, m_suspensions, driven_susp);
 
   // Initialize the four brakes
   m_front_left_brake->Initialize(m_suspensions[0]->GetRevolute(LEFT));

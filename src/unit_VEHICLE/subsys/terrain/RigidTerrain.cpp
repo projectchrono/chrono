@@ -19,8 +19,11 @@
 #include "physics/ChBody.h"
 #include "physics/ChBodyEasy.h"
 #include "assets/ChColorAsset.h"
+#include "assets/ChTexture.h"
 
 #include "utils/ChUtilsCreators.h"
+// #include "utils/ChUtilsInputOutput.h"
+#include "utils/ChUtilsData.h"
 
 #include "subsys/terrain/RigidTerrain.h"
 
@@ -33,7 +36,8 @@ RigidTerrain::RigidTerrain(ChSystem&  system,
                            double     height,
                            double     sizeX,
                            double     sizeY,
-                           double     mu)
+                           double     mu,
+                           const std::string road_file)
 : m_system(system),
   m_height(height),
   m_sizeX(sizeX),
@@ -56,9 +60,14 @@ RigidTerrain::RigidTerrain(ChSystem&  system,
     ChVector<>(0, 0, -hDepth));
   ground->GetCollisionModel()->BuildModel();
 
-  ChSharedPtr<ChColorAsset> groundColor(new ChColorAsset);
-  groundColor->SetColor(ChColor(0.4f, 0.4f, 0.6f));
-  ground->AddAsset(groundColor);
+  // if the user did not specify a texture to use for the ground
+  if( road_file == "none"){
+    ChSharedPtr<ChColorAsset> groundColor(new ChColorAsset);
+    groundColor->SetColor(ChColor(0.4f, 0.4f, 0.6f));
+    ground->AddAsset(groundColor);
+  } else {
+    AddTexture(road_file, ground);
+  }
 
   system.AddBody(ground);
 
@@ -105,9 +114,11 @@ void RigidTerrain::AddFixedObstacles()
 }
 
 
-void RigidTerrain::AddTexture(const std::string& filename)
+void RigidTerrain::AddTexture(const std::string& filename, ChSharedPtr<ChBody> body)
 {
-
+  ChSharedPtr<ChTexture> tex(new ChTexture);
+  tex->SetTextureFilename( utils::GetModelDataFile (filename));
+  body->AddAsset(tex);
 }
 
 

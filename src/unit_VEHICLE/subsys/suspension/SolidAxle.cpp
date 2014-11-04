@@ -42,9 +42,8 @@ static ChVector<> loadVector(const Value& a)
 // Construct a solid axle suspension using data from the specified JSON
 // file.
 // -----------------------------------------------------------------------------
-SolidAxle::SolidAxle(const std::string& filename,
-                     bool               driven)
-: ChSolidAxle("", driven)
+SolidAxle::SolidAxle(const std::string& filename)
+: ChSolidAxle("")
 {
   FILE* fp = fopen(filename.c_str(), "r");
 
@@ -59,9 +58,8 @@ SolidAxle::SolidAxle(const std::string& filename,
   Create(d);
 }
 
-SolidAxle::SolidAxle(const rapidjson::Document& d,
-                     bool                       driven)
-: ChSolidAxle("", driven)
+SolidAxle::SolidAxle(const rapidjson::Document& d)
+: ChSolidAxle("")
 {
   Create(d);
 }
@@ -156,12 +154,10 @@ void SolidAxle::Create(const rapidjson::Document& d)
   m_dampingCoefficient = d["Shock"]["Damping Coefficient"].GetDouble();
 
   // Read axle inertia
-  if (IsDriven()) {
-    assert(d.HasMember("Axle"));
-    assert(d["Axle"].IsObject());
+  assert(d.HasMember("Axle"));
+  assert(d["Axle"].IsObject());
 
-    m_axleInertia = d["Axle"]["Inertia"].GetDouble();
-  }
+  m_axleInertia = d["Axle"]["Inertia"].GetDouble();
 }
 
 
