@@ -34,8 +34,7 @@ class HMMWV_SuspensionTest : public chrono::ChSuspensionTest
 {
 public:
 
-  HMMWV_SuspensionTest(VisualizationType wheelVis = PRIMITIVES,
-                        bool use_motion = true);
+  HMMWV_SuspensionTest(VisualizationType wheelVis = PRIMITIVES);
 
   ~HMMWV_SuspensionTest();
 
