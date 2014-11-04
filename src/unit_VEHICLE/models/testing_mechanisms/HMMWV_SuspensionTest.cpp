@@ -38,8 +38,11 @@ static const double lbf2N = 4.44822162;
 
 
 // -----------------------------------------------------------------------------
-HMMWV_SuspensionTest::HMMWV_SuspensionTest(VisualizationType    wheelVis)
+HMMWV_SuspensionTest::HMMWV_SuspensionTest(VisualizationType    wheelVis,
+                                           bool use_motion)
 {
+  m_use_motion = use_motion;
+
   // these parameters don't matter much
   double chassisMass = lb2kg * 7740.7;
   ChVector<> chassisCOM = in2m * ChVector<>(-18.8, -0.585, 33.329);  // COM location
@@ -54,6 +57,7 @@ HMMWV_SuspensionTest::HMMWV_SuspensionTest(VisualizationType    wheelVis)
   m_chassis->SetIdentifier(0);
   m_chassis->SetName("chassis");
   m_chassis->SetMass(chassisMass);
+  m_chassis->SetFrame_COG_to_REF(ChFrame<>(chassisCOM, ChQuaternion<>(1, 0, 0, 0)));
   m_chassis->SetInertiaXX(chassisInertia);
   m_chassis->SetBodyFixed(true);
 
@@ -79,6 +83,9 @@ HMMWV_SuspensionTest::HMMWV_SuspensionTest(VisualizationType    wheelVis)
   m_front_right_wheel = ChSharedPtr<hmmwv::HMMWV_Wheel>(new hmmwv::HMMWV_WheelRight(wheelVis));
   m_front_left_wheel = ChSharedPtr<hmmwv::HMMWV_Wheel>(new hmmwv::HMMWV_WheelLeft(wheelVis));
 
+  // create the functions for actuation
+  m_actuator_L = ChSharedPtr<ChFunction_Const>(new ChFunction_Const(0));
+  m_actuator_R = ChSharedPtr<ChFunction_Const>(new ChFunction_Const(0));
 }
 
 
@@ -91,6 +98,8 @@ HMMWV_SuspensionTest::~HMMWV_SuspensionTest()
 // -----------------------------------------------------------------------------
 void HMMWV_SuspensionTest::Initialize(const ChCoordsys<>& chassisPos)
 {
+   m_chassis->SetFrame_REF_to_abs(ChFrame<>(chassisPos));
+
   // Initialize the steering subsystem (specify the steering subsystem's frame
   // relative to the chassis reference frame).
   ChVector<> offset = in2m * ChVector<>(49.015, 0, 4.304);
@@ -146,14 +155,15 @@ double HMMWV_SuspensionTest::GetShockVelocity(const ChWheelID& wheel_id) const
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 void HMMWV_SuspensionTest::Update(double       time,
-                           double              steering)
+                           double              steering,
+                           const ChTireForces& tire_forces)
 {
   // Let the steering subsystem process the steering input.
   m_steering->Update(time, steering);
 
   // Apply tire forces to spindle bodies.
-  // m_suspensions[0]->ApplyTireForce(LEFT, tire_forces[FRONT_LEFT.id()]);
-  // m_suspensions[0]->ApplyTireForce(RIGHT, tire_forces[FRONT_RIGHT.id()]);
+  m_suspensions[0]->ApplyTireForce(LEFT, tire_forces[FRONT_LEFT.id()]);
+  m_suspensions[0]->ApplyTireForce(RIGHT, tire_forces[FRONT_RIGHT.id()]);
 
 }
 

@@ -101,6 +101,15 @@ public:
     const ChCoordsys<>& chassisPos  ///< [in] initial global position and orientation
     ) {}
 
+  /// set the actuator function on the left wheel
+  virtual void SetActuator_func_L(const ChSharedPtr<ChFunction>& funcL) {
+    m_actuator_L = funcL;
+  }
+
+  virtual void SetActuator_func_R(const ChSharedPtr<ChFunction>& funcR) {
+    m_actuator_R = funcR;
+  }
+
   /// Update the state at the current time.
   /// steering between -1 and +1, and no force need be applied if using external actuation
   virtual void Update(
@@ -131,6 +140,9 @@ protected:
   ChWheelList                m_wheels;       ///< list of handles to wheel subsystems, 2 in this case.
 
   double                     m_stepsize;   ///< integration step-size for the vehicle system
+  bool                       m_use_motion; ///< apply ChFunction as a motion or force?
+  ChSharedPtr<ChFunction>   m_actuator_L;  ///< actuator function applied to left wheel
+  ChSharedPtr<ChFunction>   m_actuator_R;  ///< actuator function applied to right wheel
 
   friend class ChIrrGuiST;
 };

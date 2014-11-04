@@ -34,7 +34,8 @@ class HMMWV_SuspensionTest : public chrono::ChSuspensionTest
 {
 public:
 
-  HMMWV_SuspensionTest(VisualizationType wheelVis = PRIMITIVES);
+  HMMWV_SuspensionTest(VisualizationType wheelVis = PRIMITIVES,
+                        bool use_motion = true);
 
   ~HMMWV_SuspensionTest();
 
@@ -50,7 +51,8 @@ public:
 
   virtual void Initialize(const chrono::ChCoordsys<>& chassisPos);
   virtual void Update(double                      time,
-                      double                      steering);
+                      double                      steering,
+                      const chrono::ChTireForces& tire_forces );
 
   // Log debugging information
   void LogHardpointLocations(); /// suspension hardpoints at design

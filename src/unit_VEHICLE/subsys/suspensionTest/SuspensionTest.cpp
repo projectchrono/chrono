@@ -200,6 +200,7 @@ SuspensionTest::SuspensionTest(const std::string& filename)
   m_chassis->SetIdentifier(0);
   m_chassis->SetName("chassis");
   m_chassis->SetMass(m_chassisMass);
+  m_chassis->SetFrame_COG_to_REF(ChFrame<>(m_chassisCOM, ChQuaternion<>(1, 0, 0, 0)));
   m_chassis->SetInertiaXX(m_chassisInertia);
   // suspension test mechanism isn't going anywhere
   m_chassis->SetBodyFixed(true);
@@ -265,6 +266,8 @@ SuspensionTest::~SuspensionTest()
 // -----------------------------------------------------------------------------
 void SuspensionTest::Initialize(const ChCoordsys<>& chassisPos)
 {
+  m_chassis->SetFrame_REF_to_abs(ChFrame<>(chassisPos));
+
   // Initialize the steering subsystem. ChPhysicsItem has a virtual destructor, should be able to cast to ChBody
   m_steering->Initialize(m_chassis, m_steeringLoc, m_steeringRot);
 
