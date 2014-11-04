@@ -17,6 +17,8 @@ SET(Chrono_Subsys_FILES
     ChDriveline.cpp
     ChSuspension.h
     ChSuspension.cpp
+	ChSuspensionTest.h
+	ChSuspensionTest.cpp
     ChSteering.h
     ChSteering.cpp
     ChVehicle.h
@@ -127,10 +129,17 @@ SET(Chrono_terrain_FILES
     terrain/RigidTerrain.cpp
 )
 
+SET(Chrono_suspensionTest_FILES
+	suspensionTest/SuspensionTest.h
+	suspensionTest/SuspensionTest.cpp
+)
+
 IF (ENABLE_IRRLICHT)
     SET(Chrono_Driver_FILES ${Chrono_Driver_FILES}
         driver/ChIrrGuiDriver.h
         driver/ChIrrGuiDriver.cpp
+		driver/ChIrrGuiST.h
+		driver/ChIrrGuiST.cpp
     )
 
     # On Windows, disable warning C4275 
@@ -150,6 +159,7 @@ SOURCE_GROUP("powertrain" FILES ${Chrono_Powertrain_FILES})
 SOURCE_GROUP("tire" FILES ${Chrono_Tire_FILES})
 SOURCE_GROUP("brake" FILES ${Chrono_Brake_FILES})
 SOURCE_GROUP("terrain" FILES ${Chrono_terrain_FILES})
+SOURCE_GROUP("suspensionTest" FILES ${Chrono_suspensionTest_FILES})
 
 # ------------------------------------------------------------------------------
 # ADD THE Chrono_Subsys LIBRARY
@@ -167,6 +177,7 @@ ADD_LIBRARY(Chrono_Subsys SHARED
     ${Chrono_Tire_FILES}
     ${Chrono_Brake_FILES}
 	${Chrono_terrain_FILES}
+	${Chrono_suspensionTest_FILES}
 )
 
 SET_TARGET_PROPERTIES(Chrono_Subsys PROPERTIES

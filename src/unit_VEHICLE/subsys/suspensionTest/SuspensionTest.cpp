@@ -23,7 +23,7 @@
 #include "assets/ChColorAsset.h"
 #include "physics/ChGlobal.h"
 
-#include "subsys/suspensionTest/suspensionTest.h"
+#include "subsys/suspensionTest/SuspensionTest.h"
 
 #include "subsys/suspension/DoubleWishbone.h"
 #include "subsys/suspension/DoubleWishboneReduced.h"
@@ -48,7 +48,6 @@ namespace chrono {
 // -----------------------------------------------------------------------------
 // These utility functions return a ChVector and a ChQuaternion<>, respectively,
 // from the specified JSON array.
-// -----------------------------------------------------------------------------
 static ChVector<> loadVector(const Value& a)
 {
   assert(a.IsArray());
@@ -64,7 +63,6 @@ static ChQuaternion<> loadQuaternion(const Value& a)
 }
 
 
-// -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 void SuspensionTest::LoadSteering(const std::string& filename)
 {
@@ -100,7 +98,6 @@ void SuspensionTest::LoadSteering(const std::string& filename)
 }
 
 
-// -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 void SuspensionTest::LoadSuspension(const std::string& filename,
                              int                axle,
@@ -174,10 +171,9 @@ void SuspensionTest::LoadWheel(const std::string& filename, int axle, int side)
 }
 
 
-// -----------------------------------------------------------------------------
+// ----------------------------------------------------------
 SuspensionTest::SuspensionTest(const std::string& filename)
 {
-  // -------------------------------------------
   // Open and parse the input file
   FILE* fp = fopen(filename.c_str(), "r");
 
@@ -194,7 +190,6 @@ SuspensionTest::SuspensionTest(const std::string& filename)
   assert(d.HasMember("Template"));
   assert(d.HasMember("Name"));
 
-  // -------------------------------------------
   // Create the chassis body, no visualizastion
   m_chassis = ChSharedPtr<ChBodyAuxRef>(new ChBodyAuxRef);
 
@@ -205,8 +200,8 @@ SuspensionTest::SuspensionTest(const std::string& filename)
   m_chassis->SetIdentifier(0);
   m_chassis->SetName("chassis");
   m_chassis->SetMass(m_chassisMass);
-  m_chassis->SetFrame_COG_to_REF(ChFrame<>(m_chassisCOM, ChQuaternion<>(1, 0, 0, 0)));
   m_chassis->SetInertiaXX(m_chassisInertia);
+  // suspension test mechanism isn't going anywhere
   m_chassis->SetBodyFixed(true);
 
   ChSharedPtr<ChSphereShape> sphere(new ChSphereShape);
@@ -244,19 +239,17 @@ SuspensionTest::SuspensionTest(const std::string& filename)
 
   // ---------------------------------------------------
   // Create the suspension, wheel, and brake subsystems.
-  for (int i = 0; i < m_num_axles; i++) {
-    // Suspension
-    std::string file_name = d["Axles"][i]["Suspension Input File"].GetString();
-    LoadSuspension(utils::GetModelDataFile(file_name), i, driven[i]);
-    m_suspLocations[i] = loadVector(d["Axles"][i]["Suspension Location"]);
+  // Suspension
+  std::string file_name = d["Axles"][0u]["Suspension Input File"].GetString();
+  LoadSuspension(utils::GetModelDataFile(file_name), 0, driven[0]);
+  m_suspLocations[0] = loadVector(d["Axles"][0u]["Suspension Location"]);
 
-  // Left and right wheels
-    file_name = d["Axles"][i]["Left Wheel Input File"].GetString();
-    LoadWheel(utils::GetModelDataFile(file_name), i, 0);
-    file_name = d["Axles"][i]["Right Wheel Input File"].GetString();
-    LoadWheel(utils::GetModelDataFile(file_name), i, 1);
+// Left and right wheels
+  file_name = d["Axles"][0u]["Left Wheel Input File"].GetString();
+  LoadWheel(utils::GetModelDataFile(file_name), 0, 0);
+  file_name = d["Axles"][0u]["Right Wheel Input File"].GetString();
+  LoadWheel(utils::GetModelDataFile(file_name), 0, 1);
 
-  }
 
   // -----------------------
   // Extract driver position
@@ -272,27 +265,19 @@ SuspensionTest::~SuspensionTest()
 // -----------------------------------------------------------------------------
 void SuspensionTest::Initialize(const ChCoordsys<>& chassisPos)
 {
-  m_chassis->SetFrame_REF_to_abs(ChFrame<>(chassisPos));
+  // Initialize the steering subsystem. ChPhysicsItem has a virtual destructor, should be able to cast to ChBody
+  m_steering->Initialize(m_chassis.DynamicCastTo<ChBodyAuxRef>(), m_steeringLoc, m_steeringRot);
 
-  // Initialize the steering subsystem.
-  m_steering->Initialize(m_chassis, m_steeringLoc, m_steeringRot);
+  // Initialize the suspension subsys
+  m_suspensions[0]->Initialize(m_chassis.DynamicCastTo<ChBodyAuxRef>(), m_suspLocations[0], m_steering->GetSteeringLink());
 
-  // Initialize the suspension, wheel, and brake subsystems.
-  for (int i = 0; i < m_num_axles; i++)
-  {
-    if (m_steer_susp == i)
-      m_suspensions[i]->Initialize(m_chassis, m_suspLocations[i], m_steering->GetSteeringLink());
-    else
-      m_suspensions[i]->Initialize(m_chassis, m_suspLocations[i], m_chassis);
-
-    m_wheels[2 * i]->Initialize(m_suspensions[i]->GetSpindle(LEFT));
-    m_wheels[2 * i + 1]->Initialize(m_suspensions[i]->GetSpindle(RIGHT));
-  }
+  // initialize the two wheels
+  m_wheels[0]->Initialize(m_suspensions[0]->GetSpindle(LEFT));
+  m_wheels[1]->Initialize(m_suspensions[0]->GetSpindle(RIGHT));
 
 }
 
 
-// -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 void SuspensionTest::Update(double        time,
                      double              steering,
@@ -302,12 +287,10 @@ void SuspensionTest::Update(double        time,
   // Let the steering subsystem process the steering input.
   m_steering->Update(time, steering);
 
-  // Apply tire forces to spindle bodies and apply braking.
-  for (int i = 0; i < m_num_axles; i++) {
-    m_suspensions[i]->ApplyTireForce(LEFT, tire_forces[2 * i]);
-    m_suspensions[i]->ApplyTireForce(RIGHT, tire_forces[2 * i + 1]);
+  // Apply tire forces to spindle bodies.
+  m_suspensions[0]->ApplyTireForce(LEFT, tire_forces[0]);
+  m_suspensions[0]->ApplyTireForce(RIGHT, tire_forces[1]);
 
-  }
 }
 
 

@@ -45,10 +45,7 @@ private:
 
   void LoadSteering(const std::string& filename);
   void LoadSuspension(const std::string& filename, int axle, bool driven);
-  
-  // need this? 
   void LoadWheel(const std::string& filename, int axle, int side);
-
 
 private:
 

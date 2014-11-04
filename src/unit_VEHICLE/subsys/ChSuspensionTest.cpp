@@ -15,7 +15,7 @@
 // Base class for a suspension testing mechanism, includes two suspension units
 // and steering attached to a chassis which is fixed to ground, and wheels that
 // are locked (e.g., do not rotate, but can apply apply test forces for actuation)
-//
+// Basically, a ChVehicle without rear subsystems nor braking/throttle
 // =============================================================================
 
 #include <algorithm>
@@ -27,9 +27,9 @@ namespace chrono {
 
 
 // -----------------------------------------------------------------------------
-// Constructor for a ChSuspension: specify default step size and solver parameters.
+// Constructor for a ChSuspensiontester: specify default step size and solver parameters.
 // -----------------------------------------------------------------------------
-ChSuspension::ChSuspension()
+ChSuspensionTest::ChSuspensionTest()
 : m_stepsize(1e-3)
 {
   Set_G_acc(ChVector<>(0, 0, -9.81));
@@ -46,7 +46,7 @@ ChSuspension::ChSuspension()
 // Advance the state of the system, taking as many steps as needed to exactly
 // reach the specified value 'step'.
 // ---------------------------------------------------------------------------- -
-void ChSuspension::Advance(double step)
+void ChSuspensionTest::Advance(double step)
 {
   double t = 0;
   while (t < step) {
@@ -58,26 +58,48 @@ void ChSuspension::Advance(double step)
 
 
 // -----------------------------------------------------------------------------
-// -----------------------------------------------------------------------------
-ChSharedPtr<ChBody> ChSuspension::GetWheelBody(const ChWheelID& wheel_id) const
+// Accessors
+ChSharedPtr<ChBody> ChSuspensionTest::GetWheelBody(const ChWheelID& wheel_id) const
 {
-  return m_suspensions[wheel_id.axle()]->GetSpindle(wheel_id.side());
+  return m_suspensions[0]->GetSpindle(wheel_id.side());
 }
 
-const ChVector<>& ChSuspension::GetWheelPos(const ChWheelID& wheel_id) const
+const ChVector<>& ChSuspensionTest::GetWheelPos(const ChWheelID& wheel_id) const
 {
-  return m_suspensions[wheel_id.axle()]->GetSpindlePos(wheel_id.side());
+  return m_suspensions[0]->GetSpindlePos(wheel_id.side());
 }
 
-const ChVector<>& ChSuspension::GetWheelLinVel(const ChWheelID& wheel_id) const
+const ChQuaternion<>& ChSuspensionTest::GetWheelRot(const ChWheelID& wheel_id) const
 {
-  return m_suspensions[wheel_id.axle()]->GetSpindleLinVel(wheel_id.side());
+  return m_suspensions[0]->GetSpindleRot(wheel_id.side());
 }
 
-// -----------------------------------------------------------------------------
-// Return the global driver position
-// -----------------------------------------------------------------------------
-ChVector<> ChSuspension::GetDriverPos() const
+const ChVector<>& ChSuspensionTest::GetWheelLinVel(const ChWheelID& wheel_id) const
+{
+  return m_suspensions[0]->GetSpindleLinVel(wheel_id.side());
+}
+
+const ChVector<>& ChSuspensionTest::GetWheelAngVel(const ChWheelID& wheel_id) const
+{
+  return m_suspensions[0]->GetSpindleAngVel(wheel_id.side());
+}
+
+ChWheelState ChSuspensionTest::GetWheelState(const ChWheelID& wheel_id) const
+{
+  ChWheelState state;
+
+  state.pos = GetWheelPos(wheel_id);
+  state.rot = GetWheelRot(wheel_id);
+  state.lin_vel = GetWheelLinVel(wheel_id);
+  state.ang_vel = 0;
+
+  ChVector<> ang_vel_loc = state.rot.RotateBack(state.ang_vel);
+  state.omega = ang_vel_loc.y;
+
+  return state;
+}
+
+ChVector<> ChSuspensionTest::GetDriverPos() const
 {
   return m_chassis->GetCoord().TransformPointLocalToParent(GetLocalDriverCoordsys().pos);
 }
@@ -86,17 +108,15 @@ ChVector<> ChSuspension::GetDriverPos() const
 // -----------------------------------------------------------------------------
 // Log constraint violations
 // -----------------------------------------------------------------------------
-void ChSuspension::LogConstraintViolations()
+void ChSuspensionTest::LogConstraintViolations()
 {
   GetLog().SetNumFormat("%16.4e");
 
   // Report constraint violations for the suspension joints
-  for (size_t i = 0; i < m_suspensions.size(); i++) {
-    GetLog() << "\n---- AXLE " << i << " LEFT side suspension constraint violations\n\n";
-    m_suspensions[i]->LogConstraintViolations(LEFT);
-    GetLog() << "\n---- AXLE " << i << " RIGHT side suspension constraint violations\n\n";
-    m_suspensions[i]->LogConstraintViolations(RIGHT);
-  }
+    GetLog() << "\n---- AXLE " << 0 << " LEFT side suspension constraint violations\n\n";
+    m_suspensions[0]->LogConstraintViolations(LEFT);
+    GetLog() << "\n---- AXLE " << 0 << " RIGHT side suspension constraint violations\n\n";
+    m_suspensions[0]->LogConstraintViolations(RIGHT);
 
   // Report constraint violations for the steering joints
   GetLog() << "\n---- STEERING constrain violations\n\n";

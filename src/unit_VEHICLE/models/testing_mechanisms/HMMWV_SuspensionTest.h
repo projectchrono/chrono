@@ -29,6 +29,7 @@
 #include "models/hmmwv/suspension/HMMWV_DoubleWishbone.h"
 #include "models/hmmwv/steering/HMMWV_PitmanArm.h"
 
+
 class HMMWV_SuspensionTest : public chrono::ChSuspensionTest
 {
 public:
@@ -57,16 +58,15 @@ public:
 
 private:
 
-  chrono::ChSharedPtr<HMMWV_Wheel> m_front_right_wheel;
-  chrono::ChSharedPtr<HMMWV_Wheel> m_front_left_wheel;
+  chrono::ChSharedPtr<hmmwv::HMMWV_Wheel> m_front_right_wheel;
+  chrono::ChSharedPtr<hmmwv::HMMWV_Wheel> m_front_left_wheel;
 
   // Chassis mass properties
-  static const chrono::ChVector<> m_chassisCOM;
+  // static const chrono::ChVector<> m_chassisCOM;
 
   // Driver local coordinate system
-  static const chrono::ChCoordsys<> m_driverCsys;
+  chrono::ChCoordsys<> m_driverCsys;
 };
-
 
 
 #endif

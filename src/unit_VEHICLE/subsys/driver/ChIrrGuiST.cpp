@@ -26,28 +26,26 @@ namespace chrono {
 
 
 // -----------------------------------------------------------------------------
-ChIrrGuiST::ChIrrGuiST(ChIrrApp&           app,
-                               ChSuspensionTest&   tester,
-                               const ChVector<>&   ptOnChassis,
-                               double              chaseDist,
-                               double              chaseHeight,
-                               int                 HUD_x,
-                               int                 HUD_y)
+ChIrrGuiST::ChIrrGuiST(ChIrrApp&          app,
+                      ChSuspensionTest&   tester,
+                      const ChVector<>&   ptOnChassis,
+                      double              chaseDist,
+                      double              chaseHeight,
+                      int                 HUD_x,
+                      int                 HUD_y)
 : m_app(app),
   m_tester(tester),
   m_HUD_x(HUD_x),
   m_HUD_y(HUD_y),
   m_terrainHeight(0),
   m_steeringDelta(1.0/50),
-  m_camera(car.GetChassis()),
-  m_stepsize(1e-3),
-  m_throttle(0),
-  m_braking(0)
+  m_camera(tester.GetChassis()),
+  m_stepsize(1e-3)
 {
   app.SetUserEventReceiver(this);
 
-  // Initialize the ChChaseCamera
-  m_camera.Initialize(ptOnChassis, car.GetLocalDriverCoordsys(), chaseDist, chaseHeight);
+  // Initialize the ChChaseCamera, target a point between the suspensions
+  m_camera.Initialize(ptOnChassis, tester.GetLocalDriverCoordsys(), chaseDist, chaseHeight);
   ChVector<> cam_pos = m_camera.GetCameraPos();
   ChVector<> cam_target = m_camera.GetTargetPos();
 
@@ -56,7 +54,7 @@ ChIrrGuiST::ChIrrGuiST(ChIrrApp&           app,
     m_app.GetSceneManager()->getRootSceneNode(),
     core::vector3df(0, 0, 0), core::vector3df(0, 0, 0));
 
-  camera->setUpVector(core::vector3df(0, 0, 1));
+  camera->setUpVector(core::vector3df(0, 0, 1));  // z+ up
   camera->setPosition(core::vector3df((f32)cam_pos.x, (f32)cam_pos.y, (f32)cam_pos.z));
   camera->setTarget(core::vector3df((f32)cam_target.x, (f32)cam_target.y, (f32)cam_target.z));
 }
@@ -109,7 +107,7 @@ bool ChIrrGuiST::OnEvent(const SEvent& event)
       return true;
 
     case KEY_KEY_V:
-      m_car.LogConstraintViolations();
+      m_tester.LogConstraintViolations();
       return true;
     }
 

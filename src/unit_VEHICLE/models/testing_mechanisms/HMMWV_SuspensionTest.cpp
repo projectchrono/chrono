@@ -32,54 +32,52 @@ static const double in2m = 0.0254;
 static const double lb2kg = 0.453592;
 static const double lbf2N = 4.44822162;
 
-const double     HMMWV_SuspensionTest::m_chassisMass = lb2kg * 7740.7;                           // chassis sprung mass
-const ChVector<> HMMWV_SuspensionTest::m_chassisCOM = in2m * ChVector<>(-18.8, -0.585, 33.329);  // COM location
-const ChVector<> HMMWV_SuspensionTest::m_chassisInertia(125.8, 497.4, 531.4);                    // chassis inertia (roll,pitch,yaw)
 
-const std::string HMMWV_SuspensionTest::m_chassisMeshName = "hmmwv_chassis";
-const std::string HMMWV_SuspensionTest::m_chassisMeshFile = utils::GetModelDataFile("hmmwv/hmmwv_chassis.obj");
-
-const ChCoordsys<> HMMWV_SuspensionTest::m_driverCsys(ChVector<>(0.8735, -0.27475, 1.052), ChQuaternion<>(1, 0, 0, 0));
+// const std::string HMMWV_SuspensionTest::m_chassisMeshName = "hmmwv_chassis";
+// const std::string HMMWV_SuspensionTest::m_chassisMeshFile = utils::GetModelDataFile("hmmwv/hmmwv_chassis.obj");
 
 
 // -----------------------------------------------------------------------------
-HMMWV_SuspensionTest::HMMWV_SuspensionTest(const bool           fixed,
-                             VisualizationType    wheelVis)
+HMMWV_SuspensionTest::HMMWV_SuspensionTest(VisualizationType    wheelVis)
 {
-  // -------------------------------------------
-  // Create the chassis body
-  m_chassis = ChSharedPtr<ChBodyAuxRef>(new ChBodyAuxRef);
+  // these parameters don't matter much
+  double chassisMass = lb2kg * 7740.7;
+  ChVector<> chassisCOM = in2m * ChVector<>(-18.8, -0.585, 33.329);  // COM location
+  ChVector<> chassisInertia(125.8, 497.4, 531.4);   // chassis inertia (roll,pitch,yaw)
+  // this might matter
+  ChCoordsys<> driverCsys(ChVector<>(0.8735, -0.27475, 1.052), ChQuaternion<>(1, 0, 0, 0));
+  m_driverCsys = driverCsys;
 
+  // -------------------------------------------
+  // Create the chassis body, fixed in place
+  m_chassis = ChSharedPtr<ChBody>(new ChBody);
   m_chassis->SetIdentifier(0);
   m_chassis->SetName("chassis");
-  m_chassis->SetMass(m_chassisMass);
-  m_chassis->SetFrame_COG_to_REF(ChFrame<>(m_chassisCOM, ChQuaternion<>(1, 0, 0, 0)));
-  m_chassis->SetInertiaXX(m_chassisInertia);
-  m_chassis->SetBodyFixed(fixed);
+  m_chassis->SetMass(chassisMass);
+  m_chassis->SetInertiaXX(chassisInertia);
+  m_chassis->SetBodyFixed(true);
 
-    ChSharedPtr<ChSphereShape> sphere(new ChSphereShape);
-    sphere->GetSphereGeometry().rad = 0.1;
-    sphere->Pos = m_chassisCOM;
-    m_chassis->AddAsset(sphere);
-
-	// fix the chassis to ground before adding to system
-  m_chassis->SetFixed(true);
+  // place a sphere at the COM loc
+  ChSharedPtr<ChSphereShape> sphere(new ChSphereShape);
+  sphere->GetSphereGeometry().rad = 0.1;
+  sphere->Pos = chassisCOM;
+  m_chassis->AddAsset(sphere);
 
   Add(m_chassis);
 
   // -------------------------------------------
   // Create the suspension subsystems, only a front suspension for the tester
   m_suspensions.resize(1);
-  m_suspensions[0] = ChSharedPtr<ChSuspension>(new HMMWV_DoubleWishboneFront("FrontSusp", false));
+  m_suspensions[0] = ChSharedPtr<ChSuspension>(new hmmwv::HMMWV_DoubleWishboneFront("FrontSusp", false));
 
   // -----------------------------
   // Create the steering subsystem
-  m_steering = ChSharedPtr<ChSteering>(new HMMWV_PitmanArm("Steering"));
+  m_steering = ChSharedPtr<ChSteering>(new hmmwv::HMMWV_PitmanArm("Steering"));
 
   // -----------------
   // Create the wheels
-  m_front_right_wheel = ChSharedPtr<HMMWV_Wheel>(new HMMWV_WheelRight(wheelVis));
-  m_front_left_wheel = ChSharedPtr<HMMWV_Wheel>(new HMMWV_WheelLeft(wheelVis));
+  m_front_right_wheel = ChSharedPtr<hmmwv::HMMWV_Wheel>(new hmmwv::HMMWV_WheelRight(wheelVis));
+  m_front_left_wheel = ChSharedPtr<hmmwv::HMMWV_Wheel>(new hmmwv::HMMWV_WheelLeft(wheelVis));
 
 }
 
@@ -93,17 +91,15 @@ HMMWV_SuspensionTest::~HMMWV_SuspensionTest()
 // -----------------------------------------------------------------------------
 void HMMWV_SuspensionTest::Initialize(const ChCoordsys<>& chassisPos)
 {
-  m_chassis->SetFrame_REF_to_abs(ChFrame<>(chassisPos));
-
   // Initialize the steering subsystem (specify the steering subsystem's frame
   // relative to the chassis reference frame).
   ChVector<> offset = in2m * ChVector<>(49.015, 0, 4.304);
   ChQuaternion<> rotation = Q_from_AngAxis(18.5 * CH_C_PI / 180, ChVector<>(0, 1, 0));
-  m_steering->Initialize(m_chassis, offset, rotation);
+  m_steering->Initialize(m_chassis.DynamicCastTo<ChBodyAuxRef>(), offset, rotation);
 
   // Initialize the suspension subsystems (specify the suspension subsystems'
   // frames relative to the chassis reference frame).
-  m_suspensions[0]->Initialize(m_chassis, in2m * ChVector<>(66.59, 0, 1.039), m_steering->GetSteeringLink());
+  m_suspensions[0]->Initialize(m_chassis.DynamicCastTo<ChBodyAuxRef>(), in2m * ChVector<>(66.59, 0, 1.039), m_steering->GetSteeringLink());
 
   // Initialize wheels
   m_front_left_wheel->Initialize(m_suspensions[0]->GetSpindle(LEFT));

@@ -34,9 +34,11 @@
 #include "utils/ChUtilsInputOutput.h"
 #include "utils/ChUtilsData.h"
 
+// subsystems
 #include "models/ModelDefs.h"
 #include "models/testing_mechanisms/HMMWV_SuspensionTest.h"
 
+// "modules" go here
 #include "models/hmmwv/tire/HMMWV_RigidTire.h"
 #include "subsys/terrain/FlatTerrain.h"
 #include "models/hmmwv/HMMWV_FuncDriver.h"
@@ -90,11 +92,9 @@ int main(int argc, char* argv[])
 {
   SetChronoDataPath(CHRONO_DATA_DIR);
 
-  // Create the testing mechanism
+  // Create the testing mechanism, initilize ity
   HMMWV_SuspensionTest tester(MESH);
-
   tester.Initialize(ChCoordsys<>(initLoc, initRot));
-
 
   // Create and initialize two rigid wheels
   ChSharedPtr<ChTire> tire_front_right;
@@ -103,7 +103,7 @@ int main(int argc, char* argv[])
 
   // flat rigid terrain, height = 0 for all (x,y)
   FlatTerrain flat_terrain(0);
-
+  // use rigid wheels to actuate suspension
   ChSharedPtr<HMMWV_RigidTire> tire_FL(new HMMWV_RigidTire("FL", flat_terrain, 0.7f));
   ChSharedPtr<HMMWV_RigidTire> tire_FR(new HMMWV_RigidTire("FR", flat_terrain, 0.7f));
    
@@ -158,8 +158,8 @@ int main(int argc, char* argv[])
 
   ChIrrGuiST driver(application, tester, trackPoint, 6.0, 0.5, true);
 
-  // Set the time response for steering and throttle keyboard inputs.
-  // NOTE: this is not exact, since we do not render quite at the specified FPS.
+  // Set the time response for steering keyboard inputs, when they are used
+  // NOTE: this is not exact, since not rendered quite at the specified FPS.
   double steering_time = 1.0;  // time to go from 0 to +1 (or from 0 to -1)
   driver.SetSteeringDelta(render_step_size / steering_time);
 
@@ -177,8 +177,6 @@ int main(int argc, char* argv[])
 
   // ---------------
   // Simulation loop
-  // ---------------
-
 #ifdef DEBUG_LOG
   GetLog() << "\n\n============ System Configuration ============\n";
   vehicle.LogHardpointLocations();
@@ -240,36 +238,28 @@ int main(int argc, char* argv[])
 
 
     // Update modules (process inputs from other modules)
-    time = vehicle.GetChTime();
+    time = tester.GetChTime();
 
     driver.Update(time);
 
-    terrain.Update(time);
+    flat_terrain.Update(time);
 
     tire_front_left->Update(time, wheel_states[FRONT_LEFT.id()]);
     tire_front_right->Update(time, wheel_states[FRONT_RIGHT.id()]);
-    tire_rear_left->Update(time, wheel_states[REAR_LEFT.id()]);
-    tire_rear_right->Update(time, wheel_states[REAR_RIGHT.id()]);
 
-    powertrain->Update(time, throttle_input, driveshaft_speed);
-
-    vehicle.Update(time, steering_input, braking_input, powertrain_torque, tire_forces);
+    tester.Update(time, steering_input);
 
     // Advance simulation for one timestep for all modules
     double step = realtime_timer.SuggestSimulationStep(step_size);
 
     driver.Advance(step);
 
-    terrain.Advance(step);
+    flat_terrain.Advance(step);
 
     tire_front_left->Advance(step);
     tire_front_right->Advance(step);
-    tire_rear_right->Advance(step);
-    tire_rear_left->Advance(step);
-
-    powertrain->Advance(step);
-
-    vehicle.Advance(step);
+   
+    tester.Advance(step);
 
     // Increment frame number
     step_number++;
@@ -317,53 +307,36 @@ int main(int argc, char* argv[])
 #endif
 
     // Collect output data from modules (for inter-module communication)
-    throttle_input = driver.GetThrottle();
     steering_input = driver.GetSteering();
-    braking_input = driver.GetBraking();
-
-    powertrain_torque = powertrain->GetOutputTorque();
 
     tire_forces[FRONT_LEFT.id()] = tire_front_left->GetTireForce();
     tire_forces[FRONT_RIGHT.id()] = tire_front_right->GetTireForce();
-    tire_forces[REAR_LEFT.id()] = tire_rear_left->GetTireForce();
-    tire_forces[REAR_RIGHT.id()] = tire_rear_right->GetTireForce();
-
-    driveshaft_speed = vehicle.GetDriveshaftSpeed();
 
     wheel_states[FRONT_LEFT.id()] = vehicle.GetWheelState(FRONT_LEFT);
     wheel_states[FRONT_RIGHT.id()] = vehicle.GetWheelState(FRONT_RIGHT);
-    wheel_states[REAR_LEFT.id()] = vehicle.GetWheelState(REAR_LEFT);
-    wheel_states[REAR_RIGHT.id()] = vehicle.GetWheelState(REAR_RIGHT);
 
     // Update modules (process inputs from other modules)
     time = vehicle.GetChTime();
 
     driver.Update(time);
 
-    terrain.Update(time);
+    flat_terrain.Update(time);
 
     tire_front_left->Update(time, wheel_states[FRONT_LEFT.id()]);
     tire_front_right->Update(time, wheel_states[FRONT_RIGHT.id()]);
-    tire_rear_left->Update(time, wheel_states[REAR_LEFT.id()]);
-    tire_rear_right->Update(time, wheel_states[REAR_RIGHT.id()]);
+   
 
-    powertrain->Update(time, throttle_input, driveshaft_speed);
-
-    vehicle.Update(time, steering_input, braking_input, powertrain_torque, tire_forces);
+    tester.Update(time, steering_input);
 
     // Advance simulation for one timestep for all modules
     driver.Advance(step_size);
 
-    terrain.Advance(step_size);
+    flat_terrain.Advance(step_size);
 
     tire_front_right->Advance(step_size);
     tire_front_left->Advance(step_size);
-    tire_rear_right->Advance(step_size);
-    tire_rear_left->Advance(step_size);
 
-    powertrain->Advance(step_size);
-
-    vehicle.Advance(step_size);
+    tester.Advance(step_size);
 
     // Increment frame number
     step_number++;

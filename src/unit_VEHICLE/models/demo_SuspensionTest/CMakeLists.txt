@@ -1,4 +1,4 @@
-# Suspension test, only include front two suspension units, steering system
+# demo_SuspensionTest, only include front two suspension units, steering system
 #  and a vehicle chassis that is fixed to ground.
 # Wheel bodies are actuated with spring/dampers to test the kinematics of the
 #  steering and suspension linkages.
@@ -8,7 +8,7 @@
 # ----------------------
 INCLUDE(CMakeDependentOption)
 
-OPTION(ENABLE_SUSPENSION_TEST "Build the suspension test?" OFF)
+OPTION(ENABLE_SUSPENSION_TEST "Build the Suspension test for the HMMWV?" OFF)
 
 IF(NOT ENABLE_SUSPENSION_TEST)
 	RETURN()
@@ -16,18 +16,20 @@ ENDIF()
 
 # ----------------------
 
-MESSAGE(STATUS "Adding HMMWV demo...")
+MESSAGE(STATUS "Adding HMMWV_SuspensionTest demo...")
 
 SET(MODEL_FILES
 	../ModelDefs.h
 	../hmmwv/HMMWV_FuncDriver.h
 	../hmmwv/HMMWV_FuncDriver.cpp
-	../hmmwv/vehicle/HMMWV_Vehicle.h
-	../hmmwv/vehicle/HMMWV_Vehicle.cpp
+	../testing_mechanisms/HMMWV_SuspensionTest.cpp
+	../testing_mechanisms/HMMWV_SuspensionTest.h
 	../hmmwv/vehicle/HMMWV_VehicleJSON.h
 	../hmmwv/vehicle/HMMWV_VehicleJSON.cpp
 	../hmmwv/suspension/HMMWV_DoubleWishbone.h
 	../hmmwv/suspension/HMMWV_DoubleWishbone.cpp
+	../hmmwv/steering/HMMWV_RackPinion.h
+	../hmmwv/steering/HMMWV_RackPinion.cpp	
 	../hmmwv/steering/HMMWV_PitmanArm.h
 	../hmmwv/steering/HMMWV_PitmanArm.cpp
 	../hmmwv/wheel/HMMWV_Wheel.h
@@ -37,7 +39,7 @@ SET(MODEL_FILES
 )
 
 SET(TEST_FILES
-	suspensionTest.cpp
+	demo_SuspensionTest.cpp
 )
 
 SOURCE_GROUP("subsystems" FILES ${MODEL_FILES})

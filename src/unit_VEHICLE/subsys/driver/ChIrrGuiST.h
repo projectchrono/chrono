@@ -38,6 +38,7 @@ class CH_SUBSYS_API ChIrrGuiST : public ChDriver, public irr::IEventReceiver
 {
 public:
 
+  /// camera should target front
   ChIrrGuiST(
     irr::ChIrrApp&      app,
     ChSuspensionTest&   tester,

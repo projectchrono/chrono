@@ -9,12 +9,14 @@
 // http://projectchrono.org/license-chrono.txt.
 //
 // =============================================================================
-// Authors: Radu Serban, Justin Madsen
+// Authors: Justin Madsen, Radu Serban
 // =============================================================================
 //
-// Base class for a vehicle system.
+// Base class for a suspension testing subsystem, replaces ChVehicle, since no
+//  need for braking and throttle. All front subsystems are still included, and
+//  there are multiple ways to actuate the wheels.
 //
-// The reference frame for a vehicle follows the ISO standard: Z-axis up, X-axis
+// The reference frame follows the ISO standard: Z-axis up, X-axis
 // pointing forward, and Y-axis towards the left of the vehicle.
 //
 // =============================================================================
@@ -33,6 +35,7 @@
 #include "subsys/ChSuspension.h"
 #include "subsys/ChSteering.h"
 #include "subsys/ChWheel.h"
+#include "models/ModelDefs.h"
 
 namespace chrono {
 
@@ -48,7 +51,7 @@ public:
   virtual ~ChSuspensionTest() {}
 
   /// Get a handle to the vehicle's chassis body.
-  const ChSharedPtr<ChBodyAuxRef> GetChassis() const { return m_chassis; }
+  const ChSharedPtr<ChBody> GetChassis() const { return m_chassis; }
 
   /// Get the global location of the chassis reference frame origin.
   const ChVector<>& GetChassisPos() const { return m_chassis->GetFrame_REF_to_abs().GetPos(); }
@@ -71,6 +74,16 @@ public:
 
   /// Get the global location of the specified wheel.
   const ChVector<>& GetWheelPos(const ChWheelID& wheel_id) const;
+
+  /// Get the global rotation of the specified wheel.
+  const ChQuaternion<>& GetWheelRot(const ChWheelID& wheel_id) const;
+
+  /// global linear velocity of wheel
+  const ChVector<>& GetWheelLinVel(const ChWheelID& wheel_id) const;
+
+  /// global angular velocity of wheel
+  const ChVector<>& GetWheelAngVel(const ChWheelID& wheel_id) const;
+
 
   /// Get the complete state for the specified wheel.
   /// In this case, no wheel spin (omega) is given, since the wheels are locked.
@@ -111,11 +124,11 @@ public:
 
 protected:
 
-  ChSharedPtr<ChBodyAuxRef>  m_chassis;      ///< handle to the chassis body
-  ChSuspensionList           m_suspensions;  ///< list of handles to suspension subsystems
+  ChSharedPtr<ChBody>        m_chassis;      ///< handle to the chassis body, fixed to ground
+  ChSuspensionList           m_suspensions;  ///< list of handles to suspension subsystems, only 1 in this case.
  
-  ChSharedPtr<ChSteering>    m_steering;     ///< handle to the steering subsystem
-  ChWheelList                m_wheels;       ///< list of handles to wheel subsystems
+  ChSharedPtr<ChSteering>    m_steering;     ///< handle to the steering subsystem.
+  ChWheelList                m_wheels;       ///< list of handles to wheel subsystems, 2 in this case.
 
   double                     m_stepsize;   ///< integration step-size for the vehicle system
 
