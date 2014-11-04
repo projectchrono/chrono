@@ -142,9 +142,9 @@ int main(int argc, char* argv[])
   if (do_shadows)
   {
     mlight = application.AddLightWithShadow(
-      irr::core::vector3df(10.f, 30.f, 60.f),
-      irr::core::vector3df(0.f, 0.f, 0.f),
-      150, 60, 80, 15, 512, irr::video::SColorf(1, 1, 1), false, false);
+      irr::core::vector3df(-5.f, 1.f, 6.f),
+      irr::core::vector3df(5.f, -1.f, -2.f),
+      250, 60, 80, 15, 512, irr::video::SColorf(1, 1, 1), false, false);
   }
   else
   {

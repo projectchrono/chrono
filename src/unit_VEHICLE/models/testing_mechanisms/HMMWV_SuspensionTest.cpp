@@ -38,11 +38,8 @@ static const double lbf2N = 4.44822162;
 
 
 // -----------------------------------------------------------------------------
-HMMWV_SuspensionTest::HMMWV_SuspensionTest(VisualizationType    wheelVis,
-                                           bool use_motion)
+HMMWV_SuspensionTest::HMMWV_SuspensionTest(VisualizationType    wheelVis)
 {
-  m_use_motion = use_motion;
-
   // these parameters don't matter much
   double chassisMass = lb2kg * 7740.7;
   ChVector<> chassisCOM = in2m * ChVector<>(-18.8, -0.585, 33.329);  // COM location
