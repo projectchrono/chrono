@@ -68,7 +68,7 @@ HMMWV_SuspensionTest::HMMWV_SuspensionTest(VisualizationType    wheelVis)
   // -------------------------------------------
   // Create the suspension subsystems, only a front suspension for the tester
   m_suspensions.resize(1);
-  m_suspensions[0] = ChSharedPtr<ChSuspension>(new hmmwv::HMMWV_DoubleWishboneFront("FrontSusp", false));
+  m_suspensions[0] = ChSharedPtr<ChSuspension>(new hmmwv::HMMWV_DoubleWishboneFront("FrontSusp"));
 
   // -----------------------------
   // Create the steering subsystem

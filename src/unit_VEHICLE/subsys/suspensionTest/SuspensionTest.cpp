@@ -125,19 +125,19 @@ void SuspensionTest::LoadSuspension(const std::string& filename,
   // Create the suspension using the appropriate template.
   if (subtype.compare("DoubleWishbone") == 0)
   {
-    m_suspensions[axle] = ChSharedPtr<ChSuspension>(new DoubleWishbone(d, driven));
+    m_suspensions[axle] = ChSharedPtr<ChSuspension>(new DoubleWishbone(d));
   }
   else if (subtype.compare("DoubleWishboneReduced") == 0)
   {
-    m_suspensions[axle] = ChSharedPtr<ChSuspension>(new DoubleWishboneReduced(d, driven));
+    m_suspensions[axle] = ChSharedPtr<ChSuspension>(new DoubleWishboneReduced(d));
   }
   else if (subtype.compare("SolidAxle") == 0)
   {
-    m_suspensions[axle] = ChSharedPtr<ChSuspension>(new SolidAxle(d, driven));
+    m_suspensions[axle] = ChSharedPtr<ChSuspension>(new SolidAxle(d));
   }
   else if (subtype.compare("MultiLink") == 0)
   {
-    m_suspensions[axle] = ChSharedPtr<ChSuspension>(new MultiLink(d, driven));
+    m_suspensions[axle] = ChSharedPtr<ChSuspension>(new MultiLink(d));
   }
 }
 
