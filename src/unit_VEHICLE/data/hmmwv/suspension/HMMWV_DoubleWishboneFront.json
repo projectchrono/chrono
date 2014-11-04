@@ -5,26 +5,26 @@
 
   "Spindle" :
   {
-    "Mass":                     15.91,
+    "Mass":                     14.705,
     "COM":                      [-0.040, 0.910, -0.026],
-    "Inertia":                  [2, 4, 2],
-    "Radius":                   0.15,
+    "Inertia":                  [0.04117, 0.07352, 0.04117],
+    "Radius":                   0.10,
     "Width":                    0.06
   },
 
   "Upright":
   {
-    "Mass":                     27.27,
+    "Mass":                     19.450,
     "COM":                      [-0.040, 0.751, -0.026],
-    "Inertia":                  [5, 5, 5],
-    "Radius":                   0.03
+    "Inertia":                  [0.1656, 0.1934, 0.04367],
+    "Radius":                   0.04
   },
 
   "Upper Control Arm":
   {
-    "Mass":                     5.45,
+    "Mass":                     5.813,
     "COM":                      [-0.106, 0.589, 0.218],
-    "Inertia":                  [2, 2, 2],
+    "Inertia":                  [0.03, 0.03, 0.06276],
     "Radius":                   0.02,
     "Location Chassis Front":   [-0.048, 0.446, 0.245],
     "Location Chassis Back":    [-0.268, 0.478, 0.196],
@@ -33,9 +33,9 @@
 
   "Lower Control Arm":
   {
-    "Mass":                     16.36,
+    "Mass":                     23.965,
     "COM":                      [0.000, 0.547, -0.059],
-    "Inertia":                  [3, 3, 3],
+    "Inertia":                  [0.4, 0.4, 0.8938],
     "Radius":                   0.03,
     "Location Chassis Front":   [0.223, 0.307, 0.000],
     "Location Chassis Back":    [-0.223, 0.307, 0.000],
@@ -60,7 +60,7 @@
   {
     "Location Chassis":         [0.104, 0.498, 0.323],
     "Location Arm":             [0.097, 0.543, -0.047],
-    "Damping Coefficient":      60068.000
+    "Damping Coefficient":      19015.5692
   },
 
   "Axle":
