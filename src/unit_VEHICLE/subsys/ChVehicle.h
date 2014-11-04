@@ -53,6 +53,12 @@ public:
   /// Get a handle to the vehicle's chassis body.
   const ChSharedPtr<ChBodyAuxRef> GetChassis() const { return m_chassis; }
 
+  /// Get a handle to the vehicle's steering subsystem.
+  const ChSharedPtr<ChSteering> GetSteering() const { return m_steering; }
+
+  /// Get a handle to the vehicle's driveline subsystem.
+  const ChSharedPtr<ChDriveline> GetDriveline() const { return m_driveline; }
+
   /// Get a handle to the vehicle's driveshaft body.
   const ChSharedPtr<ChShaft> GetDriveshaft() const;
 
@@ -147,11 +153,10 @@ public:
   /// Advance the state of this vehicle by the specified time step.
   virtual void Advance(double step);
 
-  /// Set the integration step size for the vehicle subsystem.
+  /// Set the integration step size for the vehicle system.
   void SetStepsize(double val) { m_stepsize = val; }
 
-  /// Get the current value of the integration step size for the vehicle
-  /// subsystem.
+  /// Get the current value of the integration step size for the vehicle system.
   double GetStepsize() const { return m_stepsize; }
 
   /// Log current constraint violations.
