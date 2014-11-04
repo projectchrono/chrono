@@ -78,7 +78,7 @@ double output_step_size = 1.0 / 1;    // once a second
 
 #ifdef USE_IRRLICHT
   // Point on chassis tracked by the camera
-  ChVector<> trackPoint(0.0, 0.0, 1.75);
+  ChVector<> trackPoint(1.5, 0.0, 1.75);
 #else
   double tend = 20.0;
 
@@ -101,7 +101,7 @@ int main(int argc, char* argv[])
   ChSharedPtr<ChTire> tire_front_left;
 
 
-  // flat rigid terrain, height = 0 for all (x,y)
+  // flat rigid terrain, height = 0
   FlatTerrain flat_terrain(0);
   // use rigid wheels to actuate suspension
   ChSharedPtr<HMMWV_RigidTire> tire_FL(new HMMWV_RigidTire("FL", flat_terrain, 0.7f));
@@ -231,11 +231,9 @@ int main(int argc, char* argv[])
 
     // Collect output data from modules (for inter-module communication)
     steering_input = driver.GetSteering();
-
   
     wheel_states[FRONT_LEFT.id()] = tester.GetWheelState(FRONT_LEFT);
     wheel_states[FRONT_RIGHT.id()] = tester.GetWheelState(FRONT_RIGHT);
-
 
     // Update modules (process inputs from other modules)
     time = tester.GetChTime();
