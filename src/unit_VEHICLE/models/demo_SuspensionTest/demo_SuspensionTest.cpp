@@ -78,7 +78,7 @@ double output_step_size = 1.0 / 1;    // once a second
 
 #ifdef USE_IRRLICHT
   // Point on chassis tracked by the camera
-  ChVector<> trackPoint(1.5, 0.0, 1.75);
+  ChVector<> trackPoint(1.5, 0.0, 0);
 #else
   double tend = 20.0;
 
@@ -156,7 +156,7 @@ int main(int argc, char* argv[])
 
   application.SetTimestep(step_size);
 
-  ChIrrGuiST driver(application, tester, trackPoint, 6.0, 0.5, true);
+  ChIrrGuiST driver(application, tester, trackPoint, -2.0, 1, true);
 
   // Set the time response for steering keyboard inputs, when they are used
   // NOTE: this is not exact, since not rendered quite at the specified FPS.
@@ -183,6 +183,7 @@ int main(int argc, char* argv[])
 #endif
 
   // Inter-module communication data
+  ChTireForces tire_forces(2);
   ChWheelState  wheel_states[2];
   double        steering_input;
 
@@ -232,6 +233,8 @@ int main(int argc, char* argv[])
     // Collect output data from modules (for inter-module communication)
     steering_input = driver.GetSteering();
   
+    tire_forces[FRONT_LEFT.id()] = tire_front_left->GetTireForce();
+    tire_forces[FRONT_RIGHT.id()] = tire_front_right->GetTireForce();
     wheel_states[FRONT_LEFT.id()] = tester.GetWheelState(FRONT_LEFT);
     wheel_states[FRONT_RIGHT.id()] = tester.GetWheelState(FRONT_RIGHT);
 
@@ -245,7 +248,7 @@ int main(int argc, char* argv[])
     tire_front_left->Update(time, wheel_states[FRONT_LEFT.id()]);
     tire_front_right->Update(time, wheel_states[FRONT_RIGHT.id()]);
 
-    tester.Update(time, steering_input);
+    tester.Update(time, steering_input, tire_forces);
 
     // Advance simulation for one timestep for all modules
     double step = realtime_timer.SuggestSimulationStep(step_size);
