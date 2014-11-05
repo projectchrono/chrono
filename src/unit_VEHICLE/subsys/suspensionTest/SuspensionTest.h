@@ -38,8 +38,12 @@ public:
   virtual ChCoordsys<> GetLocalDriverCoordsys() const { return m_driverCsys; }
 
   virtual void Initialize(const ChCoordsys<>& chassisPos);
+  /// each timestep, specify the steer angle, displacement of posts and tire forces.
+  /// NOTE: not using the tire_forces, constraints result in kinematically driven test rig.
   virtual void Update(double              time,
                       double              steering,
+                      double              disp_L,
+                      double              disp_R,
                       const ChTireForces& tire_forces);
 
 private:

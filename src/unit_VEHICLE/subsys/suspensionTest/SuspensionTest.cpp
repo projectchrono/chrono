@@ -281,13 +281,18 @@ void SuspensionTest::Initialize(const ChCoordsys<>& chassisPos)
 
 
 // -----------------------------------------------------------------------------
-void SuspensionTest::Update(double        time,
+void SuspensionTest::Update(double       time,
                      double              steering,
+                     double              disp_L,
+                     double              disp_R,
                      const ChTireForces& tire_forces)
 {
  
   // Let the steering subsystem process the steering input.
   m_steering->Update(time, steering);
+
+  // Apply the displacements to the left/right posts
+  
 
   // Apply tire forces to spindle bodies.
   m_suspensions[0]->ApplyTireForce(LEFT, tire_forces[0]);
