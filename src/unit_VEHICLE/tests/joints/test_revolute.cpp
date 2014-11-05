@@ -12,7 +12,7 @@
 // Authors: Mike Taylor, Radu Serban
 // =============================================================================
 //
-// Test for revolute joint
+// Test for the revolute joint
 //
 // Recall that Irrlicht uses a left-hand frame, so everything is rendered with
 // left and right flipped.
@@ -210,8 +210,8 @@ bool TestRevolute(const ChVector<>&     jointLoc,         // absolute location o
   revoluteJoint->Initialize(pendulum, ground, ChCoordsys<>(jointLoc, jointRot));
   my_system.AddLink(revoluteJoint);
 
-  // Perform the simulation (animation with Irrlicht)
-  // ------------------------------------------------
+  // Perform the simulation (animation with Irrlicht option)
+  // -------------------------------------------------------
 
   if (animate)
   {
@@ -249,7 +249,7 @@ bool TestRevolute(const ChVector<>&     jointLoc,         // absolute location o
     return true;
   }
 
-  // Perform the simulation (record results)
+  // Perform the simulation (record results option)
   // ------------------------------------------------
 
   // Create the CSV_Writer output objects (TAB delimited)
