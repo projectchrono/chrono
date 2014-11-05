@@ -44,9 +44,10 @@ struct SimParams {
 		real_ solidSurfaceAdjust;
 		real_ BASEPRES;
 		real_ LARGE_PRES;
+		real3 deltaPress;
 		int nPeriod;
 		real3 gravity;
-		real4 bodyForce4;
+		real3 bodyForce3;
 		real_ rho0;
 		real_ mu0;
 		real_ v_Max;

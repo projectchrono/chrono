@@ -172,9 +172,10 @@ void WriteEverythingToFile(
 	outProbParams << paramsH.solidSurfaceAdjust << endl;
 	outProbParams << paramsH.BASEPRES << endl;
 	outProbParams << paramsH.LARGE_PRES << endl;
+	outProbParams << paramsH.deltaPress.x << ", " << paramsH.deltaPress.y << ", " << paramsH.deltaPress.z << endl;
 	outProbParams << paramsH.nPeriod << endl;
 	outProbParams << paramsH.gravity.x << ", " << paramsH.gravity.y << ", " << paramsH.gravity.z << endl;
-	outProbParams << paramsH.bodyForce4.x << ", " << paramsH.bodyForce4.y << ", " << paramsH.bodyForce4.z << ", " << paramsH.bodyForce4.w << endl;
+	outProbParams << paramsH.bodyForce3.x << ", " << paramsH.bodyForce3.y << ", " << paramsH.bodyForce3.z << endl;
 	outProbParams << paramsH.rho0 << endl;
 	outProbParams << paramsH.mu0 << endl;
 	outProbParams << paramsH.v_Max << endl;
@@ -543,9 +544,10 @@ void ReadEverythingFromFile(
 	inProbParams >> paramsH.solidSurfaceAdjust;
 	inProbParams >> paramsH.BASEPRES ;
 	inProbParams >> paramsH.LARGE_PRES ;
+	inProbParams >> paramsH.deltaPress.x >> ddCh >> paramsH.deltaPress.y >> ddCh >> paramsH.deltaPress.z ;
 	inProbParams >> paramsH.nPeriod ;
 	inProbParams >> paramsH.gravity.x >> ddCh >> paramsH.gravity.y >> ddCh >> paramsH.gravity.z ;
-	inProbParams >> paramsH.bodyForce4.x >> ddCh >> paramsH.bodyForce4.y >> ddCh >> paramsH.bodyForce4.z >> ddCh >> paramsH.bodyForce4.w ;
+	inProbParams >> paramsH.bodyForce3.x >> ddCh >> paramsH.bodyForce3.y >> ddCh >> paramsH.bodyForce3.z ;
 	inProbParams >> paramsH.rho0 ;
 	inProbParams >> paramsH.mu0 ;
 	inProbParams >> paramsH.v_Max ;

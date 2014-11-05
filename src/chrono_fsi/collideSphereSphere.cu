@@ -349,7 +349,7 @@ __global__ void ApplyPeriodicBoundaryXKernel(real3 * posRadD, real4 * rhoPresMuD
 		posRad.x -= (paramsD.cMax.x - paramsD.cMin.x);
 		posRadD[index] = posRad;
 		if (rhoPresMu.w < -.1) {
-			rhoPresMu.y = rhoPresMu.y + paramsD.bodyForce4.x * (paramsD.cMax.x - paramsD.cMin.x);
+			rhoPresMu.y = rhoPresMu.y + paramsD.deltaPress.x;
 			rhoPresMuD[index] = rhoPresMu;
 		}
 		return;
@@ -358,7 +358,7 @@ __global__ void ApplyPeriodicBoundaryXKernel(real3 * posRadD, real4 * rhoPresMuD
 		posRad.x += (paramsD.cMax.x - paramsD.cMin.x);
 		posRadD[index] = posRad;
 		if (rhoPresMu.w < -.1) {
-			rhoPresMu.y = rhoPresMu.y - paramsD.bodyForce4.x * (paramsD.cMax.x - paramsD.cMin.x);
+			rhoPresMu.y = rhoPresMu.y - paramsD.deltaPress.x;
 			rhoPresMuD[index] = rhoPresMu;
 		}
 		return;
@@ -380,7 +380,7 @@ __global__ void ApplyPeriodicBoundaryYKernel(real3 * posRadD, real4 * rhoPresMuD
 		posRad.y -= (paramsD.cMax.y - paramsD.cMin.y);
 		posRadD[index] = posRad;
 		if (rhoPresMu.w < -.1) {
-			rhoPresMu.y = rhoPresMu.y + paramsD.bodyForce4.y * (paramsD.cMax.y - paramsD.cMin.y);
+			rhoPresMu.y = rhoPresMu.y + paramsD.deltaPress.y;
 			rhoPresMuD[index] = rhoPresMu;
 		}
 		return;
@@ -389,7 +389,7 @@ __global__ void ApplyPeriodicBoundaryYKernel(real3 * posRadD, real4 * rhoPresMuD
 		posRad.y += (paramsD.cMax.y - paramsD.cMin.y);
 		posRadD[index] = posRad;
 		if (rhoPresMu.w < -.1) {
-			rhoPresMu.y = rhoPresMu.y - paramsD.bodyForce4.y * (paramsD.cMax.y - paramsD.cMin.y);
+			rhoPresMu.y = rhoPresMu.y - paramsD.deltaPress.y;
 			rhoPresMuD[index] = rhoPresMu;
 		}
 		return;
@@ -412,7 +412,7 @@ __global__ void ApplyPeriodicBoundaryZKernel(real3 * posRadD, real4 * rhoPresMuD
 		posRad.z -= (paramsD.cMax.z - paramsD.cMin.z);
 		posRadD[index] = posRad;
 		if (rhoPresMu.w < -.1) {
-			rhoPresMu.y = rhoPresMu.y + paramsD.bodyForce4.z * (paramsD.cMax.z - paramsD.cMin.z);
+			rhoPresMu.y = rhoPresMu.y + paramsD.deltaPress.z;
 			rhoPresMuD[index] = rhoPresMu;
 		}
 		return;
@@ -421,7 +421,7 @@ __global__ void ApplyPeriodicBoundaryZKernel(real3 * posRadD, real4 * rhoPresMuD
 		posRad.z += (paramsD.cMax.z - paramsD.cMin.z);
 		posRadD[index] = posRad;
 		if (rhoPresMu.w < -.1) {
-			rhoPresMu.y = rhoPresMu.y - paramsD.bodyForce4.z * (paramsD.cMax.z - paramsD.cMin.z);
+			rhoPresMu.y = rhoPresMu.y - paramsD.deltaPress.z;
 			rhoPresMuD[index] = rhoPresMu;
 		}
 		return;
@@ -1247,11 +1247,11 @@ void ForceSPH(
 			U1CAST(m_dGridMarkerIndex), U1CAST(mapOriginalToSorted), TCAST(posRadD), R4CAST(velMasD), R4CAST(rhoPresMuD), numAllMarkers, m_numGridCells);
 
 	//process collisions
-	real4 totalFluidBodyForce4 = paramsH.bodyForce4 + R4(paramsH.gravity);
+	real3 totalFluidBodyForce3 = paramsH.bodyForce3 + paramsH.gravity;
 	thrust::fill(derivVelRhoD.begin(), derivVelRhoD.end(), R4(0)); //initialize derivVelRhoD with zero. necessary
 //	GpuTimer myT1;
 //	myT1.Start();
-	thrust::fill(derivVelRhoD.begin() + referenceArray[0].x, derivVelRhoD.begin() + referenceArray[0].y, totalFluidBodyForce4); //add body force to fluid particles.
+	thrust::fill(derivVelRhoD.begin() + referenceArray[0].x, derivVelRhoD.begin() + referenceArray[0].y, R4(totalFluidBodyForce3)); //add body force to fluid particles.
 //	myT1.Stop();
 //	real_ t1 = (real_)myT1.Elapsed();
 //	printf("(1) *** fill timer %f, array size %d\n", t1, referenceArray[0].y - referenceArray[0].x);
@@ -1891,7 +1891,6 @@ void cudaCollisions(
 	//paramsH.numCells = SIDE.x * SIDE.y * SIDE.z;
 	paramsH.worldOrigin = paramsH.cMin;
 	paramsH.cellSize = R3(mBinSize, mBinSize, mBinSize);
-	paramsH.boxDims = paramsH.cMax - paramsH.cMin;
 	printf("boxDims: %f, %f, %f\n", paramsH.boxDims.x, paramsH.boxDims.y, paramsH.boxDims.z);
 
 	setParameters(&paramsH, &numObjects);// sets paramsD in SDKCollisionSystem
@@ -2066,7 +2065,7 @@ void cudaCollisions(
 	real_ realTime = 0;
 
 	SimParams paramsH_B = paramsH;
-	paramsH_B.bodyForce4 = R4(0);
+	paramsH_B.bodyForce3 = R3(0);
 	paramsH_B.gravity = R3(0);
 	paramsH_B.dT = .1 * paramsH.dT;
 
@@ -2109,23 +2108,23 @@ void cudaCollisions(
 //		if (realTime <= timeSlice) {
 //			currentParamsH = paramsH_B;
 //		} else if (realTime <= 2 * timeSlice) {
-//			currentParamsH.bodyForce4.x = paramsH.bodyForce4.x;
-//			currentParamsH.bodyForce4.y = 0;
+//			currentParamsH.bodyForce3.x = paramsH.bodyForce3.x;
+//			currentParamsH.bodyForce3.y = 0;
 //		} else if (realTime <= 3 * timeSlice) {
-//			currentParamsH.bodyForce4.x = 0;
-//			currentParamsH.bodyForce4.y = .5 * paramsH.bodyForce4.x;
+//			currentParamsH.bodyForce3.x = 0;
+//			currentParamsH.bodyForce3.y = .5 * paramsH.bodyForce3.x;
 //		} else if (realTime <= 4 * timeSlice) {
-//			currentParamsH.bodyForce4.x = -.7 * paramsH.bodyForce4.x;
-//			currentParamsH.bodyForce4.y = -.5 * paramsH.bodyForce4.x;
+//			currentParamsH.bodyForce3.x = -.7 * paramsH.bodyForce3.x;
+//			currentParamsH.bodyForce3.y = -.5 * paramsH.bodyForce3.x;
 //		} else if (realTime <= 5 * timeSlice) {
-//			currentParamsH.bodyForce4.x = 1.0 * paramsH.bodyForce4.x;
-//			currentParamsH.bodyForce4.y = 0;
+//			currentParamsH.bodyForce3.x = 1.0 * paramsH.bodyForce3.x;
+//			currentParamsH.bodyForce3.y = 0;
 //		} else if (realTime <= 5.5 * timeSlice) {
-//			currentParamsH.bodyForce4.x = -.5 * paramsH.bodyForce4.x;
-//			currentParamsH.bodyForce4.y = -.5 * paramsH.bodyForce4.x;
+//			currentParamsH.bodyForce3.x = -.5 * paramsH.bodyForce3.x;
+//			currentParamsH.bodyForce3.y = -.5 * paramsH.bodyForce3.x;
 //		} else {
-//			currentParamsH.bodyForce4.x = 1.0 * paramsH.bodyForce4.x;
-//			currentParamsH.bodyForce4.y = 0;
+//			currentParamsH.bodyForce3.x = 1.0 * paramsH.bodyForce3.x;
+//			currentParamsH.bodyForce3.y = 0;
 //		}
 		//***********
 		setParameters(&currentParamsH, &numObjects);// sets paramsD in SDKCollisionSystem

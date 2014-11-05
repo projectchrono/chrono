@@ -2022,9 +2022,10 @@ int main() {
 			paramsH.solidSurfaceAdjust = 0;//.6 * (paramsH.HSML * paramsH.MULT_INITSPACE); // 0.6 for bouyant, under gravity
 		paramsH.BASEPRES = 0;//10;
 			paramsH.LARGE_PRES = paramsH.BASEPRES;//10000;
+			paramsH.deltaPress; //** modified below
 			paramsH.nPeriod = 7;
 		paramsH.gravity = R3(0, 0, 0);//R3(0);//R3(0, -9.81, 0);
-		paramsH.bodyForce4 = R4(0.1,0,0,0);//R4(3.2e-3,0,0,0);// R4(0);;// /*Re = 100 */ //R4(3.2e-4, 0, 0, 0);/*Re = 100 */
+		paramsH.bodyForce3 = R3(0.1,0,0);//R4(3.2e-3,0,0,0);// R4(0);;// /*Re = 100 */ //R4(3.2e-4, 0, 0, 0);/*Re = 100 */
 			paramsH.rho0 = 1000;
 			paramsH.mu0 = .001;
 		paramsH.v_Max = 50e-3;//18e-3;//1.5;//2e-1; /*0.2 for Re = 100 */ //2e-3;
@@ -2105,11 +2106,19 @@ int main() {
 	//	paramsH.binSize0 = (paramsH.binSize0 > binSize3.z) ? paramsH.binSize0 : binSize3.z;
 		paramsH.binSize0 = binSize3.x; //for effect of distance. Periodic BC in x direction. we do not care about paramsH.cMax y and z.
 		paramsH.cMax = paramsH.cMin + paramsH.binSize0 * R3(side0);
+		paramsH.boxDims = paramsH.cMax - paramsH.cMin;
+		printf("sizes *** nP * sP + xFistChannel + xSecondChannel %f \n ", 7 * sPeriod + (r3_2.x + 2 * r4_2.x + r6_2.x) + x_FirstChannel + x_SecondChannel);
 
 		//printf("side0 %d %d %d \n", side0.x, side0.y, side0.z);
 
-		printf("sizes *** nP * sP + xFistChannel + xSecondChannel %f \n ", 7 * sPeriod + (r3_2.x + 2 * r4_2.x + r6_2.x) + x_FirstChannel + x_SecondChannel);
+		//************************** modify pressure ***************************
+		paramsH.deltaPress = paramsH.rho0 * paramsH.boxDims * paramsH.bodyForce3;
 
+
+
+
+
+		//**********************************************************************
 		//1---------------------------------------------- Initialization ----------------------------------------
 		//2------------------------------------------- Generating Random Data -----------------------------------
 		// This section can be used to generate ellipsoids' specifications and save them into data.txt
@@ -2326,8 +2335,8 @@ int main() {
 //		//***********************************************************************************************************************
 	}
 	//***** print numbers
-	printf("********************\n paramsH.HSML: %f\n paramsH.bodyForce4: %f %f %f\n paramsH.gravity: %f %f %f\n paramsH.rho0: %e\n paramsH.mu0: %f\n paramsH.v_Max: %f\n paramsH.dT: %e\n paramsH.tFinal: %f\n  paramsH.timePause: %f\n  paramsH.timePauseRigidFlex: %f\n paramsH.densityReinit: %d\n",
-			paramsH.HSML, paramsH.bodyForce4.x, paramsH.bodyForce4.y, paramsH.bodyForce4.z, paramsH.gravity.x, paramsH.gravity.y, paramsH.gravity.z,
+	printf("********************\n paramsH.HSML: %f\n paramsH.bodyForce3: %f %f %f\n paramsH.gravity: %f %f %f\n paramsH.rho0: %e\n paramsH.mu0: %f\n paramsH.v_Max: %f\n paramsH.dT: %e\n paramsH.tFinal: %f\n  paramsH.timePause: %f\n  paramsH.timePauseRigidFlex: %f\n paramsH.densityReinit: %d\n",
+			paramsH.HSML, paramsH.bodyForce3.x, paramsH.bodyForce3.y, paramsH.bodyForce3.z, paramsH.gravity.x, paramsH.gravity.y, paramsH.gravity.z,
 			paramsH.rho0, paramsH.mu0, paramsH.v_Max, paramsH.dT, paramsH.tFinal, paramsH.timePause, paramsH.timePauseRigidFlex, paramsH.densityReinit);
 	printf(" paramsH.cMin: %f %f %f, paramsH.cMax: %f %f %f\n binSize: %f\n",
 			paramsH.cMin.x, paramsH.cMin.y, paramsH.cMin.z, paramsH.cMax.x,
