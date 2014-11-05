@@ -257,52 +257,31 @@ SuspensionTest::SuspensionTest(const std::string& filename): m_num_axles(1)
 
   // -----------------------
   // add the shaker posts, Left then right. 
-  double post_height = 0.1;
-  double post_rad = 0.4;
+  m_post_height = 0.1;
+  m_post_rad = 0.4;
   double wheel_rad = m_wheels[LEFT]->GetRadius();
   m_post_L = ChSharedPtr<ChBody>(new ChBody());
-
-
-
-  // TODO: MORE TO INITIALISZE()
-  ChVector<> post_L_pos = m_suspensions[0u]->GetSpindlePos(LEFT);
-  post_L_pos.z -= (post_height/2.0 + wheel_rad);
-
-
-
-
-
 
   // DEBUGGING, check the radius we get
   GetLog () << "\n\n &^#%$&^#$%^&#$% \n\n wheel radius, according to Suspension test : " 
     << wheel_rad << "\n\n";
   // Cylinders for left post visualization
-  ChSharedPtr<ChCylinderShape> left_cyl(new ChCylinderShape);
-  left_cyl->GetCylinderGeometry().rad = post_rad;
-  left_cyl->GetCylinderGeometry().p1 = ChVector<>(0,0,post_height/2.0);
-  left_cyl->GetCylinderGeometry().p2 = ChVector<>(0,0,-post_height/2.0);
-  m_post_L->AddAsset(left_cyl); // add asset to left post body
+  AddVisualize_post(m_post_L, m_post_height, m_post_rad);
   Add(m_post_L);  // add left post body to System
 
-  // posts can only vetically translate
+  // TODO:
+  // constrain L post to only translate vetically
 
 
   m_post_R = ChSharedPtr<ChBody>(new ChBody());
   
 
-  // TODO: MOVE TO INITIALIZE()
-  // ChVector<> post_R_pos = m_suspensions[0u]->GetSpindlePos(RIGHT);
-  //  post_R_pos.z -= (post_height/2.0 + wheel_rad);
-  
-
-
   // Cylinder for visualization of right post
-  ChSharedPtr<ChCylinderShape> right_cyl(new ChCylinderShape);
-  right_cyl->GetCylinderGeometry().rad = post_rad;
-  right_cyl->GetCylinderGeometry().p1 = ChVector<>(0,0,post_height/2.0);
-  right_cyl->GetCylinderGeometry().p2 = ChVector<>(0,0,-post_height/2.0);
-  m_post_R->AddAsset(right_cyl);  // add asset to right post body
+  AddVisualize_post(m_post_R, m_post_height, m_post_rad);
   Add(m_post_R);  // add right post body to System
+
+  // TODO:
+  // constrain R post to only translate vetically
 
 }
 
@@ -325,6 +304,23 @@ void SuspensionTest::Initialize(const ChCoordsys<>& chassisPos)
   // initialize the two wheels
   m_wheels[0]->Initialize(m_suspensions[0]->GetSpindle(LEFT));
   m_wheels[1]->Initialize(m_suspensions[0]->GetSpindle(RIGHT));
+
+  // initialize the posts relative to the wheels
+  // left side post
+  ChVector<> post_L_pos = m_suspensions[0]->GetSpindlePos(LEFT);
+  post_L_pos.z -= m_wheels[LEFT]->GetRadius() + m_post_height/2.0;  // shift down
+  m_post_L->SetPos(post_L_pos);
+
+  // test a spherical joint, above and to the side of the CM of the left post. should act like
+  // a massless link, since it's attached to the ground
+  ChSharedPtr<ChLinkLockSpherical> m_test_sph_j(new ChLinkLockSpherical);
+  m_test_sph_j->Initialize(m_chassis, m_post_L, ChCoordsys<>(ChVector<>(post_L_pos.x+.2, post_L_pos.y, post_L_pos.z+.7),QUNIT) );
+  AddLink(m_test_sph_j);
+  
+  // right side post
+  ChVector<> post_R_pos = m_suspensions[0]->GetSpindlePos(RIGHT);
+  post_R_pos.z -= m_wheels[RIGHT]->GetRadius() + m_post_height/2.0; // shift down
+  m_post_R->SetPos(post_R_pos);
 
 }
 
@@ -349,5 +345,22 @@ void SuspensionTest::Update(double       time,
 
 }
 
+
+void SuspensionTest::AddVisualize_post(ChSharedBodyPtr post_body,
+                                double height,
+                                double rad)
+{
+  // post platform visualized as a cylinder
+  ChSharedPtr<ChCylinderShape> left_cyl(new ChCylinderShape);
+  left_cyl->GetCylinderGeometry().rad = rad;
+  left_cyl->GetCylinderGeometry().p1 = ChVector<>(0,0,height/2.0);
+  left_cyl->GetCylinderGeometry().p2 = ChVector<>(0,0,-height/2.0);
+
+  post_body->AddAsset(left_cyl); // add geometry asset to left post body
+
+  ChSharedPtr<ChColorAsset> col(new ChColorAsset);
+  col->SetColor(ChColor(0.4f, 0.2f, 0.6f));
+  post_body->AddAsset(col);
+}
 
 } // end namespace chrono

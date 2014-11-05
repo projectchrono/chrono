@@ -69,6 +69,13 @@ private:
   ChVector<> m_chassisInertia;                // moments of inertia of the chassis
 
   ChCoordsys<> m_driverCsys;                  // driver position and orientation relative to chassis
+  double m_post_height;                       // post height, for visuals
+  double m_post_rad;                          // post radius, for visuals
+
+
+  static void AddVisualize_post(ChSharedBodyPtr post_body,
+                                double height,
+                                double rad);
 };
 
 
