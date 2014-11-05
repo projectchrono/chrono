@@ -172,7 +172,7 @@ void SuspensionTest::LoadWheel(const std::string& filename, int axle, int side)
 
 
 // ----------------------------------------------------------
-SuspensionTest::SuspensionTest(const std::string& filename)
+SuspensionTest::SuspensionTest(const std::string& filename): m_num_axles(1)
 {
   // Open and parse the input file
   FILE* fp = fopen(filename.c_str(), "r");
@@ -250,11 +250,60 @@ SuspensionTest::SuspensionTest(const std::string& filename)
   file_name = d["Axles"][0u]["Right Wheel Input File"].GetString();
   LoadWheel(utils::GetModelDataFile(file_name), 0, 1);
 
-
   // -----------------------
   // Extract driver position
   m_driverCsys.pos = loadVector(d["Driver Position"]["Location"]);
   m_driverCsys.rot = loadQuaternion(d["Driver Position"]["Orientation"]);
+
+  // -----------------------
+  // add the shaker posts, Left then right. 
+  double post_height = 0.1;
+  double post_rad = 0.4;
+  double wheel_rad = m_wheels[LEFT]->GetRadius();
+  m_post_L = ChSharedPtr<ChBody>(new ChBody());
+
+
+
+  // TODO: MORE TO INITIALISZE()
+  ChVector<> post_L_pos = m_suspensions[0u]->GetSpindlePos(LEFT);
+  post_L_pos.z -= (post_height/2.0 + wheel_rad);
+
+
+
+
+
+
+  // DEBUGGING, check the radius we get
+  GetLog () << "\n\n &^#%$&^#$%^&#$% \n\n wheel radius, according to Suspension test : " 
+    << wheel_rad << "\n\n";
+  // Cylinders for left post visualization
+  ChSharedPtr<ChCylinderShape> left_cyl(new ChCylinderShape);
+  left_cyl->GetCylinderGeometry().rad = post_rad;
+  left_cyl->GetCylinderGeometry().p1 = ChVector<>(0,0,post_height/2.0);
+  left_cyl->GetCylinderGeometry().p2 = ChVector<>(0,0,-post_height/2.0);
+  m_post_L->AddAsset(left_cyl); // add asset to left post body
+  Add(m_post_L);  // add left post body to System
+
+  // posts can only vetically translate
+
+
+  m_post_R = ChSharedPtr<ChBody>(new ChBody());
+  
+
+  // TODO: MOVE TO INITIALIZE()
+  // ChVector<> post_R_pos = m_suspensions[0u]->GetSpindlePos(RIGHT);
+  //  post_R_pos.z -= (post_height/2.0 + wheel_rad);
+  
+
+
+  // Cylinder for visualization of right post
+  ChSharedPtr<ChCylinderShape> right_cyl(new ChCylinderShape);
+  right_cyl->GetCylinderGeometry().rad = post_rad;
+  right_cyl->GetCylinderGeometry().p1 = ChVector<>(0,0,post_height/2.0);
+  right_cyl->GetCylinderGeometry().p2 = ChVector<>(0,0,-post_height/2.0);
+  m_post_R->AddAsset(right_cyl);  // add asset to right post body
+  Add(m_post_R);  // add right post body to System
+
 }
 
 

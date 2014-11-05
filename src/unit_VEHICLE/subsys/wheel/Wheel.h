@@ -42,6 +42,8 @@ public:
 
   void ExportMeshPovray(const std::string& out_dir);
 
+  double GetRadius(){ return m_radius; };
+
 private:
 
   enum VisMode {
