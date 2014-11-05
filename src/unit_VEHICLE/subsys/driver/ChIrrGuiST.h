@@ -67,6 +67,13 @@ public:
   void SetStepsize(double val) { m_stepsize = val; }
   double GetStepsize() const { return m_stepsize; }
 
+  // Accessors
+  /// Get the left post z displacement
+  double Get_post_z_L() const { return m_shaker_L; }
+
+  /// Get the right post z displacement
+  double Get_post_z_R() const { return m_shaker_R; }
+
 private:
 
   // control the vertical displacement of shaker posts

@@ -190,8 +190,9 @@ int main(int argc, char* argv[])
 
   // Inter-module communication data
   ChTireForces tire_forces(2);
-  ChWheelState  wheel_states[2];
-  double        steering_input;
+  ChWheelState wheel_states[2];
+  double       steering_input;
+  double       post_z_L, post_z_R;
 
   // Number of simulation steps between two 3D view render frames
   int render_steps = (int)std::ceil(render_step_size / step_size);
@@ -236,8 +237,10 @@ int main(int argc, char* argv[])
     }
 #endif
 
-    // Collect output data from modules (for inter-module communication)
+    // Collect output data from modules, here it's the steering and post displacements
     steering_input = driver.GetSteering();
+    post_z_L = driver.Get_post_z_L();
+    post_z_R = driver.Get_post_z_R();
   
     tire_forces[FRONT_LEFT.id()] = tire_front_left->GetTireForce();
     tire_forces[FRONT_RIGHT.id()] = tire_front_right->GetTireForce();
@@ -254,7 +257,7 @@ int main(int argc, char* argv[])
     tire_front_left->Update(time, wheel_states[FRONT_LEFT.id()]);
     tire_front_right->Update(time, wheel_states[FRONT_RIGHT.id()]);
 
-    tester.Update(time, steering_input, tire_forces);
+    tester.Update(time, steering_input, post_z_L, post_z_R, tire_forces);
 
     // Advance simulation for one timestep for all modules
     double step = realtime_timer.SuggestSimulationStep(step_size);
