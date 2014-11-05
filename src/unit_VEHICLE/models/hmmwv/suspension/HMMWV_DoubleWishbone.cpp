@@ -38,53 +38,49 @@ static const double lb2kg = 0.453592;
 static const double lbf2N = 4.44822162;
 static const double lbfpin2Npm = 175.12677;
 
-const double     HMMWV_DoubleWishboneFront::m_UCAMass = lb2kg * 12.0; 
-const double     HMMWV_DoubleWishboneFront::m_LCAMass = lb2kg * 36.0;
-// entire wheel assembly = 195 lbs, includes upright, spindle and tire.
-// HMMWV tires run ~ 100 lbs, so the spindle and upright should be ~ 95 lbs combined
-const double     HMMWV_DoubleWishboneFront::m_uprightMass = lb2kg * 60.0;
-const double     HMMWV_DoubleWishboneFront::m_spindleMass = lb2kg * 35.0;
+const double     HMMWV_DoubleWishboneFront::m_UCAMass = 5.813; 
+const double     HMMWV_DoubleWishboneFront::m_LCAMass = 23.965;
+const double     HMMWV_DoubleWishboneFront::m_uprightMass = 19.450;
+const double     HMMWV_DoubleWishboneFront::m_spindleMass = 14.705;
 
-const double     HMMWV_DoubleWishboneFront::m_spindleRadius = 0.15;
+const double     HMMWV_DoubleWishboneFront::m_spindleRadius = 0.10;
 const double     HMMWV_DoubleWishboneFront::m_spindleWidth = 0.06;
 const double     HMMWV_DoubleWishboneFront::m_LCARadius = 0.03;
 const double     HMMWV_DoubleWishboneFront::m_UCARadius = 0.02;
-const double     HMMWV_DoubleWishboneFront::m_uprightRadius = 0.03;
+const double     HMMWV_DoubleWishboneFront::m_uprightRadius = 0.04;
 
-const ChVector<> HMMWV_DoubleWishboneFront::m_spindleInertia(2, 4, 2); // TODO: This is not the correct value
-const ChVector<> HMMWV_DoubleWishboneFront::m_UCAInertia(2, 2, 2);     // TODO: This is not the correct value
-const ChVector<> HMMWV_DoubleWishboneFront::m_LCAInertia(3, 3, 3);     // TODO: This is not the correct value
-const ChVector<> HMMWV_DoubleWishboneFront::m_uprightInertia(5, 5, 5); // TODO: This is not the correct value
+const ChVector<> HMMWV_DoubleWishboneFront::m_spindleInertia(0.04117, 0.07352, 0.04117); // TODO: This is not the correct value
+const ChVector<> HMMWV_DoubleWishboneFront::m_UCAInertia(0.03, 0.03, 0.06276);     // TODO: This is not the correct value
+const ChVector<> HMMWV_DoubleWishboneFront::m_LCAInertia(0.4, 0.4, 0.8938);     // TODO: This is not the correct value
+const ChVector<> HMMWV_DoubleWishboneFront::m_uprightInertia(0.1656, 0.1934, 0.04367); // TODO: This is not the correct value
 
 const double     HMMWV_DoubleWishboneFront::m_axleInertia = 0.4;
 
-const double     HMMWV_DoubleWishboneFront::m_springCoefficient  = lbfpin2Npm * 954;
-const double     HMMWV_DoubleWishboneFront::m_springRestLength   = in2m * 13.36;
+const double     HMMWV_DoubleWishboneFront::m_springCoefficient  = 167062.000;
+const double     HMMWV_DoubleWishboneFront::m_springRestLength   = 0.339;
 
 // -----------------------------------------------------------------------------
 
-const double     HMMWV_DoubleWishboneRear::m_UCAMass = lb2kg * 12.0;
-const double     HMMWV_DoubleWishboneRear::m_LCAMass = lb2kg * 36.0;
-// entire wheel assembly = 195 lbs, includes upright, spindle and tire.
-// HMMWV tires run ~ 100 lbs, so the spindle and upright should be ~ 95 lbs combined
-const double     HMMWV_DoubleWishboneRear::m_uprightMass = lb2kg * 60.0;
-const double     HMMWV_DoubleWishboneRear::m_spindleMass = lb2kg * 35.0;
+const double     HMMWV_DoubleWishboneRear::m_UCAMass = 5.813; 
+const double     HMMWV_DoubleWishboneRear::m_LCAMass = 23.965;
+const double     HMMWV_DoubleWishboneRear::m_uprightMass = 19.450;
+const double     HMMWV_DoubleWishboneRear::m_spindleMass = 14.705;
 
-const double     HMMWV_DoubleWishboneRear::m_spindleRadius = 0.15;
+const double     HMMWV_DoubleWishboneRear::m_spindleRadius = 0.10;
 const double     HMMWV_DoubleWishboneRear::m_spindleWidth = 0.06;
-const double     HMMWV_DoubleWishboneRear::m_LCARadius = 0.03;         // LCA is much thicker than UCA
+const double     HMMWV_DoubleWishboneRear::m_LCARadius = 0.03;
 const double     HMMWV_DoubleWishboneRear::m_UCARadius = 0.02;
-const double     HMMWV_DoubleWishboneRear::m_uprightRadius = 0.03;
+const double     HMMWV_DoubleWishboneRear::m_uprightRadius = 0.04;
 
-const ChVector<> HMMWV_DoubleWishboneRear::m_spindleInertia(2, 4, 2);  // TODO: This is not the correct value
-const ChVector<> HMMWV_DoubleWishboneRear::m_UCAInertia(2, 2, 2);      // TODO: This is not the correct value
-const ChVector<> HMMWV_DoubleWishboneRear::m_LCAInertia(3, 3, 3);      // TODO: This is not the correct value
-const ChVector<> HMMWV_DoubleWishboneRear::m_uprightInertia(5, 5, 5);  // TODO: This is not the correct value
+const ChVector<> HMMWV_DoubleWishboneRear::m_spindleInertia(0.04117, 0.07352, 0.04117); // TODO: This is not the correct value
+const ChVector<> HMMWV_DoubleWishboneRear::m_UCAInertia(0.03, 0.03, 0.06276);     // TODO: This is not the correct value
+const ChVector<> HMMWV_DoubleWishboneRear::m_LCAInertia(0.4, 0.4, 0.8938);     // TODO: This is not the correct value
+const ChVector<> HMMWV_DoubleWishboneRear::m_uprightInertia(0.1656, 0.1934, 0.04367); // TODO: This is not the correct value
 
 const double     HMMWV_DoubleWishboneRear::m_axleInertia = 0.4;
 
-const double     HMMWV_DoubleWishboneRear::m_springCoefficient = lbfpin2Npm * 2108;
-const double     HMMWV_DoubleWishboneRear::m_springRestLength = in2m * 15.03;
+const double     HMMWV_DoubleWishboneRear::m_springCoefficient  = 369149.000;
+const double     HMMWV_DoubleWishboneRear::m_springRestLength   = 0.382;
 
 
 // -----------------------------------------------------------------------------

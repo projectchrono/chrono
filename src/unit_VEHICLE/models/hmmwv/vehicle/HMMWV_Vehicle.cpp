@@ -37,9 +37,9 @@ static const double in2m = 0.0254;
 static const double lb2kg = 0.453592;
 static const double lbf2N = 4.44822162;
 
-const double     HMMWV_Vehicle::m_chassisMass = lb2kg * 7740.7;                           // chassis sprung mass
-const ChVector<> HMMWV_Vehicle::m_chassisCOM = in2m * ChVector<>(-18.8, -0.585, 33.329);  // COM location
-const ChVector<> HMMWV_Vehicle::m_chassisInertia(125.8, 497.4, 531.4);                    // chassis inertia (roll,pitch,yaw)
+const double     HMMWV_Vehicle::m_chassisMass = 2086.524902;                           // chassis sprung mass
+const ChVector<> HMMWV_Vehicle::m_chassisCOM = ChVector<>(0.055765, 0, 0.52349);  // COM location
+const ChVector<> HMMWV_Vehicle::m_chassisInertia(1078.52344, 2955.66050, 3570.20377);                    // chassis inertia (roll,pitch,yaw)
 
 const std::string HMMWV_Vehicle::m_chassisMeshName = "hmmwv_chassis";
 const std::string HMMWV_Vehicle::m_chassisMeshFile = utils::GetModelDataFile("hmmwv/hmmwv_chassis.obj");
@@ -138,14 +138,14 @@ void HMMWV_Vehicle::Initialize(const ChCoordsys<>& chassisPos)
 
   // Initialize the steering subsystem (specify the steering subsystem's frame
   // relative to the chassis reference frame).
-  ChVector<> offset = in2m * ChVector<>(49.015, 0, 4.304);
+  ChVector<> offset = ChVector<>(1.24498, 0, 0.101322);
   ChQuaternion<> rotation = Q_from_AngAxis(18.5 * CH_C_PI / 180, ChVector<>(0, 1, 0));
   m_steering->Initialize(m_chassis, offset, rotation);
 
   // Initialize the suspension subsystems (specify the suspension subsystems'
   // frames relative to the chassis reference frame).
-  m_suspensions[0]->Initialize(m_chassis, in2m * ChVector<>(66.59, 0, 1.039), m_steering->GetSteeringLink());
-  m_suspensions[1]->Initialize(m_chassis, in2m * ChVector<>(-66.4, 0, 1.039), m_chassis);
+  m_suspensions[0]->Initialize(m_chassis, ChVector<>(1.688965, 0, 0), m_steering->GetSteeringLink());
+  m_suspensions[1]->Initialize(m_chassis, ChVector<>(-1.688965, 0, 0), m_chassis);
 
   // Initialize wheels
   m_front_left_wheel->Initialize(m_suspensions[0]->GetSpindle(LEFT));
