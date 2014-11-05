@@ -31,6 +31,8 @@ ChIrrGuiST::ChIrrGuiST(ChIrrApp&          app,
                       const ChVector<>&   ptOnChassis,
                       double              chaseDist,
                       double              chaseHeight,
+                      double              steer_limit,
+                      double              shaker_limit,
                       int                 HUD_x,
                       int                 HUD_y)
 : m_app(app),
@@ -38,7 +40,8 @@ ChIrrGuiST::ChIrrGuiST(ChIrrApp&          app,
   m_HUD_x(HUD_x),
   m_HUD_y(HUD_y),
   m_terrainHeight(0),
-  m_steeringDelta(1.0/50),
+  m_steeringDelta(steer_limit/50.0),
+  m_shakerDelta(shaker_limit/50.0),
   m_camera(tester.GetChassis()),
   m_stepsize(1e-3)
 {

@@ -38,13 +38,17 @@ class CH_SUBSYS_API ChIrrGuiST : public ChDriver, public irr::IEventReceiver
 {
 public:
 
-  /// camera should target front
+  /// camera should be in the front of the vehicle, facing backward,
+  ///  target center of suspensions.
+  ///  Also, you can set the steer limits [-steer_limit, steer_limit]
   ChIrrGuiST(
     irr::ChIrrApp&      app,
     ChSuspensionTest&   tester,
     const ChVector<>&   ptOnChassis,
     double              chaseDist,
     double              chaseHeight,
+    double              steer_limit = 1.0,
+    double              shaker_limit = 0.10,  // min/max jounce/rebound
     int                 HUD_x = 740,
     int                 HUD_y = 20
     );
@@ -86,6 +90,7 @@ private:
 
   double m_terrainHeight;
   double m_steeringDelta;
+  double m_shakerDelta;
 
   int  m_HUD_x;
   int  m_HUD_y;
