@@ -29,7 +29,8 @@ namespace chrono {
 class CH_SUBSYS_API SuspensionTest : public ChSuspensionTest
 {
 public:
-
+  /// This takes a vehicle JSON file, and only keeps data
+  ///  pertinent to suspension testing rig (e.g., things on the front)
   SuspensionTest(const std::string& filename);
 
   ~SuspensionTest();

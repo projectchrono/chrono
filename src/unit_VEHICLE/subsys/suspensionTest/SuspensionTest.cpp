@@ -229,7 +229,6 @@ SuspensionTest::SuspensionTest(const std::string& filename)
 
   // -----------------------------
   // Create the steering subsystem
-
   {
     std::string file_name = d["Steering"]["Input File"].GetString();
     LoadSteering(utils::GetModelDataFile(file_name));

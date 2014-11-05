@@ -34,22 +34,18 @@
 #include "utils/ChUtilsInputOutput.h"
 #include "utils/ChUtilsData.h"
 
-// subsystems
+// subsystems, all read in fron JSON files
 #include "models/ModelDefs.h"
-#include "models/testing_mechanisms/HMMWV_SuspensionTest.h"
-
-// "modules" go here
-#include "models/hmmwv/tire/HMMWV_RigidTire.h"
+// #include "models/testing_mechanisms/HMMWV_SuspensionTest.h"
+#include "subsys/suspensionTest/SuspensionTest.h"
+#include "subsys/tire/RigidTire.h"
 #include "subsys/terrain/FlatTerrain.h"
-#include "models/hmmwv/HMMWV_FuncDriver.h"
+#include "subsys/driver/ChDataDriver.h"
 
-// If Irrlicht support is available...
+// Irrlicht includes
 #if IRRLICHT_ENABLED
-  // ...include additional headers
 # include "unit_IRRLICHT/ChIrrApp.h"
 # include "subsys/driver/ChIrrGuiST.h"
-
-  // ...and specify whether the demo should actually use Irrlicht
 # define USE_IRRLICHT
 #endif
 
@@ -57,8 +53,18 @@
 //#define DEBUG_LOG
 
 using namespace chrono;
-using namespace hmmwv;
 
+
+
+// =============================================================================
+// JSON file for vehicle model
+std::string suspensionTest_file = utils::GetModelDataFile("hmmwv/vehicle/HMMWV_Vehicle.json");
+
+// JSON files for tire models (rigid) and powertrain (simple)
+std::string rigidtire_file = utils::GetModelDataFile("hmmwv/tire/HMMWV_RigidTire.json");
+
+// Driver input file (if not using Irrlicht)
+std::string driver_file = utils::GetModelDataFile("generic/driver/Sample_Maneuver.txt");
 // =============================================================================
 
 // Initial vehicle position
@@ -93,7 +99,7 @@ int main(int argc, char* argv[])
   SetChronoDataPath(CHRONO_DATA_DIR);
 
   // Create the testing mechanism, initilize ity
-  HMMWV_SuspensionTest tester(MESH);
+  SuspensionTest tester(suspensionTest_file);
   tester.Initialize(ChCoordsys<>(initLoc, initRot));
 
   // Create and initialize two rigid wheels
@@ -103,9 +109,10 @@ int main(int argc, char* argv[])
 
   // flat rigid terrain, height = 0
   FlatTerrain flat_terrain(0);
+
   // use rigid wheels to actuate suspension
-  ChSharedPtr<HMMWV_RigidTire> tire_FL(new HMMWV_RigidTire("FL", flat_terrain, 0.7f));
-  ChSharedPtr<HMMWV_RigidTire> tire_FR(new HMMWV_RigidTire("FR", flat_terrain, 0.7f));
+  ChSharedPtr<RigidTire> tire_FL(new RigidTire(rigidtire_file, flat_terrain));
+  ChSharedPtr<RigidTire> tire_FR(new RigidTire(rigidtire_file, flat_terrain));
    
   tire_FL->Initialize(tester.GetWheelBody(FRONT_LEFT));
   tire_FR->Initialize(tester.GetWheelBody(FRONT_RIGHT));
@@ -156,7 +163,7 @@ int main(int argc, char* argv[])
 
   application.SetTimestep(step_size);
 
-  ChIrrGuiST driver(application, tester, trackPoint, -2.0, 1, true);
+  ChIrrGuiST driver(application, tester, trackPoint, -2.0, 1, true, 0.5);
 
   // Set the time response for steering keyboard inputs, when they are used
   // NOTE: this is not exact, since not rendered quite at the specified FPS.
@@ -171,9 +178,8 @@ int main(int argc, char* argv[])
     application.AddShadowAll();
   }
 #else
-  HMMWV_FuncDriver driver;
+  ChDataDriver driver;
 #endif
-
 
   // ---------------
   // Simulation loop
