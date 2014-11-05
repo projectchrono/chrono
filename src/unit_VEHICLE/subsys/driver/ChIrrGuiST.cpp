@@ -43,7 +43,9 @@ ChIrrGuiST::ChIrrGuiST(ChIrrApp&          app,
   m_steeringDelta(steer_limit/50.0),
   m_shakerDelta(shaker_limit/50.0),
   m_camera(tester.GetChassis()),
-  m_stepsize(1e-3)
+  m_stepsize(1e-3),
+  m_min_post_z(-1.0),
+  m_max_post_z(1.0)
 {
   app.SetUserEventReceiver(this);
 
@@ -77,6 +79,21 @@ bool ChIrrGuiST::OnEvent(const SEvent& event)
       return true;
     case KEY_KEY_D:
       SetSteering(m_steering + m_steeringDelta);
+      return true;
+
+    // shaker left post, up/down
+    case KEY_KEY_T:
+      SetShaker_L(m_shaker_L + m_shakerDelta, m_min_post_z, m_max_post_z);
+      return true;
+    case KEY_KEY_G:
+      SetShaker_L(m_shaker_L - m_shakerDelta, m_min_post_z, m_max_post_z); 
+      return true;
+    // shaker right post, up/down
+    case KEY_KEY_Y:
+      SetShaker_R(m_shaker_R + m_shakerDelta, m_min_post_z, m_max_post_z);
+      return true;
+    case KEY_KEY_H:
+      SetShaker_R(m_shaker_R - m_shakerDelta, m_min_post_z, m_max_post_z); 
       return true;
 
     case KEY_DOWN:
@@ -140,6 +157,17 @@ void ChIrrGuiST::Advance(double step)
   camera->setPosition(core::vector3df((f32)cam_pos.x, (f32)cam_pos.y, (f32)cam_pos.z));
   camera->setTarget(core::vector3df((f32)cam_target.x, (f32)cam_target.y, (f32)cam_target.z));
 
+}
+
+
+void ChIrrGuiST::SetShaker_L(double vertical_disp, double min_z, double max_z)
+{
+  m_shaker_L = clamp(vertical_disp, min_z, max_z);
+}
+
+void ChIrrGuiST::SetShaker_R(double vertical_disp, double min_z, double max_z)
+{
+  m_shaker_R = clamp(vertical_disp, min_z, max_z);
 }
 
 

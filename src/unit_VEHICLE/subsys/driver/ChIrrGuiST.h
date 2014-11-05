@@ -69,6 +69,10 @@ public:
 
 private:
 
+  // control the vertical displacement of shaker posts
+  void SetShaker_L(double vertical_disp, double min_z, double max_z);
+  void SetShaker_R(double vertical_disp, double min_z, double max_z);
+
   void renderSprings();
   void renderLinks();
   void renderGrid();
@@ -91,6 +95,10 @@ private:
   double m_terrainHeight;
   double m_steeringDelta;
   double m_shakerDelta;
+  double m_shaker_L;
+  double m_shaker_R;
+  double m_min_post_z;  // TODO: don't hardcode these
+  double m_max_post_z;
 
   int  m_HUD_x;
   int  m_HUD_y;
