@@ -56,6 +56,8 @@ public:
   virtual void Advance(double step) {}
 
 protected:
+  /// clamp to interval
+  double clamp(double val, double min_val, double max_val);
 
   /// Set the value for the driver steering input.
   void SetSteering(double val, double min_val = -1, double max_val = 1);
