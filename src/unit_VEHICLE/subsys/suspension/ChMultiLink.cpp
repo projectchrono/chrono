@@ -306,7 +306,7 @@ void ChMultiLink::InitializeSide(ChVehicleSide                   side,
   chassis->GetSystem()->AddBody(m_trailingLink[side]);
 
   // Initialize the revolute joint between upright and spindle.
-  ChCoordsys<> rev_csys((points[UPRIGHT] + points[SPINDLE]) / 2, chassisRot * Q_from_AngAxis(CH_C_PI / 2.0, VECT_X));
+  ChCoordsys<> rev_csys(points[SPINDLE], chassisRot * Q_from_AngAxis(CH_C_PI / 2.0, VECT_X));
   m_revolute[side]->Initialize(m_spindle[side], m_upright[side], rev_csys);
   chassis->GetSystem()->AddLink(m_revolute[side]);
 
