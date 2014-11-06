@@ -237,30 +237,30 @@ private:
                       const std::vector<ChVector<> >& points,
                       const std::vector<ChVector<> >& dirs);
 
-  static void AddVisualizationUpperArm(ChSharedBodyPtr    arm,
-                                         const ChVector<>&  pt_F,
-                                         const ChVector<>&  pt_B,
-                                         const ChVector<>&  pt_U,
-                                         double             radius);
-  static void AddVisualizationLateral(ChSharedBodyPtr    rod,
-                                         const ChVector<>&  pt_C,
-                                         const ChVector<>&  pt_U,
-                                         double             radius);
-  static void AddVisualizationTrailingLink(ChSharedBodyPtr    link,
-                                         const ChVector<>&  pt_C,
-                                         const ChVector<>&  pt_S,
-                                         const ChVector<>&  pt_U,
-                                         double             radius);
-  static void AddVisualizationUpright(ChSharedBodyPtr    upright,
-                                         const ChVector<>&  pt_UA,
-                                         const ChVector<>&  pt_TR,
-                                         const ChVector<>&  pt_TL,
-                                         const ChVector<>&  pt_T,
-                                         const ChVector<>&  pt_U,
-                                         double             radius);
+  static void AddVisualizationUpperArm(ChSharedBodyPtr   arm,
+                                       const ChVector<>  pt_F,
+                                       const ChVector<>  pt_B,
+                                       const ChVector<>  pt_U,
+                                       double            radius);
+  static void AddVisualizationLateral(ChSharedBodyPtr   rod,
+                                      const ChVector<>  pt_C,
+                                      const ChVector<>  pt_U,
+                                      double            radius);
+  static void AddVisualizationTrailingLink(ChSharedBodyPtr   link,
+                                           const ChVector<>  pt_C,
+                                           const ChVector<>  pt_S,
+                                           const ChVector<>  pt_U,
+                                           double            radius);
+  static void AddVisualizationUpright(ChSharedBodyPtr   upright,
+                                      const ChVector<>  pt_UA,
+                                      const ChVector<>  pt_TR,
+                                      const ChVector<>  pt_TL,
+                                      const ChVector<>  pt_T,
+                                      const ChVector<>  pt_U,
+                                      double            radius);
   static void AddVisualizationSpindle(ChSharedBodyPtr spindle,
-                                         double          radius,
-                                         double          width);
+                                      double          radius,
+                                      double          width);
 
   static const std::string  m_pointNames[NUM_POINTS];
 };

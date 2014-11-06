@@ -229,7 +229,7 @@ void ChDoubleWishbone::InitializeSide(ChVehicleSide                   side,
   m_upright[side]->SetRot(chassisRot);
   m_upright[side]->SetMass(getUprightMass());
   m_upright[side]->SetInertiaXX(getUprightInertia());
-  AddVisualizationUpright(m_upright[side], points[UCA_U], points[LCA_U], points[TIEROD_U], getUprightRadius());
+  AddVisualizationUpright(m_upright[side], 0.5 * (points[SPINDLE] + points[UPRIGHT]), points[UCA_U], points[LCA_U], points[TIEROD_U], getUprightRadius());
   chassis->GetSystem()->AddBody(m_upright[side]);
 
   // Unit vectors for orientation matrices.
@@ -274,7 +274,7 @@ void ChDoubleWishbone::InitializeSide(ChVehicleSide                   side,
 
 
   // Initialize the revolute joint between upright and spindle.
-  ChCoordsys<> rev_csys((points[UPRIGHT] + points[SPINDLE]) / 2, chassisRot * Q_from_AngAxis(CH_C_PI / 2.0, VECT_X));
+  ChCoordsys<> rev_csys(points[SPINDLE], chassisRot * Q_from_AngAxis(CH_C_PI / 2.0, VECT_X));
   m_revolute[side]->Initialize(m_spindle[side], m_upright[side], rev_csys);
   chassis->GetSystem()->AddLink(m_revolute[side]);
 
@@ -410,11 +410,11 @@ void ChDoubleWishbone::LogConstraintViolations(ChVehicleSide side)
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-void ChDoubleWishbone::AddVisualizationControlArm(ChSharedBodyPtr    arm,
-                                                  const ChVector<>&  pt_F,
-                                                  const ChVector<>&  pt_B,
-                                                  const ChVector<>&  pt_U,
-                                                  double             radius)
+void ChDoubleWishbone::AddVisualizationControlArm(ChSharedBodyPtr   arm,
+                                                  const ChVector<>  pt_F,
+                                                  const ChVector<>  pt_B,
+                                                  const ChVector<>  pt_U,
+                                                  double            radius)
 {
   // Express hardpoint locations in body frame.
   ChVector<> p_F = arm->TransformPointParentToLocal(pt_F);
@@ -439,39 +439,41 @@ void ChDoubleWishbone::AddVisualizationControlArm(ChSharedBodyPtr    arm,
 }
 
 
-void ChDoubleWishbone::AddVisualizationUpright(ChSharedBodyPtr    upright,
-                                               const ChVector<>&  pt_U,
-                                               const ChVector<>&  pt_L,
-                                               const ChVector<>&  pt_T,
-                                               double             radius)
+void ChDoubleWishbone::AddVisualizationUpright(ChSharedBodyPtr   upright,
+                                               const ChVector<>  pt_C,
+                                               const ChVector<>  pt_U,
+                                               const ChVector<>  pt_L,
+                                               const ChVector<>  pt_T,
+                                               double            radius)
 {
   static const double threshold2 = 1e-6;
 
   // Express hardpoint locations in body frame.
+  ChVector<> p_C = upright->TransformPointParentToLocal(pt_C);
   ChVector<> p_U = upright->TransformPointParentToLocal(pt_U);
   ChVector<> p_L = upright->TransformPointParentToLocal(pt_L);
   ChVector<> p_T = upright->TransformPointParentToLocal(pt_T);
 
-  if (p_L.Length2() > threshold2) {
+  if ((p_L - p_C).Length2() > threshold2) {
     ChSharedPtr<ChCylinderShape> cyl_L(new ChCylinderShape);
     cyl_L->GetCylinderGeometry().p1 = p_L;
-    cyl_L->GetCylinderGeometry().p2 = ChVector<>(0, 0, 0);
+    cyl_L->GetCylinderGeometry().p2 = p_C;
     cyl_L->GetCylinderGeometry().rad = radius;
     upright->AddAsset(cyl_L);
   }
 
-  if (p_U.Length2() > threshold2) {
+  if ((p_U - p_C).Length2() > threshold2) {
     ChSharedPtr<ChCylinderShape> cyl_U(new ChCylinderShape);
     cyl_U->GetCylinderGeometry().p1 = p_U;
-    cyl_U->GetCylinderGeometry().p2 = ChVector<>(0, 0, 0);
+    cyl_U->GetCylinderGeometry().p2 = p_C;
     cyl_U->GetCylinderGeometry().rad = radius;
     upright->AddAsset(cyl_U);
   }
 
-  if (p_T.Length2() > threshold2) {
+  if ((p_T - p_C).Length2() > threshold2) {
     ChSharedPtr<ChCylinderShape> cyl_T(new ChCylinderShape);
     cyl_T->GetCylinderGeometry().p1 = p_T;
-    cyl_T->GetCylinderGeometry().p2 = ChVector<>(0, 0, 0);
+    cyl_T->GetCylinderGeometry().p2 = p_C;
     cyl_T->GetCylinderGeometry().rad = radius;
     upright->AddAsset(cyl_T);
   }

@@ -5,16 +5,16 @@
 
   "Chassis":
   {
-    "Mass":     3521.4,
-    "COM":      [-0.4775, -0.0149, 0.8466],
-    "Inertia":  [125.8, 497.4, 531.4]
+    "Mass":     2086.524902,
+    "COM":      [0.055765, 0, 0.52349],
+    "Inertia":  [1078.52344, 2955.66050, 3570.20377]
   },
 
   "Axles":
   [
     {
       "Suspension Input File":   "hmmwv/suspension/HMMWV_DoubleWishboneFront.json",
-      "Suspension Location":     [1.6914, 0, 0.0264],
+      "Suspension Location":     [1.688965, 0, 0],
       "Left Wheel Input File":   "hmmwv/wheel/HMMWV_Wheel_FrontLeft.json",
       "Right Wheel Input File":  "hmmwv/wheel/HMMWV_Wheel_FrontRight.json",
       "Left Brake Input File":   "hmmwv/brake/HMMWV_BrakeSimple_Front.json",
@@ -23,7 +23,7 @@
 
     {
       "Suspension Input File":   "hmmwv/suspension/HMMWV_DoubleWishboneRear.json",
-      "Suspension Location":     [-1.6866, 0, 0.0264],
+      "Suspension Location":     [-1.688965, 0, 0],
       "Left Wheel Input File":   "hmmwv/wheel/HMMWV_Wheel_RearLeft.json",
       "Right Wheel Input File":  "hmmwv/wheel/HMMWV_Wheel_RearRight.json",
       "Left Brake Input File":   "hmmwv/brake/HMMWV_BrakeSimple_Rear.json",
@@ -34,7 +34,7 @@
   "Steering":
   {
     "Input File":           "hmmwv/steering/HMMWV_PitmanArm.json",
-    "Location":             [1.24498, 0, 0.109322],
+    "Location":             [1.24498, 0, 0.101322],
     "Orientation":          [0.98699637, 0, 0.16074256, 0],
     "Suspension Index":     0
   },

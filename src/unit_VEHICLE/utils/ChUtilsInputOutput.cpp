@@ -562,30 +562,37 @@ void WriteMeshPovray(const std::string&    obj_filename,
   std::string pov_filename = out_dir + "/" + mesh_name + ".inc";
   std::ofstream  ofile(pov_filename.c_str());
 
-  ofile << "#macro " << mesh_name << "()" << std::endl;
+  ofile << "#declare " << mesh_name << "_mesh = mesh2 {" << std::endl;
 
   // Write vertices.
+  ofile << "vertex_vectors {" << std::endl;
+  ofile << trimesh.m_vertices.size();
   for (int i = 0; i < trimesh.m_vertices.size(); i++) {
     ChVector<> v = trimesh.m_vertices[i];
-    ofile << "#local v" << i << " = <" << v.x << ", " << v.z << ", " << v.y << ">;" << std::endl;
+    ofile << ",\n<" << v.x << ", " << v.z << ", " << v.y << ">";
   }
+  ofile << "\n}" << std::endl;
 
   // Write face connectivity.
-  ofile << "mesh {" << std::endl;
-
+  ofile << "face_indices {" << std::endl;
+  ofile << trimesh.m_face_v_indices.size();
   for (int i = 0; i < trimesh.m_face_v_indices.size(); i++) {
     ChVector<int> face = trimesh.m_face_v_indices[i];
-    ofile << "   triangle {";
-    ofile << "v" << face.x << ", v" << face.y << ", v" << face.z;
-    ofile << "}" << std::endl;
+    ofile << ",\n<" << face.x << ", " << face.y << ", " << face.z << ">";
   }
+  ofile << "\n}" << std::endl;
 
+  ofile << "\n}" << std::endl;
+
+  // Write the object
+  ofile << "#declare " << mesh_name << " = object {" << std::endl;
+
+  ofile << "   " << mesh_name << "_mesh" << std::endl;
   ofile << "   texture {" << std::endl;
   ofile << "      pigment {color rgb<" << col.R << ", " << col.G << ", " << col.B << ">}" << std::endl;
   ofile << "      finish  {phong 0.2  diffuse 0.6}" << std::endl;
   ofile << "    }" << std::endl;
   ofile << "}" << std::endl;
-  ofile << "#end" << std::endl;
 }
 
 

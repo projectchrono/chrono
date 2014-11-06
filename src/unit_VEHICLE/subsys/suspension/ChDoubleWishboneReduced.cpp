@@ -137,11 +137,11 @@ void ChDoubleWishboneReduced::InitializeSide(ChVehicleSide                   sid
   m_upright[side]->SetRot(chassisRot);
   m_upright[side]->SetMass(getUprightMass());
   m_upright[side]->SetInertiaXX(getUprightInertia());
-  AddVisualizationUpright(m_upright[side], points[UCA_U], points[LCA_U], points[TIEROD_U], getUprightRadius());
+  AddVisualizationUpright(m_upright[side], 0.5 * (points[SPINDLE] + points[UPRIGHT]), points[UCA_U], points[LCA_U], points[TIEROD_U], getUprightRadius());
   chassis->GetSystem()->AddBody(m_upright[side]);
 
   // Initialize joints
-  ChCoordsys<> rev_csys((points[UPRIGHT] + points[SPINDLE]) / 2, chassisRot * Q_from_AngAxis(CH_C_PI / 2.0, VECT_X));
+  ChCoordsys<> rev_csys(points[SPINDLE], chassisRot * Q_from_AngAxis(CH_C_PI / 2.0, VECT_X));
   m_revolute[side]->Initialize(m_spindle[side], m_upright[side], rev_csys);
   chassis->GetSystem()->AddLink(m_revolute[side]);
 
@@ -177,34 +177,44 @@ void ChDoubleWishboneReduced::InitializeSide(ChVehicleSide                   sid
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-void ChDoubleWishboneReduced::AddVisualizationUpright(ChSharedBodyPtr    upright,
-                                                      const ChVector<>&  pt_U,
-                                                      const ChVector<>&  pt_L,
-                                                      const ChVector<>&  pt_T,
-                                                      double             radius)
+void ChDoubleWishboneReduced::AddVisualizationUpright(ChSharedBodyPtr   upright,
+                                                      const ChVector<>  pt_C,
+                                                      const ChVector<>  pt_U,
+                                                      const ChVector<>  pt_L,
+                                                      const ChVector<>  pt_T,
+                                                      double            radius)
 {
+  static const double threshold2 = 1e-6;
+
   // Express hardpoint locations in body frame.
+  ChVector<> p_C = upright->TransformPointParentToLocal(pt_C);
   ChVector<> p_U = upright->TransformPointParentToLocal(pt_U);
   ChVector<> p_L = upright->TransformPointParentToLocal(pt_L);
   ChVector<> p_T = upright->TransformPointParentToLocal(pt_T);
 
-  ChSharedPtr<ChCylinderShape> cyl_L(new ChCylinderShape);
-  cyl_L->GetCylinderGeometry().p1 = p_L;
-  cyl_L->GetCylinderGeometry().p2 = ChVector<>(0, 0, 0);
-  cyl_L->GetCylinderGeometry().rad = radius;
-  upright->AddAsset(cyl_L);
+  if ((p_L - p_C).Length2() > threshold2) {
+    ChSharedPtr<ChCylinderShape> cyl_L(new ChCylinderShape);
+    cyl_L->GetCylinderGeometry().p1 = p_L;
+    cyl_L->GetCylinderGeometry().p2 = p_C;
+    cyl_L->GetCylinderGeometry().rad = radius;
+    upright->AddAsset(cyl_L);
+  }
 
-  ChSharedPtr<ChCylinderShape> cyl_U(new ChCylinderShape);
-  cyl_U->GetCylinderGeometry().p1 = p_U;
-  cyl_U->GetCylinderGeometry().p2 = ChVector<>(0, 0, 0);
-  cyl_U->GetCylinderGeometry().rad = radius;
-  upright->AddAsset(cyl_U);
+  if ((p_U - p_C).Length2() > threshold2) {
+    ChSharedPtr<ChCylinderShape> cyl_U(new ChCylinderShape);
+    cyl_U->GetCylinderGeometry().p1 = p_U;
+    cyl_U->GetCylinderGeometry().p2 = p_C;
+    cyl_U->GetCylinderGeometry().rad = radius;
+    upright->AddAsset(cyl_U);
+  }
 
-  ChSharedPtr<ChCylinderShape> cyl_T(new ChCylinderShape);
-  cyl_T->GetCylinderGeometry().p1 = p_T;
-  cyl_T->GetCylinderGeometry().p2 = ChVector<>(0, 0, 0);
-  cyl_T->GetCylinderGeometry().rad = radius;
-  upright->AddAsset(cyl_T);
+  if ((p_T - p_C).Length2() > threshold2) {
+    ChSharedPtr<ChCylinderShape> cyl_T(new ChCylinderShape);
+    cyl_T->GetCylinderGeometry().p1 = p_T;
+    cyl_T->GetCylinderGeometry().p2 = p_C;
+    cyl_T->GetCylinderGeometry().rad = radius;
+    upright->AddAsset(cyl_T);
+  }
 
   ChSharedPtr<ChColorAsset> col(new ChColorAsset);
   col->SetColor(ChColor(0.2f, 0.2f, 0.6f));
