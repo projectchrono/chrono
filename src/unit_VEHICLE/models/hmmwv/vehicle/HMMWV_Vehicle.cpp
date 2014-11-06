@@ -33,13 +33,9 @@ namespace hmmwv {
 // Static variables
 // -----------------------------------------------------------------------------
 
-static const double in2m = 0.0254;
-static const double lb2kg = 0.453592;
-static const double lbf2N = 4.44822162;
-
 const double     HMMWV_Vehicle::m_chassisMass = 2086.524902;                           // chassis sprung mass
-const ChVector<> HMMWV_Vehicle::m_chassisCOM = ChVector<>(0.055765, 0, 0.52349);  // COM location
-const ChVector<> HMMWV_Vehicle::m_chassisInertia(1078.52344, 2955.66050, 3570.20377);                    // chassis inertia (roll,pitch,yaw)
+const ChVector<> HMMWV_Vehicle::m_chassisCOM = ChVector<>(0.055765, 0, 0.52349);       // COM location
+const ChVector<> HMMWV_Vehicle::m_chassisInertia(1078.52344, 2955.66050, 3570.20377);  // chassis inertia (roll,pitch,yaw)
 
 const std::string HMMWV_Vehicle::m_chassisMeshName = "hmmwv_chassis";
 const std::string HMMWV_Vehicle::m_chassisMeshFile = utils::GetModelDataFile("hmmwv/hmmwv_chassis.obj");
@@ -276,41 +272,41 @@ void HMMWV_Vehicle::DebugLog(int what)
   if (what & DBG_SPRINGS)
   {
     GetLog() << "\n---- Spring (front-left, front-right, rear-left, rear-right)\n";
-    GetLog() << "Length [inch]       "
-      << GetSpringLength(FRONT_LEFT) / in2m << "  "
-      << GetSpringLength(FRONT_RIGHT) / in2m << "  "
-      << GetSpringLength(REAR_LEFT) / in2m << "  "
-      << GetSpringLength(REAR_RIGHT) / in2m << "\n";
-    GetLog() << "Deformation [inch]  "
-      << GetSpringDeformation(FRONT_LEFT) / in2m << "  "
-      << GetSpringDeformation(FRONT_RIGHT) / in2m << "  "
-      << GetSpringDeformation(REAR_LEFT) / in2m << "  "
-      << GetSpringDeformation(REAR_RIGHT) / in2m << "\n";
-    GetLog() << "Force [lbf]         "
-      << GetSpringForce(FRONT_LEFT) / lbf2N << "  "
-      << GetSpringForce(FRONT_RIGHT) / lbf2N << "  "
-      << GetSpringForce(REAR_LEFT) / lbf2N << "  "
-      << GetSpringForce(REAR_RIGHT) / lbf2N << "\n";
+    GetLog() << "Length [m]       "
+      << GetSpringLength(FRONT_LEFT) << "  "
+      << GetSpringLength(FRONT_RIGHT) << "  "
+      << GetSpringLength(REAR_LEFT) << "  "
+      << GetSpringLength(REAR_RIGHT) << "\n";
+    GetLog() << "Deformation [m]  "
+      << GetSpringDeformation(FRONT_LEFT) << "  "
+      << GetSpringDeformation(FRONT_RIGHT) << "  "
+      << GetSpringDeformation(REAR_LEFT) << "  "
+      << GetSpringDeformation(REAR_RIGHT) << "\n";
+    GetLog() << "Force [N]         "
+      << GetSpringForce(FRONT_LEFT) << "  "
+      << GetSpringForce(FRONT_RIGHT) << "  "
+      << GetSpringForce(REAR_LEFT) << "  "
+      << GetSpringForce(REAR_RIGHT) << "\n";
   }
 
   if (what & DBG_SHOCKS)
   {
     GetLog() << "\n---- Shock (front-left, front-right, rear-left, rear-right)\n";
-    GetLog() << "Length [inch]       "
-      << GetShockLength(FRONT_LEFT) / in2m << "  "
-      << GetShockLength(FRONT_RIGHT) / in2m << "  "
-      << GetShockLength(REAR_LEFT) / in2m << "  "
-      << GetShockLength(REAR_RIGHT) / in2m << "\n";
-    GetLog() << "Velocity [inch/s]   "
-      << GetShockVelocity(FRONT_LEFT) / in2m << "  "
-      << GetShockVelocity(FRONT_RIGHT) / in2m << "  "
-      << GetShockVelocity(REAR_LEFT) / in2m << "  "
-      << GetShockVelocity(REAR_RIGHT) / in2m << "\n";
-    GetLog() << "Force [lbf]         "
-      << GetShockForce(FRONT_LEFT) / lbf2N << "  "
-      << GetShockForce(FRONT_RIGHT) / lbf2N << "  "
-      << GetShockForce(REAR_LEFT) / lbf2N << "  "
-      << GetShockForce(REAR_RIGHT) / lbf2N << "\n";
+    GetLog() << "Length [m]       "
+      << GetShockLength(FRONT_LEFT) << "  "
+      << GetShockLength(FRONT_RIGHT) << "  "
+      << GetShockLength(REAR_LEFT) << "  "
+      << GetShockLength(REAR_RIGHT) << "\n";
+    GetLog() << "Velocity [m/s]   "
+      << GetShockVelocity(FRONT_LEFT) << "  "
+      << GetShockVelocity(FRONT_RIGHT) << "  "
+      << GetShockVelocity(REAR_LEFT) << "  "
+      << GetShockVelocity(REAR_RIGHT) << "\n";
+    GetLog() << "Force [N]         "
+      << GetShockForce(FRONT_LEFT) << "  "
+      << GetShockForce(FRONT_RIGHT) << "  "
+      << GetShockForce(REAR_LEFT) << "  "
+      << GetShockForce(REAR_RIGHT) << "\n";
   }
 
   if (what & DBG_CONSTRAINTS)
