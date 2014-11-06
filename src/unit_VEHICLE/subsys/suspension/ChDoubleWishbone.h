@@ -213,16 +213,17 @@ private:
                       ChSharedPtr<ChBody>             tierod_body,
                       const std::vector<ChVector<> >& points);
 
-  static void AddVisualizationControlArm(ChSharedBodyPtr    arm,
-                                         const ChVector<>&  pt_F,
-                                         const ChVector<>&  pt_B,
-                                         const ChVector<>&  pt_U,
-                                         double             radius);
-  static void AddVisualizationUpright(ChSharedBodyPtr    upright,
-                                      const ChVector<>&  pt_U,
-                                      const ChVector<>&  pt_L,
-                                      const ChVector<>&  pt_T,
-                                      double             radius);
+  static void AddVisualizationControlArm(ChSharedBodyPtr   arm,
+                                         const ChVector<>  pt_F,
+                                         const ChVector<>  pt_B,
+                                         const ChVector<>  pt_U,
+                                         double            radius);
+  static void AddVisualizationUpright(ChSharedBodyPtr   upright,
+                                      const ChVector<>  pt_C,
+                                      const ChVector<>  pt_U,
+                                      const ChVector<>  pt_L,
+                                      const ChVector<>  pt_T,
+                                      double            radius);
   static void AddVisualizationSpindle(ChSharedBodyPtr spindle,
                                       double          radius,
                                       double          width);
