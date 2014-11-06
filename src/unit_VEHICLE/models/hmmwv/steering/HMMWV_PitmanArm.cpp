@@ -26,16 +26,16 @@ namespace hmmwv {
 // Static variables
 // -----------------------------------------------------------------------------
 
-const double      HMMWV_PitmanArm::m_steeringLinkMass = 9.072;
-const double      HMMWV_PitmanArm::m_pitmanArmMass = 2.259;
+const double      HMMWV_PitmanArm::m_steeringLinkMass = 3.6814844109;
+const double      HMMWV_PitmanArm::m_pitmanArmMass = 1.605;
 
 const double      HMMWV_PitmanArm::m_steeringLinkRadius = 0.03;
 const double      HMMWV_PitmanArm::m_pitmanArmRadius = 0.02;
 
 const double      HMMWV_PitmanArm::m_maxAngle = 50.0 * (CH_C_PI / 180);
 
-const ChVector<>  HMMWV_PitmanArm::m_steeringLinkInertia(1, 1, 1);
-const ChVector<>  HMMWV_PitmanArm::m_pitmanArmInertia(1, 1, 1);
+const ChVector<>  HMMWV_PitmanArm::m_steeringLinkInertia(0.252, 0.00233, 0.254);
+const ChVector<>  HMMWV_PitmanArm::m_pitmanArmInertia(0.00638, 0.00756, 0.00150);
 
 
 // -----------------------------------------------------------------------------

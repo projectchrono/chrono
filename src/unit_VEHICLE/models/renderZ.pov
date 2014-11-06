@@ -64,16 +64,21 @@ global_settings { ambient_light rgb<1, 1, 1> }
 //
 // RIGHT-HAND FRAME WITH Z UP
 
+
+#declare cam_perspective = true;
+#declare cam_loc    = <5, -3, 3>;
+#declare cam_lookat = <-1, 1, 0>;
+
   
          // Vehicle view from front
-#declare cam_perspective = true;
-#declare cam_loc    = <4, 2, 2>;
-#declare cam_lookat = <-2, -1, 0>;
+//#declare cam_perspective = true;
+//#declare cam_loc    = <3.5, 1, 2>;
+//#declare cam_lookat = <-1, -1, 0>;
  
          // Vehicle view from rear
 //#declare cam_perspective = true;
-//#declare cam_loc    = <-4, 1, 2>;
-//#declare cam_lookat = <2, -1, 0>;
+//#declare cam_loc    = <-3, 2, 2>;
+//#declare cam_lookat = <1, -1.5, 0>;
  
          // Vehicle top-down    
 //#declare cam_perspective = false;              
@@ -84,7 +89,7 @@ global_settings { ambient_light rgb<1, 1, 1> }
 
          // Front-left suspension (from rear-right)
 //#declare cam_perspective = true;
-//#declare cam_loc    = <0.4, 0.2, 1.5>;
+//#declare cam_loc    = <0.4, 0.2, 2>;
 //#declare cam_lookat = <4.2, 1.4, 0>;
    
          // Front-left top-down
@@ -137,11 +142,18 @@ global_settings { ambient_light rgb<1, 1, 1> }
 //#declare cam_loc    = <-1.6, -0.7, 1.5>;
 //#declare cam_lookat = <-1.6, -0.7, 0>;
                                      
+     
+     
+         // Steering mechanism (from rear-right)
+//#declare cam_perspective = true;
+//#declare cam_loc    = <0.2, -0.8, 2>;
+//#declare cam_lookat = <4.2, 1.4, 0>;
+     
       
                                
 // -------------------------------------------------------           
 // Render environment?
-#declare draw_environment = false;   
+#declare draw_environment = true;   
 
 
 // -------------------------------------------------------           
@@ -296,16 +308,16 @@ global_settings { ambient_light rgb<1, 1, 1> }
 //
 #macro MyMesh(mesh_name, pos, rot)
     Parse_String(concat("#include \"", mesh_name,"\""))
-    Parse_String(concat(mesh_name, "() position(pos,rot)"))
+    Parse_String(concat(mesh_name, " position(pos,rot)"))
 #end   
   
   
 
-// ============================================================================================     
+// ============================================================================================
 //
 // READ DATA AND RENDER SCENE
 //
-// ============================================================================================     
+// ============================================================================================
 
 // Read datafile
 #warning concat("LOADING DATA FILE : ",  datafile, "\n")
@@ -413,7 +425,7 @@ global_settings { ambient_light rgb<1, 1, 1> }
         #case (5)
             #read (MyDataFile, mesh_name)
 			#if (render_objects & (active | render_static))
-			    #warning concat("Mesh name: ", mesh_name, "\n")
+			    #warning concat("Mesh name: ", mesh_name, "\n")   
 				object {
 			        MyMesh(mesh_name, <ax,ay,az>,<e0,e1,e2,e3>)     
 			    }
@@ -477,6 +489,7 @@ global_settings { ambient_light rgb<1, 1, 1> }
 			#read (MyDataFile, p1x, p1y, p1z, p2x, p2y, p2z)
 			cylinder {
 			   <p1x,p1z,p1y>, <p2x,p2z,p2y>, spring_radius
+			   ////pigment {color Orange }
 			   texture{Peel scale revolute_halflen/2}
 			} 
 			//sphere {<p1x,p1z,p1y> 1.01 * spring_radius pigment{Orange}} 
@@ -488,7 +501,8 @@ global_settings { ambient_light rgb<1, 1, 1> }
 		#case (30)
 			#read (MyDataFile, p1x, p1y, p1z, p2x, p2y, p2z)
 			cylinder {
-			   <p1x,p1z,p1y>, <p2x,p2z,p2y>, spring_radius  
+			   <p1x,p1z,p1y>, <p2x,p2z,p2y>, spring_radius 
+			   ////pigment {color Orange } 
 			   texture{Peel scale revolute_halflen/2}
 			}
 			//sphere {<p1x,p1z,p1y> 1.01 * spring_radius pigment{Orange}} 
@@ -633,7 +647,7 @@ camera {
 #else
 
   // Set a color of the background (sky)
-  background { color rgb <0.95, 0.95, 0.95> }
+  background { color rgb <1, 1, 1> }
    
    // Create a regular point light source behind the camera
   #if (draw_shadows)
