@@ -2025,10 +2025,10 @@ int main() {
 			paramsH.deltaPress; //** modified below
 			paramsH.nPeriod = 7;
 		paramsH.gravity = R3(0, 0, 0);//R3(0);//R3(0, -9.81, 0);
-		paramsH.bodyForce3 = R3(0.04,0,0);//R4(3.2e-3,0,0,0);// R4(0);;// /*Re = 100 */ //R4(3.2e-4, 0, 0, 0);/*Re = 100 */
+		paramsH.bodyForce3 = R3(0.1,0,0);//R4(3.2e-3,0,0,0);// R4(0);;// /*Re = 100 */ //R4(3.2e-4, 0, 0, 0);/*Re = 100 */
 			paramsH.rho0 = 1000;
 			paramsH.mu0 = .001;
-		paramsH.v_Max = 100e-3;//18e-3;//1.5;//2e-1; /*0.2 for Re = 100 */ //2e-3;
+		paramsH.v_Max = 50e-3;//18e-3;//1.5;//2e-1; /*0.2 for Re = 100 */ //2e-3;
 			paramsH.EPS_XSPH = .5f;
 		paramsH.dT = 1e-4;//.001; //sph alone: .01 for Re 10;
 			paramsH.tFinal = 400;//20 * paramsH.dT; //400
@@ -2112,6 +2112,7 @@ int main() {
 		//printf("side0 %d %d %d \n", side0.x, side0.y, side0.z);
 
 		//************************** modify pressure ***************************
+//		paramsH.deltaPress = paramsH.rho0 * paramsH.boxDims * paramsH.bodyForce3;  //did not work as I expected
 		paramsH.deltaPress = .9 * paramsH.boxDims * paramsH.bodyForce3;
 
 
