@@ -39,11 +39,13 @@ ChIrrGuiST::ChIrrGuiST(ChIrrApp&          app,
   m_tester(tester),
   m_HUD_x(HUD_x),
   m_HUD_y(HUD_y),
+  m_camera(tester.GetChassis()),
   m_terrainHeight(0),
   m_steeringDelta(steer_limit/50.0),
   m_shakerDelta(shaker_limit/50.0),
-  m_camera(tester.GetChassis()),
   m_stepsize(1e-3),
+  m_shaker_L(0),
+  m_shaker_R(0),
   m_min_post_z(-1.0),
   m_max_post_z(1.0)
 {
@@ -283,6 +285,12 @@ void ChIrrGuiST::renderStats()
 
   sprintf(msg, "Steering: %+.2f", m_steering);
   renderLinGauge(std::string(msg), m_steering, true, m_HUD_x, m_HUD_y + 40, 120, 15);
+
+  sprintf(msg, "Left Post: %+.2f", m_shaker_L);
+  renderLinGauge(std::string(msg), m_shaker_L, true, m_HUD_x, m_HUD_y + 60, 120, 15);
+
+  sprintf(msg, "Right Post: %+.2f", m_shaker_R);
+  renderLinGauge(std::string(msg), m_shaker_R, true, m_HUD_x, m_HUD_y + 80, 120, 15);
 }
 
 

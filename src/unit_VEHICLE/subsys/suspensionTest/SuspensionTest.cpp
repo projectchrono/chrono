@@ -260,29 +260,31 @@ SuspensionTest::SuspensionTest(const std::string& filename): m_num_axles(1)
   m_post_height = 0.1;
   m_post_rad = 0.4;
   double wheel_rad = m_wheels[LEFT]->GetRadius();
+
+  // left post body
   m_post_L = ChSharedPtr<ChBody>(new ChBody());
 
   // DEBUGGING, check the radius we get
   GetLog () << "\n\n &^#%$&^#$%^&#$% \n\n wheel radius, according to Suspension test : " 
     << wheel_rad << "\n\n";
+
   // Cylinders for left post visualization
   AddVisualize_post(m_post_L, m_post_height, m_post_rad);
   Add(m_post_L);  // add left post body to System
 
-  // TODO:
   // constrain L post to only translate vetically
+  m_post_L_prismatic = ChSharedPtr<ChLinkLockPrismatic>(new ChLinkLockPrismatic);
+  m_post_L_prismatic->SetNameString("L_post_prismatic");
 
-
+  // right post body
   m_post_R = ChSharedPtr<ChBody>(new ChBody());
-  
-
   // Cylinder for visualization of right post
   AddVisualize_post(m_post_R, m_post_height, m_post_rad);
   Add(m_post_R);  // add right post body to System
 
-  // TODO:
   // constrain R post to only translate vetically
-
+  m_post_R_prismatic = ChSharedPtr<ChLinkLockPrismatic>(new ChLinkLockPrismatic);
+  m_post_R_prismatic->SetNameString("R_post_prismatic");
 }
 
 
@@ -311,17 +313,18 @@ void SuspensionTest::Initialize(const ChCoordsys<>& chassisPos)
   post_L_pos.z -= m_wheels[LEFT]->GetRadius() + m_post_height/2.0;  // shift down
   m_post_L->SetPos(post_L_pos);
 
-  // test a spherical joint, above and to the side of the CM of the left post. should act like
-  // a massless link, since it's attached to the ground
-  ChSharedPtr<ChLinkLockSpherical> m_test_sph_j(new ChLinkLockSpherical);
-  m_test_sph_j->Initialize(m_chassis, m_post_L, ChCoordsys<>(ChVector<>(post_L_pos.x+.2, post_L_pos.y, post_L_pos.z+.7),QUNIT) );
-  AddLink(m_test_sph_j);
+  // constrain left post to vertical. Prismatic default aligned to z-axis
+  m_post_L_prismatic->Initialize(m_chassis, m_post_L, ChCoordsys<>(ChVector<>(post_L_pos), QUNIT) );
+  AddLink(m_post_L_prismatic);
   
   // right side post
   ChVector<> post_R_pos = m_suspensions[0]->GetSpindlePos(RIGHT);
   post_R_pos.z -= m_wheels[RIGHT]->GetRadius() + m_post_height/2.0; // shift down
   m_post_R->SetPos(post_R_pos);
 
+  // constrain right post to vertical.
+  m_post_R_prismatic->Initialize(m_chassis, m_post_R, ChCoordsys<>(ChVector<>(post_R_pos), QUNIT) );
+  AddLink(m_post_R_prismatic);
 }
 
 

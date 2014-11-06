@@ -137,7 +137,8 @@ protected:
   ChSuspensionList           m_suspensions; ///< list of handles to suspension subsystems, only 1 in this case.
   ChSharedPtr<ChBody>        m_post_L;      ///< left shaker post  
   ChSharedPtr<ChBody>        m_post_R;      ///< right shaker post
-
+  ChSharedPtr<ChLinkLockPrismatic> m_post_L_prismatic; ///< left post prismatic joint
+  ChSharedPtr<ChLinkLockPrismatic> m_post_R_prismatic; ///< right post prismatic joint
   ChSharedPtr<ChSteering>    m_steering;     ///< handle to the steering subsystem.
   ChWheelList                m_wheels;       ///< list of handles to wheel subsystems, 2 in this case.
 
