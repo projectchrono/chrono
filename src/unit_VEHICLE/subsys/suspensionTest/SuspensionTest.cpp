@@ -275,6 +275,9 @@ SuspensionTest::SuspensionTest(const std::string& filename): m_num_axles(1)
   // constrain L post to only translate vetically
   m_post_L_prismatic = ChSharedPtr<ChLinkLockPrismatic>(new ChLinkLockPrismatic);
   m_post_L_prismatic->SetNameString("L_post_prismatic");
+  // actutate L post
+  m_post_L_linact = ChSharedPtr<ChLinkLinActuator>(new ChLinkLinActuator);
+  m_post_L_linact->SetNameString("L_post_linActuator");
 
   // right post body
   m_post_R = ChSharedPtr<ChBody>(new ChBody());
@@ -285,6 +288,9 @@ SuspensionTest::SuspensionTest(const std::string& filename): m_num_axles(1)
   // constrain R post to only translate vetically
   m_post_R_prismatic = ChSharedPtr<ChLinkLockPrismatic>(new ChLinkLockPrismatic);
   m_post_R_prismatic->SetNameString("R_post_prismatic");
+  // actuate R post
+  m_post_R_linact = ChSharedPtr<ChLinkLinActuator>(new ChLinkLinActuator);
+  m_post_R_linact->SetNameString("R_post_linActuator");
 }
 
 
@@ -317,6 +323,13 @@ void SuspensionTest::Initialize(const ChCoordsys<>& chassisPos)
   m_post_L_prismatic->Initialize(m_chassis, m_post_L, ChCoordsys<>(ChVector<>(post_L_pos), QUNIT) );
   AddLink(m_post_L_prismatic);
   
+  // actuate the L post DOF with a linear actuator in the vertical direction.
+  // body 2 is the post, so this link will be w.r.t. marker on that body
+  m_post_L_linact->Initialize(m_chassis, m_post_L, ChCoordsys<>(post_L_pos,QUNIT) );
+  ChSharedPtr<ChFunction_Const> func_L(new ChFunction_Const(0));
+  m_post_L_linact->Set_dist_funct( func_L );
+  AddLink(m_post_L_linact);
+
   // right side post
   ChVector<> post_R_pos = m_suspensions[0]->GetSpindlePos(RIGHT);
   post_R_pos.z -= m_wheels[RIGHT]->GetRadius() + m_post_height/2.0; // shift down
@@ -325,6 +338,12 @@ void SuspensionTest::Initialize(const ChCoordsys<>& chassisPos)
   // constrain right post to vertical.
   m_post_R_prismatic->Initialize(m_chassis, m_post_R, ChCoordsys<>(ChVector<>(post_R_pos), QUNIT) );
   AddLink(m_post_R_prismatic);
+
+  // actuate the R post DOF with a linear actuator in the vertical direction
+  m_post_R_linact->Initialize(m_chassis, m_post_R, ChCoordsys<>(post_R_pos,QUNIT) );
+  ChSharedPtr<ChFunction_Const> func_R(new ChFunction_Const(0));
+  m_post_R_linact->Set_dist_funct( func_R );
+  AddLink(m_post_L_linact);
 }
 
 
@@ -339,8 +358,11 @@ void SuspensionTest::Update(double       time,
   // Let the steering subsystem process the steering input.
   m_steering->Update(time, steering);
 
-  // Apply the displacements to the left/right posts
-  
+  // Apply the displacements to the left/right post actuators
+  if( ChSharedPtr<ChFunction_Const> func_L = m_post_L_linact->Get_dist_funct().DynamicCastTo<ChFunction_Const>() )
+    func_L->Set_yconst(disp_L);
+  if( ChSharedPtr<ChFunction_Const> func_R = m_post_R_linact->Get_dist_funct().DynamicCastTo<ChFunction_Const>() )
+    func_R->Set_yconst(disp_R);
 
   // Apply tire forces to spindle bodies.
   m_suspensions[0]->ApplyTireForce(LEFT, tire_forces[0]);
