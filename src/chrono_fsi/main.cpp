@@ -2014,7 +2014,7 @@ int main() {
 			//***		paramsH.numBodies;
 			//***		paramsH.boxDims;
 		paramsH.sizeScale = 1; //don't change it.
-		paramsH.HSML = 0.000013;
+		paramsH.HSML = 0.000007;
 		paramsH.MULT_INITSPACE = 1.0;
 			paramsH.NUM_BOUNDARY_LAYERS = 3;
 			paramsH.toleranceZone = paramsH.NUM_BOUNDARY_LAYERS * (paramsH.HSML * paramsH.MULT_INITSPACE);
@@ -2031,7 +2031,7 @@ int main() {
 		paramsH.v_Max = 12e-3;//18e-3;//1.5;//2e-1; /*0.2 for Re = 100 */ //2e-3;
 			paramsH.EPS_XSPH = .5f;
 			paramsH.multViscosity_FSI = 1; //or 5
-		paramsH.dT = 1e-5;//.001; //sph alone: .01 for Re 10;
+		paramsH.dT = 0.5e-5;//.001; //sph alone: .01 for Re 10;
 			paramsH.tFinal = 1000;//20 * paramsH.dT; //400
 			paramsH.timePause = 0;//.0005 * paramsH.tFinal;//.0001 * paramsH.tFinal; // keep it as small as possible. the time step will be 1/10 * dT
 			paramsH.timePauseRigidFlex = 0;//.05 * paramsH.tFinal;
@@ -2043,7 +2043,7 @@ int main() {
 		// ************
 			paramsH.binSize0; // will be changed
 			paramsH.rigidRadius; //will be changed
-		paramsH.densityReinit = 1; //0: no re-initialization, 1: with initialization
+		paramsH.densityReinit = 0; //0: no re-initialization, 1: with initialization
 		paramsH.contactBoundary = 0; // 0: straight channel, 1: serpentine
 
 		flexParams.E = 2.0e5;
@@ -2070,7 +2070,7 @@ int main() {
 //		paramsH.straightChannelBoundaryMin = R3(0, 0, 0) * paramsH.sizeScale;
 //		paramsH.straightChannelBoundaryMax = R3(paramsH.nPeriod * distance + 0, 1, 1) * paramsH.sizeScale;
 		paramsH.straightChannelBoundaryMin = R3(0, 0, 0); //2D channel
-		paramsH.straightChannelBoundaryMax = R3(1 * mm, .2 * mm, 1 * mm) * paramsH.sizeScale;
+		paramsH.straightChannelBoundaryMax = R3(0.25 * mm, .05 * mm, 1 * mm) * paramsH.sizeScale;
 //		paramsH.straightChannelBoundaryMin = R3(0, 0, 0); //3D channel
 //		paramsH.straightChannelBoundaryMax = R3(2 * mm, 1 * mm, 3 * mm) * paramsH.sizeScale;
 		//********************************************************************************************************
@@ -2081,7 +2081,7 @@ int main() {
 //		paramsH.cMax = R3( paramsH.nPeriod * sPeriod + r3_2.x + 2 * r4_2.x + r6_2.x + x_FirstChannel + 2 * x_SecondChannel, 1.5 * mm,  r6_2.y + 2 * paramsH.toleranceZone);  //for serpentine
 
 		paramsH.cMin = R3(0, 0, -2 * paramsH.toleranceZone);						// 2D channel
-		paramsH.cMax = R3( 1 * mm, 0.2 * mm,  1 * mm + 2 * paramsH.toleranceZone);
+		paramsH.cMax = R3( 0.25 * mm, 0.05 * mm,  1 * mm + 1 * paramsH.toleranceZone);
 
 //		paramsH.cMin = R3(0, -2 * paramsH.toleranceZone, -2 * paramsH.toleranceZone);						// 3D channel
 //		paramsH.cMax = R3( 2 * mm, 1 * mm + 2 * paramsH.toleranceZone,  3 * mm + 2 * paramsH.toleranceZone);
