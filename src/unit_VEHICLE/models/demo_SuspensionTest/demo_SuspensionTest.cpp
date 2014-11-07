@@ -68,7 +68,8 @@ std::string driver_file = utils::GetModelDataFile("generic/driver/Sample_Maneuve
 // =============================================================================
 
 // Initial vehicle position
-ChVector<> initLoc(0, 0, 1.0);
+// radius of wheel + vertical distance between spindle and chassis center marker
+ChVector<> initLoc(0, 0, 0.496); 
 
 // Initial vehicle orientation
 ChQuaternion<> initRot(1, 0, 0, 0);

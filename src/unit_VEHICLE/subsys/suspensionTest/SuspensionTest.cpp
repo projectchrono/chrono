@@ -311,7 +311,7 @@ void SuspensionTest::Initialize(const ChCoordsys<>& chassisPos)
   // initialize the posts relative to the wheels
   // left side post
   ChVector<> post_L_pos = m_suspensions[0]->GetSpindlePos(LEFT);
-  post_L_pos.z -= m_wheels[LEFT]->GetRadius() + m_post_height/2.0;  // shift down
+  post_L_pos.z -= (m_wheels[LEFT]->GetRadius() + m_post_height/2.0);  // shift down
   m_post_L->SetPos(post_L_pos);
 
   // constrain left post to vertical. Prismatic default aligned to z-axis
@@ -327,7 +327,7 @@ void SuspensionTest::Initialize(const ChCoordsys<>& chassisPos)
 
   // right side post
   ChVector<> post_R_pos = m_suspensions[0]->GetSpindlePos(RIGHT);
-  post_R_pos.z -= m_wheels[RIGHT]->GetRadius() + m_post_height/2.0; // shift down
+  post_R_pos.z -= (m_wheels[RIGHT]->GetRadius() + m_post_height/2.0); // shift down
   m_post_R->SetPos(post_R_pos);
 
   // constrain right post to vertical.
