@@ -237,6 +237,11 @@ void HMMWV_SuspensionTest::DebugLog(int what)
     LogConstraintViolations();
   }
 
+  if (what & DBG_SUSPENSIONTEST)
+  {
+    // TODO
+  }
+
   GetLog().SetNumFormat("%g");
 }
 

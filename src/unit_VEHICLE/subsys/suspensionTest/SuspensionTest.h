@@ -62,6 +62,10 @@ public:
   double GetShockLength(const chrono::ChWheelID& wheel_id) const;
   double GetShockVelocity(const chrono::ChWheelID& wheel_id) const;
 
+  double GetActuatorDisp(const chrono::ChWheelID& wheel_id)const;
+  double GetActuatorForce(const chrono::ChWheelID& wheel_id)const;
+  double GetActuatorMarkerDist(const chrono::ChWheelID& wheel_id)const;
+
 private:
 
   int                      m_num_axles;       // number of axles on test rig always 1

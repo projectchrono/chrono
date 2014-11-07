@@ -51,7 +51,7 @@ enum DebugInformation {
   DBG_SPRINGS     = 1 << 0,
   DBG_SHOCKS      = 1 << 1,
   DBG_CONSTRAINTS = 1 << 2,
-  DBG_SUSPENSIONTEST     = 1 << 3
+  DBG_SUSPENSIONTEST = 1 << 3
 };
 
 

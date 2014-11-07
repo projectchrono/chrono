@@ -113,17 +113,16 @@ void ChSuspensionTest::LogConstraintViolations()
   GetLog().SetNumFormat("%16.4e");
 
   // Report constraint violations for the suspension joints
-    GetLog() << "\n---- AXLE " << 0 << " LEFT side suspension constraint violations\n\n";
-    m_suspensions[0]->LogConstraintViolations(LEFT);
-    GetLog() << "\n---- AXLE " << 0 << " RIGHT side suspension constraint violations\n\n";
-    m_suspensions[0]->LogConstraintViolations(RIGHT);
+  GetLog() << "\n---- AXLE 0, LEFT side suspension constraint violations\n\n";
+  m_suspensions[0]->LogConstraintViolations(LEFT);
+  GetLog() << "\n---- AXLE 0, RIGHT side suspension constraint violations\n\n";
+  m_suspensions[0]->LogConstraintViolations(RIGHT);
 
   // Report constraint violations for the steering joints
   GetLog() << "\n---- STEERING constrain violations\n\n";
   m_steering->LogConstraintViolations();
 
   GetLog().SetNumFormat("%g");
-
 }
 
 

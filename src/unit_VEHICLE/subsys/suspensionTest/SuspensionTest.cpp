@@ -69,7 +69,8 @@ static ChQuaternion<> loadQuaternion(const Value& a)
 
 
 // ----------------------------------------------------------
-SuspensionTest::SuspensionTest(const std::string& filename): m_num_axles(1), m_save_log_to_file(false)
+SuspensionTest::SuspensionTest(const std::string& filename): 
+  m_num_axles(1), m_save_log_to_file(false), m_log_file_exists(false)
 {
   // Open and parse the input file
   FILE* fp = fopen(filename.c_str(), "r");
@@ -247,7 +248,6 @@ void SuspensionTest::Update(double       time,
                      double              disp_R,
                      const ChTireForces& tire_forces)
 {
- 
   // Let the steering subsystem process the steering input.
   m_steering->Update(time, steering);
 
@@ -264,26 +264,15 @@ void SuspensionTest::Update(double       time,
 }
 
 
-
+// set what to save to file each time .DebugLog() is called during the simulation loop
+// creates a new file (or overwrites old existing one), and sets the first row w/ headers
+// for easy postprocessing with python pandas scripts
 void SuspensionTest::Save_DebugLog(int what,
                                    const std::string& filename)
 {
-  if(m_log_file_exists)
-  {
-    // same name for the log files? otherwise create a new one
-    if( filename == m_log_file_name )
-    {
-
-    } else
-    {
-
-      create_fileHeader(filename, what);
-    }
-  } else 
-  { 
-    create_fileHeader(filename, what);
-    m_log_file_exists = true;
-  }
+  create_fileHeader(filename, what);
+  m_log_file_exists = true;
+  m_log_file_name = filename;
 
 }
 
@@ -294,48 +283,50 @@ void SuspensionTest::DebugLog(int console_what)
 
   if (console_what & DBG_SPRINGS)
   {
-    GetLog() << "\n---- Spring (front-left, front-right, rear-left, rear-right)\n";
+    GetLog() << "\n---- Spring (left, right)\n";
     GetLog() << "Length [inch]       "
       << GetSpringLength(FRONT_LEFT) / in2m << "  "
-      << GetSpringLength(FRONT_RIGHT) / in2m << "  "
-      << GetSpringLength(REAR_LEFT) / in2m << "  "
-      << GetSpringLength(REAR_RIGHT) / in2m << "\n";
+      << GetSpringLength(FRONT_RIGHT) / in2m << "\n";
     GetLog() << "Deformation [inch]  "
       << GetSpringDeformation(FRONT_LEFT) / in2m << "  "
-      << GetSpringDeformation(FRONT_RIGHT) / in2m << "  "
-      << GetSpringDeformation(REAR_LEFT) / in2m << "  "
-      << GetSpringDeformation(REAR_RIGHT) / in2m << "\n";
+      << GetSpringDeformation(FRONT_RIGHT) / in2m << "\n";
     GetLog() << "Force [lbf]         "
       << GetSpringForce(FRONT_LEFT) / lbf2N << "  "
-      << GetSpringForce(FRONT_RIGHT) / lbf2N << "  "
-      << GetSpringForce(REAR_LEFT) / lbf2N << "  "
-      << GetSpringForce(REAR_RIGHT) / lbf2N << "\n";
+      << GetSpringForce(FRONT_RIGHT) / lbf2N << "\n";
   }
 
   if (console_what & DBG_SHOCKS)
   {
-    GetLog() << "\n---- Shock (front-left, front-right, rear-left, rear-right)\n";
+    GetLog() << "\n---- Shock (left, right,)\n";
     GetLog() << "Length [inch]       "
       << GetShockLength(FRONT_LEFT) / in2m << "  "
-      << GetShockLength(FRONT_RIGHT) / in2m << "  "
-      << GetShockLength(REAR_LEFT) / in2m << "  "
-      << GetShockLength(REAR_RIGHT) / in2m << "\n";
+      << GetShockLength(FRONT_RIGHT) / in2m << "\n";
     GetLog() << "Velocity [inch/s]   "
       << GetShockVelocity(FRONT_LEFT) / in2m << "  "
-      << GetShockVelocity(FRONT_RIGHT) / in2m << "  "
-      << GetShockVelocity(REAR_LEFT) / in2m << "  "
-      << GetShockVelocity(REAR_RIGHT) / in2m << "\n";
+      << GetShockVelocity(FRONT_RIGHT) / in2m << "\n";
     GetLog() << "Force [lbf]         "
       << GetShockForce(FRONT_LEFT) / lbf2N << "  "
-      << GetShockForce(FRONT_RIGHT) / lbf2N << "  "
-      << GetShockForce(REAR_LEFT) / lbf2N << "  "
-      << GetShockForce(REAR_RIGHT) / lbf2N << "\n";
+      << GetShockForce(FRONT_RIGHT) / lbf2N << "\n";
   }
 
   if (console_what & DBG_CONSTRAINTS)
   {
     // Report constraint violations for all joints
     LogConstraintViolations();
+  }
+
+  if (console_what & DBG_SUSPENSIONTEST)
+  {
+    GetLog() << "\n---- suspension test (left, right)\n";
+    GetLog() << "Actuator Displacement [in] "
+      << GetActuatorDisp(FRONT_LEFT) / in2m << " "
+      << GetActuatorDisp(FRONT_RIGHT) / in2m << "\n";
+    GetLog() << "Actuator Force [N] "
+      << GetActuatorForce(FRONT_LEFT) / in2m << " "
+      << GetActuatorForce(FRONT_RIGHT) / in2m << "\n";
+    GetLog() << "Actuator marker dist [in] "
+      << GetActuatorMarkerDist(FRONT_LEFT) / in2m << " "
+      << GetActuatorMarkerDist(FRONT_RIGHT) / in2m << "\n";
   }
 
   GetLog().SetNumFormat("%g");
@@ -375,6 +366,30 @@ double SuspensionTest::GetShockVelocity(const ChWheelID& wheel_id) const
   return m_suspensions[0].StaticCastTo<ChDoubleWishbone>()->GetShockVelocity(wheel_id.side());
 }
 
+
+double SuspensionTest::GetActuatorDisp(const ChWheelID& wheel_id) const
+{
+  if(wheel_id.side() == LEFT)
+    return m_post_L_linact.StaticCastTo<ChLinkLinActuator>()->Get_dist_funct()->Get_y(ChTime);
+  else
+    return m_post_R_linact.StaticCastTo<ChLinkLinActuator>()->Get_dist_funct()->Get_y(ChTime);
+}
+
+double SuspensionTest::GetActuatorForce(const chrono::ChWheelID& wheel_id)const
+{
+  if(wheel_id.side() == LEFT)
+    return m_post_L_linact.StaticCastTo<ChLinkLinActuator>()->Get_react_force().x;
+  else
+    return m_post_R_linact.StaticCastTo<ChLinkLinActuator>()->Get_react_force().x;
+}
+
+double SuspensionTest::GetActuatorMarkerDist(const chrono::ChWheelID& wheel_id)const
+{
+  if(wheel_id.side() == LEFT)
+    return m_post_L_linact.StaticCastTo<ChLinkLinActuator>()->GetDist();
+  else
+    return m_post_R_linact.StaticCastTo<ChLinkLinActuator>()->GetDist();
+}
 
 // Private class functions
 // -----------------------------------------------------------------------------
@@ -505,17 +520,31 @@ void SuspensionTest::AddVisualize_post(ChSharedBodyPtr post_body,
 
 void SuspensionTest::create_fileHeader(const std::string& name, int what)
 {
-  m_log_file_name = name;
-  std::ofstream oFile(name.c_str(), std::ios_base::out);
-  if (!oFile.is_open()) {
-      std::cout << " couldn't open file for writing: " << name << " \n\n";
-      return;
-    } else 
-    {
-      // write the headers, Fx, Fy are pure forces, Fxc and Fyc are the combined forces
-      oFile << "time,kappa,alpha,gamma,kappaP,alphaP,gammaP,Vx,Vy,omega,Fx,Fy,Fz,Mx,My,Mz,Fxc,Fyc,Mzc,Mzx,Mzy,M_zrc,contact,m_Fz,m_dF_z,u,valpha,vgamma,vphi,du,dvalpha,dvgamma,dvphi,R0,R_l,Reff,MP_z,M_zr,t,s,FX,FY,FZ,MX,MY,MZ,u_Bessel,u_sigma,v_Bessel,v_sigma" << std::endl;
-      oFile.close();
-    }
+  // open the data file for writing the header
+  ChStreamOutAsciiFile outfile(name.c_str());
+  // write the headers, output types specified by "what"
+  std::stringstream ss;
+  ss << "time";
+  if(what & DBG_SPRINGS)
+  {
+    // L/R spring length, delta x, force
+    ss << ",k_len_L,k_len_R,k_dx_L,k_dx_R,k_F_L,k_F_R";
+  }
+  if(what & DBG_SHOCKS)
+  {
+    ss << ",d_len_L,d_len_R,d_vel_L,d_vel_R,d_F_L,d_F_R";
+  }
+  if(what & DBG_CONSTRAINTS)
+  {
+    // TODO:
+  }
+  if(what & DBG_SUSPENSIONTEST)
+  {
+    ss << "";
+  }
+  // write to file, go to next line in file.
+  // outfile << ss.str();
+  // outfile << "\n";
 }
 
 
