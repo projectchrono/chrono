@@ -51,7 +51,7 @@
 
 // DEBUGGING:  Uncomment the following line to print shock data
 //#define DEBUG_LOG
-
+#define DEBUG_ACTUATOR    // debug actuator in SuspensionTest
 using namespace chrono;
 
 
@@ -102,6 +102,7 @@ int main(int argc, char* argv[])
   // Create the testing mechanism, initilize ity
   SuspensionTest tester(suspensionTest_file);
   tester.Initialize(ChCoordsys<>(initLoc, initRot));
+  tester.Save_DebugLog(DBG_SPRINGS | DBG_SHOCKS | DBG_CONSTRAINTS | DBG_SUSPENSIONTEST ,"log_test_SuspensionTester.csv");
 
   // Create and initialize two rigid wheels
   ChSharedPtr<ChTire> tire_front_right;
@@ -235,7 +236,15 @@ int main(int argc, char* argv[])
     if (step_number % output_steps == 0) {
       GetLog() << "\n\n============ System Information ============\n";
       GetLog() << "Time = " << time << "\n\n";
-      vehicle.DebugLog(DBG_SPRINGS | DBG_SHOCKS | DBG_CONSTRAINTS);
+      tester.DebugLog(DBG_SPRINGS | DBG_SHOCKS | DBG_CONSTRAINTS);
+    }
+#endif
+
+#ifdef DEBUG_ACTUATOR
+    if (step_number % output_steps == 0) {
+      GetLog() << "\n\n============ System Information ============\n";
+      GetLog() << "Time = " << time << "\n\n";
+      tester.DebugLog(DBG_SPRINGS | DBG_SHOCKS | DBG_CONSTRAINTS);
     }
 #endif
 
