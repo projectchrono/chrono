@@ -180,6 +180,7 @@ void WriteEverythingToFile(
 	outProbParams << paramsH.mu0 << endl;
 	outProbParams << paramsH.v_Max << endl;
 	outProbParams << paramsH.EPS_XSPH << endl;
+	outProbParams << paramsH.multViscosity_FSI << endl;
 	outProbParams << paramsH.dT << endl;
 	outProbParams << paramsH.tFinal << endl;
 	outProbParams << paramsH.timePause << endl;
@@ -552,6 +553,7 @@ void ReadEverythingFromFile(
 	inProbParams >> paramsH.mu0 ;
 	inProbParams >> paramsH.v_Max ;
 	inProbParams >> paramsH.EPS_XSPH;
+	inProbParams >> paramsH.multViscosity_FSI;
 	inProbParams >> paramsH.dT;
 	inProbParams >> paramsH.tFinal ;
 	inProbParams >> paramsH.timePause ;

@@ -52,6 +52,7 @@ struct SimParams {
 		real_ mu0;
 		real_ v_Max;
 		real_ EPS_XSPH;
+		real_ multViscosity_FSI;
 		real_ dT;
 		real_ tFinal;
 		real_ timePause; 			//run the fluid only during this time, with dTm = 0.1 * dT
