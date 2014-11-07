@@ -259,14 +259,9 @@ SuspensionTest::SuspensionTest(const std::string& filename): m_num_axles(1)
   // add the shaker posts, Left then right. 
   m_post_height = 0.1;
   m_post_rad = 0.4;
-  double wheel_rad = m_wheels[LEFT]->GetRadius();
 
   // left post body
   m_post_L = ChSharedPtr<ChBody>(new ChBody());
-
-  // DEBUGGING, check the radius we get
-  GetLog () << "\n\n &^#%$&^#$%^&#$% \n\n wheel radius, according to Suspension test : " 
-    << wheel_rad << "\n\n";
 
   // Cylinders for left post visualization
   AddVisualize_post(m_post_L, m_post_height, m_post_rad);
@@ -343,7 +338,8 @@ void SuspensionTest::Initialize(const ChCoordsys<>& chassisPos)
   m_post_R_linact->Initialize(m_chassis, m_post_R, ChCoordsys<>(post_R_pos,QUNIT) );
   ChSharedPtr<ChFunction_Const> func_R(new ChFunction_Const(0));
   m_post_R_linact->Set_dist_funct( func_R );
-  AddLink(m_post_L_linact);
+  AddLink(m_post_R_linact);
+
 }
 
 

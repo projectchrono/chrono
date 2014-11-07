@@ -9,7 +9,7 @@
 // http://projectchrono.org/license-chrono.txt.
 //
 // =============================================================================
-// Authors: Radu Serban
+// Authors: Radu Serban, Justin Madsen
 // =============================================================================
 //
 // Vehicle wheel constructed with data from file (JSON format).
@@ -35,14 +35,20 @@ public:
   Wheel(const rapidjson::Document& d);
   ~Wheel() {}
 
-  virtual double GetMass() const { return m_mass; }
-  virtual ChVector<> GetInertia() const { return m_inertia; }
-
   virtual void Initialize(ChSharedBodyPtr spindle);
 
-  void ExportMeshPovray(const std::string& out_dir);
+  /// Accessors
+  virtual double GetMass() const { return m_mass; }
+  virtual ChVector<> GetInertia() const { return m_inertia; }
+  virtual double GetRadius() const { return m_radius; }
+  virtual double GetWidth() const { return m_width; }
 
-  double GetRadius(){ return m_radius; };
+  /// set variables from ChTire
+  void SetRadius(double rad) { m_radius = rad; }
+  void SetWidth(double width) { m_width = width; }
+
+
+  void ExportMeshPovray(const std::string& out_dir);
 
 private:
 

@@ -42,6 +42,7 @@ void ChRigidTire::Initialize(ChSharedBodyPtr wheel)
   wheel->GetCollisionModel()->BuildModel();
 
   wheel->GetMaterialSurface()->SetFriction(getFrictionCoefficient());
+
 }
 
 // -----------------------------------------------------------------------------

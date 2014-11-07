@@ -106,7 +106,6 @@ int main(int argc, char* argv[])
   ChSharedPtr<ChTire> tire_front_right;
   ChSharedPtr<ChTire> tire_front_left;
 
-
   // flat rigid terrain, height = 0
   FlatTerrain flat_terrain(0);
 

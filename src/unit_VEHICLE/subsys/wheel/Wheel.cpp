@@ -63,7 +63,7 @@ Wheel::Wheel(const std::string& filename)
 }
 
 Wheel::Wheel(const rapidjson::Document& d)
-: m_vis(NONE)
+: m_vis(NONE), m_radius(0), m_width(0)
 {
   Create(d);
 }
@@ -84,14 +84,21 @@ void Wheel::Create(const rapidjson::Document& d)
     if (d["Visualization"].HasMember("Mesh Filename")) {
       m_meshFile = d["Visualization"]["Mesh Filename"].GetString();
       m_meshName = d["Visualization"]["Mesh Name"].GetString();
+
       m_vis = MESH;
     }
     else {
-      m_radius = d["Visualization"]["Radius"].GetDouble();
-      m_width = d["Visualization"]["Width"].GetDouble();
       m_vis = PRIMITIVES;
     }
   }
+  // reasonable for user to specify the approx. mesh radius and width.
+  // Ought to be the same as is used in ChTire JSON files.
+  // Need it here for any bodies or joints that must be created and initialized
+  // BEFORE the ChTire is created/initialized (and the radius/width is found from that System)
+  // Keeping it as a visualization member to indicate it's the ChTire whose radius and width
+  // may have an impact on the physics of the tire model, not the Wheel class.
+  m_radius = d["Visualization"]["Radius"].GetDouble();
+  m_width = d["Visualization"]["Width"].GetDouble();
 }
 
 

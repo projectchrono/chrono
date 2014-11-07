@@ -55,7 +55,10 @@ public:
   virtual ChVector<> GetInertia() const = 0;
 
   /// get the wheel radius
-  virtual double GetRadius() { return 0; };
+  virtual double GetRadius() const { return 0; }
+
+  /// get the wheel width
+  virtual double GetWidth() const { return 0; }
 
   /// Initialize this wheel subsystem.
   /// The wheel mass and inertia are used to increment those of the spindle.

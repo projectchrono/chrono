@@ -9,6 +9,8 @@
   "Visualization":
   {
     "Mesh Filename":            "hmmwv/wheel_L.obj",
-    "Mesh Name":                "hmmwv_wheel_L"
+    "Mesh Name":                "hmmwv_wheel_L",
+    "Radius":                   0.4699,
+    "Width":                    0.254
   }
 }
