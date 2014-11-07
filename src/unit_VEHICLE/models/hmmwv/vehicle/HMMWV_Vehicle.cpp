@@ -37,7 +37,7 @@ const double     HMMWV_Vehicle::m_chassisMass = 2086.524902;                    
 const ChVector<> HMMWV_Vehicle::m_chassisCOM = ChVector<>(0.055765, 0, 0.52349);       // COM location
 const ChVector<> HMMWV_Vehicle::m_chassisInertia(1078.52344, 2955.66050, 3570.20377);  // chassis inertia (roll,pitch,yaw)
 
-const std::string HMMWV_Vehicle::m_chassisMeshName = "hmmwv_chassis";
+const std::string HMMWV_Vehicle::m_chassisMeshName = "hmmwv_chassis_POV_geom";
 const std::string HMMWV_Vehicle::m_chassisMeshFile = utils::GetModelDataFile("hmmwv/hmmwv_chassis.obj");
 
 const ChCoordsys<> HMMWV_Vehicle::m_driverCsys(ChVector<>(0.8735, -0.27475, 1.052), ChQuaternion<>(1, 0, 0, 0));

@@ -39,7 +39,7 @@ const double     HMMWV_VehicleJSON::m_chassisMass = 2086.524902;                
 const ChVector<> HMMWV_VehicleJSON::m_chassisCOM = ChVector<>(0.055765, 0, 0.52349);       // COM location
 const ChVector<> HMMWV_VehicleJSON::m_chassisInertia(1078.52344, 2955.66050, 3570.20377);  // chassis inertia (roll,pitch,yaw)
 
-const std::string HMMWV_VehicleJSON::m_chassisMeshName = "hmmwv_chassis";
+const std::string HMMWV_VehicleJSON::m_chassisMeshName = "hmmwv_chassis_POV_geom";
 const std::string HMMWV_VehicleJSON::m_chassisMeshFile = utils::GetModelDataFile("hmmwv/hmmwv_chassis.obj");
 
 const ChCoordsys<> HMMWV_VehicleJSON::m_driverCsys(ChVector<>(0.0, 0.5, 1.2), ChQuaternion<>(1, 0, 0, 0));
