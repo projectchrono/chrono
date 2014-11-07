@@ -54,6 +54,6 @@
   "Visualization":
   {
     "Mesh Filename":  "hmmwv/hmmwv_chassis.obj",
-    "Mesh Name":      "hmmwv_chassis"
+    "Mesh Name":      "hmmwv_chassis_POV_geom"
   }
 }
