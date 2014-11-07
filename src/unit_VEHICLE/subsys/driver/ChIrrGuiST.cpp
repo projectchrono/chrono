@@ -42,10 +42,10 @@ ChIrrGuiST::ChIrrGuiST(ChIrrApp&          app,
   m_camera(tester.GetChassis()),
   m_terrainHeight(0),
   m_steeringDelta(steer_limit/50.0),
-  m_shakerDelta(shaker_limit/50.0),
+  m_postDelta(shaker_limit/50.0),
   m_stepsize(1e-3),
-  m_shaker_L(0),
-  m_shaker_R(0),
+  m_post_L_disp(0),
+  m_post_R_disp(0),
   m_min_post_z(-1.0),
   m_max_post_z(1.0)
 {
@@ -85,17 +85,17 @@ bool ChIrrGuiST::OnEvent(const SEvent& event)
 
     // shaker left post, up/down
     case KEY_KEY_T:
-      SetShaker_L(m_shaker_L + m_shakerDelta, m_min_post_z, m_max_post_z);
+      SetShaker_L(m_post_L_disp + m_postDelta, m_min_post_z, m_max_post_z);
       return true;
     case KEY_KEY_G:
-      SetShaker_L(m_shaker_L - m_shakerDelta, m_min_post_z, m_max_post_z); 
+      SetShaker_L(m_post_L_disp - m_postDelta, m_min_post_z, m_max_post_z); 
       return true;
     // shaker right post, up/down
     case KEY_KEY_Y:
-      SetShaker_R(m_shaker_R + m_shakerDelta, m_min_post_z, m_max_post_z);
+      SetShaker_R(m_post_R_disp + m_postDelta, m_min_post_z, m_max_post_z);
       return true;
     case KEY_KEY_H:
-      SetShaker_R(m_shaker_R - m_shakerDelta, m_min_post_z, m_max_post_z); 
+      SetShaker_R(m_post_R_disp - m_postDelta, m_min_post_z, m_max_post_z); 
       return true;
 
     case KEY_DOWN:
@@ -164,12 +164,12 @@ void ChIrrGuiST::Advance(double step)
 
 void ChIrrGuiST::SetShaker_L(double vertical_disp, double min_z, double max_z)
 {
-  m_shaker_L = clamp(vertical_disp, min_z, max_z);
+  m_post_L_disp = clamp(vertical_disp, min_z, max_z);
 }
 
 void ChIrrGuiST::SetShaker_R(double vertical_disp, double min_z, double max_z)
 {
-  m_shaker_R = clamp(vertical_disp, min_z, max_z);
+  m_post_R_disp = clamp(vertical_disp, min_z, max_z);
 }
 
 
@@ -286,11 +286,11 @@ void ChIrrGuiST::renderStats()
   sprintf(msg, "Steering: %+.2f", m_steering);
   renderLinGauge(std::string(msg), m_steering, true, m_HUD_x, m_HUD_y + 40, 120, 15);
 
-  sprintf(msg, "Left Post: %+.2f", m_shaker_L);
-  renderLinGauge(std::string(msg), m_shaker_L, true, m_HUD_x, m_HUD_y + 60, 120, 15);
+  sprintf(msg, "Left Post Disp: %+.2f", m_post_L_disp);
+  renderLinGauge(std::string(msg), m_post_L_disp, true, m_HUD_x, m_HUD_y + 60, 120, 15);
 
-  sprintf(msg, "Right Post: %+.2f", m_shaker_R);
-  renderLinGauge(std::string(msg), m_shaker_R, true, m_HUD_x, m_HUD_y + 80, 120, 15);
+  sprintf(msg, "Right Post Disp: %+.2f", m_post_R_disp);
+  renderLinGauge(std::string(msg), m_post_R_disp, true, m_HUD_x, m_HUD_y + 80, 120, 15);
 }
 
 

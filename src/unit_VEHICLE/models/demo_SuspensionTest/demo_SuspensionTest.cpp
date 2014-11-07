@@ -93,8 +93,8 @@ double output_step_size = 1.0 / 1;    // once a second
   const std::string pov_dir = out_dir + "/POVRAY";
 #endif
 
-// =============================================================================
 
+// =============================================================================
 int main(int argc, char* argv[])
 {
   SetChronoDataPath(CHRONO_DATA_DIR);
@@ -127,7 +127,7 @@ int main(int argc, char* argv[])
                             false,
                             true);
 
-  // make a skybox that has Z pointing up (default application.AddTypicalSky() makes Y up) 
+  // make a skybox that has Z pointing up (default .AddTypicalSky()  Y up) 
   std::string mtexturedir = GetChronoDataFile("skybox/");
   std::string str_lf = mtexturedir + "sky_lf.jpg";
   std::string str_up = mtexturedir + "sky_up.jpg";
@@ -168,7 +168,9 @@ int main(int argc, char* argv[])
   // Set the time response for steering keyboard inputs, when they are used
   // NOTE: this is not exact, since not rendered quite at the specified FPS.
   double steering_time = 1.0;  // time to go from 0 to +1 (or from 0 to -1)
+  double post_time = 1.0; // time to go from 0 to +1 for the applied post motion
   driver.SetSteeringDelta(render_step_size / steering_time);
+  driver.SetPostDelta(render_step_size / post_time );
 
   // Set up the assets for rendering
   application.AssetBindAll();

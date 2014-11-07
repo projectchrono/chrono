@@ -62,17 +62,19 @@ public:
   void DrawAll();
 
   void SetSteeringDelta(double delta) {m_steeringDelta = delta; }
+  void SetPostDelta(double delta) {m_postDelta = delta; }
   void SetTerrainHeight(double height) { m_terrainHeight = height; }
-
   void SetStepsize(double val) { m_stepsize = val; }
-  double GetStepsize() const { return m_stepsize; }
+
 
   // Accessors
+ 
+  double GetStepsize() const { return m_stepsize; }
   /// Get the left post z displacement
-  double Get_post_z_L() const { return m_shaker_L; }
+  double Get_post_z_L() const { return m_post_L_disp; }
 
   /// Get the right post z displacement
-  double Get_post_z_R() const { return m_shaker_R; }
+  double Get_post_z_R() const { return m_post_R_disp; }
 
 private:
 
@@ -101,9 +103,9 @@ private:
 
   double m_terrainHeight;
   double m_steeringDelta;
-  double m_shakerDelta;
-  double m_shaker_L;
-  double m_shaker_R;
+  double m_postDelta;
+  double m_post_L_disp;
+  double m_post_R_disp;
   double m_min_post_z;  // TODO: don't hardcode these
   double m_max_post_z;
 
