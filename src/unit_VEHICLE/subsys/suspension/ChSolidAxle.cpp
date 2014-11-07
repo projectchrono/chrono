@@ -394,11 +394,11 @@ void ChSolidAxle::LogConstraintViolations(ChVehicleSide side)
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-void ChSolidAxle::AddVisualizationLink(ChSharedBodyPtr    body,
-                                       const ChVector<>&  pt_1,
-                                       const ChVector<>&  pt_2,
-                                       double             radius,
-                                       const ChColor&     color)
+void ChSolidAxle::AddVisualizationLink(ChSharedBodyPtr   body,
+                                       const ChVector<>  pt_1,
+                                       const ChVector<>  pt_2,
+                                       double            radius,
+                                       const ChColor&    color)
 {
   // Express hardpoint locations in body frame.
   ChVector<> p_1 = body->TransformPointParentToLocal(pt_1);
@@ -426,11 +426,11 @@ void ChSolidAxle::AddVisualizationSpindle(ChSharedBodyPtr spindle,
   spindle->AddAsset(cyl);
 }
 
-void ChSolidAxle::AddVisualizationKnuckle(ChSharedBodyPtr knuckle,
-                                          const ChVector<>&  pt_U,
-                                          const ChVector<>&  pt_L,
-                                          const ChVector<>&  pt_T,
-                                          double             radius)
+void ChSolidAxle::AddVisualizationKnuckle(ChSharedBodyPtr   knuckle,
+                                          const ChVector<>  pt_U,
+                                          const ChVector<>  pt_L,
+                                          const ChVector<>  pt_T,
+                                          double            radius)
 {
   static const double threshold2 = 1e-6;
 

@@ -43,10 +43,10 @@ const double      HMMWV_Wheel::m_width = in2m * 10;
 const double      HMMWV_Wheel::m_mass = lb2kg * 100.00;
 const ChVector<>  HMMWV_Wheel::m_inertia(0.113, 0.113, 0.113);
 
-const std::string HMMWV_WheelLeft::m_meshName = "hmmwv_wheel_L";
+const std::string HMMWV_WheelLeft::m_meshName = "wheel_L_POV_geom";
 const std::string HMMWV_WheelLeft::m_meshFile = utils::GetModelDataFile("hmmwv/wheel_L.obj");
 
-const std::string HMMWV_WheelRight::m_meshName = "hmmwv_wheel_R";
+const std::string HMMWV_WheelRight::m_meshName = "wheel_R_POV_geom";
 const std::string HMMWV_WheelRight::m_meshFile = utils::GetModelDataFile("hmmwv/wheel_R.obj");
 
 

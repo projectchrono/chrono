@@ -214,16 +214,16 @@ private:
                       const std::vector<ChVector<> >& points,
                       const std::vector<ChVector<> >& dirs);
 
-  static void AddVisualizationLink(ChSharedBodyPtr    body,
-                                   const ChVector<>&  pt_1,
-                                   const ChVector<>&  pt_2,
-                                   double             radius,
-                                   const ChColor&     color);
-  static void AddVisualizationKnuckle(ChSharedBodyPtr    knuckle,
-                                      const ChVector<>&  pt_U,
-                                      const ChVector<>&  pt_L,
-                                      const ChVector<>&  pt_T,
-                                      double             radius);
+  static void AddVisualizationLink(ChSharedBodyPtr   body,
+                                   const ChVector<>  pt_1,
+                                   const ChVector<>  pt_2,
+                                   double            radius,
+                                   const ChColor&    color);
+  static void AddVisualizationKnuckle(ChSharedBodyPtr   knuckle,
+                                      const ChVector<>  pt_U,
+                                      const ChVector<>  pt_L,
+                                      const ChVector<>  pt_T,
+                                      double            radius);
   static void AddVisualizationSpindle(ChSharedBodyPtr spindle,
                                       double          radius,
                                       double          width);

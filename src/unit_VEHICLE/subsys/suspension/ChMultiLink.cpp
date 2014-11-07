@@ -306,7 +306,7 @@ void ChMultiLink::InitializeSide(ChVehicleSide                   side,
   chassis->GetSystem()->AddBody(m_trailingLink[side]);
 
   // Initialize the revolute joint between upright and spindle.
-  ChCoordsys<> rev_csys((points[UPRIGHT] + points[SPINDLE]) / 2, chassisRot * Q_from_AngAxis(CH_C_PI / 2.0, VECT_X));
+  ChCoordsys<> rev_csys(points[SPINDLE], chassisRot * Q_from_AngAxis(CH_C_PI / 2.0, VECT_X));
   m_revolute[side]->Initialize(m_spindle[side], m_upright[side], rev_csys);
   chassis->GetSystem()->AddLink(m_revolute[side]);
 
@@ -464,11 +464,11 @@ void ChMultiLink::LogConstraintViolations(ChVehicleSide side)
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-void ChMultiLink::AddVisualizationUpperArm(ChSharedBodyPtr    arm,
-                                           const ChVector<>&  pt_F,
-                                           const ChVector<>&  pt_B,
-                                           const ChVector<>&  pt_U,
-                                           double             radius)
+void ChMultiLink::AddVisualizationUpperArm(ChSharedBodyPtr   arm,
+                                           const ChVector<>  pt_F,
+                                           const ChVector<>  pt_B,
+                                           const ChVector<>  pt_U,
+                                           double            radius)
 {
   // Express hardpoint locations in body frame.
   ChVector<> p_F = arm->TransformPointParentToLocal(pt_F);
@@ -492,13 +492,13 @@ void ChMultiLink::AddVisualizationUpperArm(ChSharedBodyPtr    arm,
   arm->AddAsset(col);
 }
 
-void ChMultiLink::AddVisualizationUpright(ChSharedBodyPtr    upright,
-                                          const ChVector<>&  pt_UA,
-                                          const ChVector<>&  pt_TR,
-                                          const ChVector<>&  pt_TL,
-                                          const ChVector<>&  pt_T,
-                                          const ChVector<>&  pt_U,
-                                          double             radius)
+void ChMultiLink::AddVisualizationUpright(ChSharedBodyPtr   upright,
+                                          const ChVector<>  pt_UA,
+                                          const ChVector<>  pt_TR,
+                                          const ChVector<>  pt_TL,
+                                          const ChVector<>  pt_T,
+                                          const ChVector<>  pt_U,
+                                          double            radius)
 {
   static const double threshold2 = 1e-6;
 
@@ -554,10 +554,10 @@ void ChMultiLink::AddVisualizationUpright(ChSharedBodyPtr    upright,
   upright->AddAsset(col);
 }
 
-void ChMultiLink::AddVisualizationLateral(ChSharedBodyPtr    rod,
-                                           const ChVector<>&  pt_C,
-                                           const ChVector<>&  pt_U,
-                                           double             radius)
+void ChMultiLink::AddVisualizationLateral(ChSharedBodyPtr   rod,
+                                          const ChVector<>  pt_C,
+                                          const ChVector<>  pt_U,
+                                          double            radius)
 {
   // Express hardpoint locations in body frame.
   ChVector<> p_C = rod->TransformPointParentToLocal(pt_C);
@@ -574,11 +574,11 @@ void ChMultiLink::AddVisualizationLateral(ChSharedBodyPtr    rod,
   rod->AddAsset(col);
 }
 
-void ChMultiLink::AddVisualizationTrailingLink(ChSharedBodyPtr    link,
-                                               const ChVector<>&  pt_C,
-                                               const ChVector<>&  pt_S,
-                                               const ChVector<>&  pt_U,
-                                               double             radius)
+void ChMultiLink::AddVisualizationTrailingLink(ChSharedBodyPtr   link,
+                                               const ChVector<>  pt_C,
+                                               const ChVector<>  pt_S,
+                                               const ChVector<>  pt_U,
+                                               double            radius)
 {
   // Express hardpoint locations in body frame.
   ChVector<> p_C = link->TransformPointParentToLocal(pt_C);
