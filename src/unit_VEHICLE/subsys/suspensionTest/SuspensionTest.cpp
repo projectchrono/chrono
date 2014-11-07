@@ -44,7 +44,12 @@ using namespace rapidjson;
 
 namespace chrono {
 
+static const double in2m = 0.0254;
+static const double lb2kg = 0.453592;
+static const double lbf2N = 4.44822162;
 
+// Utility functions
+// -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 // These utility functions return a ChVector and a ChQuaternion<>, respectively,
 // from the specified JSON array.
@@ -63,116 +68,8 @@ static ChQuaternion<> loadQuaternion(const Value& a)
 }
 
 
-// -----------------------------------------------------------------------------
-void SuspensionTest::LoadSteering(const std::string& filename)
-{
-  FILE* fp = fopen(filename.c_str(), "r");
-
-  char readBuffer[65536];
-  FileReadStream is(fp, readBuffer, sizeof(readBuffer));
-
-  fclose(fp);
-
-  Document d;
-  d.ParseStream(is);
-
-  // Check that the given file is a steering specification file.
-  assert(d.HasMember("Type"));
-  std::string type = d["Type"].GetString();
-  assert(type.compare("Steering") == 0);
-
-  // Extract the driveline type.
-  assert(d.HasMember("Template"));
-  std::string subtype = d["Template"].GetString();
-
-  // Create the steering using the appropriate template.
-  // Create the driveline using the appropriate template.
-  if (subtype.compare("PitmanArm") == 0)
-  {
-    m_steering = ChSharedPtr<ChSteering>(new PitmanArm(d));
-  }
-  else if (subtype.compare("RackPinion") == 0)
-  {
-    m_steering = ChSharedPtr<ChSteering>(new RackPinion(d));
-  }
-}
-
-
-// -----------------------------------------------------------------------------
-void SuspensionTest::LoadSuspension(const std::string& filename,
-                             int                axle,
-                             bool               driven)
-{
-  FILE* fp = fopen(filename.c_str(), "r");
-
-  char readBuffer[65536];
-  FileReadStream is(fp, readBuffer, sizeof(readBuffer));
-
-  fclose(fp);
-
-  Document d;
-  d.ParseStream(is);
-
-  // Check that the given file is a suspension specification file.
-  assert(d.HasMember("Type"));
-  std::string type = d["Type"].GetString();
-  assert(type.compare("Suspension") == 0);
-
-  // Extract the suspension type.
-  assert(d.HasMember("Template"));
-  std::string subtype = d["Template"].GetString();
-
-  // Create the suspension using the appropriate template.
-  if (subtype.compare("DoubleWishbone") == 0)
-  {
-    m_suspensions[axle] = ChSharedPtr<ChSuspension>(new DoubleWishbone(d));
-  }
-  else if (subtype.compare("DoubleWishboneReduced") == 0)
-  {
-    m_suspensions[axle] = ChSharedPtr<ChSuspension>(new DoubleWishboneReduced(d));
-  }
-  else if (subtype.compare("SolidAxle") == 0)
-  {
-    m_suspensions[axle] = ChSharedPtr<ChSuspension>(new SolidAxle(d));
-  }
-  else if (subtype.compare("MultiLink") == 0)
-  {
-    m_suspensions[axle] = ChSharedPtr<ChSuspension>(new MultiLink(d));
-  }
-}
-
-// -----------------------------------------------------------------------------
-void SuspensionTest::LoadWheel(const std::string& filename, int axle, int side)
-{
-  FILE* fp = fopen(filename.c_str(), "r");
-
-  char readBuffer[65536];
-  FileReadStream is(fp, readBuffer, sizeof(readBuffer));
-
-  fclose(fp);
-
-  Document d;
-  d.ParseStream(is);
-
-  // Check that the given file is a wheel specification file.
-  assert(d.HasMember("Type"));
-  std::string type = d["Type"].GetString();
-  assert(type.compare("Wheel") == 0);
-
-  // Extract the wheel type.
-  assert(d.HasMember("Template"));
-  std::string subtype = d["Template"].GetString();
-
-  // Create the wheel using the appropriate template.
-  if (subtype.compare("Wheel") == 0)
-  {
-    m_wheels[2 * axle + side] = ChSharedPtr<ChWheel>(new Wheel(filename));
-  }
-}
-
-
 // ----------------------------------------------------------
-SuspensionTest::SuspensionTest(const std::string& filename): m_num_axles(1)
+SuspensionTest::SuspensionTest(const std::string& filename): m_num_axles(1), m_save_log_to_file(false)
 {
   // Open and parse the input file
   FILE* fp = fopen(filename.c_str(), "r");
@@ -367,6 +264,227 @@ void SuspensionTest::Update(double       time,
 }
 
 
+
+void SuspensionTest::Save_DebugLog(int what,
+                                   const std::string& filename)
+{
+  if(m_log_file_exists)
+  {
+    // same name for the log files? otherwise create a new one
+    if( filename == m_log_file_name )
+    {
+
+    } else
+    {
+
+      create_fileHeader(filename, what);
+    }
+  } else 
+  { 
+    create_fileHeader(filename, what);
+    m_log_file_exists = true;
+  }
+
+}
+
+
+void SuspensionTest::DebugLog(int console_what)
+{
+  GetLog().SetNumFormat("%10.2f");
+
+  if (console_what & DBG_SPRINGS)
+  {
+    GetLog() << "\n---- Spring (front-left, front-right, rear-left, rear-right)\n";
+    GetLog() << "Length [inch]       "
+      << GetSpringLength(FRONT_LEFT) / in2m << "  "
+      << GetSpringLength(FRONT_RIGHT) / in2m << "  "
+      << GetSpringLength(REAR_LEFT) / in2m << "  "
+      << GetSpringLength(REAR_RIGHT) / in2m << "\n";
+    GetLog() << "Deformation [inch]  "
+      << GetSpringDeformation(FRONT_LEFT) / in2m << "  "
+      << GetSpringDeformation(FRONT_RIGHT) / in2m << "  "
+      << GetSpringDeformation(REAR_LEFT) / in2m << "  "
+      << GetSpringDeformation(REAR_RIGHT) / in2m << "\n";
+    GetLog() << "Force [lbf]         "
+      << GetSpringForce(FRONT_LEFT) / lbf2N << "  "
+      << GetSpringForce(FRONT_RIGHT) / lbf2N << "  "
+      << GetSpringForce(REAR_LEFT) / lbf2N << "  "
+      << GetSpringForce(REAR_RIGHT) / lbf2N << "\n";
+  }
+
+  if (console_what & DBG_SHOCKS)
+  {
+    GetLog() << "\n---- Shock (front-left, front-right, rear-left, rear-right)\n";
+    GetLog() << "Length [inch]       "
+      << GetShockLength(FRONT_LEFT) / in2m << "  "
+      << GetShockLength(FRONT_RIGHT) / in2m << "  "
+      << GetShockLength(REAR_LEFT) / in2m << "  "
+      << GetShockLength(REAR_RIGHT) / in2m << "\n";
+    GetLog() << "Velocity [inch/s]   "
+      << GetShockVelocity(FRONT_LEFT) / in2m << "  "
+      << GetShockVelocity(FRONT_RIGHT) / in2m << "  "
+      << GetShockVelocity(REAR_LEFT) / in2m << "  "
+      << GetShockVelocity(REAR_RIGHT) / in2m << "\n";
+    GetLog() << "Force [lbf]         "
+      << GetShockForce(FRONT_LEFT) / lbf2N << "  "
+      << GetShockForce(FRONT_RIGHT) / lbf2N << "  "
+      << GetShockForce(REAR_LEFT) / lbf2N << "  "
+      << GetShockForce(REAR_RIGHT) / lbf2N << "\n";
+  }
+
+  if (console_what & DBG_CONSTRAINTS)
+  {
+    // Report constraint violations for all joints
+    LogConstraintViolations();
+  }
+
+  GetLog().SetNumFormat("%g");
+}
+
+// Public Accessors
+// -----------------------------------------------------------------------------
+// -----------------------------------------------------------------------------
+double SuspensionTest::GetSpringForce(const ChWheelID& wheel_id) const
+{
+  return m_suspensions[0].StaticCastTo<ChDoubleWishbone>()->GetSpringForce(wheel_id.side());
+}
+
+double SuspensionTest::GetSpringLength(const ChWheelID& wheel_id) const
+{
+  return m_suspensions[0].StaticCastTo<ChDoubleWishbone>()->GetSpringLength(wheel_id.side());
+}
+
+double SuspensionTest::GetSpringDeformation(const ChWheelID& wheel_id) const
+{
+  return m_suspensions[0].StaticCastTo<ChDoubleWishbone>()->GetSpringDeformation(wheel_id.side());
+}
+
+
+double SuspensionTest::GetShockForce(const ChWheelID& wheel_id) const
+{
+  return m_suspensions[0].StaticCastTo<ChDoubleWishbone>()->GetShockForce(wheel_id.side());
+}
+
+double SuspensionTest::GetShockLength(const ChWheelID& wheel_id) const
+{
+  return m_suspensions[0].StaticCastTo<ChDoubleWishbone>()->GetShockLength(wheel_id.side());
+}
+
+double SuspensionTest::GetShockVelocity(const ChWheelID& wheel_id) const
+{
+  return m_suspensions[0].StaticCastTo<ChDoubleWishbone>()->GetShockVelocity(wheel_id.side());
+}
+
+
+// Private class functions
+// -----------------------------------------------------------------------------
+// -----------------------------------------------------------------------------
+void SuspensionTest::LoadSteering(const std::string& filename)
+{
+  FILE* fp = fopen(filename.c_str(), "r");
+
+  char readBuffer[65536];
+  FileReadStream is(fp, readBuffer, sizeof(readBuffer));
+
+  fclose(fp);
+
+  Document d;
+  d.ParseStream(is);
+
+  // Check that the given file is a steering specification file.
+  assert(d.HasMember("Type"));
+  std::string type = d["Type"].GetString();
+  assert(type.compare("Steering") == 0);
+
+  // Extract the driveline type.
+  assert(d.HasMember("Template"));
+  std::string subtype = d["Template"].GetString();
+
+  // Create the steering using the appropriate template.
+  // Create the driveline using the appropriate template.
+  if (subtype.compare("PitmanArm") == 0)
+  {
+    m_steering = ChSharedPtr<ChSteering>(new PitmanArm(d));
+  }
+  else if (subtype.compare("RackPinion") == 0)
+  {
+    m_steering = ChSharedPtr<ChSteering>(new RackPinion(d));
+  }
+}
+
+
+void SuspensionTest::LoadSuspension(const std::string& filename,
+                             int                axle,
+                             bool               driven)
+{
+  FILE* fp = fopen(filename.c_str(), "r");
+
+  char readBuffer[65536];
+  FileReadStream is(fp, readBuffer, sizeof(readBuffer));
+
+  fclose(fp);
+
+  Document d;
+  d.ParseStream(is);
+
+  // Check that the given file is a suspension specification file.
+  assert(d.HasMember("Type"));
+  std::string type = d["Type"].GetString();
+  assert(type.compare("Suspension") == 0);
+
+  // Extract the suspension type.
+  assert(d.HasMember("Template"));
+  std::string subtype = d["Template"].GetString();
+
+  // Create the suspension using the appropriate template.
+  if (subtype.compare("DoubleWishbone") == 0)
+  {
+    m_suspensions[axle] = ChSharedPtr<ChSuspension>(new DoubleWishbone(d));
+  }
+  else if (subtype.compare("DoubleWishboneReduced") == 0)
+  {
+    m_suspensions[axle] = ChSharedPtr<ChSuspension>(new DoubleWishboneReduced(d));
+  }
+  else if (subtype.compare("SolidAxle") == 0)
+  {
+    m_suspensions[axle] = ChSharedPtr<ChSuspension>(new SolidAxle(d));
+  }
+  else if (subtype.compare("MultiLink") == 0)
+  {
+    m_suspensions[axle] = ChSharedPtr<ChSuspension>(new MultiLink(d));
+  }
+}
+
+
+void SuspensionTest::LoadWheel(const std::string& filename, int axle, int side)
+{
+  FILE* fp = fopen(filename.c_str(), "r");
+
+  char readBuffer[65536];
+  FileReadStream is(fp, readBuffer, sizeof(readBuffer));
+
+  fclose(fp);
+
+  Document d;
+  d.ParseStream(is);
+
+  // Check that the given file is a wheel specification file.
+  assert(d.HasMember("Type"));
+  std::string type = d["Type"].GetString();
+  assert(type.compare("Wheel") == 0);
+
+  // Extract the wheel type.
+  assert(d.HasMember("Template"));
+  std::string subtype = d["Template"].GetString();
+
+  // Create the wheel using the appropriate template.
+  if (subtype.compare("Wheel") == 0)
+  {
+    m_wheels[2 * axle + side] = ChSharedPtr<ChWheel>(new Wheel(filename));
+  }
+}
+
+
 void SuspensionTest::AddVisualize_post(ChSharedBodyPtr post_body,
                                 double height,
                                 double rad)
@@ -383,5 +501,22 @@ void SuspensionTest::AddVisualize_post(ChSharedBodyPtr post_body,
   col->SetColor(ChColor(0.4f, 0.2f, 0.6f));
   post_body->AddAsset(col);
 }
+
+
+void SuspensionTest::create_fileHeader(const std::string& name, int what)
+{
+  m_log_file_name = name;
+  std::ofstream oFile(name.c_str(), std::ios_base::out);
+  if (!oFile.is_open()) {
+      std::cout << " couldn't open file for writing: " << name << " \n\n";
+      return;
+    } else 
+    {
+      // write the headers, Fx, Fy are pure forces, Fxc and Fyc are the combined forces
+      oFile << "time,kappa,alpha,gamma,kappaP,alphaP,gammaP,Vx,Vy,omega,Fx,Fy,Fz,Mx,My,Mz,Fxc,Fyc,Mzc,Mzx,Mzy,M_zrc,contact,m_Fz,m_dF_z,u,valpha,vgamma,vphi,du,dvalpha,dvgamma,dvphi,R0,R_l,Reff,MP_z,M_zr,t,s,FX,FY,FZ,MX,MY,MZ,u_Bessel,u_sigma,v_Bessel,v_sigma" << std::endl;
+      oFile.close();
+    }
+}
+
 
 } // end namespace chrono

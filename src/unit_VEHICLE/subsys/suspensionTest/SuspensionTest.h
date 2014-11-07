@@ -46,11 +46,21 @@ public:
                       double              disp_R,
                       const ChTireForces& tire_forces);
 
-private:
+  /// Log info to console or file
+  void DebugLog(int console_what);
 
-  void LoadSteering(const std::string& filename);
-  void LoadSuspension(const std::string& filename, int axle, bool driven);
-  void LoadWheel(const std::string& filename, int axle, int side);
+  /// save the stuff printed to the log in a file
+  void Save_DebugLog(int what,
+                     const std::string& out_filename = "log_SuspensionTest.csv");
+
+  // Accessors
+  double GetSpringForce(const ChWheelID& wheel_id) const;
+  double GetSpringLength(const ChWheelID& wheel_id) const;
+  double GetSpringDeformation(const ChWheelID& wheel_id) const;
+
+  double GetShockForce(const chrono::ChWheelID& wheel_id) const;
+  double GetShockLength(const chrono::ChWheelID& wheel_id) const;
+  double GetShockVelocity(const chrono::ChWheelID& wheel_id) const;
 
 private:
 
@@ -71,11 +81,22 @@ private:
   ChCoordsys<> m_driverCsys;                  // driver position and orientation relative to chassis
   double m_post_height;                       // post height, for visuals
   double m_post_rad;                          // post radius, for visuals
+  bool m_save_log_to_file;                    // save the DebugLog() info to file? default false
+  bool m_log_file_exists;                     // written the headers for log file yet?
+  std::string m_log_file_name;
+
+  // Private functions
+
+  void LoadSteering(const std::string& filename);
+  void LoadSuspension(const std::string& filename, int axle, bool driven);
+  void LoadWheel(const std::string& filename, int axle, int side);
 
 
   static void AddVisualize_post(ChSharedBodyPtr post_body,
                                 double height,
                                 double rad);
+
+  void create_fileHeader(const std::string& name, int what);
 };
 
 
