@@ -246,6 +246,10 @@ int main(int argc, char* argv[])
       GetLog() << "Time = " << time << "\n\n";
       tester.DebugLog(DBG_SUSPENSIONTEST);
     }
+    if (step_number % render_steps == 0) {
+      // write output data
+      tester.SaveLog();
+    }
 #endif
 
     // Collect output data from modules, here it's the steering and post displacements

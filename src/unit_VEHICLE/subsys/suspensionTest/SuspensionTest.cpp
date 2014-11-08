@@ -70,7 +70,7 @@ static ChQuaternion<> loadQuaternion(const Value& a)
 
 // ----------------------------------------------------------
 SuspensionTest::SuspensionTest(const std::string& filename): 
-  m_num_axles(1), m_save_log_to_file(false), m_log_file_exists(false)
+  m_num_axles(1), m_save_log_to_file(false), m_log_file_exists(false), m_log_what(0)
 {
   // Open and parse the input file
   FILE* fp = fopen(filename.c_str(), "r");
@@ -189,6 +189,7 @@ SuspensionTest::SuspensionTest(const std::string& filename):
 
 SuspensionTest::~SuspensionTest()
 {
+  delete m_ofile;
 }
 
 // -----------------------------------------------------------------------------
@@ -273,6 +274,7 @@ void SuspensionTest::Save_DebugLog(int what,
   create_fileHeader(filename, what);
   m_log_file_exists = true;
   m_log_file_name = filename;
+  m_log_what = what;
 
 }
 
@@ -319,18 +321,79 @@ void SuspensionTest::DebugLog(int console_what)
   {
     GetLog() << "\n---- suspension test (left, right)\n";
     GetLog() << "Actuator Displacement [in] "
-      << GetActuatorDisp(FRONT_LEFT) / in2m << " "
+      << GetActuatorDisp(FRONT_LEFT) / in2m << "  "
       << GetActuatorDisp(FRONT_RIGHT) / in2m << "\n";
     GetLog() << "Actuator Force [N] "
-      << GetActuatorForce(FRONT_LEFT) / in2m << " "
+      << GetActuatorForce(FRONT_LEFT) / in2m << "  "
       << GetActuatorForce(FRONT_RIGHT) / in2m << "\n";
     GetLog() << "Actuator marker dist [in] "
-      << GetActuatorMarkerDist(FRONT_LEFT) / in2m << " "
+      << GetActuatorMarkerDist(FRONT_LEFT) / in2m << "  "
       << GetActuatorMarkerDist(FRONT_RIGHT) / in2m << "\n";
   }
 
   GetLog().SetNumFormat("%g");
 }
+
+
+
+
+void SuspensionTest::SaveLog()
+{
+  // told to save the data?
+  if( m_save_log_to_file )
+  {
+    if( !m_log_file_exists ) 
+    {
+      std::cerr << "Must call Save_DebugLog() before trying to save the log data to file!!! \n\n\n";
+    }
+    // write the simulation time first
+    std::stringstream ss;
+    ss << GetChTime();
+
+    // python pandas expects csv w/ no whitespace
+    if( m_log_what & DBG_SPRINGS )
+    {
+      ss << "," << GetSpringLength(FRONT_LEFT) / in2m << ","
+        << GetSpringLength(FRONT_RIGHT) / in2m << ","
+        << GetSpringDeformation(FRONT_LEFT) / in2m << ","
+        << GetSpringDeformation(FRONT_RIGHT) / in2m << ","
+        << GetSpringForce(FRONT_LEFT) / lbf2N << ","
+        << GetSpringForce(FRONT_RIGHT) / lbf2N;
+  
+    }
+    if (m_log_what & DBG_SHOCKS)
+    {
+      ss << "," << GetShockLength(FRONT_LEFT) / in2m << ","
+        << GetShockLength(FRONT_RIGHT) / in2m << ","
+        << GetShockVelocity(FRONT_LEFT) / in2m << ","
+        << GetShockVelocity(FRONT_RIGHT) / in2m << ","
+        << GetShockForce(FRONT_LEFT) / lbf2N << ","
+        << GetShockForce(FRONT_RIGHT) / lbf2N;
+    }
+
+    if (m_log_what & DBG_CONSTRAINTS)
+    {
+      // Report constraint violations for all joints
+      LogConstraintViolations();
+    }
+    
+    if (m_log_what & DBG_SUSPENSIONTEST)
+    {
+      ss << "," << GetActuatorDisp(FRONT_LEFT) / in2m << ","
+        << GetActuatorDisp(FRONT_RIGHT) / in2m << ","
+        << GetActuatorForce(FRONT_LEFT) / in2m << ","
+        << GetActuatorForce(FRONT_RIGHT) / in2m << ","
+        << GetActuatorMarkerDist(FRONT_LEFT) / in2m << ","
+        << GetActuatorMarkerDist(FRONT_RIGHT) / in2m;
+    }
+    // next line last, then write to file
+    ss << "\n";
+    *m_ofile << ss.str().c_str();
+  }
+
+
+}
+
 
 // Public Accessors
 // -----------------------------------------------------------------------------
@@ -521,7 +584,7 @@ void SuspensionTest::AddVisualize_post(ChSharedBodyPtr post_body,
 void SuspensionTest::create_fileHeader(const std::string& name, int what)
 {
   // open the data file for writing the header
-  ChStreamOutAsciiFile outfile(name.c_str());
+  m_ofile = new ChStreamOutAsciiFile(name.c_str());
   // write the headers, output types specified by "what"
   std::stringstream ss;
   ss << "time";
@@ -540,12 +603,13 @@ void SuspensionTest::create_fileHeader(const std::string& name, int what)
   }
   if(what & DBG_SUSPENSIONTEST)
   {
-    ss << "";
+    ss << ",a_disp,a_F,a_mark_disp";
   }
-  // write to file, go to next line in file.
-  // outfile << ss.str();
-  // outfile << "\n";
+  // write to file, go to next line in file in prep. for next step.
+  *m_ofile << ss.str().c_str();
+  *m_ofile << "\n";
 }
 
 
 } // end namespace chrono
+     
