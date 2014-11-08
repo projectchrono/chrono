@@ -50,7 +50,7 @@ static const std::string ref_dir = "validation/revolute_joint/";
 //
 bool TestRevolute(const ChVector<>& jointLoc, const ChQuaternion<>& jointRot,
                   double simTimeStep, double outTimeStep,
-                  const std::string& testName, bool animate);
+                  const std::string& testName, bool animate, bool save);
 bool ValidateReference(const std::string& testName, const std::string& what, double tolerance);
 bool ValidateConstraints(const std::string& testName, double tolerance);
 bool ValidateEnergy(const std::string& testName, double tolerance);
@@ -63,6 +63,7 @@ utils::CSV_writer OutStream();
 int main(int argc, char* argv[])
 {
   bool animate = (argc > 1);
+  bool save = (argc > 2);
 
   // Set the path to the Chrono data folder
   SetChronoDataPath(CHRONO_DATA_DIR);
@@ -89,7 +90,7 @@ int main(int argc, char* argv[])
   // must be rotated -pi/2 about the global X-axis.
 
   test_name = "Revolute_Case01";
-  TestRevolute(ChVector<>(0, 0, 0), Q_from_AngX(-CH_C_PI_2), sim_step, out_step, test_name, animate);
+  TestRevolute(ChVector<>(0, 0, 0), Q_from_AngX(-CH_C_PI_2), sim_step, out_step, test_name, animate, save);
   if (!animate) {
     test_passed &= ValidateReference(test_name, "Pos", 2e-3);
     test_passed &= ValidateReference(test_name, "Vel", 1e-4);
@@ -107,7 +108,7 @@ int main(int argc, char* argv[])
   // In this case, the joint must be rotated -pi/4 about the global X-axis.
 
   test_name = "Revolute_Case02";
-  TestRevolute(ChVector<>(1, 2, 3), Q_from_AngX(-CH_C_PI_4), sim_step, out_step, test_name, animate);
+  TestRevolute(ChVector<>(1, 2, 3), Q_from_AngX(-CH_C_PI_4), sim_step, out_step, test_name, animate, save);
   if (!animate) {
     test_passed &= ValidateReference(test_name, "Pos", 2e-3);
     test_passed &= ValidateReference(test_name, "Vel", 1e-4);
@@ -134,7 +135,8 @@ bool TestRevolute(const ChVector<>&     jointLoc,         // absolute location o
                   double                simTimeStep,      // simulation time step
                   double                outTimeStep,      // output time step
                   const std::string&    testName,         // name of this test
-                  bool                  animate)          // if true, animate with Irrlich
+                  bool                  animate,          // if true, animate with Irrlich
+                  bool                  save)             // if true, also save animation data
 {
   std::cout << "TEST: " << testName << std::endl;
 
@@ -231,8 +233,25 @@ bool TestRevolute(const ChVector<>&     jointLoc,         // absolute location o
     application->SetTimestep(simTimeStep);
 
     // Simulation loop
+    double outTime = 0;
+    int    outFrame = 1;
+
+    std::string pov_dir = out_dir + "POVRAY_" + testName;
+    if (ChFileutils::MakeDirectory(pov_dir.c_str()) < 0) {
+      std::cout << "Error creating directory " << pov_dir << std::endl;
+      return false;
+    }
+
     while (application->GetDevice()->run())
     {
+      if (save && my_system.GetChTime() >= outTime - simTimeStep / 2) {
+        char filename[100];
+        sprintf(filename, "%s/data_%03d.dat", pov_dir.c_str(), outFrame);
+        utils::WriteShapesPovray(&my_system, filename);
+        outTime += outTimeStep;
+        outFrame++;
+      }
+
       application->BeginScene();
       application->DrawAll();
 
