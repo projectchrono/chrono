@@ -39,7 +39,6 @@ namespace chrono
 #define LNK_REVOLUTE            8
 #define LNK_RACKPIN             9
 #define LNK_FREE                10
-#define LNK_HOOK                11
 #define LNK_SCREW               12
 #define LNK_ALIGN               13
 #define LNK_PARALLEL            14
@@ -54,7 +53,6 @@ namespace chrono
 #define LNK_SPRING              25
 #define LNK_WHEEL               26
 #define LNK_LINACTUATOR         27
-#define LNK_CARDANO             28
 #define LNK_BASE                29
 #define LNK_SPRING_CALLBACK     30
 #define LNK_ENGINE              31

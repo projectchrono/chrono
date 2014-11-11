@@ -327,6 +327,7 @@ IF (BUILD_CH_SDK)
 		physics/ChLinkMate.cpp 
 		physics/ChLinkRackpinion.cpp 
 		physics/ChLinkRevoluteSpherical.cpp 
+		physics/ChLinkUniversal.cpp 
 		physics/ChHistory.cpp 
 		physics/ChSystem.cpp 
 		physics/ChGlobal.cpp 
@@ -433,6 +434,7 @@ IF (BUILD_CH_SDK)
 		physics/ChLinkMate.h
 		physics/ChLinkRackpinion.h
 		physics/ChLinkRevoluteSpherical.h
+		physics/ChLinkUniversal.h
 		physics/ChMarker.h
 		physics/ChMaterialCouple.h
 		physics/ChMaterialSurface.h

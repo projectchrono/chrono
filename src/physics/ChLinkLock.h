@@ -338,16 +338,6 @@ public:
 	ChLinkLockFree() {ChangeLinkType(LNK_FREE);}
 };
 
-/// 'hook' joint , with the 'ChLinkLock' formulation.
-/// (allows a simplier creation of a link as a sub-type of ChLinkLock). 
-
-class ChApi ChLinkLockHook : public ChLinkLock 
-{
-	CH_RTTI(ChLinkLockHook,ChLinkLock);
-public:
-	ChLinkLockHook() {ChangeLinkType(LNK_HOOK);}
-};
-
 /// align joint , with the 'ChLinkLock' formulation.
 /// (allows a simplier creation of a link as a sub-type of ChLinkLock). 
 
