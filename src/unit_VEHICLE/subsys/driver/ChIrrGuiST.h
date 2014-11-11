@@ -79,8 +79,8 @@ public:
 private:
 
   // control the vertical displacement of shaker posts
-  void SetShaker_L(double vertical_disp, double min_z, double max_z);
-  void SetShaker_R(double vertical_disp, double min_z, double max_z);
+  void SetShaker_L_disp(double vertical_disp, double min_z, double max_z);
+  void SetShaker_R_disp(double vertical_disp, double min_z, double max_z);
 
   void renderSprings();
   void renderLinks();

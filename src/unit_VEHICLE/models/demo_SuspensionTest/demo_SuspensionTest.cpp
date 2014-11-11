@@ -164,7 +164,7 @@ int main(int argc, char* argv[])
 
   application.SetTimestep(step_size);
 
-  ChIrrGuiST driver(application, tester, trackPoint, -2.0, 1, 0.5, 0.3);
+  ChIrrGuiST driver(application, tester, trackPoint, -2.0, 1, 0.2, 0.3);
 
   // Set the time response for steering keyboard inputs, when they are used
   // NOTE: this is not exact, since not rendered quite at the specified FPS.

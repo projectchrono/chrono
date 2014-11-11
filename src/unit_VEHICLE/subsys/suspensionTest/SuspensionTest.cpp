@@ -219,7 +219,11 @@ void SuspensionTest::Initialize(const ChCoordsys<>& chassisPos)
   
   // actuate the L post DOF with a linear actuator in the vertical direction.
   // body 2 is the post, so this link will be w.r.t. marker on that body
-  m_post_L_linact->Initialize(m_chassis, m_post_L, ChCoordsys<>(post_L_pos,QUNIT) );
+  ChVector<> m1_L = post_L_pos;
+  m1_L.z -= 1.0;    // offset marker 1 location 1 meter below marker 2
+  m_post_L_linact->Initialize(m_chassis, m_post_L, false, ChCoordsys<>(m1_L,QUNIT), ChCoordsys<>(post_L_pos,QUNIT) );
+  m_post_L_linact->Set_lin_offset( (post_L_pos - m1_L).z );
+  // displacement motion set as a constant function
   ChSharedPtr<ChFunction_Const> func_L(new ChFunction_Const(0));
   m_post_L_linact->Set_dist_funct( func_L );
   AddLink(m_post_L_linact);
@@ -234,7 +238,11 @@ void SuspensionTest::Initialize(const ChCoordsys<>& chassisPos)
   AddLink(m_post_R_prismatic);
 
   // actuate the R post DOF with a linear actuator in the vertical direction
-  m_post_R_linact->Initialize(m_chassis, m_post_R, ChCoordsys<>(post_R_pos,QUNIT) );
+  ChVector<> m1_R = post_R_pos;
+  m1_R.z -= 1.0;    // offset marker 1 location 1 meter below marker 2
+  m_post_R_linact->Initialize(m_chassis, m_post_R, false, ChCoordsys<>(m1_R,QUNIT), ChCoordsys<>(post_R_pos,QUNIT) );
+  m_post_R_linact->Set_lin_offset( (post_R_pos - m1_R).z );
+  // displacement motion set as a constant function
   ChSharedPtr<ChFunction_Const> func_R(new ChFunction_Const(0));
   m_post_R_linact->Set_dist_funct( func_R );
   AddLink(m_post_R_linact);

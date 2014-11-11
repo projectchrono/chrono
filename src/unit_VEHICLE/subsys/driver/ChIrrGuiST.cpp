@@ -21,6 +21,7 @@
 #include "subsys/driver/ChIrrGuiST.h"
 
 using namespace irr;
+using namespace gui;
 
 namespace chrono {
 
@@ -46,8 +47,8 @@ ChIrrGuiST::ChIrrGuiST(ChIrrApp&          app,
   m_stepsize(1e-3),
   m_post_L_disp(0),
   m_post_R_disp(0),
-  m_min_post_z(-1.0),
-  m_max_post_z(1.0)
+  m_min_post_z(-shaker_limit),
+  m_max_post_z(shaker_limit)
 {
   app.SetUserEventReceiver(this);
 
@@ -85,17 +86,17 @@ bool ChIrrGuiST::OnEvent(const SEvent& event)
 
     // shaker left post, up/down
     case KEY_KEY_T:
-      SetShaker_L(m_post_L_disp + m_postDelta, m_min_post_z, m_max_post_z);
+      SetShaker_L_disp(m_post_L_disp + m_postDelta, m_min_post_z, m_max_post_z);
       return true;
     case KEY_KEY_G:
-      SetShaker_L(m_post_L_disp - m_postDelta, m_min_post_z, m_max_post_z); 
+      SetShaker_L_disp(m_post_L_disp - m_postDelta, m_min_post_z, m_max_post_z); 
       return true;
     // shaker right post, up/down
     case KEY_KEY_Y:
-      SetShaker_R(m_post_R_disp + m_postDelta, m_min_post_z, m_max_post_z);
+      SetShaker_R_disp(m_post_R_disp + m_postDelta, m_min_post_z, m_max_post_z);
       return true;
     case KEY_KEY_H:
-      SetShaker_R(m_post_R_disp - m_postDelta, m_min_post_z, m_max_post_z); 
+      SetShaker_R_disp(m_post_R_disp - m_postDelta, m_min_post_z, m_max_post_z); 
       return true;
 
     case KEY_DOWN:
@@ -162,12 +163,12 @@ void ChIrrGuiST::Advance(double step)
 }
 
 
-void ChIrrGuiST::SetShaker_L(double vertical_disp, double min_z, double max_z)
+void ChIrrGuiST::SetShaker_L_disp(double vertical_disp, double min_z, double max_z)
 {
   m_post_L_disp = clamp(vertical_disp, min_z, max_z);
 }
 
-void ChIrrGuiST::SetShaker_R(double vertical_disp, double min_z, double max_z)
+void ChIrrGuiST::SetShaker_R_disp(double vertical_disp, double min_z, double max_z)
 {
   m_post_R_disp = clamp(vertical_disp, min_z, max_z);
 }
