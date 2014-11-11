@@ -70,6 +70,14 @@ public:
   double GetActuatorForce(const chrono::ChWheelID& wheel_id)const;
   double GetActuatorMarkerDist(const chrono::ChWheelID& wheel_id)const;
 
+  // also sets local vars for re-use
+  double Get_KingpinAng(const chrono::ChVehicleSide side);
+  double Get_KingpinOffset(const chrono::ChVehicleSide side);
+  double Get_CasterAng(const chrono::ChVehicleSide side);
+  double Get_CasterOffset(const chrono::ChVehicleSide side);
+  double Get_ToeAng(const chrono::ChVehicleSide side);
+  double Get_LCArollAng();
+
 private:
 
   int                      m_num_axles;       // number of axles on test rig always 1
@@ -94,6 +102,15 @@ private:
   std::string m_log_file_name;
   int m_log_what;
   ChStreamOutAsciiFile *m_ofile;
+
+  // suspension measurement data
+
+  double m_KA[2]; // kingpin angle [rad] 
+  double m_Koffset[2]; // kingpin offset
+  double m_CA[2]; // wheel caster angle [rad]
+  double m_Coffset[2];  // wheel caster offset
+  double m_TA[2]; // wheel toe angle
+  double m_suspensionRoll;
 
   // Private functions
 

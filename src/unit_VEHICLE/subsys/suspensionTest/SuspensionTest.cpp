@@ -361,6 +361,7 @@ void SuspensionTest::DebugLog(int console_what)
   if (console_what & DBG_SUSPENSIONTEST)
   {
     GetLog() << "\n---- suspension test (left, right)\n";
+    /*
     GetLog() << "Actuator Displacement [in] "
       << GetActuatorDisp(FRONT_LEFT) / in2m << "  "
       << GetActuatorDisp(FRONT_RIGHT) / in2m << "\n";
@@ -370,6 +371,11 @@ void SuspensionTest::DebugLog(int console_what)
     GetLog() << "Actuator marker dist [in] "
       << GetActuatorMarkerDist(FRONT_LEFT) / in2m << "  "
       << GetActuatorMarkerDist(FRONT_RIGHT) / in2m << "\n";
+    */
+    GetLog() << "Kingpin angle [deg] "
+      << Get_KingpinAng(LEFT)*180.0/CH_C_PI << " "
+      << Get_KingpinAng(RIGHT)*180.0/CH_C_PI << "\n";
+
   }
 
   GetLog().SetNumFormat("%g");
@@ -493,6 +499,132 @@ double SuspensionTest::GetActuatorMarkerDist(const chrono::ChWheelID& wheel_id)c
     return m_post_L_linact.StaticCastTo<ChLinkLinActuator>()->GetDist();
   else
     return m_post_R_linact.StaticCastTo<ChLinkLinActuator>()->GetDist();
+}
+
+// -----------------------------------------------------------------------------
+// Measurements to log for suspension test rig
+
+
+// NOTE: should probably check to make sure the suspension type is compatable
+/// suspension kingpin angle, in radians. Assume x-forward, z-up.
+/// Sets m_KA[side]
+double SuspensionTest::Get_KingpinAng(const chrono::ChVehicleSide side)
+{
+  // global coordinates
+  ChVector<> UCA_bj_pos = m_suspensions[0].DynamicCastTo<ChDoubleWishbone>()->Get_UCA_sph_pos(side);
+  ChVector<> LCA_bj_pos = m_suspensions[0].DynamicCastTo<ChDoubleWishbone>()->Get_LCA_sph_pos(side);
+  // kingpin direction vector, global coords
+  ChVector<> k_hat = (UCA_bj_pos - LCA_bj_pos).GetNormalized();
+
+  // front view of things, (no x-component)
+  k_hat.x = 0;
+  k_hat.Normalize();
+
+  // cos(KA) = (k_hat) dot (0,0,1)T
+  double KA = std::acos(k_hat.z);
+
+  m_KA[side] = KA;
+  return KA;
+}
+
+/// suspension kingpin offset, in meters. Assume x-forward, z-up.
+/// Sets m_Koffset[side]
+/// Assumes you already called Get_KingpinAng(side);
+double SuspensionTest::Get_KingpinOffset(const chrono::ChVehicleSide side)
+{
+  // global coordinates
+  ChVector<> LCA_bj_pos = m_suspensions[0].DynamicCastTo<ChDoubleWishbone>()->Get_LCA_sph_pos(side);
+ 
+  /*
+  ChVector<> UCA_bj_pos = m_suspensions[0].DynamicCastTo<ChDoubleWishbone>()->Get_UCA_sph_pos(side);
+  // kingpin direction vector, global coords
+  ChVector<> k_hat = (UCA_bj_pos - LCA_bj_pos).GetNormalized();
+
+  // front view of things, (no x-component)
+  k_hat.x = 0;
+  k_hat.Normalize();
+  double KA = std::acos(k_hat.z);
+  double k_g = LCA_bj_pos.y + std::tan(KA) * LCA_bj_pos.z;
+  */
+
+
+
+  double k_g = LCA_bj_pos.y + std::tan(m_KA[side]) * LCA_bj_pos.z;
+
+  // wheel y-displacement from vehicle centerline
+  double y_wheel = m_suspensions[0]->GetSpindlePos(side).y;
+
+  double KP_offset = y_wheel - k_g;
+
+  m_Koffset[side] = KP_offset;
+  return KP_offset;
+}
+
+/// suspension wheel caster angle. Similar to kingpin angle, but in X-Z plane.
+/// Sets m_CA[side]
+double SuspensionTest::Get_CasterAng(const chrono::ChVehicleSide side)
+{
+  // global coordinates
+  ChVector<> UCA_bj_pos = m_suspensions[0].DynamicCastTo<ChDoubleWishbone>()->Get_UCA_sph_pos(side);
+  ChVector<> LCA_bj_pos = m_suspensions[0].DynamicCastTo<ChDoubleWishbone>()->Get_LCA_sph_pos(side);
+  // kingpin direction vector, global coords
+  ChVector<> c_hat = (UCA_bj_pos - LCA_bj_pos).GetNormalized();
+
+  // side view, (no y-component)
+  c_hat.y = 0;
+  c_hat.Normalize();
+
+  // cos(CA) = (c_hat) dot (0,0,1)T
+  double c_ang = std::acos(c_hat.z);
+
+  m_CA[side] = c_ang;
+  return c_ang;
+}
+
+
+/// suspension wheel caster offset.
+/// Sets m_Coffset[side]
+/// assumes you already called Get_CasterAng[side]
+double SuspensionTest::Get_CasterOffset(const chrono::ChVehicleSide side)
+{
+  ChVector<> LCA_bj_pos = m_suspensions[0].DynamicCastTo<ChDoubleWishbone>()->Get_LCA_sph_pos(side);
+  
+  // wheel x-displacement from vehicle centerline
+  double x_wheel = m_suspensions[0]->GetSpindlePos(side).x;
+
+  double c_g = LCA_bj_pos.x + std::tan(m_CA[side]) * LCA_bj_pos.z;
+
+  double offset = c_g - x_wheel;
+  return offset;
+
+}
+
+/// Wheel spindle toe angle
+/// assumes x+ is forward direction
+double SuspensionTest::Get_ToeAng(const chrono::ChVehicleSide side)
+{
+  // forward x_hat_wheel will be found by z_hat cross y_hat
+  ChVector<> y_hat_wheel = m_suspensions[0]->GetSpindleRot(side).GetYaxis();
+  // top view, z irrelevant
+  y_hat_wheel.z = 0;
+  y_hat_wheel.Normalize();
+  
+  // x = z cross y
+  ChVector<> x_hat_wheel = ChVector<>(0,0,1) % y_hat_wheel;
+
+  // cos(TA) = x_hat_wheel dot (1,0,0)T
+  double TA = std::acos(x_hat_wheel.x);
+
+  m_TA[side] = TA;
+  return TA;
+}
+
+// get the roll angle, defined as the angle between CM of two LCAs w/ the horizontal plane
+double SuspensionTest::Get_LCArollAng()
+{
+
+  double ang = 0;
+  return 0;
 }
 
 // Private class functions
