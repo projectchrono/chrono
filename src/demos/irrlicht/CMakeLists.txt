@@ -30,6 +30,7 @@ SET(DEMOS
   demo_aux_ref
   demo_rev_sph
   demo_spring
+  demo_motion_law
 )
 
 #--------------------------------------------------------------

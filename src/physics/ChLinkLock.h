@@ -269,7 +269,7 @@ public:
 };
 
 /// prismatic joint , with the 'ChLinkLock' formulation.
-/// (allows a simplier creation of a link as a sub-type of ChLinkLock). 
+/// Default axis along +z
 
 class ChApi ChLinkLockPrismatic : public ChLinkLock 
 {
