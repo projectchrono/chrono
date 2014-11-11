@@ -204,7 +204,6 @@ SuspensionTest::SuspensionTest(const std::string& filename):
 
 SuspensionTest::~SuspensionTest()
 {
-  delete m_ofile;
 }
 
 // -----------------------------------------------------------------------------
@@ -304,6 +303,9 @@ void SuspensionTest::Update(double       time,
   m_suspensions[0]->ApplyTireForce(LEFT, tire_forces[0]);
   m_suspensions[0]->ApplyTireForce(RIGHT, tire_forces[1]);
 
+  m_steer = steering;
+  m_postDisp[LEFT] = disp_L;
+  m_postDisp[RIGHT] = disp_R;
 }
 
 
@@ -313,11 +315,12 @@ void SuspensionTest::Update(double       time,
 void SuspensionTest::Save_DebugLog(int what,
                                    const std::string& filename)
 {
-  create_fileHeader(filename, what);
-  m_log_file_exists = true;
   m_log_file_name = filename;
+  m_save_log_to_file = true;
   m_log_what = what;
-
+  
+  create_fileHeader(what);
+  m_log_file_exists = true;
 }
 
 
@@ -373,6 +376,12 @@ void SuspensionTest::DebugLog(int console_what)
       << GetActuatorMarkerDist(FRONT_LEFT) / in2m << "  "
       << GetActuatorMarkerDist(FRONT_RIGHT) / in2m << "\n";
     */
+
+
+
+//    GetLog() << "steer input: " << 
+  
+    
     GetLog() << "Kingpin angle [deg] "
       << Get_KingpinAng(LEFT) * rad2deg << "  "
       << Get_KingpinAng(RIGHT) * rad2deg << "\n";
@@ -407,9 +416,13 @@ void SuspensionTest::SaveLog()
     {
       std::cerr << "Must call Save_DebugLog() before trying to save the log data to file!!! \n\n\n";
     }
-    // write the simulation time first
+    // open the file to append
+    // open the data file for writing the header
+  ChStreamOutAsciiFile ofile(m_log_file_name.c_str(), std::ios::app);
+
+    // write the simulation time first, and rig inputs
     std::stringstream ss;
-    ss << GetChTime();
+    ss << GetChTime() <<","<< m_steer <<","<< m_postDisp[LEFT] <<","<< m_postDisp[RIGHT];
 
     // python pandas expects csv w/ no whitespace
     if( m_log_what & DBG_SPRINGS )
@@ -458,10 +471,8 @@ void SuspensionTest::SaveLog()
     }
     // next line last, then write to file
     ss << "\n";
-    *m_ofile << ss.str().c_str();
+    ofile << ss.str().c_str();
   }
-
-
 }
 
 
@@ -799,13 +810,13 @@ void SuspensionTest::AddVisualize_post(ChSharedBodyPtr post_body,
 }
 
 
-void SuspensionTest::create_fileHeader(const std::string& name, int what)
+void SuspensionTest::create_fileHeader(int what)
 {
   // open the data file for writing the header
-  m_ofile = new ChStreamOutAsciiFile(name.c_str());
+  ChStreamOutAsciiFile ofile(m_log_file_name.c_str());
   // write the headers, output types specified by "what"
   std::stringstream ss;
-  ss << "time";
+  ss << "time,steer,postDisp_L,postDisp_R";
   if(what & DBG_SPRINGS)
   {
     // L/R spring length, delta x, force
@@ -825,8 +836,8 @@ void SuspensionTest::create_fileHeader(const std::string& name, int what)
   }
 
   // write to file, go to next line in file in prep. for next step.
-  *m_ofile << ss.str().c_str();
-  *m_ofile << "\n";
+  ofile << ss.str().c_str();
+  ofile << "\n";
 }
 
 

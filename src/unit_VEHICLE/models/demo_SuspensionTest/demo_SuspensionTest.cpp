@@ -101,7 +101,8 @@ int main(int argc, char* argv[])
   // Create the testing mechanism, initilize ity
   SuspensionTest tester(suspensionTest_file);
   tester.Initialize(ChCoordsys<>(initLoc, initRot));
-  tester.Save_DebugLog(DBG_SPRINGS | DBG_SHOCKS | DBG_CONSTRAINTS | DBG_SUSPENSIONTEST,"log_test_SuspensionTester.csv");
+  // tester.Save_DebugLog(DBG_SPRINGS | DBG_SHOCKS | DBG_CONSTRAINTS | DBG_SUSPENSIONTEST,"log_test_SuspensionTester.csv");
+  tester.Save_DebugLog(DBG_SUSPENSIONTEST,"log_test_SuspensionTester.csv");
 
   // Create and initialize two rigid wheels
   ChSharedPtr<ChTire> tire_front_right;

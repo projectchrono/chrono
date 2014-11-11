@@ -101,10 +101,12 @@ private:
   bool m_log_file_exists;                     // written the headers for log file yet?
   std::string m_log_file_name;
   int m_log_what;
-  ChStreamOutAsciiFile *m_ofile;
+
+  // rig/steer inputs 
+  double m_steer;
+  double m_postDisp[2];
 
   // suspension measurement data
-
   double m_KA[2]; // kingpin angle [rad] 
   double m_Koffset[2]; // kingpin offset
   double m_CA[2]; // wheel caster angle [rad]
@@ -125,7 +127,7 @@ private:
                                 double rad,
                                 const ChColor& color = ChColor(0.1f, 0.8f, 0.15f) );
 
-  void create_fileHeader(const std::string& name, int what);
+  void create_fileHeader(int what);
 };
 
 
