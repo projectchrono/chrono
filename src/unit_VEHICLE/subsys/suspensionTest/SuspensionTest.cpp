@@ -47,6 +47,7 @@ namespace chrono {
 static const double in2m = 0.0254;
 static const double lb2kg = 0.453592;
 static const double lbf2N = 4.44822162;
+static const double rad2deg = 180.0/CH_C_PI;
 
 // Utility functions
 // -----------------------------------------------------------------------------
@@ -373,9 +374,22 @@ void SuspensionTest::DebugLog(int console_what)
       << GetActuatorMarkerDist(FRONT_RIGHT) / in2m << "\n";
     */
     GetLog() << "Kingpin angle [deg] "
-      << Get_KingpinAng(LEFT)*180.0/CH_C_PI << " "
-      << Get_KingpinAng(RIGHT)*180.0/CH_C_PI << "\n";
-
+      << Get_KingpinAng(LEFT) * rad2deg << "  "
+      << Get_KingpinAng(RIGHT) * rad2deg << "\n";
+    GetLog() << "Kingpin offset [in] "
+      << Get_KingpinOffset(LEFT) / in2m << "  "
+      << Get_KingpinOffset(RIGHT) / in2m << "\n";
+    GetLog() << "Caster angle [deg] "
+      << Get_CasterAng(LEFT) * rad2deg << "  "
+      << Get_CasterAng(RIGHT) * rad2deg << "\n";
+    GetLog() << "Caster offset [in] "
+      << Get_CasterOffset(LEFT) / in2m << "  "
+      << Get_CasterOffset(RIGHT) / in2m << "\n";
+    GetLog() << "Toe angle [deg] "
+      << Get_ToeAng(LEFT) * rad2deg << "  "
+      << Get_ToeAng(RIGHT) * rad2deg << "\n";
+    GetLog() << "suspension roll angle [deg] "
+      << Get_LCArollAng() << "\n";
   }
 
   GetLog().SetNumFormat("%g");
@@ -424,14 +438,23 @@ void SuspensionTest::SaveLog()
       LogConstraintViolations();
     }
     
+    // ",KA_L,KA_R,Koff_L,Koff_R,CA_L,CA_R,Coff_L,Coff_R,TA_L,TA_R,LCA_roll";
     if (m_log_what & DBG_SUSPENSIONTEST)
     {
+      ss <<","<< Get_KingpinAng(LEFT)*rad2deg <<","<< Get_KingpinAng(RIGHT)*rad2deg 
+        <<","<< Get_KingpinOffset(LEFT)/in2m <<","<< Get_KingpinOffset(RIGHT)/in2m
+        <<","<< Get_CasterAng(LEFT)*rad2deg <<","<< Get_CasterAng(RIGHT)*rad2deg 
+        <<","<< Get_CasterOffset(LEFT)/in2m <<","<< Get_CasterOffset(RIGHT)/in2m
+        <<","<< Get_ToeAng(LEFT)*rad2deg <<","<< Get_ToeAng(RIGHT)*rad2deg
+        <<","<< Get_LCArollAng();
+      /*
       ss << "," << GetActuatorDisp(FRONT_LEFT) / in2m << ","
         << GetActuatorDisp(FRONT_RIGHT) / in2m << ","
         << GetActuatorForce(FRONT_LEFT) / in2m << ","
         << GetActuatorForce(FRONT_RIGHT) / in2m << ","
         << GetActuatorMarkerDist(FRONT_LEFT) / in2m << ","
         << GetActuatorMarkerDist(FRONT_RIGHT) / in2m;
+       */
     }
     // next line last, then write to file
     ss << "\n";
@@ -798,8 +821,9 @@ void SuspensionTest::create_fileHeader(const std::string& name, int what)
   }
   if(what & DBG_SUSPENSIONTEST)
   {
-    ss << ",a_disp,a_F,a_mark_disp";
+    ss << ",KA_L,KA_R,Koff_L,Koff_R,CA_L,CA_R,Coff_L,Coff_R,TA_L,TA_R,LCA_roll";
   }
+
   // write to file, go to next line in file in prep. for next step.
   *m_ofile << ss.str().c_str();
   *m_ofile << "\n";
