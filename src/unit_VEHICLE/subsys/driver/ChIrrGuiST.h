@@ -106,8 +106,9 @@ private:
   double m_postDelta;
   double m_post_L_disp;
   double m_post_R_disp;
-  double m_min_post_z;  // TODO: don't hardcode these
+  double m_min_post_z;  // jounce/rebound don't have to be equal
   double m_max_post_z;
+  double m_steer_lim; // steering limits should be symmetric
 
   int  m_HUD_x;
   int  m_HUD_y;

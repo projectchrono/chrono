@@ -55,6 +55,27 @@
 using namespace chrono;
 
 
+// =============================================================================
+// USER SETTINGS
+// =============================================================================
+double steer_limit = 0.5;
+double post_limit = 0.2;
+
+// Simulation step size
+double step_size = 0.001;
+double render_step_size = 1.0 / 50;   // Time interval between two render frames
+double output_step_size = 1.0 / 1;    // Time interval between two output frames
+
+#ifdef USE_IRRLICHT
+  // Point on chassis tracked by the camera
+  ChVector<> trackPoint(1.5, 0.0, 0);
+  double camera_chase = -2.0;
+  double camera_height = 1.0;
+#else
+  double tend = 20.0;
+  const std::string out_dir = "../HMMWV";
+  const std::string pov_dir = out_dir + "/POVRAY";
+#endif
 
 // =============================================================================
 // JSON file for vehicle model
@@ -65,33 +86,11 @@ std::string rigidtire_file = utils::GetModelDataFile("hmmwv/tire/HMMWV_RigidTire
 
 // Driver input file (if not using Irrlicht)
 std::string driver_file = utils::GetModelDataFile("generic/driver/Sample_Maneuver.txt");
-// =============================================================================
 
-// Initial vehicle position
 // radius of wheel + vertical distance between spindle and chassis center marker
 ChVector<> initLoc(0, 0, 0.496); 
-
-// Initial vehicle orientation
 ChQuaternion<> initRot(1, 0, 0, 0);
 
-// Simulation step size
-double step_size = 0.001;
-
-// Time interval between two render frames
-double render_step_size = 1.0 / 50;   // FPS = 50
-
-// Time interval between two output frames
-double output_step_size = 1.0 / 1;    // once a second
-
-#ifdef USE_IRRLICHT
-  // Point on chassis tracked by the camera
-  ChVector<> trackPoint(1.5, 0.0, 0);
-#else
-  double tend = 20.0;
-
-  const std::string out_dir = "../HMMWV";
-  const std::string pov_dir = out_dir + "/POVRAY";
-#endif
 
 
 // =============================================================================
@@ -164,12 +163,12 @@ int main(int argc, char* argv[])
 
   application.SetTimestep(step_size);
 
-  ChIrrGuiST driver(application, tester, trackPoint, -2.0, 1, 0.2, 0.3);
+  ChIrrGuiST driver(application, tester, trackPoint, camera_chase, camera_height, steer_limit, post_limit);
 
   // Set the time response for steering keyboard inputs, when they are used
   // NOTE: this is not exact, since not rendered quite at the specified FPS.
-  double steering_time = 1.0;  // time to go from 0 to +1 (or from 0 to -1)
-  double post_time = 1.0; // time to go from 0 to +1 for the applied post motion
+  double steering_time = 5.0;  // time to go from 0 to +1 (or from 0 to -1)
+  double post_time = 5.0; // time to go from 0 to +1 for the applied post motion
   driver.SetSteeringDelta(render_step_size / steering_time);
   driver.SetPostDelta(render_step_size / post_time );
 

@@ -47,6 +47,7 @@ ChIrrGuiST::ChIrrGuiST(ChIrrApp&          app,
   m_stepsize(1e-3),
   m_post_L_disp(0),
   m_post_R_disp(0),
+  m_steer_lim(steer_limit),
   m_min_post_z(-shaker_limit),
   m_max_post_z(shaker_limit)
 {
@@ -78,10 +79,10 @@ bool ChIrrGuiST::OnEvent(const SEvent& event)
 
     switch (event.KeyInput.Key) {
     case KEY_KEY_A:
-      SetSteering(m_steering - m_steeringDelta);
+      SetSteering(m_steering - m_steeringDelta, -m_steer_lim, m_steer_lim);
       return true;
     case KEY_KEY_D:
-      SetSteering(m_steering + m_steeringDelta);
+      SetSteering(m_steering + m_steeringDelta, -m_steer_lim, m_steer_lim);
       return true;
 
     // shaker left post, up/down

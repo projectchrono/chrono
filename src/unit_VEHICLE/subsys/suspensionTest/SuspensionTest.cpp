@@ -69,6 +69,8 @@ static ChQuaternion<> loadQuaternion(const Value& a)
 
 
 // ----------------------------------------------------------
+// Constructor guaranteers that <ChBody> objects are Added to the system here
+// Links are added to the system during Initialize()
 SuspensionTest::SuspensionTest(const std::string& filename): 
   m_num_axles(1), m_save_log_to_file(false), m_log_file_exists(false), m_log_what(0)
 {
@@ -184,6 +186,14 @@ SuspensionTest::SuspensionTest(const std::string& filename):
   // actuate R post
   m_post_R_linact = ChSharedPtr<ChLinkLinActuator>(new ChLinkLinActuator);
   m_post_R_linact->SetNameString("R_post_linActuator");
+
+  // left post point on plane
+  m_post_L_ptPlane = ChSharedPtr<ChLinkLockPointPlane>(new ChLinkLockPointPlane());
+  m_post_L_ptPlane->SetNameString("L_post_pointPlane");
+  
+  // right post point on plane
+  m_post_R_ptPlane = ChSharedPtr<ChLinkLockPointPlane>(new ChLinkLockPointPlane());
+  m_post_R_ptPlane->SetNameString("R_post_pointPlane");
 }
 
 
@@ -193,6 +203,8 @@ SuspensionTest::~SuspensionTest()
 }
 
 // -----------------------------------------------------------------------------
+// <ChBody> objects should have already been added to the system.
+// Links need to be added to the system here.
 void SuspensionTest::Initialize(const ChCoordsys<>& chassisPos)
 {
   m_chassis->SetFrame_REF_to_abs(ChFrame<>(chassisPos));
@@ -209,7 +221,8 @@ void SuspensionTest::Initialize(const ChCoordsys<>& chassisPos)
 
   // initialize the posts relative to the wheels
   // left side post
-  ChVector<> post_L_pos = m_suspensions[0]->GetSpindlePos(LEFT);
+  ChVector<> spindle_L_pos = m_suspensions[0]->GetSpindlePos(LEFT);
+  ChVector<> post_L_pos = spindle_L_pos;
   post_L_pos.z -= (m_wheels[LEFT]->GetRadius() + m_post_height/2.0);  // shift down
   m_post_L->SetPos(post_L_pos);
 
@@ -229,7 +242,8 @@ void SuspensionTest::Initialize(const ChCoordsys<>& chassisPos)
   AddLink(m_post_L_linact);
 
   // right side post
-  ChVector<> post_R_pos = m_suspensions[0]->GetSpindlePos(RIGHT);
+  ChVector<> spindle_R_pos = m_suspensions[0]->GetSpindlePos(RIGHT);
+  ChVector<> post_R_pos = spindle_R_pos;
   post_R_pos.z -= (m_wheels[RIGHT]->GetRadius() + m_post_height/2.0); // shift down
   m_post_R->SetPos(post_R_pos);
 
@@ -246,6 +260,15 @@ void SuspensionTest::Initialize(const ChCoordsys<>& chassisPos)
   ChSharedPtr<ChFunction_Const> func_R(new ChFunction_Const(0));
   m_post_R_linact->Set_dist_funct( func_R );
   AddLink(m_post_R_linact);
+
+  // keep the suspension at the specified height by keeping a point on the spindle
+  // body on a plane whose height is based on the shaker post.
+  m_post_L_ptPlane->Initialize(m_suspensions[0]->GetSpindle(LEFT), m_post_L, ChCoordsys<>(spindle_L_pos, QUNIT));
+  AddLink(m_post_L_ptPlane);
+
+  // right post point on plane
+  m_post_R_ptPlane->Initialize(m_suspensions[0]->GetSpindle(RIGHT), m_post_R, ChCoordsys<>(spindle_R_pos, QUNIT));
+  AddLink(m_post_R_ptPlane);
 
 }
 

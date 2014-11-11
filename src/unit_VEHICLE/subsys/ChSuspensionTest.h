@@ -139,8 +139,10 @@ protected:
   ChSharedPtr<ChBody>        m_post_R;      ///< right shaker post
   ChSharedPtr<ChLinkLockPrismatic> m_post_L_prismatic; ///< left post prismatic joint
   ChSharedPtr<ChLinkLinActuator> m_post_L_linact; ///< actuate left post
+  ChSharedPtr<ChLinkLockPointPlane> m_post_L_ptPlane; ///< actuate L suspension to a specified height
   ChSharedPtr<ChLinkLockPrismatic> m_post_R_prismatic; ///< right post prismatic joint
   ChSharedPtr<ChLinkLinActuator> m_post_R_linact; ///< actuate right post
+  ChSharedPtr<ChLinkLockPointPlane> m_post_R_ptPlane; ///< actuate R suspension to a specified height
   ChSharedPtr<ChSteering>    m_steering;     ///< handle to the steering subsystem.
   ChWheelList                m_wheels;       ///< list of handles to wheel subsystems, 2 in this case.
 
