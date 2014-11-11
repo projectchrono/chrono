@@ -102,9 +102,11 @@ private:
   void LoadWheel(const std::string& filename, int axle, int side);
 
 
-  static void AddVisualize_post(ChSharedBodyPtr post_body,
+  static void AddVisualize_post(ChSharedBodyPtr post_body, 
+                                ChSharedBodyPtr ground_body,
                                 double height,
-                                double rad);
+                                double rad,
+                                const ChColor& color = ChColor(0.1f, 0.8f, 0.15f) );
 
   void create_fileHeader(const std::string& name, int what);
 };

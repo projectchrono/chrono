@@ -108,9 +108,13 @@ SuspensionTest::SuspensionTest(const std::string& filename):
   ChSharedPtr<ChSphereShape> sphere(new ChSphereShape);
   sphere->GetSphereGeometry().rad = 0.1;
   sphere->Pos = m_chassisCOM;
-  m_chassis->AddAsset(sphere);
+  m_chassis->AddAsset(sphere);  // add asset sphere to chassis body
 
-  Add(m_chassis);
+  ChSharedPtr<ChColorAsset> blue(new ChColorAsset);
+  blue->SetColor(ChColor(0.2f, 0.2f, 0.8f));
+  m_chassis->AddAsset(blue);  // add asset color to chassis body
+
+  Add(m_chassis); // add chassis body to the system
 
   // ---------------------------------
   // More validations of the JSON file
@@ -164,7 +168,7 @@ SuspensionTest::SuspensionTest(const std::string& filename):
   m_post_L = ChSharedPtr<ChBody>(new ChBody());
 
   // Cylinders for left post visualization
-  AddVisualize_post(m_post_L, m_post_height, m_post_rad);
+  // AddVisualize_post(m_post_L, m_chassis, m_post_height, m_post_rad);
   Add(m_post_L);  // add left post body to System
 
   // constrain L post to only translate vetically
@@ -177,7 +181,7 @@ SuspensionTest::SuspensionTest(const std::string& filename):
   // right post body
   m_post_R = ChSharedPtr<ChBody>(new ChBody());
   // Cylinder for visualization of right post
-  AddVisualize_post(m_post_R, m_post_height, m_post_rad);
+  // AddVisualize_post(m_post_R, m_chassis, m_post_height, m_post_rad);
   Add(m_post_R);  // add right post body to System
 
   // constrain R post to only translate vetically
@@ -269,6 +273,12 @@ void SuspensionTest::Initialize(const ChCoordsys<>& chassisPos)
   // right post point on plane
   m_post_R_ptPlane->Initialize(m_suspensions[0]->GetSpindle(RIGHT), m_post_R, ChCoordsys<>(spindle_R_pos, QUNIT));
   AddLink(m_post_R_ptPlane);
+
+  // some visualizations.
+  // left post: Green
+  AddVisualize_post(m_post_L, m_chassis, m_post_height, m_post_rad);
+  // right post: Red
+  AddVisualize_post(m_post_R, m_chassis, m_post_height, m_post_rad, ChColor(0.8f,0.1f,0.1f));
 
 }
 
@@ -595,20 +605,42 @@ void SuspensionTest::LoadWheel(const std::string& filename, int axle, int side)
 
 
 void SuspensionTest::AddVisualize_post(ChSharedBodyPtr post_body,
-                                double height,
-                                double rad)
+                                       ChSharedBodyPtr ground_body,
+                                       double height,
+                                       double rad,
+                                       const ChColor& color)
 {
   // post platform visualized as a cylinder
-  ChSharedPtr<ChCylinderShape> left_cyl(new ChCylinderShape);
-  left_cyl->GetCylinderGeometry().rad = rad;
-  left_cyl->GetCylinderGeometry().p1 = ChVector<>(0,0,height/2.0);
-  left_cyl->GetCylinderGeometry().p2 = ChVector<>(0,0,-height/2.0);
+  ChSharedPtr<ChCylinderShape> base_cyl(new ChCylinderShape);
+  base_cyl->GetCylinderGeometry().rad = rad;
+  base_cyl->GetCylinderGeometry().p1 = ChVector<>(0,0,height/2.0);
+  base_cyl->GetCylinderGeometry().p2 = ChVector<>(0,0,-height/2.0);
 
-  post_body->AddAsset(left_cyl); // add geometry asset to left post body
+  post_body->AddAsset(base_cyl); // add geometry asset to post body
 
+  // actuator would be a vertical piston-cylinder
+  ChSharedPtr<ChCylinderShape> piston(new ChCylinderShape);
+  piston->GetCylinderGeometry().rad = rad/6.0;
+  piston->GetCylinderGeometry().p1 = ChVector<>(0,0,-height/2.0);
+  piston->GetCylinderGeometry().p2 = ChVector<>(0,0,-height*8.0);
+  post_body->AddAsset(piston);  // add asset to post body
+
+  // ground body
+  ChSharedPtr<ChCylinderShape> cyl(new ChCylinderShape);
+  cyl->GetCylinderGeometry().rad = rad/4.0;
+
+  ChVector<> p1 = post_body->GetPos();
+  p1.z -=height*8.0;
+  ChVector<> p2 = p1;
+  p2.z -= height*8.0;
+  cyl->GetCylinderGeometry().p1 = p1;
+  cyl->GetCylinderGeometry().p2 = p2;
+  ground_body->AddAsset(cyl);  // add asset to ground body
+
+  // give the post a color
   ChSharedPtr<ChColorAsset> col(new ChColorAsset);
-  col->SetColor(ChColor(0.4f, 0.2f, 0.6f));
-  post_body->AddAsset(col);
+  col->SetColor(color);
+  post_body->AddAsset(col); // add asset color to post body
 }
 
 

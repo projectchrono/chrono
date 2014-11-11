@@ -70,7 +70,7 @@ double output_step_size = 1.0 / 1;    // Time interval between two output frames
   // Point on chassis tracked by the camera
   ChVector<> trackPoint(1.5, 0.0, 0);
   double camera_chase = -2.0;
-  double camera_height = 1.0;
+  double camera_height = 0.5;
 #else
   double tend = 20.0;
   const std::string out_dir = "../HMMWV";
