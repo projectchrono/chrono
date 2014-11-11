@@ -50,6 +50,7 @@
 //#include "physics/ChLinkPointSurf.h"
 #include "physics/ChLinkTrajectory.h"
 #include "physics/ChLinkRevoluteSpherical.h"
+#include "physics/ChLinkUniversal.h"
 
 
 #endif

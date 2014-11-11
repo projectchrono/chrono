@@ -230,18 +230,8 @@ void ChLinkLock::BuildLinkType (int link_type)
                         false,true, true, true,
                         false,false);
 
-    if (type == LNK_HOOK)
-        m_mask.SetLockMask (true, true, true,
-                        false,false,true, false,
-                        false,false);
-
     if (type == LNK_UNIVERSAL)
         m_mask.SetLockMask (true, true, true,
-                        false,false, false, true,
-                        false,false);
-
-    if (type == LNK_CARDANO)
-        m_mask.SetLockMask (false, false, false,
                         false,false, false, true,
                         false,false);
 
