@@ -10,7 +10,7 @@
   {
     "Mesh Filename":            "hmmwv/wheel_R.obj",
     "Mesh Name":                "wheel_R_POV_geom",
-	"Radius":                   0.4699,
+	"Radius":                   0.41,
 	"Width":                    0.254
   }
 }
