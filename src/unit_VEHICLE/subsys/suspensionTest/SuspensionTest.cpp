@@ -543,7 +543,6 @@ double SuspensionTest::GetActuatorMarkerDist(const chrono::ChWheelID& wheel_id)c
 // -----------------------------------------------------------------------------
 // Measurements to log for suspension test rig
 
-
 // NOTE: should probably check to make sure the suspension type is compatable
 /// suspension kingpin angle, in radians. Assume x-forward, z-up.
 /// Sets m_KA[side]
@@ -679,6 +678,10 @@ double SuspensionTest::Get_ToeAng(const chrono::ChVehicleSide side)
 
   // cos(TA) = x_hat_wheel dot (1,0,0)T, TA always calculated as positive here
   double TA = std::acos(x_hat.x) * sign_TA;
+
+  ChVector<> xx = m_suspensions[0]->GetSpindle(side)->GetRot().GetXaxis();
+  ChVector<> yy = m_suspensions[0]->GetSpindle(side)->GetRot().GetYaxis();
+  ChVector<> zz = m_suspensions[0]->GetSpindle(side)->GetRot().GetZaxis();
 
   m_TA[side] = TA;
   return TA;

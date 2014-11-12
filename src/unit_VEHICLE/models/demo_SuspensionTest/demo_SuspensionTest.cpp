@@ -58,7 +58,7 @@ using namespace chrono;
 // =============================================================================
 // USER SETTINGS
 // =============================================================================
-double steer_limit = 0.5;
+double steer_limit = 0.6;
 double post_limit = 0.2;
 
 // Simulation step size
@@ -68,9 +68,9 @@ double output_step_size = 1.0 / 1;    // Time interval between two output frames
 
 #ifdef USE_IRRLICHT
   // Point on chassis tracked by the camera
-  ChVector<> trackPoint(1.5, 0.0, 0);
-  double camera_chase = -2.0;
-  double camera_height = 0.5;
+  ChVector<> trackPoint(1.65, 0.0, 0);
+  double camera_chase = 0;
+  double camera_height = 2.0;
 #else
   double tend = 20.0;
   const std::string out_dir = "../HMMWV";
@@ -102,7 +102,7 @@ int main(int argc, char* argv[])
   SuspensionTest tester(suspensionTest_file);
   tester.Initialize(ChCoordsys<>(initLoc, initRot));
   // tester.Save_DebugLog(DBG_SPRINGS | DBG_SHOCKS | DBG_CONSTRAINTS | DBG_SUSPENSIONTEST,"log_test_SuspensionTester.csv");
-//  tester.Save_DebugLog(DBG_SUSPENSIONTEST,"log_test_SuspensionTester.csv");
+  tester.Save_DebugLog(DBG_SUSPENSIONTEST,"log_test_SuspensionTester.csv");
 
   // Create and initialize two rigid wheels
   ChSharedPtr<ChTire> tire_front_right;
@@ -168,8 +168,8 @@ int main(int argc, char* argv[])
 
   // Set the time response for steering keyboard inputs, when they are used
   // NOTE: this is not exact, since not rendered quite at the specified FPS.
-  double steering_time = 5.0;  // time to go from 0 to +1 (or from 0 to -1)
-  double post_time = 5.0; // time to go from 0 to +1 for the applied post motion
+  double steering_time = 2.0;  // time to go from 0 to max
+  double post_time = 3.0; // time to go from 0 to max applied post motion
   driver.SetSteeringDelta(render_step_size / steering_time * steer_limit);
   driver.SetPostDelta(render_step_size / post_time * post_limit);
 
@@ -244,7 +244,7 @@ int main(int argc, char* argv[])
     if (step_number % output_steps == 0) {
       GetLog() << "\n\n============ System Information ============\n";
       GetLog() << "Time = " << time << "\n\n";
-      tester.DebugLog(DBG_SUSPENSIONTEST);
+      tester.DebugLog(DBG_SPRINGS | DBG_SUSPENSIONTEST);
     }
     if (step_number % render_steps == 0) {
       // write output data
