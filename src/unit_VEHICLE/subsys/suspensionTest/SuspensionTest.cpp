@@ -75,6 +75,7 @@ static ChQuaternion<> loadQuaternion(const Value& a)
 SuspensionTest::SuspensionTest(const std::string& filename): 
   m_num_axles(1), m_save_log_to_file(false), m_log_file_exists(false), m_log_what(0)
 {
+
   // Open and parse the input file
   FILE* fp = fopen(filename.c_str(), "r");
 
@@ -321,6 +322,10 @@ void SuspensionTest::Save_DebugLog(int what,
   
   create_fileHeader(what);
   m_log_file_exists = true;
+
+  // initialize the rig input values to zero
+  m_steer = 0;
+  m_postDisp[0] = m_postDisp[1] = 0;
 }
 
 
@@ -557,6 +562,17 @@ double SuspensionTest::Get_KingpinAng(const chrono::ChVehicleSide side)
   // cos(KA) = (k_hat) dot (0,0,1)T
   double KA = std::acos(k_hat.z);
 
+  // KA is positive when the top of wheel points towards vehicle center.
+  int sign_y = k_hat >= 0 ? 1: -1;  // is k_hat.y pos. or neg.?
+  // on the left, +y indicates a 
+  if(side == LEFT) {
+    KA *= -sign_y;
+  } else {
+    KA *= sign_y;
+  }
+
+    
+
   m_KA[side] = KA;
   return KA;
 }
@@ -580,15 +596,16 @@ double SuspensionTest::Get_KingpinOffset(const chrono::ChVehicleSide side)
   double KA = std::acos(k_hat.z);
   double k_g = LCA_bj_pos.y + std::tan(KA) * LCA_bj_pos.z;
   */
+  int sign_KA = 1;
+  if(side == RIGHT )
+    sign_KA = -1;
 
-
-
-  double k_g = LCA_bj_pos.y + std::tan(m_KA[side]) * LCA_bj_pos.z;
+  double k_g = LCA_bj_pos.y + std::tan(sign_KA * m_KA[side]) * (LCA_bj_pos.z - GetPostSurfacePos(side).z );
 
   // wheel y-displacement from vehicle centerline
   double y_wheel = m_suspensions[0]->GetSpindlePos(side).y;
 
-  double KP_offset = y_wheel - k_g;
+  double KP_offset = (y_wheel - k_g) * sign_KA;
 
   m_Koffset[side] = KP_offset;
   return KP_offset;
@@ -610,6 +627,9 @@ double SuspensionTest::Get_CasterAng(const chrono::ChVehicleSide side)
 
   // cos(CA) = (c_hat) dot (0,0,1)T
   double c_ang = std::acos(c_hat.z);
+  // positive caster angle has the UCA rear-ward of the LCA
+  if( c_hat.x > 0 )
+    c_ang = -c_ang;
 
   m_CA[side] = c_ang;
   return c_ang;
@@ -626,7 +646,7 @@ double SuspensionTest::Get_CasterOffset(const chrono::ChVehicleSide side)
   // wheel x-displacement from vehicle centerline
   double x_wheel = m_suspensions[0]->GetSpindlePos(side).x;
 
-  double c_g = LCA_bj_pos.x + std::tan(m_CA[side]) * LCA_bj_pos.z;
+  double c_g = LCA_bj_pos.x + std::tan(m_CA[side]) * (LCA_bj_pos.z - GetPostSurfacePos(side).z );
 
   double offset = c_g - x_wheel;
   return offset;
@@ -634,7 +654,6 @@ double SuspensionTest::Get_CasterOffset(const chrono::ChVehicleSide side)
 }
 
 /// Wheel spindle toe angle
-/// assumes x+ is forward direction
 double SuspensionTest::Get_ToeAng(const chrono::ChVehicleSide side)
 {
   // forward x_hat_wheel will be found by z_hat cross y_hat
@@ -643,11 +662,23 @@ double SuspensionTest::Get_ToeAng(const chrono::ChVehicleSide side)
   y_hat_wheel.z = 0;
   y_hat_wheel.Normalize();
   
-  // x = z cross y
-  ChVector<> x_hat_wheel = ChVector<>(0,0,1) % y_hat_wheel;
+  // x = z cross y (left side), x = y cross z (right)
+  ChVector<> x_hat_wheel = y_hat_wheel % ChVector<>(0,0,1);
+  int sign_TA = 1;
+  if(side == LEFT)
+  {
+    // on the left side, pos. toe has a neg. y component for x_hat
+    if(x_hat_wheel.y > 0)
+      sign_TA = -1;
+  } else {
 
-  // cos(TA) = x_hat_wheel dot (1,0,0)T
-  double TA = std::acos(x_hat_wheel.x);
+    // on the right, pos. toe angle has pos. y component for x_hat
+    if(x_hat_wheel.y < 0)
+      sign_TA = -1;
+  }
+
+  // cos(TA) = x_hat_wheel dot (1,0,0)T, TA always calculated as positive here
+  double TA = std::acos(x_hat_wheel.x) * sign_TA;
 
   m_TA[side] = TA;
   return TA;
@@ -659,6 +690,20 @@ double SuspensionTest::Get_LCArollAng()
 
   double ang = 0;
   return 0;
+}
+
+// global center of the post surface
+ChVector<> SuspensionTest::GetPostSurfacePos(const chrono::ChVehicleSide& side)
+{
+  ChVector<> pos;
+  if(side == LEFT)
+    pos = m_post_L->GetPos();
+  else
+    pos = m_post_R->GetPos();
+
+  pos.z += m_post_height/2.0;
+
+  return pos;
 }
 
 // Private class functions

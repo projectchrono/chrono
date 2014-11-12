@@ -78,6 +78,8 @@ public:
   double Get_ToeAng(const chrono::ChVehicleSide side);
   double Get_LCArollAng();
 
+  ChVector<> GetPostSurfacePos(const chrono::ChVehicleSide& side);
+
 private:
 
   int                      m_num_axles;       // number of axles on test rig always 1

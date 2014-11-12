@@ -102,7 +102,7 @@ int main(int argc, char* argv[])
   SuspensionTest tester(suspensionTest_file);
   tester.Initialize(ChCoordsys<>(initLoc, initRot));
   // tester.Save_DebugLog(DBG_SPRINGS | DBG_SHOCKS | DBG_CONSTRAINTS | DBG_SUSPENSIONTEST,"log_test_SuspensionTester.csv");
-  tester.Save_DebugLog(DBG_SUSPENSIONTEST,"log_test_SuspensionTester.csv");
+//  tester.Save_DebugLog(DBG_SUSPENSIONTEST,"log_test_SuspensionTester.csv");
 
   // Create and initialize two rigid wheels
   ChSharedPtr<ChTire> tire_front_right;
@@ -170,8 +170,8 @@ int main(int argc, char* argv[])
   // NOTE: this is not exact, since not rendered quite at the specified FPS.
   double steering_time = 5.0;  // time to go from 0 to +1 (or from 0 to -1)
   double post_time = 5.0; // time to go from 0 to +1 for the applied post motion
-  driver.SetSteeringDelta(render_step_size / steering_time);
-  driver.SetPostDelta(render_step_size / post_time );
+  driver.SetSteeringDelta(render_step_size / steering_time * steer_limit);
+  driver.SetPostDelta(render_step_size / post_time * post_limit);
 
   // Set up the assets for rendering
   application.AssetBindAll();
