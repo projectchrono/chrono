@@ -656,29 +656,29 @@ double SuspensionTest::Get_CasterOffset(const chrono::ChVehicleSide side)
 /// Wheel spindle toe angle
 double SuspensionTest::Get_ToeAng(const chrono::ChVehicleSide side)
 {
-  // forward x_hat_wheel will be found by z_hat cross y_hat
-  ChVector<> y_hat_wheel = m_suspensions[0]->GetSpindleRot(side).GetYaxis();
-  // top view, z irrelevant
-  y_hat_wheel.z = 0;
-  y_hat_wheel.Normalize();
-  
-  // x = z cross y (left side), x = y cross z (right)
-  ChVector<> x_hat_wheel = y_hat_wheel % ChVector<>(0,0,1);
+  // y_hat should be parallel to the ground
+  // get it by crossing x_hat by z_hat, parallel and perpendicular to road surface, respectively
+  ChVector<> x_hat = m_suspensions[0]->GetSpindleRot(side).GetXaxis();
+  x_hat.z = 0;
+  x_hat.Normalize();
+  ChVector<> y_hat = ChVector<>(0,0,1) % x_hat;
+ 
+
   int sign_TA = 1;
   if(side == LEFT)
   {
     // on the left side, pos. toe has a neg. y component for x_hat
-    if(x_hat_wheel.y > 0)
+    if(x_hat.y > 0)
       sign_TA = -1;
   } else {
 
     // on the right, pos. toe angle has pos. y component for x_hat
-    if(x_hat_wheel.y < 0)
+    if(x_hat.y < 0)
       sign_TA = -1;
   }
 
   // cos(TA) = x_hat_wheel dot (1,0,0)T, TA always calculated as positive here
-  double TA = std::acos(x_hat_wheel.x) * sign_TA;
+  double TA = std::acos(x_hat.x) * sign_TA;
 
   m_TA[side] = TA;
   return TA;
