@@ -36,7 +36,6 @@
 
 // subsystems, all read in fron JSON files
 #include "models/ModelDefs.h"
-// #include "models/testing_mechanisms/HMMWV_SuspensionTest.h"
 #include "subsys/suspensionTest/SuspensionTest.h"
 #include "subsys/tire/RigidTire.h"
 #include "subsys/terrain/FlatTerrain.h"
