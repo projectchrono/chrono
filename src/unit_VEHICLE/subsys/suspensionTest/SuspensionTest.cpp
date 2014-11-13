@@ -427,7 +427,7 @@ void SuspensionTest::SaveLog()
 
     // write the simulation time first, and rig inputs
     std::stringstream ss;
-    ss << GetChTime() <<","<< m_steer <<","<< m_postDisp[LEFT] <<","<< m_postDisp[RIGHT];
+    ss << GetChTime() <<","<< m_steer <<","<< m_postDisp[LEFT] /in2m <<","<< m_postDisp[RIGHT] / in2m;
 
     // python pandas expects csv w/ no whitespace
     if( m_log_what & DBG_SPRINGS )
