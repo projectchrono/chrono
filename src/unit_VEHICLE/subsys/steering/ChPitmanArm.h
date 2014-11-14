@@ -127,7 +127,7 @@ protected:
 
   ChSharedPtr<ChLinkEngine>            m_revolute;   ///< handle to the chassis-arm revolute joint
   ChSharedPtr<ChLinkRevoluteSpherical> m_revsph;     ///< handle to the revolute-spherical joint (idler arm)
-  ChSharedPtr<ChLinkUniversal>         m_universal;  ///< handle to the arm-link universal joint
+  ChSharedPtr<ChLinkLockUniversal>     m_universal;  ///< handle to the arm-link universal joint
 
 private:
 
