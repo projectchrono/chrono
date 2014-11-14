@@ -14,8 +14,8 @@
 //
 //   Demo code about 
 //
-//     - applying a translational motion to a body with
-//       a pendulum hanging from it.
+//     - create a custom ChLinkLock class to constrain a body, and apply a
+//      translational motion to a pendulum hanging from it.
 //
 //	 CHRONO    
 //   ------
@@ -61,15 +61,16 @@ int FPS = 50;
 double render_step_size = 1.0 / FPS;   // FPS = 50
 int output_console_incr = 10; // print info to console every Nth rendered frame
 int output_console_num = 0;
-
+// ************************************************
 
 /// class to apply this motion law as a ChFunction between two bodies,
 ///  one fixed, one free, in a given direction.
 class ForcedMotion : public ChLinkLock
 {
 private:
+  ChSharedPtr<ChFunction> m_motion_func;
+ ChVector<> m_motion_dir;	// direction of applied translational motion
 	bool user_override;  // TODO: allow user slider to interactively set motion law
-	ChVector<> m_motion_dir;	// direction of applied translational motion
 
 public:
   CH_RTTI(ForcedMotion,ChLinkLock);
@@ -86,27 +87,27 @@ public:
 
   ~ForcedMotion(void) {}
 
+  /// set or access the motion function
+  void Set_motion(ChSharedPtr<ChFunction> func) { m_motion_func = func; }
+  ChSharedPtr<ChFunction> Get_motion() { return m_motion_func; }
+
   // return the inertial displacement for the current time, for a
   // specific axis 0 = X, 1 = Y, 2 = Z.
-  double Get_y(double time)
-  {
-	  return motion_Z->Get_y(time);
-  }
+  double Get_y(double time){ return m_motion_func->Get_y(time); }
 
   double Get_dy(double time)
   {
-    return motion_Z->Get_y_dx(time);
+    return m_motion_func->Get_y_dx(time);
   }
 
   double Get_ddy(double time)
   {
-    return motion_Z->Get_y_dxdx(time);
+    return m_motion_func->Get_y_dxdx(time);
   }
 
   // imposes motion law on rhs of constraint
   virtual void UpdateTime(double mytime)
   {
-    motion_axis = VECT_Z;       // motion axis is always the marker2 Z axis (in m2 relative coords)
     // Impose relative positions/speeds
   
     // from ChLinkLinActuator
@@ -118,16 +119,17 @@ public:
     Vector absdist = Vsub(marker1->GetAbsCoord().pos,
       marker2->GetAbsCoord().pos);
 
-    Vector mx = Vnorm(absdist);
+    // here, we have specified the motion direction already
+    Vector mz = Vnorm(m_motion_dir);
 
     Vector my = ma.Get_A_Yaxis();
-    if (Vequal(mx, my))
+    if (Vequal(mz, my))
     {
-      if (mx.x == 1.0)   my = VECT_Y;
-      else                my = VECT_X;
+      if (mz.z == 1.0)   my = VECT_Y;
+      else                my = VECT_Z;
     }
-    Vector mz = Vnorm(Vcross(mx, my));
-    my = Vnorm(Vcross(mz, mx));
+    Vector mx = Vnorm(mz % my );
+    my = Vnorm(mx % mz);
 
     ma.Set_A_axis(mx, my, mz);
 
@@ -140,13 +142,13 @@ public:
 
     // imposed relative positions/speeds
     deltaC.pos = VNULL;
-    deltaC.pos.z = motion_Z->Get_y(mytime);        // distance is always on M2 'Z' axis
+    deltaC.pos.z = m_motion_func->Get_y(mytime);        // distance is always on M2 'Z' axis
 
     deltaC_dt.pos = VNULL;
-    deltaC_dt.pos.z = motion_Z->Get_y_dx(mytime); // distance speed
+    deltaC_dt.pos.z = m_motion_func->Get_y_dx(mytime); // distance speed
 
     deltaC_dtdt.pos = VNULL;
-    deltaC_dtdt.pos.z = motion_Z->Get_y_dxdx(mytime); // distance acceleration
+    deltaC_dtdt.pos.z = m_motion_func->Get_y_dxdx(mytime); // distance acceleration
     // add also the centripetal acceleration if distance vector's rotating,
     // as centripetal acc. of point sliding on a sphere surface.
     Vector tang_speed = GetRelM_dt().pos;
@@ -181,7 +183,7 @@ public:
 };
 
 
-/// create an system with Irrlicht visualization.
+/// test the motion law
 int main(int argc, char* argv[])
 {
 	// Create a ChronoENGINE physical system
@@ -197,7 +199,6 @@ int main(int argc, char* argv[])
 	ChIrrWizard::add_typical_Lights(application.GetDevice());
 	ChIrrWizard::add_typical_Camera(application.GetDevice(), core::vector3df(-1,1,-1), core::vector3df(1,0,1));
 
-	// CREATE THE SYSTEM OBJECTS
 	// fixed ground object, with concrete texture asset. No collision shape
 	ChSharedPtr<ChBodyEasyBox> fixedBody(new ChBodyEasyBox( 0.4,0.2,0.4, 1000,	false, true));
 	fixedBody->SetPos( ChVector<>(0,0,0) );
@@ -208,10 +209,9 @@ int main(int argc, char* argv[])
 	// add fixed body to the system
 	mSystem.Add(fixedBody);
 	
-	
 	// free body, a cylinder aligned in the direction of motion. No collision shape
 	ChSharedPtr<ChBodyEasyCylinder> free(new ChBodyEasyCylinder( 0.2,0.5, 1000,	false, true));
-	free->SetPos( ChVector<>(1,0,1) );
+	free->SetPos( ChVector<>(0,0,1) );
   // let's orient the y-axis of the cylinder (height) along the direction of the applied motion.
   // y_hat dot dir_hat = cos(theta)
   // axis_hat = y_hat cross dir_hat
@@ -224,7 +224,6 @@ int main(int argc, char* argv[])
 	free->AddAsset(tire_tex);
 	// add fixed body to the system
 	mSystem.Add(free);
-
 
   // constrained body, a hanging pendulum
   ChSharedPtr<ChBodyEasyBox> constrained(new ChBodyEasyBox(0.05,pend_height/2.0,0.05,1000.0, true, true));
@@ -246,11 +245,14 @@ int main(int argc, char* argv[])
   // ***************************************************
   // Motion law acts like a constraint, w/ a z-axis DOF
   ChSharedPtr<ForcedMotion> motionLaw(new ForcedMotion());
-  motionLaw->Initialize(free, fixedBody, ChCoordsys<>(free->GetPos(), cyl_rot) );
+  // x-axis applied motion: rotate markers about y-axis
+  motionLaw->Initialize(free, fixedBody, ChCoordsys<>(free->GetPos(), Q_from_AngY(CH_C_PI_2) ));
   // Apply the motion law (sine wave) to the constraint just created
-  ChFunction_Sine motion_func(phase, freq, amp);
-//  motionLaw->SetMotion_Z(&motion_func);
+  ChSharedPtr<ChFunction_Sine> motion_func(new ChFunction_Sine(phase, freq, amp));
+  motionLaw->Set_motion(motion_func);
+
   mSystem.Add(motionLaw);
+  // ***************************************************
 
 	// Otherwise use application.AssetBind(myitem); on a per-item basis.
 	application.AssetBindAll();
