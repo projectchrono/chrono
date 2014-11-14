@@ -212,9 +212,9 @@ protected:
 
   ChSharedPtr<ChLinkLockRevolute>   m_revoluteUA[2];              ///< handles to the chassis-UA revolute joints (left/right)
   ChSharedPtr<ChLinkLockSpherical>  m_sphericalUA[2];             ///< handles to the upright-UA spherical joints (left/right)
-  ChSharedPtr<ChLinkLockUniversal>  m_universalLateralChassis[2]; ///< handles to the chassis-lateral universal joints (left/right)
+  ChSharedPtr<ChLinkUniversal>  m_universalLateralChassis[2]; ///< handles to the chassis-lateral universal joints (left/right)
   ChSharedPtr<ChLinkLockSpherical>  m_sphericalLateralUpright[2]; ///< handles to the upright-lateral spherical joints (left/right)
-  ChSharedPtr<ChLinkLockUniversal>  m_universalTLChassis[2];      ///< handles to the chassis-trailing link universal joints (left/right)
+  ChSharedPtr<ChLinkUniversal>  m_universalTLChassis[2];      ///< handles to the chassis-trailing link universal joints (left/right)
   ChSharedPtr<ChLinkLockSpherical>  m_sphericalTLUpright[2];      ///< handles to the upright-trailing link spherical joints (left/right)
   ChSharedPtr<ChLinkDistance>       m_distTierod[2];              ///< handles to the tierod distance constraints (left/right)
 

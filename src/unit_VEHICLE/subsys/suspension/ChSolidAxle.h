@@ -197,8 +197,8 @@ protected:
   ChSharedPtr<ChLinkLockRevolute>   m_revoluteKingpin[2];       ///< handles to the knuckle-axle tube revolute joints (left/right)
   ChSharedPtr<ChLinkLockSpherical>  m_sphericalUpperLink[2];    ///< handles to the upper link-axle tube spherical joints (left/right)
   ChSharedPtr<ChLinkLockSpherical>  m_sphericalLowerLink[2];    ///< handles to the lower link-axle tube spherical joints (left/right)
-  ChSharedPtr<ChLinkLockUniversal>  m_universalUpperLink[2];    ///< handles to the upper link-chassis universal joints (left/right)
-  ChSharedPtr<ChLinkLockUniversal>  m_universalLowerLink[2];    ///< handles to the lower link-chassis universal joints (left/right)
+  ChSharedPtr<ChLinkUniversal>      m_universalUpperLink[2];    ///< handles to the upper link-chassis universal joints (left/right)
+  ChSharedPtr<ChLinkUniversal>      m_universalLowerLink[2];    ///< handles to the lower link-chassis universal joints (left/right)
   ChSharedPtr<ChLinkDistance>       m_distTierod[2];            ///< handles to the tierod distance constraints (left/right)
 
   ChSharedPtr<ChLinkSpring>         m_shock[2];                 ///< handles to the spring links (left/right)

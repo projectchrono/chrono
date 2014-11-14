@@ -98,7 +98,7 @@ void ChSolidAxle::CreateSide(ChVehicleSide      side,
   m_sphericalUpperLink[side]->SetNameString(m_name + "_sphericalUpperLink" + suffix);
 
   // Create the upper link - chassis universal joints
-  m_universalUpperLink[side] = ChSharedPtr<ChLinkLockUniversal>(new ChLinkLockUniversal);
+  m_universalUpperLink[side] = ChSharedPtr<ChLinkUniversal>(new ChLinkUniversal);
   m_universalUpperLink[side]->SetNameString(m_name + "_universalUpperLink" + suffix);
 
   // Create the lower link bodies
@@ -110,7 +110,7 @@ void ChSolidAxle::CreateSide(ChVehicleSide      side,
   m_sphericalLowerLink[side]->SetNameString(m_name + "_sphericalLowerLink" + suffix);
 
   // Create the lower link - chassis universal joints
-  m_universalLowerLink[side] = ChSharedPtr<ChLinkLockUniversal>(new ChLinkLockUniversal);
+  m_universalLowerLink[side] = ChSharedPtr<ChLinkUniversal>(new ChLinkUniversal);
   m_universalLowerLink[side]->SetNameString(m_name + "_universalLowerLink" + suffix);
 
   // Distance constraint to model the tierod
@@ -281,7 +281,7 @@ void ChSolidAxle::InitializeSide(ChVehicleSide                   side,
   v = dirs[UNIV_AXIS_LINK_U];
   w = Vcross(u, v);
   rot.Set_A_axis(u, v, w);
-  m_universalUpperLink[side]->Initialize(chassis, m_upperLink[side], ChCoordsys<>(points[UL_C], rot.Get_A_quaternion()));
+  m_universalUpperLink[side]->Initialize(chassis, m_upperLink[side], ChFrame<>(points[UL_C], rot.Get_A_quaternion()));
   chassis->GetSystem()->AddLink(m_universalUpperLink[side]);
 
   // Initialize the universal joint between chassis and lower link.
@@ -289,7 +289,7 @@ void ChSolidAxle::InitializeSide(ChVehicleSide                   side,
   v = dirs[UNIV_AXIS_LINK_L];
   w = Vcross(u, v);
   rot.Set_A_axis(u, v, w);
-  m_universalLowerLink[side]->Initialize(chassis, m_lowerLink[side], ChCoordsys<>(points[LL_C], rot.Get_A_quaternion()));
+  m_universalLowerLink[side]->Initialize(chassis, m_lowerLink[side], ChFrame<>(points[LL_C], rot.Get_A_quaternion()));
   chassis->GetSystem()->AddLink(m_universalLowerLink[side]);
 
   // Initialize the revolute joint between upright and spindle.
