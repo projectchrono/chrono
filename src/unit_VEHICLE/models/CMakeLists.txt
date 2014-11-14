@@ -34,6 +34,6 @@ ADD_SUBDIRECTORY(demo_HMMWV)
 ADD_SUBDIRECTORY(demo_GenericVehicle)
 ADD_SUBDIRECTORY(demo_Vehicle)
 ADD_SUBDIRECTORY(demo_SuspensionTest)
-
+ADD_SUBDIRECTORY(demo_ArticulatedVehicle)
 
 
