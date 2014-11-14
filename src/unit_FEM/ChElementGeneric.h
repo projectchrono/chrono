@@ -54,7 +54,6 @@ public:
 
 				/// Tell to a system descriptor that there are item(s) of type
 				/// ChLcpKblock in this object (for further passing it to a LCP solver)
-				/// Basically does nothing, but inherited classes must specialize this.
 	virtual void InjectKRMmatrices(ChLcpSystemDescriptor& mdescriptor)
 				{
 					mdescriptor.InsertKblock(&Kmatr);
