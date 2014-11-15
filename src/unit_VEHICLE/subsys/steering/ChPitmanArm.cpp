@@ -49,7 +49,7 @@ ChPitmanArm::ChPitmanArm(const std::string& name)
   m_revolute->SetNameString(name + "_revolute");
 
   // Universal joint between Pitman arm and steering link
-  m_universal = ChSharedPtr<ChLinkLockUniversal>(new ChLinkLockUniversal);
+  m_universal = ChSharedPtr<ChLinkUniversal>(new ChLinkUniversal);
   m_universal->SetNameString(name + "_universal");
 
   // Revolute-spherical joint to model the idler arm
@@ -123,7 +123,7 @@ void ChPitmanArm::Initialize(ChSharedPtr<ChBodyAuxRef> chassis,
   w = Vcross(dirs[UNIV_AXIS_ARM], dirs[UNIV_AXIS_LINK]);
   rot.Set_A_axis(dirs[UNIV_AXIS_ARM], dirs[UNIV_AXIS_LINK], w);
 
-  m_universal->Initialize(m_arm, m_link, ChCoordsys<>(points[UNIV], rot.Get_A_quaternion()));
+  m_universal->Initialize(m_arm, m_link, ChFrame<>(points[UNIV], rot.Get_A_quaternion()));
   chassis->GetSystem()->AddLink(m_universal);
 
   // Initialize the revolute-spherical joint (massless idler arm).

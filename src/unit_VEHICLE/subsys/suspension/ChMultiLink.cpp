@@ -150,7 +150,7 @@ void ChMultiLink::CreateSide(ChVehicleSide      side,
   // Bodies and constraints to model lateral
   m_lateral[side] = ChSharedBodyPtr(new ChBody);
   m_lateral[side]->SetNameString(m_name + "_lateral" + suffix);
-  m_universalLateralChassis[side] = ChSharedPtr<ChLinkLockUniversal>(new ChLinkLockUniversal);
+  m_universalLateralChassis[side] = ChSharedPtr<ChLinkUniversal>(new ChLinkUniversal);
   m_universalLateralChassis[side]->SetNameString(m_name + "_universalLateralChassis" + suffix);
   m_sphericalLateralUpright[side] = ChSharedPtr<ChLinkLockSpherical>(new ChLinkLockSpherical);
   m_sphericalLateralUpright[side]->SetNameString(m_name + "_sphericalLateralUpright" + suffix);
@@ -158,7 +158,7 @@ void ChMultiLink::CreateSide(ChVehicleSide      side,
   // Bodies and constraints to model trailing link
   m_trailingLink[side] = ChSharedBodyPtr(new ChBody);
   m_trailingLink[side]->SetNameString(m_name + "_trailingLink" + suffix);
-  m_universalTLChassis[side] = ChSharedPtr<ChLinkLockUniversal>(new ChLinkLockUniversal);
+  m_universalTLChassis[side] = ChSharedPtr<ChLinkUniversal>(new ChLinkUniversal);
   m_universalTLChassis[side]->SetNameString(m_name + "_universalTLChassis" + suffix);
   m_sphericalTLUpright[side] = ChSharedPtr<ChLinkLockSpherical>(new ChLinkLockSpherical);
   m_sphericalTLUpright[side]->SetNameString(m_name + "_sphericalTLUpright" + suffix);
@@ -337,7 +337,7 @@ void ChMultiLink::InitializeSide(ChVehicleSide                   side,
   v = dirs[UNIV_AXIS_LINK_LAT];
   w = Vcross(u, v);
   rot.Set_A_axis(u, v, w);
-  m_universalLateralChassis[side]->Initialize(m_lateral[side], chassis, ChCoordsys<>(points[LAT_C], rot.Get_A_quaternion()));
+  m_universalLateralChassis[side]->Initialize(m_lateral[side], chassis, ChFrame<>(points[LAT_C], rot.Get_A_quaternion()));
   chassis->GetSystem()->AddLink(m_universalLateralChassis[side]);
 
   // Initialize the spherical joint between upright and trailing link.
@@ -349,7 +349,7 @@ void ChMultiLink::InitializeSide(ChVehicleSide                   side,
   v = dirs[UNIV_AXIS_LINK_TL];
   w = Vcross(u, v);
   rot.Set_A_axis(u, v, w);
-  m_universalTLChassis[side]->Initialize(m_trailingLink[side], chassis, ChCoordsys<>(points[TL_C], rot.Get_A_quaternion()));
+  m_universalTLChassis[side]->Initialize(m_trailingLink[side], chassis, ChFrame<>(points[TL_C], rot.Get_A_quaternion()));
   chassis->GetSystem()->AddLink(m_universalTLChassis[side]);
 
   // Initialize the tierod distance constraint between chassis and upright.
