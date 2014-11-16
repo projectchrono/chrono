@@ -236,7 +236,7 @@ bool TestUniversal(const ChVector<>&     jointLoc,         // absolute location 
   if (animate)
   {
     // Create the Irrlicht application for visualization
-    ChIrrApp * application = new ChIrrApp(&my_system, L"ChLinkLockUniversal demo", core::dimension2d<u32>(800, 600), false, true);
+    ChIrrApp * application = new ChIrrApp(&my_system, L"ChLinkUniversal demo", core::dimension2d<u32>(800, 600), false, true);
     application->AddTypicalLogo();
     application->AddTypicalSky();
     application->AddTypicalLights();
