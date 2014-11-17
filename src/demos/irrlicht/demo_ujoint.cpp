@@ -19,7 +19,7 @@
 //
 // =============================================================================
 
-#include <stdio.h>
+#include <cmath>
 
 #include "physics/ChSystem.h"
 #include "physics/ChBody.h"
