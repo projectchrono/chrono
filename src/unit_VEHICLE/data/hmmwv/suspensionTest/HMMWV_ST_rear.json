@@ -1,55 +1,16 @@
 {
-  "Name":     "HMMWV Suspension Testr",
-  "Type":     "Vehicle",
-  "Template": "Vehicle",
+  "Name":     "HMMWV Rear Suspension Test",
+  "Type":     "SuspensionTest",
+  "Template": "SuspensionTest",
 
-  "Chassis":
+  "Suspension":
   {
-    "Mass":     2086.524902,
-    "COM":      [0.055765, 0, 0.52349],
-    "Inertia":  [1078.52344, 2955.66050, 3570.20377]
+    "Suspension Input File":   "hmmwv/suspension/HMMWV_DoubleWishboneRear.json",
+    "Suspension Location":     [1.688965, 0, 0],
+    "Left Wheel Input File":   "hmmwv/wheel/HMMWV_Wheel_RearLeft.json",
+    "Right Wheel Input File":  "hmmwv/wheel/HMMWV_Wheel_RearRight.json"
   },
 
-  "Axles":
-  [
-    {
-      "Suspension Input File":   "hmmwv/suspension/HMMWV_DoubleWishboneFront.json",
-      "Suspension Location":     [1.688965, 0, 0],
-      "Left Wheel Input File":   "hmmwv/wheel/HMMWV_Wheel_FrontLeft.json",
-      "Right Wheel Input File":  "hmmwv/wheel/HMMWV_Wheel_FrontRight.json",
-      "Left Brake Input File":   "hmmwv/brake/HMMWV_BrakeSimple_Front.json",
-      "Right Brake Input File":  "hmmwv/brake/HMMWV_BrakeSimple_Front.json"
-    },
-
-    {
-      "Suspension Input File":   "hmmwv/suspension/HMMWV_DoubleWishboneRear.json",
-      "Suspension Location":     [-1.688965, 0, 0],
-      "Left Wheel Input File":   "hmmwv/wheel/HMMWV_Wheel_RearLeft.json",
-      "Right Wheel Input File":  "hmmwv/wheel/HMMWV_Wheel_RearRight.json",
-      "Left Brake Input File":   "hmmwv/brake/HMMWV_BrakeSimple_Rear.json",
-      "Right Brake Input File":  "hmmwv/brake/HMMWV_BrakeSimple_Rear.json"
-    }
-  ],
-
-  "Steering":
-  {
-    "Input File":           "hmmwv/steering/HMMWV_PitmanArm.json",
-    "Location":             [1.24498, 0, 0.101322],
-    "Orientation":          [0.98699637, 0, 0.16074256, 0],
-    "Suspension Index":     0
-  },
-
-  "Driveline":
-  {
-    "Input File":           "hmmwv/driveline/HMMWV_Driveline2WD.json",
-    "Suspension Indexes":   [1]
-  },
-
-  "Driver Position":
-  {
-    "Location":     [0, 0.5, 1.2],
-    "Orientation":  [1, 0, 0, 0]
-  },
 
   "Visualization":
   {
