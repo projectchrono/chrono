@@ -51,23 +51,23 @@ public:
   virtual ~ChSuspensionTest() {}
 
   /// Get a handle to the vehicle's chassis body.
-  const ChSharedPtr<ChBody> GetChassis() const { return m_chassis; }
+  const ChSharedPtr<ChBody> GetChassis() const { return m_ground; }
 
   /// Get the global location of the chassis reference frame origin.
-  const ChVector<>& GetChassisPos() const { return m_chassis->GetFrame_REF_to_abs().GetPos(); }
+  const ChVector<>& GetChassisPos() const { return m_ground->GetPos(); }
 
   /// Get the orientation of the chassis reference frame.
   /// The chassis orientation is returned as a quaternion representing a
   /// rotation with respect to the global reference frame.
-  const ChQuaternion<>& GetChassisRot() const { return m_chassis->GetFrame_REF_to_abs().GetRot(); }
+  const ChQuaternion<>& GetChassisRot() const { return m_ground->GetRot(); }
 
   /// Get the global location of the chassis center of mass.
-  const ChVector<>& GetChassisPosCOM() const { return m_chassis->GetPos(); }
+  const ChVector<>& GetChassisPosCOM() const { return m_ground->GetPos(); }
 
   /// Get the orientation of the chassis centroidal frame.
   /// The chassis orientation is returned as a quaternion representing a
   /// rotation with respect to the global reference frame.
-  const ChQuaternion<>& GetChassisRotCOM() const { return m_chassis->GetRot(); }
+  const ChQuaternion<>& GetChassisRotCOM() const { return m_ground->GetRot(); }
 
   /// Get a handle to the specified wheel body.
   ChSharedPtr<ChBody> GetWheelBody(const ChWheelID& wheelID) const;
@@ -133,8 +133,8 @@ public:
 
 protected:
 
-  ChSharedPtr<ChBodyAuxRef>  m_chassis;     ///< handle to the chassis body, fixed to ground
-  ChSuspensionList           m_suspensions; ///< list of handles to suspension subsystems, only 1 in this case.
+  ChSharedPtr<ChBodyAuxRef>        m_ground;///< handle to the fixed ground body
+  ChSharedPtr<ChSuspension>  m_suspension;  ///< list of handles to suspension subsystems, only 1 in this case.
   ChSharedPtr<ChBody>        m_post_L;      ///< left shaker post  
   ChSharedPtr<ChBody>        m_post_R;      ///< right shaker post
   ChSharedPtr<ChLinkLockPrismatic> m_post_L_prismatic; ///< left post prismatic joint

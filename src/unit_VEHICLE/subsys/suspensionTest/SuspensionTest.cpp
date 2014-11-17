@@ -18,12 +18,12 @@
 
 #include <cstdio>
 
+#include "subsys/suspensionTest/SuspensionTest.h"
+
 #include "assets/ChCylinderShape.h"
 #include "assets/ChTexture.h"
 #include "assets/ChColorAsset.h"
 #include "physics/ChGlobal.h"
-
-#include "subsys/suspensionTest/SuspensionTest.h"
 
 #include "subsys/suspension/DoubleWishbone.h"
 #include "subsys/suspension/DoubleWishboneReduced.h"
@@ -92,46 +92,37 @@ SuspensionTest::SuspensionTest(const std::string& filename):
   assert(d.HasMember("Template"));
   assert(d.HasMember("Name"));
 
-  // Create the chassis body, no visualizastion
-  m_chassis = ChSharedPtr<ChBodyAuxRef>(new ChBodyAuxRef);
+  // Create the ground body, no visualizastion
+  m_ground = ChSharedPtr<ChBodyAuxRef>(new ChBodyAuxRef);
 
-  m_chassisMass = d["Chassis"]["Mass"].GetDouble();
-  m_chassisCOM = loadVector(d["Chassis"]["COM"]);
-  m_chassisInertia = loadVector(d["Chassis"]["Inertia"]);
+  m_groundCOM = ChVector<>(0,0,0);
 
-  m_chassis->SetIdentifier(0);
-  m_chassis->SetName("chassis");
-  m_chassis->SetMass(m_chassisMass);
-  m_chassis->SetFrame_COG_to_REF(ChFrame<>(m_chassisCOM, ChQuaternion<>(1, 0, 0, 0)));
-  m_chassis->SetInertiaXX(m_chassisInertia);
+  m_ground->SetIdentifier(0);
+  m_ground->SetName("ground");
+  m_ground->SetMass(100.0);
+  m_ground->SetInertiaXX(ChVector<>(1,1,1));
   // suspension test mechanism isn't going anywhere
-  m_chassis->SetBodyFixed(true);
+  m_ground->SetBodyFixed(true);
 
   ChSharedPtr<ChSphereShape> sphere(new ChSphereShape);
   sphere->GetSphereGeometry().rad = 0.1;
-  sphere->Pos = m_chassisCOM;
-  m_chassis->AddAsset(sphere);  // add asset sphere to chassis body
+  sphere->Pos = m_groundCOM;
+  m_ground->AddAsset(sphere);  // add asset sphere to chassis body
 
   ChSharedPtr<ChColorAsset> blue(new ChColorAsset);
   blue->SetColor(ChColor(0.2f, 0.2f, 0.8f));
-  m_chassis->AddAsset(blue);  // add asset color to chassis body
+  m_ground->AddAsset(blue);  // add asset color to chassis body
 
-  Add(m_chassis); // add chassis body to the system
+  Add(m_ground); // add chassis body to the system
 
   // ---------------------------------
   // More validations of the JSON file
   assert(d.HasMember("Steering"));
-  assert(d.HasMember("Driveline"));
-  assert(d.HasMember("Axles"));
-  assert(d["Axles"].IsArray());
+  assert(d.HasMember("Suspension"));
+
 
   // Resize arrays, 1 suspension unit only
-  m_suspensions.resize(1);
-  m_suspLocations.resize(1);
   m_wheels.resize(2 * m_num_axles);
-
-  // Array of flags for driven suspensions.
-  std::vector<bool> driven(m_num_axles, false);
 
   // -----------------------------
   // Create the steering subsystem
@@ -146,14 +137,14 @@ SuspensionTest::SuspensionTest(const std::string& filename):
   // ---------------------------------------------------
   // Create the suspension, wheel, and brake subsystems.
   // Suspension
-  std::string file_name = d["Axles"][0u]["Suspension Input File"].GetString();
-  LoadSuspension(utils::GetModelDataFile(file_name), 0, driven[0]);
-  m_suspLocations[0] = loadVector(d["Axles"][0u]["Suspension Location"]);
+  std::string file_name = d["Suspension"]["Suspension Input File"].GetString();
+  LoadSuspension(utils::GetModelDataFile(file_name), 0, false);
+  m_suspLocation = loadVector(d["Suspension"]["Suspension Location"]);
 
 // Left and right wheels
-  file_name = d["Axles"][0u]["Left Wheel Input File"].GetString();
+  file_name = d["Suspension"]["Left Wheel Input File"].GetString();
   LoadWheel(utils::GetModelDataFile(file_name), 0, 0);
-  file_name = d["Axles"][0u]["Right Wheel Input File"].GetString();
+  file_name = d["Suspension"]["Right Wheel Input File"].GetString();
   LoadWheel(utils::GetModelDataFile(file_name), 0, 1);
 
   // -----------------------
@@ -212,34 +203,32 @@ SuspensionTest::~SuspensionTest()
 // Links need to be added to the system here.
 void SuspensionTest::Initialize(const ChCoordsys<>& chassisPos)
 {
-  m_chassis->SetFrame_REF_to_abs(ChFrame<>(chassisPos));
-
   // Initialize the steering subsystem. ChPhysicsItem has a virtual destructor, should be able to cast to ChBody
-  m_steering->Initialize(m_chassis, m_steeringLoc, m_steeringRot);
+  m_steering->Initialize(m_ground, m_steeringLoc, m_steeringRot);
 
   // Initialize the suspension subsys
-  m_suspensions[0]->Initialize(m_chassis, m_suspLocations[0], m_steering->GetSteeringLink());
+  m_suspension->Initialize(m_ground, m_suspLocation, m_steering->GetSteeringLink());
 
   // initialize the two wheels
-  m_wheels[0]->Initialize(m_suspensions[0]->GetSpindle(LEFT));
-  m_wheels[1]->Initialize(m_suspensions[0]->GetSpindle(RIGHT));
+  m_wheels[0]->Initialize(m_suspension->GetSpindle(LEFT));
+  m_wheels[1]->Initialize(m_suspension->GetSpindle(RIGHT));
 
   // initialize the posts relative to the wheels
   // left side post
-  ChVector<> spindle_L_pos = m_suspensions[0]->GetSpindlePos(LEFT);
+  ChVector<> spindle_L_pos = m_suspension->GetSpindlePos(LEFT);
   ChVector<> post_L_pos = spindle_L_pos;
   post_L_pos.z -= (m_wheels[LEFT]->GetRadius() + m_post_height/2.0);  // shift down
   m_post_L->SetPos(post_L_pos);
 
   // constrain left post to vertical. Prismatic default aligned to z-axis
-  m_post_L_prismatic->Initialize(m_chassis, m_post_L, ChCoordsys<>(ChVector<>(post_L_pos), QUNIT) );
+  m_post_L_prismatic->Initialize(m_ground, m_post_L, ChCoordsys<>(ChVector<>(post_L_pos), QUNIT) );
   AddLink(m_post_L_prismatic);
   
   // actuate the L post DOF with a linear actuator in the vertical direction.
   // body 2 is the post, so this link will be w.r.t. marker on that body
   ChVector<> m1_L = post_L_pos;
   m1_L.z -= 1.0;    // offset marker 1 location 1 meter below marker 2
-  m_post_L_linact->Initialize(m_chassis, m_post_L, false, ChCoordsys<>(m1_L,QUNIT), ChCoordsys<>(post_L_pos,QUNIT) );
+  m_post_L_linact->Initialize(m_ground, m_post_L, false, ChCoordsys<>(m1_L,QUNIT), ChCoordsys<>(post_L_pos,QUNIT) );
   m_post_L_linact->Set_lin_offset( (post_L_pos - m1_L).z );
   // displacement motion set as a constant function
   ChSharedPtr<ChFunction_Const> func_L(new ChFunction_Const(0));
@@ -247,19 +236,19 @@ void SuspensionTest::Initialize(const ChCoordsys<>& chassisPos)
   AddLink(m_post_L_linact);
 
   // right side post
-  ChVector<> spindle_R_pos = m_suspensions[0]->GetSpindlePos(RIGHT);
+  ChVector<> spindle_R_pos = m_suspension->GetSpindlePos(RIGHT);
   ChVector<> post_R_pos = spindle_R_pos;
   post_R_pos.z -= (m_wheels[RIGHT]->GetRadius() + m_post_height/2.0); // shift down
   m_post_R->SetPos(post_R_pos);
 
   // constrain right post to vertical.
-  m_post_R_prismatic->Initialize(m_chassis, m_post_R, ChCoordsys<>(ChVector<>(post_R_pos), QUNIT) );
+  m_post_R_prismatic->Initialize(m_ground, m_post_R, ChCoordsys<>(ChVector<>(post_R_pos), QUNIT) );
   AddLink(m_post_R_prismatic);
 
   // actuate the R post DOF with a linear actuator in the vertical direction
   ChVector<> m1_R = post_R_pos;
   m1_R.z -= 1.0;    // offset marker 1 location 1 meter below marker 2
-  m_post_R_linact->Initialize(m_chassis, m_post_R, false, ChCoordsys<>(m1_R,QUNIT), ChCoordsys<>(post_R_pos,QUNIT) );
+  m_post_R_linact->Initialize(m_ground, m_post_R, false, ChCoordsys<>(m1_R,QUNIT), ChCoordsys<>(post_R_pos,QUNIT) );
   m_post_R_linact->Set_lin_offset( (post_R_pos - m1_R).z );
   // displacement motion set as a constant function
   ChSharedPtr<ChFunction_Const> func_R(new ChFunction_Const(0));
@@ -268,18 +257,18 @@ void SuspensionTest::Initialize(const ChCoordsys<>& chassisPos)
 
   // keep the suspension at the specified height by keeping a point on the spindle
   // body on a plane whose height is based on the shaker post.
-  m_post_L_ptPlane->Initialize(m_suspensions[0]->GetSpindle(LEFT), m_post_L, ChCoordsys<>(spindle_L_pos, QUNIT));
+  m_post_L_ptPlane->Initialize(m_suspension->GetSpindle(LEFT), m_post_L, ChCoordsys<>(spindle_L_pos, QUNIT));
   AddLink(m_post_L_ptPlane);
 
   // right post point on plane
-  m_post_R_ptPlane->Initialize(m_suspensions[0]->GetSpindle(RIGHT), m_post_R, ChCoordsys<>(spindle_R_pos, QUNIT));
+  m_post_R_ptPlane->Initialize(m_suspension->GetSpindle(RIGHT), m_post_R, ChCoordsys<>(spindle_R_pos, QUNIT));
   AddLink(m_post_R_ptPlane);
 
   // some visualizations.
   // left post: Green
-  AddVisualize_post(m_post_L, m_chassis, m_post_height, m_post_rad);
+  AddVisualize_post(m_post_L, m_ground, m_post_height, m_post_rad);
   // right post: Red
-  AddVisualize_post(m_post_R, m_chassis, m_post_height, m_post_rad, ChColor(0.8f,0.1f,0.1f));
+  AddVisualize_post(m_post_R, m_ground, m_post_height, m_post_rad, ChColor(0.8f,0.1f,0.1f));
 
 }
 
@@ -301,8 +290,8 @@ void SuspensionTest::Update(double       time,
     func_R->Set_yconst(disp_R);
 
   // Apply tire forces to spindle bodies.
-  m_suspensions[0]->ApplyTireForce(LEFT, tire_forces[0]);
-  m_suspensions[0]->ApplyTireForce(RIGHT, tire_forces[1]);
+  m_suspension->ApplyTireForce(LEFT, tire_forces[0]);
+  m_suspension->ApplyTireForce(RIGHT, tire_forces[1]);
 
   m_steer = steering;
   m_postDisp[LEFT] = disp_L;
@@ -486,33 +475,33 @@ void SuspensionTest::SaveLog()
 // -----------------------------------------------------------------------------
 double SuspensionTest::GetSpringForce(const ChWheelID& wheel_id) const
 {
-  return m_suspensions[0].StaticCastTo<ChDoubleWishbone>()->GetSpringForce(wheel_id.side());
+  return m_suspension.StaticCastTo<ChDoubleWishbone>()->GetSpringForce(wheel_id.side());
 }
 
 double SuspensionTest::GetSpringLength(const ChWheelID& wheel_id) const
 {
-  return m_suspensions[0].StaticCastTo<ChDoubleWishbone>()->GetSpringLength(wheel_id.side());
+  return m_suspension.StaticCastTo<ChDoubleWishbone>()->GetSpringLength(wheel_id.side());
 }
 
 double SuspensionTest::GetSpringDeformation(const ChWheelID& wheel_id) const
 {
-  return m_suspensions[0].StaticCastTo<ChDoubleWishbone>()->GetSpringDeformation(wheel_id.side());
+  return m_suspension.StaticCastTo<ChDoubleWishbone>()->GetSpringDeformation(wheel_id.side());
 }
 
 
 double SuspensionTest::GetShockForce(const ChWheelID& wheel_id) const
 {
-  return m_suspensions[0].StaticCastTo<ChDoubleWishbone>()->GetShockForce(wheel_id.side());
+  return m_suspension.StaticCastTo<ChDoubleWishbone>()->GetShockForce(wheel_id.side());
 }
 
 double SuspensionTest::GetShockLength(const ChWheelID& wheel_id) const
 {
-  return m_suspensions[0].StaticCastTo<ChDoubleWishbone>()->GetShockLength(wheel_id.side());
+  return m_suspension.StaticCastTo<ChDoubleWishbone>()->GetShockLength(wheel_id.side());
 }
 
 double SuspensionTest::GetShockVelocity(const ChWheelID& wheel_id) const
 {
-  return m_suspensions[0].StaticCastTo<ChDoubleWishbone>()->GetShockVelocity(wheel_id.side());
+  return m_suspension.StaticCastTo<ChDoubleWishbone>()->GetShockVelocity(wheel_id.side());
 }
 
 
@@ -549,8 +538,8 @@ double SuspensionTest::GetActuatorMarkerDist(const chrono::ChWheelID& wheel_id)c
 double SuspensionTest::Get_KingpinAng(const chrono::ChVehicleSide side)
 {
   // global coordinates
-  ChVector<> UCA_bj_pos = m_suspensions[0].DynamicCastTo<ChDoubleWishbone>()->Get_UCA_sph_pos(side);
-  ChVector<> LCA_bj_pos = m_suspensions[0].DynamicCastTo<ChDoubleWishbone>()->Get_LCA_sph_pos(side);
+  ChVector<> UCA_bj_pos = m_suspension.DynamicCastTo<ChDoubleWishbone>()->Get_UCA_sph_pos(side);
+  ChVector<> LCA_bj_pos = m_suspension.DynamicCastTo<ChDoubleWishbone>()->Get_LCA_sph_pos(side);
   // kingpin direction vector, global coords
   ChVector<> k_hat = (UCA_bj_pos - LCA_bj_pos).GetNormalized();
 
@@ -582,10 +571,10 @@ double SuspensionTest::Get_KingpinAng(const chrono::ChVehicleSide side)
 double SuspensionTest::Get_KingpinOffset(const chrono::ChVehicleSide side)
 {
   // global coordinates
-  ChVector<> LCA_bj_pos = m_suspensions[0].DynamicCastTo<ChDoubleWishbone>()->Get_LCA_sph_pos(side);
+  ChVector<> LCA_bj_pos = m_suspension.DynamicCastTo<ChDoubleWishbone>()->Get_LCA_sph_pos(side);
  
   /*
-  ChVector<> UCA_bj_pos = m_suspensions[0].DynamicCastTo<ChDoubleWishbone>()->Get_UCA_sph_pos(side);
+  ChVector<> UCA_bj_pos = m_suspension.DynamicCastTo<ChDoubleWishbone>()->Get_UCA_sph_pos(side);
   // kingpin direction vector, global coords
   ChVector<> k_hat = (UCA_bj_pos - LCA_bj_pos).GetNormalized();
 
@@ -602,7 +591,7 @@ double SuspensionTest::Get_KingpinOffset(const chrono::ChVehicleSide side)
   double k_g = LCA_bj_pos.y + std::tan(sign_KA * m_KA[side]) * (LCA_bj_pos.z - GetPostSurfacePos(side).z );
 
   // wheel y-displacement from vehicle centerline
-  double y_wheel = m_suspensions[0]->GetSpindlePos(side).y;
+  double y_wheel = m_suspension->GetSpindlePos(side).y;
 
   double KP_offset = (y_wheel - k_g) * sign_KA;
 
@@ -615,8 +604,8 @@ double SuspensionTest::Get_KingpinOffset(const chrono::ChVehicleSide side)
 double SuspensionTest::Get_CasterAng(const chrono::ChVehicleSide side)
 {
   // global coordinates
-  ChVector<> UCA_bj_pos = m_suspensions[0].DynamicCastTo<ChDoubleWishbone>()->Get_UCA_sph_pos(side);
-  ChVector<> LCA_bj_pos = m_suspensions[0].DynamicCastTo<ChDoubleWishbone>()->Get_LCA_sph_pos(side);
+  ChVector<> UCA_bj_pos = m_suspension.DynamicCastTo<ChDoubleWishbone>()->Get_UCA_sph_pos(side);
+  ChVector<> LCA_bj_pos = m_suspension.DynamicCastTo<ChDoubleWishbone>()->Get_LCA_sph_pos(side);
   // kingpin direction vector, global coords
   ChVector<> c_hat = (UCA_bj_pos - LCA_bj_pos).GetNormalized();
 
@@ -640,10 +629,10 @@ double SuspensionTest::Get_CasterAng(const chrono::ChVehicleSide side)
 /// assumes you already called Get_CasterAng[side]
 double SuspensionTest::Get_CasterOffset(const chrono::ChVehicleSide side)
 {
-  ChVector<> LCA_bj_pos = m_suspensions[0].DynamicCastTo<ChDoubleWishbone>()->Get_LCA_sph_pos(side);
+  ChVector<> LCA_bj_pos = m_suspension.DynamicCastTo<ChDoubleWishbone>()->Get_LCA_sph_pos(side);
   
   // wheel x-displacement from vehicle centerline
-  double x_wheel = m_suspensions[0]->GetSpindlePos(side).x;
+  double x_wheel = m_suspension->GetSpindlePos(side).x;
 
   double c_g = LCA_bj_pos.x + std::tan(m_CA[side]) * (LCA_bj_pos.z - GetPostSurfacePos(side).z );
 
@@ -657,7 +646,7 @@ double SuspensionTest::Get_ToeAng(const chrono::ChVehicleSide side)
 {
   // y_hat should be parallel to the ground
   // get it by crossing x_hat by z_hat, parallel and perpendicular to road surface, respectively
-  ChVector<> x_hat = m_suspensions[0]->GetSpindleRot(side).GetXaxis();
+  ChVector<> x_hat = m_suspension->GetSpindleRot(side).GetXaxis();
   x_hat.z = 0;
   x_hat.Normalize();
   ChVector<> y_hat = ChVector<>(0,0,1) % x_hat;
@@ -679,9 +668,9 @@ double SuspensionTest::Get_ToeAng(const chrono::ChVehicleSide side)
   // cos(TA) = x_hat_wheel dot (1,0,0)T, TA always calculated as positive here
   double TA = std::acos(x_hat.x) * sign_TA;
 
-  ChVector<> xx = m_suspensions[0]->GetSpindle(side)->GetRot().GetXaxis();
-  ChVector<> yy = m_suspensions[0]->GetSpindle(side)->GetRot().GetYaxis();
-  ChVector<> zz = m_suspensions[0]->GetSpindle(side)->GetRot().GetZaxis();
+  ChVector<> xx = m_suspension->GetSpindle(side)->GetRot().GetXaxis();
+  ChVector<> yy = m_suspension->GetSpindle(side)->GetRot().GetYaxis();
+  ChVector<> zz = m_suspension->GetSpindle(side)->GetRot().GetZaxis();
 
   m_TA[side] = TA;
   return TA;
@@ -772,19 +761,19 @@ void SuspensionTest::LoadSuspension(const std::string& filename,
   // Create the suspension using the appropriate template.
   if (subtype.compare("DoubleWishbone") == 0)
   {
-    m_suspensions[axle] = ChSharedPtr<ChSuspension>(new DoubleWishbone(d));
+    m_suspension = ChSharedPtr<ChSuspension>(new DoubleWishbone(d));
   }
   else if (subtype.compare("DoubleWishboneReduced") == 0)
   {
-    m_suspensions[axle] = ChSharedPtr<ChSuspension>(new DoubleWishboneReduced(d));
+    m_suspension = ChSharedPtr<ChSuspension>(new DoubleWishboneReduced(d));
   }
   else if (subtype.compare("SolidAxle") == 0)
   {
-    m_suspensions[axle] = ChSharedPtr<ChSuspension>(new SolidAxle(d));
+    m_suspension = ChSharedPtr<ChSuspension>(new SolidAxle(d));
   }
   else if (subtype.compare("MultiLink") == 0)
   {
-    m_suspensions[axle] = ChSharedPtr<ChSuspension>(new MultiLink(d));
+    m_suspension = ChSharedPtr<ChSuspension>(new MultiLink(d));
   }
 }
 

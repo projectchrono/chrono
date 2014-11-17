@@ -21,6 +21,7 @@
 
 #include "core/ChCoordsys.h"
 #include "physics/ChSystem.h"
+#include "assets/ChColor.h"
 
 #include "subsys/ChSuspensionTest.h"
 
@@ -84,17 +85,13 @@ private:
 
   int                      m_num_axles;       // number of axles on test rig always 1
 
-  std::vector<ChVector<> > m_suspLocations;   // locations of the suspensions relative to chassis
+  ChVector<>               m_suspLocation;   // locations of the suspensions relative to chassis
 
   ChVector<>               m_steeringLoc;     // location of the steering relative to chassis
   ChQuaternion<>           m_steeringRot;     // orientation of the steering relative to chassis
   int                      m_steer_susp;      // index of the steered suspension
 
-  std::vector<int>         m_driven_susp;     // indexes of the driven suspensions
-
-  double     m_chassisMass;                   // chassis mass
-  ChVector<> m_chassisCOM;                    // location of the chassis COM in the chassis reference frame
-  ChVector<> m_chassisInertia;                // moments of inertia of the chassis
+  ChVector<> m_groundCOM;                     // location of the chassis COM in the chassis reference frame
 
   ChCoordsys<> m_driverCsys;                  // driver position and orientation relative to chassis
   double m_post_height;                       // post height, for visuals
