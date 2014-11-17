@@ -30,7 +30,7 @@ namespace chrono {
 // Constructor for a ChSuspensiontester: specify default step size and solver parameters.
 // -----------------------------------------------------------------------------
 ChSuspensionTest::ChSuspensionTest()
-: m_stepsize(1e-3)
+: m_stepsize(1e-3), m_has_steering(false)
 {
   Set_G_acc(ChVector<>(0, 0, -9.81));
 

@@ -51,15 +51,15 @@ public:
   virtual ~ChSuspensionTest() {}
 
   /// Get a handle to the vehicle's chassis body.
-  const ChSharedPtr<ChBody> GetChassis() const { return m_ground; }
+  const ChSharedPtr<ChBodyAuxRef> GetChassis() const { return m_ground; }
 
   /// Get the global location of the chassis reference frame origin.
-  const ChVector<>& GetChassisPos() const { return m_ground->GetPos(); }
+  const ChVector<>& GetChassisPos() const { return m_ground->GetFrame_REF_to_abs().GetPos(); }
 
   /// Get the orientation of the chassis reference frame.
   /// The chassis orientation is returned as a quaternion representing a
   /// rotation with respect to the global reference frame.
-  const ChQuaternion<>& GetChassisRot() const { return m_ground->GetRot(); }
+  const ChQuaternion<>& GetChassisRot() const { return m_ground->GetFrame_REF_to_abs().GetRot(); }
 
   /// Get the global location of the chassis center of mass.
   const ChVector<>& GetChassisPosCOM() const { return m_ground->GetPos(); }
@@ -115,6 +115,15 @@ public:
   virtual void Update(
     double              time,               ///< [in] current time
     double              steering,           ///< [in] current steering input [-1,+1]
+    double              disp_L,             ///< [in] left post displacement
+    double              disp_R,             ///< [in] right post displacement
+    const ChTireForces& tire_forces         ///< [in] tires force to apply to wheel
+    ) {}
+
+  virtual void Update(
+    double              time,               ///< [in] current time
+    double              disp_L,             ///< [in] left post displacement
+    double              disp_R,             ///< [in] right post displacement
     const ChTireForces& tire_forces         ///< [in] tires force to apply to wheel
     ) {}
 
@@ -128,12 +137,14 @@ public:
   /// subsystem.
   double GetStepsize() const { return m_stepsize; }
 
+  bool Has_steering() const { return m_has_steering; }
+
   /// Log current constraint violations.
   void LogConstraintViolations();
 
 protected:
 
-  ChSharedPtr<ChBodyAuxRef>        m_ground;///< handle to the fixed ground body
+  ChSharedPtr<ChBodyAuxRef>  m_ground;      ///< handle to the fixed ground body
   ChSharedPtr<ChSuspension>  m_suspension;  ///< list of handles to suspension subsystems, only 1 in this case.
   ChSharedPtr<ChBody>        m_post_L;      ///< left shaker post  
   ChSharedPtr<ChBody>        m_post_R;      ///< right shaker post
@@ -143,6 +154,8 @@ protected:
   ChSharedPtr<ChLinkLockPrismatic> m_post_R_prismatic; ///< right post prismatic joint
   ChSharedPtr<ChLinkLinActuator> m_post_R_linact; ///< actuate right post
   ChSharedPtr<ChLinkLockPointPlane> m_post_R_ptPlane; ///< actuate R suspension to a specified height
+  
+  bool                       m_has_steering; ///< include steering?
   ChSharedPtr<ChSteering>    m_steering;     ///< handle to the steering subsystem.
   ChWheelList                m_wheels;       ///< list of handles to wheel subsystems, 2 in this case.
 

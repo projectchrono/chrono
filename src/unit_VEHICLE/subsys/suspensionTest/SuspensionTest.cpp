@@ -99,8 +99,9 @@ SuspensionTest::SuspensionTest(const std::string& filename):
 
   m_ground->SetIdentifier(0);
   m_ground->SetName("ground");
-  m_ground->SetMass(100.0);
-  m_ground->SetInertiaXX(ChVector<>(1,1,1));
+  m_ground->SetMass(1000.0);
+  m_ground->SetFrame_COG_to_REF(ChFrame<>(m_groundCOM, ChQuaternion<>(1, 0, 0, 0)));
+  m_ground->SetInertiaXX(ChVector<>(10,10,10));
   // suspension test mechanism isn't going anywhere
   m_ground->SetBodyFixed(true);
 
@@ -117,7 +118,7 @@ SuspensionTest::SuspensionTest(const std::string& filename):
 
   // ---------------------------------
   // More validations of the JSON file
-  assert(d.HasMember("Steering"));
+  // assert(d.HasMember("Steering"));
   assert(d.HasMember("Suspension"));
 
 
@@ -125,21 +126,23 @@ SuspensionTest::SuspensionTest(const std::string& filename):
   m_wheels.resize(2 * m_num_axles);
 
   // -----------------------------
-  // Create the steering subsystem
+  // Create the steering subsystem, if specified
+  if(d.HasMember("Steering") )
   {
     std::string file_name = d["Steering"]["Input File"].GetString();
     LoadSteering(utils::GetModelDataFile(file_name));
     m_steeringLoc = loadVector(d["Steering"]["Location"]);
     m_steeringRot = loadQuaternion(d["Steering"]["Orientation"]);
     m_steer_susp = d["Steering"]["Suspension Index"].GetInt();
+    m_has_steering = true;
   }
 
   // ---------------------------------------------------
   // Create the suspension, wheel, and brake subsystems.
   // Suspension
-  std::string file_name = d["Suspension"]["Suspension Input File"].GetString();
+  std::string file_name = d["Suspension"]["Input File"].GetString();
   LoadSuspension(utils::GetModelDataFile(file_name), 0, false);
-  m_suspLocation = loadVector(d["Suspension"]["Suspension Location"]);
+  m_suspLocation = loadVector(d["Suspension"]["Location"]);
 
 // Left and right wheels
   file_name = d["Suspension"]["Left Wheel Input File"].GetString();
@@ -149,8 +152,11 @@ SuspensionTest::SuspensionTest(const std::string& filename):
 
   // -----------------------
   // Extract driver position
-  m_driverCsys.pos = loadVector(d["Driver Position"]["Location"]);
-  m_driverCsys.rot = loadQuaternion(d["Driver Position"]["Orientation"]);
+  if( m_has_steering)
+  {
+    m_driverCsys.pos = loadVector(d["Driver Position"]["Location"]);
+    m_driverCsys.rot = loadQuaternion(d["Driver Position"]["Orientation"]);
+  }
 
   // -----------------------
   // add the shaker posts, Left then right. 
@@ -298,6 +304,27 @@ void SuspensionTest::Update(double       time,
   m_postDisp[RIGHT] = disp_R;
 }
 
+
+// -----------------------------------------------------------------------------
+void SuspensionTest::Update(double       time,
+                     double              disp_L,
+                     double              disp_R,
+                     const ChTireForces& tire_forces)
+{
+
+  // Apply the displacements to the left/right post actuators
+  if( ChSharedPtr<ChFunction_Const> func_L = m_post_L_linact->Get_dist_funct().DynamicCastTo<ChFunction_Const>() )
+    func_L->Set_yconst(disp_L);
+  if( ChSharedPtr<ChFunction_Const> func_R = m_post_R_linact->Get_dist_funct().DynamicCastTo<ChFunction_Const>() )
+    func_R->Set_yconst(disp_R);
+
+  // Apply tire forces to spindle bodies.
+  m_suspension->ApplyTireForce(LEFT, tire_forces[0]);
+  m_suspension->ApplyTireForce(RIGHT, tire_forces[1]);
+
+  m_postDisp[LEFT] = disp_L;
+  m_postDisp[RIGHT] = disp_R;
+}
 
 // set what to save to file each time .DebugLog() is called during the simulation loop
 // creates a new file (or overwrites old existing one), and sets the first row w/ headers
