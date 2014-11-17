@@ -114,6 +114,10 @@ private:
   ChFrame<> m_frame1;                     // joint frame on body 1
   ChFrame<> m_frame2;                     // joint frame on body 2
 
+  // Cached matrices
+  ChMatrix33<> m_u1_tilde;
+  ChMatrix33<> m_v2_tilde;
+
   // The constraint objects
   ChLcpConstraintTwoBodies m_cnstr_x;     // x1_abs - x2_abs = 0
   ChLcpConstraintTwoBodies m_cnstr_y;     // y1_abs - y2_abs = 0

@@ -171,7 +171,9 @@ void ChLinkLinActuator::UpdateTime (double mytime)
   // as centripetal acc. of point sliding on a sphere surface.
   Vector tang_speed = GetRelM_dt().pos;
   tang_speed.x = 0; // only z-y coords in relative tang speed vector
-  deltaC_dtdt.pos.x -= pow(Vlength(tang_speed), 2) / Vlength(absdist);  // An = Adelta -(Vt^2 / r)
+  double len_absdist = Vlength(absdist);  // don't divide by zero
+  if(len_absdist > 1E-6)
+    deltaC_dtdt.pos.x -= pow(Vlength(tang_speed), 2) / Vlength(absdist);  // An = Adelta -(Vt^2 / r)
 
   deltaC.rot = QUNIT;             // no relative rotations imposed!
   deltaC_dt.rot = QNULL;
