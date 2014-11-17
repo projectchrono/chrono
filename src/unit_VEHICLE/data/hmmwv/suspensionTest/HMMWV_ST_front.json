@@ -5,8 +5,8 @@
 
   "Suspension":
   {
-    "Suspension Input File":   "hmmwv/suspension/HMMWV_DoubleWishboneFront.json",
-    "Suspension Location":     [1.688965, 0, 0],
+    "Input File":   "hmmwv/suspension/HMMWV_DoubleWishboneFront.json",
+    "Location":     [1.688965, 0, 0],
     "Left Wheel Input File":   "hmmwv/wheel/HMMWV_Wheel_FrontLeft.json",
     "Right Wheel Input File":  "hmmwv/wheel/HMMWV_Wheel_FrontRight.json"
   },
