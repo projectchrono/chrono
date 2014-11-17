@@ -47,11 +47,6 @@ public:
                       double              disp_R,
                       const ChTireForces& tire_forces);
 
-  virtual void Update(double            time,
-                      double              disp_L,
-                      double              disp_R,
-                      const ChTireForces& tire_forces);
-
   /// Log info to console
   void DebugLog(int console_what);
 

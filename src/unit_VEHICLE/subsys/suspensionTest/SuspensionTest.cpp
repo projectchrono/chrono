@@ -209,12 +209,18 @@ SuspensionTest::~SuspensionTest()
 // Links need to be added to the system here.
 void SuspensionTest::Initialize(const ChCoordsys<>& chassisPos)
 {
-  // Initialize the steering subsystem. ChPhysicsItem has a virtual destructor, should be able to cast to ChBody
-  m_steering->Initialize(m_ground, m_steeringLoc, m_steeringRot);
+  if( m_has_steering ) {
+    // Initialize the steering subsystem.
+    m_steering->Initialize(m_ground, m_steeringLoc, m_steeringRot);
+  }
 
-  // Initialize the suspension subsys
-  m_suspension->Initialize(m_ground, m_suspLocation, m_steering->GetSteeringLink());
-
+  if( m_has_steering) {
+    // Initialize the suspension subsys, connected to steering subsyste
+    m_suspension->Initialize(m_ground, m_suspLocation, m_steering->GetSteeringLink());
+  } else {
+    // initialize suspension without steering
+    m_suspension->Initialize(m_ground, m_suspLocation, m_ground);
+  }
   // initialize the two wheels
   m_wheels[0]->Initialize(m_suspension->GetSpindle(LEFT));
   m_wheels[1]->Initialize(m_suspension->GetSpindle(RIGHT));
@@ -286,8 +292,10 @@ void SuspensionTest::Update(double       time,
                      double              disp_R,
                      const ChTireForces& tire_forces)
 {
-  // Let the steering subsystem process the steering input.
-  m_steering->Update(time, steering);
+  if( m_has_steering) {
+    // Let the steering subsystem process the steering input.
+    m_steering->Update(time, steering);
+  }
 
   // Apply the displacements to the left/right post actuators
   if( ChSharedPtr<ChFunction_Const> func_L = m_post_L_linact->Get_dist_funct().DynamicCastTo<ChFunction_Const>() )
@@ -300,28 +308,6 @@ void SuspensionTest::Update(double       time,
   m_suspension->ApplyTireForce(RIGHT, tire_forces[1]);
 
   m_steer = steering;
-  m_postDisp[LEFT] = disp_L;
-  m_postDisp[RIGHT] = disp_R;
-}
-
-
-// -----------------------------------------------------------------------------
-void SuspensionTest::Update(double       time,
-                     double              disp_L,
-                     double              disp_R,
-                     const ChTireForces& tire_forces)
-{
-
-  // Apply the displacements to the left/right post actuators
-  if( ChSharedPtr<ChFunction_Const> func_L = m_post_L_linact->Get_dist_funct().DynamicCastTo<ChFunction_Const>() )
-    func_L->Set_yconst(disp_L);
-  if( ChSharedPtr<ChFunction_Const> func_R = m_post_R_linact->Get_dist_funct().DynamicCastTo<ChFunction_Const>() )
-    func_R->Set_yconst(disp_R);
-
-  // Apply tire forces to spindle bodies.
-  m_suspension->ApplyTireForce(LEFT, tire_forces[0]);
-  m_suspension->ApplyTireForce(RIGHT, tire_forces[1]);
-
   m_postDisp[LEFT] = disp_L;
   m_postDisp[RIGHT] = disp_R;
 }

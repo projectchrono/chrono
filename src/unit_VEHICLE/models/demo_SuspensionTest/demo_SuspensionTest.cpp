@@ -78,7 +78,8 @@ double output_step_size = 1.0 / 1;    // Time interval between two output frames
 
 // =============================================================================
 // JSON file for suspension
-  std::string suspensionTest_file = utils::GetModelDataFile("hmmwv/suspensionTest/HMMWV_ST_front.json");
+// std::string suspensionTest_file = utils::GetModelDataFile("hmmwv/suspensionTest/HMMWV_ST_front.json");
+std::string suspensionTest_file = utils::GetModelDataFile("hmmwv/suspensionTest/HMMWV_ST_rear.json");
 
 // JSON files for tire models (rigid) and powertrain (simple)
 std::string rigidtire_file = utils::GetModelDataFile("hmmwv/tire/HMMWV_RigidTire.json");
