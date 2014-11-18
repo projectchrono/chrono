@@ -50,15 +50,12 @@
 # define USE_IRRLICHT
 #endif
 
-// DEBUGGING: uncomment to print debug info
-#define DEBUG_LOG
-
 using namespace chrono;
 
 // =============================================================================
 
 // JSON file for vehicle model
-std::string vehicle_file = utils::GetModelDataFile("hmmwv/vehicle/HMMWV_Vehicle_balanced.json");
+std::string vehicle_file = utils::GetModelDataFile("hmmwv/vehicle/HMMWV_Vehicle.json");
 //std::string vehicle_file = utils::GetModelDataFile("generic/vehicle/Vehicle_DoubleWishbones.json");
 //std::string vehicle_file = utils::GetModelDataFile("generic/vehicle/Vehicle_MultiLinks.json");
 //std::string vehicle_file = utils::GetModelDataFile("generic/vehicle/Vehicle_SolidAxles.json");
@@ -202,6 +199,7 @@ int main(int argc, char* argv[])
   ChDataDriver driver(driver_file);
 #endif
 
+
   // ---------------
   // Simulation loop
   // ---------------
@@ -249,14 +247,6 @@ int main(int argc, char* argv[])
       driver.DrawAll();
       application.GetVideoDriver()->endScene();
     }
-
-#ifdef DEBUG_LOG
-    if (step_number % output_steps == 0) {
-      GetLog() << "\n\n============ System Information ============\n";
-      GetLog() << "Time = " << time << "\n\n";
-      vehicle.DebugLog(DBG_SPRINGS);
-    }
-#endif
 
     // Collect output data from modules (for inter-module communication)
     throttle_input = driver.GetThrottle();
