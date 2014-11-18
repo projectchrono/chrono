@@ -24,8 +24,6 @@
 
 #include "subsys/ChVehicle.h"
 
-#include "models/ModelDefs.h"
-
 namespace chrono {
 
 class CH_SUBSYS_API Vehicle : public ChVehicle
@@ -49,18 +47,6 @@ public:
                       const ChTireForces& tire_forces);
 
   void ExportMeshPovray(const std::string& out_dir);
-  void LogHardpointLocations();
-  void DebugLog(int what);
-
-  // public accessors
-
-  double GetSpringForce(const chrono::ChWheelID& wheel_id) const;
-  double GetSpringLength(const chrono::ChWheelID& wheel_id) const;
-  double GetSpringDeformation(const chrono::ChWheelID& wheel_id) const;
-
-  double GetShockForce(const chrono::ChWheelID& wheel_id) const;
-  double GetShockLength(const chrono::ChWheelID& wheel_id) const;
-  double GetShockVelocity(const chrono::ChWheelID& wheel_id) const;
 
 private:
 
@@ -69,8 +55,6 @@ private:
   void LoadSuspension(const std::string& filename, int axle);
   void LoadWheel(const std::string& filename, int axle, int side);
   void LoadBrake(const std::string& filename, int axle, int side);
-
-  
 
 private:
 
