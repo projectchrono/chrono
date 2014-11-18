@@ -283,11 +283,33 @@ void ChLinkUniversal::ConstraintsLoadJacobians()
 
 void ChLinkUniversal::ConstraintsFetch_react(double factor)
 {
-  //// TODO
-  double l1 = m_cnstr_x.Get_l_i();
-  double l2 = m_cnstr_y.Get_l_i();
-  double l3 = m_cnstr_z.Get_l_i();
-  double l4 = m_cnstr_dot.Get_l_i();
+  // Extract the Lagrange multipliers for the 3 spherical constraints and for
+  // the dot constraint.
+  ChVector<> lam_sph(m_cnstr_x.Get_l_i(), m_cnstr_y.Get_l_i(), m_cnstr_z.Get_l_i());
+  double     lam_dot = m_cnstr_dot.Get_l_i();
+
+  // Note that the Lagrange multipliers must be multiplied by 'factor' to
+  // convert from reaction impulses to reaction forces.
+  lam_sph *= factor;
+  lam_dot *= factor;
+
+  // Calculate the reaction force and torque acting on the 2nd body at the joint
+  // location, expressed in the joint reference frame:
+  //   F = -C^T * A_2^T * Phi_r2^T * lam
+  //   T = -C^T * ( Phi_pi2^T - tilde(s2') * A_2^T * Phi_r2^T ) * lam
+  // For the universal joint, after some manipulations, we have:
+  //   F = -C^T * A_2^T * lam_sph
+  //   T = C^T * tilde(v2') *A_2^T * u1 * lam_dot
+
+  // Reaction force
+  ChVector<> F2 = Body2->GetA()->MatrT_x_Vect(lam_sph);
+  react_force = -m_frame2.GetA()->MatrT_x_Vect(F2);
+
+  // Reaction torque
+  ChVector<> u1 = Body1->TransformDirectionLocalToParent(m_frame1.GetA()->Get_A_Xaxis());
+  ChMatrix33<> mat2 = *(Body2->GetA()) * m_v2_tilde;
+  ChVector<> T2 = mat2.MatrT_x_Vect(u1) * lam_dot;
+  react_torque = m_frame2.GetA()->MatrT_x_Vect(T2);
 }
 
 
