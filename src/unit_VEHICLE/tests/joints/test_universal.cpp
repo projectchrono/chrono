@@ -90,14 +90,14 @@ int main(int argc, char* argv[])
   test_name = "Universal_Case01";
   TestUniversal(ChVector<>(0, 0, 0), Q_from_AngX(CH_C_PI_2), sim_step, out_step, test_name, animate, save);
   if (!animate) {
-    //test_passed &= ValidateReference(test_name, "Pos", 2e-3);
-    //test_passed &= ValidateReference(test_name, "Vel", 1e-4);
-    //test_passed &= ValidateReference(test_name, "Acc", 2e-2);
-    //test_passed &= ValidateReference(test_name, "Quat", 1e-3);
-    //test_passed &= ValidateReference(test_name, "Avel", 2e-2);
-    //test_passed &= ValidateReference(test_name, "Aacc", 2e-2);
-    //test_passed &= ValidateReference(test_name, "Rforce", 2e-2);
-    //test_passed &= ValidateReference(test_name, "Rtorque", 1e-6);
+    test_passed &= ValidateReference(test_name, "Pos", 2e-3);
+    test_passed &= ValidateReference(test_name, "Vel", 2e-3);
+    test_passed &= ValidateReference(test_name, "Acc", 2e-2);
+    test_passed &= ValidateReference(test_name, "Quat", 1e-3);
+    test_passed &= ValidateReference(test_name, "Avel", 2e-2);
+    test_passed &= ValidateReference(test_name, "Aacc", 2e-2);
+    test_passed &= ValidateReference(test_name, "Rforce", 2e-2);
+    test_passed &= ValidateReference(test_name, "Rtorque", 1e-6);
     test_passed &= ValidateEnergy(test_name, 1e-2);
     test_passed &= ValidateConstraints(test_name, 1e-5);
   }
@@ -107,14 +107,14 @@ int main(int argc, char* argv[])
   test_name = "Universal_Case02";
   TestUniversal(ChVector<>(0, 0, 0), Q_from_AngY(CH_C_PI_2), sim_step, out_step, test_name, animate, save);
   if (!animate) {
-    //test_passed &= ValidateReference(test_name, "Pos", 2e-3);
-    //test_passed &= ValidateReference(test_name, "Vel", 1e-4);
-    //test_passed &= ValidateReference(test_name, "Acc", 2e-2);
-    //test_passed &= ValidateReference(test_name, "Quat", 1e-3);
-    //test_passed &= ValidateReference(test_name, "Avel", 2e-2);
-    //test_passed &= ValidateReference(test_name, "Aacc", 2e-2);
-    //test_passed &= ValidateReference(test_name, "Rforce", 2e-2);
-    //test_passed &= ValidateReference(test_name, "Rtorque", 1e-6);
+    test_passed &= ValidateReference(test_name, "Pos", 2e-3);
+    test_passed &= ValidateReference(test_name, "Vel", 2e-3);
+    test_passed &= ValidateReference(test_name, "Acc", 2e-2);
+    test_passed &= ValidateReference(test_name, "Quat", 1e-3);
+    test_passed &= ValidateReference(test_name, "Avel", 2e-2);
+    test_passed &= ValidateReference(test_name, "Aacc", 2e-2);
+    test_passed &= ValidateReference(test_name, "Rforce", 2e-2);
+    test_passed &= ValidateReference(test_name, "Rtorque", 1e-6);
     test_passed &= ValidateEnergy(test_name, 1e-2);
     test_passed &= ValidateConstraints(test_name, 1e-5);
   }
@@ -124,14 +124,14 @@ int main(int argc, char* argv[])
   test_name = "Universal_Case03";
   TestUniversal(ChVector<>(0, 0, 0), Q_from_AngAxis(CH_C_PI / 2, ChVector<>(0.707107, -0.707107, 0)), sim_step, out_step, test_name, animate, save);
   if (!animate) {
-    //test_passed &= ValidateReference(test_name, "Pos", 2e-3);
-    //test_passed &= ValidateReference(test_name, "Vel", 2e-3);
-    //test_passed &= ValidateReference(test_name, "Acc", 2e-2);
-    //test_passed &= ValidateReference(test_name, "Quat", 1e-3);
-    //test_passed &= ValidateReference(test_name, "Avel", 2e-2);
-    //test_passed &= ValidateReference(test_name, "Aacc", 2e-2);
-    //test_passed &= ValidateReference(test_name, "Rforce", 2e-2);
-    //test_passed &= ValidateReference(test_name, "Rtorque", 5e-4);
+    test_passed &= ValidateReference(test_name, "Pos", 2e-3);
+    test_passed &= ValidateReference(test_name, "Vel", 2e-3);
+    test_passed &= ValidateReference(test_name, "Acc", 2e-2);
+    test_passed &= ValidateReference(test_name, "Quat", 1e-3);
+    test_passed &= ValidateReference(test_name, "Avel", 2e-2);
+    test_passed &= ValidateReference(test_name, "Aacc", 2e-2);
+    test_passed &= ValidateReference(test_name, "Rforce", 2e-2);
+    test_passed &= ValidateReference(test_name, "Rtorque", 5e-4);
     test_passed &= ValidateEnergy(test_name, 1e-2);
     test_passed &= ValidateConstraints(test_name, 1e-5);
   }
