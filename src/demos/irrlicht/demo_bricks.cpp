@@ -38,8 +38,6 @@
 #include "assets/ChTexture.h"
 #include "unit_IRRLICHT/ChIrrApp.h"
 
-
-
  
 // Use the namespace of Chrono
 
