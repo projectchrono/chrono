@@ -125,13 +125,13 @@ int main(int argc, char* argv[])
   TestUniversal(ChVector<>(0, 0, 0), Q_from_AngAxis(CH_C_PI / 2, ChVector<>(0.707107, -0.707107, 0)), sim_step, out_step, test_name, animate, save);
   if (!animate) {
     //test_passed &= ValidateReference(test_name, "Pos", 2e-3);
-    //test_passed &= ValidateReference(test_name, "Vel", 1e-4);
+    //test_passed &= ValidateReference(test_name, "Vel", 2e-3);
     //test_passed &= ValidateReference(test_name, "Acc", 2e-2);
     //test_passed &= ValidateReference(test_name, "Quat", 1e-3);
     //test_passed &= ValidateReference(test_name, "Avel", 2e-2);
     //test_passed &= ValidateReference(test_name, "Aacc", 2e-2);
     //test_passed &= ValidateReference(test_name, "Rforce", 2e-2);
-    //test_passed &= ValidateReference(test_name, "Rtorque", 1e-6);
+    //test_passed &= ValidateReference(test_name, "Rtorque", 5e-4);
     test_passed &= ValidateEnergy(test_name, 1e-2);
     test_passed &= ValidateConstraints(test_name, 1e-5);
   }
@@ -370,16 +370,25 @@ bool TestUniversal(const ChVector<>&     jointLoc,         // absolute location 
       out_aacc << simTime << pendulum->GetWacc_par() << std::endl;
 
       // Reaction Force and Torque
-      // These are expressed in the link coordinate system. We convert them to
-      // the coordinate system of Body2 (in our case this is the ground).
+      // These are returned for Body2 (the pendulum in our case) and are
+      // expressed in the link coordinate system.
       ChCoordsys<> linkCoordsys = universalJoint->GetLinkRelativeCoords();
-      ChVector<> reactForce = universalJoint->Get_react_force();
-      ChVector<> reactForceGlobal = linkCoordsys.TransformDirectionLocalToParent(reactForce);
-      out_rfrc << simTime << reactForceGlobal << std::endl;
 
+      //    reaction force on pendulum, expressed in joint frame on pendulum
+      ChVector<> reactForce = universalJoint->Get_react_force();
+      //    reaction force on pendulum, expressed in pendulum frame
+      reactForce = linkCoordsys.TransformDirectionLocalToParent(reactForce);
+      //    reaction force on pendulum, expresed in global frame
+      reactForce = pendulum->TransformDirectionLocalToParent(reactForce);
+      out_rfrc << simTime << reactForce << std::endl;
+
+      //    reaction torque on pendulum, expressed in joint frame on pendulum
       ChVector<> reactTorque = universalJoint->Get_react_torque();
-      ChVector<> reactTorqueGlobal = linkCoordsys.TransformDirectionLocalToParent(reactTorque);
-      out_rtrq << simTime << reactTorqueGlobal << std::endl;
+      //    reaction torque on pendulum, expressed in pendulum frame
+      reactTorque = linkCoordsys.TransformDirectionLocalToParent(reactTorque);
+      //    reaction torque on pendulum, expressed in global frame
+      reactTorque = pendulum->TransformDirectionLocalToParent(reactTorque);
+      out_rtrq << simTime << reactTorque << std::endl;
 
       // Conservation of Energy
       // Translational Kinetic Energy (1/2*m*||v||^2)
