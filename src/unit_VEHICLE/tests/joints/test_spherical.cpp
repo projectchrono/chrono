@@ -347,9 +347,7 @@ bool TestSpherical(const ChVector<>&     jointLoc,         // absolute location 
       out_cnstr << simTime
                 << C->GetElement(0, 0)
                 << C->GetElement(1, 0)
-                << C->GetElement(2, 0)
-                << C->GetElement(3, 0)
-                << C->GetElement(4, 0) << std::endl;
+                << C->GetElement(2, 0) << std::endl;
 
       // Increment output time
       outTime += outTimeStep;
