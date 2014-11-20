@@ -148,12 +148,12 @@ class ConvexH
 };
 
 
-class int4
+class bt_int4
 {
 public:
 	int x,y,z,w;
-	int4(){};
-	int4(int _x,int _y, int _z,int _w){x=_x;y=_y;z=_z;w=_w;}
+	bt_int4(){};
+	bt_int4(int _x,int _y, int _z,int _w){x=_x;y=_y;z=_z;w=_w;}
 	const int& operator[](int i) const {return (&x)[i];}
 	int& operator[](int i) {return (&x)[i];}
 };
@@ -213,7 +213,7 @@ private:
 
 	int calchullgen(btVector3 *verts,int verts_count, int vlimit);
 
-	int4 FindSimplex(btVector3 *verts,int verts_count,btAlignedObjectArray<int> &allow);
+	bt_int4 FindSimplex(btVector3 *verts,int verts_count,btAlignedObjectArray<int> &allow);
 
 	class ConvexH* ConvexHCrop(ConvexH& convex,const btPlane& slice);
 

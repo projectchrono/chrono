@@ -486,7 +486,7 @@ btHullTriangle* HullLibrary::extrudable(btScalar epsilon)
 
 
 
-int4 HullLibrary::FindSimplex(btVector3 *verts,int verts_count,btAlignedObjectArray<int> &allow)
+bt_int4 HullLibrary::FindSimplex(btVector3 *verts,int verts_count,btAlignedObjectArray<int> &allow)
 {
 	btVector3 basis[3];
 	basis[0] = btVector3( btScalar(0.01), btScalar(0.02), btScalar(1.0) );      
@@ -494,7 +494,7 @@ int4 HullLibrary::FindSimplex(btVector3 *verts,int verts_count,btAlignedObjectAr
 	int	p1 = maxdirsterid(verts,verts_count,-basis[0],allow);
 	basis[0] = verts[p0]-verts[p1];
 	if(p0==p1 || basis[0]==btVector3(0,0,0)) 
-		return int4(-1,-1,-1,-1);
+		return bt_int4(-1,-1,-1,-1);
 	basis[1] = btCross(btVector3(     btScalar(1),btScalar(0.02), btScalar(0)),basis[0]);
 	basis[2] = btCross(btVector3(btScalar(-0.02),     btScalar(1), btScalar(0)),basis[0]);
 	if (basis[1].length() > basis[2].length())
@@ -510,16 +510,16 @@ int4 HullLibrary::FindSimplex(btVector3 *verts,int verts_count,btAlignedObjectAr
 		p2 = maxdirsterid(verts,verts_count,-basis[1],allow);
 	}
 	if(p2 == p0 || p2 == p1) 
-		return int4(-1,-1,-1,-1);
+		return bt_int4(-1,-1,-1,-1);
 	basis[1] = verts[p2] - verts[p0];
 	basis[2] = btCross(basis[1],basis[0]).normalized();
 	int p3 = maxdirsterid(verts,verts_count,basis[2],allow);
 	if(p3==p0||p3==p1||p3==p2) p3 = maxdirsterid(verts,verts_count,-basis[2],allow);
 	if(p3==p0||p3==p1||p3==p2) 
-		return int4(-1,-1,-1,-1);
+		return bt_int4(-1,-1,-1,-1);
 	btAssert(!(p0==p1||p0==p2||p0==p3||p1==p2||p1==p3||p2==p3));
 	if(btDot(verts[p3]-verts[p0],btCross(verts[p1]-verts[p0],verts[p2]-verts[p0])) <0) {Swap(p2,p3);}
-	return int4(p0,p1,p2,p3);
+	return bt_int4(p0,p1,p2,p3);
 }
 
 int HullLibrary::calchullgen(btVector3 *verts,int verts_count, int vlimit)
@@ -544,7 +544,7 @@ int HullLibrary::calchullgen(btVector3 *verts,int verts_count, int vlimit)
 	btAssert (epsilon != 0.0);
 
 
-	int4 p = FindSimplex(verts,verts_count,allow);
+	bt_int4 p = FindSimplex(verts,verts_count,allow);
 	if(p.x==-1) return 0; // simplex failed
 
 

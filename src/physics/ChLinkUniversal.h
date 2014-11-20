@@ -51,6 +51,9 @@ public:
   /// Get the number of constraints imposed by this joint.
   virtual int GetDOC_d() { return 4; }
 
+  /// Get the link coordinate system, expressed relative to Body2.
+  virtual ChCoordsys<> GetLinkRelativeCoords() { return m_frame2.GetCoord(); }
+
   /// Get the joint frame on Body1, expressed in Body1 coordinate system.
   const ChFrame<>& GetFrame1Rel() const { return m_frame1; }
   /// Get the joint frame on Body2, expressed in Body2 coordinate system.
@@ -113,6 +116,10 @@ private:
   // Joint frames (in body local frames)
   ChFrame<> m_frame1;                     // joint frame on body 1
   ChFrame<> m_frame2;                     // joint frame on body 2
+
+  // Cached matrices
+  ChMatrix33<> m_u1_tilde;
+  ChMatrix33<> m_v2_tilde;
 
   // The constraint objects
   ChLcpConstraintTwoBodies m_cnstr_x;     // x1_abs - x2_abs = 0
