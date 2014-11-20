@@ -400,20 +400,21 @@ IF(ENABLE_UNIT_IRRLICHT)
 	# To complete the build process, the .pyd and necessary .dll libraries 
 	# must be copied into the DLLs directory (it will be needed by the .pyd file), so..
 			#  ... get the name of the most recent Chrono::Engine irrlicht library to copy:
-	# GET_TARGET_PROPERTY(CH_CHRONOIRRLICHT_LIBNAME ChronoEngine_IRRLICHT LOCATION) *** not needed since C::E Irrlicht lib is header-only
+	GET_TARGET_PROPERTY(CH_CHRONOIRRLICHT_LIBNAME ChronoEngine_IRRLICHT LOCATION) 
 			#  ... get the name of the .pyd library to copy:
 	GET_TARGET_PROPERTY(CH_CHRONOIRRLICHTPYD_LIBNAME ${SWIG_MODULE_ChronoEngine_PYTHON_irrlicht_REAL_NAME} LOCATION)
 			#  ... then copy them to the DLLs Python folder for .pyd and .dll files
 	ADD_CUSTOM_COMMAND(
 				TARGET ${SWIG_MODULE_ChronoEngine_PYTHON_irrlicht_REAL_NAME}
 				POST_BUILD
-				#COMMAND ${CMAKE_COMMAND} -E copy 
-				#	${CH_CHRONOIRRLICHT_LIBNAME} 
-				#	${CH_PYTHONDIR_PYD}/.           **** REMEMBER TO COPY THE IRRLICH.DLL INTO THE Python32/DLLs/ directory!!! ****
+				COMMAND ${CMAKE_COMMAND} -E copy 
+					${CH_CHRONOIRRLICHT_LIBNAME} 
+					${CH_PYTHONDIR_PYD}/.
 				COMMAND ${CMAKE_COMMAND} -E copy 
 					${CH_CHRONOIRRLICHTPYD_LIBNAME} 
 					${CH_PYTHONDIR_PYD}/.
 				)
+
 				
 					
 	#SET_PROPERTY(GLOBAL PROPERTY USE_FOLDERS ON)
