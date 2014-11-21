@@ -92,14 +92,14 @@ int main(int argc, char* argv[])
   test_name = "Revolute_Case01";
   TestRevolute(ChVector<>(0, 0, 0), Q_from_AngX(-CH_C_PI_2), sim_step, out_step, test_name, animate, save);
   if (!animate) {
-    test_passed &= ValidateReference(test_name, "Pos", 2e-3);
+    test_passed &= ValidateReference(test_name, "Pos", 1e-3);
     test_passed &= ValidateReference(test_name, "Vel", 1e-4);
     test_passed &= ValidateReference(test_name, "Acc", 2e-2);
     test_passed &= ValidateReference(test_name, "Quat", 1e-3);
-    test_passed &= ValidateReference(test_name, "Avel", 2e-2);
-    test_passed &= ValidateReference(test_name, "Aacc", 2e-2);
+    test_passed &= ValidateReference(test_name, "Avel", 1e-2);
+    test_passed &= ValidateReference(test_name, "Aacc", 1e-2);
     test_passed &= ValidateReference(test_name, "Rforce", 2e-2);
-    test_passed &= ValidateReference(test_name, "Rtorque", 1e-6);
+    test_passed &= ValidateReference(test_name, "Rtorque", 1e-2);
     test_passed &= ValidateEnergy(test_name, 1e-2);
     test_passed &= ValidateConstraints(test_name, 1e-5);
   }
@@ -110,14 +110,14 @@ int main(int argc, char* argv[])
   test_name = "Revolute_Case02";
   TestRevolute(ChVector<>(1, 2, 3), Q_from_AngX(-CH_C_PI_4), sim_step, out_step, test_name, animate, save);
   if (!animate) {
-    test_passed &= ValidateReference(test_name, "Pos", 2e-3);
+    test_passed &= ValidateReference(test_name, "Pos", 1e-3);
     test_passed &= ValidateReference(test_name, "Vel", 1e-4);
-    test_passed &= ValidateReference(test_name, "Acc", 2e-2);
+    test_passed &= ValidateReference(test_name, "Acc", 1e-2);
     test_passed &= ValidateReference(test_name, "Quat", 1e-3);
-    test_passed &= ValidateReference(test_name, "Avel", 2e-2);
-    test_passed &= ValidateReference(test_name, "Aacc", 2e-2);
-    test_passed &= ValidateReference(test_name, "Rforce", 2e-2);
-    test_passed &= ValidateReference(test_name, "Rtorque", 1e-6);
+    test_passed &= ValidateReference(test_name, "Avel", 1e-5);
+    test_passed &= ValidateReference(test_name, "Aacc", 1e-2);
+    test_passed &= ValidateReference(test_name, "Rforce", 1e-2);
+    test_passed &= ValidateReference(test_name, "Rtorque", 1e-2);
     test_passed &= ValidateEnergy(test_name, 1e-2);
     test_passed &= ValidateConstraints(test_name, 1e-5);
   }
@@ -182,7 +182,7 @@ bool TestRevolute(const ChVector<>&     jointLoc,         // absolute location o
   ground->AddAsset(cyl_g);
 
   // Create the pendulum body in an initial configuration at rest, with an 
-  // orientatoin that matches the specified joint orientation and a position
+  // orientation that matches the specified joint orientation and a position
   // consistent with the specified joint location.
   // The pendulum CG is assumed to be at half its length.
 
@@ -210,6 +210,8 @@ bool TestRevolute(const ChVector<>&     jointLoc,         // absolute location o
 
   ChSharedPtr<ChLinkLockRevolute>  revoluteJoint(new ChLinkLockRevolute);
   revoluteJoint->Initialize(pendulum, ground, ChCoordsys<>(jointLoc, jointRot));
+  ////ChSharedPtr<ChLinkRevolute>  revoluteJoint(new ChLinkRevolute);
+  ////revoluteJoint->Initialize(pendulum, ground, ChFrame<>(jointLoc, jointRot));
   my_system.AddLink(revoluteJoint);
 
   // Perform the simulation (animation with Irrlicht option)
@@ -338,17 +340,29 @@ bool TestRevolute(const ChVector<>&     jointLoc,         // absolute location o
       out_avel << simTime << pendulum->GetWvel_par() << std::endl;
       out_aacc << simTime << pendulum->GetWacc_par() << std::endl;
 
-      // Reaction Force and Torque
-      // These are expressed in the link coordinate system. We convert them to
-      // the coordinate system of Body2 (in our case this is the ground).
-      ChCoordsys<> linkCoordsys = revoluteJoint->GetLinkRelativeCoords();
-      ChVector<> reactForce = revoluteJoint->Get_react_force();
-      ChVector<> reactForceGlobal = linkCoordsys.TransformDirectionLocalToParent(reactForce);
-      out_rfrc << simTime << reactForceGlobal << std::endl;
+      // Reaction Force and Torque: acting on the ground body, as applied at the
+      // joint location and expressed in the global frame.
 
+      // Chrono returns the reaction force and torque on body 2 (as specified in
+      // the joint Initialize() function), as applied at the joint location and
+      // expressed in the joint frame. Here, the 2nd body is the ground.
+
+      //    joint frame on 2nd body (ground), expressed in the body frame
+      ChCoordsys<> linkCoordsys = revoluteJoint->GetLinkRelativeCoords();
+
+      //    reaction force and torque on ground, expressed in joint frame
+      ChVector<> reactForce = revoluteJoint->Get_react_force();
       ChVector<> reactTorque = revoluteJoint->Get_react_torque();
-      ChVector<> reactTorqueGlobal = linkCoordsys.TransformDirectionLocalToParent(reactTorque);
-      out_rtrq << simTime << reactTorqueGlobal << std::endl;
+
+      //    reaction force and torque on ground, expressed in ground frame
+      reactForce = linkCoordsys.TransformDirectionLocalToParent(reactForce);
+      reactTorque = linkCoordsys.TransformDirectionLocalToParent(reactTorque);
+
+      //    since the ground body frame coincides with the global (absolute)
+      //    frame, the above quantities also represent the reaction force and
+      //    torque on ground, expressed in the global frame
+      out_rfrc << simTime << reactForce << std::endl;
+      out_rtrq << simTime << reactTorque << std::endl;
 
       // Conservation of Energy
       // Translational Kinetic Energy (1/2*m*||v||^2)
