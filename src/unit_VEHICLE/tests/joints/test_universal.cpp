@@ -369,25 +369,30 @@ bool TestUniversal(const ChVector<>&     jointLoc,         // absolute location 
       out_avel << simTime << pendulum->GetWvel_par() << std::endl;
       out_aacc << simTime << pendulum->GetWacc_par() << std::endl;
 
-      // Reaction Force and Torque
-      // These are returned for Body2 (the pendulum in our case) and are
-      // expressed in the link coordinate system.
+      // Reaction Force and Torque: acting on the ground body, as applied at the
+      // joint location and expressed in the global frame.
+
+      // Chrono returns the reaction force and torque on body 2 (as specified in
+      // the joint Initialize() function), as applied at the joint location and
+      // expressed in the joint frame. Here, the 2nd body is the pendulum.
+
+      //    joint frame on 2nd body (pendulum), expressed in the body frame
       ChCoordsys<> linkCoordsys = universalJoint->GetLinkRelativeCoords();
 
-      //    reaction force on pendulum, expressed in joint frame on pendulum
+      //    reaction force and torque on pendulum, expressed in joint frame
       ChVector<> reactForce = universalJoint->Get_react_force();
-      //    reaction force on pendulum, expressed in pendulum frame
-      reactForce = linkCoordsys.TransformDirectionLocalToParent(reactForce);
-      //    reaction force on pendulum, expresed in global frame
-      reactForce = pendulum->TransformDirectionLocalToParent(reactForce);
-      out_rfrc << simTime << reactForce << std::endl;
-
-      //    reaction torque on pendulum, expressed in joint frame on pendulum
       ChVector<> reactTorque = universalJoint->Get_react_torque();
-      //    reaction torque on pendulum, expressed in pendulum frame
+      //    reaction force and torque on pendulum, expressed in pendulum frame
+      reactForce = linkCoordsys.TransformDirectionLocalToParent(reactForce);
       reactTorque = linkCoordsys.TransformDirectionLocalToParent(reactTorque);
-      //    reaction torque on pendulum, expressed in global frame
+      //    reaction force and torque on pendulum, expresed in global frame
+      reactForce = pendulum->TransformDirectionLocalToParent(reactForce);
       reactTorque = pendulum->TransformDirectionLocalToParent(reactTorque);
+      //    reaction force and torque on ground, expressed in global frame
+      reactForce *= -1.0;
+      reactTorque *= -1.0;
+
+      out_rfrc << simTime << reactForce << std::endl;
       out_rtrq << simTime << reactTorque << std::endl;
 
       // Conservation of Energy
