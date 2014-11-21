@@ -2352,11 +2352,15 @@ int ChSystem::DoAssembly(int action, int mflags)
   //
   if ((action & ASS_SPEED) || (action & ASS_ACCEL))
   {
-    // Save current value of the time step.
+    // Save current value of the time step and max number of 'speed' iterations.
     double step_saved = step;
+    int niter_saved = GetIterLCPmaxItersSpeed();
 
-    // Use a small time step for assembly.
+    // Use a small time step for assembly. Also, temporarily increase the max
+    // number of iterations for the speed solver (to accommodate for the bad
+    // initial guess)
     step = 1e-7;
+    SetIterLCPmaxItersSpeed(5 * niter_saved);
 
     // Reset known-term vectors
     LCPprepare_reset();
@@ -2408,8 +2412,9 @@ int ChSystem::DoAssembly(int action, int mflags)
       HIER_OTHERPHYSICS_NEXT
     }
 
-    // Restore the time step value.
+    // Restore the time step and max number of iterations.
     step = step_saved;
+    SetIterLCPmaxItersSpeed(niter_saved);
   }
 
   return 0;
