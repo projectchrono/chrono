@@ -3,11 +3,11 @@ using namespace chrono;
 using namespace std;
 ChMatlabEngine::ChMatlabEngine() {
 #ifdef __APPLE__
-   if (!(ep = engOpen("matlab -automation -nosplash \0"))) {
+	if (!(ep = matlabengine::engOpen("matlab -automation -nosplash \0"))) {
       throw ChException("Can't start MATLAB engine");
    }
 #else
-   if (!(ep = engOpen("-automation \0"))) {
+   if (!(ep = matlabengine::engOpen("-automation \0"))) {
       throw ChException("Can't start MATLAB engine");
    }
 #endif
@@ -15,18 +15,18 @@ ChMatlabEngine::ChMatlabEngine() {
 
 ChMatlabEngine::~ChMatlabEngine() {
    if (ep)
-      engClose (ep);
+	   matlabengine::engClose(ep);
    ep = 0;
 }
 /// Return pointer to internal Matlab engine (avoid using it directly,
 /// if you can use other functions of this class that 'wrap' it.)
-Engine* ChMatlabEngine::GetEngine() {
+matlabengine::Engine* ChMatlabEngine::GetEngine() {
    return ep;
 }
 
 /// Evaluate a Matlab instruction (as a string). If error happens while executing, returns false.
 bool ChMatlabEngine::Eval(string mstring) {
-   if (engEvalString(ep, mstring.c_str()) == 0)
+	if (matlabengine::engEvalString(ep, mstring.c_str()) == 0)
       return true;
    else
       return false;
@@ -34,7 +34,7 @@ bool ChMatlabEngine::Eval(string mstring) {
 
 /// Set visibility of GUI matlab window.
 bool ChMatlabEngine::SetVisible(bool mvis) {
-   if (engSetVisible(ep, mvis) == 0)
+	if (matlabengine::engSetVisible(ep, mvis) == 0)
       return true;
    else
       return false;
@@ -47,11 +47,11 @@ bool ChMatlabEngine::PutVariable(const ChMatrix<double>& mmatr,
    ChMatrixDynamic<> transfer;  // elements in Matlab are column-major
    transfer.CopyFromMatrixT(mmatr);
 
-   mxArray *T = NULL;
-   T = mxCreateDoubleMatrix(mmatr.GetRows(), mmatr.GetColumns(), mxREAL);
+   matlabengine::mxArray *T = NULL;
+   T = matlabengine::mxCreateDoubleMatrix(mmatr.GetRows(), mmatr.GetColumns(), matlabengine::mxREAL);
    memcpy((char *) mxGetPr(T), (char *) transfer.GetAddress(), mmatr.GetRows() * mmatr.GetColumns() * sizeof(double));
-   engPutVariable(ep, varname.c_str(), T);
-   mxDestroyArray(T);
+   matlabengine::engPutVariable(ep, varname.c_str(), T);
+   matlabengine::mxDestroyArray(T);
    return true;
 }
 
@@ -97,23 +97,23 @@ bool ChMatlabEngine::GetVariable(ChMatrixDynamic<double>& mmatr,
                                  string varname) {
    ChMatrixDynamic<> transfer;  // elements in Matlab are column-major
 
-   mxArray* T = engGetVariable(ep, varname.c_str());
+   matlabengine::mxArray* T = matlabengine::engGetVariable(ep, varname.c_str());
    if (T) {
-      mwSize ndi = mxGetNumberOfDimensions(T);
+	   matlabengine::mwSize ndi = mxGetNumberOfDimensions(T);
       if (ndi != 2) {
-         mxDestroyArray(T);
+		 matlabengine::mxDestroyArray(T);
          return false;
       }
-      const mwSize* siz = mxGetDimensions(T);
+	  const matlabengine::mwSize* siz = mxGetDimensions(T);
       transfer.Resize(siz[1], siz[0]);
       memcpy((char *) transfer.GetAddress(), (char *) mxGetPr(T), transfer.GetRows() * transfer.GetColumns() * sizeof(double));
-      mxDestroyArray(T);
+	  matlabengine::mxDestroyArray(T);
 
       mmatr.CopyFromMatrixT(transfer);
 
       return true;
    }
-   mxDestroyArray(T);
+   matlabengine::mxDestroyArray(T);
    return false;
 }
 
