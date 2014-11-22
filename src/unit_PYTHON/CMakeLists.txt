@@ -21,6 +21,8 @@ GET_FILENAME_COMPONENT(CH_PYTHONDIR "${PYTHON_EXECUTABLE}" PATH)
 SET (CH_PYTHONINC "${PYTHON_INCLUDE_DIR}")
 SET (CH_PYTHONLIB "${PYTHON_LIBRARIES}")
 
+# this to fix warnings about the use of LOCATION
+cmake_policy(SET CMP0026 OLD)
 
 #-----------------------------------------------------------------------------
 #
