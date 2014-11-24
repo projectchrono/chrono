@@ -81,7 +81,7 @@ int main(int argc, char* argv[])
   }
 
   // Set the simulation and output step sizes
-  double sim_step = 5e-4;
+  double sim_step = 2e-4;
   double out_step = 1e-2;
 
   std::string test_name;
@@ -92,16 +92,16 @@ int main(int argc, char* argv[])
   test_name = "Distance_Case01";
   TestDistance(ChVector<>(0, 0, 0),ChVector<>(0, 2, 0), ChCoordsys<>(ChVector<>(0, 2, 0),QUNIT), sim_step, out_step, test_name, animate, save);
   if (!animate) {
-    test_passed &= ValidateReference(test_name, "Pos", 2e-3);
-    test_passed &= ValidateReference(test_name, "Vel", 1e-4);
-    test_passed &= ValidateReference(test_name, "Acc", 2e-2);
-    test_passed &= ValidateReference(test_name, "Quat", 1e-3);
-    test_passed &= ValidateReference(test_name, "Avel", 2e-2);
-    test_passed &= ValidateReference(test_name, "Aacc", 2e-2);
-    test_passed &= ValidateReference(test_name, "Rforce", 2e-2);
-    test_passed &= ValidateReference(test_name, "Rtorque", 1e-6);
+    //test_passed &= ValidateReference(test_name, "Pos", 2e-3);
+    //test_passed &= ValidateReference(test_name, "Vel", 1e-4);
+    //test_passed &= ValidateReference(test_name, "Acc", 2e-2);
+    //test_passed &= ValidateReference(test_name, "Quat", 1e-3);
+    //test_passed &= ValidateReference(test_name, "Avel", 2e-2);
+    //test_passed &= ValidateReference(test_name, "Aacc", 2e-2);
+    //test_passed &= ValidateReference(test_name, "Rforce", 2e-2);
+    //test_passed &= ValidateReference(test_name, "Rtorque", 1e-6);
     test_passed &= ValidateEnergy(test_name, 1e-2);
-    //test_passed &= ValidateConstraints(test_name, 1e-5);
+    test_passed &= ValidateConstraints(test_name, 1e-5);
   }
 
   // Case 2 - 
@@ -109,16 +109,16 @@ int main(int argc, char* argv[])
   test_name = "Distance_Case02";
   TestDistance(ChVector<>(1, 2, 3),ChVector<>(1, 4, 3), ChCoordsys<>(ChVector<>(-1, 4, 3),QUNIT), sim_step, out_step, test_name, animate, save);
   if (!animate) {
-    test_passed &= ValidateReference(test_name, "Pos", 2e-3);
-    test_passed &= ValidateReference(test_name, "Vel", 1e-4);
-    test_passed &= ValidateReference(test_name, "Acc", 2e-2);
-    test_passed &= ValidateReference(test_name, "Quat", 1e-3);
-    test_passed &= ValidateReference(test_name, "Avel", 2e-2);
-    test_passed &= ValidateReference(test_name, "Aacc", 2e-2);
-    test_passed &= ValidateReference(test_name, "Rforce", 2e-2);
-    test_passed &= ValidateReference(test_name, "Rtorque", 1e-6);
+    //test_passed &= ValidateReference(test_name, "Pos", 2e-3);
+    //test_passed &= ValidateReference(test_name, "Vel", 1e-4);
+    //test_passed &= ValidateReference(test_name, "Acc", 2e-2);
+    //test_passed &= ValidateReference(test_name, "Quat", 1e-3);
+    //test_passed &= ValidateReference(test_name, "Avel", 2e-2);
+    //test_passed &= ValidateReference(test_name, "Aacc", 2e-2);
+    //test_passed &= ValidateReference(test_name, "Rforce", 2e-2);
+    //test_passed &= ValidateReference(test_name, "Rtorque", 1e-6);
     test_passed &= ValidateEnergy(test_name, 1e-2);
-    //test_passed &= ValidateConstraints(test_name, 1e-5);
+    test_passed &= ValidateConstraints(test_name, 1e-5);
   }
 
   // Case 3 - .
@@ -126,16 +126,16 @@ int main(int argc, char* argv[])
   test_name = "Distance_Case03";
   TestDistance(ChVector<>(0, 0, 0),ChVector<>(0, 2, 0), ChCoordsys<>(ChVector<>(0, 4, 0),Q_from_AngZ(-CH_C_PI_2)), sim_step, out_step, test_name, animate, save);
   if (!animate) {
-    test_passed &= ValidateReference(test_name, "Pos", 2e-3);
-    test_passed &= ValidateReference(test_name, "Vel", 1e-4);
-    test_passed &= ValidateReference(test_name, "Acc", 2e-2);
-    test_passed &= ValidateReference(test_name, "Quat", 1e-3);
-    test_passed &= ValidateReference(test_name, "Avel", 2e-2);
-    test_passed &= ValidateReference(test_name, "Aacc", 2e-2);
-    test_passed &= ValidateReference(test_name, "Rforce", 2e-2);
-    test_passed &= ValidateReference(test_name, "Rtorque", 1e-6);
+    //test_passed &= ValidateReference(test_name, "Pos", 2e-3);
+    //test_passed &= ValidateReference(test_name, "Vel", 1e-4);
+    //test_passed &= ValidateReference(test_name, "Acc", 2e-2);
+    //test_passed &= ValidateReference(test_name, "Quat", 1e-3);
+    //test_passed &= ValidateReference(test_name, "Avel", 2e-2);
+    //test_passed &= ValidateReference(test_name, "Aacc", 2e-2);
+    //test_passed &= ValidateReference(test_name, "Rforce", 2e-2);
+    //test_passed &= ValidateReference(test_name, "Rtorque", 1e-6);
     test_passed &= ValidateEnergy(test_name, 1e-2);
-    //test_passed &= ValidateConstraints(test_name, 1e-5);
+    test_passed &= ValidateConstraints(test_name, 1e-5);
   }
 
   // Return 0 if all tests passed and 1 otherwise
@@ -146,9 +146,9 @@ int main(int argc, char* argv[])
 //
 // Worker function for performing the simulation with specified parameters.
 //
-bool TestDistance(const ChVector<>& jointLocGnd,       // absolute location of the distance constrain ground attachment point
-                  const ChVector<>& jointLocPend,         // absolute location of the distance constrain pendulum attachment point
-                  const ChCoordsys<>& PendCSYS,           // Coordinate system for the pendulum
+bool TestDistance(const ChVector<>&     jointLocGnd,      // absolute location of the distance constrain ground attachment point
+                  const ChVector<>&     jointLocPend,     // absolute location of the distance constrain pendulum attachment point
+                  const ChCoordsys<>&   PendCSYS,         // Coordinate system for the pendulum
                   double                simTimeStep,      // simulation time step
                   double                outTimeStep,      // output time step
                   const std::string&    testName,         // name of this test
@@ -194,7 +194,7 @@ bool TestDistance(const ChVector<>& jointLocGnd,       // absolute location of t
   // Add some geometry to the ground body for visualizing the revolute joint
   ChSharedPtr<ChSphereShape> sph_g(new ChSphereShape);
   sph_g->GetSphereGeometry().center = jointLocGnd;
-  sph_g->GetSphereGeometry().rad = 0.2;
+  sph_g->GetSphereGeometry().rad = 0.05;
   ground->AddAsset(sph_g);
 
 
@@ -210,8 +210,12 @@ bool TestDistance(const ChVector<>& jointLocGnd,       // absolute location of t
   pendulum->SetMass(mass);
   pendulum->SetInertiaXX(inertiaXX);
   // Add some geometry to the pendulum for visualization
+  ChSharedPtr<ChSphereShape> sph_p(new ChSphereShape);
+  sph_p->GetSphereGeometry().center = pendulum->TransformPointParentToLocal(jointLocPend);
+  sph_p->GetSphereGeometry().rad = 0.05;
+  pendulum->AddAsset(sph_p);
   ChSharedPtr<ChBoxShape> box_p(new ChBoxShape);
-  box_p->GetBoxGeometry().Size = ChVector<>(0.5 * length, 0.05 * length, 0.05 * length);
+  box_p->GetBoxGeometry().Size = ChVector<>(0.5 * length - 0.05, 0.05 * length, 0.05 * length);
   pendulum->AddAsset(box_p);
 
   // Create revolute joint between pendulum and ground at "loc" in the global
@@ -219,7 +223,7 @@ bool TestDistance(const ChVector<>& jointLocGnd,       // absolute location of t
   // of the specified rotation matrix.
 
   ChSharedPtr<ChLinkDistance>  distanceConstraint(new ChLinkDistance);
-  distanceConstraint->Initialize(pendulum, ground, false, jointLocGnd,jointLocPend,true);
+  distanceConstraint->Initialize(pendulum, ground, false, jointLocPend, jointLocGnd, true);
   my_system.AddLink(distanceConstraint);
 
   // Perform the simulation (animation with Irrlicht option)
@@ -264,6 +268,13 @@ bool TestDistance(const ChVector<>& jointLocGnd,       // absolute location of t
 
       application->BeginScene();
       application->DrawAll();
+
+      // Render the distance constraint
+      ChIrrTools::drawSegment(
+        application->GetVideoDriver(),
+        distanceConstraint->GetEndPoint1Abs(),
+        distanceConstraint->GetEndPoint2Abs(),
+        video::SColor(255, 200, 20, 0), true);
 
       // Draw an XZ grid at the global origin to add in visualization
       ChIrrTools::drawGrid(
@@ -373,11 +384,7 @@ bool TestDistance(const ChVector<>& jointLocGnd,       // absolute location of t
       out_energy << simTime << transKE << rotKE << deltaPE << totalE - totalE0 << std::endl;;
 
       // Constraint violations
-      //ChMatrix<>* C = distanceConstraint->GetC();
-      out_cnstr << simTime
-                << distanceConstraint->GetCurrentDistance()
-                << distanceConstraint->GetImposedDistance()
-                << distanceConstraint->GetCurrentDistance() - distanceConstraint->GetImposedDistance() << std::endl;
+      out_cnstr << simTime << distanceConstraint->GetC() << std::endl;
 
       // Increment output time
       outTime += outTimeStep;
