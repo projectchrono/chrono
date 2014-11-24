@@ -17,6 +17,7 @@ SET(TEST_PROGRAMS
     test_revolute
     test_spherical
     test_universal
+    test_distance
     test_linactuator
     test_revsph
 )
