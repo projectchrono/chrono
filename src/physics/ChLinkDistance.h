@@ -81,7 +81,7 @@ public:
 	  			// FUNCTIONS
 				//
 
-	virtual int GetType	() {return LNK_GEOMETRICDISTANCE;}
+	virtual int GetType() {return LNK_GEOMETRICDISTANCE;}
 
 					/// Initialize this constraint, given the two bodies to be connected, the
 					/// positions of the two anchor endpoints of the distance (each expressed
@@ -96,40 +96,41 @@ public:
 						   );
 
 					/// Get the number of scalar constraints imposed by this link (only unilateral constr.)
-	virtual int GetDOC_d  () {return 1;}
+	virtual int GetDOC_d() {return 1;}
 
 					/// Get the link coordinate system, expressed relative to Body2 (the 'master'
 					/// body). This represents the 'main' reference of the link: reaction forces 
 					/// are expressed in this coordinate system.
 					/// (It is the coordinate system of the contact plane relative to Body2)
-	ChCoordsys<> GetLinkRelativeCoords();
+	ChCoordsys<> GetLinkRelativeCoords() const;
 
 					/// Get the 1st anchor endpoint for the distance (expressed in Body1 coordinate system)
-	ChVector<> GetEndPoint1Rel() {return pos1;}
+	ChVector<> GetEndPoint1Rel() const {return pos1;}
 					/// Set the 1st anchor endpoint for the distance (expressed in Body1 coordinate system)
 	void       SetEndPoint1Rel(const ChVector<>& mset) {pos1 = mset;}
 					/// Get the 1st anchor endpoint for the distance (expressed in absolute coordinate system)
-	ChVector<> GetEndPoint1Abs() {return ((ChFrame<double>*)Body1)->TransformLocalToParent(pos1);}
+	ChVector<> GetEndPoint1Abs() const {return ((ChFrame<double>*)Body1)->TransformLocalToParent(pos1);}
 					/// Set the 1st anchor endpoint for the distance (expressed in absolute coordinate system)
 	void       SetEndPoint1Abs(ChVector<>& mset) {pos1 = ((ChFrame<double>*)Body1)->TransformParentToLocal(mset);}
 
 					/// Get the 2nd anchor endpoint for the distance (expressed in Body2 coordinate system)
-	ChVector<> GetEndPoint2Rel() {return pos2;};
+	ChVector<> GetEndPoint2Rel() const {return pos2;};
 					/// Set the 2nd anchor endpoint for the distance (expressed in Body2 coordinate system)
 	void       SetEndPoint2Rel(const ChVector<>& mset) {pos2 = mset;}
 					/// Get the 1st anchor endpoint for the distance (expressed in absolute coordinate system)
-	ChVector<> GetEndPoint2Abs() {return ((ChFrame<double>*)Body2)->TransformLocalToParent(pos2);}
+	ChVector<> GetEndPoint2Abs() const {return ((ChFrame<double>*)Body2)->TransformLocalToParent(pos2);}
 					/// Set the 1st anchor endpoint for the distance (expressed in absolute coordinate system)
 	void       SetEndPoint2Abs(ChVector<>& mset) {pos2 = ((ChFrame<double>*)Body2)->TransformParentToLocal(mset);}
 
 
 					/// Get the imposed distance
-	double GetImposedDistance() {return distance;};
+	double GetImposedDistance() const {return distance;};
 					/// Set the imposed distance
 	void   SetImposedDistance(const double mset) {distance = mset;}
 					/// Get the distance currently existing between the two endpoints
-	double GetCurrentDistance() {return (((ChFrame<double>*)Body1)->TransformLocalToParent(pos1)-((ChFrame<double>*)Body2)->TransformLocalToParent(pos2)).Length(); };
-
+	double GetCurrentDistance() const {return (((ChFrame<double>*)Body1)->TransformLocalToParent(pos1)-((ChFrame<double>*)Body2)->TransformLocalToParent(pos2)).Length(); };
+                    /// Get the constraint violation
+    double GetC() const { return GetCurrentDistance() - distance; }
 
 				//
 				// UPDATING FUNCTIONS
