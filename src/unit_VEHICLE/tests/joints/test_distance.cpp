@@ -81,7 +81,7 @@ int main(int argc, char* argv[])
   }
 
   // Set the simulation and output step sizes
-  double sim_step = 2e-4;
+  double sim_step = 1e-5;
   double out_step = 1e-2;
 
   std::string test_name;
@@ -98,7 +98,7 @@ int main(int argc, char* argv[])
     test_passed &= ValidateReference(test_name, "Quat", 1e-3);
     test_passed &= ValidateReference(test_name, "Avel", 1e-2);
     test_passed &= ValidateReference(test_name, "Aacc", 1e-1);
-//    test_passed &= ValidateReference(test_name, "Rforce", 2e-2);
+    test_passed &= ValidateReference(test_name, "Rforce", 2e-2);
     test_passed &= ValidateReference(test_name, "Rtorque", 1e-10);
     test_passed &= ValidateEnergy(test_name, 1e-2);
     test_passed &= ValidateConstraints(test_name, 1e-5);
@@ -115,7 +115,7 @@ int main(int argc, char* argv[])
     test_passed &= ValidateReference(test_name, "Quat", 4e-3);
     test_passed &= ValidateReference(test_name, "Avel", 2e-2);
     test_passed &= ValidateReference(test_name, "Aacc", 2e1);
-//    test_passed &= ValidateReference(test_name, "Rforce", 2e-2);
+    test_passed &= ValidateReference(test_name, "Rforce", 1e-1);
     test_passed &= ValidateReference(test_name, "Rtorque", 1e-10);
     test_passed &= ValidateEnergy(test_name, 1e-2);
     test_passed &= ValidateConstraints(test_name, 1e-5);
@@ -132,7 +132,7 @@ int main(int argc, char* argv[])
     test_passed &= ValidateReference(test_name, "Quat", 1e-3);
     test_passed &= ValidateReference(test_name, "Avel", 1e-2);
     test_passed &= ValidateReference(test_name, "Aacc", 1e-1);
-//    test_passed &= ValidateReference(test_name, "Rforce", 2e-2);
+    test_passed &= ValidateReference(test_name, "Rforce", 2e-2);
     test_passed &= ValidateReference(test_name, "Rtorque", 1e-10);
     test_passed &= ValidateEnergy(test_name, 1e-2);
     test_passed &= ValidateConstraints(test_name, 1e-5);
