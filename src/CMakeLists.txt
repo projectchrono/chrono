@@ -266,6 +266,7 @@ IF (BUILD_CH_SDK)
 		core/ChMatrixDynamic.h 
 		core/ChMatrixNM.h 
 		core/ChMatrix33.h 
+		core/ChVectorDynamic.h 
 		core/ChMemory.h 
 		core/ChMemorynomgr.h
 		core/ChPlatform.h
