@@ -87,53 +87,53 @@ int main(int argc, char* argv[])
   std::string test_name;
   bool test_passed = true;
 
-  // Case 1 - .
+  // Case 1 - Pendulum CG at Y = 2 with a distance contraint between the CG and ground.
 
   test_name = "Distance_Case01";
   TestDistance(ChVector<>(0, 0, 0),ChVector<>(0, 2, 0), ChCoordsys<>(ChVector<>(0, 2, 0),QUNIT), sim_step, out_step, test_name, animate, save);
   if (!animate) {
-    //test_passed &= ValidateReference(test_name, "Pos", 2e-3);
-    //test_passed &= ValidateReference(test_name, "Vel", 1e-4);
-    //test_passed &= ValidateReference(test_name, "Acc", 2e-2);
-    //test_passed &= ValidateReference(test_name, "Quat", 1e-3);
-    //test_passed &= ValidateReference(test_name, "Avel", 2e-2);
-    //test_passed &= ValidateReference(test_name, "Aacc", 2e-2);
-    //test_passed &= ValidateReference(test_name, "Rforce", 2e-2);
-    //test_passed &= ValidateReference(test_name, "Rtorque", 1e-6);
+    test_passed &= ValidateReference(test_name, "Pos", 1e-3);
+    test_passed &= ValidateReference(test_name, "Vel", 1e-5);
+    test_passed &= ValidateReference(test_name, "Acc", 2e-2);
+    test_passed &= ValidateReference(test_name, "Quat", 1e-3);
+    test_passed &= ValidateReference(test_name, "Avel", 1e-2);
+    test_passed &= ValidateReference(test_name, "Aacc", 1e-1);
+//    test_passed &= ValidateReference(test_name, "Rforce", 2e-2);
+    test_passed &= ValidateReference(test_name, "Rtorque", 1e-10);
     test_passed &= ValidateEnergy(test_name, 1e-2);
     test_passed &= ValidateConstraints(test_name, 1e-5);
   }
 
-  // Case 2 - 
+  // Case 2 - Pendulum inital position is perpendicular to the distance constraint between ground
 
   test_name = "Distance_Case02";
   TestDistance(ChVector<>(1, 2, 3),ChVector<>(1, 4, 3), ChCoordsys<>(ChVector<>(-1, 4, 3),QUNIT), sim_step, out_step, test_name, animate, save);
   if (!animate) {
-    //test_passed &= ValidateReference(test_name, "Pos", 2e-3);
-    //test_passed &= ValidateReference(test_name, "Vel", 1e-4);
-    //test_passed &= ValidateReference(test_name, "Acc", 2e-2);
-    //test_passed &= ValidateReference(test_name, "Quat", 1e-3);
-    //test_passed &= ValidateReference(test_name, "Avel", 2e-2);
-    //test_passed &= ValidateReference(test_name, "Aacc", 2e-2);
-    //test_passed &= ValidateReference(test_name, "Rforce", 2e-2);
-    //test_passed &= ValidateReference(test_name, "Rtorque", 1e-6);
+    test_passed &= ValidateReference(test_name, "Pos", 1e-3);
+    test_passed &= ValidateReference(test_name, "Vel", 2e-3);
+    test_passed &= ValidateReference(test_name, "Acc", 2e0);
+    test_passed &= ValidateReference(test_name, "Quat", 4e-3);
+    test_passed &= ValidateReference(test_name, "Avel", 2e-2);
+    test_passed &= ValidateReference(test_name, "Aacc", 2e1);
+//    test_passed &= ValidateReference(test_name, "Rforce", 2e-2);
+    test_passed &= ValidateReference(test_name, "Rtorque", 1e-10);
     test_passed &= ValidateEnergy(test_name, 1e-2);
     test_passed &= ValidateConstraints(test_name, 1e-5);
   }
 
-  // Case 3 - .
+  // Case 3 - Pendulum inital position is streched out along the Y axis with the distance constraint on the end of the pendulum to ground (Double Pendulum).
 
   test_name = "Distance_Case03";
   TestDistance(ChVector<>(0, 0, 0),ChVector<>(0, 2, 0), ChCoordsys<>(ChVector<>(0, 4, 0),Q_from_AngZ(-CH_C_PI_2)), sim_step, out_step, test_name, animate, save);
   if (!animate) {
-    //test_passed &= ValidateReference(test_name, "Pos", 2e-3);
-    //test_passed &= ValidateReference(test_name, "Vel", 1e-4);
-    //test_passed &= ValidateReference(test_name, "Acc", 2e-2);
-    //test_passed &= ValidateReference(test_name, "Quat", 1e-3);
-    //test_passed &= ValidateReference(test_name, "Avel", 2e-2);
-    //test_passed &= ValidateReference(test_name, "Aacc", 2e-2);
-    //test_passed &= ValidateReference(test_name, "Rforce", 2e-2);
-    //test_passed &= ValidateReference(test_name, "Rtorque", 1e-6);
+    test_passed &= ValidateReference(test_name, "Pos", 1e-3);
+    test_passed &= ValidateReference(test_name, "Vel", 1e-5);
+    test_passed &= ValidateReference(test_name, "Acc", 2e-2);
+    test_passed &= ValidateReference(test_name, "Quat", 1e-3);
+    test_passed &= ValidateReference(test_name, "Avel", 1e-2);
+    test_passed &= ValidateReference(test_name, "Aacc", 1e-1);
+//    test_passed &= ValidateReference(test_name, "Rforce", 2e-2);
+    test_passed &= ValidateReference(test_name, "Rtorque", 1e-10);
     test_passed &= ValidateEnergy(test_name, 1e-2);
     test_passed &= ValidateConstraints(test_name, 1e-5);
   }
@@ -218,9 +218,10 @@ bool TestDistance(const ChVector<>&     jointLocGnd,      // absolute location o
   box_p->GetBoxGeometry().Size = ChVector<>(0.5 * length - 0.05, 0.05 * length, 0.05 * length);
   pendulum->AddAsset(box_p);
 
-  // Create revolute joint between pendulum and ground at "loc" in the global
-  // reference frame. The revolute joint's axis of rotation will be the Z axis
-  // of the specified rotation matrix.
+  // Create a distance constraint between pendulum at "jointLocPend" 
+  // and ground at "jointLocGnd" in the global reference frame. 
+  // The constrained distance is set equal to the inital distance between
+  // "jointLocPend" and "jointLocGnd".
 
   ChSharedPtr<ChLinkDistance>  distanceConstraint(new ChLinkDistance);
   distanceConstraint->Initialize(pendulum, ground, false, jointLocPend, jointLocGnd, true);

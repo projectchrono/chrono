@@ -12,7 +12,7 @@
 // Authors: Mike Taylor, Radu Serban
 // =============================================================================
 //
-// Test for the spherical joint
+// Test for the cylindrical joint
 //
 // Recall that Irrlicht uses a left-hand frame, so everything is rendered with
 // left and right flipped.
@@ -42,15 +42,15 @@ using namespace irr;
 // Local variables
 //
 static const std::string val_dir = "../VALIDATION/";
-static const std::string out_dir = val_dir + "SPHERICAL_JOINT/";
-static const std::string ref_dir = "validation/spherical_joint/";
+static const std::string out_dir = val_dir + "CYLINDRICAL_JOINT/";
+static const std::string ref_dir = "validation/cylindrical_joint/";
 
 // =============================================================================
 // Prototypes of local functions
 //
-bool TestSpherical(const ChVector<>& jointLoc, const ChQuaternion<>& jointRot,
+bool TestCylindrical(const ChVector<>& jointLoc, const ChQuaternion<>& jointRot,
                   double simTimeStep, double outTimeStep,
-                  const std::string& testName, bool animate);
+                  const std::string& testName, bool animate, bool save);
 bool ValidateReference(const std::string& testName, const std::string& what, double tolerance);
 bool ValidateConstraints(const std::string& testName, double tolerance);
 bool ValidateEnergy(const std::string& testName, double tolerance);
@@ -63,6 +63,7 @@ utils::CSV_writer OutStream();
 int main(int argc, char* argv[])
 {
   bool animate = (argc > 1);
+  bool save = (argc > 2);
 
   // Set the path to the Chrono data folder
   SetChronoDataPath(CHRONO_DATA_DIR);
@@ -85,36 +86,58 @@ int main(int argc, char* argv[])
   bool test_passed = true;
 
   // Case 1 - Joint at the origin and aligned with the global frame.
+  // In this case, the pendulum should fall straight down due to gravity
 
-  test_name = "Spherical_Case01";
-  TestSpherical(ChVector<>(0, 0, 0), QUNIT, sim_step, out_step, test_name, animate);
+  test_name = "Cylindrical_Case01";
+  TestCylindrical(ChVector<>(0, 0, 0), QUNIT, sim_step, out_step, test_name, animate, save);
   if (!animate) {
-    test_passed &= ValidateReference(test_name, "Pos", 2e-3);
-    test_passed &= ValidateReference(test_name, "Vel", 1e-4);
-    test_passed &= ValidateReference(test_name, "Acc", 2e-2);
-    test_passed &= ValidateReference(test_name, "Quat", 1e-3);
-    test_passed &= ValidateReference(test_name, "Avel", 2e-2);
-    test_passed &= ValidateReference(test_name, "Aacc", 2e-2);
-    test_passed &= ValidateReference(test_name, "Rforce", 2e-2);
-    test_passed &= ValidateReference(test_name, "Rtorque", 1e-6);
+    //test_passed &= ValidateReference(test_name, "Pos", 2e-3);
+    //test_passed &= ValidateReference(test_name, "Vel", 1e-4);
+    //test_passed &= ValidateReference(test_name, "Acc", 2e-2);
+    //test_passed &= ValidateReference(test_name, "Quat", 1e-3);
+    //test_passed &= ValidateReference(test_name, "Avel", 2e-2);
+    //test_passed &= ValidateReference(test_name, "Aacc", 2e-2);
+    //test_passed &= ValidateReference(test_name, "Rforce", 2e-2);
+    //test_passed &= ValidateReference(test_name, "Rtorque", 1e-6);
     test_passed &= ValidateEnergy(test_name, 1e-2);
     test_passed &= ValidateConstraints(test_name, 1e-5);
   }
 
-  // Case 2 - Joint at (1,2,3) and joint z aligned with the global axis along Y = Z.
-  // In this case, the joint must be rotated -pi/4 about the global X-axis.
+  // Case 2 - Joint at (0,0,0) and aligned with the global Y axis.
+  // In this case, the joint must be rotated -pi/2 about the global X-axis.
+  // In this case, the cylindrical joint is acting like a revolute joint
 
-  test_name = "Spherical_Case02";
-  TestSpherical(ChVector<>(1, 2, 3), Q_from_AngX(-CH_C_PI_4), sim_step, out_step, test_name, animate);
+  test_name = "Cylindrical_Case02";
+  TestCylindrical(ChVector<>(0, 0, 0), Q_from_AngX(-CH_C_PI_2), sim_step, out_step, test_name, animate, save);
   if (!animate) {
-    test_passed &= ValidateReference(test_name, "Pos", 2e-3);
-    test_passed &= ValidateReference(test_name, "Vel", 1e-4);
-    test_passed &= ValidateReference(test_name, "Acc", 2e-2);
-    test_passed &= ValidateReference(test_name, "Quat", 1e-3);
-    test_passed &= ValidateReference(test_name, "Avel", 2e-2);
-    test_passed &= ValidateReference(test_name, "Aacc", 2e-2);
-    test_passed &= ValidateReference(test_name, "Rforce", 2e-2);
-    test_passed &= ValidateReference(test_name, "Rtorque", 1e-6);
+    //test_passed &= ValidateReference(test_name, "Pos", 2e-3);
+    //test_passed &= ValidateReference(test_name, "Vel", 1e-4);
+    //test_passed &= ValidateReference(test_name, "Acc", 2e-2);
+    //test_passed &= ValidateReference(test_name, "Quat", 1e-3);
+    //test_passed &= ValidateReference(test_name, "Avel", 2e-2);
+    //test_passed &= ValidateReference(test_name, "Aacc", 2e-2);
+    //test_passed &= ValidateReference(test_name, "Rforce", 2e-2);
+    //test_passed &= ValidateReference(test_name, "Rtorque", 1e-6);
+    test_passed &= ValidateEnergy(test_name, 1e-2);
+    test_passed &= ValidateConstraints(test_name, 1e-5);
+  }
+
+  // Case 3 - Joint at (1,2,3) and aligned with the global axis along Y = Z.
+  // In this case, the joint must be rotated -pi/4 about the global X-axis.
+  // In this case, the pendulum both translates and rotates about the joint's
+  // z-axis.
+
+  test_name = "Cylindrical_Case03";
+  TestCylindrical(ChVector<>(1, 2, 3), Q_from_AngX(-CH_C_PI_4), sim_step, out_step, test_name, animate, save);
+  if (!animate) {
+    //test_passed &= ValidateReference(test_name, "Pos", 2e-3);
+    //test_passed &= ValidateReference(test_name, "Vel", 1e-4);
+    //test_passed &= ValidateReference(test_name, "Acc", 2e-2);
+    //test_passed &= ValidateReference(test_name, "Quat", 1e-3);
+    //test_passed &= ValidateReference(test_name, "Avel", 2e-2);
+    //test_passed &= ValidateReference(test_name, "Aacc", 2e-2);
+    //test_passed &= ValidateReference(test_name, "Rforce", 2e-2);
+    //test_passed &= ValidateReference(test_name, "Rtorque", 1e-6);
     test_passed &= ValidateEnergy(test_name, 1e-2);
     test_passed &= ValidateConstraints(test_name, 1e-5);
   }
@@ -127,12 +150,13 @@ int main(int argc, char* argv[])
 //
 // Worker function for performing the simulation with specified parameters.
 //
-bool TestSpherical(const ChVector<>&     jointLoc,         // absolute location of joint
-                   const ChQuaternion<>& jointRot,         // orientation of joint
-                   double                simTimeStep,      // simulation time step
-                   double                outTimeStep,      // output time step
-                   const std::string&    testName,         // name of this test
-                   bool                  animate)          // if true, animate with Irrlich
+bool TestCylindrical(const ChVector<>&     jointLoc,         // absolute location of joint
+                  const ChQuaternion<>& jointRot,         // orientation of joint
+                  double                simTimeStep,      // simulation time step
+                  double                outTimeStep,      // output time step
+                  const std::string&    testName,         // name of this test
+                  bool                  animate,          // if true, animate with Irrlich
+                  bool                  save)             // if true, also save animation data
 {
   std::cout << "TEST: " << testName << std::endl;
 
@@ -170,13 +194,12 @@ bool TestSpherical(const ChVector<>&     jointLoc,         // absolute location 
   ChSharedBodyPtr  ground(new ChBody);
   my_system.AddBody(ground);
   ground->SetBodyFixed(true);
-  // Add some geometry to the ground body for visualizing the spherical joint
-  ChSharedPtr<ChSphereShape> sph_g(new ChSphereShape);
-  sph_g->GetSphereGeometry().center = jointLoc;
-  sph_g->GetSphereGeometry().rad = 0.2;
-  ground->AddAsset(sph_g);
-
-
+  // Add some geometry to the ground body for visualizing the revolute joint
+  ChSharedPtr<ChCylinderShape> cyl_g(new ChCylinderShape);
+  cyl_g->GetCylinderGeometry().p1 = jointLoc + jointRot.Rotate(ChVector<>(0, 0, -length*5));
+  cyl_g->GetCylinderGeometry().p2 = jointLoc + jointRot.Rotate(ChVector<>(0, 0, length*5));
+  cyl_g->GetCylinderGeometry().rad = 0.05;
+  ground->AddAsset(cyl_g);
 
   // Create the pendulum body in an initial configuration at rest, with an 
   // orientatoin that matches the specified joint orientation and a position
@@ -201,13 +224,13 @@ bool TestSpherical(const ChVector<>&     jointLoc,         // absolute location 
   cyl_p2->GetCylinderGeometry().rad = 0.1;
   pendulum->AddAsset(cyl_p2);
 
-  // Create revolute joint between pendulum and ground at "loc" in the global
-  // reference frame. The revolute joint's axis of rotation will be the Z axis
-  // of the specified rotation matrix.
+  // Create cylindrical joint between pendulum and ground at "loc" in the global
+  // reference frame. The cylindrical joint's axis of rotation and translation
+  // will be the Z axis of the specified rotation matrix.
 
-  ChSharedPtr<ChLinkLockSpherical>  sphericalJoint(new ChLinkLockSpherical);
-  sphericalJoint->Initialize(pendulum, ground, ChCoordsys<>(jointLoc, jointRot));
-  my_system.AddLink(sphericalJoint);
+  ChSharedPtr<ChLinkLockCylindrical>  cylindricalJoint(new ChLinkLockCylindrical);
+  cylindricalJoint->Initialize(pendulum, ground, ChCoordsys<>(jointLoc, jointRot));
+  my_system.AddLink(cylindricalJoint);
 
   // Perform the simulation (animation with Irrlicht option)
   // -------------------------------------------------------
@@ -215,7 +238,7 @@ bool TestSpherical(const ChVector<>&     jointLoc,         // absolute location 
   if (animate)
   {
     // Create the Irrlicht application for visualization
-    ChIrrApp * application = new ChIrrApp(&my_system, L"ChLinkSpherical demo", core::dimension2d<u32>(800, 600), false, true);
+    ChIrrApp * application = new ChIrrApp(&my_system, L"ChLinkLockCylindrical demo", core::dimension2d<u32>(800, 600), false, true);
     application->AddTypicalLogo();
     application->AddTypicalSky();
     application->AddTypicalLights();
@@ -230,8 +253,25 @@ bool TestSpherical(const ChVector<>&     jointLoc,         // absolute location 
     application->SetTimestep(simTimeStep);
 
     // Simulation loop
+    double outTime = 0;
+    int    outFrame = 1;
+
+    std::string pov_dir = out_dir + "POVRAY_" + testName;
+    if (ChFileutils::MakeDirectory(pov_dir.c_str()) < 0) {
+      std::cout << "Error creating directory " << pov_dir << std::endl;
+      return false;
+    }
+
     while (application->GetDevice()->run())
     {
+      if (save && my_system.GetChTime() >= outTime - simTimeStep / 2) {
+        char filename[100];
+        sprintf(filename, "%s/data_%03d.dat", pov_dir.c_str(), outFrame);
+        utils::WriteShapesPovray(&my_system, filename);
+        outTime += outTimeStep;
+        outFrame++;
+      }
+
       application->BeginScene();
       application->DrawAll();
 
@@ -321,12 +361,12 @@ bool TestSpherical(const ChVector<>&     jointLoc,         // absolute location 
       // Reaction Force and Torque
       // These are expressed in the link coordinate system. We convert them to
       // the coordinate system of Body2 (in our case this is the ground).
-      ChCoordsys<> linkCoordsys = sphericalJoint->GetLinkRelativeCoords();
-      ChVector<> reactForce = sphericalJoint->Get_react_force();
+      ChCoordsys<> linkCoordsys = cylindricalJoint->GetLinkRelativeCoords();
+      ChVector<> reactForce = cylindricalJoint->Get_react_force();
       ChVector<> reactForceGlobal = linkCoordsys.TransformDirectionLocalToParent(reactForce);
       out_rfrc << simTime << reactForceGlobal << std::endl;
 
-      ChVector<> reactTorque = sphericalJoint->Get_react_torque();
+      ChVector<> reactTorque = cylindricalJoint->Get_react_torque();
       ChVector<> reactTorqueGlobal = linkCoordsys.TransformDirectionLocalToParent(reactTorque);
       out_rtrq << simTime << reactTorqueGlobal << std::endl;
 
@@ -343,11 +383,12 @@ bool TestSpherical(const ChVector<>&     jointLoc,         // absolute location 
       out_energy << simTime << transKE << rotKE << deltaPE << totalE - totalE0 << std::endl;;
 
       // Constraint violations
-      ChMatrix<>* C = sphericalJoint->GetC();
+      ChMatrix<>* C = cylindricalJoint->GetC();
       out_cnstr << simTime
                 << C->GetElement(0, 0)
                 << C->GetElement(1, 0)
-                << C->GetElement(2, 0) << std::endl;
+                << C->GetElement(2, 0)
+                << C->GetElement(3, 0) << std::endl;
 
       // Increment output time
       outTime += outTimeStep;
@@ -448,4 +489,3 @@ utils::CSV_writer OutStream()
 
   return out;
 }
-
