@@ -39,7 +39,6 @@ namespace matlabengine
 {
 #include "engine.h"
 };
-//using namespace matlabengine;
 
 namespace chrono
 {
