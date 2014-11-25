@@ -46,15 +46,6 @@ namespace chrono
 #define SetZero(els) {for (int i=0; i<els; ++i) this->address[i]=0; }
 #define ElementsCopy(to,from,els) {for (int i=0; i<els; ++i) to[i]=(Real)from[i]; }
 
-#define Set33Element(a,b,val)  SetElementN(((a*3)+(b)),val) 
-#define Get33Element(a,b)      GetElementN((a*3)+(b)) 
-
-#define Set34Element(a,b,val)  SetElementN(((a*4)+(b)),val) 
-#define Get34Element(a,b)      GetElementN((a*4)+(b)) 
-#define Set34Row(ma,a,val0,val1,val2,val3)  ma.SetElementN((a*4),val0);ma.SetElementN((a*4)+1,val1);ma.SetElementN((a*4)+2,val2);ma.SetElementN((a*4)+3,val3);
-
-#define Set44Element(a,b,val)  SetElementN(((a*4)+(b)),val) 
-#define Get44Element(a,b)      GetElementN((a*4)+(b)) 
 
 
 ///
