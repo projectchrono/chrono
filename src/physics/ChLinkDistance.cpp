@@ -116,7 +116,7 @@ ChLink* ChLinkDistance::new_Duplicate ()
     return (m_l);
 }
 
-ChCoordsys<> ChLinkDistance::GetLinkRelativeCoords()
+ChCoordsys<> ChLinkDistance::GetLinkRelativeCoords() const
 {
 	ChVector<> D2local;
 	ChVector<> D2temp=(Vnorm(Body1->TransformPointLocalToParent(pos1)-Body2->TransformPointLocalToParent(pos2)));
@@ -207,7 +207,7 @@ void ChLinkDistance::ConstraintsLoadJacobians()
 void ChLinkDistance::ConstraintsFetch_react(double factor)
 {
 	// From constraints to react vector:
-	react_force.x = Cx.Get_l_i() * factor;  
+	react_force.x = -Cx.Get_l_i() * factor;  
 	react_force.y = 0;
 	react_force.z = 0;
 
