@@ -481,7 +481,6 @@ IF (BUILD_CH_SDK)
 		physics/ChTensors.h
 		physics/ChContinuumMaterial.h
 		physics/ChInertiaUtils.h
-		physics/ChTimestepper.h
 	)
 	SOURCE_GROUP(physics FILES  
 			${ChronoEngine_physics_SOURCES}
@@ -661,6 +660,19 @@ IF (BUILD_CH_SDK)
 			${ChronoEngine_particlefactory_HEADERS}
 			)
 			
+
+	SET(ChronoEngine_timestepper_SOURCES
+	)
+	SET(ChronoEngine_timestepper_HEADERS
+		timestepper/ChState.h
+		timestepper/ChIntegrable.h
+		timestepper/ChTimestepper.h
+	)
+	SOURCE_GROUP(timestepper FILES  
+			${ChronoEngine_timestepper_SOURCES}
+			${ChronoEngine_timestepper_HEADERS}
+			)
+
 	SET(ChronoEngine_pneumatica_SOURCES
 		pneumatica/assepneumatico.cpp 
 		pneumatica/pistone.cpp 
@@ -1063,6 +1075,8 @@ IF (BUILD_CH_SDK)
 		${ChronoEngine_pneumatica_HEADERS}
 		${ChronoEngine_particlefactory_SOURCES}
 		${ChronoEngine_particlefactory_HEADERS}
+		${ChronoEngine_timestepper_SOURCES}
+		${ChronoEngine_timestepper_HEADERS}
 		${ChronoEngine_motion_functions_SOURCES}
 		${ChronoEngine_motion_functions_HEADERS}
 		${ChronoEngine_parallel_SOURCES}
@@ -1148,6 +1162,7 @@ INSTALL(FILES ${ChronoEngine_collision_edgetempest_HEADERS} DESTINATION include/
 INSTALL(FILES ${ChronoEngine_collision_convexdecompJR_HEADERS} DESTINATION include/chrono/collision/convexdecompJR)
 INSTALL(FILES ${ChronoEngine_pneumatica_HEADERS} DESTINATION include/chrono/pneumatica)
 INSTALL(FILES ${ChronoEngine_particlefactory_HEADERS} DESTINATION include/chrono/particlefactory)
+INSTALL(FILES ${ChronoEngine_timestepper_HEADERS} DESTINATION include/chrono/timestepper)
 INSTALL(FILES ${ChronoEngine_motion_functions_HEADERS} DESTINATION include/chrono/motion_functions)
 INSTALL(FILES ${ChronoEngine_parallel_HEADERS} DESTINATION include/chrono/parallel)
 INSTALL(FILES ${ChronoEngine_collision_bullet_HEADERS} DESTINATION include/chrono/collision/bullet)

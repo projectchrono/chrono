@@ -23,7 +23,7 @@
  
        
 #include "core/ChLog.h"
-#include "physics/ChTimestepper.h"
+#include "timestepper/ChTimestepper.h"
 
 using namespace chrono;
            
@@ -56,6 +56,7 @@ int main(int argc, char* argv[])
 
 							/// compute  dy/dt=f(y,t) 
 				virtual void StateSolve(ChStateDelta& Dy,	///< result: computed Dy
+										ChVectorDynamic<>& L,	///< result: computed lagrangian multipliers, if any
 										const ChState& y,	///< current state y
 										const double T,		///< current time T
 										const double dt,	///< timestep (if needed)
@@ -143,7 +144,8 @@ int main(int argc, char* argv[])
 										};
 
 								/// compute  dy/dt=f(y,t) 
-				virtual void StateSolve(ChStateDelta& Dy,	///< result: computed Dy
+				virtual void StateSolve(ChStateDelta& Dy,		///< result: computed Dy
+										ChVectorDynamic<>& L,	///< result: computed lagrangian multipliers, if any
 										const ChState& y,	///< current state y
 										const double T,		///< current time T
 										const double dt,	///< timestep (if needed)
