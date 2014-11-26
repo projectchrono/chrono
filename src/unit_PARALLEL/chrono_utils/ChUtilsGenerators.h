@@ -69,6 +69,17 @@ class MixtureIngredient;
 // Shortcut for a smart pointer to MixtureIngredient
 typedef ChSmartPtr<MixtureIngredient>   MixtureIngredientPtr;
 
+// -----------------------------------------------------------------------------
+// CallbackGenerator
+//
+// This class can be defined by the user as a callback function for a mixture
+// that is run after a Chbody has been created. Custom modifications can be done 
+// to the bodies here
+class CH_UTILS_API CallbackGenerator {
+ public:
+  // Implement this function if you want to provide the post creation callback.
+  virtual void PostCreation(ChSharedPtr<ChBody> mbody) = 0;
+};
 
 // -----------------------------------------------------------------------------
 // MixtureIngredient
@@ -96,6 +107,9 @@ public:
   void setDistributionDissipation(float dissipation_mean, float dissipation_stddev, float dissipation_min, float dissipation_max);
   void setDistributionDensity(double density_mean, double density_stddev, double density_min, double density_max);
   void setDistributionSize(double size_mean, double size_stddev, const ChVector<>& size_min, const ChVector<>& size_max);
+
+  // Set the callback function to execute at each particle generation
+  void SetCallbackPostCreation(CallbackGenerator* mc) { callback_post_creation = mc;}
 
 private:
   MixtureIngredient(Generator* generator, MixtureType type, double ratio);
@@ -136,6 +150,8 @@ private:
   ChVector<>                         m_defSize;
   ChVector<>                         m_minSize, m_maxSize;
   std::normal_distribution<>*        m_sizeDist;
+
+  CallbackGenerator*                 callback_post_creation;
 
 friend class Generator;
 };
