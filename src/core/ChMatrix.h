@@ -910,7 +910,7 @@ public:
 		/// Paste a matrix "matra" into "this", inserting at location insrow-inscol.
 		/// Normal copy for insrow=inscol=0 
 	template <class RealB>
-	void PasteMatrix(ChMatrix<RealB>* matra, int insrow, int inscol)
+	void PasteMatrix(const ChMatrix<RealB>* matra, int insrow, int inscol)
 		{
 			for (int i=0;i < matra->GetRows();++i)
 				for (int j=0;j < matra->GetColumns();++j)
@@ -920,7 +920,7 @@ public:
 		/// Paste a matrix "matra" into "this", inserting at location insrow-inscol
 		/// and performing a sum with the preexisting values.
 	template <class RealB>
-	void PasteSumMatrix(ChMatrix<RealB>* matra, int insrow, int inscol)
+	void PasteSumMatrix(const ChMatrix<RealB>* matra, int insrow, int inscol)
 		{
 			for (int i=0;i < matra->GetRows();++i)
 				for (int j=0;j < matra->GetColumns();++j)
@@ -930,7 +930,7 @@ public:
 		/// Paste a matrix "matra", transposed, into "this", inserting at location insrow-inscol.
 		/// Normal copy for insrow=inscol=0 
 	template <class RealB>
-	void PasteTranspMatrix(ChMatrix<RealB>* matra, int insrow, int inscol)
+	void PasteTranspMatrix(const ChMatrix<RealB>* matra, int insrow, int inscol)
 		{
 			for (int i=0;i <  matra->GetRows(); ++i)
 				for (int j=0;j < matra->GetColumns(); ++j)
@@ -940,7 +940,7 @@ public:
 		/// Paste a matrix "matra", transposed, into "this", inserting at location insrow-inscol
 		/// and performing a sum with the preexisting values.
 	template <class RealB>
-	void PasteSumTranspMatrix(ChMatrix<RealB>* matra, int insrow, int inscol)
+	void PasteSumTranspMatrix(const ChMatrix<RealB>* matra, int insrow, int inscol)
 		{
 			for (int i=0; i <  matra->GetRows(); ++i)
 				for (int j=0; j < matra->GetColumns(); ++j)
@@ -950,7 +950,7 @@ public:
 		/// Paste a clipped portion of the matrix "matra" into "this",
 		/// inserting the clip (of size nrows, ncolumns) at the location insrow-inscol.
 	template <class RealB>
-	void PasteClippedMatrix(ChMatrix<RealB>* matra, int cliprow, int clipcol, int nrows, int ncolumns, int insrow, int inscol)
+	void PasteClippedMatrix(const ChMatrix<RealB>* matra, int cliprow, int clipcol, int nrows, int ncolumns, int insrow, int inscol)
 		{
 			for (int i=0; i < nrows;++i)
 				for (int j=0; j < ncolumns;++j)
@@ -960,7 +960,7 @@ public:
 		/// Paste a clipped portion of the matrix "matra" into "this", performing a sum with preexisting values,
 		/// inserting the clip (of size nrows, ncolumns) at the location insrow-inscol.
 	template <class RealB>
-	void PasteSumClippedMatrix(ChMatrix<RealB>* matra, int cliprow, int clipcol, int nrows, int ncolumns, int insrow, int inscol)
+	void PasteSumClippedMatrix(const ChMatrix<RealB>* matra, int cliprow, int clipcol, int nrows, int ncolumns, int insrow, int inscol)
 		{
 			for (int i=0; i < nrows;++i)
 				for (int j=0; j < ncolumns;++j)

@@ -19,7 +19,7 @@
 //
 // =============================================================================
 
-#include <stdio.h>
+#include <cmath>
 
 #include "physics/ChSystem.h"
 #include "physics/ChBody.h"
@@ -30,9 +30,6 @@
 using namespace chrono;
 using namespace irr;
 
-// Comment the following line to use the ChLinkLockUniversal.  By default,
-// this demo uses the ChLinkUniversal.
-#define USE_LINK_UNIVERSAL
 
 // -----------------------------------------------------------------------------
 
@@ -171,20 +168,12 @@ int main(int argc, char* argv[])
   // Connect the two shafts through a universal joint
   // ------------------------------------------------
 
-#ifdef USE_LINK_UNIVERSAL
   // The joint is located at the global origin.  Its kinematic constraints will
   // enforce orthogonality of the associated cross.
 
   ChSharedPtr<ChLinkUniversal> ujoint(new ChLinkUniversal);
   system.AddLink(ujoint);
   ujoint->Initialize(shaft_1, shaft_2, ChFrame<>(ChVector<>(0, 0, 0), rot));
-#else
-  // The joint is located at the global origin.
-
-  ChSharedPtr<ChLinkLockUniversal> ujoint(new ChLinkLockUniversal);
-  system.AddLink(ujoint);
-  ujoint->Initialize(shaft_1, shaft_2, ChCoordsys<>(ChVector<>(0, 0, 0), rot));
-#endif
 
   // Create the Irrlicht application
   // -------------------------------

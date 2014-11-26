@@ -9,8 +9,8 @@
 // and at http://projectchrono.org/license-chrono.txt.
 //
 
-#ifndef CHLINKUNIVERSAL_H
-#define CHLINKUNIVERSAL_H
+#ifndef CHLINKREVOLUTE_H
+#define CHLINKREVOLUTE_H
 
 
 #include "physics/ChLink.h"
@@ -19,26 +19,26 @@
 
 namespace chrono {
 
-/// Class for modeling a universal joint between two two ChBodyFrame objects.
-/// This joint is defined through 4 constraint equations between two marker
+/// Class for modeling a revolute joint between two two ChBodyFrame objects.
+/// This joint is defined through 5 constraint equations between two marker
 /// frames, one on each body.  Kinematically, these constraints impose the
 /// condition that the two marker origins coincide (3 constraints) and that
-/// two directions (one on each body) are always perpendicular. Together,
-/// these constraints model the cross in a physical universal joint.
+/// two directions (one on each body, namely the Z axes of the marker frames)
+/// are always parallel. 
 
-class ChApi ChLinkUniversal : public ChLink {
+class ChApi ChLinkRevolute : public ChLink {
 
-  CH_RTTI(ChLinkUniversal, ChLink);
+  CH_RTTI(ChLinkRevolute, ChLink);
 
 public:
     //
     // CONSTRUCTORS
     //
 
-  ChLinkUniversal();
-  ~ChLinkUniversal();
+  ChLinkRevolute();
+  ~ChLinkRevolute();
 
-  virtual void Copy(ChLinkUniversal* source);
+  virtual void Copy(ChLinkRevolute* source);
   virtual ChLink* new_Duplicate();
 
     //
@@ -46,10 +46,10 @@ public:
     //
 
   /// Get the type of this joint.
-  virtual int GetType()  { return LNK_UNIVERSAL; }
+  virtual int GetType()  { return LNK_REVOLUTE; }
 
   /// Get the number of constraints imposed by this joint.
-  virtual int GetDOC_d() { return 4; }
+  virtual int GetDOC_d() { return 5; }
 
   /// Get the link coordinate system, expressed relative to Body2.
   virtual ChCoordsys<> GetLinkRelativeCoords() { return m_frame2.GetCoord(); }
@@ -68,7 +68,7 @@ public:
   ChMatrix<>* GetC() { return m_C; }
 
   /// Initialize this joint by specifying the two bodies to be connected and a
-  /// joint frame specified in the absolute frame. The universal joint is
+  /// joint frame specified in the absolute frame. The revolute joint is
   /// constructed such that ... 
 
   void Initialize(
@@ -119,20 +119,22 @@ private:
 
   // Cached matrices
   ChMatrix33<> m_u1_tilde;
-  ChMatrix33<> m_v2_tilde;
+  ChMatrix33<> m_v1_tilde;
+  ChMatrix33<> m_w2_tilde;
 
   // The constraint objects
   ChLcpConstraintTwoBodies m_cnstr_x;     // x1_abs - x2_abs = 0
   ChLcpConstraintTwoBodies m_cnstr_y;     // y1_abs - y2_abs = 0
   ChLcpConstraintTwoBodies m_cnstr_z;     // z1_abs - z2_abs = 0
-  ChLcpConstraintTwoBodies m_cnstr_dot;   // dot(u1_abs, v2_abs) = 0
+  ChLcpConstraintTwoBodies m_cnstr_uw;    // dot(u1_abs, w2_abs) = 0
+  ChLcpConstraintTwoBodies m_cnstr_vw;    // dot(u1_abs, w2_abs) = 0
 
   // Current constraint violations
   ChMatrix<>* m_C;
 
   // Caching of multipliers to allow warm starting
-  double m_cache_speed[4];
-  double m_cache_pos[4];
+  double m_cache_speed[5];
+  double m_cache_pos[5];
 };
 
 
