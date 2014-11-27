@@ -212,6 +212,102 @@ public:
 };
 
 
+/// Eulero explicit timestepper customized for II order
+/// This performs the typical 
+///    x_new = x + v * dt 
+///    v_new = v + a * dt 
+/// integration with Eulero formula. 
+
+class ChTimestepperEuleroExplIIorder : public ChTimestepperIIorder
+{
+public:
+	/// Constructors (default empty)
+	ChTimestepperEuleroExplIIorder(ChIntegrableIIorder& mintegrable)
+		: ChTimestepperIIorder(mintegrable)  {};
+
+	/// Performs an integration timestep
+	virtual void Advance(
+		const double dt				///< timestep to advance
+		)
+	{
+		// downcast
+		ChIntegrableIIorder* mintegrable = (ChIntegrableIIorder*)this->integrable;
+
+		mintegrable->StateSetup(X(), V(), A());
+
+		mintegrable->StateGather(X(), V(), T);	// state <- system
+
+		// auxiliary vectors
+		ChStateDelta		Dv(mintegrable->GetNcoords_v(), GetIntegrable());
+		ChVectorDynamic<>   L(mintegrable->GetNconstr());
+
+		mintegrable->StateSolveA(Dv, L, X(), V(), T, dt, false);	// Dv/dt = f(x,v,T)   Dv = f(x,v,T)*dt
+
+		// Euler formula!  
+
+		A() = Dv*(1. / dt);
+
+		X() = X() + V()*dt;		// x_new= x + v * dt 
+
+		V() = V() + Dv;			// v_new= v + a * dt 
+		
+		T += dt;
+
+		mintegrable->StateScatter(X(), V(), T);	// state -> system
+	}
+};
+
+
+
+/// Eulero semi-implicit timestepper
+/// This performs the typical 
+///    v_new = v + a * dt 
+///    x_new = x + v_new * dt 
+/// integration with Eulero semi-implicit formula. 
+
+class ChTimestepperEuleroSemiImplicit : public ChTimestepperIIorder
+{
+public:
+	/// Constructors (default empty)
+	ChTimestepperEuleroSemiImplicit(ChIntegrableIIorder& mintegrable)
+		: ChTimestepperIIorder(mintegrable)  {};
+
+	/// Performs an integration timestep
+	virtual void Advance(
+		const double dt				///< timestep to advance
+		)
+	{
+		// downcast
+		ChIntegrableIIorder* mintegrable = (ChIntegrableIIorder*)this->integrable;
+
+		mintegrable->StateSetup(X(), V(), A());
+
+		mintegrable->StateGather(X(), V(), T);	// state <- system
+
+		// auxiliary vectors
+		ChStateDelta		Dv(mintegrable->GetNcoords_v(), GetIntegrable());
+		ChVectorDynamic<>   L(mintegrable->GetNconstr());
+
+		mintegrable->StateSolveA(Dv, L, X(), V(), T, dt, false);	// Dv/dt = f(x,v,T)   Dv = f(x,v,T)*dt
+
+		// Semi-implicit Euler formula!   (note the order of update of x and v, respect to original Euler II order explicit)
+
+		A() = Dv*(1. / dt);
+
+		V() = V() + Dv;			// v_new= v + a * dt 
+
+		X() = X() + V()*dt;		// x_new= x + v_new * dt 
+
+
+		T += dt;
+
+		mintegrable->StateScatter(X(), V(), T);	// state -> system
+	}
+};
+
+
+
+
 /// Performs a step of a 4th order explicit Runge-Kutta
 /// integration scheme.
 
