@@ -360,6 +360,48 @@ public:
 
 
 
+/// Performs a step of a Heun explicit integrator. It is like
+/// a 2nd Runge Kutta.
+
+class ChTimestepperHeun : public ChTimestepperIorder
+{
+public:
+	/// Constructors (default empty)
+	ChTimestepperHeun(ChIntegrable& mintegrable)
+		: ChTimestepperIorder(mintegrable)  {};
+
+	/// Performs an integration timestep
+	virtual void Advance(
+		const double dt				///< timestep to advance
+		)
+	{
+		GetIntegrable()->StateSetup(Y(), dYdt());
+
+		GetIntegrable()->StateGather(Y(), T);	// state <- system
+
+		// auxiliary vectors
+		int n_y  = GetIntegrable()->GetNcoords_y();
+		int n_dy = GetIntegrable()->GetNcoords_dy();
+		int n_c  = GetIntegrable()->GetNconstr();
+		ChState				y_new(n_y, GetIntegrable());
+		ChStateDelta		Dy1(n_dy, GetIntegrable());
+		ChStateDelta		Dy2(n_dy, GetIntegrable());
+		ChVectorDynamic<>   L(n_c);
+
+
+		GetIntegrable()->StateSolve(Dy1, L, Y(), T, dt, false); //note, 'false'=no need to update with StateScatter before computation
+
+		y_new = Y() + Dy1;
+		GetIntegrable()->StateSolve(Dy2, L, y_new, T + dt,  dt);
+
+
+		Y() = Y() + (Dy1 + Dy2)*(1. / 2.);   //integrable.StateIncrement(y_new, Y, (Dy1 + Dy2*2.0 + Dy3*2.0 + Dy4)*(1./6.) );
+		dYdt() = Dy2*(1. / dt);
+		T += dt;
+
+		GetIntegrable()->StateScatter(Y(), T);	// state -> system
+	}
+};
 
 
 
