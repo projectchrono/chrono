@@ -499,7 +499,8 @@ public:
 
 		this->StateSolveA(mDv, L, mx, mv, T, dt, force_state_scatter); // Solve with custom II order solver
 
-		Dy.PasteMatrix(&(mv*=dt), 0, 0); // Note: Dy ={Dx Dv} so v=Dx/dt, Dx=v*dt
+		mv *= dt;  // Note: Dy ={Dx Dv} so v=Dx/dt, Dx=v*dt
+		Dy.PasteMatrix(&mv, 0, 0);
 		Dy.PasteMatrix(&mDv, this->GetNcoords_x(), 0);
 	}
 
