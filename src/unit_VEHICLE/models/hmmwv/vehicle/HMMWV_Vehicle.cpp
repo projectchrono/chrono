@@ -45,8 +45,10 @@ const ChCoordsys<> HMMWV_Vehicle::m_driverCsys(ChVector<>(0.8735, -0.27475, 1.05
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 HMMWV_Vehicle::HMMWV_Vehicle(const bool           fixed,
+                             DrivelineType        driveType,
                              VisualizationType    chassisVis,
                              VisualizationType    wheelVis)
+: m_driveType(driveType)
 {
   // -------------------------------------------
   // Create the chassis body
@@ -110,7 +112,15 @@ HMMWV_Vehicle::HMMWV_Vehicle(const bool           fixed,
   // --------------------
   // Create the driveline
   // --------------------
-  m_driveline = ChSharedPtr<ChDriveline>(new HMMWV_Driveline2WD);
+  switch (m_driveType) {
+  case FWD:
+  case RWD:
+    m_driveline = ChSharedPtr<ChDriveline>(new HMMWV_Driveline2WD);
+    break;
+  case AWD:
+    m_driveline = ChSharedPtr<ChDriveline>(new HMMWV_Driveline4WD);
+    break;
+  }
 
   // -----------------
   // Create the brakes
@@ -151,9 +161,23 @@ void HMMWV_Vehicle::Initialize(const ChCoordsys<>& chassisPos)
   m_wheels[2]->Initialize(m_suspensions[1]->GetSpindle(LEFT));
   m_wheels[3]->Initialize(m_suspensions[1]->GetSpindle(RIGHT));
 
-  // Initialize the driveline subsystem (RWD)
-  std::vector<int> driven_susp(1, 1);
-  m_driveline->Initialize(m_chassis, m_suspensions, driven_susp);
+  // Initialize the driveline subsystem
+  std::vector<int> driven_susp_indexes(m_driveline->GetNumDrivenAxles());
+
+  switch (m_driveType) {
+  case FWD:
+    driven_susp_indexes[0] = 0;
+    break;
+  case RWD:
+    driven_susp_indexes[0] = 1;
+    break;
+  case AWD:
+    driven_susp_indexes[0] = 0;
+    driven_susp_indexes[1] = 1;
+    break;
+  }
+
+  m_driveline->Initialize(m_chassis, m_suspensions, driven_susp_indexes);
 
   // Initialize the four brakes
   m_brakes[0]->Initialize(m_suspensions[0]->GetRevolute(LEFT));

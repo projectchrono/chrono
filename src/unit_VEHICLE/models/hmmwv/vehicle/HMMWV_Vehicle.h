@@ -29,6 +29,7 @@
 #include "models/hmmwv/suspension/HMMWV_DoubleWishbone.h"
 #include "models/hmmwv/steering/HMMWV_PitmanArm.h"
 #include "models/hmmwv/driveline/HMMWV_Driveline2WD.h"
+#include "models/hmmwv/driveline/HMMWV_Driveline4WD.h"
 #include "models/hmmwv/brake/HMMWV_BrakeSimple.h"
 
 namespace hmmwv {
@@ -38,6 +39,7 @@ class HMMWV_Vehicle : public chrono::ChVehicle
 public:
 
   HMMWV_Vehicle(const bool        fixed = false,
+                DrivelineType     driveType = AWD,
                 VisualizationType chassisVis = NONE,
                 VisualizationType wheelVis = PRIMITIVES);
 
@@ -69,6 +71,8 @@ public:
   void DebugLog(int what);      /// shock forces and lengths, constraints, etc.
 
 private:
+
+  DrivelineType m_driveType;
 
   // Chassis visualization mesh
   static const std::string m_chassisMeshName;
