@@ -65,6 +65,9 @@ public:
   /// system.
   void ApplyDriveshaftTorque(double torque)  { m_driveshaft->SetAppliedTorque(torque); }
 
+  /// Get the indexes of the vehicle's axles driven by this driveline subsystem.
+  const std::vector<int>& GetDrivenAxleIndexes() const { return m_driven_axles; }
+
   /// Get the motor torque to be applied to the specified wheel.
   virtual double GetWheelTorque(const ChWheelID& wheel_id) const = 0;
 
