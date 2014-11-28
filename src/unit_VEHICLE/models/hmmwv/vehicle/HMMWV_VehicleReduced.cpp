@@ -108,10 +108,11 @@ HMMWV_VehicleReduced::HMMWV_VehicleReduced(const bool           fixed,
   // -----------------
   // Create the wheels
   // -----------------
-  m_front_right_wheel = ChSharedPtr<HMMWV_Wheel>(new HMMWV_WheelRight(wheelVis));
-  m_front_left_wheel = ChSharedPtr<HMMWV_Wheel>(new HMMWV_WheelLeft(wheelVis));
-  m_rear_right_wheel = ChSharedPtr<HMMWV_Wheel>(new HMMWV_WheelRight(wheelVis));
-  m_rear_left_wheel = ChSharedPtr<HMMWV_Wheel>(new HMMWV_WheelLeft(wheelVis));
+  m_wheels.resize(4);
+  m_wheels[0] = ChSharedPtr<ChWheel>(new HMMWV_WheelLeft(wheelVis));
+  m_wheels[1] = ChSharedPtr<ChWheel>(new HMMWV_WheelRight(wheelVis));
+  m_wheels[2] = ChSharedPtr<ChWheel>(new HMMWV_WheelLeft(wheelVis));
+  m_wheels[3] = ChSharedPtr<ChWheel>(new HMMWV_WheelRight(wheelVis));
 
   // --------------------
   // Create the driveline
@@ -129,10 +130,11 @@ HMMWV_VehicleReduced::HMMWV_VehicleReduced(const bool           fixed,
   // -----------------
   // Create the brakes
   // -----------------
-  m_front_right_brake = ChSharedPtr<HMMWV_BrakeSimple>(new HMMWV_BrakeSimple);
-  m_front_left_brake = ChSharedPtr<HMMWV_BrakeSimple>(new HMMWV_BrakeSimple);
-  m_rear_right_brake = ChSharedPtr<HMMWV_BrakeSimple>(new HMMWV_BrakeSimple);
-  m_rear_left_brake = ChSharedPtr<HMMWV_BrakeSimple>(new HMMWV_BrakeSimple);
+  m_brakes.resize(4);
+  m_brakes[0] = ChSharedPtr<ChBrake>(new HMMWV_BrakeSimple);
+  m_brakes[1] = ChSharedPtr<ChBrake>(new HMMWV_BrakeSimple);
+  m_brakes[2] = ChSharedPtr<ChBrake>(new HMMWV_BrakeSimple);
+  m_brakes[3] = ChSharedPtr<ChBrake>(new HMMWV_BrakeSimple);
 }
 
 
@@ -158,10 +160,10 @@ void HMMWV_VehicleReduced::Initialize(const ChCoordsys<>& chassisPos)
   m_suspensions[1]->Initialize(m_chassis, in2m * ChVector<>(-66.4, 0, 1.039), m_chassis);
 
   // Initialize wheels
-  m_front_left_wheel->Initialize(m_suspensions[0]->GetSpindle(LEFT));
-  m_front_right_wheel->Initialize(m_suspensions[0]->GetSpindle(RIGHT));
-  m_rear_left_wheel->Initialize(m_suspensions[1]->GetSpindle(LEFT));
-  m_rear_right_wheel->Initialize(m_suspensions[1]->GetSpindle(RIGHT));
+  m_wheels[0]->Initialize(m_suspensions[0]->GetSpindle(LEFT));
+  m_wheels[1]->Initialize(m_suspensions[0]->GetSpindle(RIGHT));
+  m_wheels[2]->Initialize(m_suspensions[1]->GetSpindle(LEFT));
+  m_wheels[3]->Initialize(m_suspensions[1]->GetSpindle(RIGHT));
 
   // Initialize the driveline subsystem.
   std::vector<int> driven_susp_indexes(m_driveline->GetNumDrivenAxles());
@@ -182,10 +184,10 @@ void HMMWV_VehicleReduced::Initialize(const ChCoordsys<>& chassisPos)
   m_driveline->Initialize(m_chassis, m_suspensions, driven_susp_indexes);
 
   // Initialize the four brakes
-  m_front_left_brake->Initialize(m_suspensions[0]->GetRevolute(LEFT));
-  m_front_right_brake->Initialize(m_suspensions[0]->GetRevolute(RIGHT));
-  m_rear_left_brake->Initialize(m_suspensions[1]->GetRevolute(LEFT));
-  m_rear_right_brake->Initialize(m_suspensions[1]->GetRevolute(RIGHT));
+  m_brakes[0]->Initialize(m_suspensions[0]->GetRevolute(LEFT));
+  m_brakes[1]->Initialize(m_suspensions[0]->GetRevolute(RIGHT));
+  m_brakes[2]->Initialize(m_suspensions[1]->GetRevolute(LEFT));
+  m_brakes[3]->Initialize(m_suspensions[1]->GetRevolute(RIGHT));
 }
 
 
@@ -210,10 +212,10 @@ void HMMWV_VehicleReduced::Update(double              time,
   m_suspensions[1]->ApplyTireForce(RIGHT, tire_forces[REAR_RIGHT.id()]);
 
   // Apply braking
-  m_front_left_brake->ApplyBrakeModulation(braking);
-  m_front_right_brake->ApplyBrakeModulation(braking);
-  m_rear_left_brake->ApplyBrakeModulation(braking);
-  m_rear_right_brake->ApplyBrakeModulation(braking);
+  m_brakes[0]->ApplyBrakeModulation(braking);
+  m_brakes[1]->ApplyBrakeModulation(braking);
+  m_brakes[2]->ApplyBrakeModulation(braking);
+  m_brakes[3]->ApplyBrakeModulation(braking);
 }
 
 
@@ -226,8 +228,10 @@ void HMMWV_VehicleReduced::ExportMeshPovray(const std::string& out_dir)
                          out_dir,
                          ChColor(0.82f, 0.7f, 0.5f));
 
-  m_front_left_wheel->ExportMeshPovray(out_dir);
-  m_front_right_wheel->ExportMeshPovray(out_dir);
+  HMMWV_Wheel* wheelFL = static_cast<HMMWV_Wheel*>(m_wheels[0].get_ptr());
+  HMMWV_Wheel* wheelFR = static_cast<HMMWV_Wheel*>(m_wheels[1].get_ptr());
+  wheelFL->ExportMeshPovray(out_dir);
+  wheelFR->ExportMeshPovray(out_dir);
 }
 
 

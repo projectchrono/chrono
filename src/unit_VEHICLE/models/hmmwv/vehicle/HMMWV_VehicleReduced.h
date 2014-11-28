@@ -60,16 +60,6 @@ public:
 
 private:
 
-  chrono::ChSharedPtr<HMMWV_Wheel> m_front_right_wheel;
-  chrono::ChSharedPtr<HMMWV_Wheel> m_front_left_wheel;
-  chrono::ChSharedPtr<HMMWV_Wheel> m_rear_right_wheel;
-  chrono::ChSharedPtr<HMMWV_Wheel> m_rear_left_wheel;
-
-  chrono::ChSharedPtr<HMMWV_BrakeSimple> m_front_right_brake;
-  chrono::ChSharedPtr<HMMWV_BrakeSimple> m_front_left_brake;
-  chrono::ChSharedPtr<HMMWV_BrakeSimple> m_rear_right_brake;
-  chrono::ChSharedPtr<HMMWV_BrakeSimple> m_rear_left_brake;
-
   DrivelineType m_driveType;
 
   // Chassis visualization mesh

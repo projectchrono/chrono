@@ -103,10 +103,11 @@ HMMWV_VehicleJSON::HMMWV_VehicleJSON(const bool        fixed,
   // -----------------
   // Create the wheels
   // -----------------
-  m_front_right_wheel = ChSharedPtr<Wheel>(new Wheel(utils::GetModelDataFile("hmmwv/wheel/HMMWV_Wheel_FrontRight.json")));
-  m_front_left_wheel  = ChSharedPtr<Wheel>(new Wheel(utils::GetModelDataFile("hmmwv/wheel/HMMWV_Wheel_FrontLeft.json")));
-  m_rear_right_wheel  = ChSharedPtr<Wheel>(new Wheel(utils::GetModelDataFile("hmmwv/wheel/HMMWV_Wheel_RearRight.json")));
-  m_rear_left_wheel   = ChSharedPtr<Wheel>(new Wheel(utils::GetModelDataFile("hmmwv/wheel/HMMWV_Wheel_RearLeft.json")));
+  m_wheels.resize(4);
+  m_wheels[0] = ChSharedPtr<ChWheel>(new Wheel(utils::GetModelDataFile("hmmwv/wheel/HMMWV_Wheel_FrontLeft.json")));
+  m_wheels[1] = ChSharedPtr<ChWheel>(new Wheel(utils::GetModelDataFile("hmmwv/wheel/HMMWV_Wheel_FrontRight.json")));
+  m_wheels[2] = ChSharedPtr<ChWheel>(new Wheel(utils::GetModelDataFile("hmmwv/wheel/HMMWV_Wheel_RearLeft.json")));
+  m_wheels[3] = ChSharedPtr<ChWheel>(new Wheel(utils::GetModelDataFile("hmmwv/wheel/HMMWV_Wheel_RearRight.json")));
 
   // --------------------
   // Create the driveline
@@ -116,10 +117,11 @@ HMMWV_VehicleJSON::HMMWV_VehicleJSON(const bool        fixed,
   // -----------------
   // Create the brakes
   // -----------------
-  m_front_right_brake = ChSharedPtr<BrakeSimple>(new BrakeSimple(utils::GetModelDataFile("hmmwv/brake/HMMWV_BrakeSimple_Front.json")));
-  m_front_left_brake  = ChSharedPtr<BrakeSimple>(new BrakeSimple(utils::GetModelDataFile("hmmwv/brake/HMMWV_BrakeSimple_Front.json")));
-  m_rear_right_brake  = ChSharedPtr<BrakeSimple>(new BrakeSimple(utils::GetModelDataFile("hmmwv/brake/HMMWV_BrakeSimple_Rear.json")));
-  m_rear_left_brake   = ChSharedPtr<BrakeSimple>(new BrakeSimple(utils::GetModelDataFile("hmmwv/brake/HMMWV_BrakeSimple_Rear.json")));
+  m_brakes.resize(4);
+  m_brakes[0] = ChSharedPtr<BrakeSimple>(new BrakeSimple(utils::GetModelDataFile("hmmwv/brake/HMMWV_BrakeSimple_Front.json")));
+  m_brakes[1] = ChSharedPtr<BrakeSimple>(new BrakeSimple(utils::GetModelDataFile("hmmwv/brake/HMMWV_BrakeSimple_Front.json")));
+  m_brakes[2] = ChSharedPtr<BrakeSimple>(new BrakeSimple(utils::GetModelDataFile("hmmwv/brake/HMMWV_BrakeSimple_Rear.json")));
+  m_brakes[3] = ChSharedPtr<BrakeSimple>(new BrakeSimple(utils::GetModelDataFile("hmmwv/brake/HMMWV_BrakeSimple_Rear.json")));
 }
 
 
@@ -145,20 +147,20 @@ void HMMWV_VehicleJSON::Initialize(const ChCoordsys<>& chassisPos)
   m_suspensions[1]->Initialize(m_chassis, ChVector<>(-1.688965, 0, 0), m_chassis);
 
   // Initialize wheels
-  m_front_left_wheel->Initialize(m_suspensions[0]->GetSpindle(LEFT));
-  m_front_right_wheel->Initialize(m_suspensions[0]->GetSpindle(RIGHT));
-  m_rear_left_wheel->Initialize(m_suspensions[1]->GetSpindle(LEFT));
-  m_rear_right_wheel->Initialize(m_suspensions[1]->GetSpindle(RIGHT));
+  m_wheels[0]->Initialize(m_suspensions[0]->GetSpindle(LEFT));
+  m_wheels[1]->Initialize(m_suspensions[0]->GetSpindle(RIGHT));
+  m_wheels[2]->Initialize(m_suspensions[1]->GetSpindle(LEFT));
+  m_wheels[3]->Initialize(m_suspensions[1]->GetSpindle(RIGHT));
 
   // Initialize the driveline subsystem (RWD)
   std::vector<int> driven_susp(1, 1);
   m_driveline->Initialize(m_chassis, m_suspensions, driven_susp);
 
   // Initialize the four brakes
-  m_front_left_brake->Initialize(m_suspensions[0]->GetRevolute(LEFT));
-  m_front_right_brake->Initialize(m_suspensions[0]->GetRevolute(RIGHT));
-  m_rear_left_brake->Initialize(m_suspensions[1]->GetRevolute(LEFT));
-  m_rear_right_brake->Initialize(m_suspensions[1]->GetRevolute(RIGHT));
+  m_brakes[0]->Initialize(m_suspensions[0]->GetRevolute(LEFT));
+  m_brakes[1]->Initialize(m_suspensions[0]->GetRevolute(RIGHT));
+  m_brakes[2]->Initialize(m_suspensions[1]->GetRevolute(LEFT));
+  m_brakes[3]->Initialize(m_suspensions[1]->GetRevolute(RIGHT));
 }
 
 
@@ -218,10 +220,10 @@ void HMMWV_VehicleJSON::Update(double              time,
   m_suspensions[1]->ApplyTireForce(RIGHT, tire_forces[REAR_RIGHT.id()]);
 
   // Apply braking
-  m_front_left_brake->ApplyBrakeModulation(braking);
-  m_front_right_brake->ApplyBrakeModulation(braking);
-  m_rear_left_brake->ApplyBrakeModulation(braking);
-  m_rear_right_brake->ApplyBrakeModulation(braking);
+  m_brakes[0]->ApplyBrakeModulation(braking);
+  m_brakes[1]->ApplyBrakeModulation(braking);
+  m_brakes[2]->ApplyBrakeModulation(braking);
+  m_brakes[3]->ApplyBrakeModulation(braking);
 }
 
 
@@ -234,8 +236,10 @@ void HMMWV_VehicleJSON::ExportMeshPovray(const std::string& out_dir)
                          out_dir,
                          ChColor(0.82f, 0.7f, 0.5f));
 
-  m_front_left_wheel->ExportMeshPovray(out_dir);
-  m_front_right_wheel->ExportMeshPovray(out_dir);
+  Wheel* wheelFL = static_cast<Wheel*>(m_wheels[0].get_ptr());
+  Wheel* wheelFR = static_cast<Wheel*>(m_wheels[1].get_ptr());
+  wheelFL->ExportMeshPovray(out_dir);
+  wheelFR->ExportMeshPovray(out_dir);
 }
 
 

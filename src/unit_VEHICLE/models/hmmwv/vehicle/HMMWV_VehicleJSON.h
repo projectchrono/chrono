@@ -71,16 +71,6 @@ public:
 
 private:
 
-  chrono::ChSharedPtr<chrono::Wheel> m_front_right_wheel;
-  chrono::ChSharedPtr<chrono::Wheel> m_front_left_wheel;
-  chrono::ChSharedPtr<chrono::Wheel> m_rear_right_wheel;
-  chrono::ChSharedPtr<chrono::Wheel> m_rear_left_wheel;
-
-  chrono::ChSharedPtr<chrono::BrakeSimple> m_front_right_brake;
-  chrono::ChSharedPtr<chrono::BrakeSimple> m_front_left_brake;
-  chrono::ChSharedPtr<chrono::BrakeSimple> m_rear_right_brake;
-  chrono::ChSharedPtr<chrono::BrakeSimple> m_rear_left_brake;
-
   // Chassis visualization mesh
   static const std::string m_chassisMeshName;
   static const std::string m_chassisMeshFile;

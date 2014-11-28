@@ -70,16 +70,6 @@ private:
 
   SuspensionType m_suspType;
 
-  chrono::ChSharedPtr<Generic_Wheel> m_front_right_wheel;
-  chrono::ChSharedPtr<Generic_Wheel> m_front_left_wheel;
-  chrono::ChSharedPtr<Generic_Wheel> m_rear_right_wheel;
-  chrono::ChSharedPtr<Generic_Wheel> m_rear_left_wheel;
-
-  chrono::ChSharedPtr<Generic_BrakeSimple> m_front_right_brake;
-  chrono::ChSharedPtr<Generic_BrakeSimple> m_front_left_brake;
-  chrono::ChSharedPtr<Generic_BrakeSimple> m_rear_right_brake;
-  chrono::ChSharedPtr<Generic_BrakeSimple> m_rear_left_brake;
-
   // Chassis mass properties
   static const double             m_chassisMass;
   static const chrono::ChVector<> m_chassisCOM;

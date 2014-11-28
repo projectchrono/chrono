@@ -46,8 +46,8 @@ const ChCoordsys<> Articulated_Vehicle::m_driverCsys(ChVector<>(0.0, 0.5, 1.2), 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 Articulated_Vehicle::Articulated_Vehicle(const bool        fixed,
-                                 SuspensionType    suspType,
-                                 VisualizationType wheelVis)
+                                         SuspensionType    suspType,
+                                         VisualizationType wheelVis)
 : m_suspType(suspType)
 {
   // -------------------------------------------
@@ -95,10 +95,11 @@ Articulated_Vehicle::Articulated_Vehicle(const bool        fixed,
   // -----------------
   // Create the wheels
   // -----------------
-  m_front_right_wheel = ChSharedPtr<Articulated_Wheel>(new Articulated_Wheel(wheelVis));
-  m_front_left_wheel = ChSharedPtr<Articulated_Wheel>(new Articulated_Wheel(wheelVis));
-  m_rear_right_wheel = ChSharedPtr<Articulated_Wheel>(new Articulated_Wheel(wheelVis));
-  m_rear_left_wheel = ChSharedPtr<Articulated_Wheel>(new Articulated_Wheel(wheelVis));
+  m_wheels.resize(4);
+  m_wheels[0] = ChSharedPtr<ChWheel>(new Articulated_Wheel(wheelVis));
+  m_wheels[1] = ChSharedPtr<ChWheel>(new Articulated_Wheel(wheelVis));
+  m_wheels[2] = ChSharedPtr<ChWheel>(new Articulated_Wheel(wheelVis));
+  m_wheels[3] = ChSharedPtr<ChWheel>(new Articulated_Wheel(wheelVis));
 
   // --------------------
   // Create the driveline
@@ -108,10 +109,11 @@ Articulated_Vehicle::Articulated_Vehicle(const bool        fixed,
   // -----------------
   // Create the brakes
   // -----------------
-  m_front_right_brake = ChSharedPtr<Articulated_BrakeSimple>(new Articulated_BrakeSimple);
-  m_front_left_brake = ChSharedPtr<Articulated_BrakeSimple>(new Articulated_BrakeSimple);
-  m_rear_right_brake = ChSharedPtr<Articulated_BrakeSimple>(new Articulated_BrakeSimple);
-  m_rear_left_brake = ChSharedPtr<Articulated_BrakeSimple>(new Articulated_BrakeSimple);
+  m_brakes.resize(4);
+  m_brakes[0] = ChSharedPtr<ChBrake>(new Articulated_BrakeSimple);
+  m_brakes[1] = ChSharedPtr<ChBrake>(new Articulated_BrakeSimple);
+  m_brakes[2] = ChSharedPtr<ChBrake>(new Articulated_BrakeSimple);
+  m_brakes[3] = ChSharedPtr<ChBrake>(new Articulated_BrakeSimple);
 }
 
 
@@ -136,20 +138,20 @@ void Articulated_Vehicle::Initialize(const ChCoordsys<>& chassisPos)
   m_suspensions[1]->Initialize(m_chassis, ChVector<>(-1.6865, 0, 0), m_chassis);
 
   // Initialize wheels
-  m_front_left_wheel->Initialize(m_suspensions[0]->GetSpindle(LEFT));
-  m_front_right_wheel->Initialize(m_suspensions[0]->GetSpindle(RIGHT));
-  m_rear_left_wheel->Initialize(m_suspensions[1]->GetSpindle(LEFT));
-  m_rear_right_wheel->Initialize(m_suspensions[1]->GetSpindle(RIGHT));
+  m_wheels[0]->Initialize(m_suspensions[0]->GetSpindle(LEFT));
+  m_wheels[1]->Initialize(m_suspensions[0]->GetSpindle(RIGHT));
+  m_wheels[2]->Initialize(m_suspensions[1]->GetSpindle(LEFT));
+  m_wheels[3]->Initialize(m_suspensions[1]->GetSpindle(RIGHT));
 
   // Initialize the driveline subsystem (RWD)
   std::vector<int> driven_susp(1, 1);
   m_driveline->Initialize(m_chassis, m_suspensions, driven_susp);
 
   // Initialize the four brakes
-  m_front_left_brake->Initialize(m_suspensions[0]->GetRevolute(LEFT));
-  m_front_right_brake->Initialize(m_suspensions[0]->GetRevolute(RIGHT));
-  m_rear_left_brake->Initialize(m_suspensions[1]->GetRevolute(LEFT));
-  m_rear_right_brake->Initialize(m_suspensions[1]->GetRevolute(RIGHT));
+  m_brakes[0]->Initialize(m_suspensions[0]->GetRevolute(LEFT));
+  m_brakes[1]->Initialize(m_suspensions[0]->GetRevolute(RIGHT));
+  m_brakes[2]->Initialize(m_suspensions[1]->GetRevolute(LEFT));
+  m_brakes[3]->Initialize(m_suspensions[1]->GetRevolute(RIGHT));
 }
 
 
@@ -233,10 +235,10 @@ double Articulated_Vehicle::GetShockVelocity(const ChWheelID& wheel_id) const
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 void Articulated_Vehicle::Update(double              time,
-                             double              steering,
-                             double              braking,
-                             double              powertrain_torque,
-                             const ChTireForces& tire_forces)
+                                 double              steering,
+                                 double              braking,
+                                 double              powertrain_torque,
+                                 const ChTireForces& tire_forces)
 {
   // Apply powertrain torque to the driveline's input shaft.
   m_driveline->ApplyDriveshaftTorque(powertrain_torque);
@@ -251,10 +253,10 @@ void Articulated_Vehicle::Update(double              time,
   m_suspensions[1]->ApplyTireForce(RIGHT, tire_forces[REAR_RIGHT.id()]);
 
   // Apply braking
-  m_front_left_brake->ApplyBrakeModulation(braking);
-  m_front_right_brake->ApplyBrakeModulation(braking);
-  m_rear_left_brake->ApplyBrakeModulation(braking);
-  m_rear_right_brake->ApplyBrakeModulation(braking);
+  m_brakes[0]->ApplyBrakeModulation(braking);
+  m_brakes[1]->ApplyBrakeModulation(braking);
+  m_brakes[2]->ApplyBrakeModulation(braking);
+  m_brakes[3]->ApplyBrakeModulation(braking);
 }
 
 
