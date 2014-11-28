@@ -30,6 +30,7 @@
 
 #include "subsys/driver/ChIrrGuiDriver.h"
 #include "subsys/driveline/ChShaftsDriveline2WD.h"
+#include "subsys/driveline/ChShaftsDriveline4WD.h"
 #include "subsys/powertrain/ChShaftsPowertrain.h"
 
 using namespace irr;
@@ -385,14 +386,39 @@ void ChIrrGuiDriver::renderStats()
 
   if (ChSharedPtr<ChShaftsDriveline2WD> driveline = m_car.m_driveline.DynamicCastTo<ChShaftsDriveline2WD>())
   {
-    double torque_wheelL = driveline->GetWheelTorque(ChWheelID(0, LEFT));
-    sprintf(msg, "Torque wheel L: %+.2f", torque_wheelL);
-    renderLinGauge(std::string(msg), torque_wheelL / 5000, false, m_HUD_x, m_HUD_y + 260, 120, 15);
+    double torque;
+    int axle = driveline->GetDrivenAxleIndexes()[0];
 
-    double torque_wheelR = driveline->GetWheelTorque(ChWheelID(0, RIGHT));
-    sprintf(msg, "Torque wheel R: %+.2f", torque_wheelR);
-    renderLinGauge(std::string(msg), torque_wheelR / 5000, false, m_HUD_x, m_HUD_y + 280, 120, 15);
+    torque = driveline->GetWheelTorque(ChWheelID(axle, LEFT));
+    sprintf(msg, "Torque wheel L: %+.2f", torque);
+    renderLinGauge(std::string(msg), torque / 5000, false, m_HUD_x, m_HUD_y + 260, 120, 15);
+
+    torque = driveline->GetWheelTorque(ChWheelID(axle, RIGHT));
+    sprintf(msg, "Torque wheel R: %+.2f", torque);
+    renderLinGauge(std::string(msg), torque / 5000, false, m_HUD_x, m_HUD_y + 280, 120, 15);
   }
+  else if (ChSharedPtr<ChShaftsDriveline4WD> driveline = m_car.m_driveline.DynamicCastTo<ChShaftsDriveline4WD>())
+  {
+    double torque;
+    std::vector<int> axles = driveline->GetDrivenAxleIndexes();
+
+    torque = driveline->GetWheelTorque(ChWheelID(axles[0], LEFT));
+    sprintf(msg, "Torque wheel FL: %+.2f", torque);
+    renderLinGauge(std::string(msg), torque / 5000, false, m_HUD_x, m_HUD_y + 260, 120, 15);
+
+    torque = driveline->GetWheelTorque(ChWheelID(axles[0], RIGHT));
+    sprintf(msg, "Torque wheel FR: %+.2f", torque);
+    renderLinGauge(std::string(msg), torque / 5000, false, m_HUD_x, m_HUD_y + 280, 120, 15);
+
+    torque = driveline->GetWheelTorque(ChWheelID(axles[1], LEFT));
+    sprintf(msg, "Torque wheel RL: %+.2f", torque);
+    renderLinGauge(std::string(msg), torque / 5000, false, m_HUD_x, m_HUD_y + 300, 120, 15);
+
+    torque = driveline->GetWheelTorque(ChWheelID(axles[1], RIGHT));
+    sprintf(msg, "Torque wheel FR: %+.2f", torque);
+    renderLinGauge(std::string(msg), torque / 5000, false, m_HUD_x, m_HUD_y + 320, 120, 15);
+  }
+
 }
 
 
