@@ -233,6 +233,7 @@ int main(int argc, char* argv[])
 
   // Inter-module communication data
   ChTireForces  tire_forces(4);
+  ChTireForces  tr_tire_forces(4);
   ChWheelState  wheel_states[4];
   double        driveshaft_speed;
   double        powertrain_torque;
@@ -295,6 +296,11 @@ int main(int argc, char* argv[])
     tire_forces[REAR_LEFT.id()] = tire_rear_left.GetTireForce();
     tire_forces[REAR_RIGHT.id()] = tire_rear_right.GetTireForce();
 
+    tr_tire_forces[FRONT_LEFT.id()] = tr_tire_front_left.GetTireForce();
+    tr_tire_forces[FRONT_RIGHT.id()] = tr_tire_front_right.GetTireForce();
+    tr_tire_forces[REAR_LEFT.id()] = tr_tire_rear_left.GetTireForce();
+    tr_tire_forces[REAR_RIGHT.id()] = tr_tire_rear_right.GetTireForce();
+
     driveshaft_speed = vehicle.GetDriveshaftSpeed();
 
     wheel_states[FRONT_LEFT.id()] = vehicle.GetWheelState(FRONT_LEFT);
@@ -317,6 +323,7 @@ int main(int argc, char* argv[])
     powertrain.Update(time, throttle_input, driveshaft_speed);
 
     vehicle.Update(time, steering_input, braking_input, powertrain_torque, tire_forces);
+    trailer.Update(time, braking_input, tr_tire_forces);
 
     // Advance simulation for one timestep for all modules
     double step = realtime_timer.SuggestSimulationStep(step_size);
