@@ -106,8 +106,11 @@ public:
 };
 
 
-/// Base class for 1st order timesteppers, that is
-/// a time integrator for whatever ChIntegrable.
+/// Base class for 2nd order timesteppers, that is
+/// a time integrator for whatever ChIntegrableIIorder
+/// (special sub lass of integrable objects that have a state 
+/// made with position and velocity y={x,v}, and dy/dt={v,a} 
+/// with a=acceleration)
 
 class ChTimestepperIIorder : public ChTimestepper
 {
@@ -212,7 +215,10 @@ public:
 };
 
 
-/// Eulero explicit timestepper customized for II order
+/// Eulero explicit timestepper customized for II order.
+/// (It gives the same results of ChTimestepperEuleroExpl,
+/// but this performes a bit faster because it can exploit
+/// the special structure of ChIntegrableIIorder)
 /// This performs the typical 
 ///    x_new = x + v * dt 
 ///    v_new = v + a * dt 
