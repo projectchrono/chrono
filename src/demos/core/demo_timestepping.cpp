@@ -159,7 +159,7 @@ int main(int argc, char* argv[])
 					if(force_state_scatter) 
 						StateScatter(y,T);
 
-					double F = sin(T*4)*2;
+					double F = cos(T*20)*2;
 
 					Dy(0) = dt*v;
 					Dy(1) = dt*(1./M) * (F - K*x - R*v);
@@ -271,7 +271,8 @@ int main(int argc, char* argv[])
 			{
 				if (force_state_scatter)
 					StateScatter(x, v, T);
-				double F = sin(T * 4) * 2;
+
+				double F = cos(T * 20) * 2;
 				Dv(0) = dt*(1. / M) * (F - K*mx - R*mv);
 			}
 		};
@@ -287,13 +288,13 @@ int main(int argc, char* argv[])
 		MyIntegrable mintegrable3;
 
 		// Create few time-integrators to be compared:
-		ChTimestepperEuleroExpl		     mystepper1(mintegrable1);
+		ChTimestepperRungeKuttaExpl		 mystepper1(mintegrable1);
 		ChTimestepperEuleroExplIIorder   mystepper2(mintegrable2);
 		ChTimestepperEuleroSemiImplicit  mystepper3(mintegrable3);
 
 		
 		// Execute the time integration
-		while (mystepper1.GetTime() <1)
+		while (mystepper1.GetTime() <4)
 		{
 			mystepper1.Advance(0.01);
 			mystepper2.Advance(0.01);
@@ -311,11 +312,182 @@ int main(int argc, char* argv[])
 
 
 
+	if (true)
+	{
+		//
+		// EXAMPLE 4:
+		//
+
+		GetLog() << "\n\n Example 4: integrate 2nd order oscillator: M*ddx/dtdt + R*dx/dt + K*w = F(t) with an implicit integrator \n";
+
+
+		// Define a class inherited from ChIntegrableIIorder,
+		// it will represent the differential equations
+		// by implementing the interfaces to implicit solvers.
+		//  We assume   M*a = F(x,v,t) 
+
+		class MyIntegrable : public ChIntegrableIIorder
+		{
+		private:
+			double M;
+			double K;
+			double R;
+			double T;
+			double mx;
+			double mv;
+		public:
+			MyIntegrable()
+			{
+				T = 0;
+				M = 1;
+				K = 30;
+				R = 0;
+				mx = 0;
+				mv = 0;
+			}
+
+			/// the number of coordinates in the state, x position part:
+			virtual int GetNcoords_x() { return 1; }
+
+			/// system -> state
+			virtual void StateGather(ChState& x, ChStateDelta& v, double& mT)
+			{
+				x(0) = mx;
+				v(0) = mv;
+				mT = T;
+			};
+
+			/// state -> system  
+			virtual void StateScatter(const ChState& x, const ChStateDelta& v, const double mT)
+			{
+				mx = x(0);
+				mv = v(0);
+				T = mT;
+			};
+
+			/// compute  dy/dt=f(y,t) 
+			virtual void StateSolveA(ChStateDelta& Dv,		///< result: computed Dv
+				ChVectorDynamic<>& L,	///< result: computed lagrangian multipliers, if any
+				const ChState& x,		///< current state, x
+				const ChStateDelta& v,	///< current state, v
+				const double T,		///< current time T
+				const double dt,	///< timestep (if needed)
+				bool force_state_scatter = true ///< if false, y and T are not scattered to the system, assuming that someone has done StateScatter just before
+				)
+			{
+				if (force_state_scatter)
+					StateScatter(x, v, T);
+				double F = sin(T * 20) * 2;
+				Dv(0) = dt*(1. / M) * (F - K*mx - R*mv);
+			}
+
+			/// Compute the correction with linear system
+			///  Dv = [ c_a*M + c_v*dF/dv + c_x*dF/dx ]^-1 * R 
+			virtual void StateSolveCorrection(
+				ChStateDelta& Dv,	  ///< result: computed Dv 
+				ChVectorDynamic<>& L, ///< result: computed lagrangian multipliers, if any
+				const ChVectorDynamic<>& R, ///< the R residual
+				const double c_a,	  ///< the factor in c_a*M
+				const double c_v,	  ///< the factor in c_v*dF/dv
+				const double c_x,	  ///< the factor in c_x*dF/dv
+				const ChState& x,	  ///< current state, x part
+				const ChStateDelta& v,///< current state, v part
+				const double T,		  ///< current time T
+				bool force_state_scatter = true ///< if false, x,v and T are not scattered to the system, assuming that someone has done StateScatter just before 
+				)
+			{
+				if (force_state_scatter)
+					this->StateScatter(x, v, T);
+
+				Dv(0) = R(0) *  1.0 / (c_a*this->M + c_v *(-this->R) + c_x * (-this->K));
+			}
+
+			///    R += c*F
+			void LoadResidual_F(
+				ChVectorDynamic<>& R,		 ///< result: the R residual, R += c*F 
+				const double c				 ///< a scaling factor
+				)
+			{
+				R(0) += c * (sin(T * 20) * 2 - this->K*mx - this->R*mv);
+			};
+  
+			///    R += c*M*w 
+			void LoadResidual_Mv(
+				ChVectorDynamic<>& R,		 ///< result: the R residual, R += c*M*v 
+				const ChVectorDynamic<>& w,  ///< the w vector 
+				const double c				 ///< a scaling factor
+				)
+			{
+				R(0) += c * this->M * w(0);
+			};
+
+			/// nothing to do here- no constraints
+			virtual void LoadResidual_CqL(
+				ChVectorDynamic<>& R,		 ///< result: the R residual, R += c*Cq'*L 
+				const ChVectorDynamic<>& L,  ///< the L vector 
+				const double c				 ///< a scaling factor
+				)
+			{};
+
+			/// nothing to do here- no constraints
+			virtual void LoadConstraint_C(
+				ChVectorDynamic<>& Qc,		 ///< result: the Qc residual, Qc += c*C 
+				const double c				 ///< a scaling factor
+				)
+			{};
+
+			/// nothing to do here- no constraints
+			virtual void LoadConstraint_Ct(
+				ChVectorDynamic<>& Qc,		 ///< result: the Qc residual, Qc += c*Ct 
+				const double c				 ///< a scaling factor
+				)
+			{};
+
+		};
+
+
+		// Create a file to dump results
+		ChStreamOutAsciiFile log_file4("log_timestepper_4.dat");
+
+
+		// Create and object from your custom integrable class:
+		MyIntegrable mintegrable1;
+		MyIntegrable mintegrable2;
+		MyIntegrable mintegrable3;
+		MyIntegrable mintegrable4;
+
+		// Create few time-integrators to be compared:
+		ChTimestepperEulerImplicit		 mystepper1(mintegrable1);
+		ChTimestepperTrapezoidal		 mystepper2(mintegrable2);
+		ChTimestepperEuleroExplIIorder   mystepper3(mintegrable3);
+		ChTimestepperEuleroSemiImplicit  mystepper4(mintegrable4);
+
+		// Execute the time integration
+		while (mystepper1.GetTime() <4)
+		{
+			mystepper1.Advance(0.01);
+			mystepper2.Advance(0.01);
+			mystepper3.Advance(0.01);
+			mystepper4.Advance(0.01);
+
+			GetLog() << "T = " << mystepper1.GetTime() << "  x=" << mystepper1.X()(0) << "  v=" << mystepper1.V()(0) << "\n";
+			log_file4 << mystepper1.GetTime()	<< ", " << mystepper1.X()(0) << ", " << mystepper1.V()(0)
+												<< ", " << mystepper2.X()(0) << ", " << mystepper2.V()(0)
+												<< ", " << mystepper3.X()(0) << ", " << mystepper3.V()(0)
+												<< ", " << mystepper4.X()(0) << ", " << mystepper4.V()(0)
+												<< "\n";
+		}
+
+	}
+
+
+
+
 
 	GetLog() << "\n  CHRONO execution terminated.";
 	
 
-	system("pause");
+	//system("pause");
 	return 0;
 }
  
