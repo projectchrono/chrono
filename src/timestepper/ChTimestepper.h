@@ -417,6 +417,8 @@ public:
 /// at least when F depends on positions only.
 /// Note: uses last step acceleration: changing or resorting
 /// the numbering of DOFs will invalidate it.
+/// Suggestion: use the ChTimestepperEuleroSemiImplicit, it gives
+/// the same accuracy with a bit of faster performance.
 
 class ChTimestepperLeapfrog : public ChTimestepperIIorder
 {
@@ -445,8 +447,8 @@ public:
 		// advance X (uses last A)
 		X() = X() + V()*dt + Aold*(0.5*dt*dt);
 
-		// computes new A
-		mintegrable->StateSolveA(Dv, L, X(), V(), T, dt, false);	// Dv/dt = f(x,v,T)   Dv = f(x,v,T)*dt
+		// computes new A  (NOTE!!true for imposing a state-> system scatter update,because X changed..)
+		mintegrable->StateSolveA(Dv, L, X(), V(), T, dt, true);	// Dv/dt = f(x,v,T)   Dv = f(x,v,T)*dt
 		
 		A() = Dv*(1. / dt);
 
