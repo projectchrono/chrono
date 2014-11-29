@@ -642,5 +642,132 @@ public:
 };
 
 
+
+/// Performs a step of HHT (generalized alpha) implicit for II order systems
+
+class ChTimestepperHHT : public ChTimestepperIIorder, public ChImplicitTimestepper
+{
+private:
+	double alpha;
+	double gamma;
+	double beta;
+public:
+	/// Constructors (default empty)
+	ChTimestepperHHT(ChIntegrableIIorder& mintegrable)
+		: ChTimestepperIIorder(mintegrable),
+		ChImplicitTimestepper()
+	{
+		SetAlpha(0.0);
+	};
+
+
+		
+	/// Set the numerical damping parameter. 
+	/// It must be in the [-1/3, 0] interval. 
+	/// The closer to -1/3, the more damping.
+	/// The closer to 0, the less damping (for 0, it is the trapezoidal method).
+	void SetAlpha(double alpha)
+	{
+		if (alpha < -1.0 / 3.0)
+			alpha = -1.0 / 3.0;
+		if (alpha > 0)
+			alpha = 0;
+		gamma = (1.0 - 2.0* alpha) / 2.0;
+		beta = pow ((1.0 - alpha), 2) / 4.0;
+	}
+
+	double GetAlpha() { return alpha; }
+
+	/// Performs an integration timestep
+	virtual void Advance(
+		const double dt				///< timestep to advance
+		)
+	{
+		// downcast
+		ChIntegrableIIorder* mintegrable = (ChIntegrableIIorder*)this->integrable;
+
+		mintegrable->StateSetup(X(), V(), A());
+
+		mintegrable->StateGather(X(), V(), T);	// state <- system
+
+		// auxiliary vectors
+		ChStateDelta		Dv(mintegrable->GetNcoords_v(), GetIntegrable());
+		ChStateDelta		Da(mintegrable->GetNcoords_a(), GetIntegrable());
+		ChVectorDynamic<>   Dl(mintegrable->GetNconstr());
+		ChVectorDynamic<>   L(mintegrable->GetNconstr());
+
+		ChState			Xnew(mintegrable->GetNcoords_x(), mintegrable);
+		ChStateDelta	Vnew(mintegrable->GetNcoords_v(), mintegrable);
+		ChStateDelta	Anew(mintegrable->GetNcoords_a(), mintegrable);
+
+		// use Euler explicit to extrapolate a prediction 
+		Anew = A();
+
+		mintegrable->StateSolveA(Dv, L, X(), V(), T, dt, false);	// Dv/dt = f(x,v,T)   Dv = f(x,v,T)*dt
+
+		A() = Dv*(1. / dt);
+
+		Xnew = X() + V()*dt;		// x_new= x + v * dt 
+		Vnew = V() + Dv;			// v_new= v + a * dt 
+		//Anew = A();
+
+		// use Newton Raphson iteration to solve implicit Euler for a_new
+		//
+		// [ M - dt*gamma*dF/dv - dt^2*beta*dF/dx    Cq' ] [ Da       ] = [-1/(1+alpha)*M*(a_new) + (f_new +Cq*l_new) + (alpha/(1+alpha))(f_old +Cq*l_old)]
+		// [ Cq                                      0   ] [ Dl       ] = [-1/(beta*dt^2)*C                                                                          ]
+
+		ChVectorDynamic<> R(mintegrable->GetNcoords_v());
+		ChVectorDynamic<> Rold(mintegrable->GetNcoords_v());
+		ChVectorDynamic<> Qc(mintegrable->GetNconstr());
+
+		mintegrable->LoadResidual_F  (Rold,  (alpha / (1.0 + alpha)) );     // alpha/(1.0+alpha) * f_old
+		mintegrable->LoadResidual_CqL(Rold, L, (alpha / (1.0 + alpha)) );   // alpha/(1.0+alpha) * Cq*l_old
+
+		for (int i = 0; i < this->GetMaxiters(); ++i)
+		{
+			mintegrable->StateScatter(Xnew, Vnew, T + dt);	// state -> system
+			R = Rold;
+			Qc.Reset();
+			mintegrable->LoadResidual_F  (R, 1.0);        // + f_new
+			mintegrable->LoadResidual_Mv (R, Anew, -(1.0/(1.0+alpha)) ); // -1/(1+alpha)*M*a_new
+			mintegrable->LoadResidual_CqL(R, L, 1.0);     // + Cq*l_new
+			mintegrable->LoadConstraint_C(Qc, -(1.0/(beta*dt*dt)) );  // -1/(beta*dt^2)*C
+			GetLog() << "  R=" << R(0) << "    gamma " << gamma<< "  beta " << beta << "\n";
+			if (R.NormInf() < this->GetTolerance())
+				break;
+
+			mintegrable->StateSolveCorrection(
+				Da,
+				Dl,
+				R,
+				1.0,        // factor for  M
+				-dt*gamma,  // factor for  dF/dv
+				-dt*dt*beta,// factor for  dF/dx
+				Xnew, Vnew, T + dt,
+				false  // do not StateScatter update to Xnew Vnew T+dt before computing correction
+				);
+
+			L    += Dl;
+			Anew += Da;
+			
+			Xnew = X() + V()*dt + A()*(dt*dt*(0.5 - beta)) + Anew*(dt*dt*beta);
+
+			Vnew = V() + A()*(dt*(1.0 - gamma)) + Anew*(dt*gamma);
+		}
+
+		X() = Xnew;
+		V() = Vnew;
+		A() = Anew;
+		T += dt;
+
+		mintegrable->StateScatter(X(), V(), T);	// state -> system
+	}
+};
+
+
+
+
+
+
 } // END_OF_NAMESPACE____
 #endif 
