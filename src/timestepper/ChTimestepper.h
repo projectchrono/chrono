@@ -455,6 +455,97 @@ public:
 };
 
 
+/// Performs a step of Euler implicit for II order systems
+
+class ChTimestepperEulerImplicit : public ChTimestepperIIorder, public ChImplicitTimestepper
+{
+public:
+	/// Constructors (default empty)
+	ChTimestepperEulerImplicit(ChIntegrableIIorder& mintegrable)
+		: ChTimestepperIIorder(mintegrable) ,
+		  ChImplicitTimestepper() 
+	{};
+
+	/// Performs an integration timestep
+	virtual void Advance(
+		const double dt				///< timestep to advance
+		)
+	{
+		// downcast
+		ChIntegrableIIorder* mintegrable = (ChIntegrableIIorder*)this->integrable;
+
+		mintegrable->StateSetup(X(), V(), A());
+
+		mintegrable->StateGather(X(), V(), T);	// state <- system
+
+		// auxiliary vectors
+		ChStateDelta		Dv(mintegrable->GetNcoords_v(), GetIntegrable());
+		ChVectorDynamic<>   Dl(mintegrable->GetNconstr());
+		ChVectorDynamic<>   L (mintegrable->GetNconstr());
+
+		ChState			Xnew(mintegrable->GetNcoords_x(), mintegrable);
+		ChStateDelta	Vnew(mintegrable->GetNcoords_v(), mintegrable);
+
+		// use Euler explicit to extrapolate a prediction 
+
+		mintegrable->StateSolveA(Dv, L, X(), V(), T, dt, false);	// Dv/dt = f(x,v,T)   Dv = f(x,v,T)*dt
+
+		A() = Dv*(1. / dt);
+
+		Xnew = X() + V()*dt;		// x_new= x + v * dt 
+		Vnew = V() + Dv;			// v_new= v + a * dt 
+		
+		// use Newton Raphson iteration to solve implicit Euler for v_new
+		//
+		// [ M - dt*dF/dv - dt^2*dF/dx    Cq' ] [ Dv     ] = [ M*(v_old - v_new) + dt*f + dt*Cq*l ]
+		// [ Cq                           0   ] [ -dt*Dl ] = [ C/dt  ]
+
+		ChVectorDynamic<> R(mintegrable->GetNcoords_v());
+		ChVectorDynamic<> Qc(mintegrable->GetNconstr());
+
+
+		for (int i = 0; i < this->GetMaxiters(); ++i)
+		{
+			mintegrable->StateScatter(Xnew, Vnew, T+dt);	// state -> system
+			R.Reset();
+			Qc.Reset();
+			mintegrable->LoadResidual_F  (R, dt);
+			mintegrable->LoadResidual_Mv (R, (V()-Vnew), 1.0);
+			mintegrable->LoadResidual_CqL(R, L, dt);
+			mintegrable->LoadConstraint_C(Qc, 1.0/dt);
+			
+			if (R.NormInf() < this->GetTolerance())
+				break;
+
+			mintegrable->StateSolveCorrection(
+				Dv, 
+				Dl,
+				R,
+				1.0,  // factor for  M
+				-dt,   // factor for  dF/dv
+				-dt*dt,// factor for  dF/dx
+				Xnew, Vnew, T+dt,
+				false  // do not StateScatter update to Xnew Vnew T+dt before computing correction
+				);
+
+			Dl *= -(1.0/dt);
+			L += Dl;
+
+			Vnew += Dv;
+
+			Xnew = X() + Vnew *dt;
+		}
+
+		X() = Xnew;
+		V() = Vnew;
+		T += dt;
+
+		mintegrable->StateScatter(X(), V(), T);	// state -> system
+	}
+};
+
+
+
 
 
 } // END_OF_NAMESPACE____
