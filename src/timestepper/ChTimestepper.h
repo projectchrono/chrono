@@ -406,6 +406,54 @@ public:
 
 
 
+/// Performs a step of a Leapfrog explicit integrator. 
+/// It is a symplectic method, with 2nd order accuracy,
+/// at least when F depends on positions only.
+/// Note: uses last step acceleration: changing or resorting
+/// the numbering of DOFs will invalidate it.
+
+class ChTimestepperLeapfrog : public ChTimestepperIIorder
+{
+public:
+	/// Constructors (default empty)
+	ChTimestepperLeapfrog(ChIntegrableIIorder& mintegrable)
+		: ChTimestepperIIorder(mintegrable)  {};
+
+	/// Performs an integration timestep
+	virtual void Advance(
+		const double dt				///< timestep to advance
+		)
+	{
+		// downcast
+		ChIntegrableIIorder* mintegrable = (ChIntegrableIIorder*)this->integrable;
+
+		mintegrable->StateSetup(X(), V(), A());
+
+		mintegrable->StateGather(X(), V(), T);	// state <- system
+
+		// auxiliary vectors
+		ChStateDelta		Dv(mintegrable->GetNcoords_v(), GetIntegrable());
+		ChVectorDynamic<>   L(mintegrable->GetNconstr());
+		ChStateDelta		Aold(A());
+
+		// advance X (uses last A)
+		X() = X() + V()*dt + Aold*(0.5*dt*dt);
+
+		// computes new A
+		mintegrable->StateSolveA(Dv, L, X(), V(), T, dt, false);	// Dv/dt = f(x,v,T)   Dv = f(x,v,T)*dt
+		
+		A() = Dv*(1. / dt);
+
+		// advance V
+
+		V() = V() + (Aold + A())* (0.5*dt);	
+
+		T += dt;
+
+		mintegrable->StateScatter(X(), V(), T);	// state -> system
+	}
+};
+
 
 
 
