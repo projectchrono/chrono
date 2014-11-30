@@ -12,7 +12,7 @@
 // Authors: Radu Serban, Justin Madsen, Daniel Melanz
 // =============================================================================
 //
-// Generic vehicle model. 
+// Generic 2-axle vehicle model.
 // Can be constructed either with solid-axle or with multi-link suspensions.
 // Always uses a generic rack-pinion steering and a 2WD driveline model.
 //
@@ -25,13 +25,8 @@
 #include "physics/ChSystem.h"
 
 #include "subsys/ChVehicle.h"
-#include "subsys/suspension/ChSolidAxle.h"
 
 #include "models/ModelDefs.h"
-#include "models/generic/Generic_Wheel.h"
-#include "models/generic/Generic_RackPinion.h"
-#include "models/generic/Generic_Driveline2WD.h"
-#include "models/generic/Generic_BrakeSimple.h"
 
 class Generic_Vehicle : public chrono::ChVehicle
 {

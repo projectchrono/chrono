@@ -43,6 +43,7 @@ enum DrivelineType {
 };
 
 enum SuspensionType {
+  DOUBLE_WISHBONE,
   SOLID_AXLE,
   MULTI_LINK
 };

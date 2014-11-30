@@ -55,18 +55,18 @@ using namespace chrono;
 // =============================================================================
 
 // JSON file for vehicle model
-std::string vehicle_file = utils::GetModelDataFile("hmmwv/vehicle/HMMWV_Vehicle.json");
-//std::string vehicle_file = utils::GetModelDataFile("generic/vehicle/Vehicle_DoubleWishbones.json");
-//std::string vehicle_file = utils::GetModelDataFile("generic/vehicle/Vehicle_MultiLinks.json");
-//std::string vehicle_file = utils::GetModelDataFile("generic/vehicle/Vehicle_SolidAxles.json");
-//std::string vehicle_file = utils::GetModelDataFile("generic/vehicle/Vehicle_ThreeAxles.json");
+std::string vehicle_file("hmmwv/vehicle/HMMWV_Vehicle.json");
+//std::string vehicle_file("generic/vehicle/Vehicle_DoubleWishbones.json");
+//std::string vehicle_file("generic/vehicle/Vehicle_MultiLinks.json");
+//std::string vehicle_file("generic/vehicle/Vehicle_SolidAxles.json");
+//std::string vehicle_file("generic/vehicle/Vehicle_ThreeAxles.json");
 
 // JSON files for tire models (rigid) and powertrain (simple)
-std::string rigidtire_file = utils::GetModelDataFile("hmmwv/tire/HMMWV_RigidTire.json");
-std::string simplepowertrain_file = utils::GetModelDataFile("hmmwv/powertrain/HMMWV_SimplePowertrain.json");
+std::string rigidtire_file("hmmwv/tire/HMMWV_RigidTire.json");
+std::string simplepowertrain_file("hmmwv/powertrain/HMMWV_SimplePowertrain.json");
 
 // Driver input file (if not using Irrlicht)
-std::string driver_file = utils::GetModelDataFile("generic/driver/Sample_Maneuver.txt");
+std::string driver_file("generic/driver/Sample_Maneuver.txt");
 
 // Initial vehicle position
 ChVector<> initLoc(0, 0, 1.0);
@@ -84,7 +84,7 @@ double terrainLength = 100.0;   // size in X direction
 double terrainWidth  = 100.0;   // size in Y direction
 
 // Simulation step size
-double step_size = 0.001;
+double step_size = 1e-3;
 
 // Time interval between two render frames
 double render_step_size = 1.0 / 50;   // FPS = 50
@@ -92,15 +92,15 @@ double render_step_size = 1.0 / 50;   // FPS = 50
 // Time interval between two output frames
 double output_step_size = 1.0 / 1;    // once a second
 
-#ifdef USE_IRRLICHT
-  // Point on chassis tracked by the camera
-  ChVector<> trackPoint(0.0, 0.0, 1.75);
-#else
-  double tend = 20.0;
+// Point on chassis tracked by the camera (Irrlicht only)
+ChVector<> trackPoint(0.0, 0.0, 1.75);
 
-  const std::string out_dir = "../VEHICLE";
-  const std::string pov_dir = out_dir + "/POVRAY";
-#endif
+// Simulation length (Povray only)
+double tend = 20.0;
+
+// Output directories (Povray only)
+const std::string out_dir = "../VEHICLE";
+const std::string pov_dir = out_dir + "/POVRAY";
 
 // =============================================================================
 
@@ -113,28 +113,28 @@ int main(int argc, char* argv[])
   // --------------------------
 
   // Create the vehicle system
-  Vehicle vehicle(vehicle_file, false);
+  Vehicle vehicle(utils::GetModelDataFile(vehicle_file), false);
   vehicle.Initialize(ChCoordsys<>(initLoc, initRot));
 
   // Create the ground
   RigidTerrain terrain(vehicle, terrainHeight, terrainLength, terrainWidth, 0.8);
 
   // Create and initialize the powertrain system
-  SimplePowertrain powertrain(simplepowertrain_file);
+  SimplePowertrain powertrain(utils::GetModelDataFile(simplepowertrain_file));
   powertrain.Initialize();
 
   // Create and initialize the tires
   int num_axles = vehicle.GetNumberAxles();
   int num_wheels = 2 * num_axles;
-  std::vector<ChSharedPtr<ChTire> > tires(num_wheels);
+  std::vector<ChSharedPtr<RigidTire> > tires(num_wheels);
 
   for (int i = 0; i < num_wheels; i++) {
-    ChSharedPtr<RigidTire> tire(new RigidTire(rigidtire_file, terrain));
-    tire->Initialize(vehicle.GetWheelBody(i));
-    tires[i] = tire;
+    tires[i] = ChSharedPtr<RigidTire>(new RigidTire(utils::GetModelDataFile(rigidtire_file), terrain));
+    tires[i]->Initialize(vehicle.GetWheelBody(i));
   }
 
 #ifdef USE_IRRLICHT
+
   irr::ChIrrApp application(&vehicle,
                             L"Vehicle demo",
                             irr::core::dimension2d<irr::u32>(1000, 800),
@@ -160,15 +160,12 @@ int main(int argc, char* argv[])
   bool do_shadows = true; // shadow map is experimental
   irr::scene::ILightSceneNode* mlight = 0;
 
-  if (do_shadows)
-  {
+  if (do_shadows) {
     mlight = application.AddLightWithShadow(
       irr::core::vector3df(10.f, 30.f, 60.f),
       irr::core::vector3df(0.f, 0.f, 0.f),
       150, 60, 80, 15, 512, irr::video::SColorf(1, 1, 1), false, false);
-  }
-  else
-  {
+  } else {
     application.AddTypicalLights(
       irr::core::vector3df(30.f, -30.f, 100.f),
       irr::core::vector3df(30.f, 50.f, 100.f),
@@ -192,11 +189,12 @@ int main(int argc, char* argv[])
   application.AssetBindAll();
   application.AssetUpdateAll();
   if (do_shadows)
-  {
     application.AddShadowAll();
-  }
+
 #else
-  ChDataDriver driver(driver_file);
+
+  ChDataDriver driver(utils::GetModelDataFile(driver_file));
+
 #endif
 
 
@@ -229,20 +227,20 @@ int main(int argc, char* argv[])
 
   while (application.GetDevice()->run())
   {
-    // update the position of the shadow mapping so that it follows the car
-    if (do_shadows)
-    {
-      ChVector<> lightaim = vehicle.GetChassisPos();
-      ChVector<> lightpos = vehicle.GetChassisPos() + ChVector<>(10, 30, 60);
-      irr::core::vector3df mlightpos((irr::f32)lightpos.x, (irr::f32)lightpos.y, (irr::f32)lightpos.z);
-      irr::core::vector3df mlightaim((irr::f32)lightaim.x, (irr::f32)lightaim.y, (irr::f32)lightaim.z);
-      application.GetEffects()->getShadowLight(0).setPosition(mlightpos);
-      application.GetEffects()->getShadowLight(0).setTarget(mlightaim);
-      mlight->setPosition(mlightpos);
-    }
-
     // Render scene
     if (step_number % render_steps == 0) {
+      // Update the position of the shadow mapping so that it follows the car
+      if (do_shadows) {
+        ChVector<> lightaim = vehicle.GetChassisPos();
+        ChVector<> lightpos = vehicle.GetChassisPos() + ChVector<>(10, 30, 60);
+        irr::core::vector3df mlightpos((irr::f32)lightpos.x, (irr::f32)lightpos.y, (irr::f32)lightpos.z);
+        irr::core::vector3df mlightaim((irr::f32)lightaim.x, (irr::f32)lightaim.y, (irr::f32)lightaim.z);
+        application.GetEffects()->getShadowLight(0).setPosition(mlightpos);
+        application.GetEffects()->getShadowLight(0).setTarget(mlightaim);
+        mlight->setPosition(mlightpos);
+      }
+
+      // Draw all scene elements
       application.GetVideoDriver()->beginScene(true, true, irr::video::SColor(255, 140, 161, 192));
       driver.DrawAll();
       application.GetVideoDriver()->endScene();

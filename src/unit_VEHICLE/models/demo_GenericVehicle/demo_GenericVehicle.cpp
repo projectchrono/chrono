@@ -32,7 +32,6 @@
 #include "utils/ChUtilsInputOutput.h"
 #include "utils/ChUtilsData.h"
 #include "subsys/terrain/RigidTerrain.h"
-#include "subsys/tire/ChPacejkaTire.h"
 
 #include "models/ModelDefs.h"
 #include "models/generic/Generic_Vehicle.h"
@@ -73,7 +72,7 @@ double terrainLength = 100.0;   // size in X direction
 double terrainWidth  = 100.0;   // size in Y direction
 
 // Simulation step size
-double step_size = 0.001;
+double step_size = 1e-3;
 
 // Time interval between two render frames
 double render_step_size = 1.0 / 50;   // FPS = 50
@@ -81,15 +80,15 @@ double render_step_size = 1.0 / 50;   // FPS = 50
 // Time interval between two output frames
 double output_step_size = 1.0 / 1;    // once a second
 
-#ifdef USE_IRRLICHT
-  // Point on chassis tracked by the camera
-  ChVector<> trackPoint(0.0, 0.0, 1.75);
-#else
-  double tend = 20.0;
+// Point on chassis tracked by the camera (Irrlicht only)
+ChVector<> trackPoint(0.0, 0.0, 1.75);
 
-  const std::string out_dir = "../GENERIC_VEHICLE";
-  const std::string pov_dir = out_dir + "/POVRAY";
-#endif
+// Simulation length (Povray only)
+double tend = 20.0;
+
+// Output directories (Povray only)
+const std::string out_dir = "../GENERIC_VEHICLE";
+const std::string pov_dir = out_dir + "/POVRAY";
 
 // =============================================================================
 
@@ -132,6 +131,7 @@ int main(int argc, char* argv[])
 
 
 #ifdef USE_IRRLICHT
+
   irr::ChIrrApp application(&vehicle,
                             L"Generic Vehicle Demo",
                             irr::core::dimension2d<irr::u32>(1000, 800),
@@ -157,19 +157,16 @@ int main(int argc, char* argv[])
   bool do_shadows = true; // shadow map is experimental
   irr::scene::ILightSceneNode* mlight = 0;
 
-  if (!do_shadows)
-  {
-    application.AddTypicalLights(
-      irr::core::vector3df(30.f, -30.f, 100.f),
-      irr::core::vector3df(30.f, 50.f, 100.f),
-      250, 130);
-  }
-  else
-  {
+  if (do_shadows) {
     mlight = application.AddLightWithShadow(
       irr::core::vector3df(10.f, 30.f, 60.f),
       irr::core::vector3df(0.f, 0.f, 0.f),
       150, 60, 80, 15, 512, irr::video::SColorf(1, 1, 1), false, false);
+  } else {
+    application.AddTypicalLights(
+      irr::core::vector3df(30.f, -30.f, 100.f),
+      irr::core::vector3df(30.f, 50.f, 100.f),
+      250, 130);
   }
 
   application.SetTimestep(step_size);
@@ -188,12 +185,14 @@ int main(int argc, char* argv[])
   // Set up the assets for rendering
   application.AssetBindAll();
   application.AssetUpdateAll();
+
   if (do_shadows)
-  {
     application.AddShadowAll();
-  }
+
 #else
+
   Generic_FuncDriver driver;
+
 #endif
 
 
@@ -231,20 +230,20 @@ int main(int argc, char* argv[])
 
   while (application.GetDevice()->run())
   {
-    // update the position of the shadow mapping so that it follows the car
-    if (do_shadows)
-    {
-      ChVector<> lightaim = vehicle.GetChassisPos();
-      ChVector<> lightpos = vehicle.GetChassisPos() + ChVector<>(10, 30, 60);
-      irr::core::vector3df mlightpos((irr::f32)lightpos.x, (irr::f32)lightpos.y, (irr::f32)lightpos.z);
-      irr::core::vector3df mlightaim((irr::f32)lightaim.x, (irr::f32)lightaim.y, (irr::f32)lightaim.z);
-      application.GetEffects()->getShadowLight(0).setPosition(mlightpos);
-      application.GetEffects()->getShadowLight(0).setTarget(mlightaim);
-      mlight->setPosition(mlightpos);
-    }
-
     // Render scene
     if (step_number % render_steps == 0) {
+      // Update the position of the shadow mapping so that it follows the car
+      if (do_shadows) {
+        ChVector<> lightaim = vehicle.GetChassisPos();
+        ChVector<> lightpos = vehicle.GetChassisPos() + ChVector<>(10, 30, 60);
+        irr::core::vector3df mlightpos((irr::f32)lightpos.x, (irr::f32)lightpos.y, (irr::f32)lightpos.z);
+        irr::core::vector3df mlightaim((irr::f32)lightaim.x, (irr::f32)lightaim.y, (irr::f32)lightaim.z);
+        application.GetEffects()->getShadowLight(0).setPosition(mlightpos);
+        application.GetEffects()->getShadowLight(0).setTarget(mlightaim);
+        mlight->setPosition(mlightpos);
+      }
+
+      // Draw all scene elements
       application.GetVideoDriver()->beginScene(true, true, irr::video::SColor(255, 140, 161, 192));
       driver.DrawAll();
       application.GetVideoDriver()->endScene();
