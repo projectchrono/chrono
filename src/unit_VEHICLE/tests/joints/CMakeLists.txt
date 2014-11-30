@@ -20,8 +20,11 @@ SET(TEST_PROGRAMS
     test_prismatic
     test_cylindrical
     test_distance
-    test_linactuator
+#    test_rackpinion
     test_revsph
+    test_linactuator
+    test_transpring
+    test_rotspring
 )
 
 
