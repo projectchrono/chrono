@@ -24,312 +24,273 @@
 #include "ChLcpIterativeAPGD.h"
 #include "ChLcpConstraintTwoFrictionT.h"
 
+#include "core/ChFileutils.h"
+#include "core/ChStream.h"
+
+#include <iostream>
+#include <vector>
+#include <valarray>
+#include <string>
+#include <sstream>
+
 namespace chrono {
 
-double ChIterativeAPGD::Solve(ChLcpSystemDescriptor& sysd		///< system description with constraints and variables
-) {
-   const std::vector<ChLcpConstraint*>& mconstraints = sysd.GetConstraintsList();
-   size_t nOfConstraints = mconstraints.size();
+void ChIterativeAPGD::ShurBvectorCompute(ChLcpSystemDescriptor& sysd) {
+  // ***TO DO*** move the following thirty lines in a short function ChLcpSystemDescriptor::ShurBvectorCompute() ?
 
-   const std::vector<ChLcpVariables*>& mvariables = sysd.GetVariablesList();
-   size_t nOfVars = mvariables.size();
+  // Compute the b_shur vector in the Shur complement equation N*l = b_shur
+  // with
+  //   N_shur  = D'* (M^-1) * D
+  //   b_shur  = - c + D'*(M^-1)*k = b_i + D'*(M^-1)*k
+  // but flipping the sign of lambdas,  b_shur = - b_i - D'*(M^-1)*k
+  // Do this in three steps:
 
-   double gdiff = 0.000001;
+  // Put (M^-1)*k    in  q  sparse vector of each variable..
+  for (unsigned int iv = 0; iv < sysd.GetVariablesList().size(); iv++)
+    if (sysd.GetVariablesList()[iv]->IsActive())
+      sysd.GetVariablesList()[iv]->Compute_invMb_v(
+          sysd.GetVariablesList()[iv]->Get_qb(),
+          sysd.GetVariablesList()[iv]->Get_fb());  // q = [M]'*fb
 
-   double maxviolation = 0.;
-   int i_friction_comp = 0;
+  // ...and now do  b_shur = - D'*q = - D'*(M^-1)*k ..
+  int s_i = 0;
+  for (unsigned int ic = 0; ic < sysd.GetConstraintsList().size(); ic++)
+    if (sysd.GetConstraintsList()[ic]->IsActive()) {
+      r(s_i, 0) = sysd.GetConstraintsList()[ic]->Compute_Cq_q();
+      ++s_i;
+    }
 
-   double theta_k = 1.0;
-   double theta_k1 = theta_k;
-   double beta_k1 = 0.0;
+  // ..and finally do   b_shur = b_shur - c
+  sysd.BuildBiVector(tmp);  // b_i   =   -c   = phi/h
+  r.MatrInc(tmp);
+}
 
-   double L_k = 0.0;
-   double t_k = 0.0;
+double ChIterativeAPGD::Res4(ChLcpSystemDescriptor& sysd) {
+  //****METHOD 1 for residual, same as ChLcpIterativeBB
+  // Project the gradient (for rollback strategy)
+  // g_proj = (l-project_orthogonal(l - gdiff*g, fric))/gdiff;
+  double gdiff = 1.0 / pow(nc, 2.0);
+  sysd.ShurComplementProduct(tmp, &gammaNew);
+  tmp.MatrInc(r);
+  tmp.MatrScale(-gdiff);
+  tmp.MatrInc(gammaNew);
+  sysd.ConstraintsProject(tmp);
+  tmp.MatrSub(gammaNew, tmp);
+  tmp.MatrScale(1.0 / gdiff);
+  //****End of METHOD 1 for residual, same as ChLcpIterativeBB
 
-   tot_iterations = 0;
-   // Allocate auxiliary vectors;
+  return tmp.NormTwo();
+}
 
-   int nc = sysd.CountActiveConstraints();
-   if (verbose)
-      GetLog() << "\n-----Accelerated Projected Gradient Descent, solving nc=" << nc << "unknowns \n";
+double ChIterativeAPGD::Solve(ChLcpSystemDescriptor& sysd) {
+  bool verbose = false;
+  const std::vector<ChLcpConstraint*>& mconstraints = sysd.GetConstraintsList();
+  const std::vector<ChLcpVariables*>& mvariables = sysd.GetVariablesList();
+  if(verbose) std::cout << "Number of constraints: " << mconstraints.size() << "\nNumber of variables  : " << mvariables.size() << std::endl;
 
-   ml.Resize(nc, 1);
-   ChMatrixDynamic<> mx(nc, 1);
-   ChMatrixDynamic<> ms(nc, 1);
-   ChMatrixDynamic<> my(nc, 1);
-   ChMatrixDynamic<> ml_candidate(nc, 1);
-   ChMatrixDynamic<> mg(nc, 1);
-   ChMatrixDynamic<> mg_tmp(nc, 1);
-   ChMatrixDynamic<> mg_tmp1(nc, 1);
-   ChMatrixDynamic<> mg_tmp2(nc, 1);
-   mb.Resize(nc, 1);
-   ChMatrixDynamic<> mb_tmp(nc, 1);
+  // Update auxiliary data in all constraints before starting,
+  // that is: g_i=[Cq_i]*[invM_i]*[Cq_i]' and  [Eq_i]=[invM_i]*[Cq_i]'
+  for (unsigned int ic = 0; ic < mconstraints.size(); ic++)
+    mconstraints[ic]->Update_auxiliary();
 
-   // Update auxiliary data in all constraints before starting,
-   // that is: g_i=[Cq_i]*[invM_i]*[Cq_i]' and  [Eq_i]=[invM_i]*[Cq_i]'
-   for (unsigned int ic = 0; ic < nOfConstraints; ic++)
-      mconstraints[ic]->Update_auxiliary();
+  double L, t;
+  double theta;
+  double thetaNew;
+  double Beta;
+  double obj1, obj2;
 
-   // Average all g_i for the triplet of contact constraints n,u,v.
-   //  Can be used for the fixed point phase and/or by preconditioner.
-   int j_friction_comp = 0;
-   double gi_values[3];
-   for (unsigned int ic = 0; ic < nOfConstraints; ic++) {
-      if (mconstraints[ic]->GetMode() == CONSTRAINT_FRIC) {
-         gi_values[j_friction_comp] = mconstraints[ic]->Get_g_i();
-         j_friction_comp++;
-         if (j_friction_comp == 3) {
-            double average_g_i = (gi_values[0] + gi_values[1] + gi_values[2]) / 3.0;
-            mconstraints[ic - 2]->Set_g_i(average_g_i);
-            mconstraints[ic - 1]->Set_g_i(average_g_i);
-            mconstraints[ic - 0]->Set_g_i(average_g_i);
-            j_friction_comp = 0;
-         }
-      }
-   }
+  nc = sysd.CountActiveConstraints();
+  gamma_hat.Resize(nc, 1);
+  gammaNew.Resize(nc, 1);
+  g.Resize(nc, 1);
+  y.Resize(nc, 1);
+  gamma.Resize(nc, 1);
+  yNew.Resize(nc, 1);
+  r.Resize(nc, 1);
+  tmp.Resize(nc, 1);
 
-   // ***TO DO*** move the following thirty lines in a short function ChLcpSystemDescriptor::ShurBvectorCompute() ?
+  residual = 10e30;
 
-   // Compute the b_shur vector in the Shur complement equation N*l = b_shur
-   // with
-   //   N_shur  = D'* (M^-1) * D
-   //   b_shur  = - c + D'*(M^-1)*k = b_i + D'*(M^-1)*k
-   // but flipping the sign of lambdas,  b_shur = - b_i - D'*(M^-1)*k
-   // Do this in three steps:
+  Beta = 0.0;
+  obj1 = 0.0;
+  obj2 = 0.0;
 
-   // Put (M^-1)*k    in  q  sparse vector of each variable..
-   for (unsigned int iv = 0; iv < nOfVars; iv++)
-      if (mvariables[iv]->IsActive())
-         mvariables[iv]->Compute_invMb_v(mvariables[iv]->Get_qb(), mvariables[iv]->Get_fb());  // q = [M]'*fb
+  // Compute the b_shur vector in the Shur complement equation N*l = b_shur
+  ShurBvectorCompute(sysd);
 
-   // ...and now do  b_shur = - D'*q = - D'*(M^-1)*k ..
-   int s_i = 0;
-   for (unsigned int ic = 0; ic < nOfConstraints; ic++)
-      if (mconstraints[ic]->IsActive()) {
-         mb(s_i, 0) = -mconstraints[ic]->Compute_Cq_q();
-         ++s_i;
-      }
+  // Optimization: backup the  q  sparse data computed above,
+  // because   (M^-1)*k   will be needed at the end when computing primals.
+  ChMatrixDynamic<> Minvk;
+  sysd.FromVariablesToVector(Minvk, true);
 
-   // ..and finally do   b_shur = b_shur - c
-   sysd.BuildBiVector(mb_tmp);	// b_i   =   -c   = phi/h
-   mb.MatrDec(mb_tmp);
+  // (1) gamma_0 = zeros(nc,1)
+  gamma.FillElem(0);
+  for (int i = 0; i < gamma.GetRows(); i = i + 3)
+    gamma.SetElement(i,0, -1);
 
-   // Optimization: backup the  q  sparse data computed above,
-   // because   (M^-1)*k   will be needed at the end when computing primals.
-   ChMatrixDynamic<> mq;
-   sysd.FromVariablesToVector(mq, true);
+  // (2) gamma_hat_0 = ones(nc,1)
+  gamma_hat.FillElem(1);
 
-   // Initialize lambdas
-   if (warm_start)
-      sysd.FromConstraintsToVector(ml);
-   else
-      ml.FillElem(0);
+  // (3) y_0 = gamma_0
+  y.CopyFromMatrix(gamma);
 
-   // Initial projection of ml   ***TO DO***?
-   sysd.ConstraintsProject(ml);
+  // (4) theta_0 = 1
+  theta = 1.0;
 
-   // Fallback solution
-   double lastgoodres = 10e30;
-   double lastgoodfval = 10e30;
-   ml_candidate.CopyFromMatrix(ml);
+  // (5) L_k = norm(N * (gamma_0 - gamma_hat_0)) / norm(gamma_0 - gamma_hat_0)
+  tmp.MatrSub(gamma, gamma_hat);
+  L = tmp.NormTwo();
+  sysd.ShurComplementProduct(yNew, &tmp,0);
+  L = yNew.NormTwo() / L;
+  yNew.FillElem(0); // reset yNew to be all zeros
 
-   // g = gradient of 0.5*l'*N*l-l'*b
-   // g = N*l-b
-   sysd.ShurComplementProduct(mg, &ml, 0);		// 1)  g = N*l ...        #### MATR.MULTIPLICATION!!!###
-   mg.MatrDec(mb);								      // 2)  g = N*l - b_shur ...
+  // (6) t_k = 1 / L_k
+  t = 1.0 / L;
 
-   //
-   // THE LOOP
-   //
+  // (7) for k := 0 to N_max
+  for (tot_iterations = 0; tot_iterations < max_iterations; tot_iterations++) {
+    // (8) g = N * y_k - r
+    sysd.ShurComplementProduct(g, &y);
+    g.MatrInc(r);
 
-   double mf_p = 0;
+    // (9) gamma_(k+1) = ProjectionOperator(y_k - t_k * g)
+    gammaNew.CopyFromMatrix(g);
+    gammaNew.MatrScale(-t);
+    gammaNew.MatrInc(y);
+    sysd.ConstraintsProject(gammaNew);
 
-   mb_tmp.FillElem(-1.0);
-   mb_tmp.MatrInc(ml);
-   sysd.ShurComplementProduct(mg_tmp, &mb_tmp, 0);  // 1)  g = N*l ...        #### MATR.MULTIPLICATION!!!###
-   if (mb_tmp.NormTwo() == 0) {
-      L_k = 1;
-   } else {
-      L_k = mg_tmp.NormTwo() / mb_tmp.NormTwo();
-   }
-   t_k = 1 / L_k;
+    // (10) while 0.5 * gamma_(k+1)' * N * gamma_(k+1) - gamma_(k+1)' * r >= 0.5 * y_k' * N * y_k - y_k' * r + g' * (gamma_(k+1) - y_k) + 0.5 * L_k * norm(gamma_(k+1) - y_k)^2
+    sysd.ShurComplementProduct(tmp, &gammaNew); // Here tmp is equal to N*gammaNew;
+    tmp.MatrScale(0.5);
+    tmp.MatrInc(r);
+    obj1 = tmp.MatrDot(&gammaNew, &tmp);
 
-   double obj1 = 0;
-   double obj2 = 0;
+    sysd.ShurComplementProduct(tmp, &y); // Here tmp is equal to N*y;
+    tmp.MatrScale(0.5);
+    tmp.MatrInc(r);
+    obj2 = tmp.MatrDot(&y, &tmp);
+    tmp.MatrSub(gammaNew, y); // Here tmp is equal to gammaNew - y
+    obj2 = obj2 + tmp.MatrDot(&tmp, &g) + 0.5 * L * tmp.MatrDot(&tmp, &tmp);
 
-   my.CopyFromMatrix(ml);
-   mx.CopyFromMatrix(ml);
+    while (obj1 >= obj2) {
+      // (11) L_k = 2 * L_k
+      L = 2.0 * L;
 
-   for (int iter = 0; iter < max_iterations; iter++) {
-      sysd.ShurComplementProduct(mg_tmp1, &my, 0);	   // 1)  g_tmp1 = N*yk ...        #### MATR.MULTIPLICATION!!!###
-      mg.MatrSub(mg_tmp1, mb);							   // 2)  g = N*yk - b_shur ...
+      // (12) t_k = 1 / L_k
+      t = 1.0 / L;
 
-      mx.CopyFromMatrix(mg);						         // 1) xk1=g
-      mx.MatrScale(-t_k); 						            // 2) xk1=-tk*g
-      mx.MatrInc(my);								         // 3) xk1=y-tk*g
-      sysd.ConstraintsProject(mx);				         // 4) xk1=P(y-tk*g)
+      // (13) gamma_(k+1) = ProjectionOperator(y_k - t_k * g)
+      gammaNew.CopyFromMatrix(g);
+      gammaNew.MatrScale(-t);
+      gammaNew.MatrInc(y);
+      sysd.ConstraintsProject(gammaNew);
 
-      //Now do backtracking for the steplength
-      sysd.ShurComplementProduct(mg_tmp, &mx, 0);     // 1)  g_tmp = N*xk1 ...        #### MATR.MULTIPLICATION!!!###
-      mg_tmp2.MatrSub(mg_tmp, mb);						   // 2)  g_tmp2 = N*xk1 - b_shur ...
-      mg_tmp.MatrScale(0.5);							      // 3)  g_tmp=0.5*N*xk1
-      mg_tmp.MatrDec(mb);								      // 4)  g_tmp=0.5*N*xk1-b_shur
-      obj1 = mx.MatrDot(&mx, &mg_tmp);					   // 5)  obj1=xk1'*(0.5*N*x_k1-b_shur)
+      // Update the components of the while condition
+      sysd.ShurComplementProduct(tmp, &gammaNew); // Here tmp is equal to N*gammaNew;
+      tmp.MatrScale(0.5);
+      tmp.MatrInc(r);
+      obj1 = tmp.MatrDot(&gammaNew, &tmp);
 
-      mg_tmp1.MatrScale(0.5);							      // 1)  g_tmp1 = 0.5*N*yk
-      mg_tmp1.MatrDec(mb);							         // 2)  g_tmp1 = 0.5*N*yk-b_shur
-      obj2 = my.MatrDot(&my, &mg_tmp1);				   // 3)  obj2 = yk'*(0.5*N*yk-b_shur)
+      sysd.ShurComplementProduct(tmp, &y); // Here tmp is equal to N*y;
+      tmp.MatrScale(0.5);
+      tmp.MatrInc(r);
+      obj2 = tmp.MatrDot(&y, &tmp);
+      tmp.MatrSub(gammaNew, y); // Here tmp is equal to gammaNew - y
+      obj2 = obj2 + tmp.MatrDot(&tmp, &g) + 0.5 * L * tmp.MatrDot(&tmp, &tmp);
 
-      ms.MatrSub(mx, my);								      // 1)  s=xk1-yk
-      while (obj1 > obj2 + mg.MatrDot(&mg, &ms) + 0.5 * L_k * pow(ms.NormTwo(), 2.0)) {
-         L_k = 2 * L_k;
-         t_k = 1 / L_k;
+      // (14) endwhile
+    }
 
-         mx.CopyFromMatrix(mg);						      // 1) xk1=g
-         mx.MatrScale(-t_k);							      // 2) xk1=-tk*g
-         mx.MatrInc(my);								      // 3) xk1=yk-tk*g
-         sysd.ConstraintsProject(mx);				      // 4) xk1=P(yk-tk*g)
+    //if(verbose) OutputState("_14");
 
-         sysd.ShurComplementProduct(mg_tmp, &mx, 0);	// 1)  g_tmp = N*xk1 ...        #### MATR.MULTIPLICATION!!!###
-         mg_tmp2.MatrSub(mg_tmp, mb);						// 2)  g_tmp2 = N*xk1 - b_shur ...
-         mg_tmp.MatrScale(0.5);							   // 3)  g_tmp=0.5*N*xk1
-         mg_tmp.MatrDec(mb);								   // 4)  g_tmp=0.5*N*xk1-b_shur
-         obj1 = mx.MatrDot(&mx, &mg_tmp);					// 5)  obj1=xk1'*(0.5*N*x_k1-b_shur)
+    // (15) theta_(k+1) = (-theta_k^2 + theta_k * sqrt(theta_k^2 + 4)) / 2
+    thetaNew = (-pow(theta, 2.0) + theta * sqrt(pow(theta, 2.0) + 4.0)) / 2.0;
 
-         ms.MatrSub(mx, my);								   // 1)  s=xk1-yk
-         if (verbose)
-            GetLog() << "APGD halving stepsize at it " << iter << "\n";
-      }
+    // (16) Beta_(k+1) = theta_k * (1 - theta_k) / (theta_k^2 + theta_(k+1))
+    Beta = theta * (1.0 - theta) / (pow(theta, 2) + thetaNew);
 
-      theta_k1 = (-pow(theta_k, 2) + theta_k * sqrt(pow(theta_k, 2) + 4)) / 2.0;
-      beta_k1 = theta_k * (1.0 - theta_k) / (pow(theta_k, 2) + theta_k1);
+    // (17) y_(k+1) = gamma_(k+1) + Beta_(k+1) * (gamma_(k+1) - gamma_k)
+    tmp.MatrSub(gammaNew, gamma); // Here tmp is equal to gammaNew - gamma;
+    tmp.MatrScale(Beta);
+    yNew.MatrAdd(gammaNew, tmp);
 
-      my.CopyFromMatrix(mx);						         // 1) y=xk1;
-      my.MatrDec(ml);								         // 2) y=xk1-xk;
-      my.MatrScale(beta_k1);						         // 3) y=beta_k1*(xk1-xk);
-      my.MatrInc(mx);								         // 4) y=xk1+beta_k1*(xk1-xk);
-      ms.MatrSub(mx, ml);						            // 0) s = xk1 - xk;
+    //if(verbose) OutputState("_17");
 
-      // Restarting logic if momentum is not appropriate
-      if (mg.MatrDot(&mg, &ms) > 0) {
-         my.CopyFromMatrix(mx);		                  // 1) y=xk1
-         theta_k1 = 1.0;							         // 2) theta_k=1
-         if (verbose)
-            GetLog() << "Restarting APGD at it " << iter << "\n";
-      }
+    // (18) r = r(gamma_(k+1))
+    double res = Res4(sysd);
 
-      //Allow the step to grow...
-      L_k = 0.9 * L_k;
-      t_k = 1 / L_k;
+    // (19) if r < epsilon_min
+    if (res < residual) {
+      // (20) r_min = r
+      residual = res;
 
-      ml.CopyFromMatrix(mx);					            // 1) xk=xk1;
-      theta_k = theta_k1;							         // 2) theta_k=theta_k1;
+      // (21) gamma_hat = gamma_(k+1)
+      gamma_hat.CopyFromMatrix(gammaNew);
 
-      //****METHOD 1 for residual, same as ChLcpIterativeBB
-      // Project the gradient (for rollback strategy)
-      // g_proj = (l-project_orthogonal(l - gdiff*g, fric))/gdiff;
-      mb_tmp.CopyFromMatrix(mg_tmp2);
-      mb_tmp.MatrScale(-gdiff);
-      mb_tmp.MatrInc(ml);
-      sysd.ConstraintsProject(mb_tmp);
-      mb_tmp.MatrDec(ml);
-      mb_tmp.MatrDivScale(-gdiff);
-      double g_proj_norm = mb_tmp.NormTwo();  // NormInf() is faster..
-      //****End of METHOD 1 for residual, same as ChLcpIterativeBB
+      // (22) endif
+    }
 
-      //****METHOD 2 for residual, same as ChLcpIterativeSOR
-      maxviolation = 0;
-      i_friction_comp = 0;
-      for (unsigned int ic = 0; ic < nOfConstraints; ic++) {
-         if (mconstraints[ic]->IsActive()) {
-            // true constraint violation may be different from 'mresidual' (ex:clamped if unilateral)
-            double candidate_violation = fabs(mconstraints[ic]->Violation(mg_tmp2.ElementN(ic)));
+    //if(verbose) OutputState("_22");
 
-            if (mconstraints[ic]->GetMode() == CONSTRAINT_FRIC) {
-               candidate_violation = 0;
-               i_friction_comp++;
+    // (23) if r < Tau
+    if (residual < this->tolerance) {
+      // (24) break
+      break;
 
-               if (i_friction_comp == 1)
-                  candidate_violation = fabs(ChMin(0.0, mg_tmp2.ElementN(ic)));
+      // (25) endif
+    }
 
-               if (i_friction_comp == 3)
-                  i_friction_comp = 0;
-            } else {
+    // (26) if g' * (gamma_(k+1) - gamma_k) > 0
+    tmp.MatrSub(gammaNew, gamma);
+    if (tmp.MatrDot(&tmp, &g) > 0) {
+      // (27) y_(k+1) = gamma_(k+1)
+      yNew.CopyFromMatrix(gammaNew);
 
-            }
-            maxviolation = ChMax(maxviolation, fabs(candidate_violation));
-         }
-      }
-      g_proj_norm = maxviolation;
-      //****End of METHOD 2 for residual, same as ChLcpIterativeSOR
+      // (28) theta_(k+1) = 1
+      thetaNew = 1.0;
 
-      // Rollback solution: the last best candidate ('l' with lowest projected gradient)
-      // in fact the method is not monotone and it is quite 'noisy', if we do not
-      // do this, a prematurely truncated iteration might give a crazy result.
-      if (g_proj_norm < lastgoodres) {
-         lastgoodres = g_proj_norm;
-         ml_candidate = ml;
-      }
+      // (29) endif
+    }
 
-      // METRICS - convergence, plots, etc
+    //if(verbose) OutputState("_29");
 
-      if (verbose) {
-         // f_p = 0.5*l_candidate'*N*l_candidate - l_candidate'*b  = l_candidate'*(0.5*Nl_candidate - b);
-         sysd.ShurComplementProduct(mg_tmp, &ml_candidate, 0);		// 1)  g_tmp = N*l_candidate ...        #### MATR.MULTIPLICATION!!!###
-         mg_tmp.MatrScale(0.5);										      // 2)  g_tmp = 0.5*N*l_candidate
-         mg_tmp.MatrDec(mb);											      // 3)  g_tmp = 0.5*N*l_candidate-b_shur
-         mf_p = ml_candidate.MatrDot(&ml_candidate, &mg_tmp);	   // 4)  mf_p  = l_candidate'*(0.5*N*l_candidate-b_shur)
-      }
+    // (30) L_k = 0.9 * L_k
+    L = 0.9 * L;
 
-      double maxdeltalambda = ms.NormInf();
-      double maxd = lastgoodres;
+    // (31) t_k = 1 / L_k
+    t = 1.0 / L;
 
-      // For recording into correction/residuals/violation history, if debugging
-      if (this->record_violation_history)
-         AtIterationEnd(maxd, maxdeltalambda, iter);
+    // perform some tasks at the end of the iteration
+    if (this->record_violation_history) {
+      tmp.MatrSub(gammaNew, gamma);
+      AtIterationEnd(residual, tmp.NormInf(), tot_iterations);
+    }
 
-      if (verbose)
-         GetLog() << "  iter=" << iter << "   f=" << mf_p << "  |d|=" << maxd << "  |s|=" << maxdeltalambda << "\n";
+    // Update iterates
+    theta = thetaNew;
+    gamma.CopyFromMatrix(gammaNew);
+    y.CopyFromMatrix(yNew);
 
-      tot_iterations++;
+    // (32) endfor
+  }
+  //if(verbose) OutputState("_32");
+  if(verbose) std::cout << "Residual: " << residual << ", Iter: " << tot_iterations << std::endl;
 
-      // Terminate the loop if violation in constraints has been succesfully limited.
-      // ***TO DO*** a reliable termination creterion..
-      ///*
-      if (maxd < this->tolerance) {
-         if (verbose)
-            GetLog() << "APGD premature converged at i=" << iter << "\n";
-         break;
-      }
-      //*/
+  // (33) return Value at time step t_(l+1), gamma_(l+1) := gamma_hat
+  sysd.FromVectorToConstraints(gamma_hat);
 
-   }
+  // Resulting PRIMAL variables:
+  // compute the primal variables as   v = (M^-1)(k + D*l)
+  // v = (M^-1)*k  ...    (by rewinding to the backup vector computed at the beginning)
+  sysd.FromVectorToVariables(Minvk);
 
-   // Fallback to best found solution (might be useful because of nonmonotonicity)
-   ml.CopyFromMatrix(ml_candidate);
+  // ... + (M^-1)*D*l     (this increment and also stores 'qb' in the ChLcpVariable items)
+  for (size_t ic = 0; ic < mconstraints.size(); ic++) {
+    if (mconstraints[ic]->IsActive())
+      mconstraints[ic]->Increment_q(mconstraints[ic]->Get_l_i());
+  }
 
-   // Resulting DUAL variables:
-   // store ml temporary vector into ChLcpConstraint 'l_i' multipliers
-   sysd.FromVectorToConstraints(ml);
-
-   // Resulting PRIMAL variables:
-   // compute the primal variables as   v = (M^-1)(k + D*l)
-
-   // v = (M^-1)*k  ...    (by rewinding to the backup vector computed ad the beginning)
-   sysd.FromVectorToVariables(mq);
-
-   // ... + (M^-1)*D*l     (this increment and also stores 'qb' in the ChLcpVariable items)
-   for (size_t ic = 0; ic < nOfConstraints; ic++) {
-      if (mconstraints[ic]->IsActive())
-         mconstraints[ic]->Increment_q(mconstraints[ic]->Get_l_i());
-   }
-
-   if (verbose)
-      GetLog() << "-----\n";
-   current_residual = lastgoodres;
-   return lastgoodres;
-
+  return residual;
 }
 
 }  // END_OF_NAMESPACE____
-
