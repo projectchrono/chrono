@@ -55,10 +55,10 @@ protected:
 
 	ChVector<> p1;			///< max penetration point on geo1, after refining, in abs space
 	ChVector<> p2;			///< max penetration point on geo2, after refining, in abs space
-	ChVector<float> normal;	///< normal, on surface of master reference (geo1)
+	ChVector<double> normal;	///< normal, on surface of master reference (geo1)
 
 							///< the plane of contact (X is normal direction)
-	ChMatrix33<float> contact_plane;
+	ChMatrix33<double> contact_plane;
 	
 	double norm_dist;	    ///< penetration distance (negative if going inside) after refining
 
@@ -72,10 +72,10 @@ protected:
 
 	ChVector<> react_force;
 
-	float compliance;
-	float complianceT;
-	float restitution;
-	float dampingf;
+	double compliance;
+	double complianceT;
+	double restitution;
+	double dampingf;
 
 public:
 				//
@@ -129,7 +129,7 @@ public:
 					/// Returns the pointer to a contained 3x3 matrix representing the UV and normal
 					/// directions of the contact. In detail, the X versor (the 1s column of the 
 					/// matrix) represents the direction of the contact normal.
-	ChMatrix33<float>* GetContactPlane() {return &contact_plane;};
+	ChMatrix33<double>* GetContactPlane() {return &contact_plane;};
 
 
 					/// Get the contact point 1, in absolute coordinates
@@ -139,7 +139,7 @@ public:
 	virtual ChVector<> GetContactP2() {return p2; };
 
 					/// Get the contact normal, in absolute coordinates
-	virtual ChVector<float> GetContactNormal()  {return normal; };
+	virtual ChVector<double> GetContactNormal()  {return normal; };
 
 					/// Get the contact distance
 	virtual double	   GetContactDistance()  {return norm_dist; };
@@ -148,9 +148,9 @@ public:
 	virtual ChVector<> GetContactForce() {return react_force; };
 
 					/// Get the contact friction coefficient
-	virtual float GetFriction() {return Nx.GetFrictionCoefficient(); };
+	virtual double GetFriction() {return Nx.GetFrictionCoefficient(); };
 					/// Set the contact friction coefficient
-	virtual void SetFriction(float mf) { Nx.SetFrictionCoefficient(mf); };
+	virtual void SetFriction(double mf) { Nx.SetFrictionCoefficient(mf); };
 
 					/// Get the collision model A, with point P1
 	virtual collision::ChCollisionModel* GetModelA() {return this->modA;}

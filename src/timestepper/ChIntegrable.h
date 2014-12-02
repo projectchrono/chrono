@@ -104,14 +104,23 @@ class ChIntegrable
 	// Functions required by implicit integration schemes
 	//
 
-			/// Assuming dy/dt = f(y,t)  is also   H*dy/dt = F(y,t)  
+			/// Assuming an explicit ODE
+			///    H*dy/dt = F(y,t)  
+			/// Assuming an explicit DAE
+			///    H*dy/dt = F(y,t) + Cq*L
+			///     C(y,t) = 0
 			/// this must compute the solution of the change in state to satisfy 
 			/// the equation required in a Newton Raphson iteration to satisfy an
-			/// implicit integrator equation, as
+			/// implicit integrator equation.
+			/// If in ODE case:
 			///  Dy = [ c_a*H + c_b*dF/dy ]^-1 * R
-			/// where R is a residual, dF/dy is a jacobian. 
+			///  Dy = [ G ]^-1 * R
+			/// If with DAE constraints: 
+			///  |Du| = [ G   Cq' ]^-1 * | R |
+			///  |DL|   [ Cq  0   ]      | Qc|
+			/// where R is a given residual, dF/dy is F jacobian. 
 			/// It is up to the child class how to solve such linear system.
-	void StateSolveCorrection(
+	virtual void StateSolveCorrection(
 					ChStateDelta& Dy,	  ///< result: computed Dy
 					ChVectorDynamic<>& L, ///< result: computed lagrangian multipliers, if any
 					const ChVectorDynamic<>& R, ///< the R residual
@@ -129,7 +138,7 @@ class ChIntegrable
 			/// Increment a vector R (usually the residual in a Newton Raphson iteration
 			/// for solving an implicit integration step) with a term that has H multiplied a given vector w:   
 			///    R += c*H*w 
-	void LoadResidual_Hv(
+	virtual void LoadResidual_Hv(
 			 ChVectorDynamic<>& R,		 ///< result: the R residual, R += c*M*v 
 			 const ChVectorDynamic<>& v, ///< the v vector 
 			 const double c				 ///< a scaling factor
@@ -141,7 +150,7 @@ class ChIntegrable
 			/// Increment a vector R (usually the residual in a Newton Raphson iteration
 			/// for solving an implicit integration step) with the term c*F:   
 			///    R += c*F 
-	void LoadResidual_F(
+	virtual void LoadResidual_F(
 			ChVectorDynamic<>& R,		 ///< result: the R residual, R += c*F 
 			const double c				 ///< a scaling factor
 			)
@@ -149,10 +158,10 @@ class ChIntegrable
 				throw ChException("LoadResidual_F() not implemented, implicit integrators cannot be used. ");
 			};
 
-			/// Increment a vectorR (usually the residual in a Newton Raphson iteration
+			/// Increment a vector R (usually the residual in a Newton Raphson iteration
 			/// for solving an implicit integration step) with the term Cq'*L:   
 			///    R += c*Cq'*L 
-	void LoadResidual_CqL(
+	virtual void LoadResidual_CqL(
 			ChVectorDynamic<>& R,		 ///< result: the R residual, R += c*Cq'*L 
 			const ChVectorDynamic<>& L,  ///< the L vector 
 			const double c				 ///< a scaling factor
@@ -160,6 +169,29 @@ class ChIntegrable
 			{
 				throw ChException("LoadResidual_CqL() not implemented, implicit integrators cannot be used. ");
 			};
+
+			/// Increment a vector Qc (usually the residual in a Newton Raphson iteration
+			/// for solving an implicit integration step, constraint part) with the term C:   
+			///    Qc += c*C 
+	virtual void LoadConstraint_C(
+		ChVectorDynamic<>& Qc,		 ///< result: the Qc residual, Qc += c*C 
+		const double c				 ///< a scaling factor
+		)
+	{
+		throw ChException("LoadConstraint_C() not implemented, implicit integrators cannot be used. ");
+	};
+
+			/// Increment a vector Qc (usually the residual in a Newton Raphson iteration
+			/// for solving an implicit integration step, constraint part) with the term Ct = partial derivative dC/dt:   
+			///    Qc += c*Ct 
+	virtual void LoadConstraint_Ct(
+		ChVectorDynamic<>& Qc,		 ///< result: the Qc residual, Qc += c*Ct 
+		const double c				 ///< a scaling factor
+		)
+	{
+		throw ChException("LoadConstraint_Ct() not implemented, implicit integrators cannot be used. ");
+	};
+
 };
 
 
@@ -185,7 +217,7 @@ public:
 	/// Tells the number of speed coordinates of v in y = {x, v} and  dy/dt={v, a}
 	/// This is a base implementation that works in many cases where dim(v) = dim(x), but 
 	/// might be less ex. if x uses quaternions and v uses angular vel.
-	virtual int GetNcoords_v() { return GetNcoords_v(); };
+	virtual int GetNcoords_v() { return GetNcoords_x(); };
 
 	/// Tells the number of acceleration coordinates of a in dy/dt={v, a}
 	/// This is a default implementation that works in almost all cases, as dim(a) = dim(v),  
@@ -258,18 +290,24 @@ public:
 	// Functions required by implicit integration schemes
 	//
 
-
-	/// Assuming a = f(y,t)  is also   H*a = F(y,t)  
-	/// this must compute the solution of the change in state to satisfy 
-	/// the equation required in a Newton Raphson iteration to satisfy an
-	/// implicit integrator equation, as
-	///  a = [ c_a*M + c_v*dF/dv + c_x*dF/dx ]^-1 * R
-	/// or also  
-	///  [ c_a*M + c_v*dF/dv + c_x*dF/dx ] * Dv/dt = R
-	/// where R is a residual, dF/dv and dF/dx are jacobians (that are also 
+	/// Assuming an explicit ODE in the form
+	///        M*a = F(x,v,t)
+	/// Assuming an explicit DAE in the form   
+	///        M*a = F(x,v,t) + Cq'*L
+	///     C(x,t) = 0
+	/// this must compute the solution of the change Du (in a or v or x) to satisfy 
+	/// the equation required in a Newton Raphson iteration for an
+	/// implicit integrator equation. 
+	/// If in ODE case:
+	///  Du = [ c_a*M + c_v*dF/dv + c_x*dF/dx ]^-1 * R 
+	///  Du = [ G ]^-1 * R
+	/// If with DAE constraints: 
+	///  |Du| = [ G   Cq' ]^-1 * | R |
+	///  |DL|   [ Cq  0   ]      | Qc|
+ 	/// where R is a given residual, dF/dv and dF/dx, dF/dv are jacobians (that are also 
 	/// -R and -K, damping and stiffness (tangent) matrices in many mechanical problems). 
 	/// It is up to the child class how to solve such linear system.
-	void StateSolveCorrection(
+	virtual void StateSolveCorrection(
 		ChStateDelta& Dv,	  ///< result: computed Dv 
 		ChVectorDynamic<>& L, ///< result: computed lagrangian multipliers, if any
 		const ChVectorDynamic<>& R, ///< the R residual
@@ -277,14 +315,80 @@ public:
 		const double c_v,	  ///< the factor in c_v*dF/dv
 		const double c_x,	  ///< the factor in c_x*dF/dv
 		const ChState& x,	  ///< current state, x part
-		const ChState& v,	  ///< current state, v part
+		const ChStateDelta& v,///< current state, v part
 		const double T,		  ///< current time T
 		bool force_state_scatter = true ///< if false, x,v and T are not scattered to the system, assuming that someone has done StateScatter just before 
 		)
 	{
-		// to be implemented in child class
+		throw ChException("StateSolveCorrection() not implemented, implicit integrators cannot be used. ");
 	};
 
+	/// Assuming   M*a = F(x,v,t) + Cq'*L
+	///         C(x,t) = 0
+	/// increment a vector R (usually the residual in a Newton Raphson iteration
+	/// for solving an implicit integration step) with the term c*F:   
+	///    R += c*F 
+	virtual void LoadResidual_F(
+		ChVectorDynamic<>& R,		 ///< result: the R residual, R += c*F 
+		const double c				 ///< a scaling factor
+		)
+	{
+		throw ChException("LoadResidual_F() not implemented, implicit integrators cannot be used. ");
+	};
+
+	/// Assuming   M*a = F(x,v,t) + Cq'*L
+	///         C(x,t) = 0
+	/// increment a vector R (usually the residual in a Newton Raphson iteration
+	/// for solving an implicit integration step) with a term that has M multiplied a given vector w:   
+	///    R += c*M*w 
+	virtual void LoadResidual_Mv(
+		ChVectorDynamic<>& R,		 ///< result: the R residual, R += c*M*v 
+		const ChVectorDynamic<>& w,  ///< the w vector 
+		const double c				 ///< a scaling factor
+		)
+	{
+		throw ChException("LoadResidual_Mv() not implemented, implicit integrators cannot be used. ");
+	};
+
+	/// Assuming   M*a = F(x,v,t) + Cq'*L
+	///         C(x,t) = 0
+	/// increment a vectorR (usually the residual in a Newton Raphson iteration
+	/// for solving an implicit integration step) with the term Cq'*L:   
+	///    R += c*Cq'*L 
+	virtual void LoadResidual_CqL(
+		ChVectorDynamic<>& R,		 ///< result: the R residual, R += c*Cq'*L 
+		const ChVectorDynamic<>& L,  ///< the L vector 
+		const double c				 ///< a scaling factor
+		)
+	{
+		throw ChException("LoadResidual_CqL() not implemented, implicit integrators cannot be used. ");
+	};
+
+	/// Assuming   M*a = F(x,v,t) + Cq'*L
+	///         C(x,t) = 0
+	/// Increment a vector Qc (usually the residual in a Newton Raphson iteration
+	/// for solving an implicit integration step, constraint part) with the term C:   
+	///    Qc += c*C 
+	virtual void LoadConstraint_C(
+		ChVectorDynamic<>& Qc,		 ///< result: the Qc residual, Qc += c*C 
+		const double c				 ///< a scaling factor
+		)
+	{
+		throw ChException("LoadConstraint_C() not implemented, implicit integrators cannot be used. ");
+	};
+
+	/// Assuming   M*a = F(x,v,t) + Cq'*L
+	///         C(x,t) = 0
+	/// Increment a vector Qc (usually the residual in a Newton Raphson iteration
+	/// for solving an implicit integration step, constraint part) with the term Ct = partial derivative dC/dt:   
+	///    Qc += c*Ct 
+	virtual void LoadConstraint_Ct(
+		ChVectorDynamic<>& Qc,		 ///< result: the Qc residual, Qc += c*Ct 
+		const double c				 ///< a scaling factor
+		)
+	{
+		throw ChException("LoadConstraint_Ct() not implemented, implicit integrators cannot be used. ");
+	};
 
 
 	// ---------------------
@@ -353,6 +457,7 @@ public:
 		{
 			// Incrementing the x part only, user provided only x  in y={x, dx/dt}
 			this->StateIncrementX(y_new, y, Dy);
+
 			return;
 		}
 		if (y.GetRows() == this->GetNcoords_y())
@@ -370,8 +475,10 @@ public:
 			mDv.PasteClippedMatrix(&Dy, this->GetNcoords_v(), 0, this->GetNcoords_a(), 1, 0, 0);
 			ChState			mx_new(this->GetNcoords_x(), y.GetIntegrable());
 			ChStateDelta	mv_new(this->GetNcoords_v(), y.GetIntegrable());
+
 			this->StateIncrementX(mx_new, mx, mDx);	// increment positions
-			mv_new = mv + mDv;						// increment speeds
+			mv_new = mv + mDv;						// increment speeds 
+
 			y_new.PasteMatrix(&mx_new, 0, 0);
 			y_new.PasteMatrix(&mv_new, this->GetNcoords_x(), 0);
 			return;
@@ -394,10 +501,13 @@ public:
 	{
 		ChState			mx(this->GetNcoords_x(), y.GetIntegrable());
 		ChStateDelta	mv(this->GetNcoords_v(), y.GetIntegrable());
-		mx.PasteClippedMatrix(&y, 0, 0, this->GetNcoords_x(), 1, 0, 0);
-		mv.PasteClippedMatrix(&y, this->GetNcoords_x(), 0, this->GetNcoords_v(), 1, 0, 0);
+		mx.PasteClippedMatrix(&y, 0, 0,						this->GetNcoords_x(), 1, 0, 0);
+		mv.PasteClippedMatrix(&y, this->GetNcoords_x(), 0,  this->GetNcoords_v(), 1, 0, 0);
 		ChStateDelta	mDv(this->GetNcoords_v(), y.GetIntegrable());
-		this->StateSolveA(mDv, L, mx, mv, T, force_state_scatter); // Solve with custom II order solver
+
+		this->StateSolveA(mDv, L, mx, mv, T, dt, force_state_scatter); // Solve with custom II order solver
+
+		mv *= dt;  // Note: Dy ={Dx Dv} so v=Dx/dt, Dx=v*dt
 		Dy.PasteMatrix(&mv, 0, 0);
 		Dy.PasteMatrix(&mDv, this->GetNcoords_x(), 0);
 	}
