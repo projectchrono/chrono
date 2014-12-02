@@ -334,7 +334,7 @@ class CH_PARALLEL_API ChParallelDataManager {
      }
 
      // output r
-     const std::string filename = output_dir + "dump_r.dat";
+     std::string filename = output_dir + "dump_r.dat";
      OutputBlazeVector(r, filename);
 
      // output b
