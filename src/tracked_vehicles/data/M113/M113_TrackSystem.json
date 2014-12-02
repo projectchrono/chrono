@@ -25,14 +25,27 @@
   "SupportRoller":
   {
     "Mass":                     5.0,
-    "Location":                 [-1.0, 0, 0.7],
     "Inertia":                  [0.5,1,0.5],
+	"Location":                 [ [-1.0, 0, 0.7],
+								  [0, 0, 0.7],
+								  [1.0, 0, 0.7]
+								],
     "Radius":                   0.1,
 	"Width":					0.1
   },
   
-  "Axle":
+  "Suspension":
   {
-    "Inertia":                  0.4
+    "Input File":				"M113/TorsionArmSuspension.json",
+	"Location":					[ [-1.0, 0, -0.5],
+								  [-0.33, 0, -0.5],
+								  [0.33, 0, -0.5],
+								  [1.0, 0, -0.5]
+								]
+  },
+  
+  "Track Chain":
+  {
+	"Input File":				"M113/TrackChain.json"
   }
 }
