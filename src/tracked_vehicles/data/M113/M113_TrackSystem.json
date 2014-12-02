@@ -1,7 +1,6 @@
 {
   "Name":                       "M113 Track System",
   "Type":                       "TrackSystem",
-  "Template":                   "M113_TrackSystem",
 
   "Idler" :
   {
@@ -11,10 +10,10 @@
     "Radius":                   0.2,
     "Width":                    0.05,
 	"SpringK:"					100000,
-	"SpringD:"					1000
+	"SpringC:"					1000
   },
 
-  "DriveGear":
+  "Drive Gear":
   {
     "Mass":                     59.450,
     "Location":                 [-1.5, 0, 0.5],
@@ -22,7 +21,7 @@
     "Radius":                   0.3
   },
 
-  "SupportRoller":
+  "Support Roller":
   {
     "Mass":                     5.0,
     "Inertia":                  [0.5,1,0.5],
