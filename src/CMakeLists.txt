@@ -1189,5 +1189,10 @@ ADD_SUBDIRECTORY(unit_PYTHON)
 ADD_SUBDIRECTORY(demos)
 ADD_SUBDIRECTORY(unit_TESTING)
 
+# tracked vehicles, will eventually be moved
+SET(BUILD_TRACKED_VEHICLES	FALSE    CACHE BOOL   "Build a library for tracked vehicle model credation, and some useage examples")
+IF (BUILD_TRACKED_VEHICLES)
+	ADD_SUBDIRECTORY(tracked_vehicles)
+ENDIF()
 
 INCLUDE(CPack)
