@@ -72,7 +72,6 @@ void TrackVehicle::Load_TrackSystem(const std::string& filename, int track)
   
   m_TrackSystems[track] = ChSharedPtr<TrackSystem>(new TrackSystem(d));
   
-  
 }
 
 
