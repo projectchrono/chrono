@@ -68,7 +68,7 @@ void TrackSystem::Create(const rapidjson::Document& d)
   // read idler info
   assert(d.HasMember("Idler"));
   m_idlerMass = d["Idler"]["Mass"].GetDouble();
-  m_points[IDLER] = loadVector(d["Idler"]["Location"]);
+  m_idlerPos = loadVector(d["Idler"]["Location"]);
   m_idlerInertia = loadVector(d["Idler"]["Inertia"]);
   m_idlerRadius = d["Spindle"]["Radius"].GetDouble();
   m_idlerWidth = d["Spindle"]["Width"].GetDouble();
@@ -80,7 +80,7 @@ void TrackSystem::Create(const rapidjson::Document& d)
   assert(d["Drive Gear"].IsObject());
 
   m_gearMass = d["Drive Gear"]["Mass"].GetDouble();
-  m_points[DRIVEGEAR] = loadVector(d["Drive Gear"]["Location"]);
+  m_gearPos = loadVector(d["Drive Gear"]["Location"]);
   m_gearInertia = loadVector(d["Drive Gear"]["Inertia"]);
   m_gearRadius = d["Drive Gear"]["Radius"].GetDouble();
 
@@ -120,6 +120,21 @@ void TrackSystem::Create(const rapidjson::Document& d)
   assert(d.HasMember("Track Chain"));
   assert(d["Track Chain"].IsObject()); 
   m_trackChainFilename = d["Track Chain"]["Input File"].GetString()
+  
+}
+
+
+void TrackSystem::Initialize(ChSharedPtr<ChBodyAuxRef> chassis,
+			 const ChVector<>&         location,
+			 const ChQuaternion<>&     rotation))
+{
+  m_driveGear->Initialize(chassis, m_gearPos, m_gearMass, m_gearInertia, m_gearRadius); 
+  m_idler->Initialize(chassis, m_idlerPos, m_idlerMass, m_idlerInertia, m_idler_K, m_idler_C, m_idlerRadius, m_idlerWidth);
+  
+  for(int i = 0; i < m_suspensionLocs.size(); i++)
+  {
+    m_suspensions[i]->Initialize(chassis, m_suspensionFileName);
+  }
   
 }
 
