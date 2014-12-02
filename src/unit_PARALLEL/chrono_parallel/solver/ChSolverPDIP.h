@@ -75,6 +75,7 @@ public:
   void updateNewtonStepMatrix(blaze::DynamicVector<real> & gamma, blaze::DynamicVector<real> & lambda, blaze::DynamicVector<real> & f, const uint size);
   void updateNewtonStepVector(blaze::DynamicVector<real> & gamma, blaze::DynamicVector<real> & lambda, blaze::DynamicVector<real> & f, real t, const uint size);
   void conjugateGradient(blaze::DynamicVector<real> & x);
+  void BiCGStab(blaze::DynamicVector<real> & x);
 
   int OutputState(std::string stateId);
   int OutputBlazeVector(blaze::DynamicVector<real> src, std::string filename);

@@ -465,9 +465,10 @@ void ChConstraintRigidRigid::ComputeRHS() {
       real3 f_b = data_container->host_data.fric_data[b2];
       real3 mu;
 
-      mu.x = (f_a.x == 0 || f_b.x == 0) ? 0 : (f_a.x + f_b.x) * .5;
-      mu.y = (f_a.y == 0 || f_b.y == 0) ? 0 : (f_a.y + f_b.y) * .5;
-      mu.z = (f_a.z == 0 || f_b.z == 0) ? 0 : (f_a.z + f_b.z) * .5;
+
+      mu.x = std::fmin(f_a.x,f_b.x);//(f_a.x == 0 || f_b.x == 0) ? 0 : (f_a.x + f_b.x) * .5;
+      mu.y = std::fmin(f_a.y,f_b.y);//(f_a.y == 0 || f_b.y == 0) ? 0 : (f_a.y + f_b.y) * .5;
+      mu.z = std::fmin(f_a.z,f_b.z);//(f_a.z == 0 || f_b.z == 0) ? 0 : (f_a.z + f_b.z) * .5;
 
       data_container->host_data.fric_rigid_rigid[i] = mu;
 

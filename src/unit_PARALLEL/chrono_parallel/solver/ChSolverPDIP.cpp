@@ -133,7 +133,29 @@ void ChSolverPDIP::conjugateGradient(blaze::DynamicVector<real> & x) {
    p_cg = r_cg;
    rsold_cg = (r_cg, r_cg);
 
-   for (int i = 0; i < 1e6; i++) {
+   for (int i = 0; i < gamma.size(); i++) {
+      Ap_cg = (data_container->host_data.D_T * data_container->host_data.M_invD + M_hat + B * Dinv * diaglambda * grad_f) * p_cg;
+      alpha_cg = rsold_cg / (p_cg, Ap_cg);
+      x = x + alpha_cg * p_cg;
+      r_cg = r_cg - alpha_cg * Ap_cg;
+      rsnew_cg = (r_cg, r_cg);
+      if (sqrt(rsnew_cg) < data_container->settings.solver.tolerance / 100.0) {
+         return;
+      }
+      p_cg = r_cg + rsnew_cg / rsold_cg * p_cg;
+      rsold_cg = rsnew_cg;
+   }
+}
+
+void ChSolverPDIP::BiCGStab(blaze::DynamicVector<real> & x) {
+   real rsold_cg = 0;
+   real rsnew_cg = 0;
+   real alpha_cg = 0;
+   r_cg = (B * (Dinv * r_g) - r_d) - (data_container->host_data.D_T * data_container->host_data.M_invD + M_hat + B * Dinv * diaglambda * grad_f) * x;
+   p_cg = r_cg;
+   rsold_cg = (r_cg, r_cg);
+
+   for (int i = 0; i < 1e4; i++) {
       Ap_cg = (data_container->host_data.D_T * data_container->host_data.M_invD + M_hat + B * Dinv * diaglambda * grad_f) * p_cg;
       alpha_cg = rsold_cg / (p_cg, Ap_cg);
       x = x + alpha_cg * p_cg;
@@ -151,7 +173,7 @@ uint ChSolverPDIP::SolvePDIP(const uint max_iter,
                              const uint size,
                              custom_vector<real> &b,
                              custom_vector<real> &x) {
-   bool verbose = true;
+   bool verbose = false;
    custom_vector<real> residualHistory;
 
    // Initialize scalars
@@ -186,7 +208,7 @@ uint ChSolverPDIP::SolvePDIP(const uint max_iter,
    // Initialize matrices
    grad_f.reset();
    grad_f.resize(2 * num_contacts, size);
-   grad_f.reserve(4 * num_contacts);  // there are (4*size/3) nonzero entries
+   grad_f.reserve(4 * num_contacts);  // there are (4*num_contacts) nonzero entries
 
    M_hat.reset();
    M_hat.resize(size, size);
@@ -194,15 +216,15 @@ uint ChSolverPDIP::SolvePDIP(const uint max_iter,
 
    B.reset();
    B.resize(size, 2 * num_contacts);
-   B.reserve(4 * num_contacts);  // there are (4*size/3) nonzero entries
+   B.reserve(4 * num_contacts);  // there are (4*num_contacts) nonzero entries
 
    diaglambda.reset();
    diaglambda.resize(2 * num_contacts, 2 * num_contacts);
-   diaglambda.reserve(2 * num_contacts);  // there are (size+size/3) nonzero entries
+   diaglambda.reserve(2 * num_contacts);  // there are (2 * num_contacts) nonzero entries
 
    Dinv.reset();
    Dinv.resize(2 * num_contacts, 2 * num_contacts);
-   Dinv.reserve(2 * num_contacts);  // there are (size+size/3) nonzero entries
+   Dinv.reserve(2 * num_contacts);  // there are (2 * num_contacts) nonzero entries
 
 #pragma omp parallel for
    for (int i = 0; i < size; i++) {
@@ -221,7 +243,7 @@ uint ChSolverPDIP::SolvePDIP(const uint max_iter,
 
    // (2) lambda_0 = -1/f
 #pragma omp parallel for
-   for (int i = 0; i < 2 * num_contacts; i++) {
+   for (int i = 0; i < f.size(); i++) {
       ones[i] = 1.0;
       lambda[i] = -1 / f[i];
    }
@@ -237,7 +259,7 @@ uint ChSolverPDIP::SolvePDIP(const uint max_iter,
       eta_hat = -(f, lambda);
 
       // (6) t = mu*m/eta_hat
-      t = mu * (2 * num_contacts) / eta_hat;
+      t = mu * (f.size()) / eta_hat;
 
       // (7) A = A(gamma_k, lambda_k, f)
       updateConstraintGradient(gamma, size);
@@ -252,7 +274,7 @@ uint ChSolverPDIP::SolvePDIP(const uint max_iter,
 
       // (10) s_max = sup{s in [0,1]|lambda+s*delta_lambda>=0} = min{1,min{-lambda_i/delta_lambda_i|delta_lambda_i < 0 }}
 #pragma omp parallel for
-      for (int i = 0; i < 2 * num_contacts; i++) {
+      for (int i = 0; i < lambda.size(); i++) {
          lambda_tmp[i] = -lambda[i] / delta_lambda[i];
          if (delta_lambda[i] > 0)
             lambda_tmp[i] = 1.0;
@@ -297,7 +319,7 @@ uint ChSolverPDIP::SolvePDIP(const uint max_iter,
       lambda = lambda + s * delta_lambda;
 
       // (20) r = r(gamma_(k+1))
-      residual = Res4(gamma, gamma_tmp);
+      residual = sqrt((r_g, r_g));//Res4(gamma, gamma_tmp);
       residualHistory.push_back(residual);
 
       SchurComplementProduct(gamma, gamma_tmp);
@@ -318,6 +340,7 @@ uint ChSolverPDIP::SolvePDIP(const uint max_iter,
       }
 
       // (24) endfor
+      if (verbose) std::cout << "Iter: "<< current_iteration << " Res: " << residual << std::endl;
    }
 
    // (25) return Value at time step t_(l+1), gamma_(l+1) := gamma_(k+1)

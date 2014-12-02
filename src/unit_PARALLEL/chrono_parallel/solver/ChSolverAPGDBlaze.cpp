@@ -1,204 +1,205 @@
 #include "chrono_parallel/solver/ChSolverAPGDBlaze.h"
 #include <blaze/math/CompressedVector.h>
+
 using namespace chrono;
 
-void ChSolverAPGDBlaze::SetAPGDParams(real theta_k,
-                                      real shrink,
-                                      real grow) {
-   init_theta_k = theta_k;
-   step_shrink = shrink;
-   step_grow = grow;
+real ChSolverAPGDBlaze::Res4(blaze::DynamicVector<real> & gamma,
+    blaze::DynamicVector<real> & tmp) {
 
+  real gdiff = 1.0/pow(num_constraints,2.0);
+  SchurComplementProduct(gamma, tmp);
+  tmp = tmp + r;
+  tmp = gamma - gdiff * (tmp);
+  Project(tmp.data());
+  tmp = (1.0 / gdiff) * (gamma - tmp);
+
+  return sqrt((double) (tmp, tmp));
 }
 
-real ChSolverAPGDBlaze::Res4(const int SIZE,
-                             blaze::DynamicVector<real> & mg_tmp2,
-                             blaze::DynamicVector<real> &x,
-                             blaze::DynamicVector<real> & mb_tmp) {
-   real gdiff = 1e-6;
-   real sum = 0;
-   mb_tmp = -gdiff * mg_tmp2 + x;
-   Project(mb_tmp.data());
-   mb_tmp = (-1.0f / (gdiff)) * (mb_tmp - x);
-   sum = (mb_tmp, trans(mb_tmp));
-   return sqrt(sum);
-
+void ChSolverAPGDBlaze::SchurComplementProduct(blaze::DynamicVector<real> & src,
+    blaze::DynamicVector<real> & dst) {
+  dst = data_container->host_data.D_T
+      * (data_container->host_data.M_invD * src);
 }
 
-uint ChSolverAPGDBlaze::SolveAPGDBlaze(const uint max_iter,
-                                       const uint size,
-                                       custom_vector<real> &b,
-                                       custom_vector<real> &x) {
+uint ChSolverAPGDBlaze::SolveAPGDBlaze(const uint max_iter, const uint size,
+custom_vector<real> &b,
+custom_vector<real> &x) {
+  bool verbose = false;
+  if(verbose) std::cout << "Number of constraints: " << size << "\nNumber of variables  : " << data_container->num_bodies << std::endl;
 
-   //data_container->system_timer.start("ChSolverParallel_solverA");
-   blaze::DynamicVector<real> one(size, 1.0);
-   data_container->system_timer.start("ChSolverParallel_Solve");
-   ms.resize(size);
-   mg_tmp2.resize(size);
-   mb_tmp.resize(size);
-   mg_tmp.resize(size);
-   mg_tmp1.resize(size);
-   mg.resize(size);
-   ml.resize(size);
-   mx.resize(size);
-   my.resize(size);
-   mb.resize(size);
-   mso.resize(size);
+  real L, t;
+  real theta;
+  real thetaNew;
+  real Beta;
+  real obj1, obj2;
 
-   lastgoodres = 10e30;
-   theta_k = init_theta_k;
-   theta_k1 = theta_k;
-   beta_k1 = 0.0;
-   mb_tmp_norm = 0, mg_tmp_norm = 0;
-   obj1 = 0.0, obj2 = 0.0;
-   dot_mg_ms = 0, norm_ms = 0;
-   delta_obj = 1e8;
+  gamma_hat.resize(size);
+  gammaNew.resize(size);
+  g.resize(size);
+  y.resize(size);
+  gamma.resize(size);
+  yNew.resize(size);
+  r.resize(size);
+  tmp.resize(size);
+
+  residual = 10e30;
+
+  thetaNew = theta;
+  Beta = 0.0;
+  obj1 = 0.0, obj2 = 0.0;
 
 #pragma omp parallel for
-   for (int i = 0; i < size; i++) {
-      ml[i] = x[i];
-      mb[i] = b[i];
-   }
+  for (int i = 0; i < size; i++) {
+    // (1) gamma_0 = zeros(nc,1)
+    gamma[i] = 0;
+    if (i % 3 == 0)
+      gamma[i] = -1.0; // provide an initial guess!
 
-   Project(ml.data());
-   ml_candidate = ml;
-   mg = data_container->host_data.D_T * (data_container->host_data.M_invD * ml);
-   mg = mg - mb;
-   mb_tmp = ml - one;
-   mg_tmp = data_container->host_data.D_T * (data_container->host_data.M_invD * mb_tmp);
+    // (2) gamma_hat_0 = ones(nc,1)
+    gamma_hat[i] = 1.0;
 
-   mb_tmp_norm = sqrt((mb_tmp, trans(mb_tmp)));
-   mg_tmp_norm = sqrt((mg_tmp, trans(mg_tmp)));
+    // (3) y_0 = gamma_0
+    y[i] = gamma[i];
+    r[i] = -b[i]; // convert r to a blaze vector //TODO: WHY DO I NEED A MINUS SIGN?
+  }
 
-   if (mb_tmp_norm == 0) {
-      L_k = 1;
-   } else {
-      L_k = mg_tmp_norm / mb_tmp_norm;
-   }
+  // (4) theta_0 = 1
+  theta = 1.0;
 
-   t_k = 1.0 / L_k;
-   my = ml;
-   mx = ml;
-   //data_container->system_timer.stop("ChSolverParallel_solverA");
+  // (5) L_k = norm(N * (gamma_0 - gamma_hat_0)) / norm(gamma_0 - gamma_hat_0)
+  tmp = gamma - gamma_hat;
+  L = sqrt((double) (tmp, tmp));
+  SchurComplementProduct(tmp, tmp);
+  L = sqrt((double) (tmp, tmp)) / L;
 
-   for (current_iteration = 0; current_iteration < max_iter; current_iteration++) {
+  // (6) t_k = 1 / L_k
+  t = 1.0 / L;
 
-      // data_container->system_timer.start("ChSolverParallel_solverB");
+  // (7) for k := 0 to N_max
+  for (current_iteration = 0; current_iteration < max_iter;
+      current_iteration++) {
+    // (8) g = N * y_k - r
+    SchurComplementProduct(y, g);
+    g = g + r;
 
-      mg_tmp1 = data_container->host_data.D_T * (data_container->host_data.M_invD * my);
-      //data_container->system_timer.stop("ChSolverParallel_solverB");
-      //data_container->system_timer.start("ChSolverParallel_solverC");
+    // (9) gamma_(k+1) = ProjectionOperator(y_k - t_k * g)
+    gammaNew = y - t * g;
+    Project(gammaNew.data());
 
-      mg = mg_tmp1 - mb;
-      mx = -t_k * mg + my;
+    // (10) while 0.5 * gamma_(k+1)' * N * gamma_(k+1) - gamma_(k+1)' * r >= 0.5 * y_k' * N * y_k - y_k' * r + g' * (gamma_(k+1) - y_k) + 0.5 * L_k * norm(gamma_(k+1) - y_k)^2
+    SchurComplementProduct(gammaNew, tmp); // Here tmp is equal to N*gammaNew;
+    obj1 = 0.5 * (gammaNew, tmp) + (gammaNew, r);
+    SchurComplementProduct(y, tmp); // Here tmp is equal to N*y;
+    obj2 = 0.5 * (y, tmp) + (y, r);
+    tmp = gammaNew - y; // Here tmp is equal to gammaNew - y
+    obj2 = obj2 + (g, tmp) + 0.5 * L * (tmp, tmp);
 
-      Project(mx.data());
-      mg_tmp = data_container->host_data.D_T * (data_container->host_data.M_invD * mx);
-      // data_container->system_timer.stop("ChSolverParallel_solverC");
-      // data_container->system_timer.start("ChSolverParallel_solverD");
+    while (obj1 >= obj2) {
+      // (11) L_k = 2 * L_k
+      L = 2.0 * L;
 
-      //mg_tmp2 = mg_tmp - mb;
-      mso = .5 * mg_tmp - mb;
-      obj1 = (mx, trans(mso));
-      ms = .5 * mg_tmp1 - mb;
-      obj2 = (my, trans(ms));
-      ms = mx - my;
-      dot_mg_ms = (mg, trans(ms));
-      norm_ms = (ms, trans(ms));
+      // (12) t_k = 1 / L_k
+      t = 1.0 / L;
 
-      //data_container->system_timer.stop("ChSolverParallel_solverD");
-      while (obj1 > obj2 + dot_mg_ms + 0.5 * L_k * norm_ms) {
-         // data_container->system_timer.start("ChSolverParallel_solverE");
-         L_k = 2.0 * L_k;
-         t_k = 1.0 / L_k;
-         mx = -t_k * mg + my;
-         Project(mx.data());
+      // (13) gamma_(k+1) = ProjectionOperator(y_k - t_k * g)
+      gammaNew = y - t * g;
+      Project(gammaNew.data());
 
-         mg_tmp = data_container->host_data.D_T * (data_container->host_data.M_invD * mx);
+      // Update the components of the while condition
+      SchurComplementProduct(gammaNew, tmp); // Here tmp is equal to N*gammaNew;
+      obj1 = 0.5 * (gammaNew, tmp) + (gammaNew, r);
+      SchurComplementProduct(y, tmp); // Here tmp is equal to N*y;
+      obj2 = 0.5 * (y, tmp) + (y, r);
+      tmp = gammaNew - y; // Here tmp is equal to gammaNew - y
+      obj2 = obj2 + (g, tmp) + 0.5 * L * (tmp, tmp);
 
-         mso = .5 * mg_tmp - mb;
-         obj1 = (mx, trans(mso));
-         ms = mx - my;
-         dot_mg_ms = (mg, trans(ms));
-         norm_ms = (ms, trans(ms));
+      // (14) endwhile
+    }
 
-         //data_container->system_timer.stop("ChSolverParallel_solverE");
-      }
-      //data_container->system_timer.start("ChSolverParallel_solverF");
+    // (15) theta_(k+1) = (-theta_k^2 + theta_k * sqrt(theta_k^2 + 4)) / 2;
+    thetaNew = (-pow(theta, 2.0) + theta * sqrt(pow(theta, 2.0) + 4.0)) / 2.0;
 
-      theta_k1 = (-pow(theta_k, 2) + theta_k * sqrt(pow(theta_k, 2) + 4)) / 2.0;
-      beta_k1 = theta_k * (1.0 - theta_k) / (pow(theta_k, 2) + theta_k1);
+    // (16) Beta_(k+1) = theta_k * (1 - theta_k) / (theta_k^2 + theta_(k+1))
+    Beta = theta * (1.0 - theta) / (pow(theta, 2) + thetaNew);
 
-      ms = mx - ml;
-      my = beta_k1 * ms + mx;
-      real dot_mg_ms = (mg, trans(ms));
+    // (17) y_(k+1) = gamma_(k+1) + Beta_(k+1) * (gamma_(k+1) - gamma_k)
+    yNew = gammaNew + Beta * (gammaNew - gamma);
 
-      if (dot_mg_ms > 0) {
-         my = mx;
-         theta_k1 = 1.0;
-      }
-      L_k = 0.9 * L_k;
-      t_k = 1.0 / L_k;
-      ml = mx;
-      step_grow = 2.0;
-      theta_k = theta_k1;
-      //if (current_iteration % 2 == 0) {
-      mg_tmp2 = mg_tmp - mb;
-      real g_proj_norm = Res4(num_unilaterals, mg_tmp2, ml, mb_tmp);
+    // (18) r = r(gamma_(k+1))
+    real res = Res4(gammaNew, tmp);
 
-      if (num_bilaterals > 0) {
-         real resid_bilat = -1;
-         for (int i = num_unilaterals; i < x.size(); i++) {
-            resid_bilat = std::max(resid_bilat, std::abs(mg_tmp2[i]));
-         }
-         g_proj_norm = std::max(g_proj_norm, resid_bilat);
-      }
+    // (19) if r < epsilon_min
+    if (res < residual) {
+      // (20) r_min = r
+      residual = res;
 
-      bool update = false;
-      if (g_proj_norm < lastgoodres) {
-         lastgoodres = g_proj_norm;
-         ml_candidate = ml;
-         objective_value = (ml_candidate, mso);  //maxdeltalambda = GetObjectiveBlaze(ml_candidate, mb);
-         update = true;
-      }
+      // (21) gamma_hat = gamma_(k+1)
+      gamma_hat = gammaNew;
 
-      residual = lastgoodres;
-      //if (update_rhs) {
-      //ComputeSRhs(ml_candidate, rhs, vel_data, omg_data, b);
-      //}
+      // (22) endif
+    }
 
-      AtIterationEnd(residual, objective_value, iter_hist.size());
-      if (data_container->settings.solver.test_objective) {
-         if (objective_value <= data_container->settings.solver.tolerance_objective) {
-            break;
-         }
-      } else {
-        if (residual < tol_speed) {
-          break;
-        }
-      }
-      // data_container->system_timer.stop("ChSolverParallel_solverF");
-   }
+    // (23) if r < Tau
+    if (residual < data_container->settings.solver.tolerance) {
+      // (24) break
+      break;
 
+      // (25) endif
+    }
+
+    // (26) if g' * (gamma_(k+1) - gamma_k) > 0
+    if ((g, gammaNew - gamma) > 0) {
+      // (27) y_(k+1) = gamma_(k+1)
+      yNew = gammaNew;
+
+      // (28) theta_(k+1) = 1
+      thetaNew = 1.0;
+
+      // (29) endif
+    }
+
+    // (30) L_k = 0.9 * L_k
+    L = 0.9 * L;
+
+    // (31) t_k = 1 / L_k
+    t = 1.0 / L;
+
+    // Update iterates
+    theta = thetaNew;
+    gamma = gammaNew;
+    y = yNew;
+
+    // perform some tasks at the end of the iteration
+    AtIterationEnd(residual, objective_value, iter_hist.size());
+
+    // (32) endfor
+  }
+  if(verbose) std::cout << "Residual: " << residual << ", Iter: " << current_iteration << std::endl;
+
+  // (33) return Value at time step t_(l+1), gamma_(l+1) := gamma_hat
 #pragma omp parallel for
-   for (int i = 0; i < size; i++) {
-      x[i] = ml_candidate[i];
-   }
-   data_container->system_timer.stop("ChSolverParallel_Solve");
-   return current_iteration;
+  for (int i = 0; i < size; i++) {
+    x[i] = gamma_hat[i];
+  }
+
+  return current_iteration;
 }
 
 void ChSolverAPGDBlaze::ComputeImpulses() {
-   blaze::CompressedVector<real> velocities = data_container->host_data.M_invD * ml_candidate;
+  std::cout << "COMPUTE IMPULSES (BLAZE)" << std::endl;
+  blaze::CompressedVector<real> velocities = data_container->host_data.M_invD
+      * gamma_hat;
 
-#pragma omp parallel for
-   for (int i = 0; i < data_container->num_bodies; i++) {
-      real3 vel, omg;
+  for (int i = 0; i < data_container->num_bodies; i++) {
+    real3 vel, omg;
 
-      vel = R3(velocities[i * 6 + 0], velocities[i * 6 + 1], velocities[i * 6 + 2]);
-      omg = R3(velocities[i * 6 + 3], velocities[i * 6 + 4], velocities[i * 6 + 5]);
+    vel = R3(velocities[i * 6 + 0], velocities[i * 6 + 1],
+        velocities[i * 6 + 2]);
+    omg = R3(velocities[i * 6 + 3], velocities[i * 6 + 4],
+        velocities[i * 6 + 5]);
 
-      data_container->host_data.vel_data[i] += vel;
-      data_container->host_data.omg_data[i] += omg;
-   }
+    data_container->host_data.vel_data[i] += vel;
+    data_container->host_data.omg_data[i] += omg;
+  }
 }

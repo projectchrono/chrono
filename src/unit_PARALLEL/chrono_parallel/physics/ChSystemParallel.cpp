@@ -150,7 +150,7 @@ void ChSystemParallel::AddBody(ChSharedPtr<ChBody> newbody) {
 
    ChLcpVariablesBodyOwnMass& mbodyvar = newbody->VariablesBody();
    real inv_mass = (1.0) / (mbodyvar.GetBodyMass());
-   newbody->GetRot().Normalize();
+   //newbody->GetRot().Normalize();
    ChMatrix33<>& inertia = mbodyvar.GetBodyInvInertia();
 
    data_manager->host_data.vel_data.push_back(
