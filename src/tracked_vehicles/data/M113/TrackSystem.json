@@ -1,0 +1,38 @@
+{
+  "Name":                       "M113 Track System",
+  "Type":                       "TrackSystem",
+  "Template":                   "M113_TrackSystem",
+
+  "Idler" :
+  {
+    "Mass":                     34.705,
+    "Location":                 [1.5, 0, 0.5],
+    "Inertia":                  [2,4,2],
+    "Radius":                   0.2,
+    "Width":                    0.05,
+	"SpringK:"					100000,
+	"SpringD:"					1000
+  },
+
+  "DriveGear":
+  {
+    "Mass":                     59.450,
+    "Location":                 [-1.5, 0, 0.5],
+    "Inertia":                  [0.1656, 0.1934, 0.04367],
+    "Radius":                   0.3
+  },
+
+  "SupportRoller":
+  {
+    "Mass":                     5.0,
+    "Location":                 [-1.0, 0, 0.7],
+    "Inertia":                  [0.5,1,0.5],
+    "Radius":                   0.1,
+	"Width":					0.1
+  },
+  
+  "Axle":
+  {
+    "Inertia":                  0.4
+  }
+}
