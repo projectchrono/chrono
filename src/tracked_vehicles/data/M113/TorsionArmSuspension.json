@@ -1,7 +1,6 @@
 {
-  "Name":                       "Torsion bar suspension",
-  "Type":                       "Suspension",
-  "Template":                   "Torsion bar suspension",
+  "Name":                       "Torsion Arm Suspension",
+  "Type":                       "TrackSuspension",
 
   "Arm":
   {

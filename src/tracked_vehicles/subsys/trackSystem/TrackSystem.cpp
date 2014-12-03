@@ -137,7 +137,7 @@ void TrackSystem::BuildSubsystems()
   m_suspensions.resize(m_NumSuspensions);
   for(int i = 0; i < m_NumSuspensions; i++)
   {
-    m_suspensions[i] = ChSharedPtr<TorsionArmSuspension>(new TorsionArmSuspension( ));
+    m_suspensions[i] = ChSharedPtr<TorsionArmSuspension>(new TorsionArmSuspension(m_suspensionFilename));
   }
   
   // build support wheel subsystems
@@ -146,8 +146,9 @@ void TrackSystem::BuildSubsystems()
   {
     m_supportRollers[i] = ChSharedPtr<ChBody>(new ChBody);
   }
-  
 
+  
+  
 }
 
 void TrackSystem::Initialize(ChSharedPtr<ChBodyAuxRef> chassis,
