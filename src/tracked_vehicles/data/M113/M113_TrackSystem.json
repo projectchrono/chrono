@@ -18,7 +18,8 @@
     "Mass":                     59.450,
     "Location":                 [-1.5, 0, 0.5],
     "Inertia":                  [0.1656, 0.1934, 0.04367],
-    "Radius":                   0.3
+    "Radius":                   0.3,
+	"Width":					0.2
   },
 
   "Support Roller":
