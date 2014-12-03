@@ -43,66 +43,18 @@ using namespace irr;
 // Local variables
 //
 static const std::string val_dir = "../VALIDATION/";
-static const std::string out_dir = val_dir + "TRANSPRING_FORCE/";
-static const std::string ref_dir = "validation/transpring_force/";
-
-// =============================================================================
-
-// Functor classes implementing the force for a ChLinkSpringCB link.
-class MySpringForceCase01 : public ChSpringForceCallback
-{
-  virtual double operator()(double time,         // current time
-                            double rest_length,  // undeformed length
-                            double length,       // current length
-                            double vel)          // current velocity (positive when extending)
-  {
-    double spring_coef = 10;
-    double damping_coef = .5;
-
-    double force = -spring_coef * (length - rest_length) - damping_coef * vel;
-    return force;
-  }
-};
-
-class MySpringForceCase02 : public ChSpringForceCallback
-{
-  virtual double operator()(double time,         // current time
-                            double rest_length,  // undeformed length
-                            double length,       // current length
-                            double vel)          // current velocity (positive when extending)
-  {
-    double spring_coef = 100;
-    double damping_coef = 5;
-
-    double force = -spring_coef * (length - rest_length) - damping_coef * vel;
-    return force;
-  }
-};
-
-class MySpringForceCase03 : public ChSpringForceCallback
-{
-  virtual double operator()(double time,         // current time
-                            double rest_length,  // undeformed length
-                            double length,       // current length
-                            double vel)          // current velocity (positive when extending)
-  {
-    double spring_coef = 50;
-    double spring_nonlin_coef = 10;
-    double damping_coef = 5;
-
-    double force = -spring_coef * (length - rest_length) - spring_nonlin_coef * fabs(length - rest_length) * (length - rest_length) - damping_coef * vel;
-    return force;
-  }
-};
+static const std::string out_dir = val_dir + "CHLINKSPRING_FORCE/";
+static const std::string ref_dir = "validation/chlinkspring_force/";
 
 
 // =============================================================================
 // Prototypes of local functions
 //
-bool TestTranSpring(const ChVector<>& jointLocGnd,
+bool TestChLinkSpring(const ChVector<>& jointLocGnd,
                   const ChVector<>& jointLocPend,
                   const ChCoordsys<>& PendCSYS,
-                  const int customSpringType,
+                  const double spring_coef,
+                  const double damping_coef,
                   double simTimeStep, double outTimeStep,
                   const std::string& testName, bool animate, bool save);
 bool ValidateReference(const std::string& testName, const std::string& what, double tolerance);
@@ -133,7 +85,7 @@ int main(int argc, char* argv[])
   }
 
   // Set the simulation and output step sizes
-  double sim_step = 1e-5;
+  double sim_step = 1e-4;
   double out_step = 1e-2;
 
   std::string test_name;
@@ -141,62 +93,32 @@ int main(int argc, char* argv[])
 
 
 
-  // Case 1 - Pendulum CG at at the origin.
+  // Case 1 - Pendulum dropped from the origin with a spring connected between the CG and ground.
 
-  test_name = "TranSpring_Case01";
-  TestTranSpring(ChVector<>(0, 0, 0),ChVector<>(0, 0, 0), ChCoordsys<>(ChVector<>(0, 0, 0),QUNIT), 1, sim_step, out_step, test_name, animate, save);
+  test_name = "ChLinkSpring_Case01";
+  TestChLinkSpring(ChVector<>(0, 0, 0),ChVector<>(0, 0, 0), ChCoordsys<>(ChVector<>(0, 0, 0),QUNIT), 10, 0.5, sim_step, out_step, test_name, animate, save);
   if (!animate) {
-    //test_passed &= ValidateReference(test_name, "Pos", 1e-4);
-    //test_passed &= ValidateReference(test_name, "Vel", 5e-5);
-    //test_passed &= ValidateReference(test_name, "Acc", 5e-4);
+    //test_passed &= ValidateReference(test_name, "Pos", 1e-3);
+    //test_passed &= ValidateReference(test_name, "Vel", 3e-4);
+    //test_passed &= ValidateReference(test_name, "Acc", 2e-2);
     //test_passed &= ValidateReference(test_name, "Quat", 1e-10);
     //test_passed &= ValidateReference(test_name, "Avel", 1e-10);
     //test_passed &= ValidateReference(test_name, "Aacc", 1e-10);
-    //test_passed &= ValidateReference(test_name, "Rforce", 5e-4);
-  }
-
-
-  // Case 2 - Pendulum CG at Y = 2 with a distance contraint between the CG and ground.
-
-  test_name = "TranSpring_Case02";
-  TestTranSpring(ChVector<>(0, 0, 0),ChVector<>(0, 2, 0), ChCoordsys<>(ChVector<>(0, 2, 0),QUNIT), 2, sim_step, out_step, test_name, animate, save);
-  if (!animate) {
-    //test_passed &= ValidateReference(test_name, "Pos", 1e-4);
-    //test_passed &= ValidateReference(test_name, "Vel", 5e-5);
-    //test_passed &= ValidateReference(test_name, "Acc", 5e-4);
-    //test_passed &= ValidateReference(test_name, "Quat", 1e-10);
-    //test_passed &= ValidateReference(test_name, "Avel", 1e-10);
-    //test_passed &= ValidateReference(test_name, "Aacc", 1e-10);
-    //test_passed &= ValidateReference(test_name, "Rforce", 5e-4);
-  }
-
-
-
-  // Case 2 - Pendulum inital position is perpendicular to the distance constraint between ground
-
-  test_name = "TranSpring_Case03";
-  TestTranSpring(ChVector<>(1, 2, 3),ChVector<>(1, 4, 3), ChCoordsys<>(ChVector<>(-1, 4, 3),QUNIT), 3, sim_step, out_step, test_name, animate, save);
-  if (!animate) {
-    //test_passed &= ValidateReference(test_name, "Pos", 1e-4);
-    //test_passed &= ValidateReference(test_name, "Vel", 5e-5);
-    //test_passed &= ValidateReference(test_name, "Acc", 1e-3;
-    //test_passed &= ValidateReference(test_name, "Quat", 5e-5);
-    //test_passed &= ValidateReference(test_name, "Avel", 5e-3);
-    //test_passed &= ValidateReference(test_name, "Aacc", 5e-2);
     //test_passed &= ValidateReference(test_name, "Rforce", 5e-3);
   }
 
-  // Case 3 - Pendulum inital position is streched out along the Y axis with the distance constraint on the end of the pendulum to ground (Double Pendulum).
 
-  test_name = "TranSpring_Case04";
-  TestTranSpring(ChVector<>(0, 0, 0),ChVector<>(0, 2, 0), ChCoordsys<>(ChVector<>(0, 4, 0),Q_from_AngZ(-CH_C_PI_2)), 3, sim_step, out_step, test_name, animate, save);
+  // Case 2 - Pendulum CG at Y = 2 with the spring connected between the CG and ground.
+
+  test_name = "ChLinkSpring_Case02";
+  TestChLinkSpring(ChVector<>(0, 0, 0),ChVector<>(0, 2, 0), ChCoordsys<>(ChVector<>(0, 2, 0),QUNIT), 100, 5, sim_step, out_step, test_name, animate, save);
   if (!animate) {
-    //test_passed &= ValidateReference(test_name, "Pos", 1e-4);
-    //test_passed &= ValidateReference(test_name, "Vel", 5e-5);
-    //test_passed &= ValidateReference(test_name, "Acc", 1e-3;
-    //test_passed &= ValidateReference(test_name, "Quat", 5e-5);
-    //test_passed &= ValidateReference(test_name, "Avel", 5e-3);
-    //test_passed &= ValidateReference(test_name, "Aacc", 5e-2);
+    //test_passed &= ValidateReference(test_name, "Pos", 1e-3);
+    //test_passed &= ValidateReference(test_name, "Vel", 3e-4);
+    //test_passed &= ValidateReference(test_name, "Acc", 2e-2);
+    //test_passed &= ValidateReference(test_name, "Quat", 1e-10);
+    //test_passed &= ValidateReference(test_name, "Avel", 1e-10);
+    //test_passed &= ValidateReference(test_name, "Aacc", 1e-10);
     //test_passed &= ValidateReference(test_name, "Rforce", 5e-3);
   }
 
@@ -208,10 +130,11 @@ int main(int argc, char* argv[])
 //
 // Worker function for performing the simulation with specified parameters.
 //
-bool TestTranSpring(const ChVector<>&     jointLocGnd,      // absolute location of the distance constrain ground attachment point
+bool TestChLinkSpring(const ChVector<>&     jointLocGnd,      // absolute location of the distance constrain ground attachment point
                   const ChVector<>&     jointLocPend,     // absolute location of the distance constrain pendulum attachment point
                   const ChCoordsys<>&   PendCSYS,         // Coordinate system for the pendulum
-                  const int customSpringType,             // Flag for Custom spring force Callback 
+                  const double spring_coef,               // Linear Spring stiffness 
+                  const double damping_coef,              // Damping Coefficent 
                   double                simTimeStep,      // simulation time step
                   double                outTimeStep,      // output time step
                   const std::string&    testName,         // name of this test
@@ -286,25 +209,11 @@ bool TestTranSpring(const ChVector<>&     jointLocGnd,      // absolute location
   // The free length is set equal to the inital distance between
   // "jointLocPend" and "jointLocGnd".
 
-  ChSpringForceCallback *force;
 
-  ChSharedPtr<ChLinkSpringCB> spring = ChSharedPtr<ChLinkSpringCB>(new ChLinkSpringCB);
+  ChSharedPtr<ChLinkSpring> spring = ChSharedPtr<ChLinkSpring>(new ChLinkSpring);
   spring->Initialize(pendulum, ground, false, jointLocPend, jointLocGnd, true);
-  if(customSpringType==1)
-  {
-    force = new MySpringForceCase01;
-    spring->Set_SpringCallback(force);
-  }
-  else if(customSpringType==2)
-  {
-    force = new MySpringForceCase02;
-    spring->Set_SpringCallback(force);
-  }
-  else if(customSpringType==3)
-  {
-    force = new MySpringForceCase03;
-    spring->Set_SpringCallback(force);
-  }
+  spring->Set_SpringK(spring_coef);
+  spring->Set_SpringR(damping_coef);
   my_system.AddLink(spring);
 
   // Perform the simulation (animation with Irrlicht option)
