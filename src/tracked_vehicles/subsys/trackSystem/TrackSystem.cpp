@@ -128,17 +128,19 @@ void TrackSystem::Create(const rapidjson::Document& d)
 
 void TrackSystem::BuildSubsystems()
 {
-
+  // build one of each of the following subsystems
   m_driveGear = ChSharedPtr<DriveGear>(new DriveGear(m_gearMass, m_gearInertia, m_gearRadius, m_gearWidth));
   m_idler = ChSharedPtr<IdlerSimple>(new IdlerSimple(m_idlerMass, m_idlerInertia, m_idlerRadius, m_idlerWidth, m_idler_K, m_idler_C ));
-  m_chain = ChSharedPtr<TrackChain>(new TrackChain( ));
+  m_chain = ChSharedPtr<TrackChain>(new TrackChain(m_trackChainFilename));
   
+  // build suspension/road wheel subsystems
   m_suspensions.resize(m_NumSuspensions);
   for(int i = 0; i < m_NumSuspensions; i++)
   {
     m_suspensions[i] = ChSharedPtr<TorsionArmSuspension>(new TorsionArmSuspension( ));
   }
   
+  // build support wheel subsystems
   m_supportRollers.resize(m_NumRollers);
   for(int j = 0; j < m_NumRollers; j++)
   {
