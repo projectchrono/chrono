@@ -20,6 +20,8 @@
 #ifndef CH_DRIVER_H
 #define CH_DRIVER_H
 
+#include <string>
+
 #include "core/ChShared.h"
 #include "physics/ChSystem.h"
 
@@ -55,6 +57,12 @@ public:
   /// Advance the state of this driver system by the specified time step.
   virtual void Advance(double step) {}
 
+  /// Initialize output file for recording driver inputs.
+  bool LogInit(const std::string& filename);
+
+  /// Record the current driver inputs to the log file.
+  bool Log(double time);
+
 protected:
   /// clamp to interval
   double clamp(double val, double min_val, double max_val);
@@ -71,6 +79,10 @@ protected:
   double m_throttle;   ///< current value of throttle input
   double m_steering;   ///< current value of steering input
   double m_braking;    ///< current value of braking input
+
+private:
+  std::string  m_log_filename;  // name of output file for recording driver inputs
+
 };
 
 

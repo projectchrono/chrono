@@ -19,6 +19,10 @@
 //
 // =============================================================================
 
+#include <iostream>
+#include <sstream>
+#include <fstream>
+
 #include "subsys/ChDriver.h"
 
 
@@ -28,9 +32,47 @@ namespace chrono {
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 ChDriver::ChDriver()
-: m_throttle(0), m_steering(0), m_braking(0)
+: m_throttle(0),
+  m_steering(0),
+  m_braking(0),
+  m_log_filename("")
 {
 }
+
+// -----------------------------------------------------------------------------
+// Initialize output file for recording deriver inputs.
+// -----------------------------------------------------------------------------
+bool ChDriver::LogInit(const std::string& filename)
+{
+  m_log_filename = filename;
+
+  std::ofstream ofile(filename.c_str(), std::ios::out);
+  if (!ofile)
+    return false;
+
+  ofile << "Time\tSteering\tThrottle\tBraking\n";
+  ofile.close();
+  return true;
+}
+
+
+// -----------------------------------------------------------------------------
+// Record the current driver inputs to the log file.
+// -----------------------------------------------------------------------------
+bool ChDriver::Log(double time)
+{
+  if (m_log_filename.empty())
+    return false;
+
+  std::ofstream ofile(m_log_filename.c_str(), std::ios::app);
+  if (!ofile)
+    return false;
+
+  ofile << time << "\t" << m_steering << "\t" << m_throttle << "\t" << m_braking << std::endl;
+  ofile.close();
+  return true;
+}
+
 
 // -----------------------------------------------------------------------------
 // Clamp a specified input value to appropriate interval.
