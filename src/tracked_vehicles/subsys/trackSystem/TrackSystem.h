@@ -22,7 +22,7 @@
 #include "subsys/ChApiSubsys.h"
 #include "rapidjson/document.h"
 
-#include "subsys/idler/Idler.h"
+#include "subsys/idler/IdlerSimple.h"
 #include "subsys/driveGear/DriveGear.h"
 #include "subsys/trackChain/TrackChain.h"
 #include "subsys/suspension/TorsionArmSuspension.h"
@@ -47,10 +47,11 @@ private:
 
   // private functions
   void Create(const rapidjson::Document& d);
-
+  void BuildSubsystems();
+  
   // private variables
   ChSharedPtr<DriveGear> m_driveGear;
-  ChSharedPtr<Idler>	m_idler;
+  ChSharedPtr<IdlerSimple>	m_idler;
   ChSharedPtr<TrackChain> m_chain;
   std::vector<ChSharedPtr<TorsionArmSuspension>> m_suspensions;
   std::vector<ChSharedPtr<ChBody>> m_supportRollers;
@@ -68,6 +69,7 @@ private:
   double m_gearMass;
   ChVector<> m_gearPos;
   double m_gearRadius;
+  double m_gearWidth;
   ChVector<> m_gearInertia;
   
   // Support rollers
@@ -76,10 +78,12 @@ private:
   double m_rollerWidth;
   ChVector<> m_rollerInertia;
   std::vector<ChVector<> > m_rollerLocs;
+  int m_NumRollers;
   
   // suspension
   std::string m_suspensionFilename;
   std::vector<ChVector<> > m_suspensionLocs;
+  int m_NumSuspensions;
   
   // Track Chain
   std::string m_trackChainFilename;

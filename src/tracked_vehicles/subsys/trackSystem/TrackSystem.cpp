@@ -83,6 +83,7 @@ void TrackSystem::Create(const rapidjson::Document& d)
   m_gearPos = loadVector(d["Drive Gear"]["Location"]);
   m_gearInertia = loadVector(d["Drive Gear"]["Inertia"]);
   m_gearRadius = d["Drive Gear"]["Radius"].GetDouble();
+  m_gearWidth = d["Drive Gear"]["Width"].GetDouble();
 
   // Read Support Roller info
   assert(d.HasMember("Support Roller"));
@@ -121,8 +122,31 @@ void TrackSystem::Create(const rapidjson::Document& d)
   assert(d["Track Chain"].IsObject()); 
   m_trackChainFilename = d["Track Chain"]["Input File"].GetString()
   
+  // create the various subsystems
+  BuildSubsystems();
 }
 
+void TrackSystem::BuildSubsystems()
+{
+
+  m_driveGear = ChSharedPtr<DriveGear>(new DriveGear(m_gearMass, m_gearInertia, m_gearRadius, m_gearWidth));
+  m_idler = ChSharedPtr<IdlerSimple>(new IdlerSimple(m_idlerMass, m_idlerInertia, m_idlerRadius, m_idlerWidth, m_idler_K, m_idler_C ));
+  m_chain = ChSharedPtr<TrackChain>(new TrackChain( ));
+  
+  m_suspensions.resize(m_NumSuspensions);
+  for(int i = 0; i < m_NumSuspensions; i++)
+  {
+    m_suspensions[i] = ChSharedPtr<TorsionArmSuspension>(new TorsionArmSuspension( ));
+  }
+  
+  m_supportRollers.resize(m_NumRollers);
+  for(int j = 0; j < m_NumRollers; j++)
+  {
+    m_supportRollers[i] = ChSharedPtr<ChBody>(new ChBody);
+  }
+  
+
+}
 
 void TrackSystem::Initialize(ChSharedPtr<ChBodyAuxRef> chassis,
 			 const ChVector<>&         location,
