@@ -23,8 +23,8 @@ SET(TEST_PROGRAMS
     test_rackpinion
     test_revsph
     test_linactuator
-    test_ChLinkSpring
     test_transpring
+    test_transpringcb
     test_rotspring
 )
 

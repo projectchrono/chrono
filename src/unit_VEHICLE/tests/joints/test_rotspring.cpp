@@ -112,33 +112,30 @@ int main(int argc, char* argv[])
   test_name = "RotSpring_Case01";
   TestRotSpring(ChVector<>(0, 0, 0), Q_from_AngX(-CH_C_PI_2), 1, sim_step, out_step, test_name, animate, save);
   if (!animate) {
-    //test_passed &= ValidateReference(test_name, "Pos", 1e-3);
-    //test_passed &= ValidateReference(test_name, "Vel", 5e-4);
-    //test_passed &= ValidateReference(test_name, "Acc", 2e-2);
-    //test_passed &= ValidateReference(test_name, "Quat", 1e-3);
-    //test_passed &= ValidateReference(test_name, "Avel", 1e-3);
-    //test_passed &= ValidateReference(test_name, "Aacc", 5e-3);
-    //test_passed &= ValidateReference(test_name, "Rforce", 5e-3);
-    //test_passed &= ValidateReference(test_name, "Rtorque", 1e-2);
-    //test_passed &= ValidateConstraints(test_name, 1e-5);
+    test_passed &= ValidateReference(test_name, "Pos", 1e-3);
+    test_passed &= ValidateReference(test_name, "Vel", 5e-4);
+    test_passed &= ValidateReference(test_name, "Acc", 2e-2);
+    test_passed &= ValidateReference(test_name, "Quat", 1e-3);
+    test_passed &= ValidateReference(test_name, "Avel", 1e-3);
+    test_passed &= ValidateReference(test_name, "Aacc", 5e-3);
+    test_passed &= ValidateReference(test_name, "Rforce", 5e-3);
+    test_passed &= ValidateReference(test_name, "Rtorque", 1e-2);
+    test_passed &= ValidateConstraints(test_name, 1e-5);
   }
 
-  // Case 2 - Revolute Joint at the origin and aligned with the global Y axis.
-  // Since the axis of rotation of a revolute joint is the Z-axis, the joint
-  // must be rotated -pi/2 about the global X-axis.
-  // Custom Spring constant modifier
+  // Case 2 - Same as Case01 except a nonlinear spring coefficent is used
   test_name = "RotSpring_Case02";
   TestRotSpring(ChVector<>(0, 0, 0), Q_from_AngX(-CH_C_PI_2), 2, sim_step, out_step, test_name, animate, save);
   if (!animate) {
-    //test_passed &= ValidateReference(test_name, "Pos", 1e-3);
-    //test_passed &= ValidateReference(test_name, "Vel", 5e-4);
-    //test_passed &= ValidateReference(test_name, "Acc", 2e-2);
-    //test_passed &= ValidateReference(test_name, "Quat", 1e-3);
-    //test_passed &= ValidateReference(test_name, "Avel", 1e-3);
-    //test_passed &= ValidateReference(test_name, "Aacc", 5e-3);
-    //test_passed &= ValidateReference(test_name, "Rforce", 5e-3);
-    //test_passed &= ValidateReference(test_name, "Rtorque", 1e-2);
-    //test_passed &= ValidateConstraints(test_name, 1e-5);
+    test_passed &= ValidateReference(test_name, "Pos", 1e-3);
+    test_passed &= ValidateReference(test_name, "Vel", 5e-4);
+    test_passed &= ValidateReference(test_name, "Acc", 2e-2);
+    test_passed &= ValidateReference(test_name, "Quat", 1e-3);
+    test_passed &= ValidateReference(test_name, "Avel", 1e-3);
+    test_passed &= ValidateReference(test_name, "Aacc", 5e-3);
+    test_passed &= ValidateReference(test_name, "Rforce", 5e-3);
+    test_passed &= ValidateReference(test_name, "Rtorque", 1e-2);
+    test_passed &= ValidateConstraints(test_name, 1e-5);
   }
 
 
@@ -231,13 +228,10 @@ bool TestRotSpring(const ChVector<>&     jointLoc,         // absolute location 
 
   ChSharedPtr<ChLinkLockRevolute>  revoluteJoint(new ChLinkLockRevolute);
   revoluteJoint->Initialize(pendulum, ground, ChCoordsys<>(jointLoc, jointRot));
-  ////ChSharedPtr<ChLinkRevolute>  revoluteJoint(new ChLinkRevolute);
-  ////revoluteJoint->Initialize(pendulum, ground, ChFrame<>(jointLoc, jointRot));
 
 
   // Add a rotational spring damper to the revolute joint
   ChLinkForce *force = new ChLinkForce;
-  //ChLinkForce *force;
   ChFunction_CustomSpring *customSpring = new ChFunction_CustomSpring;
 
   force->Set_active(1);
@@ -395,19 +389,24 @@ bool TestRotSpring(const ChVector<>&     jointLoc,         // absolute location 
       ChVector<> reactForce = revoluteJoint->Get_react_force();
       ChVector<> reactTorque = revoluteJoint->Get_react_torque();
 
-      //    reaction torque from the spring damper on ground, expressed in joint frame
-      double springTorque = force->Get_Force(revoluteJoint->GetRelAngle(),revoluteJoint->GetRelWvel().z,simTime);
-      reactTorque = reactTorque - springTorque*ChVector<>(0, 0, 1);
+      //    force and torque from the spring damper on ground, expressed in joint frame
+      ChVector<>  springForce = revoluteJoint->GetC_force();
+      ChVector<>  springTorque = revoluteJoint->GetC_torque();
+
+      // Combine the joint reactions with the spring force and torque to match 
+      // ADAMS comparison files
+      ChVector<> jointForce = reactForce - springForce;
+      ChVector<> jointTorque = reactTorque - springTorque;
 
       //    reaction force and torque on ground, expressed in ground frame
-      reactForce = linkCoordsys.TransformDirectionLocalToParent(reactForce);
-      reactTorque = linkCoordsys.TransformDirectionLocalToParent(reactTorque);
+      jointForce = linkCoordsys.TransformDirectionLocalToParent(jointForce);
+      jointTorque = linkCoordsys.TransformDirectionLocalToParent(jointTorque);
 
       //    since the ground body frame coincides with the global (absolute)
       //    frame, the above quantities also represent the reaction force and
       //    torque on ground, expressed in the global frame
-      out_rfrc << simTime << reactForce << std::endl;
-      out_rtrq << simTime << reactTorque << std::endl;
+      out_rfrc << simTime << jointForce << std::endl;
+      out_rtrq << simTime << jointTorque << std::endl;
 
       // Conservation of Energy
       // Translational Kinetic Energy (1/2*m*||v||^2)
