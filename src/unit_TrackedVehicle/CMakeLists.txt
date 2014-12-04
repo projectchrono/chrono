@@ -17,9 +17,10 @@ cmake_minimum_required(VERSION 2.8)
 
 SET(ChronoEngine_unit_TrackedVehicle_SOURCES
 	subsys/driveGear/DriveGear.cpp
-	subsys/driver/ChDataDriver.cpp
+	subsys/driver/ChDriverTrack.cpp
 	subsys/idler/IdlerSimple.cpp
 	subsys/suspension/TorsionArmSuspension.cpp
+	subsys/terrain/RigidTerrain.cpp
 	subsys/trackChain/TrackChain.cpp
 	subsys/trackSystem/TrackSystem.cpp
 	subsys/trackVehicle/TrackVehicle.cpp
@@ -28,9 +29,10 @@ SET(ChronoEngine_unit_TrackedVehicle_SOURCES
 SET(ChronoEngine_unit_TrackedVehicle_HEADERS
 	subsys/ChApiSubsys.h
 	subsys/driveGear/DriveGear.h
-	subsys/driver/ChDataDriver.h
+	subsys/driver/ChDriverTrack.h
 	subsys/idler/IdlerSimple.h
 	subsys/suspension/TorsionArmSuspension.h
+	subsys/terrain/RigidTerrain.h
 	subsys/trackChain/TrackChain.h
 	subsys/trackSystem/TrackSystem.h
 	subsys/trackVehicle/TrackVehicle.h
@@ -68,8 +70,6 @@ INSTALL(TARGETS ChronoEngine_Tracks
 )
 
 INSTALL(FILES ${ChronoEngine_unit_TrackedVehicle_HEADERS} DESTINATION include/chrono/unit_TrackedVehicle)
-	
-	
 	
 	
 # ------------------------------------------------------------------------------
