@@ -1047,8 +1047,8 @@ IF (BUILD_CH_SDK)
 		collision/convexdecomposition/HACDv2/wavefront.cpp
 	)
 	SOURCE_GROUP(collision\\convexdecomp\\HACDv2 FILES  ${ChronoEngine_collision_convexdecompHACDv2_SOURCES})
-			
-			
+		
+					
 	# OK, now chain all the source groups for building the library,
 	# creating a very long list of source files:
 	
@@ -1189,10 +1189,9 @@ ADD_SUBDIRECTORY(unit_PYTHON)
 ADD_SUBDIRECTORY(demos)
 ADD_SUBDIRECTORY(unit_TESTING)
 
-# tracked vehicles, will eventually be moved
-SET(BUILD_TRACKED_VEHICLES	FALSE    CACHE BOOL   "Build a library for tracked vehicle model credation, and some useage examples")
-IF (BUILD_TRACKED_VEHICLES)
-	ADD_SUBDIRECTORY(tracked_vehicles)
-ENDIF()
-
 INCLUDE(CPack)
+
+# Adding Radu's ChronoT utility library
+ADD_SUBDIRECTORY(utils)
+# Tracked vehicle modeling unit
+ADD_SUBDIRECTORY(unit_TrackedVehicle)
