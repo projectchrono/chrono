@@ -6,8 +6,8 @@ using namespace chrono;
 void ChLcpSolverParallelDVI::RunTimeStep(real step) {
    data_container->settings.solver.step_size = step;
    if (data_container->settings.solver.solver_mode == NORMAL) {
-      rigid_rigid.offset = 1;
-      data_container->num_unilaterals = 1 * data_container->num_contacts;
+      rigid_rigid.offset = 3;
+      data_container->num_unilaterals = 3 * data_container->num_contacts;
    } else if (data_container->settings.solver.solver_mode == SLIDING) {
       rigid_rigid.offset = 3;
       data_container->num_unilaterals = 3 * data_container->num_contacts;
