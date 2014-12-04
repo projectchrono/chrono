@@ -17,6 +17,7 @@ cmake_minimum_required(VERSION 2.8)
 
 SET(ChronoEngine_unit_TrackedVehicle_SOURCES
 	subsys/driveGear/DriveGear.cpp
+	subsys/driver/ChDataDriver.cpp
 	subsys/idler/IdlerSimple.cpp
 	subsys/suspension/TorsionArmSuspension.cpp
 	subsys/trackChain/TrackChain.cpp
@@ -27,6 +28,7 @@ SET(ChronoEngine_unit_TrackedVehicle_SOURCES
 SET(ChronoEngine_unit_TrackedVehicle_HEADERS
 	subsys/ChApiSubsys.h
 	subsys/driveGear/DriveGear.h
+	subsys/driver/ChDataDriver.h
 	subsys/idler/IdlerSimple.h
 	subsys/suspension/TorsionArmSuspension.h
 	subsys/trackChain/TrackChain.h
