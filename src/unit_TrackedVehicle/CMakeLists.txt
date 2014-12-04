@@ -60,6 +60,9 @@ TARGET_LINK_LIBRARIES(ChronoEngine_Tracks
 ADD_DEPENDENCIES (ChronoEngine_Tracks ChronoEngine)  #  not automatic
 	
 	
+	
+INCLUDE_DIRECTORIES( ${CMAKE_SOURCE_DIR}/unit_TrackedVehicle )
+	
 # Let some variables be visible also from outside this directory, using the PARENT_SCOPE trick
 #SET (foo      		"${foo}" 			 PARENT_SCOPE )
 	
@@ -75,11 +78,11 @@ INSTALL(FILES ${ChronoEngine_unit_TrackedVehicle_HEADERS} DESTINATION include/ch
 # ------------------------------------------------------------------------------
 # Copy the track_data folder to the bin directory
 IF(MSVC)
-  FILE( COPY ${CMAKE_SOURCE_DIR}/tracked_vehicles/track_data DESTINATION ${CMAKE_BINARY_DIR}/bin/data/)
+  FILE( COPY ${CMAKE_SOURCE_DIR}/unit_TrackedVehicle/track_data DESTINATION ${CMAKE_BINARY_DIR}/bin/data/)
 ELSEIF(XCODE_VERSION)
-  FILE( COPY ${CMAKE_SOURCE_DIR}/tracked_vehicles/track_data DESTINATION ${CMAKE_BINARY_DIR}/bin/data/)
+  FILE( COPY ${CMAKE_SOURCE_DIR}/unit_TrackedVehicle/track_data DESTINATION ${CMAKE_BINARY_DIR}/bin/data/)
 ELSE()
-  FILE( COPY ${CMAKE_SOURCE_DIR}/tracked_vehicles/track_data DESTINATION ${CMAKE_BINARY_DIR}/data/)
+  FILE( COPY ${CMAKE_SOURCE_DIR}/unit_TrackedVehicle/track_data DESTINATION ${CMAKE_BINARY_DIR}/data/)
 ENDIF()
 
 

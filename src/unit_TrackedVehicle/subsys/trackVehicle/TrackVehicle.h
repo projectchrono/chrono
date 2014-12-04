@@ -24,7 +24,7 @@
 
 namespace chrono {
 
-class CH_SUBSYS_API TrackTrackVehicle
+class CH_SUBSYS_API TrackVehicle
 {
 public:
 
