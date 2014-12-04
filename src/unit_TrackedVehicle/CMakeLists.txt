@@ -82,3 +82,6 @@ ELSE()
   FILE( COPY ${CMAKE_SOURCE_DIR}/tracked_vehicles/track_data DESTINATION ${CMAKE_BINARY_DIR}/data/)
 ENDIF()
 
+
+# Adding Radu's ChronoT utility library
+ADD_SUBDIRECTORY(utils)

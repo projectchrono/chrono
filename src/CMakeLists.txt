@@ -1191,7 +1191,5 @@ ADD_SUBDIRECTORY(unit_TESTING)
 
 INCLUDE(CPack)
 
-# Adding Radu's ChronoT utility library
-ADD_SUBDIRECTORY(utils)
 # Tracked vehicle modeling unit
 ADD_SUBDIRECTORY(unit_TrackedVehicle)
