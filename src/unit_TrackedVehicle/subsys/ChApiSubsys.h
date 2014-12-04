@@ -1,3 +1,16 @@
+//
+// PROJECT CHRONO - http://projectchrono.org
+//
+// Copyright (c) 2014 Project Chrono
+// All rights reserved.
+//
+// Use of this source code is governed by a BSD-style license that can be 
+// found in the LICENSE file at the top level of the distribution
+// and at http://projectchrono.org/license-chrono.txt.
+//
+// Author: Justin Madsen
+
+
 #ifndef CH_APISUBSYS_H
 #define CH_APISUBSYS_H
 
@@ -8,7 +21,7 @@
 // exported). Otherwise, just do not define it if you link the library to your
 // code, and the symbols will be imported.
 
-#if defined(CH_API_COMPILE_SUBSYS)
+#if defined(CH_API_COMPILE_UNIT_TRACKS)
 #define CH_SUBSYS_API ChApiEXPORT
 #else
 #define CH_SUBSYS_API ChApiIMPORT

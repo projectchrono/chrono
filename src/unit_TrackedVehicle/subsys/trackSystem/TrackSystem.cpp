@@ -147,8 +147,6 @@ void TrackSystem::BuildSubsystems()
     m_supportRollers[i] = ChSharedPtr<ChBody>(new ChBody);
   }
 
-  
-  
 }
 
 void TrackSystem::Initialize(ChSharedPtr<ChBodyAuxRef> chassis,
