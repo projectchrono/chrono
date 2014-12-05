@@ -749,7 +749,7 @@ public:
 				Da,
 				Dl,
 				R,
-				1.0,        // factor for  M
+				(1.0 / (1.0 + alpha)),        // factor for  M (was 1 in Negrut paper ?!)
 				-dt*gamma,  // factor for  dF/dv
 				-dt*dt*beta,// factor for  dF/dx
 				Xnew, Vnew, T + dt,
