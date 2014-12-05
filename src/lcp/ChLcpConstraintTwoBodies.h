@@ -57,17 +57,17 @@ class ChApi ChLcpConstraintTwoBodies : public ChLcpConstraintTwo
 
 protected:
 				/// The [Cq_a] jacobian of the constraint
-	ChMatrixNM<float,1,6> Cq_a;
+	ChMatrixNM<double,1,6> Cq_a;
 				/// The [Cq_b] jacobian of the constraint
-	ChMatrixNM<float,1,6> Cq_b;
+	ChMatrixNM<double,1,6> Cq_b;
 
 
 				// Auxiliary data: will be used by iterative constraint solvers:
 
 				/// The [Eq_a] product [Eq_a]=[invM_a]*[Cq_a]'
-	ChMatrixNM<float,6,1> Eq_a;
+	ChMatrixNM<double,6,1> Eq_a;
 				/// The [Eq_a] product [Eq_b]=[invM_b]*[Cq_b]'
-	ChMatrixNM<float,6,1> Eq_b;
+	ChMatrixNM<double,6,1> Eq_b;
 
 public:
 
@@ -113,14 +113,14 @@ public:
 
 
 				/// Access jacobian matrix
-	virtual ChMatrix<float>* Get_Cq_a() {return &Cq_a;}
+	virtual ChMatrix<double>* Get_Cq_a() {return &Cq_a;}
 				/// Access jacobian matrix
-	virtual ChMatrix<float>* Get_Cq_b() {return &Cq_b;}
+	virtual ChMatrix<double>* Get_Cq_b() {return &Cq_b;}
 
 				/// Access auxiliary matrix (ex: used by iterative solvers)
-	virtual ChMatrix<float>* Get_Eq_a() {return &Eq_a;}
+	virtual ChMatrix<double>* Get_Eq_a() {return &Eq_a;}
 				/// Access auxiliary matrix (ex: used by iterative solvers)
-	virtual ChMatrix<float>* Get_Eq_b() {return &Eq_b;}
+	virtual ChMatrix<double>* Get_Eq_b() {return &Eq_b;}
 
 
 				/// Set references to the constrained objects, each of ChLcpVariablesBody type,
@@ -225,16 +225,16 @@ public:
 	virtual void Build_Cq(ChSparseMatrix& storage, int insrow)
 					{
 						if (variables_a->IsActive())
-							storage.PasteMatrixFloat(&Cq_a, insrow, variables_a->GetOffset());
+							storage.PasteMatrix(&Cq_a, insrow, variables_a->GetOffset());
 						if (variables_b->IsActive())
-							storage.PasteMatrixFloat(&Cq_b, insrow, variables_b->GetOffset());
+							storage.PasteMatrix(&Cq_b, insrow, variables_b->GetOffset());
 					}
 	virtual void Build_CqT(ChSparseMatrix& storage, int inscol)
 					{
 						if (variables_a->IsActive())
-							storage.PasteTranspMatrixFloat(&Cq_a, variables_a->GetOffset(), inscol);
+							storage.PasteTranspMatrix(&Cq_a, variables_a->GetOffset(), inscol);
 						if (variables_b->IsActive())
-							storage.PasteTranspMatrixFloat(&Cq_b, variables_b->GetOffset(), inscol);
+							storage.PasteTranspMatrix(&Cq_b, variables_b->GetOffset(), inscol);
 					}
 
 

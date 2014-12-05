@@ -295,7 +295,7 @@ void ChLcpSystemDescriptor::DumpLastMatrices(const char* path)
 
 		sprintf(filename,"%s%s", path, "dump_b.dat");
 		chrono::ChStreamOutAsciiFile file_b(filename);
-		file_f.SetNumFormat(numformat);
+		file_b.SetNumFormat(numformat);
 		mdb.StreamOUTdenseMatlabFormat(file_b);
 
 		sprintf(filename,"%s%s", path, "dump_fric.dat");
