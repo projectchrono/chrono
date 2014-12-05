@@ -159,7 +159,7 @@ private:
 public:
 					/// Constructors 
 	ChImplicitTimestepper() :
-		maxiters(20),
+		maxiters(10),
 		tolerance(1e-10)
 	{}
 
