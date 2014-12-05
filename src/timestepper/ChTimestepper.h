@@ -159,7 +159,7 @@ private:
 public:
 					/// Constructors 
 	ChImplicitTimestepper() :
-		maxiters(20),
+		maxiters(10),
 		tolerance(1e-10)
 	{}
 
@@ -198,16 +198,16 @@ public:
 		GetIntegrable()->StateGather(Y(), T);	// state <- system
 
 		// auxiliary vectors
-		ChStateDelta		Dy(this->GetIntegrable()->GetNcoords_dy(), GetIntegrable());
+		//ChStateDelta		Dy(this->GetIntegrable()->GetNcoords_dy(), GetIntegrable());
 		ChVectorDynamic<>   L (this->GetIntegrable()->GetNconstr());
 
-		GetIntegrable()->StateSolve(Dy, L, Y(), T, dt, false);	// dY/dt = f(Y,T)   dY = f(Y,T)*dt
+		GetIntegrable()->StateSolve(dYdt(), L, Y(), T, dt, false);	// dY/dt = f(Y,T) 
 
 		// Euler formula!  
 		//   y_new= y + dy/dt * dt    =  y_new= y + Dy
 
-		Y()		= Y() + Dy;		//  also: GetIntegrable().StateIncrement(y_new, y, Dy);
-		dYdt()	= Dy*(1./dt); 
+		Y()		= Y() + dYdt() * dt;		//  also: GetIntegrable().StateIncrement(y_new, y, Dy);
+
 		T		+= dt;
 
 		GetIntegrable()->StateScatter(Y(), T);	// state -> system
@@ -247,15 +247,13 @@ public:
 		ChStateDelta		Dv(mintegrable->GetNcoords_v(), GetIntegrable());
 		ChVectorDynamic<>   L(mintegrable->GetNconstr());
 
-		mintegrable->StateSolveA(Dv, L, X(), V(), T, dt, false);	// Dv/dt = f(x,v,T)   Dv = f(x,v,T)*dt
+		mintegrable->StateSolveA( A(), L, X(), V(), T, dt, false);	// Dv/dt = f(x,v,T)
 
 		// Euler formula!  
 
-		A() = Dv*(1. / dt);
-
 		X() = X() + V()*dt;		// x_new= x + v * dt 
 
-		V() = V() + Dv;			// v_new= v + a * dt 
+		V() = V() + A()*dt;		// v_new= v + a * dt 
 		
 		T += dt;
 
@@ -291,16 +289,14 @@ public:
 		mintegrable->StateGather(X(), V(), T);	// state <- system
 
 		// auxiliary vectors
-		ChStateDelta		Dv(mintegrable->GetNcoords_v(), GetIntegrable());
+		//ChStateDelta		Dv(mintegrable->GetNcoords_v(), GetIntegrable());
 		ChVectorDynamic<>   L(mintegrable->GetNconstr());
 
-		mintegrable->StateSolveA(Dv, L, X(), V(), T, dt, false);	// Dv/dt = f(x,v,T)   Dv = f(x,v,T)*dt
+		mintegrable->StateSolveA( A(), L, X(), V(), T, dt, false);	// Dv/dt = f(x,v,T)   Dv = f(x,v,T)*dt
 
 		// Semi-implicit Euler formula!   (note the order of update of x and v, respect to original Euler II order explicit)
 
-		A() = Dv*(1. / dt);
-
-		V() = V() + Dv;			// v_new= v + a * dt 
+		V() = V() + A()*dt;		// v_new= v + a * dt 
 
 		X() = X() + V()*dt;		// x_new= x + v_new * dt 
 
@@ -338,26 +334,26 @@ public:
 		int n_dy = GetIntegrable()->GetNcoords_dy();
 		int n_c  = GetIntegrable()->GetNconstr();
 		ChState				y_new(n_y,  GetIntegrable());
-		ChStateDelta		Dy1	 (n_dy, GetIntegrable());
-		ChStateDelta		Dy2	 (n_dy, GetIntegrable());
-		ChStateDelta		Dy3  (n_dy, GetIntegrable());
-		ChStateDelta		Dy4	 (n_dy, GetIntegrable());
+		ChStateDelta		Dydt1	 (n_dy, GetIntegrable());
+		ChStateDelta		Dydt2	 (n_dy, GetIntegrable());
+		ChStateDelta		Dydt3  (n_dy, GetIntegrable());
+		ChStateDelta		Dydt4	 (n_dy, GetIntegrable());
 		ChVectorDynamic<>   L    (n_c);
 
 
-		GetIntegrable()->StateSolve(Dy1, L, Y(), T, dt, false); //note, 'false'=no need to update with StateScatter before computation
+		GetIntegrable()->StateSolve(Dydt1, L, Y(), T, dt, false); //note, 'false'=no need to update with StateScatter before computation
 
-		y_new = Y() + Dy1*0.5;	//integrable.StateIncrement(y_new, Y, Dy1*0.5);
-		GetIntegrable()->StateSolve(Dy2, L, y_new, T+dt*0.5, dt);
+		y_new = Y() + Dydt1*0.5*dt;	//integrable.StateIncrement(y_new, Y, Dydt1*0.5*dt);
+		GetIntegrable()->StateSolve(Dydt2, L, y_new, T+dt*0.5, dt);
 
-		y_new = Y() + Dy2*0.5;	//integrable.StateIncrement(y_new, Y, Dy2*0.5);
-		GetIntegrable()->StateSolve(Dy3, L, y_new, T+dt*0.5, dt);
+		y_new = Y() + Dydt2*0.5*dt;	//integrable.StateIncrement(y_new, Y, Dydt2*0.5*dt);
+		GetIntegrable()->StateSolve(Dydt3, L, y_new, T+dt*0.5, dt);
 
-		y_new = Y() + Dy3;		//integrable.StateIncrement(y_new, Y, Dy3);
-		GetIntegrable()->StateSolve(Dy4, L, y_new, T+dt, dt);
+		y_new = Y() + Dydt3*dt;		//integrable.StateIncrement(y_new, Y, Dydt3*dt);
+		GetIntegrable()->StateSolve(Dydt4, L, y_new, T+dt, dt);
 
-		Y()		= Y() + (Dy1 + Dy2*2.0 + Dy3*2.0 + Dy4)*(1./6.);   //integrable.StateIncrement(y_new, Y, (Dy1 + Dy2*2.0 + Dy3*2.0 + Dy4)*(1./6.) );
-		dYdt()	= Dy4*(1./dt);
+		Y()		= Y() + (Dydt1 + Dydt2*2.0 + Dydt3*2.0 + Dydt4)*(1./6.)*dt;   //integrable.StateIncrement(...);
+		dYdt()	= Dydt4; // to check
 		T		+= dt;
 
 		GetIntegrable()->StateScatter(Y(), T);	// state -> system
@@ -390,19 +386,19 @@ public:
 		int n_dy = GetIntegrable()->GetNcoords_dy();
 		int n_c  = GetIntegrable()->GetNconstr();
 		ChState				y_new(n_y, GetIntegrable());
-		ChStateDelta		Dy1(n_dy, GetIntegrable());
-		ChStateDelta		Dy2(n_dy, GetIntegrable());
+		ChStateDelta		Dydt1(n_dy, GetIntegrable());
+		ChStateDelta		Dydt2(n_dy, GetIntegrable());
 		ChVectorDynamic<>   L(n_c);
 
 
-		GetIntegrable()->StateSolve(Dy1, L, Y(), T, dt, false); //note, 'false'=no need to update with StateScatter before computation
+		GetIntegrable()->StateSolve(Dydt1, L, Y(), T, dt, false); //note, 'false'=no need to update with StateScatter before computation
 
-		y_new = Y() + Dy1;
-		GetIntegrable()->StateSolve(Dy2, L, y_new, T + dt,  dt);
+		y_new = Y() + Dydt1*dt;
+		GetIntegrable()->StateSolve(Dydt2, L, y_new, T + dt,  dt);
 
 
-		Y() = Y() + (Dy1 + Dy2)*(1. / 2.);   //integrable.StateIncrement(y_new, Y, (Dy1 + Dy2*2.0 + Dy3*2.0 + Dy4)*(1./6.) );
-		dYdt() = Dy2*(1. / dt);
+		Y() = Y() + (Dydt1 + Dydt2)*(dt / 2.);   
+		dYdt() = Dydt2;
 		T += dt;
 
 		GetIntegrable()->StateScatter(Y(), T);	// state -> system
@@ -440,7 +436,7 @@ public:
 		mintegrable->StateGather(X(), V(), T);	// state <- system
 
 		// auxiliary vectors
-		ChStateDelta		Dv(mintegrable->GetNcoords_v(), GetIntegrable());
+		//ChStateDelta		Dv(mintegrable->GetNcoords_v(), GetIntegrable());
 		ChVectorDynamic<>   L(mintegrable->GetNconstr());
 		ChStateDelta		Aold(A());
 
@@ -448,9 +444,7 @@ public:
 		X() = X() + V()*dt + Aold*(0.5*dt*dt);
 
 		// computes new A  (NOTE!!true for imposing a state-> system scatter update,because X changed..)
-		mintegrable->StateSolveA(Dv, L, X(), V(), T, dt, true);	// Dv/dt = f(x,v,T)   Dv = f(x,v,T)*dt
-		
-		A() = Dv*(1. / dt);
+		mintegrable->StateSolveA( A(), L, X(), V(), T, dt, true);	// Dv/dt = f(x,v,T)   Dv = f(x,v,T)*dt
 
 		// advance V
 
@@ -496,16 +490,14 @@ public:
 
 		// use Euler explicit to extrapolate a prediction 
 
-		mintegrable->StateSolveA(Dv, L, X(), V(), T, dt, false);	// Dv/dt = f(x,v,T)   Dv = f(x,v,T)*dt
-
-		A() = Dv*(1. / dt);
+		mintegrable->StateSolveA( A(), L, X(), V(), T, dt, false);	// Dv/dt = f(x,v,T)   Dv = f(x,v,T)*dt
 
 		Xnew = X() + V()*dt;		// x_new= x + v * dt 
-		Vnew = V() + Dv;			// v_new= v + a * dt 
+		Vnew = V() + A()*dt;		// v_new= v + a * dt 
 		
 		// use Newton Raphson iteration to solve implicit Euler for v_new
 		//
-		// [ M - dt*dF/dv - dt^2*dF/dx    Cq' ] [ Dv     ] = [ M*(v_old - v_new) + dt*f + dt*Cq*l ]
+		// [ M - dt*dF/dv - dt^2*dF/dx    Cq' ] [ Dv     ] = [ M*(v_old - v_new) + dt*f + dt*Cq'*l ]
 		// [ Cq                           0   ] [ -dt*Dl ] = [ C/dt  ]
 
 		ChVectorDynamic<> R(mintegrable->GetNcoords_v());
@@ -589,12 +581,10 @@ public:
 
 		// use Euler explicit to extrapolate a prediction 
 
-		mintegrable->StateSolveA(Dv, L, X(), V(), T, dt, false);	// Dv/dt = f(x,v,T)   Dv = f(x,v,T)*dt
-
-		A() = Dv*(1. / dt);
+		mintegrable->StateSolveA( A(), L, X(), V(), T, dt, false);	// Dv/dt = f(x,v,T)   Dv = f(x,v,T)*dt
 
 		Xnew = X() + V()*dt;		// x_new= x + v * dt 
-		Vnew = V() + Dv;			// v_new= v + a * dt 
+		Vnew = V() + A()*dt;		// v_new= v + a * dt 
 
 		// use Newton Raphson iteration to solve implicit Euler for v_new
 		//
@@ -652,6 +642,7 @@ public:
 
 
 /// Performs a step of HHT (generalized alpha) implicit for II order systems
+/// See Negrut et al. 2007.
 
 class ChTimestepperHHT : public ChTimestepperIIorder, public ChImplicitTimestepper
 {
@@ -674,8 +665,9 @@ public:
 	/// It must be in the [-1/3, 0] interval. 
 	/// The closer to -1/3, the more damping.
 	/// The closer to 0, the less damping (for 0, it is the trapezoidal method).
-	void SetAlpha(double alpha)
+	void SetAlpha(double malpha)
 	{
+		alpha = malpha;
 		if (alpha < -1.0 / 3.0)
 			alpha = -1.0 / 3.0;
 		if (alpha > 0)
@@ -699,7 +691,6 @@ public:
 		mintegrable->StateGather(X(), V(), T);	// state <- system
 
 		// auxiliary vectors
-		ChStateDelta		Dv(mintegrable->GetNcoords_v(), GetIntegrable());
 		ChStateDelta		Da(mintegrable->GetNcoords_a(), GetIntegrable());
 		ChVectorDynamic<>   Dl(mintegrable->GetNconstr());
 		ChVectorDynamic<>   L(mintegrable->GetNconstr());
@@ -708,39 +699,39 @@ public:
 		ChStateDelta	Vnew(mintegrable->GetNcoords_v(), mintegrable);
 		ChStateDelta	Anew(mintegrable->GetNcoords_a(), mintegrable);
 
-		// use Euler explicit to extrapolate a prediction 
-		Anew = A();
-
-		mintegrable->StateSolveA(Dv, L, X(), V(), T, dt, false);	// Dv/dt = f(x,v,T)   Dv = f(x,v,T)*dt
-
-		A() = Dv*(1. / dt);
-
-		Xnew = X() + V()*dt;		// x_new= x + v * dt 
-		Vnew = V() + Dv;			// v_new= v + a * dt 
-		//Anew = A();
-
-		// use Newton Raphson iteration to solve implicit Euler for a_new
-		//
-		// [ M - dt*gamma*dF/dv - dt^2*beta*dF/dx    Cq' ] [ Da       ] = [-1/(1+alpha)*M*(a_new) + (f_new +Cq*l_new) + (alpha/(1+alpha))(f_old +Cq*l_old)]
-		// [ Cq                                      0   ] [ Dl       ] = [-1/(beta*dt^2)*C                                                                          ]
-
 		ChVectorDynamic<> R(mintegrable->GetNcoords_v());
 		ChVectorDynamic<> Rold(mintegrable->GetNcoords_v());
 		ChVectorDynamic<> Qc(mintegrable->GetNconstr());
 
-		mintegrable->LoadResidual_F  (Rold,  (alpha / (1.0 + alpha)) );     // alpha/(1.0+alpha) * f_old
-		mintegrable->LoadResidual_CqL(Rold, L, (alpha / (1.0 + alpha)) );   // alpha/(1.0+alpha) * Cq*l_old
+		// use Euler semi-implicit to extrapolate a prediction 
+
+		mintegrable->StateSolveA( Anew, L, X(), V(), T, dt, false);
+
+		Vnew = V() + Anew*dt;		// v_new= v + a * dt
+		Xnew = X() + Vnew*dt;		// x_new= x + v * dt 
+		 
+		mintegrable->LoadResidual_F(Rold, -(alpha / (1.0 + alpha)));     // -alpha/(1.0+alpha) * f_old
+		mintegrable->LoadResidual_CqL(Rold, L, -(alpha / (1.0 + alpha)));   // -alpha/(1.0+alpha) * Cq'*l_old
+
+
+		// use Newton Raphson iteration to solve implicit Euler for a_new
+		// Note: l and l_new and Dl with opposite sign if compared to Negrut et al. 2007.
+
+		//
+		// [ M - dt*gamma*dF/dv - dt^2*beta*dF/dx    Cq' ] [ Da       ] = [-1/(1+alpha)*M*(a_new) + (f_new +Cq*l_new) - (alpha/(1+alpha))(f_old +Cq*l_old)]
+		// [ Cq                                      0   ] [ Dl       ] = [ 1/(beta*dt^2)*C                                                                          ]
+
+
 
 		for (int i = 0; i < this->GetMaxiters(); ++i)
 		{
 			mintegrable->StateScatter(Xnew, Vnew, T + dt);	// state -> system
 			R = Rold;
 			Qc.Reset();
-			mintegrable->LoadResidual_F  (R, 1.0);        // + f_new
-			mintegrable->LoadResidual_Mv (R, Anew, -(1.0/(1.0+alpha)) ); // -1/(1+alpha)*M*a_new
-			mintegrable->LoadResidual_CqL(R, L, 1.0);     // + Cq*l_new
-			mintegrable->LoadConstraint_C(Qc, -(1.0/(beta*dt*dt)) );  // -1/(beta*dt^2)*C
-			GetLog() << "  R=" << R(0) << "    gamma " << gamma<< "  beta " << beta << "\n";
+			mintegrable->LoadResidual_F  (R,  1.0);         //  f_new
+			mintegrable->LoadResidual_CqL(R, L,  1.0);      //  Cq'*l_new
+			mintegrable->LoadResidual_Mv (R, Anew, -(1.0 / (1.0 + alpha)) ); // -1/(1+alpha)*M*a_new
+			mintegrable->LoadConstraint_C(Qc,  (1.0/(beta*dt*dt)) );  //  1/(beta*dt^2)*C
 			if (R.NormInf() < this->GetTolerance())
 				break;
 
@@ -748,7 +739,7 @@ public:
 				Da,
 				Dl,
 				R,
-				1.0,        // factor for  M
+				(1.0 / (1.0 + alpha)),        // factor for  M (was 1 in Negrut paper ?!)
 				-dt*gamma,  // factor for  dF/dv
 				-dt*dt*beta,// factor for  dF/dx
 				Xnew, Vnew, T + dt,
@@ -757,7 +748,7 @@ public:
 
 			L    += Dl;
 			Anew += Da;
-			
+
 			Xnew = X() + V()*dt + A()*(dt*dt*(0.5 - beta)) + Anew*(dt*dt*beta);
 
 			Vnew = V() + A()*(dt*(1.0 - gamma)) + Anew*(dt*gamma);

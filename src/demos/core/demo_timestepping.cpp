@@ -55,7 +55,7 @@ int main(int argc, char* argv[])
 				virtual int GetNcoords_y() {return 1;}
 
 							/// compute  dy/dt=f(y,t) 
-				virtual void StateSolve(ChStateDelta& Dy,	///< result: computed Dy
+				virtual void StateSolve(ChStateDelta& dydt,	///< result: computed dy/dt
 										ChVectorDynamic<>& L,	///< result: computed lagrangian multipliers, if any
 										const ChState& y,	///< current state y
 										const double T,		///< current time T
@@ -66,7 +66,7 @@ int main(int argc, char* argv[])
 					if(force_state_scatter) 
 						StateScatter(y,T);  // state -> system   (not needed here, btw.)
 
-					Dy(0) = exp(T)*dt;  // dx/dt=e^t   then:  dx=e^t * dt
+					dydt(0) = exp(T);  // dx/dt=e^t  
 				}
 		};
 
@@ -148,7 +148,7 @@ int main(int argc, char* argv[])
 										};
 
 								/// compute  dy/dt=f(y,t) 
-				virtual void StateSolve(ChStateDelta& Dy,		///< result: computed Dy
+				virtual void StateSolve(ChStateDelta& dydt,	///< result: computed dy/dt
 										ChVectorDynamic<>& L,	///< result: computed lagrangian multipliers, if any
 										const ChState& y,	///< current state y
 										const double T,		///< current time T
@@ -161,8 +161,8 @@ int main(int argc, char* argv[])
 
 					double F = cos(T*20)*2;
 
-					Dy(0) = dt*v;
-					Dy(1) = dt*(1./M) * (F - K*x - R*v);
+					dydt(0) = v;	// speed
+					dydt(1) = (1./M) * (F - K*x - R*v); // acceleration
 				}
 		};
 
@@ -260,7 +260,7 @@ int main(int argc, char* argv[])
 			};
 
 			/// compute  dy/dt=f(y,t) 
-			virtual void StateSolveA(ChStateDelta& Dv,		///< result: computed Dv
+			virtual void StateSolveA(ChStateDelta& dvdt,		///< result: computed accel. a = dv/dt
 				ChVectorDynamic<>& L,	///< result: computed lagrangian multipliers, if any
 				const ChState& x,		///< current state, x
 				const ChStateDelta& v,	///< current state, v
@@ -273,7 +273,7 @@ int main(int argc, char* argv[])
 					StateScatter(x, v, T);
 
 				double F = cos(T * 20) * 2;
-				Dv(0) = dt*(1. / M) * (F - K*mx - R*mv);
+				dvdt(0) = (1. / M) * (F - K*mx - R*mv);
 			}
 		};
 
@@ -332,41 +332,41 @@ int main(int argc, char* argv[])
 			double M;
 			double K;
 			double R;
-			double T;
+			double mT;
 			double mx;
 			double mv;
 		public:
 			MyIntegrable()
 			{
-				T = 0;
+				mT = 0;
 				M = 1;
 				K = 30;
 				R = 0;
 				mx = 0;
-				mv = 0;
+				mv = 0.6;
 			}
 
 			/// the number of coordinates in the state, x position part:
 			virtual int GetNcoords_x() { return 1; }
 
 			/// system -> state
-			virtual void StateGather(ChState& x, ChStateDelta& v, double& mT)
+			virtual void StateGather(ChState& x, ChStateDelta& v, double& T)
 			{
 				x(0) = mx;
 				v(0) = mv;
-				mT = T;
-			};
-
-			/// state -> system  
-			virtual void StateScatter(const ChState& x, const ChStateDelta& v, const double mT)
-			{
-				mx = x(0);
-				mv = v(0);
 				T = mT;
 			};
 
+			/// state -> system  
+			virtual void StateScatter(const ChState& x, const ChStateDelta& v, const double T)
+			{
+				mx = x(0);
+				mv = v(0);
+				mT = T;
+			};
+
 			/// compute  dy/dt=f(y,t) 
-			virtual void StateSolveA(ChStateDelta& Dv,		///< result: computed Dv
+			virtual void StateSolveA(ChStateDelta& dvdt,		///< result: computed accel. a=dv/dt
 				ChVectorDynamic<>& L,	///< result: computed lagrangian multipliers, if any
 				const ChState& x,		///< current state, x
 				const ChStateDelta& v,	///< current state, v
@@ -377,8 +377,8 @@ int main(int argc, char* argv[])
 			{
 				if (force_state_scatter)
 					StateScatter(x, v, T);
-				double F = sin(T * 20) * 2;
-				Dv(0) = dt*(1. / M) * (F - K*mx - R*mv);
+				double F = sin(mT * 20) * 0.02;
+				dvdt(0) = (1. / M) * (F - K*mx - R*mv);
 			}
 
 			/// Compute the correction with linear system
@@ -408,7 +408,7 @@ int main(int argc, char* argv[])
 				const double c				 ///< a scaling factor
 				)
 			{
-				R(0) += c * (sin(T * 20) * 2 - this->K*mx - this->R*mv);
+				R(0) += c * (sin(mT * 20) * 0.02 - this->K*mx - this->R*mv);
 			};
   
 			///    R += c*M*w 
@@ -455,26 +455,32 @@ int main(int argc, char* argv[])
 		MyIntegrable mintegrable2;
 		MyIntegrable mintegrable3;
 		MyIntegrable mintegrable4;
+		MyIntegrable mintegrable5;
 
 		// Create few time-integrators to be compared:
 		ChTimestepperEulerImplicit		 mystepper1(mintegrable1);
 		ChTimestepperTrapezoidal		 mystepper2(mintegrable2);
 		ChTimestepperEuleroExplIIorder   mystepper3(mintegrable3);
-		ChTimestepperEuleroSemiImplicit  mystepper4(mintegrable4);
+		ChTimestepperHHT				 mystepper4(mintegrable4);
+		ChTimestepperHHT				 mystepper5(mintegrable5);
+		mystepper4.SetAlpha(0);		// HHT with no dissipation -> trapezoidal
+		mystepper5.SetAlpha(-0.33);  // HHT with max dissipation 
 
 		// Execute the time integration
 		while (mystepper1.GetTime() <4)
 		{
-			mystepper1.Advance(0.01);
-			mystepper2.Advance(0.01);
-			mystepper3.Advance(0.01);
-			mystepper4.Advance(0.01);
+			mystepper1.Advance(0.05);
+			mystepper2.Advance(0.05);
+			mystepper3.Advance(0.05);
+			mystepper4.Advance(0.05);
+			mystepper5.Advance(0.05);
 
 			GetLog() << "T = " << mystepper1.GetTime() << "  x=" << mystepper1.X()(0) << "  v=" << mystepper1.V()(0) << "\n";
 			log_file4 << mystepper1.GetTime()	<< ", " << mystepper1.X()(0) << ", " << mystepper1.V()(0)
 												<< ", " << mystepper2.X()(0) << ", " << mystepper2.V()(0)
 												<< ", " << mystepper3.X()(0) << ", " << mystepper3.V()(0)
 												<< ", " << mystepper4.X()(0) << ", " << mystepper4.V()(0)
+												<< ", " << mystepper5.X()(0) << ", " << mystepper5.V()(0)
 												<< "\n";
 		}
 
