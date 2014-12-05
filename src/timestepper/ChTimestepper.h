@@ -674,8 +674,9 @@ public:
 	/// It must be in the [-1/3, 0] interval. 
 	/// The closer to -1/3, the more damping.
 	/// The closer to 0, the less damping (for 0, it is the trapezoidal method).
-	void SetAlpha(double alpha)
+	void SetAlpha(double malpha)
 	{
+		alpha = malpha;
 		if (alpha < -1.0 / 3.0)
 			alpha = -1.0 / 3.0;
 		if (alpha > 0)
