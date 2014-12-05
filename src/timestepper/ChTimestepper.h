@@ -715,6 +715,8 @@ public:
 		mintegrable->StateSolveA(Dv, L, X(), V(), T, dt, false);	// Dv/dt = f(x,v,T)   Dv = f(x,v,T)*dt
 
 		A() = Dv*(1. / dt);
+		mintegrable->LoadResidual_F(Rold, -(alpha / (1.0 + alpha)));     // -alpha/(1.0+alpha) * f_old
+		mintegrable->LoadResidual_CqL(Rold, L, -(alpha / (1.0 + alpha)));   // -alpha/(1.0+alpha) * Cq'*l_old
 
 		Xnew = X() + V()*dt;		// x_new= x + v * dt 
 		Vnew = V() + Dv;			// v_new= v + a * dt 
@@ -729,8 +731,6 @@ public:
 		ChVectorDynamic<> Rold(mintegrable->GetNcoords_v());
 		ChVectorDynamic<> Qc(mintegrable->GetNconstr());
 
-		mintegrable->LoadResidual_F  (Rold,  (alpha / (1.0 + alpha)) );     // alpha/(1.0+alpha) * f_old
-		mintegrable->LoadResidual_CqL(Rold, L, (alpha / (1.0 + alpha)) );   // alpha/(1.0+alpha) * Cq*l_old
 
 		for (int i = 0; i < this->GetMaxiters(); ++i)
 		{
