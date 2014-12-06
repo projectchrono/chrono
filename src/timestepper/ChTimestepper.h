@@ -521,6 +521,7 @@ public:
 				Dv, 
 				Dl,
 				R,
+				Qc,
 				1.0,  // factor for  M
 				-dt,   // factor for  dF/dv
 				-dt*dt,// factor for  dF/dx
@@ -616,6 +617,7 @@ public:
 				Dv,
 				Dl,
 				R,
+				Qc,
 				1.0,        // factor for  M
 				-dt*0.5,    // factor for  dF/dv
 				-dt*dt*0.25,// factor for  dF/dx
@@ -739,6 +741,7 @@ public:
 				Da,
 				Dl,
 				R,
+				Qc,
 				(1.0 / (1.0 + alpha)),        // factor for  M (was 1 in Negrut paper ?!)
 				-dt*gamma,  // factor for  dF/dv
 				-dt*dt*beta,// factor for  dF/dx
