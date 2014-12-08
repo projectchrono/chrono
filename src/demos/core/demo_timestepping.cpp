@@ -637,8 +637,8 @@ int main(int argc, char* argv[])
 				const double c				 ///< a scaling factor
 				)
 			{
-				R(0) = c * (sin(mT * 20) * 0.0002 - this->K*mpx - this->R*mvx);
-				R(1) = c * 0;
+				R(0) += c * (sin(mT * 20) * 0.0002 - this->K*mpx - this->R*mvx);
+				R(1) += c * 0;
 			};
 
 			///    R += c*M*w 
