@@ -562,7 +562,9 @@ void RTSCamera::updateAnimationState()
   currentZoom = (f32)Pos.getDistanceFrom(Target); 
 } 
 
+void RTSCamera::updateMatrices(){
 
+}
 
 } // end namespace
 } // end namespace

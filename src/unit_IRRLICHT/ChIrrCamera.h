@@ -148,6 +148,8 @@ private:
   bool isMouseKeyDown(s32 key); 
   void animate(); 
   void updateAnimationState(); 
+  //Hammad: Adding this so that GCC and clang on osx do not complain
+  void updateMatrices();
 };
 
 
