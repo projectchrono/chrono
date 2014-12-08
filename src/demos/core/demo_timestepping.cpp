@@ -520,15 +520,15 @@ int main(int argc, char* argv[])
 		public:
 			MyIntegrable()
 			{
+				mlength = 1;
 				M = 1;
 				K = 2;
 				R = 0;
 				mT = 0;
 				mpx =  0;
-				mpy = -1;
+				mpy = -mlength;
 				mvx = 0.2;
 				mvy = 0;	
-				mlength = 1;
 			}
 
 			/// the number of coordinates in the state, x position part:
@@ -697,13 +697,13 @@ int main(int argc, char* argv[])
 		MyIntegrable mintegrable5;
 
 		// Create few time-integrators to be compared:
-		ChTimestepperEuleroExplIIorder   mystepper1(mintegrable3);
-		ChTimestepperEulerImplicit		 mystepper2(mintegrable1);
-		ChTimestepperTrapezoidal		 mystepper3(mintegrable2);
+		ChTimestepperEuleroSemiImplicit  mystepper1(mintegrable1);
+		ChTimestepperEulerImplicit		 mystepper2(mintegrable2);
+		ChTimestepperTrapezoidal		 mystepper3(mintegrable3);
 		ChTimestepperHHT				 mystepper4(mintegrable4);
 		ChTimestepperHHT				 mystepper5(mintegrable5);
 		mystepper4.SetAlpha(0);		// HHT with no dissipation -> trapezoidal
-		mystepper5.SetAlpha(-0.33);  // HHT with max dissipation 
+		mystepper5.SetAlpha(-0.2);  // HHT with max dissipation 
 
 		// Execute the time integration
 		while (mystepper1.GetTime() <4)
