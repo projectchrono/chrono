@@ -66,18 +66,21 @@ class ChIntegrable
 
 			/// dy/dt = f(y,t)
 			/// Given current state y , computes the state derivative dy/dt and
-			/// lagrangian multipliers L (if any). Note that rather than computing
-			/// dy/dt, here it must compute Dy, same for L that should be rather Ldt = impulses,
-			/// so this fits better in measure differential inclusion generalization (later,
-			/// one can multiply Ldt and Dy  by (1/dt) and still get dt/dt and L, if needed.
+			/// lagrangian multipliers L (if any). 
+			/// NOTE: some solvers (ex in DVI) cannot compute a classical derivative
+			/// dy/dt when v is a function of bounded variation, and f or L are distributions (ex
+			/// when there are impulses and discontinuities), so they compute a finite Dy through a finite dt:
+			/// this is the reason why this function has an optional parameter dt. In a DVI setting,
+			/// one computes Dy, and returns Dy*(1/dt) here in Dydt parameter; if the original Dy has to be known, 
+			/// just multiply Dydt*dt. The same for impulses: a DVI would compute impulses I, and return L=I*(1/dt).
 			/// NOTE! children classes must take care of calling StateScatter(y,T) before 
 			/// computing Dy, only if force_state_scatter = true (otherwise it is assumed state is already in sync)
 			/// NOTE! children classes must take care of resizing Dy and L if needed.
-	virtual void StateSolve(ChStateDelta& Dy,	  ///< result: computed Dy
+	virtual void StateSolve(ChStateDelta& Dydt,	  ///< result: computed Dydt
 							ChVectorDynamic<>& L, ///< result: computed lagrangian multipliers, if any
 							const ChState& y,	///< current state y
 							const double T,		///< current time T
-							const double dt,	///< timestep (if needed)
+							const double dt,	///< timestep (if needed, ex. in DVI)
 							bool force_state_scatter = true ///< if false, y and T are not scattered to the system, assuming that someone has done StateScatter just before
 							) = 0;
 
@@ -124,6 +127,7 @@ class ChIntegrable
 					ChStateDelta& Dy,	  ///< result: computed Dy
 					ChVectorDynamic<>& L, ///< result: computed lagrangian multipliers, if any
 					const ChVectorDynamic<>& R, ///< the R residual
+					const ChVectorDynamic<>& Qc,///< the Qc residual
 					const double a,		  ///< the factor in c_a*H
 					const double b,		  ///< the factor in c_b*dF/dy
 					const ChState& y,	  ///< current state y
@@ -249,15 +253,18 @@ public:
 
 	/// a = f(x,v,t)
 	/// Given current state y={x,v} , computes acceleration a in the state derivative dy/dt={v,a} and
-	/// lagrangian multipliers L (if any). Note that rather than computing
-	/// a=dv/dt, here it must compute Dv, same for L that should be rather Ldt = impulses,
-	/// so this fits better in measure differential inclusion generalization (later,
-	/// one can multiply Ldt and Dv  by (1/dt) and still get a=dD/dt and L, if needed.
+	/// lagrangian multipliers L (if any). 
+	/// NOTE: some solvers (ex in DVI) cannot compute a classical derivative
+	/// dy/dt when v is a function of bounded variation, and f or L are distributions (ex
+	/// when there are impulses and discontinuities), so they compute a finite Dv through a finite dt:
+	/// this is the reason why this function has an optional parameter dt. In a DVI setting,
+	/// one computes Dv, and returns Dv*(1/dt) here in Dvdt parameter; if the original Dv has to be known, 
+	/// just multiply Dvdt*dt later. The same for impulses: a DVI would compute impulses I, and return L=I*(1/dt).
 	/// NOTE! children classes must take care of calling StateScatter(y,T) before 
 	/// computing Dy, only if force_state_scatter = true (otherwise it is assumed state is already in sync)
 	/// NOTE! children classes must take care of resizing Dv if needed.
 	virtual void StateSolveA(
-		ChStateDelta& Dv,		///< result: computed Dv for a=Dv/dt
+		ChStateDelta& Dvdt,		///< result: computed a for a=dv/dt
 		ChVectorDynamic<>& L,	///< result: computed lagrangian multipliers, if any
 		const ChState& x,		///< current state, x
 		const ChStateDelta& v,	///< current state, v
@@ -311,6 +318,7 @@ public:
 		ChStateDelta& Dv,	  ///< result: computed Dv 
 		ChVectorDynamic<>& L, ///< result: computed lagrangian multipliers, if any
 		const ChVectorDynamic<>& R, ///< the R residual
+		const ChVectorDynamic<>& Qc,///< the Qc residual
 		const double c_a,	  ///< the factor in c_a*M
 		const double c_v,	  ///< the factor in c_v*dF/dv
 		const double c_x,	  ///< the factor in c_x*dF/dv
@@ -491,11 +499,11 @@ public:
 	/// PERFORMANCE WARNING! temporary vectors allocated on heap. This is only to support 
 	/// compatibility with 1st order integrators.
 	virtual void StateSolve(
-		ChStateDelta& Dy,	  ///< result: computed Dy
+		ChStateDelta& dydt,	  ///< result: computed dydt
 		ChVectorDynamic<>& L, ///< result: computed lagrangian multipliers, if any
 		const ChState& y,	///< current state y
 		const double T,		///< current time T
-		const double dt,	///< timestep (if needed)
+		const double dt,	///< timestep (if needed, ex. in DVI)
 		bool force_state_scatter = true ///< if false, y and T are not scattered to the system, assuming that someone has done StateScatter just before
 		)
 	{
@@ -503,25 +511,26 @@ public:
 		ChStateDelta	mv(this->GetNcoords_v(), y.GetIntegrable());
 		mx.PasteClippedMatrix(&y, 0, 0,						this->GetNcoords_x(), 1, 0, 0);
 		mv.PasteClippedMatrix(&y, this->GetNcoords_x(), 0,  this->GetNcoords_v(), 1, 0, 0);
-		ChStateDelta	mDv(this->GetNcoords_v(), y.GetIntegrable());
+		ChStateDelta	ma(this->GetNcoords_v(), y.GetIntegrable());
 
-		this->StateSolveA(mDv, L, mx, mv, T, dt, force_state_scatter); // Solve with custom II order solver
+		this->StateSolveA(ma, L, mx, mv, T, dt, force_state_scatter); // Solve with custom II order solver
 
-		mv *= dt;  // Note: Dy ={Dx Dv} so v=Dx/dt, Dx=v*dt
-		Dy.PasteMatrix(&mv, 0, 0);
-		Dy.PasteMatrix(&mDv, this->GetNcoords_x(), 0);
+		dydt.PasteMatrix(&mv, 0, 0);
+		dydt.PasteMatrix(&ma, this->GetNcoords_x(), 0);
 	}
 
 	/// This was for Ist order implicit integrators, but here we disable it.
-	void StateSolveCorrection(
+	virtual void StateSolveCorrection(
 		ChStateDelta& Dy,	  ///< result: computed Dy
 		ChVectorDynamic<>& L, ///< result: computed lagrangian multipliers, if any
-		ChVectorDynamic<>& R, ///< the R residual
-		double a,			  ///< the a term in a*H
-		double b,			  ///< the b term in b*dF/dy
+		const ChVectorDynamic<>& R, ///< the R residual
+		const ChVectorDynamic<>& Qc,///< the Qc residual
+		const double a,		  ///< the factor in c_a*H
+		const double b,		  ///< the factor in c_b*dF/dy
 		const ChState& y,	  ///< current state y
 		const double T,		  ///< current time T
-		bool force_state_scatter = true ///< if false, y and T are not scattered to the system, assuming that someone has done StateScatter just before 
+		const double dt,	  ///< timestep (if needed)
+		bool force_state_scatter = true ///< if false, y and T are not scattered to the system, assuming that someone has done StateScatter just before
 		)
 	{
 		throw ChException("StateSolveCorrection() not implemented for ChIntegrableIIorder, implicit integrators for Ist order cannot be used. ");
