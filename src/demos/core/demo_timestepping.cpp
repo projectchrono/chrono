@@ -78,8 +78,8 @@ int main(int argc, char* argv[])
 							// Create and object from your custom integrable class:
 		MyIntegrable mintegrable;
 
-							// Create a time-integrator, class: Eulero explicit
-		ChTimestepperEuleroExpl mystepper(mintegrable);
+							// Create a time-integrator, class: Euler explicit
+		ChTimestepperEulerExpl mystepper(mintegrable);
 
 
 							// Execute the time integration
@@ -171,12 +171,12 @@ int main(int argc, char* argv[])
 		ChStreamOutAsciiFile log_file2("log_timestepper_2.dat");
 
 
-		// Try integrator Eulero explicit
+		// Try integrator Euler explicit
 
 							// Create and object from your custom integrable class:
 		MyIntegrable mintegrable;
 							// Create a time-integrator:
-		ChTimestepperEuleroExpl mystepper(mintegrable);
+		ChTimestepperEulerExpl mystepper(mintegrable);
 
 
 		// Try integrator Runge Kutta 4st  explicit
@@ -218,7 +218,7 @@ int main(int argc, char* argv[])
 		// it will represent the differential equations
 		// by implementing the StateSolveA() function, and few other interfaces.
 		// Compared to previous example 2, this is inherited from ChIntegrableIIorder,
-		// so one can use more advanced integrators such as ChTimestepperEuleroSemiImplicit,
+		// so one can use more advanced integrators such as ChTimestepperEulerSemiImplicit,
 		// that can exploit the II order nature of the problem. Anyway, also all I order
 		// integrators can still be used.
 		class MyIntegrable : public ChIntegrableIIorder
@@ -290,8 +290,8 @@ int main(int argc, char* argv[])
 
 		// Create few time-integrators to be compared:
 		ChTimestepperRungeKuttaExpl		 mystepper1(mintegrable1);
-		ChTimestepperEuleroExplIIorder   mystepper2(mintegrable2);
-		ChTimestepperEuleroSemiImplicit  mystepper3(mintegrable3);
+		ChTimestepperEulerExplIIorder   mystepper2(mintegrable2);
+		ChTimestepperEulerSemiImplicit  mystepper3(mintegrable3);
 
 		
 		// Execute the time integration
@@ -462,7 +462,7 @@ int main(int argc, char* argv[])
 		// Create few time-integrators to be compared:
 		ChTimestepperEulerImplicit		 mystepper1(mintegrable1);
 		ChTimestepperTrapezoidal		 mystepper2(mintegrable2);
-		ChTimestepperEuleroExplIIorder   mystepper3(mintegrable3);
+		ChTimestepperEulerExplIIorder    mystepper3(mintegrable3);
 		ChTimestepperHHT				 mystepper4(mintegrable4);
 		ChTimestepperHHT				 mystepper5(mintegrable5);
 		mystepper4.SetAlpha(0);		// HHT with no dissipation -> trapezoidal
@@ -585,8 +585,6 @@ int main(int argc, char* argv[])
 				A(2, 1) = dirpend.y;
 				ChVectorDynamic<> w(3);
 				ChLinearAlgebra::Solve_LinSys(A, &b, &w);
-		GetLog() << "SolveA:  w=" << w << "\n";
-		GetLog() << "     for x=" << mpx << " y=" << mpy << " vx=" << mvx << " vy=" << mvy << " dir=" << dirpend << "\n";
 				dvdt(0) = w(0);
 				dvdt(1) = w(1);
 				L(0)    = w(2);
@@ -697,7 +695,7 @@ int main(int argc, char* argv[])
 		MyIntegrable mintegrable5;
 
 		// Create few time-integrators to be compared:
-		ChTimestepperEuleroSemiImplicit  mystepper1(mintegrable1);
+		ChTimestepperEulerSemiImplicit  mystepper1(mintegrable1);
 		ChTimestepperEulerImplicit		 mystepper2(mintegrable2);
 		ChTimestepperTrapezoidal		 mystepper3(mintegrable3);
 		ChTimestepperHHT				 mystepper4(mintegrable4);
