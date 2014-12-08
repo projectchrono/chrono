@@ -43,7 +43,7 @@ namespace chrono
 #define HIER_BODY_NEXT	    ibody++;
 
 #define Lpointer		    (*iterlink)
-#define HIER_LINK_INIT      std::list<ChLink*>::iterator iterlink = linklist.begin();
+#define HIER_LINK_INIT      std::vector<ChLink*>::iterator iterlink = linklist.begin();
 #define HIER_LINK_NOSTOP    (iterlink != linklist.end())
 #define HIER_LINK_NEXT	    iterlink++;
 
@@ -458,7 +458,7 @@ void ChAssembly::AddBody (ChSharedPtr<ChBody> newbody)
 
 void ChAssembly::AddLink (ChLink* newlink)
 { 
-	assert(std::find<std::list<ChLink*>::iterator>(linklist.begin(), linklist.end(), newlink)==linklist.end());
+	assert(std::find<std::vector<ChLink*>::iterator>(linklist.begin(), linklist.end(), newlink)==linklist.end());
 
 	newlink->AddRef();
 	newlink->SetSystem (this->GetSystem());
@@ -488,7 +488,7 @@ void ChAssembly::RemoveBody (ChSharedPtr<ChBody> mbody)
 }
 
 // Faster than RemoveLink because it does not require the linear time search
-std::list<ChLink*>::iterator ChAssembly::RemoveLinkIter(std::list<ChLink*>::iterator& mlinkiter)
+std::vector<ChLink*>::iterator ChAssembly::RemoveLinkIter(std::vector<ChLink*>::iterator& mlinkiter)
 {
 	// nullify backward link to system
 	(*mlinkiter)->SetSystem(0);
@@ -500,11 +500,11 @@ std::list<ChLink*>::iterator ChAssembly::RemoveLinkIter(std::list<ChLink*>::iter
 
 void ChAssembly::RemoveLink (ChSharedPtr<ChLink> mlink)
 {
-	assert(std::find<std::list<ChLink*>::iterator>(linklist.begin(), linklist.end(), mlink.get_ptr() )!=linklist.end());
+	assert(std::find<std::vector<ChLink*>::iterator>(linklist.begin(), linklist.end(), mlink.get_ptr() )!=linklist.end());
 
 	// warning! linear time search, to erase pointer from container.
-	linklist.remove(mlink.get_ptr());//erase(std::find<std::vector<ChBody*>::iterator>(bodylist.begin(), bodylist.end(), mbody.get_ptr() ) );
-	
+	linklist.erase(std::find<std::vector<ChLink*>::iterator>(linklist.begin(), linklist.end(), mlink.get_ptr()));
+
 	// nullify backward link to system
 	mlink->SetSystem(0);
 	// this may delete the body, if none else's still referencing it..
