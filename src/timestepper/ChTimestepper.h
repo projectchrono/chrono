@@ -546,6 +546,85 @@ public:
 };
 
 
+/// Performs a step of Euler implicit for II order systems
+/// using the Anitescu/Stewart/Trinkle single-iteration method,
+/// that is a bit like an implicit Euler where one performs only
+/// the first NR corrector iteration.
+/// If the solver in StateSolveCorrection is a CCP complementarity
+/// solver, this is the typical Anitescu stabilized timestepper for DVIs.
+
+class ChTimestepperEulerImplicitLinearized : public ChTimestepperIIorder, public ChImplicitTimestepper
+{
+public:
+	/// Constructors (default empty)
+	ChTimestepperEulerImplicitLinearized(ChIntegrableIIorder& mintegrable)
+		: ChTimestepperIIorder(mintegrable),
+		ChImplicitTimestepper()
+	{};
+
+	/// Performs an integration timestep
+	virtual void Advance(
+		const double dt				///< timestep to advance
+		)
+	{
+		// downcast
+		ChIntegrableIIorder* mintegrable = (ChIntegrableIIorder*)this->integrable;
+
+		mintegrable->StateSetup(X(), V(), A());
+
+		mintegrable->StateGather(X(), V(), T);	// state <- system
+
+		// auxiliary vectors
+		ChStateDelta		Dv(mintegrable->GetNcoords_v(), GetIntegrable());
+		ChVectorDynamic<>   Dl(mintegrable->GetNconstr());
+
+		ChVectorDynamic<>   R (mintegrable->GetNcoords_v());
+		ChVectorDynamic<>   Qc(mintegrable->GetNconstr());
+
+		ChVectorDynamic<>   L(mintegrable->GetNconstr());
+
+		//Xnew = X();
+		//Vnew = V();
+
+		// solve
+		//
+		// [ M - dt*dF/dv - dt^2*dF/dx    Cq' ] [ Dv     ] = [ M*(v_old - v_new) + dt*f]
+		// [ Cq                           0   ] [ -dt*Dl ] = [ C/dt + Ct ]
+
+		//	mintegrable->StateScatter(Xnew, Vnew, T + dt);	// state -> system
+		//R.Reset();
+		//Qc.Reset();
+		mintegrable->LoadResidual_F(R, dt);
+		//mintegrable->LoadResidual_Mv(R, (V() - Vnew), 1.0);
+		mintegrable->LoadConstraint_C (Qc, 1.0 / dt);
+		mintegrable->LoadConstraint_Ct(Qc, 1.0);
+
+		mintegrable->StateSolveCorrection(
+				Dv,
+				Dl,
+				R,
+				Qc,
+				1.0,  // factor for  M
+				-dt,   // factor for  dF/dv
+				-dt*dt,// factor for  dF/dx
+				X(), V(), T + dt, // not needed 
+				false  // do not StateScatter update to Xnew Vnew T+dt before computing correction
+				);
+
+		Dl *= -(1.0 / dt);
+		L += Dl;
+
+		V() += Dv;
+
+		X() += V() *dt;
+
+		T += dt;
+
+		mintegrable->StateScatter(X(), V(), T);	// state -> system
+	}
+};
+
+
 
 
 
