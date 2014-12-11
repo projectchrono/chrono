@@ -690,7 +690,7 @@ int main(int argc, char* argv[])
 	ChIrrWizard::add_typical_Logo(device);
 	ChIrrWizard::add_typical_Sky(device);
 	ChIrrWizard::add_typical_Lights(device);
-	ChIrrWizard::add_typical_Camera(device, core::vector3df(0,0,-6));
+	ChIrrWizard::add_typical_Camera(device, core::vector3df(0,2,-6));
 
 
     // 
