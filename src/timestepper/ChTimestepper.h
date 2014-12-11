@@ -177,15 +177,15 @@ public:
 
 
 
-/// Eulero explicit timestepper
+/// Euler explicit timestepper
 /// This performs the typical  y_new = y+ dy/dt * dt 
-/// integration with Eulero formula. 
+/// integration with Euler formula. 
 
-class ChTimestepperEuleroExpl : public ChTimestepperIorder
+class ChTimestepperEulerExpl : public ChTimestepperIorder
 {
 public:
 					/// Constructors (default empty)
-	ChTimestepperEuleroExpl(ChIntegrable& mintegrable) 
+	ChTimestepperEulerExpl(ChIntegrable& mintegrable) 
 		: ChTimestepperIorder(mintegrable)  {};
 
 					/// Performs an integration timestep
@@ -215,20 +215,20 @@ public:
 };
 
 
-/// Eulero explicit timestepper customized for II order.
-/// (It gives the same results of ChTimestepperEuleroExpl,
+/// Euler explicit timestepper customized for II order.
+/// (It gives the same results of ChTimestepperEulerExpl,
 /// but this performes a bit faster because it can exploit
 /// the special structure of ChIntegrableIIorder)
 /// This performs the typical 
 ///    x_new = x + v * dt 
 ///    v_new = v + a * dt 
-/// integration with Eulero formula. 
+/// integration with Euler formula. 
 
-class ChTimestepperEuleroExplIIorder : public ChTimestepperIIorder
+class ChTimestepperEulerExplIIorder : public ChTimestepperIIorder
 {
 public:
 	/// Constructors (default empty)
-	ChTimestepperEuleroExplIIorder(ChIntegrableIIorder& mintegrable)
+	ChTimestepperEulerExplIIorder(ChIntegrableIIorder& mintegrable)
 		: ChTimestepperIIorder(mintegrable)  {};
 
 	/// Performs an integration timestep
@@ -263,17 +263,17 @@ public:
 
 
 
-/// Eulero semi-implicit timestepper
+/// Euler semi-implicit timestepper
 /// This performs the typical 
 ///    v_new = v + a * dt 
 ///    x_new = x + v_new * dt 
-/// integration with Eulero semi-implicit formula. 
+/// integration with Euler semi-implicit formula. 
 
-class ChTimestepperEuleroSemiImplicit : public ChTimestepperIIorder
+class ChTimestepperEulerSemiImplicit : public ChTimestepperIIorder
 {
 public:
 	/// Constructors (default empty)
-	ChTimestepperEuleroSemiImplicit(ChIntegrableIIorder& mintegrable)
+	ChTimestepperEulerSemiImplicit(ChIntegrableIIorder& mintegrable)
 		: ChTimestepperIIorder(mintegrable)  {};
 
 	/// Performs an integration timestep
@@ -413,7 +413,7 @@ public:
 /// at least when F depends on positions only.
 /// Note: uses last step acceleration: changing or resorting
 /// the numbering of DOFs will invalidate it.
-/// Suggestion: use the ChTimestepperEuleroSemiImplicit, it gives
+/// Suggestion: use the ChTimestepperEulerSemiImplicit, it gives
 /// the same accuracy with a bit of faster performance.
 
 class ChTimestepperLeapfrog : public ChTimestepperIIorder
@@ -546,6 +546,85 @@ public:
 };
 
 
+/// Performs a step of Euler implicit for II order systems
+/// using the Anitescu/Stewart/Trinkle single-iteration method,
+/// that is a bit like an implicit Euler where one performs only
+/// the first NR corrector iteration.
+/// If the solver in StateSolveCorrection is a CCP complementarity
+/// solver, this is the typical Anitescu stabilized timestepper for DVIs.
+
+class ChTimestepperEulerImplicitLinearized : public ChTimestepperIIorder, public ChImplicitTimestepper
+{
+public:
+	/// Constructors (default empty)
+	ChTimestepperEulerImplicitLinearized(ChIntegrableIIorder& mintegrable)
+		: ChTimestepperIIorder(mintegrable),
+		ChImplicitTimestepper()
+	{};
+
+	/// Performs an integration timestep
+	virtual void Advance(
+		const double dt				///< timestep to advance
+		)
+	{
+		// downcast
+		ChIntegrableIIorder* mintegrable = (ChIntegrableIIorder*)this->integrable;
+
+		mintegrable->StateSetup(X(), V(), A());
+
+		mintegrable->StateGather(X(), V(), T);	// state <- system
+
+		// auxiliary vectors
+		ChStateDelta		Dv(mintegrable->GetNcoords_v(), GetIntegrable());
+		ChVectorDynamic<>   Dl(mintegrable->GetNconstr());
+
+		ChVectorDynamic<>   R (mintegrable->GetNcoords_v());
+		ChVectorDynamic<>   Qc(mintegrable->GetNconstr());
+
+		ChVectorDynamic<>   L(mintegrable->GetNconstr());
+
+		//Xnew = X();
+		//Vnew = V();
+
+		// solve
+		//
+		// [ M - dt*dF/dv - dt^2*dF/dx    Cq' ] [ Dv     ] = [ M*(v_old - v_new) + dt*f]
+		// [ Cq                           0   ] [ -dt*Dl ] = [ C/dt + Ct ]
+
+		//	mintegrable->StateScatter(Xnew, Vnew, T + dt);	// state -> system
+		//R.Reset();
+		//Qc.Reset();
+		mintegrable->LoadResidual_F(R, dt);
+		//mintegrable->LoadResidual_Mv(R, (V() - Vnew), 1.0);
+		mintegrable->LoadConstraint_C (Qc, 1.0 / dt);
+		mintegrable->LoadConstraint_Ct(Qc, 1.0);
+
+		mintegrable->StateSolveCorrection(
+				Dv,
+				Dl,
+				R,
+				Qc,
+				1.0,  // factor for  M
+				-dt,   // factor for  dF/dv
+				-dt*dt,// factor for  dF/dx
+				X(), V(), T + dt, // not needed 
+				false  // do not StateScatter update to Xnew Vnew T+dt before computing correction
+				);
+
+		Dl *= -(1.0 / dt);
+		L += Dl;
+
+		V() += Dv;
+
+		X() += V() *dt;
+
+		T += dt;
+
+		mintegrable->StateScatter(X(), V(), T);	// state -> system
+	}
+};
+
+
 
 
 
@@ -582,7 +661,7 @@ public:
 
 		// use Euler explicit to extrapolate a prediction 
 
-		mintegrable->StateSolveA( A(), L, X(), V(), T, dt, false);	// Dv/dt = f(x,v,T)   Dv = f(x,v,T)*dt
+		mintegrable->StateSolveA(A(), L, X(), V(), T, dt, false);	// Dv/dt = f(x,v,T)   Dv = f(x,v,T)*dt
 
 		Xnew = X() + V()*dt;		// x_new= x + v * dt 
 		Vnew = V() + A()*dt;		// v_new= v + a * dt 
@@ -592,12 +671,12 @@ public:
 		// [ M - dt/2*dF/dv - dt^2/4*dF/dx    Cq' ] [ Dv       ] = [ M*(v_old - v_new) + dt/2(f_old + f_new  + Cq*l_old + Cq*l_new)]
 		// [ Cq                               0   ] [ -dt/2*Dl ] = [ C/dt                                                          ]
 
-		ChVectorDynamic<> R   (mintegrable->GetNcoords_v());
+		ChVectorDynamic<> R(mintegrable->GetNcoords_v());
 		ChVectorDynamic<> Rold(mintegrable->GetNcoords_v());
-		ChVectorDynamic<> Qc  (mintegrable->GetNconstr());
-		
-		mintegrable->LoadResidual_F  (Rold, dt*0.5);    // dt/2*f_old
-		mintegrable->LoadResidual_Mv (Rold, V(), 1.0);  // M*v_old
+		ChVectorDynamic<> Qc(mintegrable->GetNconstr());
+
+		mintegrable->LoadResidual_F(Rold, dt*0.5);    // dt/2*f_old
+		mintegrable->LoadResidual_Mv(Rold, V(), 1.0);  // M*v_old
 		mintegrable->LoadResidual_CqL(Rold, L, dt*0.5); // dt/2*l_old
 
 		for (int i = 0; i < this->GetMaxiters(); ++i)
@@ -605,8 +684,8 @@ public:
 			mintegrable->StateScatter(Xnew, Vnew, T + dt);	// state -> system
 			R = Rold;
 			Qc.Reset();
-			mintegrable->LoadResidual_F  (R, dt*0.5);    // + dt/2*f_new
-			mintegrable->LoadResidual_Mv (R, Vnew, -1.0); // - M*v_new
+			mintegrable->LoadResidual_F(R, dt*0.5);    // + dt/2*f_new
+			mintegrable->LoadResidual_Mv(R, Vnew, -1.0); // - M*v_new
 			mintegrable->LoadResidual_CqL(R, L, dt*0.5); // + dt/2*Cq*l_new
 			mintegrable->LoadConstraint_C(Qc, 1.0 / dt); // C/dt
 
@@ -667,6 +746,7 @@ public:
 	/// It must be in the [-1/3, 0] interval. 
 	/// The closer to -1/3, the more damping.
 	/// The closer to 0, the less damping (for 0, it is the trapezoidal method).
+	/// It automatically sets gamma and beta.
 	void SetAlpha(double malpha)
 	{
 		alpha = malpha;

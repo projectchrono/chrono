@@ -934,7 +934,7 @@ public:
 
 	void drawSprings()
 	{
-		std::list<chrono::ChLink*>::iterator iterlink =  mapp->GetSystem()->Get_linklist()->begin();
+		std::vector<chrono::ChLink*>::iterator iterlink =  mapp->GetSystem()->Get_linklist()->begin();
 		// .. draw the spring constraints as simplified spring helix
 		iterlink =  mapp->GetSystem()->Get_linklist()->begin();
 		while(iterlink != mapp->GetSystem()->Get_linklist()->end())

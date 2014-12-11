@@ -401,7 +401,7 @@ public:
 				/// Remove a link from this system.
 	virtual void RemoveLink (ChSharedPtr<ChLink> mlink); 
 				/// Remove a link from this system (faster version, mostly internal use)
-	std::list<ChLink*>::iterator RemoveLinkIter(std::list<ChLink*>::iterator& mlinkiter); 
+	std::vector<ChLink*>::iterator RemoveLinkIter(std::vector<ChLink*>::iterator& mlinkiter); 
 				/// Remove a ChPhysicsItem object that is not a body or a link
 	virtual void RemoveOtherPhysicsItem (ChSharedPtr<ChPhysicsItem> mitem);
 				/// Remove whatever type of ChPhysicsItem that was added to the system. 
@@ -444,7 +444,7 @@ public:
 	class ChApi IteratorLinks
 	{
     public:
-      IteratorLinks(std::list<ChLink*>::iterator p) : node_(p) {}
+      IteratorLinks(std::vector<ChLink*>::iterator p) : node_(p) {}
       IteratorLinks& operator=(const IteratorLinks& other);
 	  ~IteratorLinks(){}
       bool operator==(const IteratorLinks& other);
@@ -453,7 +453,7 @@ public:
       ChSharedPtr<ChLink> operator*();
 	  IteratorLinks(){};
 	 private:
-	    std::list<ChLink*>::iterator node_;
+	    std::vector<ChLink*>::iterator node_;
     };
 				/// Get a ChLink iterator, initialized at the beginning of link list
 	IteratorLinks IterBeginLinks();
@@ -500,7 +500,7 @@ public:
 	  bool HasItem();
 	 private:
 	   std::vector<ChBody*>::iterator node_body;
-	   std::list<ChLink*>::iterator node_link;
+	   std::vector<ChLink*>::iterator node_link;
 	   std::vector<ChPhysicsItem*>::iterator node_otherphysics;
 	   int stage;
 	   ChPhysicsItem* mptr;
@@ -519,7 +519,7 @@ public:
 				/// NOTE! use this list only to enumerate etc., but NOT to
 				/// remove or add items (use the appropriate Remove.. and Add.. 
 				/// functions instead!)
-	std::list<ChLink*>* Get_linklist() {return &linklist;}
+	std::vector<ChLink*>* Get_linklist() {return &linklist;}
 				/// Gets the list of children physics items that are not in the body or link lists.
 				/// NOTE! use this list only to enumerate etc., but NOT to
 				/// remove or add items (use the appropriate Remove.. and Add.. 
@@ -983,7 +983,7 @@ protected:
 	std::vector<ChBody*> bodylist;
 
 						// list of joints (links)
-	std::list<ChLink*>   linklist; 
+	std::vector<ChLink*>   linklist;
 
 						// list of other physic objects that are not bodies or links
 	std::vector<ChPhysicsItem*> otherphysicslist;
