@@ -141,7 +141,7 @@ void ChSystemParallelDVI::AssembleSystem() {
    this->contact_container->EndAddContact();
 
    {
-      std::list<ChLink*>::iterator iterlink = linklist.begin();
+      std::vector<ChLink*>::iterator iterlink = linklist.begin();
       while (iterlink != linklist.end()) {
          (*iterlink)->ConstraintsBiReset();
          iterlink++;
@@ -170,7 +170,7 @@ void ChSystemParallelDVI::AssembleSystem() {
    for (int i = 0; i < bodylist.size(); i++) {
       bodylist[i]->InjectVariables(*this->LCP_descriptor);
    }
-   std::list<ChLink *>::iterator it;
+   std::vector<ChLink *>::iterator it;
    for (it = linklist.begin(); it != linklist.end(); it++) {
       (*it)->InjectConstraints(*this->LCP_descriptor);
    }

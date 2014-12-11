@@ -99,7 +99,7 @@ CH_RTTI(ChSystemParallel, ChSystem)
    int detect_optimal_bins;
    std::vector<double> timer_accumulator, cd_accumulator;
    uint frame_threads, frame_bins, counter;
-   std::list<ChLink *>::iterator it;
+   std::vector<ChLink *>::iterator it;
 };
 
 class CH_PARALLEL_API ChSystemParallelDVI : public ChSystemParallel {
