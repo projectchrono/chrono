@@ -189,7 +189,7 @@ void ChIrrGuiST::DrawAll()
 
 void ChIrrGuiST::renderSprings()
 {
-  std::list<chrono::ChLink*>::iterator ilink = m_app.GetSystem()->Get_linklist()->begin();
+  std::vector<chrono::ChLink*>::iterator ilink = m_app.GetSystem()->Get_linklist()->begin();
   for (; ilink != m_app.GetSystem()->Get_linklist()->end(); ++ilink) {
     if (ChLinkSpring* link = dynamic_cast<ChLinkSpring*>(*ilink)) {
       ChIrrTools::drawSpring(m_app.GetVideoDriver(), 0.05,
@@ -208,7 +208,7 @@ void ChIrrGuiST::renderSprings()
 
 void ChIrrGuiST::renderLinks()
 {
-  std::list<chrono::ChLink*>::iterator ilink = m_app.GetSystem()->Get_linklist()->begin();
+  std::vector<chrono::ChLink*>::iterator ilink = m_app.GetSystem()->Get_linklist()->begin();
   for (; ilink != m_app.GetSystem()->Get_linklist()->end(); ++ilink) {
     if (ChLinkDistance* link = dynamic_cast<ChLinkDistance*>(*ilink)) {
       ChIrrTools::drawSegment(m_app.GetVideoDriver(),
