@@ -63,35 +63,6 @@ namespace chrono
 
 
 
-// Hierarchy-handling functions
-
-#define Bpointer		    (*ibody)
-#define HIER_BODY_INIT      std::vector<ChBody*>::iterator ibody = bodylist.begin();
-#define HIER_BODY_NOSTOP    (ibody != bodylist.end())
-#define HIER_BODY_NEXT	    ibody++;
-
-#define Lpointer		    (*iterlink)
-#define HIER_LINK_INIT      std::vector<ChLink*>::iterator iterlink = linklist.begin();
-#define HIER_LINK_NOSTOP    (iterlink != linklist.end())
-#define HIER_LINK_NEXT	    iterlink++;
-
-#define PHpointer		    (*iterotherphysics)
-#define HIER_OTHERPHYSICS_INIT    std::vector<ChPhysicsItem*>::iterator iterotherphysics = otherphysicslist.begin();
-#define HIER_OTHERPHYSICS_NOSTOP  (iterotherphysics != otherphysicslist.end())
-#define HIER_OTHERPHYSICS_NEXT	  iterotherphysics++;
-
-#define Ppointer		    (*iterprobe)
-#define HIER_PROBE_INIT      std::vector<ChProbe*>::iterator iterprobe = probelist.begin();
-#define HIER_PROBE_NOSTOP    (iterprobe != probelist.end())
-#define HIER_PROBE_NEXT	    iterprobe++;
-
-#define Cpointer		    (*itercontrol)
-#define HIER_CONTROLS_INIT      std::vector<ChControls*>::iterator itercontrol = controlslist.begin();
-#define HIER_CONTROLS_NOSTOP    (itercontrol != controlslist.end())
-#define HIER_CONTROLS_NEXT	    itercontrol++;
-
-
-
 /// Class for iterating through all items of ChPhysicalItem that exist in
 /// a ChSystem. 
 /// It will iterate through: 
@@ -794,12 +765,11 @@ int ChSystem::RecordAllProbes()
 {
 	int pcount = 0;
 
-	HIER_PROBE_INIT
-	while HIER_PROBE_NOSTOP
+	for (unsigned int ip = 0; ip < probelist.size(); ++ip)  // ITERATE on probes
 	{
-		Ppointer->Record(this->GetChTime());
+		ChProbe* Ppointer = probelist[ip];
 
-		HIER_PROBE_NEXT
+		Ppointer->Record(this->GetChTime());
 	}
 
 	return pcount;
@@ -809,12 +779,11 @@ int ChSystem::ResetAllProbes()
 {
 	int pcount = 0;
 
-	HIER_PROBE_INIT
-	while HIER_PROBE_NOSTOP
+	for (unsigned int ip = 0; ip < probelist.size(); ++ip)  // ITERATE on probes
 	{
-		Ppointer->Reset();
+		ChProbe* Ppointer = probelist[ip];
 
-		HIER_PROBE_NEXT
+		Ppointer->Reset();
 	}
 
 	return pcount;
@@ -825,44 +794,44 @@ int ChSystem::ResetAllProbes()
 
 int ChSystem::ExecuteControlsForStart()
 {
-	HIER_CONTROLS_INIT
-	while HIER_CONTROLS_NOSTOP
+	for (unsigned int ip = 0; ip < controlslist.size(); ++ip)  // ITERATE on controls
 	{
+		ChControls* Cpointer = controlslist[ip];
+
 		Cpointer->ExecuteForStart();
-		HIER_CONTROLS_NEXT
 	}
 	return TRUE;
 }
 
 int ChSystem::ExecuteControlsForUpdate()
 {
-	HIER_CONTROLS_INIT
-	while HIER_CONTROLS_NOSTOP
+	for (unsigned int ip = 0; ip < controlslist.size(); ++ip)  // ITERATE on controls
 	{
+		ChControls* Cpointer = controlslist[ip];
+
 		Cpointer->ExecuteForUpdate();
-		HIER_CONTROLS_NEXT
 	}
 	return TRUE;
 }
 
 int ChSystem::ExecuteControlsForStep()
 {
-	HIER_CONTROLS_INIT
-	while HIER_CONTROLS_NOSTOP
+	for (unsigned int ip = 0; ip < controlslist.size(); ++ip)  // ITERATE on controls
 	{
+		ChControls* Cpointer = controlslist[ip];
+
 		Cpointer->ExecuteForStep();
-		HIER_CONTROLS_NEXT
 	}
 	return TRUE;
 }
 
 int ChSystem::ExecuteControlsFor3DStep()
 {
-	HIER_CONTROLS_INIT
-	while HIER_CONTROLS_NOSTOP
+	for (unsigned int ip = 0; ip < controlslist.size(); ++ip)  // ITERATE on controls
 	{
+		ChControls* Cpointer = controlslist[ip];
+
 		Cpointer->ExecuteFor3DStep();
-		HIER_CONTROLS_NEXT
 	}
 	return TRUE;
 }
@@ -1027,9 +996,11 @@ void ChSystem::AddControls (ChSharedPtr<ChControls>& newcontrols)
    
 void ChSystem::RemoveAllBodies() 
 { 
-	HIER_BODY_INIT
-	while (HIER_BODY_NOSTOP)
+	
+	for (unsigned int ip = 0; ip < bodylist.size(); ++ip)  // ITERATE on bodies
 	{
+		ChBody* Bpointer = bodylist[ip];
+
 		// remove from collision system
 		if (Bpointer->GetCollide())
 			Bpointer->RemoveCollisionModelsFromSystem(); 
@@ -1037,7 +1008,6 @@ void ChSystem::RemoveAllBodies()
 		Bpointer->SetSystem(0);	
 		// this may delete the body, if none else's still referencing it..
 		Bpointer->RemoveRef();
-		HIER_BODY_NEXT
 	}	
 	bodylist.clear(); 
 }; 
@@ -1046,23 +1016,24 @@ void ChSystem::RemoveAllBodies()
 void ChSystem::RemoveAllLinks() 
 { 
 
-	HIER_LINK_INIT
-	while (HIER_LINK_NOSTOP)
+	for (unsigned int ip = 0; ip < linklist.size(); ++ip)  // ITERATE on links
 	{
+		ChLink* Lpointer = linklist[ip];
+
 		// nullify backward link to system
 		Lpointer->SetSystem(0);	
 		// this may delete the link, if none else's still referencing it..
 		Lpointer->RemoveRef();
-		HIER_LINK_NEXT
 	}	
 	linklist.clear(); 
 };
 
 void ChSystem::RemoveAllOtherPhysicsItems() 
 { 
-	HIER_OTHERPHYSICS_INIT
-	while (HIER_OTHERPHYSICS_NOSTOP)
+	for (unsigned int ip = 0; ip < otherphysicslist.size(); ++ip)  // ITERATE on other physics
 	{
+		ChPhysicsItem* PHpointer = otherphysicslist[ip];
+
 		// remove from collision system
 		if (PHpointer->GetCollide())
 			PHpointer->RemoveCollisionModelsFromSystem();  
@@ -1070,31 +1041,29 @@ void ChSystem::RemoveAllOtherPhysicsItems()
 		PHpointer->SetSystem(0);	
 		// this may delete the item, if none else's still referencing it..
 		PHpointer->RemoveRef();
-		HIER_OTHERPHYSICS_NEXT
 	}	
 	otherphysicslist.clear(); 
 }; 
 
 void ChSystem::RemoveAllProbes() 
 { 
-	HIER_PROBE_INIT
-	while (HIER_PROBE_NOSTOP)
+	for (unsigned int ip = 0; ip < probelist.size(); ++ip)  // ITERATE on probes
 	{
-		//Ppointer->SetSystem(0);	
+		ChProbe* Ppointer = probelist[ip];
+
 		Ppointer->RemoveRef();
-		HIER_PROBE_NEXT
 	}	
 	probelist.clear();
 };
 
 void ChSystem::RemoveAllControls() 
 { 
-	HIER_CONTROLS_INIT
-	while (HIER_CONTROLS_NOSTOP)
+	for (unsigned int ip = 0; ip < controlslist.size(); ++ip)  // ITERATE on controls
 	{
+		ChControls* Cpointer = controlslist[ip];
+
 		//Cpointer->SetSystem(0);	
 		Cpointer->RemoveRef();
-		HIER_CONTROLS_NEXT
 	}	
 	controlslist.clear();
 };
@@ -1161,24 +1130,25 @@ ChSharedPtr<ChPhysicsItem> ChSystem::Search (const char* m_name)
 
 ChSharedPtr<ChMarker> ChSystem::SearchMarker (const char* m_name)
 {
-	HIER_BODY_INIT
-	while HIER_BODY_NOSTOP
+	for (unsigned int ip = 0; ip < bodylist.size(); ++ip)  // ITERATE on bodies
 	{
+		ChBody* Bpointer = bodylist[ip];
+
 		ChSharedPtr<ChMarker> mmark = Bpointer->SearchMarker(m_name);
 		if (!mmark.IsNull())
 			return mmark;
-		HIER_BODY_NEXT
 	}
-	HIER_OTHERPHYSICS_INIT
-	while HIER_OTHERPHYSICS_NOSTOP
+	
+	for (unsigned int ip = 0; ip < otherphysicslist.size(); ++ip)  // ITERATE on other physics
 	{
+		ChPhysicsItem* PHpointer = otherphysicslist[ip];
+
 		if (ChBodyAuxRef* mbodyauxref = dynamic_cast<ChBodyAuxRef*>(PHpointer))
 		{
 			ChSharedPtr<ChMarker> mmark = mbodyauxref->SearchMarker(m_name);
 			if (!mmark.IsNull())
 				return mmark;
 		}
-		HIER_OTHERPHYSICS_NEXT
 	}
 
 	return (ChSharedPtr<ChMarker>()); // not found? return a void shared ptr.
@@ -1189,9 +1159,10 @@ ChSharedPtr<ChMarker> ChSystem::SearchMarker (int markID)
 	ChMarker* candidate = NULL;
 	ChMarker* res = NULL;
 
-	HIER_BODY_INIT
-	while HIER_BODY_NOSTOP
+	for (unsigned int ip = 0; ip < bodylist.size(); ++ip)  // ITERATE on bodies
 	{
+		ChBody* Bpointer = bodylist[ip];
+
 		res = ChContainerSearchFromID<ChMarker, std::vector<ChMarker*>::const_iterator>
 				(markID, 
 				Bpointer->GetMarkerList().begin(), 
@@ -1201,12 +1172,12 @@ ChSharedPtr<ChMarker> ChSystem::SearchMarker (int markID)
 			res->AddRef(); // in that container pointers were not stored as ChSharedPtr, so this is needed..
 			return (ChSharedPtr<ChMarker>(res));  // ..here I am not getting a new() data, but a reference to something created elsewhere		
 		}
-
-		HIER_BODY_NEXT
 	}
-	HIER_OTHERPHYSICS_INIT
-	while HIER_OTHERPHYSICS_NOSTOP
+
+	for (unsigned int ip = 0; ip < otherphysicslist.size(); ++ip)  // ITERATE on other physics
 	{
+		ChPhysicsItem* PHpointer = otherphysicslist[ip];
+
 		if (ChBodyAuxRef* mbodyauxref = dynamic_cast<ChBodyAuxRef*>(PHpointer))
 		{
 			res = ChContainerSearchFromID<ChMarker, std::vector<ChMarker*>::const_iterator>
@@ -1219,7 +1190,6 @@ ChSharedPtr<ChMarker> ChSystem::SearchMarker (int markID)
 				return (ChSharedPtr<ChMarker>(res));  // ..here I am not getting a new() data, but a reference to something created elsewhere		
 			}
 		}
-		HIER_OTHERPHYSICS_NEXT
 	}
 
 	return (ChSharedPtr<ChMarker>()); // not found? return a void shared ptr.
@@ -1233,9 +1203,12 @@ ChSharedPtr<ChMarker> ChSystem::SearchMarker (int markID)
 
 void ChSystem::Reference_LM_byID()
 {
-	HIER_LINK_INIT
-	while HIER_LINK_NOSTOP
+	std::vector< ChLink* > toremove;
+
+	for (unsigned int ip = 0; ip < linklist.size(); ++ip)  // ITERATE on links
 	{
+		ChLink* Lpointer = linklist[ip];
+
 		if (ChLinkMarkers* malink = ChDynamicCast(ChLinkMarkers,Lpointer))
 		{
 			ChSharedPtr<ChMarker> shm1 = SearchMarker(malink->GetMarkID1());
@@ -1246,20 +1219,24 @@ void ChSystem::Reference_LM_byID()
 			if (mm1 && mm2)
 			{
 				Lpointer->SetValid(true);
-				HIER_LINK_NEXT
 			}
 			else
 			{
 				Lpointer->SetValid(false);
                 malink->SetUpMarkers(0, 0); // note: marker IDs are maintained
-				iterlink = RemoveLinkIter(iterlink); // may delete it...
+				toremove.push_back(Lpointer);
 			}
 		}
-		else
-		{
-			HIER_LINK_NEXT
-		}
+		
 	}
+	for (int ir = 0; ir < toremove.size(); ++ir)
+	{
+		ChSharedPtr<ChLink> mlink(toremove[ir]);
+		toremove[ir]->AddRef(); // cause shared from raw pointer from vector cointainer
+
+		RemoveLink(mlink);
+	}
+
 }
 
 //////
@@ -1339,15 +1316,15 @@ void ChSystem::WakeUpSleepingBodies()
 			my_waker.someone_sleeps = false;
 
 			// scan all links and wake connected bodies
-			HIER_LINK_INIT
-			while HIER_LINK_NOSTOP
+			for (unsigned int ip = 0; ip < linklist.size(); ++ip)  // ITERATE on links
 			{
+				ChLink* Lpointer = linklist[ip];
+
 				if (Lpointer->IsRequiringWaking())
 				{
 					((ChBody*)Lpointer->GetBody1())->SetSleeping(false);
 					((ChBody*)Lpointer->GetBody2())->SetSleeping(false);
 				}
-				HIER_LINK_NEXT
 			}
 			
 			// scan all contacts and wake neighbouring bodies
@@ -1389,17 +1366,16 @@ void ChSystem::Setup()
 	nlinks = 0;
 	nphysicsitems = 0;
 
-	HIER_BODY_INIT
-	while HIER_BODY_NOSTOP
+	for (unsigned int ip = 0; ip < bodylist.size(); ++ip)  // ITERATE on bodies
 	{
+		ChBody* Bpointer = bodylist[ip];
+
         if (Bpointer->GetBodyFixed())
           nbodies_fixed++;
         else if (Bpointer->GetSleeping())
           nbodies_sleep++;
         else
           nbodies++;
-
-        HIER_BODY_NEXT
 	}
 
 	ncoords_w += nbodies * 6;
@@ -1407,29 +1383,27 @@ void ChSystem::Setup()
 	ndoc      += nbodies;     // add one quaternion constr. for each active body.
 
 
-	HIER_OTHERPHYSICS_INIT
-	while HIER_OTHERPHYSICS_NOSTOP
+	for (unsigned int ip = 0; ip < otherphysicslist.size(); ++ip)  // ITERATE on other physics
 	{
+		ChPhysicsItem* PHpointer = otherphysicslist[ip];
+
 		nphysicsitems ++;
 
 		ncoords_w += PHpointer->GetDOF();
 		ndoc_w	  += PHpointer->GetDOC();
 		ndoc_w_C  += PHpointer->GetDOC_c();
 		ndoc_w_D  += PHpointer->GetDOC_d();
-
-		HIER_OTHERPHYSICS_NEXT
 	}
 
-	HIER_LINK_INIT
-	while HIER_LINK_NOSTOP
+	for (unsigned int ip = 0; ip < linklist.size(); ++ip)  // ITERATE on links
 	{
+		ChLink* Lpointer = linklist[ip];
+
 		nlinks ++;
 
 		ndoc_w   += Lpointer->GetDOC();
 		ndoc_w_C += Lpointer->GetDOC_c();
 		ndoc_w_D += Lpointer->GetDOC_d();
-
-		HIER_LINK_NEXT
 	}
 
 	ndoc_w_D += contact_container->GetDOC_d();
@@ -1465,35 +1439,36 @@ void ChSystem::Update()
 									// --------------------------------------
 									// Spread state vector Y to bodies
 									//    Y --> Bodies
-	HIER_BODY_INIT					//    Y_accel --> Bodies
-	while HIER_BODY_NOSTOP			// Updates recursively all other aux.vars
-	{								// --------------------------------------
+									//    Y_accel --> Bodies
+									// Updates recursively all other aux.vars
+									// --------------------------------------
+	#pragma omp parallel for 
+	for (int ip = 0; ip < bodylist.size(); ++ip)  // ITERATE on bodies			
+	{								
+		ChBody* Bpointer = bodylist[ip];
+
 		Bpointer->Update(ChTime);  
 
 		if (this->GetUseSleeping())
 			Bpointer->TrySleeping();
-
-		HIER_BODY_NEXT
 	}
 									// -----------------------------
 									// Updates other physical items
 									// -----------------------------
-	HIER_OTHERPHYSICS_INIT					
-	while HIER_OTHERPHYSICS_NOSTOP
+	for (unsigned int ip = 0; ip < otherphysicslist.size(); ++ip)  // ITERATE on other physics
 	{
-		PHpointer->Update(ChTime);
+		ChPhysicsItem* PHpointer = otherphysicslist[ip];
 
-		HIER_OTHERPHYSICS_NEXT
+		PHpointer->Update(ChTime);
 	}
 									// -----------------------------
 									// Updates all links
 									// -----------------------------
-	HIER_LINK_INIT					
-	while HIER_LINK_NOSTOP
+	for (unsigned int ip = 0; ip < linklist.size(); ++ip)  // ITERATE on links
 	{
-		Lpointer->Update(ChTime);
+		ChLink* Lpointer = linklist[ip];
 
-		HIER_LINK_NEXT
+		Lpointer->Update(ChTime);
 	}
 
 	this->contact_container->Update(); // Update all contacts, if any
@@ -1507,19 +1482,18 @@ void ChSystem::Update()
 
 void ChSystem::UpdateExternalGeometry ()
 {
-	HIER_BODY_INIT
-	while HIER_BODY_NOSTOP
+	for (unsigned int ip = 0; ip < bodylist.size(); ++ip)  // ITERATE on bodies
 	{
+		ChBody* Bpointer = bodylist[ip];
+
 		Bpointer->UpdateExternalGeometry ();
-
-		HIER_BODY_NEXT
 	}
-	HIER_LINK_INIT
-	while HIER_LINK_NOSTOP
+	
+	for (unsigned int ip = 0; ip < linklist.size(); ++ip)  // ITERATE on links
 	{
-		Lpointer->UpdateExternalGeometry ();
+		ChLink* Lpointer = linklist[ip];
 
-		HIER_LINK_NEXT
+		Lpointer->UpdateExternalGeometry ();
 	}
 }
 
@@ -1534,24 +1508,24 @@ void ChSystem::UpdateExternalGeometry ()
 
 void ChSystem::LCPprepare_reset()
 {
-	HIER_LINK_INIT
-	while HIER_LINK_NOSTOP
+	#pragma omp parallel for 
+	for (int ip = 0; ip < linklist.size(); ++ip)  // ITERATE on links
 	{
+		ChLink* Lpointer = linklist[ip];
 		Lpointer->ConstraintsBiReset();
-		HIER_LINK_NEXT
 	}
-	HIER_BODY_INIT
-	while HIER_BODY_NOSTOP
+	#pragma omp parallel for 
+	for (int ip = 0; ip < bodylist.size(); ++ip)  // ITERATE on bodies
 	{
+		ChBody* Bpointer = bodylist[ip];
 		Bpointer->VariablesFbReset();
-		HIER_BODY_NEXT
-	}	
-	HIER_OTHERPHYSICS_INIT
-	while HIER_OTHERPHYSICS_NOSTOP
+	}
+	#pragma omp parallel for 
+	for (int ip = 0; ip < otherphysicslist.size(); ++ip)  // ITERATE on other physics
 	{
+		ChPhysicsItem* PHpointer = otherphysicslist[ip];
 		PHpointer->VariablesFbReset();
 		PHpointer->ConstraintsBiReset();
-		HIER_OTHERPHYSICS_NEXT
 	}
 	this->contact_container->ConstraintsBiReset();
 }
@@ -1569,28 +1543,35 @@ void ChSystem::LCPprepare_load(bool load_jacobians,
 							   bool do_clamp
 							    )
 {
-	HIER_LINK_INIT
-	while HIER_LINK_NOSTOP
+	#pragma omp parallel for 
+	for (int ip = 0; ip < linklist.size(); ++ip)  // ITERATE on links
 	{
+		ChLink* Lpointer = linklist[ip];
+
 		if (C_factor)
 			Lpointer->ConstraintsBiLoad_C(C_factor, recovery_clamp, do_clamp);
 		if (Ct_factor)
 			Lpointer->ConstraintsBiLoad_Ct(Ct_factor);			// Ct
-		if (F_factor)
-			Lpointer->ConstraintsFbLoadForces(F_factor);		// f*dt
 		if (load_Mv)
 		{
 			Lpointer->VariablesQbLoadSpeed();					//   v_old 
 			Lpointer->VariablesFbIncrementMq();					// M*v_old
-		}
+		}		
 		if (load_jacobians)
 			Lpointer->ConstraintsLoadJacobians();
-		HIER_LINK_NEXT
+		if (F_factor)
+		{
+			#pragma omp critical
+			{
+				Lpointer->ConstraintsFbLoadForces(F_factor);		// f*dt
+			}
+		}
 	}
 
-	HIER_BODY_INIT
-	while HIER_BODY_NOSTOP
+	#pragma omp parallel for 
+	for (int ip = 0; ip < bodylist.size(); ++ip)  // ITERATE on bodies
 	{
+		ChBody* Bpointer = bodylist[ip];
 		if (F_factor)
 			Bpointer->VariablesFbLoadForces(F_factor);			// f*dt
 		if (load_Mv)
@@ -1598,12 +1579,12 @@ void ChSystem::LCPprepare_load(bool load_jacobians,
 			Bpointer->VariablesQbLoadSpeed();					//   v_old 
 			Bpointer->VariablesFbIncrementMq();					// M*v_old
 		} 
-		HIER_BODY_NEXT
 	}
 
-	HIER_OTHERPHYSICS_INIT
-	while HIER_OTHERPHYSICS_NOSTOP
+	#pragma omp parallel for 
+	for (int ip = 0; ip < otherphysicslist.size(); ++ip)  // ITERATE on other physics
 	{
+		ChPhysicsItem* PHpointer = otherphysicslist[ip];
 		if (F_factor)
 			PHpointer->VariablesFbLoadForces(F_factor);			// f*dt
 		if (load_Mv)
@@ -1615,13 +1596,17 @@ void ChSystem::LCPprepare_load(bool load_jacobians,
 			PHpointer->ConstraintsBiLoad_C(C_factor, recovery_clamp, do_clamp);
 		if (Ct_factor)
 			PHpointer->ConstraintsBiLoad_Ct(Ct_factor);			// Ct
-		if (F_factor)
-			PHpointer->ConstraintsFbLoadForces(F_factor);		// f*dt
 		if (load_jacobians)
 			PHpointer->ConstraintsLoadJacobians();
 		if (K_factor || R_factor || M_factor)
 			PHpointer->KRMmatricesLoad(K_factor, R_factor, M_factor);
-		HIER_OTHERPHYSICS_NEXT
+		if (F_factor)
+		{
+			#pragma omp critical
+			{
+				PHpointer->ConstraintsFbLoadForces(F_factor);		// f*dt
+			}
+		}
 	}
 
 	if (C_factor)
@@ -1637,25 +1622,22 @@ void ChSystem::LCPprepare_inject(ChLcpSystemDescriptor& mdescriptor)
 {
 	mdescriptor.BeginInsertion(); // This resets the vectors of constr. and var. pointers.
 
-	HIER_LINK_INIT
-	while HIER_LINK_NOSTOP
+	for (unsigned int ip = 0; ip < linklist.size(); ++ip)  // ITERATE on links
 	{
+		ChLink* Lpointer = linklist[ip];
 		Lpointer->InjectConstraints(mdescriptor);
-		HIER_LINK_NEXT
 	}
-	HIER_BODY_INIT
-	while HIER_BODY_NOSTOP
+	for (unsigned int ip = 0; ip < bodylist.size(); ++ip)  // ITERATE on bodies
 	{
+		ChBody* Bpointer = bodylist[ip];
 		Bpointer->InjectVariables(mdescriptor);
-		HIER_BODY_NEXT
 	}
-	HIER_OTHERPHYSICS_INIT
-	while HIER_OTHERPHYSICS_NOSTOP
+	for (unsigned int ip = 0; ip < otherphysicslist.size(); ++ip)  // ITERATE on other physics
 	{
+		ChPhysicsItem* PHpointer = otherphysicslist[ip];
 		PHpointer->InjectVariables(mdescriptor);
 		PHpointer->InjectConstraints(mdescriptor);
 		PHpointer->InjectKRMmatrices(mdescriptor);
-		HIER_OTHERPHYSICS_NEXT
 	}
 	this->contact_container->InjectConstraints(mdescriptor);
 
@@ -1665,85 +1647,85 @@ void ChSystem::LCPprepare_inject(ChLcpSystemDescriptor& mdescriptor)
 
 void ChSystem::LCPprepare_Li_from_speed_cache()
 {
-	HIER_LINK_INIT
-	while HIER_LINK_NOSTOP
+	#pragma omp parallel for
+	for (int ip = 0; ip < linklist.size(); ++ip)  // ITERATE on links
 	{
+		ChLink* Lpointer = linklist[ip];
 		Lpointer->ConstraintsLiLoadSuggestedSpeedSolution();
-		HIER_LINK_NEXT
 	}
-	HIER_OTHERPHYSICS_INIT
-	while HIER_OTHERPHYSICS_NOSTOP
+	#pragma omp parallel for
+	for (int ip = 0; ip < otherphysicslist.size(); ++ip)  // ITERATE on other physics
 	{
+		ChPhysicsItem* PHpointer = otherphysicslist[ip];
 		PHpointer->ConstraintsLiLoadSuggestedSpeedSolution();
-		HIER_OTHERPHYSICS_NEXT
 	}
 	this->contact_container->ConstraintsLiLoadSuggestedSpeedSolution();
 }
 
 void ChSystem::LCPprepare_Li_from_position_cache()
 {
-	HIER_LINK_INIT
-	while HIER_LINK_NOSTOP
+	#pragma omp parallel for
+	for (int ip = 0; ip < linklist.size(); ++ip)  // ITERATE on links
 	{
+		ChLink* Lpointer = linklist[ip];
 		Lpointer->ConstraintsLiLoadSuggestedPositionSolution();
-		HIER_LINK_NEXT
 	}
-	HIER_OTHERPHYSICS_INIT
-	while HIER_OTHERPHYSICS_NOSTOP
+	#pragma omp parallel for
+	for (int ip = 0; ip < otherphysicslist.size(); ++ip)  // ITERATE on other physics
 	{
+		ChPhysicsItem* PHpointer = otherphysicslist[ip];
 		PHpointer->ConstraintsLiLoadSuggestedPositionSolution();
-		HIER_OTHERPHYSICS_NEXT
 	}
 	this->contact_container->ConstraintsLiLoadSuggestedPositionSolution();
 }
 
 void ChSystem::LCPresult_Li_into_speed_cache()
 {
-	HIER_LINK_INIT
-	while HIER_LINK_NOSTOP
+	#pragma omp parallel for
+	for (int ip = 0; ip < linklist.size(); ++ip)  // ITERATE on links
 	{
+		ChLink* Lpointer = linklist[ip];
 		Lpointer->ConstraintsLiFetchSuggestedSpeedSolution();
-		HIER_LINK_NEXT
 	}
-	HIER_OTHERPHYSICS_INIT
-	while HIER_OTHERPHYSICS_NOSTOP
+	#pragma omp parallel for
+	for (int ip = 0; ip < otherphysicslist.size(); ++ip)  // ITERATE on other physics
 	{
+		ChPhysicsItem* PHpointer = otherphysicslist[ip];
 		PHpointer->ConstraintsLiFetchSuggestedSpeedSolution();
-		HIER_OTHERPHYSICS_NEXT
 	}
 	this->contact_container->ConstraintsLiFetchSuggestedSpeedSolution();
 }
 
 void ChSystem::LCPresult_Li_into_position_cache()
 {
-	HIER_LINK_INIT
-	while HIER_LINK_NOSTOP
+	#pragma omp parallel for
+	for (int ip = 0; ip < linklist.size(); ++ip)  // ITERATE on links
 	{
+		ChLink* Lpointer = linklist[ip];
 		Lpointer->ConstraintsLiFetchSuggestedPositionSolution();
-		HIER_LINK_NEXT
 	}
-	HIER_OTHERPHYSICS_INIT
-	while HIER_OTHERPHYSICS_NOSTOP
+	#pragma omp parallel for
+	for (int ip = 0; ip < otherphysicslist.size(); ++ip)  // ITERATE on other physics
 	{
+		ChPhysicsItem* PHpointer = otherphysicslist[ip];
 		PHpointer->ConstraintsLiFetchSuggestedPositionSolution();
-		HIER_OTHERPHYSICS_NEXT
 	}
 	this->contact_container->ConstraintsLiFetchSuggestedPositionSolution();
 }
 
 void ChSystem::LCPresult_Li_into_reactions(double mfactor)
 {
-	HIER_LINK_INIT
-	while HIER_LINK_NOSTOP
+	#pragma omp parallel for
+	for (int ip = 0; ip < linklist.size(); ++ip)  // ITERATE on links
 	{
+		ChLink* Lpointer = linklist[ip];
 		Lpointer->ConstraintsFetch_react(mfactor);
-		HIER_LINK_NEXT
 	}
-	HIER_OTHERPHYSICS_INIT
-	while HIER_OTHERPHYSICS_NOSTOP
+	#pragma omp parallel for
+	for (int ip = 0; ip < otherphysicslist.size(); ++ip)  // ITERATE on other physics
 	{
+		ChPhysicsItem* PHpointer = otherphysicslist[ip];
 		PHpointer->ConstraintsFetch_react(mfactor);
-		HIER_OTHERPHYSICS_NEXT
 	}
 	this->contact_container->ConstraintsFetch_react(mfactor);
 }
@@ -1753,11 +1735,10 @@ void ChSystem::LCPresult_Li_into_reactions(double mfactor)
 void ChSystem::SetXYmode (int m_mode)
 {
 	modeXY = m_mode;
-	HIER_LINK_INIT
-	while HIER_LINK_NOSTOP
+	for (unsigned int ip = 0; ip < linklist.size(); ++ip)  // ITERATE on links
 	{
+		ChLink* Lpointer = linklist[ip];
 		Lpointer->Set2Dmode(m_mode);
-		HIER_LINK_NEXT
 	}
 }
 
@@ -1781,12 +1762,13 @@ int ChSystem::GetNcontacts()
 
 void ChSystem::SynchronizeLastCollPositions()
 {
-	HIER_BODY_INIT
-	while HIER_BODY_NOSTOP
+	#pragma omp parallel for
+	for (int ip = 0; ip < bodylist.size(); ++ip)  // ITERATE on bodies
 	{
+		ChBody* Bpointer = bodylist[ip];
+
 		if (Bpointer->GetCollide())
 			Bpointer->SynchronizeLastCollPos();
-		HIER_BODY_NEXT
 	}
 }
 
@@ -1813,18 +1795,18 @@ double ChSystem::ComputeCollisions()
 	ChTimer<double> mtimer;  
 	mtimer.start();
 
-	// Update all positions of collision models	
-	HIER_BODY_INIT
-	while HIER_BODY_NOSTOP
+	// Update all positions of collision models
+	#pragma omp parallel for
+	for (int ip = 0; ip < bodylist.size(); ++ip)  // ITERATE on bodies
 	{
+		ChBody* Bpointer = bodylist[ip];
 		Bpointer->SyncCollisionModels();
-		HIER_BODY_NEXT
 	}
-	HIER_OTHERPHYSICS_INIT
-	while HIER_OTHERPHYSICS_NOSTOP
+	#pragma omp parallel for
+	for (int ip = 0; ip < otherphysicslist.size(); ++ip)  // ITERATE on other physics
 	{
+		ChPhysicsItem* PHpointer = otherphysicslist[ip];
 		PHpointer->SyncCollisionModels();
-		HIER_OTHERPHYSICS_NEXT
 	}
  
 	// Prepare the callback
@@ -1848,10 +1830,9 @@ double ChSystem::ComputeCollisions()
 
 	collision_system->ReportContacts(this->contact_container);
 
+	for (unsigned int ip = 0; ip < otherphysicslist.size(); ++ip)  // ITERATE on other physics
 	{
-	HIER_OTHERPHYSICS_INIT
-	while HIER_OTHERPHYSICS_NOSTOP
-	{
+		ChPhysicsItem* PHpointer = otherphysicslist[ip];
 		if (ChContactContainerBase* mcontactcontainer = dynamic_cast<ChContactContainerBase*>(PHpointer))
 		{
 			collision_system->ReportContacts(mcontactcontainer);
@@ -1860,8 +1841,6 @@ double ChSystem::ComputeCollisions()
 		{
 			collision_system->ReportProximities(mproximitycontainer);
 		}
-		HIER_OTHERPHYSICS_NEXT
-	}
 	}
 
 	// If some other collision engine could add further ChLinkContact into the list.. 
@@ -2014,10 +1993,11 @@ int ChSystem::Integrate_Y_impulse_Anitescu()
  
 	// perform an Eulero integration step (1st order stepping as pos+=v_new*dt)
 
-
-	HIER_BODY_INIT
-	while HIER_BODY_NOSTOP
+	#pragma omp parallel for
+	for (int ip = 0; ip < bodylist.size(); ++ip)  // ITERATE on bodies
 	{
+		ChBody* Bpointer = bodylist[ip];
+
 		// EULERO INTEGRATION: pos+=v_new*dt  (do not do this, if GPU already computed it)
 		Bpointer->VariablesQbIncrementPosition(step);
 		// Set body speed, and approximates the acceleration by differentiation.
@@ -2025,11 +2005,13 @@ int ChSystem::Integrate_Y_impulse_Anitescu()
 
 		// Now also updates all markers & forces
 		Bpointer->Update(this->ChTime);
-		HIER_BODY_NEXT
 	}
- 	HIER_OTHERPHYSICS_INIT
-	while HIER_OTHERPHYSICS_NOSTOP
+ 	
+	#pragma omp parallel for
+	for (int ip = 0; ip < otherphysicslist.size(); ++ip)  // ITERATE on other physics
 	{
+		ChPhysicsItem* PHpointer = otherphysicslist[ip];
+
 		// EULERO INTEGRATION: pos+=v_new*dt  (do not do this, if GPU already computed it)
 		PHpointer->VariablesQbIncrementPosition(step);
 		// Set body speed, and approximates the acceleration by differentiation.
@@ -2037,7 +2019,6 @@ int ChSystem::Integrate_Y_impulse_Anitescu()
 
 		// Now also updates all markers & forces
 		PHpointer->Update(this->ChTime);
-		HIER_OTHERPHYSICS_NEXT
 	}
  
 	this->ChTime = ChTime + step;
@@ -2152,10 +2133,11 @@ int ChSystem::Integrate_Y_impulse_Tasora()
 
 	// perform an Eulero integration step (1st order stepping as pos+=v_new*dt)
 
-
-	HIER_BODY_INIT
-	while HIER_BODY_NOSTOP
+	#pragma omp parallel for
+	for (int ip = 0; ip < bodylist.size(); ++ip)  // ITERATE on bodies
 	{
+		ChBody* Bpointer = bodylist[ip];
+
 		// EULERO INTEGRATION: pos+=v_new*dt
 		Bpointer->VariablesQbIncrementPosition(step);
 		// Set body speed, and approximates the acceleration by differentiation.
@@ -2163,11 +2145,13 @@ int ChSystem::Integrate_Y_impulse_Tasora()
 
 		// Now also updates all markers & forces
 		//Bpointer->UpdateALL(this->ChTime); // not needed - will be done later anyway
-		HIER_BODY_NEXT
 	}
-	HIER_OTHERPHYSICS_INIT
-	while HIER_OTHERPHYSICS_NOSTOP
+	
+	#pragma omp parallel for
+	for (int ip = 0; ip < otherphysicslist.size(); ++ip)  // ITERATE on other physics
 	{
+		ChPhysicsItem* PHpointer = otherphysicslist[ip];
+
 		// EULERO INTEGRATION: pos+=v_new*dt
 		PHpointer->VariablesQbIncrementPosition(step);
 		// Set body speed, and approximates the acceleration by differentiation.
@@ -2175,7 +2159,6 @@ int ChSystem::Integrate_Y_impulse_Tasora()
 
 		// Now also updates all markers & forces
 		//PHpointer->UpdateALL(this->ChTime); // not needed - will be done later anyway
-		HIER_OTHERPHYSICS_NEXT
 	}
 
 	this->ChTime = ChTime + step;
@@ -2219,21 +2202,24 @@ int ChSystem::Integrate_Y_impulse_Tasora()
 	LCPresult_Li_into_position_cache();
 
 	{
-		HIER_BODY_INIT
-		while HIER_BODY_NOSTOP
+		#pragma omp parallel for
+		for (int ip = 0; ip < bodylist.size(); ++ip)  // ITERATE on bodies
 		{
+			ChBody* Bpointer = bodylist[ip];
+
 			Bpointer->VariablesQbIncrementPosition(1.0); // pos+=Dpos
 			// Now also updates all markers & forces
 			Bpointer->Update(this->ChTime);
-			HIER_BODY_NEXT
 		}
-		HIER_OTHERPHYSICS_INIT
-		while HIER_OTHERPHYSICS_NOSTOP
+		
+		#pragma omp parallel for
+		for (int ip = 0; ip < otherphysicslist.size(); ++ip)  // ITERATE on other physics
 		{
+			ChPhysicsItem* PHpointer = otherphysicslist[ip];
+
 			PHpointer->VariablesQbIncrementPosition(1.0); // pos+=Dpos
 			// Now also updates all markers & forces
 			PHpointer->Update(this->ChTime);
-			HIER_OTHERPHYSICS_NEXT
 		} 
 	}
 
@@ -2325,20 +2311,21 @@ int ChSystem::DoAssembly(int action, int mflags)
         );
 
       // Update bodies and other physics items at new positions
-      HIER_BODY_INIT
-      while HIER_BODY_NOSTOP
+
+	  #pragma omp parallel for
+      for (int ip = 0; ip < bodylist.size(); ++ip)  // ITERATE on bodies
       {
+		ChBody* Bpointer = bodylist[ip];
         Bpointer->VariablesQbIncrementPosition(1.0); // pos += Dpos
         Bpointer->Update(this->ChTime);
-        HIER_BODY_NEXT
       }
 
-      HIER_OTHERPHYSICS_INIT
-      while HIER_OTHERPHYSICS_NOSTOP
+	  #pragma omp parallel for
+      for (int ip = 0; ip < otherphysicslist.size(); ++ip)  // ITERATE on other physics
       {
+		  ChPhysicsItem* PHpointer = otherphysicslist[ip];
           PHpointer->VariablesQbIncrementPosition(1.0); // pos += Dpos
           PHpointer->Update(this->ChTime);
-          HIER_OTHERPHYSICS_NEXT
       }
 
       Update(); // Update everything
@@ -2396,20 +2383,20 @@ int ChSystem::DoAssembly(int action, int mflags)
     // Loop over all bodies and other physics items; approximate speeds using
     // finite diferences (with the local, small time step value) and update all
     // markers and forces.
-    HIER_BODY_INIT
-    while HIER_BODY_NOSTOP
+	#pragma omp parallel for
+    for (int ip = 0; ip < bodylist.size(); ++ip)  // ITERATE on bodies
     {
+	  ChBody* Bpointer = bodylist[ip];
       Bpointer->VariablesQbSetSpeed(step);
       Bpointer->Update(this->ChTime);
-      HIER_BODY_NEXT
     }
 
-    HIER_OTHERPHYSICS_INIT
-    while HIER_OTHERPHYSICS_NOSTOP
+	#pragma omp parallel for
+    for (int ip = 0; ip < otherphysicslist.size(); ++ip)  // ITERATE on other physics
     {
+	  ChPhysicsItem* PHpointer = otherphysicslist[ip];
       PHpointer->VariablesQbSetSpeed(step);
       PHpointer->Update(this->ChTime);
-      HIER_OTHERPHYSICS_NEXT
     }
 
     // Restore the time step and max number of iterations.
@@ -2489,34 +2476,34 @@ GetLog() << (mZx - md).NormInf() << "\n";
 	LCPresult_Li_into_reactions(1.0) ; 
 
 	// Move bodies to updated position
-	HIER_BODY_INIT
-	while HIER_BODY_NOSTOP
+	#pragma omp parallel for
+	for (int ip = 0; ip < bodylist.size(); ++ip)  // ITERATE on bodies
 	{
+		ChBody* Bpointer = bodylist[ip];
 		Bpointer->VariablesQbIncrementPosition(1.0); // pos+=Dpos
 		Bpointer->Update(this->ChTime);
-		HIER_BODY_NEXT
 	}
-	HIER_OTHERPHYSICS_INIT
-	while HIER_OTHERPHYSICS_NOSTOP
+	#pragma omp parallel for
+	for (int ip = 0; ip < otherphysicslist.size(); ++ip)  // ITERATE on other physics
 	{
+		ChPhysicsItem* PHpointer = otherphysicslist[ip];
 		PHpointer->VariablesQbIncrementPosition(1.0); // pos+=Dpos
 		PHpointer->Update(this->ChTime);
-		HIER_OTHERPHYSICS_NEXT
 	}
 
 	// Set no body speed and no body accel.
 	{
-		HIER_BODY_INIT
-		while HIER_BODY_NOSTOP
+		#pragma omp parallel for
+		for (int ip = 0; ip < bodylist.size(); ++ip)  // ITERATE on bodies
 		{
+			ChBody* Bpointer = bodylist[ip];
 			Bpointer->SetNoSpeedNoAcceleration();
-			HIER_BODY_NEXT
 		}
-		HIER_OTHERPHYSICS_INIT
-		while HIER_OTHERPHYSICS_NOSTOP
+		#pragma omp parallel for
+		for (int ip = 0; ip < otherphysicslist.size(); ++ip)  // ITERATE on other physics
 		{
+			ChPhysicsItem* PHpointer = otherphysicslist[ip];
 			PHpointer->SetNoSpeedNoAcceleration();
-			HIER_OTHERPHYSICS_NEXT
 		}
 	}
 
@@ -2571,34 +2558,34 @@ int ChSystem::DoStaticNonlinear(int nsteps)
 		LCPresult_Li_into_reactions(1.0) ; 
 
 		// Move bodies to updated position
-		HIER_BODY_INIT
-		while HIER_BODY_NOSTOP
+		#pragma omp parallel for
+		for (int ip = 0; ip < bodylist.size(); ++ip)  // ITERATE on bodies
 		{
+			ChBody* Bpointer = bodylist[ip];
 			Bpointer->VariablesQbIncrementPosition(1.0); // pos+=Dpos
 			Bpointer->Update(this->ChTime);
-			HIER_BODY_NEXT
 		}
-		HIER_OTHERPHYSICS_INIT
-		while HIER_OTHERPHYSICS_NOSTOP
+		#pragma omp parallel for
+		for (int ip = 0; ip < otherphysicslist.size(); ++ip)  // ITERATE on other physics
 		{
+			ChPhysicsItem* PHpointer = otherphysicslist[ip];
 			PHpointer->VariablesQbIncrementPosition(1.0); // pos+=Dpos
 			PHpointer->Update(this->ChTime);
-			HIER_OTHERPHYSICS_NEXT
 		}
 
 		// Set no body speed and no body accel.
 		{
-			HIER_BODY_INIT
-			while HIER_BODY_NOSTOP
+			#pragma omp parallel for
+			for (int ip = 0; ip < bodylist.size(); ++ip)  // ITERATE on bodies
 			{
+				ChBody* Bpointer = bodylist[ip];
 				Bpointer->SetNoSpeedNoAcceleration();
-				HIER_BODY_NEXT
 			}
-			HIER_OTHERPHYSICS_INIT
-			while HIER_OTHERPHYSICS_NOSTOP
+			#pragma omp parallel for
+			for (int ip = 0; ip < otherphysicslist.size(); ++ip)  // ITERATE on other physics
 			{
+				ChPhysicsItem* PHpointer = otherphysicslist[ip];
 				PHpointer->SetNoSpeedNoAcceleration();
-				HIER_OTHERPHYSICS_NEXT
 			}
 		}
 
@@ -2643,18 +2630,18 @@ int ChSystem::DoStaticRelaxing ()
 		{
 			for (int m_iter = 0; m_iter < STATIC_MAX_STEPS; m_iter++)
 			{
-				HIER_BODY_INIT
-				while HIER_BODY_NOSTOP
+				#pragma omp parallel for
+				for (int ip = 0; ip < bodylist.size(); ++ip)  // ITERATE on bodies
 				{
+					ChBody* Bpointer = bodylist[ip];
 					// Set no body speed and no body accel.
 					Bpointer->SetNoSpeedNoAcceleration();
-					HIER_BODY_NEXT
 				}
-				HIER_OTHERPHYSICS_INIT
-				while HIER_OTHERPHYSICS_NOSTOP
+				#pragma omp parallel for
+				for (int ip = 0; ip < otherphysicslist.size(); ++ip)  // ITERATE on other physics
 				{
+					ChPhysicsItem* PHpointer = otherphysicslist[ip];
 					PHpointer->SetNoSpeedNoAcceleration();
-					HIER_OTHERPHYSICS_NEXT
 				}
 
 				double m_undotime = this->GetChTime();
@@ -2662,19 +2649,19 @@ int ChSystem::DoStaticRelaxing ()
 				this->SetChTime(m_undotime);
 			}
 
-
-			HIER_BODY_INIT
-			while HIER_BODY_NOSTOP
+			#pragma omp parallel for
+			for (int ip = 0; ip < bodylist.size(); ++ip)  // ITERATE on bodies
 			{
+				ChBody* Bpointer = bodylist[ip];
 				// Set no body speed and no body accel.
 				Bpointer->SetNoSpeedNoAcceleration();
-				HIER_BODY_NEXT
 			}
-			HIER_OTHERPHYSICS_INIT
-			while HIER_OTHERPHYSICS_NOSTOP
+
+			#pragma omp parallel for
+			for (int ip = 0; ip < otherphysicslist.size(); ++ip)  // ITERATE on other physics
 			{
+				ChPhysicsItem* PHpointer = otherphysicslist[ip];
 				PHpointer->SetNoSpeedNoAcceleration();
-				HIER_OTHERPHYSICS_NEXT
 			}
 		}
 	}
@@ -3147,40 +3134,35 @@ int ChSystem::StreamOUTall  (ChStreamOutBinary& m_file)
 	m_file << (int)bodylist.size();//this->ListCount((ChObj**)&bodylist); ***SHAREDBODY***
 
 	// 2b) write  bodies
-	HIER_BODY_INIT
-	while HIER_BODY_NOSTOP
+	for (unsigned int ip = 0; ip < bodylist.size(); ++ip)  // ITERATE on bodies
 	{
+		ChBody* Bpointer = bodylist[ip];
 			// write the body + child markers + forces
 		if (!Bpointer->StreamOUTall(m_file)) return 0;
-		HIER_BODY_NEXT
 	}
 
 	// 3a) write how many links
 	m_file << (int)linklist.size(); 
 
 	// 3b) write links links
-	HIER_LINK_INIT
-	while HIER_LINK_NOSTOP
+	for (unsigned int ip = 0; ip < linklist.size(); ++ip)  // ITERATE on links
 	{
+		ChLink* Lpointer = linklist[ip];
 			// Writethe link, using a special downcasting function Link_BinSave which saves also the
 			// inheritance info, depending on link class inheritance from base Link*
 		m_file.AbstractWrite(Lpointer);
-
-		HIER_LINK_NEXT
 	}
 
 	// 4a) write how many other physics items
 	m_file << (int)otherphysicslist.size(); 
 
 	// 4b) write other physics item links
-	HIER_OTHERPHYSICS_INIT
-	while HIER_OTHERPHYSICS_NOSTOP
+	for (unsigned int ip = 0; ip < otherphysicslist.size(); ++ip)  // ITERATE on other physics
 	{
+		ChPhysicsItem* PHpointer = otherphysicslist[ip];
 			// Write the item, using a special downcasting function which saves also the
 			// inheritance info, depending on class inheritance from base ChPhysicsItem*
 		m_file.AbstractWrite(PHpointer);
-
-		HIER_OTHERPHYSICS_NEXT
 	}
 
 	m_file << (int)CH_CHUNK_END;
@@ -3216,9 +3198,10 @@ void ChSystem::ShowHierarchy(ChStreamOutAscii& m_file)
 
 	m_file << "\n   List of the " << (int)Get_linklist()->size() << " added links: \n";
 
-	HIER_LINK_INIT
-	while HIER_LINK_NOSTOP
+	for (unsigned int ip = 0; ip < linklist.size(); ++ip)  // ITERATE on links
 	{
+		ChLink* Lpointer = linklist[ip];
+
 		GetLog() << "     LINK:       " << Lpointer->GetName() << "\n";
 		if (ChLinkMarkers* malink = ChDynamicCast(ChLinkMarkers,Lpointer))
 		{
@@ -3227,17 +3210,16 @@ void ChSystem::ShowHierarchy(ChStreamOutAscii& m_file)
 			if(malink->GetMarker2())
 			GetLog() << "        marker2:     " << malink->GetMarker2()->GetName() << "\n";
 		}
-		HIER_LINK_NEXT
 	}
 
 	
 	m_file << "\n   List of other " << (int)otherphysicslist.size() << " added physic items: \n";
 
-	HIER_OTHERPHYSICS_INIT
-	while HIER_OTHERPHYSICS_NOSTOP
+	for (unsigned int ip = 0; ip < otherphysicslist.size(); ++ip)  // ITERATE on other physics
 	{
+		ChPhysicsItem* PHpointer = otherphysicslist[ip];
+
 		GetLog() << "     PHYSIC ITEM :       " << PHpointer->GetName() << "\n";
-		HIER_OTHERPHYSICS_NEXT
 	}
 
 	m_file << "\n\nFlat ChPhysicalItem list (class name - object name):----- \n\n";
