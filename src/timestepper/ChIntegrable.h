@@ -232,9 +232,9 @@ public:
 	/// for y = {x, v} and  dy/dt={v, a}
 	virtual void StateSetup(ChState& x, ChStateDelta& v, ChStateDelta& a)
 	{
-		x.Resize(GetNcoords_x(), 1);
-		v.Resize(GetNcoords_v(), 1);
-		a.Resize(GetNcoords_a(), 1);
+		x.Resize(GetNcoords_x());
+		v.Resize(GetNcoords_v());
+		a.Resize(GetNcoords_a());
 	};
 
 	
@@ -536,6 +536,59 @@ public:
 		throw ChException("StateSolveCorrection() not implemented for ChIntegrableIIorder, implicit integrators for Ist order cannot be used. ");
 	};
 };
+
+
+/// This class is like ChIntegrableIIorder but it implements StateSolveA
+/// using the functions that are used also for implicit integrators, so you need
+/// to implement only the StateSolveCorrection  LoadResidual... and LoadConstraint...
+/// functions.
+
+class ChIntegrableIIorderEasy : public ChIntegrableIIorder
+{
+public:
+
+
+	/// a = f(x,v,t)
+	/// Given current state y={x,v} , computes acceleration a in the state derivative dy/dt={v,a} and
+	/// lagrangian multipliers L (if any). 
+	/// This is a fallback that provides a default computation using the same functions
+	/// that are used for the implicit integrators.
+	/// WARNING: it avoids the computation of the analytical expression of Qc, but it
+	/// requires three StateScatter updates!
+	virtual void StateSolveA(
+		ChStateDelta& Dvdt,		///< result: computed a for a=dv/dt
+		ChVectorDynamic<>& L,	///< result: computed lagrangian multipliers, if any
+		const ChState& x,		///< current state, x
+		const ChStateDelta& v,	///< current state, v
+		const double T,			///< current time T
+		const double dt,		///< timestep (if needed)
+		bool force_state_scatter = true ///< if false, x,v and T are not scattered to the system, assuming that someone has done StateScatter just before
+		)
+	{
+		if (force_state_scatter)
+			this->StateScatter(x, v, T);
+
+		ChVectorDynamic<> R (this->GetNcoords_v());
+		ChVectorDynamic<> Qc(this->GetNconstr());
+		double Delta = 1e-6;
+
+		this->LoadResidual_F(R, 1.0);
+
+		this->LoadConstraint_C (Qc, -2.0 / (Delta*Delta));
+		
+		// numerical differentiation to get the Qc term in constraints
+		this->StateScatter(x + (v*Delta), v, T + Delta);
+		this->LoadConstraint_C (Qc, 1.0 / (Delta*Delta));
+
+		this->StateScatter(x - (v*Delta), v, T - Delta);
+		this->LoadConstraint_C (Qc, 1.0 / (Delta*Delta));
+
+		this->StateScatter(x, v, T); // back to original state
+
+		this->StateSolveCorrection(Dvdt, L, R, Qc, 1.0, 0, 0, x, v, T, false);
+	}
+};
+
 
 
 /// This is a custom operator "+" that takes care of incremental update
