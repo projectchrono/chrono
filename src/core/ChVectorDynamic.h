@@ -32,8 +32,6 @@ namespace chrono
 //
 
 
-#define SetZero(els) {for (int i=0; i<els; ++i) this->address[i]=0; }
-#define ElementsCopy(to,from,els) {for (int i=0; i<els; ++i) to[i]=(Real)from[i]; }
 
 
 
@@ -72,7 +70,8 @@ public:
 			this->rows= 1;
 			this->columns = 1;
 			this->address = new Real[1];
-			SetZero(1);
+			//SetZero(1);
+			this->address[0] = 0;
 		}
 
 		/// The constructor for a generic n sized vector. 
@@ -83,7 +82,9 @@ public:
 		this->rows = rows;
 		this->columns = 1;
 		this->address = new Real[rows];
-		SetZero(rows);
+		//SetZero(rows);
+		for (int i = 0; i<rows; ++i)
+			this->address[i] = 0;
 	}
 
 		/// Copy constructor
@@ -92,7 +93,9 @@ public:
 			this->rows= msource.GetRows();
 			this->columns = 1;
 			this->address = new Real[this->rows];
-			ElementsCopy(this->address, msource.GetAddress(), this->rows); //memcpy (address, msource.GetAddress(), (sizeof(Real) * rows * columns));
+			//ElementsCopy(this->address, msource.GetAddress(), this->rows);
+			for (int i = 0; i<this->rows; ++i)
+				address[i] = (Real)msource.GetAddress()[i];
 		}
 
 		/// Copy constructor from all types of base matrices 
@@ -104,7 +107,9 @@ public:
 			this->rows= msource.GetRows();
 			this->columns= 1;
 			this->address= new Real[this->rows];
-			ElementsCopy(this->address, msource.GetAddress(), this->rows); //memcpy (address, msource.GetAddress(), (sizeof(Real) * rows * columns));
+			//ElementsCopy(this->address, msource.GetAddress(), this->rows); 
+			for (int i = 0; i<this->rows; ++i)
+				address[i] = (Real)msource.GetAddress()[i];
 		}
 
 
@@ -178,9 +183,38 @@ public:
 				this->columns= 1;
 				delete[]this->address;
 				this->address= new Real[this->rows]; 
-				SetZero(this->rows);
+				//SetZero(this->rows);
+				//#pragma omp parallel for if (this->rows>CH_OMP_MATR)
+				for (int i = 0; i<this->rows; ++i)
+					this->address[i] = 0;
 			}
 		}
+
+	virtual void Resize(int nrows, int ncols)
+		{
+			assert(ncols == 1);
+			Resize(nrows);
+		}
+
+	/// Reset to zeroes and (if needed) changes the size to have row and col
+	void Reset(int nrows)
+		{
+			Resize(nrows);
+			//SetZero(rows); 
+			#pragma omp parallel for if (rows>CH_OMP_MATR)
+			for (int i = 0; i<rows; ++i)
+				this->address[i] = 0;
+		}
+
+	/// Resets the matrix to zero  (warning: simply sets memory to 0 bytes!)
+	void Reset()
+	{
+		//SetZero(rows*columns); //memset(address, 0, sizeof(Real) * rows * columns);
+		#pragma omp parallel for if (rows>CH_OMP_MATRLIGHT)
+		for (int i = 0; i<rows; ++i)
+			this->address[i] = 0;
+	}
+
 };
 
 
