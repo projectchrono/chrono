@@ -69,7 +69,7 @@ public:
 			this->columns = 3;
 			this->address = this->buffer;
 			//ElementsCopy(this->address, msource.GetAddress(), 9);
-			for (int i = 0; i<9; ++i) address[i] = (Real)msource.GetAddress()[i];
+			for (int i = 0; i<9; ++i) this->address[i] = (Real)msource.GetAddress()[i];
 		}
 
 		/// Construct a diagonal 3x3 matrix with all diagonal elements equal to the specified value.
