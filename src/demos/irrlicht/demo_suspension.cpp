@@ -690,7 +690,7 @@ int main(int argc, char* argv[])
 	ChIrrWizard::add_typical_Logo(device);
 	ChIrrWizard::add_typical_Sky(device);
 	ChIrrWizard::add_typical_Lights(device);
-	ChIrrWizard::add_typical_Camera(device, core::vector3df(0,0,-6));
+	ChIrrWizard::add_typical_Camera(device, core::vector3df(0,2,-6));
 
 
     // 
@@ -809,7 +809,7 @@ int main(int argc, char* argv[])
 		guienv->drawAll();
 
 		// .. draw the distance constraints (the massless rods) as simplified lines
-		std::list<chrono::ChLink*>::iterator iterlink =  my_system.Get_linklist()->begin();
+		std::vector<chrono::ChLink*>::iterator iterlink =  my_system.Get_linklist()->begin();
 		while(iterlink !=  my_system.Get_linklist()->end())
 		{
 			if (ChLinkDistance* mylinkdis = ChDynamicCast(ChLinkDistance,(*iterlink)))

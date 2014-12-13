@@ -75,7 +75,7 @@ namespace chrono
 		template <class RealB>
 		ChState operator+(const ChMatrix<RealB>& matbis) const
 		{
-			ChState result(this->rows, *this->integrable);
+			ChState result(this->rows, this->integrable);
 			result.MatrAdd(*this, matbis);
 			return result;
 		}
@@ -85,7 +85,7 @@ namespace chrono
 		template <class RealB>
 		ChState operator-(const ChMatrix<RealB>& matbis) const
 		{
-			ChState result(this->rows, *this->integrable);
+			ChState result(this->rows, this->integrable);
 			result.MatrSub(*this, matbis);
 			return result;
 		}

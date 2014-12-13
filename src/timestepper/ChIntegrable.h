@@ -127,6 +127,7 @@ class ChIntegrable
 					ChStateDelta& Dy,	  ///< result: computed Dy
 					ChVectorDynamic<>& L, ///< result: computed lagrangian multipliers, if any
 					const ChVectorDynamic<>& R, ///< the R residual
+					const ChVectorDynamic<>& Qc,///< the Qc residual
 					const double a,		  ///< the factor in c_a*H
 					const double b,		  ///< the factor in c_b*dF/dy
 					const ChState& y,	  ///< current state y
@@ -317,6 +318,7 @@ public:
 		ChStateDelta& Dv,	  ///< result: computed Dv 
 		ChVectorDynamic<>& L, ///< result: computed lagrangian multipliers, if any
 		const ChVectorDynamic<>& R, ///< the R residual
+		const ChVectorDynamic<>& Qc,///< the Qc residual
 		const double c_a,	  ///< the factor in c_a*M
 		const double c_v,	  ///< the factor in c_v*dF/dv
 		const double c_x,	  ///< the factor in c_x*dF/dv
@@ -521,12 +523,14 @@ public:
 	virtual void StateSolveCorrection(
 		ChStateDelta& Dy,	  ///< result: computed Dy
 		ChVectorDynamic<>& L, ///< result: computed lagrangian multipliers, if any
-		ChVectorDynamic<>& R, ///< the R residual
-		double a,			  ///< the a term in a*H
-		double b,			  ///< the b term in b*dF/dy
+		const ChVectorDynamic<>& R, ///< the R residual
+		const ChVectorDynamic<>& Qc,///< the Qc residual
+		const double a,		  ///< the factor in c_a*H
+		const double b,		  ///< the factor in c_b*dF/dy
 		const ChState& y,	  ///< current state y
 		const double T,		  ///< current time T
-		bool force_state_scatter = true ///< if false, y and T are not scattered to the system, assuming that someone has done StateScatter just before 
+		const double dt,	  ///< timestep (if needed)
+		bool force_state_scatter = true ///< if false, y and T are not scattered to the system, assuming that someone has done StateScatter just before
 		)
 	{
 		throw ChException("StateSolveCorrection() not implemented for ChIntegrableIIorder, implicit integrators for Ist order cannot be used. ");

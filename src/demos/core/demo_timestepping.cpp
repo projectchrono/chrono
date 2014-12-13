@@ -23,6 +23,7 @@
  
        
 #include "core/ChLog.h"
+#include "core/ChLinearAlgebra.h"
 #include "timestepper/ChTimestepper.h"
 
 using namespace chrono;
@@ -77,8 +78,8 @@ int main(int argc, char* argv[])
 							// Create and object from your custom integrable class:
 		MyIntegrable mintegrable;
 
-							// Create a time-integrator, class: Eulero explicit
-		ChTimestepperEuleroExpl mystepper(mintegrable);
+							// Create a time-integrator, class: Euler explicit
+		ChTimestepperEulerExpl mystepper(mintegrable);
 
 
 							// Execute the time integration
@@ -170,12 +171,12 @@ int main(int argc, char* argv[])
 		ChStreamOutAsciiFile log_file2("log_timestepper_2.dat");
 
 
-		// Try integrator Eulero explicit
+		// Try integrator Euler explicit
 
 							// Create and object from your custom integrable class:
 		MyIntegrable mintegrable;
 							// Create a time-integrator:
-		ChTimestepperEuleroExpl mystepper(mintegrable);
+		ChTimestepperEulerExpl mystepper(mintegrable);
 
 
 		// Try integrator Runge Kutta 4st  explicit
@@ -217,7 +218,7 @@ int main(int argc, char* argv[])
 		// it will represent the differential equations
 		// by implementing the StateSolveA() function, and few other interfaces.
 		// Compared to previous example 2, this is inherited from ChIntegrableIIorder,
-		// so one can use more advanced integrators such as ChTimestepperEuleroSemiImplicit,
+		// so one can use more advanced integrators such as ChTimestepperEulerSemiImplicit,
 		// that can exploit the II order nature of the problem. Anyway, also all I order
 		// integrators can still be used.
 		class MyIntegrable : public ChIntegrableIIorder
@@ -289,8 +290,8 @@ int main(int argc, char* argv[])
 
 		// Create few time-integrators to be compared:
 		ChTimestepperRungeKuttaExpl		 mystepper1(mintegrable1);
-		ChTimestepperEuleroExplIIorder   mystepper2(mintegrable2);
-		ChTimestepperEuleroSemiImplicit  mystepper3(mintegrable3);
+		ChTimestepperEulerExplIIorder   mystepper2(mintegrable2);
+		ChTimestepperEulerSemiImplicit  mystepper3(mintegrable3);
 
 		
 		// Execute the time integration
@@ -387,6 +388,7 @@ int main(int argc, char* argv[])
 				ChStateDelta& Dv,	  ///< result: computed Dv 
 				ChVectorDynamic<>& L, ///< result: computed lagrangian multipliers, if any
 				const ChVectorDynamic<>& R, ///< the R residual
+				const ChVectorDynamic<>& Qc,///< the Qc residual
 				const double c_a,	  ///< the factor in c_a*M
 				const double c_v,	  ///< the factor in c_v*dF/dv
 				const double c_x,	  ///< the factor in c_x*dF/dv
@@ -460,7 +462,7 @@ int main(int argc, char* argv[])
 		// Create few time-integrators to be compared:
 		ChTimestepperEulerImplicit		 mystepper1(mintegrable1);
 		ChTimestepperTrapezoidal		 mystepper2(mintegrable2);
-		ChTimestepperEuleroExplIIorder   mystepper3(mintegrable3);
+		ChTimestepperEulerExplIIorder    mystepper3(mintegrable3);
 		ChTimestepperHHT				 mystepper4(mintegrable4);
 		ChTimestepperHHT				 mystepper5(mintegrable5);
 		mystepper4.SetAlpha(0);		// HHT with no dissipation -> trapezoidal
@@ -482,6 +484,242 @@ int main(int argc, char* argv[])
 												<< ", " << mystepper4.X()(0) << ", " << mystepper4.V()(0)
 												<< ", " << mystepper5.X()(0) << ", " << mystepper5.V()(0)
 												<< "\n";
+		}
+
+	}
+
+
+
+	if (true)
+	{
+		//
+		// EXAMPLE 5:
+		//
+
+		GetLog() << "\n\n Example 5: integrate pendulum DAE \n";
+
+
+		// Define a class inherited from ChIntegrableIIorder,
+		// it will represent the differential equations
+		// by implementing the interfaces to implicit solvers.
+		//  We assume   M*a = F(x,v,t) 
+		//            C(x,t)=0;
+
+		class MyIntegrable : public ChIntegrableIIorder
+		{
+		private:
+			double M;
+			double K;
+			double R;
+			double mT;
+			double mpx;
+			double mpy;
+			double mvx;
+			double mvy;
+			double mlength;
+		public:
+			MyIntegrable()
+			{
+				mlength = 1;
+				M = 1;
+				K = 2;
+				R = 0;
+				mT = 0;
+				mpx =  0;
+				mpy = -mlength;
+				mvx = 0.2;
+				mvy = 0;	
+			}
+
+			/// the number of coordinates in the state, x position part:
+			virtual int GetNcoords_x() { return 2; }
+
+			/// Tells the number of lagrangian multipliers (constraints)
+			virtual int GetNconstr() { return 1; }
+
+			/// system -> state
+			virtual void StateGather(ChState& x, ChStateDelta& v, double& T)
+			{
+				x(0) = mpx;
+				x(1) = mpy;
+				v(0) = mvx;
+				v(1) = mvy;
+				T = mT;
+			};
+
+			/// state -> system  
+			virtual void StateScatter(const ChState& x, const ChStateDelta& v, const double T)
+			{
+				mpx = x(0);
+				mpy = x(1);
+				mvx = v(0);
+				mvy = v(1);
+				mT = T;
+			};
+
+			/// compute  dy/dt=f(y,t) 
+			virtual void StateSolveA(ChStateDelta& dvdt,		///< result: computed accel. a=dv/dt
+				ChVectorDynamic<>& L,	///< result: computed lagrangian multipliers, if any
+				const ChState& x,		///< current state, x
+				const ChStateDelta& v,	///< current state, v
+				const double T,		///< current time T
+				const double dt,	///< timestep (if needed)
+				bool force_state_scatter = true ///< if false, y and T are not scattered to the system, assuming that someone has done StateScatter just before
+				)
+			{
+				if (force_state_scatter)
+					StateScatter(x, v, T);
+
+				ChVector<> dirpend(-mpx, -mpy, 0);
+				dirpend.Normalize();
+				ChVectorDynamic<> b(3);
+				b(0) = (sin(mT * 20) * 0.0002 -K*mpx - R*mvx);
+				b(1) = 0;
+				b(2) = 0;
+				ChMatrixDynamic<> A(3, 3);
+				A(0, 0) = M;
+				A(1, 1) = M;
+				A(0, 2) = dirpend.x;
+				A(1, 2) = dirpend.y;
+				A(2, 0) = dirpend.x;
+				A(2, 1) = dirpend.y;
+				ChVectorDynamic<> w(3);
+				ChLinearAlgebra::Solve_LinSys(A, &b, &w);
+				dvdt(0) = w(0);
+				dvdt(1) = w(1);
+				L(0)    = w(2);
+			}
+
+			/// Compute the correction with linear system
+			///  Dv = [ c_a*M + c_v*dF/dv + c_x*dF/dx ]^-1 * R 
+			virtual void StateSolveCorrection(
+				ChStateDelta& Dv,	  ///< result: computed Dv 
+				ChVectorDynamic<>& L, ///< result: computed lagrangian multipliers, if any
+				const ChVectorDynamic<>& R, ///< the R residual
+				const ChVectorDynamic<>& Qc,///< the Qc residual
+				const double c_a,	  ///< the factor in c_a*M
+				const double c_v,	  ///< the factor in c_v*dF/dv
+				const double c_x,	  ///< the factor in c_x*dF/dv
+				const ChState& x,	  ///< current state, x part
+				const ChStateDelta& v,///< current state, v part
+				const double T,		  ///< current time T
+				bool force_state_scatter = true ///< if false, x,v and T are not scattered to the system, assuming that someone has done StateScatter just before 
+				)
+			{
+				if (force_state_scatter)
+					this->StateScatter(x, v, T);
+
+				ChVector<> dirpend(-mpx, -mpy, 0);
+				dirpend.Normalize();
+				ChVectorDynamic<> b(3);
+				b(0) = R(0);
+				b(1) = R(1);
+				b(2) = Qc(0);
+				ChMatrixDynamic<> A(3, 3);
+				A(0, 0) = c_a*this->M + c_v *(-this->R) + c_x * (-this->K);
+				A(1, 1) = c_a*this->M;
+				A(0, 2) = dirpend.x;
+				A(1, 2) = dirpend.y;
+				A(2, 0) = dirpend.x;
+				A(2, 1) = dirpend.y;
+				ChVectorDynamic<> w(3);
+				ChLinearAlgebra::Solve_LinSys(A, &b, &w);
+				Dv(0) = w(0);
+				Dv(1) = w(1);
+				L(0)  = w(2);
+			}
+
+			///    R += c*F
+			void LoadResidual_F(
+				ChVectorDynamic<>& R,		 ///< result: the R residual, R += c*F 
+				const double c				 ///< a scaling factor
+				)
+			{
+				R(0) += c * (sin(mT * 20) * 0.0002 - this->K*mpx - this->R*mvx);
+				R(1) += c * 0;
+			};
+
+			///    R += c*M*w 
+			void LoadResidual_Mv(
+				ChVectorDynamic<>& R,		 ///< result: the R residual, R += c*M*v 
+				const ChVectorDynamic<>& w,  ///< the w vector 
+				const double c				 ///< a scaling factor
+				)
+			{
+				R(0) += c * this->M * w(0);
+				R(1) += c * this->M * w(1);
+			};
+
+			///   R += Cq'*l
+			virtual void LoadResidual_CqL(
+				ChVectorDynamic<>& R,		 ///< result: the R residual, R += c*Cq'*L 
+				const ChVectorDynamic<>& L,  ///< the L vector 
+				const double c				 ///< a scaling factor
+				)
+			{
+				ChVector<> dirpend(-mpx, -mpy, 0);
+				dirpend.Normalize();
+				R(0) += c * dirpend.x * L(0);
+				R(1) += c * dirpend.y * L(0);
+			};
+
+			///  Qc += c * C
+			virtual void LoadConstraint_C(
+				ChVectorDynamic<>& Qc,		 ///< result: the Qc residual, Qc += c*C 
+				const double c				 ///< a scaling factor
+				)
+			{
+				ChVector<> distpend(-mpx, -mpy, 0);
+				Qc(0) += -c * (-distpend.Length() + mlength);
+			};
+
+			/// nothing to do here- no rheonomic part
+			virtual void LoadConstraint_Ct(
+				ChVectorDynamic<>& Qc,		 ///< result: the Qc residual, Qc += c*Ct 
+				const double c				 ///< a scaling factor
+				)
+			{};
+
+		};
+
+
+		// Create a file to dump results
+		ChStreamOutAsciiFile log_file5("log_timestepper_5.dat");
+
+
+		// Create and object from your custom integrable class:
+		MyIntegrable mintegrable1;
+		MyIntegrable mintegrable2;
+		MyIntegrable mintegrable3;
+		MyIntegrable mintegrable4;
+		MyIntegrable mintegrable5;
+
+		// Create few time-integrators to be compared:
+		ChTimestepperEulerSemiImplicit  mystepper1(mintegrable1);
+		ChTimestepperEulerImplicit		 mystepper2(mintegrable2);
+		ChTimestepperTrapezoidal		 mystepper3(mintegrable3);
+		ChTimestepperHHT				 mystepper4(mintegrable4);
+		ChTimestepperHHT				 mystepper5(mintegrable5);
+		mystepper4.SetAlpha(0);		// HHT with no dissipation -> trapezoidal
+		mystepper5.SetAlpha(-0.2);  // HHT with max dissipation 
+
+		// Execute the time integration
+		while (mystepper1.GetTime() <4)
+		{
+			mystepper1.Advance(0.05);
+			mystepper2.Advance(0.05);
+			mystepper3.Advance(0.05);
+			mystepper4.Advance(0.05);
+			mystepper5.Advance(0.05);
+
+			GetLog() << "T = " << mystepper1.GetTime() << "  x=" << mystepper1.X()(0) << "  y=" << mystepper1.X()(1) << "\n";
+			log_file5 << mystepper1.GetTime() 
+				<< ", " << mystepper1.X()(0) << ", " << mystepper1.X()(1) << ", " << mystepper1.V()(0) << ", " << mystepper1.V()(1)
+				<< ", " << mystepper2.X()(0) << ", " << mystepper2.X()(1) << ", " << mystepper2.V()(0) << ", " << mystepper2.V()(1)
+				<< ", " << mystepper3.X()(0) << ", " << mystepper3.X()(1) << ", " << mystepper3.V()(0) << ", " << mystepper3.V()(1)
+				<< ", " << mystepper4.X()(0) << ", " << mystepper4.X()(1) << ", " << mystepper4.V()(0) << ", " << mystepper4.V()(1)
+				<< ", " << mystepper5.X()(0) << ", " << mystepper5.X()(1) << ", " << mystepper5.V()(0) << ", " << mystepper5.V()(1)
+				<< "\n";
 		}
 
 	}
