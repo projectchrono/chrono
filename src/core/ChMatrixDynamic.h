@@ -93,7 +93,7 @@ public:
 			this->columns= msource.GetColumns();
 			this->address= new Real[this->rows*this->columns];
 			//ElementsCopy(this->address, msource.GetAddress(), this->rows*this->columns);
-			for (int i = 0; i<rows*columns; ++i) 
+			for (int i = 0; i<this->rows*this->columns; ++i)
 				this->address[i] = (Real)msource.GetAddress()[i];
 		}
 
@@ -105,7 +105,7 @@ public:
 			this->columns= msource.GetColumns();
 			this->address= new Real[this->rows*this->columns];
 			//ElementsCopy(this->address, msource.GetAddress(), this->rows*this->columns);
-			for (int i = 0; i<rows*columns; ++i)
+			for (int i = 0; i<this->rows*this->columns; ++i)
 				this->address[i] = (Real)msource.GetAddress()[i];
 		}
 
@@ -118,7 +118,7 @@ public:
 			this->columns = col;
 			this->address = new Real[row*col]; 
 			//SetZero(row*col);
-			for (int i = 0; i<rows*columns; ++i)
+			for (int i = 0; i<this->rows*this->columns; ++i)
 				this->address[i] = 0;
 		}
 
@@ -202,8 +202,8 @@ public:
 				delete[]this->address;
 				this->address= new Real[this->rows*this->columns]; 
 				//SetZero(this->rows*this->columns);
-				#pragma omp parallel for if (rows*columns>CH_OMP_MATR)
-				for (int i = 0; i<rows*columns; ++i)
+				#pragma omp parallel for if (this->rows*this->columns>CH_OMP_MATR)
+				for (int i = 0; i<this->rows*this->columns; ++i)
 					this->address[i] = 0;
 			}
 		}

@@ -83,7 +83,7 @@ public:
 		this->columns = 1;
 		this->address = new Real[rows];
 		//SetZero(rows);
-		for (int i = 0; i<rows; ++i)
+		for (int i = 0; i<this->rows; ++i)
 			this->address[i] = 0;
 	}
 
@@ -95,7 +95,7 @@ public:
 			this->address = new Real[this->rows];
 			//ElementsCopy(this->address, msource.GetAddress(), this->rows);
 			for (int i = 0; i<this->rows; ++i)
-				address[i] = (Real)msource.GetAddress()[i];
+				this->address[i] = (Real)msource.GetAddress()[i];
 		}
 
 		/// Copy constructor from all types of base matrices 
@@ -109,7 +109,7 @@ public:
 			this->address= new Real[this->rows];
 			//ElementsCopy(this->address, msource.GetAddress(), this->rows); 
 			for (int i = 0; i<this->rows; ++i)
-				address[i] = (Real)msource.GetAddress()[i];
+				this->address[i] = (Real)msource.GetAddress()[i];
 		}
 
 
@@ -201,8 +201,8 @@ public:
 		{
 			Resize(nrows);
 			//SetZero(rows); 
-			#pragma omp parallel for if (rows>CH_OMP_MATR)
-			for (int i = 0; i<rows; ++i)
+			#pragma omp parallel for if (this->rows>CH_OMP_MATR)
+			for (int i = 0; i<this->rows; ++i)
 				this->address[i] = 0;
 		}
 
@@ -210,8 +210,8 @@ public:
 	void Reset()
 	{
 		//SetZero(rows*columns); //memset(address, 0, sizeof(Real) * rows * columns);
-		#pragma omp parallel for if (rows>CH_OMP_MATRLIGHT)
-		for (int i = 0; i<rows; ++i)
+		#pragma omp parallel for if (this->rows>CH_OMP_MATRLIGHT)
+		for (int i = 0; i<this->rows; ++i)
 			this->address[i] = 0;
 	}
 
