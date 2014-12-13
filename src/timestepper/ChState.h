@@ -14,7 +14,7 @@
 
 #include <stdlib.h>
 #include "core/ChApiCE.h"
-#include "core/ChMath.h"
+#include "core/ChVectorDynamic.h"
 
 
 namespace chrono
@@ -28,25 +28,23 @@ namespace chrono
 	/// This is a vector (one-column matrix), hence inherited from ChMatrixDynamic.
 	/// It is used in ChIntegrable, ChTimestepper, etc.
 
-	class ChState : public ChMatrixDynamic<double>
+	class ChState : public ChVectorDynamic<double>
 	{
 	public:
 		/// Constructors
-		explicit ChState(ChIntegrable* mint)
-			: ChMatrixDynamic<double>(1, 1) { integrable = mint; };
+		explicit ChState(ChIntegrable* mint = 0)
+			: ChVectorDynamic<double>(1) { integrable = mint; };
 
 		explicit ChState(const int nrows, ChIntegrable* mint)
-			: ChMatrixDynamic<double>(nrows, 1) { integrable = mint; };
+			: ChVectorDynamic<double>(nrows) { integrable = mint; };
 
 		explicit ChState(const ChMatrixDynamic<double> matr, ChIntegrable* mint)
-			: ChMatrixDynamic<double>(matr) { integrable = mint; };
+			: ChVectorDynamic<double>(matr) { integrable = mint; };
 
-		explicit ChState(const int nrows, const int ncolumns, ChIntegrable* mint)
-			: ChMatrixDynamic<double>(nrows, ncolumns) { integrable = mint; };
 
 		/// Copy constructor
 		ChState(const ChState& msource)
-			: ChMatrixDynamic<double>(msource) { integrable = msource.integrable; };
+			: ChVectorDynamic<double>(msource) { integrable = msource.integrable; };
 
 
 		/// Multiplies this matrix by a factor, in place
@@ -100,6 +98,12 @@ namespace chrono
 			return result;
 		}
 
+		/// Reset to zeroes and (if needed) changes the size.
+		void Reset(int nrows, ChIntegrable* mint)
+		{
+			ChVectorDynamic<>::Reset(nrows);
+			integrable = mint;
+		}
 
 		ChIntegrable* GetIntegrable() const { return integrable; }
 
@@ -119,25 +123,23 @@ namespace chrono
 	/// This is a vector (one-column matrix), hence inherited from ChMatrixDynamic.
 	/// It is used in ChIntegrable, ChTimestepper, etc.
 
-	class ChStateDelta : public ChMatrixDynamic<double>
+	class ChStateDelta : public ChVectorDynamic<double>
 	{
 	public:
 		/// Constructors
-		explicit ChStateDelta(ChIntegrable* mint)
-			: ChMatrixDynamic<double>(1, 1) { integrable = mint; };
+		explicit ChStateDelta(ChIntegrable* mint = 0)
+			: ChVectorDynamic<double>(1) { integrable = mint; };
 
 		explicit ChStateDelta(const int nrows, ChIntegrable* mint)
-			: ChMatrixDynamic<double>(nrows, 1) { integrable = mint; };
+			: ChVectorDynamic<double>(nrows) { integrable = mint; };
 
 		explicit ChStateDelta(const ChMatrixDynamic<double> matr, ChIntegrable* mint)
-			: ChMatrixDynamic<double>(matr) { integrable = mint; };
-
-		explicit ChStateDelta(const int nrows, const int ncolumns, ChIntegrable* mint)
-			: ChMatrixDynamic<double>(nrows, ncolumns) { integrable = mint; };
+			: ChVectorDynamic<double>(matr) { integrable = mint; };
+;
 
 		/// Copy constructor
 		ChStateDelta(const ChStateDelta& msource)
-			: ChMatrixDynamic<double>(msource) { integrable = msource.integrable; };
+			: ChVectorDynamic<double>(msource) { integrable = msource.integrable; };
 
 		/// Multiplies this matrix by a factor, in place
 		template <class Real>
@@ -188,6 +190,13 @@ namespace chrono
 			ChStateDelta result(*this);
 			result.MatrScale(factor);
 			return result;
+		}
+
+		/// Reset to zeroes and (if needed) changes the size.
+		void Reset(int nrows, ChIntegrable* mint)
+		{
+			ChVectorDynamic<>::Reset(nrows);
+			integrable = mint;
 		}
 
 		ChIntegrable* GetIntegrable() const { return integrable; }
