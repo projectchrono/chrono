@@ -36,20 +36,20 @@ protected:
 	ChIntegrable* integrable;
 	double T;
 
-	//ChVectorDynamic<>* mL;
+	ChVectorDynamic<> L;
+
 public:
 					/// Constructor
 	ChTimestepper(ChIntegrable& mintegrable) 
 				{
 					integrable = &mintegrable;
 					T = 0;
-					//mL    = new ChVectorDynamic<>(1);
+					L.Reset(0);
 				};
 	
 					/// Destructor
 	virtual ~ChTimestepper()
 				{
-					//delete mL;
 				};
 
 					/// Performs an integration timestep
@@ -59,7 +59,7 @@ public:
 
 
 					/// Access the lagrangian multipliers, if any
-	//virtual ChVectorDynamic<>& L() { return *mL; }
+	virtual ChVectorDynamic<>& get_L() { return L; }
 
 					/// Get the integrable object 
 	ChIntegrable* GetIntegrable() { return integrable;}
@@ -79,30 +79,29 @@ public:
 class ChTimestepperIorder : public ChTimestepper
 {
 protected:
-	ChState* mY;
-	ChStateDelta* mdYdt;
+	ChState Y;
+	ChStateDelta dYdt;
+
 public:
 
 	/// Constructor
 	ChTimestepperIorder(ChIntegrable& mintegrable) 
 		: ChTimestepper(mintegrable)
 	{
-		mY = new ChState(&mintegrable);
-		mdYdt = new ChStateDelta(&mintegrable);
+		Y.Reset    (1, &mintegrable);
+		dYdt.Reset (1, &mintegrable);
 	};
 
 	/// Destructor
 	virtual ~ChTimestepperIorder()
 	{
-		delete mY;
-		delete mdYdt;
 	};
 
 	/// Access the state at current time
-	virtual ChState& Y() { return *mY; }
+	virtual ChState& get_Y() { return Y; }
 
 	/// Access the derivative of state at current time
-	virtual ChStateDelta& dYdt() { return *mdYdt; }
+	virtual ChStateDelta& get_dYdt() { return dYdt; }
 };
 
 
@@ -115,36 +114,34 @@ public:
 class ChTimestepperIIorder : public ChTimestepper
 {
 protected:
-	ChState* mX;
-	ChStateDelta* mV;
-	ChStateDelta* mA;
+	ChState X;
+	ChStateDelta V;
+	ChStateDelta A;
+
 public:
 
 	/// Constructor
 	ChTimestepperIIorder(ChIntegrableIIorder& mintegrable)
 		: ChTimestepper(mintegrable)
 	{
-		mX = new ChState(&mintegrable);
-		mV = new ChStateDelta(&mintegrable);
-		mA = new ChStateDelta(&mintegrable);
+		X.Reset(1, &mintegrable);
+		V.Reset(1, &mintegrable);
+		A.Reset(1, &mintegrable);
 	};
 
 	/// Destructor
 	virtual ~ChTimestepperIIorder()
 	{
-		delete mX;
-		delete mV;
-		delete mA;
 	};
 
 	/// Access the state, position part, at current time
-	virtual ChState& X() { return *mX; }
+	virtual ChState& get_X() { return X; }
 
 	/// Access the state, speed part, at current time
-	virtual ChStateDelta& V() { return *mV; }
+	virtual ChStateDelta& get_V() { return V; }
 
 	/// Access the acceleration, at current time
-	virtual ChStateDelta& A() { return *mA; }
+	virtual ChStateDelta& get_A() { return A; }
 };
 
 
@@ -193,24 +190,26 @@ public:
 			const double dt				///< timestep to advance
 			) 
 	{
-		GetIntegrable()->StateSetup(Y(), dYdt());
+		// setup main vectors
+		GetIntegrable()->StateSetup(Y, dYdt);
 
-		GetIntegrable()->StateGather(Y(), T);	// state <- system
+		// setup auxiliary vectors
+		L.Reset(this->GetIntegrable()->GetNconstr());
 
-		// auxiliary vectors
-		//ChStateDelta		Dy(this->GetIntegrable()->GetNcoords_dy(), GetIntegrable());
-		ChVectorDynamic<>   L (this->GetIntegrable()->GetNconstr());
 
-		GetIntegrable()->StateSolve(dYdt(), L, Y(), T, dt, false);	// dY/dt = f(Y,T) 
+		GetIntegrable()->StateGather(Y, T);	// state <- system
+
+		
+		GetIntegrable()->StateSolve(dYdt, L, Y, T, dt, false);	// dY/dt = f(Y,T)
 
 		// Euler formula!  
-		//   y_new= y + dy/dt * dt    =  y_new= y + Dy
+		//   y_new= y + dy/dt * dt    
 
-		Y()		= Y() + dYdt() * dt;		//  also: GetIntegrable().StateIncrement(y_new, y, Dy);
+		Y		= Y + dYdt * dt;		//  also: GetIntegrable().StateIncrement(y_new, y, Dy);
 
 		T		+= dt;
 
-		GetIntegrable()->StateScatter(Y(), T);	// state -> system
+		GetIntegrable()->StateScatter(Y, T);	// state -> system
 	}
 };
 
@@ -226,6 +225,9 @@ public:
 
 class ChTimestepperEulerExplIIorder : public ChTimestepperIIorder
 {
+protected:
+	ChStateDelta		Dv;
+
 public:
 	/// Constructors (default empty)
 	ChTimestepperEulerExplIIorder(ChIntegrableIIorder& mintegrable)
@@ -239,25 +241,27 @@ public:
 		// downcast
 		ChIntegrableIIorder* mintegrable = (ChIntegrableIIorder*)this->integrable;
 
-		mintegrable->StateSetup(X(), V(), A());
+		// setup main vectors
+		mintegrable->StateSetup(X, V, A);
 
-		mintegrable->StateGather(X(), V(), T);	// state <- system
+		// setup auxiliary vectors
+		Dv.Reset	(mintegrable->GetNcoords_v(), GetIntegrable());
+		L.Reset		(mintegrable->GetNconstr());
 
-		// auxiliary vectors
-		ChStateDelta		Dv(mintegrable->GetNcoords_v(), GetIntegrable());
-		ChVectorDynamic<>   L(mintegrable->GetNconstr());
 
-		mintegrable->StateSolveA( A(), L, X(), V(), T, dt, false);	// Dv/dt = f(x,v,T)
+		mintegrable->StateGather(X, V, T);	// state <- system
+
+		mintegrable->StateSolveA( A, L, X, V, T, dt, false);	// Dv/dt = f(x,v,T)
 
 		// Euler formula!  
 
-		X() = X() + V()*dt;		// x_new= x + v * dt 
+		X = X + V*dt;		// x_new= x + v * dt 
 
-		V() = V() + A()*dt;		// v_new= v + a * dt 
+		V = V + A*dt;		// v_new= v + a * dt 
 		
 		T += dt;
 
-		mintegrable->StateScatter(X(), V(), T);	// state -> system
+		mintegrable->StateScatter(X, V, T);	// state -> system
 	}
 };
 
@@ -284,26 +288,26 @@ public:
 		// downcast
 		ChIntegrableIIorder* mintegrable = (ChIntegrableIIorder*)this->integrable;
 
-		mintegrable->StateSetup(X(), V(), A());
+		// setup main vectors
+		mintegrable->StateSetup(X, V, A);
 
-		mintegrable->StateGather(X(), V(), T);	// state <- system
+		// setup auxiliary vectors
+		L.Reset(mintegrable->GetNconstr());
 
-		// auxiliary vectors
-		//ChStateDelta		Dv(mintegrable->GetNcoords_v(), GetIntegrable());
-		ChVectorDynamic<>   L(mintegrable->GetNconstr());
 
-		mintegrable->StateSolveA( A(), L, X(), V(), T, dt, false);	// Dv/dt = f(x,v,T)   Dv = f(x,v,T)*dt
+		mintegrable->StateGather(X, V, T);	// state <- system
+
+		mintegrable->StateSolveA( A, L, X, V, T, dt, false);	// Dv/dt = f(x,v,T)   Dv = f(x,v,T)*dt
 
 		// Semi-implicit Euler formula!   (note the order of update of x and v, respect to original Euler II order explicit)
 
-		V() = V() + A()*dt;		// v_new= v + a * dt 
+		V = V + A*dt;		// v_new= v + a * dt 
 
-		X() = X() + V()*dt;		// x_new= x + v_new * dt 
-
+		X = X + V*dt;		// x_new= x + v_new * dt 
 
 		T += dt;
 
-		mintegrable->StateScatter(X(), V(), T);	// state -> system
+		mintegrable->StateScatter(X, V, T);	// state -> system
 	}
 };
 
@@ -315,6 +319,13 @@ public:
 
 class ChTimestepperRungeKuttaExpl : public ChTimestepperIorder
 {
+protected:
+	ChState				y_new;
+	ChStateDelta		Dydt1;
+	ChStateDelta		Dydt2;
+	ChStateDelta		Dydt3;
+	ChStateDelta		Dydt4;
+
 public:
 					/// Constructors (default empty)
 	ChTimestepperRungeKuttaExpl (ChIntegrable& mintegrable) 
@@ -325,38 +336,39 @@ public:
 			const double dt				///< timestep to advance
 			) 
 	{
-		GetIntegrable()->StateSetup(Y(), dYdt());
+		// setup main vectors
+		GetIntegrable()->StateSetup(Y, dYdt);
 
-		GetIntegrable()->StateGather(Y(), T);	// state <- system
-
-		// auxiliary vectors
+		// setup auxiliary vectors
 		int n_y  = GetIntegrable()->GetNcoords_y();
 		int n_dy = GetIntegrable()->GetNcoords_dy();
 		int n_c  = GetIntegrable()->GetNconstr();
-		ChState				y_new(n_y,  GetIntegrable());
-		ChStateDelta		Dydt1	 (n_dy, GetIntegrable());
-		ChStateDelta		Dydt2	 (n_dy, GetIntegrable());
-		ChStateDelta		Dydt3  (n_dy, GetIntegrable());
-		ChStateDelta		Dydt4	 (n_dy, GetIntegrable());
-		ChVectorDynamic<>   L    (n_c);
+		y_new.Reset(n_y, GetIntegrable());
+		Dydt1.Reset(n_dy, GetIntegrable());
+		Dydt2.Reset(n_dy, GetIntegrable());
+		Dydt3.Reset(n_dy, GetIntegrable());
+		Dydt4.Reset(n_dy, GetIntegrable());
+		L.Reset(n_c);
 
 
-		GetIntegrable()->StateSolve(Dydt1, L, Y(), T, dt, false); //note, 'false'=no need to update with StateScatter before computation
+		GetIntegrable()->StateGather(Y, T);	// state <- system
 
-		y_new = Y() + Dydt1*0.5*dt;	//integrable.StateIncrement(y_new, Y, Dydt1*0.5*dt);
+		GetIntegrable()->StateSolve(Dydt1, L, Y, T, dt, false); //note, 'false'=no need to update with StateScatter before computation
+
+		y_new = Y + Dydt1*0.5*dt;	//integrable.StateIncrement(y_new, Y, Dydt1*0.5*dt);
 		GetIntegrable()->StateSolve(Dydt2, L, y_new, T+dt*0.5, dt);
 
-		y_new = Y() + Dydt2*0.5*dt;	//integrable.StateIncrement(y_new, Y, Dydt2*0.5*dt);
+		y_new = Y + Dydt2*0.5*dt;	//integrable.StateIncrement(y_new, Y, Dydt2*0.5*dt);
 		GetIntegrable()->StateSolve(Dydt3, L, y_new, T+dt*0.5, dt);
 
-		y_new = Y() + Dydt3*dt;		//integrable.StateIncrement(y_new, Y, Dydt3*dt);
+		y_new = Y + Dydt3*dt;		//integrable.StateIncrement(y_new, Y, Dydt3*dt);
 		GetIntegrable()->StateSolve(Dydt4, L, y_new, T+dt, dt);
 
-		Y()		= Y() + (Dydt1 + Dydt2*2.0 + Dydt3*2.0 + Dydt4)*(1./6.)*dt;   //integrable.StateIncrement(...);
-		dYdt()	= Dydt4; // to check
+		Y		= Y + (Dydt1 + Dydt2*2.0 + Dydt3*2.0 + Dydt4)*(1./6.)*dt;   //integrable.StateIncrement(...);
+		dYdt	= Dydt4; // to check
 		T		+= dt;
 
-		GetIntegrable()->StateScatter(Y(), T);	// state -> system
+		GetIntegrable()->StateScatter(Y, T);	// state -> system
 	}
 };
 
@@ -367,6 +379,11 @@ public:
 
 class ChTimestepperHeun : public ChTimestepperIorder
 {
+protected:
+	ChState				y_new;
+	ChStateDelta		Dydt1;
+	ChStateDelta		Dydt2;
+
 public:
 	/// Constructors (default empty)
 	ChTimestepperHeun(ChIntegrable& mintegrable)
@@ -377,31 +394,32 @@ public:
 		const double dt				///< timestep to advance
 		)
 	{
-		GetIntegrable()->StateSetup(Y(), dYdt());
+		// setup main vectors
+		GetIntegrable()->StateSetup(Y, dYdt);
 
-		GetIntegrable()->StateGather(Y(), T);	// state <- system
-
-		// auxiliary vectors
-		int n_y  = GetIntegrable()->GetNcoords_y();
+		// setup auxiliary vectors
+		int n_y = GetIntegrable()->GetNcoords_y();
 		int n_dy = GetIntegrable()->GetNcoords_dy();
-		int n_c  = GetIntegrable()->GetNconstr();
-		ChState				y_new(n_y, GetIntegrable());
-		ChStateDelta		Dydt1(n_dy, GetIntegrable());
-		ChStateDelta		Dydt2(n_dy, GetIntegrable());
-		ChVectorDynamic<>   L(n_c);
+		int n_c = GetIntegrable()->GetNconstr();
+		y_new.Reset(n_y, GetIntegrable());
+		Dydt1.Reset(n_dy, GetIntegrable());
+		Dydt2.Reset(n_dy, GetIntegrable());
+		L.Reset(n_c);
 
 
-		GetIntegrable()->StateSolve(Dydt1, L, Y(), T, dt, false); //note, 'false'=no need to update with StateScatter before computation
+		GetIntegrable()->StateGather(Y, T);	// state <- system
 
-		y_new = Y() + Dydt1*dt;
+		GetIntegrable()->StateSolve(Dydt1, L, Y, T, dt, false); //note, 'false'=no need to update with StateScatter before computation
+
+		y_new = Y + Dydt1*dt;
 		GetIntegrable()->StateSolve(Dydt2, L, y_new, T + dt,  dt);
 
 
-		Y() = Y() + (Dydt1 + Dydt2)*(dt / 2.);   
-		dYdt() = Dydt2;
+		Y = Y + (Dydt1 + Dydt2)*(dt / 2.);   
+		dYdt = Dydt2;
 		T += dt;
 
-		GetIntegrable()->StateScatter(Y(), T);	// state -> system
+		GetIntegrable()->StateScatter(Y, T);	// state -> system
 	}
 };
 
@@ -418,6 +436,9 @@ public:
 
 class ChTimestepperLeapfrog : public ChTimestepperIIorder
 {
+protected:
+	ChStateDelta		Aold;
+
 public:
 	/// Constructors (default empty)
 	ChTimestepperLeapfrog(ChIntegrableIIorder& mintegrable)
@@ -431,28 +452,28 @@ public:
 		// downcast
 		ChIntegrableIIorder* mintegrable = (ChIntegrableIIorder*)this->integrable;
 
-		mintegrable->StateSetup(X(), V(), A());
+		// setup main vectors
+		mintegrable->StateSetup(X, V, A);
 
-		mintegrable->StateGather(X(), V(), T);	// state <- system
+		mintegrable->StateGather(X, V, T);	// state <- system
 
-		// auxiliary vectors
-		//ChStateDelta		Dv(mintegrable->GetNcoords_v(), GetIntegrable());
-		ChVectorDynamic<>   L(mintegrable->GetNconstr());
-		ChStateDelta		Aold(A());
+		// setup auxiliary vectors
+		L.Reset(mintegrable->GetNconstr());
+		Aold = A;
 
 		// advance X (uses last A)
-		X() = X() + V()*dt + Aold*(0.5*dt*dt);
+		X = X + V*dt + Aold*(0.5*dt*dt);
 
 		// computes new A  (NOTE!!true for imposing a state-> system scatter update,because X changed..)
-		mintegrable->StateSolveA( A(), L, X(), V(), T, dt, true);	// Dv/dt = f(x,v,T)   Dv = f(x,v,T)*dt
+		mintegrable->StateSolveA( A, L, X, V, T, dt, true);	// Dv/dt = f(x,v,T)   Dv = f(x,v,T)*dt
 
 		// advance V
 
-		V() = V() + (Aold + A())* (0.5*dt);	
+		V = V + (Aold + A)* (0.5*dt);	
 
 		T += dt;
 
-		mintegrable->StateScatter(X(), V(), T);	// state -> system
+		mintegrable->StateScatter(X, V, T);	// state -> system
 	}
 };
 
@@ -461,6 +482,14 @@ public:
 
 class ChTimestepperEulerImplicit : public ChTimestepperIIorder, public ChImplicitTimestepper
 {
+protected:
+	ChStateDelta		Dv;
+	ChVectorDynamic<>   Dl;
+	ChState				Xnew;
+	ChStateDelta		Vnew;
+	ChVectorDynamic<>   R;
+	ChVectorDynamic<>   Qc;
+
 public:
 	/// Constructors (default empty)
 	ChTimestepperEulerImplicit(ChIntegrableIIorder& mintegrable)
@@ -476,33 +505,30 @@ public:
 		// downcast
 		ChIntegrableIIorder* mintegrable = (ChIntegrableIIorder*)this->integrable;
 
-		mintegrable->StateSetup(X(), V(), A());
+		// setup main vectors
+		mintegrable->StateSetup(X, V, A);
 
-		mintegrable->StateGather(X(), V(), T);	// state <- system
+		// setup auxiliary vectors
+		Dv.Reset  (mintegrable->GetNcoords_v(), GetIntegrable());
+		Dl.Reset  (mintegrable->GetNconstr());
+		Xnew.Reset(mintegrable->GetNcoords_x(), mintegrable);
+		Vnew.Reset(mintegrable->GetNcoords_v(), mintegrable);
+		R.Reset   (mintegrable->GetNcoords_v());
+		Qc.Reset  (mintegrable->GetNconstr());
+		L.Reset   (mintegrable->GetNconstr());
 
-		// auxiliary vectors
-		ChStateDelta		Dv(mintegrable->GetNcoords_v(), GetIntegrable());
-		ChVectorDynamic<>   Dl(mintegrable->GetNconstr());
-		ChVectorDynamic<>   L (mintegrable->GetNconstr());
 
-		ChState			Xnew(mintegrable->GetNcoords_x(), mintegrable);
-		ChStateDelta	Vnew(mintegrable->GetNcoords_v(), mintegrable);
+		mintegrable->StateGather(X, V, T);	// state <- system	
 
-		// use Euler explicit to extrapolate a prediction 
+		// Extrapolate a prediction as warm start
 
-		mintegrable->StateSolveA( A(), L, X(), V(), T, dt, false);	// Dv/dt = f(x,v,T)   Dv = f(x,v,T)*dt
-
-		Xnew = X() + V()*dt;		// x_new= x + v * dt 
-		Vnew = V() + A()*dt;		// v_new= v + a * dt 
+		Xnew = X + V*dt;		 
+		Vnew = V;  //+ A()*dt;		 
 		
 		// use Newton Raphson iteration to solve implicit Euler for v_new
 		//
 		// [ M - dt*dF/dv - dt^2*dF/dx    Cq' ] [ Dv     ] = [ M*(v_old - v_new) + dt*f + dt*Cq'*l ]
 		// [ Cq                           0   ] [ -dt*Dl ] = [ C/dt  ]
-
-		ChVectorDynamic<> R(mintegrable->GetNcoords_v());
-		ChVectorDynamic<> Qc(mintegrable->GetNconstr());
-
 
 		for (int i = 0; i < this->GetMaxiters(); ++i)
 		{
@@ -510,7 +536,7 @@ public:
 			R.Reset();
 			Qc.Reset();
 			mintegrable->LoadResidual_F  (R, dt);
-			mintegrable->LoadResidual_Mv (R, (V()-Vnew), 1.0);
+			mintegrable->LoadResidual_Mv (R, (V-Vnew), 1.0);
 			mintegrable->LoadResidual_CqL(R, L, dt);
 			mintegrable->LoadConstraint_C(Qc, 1.0/dt);
 			
@@ -534,14 +560,14 @@ public:
 
 			Vnew += Dv;
 
-			Xnew = X() + Vnew *dt;
+			Xnew = X + Vnew *dt;
 		}
 
-		X() = Xnew;
-		V() = Vnew;
+		X = Xnew;
+		V = Vnew;
 		T += dt;
 
-		mintegrable->StateScatter(X(), V(), T);	// state -> system
+		mintegrable->StateScatter(X, V, T);	// state -> system
 	}
 };
 
@@ -555,6 +581,12 @@ public:
 
 class ChTimestepperEulerImplicitLinearized : public ChTimestepperIIorder, public ChImplicitTimestepper
 {
+protected:
+	ChStateDelta		Dv;
+	ChVectorDynamic<>   Dl;
+	ChVectorDynamic<>   R;
+	ChVectorDynamic<>   Qc;
+
 public:
 	/// Constructors (default empty)
 	ChTimestepperEulerImplicitLinearized(ChIntegrableIIorder& mintegrable)
@@ -570,18 +602,18 @@ public:
 		// downcast
 		ChIntegrableIIorder* mintegrable = (ChIntegrableIIorder*)this->integrable;
 
-		mintegrable->StateSetup(X(), V(), A());
+		// setup main vectors
+		mintegrable->StateSetup(X, V, A);
 
-		mintegrable->StateGather(X(), V(), T);	// state <- system
+		// setup auxiliary vectors
+		Dv.Reset(mintegrable->GetNcoords_v(), GetIntegrable());
+		Dl.Reset(mintegrable->GetNconstr());
+		R.Reset(mintegrable->GetNcoords_v());
+		Qc.Reset(mintegrable->GetNconstr());
+		L.Reset(mintegrable->GetNconstr());
 
-		// auxiliary vectors
-		ChStateDelta		Dv(mintegrable->GetNcoords_v(), GetIntegrable());
-		ChVectorDynamic<>   Dl(mintegrable->GetNconstr());
 
-		ChVectorDynamic<>   R (mintegrable->GetNcoords_v());
-		ChVectorDynamic<>   Qc(mintegrable->GetNconstr());
-
-		ChVectorDynamic<>   L(mintegrable->GetNconstr());
+		mintegrable->StateGather(X, V, T);	// state <- system
 
 		//Xnew = X();
 		//Vnew = V();
@@ -591,11 +623,8 @@ public:
 		// [ M - dt*dF/dv - dt^2*dF/dx    Cq' ] [ Dv     ] = [ M*(v_old - v_new) + dt*f]
 		// [ Cq                           0   ] [ -dt*Dl ] = [ C/dt + Ct ]
 
-		//	mintegrable->StateScatter(Xnew, Vnew, T + dt);	// state -> system
-		//R.Reset();
-		//Qc.Reset();
 		mintegrable->LoadResidual_F(R, dt);
-		//mintegrable->LoadResidual_Mv(R, (V() - Vnew), 1.0);
+		//mintegrable->LoadResidual_Mv(R, (V() - Vnew), 1.0); // not needed because V=Vnew
 		mintegrable->LoadConstraint_C (Qc, 1.0 / dt);
 		mintegrable->LoadConstraint_Ct(Qc, 1.0);
 
@@ -607,20 +636,20 @@ public:
 				1.0,  // factor for  M
 				-dt,   // factor for  dF/dv
 				-dt*dt,// factor for  dF/dx
-				X(), V(), T + dt, // not needed 
+				X, V, T + dt, // not needed 
 				false  // do not StateScatter update to Xnew Vnew T+dt before computing correction
 				);
 
 		Dl *= -(1.0 / dt);
 		L += Dl;
 
-		V() += Dv;
+		V += Dv;
 
-		X() += V() *dt;
+		X += V *dt;
 
 		T += dt;
 
-		mintegrable->StateScatter(X(), V(), T);	// state -> system
+		mintegrable->StateScatter(X, V, T);	// state -> system
 	}
 };
 
@@ -632,6 +661,15 @@ public:
 
 class ChTimestepperTrapezoidal : public ChTimestepperIIorder, public ChImplicitTimestepper
 {
+protected:
+	ChStateDelta		Dv;
+	ChVectorDynamic<>   Dl;
+	ChState				Xnew;
+	ChStateDelta		Vnew;
+	ChVectorDynamic<>	R;
+	ChVectorDynamic<>	Rold;
+	ChVectorDynamic<>	Qc;
+
 public:
 	/// Constructors (default empty)
 	ChTimestepperTrapezoidal(ChIntegrableIIorder& mintegrable)
@@ -647,36 +685,34 @@ public:
 		// downcast
 		ChIntegrableIIorder* mintegrable = (ChIntegrableIIorder*)this->integrable;
 
-		mintegrable->StateSetup(X(), V(), A());
+		// setup main vectors
+		mintegrable->StateSetup(X, V, A);
 
-		mintegrable->StateGather(X(), V(), T);	// state <- system
+		// setup auxiliary vectors
+		Dv.Reset  (mintegrable->GetNcoords_v(), GetIntegrable());
+		Dl.Reset  (mintegrable->GetNconstr());
+		Xnew.Reset(mintegrable->GetNcoords_x(), mintegrable);
+		Vnew.Reset(mintegrable->GetNcoords_v(), mintegrable);
+		L.Reset   (mintegrable->GetNconstr());
+		R.Reset   (mintegrable->GetNcoords_v());
+		Rold.Reset(mintegrable->GetNcoords_v());
+		Qc.Reset  (mintegrable->GetNconstr());
 
-		// auxiliary vectors
-		ChStateDelta		Dv(mintegrable->GetNcoords_v(), GetIntegrable());
-		ChVectorDynamic<>   Dl(mintegrable->GetNconstr());
-		ChVectorDynamic<>   L(mintegrable->GetNconstr());
 
-		ChState			Xnew(mintegrable->GetNcoords_x(), mintegrable);
-		ChStateDelta	Vnew(mintegrable->GetNcoords_v(), mintegrable);
+		mintegrable->StateGather(X, V, T);	// state <- system
 
-		// use Euler explicit to extrapolate a prediction 
+		// extrapolate a prediction as a warm start
 
-		mintegrable->StateSolveA(A(), L, X(), V(), T, dt, false);	// Dv/dt = f(x,v,T)   Dv = f(x,v,T)*dt
-
-		Xnew = X() + V()*dt;		// x_new= x + v * dt 
-		Vnew = V() + A()*dt;		// v_new= v + a * dt 
+		Xnew = X + V*dt;		
+		Vnew = V;  // +A()*dt;		
 
 		// use Newton Raphson iteration to solve implicit Euler for v_new
 		//
 		// [ M - dt/2*dF/dv - dt^2/4*dF/dx    Cq' ] [ Dv       ] = [ M*(v_old - v_new) + dt/2(f_old + f_new  + Cq*l_old + Cq*l_new)]
 		// [ Cq                               0   ] [ -dt/2*Dl ] = [ C/dt                                                          ]
 
-		ChVectorDynamic<> R(mintegrable->GetNcoords_v());
-		ChVectorDynamic<> Rold(mintegrable->GetNcoords_v());
-		ChVectorDynamic<> Qc(mintegrable->GetNconstr());
-
 		mintegrable->LoadResidual_F(Rold, dt*0.5);    // dt/2*f_old
-		mintegrable->LoadResidual_Mv(Rold, V(), 1.0);  // M*v_old
+		mintegrable->LoadResidual_Mv(Rold, V, 1.0);  // M*v_old
 		mintegrable->LoadResidual_CqL(Rold, L, dt*0.5); // dt/2*l_old
 
 		for (int i = 0; i < this->GetMaxiters(); ++i)
@@ -709,14 +745,14 @@ public:
 
 			Vnew += Dv;
 
-			Xnew = X() + ((Vnew + V())*(dt*0.5));  // Xnew = Xold + h/2(Vnew+Vold)
+			Xnew = X + ((Vnew + V)*(dt*0.5));  // Xnew = Xold + h/2(Vnew+Vold)
 		}
 
-		X() = Xnew;
-		V() = Vnew;
+		X = Xnew;
+		V = Vnew;
 		T += dt;
 
-		mintegrable->StateScatter(X(), V(), T);	// state -> system
+		mintegrable->StateScatter(X, V, T);	// state -> system
 	}
 };
 
@@ -731,6 +767,15 @@ private:
 	double alpha;
 	double gamma;
 	double beta;
+	ChStateDelta		Da;
+	ChVectorDynamic<>   Dl;
+	ChState				Xnew;
+	ChStateDelta		Vnew;
+	ChStateDelta		Anew;
+	ChVectorDynamic<>	R;
+	ChVectorDynamic<>	Rold;
+	ChVectorDynamic<>	Qc;
+
 public:
 	/// Constructors (default empty)
 	ChTimestepperHHT(ChIntegrableIIorder& mintegrable)
@@ -768,29 +813,27 @@ public:
 		// downcast
 		ChIntegrableIIorder* mintegrable = (ChIntegrableIIorder*)this->integrable;
 
-		mintegrable->StateSetup(X(), V(), A());
+		// setup main vectors
+		mintegrable->StateSetup(X, V, A);
 
-		mintegrable->StateGather(X(), V(), T);	// state <- system
+		// setup auxiliary vectors
+		Da.Reset(mintegrable->GetNcoords_a(), GetIntegrable());
+		Dl.Reset(mintegrable->GetNconstr());
+		Xnew.Reset(mintegrable->GetNcoords_x(), mintegrable);
+		Vnew.Reset(mintegrable->GetNcoords_v(), mintegrable);
+		Anew.Reset(mintegrable->GetNcoords_a(), mintegrable);
+		R.Reset(mintegrable->GetNcoords_v());
+		Rold.Reset(mintegrable->GetNcoords_v());
+		Qc.Reset(mintegrable->GetNconstr());
+		L.Reset(mintegrable->GetNconstr());
 
-		// auxiliary vectors
-		ChStateDelta		Da(mintegrable->GetNcoords_a(), GetIntegrable());
-		ChVectorDynamic<>   Dl(mintegrable->GetNconstr());
-		ChVectorDynamic<>   L(mintegrable->GetNconstr());
 
-		ChState			Xnew(mintegrable->GetNcoords_x(), mintegrable);
-		ChStateDelta	Vnew(mintegrable->GetNcoords_v(), mintegrable);
-		ChStateDelta	Anew(mintegrable->GetNcoords_a(), mintegrable);
+		mintegrable->StateGather(X, V, T);	// state <- system
 
-		ChVectorDynamic<> R(mintegrable->GetNcoords_v());
-		ChVectorDynamic<> Rold(mintegrable->GetNcoords_v());
-		ChVectorDynamic<> Qc(mintegrable->GetNconstr());
+		// extrapolate a prediction as a warm start
 
-		// use Euler semi-implicit to extrapolate a prediction 
-
-		mintegrable->StateSolveA( Anew, L, X(), V(), T, dt, false);
-
-		Vnew = V() + Anew*dt;		// v_new= v + a * dt
-		Xnew = X() + Vnew*dt;		// x_new= x + v * dt 
+		Vnew = V; //+ Anew*dt;	
+		Xnew = X + Vnew*dt;		 
 		 
 		mintegrable->LoadResidual_F(Rold, -(alpha / (1.0 + alpha)));     // -alpha/(1.0+alpha) * f_old
 		mintegrable->LoadResidual_CqL(Rold, L, -(alpha / (1.0 + alpha)));   // -alpha/(1.0+alpha) * Cq'*l_old
@@ -802,8 +845,6 @@ public:
 		//
 		// [ M - dt*gamma*dF/dv - dt^2*beta*dF/dx    Cq' ] [ Da       ] = [-1/(1+alpha)*M*(a_new) + (f_new +Cq*l_new) - (alpha/(1+alpha))(f_old +Cq*l_old)]
 		// [ Cq                                      0   ] [ Dl       ] = [ 1/(beta*dt^2)*C                                                                          ]
-
-
 
 		for (int i = 0; i < this->GetMaxiters(); ++i)
 		{
@@ -832,17 +873,17 @@ public:
 			L    += Dl;
 			Anew += Da;
 
-			Xnew = X() + V()*dt + A()*(dt*dt*(0.5 - beta)) + Anew*(dt*dt*beta);
+			Xnew = X + V*dt + A*(dt*dt*(0.5 - beta)) + Anew*(dt*dt*beta);
 
-			Vnew = V() + A()*(dt*(1.0 - gamma)) + Anew*(dt*gamma);
+			Vnew = V + A*(dt*(1.0 - gamma)) + Anew*(dt*gamma);
 		}
 
-		X() = Xnew;
-		V() = Vnew;
-		A() = Anew;
+		X = Xnew;
+		V = Vnew;
+		A = Anew;
 		T += dt;
 
-		mintegrable->StateScatter(X(), V(), T);	// state -> system
+		mintegrable->StateScatter(X, V, T);	// state -> system
 	}
 };
 
