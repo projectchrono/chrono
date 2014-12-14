@@ -43,8 +43,8 @@ namespace chrono
 //
 
 
-#define SetZero(els) {for (int i=0; i<els; ++i) this->address[i]=0; }
-#define ElementsCopy(to,from,els) {for (int i=0; i<els; ++i) to[i]=(Real)from[i]; }
+//#define SetZero(els) {for (int i=0; i<els; ++i) this->address[i]=0; }
+//#define ElementsCopy(to,from,els) {for (int i=0; i<els; ++i) to[i]=(Real)from[i]; }
 
 
 
@@ -82,7 +82,8 @@ public:
 			this->rows= 3;
 			this->columns = 3;
 			this->address = new Real[9];
-			SetZero(9);
+			for (int i = 0; i<9; ++i)
+				this->address[i] = 0;
 		}
 
 		/// Copy constructor
@@ -91,7 +92,9 @@ public:
 			this->rows= msource.GetRows();
 			this->columns= msource.GetColumns();
 			this->address= new Real[this->rows*this->columns];
-			ElementsCopy(this->address, msource.GetAddress(), this->rows*this->columns); //memcpy (address, msource.GetAddress(), (sizeof(Real) * rows * columns));
+			//ElementsCopy(this->address, msource.GetAddress(), this->rows*this->columns);
+			for (int i = 0; i<this->rows*this->columns; ++i)
+				this->address[i] = (Real)msource.GetAddress()[i];
 		}
 
 		/// Copy constructor from all types of base matrices
@@ -101,7 +104,9 @@ public:
 			this->rows= msource.GetRows();
 			this->columns= msource.GetColumns();
 			this->address= new Real[this->rows*this->columns];
-			ElementsCopy(this->address, msource.GetAddress(), this->rows*this->columns); //memcpy (address, msource.GetAddress(), (sizeof(Real) * rows * columns));
+			//ElementsCopy(this->address, msource.GetAddress(), this->rows*this->columns);
+			for (int i = 0; i<this->rows*this->columns; ++i)
+				this->address[i] = (Real)msource.GetAddress()[i];
 		}
 
 		/// The constructor for a generic nxm matrix. 
@@ -112,7 +117,9 @@ public:
 			this->rows= row;
 			this->columns = col;
 			this->address = new Real[row*col]; 
-			SetZero(row*col);
+			//SetZero(row*col);
+			for (int i = 0; i<this->rows*this->columns; ++i)
+				this->address[i] = 0;
 		}
 
 
@@ -194,7 +201,10 @@ public:
 				this->columns= ncols;
 				delete[]this->address;
 				this->address= new Real[this->rows*this->columns]; 
-				SetZero(this->rows*this->columns);
+				//SetZero(this->rows*this->columns);
+				#pragma omp parallel for if (this->rows*this->columns>CH_OMP_MATR)
+				for (int i = 0; i<this->rows*this->columns; ++i)
+					this->address[i] = 0;
 			}
 		}
 };

@@ -89,9 +89,9 @@ int main(int argc, char* argv[])
 
 			double exact_solution = exp(mystepper.GetTime())-1;
 			GetLog() << " T = " << mystepper.GetTime() 
-					 << "  x="  << mystepper.Y()(0) 
+					 << "  x="  << mystepper.get_Y()(0) 
 					 << "  x_exact="<< exact_solution << "\n";
-			log_file1 << mystepper.GetTime() << ", " << mystepper.Y()(0) << ", " << exact_solution << "\n";
+			log_file1 << mystepper.GetTime() << ", " << mystepper.get_Y()(0) << ", " << exact_solution << "\n";
 		}
 
 	}
@@ -195,9 +195,9 @@ int main(int argc, char* argv[])
 			mystepper.Advance(0.01);
 			mystepper_rk.Advance(0.01);
 
-			GetLog() << " T = " << mystepper.GetTime() << "  x=" << mystepper.Y()(0) << "  v=" << mystepper.Y()(1) << "\n";
-			log_file2 << mystepper.GetTime() << ", " << mystepper.Y()(0)    << ", " << mystepper.Y()(1) 
-				                             << ", " << mystepper_rk.Y()(0) << ", " << mystepper_rk.Y()(1) << "\n";
+			GetLog() << " T = " << mystepper.GetTime() << "  x=" << mystepper.get_Y()(0) << "  v=" << mystepper.get_Y()(1) << "\n";
+			log_file2 << mystepper.GetTime()	<< ", " << mystepper.get_Y()(0)    << ", " << mystepper.get_Y()(1)
+												<< ", " << mystepper_rk.get_Y()(0) << ", " << mystepper_rk.get_Y()(1) << "\n";
 		}
 
 	}
@@ -273,7 +273,7 @@ int main(int argc, char* argv[])
 				if (force_state_scatter)
 					StateScatter(x, v, T);
 
-				double F = cos(T * 20) * 2;
+				double F = cos(T * 5) * 2;
 				dvdt(0) = (1. / M) * (F - K*mx - R*mv);
 			}
 		};
@@ -301,10 +301,10 @@ int main(int argc, char* argv[])
 			mystepper2.Advance(0.01);
 			mystepper3.Advance(0.01);
 
-			GetLog() << "T = " << mystepper1.GetTime() << "  x=" << mystepper1.Y()(0) << "  v=" << mystepper1.Y()(1) << "\n";
-			log_file3 << mystepper1.GetTime()	<< ", " << mystepper1.Y()(0) << ", " << mystepper1.Y()(1)
-												<< ", " << mystepper2.X()(0) << ", " << mystepper2.V()(0)
-												<< ", " << mystepper3.X()(0) << ", " << mystepper3.V()(0)
+			GetLog() << "T = " << mystepper1.GetTime() << "  x=" << mystepper1.get_Y()(0) << "  v=" << mystepper1.get_Y()(1) << "\n";
+			log_file3 << mystepper1.GetTime()	<< ", " << mystepper1.get_Y()(0) << ", " << mystepper1.get_Y()(1)
+												<< ", " << mystepper2.get_X()(0) << ", " << mystepper2.get_V()(0)
+												<< ", " << mystepper3.get_X()(0) << ", " << mystepper3.get_V()(0)
 												<< "\n";
 		}
 
@@ -477,12 +477,12 @@ int main(int argc, char* argv[])
 			mystepper4.Advance(0.05);
 			mystepper5.Advance(0.05);
 
-			GetLog() << "T = " << mystepper1.GetTime() << "  x=" << mystepper1.X()(0) << "  v=" << mystepper1.V()(0) << "\n";
-			log_file4 << mystepper1.GetTime()	<< ", " << mystepper1.X()(0) << ", " << mystepper1.V()(0)
-												<< ", " << mystepper2.X()(0) << ", " << mystepper2.V()(0)
-												<< ", " << mystepper3.X()(0) << ", " << mystepper3.V()(0)
-												<< ", " << mystepper4.X()(0) << ", " << mystepper4.V()(0)
-												<< ", " << mystepper5.X()(0) << ", " << mystepper5.V()(0)
+			GetLog() << "T = " << mystepper1.GetTime() << "  x=" << mystepper1.get_X()(0) << "  v=" << mystepper1.get_V()(0) << "\n";
+			log_file4 << mystepper1.GetTime()	<< ", " << mystepper1.get_X()(0) << ", " << mystepper1.get_V()(0)
+												<< ", " << mystepper2.get_X()(0) << ", " << mystepper2.get_V()(0)
+												<< ", " << mystepper3.get_X()(0) << ", " << mystepper3.get_V()(0)
+												<< ", " << mystepper4.get_X()(0) << ", " << mystepper4.get_V()(0)
+												<< ", " << mystepper5.get_X()(0) << ", " << mystepper5.get_V()(0)
 												<< "\n";
 		}
 
@@ -505,7 +505,7 @@ int main(int argc, char* argv[])
 		//  We assume   M*a = F(x,v,t) 
 		//            C(x,t)=0;
 
-		class MyIntegrable : public ChIntegrableIIorder
+		class MyIntegrable : public ChIntegrableIIorderEasy
 		{
 		private:
 			double M;
@@ -556,7 +556,7 @@ int main(int argc, char* argv[])
 				mvy = v(1);
 				mT = T;
 			};
-
+			/*
 			/// compute  dy/dt=f(y,t) 
 			virtual void StateSolveA(ChStateDelta& dvdt,		///< result: computed accel. a=dv/dt
 				ChVectorDynamic<>& L,	///< result: computed lagrangian multipliers, if any
@@ -589,6 +589,7 @@ int main(int argc, char* argv[])
 				dvdt(1) = w(1);
 				L(0)    = w(2);
 			}
+			*/
 
 			/// Compute the correction with linear system
 			///  Dv = [ c_a*M + c_v*dF/dv + c_x*dF/dx ]^-1 * R 
@@ -695,7 +696,7 @@ int main(int argc, char* argv[])
 		MyIntegrable mintegrable5;
 
 		// Create few time-integrators to be compared:
-		ChTimestepperEulerSemiImplicit  mystepper1(mintegrable1);
+		ChTimestepperEulerExplIIorder  mystepper1(mintegrable1);
 		ChTimestepperEulerImplicit		 mystepper2(mintegrable2);
 		ChTimestepperTrapezoidal		 mystepper3(mintegrable3);
 		ChTimestepperHHT				 mystepper4(mintegrable4);
@@ -704,7 +705,7 @@ int main(int argc, char* argv[])
 		mystepper5.SetAlpha(-0.2);  // HHT with max dissipation 
 
 		// Execute the time integration
-		while (mystepper1.GetTime() <4)
+		while (mystepper1.GetTime() <12)
 		{
 			mystepper1.Advance(0.05);
 			mystepper2.Advance(0.05);
@@ -712,13 +713,13 @@ int main(int argc, char* argv[])
 			mystepper4.Advance(0.05);
 			mystepper5.Advance(0.05);
 
-			GetLog() << "T = " << mystepper1.GetTime() << "  x=" << mystepper1.X()(0) << "  y=" << mystepper1.X()(1) << "\n";
+			GetLog() << "T = " << mystepper1.GetTime() << "  x=" << mystepper1.get_X()(0) << "  y=" << mystepper1.get_X()(1) << "\n";
 			log_file5 << mystepper1.GetTime() 
-				<< ", " << mystepper1.X()(0) << ", " << mystepper1.X()(1) << ", " << mystepper1.V()(0) << ", " << mystepper1.V()(1)
-				<< ", " << mystepper2.X()(0) << ", " << mystepper2.X()(1) << ", " << mystepper2.V()(0) << ", " << mystepper2.V()(1)
-				<< ", " << mystepper3.X()(0) << ", " << mystepper3.X()(1) << ", " << mystepper3.V()(0) << ", " << mystepper3.V()(1)
-				<< ", " << mystepper4.X()(0) << ", " << mystepper4.X()(1) << ", " << mystepper4.V()(0) << ", " << mystepper4.V()(1)
-				<< ", " << mystepper5.X()(0) << ", " << mystepper5.X()(1) << ", " << mystepper5.V()(0) << ", " << mystepper5.V()(1)
+				<< ", " << mystepper1.get_X()(0) << ", " << mystepper1.get_X()(1) << ", " << mystepper1.get_V()(0) << ", " << mystepper1.get_V()(1)
+				<< ", " << mystepper2.get_X()(0) << ", " << mystepper2.get_X()(1) << ", " << mystepper2.get_V()(0) << ", " << mystepper2.get_V()(1)
+				<< ", " << mystepper3.get_X()(0) << ", " << mystepper3.get_X()(1) << ", " << mystepper3.get_V()(0) << ", " << mystepper3.get_V()(1)
+				<< ", " << mystepper4.get_X()(0) << ", " << mystepper4.get_X()(1) << ", " << mystepper4.get_V()(0) << ", " << mystepper4.get_V()(1)
+				<< ", " << mystepper5.get_X()(0) << ", " << mystepper5.get_X()(1) << ", " << mystepper5.get_V()(0) << ", " << mystepper5.get_V()(1)
 				<< "\n";
 		}
 

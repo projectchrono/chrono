@@ -36,6 +36,8 @@
 namespace chrono
 {
 
+#define SetZero(els) {for (int i=0; i<els; ++i) this->address[i]=0; }
+#define ElementsCopy(to,from,els) {for (int i=0; i<els; ++i) to[i]=(Real)from[i]; }
 
 ///
 /// ChMatrixNM
