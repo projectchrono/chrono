@@ -132,7 +132,7 @@ public:
 
 
 				/// Searches a marker from its unique ID -OBSOLETE
-	ChMarker* SearchMarker(int markID);
+	ChSharedPtr<ChMarker> SearchMarker(int markID);
 
 				/// Given inserted markers and links, restores the
 				/// pointers of links to markers given the information

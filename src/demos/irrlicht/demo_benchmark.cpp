@@ -234,6 +234,75 @@ int main(int argc, char* argv[])
 	mphysicalSystem.SetIterLCPmaxItersStab(10); // unuseful for Anitescu, only Tasora uses this
 	//mphysicalSystem.SetIterLCPwarmStarting(true);
 
+	// raw tests, all the same, only for profiling
+	if (true)
+	{
+		GetLog() << "Raw tests for profiling... \n\n";
+		ChTimer<double> timer;
+
+		int plotframe = 500;
+		int ntestspheres = 120;
+
+		mphysicalSystem.SetLcpSolverType(ChSystem::LCP_ITERATIVE_SOR);
+		mphysicalSystem.SetIterLCPmaxItersSpeed(50);
+		mphysicalSystem.SetMaxPenetrationRecoverySpeed(2.0);
+
+		ChLcpIterativeSolver* msolver = (ChLcpIterativeSolver*)mphysicalSystem.GetLcpSolverSpeed();
+		msolver->SetRecordViolation(true);
+
+		for (int ntest = 0; ntest < 4; ++ntest)
+		{
+			ISceneNode* parent = application.GetSceneManager()->addEmptySceneNode();
+
+			mphysicalSystem.SetIterLCPsharpnessLambda(1.0);
+			mphysicalSystem.SetMaxPenetrationRecoverySpeed(2.0);
+
+			// create spheres and walls, and insert into that scene node
+			ChSetRandomSeed(123);
+			create_some_falling_items(mphysicalSystem, application.GetSceneManager(), application.GetVideoDriver(), parent, ntestspheres, 1.6, 10);
+
+			int totframes = 0;
+
+			timer.start();
+
+			// ------- begin simulation loop -----
+			while (application.GetDevice()->run())
+			{
+				totframes++;
+
+				application.GetVideoDriver()->beginScene(true, true, SColor(255, 140, 161, 192));
+				application.DrawAll();
+
+				if (totframes == plotframe)
+				{
+					mphysicalSystem.SetIterLCPsharpnessLambda(0.7);
+					mphysicalSystem.SetMaxPenetrationRecoverySpeed(0.0);
+				}
+
+				// integrate
+				mphysicalSystem.DoStepDynamics(0.01);
+
+				application.GetVideoDriver()->endScene();
+
+				if (totframes>plotframe) break;
+
+			}							// ------- end of simulation loop -----
+
+			timer.stop();
+
+			// remove the root scene node (contains walls & spheres but no camera no lights)
+			// to reset and prepare for new scene at next for() loop.
+			parent->remove();
+
+			// Now the system should already have no bodies, because of full removal from Irrlicht scene.
+			// Then, the following clearing should be unuseful...(do it anyway..)
+			mphysicalSystem.Clear();
+		}
+		GetLog() << "Time spent: " << timer() << "\n";
+		system("pause");
+		return 0;
+	} // end test
+	
 
 	// Test convergence for varying omega 
 	//
@@ -720,7 +789,7 @@ int main(int argc, char* argv[])
 	// Test pos error with Tasora stabilization
 	//
 	//
-	if (true)
+	if (false)
 	{
 		ChStreamOutAsciiFile data_err_pos("data_err_tasora.dat");
 		int ntestspheres = 120;

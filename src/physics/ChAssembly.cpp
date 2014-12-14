@@ -35,17 +35,6 @@
 namespace chrono
 {
 
-	// Hierarchy-handling functions
-
-#define Bpointer		    (*ibody)
-#define HIER_BODY_INIT      std::vector<ChBody*>::iterator ibody = bodylist.begin();
-#define HIER_BODY_NOSTOP    (ibody != bodylist.end())
-#define HIER_BODY_NEXT	    ibody++;
-
-#define Lpointer		    (*iterlink)
-#define HIER_LINK_INIT      std::vector<ChLink*>::iterator iterlink = linklist.begin();
-#define HIER_LINK_NOSTOP    (iterlink != linklist.end())
-#define HIER_LINK_NEXT	    iterlink++;
 
 using namespace collision;
 using namespace geometry;
@@ -101,17 +90,17 @@ void ChAssembly::Copy(ChAssembly* source)
 void ChAssembly::SetSystem(ChSystem* m_system)
 {
 	this->system=m_system;
-	HIER_BODY_INIT
-	while (HIER_BODY_NOSTOP)
+
+	for (unsigned int ip = 0; ip < bodylist.size(); ++ip)  // ITERATE on bodies
 	{
+		ChBody* Bpointer = bodylist[ip];
 		Bpointer->SetSystem(m_system);
-		HIER_BODY_NEXT
 	}
-	HIER_LINK_INIT
-	while (HIER_LINK_NOSTOP)
+	
+	for (unsigned int ip = 0; ip < linklist.size(); ++ip)  // ITERATE on links
 	{
+		ChLink* Lpointer = linklist[ip];
 		Lpointer->SetSystem(m_system);
-		HIER_LINK_NEXT
 	}
 }
 
@@ -124,16 +113,16 @@ void ChAssembly::Clear()
 
 void ChAssembly::RemoveAllBodies() 
 { 
-	HIER_BODY_INIT
-	while (HIER_BODY_NOSTOP)
+	for (unsigned int ip = 0; ip < bodylist.size(); ++ip)  // ITERATE on bodies
 	{
+		ChBody* Bpointer = bodylist[ip];
+
 		// make sure to remove bodies from collision system before calling this.
 
 		// nullify backward link to system
 		Bpointer->SetSystem(0);	
 		// this may delete the body, if none else's still referencing it..
 		Bpointer->RemoveRef();
-		HIER_BODY_NEXT
 	}	
 	bodylist.clear(); 
 }
@@ -142,14 +131,13 @@ void ChAssembly::RemoveAllBodies()
 void ChAssembly::RemoveAllLinks() 
 { 
 
-	HIER_LINK_INIT
-	while (HIER_LINK_NOSTOP)
+	for (unsigned int ip = 0; ip < linklist.size(); ++ip)  // ITERATE on links
 	{
+		ChLink* Lpointer = linklist[ip];
 		// nullify backward link to system
 		Lpointer->SetSystem(0);	
 		// this may delete the link, if none else's still referencing it..
 		Lpointer->RemoveRef();
-		HIER_LINK_NEXT
 	}	
 	linklist.clear(); 
 }
@@ -157,12 +145,11 @@ void ChAssembly::RemoveAllLinks()
 int ChAssembly::GetDOF()
 {
 	int ndof = 0;
-
-	HIER_BODY_INIT					
-	while HIER_BODY_NOSTOP		
+					
+	for (unsigned int ip = 0; ip < bodylist.size(); ++ip)  // ITERATE on bodies		
 	{
+		ChBody* Bpointer = bodylist[ip];
 		ndof+=Bpointer->GetDOF();
-		HIER_BODY_NEXT
 	}
 	return ndof;
 }
@@ -171,11 +158,10 @@ int ChAssembly::GetDOC_c()
 {
 	int ndoc=0;
 
-	HIER_LINK_INIT
-	while HIER_LINK_NOSTOP
+	for (unsigned int ip = 0; ip < linklist.size(); ++ip)  // ITERATE on links
 	{
+		ChLink* Lpointer = linklist[ip];
 		ndoc   += Lpointer->GetDOC_c();
-		HIER_LINK_NEXT
 	}
 	return ndoc;
 }
@@ -184,11 +170,10 @@ int ChAssembly::GetDOC_d()
 {
 	int ndoc=0;
 
-	HIER_LINK_INIT
-	while HIER_LINK_NOSTOP
+	for (unsigned int ip = 0; ip < linklist.size(); ++ip)  // ITERATE on links
 	{
+		ChLink* Lpointer = linklist[ip];
 		ndoc   += Lpointer->GetDOC_d();
-		HIER_LINK_NEXT
 	}
 	return ndoc;
 }
@@ -196,204 +181,184 @@ int ChAssembly::GetDOC_d()
 //// 
 void ChAssembly::InjectVariables(ChLcpSystemDescriptor& mdescriptor)
 {	
-	HIER_BODY_INIT
-	while HIER_BODY_NOSTOP
+	for (unsigned int ip = 0; ip < bodylist.size(); ++ip)  // ITERATE on bodies
 	{
+		ChBody* Bpointer = bodylist[ip];
 		Bpointer->InjectVariables(mdescriptor);
-		HIER_BODY_NEXT
 	}
 }
 
 
 void ChAssembly::VariablesFbReset()
 {
-	HIER_BODY_INIT
-	while HIER_BODY_NOSTOP
+	for (unsigned int ip = 0; ip < bodylist.size(); ++ip)  // ITERATE on bodies
 	{
+		ChBody* Bpointer = bodylist[ip];
 		Bpointer->VariablesFbReset();
-		HIER_BODY_NEXT
 	}
 }
 
 void ChAssembly::VariablesFbLoadForces(double factor)
 {
-	HIER_BODY_INIT
-	while HIER_BODY_NOSTOP
+	for (unsigned int ip = 0; ip < bodylist.size(); ++ip)  // ITERATE on bodies
 	{
+		ChBody* Bpointer = bodylist[ip];
 		Bpointer->VariablesFbLoadForces(factor);
-		HIER_BODY_NEXT
 	}
 }
 
 void ChAssembly::VariablesFbIncrementMq()
 {
-	HIER_BODY_INIT
-	while HIER_BODY_NOSTOP
+	for (unsigned int ip = 0; ip < bodylist.size(); ++ip)  // ITERATE on bodies
 	{
+		ChBody* Bpointer = bodylist[ip];
 		Bpointer->VariablesFbIncrementMq();
-		HIER_BODY_NEXT
 	}
 }
 
 void ChAssembly::VariablesQbLoadSpeed()
 {
-	HIER_BODY_INIT
-	while HIER_BODY_NOSTOP
+	for (unsigned int ip = 0; ip < bodylist.size(); ++ip)  // ITERATE on bodies
 	{
+		ChBody* Bpointer = bodylist[ip];
 		Bpointer->VariablesQbLoadSpeed();
-		HIER_BODY_NEXT
 	}
 }
 
 
 void ChAssembly::VariablesQbSetSpeed(double step)
 {
-	HIER_BODY_INIT
-	while HIER_BODY_NOSTOP
+	for (unsigned int ip = 0; ip < bodylist.size(); ++ip)  // ITERATE on bodies
 	{
+		ChBody* Bpointer = bodylist[ip];
 		Bpointer->VariablesQbSetSpeed(step);
-		HIER_BODY_NEXT
 	}
 }
 
 void ChAssembly::VariablesQbIncrementPosition(double dt_step)
 {
-	HIER_BODY_INIT
-	while HIER_BODY_NOSTOP
+	for (unsigned int ip = 0; ip < bodylist.size(); ++ip)  // ITERATE on bodies
 	{
+		ChBody* Bpointer = bodylist[ip];
 		Bpointer->VariablesQbIncrementPosition(dt_step);
-		HIER_BODY_NEXT
 	}
 }
 
 void ChAssembly::InjectConstraints(ChLcpSystemDescriptor& mdescriptor)
 {
-	HIER_LINK_INIT
-	while HIER_LINK_NOSTOP
+	for (unsigned int ip = 0; ip < linklist.size(); ++ip)  // ITERATE on links
 	{
+		ChLink* Lpointer = linklist[ip];
 		Lpointer->InjectConstraints(mdescriptor);
-		HIER_LINK_NEXT
 	}
 }
 
 void ChAssembly::ConstraintsBiReset()
 {
-	HIER_LINK_INIT
-	while HIER_LINK_NOSTOP
+	for (unsigned int ip = 0; ip < linklist.size(); ++ip)  // ITERATE on links
 	{
+		ChLink* Lpointer = linklist[ip];
 		Lpointer->ConstraintsBiReset();
-		HIER_LINK_NEXT
 	}
 }
 
 void ChAssembly::ConstraintsBiLoad_C(double factor, double recovery_clamp, bool do_clamp) 
 {
-	HIER_LINK_INIT
-	while HIER_LINK_NOSTOP
+	for (unsigned int ip = 0; ip < linklist.size(); ++ip)  // ITERATE on links
 	{
+		ChLink* Lpointer = linklist[ip];
 		Lpointer->ConstraintsBiLoad_C(factor, recovery_clamp, do_clamp);
-		HIER_LINK_NEXT
 	}
 }
 
 void ChAssembly::ConstraintsBiLoad_Ct(double factor)
 {
-	HIER_LINK_INIT
-	while HIER_LINK_NOSTOP
+	for (unsigned int ip = 0; ip < linklist.size(); ++ip)  // ITERATE on links
 	{
+		ChLink* Lpointer = linklist[ip];
 		Lpointer->ConstraintsBiLoad_Ct(factor);
-		HIER_LINK_NEXT
 	}
 }
 
 void ChAssembly::ConstraintsBiLoad_Qc(double factor)
 {
-	HIER_LINK_INIT
-	while HIER_LINK_NOSTOP
+	for (unsigned int ip = 0; ip < linklist.size(); ++ip)  // ITERATE on links
 	{
+		ChLink* Lpointer = linklist[ip];
 		Lpointer->ConstraintsBiLoad_Qc(factor);
-		HIER_LINK_NEXT
 	}
 }
 
 void ChAssembly::ConstraintsFbLoadForces(double factor)
 {
-	HIER_LINK_INIT
-	while HIER_LINK_NOSTOP
+	for (unsigned int ip = 0; ip < linklist.size(); ++ip)  // ITERATE on links
 	{
+		ChLink* Lpointer = linklist[ip];
 		Lpointer->ConstraintsFbLoadForces(factor);
-		HIER_LINK_NEXT
 	}
 }
 
 void ChAssembly::ConstraintsLoadJacobians()
 {
-	HIER_LINK_INIT
-	while HIER_LINK_NOSTOP
+	for (unsigned int ip = 0; ip < linklist.size(); ++ip)  // ITERATE on links
 	{
+		ChLink* Lpointer = linklist[ip];
 		Lpointer->ConstraintsLoadJacobians();
-		HIER_LINK_NEXT
 	}
 }
 
 void ChAssembly::ConstraintsLiLoadSuggestedSpeedSolution()
 {
-	HIER_LINK_INIT
-	while HIER_LINK_NOSTOP
+	for (unsigned int ip = 0; ip < linklist.size(); ++ip)  // ITERATE on links
 	{
+		ChLink* Lpointer = linklist[ip];
 		Lpointer->ConstraintsLiLoadSuggestedSpeedSolution();
-		HIER_LINK_NEXT
 	}
 }
 
 void ChAssembly::ConstraintsLiLoadSuggestedPositionSolution()
 {
-	HIER_LINK_INIT
-	while HIER_LINK_NOSTOP
+	for (unsigned int ip = 0; ip < linklist.size(); ++ip)  // ITERATE on links
 	{
+		ChLink* Lpointer = linklist[ip];
 		Lpointer->ConstraintsLiLoadSuggestedPositionSolution();
-		HIER_LINK_NEXT
 	}
 }
 
 void ChAssembly::ConstraintsLiFetchSuggestedSpeedSolution()
 {
-	HIER_LINK_INIT
-	while HIER_LINK_NOSTOP
+	for (unsigned int ip = 0; ip < linklist.size(); ++ip)  // ITERATE on links
 	{
+		ChLink* Lpointer = linklist[ip];
 		Lpointer->ConstraintsLiFetchSuggestedSpeedSolution();
-		HIER_LINK_NEXT
 	}
 }
 
 void ChAssembly::ConstraintsLiFetchSuggestedPositionSolution()
 {
-	HIER_LINK_INIT
-	while HIER_LINK_NOSTOP
+	for (unsigned int ip = 0; ip < linklist.size(); ++ip)  // ITERATE on links
 	{
+		ChLink* Lpointer = linklist[ip];
 		Lpointer->ConstraintsLiFetchSuggestedPositionSolution();
-		HIER_LINK_NEXT
 	}
 }
 
 void ChAssembly::ConstraintsFetch_react(double factor)
 {
-	HIER_LINK_INIT
-	while HIER_LINK_NOSTOP
+	for (unsigned int ip = 0; ip < linklist.size(); ++ip)  // ITERATE on links
 	{
+		ChLink* Lpointer = linklist[ip];
 		Lpointer->ConstraintsFetch_react(factor);
-		HIER_LINK_NEXT
 	}
 }
 
 
 void ChAssembly::SetNoSpeedNoAcceleration()
 {
-	HIER_BODY_INIT
-	while HIER_BODY_NOSTOP
+	for (unsigned int ip = 0; ip < bodylist.size(); ++ip)  // ITERATE on bodies
 	{
+		ChBody* Bpointer = bodylist[ip];
 		Bpointer->SetNoSpeedNoAcceleration();
-		HIER_BODY_NEXT
 	}
 }
 
@@ -401,11 +366,10 @@ void ChAssembly::SetNoSpeedNoAcceleration()
 ////
 void ChAssembly::ClampSpeed()
 {
-	HIER_BODY_INIT
-	while HIER_BODY_NOSTOP
+	for (unsigned int ip = 0; ip < bodylist.size(); ++ip)  // ITERATE on bodies
 	{
+		ChBody* Bpointer = bodylist[ip];
 		Bpointer->ClampSpeed();
-		HIER_BODY_NEXT
 	}
 }
 
@@ -428,17 +392,15 @@ void ChAssembly::Update (double mytime)
 	ChTime = mytime;
 	ClampSpeed();			// Apply limits (if in speed clamping mode) to speeds.
 
-	HIER_BODY_INIT
-	while HIER_BODY_NOSTOP
+	for (unsigned int ip = 0; ip < bodylist.size(); ++ip)  // ITERATE on bodies
 	{
+		ChBody* Bpointer = bodylist[ip];
 		Bpointer->Update(mytime);
-		HIER_BODY_NEXT
 	}
-	HIER_LINK_INIT
-	while HIER_LINK_NOSTOP
+	for (unsigned int ip = 0; ip < linklist.size(); ++ip)  // ITERATE on links
 	{
+		ChLink* Lpointer = linklist[ip];
 		Lpointer->Update(mytime);
-		HIER_LINK_NEXT
 	}
 }
 
@@ -539,11 +501,10 @@ void ChAssembly::SetCollide (bool mcoll)
 
 void ChAssembly::SyncCollisionModels()
 {
-	HIER_BODY_INIT
-	while HIER_BODY_NOSTOP
+	for (unsigned int ip = 0; ip < bodylist.size(); ++ip)  // ITERATE on bodies
 	{
+		ChBody* Bpointer = bodylist[ip];
 		Bpointer->GetCollisionModel()->SyncPosition();
-		HIER_BODY_NEXT
 	}
 }
 
@@ -551,24 +512,24 @@ void ChAssembly::AddCollisionModelsToSystem()
 {
 	assert(this->GetSystem());
 	SyncCollisionModels();
-	HIER_BODY_INIT
-	while HIER_BODY_NOSTOP
+
+	for (unsigned int ip = 0; ip < bodylist.size(); ++ip)  // ITERATE on bodies
 	{
+		ChBody* Bpointer = bodylist[ip];
 		if (Bpointer->GetCollide())
 			this->GetSystem()->GetCollisionSystem()->Add(Bpointer->GetCollisionModel());
-		HIER_BODY_NEXT
 	}
 }
 
 void ChAssembly::RemoveCollisionModelsFromSystem() 
 {
 	assert(this->GetSystem());
-	HIER_BODY_INIT
-	while HIER_BODY_NOSTOP
+
+	for (unsigned int ip = 0; ip < bodylist.size(); ++ip)  // ITERATE on bodies
 	{
+		ChBody* Bpointer = bodylist[ip];
 		if (Bpointer->GetCollide())
 			this->GetSystem()->GetCollisionSystem()->Remove(Bpointer->GetCollisionModel());
-		HIER_BODY_NEXT
 	}
 }
 
@@ -584,9 +545,9 @@ void ChAssembly::GetTotalAABB(ChVector<>& bbmin, ChVector<>& bbmax)
 	ChVector<> tmpMin;
 	ChVector<> tmpMax;
 
-	HIER_BODY_INIT
-	while HIER_BODY_NOSTOP
+	for (unsigned int ip = 0; ip < bodylist.size(); ++ip)  // ITERATE on bodies
 	{
+		ChBody* Bpointer = bodylist[ip];
 		if (Bpointer->GetCollisionModel())
 		{
 			Bpointer->GetCollisionModel()->GetAABB(tmpMin, tmpMax);
@@ -609,7 +570,6 @@ void ChAssembly::GetTotalAABB(ChVector<>& bbmin, ChVector<>& bbmax)
 			if (tmpMax.z>mmax.z)
 				mmax.z=tmpMax.z;
 		}
-		HIER_BODY_NEXT
 	}
 	bbmin.Set(mmin.x, mmin.y, mmin.z);
 	bbmax.Set(mmax.x, mmax.y, mmax.z);
@@ -617,54 +577,62 @@ void ChAssembly::GetTotalAABB(ChVector<>& bbmin, ChVector<>& bbmax)
 
 void ChAssembly::Reference_LM_byID()
 {
-	ChMarker* m1;
-	ChMarker* m2;
+	std::vector< ChLink* > toremove;
 
-	HIER_LINK_INIT
-	while HIER_LINK_NOSTOP
+	for (unsigned int ip = 0; ip < linklist.size(); ++ip)  // ITERATE on links
 	{
-		if (ChLinkMarkers* malink = ChDynamicCast(ChLinkMarkers,Lpointer))
+		ChLink* Lpointer = linklist[ip];
+
+		if (ChLinkMarkers* malink = ChDynamicCast(ChLinkMarkers, Lpointer))
 		{
-			m1 = SearchMarker(malink->GetMarkID1());
-			m2 = SearchMarker(malink->GetMarkID2());
-            malink->SetUpMarkers(m1, m2);
-			if (m1 && m2)
+			ChSharedPtr<ChMarker> shm1 = SearchMarker(malink->GetMarkID1());
+			ChSharedPtr<ChMarker> shm2 = SearchMarker(malink->GetMarkID2());
+			ChMarker* mm1 = shm1.get_ptr();
+			ChMarker* mm2 = shm1.get_ptr();
+			malink->SetUpMarkers(mm1, mm2);
+			if (mm1 && mm2)
 			{
 				Lpointer->SetValid(true);
-				HIER_LINK_NEXT
 			}
 			else
 			{
 				Lpointer->SetValid(false);
-                malink->SetUpMarkers(0, 0); // note: marker IDs are maintained
-				iterlink = RemoveLinkIter(iterlink); // may delete it...
+				malink->SetUpMarkers(0, 0); // note: marker IDs are maintained
+				toremove.push_back(Lpointer);
 			}
 		}
-		else
-		{
-			HIER_LINK_NEXT
-		}
+
+	}
+	for (int ir = 0; ir < toremove.size(); ++ir)
+	{
+		ChSharedPtr<ChLink> mlink(toremove[ir]);
+		toremove[ir]->AddRef(); // cause shared from raw pointer from vector cointainer
+
+		RemoveLink(mlink);
 	}
 }
 
-ChMarker* ChAssembly::SearchMarker (int markID)
+ChSharedPtr<ChMarker> ChAssembly::SearchMarker (int markID)
 {
 	ChMarker* candidate = NULL;
 	ChMarker* res = NULL;
 
-	HIER_BODY_INIT
-	while HIER_BODY_NOSTOP
+	for (unsigned int ip = 0; ip < bodylist.size(); ++ip)  // ITERATE on bodies
 	{
-		res = ChContainerSearchFromID<ChMarker, std::vector<ChMarker*>::const_iterator>
-				(markID, 
-				Bpointer->GetMarkerList().begin(), 
-				Bpointer->GetMarkerList().end());
-		if (res != NULL) return res;
+		ChBody* Bpointer = bodylist[ip];
 
-		HIER_BODY_NEXT
+		res = ChContainerSearchFromID<ChMarker, std::vector<ChMarker*>::const_iterator>
+			(markID,
+			Bpointer->GetMarkerList().begin(),
+			Bpointer->GetMarkerList().end());
+		if (res != NULL)
+		{
+			res->AddRef(); // in that container pointers were not stored as ChSharedPtr, so this is needed..
+			return (ChSharedPtr<ChMarker>(res));  // ..here I am not getting a new() data, but a reference to something created elsewhere		
+		}
 	}
 
-	return 0;
+	return (ChSharedPtr<ChMarker>()); // not found? return a void shared ptr.
 }
 
 //////// FILE I/O
@@ -688,28 +656,25 @@ void ChAssembly::StreamOUT(ChStreamOutBinary& mstream)
 	mstream << (int)bodylist.size();
 
 	// 2b) write  bodies
-	HIER_BODY_INIT
-	while HIER_BODY_NOSTOP
+	for (unsigned int ip = 0; ip < bodylist.size(); ++ip)  // ITERATE on bodies
 	{
+		ChBody* Bpointer = bodylist[ip];
 			// write the body
 		//Bpointer->StreamOUT(mstream);
 		mstream.AbstractWriteAll(Bpointer);
 		//mstream.AbstractWrite(Bpointer);
-		HIER_BODY_NEXT
 	}
 
 	// 3a) write how many links
 	mstream << (int)linklist.size();
 
 	// 3b) write links links
-	HIER_LINK_INIT
-	while HIER_LINK_NOSTOP
+	for (unsigned int ip = 0; ip < linklist.size(); ++ip)  // ITERATE on links
 	{
+		ChLink* Lpointer = linklist[ip];
 			// Writethe link, using a special downcasting function Link_BinSave which saves also the
 			// inheritance info, depending on link class inheritance from base Link*
 		mstream.AbstractWrite(Lpointer);
-
-		HIER_LINK_NEXT
 	}
 }
 
@@ -776,12 +741,11 @@ void ChAssembly::StreamOUTstate(ChStreamOutBinary& mstream)
 	// Do not serialize parent classes and do not
 	// implement versioning, because this must be efficient 
 	// and will be used just for domain decomposition.
-	HIER_BODY_INIT
-	while HIER_BODY_NOSTOP
+	for (unsigned int ip = 0; ip < bodylist.size(); ++ip)  // ITERATE on bodies
 	{
+		ChBody* Bpointer = bodylist[ip];
 			// write the body + child markers + forces
 		Bpointer->StreamOUTstate(mstream);
-		HIER_BODY_NEXT
 	}
 }
 
@@ -790,12 +754,11 @@ void ChAssembly::StreamINstate(ChStreamInBinary& mstream)
 	// Do not serialize parent classes and do not
 	// implement versioning, because this must be efficient 
 	// and will be used just for domain decomposition.
-	HIER_BODY_INIT
-	while HIER_BODY_NOSTOP
+	for (unsigned int ip = 0; ip < bodylist.size(); ++ip)  // ITERATE on bodies
 	{
+		ChBody* Bpointer = bodylist[ip];
 			// write the body + child markers + forces
 		Bpointer->StreamINstate(mstream);
-		HIER_BODY_NEXT
 	}
 }
 
@@ -886,26 +849,23 @@ int ChAssembly::StreamOUTall  (ChStreamOutBinary& m_file)
 	m_file << (int)bodylist.size();
 
 	// 2b) write  bodies
-	HIER_BODY_INIT
-	while HIER_BODY_NOSTOP
+	for (unsigned int ip = 0; ip < bodylist.size(); ++ip)  // ITERATE on bodies
 	{
+		ChBody* Bpointer = bodylist[ip];
 			// write the body + child markers + forces
 		if (!Bpointer->StreamOUTall(m_file)) return 0;
-		HIER_BODY_NEXT
 	}
 
 	// 3a) write how many links
 	m_file << (int)linklist.size(); 
 
 	// 3b) write links links
-	HIER_LINK_INIT
-	while HIER_LINK_NOSTOP
+	for (unsigned int ip = 0; ip < linklist.size(); ++ip)  // ITERATE on links
 	{
+		ChLink* Lpointer = linklist[ip];
 			// Writethe link, using a special downcasting function Link_BinSave which saves also the
 			// inheritance info, depending on link class inheritance from base Link*
 		m_file.AbstractWrite(Lpointer);
-
-		HIER_LINK_NEXT
 	}
 
 	m_file << (int)CH_CHUNK_END_ASSEM;
