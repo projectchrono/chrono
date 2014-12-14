@@ -22,6 +22,7 @@ SET(DEMOS
   demo_convergence
   demo_irr_assets
   demo_soilbin
+  demo_soilbin_emitter
   demo_ballDEM
   demo_collisionDEM
   demo_emitter
@@ -32,6 +33,7 @@ SET(DEMOS
   demo_spring
   demo_motion_law
 )
+
 
 #--------------------------------------------------------------
 # Additional include paths
