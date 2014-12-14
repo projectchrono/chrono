@@ -61,9 +61,9 @@ class ChApi ChLcpConstraintTwoContactN : public ChLcpConstraintTwoBodies
 
 protected:
 				/// the friction coefficient 'f', for  sqrt(Tx^2+Ty^2)<f*Nz
-	float friction;
+	double friction;
 				/// the cohesion 'c', positive, if any, for  sqrt(Tx^2+Ty^2)<f*(Nz+c)
-	float cohesion;
+	double cohesion;
 
 					/// the pointer to U tangential component
 	ChLcpConstraintTwoFrictionT* constraint_U;
@@ -139,14 +139,14 @@ public:
 
 
 				/// Get the friction coefficient
-	float GetFrictionCoefficient() {return friction; }
+	double GetFrictionCoefficient() {return friction; }
 				/// Set the friction coefficient
-	void SetFrictionCoefficient(float mcoeff) {friction = mcoeff;}
+	void SetFrictionCoefficient(double mcoeff) {friction = mcoeff;}
 
 				/// Get the cohesion
-	float GetCohesion() {return cohesion; }
+	double GetCohesion() {return cohesion; }
 				/// Set the cohesion
-	void SetCohesion(float mcoh) {cohesion = mcoh;}
+	void SetCohesion(double mcoh) {cohesion = mcoh;}
 
 
 				/// Get pointer to U tangential component

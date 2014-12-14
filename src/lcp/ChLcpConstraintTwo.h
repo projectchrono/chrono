@@ -102,14 +102,14 @@ public:
 			//
 
 				/// Access jacobian matrix
-	virtual ChMatrix<float>* Get_Cq_a() =0;
+	virtual ChMatrix<double>* Get_Cq_a() =0;
 				/// Access jacobian matrix
-	virtual ChMatrix<float>* Get_Cq_b() =0;
+	virtual ChMatrix<double>* Get_Cq_b() =0;
 
 				/// Access auxiliary matrix (ex: used by iterative solvers)
-	virtual ChMatrix<float>* Get_Eq_a() =0;
+	virtual ChMatrix<double>* Get_Eq_a() =0;
 				/// Access auxiliary matrix (ex: used by iterative solvers)
-	virtual ChMatrix<float>* Get_Eq_b() =0;
+	virtual ChMatrix<double>* Get_Eq_b() =0;
 
 				/// Access the first variable object
 	ChLcpVariables* GetVariables_a() {return variables_a;}

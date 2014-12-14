@@ -1,0 +1,16 @@
+{
+  "Name":                       "Track Chain",
+  "Type":                       "TrackChain",
+
+  "Pin Distance":	0.2,		
+  
+  "Collision":
+  {
+	"Filename":		"M113/shoe_collision.chulls"
+  },
+  
+  "Visualization":
+  {
+	"Filename":		"M113/shoe_view.obj"
+  }
+}

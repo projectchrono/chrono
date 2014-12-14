@@ -1,0 +1,51 @@
+{
+  "Name":                       "M113 Track System",
+  "Type":                       "TrackSystem",
+
+  "Idler" :
+  {
+    "Mass":                     34.705,
+    "Location":                 [1.5, 0, 0.5],
+    "Inertia":                  [2,4,2],
+    "Radius":                   0.2,
+    "Width":                    0.05,
+	"SpringK:"					100000,
+	"SpringC:"					1000
+  },
+
+  "Drive Gear":
+  {
+    "Mass":                     59.450,
+    "Location":                 [-1.5, 0, 0.5],
+    "Inertia":                  [0.1656, 0.1934, 0.04367],
+    "Radius":                   0.3,
+	"Width":					0.2
+  },
+
+  "Support Roller":
+  {
+    "Mass":                     5.0,
+    "Inertia":                  [0.5,1,0.5],
+	"Location":                 [ [-1.0, 0, 0.7],
+								  [0, 0, 0.7],
+								  [1.0, 0, 0.7]
+								],
+    "Radius":                   0.1,
+	"Width":					0.1
+  },
+  
+  "Suspension":
+  {
+    "Input File":				"M113/TorsionArmSuspension.json",
+	"Location":					[ [-1.0, 0, -0.5],
+								  [-0.33, 0, -0.5],
+								  [0.33, 0, -0.5],
+								  [1.0, 0, -0.5]
+								]
+  },
+  
+  "Track Chain":
+  {
+	"Input File":				"M113/TrackChain.json"
+  }
+}

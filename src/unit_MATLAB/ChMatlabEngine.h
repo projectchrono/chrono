@@ -33,7 +33,12 @@
 #include "lcp/ChLcpSystemDescriptor.h"
 
 // include also the Matlab header..
+
+// Following namespace trick is a fix for VS2010+ and Matlab: avoid error with typedef in matrix.h
+namespace matlabengine
+{
 #include "engine.h"
+};
 
 namespace chrono
 {
@@ -59,7 +64,7 @@ private:
       //
       // DATA
       //
-   Engine *ep;
+	matlabengine::Engine *ep;
 
 public:
       //
@@ -71,7 +76,7 @@ public:
    ~ChMatlabEngine();
       /// Return pointer to internal Matlab engine (avoid using it directly,
       /// if you can use other functions of this class that 'wrap' it.)
-   Engine* GetEngine();
+   matlabengine::Engine* GetEngine();
 
      /// Evaluate a Matlab instruction (as a string). If error happens while executing, returns false.
    bool Eval(std::string mstring);

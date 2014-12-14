@@ -68,23 +68,21 @@ int output_console_num = 0;
 class ForcedMotion : public ChLinkLock
 {
 private:
-  double m_offset;
   ChSharedPtr<ChFunction> m_motion_func;
-  ChVector<> m_motion_dir;	// direction of applied translational motion
-	bool m_user_override;  // TODO: allow user slider to interactively set motion law
+ ChVector<> m_motion_dir;	// direction of applied translational motion
+	bool user_override;  // TODO: allow user slider to interactively set motion law
 
 public:
   CH_RTTI(ForcedMotion,ChLinkLock);
 
   ForcedMotion()
-        : m_user_override(false)
+        : user_override(false)
   {
     // set motion in the z direction
-    ((ChLinkMaskLF*)mask)->SetLockMask(false, false, true,
+    ((ChLinkMaskLF*)mask)->SetLockMask(false, true, false,
                                        false, false, false, false,
                                        false, false);
     ChangedLinkMask();
-    m_offset = 0.1;
   };
 
   ~ForcedMotion(void) {}
@@ -118,21 +116,20 @@ public:
     ChMatrix33<> ma;
     ma.Set_A_quaternion(marker2->GetAbsCoord().rot);
 
-    Vector absdist = Vsub(marker1->GetAbsCoord().pos,  marker2->GetAbsCoord().pos);
+    Vector absdist = Vsub(marker1->GetAbsCoord().pos,
+      marker2->GetAbsCoord().pos);
 
-    // specified the motion direction, will be along the m2 z-axis
+    // here, we have specified the motion direction already
     Vector mz = Vnorm(m_motion_dir);
 
     Vector my = ma.Get_A_Yaxis();
     if (Vequal(mz, my))
     {
-      if (  std::abs(mz.z - 1.0) < 0.01 ) 
-        my = VECT_Y;
-      else
-        my = VECT_Z;
+      if (mz.z == 1.0)   my = VECT_Y;
+      else                my = VECT_Z;
     }
-    Vector mx = Vnorm(my % mz );
-    my = Vnorm(mz % mx);
+    Vector mx = Vnorm(mz % my );
+    my = Vnorm(mx % mz);
 
     ma.Set_A_axis(mx, my, mz);
 
@@ -145,7 +142,7 @@ public:
 
     // imposed relative positions/speeds
     deltaC.pos = VNULL;
-    deltaC.pos.z = m_motion_func->Get_y(mytime) + m_offset;  // distance is always on M2 'Z' axis
+    deltaC.pos.z = m_motion_func->Get_y(mytime);        // distance is always on M2 'Z' axis
 
     deltaC_dt.pos = VNULL;
     deltaC_dt.pos.z = m_motion_func->Get_y_dx(mytime); // distance speed
@@ -156,11 +153,8 @@ public:
     // as centripetal acc. of point sliding on a sphere surface.
     Vector tang_speed = GetRelM_dt().pos;
     tang_speed.z = 0; // only x-y coords in relative tang speed vector
-    double len_absdist = Vlength(absdist);  // if this is zero, don't divide by it!
-    if( len_absdist > 1E-6)
-      deltaC_dtdt.pos.z -= pow(Vlength(tang_speed), 2) / len_absdist;  // An = Adelta -(Vt^2 / r)
-    // if( Vlength(absdist) < 1E-6)
-    //  double asdf = Vlength(absdist); // try not to divide by zero
+    deltaC_dtdt.pos.z -= pow(Vlength(tang_speed), 2) / Vlength(absdist);  // An = Adelta -(Vt^2 / r)
+
     deltaC.rot = QUNIT;             // no relative rotations
     deltaC_dt.rot = QNULL;
     deltaC_dtdt.rot = QNULL;
@@ -184,25 +178,6 @@ public:
   GetLog() << " time = " << time << "\n y,dy,ddy = f(t) = " <<
             Get_y(time) <<", "<< Get_dy(time) <<", "<< Get_ddy(time) 
             <<"\n F = " << Get_react_force().z <<"\n\n";
-  }
-
-  void Copy(ForcedMotion* source)
-  {
-    // copy parent
-    ChLinkLock::Copy(source);
-    // copy private stuff
-    m_offset = source->m_offset;
-    m_motion_func = ChSharedPtr<ChFunction>(source->m_motion_func);
-    m_motion_dir = source->m_motion_dir;
-    m_user_override = source->m_user_override;
-  }
-
-  ChLink* new_Duplicate()
-  {
-    ForcedMotion* m_l;
-    m_l = new ForcedMotion;
-    m_l->Copy(this);
-    return(m_l);
   }
 
 };
@@ -271,8 +246,7 @@ int main(int argc, char* argv[])
   // Motion law acts like a constraint, w/ a z-axis DOF
   ChSharedPtr<ForcedMotion> motionLaw(new ForcedMotion());
   // x-axis applied motion: rotate markers about y-axis
-
-  motionLaw->Initialize(free, fixedBody, ChCoordsys<>(free->GetPos(), QUNIT)); 
+  motionLaw->Initialize(free, fixedBody, ChCoordsys<>(free->GetPos(), Q_from_AngY(CH_C_PI_2) ));
   // Apply the motion law (sine wave) to the constraint just created
   ChSharedPtr<ChFunction_Sine> motion_func(new ChFunction_Sine(phase, freq, amp));
   motionLaw->Set_motion(motion_func);

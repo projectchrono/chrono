@@ -46,56 +46,56 @@ namespace chrono
 class ChApi ChIterativeAPGD : public ChLcpIterativeSolver
 {
 protected:
-			//
-			// DATA
-			//
+      //
+      // DATA
+      //
+
+  double residual;
+  int nc;
+  ChMatrixDynamic<> gamma_hat, gammaNew, g, y, gamma, yNew, r, tmp;
 
 public:
-			//
-			// CONSTRUCTORS
-			//
+      //
+      // CONSTRUCTORS
+      //
 
-	ChIterativeAPGD(
-				int mmax_iters=50,      ///< max.number of iterations
-				bool mwarm_start=false,	///< uses warm start?
-				double mtolerance=0.0   ///< tolerance for termination criterion
-				)  
-			: ChLcpIterativeSolver(mmax_iters,mwarm_start, mtolerance,0.2)
-			{
-				
-			};
-				
-	virtual ~ChIterativeAPGD() {};
+  ChIterativeAPGD(
+        int mmax_iters=1000,      ///< max.number of iterations
+        bool mwarm_start=false, ///< uses warm start?
+        double mtolerance=0.0   ///< tolerance for termination criterion
+        )
+      : ChLcpIterativeSolver(mmax_iters,mwarm_start, mtolerance,0.0001)
+      {
 
-			//
-			// FUNCTIONS
-			//
+      };
 
-				/// Performs the solution of the LCP.
-				/// \return  the maximum constraint violation after termination.
+  virtual ~ChIterativeAPGD() {};
 
-	virtual double Solve(
-				ChLcpSystemDescriptor& sysd		///< system description with constraints and variables	  
-				);
-//The extra stuff below is for debugging
+  //
+  // FUNCTIONS
+  //
 
-	ChMatrixDynamic<> mb;
-	ChMatrixDynamic<> ml;
-	double current_residual;
+  // Performs the solution of the LCP.
+  virtual double Solve(ChLcpSystemDescriptor& sysd);
 
-	double GetResidual(){
-		return current_residual;
-	}
-	void Dump_Rhs(std::vector<double> &temp){
-		for (int i=0; i<mb.GetRows(); i++){
-			temp.push_back(mb(i,0));
-		}
-	}
-	void Dump_Lambda(std::vector<double> &temp){
-			for (int i=0; i<ml.GetRows(); i++){
-				temp.push_back(ml(i,0));
-			}
-		}
+  void ShurBvectorCompute(ChLcpSystemDescriptor& sysd);
+  double Res4(ChLcpSystemDescriptor& sysd);
+
+  double GetResidual(){
+    return residual;
+  }
+
+  void Dump_Rhs(std::vector<double> &temp){
+    for (int i=0; i<r.GetRows(); i++){
+      temp.push_back(r(i,0));
+    }
+  }
+
+  void Dump_Lambda(std::vector<double> &temp){
+      for (int i=0; i<gamma_hat.GetRows(); i++){
+        temp.push_back(gamma_hat(i,0));
+      }
+    }
 };
 
 

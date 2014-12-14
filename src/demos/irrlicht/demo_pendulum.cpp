@@ -182,7 +182,6 @@ int main(int argc, char* argv[])
 		my_system.AddLink(my_link_01);
 
 		// .. a spherical joint 
-		//    (exercise, try also: ChSharedPtr<ChLinkLockHook>  my_link_12(new ChLinkLockHook);
 		ChSharedPtr<ChLinkLockSpherical>  my_link_12(new ChLinkLockSpherical);
 		my_link_12->Initialize(mrigidBody2->GetBody(), 
 							   mrigidBody1->GetBody(), 

@@ -190,11 +190,6 @@ void ChLinkLock::BuildLinkType (int link_type)
                         false,false,false,false,
                         false,false);
 
-    if (type == LNK_RACKPIN)
-        m_mask.SetLockMask (false,false,false,
-                        false,false,false,false,
-                        false,false);
-
     if (type == LNK_POINTPLANE)
         m_mask.SetLockMask (false,false,true,
                         false,false,false,false,
@@ -228,11 +223,6 @@ void ChLinkLock::BuildLinkType (int link_type)
     if (type == LNK_OLDHAM)
         m_mask.SetLockMask (false,false,true,
                         false,true, true, true,
-                        false,false);
-
-    if (type == LNK_UNIVERSAL)
-        m_mask.SetLockMask (true, true, true,
-                        false,false, false, true,
                         false,false);
 
     if (type == LNK_ALIGN)

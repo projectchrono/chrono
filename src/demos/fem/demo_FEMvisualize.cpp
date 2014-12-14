@@ -279,8 +279,6 @@ my_system.ChangeLcpSolverSpeed(matlab_solver_speed);
 
 	application.SetTimestep(0.001);
 
-application.SetPaused(true);
-
 	while(application.GetDevice()->run()) 
 	{
 		application.BeginScene();

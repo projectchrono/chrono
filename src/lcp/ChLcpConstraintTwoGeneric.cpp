@@ -47,7 +47,7 @@ ChLcpConstraintTwoGeneric& ChLcpConstraintTwoGeneric::operator=(const ChLcpConst
 	if (other.Cq_a)
 	{
 		if (Cq_a==NULL)
-			Cq_a = new ChMatrixDynamic<float>;
+			Cq_a = new ChMatrixDynamic<double>;
 		Cq_a->CopyFromMatrix(*other.Cq_a);
 	}
 	else
@@ -58,7 +58,7 @@ ChLcpConstraintTwoGeneric& ChLcpConstraintTwoGeneric::operator=(const ChLcpConst
 	if (other.Cq_b)
 	{
 		if (Cq_b==NULL)
-			Cq_b = new ChMatrixDynamic<float>;
+			Cq_b = new ChMatrixDynamic<double>;
 		Cq_b->CopyFromMatrix(*other.Cq_b);
 	}
 	else
@@ -69,7 +69,7 @@ ChLcpConstraintTwoGeneric& ChLcpConstraintTwoGeneric::operator=(const ChLcpConst
 	if (other.Eq_a)
 	{
 		if (Eq_a==NULL)
-			Eq_a = new ChMatrixDynamic<float>;
+			Eq_a = new ChMatrixDynamic<double>;
 		Eq_a->CopyFromMatrix(*other.Eq_a);
 	}
 	else
@@ -80,7 +80,7 @@ ChLcpConstraintTwoGeneric& ChLcpConstraintTwoGeneric::operator=(const ChLcpConst
 	if (other.Eq_b)
 	{
 		if (Eq_b==NULL)
-			Eq_b = new ChMatrixDynamic<float>;
+			Eq_b = new ChMatrixDynamic<double>;
 		Eq_b->CopyFromMatrix(*other.Eq_b);
 	}
 	else
@@ -109,12 +109,12 @@ void ChLcpConstraintTwoGeneric::SetVariables(ChLcpVariables* mvariables_a, ChLcp
 	if (variables_a->Get_ndof())
 	{
 		if (!Cq_a)
-			Cq_a = new ChMatrixDynamic<float>(1, variables_a->Get_ndof());
+			Cq_a = new ChMatrixDynamic<double>(1, variables_a->Get_ndof());
 		else
 			Cq_a->Resize(1, variables_a->Get_ndof());
 
 		if (!Eq_a)
-			Eq_a = new ChMatrixDynamic<float>(variables_a->Get_ndof(), 1);
+			Eq_a = new ChMatrixDynamic<double>(variables_a->Get_ndof(), 1);
 		else
 			Eq_a->Resize(variables_a->Get_ndof(), 1);
 	}
@@ -127,12 +127,12 @@ void ChLcpConstraintTwoGeneric::SetVariables(ChLcpVariables* mvariables_a, ChLcp
 	if (variables_b->Get_ndof())
 	{
 		if (!Cq_b)
-			Cq_b = new ChMatrixDynamic<float>(1, variables_b->Get_ndof());
+			Cq_b = new ChMatrixDynamic<double>(1, variables_b->Get_ndof());
 		else
 			Cq_b->Resize(1, variables_b->Get_ndof());
 
 		if (!Eq_b)
-			Eq_b = new ChMatrixDynamic<float>(variables_b->Get_ndof(), 1);
+			Eq_b = new ChMatrixDynamic<double>(variables_b->Get_ndof(), 1);
 		else
 			Eq_b->Resize(variables_b->Get_ndof(), 1);
 	}
@@ -153,21 +153,21 @@ void ChLcpConstraintTwoGeneric::Update_auxiliary()
 	if (variables_a->IsActive())
 	if (variables_a->Get_ndof())
 	{
-		ChMatrixDynamic<float> mtemp1(variables_a->Get_ndof(), 1);
+		ChMatrixDynamic<double> mtemp1(variables_a->Get_ndof(), 1);
 		mtemp1.CopyFromMatrixT(*Cq_a);
 		variables_a->Compute_invMb_v(*Eq_a, mtemp1);
 	}
 	if (variables_b->IsActive())
 	if (variables_b->Get_ndof())
 	{
-		ChMatrixDynamic<float> mtemp1(variables_b->Get_ndof(), 1);
+		ChMatrixDynamic<double> mtemp1(variables_b->Get_ndof(), 1);
 		mtemp1.CopyFromMatrixT(*Cq_b);
 		variables_b->Compute_invMb_v(*Eq_b, mtemp1);
 	}
 
 	//2- Compute g_i = [Cq_i]*[invM_i]*[Cq_i]' + cfm_i
 	g_i = 0;
-	ChMatrixDynamic<float> res(1,1);
+	ChMatrixDynamic<double> res(1,1);
 	if (variables_a->IsActive())
 	if (variables_a->Get_ndof())
 	{

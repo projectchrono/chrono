@@ -64,7 +64,7 @@ protected:
 	
 
 						// list of joints (links)
-	std::list<ChLink*>   linklist; 
+	std::vector<ChLink*>   linklist; 
 
 						// list of rigid bodies
 	std::vector<ChBody*> bodylist;
@@ -305,7 +305,7 @@ public:
 				/// Remove a body from this system.
 	void RemoveBody (ChSharedPtr<ChBody> mbody); 
 				/// Remove a link from this system (faster version, mostly internal use)
-	std::list<ChLink*>::iterator RemoveLinkIter(std::list<ChLink*>::iterator& mlinkiter); 
+	std::vector<ChLink*>::iterator RemoveLinkIter(std::vector<ChLink*>::iterator& mlinkiter); 
 				/// Remove a link from this system.
 	void RemoveLink (ChSharedPtr<ChLink> mlink); 
 
@@ -321,7 +321,7 @@ public:
         /// Gets the list of children links -low level function-.
         /// NOTE: to modify this list, use the appropriate Remove..
         /// and Add.. functions.
-	const std::list<ChLink*>& Get_linklist() const {return linklist;}
+	const std::vector<ChLink*>& Get_linklist() const {return linklist;}
 
 
 			//

@@ -31,7 +31,6 @@
 %DefChSharedPtr(chrono::,ChLinkLockPlanePlane)
 %DefChSharedPtr(chrono::,ChLinkLockOldham)
 %DefChSharedPtr(chrono::,ChLinkLockFree)
-%DefChSharedPtr(chrono::,ChLinkLockHook)
 %DefChSharedPtr(chrono::,ChLinkLockAlign)
 %DefChSharedPtr(chrono::,ChLinkLockParallel)
 %DefChSharedPtr(chrono::,ChLinkLockPerpend)

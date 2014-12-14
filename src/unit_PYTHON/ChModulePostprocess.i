@@ -48,7 +48,6 @@
 %{
 
 #include "unit_POSTPROCESS/ChPostProcessBase.h"
-#include "unit_POSTPROCESS/ChMitsubaRender.h"
 #include "unit_POSTPROCESS/ChPovRay.h"
 #include "unit_POSTPROCESS/ChPovRayAssetCustom.h"
 

@@ -71,7 +71,7 @@ namespace chrono
 #define HIER_BODY_NEXT	    ibody++;
 
 #define Lpointer		    (*iterlink)
-#define HIER_LINK_INIT      std::list<ChLink*>::iterator iterlink = linklist.begin();
+#define HIER_LINK_INIT      std::vector<ChLink*>::iterator iterlink = linklist.begin();
 #define HIER_LINK_NOSTOP    (iterlink != linklist.end())
 #define HIER_LINK_NEXT	    iterlink++;
 
@@ -263,8 +263,8 @@ public:
 private:
    std::vector<ChBody*>::iterator node_body;
    std::vector<ChBody*>* list_bodies;
-   std::list<ChLink*>::iterator node_link;
-   std::list<ChLink*>* list_links;
+   std::vector<ChLink*>::iterator node_link;
+   std::vector<ChLink*>* list_links;
    std::vector<ChPhysicsItem*>::iterator node_otherphysics;
    std::vector<ChPhysicsItem*>* list_otherphysics;
    ChPhysicsItem* mptr;
@@ -909,7 +909,7 @@ void ChSystem::RemoveBody (ChSharedPtr<ChBody> mbody)
    
 void ChSystem::AddLink (ChLink* newlink)
 { 
-	assert(std::find<std::list<ChLink*>::iterator>(linklist.begin(), linklist.end(), newlink)==linklist.end());
+	assert(std::find<std::vector<ChLink*>::iterator>(linklist.begin(), linklist.end(), newlink)==linklist.end());
 
 	newlink->AddRef();
 	newlink->SetSystem (this);
@@ -922,7 +922,7 @@ void ChSystem::AddLink (ChSharedPtr<ChLink> newlink)
 }
 
 // Faster than RemoveLink because it does not require the linear time search
-std::list<ChLink*>::iterator ChSystem::RemoveLinkIter(std::list<ChLink*>::iterator& mlinkiter)
+std::vector<ChLink*>::iterator ChSystem::RemoveLinkIter(std::vector<ChLink*>::iterator& mlinkiter)
 {
 	// nullify backward link to system
 	(*mlinkiter)->SetSystem(0);
@@ -934,11 +934,11 @@ std::list<ChLink*>::iterator ChSystem::RemoveLinkIter(std::list<ChLink*>::iterat
 
 void ChSystem::RemoveLink (ChSharedPtr<ChLink> mlink)
 {
-	assert(std::find<std::list<ChLink*>::iterator>(linklist.begin(), linklist.end(), mlink.get_ptr() )!=linklist.end());
+	assert(std::find<std::vector<ChLink*>::iterator>(linklist.begin(), linklist.end(), mlink.get_ptr() )!=linklist.end());
 
-	// warning! linear time search, to erase pointer from container.
-	linklist.remove(mlink.get_ptr());//erase(std::find<std::vector<ChBody*>::iterator>(bodylist.begin(), bodylist.end(), mbody.get_ptr() ) );
-	
+	// warning! linear time search, to erase pointer from container!
+	linklist.erase(std::find<std::vector<ChLink*>::iterator>(linklist.begin(), linklist.end(), mlink.get_ptr()));
+
 	// nullify backward link to system
 	mlink->SetSystem(0);
 	// this may delete the body, if none else's still referencing it..
@@ -1118,7 +1118,7 @@ ChSharedPtr<ChBody> ChSystem::SearchBody (const char* m_name)
 
 ChSharedPtr<ChLink> ChSystem::SearchLink (const char* m_name)
 {
-	ChLink* mlink = ChContainerSearchFromName<ChLink, std::list<ChLink*>::iterator>
+	ChLink* mlink = ChContainerSearchFromName<ChLink, std::vector<ChLink*>::iterator>
 				(m_name, 
 				linklist.begin(), 
 				linklist.end());
@@ -2352,11 +2352,15 @@ int ChSystem::DoAssembly(int action, int mflags)
   //
   if ((action & ASS_SPEED) || (action & ASS_ACCEL))
   {
-    // Save current value of the time step.
+    // Save current value of the time step and max number of 'speed' iterations.
     double step_saved = step;
+    int niter_saved = GetIterLCPmaxItersSpeed();
 
-    // Use a small time step for assembly.
+    // Use a small time step for assembly. Also, temporarily increase the max
+    // number of iterations for the speed solver (to accommodate for the bad
+    // initial guess)
     step = 1e-7;
+    SetIterLCPmaxItersSpeed(5 * niter_saved);
 
     // Reset known-term vectors
     LCPprepare_reset();
@@ -2408,8 +2412,9 @@ int ChSystem::DoAssembly(int action, int mflags)
       HIER_OTHERPHYSICS_NEXT
     }
 
-    // Restore the time step value.
+    // Restore the time step and max number of iterations.
     step = step_saved;
+    SetIterLCPmaxItersSpeed(niter_saved);
   }
 
   return 0;
