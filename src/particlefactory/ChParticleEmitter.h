@@ -41,7 +41,7 @@ namespace particlefactory {
 	/// different emitters by assembling different types of 
 	/// items inherited by classes like ChRandomShapeCreator,
 	/// ChRandomParticlePosition, etc.
-class ChParticleEmitter
+class ChParticleEmitter : public ChShared
 {
 public:
 
@@ -129,7 +129,7 @@ public:
 				msystem.Add(mbody);
 
 				this->particle_reservoir	-= 1;
-				this->mass_reservoir		-= mbody->GetMass();;
+				this->mass_reservoir		-= mbody->GetMass();
 
 				this->created_particles +=1;
 				this->created_mass		+= mbody->GetMass();
