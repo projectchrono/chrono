@@ -31,68 +31,22 @@
 #include "utils/ChUtilsInputOutput.h"
 #include "utils/ChUtilsData.h"
 
-#include "rapidjson/document.h"
-#include "rapidjson/filereadstream.h"
-
-using namespace rapidjson;
 
 namespace chrono {
 
 
-static ChVector<> loadVector(const Value& a)
-{
-  assert(a.IsArray());
-  assert(a.Size() == 3);
-  return ChVector<>(a[0u].GetDouble(), a[1u].GetDouble(), a[2u].GetDouble());
-}
-
-static ChQuaternion<> loadQuaternion(const Value& a)
-{
-  assert(a.IsArray());
-  assert(a.Size() == 4);
-  return ChQuaternion<>(a[0u].GetDouble(), a[1u].GetDouble(), a[2u].GetDouble(), a[3u].GetDouble());
-}
-
 
 void TrackVehicle::Load_TrackSystem(const std::string& filename, int track)
 {
-  FILE* fp = fopen(filename.c_str(), "r");
-
-  char readBuffer[65536];
-  FileReadStream is(fp, readBuffer, sizeof(readBuffer));
-
-  fclose(fp);
-
-  Document d;
-  d.ParseStream(is);
-
-  assert(d.HasMember("Name"));
-  assert(d.HasMember("Type"));
-  assert(d.HasMember("Template"));
   
   m_TrackSystems[track] = ChSharedPtr<TrackSystem>(new TrackSystem(d));
   
 }
 
 
-TrackVehicle::TrackVehicle(const std::string& filename,
-							bool               fixed)
+TrackVehicle::TrackVehicle(bool fixed)
 {
-  FILE* fp = fopen(filename.c_str(), "r");
-
-  char readBuffer[65536];
-  FileReadStream is(fp, readBuffer, sizeof(readBuffer));
-
-  fclose(fp);
-
-  Document d;
-  d.ParseStream(is);
-
-  assert(d.HasMember("Type"));
-  assert(d.HasMember("Template"));
-  assert(d.HasMember("Name"));
-
-  
+  // create the chassis body    
   m_chassis = ChSharedPtr<ChBodyAuxRef>(new ChBodyAuxRef);
 
   m_Mass = d["Chassis"]["Mass"].GetDouble();

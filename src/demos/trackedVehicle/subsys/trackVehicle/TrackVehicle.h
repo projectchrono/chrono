@@ -21,14 +21,15 @@
 
 #include "core/ChCoordsys.h"
 #include "physics/ChSystem.h"
+#include "subsys/trackSystem/TrackSystem.h"
 
 namespace chrono {
 
-class CH_SUBSYS_API TrackVehicle
+class CH_SUBSYS_API TrackVehicle : public ChSystem
 {
 public:
 
-  TrackVehicle(const std::string& filename, bool chassis_fixed = false);
+  TrackVehicle(bool chassis_fixed = false);
 
   ~TrackVehicle() {}
 
@@ -42,6 +43,11 @@ public:
               double	left_drive_input,
 			  double	right_drive_input);
 
+  /// Set the integration step size for the vehicle system.
+  void SetStepsize(double val) { m_stepsize = val; }
+
+  /// Get the current value of the integration step size for the vehicle system.
+  double GetStepsize() const { return m_stepsize; }
 
 private:
 
@@ -58,7 +64,11 @@ private:
   ChVector<> m_COM;                    // location of the chassis COM in the local ref frame
   ChVector<> m_Inertia;                // symmetric moments of inertia of the chassis
 
-  ChCoordsys<> m_driverCsys;                  // driver position and orientation relative to chassis
+  ChCoordsys<> m_driverCsys;  // driver position and orientation relative to chassis
+
+  double m_stepsize;          ///< integration time step for tracked vehicle system
+
+  // friend class irrDriver
 };
 
 
