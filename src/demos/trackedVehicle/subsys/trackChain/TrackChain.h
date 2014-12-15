@@ -20,17 +20,16 @@
 #define TRACKCHAIN_H
 
 #include "subsys/ChApiSubsys.h"
-#include "rapidjson/document.h"
+#include "assets/ChTriangleMeshShape.h"
 
 namespace chrono {
 
 
-class CH_SUBSYS_API TrackChain
+class CH_SUBSYS_API TrackChain : public ChShared
 {
 public:
 
   TrackChain(const std::string& filename);
-  TrackChain(const rapidjson::Document& d);
   
   ~TrackChain() {}
 
@@ -45,7 +44,7 @@ public:
   ChSharedPtr<ChBody> GetShoeBody(int track_idx) { return (track_idx > m_numShoes-1) ? m_shoes[track_idx] : m_shoes[0] ; }
 
 private:
-  Create(const rapidjson::Document& d);
+  int Create();
   
   // private functions
   void AddVisualizationIdler();
