@@ -18,49 +18,26 @@
 
 #include <cstdio>
 
-#include "TorsionArmSuspension.h"
+#include "subsys/suspension/TorsionArmSuspension.h"
 
 namespace chrono {
-
-// JSON utility functions
-static ChVector<> loadVector(const Value& a)
-{
-  assert(a.IsArray());
-  assert(a.Size() == 3);
-
-  return ChVector<>(a[0u].GetDouble(), a[1u].GetDouble(), a[2u].GetDouble());
-}
 
 TorsionArmSuspension::TorsionArmSuspension(const std::string& filename)
 {
    FILE* fp = fopen(filename.c_str(), "r");
 
   char readBuffer[65536];
-  FileReadStream is(fp, readBuffer, sizeof(readBuffer));
 
   fclose(fp);
 
-  Document d;
-  d.ParseStream(is);
 
-  Create(d);
-}
-
-TorsionArmSuspension::TorsionArmSuspension(const rapidjson::Document& d)
-{
-  Create(d);
+  Create();
 }
 
 
-TorsionArmSuspension::Create(const rapidjson::Document& d)
+TorsionArmSuspension::Create()
 {
-  // check input file has required items
-  assert(d.HasMember("Type"));
-  assert(d.HasMember("Name"));
-  assert(d.HasMember("Arm"));
-  assert(d.HasMember("Wheel"));
-  assert(d.HasMember("Torsion Bar"));
-  
+/*
   // load data for the arm
   m_armMass = d["Arm"]["Mass"].GetDouble();
   m_armInertia = loadVector(d["Arm"]["Inertia"]);
@@ -81,6 +58,8 @@ TorsionArmSuspension::Create(const rapidjson::Document& d)
   m_arm = ChSharedPtr<ChBody>(new ChBody);
   
   m_wheel = ChSharedPtr<ChBody>(new ChBody);
+  */
+  return 0;
 }
 
 void TorsionArmSuspension::Initialize(ChSharedPtr<ChBodyAuxRef> chassis,

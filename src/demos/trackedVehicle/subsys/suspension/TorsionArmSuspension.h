@@ -20,17 +20,17 @@
 #define TORSION_ARM_SUSPENSION_H
 
 #include "subsys/ChApiSubsys.h"
-#include "rapidjson/document.h"
+#include "physics/ChSystem.h"
+#include "physics/ChBodyAuxRef.h"
 
 namespace chrono {
 
 
-class CH_SUBSYS_API TorsionArmSuspension
+class CH_SUBSYS_API TorsionArmSuspension : public ChShared
 {
 public:
 
   TorsionArmSuspension(const std::string& filename);
-  TorsionArmSuspension(const rapidjson::Document& d);
 
   ~TorsionArmSuspension() {}
 
@@ -41,14 +41,14 @@ public:
   
   double getSpringCoefficient() const { return m_springK; }
   double getDampingCoefficient() const { return m_springC; }
-  double getSpringRestLength() const { return m_springRestLength; }
+
   ChSharedPtr<ChBody> GetArmBody() { return m_arm; }
   ChSharedPtr<ChBody> GetWheelBody() { return m_wheel; }
 
 private:
 
   // private functions
-  void Create(const rapidjson::Document& d);
+  int Create();
   void AddVisualization();
   
   // private variables
