@@ -19,8 +19,9 @@
 #ifndef TRACKSYSTEM_H
 #define TRACKSYSTEM_H
 
+#include "physics/ChSystem.h"
 #include "subsys/ChApiSubsys.h"
-#include "rapidjson/document.h"
+#include "physics/ChBodyAuxRef.h"
 
 #include "subsys/idler/IdlerSimple.h"
 #include "subsys/driveGear/DriveGear.h"
@@ -30,23 +31,24 @@
 namespace chrono {
 
 
-class CH_SUBSYS_API TrackSystem
+class CH_SUBSYS_API TrackSystem : public ChShared
 {
 public:
 
   TrackSystem(const std::string& filename);
-  TrackSystem(const rapidjson::Document& d);
+
   ~TrackSystem() {}
 
 
   void Initialize(ChSharedPtr<ChBodyAuxRef> chassis,
 				 const ChVector<>&         location,
 				 const ChQuaternion<>&     rotation));
+
+  void Create();
   
 private:
 
   // private functions
-  void Create(const rapidjson::Document& d);
   void BuildSubsystems();
   
   // private variables
@@ -59,7 +61,7 @@ private:
   // idler
   double m_idlerMass;
   ChVector<> m_idlerInertia;
-  ChVector<> m_idlerPos
+  ChVector<> m_idlerPos;
   double m_idlerRadius;
   double m_idlerWidth;
   double m_idler_K;

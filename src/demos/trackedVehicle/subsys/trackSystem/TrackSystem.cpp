@@ -18,23 +18,9 @@
 
 #include <cstdio>
 
-#include "TrackSystem.h"
-
-#include "rapidjson/filereadstream.h"
-
-using namespace rapidjson;
+#include "subsys/trackSystem/TrackSystem.h"
 
 namespace chrono {
-
-
-// JSON utility functions
-static ChVector<> loadVector(const Value& a)
-{
-  assert(a.IsArray());
-  assert(a.Size() == 3);
-
-  return ChVector<>(a[0u].GetDouble(), a[1u].GetDouble(), a[2u].GetDouble());
-}
 
 
 TrackSystem::TrackSystem(const std::string& filename)
@@ -42,29 +28,17 @@ TrackSystem::TrackSystem(const std::string& filename)
   FILE* fp = fopen(filename.c_str(), "r");
 
   char readBuffer[65536];
-  FileReadStream is(fp, readBuffer, sizeof(readBuffer));
 
   fclose(fp);
 
-  Document d;
-  d.ParseStream(is);
+  Create();
 
-  Create(d);
 }
 
-TrackSystem::TrackSystem(const rapidjson::Document& d)
+
+void TrackSystem::Create()
 {
-  Create(d);
-}
-
-void TrackSystem::Create(const rapidjson::Document& d)
-{
-  // Read top-level data
-  assert(d.HasMember("Type"));
-  assert(d.HasMember("Name"));
-
-  SetName(d["Name"].GetString());
-
+  /*
   // read idler info
   assert(d.HasMember("Idler"));
   m_idlerMass = d["Idler"]["Mass"].GetDouble();
@@ -124,6 +98,8 @@ void TrackSystem::Create(const rapidjson::Document& d)
   
   // create the various subsystems
   BuildSubsystems();
+
+  */
 }
 
 void TrackSystem::BuildSubsystems()
@@ -151,7 +127,7 @@ void TrackSystem::BuildSubsystems()
 
 void TrackSystem::Initialize(ChSharedPtr<ChBodyAuxRef> chassis,
 			 const ChVector<>&         location,
-			 const ChQuaternion<>&     rotation))
+			 const ChQuaternion<>&     rotation)
 {
   m_driveGear->Initialize(chassis, m_gearPos, m_gearMass, m_gearInertia, m_gearRadius); 
   m_idler->Initialize(chassis, m_idlerPos, m_idlerMass, m_idlerInertia, m_idler_K, m_idler_C, m_idlerRadius, m_idlerWidth);
