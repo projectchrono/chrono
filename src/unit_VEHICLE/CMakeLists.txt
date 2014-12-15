@@ -37,9 +37,9 @@ ENDIF()
 OPTION(ENABLE_IRRLICHT "Enable Irrlicht support" ON)
 
 IF(ENABLE_IRRLICHT)
-    FIND_PACKAGE(ChronoEngine COMPONENTS unit_POSTPROCESS unit_IRRLICHT)
+    FIND_PACKAGE(ChronoEngine COMPONENTS unit_IRRLICHT)
 ELSE()
-    FIND_PACKAGE(ChronoEngine COMPONENTS unit_POSTPROCESS)
+    FIND_PACKAGE(ChronoEngine COMPONENTS)
 ENDIF()
 
 OPTION(ENABLE_IRRKLANG "Use Irrklang library for sound" OFF)
@@ -136,9 +136,6 @@ IF(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
         TARGET COPY_DLLS POST_BUILD
         COMMAND ${CMAKE_COMMAND} -E copy_if_different
             "${CH_BINDIR}/$<CONFIGURATION>/ChronoEngine.dll"
-            "${CMAKE_BINARY_DIR}/bin/$<CONFIGURATION>"
-        COMMAND ${CMAKE_COMMAND} -E copy_if_different
-            "${CH_BINDIR}/$<CONFIGURATION>/ChronoEngine_POSTPROCESS.dll"
             "${CMAKE_BINARY_DIR}/bin/$<CONFIGURATION>"
     )
 
