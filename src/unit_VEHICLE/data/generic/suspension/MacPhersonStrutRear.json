@@ -1,0 +1,66 @@
+{
+  "Name":                       "Generic MacPhersonStrut Rear”,
+  "Type":                       "Suspension",
+  "Template":                   "MacPhersonStrut",
+
+  "Spindle" :
+  {
+    "Mass":                     1.103,
+    "COM":                      [-0.040, 0.910, -0.026],
+    "Inertia":                  [0.000478, 0.000496, 0.000478],
+    "Radius":                   0.15,
+    "Width":                    0.06
+  },
+
+  "Upright":
+  {
+    "Mass":                     1.397,
+    "COM":                      [-0.040, 0.910, -0.026],
+    "Inertia":                  [0.0138, 0.0146, 0.00283],
+    "Radius":                   0.025
+  },
+
+  "Control Arm":
+  {
+    "Mass":                     1.032,
+    "COM":                      [-0.040, 0.626, -0.197],
+    "Inertia":                  [0.00591, 0.00190, 0.00769],
+    "Radius":                   0.02,
+    "Location Chassis Front":   [-0.188, 0.512, 0.197],
+    "Location Chassis Back":    [-0.268, 0.512, 0.197],
+    "Location Upright":         [-0.040, 0.853, 0.197]
+  },
+
+  "Strut":
+  {
+    "Mass":                     1.000,
+    "Inertia":                  [0.010, 0.010, 0.010],
+    "Radius":                   0.02
+  },
+
+  "Tierod":
+  {
+    "Location Chassis":         [-0.268, 0.455, -0.026],
+    "Location Upright":         [-0.211, 0.853, -0.026]
+  },
+
+  "Spring":
+  {
+    "Location Chassis":         [-0.105, 0.687, 0.543],
+    "Location Upright”:         [-0.086, 0.739, 0.315],
+    "Spring Coefficient":       369149.000,
+    "Free Length" :             0.234
+  },
+
+  "Shock":
+  {
+    "Location Chassis":         [-0.105, 0.687, 0.543],
+    "Location Upright”:         [-0.086, 0.739, 0.315],
+    "Damping Coefficient":      22459.000
+  },
+
+  "Axle":
+  {
+    "Inertia":                  0.4
+  }
+}
