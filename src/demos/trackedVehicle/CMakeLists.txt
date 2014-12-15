@@ -1,8 +1,7 @@
 #=============================================================================
 # CMake configuration file for Tracked Vehicle modeling library
 #=============================================================================
-
-SET(ENABLE_UNIT_TRACKED
+SET(ENABLE_TRACKEDVEHICLE_DEMOS
   FALSE  CACHE  BOOL
   "Turn this ON to generate the Tracked Vehicle modeling unit."
 )
@@ -20,7 +19,6 @@ SET(ChronoEngine_unit_TrackedVehicle_SOURCES
 	subsys/driver/ChDriverTrack.cpp
 	subsys/idler/IdlerSimple.cpp
 	subsys/suspension/TorsionArmSuspension.cpp
-	subsys/terrain/RigidTerrain.cpp
 	subsys/trackChain/TrackChain.cpp
 	subsys/trackSystem/TrackSystem.cpp
 	subsys/trackVehicle/TrackVehicle.cpp
@@ -32,7 +30,6 @@ SET(ChronoEngine_unit_TrackedVehicle_HEADERS
 	subsys/driver/ChDriverTrack.h
 	subsys/idler/IdlerSimple.h
 	subsys/suspension/TorsionArmSuspension.h
-	subsys/terrain/RigidTerrain.h
 	subsys/trackChain/TrackChain.h
 	subsys/trackSystem/TrackSystem.h
 	subsys/trackVehicle/TrackVehicle.h
@@ -58,13 +55,8 @@ TARGET_LINK_LIBRARIES(ChronoEngine_Tracks
 )
 	
 ADD_DEPENDENCIES (ChronoEngine_Tracks ChronoEngine)  #  not automatic
-	
-	
-	
-INCLUDE_DIRECTORIES( ${CMAKE_SOURCE_DIR}/unit_TrackedVehicle )
-	
-# Let some variables be visible also from outside this directory, using the PARENT_SCOPE trick
-#SET (foo      		"${foo}" 			 PARENT_SCOPE )
+		
+INCLUDE_DIRECTORIES( ${CMAKE_SOURCE_DIR}/demos/trackedVehicle )
 	
 INSTALL(TARGETS ChronoEngine_Tracks
 	RUNTIME DESTINATION bin
@@ -72,19 +64,37 @@ INSTALL(TARGETS ChronoEngine_Tracks
 	ARCHIVE DESTINATION lib
 )
 
-INSTALL(FILES ${ChronoEngine_unit_TrackedVehicle_HEADERS} DESTINATION include/chrono/unit_TrackedVehicle)
+INSTALL(FILES ${ChronoEngine_unit_TrackedVehicle_HEADERS} DESTINATION include/demos/trackedVehicle)
 	
 	
 # ------------------------------------------------------------------------------
 # Copy the track_data folder to the bin directory
 IF(MSVC)
-  FILE( COPY ${CMAKE_SOURCE_DIR}/unit_TrackedVehicle/track_data DESTINATION ${CMAKE_BINARY_DIR}/bin/data/)
+  FILE( COPY ${CMAKE_SOURCE_DIR}/demos/trackedVehicle/track_data DESTINATION ${CMAKE_BINARY_DIR}/bin/data/)
 ELSEIF(XCODE_VERSION)
-  FILE( COPY ${CMAKE_SOURCE_DIR}/unit_TrackedVehicle/track_data DESTINATION ${CMAKE_BINARY_DIR}/bin/data/)
+  FILE( COPY ${CMAKE_SOURCE_DIR}/demos/trackedVehicle/track_data DESTINATION ${CMAKE_BINARY_DIR}/bin/data/)
 ELSE()
-  FILE( COPY ${CMAKE_SOURCE_DIR}/unit_TrackedVehicle/track_data DESTINATION ${CMAKE_BINARY_DIR}/data/)
+  FILE( COPY ${CMAKE_SOURCE_DIR}/demos/trackedVehicle/track_data DESTINATION ${CMAKE_BINARY_DIR}/data/)
 ENDIF()
 
+# add demo models here
+ADD_EXECUTABLE(demo_tracked_M113  demo_tracked_M113.cpp)
 
-# Adding Radu's ChronoT utility library
-ADD_SUBDIRECTORY(utils)
+SOURCE_GROUP(""  FILES  demo_tracked_M113.cpp)
+
+SET_TARGET_PROPERTIES(demo_tracked_M113  PROPERTIES
+    FOLDER demos
+    COMPILE_FLAGS "${CH_BUILDFLAGS_IRR}"
+    LINK_FLAGS "${CH_LINKERFLAG_EXE}"
+)
+
+TARGET_LINK_LIBRARIES(demo_tracked_M113
+	ChronoEngine
+	ChronoEngine_IRRLICHT
+	ChronoEngine_Tracks
+    ${CH_IRRLICHTLIB}
+)
+
+# ADD_DEPENDENCIES (demo_tracked_M113 ChronoEngine ChronoEngine_IRRLICHT ChronoEngine_Tracks)
+
+INSTALL(TARGETS demo_tracked_M113 DESTINATION bin)

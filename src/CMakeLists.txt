@@ -1190,6 +1190,3 @@ ADD_SUBDIRECTORY(demos)
 ADD_SUBDIRECTORY(unit_TESTING)
 
 INCLUDE(CPack)
-
-# Tracked vehicle modeling unit
-ADD_SUBDIRECTORY(unit_TrackedVehicle)
