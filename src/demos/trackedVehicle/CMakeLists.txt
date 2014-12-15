@@ -1,16 +1,23 @@
 #=============================================================================
 # CMake configuration file for Tracked Vehicle modeling library
 #=============================================================================
-SET(ENABLE_TRACKEDVEHICLE_DEMOS
+SET(ENABLE_TRACKED_VEHICLE
   FALSE  CACHE  BOOL
   "Turn this ON to generate the Tracked Vehicle modeling unit."
 )
 
-IF(NOT ENABLE_UNIT_TRACKED)
+# require irrlicht
+IF(NOT ENABLE_UNIT_IRRLICHT)
+  MESSAGE(STATUS "need irrlicht for GUI input")
+  RETURN()
+ENDIF()
+
+IF(NOT ENABLE_TRACKED_VEHICLE)
   RETURN()
 ELSE()
-  MESSAGE(STATUS "...enabling Tracked Vehicle Unit")
+  MESSAGE(STATUS "...enabling Tracked Vehicle library and models")
 ENDIF()
+
 
 cmake_minimum_required(VERSION 2.8)
 
@@ -35,30 +42,31 @@ SET(ChronoEngine_unit_TrackedVehicle_HEADERS
 	subsys/trackVehicle/TrackVehicle.h
 )
 
-SOURCE_GROUP(unit_TrackedVehicle FILES
+SOURCE_GROUP(trackedVehicle FILES
 	${ChronoEngine_unit_TrackedVehicle_SOURCES}
 	${ChronoEngine_unit_TrackedVehicle_HEADERS})
 	
 	
 # build the library, with custom properties
-ADD_LIBRARY(ChronoEngine_Tracks SHARED 
+ADD_LIBRARY(TrackedVehicle SHARED 
 			${ChronoEngine_unit_TrackedVehicle_SOURCES}
 			${ChronoEngine_unit_TrackedVehicle_HEADERS})
 
-SET_TARGET_PROPERTIES(ChronoEngine_Tracks PROPERTIES
+SET_TARGET_PROPERTIES(TrackedVehicle PROPERTIES
                            COMPILE_FLAGS "${CH_BUILDFLAGS}"
                           LINK_FLAGS "${CH_LINKERFLAG_SHARED}" 
                           COMPILE_DEFINITIONS "CH_API_COMPILE_UNIT_TRACKS")
                           
-TARGET_LINK_LIBRARIES(ChronoEngine_Tracks 
+TARGET_LINK_LIBRARIES(TrackedVehicle 
 	ChronoEngine
 )
 	
-ADD_DEPENDENCIES (ChronoEngine_Tracks ChronoEngine)  #  not automatic
+ADD_DEPENDENCIES (TrackedVehicle ChronoEngine)  #  not automatic
 		
-INCLUDE_DIRECTORIES( ${CMAKE_SOURCE_DIR}/demos/trackedVehicle )
+INCLUDE_DIRECTORIES( ${CMAKE_SOURCE_DIR}/demos/trackedVehicle 
+					${CH_IRRLICHTINC} )
 	
-INSTALL(TARGETS ChronoEngine_Tracks
+INSTALL(TARGETS TrackedVehicle
 	RUNTIME DESTINATION bin
 	LIBRARY DESTINATION lib
 	ARCHIVE DESTINATION lib
@@ -91,10 +99,10 @@ SET_TARGET_PROPERTIES(demo_tracked_M113  PROPERTIES
 TARGET_LINK_LIBRARIES(demo_tracked_M113
 	ChronoEngine
 	ChronoEngine_IRRLICHT
-	ChronoEngine_Tracks
+	TrackedVehicle
     ${CH_IRRLICHTLIB}
 )
 
-# ADD_DEPENDENCIES (demo_tracked_M113 ChronoEngine ChronoEngine_IRRLICHT ChronoEngine_Tracks)
+# ADD_DEPENDENCIES (demo_tracked_M113 ChronoEngine ChronoEngine_IRRLICHT TrackedVehicle)
 
 INSTALL(TARGETS demo_tracked_M113 DESTINATION bin)
