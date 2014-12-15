@@ -28,6 +28,7 @@
 
 #include "models/generic/Generic_SolidAxle.h"
 #include "models/generic/Generic_MultiLink.h"
+#include "models/generic/Generic_DoubleWishbone.h"
 
 #include "models/generic/Generic_Wheel.h"
 #include "models/generic/Generic_RackPinion.h"
@@ -90,6 +91,11 @@ Generic_Vehicle::Generic_Vehicle(const bool        fixed,
     m_suspensions[0] = ChSharedPtr<ChSuspension>(new Generic_MultiLinkFront("FrontSusp"));
     m_suspensions[1] = ChSharedPtr<ChSuspension>(new Generic_MultiLinkRear("RearSusp"));
     break;
+  case DOUBLE_WISHBONE:
+    //// Create the two suspension subsystems, first for the front axle, the second
+    //// for the rear axle.  Both axles use the same suspension concrete class.
+    m_suspensions[0] = ChSharedPtr<ChSuspension>(new Generic_DoubleWishbone("Front suspension"));
+    m_suspensions[1] = ChSharedPtr<ChSuspension>(new Generic_DoubleWishbone("Rear suspension"));
   }
 
   // -----------------------------
@@ -132,8 +138,9 @@ void Generic_Vehicle::Initialize(const ChCoordsys<>& chassisPos)
   // relative to the chassis reference frame).
   ChVector<> offset;
   switch (m_suspType) {
-  case SOLID_AXLE: offset = ChVector<>(1.60, 0, -0.07); break;
-  case MULTI_LINK: offset = ChVector<>(1.65, 0, -0.12); break;
+  case SOLID_AXLE:      offset = ChVector<>(1.60, 0, -0.07); break;
+  case MULTI_LINK:      offset = ChVector<>(1.65, 0, -0.12); break;
+  case DOUBLE_WISHBONE: offset = ChVector<>(1.4, 0, -0.03); break;
   }
   m_steering->Initialize(m_chassis, offset, ChQuaternion<>(1, 0, 0, 0));
 
@@ -169,6 +176,8 @@ double Generic_Vehicle::GetSpringForce(const ChWheelID& wheel_id) const
     return m_suspensions[wheel_id.axle()].StaticCastTo<ChSolidAxle>()->GetSpringForce(wheel_id.side());
   case MULTI_LINK:
     return m_suspensions[wheel_id.axle()].StaticCastTo<ChMultiLink>()->GetSpringForce(wheel_id.side());
+  case DOUBLE_WISHBONE:
+    return m_suspensions[wheel_id.axle()].StaticCastTo<ChDoubleWishbone>()->GetSpringForce(wheel_id.side());
   default:
     return -1;
   }
@@ -181,6 +190,8 @@ double Generic_Vehicle::GetSpringLength(const ChWheelID& wheel_id) const
     return m_suspensions[wheel_id.axle()].StaticCastTo<ChSolidAxle>()->GetSpringLength(wheel_id.side());
   case MULTI_LINK:
     return m_suspensions[wheel_id.axle()].StaticCastTo<ChMultiLink>()->GetSpringLength(wheel_id.side());
+  case DOUBLE_WISHBONE:
+    return m_suspensions[wheel_id.axle()].StaticCastTo<ChDoubleWishbone>()->GetSpringLength(wheel_id.side());
   default:
     return -1;
   }
@@ -193,6 +204,8 @@ double Generic_Vehicle::GetSpringDeformation(const ChWheelID& wheel_id) const
     return m_suspensions[wheel_id.axle()].StaticCastTo<ChSolidAxle>()->GetSpringDeformation(wheel_id.side());
   case MULTI_LINK:
     return m_suspensions[wheel_id.axle()].StaticCastTo<ChMultiLink>()->GetSpringDeformation(wheel_id.side());
+  case DOUBLE_WISHBONE:
+    return m_suspensions[wheel_id.axle()].StaticCastTo<ChDoubleWishbone>()->GetSpringDeformation(wheel_id.side());
   default:
     return -1;
   }
@@ -208,6 +221,8 @@ double Generic_Vehicle::GetShockForce(const ChWheelID& wheel_id) const
     return m_suspensions[wheel_id.axle()].StaticCastTo<ChSolidAxle>()->GetShockForce(wheel_id.side());
   case MULTI_LINK:
     return m_suspensions[wheel_id.axle()].StaticCastTo<ChMultiLink>()->GetShockForce(wheel_id.side());
+  case DOUBLE_WISHBONE:
+    return m_suspensions[wheel_id.axle()].StaticCastTo<ChDoubleWishbone>()->GetShockForce(wheel_id.side());
   default:
     return -1;
   }
@@ -220,6 +235,8 @@ double Generic_Vehicle::GetShockLength(const ChWheelID& wheel_id) const
     return m_suspensions[wheel_id.axle()].StaticCastTo<ChSolidAxle>()->GetShockLength(wheel_id.side());
   case MULTI_LINK:
     return m_suspensions[wheel_id.axle()].StaticCastTo<ChMultiLink>()->GetShockLength(wheel_id.side());
+  case DOUBLE_WISHBONE:
+    return m_suspensions[wheel_id.axle()].StaticCastTo<ChDoubleWishbone>()->GetShockLength(wheel_id.side());
   default:
     return -1;
   }
@@ -232,6 +249,8 @@ double Generic_Vehicle::GetShockVelocity(const ChWheelID& wheel_id) const
     return m_suspensions[wheel_id.axle()].StaticCastTo<ChSolidAxle>()->GetShockVelocity(wheel_id.side());
   case MULTI_LINK:
     return m_suspensions[wheel_id.axle()].StaticCastTo<ChMultiLink>()->GetShockVelocity(wheel_id.side());
+  case DOUBLE_WISHBONE:
+    return m_suspensions[wheel_id.axle()].StaticCastTo<ChDoubleWishbone>()->GetShockVelocity(wheel_id.side());
   default:
     return -1;
   }
@@ -285,6 +304,12 @@ void Generic_Vehicle::LogHardpointLocations()
     m_suspensions[0].StaticCastTo<ChMultiLink>()->LogHardpointLocations(ChVector<>(0, 0, 0), true);
     GetLog() << "\n---- REAR suspension hardpoint locations (RIGHT side)\n";
     m_suspensions[1].StaticCastTo<ChMultiLink>()->LogHardpointLocations(ChVector<>(0, 0, 0), true);
+    break;
+  case DOUBLE_WISHBONE:
+    GetLog() << "\n---- FRONT suspension hardpoint locations (RIGHT side)\n";
+    m_suspensions[0].StaticCastTo<ChDoubleWishbone>()->LogHardpointLocations(ChVector<>(0, 0, 0), true);
+    GetLog() << "\n---- REAR suspension hardpoint locations (RIGHT side)\n";
+    m_suspensions[1].StaticCastTo<ChDoubleWishbone>()->LogHardpointLocations(ChVector<>(0, 0, 0), true);
     break;
   }
 

@@ -30,6 +30,8 @@ SET(MODEL_FILES
 	../generic/Generic_SimplePowertrain.h
 	../generic/Generic_BrakeSimple.h
 	../generic/Generic_RigidTire.h
+	../generic/Generic_DoubleWishbone.h
+	../generic/Generic_DoubleWishbone.cpp
 )
 
 SET(DEMO_FILES
