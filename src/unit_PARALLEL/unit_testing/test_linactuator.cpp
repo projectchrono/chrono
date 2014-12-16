@@ -267,7 +267,7 @@ bool TestLinActuator(
   double time_end = 5;
   double time_step = 1e-3;
 
-  double tolerance = 1e-4;
+  double tolerance = 1e-5;
 
   int max_iteration_bilateral = 100;
   int max_iteration_normal = 50;
