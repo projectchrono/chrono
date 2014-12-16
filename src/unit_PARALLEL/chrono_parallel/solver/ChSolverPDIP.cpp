@@ -146,7 +146,7 @@ void ChSolverPDIP::conjugateGradient(blaze::DynamicVector<real> & x) {
     x = x + alpha_cg * p_cg;
     r_cg = r_cg - alpha_cg * Ap_cg;
     rsnew_cg = (r_cg, r_cg);
-    if (sqrt(rsnew_cg) < data_container->settings.solver.tolerance / 100.0) {
+    if (sqrt(rsnew_cg) < tol_speed / 100.0) {
       return;
     }
     p_cg = r_cg + rsnew_cg / rsold_cg * p_cg;
@@ -193,7 +193,7 @@ int ChSolverPDIP::preconditionedConjugateGradient(blaze::DynamicVector<real> & x
     r_cg = r_cg - alpha_cg * Ap_cg;
     applyPreconditioning(r_cg,z_cg);
     rsnew_cg = (z_cg, r_cg);
-    if (sqrt(rsnew_cg) < data_container->settings.solver.tolerance / 100.0) {
+    if (sqrt(rsnew_cg) < tol_speed / 100.0) {
       return iter;
     }
     p_cg = z_cg + rsnew_cg / rsold_cg * p_cg;
@@ -358,21 +358,12 @@ uint ChSolverPDIP::SolvePDIP(const uint max_iter,
     // (20) r = r(gamma_(k+1))
     residual = sqrt((r_g, r_g));//Res4(gamma, gamma_tmp);
 
-    SchurComplementProduct(gamma, gamma_tmp);
-    objective_value = 0.5 * (gamma_tmp, gamma) + (r, gamma);
-    AtIterationEnd(residual, objective_value, iter_hist.size());
-    if (data_container->settings.solver.tolerance_objective) {
-      if (objective_value <= data_container->settings.solver.tolerance) {
-        break;
-      }
-    } else {
-      // (21) if r < tau
-      if (residual < tol_speed) {
-        // (22) break
-        break;
+    // (21) if r < tau
+    if (residual < tol_speed) {
+      // (22) break
+      break;
 
-        // (23) endif
-      }
+      // (23) endif
     }
 
     // (24) endfor
