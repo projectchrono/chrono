@@ -45,10 +45,6 @@ custom_vector<real> &x) {
 
   residual = 10e30;
 
-  thetaNew = theta;
-  Beta = 0.0;
-  obj1 = 0.0, obj2 = 0.0;
-
 #pragma omp parallel for
   for (int i = 0; i < size; i++) {
     // (1) gamma_0 = zeros(nc,1)
@@ -66,6 +62,10 @@ custom_vector<real> &x) {
 
   // (4) theta_0 = 1
   theta = 1.0;
+
+  thetaNew = theta;
+  Beta = 0.0;
+  obj1 = 0.0, obj2 = 0.0;
 
   // (5) L_k = norm(N * (gamma_0 - gamma_hat_0)) / norm(gamma_0 - gamma_hat_0)
   tmp = gamma - gamma_hat;
@@ -141,7 +141,7 @@ custom_vector<real> &x) {
     }
 
     // (23) if r < Tau
-    if (residual < data_container->settings.solver.tolerance) {
+    if (residual < tol_speed) {
       // (24) break
       break;
 
