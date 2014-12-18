@@ -85,6 +85,7 @@ void TrackDriveline::Initialize(ChSharedPtr<ChBody>     chassis,
   m_conicalgear->SetTransmissionRatio(GetConicalGearRatio());
   my_system->Add(m_conicalgear);
 
+  // TODO:  does this apply to a tracked vehicle powertrain/driveline system?
   // Create a differential, i.e. an apicycloidal mechanism that connects three 
   // rotating members. This class of mechanisms can be simulated using 
   // ChShaftsPlanetary; a proper 'ordinary' transmission ratio t0 must be
@@ -92,8 +93,9 @@ void TrackDriveline::Initialize(ChSharedPtr<ChBody>     chassis,
   // simple: t0=-1.
   m_differential = ChSharedPtr<ChShaftsPlanetary>(new ChShaftsPlanetary);
   m_differential->Initialize(m_differentialbox,
-                             suspensions[m_driven_axles[0]]->GetAxle(LEFT),
-                             suspensions[m_driven_axles[0]]->GetAxle(RIGHT));
+                             GetDriveshaft(),
+                             GetDriveshaft() );
+
   m_differential->SetTransmissionRatioOrdinary(GetDifferentialRatio());
   my_system->Add(m_differential);
 }
@@ -101,7 +103,7 @@ void TrackDriveline::Initialize(ChSharedPtr<ChBody>     chassis,
 
 double TrackDriveline::GetGearTorque(const int gear_id) const
 {
-  // This may not be correct
+  // TODO:  This may not be correct
   if (gear_id) {
     return -m_differential->GetTorqueReactionOn2();
   } else
