@@ -21,7 +21,7 @@
 
 #include "subsys/driveline/TrackDriveline.h"
 
-namespace chrono {
+using namespace chrono;
 
 // -----------------------------------------------------------------------------
 // Static variables
@@ -99,19 +99,15 @@ void TrackDriveline::Initialize(ChSharedPtr<ChBody>     chassis,
 }
 
 
-// -----------------------------------------------------------------------------
-// -----------------------------------------------------------------------------
-double TrackDriveline::GetWheelTorque(const ChWheelID& wheel_id) const
+double TrackDriveline::GetGearTorque(const int gear_id) const
 {
-  if (wheel_id.axle() == m_driven_axles[0]) {
-    switch (wheel_id.side()) {
-    case LEFT:  return -m_differential->GetTorqueReactionOn2();
-    case RIGHT: return -m_differential->GetTorqueReactionOn3();
-    }
+  // This may not be correct
+  if (gear_id) {
+    return -m_differential->GetTorqueReactionOn2();
+  } else
+  {
+    return -m_differential->GetTorqueReactionOn3();
   }
-
-  return 0;
 }
 
 
-} // end namespace chrono
