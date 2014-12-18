@@ -26,7 +26,7 @@ TorsionArmSuspension::TorsionArmSuspension(const std::string& filename)
 {
    FILE* fp = fopen(filename.c_str(), "r");
 
-  char readBuffer[65536];
+  // char readBuffer[65536];
 
   fclose(fp);
 
@@ -35,7 +35,7 @@ TorsionArmSuspension::TorsionArmSuspension(const std::string& filename)
 }
 
 
-TorsionArmSuspension::Create()
+int TorsionArmSuspension::Create()
 {
 /*
   // load data for the arm

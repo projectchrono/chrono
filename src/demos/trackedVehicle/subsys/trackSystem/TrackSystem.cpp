@@ -23,20 +23,19 @@
 namespace chrono {
 
 
-TrackSystem::TrackSystem(const std::string& filename)
+TrackSystem::TrackSystem(const std::string& name, int track_idx)
+  : m_track_idx(track_idx), m_name( name)
 {
-  FILE* fp = fopen(filename.c_str(), "r");
+  // FILE* fp = fopen(filename.c_str(), "r");
+  // char readBuffer[65536];
+  // fclose(fp);
 
-  char readBuffer[65536];
-
-  fclose(fp);
-
-  Create();
+  Create(track_idx);
 
 }
 
 
-void TrackSystem::Create()
+void TrackSystem::Create(int track_idx)
 {
   /*
   // read idler info

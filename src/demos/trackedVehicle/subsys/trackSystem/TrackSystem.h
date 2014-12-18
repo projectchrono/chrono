@@ -36,16 +36,16 @@ class CH_SUBSYS_API TrackSystem : public ChShared
 public:
 
   /// specify name and a unique track identifier
-  TrackSystem(const std::string& filename, int track);
+  TrackSystem(const std::string& filename, int track_idx);
 
   ~TrackSystem() {}
 
 
   void Initialize(ChSharedPtr<ChBodyAuxRef> chassis,
 				 const ChVector<>&         location,
-				 const ChQuaternion<>&     rotation));
+				 const ChQuaternion<>&     rotation);
 
-  void Create();
+  void Create(int track_idx);
   
 private:
 
@@ -59,6 +59,7 @@ private:
   std::vector<ChSharedPtr<TorsionArmSuspension>> m_suspensions;
   std::vector<ChSharedPtr<ChBody>> m_supportRollers;
   
+  std::string m_name; ///< name of the track chain system
   // idler
   double m_idlerMass;
   ChVector<> m_idlerInertia;
@@ -90,7 +91,7 @@ private:
   
   // Track Chain
   std::string m_trackChainFilename;
-  
+  int m_track_idx;
 };
 
 
