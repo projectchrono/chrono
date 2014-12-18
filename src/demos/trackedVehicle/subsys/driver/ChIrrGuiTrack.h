@@ -43,11 +43,11 @@
 
 namespace chrono {
 
-class CH_SUBSYS_API ChIrrGuiDriver : public ChDriverTrack, public irr::IEventReceiver
+class CH_SUBSYS_API ChIrrGuiTrack : public ChDriverTrack, public irr::IEventReceiver
 {
 public:
 
-  ChIrrGuiDriver(
+  ChIrrGuiTrack(
     irr::ChIrrApp&      app,
     TrackVehicle&       vehicle,
     TrackPowertrain&    powertrain,
@@ -58,7 +58,7 @@ public:
     int                 HUD_y = 20
     );
 
-  ~ChIrrGuiDriver() {}
+  ~ChIrrGuiTrack() {}
 
   virtual bool OnEvent(const irr::SEvent& event);
 
