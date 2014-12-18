@@ -52,42 +52,49 @@ private:
   // private functions
   void BuildSubsystems();
   
+  // initialize a roller at the specified location and orientation
+  void initialize_roller(ChSharedPtr<ChBody> body, const ChVector<>& loc, const ChQuaternion<>& rot, int idx);
+
   // private variables
   ChSharedPtr<DriveGear> m_driveGear;
   ChSharedPtr<IdlerSimple>	m_idler;
   ChSharedPtr<TrackChain> m_chain;
   std::vector<ChSharedPtr<TorsionArmSuspension>> m_suspensions;
   std::vector<ChSharedPtr<ChBody>> m_supportRollers;
+  std::vector<ChVector<> > m_rollerLocs;  ///< relative to the 
+  std::vector<ChSharedPtr<ChLinkLockRevolute>> m_supportRollers_rev;
   
   std::string m_name; ///< name of the track chain system
+
+  // hard-coded in TrackSystem.cpp, for now
   // idler
-  double m_idlerMass;
-  ChVector<> m_idlerInertia;
-  ChVector<> m_idlerPos;
-  double m_idlerRadius;
-  double m_idlerWidth;
-  double m_idler_K;
-  double m_idler_C;
+  static const double m_idlerMass;
+  static const ChVector<> m_idlerInertia;
+  static const ChVector<> m_idlerPos;
+  static const double m_idlerRadius;
+  static const double m_idlerWidth;
+  static const double m_idler_K;
+  static const double m_idler_C;
   
   // drive gear
-  double m_gearMass;
-  ChVector<> m_gearPos;
-  double m_gearRadius;
-  double m_gearWidth;
-  ChVector<> m_gearInertia;
+  static const double m_gearMass;
+  static const ChVector<> m_gearPos;
+  static const double m_gearRadius;
+  static const double m_gearWidth;
+  static const ChVector<> m_gearInertia;
   
   // Support rollers
-  double m_rollerMass;
-  double m_rollerRadius;
-  double m_rollerWidth;
-  ChVector<> m_rollerInertia;
-  std::vector<ChVector<> > m_rollerLocs;
-  int m_NumRollers;
+  static const double m_rollerMass;
+  static const double m_rollerRadius;
+  static const double m_rollerWidth;
+  static const ChVector<> m_rollerInertia;
+
+  static const int m_NumRollers;
   
   // suspension
-  std::string m_suspensionFilename;
+  // static const std::string m_suspensionFilename;
   std::vector<ChVector<> > m_suspensionLocs;
-  int m_NumSuspensions;
+  static const int m_NumSuspensions;
   
   // Track Chain
   std::string m_trackChainFilename;
