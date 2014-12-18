@@ -34,79 +34,72 @@
 
 namespace chrono {
 
+// -----------------------------------------------------------------------------
+// Static variables
+const double     TrackVehicle::m_Mass = 10000;   // chassis sprung mass
+const ChVector<> TrackVehicle::m_COM = ChVector<>(0.3, 0.0, 0.5);  // COM location
+const ChVector<> TrackVehicle::m_Inertia(425.8, 697.4, 731.4);  // chassis inertia (roll,pitch,yaw)
+
+const std::string TrackVehicle::m_MeshFile = utils::GetModelDataFile("hmmwv/hmmwv_chassis.obj");
+
+const ChCoordsys<> TrackVehicle::m_driverCsys(ChVector<>(0.0, 0.5, 1.2), ChQuaternion<>(1, 0, 0, 0));
 
 
-void TrackVehicle::Load_TrackSystem(const std::string& filename, int track)
+
+
+void TrackVehicle::Load_TrackSystem(const std::string& name, int track)
 {
   
-  m_TrackSystems[track] = ChSharedPtr<TrackSystem>(new TrackSystem(d));
+  m_TrackSystems[track] = ChSharedPtr<TrackSystem>(new TrackSystem(name, track));
   
 }
 
 
-TrackVehicle::TrackVehicle(bool fixed)
+TrackVehicle::TrackVehicle(bool fixed, bool chassisVis)
 {
   // create the chassis body    
   m_chassis = ChSharedPtr<ChBodyAuxRef>(new ChBodyAuxRef);
-
-  m_Mass = d["Chassis"]["Mass"].GetDouble();
-  m_COM = loadVector(d["Chassis"]["COM"]);
-  m_Inertia = loadVector(d["Chassis"]["Inertia"]);
-
   m_chassis->SetIdentifier(0);
   m_chassis->SetName("chassis");
-  m_chassis->SetMass(m_chassisMass);
-  m_chassis->SetFrame_COG_to_REF(ChFrame<>(m_chassisCOM, ChQuaternion<>(1, 0, 0, 0)));
-  m_chassis->SetInertiaXX(m_chassisInertia);
+  m_chassis->SetFrame_COG_to_REF(ChFrame<>(m_COM, ChQuaternion<>(1, 0, 0, 0)));
+  m_chassis->SetInertiaXX(m_Inertia);
   m_chassis->SetBodyFixed(fixed);
 
-  if (d.HasMember("Visualization"))
+  if (chassisVis)
   {
-    assert(d["Visualization"].HasMember("Filename"));
-    assert(d["Visualization"].HasMember("Name"));
-
-    m_chassisMeshFile = d["Visualization"]["Filename"].GetString();
-    m_chassisMeshName = d["Visualization"]["Name"].GetString();
 
     geometry::ChTriangleMeshConnected trimesh;
-    trimesh.LoadWavefrontMesh(utils::GetModelDataFile(m_chassisMeshFile), false, false);
+    trimesh.LoadWavefrontMesh(utils::GetModelDataFile(m_MeshFile), false, false);
 
     ChSharedPtr<ChTriangleMeshShape> trimesh_shape(new ChTriangleMeshShape);
     trimesh_shape->SetMesh(trimesh);
-    trimesh_shape->SetName(m_chassisMeshName);
+    trimesh_shape->SetName("chassis triMesh");
     m_chassis->AddAsset(trimesh_shape);
-
-    m_chassisUseMesh = true;
   }
   else
   {
     ChSharedPtr<ChSphereShape> sphere(new ChSphereShape);
     sphere->GetSphereGeometry().rad = 0.1;
-    sphere->Pos = m_chassisCOM;
+    sphere->Pos = m_COM;
     m_chassis->AddAsset(sphere);
   }
-
+  
   Add(m_chassis);
 
 
-  assert(d.HasMember("TrackSystem"));
-  assert(d.HasMember("Tracks"));
-
-  m_num_tracks = d["TrackSystem"].Size();
+  m_num_tracks = 2;
 
   m_TrackSystems.resize(m_num_tracks);
   m_TrackSystem_locs.resize(m_num_tracks);
 
   // create track systems
   for (int i = 0; i < m_num_tracks; i++) {
-    std::string file_name = d["TrackSystem"][i]["Input File"].GetString();
-    Load_TrackSystem(utils::GetModelDataFile(file_name), i);
-    m_TrackSystem_locs[i] = loadVector(d["Axles"][i]["Location"]);
-
+    Load_TrackSystem("track chain system", i);
   }
 
-  m_driverCsys.pos = loadVector(d["Driver Position"]["Location"]);
-  m_driverCsys.rot = loadQuaternion(d["Driver Position"]["Orientation"]);
+  // create the powertrain and drivelines
+
+
 }
 
 

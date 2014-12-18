@@ -35,7 +35,8 @@ class CH_SUBSYS_API TrackSystem : public ChShared
 {
 public:
 
-  TrackSystem(const std::string& filename);
+  /// specify name and a unique track identifier
+  TrackSystem(const std::string& filename, int track);
 
   ~TrackSystem() {}
 

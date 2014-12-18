@@ -22,6 +22,7 @@
 #include "core/ChCoordsys.h"
 #include "physics/ChSystem.h"
 #include "subsys/trackSystem/TrackSystem.h"
+#include "subsys/powertrain/TrackPowertrain.h"
 
 namespace chrono {
 
@@ -29,7 +30,7 @@ class CH_SUBSYS_API TrackVehicle : public ChSystem
 {
 public:
 
-  TrackVehicle(bool chassis_fixed = false);
+  TrackVehicle(bool fixed = false, bool chassisVis = false);
 
   ~TrackVehicle() {}
 
@@ -41,7 +42,7 @@ public:
   
   void Update(double	time,
               double	left_drive_input,
-			  double	right_drive_input);
+			        double	right_drive_input);
 
   /// Set the integration step size for the vehicle system.
   void SetStepsize(double val) { m_stepsize = val; }
@@ -53,18 +54,21 @@ private:
 
   void Load_TrackSystem(const std::string& filename, int track);
 
-private:
 
-  int                      m_num_tracks;       // number of axles for this vehicle
+  ChSharedPtr<ChBodyAuxRef> m_chassis;  ///< hull body
+  int m_num_tracks;       // number of tracks for this vehicle
 
   std::vector<ChVector<> > m_TrackSystem_locs;   // locations of the track system c-sys relative to chassis
   std::vector<ChSharedPtr<TrackSystem> > m_TrackSystems;	// list of track systems
 
-  double     m_Mass;                   // chassis mass
-  ChVector<> m_COM;                    // location of the chassis COM in the local ref frame
-  ChVector<> m_Inertia;                // symmetric moments of inertia of the chassis
+  ChSharedPtr<TrackPowertrain> m_ptrain;  ///< powertrain system
 
-  ChCoordsys<> m_driverCsys;  // driver position and orientation relative to chassis
+  static const double     m_Mass;                   // chassis mass
+  static const ChVector<> m_COM;                    // location of the chassis COM in the local ref frame
+  static const ChVector<> m_Inertia;                // symmetric moments of inertia of the chassis
+
+  static const ChCoordsys<> m_driverCsys;  // driver position and orientation relative to chassis
+  static const std::string m_MeshFile;
 
   double m_stepsize;          ///< integration time step for tracked vehicle system
 
