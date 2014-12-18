@@ -20,7 +20,7 @@
 
 #include "subsys/powertrain/TrackPowertrain.h"
 
-namespace chrono {
+using namespace chrono;
 
 
 // -----------------------------------------------------------------------------
@@ -320,6 +320,3 @@ void TrackPowertrain::SetTorqeConverterTorqueRatioMap(ChSharedPtr<ChFunction_Rec
 }
 
 
-
-
-} // end namespace chrono

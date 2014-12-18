@@ -33,11 +33,11 @@
 #include "physics/ChShaftsTorque.h"
 #include "physics/ChShaftsThermalEngine.h"
 
-namespace chrono {
-
 // Forward reference
 class TrackedVehicle;
 
+
+namespace chrono {
 
 class CH_SUBSYS_API TrackPowertrain
 {
@@ -125,10 +125,10 @@ public:
   // from concrete class
   void SetGearRatios(std::vector<double>& gear_ratios);
   
-  void SetEngineTorqueMap(chrono::ChSharedPtr<chrono::ChFunction_Recorder>& map);
-  void SetEngineLossesMap(chrono::ChSharedPtr<chrono::ChFunction_Recorder>& map);
-  void SetTorqueConverterCapacityFactorMap(chrono::ChSharedPtr<chrono::ChFunction_Recorder>& map);
-  void SetTorqeConverterTorqueRatioMap(chrono::ChSharedPtr<chrono::ChFunction_Recorder>& map);
+  void SetEngineTorqueMap(ChSharedPtr<ChFunction_Recorder>& map);
+  void SetEngineLossesMap(ChSharedPtr<ChFunction_Recorder>& map);
+  void SetTorqueConverterCapacityFactorMap(ChSharedPtr<ChFunction_Recorder>& map);
+  void SetTorqeConverterTorqueRatioMap(ChSharedPtr<ChFunction_Recorder>& map);
   
 private:
 
@@ -159,10 +159,13 @@ private:
   static const double  m_motorblock_inertia;
   static const double  m_crankshaft_inertia;
   static const double  m_ingear_shaft_inertia;
+
+
+
 };
 
-
 } // end namespace chrono
+
 
 
 #endif
