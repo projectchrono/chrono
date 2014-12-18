@@ -38,14 +38,14 @@ namespace chrono {
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-ChIrrGuiDriver::ChIrrGuiDriver(ChIrrApp&           app,
-                               TrackVehicle&       vehicle,
-                               TrackPowertrain&    powertrain,
-                               const ChVector<>&   ptOnChassis,
-                               double              chaseDist,
-                               double              chaseHeight,
-                               int                 HUD_x,
-                               int                 HUD_y)
+ChIrrGuiTrack::ChIrrGuiTrack(ChIrrApp&           app,
+                            TrackVehicle&       vehicle,
+                            TrackPowertrain&    powertrain,
+                            const ChVector<>&   ptOnChassis,
+                            double              chaseDist,
+                            double              chaseHeight,
+                            int                 HUD_x,
+                            int                 HUD_y)
 : m_app(app),
   m_vehicle(vehicle),
   m_powertrain(powertrain),
@@ -55,13 +55,14 @@ ChIrrGuiDriver::ChIrrGuiDriver(ChIrrApp&           app,
   m_throttleDelta(1.0/50),
   m_steeringDelta(1.0/50),
   m_brakingDelta(1.0/50),
-  m_camera(car.GetChassis()),
+  m_camera(vehicle.GetChassis()),
   m_stepsize(1e-3),
+  ChDriverTrack(2)
 {
   app.SetUserEventReceiver(this);
 
   // Initialize the ChChaseCamera
-  m_camera.Initialize(ptOnChassis, car.GetLocalDriverCoordsys(), chaseDist, chaseHeight);
+  m_camera.Initialize(ptOnChassis, vehicle.GetLocalDriverCoordsys(), chaseDist, chaseHeight);
   ChVector<> cam_pos = m_camera.GetCameraPos();
   ChVector<> cam_target = m_camera.GetTargetPos();
 
@@ -74,29 +75,12 @@ ChIrrGuiDriver::ChIrrGuiDriver(ChIrrApp&           app,
   camera->setPosition(core::vector3df((f32)cam_pos.x, (f32)cam_pos.y, (f32)cam_pos.z));
   camera->setTarget(core::vector3df((f32)cam_target.x, (f32)cam_target.y, (f32)cam_target.z));
 
-#if IRRKLANG_ENABLED
-  m_sound_engine = 0;   // Sound player
-  m_car_sound = 0;      // Sound
-
-  if (m_sound) {
-    // Start the sound engine with default parameters
-    m_sound_engine = irrklang::createIrrKlangDevice();
-
-    // To play a sound, call play2D(). The second parameter tells the engine to
-    // play it looped.
-    if (m_sound_engine) {
-      m_car_sound = m_sound_engine->play2D(GetChronoDataFile("carsound.ogg").c_str(), true, false, true);
-      m_car_sound->setIsPaused(true);
-    } else
-      GetLog() << "Cannot start sound engine Irrklang \n";
-  }
-#endif
 }
 
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-bool ChIrrGuiDriver::OnEvent(const SEvent& event)
+bool ChIrrGuiTrack::OnEvent(const SEvent& event)
 {
   // Only interpret keyboard inputs.
   if (event.EventType != EET_KEY_INPUT_EVENT)
@@ -175,7 +159,7 @@ bool ChIrrGuiDriver::OnEvent(const SEvent& event)
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-void ChIrrGuiDriver::Advance(double step)
+void ChIrrGuiTrack::Advance(double step)
 {
   // Update the ChChaseCamera: take as many integration steps as needed to
   // exactly reach the value 'step'
@@ -195,30 +179,12 @@ void ChIrrGuiDriver::Advance(double step)
   camera->setPosition(core::vector3df((f32)cam_pos.x, (f32)cam_pos.y, (f32)cam_pos.z));
   camera->setTarget(core::vector3df((f32)cam_target.x, (f32)cam_target.y, (f32)cam_target.z));
 
-#if IRRKLANG_ENABLED
-  static int stepsbetweensound = 0;
-
-  // Update sound pitch
-  if (m_car_sound) {
-    stepsbetweensound++;
-    double engine_rpm = m_powertrain.GetMotorSpeed() * 60 / chrono::CH_C_2PI;
-    double soundspeed = engine_rpm / (8000.); // denominator: to guess
-    if (soundspeed < 0.1) soundspeed = 0.1;
-    if (stepsbetweensound > 20) {
-      stepsbetweensound = 0;
-      if (m_car_sound->getIsPaused())
-        m_car_sound->setIsPaused(false);
-      m_car_sound->setPlaybackSpeed((irrklang::ik_f32)soundspeed);
-    }
-  }
-#endif
-
 }
 
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-void ChIrrGuiDriver::DrawAll()
+void ChIrrGuiTrack::DrawAll()
 {
   renderGrid();
 
@@ -229,7 +195,7 @@ void ChIrrGuiDriver::DrawAll()
   renderStats();
 }
 
-void ChIrrGuiDriver::renderSprings()
+void ChIrrGuiTrack::renderSprings()
 {
   std::vector<chrono::ChLink*>::iterator ilink = m_app.GetSystem()->Get_linklist()->begin();
   for (; ilink != m_app.GetSystem()->Get_linklist()->end(); ++ilink) {
@@ -248,7 +214,7 @@ void ChIrrGuiDriver::renderSprings()
   }
 }
 
-void ChIrrGuiDriver::renderLinks()
+void ChIrrGuiTrack::renderLinks()
 {
   std::vector<chrono::ChLink*>::iterator ilink = m_app.GetSystem()->Get_linklist()->begin();
   for (; ilink != m_app.GetSystem()->Get_linklist()->end(); ++ilink) {
@@ -267,7 +233,7 @@ void ChIrrGuiDriver::renderLinks()
   }
 }
 
-void ChIrrGuiDriver::renderGrid()
+void ChIrrGuiTrack::renderGrid()
 {
   ChCoordsys<> gridCsys(ChVector<>(0, 0, m_terrainHeight + 0.02),
                         chrono::Q_from_AngAxis(-CH_C_PI_2, VECT_Z));
@@ -279,7 +245,7 @@ void ChIrrGuiDriver::renderGrid()
                        true);
 }
 
-void ChIrrGuiDriver::renderLinGauge(const std::string& msg,
+void ChIrrGuiTrack::renderLinGauge(const std::string& msg,
                                     double factor, bool sym,
                                     int xpos, int ypos,
                                     int length, int height)
@@ -304,7 +270,7 @@ void ChIrrGuiDriver::renderLinGauge(const std::string& msg,
              irr::video::SColor(255,20,20,20));
 }
 
-void ChIrrGuiDriver::renderTextBox(const std::string& msg,
+void ChIrrGuiTrack::renderTextBox(const std::string& msg,
                                    int xpos, int ypos,
                                    int length, int height)
 {
@@ -320,7 +286,7 @@ void ChIrrGuiDriver::renderTextBox(const std::string& msg,
     irr::video::SColor(255, 20, 20, 20));
 }
 
-void ChIrrGuiDriver::renderStats()
+void ChIrrGuiTrack::renderStats()
 {
   char msg[100];
 
@@ -380,41 +346,18 @@ void ChIrrGuiDriver::renderStats()
   }
   renderLinGauge(std::string(msg), (double)ngear / 4.0, false, m_HUD_x, m_HUD_y + 220, 120, 15);
 
+  // driveline data
+  double torque;
+  int axle = driveline->GetDrivenAxleIndexes()[0];
 
-  if (ChSharedPtr<ChShaftsDriveline2WD> driveline = m_car.m_driveline.DynamicCastTo<ChShaftsDriveline2WD>())
-  {
-    double torque;
-    int axle = driveline->GetDrivenAxleIndexes()[0];
+  torque = driveline->GetWheelTorque(ChWheelID(axle, LEFT));
+  sprintf(msg, "Torque wheel L: %+.2f", torque);
+  renderLinGauge(std::string(msg), torque / 5000, false, m_HUD_x, m_HUD_y + 260, 120, 15);
 
-    torque = driveline->GetWheelTorque(ChWheelID(axle, LEFT));
-    sprintf(msg, "Torque wheel L: %+.2f", torque);
-    renderLinGauge(std::string(msg), torque / 5000, false, m_HUD_x, m_HUD_y + 260, 120, 15);
-
-    torque = driveline->GetWheelTorque(ChWheelID(axle, RIGHT));
-    sprintf(msg, "Torque wheel R: %+.2f", torque);
-    renderLinGauge(std::string(msg), torque / 5000, false, m_HUD_x, m_HUD_y + 280, 120, 15);
-  }
-  else if (ChSharedPtr<ChShaftsDriveline4WD> driveline = m_car.m_driveline.DynamicCastTo<ChShaftsDriveline4WD>())
-  {
-    double torque;
-    std::vector<int> axles = driveline->GetDrivenAxleIndexes();
-
-    torque = driveline->GetWheelTorque(ChWheelID(axles[0], LEFT));
-    sprintf(msg, "Torque wheel FL: %+.2f", torque);
-    renderLinGauge(std::string(msg), torque / 5000, false, m_HUD_x, m_HUD_y + 260, 120, 15);
-
-    torque = driveline->GetWheelTorque(ChWheelID(axles[0], RIGHT));
-    sprintf(msg, "Torque wheel FR: %+.2f", torque);
-    renderLinGauge(std::string(msg), torque / 5000, false, m_HUD_x, m_HUD_y + 280, 120, 15);
-
-    torque = driveline->GetWheelTorque(ChWheelID(axles[1], LEFT));
-    sprintf(msg, "Torque wheel RL: %+.2f", torque);
-    renderLinGauge(std::string(msg), torque / 5000, false, m_HUD_x, m_HUD_y + 300, 120, 15);
-
-    torque = driveline->GetWheelTorque(ChWheelID(axles[1], RIGHT));
-    sprintf(msg, "Torque wheel FR: %+.2f", torque);
-    renderLinGauge(std::string(msg), torque / 5000, false, m_HUD_x, m_HUD_y + 320, 120, 15);
-  }
+  torque = driveline->GetWheelTorque(ChWheelID(axle, RIGHT));
+  sprintf(msg, "Torque wheel R: %+.2f", torque);
+  renderLinGauge(std::string(msg), torque / 5000, false, m_HUD_x, m_HUD_y + 280, 120, 15);
+ 
 
 }
 
