@@ -23,6 +23,7 @@
 #include "physics/ChSystem.h"
 #include "subsys/trackSystem/TrackSystem.h"
 #include "subsys/powertrain/TrackPowertrain.h"
+#include "subsys/driveline/TrackDriveline.h"
 
 namespace chrono {
 
@@ -61,6 +62,7 @@ private:
   std::vector<ChVector<> > m_TrackSystem_locs;   // locations of the track system c-sys relative to chassis
   std::vector<ChSharedPtr<TrackSystem> > m_TrackSystems;	// list of track systems
 
+  ChSharedPtr<TrackDriveline>   m_driveline;    ///< handle to the driveline subsystem
   ChSharedPtr<TrackPowertrain> m_ptrain;  ///< powertrain system
 
   static const double     m_Mass;                   // chassis mass

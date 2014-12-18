@@ -27,6 +27,7 @@
 #include "TrackVehicle.h"
 
 #include "subsys/trackSystem/TrackSystem.h"
+#include "subsys/driveline/TrackDriveline.h"
 
 #include "utils/ChUtilsInputOutput.h"
 #include "utils/ChUtilsData.h"
@@ -98,7 +99,7 @@ TrackVehicle::TrackVehicle(bool fixed, bool chassisVis)
   }
 
   // create the powertrain and drivelines
-
+  m_driveline = ChSharedPtr<TrackDriveline>(new TrackDriveline);
 
 }
 
