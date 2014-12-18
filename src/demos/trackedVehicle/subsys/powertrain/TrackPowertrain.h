@@ -94,7 +94,7 @@ public:
   double GetIngearShaftInertia() const     { return m_ingear_shaft_inertia; }
   
   /// Use this function to set the mode of automatic transmission.
-  void SetDriveMode(ChPowertrain::DriveMode mmode);
+  void SetDriveMode(DriveMode mmode);
 
   /// Use this function to shift from one gear to another.
   /// A zero latency shift is assumed.

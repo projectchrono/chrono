@@ -159,7 +159,7 @@ void TrackPowertrain::SetSelectedGear(int igear)
 }
 
 
-void TrackPowertrain::SetDriveMode(ChPowertrain::DriveMode mmode)
+void TrackPowertrain::SetDriveMode(DriveMode mmode)
 {
   if (m_drive_mode == mmode) return;
 
