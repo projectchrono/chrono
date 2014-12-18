@@ -8,7 +8,7 @@ SET(ENABLE_TRACKED_VEHICLE
 
 # require irrlicht
 IF(NOT ENABLE_UNIT_IRRLICHT)
-  MESSAGE(STATUS "need irrlicht for GUI input")
+  MESSAGE(WARNING "need irrlicht for GUI input")
   RETURN()
 ENDIF()
 
@@ -25,6 +25,7 @@ SET(ChronoEngine_unit_TrackedVehicle_SOURCES
 	subsys/driveGear/DriveGear.cpp
 	subsys/driver/ChDriverTrack.cpp
 	subsys/idler/IdlerSimple.cpp
+	subsys/powertrain/TrackPowerTrain.cpp
 	subsys/suspension/TorsionArmSuspension.cpp
 	subsys/trackChain/TrackChain.cpp
 	subsys/trackSystem/TrackSystem.cpp
@@ -36,11 +37,13 @@ SET(ChronoEngine_unit_TrackedVehicle_HEADERS
 	subsys/driveGear/DriveGear.h
 	subsys/driver/ChDriverTrack.h
 	subsys/idler/IdlerSimple.h
+	subsys/powertrain/TrackPowerTrain.h
 	subsys/suspension/TorsionArmSuspension.h
 	subsys/trackChain/TrackChain.h
 	subsys/trackSystem/TrackSystem.h
 	subsys/trackVehicle/TrackVehicle.h
 )
+
 
 SOURCE_GROUP(trackedVehicle FILES
 	${ChronoEngine_unit_TrackedVehicle_SOURCES}
@@ -58,10 +61,11 @@ SET_TARGET_PROPERTIES(TrackedVehicle PROPERTIES
                           COMPILE_DEFINITIONS "CH_API_COMPILE_UNIT_TRACKS")
                           
 TARGET_LINK_LIBRARIES(TrackedVehicle 
+	Chrono_Utils
 	ChronoEngine
 )
 	
-ADD_DEPENDENCIES (TrackedVehicle ChronoEngine)  #  not automatic
+ADD_DEPENDENCIES (TrackedVehicle ChronoEngine Chrono_Utils)  #  not automatic
 		
 INCLUDE_DIRECTORIES( ${CMAKE_SOURCE_DIR}/demos/trackedVehicle 
 					${CH_IRRLICHTINC} )
@@ -100,6 +104,7 @@ TARGET_LINK_LIBRARIES(demo_tracked_M113
 	ChronoEngine
 	ChronoEngine_IRRLICHT
 	TrackedVehicle
+	Chrono_Utils
     ${CH_IRRLICHTLIB}
 )
 
