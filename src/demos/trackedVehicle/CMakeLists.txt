@@ -25,6 +25,7 @@ SET(ChronoEngine_unit_TrackedVehicle_SOURCES
 	subsys/driveGear/DriveGear.cpp
 	subsys/driveline/TrackDriveline.cpp
 	subsys/driver/ChDriverTrack.cpp
+	subsys/driver/ChIrrGuiTrack.cpp
 	subsys/idler/IdlerSimple.cpp
 	subsys/powertrain/TrackPowerTrain.cpp
 	subsys/suspension/TorsionArmSuspension.cpp
@@ -38,6 +39,7 @@ SET(ChronoEngine_unit_TrackedVehicle_HEADERS
 	subsys/driveGear/DriveGear.h
 	subsys/driveline/TrackDriveline.h
 	subsys/driver/ChDriverTrack.h
+	subsys/driver/ChIrrGuiTrack.h
 	subsys/idler/IdlerSimple.h
 	subsys/powertrain/TrackPowerTrain.h
 	subsys/suspension/TorsionArmSuspension.h
