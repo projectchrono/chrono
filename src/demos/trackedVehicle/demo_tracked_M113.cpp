@@ -22,50 +22,128 @@
   
  
 #include "physics/ChSystem.h"
-#include "particlefactory/ChParticleEmitter.h"
+// #include "particlefactory/ChParticleEmitter.h"
+
+
+#include "core/ChFileutils.h"
+#include "core/ChStream.h"
+#include "core/ChRealtimeStep.h"
+#include "physics/ChSystem.h"
+#include "physics/ChLinkDistance.h"
+
+#include "utils/ChUtilsInputOutput.h"
+#include "utils/ChUtilsData.h"
 #include "assets/ChTexture.h"
 #include "assets/ChColorAsset.h"
+/*
+#if IRRLICHT_ENABLED
+*/
 #include "unit_IRRLICHT/ChIrrApp.h"
 #include "subsys/driver/ChIrrGuiTrack.h"
- 
+ /*
+ # define USE_IRRLICHT
+#endif
+ */
 #include "subsys/trackVehicle/trackVehicle.h"
 
-// Use the main namespace of Chrono, and other chrono namespaces
-
+// Use the main namespace of Chrono
 using namespace chrono;
-using namespace chrono::geometry;
 
 // Use the main namespaces of Irrlicht
 using namespace irr;    
 using namespace core;
-using namespace scene; 
-using namespace video;
-using namespace io; 
-using namespace gui; 
 
-#include <irrlicht.h>
+
+// // Initial vehicle position
+ChVector<> initLoc(0, 1.0, 0);
+// Initial vehicle orientation
+ChQuaternion<> initRot(1, 0, 0, 0);
+//ChQuaternion<> initRot(0.866025, 0, 0, 0.5);
+//ChQuaternion<> initRot(0.7071068, 0, 0, 0.7071068);
+//ChQuaternion<> initRot(0.25882, 0, 0, 0.965926);
+//ChQuaternion<> initRot(0, 0, 0, 1);
+
+// Simulation step size
+double step_size = 0.001;
+
+// Time interval between two render frames
+int FPS = 50;
+double render_step_size = 1.0 / FPS;   // FPS = 50
+
+// #ifdef USE_IRRLICHT
+  // Point on chassis tracked by the camera
+  ChVector<> trackPoint(0.0, 0.0, .75);
+  /*
+#else
+  double tend = 20.0;
+
+  const std::string out_dir = "../HMMWV9";
+  const std::string pov_dir = out_dir + "/POVRAY";
+#endif
+  */
 
 
 
 
 int main(int argc, char* argv[])
 {
-  // no system to create, it's in the trackVehicle
 
-	// ..the tank (this class - see above - is a 'set' of bodies and links, automatically added at creation)
+  // no system to create, it's in the TrackVehicle
 	TrackVehicle vehicle("name");
 
+  vehicle.Initialize(ChCoordsys<>(initLoc, initRot));
+
+/*
+#ifdef USE_IRRLICHT
+*/
 	// Create the Irrlicht visualization applicaiton
-	ChIrrApp application(&vehicle, L"Modeling a simplified   tank",core::dimension2d<u32>(800,600),false, true); 
-
-
-	// Easy shortcuts to add logo, camera, lights and sky in Irrlicht scene:
-	ChIrrWizard::add_typical_Logo(application.GetDevice());
-	ChIrrWizard::add_typical_Sky(application.GetDevice());
-	ChIrrWizard::add_typical_Lights(application.GetDevice());
-	ChIrrWizard::add_typical_Camera(application.GetDevice(), core::vector3df(0,0,-6), core::vector3df(-2,2,0));
-
+  ChIrrApp application(&vehicle,
+                      L"HMMWV 9-body demo",
+                      dimension2d<u32>(1000, 800),
+                      false,
+                      true);
 	
+  // make a skybox that has Z pointing up (default application.AddTypicalSky() makes Y up) 
+  std::string mtexturedir = GetChronoDataFile("skybox/");
+  std::string str_lf = mtexturedir + "sky_lf.jpg";
+  std::string str_up = mtexturedir + "sky_up.jpg";
+  std::string str_dn = mtexturedir + "sky_dn.jpg";
+  irr::video::ITexture* map_skybox_side = 
+      application.GetVideoDriver()->getTexture(str_lf.c_str());
+  irr::scene::ISceneNode* mbox = application.GetSceneManager()->addSkyBoxSceneNode(
+      application.GetVideoDriver()->getTexture(str_up.c_str()),
+      application.GetVideoDriver()->getTexture(str_dn.c_str()),
+      map_skybox_side,
+      map_skybox_side,
+      map_skybox_side,
+      map_skybox_side);
+  mbox->setRotation( irr::core::vector3df(0,0,0));
+ 
+  bool do_shadows = true; // shadow map is experimental
+  irr::scene::ILightSceneNode* mlight = 0;
+
+  if (do_shadows)
+  {
+    mlight = application.AddLightWithShadow(
+      irr::core::vector3df(10.f, 30.f, 60.f),
+      irr::core::vector3df(0.f, 0.f, 0.f),
+      150, 60, 80, 15, 512, irr::video::SColorf(1, 1, 1), false, false);
+  }
+  else
+  {
+    application.AddTypicalLights(
+      irr::core::vector3df(30.f, -30.f, 100.f),
+      irr::core::vector3df(30.f, 50.f, 100.f),
+      250, 130);
+  }
+
+  application.SetTimestep(step_size);
+
+  ChIrrGuiTrack driver();
+
+
+
+
 	// ground plate
   ChSharedPtr<ChBody> ground(new ChBodyEasyBox(60.0, 1.0, 100.0, 1000.0, true, true);
 										
