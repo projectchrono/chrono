@@ -26,6 +26,7 @@
 #include "assets/ChTexture.h"
 #include "assets/ChColorAsset.h"
 #include "unit_IRRLICHT/ChIrrApp.h"
+#include "subsys/driver/ChIrrGuiTrack.h"
  
 #include "subsys/trackVehicle/trackVehicle.h"
 
@@ -46,93 +47,6 @@ using namespace gui;
 
 
 
-
-
-// Define a MyEventReceiver class which will be used to manage input
-// from the GUI graphical user interface (the interface will
-// be created with the basic -yet flexible- platform
-// independent toolset of Irrlicht).
-
-class MyEventReceiver : public IEventReceiver
-{
-public:
-
-	MyEventReceiver(ChIrrApp* app,
-					TrackVehicle* vehicle)
-          : m_app(app), m_vehicle(vehicle)
-			{
-
-
-				// ..add a GUI slider to control throttle left via mouse
-				scrollbar_throttleL = m_app->GetIGUIEnvironment()->addScrollBar(
-								true, rect<s32>(510, 20, 650, 35), 0, 101);
-				scrollbar_throttleL->setMax(100); 
-				scrollbar_throttleL->setPos(50);
-				text_throttleL = m_app->GetIGUIEnvironment()->addStaticText(
-							L"Left throttle ", rect<s32>(650,20,750,35), false);
-
-				// ..add a GUI slider to control gas throttle right via mouse
-				scrollbar_throttleR = m_app->GetIGUIEnvironment()->addScrollBar(
-								true, rect<s32>(510, 45, 650, 60), 0, 102);
-				scrollbar_throttleR->setMax(100); 
-				scrollbar_throttleR->setPos(50);
-				text_throttleR = m_app->GetIGUIEnvironment()->addStaticText(
-							L"Right throttle", rect<s32>(650,45,750,60), false);
-			}
-
-	bool OnEvent(const SEvent& event)
-			{
-
-				// check if user moved the sliders with mouse..
-				if (event.EventType == EET_GUI_EVENT)
-				{
-					s32 id = event.GUIEvent.Caller->getID();
-					IGUIEnvironment* env = m_app->GetIGUIEnvironment();
-
-					switch(event.GUIEvent.EventType)
-					{
-					case EGET_SCROLL_BAR_CHANGED:
-							if (id == 101) // id of 'throttleL' slider..
-							{
-								s32 pos = ((IGUIScrollBar*)event.GUIEvent.Caller)->getPos();
-								double newthrottle =  ((double)(pos)-50)/50.0 ;
-								this->m_vehicle->throttleL=newthrottle;
-                                if (ChSharedPtr<ChFunction_Const> mfun = mtank->link_revoluteLB->Get_spe_funct().DynamicCastTo<ChFunction_Const>())
-									mfun->Set_yconst(newthrottle*6);
-								return true;
-							}
-							if (id == 102) // id of 'throttleR' slider..
-							{
-								s32 pos = ((IGUIScrollBar*)event.GUIEvent.Caller)->getPos();
-								double newthrottle =  ((double)(pos)-50)/50.0 ;
-								this->m_vehicle->throttleR=newthrottle;
-                                if (ChSharedPtr<ChFunction_Const> mfun = mtank->link_revoluteRB->Get_spe_funct().DynamicCastTo<ChFunction_Const>())
-									mfun->Set_yconst(newthrottle*6);
-								return true;
-							}
-					break;
-					}
-					
-				} 
-
-				return false;
-			}
-
-private:
-	ChIrrApp* m_app;
-	TrackVehicle*    m_vehicle;
-
-	IGUIStaticText* text_throttleL;
-	IGUIScrollBar*  scrollbar_throttleL;
-	IGUIStaticText* text_throttleR;
-	IGUIScrollBar*  scrollbar_throttleR;
-};
-
-
-
-//
-// This is the program which is executed
-//
 
 int main(int argc, char* argv[])
 {
