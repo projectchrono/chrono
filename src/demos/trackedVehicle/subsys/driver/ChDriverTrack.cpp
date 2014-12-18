@@ -23,7 +23,7 @@
 #include <sstream>
 #include <fstream>
 
-#include "subsys/ChDriverTrack.h"
+#include "subsys/driver/ChDriverTrack.h"
 
 
 namespace chrono {
@@ -59,9 +59,9 @@ bool ChDriverTrack::Log(double time)
   if (!ofile)
     return false;
 
-  for(int i = 0; i < m_throttle.Size(); i++) 
+  for(int i = 0; i < m_throttle.size(); i++) 
   {
-    ofile << time << "\t" << i << "\t" << m_throttle << "\t" << m_braking << std::endl;
+    ofile << time << "\t" << i << "\t" << m_throttle[i] << std::endl;
   }
   ofile.close();
   return true;
@@ -79,15 +79,11 @@ double ChDriverTrack::clamp(double val, double min_val, double max_val)
   return val;
 }
 
-void ChDriverTrack::SetThrottle(double val, double min_val, double max_val, int track_idx)
+void ChDriverTrack::SetThrottle(double val, int track_idx, double min_val, double max_val)
 {
   m_throttle[track_idx] = clamp(val, min_val, max_val);
 }
 
-void ChDriverTrack::SetBraking(double val, double min_val, double max_val, int track_idx)
-{
-  m_braking[track_idx] = clamp(val, min_val, max_val);
-}
 
 
 }  // end namespace chrono
