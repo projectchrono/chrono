@@ -26,7 +26,7 @@
 namespace chrono {
 
 
-class CH_SUBSYS_API DriveGear
+class CH_SUBSYS_API DriveGear : public ChShared
 {
 public:
 

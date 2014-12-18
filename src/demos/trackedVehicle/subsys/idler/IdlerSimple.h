@@ -28,7 +28,7 @@
 namespace chrono {
 
 
-class CH_SUBSYS_API IdlerSimple
+class CH_SUBSYS_API IdlerSimple : public ChShared
 {
 public:
 
