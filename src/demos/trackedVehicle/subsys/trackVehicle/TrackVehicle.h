@@ -51,6 +51,8 @@ public:
   /// Get the current value of the integration step size for the vehicle system.
   double GetStepsize() const { return m_stepsize; }
 
+  ChSharedPtr<ChBody> GetChassis() { return m_chassis; }
+
 private:
 
   void Load_TrackSystem(const std::string& filename, int track);
