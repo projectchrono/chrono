@@ -29,12 +29,9 @@
 
 namespace chrono {
 
-///
 /// Base class for a tracked vehicle driver system.
-/// A driver system must be able to report the current values of the inputs
-/// (throttle, braking). A concrete driver class must set the member
-/// variables m_throttle, and m_braking for each track system
-///
+/// A driver system must be able to report the current values of the inputs,
+/// which are the inputs to each drive gear system
 class CH_SUBSYS_API ChDriverTrack : public ChShared
 {
 public:
@@ -64,14 +61,11 @@ protected:
   /// clamp to interval
   double clamp(double val, double min_val, double max_val);
 
-  /// Set the value for the driver steering input.
-  void SetSteering(double val, double min_val = -1, double max_val = 1);
-
   /// Set the value for the driver throttle input.
   void SetThrottle(double val, int track_idx, double min_val = 0, double max_val = 1);
 
   /// Set the value for the driver braking input.
-  void SetBraking(double val, double min_val = 0, double max_val = 1);
+  void SetBraking(double val, int track_idx, double min_val = 0, double max_val = 1);
 
   std::vector<double> m_throttle;   ///< current value of throttle input for each track system
   std::vector<double> m_braking;    ///< current value of braking input for each track system

@@ -61,7 +61,7 @@ bool ChDriverTrack::Log(double time)
 
   for(int i = 0; i < m_throttle.size(); i++) 
   {
-    ofile << time << "\t" << i << "\t" << m_throttle[i] << std::endl;
+    ofile << time << "\t" << i << "\t" << m_throttle[i] <<  "\t" << m_braking[i] << std::endl;
   }
   ofile.close();
   return true;
@@ -84,6 +84,9 @@ void ChDriverTrack::SetThrottle(double val, int track_idx, double min_val, doubl
   m_throttle[track_idx] = clamp(val, min_val, max_val);
 }
 
-
+void ChDriverTrack::SetBraking(double val, int track_idx, double min_val, double max_val)
+{
+  m_braking[track_idx] = clamp(val, min_val, max_val);
+}
 
 }  // end namespace chrono
