@@ -23,6 +23,7 @@ cmake_minimum_required(VERSION 2.8)
 
 SET(ChronoEngine_unit_TrackedVehicle_SOURCES
 	subsys/driveGear/DriveGear.cpp
+	subsys/driveline/TrackDriveline.cpp
 	subsys/driver/ChDriverTrack.cpp
 	subsys/idler/IdlerSimple.cpp
 	subsys/powertrain/TrackPowerTrain.cpp
@@ -35,6 +36,7 @@ SET(ChronoEngine_unit_TrackedVehicle_SOURCES
 SET(ChronoEngine_unit_TrackedVehicle_HEADERS
 	subsys/ChApiSubsys.h
 	subsys/driveGear/DriveGear.h
+	subsys/driveline/TrackDriveline.h
 	subsys/driver/ChDriverTrack.h
 	subsys/idler/IdlerSimple.h
 	subsys/powertrain/TrackPowerTrain.h
