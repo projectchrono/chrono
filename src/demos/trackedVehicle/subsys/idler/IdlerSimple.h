@@ -21,6 +21,9 @@
 #define IDLERSIMPLE_H
 
 #include "subsys/ChApiSubsys.h"
+#include "physics/ChSystem.h"
+#include "physics/ChBodyAuxRef.h"
+
 
 namespace chrono {
 
@@ -29,13 +32,15 @@ class CH_SUBSYS_API IdlerSimple
 {
 public:
 
-  IdlerSimple(double mass, const ChVector<>& inertia, double radius, double width, double K, double C);
+  IdlerSimple(double mass, const ChVector<>& inertia, 
+    double radius, double width, 
+    double K, double C);
 
   ~IdlerSimple() {}
 
   void Initialize(ChSharedPtr<ChBodyAuxRef> chassis,
-                             const ChVector<>&         location,
-                             const ChQuaternion<>&     rotation);
+                  const ChVector<>&         location,
+                  const ChQuaternion<>&     rotation);
   
   
   double getSpringCoefficient() const { return m_springK; }

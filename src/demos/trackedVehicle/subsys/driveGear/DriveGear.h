@@ -20,6 +20,8 @@
 #define DRIVEGEAR_H
 
 #include "subsys/ChApiSubsys.h"
+#include "physics/ChSystem.h"
+#include "physics/ChBodyAuxRef.h"
 
 namespace chrono {
 

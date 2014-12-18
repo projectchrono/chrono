@@ -21,6 +21,8 @@
 
 #include "subsys/ChApiSubsys.h"
 #include "assets/ChTriangleMeshShape.h"
+#include "physics/ChSystem.h"
+#include "physics/ChBody.h"
 
 namespace chrono {
 
