@@ -47,17 +47,15 @@ const ChCoordsys<> TrackVehicle::m_driverCsys(ChVector<>(0.0, 0.5, 1.2), ChQuate
 
 
 
-
-void TrackVehicle::Load_TrackSystem(const std::string& name, int track)
-{
-  
-  m_TrackSystems[track] = ChSharedPtr<TrackSystem>(new TrackSystem(name, track));
-  
-}
-
-
 TrackVehicle::TrackVehicle(bool fixed, bool chassisVis)
 {
+  // Integration settings
+  // Integration and Solver settings
+  SetLcpSolverType(ChSystem::LCP_ITERATIVE_SOR);
+  SetIterLCPmaxItersSpeed(150);
+  SetIterLCPmaxItersStab(150);
+  SetMaxPenetrationRecoverySpeed(4.0);
+
   // create the chassis body    
   m_chassis = ChSharedPtr<ChBodyAuxRef>(new ChBodyAuxRef);
   m_chassis->SetIdentifier(0);
@@ -89,17 +87,21 @@ TrackVehicle::TrackVehicle(bool fixed, bool chassisVis)
 
 
   m_num_tracks = 2;
-
+  // resize the vectors for the number of track systems to use
   m_TrackSystems.resize(m_num_tracks);
   m_TrackSystem_locs.resize(m_num_tracks);
+  m_drivelines.resize(m_num_tracks);
+  m_ptrains.resize(m_num_tracks);
 
   // create track systems
   for (int i = 0; i < m_num_tracks; i++) {
-    Load_TrackSystem("track chain system", i);
+    m_TrackSystems[i] = ChSharedPtr<TrackSystem>(new TrackSystem("track chain"+std::to_string(i), i));
+    // create the powertrain and drivelines
+    m_drivelines[i] = ChSharedPtr<TrackDriveline>(new TrackDriveline);
+    m_ptrains[i] = ChSharedPtr<TrackPowertrain>(new TrackPowertrain);
+  
   }
 
-  // create the powertrain and drivelines
-  m_driveline = ChSharedPtr<TrackDriveline>(new TrackDriveline);
 
 }
 
@@ -120,14 +122,26 @@ void TrackVehicle::Initialize(const ChCoordsys<>& chassisPos)
 
 
 void TrackVehicle::Update(double	time,
-                          double	left_drive_input,
-                          double	right_drive_input)
+                          const std::vector<double>&  throttle,
+                          const std::vector<double>&  braking)
 {
  
-  // apply sprocket inputs, left = 0, right = 1
-  m_TrackSystems[0]->ApplyTireForce(left_drive_input);
-  m_TrackSystems[1]->ApplyTireForce(right_drive_input);
+  // update left and right powertrains, with the new left and right throttle/shaftspeed
+  m_ptrains[0]->Update(time, throttle[0], m_drivelines[0]->GetDriveshaftSpeed() );
+  m_ptrains[1]->Update(time, throttle[1], m_drivelines[1]->GetDriveshaftSpeed() );
 }
+
+
+void TrackVehicle::Advance(double step)
+{
+  double t = 0;
+  while (t < step) {
+    double h = std::min<>(m_stepsize, step - t);
+    DoStepDynamics(h);
+    t += h;
+  }
+}
+
 
 
 } // end namespace chrono

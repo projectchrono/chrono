@@ -9,10 +9,11 @@
 // http://projectchrono.org/license-chrono.txt.
 //
 // =============================================================================
-// Authors: Justin Madsen
+// Authors: Justin Madsen, 
 // =============================================================================
 //
-// Tracked vehicle model built from subsystems specified w/ JSON input data file
+// Tracked vehicle model built from subsystems specified with hardcoded values
+// as static const variables in the subsystem .cpp files
 //
 // =============================================================================
 
@@ -64,15 +65,15 @@ private:
   std::vector<ChVector<> > m_TrackSystem_locs;   // locations of the track system c-sys relative to chassis
   std::vector<ChSharedPtr<TrackSystem> > m_TrackSystems;	// list of track systems
 
-  ChSharedPtr<TrackDriveline>   m_driveline;    ///< handle to the driveline subsystem
-  ChSharedPtr<TrackPowertrain> m_ptrain;  ///< powertrain system
+  std::vector<ChSharedPtr<TrackDriveline>>   m_drivelines;    ///< handle to the driveline subsystem, one for each powertrain/drivegear pair
+  std::vector<ChSharedPtr<TrackPowertrain>>  m_ptrains;  ///< powertrain system, one per track system
 
   static const double     m_Mass;                   // chassis mass
   static const ChVector<> m_COM;                    // location of the chassis COM in the local ref frame
   static const ChVector<> m_Inertia;                // symmetric moments of inertia of the chassis
 
   static const ChCoordsys<> m_driverCsys;  // driver position and orientation relative to chassis
-  static const std::string m_MeshFile;
+  static const std::string  m_MeshFile;
 
   double m_stepsize;          ///< integration time step for tracked vehicle system
 
