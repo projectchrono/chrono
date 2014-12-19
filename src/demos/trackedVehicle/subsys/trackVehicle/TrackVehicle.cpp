@@ -114,19 +114,19 @@ void TrackVehicle::Initialize(const ChCoordsys<>& chassisPos)
   // Initialize the suspension, wheel, and brake subsystems.
   for (int i = 0; i < m_num_tracks; i++)
   {
-    m_TrackSystems[i]->Initialize(m_chassis, m_TrackSystem_locs[i];
+    m_TrackSystems[i]->Initialize(m_chassis, m_TrackSystem_locs[i], QUNIT);
   }
 }
 
 
 void TrackVehicle::Update(double	time,
-                     double	left_drive_input,
-					 double	right_drive_input);
+                          double	left_drive_input,
+                          double	right_drive_input)
 {
  
   // apply sprocket inputs, left = 0, right = 1
-  m_TrackSystems[LEFT]->ApplyTireForce(left_drive_input);
-  m_TrackSystems[RIGHT]->ApplyTireForce(right_drive_input);
+  m_TrackSystems[0]->ApplyTireForce(left_drive_input);
+  m_TrackSystems[1]->ApplyTireForce(right_drive_input);
 }
 
 
