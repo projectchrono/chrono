@@ -131,15 +131,36 @@ void TrackSystem::Initialize(ChSharedPtr<ChBodyAuxRef> chassis,
 			 const ChVector<>&         location,
 			 const ChQuaternion<>&     rotation)
 {
-  m_driveGear->Initialize(chassis, m_gearPos, m_gearMass, m_gearInertia, m_gearRadius); 
-  m_idler->Initialize(chassis, m_idlerPos, m_idlerMass, m_idlerInertia, m_idler_K, m_idler_C, m_idlerRadius, m_idlerWidth);
+  // initialize 1 of each of the following subsystems:
+  m_driveGear->Initialize(chassis, m_gearPos, QUNIT);
+  m_idler->Initialize(chassis, m_idlerPos, QUNIT);
   
+  // initialize the road wheels & torsion arm suspension subsystems
   for(int i = 0; i < m_suspensionLocs.size(); i++)
   {
-    m_suspensions[i]->Initialize(chassis, m_suspensionFileName);
+    m_suspensions[i]->Initialize(chassis, m_suspensionLocs[i], QUNIT);
+  }
+
+  // initialize the support rollers 
+  for(int j = 0; j < m_rollerLocs.size(); j++)
+  {
+    initialize_roller(m_supportRollers[j], m_rollerLocs[j], QUNIT, j);
   }
   
 }
 
+
+// initialize a roller at the specified location and orientation
+void TrackSystem::initialize_roller(ChSharedPtr<ChBody> body, const ChVector<>& loc, const ChQuaternion<>& rot, int idx)
+{
+  body->SetPos(loc);
+  body->SetRot(rot);
+  body->SetMass(m_rollerMass);
+
+  // add the revolute joint at the location and w/ orientation specified
+
+
+  // Add a visual asset
+}
 
 } // end namespace chrono
