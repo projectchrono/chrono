@@ -40,7 +40,6 @@ namespace chrono {
 // -----------------------------------------------------------------------------
 ChIrrGuiTrack::ChIrrGuiTrack(ChIrrApp&           app,
                             TrackVehicle&       vehicle,
-                            TrackPowertrain&    powertrain,
                             const ChVector<>&   ptOnChassis,
                             double              chaseDist,
                             double              chaseHeight,
@@ -48,7 +47,7 @@ ChIrrGuiTrack::ChIrrGuiTrack(ChIrrApp&           app,
                             int                 HUD_y)
 : m_app(app),
   m_vehicle(vehicle),
-  m_powertrain(powertrain),
+  m_powertrain(*(vehicle.GetPowertrain().get_ptr())),
   m_HUD_x(HUD_x),
   m_HUD_y(HUD_y),
   m_terrainHeight(0),
