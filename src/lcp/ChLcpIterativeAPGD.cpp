@@ -124,9 +124,18 @@ double ChIterativeAPGD::Solve(ChLcpSystemDescriptor& sysd) {
   sysd.FromVariablesToVector(Minvk, true);
 
   // (1) gamma_0 = zeros(nc,1)
-  gamma.FillElem(0);
-  for (int i = 0; i < gamma.GetRows(); i = i + 3)
-    gamma.SetElement(i,0, -1);
+  if (warm_start)
+  {
+    for (unsigned int ic = 0; ic< mconstraints.size(); ic++)
+      if (mconstraints[ic]->IsActive())
+        mconstraints[ic]->Increment_q(mconstraints[ic]->Get_l_i());
+  }
+  else
+  {
+    for (unsigned int ic = 0; ic< mconstraints.size(); ic++)
+      mconstraints[ic]->Set_l_i(0.);
+  }
+  sysd.FromConstraintsToVector(gamma);
 
   // (2) gamma_hat_0 = ones(nc,1)
   gamma_hat.FillElem(1);
