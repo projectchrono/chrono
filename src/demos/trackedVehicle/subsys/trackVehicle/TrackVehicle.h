@@ -36,28 +36,69 @@ public:
 
   ~TrackVehicle() {}
 
-  int GetNum_TrackSystems() const { return m_num_tracks; }
-
-  virtual ChCoordsys<> GetLocalDriverCoordsys() const { return m_driverCsys; }
-
+  /// Initialize the tracked vehicle at the location of the chassis
   void Initialize(const ChCoordsys<>& chassisPos);
   
+  /// Update the vehicle with the new settings for throttle and brake
   void Update(double	time,
-              double	left_drive_input,
-			        double	right_drive_input);
+              const std::vector<double>&  throttle,
+			        const std::vector<double>&  braking);
 
-  /// Set the integration step size for the vehicle system.
+  /// Advance the vehicle (and the ChSystem)
+  void Advance(double step);
+
+
+
+  /// integration step size for the vehicle system.
   void SetStepsize(double val) { m_stepsize = val; }
 
-  /// Get the current value of the integration step size for the vehicle system.
+  // Accessors
+
+  /// global location of the chassis reference frame origin.
+  const ChVector<>& GetChassisPos() const { return m_chassis->GetFrame_REF_to_abs().GetPos(); }
+
+  /// orientation of the chassis reference frame.
+  /// The chassis orientation is returned as a quaternion representing a
+  /// rotation with respect to the global reference frame.
+  const ChQuaternion<>& GetChassisRot() const { return m_chassis->GetFrame_REF_to_abs().GetRot(); }
+
+  /// global location of the chassis center of mass.
+  const ChVector<>& GetChassisPosCOM() const { return m_chassis->GetPos(); }
+
+  /// orientation of the chassis centroidal frame.
+  /// The chassis orientation is returned as a quaternion representing a
+  /// rotation with respect to the global reference frame.
+  const ChQuaternion<>& GetChassisRotCOM() const { return m_chassis->GetRot(); }
+
+  /// vehicle speed.
+  /// Return the speed measured at the origin of the chassis reference frame.
+  double GetVehicleSpeed() const { return m_chassis->GetFrame_REF_to_abs().GetPos_dt().Length(); }
+
+  /// speed of the chassis COM.
+  /// Return the speed measured at the chassis center of mass.
+  double GetVehicleSpeedCOM() const { return m_chassis->GetPos_dt().Length(); }
+
+  /// vehicle's driveline subsystem.
+  const ChSharedPtr<TrackDriveline> GetDriveline(int idx) const { return m_drivelines[idx]; }
+
+  /// vehicle's driveshaft body.
+  const ChSharedPtr<ChShaft> GetDriveshaft() const;
+
+  /// current value of the integration step size for the vehicle system.
   double GetStepsize() const { return m_stepsize; }
 
+  /// shared pointer to chassis body
   ChSharedPtr<ChBody> GetChassis() { return m_chassis; }
 
+  /// shared pointer to the powertrain
+  ChSharedPtr<TrackPowertrain> GetPowertrain(int idx) { return m_ptrains[idx]; }
+
+  /// number of track chain systems attached to the vehicle
+  int GetNum_TrackSystems() const { return m_num_tracks; }
+
+  ChCoordsys<> GetLocalDriverCoordsys() const { return m_driverCsys; }
+
 private:
-
-  void Load_TrackSystem(const std::string& filename, int track);
-
 
   ChSharedPtr<ChBodyAuxRef> m_chassis;  ///< hull body
   int m_num_tracks;       // number of tracks for this vehicle
