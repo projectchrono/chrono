@@ -39,11 +39,20 @@ public:
   ChDriverTrack(int num_tracks);
   virtual ~ChDriverTrack() {}
 
-  /// Get the driver throttle input (in the range [0,1])
+  /// throttle input (in the range [0,1])
   double GetThrottle(int track_idx) const { return m_throttle[track_idx]; }
 
-  /// Get the driver braking input (in the range [0,1])
+  /// throttle input for all drive gears
+  std::vector<double> GetThrottle() const { return m_throttle; }
+
+  /// braking input (in the range [0,1])
   double GetBraking(int track_idx) const  { return m_braking[track_idx]; }
+
+  /// braking input for all drive gears
+  std::vector<double> GetBraking( ) const { return m_braking; }
+
+  /// steering input for the vehicle
+  double GetSteering( ) const { return m_steering; }
 
   /// Update the state of this driver system at the current time.
   virtual void Update(double time) {}
