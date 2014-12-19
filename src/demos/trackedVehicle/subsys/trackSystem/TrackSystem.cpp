@@ -95,10 +95,12 @@ void TrackSystem::Create(int track_idx)
   assert(d["Track Chain"].IsObject()); 
   m_trackChainFilename = d["Track Chain"]["Input File"].GetString()
   
-  // create the various subsystems
-  BuildSubsystems();
 
   */
+  // create the various subsystems, from the static variables
+  BuildSubsystems();
+
+ 
 }
 
 void TrackSystem::BuildSubsystems()
@@ -117,9 +119,10 @@ void TrackSystem::BuildSubsystems()
   
   // build support wheel subsystems
   m_supportRollers.resize(m_NumRollers);
+  m_supportRollers_rev.resize(m_NumRollers);
   for(int j = 0; j < m_NumRollers; j++)
   {
-    m_supportRollers[i] = ChSharedPtr<ChBody>(new ChBody);
+    m_supportRollers[j] = ChSharedPtr<ChBody>(new ChBody);
   }
 
 }
