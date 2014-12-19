@@ -64,11 +64,14 @@ protected:
   /// Set the value for the driver throttle input.
   void SetThrottle(double val, int track_idx, double min_val = 0, double max_val = 1);
 
+  /// Set all the throttles at once
+  void SetThrottle(double delta_throttle, double min_val = 0, double max_val = 1);
+
   /// Set the value for the driver braking input.
   void SetBraking(double val, int track_idx, double min_val = 0, double max_val = 1);
 
-  /// no need for a track index, modify both at once in ChIrrGuiTrack
-  virtual void SetSteering(double val, double min_val = 0, double max_val = 1);
+  /// negative steer increment = left turn, and vice versa. Just modifies throttles on both sides
+  void SetSteering(double delta_steering, double min_val = 0, double max_val = 1);
 
   std::vector<double> m_throttle;   ///< current value of throttle input for each track system
   std::vector<double> m_braking;    ///< current value of braking input for each track system
