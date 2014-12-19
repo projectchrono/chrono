@@ -35,7 +35,6 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
 #include <glm/gtx/intersect.hpp>
-#include <glm/gtx/constants.hpp>
 #include <glm/gtx/spline.hpp>
 
 #include <iostream>
