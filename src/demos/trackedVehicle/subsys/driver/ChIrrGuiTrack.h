@@ -12,8 +12,8 @@
 // Authors: Justin Madsen, Radu Serban
 // =============================================================================
 //
-// Irrlicht-based GUI driver for the a vehicle. This class implements the
-// functionality required by its base ChDriver class using keyboard inputs.
+// Irrlicht-based GUI driver for the a tracked vehicle. This class implements the
+// functionality required by its base ChDriverTrack class using keyboard inputs.
 // As an Irrlicht event receiver, its OnEvent() callback is used to keep track
 // and update the current driver inputs. As such it does not need to override
 // the default no-op Update() virtual method.
@@ -73,6 +73,8 @@ public:
   void SetBrakingDelta (double delta)  { m_brakingDelta = delta; }
 
   void SetStepsize(double val) { m_stepsize = val; }
+
+  // Accessors
   double GetStepsize() const { return m_stepsize; }
 
 private:

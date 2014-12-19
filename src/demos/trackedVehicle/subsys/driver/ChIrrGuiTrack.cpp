@@ -85,26 +85,47 @@ bool ChIrrGuiTrack::OnEvent(const SEvent& event)
   // Only interpret keyboard inputs.
   if (event.EventType != EET_KEY_INPUT_EVENT)
     return false;
-
+  // Control one of two ways: using the FPS type camera:
+  // A/D = left / right, corresponds to simultaneous increase & decrease in L/R throttle
+  //     to achieve the desired turn.
+  // W/S = forward/backward, so both L/R gear throttles increase, or decrease
   if (event.KeyInput.PressedDown) {
 
     switch (event.KeyInput.Key) {
     case KEY_KEY_A:
-      SetSteering(m_steering - m_steeringDelta);
+      // turn left, negative steer
+      SetSteering(-m_steeringDelta);
       return true;
     case KEY_KEY_D:
-      SetSteering(m_steering + m_steeringDelta);
+      // turn right, pos. steer
+      SetSteering(m_steeringDelta);
       return true;
     case KEY_KEY_W:
-      SetThrottle(m_throttle + m_throttleDelta);
-      if (m_throttle > 0)
-        SetBraking(m_braking - m_brakingDelta*3.0);
+      // both throttles increase
+      SetThrottle(m_throttleDelta);
       return true;
     case KEY_KEY_S:
-      SetThrottle(m_throttle - m_throttleDelta*3.0);
-      if (m_throttle <= 0)
-        SetBraking(m_braking + m_brakingDelta);
+      // both throttles decrease
+      SetThrottle(m_throttleDelta*3.0);
       return true;
+
+    // control each track throttle/brake individually
+    // T/G = Left, Y/H = right
+    case KEY_KEY_T:
+      // throttle left up
+      SetThrottle(m_throttle[0] + m_throttleDelta, 0);
+      return true;
+    case KEY_KEY_G:
+      // throttle left down
+      SetThrottle(m_throttle[0] - m_throttleDelta, 0);
+      return true;
+    case KEY_KEY_Y:
+      // throttle right up
+      SetThrottle(m_throttle[1] + m_throttleDelta, 1);
+      return true;
+    case KEY_KEY_H:
+      // throttle right down
+      SetThrottle(m_throttle[1] - m_throttleDelta, 1);
 
     case KEY_DOWN:
       m_camera.Zoom(1);
@@ -146,9 +167,10 @@ bool ChIrrGuiTrack::OnEvent(const SEvent& event)
       m_powertrain.SetDriveMode(TrackPowertrain::REVERSE);
       return true;
 
-    case KEY_KEY_V:
-      m_car.LogConstraintViolations();
-      return true;
+    // TODO: no LogConstraintViolation() func., yet
+    // case KEY_KEY_V:
+    //  m_vehicle.LogConstraintViolations();
+    // return true;
     }
 
   }
@@ -157,7 +179,6 @@ bool ChIrrGuiTrack::OnEvent(const SEvent& event)
 }
 
 
-// -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 void ChIrrGuiTrack::Advance(double step)
 {
@@ -181,8 +202,6 @@ void ChIrrGuiTrack::Advance(double step)
 
 }
 
-
-// -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 void ChIrrGuiTrack::DrawAll()
 {
@@ -293,16 +312,22 @@ void ChIrrGuiTrack::renderStats()
   sprintf(msg, "Camera mode: %s", m_camera.GetStateName().c_str());
   renderTextBox(std::string(msg), m_HUD_x, m_HUD_y + 10, 120, 15);
 
-  sprintf(msg, "Steering: %+.2f", m_steering);
-  renderLinGauge(std::string(msg), m_steering, true, m_HUD_x, m_HUD_y + 40, 120, 15);
+  // Left [0] and right [1] throttle
+  sprintf(msg, "Throttle Left: %+.2f", m_throttle[0]*100.);
+  renderLinGauge(std::string(msg), m_throttle[0], false, m_HUD_x, m_HUD_y + 60, 120, 15);
 
-  sprintf(msg, "Throttle: %+.2f", m_throttle*100.);
-  renderLinGauge(std::string(msg), m_throttle, false, m_HUD_x, m_HUD_y + 60, 120, 15);
+  sprintf(msg, "Throttle Right: %+.2f", m_throttle[1]*100.);
+  renderLinGauge(std::string(msg), m_throttle[1], false, m_HUD_x, m_HUD_y + 60, 120, 15);
 
-  sprintf(msg, "Braking: %+.2f", m_braking*100.);
-  renderLinGauge(std::string(msg), m_braking, false, m_HUD_x, m_HUD_y + 80, 120, 15);
+  // Left and Right braking
+  sprintf(msg, "Braking Left: %+.2f", m_braking[0]*100.);
+  renderLinGauge(std::string(msg), m_braking[0], false, m_HUD_x, m_HUD_y + 80, 120, 15);
 
-  double speed = m_car.GetVehicleSpeed();
+  sprintf(msg, "Braking Right: %+.2f", m_braking[1]*100.);
+  renderLinGauge(std::string(msg), m_braking[1], false, m_HUD_x, m_HUD_y + 80, 120, 15);
+
+
+  double speed = m_vehicle.GetVehicleSpeed();
   sprintf(msg, "Speed: %+.2f", speed);
   renderLinGauge(std::string(msg), speed/30, false, m_HUD_x, m_HUD_y + 100, 120, 15);
 
@@ -348,8 +373,9 @@ void ChIrrGuiTrack::renderStats()
 
   // driveline data
   double torque;
-  int axle = driveline->GetDrivenAxleIndexes()[0];
+  int axle = 0;
 
+  /*
   torque = driveline->GetWheelTorque(ChWheelID(axle, LEFT));
   sprintf(msg, "Torque wheel L: %+.2f", torque);
   renderLinGauge(std::string(msg), torque / 5000, false, m_HUD_x, m_HUD_y + 260, 120, 15);
@@ -357,9 +383,8 @@ void ChIrrGuiTrack::renderStats()
   torque = driveline->GetWheelTorque(ChWheelID(axle, RIGHT));
   sprintf(msg, "Torque wheel R: %+.2f", torque);
   renderLinGauge(std::string(msg), torque / 5000, false, m_HUD_x, m_HUD_y + 280, 120, 15);
- 
+ */
 
 }
-
 
 } // end namespace chrono
