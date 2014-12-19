@@ -58,7 +58,7 @@ public:
   /// Initialize the driveline subsystem, connecting it to the drive gears
   void Initialize(
     chrono::ChSharedPtr<chrono::ChBody>     chassis,     ///< handle to the chassis body
-    const std::vector<chrono::ChSharedPtr<chrono::DriveGear>> gears	///< handle to the drive gears
+    chrono::ChSharedPtr<chrono::DriveGear>  drivegear	///< handle to the drive gear
     );
 
   /// Apply the specified motor torque.
