@@ -78,6 +78,10 @@ list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake/")
 include(GetGitRevisionDescription)
 get_git_head_revision(GIT_REFSPEC VCS_REVISION)
 
+if("${VCS_REVISION}" MATCHES ".*-NOTFOUND$")
+  set(VCS_REVISION "")
+endif()
+
 #-----------------------------------------------------------------------------
 # OPTIONS AND USER SETTINGS
 # These cached variables will be shown in the GUI of CMake as 
