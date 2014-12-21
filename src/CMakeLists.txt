@@ -62,13 +62,21 @@ set_property(GLOBAL PROPERTY USE_FOLDERS Off)
 
 PROJECT(ChronoEngine)
 
-set (ChronoEngine_VERSION_MAJOR 1)
-set (ChronoEngine_VERSION_MINOR 0)
+set (CHRONOENGINE_VERSION_MAJOR 2)
+set (CHRONOENGINE_VERSION_MINOR 0)
+set (CHRONOENGINE_VERSION_PATCH 0)
 
-SET(CPACK_PACKAGE_VERSION "1.0.0")
-SET(CPACK_PACKAGE_VERSION_MAJOR "1")
-SET(CPACK_PACKAGE_VERSION_MINOR "0")
-SET(CPACK_PACKAGE_VERSION_PATCH "0")
+set (CHRONOENGINE_VERSION
+  "${CHRONOENGINE_VERSION_MAJOR}.${CHRONOENGINE_VERSION_MINOR}.${CHRONOENGINE_VERSION_PATCH}")
+
+SET(CPACK_PACKAGE_VERSION "${CHRONO_VERSION}")
+SET(CPACK_PACKAGE_VERSION_MAJOR "${CHRONOENGINE_VERSION_MAJOR}")
+SET(CPACK_PACKAGE_VERSION_MINOR "${CHRONOENGINE_VERSION_MINOR}")
+SET(CPACK_PACKAGE_VERSION_PATCH "${CHRONOENGINE_VERSION_PATCH}")
+
+list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake/")
+include(GetGitRevisionDescription)
+get_git_head_revision(GIT_REFSPEC VCS_REVISION)
 
 #-----------------------------------------------------------------------------
 # OPTIONS AND USER SETTINGS
@@ -214,6 +222,7 @@ ADD_DEFINITIONS( "-DBP_USE_FIXEDPOINT_INT_32" )   # for Bullet to use 32 bit mat
 # Includes that are used by ALL targets
 
 SET(CH_INCLUDES "${CMAKE_SOURCE_DIR}")
+SET(CH_INCLUDES ${CH_INCLUDES} "${CMAKE_BINARY_DIR}")
 SET(CH_INCLUDES ${CH_INCLUDES} "${CMAKE_SOURCE_DIR}/collision/bullet" )
 SET(CH_INCLUDES ${CH_INCLUDES} "${CMAKE_SOURCE_DIR}/collision/gimpact" )
 SET(CH_INCLUDES ${CH_INCLUDES} "${CMAKE_SOURCE_DIR}/collision/convexdecomposition/HACD" )
@@ -233,6 +242,9 @@ IF (BUILD_CH_SDK)
 	# You can add both .cpp and .h, only the .cpp will be compiled. 
 	#
 	
+	# Set version string and Git commit hash.
+	configure_file("${CMAKE_CURRENT_SOURCE_DIR}/core/ChVersion.h.in" "${CMAKE_CURRENT_BINARY_DIR}/core/ChVersion.h" @ONLY)
+
 	
 	SET(ChronoEngine_core_SOURCES
 		core/ChLog.cpp 
@@ -285,6 +297,9 @@ IF (BUILD_CH_SDK)
 		core/ChDistribution.h
 		core/ChQuadrature.h
 		)
+
+	list(APPEND ChronoEngine_core_SOURCES "${CMAKE_CURRENT_BINARY_DIR}/core/ChVersion.h")
+
 	SOURCE_GROUP(core FILES 
 			${ChronoEngine_core_SOURCES}
 			${ChronoEngine_core_HEADERS}
