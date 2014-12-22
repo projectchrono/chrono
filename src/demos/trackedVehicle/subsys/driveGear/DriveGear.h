@@ -31,7 +31,7 @@ class CH_SUBSYS_API DriveGear : public ChShared
 {
 public:
 
-  DriveGear(double mass, const ChVector<>& inertia, double rad, double width);
+  DriveGear();
   ~DriveGear() {}
 
   void Initialize(ChSharedPtr<ChBodyAuxRef> chassis, const ChVector<>& pos, const ChQuaternion<>& rot);
@@ -47,10 +47,14 @@ private:
   
   // private variables
   ChSharedPtr<ChBody> m_gear;
-  double m_radius;
-  double m_width;
-
   int m_visType;    // 0 = none, 1 = primitive, 2 = mesh
+
+  // static variables
+  static const ChVector<> m_inertia;
+  static const double m_mass;
+  static const double m_radius;
+  static const double m_width;
+
   static const std::string m_meshName;
   static const std::string m_meshFile;
   
