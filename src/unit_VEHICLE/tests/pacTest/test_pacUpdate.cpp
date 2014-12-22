@@ -18,9 +18,9 @@
 
 #include <iostream>
 
-#include "utils/ChUtilsInputOutput.h"
-#include "utils/ChUtilsData.h"
+#include "physics/ChGlobal.h"
 
+#include "subsys/ChVehicleModelData.h"
 #include "subsys/tire/ChPacejkaTire.h"
 #include "subsys/terrain/FlatTerrain.h"
 
@@ -32,7 +32,7 @@ using std::endl;
 
 static const double rad2deg = 180 / CH_C_PI;
 
-const std::string pacParamFile = utils::GetModelDataFile("hmmwv/pactest.tir");
+const std::string pacParamFile = vehicle::GetDataFile("hmmwv/pactest.tir");
 
 // -----------------------------------------------------------------------------
 // Process the specified wheel state using two different ChPacejkaTire functions

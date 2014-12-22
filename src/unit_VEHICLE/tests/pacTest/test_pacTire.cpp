@@ -30,9 +30,7 @@
 #include "physics/ChSystem.h"
 #include "physics/ChLinkDistance.h"
 
-#include "utils/ChUtilsInputOutput.h"
-#include "utils/ChUtilsData.h"
-
+#include "subsys/ChVehicleModelData.h"
 #include "subsys/tire/ChPacejkaTire.h"
 #include "subsys/terrain/FlatTerrain.h"
 
@@ -59,7 +57,7 @@ int main(int argc, char* argv[])
   // for the transient model
   const bool use_transient_slip = true;    // use kinematic or transient contact slips?
 
-  const std::string pacParamFile = utils::GetModelDataFile("hmmwv/pactest.tir");
+  const std::string pacParamFile = vehicle::GetDataFile("hmmwv/pactest.tir");
 
   // output data filenames
   std::string out_name_long = "test_pacTire_pureLongSlip.csv";
