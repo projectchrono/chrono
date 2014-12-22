@@ -19,8 +19,6 @@
 #include "physics/ChGlobal.h"
 
 #include "subsys/powertrain/SimplePowertrain.h"
-#include "utils/ChUtilsInputOutput.h"
-#include "utils/ChUtilsData.h"
 
 #include "rapidjson/filereadstream.h"
 

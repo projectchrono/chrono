@@ -17,8 +17,6 @@
 // =============================================================================
 
 #include "subsys/steering/PitmanArm.h"
-#include "utils/ChUtilsInputOutput.h"
-#include "utils/ChUtilsData.h"
 
 #include "rapidjson/filereadstream.h"
 

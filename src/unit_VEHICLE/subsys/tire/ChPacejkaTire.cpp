@@ -20,8 +20,6 @@
 
 #include "subsys/tire/ChPacejkaTire.h"
 
-#include "utils/ChUtilsData.h"
-#include "utils/ChUtilsInputOutput.h"
 #include "utils/ChUtilsStringFunctions.h"
 
 #include "subsys/tire/ChPac2002_data.h"

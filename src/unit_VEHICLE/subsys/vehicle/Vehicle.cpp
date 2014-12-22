@@ -18,6 +18,7 @@
 
 #include <cstdio>
 
+#include "assets/ChSphereShape.h"
 #include "assets/ChCylinderShape.h"
 #include "assets/ChTriangleMeshShape.h"
 #include "assets/ChTexture.h"

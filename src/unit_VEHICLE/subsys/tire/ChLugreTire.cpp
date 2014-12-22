@@ -28,8 +28,6 @@
 #include "assets/ChTexture.h"
 #include "assets/ChColorAsset.h"
 
-#include "utils/ChUtilsData.h"
-
 #include "subsys/tire/ChLugreTire.h"
 
 
