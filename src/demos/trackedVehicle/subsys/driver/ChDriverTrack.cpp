@@ -86,7 +86,7 @@ void ChDriverTrack::SetThrottle(double val, int track_idx, double min_val, doubl
 }
 
 /// increment and set all the throttles at once
-void ChDriverTrack::SetThrottle(double delta_throttle, double min_val = 0, double max_val = 1)
+void ChDriverTrack::SetThrottle(double delta_throttle, double min_val, double max_val)
 {
   for(int i = 0; i < m_throttle.size(); i++)
   {
