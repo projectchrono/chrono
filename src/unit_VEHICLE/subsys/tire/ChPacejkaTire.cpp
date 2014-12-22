@@ -18,14 +18,12 @@
 
 #include <cmath>
 
-#include "subsys/tire/ChPacejkaTire.h"
-
-#include "utils/ChUtilsStringFunctions.h"
-
-#include "subsys/tire/ChPac2002_data.h"
 #include "core/ChTimer.h"
 
-namespace chrono{
+#include "subsys/tire/ChPacejkaTire.h"
+#include "subsys/tire/ChPac2002_data.h"
+
+namespace chrono {
 
 // -----------------------------------------------------------------------------
 // Static variables
@@ -1385,21 +1383,21 @@ void ChPacejkaTire::readSection_MODEL(std::ifstream& inFile)
   std::getline(inFile, tline);
 
   // get the token / value
-  split = utils::splitStr(tline, '=');
-  m_params->model.property_file_format = utils::splitStr(split[1], '\'')[1];
+  split = splitStr(tline, '=');
+  m_params->model.property_file_format = splitStr(split[1], '\'')[1];
 
   std::getline(inFile, tline);
-  m_params->model.use_mode = utils::fromTline<int>(tline);
+  m_params->model.use_mode = fromTline<int>(tline);
 
   std::getline(inFile, tline);
-  m_params->model.vxlow = utils::fromTline<double>(tline);
+  m_params->model.vxlow = fromTline<double>(tline);
 
   std::getline(inFile, tline);
-  m_params->model.longvl = utils::fromTline<double>(tline);
+  m_params->model.longvl = fromTline<double>(tline);
 
   std::getline(inFile, tline);
-  split = utils::splitStr(tline, '=');
-  m_params->model.tyreside = utils::splitStr(split[1], '\'')[1];
+  split = splitStr(tline, '=');
+  m_params->model.tyreside = splitStr(split[1], '\'')[1];
 }
 
 void ChPacejkaTire::readSection_DIMENSION(std::ifstream& inFile)
@@ -1417,7 +1415,7 @@ void ChPacejkaTire::readSection_DIMENSION(std::ifstream& inFile)
     // made it to the next section
     if (tline[0] == '$')
       break;
-    dat.push_back(utils::fromTline<double>(tline));
+    dat.push_back(fromTline<double>(tline));
   }
 
   if (dat.size() != 5) {
@@ -1445,7 +1443,7 @@ void ChPacejkaTire::readSection_SHAPE(std::ifstream& inFile)
     // made it to the next section
     if (tline[0] == '$')
       break;
-    split = utils::splitStr(tline, ' ');
+    split = splitStr(tline, ' ');
     rad.push_back(std::atof(split[1].c_str()));
     wid.push_back(std::atof(split[5].c_str()));
   }
@@ -1465,7 +1463,7 @@ void ChPacejkaTire::readSection_VERTICAL(std::ifstream& inFile){
     // made it to the next section
     if (tline[0] == '$')
       break;
-    dat.push_back(utils::fromTline<double>(tline));
+    dat.push_back(fromTline<double>(tline));
   }
 
   if (dat.size() != 6) {
@@ -1491,7 +1489,7 @@ void ChPacejkaTire::readSection_RANGES(std::ifstream& inFile){
     // made it to the next section
     if (tline[0] == '$')
       break;
-    dat.push_back(utils::fromTline<double>(tline));
+    dat.push_back(fromTline<double>(tline));
   }
 
   if (dat.size() != 2) {
@@ -1509,7 +1507,7 @@ void ChPacejkaTire::readSection_RANGES(std::ifstream& inFile){
     // made it to the next section
     if (tline[0] == '$')
       break;
-    dat.push_back(utils::fromTline<double>(tline));
+    dat.push_back(fromTline<double>(tline));
   }
 
   if (dat.size() != 2) {
@@ -1527,7 +1525,7 @@ void ChPacejkaTire::readSection_RANGES(std::ifstream& inFile){
     // made it to the next section
     if (tline[0] == '$')
       break;
-    dat.push_back(utils::fromTline<double>(tline));
+    dat.push_back(fromTline<double>(tline));
   }
 
   if (dat.size() != 2) {
@@ -1544,7 +1542,7 @@ void ChPacejkaTire::readSection_RANGES(std::ifstream& inFile){
     // made it to the next section
     if (tline[0] == '$')
       break;
-    dat.push_back(utils::fromTline<double>(tline));
+    dat.push_back(fromTline<double>(tline));
   }
 
   if (dat.size() != 2) {
@@ -1568,7 +1566,7 @@ void ChPacejkaTire::readSection_scaling(std::ifstream& inFile)
     // made it to the next section
     if (tline[0] == '$')
       break;
-    dat.push_back(utils::fromTline<double>(tline));
+    dat.push_back(fromTline<double>(tline));
   }
 
   if (dat.size() != 28) {
@@ -1591,7 +1589,7 @@ void ChPacejkaTire::readSection_longitudinal(std::ifstream& inFile)
     // made it to the next section
     if (tline[0] == '$')
       break;
-    dat.push_back(utils::fromTline<double>(tline));
+    dat.push_back(fromTline<double>(tline));
   }
 
   if (dat.size() != 24) {
@@ -1614,7 +1612,7 @@ void ChPacejkaTire::readSection_overturning(std::ifstream& inFile)
     // made it to the next section
     if (tline[0] == '$')
       break;
-    dat.push_back(utils::fromTline<double>(tline));
+    dat.push_back(fromTline<double>(tline));
   }
 
   if (dat.size() != 3) {
@@ -1635,7 +1633,7 @@ void ChPacejkaTire::readSection_lateral(std::ifstream& inFile)
     // made it to the next section
     if (tline[0] == '$')
       break;
-    dat.push_back(utils::fromTline<double>(tline));
+    dat.push_back(fromTline<double>(tline));
   }
 
   if (dat.size() != 34) {
@@ -1659,7 +1657,7 @@ void ChPacejkaTire::readSection_rolling(std::ifstream& inFile)
     // made it to the next section
     if (tline[0] == '$')
       break;
-    dat.push_back(utils::fromTline<double>(tline));
+    dat.push_back(fromTline<double>(tline));
   }
 
   if (dat.size() != 4) {
@@ -1680,7 +1678,7 @@ void ChPacejkaTire::readSection_aligning(std::ifstream& inFile)
     // made it to the next section
     if (tline[0] == '$')
       break;
-    dat.push_back(utils::fromTline<double>(tline));
+    dat.push_back(fromTline<double>(tline));
   }
 
   if (dat.size() != 31) {
