@@ -36,9 +36,7 @@ class CH_SUBSYS_API IdlerSimple : public ChShared
 {
 public:
 
-  IdlerSimple(double mass, const ChVector<>& inertia, 
-    double radius, double width, 
-    double K, double C);
+  IdlerSimple();
 
   ~IdlerSimple() {}
 
@@ -58,11 +56,14 @@ private:
   
   // private variables
   ChSharedPtr<ChBody> m_idler;
-  double m_springK;
-  double m_springC;
-  double m_springRestLength;
-  double m_width;
-  double m_radius;
+
+  // static variables
+  static const double m_mass;
+  static const double m_springK;
+  static const double m_springC;
+  static const double m_springRestLength;
+  static const double m_width;
+  static const double m_radius;
 
 };
 
