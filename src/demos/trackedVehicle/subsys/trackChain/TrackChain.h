@@ -32,7 +32,7 @@ class CH_SUBSYS_API TrackChain : public ChShared
 {
 public:
 
-  TrackChain(const std::string& filename);
+  TrackChain( );
   
   ~TrackChain() {}
 
@@ -51,15 +51,26 @@ private:
   
   // private functions
   void AddVisualizationIdler();
-  
+   
+  const std::string& getMeshName() const { return m_visual_filename; }
+  const std::string& getMeshFile() const { return m_meshFile; }
+
   // private variables
   std::vector<ChSharedPtr<ChBody>> m_shoes;
   int m_numShoes;
-  
-  double m_PinDist;		// linear distance between a shoe's two pin joint center
-  std::string m_collision_filename;	// wavefront mesh for collision geometry
-  std::string m_visual_filename;	// wavefront mesh for visuals
+
+  int m_visType;  // 0 = none, 1 = simple box, 2 = mesh
   ChSharedPtr<ChTriangleMeshShape> m_geom_visual;
+  
+  //static values 
+  static const double m_mass;         // mass per shoe
+  static const ChVector<> m_inertia;  // inertia of a shoe
+  static const double m_width_max;    // max width of a shoe
+  static const double m_PinDist;		  // linear distance between a shoe's two pin joint center
+  static const double m_th;           // thickness of a track shoe (height)
+
+  static const std::string m_collision_filename;	// wavefront mesh for collision geometry
+  static const std::string m_visual_filename;	// wavefront mesh for visuals
   
 
 };
