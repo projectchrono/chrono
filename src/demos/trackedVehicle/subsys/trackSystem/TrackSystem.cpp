@@ -22,9 +22,40 @@
 
 namespace chrono {
 
+// -----------------------------------------------------------------------------
+// Static variables
+const double TrackSystem::m_idlerMass = 250.0;
+const ChVector<> TrackSystem::m_idlerInertia = ChVector<>(10,10,15);
+
+// idler
+const ChVector<> m_idlerPos;
+
+  
+// drive gear
+double m_gearMass;
+ChVector<> m_gearPos;
+double m_gearRadius;
+double m_gearWidth;
+ChVector<> m_gearInertia;
+  
+// Support rollers
+double m_rollerMass;
+double m_rollerRadius;
+double m_rollerWidth;
+ChVector<> m_rollerInertia;
+int m_NumRollers;
+  
+// suspension
+std::string m_suspensionFilename;
+std::vector<ChVector<> > m_suspensionLocs;
+int m_NumSuspensions;
+  
+// Track Chain
+std::string m_trackChainFilename;
+int m_track_idx;
 
 TrackSystem::TrackSystem(const std::string& name, int track_idx)
-  : m_track_idx(track_idx), m_name( name)
+  : m_track_idx(track_idx), m_name(name)
 {
   // FILE* fp = fopen(filename.c_str(), "r");
   // char readBuffer[65536];
@@ -95,8 +126,8 @@ void TrackSystem::Create(int track_idx)
   assert(d["Track Chain"].IsObject()); 
   m_trackChainFilename = d["Track Chain"]["Input File"].GetString()
   
-
   */
+
   // create the various subsystems, from the static variables
   BuildSubsystems();
 
