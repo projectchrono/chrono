@@ -22,6 +22,10 @@
 
 using namespace chrono;
 
+const double TrackPowertrain::m_motorblock_inertia = 10.5;
+const double TrackPowertrain::m_crankshaft_inertia = 1.1;
+const double TrackPowertrain::m_ingear_shaft_inertia = 0.3;
+
 
 // -----------------------------------------------------------------------------
 // dir_motor_block specifies the direction of the motor block, i.e. the
