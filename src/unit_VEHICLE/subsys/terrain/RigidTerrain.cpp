@@ -16,12 +16,10 @@
 //
 // =============================================================================
 
-#include "physics/ChBody.h"
 #include "physics/ChBodyEasy.h"
 #include "assets/ChColorAsset.h"
 #include "assets/ChTexture.h"
 
-#include "utils/ChUtilsCreators.h"
 #include "utils/ChUtilsData.h"
 
 #include "subsys/terrain/RigidTerrain.h"
@@ -31,45 +29,38 @@ namespace chrono {
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-RigidTerrain::RigidTerrain(ChSystem&  system,
-                           double     height,
-                           double     sizeX,
-                           double     sizeY,
-                           double     mu,
+RigidTerrain::RigidTerrain(ChSystem&         system,
+                           double            height,
+                           double            sizeX,
+                           double            sizeY,
+                           double            mu,
                            const std::string road_file)
 : m_system(system),
   m_height(height),
   m_sizeX(sizeX),
   m_sizeY(sizeY)
 {
-  ChSharedPtr<ChBody> ground(new ChBody);
+  double hDepth = 10;
+
+  ChSharedPtr<ChBodyEasyBox> ground(new ChBodyEasyBox(sizeX, sizeY, hDepth, 1.0, true, true));
 
   ground->SetIdentifier(-1);
   ground->SetName("ground");
-  ground->SetPos(ChVector<>(0, 0, height));
-  ground->SetRot(ChQuaternion<>(1, 0, 0, 0));
+  ground->SetPos(ChVector<>(0, 0, height - hDepth / 2));
   ground->SetBodyFixed(true);
-  ground->SetCollide(true);
-
-  double hDepth = 10;
-
-  ground->GetCollisionModel()->ClearModel();
-  utils::AddBoxGeometry(ground.get_ptr(),
-    ChVector<>(sizeX / 2, sizeY / 2, hDepth),
-    ChVector<>(0, 0, -hDepth));
-  ground->GetCollisionModel()->BuildModel();
 
   // if the user did not specify a texture to use for the ground
-  if( road_file == "none"){
+  if(road_file == "none"){
     ChSharedPtr<ChColorAsset> groundColor(new ChColorAsset);
     groundColor->SetColor(ChColor(0.4f, 0.4f, 0.6f));
     ground->AddAsset(groundColor);
   } else {
-    AddTexture(road_file, ground);
+    ChSharedPtr<ChTexture> groundTexture(new ChTexture);
+    groundTexture->SetTextureFilename(utils::GetModelDataFile(road_file));
+    ground->AddAsset(groundTexture);
   }
 
   system.AddBody(ground);
-
 }
 
 void RigidTerrain::AddMovingObstacles(int numObstacles)
@@ -110,14 +101,6 @@ void RigidTerrain::AddFixedObstacles()
     stoneslab->SetBodyFixed(true);
     m_system.AddBody(stoneslab);
   }
-}
-
-
-void RigidTerrain::AddTexture(const std::string& filename, ChSharedPtr<ChBody> body)
-{
-  ChSharedPtr<ChTexture> tex(new ChTexture);
-  tex->SetTextureFilename( utils::GetModelDataFile (filename));
-  body->AddAsset(tex);
 }
 
 
