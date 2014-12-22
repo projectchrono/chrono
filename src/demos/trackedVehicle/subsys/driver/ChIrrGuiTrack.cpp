@@ -47,7 +47,7 @@ ChIrrGuiTrack::ChIrrGuiTrack(ChIrrApp&           app,
                             int                 HUD_y)
 : m_app(app),
   m_vehicle(vehicle),
-  m_powertrain(*(vehicle.GetPowertrain().get_ptr())),
+  m_powertrain( *(vehicle.GetPowertrain(0).get_ptr()) ),
   m_HUD_x(HUD_x),
   m_HUD_y(HUD_y),
   m_terrainHeight(0),
