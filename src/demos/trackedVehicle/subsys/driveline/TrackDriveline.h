@@ -21,6 +21,7 @@
 #define TRACK_DRIVELINE_H
 
 #include "subsys/ChApiSubsys.h"
+#include "core/ChShared.h"
 #include "subsys/driveGear/DriveGear.h"
 
 #include "physics/ChShaftsGear.h" 
@@ -30,9 +31,11 @@
 #include "physics/ChShaftsMotor.h"
 #include "physics/ChShaftsTorque.h"
 
+namespace chrono{
+
 // Driveline model template based on ChShaft objects. Models the left and right
 // driveline to the drive sprockets of a tracked vehicle
-class CH_SUBSYS_API TrackDriveline
+class CH_SUBSYS_API TrackDriveline : public ChShared
 {
 public:
 
@@ -44,21 +47,21 @@ public:
   /// This direction is a unit vector, relative to the chassis frame (for the
   /// ISO coordinate system, this is [1, 0, 0] for a longitudinal engine and
   /// [0, 1, 0] for a transversal engine).
-  void SetMotorBlockDirection(const chrono::ChVector<>& dir) { m_dir_motor_block = dir; }
+  void SetMotorBlockDirection(const ChVector<>& dir) { m_dir_motor_block = dir; }
 
   /// Set the direction of the wheel axles.
   /// This direction is a unit vector, relative to the chassis frame. It must be
   /// specified for the design configuration (for the ISO vehicle coordinate
   /// system, this is typically [0, 1, 0]).
-  void SetAxleDirection(const chrono::ChVector<>& dir) { m_dir_axle = dir; }
+  void SetAxleDirection(const ChVector<>& dir) { m_dir_axle = dir; }
 
   /// Return the number of driven axles.
   int GetNumDrivenAxles() const { return 1; }
 
   /// Initialize the driveline subsystem, connecting it to the drive gears
   void Initialize(
-    chrono::ChSharedPtr<chrono::ChBody>     chassis,     ///< handle to the chassis body
-    chrono::ChSharedPtr<chrono::DriveGear>  drivegear	///< handle to the drive gear
+    ChSharedPtr<ChBody>     chassis,     ///< handle to the chassis body
+    ChSharedPtr<DriveGear>  drivegear	///< handle to the drive gear
     );
 
   /// Apply the specified motor torque.
@@ -68,7 +71,7 @@ public:
   // Acessors
   
   /// handle to the driveshaft.
-  chrono::ChSharedPtr<chrono::ChShaft> GetDriveshaft() const { return m_driveshaft; }
+  ChSharedPtr<ChShaft> GetDriveshaft() const { return m_driveshaft; }
 	
   /// angular speed of the driveshaft.
   double GetDriveshaftSpeed() const { return m_driveshaft->GetPos_dt(); }	
@@ -88,16 +91,16 @@ private:
   double GetDifferentialRatio() const      { return m_differential_ratio; }
 
 
-  chrono::ChSharedPtr<chrono::ChShaftsGearboxAngled>    m_conicalgear;
-  chrono::ChSharedPtr<chrono::ChShaft>                  m_differentialbox;
-  chrono::ChSharedPtr<chrono::ChShaftsPlanetary>        m_differential;
+  ChSharedPtr<ChShaftsGearboxAngled>    m_conicalgear;
+  ChSharedPtr<ChShaft>                  m_differentialbox;
+  ChSharedPtr<ChShaftsPlanetary>        m_differential;
 
-  chrono::ChVector<> m_dir_motor_block;
-  chrono::ChVector<> m_dir_axle;
+  ChVector<> m_dir_motor_block;
+  ChVector<> m_dir_axle;
 
   // friend class ChIrrGuiDriver;
   // from abstract base
-  chrono::ChSharedPtr<chrono::ChShaft>  m_driveshaft;   ///< handle to the shaft connection to the powertrain
+  ChSharedPtr<ChShaft>  m_driveshaft;   ///< handle to the shaft connection to the powertrain
 
   std::vector<int>      m_driven_axles; ///< indexes of the driven vehicle axles
   
@@ -112,5 +115,6 @@ private:
 };
 
 
+} // end namespace chrono
 
 #endif
