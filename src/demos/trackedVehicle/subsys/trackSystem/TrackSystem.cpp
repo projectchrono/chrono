@@ -137,8 +137,8 @@ void TrackSystem::Create(int track_idx)
 void TrackSystem::BuildSubsystems()
 {
   // build one of each of the following subsystems
-  m_driveGear = ChSharedPtr<DriveGear>(new DriveGear(m_gearMass, m_gearInertia, m_gearRadius, m_gearWidth));
-  m_idler = ChSharedPtr<IdlerSimple>(new IdlerSimple(m_idlerMass, m_idlerInertia, m_idlerRadius, m_idlerWidth, m_idler_K, m_idler_C ));
+  m_driveGear = ChSharedPtr<DriveGear>(new DriveGear() );
+  m_idler = ChSharedPtr<IdlerSimple>(new IdlerSimple() );
   m_chain = ChSharedPtr<TrackChain>(new TrackChain(m_trackChainFilename));
   
   // build suspension/road wheel subsystems
