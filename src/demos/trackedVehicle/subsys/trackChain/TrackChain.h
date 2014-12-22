@@ -26,7 +26,8 @@
 
 namespace chrono {
 
-
+/// Generates and manages the track chain system, which is typically generated
+/// with a single track shoe/pin geometry set.
 class CH_SUBSYS_API TrackChain : public ChShared
 {
 public:

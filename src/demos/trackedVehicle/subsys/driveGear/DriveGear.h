@@ -26,6 +26,7 @@
 namespace chrono {
 
 
+/// Drive gear class, a single rigid body. Attached to the chassis
 class CH_SUBSYS_API DriveGear : public ChShared
 {
 public:

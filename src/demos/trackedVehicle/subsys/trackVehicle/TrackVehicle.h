@@ -28,6 +28,19 @@
 
 namespace chrono {
 
+/// Model a tracked vehicle using a subsystem based approach. A single chassis/hull
+/// has a number of track systems, (e.g. 2). Each track system contains the track chain
+/// and all subsystems that attach to the chassis/hull. Each subsystem is currently defined
+/// in the respective .cpp file as static const values. Takes a set of throttle and brake
+/// user-inputs for each track system. Steering is handled by modifying the throttle and brake
+/// values directly.
+///
+/// Usage: 
+///   >>  TrackVehicle tankA("tank_BravoDelta");
+///   >>  tankA.Initialize( ChCoordsys<>(x0,q0));
+///   >>  while ( simulate )
+///   >>    tankA.Update( time, throttle, braking);
+///   >>    tankA.Advance( step_size );
 class CH_SUBSYS_API TrackVehicle : public ChSystem
 {
 public:

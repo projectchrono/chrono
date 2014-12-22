@@ -28,6 +28,10 @@
 namespace chrono {
 
 
+/// An idler system that includes the chain tensioning system.
+/// The simplest case of this is a prismatic (translational) constraint
+/// between the idler and chassis, and mount a pre-loaded spring-damper
+/// along the DOF axis
 class CH_SUBSYS_API IdlerSimple : public ChShared
 {
 public:

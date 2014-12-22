@@ -39,7 +39,9 @@ class TrackedVehicle;
 
 namespace chrono {
 
-class CH_SUBSYS_API TrackPowertrain
+
+/// Powertrain model template based on ChShaft objects, for tracked vehicles.
+class CH_SUBSYS_API TrackPowertrain : public ChShared
 {
 public:
 
