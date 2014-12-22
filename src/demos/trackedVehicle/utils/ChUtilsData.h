@@ -21,7 +21,7 @@
 
 
 #include <string>
-#include "utils/ChApiUtils.h"
+#include "ChApiUtils.h"
 
 
 namespace chrono {

@@ -18,7 +18,7 @@
 
 #include "assets/ChColorAsset.h"
 
-#include "utils/ChUtilsInputOutput.h"
+#include "ChUtilsInputOutput.h"
 
 namespace chrono {
 namespace utils {
@@ -467,7 +467,7 @@ void WriteShapesPovray(ChSystem*          system,
 
   // Loop over all links.  Write information on selected types of links.
   int l_count = 0;
-  std::list<ChLink*>::iterator ilink = system->Get_linklist()->begin();
+  std::vector<ChLink*>::iterator ilink = system->Get_linklist()->begin();
   for (; ilink != system->Get_linklist()->end(); ++ilink)
   {
     int type = (*ilink)->GetType();

@@ -47,7 +47,7 @@
 #include "assets/ChRoundedConeShape.h"
 #include "assets/ChRoundedCylinderShape.h"
 
-#include "utils/ChApiUtils.h"
+#include "ChApiUtils.h"
 
 namespace chrono {
 namespace utils {

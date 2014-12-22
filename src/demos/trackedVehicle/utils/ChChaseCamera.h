@@ -30,7 +30,7 @@
 
 #include "physics/ChBody.h"
 
-#include "utils/ChApiUtils.h"
+#include "ChApiUtils.h"
 
 
 namespace chrono {

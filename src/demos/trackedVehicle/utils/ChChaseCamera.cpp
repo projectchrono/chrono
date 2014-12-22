@@ -25,7 +25,7 @@
 //
 // =============================================================================
 
-#include "utils/ChChaseCamera.h"
+#include "ChChaseCamera.h"
 
 namespace chrono {
 namespace utils {

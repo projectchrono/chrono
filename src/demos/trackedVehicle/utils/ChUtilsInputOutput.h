@@ -27,8 +27,8 @@
 #include "physics/ChSystem.h"
 #include "assets/ChColor.h"
 
-#include "utils/ChApiUtils.h"
-#include "utils/ChUtilsCreators.h"
+#include "ChApiUtils.h"
+#include "ChUtilsCreators.h"
 
 
 namespace chrono {
