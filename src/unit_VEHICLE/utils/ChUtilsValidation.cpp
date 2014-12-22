@@ -242,5 +242,30 @@ bool Validate(const std::string& sim_filename,
 }
 
 
+// -----------------------------------------------------------------------------
+// Functions for manipulating the validation data directory
+// -----------------------------------------------------------------------------
+
+static std::string validation_data_path("../data/validation/");
+
+// Set the path to the directory containing reference validation data.
+void SetValidationDataPath(const std::string& path)
+{
+  validation_data_path = path;
+}
+
+// Obtain the current path to the directory containing reference validation data.
+const std::string& GetValidationDataPath()
+{
+  return validation_data_path;
+}
+
+// Obtain the complete path to the specified filename, given relative to the
+// directory containing reference validation data.
+std::string GetValidationDataFile(const std::string& filename)
+{
+  return validation_data_path + filename;
+}
+
 }  // namespace utils
 }  // namespace chrono

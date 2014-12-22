@@ -31,7 +31,6 @@
 #include "unit_IRRLICHT/ChIrrApp.h"
 
 #include "ChronoT_config.h"
-#include "utils/ChUtilsData.h"
 #include "utils/ChUtilsInputOutput.h"
 #include "utils/ChUtilsValidation.h"
 
@@ -43,8 +42,8 @@ using namespace irr;
 // Local variables
 //
 static const std::string val_dir = "../VALIDATION/";
-static const std::string out_dir = val_dir + "ROTSPRING_FORCE/";
-static const std::string ref_dir = "validation/rotspring_force/";
+static const std::string out_dir = val_dir + "rotspring_force/";
+static const std::string ref_dir = "rotspring_force/";
 
 // =============================================================================
 
@@ -472,7 +471,7 @@ bool ValidateReference(const std::string& testName,    // name of this test
   std::string ref_file = ref_dir + testName + "_ADAMS_" + what + ".txt";
   utils::DataVector norms;
 
-  bool check = utils::Validate(sim_file, utils::GetModelDataFile(ref_file), utils::RMS_NORM, tolerance, norms);
+  bool check = utils::Validate(sim_file, utils::GetValidationDataFile(ref_file), utils::RMS_NORM, tolerance, norms);
   std::cout << "   validate " << what << (check ? ": Passed" : ": Failed") << "  [  ";
   for (size_t col = 0; col < norms.size(); col++)
     std::cout << norms[col] << "  ";

@@ -30,35 +30,39 @@
 #include "unit_IRRLICHT/ChIrrApp.h"
 
 #include "ChronoT_config.h"
-#include "utils/ChUtilsData.h"
 #include "utils/ChUtilsInputOutput.h"
 #include "utils/ChUtilsValidation.h"
 
 using namespace chrono;
 using namespace irr;
 
+// =============================================================================
+// Local variables
+//
+static const std::string val_dir = "../VALIDATION/";
+static const std::string out_dir = val_dir + "revsph_joint/";
+static const std::string ref_dir = "revsph_joint/";
 
+// =============================================================================
+//
+// Main driver function for running the simulation and validating the results.
+//
 int main(int argc, char* argv[])
 {
   bool animate = (argc > 1);
 
   // Set the path to the Chrono data folder
-  // --------------------------------------
-
   SetChronoDataPath(CHRONO_DATA_DIR);
 
   // Create output directory (if it does not already exist)
-  if (ChFileutils::MakeDirectory("../VALIDATION") < 0) {
-    std::cout << "Error creating directory '../VALIDATION'" << std::endl;
+  if (ChFileutils::MakeDirectory(val_dir.c_str()) < 0) {
+    std::cout << "Error creating directory " << val_dir << std::endl;
     return 1;
   }
-  if (ChFileutils::MakeDirectory("../VALIDATION/REVSPH_JOINT") < 0) {
-    std::cout << "Error creating directory '../VALIDATION/REVSPH_JOINT'" << std::endl;
+  if (ChFileutils::MakeDirectory(out_dir.c_str()) < 0) {
+    std::cout << "Error creating directory " << out_dir << std::endl;
     return 1;
   }
-
-  std::string out_dir = "../VALIDATION/REVSPH_JOINT/";
-  std::string ref_dir = "validation/revsph_joint/";
 
   bool test_passed = true;
 

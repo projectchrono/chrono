@@ -178,6 +178,24 @@ bool Validate(
           DataVector&        norms
           );
 
+// -----------------------------------------------------------------------------
+// Global functions for accessing the reference validation data.
+// -----------------------------------------------------------------------------
+
+/// Set the path to the reference validation data directory.
+/// (ATTENTION: not thread safe)
+CH_UTILS_API void SetValidationDataPath(const std::string& path);
+
+/// Obtain the current path to the reference validation data directory.
+/// (thread safe)
+CH_UTILS_API const std::string& GetValidationDataPath();
+
+/// Obtain the complete path to the specified filename.
+/// The given filename is assumed to be relative to the reference validation
+/// data directory.
+/// (thread safe)
+CH_UTILS_API std::string GetValidationDataFile(const std::string& filename);
+
 
 } // namespace utils
 } // namespace chrono
