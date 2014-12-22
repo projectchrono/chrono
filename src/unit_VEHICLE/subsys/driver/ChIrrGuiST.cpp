@@ -118,16 +118,16 @@ bool ChIrrGuiST::OnEvent(const SEvent& event)
 
     switch (event.KeyInput.Key) {
     case KEY_KEY_1:
-      m_camera.SetState(utils::ChChaseCamera::Chase);
+      m_camera.SetState(ChChaseCamera::Chase);
       return true;
     case KEY_KEY_2:
-      m_camera.SetState(utils::ChChaseCamera::Follow);
+      m_camera.SetState(ChChaseCamera::Follow);
       return true;
     case KEY_KEY_3:
-      m_camera.SetState(utils::ChChaseCamera::Track);
+      m_camera.SetState(ChChaseCamera::Track);
       return true;
     case KEY_KEY_4:
-      m_camera.SetState(utils::ChChaseCamera::Inside);
+      m_camera.SetState(ChChaseCamera::Inside);
       return true;
 
     case KEY_KEY_V:

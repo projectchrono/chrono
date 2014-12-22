@@ -134,16 +134,18 @@ SET(Chrono_terrain_FILES
 )
 
 SET(Chrono_suspensionTest_FILES
-	suspensionTest/SuspensionTest.h
-	suspensionTest/SuspensionTest.cpp
+    suspensionTest/SuspensionTest.h
+    suspensionTest/SuspensionTest.cpp
 )
 
 IF (ENABLE_IRRLICHT)
     SET(Chrono_Driver_FILES ${Chrono_Driver_FILES}
+        driver/ChChaseCamera.h
+        driver/ChChaseCamera.cpp
         driver/ChIrrGuiDriver.h
         driver/ChIrrGuiDriver.cpp
-		driver/ChIrrGuiST.h
-		driver/ChIrrGuiST.cpp
+        driver/ChIrrGuiST.h
+        driver/ChIrrGuiST.cpp
     )
 
     # On Windows, disable warning C4275 
@@ -180,20 +182,20 @@ ADD_LIBRARY(Chrono_Subsys SHARED
     ${Chrono_Powertrain_FILES}
     ${Chrono_Tire_FILES}
     ${Chrono_Brake_FILES}
-	${Chrono_terrain_FILES}
-	${Chrono_suspensionTest_FILES}
+    ${Chrono_terrain_FILES}
+    ${Chrono_suspensionTest_FILES}
 )
 
 SET_TARGET_PROPERTIES(Chrono_Subsys PROPERTIES
-  COMPILE_FLAGS "${CH_BUILDFLAGS}"
-  LINK_FLAGS "${CH_LINKERFLAG_GPU}"
-  COMPILE_DEFINITIONS "CH_API_COMPILE_SUBSYS")
+    COMPILE_FLAGS "${CH_BUILDFLAGS}"
+    LINK_FLAGS "${CH_LINKERFLAG_GPU}"
+    COMPILE_DEFINITIONS "CH_API_COMPILE_SUBSYS"
+)
 
 TARGET_LINK_LIBRARIES(Chrono_Subsys 
-				Chrono_Utils 
-				${CHRONOENGINE_LIBRARIES}
-				${CH_IRRKLANGLIB}
-				)
+    ${CHRONOENGINE_LIBRARIES}
+    ${CH_IRRKLANGLIB}
+)
 
 INSTALL(TARGETS Chrono_Subsys
     RUNTIME DESTINATION bin

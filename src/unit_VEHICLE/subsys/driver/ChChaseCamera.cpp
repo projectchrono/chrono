@@ -25,10 +25,9 @@
 //
 // =============================================================================
 
-#include "utils/ChChaseCamera.h"
+#include "subsys/driver/ChChaseCamera.h"
 
 namespace chrono {
-namespace utils {
 
 
 // -----------------------------------------------------------------------------
@@ -199,5 +198,4 @@ ChVector<> ChChaseCamera::calcDeriv(const ChVector<>& loc)
 }
 
 
-}  // end namespace utils
 }  // end namespace chrono

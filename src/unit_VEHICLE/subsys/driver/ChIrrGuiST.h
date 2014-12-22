@@ -25,7 +25,7 @@
 
 #include "ChronoT_config.h"
 
-#include "utils/ChChaseCamera.h"
+#include "subsys/driver/ChChaseCamera.h"
 
 #include "subsys/ChApiSubsys.h"
 #include "subsys/ChDriver.h"
@@ -97,7 +97,7 @@ private:
   irr::ChIrrAppInterface&   m_app;
   ChSuspensionTest&         m_tester;
 
-  utils::ChChaseCamera      m_camera;
+  ChChaseCamera             m_camera;
 
   double m_stepsize;
 

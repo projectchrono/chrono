@@ -35,7 +35,7 @@
 
 #include "ChronoT_config.h"
 
-#include "utils/ChChaseCamera.h"
+#include "subsys/driver/ChChaseCamera.h"
 
 #include "subsys/ChApiSubsys.h"
 #include "subsys/ChDriver.h"
@@ -101,7 +101,7 @@ private:
   ChVehicle&                m_car;
   ChPowertrain&             m_powertrain;
 
-  utils::ChChaseCamera      m_camera;
+  ChChaseCamera             m_camera;
 
   double m_stepsize;
 

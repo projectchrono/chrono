@@ -10,7 +10,6 @@ SET(Chrono_Utils_SOURCES
     ChUtilsCreators.cpp
     ChUtilsInputOutput.cpp
     ChUtilsValidation.cpp
-    ChChaseCamera.cpp
     )
 
 SET(Chrono_Utils_HEADERS
@@ -19,7 +18,6 @@ SET(Chrono_Utils_HEADERS
     ChUtilsCreators.h
     ChUtilsInputOutput.h
     ChUtilsValidation.h
-    ChChaseCamera.h
     )
 
 

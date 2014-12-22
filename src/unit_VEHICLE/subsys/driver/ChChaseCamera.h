@@ -30,13 +30,12 @@
 
 #include "physics/ChBody.h"
 
-#include "utils/ChApiUtils.h"
+#include "subsys/ChApiSubsys.h"
 
 
 namespace chrono {
-namespace utils {
 
-class CH_UTILS_API ChChaseCamera
+class CH_SUBSYS_API ChChaseCamera
 {
 public:
 
@@ -100,7 +99,6 @@ private:
 };
 
 
-}  // end namespace utils
 }  // end namespace chrono
 
 
