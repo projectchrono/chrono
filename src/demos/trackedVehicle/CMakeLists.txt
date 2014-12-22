@@ -15,9 +15,11 @@ ENDIF()
 IF(NOT ENABLE_TRACKED_VEHICLE)
   RETURN()
 ELSE()
-  MESSAGE(STATUS "...enabling Tracked Vehicle library and models")
+  MESSAGE(STATUS "...enabling Tracked Vehicle library and models. Also creates Chrono_Utils library")
 ENDIF()
 
+
+ADD_SUBDIRECTORY(utils)
 
 cmake_minimum_required(VERSION 2.8)
 
@@ -60,18 +62,20 @@ ADD_LIBRARY(TrackedVehicle SHARED
 			${ChronoEngine_unit_TrackedVehicle_HEADERS})
 
 SET_TARGET_PROPERTIES(TrackedVehicle PROPERTIES
-                           COMPILE_FLAGS "${CH_BUILDFLAGS}"
-                          LINK_FLAGS "${CH_LINKERFLAG_SHARED}" 
-                          COMPILE_DEFINITIONS "CH_API_COMPILE_UNIT_TRACKS")
+						COMPILE_FLAGS "${CH_BUILDFLAGS}"
+						LINK_FLAGS "${CH_LINKERFLAG_SHARED}" 
+						COMPILE_DEFINITIONS "CH_API_COMPILE_UNIT_TRACKS")
                           
 TARGET_LINK_LIBRARIES(TrackedVehicle 
 	Chrono_Utils
 	ChronoEngine
+	ChronoEngine_IRRLICHT
+    ${CH_IRRLICHTLIB}
 )
 	
-ADD_DEPENDENCIES (TrackedVehicle ChronoEngine Chrono_Utils)  #  not automatic
+ADD_DEPENDENCIES (TrackedVehicle ChronoEngine Chrono_Utils ChronoEngine_IRRLICHT)  #  not automatic
 		
-INCLUDE_DIRECTORIES( ${CMAKE_SOURCE_DIR}/demos/trackedVehicle 
+INCLUDE_DIRECTORIES(${CMAKE_SOURCE_DIR}/demos/trackedVehicle/
 					${CH_IRRLICHTINC} )
 	
 INSTALL(TARGETS TrackedVehicle
