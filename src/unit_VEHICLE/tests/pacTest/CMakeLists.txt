@@ -3,9 +3,9 @@
 # ----------------------
 INCLUDE(CMakeDependentOption)
 
-OPTION(PACTEST_ENABLE "enable test of single ChPacejkaTire" OFF)
+OPTION(ENABLE_PACEJKA_TEST "Enable test of single ChPacejkaTire" OFF)
 
-IF(NOT PACTEST_ENABLE)
+IF(NOT ENABLE_PACEJKA_TEST)
   RETURN()
 ENDIF()
 
