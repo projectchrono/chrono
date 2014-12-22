@@ -19,7 +19,8 @@
 #include "assets/ChSphereShape.h"
 #include "assets/ChTriangleMeshShape.h"
 
-#include "utils/ChUtilsData.h"
+#include "subsys/ChVehicleModelData.h"
+
 #include "utils/ChUtilsInputOutput.h"
 
 #include "models/hmmwv/vehicle/HMMWV_VehicleReduced.h"
@@ -42,7 +43,7 @@ const ChVector<> HMMWV_VehicleReduced::m_chassisCOM = in2m * ChVector<>(-18.8, -
 const ChVector<> HMMWV_VehicleReduced::m_chassisInertia(125.8, 497.4, 531.4);                    // chassis inertia (roll,pitch,yaw)
 
 const std::string HMMWV_VehicleReduced::m_chassisMeshName = "hmmwv_chassis_POV_geom";
-const std::string HMMWV_VehicleReduced::m_chassisMeshFile = utils::GetModelDataFile("hmmwv/hmmwv_chassis.obj");
+const std::string HMMWV_VehicleReduced::m_chassisMeshFile = vehicle::GetDataFile("hmmwv/hmmwv_chassis.obj");
 
 const ChCoordsys<> HMMWV_VehicleReduced::m_driverCsys(ChVector<>(0.0, 0.5, 1.2), ChQuaternion<>(1, 0, 0, 0));
 

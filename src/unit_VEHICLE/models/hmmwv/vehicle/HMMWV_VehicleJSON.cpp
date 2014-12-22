@@ -21,7 +21,8 @@
 #include "assets/ChSphereShape.h"
 #include "assets/ChTriangleMeshShape.h"
 
-#include "utils/ChUtilsData.h"
+#include "subsys/ChVehicleModelData.h"
+
 #include "utils/ChUtilsInputOutput.h"
 
 #include "models/hmmwv/vehicle/HMMWV_VehicleJSON.h"
@@ -40,7 +41,7 @@ const ChVector<> HMMWV_VehicleJSON::m_chassisCOM = ChVector<>(0.055765, 0, 0.523
 const ChVector<> HMMWV_VehicleJSON::m_chassisInertia(1078.52344, 2955.66050, 3570.20377);  // chassis inertia (roll,pitch,yaw)
 
 const std::string HMMWV_VehicleJSON::m_chassisMeshName = "hmmwv_chassis_POV_geom";
-const std::string HMMWV_VehicleJSON::m_chassisMeshFile = utils::GetModelDataFile("hmmwv/hmmwv_chassis.obj");
+const std::string HMMWV_VehicleJSON::m_chassisMeshFile = vehicle::GetDataFile("hmmwv/hmmwv_chassis.obj");
 
 const ChCoordsys<> HMMWV_VehicleJSON::m_driverCsys(ChVector<>(0.0, 0.5, 1.2), ChQuaternion<>(1, 0, 0, 0));
 
@@ -92,36 +93,36 @@ HMMWV_VehicleJSON::HMMWV_VehicleJSON(const bool        fixed,
   // Create the suspension subsystems
   // --------------------------------
   m_suspensions.resize(2);
-  m_suspensions[0] = ChSharedPtr<ChSuspension>(new DoubleWishbone(utils::GetModelDataFile("hmmwv/suspension/HMMWV_DoubleWishboneFront.json")));
-  m_suspensions[1] = ChSharedPtr<ChSuspension>(new DoubleWishbone(utils::GetModelDataFile("hmmwv/suspension/HMMWV_DoubleWishboneRear.json")));
+  m_suspensions[0] = ChSharedPtr<ChSuspension>(new DoubleWishbone(vehicle::GetDataFile("hmmwv/suspension/HMMWV_DoubleWishboneFront.json")));
+  m_suspensions[1] = ChSharedPtr<ChSuspension>(new DoubleWishbone(vehicle::GetDataFile("hmmwv/suspension/HMMWV_DoubleWishboneRear.json")));
 
   // -----------------------------
   // Create the steering subsystem
   // -----------------------------
-  m_steering = ChSharedPtr<ChSteering>(new PitmanArm(utils::GetModelDataFile("hmmwv/steering/HMMWV_PitmanArm.json")));
+  m_steering = ChSharedPtr<ChSteering>(new PitmanArm(vehicle::GetDataFile("hmmwv/steering/HMMWV_PitmanArm.json")));
 
   // -----------------
   // Create the wheels
   // -----------------
   m_wheels.resize(4);
-  m_wheels[0] = ChSharedPtr<ChWheel>(new Wheel(utils::GetModelDataFile("hmmwv/wheel/HMMWV_Wheel_FrontLeft.json")));
-  m_wheels[1] = ChSharedPtr<ChWheel>(new Wheel(utils::GetModelDataFile("hmmwv/wheel/HMMWV_Wheel_FrontRight.json")));
-  m_wheels[2] = ChSharedPtr<ChWheel>(new Wheel(utils::GetModelDataFile("hmmwv/wheel/HMMWV_Wheel_RearLeft.json")));
-  m_wheels[3] = ChSharedPtr<ChWheel>(new Wheel(utils::GetModelDataFile("hmmwv/wheel/HMMWV_Wheel_RearRight.json")));
+  m_wheels[0] = ChSharedPtr<ChWheel>(new Wheel(vehicle::GetDataFile("hmmwv/wheel/HMMWV_Wheel_FrontLeft.json")));
+  m_wheels[1] = ChSharedPtr<ChWheel>(new Wheel(vehicle::GetDataFile("hmmwv/wheel/HMMWV_Wheel_FrontRight.json")));
+  m_wheels[2] = ChSharedPtr<ChWheel>(new Wheel(vehicle::GetDataFile("hmmwv/wheel/HMMWV_Wheel_RearLeft.json")));
+  m_wheels[3] = ChSharedPtr<ChWheel>(new Wheel(vehicle::GetDataFile("hmmwv/wheel/HMMWV_Wheel_RearRight.json")));
 
   // --------------------
   // Create the driveline
   // --------------------
-  m_driveline = ChSharedPtr<ChDriveline>(new ShaftsDriveline2WD(utils::GetModelDataFile("hmmwv/driveline/HMMWV_Driveline2WD.json")));
+  m_driveline = ChSharedPtr<ChDriveline>(new ShaftsDriveline2WD(vehicle::GetDataFile("hmmwv/driveline/HMMWV_Driveline2WD.json")));
 
   // -----------------
   // Create the brakes
   // -----------------
   m_brakes.resize(4);
-  m_brakes[0] = ChSharedPtr<BrakeSimple>(new BrakeSimple(utils::GetModelDataFile("hmmwv/brake/HMMWV_BrakeSimple_Front.json")));
-  m_brakes[1] = ChSharedPtr<BrakeSimple>(new BrakeSimple(utils::GetModelDataFile("hmmwv/brake/HMMWV_BrakeSimple_Front.json")));
-  m_brakes[2] = ChSharedPtr<BrakeSimple>(new BrakeSimple(utils::GetModelDataFile("hmmwv/brake/HMMWV_BrakeSimple_Rear.json")));
-  m_brakes[3] = ChSharedPtr<BrakeSimple>(new BrakeSimple(utils::GetModelDataFile("hmmwv/brake/HMMWV_BrakeSimple_Rear.json")));
+  m_brakes[0] = ChSharedPtr<BrakeSimple>(new BrakeSimple(vehicle::GetDataFile("hmmwv/brake/HMMWV_BrakeSimple_Front.json")));
+  m_brakes[1] = ChSharedPtr<BrakeSimple>(new BrakeSimple(vehicle::GetDataFile("hmmwv/brake/HMMWV_BrakeSimple_Front.json")));
+  m_brakes[2] = ChSharedPtr<BrakeSimple>(new BrakeSimple(vehicle::GetDataFile("hmmwv/brake/HMMWV_BrakeSimple_Rear.json")));
+  m_brakes[3] = ChSharedPtr<BrakeSimple>(new BrakeSimple(vehicle::GetDataFile("hmmwv/brake/HMMWV_BrakeSimple_Rear.json")));
 }
 
 
@@ -240,14 +241,14 @@ void HMMWV_VehicleJSON::ExportMeshPovray(const std::string& out_dir)
   Wheel* wheelFR = static_cast<Wheel*>(m_wheels[1].get_ptr());
 
   if (wheelFL->UseVisualizationMesh()) {
-    utils::WriteMeshPovray(utils::GetModelDataFile(wheelFL->GetMeshFilename()),
+    utils::WriteMeshPovray(vehicle::GetDataFile(wheelFL->GetMeshFilename()),
                            wheelFL->GetMeshName(),
                            out_dir,
                            ChColor(0.15f, 0.15f, 0.15f));
   }
 
   if (wheelFR->UseVisualizationMesh()) {
-    utils::WriteMeshPovray(utils::GetModelDataFile(wheelFR->GetMeshFilename()),
+    utils::WriteMeshPovray(vehicle::GetDataFile(wheelFR->GetMeshFilename()),
       wheelFR->GetMeshName(),
       out_dir,
       ChColor(0.15f, 0.15f, 0.15f));

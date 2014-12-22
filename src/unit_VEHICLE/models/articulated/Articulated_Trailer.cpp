@@ -19,7 +19,8 @@
 #include "assets/ChSphereShape.h"
 #include "assets/ChTriangleMeshShape.h"
 
-#include "utils/ChUtilsData.h"
+#include "subsys/ChVehicleModelData.h"
+
 #include "utils/ChUtilsInputOutput.h"
 
 #include "models/articulated/Articulated_SolidAxle.h"

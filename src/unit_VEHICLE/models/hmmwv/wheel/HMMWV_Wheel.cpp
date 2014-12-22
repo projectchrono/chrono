@@ -21,7 +21,8 @@
 #include "assets/ChTexture.h"
 #include "assets/ChColorAsset.h"
 
-#include "utils/ChUtilsData.h"
+#include "subsys/ChVehicleModelData.h"
+
 #include "utils/ChUtilsInputOutput.h"
 
 #include "models/hmmwv/wheel/HMMWV_Wheel.h"
@@ -44,10 +45,10 @@ const double      HMMWV_Wheel::m_mass = lb2kg * 100.00;
 const ChVector<>  HMMWV_Wheel::m_inertia(0.113, 0.113, 0.113);
 
 const std::string HMMWV_WheelLeft::m_meshName = "wheel_L_POV_geom";
-const std::string HMMWV_WheelLeft::m_meshFile = utils::GetModelDataFile("hmmwv/wheel_L.obj");
+const std::string HMMWV_WheelLeft::m_meshFile = vehicle::GetDataFile("hmmwv/wheel_L.obj");
 
 const std::string HMMWV_WheelRight::m_meshName = "wheel_R_POV_geom";
-const std::string HMMWV_WheelRight::m_meshFile = utils::GetModelDataFile("hmmwv/wheel_R.obj");
+const std::string HMMWV_WheelRight::m_meshFile = vehicle::GetDataFile("hmmwv/wheel_R.obj");
 
 
 // -----------------------------------------------------------------------------

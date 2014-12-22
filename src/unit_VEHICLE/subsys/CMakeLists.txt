@@ -9,6 +9,8 @@
 SET(Chrono_Subsys_FILES
     ChApiSubsys.h
     ChSubsysDefs.h
+    ChVehicleModelData.h
+    ChVehicleModelData.cpp
     ChDriver.h
     ChDriver.cpp
     ChPowertrain.h
@@ -17,8 +19,8 @@ SET(Chrono_Subsys_FILES
     ChDriveline.cpp
     ChSuspension.h
     ChSuspension.cpp
-	ChSuspensionTest.h
-	ChSuspensionTest.cpp
+    ChSuspensionTest.h
+    ChSuspensionTest.cpp
     ChSteering.h
     ChSteering.cpp
     ChVehicle.h

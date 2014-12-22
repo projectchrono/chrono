@@ -20,8 +20,7 @@
 #include "assets/ChColorAsset.h"
 #include "assets/ChTexture.h"
 
-#include "utils/ChUtilsData.h"
-
+#include "subsys/ChVehicleModelData.h"
 #include "subsys/terrain/RigidTerrain.h"
 
 
@@ -56,7 +55,7 @@ RigidTerrain::RigidTerrain(ChSystem&         system,
     ground->AddAsset(groundColor);
   } else {
     ChSharedPtr<ChTexture> groundTexture(new ChTexture);
-    groundTexture->SetTextureFilename(utils::GetModelDataFile(road_file));
+    groundTexture->SetTextureFilename(vehicle::GetDataFile(road_file));
     ground->AddAsset(groundTexture);
   }
 

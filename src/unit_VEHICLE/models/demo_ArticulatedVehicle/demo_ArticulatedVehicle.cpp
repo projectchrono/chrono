@@ -29,10 +29,11 @@
 #include "physics/ChSystem.h"
 #include "physics/ChLinkDistance.h"
 
-#include "utils/ChUtilsInputOutput.h"
-#include "utils/ChUtilsData.h"
+#include "subsys/ChVehicleModelData.h"
 #include "subsys/terrain/RigidTerrain.h"
 #include "subsys/tire/ChPacejkaTire.h"
+
+#include "utils/ChUtilsInputOutput.h"
 
 #include "models/ModelDefs.h"
 #include "models/articulated/Articulated_Vehicle.h"

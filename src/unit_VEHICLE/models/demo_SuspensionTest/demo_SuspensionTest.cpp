@@ -31,8 +31,9 @@
 #include "physics/ChSystem.h"
 #include "physics/ChLinkDistance.h"
 
+#include "subsys/ChVehicleModelData.h"
+
 #include "utils/ChUtilsInputOutput.h"
-#include "utils/ChUtilsData.h"
 
 // subsystems, all read in fron JSON files
 #include "models/ModelDefs.h"
@@ -78,14 +79,14 @@ double output_step_size = 1.0 / 1;    // Time interval between two output frames
 
 // =============================================================================
 // JSON file for suspension
-// std::string suspensionTest_file = utils::GetModelDataFile("hmmwv/suspensionTest/HMMWV_ST_front.json");
-std::string suspensionTest_file = utils::GetModelDataFile("hmmwv/suspensionTest/HMMWV_ST_rear.json");
+// std::string suspensionTest_file = vehicle::GetDataFile("hmmwv/suspensionTest/HMMWV_ST_front.json");
+std::string suspensionTest_file = vehicle::GetDataFile("hmmwv/suspensionTest/HMMWV_ST_rear.json");
 
 // JSON files for tire models (rigid) and powertrain (simple)
-std::string rigidtire_file = utils::GetModelDataFile("hmmwv/tire/HMMWV_RigidTire.json");
+std::string rigidtire_file = vehicle::GetDataFile("hmmwv/tire/HMMWV_RigidTire.json");
 
 // Driver input file (if not using Irrlicht)
-std::string driver_file = utils::GetModelDataFile("generic/driver/Sample_Maneuver.txt");
+std::string driver_file = vehicle::GetDataFile("generic/driver/Sample_Maneuver.txt");
 
 // radius of wheel + vertical distance between spindle and chassis center marker
 ChVector<> initLoc(0, 0, 0.496); 

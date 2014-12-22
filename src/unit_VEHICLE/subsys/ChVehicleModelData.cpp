@@ -16,39 +16,39 @@
 //
 // =============================================================================
 
-#include "utils/ChUtilsData.h" 
+#include "subsys/ChVehicleModelData.h" 
 
 
 namespace chrono {
-namespace utils {
+namespace vehicle {
 
 
 // -----------------------------------------------------------------------------
-// Functions for manipulating the ChronoT data directory
+// Functions for manipulating the ChronoVehicle data directory
 // -----------------------------------------------------------------------------
 
 static std::string model_data_path("../data/");
 
-// Set the path to the ChronoT model data directory (ATTENTION: not thread safe)
-void SetModelDataPath(const std::string& path)
+// Set the path to the ChronoVehicle model data directory (ATTENTION: not thread safe)
+void SetDataPath(const std::string& path)
 {
   model_data_path = path;
 }
 
-// Obtain the current path to the ChronoT model data directory (thread safe)
-const std::string& GetModelDataPath()
+// Obtain the current path to the ChronoVehicle model data directory (thread safe)
+const std::string& GetDataPath()
 {
   return model_data_path;
 }
 
 // Obtain the complete path to the specified filename, given relative to the
-// ChronoT model data directory (thread safe)
-std::string GetModelDataFile(const std::string& filename)
+// ChronoVehicle model data directory (thread safe)
+std::string GetDataFile(const std::string& filename)
 {
   return model_data_path + filename;
 }
 
 
-} // end namespace utils
+} // end namespace vehicle
 } // end namespace chrono
 

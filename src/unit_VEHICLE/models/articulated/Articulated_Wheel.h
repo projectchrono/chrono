@@ -23,7 +23,8 @@
 #include "assets/ChTexture.h"
 
 #include "subsys/ChWheel.h"
-#include "utils/ChUtilsData.h"
+#include "subsys/ChVehicleModelData.h"
+
 #include "models/ModelDefs.h"
 
 class Articulated_Wheel : public chrono::ChWheel

@@ -32,7 +32,8 @@
 #include "ChronoT_config.h"
 
 #include "utils/ChUtilsInputOutput.h"
-#include "utils/ChUtilsData.h"
+
+#include "subsys/ChVehicleModelData.h"
 
 #include "subsys/vehicle/Vehicle.h"
 #include "subsys/powertrain/SimplePowertrain.h"
@@ -113,14 +114,14 @@ int main(int argc, char* argv[])
   // --------------------------
 
   // Create the vehicle system
-  Vehicle vehicle(utils::GetModelDataFile(vehicle_file), false);
+  Vehicle vehicle(vehicle::GetDataFile(vehicle_file), false);
   vehicle.Initialize(ChCoordsys<>(initLoc, initRot));
 
   // Create the ground
   RigidTerrain terrain(vehicle, terrainHeight, terrainLength, terrainWidth, 0.8);
 
   // Create and initialize the powertrain system
-  SimplePowertrain powertrain(utils::GetModelDataFile(simplepowertrain_file));
+  SimplePowertrain powertrain(vehicle::GetDataFile(simplepowertrain_file));
   powertrain.Initialize();
 
   // Create and initialize the tires
@@ -129,7 +130,7 @@ int main(int argc, char* argv[])
   std::vector<ChSharedPtr<RigidTire> > tires(num_wheels);
 
   for (int i = 0; i < num_wheels; i++) {
-    tires[i] = ChSharedPtr<RigidTire>(new RigidTire(utils::GetModelDataFile(rigidtire_file), terrain));
+    tires[i] = ChSharedPtr<RigidTire>(new RigidTire(vehicle::GetDataFile(rigidtire_file), terrain));
     tires[i]->Initialize(vehicle.GetWheelBody(i));
   }
 
@@ -193,7 +194,7 @@ int main(int argc, char* argv[])
 
 #else
 
-  ChDataDriver driver(utils::GetModelDataFile(driver_file));
+  ChDataDriver driver(vehicle::GetDataFile(driver_file));
 
 #endif
 

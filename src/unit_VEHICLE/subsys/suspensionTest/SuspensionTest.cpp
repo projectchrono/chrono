@@ -38,7 +38,7 @@
 #include "subsys/steering/RackPinion.h"
 #include "subsys/wheel/Wheel.h"
 
-#include "utils/ChUtilsData.h"
+#include "subsys/ChVehicleModelData.h"
 
 #include "rapidjson/document.h"
 #include "rapidjson/filereadstream.h"
@@ -133,7 +133,7 @@ SuspensionTest::SuspensionTest(const std::string& filename):
   if(d.HasMember("Steering") )
   {
     std::string file_name = d["Steering"]["Input File"].GetString();
-    LoadSteering(utils::GetModelDataFile(file_name));
+    LoadSteering(vehicle::GetDataFile(file_name));
     m_steeringLoc = loadVector(d["Steering"]["Location"]);
     m_steeringRot = loadQuaternion(d["Steering"]["Orientation"]);
     m_steer_susp = d["Steering"]["Suspension Index"].GetInt();
@@ -144,14 +144,14 @@ SuspensionTest::SuspensionTest(const std::string& filename):
   // Create the suspension, wheel, and brake subsystems.
   // Suspension
   std::string file_name = d["Suspension"]["Input File"].GetString();
-  LoadSuspension(utils::GetModelDataFile(file_name), 0, false);
+  LoadSuspension(vehicle::GetDataFile(file_name), 0, false);
   m_suspLocation = loadVector(d["Suspension"]["Location"]);
 
 // Left and right wheels
   file_name = d["Suspension"]["Left Wheel Input File"].GetString();
-  LoadWheel(utils::GetModelDataFile(file_name), 0, 0);
+  LoadWheel(vehicle::GetDataFile(file_name), 0, 0);
   file_name = d["Suspension"]["Right Wheel Input File"].GetString();
-  LoadWheel(utils::GetModelDataFile(file_name), 0, 1);
+  LoadWheel(vehicle::GetDataFile(file_name), 0, 1);
 
   // -----------------------
   // Extract driver position

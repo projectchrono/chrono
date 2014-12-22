@@ -23,7 +23,7 @@
 #include "physics/ChGlobal.h"
 
 #include "subsys/wheel/Wheel.h"
-#include "utils/ChUtilsData.h"
+#include "subsys/ChVehicleModelData.h"
 
 #include "rapidjson/filereadstream.h"
 
@@ -120,7 +120,7 @@ void Wheel::Initialize(ChSharedBodyPtr spindle)
   case MESH:
   {
     geometry::ChTriangleMeshConnected trimesh;
-    trimesh.LoadWavefrontMesh(utils::GetModelDataFile(m_meshFile), false, false);
+    trimesh.LoadWavefrontMesh(vehicle::GetDataFile(m_meshFile), false, false);
 
     ChSharedPtr<ChTriangleMeshShape> trimesh_shape(new ChTriangleMeshShape);
     trimesh_shape->SetMesh(trimesh);

@@ -7,7 +7,6 @@
 # ------------------------------------------------------------------------------
 
 SET(Chrono_Utils_SOURCES
-    ChUtilsData.cpp
     ChUtilsCreators.cpp
     ChUtilsInputOutput.cpp
     ChUtilsValidation.cpp
@@ -16,7 +15,6 @@ SET(Chrono_Utils_SOURCES
 
 SET(Chrono_Utils_HEADERS
     ChApiUtils.h
-    ChUtilsData.h
     ChUtilsGeometry.h
     ChUtilsCreators.h
     ChUtilsInputOutput.h

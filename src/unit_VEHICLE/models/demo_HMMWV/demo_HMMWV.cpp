@@ -30,10 +30,11 @@
 #include "physics/ChSystem.h"
 #include "physics/ChLinkDistance.h"
 
-#include "utils/ChUtilsInputOutput.h"
-#include "utils/ChUtilsData.h"
+#include "subsys/ChVehicleModelData.h"
 #include "subsys/terrain/RigidTerrain.h"
 #include "subsys/tire/ChPacejkaTire.h"
+
+#include "utils/ChUtilsInputOutput.h"
 
 #include "models/ModelDefs.h"
 #include "models/hmmwv/vehicle/HMMWV_Vehicle.h"
@@ -195,7 +196,7 @@ int main(int argc, char* argv[])
   }
   case PACEJKA:
   {
-    std::string param_file = utils::GetModelDataFile("hmmwv/tire/HMMWV_pacejka.tir");
+    std::string param_file = vehicle::GetDataFile("hmmwv/tire/HMMWV_pacejka.tir");
 
     ChSharedPtr<ChPacejkaTire> tire_FL(new ChPacejkaTire("FL", param_file, terrain));
     ChSharedPtr<ChPacejkaTire> tire_FR(new ChPacejkaTire("FR", param_file, terrain));

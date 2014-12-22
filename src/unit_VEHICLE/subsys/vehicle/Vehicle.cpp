@@ -40,7 +40,7 @@
 #include "subsys/wheel/Wheel.h"
 #include "subsys/brake/BrakeSimple.h"
 
-#include "utils/ChUtilsData.h"
+#include "subsys/ChVehicleModelData.h"
 
 #include "rapidjson/document.h"
 #include "rapidjson/filereadstream.h"
@@ -296,7 +296,7 @@ Vehicle::Vehicle(const std::string& filename,
     m_chassisMeshName = d["Visualization"]["Mesh Name"].GetString();
 
     geometry::ChTriangleMeshConnected trimesh;
-    trimesh.LoadWavefrontMesh(utils::GetModelDataFile(m_chassisMeshFile), false, false);
+    trimesh.LoadWavefrontMesh(vehicle::GetDataFile(m_chassisMeshFile), false, false);
 
     ChSharedPtr<ChTriangleMeshShape> trimesh_shape(new ChTriangleMeshShape);
     trimesh_shape->SetMesh(trimesh);
@@ -339,7 +339,7 @@ Vehicle::Vehicle(const std::string& filename,
 
   {
     std::string file_name = d["Steering"]["Input File"].GetString();
-    LoadSteering(utils::GetModelDataFile(file_name));
+    LoadSteering(vehicle::GetDataFile(file_name));
     m_steeringLoc = loadVector(d["Steering"]["Location"]);
     m_steeringRot = loadQuaternion(d["Steering"]["Orientation"]);
     m_steer_susp = d["Steering"]["Suspension Index"].GetInt();
@@ -351,7 +351,7 @@ Vehicle::Vehicle(const std::string& filename,
 
   {
     std::string file_name = d["Driveline"]["Input File"].GetString();
-    LoadDriveline(utils::GetModelDataFile(file_name));
+    LoadDriveline(vehicle::GetDataFile(file_name));
     SizeType num_driven_susp = d["Driveline"]["Suspension Indexes"].Size();
     m_driven_susp.resize(num_driven_susp);
     for (SizeType i = 0; i < num_driven_susp; i++) {
@@ -368,21 +368,21 @@ Vehicle::Vehicle(const std::string& filename,
   for (int i = 0; i < m_num_axles; i++) {
     // Suspension
     std::string file_name = d["Axles"][i]["Suspension Input File"].GetString();
-    LoadSuspension(utils::GetModelDataFile(file_name), i);
+    LoadSuspension(vehicle::GetDataFile(file_name), i);
     m_suspLocations[i] = loadVector(d["Axles"][i]["Suspension Location"]);
 
     // Left and right wheels
     file_name = d["Axles"][i]["Left Wheel Input File"].GetString();
-    LoadWheel(utils::GetModelDataFile(file_name), i, 0);
+    LoadWheel(vehicle::GetDataFile(file_name), i, 0);
     file_name = d["Axles"][i]["Right Wheel Input File"].GetString();
-    LoadWheel(utils::GetModelDataFile(file_name), i, 1);
+    LoadWheel(vehicle::GetDataFile(file_name), i, 1);
 
     // Left and right brakes
     file_name = d["Axles"][i]["Left Brake Input File"].GetString();
-    LoadBrake(utils::GetModelDataFile(file_name), i, 0);
+    LoadBrake(vehicle::GetDataFile(file_name), i, 0);
 
     file_name = d["Axles"][i]["Right Brake Input File"].GetString();
-    LoadBrake(utils::GetModelDataFile(file_name), i, 1);
+    LoadBrake(vehicle::GetDataFile(file_name), i, 1);
   }
 
   // -----------------------
