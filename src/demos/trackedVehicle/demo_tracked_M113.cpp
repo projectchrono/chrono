@@ -17,7 +17,7 @@
 //     - using clones of collision shapes
 //     - use  SetFamilyMaskNoCollisionWithFamily, SetFamily etc., to avoid collisions between different families of bodies.
 //
-//	 Author: Justin Madsen, (c) 2014
+//	 Author: Justin Madsen, 2014
 ///////////////////////////////////////////////////
   
  
@@ -30,6 +30,7 @@
 #include "core/ChRealtimeStep.h"
 #include "physics/ChSystem.h"
 #include "physics/ChLinkDistance.h"
+#include "physics/ChBodyEasy.h"
 
 #include "utils/ChUtilsInputOutput.h"
 #include "utils/ChUtilsData.h"
@@ -69,6 +70,8 @@ double step_size = 0.001;
 // Time interval between two render frames
 int FPS = 50;
 double render_step_size = 1.0 / FPS;   // FPS = 50
+// Time interval between two output frames
+double output_step_size = 1.0 / 1;    // once a second
 
 // #ifdef USE_IRRLICHT
   // Point on chassis tracked by the camera
@@ -93,12 +96,26 @@ int main(int argc, char* argv[])
 
   vehicle.Initialize(ChCoordsys<>(initLoc, initRot));
 
+
+  // ground plate
+  ChSharedPtr<ChBody> ground(new ChBodyEasyBox(60.0, 1.0, 100.0, 1000.0, true, true));
+	ground->SetIdentifier(-1);
+  ground->SetName("ground");
+  ground->SetFriction(1.0);
+  // texture asset for the ground
+  ChSharedPtr<ChColorAsset> groundColor(new ChColorAsset);
+  groundColor->SetColor(ChColor(0.4f, 0.4f, 0.6f));
+  ground->AddAsset(groundColor);
+  vehicle.Add(ground);  // add this body to the system, which is the vehicle
+
+
+
 /*
 #ifdef USE_IRRLICHT
 */
 	// Create the Irrlicht visualization applicaiton
   ChIrrApp application(&vehicle,
-                      L"HMMWV 9-body demo",
+                      L"M113 tracked vehicle demo",
                       dimension2d<u32>(1000, 800),
                       false,
                       true);
@@ -139,86 +156,80 @@ int main(int argc, char* argv[])
 
   application.SetTimestep(step_size);
 
-  ChIrrGuiTrack driver();
+  // the GUI driver
+  ChIrrGuiTrack driver(application, vehicle, trackPoint,3.0, 2.0);
+
+  // Set the time response for steering and throttle keyboard inputs.
+  // NOTE: this is not exact, since we do not render quite at the specified FPS.
+  double steering_time = 1.0;  // time to go from 0 to +1 (or from 0 to -1)
+  double throttle_time = 1.0;  // time to go from 0 to +1
+  double braking_time = 0.3;  // time to go from 0 to +1
+  driver.SetSteeringDelta(render_step_size / steering_time);
+  driver.SetThrottleDelta(render_step_size / throttle_time);
+  driver.SetBrakingDelta(render_step_size / braking_time);
+
+  // Set up the assets for rendering
+  application.AssetBindAll();
+  application.AssetUpdateAll();
+  if (do_shadows)
+  {
+    application.AddShadowAll();
+  }
 
 
+  // ---------------------
+  // Simulation loop
 
+  // GUI driver inputs
+  std::vector<double>   throttle_input;
+  std::vector<double>   braking_input;
+  double   steering_input;
 
-	// ground plate
-  ChSharedPtr<ChBody> ground(new ChBodyEasyBox(60.0, 1.0, 100.0, 1000.0, true, true);
-										
-	ground->SetFriction(1.0);
-  my_system.Add(ground);  // add this body to the system
+  // Number of simulation steps between two 3D view render frames
+  int render_steps = (int)std::ceil(render_step_size / step_size);
 
-	// ..some obstacles on the ground:
-	for (int i=0; i<50; i++)
-	{
-		ChBodySceneNode* my_obstacle = (ChBodySceneNode*)addChBodySceneNode_easyBox(
-											&my_system, application.GetSceneManager(),
-											3.0,
-											ChVector<>(-6+6*ChRandom(),2+1*ChRandom(), 6*ChRandom()),
-											Q_from_AngAxis(ChRandom()*CH_C_PI, VECT_Y), 
-											ChVector<>(0.6*(1-0.4*ChRandom()),
-											           0.08,
-													   0.3*(1-0.4*ChRandom()) ) );
-		my_obstacle->addShadowVolumeSceneNode();
-	}
+  // Number of simulation steps between two output frames
+  int output_steps = (int)std::ceil(output_step_size / step_size);
 
+  // Initialize simulation frame counter and simulation time
+  int step_number = 0;
+  double time = 0;
 
+  ChRealtimeStepTimer realtime_timer;
 
-	//
-	// USER INTERFACE
-	//
-	 
-
-	// Create some graphical-user-interface (GUI) items to show on the screen.
-	// This requires an event receiver object.
-	MyEventReceiver receiver(&application, vehicle);
-	  // note how to add the custom event receiver to the default interface:
-	application.SetUserEventReceiver(&receiver);
-
-
-	//
-	// SETTINGS 
-	// 	
-
-	my_system.SetIterLCPmaxItersSpeed(100); // the higher, the easier to keep the constraints 'mounted'.
-	my_system.SetLcpSolverType(ChSystem::LCP_ITERATIVE_SOR); 
-
-
-
-	//
-	// THE SOFT-REAL-TIME CYCLE, SHOWING THE SIMULATION
-	//
-
-
-	application.SetStepManage(true);
-	application.SetTimestep(0.03);
-	application.SetTryRealtime(true);
-
-	while(application.GetDevice()->run())
+  double sum_sim_time = 0;
+  while (application.GetDevice()->run())
 	{ 
-		// Irrlicht must prepare frame to draw
-		application.GetVideoDriver()->beginScene(true, true, SColor(255,140,161,192));
-	
-		// .. draw solid 3D items (boxes, cylinders, shapes) belonging to Irrlicht scene, if any
-		application.DrawAll();
-
-		// .. draw also a grid (rotated so that it's horizontal)
-		ChIrrTools::drawGrid(application.GetVideoDriver(), 2, 2, 30,30, 
-			ChCoordsys<>(ChVector<>(0,0.01,0), Q_from_AngX(CH_C_PI_2) ),
-			video::SColor(255, 60,60,60), true);
-
-		// HERE CHRONO INTEGRATION IS PERFORMED: 
+		// keep track of the time spent calculating each sim step
+    ChTimer<double> step_time;
+    step_time.start();
 		
-		application.DoStep();
+    // Render scene
+    if (step_number % render_steps == 0) {
+      application.GetVideoDriver()->beginScene(true, true, irr::video::SColor(255, 140, 161, 192));
+      driver.DrawAll();
+      application.GetVideoDriver()->endScene();
+    }
 
+    // Collect output data from modules (for inter-module communication)
+    throttle_input = driver.GetThrottle();
+    steering_input = driver.GetSteering();
+    braking_input = driver.GetBraking();
 
-		application.GetVideoDriver()->endScene(); 
+    // Update
+    time = vehicle.GetChTime();
+
+    driver.Update(time);
+
+    vehicle.Update(time, throttle_input, braking_input);
+    // Advance simulation for one timestep for all modules
+    double step = realtime_timer.SuggestSimulationStep(step_size);
+
+    driver.Advance(step);
+
+    vehicle.Advance(step);
+
 	}
-
-
-	if (mytank) delete mytank;
 
 	return 0;
 }
