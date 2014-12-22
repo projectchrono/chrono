@@ -17,9 +17,13 @@
 // =============================================================================
 
 #include <cstdio>
+#include <iostream>
+#include <sstream>
+#include <fstream>
 
 #include "subsys/suspensionTest/SuspensionTest.h"
 
+#include "assets/ChSphereShape.h"
 #include "assets/ChCylinderShape.h"
 #include "assets/ChTexture.h"
 #include "assets/ChColorAsset.h"
@@ -34,7 +38,6 @@
 #include "subsys/steering/RackPinion.h"
 #include "subsys/wheel/Wheel.h"
 
-#include "utils/ChUtilsInputOutput.h"
 #include "utils/ChUtilsData.h"
 
 #include "rapidjson/document.h"
