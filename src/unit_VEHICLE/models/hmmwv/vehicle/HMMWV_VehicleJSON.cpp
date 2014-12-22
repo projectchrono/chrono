@@ -238,8 +238,20 @@ void HMMWV_VehicleJSON::ExportMeshPovray(const std::string& out_dir)
 
   Wheel* wheelFL = static_cast<Wheel*>(m_wheels[0].get_ptr());
   Wheel* wheelFR = static_cast<Wheel*>(m_wheels[1].get_ptr());
-  wheelFL->ExportMeshPovray(out_dir);
-  wheelFR->ExportMeshPovray(out_dir);
+
+  if (wheelFL->UseVisualizationMesh()) {
+    utils::WriteMeshPovray(utils::GetModelDataFile(wheelFL->GetMeshFilename()),
+                           wheelFL->GetMeshName(),
+                           out_dir,
+                           ChColor(0.15f, 0.15f, 0.15f));
+  }
+
+  if (wheelFR->UseVisualizationMesh()) {
+    utils::WriteMeshPovray(utils::GetModelDataFile(wheelFR->GetMeshFilename()),
+      wheelFR->GetMeshName(),
+      out_dir,
+      ChColor(0.15f, 0.15f, 0.15f));
+  }
 }
 
 

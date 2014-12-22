@@ -46,7 +46,9 @@ public:
                       double              braking,
                       const ChTireForces& tire_forces);
 
-  void ExportMeshPovray(const std::string& out_dir);
+  bool UseVisualizationMesh() const          { return m_chassisUseMesh; }
+  const std::string& GetMeshFilename() const { return m_chassisMeshFile; }
+  const std::string& GetMeshName() const     { return m_chassisMeshName; }
 
 private:
 

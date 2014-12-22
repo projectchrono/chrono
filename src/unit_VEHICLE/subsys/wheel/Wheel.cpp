@@ -23,7 +23,6 @@
 #include "physics/ChGlobal.h"
 
 #include "subsys/wheel/Wheel.h"
-#include "utils/ChUtilsInputOutput.h"
 #include "utils/ChUtilsData.h"
 
 #include "rapidjson/filereadstream.h"
@@ -84,21 +83,14 @@ void Wheel::Create(const rapidjson::Document& d)
     if (d["Visualization"].HasMember("Mesh Filename")) {
       m_meshFile = d["Visualization"]["Mesh Filename"].GetString();
       m_meshName = d["Visualization"]["Mesh Name"].GetString();
-
       m_vis = MESH;
-    }
-    else {
+    } else {
       m_vis = PRIMITIVES;
     }
+
+    m_radius = d["Visualization"]["Radius"].GetDouble();
+    m_width = d["Visualization"]["Width"].GetDouble();
   }
-  // reasonable for user to specify the approx. mesh radius and width.
-  // Ought to be the same as is used in ChTire JSON files.
-  // Need it here for any bodies or joints that must be created and initialized
-  // BEFORE the ChTire is created/initialized (and the radius/width is found from that System)
-  // Keeping it as a visualization member to indicate it's the ChTire whose radius and width
-  // may have an impact on the physics of the tire model, not the Wheel class.
-  m_radius = d["Visualization"]["Radius"].GetDouble();
-  m_width = d["Visualization"]["Width"].GetDouble();
 }
 
 
@@ -141,15 +133,6 @@ void Wheel::Initialize(ChSharedBodyPtr spindle)
     break;
   }
   }
-}
-
-
-// -----------------------------------------------------------------------------
-// -----------------------------------------------------------------------------
-void Wheel::ExportMeshPovray(const std::string& out_dir)
-{
-  if (m_vis == MESH)
-    utils::WriteMeshPovray(utils::GetModelDataFile(m_meshFile), m_meshName, out_dir, ChColor(0.15f, 0.15f, 0.15f));
 }
 
 

@@ -17,7 +17,7 @@
 // =============================================================================
 
 #include "subsys/tire/RigidTire.h"
-#include "utils/ChUtilsInputOutput.h"
+
 #include "utils/ChUtilsData.h"
 
 #include "rapidjson/filereadstream.h"

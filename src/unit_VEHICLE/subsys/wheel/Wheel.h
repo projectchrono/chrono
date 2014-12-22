@@ -37,18 +37,18 @@ public:
 
   virtual void Initialize(ChSharedBodyPtr spindle);
 
-  /// Accessors
   virtual double GetMass() const { return m_mass; }
   virtual ChVector<> GetInertia() const { return m_inertia; }
   virtual double GetRadius() const { return m_radius; }
   virtual double GetWidth() const { return m_width; }
 
-  /// set variables from ChTire
   void SetRadius(double rad) { m_radius = rad; }
   void SetWidth(double width) { m_width = width; }
 
-
-  void ExportMeshPovray(const std::string& out_dir);
+  bool UseVisualizationMesh() const          { return m_vis == MESH; }
+  bool UseVisualizationPrimitives() const    { return m_vis == PRIMITIVES; }
+  const std::string& GetMeshFilename() const { return m_meshFile; }
+  const std::string& GetMeshName() const     { return m_meshName; }
 
 private:
 

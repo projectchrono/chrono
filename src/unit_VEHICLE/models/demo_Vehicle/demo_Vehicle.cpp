@@ -294,8 +294,6 @@ int main(int argc, char* argv[])
     return 1;
   }
 
-  vehicle.ExportMeshPovray(out_dir);
-
   char filename[100];
 
   while (time < tend)

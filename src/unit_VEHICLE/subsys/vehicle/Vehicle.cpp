@@ -40,7 +40,6 @@
 #include "subsys/wheel/Wheel.h"
 #include "subsys/brake/BrakeSimple.h"
 
-#include "utils/ChUtilsInputOutput.h"
 #include "utils/ChUtilsData.h"
 
 #include "rapidjson/document.h"
@@ -450,27 +449,6 @@ void Vehicle::Update(double              time,
 
     m_brakes[2 * i]->ApplyBrakeModulation(braking);
     m_brakes[2 * i + 1]->ApplyBrakeModulation(braking);
-  }
-}
-
-// -----------------------------------------------------------------------------
-// -----------------------------------------------------------------------------
-void Vehicle::ExportMeshPovray(const std::string& out_dir)
-{
-  if (m_chassisUseMesh) {
-    
-    utils::WriteMeshPovray(utils::GetModelDataFile(m_chassisMeshFile),
-                           m_chassisMeshName,
-                           out_dir,
-                           ChColor(0.82f, 0.7f, 0.5f));
-  }
-
-  for (int i = 0; i < m_num_axles; i++) {
-    Wheel* wL = static_cast<Wheel*>(m_wheels[2 * i].get_ptr());
-    Wheel* wR = static_cast<Wheel*>(m_wheels[2 * i + 1].get_ptr());
-
-    wL->ExportMeshPovray(out_dir);
-    wR->ExportMeshPovray(out_dir);
   }
 }
 
