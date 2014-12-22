@@ -41,12 +41,18 @@ public:
   
 private:
   // private functions
-  
+  const std::string& getMeshName() const { return m_meshName; }
+  const std::string& getMeshFile() const { return m_meshFile; }
+
   
   // private variables
   ChSharedPtr<ChBody> m_gear;
   double m_radius;
   double m_width;
+
+  int m_visType;    // 0 = none, 1 = primitive, 2 = mesh
+  static const std::string m_meshName;
+  static const std::string m_meshFile;
   
 };
 
