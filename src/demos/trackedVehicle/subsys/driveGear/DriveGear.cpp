@@ -32,13 +32,15 @@ namespace chrono {
 const std::string DriveGear::m_meshName = "wheel_L_POV_geom";
 const std::string DriveGear::m_meshFile = utils::GetModelDataFile("hmmwv/wheel_L.obj");
 
+const double DriveGear::m_mass = 200;
+const ChVector<> DriveGear::m_inertia(10,10,10);
+const double DriveGear::m_radius = 0.3;
+const double DriveGear::m_width = 0.25;
 
-DriveGear::DriveGear(double mass, const ChVector<>& inertia, double rad, double width)
-: m_radius(rad), m_width(width)
+
+DriveGear::DriveGear()
 {
   m_gear = ChSharedPtr<ChBody>(new ChBody);
-  m_gear->SetMass(mass);
-  m_gear->SetInertiaXX(inertia);
 }
 
 void DriveGear::Initialize(ChSharedPtr<ChBodyAuxRef> chassis, const ChVector<>& pos, const ChQuaternion<>& rot)
