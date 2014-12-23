@@ -79,7 +79,7 @@ const ChVector<>& ChSuspensionTest::GetWheelLinVel(const ChWheelID& wheel_id) co
   return m_suspension->GetSpindleLinVel(wheel_id.side());
 }
 
-const ChVector<>& ChSuspensionTest::GetWheelAngVel(const ChWheelID& wheel_id) const
+ChVector<> ChSuspensionTest::GetWheelAngVel(const ChWheelID& wheel_id) const
 {
   return m_suspension->GetSpindleAngVel(wheel_id.side());
 }

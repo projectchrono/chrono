@@ -17,6 +17,7 @@
 // =============================================================================
 
 #include <cstdio>
+#include <cmath>
 #include <iostream>
 #include <sstream>
 #include <fstream>
@@ -895,4 +896,3 @@ void SuspensionTest::create_fileHeader(int what)
 
 
 } // end namespace chrono
-     

@@ -82,7 +82,7 @@ public:
   const ChVector<>& GetWheelLinVel(const ChWheelID& wheel_id) const;
 
   /// global angular velocity of wheel
-  const ChVector<>& GetWheelAngVel(const ChWheelID& wheel_id) const;
+  ChVector<> GetWheelAngVel(const ChWheelID& wheel_id) const;
 
 
   /// Get the complete state for the specified wheel.
