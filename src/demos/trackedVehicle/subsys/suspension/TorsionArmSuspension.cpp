@@ -24,20 +24,21 @@
 namespace chrono {
 
 // static variables
-const double m_armMass = 75.26; // [kg]
-const ChVector<> m_armInertia(0.77, 0.37, 0.77);  // [kg-m2]
-const double m_armRadius = 0.2; // [m]
+const double TorsionArmSuspension::m_armMass = 75.26; // [kg]
+const ChVector<> TorsionArmSuspension::m_armInertia(0.77, 0.37, 0.77);  // [kg-m2]
+const double TorsionArmSuspension::m_armRadius = 0.2; // [m]
 
-const double m_wheelMass = 561.1; // [kg]
-const ChVector<> m_wheelInertia(26.06, 19.82, 19.82); // [kg-m2]
-const double m_wheelWidth = 0.4;  // [m]
-const double m_wheelRadius = 0.7; // [m]
-const ChVector<> m_wheelPos();	// location relative to the suspension c-sys
-const ChQuaternion<> m_wheelRot(QUNIT); // wheel rotation relative to suspension c-sys
+const double TorsionArmSuspension::m_wheelMass = 561.1; // [kg]
+const ChVector<> TorsionArmSuspension::m_wheelInertia(26.06, 19.82, 19.82); // [kg-m2]
+const double TorsionArmSuspension::m_wheelWidth = 0.4;  // [m]
+const double TorsionArmSuspension::m_wheelRadius = 0.7; // [m]
 
-const double m_springK;	// torsional spring constant
-const double m_springC;	// torsional damping constant
+
+const double TorsionArmSuspension::m_springK = 100000;	// torsional spring constant
+const double TorsionArmSuspension::m_springC = 1000;	// torsional damping constant
 const ChVector<> m_TorquePreload;
+
+
 
 TorsionArmSuspension::TorsionArmSuspension()
 {
@@ -69,9 +70,17 @@ void TorsionArmSuspension::Create()
   m_springC = d["Torsion Bar"]["Damping"].GetDouble();
 
   */
+
+  // create the bodies
   m_arm = ChSharedPtr<ChBody>(new ChBody);
-  
   m_wheel = ChSharedPtr<ChBody>(new ChBody);
+
+  // create the constraints
+  m_armChassis_rev = ChSharedPtr<ChLinkLockRevolute>(new ChLinkLockRevolute);
+  m_armWheel_rev = ChSharedPtr<ChLinkLockRevolute>(new ChLinkLockRevolute);
+
+  // create the torsional spring damper 
+
   
 }
 
