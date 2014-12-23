@@ -12,7 +12,8 @@
 // Authors: Justin Madsen
 // =============================================================================
 //
-// model a single track chain system, as part of a tracked vehicle. Uses JSON input files
+// model a single track chain system, as part of a tracked vehicle.
+// Static variable values are based on a M113 model in the report by Shabana
 //
 // =============================================================================
 
@@ -21,6 +22,22 @@
 #include "subsys/suspension/TorsionArmSuspension.h"
 
 namespace chrono {
+
+// static variables
+const double m_armMass = 75.26; // [kg]
+const ChVector<> m_armInertia(0.77, 0.37, 0.77);  // [kg-m2]
+const double m_armRadius = 0.2; // [m]
+
+const double m_wheelMass = 561.1; // [kg]
+const ChVector<> m_wheelInertia(26.06, 19.82, 19.82); // [kg-m2]
+const double m_wheelWidth = 0.4;  // [m]
+const double m_wheelRadius = 0.7; // [m]
+const ChVector<> m_wheelPos();	// location relative to the suspension c-sys
+const ChQuaternion<> m_wheelRot(QUNIT); // wheel rotation relative to suspension c-sys
+
+const double m_springK;	// torsional spring constant
+const double m_springC;	// torsional damping constant
+const ChVector<> m_TorquePreload;
 
 TorsionArmSuspension::TorsionArmSuspension()
 {
