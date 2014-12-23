@@ -37,9 +37,9 @@ namespace chrono {
 
 // -----------------------------------------------------------------------------
 // Static variables
-const double     TrackVehicle::m_Mass = 10000;   // chassis sprung mass
+const double     TrackVehicle::m_mass = 10000;   // chassis sprung mass
 const ChVector<> TrackVehicle::m_COM = ChVector<>(0.3, 0.0, 0.5);  // COM location
-const ChVector<> TrackVehicle::m_Inertia(425.8, 697.4, 731.4);  // chassis inertia (roll,pitch,yaw)
+const ChVector<> TrackVehicle::m_inertia(425.8, 697.4, 731.4);  // chassis inertia (roll,pitch,yaw)
 
 const std::string TrackVehicle::m_MeshFile = utils::GetModelDataFile("hmmwv/hmmwv_chassis.obj");
 
@@ -61,7 +61,7 @@ TrackVehicle::TrackVehicle(bool fixed, bool chassisVis)
   m_chassis->SetIdentifier(0);
   m_chassis->SetName("chassis");
   m_chassis->SetFrame_COG_to_REF(ChFrame<>(m_COM, ChQuaternion<>(1, 0, 0, 0)));
-  m_chassis->SetInertiaXX(m_Inertia);
+  m_chassis->SetInertiaXX(m_inertia);
   m_chassis->SetBodyFixed(fixed);
 
   if (chassisVis)
@@ -116,7 +116,7 @@ void TrackVehicle::Initialize(const ChCoordsys<>& chassisPos)
   // Initialize the suspension, wheel, and brake subsystems.
   for (int i = 0; i < m_num_tracks; i++)
   {
-    m_TrackSystems[i]->Initialize(m_chassis, m_TrackSystem_locs[i], QUNIT);
+    m_TrackSystems[i]->Initialize(m_chassis, m_TrackSystem_locs[i]);
   }
 }
 

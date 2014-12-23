@@ -122,9 +122,9 @@ private:
   std::vector<ChSharedPtr<TrackDriveline>>   m_drivelines;    ///< handle to the driveline subsystem, one for each powertrain/drivegear pair
   std::vector<ChSharedPtr<TrackPowertrain>>  m_ptrains;  ///< powertrain system, one per track system
 
-  static const double     m_Mass;                   // chassis mass
+  static const double     m_mass;                   // chassis mass
   static const ChVector<> m_COM;                    // location of the chassis COM in the local ref frame
-  static const ChVector<> m_Inertia;                // symmetric moments of inertia of the chassis
+  static const ChVector<> m_inertia;                // symmetric moments of inertia of the chassis
 
   static const ChCoordsys<> m_driverCsys;  // driver position and orientation relative to chassis
   static const std::string  m_MeshFile;
