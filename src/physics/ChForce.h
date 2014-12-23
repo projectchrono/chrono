@@ -212,10 +212,7 @@ public:
 	void UpdateState ();
 	void Update (double mytime);
 
-				/// Tells to the associated external object ChExternalObject() ,if any,
-				/// that its 3D shape must be updated in order to syncronize to ChForce
-				/// coordinates
-	void UpdateExternalGeometry ();
+
 
 			//
 			// STREAMING

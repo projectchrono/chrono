@@ -26,7 +26,6 @@
 #include "physics/ChMarker.h"
 #include "physics/ChGlobal.h"
 #include "physics/ChBody.h"
-#include "physics/ChExternalObject.h"
  
 
 
@@ -330,13 +329,6 @@ void ChMarker::Update (double mytime)
 
 
 
-
-void ChMarker::UpdateExternalGeometry ()
-{
-	// tell the R3 object to move itself where needed
-	if (GetExternalObject())
-		GetExternalObject()->onChronoChanged();
-}
 
 void ChMarker::UpdatedExternalTime (double prevtime, double mtime)
 {
