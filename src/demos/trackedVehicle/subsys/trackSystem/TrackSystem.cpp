@@ -24,35 +24,25 @@ namespace chrono {
 
 // -----------------------------------------------------------------------------
 // Static variables
-const double TrackSystem::m_idlerMass = 250.0;
-const ChVector<> TrackSystem::m_idlerInertia = ChVector<>(10,10,15);
 
 // idler
-const ChVector<> m_idlerPos;
-
+const ChVector<> TrackSystem::m_idlerPos(-2.0, 0.75, 0);
+const ChQuaternion<> TrackSystem::m_idlerRot(QUNIT);
   
 // drive gear
-double m_gearMass;
-ChVector<> m_gearPos;
-double m_gearRadius;
-double m_gearWidth;
-ChVector<> m_gearInertia;
+const ChVector<> TrackSystem::m_gearPos(2.0, 0.75, 0);
+const ChQuaternion<> TrackSystem::m_gearRot(QUNIT);
   
 // Support rollers
-double m_rollerMass;
-double m_rollerRadius;
-double m_rollerWidth;
-ChVector<> m_rollerInertia;
-int m_NumRollers;
+const int TrackSystem::m_numRollers = 0;
+const double TrackSystem::m_rollerMass = 100.0;
+const double TrackSystem::m_roller_radius = 0.2;
+const double TrackSystem::m_roller_width = 0.2;
   
 // suspension
-std::string m_suspensionFilename;
-std::vector<ChVector<> > m_suspensionLocs;
-int m_NumSuspensions;
+// const std::string m_suspensionFilename;
+const int TrackSystem::m_numSuspensions = 5;
   
-// Track Chain
-std::string m_trackChainFilename;
-int m_track_idx;
 
 TrackSystem::TrackSystem(const std::string& name, int track_idx)
   : m_track_idx(track_idx), m_name(name)
@@ -128,7 +118,7 @@ void TrackSystem::Create(int track_idx)
   
   */
 
-  // create the various subsystems, from the static variables
+  // create the various subsystems, from the class private variables
   BuildSubsystems();
 
  
@@ -139,19 +129,19 @@ void TrackSystem::BuildSubsystems()
   // build one of each of the following subsystems
   m_driveGear = ChSharedPtr<DriveGear>(new DriveGear() );
   m_idler = ChSharedPtr<IdlerSimple>(new IdlerSimple() );
-  m_chain = ChSharedPtr<TrackChain>(new TrackChain(m_trackChainFilename));
+  m_chain = ChSharedPtr<TrackChain>(new TrackChain());
   
   // build suspension/road wheel subsystems
-  m_suspensions.resize(m_NumSuspensions);
-  for(int i = 0; i < m_NumSuspensions; i++)
+  m_suspensions.resize(m_numSuspensions);
+  for(int i = 0; i < m_numSuspensions; i++)
   {
-    m_suspensions[i] = ChSharedPtr<TorsionArmSuspension>(new TorsionArmSuspension(m_suspensionFilename));
+    m_suspensions[i] = ChSharedPtr<TorsionArmSuspension>(new TorsionArmSuspension());
   }
   
-  // build support wheel subsystems
-  m_supportRollers.resize(m_NumRollers);
-  m_supportRollers_rev.resize(m_NumRollers);
-  for(int j = 0; j < m_NumRollers; j++)
+  // build support wheel subsystems (if any)
+  m_supportRollers.resize(m_numRollers);
+  m_supportRollers_rev.resize(m_numRollers);
+  for(int j = 0; j < m_numRollers; j++)
   {
     m_supportRollers[j] = ChSharedPtr<ChBody>(new ChBody);
   }
@@ -159,8 +149,7 @@ void TrackSystem::BuildSubsystems()
 }
 
 void TrackSystem::Initialize(ChSharedPtr<ChBodyAuxRef> chassis,
-			 const ChVector<>&         location,
-			 const ChQuaternion<>&     rotation)
+			 const ChVector<>&  location)
 {
   // initialize 1 of each of the following subsystems:
   m_driveGear->Initialize(chassis, m_gearPos, QUNIT);
@@ -175,18 +164,26 @@ void TrackSystem::Initialize(ChSharedPtr<ChBodyAuxRef> chassis,
   // initialize the support rollers 
   for(int j = 0; j < m_rollerLocs.size(); j++)
   {
-    initialize_roller(m_supportRollers[j], m_rollerLocs[j], QUNIT, j);
+    initialize_roller(m_supportRollers[j], chassis,
+      m_rollerLocs[j], QUNIT, j);
   }
   
 }
 
 
-// initialize a roller at the specified location and orientation
-void TrackSystem::initialize_roller(ChSharedPtr<ChBody> body, const ChVector<>& loc, const ChQuaternion<>& rot, int idx)
+// initialize a roller at the specified location and orientation, w.r.t. TrackSystem c-sys
+void TrackSystem::initialize_roller(ChSharedPtr<ChBody> body, ChSharedPtr<ChBodyAuxRef>  chassis,
+                                    const ChVector<>& loc, const ChQuaternion<>& rot, int idx)
 {
+  // express loc and rot in the global c-sys
+  ChFrame<> frame_to_abs(loc, rot);
+  
+
   body->SetPos(loc);
   body->SetRot(rot);
   body->SetMass(m_rollerMass);
+
+  // transform point to absolute frame and initialize
 
   // add the revolute joint at the location and w/ orientation specified
 
