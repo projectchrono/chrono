@@ -312,8 +312,6 @@ IF (BUILD_CH_SDK)
 		physics/ChLinkLock.cpp 
 		physics/ChLinkBrake.cpp 
 		physics/ChLinkEngine.cpp 
-		physics/ChLinkContact.cpp 
-		physics/ChLinkFastContact.cpp 
 		physics/ChLinkGear.cpp 
 		physics/ChLinkPulley.cpp 
 		physics/ChLinkLinActuator.cpp 
@@ -411,10 +409,8 @@ IF (BUILD_CH_SDK)
 		physics/ChLinkBase.h
 		physics/ChLink.h
 		physics/ChLinkBrake.h
-		physics/ChLinkContact.h
 		physics/ChLinkDistance.h
 		physics/ChLinkEngine.h
-		physics/ChLinkFastContact.h
 		physics/ChLinkforce.h
 		physics/ChLinkGear.h
 		physics/ChLinkLinActuator.h
