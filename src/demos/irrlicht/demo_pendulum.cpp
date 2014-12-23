@@ -31,13 +31,10 @@
    
 
 #include "physics/ChSystem.h"
-#include "unit_IRRLICHT/ChBodySceneNode.h"
-#include "unit_IRRLICHT/ChBodySceneNodeTools.h" 
-#include "unit_IRRLICHT/ChIrrAppInterface.h"
+#include "physics/ChBodyEasy.h"
 #include "core/ChTimer.h"
 #include "core/ChRealtimeStep.h"
-
-#include <irrlicht.h>
+#include "unit_IRRLICHT/ChIrrApp.h"
 
 
 
@@ -106,7 +103,7 @@ int main(int argc, char* argv[])
 
 	// Create the Irrlicht visualization (open the Irrlicht device, 
 	// bind a simple user interface, etc. etc.)
-	ChIrrAppInterface application(&my_system, L"A simple pendulum example",core::dimension2d<u32>(800,600),false,false, video::EDT_OPENGL); 
+	ChIrrApp application(&my_system, L"A simple pendulum example",core::dimension2d<u32>(800,600),false,false, video::EDT_OPENGL); 
 
 	// Easy shortcuts to add logo, camera, lights and sky in Irrlicht scene:
 	ChIrrWizard::add_typical_Logo(application.GetDevice());
@@ -124,44 +121,43 @@ int main(int argc, char* argv[])
 	// ..create the five pendulums (bodies are Irrlicht nodes of
 	//   the special class ChBodySceneNode, which encapsulate ChBody items ): 
 
-	for (int k=0;k<5; k++)
+	for (int k=0;k<1; k++)
 	{
 		double z_step =(double)k*2.;
 
 		 // .. the truss
-		ChBodySceneNode* mrigidBody0 = (ChBodySceneNode*)addChBodySceneNode_easyBox(
-												&my_system, application.GetSceneManager(),
-												1.0,
-												ChVector<>(0,0,z_step),
-												ChQuaternion<>(1,0,0,0), 
-												ChVector<>(5,1,0.5) ); 
-		mrigidBody0->GetBody()->SetBodyFixed(true); // the truss does not move!
-		mrigidBody0->GetBody()->SetCollide(false);
+		ChSharedPtr<ChBodyEasyBox> mrigidBody0(new ChBodyEasyBox(
+											5, 1, 0.5,	// x,y,z size
+											1000,		// density
+											false,		// collide enable?
+											true));		// visualization?
+		mrigidBody0->SetPos( ChVector<>(0, 0, z_step) );
+		mrigidBody0->SetBodyFixed(true); // the truss does not move!
+		my_system.Add(mrigidBody0);
 
+		ChSharedPtr<ChBodyEasyBox> mrigidBody1(new ChBodyEasyBox(
+											1, 6, 1,	// x,y,z size
+											100,		// density
+											false,		// collide enable?
+											true));		// visualization?
+		mrigidBody1->SetPos( ChVector<>(0, -3, z_step) );
+		my_system.Add(mrigidBody1);
 
-		ChBodySceneNode* mrigidBody1 = (ChBodySceneNode*)addChBodySceneNode_easyBox(
-												&my_system, application.GetSceneManager(),
-												1.0,
-												ChVector<>(0,-3,z_step),
-												ChQuaternion<>(1,0,0,0), 
-												ChVector<>(1,6,1) );
-		mrigidBody1->GetBody()->SetCollide(false);
+		ChSharedPtr<ChBodyEasyBox> mrigidBody2(new ChBodyEasyBox(
+											1, 6, 1,	// x,y,z size
+											100,		// density
+											false,		// collide enable?
+											true));		// visualization?
+		mrigidBody2->SetPos( ChVector<>(0, -9, z_step) );
+		my_system.Add(mrigidBody2);
 
-		ChBodySceneNode* mrigidBody2 = (ChBodySceneNode*)addChBodySceneNode_easyBox(
-												&my_system, application.GetSceneManager(),
-												1.0,
-												ChVector<>(3,-6,z_step),
-												ChQuaternion<>(1,0,0,0), 
-												ChVector<>(6,1,1) );
-		mrigidBody2->GetBody()->SetCollide(false);
-
-		ChBodySceneNode* mrigidBody3 = (ChBodySceneNode*)addChBodySceneNode_easyBox(
-												&my_system, application.GetSceneManager(),
-												1.0,
-												ChVector<>(6,-9,z_step),
-												ChQuaternion<>(1,0,0,0), 
-												ChVector<>(1,6,1) );
-		mrigidBody3->GetBody()->SetCollide(false);
+		ChSharedPtr<ChBodyEasyBox> mrigidBody3(new ChBodyEasyBox(
+											6, 1, 1,	// x,y,z size
+											100,		// density
+											false,		// collide enable?
+											true));		// visualization?
+		mrigidBody3->SetPos( ChVector<>(3, -12, z_step) );
+		my_system.Add(mrigidBody3);
 
 
 		// 
@@ -171,11 +167,11 @@ int main(int argc, char* argv[])
 		 // .. a joint of type 'point on a line', with upper and lower limits on
 		 //    the X sliding direction, for the pendulum-ground constraint.
 		ChSharedPtr<ChLinkLockPointLine>  my_link_01(new ChLinkLockPointLine);
-		my_link_01->Initialize(mrigidBody1->GetBody(), 
-							   mrigidBody0->GetBody(), 
+		my_link_01->Initialize(mrigidBody1, 
+							   mrigidBody0, 
 							   ChCoordsys<>(ChVector<>(0,0,z_step)));
 
-		my_link_01->GetLimit_X()->Set_active(true);
+		//my_link_01->GetLimit_X()->Set_active(true);
 		my_link_01->GetLimit_X()->Set_max( 1.0);
 		my_link_01->GetLimit_X()->Set_min(-1.0);
 
@@ -183,16 +179,16 @@ int main(int argc, char* argv[])
 
 		// .. a spherical joint 
 		ChSharedPtr<ChLinkLockSpherical>  my_link_12(new ChLinkLockSpherical);
-		my_link_12->Initialize(mrigidBody2->GetBody(), 
-							   mrigidBody1->GetBody(), 
+		my_link_12->Initialize(mrigidBody2, 
+							   mrigidBody1, 
 							   ChCoordsys<>(ChVector<>(0,-6,z_step)));
 		my_system.AddLink(my_link_12);
 
 		// .. a spherical joint
 		ChSharedPtr<ChLinkLockSpherical>  my_link_23(new ChLinkLockSpherical);
-		my_link_23->Initialize(mrigidBody3->GetBody(), 
-							   mrigidBody2->GetBody(), 
-							   ChCoordsys<>(ChVector<>(6,-6,z_step)));
+		my_link_23->Initialize(mrigidBody3, 
+							   mrigidBody2, 
+							   ChCoordsys<>(ChVector<>(0,-12,z_step)));
 		my_system.AddLink(my_link_23);
 
 	}
@@ -211,6 +207,14 @@ int main(int argc, char* argv[])
 	IAnimatedMeshSceneNode* fanNode = application.GetSceneManager()->addAnimatedMeshSceneNode (fanMesh);
 	fanNode->setScale(irr::core::vector3df((irr::f32)fan_radius,(irr::f32)fan_radius,(irr::f32)fan_radius));
  
+
+	// Use this function for adding a ChIrrNodeAsset to all items
+	// Otherwise use application.AssetBind(myitem); on a per-item basis.
+	application.AssetBindAll();
+
+	// Use this function for 'converting' assets into Irrlicht meshes 
+	application.AssetUpdateAll();
+
 
 	application.SetStepManage(true);
 	application.SetTimestep(0.01);

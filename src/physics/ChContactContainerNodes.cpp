@@ -246,6 +246,81 @@ void ChContactContainerNodes::ReportAllContacts(ChReportContactCallback* mcallba
 }
 
 
+
+////////// STATE INTERFACE ////
+
+void ChContactContainerNodes::IntLoadResidual_CqL(
+					const unsigned int off_L,	 ///< offset in L multipliers
+					ChVectorDynamic<>& R,		 ///< result: the R residual, R += c*Cq'*L 
+					const ChVectorDynamic<>& L,  ///< the L vector 
+					const double c				 ///< a scaling factor
+					)
+{
+	int coffset = 0;
+	std::list<ChContactNode*>::iterator itercontact = contactlist.begin();
+	while(itercontact != contactlist.end())
+	{
+		(*itercontact)->ContIntLoadResidual_CqL(off_L+coffset, R, L, c);
+		coffset +=3;
+		++itercontact;
+	}
+}
+
+void ChContactContainerNodes::IntLoadConstraint_C(
+					const unsigned int off,		 ///< offset in Qc residual
+					ChVectorDynamic<>& Qc,		 ///< result: the Qc residual, Qc += c*C 
+					const double c,				 ///< a scaling factor
+					bool do_clamp,				 ///< apply clamping to c*C?
+					double recovery_clamp		 ///< value for min/max clamping of c*C
+					)
+{
+	int coffset = 0;
+	std::list<ChContactNode*>::iterator itercontact = contactlist.begin();
+	while(itercontact != contactlist.end())
+	{
+		(*itercontact)->ContIntLoadConstraint_C(off+coffset, Qc, c, do_clamp, recovery_clamp);
+		coffset +=3;
+		++itercontact;
+	}
+}
+
+void ChContactContainerNodes::IntToLCP(
+					const unsigned int off_v,			///< offset in v, R
+					const ChStateDelta& v,
+					const ChVectorDynamic<>& R,
+					const unsigned int off_L,			///< offset in L, Qc
+					const ChVectorDynamic<>& L,
+					const ChVectorDynamic<>& Qc
+					)
+{
+	int coffset = 0;
+	std::list<ChContactNode*>::iterator itercontact = contactlist.begin();
+	while(itercontact != contactlist.end())
+	{
+		(*itercontact)->ContIntToLCP(off_L+coffset, L, Qc);
+		coffset +=3;
+		++itercontact;
+	}
+}
+
+void ChContactContainerNodes::IntFromLCP(
+					const unsigned int off_v,			///< offset in v
+					ChStateDelta& v,
+					const unsigned int off_L,			///< offset in L
+					ChVectorDynamic<>& L
+					)
+{
+	int coffset = 0;
+	std::list<ChContactNode*>::iterator itercontact = contactlist.begin();
+	while(itercontact != contactlist.end())
+	{
+		(*itercontact)->ContIntFromLCP(off_L+coffset, L);
+		coffset +=3;
+		++itercontact;
+	}
+}
+
+
 ////////// LCP INTERFACES ////
 
 

@@ -113,6 +113,79 @@ void ChShaft::SetInertia (double newJ)
 
 
 
+
+//// STATE BOOKKEEPING FUNCTIONS
+
+void ChShaft::IntStateGather(
+					const unsigned int off_x,		///< offset in x state vector
+					ChState& x,						///< state vector, position part
+					const unsigned int off_v,		///< offset in v state vector
+					ChStateDelta& v,				///< state vector, speed part
+					double& T)						///< time
+{
+	x(off_x) = this->pos;
+	v(off_v) = this->pos_dt;
+	T = this->GetChTime();
+}
+
+void ChShaft::IntStateScatter(
+					const unsigned int off_x,		///< offset in x state vector
+					const ChState& x,				///< state vector, position part
+					const unsigned int off_v,		///< offset in v state vector
+					const ChStateDelta& v,			///< state vector, speed part
+					const double T) 				///< time
+{
+	this->SetPos	(x(off_x));
+	this->SetPos_dt	(v(off_v));
+	this->Update(T);
+}
+
+ 
+void ChShaft::IntLoadResidual_F(
+					const unsigned int off,		 ///< offset in R residual
+					ChVectorDynamic<>& R,		 ///< result: the R residual, R += c*F 
+					const double c				 ///< a scaling factor
+					)
+{
+	// add applied forces to 'fb' vector
+    R(off) += this->torque * c;
+}
+
+
+void ChShaft::IntLoadResidual_Mv(
+					const unsigned int off,		 ///< offset in R residual
+					ChVectorDynamic<>& R,		 ///< result: the R residual, R += c*M*v 
+					const ChVectorDynamic<>& w,  ///< the w vector 
+					const double c				 ///< a scaling factor
+					)
+{
+	R(off) += c * this->inertia * w(off);
+}
+
+void ChShaft::IntToLCP(
+					const unsigned int off_v,			///< offset in v, R
+					const ChStateDelta& v,
+					const ChVectorDynamic<>& R,
+					const unsigned int off_L,			///< offset in L, Qc
+					const ChVectorDynamic<>& L,
+					const ChVectorDynamic<>& Qc
+					)
+{
+	this->variables.Get_qb()(0,0) = v(off_v);
+	this->variables.Get_fb()(0,0) = R(off_v);
+}
+
+void ChShaft::IntFromLCP(
+					const unsigned int off_v,			///< offset in v
+					ChStateDelta& v,
+					const unsigned int off_L,			///< offset in L
+					ChVectorDynamic<>& L
+					)
+{
+	v(off_v) = this->variables.Get_qb()(0,0);
+}
+
+
 //// 
 void ChShaft::InjectVariables(ChLcpSystemDescriptor& mdescriptor)
 {	

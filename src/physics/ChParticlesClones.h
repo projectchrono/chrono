@@ -180,52 +180,36 @@ public:
 	void AddParticle(ChCoordsys<double> initial_state = CSYSNORM);
 
 
+			//
+			// STATE FUNCTIONS
+			//
 
-			 // Override/implement LCP system functions of ChPhysicsItem
-			 // (to assembly/manage data for LCP system solver)
+				// (override/implement interfaces for global state vectors, see ChPhysicsItem for comments.)
+	virtual void IntStateGather(const unsigned int off_x,	ChState& x,	const unsigned int off_v, ChStateDelta& v,	double& T);	
+	virtual void IntStateScatter(const unsigned int off_x,	const ChState& x, const unsigned int off_v,	const ChStateDelta& v,	const double T);
+	virtual void IntStateIncrement(const unsigned int off_x, ChState& x_new, const ChState& x,	const unsigned int off_v, const ChStateDelta& Dv); 
+	virtual void IntLoadResidual_F(const unsigned int off,	ChVectorDynamic<>& R, const double c );
+	virtual void IntLoadResidual_Mv(const unsigned int off,	ChVectorDynamic<>& R, const ChVectorDynamic<>& w, const double c);
+	virtual void IntToLCP(const unsigned int off_v,	const ChStateDelta& v, const ChVectorDynamic<>& R, const unsigned int off_L, const ChVectorDynamic<>& L, const ChVectorDynamic<>& Qc);
+	virtual void IntFromLCP(const unsigned int off_v, ChStateDelta& v, const unsigned int off_L, ChVectorDynamic<>& L);
 
-				/// Sets the 'fb' part of the encapsulated ChLcpVariablesBody to zero.
+	
+			//
+			// LCP FUNCTIONS
+			//
+
+             // Override/implement LCP system functions of ChPhysicsItem
+             // (to assembly/manage data for LCP system solver)
+
 	void VariablesFbReset();
-
-				/// Adds the current forces applied to body (including gyroscopic torque) in
-				/// encapsulated ChLcpVariablesBody, in the 'fb' part: qf+=forces*factor
 	void VariablesFbLoadForces(double factor=1.);
-
-				/// Initialize the 'qb' part of the ChLcpVariablesBody with the 
-				/// current value of body speeds. Note: since 'qb' is the unknown of the LCP, this
-				/// function seems unuseful, unless used before VariablesFbIncrementMq()
 	void VariablesQbLoadSpeed();
-
-				/// Adds M*q (masses multiplied current 'qb') to Fb, ex. if qb is initialized
-				/// with v_old using VariablesQbLoadSpeed, this method can be used in 
-				/// timestepping schemes that do: M*v_new = M*v_old + forces*dt
 	void VariablesFbIncrementMq();
-
-				/// Fetches the body speed (both linear and angular) from the
-				/// 'qb' part of the ChLcpVariablesBody (does not updates the full body&markers state)
-				/// and sets it as the current body speed.
-				/// If 'step' is not 0, also computes the approximate acceleration of
-				/// the body using backward differences, that is  accel=(new_speed-old_speed)/step.
-				/// Mostly used after the LCP provided the solution in ChLcpVariablesBody .
 	void VariablesQbSetSpeed(double step=0.);
-
-				/// Increment body position by the 'qb' part of the ChLcpVariablesBody,
-				/// multiplied by a 'step' factor.
-				///     pos+=qb*step
-				/// If qb is a speed, this behaves like a single step of 1-st order
-				/// numerical integration (Eulero integration).
-				/// Does not automatically update markers & forces.
 	void VariablesQbIncrementPosition(double step);
-
-
-				/// Tell to a system descriptor that there are variables of type
-				/// ChLcpVariables in this object (for further passing it to a LCP solver)
-				/// Basically does nothing, but maybe that inherited classes may specialize this.
 	virtual void InjectVariables(ChLcpSystemDescriptor& mdescriptor);
 
 
-
- 
 
 
 			   // Other functions
@@ -346,10 +330,6 @@ public:
 				/// Update all auxiliary data of the particles
 	virtual void Update ();
 
-				/// Tells to the associated external object ChExternalObject() ,if any,
-				/// that its 3D shape must be updated in order to syncronize to ChBody
-				/// coordinates
-	void UpdateExternalGeometry ();
 
 
 			//

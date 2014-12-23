@@ -38,11 +38,13 @@ namespace fem
 void ChMesh::SetupInitial()
 {
 	n_dofs = 0;
+	n_dofs_w = 0;
 
 	for (unsigned int i=0; i< vnodes.size(); i++)
 	{
 			//    - count the degrees of freedom 
 		n_dofs += vnodes[i]->Get_ndof();
+		n_dofs_w += vnodes[i]->Get_ndof_w();
 	}
 
 	for (unsigned int i=0; i< velements.size(); i++)
@@ -493,7 +495,106 @@ void ChMesh::LoadFromAbaqusFile(const char* filename,
 }
 
 
+//// STATE BOOKKEEPING FUNCTIONS
 
+void ChMesh::IntStateGather(
+					const unsigned int off_x,		///< offset in x state vector
+					ChState& x,						///< state vector, position part
+					const unsigned int off_v,		///< offset in v state vector
+					ChStateDelta& v,				///< state vector, speed part
+					double& T)						///< time
+{
+	for (unsigned int j = 0; j < vnodes.size(); j++)
+	{
+		vnodes[j]->NodeIntStateGather(off_x, x, off_v, v, T);
+	}
+	T = this->GetChTime();
+}
+
+void ChMesh::IntStateScatter(
+					const unsigned int off_x,		///< offset in x state vector
+					const ChState& x,				///< state vector, position part
+					const unsigned int off_v,		///< offset in v state vector
+					const ChStateDelta& v,			///< state vector, speed part
+					const double T) 				///< time
+{
+	for (unsigned int j = 0; j < vnodes.size(); j++)
+		vnodes[j]->NodeIntStateScatter(off_x, x, off_v, v, T);
+
+	this->Update(T);
+}
+
+void ChMesh::IntStateIncrement(
+					const unsigned int off_x,		///< offset in x state vector
+					ChState& x_new,					///< state vector, position part, incremented result
+					const ChState& x,				///< state vector, initial position part
+					const unsigned int off_v,		///< offset in v state vector
+					const ChStateDelta& Dv)  		///< state vector, increment
+{
+	for (unsigned int j = 0; j < vnodes.size(); j++)
+		vnodes[j]->NodeIntStateIncrement(off_x, x_new, x, off_v, Dv);
+}
+
+void ChMesh::IntLoadResidual_F(
+					const unsigned int off,		 ///< offset in R residual (not used here! use particle's offsets)
+					ChVectorDynamic<>& R,		 ///< result: the R residual, R += c*F 
+					const double c				 ///< a scaling factor
+					)
+{
+	// applied nodal forces
+	for (unsigned int j = 0; j < vnodes.size(); j++)
+		this->vnodes[j]->NodeIntLoadResidual_F(off, R, c);
+
+	// internal forces
+	for (unsigned int ie = 0; ie < this->velements.size(); ie++)
+		this->velements[ie]->EleIntLoadResidual_F(off, R, c);
+}
+
+
+void ChMesh::IntLoadResidual_Mv(
+					const unsigned int off,		 ///< offset in R residual
+					ChVectorDynamic<>& R,		 ///< result: the R residual, R += c*M*v 
+					const ChVectorDynamic<>& w,  ///< the w vector 
+					const double c				 ///< a scaling factor
+					)
+{
+	// nodal masses
+	for (unsigned int j = 0; j < vnodes.size(); j++)
+		vnodes[j]->NodeIntLoadResidual_Mv(off, R, w, c);
+
+	// internal masses
+	for (unsigned int ie = 0; ie < this->velements.size(); ie++)
+		this->velements[ie]->EleIntLoadResidual_Mv(off, R, w, c);
+}
+
+void ChMesh::IntToLCP(
+					const unsigned int off_v,			///< offset in v, R
+					const ChStateDelta& v,
+					const ChVectorDynamic<>& R,
+					const unsigned int off_L,			///< offset in L, Qc
+					const ChVectorDynamic<>& L,
+					const ChVectorDynamic<>& Qc
+					)
+{
+	for (unsigned int j = 0; j < vnodes.size(); j++)
+		vnodes[j]->NodeIntToLCP(off_v, v, R);
+}
+
+void ChMesh::IntFromLCP(
+					const unsigned int off_v,			///< offset in v
+					ChStateDelta& v,
+					const unsigned int off_L,			///< offset in L
+					ChVectorDynamic<>& L
+					)
+{
+	for (unsigned int j = 0; j < vnodes.size(); j++)
+		vnodes[j]->NodeIntFromLCP(off_v, v);
+}
+
+
+
+
+//// LCP SOLVER
 
 void ChMesh::InjectKRMmatrices(ChLcpSystemDescriptor& mdescriptor) 
 {

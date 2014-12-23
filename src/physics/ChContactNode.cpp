@@ -159,7 +159,58 @@ ChCoordsys<> ChContactNode::GetContactCoords()
 }
 
 
- 
+
+void ChContactNode::ContIntLoadResidual_CqL(
+					const unsigned int off_L,	 ///< offset in L multipliers
+					ChVectorDynamic<>& R,		 ///< result: the R residual, R += c*Cq'*L 
+					const ChVectorDynamic<>& L,  ///< the L vector 
+					const double c				 ///< a scaling factor
+					)
+{
+	this->Nx.MultiplyTandAdd(R, L(off_L  ) *c);
+	this->Tu.MultiplyTandAdd(R, L(off_L+1) *c);
+	this->Tv.MultiplyTandAdd(R, L(off_L+2) *c);
+}
+void ChContactNode::ContIntLoadConstraint_C(
+					const unsigned int off_L,	 ///< offset in Qc residual
+					ChVectorDynamic<>& Qc,		 ///< result: the Qc residual, Qc += c*C 
+					const double c,				 ///< a scaling factor
+					bool do_clamp,				 ///< apply clamping to c*C?
+					double recovery_clamp		 ///< value for min/max clamping of c*C
+					)
+{
+	if (do_clamp)
+		Qc(off_L)   += ChMax (c * this->norm_dist, -recovery_clamp);
+	else
+		Qc(off_L)   += c * this->norm_dist;
+	//Qc(off_L+1) += c * 0;
+	//Qc(off_L+2) += c * 0;
+}
+void ChContactNode::ContIntToLCP(
+					const unsigned int off_L,			///< offset in L, Qc
+					const ChVectorDynamic<>& L,
+					const ChVectorDynamic<>& Qc
+					)
+{
+	Nx.Set_l_i(L(off_L  ));
+	Tu.Set_l_i(L(off_L+1));
+	Tv.Set_l_i(L(off_L+2));
+
+	Nx.Set_b_i(Qc(off_L  ));
+	Tu.Set_b_i(Qc(off_L+1));
+	Tv.Set_b_i(Qc(off_L+2));
+}
+void ChContactNode::ContIntFromLCP(
+					const unsigned int off_L,			///< offset in L
+					ChVectorDynamic<>& L
+					)
+{
+	L(off_L)   = Nx.Get_l_i();
+	L(off_L+1) = Tu.Get_l_i();
+	L(off_L+2) = Tv.Get_l_i();
+}
+
+
 
 
 void ChContactNode::InjectConstraints(ChLcpSystemDescriptor& mdescriptor)

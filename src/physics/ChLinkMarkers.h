@@ -88,7 +88,6 @@ public:
 	ChLinkMarkers ();
 	virtual ~ChLinkMarkers ();
 	virtual void Copy(ChLinkMarkers* source);
-	virtual ChLink* new_Duplicate ();  
 
 
 public:
@@ -185,6 +184,16 @@ public:
 
 	virtual void Update (double mytime);
 
+			//
+			// STATE FUNCTIONS
+			//
+
+				// (override/implement interfaces for global state vectors, see ChPhysicsItem for comments.)
+
+					/// Adds force to residual R, as R*= F*c
+					/// NOTE: here the off ofset in R is NOT used because add F at the TWO offsets of the two connected bodies,
+					/// so it is assumed that offsets for Body1 and Body2 variables have been already set properly!
+	virtual void IntLoadResidual_F(const unsigned int off,	ChVectorDynamic<>& R, const double c );
 
 
 			//

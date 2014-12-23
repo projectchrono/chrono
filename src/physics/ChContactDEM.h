@@ -29,6 +29,7 @@
 
 
 #include "core/ChFrame.h"
+#include "core/ChVectorDynamic.h"
 #include "collision/ChCCollisionInfo.h"
 #include "collision/ChCModelBulletBody.h"
 
@@ -108,8 +109,12 @@ public:
 	/// Calculate contact force, expressed in absolute coordinates.
 	void CalculateForce();
 
+
 	/// Apply contact forces to bodies.
 	void ConstraintsFbLoadForces(double factor);
+
+	/// Apply contact forces to bodies (new version, for interfacing to ChTimestepper and ChIntegrable)
+	void DemIntLoadResidual_F(ChVectorDynamic<>& R, const double c );
 
 	/// Contact force models
 	static NormalForceModel     m_normalForceModel;

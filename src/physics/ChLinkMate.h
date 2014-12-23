@@ -65,8 +65,7 @@ public:
 
 	ChLinkMate () {};
 	virtual ~ChLinkMate () {};
-	virtual void Copy(ChLinkMate* source) {};
-	virtual ChLink* new_Duplicate ();	// always return base link class pointer
+	virtual void Copy(ChLinkMate* source) {};	
 
 
 				//
@@ -220,6 +219,18 @@ public:
 	virtual int GetDOC  () {return ndoc;}
 	virtual int GetDOC_c  () {return ndoc_c;}
 	virtual int GetDOC_d  () {return ndoc_d;}
+
+				//
+				// STATE FUNCTIONS
+				//
+
+				// (override/implement interfaces for global state vectors, see ChPhysicsItem for comments.)
+	virtual void IntLoadResidual_CqL(const unsigned int off_L, ChVectorDynamic<>& R, const ChVectorDynamic<>& L, const double c);
+	virtual void IntLoadConstraint_C(const unsigned int off, ChVectorDynamic<>& Qc,	const double c, bool do_clamp,	double recovery_clamp);
+	virtual void IntLoadConstraint_Ct(const unsigned int off, ChVectorDynamic<>& Qc, const double c);
+	virtual void IntToLCP(const unsigned int off_v,	const ChStateDelta& v, const ChVectorDynamic<>& R, const unsigned int off_L, const ChVectorDynamic<>& L, const ChVectorDynamic<>& Qc);
+	virtual void IntFromLCP(const unsigned int off_v, ChStateDelta& v, const unsigned int off_L, ChVectorDynamic<>& L);
+
 
 				//
 				// LCP INTERFACE

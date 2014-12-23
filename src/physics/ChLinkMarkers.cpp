@@ -34,7 +34,7 @@ namespace chrono
 
 // Register into the object factory, to enable run-time
 // dynamic creation and persistence
-ChClassRegister<ChLinkMarkers> a_registration_ChLinkMarkers;
+ChClassRegisterABSTRACT<ChLinkMarkers> a_registration_ChLinkMarkers;
 
 
                 // BUILDERS
@@ -96,15 +96,6 @@ void ChLinkMarkers::Copy(ChLinkMarkers* source)
 
     Scr_force = source->Scr_force;
     Scr_torque = source->Scr_torque;
-}
-
-
-ChLink* ChLinkMarkers::new_Duplicate ()   // inherited classes:  Link* MyInheritedLink::new_Duplicate()
-{
-    ChLink* m_l;
-    m_l = new ChLinkMarkers;  // inherited classes should write here: m_l = new MyInheritedLink;
-    m_l->Copy(this);
-    return (m_l);
 }
 
 
@@ -488,6 +479,50 @@ void ChLinkMarkers::Update (double time)
     UpdateForces(time);
 
 }
+
+
+//// STATE BOOKKEEPING FUNCTIONS
+
+ 
+void ChLinkMarkers::IntLoadResidual_F(
+					const unsigned int off,		 ///< offset in R residual
+					ChVectorDynamic<>& R,		 ///< result: the R residual, R += c*F 
+					const double c				 ///< a scaling factor
+					)
+{
+	if(!Body1 || !Body2)
+		return;
+
+	Vector mbody_force;
+	Vector mbody_torque;
+	if (Vnotnull(&C_force))
+    {
+        Vector m_abs_force = Body2->GetA()->Matr_x_Vect(marker2->GetA()->Matr_x_Vect(C_force));
+		Body2->To_abs_forcetorque(m_abs_force,
+								  marker1->GetAbsCoord().pos,	// absolute application point is always marker1 
+								  FALSE,						// from abs. space
+								  mbody_force, mbody_torque);	// resulting force-torque, both in abs coords
+		R.PasteSumVector( mbody_force * -c , Body2->Variables().GetOffset() ,0);
+		R.PasteSumVector( Body2->TransformDirectionParentToLocal(mbody_torque) * -c ,  Body2->Variables().GetOffset()+3,0);
+
+		Body1->To_abs_forcetorque(m_abs_force,
+								  marker1->GetAbsCoord().pos,	// absolute application point is always marker1 
+								  FALSE,						// from abs. space
+								  mbody_force, mbody_torque);	// resulting force-torque, both in abs coords
+		R.PasteSumVector( mbody_force *  c , Body1->Variables().GetOffset(),0);
+		R.PasteSumVector( Body1->TransformDirectionParentToLocal(mbody_torque) *  c , Body1->Variables().GetOffset()+3,0);	
+	}
+	if (Vnotnull(&C_torque))
+    {
+        Vector m_abs_torque = Body2->GetA()->Matr_x_Vect(marker2->GetA()->Matr_x_Vect(C_torque));
+			// load torques in 'fb' vector accumulator of body variables (torques in local coords)
+		R.PasteSumVector( Body1->TransformDirectionParentToLocal(m_abs_torque) *  c ,  Body1->Variables().GetOffset()+3,0);
+		R.PasteSumVector( Body2->TransformDirectionParentToLocal(m_abs_torque) * -c ,  Body2->Variables().GetOffset()+3,0);
+	}
+}
+
+
+
 
 
 

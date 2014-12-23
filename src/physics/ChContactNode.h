@@ -29,6 +29,7 @@
 
 
 #include "core/ChFrame.h"
+#include "core/ChVectorDynamic.h"
 #include "lcp/ChLcpConstraintNodeContactN.h"
 #include "lcp/ChLcpSystemDescriptor.h"
 #include "collision/ChCCollisionModel.h"
@@ -153,6 +154,29 @@ public:
 				//
 				// UPDATING FUNCTIONS
 				//
+
+	void ContIntLoadResidual_CqL(
+					const unsigned int off_L,	 ///< offset in L multipliers
+					ChVectorDynamic<>& R,		 ///< result: the R residual, R += c*Cq'*L 
+					const ChVectorDynamic<>& L,  ///< the L vector 
+					const double c				 ///< a scaling factor
+					);
+	void ContIntLoadConstraint_C(
+					const unsigned int off_L,	 ///< offset in Qc residual
+					ChVectorDynamic<>& Qc,		 ///< result: the Qc residual, Qc += c*C 
+					const double c,				 ///< a scaling factor
+					bool do_clamp,				 ///< apply clamping to c*C?
+					double recovery_clamp		 ///< value for min/max clamping of c*C
+					);
+	void ContIntToLCP(
+					const unsigned int off_L,			///< offset in L, Qc
+					const ChVectorDynamic<>& L,
+					const ChVectorDynamic<>& Qc
+					) ;
+	void ContIntFromLCP(
+					const unsigned int off_L,			///< offset in L
+					ChVectorDynamic<>& L
+					);
 
 	
 	void  InjectConstraints(ChLcpSystemDescriptor& mdescriptor);

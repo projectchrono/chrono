@@ -434,7 +434,9 @@ int main(int argc, char* argv[])
 			/// nothing to do here- no constraints
 			virtual void LoadConstraint_C(
 				ChVectorDynamic<>& Qc,		 ///< result: the Qc residual, Qc += c*C 
-				const double c				 ///< a scaling factor
+				const double c,				 ///< a scaling factor
+				bool do_clamp=false,		 ///< apply clamping to c*C?
+				double recovery_clamp=1e30	 ///< value for min/max clamping of c*C
 				)
 			{};
 
@@ -667,7 +669,9 @@ int main(int argc, char* argv[])
 			///  Qc += c * C
 			virtual void LoadConstraint_C(
 				ChVectorDynamic<>& Qc,		 ///< result: the Qc residual, Qc += c*C 
-				const double c				 ///< a scaling factor
+				const double c,				 ///< a scaling factor
+				bool do_clamp=false,		 ///< apply clamping to c*C?
+				double recovery_clamp=1e30	 ///< value for min/max clamping of c*C
 				)
 			{
 				ChVector<> distpend(-mpx, -mpy, 0);

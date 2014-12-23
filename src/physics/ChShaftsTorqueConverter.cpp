@@ -164,6 +164,21 @@ void ChShaftsTorqueConverter::Update (double mytime)
 
 
 
+//// STATE BOOKKEEPING FUNCTIONS
+
+void ChShaftsTorqueConverter::IntLoadResidual_F(
+					const unsigned int off,		 ///< offset in R residual
+					ChVectorDynamic<>& R,		 ///< result: the R residual, R += c*F 
+					const double c				 ///< a scaling factor
+					)
+{
+	R(shaft1->Variables().GetOffset()) +=  this->torque_in * c;
+	R(shaft2->Variables().GetOffset()) +=  this->torque_out * c;
+	R(shaft_stator->Variables().GetOffset()) +=  GetTorqueReactionOnStator() * c;
+}
+
+
+
 ////////// LCP INTERFACES ////
 
 

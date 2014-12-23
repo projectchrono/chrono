@@ -16,7 +16,6 @@
 #include "ChMatterMeshless.h"
 #include "ChProximityContainerMeshless.h"
 #include "physics/ChSystem.h"
-#include "physics/ChExternalObject.h"
 #include "collision/ChCModelBulletNode.h"
 #include "core/ChLinearAlgebra.h"
 
@@ -294,6 +293,215 @@ void ChMatterMeshless::FillBox (const ChVector<> size,
 
 
 
+//// STATE BOOKKEEPING FUNCTIONS
+
+void ChMatterMeshless::IntStateGather(
+					const unsigned int off_x,		///< offset in x state vector
+					ChState& x,						///< state vector, position part
+					const unsigned int off_v,		///< offset in v state vector
+					ChStateDelta& v,				///< state vector, speed part
+					double& T)						///< time
+{
+	for (unsigned int j = 0; j < nodes.size(); j++)
+	{
+		x.PasteVector(this->nodes[j]->pos, off_x + 3*j, 0);
+		v.PasteVector(this->nodes[j]->pos_dt, off_v + 3*j, 0);
+	}
+	T = this->GetChTime();
+}
+
+void ChMatterMeshless::IntStateScatter(
+					const unsigned int off_x,		///< offset in x state vector
+					const ChState& x,				///< state vector, position part
+					const unsigned int off_v,		///< offset in v state vector
+					const ChStateDelta& v,			///< state vector, speed part
+					const double T) 				///< time
+{
+	for (unsigned int j = 0; j < nodes.size(); j++)
+	{
+		this->nodes[j]->pos = x.ClipVector(off_x + 3*j, 0);
+		this->nodes[j]->pos_dt = v.ClipVector(off_v + 3*j, 0);
+	}
+	this->SetChTime(T);
+	this->Update();
+}
+
+void ChMatterMeshless::IntLoadResidual_F(
+					const unsigned int off,		 ///< offset in R residual (not used here! use particle's offsets)
+					ChVectorDynamic<>& R,		 ///< result: the R residual, R += c*F 
+					const double c				 ///< a scaling factor
+					)
+{
+		// COMPUTE THE MESHLESS FORCES HERE
+
+	// First, find if any ChProximityContainerMeshless object is present
+	// in the system,
+
+	ChProximityContainerMeshless* edges =0;
+	std::vector<ChPhysicsItem*>::iterator iterotherphysics = this->GetSystem()->Get_otherphysicslist()->begin();
+	while (iterotherphysics != this->GetSystem()->Get_otherphysicslist()->end())
+	{
+		if (edges=dynamic_cast<ChProximityContainerMeshless*>(*iterotherphysics))
+			break;
+		iterotherphysics++;
+	}
+	assert(edges); // If using a ChMatterMeshless, you must add also a ChProximityContainerMeshless.
+	
+
+	// 1- Per-node initialization
+
+	for (unsigned int j = 0; j < nodes.size(); j++)
+	{
+		this->nodes[j]->J.FillElem(0.0);
+		this->nodes[j]->Amoment.FillElem(0.0);
+		this->nodes[j]->t_strain.FillElem(0.0);
+		this->nodes[j]->e_stress.FillElem(0.0); 
+		this->nodes[j]->UserForce = VNULL;
+		this->nodes[j]->density = 0;
+	}
+
+	// 2- Per-edge initialization and accumulation of values in particles's J, Amoment, m_v, density
+
+	edges->AccumulateStep1();
+
+	// 3- Per-node inversion of A and computation of strain stress
+
+	for (unsigned int j = 0; j < nodes.size(); j++)
+	{
+		ChSharedPtr<ChNodeMeshless> mnode (this->nodes[j]);
+		assert(!mnode.IsNull());
+
+		// node volume is v=mass/density
+		if (mnode->density>0)
+			mnode->volume = mnode->GetMass()/mnode->density;
+		else 
+			mnode->volume = 0;
+
+		// Compute A inverse
+		ChMatrix33<> M_tmp = mnode->Amoment;
+		double det = M_tmp.FastInvert(&mnode->Amoment);
+		if (fabs(det)<0.00003) 
+		{
+			mnode->Amoment.FillElem(0); // deactivate if not possible to invert
+			mnode->e_strain.FillElem(0.0); // detach
+		}
+		else
+		{
+			// Compute J = ( A^-1 * [dwg | dwg | dwg] )' + I
+			M_tmp.MatrMultiply(mnode->Amoment, mnode->J);
+			M_tmp.Element(0,0) +=1; 
+			M_tmp.Element(1,1) +=1;
+			M_tmp.Element(2,2) +=1;	
+			mnode->J.CopyFromMatrixT(M_tmp);
+
+			// Compute step strain tensor  de = J'*J - I
+			ChMatrix33<> mtensor;
+			mtensor.MatrMultiply(M_tmp, mnode->J);
+			mtensor.Element(0,0)-=1;
+			mtensor.Element(1,1)-=1;
+			mtensor.Element(2,2)-=1;
+
+			mnode->t_strain.ConvertFromMatrix(mtensor); // store 'step strain' de, change in total strain
+			
+			ChStrainTensor<> strainplasticflow;
+			this->material->ComputeReturnMapping(strainplasticflow,	 // dEp, flow of elastic strain (correction)
+											 nodes[j]->t_strain, // increment of total strain
+											 nodes[j]->e_strain, // last elastic strain
+											 nodes[j]->p_strain  // last plastic strain
+											 );
+			ChStrainTensor<> proj_e_strain; 
+			proj_e_strain.MatrSub(nodes[j]->e_strain, strainplasticflow);
+			proj_e_strain.MatrInc(nodes[j]->t_strain);
+			this->GetMaterial()->ComputeElasticStress(mnode->e_stress, proj_e_strain); 
+			mnode->e_stress.ConvertToMatrix(mtensor);
+
+			/*
+			// Compute elastic stress tensor  sigma= C*epsilon
+			//   NOTE: it should be better to perform stress computation on corrected e_strain, _after_ the
+			//   return mapping (see later), but for small timestep it could be the same.
+			ChStrainTensor<> guesstot_e_strain; // anticipate the computation of total strain for anticipating strains
+			guesstot_e_strain.MatrAdd(mnode->e_strain, mnode->t_strain);
+			this->GetMaterial()->ComputeElasticStress(mnode->e_stress, guesstot_e_strain); 
+			mnode->e_stress.ConvertToMatrix(mtensor);
+			*/
+
+			// Precompute 2*v*J*sigma*A^-1
+			mnode->FA = mnode->J * (mtensor * (mnode->Amoment));
+			mnode->FA.MatrScale(2*mnode->volume);
+		}
+	}
+
+	// 4- Per-edge force transfer from stress, and add also viscous forces
+
+	edges->AccumulateStep2();
+
+
+	// 5- Per-node load force
+
+	for (unsigned int j = 0; j < nodes.size(); j++)
+	{
+		// particle gyroscopic force:
+		// none.
+
+		// add gravity 
+		ChVector<> Gforce = GetSystem()->Get_G_acc() * this->nodes[j]->GetMass();
+		ChVector<> TotForce = this->nodes[j]->UserForce + Gforce; 
+
+		ChSharedPtr<ChNodeMeshless> mnode (this->nodes[j]);
+		assert(!mnode.IsNull());
+
+		R.PasteSumVector(TotForce * c , off+ 3*j, 0);
+		
+	}
+}
+
+
+void ChMatterMeshless::IntLoadResidual_Mv(
+					const unsigned int off,		 ///< offset in R residual
+					ChVectorDynamic<>& R,		 ///< result: the R residual, R += c*M*v 
+					const ChVectorDynamic<>& w,  ///< the w vector 
+					const double c				 ///< a scaling factor
+					)
+{
+	for (unsigned int j = 0; j < nodes.size(); j++)
+	{
+		R(off+ 3*j)    += c * this->nodes[j]->GetMass() * w(off+ 3*j);
+		R(off+ 3*j +1) += c * this->nodes[j]->GetMass() * w(off+ 3*j +1);
+		R(off+ 3*j +2) += c * this->nodes[j]->GetMass() * w(off+ 3*j +2);
+	}
+}
+
+void ChMatterMeshless::IntToLCP(
+					const unsigned int off_v,			///< offset in v, R
+					const ChStateDelta& v,
+					const ChVectorDynamic<>& R,
+					const unsigned int off_L,			///< offset in L, Qc
+					const ChVectorDynamic<>& L,
+					const ChVectorDynamic<>& Qc
+					)
+{
+	for (unsigned int j = 0; j < nodes.size(); j++)
+	{
+		this->nodes[j]->variables.Get_qb().PasteClippedMatrix(&v, off_v+3*j, 0, 3,1, 0,0);
+		this->nodes[j]->variables.Get_fb().PasteClippedMatrix(&R, off_v+3*j, 0, 3,1, 0,0);
+	}
+}
+
+void ChMatterMeshless::IntFromLCP(
+					const unsigned int off_v,			///< offset in v
+					ChStateDelta& v,
+					const unsigned int off_L,			///< offset in L
+					ChVectorDynamic<>& L
+					)
+{
+	for (unsigned int j = 0; j < nodes.size(); j++)
+	{
+		v.PasteMatrix(&this->nodes[j]->variables.Get_qb(), off_v+3*j, 0);
+	}
+}
+
+
+
 //// 
 void ChMatterMeshless::InjectVariables(ChLcpSystemDescriptor& mdescriptor)
 {	
@@ -563,11 +771,6 @@ void ChMatterMeshless::Update (double mytime)
 
 
 
-void ChMatterMeshless::UpdateExternalGeometry ()
-{
-	if (this->GetExternalObject())
-		this->GetExternalObject()->onChronoChanged();
-}
 
  
 // collision stuff

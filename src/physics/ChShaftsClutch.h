@@ -92,9 +92,20 @@ public:
 	  		// FUNCTIONS
 			//
 
+
 				/// Number of scalar constraints, for statistical reasons 
 	virtual int GetDOC_d  () {return 1;}
 
+	//
+	// STATE FUNCTIONS
+	//
+
+				// (override/implement interfaces for global state vectors, see ChPhysicsItem for comments.)
+	virtual void IntLoadResidual_CqL(const unsigned int off_L, ChVectorDynamic<>& R, const ChVectorDynamic<>& L, const double c);
+	virtual void IntLoadConstraint_C(const unsigned int off, ChVectorDynamic<>& Qc,	const double c, bool do_clamp,	double recovery_clamp);
+	virtual void IntLoadConstraint_Ct(const unsigned int off, ChVectorDynamic<>& Qc, const double c) {};
+	virtual void IntToLCP(const unsigned int off_v,	const ChStateDelta& v, const ChVectorDynamic<>& R, const unsigned int off_L, const ChVectorDynamic<>& L, const ChVectorDynamic<>& Qc);
+	virtual void IntFromLCP(const unsigned int off_v, ChStateDelta& v, const unsigned int off_L, ChVectorDynamic<>& L);
 
 			// Override/implement LCP system functions of ChShaftsCouple
 			// (to assembly/manage data for LCP system solver

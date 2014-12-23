@@ -38,10 +38,6 @@ public:
 	std::string GetNameString ();
 	void SetNameString (std::string& myname);
 
-	ChExternalObject* GetExternalObject() {return external_obj;}
-	void   SetExternalObject(ChExternalObject* m_obj);
-	void   SetNoExternalObject();
-
 	virtual void StreamOUT(ChStreamOutBinary& mstream);
 	virtual void StreamIN(ChStreamInBinary& mstream);
 	virtual void StreamOUT(ChStreamOutAscii& mstream);

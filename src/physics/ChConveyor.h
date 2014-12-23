@@ -94,9 +94,30 @@ public:
 				/// Access the internal body used as the moving belt (a plate with const.vel.)
 	ChBody* GetPlate() {return conveyor_plate;} 
 	
-				/// Number of coordinates of the rigid body =6 (but other 6 variables are
-				/// used internally for the motion of the belt surface, as a rigid 3d plate)
-	virtual int GetDOF  ()   {return 6;}
+
+				/// Number of coordinates: this contains an auxiliary body, so it is 14 (with quaternions for rotations) 
+	virtual int GetDOF  () {return 7+7;}
+				/// Number of coordinates of the particle cluster, 2x6 because derivatives es. angular vel.
+	virtual int GetDOF_w() {return 6+6;}
+				/// Get the number of scalar constraints. In this case, a lock constraint is embedded, so:
+	virtual int GetDOC_c  () {return 6;}
+
+
+			//
+			// STATE FUNCTIONS
+			//
+
+				// (override/implement interfaces for global state vectors, see ChPhysicsItem for comments.)
+	virtual void IntStateGather(const unsigned int off_x,	ChState& x,	const unsigned int off_v, ChStateDelta& v,	double& T);	
+	virtual void IntStateScatter(const unsigned int off_x,	const ChState& x, const unsigned int off_v,	const ChStateDelta& v,	const double T);
+	virtual void IntStateIncrement(const unsigned int off_x, ChState& x_new, const ChState& x,	const unsigned int off_v, const ChStateDelta& Dv); 
+	virtual void IntLoadResidual_F(const unsigned int off,	ChVectorDynamic<>& R, const double c );
+	virtual void IntLoadResidual_Mv(const unsigned int off,	ChVectorDynamic<>& R, const ChVectorDynamic<>& w, const double c);
+	virtual void IntLoadResidual_CqL(const unsigned int off_L, ChVectorDynamic<>& R, const ChVectorDynamic<>& L, const double c);
+	virtual void IntLoadConstraint_C(const unsigned int off, ChVectorDynamic<>& Qc,	const double c, bool do_clamp,	double recovery_clamp);
+	virtual void IntLoadConstraint_Ct(const unsigned int off, ChVectorDynamic<>& Qc, const double c);
+	virtual void IntToLCP(const unsigned int off_v,	const ChStateDelta& v, const ChVectorDynamic<>& R, const unsigned int off_L, const ChVectorDynamic<>& L, const ChVectorDynamic<>& Qc);
+	virtual void IntFromLCP(const unsigned int off_v, ChStateDelta& v, const unsigned int off_L, ChVectorDynamic<>& L);
 
 
 			 // Override/implement LCP system functions of ChPhysicsItem

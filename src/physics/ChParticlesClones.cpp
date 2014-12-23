@@ -27,7 +27,6 @@
 #include "physics/ChSystem.h"
 #include "physics/ChGlobal.h"
 
-#include "physics/ChExternalObject.h"
 #include "collision/ChCModelBulletParticle.h"
 #include "core/ChLinearAlgebra.h"
 
@@ -224,6 +223,136 @@ void ChParticlesClones::AddParticle(ChCoordsys<double> initial_state)
 
 
 
+//// STATE BOOKKEEPING FUNCTIONS
+
+void ChParticlesClones::IntStateGather(
+					const unsigned int off_x,		///< offset in x state vector
+					ChState& x,						///< state vector, position part
+					const unsigned int off_v,		///< offset in v state vector
+					ChStateDelta& v,				///< state vector, speed part
+					double& T)						///< time
+{
+	for (unsigned int j = 0; j < particles.size(); j++)
+	{
+		x.PasteCoordsys(this->particles[j]->coord,  off_x + 7*j, 0);
+		v.PasteVector  (this->particles[j]->coord_dt.pos,   off_v+ 6*j, 0);
+		v.PasteVector  (this->particles[j]->GetWvel_loc(),  off_v+ 6*j +3, 0);
+		T = this->GetChTime();
+	}
+}
+
+void ChParticlesClones::IntStateScatter(
+					const unsigned int off_x,		///< offset in x state vector
+					const ChState& x,				///< state vector, position part
+					const unsigned int off_v,		///< offset in v state vector
+					const ChStateDelta& v,			///< state vector, speed part
+					const double T) 				///< time
+{
+	for (unsigned int j = 0; j < particles.size(); j++)
+	{
+		this->particles[j]->SetCoord   (x.ClipCoordsys(off_x +7*j, 0));
+		this->particles[j]->SetPos_dt  (v.ClipVector(off_v +6*j, 0));
+		this->particles[j]->SetWvel_loc(v.ClipVector(off_v +6*j + 3, 0));
+	}
+	this->SetChTime(T);
+	this->Update();
+}
+
+void ChParticlesClones::IntStateIncrement(
+					const unsigned int off_x,		///< offset in x state vector
+					ChState& x_new,					///< state vector, position part, incremented result
+					const ChState& x,				///< state vector, initial position part
+					const unsigned int off_v,		///< offset in v state vector
+					const ChStateDelta& Dv)  		///< state vector, increment
+{
+	for (unsigned int j = 0; j < particles.size(); j++)
+	{
+		// ADVANCE POSITION: 
+		x_new(off_x+7*j)   = x(off_x+7*j)   + Dv(off_v+6*j);
+		x_new(off_x+7*j+1) = x(off_x+7*j+1) + Dv(off_v+6*j+1);
+		x_new(off_x+7*j+2) = x(off_x+7*j+2) + Dv(off_v+6*j+2);
+
+		// ADVANCE ROTATION: rot' = delta*rot  (use quaternion for delta rotation)
+		ChQuaternion<> mdeltarot;
+		ChQuaternion<> moldrot = x.ClipQuaternion(off_x+7*j+3, 0);
+		ChVector<> newwel_abs = this->particles[j]->Amatrix * Dv.ClipVector(off_v+6*j+3, 0);
+		double mangle = newwel_abs.Length();
+		newwel_abs.Normalize();
+		mdeltarot.Q_from_AngAxis(mangle, newwel_abs);
+		ChQuaternion<> mnewrot = mdeltarot * moldrot; // quaternion product
+		x_new.PasteQuaternion( mnewrot, off_x+7*j+3, 0 );
+	}
+}
+ 
+void ChParticlesClones::IntLoadResidual_F(
+					const unsigned int off,		 ///< offset in R residual
+					ChVectorDynamic<>& R,		 ///< result: the R residual, R += c*F 
+					const double c				 ///< a scaling factor
+					)
+{
+	ChVector<> Gforce; 
+	if (GetSystem())
+		Gforce = GetSystem()->Get_G_acc() * this->particle_mass.GetBodyMass();
+
+	for (unsigned int j = 0; j < particles.size(); j++)
+	{
+		// particle gyroscopic force:
+		ChVector<> Wvel = this->particles[j]->GetWvel_loc();
+		ChVector<> gyro = Vcross (Wvel, (this->particle_mass.GetBodyInertia().Matr_x_Vect (Wvel)));
+
+		// add applied forces and torques (and also the gyroscopic torque and gravity!) to 'fb' vector
+		R.PasteSumVector((this->particles[j]->UserForce + Gforce) * c , off + 6*j, 0);
+		this->particles[j]->variables.Get_fb().PasteSumVector((this->particles[j]->UserTorque- gyro)  * c , off + 6*j + 3, 0);
+	}
+}
+
+
+void ChParticlesClones::IntLoadResidual_Mv(
+					const unsigned int off,		 ///< offset in R residual
+					ChVectorDynamic<>& R,		 ///< result: the R residual, R += c*M*v 
+					const ChVectorDynamic<>& w,  ///< the w vector 
+					const double c				 ///< a scaling factor
+					)
+{
+	for (unsigned int j = 0; j < particles.size(); j++)
+	{
+		R(off+6*j+0) += c* GetMass() * w(off+6*j+0);
+		R(off+6*j+1) += c* GetMass() * w(off+6*j+1);
+		R(off+6*j+2) += c* GetMass() * w(off+6*j+2);
+		ChVector<> Iw = this->particle_mass.GetBodyInertia() * w.ClipVector(off+6*j+3, 0);
+		Iw *= c;
+		R.PasteSumVector(Iw, off+6*j+3, 0);
+	}
+}
+
+void ChParticlesClones::IntToLCP(
+					const unsigned int off_v,			///< offset in v, R
+					const ChStateDelta& v,
+					const ChVectorDynamic<>& R,
+					const unsigned int off_L,			///< offset in L, Qc
+					const ChVectorDynamic<>& L,
+					const ChVectorDynamic<>& Qc
+					)
+{
+	for (unsigned int j = 0; j < particles.size(); j++)
+	{
+		this->particles[j]->variables.Get_qb().PasteClippedMatrix(&v, off_v+6*j,0, 6,1, 0,0);
+		this->particles[j]->variables.Get_fb().PasteClippedMatrix(&R, off_v+6*j,0, 6,1, 0,0);
+	}
+}
+
+void ChParticlesClones::IntFromLCP(
+					const unsigned int off_v,			///< offset in v
+					ChStateDelta& v,
+					const unsigned int off_L,			///< offset in L
+					ChVectorDynamic<>& L
+					)
+{
+	for (unsigned int j = 0; j < particles.size(); j++)
+	{
+		v.PasteMatrix(&this->particles[j]->variables.Get_qb(), off_v+6*j, 0);
+	}
+}
 
 
 
@@ -441,12 +570,6 @@ void ChParticlesClones::Update (double mytime)
 }
 
 
-
-void ChParticlesClones::UpdateExternalGeometry ()
-{
-	if (this->GetExternalObject())
-		this->GetExternalObject()->onChronoChanged();
-}
 
  
 // collision stuff

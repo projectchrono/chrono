@@ -115,6 +115,50 @@ public:
 				/// Meaning of 'mass' changes depending on the problem type.
 	virtual void SetMass(double mm) {this->variables.GetMass()(0) =mm;}
 
+				/// Get the number of degrees of freedom
+	virtual int Get_ndof() { return 1; }
+
+			//
+			// Functions for interfacing to the state bookkeeping
+			//
+
+			//
+			// Functions for interfacing to the state bookkeeping
+			//
+
+	virtual void NodeIntStateGather(const unsigned int off_x,	ChState& x,	const unsigned int off_v, ChStateDelta& v,	double& T)
+	{
+		x(off_x) = this->P;
+		v(off_v) = this->P_dt;
+	}
+
+	virtual void NodeIntStateScatter(const unsigned int off_x,	const ChState& x, const unsigned int off_v,	const ChStateDelta& v,	const double T)
+	{
+		this->P = x(off_x);
+		this->P_dt = v(off_v);
+	}
+
+	virtual void NodeIntLoadResidual_F(const unsigned int off,	ChVectorDynamic<>& R, const double c )
+	{
+		R(off) += this->F * c;
+	}
+
+	virtual void NodeIntLoadResidual_Mv(const unsigned int off,	ChVectorDynamic<>& R, const ChVectorDynamic<>& w, const double c)
+	{
+		R(off) += c * this->GetMass() * w(off);
+	}
+
+	virtual void NodeIntToLCP(const unsigned int off_v,	const ChStateDelta& v, const ChVectorDynamic<>& R)
+	{
+		this->variables.Get_qb().PasteClippedMatrix(&v, off_v,0, 1,1, 0,0);
+		this->variables.Get_fb().PasteClippedMatrix(&R, off_v,0, 1,1, 0,0);
+	}
+
+	virtual void NodeIntFromLCP(const unsigned int off_v, ChStateDelta& v)
+	{
+		v.PasteMatrix(&this->variables.Get_qb(), off_v, 0);
+	}
+
 			//
 			// Functions for interfacing to the LCP solver
 			//

@@ -126,6 +126,62 @@ public:
     bool GetFixed()  {return variables.IsDisabled(); }
 
 
+				/// Get the number of degrees of freedom
+	virtual int Get_ndof() { return 3;}
+
+
+			//
+			// Functions for interfacing to the state bookkeeping
+			//
+
+			//
+			// Functions for interfacing to the state bookkeeping
+			//
+
+	virtual void NodeIntStateGather(const unsigned int off_x,	ChState& x,	const unsigned int off_v, ChStateDelta& v,	double& T)
+	{
+		x.PasteVector  (this->pos,  off_x, 0);
+		v.PasteVector  (this->pos_dt,   off_v, 0);
+	}
+
+	virtual void NodeIntStateScatter(const unsigned int off_x,	const ChState& x, const unsigned int off_v,	const ChStateDelta& v,	const double T)
+	{
+		this->SetPos     (x.ClipVector(off_x, 0));
+		this->SetPos_dt  (v.ClipVector(off_v, 0));
+	}
+
+	virtual void NodeIntStateIncrement(const unsigned int off_x, ChState& x_new, const ChState& x,	const unsigned int off_v, const ChStateDelta& Dv)
+	{ 
+		x_new(off_x)   = x(off_x)   + Dv(off_v);
+		x_new(off_x+1) = x(off_x+1) + Dv(off_v+1);
+		x_new(off_x+2) = x(off_x+2) + Dv(off_v+2);
+	}
+
+	virtual void NodeIntLoadResidual_F(const unsigned int off,	ChVectorDynamic<>& R, const double c )
+	{
+		R.PasteSumVector( this->Force * c , off, 0);
+	}
+
+	virtual void NodeIntLoadResidual_Mv(const unsigned int off,	ChVectorDynamic<>& R, const ChVectorDynamic<>& w, const double c)
+	{
+		R(off+0) += c* GetMass() * w(off+0);
+		R(off+1) += c* GetMass() * w(off+1);
+		R(off+2) += c* GetMass() * w(off+2);
+	}
+
+	virtual void NodeIntToLCP(const unsigned int off_v,	const ChStateDelta& v, const ChVectorDynamic<>& R)
+	{
+		this->variables.Get_qb().PasteClippedMatrix(&v, off_v,0, 3,1, 0,0);
+		this->variables.Get_fb().PasteClippedMatrix(&R, off_v,0, 3,1, 0,0);
+	}
+
+	virtual void NodeIntFromLCP(const unsigned int off_v, ChStateDelta& v)
+	{
+		v.PasteMatrix(&this->variables.Get_qb(), off_v, 0);
+	}
+
+
+
 			//
 			// Functions for interfacing to the LCP solver
 			//

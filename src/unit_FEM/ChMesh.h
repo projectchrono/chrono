@@ -44,12 +44,13 @@ private:
 	std::vector< ChSharedPtr<ChNodeFEMbase> >	 vnodes;	//  nodes
 	std::vector< ChSharedPtr<ChElementBase> >	 velements;	//  elements
 
-	unsigned int n_dofs; // total degrees of freedom
+	unsigned int n_dofs;	// total degrees of freedom
+	unsigned int n_dofs_w;	// total degrees of freedom, derivative (Lie algebra)
 
 
 public:
 
-	ChMesh() { n_dofs = 0;};
+	ChMesh() { n_dofs = 0; n_dofs_w = 0; };
 	~ChMesh() {};
 
 	void AddNode    ( ChSharedPtr<ChNodeFEMbase> m_node);
@@ -65,6 +66,7 @@ public:
 	unsigned int GetNnodes () {return (unsigned int) vnodes.size();}
 	unsigned int GetNelements () {return (unsigned int) velements.size();}
 	virtual  int GetDOF () {return n_dofs;}
+	virtual  int GetDOF_w() { return n_dofs_w; }
 
 				/// - Computes the total number of degrees of freedom
 				/// - Precompute auxiliary data, such as (local) stiffness matrices Kl, if any, for each element.
@@ -101,6 +103,18 @@ public:
 							ChSharedPtr<ChContinuumMaterial> my_material,
 							std::vector< std::vector< ChSharedPtr<ChNodeFEMbase> > >& node_sets);
 
+		//
+		// STATE FUNCTIONS
+		//
+
+				// (override/implement interfaces for global state vectors, see ChPhysicsItem for comments.)
+	virtual void IntStateGather(const unsigned int off_x,	ChState& x,	const unsigned int off_v, ChStateDelta& v,	double& T);	
+	virtual void IntStateScatter(const unsigned int off_x,	const ChState& x, const unsigned int off_v,	const ChStateDelta& v,	const double T);
+	virtual void IntStateIncrement(const unsigned int off_x, ChState& x_new, const ChState& x,	const unsigned int off_v, const ChStateDelta& Dv); 
+	virtual void IntLoadResidual_F(const unsigned int off,	ChVectorDynamic<>& R, const double c );
+	virtual void IntLoadResidual_Mv(const unsigned int off,	ChVectorDynamic<>& R, const ChVectorDynamic<>& w, const double c);
+	virtual void IntToLCP(const unsigned int off_v,	const ChStateDelta& v, const ChVectorDynamic<>& R, const unsigned int off_L, const ChVectorDynamic<>& L, const ChVectorDynamic<>& Qc);
+	virtual void IntFromLCP(const unsigned int off_v, ChStateDelta& v, const unsigned int off_L, ChVectorDynamic<>& L);
 
 			//
 			// LCP SYSTEM FUNCTIONS        for interfacing all elements with LCP solver
