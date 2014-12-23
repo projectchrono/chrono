@@ -52,8 +52,8 @@ private:
   // private functions
   void AddVisualizationIdler();
    
-  const std::string& getMeshName() const { return m_visual_filename; }
-  const std::string& getMeshFile() const { return m_meshFile; }
+  const std::string& get_collision_filename() const { return m_collision_filename; }
+  const std::string& get_visual_filename() const { return m_visual_filename; }
 
   // private variables
   std::vector<ChSharedPtr<ChBody>> m_shoes;
@@ -65,9 +65,12 @@ private:
   //static values 
   static const double m_mass;         // mass per shoe
   static const ChVector<> m_inertia;  // inertia of a shoe
-  static const double m_width_max;    // max width of a shoe
-  static const double m_PinDist;		  // linear distance between a shoe's two pin joint center
-  static const double m_th;           // thickness of a track shoe (height)
+
+  static const double m_shoe_width;
+  static const double m_shoe_height;
+
+  static const double m_pin_dist;		  // linear distance between a shoe's two pin joint center
+  static const double TrackChain::m_pin_radius;
 
   static const std::string m_collision_filename;	// wavefront mesh for collision geometry
   static const std::string m_visual_filename;	// wavefront mesh for visuals
