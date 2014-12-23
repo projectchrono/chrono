@@ -55,8 +55,12 @@ private:
   void AddVisualization();
   
   // private variables
-  ChSharedPtr<ChBody> m_arm;
-  ChSharedPtr<ChBody> m_wheel;
+  ChSharedPtr<ChBody> m_arm;  ///< arm body
+  ChSharedPtr<ChLinkLockRevolute> m_armChassis_rev; ///< arm-chassis revolute joint
+  ChSharedPtr<ChBody> m_wheel;  ///< wheel body
+  ChSharedPtr<ChLinkLockRevolute> m_armWheel_rev; ///< arm-wheel revolute joint
+
+  ChFrame<> m_Loc; // location of subsystem, relative to trackSystem ref c-sys
 
   // static variables
   static const double m_armMass;
@@ -67,8 +71,6 @@ private:
   static const ChVector<> m_wheelInertia;
   static const double m_wheelWidth;
   static const double m_wheelRadius;
-  static const ChVector<> m_wheelPos;	// location relative to the arm attachment point to the chassis
-  static const ChQuaternion<> m_wheelRot; // rotation relative to 
 
   static const double m_springK;	// torsional spring constant
   static const double m_springC;	// torsional damping constant
