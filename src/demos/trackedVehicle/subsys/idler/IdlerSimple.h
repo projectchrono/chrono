@@ -59,6 +59,7 @@ private:
 
   // static variables
   static const double m_mass;
+  static const ChVector<> m_inertia;
   static const double m_springK;
   static const double m_springC;
   static const double m_springRestLength;

@@ -21,16 +21,20 @@
 
 #include "IdlerSimple.h"
 
-// Static variables
-const double m_mass = 200.0;
-const double m_radius = 0.5;
-const double m_width = 0.35;
-const double m_springK = 100000;
-const double m_springC = 1000;
-const double m_springRestLength = 1.0;
-
 
 namespace chrono {
+
+// Static variables
+const double IdlerSimple::m_mass = 200.0;
+const ChVector<> IdlerSimple::m_inertia = ChVector<>(10,10,15);
+
+const double IdlerSimple::m_radius = 0.5;
+const double IdlerSimple::m_width = 0.35;
+const double IdlerSimple::m_springK = 100000;
+const double IdlerSimple::m_springC = 1000;
+const double IdlerSimple::m_springRestLength = 1.0;
+
+
 
 IdlerSimple::IdlerSimple()
 {
