@@ -1,12 +1,12 @@
 #=============================================================================
-# CMake configuration file for the Chrono_Subsys library
+# CMake configuration file for the ChronoVehicle library
 #=============================================================================
 
 # ------------------------------------------------------------------------------
-# LIST THE FILES in the Chrono_Subsys LIBRARY
+# LIST THE FILES in the ChronoVehicle LIBRARY
 # ------------------------------------------------------------------------------
 
-SET(Chrono_Subsys_FILES
+SET(CV_BASE_FILES
     ChApiSubsys.h
     ChSubsysDefs.h
     ChVehicleModelData.h
@@ -35,12 +35,12 @@ SET(Chrono_Subsys_FILES
     ChBrake.cpp
 )
 
-SET(Chrono_Vehicle_FILES
+SET(CV_VEHICLE_FILES
     vehicle/Vehicle.h
     vehicle/Vehicle.cpp
 )
 
-SET(Chrono_Susp_FILES
+SET(CV_SUSPENSION_FILES
     suspension/ChDoubleWishbone.h
     suspension/ChDoubleWishbone.cpp
     suspension/ChDoubleWishboneReduced.h
@@ -60,12 +60,12 @@ SET(Chrono_Susp_FILES
     suspension/MultiLink.cpp
 )
 
-SET(Chrono_Wheel_FILES
+SET(CV_WHEEL_FILES
     wheel/Wheel.h
     wheel/Wheel.cpp
 )
 
-SET(Chrono_Steering_FILES
+SET(CV_STEERING_FILES
     steering/ChPitmanArm.h
     steering/ChPitmanArm.cpp
     steering/ChRackPinion.h
@@ -77,7 +77,7 @@ SET(Chrono_Steering_FILES
     steering/RackPinion.cpp
 )
 
-SET(Chrono_Driveline_FILES
+SET(CV_DRIVELINE_FILES
     driveline/ChShaftsDriveline2WD.h
     driveline/ChShaftsDriveline2WD.cpp
     driveline/ChShaftsDriveline4WD.h
@@ -89,12 +89,12 @@ SET(Chrono_Driveline_FILES
     driveline/ShaftsDriveline4WD.cpp
 )
 
-SET(Chrono_Driver_FILES
+SET(CV_DRIVER_FILES
     driver/ChDataDriver.h
     driver/ChDataDriver.cpp
 )
 
-SET(Chrono_Powertrain_FILES
+SET(CV_POVERTRAIN_FILES
     powertrain/ChSimplePowertrain.h
     powertrain/ChSimplePowertrain.cpp
     powertrain/ChShaftsPowertrain.h
@@ -104,7 +104,7 @@ SET(Chrono_Powertrain_FILES
     powertrain/SimplePowertrain.cpp
 )
 
-SET(Chrono_Tire_FILES
+SET(CV_TIRE_FILES
     tire/ChRigidTire.h
     tire/ChRigidTire.cpp
     tire/ChPacejkaTire.h
@@ -118,7 +118,7 @@ SET(Chrono_Tire_FILES
     tire/LugreTire.cpp
 )
 
-SET(Chrono_Brake_FILES
+SET(CV_BRAKE_FILES
     brake/ChBrakeSimple.h
     brake/ChBrakeSimple.cpp
 
@@ -126,20 +126,20 @@ SET(Chrono_Brake_FILES
     brake/BrakeSimple.cpp
 )
 
-SET(Chrono_terrain_FILES
+SET(CV_TERRAIN_FILES
     terrain/FlatTerrain.h
     terrain/FlatTerrain.cpp
     terrain/RigidTerrain.h
     terrain/RigidTerrain.cpp
 )
 
-SET(Chrono_suspensionTest_FILES
+SET(CV_SUSPENSIONTEST_FILES
     suspensionTest/SuspensionTest.h
     suspensionTest/SuspensionTest.cpp
 )
 
 IF (ENABLE_IRRLICHT)
-    SET(Chrono_Driver_FILES ${Chrono_Driver_FILES}
+    SET(CV_DRIVER_FILES ${CV_DRIVER_FILES}
         driver/ChChaseCamera.h
         driver/ChChaseCamera.cpp
         driver/ChIrrGuiDriver.h
@@ -154,50 +154,50 @@ IF (ENABLE_IRRLICHT)
     ENDIF()
 ENDIF()
 
-SOURCE_GROUP("base" FILES ${Chrono_Subsys_FILES})
-SOURCE_GROUP("vehicle" FILES ${Chrono_Vehicle_FILES})
-SOURCE_GROUP("suspension" FILES ${Chrono_Susp_FILES})
-SOURCE_GROUP("wheel" FILES ${Chrono_Wheel_FILES})
-SOURCE_GROUP("steering" FILES ${Chrono_Steering_FILES})
-SOURCE_GROUP("driveline" FILES ${Chrono_Driveline_FILES})
-SOURCE_GROUP("driver" FILES ${Chrono_Driver_FILES})
-SOURCE_GROUP("powertrain" FILES ${Chrono_Powertrain_FILES})
-SOURCE_GROUP("tire" FILES ${Chrono_Tire_FILES})
-SOURCE_GROUP("brake" FILES ${Chrono_Brake_FILES})
-SOURCE_GROUP("terrain" FILES ${Chrono_terrain_FILES})
-SOURCE_GROUP("suspensionTest" FILES ${Chrono_suspensionTest_FILES})
+SOURCE_GROUP("base" FILES ${CV_BASE_FILES})
+SOURCE_GROUP("vehicle" FILES ${CV_VEHICLE_FILES})
+SOURCE_GROUP("suspension" FILES ${CV_SUSPENSION_FILES})
+SOURCE_GROUP("wheel" FILES ${CV_WHEEL_FILES})
+SOURCE_GROUP("steering" FILES ${CV_STEERING_FILES})
+SOURCE_GROUP("driveline" FILES ${CV_DRIVELINE_FILES})
+SOURCE_GROUP("driver" FILES ${CV_DRIVER_FILES})
+SOURCE_GROUP("powertrain" FILES ${CV_POVERTRAIN_FILES})
+SOURCE_GROUP("tire" FILES ${CV_TIRE_FILES})
+SOURCE_GROUP("brake" FILES ${CV_BRAKE_FILES})
+SOURCE_GROUP("terrain" FILES ${CV_TERRAIN_FILES})
+SOURCE_GROUP("suspensionTest" FILES ${CV_SUSPENSIONTEST_FILES})
 
 # ------------------------------------------------------------------------------
-# ADD THE Chrono_Subsys LIBRARY
+# ADD THE ChronoVehicle LIBRARY
 # ------------------------------------------------------------------------------
 
-ADD_LIBRARY(Chrono_Subsys SHARED
-    ${Chrono_Subsys_FILES}
-    ${Chrono_Vehicle_FILES}
-    ${Chrono_Susp_FILES}
-    ${Chrono_Wheel_FILES}
-    ${Chrono_Steering_FILES}
-    ${Chrono_Driveline_FILES}
-    ${Chrono_Driver_FILES}
-    ${Chrono_Powertrain_FILES}
-    ${Chrono_Tire_FILES}
-    ${Chrono_Brake_FILES}
-    ${Chrono_terrain_FILES}
-    ${Chrono_suspensionTest_FILES}
+ADD_LIBRARY(ChronoVehicle SHARED
+    ${CV_BASE_FILES}
+    ${CV_VEHICLE_FILES}
+    ${CV_SUSPENSION_FILES}
+    ${CV_WHEEL_FILES}
+    ${CV_STEERING_FILES}
+    ${CV_DRIVELINE_FILES}
+    ${CV_DRIVER_FILES}
+    ${CV_POVERTRAIN_FILES}
+    ${CV_TIRE_FILES}
+    ${CV_BRAKE_FILES}
+    ${CV_TERRAIN_FILES}
+    ${CV_SUSPENSIONTEST_FILES}
 )
 
-SET_TARGET_PROPERTIES(Chrono_Subsys PROPERTIES
+SET_TARGET_PROPERTIES(ChronoVehicle PROPERTIES
     COMPILE_FLAGS "${CH_BUILDFLAGS}"
     LINK_FLAGS "${CH_LINKERFLAG_GPU}"
     COMPILE_DEFINITIONS "CH_API_COMPILE_SUBSYS"
 )
 
-TARGET_LINK_LIBRARIES(Chrono_Subsys 
+TARGET_LINK_LIBRARIES(ChronoVehicle 
     ${CHRONOENGINE_LIBRARIES}
     ${CH_IRRKLANGLIB}
 )
 
-INSTALL(TARGETS Chrono_Subsys
+INSTALL(TARGETS ChronoVehicle
     RUNTIME DESTINATION bin
     LIBRARY DESTINATION lib
     ARCHIVE DESTINATION lib

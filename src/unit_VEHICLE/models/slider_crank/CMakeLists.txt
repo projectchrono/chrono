@@ -5,7 +5,7 @@ SET(MODEL_FILES
 
 SET(LIBRARIES
     ${CHRONOENGINE_LIBRARIES}
-    Chrono_Utils
+    ChronoVehicle_Utils
   )
 
 ADD_EXECUTABLE(${MODEL_NAME}  ${MODEL_FILES})

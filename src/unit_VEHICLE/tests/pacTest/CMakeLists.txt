@@ -18,8 +18,8 @@ SET(TEST_PROGRAMS
 
 SET(LIBRARIES 
     ${CHRONOENGINE_LIBRARIES}
-    Chrono_Utils
-    Chrono_Subsys
+    ChronoVehicle
+    ChronoVehicle_Utils
 )
 
 IF(ENABLE_IRRLICHT AND ${CMAKE_SYSTEM_NAME} MATCHES "Windows")
