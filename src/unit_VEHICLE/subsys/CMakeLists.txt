@@ -139,7 +139,7 @@ SET(CV_SUSPENSIONTEST_FILES
 )
 
 IF (ENABLE_IRRLICHT)
-    SET(CV_DRIVER_FILES ${CV_DRIVER_FILES}
+    SET(CVIRR_DRIVER_FILES
         driver/ChChaseCamera.h
         driver/ChChaseCamera.cpp
         driver/ChIrrGuiDriver.h
@@ -152,6 +152,8 @@ IF (ENABLE_IRRLICHT)
     IF(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
         SET(CH_BUILDFLAGS "${CH_BUILDFLAGS} /wd4275")
     ENDIF()
+ELSE()
+    SET(CVIRR_DRIVER_FILES "")
 ENDIF()
 
 SOURCE_GROUP("base" FILES ${CV_BASE_FILES})
@@ -160,7 +162,7 @@ SOURCE_GROUP("suspension" FILES ${CV_SUSPENSION_FILES})
 SOURCE_GROUP("wheel" FILES ${CV_WHEEL_FILES})
 SOURCE_GROUP("steering" FILES ${CV_STEERING_FILES})
 SOURCE_GROUP("driveline" FILES ${CV_DRIVELINE_FILES})
-SOURCE_GROUP("driver" FILES ${CV_DRIVER_FILES})
+SOURCE_GROUP("driver" FILES ${CV_DRIVER_FILES} ${CVIRR_DRIVER_FILES})
 SOURCE_GROUP("powertrain" FILES ${CV_POVERTRAIN_FILES})
 SOURCE_GROUP("tire" FILES ${CV_TIRE_FILES})
 SOURCE_GROUP("brake" FILES ${CV_BRAKE_FILES})
@@ -193,8 +195,7 @@ SET_TARGET_PROPERTIES(ChronoVehicle PROPERTIES
 )
 
 TARGET_LINK_LIBRARIES(ChronoVehicle 
-    ${CHRONOENGINE_LIBRARIES}
-    ${CH_IRRKLANGLIB}
+    ${CHRONOENGINE_LIBRARY}
 )
 
 INSTALL(TARGETS ChronoVehicle
@@ -203,3 +204,30 @@ INSTALL(TARGETS ChronoVehicle
     ARCHIVE DESTINATION lib
 )
 
+# ------------------------------------------------------------------------------
+# ADD THE ChronoVehicle_Irrlicht LIBRARY
+# ------------------------------------------------------------------------------
+
+IF (ENABLE_IRRLICHT)
+    ADD_LIBRARY(ChronoVehicle_Irrlicht SHARED
+        ${CVIRR_DRIVER_FILES}
+    )
+
+    SET_TARGET_PROPERTIES(ChronoVehicle_Irrlicht PROPERTIES
+        COMPILE_FLAGS "${CH_BUILDFLAGS}"
+        LINK_FLAGS "${CH_LINKERFLAG_GPU}"
+        COMPILE_DEFINITIONS "CH_API_COMPILE_SUBSYS"
+    )
+
+    TARGET_LINK_LIBRARIES(ChronoVehicle_Irrlicht
+        ChronoVehicle
+        ${CHRONOENGINE_LIBRARIES}
+        ${CH_IRRKLANGLIB}
+    )
+
+    INSTALL(TARGETS ChronoVehicle_Irrlicht
+        RUNTIME DESTINATION bin
+        LIBRARY DESTINATION lib
+        ARCHIVE DESTINATION lib
+    )
+ENDIF()

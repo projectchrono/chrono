@@ -20,14 +20,22 @@ SET(DEMO_FILES
 
 SOURCE_GROUP("" FILES ${DEMO_FILES})
 
-SET(LIBRARIES 
-	${CHRONOENGINE_LIBRARIES}
-	ChronoVehicle
-	ChronoVehicle_Utils
-	)
+IF (ENABLE_IRRLICHT)
+  SET(LIBRARIES 
+    ${CHRONOENGINE_LIBRARIES}
+    ChronoVehicle_Irrlicht
+    ChronoVehicle_Utils
+    )
 
-IF(ENABLE_IRRLICHT AND ${CMAKE_SYSTEM_NAME} MATCHES "Windows")
-	SET(CH_BUILDFLAGS "${CH_BUILDFLAGS} /wd4275")
+    IF (${CMAKE_SYSTEM_NAME} MATCHES "Windows")
+      SET(CH_BUILDFLAGS "${CH_BUILDFLAGS} /wd4275")
+    ENDIF()
+ELSE()
+  SET(LIBRARIES 
+    ${CHRONOENGINE_LIBRARIES}
+    ChronoVehicle
+    ChronoVehicle_Utils
+    )
 ENDIF()
 
 # Create the executable
