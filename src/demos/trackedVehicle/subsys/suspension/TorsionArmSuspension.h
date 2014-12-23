@@ -25,15 +25,18 @@
 
 namespace chrono {
 
-
+/// Consists of two bodies, the torsion arm link and the road-wheel.
+/// Arm constrained to chassis via revolute joint, as is the arm to wheel.
+/// Rotational spring damper between arm and chassis
 class CH_SUBSYS_API TorsionArmSuspension : public ChShared
 {
 public:
 
-  TorsionArmSuspension(const std::string& filename);
+  TorsionArmSuspension();
 
   ~TorsionArmSuspension() {}
 
+  /// 
   void Initialize(ChSharedPtr<ChBodyAuxRef> chassis,
 				  const ChVector<>&         location,
 				  const ChQuaternion<>&     rotation);
@@ -48,25 +51,28 @@ public:
 private:
 
   // private functions
-  int Create();
+  void Create();
   void AddVisualization();
   
   // private variables
   ChSharedPtr<ChBody> m_arm;
-  double m_armMass;
-  ChVector<> m_armInertia;
-  double m_armRadius;
-  
   ChSharedPtr<ChBody> m_wheel;
-  double m_wheelMass;
-  ChVector<> m_wheelInertia;
-  double m_wheelWidth;
-  double m_wheelRadius;
-  ChVector<> m_wheelRelLoc;	// location relative to the arm attachment point to the chassis
-  
-  double m_springK;	// torsional spring constant
-  double m_springC;	// torsional damping constant
-  ChVector<> m_TorquePreload;	// preload torque (x,y,z) in local coords, on the spring/damper
+
+  // static variables
+  static const double m_armMass;
+  static const ChVector<> m_armInertia;
+  static const double m_armRadius;
+
+  static const double m_wheelMass;
+  static const ChVector<> m_wheelInertia;
+  static const double m_wheelWidth;
+  static const double m_wheelRadius;
+  static const ChVector<> m_wheelPos;	// location relative to the arm attachment point to the chassis
+  static const ChQuaternion<> m_wheelRot; // rotation relative to 
+
+  static const double m_springK;	// torsional spring constant
+  static const double m_springC;	// torsional damping constant
+  static const ChVector<> m_TorquePreload;	// preload torque (x,y,z) in local coords, on the spring/damper
   
 };
 

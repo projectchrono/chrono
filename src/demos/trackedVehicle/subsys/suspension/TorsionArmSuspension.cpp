@@ -22,20 +22,17 @@
 
 namespace chrono {
 
-TorsionArmSuspension::TorsionArmSuspension(const std::string& filename)
+TorsionArmSuspension::TorsionArmSuspension()
 {
-   FILE* fp = fopen(filename.c_str(), "r");
-
+  // FILE* fp = fopen(filename.c_str(), "r");
   // char readBuffer[65536];
-
-  fclose(fp);
-
+  // fclose(fp);
 
   Create();
 }
 
 
-int TorsionArmSuspension::Create()
+void TorsionArmSuspension::Create()
 {
 /*
   // load data for the arm
@@ -54,12 +51,11 @@ int TorsionArmSuspension::Create()
   m_springK = d["Torsion Bar"]["Stiffness"].GetDouble();
   m_springC = d["Torsion Bar"]["Damping"].GetDouble();
 
-  
+  */
   m_arm = ChSharedPtr<ChBody>(new ChBody);
   
   m_wheel = ChSharedPtr<ChBody>(new ChBody);
-  */
-  return 0;
+  
 }
 
 void TorsionArmSuspension::Initialize(ChSharedPtr<ChBodyAuxRef> chassis,
