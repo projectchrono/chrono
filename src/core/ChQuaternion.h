@@ -83,7 +83,7 @@ public:
 
 		/// Copy constructor between vectors float<->double etc
 	template <class RealB>
-	ChQuaternion(const ChQuaternion<RealB>& other) : e0(other.e0),e1(other.e1),e2(other.e2),e3(other.e3) {}
+	ChQuaternion(const ChQuaternion<RealB>& other) : e0((Real)other.e0),e1((Real)other.e1),e2((Real)other.e2),e3((Real)other.e3) {}
 
 	//
 	// OPERATORS OVERLOADING
