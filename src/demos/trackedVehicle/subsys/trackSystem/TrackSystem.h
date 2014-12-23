@@ -12,7 +12,8 @@
 // Authors: Justin Madsen
 // =============================================================================
 //
-// model a single track chain system, as part of a tracked vehicle. Uses JSON input files
+// Model a single track chain system, as part of a tracked vehicle. This subsystem
+//  contains a number of other subsystems.
 //
 // =============================================================================
 
@@ -40,10 +41,12 @@ public:
 
   ~TrackSystem() {}
 
-
+  /// Initialize by attaching subsystem to the specified chassis body at the
+  /// specified location (with respect to and expressed in the reference frame
+  /// of the chassis). It is assumed that the suspension reference frame is
+  /// always aligned with the chassis reference frame.
   void Initialize(ChSharedPtr<ChBodyAuxRef> chassis,
-				 const ChVector<>&         location,
-				 const ChQuaternion<>&     rotation);
+				 const ChVector<>&         location);
 
   void Create(int track_idx);
   
@@ -52,53 +55,46 @@ private:
   // private functions
   void BuildSubsystems();
   
-  // initialize a roller at the specified location and orientation
-  void initialize_roller(ChSharedPtr<ChBody> body, const ChVector<>& loc, const ChQuaternion<>& rot, int idx);
+  // initialize a roller at the specified location and orientation, attach to chassis
+  void initialize_roller(ChSharedPtr<ChBody> body, ChSharedPtr<ChBodyAuxRef>  chassis,
+    const ChVector<>& loc, const ChQuaternion<>& rot, int idx);
 
   // private variables
+  // subsystems, and other bodies attached to this tracksystem
   ChSharedPtr<DriveGear> m_driveGear;
   ChSharedPtr<IdlerSimple>	m_idler;
   ChSharedPtr<TrackChain> m_chain;
   std::vector<ChSharedPtr<TorsionArmSuspension>> m_suspensions;
   std::vector<ChSharedPtr<ChBody>> m_supportRollers;
-  std::vector<ChVector<> > m_rollerLocs;  ///< relative to the 
   std::vector<ChSharedPtr<ChLinkLockRevolute>> m_supportRollers_rev;
   
   std::string m_name; ///< name of the track chain system
 
   // hard-coded in TrackSystem.cpp, for now
   // idler
-  static const double m_idlerMass;
-  static const ChVector<> m_idlerInertia;
-  static const ChVector<> m_idlerPos;
-  static const double m_idlerRadius;
-  static const double m_idlerWidth;
-  static const double m_idler_K;
-  static const double m_idler_C;
+  static const ChVector<> m_idlerPos; // relative to TrackSystem _REF c-sys
+  static const ChQuaternion<> m_idlerRot; 
   
   // drive gear
-  static const double m_gearMass;
-  static const ChVector<> m_gearPos;
-  static const double m_gearRadius;
-  static const double m_gearWidth;
-  static const ChVector<> m_gearInertia;
+  static const ChVector<> m_gearPos;  // relative to Tracksystem _REF c-sys
+  static const ChQuaternion<> m_gearRot;
   
   // Support rollers
+  static const int m_numRollers;
   static const double m_rollerMass;
-  static const double m_rollerRadius;
-  static const double m_rollerWidth;
-  static const ChVector<> m_rollerInertia;
-
-  static const int m_NumRollers;
+  static const double m_roller_radius;
+  static const double m_roller_width;
+  std::vector<ChVector<> > m_rollerLocs;  ///< relative to the Tracksys _REF c-sys
+  std::vector<ChQuaternion<> > m_rollerRots;
   
   // suspension
   // static const std::string m_suspensionFilename;
   std::vector<ChVector<> > m_suspensionLocs;
-  static const int m_NumSuspensions;
+  static const int m_numSuspensions;
   
   // Track Chain
-  std::string m_trackChainFilename;
-  int m_track_idx;
+  // std::string m_trackChainFilename;
+  int m_track_idx;  // give unique ID to each TrackSystem, to use as a collision family ID for all associated sub-systems
 };
 
 
