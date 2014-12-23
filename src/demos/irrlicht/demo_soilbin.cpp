@@ -571,15 +571,15 @@ class MyContactCallback : public ChSystem::ChCustomCollisionPointCallback
 		// Set friction according to user setting:
 		material.static_friction = this->friction;
 		// Set compliance (normal and tangential at once)
-		material.compliance  =  this->compliance;
-		material.complianceT = this->compliance;
-		material.dampingf	 =  this->dampingf;
+		material.compliance  =  (float)this->compliance;
+		material.complianceT =  (float)this->compliance;
+		material.dampingf	 =  (float)this->dampingf;
 
 		// Set cohesion according to user setting:
 		// Note that we must scale the cohesion force value by time step, because 
 		// the material 'cohesion' value has the dimension of an impulse.
 		double my_cohesion_force =  cohesion;
-		material.cohesion = msystem->GetStep() * my_cohesion_force; //<- all contacts will have this cohesion!
+		material.cohesion = (float)(msystem->GetStep() * my_cohesion_force); //<- all contacts will have this cohesion!
 
 		if (mcontactinfo.distance>0.12)
 			material.cohesion = 0;
