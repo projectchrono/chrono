@@ -22,6 +22,8 @@
 
 #include "core/ChCoordsys.h"
 #include "physics/ChSystem.h"
+#include "ModelDefs.h"
+
 #include "subsys/trackSystem/TrackSystem.h"
 #include "subsys/powertrain/TrackPowertrain.h"
 #include "subsys/driveline/TrackDriveline.h"
@@ -45,12 +47,13 @@ class CH_SUBSYS_API TrackVehicle : public ChSystem
 {
 public:
 
-  TrackVehicle(bool fixed = false, bool chassisVis = false);
+  TrackVehicle(bool fixed = false, VisualizationType chassisVis = VisualizationType::PRIMITIVES,
+    CollisionType chassisCollide = CollisionType::MESH);
 
   ~TrackVehicle() {}
 
-  /// Initialize the tracked vehicle at the location of the chassis
-  void Initialize(const ChCoordsys<>& chassisPos);
+  /// Initialize the tracked vehicle REF frame with the specified Coordinate system
+  void Initialize(const ChCoordsys<>& chassis_Csys);
   
   /// Update the vehicle with the new settings for throttle and brake
   void Update(double	time,
@@ -122,12 +125,16 @@ private:
   std::vector<ChSharedPtr<TrackDriveline>>   m_drivelines;    ///< handle to the driveline subsystem, one for each powertrain/drivegear pair
   std::vector<ChSharedPtr<TrackPowertrain>>  m_ptrains;  ///< powertrain system, one per track system
 
+  VisualizationType m_vis;  // how to visualize chassis geometry
+  CollisionType m_collide;  // how to handle chassis collision geometry
+
   static const double     m_mass;                   // chassis mass
   static const ChVector<> m_COM;                    // location of the chassis COM in the local ref frame
   static const ChVector<> m_inertia;                // symmetric moments of inertia of the chassis
 
   static const ChCoordsys<> m_driverCsys;  // driver position and orientation relative to chassis
   static const std::string  m_MeshFile;
+  static const ChVector<> m_chassisBoxSize; // length, height, width of chassis collision box (if collisiontype = PRIMITIVES)
 
   double m_stepsize;          ///< integration time step for tracked vehicle system
 
