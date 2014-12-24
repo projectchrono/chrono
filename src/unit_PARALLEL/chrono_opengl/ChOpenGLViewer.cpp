@@ -256,8 +256,10 @@ void ChOpenGLViewer::DrawObject(
    for (int i = 0; i < abody->GetAssets().size(); i++) {
 
       ChSharedPtr<ChAsset> asset = abody->GetAssets().at(i);
+      ChSharedPtr<ChVisualization> visual_asset = asset.DynamicCastTo<ChVisualization>();
+      if (visual_asset.IsNull())
+        continue;
 
-      ChVisualization* visual_asset = ((ChVisualization *) (asset.get_ptr()));
       Vector center = visual_asset->Pos;
       center = rot.Rotate(center);
       Quaternion lrot = visual_asset->Rot.Get_A_quaternion();
