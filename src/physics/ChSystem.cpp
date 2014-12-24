@@ -2026,27 +2026,27 @@ void ChSystem::LoadResidual_CqL(
 ///    Qc += c*C 
 void ChSystem::LoadConstraint_C(
 	ChVectorDynamic<>& Qc,		 ///< result: the Qc residual, Qc += c*C 
-	const double c,				 ///< a scaling factor
-	bool do_clamp,				 ///< apply clamping to c*C?
-	double recovery_clamp		 ///< value for min/max clamping of c*C
+	const double c				 ///< a scaling factor
 	)
 {
+	bool do_clamp = true;
+
 	for (unsigned int ip = 0; ip < bodylist.size(); ++ip)  // ITERATE on bodies
 	{
 		ChBody* Bpointer = bodylist[ip];
 		if(Bpointer->IsActive())
-			Bpointer->IntLoadConstraint_C(Bpointer->GetOffset_L(), Qc, c, do_clamp, recovery_clamp);
+			Bpointer->IntLoadConstraint_C(Bpointer->GetOffset_L(), Qc, c, do_clamp, max_penetration_recovery_speed);
 	}
 	for (unsigned int ip = 0; ip < otherphysicslist.size(); ++ip)  // ITERATE on other physics
 	{
 		ChPhysicsItem* PHpointer = otherphysicslist[ip];
-		PHpointer->IntLoadConstraint_C(PHpointer->GetOffset_L(), Qc, c, do_clamp, recovery_clamp);
+		PHpointer->IntLoadConstraint_C(PHpointer->GetOffset_L(), Qc, c, do_clamp, max_penetration_recovery_speed);
 	}
 	for (unsigned int ip = 0; ip < linklist.size(); ++ip)  // ITERATE on links
 	{
 		ChLink* Lpointer = linklist[ip];
 		if(Lpointer->IsActive())
-			Lpointer->IntLoadConstraint_C(Lpointer->GetOffset_L(), Qc, c, true, 0);//do_clamp, recovery_clamp); //***TODO***
+			Lpointer->IntLoadConstraint_C(Lpointer->GetOffset_L(), Qc, c, do_clamp, max_penetration_recovery_speed); 
 	}
 }
 

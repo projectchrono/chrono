@@ -180,9 +180,7 @@ class  ChApi ChIntegrable
 			///    Qc += c*C 
 	virtual void LoadConstraint_C(
 		ChVectorDynamic<>& Qc,		 ///< result: the Qc residual, Qc += c*C 
-		const double c,				 ///< a scaling factor
-		bool do_clamp=false,		 ///< apply clamping to c*C?
-		double recovery_clamp=1e30	 ///< value for min/max clamping of c*C
+		const double c				 ///< a scaling factor
 		)
 	{
 		throw ChException("LoadConstraint_C() not implemented, implicit integrators cannot be used. ");
@@ -382,9 +380,7 @@ public:
 	///    Qc += c*C 
 	virtual void LoadConstraint_C(
 		ChVectorDynamic<>& Qc,		 ///< result: the Qc residual, Qc += c*C 
-		const double c,				 ///< a scaling factor
-		bool do_clamp=false,		 ///< apply clamping to c*C?
-		double recovery_clamp=1e30	 ///< value for min/max clamping of c*C
+		const double c				 ///< a scaling factor
 		)
 	{
 		throw ChException("LoadConstraint_C() not implemented, implicit integrators cannot be used. ");
