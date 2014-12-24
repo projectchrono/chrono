@@ -66,9 +66,19 @@ TrackVehicle::TrackVehicle(bool fixed, VisualizationType chassisVis, CollisionTy
   m_chassis->SetInertiaXX(m_inertia);
   m_chassis->SetBodyFixed(fixed);
 
-  if (chassisVis)
+  // add visualization assets to the chassis
+  switch (m_vis) {
+  case VisualizationType::PRIMITIVES:
   {
+    ChSharedPtr<ChSphereShape> sphere(new ChSphereShape);
+    sphere->GetSphereGeometry().rad = 0.1;
+    sphere->Pos = m_COM;
+    m_chassis->AddAsset(sphere);
 
+    break;
+  }
+  case VisualizationType::MESH:
+  {
     geometry::ChTriangleMeshConnected trimesh;
     trimesh.LoadWavefrontMesh(utils::GetModelDataFile(m_MeshFile), false, false);
 
@@ -76,22 +86,20 @@ TrackVehicle::TrackVehicle(bool fixed, VisualizationType chassisVis, CollisionTy
     trimesh_shape->SetMesh(trimesh);
     trimesh_shape->SetName("chassis triMesh");
     m_chassis->AddAsset(trimesh_shape);
+
+    break;
   }
-  else
-  {
-    ChSharedPtr<ChSphereShape> sphere(new ChSphereShape);
-    sphere->GetSphereGeometry().rad = 0.1;
-    sphere->Pos = m_COM;
-    m_chassis->AddAsset(sphere);
-  }
-  
+  } // end switch
+
   Add(m_chassis);
 
 
-  m_num_tracks = 2;
-  // resize the vectors for the number of track systems to use
+  m_num_tracks = 2; // number of trackSystems to create
+  // resize all vectors for the number of track systems
   m_TrackSystems.resize(m_num_tracks);
   m_TrackSystem_locs.resize(m_num_tracks);
+  // Each trackSystem has its own driveline and powertrain, so the left and right
+  // sides can have power applied independently
   m_drivelines.resize(m_num_tracks);
   m_ptrains.resize(m_num_tracks);
 
@@ -104,16 +112,67 @@ TrackVehicle::TrackVehicle(bool fixed, VisualizationType chassisVis, CollisionTy
   
   }
 
+  // TODO: add brakes. Perhaps they are a part of the suspension subsystem?
 
 }
 
 
 
-void TrackVehicle::Initialize(const ChCoordsys<>& chassisPos)
+void TrackVehicle::Initialize(const ChCoordsys<>& chassis_Csys)
 {
-  m_chassis->SetFrame_REF_to_abs(ChFrame<>(chassisPos));
+  // move the chassis REF frame to the specified initial position/orientation
+  m_chassis->SetFrame_REF_to_abs(ChFrame<>(chassis_Csys));
+
+  // add collision geometry to the chassis
+  m_chassis->SetCollide(true);
+  m_chassis->GetCollisionModel()->ClearModel();
+
+
+  switch (m_collide) {
+  case CollisionType::PRIMITIVES:
+  {
+    // use a simple box
+    m_chassis->GetCollisionModel()->AddBox(m_chassisBoxSize.x, m_chassisBoxSize.y, m_chassisBoxSize.z);
+
+    break;
+  }
+  case CollisionType::MESH:
+  {
+    // use a triangle mesh
+   
+		geometry::ChTriangleMeshSoup temp_trianglemesh; 
+		
+    // TODO: fill the triangleMesh here with some track shoe geometry
+
+		m_chassis->GetCollisionModel()->SetSafeMargin(0.004);	// inward safe margin
+		m_chassis->GetCollisionModel()->SetEnvelope(0.010);		// distance of the outward "collision envelope"
+		m_chassis->GetCollisionModel()->ClearModel();
+
+    // is there an offset??
+    double shoelength = 0.2;
+    ChVector<> mesh_displacement(shoelength*0.5,0,0);  // since mesh origin is not in body center of mass
+    m_chassis->GetCollisionModel()->AddTriangleMesh(temp_trianglemesh, false, false, mesh_displacement);
+
+    break;
+  }
+  case CollisionType::CONVEXHULL:
+  {
+    // use convex hulls, loaded from file
+    ChStreamInAsciiFile chull_file(GetChronoDataFile("track_shoe.chulls").c_str());
+    // transform the collision geometry as needed
+    double mangle = 45.0; // guess
+    ChQuaternion<>rot;
+    rot.Q_from_AngAxis(mangle*(CH_C_PI/180.),VECT_X);
+    ChMatrix33<> rot_offset(rot);
+    ChVector<> disp_offset(0,0,0);  // no displacement offset
+    m_chassis->GetCollisionModel()->AddConvexHullsFromFile(chull_file, disp_offset, rot_offset);
+    break;
+  }
+  } // end switch
+  m_chassis->GetCollisionModel()->BuildModel();
 
   // Initialize the track systems
+
 
   // Initialize the suspension, wheel, and brake subsystems.
   for (int i = 0; i < m_num_tracks; i++)
