@@ -571,17 +571,23 @@ public:
 
 		ChVectorDynamic<> R (this->GetNcoords_v());
 		ChVectorDynamic<> Qc(this->GetNconstr());
-		double Delta = 1e-6;
+		const double Delta = 1e-6;
 
 		this->LoadResidual_F(R, 1.0);
 
 		this->LoadConstraint_C (Qc, -2.0 / (Delta*Delta));
 		
 		// numerical differentiation to get the Qc term in constraints
-		this->StateScatter(x + (v*Delta), v, T + Delta);
+		ChStateDelta dx(v);
+		dx*=Delta;
+		ChState xdx(x.GetRows(),this);
+
+		this->StateIncrement(xdx, x, dx);
+		this->StateScatter(xdx, v, T + Delta);
 		this->LoadConstraint_C (Qc, 1.0 / (Delta*Delta));
 
-		this->StateScatter(x - (v*Delta), v, T - Delta);
+		this->StateIncrement(xdx, x, -dx);
+		this->StateScatter(xdx, v, T - Delta);
 		this->LoadConstraint_C (Qc, 1.0 / (Delta*Delta));
 
 		this->StateScatter(x, v, T); // back to original state
