@@ -23,7 +23,7 @@
 #include "subsys/ChApiSubsys.h"
 #include "physics/ChSystem.h"
 #include "physics/ChBodyAuxRef.h"
-
+#include "ModelDefs.h"
 
 namespace chrono {
 
@@ -36,7 +36,9 @@ class CH_SUBSYS_API IdlerSimple : public ChShared
 {
 public:
 
-  IdlerSimple();
+  IdlerSimple(const std::string& name,
+    VisualizationType vis = VisualizationType::MESH,
+    CollisionType collide = CollisionType::PRIMITIVES);
 
   ~IdlerSimple() {}
 

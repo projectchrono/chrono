@@ -40,7 +40,8 @@ const ChVector<> m_TorquePreload;
 
 
 
-TorsionArmSuspension::TorsionArmSuspension()
+TorsionArmSuspension::TorsionArmSuspension(const std::string& name,
+                                           VisualizationType vis, CollisionType collide)
 {
   // FILE* fp = fopen(filename.c_str(), "r");
   // char readBuffer[65536];

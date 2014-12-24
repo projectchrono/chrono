@@ -22,6 +22,7 @@
 #include "subsys/ChApiSubsys.h"
 #include "physics/ChSystem.h"
 #include "physics/ChBodyAuxRef.h"
+#include "ModelDefs.h"
 
 namespace chrono {
 
@@ -31,7 +32,10 @@ class CH_SUBSYS_API DriveGear : public ChShared
 {
 public:
 
-  DriveGear();
+  DriveGear(const std::string& name,
+    VisualizationType vis = VisualizationType::MESH,
+    CollisionType collide = CollisionType::PRIMITIVES);
+
   ~DriveGear() {}
 
   void Initialize(ChSharedPtr<ChBodyAuxRef> chassis, const ChVector<>& pos, const ChQuaternion<>& rot);

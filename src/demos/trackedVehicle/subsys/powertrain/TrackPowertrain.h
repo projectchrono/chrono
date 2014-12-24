@@ -51,7 +51,8 @@ public:
     REVERSE
   };
 
-  TrackPowertrain(const ChVector<>& dir_motor_block = ChVector<>(1,0,0));
+  TrackPowertrain(const std::string& name, 
+    const ChVector<>& dir_motor_block = ChVector<>(1,0,0));
 
   ~TrackPowertrain() {}
 

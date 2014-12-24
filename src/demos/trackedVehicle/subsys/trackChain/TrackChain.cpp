@@ -44,7 +44,7 @@ const double TrackChain::m_shoe_height = 0.2;
 const double TrackChain::m_pin_dist = 0.3;		// linear distance between a shoe's two pin joint center
 const double TrackChain::m_pin_radius = 0.05;
 
-TrackChain::TrackChain( )
+TrackChain::TrackChain(const std::string& name, VisualizationType vis, CollisionType collide)
 {
   m_shoes.clear();
   m_shoes.push_back(ChSharedPtr<ChBody>(new ChBody));

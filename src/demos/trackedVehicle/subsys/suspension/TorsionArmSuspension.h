@@ -22,6 +22,7 @@
 #include "subsys/ChApiSubsys.h"
 #include "physics/ChSystem.h"
 #include "physics/ChBodyAuxRef.h"
+#include "ModelDefs.h"
 
 namespace chrono {
 
@@ -32,7 +33,9 @@ class CH_SUBSYS_API TorsionArmSuspension : public ChShared
 {
 public:
 
-  TorsionArmSuspension();
+  TorsionArmSuspension(const std::string& name,
+    VisualizationType vis = VisualizationType::MESH,
+    CollisionType collide = CollisionType::PRIMITIVES);
 
   ~TorsionArmSuspension() {}
 

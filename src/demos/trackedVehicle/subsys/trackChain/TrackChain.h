@@ -23,6 +23,7 @@
 #include "assets/ChTriangleMeshShape.h"
 #include "physics/ChSystem.h"
 #include "physics/ChBody.h"
+#include "ModelDefs.h"
 
 namespace chrono {
 
@@ -32,7 +33,9 @@ class CH_SUBSYS_API TrackChain : public ChShared
 {
 public:
 
-  TrackChain( );
+  TrackChain(const std::string& name, 
+    VisualizationType vis = VisualizationType::MESH,
+    CollisionType collide = CollisionType::PRIMITIVES );
   
   ~TrackChain() {}
 

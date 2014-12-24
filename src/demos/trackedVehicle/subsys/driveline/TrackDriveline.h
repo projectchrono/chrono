@@ -39,7 +39,7 @@ class CH_SUBSYS_API TrackDriveline : public ChShared
 {
 public:
 
-  TrackDriveline();
+  TrackDriveline(const std::string& name);
 
   ~TrackDriveline() {}
 

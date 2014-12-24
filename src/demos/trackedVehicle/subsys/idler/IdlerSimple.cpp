@@ -36,7 +36,7 @@ const double IdlerSimple::m_springRestLength = 1.0;
 
 
 
-IdlerSimple::IdlerSimple()
+IdlerSimple::IdlerSimple(const std::string& name, VisualizationType vis, CollisionType collide)
 {
   m_idler = ChSharedPtr<ChBody>(new ChBody);
 

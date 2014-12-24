@@ -38,7 +38,7 @@ const double DriveGear::m_radius = 0.3;
 const double DriveGear::m_width = 0.25;
 
 
-DriveGear::DriveGear()
+DriveGear::DriveGear(const std::string& name, VisualizationType vis, CollisionType collide)
 {
   m_gear = ChSharedPtr<ChBody>(new ChBody);
 }

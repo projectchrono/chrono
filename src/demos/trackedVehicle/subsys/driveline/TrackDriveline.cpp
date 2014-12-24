@@ -40,7 +40,7 @@ const double TrackDriveline::m_differential_ratio = -1;
 // conic gear pair, in chassis local coords. This is needed because ChShaftsBody
 // could transfer pitch torque to the chassis.
 // -----------------------------------------------------------------------------
-TrackDriveline::TrackDriveline()
+TrackDriveline::TrackDriveline(const std::string& name)
 : m_dir_motor_block(ChVector<>(1, 0, 0)),
   m_dir_axle(ChVector<>(0, 1, 0))
 {

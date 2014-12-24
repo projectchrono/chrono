@@ -32,7 +32,8 @@ const double TrackPowertrain::m_ingear_shaft_inertia = 0.3;
 // direction of the crankshaft, in chassis local coords. This is needed because
 // ChShaftsBody could transfer rolling torque to the chassis.
 // -----------------------------------------------------------------------------
-TrackPowertrain::TrackPowertrain(const ChVector<>&  dir_motor_block)
+TrackPowertrain::TrackPowertrain(const std::string& name,
+                                 const ChVector<>&  dir_motor_block)
 : m_drive_mode(NEUTRAL),
   m_dir_motor_block(dir_motor_block),
   m_last_time_gearshift(0),
