@@ -248,9 +248,24 @@ void Vehicle::LoadBrake(const std::string& filename, int axle, int side)
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-Vehicle::Vehicle(const std::string& filename,
-                 bool               fixed)
+Vehicle::Vehicle(const std::string& filename)
 : m_chassisUseMesh(false)
+{
+  Create(filename);
+}
+
+Vehicle::Vehicle(ChSystem*          system,
+                 const std::string& filename)
+: ChVehicle(system),
+  m_chassisUseMesh(false)
+{
+  Create(filename);
+}
+
+
+// -----------------------------------------------------------------------------
+// -----------------------------------------------------------------------------
+void Vehicle::Create(const std::string& filename)
 {
   // -------------------------------------------
   // Open and parse the input file
@@ -285,7 +300,6 @@ Vehicle::Vehicle(const std::string& filename,
   m_chassis->SetMass(m_chassisMass);
   m_chassis->SetFrame_COG_to_REF(ChFrame<>(m_chassisCOM, ChQuaternion<>(1, 0, 0, 0)));
   m_chassis->SetInertiaXX(m_chassisInertia);
-  m_chassis->SetBodyFixed(fixed);
 
   if (d.HasMember("Visualization"))
   {
@@ -313,7 +327,7 @@ Vehicle::Vehicle(const std::string& filename,
     m_chassis->AddAsset(sphere);
   }
 
-  Add(m_chassis);
+  m_system->Add(m_chassis);
 
   // ---------------------------------
   // More validations of the JSON file
@@ -391,11 +405,6 @@ Vehicle::Vehicle(const std::string& filename,
 
   m_driverCsys.pos = loadVector(d["Driver Position"]["Location"]);
   m_driverCsys.rot = loadQuaternion(d["Driver Position"]["Orientation"]);
-}
-
-
-Vehicle::~Vehicle()
-{
 }
 
 

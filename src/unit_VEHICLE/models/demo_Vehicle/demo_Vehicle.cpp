@@ -114,7 +114,7 @@ int main(int argc, char* argv[])
   // --------------------------
 
   // Create the vehicle system
-  Vehicle vehicle(vehicle::GetDataFile(vehicle_file), false);
+  Vehicle vehicle(vehicle::GetDataFile(vehicle_file));
   vehicle.Initialize(ChCoordsys<>(initLoc, initRot));
 
   // Create the ground

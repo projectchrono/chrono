@@ -30,10 +30,12 @@ class CH_SUBSYS_API Vehicle : public ChVehicle
 {
 public:
 
-  Vehicle(const std::string& filename,
-          bool               fixed = false);
+  Vehicle(const std::string& filename);
 
-  ~Vehicle();
+  Vehicle(ChSystem*          system,
+          const std::string& filename);
+
+  ~Vehicle() {}
 
   virtual int GetNumberAxles() const { return m_num_axles; }
 
@@ -51,6 +53,8 @@ public:
   const std::string& GetMeshName() const     { return m_chassisMeshName; }
 
 private:
+
+  void Create(const std::string& filename);
 
   void LoadSteering(const std::string& filename);
   void LoadDriveline(const std::string& filename);
