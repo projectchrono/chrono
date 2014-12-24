@@ -615,16 +615,18 @@ public:
 
 		mintegrable->StateGather(X, V, T);	// state <- system
 
-		//Xnew = X();
-		//Vnew = V();
-
-		// solve
+		// solve only 1st NR step, using v_new = 0, so  Dv = v_new , therefore 
 		//
 		// [ M - dt*dF/dv - dt^2*dF/dx    Cq' ] [ Dv     ] = [ M*(v_old - v_new) + dt*f]
 		// [ Cq                           0   ] [ -dt*Dl ] = [ C/dt + Ct ]
+		//
+		// becomes the Anitescu/Trinkle timestepper:
+		// 
+		// [ M - dt*dF/dv - dt^2*dF/dx    Cq' ] [ v_new  ] = [ M*(v_old) + dt*f]
+		// [ Cq                           0   ] [ -dt*l  ] = [ C/dt + Ct ]
 
 		mintegrable->LoadResidual_F(R, dt);
-		//mintegrable->LoadResidual_Mv(R, (V() - Vnew), 1.0); // not needed because V=Vnew
+		mintegrable->LoadResidual_Mv(R, V, 1.0);
 		mintegrable->LoadConstraint_C (Qc, 1.0 / dt);
 		mintegrable->LoadConstraint_Ct(Qc, 1.0);
 
@@ -643,7 +645,7 @@ public:
 		Dl *= -(1.0 / dt);
 		L += Dl;
 
-		V += Dv;
+		V = Dv;  // as V_new = V + Dv, 
 
 		X += V *dt;
 
