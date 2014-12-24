@@ -46,7 +46,7 @@
 #endif
  */
 #include "subsys/trackVehicle/trackVehicle.h"
-
+#include "ModelDefs.h"
 // Use the main namespace of Chrono
 using namespace chrono;
 
@@ -91,13 +91,16 @@ double output_step_size = 1.0 / 1;    // once a second
 int main(int argc, char* argv[])
 {
 
-  // no system to create, it's in the TrackVehicle
-	TrackVehicle vehicle("name");
-
+  // The vehicle inherits ChSystem. Input chassis visual and collision type
+	TrackVehicle vehicle("name", 
+    VisualizationType::PRIMITIVES,
+    CollisionType::MESH);
+  
+  // set the chassis REF at the specified initial config.
   vehicle.Initialize(ChCoordsys<>(initLoc, initRot));
 
 
-  // ground plate
+  // ground is a large flat plate, with superimposed obstacles
   ChSharedPtr<ChBody> ground(new ChBodyEasyBox(60.0, 1.0, 100.0, 1000.0, true, true));
 	ground->SetIdentifier(-1);
   ground->SetName("ground");
