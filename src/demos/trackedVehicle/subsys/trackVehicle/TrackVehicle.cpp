@@ -105,10 +105,10 @@ TrackVehicle::TrackVehicle(bool fixed, VisualizationType chassisVis, CollisionTy
 
   // create track systems
   for (int i = 0; i < m_num_tracks; i++) {
-    m_TrackSystems[i] = ChSharedPtr<TrackSystem>(new TrackSystem("track chain"+std::to_string(i), i));
+    m_TrackSystems[i] = ChSharedPtr<TrackSystem>(new TrackSystem("track chain "+std::to_string(i), i));
     // create the powertrain and drivelines
-    m_drivelines[i] = ChSharedPtr<TrackDriveline>(new TrackDriveline);
-    m_ptrains[i] = ChSharedPtr<TrackPowertrain>(new TrackPowertrain);
+    m_drivelines[i] = ChSharedPtr<TrackDriveline>(new TrackDriveline("driveline "+std::to_string(i))  );
+    m_ptrains[i] = ChSharedPtr<TrackPowertrain>(new TrackPowertrain("powertrain "+std::to_string(i)) );
   
   }
 
