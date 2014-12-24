@@ -488,6 +488,14 @@ void WriteShapesPovray(ChSystem*          system,
       csv << type << frA_abs.GetPos() << std::endl;
       l_count++;
     }
+    if (ChLinkLockPrismatic* link = dynamic_cast<ChLinkLockPrismatic*>(*ilink))
+    {
+      chrono::ChFrame<> frA_abs = *(link->GetMarker1()) >> *(link->GetBody1());
+      chrono::ChFrame<> frB_abs = *(link->GetMarker2()) >> *(link->GetBody2());
+
+      csv << type << frA_abs.GetPos() << frA_abs.GetA()->Get_A_Zaxis() << std::endl;
+      l_count++;
+    }
     else if (ChLinkUniversal* link = dynamic_cast<ChLinkUniversal*>(*ilink))
     {
       chrono::ChFrame<> frA_abs = link->GetFrame1Abs();
@@ -525,7 +533,6 @@ void WriteShapesPovray(ChSystem*          system,
       csv << type << frA_abs.GetPos() << frA_abs.GetA()->Get_A_Zaxis() << std::endl;
       l_count++;
     }
-
   }
 
   // Write the output file, including a first line with number of bodies, visual

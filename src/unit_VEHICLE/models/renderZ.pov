@@ -46,7 +46,9 @@ global_settings { ambient_light rgb<1, 1, 1> }
   
 #declare distance_cnstr_radius = 0.007;
 
-                                             
+#declare prismatic_halflen = 1;  
+#declare prismatic_radius = 0.015;
+                                            
 // -------------------------------------------------------           
 // Draw global frame?
 #declare draw_global_frame = false;
@@ -467,6 +469,18 @@ global_settings { ambient_light rgb<1, 1, 1> }
             }
 		#break
                      
+
+        // Prismatic -------
+		#case (5)
+			#read (MyDataFile, px, py, pz, dx, dy, dz)     
+            cylinder {
+                <px-prismatic_halflen*dx,  pz-prismatic_halflen*dz, py-prismatic_halflen*dy>, 
+                <px+prismatic_halflen*dx,  pz+prismatic_halflen*dz, py+prismatic_halflen*dy>, 
+                prismatic_radius   
+                pigment {color Bronze2}
+            }
+		#break
+
         // Universal ----
         #case (16)
             #read (MyDataFile, px, py, pz, ux, uy, uz, vx, vy, vz)
