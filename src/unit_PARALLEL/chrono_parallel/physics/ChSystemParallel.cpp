@@ -197,9 +197,13 @@ void ChSystemParallel::AddOtherPhysicsItem(ChSharedPtr<ChPhysicsItem> newitem) {
 }
 
 void ChSystemParallel::Update() {
+#pragma omp parallel for
+   for (int i = 0; i < bodylist.size(); i++) {
+     bodylist[i]->VariablesFbReset();
+   }
    this->LCP_descriptor->BeginInsertion();
-   UpdateBodies();
    UpdateBilaterals();
+   UpdateBodies();
    LCP_descriptor->EndInsertion();
 }
 

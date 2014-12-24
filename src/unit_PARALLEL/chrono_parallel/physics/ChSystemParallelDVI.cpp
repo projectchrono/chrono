@@ -68,7 +68,7 @@ void ChSystemParallelDVI::UpdateBodies() {
       bodylist[i]->ClampSpeed();     // Apply limits (if in speed clamping mode) to speeds.
       bodylist[i]->ComputeGyro();     // Set the gyroscopic momentum.
       bodylist[i]->UpdateForces(ChTime);
-      bodylist[i]->VariablesFbReset();
+      //bodylist[i]->VariablesFbReset();
       bodylist[i]->VariablesFbLoadForces(GetStep());
       bodylist[i]->VariablesQbLoadSpeed();
 
