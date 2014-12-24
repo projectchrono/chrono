@@ -60,16 +60,19 @@ public:
   ChSystem* GetSystem() { return m_system; }
 
   /// Get a handle to the vehicle's chassis body.
-  const ChSharedPtr<ChBodyAuxRef> GetChassis() const { return m_chassis; }
+  ChSharedPtr<ChBodyAuxRef> GetChassis() const { return m_chassis; }
 
   /// Get a handle to the vehicle's steering subsystem.
   const ChSharedPtr<ChSteering> GetSteering() const { return m_steering; }
+
+  /// Get a handle to the specified vehicle wheel.
+  const ChSharedPtr<ChWheel> GetWheel(const ChWheelID& wheel_id) const { return m_wheels[wheel_id.id()]; }
 
   /// Get a handle to the vehicle's driveline subsystem.
   const ChSharedPtr<ChDriveline> GetDriveline() const { return m_driveline; }
 
   /// Get a handle to the vehicle's driveshaft body.
-  const ChSharedPtr<ChShaft> GetDriveshaft() const;
+  const ChSharedPtr<ChShaft> GetDriveshaft() const { return m_driveline->GetDriveshaft(); }
 
   /// Get the global location of the chassis reference frame origin.
   const ChVector<>& GetChassisPos() const { return m_chassis->GetFrame_REF_to_abs().GetPos(); }

@@ -143,13 +143,6 @@ ChVector<> ChVehicle::GetDriverPos() const
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-const ChSharedPtr<ChShaft> ChVehicle::GetDriveshaft() const
-{
-  return m_driveline->GetDriveshaft();
-}
-
-// -----------------------------------------------------------------------------
-// -----------------------------------------------------------------------------
 double ChVehicle::GetDriveshaftSpeed() const
 {
   return m_driveline->GetDriveshaftSpeed();

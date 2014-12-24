@@ -116,6 +116,7 @@ int main(int argc, char* argv[])
   // Create the vehicle system
   Vehicle vehicle(vehicle::GetDataFile(vehicle_file));
   vehicle.Initialize(ChCoordsys<>(initLoc, initRot));
+  ////vehicle.GetChassis()->SetBodyFixed(true);
 
   // Create the ground
   RigidTerrain terrain(vehicle.GetSystem(), terrainHeight, terrainLength, terrainWidth, 0.8);
