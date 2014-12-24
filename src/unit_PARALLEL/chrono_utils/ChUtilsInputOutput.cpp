@@ -14,6 +14,8 @@
 //
 // =============================================================================
 
+#include "assets/ChColorAsset.h"
+
 #include "chrono_utils/ChUtilsInputOutput.h"
 
 namespace chrono {
@@ -404,17 +406,26 @@ void WriteShapesPovray(ChSystem*          system,
     }
   }
 
-  // Loop over all bodies and over all their assets. Write information on 
-  // selected types of visual assets.
+  // Loop over all bodies and over all their assets.
   int a_count = 0;
   std::vector<ChBody*>::iterator ibody = system->Get_bodylist()->begin();
   for (; ibody != system->Get_bodylist()->end(); ++ibody)
   {
     const Vector&     body_pos = (*ibody)->GetPos();
     const Quaternion& body_rot = (*ibody)->GetRot();
-    const Vector&     body_vel = (*ibody)->GetPos_dt();
 
+    ChColor color(0.8f, 0.8f, 0.8f);
+
+    // First loop over assets -- search for a color asset
     std::vector<ChSharedPtr<ChAsset> >::iterator iasset = (*ibody)->GetAssets().begin();
+    for (; iasset != (*ibody)->GetAssets().end(); ++iasset)
+    {
+      if (ChSharedPtr<ChColorAsset> color_asset = (*iasset).DynamicCastTo<ChColorAsset>())
+        color = color_asset->GetColor();
+    }
+
+    // Loop over assets once again -- write information for supported types.
+    iasset = (*ibody)->GetAssets().begin();
     for (; iasset != (*ibody)->GetAssets().end(); ++iasset)
     {
       ChSharedPtr<ChVisualization> visual_asset = (*iasset).DynamicCastTo<ChVisualization>();
@@ -483,7 +494,10 @@ void WriteShapesPovray(ChSystem*          system,
         a_count++;
       }
 
-      csv << (*ibody)->GetIdentifier() << (*ibody)->IsActive() << pos << rot << gss.str() << std::endl;
+      csv << (*ibody)->GetIdentifier() << (*ibody)->IsActive() 
+          << pos << rot 
+          << color
+          << gss.str() << std::endl;
     }
   }
 
@@ -497,31 +511,62 @@ void WriteShapesPovray(ChSystem*          system,
     if (ChLinkLockRevolute* link = dynamic_cast<ChLinkLockRevolute*>(*ilink))
     {
       chrono::ChFrame<> frA_abs = *(link->GetMarker1()) >> *(link->GetBody1());
+      chrono::ChFrame<> frB_abs = *(link->GetMarker2()) >> *(link->GetBody2());
+
       csv << type << frA_abs.GetPos() << frA_abs.GetA()->Get_A_Zaxis() << std::endl;
       l_count++;
     }
     else if (ChLinkLockSpherical* link = dynamic_cast<ChLinkLockSpherical*>(*ilink))
     {
       chrono::ChFrame<> frA_abs = *(link->GetMarker1()) >> *(link->GetBody1());
+      chrono::ChFrame<> frB_abs = *(link->GetMarker2()) >> *(link->GetBody2());
+
       csv << type << frA_abs.GetPos() << std::endl;
       l_count++;
     }
     if (ChLinkLockPrismatic* link = dynamic_cast<ChLinkLockPrismatic*>(*ilink))
     {
       chrono::ChFrame<> frA_abs = *(link->GetMarker1()) >> *(link->GetBody1());
+      chrono::ChFrame<> frB_abs = *(link->GetMarker2()) >> *(link->GetBody2());
+
       csv << type << frA_abs.GetPos() << frA_abs.GetA()->Get_A_Zaxis() << std::endl;
+      l_count++;
+    }
+    else if (ChLinkUniversal* link = dynamic_cast<ChLinkUniversal*>(*ilink))
+    {
+      chrono::ChFrame<> frA_abs = link->GetFrame1Abs();
+      chrono::ChFrame<> frB_abs = link->GetFrame2Abs();
+
+      csv << type << frA_abs.GetPos() << frA_abs.GetA()->Get_A_Xaxis() << frB_abs.GetA()->Get_A_Yaxis() << std::endl;
       l_count++;
     }
     else if (ChLinkSpring* link = dynamic_cast<ChLinkSpring*>(*ilink))
     {
       chrono::ChFrame<> frA_abs = *(link->GetMarker1()) >> *(link->GetBody1());
       chrono::ChFrame<> frB_abs = *(link->GetMarker2()) >> *(link->GetBody2());
+
+      csv << type << frA_abs.GetPos() << frB_abs.GetPos() << std::endl;
+      l_count++;
+    }
+    else if (ChLinkSpringCB* link = dynamic_cast<ChLinkSpringCB*>(*ilink))
+    {
+      chrono::ChFrame<> frA_abs = *(link->GetMarker1()) >> *(link->GetBody1());
+      chrono::ChFrame<> frB_abs = *(link->GetMarker2()) >> *(link->GetBody2());
+
       csv << type << frA_abs.GetPos() << frB_abs.GetPos() << std::endl;
       l_count++;
     }
     else if (ChLinkDistance* link = dynamic_cast<ChLinkDistance*>(*ilink))
     {
       csv << type << link->GetEndPoint1Abs() << link->GetEndPoint2Abs() << std::endl;
+      l_count++;
+    }
+    else if (ChLinkEngine* link = dynamic_cast<ChLinkEngine*>(*ilink))
+    {
+      chrono::ChFrame<> frA_abs = *(link->GetMarker1()) >> *(link->GetBody1());
+      chrono::ChFrame<> frB_abs = *(link->GetMarker2()) >> *(link->GetBody2());
+
+      csv << type << frA_abs.GetPos() << frA_abs.GetA()->Get_A_Zaxis() << std::endl;
       l_count++;
     }
   }
@@ -560,30 +605,37 @@ void WriteMeshPovray(const std::string&    obj_filename,
   std::string pov_filename = out_dir + "/" + mesh_name + ".inc";
   std::ofstream  ofile(pov_filename.c_str());
 
-  ofile << "#macro " << mesh_name << "()" << std::endl;
+  ofile << "#declare " << mesh_name << "_mesh = mesh2 {" << std::endl;
 
   // Write vertices.
+  ofile << "vertex_vectors {" << std::endl;
+  ofile << trimesh.m_vertices.size();
   for (int i = 0; i < trimesh.m_vertices.size(); i++) {
     ChVector<> v = trimesh.m_vertices[i];
-    ofile << "#local v" << i << " = <" << v.x << ", " << v.z << ", " << v.y << ">;" << std::endl;
+    ofile << ",\n<" << v.x << ", " << v.z << ", " << v.y << ">";
   }
+  ofile << "\n}" << std::endl;
 
   // Write face connectivity.
-  ofile << "mesh {" << std::endl;
-
+  ofile << "face_indices {" << std::endl;
+  ofile << trimesh.m_face_v_indices.size();
   for (int i = 0; i < trimesh.m_face_v_indices.size(); i++) {
     ChVector<int> face = trimesh.m_face_v_indices[i];
-    ofile << "   triangle {";
-    ofile << "v" << face.x << ", v" << face.y << ", v" << face.z;
-    ofile << "}" << std::endl;
+    ofile << ",\n<" << face.x << ", " << face.y << ", " << face.z << ">";
   }
+  ofile << "\n}" << std::endl;
 
+  ofile << "\n}" << std::endl;
+
+  // Write the object
+  ofile << "#declare " << mesh_name << " = object {" << std::endl;
+
+  ofile << "   " << mesh_name << "_mesh" << std::endl;
   ofile << "   texture {" << std::endl;
   ofile << "      pigment {color rgb<" << col.R << ", " << col.G << ", " << col.B << ">}" << std::endl;
   ofile << "      finish  {phong 0.2  diffuse 0.6}" << std::endl;
   ofile << "    }" << std::endl;
   ofile << "}" << std::endl;
-  ofile << "#end" << std::endl;
 }
 
 
