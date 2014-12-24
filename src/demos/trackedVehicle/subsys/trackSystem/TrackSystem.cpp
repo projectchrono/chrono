@@ -118,7 +118,7 @@ void TrackSystem::Create(int track_idx)
   
   */
 
-  // create the various subsystems, from the class private variables
+  // create the various subsystems, from the class static variables
   BuildSubsystems();
 
  
@@ -127,15 +127,15 @@ void TrackSystem::Create(int track_idx)
 void TrackSystem::BuildSubsystems()
 {
   // build one of each of the following subsystems
-  m_driveGear = ChSharedPtr<DriveGear>(new DriveGear() );
-  m_idler = ChSharedPtr<IdlerSimple>(new IdlerSimple() );
-  m_chain = ChSharedPtr<TrackChain>(new TrackChain());
+  m_driveGear = ChSharedPtr<DriveGear>(new DriveGear("drive gear "+std::to_string(m_track_idx)) );
+  m_idler = ChSharedPtr<IdlerSimple>(new IdlerSimple("idler "+std::to_string(m_track_idx)) );
+  m_chain = ChSharedPtr<TrackChain>(new TrackChain("chain "+std::to_string(m_track_idx)) );
   
   // build suspension/road wheel subsystems
   m_suspensions.resize(m_numSuspensions);
   for(int i = 0; i < m_numSuspensions; i++)
   {
-    m_suspensions[i] = ChSharedPtr<TorsionArmSuspension>(new TorsionArmSuspension());
+    m_suspensions[i] = ChSharedPtr<TorsionArmSuspension>(new TorsionArmSuspension("suspension "+std::to_string(i) +", chain "+std::to_string(m_track_idx)) );
   }
   
   // build support wheel subsystems (if any)
@@ -144,6 +144,7 @@ void TrackSystem::BuildSubsystems()
   for(int j = 0; j < m_numRollers; j++)
   {
     m_supportRollers[j] = ChSharedPtr<ChBody>(new ChBody);
+    m_supportRollers[j]->SetNameString("support roller"+std::to_string(j)+", chain "+std::to_string(m_track_idx) );
   }
 
 }
