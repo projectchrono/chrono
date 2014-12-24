@@ -1907,15 +1907,41 @@ void ChSystem::StateSolveCorrection(
 
 	LCPprepare_inject(*this->LCP_descriptor);
 
-//GetLog() << "R=" << R << "\n\n";
-//GetLog() << "Qc=" << Qc << "\n\n";
-//GetLog() << "X=" << x << "\n\n";
-//GetLog() << "V=" << v << "\n\n";
+	bool dump_data = false;
+
+	if (dump_data)
+	{
+		const char* numformat = "%.12g";
+		//GetLog() << "R=" << R << "\n\n";
+		//GetLog() << "Qc=" << Qc << "\n\n";
+		//GetLog() << "X=" << x << "\n\n";
+		//GetLog() << "V=" << v << "\n\n";
+		
+		this->LCP_descriptor->DumpLastMatrices("intpre_");
+
+		chrono::ChStreamOutAsciiFile file_x("intpre_x.dat");
+		file_x.SetNumFormat(numformat);
+		((ChMatrix<>)x).StreamOUTdenseMatlabFormat(file_x);
+
+		chrono::ChStreamOutAsciiFile file_v("intpre_v.dat");
+		file_v.SetNumFormat(numformat);
+		((ChMatrix<>)v).StreamOUTdenseMatlabFormat(file_v);
+
+		chrono::ChStreamOutAsciiFile file_R("intpre_R.dat");
+		file_R.SetNumFormat(numformat);
+		((ChMatrix<>)R).StreamOUTdenseMatlabFormat(file_R);
+
+		chrono::ChStreamOutAsciiFile file_Qc("intpre_Qc.dat");
+		file_Qc.SetNumFormat(numformat);
+		((ChMatrix<>)Qc).StreamOUTdenseMatlabFormat(file_Qc);
+	}
+
 	// Solve the LCP problem!!! 
 
 	GetLcpSolverSpeed()->Solve(
 							*this->LCP_descriptor
 							); 
+
 
 	// Dv and L vectors  <-- LCP sparse solver structures  
 
@@ -1936,10 +1962,24 @@ void ChSystem::StateSolveCorrection(
 		if(Lpointer->IsActive())
 			Lpointer->IntFromLCP(Lpointer->GetOffset_w(), Dv,Lpointer->GetOffset_L(), L);
 	}
-//	GetLog() << "Dv=" << Dv << "\n\n";
-//GetLog() << "L=" << L << "\n\n";
-//GetLog() << "Xn=" << x << "\n\n";
-//GetLog() << "Vn=" << v << "\n\n";
+
+	if (dump_data)
+	{
+		const char* numformat = "%.12g";
+
+		chrono::ChStreamOutAsciiFile file_Dv("intpost_Dv");
+		file_Dv.SetNumFormat(numformat);
+		((ChMatrix<>)Dv).StreamOUTdenseMatlabFormat(file_Dv);
+
+		chrono::ChStreamOutAsciiFile file_L("intpost_L");
+		file_L.SetNumFormat(numformat);
+		((ChMatrix<>)L).StreamOUTdenseMatlabFormat(file_L);
+
+		//GetLog() << "Dv=" << Dv << "\n\n";
+		//GetLog() << "L=" << L << "\n\n";
+		//GetLog() << "Xn=" << x << "\n\n";
+		//GetLog() << "Vn=" << v << "\n\n";
+	}
 }
 
 /// Increment a vector R with the term c*F:   
