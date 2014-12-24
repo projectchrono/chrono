@@ -334,6 +334,12 @@ void Generator::createObjectsBox(SamplingType      sType,
     points = sampler.SampleBox(pos, hdims);
     }
     break;
+  case HCP_PACK:
+	{
+	HCPSampler<> sampler(dist);
+	points = sampler.SampleBox(pos, hdims);
+	}
+	break;
   }
 
   createObjects(points, vel);

@@ -51,7 +51,8 @@ const double Pi = 3.1415926535897932384626433832795;
 
 enum SamplingType {
   REGULAR_GRID,
-  POISSON_DISK
+  POISSON_DISK,
+  HCP_PACK
 };
 
 
@@ -475,6 +476,9 @@ private:
 
     ChVector<T> bl = this->m_center - this->m_size;
 
+
+
+
     int nx = (int) (2 * this->m_size.x / m_spacing.x) + 1;
     int ny = (int) (2 * this->m_size.y / m_spacing.y) + 1;
     int nz = (int) (2 * this->m_size.z / m_spacing.z) + 1;
@@ -495,6 +499,51 @@ private:
   ChVector<T> m_spacing;
 };
 
+
+// -----------------------------------------------------------------------------
+// HCPSampler
+//
+// A class to generate points in a HCP closed pack a 3D domain.
+// -----------------------------------------------------------------------------
+
+template <typename T = double>
+class HCPSampler : public Sampler<T> {
+public:
+  typedef typename Types<T>::PointVector  PointVector;
+  typedef typename Sampler<T>::VolumeType VolumeType;
+
+  HCPSampler(T spacing) : m_spacing(spacing) {}
+
+private:
+  virtual PointVector Sample(VolumeType t)
+  {
+    PointVector out_points;
+
+    ChVector<T> bl = this->m_center - this->m_size;
+
+    T m_cos60 = 0.5 * sqrt(3.0);
+	int nx = (int) (2 * this->m_size.x / (m_spacing)) 			+ 1;  //Arman We don't probably need the +1
+	int ny = (int) (2 * this->m_size.y / (m_cos60 * m_spacing)) + 1;
+	int nz = (int) (2 * this->m_size.z / (m_cos60 * m_spacing)) + 1;
+    for (int j = 0; j < ny; j++) {
+    	for (int i = 0; i < nx; i++) {
+    	      for (int k = 0; k < nz; k++) {
+				  //need to offset alternate rows by radius
+				  T offset = (k % 2 != 0) ? 0.5 * m_spacing : 0;
+				  ChVector<T> p = bl + ChVector<T>(
+						  i * m_spacing + offset ,
+						  j * (m_cos60 * m_spacing) ,
+						  k * (m_cos60 * m_spacing) );
+				  if (this->accept(t, p))
+					  out_points.push_back(p);
+    	      }
+    	}
+    }
+    return out_points;
+  }
+
+  T m_spacing;
+};
 
 
 } // end namespace utils
