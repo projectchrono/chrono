@@ -35,6 +35,7 @@
 #include "physics/ChMaterialSurface.h"
 #include "physics/ChMaterialSurfaceDEM.h"
 
+#include "assets/ChColorAsset.h"
 #include "assets/ChSphereShape.h"
 #include "assets/ChEllipsoidShape.h"
 #include "assets/ChBoxShape.h"
