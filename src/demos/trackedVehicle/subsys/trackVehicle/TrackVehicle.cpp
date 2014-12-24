@@ -32,22 +32,24 @@
 #include "utils/ChUtilsInputOutput.h"
 #include "utils/ChUtilsData.h"
 
+// collision mesh
+#include "geometry/ChCTriangleMeshSoup.h"
 
 namespace chrono {
 
 // -----------------------------------------------------------------------------
 // Static variables
-const double     TrackVehicle::m_mass = 10000;   // chassis sprung mass
-const ChVector<> TrackVehicle::m_COM = ChVector<>(0.3, 0.0, 0.5);  // COM location
-const ChVector<> TrackVehicle::m_inertia(425.8, 697.4, 731.4);  // chassis inertia (roll,pitch,yaw)
+const double     TrackVehicle::m_mass = 5489.2;   // chassis sprung mass
+const ChVector<> TrackVehicle::m_COM = ChVector<>(0.1, 0.0, 0.3);  // COM location, relative to body Csys REF frame
+const ChVector<> TrackVehicle::m_inertia(1786.9, 10449.7, 10721.2);  // chassis inertia (roll,yaw,pitch)
 
 const std::string TrackVehicle::m_MeshFile = utils::GetModelDataFile("hmmwv/hmmwv_chassis.obj");
-
 const ChCoordsys<> TrackVehicle::m_driverCsys(ChVector<>(0.0, 0.5, 1.2), ChQuaternion<>(1, 0, 0, 0));
+const ChVector<> TrackVehicle::m_chassisBoxSize(4.0, 2.0, 3.0);
 
 
-
-TrackVehicle::TrackVehicle(bool fixed, bool chassisVis)
+TrackVehicle::TrackVehicle(bool fixed, VisualizationType chassisVis, CollisionType chassisCollide)
+  : m_vis(chassisVis), m_collide(chassisCollide)
 {
   // Integration settings
   // Integration and Solver settings
