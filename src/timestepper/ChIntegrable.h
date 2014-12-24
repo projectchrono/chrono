@@ -517,7 +517,7 @@ public:
 		this->StateSolveA(ma, L, mx, mv, T, dt, force_state_scatter); // Solve with custom II order solver
 
 		dydt.PasteMatrix(&mv, 0, 0);
-		dydt.PasteMatrix(&ma, this->GetNcoords_x(), 0);
+		dydt.PasteMatrix(&ma, this->GetNcoords_v(), 0);
 	}
 
 	/// This was for Ist order implicit integrators, but here we disable it.
