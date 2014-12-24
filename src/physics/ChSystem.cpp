@@ -313,8 +313,11 @@ ChSystem::ChSystem(unsigned int max_objects, double scene_size, bool init_sys)
 		collision_system = new ChCollisionSystemBullet(max_objects, scene_size);
 	}
 	
-	this->timestepper= ChSharedPtr<ChTimestepperEulerImplicitLinearized> (new ChTimestepperEulerImplicitLinearized(*this));
-	//this->timestepper= ChSharedPtr<ChTimestepperTrapezoidal> (new ChTimestepperTrapezoidal(*this));
+	this->timestepper= ChSharedPtr<ChTimestepperEulerImplicitLinearized> (new ChTimestepperEulerImplicitLinearized(*this)); // OK
+	//this->timestepper= ChSharedPtr<ChTimestepperTrapezoidal> (new ChTimestepperTrapezoidal(*this));  // NO - to fix
+	//(this->timestepper.DynamicCastTo<ChTimestepperTrapezoidal>())->SetMaxiters(2);
+	//this->timestepper= ChSharedPtr<ChTimestepperEulerImplicit> (new ChTimestepperEulerImplicit(*this)); // NO - to fix
+	//this->timestepper= ChSharedPtr<ChTimestepperRungeKuttaExpl> (new ChTimestepperRungeKuttaExpl(*this)); // NO?
 
 	LCP_descriptor = 0;
 	LCP_solver_speed = 0;
@@ -1857,8 +1860,8 @@ void ChSystem::StateSolveCorrection(
 	bool force_state_scatter ///< if false, x,v and T are not scattered to the system, assuming that someone has done StateScatter just before 
 	)
 {
-	//if (force_state_scatter)
-	//	this->StateScatter(x,v,T);
+	if (force_state_scatter)
+		this->StateScatter(x,v,T);
 
 	// R and Qc vectors  --> LCP sparse solver structures  (also sets L and Dv to warmstart)
 
