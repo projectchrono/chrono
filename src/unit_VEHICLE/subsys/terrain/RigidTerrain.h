@@ -39,7 +39,7 @@ class CH_SUBSYS_API RigidTerrain : public ChTerrain
 public:
 
   RigidTerrain(
-    chrono::ChSystem&  system,   ///< [in] handle to the containing multibody system
+    chrono::ChSystem*  system,   ///< [in] pointer to the containing multibody system
     double             height,   ///< [in] terrain height
     double             sizeX,    ///< [in] terrain dimension in the X direction
     double             sizeY,    ///< [in] terrain dimension in the Y direction
@@ -66,7 +66,7 @@ public:
 
 private:
 
-  ChSystem&  m_system;
+  ChSystem*  m_system;
   double     m_sizeX;
   double     m_sizeY;
   double     m_height;

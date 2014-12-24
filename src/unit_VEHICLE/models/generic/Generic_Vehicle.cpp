@@ -74,7 +74,7 @@ Generic_Vehicle::Generic_Vehicle(const bool        fixed,
   sphere->Pos = m_chassisCOM;
   m_chassis->AddAsset(sphere);
 
-  Add(m_chassis);
+  m_system->Add(m_chassis);
 
   // -------------------------------------------
   // Create the suspension subsystems

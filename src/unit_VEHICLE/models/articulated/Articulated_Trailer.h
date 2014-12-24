@@ -33,10 +33,10 @@ class Articulated_Trailer
 {
 public:
 
-	Articulated_Trailer(chrono::ChSystem& mysystem, 
-					const bool        fixed,
-                  SuspensionType    suspType,
-                  VisualizationType wheelVis);
+  Articulated_Trailer(chrono::ChSystem* mysystem, 
+                      const bool        fixed,
+                      SuspensionType    suspType,
+                      VisualizationType wheelVis);
 
   ~Articulated_Trailer() {}
 
@@ -51,8 +51,8 @@ public:
   double GetShockVelocity(const chrono::ChWheelID& wheel_id) const;
 
   virtual void Initialize(const chrono::ChCoordsys<>& chassisPos, 
-						  const bool        connect_to_puller,
-						  chrono::ChSharedPtr<chrono::ChBodyAuxRef> pulling_vehicle);
+                          const bool                  connect_to_puller,
+                          chrono::ChSharedPtr<chrono::ChBodyAuxRef> pulling_vehicle);
 
   virtual void Update(double                      time,
                       double                      braking,

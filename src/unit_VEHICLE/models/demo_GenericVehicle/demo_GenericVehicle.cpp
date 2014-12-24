@@ -110,7 +110,7 @@ int main(int argc, char* argv[])
   vehicle.Initialize(ChCoordsys<>(initLoc, initRot));
 
   // Create the ground
-  RigidTerrain terrain(vehicle, terrainHeight, terrainLength, terrainWidth, 0.8);
+  RigidTerrain terrain(vehicle.GetSystem(), terrainHeight, terrainLength, terrainWidth, 0.8);
   //terrain.AddMovingObstacles(10);
   terrain.AddFixedObstacles();
 
@@ -133,7 +133,7 @@ int main(int argc, char* argv[])
 
 #ifdef USE_IRRLICHT
 
-  irr::ChIrrApp application(&vehicle,
+  irr::ChIrrApp application(vehicle.GetSystem(),
                             L"Generic Vehicle Demo",
                             irr::core::dimension2d<irr::u32>(1000, 800),
                             false,
@@ -278,7 +278,7 @@ int main(int argc, char* argv[])
     wheel_states[REAR_RIGHT.id()] = vehicle.GetWheelState(REAR_RIGHT);
 
     // Update modules (process inputs from other modules)
-    time = vehicle.GetChTime();
+    time = vehicle.GetSystem()->GetChTime();
 
     driver.Update(time);
 
@@ -335,7 +335,7 @@ int main(int argc, char* argv[])
     if (step_number % render_steps == 0) {
       // Output render data
       sprintf(filename, "%s/data_%03d.dat", pov_dir.c_str(), render_frame + 1);
-      utils::WriteShapesPovray(&vehicle, filename);
+      utils::WriteShapesPovray(vehicle.GetSystem(), filename);
       std::cout << "Output frame:   " << render_frame << std::endl;
       std::cout << "Sim frame:      " << step_number << std::endl;
       std::cout << "Time:           " << time << std::endl;
@@ -364,7 +364,7 @@ int main(int argc, char* argv[])
     wheel_states[REAR_RIGHT.id()] = vehicle.GetWheelState(REAR_RIGHT);
 
     // Update modules (process inputs from other modules)
-    time = vehicle.GetChTime();
+    time = vehicle.GetSystem()->GetChTime();
 
     driver.Update(time);
 

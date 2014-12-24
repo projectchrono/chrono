@@ -26,18 +26,43 @@ namespace chrono {
 
 
 // -----------------------------------------------------------------------------
-// Constructor for a ChVehicle: specify default step size and solver parameters.
+// Constructor for a ChVehicle using a default Chrono Chsystem.
+// Specify default step size and solver parameters.
 // -----------------------------------------------------------------------------
 ChVehicle::ChVehicle()
-: m_stepsize(1e-3)
+: m_ownsSystem(true),
+  m_stepsize(1e-3)
 {
-  Set_G_acc(ChVector<>(0, 0, -9.81));
+  m_system = new ChSystem;
+
+  m_system->Set_G_acc(ChVector<>(0, 0, -9.81));
 
   // Integration and Solver settings
-  SetLcpSolverType(ChSystem::LCP_ITERATIVE_SOR);
-  SetIterLCPmaxItersSpeed(150);
-  SetIterLCPmaxItersStab(150);
-  SetMaxPenetrationRecoverySpeed(4.0);
+  m_system->SetLcpSolverType(ChSystem::LCP_ITERATIVE_SOR);
+  m_system->SetIterLCPmaxItersSpeed(150);
+  m_system->SetIterLCPmaxItersStab(150);
+  m_system->SetMaxPenetrationRecoverySpeed(4.0);
+}
+
+
+// -----------------------------------------------------------------------------
+// Constructor for a ChVehicle using a default Chrono ChSystem.
+// -----------------------------------------------------------------------------
+ChVehicle::ChVehicle(ChSystem* system)
+: m_system(system),
+  m_ownsSystem(false),
+  m_stepsize(1e-3)
+{
+}
+
+
+// -----------------------------------------------------------------------------
+// Destructor for ChVehicle
+// -----------------------------------------------------------------------------
+ChVehicle::~ChVehicle()
+{
+  if (m_ownsSystem)
+    delete m_system;
 }
 
 
@@ -50,7 +75,7 @@ void ChVehicle::Advance(double step)
   double t = 0;
   while (t < step) {
     double h = std::min<>(m_stepsize, step - t);
-    DoStepDynamics(h);
+    m_system->DoStepDynamics(h);
     t += h;
   }
 }

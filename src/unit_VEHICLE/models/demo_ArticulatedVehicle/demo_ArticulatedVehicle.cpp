@@ -114,18 +114,18 @@ int main(int argc, char* argv[])
 
   // Create the trailer: specify if chassis is fixed, the suspension type
   // (SOLID_AXLE or MULTI_LINK) and the wheel visualization (PRIMITIVES or NONE)
-  Articulated_Trailer trailer(vehicle,
-	  false,
-	  MULTI_LINK,
-	  PRIMITIVES);
+  Articulated_Trailer trailer(vehicle.GetSystem(),
+                              false,
+                              MULTI_LINK,
+                              PRIMITIVES);
 
   trailer.Initialize(ChCoordsys<>(initLoc + ChVector<>(-6, 0, 0), initRot), 
-					  true,
-					  vehicle.GetChassis() );
+                     true,
+                     vehicle.GetChassis() );
 
 
   // Create the ground
-  RigidTerrain terrain(vehicle, terrainHeight, terrainLength, terrainWidth, 0.8);
+  RigidTerrain terrain(vehicle.GetSystem(), terrainHeight, terrainLength, terrainWidth, 0.8);
   //terrain.AddMovingObstacles(10);
   terrain.AddFixedObstacles();
 
@@ -158,7 +158,7 @@ int main(int argc, char* argv[])
   tr_tire_rear_right.Initialize(trailer.GetWheelBody(REAR_RIGHT));
 
 #ifdef USE_IRRLICHT
-  irr::ChIrrApp application(&vehicle,
+  irr::ChIrrApp application(vehicle.GetSystem(),
                             L"Articulated Vehicle Demo",
                             irr::core::dimension2d<irr::u32>(1000, 800),
                             false,
@@ -310,7 +310,7 @@ int main(int argc, char* argv[])
     wheel_states[REAR_RIGHT.id()] = vehicle.GetWheelState(REAR_RIGHT);
 
     // Update modules (process inputs from other modules)
-    time = vehicle.GetChTime();
+    time = vehicle.GetSystem()->GetChTime();
 
     driver.Update(time);
 

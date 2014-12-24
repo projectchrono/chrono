@@ -92,7 +92,7 @@ HMMWV_VehicleReduced::HMMWV_VehicleReduced(const bool           fixed,
   }
   }
 
-  Add(m_chassis);
+  m_system->Add(m_chassis);
 
   // -------------------------------------------
   // Create the suspension subsystems

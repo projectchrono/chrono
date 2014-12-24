@@ -49,10 +49,10 @@ const ChVector<> Articulated_Trailer::m_frontaxlePullerJoint(3.0, 0, 0.6);  // j
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-Articulated_Trailer::Articulated_Trailer(ChSystem& mysystem,
-								 const bool        fixed,
-                                 SuspensionType    suspType,
-                                 VisualizationType wheelVis)
+Articulated_Trailer::Articulated_Trailer(ChSystem*         mysystem,
+                                         const bool        fixed,
+                                         SuspensionType    suspType,
+                                         VisualizationType wheelVis)
 : m_suspType(suspType)
 {
   // -------------------------------------------
@@ -72,7 +72,7 @@ Articulated_Trailer::Articulated_Trailer(ChSystem& mysystem,
   sphere->Pos = m_chassisCOM;
   m_chassis->AddAsset(sphere);
 
-  mysystem.Add(m_chassis);
+  mysystem->Add(m_chassis);
 
   // -------------------------------------------
   // Create the front steering axle body
@@ -94,7 +94,7 @@ Articulated_Trailer::Articulated_Trailer(ChSystem& mysystem,
   boxB->GetBoxGeometry().SetLengths(ChVector<>(0.1, 1.5, 0.1));
   m_frontaxle->AddAsset(boxB);
 
-  mysystem.Add(m_frontaxle);
+  mysystem->Add(m_frontaxle);
 
   // -------------------------------------------
   // Create the frontaxle - trailer chassis joint
@@ -102,7 +102,7 @@ Articulated_Trailer::Articulated_Trailer(ChSystem& mysystem,
   
   m_joint = ChSharedPtr<ChLinkLockSpherical>(new ChLinkLockSpherical);
   m_joint->Initialize(this->m_chassis, this->m_frontaxle, ChCoordsys<>(this->m_frontaxleSphericalJoint));
-  mysystem.Add(m_joint);
+  mysystem->Add(m_joint);
 
 
 
@@ -148,28 +148,28 @@ Articulated_Trailer::Articulated_Trailer(ChSystem& mysystem,
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 void Articulated_Trailer::Initialize(const ChCoordsys<>& chassisPos, 
-									const bool        connect_to_puller,
-									chrono::ChSharedPtr<chrono::ChBodyAuxRef> pulling_vehicle)
+                                     const bool          connect_to_puller,
+                                     chrono::ChSharedPtr<chrono::ChBodyAuxRef> pulling_vehicle)
 {
-	//*m_chassis.get_ptr() >>= chassisPos;
-	//*m_frontaxle.get_ptr() >>= chassisPos;
-	//m_chassis->ConcatenatePreTransformation(ChFrameMoving<>(chassisPos));
-	//m_frontaxle->ConcatenatePreTransformation(ChFrameMoving<>(chassisPos));
-	m_chassis->SetFrame_REF_to_abs(ChFrame<>(chassisPos));
-	m_frontaxle->SetFrame_REF_to_abs(ChFrame<>(m_frontaxleREF >> chassisPos));
+  //*m_chassis.get_ptr() >>= chassisPos;
+  //*m_frontaxle.get_ptr() >>= chassisPos;
+  //m_chassis->ConcatenatePreTransformation(ChFrameMoving<>(chassisPos));
+  //m_frontaxle->ConcatenatePreTransformation(ChFrameMoving<>(chassisPos));
+  m_chassis->SetFrame_REF_to_abs(ChFrame<>(chassisPos));
+  m_frontaxle->SetFrame_REF_to_abs(ChFrame<>(m_frontaxleREF >> chassisPos));
 
-  
-	// -------------------------------------------
-	// Create the frontaxle - puller chassis joint
-	// -------------------------------------------
 
-	if (connect_to_puller)
-	{
-		m_puller = ChSharedPtr<ChLinkLockSpherical>(new ChLinkLockSpherical);
-		m_puller->Initialize(this->m_frontaxle, pulling_vehicle, 
-							ChCoordsys<>(this->m_frontaxlePullerJoint) >> chassisPos );
-		pulling_vehicle->GetSystem()->Add(m_puller);
-	}
+  // -------------------------------------------
+  // Create the frontaxle - puller chassis joint
+  // -------------------------------------------
+
+  if (connect_to_puller)
+  {
+    m_puller = ChSharedPtr<ChLinkLockSpherical>(new ChLinkLockSpherical);
+    m_puller->Initialize(this->m_frontaxle, pulling_vehicle,
+      ChCoordsys<>(this->m_frontaxlePullerJoint) >> chassisPos);
+    pulling_vehicle->GetSystem()->Add(m_puller);
+  }
 
 
   // Initialize the suspension subsystems (specify the suspension subsystems'
@@ -375,5 +375,5 @@ void Articulated_Trailer::DebugLog(int what)
 
 ChSharedPtr<ChBody> Articulated_Trailer::GetWheelBody(const ChWheelID& wheel_id) const
 {
-	return m_suspensions[wheel_id.axle()]->GetSpindle(wheel_id.side());
+  return m_suspensions[wheel_id.axle()]->GetSpindle(wheel_id.side());
 }

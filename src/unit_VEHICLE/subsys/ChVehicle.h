@@ -43,12 +43,21 @@ namespace chrono {
 /// This class provides the interface between the vehicle system and other
 /// systems (tires, driver, etc.)
 ///
-class CH_SUBSYS_API ChVehicle : public ChSystem
+class CH_SUBSYS_API ChVehicle
 {
 public:
 
+  /// Construct a vehicle system with a default ChSystem.
   ChVehicle();
-  virtual ~ChVehicle() {}
+
+  /// Construct a vehicle system using the specified ChSystem.
+  ChVehicle(ChSystem* system);
+
+  /// Destructor.
+  virtual ~ChVehicle();
+
+  /// Get a pointer to the Chrono ChSystem.
+  ChSystem* GetSystem() { return m_system; }
 
   /// Get a handle to the vehicle's chassis body.
   const ChSharedPtr<ChBodyAuxRef> GetChassis() const { return m_chassis; }
@@ -163,6 +172,9 @@ public:
   void LogConstraintViolations();
 
 protected:
+
+  ChSystem*                  m_system;       ///< pointer to the Chrono system
+  bool                       m_ownsSystem;   ///< true if system created at construction
 
   ChSharedPtr<ChBodyAuxRef>  m_chassis;      ///< handle to the chassis body
   ChSuspensionList           m_suspensions;  ///< list of handles to suspension subsystems
