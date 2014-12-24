@@ -755,9 +755,7 @@ protected:
 	///    Qc += c*C 
 	virtual void LoadConstraint_C(
 		ChVectorDynamic<>& Qc,		 ///< result: the Qc residual, Qc += c*C 
-		const double c,				 ///< a scaling factor
-		bool do_clamp,				 ///< apply clamping to c*C?
-		double recovery_clamp		 ///< value for min/max clamping of c*C
+		const double c				 ///< a scaling factor
 		);
 
 	/// Increment a vector Qc with the term Ct = partial derivative dC/dt:   
