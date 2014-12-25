@@ -46,6 +46,7 @@ public:
 
         /// Nothing to be done, going with default values for the two frames
     ChBodyAuxRef(){}
+    ChBodyAuxRef(collision::ChCollisionModel* new_coll_model) : ChBody(new_coll_model) {}
         /// Destructor
     ~ChBodyAuxRef(){}
 
