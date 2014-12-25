@@ -234,7 +234,8 @@ int main(int argc, char* argv[])
 
   std::cout << (passed ? "PASSED" : "FAILED") << std::endl << std::endl;
 
-  return passed;
+  // Return 0 if all tests passed and 1 otherwise
+  return !passed;
 }
 
 // -----------------------------------------------------------------------------
