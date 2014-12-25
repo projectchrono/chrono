@@ -397,8 +397,8 @@ void WriteShapesPovray(ChSystem*          system,
     std::vector<ChBody*>::iterator ibody = system->Get_bodylist()->begin();
     for (; ibody != system->Get_bodylist()->end(); ++ibody)
     {
-      const Vector&     body_pos = (*ibody)->GetPos();
-      const Quaternion& body_rot = (*ibody)->GetRot();
+      const ChVector<>& body_pos = (*ibody)->GetFrame_REF_to_abs().GetPos();
+      const ChQuaternion<>& body_rot = (*ibody)->GetFrame_REF_to_abs().GetRot();
 
       csv << (*ibody)->GetIdentifier() << (*ibody)->IsActive() << body_pos << body_rot << std::endl;
 
@@ -411,8 +411,8 @@ void WriteShapesPovray(ChSystem*          system,
   std::vector<ChBody*>::iterator ibody = system->Get_bodylist()->begin();
   for (; ibody != system->Get_bodylist()->end(); ++ibody)
   {
-    const Vector&     body_pos = (*ibody)->GetPos();
-    const Quaternion& body_rot = (*ibody)->GetRot();
+    const ChVector<>& body_pos = (*ibody)->GetFrame_REF_to_abs().GetPos();
+    const ChQuaternion<>& body_rot = (*ibody)->GetFrame_REF_to_abs().GetRot();
 
     ChColor color(0.8f, 0.8f, 0.8f);
 

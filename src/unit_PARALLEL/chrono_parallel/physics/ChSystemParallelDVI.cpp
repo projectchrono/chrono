@@ -34,7 +34,7 @@ ChSystemParallelDVI::ChSystemParallelDVI(unsigned int max_objects)
 }
 
 void ChSystemParallelDVI::LoadMaterialSurfaceData(ChSharedPtr<ChBody> newbody) {
-   assert(typeid(*newbody.get_ptr()) == typeid(ChBody));
+   assert(typeid(*newbody.get_ptr()) == typeid(ChBody) || typeid(*newbody.get_ptr()) == typeid(ChBodyAuxRef));
 
    ChSharedPtr<ChMaterialSurface>& mat = newbody->GetMaterialSurface();
 
@@ -63,7 +63,11 @@ void ChSystemParallelDVI::UpdateBodies() {
 
 #pragma omp parallel for
    for (int i = 0; i < bodylist.size(); i++) {
-      bodylist[i]->UpdateTime(ChTime);
+      bodylist[i]->Update(ChTime);
+      bodylist[i]->VariablesFbLoadForces(GetStep());
+      bodylist[i]->VariablesQbLoadSpeed();
+
+      /*
       //bodylist[i]->TrySleeping();			// See if the body can fall asleep; if so, put it to sleeping
       bodylist[i]->ClampSpeed();     // Apply limits (if in speed clamping mode) to speeds.
       bodylist[i]->ComputeGyro();     // Set the gyroscopic momentum.
@@ -75,6 +79,7 @@ void ChSystemParallelDVI::UpdateBodies() {
       bodylist[i]->UpdateMarkers(ChTime);
       //because the loop is running in parallel, this cannot be run (not really needed anyways)
       //bodylist[i]->InjectVariables(*this->LCP_descriptor);
+      */
 
       ChMatrix33<> inertia = bodylist[i]->VariablesBody().GetBodyInvInertia();
       vel_pointer[i] = (R3(bodylist[i]->Variables().Get_qb().ElementN(0), bodylist[i]->Variables().Get_qb().ElementN(1), bodylist[i]->Variables().Get_qb().ElementN(2)));
