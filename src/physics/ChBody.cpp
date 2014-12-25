@@ -903,6 +903,19 @@ void ChBody::SetCollide (bool mcoll)
     }
 }
 
+void ChBody::ChangeCollisionModel(ChCollisionModel* new_collision_model)
+{
+  if (collision_model) {
+    if (system)
+      system->GetCollisionSystem()->Remove(collision_model);
+
+    delete collision_model;
+  }
+
+  collision_model = new_collision_model;
+  collision_model->SetBody(this);
+}
+
 // forward reference
 int coll_model_from_r3d(ChCollisionModel* chmodel, ChBody* mbody, int lod, Vector* mt, ChMatrix33<>* mr);
 
