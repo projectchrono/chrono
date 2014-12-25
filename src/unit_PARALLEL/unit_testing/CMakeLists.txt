@@ -162,6 +162,7 @@ ENDIF()
 
 SET(TESTS_G
     test_linactuator
+    test_bodyauxref
 )
 
 FOREACH(PROGRAM ${TESTS_G})
