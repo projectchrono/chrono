@@ -117,7 +117,7 @@ void TorsionArmSuspension::Initialize(ChSharedPtr<ChBodyAuxRef> chassis,
   loc_to_abs.ConcatenatePreTransformation(chassis->GetFrame_REF_to_abs());
 
   
-  
+  // initialize all the modeling elements, in abs coordinates
 }
 
 /// add a cylinder to model the torsion bar arm and the wheel
