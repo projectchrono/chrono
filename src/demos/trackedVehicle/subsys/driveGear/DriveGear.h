@@ -27,19 +27,21 @@
 namespace chrono {
 
 
-/// Drive gear class, a single rigid body. Attached to the chassis
+/// Drive gear class, a single rigid body. Attached to the chassis via revolute joint.
+/// Torque applied by the driveline.
 class CH_SUBSYS_API DriveGear : public ChShared
 {
 public:
 
   DriveGear(const std::string& name,
-    VisualizationType vis = VisualizationType::MESH,
+    VisualizationType vis = VisualizationType::PRIMITIVES,
     CollisionType collide = CollisionType::PRIMITIVES);
 
   ~DriveGear() {}
 
   void Initialize(ChSharedPtr<ChBodyAuxRef> chassis, const ChVector<>& pos, const ChQuaternion<>& rot);
 
+  // accessors
   ChSharedPtr<ChBody> GetBody() { return m_gear; }
   
   
@@ -48,10 +50,13 @@ private:
   const std::string& getMeshName() const { return m_meshName; }
   const std::string& getMeshFile() const { return m_meshFile; }
 
+  void AddVisualization();
+  void AddCollisionGeometry();
   
   // private variables
   ChSharedPtr<ChBody> m_gear;
-  int m_visType;    // 0 = none, 1 = primitive, 2 = mesh
+  VisualizationType m_vis;    // visual asset geometry type
+  CollisionType m_collide;    // collision geometry type
 
   // static variables
   static const ChVector<> m_inertia;
