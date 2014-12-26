@@ -218,8 +218,14 @@ void TrackVehicle::AddCollisionGeometry()
   }
   } // end switch
 
-  m_chassis->GetCollisionModel()->BuildModel();
+  // set the collision family
+  m_chassis->GetCollisionModel()->SetFamily( (int)CollisionFam::HULL );
+  // don't collide with rolling elements or tracks
+  m_chassis->GetCollisionModel()->SetFamilyMaskNoCollisionWithFamily( (int)(CollisionFam::GEARS) );
+  m_chassis->GetCollisionModel()->SetFamilyMaskNoCollisionWithFamily( (int)(CollisionFam::WHEELS) );
+  m_chassis->GetCollisionModel()->SetFamilyMaskNoCollisionWithFamily( (int)(CollisionFam::SHOES) );
 
+  m_chassis->GetCollisionModel()->BuildModel();
 }
 
 void TrackVehicle::Advance(double step)
