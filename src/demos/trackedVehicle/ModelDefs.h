@@ -32,4 +32,18 @@ enum struct CollisionType {
   CONVEXHULL
 };
 
+// Collision family definitions
+// GROUND can collide with anything
+// GEARS includes the idler, support roller, and other non-moving rolling elements
+// WHEELS includes the road wheels, which can collide with their neighbors
+// SHOES collide with everything, except for their own family
+enum struct CollisionFam {
+  GROUND,
+  HULL,
+  GEARS,
+  WHEELS,
+  SHOES,
+  ALL
+};
+
 #endif
