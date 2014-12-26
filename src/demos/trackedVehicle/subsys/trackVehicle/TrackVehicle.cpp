@@ -43,11 +43,12 @@ const double     TrackVehicle::m_mass = 5489.2;   // chassis sprung mass
 const ChVector<> TrackVehicle::m_COM = ChVector<>(0.1, 0.0, 0.3);  // COM location, relative to body Csys REF frame
 const ChVector<> TrackVehicle::m_inertia(1786.9, 10449.7, 10721.2);  // chassis inertia (roll,yaw,pitch)
 
-const std::string TrackVehicle::m_MeshFile = utils::GetModelDataFile("hmmwv/hmmwv_chassis.obj");
+const std::string TrackVehicle::m_meshName("M113_mesh");
+const std::string TrackVehicle::m_meshFile = utils::GetModelDataFile("data/M113_hull.obj");
 const ChCoordsys<> TrackVehicle::m_driverCsys(ChVector<>(0.0, 0.5, 1.2), ChQuaternion<>(1, 0, 0, 0));
 const ChVector<> TrackVehicle::m_chassisBoxSize(4.0, 2.0, 3.0);
 
-
+/// constructor sets the basic integrator settings for this ChSystem, as well as the usual stuff
 TrackVehicle::TrackVehicle(bool fixed, VisualizationType chassisVis, CollisionType chassisCollide)
   : m_vis(chassisVis), m_collide(chassisCollide)
 {
@@ -63,41 +64,29 @@ TrackVehicle::TrackVehicle(bool fixed, VisualizationType chassisVis, CollisionTy
   m_chassis->SetIdentifier(0);
   m_chassis->SetName("chassis");
   m_chassis->SetFrame_COG_to_REF(ChFrame<>(m_COM, ChQuaternion<>(1, 0, 0, 0)));
+  // basic body info
+  m_chassis->SetMass(m_mass);
   m_chassis->SetInertiaXX(m_inertia);
   m_chassis->SetBodyFixed(fixed);
 
   // add visualization assets to the chassis
-  switch (m_vis) {
-  case VisualizationType::PRIMITIVES:
-  {
-    ChSharedPtr<ChSphereShape> sphere(new ChSphereShape);
-    sphere->GetSphereGeometry().rad = 0.1;
-    sphere->Pos = m_COM;
-    m_chassis->AddAsset(sphere);
+  AddVisualization();
 
-    break;
-  }
-  case VisualizationType::MESH:
-  {
-    geometry::ChTriangleMeshConnected trimesh;
-    trimesh.LoadWavefrontMesh(utils::GetModelDataFile(m_MeshFile), false, false);
-
-    ChSharedPtr<ChTriangleMeshShape> trimesh_shape(new ChTriangleMeshShape);
-    trimesh_shape->SetMesh(trimesh);
-    trimesh_shape->SetName("chassis triMesh");
-    m_chassis->AddAsset(trimesh_shape);
-
-    break;
-  }
-  } // end switch
-
+  // add the chassis body to the system
   Add(m_chassis);
 
 
   m_num_tracks = 2; // number of trackSystems to create
   // resize all vectors for the number of track systems
   m_TrackSystems.resize(m_num_tracks);
+
+
+
+  // TODO: manually set the data
   m_TrackSystem_locs.resize(m_num_tracks);
+
+
+
   // Each trackSystem has its own driveline and powertrain, so the left and right
   // sides can have power applied independently
   m_drivelines.resize(m_num_tracks);
@@ -124,9 +113,68 @@ void TrackVehicle::Initialize(const ChCoordsys<>& chassis_Csys)
   m_chassis->SetFrame_REF_to_abs(ChFrame<>(chassis_Csys));
 
   // add collision geometry to the chassis
+  AddCollisionGeometry();
+
+
+
+
+  // TODO: manually set the data
+  // Initialize the track systems.
+  // Initialize the suspension, wheel, and brake subsystems.
+
+
+  for (int i = 0; i < m_num_tracks; i++)
+  {
+    m_TrackSystems[i]->Initialize(m_chassis, m_TrackSystem_locs[i]);
+  }
+}
+
+
+void TrackVehicle::Update(double	time,
+                          const std::vector<double>&  throttle,
+                          const std::vector<double>&  braking)
+{
+ 
+  // update left and right powertrains, with the new left and right throttle/shaftspeed
+  m_ptrains[0]->Update(time, throttle[0], m_drivelines[0]->GetDriveshaftSpeed() );
+  m_ptrains[1]->Update(time, throttle[1], m_drivelines[1]->GetDriveshaftSpeed() );
+}
+
+void TrackVehicle::AddVisualization()
+{
+  // add visual geometry asset to the chassis, if enabled
+  switch (m_vis) {
+  case VisualizationType::PRIMITIVES:
+  {
+    ChSharedPtr<ChSphereShape> sphere(new ChSphereShape);
+    sphere->GetSphereGeometry().rad = 0.1;
+    sphere->Pos = m_COM;
+    m_chassis->AddAsset(sphere);
+
+    break;
+  }
+  case VisualizationType::MESH:
+  {
+    geometry::ChTriangleMeshConnected trimesh;
+    trimesh.LoadWavefrontMesh(utils::GetModelDataFile(m_meshFile), false, false);
+
+    ChSharedPtr<ChTriangleMeshShape> trimesh_shape(new ChTriangleMeshShape);
+    trimesh_shape->SetMesh(trimesh);
+    trimesh_shape->SetName("chassis triMesh");
+    m_chassis->AddAsset(trimesh_shape);
+
+    break;
+  }
+  } // end switch
+
+
+}
+
+void TrackVehicle::AddCollisionGeometry()
+{
+  // add collision geometrey to the chassis, if enabled
   m_chassis->SetCollide(true);
   m_chassis->GetCollisionModel()->ClearModel();
-
 
   switch (m_collide) {
   case CollisionType::PRIMITIVES:
@@ -169,29 +217,10 @@ void TrackVehicle::Initialize(const ChCoordsys<>& chassis_Csys)
     break;
   }
   } // end switch
+
   m_chassis->GetCollisionModel()->BuildModel();
 
-  // Initialize the track systems
-
-
-  // Initialize the suspension, wheel, and brake subsystems.
-  for (int i = 0; i < m_num_tracks; i++)
-  {
-    m_TrackSystems[i]->Initialize(m_chassis, m_TrackSystem_locs[i]);
-  }
 }
-
-
-void TrackVehicle::Update(double	time,
-                          const std::vector<double>&  throttle,
-                          const std::vector<double>&  braking)
-{
- 
-  // update left and right powertrains, with the new left and right throttle/shaftspeed
-  m_ptrains[0]->Update(time, throttle[0], m_drivelines[0]->GetDriveshaftSpeed() );
-  m_ptrains[1]->Update(time, throttle[1], m_drivelines[1]->GetDriveshaftSpeed() );
-}
-
 
 void TrackVehicle::Advance(double step)
 {
