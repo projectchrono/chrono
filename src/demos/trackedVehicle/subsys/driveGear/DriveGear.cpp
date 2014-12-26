@@ -104,15 +104,16 @@ void DriveGear::AddVisualization()
 
 void DriveGear::AddCollisionGeometry()
 {
-  // add collision geometrey to the chassis, if enabled
+  // add collision geometrey, if enabled. Warn if disabled
   m_gear->SetCollide(true);
   m_gear->GetCollisionModel()->ClearModel();
 
   switch (m_collide) {
   case CollisionType::NONE:
-    {
+  {
       m_gear->SetCollide(false);
-    }
+      GetLog() << " !!! DriveGear " << m_gear->GetName() << " collision deactivated !!! \n\n";
+  }
   case CollisionType::PRIMITIVES:
   {
     // use a simple cylinder

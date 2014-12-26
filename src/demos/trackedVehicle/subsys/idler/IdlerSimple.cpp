@@ -81,7 +81,7 @@ void IdlerSimple::Initialize(ChSharedPtr<ChBodyAuxRef> chassis,
 
 void IdlerSimple::AddVisualization()
 {
-   // add visualization asset
+  // add visualization asset
   switch (m_vis) {
   case VisualizationType::PRIMITIVES:
   {
