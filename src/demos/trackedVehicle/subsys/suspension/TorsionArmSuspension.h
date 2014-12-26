@@ -22,6 +22,9 @@
 #include "subsys/ChApiSubsys.h"
 #include "physics/ChSystem.h"
 #include "physics/ChBodyAuxRef.h"
+#include "physics/ChShaftsBody.h"
+#include "physics/ChShaftsTorsionSpring.h"
+
 #include "ModelDefs.h"
 
 namespace chrono {
@@ -34,12 +37,11 @@ class CH_SUBSYS_API TorsionArmSuspension : public ChShared
 public:
 
   TorsionArmSuspension(const std::string& name,
-    VisualizationType vis = VisualizationType::MESH,
+    VisualizationType vis = VisualizationType::PRIMITIVES,
     CollisionType collide = CollisionType::PRIMITIVES);
 
   ~TorsionArmSuspension() {}
 
-  /// 
   void Initialize(ChSharedPtr<ChBodyAuxRef> chassis,
 				  const ChVector<>&         location,
 				  const ChQuaternion<>&     rotation);
@@ -56,14 +58,26 @@ private:
   // private functions
   void Create();
   void AddVisualization();
+  void AddCollisionGeometry();
   
   // private variables
   ChSharedPtr<ChBody> m_arm;  ///< arm body
   ChSharedPtr<ChLinkLockRevolute> m_armChassis_rev; ///< arm-chassis revolute joint
+  // shock absorber, a torsional spring connected to two 1-D shafts
+  ChSharedPtr<ChShaft> m_shaft_chassis; ///< rigidly connected to chassis, torsional spring
+  ChSharedPtr<ChShaftsBody> m_shaft_chassis_connection; ///< connects shaft to chassis
+  ChSharedPtr<ChShaft> m_shaft_arm; ///< rigidly attached to link arm, torsional spring
+  ChSharedPtr<ChShaftsBody> m_shaft_arm_connection; ///< connects shaft to arm;
+  ChSharedPtr<ChShaftsTorsionSpring> m_shock; ///< torsional spring
+
   ChSharedPtr<ChBody> m_wheel;  ///< wheel body
   ChSharedPtr<ChLinkLockRevolute> m_armWheel_rev; ///< arm-wheel revolute joint
 
   ChFrame<> m_Loc; // location of subsystem, relative to trackSystem ref c-sys
+
+  // visual and collision geometry types
+  VisualizationType m_vis;
+  CollisionType m_collide;
 
   // static variables
   static const double m_armMass;
