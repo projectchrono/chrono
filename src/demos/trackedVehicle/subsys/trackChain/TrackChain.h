@@ -83,13 +83,11 @@ private:
   static const double m_shoe_height;
 
   static const double m_pin_dist;		  // linear distance between a shoe's two pin joint center
-  static const double TrackChain::m_pin_radius;
+  static const double m_pin_radius;
 
   static const std::string m_collisionFile;	// collision geometry filename
   static const std::string m_meshFile;  // visual geometry mesh filename
   static const std::string m_meshName;  // name of the mesh
-
-  
 
 };
 
