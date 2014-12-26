@@ -116,6 +116,15 @@ public:
 
 private:
 
+  // private functions
+  const std::string& getMeshName() const { return m_meshName; }
+  const std::string& getMeshFile() const { return m_meshFile; }
+
+  void AddVisualization();
+  void AddCollisionGeometry();
+
+  // private variables
+
   ChSharedPtr<ChBodyAuxRef> m_chassis;  ///< hull body
   int m_num_tracks;       // number of tracks for this vehicle
 
@@ -128,12 +137,14 @@ private:
   VisualizationType m_vis;  // how to visualize chassis geometry
   CollisionType m_collide;  // how to handle chassis collision geometry
 
+  // static variables
   static const double     m_mass;                   // chassis mass
   static const ChVector<> m_COM;                    // location of the chassis COM in the local ref frame
   static const ChVector<> m_inertia;                // symmetric moments of inertia of the chassis
 
   static const ChCoordsys<> m_driverCsys;  // driver position and orientation relative to chassis
-  static const std::string  m_MeshFile;
+  static const std::string m_meshName;
+  static const std::string  m_meshFile;
   static const ChVector<> m_chassisBoxSize; // length, height, width of chassis collision box (if collisiontype = PRIMITIVES)
 
   double m_stepsize;          ///< integration time step for tracked vehicle system

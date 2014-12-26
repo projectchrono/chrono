@@ -56,7 +56,7 @@ private:
   void BuildSubsystems();
   
   // initialize a roller at the specified location and orientation, attach to chassis
-  void initialize_roller(ChSharedPtr<ChBody> body, ChSharedPtr<ChBodyAuxRef>  chassis,
+  void initialize_roller(ChSharedPtr<ChBody> body, ChSharedPtr<ChBodyAuxRef> chassis,
     const ChVector<>& loc, const ChQuaternion<>& rot, int idx);
 
   // private variables
