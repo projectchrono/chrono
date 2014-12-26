@@ -21,13 +21,27 @@
 
 #include "IdlerSimple.h"
 
+#include "assets/ChAsset.h"
+#include "assets/ChCylinderShape.h"
+#include "assets/ChTriangleMeshShape.h"
+#include "assets/ChColorAsset.h"
+// collision mesh
+#include "geometry/ChCTriangleMeshSoup.h"
+
+#include "utils/ChUtilsInputOutput.h"
+#include "utils/ChUtilsData.h"
+
 
 namespace chrono {
 
 // Static variables
-const double IdlerSimple::m_mass = 200.0;
-const ChVector<> IdlerSimple::m_inertia = ChVector<>(10,10,15);
+const double IdlerSimple::m_mass = 429.6;
+const ChVector<> IdlerSimple::m_inertia = ChVector<>(14.7, 12.55, 12.55);
 
+const std::string IdlerSimple::m_meshName = "idler_mesh";
+const std::string IdlerSimple::m_meshFile = utils::GetModelDataFile("data/idlerMesh.obj");
+
+// guessing at these values
 const double IdlerSimple::m_radius = 0.5;
 const double IdlerSimple::m_width = 0.35;
 const double IdlerSimple::m_springK = 100000;
@@ -36,16 +50,27 @@ const double IdlerSimple::m_springRestLength = 1.0;
 
 
 
-IdlerSimple::IdlerSimple(const std::string& name, VisualizationType vis, CollisionType collide)
+IdlerSimple::IdlerSimple(const std::string& name,
+                         VisualizationType vis,
+                         CollisionType collide)
+  : m_vis(vis), m_collide(collide)
 {
+  // create the body, set the basic info
   m_idler = ChSharedPtr<ChBody>(new ChBody);
+  m_idler->SetNameString(name);
+  m_idler->SetMass(m_mass);
+  m_idler->SetInertiaXX(m_inertia);
 
+ 
 }
 
 void IdlerSimple::Initialize(ChSharedPtr<ChBodyAuxRef> chassis,
                              const ChVector<>&         location,
                              const ChQuaternion<>&     rotation)
 {
+  // add collision geometry
+  AddCollisionGeometry();
+
   // Express the steering reference frame in the absolute coordinate system.
   ChFrame<> idler_to_abs(location, rotation);
   idler_to_abs.ConcatenatePreTransformation(chassis->GetFrame_REF_to_abs());
@@ -54,9 +79,95 @@ void IdlerSimple::Initialize(ChSharedPtr<ChBodyAuxRef> chassis,
   
 }
 
-void IdlerSimple::AddVisualizationIdler()
+void IdlerSimple::AddVisualization()
 {
+   // add visualization asset
+  switch (m_vis) {
+  case VisualizationType::PRIMITIVES:
+  {
+    ChSharedPtr<ChCylinderShape> cyl(new ChCylinderShape);
+    // define the cylinder shape with the two end points of the cylinder
+    ChVector<> p1(0, 0, m_width/2.0);
+    ChVector<> p2(0, 0, -m_width/2.0);
+    cyl->GetCylinderGeometry().p1 = p1;
+    cyl->GetCylinderGeometry().p2 = p2;
+    m_idler->AddAsset(cyl);
+    break;
+  }
+   case VisualizationType::MESH:
+  {
+    geometry::ChTriangleMeshConnected trimesh;
+    trimesh.LoadWavefrontMesh(getMeshFile(), false, false);
 
+    ChSharedPtr<ChTriangleMeshShape> trimesh_shape(new ChTriangleMeshShape);
+    trimesh_shape->SetMesh(trimesh);
+    trimesh_shape->SetName(getMeshName());
+    m_idler->AddAsset(trimesh_shape);
+
+    ChSharedPtr<ChColorAsset> mcolor(new ChColorAsset(0.5f, 0.1f, 0.4f));
+    m_idler->AddAsset(mcolor);
+
+    break;
+  }
+  } // end switch
+}
+
+void IdlerSimple::AddCollisionGeometry()
+{
+  // add collision geometrey to the chassis, if enabled
+  m_idler->SetCollide(true);
+  m_idler->GetCollisionModel()->ClearModel();
+
+  switch (m_collide) {
+  case CollisionType::NONE:
+    {
+      m_idler->SetCollide(false);
+    }
+  case CollisionType::PRIMITIVES:
+  {
+    // use a simple cylinder
+    m_idler->GetCollisionModel()->AddCylinder(m_radius, m_radius, m_width,
+      ChVector<>(),Q_from_AngAxis(CH_C_PI_2,VECT_X));
+
+    break;
+  }
+  case CollisionType::MESH:
+  {
+    // use a triangle mesh
+   
+		geometry::ChTriangleMeshSoup temp_trianglemesh; 
+		
+
+    // TODO: fill the triangleMesh here with some track shoe geometry
+
+    
+		m_idler->GetCollisionModel()->SetSafeMargin(0.004);	// inward safe margin
+		m_idler->GetCollisionModel()->SetEnvelope(0.010);		// distance of the outward "collision envelope"
+		m_idler->GetCollisionModel()->ClearModel();
+
+    // is there an offset??
+    double shoelength = 0.2;
+    ChVector<> mesh_displacement(shoelength*0.5,0,0);  // since mesh origin is not in body center of mass
+    m_idler->GetCollisionModel()->AddTriangleMesh(temp_trianglemesh, false, false, mesh_displacement);
+
+    break;
+  }
+  case CollisionType::CONVEXHULL:
+  {
+    // use convex hulls, loaded from file
+    ChStreamInAsciiFile chull_file(GetChronoDataFile("idler.chulls").c_str());
+    // transform the collision geometry as needed
+    double mangle = 45.0; // guess
+    ChQuaternion<>rot;
+    rot.Q_from_AngAxis(mangle*(CH_C_PI/180.),VECT_X);
+    ChMatrix33<> rot_offset(rot);
+    ChVector<> disp_offset(0,0,0);  // no displacement offset
+    m_idler->GetCollisionModel()->AddConvexHullsFromFile(chull_file, disp_offset, rot_offset);
+    break;
+  }
+  } // end switch
+
+  m_idler->GetCollisionModel()->BuildModel();
 }
 
 } // end namespace chrono
