@@ -34,7 +34,7 @@ class CH_SUBSYS_API TrackChain : public ChShared
 public:
 
   TrackChain(const std::string& name, 
-    VisualizationType vis = VisualizationType::MESH,
+    VisualizationType vis = VisualizationType::PRIMITIVES,
     CollisionType collide = CollisionType::PRIMITIVES );
   
   ~TrackChain() {}
@@ -50,11 +50,17 @@ public:
   ChSharedPtr<ChBody> GetShoeBody(int track_idx) { return (track_idx > m_numShoes-1) ? m_shoes[track_idx] : m_shoes[0] ; }
 
 private:
-  int Create();
-  
+
   // private functions
-  void AddVisualizationIdler();
+  /// add visualization assets to a track shoe
+  void AddVisualization(size_t track_idx);
+
+  /// add collision geometrey to a track shoe
+  void AddCollisionGeometry(size_t track_idx);
    
+  /// "wrap" the track chain around the other elements in this TrackSystem
+  void CreateChain( );
+
   const std::string& get_collision_filename() const { return m_collision_filename; }
   const std::string& get_visual_filename() const { return m_visual_filename; }
 
@@ -62,8 +68,10 @@ private:
   std::vector<ChSharedPtr<ChBody>> m_shoes;
   int m_numShoes;
 
-  int m_visType;  // 0 = none, 1 = simple box, 2 = mesh
-  ChSharedPtr<ChTriangleMeshShape> m_geom_visual;
+  VisualizationType m_vis;    // visual asset geometry type
+  CollisionType m_collide;    // collision geometry type
+
+//  ChSharedPtr<ChTriangleMeshShape> m_geom_visual;
   
   //static values 
   static const double m_mass;         // mass per shoe
