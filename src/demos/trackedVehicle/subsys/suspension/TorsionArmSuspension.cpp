@@ -21,6 +21,12 @@
 
 #include "subsys/suspension/TorsionArmSuspension.h"
 
+#include "assets/ChCylinderShape.h"
+#include "assets/ChTriangleMeshShape.h"
+#include "assets/ChTexture.h"
+#include "assets/ChColorAsset.h"
+
+
 namespace chrono {
 
 // static variables
@@ -41,7 +47,9 @@ const ChVector<> m_TorquePreload;
 
 
 TorsionArmSuspension::TorsionArmSuspension(const std::string& name,
-                                           VisualizationType vis, CollisionType collide)
+                                           VisualizationType vis,
+                                           CollisionType collide)
+: m_vis(vis), m_collide(collide)
 {
   // FILE* fp = fopen(filename.c_str(), "r");
   // char readBuffer[65536];
@@ -50,7 +58,7 @@ TorsionArmSuspension::TorsionArmSuspension(const std::string& name,
   Create();
 }
 
-
+// 1) load data from file, 2) create bodies using data
 void TorsionArmSuspension::Create()
 {
 /*
@@ -80,15 +88,30 @@ void TorsionArmSuspension::Create()
   m_armChassis_rev = ChSharedPtr<ChLinkLockRevolute>(new ChLinkLockRevolute);
   m_armWheel_rev = ChSharedPtr<ChLinkLockRevolute>(new ChLinkLockRevolute);
 
-  // create the torsional spring damper 
+  // create the torsional spring damper assembly
 
+  // [Chassis] <m_shaft_chassis_connection>--- m_shaft_chassis ==|| m_shock ||== m_shaft_arm --- <m_shaft_arm_connection> [Arm]
+
+  // two shafts
+  m_shaft_chassis = ChSharedPtr<ChShaft>(new ChShaft);
+  m_shaft_arm = ChSharedPtr<ChShaft>(new ChShaft);
+  // two shaftbody connectors
+  m_shaft_chassis_connection = ChSharedPtr<ChShaftsBody>(new ChShaftsBody);
+  m_shaft_arm_connection = ChSharedPtr<ChShaftsBody>(new ChShaftsBody); 
+  // and the 1-dof spring between the two shafts
+  m_shock = ChSharedPtr<ChShaftsTorsionSpring>(new ChShaftsTorsionSpring); ///< torsional spring
   
+  // add visualization assets
+  AddVisualization();
 }
 
 void TorsionArmSuspension::Initialize(ChSharedPtr<ChBodyAuxRef> chassis,
                              const ChVector<>&         location,
                              const ChQuaternion<>&     rotation)
 {
+  // add collision geometry
+  AddCollisionGeometry();
+
   // Express the steering reference frame in the absolute coordinate system.
   ChFrame<> loc_to_abs(location, rotation);
   loc_to_abs.ConcatenatePreTransformation(chassis->GetFrame_REF_to_abs());
@@ -100,7 +123,112 @@ void TorsionArmSuspension::Initialize(ChSharedPtr<ChBodyAuxRef> chassis,
 /// add a cylinder to model the torsion bar arm and the wheel
 void TorsionArmSuspension::AddVisualization()
 {
+  // add visualization assets
+  switch (m_vis) {
+  case VisualizationType::PRIMITIVES:
+  {
+    ChSharedPtr<ChCylinderShape> cyl(new ChCylinderShape);
+    // define the wheel cylinder shape with the two end points of the cylinder
+    // NOTE: how is the wheel body c-sys oriented at this point?
+    ChVector<> p1(0, 0, m_wheelWidth/2.0);
+    ChVector<> p2(0, 0, -m_wheelWidth/2.0);
+    cyl->GetCylinderGeometry().p1 = p1;
+    cyl->GetCylinderGeometry().p2 = p2;
+    cyl->GetCylinderGeometry().rad = m_wheelRadius;
+    m_wheel->AddAsset(cyl);
 
+    // define the arm cylinder shape.
+    // NOTE: how is the arm body c-sys orienated at this point?
+    ChVector<> p1_arm(0, 0, m_armRadius/2.0);
+    ChVector<> p2_arm(0, 0, -m_armRadius/2.0);
+    ChSharedPtr<ChCylinderShape> arm_cyl(new ChCylinderShape);
+    arm_cyl->GetCylinderGeometry().p1 = p1_arm;
+    arm_cyl->GetCylinderGeometry().p2 = p2_arm;
+    arm_cyl->GetCylinderGeometry().rad = m_armRadius;
+    m_arm->AddAsset(arm_cyl);
+    break;
+  }
+   case VisualizationType::MESH:
+  {
+    /*
+    geometry::ChTriangleMeshConnected trimesh;
+    trimesh.LoadWavefrontMesh(getMeshFile(), false, false);
+
+    ChSharedPtr<ChTriangleMeshShape> trimesh_shape(new ChTriangleMeshShape);
+    trimesh_shape->SetMesh(trimesh);
+    trimesh_shape->SetName(getMeshName());
+    m_wheel->AddAsset(trimesh_shape);
+
+    ChSharedPtr<ChColorAsset> mcolor(new ChColorAsset(0.5f, 0.1f, 0.4f));
+    m_wheel->AddAsset(mcolor);
+    */
+
+    break;
+  }
+  } // end switch
+}
+
+/// only the road wheels are used for collision
+void TorsionArmSuspension::AddCollisionGeometry()
+{
+  // add collision geometrey, if enabled. Warn if not
+  m_wheel->SetCollide(true);
+  m_wheel->GetCollisionModel()->ClearModel();
+
+  switch (m_collide) {
+  case CollisionType::NONE:
+  {
+    m_wheel->SetCollide(false);
+    GetLog() << " !!! Road Wheel " << m_wheel->GetName() << " collision deactivated !!! \n\n";
+  }
+  case CollisionType::PRIMITIVES:
+  {
+    // use a simple cylinder
+    m_wheel->GetCollisionModel()->AddCylinder(m_wheelRadius, m_wheelRadius, m_wheelWidth,
+    ChVector<>(),Q_from_AngAxis(CH_C_PI_2,VECT_X));
+
+    break;
+  }
+  case CollisionType::MESH:
+  {
+    // use a triangle mesh
+    /*
+
+		geometry::ChTriangleMeshSoup temp_trianglemesh; 
+		
+    // TODO: fill the triangleMesh here with some track shoe geometry
+
+		m_wheel->GetCollisionModel()->SetSafeMargin(0.004);	// inward safe margin
+		m_wheel->GetCollisionModel()->SetEnvelope(0.010);		// distance of the outward "collision envelope"
+		m_wheel->GetCollisionModel()->ClearModel();
+
+    // is there an offset??
+    double shoelength = 0.2;
+    ChVector<> mesh_displacement(shoelength*0.5,0,0);  // since mesh origin is not in body center of mass
+    m_wheel->GetCollisionModel()->AddTriangleMesh(temp_trianglemesh, false, false, mesh_displacement);
+    */
+
+    break;
+  }
+  case CollisionType::CONVEXHULL:
+  {
+    /*
+    // use convex hulls, loaded from file
+    ChStreamInAsciiFile chull_file(GetChronoDataFile("drive_gear.chulls").c_str());
+    // transform the collision geometry as needed
+    double mangle = 45.0; // guess
+    ChQuaternion<>rot;
+    rot.Q_from_AngAxis(mangle*(CH_C_PI/180.),VECT_X);
+    ChMatrix33<> rot_offset(rot);
+    ChVector<> disp_offset(0,0,0);  // no displacement offset
+    m_wheel->GetCollisionModel()->AddConvexHullsFromFile(chull_file, disp_offset, rot_offset);
+    */
+
+    break;
+  }
+  } // end switch
+
+  m_wheel->GetCollisionModel()->BuildModel();
 }
 
 } // end namespace chrono
