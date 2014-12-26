@@ -55,7 +55,7 @@ TrackSystem::TrackSystem(const std::string& name, int track_idx)
 
 }
 
-
+// Create: 1) load/set the subsystem data, 2) use data to build subsystems
 void TrackSystem::Create(int track_idx)
 {
   /*
@@ -118,7 +118,7 @@ void TrackSystem::Create(int track_idx)
   
   */
 
-  // create the various subsystems, from the class static variables
+  // create the various subsystems, from the hardcoded static variables in each subsystem class
   BuildSubsystems();
 
  
@@ -126,7 +126,7 @@ void TrackSystem::Create(int track_idx)
 
 void TrackSystem::BuildSubsystems()
 {
-  // build one of each of the following subsystems
+  // build one of each of the following subsystems. VisualizationType and CollisionType defaults are PRIMITIVES
   m_driveGear = ChSharedPtr<DriveGear>(new DriveGear("drive gear "+std::to_string(m_track_idx)) );
   m_idler = ChSharedPtr<IdlerSimple>(new IdlerSimple("idler "+std::to_string(m_track_idx)) );
   m_chain = ChSharedPtr<TrackChain>(new TrackChain("chain "+std::to_string(m_track_idx)) );
