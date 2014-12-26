@@ -167,6 +167,14 @@ void IdlerSimple::AddCollisionGeometry()
   }
   } // end switch
 
+  // setup collision family
+  m_idler->GetCollisionModel()->SetFamily( (int)CollisionFam::GEARS );
+  // don't collide with other roling elements or the ground
+  m_idler->GetCollisionModel()->SetFamilyMaskNoCollisionWithFamily( (int)CollisionFam::HULL );
+  m_idler->GetCollisionModel()->SetFamilyMaskNoCollisionWithFamily( (int)CollisionFam::GEARS );
+  m_idler->GetCollisionModel()->SetFamilyMaskNoCollisionWithFamily( (int)CollisionFam::WHEELS );
+  m_idler->GetCollisionModel()->SetFamilyMaskNoCollisionWithFamily( (int)CollisionFam::GROUND );
+
   m_idler->GetCollisionModel()->BuildModel();
 }
 
