@@ -152,23 +152,54 @@ void TrackSystem::BuildSubsystems()
 void TrackSystem::Initialize(ChSharedPtr<ChBodyAuxRef> chassis,
 			 const ChVector<>&  location)
 {
+  // to create the track chain, need a list of control points and their clearance.
+  // Points are centerof spheres with radius = clearance. Use a starting point on
+  // the line, and the chain will be "wrapped" around the x-direction initially. 
+  // NOTE: MUST add the idler and sprocket as the first and last entries in the two lists,
+  // ensures a list that is in an order than can be traversed successfully 
+  // by the TrackChain->Initilize() func.
+  std::vector<ChVector<>> control_points;
+  std::vector<double> clearance;
+
   // initialize 1 of each of the following subsystems:
   m_driveGear->Initialize(chassis, m_gearPos, QUNIT);
   m_idler->Initialize(chassis, m_idlerPos, QUNIT);
-  
+ 
+  // drive sprocket is First added to the lists passed into TrackChain Init()
+  control_points.push_back(m_driveGear->GetBody()->GetPos() );
+  clearance.push_back(m_driveGear->GetRadius() );
+
   // initialize the road wheels & torsion arm suspension subsystems
   for(int i = 0; i < m_suspensionLocs.size(); i++)
   {
     m_suspensions[i]->Initialize(chassis, m_suspensionLocs[i], QUNIT);
+
+    // add these to the lists passed into the track chain
+    control_points.push_back(m_suspensions[i]->GetWheelBody()->GetPos() );
+    clearance.push_back(m_suspensions[i]->GetWheelRadius() );
   }
 
   // initialize the support rollers 
   for(int j = 0; j < m_rollerLocs.size(); j++)
   {
-    initialize_roller(m_supportRollers[j], chassis,
-      m_rollerLocs[j], QUNIT, j);
+    initialize_roller(m_supportRollers[j], chassis, m_rollerLocs[j], QUNIT, j);
+
+    // add these to the points passed into the track chain
+    control_points.push_back(m_supportRollers[j]->GetPos() );
+    clearance.push_back( m_roller_radius);
   }
   
+  // last control point: the idler body
+  control_points.push_back(m_idler->GetBody()->GetPos() );
+  clearance.push_back(m_idler->GetRadius() );
+
+  // last, initialize the trackChain.
+  // Starting position will be between idler and gear control points, with a vertical offset
+  // that is the average of the two clearances.
+  ChVector<> start_pos = (control_points[0] + control_points[control_points.size()-1])/2.0;
+  start_pos.y += (clearance[0] + clearance[clearance.size()-1] )/2.0;
+  
+  m_chain->Initialize(control_points, clearance, start_pos);
 }
 
 
