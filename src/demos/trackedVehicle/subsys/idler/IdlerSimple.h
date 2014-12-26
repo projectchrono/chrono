@@ -51,6 +51,7 @@ public:
   double getDampingCoefficient() const { return m_springC; }
   double getSpringRestLength() const { return m_springRestLength; }
   ChSharedPtr<ChBody> GetBody() { return m_idler; }
+  double GetRadius() { return m_radius; }
 
 private:
   // private functions

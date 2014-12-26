@@ -53,6 +53,8 @@ public:
   ChSharedPtr<ChBody> GetArmBody() { return m_arm; }
   ChSharedPtr<ChBody> GetWheelBody() { return m_wheel; }
 
+  double GetWheelRadius() { return m_wheelRadius; }
+
 private:
 
   // private functions

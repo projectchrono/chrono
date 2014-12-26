@@ -44,7 +44,8 @@ public:
   // accessors
   ChSharedPtr<ChBody> GetBody() { return m_gear; }
   
-  
+  double GetRadius() { return m_radius; }
+
 private:
   // private functions
   const std::string& getMeshName() const { return m_meshName; }
