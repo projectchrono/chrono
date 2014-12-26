@@ -39,11 +39,12 @@ public:
   
   ~TrackChain() {}
 
-  /// pass in a vector of bodies to wrap the chain around.
+  /// pass in a vector of control points with associated clearance to wrap the chain around.
   /// Use the clearnance as a spherical offset from the body CM points.
-  /// Start the first shoe and location of first/last pin joint at the start_loc
-  void Initialize(std::vector<ChBody>& control_bodies,
-					std::vector<double> clearance,
+  /// Start the first shoe and location of first/last pin joint at the start_loc.
+  /// NOTE: start_loc x-dir MUST be on the surface of the first and last control points
+  void Initialize(const std::vector<ChVector<>>& control_points,
+					const std::vector<double>& clearance,
 					const ChVector<>& start_loc);
   
   /// handle to the shoe body
