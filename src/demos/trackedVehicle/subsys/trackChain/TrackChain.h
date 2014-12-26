@@ -44,8 +44,8 @@ public:
   /// Start the first shoe and location of first/last pin joint at the start_loc.
   /// NOTE: start_loc x-dir MUST be on the surface of the first and last control points
   void Initialize(const std::vector<ChVector<>>& control_points,
-					const std::vector<double>& clearance,
-					const ChVector<>& start_loc);
+    const std::vector<double>& clearance,
+    const ChVector<>& start_loc);
   
   /// handle to the shoe body
   ChSharedPtr<ChBody> GetShoeBody(size_t track_idx); 
@@ -60,7 +60,11 @@ private:
   void AddCollisionGeometry(size_t track_idx);
    
   /// "wrap" the track chain around the other elements in this TrackSystem
-  void CreateChain( );
+  /// control_points MUST begin and end with the idler and drive gear, order doesn't matter.
+  /// start_loc MUST be somewhere on the plane of chain wrap defined by the idler and gear points.
+  void CreateChain(const std::vector<ChVector<>>& control_points,
+                            const std::vector<double>& clearance,
+                            const ChVector<>& start_loc );
 
     // private functions
   const std::string& getMeshName() const { return m_meshName; }
