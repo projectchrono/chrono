@@ -44,30 +44,60 @@ const double TrackChain::m_shoe_height = 0.2;
 const double TrackChain::m_pin_dist = 0.3;		// linear distance between a shoe's two pin joint center
 const double TrackChain::m_pin_radius = 0.05;
 
-TrackChain::TrackChain(const std::string& name, VisualizationType vis, CollisionType collide)
+TrackChain::TrackChain(const std::string& name, 
+                       VisualizationType vis, 
+                       CollisionType collide)
+                       : m_vis(vis), m_collide(collide)
 {
   m_shoes.clear();
   m_shoes.push_back(ChSharedPtr<ChBody>(new ChBody));
 
   // Attach visualization to the base track shoe (e.g., m_shoes[0] )
-   // 0 = none, 1 = primitive, 2 = mesh
-  m_visType = 1;      // HARDCODED visType
-  switch (m_visType) {
-  case 1:
+  AddVisualization(0);
+
+
+}
+
+
+void TrackChain::Initialize(std::vector<ChBody>& control_bodies,
+							std::vector<double> clearance,
+							const ChVector<>& start_loc)
+{
+  // add collision geometry to the first track shoe
+  AddCollisionGeometry(0);
+  m_numShoes = 1;
+
+  // Express the steering reference frame in the absolute coordinate system.
+  // ChFrame<> idler_to_abs(location, rotation);
+  // idler_to_abs.ConcatenatePreTransformation(chassis->GetFrame_REF_to_abs());
+  
+
+  // hard part: "wrap" the track chain around the trackSystem, e.g., drive-gear,
+  // idler, road-wheels. First and last shoes are allowed to be in any orientation,
+  // as long as the final pin joint connects correctly.
+  CreateChain( );
+}
+
+void TrackChain::AddVisualization(size_t track_idx)
+{
+  assert(track_idx < m_numShoes);
+  // Attach visualization asset
+  switch (m_vis) {
+  case VisualizationType::PRIMITIVES:
   {
     // primitive box, also used for collision.
     // shoes will be added to the same collision family so self-collision can be toggled
     ChSharedPtr<ChBoxShape> box(new ChBoxShape);
     box->GetBoxGeometry().SetLengths( 0.5 * ChVector<>( m_pin_dist-m_pin_radius, m_shoe_height, m_shoe_width) );
-    m_shoes[0]->AddAsset(box);
+    m_shoes[track_idx]->AddAsset(box);
 
     ChSharedPtr<ChTexture> tex(new ChTexture);
     tex->SetTextureFilename(GetChronoDataFile("bluwhite.png"));
-    m_shoes[0]->AddAsset(tex);
+    m_shoes[track_idx]->AddAsset(tex);
 
     break;
   }
-  case 2:
+  case VisualizationType::MESH:
   {
     // mesh for visualization only.
     geometry::ChTriangleMeshConnected trimesh;
@@ -76,49 +106,24 @@ TrackChain::TrackChain(const std::string& name, VisualizationType vis, Collision
     ChSharedPtr<ChTriangleMeshShape> trimesh_shape(new ChTriangleMeshShape);
     trimesh_shape->SetMesh(trimesh);
     trimesh_shape->SetName(get_visual_filename());
-    m_shoes[0]->AddAsset(trimesh_shape);
+    m_shoes[track_idx]->AddAsset(trimesh_shape);
 
     ChSharedPtr<ChColorAsset> mcolor(new ChColorAsset(0.3f, 0.3f, 0.3f));
-    m_shoes[0]->AddAsset(mcolor);
+    m_shoes[track_idx]->AddAsset(mcolor);
 
     break;
   }
   }
 }
 
-int TrackChain::Create()
+
+void TrackChain::AddCollisionGeometry(size_t track_idx)
 {
-  /*
-  // load data
-  m_PinDist = d["Pin Distance"].GetDouble();
-  m_collision_filename = d["Collision"]["Filename"].GetString();
-  m_visual_filename = d["Visualization"]["Filename"].GetString();
-  
-  // load visualization mesh
-  ChTriangleMeshConnected triangles;
-  triangles.LoadWavefrontMesh(utils::GetModelDataFile(m_visual_filename), false, false);
-  m_geom_visual = ChSharedPtr<ChTriangleMeshShape>(new ChTriangleMeshShape);
-  m_geom_visual->SetMesh(triangles);
-  m_geom_visual->SetName("shoe");
 
-  */
-
-  return 0;
 }
 
-void TrackChain::Initialize(std::vector<ChBody>& control_bodies,
-							std::vector<double> clearance,
-							const ChVector<>& start_loc)
-{
-  // Express the steering reference frame in the absolute coordinate system.
-  // ChFrame<> idler_to_abs(location, rotation);
-  // idler_to_abs.ConcatenatePreTransformation(chassis->GetFrame_REF_to_abs());
 
-  
-  
-}
-
-void TrackChain::AddVisualizationIdler()
+void TrackChain::CreateChain()
 {
 
 }
