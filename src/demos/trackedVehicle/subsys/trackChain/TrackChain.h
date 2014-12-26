@@ -46,8 +46,8 @@ public:
 					std::vector<double> clearance,
 					const ChVector<>& start_loc);
   
-  
-  ChSharedPtr<ChBody> GetShoeBody(int track_idx) { return (track_idx > m_numShoes-1) ? m_shoes[track_idx] : m_shoes[0] ; }
+  /// handle to the shoe body
+  ChSharedPtr<ChBody> GetShoeBody(size_t track_idx); 
 
 private:
 
@@ -61,12 +61,14 @@ private:
   /// "wrap" the track chain around the other elements in this TrackSystem
   void CreateChain( );
 
-  const std::string& get_collision_filename() const { return m_collision_filename; }
-  const std::string& get_visual_filename() const { return m_visual_filename; }
+    // private functions
+  const std::string& getMeshName() const { return m_meshName; }
+  const std::string& getMeshFile() const { return m_meshFile; }
+  const std::string& getCollisionFilename() const { return m_collisionFile; }
 
   // private variables
   std::vector<ChSharedPtr<ChBody>> m_shoes;
-  int m_numShoes;
+  size_t m_numShoes;
 
   VisualizationType m_vis;    // visual asset geometry type
   CollisionType m_collide;    // collision geometry type
@@ -83,8 +85,10 @@ private:
   static const double m_pin_dist;		  // linear distance between a shoe's two pin joint center
   static const double TrackChain::m_pin_radius;
 
-  static const std::string m_collision_filename;	// wavefront mesh for collision geometry
-  static const std::string m_visual_filename;	// wavefront mesh for visuals
+  static const std::string m_collisionFile;	// collision geometry filename
+  static const std::string m_meshFile;  // visual geometry mesh filename
+  static const std::string m_meshName;  // name of the mesh
+
   
 
 };

@@ -34,11 +34,12 @@ namespace chrono {
 
 
 // static variables
-const std::string TrackChain::m_collision_filename = "wheel_L_POV_geom";
-const std::string TrackChain::m_visual_filename = utils::GetModelDataFile("hmmwv/wheel_L.obj");
+const std::string TrackChain::m_collisionFile = utils::GetModelDataFile("track_data/M113/shoe_collision.obj");
+const std::string TrackChain::m_meshName = "M113 shoe"; 
+const std::string TrackChain::m_meshFile = utils::GetModelDataFile("track_data/M113/shoe_view.obj");
 
-const double TrackChain::m_mass = 45.0;
-const ChVector<> TrackChain::m_inertia(2.0,3.0,4.0);
+const double TrackChain::m_mass = 18.02;
+const ChVector<> TrackChain::m_inertia(0.04, 0.22, 0.25);
 const double TrackChain::m_shoe_width = 0.4;
 const double TrackChain::m_shoe_height = 0.2;
 const double TrackChain::m_pin_dist = 0.3;		// linear distance between a shoe's two pin joint center
@@ -101,11 +102,11 @@ void TrackChain::AddVisualization(size_t track_idx)
   {
     // mesh for visualization only.
     geometry::ChTriangleMeshConnected trimesh;
-    trimesh.LoadWavefrontMesh(get_visual_filename(), false, false);
+    trimesh.LoadWavefrontMesh(getMeshFile(), false, false);
 
     ChSharedPtr<ChTriangleMeshShape> trimesh_shape(new ChTriangleMeshShape);
     trimesh_shape->SetMesh(trimesh);
-    trimesh_shape->SetName(get_visual_filename());
+    trimesh_shape->SetName(getMeshName());
     m_shoes[track_idx]->AddAsset(trimesh_shape);
 
     ChSharedPtr<ChColorAsset> mcolor(new ChColorAsset(0.3f, 0.3f, 0.3f));
@@ -126,6 +127,13 @@ void TrackChain::AddCollisionGeometry(size_t track_idx)
 void TrackChain::CreateChain()
 {
 
+}
+
+
+ChSharedPtr<ChBody> TrackChain::GetShoeBody(size_t track_idx)
+{
+  assert( track_idx < m_numShoes);
+  return (track_idx > m_numShoes-1) ? m_shoes[track_idx] : m_shoes[0] ;
 }
 
 } // end namespace chrono
