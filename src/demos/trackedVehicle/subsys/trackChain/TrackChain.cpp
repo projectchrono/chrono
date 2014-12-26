@@ -62,9 +62,9 @@ TrackChain::TrackChain(const std::string& name,
 }
 
 
-void TrackChain::Initialize(std::vector<ChBody>& control_bodies,
-							std::vector<double> clearance,
-							const ChVector<>& start_loc)
+void TrackChain::Initialize(const std::vector<ChVector<>>& control_points,
+                            const std::vector<double>& clearance,
+                            const ChVector<>& start_loc)
 {
   // add collision geometry to the first track shoe
   AddCollisionGeometry(0);
@@ -78,7 +78,7 @@ void TrackChain::Initialize(std::vector<ChBody>& control_bodies,
   // hard part: "wrap" the track chain around the trackSystem, e.g., drive-gear,
   // idler, road-wheels. First and last shoes are allowed to be in any orientation,
   // as long as the final pin joint connects correctly.
-  CreateChain( );
+  CreateChain(control_points, clearance, start_loc );
 }
 
 void TrackChain::AddVisualization(size_t track_idx)
@@ -179,7 +179,9 @@ void TrackChain::AddCollisionGeometry(size_t track_idx)
 }
 
 
-void TrackChain::CreateChain()
+void TrackChain::CreateChain(const std::vector<ChVector<>>& control_points,
+                            const std::vector<double>& clearance,
+                            const ChVector<>& start_loc)
 {
 
 }
