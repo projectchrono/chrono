@@ -37,7 +37,7 @@ class CH_SUBSYS_API IdlerSimple : public ChShared
 public:
 
   IdlerSimple(const std::string& name,
-    VisualizationType vis = VisualizationType::MESH,
+    VisualizationType vis = VisualizationType::PRIMITIVES,
     CollisionType collide = CollisionType::PRIMITIVES);
 
   ~IdlerSimple() {}
@@ -54,10 +54,16 @@ public:
 
 private:
   // private functions
-  void AddVisualizationIdler();
+  void AddVisualization();
+  void AddCollisionGeometry();
+    // private functions
+  const std::string& getMeshName() const { return m_meshName; }
+  const std::string& getMeshFile() const { return m_meshFile; }
   
   // private variables
   ChSharedPtr<ChBody> m_idler;
+  VisualizationType m_vis;
+  CollisionType m_collide;
 
   // static variables
   static const double m_mass;
@@ -67,6 +73,9 @@ private:
   static const double m_springRestLength;
   static const double m_width;
   static const double m_radius;
+
+  static const std::string m_meshName;
+  static const std::string m_meshFile;
 
 };
 
