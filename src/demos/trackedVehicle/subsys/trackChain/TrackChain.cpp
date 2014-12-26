@@ -25,6 +25,8 @@
 #include "assets/ChTriangleMeshShape.h"
 #include "assets/ChTexture.h"
 #include "assets/ChColorAsset.h"
+// collision mesh
+#include "geometry/ChCTriangleMeshSoup.h"
 
 #include "utils/ChUtilsData.h"
 #include "utils/ChUtilsInputOutput.h"
@@ -89,7 +91,7 @@ void TrackChain::AddVisualization(size_t track_idx)
     // primitive box, also used for collision.
     // shoes will be added to the same collision family so self-collision can be toggled
     ChSharedPtr<ChBoxShape> box(new ChBoxShape);
-    box->GetBoxGeometry().SetLengths( 0.5 * ChVector<>( m_pin_dist-m_pin_radius, m_shoe_height, m_shoe_width) );
+    box->GetBoxGeometry().SetLengths( 0.5 * ChVector<>( m_pin_dist-2*m_pin_radius, m_shoe_height, m_shoe_width) );
     m_shoes[track_idx]->AddAsset(box);
 
     ChSharedPtr<ChTexture> tex(new ChTexture);
@@ -120,6 +122,54 @@ void TrackChain::AddVisualization(size_t track_idx)
 
 void TrackChain::AddCollisionGeometry(size_t track_idx)
 {
+  assert(track_idx < m_numShoes);
+   // add collision geometrey to the chassis, if enabled
+  m_shoes[track_idx]->SetCollide(true);
+  m_shoes[track_idx]->GetCollisionModel()->ClearModel();
+
+  switch (m_collide) {
+  case CollisionType::PRIMITIVES:
+  {
+    // use a simple box
+    m_shoes[track_idx]->GetCollisionModel()->AddBox(m_pin_dist-2*m_pin_radius, m_shoe_height, m_shoe_width);
+
+    break;
+  }
+  case CollisionType::MESH:
+  {
+    // use a triangle mesh
+   
+		geometry::ChTriangleMeshSoup temp_trianglemesh; 
+		
+    // TODO: fill the triangleMesh here with some track shoe geometry
+
+		m_shoes[track_idx]->GetCollisionModel()->SetSafeMargin(0.004);	// inward safe margin
+		m_shoes[track_idx]->GetCollisionModel()->SetEnvelope(0.010);		// distance of the outward "collision envelope"
+		m_shoes[track_idx]->GetCollisionModel()->ClearModel();
+
+    // is there an offset??
+    double shoelength = 0.2;
+    ChVector<> mesh_displacement(shoelength*0.5,0,0);  // since mesh origin is not in body center of mass
+    m_shoes[track_idx]->GetCollisionModel()->AddTriangleMesh(temp_trianglemesh, false, false, mesh_displacement);
+
+    break;
+  }
+  case CollisionType::CONVEXHULL:
+  {
+    // use convex hulls, loaded from file
+    ChStreamInAsciiFile chull_file(GetChronoDataFile("track_data/M113/shoe_collision.chulls").c_str());
+    // transform the collision geometry as needed
+    double mangle = 45.0; // guess
+    ChQuaternion<>rot;
+    rot.Q_from_AngAxis(mangle*(CH_C_PI/180.),VECT_X);
+    ChMatrix33<> rot_offset(rot);
+    ChVector<> disp_offset(0,0,0);  // no displacement offset
+    m_shoes[track_idx]->GetCollisionModel()->AddConvexHullsFromFile(chull_file, disp_offset, rot_offset);
+    break;
+  }
+  } // end switch
+
+  m_shoes[track_idx]->GetCollisionModel()->BuildModel();
 
 }
 
