@@ -65,23 +65,10 @@ void ChSystemParallelDEM::UpdateBodies()
 
 #pragma omp parallel for
   for (int i = 0; i < bodylist.size(); i++) {
-    bodylist[i]->UpdateTime(ChTime);
-    //bodylist[i]->TrySleeping();     // See if the body can fall asleep; if so, put it to sleeping
-    //bodylist[i]->ClampSpeed();      // Apply limits (if in speed clamping mode) to speeds.
-    bodylist[i]->ComputeGyro();     // Set the gyroscopic momentum.
-    bodylist[i]->UpdateForces(ChTime);
-    bodylist[i]->VariablesFbReset();
+    bodylist[i]->Update(ChTime);
     bodylist[i]->VariablesFbLoadForces(GetStep());
     bodylist[i]->VariablesQbLoadSpeed();
-  }
 
-  for (int i = 0; i < bodylist.size(); i++) {
-    bodylist[i]->UpdateMarkers(ChTime);
-    //bodylist[i]->InjectVariables(*this->LCP_descriptor);
-  }
-
-#pragma omp parallel for
-  for (int i = 0; i < bodylist.size(); i++) {
     ChMatrix<>&     qb = bodylist[i]->Variables().Get_qb();
     ChMatrix<>&     fb = bodylist[i]->Variables().Get_fb();
     ChVector<>&     pos = bodylist[i]->GetPos();
