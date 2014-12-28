@@ -48,7 +48,7 @@ class CH_SUBSYS_API TrackVehicle : public ChSystem
 public:
 
   TrackVehicle(bool fixed = false, VisualizationType chassisVis = VisualizationType::PRIMITIVES,
-    CollisionType chassisCollide = CollisionType::MESH);
+    CollisionType chassisCollide = CollisionType::PRIMITIVES);
 
   ~TrackVehicle() {}
 
