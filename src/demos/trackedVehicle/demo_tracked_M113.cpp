@@ -55,10 +55,14 @@ using namespace chrono;
 using namespace irr;    
 using namespace core;
 
+// =============================================================================
+// User Settings
+// =============================================================================
+// display the 1) system heirarchy, 2) a set of subsystem hardpoints, 3) constraint violations
+// #define DEBUG_LOG 
 
-// // Initial vehicle position. Defines the REF frame for the hull body
+// // Initial vehicle position and heading. Defines the REF frame for the hull body
 ChVector<> initLoc(0, 1.0, 0);
-// Initial vehicle orientation or REF frame
 ChQuaternion<> initRot(1, 0, 0, 0);
 
 //ChQuaternion<> initRot(0.866025, 0, 0, 0.5);
@@ -92,6 +96,8 @@ double output_step_size = 1.0 / 1;    // once a second
 
 int main(int argc, char* argv[])
 {
+  // --------------------------
+  // Create the tracked vehicle and the ground/environment
 
   // The vehicle inherits ChSystem. Input chassis visual and collision type
 	TrackVehicle vehicle("name", 
@@ -111,6 +117,9 @@ int main(int argc, char* argv[])
   groundColor->SetColor(ChColor(0.4f, 0.4f, 0.6f));
   ground->AddAsset(groundColor);
   vehicle.Add(ground);  // add this body to the system, which is the vehicle
+
+  // --------------------------
+  // Setup the Irrlicht GUI
 
 /*
 #ifdef USE_IRRLICHT
@@ -138,7 +147,7 @@ int main(int argc, char* argv[])
       map_skybox_side,
       map_skybox_side,
       map_skybox_side);
-  mbox->setRotation( irr::core::vector3df(90,0,0));  // if z-up, rotate skybox
+  mbox->setRotation( irr::core::vector3df(90,0,0));  // rotate skybox for z-up 
   */
  
   bool do_shadows = true; // shadow map is experimental
@@ -183,7 +192,7 @@ int main(int argc, char* argv[])
 
 
   // ---------------------
-  // Simulation loop
+  // GUI and render settings
 
   // GUI driver inputs
   std::vector<double> throttle_input;
@@ -196,13 +205,18 @@ int main(int argc, char* argv[])
   // Number of simulation steps between two output frames
   int output_steps = (int)std::ceil(output_step_size / step_size);
 
+  // ---------------------
+  // Simulation loop
+#ifdef DEBUG_LOG
+  GetLog() << "\n\n============ System Configuration ============\n";
+  vehicle.ShowHierarchy(GetLog() );
+#endif
+
+
   // Initialize simulation frame counter and simulation time
   int step_number = 0;
   double time = 0;
-
   ChRealtimeStepTimer realtime_timer;
-
-  double sum_sim_time = 0;
   while (application.GetDevice()->run())
 	{ 
 		// keep track of the time spent calculating each sim step
