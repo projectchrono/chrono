@@ -146,10 +146,21 @@ void TrackVehicle::AddVisualization()
   switch (m_vis) {
   case VisualizationType::PRIMITIVES:
   {
-    ChSharedPtr<ChSphereShape> sphere(new ChSphereShape);
-    sphere->GetSphereGeometry().rad = 0.1;
-    sphere->Pos = m_COM;
-    m_chassis->AddAsset(sphere);
+    // put a sphere at the chassis COM and at the REF point
+    ChSharedPtr<ChSphereShape> COMsphere(new ChSphereShape);
+    COMsphere->GetSphereGeometry().rad = 0.1;
+    COMsphere->Pos = m_COM;
+    // make the COM sphere blue
+    COMsphere->SetColor(ChColor(0.1f, 0.2f, 0.8f));
+    m_chassis->AddAsset(COMsphere);
+    
+   
+    ChSharedPtr<ChSphereShape> REFsphere(new ChSphereShape);
+    REFsphere->GetSphereGeometry().rad = 0.1;
+    REFsphere->Pos = ChVector<>(0,0,0); // REF should be at the body c-sys origin
+    // make the REF sphere red
+    REFsphere->SetColor(ChColor(0.8f, 0.2f, 0.1f));
+    m_chassis->AddAsset(REFsphere);
 
     break;
   }
