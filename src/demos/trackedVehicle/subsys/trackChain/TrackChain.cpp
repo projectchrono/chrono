@@ -172,7 +172,7 @@ void TrackChain::AddCollisionGeometry(size_t track_idx)
   // set collision family
   m_shoes[track_idx]->GetCollisionModel()->SetFamily( (int)CollisionFam::SHOES);
   // don't collide with other shoes, but with everything else
-  m_shoes[track_idx]->GetCollisionModel()->SetFamilyMaskNoCollisionWithFamily( (int)CollisionFam::SHOES) );
+  m_shoes[track_idx]->GetCollisionModel()->SetFamilyMaskNoCollisionWithFamily( (int)CollisionFam::SHOES );
 
   m_shoes[track_idx]->GetCollisionModel()->BuildModel();
 
