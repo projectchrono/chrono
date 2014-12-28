@@ -68,9 +68,12 @@ public:
   ChMatrix<>* GetC() { return m_C; }
 
   /// Initialize this joint by specifying the two bodies to be connected and a
-  /// joint frame specified in the absolute frame. The universal joint is
-  /// constructed such that ... 
-
+  /// joint frame specified in the absolute frame. Two local joint frames, one
+  /// on each body, are constructed so that they coincide with the specified
+  /// global joint frame at the current configuration. The kinematics of the
+  /// universal joint are obtained by imposing that the origins of these two
+  /// frames are the same and that the X axis of the joint frame on body 1 and
+  /// the Y axis of the joint frame on body 2 are perpendicular.
   void Initialize(
     ChSharedPtr<ChBodyFrame> body1,   ///< first body frame
     ChSharedPtr<ChBodyFrame> body2,   ///< second body frame
