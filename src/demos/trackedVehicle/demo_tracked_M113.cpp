@@ -12,6 +12,7 @@
 //   A tracked vehicle, M113, built and simulated using the trackedVehicle library.
 //   Build the vehicle using a hierarchy of subsystems.
 //   Simulate by GUI input to an irrlicht EventReceiver.
+//   Y-up, X-forward, Z-lateral global c-sys
 //    - similar to demo_tracks:
 //     - model track shoes with simple or complex collision geometry
 //     - using clones of collision shapes
@@ -55,10 +56,11 @@ using namespace irr;
 using namespace core;
 
 
-// // Initial vehicle position
+// // Initial vehicle position. Defines the REF frame for the hull body
 ChVector<> initLoc(0, 1.0, 0);
-// Initial vehicle orientation
+// Initial vehicle orientation or REF frame
 ChQuaternion<> initRot(1, 0, 0, 0);
+
 //ChQuaternion<> initRot(0.866025, 0, 0, 0.5);
 //ChQuaternion<> initRot(0.7071068, 0, 0, 0.7071068);
 //ChQuaternion<> initRot(0.25882, 0, 0, 0.965926);
@@ -75,7 +77,7 @@ double output_step_size = 1.0 / 1;    // once a second
 
 // #ifdef USE_IRRLICHT
   // Point on chassis tracked by the camera
-  ChVector<> trackPoint(0.0, 0.0, .75);
+  ChVector<> trackPoint(0.0, 1.0, 0);
   /*
 #else
   double tend = 20.0;
@@ -94,24 +96,21 @@ int main(int argc, char* argv[])
   // The vehicle inherits ChSystem. Input chassis visual and collision type
 	TrackVehicle vehicle("name", 
     VisualizationType::PRIMITIVES,
-    CollisionType::MESH);
+    CollisionType::PRIMITIVES);
   
   // set the chassis REF at the specified initial config.
   vehicle.Initialize(ChCoordsys<>(initLoc, initRot));
-
 
   // ground is a large flat plate, with superimposed obstacles
   ChSharedPtr<ChBody> ground(new ChBodyEasyBox(60.0, 1.0, 100.0, 1000.0, true, true));
 	ground->SetIdentifier(-1);
   ground->SetName("ground");
   ground->SetFriction(1.0);
-  // texture asset for the ground
+  // color asset for the ground
   ChSharedPtr<ChColorAsset> groundColor(new ChColorAsset);
   groundColor->SetColor(ChColor(0.4f, 0.4f, 0.6f));
   ground->AddAsset(groundColor);
   vehicle.Add(ground);  // add this body to the system, which is the vehicle
-
-
 
 /*
 #ifdef USE_IRRLICHT
@@ -122,8 +121,10 @@ int main(int argc, char* argv[])
                       dimension2d<u32>(1000, 800),
                       false,
                       true);
-	
-  // make a skybox that has Z pointing up (default application.AddTypicalSky() makes Y up) 
+  // assumes Y-up
+  application.AddTypicalSky();
+  /*
+  // a skybox that has Z pointing up (default application.AddTypicalSky() makes Y up) 
   std::string mtexturedir = GetChronoDataFile("skybox/");
   std::string str_lf = mtexturedir + "sky_lf.jpg";
   std::string str_up = mtexturedir + "sky_up.jpg";
@@ -137,7 +138,8 @@ int main(int argc, char* argv[])
       map_skybox_side,
       map_skybox_side,
       map_skybox_side);
-  mbox->setRotation( irr::core::vector3df(0,0,0));
+  mbox->setRotation( irr::core::vector3df(90,0,0));  // if z-up, rotate skybox
+  */
  
   bool do_shadows = true; // shadow map is experimental
   irr::scene::ILightSceneNode* mlight = 0;
@@ -145,15 +147,15 @@ int main(int argc, char* argv[])
   if (do_shadows)
   {
     mlight = application.AddLightWithShadow(
-      irr::core::vector3df(10.f, 30.f, 60.f),
+      irr::core::vector3df(10.f, 60.f, 30.f),
       irr::core::vector3df(0.f, 0.f, 0.f),
       150, 60, 80, 15, 512, irr::video::SColorf(1, 1, 1), false, false);
   }
   else
   {
     application.AddTypicalLights(
-      irr::core::vector3df(30.f, -30.f, 100.f),
-      irr::core::vector3df(30.f, 50.f, 100.f),
+      irr::core::vector3df(30.f, 100.f, 30.f),
+      irr::core::vector3df(30.f, 100.f, 50.f),
       250, 130);
   }
 
@@ -184,9 +186,9 @@ int main(int argc, char* argv[])
   // Simulation loop
 
   // GUI driver inputs
-  std::vector<double>   throttle_input;
-  std::vector<double>   braking_input;
-  double   steering_input;
+  std::vector<double> throttle_input;
+  std::vector<double> braking_input;
+  double steering_input;
 
   // Number of simulation steps between two 3D view render frames
   int render_steps = (int)std::ceil(render_step_size / step_size);
