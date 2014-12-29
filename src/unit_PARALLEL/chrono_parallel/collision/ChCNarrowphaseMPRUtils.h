@@ -172,6 +172,21 @@ inline real3 GetSupportPoint_RoundedCone(const real3 &B,
    return GetSupportPoint_Cone(B, n) + GetSupportPoint_Sphere(R3(C.x), n);
 
 }
+
+inline real3 GetSupportPoint_Convex(const real3& B, const real3* convex_data, const real3& n) {
+  real max_dot_p = -LARGE_REAL;
+  real dot_p;
+  real3 point = convex_data[int(B.y)];
+  for (int i = B.y; i < B.y + B.x; i++) {
+    dot_p = convex_data[i].dot(n);
+    if (dot_p > max_dot_p) {
+      max_dot_p = dot_p;
+      point = convex_data[i];
+    }
+  }
+  return point + n * B.z;
+}
+
 inline real3 GetCenter_Sphere() {
    return ZERO_VECTOR;
 }
@@ -227,6 +242,9 @@ inline real3 SupportVert(const chrono::collision::ConvexShape &Shape,
          break;
       case chrono::collision::ROUNDEDCONE:
          localSupport = GetSupportPoint_RoundedCone(Shape.B, Shape.C, n);
+         break;
+      case chrono::collision::CONVEX:
+            localSupport = GetSupportPoint_Convex(Shape.B, Shape.convex, n);
          break;
    }
 
