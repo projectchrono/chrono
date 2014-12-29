@@ -149,6 +149,7 @@ struct host_container {
    thrust::host_vector<int> typ_rigid;
    thrust::host_vector<uint> id_rigid;
    thrust::host_vector<real3> aabb_rigid;
+   custom_vector<real3> convex_data;
 
    //contact data
    thrust::host_vector<real3> norm_rigid_rigid;
