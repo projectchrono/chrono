@@ -39,6 +39,74 @@ TrackPowertrain::TrackPowertrain(const std::string& name,
   m_last_time_gearshift(0),
   m_gear_shift_latency(0.5)
 {
+  // hard-code gear ratios
+  SetGearRatios(m_gear_ratios);
+  assert(m_gear_ratios.size() > 1);
+  m_current_gear = 1;
+
+  //  1 d.o.f. object: a 'shaft' with rotational inertia.
+  // In this case it is the motor block. This because the ChShaftsThermalEngine
+  // needs two 1dof items to apply the torque in-between them (the other will be
+  // the crankshaft). In simplier models, one could just use SetShaftFixed() on
+  // this object, but here we prefer to leave it free and use a ChShaftsBody
+  // constraint to connect it to the car chassis (so the car can 'roll' when 
+  // pressing the throttle, like in muscle cars)
+  m_motorblock = ChSharedPtr<ChShaft>(new ChShaft);
+  m_motorblock->SetInertia(GetMotorBlockInertia());
+
+  // connection between the motor block and the 3D rigid body that
+  // represents the chassis. This allows to get the effect of the car 'rolling'
+  // when the longitudinal engine accelerates suddenly.
+  m_motorblock_to_body = ChSharedPtr<ChShaftsBody>(new ChShaftsBody);
+
+  // crankshaft plus flywheel.
+  m_crankshaft = ChSharedPtr<ChShaft>(new ChShaft);
+  m_crankshaft->SetInertia(GetCrankshaftInertia());
+
+  // thermal engine model beteen motor block and crankshaft (both
+  // receive the torque, but with opposite sign).
+  m_engine = ChSharedPtr<ChShaftsThermalEngine>(new ChShaftsThermalEngine);
+
+  // The thermal engine requires a torque curve: 
+  ChSharedPtr<ChFunction_Recorder> mTw(new ChFunction_Recorder);
+  SetEngineTorqueMap(mTw);
+  m_engine->SetTorqueCurve(mTw);
+
+  // engine brake model that represents the losses of the engine because
+  // of inner frictions/turbolences/etc. Without this, the engine at 0% throttle
+  // in neutral position would rotate forever at contant speed.
+  m_engine_losses = ChSharedPtr<ChShaftsThermalEngine>(new ChShaftsThermalEngine);
+
+  
+  // The engine brake model requires a torque curve: 
+  ChSharedPtr<ChFunction_Recorder> mTw_losses(new ChFunction_Recorder);
+  SetEngineLossesMap(mTw_losses);
+  m_engine_losses->SetTorqueCurve(mTw_losses);
+
+  // This represents the shaft that collects all inertias from torque converter to the gear.
+  m_shaft_ingear = ChSharedPtr<ChShaft>(new ChShaft);
+  m_shaft_ingear->SetInertia(GetIngearShaftInertia());
+
+  // torque converter and connect the shafts: 
+  // A (input),B (output), C(truss stator). 
+  // The input is the m_crankshaft, output is m_shaft_ingear; for stator, reuse the motor block 1D item.
+  m_torqueconverter = ChSharedPtr<ChShaftsTorqueConverter>(new ChShaftsTorqueConverter);
+
+   // To complete the setup of the torque converter, a capacity factor curve is needed:
+  ChSharedPtr<ChFunction_Recorder> mK(new ChFunction_Recorder);
+  SetTorqueConverterCapacityFactorMap(mK);
+  m_torqueconverter->SetCurveCapacityFactor(mK);
+   // To complete the setup of the torque converter, a torque ratio curve is needed:	
+  ChSharedPtr<ChFunction_Recorder> mT(new ChFunction_Recorder);
+  SetTorqeConverterTorqueRatioMap(mT);
+  m_torqueconverter->SetCurveTorqueRatio(mT);
+
+  
+  // gearbox, i.e a transmission ratio constraint between two
+  // shafts. Note that differently from the basic ChShaftsGear, this also provides
+  // the possibility of transmitting a reaction torque
+  m_gears = ChSharedPtr<ChShaftsGearbox>(new ChShaftsGearbox);
+  m_gears->SetTransmissionRatio(m_gear_ratios[m_current_gear]);
 }
 
 
@@ -51,103 +119,45 @@ void TrackPowertrain::Initialize(ChSharedPtr<ChBody>  chassis,
 
   ChSystem* my_system = chassis->GetSystem();
 
-
-  // Let the derived class specify the gear ratios
-  SetGearRatios(m_gear_ratios);
-  assert(m_gear_ratios.size() > 1);
-  m_current_gear = 1;
-
-  // CREATE  a 1 d.o.f. object: a 'shaft' with rotational inertia.
-  // In this case it is the motor block. This because the ChShaftsThermalEngine
-  // needs two 1dof items to apply the torque in-between them (the other will be
-  // the crankshaft). In simplier models, one could just use SetShaftFixed() on
-  // this object, but here we prefer to leave it free and use a ChShaftsBody
-  // constraint to connect it to the car chassis (so the car can 'roll' when 
-  // pressing the throttle, like in muscle cars)
-  m_motorblock = ChSharedPtr<ChShaft>(new ChShaft);
-  m_motorblock->SetInertia(GetMotorBlockInertia());
+  // add motor block shaft to system
   my_system->Add(m_motorblock);
 
-
-  // CREATE  a connection between the motor block and the 3D rigid body that
-  // represents the chassis. This allows to get the effect of the car 'rolling'
-  // when the longitudinal engine accelerates suddenly.
-  m_motorblock_to_body = ChSharedPtr<ChShaftsBody>(new ChShaftsBody);
+  // initialize connection, add to system
   m_motorblock_to_body->Initialize(m_motorblock,
                                    chassis,
                                    m_dir_motor_block);
   my_system->Add(m_motorblock_to_body);
 
-  // CREATE  a 1 d.o.f. object: a 'shaft' with rotational inertia.
-  // This represents the crankshaft plus flywheel.
-  m_crankshaft = ChSharedPtr<ChShaft>(new ChShaft);
-  m_crankshaft->SetInertia(GetCrankshaftInertia());
+ // add the crankshaft to the system
   my_system->Add(m_crankshaft);
   
-
-  // CREATE  a thermal engine model beteen motor block and crankshaft (both
-  // receive the torque, but with opposite sign).
-  m_engine = ChSharedPtr<ChShaftsThermalEngine>(new ChShaftsThermalEngine);
+  // init. engine between motor block and crankshaft. Add to system.
   m_engine->Initialize(m_crankshaft,
                        m_motorblock);
   my_system->Add(m_engine);
-    // The thermal engine requires a torque curve: 
-  ChSharedPtr<ChFunction_Recorder> mTw(new ChFunction_Recorder);
-  SetEngineTorqueMap(mTw);
-  m_engine->SetTorqueCurve(mTw);
 
-  // CREATE  an engine brake model that represents the losses of the engine because
-  // of inner frictions/turbolences/etc. Without this, the engine at 0% throttle
-  // in neutral position would rotate forever at contant speed.
-  m_engine_losses = ChSharedPtr<ChShaftsThermalEngine>(new ChShaftsThermalEngine);
+  // init. engine brake
   m_engine_losses->Initialize(m_crankshaft,
                               m_motorblock);
   my_system->Add(m_engine_losses);
-    // The engine brake model requires a torque curve: 
-  ChSharedPtr<ChFunction_Recorder> mTw_losses(new ChFunction_Recorder);
-  SetEngineLossesMap(mTw_losses);
-  m_engine_losses->SetTorqueCurve(mTw_losses);
 
-
-  // CREATE  a 1 d.o.f. object: a 'shaft' with rotational inertia.
-  // This represents the shaft that collects all inertias from torque converter to the gear.
-  m_shaft_ingear = ChSharedPtr<ChShaft>(new ChShaft);
-  m_shaft_ingear->SetInertia(GetIngearShaftInertia());
+  // add gear shaft to system
   my_system->Add(m_shaft_ingear);
 
-
-  // CREATE a torque converter and connect the shafts: 
-  // A (input),B (output), C(truss stator). 
-  // The input is the m_crankshaft, output is m_shaft_ingear; for stator, reuse the motor block 1D item.
-  m_torqueconverter = ChSharedPtr<ChShaftsTorqueConverter>(new ChShaftsTorqueConverter);
+  // init. torque converter, add to system.
   m_torqueconverter->Initialize(m_crankshaft,
                                 m_shaft_ingear,
                                 m_motorblock);
   my_system->Add(m_torqueconverter);
-   // To complete the setup of the torque converter, a capacity factor curve is needed:
-  ChSharedPtr<ChFunction_Recorder> mK(new ChFunction_Recorder);
-  SetTorqueConverterCapacityFactorMap(mK);
-  m_torqueconverter->SetCurveCapacityFactor(mK);
-   // To complete the setup of the torque converter, a torque ratio curve is needed:	
-  ChSharedPtr<ChFunction_Recorder> mT(new ChFunction_Recorder);
-  SetTorqeConverterTorqueRatioMap(mT);
-  m_torqueconverter->SetCurveTorqueRatio(mT);
 
-
-  // CREATE a gearbox, i.e a transmission ratio constraint between two
-  // shafts. Note that differently from the basic ChShaftsGear, this also provides
-  // the possibility of transmitting a reaction torque to the box (the truss).
-  m_gears = ChSharedPtr<ChShaftsGearbox>(new ChShaftsGearbox);
+  // init. gearbox shaft, add it to the system
   m_gears->Initialize(m_shaft_ingear,
                       driveshaft,
                       chassis,
                       m_dir_motor_block);
-  m_gears->SetTransmissionRatio(m_gear_ratios[m_current_gear]);
   my_system->Add(m_gears);
 
-
-  // -------
-  // Finally, update the gear ratio according to the selected gear in the 
+  // update the gear ratio according to the selected gear in the 
   // array of gear ratios:
   SetSelectedGear(1);
 }
