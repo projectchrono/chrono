@@ -61,6 +61,7 @@ IdlerSimple::IdlerSimple(const std::string& name,
   m_idler->SetMass(m_mass);
   m_idler->SetInertiaXX(m_inertia);
 
+  AddVisualization();
  
 }
 
@@ -91,7 +92,13 @@ void IdlerSimple::AddVisualization()
     ChVector<> p2(0, 0, -m_width/2.0);
     cyl->GetCylinderGeometry().p1 = p1;
     cyl->GetCylinderGeometry().p2 = p2;
+    cyl->GetCylinderGeometry().rad = m_radius;
     m_idler->AddAsset(cyl);
+
+    // add a color asset
+    ChSharedPtr<ChColorAsset> mcolor(new ChColorAsset(0.5f, 0.1f, 0.4f));
+    m_idler->AddAsset(mcolor);
+
     break;
   }
    case VisualizationType::MESH:
@@ -104,6 +111,7 @@ void IdlerSimple::AddVisualization()
     trimesh_shape->SetName(getMeshName());
     m_idler->AddAsset(trimesh_shape);
 
+    // add a color asset
     ChSharedPtr<ChColorAsset> mcolor(new ChColorAsset(0.5f, 0.1f, 0.4f));
     m_idler->AddAsset(mcolor);
 

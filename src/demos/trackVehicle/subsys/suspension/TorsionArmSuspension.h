@@ -65,6 +65,7 @@ private:
   // private variables
   ChSharedPtr<ChBody> m_arm;  ///< arm body
   ChSharedPtr<ChLinkLockRevolute> m_armChassis_rev; ///< arm-chassis revolute joint
+
   // shock absorber, a torsional spring connected to two 1-D shafts
   ChSharedPtr<ChShaft> m_shaft_chassis; ///< rigidly connected to chassis, torsional spring
   ChSharedPtr<ChShaftsBody> m_shaft_chassis_connection; ///< connects shaft to chassis

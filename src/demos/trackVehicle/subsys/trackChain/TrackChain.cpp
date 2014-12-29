@@ -50,12 +50,18 @@ const double TrackChain::m_pin_radius = 0.05;
 TrackChain::TrackChain(const std::string& name, 
                        VisualizationType vis, 
                        CollisionType collide)
-                       : m_vis(vis), m_collide(collide)
+                       : m_vis(vis), m_collide(collide), m_numShoes(0)
 {
+  // clear vector holding list of body handles
   m_shoes.clear();
+  // add first track shoe body
   m_shoes.push_back(ChSharedPtr<ChBody>(new ChBody));
+  m_shoes[0]->SetNameString("shoe 0, "+name);
+  m_shoes[0]->SetMass(m_mass);
+  m_shoes[0]->SetInertiaXX(m_inertia);
+  m_numShoes++;
 
-  // Attach visualization to the base track shoe (e.g., m_shoes[0] )
+  // Attach visualization to the base track shoe
   AddVisualization(0);
 
 
