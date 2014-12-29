@@ -342,7 +342,7 @@ bool TestLinActuator(
   case utils::PARALLEL_DVI: plate_ptr = new ChBody(new ChCollisionModelParallel); break;
   }
   ChSharedPtr<ChBody> plate(plate_ptr);
-  ground_ptr->AddRef();
+  plate_ptr->AddRef();
 
   msystem->AddBody(plate);
   plate->SetPos(ChVector<>(0, 0, 0));
@@ -434,9 +434,6 @@ int main(int argc, char* argv[])
 {
   // No animation by default (i.e. when no program arguments)
   bool animate = (argc > 1);
-
-  // Set the simulation step size
-  double sim_step = 1e-3;
 
   bool test_passed = true;
 

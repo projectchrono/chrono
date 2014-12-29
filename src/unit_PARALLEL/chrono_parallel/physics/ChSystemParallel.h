@@ -27,6 +27,7 @@
 
 #include "physics/ChSystem.h"
 #include "physics/ChBody.h"
+#include "physics/ChBodyAuxRef.h"
 #include "physics/ChBodyDEM.h"
 #include "physics/ChContactDEM.h"
 #include "physics/ChGlobal.h"

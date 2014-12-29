@@ -244,11 +244,8 @@ void ChOpenGLViewer::DrawObject(
       return;
    }
 
-   const Vector pos = abody->GetPos();
-   const Vector vel = abody->GetPos_dt();
-   const Vector acc = abody->GetPos_dtdt();
-
-   Quaternion rot = abody->GetRot();
+   const Vector pos = abody->GetFrame_REF_to_abs().GetPos();
+   Quaternion rot = abody->GetFrame_REF_to_abs().GetRot();
    double angle;
    Vector axis;
    rot.Q_to_AngAxis(angle, axis);
@@ -256,8 +253,10 @@ void ChOpenGLViewer::DrawObject(
    for (int i = 0; i < abody->GetAssets().size(); i++) {
 
       ChSharedPtr<ChAsset> asset = abody->GetAssets().at(i);
+      ChSharedPtr<ChVisualization> visual_asset = asset.DynamicCastTo<ChVisualization>();
+      if (visual_asset.IsNull())
+        continue;
 
-      ChVisualization* visual_asset = ((ChVisualization *) (asset.get_ptr()));
       Vector center = visual_asset->Pos;
       center = rot.Rotate(center);
       Quaternion lrot = visual_asset->Rot.Get_A_quaternion();
