@@ -35,7 +35,8 @@ const ChQuaternion<> TrackSystem::m_gearRot(QUNIT);
   
 // Support rollers
 const int TrackSystem::m_numRollers = 0;
-const double TrackSystem::m_rollerMass = 100.0;
+const double TrackSystem::m_roller_mass = 100.0;
+const ChVector<> TrackSystem::m_roller_inertia(19.82, 19.82, 26.06);  // rotates about z-axis initially
 const double TrackSystem::m_roller_radius = 0.2;
 const double TrackSystem::m_roller_width = 0.2;
   
@@ -145,6 +146,8 @@ void TrackSystem::BuildSubsystems()
   {
     m_supportRollers[j] = ChSharedPtr<ChBody>(new ChBody);
     m_supportRollers[j]->SetNameString("support roller"+std::to_string(j)+", chain "+std::to_string(m_track_idx) );
+    m_supportRollers[j]->SetMass(m_roller_mass);
+    m_supportRollers[j]->SetInertiaXX(m_roller_inertia);
   }
 
 }
@@ -213,7 +216,6 @@ void TrackSystem::initialize_roller(ChSharedPtr<ChBody> body, ChSharedPtr<ChBody
 
   body->SetPos(loc);
   body->SetRot(rot);
-  body->SetMass(m_rollerMass);
 
   // transform point to absolute frame and initialize
 

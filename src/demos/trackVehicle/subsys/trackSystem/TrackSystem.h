@@ -81,7 +81,8 @@ private:
   
   // Support rollers
   static const int m_numRollers;
-  static const double m_rollerMass;
+  static const double m_roller_mass;
+  static const ChVector<> m_roller_inertia;
   static const double m_roller_radius;
   static const double m_roller_width;
   std::vector<ChVector<> > m_rollerLocs;  ///< relative to the Tracksys _REF c-sys
