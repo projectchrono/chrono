@@ -11,27 +11,28 @@ namespace chrono {
 namespace collision {
 
 void ChCNarrowphaseDispatch::Process(ChParallelDataManager* data_container) {
-
+   //======== Collision output data for rigid contacts
    custom_vector<real3>& norm_data = data_container->host_data.norm_rigid_rigid;
    custom_vector<real3>& cpta_data = data_container->host_data.cpta_rigid_rigid;
    custom_vector<real3>& cptb_data = data_container->host_data.cptb_rigid_rigid;
    custom_vector<real>& dpth_data = data_container->host_data.dpth_rigid_rigid;
    custom_vector<real>& erad_data = data_container->host_data.erad_rigid_rigid;
    custom_vector<int2>& bids_data = data_container->host_data.bids_rigid_rigid;
-
+   //======== Collision model data
    custom_vector<int> & obj_data_T = data_container->host_data.typ_rigid;
    custom_vector<real3> & obj_data_A = data_container->host_data.ObA_rigid;
    custom_vector<real3> & obj_data_B = data_container->host_data.ObB_rigid;
    custom_vector<real3> & obj_data_C = data_container->host_data.ObC_rigid;
    custom_vector<real4> & obj_data_R = data_container->host_data.ObR_rigid;
    custom_vector<uint> & obj_data_ID = data_container->host_data.id_rigid;
-
+   custom_vector<real3>& convex_data = data_container->host_data.convex_data;
+   //======== Body state information
    custom_vector<bool> & obj_active = data_container->host_data.active_data;
    custom_vector<real3> & body_pos = data_container->host_data.pos_data;
    custom_vector<real4> & body_rot = data_container->host_data.rot_data;
-
+   //======== Broadphase information
    custom_vector<long long> & potentialCollisions = data_container->host_data.pair_rigid_rigid;
-
+   //======== Indexing variables and other information
    collision_envelope = data_container->settings.collision.collision_envelope;
    uint & number_of_contacts = data_container->num_contacts;
    narrowphase_algorithm = data_container->settings.collision.narrowphase_algorithm;
@@ -56,9 +57,10 @@ void ChCNarrowphaseDispatch::Process(ChParallelDataManager* data_container) {
    obj_data_A_global = obj_data_A;  //.resize(num_shapes);
    obj_data_B_global = obj_data_B;  //.resize(num_shapes);
    obj_data_C_global = obj_data_C;  //.resize(num_shapes);
+   convex_data_global = convex_data;    //.resize(num_shapes); //NOT USED RIGHT NOW
    //Transform to global coordinate system
    PreprocessLocalToParent(num_shapes, obj_data_T.data(), obj_data_A.data(), obj_data_B.data(), obj_data_C.data(), obj_data_R.data(), obj_data_ID.data(), obj_active.data(),
-                           body_pos.data(), body_rot.data(), obj_data_A_global.data(), obj_data_B_global.data(), obj_data_C_global.data());
+                           body_pos.data(), body_rot.data(), obj_data_A_global.data(), obj_data_B_global.data(), obj_data_C_global.data(), convex_data_global.data());
 
    contact_index.resize(num_potentialCollisions);
 
@@ -82,7 +84,7 @@ void ChCNarrowphaseDispatch::Process(ChParallelDataManager* data_container) {
    erad_data.resize(num_potentialContacts);
    bids_data.resize(num_potentialContacts);
 
-   Dispatch(obj_data_T.data(), obj_data_A_global.data(), obj_data_B_global.data(), obj_data_C_global.data(), obj_data_R.data(), obj_data_ID.data(), obj_active.data(),
+   Dispatch(obj_data_T.data(), obj_data_A_global.data(), obj_data_B_global.data(), obj_data_C_global.data(), obj_data_R.data(), obj_data_ID.data(),convex_data.data(), obj_active.data(),
             body_pos.data(), body_rot.data(), potentialCollisions.data(), contact_index.data(), 
             contact_active.data(), norm_data.data(), cpta_data.data(), cptb_data.data(),
             dpth_data.data(), erad_data.data(), bids_data.data());
@@ -216,6 +218,7 @@ bool host_Dispatch_Init(const uint &index,
                         const real3 *obj_data_C,
                         const real4 *obj_data_R,
                         const uint *obj_data_ID,
+						 real3* convex_data,
                         const bool * obj_active,
                         const real3 *body_pos,
                         const real4 *body_rot,
@@ -294,6 +297,7 @@ void host_DispatchMPR(const uint &index,
                       const real3 *obj_data_C,
                       const real4 *obj_data_R,
                       const uint *obj_data_ID,
+					  real3* convex_data,
                       const bool * obj_active,
                       const real3 *body_pos,
                       const real4 *body_rot,
@@ -312,7 +316,7 @@ void host_DispatchMPR(const uint &index,
    uint ID_A, ID_B, icoll;
    ConvexShape shapeA, shapeB;
 
-   if (!host_Dispatch_Init(index, obj_data_T, obj_data_A, obj_data_B, obj_data_C, obj_data_R, obj_data_ID, obj_active, body_pos, body_rot, contact_pair, start_index, icoll, ID_A,
+   if (!host_Dispatch_Init(index, obj_data_T, obj_data_A, obj_data_B, obj_data_C, obj_data_R, obj_data_ID,convex_data, obj_active, body_pos, body_rot, contact_pair, start_index, icoll, ID_A,
                            ID_B, shapeA, shapeB)) {
       return;
    }
@@ -374,6 +378,7 @@ void host_DispatchHybridMPR(const uint &index,
                             const real3 *obj_data_C,
                             const real4 *obj_data_R,
                             const uint *obj_data_ID,
+							real3* convex_data,
                             const bool * obj_active,
                             const real3 *body_pos,
                             const real4 *body_rot,
@@ -423,6 +428,7 @@ void ChCNarrowphaseDispatch::Dispatch(const shape_type *obj_data_T,
                                       const real3 *obj_data_C,
                                       const real4 *obj_data_R,
                                       const uint *obj_data_ID,
+									  real3* convex_data,
                                       const bool * obj_active,
                                       const real3 *body_pos,
                                       const real4 *body_rot,
@@ -440,7 +446,7 @@ void ChCNarrowphaseDispatch::Dispatch(const shape_type *obj_data_T,
       case NARROWPHASE_MPR:
 #pragma omp parallel for
          for (int index = 0; index < num_potentialCollisions; index++) {
-            host_DispatchMPR(index, obj_data_T, obj_data_A, obj_data_B, obj_data_C, obj_data_R, obj_data_ID, obj_active, body_pos, body_rot, collision_envelope, system_type,
+            host_DispatchMPR(index, obj_data_T, obj_data_A, obj_data_B, obj_data_C, obj_data_R, obj_data_ID,convex_data, obj_active, body_pos, body_rot, collision_envelope, system_type,
                              contact_pair, start_index, contact_active, norm, ptA, ptB, contactDepth, erad, ids);
          }
          break;
@@ -454,7 +460,7 @@ void ChCNarrowphaseDispatch::Dispatch(const shape_type *obj_data_T,
       case NARROWPHASE_HYBRID_MPR:
 #pragma omp parallel for
          for (int index = 0; index < num_potentialCollisions; index++) {
-            host_DispatchHybridMPR(index, obj_data_T, obj_data_A, obj_data_B, obj_data_C, obj_data_R, obj_data_ID, obj_active, body_pos, body_rot, collision_envelope, system_type,
+            host_DispatchHybridMPR(index, obj_data_T, obj_data_A, obj_data_B, obj_data_C, obj_data_R, obj_data_ID,convex_data, obj_active, body_pos, body_rot, collision_envelope, system_type,
                                    contact_pair, start_index, contact_active, norm, ptA, ptB, contactDepth, erad, ids);
          }
          break;
