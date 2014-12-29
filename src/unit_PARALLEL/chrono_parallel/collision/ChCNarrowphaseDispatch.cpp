@@ -204,7 +204,8 @@ void ChCNarrowphaseDispatch::PreprocessLocalToParent(const int num_shapes,
                                                      const real4 *body_rot,
                                                      real3 *obj_data_A_global,
                                                      real3 *obj_data_B_global,
-                                                     real3 *obj_data_C_global) {
+                                                     real3 *obj_data_C_global,
+													 real3 *convex_data_mod) {
 #pragma omp parallel for
    for (int index = 0; index < num_shapes; index++) {
       host_Preprocess(index, obj_data_T, obj_data_A, obj_data_B, obj_data_C, obj_data_ID, body_pos, body_rot, obj_data_A_global, obj_data_B_global, obj_data_C_global);
@@ -344,6 +345,7 @@ void host_DispatchR(const uint &index,
                     const real3 *obj_data_C,
                     const real4 *obj_data_R,
                     const uint *obj_data_ID,
+					real3* convex_data,
                     const bool * obj_active,
                     const real3 *body_pos,
                     const real4 *body_rot,
@@ -361,7 +363,7 @@ void host_DispatchR(const uint &index,
    uint ID_A, ID_B, icoll;
    ConvexShape shapeA, shapeB;
 
-   if (!host_Dispatch_Init(index, obj_data_T, obj_data_A, obj_data_B, obj_data_C, obj_data_R, obj_data_ID, obj_active, body_pos, body_rot, contact_pair, start_index, icoll, ID_A,
+   if (!host_Dispatch_Init(index, obj_data_T, obj_data_A, obj_data_B, obj_data_C, obj_data_R, obj_data_ID,convex_data, obj_active, body_pos, body_rot, contact_pair, start_index, icoll, ID_A,
                            ID_B, shapeA, shapeB)) {
       return;
    }
@@ -398,7 +400,7 @@ void host_DispatchHybridMPR(const uint &index,
    uint ID_A, ID_B, icoll;
    ConvexShape shapeA, shapeB;
 
-   if (!host_Dispatch_Init(index, obj_data_T, obj_data_A, obj_data_B, obj_data_C, obj_data_R, obj_data_ID, obj_active, body_pos, body_rot, contact_pair, start_index, icoll, ID_A,
+   if (!host_Dispatch_Init(index, obj_data_T, obj_data_A, obj_data_B, obj_data_C, obj_data_R, obj_data_ID,convex_data, obj_active, body_pos, body_rot, contact_pair, start_index, icoll, ID_A,
                            ID_B, shapeA, shapeB)) {
       return;
    }
@@ -455,7 +457,7 @@ void ChCNarrowphaseDispatch::Dispatch(const shape_type *obj_data_T,
       case NARROWPHASE_R:
 #pragma omp parallel for
          for (int index = 0; index < num_potentialCollisions; index++) {
-            host_DispatchR(index, obj_data_T, obj_data_A, obj_data_B, obj_data_C, obj_data_R, obj_data_ID, obj_active, body_pos, body_rot, collision_envelope, system_type,
+            host_DispatchR(index, obj_data_T, obj_data_A, obj_data_B, obj_data_C, obj_data_R, obj_data_ID,convex_data, obj_active, body_pos, body_rot, collision_envelope, system_type,
                            contact_pair, start_index, contact_active, norm, ptA, ptB, contactDepth, erad, ids);
          }
          break;
