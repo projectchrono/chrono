@@ -253,6 +253,8 @@ bool host_Dispatch_Init(const uint &index,
    shapeB.C = obj_data_C[pair.y];
    shapeA.R = (mult(rotA, obj_data_R[pair.x]));
    shapeB.R = (mult(rotB, obj_data_R[pair.y]));
+   shapeA.convex = convex_data;
+   shapeB.convex = convex_data;
 
    //// TODO: what is the best way to dispatch this?
    icoll = start_index[index];
