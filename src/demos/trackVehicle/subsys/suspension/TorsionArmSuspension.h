@@ -58,7 +58,7 @@ public:
 private:
 
   // private functions
-  void Create();
+  void Create(const std::string& name);
   void AddVisualization();
   void AddCollisionGeometry();
   
@@ -94,8 +94,9 @@ private:
 
   static const double m_springK;	// torsional spring constant
   static const double m_springC;	// torsional damping constant
-  static const ChVector<> m_TorquePreload;	// preload torque (x,y,z) in local coords, on the spring/damper
+  static const double m_TorquePreload;	// preload torque, on the spring/damper DOF
   
+  static const double m_shaft_inertia;
 };
 
 

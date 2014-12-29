@@ -22,6 +22,7 @@
 #include "subsys/ChApiSubsys.h"
 #include "physics/ChSystem.h"
 #include "physics/ChBodyAuxRef.h"
+#include "physics/ChShaftsBody.h"
 #include "ModelDefs.h"
 
 namespace chrono {
@@ -56,6 +57,10 @@ private:
   
   // private variables
   ChSharedPtr<ChBody> m_gear;
+  ChSharedPtr<ChShaft> m_axle;                  ///< handle to axle shaft
+  ChSharedPtr<ChShaftsBody>  m_axle_to_gear;    ///< handle to gear-shaft connector
+  ChSharedPtr<ChLinkLockRevolute>  m_revolute;  ///< handle to revolute joint
+
   VisualizationType m_vis;    // visual asset geometry type
   CollisionType m_collide;    // collision geometry type
 
