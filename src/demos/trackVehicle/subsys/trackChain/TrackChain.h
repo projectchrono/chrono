@@ -72,8 +72,9 @@ private:
   const std::string& getCollisionFilename() const { return m_collisionFile; }
 
   // private variables
-  std::vector<ChSharedPtr<ChBody>> m_shoes;
-  size_t m_numShoes;
+  std::vector<ChSharedPtr<ChBody>> m_shoes;  ///< handle to track shoes
+  size_t m_numShoes;      ///< number of track shoes
+
 
   VisualizationType m_vis;    // visual asset geometry type
   CollisionType m_collide;    // collision geometry type

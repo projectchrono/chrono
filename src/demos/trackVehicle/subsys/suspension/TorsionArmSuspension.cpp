@@ -35,16 +35,14 @@ const ChVector<> TorsionArmSuspension::m_armInertia(0.77, 0.37, 0.77);  // [kg-m
 const double TorsionArmSuspension::m_armRadius = 0.2; // [m]
 
 const double TorsionArmSuspension::m_wheelMass = 561.1; // [kg]
-const ChVector<> TorsionArmSuspension::m_wheelInertia(26.06, 19.82, 19.82); // [kg-m2]
+const ChVector<> TorsionArmSuspension::m_wheelInertia(19.82, 19.82, 26.06); // [kg-m2]
 const double TorsionArmSuspension::m_wheelWidth = 0.4;  // [m]
 const double TorsionArmSuspension::m_wheelRadius = 0.7; // [m]
 
-
-const double TorsionArmSuspension::m_springK = 100000;	// torsional spring constant
-const double TorsionArmSuspension::m_springC = 1000;	// torsional damping constant
-const ChVector<> m_TorquePreload;
-
-
+const double TorsionArmSuspension::m_springK = 10000;	// torsional spring constant [N-m/rad]
+const double TorsionArmSuspension::m_springC = 100;	// torsional damping constant [N-m-s/rad]
+const double TorsionArmSuspension::m_TorquePreload = 10.0;  // torque preload [N-m]
+const double TorsionArmSuspension::m_shaft_inertia = 0.5;  // [kg-m2]
 
 TorsionArmSuspension::TorsionArmSuspension(const std::string& name,
                                            VisualizationType vis,
@@ -55,11 +53,11 @@ TorsionArmSuspension::TorsionArmSuspension(const std::string& name,
   // char readBuffer[65536];
   // fclose(fp);
 
-  Create();
+  Create(name);
 }
 
 // 1) load data from file, 2) create bodies using data
-void TorsionArmSuspension::Create()
+void TorsionArmSuspension::Create(const std::string& name)
 {
 /*
   // load data for the arm
@@ -80,28 +78,48 @@ void TorsionArmSuspension::Create()
 
   */
 
-  // create the bodies
+  // create the suspension arm body
   m_arm = ChSharedPtr<ChBody>(new ChBody);
+  m_arm->SetNameString(name + " arm");
+  m_arm->SetMass(m_armMass);
+  m_arm->SetInertiaXX(m_armInertia);
+  // create the roadwheel body
   m_wheel = ChSharedPtr<ChBody>(new ChBody);
+  m_wheel->SetNameString(name + "road wheel");
+  m_wheel->SetMass(m_wheelMass);
+  m_wheel->SetInertiaXX(m_wheelInertia);
+
 
   // create the constraints
   m_armChassis_rev = ChSharedPtr<ChLinkLockRevolute>(new ChLinkLockRevolute);
+  m_armChassis_rev->SetName("arm-chassis revolute");
   m_armWheel_rev = ChSharedPtr<ChLinkLockRevolute>(new ChLinkLockRevolute);
+  m_armWheel_rev->SetName("arm-wheel revolute");
 
   // create the torsional spring damper assembly
-
   // [Chassis] <m_shaft_chassis_connection>--- m_shaft_chassis ==|| m_shock ||== m_shaft_arm --- <m_shaft_arm_connection> [Arm]
 
   // two shafts
   m_shaft_chassis = ChSharedPtr<ChShaft>(new ChShaft);
+  m_shaft_chassis->SetName("chassis shaft");
+  m_shaft_chassis->SetInertia(m_shaft_inertia);
   m_shaft_arm = ChSharedPtr<ChShaft>(new ChShaft);
+  m_shaft_arm->SetName("arm shaft");
+  m_shaft_arm->SetInertia(m_shaft_inertia);
+
   // two shaftbody connectors
   m_shaft_chassis_connection = ChSharedPtr<ChShaftsBody>(new ChShaftsBody);
+  m_shaft_chassis_connection->SetName("chassis shaft connect");
   m_shaft_arm_connection = ChSharedPtr<ChShaftsBody>(new ChShaftsBody); 
+  m_shaft_arm_connection->SetName("arm shaft connect");
+
   // and the 1-dof spring between the two shafts
   m_shock = ChSharedPtr<ChShaftsTorsionSpring>(new ChShaftsTorsionSpring); ///< torsional spring
-  
-  // add visualization assets
+  m_shock->SetName("torsional spring");
+  m_shock->SetTorsionalStiffness(m_springK);
+  m_shock->SetTorsionalDamping(m_springC);
+
+  // add visualization assets to the roadwheel and arm
   AddVisualization();
 }
 
