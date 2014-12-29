@@ -62,16 +62,19 @@ private:
   const std::string& getMeshFile() const { return m_meshFile; }
   
   // private variables
-  ChSharedPtr<ChBody> m_idler;
+  ChSharedPtr<ChBody> m_idler;  ///< handle to idler body
+  ChSharedPtr<ChLinkLockRevolutePrismatic> m_idler_joint; ///< connetion to chassis
+  ChSharedPtr<ChLinkSpring> m_shock;  ///< handle to spring-damper;
+
   VisualizationType m_vis;
   CollisionType m_collide;
 
   // static variables
   static const double m_mass;
   static const ChVector<> m_inertia;
-  static const double m_springK;
-  static const double m_springC;
-  static const double m_springRestLength;
+  static const double m_springK;  ///< shock linear spring coefficient
+  static const double m_springC;  ///< shock linear damping coefficient
+  static const double m_springRestLength; ///< shock rest length
   static const double m_width;
   static const double m_radius;
 
