@@ -41,7 +41,6 @@ const double TrackSystem::m_roller_radius = 0.2;
 const double TrackSystem::m_roller_width = 0.2;
   
 // suspension
-// const std::string m_suspensionFilename;
 const int TrackSystem::m_numSuspensions = 5;
   
 
@@ -56,10 +55,13 @@ TrackSystem::TrackSystem(const std::string& name, int track_idx)
 
 }
 
-// Create: 1) load/set the subsystem data, 2) use data to build subsystems
+// Create: 1) load/set the subsystem data, resize vectors 2) BuildSubsystems()
+// TODO: replace hard-coded junk with JSON input files for each subsystem
 void TrackSystem::Create(int track_idx)
 {
+
   /*
+
   // read idler info
   assert(d.HasMember("Idler"));
   m_idlerMass = d["Idler"]["Mass"].GetDouble();
@@ -91,6 +93,14 @@ void TrackSystem::Create(int track_idx)
   
   assert(d["Support Roller"]["Location"].IsArray());
   m_NumRollers = d["Support Roller"]["Location"].Size();
+
+  */
+
+  // no support rollers, for this model
+  m_supportRollers.resize(m_numRollers);
+  m_supportRollers_rev.resize(m_numRollers);
+
+  /*
   
   m_rollerLocs.resize(m_NumRollers);
   for(int i = 0; i < m_NumRollers; i++ )
@@ -105,12 +115,18 @@ void TrackSystem::Create(int track_idx)
   
   m_suspensionFilename = d["Suspension"]["Input File"].GetString();
   m_NumSuspensions = d["Suspension"]["Location"].Size();
-  
-  m_suspensionLocs.resize(m_NumSuspensions);
-  for(int j = 0; j < m_NumSuspensions; j++)
+
+  */
+
+  m_suspensions.resize(m_numSuspensions);
+  m_suspensionLocs.resize(m_numSuspensions);
+  for(int j = 0; j < m_numSuspensions; j++)
   {
-    m_suspensionLocs[j] = loadVector(d["Suspension"]["Locaiton"][j]);
+    // m_suspensionLocs[j] = loadVector(d["Suspension"]["Locaiton"][j]);
+    m_suspensionLocs[j] = ChVector<>(-1.0*j, 0, 0);
   }
+
+  /*
 
   // Read Track Chain data
   assert(d.HasMember("Track Chain"));
@@ -133,15 +149,12 @@ void TrackSystem::BuildSubsystems()
   m_chain = ChSharedPtr<TrackChain>(new TrackChain("chain "+std::to_string(m_track_idx)) );
   
   // build suspension/road wheel subsystems
-  m_suspensions.resize(m_numSuspensions);
   for(int i = 0; i < m_numSuspensions; i++)
   {
     m_suspensions[i] = ChSharedPtr<TorsionArmSuspension>(new TorsionArmSuspension("suspension "+std::to_string(i) +", chain "+std::to_string(m_track_idx)) );
   }
   
-  // build support wheel subsystems (if any)
-  m_supportRollers.resize(m_numRollers);
-  m_supportRollers_rev.resize(m_numRollers);
+  // build support rollers manually (if any)
   for(int j = 0; j < m_numRollers; j++)
   {
     m_supportRollers[j] = ChSharedPtr<ChBody>(new ChBody);
