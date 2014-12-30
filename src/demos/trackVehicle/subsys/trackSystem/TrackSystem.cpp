@@ -166,8 +166,9 @@ void TrackSystem::BuildSubsystems()
 }
 
 void TrackSystem::Initialize(ChSharedPtr<ChBodyAuxRef> chassis,
-			 const ChVector<>&  location)
+			 const ChVector<>&  local_pos)
 {
+  m_Pos_local = local_pos;
   // to create the track chain, need a list of control points and their clearance.
   // Points are centerof spheres with radius = clearance. Use a starting point on
   // the line, and the chain will be "wrapped" around the x-direction initially. 
@@ -177,8 +178,10 @@ void TrackSystem::Initialize(ChSharedPtr<ChBodyAuxRef> chassis,
   std::vector<ChVector<>> control_points;
   std::vector<double> clearance;
 
-  // initialize 1 of each of the following subsystems:
-  m_driveGear->Initialize(chassis, m_gearPos, QUNIT);
+  // initialize 1 of each of the following subsystems.
+  // will use the chassis ref frame to do the transforms, since the TrackSystem
+  // local ref. frame 
+  m_driveGear->Initialize(chassis, ChCoordsys<>(m_gearPos, QUNIT) );
   m_idler->Initialize(chassis, m_idlerPos, QUNIT);
  
   // drive sprocket is First added to the lists passed into TrackChain Init()
