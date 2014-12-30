@@ -53,6 +53,7 @@ public:
   ~TrackVehicle() {}
 
   /// Initialize the tracked vehicle REF frame with the specified Coordinate system
+  /// This initial transform is inherited by all vehicle subsystems.
   void Initialize(const ChCoordsys<>& chassis_Csys);
   
   /// Update the vehicle with the new settings for throttle and brake

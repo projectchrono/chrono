@@ -106,7 +106,7 @@ TrackVehicle::TrackVehicle(bool fixed, VisualizationType chassisVis, CollisionTy
 }
 
 
-
+// Set any collision geometry on the hull, then Initialize() all subsystems
 void TrackVehicle::Initialize(const ChCoordsys<>& chassis_Csys)
 {
   // move the chassis REF frame to the specified initial position/orientation
@@ -115,18 +115,14 @@ void TrackVehicle::Initialize(const ChCoordsys<>& chassis_Csys)
   // add collision geometry to the chassis
   AddCollisionGeometry();
 
-
-
-
-  // TODO: manually set the data
-  // Initialize the track systems.
-  // Initialize the suspension, wheel, and brake subsystems.
-
-
+  // initialize the subsystems with the initial c-sys and specified offsets
   for (int i = 0; i < m_num_tracks; i++)
   {
     m_TrackSystems[i]->Initialize(m_chassis, m_TrackSystem_locs[i]);
+    m_drivelines[i]->Initialize(m_chassis, m_TrackSystems[i]->GetDriveGear());
+    m_ptrains[i]->Initialize(m_chassis, m_drivelines[i]->GetDriveshaft());
   }
+
 }
 
 
