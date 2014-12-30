@@ -175,17 +175,17 @@ void TrackSystem::Initialize(ChSharedPtr<ChBodyAuxRef> chassis,
   // NOTE: MUST add the idler and sprocket as the first and last entries in the two lists,
   // ensures a list that is in an order than can be traversed successfully 
   // by the TrackChain->Initilize() func.
-  std::vector<ChVector<>> control_points;
+  std::vector<ChVector<>> control_points; // w.r.t. chassis ref. frame
   std::vector<double> clearance;
 
   // initialize 1 of each of the following subsystems.
   // will use the chassis ref frame to do the transforms, since the TrackSystem
   // local ref. frame 
-  m_driveGear->Initialize(chassis, ChCoordsys<>(m_gearPos, QUNIT) );
-  m_idler->Initialize(chassis, m_idlerPos, QUNIT);
+  m_driveGear->Initialize(chassis, ChCoordsys<>(m_gearPos + local_pos, QUNIT) );
+  m_idler->Initialize(chassis, ChCoordsys<>(m_idlerPos + local_pos, QUNIT) );
  
   // drive sprocket is First added to the lists passed into TrackChain Init()
-  control_points.push_back(m_driveGear->GetBody()->GetPos() );
+  control_points.push_back(m_gearPos + local_pos );
   clearance.push_back(m_driveGear->GetRadius() );
 
   // initialize the road wheels & torsion arm suspension subsystems
