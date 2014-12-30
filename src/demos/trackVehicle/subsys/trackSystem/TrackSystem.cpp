@@ -204,12 +204,12 @@ void TrackSystem::Initialize(ChSharedPtr<ChBodyAuxRef> chassis,
     initialize_roller(m_supportRollers[j], chassis, m_rollerLocs[j], QUNIT, j);
 
     // add these to the points passed into the track chain
-    control_points.push_back(m_supportRollers[j]->GetPos() );
+    control_points.push_back(m_rollerLocs[j] + local_pos );
     clearance.push_back( m_roller_radius);
   }
   
   // last control point: the idler body
-  control_points.push_back(m_idler->GetBody()->GetPos() );
+  control_points.push_back(m_idlerPos + local_pos );
   clearance.push_back(m_idler->GetRadius() );
 
   // last, initialize the trackChain.

@@ -173,7 +173,7 @@ void TorsionArmSuspension::Initialize(ChSharedPtr<ChBodyAuxRef> chassis,
   // initialize and add the torsional spring, shaft and shaftbody elements
   chassis->GetSystem()->Add(m_shaft_chassis);
   chassis->GetSystem()->Add(m_shaft_arm);
-
+  // shafts rotate about lateral axis
   m_shaft_chassis_connection->Initialize(m_shaft_chassis, chassis, VECT_Z);
   chassis->GetSystem()->Add(m_shaft_chassis_connection);
   m_shaft_arm_connection->Initialize(m_shaft_arm, m_arm, VECT_Z);
