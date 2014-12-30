@@ -68,7 +68,8 @@ TrackChain::TrackChain(const std::string& name,
 }
 
 
-void TrackChain::Initialize(const std::vector<ChVector<>>& control_points,
+void TrackChain::Initialize(ChSharedPtr<ChBodyAuxRef> chassis,
+                            const std::vector<ChVector<>>& control_points,
                             const std::vector<double>& clearance,
                             const ChVector<>& start_loc)
 {
@@ -76,7 +77,6 @@ void TrackChain::Initialize(const std::vector<ChVector<>>& control_points,
   AddCollisionGeometry(0);
   m_numShoes = 1;
 
-  // Express the steering reference frame in the absolute coordinate system.
   // ChFrame<> idler_to_abs(location, rotation);
   // idler_to_abs.ConcatenatePreTransformation(chassis->GetFrame_REF_to_abs());
   

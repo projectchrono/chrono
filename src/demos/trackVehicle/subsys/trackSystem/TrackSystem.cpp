@@ -218,7 +218,7 @@ void TrackSystem::Initialize(ChSharedPtr<ChBodyAuxRef> chassis,
   ChVector<> start_pos = (control_points[0] + control_points[control_points.size()-1])/2.0;
   start_pos.y += (clearance[0] + clearance[clearance.size()-1] )/2.0;
   
-  m_chain->Initialize(control_points, clearance, start_pos);
+  m_chain->Initialize(chassis, control_points, clearance, start_pos);
 }
 
 
