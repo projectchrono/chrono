@@ -191,14 +191,14 @@ void TrackSystem::Initialize(ChSharedPtr<ChBodyAuxRef> chassis,
   // initialize the road wheels & torsion arm suspension subsystems
   for(int i = 0; i < m_suspensionLocs.size(); i++)
   {
-    m_suspensions[i]->Initialize(chassis, m_suspensionLocs[i], QUNIT);
+    m_suspensions[i]->Initialize(chassis, ChCoordsys<>(m_suspensionLocs[i] + local_pos, QUNIT) );
 
     // add these to the lists passed into the track chain
-    control_points.push_back(m_suspensions[i]->GetWheelBody()->GetPos() );
+    control_points.push_back(m_suspensionLocs[i] + local_pos );
     clearance.push_back(m_suspensions[i]->GetWheelRadius() );
   }
 
-  // initialize the support rollers 
+  // initialize the support rollers. None for the M113
   for(int j = 0; j < m_rollerLocs.size(); j++)
   {
     initialize_roller(m_supportRollers[j], chassis, m_rollerLocs[j], QUNIT, j);
