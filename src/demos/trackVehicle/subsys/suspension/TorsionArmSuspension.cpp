@@ -38,6 +38,7 @@ const double TorsionArmSuspension::m_wheelMass = 561.1; // [kg]
 const ChVector<> TorsionArmSuspension::m_wheelInertia(19.82, 19.82, 26.06); // [kg-m2]
 const double TorsionArmSuspension::m_wheelWidth = 0.4;  // [m]
 const double TorsionArmSuspension::m_wheelRadius = 0.7; // [m]
+const ChVector<> TorsionArmSuspension::m_wheel_Pos(-0.116, -0.1136, 0); // loc of wheel CM in the local c-sys
 
 const double TorsionArmSuspension::m_springK = 10000;	// torsional spring constant [N-m/rad]
 const double TorsionArmSuspension::m_springC = 100;	// torsional damping constant [N-m-s/rad]
@@ -80,42 +81,42 @@ void TorsionArmSuspension::Create(const std::string& name)
 
   // create the suspension arm body
   m_arm = ChSharedPtr<ChBody>(new ChBody);
-  m_arm->SetNameString(name + " arm");
+  m_arm->SetNameString(name + "_arm");
   m_arm->SetMass(m_armMass);
-  m_arm->SetInertiaXX(m_armInertia);
+  m_arm->SetInertiaXX(m_armInertia);  // link distance along y-axis
   // create the roadwheel body
   m_wheel = ChSharedPtr<ChBody>(new ChBody);
-  m_wheel->SetNameString(name + "road wheel");
+  m_wheel->SetNameString(name + "_roadWheel");
   m_wheel->SetMass(m_wheelMass);
-  m_wheel->SetInertiaXX(m_wheelInertia);
+  m_wheel->SetInertiaXX(m_wheelInertia);  // wheel width along z-axis
 
 
   // create the constraints
   m_armChassis_rev = ChSharedPtr<ChLinkLockRevolute>(new ChLinkLockRevolute);
-  m_armChassis_rev->SetName("arm-chassis revolute");
+  m_armChassis_rev->SetName("_arm-chassis_revolute");
   m_armWheel_rev = ChSharedPtr<ChLinkLockRevolute>(new ChLinkLockRevolute);
-  m_armWheel_rev->SetName("arm-wheel revolute");
+  m_armWheel_rev->SetName("_arm-wheel-revolute");
 
   // create the torsional spring damper assembly
   // [Chassis] <m_shaft_chassis_connection>--- m_shaft_chassis ==|| m_shock ||== m_shaft_arm --- <m_shaft_arm_connection> [Arm]
 
   // two shafts
   m_shaft_chassis = ChSharedPtr<ChShaft>(new ChShaft);
-  m_shaft_chassis->SetName("chassis shaft");
+  m_shaft_chassis->SetName("_chassis-shaft");
   m_shaft_chassis->SetInertia(m_shaft_inertia);
   m_shaft_arm = ChSharedPtr<ChShaft>(new ChShaft);
-  m_shaft_arm->SetName("arm shaft");
+  m_shaft_arm->SetName("_arm-shaft");
   m_shaft_arm->SetInertia(m_shaft_inertia);
 
   // two shaftbody connectors
   m_shaft_chassis_connection = ChSharedPtr<ChShaftsBody>(new ChShaftsBody);
-  m_shaft_chassis_connection->SetName("chassis shaft connect");
+  m_shaft_chassis_connection->SetName("_chassis-shaftConnect");
   m_shaft_arm_connection = ChSharedPtr<ChShaftsBody>(new ChShaftsBody); 
-  m_shaft_arm_connection->SetName("arm shaft connect");
+  m_shaft_arm_connection->SetName("_arm-shaftConnect");
 
   // and the 1-dof spring between the two shafts
   m_shock = ChSharedPtr<ChShaftsTorsionSpring>(new ChShaftsTorsionSpring); ///< torsional spring
-  m_shock->SetName("torsional spring");
+  m_shock->SetName("_torsionalSpring");
   m_shock->SetTorsionalStiffness(m_springK);
   m_shock->SetTorsionalDamping(m_springC);
 
@@ -124,18 +125,61 @@ void TorsionArmSuspension::Create(const std::string& name)
 }
 
 void TorsionArmSuspension::Initialize(ChSharedPtr<ChBodyAuxRef> chassis,
-                             const ChVector<>&         location,
-                             const ChQuaternion<>&     rotation)
+                                      const ChCoordsys<>& local_Csys)
 {
   // add collision geometry
   AddCollisionGeometry();
 
-  // Express the steering reference frame in the absolute coordinate system.
-  ChFrame<> loc_to_abs(location, rotation);
-  loc_to_abs.ConcatenatePreTransformation(chassis->GetFrame_REF_to_abs());
+  // Express the revolute joint location in the absolute coordinate system.
+  ChFrame<> rev_loc_to_abs(local_Csys);
+  rev_loc_to_abs.ConcatenatePreTransformation(chassis->GetFrame_REF_to_abs());
 
-  
-  // initialize all the modeling elements, in abs coordinates
+  // wheel is just offset from local csys, in local coordinates
+  ChFrame<> wheel_pos_loc(local_Csys);
+  wheel_pos_loc.SetPos(local_Csys.pos + m_wheel_Pos);
+  ChFrame<> wheel_to_abs(wheel_pos_loc);
+  wheel_to_abs.ConcatenatePreTransformation(chassis->GetFrame_REF_to_abs());
+
+  // arm is between these two points, same rotation as the wheel
+  m_arm->SetPos( (rev_loc_to_abs.GetPos() + wheel_to_abs.GetPos() )/2.0 );
+  // y-axis should point along length of arm, according to inertia tensor
+  ChVector<> v = (rev_loc_to_abs.GetPos()-wheel_to_abs.GetPos()).GetNormalized();
+  // use the z-axis from the wheel frame
+  ChVector<> w = (wheel_to_abs.GetRot().GetYaxis()).GetNormalized();
+  ChVector<> u = Vcross(v, w);
+  u.Normalize();
+  ChMatrix33<> rot;
+  rot.Set_A_axis(u,v,w);
+  // should give the correct orientation to the arm
+  m_arm->SetRot(rot);
+  // pos, rot of arm set, add it to the system
+  chassis->GetSystem()->Add(m_arm);
+
+  // set the wheel in the correct position.
+  m_wheel->SetPos(wheel_to_abs.GetPos());
+  // inertia and visual assets have wheel width along z-axis locally. No need to rotate the wheel.
+  m_wheel->SetRot(wheel_to_abs.GetRot());
+  chassis->GetSystem()->Add(m_wheel);
+
+  // init and add the revolute joints
+  // arm-chassis
+  m_armChassis_rev->Initialize(m_arm, chassis, ChCoordsys<>(rev_loc_to_abs.GetPos(), rev_loc_to_abs.GetRot()) );
+  chassis->GetSystem()->AddLink(m_armChassis_rev);
+  // wheel-arm
+  m_armWheel_rev->Initialize(m_wheel, m_arm, ChCoordsys<>(wheel_to_abs.GetPos(), wheel_to_abs.GetRot()) );
+  chassis->GetSystem()->AddLink(m_armWheel_rev);
+
+  // initialize and add the torsional spring, shaft and shaftbody elements
+  chassis->GetSystem()->Add(m_shaft_chassis);
+  chassis->GetSystem()->Add(m_shaft_arm);
+
+  m_shaft_chassis_connection->Initialize(m_shaft_chassis, chassis, VECT_Z);
+  chassis->GetSystem()->Add(m_shaft_chassis_connection);
+  m_shaft_arm_connection->Initialize(m_shaft_arm, m_arm, VECT_Z);
+  chassis->GetSystem()->Add(m_shaft_arm_connection);
+
+  m_shock->Initialize(m_shaft_arm, m_shaft_chassis);
+  chassis->GetSystem()->Add(m_shock);
 }
 
 /// add a cylinder to model the torsion bar arm and the wheel
@@ -145,9 +189,8 @@ void TorsionArmSuspension::AddVisualization()
   switch (m_vis) {
   case VisualizationType::PRIMITIVES:
   {
-    ChSharedPtr<ChCylinderShape> cyl(new ChCylinderShape);
     // define the wheel cylinder shape with the two end points of the cylinder
-    // NOTE: how is the wheel body c-sys oriented at this point?
+    ChSharedPtr<ChCylinderShape> cyl(new ChCylinderShape);
     ChVector<> p1(0, 0, m_wheelWidth/2.0);
     ChVector<> p2(0, 0, -m_wheelWidth/2.0);
     cyl->GetCylinderGeometry().p1 = p1;
@@ -155,10 +198,10 @@ void TorsionArmSuspension::AddVisualization()
     cyl->GetCylinderGeometry().rad = m_wheelRadius;
     m_wheel->AddAsset(cyl);
 
-    // define the arm cylinder shape.
-    // NOTE: how is the arm body c-sys orienated at this point?
-    ChVector<> p1_arm(0, 0, m_armRadius/2.0);
-    ChVector<> p2_arm(0, 0, -m_armRadius/2.0);
+    // define the arm cylinder shape, link is along the y-axis
+    double armLength = m_wheel_Pos.Length();
+    ChVector<> p1_arm(0, armLength/2.0, 0);
+    ChVector<> p2_arm(0, -armLength/2.0, 0);
     ChSharedPtr<ChCylinderShape> arm_cyl(new ChCylinderShape);
     arm_cyl->GetCylinderGeometry().p1 = p1_arm;
     arm_cyl->GetCylinderGeometry().p2 = p2_arm;
@@ -201,7 +244,7 @@ void TorsionArmSuspension::AddCollisionGeometry()
   }
   case CollisionType::PRIMITIVES:
   {
-    // use a simple cylinder
+    // use a simple cylinder. Default is along the y-axis, here we have z-axis relative to chassis.
     m_wheel->GetCollisionModel()->AddCylinder(m_wheelRadius, m_wheelRadius, m_wheelWidth,
     ChVector<>(),Q_from_AngAxis(CH_C_PI_2,VECT_X));
 
