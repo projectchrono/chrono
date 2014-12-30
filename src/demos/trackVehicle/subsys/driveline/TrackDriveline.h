@@ -56,7 +56,7 @@ public:
   void SetAxleDirection(const ChVector<>& dir) { m_dir_axle = dir; }
 
   /// Return the number of driven axles.
-  int GetNumDrivenAxles() const { return 1; }
+  // int GetNumDrivenAxles() const { return 1; }
 
   /// Initialize the driveline subsystem, connecting it to the drive gears
   void Initialize(
