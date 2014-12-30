@@ -145,11 +145,12 @@ void TorsionArmSuspension::Initialize(ChSharedPtr<ChBodyAuxRef> chassis,
   // y-axis should point along length of arm, according to inertia tensor
   ChVector<> v = (rev_loc_to_abs.GetPos()-wheel_to_abs.GetPos()).GetNormalized();
   // use the z-axis from the wheel frame
-  ChVector<> w = (wheel_to_abs.GetRot().GetYaxis()).GetNormalized();
+  ChVector<> w = (wheel_to_abs.GetRot().GetZaxis()).GetNormalized();
   ChVector<> u = Vcross(v, w);
   u.Normalize();
   ChMatrix33<> rot;
-  rot.Set_A_axis(u,v,w);
+  // z-axis of the wheel might not be exactly orthogonal to arm y-axis
+  rot.Set_A_axis(u, v, Vcross(u,v));
   // should give the correct orientation to the arm
   m_arm->SetRot(rot);
   // pos, rot of arm set, add it to the system
