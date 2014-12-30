@@ -38,6 +38,7 @@ const double DriveGear::m_mass = 436.7;
 const ChVector<> DriveGear::m_inertia(13.87, 12.22, 12.22);
 const double DriveGear::m_radius = 0.3;
 const double DriveGear::m_width = 0.25;
+const double DriveGear::m_shaft_inertia = 0.4;
 
 
 DriveGear::DriveGear(const std::string& name, 
@@ -47,22 +48,50 @@ DriveGear::DriveGear(const std::string& name,
 {
   // create the body, set the basic info
   m_gear = ChSharedPtr<ChBody>(new ChBody);
-  m_gear->SetNameString(name);
+  m_gear->SetNameString(name+"_body");
   m_gear->SetMass(m_mass);
   m_gear->SetInertiaXX(m_inertia);
+
+  // create the revolute joint
+  m_revolute = ChSharedPtr<ChLinkLockRevolute>(new ChLinkLockRevolute);
+  m_revolute->SetNameString(name+"_revolute");
+
+  // create the shaft components
+  m_axle = ChSharedPtr<ChShaft>(new ChShaft);
+  m_axle->SetNameString(name + "_axle");
+  m_axle->SetInertia(m_shaft_inertia );
+  // create the shaft to gear connection
+  m_axle_to_gear = ChSharedPtr<ChShaftsBody>(new ChShaftsBody);
+  m_axle_to_gear->SetNameString(name + "_axle_to_gear");
 
   AddVisualization();
  
 }
 
 void DriveGear::Initialize(ChSharedPtr<ChBodyAuxRef> chassis, 
-                           const ChVector<>& pos, 
-                           const ChQuaternion<>& rot)
+                           const ChCoordsys<>& local_Csys)
 {
   // add any collision geometry
   AddCollisionGeometry();
 
-  // place this subsystem relative to the trackSystem ref frame, which is aligned with the chassis ref frame
+  // get the local frame in the absolute ref. frame
+  ChFrame<> gear_to_abs(local_Csys);
+  gear_to_abs.ConcatenatePreTransformation(chassis->GetFrame_REF_to_abs());
+
+  // transform the drive gear body, add to system
+  m_gear->SetPos(gear_to_abs.GetPos());
+  m_gear->SetRot(gear_to_abs.GetRot());
+  chassis->GetSystem()->Add(m_gear);
+
+  // initialize the revolute joint, add to system
+  // may need to rotate the rotation axis
+  m_revolute->Initialize(chassis, m_gear, ChCoordsys<>(gear_to_abs.GetPos(), gear_to_abs.GetRot()) );
+  chassis->GetSystem()->Add(m_revolute);
+
+  // initialize the axle shaft and connection to the drive gear body, add both to the system
+  chassis->GetSystem()->Add(m_axle);
+  m_axle_to_gear->Initialize(m_axle, m_gear, VECT_Z);
+  chassis->GetSystem()->Add(m_axle_to_gear);
 
 }
 
