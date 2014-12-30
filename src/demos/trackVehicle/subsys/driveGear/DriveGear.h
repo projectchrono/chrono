@@ -40,7 +40,8 @@ public:
 
   ~DriveGear() {}
 
-  void Initialize(ChSharedPtr<ChBodyAuxRef> chassis, const ChVector<>& pos, const ChQuaternion<>& rot);
+  /// build the gear with the initial pos. and rot., w.r.t. the chassis c-sys
+  void Initialize(ChSharedPtr<ChBodyAuxRef> chassis, const ChCoordsys<>& local_Csys);
 
   // accessors
   ChSharedPtr<ChBody> GetBody() { return m_gear; }
@@ -69,6 +70,7 @@ private:
   static const double m_mass;
   static const double m_radius;
   static const double m_width;
+  static const double m_shaft_inertia;
 
   static const std::string m_meshName;
   static const std::string m_meshFile;
