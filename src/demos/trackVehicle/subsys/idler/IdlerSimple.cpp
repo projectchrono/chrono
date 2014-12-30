@@ -49,35 +49,105 @@ const double IdlerSimple::m_springC = 1000;
 const double IdlerSimple::m_springRestLength = 1.0;
 
 
+/*
+// -----------------------------------------------------------------------------
+// Default shock and spring functors (used for linear elements)
+// -----------------------------------------------------------------------------
+class LinearSpringForce : public ChSpringForceCallback
+{
+public:
+  LinearSpringForce(double k) : m_k(k) {}
+
+  virtual double operator()(double time,         // current time
+                            double rest_length,  // undeformed length
+                            double length,       // current length
+                            double vel)          // current velocity (positive when extending)
+  {
+    return -m_k * (length - rest_length);
+  }
+
+private:
+  double  m_k;
+};
+
+class LinearShockForce : public ChSpringForceCallback
+{
+public:
+  LinearShockForce(double c) : m_c(c) {}
+
+  virtual double operator()(double time,         // current time
+                            double rest_length,  // undeformed length
+                            double length,       // current length
+                            double vel)          // current velocity (positive when extending)
+  {
+    return -m_c * vel;
+  }
+
+private:
+  double  m_c;
+};
+*/
 
 IdlerSimple::IdlerSimple(const std::string& name,
                          VisualizationType vis,
                          CollisionType collide)
   : m_vis(vis), m_collide(collide)
+//  , m_shockCB(NULL), m_springCB(NULL)
 {
   // create the body, set the basic info
   m_idler = ChSharedPtr<ChBody>(new ChBody);
-  m_idler->SetNameString(name);
+  m_idler->SetNameString(name + "_body");
   m_idler->SetMass(m_mass);
   m_idler->SetInertiaXX(m_inertia);
+
+  // create the idler joint
+  m_idler_joint = ChSharedPtr<ChLinkLockRevolutePrismatic>(new ChLinkLockRevolutePrismatic);
+  m_idler_joint->SetNameString(name + "_idler_joint");
+
+  // create the tensioning linear spring-shock
+  m_shock = ChSharedPtr<ChLinkSpring>(new ChLinkSpring);
+  m_shock->SetNameString(name + "_shock");
+  m_shock->Set_SpringK(m_springK);
+  m_shock->Set_SpringR(m_springC);
+  m_shock->Set_SpringRestLength(m_springRestLength);
 
   AddVisualization();
  
 }
 
+IdlerSimple::~IdlerSimple()
+{
+  // delete m_springCB;
+  // delete m_shockCB;
+}
+
 void IdlerSimple::Initialize(ChSharedPtr<ChBodyAuxRef> chassis,
-                             const ChVector<>&         location,
-                             const ChQuaternion<>&     rotation)
+                             const ChCoordsys<>& local_Csys)
 {
   // add collision geometry
   AddCollisionGeometry();
 
   // Express the steering reference frame in the absolute coordinate system.
-  ChFrame<> idler_to_abs(location, rotation);
+  ChFrame<> idler_to_abs(local_Csys);
   idler_to_abs.ConcatenatePreTransformation(chassis->GetFrame_REF_to_abs());
 
+  // transform the idler body, add to system
+  m_idler->SetPos(idler_to_abs.GetPos());
+  m_idler->SetRot(idler_to_abs.GetRot());
+  chassis->GetSystem()->Add(m_idler);
   
-  
+  // init joint, add to system
+  // body 1 should rotate about z-axis, translate about x-axis of body2
+  m_idler_joint->Initialize(m_idler, chassis, local_Csys);
+  chassis->GetSystem()->Add(m_idler_joint);
+
+  // init shock, add to system
+  ChVector<> marker2(local_Csys.pos);
+  // put the second marker some length behind (-x) marker1, based on desired preload
+  double preLoad = 10000; // [N]
+  marker2.x -= m_springRestLength + (preLoad / m_springK);
+  m_shock->Initialize(m_idler, chassis, false, local_Csys.pos, ChVector<>() );
+  chassis->GetSystem()->Add(m_shock);
 }
 
 void IdlerSimple::AddVisualization()
