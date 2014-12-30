@@ -139,7 +139,7 @@ void IdlerSimple::Initialize(ChSharedPtr<ChBodyAuxRef> chassis,
   // init joint, add to system
   // body 1 should rotate about z-axis, translate about x-axis of body2
   m_idler_joint->Initialize(m_idler, chassis, local_Csys);
-  chassis->GetSystem()->Add(m_idler_joint);
+  chassis->GetSystem()->AddLink(m_idler_joint);
 
   // init shock, add to system
   ChVector<> marker2(local_Csys.pos);
@@ -147,7 +147,7 @@ void IdlerSimple::Initialize(ChSharedPtr<ChBodyAuxRef> chassis,
   double preLoad = 10000; // [N]
   marker2.x -= m_springRestLength + (preLoad / m_springK);
   m_shock->Initialize(m_idler, chassis, false, local_Csys.pos, ChVector<>() );
-  chassis->GetSystem()->Add(m_shock);
+  chassis->GetSystem()->AddLink(m_shock);
 }
 
 void IdlerSimple::AddVisualization()

@@ -86,7 +86,7 @@ void DriveGear::Initialize(ChSharedPtr<ChBodyAuxRef> chassis,
   // initialize the revolute joint, add to system
   // may need to rotate the rotation axis
   m_revolute->Initialize(chassis, m_gear, ChCoordsys<>(gear_to_abs.GetPos(), gear_to_abs.GetRot()) );
-  chassis->GetSystem()->Add(m_revolute);
+  chassis->GetSystem()->AddLink(m_revolute);
 
   // initialize the axle shaft and connection to the drive gear body, add both to the system
   chassis->GetSystem()->Add(m_axle);

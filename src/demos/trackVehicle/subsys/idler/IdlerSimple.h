@@ -42,6 +42,7 @@ public:
 
   ~IdlerSimple();
 
+  /// init the idler with the initial pos. and rot., w.r.t. the chassis c-sys
   void Initialize(ChSharedPtr<ChBodyAuxRef> chassis,
                   const ChCoordsys<>& local_Csys);
   
