@@ -40,11 +40,10 @@ public:
     VisualizationType vis = VisualizationType::PRIMITIVES,
     CollisionType collide = CollisionType::PRIMITIVES);
 
-  ~IdlerSimple() {}
+  ~IdlerSimple();
 
   void Initialize(ChSharedPtr<ChBodyAuxRef> chassis,
-                  const ChVector<>&         location,
-                  const ChQuaternion<>&     rotation);
+                  const ChCoordsys<>& local_Csys);
   
   
   double getSpringCoefficient() const { return m_springK; }
@@ -65,6 +64,8 @@ private:
   ChSharedPtr<ChBody> m_idler;  ///< handle to idler body
   ChSharedPtr<ChLinkLockRevolutePrismatic> m_idler_joint; ///< connetion to chassis
   ChSharedPtr<ChLinkSpring> m_shock;  ///< handle to spring-damper;
+  // ChSpringForceCallback* m_shockCB;   ///< shock callback function
+  // ChSpringForceCallback* m_springCB;  ///< spring callback function
 
   VisualizationType m_vis;
   CollisionType m_collide;
