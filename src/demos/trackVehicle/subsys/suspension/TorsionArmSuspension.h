@@ -42,9 +42,10 @@ public:
 
   ~TorsionArmSuspension() {}
 
+  /// init the suspension with the initial pos. and rot., w.r.t. the chassis c-sys
+  /// specifies the attachment point of the arm to the hull bodies
   void Initialize(ChSharedPtr<ChBodyAuxRef> chassis,
-				  const ChVector<>&         location,
-				  const ChQuaternion<>&     rotation);
+                  const ChCoordsys<>& local_Csys);
   
   
   double getSpringCoefficient() const { return m_springK; }
@@ -91,6 +92,7 @@ private:
   static const ChVector<> m_wheelInertia;
   static const double m_wheelWidth;
   static const double m_wheelRadius;
+  static const ChVector<> m_wheel_Pos;
 
   static const double m_springK;	// torsional spring constant
   static const double m_springC;	// torsional damping constant
