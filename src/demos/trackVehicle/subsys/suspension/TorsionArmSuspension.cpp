@@ -134,13 +134,13 @@ void TorsionArmSuspension::Initialize(ChSharedPtr<ChBodyAuxRef> chassis,
   ChFrame<> rev_loc_to_abs(local_Csys);
   rev_loc_to_abs.ConcatenatePreTransformation(chassis->GetFrame_REF_to_abs());
 
-  // wheel is just offset from local csys, in local coordinates
+  // wheel is offset from local csys, in local coordinates
   ChFrame<> wheel_pos_loc(local_Csys);
   wheel_pos_loc.SetPos(local_Csys.pos + m_wheel_Pos);
   ChFrame<> wheel_to_abs(wheel_pos_loc);
   wheel_to_abs.ConcatenatePreTransformation(chassis->GetFrame_REF_to_abs());
 
-  // arm is between these two points, same rotation as the wheel
+  // arm is between these two points.
   m_arm->SetPos( (rev_loc_to_abs.GetPos() + wheel_to_abs.GetPos() )/2.0 );
   // y-axis should point along length of arm, according to inertia tensor
   ChVector<> v = (rev_loc_to_abs.GetPos()-wheel_to_abs.GetPos()).GetNormalized();
@@ -158,7 +158,8 @@ void TorsionArmSuspension::Initialize(ChSharedPtr<ChBodyAuxRef> chassis,
 
   // set the wheel in the correct position.
   m_wheel->SetPos(wheel_to_abs.GetPos());
-  // inertia and visual assets have wheel width along z-axis locally. No need to rotate the wheel.
+  // inertia and visual assets have wheel width along z-axis locally.
+  // No need to rotate the wheel.
   m_wheel->SetRot(wheel_to_abs.GetRot());
   chassis->GetSystem()->Add(m_wheel);
 
