@@ -36,6 +36,28 @@ void ChLcpSolverParallel::host_addForces(bool* active,
    }
 }
 
+void function_addForces_shafts(int& index,
+                               bool* active,
+                               real* inertia,
+                               real* torques,
+                               real* omega)
+{
+  if (active[index]) {
+    omega[index] += torques[index] * inertia[index];
+  }
+}
+
+void ChLcpSolverParallel::host_addForces_shafts(bool* active,
+                                                real* inertia,
+                                                real* torques,
+                                                real* omega)
+{
+////#pragma omp parallel for
+  for (int index = 0; index < data_container->num_shafts; index++) {
+    function_addForces_shafts(index, active, inertia, torques, omega);
+  }
+}
+
 void function_ComputeGyro(int& index,
                           real3* omega,
                           real3* inertia,
@@ -70,4 +92,8 @@ void ChLcpSolverParallel::Preprocess() {
                   data_container->host_data.frc_data.data(), data_container->host_data.trq_data.data(), data_container->host_data.vel_data.data(),
                   data_container->host_data.omg_data.data());
 
+   host_addForces_shafts(data_container->host_data.shaft_active.data(),
+                         data_container->host_data.shaft_inr.data(),
+                         data_container->host_data.shaft_trq.data(),
+                         data_container->host_data.shaft_omg.data());
 }

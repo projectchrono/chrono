@@ -67,6 +67,11 @@ class CH_PARALLEL_API ChLcpSolverParallel : public ChLcpIterativeSolver {
                        real3 *vel,
                        real3 *omega);
 
+   void host_addForces_shafts(bool* active,
+                              real* inertia,
+                              real* torques,
+                              real* omega);
+
    void host_ComputeGyro(real3 *omega,
                          real3 *inertia,
                          real3 *gyro,
@@ -155,8 +160,7 @@ class CH_PARALLEL_API ChLcpSolverParallelDEM : public ChLcpSolverParallel {
    void ProcessContacts();
 
  private:
-   void host_CalcContactForces(
-                               custom_vector<int>& ext_body_id,
+   void host_CalcContactForces(custom_vector<int>& ext_body_id,
                                custom_vector<real3>& ext_body_force,
                                custom_vector<real3>& ext_body_torque);
 
