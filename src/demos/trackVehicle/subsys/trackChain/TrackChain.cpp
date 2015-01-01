@@ -56,15 +56,13 @@ TrackChain::TrackChain(const std::string& name,
   m_shoes.clear();
   // add first track shoe body
   m_shoes.push_back(ChSharedPtr<ChBody>(new ChBody));
-  m_shoes[0]->SetNameString("shoe 0, "+name);
+  m_shoes[0]->SetNameString("shoe 1, "+name);
   m_shoes[0]->SetMass(m_mass);
   m_shoes[0]->SetInertiaXX(m_inertia);
   m_numShoes++;
 
   // Attach visualization to the base track shoe
   AddVisualization(0);
-
-
 }
 
 
@@ -77,9 +75,21 @@ void TrackChain::Initialize(ChSharedPtr<ChBodyAuxRef> chassis,
   AddCollisionGeometry(0);
   m_numShoes = 1;
 
-  // ChFrame<> idler_to_abs(location, rotation);
-  // idler_to_abs.ConcatenatePreTransformation(chassis->GetFrame_REF_to_abs());
-  
+  // get the points in absolute coordinates
+  ChFrame<> start_to_abs(start_loc);
+  start_to_abs.ConcatenatePreTransformation(chassis->GetFrame_REF_to_abs());
+  std::vector<ChFrame<>> control_to_abs;
+  for(size_t i = 0; i < control_points.size(); i++)
+  {
+    // clearance????   
+    control_to_abs.push_back(ChFrame<>(control_points[i]));
+    control_to_abs[i].ConcatenatePreTransformation(chassis->GetFrame_REF_to_abs());
+  }
+
+
+
+
+
 
   // hard part: "wrap" the track chain around the trackSystem, e.g., drive-gear,
   // idler, road-wheels. First and last shoes are allowed to be in any orientation,
