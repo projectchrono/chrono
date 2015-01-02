@@ -29,6 +29,22 @@
 
 namespace chrono {
 
+// Functor class for a custom rotaional spring constant modifier (function of position only)
+  class ChFunction_CustomSpring : public ChFunction
+  {
+  public:
+    ChFunction* new_Duplicate() {return new ChFunction_CustomSpring;} 
+
+    double Get_y(double x)
+    {
+      double spring_coef = 50;
+      double spring_nonlin_coef = 10;
+
+      return spring_coef + spring_nonlin_coef * fabs(x);
+    }
+  };
+
+
 /// Consists of two bodies, the torsion arm link and the road-wheel.
 /// Arm constrained to chassis via revolute joint, as is the arm to wheel.
 /// Rotational spring damper between arm and chassis
@@ -38,9 +54,10 @@ public:
 
   TorsionArmSuspension(const std::string& name,
     VisualizationType vis = VisualizationType::PRIMITIVES,
-    CollisionType collide = CollisionType::PRIMITIVES);
+    CollisionType collide = CollisionType::PRIMITIVES,
+    bool use_custom_spring = false);
 
-  ~TorsionArmSuspension() {}
+  ~TorsionArmSuspension() {delete m_rot_spring;}
 
   /// init the suspension with the initial pos. and rot., w.r.t. the chassis c-sys
   /// specifies the attachment point of the arm to the hull bodies
@@ -68,11 +85,9 @@ private:
   ChSharedPtr<ChLinkLockRevolute> m_armChassis_rev; ///< arm-chassis revolute joint
 
   // shock absorber, a torsional spring connected to two 1-D shafts
-  ChSharedPtr<ChShaft> m_shaft_chassis; ///< rigidly connected to chassis, torsional spring
-  ChSharedPtr<ChShaftsBody> m_shaft_chassis_connection; ///< connects shaft to chassis
-  ChSharedPtr<ChShaft> m_shaft_arm; ///< rigidly attached to link arm, torsional spring
-  ChSharedPtr<ChShaftsBody> m_shaft_arm_connection; ///< connects shaft to arm;
-  ChSharedPtr<ChShaftsTorsionSpring> m_shock; ///< torsional spring
+  ChLinkForce* m_rot_spring; ///< torsional spring, attached to the armChassis rev joint
+  bool m_use_custom_spring; ///< use a custom spring or a linear spring-damper?
+  ChSharedPtr<ChFunction_CustomSpring> m_custom_spring; ///< a custom spring element
 
   ChSharedPtr<ChBody> m_wheel;  ///< wheel body
   ChSharedPtr<ChLinkLockRevolute> m_armWheel_rev; ///< arm-wheel revolute joint
