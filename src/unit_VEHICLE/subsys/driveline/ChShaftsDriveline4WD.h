@@ -110,8 +110,6 @@ private:
 
   ChVector<> m_dir_motor_block;
   ChVector<> m_dir_axle;
-
-  friend class ChIrrGuiDriver;
 };
 
 

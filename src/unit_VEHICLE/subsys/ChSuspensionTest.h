@@ -162,12 +162,10 @@ protected:
   double                     m_stepsize;   ///< integration step-size for the vehicle system
   ChSharedPtr<ChFunction>    m_actuator_L;  ///< actuator function applied to left wheel
   ChSharedPtr<ChFunction>    m_actuator_R;  ///< actuator function applied to right wheel
-
-  friend class ChIrrGuiST;
 };
 
 
 } // end namespace chrono
 
 
-#endif	// CH_SUSPENSIONTEST_H
+#endif  // CH_SUSPENSIONTEST_H

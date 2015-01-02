@@ -147,8 +147,6 @@ private:
 
   double m_last_time_gearshift;
   double m_gear_shift_latency;
-
-  friend class ChIrrGuiDriver;
 };
 
 

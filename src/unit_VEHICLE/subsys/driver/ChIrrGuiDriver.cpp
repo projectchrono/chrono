@@ -384,7 +384,7 @@ void ChIrrGuiDriver::renderStats()
   renderLinGauge(std::string(msg), (double)ngear / 4.0, false, m_HUD_x, m_HUD_y + 220, 120, 15);
 
 
-  if (ChSharedPtr<ChShaftsDriveline2WD> driveline = m_car.m_driveline.DynamicCastTo<ChShaftsDriveline2WD>())
+  if (ChSharedPtr<ChShaftsDriveline2WD> driveline = m_car.GetDriveline().DynamicCastTo<ChShaftsDriveline2WD>())
   {
     double torque;
     int axle = driveline->GetDrivenAxleIndexes()[0];
@@ -397,7 +397,7 @@ void ChIrrGuiDriver::renderStats()
     sprintf(msg, "Torque wheel R: %+.2f", torque);
     renderLinGauge(std::string(msg), torque / 5000, false, m_HUD_x, m_HUD_y + 280, 120, 15);
   }
-  else if (ChSharedPtr<ChShaftsDriveline4WD> driveline = m_car.m_driveline.DynamicCastTo<ChShaftsDriveline4WD>())
+  else if (ChSharedPtr<ChShaftsDriveline4WD> driveline = m_car.GetDriveline().DynamicCastTo<ChShaftsDriveline4WD>())
   {
     double torque;
     std::vector<int> axles = driveline->GetDrivenAxleIndexes();

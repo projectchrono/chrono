@@ -43,7 +43,7 @@ namespace chrono {
 /// This class provides the interface between the vehicle system and other
 /// systems (tires, driver, etc.)
 ///
-class CH_SUBSYS_API ChVehicle
+class CH_SUBSYS_API ChVehicle : public ChShared
 {
 public:
 
@@ -187,8 +187,6 @@ protected:
   ChBrakeList                m_brakes;       ///< list of handles to brake subsystems
 
   double                     m_stepsize;   ///< integration step-size for the vehicle system
-
-  friend class ChIrrGuiDriver;
 };
 
 
