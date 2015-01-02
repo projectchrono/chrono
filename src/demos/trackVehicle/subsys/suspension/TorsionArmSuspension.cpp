@@ -43,12 +43,12 @@ const ChVector<> TorsionArmSuspension::m_wheel_Pos(-0.116, -0.1136, 0); // loc o
 const double TorsionArmSuspension::m_springK = 10000;	// torsional spring constant [N-m/rad]
 const double TorsionArmSuspension::m_springC = 100;	// torsional damping constant [N-m-s/rad]
 const double TorsionArmSuspension::m_TorquePreload = 10.0;  // torque preload [N-m]
-const double TorsionArmSuspension::m_shaft_inertia = 0.5;  // [kg-m2]
 
 TorsionArmSuspension::TorsionArmSuspension(const std::string& name,
                                            VisualizationType vis,
-                                           CollisionType collide)
-: m_vis(vis), m_collide(collide)
+                                           CollisionType collide,
+                                           bool use_custom_spring)
+: m_vis(vis), m_collide(collide), m_use_custom_spring(use_custom_spring)
 {
   // FILE* fp = fopen(filename.c_str(), "r");
   // char readBuffer[65536];
@@ -98,27 +98,20 @@ void TorsionArmSuspension::Create(const std::string& name)
   m_armWheel_rev->SetName("_arm-wheel-revolute");
 
   // create the torsional spring damper assembly
-  // [Chassis] <m_shaft_chassis_connection>--- m_shaft_chassis ==|| m_shock ||== m_shaft_arm --- <m_shaft_arm_connection> [Arm]
+  m_rot_spring = new ChLinkForce;
+  m_rot_spring->Set_active(1);
+  m_rot_spring->Set_K(m_springK);
+  m_rot_spring->Set_R(m_springC);
 
-  // two shafts
-  m_shaft_chassis = ChSharedPtr<ChShaft>(new ChShaft);
-  m_shaft_chassis->SetName("_chassis-shaft");
-  m_shaft_chassis->SetInertia(m_shaft_inertia);
-  m_shaft_arm = ChSharedPtr<ChShaft>(new ChShaft);
-  m_shaft_arm->SetName("_arm-shaft");
-  m_shaft_arm->SetInertia(m_shaft_inertia);
-
-  // two shaftbody connectors
-  m_shaft_chassis_connection = ChSharedPtr<ChShaftsBody>(new ChShaftsBody);
-  m_shaft_chassis_connection->SetName("_chassis-shaftConnect");
-  m_shaft_arm_connection = ChSharedPtr<ChShaftsBody>(new ChShaftsBody); 
-  m_shaft_arm_connection->SetName("_arm-shaftConnect");
-
-  // and the 1-dof spring between the two shafts
-  m_shock = ChSharedPtr<ChShaftsTorsionSpring>(new ChShaftsTorsionSpring); ///< torsional spring
-  m_shock->SetName("_torsionalSpring");
-  m_shock->SetTorsionalStiffness(m_springK);
-  m_shock->SetTorsionalDamping(m_springC);
+  // if we're using a custom spring...
+  if(m_use_custom_spring)
+  {
+    m_custom_spring = ChSharedPtr<ChFunction_CustomSpring>(new ChFunction_CustomSpring);
+    m_rot_spring->Set_K(1);
+    m_rot_spring->Set_modul_K(m_custom_spring.get_ptr());
+  }
+  // add the link force to the rev joint
+  m_armChassis_rev->SetForce_Rz(m_rot_spring);
 
   // add visualization assets to the roadwheel and arm
   AddVisualization();
@@ -164,24 +157,14 @@ void TorsionArmSuspension::Initialize(ChSharedPtr<ChBodyAuxRef> chassis,
   chassis->GetSystem()->Add(m_wheel);
 
   // init and add the revolute joints
-  // arm-chassis
+  // arm-chassis, 
   m_armChassis_rev->Initialize(m_arm, chassis, ChCoordsys<>(rev_loc_to_abs.GetPos(), rev_loc_to_abs.GetRot()) );
+  // init and finish setting up the torsional spring, since it's part of this revolute constraint
   chassis->GetSystem()->AddLink(m_armChassis_rev);
   // wheel-arm
   m_armWheel_rev->Initialize(m_wheel, m_arm, ChCoordsys<>(wheel_to_abs.GetPos(), wheel_to_abs.GetRot()) );
   chassis->GetSystem()->AddLink(m_armWheel_rev);
 
-  // initialize and add the torsional spring, shaft and shaftbody elements
-  chassis->GetSystem()->Add(m_shaft_chassis);
-  chassis->GetSystem()->Add(m_shaft_arm);
-  // shafts rotate about lateral axis
-  m_shaft_chassis_connection->Initialize(m_shaft_chassis, chassis, VECT_Z);
-  chassis->GetSystem()->Add(m_shaft_chassis_connection);
-  m_shaft_arm_connection->Initialize(m_shaft_arm, m_arm, VECT_Z);
-  chassis->GetSystem()->Add(m_shaft_arm_connection);
-
-  m_shock->Initialize(m_shaft_arm, m_shaft_chassis);
-  chassis->GetSystem()->Add(m_shock);
 }
 
 /// add a cylinder to model the torsion bar arm and the wheel
