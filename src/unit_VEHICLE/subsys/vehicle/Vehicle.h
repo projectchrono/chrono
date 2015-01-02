@@ -44,8 +44,8 @@ public:
   virtual void Initialize(const ChCoordsys<>& chassisPos);
   virtual void Update(double              time,
                       double              steering,
-                      double              powertrain_torque,
                       double              braking,
+                      double              powertrain_torque,
                       const ChTireForces& tire_forces);
 
   bool UseVisualizationMesh() const          { return m_chassisUseMesh; }
