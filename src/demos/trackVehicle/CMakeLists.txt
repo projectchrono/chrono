@@ -98,6 +98,9 @@ ELSE()
 ENDIF()
 
 # add demo models here
+
+# ---------------------------------------------
+# DEMO 1: M113 model created by Justin, from report & data from Shabana and Wallin
 ADD_EXECUTABLE(demo_track_M113  demo_track_M113.cpp)
 
 SOURCE_GROUP(""  FILES  demo_track_M113.cpp)
@@ -119,3 +122,27 @@ TARGET_LINK_LIBRARIES(demo_track_M113
 # ADD_DEPENDENCIES (demo_track_M113 ChronoEngine ChronoEngine_IRRLICHT TrackVehicle)
 
 INSTALL(TARGETS demo_track_M113 DESTINATION bin)
+
+# ---------------------------------------------
+# DEMO 2: test the kinematics of the new constraint
+ADD_EXECUTABLE(test_idlerJoint  test_idlerJoint.cpp)
+
+SOURCE_GROUP(""  FILES  test_idlerJoint.cpp)
+
+SET_TARGET_PROPERTIES(test_idlerJoint  PROPERTIES
+    FOLDER demos
+    COMPILE_FLAGS "${CH_BUILDFLAGS_IRR}"
+    LINK_FLAGS "${CH_LINKERFLAG_EXE}"
+)
+
+TARGET_LINK_LIBRARIES(test_idlerJoint
+	ChronoEngine
+	ChronoEngine_IRRLICHT
+	TrackVehicle
+	Chrono_Utils
+    ${CH_IRRLICHTLIB}
+)
+
+# ADD_DEPENDENCIES (test_idlerJoint ChronoEngine ChronoEngine_IRRLICHT TrackVehicle)
+
+INSTALL(TARGETS test_idlerJoint DESTINATION bin)
