@@ -107,8 +107,9 @@ int main(int argc, char* argv[])
   // set the chassis REF at the specified initial config.
   vehicle.Initialize(ChCoordsys<>(initLoc, initRot));
 
-  // ground is a large flat plate, with superimposed obstacles
+  // ground is a large flat plate, with superimposed obstacles. Top surface at y = 0
   ChSharedPtr<ChBody> ground(new ChBodyEasyBox(60.0, 1.0, 100.0, 1000.0, true, true));
+  ground->SetPos(ChVector<>(0,-0.5,0));
 	ground->SetIdentifier(-1);
   ground->SetName("ground");
   ground->SetFriction(1.0);
