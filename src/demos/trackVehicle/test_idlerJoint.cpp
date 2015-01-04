@@ -48,6 +48,7 @@ const double gravity = 9.81;
 // const double time_end = 4.0;
 const double time_step = 0.001;
 const double out_fps = 50;
+const double render_fps = 50;
 
 // Name of the output folder
 const std::string out_dir = "../SLIDER_CRANK";
@@ -210,7 +211,7 @@ int main(int   argc,
       250, 130);
   }
   
-  irrapp.SetTimestep(step_size);
+  irrapp.SetTimestep(time_step);
   // Complete asset specification: convert all assets to Irrlicht
   irrapp.AssetBindAll();
   irrapp.AssetUpdateAll();
@@ -224,6 +225,10 @@ int main(int   argc,
   // between output frames (based on the requested FPS).
   // int num_steps = (int) std::ceil(time_end / time_step);
   int out_steps = (int) std::ceil((1 / time_step) / out_fps);
+   // Number of simulation steps between two 3D view render frames
+  // Time interval between two render frames
+  double render_step_size = 1.0 / render_fps;
+  int render_steps = (int)std::ceil(render_step_size / time_step);
 
   // Initialize simulation frame counter and simulation time
   int step_number = 0;
