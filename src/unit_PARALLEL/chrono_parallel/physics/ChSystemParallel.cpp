@@ -223,6 +223,7 @@ void ChSystemParallel::AddOtherPhysicsItem(ChSharedPtr<ChPhysicsItem> newitem) {
 void ChSystemParallel::AddShaft(ChSharedPtr<ChShaft> shaft)
 {
   shaft->AddRef();
+  shaft->SetId(data_manager->num_shafts);
   shaft->SetSystem(this);
   shaftlist.push_back(shaft.get_ptr());
 
