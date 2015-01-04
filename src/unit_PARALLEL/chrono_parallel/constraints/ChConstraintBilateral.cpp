@@ -2,11 +2,6 @@
 
 using namespace chrono;
 
-//%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
-void ChConstraintBilateral::Project(custom_vector<real> & gamma) {
-
-}
 
 //%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 void ChConstraintBilateral::host_RHS(int2 *ids,
@@ -47,11 +42,6 @@ void ChConstraintBilateral::ComputeRHS() {
             data_container->host_data.rhs_data.data());
 }
 
-//%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
-void ChConstraintBilateral::ComputeJacobians() {
-
-}
 //%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 void ChConstraintBilateral::host_Offsets(int2* ids,
@@ -111,8 +101,6 @@ void ChConstraintBilateral::host_Reduce_Shur(bool* active,
 
 void ChConstraintBilateral::host_shurA(int2 *ids,
                                        bool *active,
-                                       real *inv_mass,
-                                       real3 *inv_inertia,
                                        real3 *JXYZA,
                                        real3 *JXYZB,
                                        real3 *JUVWA,
@@ -120,8 +108,6 @@ void ChConstraintBilateral::host_shurA(int2 *ids,
                                        real *gamma,
                                        real3 *updateV,
                                        real3 *updateO,
-                                       real3* QXYZ,
-                                       real3* QUVW,
                                        uint* offset) {
 #pragma omp parallel for
    for (int index = 0; index < num_bilaterals; index++) {
@@ -147,8 +133,6 @@ void ChConstraintBilateral::host_shurA(int2 *ids,
 
 void ChConstraintBilateral::host_shurB(int2 *ids,
                                        bool *active,
-                                       real *inv_mass,
-                                       real3 *inv_inertia,
                                        real * gamma,
                                        real3 *JXYZA,
                                        real3 *JXYZB,
@@ -186,10 +170,12 @@ void ChConstraintBilateral::host_shurB(int2 *ids,
 }
 void ChConstraintBilateral::ShurA(real* x) {
    data_container->system_timer.start("ChConstraintBilateral_shurA_compute");
-   host_shurA(data_container->host_data.bids_bilateral.data(), data_container->host_data.active_data.data(), data_container->host_data.mass_data.data(),
-              data_container->host_data.inr_data.data(), data_container->host_data.JXYZA_bilateral.data(), data_container->host_data.JXYZB_bilateral.data(),
-              data_container->host_data.JUVWA_bilateral.data(), data_container->host_data.JUVWB_bilateral.data(), x, vel_update.data(), omg_update.data(),
-              data_container->host_data.QXYZ_data.data(), data_container->host_data.QUVW_data.data(), update_offset.data());
+   host_shurA(data_container->host_data.bids_bilateral.data(), data_container->host_data.active_data.data(),
+              data_container->host_data.JXYZA_bilateral.data(), data_container->host_data.JXYZB_bilateral.data(),
+              data_container->host_data.JUVWA_bilateral.data(), data_container->host_data.JUVWB_bilateral.data(),
+              x,
+              vel_update.data(), omg_update.data(),
+              update_offset.data());
    data_container->system_timer.stop("ChConstraintBilateral_shurA_compute");
    data_container->system_timer.start("ChConstraintBilateral_shurA_reduce");
    host_Reduce_Shur(data_container->host_data.active_data.data(), data_container->host_data.QXYZ_data.data(), data_container->host_data.QUVW_data.data(),
@@ -200,10 +186,12 @@ void ChConstraintBilateral::ShurA(real* x) {
 void ChConstraintBilateral::ShurB(real*x,
                                   real* output) {
    data_container->system_timer.start("ChConstraintBilateral_shurB_compute");
-   host_shurB(data_container->host_data.bids_bilateral.data(), data_container->host_data.active_data.data(), data_container->host_data.mass_data.data(),
-              data_container->host_data.inr_data.data(), x, data_container->host_data.JXYZA_bilateral.data(), data_container->host_data.JXYZB_bilateral.data(),
-              data_container->host_data.JUVWA_bilateral.data(), data_container->host_data.JUVWB_bilateral.data(), data_container->host_data.QXYZ_data.data(),
-              data_container->host_data.QUVW_data.data(), output);
+   host_shurB(data_container->host_data.bids_bilateral.data(), data_container->host_data.active_data.data(),
+              x,
+              data_container->host_data.JXYZA_bilateral.data(), data_container->host_data.JXYZB_bilateral.data(),
+              data_container->host_data.JUVWA_bilateral.data(), data_container->host_data.JUVWB_bilateral.data(),
+              data_container->host_data.QXYZ_data.data(), data_container->host_data.QUVW_data.data(),
+              output);
    data_container->system_timer.stop("ChConstraintBilateral_shurB_compute");
 }
 
@@ -248,7 +236,6 @@ void ChConstraintBilateral::ShurBilaterals(custom_vector<real> &x_t,
       if (data_container->host_data.active_data[b2] != 0) {
 
          real3 XYZ = data_container->host_data.QXYZ_data[b2] * data_container->host_data.mass_data[b2];
-         ;
          real3 UVW = data_container->host_data.QUVW_data[b2] * data_container->host_data.inr_data[b2];
          temp += dot(XYZ, data_container->host_data.JXYZB_bilateral[index]);
          temp += dot(UVW, data_container->host_data.JUVWB_bilateral[index]);

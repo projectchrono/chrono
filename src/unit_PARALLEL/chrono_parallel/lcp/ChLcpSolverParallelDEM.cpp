@@ -317,8 +317,6 @@ ChLcpSolverParallelDEM::RunTimeStep(real step)
   solver->bilateral = &bilateral;
   solver->Setup(data_container);
 
-  ////bilateral.ComputeJacobians();      //// no-op
-
   data_container->system_timer.start("ChLcpSolverParallel_RHS");
   bilateral.ComputeRHS();
   data_container->system_timer.stop("ChLcpSolverParallel_RHS");
