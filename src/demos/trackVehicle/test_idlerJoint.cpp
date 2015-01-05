@@ -26,6 +26,7 @@
 
 #include "core/ChFileutils.h"
 #include "core/ChStream.h"
+#include "physics/ChSystem.h"
 #include "physics/ChBodyEasy.h"
 #include "physics/ChSystem.h"
 
@@ -40,17 +41,20 @@ using namespace irr;
 
 // -----------------------------------------------------------------------------
 // Model Parameters
-const double wheel_rad = 0.3;
-const double wheel_wid = 0.2;
+const double wheel_rad = 0.5;
+const double wheel_wid = 0.4;
 const double wheel_density = 1000;  // [kg/m3]
 
-const double weight_side_len = 0.1;
+const double weight_side = 0.2;
 const double weight_density = 2500;
 const ChVector<> weight_offset = ChVector<>(1.0, 0, 0.3);  // relative to the other body
 
 const double spring_K = 1500;  // [N/m]
 const double spring_C = 15;   // [N-s/m]
 
+const double spindle_len = 0.3; // [m]
+
+const bool show_topology = true; // print the system config to the console?
 const double test_system_spacing = 2.0; // lateral offset distance to place the test bodies from the origin
 
 // -----------------------------------------------------------------------------
@@ -66,8 +70,8 @@ const double gravity = 9.81;
 
 // Simulation time, integration time-step, and output FPS
 // const double time_end = 4.0;
-const double time_step = 0.001;
-const double out_fps = 10;
+const double time_step = 0.0005;
+const double out_fps = 2;
 const double render_fps = 50;
 
 // Name of the output folder
@@ -108,7 +112,7 @@ void OutputData(ChSystem*             system,
 // test the difference between the two bodies on the specified levels.
 // return true if all the tolerances are met
 // return false if they are exceed
-bool run_test(double time, ChSharedPtr<ChBody> b1, ChSharedPtr<ChBody> b2, bool to_console = false)
+bool run_test(double time, ChSharedPtr<ChBody> b1, ChSharedPtr<ChBody> b2, bool to_console = false, bool error_to_console = true)
 {
   // fail test if the infinity norm of any of the difference vectors is above allowed tolerance.
   // what are the allowable tolerances?
@@ -118,6 +122,9 @@ bool run_test(double time, ChSharedPtr<ChBody> b1, ChSharedPtr<ChBody> b2, bool 
 
   // compare the states of the two bodies
   ChVector<> dx = b2->GetPos() - b1->GetPos();
+  // remove the original lateral offset of the two systems
+  dx.z = dx.z - 2.0*test_system_spacing;
+
   ChVector<> d_ang = Q_to_NasaAngles(b2->GetRot()) - Q_to_NasaAngles(b1->GetRot()); 
   ChVector<> dv = b2->GetPos_dt() - b1->GetPos_dt();
   ChVector<> dw = b2->GetWvel_loc() - b1->GetWvel_loc();
@@ -137,23 +144,18 @@ bool run_test(double time, ChSharedPtr<ChBody> b1, ChSharedPtr<ChBody> b2, bool 
 
     if(compare_vel)
     {
-     
       GetLog() << "velocity difference: " << " \n";
       GetLog() << " v_x:  " << dv.x << "\n v_y: " << dv.y << "\n v_z: " << dv.z << "\n";
       GetLog() << "rotationaly velocity difference: " << " \n";
       GetLog() << " w_x:  " << dw.x << "\n w_y: " << dw.y << "\n w_z: " << dw.z << "\n";
-  
     }
 
     if(compare_acc)
     {
-     
       GetLog() << "accel difference: " << " \n";
       GetLog() << " a_x:  " << da.x << "\n a_y: " << da.y << "\n a_z: " << da.z << "\n";
       GetLog() << "angular accel difference: " << " \n";
       GetLog() << " alpha_x:  " << d_alpha.x << "\n alpha_y: " << d_alpha.y << "\n alpha_z: " << d_alpha.z << "\n";
-  
-  
     }
   } // end to_console
 
@@ -162,31 +164,50 @@ bool run_test(double time, ChSharedPtr<ChBody> b1, ChSharedPtr<ChBody> b2, bool 
   if( dx.LengthInf() > tol_pos )
   {
     test_result = false;
-    GetLog() << " position test failed, with inf. norm: " << dv.LengthInf() << "\n";
+    if(error_to_console)
+      GetLog() << " position test failed, with inf. norm: " << dv.LengthInf() << "\n";
   }
 
   // test translational velocity
   if( dv.LengthInf() > tol_vel )
   {
     test_result = false;
-    GetLog() << " velocity test failed, with inf. norm: " << dv.LengthInf() << "\n";
+    if(error_to_console)
+      GetLog() << " velocity test failed, with inf. norm: " << dv.LengthInf() << "\n";
   }
 
   // test angular veloity
   if( dw.LengthInf() > tol_vel )
   {
     test_result = false;
-    GetLog() << " angular velocity test failed, with inf. norm: " << dv.LengthInf() << "\n";
+    if(error_to_console)
+      GetLog() << " angular velocity test failed, with inf. norm: " << dv.LengthInf() << "\n";
   }
 
   // test accel
   if( da.LengthInf() > tol_acc )
   {
     test_result = false;
-    GetLog() << " accel test failed, with inf. norm: " << dv.LengthInf() << "\n";
+    if(error_to_console)
+      GetLog() << " accel test failed, with inf. norm: " << dv.LengthInf() << "\n";
   }
   
   return test_result;
+}
+
+// use the app to draw all the springs in the specified system
+void draw_springs(ChSystem& system, ChIrrApp& app)
+{
+  std::vector<chrono::ChLink*>::iterator ilink = system.Get_linklist()->begin();
+  for (; ilink != system.Get_linklist()->end(); ++ilink) {
+    if (ChLinkSpring* link = dynamic_cast<ChLinkSpring*>(*ilink)) 
+    {
+      ChIrrTools::drawSpring(app.GetVideoDriver(), 0.05,
+        link->GetEndPoint1Abs(),
+        link->GetEndPoint2Abs(),
+        video::SColor(255, 150, 20, 20), 80, 15, true);
+    }
+  }
 }
 
 // -----------------------------------------------------------------------------
@@ -195,6 +216,8 @@ bool run_test(double time, ChSharedPtr<ChBody> b1, ChSharedPtr<ChBody> b2, bool 
 int main(int   argc,
          char* argv[])
 {
+
+  GetLog() << "Test ChLinkLockRevolutePrismatic constraint kinematics.\n Idler constraint compared to a 2-body 2-constraint equivalent\n";
   // 0. Create output directories.
   if(ChFileutils::MakeDirectory(out_dir.c_str()) < 0) {
     std::cout << "Error creating directory " << out_dir << std::endl;
@@ -211,64 +234,115 @@ int main(int   argc,
   //  gravity acts Y-down
   ChSystem system;
   system.Set_G_acc(ChVector<>(0, -gravity, 0));
+  // Integration and Solver settings
+  system.SetLcpSolverType(ChSystem::LCP_ITERATIVE_SOR);
+  system.SetIterLCPmaxItersSpeed(150);
+  system.SetIterLCPmaxItersStab(150);
+  system.SetMaxPenetrationRecoverySpeed(4.0);
 
   // 2. Create the two mechanisms, attach to a common ground body
   // 2a.  Ground
   ChSharedBodyPtr ground(new ChBody);
-  system.AddBody(ground);
+  ground->SetName("ground");
   ground->SetIdentifier(-1);
   ground->SetBodyFixed(true);
   ground->SetCollide(false);
   ground->GetCollisionModel()->ClearModel();
-  utils::AddCylinderGeometry(ground.get_ptr(), 0.15, 0.1);
+  utils::AddBoxGeometry(ground.get_ptr(), ChVector<>(0.8, 0.3, 0.3));
   ground->GetCollisionModel()->BuildModel();
+  system.AddBody(ground);
 
-  // 2b. System one: ChLinkLockRevolutePrismatic - 1 body, supposed to act like an idler
-  ChSharedPtr<ChBodyEasyCylinder> idler(new ChBodyEasyCylinder(wheel_rad, wheel_wid, wheel_density));
+  // 2b.)  System one: ChLinkLockRevolutePrismatic - 1 body, supposed to act like an idler
+  // doing this manually, so the body c-sys is same orientation as ground (as will be the case with the trackedvehicle)
+  ChSharedPtr<ChBody> idler(new ChBody);
   idler->SetName("idler body");
-  idler->SetPos(ChVector<>(0, 0, -test_system_spacing));
+  idler->SetPos(ChVector<>(0,0,-test_system_spacing));
+  // don't have to set Rot, but do have to set mass and inertia. Should be the same as the wheel.
+  // I'm setting these where the second system updates this one with the extra mass of the translating spindle body.
   system.Add(idler);
 
-  // make the idler body red
-  ChSharedPtr<ChColorAsset> red_col(new ChColorAsset);
-	red_col->SetColor(ChColor(0.9f,0.4f,0.2f));
-  idler->AddAsset(red_col);
+  // add visual asset
+  ChSharedPtr<ChCylinderShape> cyl(new ChCylinderShape);
+  cyl->GetCylinderGeometry().p1 = ChVector<>(0,0,wheel_wid/2.0);
+  cyl->GetCylinderGeometry().p2 = ChVector<>(0,0,-wheel_wid/2.0);
+  cyl->GetCylinderGeometry().rad = wheel_rad;
+  idler->AddAsset(cyl);
+
+  // add a texture to the cylinder to be able to see it rotate
+  ChSharedPtr<ChTexture> tex(new ChTexture);
+  tex->SetTextureFilename(GetChronoDataFile("bluwhite.png"));
+  idler->AddAsset(tex);
 
   // idler constraint: x-translate, z-rotate DOFs:
   ChSharedPtr<ChLinkLockRevolutePrismatic> revolutePrismatic(new ChLinkLockRevolutePrismatic);
   revolutePrismatic->SetName("idler constraint");
-  revolutePrismatic->Initialize(idler, ground,  idler->GetCoord() );
+  revolutePrismatic->Initialize(idler, ground, ChCoordsys<>(idler->GetPos(), ground->GetRot()) );
   system.AddLink(revolutePrismatic);
 
-  // attach the weight to the idler with a spring
-  ChSharedPtr<ChBodyEasyBox> weight_idler(new ChBodyEasyBox(0.1, 0.1, 0.2, weight_density));
+  // attach the weight to the idler with a spring. Twice as long in the x-dir (DOF)
+  ChSharedPtr<ChBodyEasyBox> weight_idler(new ChBodyEasyBox(2.*weight_side, weight_side, weight_side, weight_density));
   weight_idler->SetPos( idler->GetPos() + weight_offset);
   weight_idler->SetName("weight_idler box body");
   system.Add(weight_idler);
 
+  // make the idler weight body BLUE
+  ChSharedPtr<ChColorAsset> red_col(new ChColorAsset);
+	red_col->SetColor(ChColor(0.2f,0.2f,0.9f));
+  weight_idler->AddAsset(red_col);
+
+  // spring between idler and ground. Attach to idler offset from the COM, to induce any rotation.
   ChSharedPtr<ChLinkSpring> idler_spring(new ChLinkSpring);
-  idler_spring->Initialize(weight_idler, idler, false, weight_idler->GetPos(), idler->GetPos() );
+  idler_spring->Initialize(weight_idler, idler, false, weight_idler->GetPos(), idler->GetPos() + (weight_offset/2.0) );
   idler_spring->Set_SpringK(spring_K);
   idler_spring->Set_SpringF(spring_C);
   idler_spring->SetName("idler spring");
   system.AddLink(idler_spring);
 
-  // 2c. System two: use two bodies, and wheel and spindle, and two constraints, a revolute and prismatic.
+  // 2c.)  System two: use two bodies, and wheel and spindle, and two constraints, a revolute and prismatic.
   // wheel rotates and translates
+  /*
   ChSharedPtr<ChBodyEasyCylinder> wheel(new ChBodyEasyCylinder(wheel_rad, wheel_wid, wheel_density));
   wheel->SetPos(ChVector<>(0, 0, test_system_spacing));
-  wheel->SetName("wheel body");
+  wheel->SetRot(Q_from_AngAxis(CH_C_PI_2, VECT_X));
+  wheel->SetName("wheel cylinder body");
   system.Add(wheel);
-  // make the reference system blue
-  ChSharedPtr<ChColorAsset> ref_col(new ChColorAsset);
-	ref_col->SetColor(ChColor(0.2f,0.4f,0.9f));
-  wheel->AddAsset(ref_col);
+  */
 
-  // spindle transltes only
-  ChSharedPtr<ChBodyEasyBox> spindle(new ChBodyEasyBox(0.1, 0.1, 0.2, wheel_density/20.0));
+  ChSharedPtr<ChBody> wheel(new ChBody);
+  wheel->SetName("wheel body");
+  wheel->SetPos(ChVector<>(0,0,test_system_spacing));
+  // no rot, but will have to set mass and inertia
+  system.Add(wheel);
+  // add the visual asset, same as the first one
+  wheel->AddAsset(cyl);
+
+  // add a texture asset to be able to see this wheel spin
+  wheel->AddAsset(tex);
+
+  // spindle transltes only. Make z-axis of rotation direction twice as long
+  ChSharedPtr<ChBodyEasyBox> spindle(new ChBodyEasyBox(spindle_len, spindle_len, 2.*spindle_len, wheel_density));
   spindle->SetPos(ChVector<>(0, 0, test_system_spacing));
   spindle->SetName("spindle box body");
   system.Add(spindle);
+
+  // case 1: wheel and idler have same mass and inertia, must add extra mass from translating spindle body to the idler
+  // idler->SetMass( idler->GetMass() + spindle->GetMass()  );
+  // case 2: creating the idler body from scratch, so just set mass and inertia from what the second system has
+  // idler->SetMass( wheel->GetMass() + spindle->GetMass() );
+  // idler->SetInertiaXX( wheel->GetInertiaXX() );
+  // case 3: ChBody used for both wheel and idler, so set both mass and inertias manually
+  //          neither body is rotated initially
+  double volume = CH_C_PI * pow(wheel_rad,2) * wheel_wid;
+  double mass = volume * wheel_density;
+  // should have rotation about the z-axis
+  double Izz = (mass/2.0)*pow(wheel_rad,2);
+  double Ioff = (mass/12.0)*(3.0*pow(wheel_rad,2)+pow(wheel_wid,2));
+  ChVector<> inertia(Ioff, Ioff, Izz);
+  wheel->SetMass( mass );
+  wheel->SetInertiaXX(inertia);
+  // idler needs to include the translation of the spindle, e.g. mass only. Same inertia as wheel
+  idler->SetMass( mass + spindle->GetMass() );
+  idler->SetInertiaXX(inertia);
 
   // constraint the spindle to the ground
   ChSharedPtr<ChLinkLockPrismatic> prismatic(new ChLinkLockPrismatic);
@@ -285,18 +359,35 @@ int main(int   argc,
   system.AddLink(revolute);
   
   // same as the first system, constraint the weight with a spring to the wheel body with a spring
-  ChSharedPtr<ChBodyEasyBox> weight_wheel(new ChBodyEasyBox(0.1, 0.1, 0.2, weight_density));
+  ChSharedPtr<ChBodyEasyBox> weight_wheel(new ChBodyEasyBox(2.*weight_side, weight_side, weight_side, weight_density));
   weight_wheel->SetPos( wheel->GetPos() + weight_offset);
   weight_wheel->SetName("weight_wheel box body");
   system.Add(weight_wheel);
 
-  // spring between wheel weight and wheel
+  // make the reference weight RED
+  ChSharedPtr<ChColorAsset> ref_col(new ChColorAsset);
+	ref_col->SetColor(ChColor(0.9f,0.2f,0.2f));
+  weight_wheel->AddAsset(ref_col);
+  // mmake the spindle red also
+  spindle->AddAsset( ref_col);
+
+  // spring between wheel weight and wheel. Attach to wheel offset from the COM, to induce any rotation.
   ChSharedPtr<ChLinkSpring> wheel_spring(new ChLinkSpring);
-  wheel_spring->Initialize(weight_wheel, wheel, false, weight_wheel->GetPos(), wheel->GetPos() );
+  wheel_spring->Initialize(weight_wheel, wheel, false, weight_wheel->GetPos(), wheel->GetPos() + (weight_offset/2.0) );
   wheel_spring->Set_SpringK(spring_K);
   wheel_spring->Set_SpringF(spring_C);
   wheel_spring->SetName("wheel_spring");
   system.AddLink(wheel_spring);
+
+  // everything should be built and init'd. Check system topology by printing to console
+  if(show_topology)
+  {
+    GetLog() << "\n\n============ System Configuration ============\n";
+    GetLog() << " mass, system 1: idler = " << idler->GetMass() << " , weight = " << weight_idler->GetMass() << "\n";
+    GetLog() << " mass, system 2: wheel = " << wheel->GetMass() << " , spindke = " << spindle->GetMass() << " , weight = " << weight_wheel->GetMass() << "\n";
+    system.ShowHierarchy( GetLog() );
+  }
+
 
   // 4. Create and setup the Irrlicht App
   ChIrrApp irrapp(&system, L"testing idler joint", core::dimension2d<u32>(1000,800),false,true);
@@ -314,14 +405,14 @@ int main(int   argc,
     mlight = irrapp.AddLightWithShadow(
       irr::core::vector3df(10.f, 60.f, 30.f),
       irr::core::vector3df(0.f, 0.f, 0.f),
-      150, 60, 80, 15, 512, irr::video::SColorf(1, 1, 1), false, false);
+      50, 6, 20, 15, 512, irr::video::SColorf(1, 1, 1), false, false);
   }
   else
   {
     irrapp.AddTypicalLights(
       irr::core::vector3df(30.f, 100.f, -30.f),
       irr::core::vector3df(30.f, 100.f, 500.f),
-      250, 130);
+      50, 30);
   }
   
   // pass the desired timestep to the irrlicht app
@@ -353,6 +444,7 @@ int main(int   argc,
   ChRealtimeStepTimer realtime_timer;
   int out_frame = 0;
   char filename[100];
+  bool test_result = false;
 
   //for (int i = 0; i < num_steps; i++) {
   while(irrapp.GetDevice()->run()) 
@@ -365,16 +457,15 @@ int main(int   argc,
     {
       irrapp.GetVideoDriver()->beginScene(true, true, irr::video::SColor(255, 140, 161, 192));
 	    irrapp.DrawAll();
+      draw_springs(system, irrapp);
       irrapp.GetVideoDriver()->endScene();
     }
 	  // regardless of rendering the scene, take atime step
 	  irrapp.DoStep();
 		
-    // test the state of the two bodies, and report on the difference
-    // run_test(time, idler, wheel);
-
     // If this is an output frame, append body positions and orientations to the
     // output file and generate a rendering data file for this frame.
+    // Also, test the states of the two bodies that are supposed to move in the same way
     // if (i % out_steps == 0) {
 	  if (step_number % out_steps == 0) 
     {
@@ -382,6 +473,15 @@ int main(int   argc,
       sprintf(filename, "%s/data_%03d.dat", pov_dir.c_str(), out_frame+1);
       utils::WriteShapesPovray(&system, filename);
       out_frame++;
+
+      // test the state of the two bodies, and report on the difference if a tolerance is missed.
+      test_result = run_test(time, idler, wheel, false, true);
+      if(!test_result)
+        GetLog() << " test failed, time = " << time << " \n";
+      else
+        GetLog() << " test PASSED, time = " << time << "\n";
+  
+
     }
 
     // when not using irrlicht:
