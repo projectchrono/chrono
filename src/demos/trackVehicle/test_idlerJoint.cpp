@@ -12,12 +12,16 @@
 // Authors: Justin Madsen
 // =============================================================================
 //
-// Main mechanism is a single body slider with a ChLinkLockRevolutePrismatic.
+// Main mechanism is a single body constrained to gorund with a ChLinkLockRevolutePrismatic.
 //  Body rotates about z-axis, lateral and orthogonal to direction of translation.
-// Second mechanism is broken into a body two constraint mechanism, to mimic the other joint.
-// In both cases, the rotating body is attached to a weight and spring, offset from the COM in the x- and z- dirs.
-// Resulting motion should see the body translate and rotate in a oscillatory manner about the expected x- and z-axes, respectively.
+//  Meant to model a track vehicle idler, which translates and rotates relative to the chassis.
+// Second mechanism is a 2-body, 2-constraint system, kinematically equivalent to the first system (same overall DOFs)
 //
+// In both cases, the rotating body is attached to a weight and spring, offset from the COM in the x- and z- dirs.
+// Resulting motion by gravity and sprung mass results in both translational and rotational motion on the wheel/idler body.
+//
+// Tests the infinity norm of the position, velocity, angular velocity and acceleration of the two rotating bodies.
+// Using the tolerances in run_test, the two systems have kinematically equivalent motion.
 // The global reference frame is Y up.
 // =============================================================================
 
@@ -70,7 +74,7 @@ const double gravity = 9.81;
 
 // Simulation time, integration time-step, and output FPS
 // const double time_end = 4.0;
-const double time_step = 0.0005;
+const double time_step = 0.001;
 const double out_fps = 2;
 const double render_fps = 50;
 
