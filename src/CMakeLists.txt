@@ -189,16 +189,19 @@ IF(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
     ENDIF()
 ELSEIF(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
     SET (CH_BUILDFLAGS "-DLINUX -D__linux__ -fpermissive")
-    SET (CH_LINKERFLAG_SHARED "-lpthread -z muldefs  -pthread")		
+    SET (CH_LINKERFLAG_SHARED "-z muldefs")
     SET (CPACK_SYSTEM_NAME "Linux-x64")
 ELSEIF(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
 	if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
 	elseif ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
 		SET (CH_BUILDFLAGS "-DAPPLE -D__APPLE__   -fpermissive")
-		SET (CH_LINKERFLAG_SHARED "-lpthread  -fpermissive")		
+		SET (CH_LINKERFLAG_SHARED "-fpermissive")
 	endif()
     SET (CPACK_SYSTEM_NAME "OSX-x64")
 ENDIF()
+
+find_package(Threads)
+set(CH_LINKERFLAG_SHARED "${CMAKE_THREAD_LIBS_INIT} ${CH_LINKERFLAG_SHARED}")
 
 #-----------------------------------------------------------------------------
 # Some global  C++ definitions and includes that are used 
