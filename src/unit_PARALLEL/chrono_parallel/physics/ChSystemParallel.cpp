@@ -166,7 +166,6 @@ void ChSystemParallel::AddBody(ChSharedPtr<ChBody> newbody) {
 
    data_manager->host_data.vel_data.push_back(
    R3(mbodyvar.Get_qb().GetElementN(0), mbodyvar.Get_qb().GetElementN(1), mbodyvar.Get_qb().GetElementN(2)));
-   data_manager->host_data.acc_data.push_back(R3(0, 0, 0));
    data_manager->host_data.omg_data.push_back(
    R3(mbodyvar.Get_qb().GetElementN(3), mbodyvar.Get_qb().GetElementN(4), mbodyvar.Get_qb().GetElementN(5)));
    data_manager->host_data.pos_data.push_back(
