@@ -1,7 +1,6 @@
 #include "custom_cutil_math.h"
 #include "contactForces.cuh"
 #include "SPHCudaUtils.h"
-#include <sys/time.h>
 #include <thrust/sort.h>
 #include <thrust/scan.h>
 #include <thrust/reduce.h>
@@ -1982,10 +1981,12 @@ void cudaCollisions(
 	Populate_RigidSPH_MeshPos_LRF_kernel<<<nBlocks_numRigid_SphMarkers, nThreads_SphMarkers>>>(R3CAST(rigidSPH_MeshPos_LRF_D), R3CAST(posRadD), I1CAST(rigidIdentifierD), R3CAST(posRigidD),
 			R3CAST(AD1), R3CAST(AD2), R3CAST(AD3));
 	cudaThreadSynchronize();
-	CUT_CHECK_ERROR("Kernel execution failed: CalcTorqueOf_SPH_Marker_Acceleration");
+	CUT_CHECK_ERROR("Kernel execution failed: CalcTorqueOf_SPH_Marker_Acceleration");
+
 	//******************************************************************************
 	//******************** flex body some initialization
-//	int totalNumberOfFlexNodes = ANCF_ReferenceArrayNodesOnBeamsD[ANCF_ReferenceArrayNodesOnBeamsD.size() - 1].y;
+//	int totalNumberOfFlexNodes = ANCF_ReferenceArrayNodesOnBeamsD[ANCF_ReferenceArrayNodesOnBeamsD.size() - 1].y;
+
 	//******************************************************************************
 	thrust::device_vector<real_> flexParametricDistD = flexParametricDist;
 	thrust::device_vector<int> flexIdentifierD(numObjects.numFlex_SphMarkers);
@@ -2078,7 +2079,6 @@ void cudaCollisions(
 	real_ maxStress;
 	for (int tStep = 0; tStep < stepEnd + 1; tStep++) {
 		//************************************************
-		//edit  since yu deleted cyliderRotOmegaJD
 		PrintToFile(posRadD, velMasD, rhoPresMuD,
 				referenceArray, rigidIdentifierD,
 				posRigidD, posRigidCumulativeD, velMassRigidD, qD1, AD1, AD2, AD3, omegaLRF_D,
@@ -2094,9 +2094,9 @@ void cudaCollisions(
 		GpuTimer myGpuTimer;
 		myGpuTimer.Start();
 
-		struct timeval cpuT_start, cpuT_end;
-		struct timezone cpuT_timezone;
-		gettimeofday(&cpuT_start, &cpuT_timezone);
+		// Arman timer Added
+		CpuTimer mCpuTimer;
+		mCpuTimer.Start();
 
 		//***********
 		if (realTime <= paramsH.timePause) 	{
@@ -2269,14 +2269,12 @@ void cudaCollisions(
 		real_ time2 = (real_)myGpuTimer.Elapsed();
 
 		//cudaDeviceSynchronize();
-		gettimeofday(&cpuT_end, &cpuT_timezone);
-		double t1 = double(cpuT_start.tv_sec)+double(cpuT_start.tv_usec)/(1000*1000);
-		double t2 = double(cpuT_end.tv_sec)+double(cpuT_end.tv_usec)/(1000*1000);
 
+		//Arman timer Added
+		mCpuTimer.Stop();
 
 		if (tStep % 50 == 0) {
-			printf("step: %d, realTime: %f, step Time (CUDA): %f, step Time (CPU): %f\n ", tStep, realTime, time2, 1000 * (t2 - t1));
-			//printf("a \n");
+			printf("step: %d, realTime: %f, step Time (CUDA): %f, step Time (CPU): %f\n ", tStep, realTime, time2, 1000 * mCpuTimer.Elapsed());
 
 			// ************ calc and print cartesian data ************************************
 			int3 cartesianGridDims;

@@ -441,12 +441,15 @@ void PrintToFile(
 		ofstream fileNameFluidBoundaries;
 		ofstream fileNameRigidFlexBCE;
 
-		system("mkdir -p povFiles");
-
 		int tStepsPovFiles = 1000;//2000;
 
 //		if (tStep > 1000) tStepsPovFiles = 2;
 		if (tStep % tStepsPovFiles == 0) {
+#ifdef _WIN32
+			system("mkdir povFiles");
+#else
+			system("mkdir -p povFiles");
+#endif
 			if (tStep / tStepsPovFiles == 0) {
 						//linux. In windows, it is System instead of system (to invoke a command in the command line)
 				system("rm povFiles/*.csv");

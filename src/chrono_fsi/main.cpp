@@ -18,6 +18,7 @@
 #include <limits.h>
 #include <vector>
 #include <cstdlib> //for RAND_MAX
+#include <ctime>
 
 //for memory leak detection, apparently does not work in conjunction with cuda
 //#define _CRTDBG_MAP_ALLOC
@@ -2050,8 +2051,8 @@ int main() {
 		flexParams.r = paramsH.HSML * paramsH.MULT_INITSPACE * (paramsH.NUM_BCE_LAYERS - 1);
 		flexParams.rho = 1050;//7200;
 		flexParams.ne = 4;
-		flexParams.A = PI * pow(flexParams.r, 2.0f);
-		flexParams.I = .25 * PI * pow(flexParams.r, 4.0f);
+		flexParams.A = PI * pow(real_(flexParams.r), real_(2.0));
+		flexParams.I = .25 * PI * pow(real_(flexParams.r), real_(4.0));
 		flexParams.gravity = paramsH.gravity;
 		flexParams.bobRad = .1;
 

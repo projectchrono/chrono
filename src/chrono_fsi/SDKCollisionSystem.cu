@@ -445,7 +445,7 @@ __global__ void calcHashD(uint* gridMarkerHash, // output
 	uint index = __umul24(blockIdx.x, blockDim.x) + threadIdx.x;
 	if (index >= numAllMarkers) return;
 
-	volatile real3 p = posRad[index];
+	real3 p = posRad[index];
 
 	real3 boxCorner = paramsD.worldOrigin;
 	if (p.x < boxCorner.x || p.y < boxCorner.y || p.z < boxCorner.z) {

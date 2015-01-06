@@ -16,7 +16,7 @@
 #define CUSTOM_CUTIL_MATH_H
 ////////Define Real, either float or double
 #include <helper_math.h>
-#define DOUBLEPRECISION true
+#define DOUBLEPRECISION 1
 
 #if DOUBLEPRECISION
 typedef double real_;

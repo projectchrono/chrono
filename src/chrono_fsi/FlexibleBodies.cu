@@ -62,7 +62,7 @@
 
 #include <cstdio>
 
-#define flexGPU true
+#define flexGPU 1
 #if flexGPU
 	__constant__ ANCF_Params flexParamsD;
 	__constant__ real_ dTD;
