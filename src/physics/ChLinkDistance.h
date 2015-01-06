@@ -95,8 +95,8 @@ public:
 						   double mdistance =0   ///< imposed distance (no need to define, if auto_distance=true.)
 						   );
 
-					/// Get the number of scalar constraints imposed by this link (only unilateral constr.)
-	virtual int GetDOC_d() {return 1;}
+					/// Get the number of (bilateral) constraints introduced by this link.
+	virtual int GetDOC_c() {return 1;}
 
 					/// Get the link coordinate system, expressed relative to Body2 (the 'master'
 					/// body). This represents the 'main' reference of the link: reaction forces 
