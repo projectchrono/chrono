@@ -6,7 +6,7 @@
 
 #include <string>
 #include <climits>
-#include "EC_SDL_InputManager.h"
+#include "../Input/ChOgre_SDLInputHandler.h"
 
 namespace EnvironmentCore {
 

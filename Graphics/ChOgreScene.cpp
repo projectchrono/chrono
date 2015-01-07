@@ -4,8 +4,8 @@ Author: Charles Ricchio
 Contains the definitions for ECScene
 */
 
-#include "ECScene.h"
-#include "tinyobjloader/tiny_obj_loader.h"
+#include "ChOgreScene.h"
+#include "../tinyobjloader/tiny_obj_loader.h"
 #include <thread>
 
 namespace EnvironmentCore {

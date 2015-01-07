@@ -4,7 +4,7 @@ Author: Charles Ricchio
 All the defines for the ECCameraManager
 */
 
-#include "ECCameraManager.h"
+#include "ChOgreCameraManager.h"
 
 namespace EnvironmentCore {
 

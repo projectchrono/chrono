@@ -5,7 +5,7 @@ The actual definitions for EnvironmentCoreApplication. Most of the code in the c
 written more elegantly.
 */
 
-#include "ECApplication.h"
+#include "ChOgreApplication.h"
 
 namespace EnvironmentCore {
 
@@ -145,7 +145,7 @@ namespace EnvironmentCore {
 				break;
 			}
 
-			m_pGUIManager->update();
+			//m_pGUIManager->update();
 
 			l_run = _func();
 
@@ -226,7 +226,7 @@ namespace EnvironmentCore {
 		m_pRoot->clearEventTimes();
 
 		m_pInputManager = new EC_SDL_InputManager(m_pRenderWindow);
-		m_pGUIManager = new ECGUIManager(m_pSceneManager, m_pInputManager);
+		//m_pGUIManager = new ECGUIManager(m_pSceneManager, m_pInputManager);
 
 
 		return m_pRenderWindow;
@@ -289,9 +289,9 @@ namespace EnvironmentCore {
 		return m_pInputManager;
 	}
 
-	ECGUIManager* EnvironmentCoreApplication::getGUIManager() {
-		return m_pGUIManager;
-	}
+	//ECGUIManager* EnvironmentCoreApplication::getGUIManager() {
+	//	return m_pGUIManager;
+	//}
 
 	Ogre::RenderWindow* EnvironmentCoreApplication::getWindow() {
 		return m_pRenderWindow;

@@ -9,7 +9,7 @@ ECScene is designed to be a layer of abstraction from the Ogre lighting system, 
 #include <OGRE\Ogre.h>
 #include <physics\ChSystem.h>
 
-#include "ECBody.h"
+#include "ChOgreBody.h"
 
 namespace EnvironmentCore {
 

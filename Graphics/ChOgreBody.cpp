@@ -5,8 +5,8 @@ Contains the definitions for ECBody
 */
 
 
-#include "ECBody.h"
-#include "tinyobjloader/tiny_obj_loader.h"
+#include "ChOgreBody.h"
+#include "../tinyobjloader/tiny_obj_loader.h"
 
 namespace EnvironmentCore {
 
