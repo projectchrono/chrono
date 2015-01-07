@@ -436,7 +436,7 @@ public:
 	ChSharedPtr<T_other> DynamicCastTo() const
 			{
 				ChSharedPtr<T_other> result; 
-				if (result.ptr = dynamic_cast<T_other*>(this->ptr))
+				if ( (result.ptr = dynamic_cast<T_other*>(this->ptr)) )
 				{
 					result.ptr->AddRef();
 				}

@@ -24,7 +24,7 @@
 #include <math.h>
 #include <stdio.h>
 
-#if !defined(__APPLE__)
+#if !(defined(__APPLE__) || defined(__FreeBSD__))
 #include <malloc.h>
 #endif
 #include "core/ChLog.h"
