@@ -54,7 +54,7 @@ public:
 
   /// Initialize the tracked vehicle REF frame with the specified Coordinate system
   /// This initial transform is inherited by all vehicle subsystems.
-  void Initialize(const ChCoordsys<>& chassis_Csys);
+  void Initialize(const ChCoordsys<>& chassis_Csys);  ///< [in] initial config of vehicle REF frame
   
   /// Update the vehicle with the new settings for throttle and brake
   void Update(double	time,
@@ -63,8 +63,6 @@ public:
 
   /// Advance the vehicle (and the ChSystem)
   void Advance(double step);
-
-
 
   /// integration step size for the vehicle system.
   void SetStepsize(double val) { m_stepsize = val; }

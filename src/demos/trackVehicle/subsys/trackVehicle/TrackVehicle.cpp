@@ -12,7 +12,9 @@
 // Authors: Justin Madsen
 // =============================================================================
 //
-// Tracked vehicle model built from subsystems specified w/ JSON input data file
+// Tracked vehicle model built from subsystems.
+//  Location of subsystems hard-coded for M113 vehicle
+//  TODO: specify this w/ JSON input data file
 //
 // =============================================================================
 
