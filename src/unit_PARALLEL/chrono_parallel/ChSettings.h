@@ -24,25 +24,50 @@
 #include "parallel/ChOpenMP.h"
 
 namespace chrono {
+// collision_settings, like the name implies is the structure that contains all
+// settings associated with the collision detection step of chrono parallel
 struct collision_settings {
+	// The default values are specified in the constructor, use these as
+	// guidelines when experimenting with your own simulation setup.
   collision_settings() {
-    max_body_per_bin = 50;
-    min_body_per_bin = 25;
-    use_aabb_active = 0;
+    use_aabb_active = false;
+    // I chose to set the default envelope because there is no good default
+    // value (in my opinion, feel free to disagree!) I suggest that the envelope
+    // be set to 5-10 percent of the smallest object radius. Using too large of
+    // a value will slow the collision detection down.
     collision_envelope = 0;
+    // The number of slices in each direction will greatly effect the speed at
+    // which the collision detection operates. I would suggest that on average
+    // the number of objects in a bin/grid cell should not exceed 100.
+    // NOTE!!! this really depends on the architecture that you run on and how
+    // many cores you are using.
     bins_per_axis = I3(20, 20, 20);
     narrowphase_algorithm = NARROWPHASE_HYBRID_MPR;
     // edge_radius = 0.1;
   }
 
-  // Collision variables
   real3 min_bounding_point, max_bounding_point;
+  // This parameter, similar to the one in chrono inflates each collision shape
+  // by a certain amount. This is necessary when using DVI as it creates the
+  // contact constraints before objects acutally come into contact. In general
+  // this helps with stability.
   real collision_envelope;
+  // Chrono parallel has an optional feature that allows the user to set a
+  // bounding box that automatically freezes (makes inactive) any object that
+  // exits the bounding box
   bool use_aabb_active;
-  int min_body_per_bin;
-  int max_body_per_bin;
+  // The size of the bounding box (if set to active) is specified by its min and
+  // max extents
   real3 aabb_min, aabb_max;
+  // This variable is the primary method to control the granularity of the
+  // collision detection grid used for the broadphase.
+  // As the name suggests, it is the number of slices along each axis. During
+  // the broadphase stage the extents of the simulation are computed and then
+  // sliced according to the variable.
   int3 bins_per_axis;
+  // There are multiple narrowphase algorithms implemented in the collision
+  // detection code. The narrowphase_algorithm parameter can be used to change
+  // the type of narrowphase used at runtime.
   NARROWPHASETYPE narrowphase_algorithm;
   // real edge_radius;
 };
