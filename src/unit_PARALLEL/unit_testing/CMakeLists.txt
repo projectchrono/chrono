@@ -56,6 +56,7 @@ SET(TESTS
     test_r
     test_apgd
     test_shur_performance
+    test_shafts
 )
 
 MESSAGE(STATUS "Unit test programs...")

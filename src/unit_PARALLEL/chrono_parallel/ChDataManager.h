@@ -165,7 +165,6 @@ struct host_container {
 
    thrust::host_vector<real> gamma_data;
    thrust::host_vector<real> old_gamma_data;
-   thrust::host_vector<real> dgm_data;
 
    //object data
    thrust::host_vector<real3> vel_data, vel_new_data;
@@ -175,15 +174,19 @@ struct host_container {
    thrust::host_vector<real3> inr_data;
    thrust::host_vector<real3> frc_data;
    thrust::host_vector<real3> trq_data;
-   thrust::host_vector<real3> acc_data;
    thrust::host_vector<bool> active_data;
    thrust::host_vector<bool> collide_data;
    thrust::host_vector<real> mass_data;
 
+   // shaft data
+   thrust::host_vector<real> shaft_rot;    // shaft rotation angles
+   thrust::host_vector<real> shaft_omg;    // shaft angular velocities
+   thrust::host_vector<real> shaft_trq;    // shaft torques
+   thrust::host_vector<real> shaft_inr;    // shaft inverse inertias
+   thrust::host_vector<bool> shaft_active; // shaft active (not sleeping nor fixed) flags
+
    thrust::host_vector<real3> lim_data;
-   thrust::host_vector<real3> dem_data;
    thrust::host_vector<real3> gyr_data;
-   thrust::host_vector<real> pressure_data;
    thrust::host_vector<real> bin_number;
 
    // Material properties (DVI)
@@ -233,6 +236,7 @@ class CH_PARALLEL_API ChParallelDataManager {
    uint num_unilaterals;
    uint num_bilaterals;
    uint num_constraints;
+   uint num_shafts;
 
    // Flag indicating whether or not effective contact radius is calculated
    bool erad_is_set;

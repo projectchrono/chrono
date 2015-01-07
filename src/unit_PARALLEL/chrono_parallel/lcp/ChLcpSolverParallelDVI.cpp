@@ -58,7 +58,6 @@ void ChLcpSolverParallelDVI::RunTimeStep(real step) {
    data_container->system_timer.start("ChLcpSolverParallel_Jacobians");
    rigid_rigid.ComputeJacobians();
 
-   bilateral.ComputeJacobians();
    data_container->system_timer.stop("ChLcpSolverParallel_Jacobians");
    data_container->system_timer.start("ChLcpSolverParallel_RHS");
    bilateral.ComputeRHS();

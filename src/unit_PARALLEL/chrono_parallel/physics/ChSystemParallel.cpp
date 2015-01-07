@@ -108,6 +108,17 @@ int ChSystemParallel::Integrate_Y() {
       }
    }
 
+////#pragma omp parallel for
+   for (int i = 0; i < data_manager->num_shafts; i++) {
+     if (!data_manager->host_data.shaft_active[i])
+       continue;
+
+     shaftlist[i]->Variables().Get_qb().SetElementN(0, data_manager->host_data.shaft_omg[i]);
+     shaftlist[i]->VariablesQbIncrementPosition(GetStep());
+     shaftlist[i]->VariablesQbSetSpeed(GetStep());
+     shaftlist[i]->Update(ChTime);
+   }
+
    data_manager->system_timer.stop("update");
 
    //=============================================================================================
@@ -155,7 +166,6 @@ void ChSystemParallel::AddBody(ChSharedPtr<ChBody> newbody) {
 
    data_manager->host_data.vel_data.push_back(
    R3(mbodyvar.Get_qb().GetElementN(0), mbodyvar.Get_qb().GetElementN(1), mbodyvar.Get_qb().GetElementN(2)));
-   data_manager->host_data.acc_data.push_back(R3(0, 0, 0));
    data_manager->host_data.omg_data.push_back(
    R3(mbodyvar.Get_qb().GetElementN(3), mbodyvar.Get_qb().GetElementN(4), mbodyvar.Get_qb().GetElementN(5)));
    data_manager->host_data.pos_data.push_back(
@@ -194,6 +204,35 @@ void ChSystemParallel::AddOtherPhysicsItem(ChSharedPtr<ChPhysicsItem> newitem) {
    if (newitem->GetCollide()) {
       newitem->AddCollisionModelsToSystem();
    }
+
+   //// Ideally, the function AddShaft() would be an override of a ChSystem
+   //// virtual function and the vector shaftlist would be maintained by the base
+   //// class ChSystem.  For now, users must use AddOtherPhysicsItem in order to
+   //// properly account for the variables of a shaft elelement in ChSystem::Setup().
+   //// Note that this also means we duplicate pointers in two lists: shaftlist
+   //// and otherphysicslist...
+   if (ChSharedPtr<ChShaft> shaft = newitem.DynamicCastTo<ChShaft>()) {
+     AddShaft(shaft);
+   }
+}
+
+//// Currently, this function is private to prevent the user from directly calling
+//// it and instead force them to use AddOtherPhysicsItem().  See comment above.
+//// Eventually, this should be an override of a virtual function declared by ChSystem.
+void ChSystemParallel::AddShaft(ChSharedPtr<ChShaft> shaft)
+{
+  shaft->AddRef();
+  shaft->SetId(data_manager->num_shafts);
+  shaft->SetSystem(this);
+  shaftlist.push_back(shaft.get_ptr());
+
+  data_manager->host_data.shaft_rot.push_back(0);
+  data_manager->host_data.shaft_omg.push_back(0);
+  data_manager->host_data.shaft_trq.push_back(0);
+  data_manager->host_data.shaft_inr.push_back(1);
+  data_manager->host_data.shaft_active.push_back(true);
+
+  data_manager->num_shafts++;
 }
 
 void ChSystemParallel::Update() {
@@ -201,10 +240,37 @@ void ChSystemParallel::Update() {
    for (int i = 0; i < bodylist.size(); i++) {
      bodylist[i]->VariablesFbReset();
    }
+////#pragma omp parallel for
+   for (int i = 0; i < data_manager->num_shafts; i++) {
+     shaftlist[i]->VariablesFbReset();
+   }
    this->LCP_descriptor->BeginInsertion();
    UpdateBilaterals();
    UpdateBodies();
+   UpdateShafts();
    LCP_descriptor->EndInsertion();
+}
+
+void ChSystemParallel::UpdateShafts()
+{
+  real* shaft_rot = data_manager->host_data.shaft_rot.data();
+  real* shaft_omg = data_manager->host_data.shaft_omg.data();
+  real* shaft_trq = data_manager->host_data.shaft_trq.data();
+  real* shaft_inr = data_manager->host_data.shaft_inr.data();
+  bool* shaft_active = data_manager->host_data.shaft_active.data();
+
+////#pragma omp parallel for
+  for (int i = 0; i < data_manager->num_shafts; i++) {
+    shaftlist[i]->Update(ChTime);
+    shaftlist[i]->VariablesFbLoadForces(GetStep());
+    shaftlist[i]->VariablesQbLoadSpeed();
+
+    shaft_rot[i] = shaftlist[i]->GetPos();
+    shaft_inr[i] = shaftlist[i]->Variables().GetInvMass().GetElementN(0);
+    shaft_omg[i] = shaftlist[i]->Variables().Get_qb().GetElementN(0);
+    shaft_trq[i] = shaftlist[i]->Variables().Get_fb().GetElementN(0);
+    shaft_active[i] = shaftlist[i]->IsActive();
+  }
 }
 
 void ChSystemParallel::UpdateBilaterals() {
