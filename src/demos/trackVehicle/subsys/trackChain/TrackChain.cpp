@@ -65,25 +65,137 @@ TrackChain::TrackChain(const std::string& name,
   AddVisualization(0);
 }
 
-
+// figure out the control points, 2 per rolling element to wrap the chain around.
 void TrackChain::Initialize(ChSharedPtr<ChBodyAuxRef> chassis,
-                            const std::vector<ChVector<>>& control_points,
+                            const std::vector<ChVector<>>& rolling_element_loc,
                             const std::vector<double>& clearance,
                             const ChVector<>& start_loc)
 {
-  // add collision geometry to the first track shoe
-  AddCollisionGeometry(0);
-  m_numShoes = 1;
-
-  // get the points in absolute coordinates
+  // get the following in abs coords: 1) start_loc, 2) rolling_elem, 3) control_points
   ChFrame<> start_to_abs(start_loc);
   start_to_abs.ConcatenatePreTransformation(chassis->GetFrame_REF_to_abs());
+
+  // find control points, which lie on the envelope of each rolling element, in abs coords
   std::vector<ChFrame<>> control_to_abs;
-  for(size_t i = 0; i < control_points.size(); i++)
-  {
-    // clearance????   
-    control_to_abs.push_back(ChFrame<>(control_points[i]));
-    control_to_abs[i].ConcatenatePreTransformation(chassis->GetFrame_REF_to_abs());
+  std::vector<ChFrame<>> rolling_to_abs;
+
+  size_t num_elem = rolling_element_loc.size();  // number of control points
+  // define the envelope to wrap the chain around using 1) body locs and clearances, 2) control_points.
+  // each rolling element has 2 control points, a start and end point for a given envenlope line segment.
+  ChVector<> start_point;  // current start_loc for this segment
+  ChVector<> end_point; // end point of the current segment
+  ChVector<> rad_dir;   // center to segment start/end point on rolling elments
+  ChVector<> r_21;      // vector between two pulley centerpoints
+  ChVector<> norm_dir;  // norm = r_12 cross r_32
+  for(size_t i = 0; i < num_elem; i++)
+  { 
+    // convert the center of the rolling body to abs coords
+    rolling_to_abs.push_back(ChFrame<>(rolling_element_loc[i]));
+    rolling_to_abs[i].ConcatenatePreTransformation(chassis->GetFrame_REF_to_abs());
+
+    // start and end points of line segment are found.
+    // start and end point are known for the first and last segement, respectively.
+    if(i == num_elem - 1)
+    {
+      // only different from intermediate segments in that the norm_dir is found differently
+      r_21 = rolling_element_loc[i] - rolling_element_loc[i-1];
+      // first rolling element being 3 in  norm = r_12 cross r_32
+      norm_dir = Vcross( rolling_element_loc[i-1] - rolling_element_loc[i], rolling_element_loc[0] - rolling_element_loc[i]);
+      norm_dir.Normalize();
+      // this is the case for alpha = 0, e.g. the two rolling elements have the same radius
+      rad_dir = Vcross(norm_dir, r_21);
+      rad_dir.Normalize();
+      // check to see if the two rolling elements have the same radius
+      // when not the same size, find the angle of pulley wrap, alpha != 0
+      if( abs(clearance[i] - clearance[i-1]) > 1.0e-3 )
+      {
+        // pulley wrap angle, a = (r2-r1)/center_len
+        double alpha = asin( (clearance[i] - clearance[i-1]) / r_21.Length() );
+        ChQuaternion<> alpha_rot(Q_from_AngAxis(alpha, norm_dir) );
+        ChFrame<> rot_frame(ChVector<>(),alpha_rot);
+        rad_dir =  rad_dir >> rot_frame;
+      }
+
+      // with a radial direction vector, start/end points are easy
+      start_point = rolling_element_loc[i-1] + rad_dir * clearance[i-1];
+      end_point = rolling_element_loc[i] + rad_dir * clearance[i];
+    } else if(i == 0)
+    {
+      // first point, know start_point off the bat. r_21 found differently
+      start_point = start_loc;
+      // this is where the assumption that start_loc is on the top of the chain matters
+      ChVector<> top_center = rolling_element_loc[i];
+      top_center.y =+ clearance[i];
+      r_21 = top_center - start_loc;
+
+      // last rolling element being 1 in norm = r_12 cross r_32
+      norm_dir = Vcross( rolling_element_loc[num_elem-1] - rolling_element_loc[i], rolling_element_loc[i+1] - rolling_element_loc[i]);
+      norm_dir.Normalize();
+
+      // this is the case for alpha = 0, e.g. the two rolling elements have the same radius
+      rad_dir = Vcross(norm_dir, r_21);
+      rad_dir.Normalize();
+      // when not the same size, find the angle of pulley wrap, alpha != 0
+      if( abs(clearance[i] - clearance[i-1]) > 1.0e-3 )
+      {
+        // pulley wrap angle, a = (r2-r1)/center_len
+        double alpha = asin( (clearance[i] - clearance[i-1]) / r_21.Length() );
+        ChQuaternion<> alpha_rot(Q_from_AngAxis(alpha, norm_dir) );
+        ChFrame<> rot_frame(ChVector<>(),alpha_rot);
+        rad_dir =  rad_dir >> rot_frame;
+      }
+      
+
+
+      end_point = rolling_element_loc[i] + rad_dir * clearance[i];
+    } else
+    {
+      // intermediate points, find start and end from roller elem locations
+      // center distance vector
+      r_21 = rolling_element_loc[i] - rolling_element_loc[i-1];
+
+      // find the radial direction from the center to each control point
+      // same for both rolling element bodies.
+      norm_dir = Vcross( rolling_element_loc[i-1] - rolling_element_loc[i], rolling_element_loc[i+1] - rolling_element_loc[i]);
+      norm_dir.Normalize();
+      // this is the case for alpha = 0, e.g. the two rolling elements have the same radius
+      rad_dir = Vcross(norm_dir, r_21);
+      rad_dir.Normalize();
+      // when not the same size, find the angle of pulley wrap, alpha != 0
+      if( abs(clearance[i] - clearance[i-1]) > 1.0e-3 )
+      {
+        // pulley wrap angle, a = (r2-r1)/center_len
+        double alpha = asin( (clearance[i] - clearance[i-1]) / r_21.Length() );
+        ChQuaternion<> alpha_rot(Q_from_AngAxis(alpha, norm_dir) );
+        ChFrame<> rot_frame(ChVector<>(),alpha_rot);
+        rad_dir =  rad_dir >> rot_frame;
+      }
+
+      // with a radial direction vector, start/end points are easy
+      start_point = rolling_element_loc[i-1] + rad_dir * clearance[i-1];
+      end_point = rolling_element_loc[i] + rad_dir * clearance[i];
+    }
+
+    if(i == 0)
+    {
+      // first segment, only use the end_point
+      control_to_abs.push_back(ChFrame<>(end_point));
+      control_to_abs[0].ConcatenatePreTransformation(chassis->GetFrame_REF_to_abs() );
+    } else if(i == num_elem - 1)
+    {
+      // last segment, only use the start_point
+      control_to_abs.push_back(ChFrame<>(start_point));
+      (*control_to_abs.end()).ConcatenatePreTransformation(chassis->GetFrame_REF_to_abs() );
+    }
+    else
+    {
+      // intermediate segments, use both start and end points
+      control_to_abs.push_back(ChFrame<>(start_point));
+      (*control_to_abs.end()).ConcatenatePreTransformation(chassis->GetFrame_REF_to_abs() );
+      control_to_abs.push_back(ChFrame<>(end_point));
+      (*control_to_abs.end()).ConcatenatePreTransformation(chassis->GetFrame_REF_to_abs() );
+    }
+
   }
 
 
@@ -94,7 +206,7 @@ void TrackChain::Initialize(ChSharedPtr<ChBodyAuxRef> chassis,
   // hard part: "wrap" the track chain around the trackSystem, e.g., drive-gear,
   // idler, road-wheels. First and last shoes are allowed to be in any orientation,
   // as long as the final pin joint connects correctly.
-  CreateChain(control_points, clearance, start_loc );
+  CreateChain(control_to_abs, rolling_to_abs, clearance, ChCoordsys<>(start_to_abs.GetPos(), start_to_abs.GetRot()) );
 }
 
 void TrackChain::AddVisualization(size_t track_idx)
@@ -194,12 +306,16 @@ void TrackChain::AddCollisionGeometry(size_t track_idx)
 
 }
 
+// two control points per rolling body.
 
-void TrackChain::CreateChain(const std::vector<ChVector<>>& control_points,
-                            const std::vector<double>& clearance,
-                            const ChVector<>& start_loc)
+void TrackChain::CreateChain(const std::vector<ChFrame<>>& control_points_abs,
+                             const std::vector<ChFrame<>>& rolling_element_abs,
+                             const std::vector<double>& clearance,
+                             const ChCoordsys<>& start_Csys)
 {
-
+  // add collision geometry to the first track shoe
+  AddCollisionGeometry(0);
+  m_numShoes = 1;
 }
 
 
