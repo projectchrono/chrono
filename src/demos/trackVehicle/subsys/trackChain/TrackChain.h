@@ -41,13 +41,14 @@ public:
   
   ~TrackChain() {}
 
-  /// Pass in a vector of control points w.r.t. the chassis c-sys, that are the center of the rolling elements.
-  /// Use the clearnance to define a spherical envelope for each the control points.
+  /// Pass in a vector of center of rolling element bodies w.r.t. chassis c-sys.
+  /// Use the clearance to define a spherical envelope for each rolling element.
   /// An envelope is where the surface of the track chain will not penetrate.
-  /// Start_loc must be between the idler and driveGear, e.g. the top of the chain.
-  /// NOTE: control_points must begin and end with the idler and driveGear (order not important???)
+  /// Start_loc should be somewhere between the idler and driveGear, e.g. the top of the chain.
+  /// Start_loc c-sys x-dir should point towards first control point
+  /// Q: control_points must begin and end with the idler and driveGear ???
   void Initialize(ChSharedPtr<ChBodyAuxRef> chassis,
-    const std::vector<ChVector<>>& control_points,
+    const std::vector<ChVector<>>& rolling_element_loc,
     const std::vector<double>& clearance,
     const ChVector<>& start_loc);
   
@@ -63,12 +64,13 @@ private:
   /// add collision geometrey to a track shoe
   void AddCollisionGeometry(size_t track_idx);
    
-  /// "wrap" the track chain around the other elements in this TrackSystem
-  /// control_points MUST begin and end with the idler and drive gear, order doesn't matter.
-  /// start_loc MUST be somewhere on the plane of chain wrap defined by the idler and gear points.
-  void CreateChain(const std::vector<ChVector<>>& control_points,
-                            const std::vector<double>& clearance,
-                            const ChVector<>& start_loc );
+  /// initialize shoe bodies by wrapping the track chain around the rolling elements.
+  /// Define a string along which the chain is wrapper, using the input values.
+  /// Note: start_loc_abs should be between the idler and sprockets
+  void CreateChain(const std::vector<ChFrame<>>& control_points_abs,
+    const std::vector<ChFrame<>>& rolling_element_abs,
+    const std::vector<double>& clearance,
+    const ChVector<>& start_loc_abs );
 
     // private functions
   const std::string& getMeshName() const { return m_meshName; }
