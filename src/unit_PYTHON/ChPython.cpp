@@ -269,7 +269,7 @@ void ChPythonEngine::ImportSolidWorksSystem(const char* solidworks_py_file, ChSy
 
 	if (PyList_Check(result))
 	{
-		int nitems = (int)PyList_Size(result);
+		int nitems = PyList_Size(result);
 		//GetLog() << "N.of list items: " << nitems << "\n";
 		for (int i = 0; i< nitems; i++)
 		{

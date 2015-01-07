@@ -151,25 +151,12 @@ public:
 					/// array containing a set of ChLcpConstraint items).
 	ChLinkMask* GetMask () {return mask;}
 
-
-    /// overwrites inherited implementation of this method
-    virtual void SetUpMarkers(ChMarker* mark1, ChMarker* mark2);
-
-
-			//
-			// STATE FUNCTIONS
-			//
-	
 	virtual int GetDOC  () {return ndoc;}
 	virtual int GetDOC_c  () {return ndoc_c;}
 	virtual int GetDOC_d  () {return ndoc_d;}
 
-				// (override/implement interfaces for global state vectors, see ChPhysicsItem for comments.)
-	virtual void IntLoadResidual_CqL(const unsigned int off_L, ChVectorDynamic<>& R, const ChVectorDynamic<>& L, const double c);
-	virtual void IntLoadConstraint_C(const unsigned int off, ChVectorDynamic<>& Qc,	const double c, bool do_clamp,	double recovery_clamp);
-	virtual void IntLoadConstraint_Ct(const unsigned int off, ChVectorDynamic<>& Qc, const double c);
-	virtual void IntToLCP(const unsigned int off_v,	const ChStateDelta& v, const ChVectorDynamic<>& R, const unsigned int off_L, const ChVectorDynamic<>& L, const ChVectorDynamic<>& Qc);
-	virtual void IntFromLCP(const unsigned int off_v, ChStateDelta& v, const unsigned int off_L, ChVectorDynamic<>& L);
+    /// overwrites inherited implementation of this method
+    virtual void SetUpMarkers(ChMarker* mark1, ChMarker* mark2);
 
 
 			//

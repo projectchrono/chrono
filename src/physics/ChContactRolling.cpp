@@ -141,64 +141,6 @@ void ChContactRolling::Reset(	collision::ChCollisionModel* mmodA,	///< model A
 
 
 
-void ChContactRolling::ContIntLoadResidual_CqL(
-					const unsigned int off_L,	 ///< offset in L multipliers
-					ChVectorDynamic<>& R,		 ///< result: the R residual, R += c*Cq'*L 
-					const ChVectorDynamic<>& L,  ///< the L vector 
-					const double c				 ///< a scaling factor
-					)
-{
-	// base behaviour too
-	ChContact::ContIntLoadResidual_CqL(off_L, R, L, c);
-
-	this->Rx.MultiplyTandAdd(R, L(off_L+3) *c);
-	this->Ru.MultiplyTandAdd(R, L(off_L+4) *c);
-	this->Rv.MultiplyTandAdd(R, L(off_L+5) *c);
-}
-void ChContactRolling::ContIntLoadConstraint_C(
-					const unsigned int off_L,	 ///< offset in Qc residual
-					ChVectorDynamic<>& Qc,		 ///< result: the Qc residual, Qc += c*C 
-					const double c,				 ///< a scaling factor
-					bool do_clamp,				 ///< apply clamping to c*C?
-					double recovery_clamp		 ///< value for min/max clamping of c*C
-					)
-{
-	// base behaviour too
-	ChContact::ContIntLoadConstraint_C(off_L, Qc, c, do_clamp, recovery_clamp);
-
-	//Qc(off_L+3) += c * Rx.Get_b_i();
-	//Qc(off_L+4) += c * Ru.Get_b_i();
-	//Qc(off_L+5) += c * Rv.Get_b_i();
-}
-void ChContactRolling::ContIntToLCP(
-					const unsigned int off_L,			///< offset in L, Qc
-					const ChVectorDynamic<>& L,
-					const ChVectorDynamic<>& Qc
-					)
-{
-	// base behaviour too
-	ChContact::ContIntToLCP(off_L, L, Qc);
-
-	Rx.Set_l_i(L(off_L+3));
-	Ru.Set_l_i(L(off_L+4));
-	Rv.Set_l_i(L(off_L+5));
-
-	Rx.Set_b_i(Qc(off_L+3));
-	Ru.Set_b_i(Qc(off_L+4));
-	Rv.Set_b_i(Qc(off_L+5));
-}
-void ChContactRolling::ContIntFromLCP(
-					const unsigned int off_L,			///< offset in L
-					ChVectorDynamic<>& L
-					)
-{
-	// base behaviour too
-	ChContact::ContIntFromLCP(off_L, L);
-
-	L(off_L+3) = Rx.Get_l_i();
-	L(off_L+4) = Ru.Get_l_i();
-	L(off_L+5) = Rv.Get_l_i();
-}
 
  
 

@@ -80,10 +80,6 @@ public:
 	  		// FUNCTIONS
 			//
 
-					/// Get the number of scalar variables affected by constraints in this link 
-	virtual int GetNumCoords() {return 2;}
-
-
 				/// Use this function after gear creation, to initialize it, given  
 				/// two shafts to join. 
 				/// Each shaft must belong to the same ChSystem. 

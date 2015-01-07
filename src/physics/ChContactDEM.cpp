@@ -167,7 +167,6 @@ ChContactDEM::CalculateForce()
 // torques of the two bodies involved in this contact.  Recall that the
 // contact force as calculated must be applied to body2 and inverted for
 // body1.
-// NOTE: SEE NEW VERSION BELOW...
 void
 ChContactDEM::ConstraintsFbLoadForces(double factor)
 {
@@ -185,31 +184,6 @@ ChContactDEM::ConstraintsFbLoadForces(double factor)
 	body2->Variables().Get_fb().PasteSumVector(m_force*factor,   0,0);
 	body2->Variables().Get_fb().PasteSumVector(torque2_loc*factor,3,0);
 }
-
-// Apply contact forces to bodies (new version, for interfacing to ChTimestepper and ChIntegrable)
-// Replaces ConstraintsFbLoadForces.
-// Include the contact force from this contact into the body forces and
-// torques of the two bodies involved in this contact.  Recall that the
-// contact force as calculated must be applied to body2 and inverted for
-// body1.
-void 
-ChContactDEM::DemIntLoadResidual_F(ChVectorDynamic<>& R, const double c )
-{
-	ChBodyDEM* body1 = (ChBodyDEM*) m_mod1->GetBody();
-	ChBodyDEM* body2 = (ChBodyDEM*) m_mod2->GetBody();
-
-	ChVector<> force1_loc = body1->Dir_World2Body(m_force);
-	ChVector<> force2_loc = body2->Dir_World2Body(m_force);
-	ChVector<> torque1_loc = Vcross(m_p1_loc, -force1_loc);
-	ChVector<> torque2_loc = Vcross(m_p2_loc,  force2_loc);
-
-	R.PasteSumVector(-m_force*c,    body1->Variables().GetOffset()+0,0);
-	R.PasteSumVector(torque1_loc*c, body1->Variables().GetOffset()+3,0);
-
-	R.PasteSumVector(m_force*c,     body2->Variables().GetOffset()+0,0);
-	R.PasteSumVector(torque2_loc*c, body2->Variables().GetOffset()+3,0);
-}
-
 
 
 // Return the coordinate system for this contact (centered at point P2

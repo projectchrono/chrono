@@ -102,23 +102,13 @@ public:
 	  		// FUNCTIONS
 			//
 
-				/// Get the number of scalar variables affected by constraints in this link 
-	virtual int GetNumCoords() {return 3 + 7;}
-
 				/// Number of scalar costraints 
 	virtual int GetDOC_c  () {return 3;}
 
+				/// Get the number of scalar variables affected by constraints in this link 
+	virtual int GetNumCoords() {return 3 + 7;}
 
-	 		//
-			// STATE FUNCTIONS
-			//
-
-				// (override/implement interfaces for global state vectors, see ChPhysicsItem for comments.)
-	virtual void IntLoadResidual_CqL(const unsigned int off_L, ChVectorDynamic<>& R, const ChVectorDynamic<>& L, const double c);
-	virtual void IntLoadConstraint_C(const unsigned int off, ChVectorDynamic<>& Qc,	const double c, bool do_clamp,	double recovery_clamp);
-	virtual void IntToLCP(const unsigned int off_v,	const ChStateDelta& v, const ChVectorDynamic<>& R, const unsigned int off_L, const ChVectorDynamic<>& L, const ChVectorDynamic<>& Qc);
-	virtual void IntFromLCP(const unsigned int off_v, ChStateDelta& v, const unsigned int off_L, ChVectorDynamic<>& L);
-
+	virtual ChFrame<> GetAssetsFrame(unsigned int nclone =0);
 
 			// Override/implement LCP system functions of ChPhysicsItem
 			// (to assembly/manage data for LCP system solver
@@ -136,8 +126,6 @@ public:
 
 
 			   // Other functions
-	
-	virtual ChFrame<> GetAssetsFrame(unsigned int nclone =0);
 
 				/// Use this function after object creation, to initialize it, given  
 				/// the node and body to join. 

@@ -108,16 +108,14 @@ public:
 				/// coordinate system as initial state.
 	virtual void AddParticle(ChCoordsys<double> initial_state = CSYSNORM) =0;
 
-				/// Number of coordinates of the particle cluster, x7 because with quaternions for rotation
-	virtual int GetDOF  ()   { return 7 * (int)GetNparticles(); }
-				/// Number of coordinates of the particle cluster, x6 because derivatives es. angular vel.
-	virtual int GetDOF_w()   { return 6 * (int)GetNparticles(); }
+				/// Number of coordinates of the particle cluster
+	virtual size_t GetDOF  ()  const {return 6*GetNparticles();}
 
 
 				/// Get the master coordinate system for the assets (this will return the 
 				/// main coordinate system of the rigid body)
 	virtual ChFrame<> GetAssetsFrame(unsigned int nclone=0) { ChFrame<> res; res = GetParticle(nclone); return(res);}
-	virtual unsigned int GetAssetsFrameNclones() {return (unsigned int)GetNparticles();}
+	virtual size_t GetAssetsFrameNclones() const {return GetNparticles();}
 
 
 			//

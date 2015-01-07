@@ -49,31 +49,8 @@ public:
 
 
 			/// Get the number of degrees of freedom
-	virtual int Get_ndof() = 0; 
-			
-			/// Get the number of degrees of freedom, derivative
-			/// This might be different from ndof if quaternions are used for rotations, 
-			/// as derivative might be angular velocity.
-	virtual int Get_ndof_w() { return this->Get_ndof(); }
+	int Get_ndof() { return this->Variables().Get_ndof();}
 
-
-			//
-			// Functions for interfacing to the state bookkeeping
-			//
-
-	virtual void NodeIntStateGather(const unsigned int off_x,	ChState& x,	const unsigned int off_v, ChStateDelta& v,	double& T) {};	
-	virtual void NodeIntStateScatter(const unsigned int off_x,	const ChState& x, const unsigned int off_v,	const ChStateDelta& v,	const double T) {};
-	virtual void NodeIntStateIncrement(const unsigned int off_x, ChState& x_new, const ChState& x,	const unsigned int off_v, const ChStateDelta& Dv)
-		{
-				for (int i = 0; i< this->Get_ndof(); ++i)
-				{
-					x_new(off_x + i) = x(off_x + i) + Dv(off_v + i);
-				}
-		}
-	virtual void NodeIntLoadResidual_F(const unsigned int off,	ChVectorDynamic<>& R, const double c ) {};
-	virtual void NodeIntLoadResidual_Mv(const unsigned int off,	ChVectorDynamic<>& R, const ChVectorDynamic<>& w, const double c) {};
-	virtual void NodeIntToLCP(const unsigned int off_v,	const ChStateDelta& v, const ChVectorDynamic<>& R) {};
-	virtual void NodeIntFromLCP(const unsigned int off_v, ChStateDelta& v) {};
 
 			//
 			// Functions for interfacing to the LCP solver

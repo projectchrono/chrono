@@ -70,30 +70,6 @@ void ChContactContainerDEM::Update(double mytime)
 }
 
 
-
-//// STATE BOOKKEEPING FUNCTIONS
-
-void ChContactContainerDEM::IntLoadResidual_F(
-					const unsigned int off,		 ///< offset in R residual
-					ChVectorDynamic<>& R,		 ///< result: the R residual, R += c*F 
-					const double c				 ///< a scaling factor
-					)
-{
-	ChContactDEM* cntct;
-
-	std::list<ChContactDEM*>::iterator itercontact = contactlist.begin();
-	while(itercontact != contactlist.end()) {
-		cntct = (ChContactDEM*)(*itercontact);
-		if ((cntct->GetContactPenetration() > 0)) {
-			(*itercontact)->DemIntLoadResidual_F(R, c);
-		}
-		++itercontact;
-	}
-}
-
-
-////////// LCP INTERFACES ////
-
 void ChContactContainerDEM::ConstraintsFbLoadForces(double factor)
 {
 	ChContactDEM* cntct;
@@ -107,8 +83,6 @@ void ChContactContainerDEM::ConstraintsFbLoadForces(double factor)
 		++itercontact;
 	}
 }
-
-
 
 
 void ChContactContainerDEM::RemoveAllContacts()

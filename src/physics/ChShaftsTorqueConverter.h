@@ -80,13 +80,6 @@ public:
 				/// Number of scalar constraints 
 	virtual int GetDOC_c  () {return 0;}
 
-	//
-	// STATE FUNCTIONS
-	//
-
-				// (override/implement interfaces for global state vectors, see ChPhysicsItem for comments.)
-	virtual void IntLoadResidual_F(const unsigned int off,	ChVectorDynamic<>& R, const double c );
-	
 
 				// Override/implement LCP system functions of ChPhysicsItem
 				// (to assembly/manage data for LCP system solver

@@ -193,11 +193,6 @@ void ChLinkEngine::Set_eng_mode(int mset)
       break;
     case ENG_MODE_TO_POWERTRAIN_SHAFT:
       ((ChLinkMaskLF*)mask)->Constr_E3().SetMode(CONSTRAINT_FREE);
-	  this->innershaft1 = ChSharedPtr<ChShaft>(new ChShaft);
-	  this->innershaft2 = ChSharedPtr<ChShaft>(new ChShaft);
-	  this->innerconstraint1 = ChSharedPtr<ChShaftsBody>(new ChShaftsBody);
-	  this->innerconstraint2 = ChSharedPtr<ChShaftsBody>(new ChShaftsBody);
-	  this->SetUpMarkers(this->marker1, this->marker2); // to initialize innerconstraint1 innerconstraint2
       break;
     }
 
@@ -453,134 +448,10 @@ void ChLinkEngine::SetUpMarkers(ChMarker* mark1, ChMarker* mark2)
 
   if (Body1 && Body2)
   {
-	  ChSharedPtr<ChBodyFrame> b1(Body1);
-	  b1->AddRef(); // trick because acquiring raw ptr
-	  ChSharedPtr<ChBodyFrame> b2(Body2);
-	  b2->AddRef(); // trick because acquiring raw ptr
-	  if (innerconstraint1)
-		innerconstraint1->Initialize(innershaft1, b1, VECT_Z); 
-	  if (innerconstraint2)
-		innerconstraint2->Initialize(innershaft2, b2, VECT_Z);
+    innerconstraint1.SetVariables(&Body1->Variables(), &innershaft1.Variables());
+    innerconstraint2.SetVariables(&Body2->Variables(), &innershaft2.Variables());
   }
 }
-
-
-
-//// STATE BOOKKEEPING FUNCTIONS
-
-int ChLinkEngine::GetDOF  ()
-{
-	if (eng_mode == ENG_MODE_TO_POWERTRAIN_SHAFT)
-	{
-		return (2+ChLinkLock::GetDOF());
-	}
-	return ChLinkLock::GetDOF();
-}
-
-int ChLinkEngine::GetDOC_c  ()
-{
-	if (eng_mode == ENG_MODE_TO_POWERTRAIN_SHAFT)
-	{
-		return (2+ChLinkLock::GetDOC_c());
-	}
-	return ChLinkLock::GetDOC_c();
-}
-
-void ChLinkEngine::IntStateGather(const unsigned int off_x,	ChState& x,	const unsigned int off_v, ChStateDelta& v,	double& T)	
-{
-	if (eng_mode == ENG_MODE_TO_POWERTRAIN_SHAFT)
-	{
-		innershaft1->IntStateGather(off_x  , x, off_v,   v, T);
-		innershaft2->IntStateGather(off_x+1, x, off_v+1, v, T);
-	}
-}
-
-void ChLinkEngine::IntStateScatter(const unsigned int off_x,	const ChState& x, const unsigned int off_v,	const ChStateDelta& v,	const double T)
-{
-	if (eng_mode == ENG_MODE_TO_POWERTRAIN_SHAFT)
-	{
-		innershaft1->IntStateScatter(off_x  , x, off_v,   v, T);
-		innershaft2->IntStateScatter(off_x+1, x, off_v+1, v, T);
-	}
-}
-
-void ChLinkEngine::IntStateIncrement(const unsigned int off_x, ChState& x_new, const ChState& x,	const unsigned int off_v, const ChStateDelta& Dv)
-{
-	if (eng_mode == ENG_MODE_TO_POWERTRAIN_SHAFT)
-	{
-		innershaft1->IntStateIncrement(off_x  , x_new, x, off_v,   Dv);
-		innershaft2->IntStateIncrement(off_x+1, x_new, x, off_v+1, Dv);
-	}
-}
-
-void ChLinkEngine::IntLoadResidual_F(const unsigned int off,	ChVectorDynamic<>& R, const double c )
-{
-	if (eng_mode == ENG_MODE_TO_POWERTRAIN_SHAFT)
-	{
-		innershaft1->IntLoadResidual_F(off,   R, c);
-		innershaft2->IntLoadResidual_F(off+1, R, c);
-	}
-}
-
-void ChLinkEngine::IntLoadResidual_Mv(const unsigned int off,	ChVectorDynamic<>& R, const ChVectorDynamic<>& w, const double c)
-{
-	if (eng_mode == ENG_MODE_TO_POWERTRAIN_SHAFT)
-	{
-		innershaft1->IntLoadResidual_Mv(off,   R, w, c);
-		innershaft2->IntLoadResidual_Mv(off+1, R, w, c);
-	}
-}
-
-void ChLinkEngine::IntLoadResidual_CqL(const unsigned int off_L, ChVectorDynamic<>& R, const ChVectorDynamic<>& L, const double c)
-{
-	if (eng_mode == ENG_MODE_TO_POWERTRAIN_SHAFT)
-	{
-		innerconstraint1->IntLoadResidual_CqL(off_L,   R, L, c);
-		innerconstraint2->IntLoadResidual_CqL(off_L+1, R, L, c);
-	}
-}
-
-void ChLinkEngine::IntLoadConstraint_C(const unsigned int off_L, ChVectorDynamic<>& Qc,	const double c, bool do_clamp,	double recovery_clamp)
-{
-	if (eng_mode == ENG_MODE_TO_POWERTRAIN_SHAFT)
-	{
-		innerconstraint1->IntLoadConstraint_C(off_L,     Qc, c, do_clamp, recovery_clamp);
-		innerconstraint2->IntLoadConstraint_C(off_L+1,   Qc, c, do_clamp, recovery_clamp);
-	}
-}
-
-void ChLinkEngine::IntLoadConstraint_Ct(const unsigned int off_L, ChVectorDynamic<>& Qc, const double c)
-{
-	if (eng_mode == ENG_MODE_TO_POWERTRAIN_SHAFT)
-	{
-		innerconstraint1->IntLoadConstraint_Ct(off_L,     Qc, c);
-		innerconstraint2->IntLoadConstraint_Ct(off_L+1,   Qc, c);
-	}
-}
-
-void ChLinkEngine::IntToLCP(const unsigned int off_v,	const ChStateDelta& v, const ChVectorDynamic<>& R, const unsigned int off_L, const ChVectorDynamic<>& L, const ChVectorDynamic<>& Qc)
-{
-	if (eng_mode == ENG_MODE_TO_POWERTRAIN_SHAFT)
-	{
-		innershaft1->IntToLCP(off_v,   v, R, off_L, L, Qc);
-		innershaft2->IntToLCP(off_v+1, v, R, off_L, L, Qc);
-		innerconstraint1->IntToLCP(off_v, v, R, off_L, L, Qc);
-		innerconstraint2->IntToLCP(off_v, v, R, off_L+1, L, Qc);
-	}
-}
-
-void ChLinkEngine::IntFromLCP(const unsigned int off_v, ChStateDelta& v, const unsigned int off_L, ChVectorDynamic<>& L)
-{
-	if (eng_mode == ENG_MODE_TO_POWERTRAIN_SHAFT)
-	{
-		innershaft1->IntFromLCP(off_v,     v, off_L, L);
-		innershaft2->IntFromLCP(off_v+1,   v, off_L, L);
-		innerconstraint1->IntFromLCP(off_v, v, off_L, L);
-		innerconstraint2->IntFromLCP(off_v, v, off_L+1, L);
-	}
-}
-
-
 
 //
 //  LCP functions
@@ -594,8 +465,8 @@ void ChLinkEngine::InjectConstraints(ChLcpSystemDescriptor& mdescriptor)
 
   if (eng_mode == ENG_MODE_TO_POWERTRAIN_SHAFT)
   {
-	  innerconstraint1->InjectConstraints(mdescriptor);
-	  innerconstraint2->InjectConstraints(mdescriptor);
+    mdescriptor.InsertConstraint(&innerconstraint1);
+    mdescriptor.InsertConstraint(&innerconstraint2);
   }
 }
 
@@ -606,8 +477,8 @@ void ChLinkEngine::ConstraintsBiReset()
 
   if (eng_mode == ENG_MODE_TO_POWERTRAIN_SHAFT)
   {
-    innerconstraint1->ConstraintsBiReset();
-    innerconstraint2->ConstraintsBiReset();
+    innerconstraint1.Set_b_i(0.);
+    innerconstraint2.Set_b_i(0.);
   }
 }
  
@@ -618,8 +489,9 @@ void ChLinkEngine::ConstraintsBiLoad_C(double factor, double recovery_clamp, boo
 
   if (eng_mode == ENG_MODE_TO_POWERTRAIN_SHAFT)
   {
-    innerconstraint1->ConstraintsBiLoad_C(factor, recovery_clamp, do_clamp);
-    innerconstraint2->ConstraintsBiLoad_C(factor, recovery_clamp, do_clamp);
+    double res = 0; // no residual
+    innerconstraint1.Set_b_i(innerconstraint1.Get_b_i() + factor * res);
+    innerconstraint2.Set_b_i(innerconstraint2.Get_b_i() + factor * res);
   }
 }
 
@@ -641,8 +513,26 @@ void ChLinkEngine::ConstraintsLoadJacobians()
 
   if (this->eng_mode == ENG_MODE_TO_POWERTRAIN_SHAFT)
   {
-    innerconstraint1->ConstraintsLoadJacobians();
-	innerconstraint2->ConstraintsLoadJacobians();
+    // compute jacobians
+    ChVector<> tempz = ChVector<>(VECT_Z);
+    ChVector<> abs_rot_axis = marker2->Dir_Ref2World(&tempz);
+    ChVector<> jacw = Body2->TransformDirectionParentToLocal(abs_rot_axis);
+
+    innerconstraint1.Get_Cq_a()->ElementN(0) = 0;
+    innerconstraint1.Get_Cq_a()->ElementN(1) = 0;
+    innerconstraint1.Get_Cq_a()->ElementN(2) = 0;
+    innerconstraint1.Get_Cq_a()->ElementN(3) = (float)jacw.x;
+    innerconstraint1.Get_Cq_a()->ElementN(4) = (float)jacw.y;
+    innerconstraint1.Get_Cq_a()->ElementN(5) = (float)jacw.z;
+    innerconstraint1.Get_Cq_b()->ElementN(0) = -1;
+
+    innerconstraint2.Get_Cq_a()->ElementN(0) = 0;
+    innerconstraint2.Get_Cq_a()->ElementN(1) = 0;
+    innerconstraint2.Get_Cq_a()->ElementN(2) = 0;
+    innerconstraint2.Get_Cq_a()->ElementN(3) = (float)jacw.x;
+    innerconstraint2.Get_Cq_a()->ElementN(4) = (float)jacw.y;
+    innerconstraint2.Get_Cq_a()->ElementN(5) = (float)jacw.z;
+    innerconstraint2.Get_Cq_b()->ElementN(0) = -1;
   }
 }
  
@@ -654,8 +544,9 @@ void ChLinkEngine::ConstraintsFetch_react(double factor)
 
   if (eng_mode == ENG_MODE_TO_POWERTRAIN_SHAFT)
   {
-    innerconstraint1->ConstraintsFetch_react(factor);
-	innerconstraint2->ConstraintsFetch_react(factor);
+    // From constraints to react vector:
+    torque_react1 = innerconstraint1.Get_l_i() * factor;
+    torque_react2 = innerconstraint2.Get_l_i() * factor;
   }
 }
 
@@ -666,8 +557,8 @@ void  ChLinkEngine::ConstraintsLiLoadSuggestedSpeedSolution()
 
   if (eng_mode == ENG_MODE_TO_POWERTRAIN_SHAFT)
   {
-    innerconstraint1->ConstraintsLiLoadSuggestedSpeedSolution();
-    innerconstraint2->ConstraintsLiLoadSuggestedSpeedSolution();
+    innerconstraint1.Set_l_i(cache_li_speed1);
+    innerconstraint2.Set_l_i(cache_li_speed2);
   }
 }
 
@@ -678,8 +569,8 @@ void  ChLinkEngine::ConstraintsLiLoadSuggestedPositionSolution()
 
   if (eng_mode == ENG_MODE_TO_POWERTRAIN_SHAFT)
   {
-    innerconstraint1->ConstraintsLiLoadSuggestedPositionSolution();
-    innerconstraint2->ConstraintsLiLoadSuggestedPositionSolution();
+    innerconstraint1.Set_l_i(cache_li_pos1);
+    innerconstraint2.Set_l_i(cache_li_pos2);
   }
 }
 
@@ -690,8 +581,8 @@ void  ChLinkEngine::ConstraintsLiFetchSuggestedSpeedSolution()
 
   if (eng_mode == ENG_MODE_TO_POWERTRAIN_SHAFT)
   {
-    innerconstraint1->ConstraintsLiFetchSuggestedSpeedSolution();
-    innerconstraint2->ConstraintsLiFetchSuggestedSpeedSolution();
+    cache_li_speed1 = (float)innerconstraint1.Get_l_i();
+    cache_li_speed2 = (float)innerconstraint2.Get_l_i();
   }
 }
 
@@ -702,8 +593,8 @@ void  ChLinkEngine::ConstraintsLiFetchSuggestedPositionSolution()
 
   if (eng_mode == ENG_MODE_TO_POWERTRAIN_SHAFT)
   {
-    innerconstraint1->ConstraintsLiFetchSuggestedPositionSolution();
-    innerconstraint2->ConstraintsLiFetchSuggestedPositionSolution();
+    cache_li_pos1 = (float)innerconstraint1.Get_l_i();
+    cache_li_pos2 = (float)innerconstraint2.Get_l_i();
   }
 }
 
@@ -714,8 +605,8 @@ void ChLinkEngine::InjectVariables(ChLcpSystemDescriptor& mdescriptor)
 
   if (eng_mode == ENG_MODE_TO_POWERTRAIN_SHAFT)
   {
-    innershaft1->InjectVariables(mdescriptor);
-    innershaft2->InjectVariables(mdescriptor);
+    innershaft1.InjectVariables(mdescriptor);
+    innershaft2.InjectVariables(mdescriptor);
   }
 }
 
@@ -726,8 +617,8 @@ void ChLinkEngine::VariablesFbReset()
 
   if (eng_mode == ENG_MODE_TO_POWERTRAIN_SHAFT)
   {
-    innershaft1->VariablesFbReset();
-    innershaft2->VariablesFbReset();
+    innershaft1.VariablesFbReset();
+    innershaft2.VariablesFbReset();
   }
 }
 
@@ -738,8 +629,8 @@ void ChLinkEngine::VariablesFbLoadForces(double factor)
 
   if (eng_mode == ENG_MODE_TO_POWERTRAIN_SHAFT)
   {
-    innershaft1->VariablesFbLoadForces(factor);
-    innershaft2->VariablesFbLoadForces(factor);
+    innershaft1.VariablesFbLoadForces(factor);
+    innershaft2.VariablesFbLoadForces(factor);
   }
 }
 
@@ -750,8 +641,8 @@ void ChLinkEngine::VariablesFbIncrementMq()
 
   if (eng_mode == ENG_MODE_TO_POWERTRAIN_SHAFT)
   {
-    innershaft1->VariablesFbIncrementMq();
-    innershaft2->VariablesFbIncrementMq();
+    innershaft1.VariablesFbIncrementMq();
+    innershaft2.VariablesFbIncrementMq();
   }
 }
 
@@ -762,8 +653,8 @@ void ChLinkEngine::VariablesQbLoadSpeed()
 
   if (eng_mode == ENG_MODE_TO_POWERTRAIN_SHAFT)
   {
-    innershaft1->VariablesQbLoadSpeed();
-    innershaft2->VariablesQbLoadSpeed();
+    innershaft1.VariablesQbLoadSpeed();
+    innershaft2.VariablesQbLoadSpeed();
   }
 }
 
@@ -774,8 +665,8 @@ void ChLinkEngine::VariablesQbSetSpeed(double step)
 
   if (eng_mode == ENG_MODE_TO_POWERTRAIN_SHAFT)
   {
-    innershaft1->VariablesQbSetSpeed(step);
-    innershaft2->VariablesQbSetSpeed(step);
+    innershaft1.VariablesQbSetSpeed(step);
+    innershaft2.VariablesQbSetSpeed(step);
   }
 }
 
@@ -786,8 +677,8 @@ void ChLinkEngine::VariablesQbIncrementPosition(double step)
 
   if (eng_mode == ENG_MODE_TO_POWERTRAIN_SHAFT)
   {
-    innershaft1->VariablesQbIncrementPosition(step);
-    innershaft2->VariablesQbIncrementPosition(step);
+    innershaft1.VariablesQbIncrementPosition(step);
+    innershaft2.VariablesQbIncrementPosition(step);
   }
 }
 

@@ -229,17 +229,6 @@ public:
 	void AddNode(ChVector<double> initial_state);
 
 
-		//
-		// STATE FUNCTIONS
-		//
-
-				// (override/implement interfaces for global state vectors, see ChPhysicsItem for comments.)
-	virtual void IntStateGather(const unsigned int off_x,	ChState& x,	const unsigned int off_v, ChStateDelta& v,	double& T);	
-	virtual void IntStateScatter(const unsigned int off_x,	const ChState& x, const unsigned int off_v,	const ChStateDelta& v,	const double T);
-	virtual void IntLoadResidual_F(const unsigned int off,	ChVectorDynamic<>& R, const double c );
-	virtual void IntLoadResidual_Mv(const unsigned int off,	ChVectorDynamic<>& R, const ChVectorDynamic<>& w, const double c);
-	virtual void IntToLCP(const unsigned int off_v,	const ChStateDelta& v, const ChVectorDynamic<>& R, const unsigned int off_L, const ChVectorDynamic<>& L, const ChVectorDynamic<>& Qc);
-	virtual void IntFromLCP(const unsigned int off_v, ChStateDelta& v, const unsigned int off_L, ChVectorDynamic<>& L);
 
 		//
 		// LCP INTERFACE
@@ -332,6 +321,10 @@ public:
 				/// Update all auxiliary data of the particles
 	virtual void Update ();
 
+				/// Tells to the associated external object ChExternalObject() ,if any,
+				/// that its 3D shape must be updated in order to syncronize to ChBody
+				/// coordinates
+	void UpdateExternalGeometry ();
 
 
 			//

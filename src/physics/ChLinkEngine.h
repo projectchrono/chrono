@@ -16,7 +16,6 @@
 
 #include "physics/ChLinkLock.h"
 #include "physics/ChShaft.h"
-#include "physics/ChShaftsBody.h"
 #include "lcp/ChLcpConstraintTwoGeneric.h"
 
 
@@ -70,10 +69,10 @@ protected:
 	Quaternion last_r3relm_rot_dt;	// internal
 	Quaternion keyed_polar_rotation;// internal
 
-	ChSharedPtr<ChShaft>	innershaft1;		// used in ENG_MODE_TO_POWERTRAIN_SHAFT
-	ChSharedPtr<ChShaft>	innershaft2;		// ''      ''
-	ChSharedPtr<ChShaftsBody> innerconstraint1; // ''     ''
-	ChSharedPtr<ChShaftsBody> innerconstraint2; // ''     ''
+	ChShaft	innershaft1;		// used in ENG_MODE_TO_POWERTRAIN_SHAFT
+	ChShaft	innershaft2;		// ''      ''
+	ChLcpConstraintTwoGeneric innerconstraint1; // ''     ''
+	ChLcpConstraintTwoGeneric innerconstraint2; // ''     ''
 	double cache_li_speed1;
 	double cache_li_pos1;
 	double torque_react1;
@@ -168,42 +167,17 @@ public:
 			// Access the inner 1D shaft connected to the rotation of body1 about dir of motor shaft, 
 			// if in CH_ENG_MODE_TO_POWERTRAIN_SHAFT. The shaft can be
 			// connected to other shafts with ChShaftsClutch or similar items.
-	ChSharedPtr<ChShaft> GetInnerShaft1() {return innershaft1;}
+	ChShaft* GetInnerShaft1() {return &innershaft1;}
 			// Access the inner 1D shaft connected to the rotation of body2 about dir of motor shaft, 
 			// if in CH_ENG_MODE_TO_POWERTRAIN_SHAFT. The shaft can be
 			// connected to other shafts with ChShaftsClutch or similar items.
-	ChSharedPtr<ChShaft> GetInnerShaft2() {return innershaft2;}
+	ChShaft* GetInnerShaft2() {return &innershaft2;}
 			// Get the torque between body 1 and inner shaft 1.
 			// Note: use only if in CH_ENG_MODE_TO_POWERTRAIN_SHAFT.
 	double GetInnerTorque1() const {return torque_react1;}
 			// Get the torque between body 2 and inner shaft 2.
 			// Note: use only if in CH_ENG_MODE_TO_POWERTRAIN_SHAFT.
 	double GetInnerTorque2() const {return torque_react2;}
-
-	
-			//
-			// STATE FUNCTIONS
-			//
-	virtual int GetDOF  ();
-	virtual int GetDOC_c  ();
-
-			// (override/implement interfaces for global state vectors, see ChPhysicsItem for comments.)
-			// (beyond the base link implementations, it also have to 
-			// add the constraint coming from the inner shaft etc.)
-	virtual void IntStateGather(const unsigned int off_x,	ChState& x,	const unsigned int off_v, ChStateDelta& v,	double& T);	
-	virtual void IntStateScatter(const unsigned int off_x,	const ChState& x, const unsigned int off_v,	const ChStateDelta& v,	const double T);
-	virtual void IntStateIncrement(const unsigned int off_x, ChState& x_new, const ChState& x,	const unsigned int off_v, const ChStateDelta& Dv); 
-	virtual void IntLoadResidual_F(const unsigned int off,	ChVectorDynamic<>& R, const double c );
-	virtual void IntLoadResidual_Mv(const unsigned int off,	ChVectorDynamic<>& R, const ChVectorDynamic<>& w, const double c);
-	virtual void IntLoadResidual_CqL(const unsigned int off_L, ChVectorDynamic<>& R, const ChVectorDynamic<>& L, const double c);
-	virtual void IntLoadConstraint_C(const unsigned int off, ChVectorDynamic<>& Qc,	const double c, bool do_clamp,	double recovery_clamp);
-	virtual void IntLoadConstraint_Ct(const unsigned int off, ChVectorDynamic<>& Qc, const double c);
-	virtual void IntToLCP(const unsigned int off_v,	const ChStateDelta& v, const ChVectorDynamic<>& R, const unsigned int off_L, const ChVectorDynamic<>& L, const ChVectorDynamic<>& Qc);
-	virtual void IntFromLCP(const unsigned int off_v, ChStateDelta& v, const unsigned int off_L, ChVectorDynamic<>& L);
-
-			//
-			// LCP INTERFACE
-			//
 
 			// Overload LCP system functions of ChPhysicsItem
 			// (beyond the base link implementations, it also have to 

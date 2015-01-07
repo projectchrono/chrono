@@ -26,6 +26,7 @@
 #include "physics/ChMatterSPH.h"
 #include "physics/ChSystem.h"
 
+#include "physics/ChExternalObject.h"
 #include "physics/ChProximityContainerSPH.h"
 #include "collision/ChCModelBulletNode.h"
 #include "core/ChLinearAlgebra.h"
@@ -309,163 +310,6 @@ void ChMatterSPH::FillBox (const ChVector<> size,
 }
 
 
-//// STATE BOOKKEEPING FUNCTIONS
-
-void ChMatterSPH::IntStateGather(
-					const unsigned int off_x,		///< offset in x state vector
-					ChState& x,						///< state vector, position part
-					const unsigned int off_v,		///< offset in v state vector
-					ChStateDelta& v,				///< state vector, speed part
-					double& T)						///< time
-{
-	for (unsigned int j = 0; j < nodes.size(); j++)
-	{
-		x.PasteVector(this->nodes[j]->pos, off_x + 3*j, 0);
-		v.PasteVector(this->nodes[j]->pos_dt, off_v + 3*j, 0);
-	}
-	T = this->GetChTime();
-}
-
-void ChMatterSPH::IntStateScatter(
-					const unsigned int off_x,		///< offset in x state vector
-					const ChState& x,				///< state vector, position part
-					const unsigned int off_v,		///< offset in v state vector
-					const ChStateDelta& v,			///< state vector, speed part
-					const double T) 				///< time
-{
-	for (unsigned int j = 0; j < nodes.size(); j++)
-	{
-		this->nodes[j]->pos = x.ClipVector(off_x + 3*j, 0);
-		this->nodes[j]->pos_dt = v.ClipVector(off_v + 3*j, 0);
-	}
-	this->SetChTime(T);
-	this->Update();
-}
-
-void ChMatterSPH::IntLoadResidual_F(
-					const unsigned int off,		 ///< offset in R residual (not used here! use particle's offsets)
-					ChVectorDynamic<>& R,		 ///< result: the R residual, R += c*F 
-					const double c				 ///< a scaling factor
-					)
-{
-		// COMPUTE THE SPH FORCES HERE
-
-	// First, find if any ChProximityContainerSPH object is present
-	// in the system,
-
-	ChProximityContainerSPH* edges =0;
-	std::vector<ChPhysicsItem*>::iterator iterotherphysics = this->GetSystem()->Get_otherphysicslist()->begin();
-	while (iterotherphysics != this->GetSystem()->Get_otherphysicslist()->end())
-	{
-		if (edges=dynamic_cast<ChProximityContainerSPH*>(*iterotherphysics))
-			break;
-		iterotherphysics++;
-	}
-	assert(edges); // If using a ChMatterSPH, you must add also a ChProximityContainerSPH.
-	if (! edges) 
-		return;
-
-	// 1- Per-node initialization
-
-	for (unsigned int j = 0; j < nodes.size(); j++)
-	{
-		this->nodes[j]->UserForce = VNULL;
-		this->nodes[j]->density = 0;
-	}
-
-	// 2- Per-edge initialization and accumulation of particles's density
-
-	edges->AccumulateStep1();
-
-	// 3- Per-node volume and pressure computation
-
-	for (unsigned int j = 0; j < nodes.size(); j++)
-	{
-		ChSharedPtr<ChNodeSPH> mnode (this->nodes[j]);
-		assert(!mnode.IsNull());
-
-		// node volume is v=mass/density
-		if (mnode->density)
-			mnode->volume = mnode->GetMass()/mnode->density;
-		else 
-			mnode->volume = 0; 
-
-		// node pressure = k(dens - dens_0);
-		mnode->pressure = this->material.Get_pressure_stiffness() * ( mnode->density - this->material.Get_density() );
-	}
-
-	// 4- Per-edge forces computation and accumulation
-
-	edges->AccumulateStep2();
-
-
-	// 5- Per-node load forces in LCP
-
-	for (unsigned int j = 0; j < nodes.size(); j++)
-	{
-		// particle gyroscopic force:
-		// none.
-
-		// add gravity 
-		ChVector<> Gforce = GetSystem()->Get_G_acc() * this->nodes[j]->GetMass();
-		ChVector<> TotForce = this->nodes[j]->UserForce + Gforce; 
-
-		// downcast
-		ChSharedPtr<ChNodeSPH> mnode ( this->nodes[j]);
-		assert (!mnode.IsNull());
-
-		R.PasteSumVector( TotForce * c , off+ 3*j ,0);
-	}
-}
-
-
-void ChMatterSPH::IntLoadResidual_Mv(
-					const unsigned int off,		 ///< offset in R residual
-					ChVectorDynamic<>& R,		 ///< result: the R residual, R += c*M*v 
-					const ChVectorDynamic<>& w,  ///< the w vector 
-					const double c				 ///< a scaling factor
-					)
-{
-	for (unsigned int j = 0; j < nodes.size(); j++)
-	{
-		R(off+ 3*j)    += c * this->nodes[j]->GetMass() * w(off+ 3*j);
-		R(off+ 3*j +1) += c * this->nodes[j]->GetMass() * w(off+ 3*j +1);
-		R(off+ 3*j +2) += c * this->nodes[j]->GetMass() * w(off+ 3*j +2);
-	}
-}
-
-void ChMatterSPH::IntToLCP(
-					const unsigned int off_v,			///< offset in v, R
-					const ChStateDelta& v,
-					const ChVectorDynamic<>& R,
-					const unsigned int off_L,			///< offset in L, Qc
-					const ChVectorDynamic<>& L,
-					const ChVectorDynamic<>& Qc
-					)
-{
-	for (unsigned int j = 0; j < nodes.size(); j++)
-	{
-		this->nodes[j]->variables.Get_qb().PasteClippedMatrix(&v, off_v+3*j, 0, 3,1, 0,0);
-		this->nodes[j]->variables.Get_fb().PasteClippedMatrix(&R, off_v+3*j, 0, 3,1, 0,0);
-	}
-}
-
-void ChMatterSPH::IntFromLCP(
-					const unsigned int off_v,			///< offset in v
-					ChStateDelta& v,
-					const unsigned int off_L,			///< offset in L
-					ChVectorDynamic<>& L
-					)
-{
-	for (unsigned int j = 0; j < nodes.size(); j++)
-	{
-		v.PasteMatrix(&this->nodes[j]->variables.Get_qb(), off_v+3*j, 0);
-	}
-}
-
-
-
-
 
 //// 
 void ChMatterSPH::InjectVariables(ChLcpSystemDescriptor& mdescriptor)
@@ -656,6 +500,11 @@ void ChMatterSPH::Update (double mytime)
 
 
 
+void ChMatterSPH::UpdateExternalGeometry ()
+{
+	if (this->GetExternalObject())
+		this->GetExternalObject()->onChronoChanged();
+}
 
  
 // collision stuff

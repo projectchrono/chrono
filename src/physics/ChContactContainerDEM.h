@@ -111,19 +111,7 @@ public:
 
 					/// In detail, it computes jacobians, violations, etc. and stores 
 					/// results in inner structures of contacts.
-	virtual void Update (double mtime);		
-
-
-			//
-			// STATE FUNCTIONS
-			//
-
-				// (override/implement interfaces for global state vectors, see ChPhysicsItem for comments.)
-	virtual void IntLoadResidual_F(const unsigned int off,	ChVectorDynamic<>& R, const double c );
-
-			//
-			// LCP INTERFACE
-			//
+	virtual void Update (double mtime);			
 
 	virtual void ConstraintsFbLoadForces(double factor);
 };

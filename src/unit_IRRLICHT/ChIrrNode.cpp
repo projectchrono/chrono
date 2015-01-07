@@ -11,7 +11,6 @@
 // File author: A.Tasora
 
 
-#include "core/ChLog.h"
 #include "unit_IRRLICHT/ChIrrNode.h"
 #include "unit_IRRLICHT/ChIrrNodeProxyToAsset.h"
 

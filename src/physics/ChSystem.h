@@ -56,8 +56,6 @@
 #include "physics/ChScriptEngine.h"
 #include "physics/ChGlobal.h"
 #include "collision/ChCCollisionSystem.h"
-#include "timestepper/ChIntegrable.h"
-#include "timestepper/ChTimestepper.h"
 
 
 namespace chrono
@@ -105,7 +103,7 @@ class ChContactContainerBase;
 ///
 
 
-class ChApi ChSystem : public ChObj, public ChIntegrableIIorderEasy
+class ChApi ChSystem : public ChObj
 {
 
 	CH_RTTI(ChSystem,ChObj);
@@ -169,8 +167,12 @@ public:
 				/// Only fixed-step Anitescu and Tasora types are currently supported.
 					enum eCh_integrationType{ 
 						 INT_ANITESCU = 0,
-						 INT_TASORA =6,
-						 INT_CUSTOM =7
+						 INT_TASORA =6
+						 //INT_KUTTA_EXP = 1,
+						 //INT_RK_EXP = 2,
+						 //INT_EULEROSTD_EXP = 3,
+						 //INT_EULEROMOD_EXP = 4,	
+						 //INT_HEUN_EXP =5 
 					};
 				/// Sets the method for time integration (time stepper).
 				/// Some steppers are faster but can run into some troubles 
@@ -629,6 +631,10 @@ public:
 				/// bodies, forces, links, given their current state.
 	void Update();
 
+				/// Tells to the associated external object of class ChExternalObject() ,
+				/// if any, that all 3D shapes of the system must be updated in order
+				/// to syncronize to the current system's state. OBSOLETE
+	void UpdateExternalGeometry ();
 
 
 
@@ -674,98 +680,6 @@ protected:
 	virtual void LCPresult_Li_into_speed_cache();
 	virtual void LCPresult_Li_into_position_cache();
 	virtual void LCPresult_Li_into_reactions(double mfactor);
-
-
-			//
-			// TIMESTEPPER INTERFACE
-			//
-
-				/// Tells the number of position coordinates x in y = {x, v}
-	virtual int GetNcoords_x() { return this->GetNcoords();  }
-
-				/// Tells the number of speed coordinates of v in y = {x, v} and  dy/dt={v, a}
-	virtual int GetNcoords_v() { return this->GetNcoords_w(); }
-
-				/// Tells the number of lagrangian multipliers (constraints)
-	virtual int GetNconstr() { return this->GetNdoc_w(); }
-
-				/// From system to state y={x,v}
-	virtual void StateGather(ChState& x, ChStateDelta& v, double& T);
-
-				/// From state Y={x,v} to system.
-	virtual void StateScatter(const ChState& x, const ChStateDelta& v, const double T);
-
-				/// Perform x_new = x + dx    for x in    Y = {x, dx/dt}
-				/// It takes care of the fact that x has quaternions, dx has angular vel etc.
-				/// NOTE: the system is not updated automatically after the state increment, so one might
-				/// need to call StateScatter() if needed. 
-	virtual void StateIncrementX(
-		ChState& x_new,			///< resulting x_new = x + Dx
-		const ChState& x,		///< initial state x
-		const ChStateDelta& Dx	///< state increment Dx
-		);
-
-				/// Assuming an explicit DAE in the form   
-				///        M*a = F(x,v,t) + Cq'*L
-				///       C(x,t) = 0
-				/// this must compute the solution of the change Du (in a or v or x) to satisfy 
-				/// the equation required in a Newton Raphson iteration for an
-				/// implicit integrator equation:
-				///  |Du| = [ G   Cq' ]^-1 * | R |
-				///  |DL|   [ Cq  0   ]      | Qc|
-				/// for residual R and  G = [ c_a*M + c_v*dF/dv + c_x*dF/dx ]
-	virtual void StateSolveCorrection(
-		ChStateDelta& Dv,	  ///< result: computed Dv 
-		ChVectorDynamic<>& L, ///< result: computed lagrangian multipliers, if any
-		const ChVectorDynamic<>& R, ///< the R residual
-		const ChVectorDynamic<>& Qc,///< the Qc residual
-		const double c_a,	  ///< the factor in c_a*M
-		const double c_v,	  ///< the factor in c_v*dF/dv
-		const double c_x,	  ///< the factor in c_x*dF/dv
-		const ChState& x,	  ///< current state, x part
-		const ChStateDelta& v,///< current state, v part
-		const double T,		  ///< current time T
-		bool force_state_scatter = true ///< if false, x,v and T are not scattered to the system, assuming that someone has done StateScatter just before 
-		);
-
-	/// Increment a vector R with the term c*F:   
-	///    R += c*F 
-	virtual void LoadResidual_F(
-		ChVectorDynamic<>& R,		 ///< result: the R residual, R += c*F 
-		const double c				 ///< a scaling factor
-		);
-
-	/// Increment a vector R with a term that has M multiplied a given vector w:   
-	///    R += c*M*w 
-	virtual void LoadResidual_Mv(
-		ChVectorDynamic<>& R,		 ///< result: the R residual, R += c*M*v 
-		const ChVectorDynamic<>& w,  ///< the w vector 
-		const double c				 ///< a scaling factor
-		);
-
-	/// Increment a vectorR with the term Cq'*L:   
-	///    R += c*Cq'*L 
-	virtual void LoadResidual_CqL(
-		ChVectorDynamic<>& R,		 ///< result: the R residual, R += c*Cq'*L 
-		const ChVectorDynamic<>& L,  ///< the L vector 
-		const double c				 ///< a scaling factor
-		);
-
-	/// Increment a vector Qc with the term C:   
-	///    Qc += c*C 
-	virtual void LoadConstraint_C(
-		ChVectorDynamic<>& Qc,		 ///< result: the Qc residual, Qc += c*C 
-		const double c,				 ///< a scaling factor
-		bool do_clamp,				 ///< apply clamping to c*C?
-		double recovery_clamp		 ///< value for min/max clamping of c*C
-		);
-
-	/// Increment a vector Qc with the term Ct = partial derivative dC/dt:   
-	///    Qc += c*Ct 
-	virtual void LoadConstraint_Ct(
-		ChVectorDynamic<>& Qc,		 ///< result: the Qc residual, Qc += c*Ct 
-		const double c				 ///< a scaling factor
-		);
 
 public:
 
@@ -898,26 +812,21 @@ public:
   private:
 				/// Performs a single dynamical simulation step, according to
 				/// current values of:  Y, time, step  (and other minor settings)
-				/// Depending on the integration type, it switches to one of the following:
+				/// The time step can be automatically repeated (or shrunken)
+				/// if too much C violation or local integration error.
+				/// Automatic assemblation of C and Cdt holonomic constraint is done too.
 	virtual int Integrate_Y ();
 
+	
+				/// As Integrate_Y(), but uses the differential inclusion approach as in Anitescu,
 				/// Use Anitescu stepper, with position stabilization in speed stage.
 	virtual int Integrate_Y_impulse_Anitescu ();
 
+				/// As Integrate_Y(), but uses the differential inclusion approach as in Anitescu,
 				/// Use Tasora stepper, with separate stage for position stabilization.
-	virtual int Integrate_Y_impulse_Tasora ();
-
-				/// Use the new pluggable ChTimestepper 
-	virtual int Integrate_Y_timestepper ();
-
+	int Integrate_Y_impulse_Tasora ();
 
   public:
-				/// Set the timestepper to be used for time integration
-	  void SetTimestepper(ChSharedPtr<ChTimestepper> mstepper) { this->timestepper = mstepper;}
-				
-				/// Get the timestepper currently used for time integration
-	  ChSharedPtr<ChTimestepper> GetTimestepper() {return this->timestepper;}
-
 
 				// ---- DYNAMICS   
 
@@ -1170,8 +1079,6 @@ protected:
 	double timer_collision_broad;
 	double timer_collision_narrow;
 	double timer_update;
-
-	ChSharedPtr<ChTimestepper> timestepper;
 
 };
 

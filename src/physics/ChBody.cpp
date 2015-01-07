@@ -21,6 +21,7 @@
 #include "physics/ChForce.h"
 #include "physics/ChSystem.h"
 
+#include "physics/ChExternalObject.h"
 #include "collision/ChCModelBulletBody.h"
 #include "core/ChLinearAlgebra.h"
 
@@ -194,119 +195,7 @@ ChCollisionModel* ChBody::InstanceCollisionModel(){
 }
 
 
-//// STATE BOOKKEEPING FUNCTIONS
-
-void ChBody::IntStateGather(
-					const unsigned int off_x,		///< offset in x state vector
-					ChState& x,						///< state vector, position part
-					const unsigned int off_v,		///< offset in v state vector
-					ChStateDelta& v,				///< state vector, speed part
-					double& T)						///< time
-{
-	x.PasteCoordsys(this->coord,  off_x, 0);
-	v.PasteVector  (this->coord_dt.pos,   off_v, 0);
-	v.PasteVector  (this->GetWvel_loc(),  off_v+3, 0);
-	T = this->GetChTime();
-}
-
-void ChBody::IntStateScatter(
-					const unsigned int off_x,		///< offset in x state vector
-					const ChState& x,				///< state vector, position part
-					const unsigned int off_v,		///< offset in v state vector
-					const ChStateDelta& v,			///< state vector, speed part
-					const double T) 				///< time
-{
-	this->SetCoord   (x.ClipCoordsys(off_x, 0));
-	this->SetPos_dt  (v.ClipVector(off_v, 0));
-	this->SetWvel_loc(v.ClipVector(off_v+3, 0));
-	this->SetChTime(T);
-	this->Update();
-}
-
-void ChBody::IntStateIncrement(
-					const unsigned int off_x,		///< offset in x state vector
-					ChState& x_new,					///< state vector, position part, incremented result
-					const ChState& x,				///< state vector, initial position part
-					const unsigned int off_v,		///< offset in v state vector
-					const ChStateDelta& Dv)  		///< state vector, increment
-{
-	// ADVANCE POSITION: 
-	x_new(off_x)   = x(off_x)   + Dv(off_v);
-	x_new(off_x+1) = x(off_x+1) + Dv(off_v+1);
-	x_new(off_x+2) = x(off_x+2) + Dv(off_v+2);
-
-    // ADVANCE ROTATION: rot' = delta*rot  (use quaternion for delta rotation)
-    ChQuaternion<> mdeltarot;
-    ChQuaternion<> moldrot = x.ClipQuaternion(off_x+3, 0);
-    ChVector<> newwel_abs = Amatrix * Dv.ClipVector(off_v+3, 0);
-    double mangle = newwel_abs.Length();
-    newwel_abs.Normalize();
-    mdeltarot.Q_from_AngAxis(mangle, newwel_abs);
-    ChQuaternion<> mnewrot = mdeltarot * moldrot; // quaternion product
-    x_new.PasteQuaternion( mnewrot, off_x+3, 0 );
-}
- 
-void ChBody::IntLoadResidual_F(
-					const unsigned int off,		 ///< offset in R residual
-					ChVectorDynamic<>& R,		 ///< result: the R residual, R += c*F 
-					const double c				 ///< a scaling factor
-					)
-{
-	// add applied forces to 'fb' vector
-    R.PasteSumVector( Xforce * c , off,0);
-
-    // add applied torques to 'fb' vector, including gyroscopic torque
-    if (this->GetNoGyroTorque())
-        R.PasteSumVector((Xtorque)* c , off+3, 0);
-    else
-        R.PasteSumVector((Xtorque - gyro)* c , off+3, 0);
-}
-
-
-void ChBody::IntLoadResidual_Mv(
-					const unsigned int off,		 ///< offset in R residual
-					ChVectorDynamic<>& R,		 ///< result: the R residual, R += c*M*v 
-					const ChVectorDynamic<>& w,  ///< the w vector 
-					const double c				 ///< a scaling factor
-					)
-{
-	R(off+0) += c* GetMass() * w(off+0);
-    R(off+1) += c* GetMass() * w(off+1);
-    R(off+2) += c* GetMass() * w(off+2);
-	ChVector<> Iw = GetInertia() * w.ClipVector(off+3, 0);
-	Iw *= c;
-    R.PasteSumVector(Iw, off+3, 0);
-}
-
-void ChBody::IntToLCP(
-					const unsigned int off_v,			///< offset in v, R
-					const ChStateDelta& v,
-					const ChVectorDynamic<>& R,
-					const unsigned int off_L,			///< offset in L, Qc
-					const ChVectorDynamic<>& L,
-					const ChVectorDynamic<>& Qc
-					)
-{
-	this->variables.Get_qb().PasteClippedMatrix(&v, off_v,0, 6,1, 0,0);  // for LCP warm starting only
-	this->variables.Get_fb().PasteClippedMatrix(&R, off_v,0, 6,1, 0,0);	 // LCP known term
-}
-
-void ChBody::IntFromLCP(
-					const unsigned int off_v,			///< offset in v
-					ChStateDelta& v,
-					const unsigned int off_L,			///< offset in L
-					ChVectorDynamic<>& L
-					)
-{
-	v.PasteMatrix(&this->variables.Get_qb(), off_v, 0);
-}
-
-
-
-
-
 //// 
-
 void ChBody::InjectVariables(ChLcpSystemDescriptor& mdescriptor)
 {   
     this->variables.SetDisabled(!this->IsActive());
@@ -854,9 +743,6 @@ void ChBody::Update()
     UpdateMarkers(ChTime);
 
     UpdateForces(ChTime);
-
-		// This will update assets
-	ChPhysicsItem::Update(ChTime);
 }
 
 
@@ -872,6 +758,26 @@ void ChBody::Update (double mytime)
 }
 
 
+
+void ChBody::UpdateExternalGeometry ()
+{
+    if (this->GetExternalObject())
+        this->GetExternalObject()->onChronoChanged();
+
+    HIER_MARKER_INIT
+    while (HIER_MARKER_NOSTOP)
+    {
+        MARKpointer->UpdateExternalGeometry();
+        HIER_MARKER_NEXT
+    }
+
+    HIER_FORCE_INIT
+    while (HIER_FORCE_NOSTOP)
+    {
+        FORCEpointer->UpdateExternalGeometry();
+        HIER_FORCE_NEXT
+    }
+}
 
 void ChBody::SetBodyFixed (bool mev)
 {
@@ -912,7 +818,13 @@ int ChBody::RecomputeCollisionModel()
 
     collision_model->ClearModel(); // ++++ start geometry definition
   
-	// ... external geometry fetch shapes?
+    if (this->GetExternalObject())
+        this->GetExternalObject()->onAddCollisionGeometries(
+                    this->collision_model,
+                    this,
+                    1,
+                    &coord.pos,
+                    &Amatrix);
 
     collision_model->BuildModel(); // ++++ complete geometry definition
 

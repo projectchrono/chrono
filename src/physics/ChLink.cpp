@@ -30,7 +30,7 @@ namespace chrono
 
 // Register into the object factory, to enable run-time
 // dynamic creation and persistence
-ChClassRegisterABSTRACT<ChLink> a_registration_ChLink;
+ChClassRegister<ChLink> a_registration_ChLink;
 
 
                 // BUILDERS
@@ -67,6 +67,14 @@ void ChLink::Copy(ChLink* source)
 	react_torque = source->react_torque;
 }
 
+
+ChLink* ChLink::new_Duplicate ()   // inherited classes:  Link* MyInheritedLink::new_Duplicate()
+{
+    ChLink* m_l;
+    m_l = new ChLink;  // inherited classes should write here: m_l = new MyInheritedLink;
+    m_l->Copy(this);
+    return (m_l);
+}
 
 
 
@@ -122,6 +130,15 @@ void ChLink::Update ()
 }
 
 
+
+
+
+
+void ChLink::UpdateExternalGeometry ()
+{
+	if (GetExternalObject())
+		GetExternalObject()->onChronoChanged();
+}
 
 
 

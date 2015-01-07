@@ -230,10 +230,9 @@ public:
             // FUNCTIONS
             //
 
-				/// Number of coordinates of body, x7 because with quaternions for rotation
-	virtual int GetDOF()  { return 7; }
-				/// Number of coordinates of body, x6 because derivatives es. angular vel.
-	virtual int GetDOF_w()  { return 6; }
+                /// Number of coordinates of the rigid body =6 (internally, 3+4=7 coords are used 
+                /// since quaternions are used for large rotations, but local coords -ex. w&v velocity- are 6)
+    virtual int GetDOF  ()   {return 6;}
 
                 /// Returns reference to the encapsulated ChLcpVariablesBody,
                 /// representing body variables (pos, speed or accel.- see VariablesLoad...() )
@@ -242,24 +241,6 @@ public:
     ChLcpVariablesBodyOwnMass& VariablesBody() {return variables;}
     ChLcpVariables&            Variables()     {return variables;}
 
-
-			//
-			// STATE FUNCTIONS
-			//
-
-				// (override/implement interfaces for global state vectors, see ChPhysicsItem for comments.)
-	virtual void IntStateGather(const unsigned int off_x,	ChState& x,	const unsigned int off_v, ChStateDelta& v,	double& T);	
-	virtual void IntStateScatter(const unsigned int off_x,	const ChState& x, const unsigned int off_v,	const ChStateDelta& v,	const double T);
-	virtual void IntStateIncrement(const unsigned int off_x, ChState& x_new, const ChState& x,	const unsigned int off_v, const ChStateDelta& Dv); 
-	virtual void IntLoadResidual_F(const unsigned int off,	ChVectorDynamic<>& R, const double c );
-	virtual void IntLoadResidual_Mv(const unsigned int off,	ChVectorDynamic<>& R, const ChVectorDynamic<>& w, const double c);
-	virtual void IntToLCP(const unsigned int off_v,	const ChStateDelta& v, const ChVectorDynamic<>& R, const unsigned int off_L, const ChVectorDynamic<>& L, const ChVectorDynamic<>& Qc);
-	virtual void IntFromLCP(const unsigned int off_v, ChStateDelta& v, const unsigned int off_L, ChVectorDynamic<>& L);
-
-	
-			//
-			// LCP FUNCTIONS
-			//
 
              // Override/implement LCP system functions of ChPhysicsItem
              // (to assembly/manage data for LCP system solver)

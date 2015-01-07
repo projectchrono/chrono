@@ -97,25 +97,8 @@ public:
 			//
 
 				/// Number of scalar constraints 
-	virtual int GetDOC_c  () 
-			{ 
-				if (motor_mode == MOT_MODE_TORQUE) 
-					return 0;
-				else 
-					return 1;
-			}
+	virtual int GetDOC_c  () {return 0;}
 
-	//
-	// STATE FUNCTIONS
-	//
-
-				// (override/implement interfaces for global state vectors, see ChPhysicsItem for comments.)
-	virtual void IntLoadResidual_F(const unsigned int off,	ChVectorDynamic<>& R, const double c );
-	virtual void IntLoadResidual_CqL(const unsigned int off_L, ChVectorDynamic<>& R, const ChVectorDynamic<>& L, const double c);
-	virtual void IntLoadConstraint_C(const unsigned int off, ChVectorDynamic<>& Qc,	const double c, bool do_clamp,	double recovery_clamp);
-	virtual void IntLoadConstraint_Ct(const unsigned int off, ChVectorDynamic<>& Qc, const double c);
-	virtual void IntToLCP(const unsigned int off_v,	const ChStateDelta& v, const ChVectorDynamic<>& R, const unsigned int off_L, const ChVectorDynamic<>& L, const ChVectorDynamic<>& Qc);
-	virtual void IntFromLCP(const unsigned int off_v, ChStateDelta& v, const unsigned int off_L, ChVectorDynamic<>& L);
 
 			// Override/implement LCP system functions of ChShaftsCouple
 			// (to assembly/manage data for LCP system solver

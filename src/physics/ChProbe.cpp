@@ -60,11 +60,15 @@ void ChProbe::Copy(ChProbe* source)
 
 void ChProbe::Record(double mtime)
 {
+	if (GetExternalObject())
+		GetExternalObject()->onChronoProbeRecord(mtime);
 
 }
 
 void ChProbe::Reset()
 {
+	if (GetExternalObject())
+		GetExternalObject()->onChronoProbeReset();
 
 }
 

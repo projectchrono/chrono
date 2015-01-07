@@ -313,8 +313,6 @@ ChSystem::ChSystem(unsigned int max_objects, double scene_size, bool init_sys)
 		collision_system = new ChCollisionSystemBullet(max_objects, scene_size);
 	}
 	
-	this->timestepper= ChSharedPtr<ChTimestepperEulerImplicitLinearized> (new ChTimestepperEulerImplicitLinearized(*this));
-	//this->timestepper= ChSharedPtr<ChTimestepperTrapezoidal> (new ChTimestepperTrapezoidal(*this));
 
 	LCP_descriptor = 0;
 	LCP_solver_speed = 0;
@@ -1359,10 +1357,10 @@ void ChSystem::Setup()
 	nbodies = 0;
 	nbodies_sleep = 0;
 	nbodies_fixed = 0;
-	ncoords = 0;
-	ncoords_w = 0;
-	ndoc = 0;
-	ndoc_w = 0;
+	ncoords=0;
+	ncoords_w=0;
+	ndoc =0;
+	ndoc_w =0;
 	ndoc_w_C = 0;
 	ndoc_w_D = 0;
 	nlinks = 0;
@@ -1372,39 +1370,27 @@ void ChSystem::Setup()
 	{
 		ChBody* Bpointer = bodylist[ip];
 
-		if (Bpointer->GetBodyFixed())
-			nbodies_fixed++;
-		else if (Bpointer->GetSleeping())
-			nbodies_sleep++;
-		else
-		{
-			nbodies++;
-
-			Bpointer->SetOffset_x(ncoords);
-			Bpointer->SetOffset_w(ncoords_w);
-			Bpointer->SetOffset_L(ndoc_w);
-
-			ncoords += Bpointer->GetDOF();
-			ncoords_w += Bpointer->GetDOF_w();
-		}
+        if (Bpointer->GetBodyFixed())
+          nbodies_fixed++;
+        else if (Bpointer->GetSleeping())
+          nbodies_sleep++;
+        else
+          nbodies++;
 	}
 
-	ndoc += nbodies;     // add one quaternion constr. for each active body.
+	ncoords_w += nbodies * 6;
+	ncoords   += nbodies * 7; // with quaternion coords
+	ndoc      += nbodies;     // add one quaternion constr. for each active body.
 
 
 	for (unsigned int ip = 0; ip < otherphysicslist.size(); ++ip)  // ITERATE on other physics
 	{
 		ChPhysicsItem* PHpointer = otherphysicslist[ip];
 
-		nphysicsitems++;
+		nphysicsitems ++;
 
-		PHpointer->SetOffset_x(ncoords);
-		PHpointer->SetOffset_w(ncoords_w);
-		PHpointer->SetOffset_L(ndoc_w);
-
-		ncoords   += PHpointer->GetDOF();
-		ncoords_w += PHpointer->GetDOF_w();
-		ndoc_w    += PHpointer->GetDOC();
+		ncoords_w += PHpointer->GetDOF();
+		ndoc_w	  += PHpointer->GetDOC();
 		ndoc_w_C  += PHpointer->GetDOC_c();
 		ndoc_w_D  += PHpointer->GetDOC_d();
 	}
@@ -1413,26 +1399,14 @@ void ChSystem::Setup()
 	{
 		ChLink* Lpointer = linklist[ip];
 
-		if (Lpointer->IsActive())
-		{
-			nlinks++;
+		nlinks ++;
 
-			Lpointer->SetOffset_x(ncoords);
-			Lpointer->SetOffset_w(ncoords_w);
-			Lpointer->SetOffset_L(ndoc_w);
-
-			ndoc_w   += Lpointer->GetDOC();
-			ndoc_w_C += Lpointer->GetDOC_c();
-			ndoc_w_D += Lpointer->GetDOC_d();
-		}
+		ndoc_w   += Lpointer->GetDOC();
+		ndoc_w_C += Lpointer->GetDOC_c();
+		ndoc_w_D += Lpointer->GetDOC_d();
 	}
 
-	{
-		contact_container->SetOffset_L(ndoc_w);
-
-		ndoc_w_C += contact_container->GetDOC_c();
-		ndoc_w_D += contact_container->GetDOC_d();
-	}
+	ndoc_w_D += contact_container->GetDOC_d();
 
 	ndoc       = ndoc_w + nbodies;   // number of constraints including quaternion constraints.
 	nsysvars   = ncoords   + ndoc;   // total number of variables (coordinates + lagrangian multipliers)
@@ -1505,6 +1479,23 @@ void ChSystem::Update()
 
 
 
+
+void ChSystem::UpdateExternalGeometry ()
+{
+	for (unsigned int ip = 0; ip < bodylist.size(); ++ip)  // ITERATE on bodies
+	{
+		ChBody* Bpointer = bodylist[ip];
+
+		Bpointer->UpdateExternalGeometry ();
+	}
+	
+	for (unsigned int ip = 0; ip < linklist.size(); ++ip)  // ITERATE on links
+	{
+		ChLink* Lpointer = linklist[ip];
+
+		Lpointer->UpdateExternalGeometry ();
+	}
+}
 
 
 
@@ -1753,328 +1744,6 @@ void ChSystem::SetXYmode (int m_mode)
 
 
 
-//////////////////////////////////
-////////
-////////    TIMESTEPPER INTERFACE 
-////////
-
-
-/// From system to state y={x,v}
-void ChSystem::StateGather(ChState& x, ChStateDelta& v, double& T)
-{
-	for (unsigned int ip = 0; ip < bodylist.size(); ++ip)  // ITERATE on bodies
-	{
-		ChBody* Bpointer = bodylist[ip];
-		if(Bpointer->IsActive())
-			Bpointer->IntStateGather(Bpointer->GetOffset_x(), x, Bpointer->GetOffset_w(), v, T);
-	}
-	for (unsigned int ip = 0; ip < otherphysicslist.size(); ++ip)  // ITERATE on other physics
-	{
-		ChPhysicsItem* PHpointer = otherphysicslist[ip];
-		PHpointer->IntStateGather(PHpointer->GetOffset_x(), x, PHpointer->GetOffset_w(), v, T);
-	}
-	for (unsigned int ip = 0; ip < linklist.size(); ++ip)  // ITERATE on links
-	{
-		ChLink* Lpointer = linklist[ip];
-		if(Lpointer->IsActive())
-			Lpointer->IntStateGather(Lpointer->GetOffset_x(), x, Lpointer->GetOffset_w(), v, T);
-	}
-	T = this->GetChTime();
-}
-
-/// From state Y={x,v} to system.
-void ChSystem::StateScatter(const ChState& x, const ChStateDelta& v, const double T)
-{
-	for (unsigned int ip = 0; ip < bodylist.size(); ++ip)  // ITERATE on bodies
-	{
-		ChBody* Bpointer = bodylist[ip];
-		if(Bpointer->IsActive())
-			Bpointer->IntStateScatter(Bpointer->GetOffset_x(), x, Bpointer->GetOffset_w(), v, T);
-	}
-	for (unsigned int ip = 0; ip < otherphysicslist.size(); ++ip)  // ITERATE on other physics
-	{
-		ChPhysicsItem* PHpointer = otherphysicslist[ip];
-		PHpointer->IntStateScatter(PHpointer->GetOffset_x(), x, PHpointer->GetOffset_w(), v, T);
-	}
-	for (unsigned int ip = 0; ip < linklist.size(); ++ip)  // ITERATE on links
-	{
-		ChLink* Lpointer = linklist[ip];
-		if(Lpointer->IsActive())
-			Lpointer->IntStateScatter(Lpointer->GetOffset_x(), x, Lpointer->GetOffset_w(), v, T);
-	}
-	this->SetChTime(T);
-}
-
-/// Perform x_new = x + dx    for x in    Y = {x, dx/dt}
-/// It takes care of the fact that x has quaternions, dx has angular vel etc.
-/// NOTE: the system is not updated automatically after the state increment, so one might
-/// need to call StateScatter() if needed. 
-void ChSystem::StateIncrementX(
-	ChState& x_new,			///< resulting x_new = x + Dx
-	const ChState& x,		///< initial state x
-	const ChStateDelta& Dx	///< state increment Dx
-	)
-{
-	for (unsigned int ip = 0; ip < bodylist.size(); ++ip)  // ITERATE on bodies
-	{
-		ChBody* Bpointer = bodylist[ip];
-		if(Bpointer->IsActive())
-			Bpointer->IntStateIncrement(Bpointer->GetOffset_x(), x_new, x, Bpointer->GetOffset_w(), Dx);
-	}
-	for (unsigned int ip = 0; ip < otherphysicslist.size(); ++ip)  // ITERATE on other physics
-	{
-		ChPhysicsItem* PHpointer = otherphysicslist[ip];
-		PHpointer->IntStateIncrement(PHpointer->GetOffset_x(), x_new, x, PHpointer->GetOffset_w(), Dx);
-	}
-	for (unsigned int ip = 0; ip < linklist.size(); ++ip)  // ITERATE on links
-	{
-		ChLink* Lpointer = linklist[ip];
-		if (Lpointer->IsActive())
-			Lpointer->IntStateIncrement(Lpointer->GetOffset_x(), x_new, x, Lpointer->GetOffset_w(), Dx);
-	}
-}
-
-/// Assuming an explicit DAE in the form   
-///        M*a = F(x,v,t) + Cq'*L
-///       C(x,t) = 0
-/// this must compute the solution of the change Du (in a or v or x) to satisfy 
-/// the equation required in a Newton Raphson iteration for an
-/// implicit integrator equation:
-///  |Du| = [ G   Cq' ]^-1 * | R |
-///  |DL|   [ Cq  0   ]      | Qc|
-/// for residual R and  G = [ c_a*M + c_v*dF/dv + c_x*dF/dx ]
-void ChSystem::StateSolveCorrection(
-	ChStateDelta& Dv,	  ///< result: computed Dv 
-	ChVectorDynamic<>& L, ///< result: computed lagrangian multipliers, if any
-	const ChVectorDynamic<>& R, ///< the R residual
-	const ChVectorDynamic<>& Qc,///< the Qc residual
-	const double c_a,	  ///< the factor in c_a*M
-	const double c_v,	  ///< the factor in c_v*dF/dv
-	const double c_x,	  ///< the factor in c_x*dF/dv
-	const ChState& x,	  ///< current state, x part
-	const ChStateDelta& v,///< current state, v part
-	const double T,		  ///< current time T
-	bool force_state_scatter ///< if false, x,v and T are not scattered to the system, assuming that someone has done StateScatter just before 
-	)
-{
-	//if (force_state_scatter)
-	//	this->StateScatter(x,v,T);
-
-	// R and Qc vectors  --> LCP sparse solver structures  (also sets L and Dv to warmstart)
-
-	for (unsigned int ip = 0; ip < bodylist.size(); ++ip)  // ITERATE on bodies
-	{
-		ChBody* Bpointer = bodylist[ip];
-		if(Bpointer->IsActive())
-			Bpointer->IntToLCP(Bpointer->GetOffset_w(), Dv,R,Bpointer->GetOffset_L(), L, Qc);
-	}
-	for (unsigned int ip = 0; ip < otherphysicslist.size(); ++ip)  // ITERATE on other physics
-	{
-		ChPhysicsItem* PHpointer = otherphysicslist[ip];
-		PHpointer->IntToLCP(PHpointer->GetOffset_w(), Dv,R,PHpointer->GetOffset_L(), L, Qc);
-	}
-	for (unsigned int ip = 0; ip < linklist.size(); ++ip)  // ITERATE on links
-	{
-		ChLink* Lpointer = linklist[ip];
-		if(Lpointer->IsActive())
-			Lpointer->IntToLCP(Lpointer->GetOffset_w(), Dv,R,Lpointer->GetOffset_L(), L, Qc);
-	}
-
-	// G and Cq  matrices:  fill the LCP sparse solver structures
-
-	//#pragma omp parallel for 
-	for (int ip = 0; ip < linklist.size(); ++ip)  // ITERATE on links
-	{
-		ChLink* Lpointer = linklist[ip];
-
-		Lpointer->ConstraintsLoadJacobians();
-	}
-	//#pragma omp parallel for 
-	for (int ip = 0; ip < otherphysicslist.size(); ++ip)  // ITERATE on other physics
-	{
-		ChPhysicsItem* PHpointer = otherphysicslist[ip];
-
-		PHpointer->ConstraintsLoadJacobians();
-
-		if (c_a || c_v || c_x)
-			PHpointer->KRMmatricesLoad(c_x, c_v, c_a);
-	}
-
-	contact_container->ConstraintsLoadJacobians();
-
-
-	// prepare lists of variables and constraints, used by the following LCP solver
-
-	LCPprepare_inject(*this->LCP_descriptor);
-
-//GetLog() << "R=" << R << "\n\n";
-//GetLog() << "Qc=" << Qc << "\n\n";
-//GetLog() << "X=" << x << "\n\n";
-//GetLog() << "V=" << v << "\n\n";
-	// Solve the LCP problem!!! 
-
-	GetLcpSolverSpeed()->Solve(
-							*this->LCP_descriptor
-							); 
-
-	// Dv and L vectors  <-- LCP sparse solver structures  
-
-	for (unsigned int ip = 0; ip < bodylist.size(); ++ip)  // ITERATE on bodies
-	{
-		ChBody* Bpointer = bodylist[ip];
-		if(Bpointer->IsActive())
-			Bpointer->IntFromLCP(Bpointer->GetOffset_w(), Dv,Bpointer->GetOffset_L(), L);
-	}
-	for (unsigned int ip = 0; ip < otherphysicslist.size(); ++ip)  // ITERATE on other physics
-	{
-		ChPhysicsItem* PHpointer = otherphysicslist[ip];
-		PHpointer->IntFromLCP(PHpointer->GetOffset_w(), Dv,PHpointer->GetOffset_L(), L);
-	}
-	for (unsigned int ip = 0; ip < linklist.size(); ++ip)  // ITERATE on links
-	{
-		ChLink* Lpointer = linklist[ip];
-		if(Lpointer->IsActive())
-			Lpointer->IntFromLCP(Lpointer->GetOffset_w(), Dv,Lpointer->GetOffset_L(), L);
-	}
-//	GetLog() << "Dv=" << Dv << "\n\n";
-//GetLog() << "L=" << L << "\n\n";
-//GetLog() << "Xn=" << x << "\n\n";
-//GetLog() << "Vn=" << v << "\n\n";
-}
-
-/// Increment a vector R with the term c*F:   
-///    R += c*F 
-void ChSystem::LoadResidual_F(
-	ChVectorDynamic<>& R,		 ///< result: the R residual, R += c*F 
-	const double c				 ///< a scaling factor
-	)
-{
-	for (unsigned int ip = 0; ip < bodylist.size(); ++ip)  // ITERATE on bodies
-	{
-		ChBody* Bpointer = bodylist[ip];
-		if(Bpointer->IsActive())
-			Bpointer->IntLoadResidual_F(Bpointer->GetOffset_w(), R, c);
-	}
-	for (unsigned int ip = 0; ip < otherphysicslist.size(); ++ip)  // ITERATE on other physics
-	{
-		ChPhysicsItem* PHpointer = otherphysicslist[ip];
-		PHpointer->IntLoadResidual_F(PHpointer->GetOffset_w(), R, c);
-	}
-	for (unsigned int ip = 0; ip < linklist.size(); ++ip)  // ITERATE on links
-	{
-		ChLink* Lpointer = linklist[ip];
-		if(Lpointer->IsActive())
-			Lpointer->IntLoadResidual_F(Lpointer->GetOffset_w(), R, c);
-	}
-}
-
-/// Increment a vector R with a term that has M multiplied a given vector w:   
-///    R += c*M*w 
-void ChSystem::LoadResidual_Mv(
-	ChVectorDynamic<>& R,		 ///< result: the R residual, R += c*M*v 
-	const ChVectorDynamic<>& w,  ///< the w vector 
-	const double c				 ///< a scaling factor
-	)
-{
-	for (unsigned int ip = 0; ip < bodylist.size(); ++ip)  // ITERATE on bodies
-	{
-		ChBody* Bpointer = bodylist[ip];
-		if(Bpointer->IsActive())
-			Bpointer->IntLoadResidual_Mv(Bpointer->GetOffset_w(), R, w, c);
-	}
-	for (unsigned int ip = 0; ip < otherphysicslist.size(); ++ip)  // ITERATE on other physics
-	{
-		ChPhysicsItem* PHpointer = otherphysicslist[ip];
-		PHpointer->IntLoadResidual_Mv(PHpointer->GetOffset_w(), R, w, c);
-	}
-	for (unsigned int ip = 0; ip < linklist.size(); ++ip)  // ITERATE on links
-	{
-		ChLink* Lpointer = linklist[ip];
-		if(Lpointer->IsActive())
-			Lpointer->IntLoadResidual_Mv(Lpointer->GetOffset_w(), R, w, c);
-	}
-}
-
-/// Increment a vectorR with the term Cq'*L:   
-///    R += c*Cq'*L 
-void ChSystem::LoadResidual_CqL(
-	ChVectorDynamic<>& R,		 ///< result: the R residual, R += c*Cq'*L 
-	const ChVectorDynamic<>& L,  ///< the L vector 
-	const double c				 ///< a scaling factor
-	)
-{
-	for (unsigned int ip = 0; ip < bodylist.size(); ++ip)  // ITERATE on bodies
-	{
-		ChBody* Bpointer = bodylist[ip];
-		if(Bpointer->IsActive())
-			Bpointer->IntLoadResidual_CqL(Bpointer->GetOffset_L(), R, L, c);
-	}
-	for (unsigned int ip = 0; ip < otherphysicslist.size(); ++ip)  // ITERATE on other physics
-	{
-		ChPhysicsItem* PHpointer = otherphysicslist[ip];
-		PHpointer->IntLoadResidual_CqL(PHpointer->GetOffset_L(), R, L, c);
-	}
-	for (unsigned int ip = 0; ip < linklist.size(); ++ip)  // ITERATE on links
-	{
-		ChLink* Lpointer = linklist[ip];
-		if(Lpointer->IsActive())
-			Lpointer->IntLoadResidual_CqL(Lpointer->GetOffset_L(), R, L, c);
-	}
-}
-
-/// Increment a vector Qc with the term C:   
-///    Qc += c*C 
-void ChSystem::LoadConstraint_C(
-	ChVectorDynamic<>& Qc,		 ///< result: the Qc residual, Qc += c*C 
-	const double c,				 ///< a scaling factor
-	bool do_clamp,				 ///< apply clamping to c*C?
-	double recovery_clamp		 ///< value for min/max clamping of c*C
-	)
-{
-	for (unsigned int ip = 0; ip < bodylist.size(); ++ip)  // ITERATE on bodies
-	{
-		ChBody* Bpointer = bodylist[ip];
-		if(Bpointer->IsActive())
-			Bpointer->IntLoadConstraint_C(Bpointer->GetOffset_L(), Qc, c, do_clamp, recovery_clamp);
-	}
-	for (unsigned int ip = 0; ip < otherphysicslist.size(); ++ip)  // ITERATE on other physics
-	{
-		ChPhysicsItem* PHpointer = otherphysicslist[ip];
-		PHpointer->IntLoadConstraint_C(PHpointer->GetOffset_L(), Qc, c, do_clamp, recovery_clamp);
-	}
-	for (unsigned int ip = 0; ip < linklist.size(); ++ip)  // ITERATE on links
-	{
-		ChLink* Lpointer = linklist[ip];
-		if(Lpointer->IsActive())
-			Lpointer->IntLoadConstraint_C(Lpointer->GetOffset_L(), Qc, c, true, 0);//do_clamp, recovery_clamp); //***TODO***
-	}
-}
-
-/// Increment a vector Qc with the term Ct = partial derivative dC/dt:   
-///    Qc += c*Ct 
-void ChSystem::LoadConstraint_Ct(
-	ChVectorDynamic<>& Qc,		 ///< result: the Qc residual, Qc += c*Ct 
-	const double c				 ///< a scaling factor
-	)
-{
-	for (unsigned int ip = 0; ip < bodylist.size(); ++ip)  // ITERATE on bodies
-	{
-		ChBody* Bpointer = bodylist[ip];
-		if(Bpointer->IsActive())
-			Bpointer->IntLoadConstraint_Ct(Bpointer->GetOffset_L(), Qc, c);
-	}
-	for (unsigned int ip = 0; ip < otherphysicslist.size(); ++ip)  // ITERATE on other physics
-	{
-		ChPhysicsItem* PHpointer = otherphysicslist[ip];
-		PHpointer->IntLoadConstraint_Ct(PHpointer->GetOffset_L(), Qc, c);
-	}
-	for (unsigned int ip = 0; ip < linklist.size(); ++ip)  // ITERATE on links
-	{
-		ChLink* Lpointer = linklist[ip];
-		if(Lpointer->IsActive())
-			Lpointer->IntLoadConstraint_Ct(Lpointer->GetOffset_L(), Qc, c);
-	}
-}
 
 
 
@@ -2223,8 +1892,6 @@ int ChSystem::Integrate_Y()
 			return Integrate_Y_impulse_Anitescu();
 		case INT_TASORA:
 			return Integrate_Y_impulse_Tasora();
-		case INT_CUSTOM:
-			return Integrate_Y_timestepper();
 		default:
 			return Integrate_Y_impulse_Anitescu();
 	}
@@ -2576,68 +2243,6 @@ int ChSystem::Integrate_Y_impulse_Tasora()
 	return (ret_code);
 }
 
-
-
-//
-//  PERFORM INTEGRATION STEP  using pluggable timestepper
-//
- 
-
-int ChSystem::Integrate_Y_timestepper()
-{
-	int ret_code = TRUE;
-
-	ChTimer<double> mtimer_step;
-	mtimer_step.start();
-
-	events->Record(CHEVENT_TIMESTEP);
-
-								// Executes the "forStep" script, if any
-	ExecuteScriptForStep();
-								// Executes the "forStep" script
-								// in all controls of controlslist
-	ExecuteControlsForStep();
-
-
-	this->stepcount++;
-
-	// Compute contacts and create contact constraints
-
-	ComputeCollisions();
-
-
-	Setup();	// Counts dofs, statistics, etc. (not needed because already in Advance()...? )
-
-
-	Update();	// Update everything - and put to sleep bodies that need it (not needed because already in Advance()...? )
-
-				// Re-wake the bodies that cannot sleep because they are in contact with
-				// some body that is not in sleep state.
-	WakeUpSleepingBodies();
-
-
-	ChTimer<double> mtimer_lcp;
-	mtimer_lcp.start();
-
-
-	// PERFORM TIME STEP HERE!
-	this->timestepper->Advance(step);
-
-
-	// Executes custom processing at the end of step
-	CustomEndOfStep();
-
-	// If there are some probe objects in the probe list,
-	// tell them to record their variables (ususally x-y couples)
-	RecordAllProbes();
-
-	// Time elapsed for step..
-	mtimer_step.stop();
-	timer_step = mtimer_step();
-
-
-	return (ret_code);
-}
 
 
 

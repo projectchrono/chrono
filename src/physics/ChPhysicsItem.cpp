@@ -34,7 +34,7 @@ namespace chrono
 
 // Register into the object factory, to enable run-time
 // dynamic creation and persistence
-ChClassRegisterABSTRACT<ChPhysicsItem> a_registration_ChPhysicsItem;
+ChClassRegister<ChPhysicsItem> a_registration_ChPhysicsItem;
 
 
 
@@ -45,10 +45,6 @@ void ChPhysicsItem::Copy(ChPhysicsItem* source)
 
 	// copy other class data
 	system=0; // do not copy - must be initialized with insertion in system.
-	
-	this->offset_x = source->offset_x;
-	this->offset_w = source->offset_w;
-	this->offset_L = source->offset_L;
 
 	this->assets = source->assets;  // copy the list of shared pointers to assets
 }
@@ -68,8 +64,6 @@ void ChPhysicsItem::GetCenter(ChVector<>& mcenter)
 	this->GetTotalAABB(mmin, mmax);
 	mcenter = (mmin+mmax)*0.5;
 }
-
-
 
 
 /////////

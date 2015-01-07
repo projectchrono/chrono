@@ -28,7 +28,7 @@ namespace chrono
 	/// four functions. By doing this, you can use time integrators from
 	/// the ChTimestepper hierarchy to integrate in time.
 
-class  ChApi ChIntegrable
+class ChIntegrable
 {
 	public:
 
@@ -96,7 +96,6 @@ class  ChApi ChIntegrable
 							const ChStateDelta& Dy	///< state increment Dy
 							) 
 			{
-				assert (y_new.GetRows()==y.GetRows() && y.GetRows()==Dy.GetRows());
 				y_new.Resize(y.GetRows(), y.GetColumns());
 				for (int i = 0; i< y.GetRows(); ++i)
 				{
@@ -180,9 +179,7 @@ class  ChApi ChIntegrable
 			///    Qc += c*C 
 	virtual void LoadConstraint_C(
 		ChVectorDynamic<>& Qc,		 ///< result: the Qc residual, Qc += c*C 
-		const double c,				 ///< a scaling factor
-		bool do_clamp=false,		 ///< apply clamping to c*C?
-		double recovery_clamp=1e30	 ///< value for min/max clamping of c*C
+		const double c				 ///< a scaling factor
 		)
 	{
 		throw ChException("LoadConstraint_C() not implemented, implicit integrators cannot be used. ");
@@ -213,7 +210,7 @@ class  ChApi ChIntegrable
 /// four functions. By doing this, you can use time integrators from
 /// the ChTimestepper hierarchy to integrate in time.
 
-class   ChApi ChIntegrableIIorder : public ChIntegrable
+class ChIntegrableIIorder : public ChIntegrable
 {
 public:
 
@@ -382,9 +379,7 @@ public:
 	///    Qc += c*C 
 	virtual void LoadConstraint_C(
 		ChVectorDynamic<>& Qc,		 ///< result: the Qc residual, Qc += c*C 
-		const double c,				 ///< a scaling factor
-		bool do_clamp=false,		 ///< apply clamping to c*C?
-		double recovery_clamp=1e30	 ///< value for min/max clamping of c*C
+		const double c				 ///< a scaling factor
 		)
 	{
 		throw ChException("LoadConstraint_C() not implemented, implicit integrators cannot be used. ");
@@ -548,7 +543,7 @@ public:
 /// to implement only the StateSolveCorrection  LoadResidual... and LoadConstraint...
 /// functions.
 
-class   ChApi ChIntegrableIIorderEasy : public ChIntegrableIIorder
+class ChIntegrableIIorderEasy : public ChIntegrableIIorder
 {
 public:
 
@@ -601,19 +596,11 @@ public:
 /// the specialized StateIncrement() in the ChIntegrable (if any, otherwise 
 /// it will be a simple vector sum).
 
-inline
 ChState operator+ (const ChState& y, const ChStateDelta& Dy) 
 		{
 			ChState result(y.GetRows(), y.GetIntegrable());
 			y.GetIntegrable()->StateIncrement(result, y, Dy);
 			return result;
-		}
-inline
-ChState& operator+= (ChState& y, const ChStateDelta& Dy) 
-		{
-			ChState tmp_y(y);
-			y.GetIntegrable()->StateIncrement(y, tmp_y, Dy);
-			return y;
 		}
 
 /// This is a custom operator "+" that takes care of incremental update
@@ -621,13 +608,13 @@ ChState& operator+= (ChState& y, const ChStateDelta& Dy)
 /// the specialized StateIncrement() in the ChIntegrable (if any, otherwise 
 /// it will be a simple vector sum).
 
-inline
 ChState operator+ (const ChStateDelta& Dy, const ChState& y) 
 		{
 			ChState result(y.GetRows(), y.GetIntegrable());
 			y.GetIntegrable()->StateIncrement(result, y, Dy);
 			return result;
 		}
+
 
 
 

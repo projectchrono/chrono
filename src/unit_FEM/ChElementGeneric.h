@@ -47,17 +47,6 @@ public:
 				/// Access the proxy to stiffness, for sparse LCP solver
 	ChLcpKblockGeneric& Kstiffness() {return Kmatr;}
 
-			//
-			// Functions for interfacing to the state bookkeeping
-			//
-
-				/// (This is a default (a bit unoptimal) book keeping so that in children classes you can avoid 
-				/// implementing this EleIntLoadResidual_F function, unless you need faster code)
-	virtual void EleIntLoadResidual_F(const unsigned int off,	ChVectorDynamic<>& R, const double c );
-
-				/// (This is a default (VERY UNOPTIMAL) book keeping so that in children classes you can avoid 
-				/// implementing this EleIntLoadResidual_Mv function, unless you need faster code.)
-	virtual void EleIntLoadResidual_Mv(const unsigned int off,	ChVectorDynamic<>& R, const ChVectorDynamic<>& w, const double c);
 
 			//
 			// Functions for interfacing to the LCP solver

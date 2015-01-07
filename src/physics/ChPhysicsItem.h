@@ -37,7 +37,7 @@
 #include "assets/ChAsset.h"
 #include "lcp/ChLcpSystemDescriptor.h"
 #include "collision/ChCCollisionModel.h"
-#include "timestepper/ChState.h"
+
 
 namespace chrono
 {
@@ -67,22 +67,11 @@ protected:
 
 	std::vector< ChSharedPtr<ChAsset> > assets;
 
-	unsigned int offset_x; // offset in vector of state (position part)
-	unsigned int offset_w; // offset in vector of state (speed part)
-	unsigned int offset_L; // offset in vector of lagrangian multipliers
-
 public:
 				//
 	  			// CONSTRUCTORS
 				//
-	ChPhysicsItem () 
-	{ 
-		this->system = 0;
-		this->offset_x = 0;
-		this->offset_w = 0;
-		this->offset_L = 0;
-	};
-
+	ChPhysicsItem () { system = 0;};
 	virtual ~ChPhysicsItem () {}; 
 	virtual void Copy(ChPhysicsItem* source);
 
@@ -127,8 +116,6 @@ public:
 				/// If so, returns Nclones >0 , the number of clones including the original.
 				/// Then use GetAssetsFrame(n), n=0...Nclones-1, to access the corresponding coord.frame.
 	virtual unsigned int GetAssetsFrameNclones() {return 0;}
-
-
 
 
 		// --- INTERFACES --- 
@@ -208,150 +195,18 @@ public:
 	virtual void SetNoSpeedNoAcceleration() {};
 
 
-			// STATE FUNCTIONS
-			//
-			// These functions are used for bookkeeping in ChSystem, so that states (position, speeds)
-			// of multiple physics items can be mapped in a single system state vector.
-			// These will be used to interface to time integrators.
-			// Note: these are not 'pure virtual' interfaces to avoid the burden of implementing all them
-			// when just few are needed, so here is a default fallback that represent a 0 DOF, 0 DOC item, but
-			// the children classes should override them.
+			// STATISTICS  - override these in child classes if needed
+			// 
 
-				/// Get the number of scalar coordinates (variables), if any, in this item.
-				/// Children classes must override this.
+				/// Get the number of scalar coordinates (variables), if any, in this item 
 	virtual int GetDOF  ()   {return 0;}
-				/// Get the number of scalar coordinates of variables derivatives (usually = DOF, but might be
-				/// different than DOF, ex. DOF=4 for quaternions, but DOF_w = 3 for its Lie algebra, ex angular velocity) 
-				/// Children classes might override this.
-	virtual int GetDOF_w()	 { return this->GetDOF(); }
 				/// Get the number of scalar constraints, if any, in this item 
 	virtual int GetDOC  ()   {return GetDOC_c()+GetDOC_d();}
 				/// Get the number of scalar constraints, if any, in this item (only bilateral constr.)
-				/// Children classes might override this.
 	virtual int GetDOC_c  () {return 0;}
 				/// Get the number of scalar constraints, if any, in this item (only unilateral constr.)
-				/// Children classes might override this.
 	virtual int GetDOC_d  () {return 0;}
 
-				/// Get offset in the state vector (position part)
-	unsigned int GetOffset_x()	{ return this->offset_x; }
-				/// Get offset in the state vector (speed part)
-	unsigned int GetOffset_w()	{ return this->offset_w; }
-				/// Get offset in the lagrangian multipliers 
-	unsigned int GetOffset_L()	{ return this->offset_L; }
-
-				/// Set offset in the state vector (position part)
-				/// Note: only the ChSystem::Setup function should use this
-	void SetOffset_x(const unsigned int moff) { this->offset_x= moff; }
-				/// Set offset in the state vector (speed part)
-				/// Note: only the ChSystem::Setup function should use this
-	void SetOffset_w(const unsigned int moff) { this->offset_w = moff; }
-				/// Set offset in the lagrangian multipliers
-				/// Note: only the ChSystem::Setup function should use this
-	void SetOffset_L(const unsigned int moff) { this->offset_L = moff; }
-
-				/// From item's state to global state vectors y={x,v} 
-				/// pasting the states at the specified offsets. 
-	virtual void IntStateGather(
-					const unsigned int off_x,		///< offset in x state vector
-					ChState& x,						///< state vector, position part
-					const unsigned int off_v,		///< offset in v state vector
-					ChStateDelta& v,				///< state vector, speed part
-					double& T) {};					///< time
-
-				/// From global state vectors y={x,v} to  item's state (and update)
-				/// fetching the states at the specified offsets. 
-	virtual void IntStateScatter(
-					const unsigned int off_x,		///< offset in x state vector
-					const ChState& x,				///< state vector, position part
-					const unsigned int off_v,		///< offset in v state vector
-					const ChStateDelta& v,			///< state vector, speed part
-					const double T) {};				///< time
-
-				/// Computes x_new = x + Dt , using vectors at specified offsets.
-				/// By default, when DOF = DOF_w, it does just the sum, but in some cases (ex when using quaternions 
-				/// for rotations) it could do more complex stuff, and children classes might overload it.
-	virtual void IntStateIncrement(
-					const unsigned int off_x,		///< offset in x state vector
-					ChState& x_new,					///< state vector, position part, incremented result
-					const ChState& x,				///< state vector, initial position part
-					const unsigned int off_v,		///< offset in v state vector
-					const ChStateDelta& Dv)  		///< state vector, increment
-			{
-				for (int i = 0; i< this->GetDOF(); ++i)
-				{
-					x_new(off_x + i) = x(off_x + i) + Dv(off_v + i);
-				}
-			}
-
-				/// Takes the F force term, scale and adds to R at given offset:
-				///    R += c*F 
-	virtual void IntLoadResidual_F(
-					const unsigned int off,		 ///< offset in R residual
-					ChVectorDynamic<>& R,		 ///< result: the R residual, R += c*F 
-					const double c				 ///< a scaling factor
-					) {};
-
-				/// Takes the M*v  term,  multiplying mass by a vector, scale and adds to R at given offset:
-				///    R += c*M*w 
-	virtual void IntLoadResidual_Mv(
-					const unsigned int off,		 ///< offset in R residual
-					ChVectorDynamic<>& R,		 ///< result: the R residual, R += c*M*v 
-					const ChVectorDynamic<>& w,  ///< the w vector 
-					const double c				 ///< a scaling factor
-					) {};
-
-				/// Takes the term Cq'*L, scale and adds to R at given offset:
-				///    R += c*Cq'*L 
-	virtual void IntLoadResidual_CqL(
-					const unsigned int off_L,	 ///< offset in L multipliers
-					ChVectorDynamic<>& R,		 ///< result: the R residual, R += c*Cq'*L 
-					const ChVectorDynamic<>& L,  ///< the L vector 
-					const double c				 ///< a scaling factor
-					) {};
-
-				/// Takes the term C, scale and adds to Qc at given offset:
-				///    Qc += c*C 
-	virtual void IntLoadConstraint_C(
-					const unsigned int off,		 ///< offset in Qc residual
-					ChVectorDynamic<>& Qc,		 ///< result: the Qc residual, Qc += c*C 
-					const double c,				 ///< a scaling factor
-					bool do_clamp,				 ///< apply clamping to c*C?
-					double recovery_clamp		 ///< value for min/max clamping of c*C
-					) {};
-
-				/// Takes the term Ct, scale and adds to Qc at given offset:
-				///    Qc += c*Ct 
-	virtual void IntLoadConstraint_Ct(
-					const unsigned int off,		 ///< offset in Qc residual
-					ChVectorDynamic<>& Qc,		 ///< result: the Qc residual, Qc += c*Ct 
-					const double c				 ///< a scaling factor
-					) {};
-
-				/// Prepare LCP variables and constraints for a solution:
-				/// From a vector R  into the F 'force' term of the LCPvariables
-				/// From a vector Qc into the Qb 'constraint' term of the LCP constraints
-				/// From a vector v  into the q 'unknowns' term of the LCP variables (for warm starting)
-				/// From a vector L  into the L 'lagrangian ' term of the LCP constraints (for warm starting)
-	virtual void IntToLCP(
-					const unsigned int off_v,			///< offset in v, R
-					const ChStateDelta& v,
-					const ChVectorDynamic<>& R,
-					const unsigned int off_L,			///< offset in L, Qc
-					const ChVectorDynamic<>& L,
-					const ChVectorDynamic<>& Qc
-					) {};
-
-				/// After a LCP solution, fetch values from LCP variables and constraints:
-				/// To a vector v  from the q 'unknowns' term of the LCP variables
-				/// To a vector L  from the L 'lagrangian ' term of the LCP constraints 
-	virtual void IntFromLCP(
-					const unsigned int off_v,			///< offset in v
-					ChStateDelta& v,
-					const unsigned int off_L,			///< offset in L
-					ChVectorDynamic<>& L
-					) {};
-						
 
 			// LCP SYSTEM FUNCTIONS   
 			//

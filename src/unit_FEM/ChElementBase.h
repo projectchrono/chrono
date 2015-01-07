@@ -90,13 +90,6 @@ public:
 				/// matrices for corotational approach, this is the proper place.
 	virtual void Update() {};
 
-			//
-			// Functions for interfacing to the state bookkeeping
-			//
-
-	virtual void EleIntLoadResidual_F(const unsigned int off,	ChVectorDynamic<>& R, const double c ) {};
-
-	virtual void EleIntLoadResidual_Mv(const unsigned int off,	ChVectorDynamic<>& R, const ChVectorDynamic<>& w, const double c) {};
 
 			//
 			// Functions for interfacing to the LCP solver

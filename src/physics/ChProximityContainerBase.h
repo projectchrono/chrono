@@ -154,8 +154,6 @@ public:
 					/// report all contacts).
 	virtual void ReportAllProximities(ChReportProximityCallback* mcallback) =0;
 
-
-
 };
 
 

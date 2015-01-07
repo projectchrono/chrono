@@ -185,7 +185,6 @@ bool ChIrrAppEventReceiver::OnEvent(const SEvent& event)
         {
         case 0: app->GetSystem()->SetIntegrationType(chrono::ChSystem::INT_ANITESCU); break;
         case 1: app->GetSystem()->SetIntegrationType(chrono::ChSystem::INT_TASORA); break;
-		case 2: app->GetSystem()->SetIntegrationType(chrono::ChSystem::INT_CUSTOM); break;
         }
         break;
       }
@@ -351,7 +350,6 @@ ChIrrAppInterface::ChIrrAppInterface(
   gad_stepper = GetIGUIEnvironment()->addComboBox(core::rect<s32>(10,160, 200,160+20), gad_tab2, 9908);
   gad_stepper->addItem(L"Anitescu stepper");
   gad_stepper->addItem(L"Tasora stepper");
-  gad_stepper->addItem(L"Custom (experimental)");
   gad_stepper->setSelected(0);
 
   gad_omega   = GetIGUIEnvironment()->addScrollBar(true,    core::rect<s32>(10, 190, 150,190+20), gad_tab2, 9909);
@@ -611,7 +609,6 @@ void ChIrrAppInterface::DrawAll()
     {
     case chrono::ChSystem::INT_ANITESCU:    gad_stepper->setSelected(0); break;
     case chrono::ChSystem::INT_TASORA:      gad_stepper->setSelected(1); break;
-	case chrono::ChSystem::INT_CUSTOM:      gad_stepper->setSelected(3); break;
     }
 
     gad_try_realtime->setChecked(GetTryRealtime());
