@@ -77,7 +77,7 @@ ChSystemParallel* CreateSystem(utils::SystemType sys_type)
     systemDVI->GetSettings()->solver.max_iteration_normal = max_iteration_normal;
     systemDVI->GetSettings()->solver.max_iteration_sliding = max_iteration_sliding;
     systemDVI->GetSettings()->solver.max_iteration_spinning = max_iteration_spinning;
-    systemDVI->ChangeSolverType(APGDBLAZE);
+    systemDVI->ChangeSolverType(APGD);
   }
 
   return system;

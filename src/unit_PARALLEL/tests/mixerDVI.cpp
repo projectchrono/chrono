@@ -202,7 +202,7 @@ int main(int argc,
    msystem.GetSettings()->solver.tolerance = tolerance;
    msystem.GetSettings()->solver.alpha = 0;
    msystem.GetSettings()->solver.contact_recovery_speed = 10000;
-   msystem.ChangeSolverType(APGDRS);
+   msystem.ChangeSolverType(APGD);
    msystem.GetSettings()->collision.narrowphase_algorithm = NARROWPHASE_HYBRID_MPR;
 
    msystem.GetSettings()->collision.collision_envelope = 0.01;

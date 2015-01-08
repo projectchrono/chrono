@@ -73,9 +73,9 @@ void ChLcpSolverParallelDVI::RunTimeStep(real step) {
       thrust::copy_n(data_container->host_data.gamma_bilateral.begin(), data_container->num_bilaterals,
                      data_container->host_data.gamma_data.begin() + data_container->num_unilaterals);
    }
-   if (data_container->settings.solver.solver_type != APGD && data_container->settings.solver.solver_type != APGDRS) {
-      ComputeN();
-   }
+
+   ComputeN();
+
 
    //solve normal
    if (data_container->settings.solver.solver_mode == NORMAL || data_container->settings.solver.solver_mode == SLIDING || data_container->settings.solver.solver_mode == SPINNING) {

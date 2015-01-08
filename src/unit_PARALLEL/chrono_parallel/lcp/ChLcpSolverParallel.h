@@ -29,8 +29,6 @@
 #include "chrono_parallel/math/ChParallelMath.h"
 
 #include "chrono_parallel/solver/ChSolverAPGD.h"
-#include "chrono_parallel/solver/ChSolverAPGDRS.h"
-#include "chrono_parallel/solver/ChSolverAPGDBlaze.h"
 #include "chrono_parallel/solver/ChSolverBiCG.h"
 #include "chrono_parallel/solver/ChSolverBiCGStab.h"
 #include "chrono_parallel/solver/ChSolverCG.h"
@@ -125,11 +123,7 @@ class CH_PARALLEL_API ChLcpSolverParallelDVI : public ChLcpSolverParallel {
          //         //SolveQMR(data_container->gpu_data.device_gam_data, rhs, max_iteration);
       } else if (type == APGD) {
          solver = new ChSolverAPGD();
-      } else if (type == APGDRS) {
-         solver = new ChSolverAPGDRS();
-      } else if (type == APGDBLAZE) {
-         solver = new ChSolverAPGDBlaze();
-      } else if (type == JACOBI) {
+      }  else if (type == JACOBI) {
          solver = new ChSolverJacobi();
       } else if (type == GAUSS_SEIDEL) {
          solver = new ChSolverPGS();
