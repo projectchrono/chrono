@@ -101,7 +101,6 @@ struct solver_settings {
 
     solver_type = APGD;
     solver_mode = SLIDING;
-    step_size = .01;
   }
   //The solver type variable defines name of the solver that will be used to
   //solve the DVI problem
@@ -154,7 +153,6 @@ struct solver_settings {
   uint max_iteration_bilateral;
 
   // Solver variables
-  real step_size;
   real tolerance;
   real tolerance_objective;
 };
@@ -172,6 +170,7 @@ struct settings_container {
     system_type = SYSTEM_DVI;
     bin_perturb_size = 2;    // increase or decrease the number of bins by 2
     bin_tuning_frequency = 20;    // bins will be tuned every 20 frames
+    step_size = .01;
   }
 
   // CD Settings
@@ -185,6 +184,7 @@ struct settings_container {
   int bin_tuning_frequency;
   int min_threads;
   int max_threads;
+  real step_size;
   SYSTEMTYPE system_type;
 };
 }

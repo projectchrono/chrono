@@ -195,13 +195,13 @@ class CH_PARALLEL_API ChParallelDataManager {
      blaze::DynamicVector<real> b(num_constraints, 0.0);
      for (int i = 0; i < num_contacts; i++) {
        if (settings.solver.solver_mode == NORMAL) {
-         b[i] = host_data.dpth_rigid_rigid[i]/settings.solver.step_size;
+         b[i] = host_data.dpth_rigid_rigid[i]/settings.step_size;
        } else if (settings.solver.solver_mode == SLIDING) {
-         b[3*i  ] = host_data.dpth_rigid_rigid[i]/settings.solver.step_size;
+         b[3*i  ] = host_data.dpth_rigid_rigid[i]/settings.step_size;
          b[3*i+1] = 0.0;
          b[3*i+2] = 0.0;
        } else if (settings.solver.solver_mode == SPINNING) {
-         b[6*i  ] = host_data.dpth_rigid_rigid[i]/settings.solver.step_size;
+         b[6*i  ] = host_data.dpth_rigid_rigid[i]/settings.step_size;
          b[6*i+1] = 0.0;
          b[6*i+2] = 0.0;
          b[6*i+3] = 0.0;
