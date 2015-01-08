@@ -13,22 +13,22 @@ An input manager based on SDL, as opposed to OIS. Will handle keyboard, mouse, a
 
 #define INPUT_DEADZONE  0.25
 
-namespace EnvironmentCore {
+namespace ChOgre {
 
-	typedef struct ECKeyState_t {
+	typedef struct ChOgreKeyState_t {
 
 		bool down;
 		double timestamp;
 
-	} CHOGRE_DLL_TAG ECKeyState;
+	} CHOGRE_DLL_TAG ChOgreKeyState;
 
-	typedef struct ECMouseState_t {
+	typedef struct ChOgreMouseState_t {
 
-		ECKeyState left;
-		ECKeyState right;
-		ECKeyState middle;
-		ECKeyState x1;
-		ECKeyState x2;
+		ChOgreKeyState left;
+		ChOgreKeyState right;
+		ChOgreKeyState middle;
+		ChOgreKeyState x1;
+		ChOgreKeyState x2;
 
 		typedef struct __posState_t {
 			double x, y;
@@ -45,9 +45,9 @@ namespace EnvironmentCore {
 
 		__wheelState wheel;
 
-	} CHOGRE_DLL_TAG ECMouseState;
+	} CHOGRE_DLL_TAG ChOgreMouseState;
 
-	typedef struct ECControllerState_t {
+	typedef struct ChOgreControllerState_t {
 
 		typedef struct __axisState_t {
 			double value;
@@ -58,17 +58,17 @@ namespace EnvironmentCore {
 		__axisState rstickx, rsticky;
 		__axisState ltrigger, rtrigger;
 
-		ECKeyState a, b, x, y;
-		ECKeyState back, start;
-		ECKeyState lstick, rstick;
-		ECKeyState d_left, d_right, d_up, d_down;
-		ECKeyState lbumper, rbumper;
+		ChOgreKeyState a, b, x, y;
+		ChOgreKeyState back, start;
+		ChOgreKeyState lstick, rstick;
+		ChOgreKeyState d_left, d_right, d_up, d_down;
+		ChOgreKeyState lbumper, rbumper;
 
 		bool active;
 
-	} CHOGRE_DLL_TAG ECControllerState;
+	} CHOGRE_DLL_TAG ChOgreControllerState;
 
-	typedef struct ECWheelState_t {
+	typedef struct ChOgreWheelState_t {
 
 		typedef struct __hatState_t {
 			bool up, up_right, right, down_right, down, down_left, left, up_left, centered;
@@ -86,50 +86,50 @@ namespace EnvironmentCore {
 			}
 		} __hatState;
 
-		ECControllerState::__axisState wheel;
-		ECControllerState::__axisState accelerator;
-		ECControllerState::__axisState brake;
-		ECControllerState::__axisState clutch;
+		ChOgreControllerState::__axisState wheel;
+		ChOgreControllerState::__axisState accelerator;
+		ChOgreControllerState::__axisState brake;
+		ChOgreControllerState::__axisState clutch;
 
-		ECKeyState lpaddle, rpaddle;
-		ECKeyState lwheelb1, rwheelb1,
+		ChOgreKeyState lpaddle, rpaddle;
+		ChOgreKeyState lwheelb1, rwheelb1,
 				   lwheelb2, rwheelb2,
 				   lwheelb3, rwheelb3;
-		ECKeyState gear1, gear2, gear3, gear4, gear5, gear6, reverse;
-		ECKeyState red1, red2, red3, red4;
-		ECKeyState black_up, black_down, black_left, black_right;
+		ChOgreKeyState gear1, gear2, gear3, gear4, gear5, gear6, reverse;
+		ChOgreKeyState red1, red2, red3, red4;
+		ChOgreKeyState black_up, black_down, black_left, black_right;
 
 		__hatState d_pad;
 
 		bool active;
 
-	} CHOGRE_DLL_TAG ECWheelState;
+	} CHOGRE_DLL_TAG ChOgreWheelState;
 
-	typedef SDL_HapticEffect CHOGRE_DLL_TAG ECHapticEffect;
+	typedef SDL_HapticEffect CHOGRE_DLL_TAG ChOgreHapticEffect;
 
-	class CHOGRE_DLL_TAG EC_SDL_InputManager {
+	class CHOGRE_DLL_TAG ChOgre_SDLInputHandler {
 
 	public:
 
-		EC_SDL_InputManager(Ogre::RenderWindow* renderWindow);
-		~EC_SDL_InputManager();
+		ChOgre_SDLInputHandler(Ogre::RenderWindow* renderWindow);
+		~ChOgre_SDLInputHandler();
 
 		virtual void update();
 
 		virtual void grabMouse(bool grab);
 
-		virtual void runHapticEffect(ECHapticEffect& Effect, int Iterations);
+		virtual void runHapticEffect(ChOgreHapticEffect& Effect, int Iterations);
 		virtual void runHapticRumble(float Strength, double Length);
 		virtual void stopHapticRumble();
 
-		virtual ECKeyState& getKeyState(SDL_Scancode scancode);
-		virtual ECKeyState& getKeyState(SDL_Keycode keycode);
+		virtual ChOgreKeyState& getKeyState(SDL_Scancode scancode);
+		virtual ChOgreKeyState& getKeyState(SDL_Keycode keycode);
 
-		virtual ECMouseState& getMouseState();
+		virtual ChOgreMouseState& getMouseState();
 
-		virtual ECControllerState& getControllerState();
+		virtual ChOgreControllerState& getControllerState();
 
-		virtual ECWheelState& getWheelState();
+		virtual ChOgreWheelState& getWheelState();
 
 		double AxisThreshold;
 
@@ -139,12 +139,12 @@ namespace EnvironmentCore {
 
 		SDL_Window* m_pSDLWindow;
 
-		std::map<SDL_Scancode, ECKeyState> m_KeyStates_scancode;
-		std::map<SDL_Keycode, ECKeyState> m_KeyStates_keycode;
+		std::map<SDL_Scancode, ChOgreKeyState> m_KeyStates_scancode;
+		std::map<SDL_Keycode, ChOgreKeyState> m_KeyStates_keycode;
 
-		ECMouseState m_MouseState;
-		ECControllerState m_ControllerState;
-		ECWheelState m_WheelState;
+		ChOgreMouseState m_MouseState;
+		ChOgreControllerState m_ControllerState;
+		ChOgreWheelState m_WheelState;
 		
 		SDL_Joystick* m_pController;
 		SDL_Haptic* m_pHaptic;

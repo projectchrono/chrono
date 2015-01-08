@@ -1,16 +1,16 @@
 /*
 Author: Charles Ricchio
 
-Contains the definitions for ECScene
+Contains the definitions for ChOgreScene
 */
 
 #include "ChOgreScene.h"
 #include "../tinyobjloader/tiny_obj_loader.h"
 #include <thread>
 
-namespace EnvironmentCore {
+namespace ChOgre {
 
-	unsigned int ECScene::m_TerrainMeshCount = 0;
+	unsigned int ChOgreScene::m_TerrainMeshCount = 0;
 
 	void getMeshInformation(const Ogre::Mesh* const mesh,
 		size_t &vertex_count,
@@ -117,111 +117,111 @@ namespace EnvironmentCore {
 		}
 	}
 
-	unsigned int ECScene::m_LightCount = 0;
+	unsigned int ChOgreScene::m_LightCount = 0;
 
-	ECScene::ECScene(Ogre::SceneManager* SceneManager, chrono::ChSystem* System) {
+	ChOgreScene::ChOgreScene(Ogre::SceneManager* SceneManager, chrono::ChSystem* System) {
 		m_pSceneManager = SceneManager;
 		m_pChSystem = System;
 		m_LowerLimit = 0;
 	}
 
-	ECScene::~ECScene() {
-		for (unsigned int i = 0; i < m_ECBodies.size(); i++) {
-			if (m_ECBodies[i]) {
-				delete m_ECBodies[i];
+	ChOgreScene::~ChOgreScene() {
+		for (unsigned int i = 0; i < m_ChOgreBodies.size(); i++) {
+			if (m_ChOgreBodies[i]) {
+				delete m_ChOgreBodies[i];
 			}
 		}
 	}
 
 
-	void ECScene::setAmbientLight(Ogre::ColourValue Color) {
+	void ChOgreScene::setAmbientLight(Ogre::ColourValue Color) {
 		m_pSceneManager->setAmbientLight(Color);
 	}
 
-	void ECScene::setAmbientLight(float r, float g, float b) {
+	void ChOgreScene::setAmbientLight(float r, float g, float b) {
 		m_pSceneManager->setAmbientLight(Ogre::ColourValue(r, g, b));
 	}
 
-	ECLight& ECScene::createLight() {
+	ChOgreLight& ChOgreScene::createLight() {
 		Ogre::Light* _ret = m_pSceneManager->createLight("Light" + std::to_string(m_LightCount));
 		return *_ret;
 	}
 
-	ECLight& ECScene::createLight(std::string Name) {
+	ChOgreLight& ChOgreScene::createLight(std::string Name) {
 		Ogre::Light* _ret = m_pSceneManager->createLight(Name);
 		return *_ret;
 	}
 
-	void ECScene::removeLight(ECLight& Light) {
+	void ChOgreScene::removeLight(ChOgreLight& Light) {
 		m_pSceneManager->getRootSceneNode()->removeAndDestroyChild(Light.getName());
 	}
 
-	void ECScene::removeLight(std::string Name) {
+	void ChOgreScene::removeLight(std::string Name) {
 		m_pSceneManager->getRootSceneNode()->removeAndDestroyChild(Name);
 	}
 
 
-	ECBody& ECScene::createBody(std::string Name) {
-		ECBody* _ret = new ECBody(m_pSceneManager, m_pChSystem);
+	ChOgreBody& ChOgreScene::createBody(std::string Name) {
+		ChOgreBody* _ret = new ChOgreBody(m_pSceneManager, m_pChSystem);
 		_ret->name = Name;
-		m_ECBodies.push_back(_ret);
+		m_ChOgreBodies.push_back(_ret);
 		return *_ret;
 	}
 
-	ECBody& ECScene::getBody(std::string Name) {
-		ECBody* _ret = nullptr;
-		for (unsigned int i = 0; i < m_ECBodies.size(); i++) {
-			if (m_ECBodies[i]) {
-				if (Name == m_ECBodies[i]->name) {
-					_ret = m_ECBodies[i];
+	ChOgreBody& ChOgreScene::getBody(std::string Name) {
+		ChOgreBody* _ret = nullptr;
+		for (unsigned int i = 0; i < m_ChOgreBodies.size(); i++) {
+			if (m_ChOgreBodies[i]) {
+				if (Name == m_ChOgreBodies[i]->name) {
+					_ret = m_ChOgreBodies[i];
 				}
 			}
 		}
 		return *_ret;
 	}
 
-	void ECScene::removeBody(ECBody& Body) {
-		for (unsigned int i = 0; i < m_ECBodies.size(); i++) {
-			if (m_ECBodies[i]) {
-				if (&Body == m_ECBodies[i]) {
-					delete m_ECBodies[i];
-					m_ECBodies[i] = m_ECBodies.back();
-					m_ECBodies.pop_back();
+	void ChOgreScene::removeBody(ChOgreBody& Body) {
+		for (unsigned int i = 0; i < m_ChOgreBodies.size(); i++) {
+			if (m_ChOgreBodies[i]) {
+				if (&Body == m_ChOgreBodies[i]) {
+					delete m_ChOgreBodies[i];
+					m_ChOgreBodies[i] = m_ChOgreBodies.back();
+					m_ChOgreBodies.pop_back();
 				}
 			}
 		}
 	}
 
-	void ECScene::removeBody(std::string Name) {
-		for (unsigned int i = 0; i < m_ECBodies.size(); i++) {
-			if (m_ECBodies[i]) {
-				if (Name == m_ECBodies[i]->name) {
-					delete m_ECBodies[i];
-					m_ECBodies[i] = m_ECBodies.back();
-					m_ECBodies.pop_back();
+	void ChOgreScene::removeBody(std::string Name) {
+		for (unsigned int i = 0; i < m_ChOgreBodies.size(); i++) {
+			if (m_ChOgreBodies[i]) {
+				if (Name == m_ChOgreBodies[i]->name) {
+					delete m_ChOgreBodies[i];
+					m_ChOgreBodies[i] = m_ChOgreBodies.back();
+					m_ChOgreBodies.pop_back();
 				}
 			}
 		}
 	}
 
-	void ECScene::update() {
-		for (unsigned int i = 0; i < m_ECBodies.size(); i++) {
-			m_ECBodies[i]->update();
-			if (m_ECBodies[i]->getChBody()->GetPos().y < m_LowerLimit && m_ECBodies[i]->deletable == true && m_LowerLimit < 0) {
-				removeBody(*m_ECBodies[i]);
+	void ChOgreScene::update() {
+		for (unsigned int i = 0; i < m_ChOgreBodies.size(); i++) {
+			m_ChOgreBodies[i]->update();
+			if (m_ChOgreBodies[i]->getChBody()->GetPos().y < m_LowerLimit && m_ChOgreBodies[i]->deletable == true && m_LowerLimit < 0) {
+				removeBody(*m_ChOgreBodies[i]);
 			}
 		}
 	}
 
 
-	ECBody& ECScene::spawnBox(std::string Name,
+	ChOgreBody& ChOgreScene::spawnBox(std::string Name,
 		double mass,
 		chrono::ChVector<>& position,
 		chrono::ChVector<>& size,
 		chrono::ChQuaternion<>& rotation,
 		bool fixed) {
 
-		ECBody& _ret = createBody(Name);
+		ChOgreBody& _ret = createBody(Name);
 
 		chrono::ChSharedPtr<chrono::ChBoxShape> _box(new chrono::ChBoxShape);
 		_box->GetBoxGeometry().Size = size;
@@ -242,21 +242,21 @@ namespace EnvironmentCore {
 		return _ret;
 	}
 
-	ECBody& ECScene::spawnCapsule(std::string Name) {
+	ChOgreBody& ChOgreScene::spawnCapsule(std::string Name) {
 
-		ECBody& _ret = createBody(Name);
+		ChOgreBody& _ret = createBody(Name);
 
 		return _ret;
 	}
 
-	ECBody& ECScene::spawnCone(std::string Name,
+	ChOgreBody& ChOgreScene::spawnCone(std::string Name,
 		double mass,
 		chrono::ChVector<>& position,
 		chrono::ChVector<>& size,
 		chrono::ChQuaternion<>& rotation,
 		bool fixed) {
 
-		ECBody& _ret = createBody(Name);
+		ChOgreBody& _ret = createBody(Name);
 
 		chrono::ChSharedPtr<chrono::ChConeShape> _cone(new chrono::ChConeShape);
 		_cone->GetConeGeometry().rad = size;
@@ -277,14 +277,14 @@ namespace EnvironmentCore {
 		return _ret;
 	}
 
-	ECBody& ECScene::spawnCylinder(std::string Name,
+	ChOgreBody& ChOgreScene::spawnCylinder(std::string Name,
 		double mass,
 		chrono::ChVector<>& position,
 		chrono::ChVector<>& size,
 		chrono::ChQuaternion<>& rotation,
 		bool fixed) {
 
-		ECBody& _ret = createBody(Name);
+		ChOgreBody& _ret = createBody(Name);
 
 		chrono::ChSharedPtr<chrono::ChCylinderShape> _cylinder(new chrono::ChCylinderShape);
 		_cylinder->GetCylinderGeometry().rad = size.x;
@@ -307,14 +307,14 @@ namespace EnvironmentCore {
 		return _ret;
 	}
 
-	ECBody& ECScene::spawnEllipsoid(std::string Name,
+	ChOgreBody& ChOgreScene::spawnEllipsoid(std::string Name,
 		double mass,
 		chrono::ChVector<>& position,
 		chrono::ChVector<>& size,
 		chrono::ChQuaternion<>& rotation,
 		bool fixed) {
 
-		ECBody& _ret = createBody(Name);
+		ChOgreBody& _ret = createBody(Name);
 
 		chrono::ChSharedPtr<chrono::ChEllipsoidShape> _ellipsoid(new chrono::ChEllipsoidShape);
 		_ellipsoid->GetEllipsoidGeometry().rad = size;
@@ -335,13 +335,13 @@ namespace EnvironmentCore {
 		return _ret;
 	}
 
-	ECBody& ECScene::spawnSphere(std::string Name,
+	ChOgreBody& ChOgreScene::spawnSphere(std::string Name,
 		double mass,
 		chrono::ChVector<>& position,
 		double radius,
 		bool fixed) {
 
-		ECBody& _ret = createBody(Name);
+		ChOgreBody& _ret = createBody(Name);
 
 		chrono::ChSharedPtr<chrono::ChSphereShape> _sphere(new chrono::ChSphereShape);
 		_sphere->GetSphereGeometry().rad = radius;
@@ -361,8 +361,8 @@ namespace EnvironmentCore {
 		return _ret;
 	}
 
-	ECBody& ECScene::spawnMesh(std::string Name, double mass, chrono::ChVector<>& position, chrono::ChVector<>& size, chrono::ChQuaternion<>& rotation, std::string FileName, std::string Path, bool fixed) {
-		ECBody& _ret = createBody(Name);
+	ChOgreBody& ChOgreScene::spawnMesh(std::string Name, double mass, chrono::ChVector<>& position, chrono::ChVector<>& size, chrono::ChQuaternion<>& rotation, std::string FileName, std::string Path, bool fixed) {
+		ChOgreBody& _ret = createBody(Name);
 
 		chrono::ChSharedPtr<chrono::ChTriangleMeshShape> _mesh(new chrono::ChTriangleMeshShape);
 		_mesh->SetName(FileName);
@@ -476,23 +476,23 @@ namespace EnvironmentCore {
 	}
 
 
-	void ECScene::setLowerLimit(double limit) {
+	void ChOgreScene::setLowerLimit(double limit) {
 		m_LowerLimit = limit;
 	}
 
-	double ECScene::getLowerLimit() {
+	double ChOgreScene::getLowerLimit() {
 		return m_LowerLimit;
 	}
 
-	void ECScene::setSkyBox(std::string Path) {
+	void ChOgreScene::setSkyBox(std::string Path) {
 		m_pSceneManager->setSkyBox(true, Path);
 	}
 
-	void ECScene::disableSkyBox() {
+	void ChOgreScene::disableSkyBox() {
 		m_pSceneManager->setSkyBoxEnabled(false);
 	}
 
-	ECBody& ECScene::loadHeightMap(std::string FilePath, chrono::ChVector<>& Scale) {
+	ChOgreBody& ChOgreScene::loadHeightMap(std::string FilePath, chrono::ChVector<>& Scale) {
 		Ogre::TexturePtr l_tex = Ogre::TextureManager::getSingleton().load(FilePath, Ogre::ResourceGroupManager::DEFAULT_RESOURCE_GROUP_NAME);
 
 		if (l_tex->getFormat() != Ogre::PF_L16 && l_tex->getFormat() != Ogre::PF_L8) {
@@ -748,7 +748,7 @@ namespace EnvironmentCore {
 		//terrain_object->getSection(0)->getMaterial()->getTechnique(0)->getPass(0)->createTextureUnitState("white.png");
 		//terrain_object->getSection(0)->getMaterial()->getTechnique(0)->getPass(0)->setLightingEnabled(true);
 
-		ECBody& _ret = createBody();
+		ChOgreBody& _ret = createBody();
 
 		_ret.setMesh(terrain_object, Scale);
 

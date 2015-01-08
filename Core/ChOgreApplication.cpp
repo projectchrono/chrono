@@ -1,15 +1,15 @@
 /*
 Author: Charles Ricchio
 
-The actual definitions for EnvironmentCoreApplication. Most of the code in the constructor is from a tutorial, and could probably be
+The actual definitions for ChOgreApplication. Most of the code in the constructor is from a tutorial, and could probably be
 written more elegantly.
 */
 
 #include "ChOgreApplication.h"
 
-namespace EnvironmentCore {
+namespace ChOgre {
 
-	EnvironmentCoreApplication::EnvironmentCoreApplication() {
+	ChOgreApplication::ChOgreApplication() {
 		m_pRoot = new Ogre::Root("", "", "ChOgre.log");
 
 		//NOTE: Probably terrible practice. Do better
@@ -61,9 +61,9 @@ namespace EnvironmentCore {
 
 			m_pSceneManager = m_pRoot->createSceneManager(Ogre::ST_GENERIC, "MainSceneManager");
 
-			m_pCameraManager = new ECCameraManager;
+			m_pCameraManager = new ChOgreCameraManager;
 			m_pChSystem = new chrono::ChSystem;
-			m_pScene = new ECScene(m_pSceneManager, m_pChSystem);
+			m_pScene = new ChOgreScene(m_pSceneManager, m_pChSystem);
 		}
 
 		{
@@ -96,14 +96,14 @@ namespace EnvironmentCore {
 		WriteToFile = false;
 	}
 
-	EnvironmentCoreApplication::~EnvironmentCoreApplication() {
+	ChOgreApplication::~ChOgreApplication() {
 		delete m_pCameraManager;
 		delete m_pScene;
 		delete m_pChSystem;
 		closeWindow();
 	}
 
-	int EnvironmentCoreApplication::startLoop(std::function<int()> _func) {
+	int ChOgreApplication::startLoop(std::function<int()> _func) {
 		int l_run = 0;
 		
 		isRunning = true;
@@ -192,14 +192,14 @@ namespace EnvironmentCore {
 	}
 
 
-	void EnvironmentCoreApplication::chronoThread() {
+	void ChOgreApplication::chronoThread() {
 		
 		while (isRunning) {
 			
 		}
 	}
 
-	Ogre::RenderWindow* EnvironmentCoreApplication::createWindow(std::string Title, uint32_t Width, uint32_t Height, uint8_t FSAA_Level, bool VSync, bool Fullscreen) {
+	Ogre::RenderWindow* ChOgreApplication::createWindow(std::string Title, uint32_t Width, uint32_t Height, uint8_t FSAA_Level, bool VSync, bool Fullscreen) {
 		Ogre::NameValuePairList l_Params;
 		l_Params["FSAA"] = "0";
 		if (VSync) {
@@ -225,19 +225,19 @@ namespace EnvironmentCore {
 
 		m_pRoot->clearEventTimes();
 
-		m_pInputManager = new EC_SDL_InputManager(m_pRenderWindow);
-		//m_pGUIManager = new ECGUIManager(m_pSceneManager, m_pInputManager);
+		m_pInputManager = new ChOgre_SDLInputHandler(m_pRenderWindow);
+		//m_pGUIManager = new ChOgreGUIManager(m_pSceneManager, m_pInputManager);
 
 
 		return m_pRenderWindow;
 	}
 
-	void EnvironmentCoreApplication::loadResourcePath(std::string Path, std::string Title) {
+	void ChOgreApplication::loadResourcePath(std::string Path, std::string Title) {
 		Ogre::ResourceGroupManager::getSingleton().addResourceLocation(Path, Title);
 		Ogre::ResourceGroupManager::getSingleton().initialiseResourceGroup(Title);
 	}
 
-	void EnvironmentCoreApplication::setCamera(ECCamera* Camera) {
+	void ChOgreApplication::setCamera(ChOgreCamera* Camera) {
 		m_pCamera->setPosition(Camera->x, Camera->y, Camera->z);
 		if (!Camera->useAngles && !Camera->useQuaternions) {
 			m_pCamera->lookAt(Camera->wx, Camera->wy, Camera->wz);
@@ -255,13 +255,13 @@ namespace EnvironmentCore {
 		}
 	}
 
-	void EnvironmentCoreApplication::setVSync(bool VSync) {
+	void ChOgreApplication::setVSync(bool VSync) {
 		isVSyncEnabled = VSync;
 		m_pRenderWindow->setVSyncEnabled(isVSyncEnabled);
 		m_pRenderWindow->setVSyncInterval(60);
 	}
 
-	void EnvironmentCoreApplication::closeWindow() {
+	void ChOgreApplication::closeWindow() {
 		if (m_pRenderWindow) {
 			if (!m_pRenderWindow->isClosed()) {
 				m_pSceneManager->destroyAllCameras();
@@ -277,35 +277,35 @@ namespace EnvironmentCore {
 		}
 	}
 
-	ECCameraManager* EnvironmentCoreApplication::getCameraManager() {
+	ChOgreCameraManager* ChOgreApplication::getCameraManager() {
 		return m_pCameraManager;
 	}
 
-	ECScene* EnvironmentCoreApplication::getScene() {
+	ChOgreScene* ChOgreApplication::getScene() {
 		return m_pScene;
 	}
 
-	EC_SDL_InputManager* EnvironmentCoreApplication::getInputManager() {
+	ChOgre_SDLInputHandler* ChOgreApplication::getInputManager() {
 		return m_pInputManager;
 	}
 
-	//ECGUIManager* EnvironmentCoreApplication::getGUIManager() {
+	//ChOgreGUIManager* ChOgreApplication::getGUIManager() {
 	//	return m_pGUIManager;
 	//}
 
-	Ogre::RenderWindow* EnvironmentCoreApplication::getWindow() {
+	Ogre::RenderWindow* ChOgreApplication::getWindow() {
 		return m_pRenderWindow;
 	}
 
-	Ogre::SceneManager* EnvironmentCoreApplication::getSceneManager() {
+	Ogre::SceneManager* ChOgreApplication::getSceneManager() {
 		return m_pSceneManager;
 	}
 
-	chrono::ChSystem* EnvironmentCoreApplication::getChSystem() {
+	chrono::ChSystem* ChOgreApplication::getChSystem() {
 		return m_pChSystem;
 	}
 
-	void EnvironmentCoreApplication::logMessage(const std::string& Message, Ogre::LogMessageLevel lml, bool maskDebug) {
+	void ChOgreApplication::logMessage(const std::string& Message, Ogre::LogMessageLevel lml, bool maskDebug) {
 		Ogre::LogManager::getSingleton().logMessage(Message, lml, maskDebug);
 	}
 }

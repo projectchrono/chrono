@@ -1,7 +1,7 @@
 /*
 Author: Charles Ricchio
 
-ECBody is the basic physical body class. It will set up Ogre scene nodes to display the assets of its ChBody every time refresh() is called.
+ChOgreBody is the basic physical body class. It will set up Ogre scene nodes to display the assets of its ChBody every time refresh() is called.
 */
 
 #pragma once
@@ -27,14 +27,14 @@ ECBody is the basic physical body class. It will set up Ogre scene nodes to disp
 
 #include "../ChOgre.h"
 
-namespace EnvironmentCore {
+namespace ChOgre {
 
-	class CHOGRE_DLL_TAG ECBody {
+	class CHOGRE_DLL_TAG ChOgreBody {
 
 	public:
 
-		ECBody(Ogre::SceneManager* SceneManager, chrono::ChSystem* System);
-		~ECBody();
+		ChOgreBody(Ogre::SceneManager* SceneManager, chrono::ChSystem* System);
+		~ChOgreBody();
 
 		virtual void update();
 		virtual void refresh();
@@ -42,7 +42,7 @@ namespace EnvironmentCore {
 
 		virtual chrono::ChSharedBodyPtr getChBody();
 
-		virtual chrono::ChSharedBodyPtr operator-> (); //Operator magic. Allows a refrence to an ECBody to offer members as an ECBody object, and as a ChBody pointer
+		virtual chrono::ChSharedBodyPtr operator-> (); //Operator magic. Allows a refrence to an ChOgreBody to offer members as an ChOgreBody object, and as a ChBody pointer
 
 		std::string name;
 		bool deletable;

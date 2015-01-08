@@ -1,8 +1,8 @@
 /*
 Author: Charles Ricchio
 
-Contains a managment class for easy manipulation of the camera. ECCameraManager doesn't actually manage any Ogre camera objects, 
-but instead retains points in space and points to orient to in space for easy access for the actual camera object within ECApplication.
+Contains a managment class for easy manipulation of the camera. ChOgreCameraManager doesn't actually manage any Ogre camera objects, 
+but instead retains points in space and points to orient to in space for easy access for the actual camera object within ChOgreApplication.
 */
 
 #pragma once
@@ -14,9 +14,9 @@ but instead retains points in space and points to orient to in space for easy ac
 #include <core\ChVector.h>
 #include <vector>
 
-namespace EnvironmentCore {
+namespace ChOgre {
 
-	struct CHOGRE_DLL_TAG ECCamera {
+	struct CHOGRE_DLL_TAG ChOgreCamera {
 		float x, y, z;
 		float wx, wy, wz;
 		float yaw, pitch; // Yaw and Pitch are both in degrees
@@ -74,26 +74,26 @@ namespace EnvironmentCore {
 
 	};
 
-	class CHOGRE_DLL_TAG ECCameraManager {
+	class CHOGRE_DLL_TAG ChOgreCameraManager {
 
 	public:
 
-		ECCameraManager();
-		~ECCameraManager();
+		ChOgreCameraManager();
+		~ChOgreCameraManager();
 
-		virtual ECCamera* createCamera(std::string Name=( "Camera" + std::to_string( g_CameraCount ) ) );
+		virtual ChOgreCamera* createCamera(std::string Name=( "Camera" + std::to_string( g_CameraCount ) ) );
 
-		virtual ECCamera* getCamera(unsigned int iterator);
+		virtual ChOgreCamera* getCamera(unsigned int iterator);
 
-		virtual ECCamera* getCamera(std::string Name);
+		virtual ChOgreCamera* getCamera(std::string Name);
 
-		virtual ECCamera* operator[] (unsigned int iterator);
+		virtual ChOgreCamera* operator[] (unsigned int iterator);
 
-		virtual ECCamera* operator[] (std::string Name);
+		virtual ChOgreCamera* operator[] (std::string Name);
 
 	protected:
 
-		std::vector<ECCamera*> m_CameraList;
+		std::vector<ChOgreCamera*> m_CameraList;
 
 		static unsigned int g_CameraCount;
 	private:

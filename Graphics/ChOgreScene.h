@@ -1,7 +1,7 @@
 /*
 Author: Charles Ricchio
 
-ECScene is designed to be a layer of abstraction from the Ogre lighting system, as well as a way of creating physics bodies for actual simulation
+ChOgreScene is designed to be a layer of abstraction from the Ogre lighting system, as well as a way of creating physics bodies for actual simulation
 */
 
 #pragma once
@@ -11,18 +11,18 @@ ECScene is designed to be a layer of abstraction from the Ogre lighting system, 
 
 #include "ChOgreBody.h"
 
-namespace EnvironmentCore {
+namespace ChOgre {
 
-	typedef Ogre::Light CHOGRE_DLL_TAG ECLight;
+	typedef Ogre::Light CHOGRE_DLL_TAG ChOgreLight;
 
-	typedef Ogre::Light::LightTypes CHOGRE_DLL_TAG ECLightTypes;
+	typedef Ogre::Light::LightTypes CHOGRE_DLL_TAG ChOgreLightTypes;
 
-	class CHOGRE_DLL_TAG ECScene {
+	class CHOGRE_DLL_TAG ChOgreScene {
 
 	public:
 
-		ECScene(Ogre::SceneManager* SceneManager, chrono::ChSystem* System);
-		~ECScene();
+		ChOgreScene(Ogre::SceneManager* SceneManager, chrono::ChSystem* System);
+		~ChOgreScene();
 
 		////////
 		//Lighting Abstration
@@ -31,21 +31,21 @@ namespace EnvironmentCore {
 		virtual void setAmbientLight(Ogre::ColourValue Color);
 		virtual void setAmbientLight(float r, float g, float b);
 
-		virtual ECLight& createLight();
-		virtual ECLight& createLight(std::string Name);
+		virtual ChOgreLight& createLight();
+		virtual ChOgreLight& createLight(std::string Name);
 
-		virtual void removeLight(ECLight& Light);
+		virtual void removeLight(ChOgreLight& Light);
 		virtual void removeLight(std::string Name);
 
 		////////
 		//Body Creation
 		///////
 
-		virtual ECBody& createBody(std::string Name="");
+		virtual ChOgreBody& createBody(std::string Name="");
 
-		virtual ECBody& getBody(std::string Name);
+		virtual ChOgreBody& getBody(std::string Name);
 
-		virtual void removeBody(ECBody& Body);
+		virtual void removeBody(ChOgreBody& Body);
 		virtual void removeBody(std::string Name);
 
 		virtual void update();
@@ -54,43 +54,43 @@ namespace EnvironmentCore {
 		//Convenience functions
 		////////
 
-		virtual ECBody& spawnBox(	std::string Name = "", 
+		virtual ChOgreBody& spawnBox(	std::string Name = "", 
 									double mass = 1.0, 
 									chrono::ChVector<>& position = chrono::ChVector<>(0, 0, 0),
 									chrono::ChVector<>& size = chrono::ChVector<>(1, 1, 1), 
 									chrono::ChQuaternion<>& rotation = chrono::ChQuaternion<>(1, 0, 0, 0), 
 									bool fixed = false);
 
-		virtual ECBody& spawnCapsule(std::string Name = ""); // TODO: Actually implement the capsule
+		virtual ChOgreBody& spawnCapsule(std::string Name = ""); // TODO: Actually implement the capsule
 
-		virtual ECBody& spawnCone(	std::string Name = "", 
+		virtual ChOgreBody& spawnCone(	std::string Name = "", 
 									double mass = 1.0, 
 									chrono::ChVector<>& position = chrono::ChVector<>(0, 0, 0), 
 									chrono::ChVector<>& size = chrono::ChVector<>(1, 1, 1),
 									chrono::ChQuaternion<>& rotation = chrono::ChQuaternion<>(1, 0, 0, 0), 
 									bool fixed = false);
 
-		virtual ECBody& spawnCylinder(	std::string Name = "", 
+		virtual ChOgreBody& spawnCylinder(	std::string Name = "", 
 										double mass = 1.0, 
 										chrono::ChVector<>& position = chrono::ChVector<>(0, 0, 0), 
 										chrono::ChVector<>& size = chrono::ChVector<>(1, 1, 1), 
 										chrono::ChQuaternion<>& rotation = chrono::ChQuaternion<>(1, 0, 0, 0),
 										bool fixed = false);
 
-		virtual ECBody& spawnEllipsoid(	std::string Name = "", 
+		virtual ChOgreBody& spawnEllipsoid(	std::string Name = "", 
 										double mass = 1.0, 
 										chrono::ChVector<>& position = chrono::ChVector<>(0, 0, 0),
 										chrono::ChVector<>& size = chrono::ChVector<>(1, 1, 1), 
 										chrono::ChQuaternion<>& rotation = chrono::ChQuaternion<>(1, 0, 0, 0), 
 										bool fixed = false);
 
-		virtual ECBody& spawnSphere(	std::string Name = "", 
+		virtual ChOgreBody& spawnSphere(	std::string Name = "", 
 										double mass = 1.0, 
 										chrono::ChVector<>& position = chrono::ChVector<>(0, 0, 0), 
 										double radius = 1.0,
 										bool fixed = false);
 
-		virtual ECBody& spawnMesh(	std::string Name = "",
+		virtual ChOgreBody& spawnMesh(	std::string Name = "",
 									double mass = 1.0,
 									chrono::ChVector<>& position = chrono::ChVector<>(0, 0, 0),
 									chrono::ChVector<>& size = chrono::ChVector<>(1, 1, 1),
@@ -110,7 +110,7 @@ namespace EnvironmentCore {
 		virtual void setSkyBox(std::string FilePath);
 		virtual void disableSkyBox();
 
-		virtual ECBody& loadHeightMap(std::string FilePath, chrono::ChVector<>& Scale = chrono::ChVector<>(1, 1, 1));
+		virtual ChOgreBody& loadHeightMap(std::string FilePath, chrono::ChVector<>& Scale = chrono::ChVector<>(1, 1, 1));
 
 	protected:
 
@@ -123,7 +123,7 @@ namespace EnvironmentCore {
 		//Body Management/Storage
 		////////
 
-		std::vector<ECBody*> m_ECBodies;
+		std::vector<ChOgreBody*> m_ChOgreBodies;
 
 		double m_LowerLimit;
 

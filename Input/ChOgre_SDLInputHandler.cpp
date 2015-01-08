@@ -8,11 +8,11 @@
 #include <climits>
 #include "../Input/ChOgre_SDLInputHandler.h"
 
-namespace EnvironmentCore {
+namespace ChOgre {
 
-	std::string const EC_SDL_InputManager::WheelGUID = "6d049bc2000000000000504944564944";
+	std::string const ChOgre_SDLInputHandler::WheelGUID = "6d049bc2000000000000504944564944";
 
-	EC_SDL_InputManager::EC_SDL_InputManager(Ogre::RenderWindow* renderWindow) {
+	ChOgre_SDLInputHandler::ChOgre_SDLInputHandler(Ogre::RenderWindow* renderWindow) {
 
 		if (SDL_Init(SDL_INIT_JOYSTICK | SDL_INIT_VIDEO | SDL_INIT_HAPTIC) != 0) {
 			Ogre::LogManager::getSingleton().logMessage(Ogre::LogMessageLevel::LML_CRITICAL, "\n\nCould not initialize SDL: " + std::string(SDL_GetError()) + "\n\n");
@@ -67,13 +67,13 @@ namespace EnvironmentCore {
 		WindowClose = false;
 	}
 
-	EC_SDL_InputManager::~EC_SDL_InputManager() {
+	ChOgre_SDLInputHandler::~ChOgre_SDLInputHandler() {
 
 		SDL_Quit();
 
 	}
 
-	void EC_SDL_InputManager::update() {
+	void ChOgre_SDLInputHandler::update() {
 
 		SDL_Event _event;
 		while (SDL_PollEvent(&_event)) {
@@ -375,12 +375,12 @@ namespace EnvironmentCore {
 		}
 	}
 
-	void EC_SDL_InputManager::grabMouse(bool grab) {
+	void ChOgre_SDLInputHandler::grabMouse(bool grab) {
 		SDL_bool _grab = grab ? SDL_TRUE : SDL_FALSE;
 		SDL_SetWindowGrab(m_pSDLWindow, _grab);
 	}
 
-	void EC_SDL_InputManager::runHapticEffect(ECHapticEffect& effect, int iterations) {
+	void ChOgre_SDLInputHandler::runHapticEffect(ChOgreHapticEffect& effect, int iterations) {
 		int _effect_id = SDL_HapticNewEffect(m_pHaptic, &effect);
 
 		//SDL_HapticRunEffect(m_pHaptic, _effect_id, iterations);
@@ -390,31 +390,31 @@ namespace EnvironmentCore {
 		SDL_HapticDestroyEffect(m_pHaptic, _effect_id);
 	}
 
-	void EC_SDL_InputManager::runHapticRumble(float strength, double length) {
+	void ChOgre_SDLInputHandler::runHapticRumble(float strength, double length) {
 		SDL_HapticRumblePlay(m_pHaptic, strength, ((unsigned int)(length * 1000.0)));
 	}
 
-	void EC_SDL_InputManager::stopHapticRumble() {
+	void ChOgre_SDLInputHandler::stopHapticRumble() {
 		SDL_HapticRumbleStop(m_pHaptic);
 	}
 
-	ECKeyState& EC_SDL_InputManager::getKeyState(SDL_Scancode scancode) {
+	ChOgreKeyState& ChOgre_SDLInputHandler::getKeyState(SDL_Scancode scancode) {
 		return m_KeyStates_scancode[scancode];
 	}
 
-	ECKeyState& EC_SDL_InputManager::getKeyState(SDL_Keycode keycode) {
+	ChOgreKeyState& ChOgre_SDLInputHandler::getKeyState(SDL_Keycode keycode) {
 		return m_KeyStates_keycode[keycode];
 	}
 
-	ECMouseState& EC_SDL_InputManager::getMouseState() {
+	ChOgreMouseState& ChOgre_SDLInputHandler::getMouseState() {
 		return m_MouseState;
 	}
 
-	ECControllerState& EC_SDL_InputManager::getControllerState() {
+	ChOgreControllerState& ChOgre_SDLInputHandler::getControllerState() {
 		return m_ControllerState;
 	}
 
-	ECWheelState& EC_SDL_InputManager::getWheelState() {
+	ChOgreWheelState& ChOgre_SDLInputHandler::getWheelState() {
 		return m_WheelState;
 	}
 

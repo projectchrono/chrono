@@ -1,18 +1,18 @@
 /*
 Author: Charles Ricchio
 
-Contains the definitions for ECBody
+Contains the definitions for ChOgreBody
 */
 
 
 #include "ChOgreBody.h"
 #include "../tinyobjloader/tiny_obj_loader.h"
 
-namespace EnvironmentCore {
+namespace ChOgre {
 
-	unsigned int ECBody::m_MeshCount = 0;
+	unsigned int ChOgreBody::m_MeshCount = 0;
 
-	ECBody::ECBody(Ogre::SceneManager* SceneManager, chrono::ChSystem* System) {
+	ChOgreBody::ChOgreBody(Ogre::SceneManager* SceneManager, chrono::ChSystem* System) {
 		m_pSceneManager = SceneManager;
 		m_pChSystem = System;
 
@@ -23,7 +23,7 @@ namespace EnvironmentCore {
 		deletable = true;
 	}
 
-	ECBody::~ECBody() {
+	ChOgreBody::~ChOgreBody() {
 		for (int i = 0; i < m_SceneNodes.size(); i++) {
 			if (m_SceneNodes[i]) {
 				m_pSceneManager->getRootSceneNode()->removeChild(m_SceneNodes[i]);
@@ -33,7 +33,7 @@ namespace EnvironmentCore {
 		m_pChSystem->RemoveBody(m_pBody);
 	}
 
-	void ECBody::update() {
+	void ChOgreBody::update() {
 		if (!isStaticMesh) {
 			std::vector<chrono::ChSharedPtr<chrono::ChAsset> > l_pAssetList = m_pBody->GetAssets();
 			for (int i = 0; i < l_pAssetList.size(); i++) {
@@ -70,7 +70,7 @@ namespace EnvironmentCore {
 		}
 	}
 
-	void ECBody::refresh() {
+	void ChOgreBody::refresh() {
 		for (int i = 0; i < m_SceneNodes.size(); i++) {
 			if (m_SceneNodes[i]) {
 				m_pSceneManager->getRootSceneNode()->removeChild(m_SceneNodes[i]);
@@ -202,7 +202,7 @@ namespace EnvironmentCore {
 		isStaticMesh = false;
 	}
 
-	void ECBody::setMesh(Ogre::ManualObject* Mesh, chrono::ChVector<>& Scale) {
+	void ChOgreBody::setMesh(Ogre::ManualObject* Mesh, chrono::ChVector<>& Scale) {
 		for (int i = 0; i < m_SceneNodes.size(); i++) {
 			if (m_SceneNodes[i]) {
 				m_pSceneManager->getRootSceneNode()->removeChild(m_SceneNodes[i]);
@@ -222,11 +222,11 @@ namespace EnvironmentCore {
 		isStaticMesh = true;
 	}
 
-	chrono::ChSharedBodyPtr ECBody::getChBody() {
+	chrono::ChSharedBodyPtr ChOgreBody::getChBody() {
 		return m_pBody;
 	}
 
-	chrono::ChSharedBodyPtr ECBody::operator-> () {
+	chrono::ChSharedBodyPtr ChOgreBody::operator-> () {
 		return getChBody();
 	}
 

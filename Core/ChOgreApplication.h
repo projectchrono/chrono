@@ -25,27 +25,27 @@ Contains the prototype for a basic application. Manages things such as window cr
 //#include "ECGUIManager.h"
 
 
-namespace EnvironmentCore {
+namespace ChOgre {
 
-	class CHOGRE_DLL_TAG EnvironmentCoreApplication {
+	class CHOGRE_DLL_TAG ChOgreApplication {
 	public:
 
-		EnvironmentCoreApplication();
-		~EnvironmentCoreApplication();
+		ChOgreApplication();
+		~ChOgreApplication();
 
 		virtual int startLoop(std::function<int()> PerFrame);
 		virtual Ogre::RenderWindow* createWindow(std::string Title, uint32_t Width, uint32_t Height, uint8_t FSAA_Level, bool VSync=false, bool Fullscreen=false);
 		virtual void loadResourcePath(std::string Path, std::string Title="FileSystem");
-		virtual void setCamera(ECCamera* Camera);
+		virtual void setCamera(ChOgreCamera* Camera);
 		virtual void setVSync(bool VSync);
 
 		virtual void chronoThread();
 
 		virtual void closeWindow();
 
-		virtual ECCameraManager* getCameraManager();
-		virtual ECScene* getScene();
-		virtual EC_SDL_InputManager* getInputManager();
+		virtual ChOgreCameraManager* getCameraManager();
+		virtual ChOgreScene* getScene();
+		virtual ChOgre_SDLInputHandler* getInputManager();
 		//virtual ECGUIManager* getGUIManager();
 		virtual Ogre::RenderWindow* getWindow();
 		virtual Ogre::SceneManager* getSceneManager();
@@ -75,9 +75,9 @@ namespace EnvironmentCore {
 
 		std::thread m_ChronoThread;
 
-		ECCameraManager* m_pCameraManager;
-		ECScene* m_pScene;
-		EC_SDL_InputManager* m_pInputManager;
+		ChOgreCameraManager* m_pCameraManager;
+		ChOgreScene* m_pScene;
+		ChOgre_SDLInputHandler* m_pInputManager;
 		//ECGUIManager* m_pGUIManager;
 
 		bool isVSyncEnabled;
