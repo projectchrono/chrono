@@ -70,6 +70,9 @@ struct host_container {
    thrust::host_vector<bool> collide_data;
    thrust::host_vector<real> inv_mass_data;
 
+   // keeps track of active bilateral constraints
+   thrust::host_vector<int> bilateral_mapping;
+
    // Shaft data
    thrust::host_vector<real> shaft_rot;    // shaft rotation angles
    thrust::host_vector<real> shaft_omg;    // shaft angular velocities

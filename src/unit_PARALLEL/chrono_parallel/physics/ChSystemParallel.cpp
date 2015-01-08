@@ -85,6 +85,14 @@ int ChSystemParallel::Integrate_Y() {
    // updates the reactions of the constraint
    LCPresult_Li_into_reactions(1.0 / this->GetStep());     // R = l/dt  , approximately
 
+
+   //Here the velocities stores in the blaze data structures are copied back
+   //into the chrono data structures
+   uint num_bodies = data_manager->num_bodies;
+   DynamicVector<real>& velocities = data_manager->host_data.v;
+   custom_vector<real3>& pos_pointer = data_manager->host_data.pos_data;
+   custom_vector<real4>& rot_pointer = data_manager->host_data.rot_data;
+
 #pragma omp parallel for
    for (int i = 0; i < bodylist.size(); i++) {
       if (data_manager->host_data.active_data[i] == true) {
@@ -268,60 +276,27 @@ void ChSystemParallel::UpdateShafts()
 }
 
 void ChSystemParallel::UpdateBilaterals() {
-   for (it = linklist.begin(); it != linklist.end(); it++) {
-      (*it)->Update(ChTime);
-      (*it)->ConstraintsBiReset();
-      (*it)->ConstraintsBiLoad_C(1.0 / GetStep(),
+   for (int i=0; i<linklist.size(); i++) {
+	   linklist[i]->Update(ChTime);
+	   linklist[i]->ConstraintsBiReset();
+	   linklist[i]->ConstraintsBiLoad_C(1.0 / GetStep(),
                                  data_manager->settings.solver.bilateral_clamp_speed,
                                  data_manager->settings.solver.clamp_bilaterals);
-      (*it)->ConstraintsBiLoad_Ct(1);
-      (*it)->ConstraintsFbLoadForces(GetStep());
-      (*it)->ConstraintsLoadJacobians();
-      (*it)->ConstraintsLiLoadSuggestedSpeedSolution();
-      (*it)->InjectConstraints(*this->LCP_descriptor);
+	   linklist[i]->ConstraintsBiLoad_Ct(1);
+	   linklist[i]->ConstraintsFbLoadForces(GetStep());
+	   linklist[i]->ConstraintsLoadJacobians();
+	   linklist[i]->ConstraintsLiLoadSuggestedSpeedSolution();
+	   linklist[i]->InjectConstraints(*this->LCP_descriptor);
    }
-   unsigned int num_bilaterals = 0;
+   uint & num_bilaterals  = data_manager->num_bilaterals;
    std::vector<ChLcpConstraint *> &mconstraints = (*this->LCP_descriptor).GetConstraintsList();
-   std::vector<int> mapping;
+   data_manager->host_data.bilateral_mapping.clear();
 
    for (uint ic = 0; ic < mconstraints.size(); ic++) {
       if (mconstraints[ic]->IsActive() == true) {
          num_bilaterals++;
-         mapping.push_back(ic);
+         data_manager->host_data.bilateral_mapping.push_back(ic);
       }
-   }
-   data_manager->num_bilaterals = num_bilaterals;
-
-   data_manager->host_data.JXYZA_bilateral.resize(num_bilaterals);
-   data_manager->host_data.JXYZB_bilateral.resize(num_bilaterals);
-   data_manager->host_data.JUVWA_bilateral.resize(num_bilaterals);
-   data_manager->host_data.JUVWB_bilateral.resize(num_bilaterals);
-   data_manager->host_data.residual_bilateral.resize(num_bilaterals);
-   data_manager->host_data.correction_bilateral.resize(num_bilaterals);
-   data_manager->host_data.bids_bilateral.resize(num_bilaterals);
-   data_manager->host_data.gamma_bilateral.resize(num_bilaterals);
-#pragma omp parallel for
-   for (int i = 0; i < num_bilaterals; i++) {
-      int cntr = mapping[i];
-      ChLcpConstraintTwoBodies *mbilateral = (ChLcpConstraintTwoBodies *) (mconstraints[cntr]);
-      int idA = ((ChBody *) ((ChLcpVariablesBody *) (mbilateral->GetVariables_a()))->GetUserData())->GetId();
-      int idB = ((ChBody *) ((ChLcpVariablesBody *) (mbilateral->GetVariables_b()))->GetUserData())->GetId();
-      // Update auxiliary data in all constraints before starting, that is: g_i=[Cq_i]*[invM_i]*[Cq_i]' and  [Eq_i]=[invM_i]*[Cq_i]'
-      mconstraints[cntr]->Update_auxiliary();     //***NOTE*** not efficient here - can be on GPU, and [Eq_i] not needed
-      real3 A, B, C, D;
-      A = R3(mbilateral->Get_Cq_a()->GetElementN(0), mbilateral->Get_Cq_a()->GetElementN(1), mbilateral->Get_Cq_a()->GetElementN(2));     //J1x
-      B = R3(mbilateral->Get_Cq_b()->GetElementN(0), mbilateral->Get_Cq_b()->GetElementN(1), mbilateral->Get_Cq_b()->GetElementN(2));     //J2x
-      C = R3(mbilateral->Get_Cq_a()->GetElementN(3), mbilateral->Get_Cq_a()->GetElementN(4), mbilateral->Get_Cq_a()->GetElementN(5));     //J1w
-      D = R3(mbilateral->Get_Cq_b()->GetElementN(3), mbilateral->Get_Cq_b()->GetElementN(4), mbilateral->Get_Cq_b()->GetElementN(5));     //J2w
-
-      data_manager->host_data.JXYZA_bilateral[i] = A;
-      data_manager->host_data.JXYZB_bilateral[i] = B;
-      data_manager->host_data.JUVWA_bilateral[i] = C;
-      data_manager->host_data.JUVWB_bilateral[i] = D;
-      data_manager->host_data.residual_bilateral[i] = mbilateral->Get_b_i();     // b_i is residual b
-      data_manager->host_data.correction_bilateral[i] = 1.0 / mbilateral->Get_g_i();     // eta = 1/g
-      data_manager->host_data.bids_bilateral[i] = I2(idA, idB);
-      //data_manager->host_data.gamma_bilateral[i] = -mbilateral->Get_l_i();
    }
 }
 
