@@ -288,11 +288,11 @@ static inline bool IsZero(const real3 &a) {
 }
 
 static real max3(const real3 &a) {
-	return max(a.x, max(a.y, a.z));
+	return std::max(a.x, std::max(a.y, a.z));
 }
 
 static real min3(const real3 &a) {
-	return min(a.x, min(a.y, a.z));
+	return std::min(a.x, std::min(a.y, a.z));
 }
 
 #endif

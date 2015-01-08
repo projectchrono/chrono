@@ -76,7 +76,7 @@ static inline real clamp(const real & a,
 
 }
 //Performs a linear interpolation between a and b using alpha
-static inline real lerp(const real &a, const real &b, real alpha) {
+static inline real lerp(const real &a, const real &b, const real &alpha) {
 	return (a + alpha * (b - a));
 
 }
