@@ -26,7 +26,7 @@
 #include "other_types.h"
 
 
-////////Other Operations
+//Computes the nearest power of two to the given value and returns it
 static inline uint nearest_pow(const uint &num) {
    uint n = num > 0 ? num - 1 : 0;
    n |= n >> 1;
@@ -38,7 +38,7 @@ static inline uint nearest_pow(const uint &num) {
    return n;
 }
 
-////////Generic Operations
+//Swaps two objects of any type using a temporary
 template<class T>
 static inline void Swap(T &a,
                         T &b) {

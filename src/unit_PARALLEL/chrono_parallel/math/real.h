@@ -12,8 +12,8 @@
 // Authors: Hammad Mazhar
 // =============================================================================
 //
-// Description: definition of a floating point number, can defined as a float
-// or a double, SSE can be enabed here
+// Description: definition of a real number which can be defined as a float
+// (increased speed on some architectures) or a double (increased precision)
 // =============================================================================
 
 #ifndef REAL_H
@@ -23,9 +23,10 @@
 #include <float.h>
 
 
-
+//Check if SSE was found in CMake
 #ifdef CHRONO_PARALLEL_HAS_SSE
-
+//Depending on the SSE variable in CMake include the proper header file for that
+//version of sse
 #ifdef CHRONO_PARALLEL_SSE_1_0
 #include <xmmintrin.h>
 #elif defined CHRONO_PARALLEL_SSE_2_0
@@ -37,7 +38,6 @@
 #elif defined CHRONO_PARALLEL_SSE_4_2
 #include <nmmintrin.h>
 #endif
-
    #ifndef ENABLE_SSE
       #define ENABLE_SSE
    #endif
@@ -45,10 +45,12 @@
 #undef ENABLE_SSE
 #endif
 
+//If the user specified using doubles in CMake make sure that SSE is disabled
 #ifdef CHRONO_PARALLEL_USE_DOUBLE
       #undef ENABLE_SSE
 #endif
-
+//If the user specified using doubles, define the real type as double
+//Also set some constants. The same is done if floats were specified.
 #ifdef CHRONO_PARALLEL_USE_DOUBLE
 typedef double real;
 #define LARGE_REAL 1e30
@@ -60,8 +62,10 @@ typedef float real;
 #endif
 
 
-
-static inline real clamp(const real & a, const real & clamp_min, const real & clamp_max) {
+//Clamps a given value a between user specified minimum and maximum values
+static inline real clamp(const real & a,
+						 const real & clamp_min,
+						 const real & clamp_max) {
 	if (a < clamp_min) {
 		return clamp_min;
 	} else if (a > clamp_max) {
@@ -71,17 +75,19 @@ static inline real clamp(const real & a, const real & clamp_min, const real & cl
 	}
 
 }
-
+//Performs a linear interpolation between a and b using alpha
 static inline real lerp(const real &a, const real &b, real alpha) {
 	return (a + alpha * (b - a));
 
 }
-
+//Checks if the value is zero to within a certain epsilon
+//in this case ZERO_EPSILON is defined based on what the base type of real is
 static inline bool IsZero(const real &a) {
 	return fabs(a) < ZERO_EPSILON;
 }
 
-
+//Check if two values are equal using a small delta/epsilon value.
+//Essentially a fuzzy comparison operator
 static inline bool isEqual(const real &_a, const real &_b) {
 	real ab;
 	ab = fabs(_a - _b);
@@ -97,7 +103,9 @@ static inline bool isEqual(const real &_a, const real &_b) {
 	}
 }
 
-
+//Returns a -1 if the value is negative
+//Returns a +1 if the value is positive
+//Otherwise returns zero, this should only happen if the given value is zero
 static inline real sign(const real &x) {
 	if (x < 0) {
 		return -1;
