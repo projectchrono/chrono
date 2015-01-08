@@ -10,7 +10,7 @@ written more elegantly.
 namespace EnvironmentCore {
 
 	EnvironmentCoreApplication::EnvironmentCoreApplication() {
-		m_pRoot = new Ogre::Root("", "", "EnvironmentCore.log");
+		m_pRoot = new Ogre::Root("", "", "ChOgre.log");
 
 		//NOTE: Probably terrible practice. Do better
 		{

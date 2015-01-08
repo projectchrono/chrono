@@ -9,6 +9,8 @@ An input manager based on SDL, as opposed to OIS. Will handle keyboard, mouse, a
 #include <OGRE\Ogre.h>
 #include <SDL.h>
 
+#include "../ChOgre.h"
+
 #define INPUT_DEADZONE  0.25
 
 namespace EnvironmentCore {
@@ -18,7 +20,7 @@ namespace EnvironmentCore {
 		bool down;
 		double timestamp;
 
-	} ECKeyState;
+	} CHOGRE_DLL_TAG ECKeyState;
 
 	typedef struct ECMouseState_t {
 
@@ -43,7 +45,7 @@ namespace EnvironmentCore {
 
 		__wheelState wheel;
 
-	} ECMouseState;
+	} CHOGRE_DLL_TAG ECMouseState;
 
 	typedef struct ECControllerState_t {
 
@@ -64,7 +66,7 @@ namespace EnvironmentCore {
 
 		bool active;
 
-	} ECControllerState;
+	} CHOGRE_DLL_TAG ECControllerState;
 
 	typedef struct ECWheelState_t {
 
@@ -101,11 +103,11 @@ namespace EnvironmentCore {
 
 		bool active;
 
-	} ECWheelState;
+	} CHOGRE_DLL_TAG ECWheelState;
 
-	typedef SDL_HapticEffect ECHapticEffect;
+	typedef SDL_HapticEffect CHOGRE_DLL_TAG ECHapticEffect;
 
-	class EC_SDL_InputManager {
+	class CHOGRE_DLL_TAG EC_SDL_InputManager {
 
 	public:
 

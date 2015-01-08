@@ -7,6 +7,8 @@ but instead retains points in space and points to orient to in space for easy ac
 
 #pragma once
 
+#include "../ChOgre.h"
+
 #include <OGRE\Ogre.h>
 #include <core\ChQuaternion.h>
 #include <core\ChVector.h>
@@ -14,7 +16,7 @@ but instead retains points in space and points to orient to in space for easy ac
 
 namespace EnvironmentCore {
 
-	typedef struct ECCamera_t {
+	struct CHOGRE_DLL_TAG ECCamera {
 		float x, y, z;
 		float wx, wy, wz;
 		float yaw, pitch; // Yaw and Pitch are both in degrees
@@ -70,9 +72,9 @@ namespace EnvironmentCore {
 			orient(_x, _y, _z, _rot);
 		}
 
-	} ECCamera;
+	};
 
-	class ECCameraManager {
+	class CHOGRE_DLL_TAG ECCameraManager {
 
 	public:
 

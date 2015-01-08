@@ -25,9 +25,11 @@ ECBody is the basic physical body class. It will set up Ogre scene nodes to disp
 #include <assets\ChSphereShape.h>
 #include <assets\ChTriangleMeshShape.h>
 
+#include "../ChOgre.h"
+
 namespace EnvironmentCore {
 
-	class ECBody {
+	class CHOGRE_DLL_TAG ECBody {
 
 	public:
 

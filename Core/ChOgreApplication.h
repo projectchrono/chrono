@@ -17,6 +17,8 @@ Contains the prototype for a basic application. Manages things such as window cr
 #include <vector>
 #include <random>
 
+#include "../ChOgre.h"
+
 #include "../Input/ChOgre_SDLInputHandler.h"
 #include "../Graphics/ChOgreCameraManager.h"
 #include "../Graphics/ChOgreScene.h"
@@ -25,7 +27,7 @@ Contains the prototype for a basic application. Manages things such as window cr
 
 namespace EnvironmentCore {
 
-	class EnvironmentCoreApplication {
+	class CHOGRE_DLL_TAG EnvironmentCoreApplication {
 	public:
 
 		EnvironmentCoreApplication();

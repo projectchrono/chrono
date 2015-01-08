@@ -13,11 +13,11 @@ ECScene is designed to be a layer of abstraction from the Ogre lighting system, 
 
 namespace EnvironmentCore {
 
-	typedef Ogre::Light ECLight;
+	typedef Ogre::Light CHOGRE_DLL_TAG ECLight;
 
-	typedef Ogre::Light::LightTypes ECLightTypes;
+	typedef Ogre::Light::LightTypes CHOGRE_DLL_TAG ECLightTypes;
 
-	class ECScene {
+	class CHOGRE_DLL_TAG ECScene {
 
 	public:
 
