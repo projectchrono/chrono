@@ -27,10 +27,6 @@
 #include "chrono_parallel/ChSettings.h"
 #include <blaze/math/CompressedMatrix.h>
 
-#include "core/ChFileutils.h"
-#include "core/ChStream.h"
-
-
 using blaze::CompressedMatrix;
 namespace chrono {
 
@@ -90,7 +86,7 @@ struct host_container {
    thrust::host_vector<real4> compliance_data;
 
    // Material properties (DEM)
-   thrust::host_vector<real2> elastic_moduli;   // Young's modulus and Poisson ratio
+   thrust::host_vector<real2> elastic_moduli;  // Young's modulus and Poisson ratio
    thrust::host_vector<real> mu;               // Coefficient of friction
    thrust::host_vector<real> alpha;            // Dissipation factor (Hunt-Crossley)
    thrust::host_vector<real> cr;               // Coefficient of restitution
@@ -107,13 +103,6 @@ struct host_container {
    thrust::host_vector<real> gamma_bilateral;
 
    CompressedMatrix<real> Nshur, D, D_T, M_inv, M_invD;
-
-//			thrust::host_vector<real3> JXYZA_fluid_fluid, JXYZB_fluid_fluid;
-//			thrust::host_vector<real3> JXYZA_rigid_fluid, JXYZB_rigid_fluid, JUVWB_rigid_fluid;
-//
-//			thrust::host_vector<real3> fluid_pos, fluid_vel, fluid_force;
-//			thrust::host_vector<real> fluid_mass, fluid_density;
-//			thrust::host_vector<real3> aabb_fluid;
 };
 
 class CH_PARALLEL_API ChParallelDataManager {
@@ -135,9 +124,10 @@ class CH_PARALLEL_API ChParallelDataManager {
 
    // Flag indicating whether or not effective contact radius is calculated
    bool erad_is_set;
-
+   //This object hold all of the timers for the system
    ChTimerParallel system_timer;
-
+   //Structure that contains all settings for the system, collision detection
+   //and the solver
    settings_container settings;
 
    //Output a vector (one dimensional matrix) from blaze to a file

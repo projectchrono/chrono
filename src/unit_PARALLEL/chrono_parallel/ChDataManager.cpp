@@ -1,5 +1,6 @@
 #include "chrono_parallel/ChDataManager.h"
-
+#include "core/ChFileutils.h"
+#include "core/ChStream.h"
 using namespace chrono;
 
 ChParallelDataManager::ChParallelDataManager() :
