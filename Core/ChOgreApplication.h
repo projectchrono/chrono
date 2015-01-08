@@ -24,6 +24,7 @@ Contains the prototype for a basic application. Manages things such as window cr
 #include "../Graphics/ChOgreScene.h"
 //#include "ECGUIManager.h"
 
+#define ChOgreFunc(N) [&](N)
 
 namespace ChOgre {
 
@@ -33,7 +34,9 @@ namespace ChOgre {
 		ChOgreApplication();
 		~ChOgreApplication();
 
-		virtual int startLoop(std::function<int()> PerFrame);
+		typedef std::function<int()> ChOgreLoopCallFunc;
+
+		virtual int startLoop(ChOgreLoopCallFunc PerFrame);
 		virtual Ogre::RenderWindow* createWindow(std::string Title, uint32_t Width, uint32_t Height, uint8_t FSAA_Level, bool VSync=false, bool Fullscreen=false);
 		virtual void loadResourcePath(std::string Path, std::string Title="FileSystem");
 		virtual void setCamera(ChOgreCamera* Camera);
