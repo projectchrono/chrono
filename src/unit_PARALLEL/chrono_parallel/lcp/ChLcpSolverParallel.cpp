@@ -3,6 +3,14 @@
 
 using namespace chrono;
 
+ChLcpSolverParallel::ChLcpSolverParallel(){
+     tolerance = 1e-7;
+     record_violation_history = true;
+     warm_start = false;
+     residual = 0;
+     data_container = 0;
+  }
+
 // -----------------------------------------------------------------------------
 // Kernel for adding invmass*force*step_size_const to body speed vector.
 // This kernel must be applied to the stream of the body buffer.

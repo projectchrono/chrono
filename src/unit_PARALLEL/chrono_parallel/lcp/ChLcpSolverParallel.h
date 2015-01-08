@@ -45,13 +45,7 @@ namespace chrono {
 
 class CH_PARALLEL_API ChLcpSolverParallel : public ChLcpIterativeSolver {
  public:
-   ChLcpSolverParallel() {
-      tolerance = 1e-7;
-      record_violation_history = true;
-      warm_start = false;
-      residual = 0;
-      data_container = 0;
-   }
+   ChLcpSolverParallel();
 
    virtual ~ChLcpSolverParallel() {
    }
