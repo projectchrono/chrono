@@ -51,7 +51,12 @@ class CH_PARALLEL_API ChLcpSolverParallel : public ChLcpIterativeSolver {
       return 0;
    }
    virtual void RunTimeStep(real step) = 0;
-   void Preprocess();
+
+   void ComputeMassMatrix();
+
+   virtual void ComputeD(real step) = 0;
+   virtual void ComputeE(real step) = 0;
+   virtual void ComputeR(real step) = 0;
 
    real GetResidual() {
       return residual;
@@ -74,7 +79,10 @@ class CH_PARALLEL_API ChLcpSolverParallelDVI : public ChLcpSolverParallel {
    }
 
    virtual void RunTimeStep(real step);
-   void ComputeN();
+
+   virtual void ComputeD(real step);
+   virtual void ComputeE(real step);
+   virtual void ComputeR(real step);
 
    void ChangeSolverType(SOLVERTYPE type) {
       data_container->settings.solver.solver_type = type;

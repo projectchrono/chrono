@@ -11,7 +11,7 @@ ChLcpSolverParallel::ChLcpSolverParallel() {
   data_container = 0;
 }
 
-void ChLcpSolverParallel::Preprocess() {
+void ChLcpSolverParallel::ComputeMassMatrix() {
   uint& num_bodies = data_container->num_bodies;
   custom_vector<real>& inv_mass_data = data_container->host_data.inv_mass_data;
   custom_vector<M33>& inr_data = data_container->host_data.inr_data;
@@ -50,3 +50,4 @@ void ChLcpSolverParallel::Preprocess() {
 
   data_container->host_data.M_invk = data_container->host_data.v + M_inv * data_container->host_data.hf;
 }
+
