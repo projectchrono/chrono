@@ -117,13 +117,4 @@ static inline real sign(const real &x) {
 }
 
 
-template<class T>
-real max3(const T &a) {
-	return max(a.x, max(a.y, a.z));
-}
-template<class T>
-real min3(const T &a) {
-	return min(a.x, min(a.y, a.z));
-}
-
 #endif

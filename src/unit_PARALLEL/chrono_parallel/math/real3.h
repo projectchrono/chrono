@@ -287,4 +287,12 @@ static inline bool IsZero(const real3 &a) {
    return IsZero(a.x) && IsZero(a.y) && IsZero(a.z);
 }
 
+static real max3(const real3 &a) {
+	return max(a.x, max(a.y, a.z));
+}
+
+static real min3(const real3 &a) {
+	return min(a.x, min(a.y, a.z));
+}
+
 #endif
