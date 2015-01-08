@@ -26,7 +26,7 @@ uint ChSolverAPGDBlaze::SolveAPGDBlaze(const uint max_iter, const uint size,
 custom_vector<real> &b,
 custom_vector<real> &x) {
   bool verbose = false;
-  bool useWarmStarting = false;
+  bool useWarmStarting = true;
   if(verbose) std::cout << "Number of constraints: " << size << "\nNumber of variables  : " << data_container->num_bodies << std::endl;
 
   real L, t;
@@ -177,6 +177,7 @@ custom_vector<real> &x) {
   if(verbose) std::cout << "Residual: " << residual << ", Iter: " << current_iteration << std::endl;
 
   // (33) return Value at time step t_(l+1), gamma_(l+1) := gamma_hat
+  if(useWarmStarting) gamma = gamma_hat;
 #pragma omp parallel for
   for (int i = 0; i < size; i++) {
     x[i] = gamma_hat[i];
