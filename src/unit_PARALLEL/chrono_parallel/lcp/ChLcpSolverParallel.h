@@ -45,30 +45,11 @@ class CH_PARALLEL_API ChLcpSolverParallel : public ChLcpIterativeSolver {
  public:
    ChLcpSolverParallel();
 
-   virtual ~ChLcpSolverParallel() {
-   }
+   virtual ~ChLcpSolverParallel() {}
 
    virtual double Solve(ChLcpSystemDescriptor &sysd) {
       return 0;
    }
-   void host_addForces(bool* active,
-                       real *mass,
-                       real3 *inertia,
-                       real3 *forces,
-                       real3 *torques,
-                       real3 *vel,
-                       real3 *omega);
-
-   void host_addForces_shafts(bool* active,
-                              real* inertia,
-                              real* torques,
-                              real* omega);
-
-   void host_ComputeGyro(real3 *omega,
-                         real3 *inertia,
-                         real3 *gyro,
-                         real3 *torque);
-
    virtual void RunTimeStep(real step) = 0;
    void Preprocess();
 
@@ -79,7 +60,6 @@ class CH_PARALLEL_API ChLcpSolverParallel : public ChLcpIterativeSolver {
 
  protected:
    real residual;
-
    ChConstraintBilateral bilateral;
 };
 

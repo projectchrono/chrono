@@ -80,7 +80,7 @@ struct host_container {
    // Object data
    thrust::host_vector<real3> pos_data, pos_new_data;
    thrust::host_vector<real4> rot_data, rot_new_data;
-   thrust::host_vector<real3> inr_data;
+   thrust::host_vector<M33> inr_data;
    thrust::host_vector<bool> active_data;
    thrust::host_vector<bool> collide_data;
    thrust::host_vector<real> inv_mass_data;

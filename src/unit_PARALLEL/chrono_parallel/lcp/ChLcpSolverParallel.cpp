@@ -3,105 +3,50 @@
 
 using namespace chrono;
 
-ChLcpSolverParallel::ChLcpSolverParallel(){
-     tolerance = 1e-7;
-     record_violation_history = true;
-     warm_start = false;
-     residual = 0;
-     data_container = 0;
-  }
-
-// -----------------------------------------------------------------------------
-// Kernel for adding invmass*force*step_size_const to body speed vector.
-// This kernel must be applied to the stream of the body buffer.
-// -----------------------------------------------------------------------------
-void function_addForces(int& index,
-                        bool* active,
-                        real* mass,
-                        real3* inertia,
-                        real3* forces,
-                        real3* torques,
-                        real3* vel,
-                        real3* omega) {
-   if (active[index] != 0) {
-      // v += m_inv * h * f
-      vel[index] += forces[index] * mass[index];
-      // w += J_inv * h * c
-      omega[index] += torques[index] * inertia[index];
-   }
-}
-
-void ChLcpSolverParallel::host_addForces(bool* active,
-                                         real* mass,
-                                         real3* inertia,
-                                         real3* forces,
-                                         real3* torques,
-                                         real3* vel,
-                                         real3* omega) {
-#pragma omp parallel for
-   for (int index = 0; index < data_container->num_bodies; index++) {
-      function_addForces(index, active, mass, inertia, forces, torques, vel, omega);
-   }
-}
-
-void function_addForces_shafts(int& index,
-                               bool* active,
-                               real* inertia,
-                               real* torques,
-                               real* omega)
-{
-  if (active[index]) {
-    omega[index] += torques[index] * inertia[index];
-  }
-}
-
-void ChLcpSolverParallel::host_addForces_shafts(bool* active,
-                                                real* inertia,
-                                                real* torques,
-                                                real* omega)
-{
-////#pragma omp parallel for
-  for (int index = 0; index < data_container->num_shafts; index++) {
-    function_addForces_shafts(index, active, inertia, torques, omega);
-  }
-}
-
-void function_ComputeGyro(int& index,
-                          real3* omega,
-                          real3* inertia,
-                          real3* gyro,
-                          real3* torque) {
-   real3 body_inertia = inertia[index];
-   body_inertia = R3(1.0 / body_inertia.x, 1.0 / body_inertia.y, 1.0 / body_inertia.z);
-   real3 body_omega = omega[index];
-   real3 gyr = cross(body_omega, body_inertia * body_omega);
-   gyro[index] = gyr;
-}
-
-void ChLcpSolverParallel::host_ComputeGyro(real3* omega,
-                                           real3* inertia,
-                                           real3* gyro,
-                                           real3* torque) {
-#pragma omp parallel for
-   for (int index = 0; index < data_container->num_bodies; index++) {
-      function_ComputeGyro(index, omega, inertia, gyro, torque);
-   }
+ChLcpSolverParallel::ChLcpSolverParallel() {
+  tolerance = 1e-7;
+  record_violation_history = true;
+  warm_start = false;
+  residual = 0;
+  data_container = 0;
 }
 
 void ChLcpSolverParallel::Preprocess() {
-   data_container->host_data.gyr_data.resize(data_container->num_bodies);
+  uint& num_bodies = data_container->num_bodies;
+  custom_vector<real>& inv_mass_data = data_container->host_data.inv_mass_data;
+  custom_vector<M33>& inr_data = data_container->host_data.inr_data;
 
-   //host_ComputeGyro(data_container->host_data.omg_data.data(),
-   //                 data_container->host_data.inr_data.data(),
-   //                 data_container->host_data.gyr_data.data(),
-   //                 data_container->host_data.trq_data.data());
+  CompressedMatrix<real>& M_inv = data_container->host_data.M_inv;
+  clear(M_inv);
 
-   host_addForces(data_container->host_data.active_data.data(), data_container->host_data.mass_data.data(), data_container->host_data.inr_data.data(),
-                  data_container->host_data.frc_data.data(), data_container->host_data.trq_data.data(), data_container->host_data.vel_data.data(),
-                  data_container->host_data.omg_data.data());
+  // Each object has 3 mass entries and 9 inertia entries
+  M_inv.reserve(num_bodies * 12);
+  // The mass matrix is square and each rigid body has 6 DOF
+  M_inv.resize(num_bodies * 6, num_bodies * 6);
 
-   host_addForces_shafts(data_container->host_data.shaft_active.data(),
-                         data_container->host_data.shaft_inr.data(),
-                         data_container->host_data.shaft_trq.data(),
-                         data_container->host_data.shaft_omg.data());
+  for (int i = 0; i < num_bodies; i++) {
+    if (data_container->host_data.active_data[i]) {
+      M_inv.append(i * 6 + 0, i * 6 + 0, inv_mass_data[i]);
+      M_inv.finalize(i * 6 + 0);
+      M_inv.append(i * 6 + 1, i * 6 + 1, inv_mass_data[i]);
+      M_inv.finalize(i * 6 + 1);
+      M_inv.append(i * 6 + 2, i * 6 + 2, inv_mass_data[i]);
+      M_inv.finalize(i * 6 + 2);
+
+      M_inv.append(i * 6 + 3, i * 6 + 3, inr_data[i].U.x);
+      M_inv.append(i * 6 + 3, i * 6 + 4, inr_data[i].V.x);
+      M_inv.append(i * 6 + 3, i * 6 + 5, inr_data[i].W.x);
+      M_inv.finalize(i * 6 + 3);
+      M_inv.append(i * 6 + 4, i * 6 + 3, inr_data[i].U.y);
+      M_inv.append(i * 6 + 4, i * 6 + 4, inr_data[i].V.y);
+      M_inv.append(i * 6 + 4, i * 6 + 5, inr_data[i].W.y);
+      M_inv.finalize(i * 6 + 4);
+      M_inv.append(i * 6 + 5, i * 6 + 3, inr_data[i].U.z);
+      M_inv.append(i * 6 + 5, i * 6 + 4, inr_data[i].V.z);
+      M_inv.append(i * 6 + 5, i * 6 + 5, inr_data[i].W.z);
+      M_inv.finalize(i * 6 + 5);
+    }
+  }
+
+  data_container->host_data.M_invk = data_container->host_data.v + M_inv * data_container->host_data.hf;
 }
