@@ -23,59 +23,8 @@
 #include "real3.h"
 #include "real4.h"
 #include "mat33.h"
+#include "other_types.h"
 
-#define S2 _make_short2
-//#define I4  int4
-#define I3  _make_int3
-#define I2  _make_int2
-//#define U3  make_uint3
-
-typedef unsigned int uint;
-
-struct bool2 {
-   bool x, y;
-   bool2() {
-   }
-   bool2(bool a,
-         bool b)
-         : x(a), y(b) {
-   }
-};
-
-static inline short2 _make_short2(const short& a,
-                                  const short& b)
-{
-  short2 t;
-  t.x = a;
-  t.y = b;
-  return t;
-}
-
-static inline int3 _make_int3(const int &a,
-                              const int &b,
-                              const int &c) {
-   int3 t;
-   t.x = a;
-   t.y = b;
-   t.z = c;
-   return t;
-}
-
-static inline int2 _make_int2(const int &a,
-                              const int &b) {
-   int2 t;
-   t.x = a;
-   t.y = b;
-   return t;
-}
-
-static inline int3 _make_int3(const real3 &a) {
-   int3 t;
-   t.x = a.x;
-   t.y = a.y;
-   t.z = a.z;
-   return t;
-}
 
 ////////Other Operations
 static inline uint nearest_pow(const uint &num) {
