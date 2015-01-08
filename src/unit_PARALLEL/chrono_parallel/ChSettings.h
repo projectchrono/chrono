@@ -131,6 +131,7 @@ struct solver_settings {
   //solve, in some cases this will improve the stability of bilateral
   //bilateral constraints
   bool perform_stabilization;
+  //Experimental options that probably don't work for all solvers
   bool collision_in_solver;
   bool update_rhs;
   bool verbose;
@@ -152,15 +153,25 @@ struct solver_settings {
   uint max_iteration_spinning;
   uint max_iteration_bilateral;
 
-  // Solver variables
+  //This variable is the tolerance for the solver
   real tolerance;
+  //This variable defines the tolerance if the solver is using the objective
+  //termination condition
   real tolerance_objective;
 };
 
 struct settings_container {
 
   settings_container() {
+	//The default minimum number of threads is 1, set this to your max threads
+	//if you already know that it will run the fastest with that configuration.
+	//In some cases simulations start with a few objects but more are added
+	//later. By setting it to a low value initially the simulation will run
+	//as more objects are added chrono parallel will automatically increase
+	//the number of threads. If min threads is > max threads, weird stuff might
+	//happen!
     min_threads = 1;
+    //The default maximum threads is equal to the number visible via openMP
     max_threads = CHOMPfunctions::GetNumProcs();
     // Only perform thread tuning if max threads is greater than min_threads;
     // I don't really check to see if max_threads is > than min_threads
@@ -168,23 +179,45 @@ struct settings_container {
     perform_thread_tuning = ((min_threads == max_threads) ? false : true);
     perform_bin_tuning = true;
     system_type = SYSTEM_DVI;
-    bin_perturb_size = 2;    // increase or decrease the number of bins by 2
-    bin_tuning_frequency = 20;    // bins will be tuned every 20 frames
+    // increase or decrease the number of bins by 2
+    bin_perturb_size = 2;
+    // bins will be tuned every 20 frames
+    bin_tuning_frequency = 20;
     step_size = .01;
   }
 
-  // CD Settings
+  // The settings for the collision detection
   collision_settings collision;
-  // Solver Settings
+  // The settings for the solver
   solver_settings solver;
-  // System Settings
+  // System level settings
+  //If set to true chrono parallel will automatically check to see if increasing
+  //the number of threads will improve performance. If performance is improved
+  //it changes the number of threads, if not, it decreases the number of threads
+  //back to the original value.
   bool perform_thread_tuning;
+  //Bin tuning involves changing the size of the bins in order to improve
+  //the performance of the broadphase collision detection. Every
+  //bin_tuning_frequency steps the bins are increased for a period of time and
+  //and average time is computed. If this time is less than the previous average
+  //the bins are increased, if not they are left unchanged from the old value.
   bool perform_bin_tuning;
+  //This parameter defines how large of a change to make to the number of bins
+  //on each axis
   int bin_perturb_size;
+  //This parameter defines how often the number of bins are increased/decreased
   int bin_tuning_frequency;
+  //The minimum number of threads that will ever be used by this simulation.
+  //If you know a good number of threads for your simulation set the minimum so
+  //that the simulation is running optimally from the start
   int min_threads;
+  //This is the number of threads that the simulation will not exceed
   int max_threads;
+  //The timestep of the simulation. This value is copied from chrono currently,
+  //setting it has no effect.
   real step_size;
+  //The system type defines if the system is solving the DVI frictional contact
+  //problem or a DEM penalty based
   SYSTEMTYPE system_type;
 };
 }
