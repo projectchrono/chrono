@@ -1,320 +1,120 @@
 #include "chrono_parallel/constraints/ChConstraintBilateral.h"
-
+#include "lcp/ChLcpConstraintTwoBodies.h"
+#include "physics/ChBody.h"
 using namespace chrono;
 
 
-//%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-void ChConstraintBilateral::host_RHS(int2 *ids,
-                                     real *bi,
-                                     bool * active,
-                                     real3 *vel,
-                                     real3 *omega,
-                                     real3 *JXYZA,
-                                     real3 *JXYZB,
-                                     real3 *JUVWA,
-                                     real3 *JUVWB,
-                                     real *rhs) {
+void ChConstraintBilateral::Build_b() {
+  blaze::DenseSubvector<DynamicVector<real> > b = blaze::subvector(data_container->host_data.b, data_container->num_unilaterals, data_container->num_bilaterals);
+  std::vector<ChLcpConstraint*>& mconstraints = (*data_container->lcp_system_descriptor).GetConstraintsList();
 #pragma omp parallel for
-   for (int index = 0; index < num_bilaterals; index++) {
-      uint b1 = ids[index].x;
-      uint b2 = ids[index].y;
-      real temp = 0;
-      if (active[b1]) {
-         temp += dot(JXYZA[index], vel[b1]);
-         temp += dot(JUVWA[index], omega[b1]);
-
-      }
-      if (active[b2]) {
-         temp += dot(JXYZB[index], vel[b2]);
-         temp += dot(JUVWB[index], omega[b2]);
-
-      }
-      rhs[index + num_unilaterals] = -temp - bi[index];
-   }
-
-}
-//%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
-void ChConstraintBilateral::ComputeRHS() {
-   host_RHS(data_container->host_data.bids_bilateral.data(), data_container->host_data.residual_bilateral.data(), data_container->host_data.active_data.data(),
-            data_container->host_data.vel_data.data(), data_container->host_data.omg_data.data(), data_container->host_data.JXYZA_bilateral.data(),
-            data_container->host_data.JXYZB_bilateral.data(), data_container->host_data.JUVWA_bilateral.data(), data_container->host_data.JUVWB_bilateral.data(),
-            data_container->host_data.rhs_data.data());
+  for (int index = 0; index < num_bilaterals; index++) {
+    int cntr = data_container->host_data.bilateral_mapping[index];
+    ChLcpConstraintTwoBodies* mbilateral = (ChLcpConstraintTwoBodies*)(mconstraints[cntr]);
+    b[index] = mbilateral->Get_b_i();
+  }
 }
 
-//%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
-void ChConstraintBilateral::host_Offsets(int2* ids,
-                                         uint* Body) {
+void ChConstraintBilateral::Build_E() {
 #pragma omp parallel for
-   for (int index = 0; index < num_bilaterals; index++) {
-      if (index < num_bilaterals) {
-         int2 temp_id = ids[index];
-         Body[index] = temp_id.x;
-         Body[index + num_bilaterals] = temp_id.y;
-      }
-   }
-}
-
-__host__ __device__ void function_Reduce_Shur_Bilateral(int& index,
-                                                        bool* active,
-                                                        real3* QXYZ,
-                                                        real3* QUVW,
-                                                        real *inv_mass,
-                                                        real3 *inv_inertia,
-                                                        real3* updateQXYZ,
-                                                        real3* updateQUVW,
-                                                        uint* d_body_num,
-                                                        uint* counter) {
-   int start = (index == 0) ? 0 : counter[index - 1], end = counter[index];
-   int id = d_body_num[end - 1], j;
-
-   if (active[id] == 0) {
-      return;
-   }
-
-   real3 mUpdateV = R3(0);
-   real3 mUpdateO = R3(0);
-
-   for (j = 0; j < end - start; j++) {
-      mUpdateV += updateQXYZ[j + start];
-      mUpdateO += updateQUVW[j + start];
-   }
-   QXYZ[id] += mUpdateV * inv_mass[id];
-   QUVW[id] += mUpdateO * inv_inertia[id];
-}
-
-void ChConstraintBilateral::host_Reduce_Shur(bool* active,
-                                             real3* QXYZ,
-                                             real3* QUVW,
-                                             real *inv_mass,
-                                             real3 *inv_inertia,
-                                             real3* updateQXYZ,
-                                             real3* updateQUVW,
-                                             uint* d_body_num,
-                                             uint* counter) {
-#pragma omp parallel for
-   for (int index = 0; index < num_updates; index++) {
-      function_Reduce_Shur_Bilateral(index, active, QXYZ, QUVW, inv_mass, inv_inertia, updateQXYZ, updateQUVW, d_body_num, counter);
-   }
-}
-
-void ChConstraintBilateral::host_shurA(int2 *ids,
-                                       bool *active,
-                                       real3 *JXYZA,
-                                       real3 *JXYZB,
-                                       real3 *JUVWA,
-                                       real3 *JUVWB,
-                                       real *gamma,
-                                       real3 *updateV,
-                                       real3 *updateO,
-                                       uint* offset) {
-#pragma omp parallel for
-   for (int index = 0; index < num_bilaterals; index++) {
-      real gam;
-      gam = gamma[index + num_unilaterals];
-      uint b1 = ids[index].x;
-
-      int offset1 = offset[index];
-      int offset2 = offset[index + num_bilaterals];
-
-      if (active[b1] != 0) {
-         updateV[offset1] = JXYZA[index] * gam;
-         updateO[offset1] = JUVWA[index] * gam;
-      }
-
-      uint b2 = ids[index].y;
-      if (active[b2] != 0) {
-         updateV[offset2] = JXYZB[index] * gam;
-         updateO[offset2] = JUVWB[index] * gam;
-      }
-   }
-}
-
-void ChConstraintBilateral::host_shurB(int2 *ids,
-                                       bool *active,
-                                       real * gamma,
-                                       real3 *JXYZA,
-                                       real3 *JXYZB,
-                                       real3 *JUVWA,
-                                       real3 *JUVWB,
-                                       real3 *QXYZ,
-                                       real3 *QUVW,
-                                       real *AX) {
-
-#pragma omp parallel for
-   for (int index = 0; index < num_bilaterals; index++) {
-
-      real temp = 0;
-      uint b1 = ids[index].x;
-      if (active[b1] != 0) {
-         real3 XYZ = QXYZ[b1];
-         real3 UVW = QUVW[b1];
-         temp += dot(XYZ, JXYZA[index]);
-         temp += dot(UVW, JUVWA[index]);
-
-      }
-      uint b2 = ids[index].y;
-      if (active[b2] != 0) {
-
-         real3 XYZ = QXYZ[b2];
-         real3 UVW = QUVW[b2];
-         temp += dot(XYZ, JXYZB[index]);
-         temp += dot(UVW, JUVWB[index]);
-
-      }
-
-      AX[index + num_unilaterals] = temp;
-   }
-
-}
-void ChConstraintBilateral::ShurA(real* x) {
-   data_container->system_timer.start("ChConstraintBilateral_shurA_compute");
-   host_shurA(data_container->host_data.bids_bilateral.data(), data_container->host_data.active_data.data(),
-              data_container->host_data.JXYZA_bilateral.data(), data_container->host_data.JXYZB_bilateral.data(),
-              data_container->host_data.JUVWA_bilateral.data(), data_container->host_data.JUVWB_bilateral.data(),
-              x,
-              vel_update.data(), omg_update.data(),
-              update_offset.data());
-   data_container->system_timer.stop("ChConstraintBilateral_shurA_compute");
-   data_container->system_timer.start("ChConstraintBilateral_shurA_reduce");
-   host_Reduce_Shur(data_container->host_data.active_data.data(), data_container->host_data.QXYZ_data.data(), data_container->host_data.QUVW_data.data(),
-                    data_container->host_data.mass_data.data(), data_container->host_data.inr_data.data(), vel_update.data(), omg_update.data(), body_number.data(),
-                    offset_counter.data());
-   data_container->system_timer.stop("ChConstraintBilateral_shurA_reduce");
-}
-void ChConstraintBilateral::ShurB(real*x,
-                                  real* output) {
-   data_container->system_timer.start("ChConstraintBilateral_shurB_compute");
-   host_shurB(data_container->host_data.bids_bilateral.data(), data_container->host_data.active_data.data(),
-              x,
-              data_container->host_data.JXYZA_bilateral.data(), data_container->host_data.JXYZB_bilateral.data(),
-              data_container->host_data.JUVWA_bilateral.data(), data_container->host_data.JUVWB_bilateral.data(),
-              data_container->host_data.QXYZ_data.data(), data_container->host_data.QUVW_data.data(),
-              output);
-   data_container->system_timer.stop("ChConstraintBilateral_shurB_compute");
-}
-
-void ChConstraintBilateral::ShurBilaterals(custom_vector<real> &x_t,
-                                           custom_vector<real> & AX) {
-//#pragma omp parallel for
-   for (int i = 0; i < num_bodies; i++) {
-      data_container->host_data.QXYZ_data[i] = R3(0);
-      data_container->host_data.QUVW_data[i] = R3(0);
-   }
-
-   for (int index = 0; index < num_bilaterals; index++) {
-      real gam;
-      gam = x_t[index];
-      uint b1 = data_container->host_data.bids_bilateral[index].x;
-
-      if (data_container->host_data.active_data[b1] != 0) {
-         data_container->host_data.QXYZ_data[b1] += data_container->host_data.JXYZA_bilateral[index] * gam;
-         data_container->host_data.QUVW_data[b1] += data_container->host_data.JUVWA_bilateral[index] * gam;
-      }
-
-      uint b2 = data_container->host_data.bids_bilateral[index].y;
-      if (data_container->host_data.active_data[b2] != 0) {
-         data_container->host_data.QXYZ_data[b2] += data_container->host_data.JXYZB_bilateral[index] * gam;
-         data_container->host_data.QUVW_data[b2] += data_container->host_data.JUVWB_bilateral[index] * gam;
-      }
-   }
-
-#pragma omp parallel for
-   for (int index = 0; index < num_bilaterals; index++) {
-
-      real temp = 0;
-      uint b1 = data_container->host_data.bids_bilateral[index].x;
-      if (data_container->host_data.active_data[b1] != 0) {
-         real3 XYZ = data_container->host_data.QXYZ_data[b1] * data_container->host_data.mass_data[b1];
-         real3 UVW = data_container->host_data.QUVW_data[b1] * data_container->host_data.inr_data[b1];
-         temp += dot(XYZ, data_container->host_data.JXYZA_bilateral[index]);
-         temp += dot(UVW, data_container->host_data.JUVWA_bilateral[index]);
-
-      }
-      uint b2 = data_container->host_data.bids_bilateral[index].y;
-      if (data_container->host_data.active_data[b2] != 0) {
-
-         real3 XYZ = data_container->host_data.QXYZ_data[b2] * data_container->host_data.mass_data[b2];
-         real3 UVW = data_container->host_data.QUVW_data[b2] * data_container->host_data.inr_data[b2];
-         temp += dot(XYZ, data_container->host_data.JXYZB_bilateral[index]);
-         temp += dot(UVW, data_container->host_data.JUVWB_bilateral[index]);
-
-      }
-      AX[index] = temp;
-   }
-
-}
-void ChConstraintBilateral::host_Diag(int2 *ids,
-                                      bool *active,
-                                      real *inv_mass,
-                                      real3 *inv_inertia,
-                                      real3 *JXYZA,
-                                      real3 *JXYZB,
-                                      real3 *JUVWA,
-                                      real3 *JUVWB,
-                                      real* diag) {
-#pragma omp parallel for
-   for (int index = 0; index < num_bilaterals; index++) {
-      real3 temp = R3(0);
-      int2 id_ = ids[index];
-      uint b1 = id_.x;
-      uint b2 = id_.y;
-      real3 eta = R3(0);
-      if (active[b1] != 0) {
-
-         real inverse_mass = inv_mass[b1];
-         eta.x += dot(JXYZA[index], JXYZA[index]) * inverse_mass;
-
-         real3 inverse_inertia = inv_inertia[b1];
-         eta.x += dot(JUVWA[index] * JUVWA[index], inverse_inertia);
-
-      }
-      if (active[b2] != 0) {
-
-         real inverse_mass = inv_mass[b2];
-         eta.x += dot(JXYZB[index], JXYZB[index]) * inverse_mass;
-
-         real3 inverse_inertia = inv_inertia[b2];
-         eta.x += dot(JUVWB[index] * JUVWB[index], inverse_inertia);
-
-      }
-      diag[index + num_unilaterals] = eta.x;
-
-   }
-}
-
-void ChConstraintBilateral::Diag() {
-   host_Diag(data_container->host_data.bids_bilateral.data(), data_container->host_data.active_data.data(), data_container->host_data.mass_data.data(),
-             data_container->host_data.inr_data.data(), data_container->host_data.JXYZA_bilateral.data(), data_container->host_data.JXYZB_bilateral.data(),
-             data_container->host_data.JUVWA_bilateral.data(), data_container->host_data.JUVWB_bilateral.data(), data_container->host_data.diag.data());
+  for (int index = 0; index < num_bilaterals; index++) {
+    data_container->host_data.E[index + num_unilaterals] = 0;
+  }
 }
 
 void ChConstraintBilateral::Build_D() {
-   for (int index = 0; index < num_bilaterals; index++) {
-      real3 XYZ, UVW;
-      int2 body_id = data_container->host_data.bids_bilateral[index];
+  //   blaze::SparseSubmatrix<CompressedMatrix<real> > D_T =
+  //   submatrix(data_container->host_data.D_T, data_container->num_unilaterals,
+  //   0, data_container->num_bilaterals,
+  //   data_container->num_bodies * 6);
 
-      XYZ = data_container->host_data.JXYZA_bilateral[index];
-      data_container->host_data.D_T.append( index + num_unilaterals,body_id.x * 6 + 0, XYZ.x);
-      data_container->host_data.D_T.append( index + num_unilaterals,body_id.x * 6 + 1, XYZ.y);
-      data_container->host_data.D_T.append( index + num_unilaterals,body_id.x * 6 + 2, XYZ.z);
+  data_container->host_data.gamma_bilateral.resize(num_bilaterals);
 
-      UVW = data_container->host_data.JUVWA_bilateral[index];
-      data_container->host_data.D_T.append( index + num_unilaterals,body_id.x * 6 + 3, UVW.x);
-      data_container->host_data.D_T.append( index + num_unilaterals,body_id.x * 6 + 4, UVW.y);
-      data_container->host_data.D_T.append( index + num_unilaterals,body_id.x * 6 + 5, UVW.z);
-      XYZ = data_container->host_data.JXYZB_bilateral[index];
-      data_container->host_data.D_T.append( index + num_unilaterals,body_id.y * 6 + 0, XYZ.x);
-      data_container->host_data.D_T.append( index + num_unilaterals,body_id.y * 6 + 1, XYZ.y);
-      data_container->host_data.D_T.append( index + num_unilaterals,body_id.y * 6 + 2, XYZ.z);
+  ChLcpSystemDescriptor* lcp_sys = data_container->lcp_system_descriptor;
+  std::vector<ChLcpConstraint*>& mconstraints = (*lcp_sys).GetConstraintsList();
 
-      UVW = data_container->host_data.JUVWB_bilateral[index];
-      data_container->host_data.D_T.append( index + num_unilaterals,body_id.y * 6 + 3, UVW.x);
-      data_container->host_data.D_T.append( index + num_unilaterals,body_id.y * 6 + 4, UVW.y);
-      data_container->host_data.D_T.append( index + num_unilaterals,body_id.y * 6 + 5, UVW.z);
+  CompressedMatrix<real>& D_T = data_container->host_data.D_T;
+#pragma omp parallel for
+  for (int index = 0; index < num_bilaterals; index++) {
+    int cntr = data_container->host_data.bilateral_mapping[index];
+    ChLcpConstraintTwoBodies* mbilateral = (ChLcpConstraintTwoBodies*)(mconstraints[cntr]);
 
-      data_container->host_data.D_T.finalize(index + num_unilaterals);
-   }
+    int idA = ((ChBody*)((ChLcpVariablesBody*)(mbilateral->GetVariables_a()))->GetUserData())->GetId();
+    int idB = ((ChBody*)((ChLcpVariablesBody*)(mbilateral->GetVariables_b()))->GetUserData())->GetId();
+
+    mconstraints[cntr]->Update_auxiliary();
+
+    int2 body_id = I2(idA, idB);
+
+    D_T(index + num_unilaterals, body_id.x* 6 + 0) = mbilateral->Get_Cq_a()->GetElementN(0);
+    D_T(index + num_unilaterals, body_id.x* 6 + 1) = mbilateral->Get_Cq_a()->GetElementN(1);
+    D_T(index + num_unilaterals, body_id.x* 6 + 2) = mbilateral->Get_Cq_a()->GetElementN(2);
+
+    D_T(index + num_unilaterals, body_id.x* 6 + 3) = mbilateral->Get_Cq_a()->GetElementN(3);
+    D_T(index + num_unilaterals, body_id.x* 6 + 4) = mbilateral->Get_Cq_a()->GetElementN(4);
+    D_T(index + num_unilaterals, body_id.x* 6 + 5) = mbilateral->Get_Cq_a()->GetElementN(5);
+
+    D_T(index + num_unilaterals, body_id.y* 6 + 0) = mbilateral->Get_Cq_b()->GetElementN(0);
+    D_T(index + num_unilaterals, body_id.y* 6 + 1) = mbilateral->Get_Cq_b()->GetElementN(1);
+    D_T(index + num_unilaterals, body_id.y* 6 + 2) = mbilateral->Get_Cq_b()->GetElementN(2);
+
+    D_T(index + num_unilaterals, body_id.y* 6 + 3) = mbilateral->Get_Cq_b()->GetElementN(3);
+    D_T(index + num_unilaterals, body_id.y* 6 + 4) = mbilateral->Get_Cq_b()->GetElementN(4);
+    D_T(index + num_unilaterals, body_id.y* 6 + 5) = mbilateral->Get_Cq_b()->GetElementN(5);
+  }
 }
+
+void ChConstraintBilateral::GenerateSparsity(SOLVERMODE solver_mode) {
+  CompressedMatrix<real>& D_T = data_container->host_data.D_T;
+  ChLcpSystemDescriptor* lcp_sys = data_container->lcp_system_descriptor;
+  std::vector<ChLcpConstraint*>& mconstraints = (*lcp_sys).GetConstraintsList();
+
+  for (int index = 0; index < num_bilaterals; index++) {
+    int cntr = data_container->host_data.bilateral_mapping[index];
+
+    ChLcpConstraintTwoBodies* mbilateral = (ChLcpConstraintTwoBodies*)(mconstraints[cntr]);
+
+    int idA = ((ChBody*)((ChLcpVariablesBody*)(mbilateral->GetVariables_a()))->GetUserData())->GetId();
+    int idB = ((ChBody*)((ChLcpVariablesBody*)(mbilateral->GetVariables_b()))->GetUserData())->GetId();
+    int2 body_id = I2(idA, idB);
+
+    // std::cout<<" "<<index + num_unilaterals<<" "<<body_id.x * 6 +
+    // 0<<std::endl;
+    if (idA > idB) {
+      D_T.append(index + num_unilaterals, body_id.y * 6 + 0, 1);
+      D_T.append(index + num_unilaterals, body_id.y * 6 + 1, 1);
+      D_T.append(index + num_unilaterals, body_id.y * 6 + 2, 1);
+
+      D_T.append(index + num_unilaterals, body_id.y * 6 + 3, 1);
+      D_T.append(index + num_unilaterals, body_id.y * 6 + 4, 1);
+      D_T.append(index + num_unilaterals, body_id.y * 6 + 5, 1);
+
+      D_T.append(index + num_unilaterals, body_id.x * 6 + 0, 1);
+      D_T.append(index + num_unilaterals, body_id.x * 6 + 1, 1);
+      D_T.append(index + num_unilaterals, body_id.x * 6 + 2, 1);
+
+      D_T.append(index + num_unilaterals, body_id.x * 6 + 3, 1);
+      D_T.append(index + num_unilaterals, body_id.x * 6 + 4, 1);
+      D_T.append(index + num_unilaterals, body_id.x * 6 + 5, 1);
+    } else {
+      D_T.append(index + num_unilaterals, body_id.x * 6 + 0, 1);
+      D_T.append(index + num_unilaterals, body_id.x * 6 + 1, 1);
+      D_T.append(index + num_unilaterals, body_id.x * 6 + 2, 1);
+
+      D_T.append(index + num_unilaterals, body_id.x * 6 + 3, 1);
+      D_T.append(index + num_unilaterals, body_id.x * 6 + 4, 1);
+      D_T.append(index + num_unilaterals, body_id.x * 6 + 5, 1);
+
+      D_T.append(index + num_unilaterals, body_id.y * 6 + 0, 1);
+      D_T.append(index + num_unilaterals, body_id.y * 6 + 1, 1);
+      D_T.append(index + num_unilaterals, body_id.y * 6 + 2, 1);
+
+      D_T.append(index + num_unilaterals, body_id.y * 6 + 3, 1);
+      D_T.append(index + num_unilaterals, body_id.y * 6 + 4, 1);
+      D_T.append(index + num_unilaterals, body_id.y * 6 + 5, 1);
+    }
+    D_T.finalize(index + num_unilaterals);
+  }
+}
+
 
