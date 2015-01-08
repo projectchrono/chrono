@@ -21,11 +21,26 @@
 #ifndef CH_DATAMANAGER_H
 #define CH_DATAMANAGER_H
 
-#include "chrono_parallel/ChParallelDefines.h"
-#include "chrono_parallel/math/ChParallelMath.h"
+// Thrust Includes
+#include <thrust/host_vector.h>
+#include <thrust/device_vector.h>
+#include <thrust/system/omp/vector.h>
+
+// Chrono Includes
+#include "lcp/ChLcpSystemDescriptor.h"
+
+// Chrono Parallel Includes
 #include "chrono_parallel/ChTimerParallel.h"
+#include "chrono_parallel/ChParallelDefines.h"
+#include "chrono_parallel/math/real4.h"
+#include "chrono_parallel/math/mat33.h"
+#include "chrono_parallel/math/other_types.h"
 #include "chrono_parallel/ChSettings.h"
+
+// Blaze Includes
 #include <blaze/math/CompressedMatrix.h>
+#include <blaze/math/DynamicVector.h>
+#include <blaze/math/DenseSubvector.h>
 
 using blaze::CompressedMatrix;
 using blaze::DynamicVector;
