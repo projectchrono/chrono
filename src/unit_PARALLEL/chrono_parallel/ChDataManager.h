@@ -28,6 +28,7 @@
 #include <blaze/math/CompressedMatrix.h>
 
 using blaze::CompressedMatrix;
+using blaze::DynamicVector;
 namespace chrono {
 
 struct host_container {
@@ -102,7 +103,36 @@ struct host_container {
    thrust::host_vector<int2> bids_bilateral;
    thrust::host_vector<real> gamma_bilateral;
 
-   CompressedMatrix<real> Nshur, D, D_T, M_inv, M_invD;
+   //This matrix, if used will hold D^TxM^-1xD in sparse form
+   CompressedMatrix<real> Nshur;
+   //The D Matrix hold the Jacobian for the entire system
+   CompressedMatrix<real> D;
+   //D_T is the transpose of the D matrix, note that D_T is actually computed
+   //first and D is taken as the transpose. This is due to the way that blaze
+   //handles sparse matrix alloction, it is easier to do it on a per row basis
+   CompressedMatrix<real> D_T;
+   //M_inv is the inver mass matrix, This matrix, if holding the full inertia
+   //tensor is block diagonal
+   CompressedMatrix<real> M_inv;
+   //Minv_D holds M_inv multiplied by D, this is done as a preprocessing step
+   //so that later, when the full matrix vector product is needed it can be
+   //performed in two steps, first R = Minv_D*x, and then D_T*R where R is just
+   //a temporary variable used here for illustrative purposes. In reality the
+   //entire operation happens inline without a temp variable.
+   CompressedMatrix<real> M_invD;
+
+   DynamicVector<real> R; //The right hand side of the system
+   DynamicVector<real> b; //Correction terms
+   DynamicVector<real> M_invk; //result of M_inv multiplied by vector of forces
+   DynamicVector<real> gamma; //THe unknowns we are solving for
+   DynamicVector<real> v; //This vector holds the velocities for all objects
+   DynamicVector<real> hf;//This vector holds h*forces, h is timestep
+   DynamicVector<real> rhs_bilateral;
+   //While E is the compliance matrix, in reality it is completely diagonal
+   //therefore it is stored in a vector for performance reasons
+   DynamicVector<real> E;
+   //DynamicVector<real> gamma_bilateral;
+
 };
 
 class CH_PARALLEL_API ChParallelDataManager {
