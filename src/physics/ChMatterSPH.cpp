@@ -498,14 +498,6 @@ void ChMatterSPH::Update (double mytime)
 	
 }
 
-
-
-void ChMatterSPH::UpdateExternalGeometry ()
-{
-	if (this->GetExternalObject())
-		this->GetExternalObject()->onChronoChanged();
-}
-
  
 // collision stuff
 void ChMatterSPH::SetCollide (bool mcoll)

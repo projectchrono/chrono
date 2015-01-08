@@ -758,27 +758,6 @@ void ChBody::Update (double mytime)
 }
 
 
-
-void ChBody::UpdateExternalGeometry ()
-{
-    if (this->GetExternalObject())
-        this->GetExternalObject()->onChronoChanged();
-
-    HIER_MARKER_INIT
-    while (HIER_MARKER_NOSTOP)
-    {
-        MARKpointer->UpdateExternalGeometry();
-        HIER_MARKER_NEXT
-    }
-
-    HIER_FORCE_INIT
-    while (HIER_FORCE_NOSTOP)
-    {
-        FORCEpointer->UpdateExternalGeometry();
-        HIER_FORCE_NEXT
-    }
-}
-
 void ChBody::SetBodyFixed (bool mev)
 {
     variables.SetDisabled(mev);
@@ -830,14 +809,6 @@ int ChBody::RecomputeCollisionModel()
     if (!GetCollide()) return FALSE; // do nothing unless collision enabled
 
     collision_model->ClearModel(); // ++++ start geometry definition
-  
-    if (this->GetExternalObject())
-        this->GetExternalObject()->onAddCollisionGeometries(
-                    this->collision_model,
-                    this,
-                    1,
-                    &coord.pos,
-                    &Amatrix);
 
     collision_model->BuildModel(); // ++++ complete geometry definition
 

@@ -155,13 +155,6 @@ public:
 					/// As above, but with current time
 	virtual void Update();
 
-
-					/// Tells to the associated external object of class ChExternalObject(),
-					/// if any, that its 3D shape must be updated in order to syncronize to
-					/// link state (for example, if chrono is a plugin for a 3D modeler, the
-					/// wireframe display of the link may change depending on link state.
-	virtual void UpdateExternalGeometry ();
-
 					/// Called from a foreign software (i.e. a plugin, a CAD appl.), if any, to report 
 					/// that time has changed. Most often you can leave this unimplemented.
 	virtual void UpdatedExternalTime (double prevtime, double time){}; 

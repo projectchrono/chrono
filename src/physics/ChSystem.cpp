@@ -1480,25 +1480,6 @@ void ChSystem::Update()
 
 
 
-void ChSystem::UpdateExternalGeometry ()
-{
-	for (unsigned int ip = 0; ip < bodylist.size(); ++ip)  // ITERATE on bodies
-	{
-		ChBody* Bpointer = bodylist[ip];
-
-		Bpointer->UpdateExternalGeometry ();
-	}
-	
-	for (unsigned int ip = 0; ip < linklist.size(); ++ip)  // ITERATE on links
-	{
-		ChLink* Lpointer = linklist[ip];
-
-		Lpointer->UpdateExternalGeometry ();
-	}
-}
-
-
-
 
 ///////////////////////////////
 /////////
