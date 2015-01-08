@@ -13,8 +13,8 @@
 // =============================================================================
 //
 // Description: This file contains all of the setting structures that are used
-// within chrono parallel. THe constructor for each struct should specify
-// default values for every setting parameter
+// within chrono parallel. The constructor for each struct should specify
+// default values for every setting parameter that is used by default
 // =============================================================================
 
 #ifndef CH_SETTINGS_H
@@ -30,6 +30,8 @@ struct collision_settings {
 	// The default values are specified in the constructor, use these as
 	// guidelines when experimenting with your own simulation setup.
   collision_settings() {
+	// by default the bounding box is not active and the default values for the
+	// bounding box size are not specified.
     use_aabb_active = false;
     // I chose to set the default envelope because there is no good default
     // value (in my opinion, feel free to disagree!) I suggest that the envelope
@@ -71,10 +73,12 @@ struct collision_settings {
   NARROWPHASETYPE narrowphase_algorithm;
   // real edge_radius;
 };
-
+// solver_settings, like the name implies is the structure that contains all
+// settings associated with the parallel solver.
 struct solver_settings {
 
   solver_settings() {
+
     tolerance = 1e-4;
     tolerance_objective = 1e-6;
     collision_in_solver = false;
@@ -99,23 +103,53 @@ struct solver_settings {
     solver_mode = SLIDING;
     step_size = .01;
   }
-
+  //The solver type variable defines name of the solver that will be used to
+  //solve the DVI problem
   SOLVERTYPE solver_type;
+  //There are three possible solver modes
+  //NORMAL will only solve for the normal and bilateral constraints.
+  //SLIDING will only solve for the normal, sliding and bilateral constraints.
+  //SPINNING will solve for all of the constraints.
+  //The purpose of this settings is to allow the user to completely ignore
+  //different types of friction. In chrono parallel all constraints support
+  //friction and sliding friction so this is how you can improve performance
+  //when you know that you don't need spinning/rolling friction or want to solve
+  //a problem frictionless
   SOLVERMODE solver_mode;
+  //this parameter is a constant used when solving a problem with compliance
   real alpha;
-
+  //The contact recovery speed parameter controls how "hard" a contact is
+  //enforced when two objects are penetrating. The larger the value is the
+  //faster the two objects will separate
   real contact_recovery_speed;
+  //This parameter is the same as the one for contacts, it controls how fast two
+  //objects will move in order to resolve constraint drift.
   real bilateral_clamp_speed;
+  //It is possible to disable clamping for bilaterals entirely. When set to true
+  //bilateral_clamp_speed is ignored
   bool clamp_bilaterals;
+  //An extra prestabilization can be performed for bilaterals before the normal
+  //solve, in some cases this will improve the stability of bilateral
+  //bilateral constraints
   bool perform_stabilization;
   bool collision_in_solver;
   bool update_rhs;
   bool verbose;
   bool test_objective;
 
+  //Along with setting the solver mode, the total number of iterations for each
+  //type of constraints can be performed.
   uint max_iteration;
+  //If the normal iterations are set, iterations are performed for just the
+  //normal part of the constraints. This will essentially precondition the
+  //solver and stiffen the contacts, making objects penetrate less. For visual
+  //accuracy this is really useful in my opinion. Bilaterals are still solved
   uint max_iteration_normal;
+  //Similarly sliding iterations are only performed on the sliding constraints.
+  //Bilaterals are still solved
   uint max_iteration_sliding;
+  //Similarly spinning iterations are only performed on the spinning constraints
+  //Bilaterals are still solved
   uint max_iteration_spinning;
   uint max_iteration_bilateral;
 
