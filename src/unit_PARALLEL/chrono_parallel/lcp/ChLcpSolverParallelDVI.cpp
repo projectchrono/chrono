@@ -6,8 +6,8 @@ using namespace chrono;
 void ChLcpSolverParallelDVI::RunTimeStep(real step) {
    data_container->settings.step_size = step;
    if (data_container->settings.solver.solver_mode == NORMAL) {
-      rigid_rigid.offset = 3;
-      data_container->num_unilaterals = 3 * data_container->num_contacts;
+      rigid_rigid.offset = 1;
+      data_container->num_unilaterals = 1* data_container->num_contacts;
    } else if (data_container->settings.solver.solver_mode == SLIDING) {
       rigid_rigid.offset = 3;
       data_container->num_unilaterals = 3 * data_container->num_contacts;
@@ -392,7 +392,7 @@ void ChLcpSolverParallelDVI::ComputeN() {
       data_container->host_data.M_inv.reserve(data_container->num_bodies * 6);
       data_container->host_data.D_T.resize(data_container->num_constraints, data_container->num_bodies * 6);
       if (data_container->settings.solver.solver_mode == NORMAL) {
-         data_container->host_data.D_T.reserve(data_container->num_contacts * 6 * 3 + data_container->num_bilaterals * 6 * 2);
+         data_container->host_data.D_T.reserve(data_container->num_contacts * 6 * 2 + data_container->num_bilaterals * 6 * 2);
       } else if (data_container->settings.solver.solver_mode == SLIDING) {
          data_container->host_data.D_T.reserve(data_container->num_contacts * 6 * 6 + data_container->num_bilaterals * 6 * 2);
       } else if (data_container->settings.solver.solver_mode == SPINNING) {
