@@ -94,8 +94,6 @@ class CH_PARALLEL_API ChLcpSolverParallelDVI : public ChLcpSolverParallel {
    }
 
    virtual void RunTimeStep(real step);
-   void RunWarmStartPostProcess();
-   void RunWarmStartPreprocess();
    void ComputeN();
 
    void ChangeSolverType(SOLVERTYPE type) {
