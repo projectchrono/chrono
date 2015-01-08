@@ -110,13 +110,7 @@ class CH_PARALLEL_API ChCollisionSystemParallel : public ChCollisionSystem {
    void setBinsPerAxis(int3 binsPerAxis) {
       broadphase->setBinsPerAxis(binsPerAxis);
    }
-   void setBodyPerBin(int max,
-                      int min) {
-      data_container->settings.collision.min_body_per_bin = min;
-      data_container->settings.collision.max_body_per_bin = max;
-      broadphase->setBodyPerBin(max, min);
 
-   }
    void SetAABB(real3 aabbmin,
                 real3 aabbmax) {
       data_container->settings.collision.aabb_min = aabbmin;
