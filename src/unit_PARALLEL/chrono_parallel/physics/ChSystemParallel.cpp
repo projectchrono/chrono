@@ -53,6 +53,11 @@ ChSystemParallel::~ChSystemParallel() {
 }
 
 int ChSystemParallel::Integrate_Y() {
+	//Get the pointer for the system descriptor and store it into the
+	//data manager
+   data_manager->lcp_system_descriptor = this->LCP_descriptor;
+
+
    data_manager->system_timer.Reset();
    data_manager->system_timer.start("step");
    //=============================================================================================

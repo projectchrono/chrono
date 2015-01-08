@@ -144,7 +144,13 @@ class CH_PARALLEL_API ChParallelDataManager {
    ChParallelDataManager();
    ~ChParallelDataManager();
 
+   //Structure that contains the data on the host, the naming convention is
+   //from when the code supported the GPU (host vs device)
    host_container host_data;
+
+   //This pointer is used by the bilarerals for computing the jacobian and other
+   //terms
+   ChLcpSystemDescriptor* lcp_system_descriptor;
 
    //Indexing variables
    uint num_bodies;			//The number of objects in a system
@@ -154,7 +160,7 @@ class CH_PARALLEL_API ChParallelDataManager {
    uint num_unilaterals;	//The number of contact constraints
    uint num_bilaterals;		//The number of bilateral constraints
    uint num_constraints;	//Total number of constraints
-   uint num_shafts;			//The number of shafts in teh system
+   uint num_shafts;			//The number of shafts in the system
 
    // Flag indicating whether or not effective contact radius is calculated
    bool erad_is_set;
