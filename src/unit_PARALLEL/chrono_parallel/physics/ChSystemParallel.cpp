@@ -90,21 +90,26 @@ int ChSystemParallel::Integrate_Y() {
       if (data_manager->host_data.active_data[i] == true) {
          real3 vel = data_manager->host_data.vel_data[i];
          real3 omg = data_manager->host_data.omg_data[i];
-         bodylist[i]->Variables().Get_qb().SetElement(0, 0, vel.x);
-         bodylist[i]->Variables().Get_qb().SetElement(1, 0, vel.y);
-         bodylist[i]->Variables().Get_qb().SetElement(2, 0, vel.z);
-         bodylist[i]->Variables().Get_qb().SetElement(3, 0, omg.x);
-         bodylist[i]->Variables().Get_qb().SetElement(4, 0, omg.y);
-         bodylist[i]->Variables().Get_qb().SetElement(5, 0, omg.z);
+         bodylist[i]->Variables().Get_qb().SetElement(0, 0, velocities[i * 6 + 0]);
+         bodylist[i]->Variables().Get_qb().SetElement(1, 0, velocities[i * 6 + 1]);
+         bodylist[i]->Variables().Get_qb().SetElement(2, 0, velocities[i * 6 + 2]);
+         bodylist[i]->Variables().Get_qb().SetElement(3, 0, velocities[i * 6 + 3]);
+         bodylist[i]->Variables().Get_qb().SetElement(4, 0, velocities[i * 6 + 4]);
+         bodylist[i]->Variables().Get_qb().SetElement(5, 0, velocities[i * 6 + 5]);
 
          bodylist[i]->VariablesQbIncrementPosition(this->GetStep());
          bodylist[i]->VariablesQbSetSpeed(this->GetStep());
          bodylist[i]->UpdateTime(ChTime);
-         //TrySleeping();			// See if the body can fall asleep; if so, put it to sleeping
-         bodylist[i]->ClampSpeed();     // Apply limits (if in speed clamping mode) to speeds.
+         //TrySleeping();			     // See if the body can fall asleep; if so, put it to sleeping
+         bodylist[i]->ClampSpeed();      // Apply limits (if in speed clamping mode) to speeds.
          bodylist[i]->ComputeGyro();     // Set the gyroscopic momentum.
          bodylist[i]->UpdateForces(ChTime);
          bodylist[i]->UpdateMarkers(ChTime);
+
+         //update the position and rotation vectors
+         pos_pointer[i] = (R3(bodylist[i]->GetPos().x, bodylist[i]->GetPos().y, bodylist[i]->GetPos().z));
+         rot_pointer[i] = (R4(bodylist[i]->GetRot().e0, bodylist[i]->GetRot().e1, bodylist[i]->GetRot().e2, bodylist[i]->GetRot().e3));
+
       }
    }
 
