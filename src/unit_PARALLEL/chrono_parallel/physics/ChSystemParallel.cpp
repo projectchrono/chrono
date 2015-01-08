@@ -163,38 +163,27 @@ void ChSystemParallel::AddBody(ChSharedPtr<ChBody> newbody) {
    if (newbody->GetCollide()) {
       newbody->AddCollisionModelsToSystem();
    }
-
    ChLcpVariablesBodyOwnMass& mbodyvar = newbody->VariablesBody();
    real inv_mass = (1.0) / (mbodyvar.GetBodyMass());
-   //newbody->GetRot().Normalize();
    ChMatrix33<>& inertia = mbodyvar.GetBodyInvInertia();
 
-   data_manager->host_data.vel_data.push_back(
-   R3(mbodyvar.Get_qb().GetElementN(0), mbodyvar.Get_qb().GetElementN(1), mbodyvar.Get_qb().GetElementN(2)));
-   data_manager->host_data.omg_data.push_back(
-   R3(mbodyvar.Get_qb().GetElementN(3), mbodyvar.Get_qb().GetElementN(4), mbodyvar.Get_qb().GetElementN(5)));
-   data_manager->host_data.pos_data.push_back(
-   R3(newbody->GetPos().x, newbody->GetPos().y, newbody->GetPos().z));
-   data_manager->host_data.rot_data.push_back(
-   R4(newbody->GetRot().e0, newbody->GetRot().e1, newbody->GetRot().e2, newbody->GetRot().e3));
-   data_manager->host_data.inr_data.push_back(
-   R3(inertia.GetElement(0, 0), inertia.GetElement(1, 1), inertia.GetElement(2, 2)));
-   data_manager->host_data.frc_data.push_back(
-   R3(mbodyvar.Get_fb().ElementN(0), mbodyvar.Get_fb().ElementN(1), mbodyvar.Get_fb().ElementN(2)));     //forces
-   data_manager->host_data.trq_data.push_back(
-   R3(mbodyvar.Get_fb().ElementN(3), mbodyvar.Get_fb().ElementN(4), mbodyvar.Get_fb().ElementN(5)));     //torques
+   data_manager->host_data.pos_data.push_back(R3(newbody->GetPos().x, newbody->GetPos().y, newbody->GetPos().z));
+   data_manager->host_data.rot_data.push_back(R4(newbody->GetRot().e0, newbody->GetRot().e1, newbody->GetRot().e2, newbody->GetRot().e3));
+
+   M33 Inertia = M33(
+ 		  R3(inertia.GetElement(0, 0), inertia.GetElement(1, 0), inertia.GetElement(2, 0)),
+ 		  R3(inertia.GetElement(0, 1), inertia.GetElement(1, 1), inertia.GetElement(2, 1)),
+ 		  R3(inertia.GetElement(0, 2), inertia.GetElement(1, 2), inertia.GetElement(2, 2)));
+
+
+   data_manager->host_data.inr_data.push_back(Inertia);
+
    data_manager->host_data.active_data.push_back(newbody->IsActive());
    data_manager->host_data.collide_data.push_back(newbody->GetCollide());
-   data_manager->host_data.mass_data.push_back(inv_mass);
-
-   data_manager->host_data.lim_data.push_back(
-   R3(newbody->GetLimitSpeed(), .05 / GetStep(), .05 / GetStep()));
+   data_manager->host_data.inv_mass_data.push_back(inv_mass);
 
    // Let derived classes load specific material surface data
    LoadMaterialSurfaceData(newbody);
-
-   counter++;
-   data_manager->num_bodies = counter;
 }
 
 void ChSystemParallel::AddOtherPhysicsItem(ChSharedPtr<ChPhysicsItem> newitem) {

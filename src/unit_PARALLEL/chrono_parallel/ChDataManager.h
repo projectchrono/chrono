@@ -68,7 +68,7 @@ struct host_container {
    thrust::host_vector<real3> inr_data;
    thrust::host_vector<bool> active_data;
    thrust::host_vector<bool> collide_data;
-   thrust::host_vector<real> mass_data;
+   thrust::host_vector<real> inv_mass_data;
 
    // Shaft data
    thrust::host_vector<real> shaft_rot;    // shaft rotation angles
