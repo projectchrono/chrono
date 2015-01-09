@@ -157,7 +157,7 @@ void ChSolverPDIP::conjugateGradient(blaze::DynamicVector<real> & x) {
 void ChSolverPDIP::buildPreconditioner(const uint size)
 {
   prec_cg.resize(size);
-  blaze::DynamicMatrix<real> A = data_container->host_data.D_T * data_container->host_data.M_invD + M_hat + B * Dinv * diaglambda * grad_f;
+  blaze::CompressedMatrix<real> A = data_container->host_data.D_T * data_container->host_data.M_invD + M_hat + B * Dinv * diaglambda * grad_f;
 #pragma omp parallel for
   for(int i=0; i<prec_cg.size(); i++)
   {
