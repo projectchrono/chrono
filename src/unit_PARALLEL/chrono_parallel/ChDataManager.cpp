@@ -53,34 +53,6 @@ int ChParallelDataManager::ExportCurrentSystem(std::string output_dir) {
     offset = 6 * num_contacts;
   }
 
-  // fill in the vector for r (rhs vector)
-  blaze::DynamicVector<real> r;
-  r.resize(num_constraints);
-  for (int i = 0; i < r.size(); i++) {
-    r[i] = host_data.rhs_data[i];
-  }
-
-  // fill in b vector
-  blaze::DynamicVector<real> b(num_constraints, 0.0);
-  for (int i = 0; i < num_contacts; i++) {
-    if (settings.solver.solver_mode == NORMAL) {
-      b[i] = host_data.dpth_rigid_rigid[i] / settings.step_size;
-    } else if (settings.solver.solver_mode == SLIDING) {
-      b[3 * i] = host_data.dpth_rigid_rigid[i] / settings.step_size;
-      b[3 * i + 1] = 0.0;
-      b[3 * i + 2] = 0.0;
-    } else if (settings.solver.solver_mode == SPINNING) {
-      b[6 * i] = host_data.dpth_rigid_rigid[i] / settings.step_size;
-      b[6 * i + 1] = 0.0;
-      b[6 * i + 2] = 0.0;
-      b[6 * i + 3] = 0.0;
-      b[6 * i + 4] = 0.0;
-      b[6 * i + 5] = 0.0;
-    }
-  }
-  for (int i = 0; i < host_data.correction_bilateral.size(); i++) {
-    b[i + offset] = host_data.residual_bilateral[i];
-  }
 
   // fill in the information for constraints and friction
   blaze::DynamicVector<real> fric(num_constraints, -2.0);
@@ -103,11 +75,11 @@ int ChParallelDataManager::ExportCurrentSystem(std::string output_dir) {
 
   // output r
   std::string filename = output_dir + "dump_r.dat";
-  OutputBlazeVector(r, filename);
+  OutputBlazeVector(host_data.R, filename);
 
   // output b
   filename = output_dir + "dump_b.dat";
-  OutputBlazeVector(b, filename);
+  OutputBlazeVector(host_data.b, filename);
 
   // output friction data
   filename = output_dir + "dump_fric.dat";
