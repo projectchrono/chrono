@@ -157,7 +157,7 @@ void ChSolverPDIP::conjugateGradient(blaze::DynamicVector<real> & x) {
 void ChSolverPDIP::buildPreconditioner(const uint size)
 {
   prec_cg.resize(size);
-  blaze::DynamicMatrix<real> A = data_container->host_data.D_T * data_container->host_data.M_invD + M_hat + B * Dinv * diaglambda * grad_f;
+  blaze::CompressedMatrix<real> A = data_container->host_data.D_T * data_container->host_data.M_invD + M_hat + B * Dinv * diaglambda * grad_f;
 #pragma omp parallel for
   for(int i=0; i<prec_cg.size(); i++)
   {
@@ -207,8 +207,11 @@ uint ChSolverPDIP::SolvePDIP(const uint max_iter,
     const uint size,
 	const blaze::DynamicVector<real>& b,
 	blaze::DynamicVector<real>& x) {
-
+  bool verbose = false;
+  if(verbose) std::cout << "Number of constraints: " << size << "\nNumber of variables  : " << data_container->num_bodies << std::endl;
   real& residual = data_container->measures.solver.residual;
+  real& objective_value = data_container->measures.solver.objective_value;
+  custom_vector<real>& iter_hist = data_container->measures.solver.iter_hist;
   data_container->system_timer.start("ChSolverParallel_solverA");
   int totalKrylovIterations = 0;
 
@@ -361,6 +364,9 @@ uint ChSolverPDIP::SolvePDIP(const uint max_iter,
     residual = sqrt((r_g, r_g));//Res4(gamma, gamma_tmp);
 
     // (21) if r < tau
+    AtIterationEnd(residual, objective_value, iter_hist.size());
+    if(verbose) std::cout << "Residual: " << residual << ", Iter: " << current_iteration << ", Krylov Iter: " << totalKrylovIterations << std::endl;
+
     if (residual < tol_speed) {
       // (22) break
       break;
