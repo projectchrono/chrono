@@ -52,9 +52,6 @@ public:
       blaze::DynamicVector<real>& x     // The vector of unknowns
   );
 
-  // Compute the updated velocities
-  // The solution for gamma is already here, so use it rather than having to copy it
-  void ComputeImpulses();
 
   // Compute the residual for the solver
   real Res4(blaze::DynamicVector<real> & gamma,

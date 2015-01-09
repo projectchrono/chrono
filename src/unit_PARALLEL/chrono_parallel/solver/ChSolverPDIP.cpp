@@ -205,7 +205,7 @@ int ChSolverPDIP::preconditionedConjugateGradient(blaze::DynamicVector<real> & x
 
 uint ChSolverPDIP::SolvePDIP(const uint max_iter,
     const uint size,
-	blaze::DynamicVector<real>& b,
+	const blaze::DynamicVector<real>& b,
 	blaze::DynamicVector<real>& x) {
   data_container->system_timer.start("ChSolverParallel_solverA");
   int totalKrylovIterations = 0;
@@ -378,19 +378,4 @@ uint ChSolverPDIP::SolvePDIP(const uint max_iter,
   data_container->system_timer.stop("ChSolverParallel_solverA");
 
   return current_iteration;
-}
-
-void ChSolverPDIP::ComputeImpulses() {
-  blaze::CompressedVector<real> velocities = data_container->host_data.M_invD * gamma;
-
-#pragma omp parallel for
-  for (int i = 0; i < data_container->num_bodies; i++) {
-    real3 vel, omg;
-
-    vel = R3(velocities[i * 6 + 0], velocities[i * 6 + 1], velocities[i * 6 + 2]);
-    omg = R3(velocities[i * 6 + 3], velocities[i * 6 + 4], velocities[i * 6 + 5]);
-
-    data_container->host_data.vel_data[i] += vel;
-    data_container->host_data.omg_data[i] += omg;
-  }
 }
