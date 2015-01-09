@@ -41,6 +41,9 @@ namespace chrono {
 
 // -----------------------------------------------------------------------------
 // Static variables
+const size_t TrackVehicle::m_num_tracks = 2;    // number of trackSystems to create
+const size_t TrackVehicle::m_num_engines = 1;   // number of powertrains (and drivelines) to create
+
 const double     TrackVehicle::m_mass = 5489.2;   // chassis sprung mass
 const ChVector<> TrackVehicle::m_COM = ChVector<>(0.1, 0.0, 0.3);  // COM location, relative to body Csys REF frame
 const ChVector<> TrackVehicle::m_inertia(1786.9, 10449.7, 10721.2);  // chassis inertia (roll,yaw,pitch)
@@ -70,24 +73,14 @@ TrackVehicle::TrackVehicle(bool fixed, VisualizationType chassisVis, CollisionTy
   m_chassis->SetMass(m_mass);
   m_chassis->SetInertiaXX(m_inertia);
   m_chassis->SetBodyFixed(fixed);
-
   // add visualization assets to the chassis
   AddVisualization();
-
   // add the chassis body to the system
   Add(m_chassis);
 
-
-  m_num_tracks = 2; // number of trackSystems to create
   // resize all vectors for the number of track systems
   m_TrackSystems.resize(m_num_tracks);
-
-
-
-  // TODO: manually set the data
   m_TrackSystem_locs.resize(m_num_tracks);
-
-
 
   // Each trackSystem has its own driveline and powertrain, so the left and right
   // sides can have power applied independently
@@ -97,9 +90,13 @@ TrackVehicle::TrackVehicle(bool fixed, VisualizationType chassisVis, CollisionTy
   // create track systems
   for (int i = 0; i < m_num_tracks; i++) {
     m_TrackSystems[i] = ChSharedPtr<TrackSystem>(new TrackSystem("track chain "+std::to_string(i), i));
-    // create the powertrain and drivelines
-    m_drivelines[i] = ChSharedPtr<TrackDriveline>(new TrackDriveline("driveline "+std::to_string(i))  );
-    m_ptrains[i] = ChSharedPtr<TrackPowertrain>(new TrackPowertrain("powertrain "+std::to_string(i)) );
+  }
+  
+  // create the powertrain and drivelines
+  for (int j = 0; j < m_num_engines; j++)
+  {
+    m_drivelines[j] = ChSharedPtr<TrackDriveline>(new TrackDriveline("driveline "+std::to_string(j))  );
+    m_ptrains[j] = ChSharedPtr<TrackPowertrain>(new TrackPowertrain("powertrain "+std::to_string(j)) );
   
   }
 
@@ -121,8 +118,17 @@ void TrackVehicle::Initialize(const ChCoordsys<>& chassis_Csys)
   for (int i = 0; i < m_num_tracks; i++)
   {
     m_TrackSystems[i]->Initialize(m_chassis, m_TrackSystem_locs[i]);
-    m_drivelines[i]->Initialize(m_chassis, m_TrackSystems[i]->GetDriveGear());
-    m_ptrains[i]->Initialize(m_chassis, m_drivelines[i]->GetDriveshaft());
+  }
+
+  // initialize the powertrain, drivelines
+  for (int j = 0; j < m_num_engines; j++)
+  {
+    size_t driveGear_L_idx = 2*j;
+    size_t driveGear_R_idx = 2*j + 1;
+    m_drivelines[j]->Initialize(m_chassis,
+      m_TrackSystems[driveGear_L_idx]->GetDriveGear(),
+      m_TrackSystems[driveGear_R_idx]->GetDriveGear());
+    m_ptrains[j]->Initialize(m_chassis, m_drivelines[j]->GetDriveshaft());
   }
 
 }

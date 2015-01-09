@@ -52,8 +52,9 @@ public:
 
   ~TrackVehicle() {}
 
-  /// Initialize the tracked vehicle REF frame with the specified Coordinate system
+  /// Initialize the tracked vehicle REF frame with the specified Coordinate system.
   /// This initial transform is inherited by all vehicle subsystems.
+  /// Will add the collision geometry and add modeling elements to the ChSystem.
   void Initialize(const ChCoordsys<>& chassis_Csys);  ///< [in] initial config of vehicle REF frame
   
   /// Update the vehicle with the new settings for throttle and brake
@@ -125,7 +126,6 @@ private:
   // private variables
 
   ChSharedPtr<ChBodyAuxRef> m_chassis;  ///< hull body
-  int m_num_tracks;       // number of tracks for this vehicle
 
   std::vector<ChVector<> > m_TrackSystem_locs;   // locations of the track system c-sys relative to chassis
   std::vector<ChSharedPtr<TrackSystem> > m_TrackSystems;	// list of track systems
@@ -137,6 +137,9 @@ private:
   CollisionType m_collide;  // how to handle chassis collision geometry
 
   // static variables
+  static const size_t m_num_tracks;  // number of tracks for this vehicle
+  static const size_t m_num_engines; // number of engines (powertrains and drivelines)
+
   static const double     m_mass;                   // chassis mass
   static const ChVector<> m_COM;                    // location of the chassis COM in the local ref frame
   static const ChVector<> m_inertia;                // symmetric moments of inertia of the chassis
