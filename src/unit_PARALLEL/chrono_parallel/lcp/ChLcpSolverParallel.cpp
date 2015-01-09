@@ -51,3 +51,12 @@ void ChLcpSolverParallel::ComputeMassMatrix() {
   data_container->host_data.M_invk = data_container->host_data.v + M_inv * data_container->host_data.hf;
 }
 
+void ChLcpSolverParallel::ComputeImpulses() {
+  if (data_container->num_constraints > 0) {
+	  //Compute new velocity based on the lagrange multipliers
+    data_container->host_data.v = data_container->host_data.M_invk + data_container->host_data.M_invD * data_container->host_data.gamma;
+  } else {
+	  //When there are no constraints we need to still apply gravity!
+    data_container->host_data.v = data_container->host_data.M_invk;
+  }
+}

@@ -46,26 +46,29 @@ class CH_PARALLEL_API ChLcpSolverParallel : public ChLcpIterativeSolver {
    ChLcpSolverParallel();
 
    virtual ~ChLcpSolverParallel() {}
-
-   virtual double Solve(ChLcpSystemDescriptor &sysd) {
-      return 0;
-   }
+   //Each child class must define its own solve method
+   virtual double Solve(ChLcpSystemDescriptor &sysd) {return 0;}
+   //Similarly, the run timestep function needs to be defined
    virtual void RunTimeStep(real step) = 0;
-
+   //Compute the inverse mass matrix and the term v+M_inv*hf
    void ComputeMassMatrix();
+   //Compute the jacobian matrix
+   virtual void ComputeD() = 0;
+   //Compute the compliance matrix
+   virtual void ComputeE() = 0;
+   //Compute the rhs matrix, depending on what type of solve is being performed
+   //the RHS vector will have different non zero entries
+   virtual void ComputeR(SOLVERMODE mode) = 0;
+   //This function computes the new velocities based on the lagrange multipliers
+   void ComputeImpulses();
 
-   virtual void ComputeD(real step) = 0;
-   virtual void ComputeE(real step) = 0;
-   virtual void ComputeR(real step) = 0;
-
-   real GetResidual() {
-      return residual;
-   }
+   real GetResidual() { return residual; }
    ChParallelDataManager *data_container;
-
+   ChSolverParallel *solver;
  protected:
    real residual;
    ChConstraintBilateral bilateral;
+
 };
 
 class CH_PARALLEL_API ChLcpSolverParallelDVI : public ChLcpSolverParallel {
@@ -80,44 +83,12 @@ class CH_PARALLEL_API ChLcpSolverParallelDVI : public ChLcpSolverParallel {
 
    virtual void RunTimeStep(real step);
 
-   virtual void ComputeD(real step);
-   virtual void ComputeE(real step);
-   virtual void ComputeR(real step);
+   virtual void ComputeD();
+   virtual void ComputeE();
+   virtual void ComputeR(SOLVERMODE mode);
 
-   void ChangeSolverType(SOLVERTYPE type) {
-      data_container->settings.solver.solver_type = type;
+   void ChangeSolverType(SOLVERTYPE type);
 
-      if (this->solver) {
-         delete (this->solver);
-      }
-      if (type == STEEPEST_DESCENT) {
-         solver = new ChSolverSD();
-      } else if (type == GRADIENT_DESCENT) {
-         solver = new ChSolverGD();
-      } else if (type == CONJUGATE_GRADIENT) {
-         solver = new ChSolverCG();
-      } else if (type == CONJUGATE_GRADIENT_SQUARED) {
-         solver = new ChSolverCGS();
-      } else if (type == BICONJUGATE_GRADIENT) {
-         solver = new ChSolverBiCG();
-      } else if (type == BICONJUGATE_GRADIENT_STAB) {
-         solver = new ChSolverBiCGStab();
-      } else if (type == MINIMUM_RESIDUAL) {
-         solver = new ChSolverMinRes();
-      } else if (type == QUASAI_MINIMUM_RESIDUAL) {
-         //         // This solver has not been implemented yet
-         //         //SolveQMR(data_container->gpu_data.device_gam_data, rhs, max_iteration);
-      } else if (type == APGD) {
-         solver = new ChSolverAPGD();
-      }  else if (type == JACOBI) {
-         solver = new ChSolverJacobi();
-      } else if (type == GAUSS_SEIDEL) {
-         solver = new ChSolverPGS();
-      } else if (type == PDIP) {
-         solver = new ChSolverPDIP();
-      }
-   }
-   ChSolverParallel *solver;
  private:
    ChConstraintRigidRigid rigid_rigid;
 };
@@ -143,7 +114,6 @@ class CH_PARALLEL_API ChLcpSolverParallelDEM : public ChLcpSolverParallel {
                               const custom_vector<real3>& ct_body_force,
                               const custom_vector<real3>& ct_body_torque);
 
-   ChSolverParallel * solver;
 };
 
 }
