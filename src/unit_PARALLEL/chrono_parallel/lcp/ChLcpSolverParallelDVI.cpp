@@ -91,6 +91,7 @@ void ChLcpSolverParallelDVI::RunTimeStep(real step) {
   }
 
   data_container->host_data.gamma_bilateral.resize(data_container->num_bilaterals);
+
 #pragma omp parallel for
   for (int i = 0; i < data_container->num_bilaterals; i++) {
     data_container->host_data.gamma_bilateral[i] = data_container->host_data.gamma[i + data_container->num_unilaterals];

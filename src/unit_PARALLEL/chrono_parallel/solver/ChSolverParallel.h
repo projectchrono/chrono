@@ -35,60 +35,40 @@ class CH_PARALLEL_API ChSolverParallel : public ChBaseParallel {
 
   // At the beginning of the step reset the size/indexing variables,
   // resize for new contact list and clear temporary accumulation variables
-  void Setup(ChParallelDataManager* data_container_    // pointer to data container
-             );
+  void Setup(ChParallelDataManager* data_container_);    // pointer to data container
 
-  // Project the lagrange multipliers (gamma) onto the friction cone.
-  void Project(real* gamma    // Lagrange Multipliers
-               );
 
-  // Project a single contact
-  void Project_Single(int index,     // index of contact
-                      real* gamma    // Lagrange Multipliers
-                      );
+  // Project the lagrange multipliers
+  void Project(real* gamma);    // Lagrange Multipliers
+
+  // Project a single lagrange multiplier
+  void Project_Single(int index,     // index
+                      real* gamma);    // Lagrange Multipliers
 
   // Compute the first half of the shur matrix vector multiplication (N*x)
   // Perform M_invDx=M^-1*D*x
-  void shurA(blaze::DynamicVector<real>& x, blaze::DynamicVector<real>& out    // Vector that N is multiplied by
-             );
+  void shurA(blaze::DynamicVector<real>& x, blaze::DynamicVector<real>& out);    // Vector that N is multiplied by
 
   // Compute rhs value with relaxation term
   void ComputeSRhs(custom_vector<real>& gamma, const custom_vector<real>& rhs, custom_vector<real3>& vel_data, custom_vector<real3>& omg_data, custom_vector<real>& b);
 
-  //   // Perform M^-1*D*gamma and compute the linear and rotational velocity
-  //   vectors
-  //   void ComputeImpulses(
-  //                        custom_vector<real>& gamma,
-  //                        custom_vector<real3>& vel_data,
-  //                        custom_vector<real3>& omg_data);
-
   // Function that performs time integration to get the new positions
   // Used when contacts need to be updated within the solver
   // Function is similar to compute impulses
-  void UpdatePosition(custom_vector<real>& x    // Lagrange multipliers
-                      );
+  // Currently not supported
+  void UpdatePosition(custom_vector<real>& x);    // Lagrange multipliers
 
   // Rerun the narrowphase to get the new contact list, broadphase is not run
-  // again here
-  // This assumes that the positions did not drastically change.
+  // again here. This assumes that the positions did not drastically change.
   void UpdateContacts();
 
   // Compute the full shur matrix vector product (N*x) where N=D^T*M^-1*D
   void ShurProduct(const blaze::DynamicVector<real>& x,    // Vector that will be multiplied by N
-                   blaze::DynamicVector<real>& AX          // Output Result
-                   );
+                   blaze::DynamicVector<real>& AX);          // Output Result
 
   // Compute the shur matrix vector product only for the bilaterals (N*x)
   // where N=D^T*M^-1*D
-  template <class T>
-  void ShurBilaterals(T& x, blaze::DynamicVector<real>& output) {
-    blaze::SparseSubmatrix<CompressedMatrix<real> > D_T_sub =
-        blaze::submatrix(data_container->host_data.D_T, data_container->num_unilaterals, 0, data_container->num_bilaterals, data_container->num_bodies * 6);
-
-    blaze::SparseSubmatrix<CompressedMatrix<real> > M_invD_sub =
-        blaze::submatrix(data_container->host_data.M_invD, 0, data_container->num_unilaterals, data_container->num_bodies * 6, data_container->num_bilaterals);
-    output = D_T_sub * M_invD_sub * x;
-  }
+  void ShurBilaterals(const blaze::DynamicVector<real>& x, blaze::DynamicVector<real>& output);
 
   // Call this function with an associated solver type to solve the system
   virtual void Solve() = 0;
@@ -97,8 +77,8 @@ class CH_PARALLEL_API ChSolverParallel : public ChBaseParallel {
   uint SolveStab(const uint max_iter,                                     // Maximum number of iterations
                  const uint size,                                         // Number of unknowns
                  const blaze::DenseSubvector<DynamicVector<real> >& b,    // Rhs vector
-                 blaze::DenseSubvector<DynamicVector<real> >& x           // The vector of unknowns
-                 );
+                 blaze::DenseSubvector<DynamicVector<real> >& x);         // The vector of unknowns
+
 
   // Get the number of iterations perfomed by the solver
   int GetIteration() { return current_iteration; }

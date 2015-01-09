@@ -169,6 +169,9 @@ void ChSystemParallel::AddBody(ChSharedPtr<ChBody> newbody) {
    newbody->AddRef();
    newbody->SetSystem(this);
    newbody->SetId(counter);
+
+   data_manager->num_bodies++;
+
    bodylist.push_back(newbody.get_ptr());
 
    if (newbody->GetCollide()) {

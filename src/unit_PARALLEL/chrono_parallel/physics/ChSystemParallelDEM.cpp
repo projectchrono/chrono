@@ -91,8 +91,8 @@ void ChSystemParallelDEM::UpdateBodies()
     pos_pointer[i] = (R3(pos.x, pos.y, pos.z));
     rot_pointer[i] = (R4(rot.e0, rot.e1, rot.e2, rot.e3));
     inr_pointer[i] = (M33(R3(inertia.GetElement(0, 0), inertia.GetElement(1, 0), inertia.GetElement(2, 0)),
-                             R3(inertia.GetElement(0, 1), inertia.GetElement(1, 1), inertia.GetElement(2, 1)),
-                             R3(inertia.GetElement(0, 2), inertia.GetElement(1, 2), inertia.GetElement(2, 2))));
+                          R3(inertia.GetElement(0, 1), inertia.GetElement(1, 1), inertia.GetElement(2, 1)),
+                          R3(inertia.GetElement(0, 2), inertia.GetElement(1, 2), inertia.GetElement(2, 2))));
 
     active_pointer[i] = bodylist[i]->IsActive();
     inv_mass_pointer[i] = 1.0f / bodylist[i]->VariablesBody().GetBodyMass();

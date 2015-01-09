@@ -84,13 +84,11 @@ class CH_PARALLEL_API ChLcpSolverParallelDVI : public ChLcpSolverParallel {
    }
 
    virtual void RunTimeStep(real step);
-
    virtual void ComputeD();
    virtual void ComputeE();
    virtual void ComputeR(SOLVERMODE mode);
-
+   //This function is used to change the solver algorithm
    void ChangeSolverType(SOLVERTYPE type);
-
  private:
    ChConstraintRigidRigid rigid_rigid;
 };

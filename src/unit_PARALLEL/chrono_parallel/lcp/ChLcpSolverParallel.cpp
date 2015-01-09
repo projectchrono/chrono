@@ -62,14 +62,18 @@ void ChLcpSolverParallel::ComputeImpulses() {
 }
 
 void ChLcpSolverParallel::PerformStabilization() {
+  DynamicVector<real>& R = data_container->host_data.R;
+  DynamicVector<real>& gamma = data_container->host_data.gamma;
+  uint& num_unilaterals = data_container->num_unilaterals;
+  uint& num_bilaterals = data_container->num_bilaterals;
+
   if (data_container->settings.solver.max_iteration_bilateral <= 0 || data_container->num_bilaterals <= 0) {
     return;
   }
-  blaze::DenseSubvector<DynamicVector<real> > bilateral_rhs = blaze::subvector(data_container->host_data.R, data_container->num_unilaterals, data_container->num_bilaterals);
-
-  blaze::DenseSubvector<DynamicVector<real> > bilateral_gamma = blaze::subvector(data_container->host_data.gamma, data_container->num_unilaterals, data_container->num_bilaterals);
+  blaze::DenseSubvector<DynamicVector<real> > bilateral_rhs = blaze::subvector(R, num_unilaterals, num_bilaterals);
+  blaze::DenseSubvector<DynamicVector<real> > bilateral_gamma = blaze::subvector(gamma, num_unilaterals, num_bilaterals);
 
   data_container->system_timer.start("ChLcpSolverParallel_Stab");
-  solver->SolveStab(data_container->settings.solver.max_iteration_bilateral, data_container->num_bilaterals, bilateral_rhs, bilateral_gamma);
+  solver->SolveStab(data_container->settings.solver.max_iteration_bilateral, num_bilaterals, bilateral_rhs, bilateral_gamma);
   data_container->system_timer.stop("ChLcpSolverParallel_Stab");
 }
