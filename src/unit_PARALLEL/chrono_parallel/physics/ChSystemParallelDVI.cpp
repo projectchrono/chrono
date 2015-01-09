@@ -46,8 +46,8 @@ void ChSystemParallelDVI::LoadMaterialSurfaceData(ChSharedPtr<ChBody> newbody) {
 }
 
 void ChSystemParallelDVI::UpdateBodies() {
-  custom_vector<char>& active_pointer = data_manager->host_data.active_data;
-  custom_vector<char>& collide_pointer = data_manager->host_data.collide_data;
+  custom_vector<bool>& active_pointer = data_manager->host_data.active_data;
+  custom_vector<bool>& collide_pointer = data_manager->host_data.collide_data;
   custom_vector<real>& inv_mass_pointer = data_manager->host_data.inv_mass_data;
   custom_vector<real>& cohesion_pointer = data_manager->host_data.cohesion_data;
   custom_vector<real3>& fric_pointer = data_manager->host_data.fric_data;
