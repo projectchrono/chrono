@@ -1,6 +1,18 @@
 #include "chrono_parallel/lcp/ChLcpSolverParallel.h"
 #include "chrono_parallel/math/ChThrustLinearAlgebra.h"
 
+#include "chrono_parallel/solver/ChSolverAPGD.h"
+#include "chrono_parallel/solver/ChSolverAPGDREF.h"
+#include "chrono_parallel/solver/ChSolverBiCG.h"
+#include "chrono_parallel/solver/ChSolverBiCGStab.h"
+#include "chrono_parallel/solver/ChSolverCG.h"
+#include "chrono_parallel/solver/ChSolverCGS.h"
+#include "chrono_parallel/solver/ChSolverMinRes.h"
+#include "chrono_parallel/solver/ChSolverSD.h"
+#include "chrono_parallel/solver/ChSolverGD.h"
+#include "chrono_parallel/solver/ChSolverPGS.h"
+#include "chrono_parallel/solver/ChSolverJacobi.h"
+#include "chrono_parallel/solver/ChSolverPDIP.h"
 using namespace chrono;
 
 void ChLcpSolverParallelDVI::RunTimeStep(real step) {
@@ -205,6 +217,8 @@ void ChLcpSolverParallelDVI::ChangeSolverType(SOLVERTYPE type) {
     //         //SolveQMR(data_container->gpu_data.device_gam_data, rhs, max_iteration);
   } else if (type == APGD) {
     solver = new ChSolverAPGD();
+  } else if (type == APGDREF) {
+    solver = new ChSolverAPGDREF();
   } else if (type == JACOBI) {
     solver = new ChSolverJacobi();
   } else if (type == GAUSS_SEIDEL) {

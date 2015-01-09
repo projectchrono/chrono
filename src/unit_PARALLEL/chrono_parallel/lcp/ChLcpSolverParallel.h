@@ -28,17 +28,7 @@
 #include "chrono_parallel/constraints/ChConstraintBilateral.h"
 #include "chrono_parallel/math/ChParallelMath.h"
 
-#include "chrono_parallel/solver/ChSolverAPGD.h"
-#include "chrono_parallel/solver/ChSolverBiCG.h"
-#include "chrono_parallel/solver/ChSolverBiCGStab.h"
-#include "chrono_parallel/solver/ChSolverCG.h"
-#include "chrono_parallel/solver/ChSolverCGS.h"
-#include "chrono_parallel/solver/ChSolverMinRes.h"
-#include "chrono_parallel/solver/ChSolverSD.h"
-#include "chrono_parallel/solver/ChSolverGD.h"
-#include "chrono_parallel/solver/ChSolverPGS.h"
-#include "chrono_parallel/solver/ChSolverJacobi.h"
-#include "chrono_parallel/solver/ChSolverPDIP.h"
+
 namespace chrono {
 
 class CH_PARALLEL_API ChLcpSolverParallel : public ChLcpIterativeSolver {
