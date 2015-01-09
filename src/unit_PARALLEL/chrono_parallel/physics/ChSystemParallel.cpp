@@ -244,17 +244,9 @@ void ChSystemParallel::AddShaft(ChSharedPtr<ChShaft> shaft)
 }
 
 void ChSystemParallel::Update() {
-#pragma omp parallel for
-   for (int i = 0; i < bodylist.size(); i++) {
-     bodylist[i]->VariablesFbReset();
-   }
-////#pragma omp parallel for
-   for (int i = 0; i < data_manager->num_shafts; i++) {
-     shaftlist[i]->VariablesFbReset();
-   }
    this->LCP_descriptor->BeginInsertion();
-   UpdateBilaterals();
    UpdateBodies();
+   UpdateBilaterals();
    UpdateShafts();
    LCP_descriptor->EndInsertion();
 }
@@ -269,6 +261,7 @@ void ChSystemParallel::UpdateShafts()
 
 ////#pragma omp parallel for
   for (int i = 0; i < data_manager->num_shafts; i++) {
+	shaftlist[i]->VariablesFbReset();
     shaftlist[i]->Update(ChTime);
     shaftlist[i]->VariablesFbLoadForces(GetStep());
     shaftlist[i]->VariablesQbLoadSpeed();
