@@ -43,9 +43,12 @@ const std::string TrackChain::m_meshFile = utils::GetModelDataFile("track_data/M
 const double TrackChain::m_mass = 18.02;
 const ChVector<> TrackChain::m_inertia(0.04, 0.22, 0.25);
 const double TrackChain::m_shoe_width = 0.4;
-const double TrackChain::m_shoe_height = 0.2;
+const double TrackChain::m_shoe_height = 0.2; 
 const double TrackChain::m_pin_dist = 0.3;		// linear distance between a shoe's two pin joint center
 const double TrackChain::m_pin_radius = 0.05;
+ // distance between body center and the vertical offset to the inner-surface of the collision geometry
+//  used for initializing shoes as a chain
+const double TrackChain::m_shoe_chain_offset = 0.035; // .03315 exact
 
 TrackChain::TrackChain(const std::string& name, 
                        VisualizationType vis, 
@@ -234,7 +237,7 @@ void TrackChain::Initialize(ChSharedPtr<ChBodyAuxRef> chassis,
   control_to_abs.push_back(ChFrame<>(start_point));
   (*control_to_abs.end()).ConcatenatePreTransformation(chassis->GetFrame_REF_to_abs() );
 
-  // hard part: "wrap" the track chain around the trackSystem, e.g., drive-gear,
+  // "wrap" the track chain around the trackSystem rolling elements, e.g., drive-gear,
   // idler, road-wheels. First and last shoes are allowed to be in any orientation,
   // as long as the final pin joint connects correctly.
   CreateChain(control_to_abs, rolling_to_abs, clearance, start_to_abs.GetPos() );
@@ -338,15 +341,87 @@ void TrackChain::AddCollisionGeometry(size_t track_idx)
 }
 
 // two control points per rolling body.
-
+// each two control points correspond to a single rolling element & clearance value, in the same order.
 void TrackChain::CreateChain(const std::vector<ChFrame<>>& control_points_abs,
                              const std::vector<ChFrame<>>& rolling_element_abs,
                              const std::vector<double>& clearance,
                              const ChVector<>& start_pos_abs)
 {
-  // add collision geometry to the first track shoe
-  AddCollisionGeometry(0);
-  m_numShoes = 1;
+  // Each segment has 2 parts, the initial linear portion, then wrapping around 
+  //   the rolling element envelope to the next start point.
+  size_t num_elems = clearance.size() - 1;
+  ChVector<> curr_pos = start_pos_abs;  // keep track of the current position along the line segment.
+                                        // build shoe body directly this point, normal to the line segments.
+  for(int idx = 0; idx < num_elems; idx++)
+  {
+    ChVector<> start_seg;  // start and end point of the line segment
+    if(idx == 0)
+      start_seg = start_pos_abs;
+    else
+      start_seg = control_points_abs[2*(idx-1)+1].GetPos();
+    ChVector<> end_seg = control_points_abs[2*idx].GetPos();  // end of line seg.
+    ChVector<> end_curve = control_points_abs[2*idx+1].GetPos();  // end of curved section
+    // build the bodies for this line segment and rolling element curved section
+    curr_pos = CreateShoes(curr_pos, start_seg, end_seg, end_curve, rolling_element_abs[idx].GetPos(), clearance[idx]);
+  }
+}
+
+// all locations are in the abs ref. frame.
+// find envelope norm. dir by 
+ChVector<> TrackChain::CreateShoes(const ChVector<>& curr_pos,
+    const ChVector<>& start_seg,
+    const ChVector<>& end_seg,
+    const ChVector<>& end_curve,
+    const ChVector<>& rolling_elem_center,
+    double clearance)
+{
+  // used to place next shoe center
+  ChVector<> pos_on_seg = curr_pos;
+  // lateral in terms of the vehicle chassis
+  ChVector<> lateral_dir = Vcross(pos_on_seg-end_seg, end_curve-end_seg);
+  lateral_dir.Normalize();
+  ChVector<> tan_dir = end_seg - pos_on_seg;
+  tan_dir.Normalize();
+  // normal to the envelope surface
+  ChVector<> norm_dir = Vcross( lateral_dir, tan_dir);
+
+  // create the shoes along the segment!
+  double dist_to_end = Vdot(end_seg - pos_on_seg, tan_dir);
+  ChVector<> shoe_pos;
+  ChQuaternion<> shoe_rot;
+  ChMatrix33<> shoe_rot_A;
+  while(dist_to_end > m_pin_dist/2.0 )  // keep going until within half pin dist.
+  {
+    // build the shoe here, unless it's the first pass thru
+    if(m_shoes.size() == 1) 
+    {    
+      // add collision geometry
+      AddCollisionGeometry(0);
+    } else 
+    {
+      // create a new body by copying the first. Should pick up collision shape, etc.
+      // just rename it
+      m_shoes.push_back(ChSharedPtr<ChBody>(new ChBody( *(m_shoes[0].get_ptr()) )) );
+      m_shoes[m_numShoes]->SetNameString( "shoe " + std::to_string(m_numShoes+1) );
+    }
+    
+    // initialize pos, rot of this shoe.
+    shoe_pos = pos_on_seg + norm_dir * m_shoe_chain_offset;
+    shoe_rot_A.Set_A_axis(tan_dir, -norm_dir, lateral_dir);
+    m_shoes[m_numShoes]->SetPos(shoe_pos);
+    m_shoes[m_numShoes]->SetRot(shoe_rot_A);
+
+    // done adding this shoe
+    m_numShoes++;
+    // move along the line segment, in the tangent dir
+    pos_on_seg += tan_dir*m_pin_dist;
+    // update distance, so we can get out of this loop eventually
+    dist_to_end = Vdot(end_seg - pos_on_seg, tan_dir);
+  }
+
+  // At this point, wrap the shoes around the 
+
+  return shoe_pos;
 }
 
 
