@@ -53,12 +53,12 @@ class CH_PARALLEL_API ChLcpSolverParallel : public ChLcpIterativeSolver {
    //Compute the inverse mass matrix and the term v+M_inv*hf
    void ComputeMassMatrix();
    //Compute the jacobian matrix
-   virtual void ComputeD() = 0;
+   virtual void ComputeD(){};
    //Compute the compliance matrix
-   virtual void ComputeE() = 0;
+   virtual void ComputeE(){};
    //Compute the rhs matrix, depending on what type of solve is being performed
    //the RHS vector will have different non zero entries
-   virtual void ComputeR(SOLVERMODE mode) = 0;
+   virtual void ComputeR(SOLVERMODE mode){};
    //This function computes the new velocities based on the lagrange multipliers
    void ComputeImpulses();
    //Solves just the bilaterals so that they can be warm started
