@@ -129,7 +129,7 @@ int ChSystemParallel::Integrate_Y() {
      if (!data_manager->host_data.shaft_active[i])
        continue;
 
-     shaftlist[i]->Variables().Get_qb().SetElementN(0, data_manager->host_data.shaft_omg[i]);
+     shaftlist[i]->Variables().Get_qb().SetElementN(0, velocities[num_bodies * 6 + i]);
      shaftlist[i]->VariablesQbIncrementPosition(GetStep());
      shaftlist[i]->VariablesQbSetSpeed(GetStep());
      shaftlist[i]->Update(ChTime);
@@ -235,42 +235,64 @@ void ChSystemParallel::AddShaft(ChSharedPtr<ChShaft> shaft)
   shaftlist.push_back(shaft.get_ptr());
 
   data_manager->host_data.shaft_rot.push_back(0);
-  data_manager->host_data.shaft_omg.push_back(0);
-  data_manager->host_data.shaft_trq.push_back(0);
   data_manager->host_data.shaft_inr.push_back(1);
   data_manager->host_data.shaft_active.push_back(true);
 
   data_manager->num_shafts++;
 }
 
+void ChSystemParallel::ClearBodyForceVector()
+{
+  ////#pragma omp parallel for
+  for (int i = 0; i < data_manager->num_bodies; i++) {
+    bodylist[i]->VariablesFbReset();
+  }
+  ////#pragma omp parallel for
+  for (int i = 0; i < data_manager->num_shafts; i++) {
+    shaftlist[i]->VariablesFbReset();
+  }
+}
 void ChSystemParallel::Update() {
-   this->LCP_descriptor->BeginInsertion();
-   UpdateBodies();
-   UpdateBilaterals();
-   UpdateShafts();
-   LCP_descriptor->EndInsertion();
+  // In order to properly compute, the following must occur
+  // Clear the force vectors by calling VariablesFbReset for all objects
+  // Compute bilateral constraint forces
+  // Update bodies, update shafts
+  // Write forces into the fh vector
+
+  // Clears the forces for all lcp variables
+  ClearBodyForceVector();
+
+  //Allocate space for the velocities and forces for all objects
+  data_manager->host_data.v.resize(data_manager->num_bodies * 6 + data_manager->num_shafts * 1);
+  data_manager->host_data.hf.resize(data_manager->num_bodies * 6 + data_manager->num_shafts * 1);
+
+
+  this->LCP_descriptor->BeginInsertion();
+  UpdateBilaterals();
+  UpdateBodies();
+  UpdateShafts();
+  LCP_descriptor->EndInsertion();
 }
 
 void ChSystemParallel::UpdateShafts()
 {
   real* shaft_rot = data_manager->host_data.shaft_rot.data();
-  real* shaft_omg = data_manager->host_data.shaft_omg.data();
-  real* shaft_trq = data_manager->host_data.shaft_trq.data();
   real* shaft_inr = data_manager->host_data.shaft_inr.data();
   bool* shaft_active = data_manager->host_data.shaft_active.data();
 
 ////#pragma omp parallel for
   for (int i = 0; i < data_manager->num_shafts; i++) {
-	shaftlist[i]->VariablesFbReset();
+	  shaftlist[i]->VariablesFbReset();
     shaftlist[i]->Update(ChTime);
     shaftlist[i]->VariablesFbLoadForces(GetStep());
     shaftlist[i]->VariablesQbLoadSpeed();
 
     shaft_rot[i] = shaftlist[i]->GetPos();
     shaft_inr[i] = shaftlist[i]->Variables().GetInvMass().GetElementN(0);
-    shaft_omg[i] = shaftlist[i]->Variables().Get_qb().GetElementN(0);
-    shaft_trq[i] = shaftlist[i]->Variables().Get_fb().GetElementN(0);
     shaft_active[i] = shaftlist[i]->IsActive();
+
+    data_manager->host_data.v[data_manager->num_bodies * 6 + i] = shaftlist[i]->Variables().Get_qb().GetElementN(0);
+    data_manager->host_data.hf[data_manager->num_bodies * 6 + i] = shaftlist[i]->Variables().Get_fb().GetElementN(0);
   }
 }
 

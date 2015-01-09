@@ -91,8 +91,6 @@ struct host_container {
 
    // Shaft data
    thrust::host_vector<real> shaft_rot;    // shaft rotation angles
-   thrust::host_vector<real> shaft_omg;    // shaft angular velocities
-   thrust::host_vector<real> shaft_trq;    // shaft torques
    thrust::host_vector<real> shaft_inr;    // shaft inverse inertias
    thrust::host_vector<bool> shaft_active; // shaft active (not sleeping nor fixed) flags
 
@@ -115,7 +113,7 @@ struct host_container {
    //first and D is taken as the transpose. This is due to the way that blaze
    //handles sparse matrix allocation, it is easier to do it on a per row basis
    CompressedMatrix<real> D_T;
-   //M_inv is the inver mass matrix, This matrix, if holding the full inertia
+   //M_inv is the inverse mass matrix, This matrix, if holding the full inertia
    //tensor is block diagonal
    CompressedMatrix<real> M_inv;
    //Minv_D holds M_inv multiplied by D, this is done as a preprocessing step
@@ -176,7 +174,7 @@ class CH_PARALLEL_API ChParallelDataManager {
    int OutputBlazeVector(blaze::DynamicVector<real> src, std::string filename);
    //Output a sparse blaze matrix to a file
    int OutputBlazeMatrix(blaze::CompressedMatrix<real> src,std::string filename);
-   //Convenience funtion that outputs all of the data associted for a system
+   //Convenience function that outputs all of the data associated for a system
    //This is useful when debugging
    int ExportCurrentSystem(std::string output_dir);
 };

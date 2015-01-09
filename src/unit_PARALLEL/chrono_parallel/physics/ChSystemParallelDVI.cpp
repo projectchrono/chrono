@@ -66,7 +66,6 @@ void ChSystemParallelDVI::UpdateBodies() {
     // Set the gyroscopic momentum.
     bodylist[i]->ComputeGyro();
     bodylist[i]->UpdateForces(ChTime);
-    bodylist[i]->VariablesFbReset();
     bodylist[i]->VariablesFbLoadForces(GetStep());
     bodylist[i]->VariablesQbLoadSpeed();
 

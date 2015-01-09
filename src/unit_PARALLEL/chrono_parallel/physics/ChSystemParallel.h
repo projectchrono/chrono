@@ -56,6 +56,8 @@ CH_RTTI(ChSystemParallel, ChSystem)
    virtual int Integrate_Y();
    virtual void AddBody(ChSharedPtr<ChBody> newbody);
    virtual void AddOtherPhysicsItem (ChSharedPtr<ChPhysicsItem> newitem);
+
+   virtual void ClearBodyForceVector();
    virtual void Update();
    virtual void UpdateBilaterals();
    void UpdateShafts();
