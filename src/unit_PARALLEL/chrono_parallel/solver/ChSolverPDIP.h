@@ -40,8 +40,7 @@ public:
     }
 
     total_iteration += SolvePDIP(max_iteration, num_constraints,
-        data_container->host_data.rhs_data,
-        data_container->host_data.gamma_data);
+    		data_container->host_data.R, data_container->host_data.gamma);
 
     current_iteration = total_iteration;
   }
@@ -49,8 +48,8 @@ public:
   // Solve using a more streamlined but harder to read version of the APGD method
   uint SolvePDIP(const uint max_iter,       // Maximum number of iterations
       const uint size,               // Number of unknowns
-      custom_vector<real> &b,        // Rhs vector
-      custom_vector<real> &x         // The vector of unknowns
+      const blaze::DynamicVector<real>& b,    // Rhs vector
+      blaze::DynamicVector<real>& x     // The vector of unknowns
   );
 
   // Compute the updated velocities

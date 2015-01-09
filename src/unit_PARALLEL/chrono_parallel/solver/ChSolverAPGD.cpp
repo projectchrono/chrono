@@ -23,8 +23,8 @@ void ChSolverAPGD::SchurComplementProduct(blaze::DynamicVector<real> & src,
 }
 
 uint ChSolverAPGD::SolveAPGDBlaze(const uint max_iter, const uint size,
-custom_vector<real> &b,
-custom_vector<real> &x) {
+		 const blaze::DynamicVector<real>& b,
+		 blaze::DynamicVector<real>& x) {
   bool verbose = false;
   bool useWarmStarting = false;
   if(verbose) std::cout << "Number of constraints: " << size << "\nNumber of variables  : " << data_container->num_bodies << std::endl;
@@ -185,20 +185,3 @@ custom_vector<real> &x) {
   return current_iteration;
 }
 
-void ChSolverAPGD::ComputeImpulses() {
-  std::cout << "COMPUTE IMPULSES (BLAZE)" << std::endl;
-  blaze::CompressedVector<real> velocities = data_container->host_data.M_invD
-      * gamma_hat;
-
-  for (int i = 0; i < data_container->num_bodies; i++) {
-    real3 vel, omg;
-
-    vel = R3(velocities[i * 6 + 0], velocities[i * 6 + 1],
-        velocities[i * 6 + 2]);
-    omg = R3(velocities[i * 6 + 3], velocities[i * 6 + 4],
-        velocities[i * 6 + 5]);
-
-    data_container->host_data.vel_data[i] += vel;
-    data_container->host_data.omg_data[i] += omg;
-  }
-}

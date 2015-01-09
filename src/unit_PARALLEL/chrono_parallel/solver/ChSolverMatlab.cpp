@@ -2,15 +2,7 @@
 
 using namespace chrono;
 
-uint ChSolverMatlab::SolveMatlab(const uint max_iter,
-                                 const uint size,
-                                 const custom_vector<real> &b,
-                                 custom_vector<real> &x) {
-
-
-
-
-}
+uint ChSolverMatlab::SolveMatlab(const uint max_iter, const uint size, const custom_vector<real>& b, blaze::DynamicVector<real>& x) {}
 
 /*
  * //
@@ -94,13 +86,15 @@ namespace chrono {
             return ep;
          }
 
-//       /// Evaluate a Matlab instruction. If error happens while executing, returns false.
+//       /// Evaluate a Matlab instruction. If error happens while executing,
+returns false.
 //       bool Eval(char* mstring) {
 //          if (engEvalString(ep, mstring) == 0) return true;
 //          else return false;
 //       }
 
-         /// Evaluate a Matlab instruction. If error happens while executing, returns false.
+         /// Evaluate a Matlab instruction. If error happens while executing,
+returns false.
          bool Eval(std::string mstring) {
             if (engEvalString(ep, mstring.c_str()) == 0) return true;
             else return false;
@@ -112,28 +106,35 @@ namespace chrono {
             else return false;
          }
 
-         /// Put a matrix in Matlab environment, specifying its name as variable.
+         /// Put a matrix in Matlab environment, specifying its name as
+variable.
          /// If a variable with the same name already exist, it is overwritten.
          bool PutVariable(const ChMatrix<double>& mmatr,std::string varname) {
-            ChMatrixDynamic<> transfer;     // elements in Matlab are column-major
+            ChMatrixDynamic<> transfer;     // elements in Matlab are
+column-major
             transfer.CopyFromMatrixT(mmatr);
 
             mxArray *T = NULL;
-            T = mxCreateDoubleMatrix(mmatr.GetRows(), mmatr.GetColumns(), mxREAL);
-            memcpy((char *) mxGetPr(T), (char *) transfer.GetAddress(), mmatr.GetRows() * mmatr.GetColumns() * sizeof(double));
+            T = mxCreateDoubleMatrix(mmatr.GetRows(), mmatr.GetColumns(),
+mxREAL);
+            memcpy((char *) mxGetPr(T), (char *) transfer.GetAddress(),
+mmatr.GetRows() * mmatr.GetColumns() * sizeof(double));
             engPutVariable(ep, varname.c_str(), T);
             mxDestroyArray(T);
             return true;
          }
 
-         /// Put a sparse matrix in Matlab environment, specifying its name as variable.
+         /// Put a sparse matrix in Matlab environment, specifying its name as
+variable.
          /// If a variable with the same name already exist, it is overwritten.
-         bool PutSparseMatrix(const ChSparseMatrix& mmatr, std::string varname) {
+         bool PutSparseMatrix(const ChSparseMatrix& mmatr, std::string varname)
+{
             int nels = 0;
             for (int ii = 0; ii < mmatr.GetRows(); ii++)
                for (int jj = 0; jj < mmatr.GetColumns(); jj++) {
                   double elVal = ((ChSparseMatrix&) mmatr).GetElement(ii, jj);
-                  if (elVal || (ii + 1 == ((ChSparseMatrix&) mmatr).GetRows() && jj + 1 == ((ChSparseMatrix&) mmatr).GetColumns())) ++nels;
+                  if (elVal || (ii + 1 == ((ChSparseMatrix&) mmatr).GetRows() &&
+jj + 1 == ((ChSparseMatrix&) mmatr).GetColumns())) ++nels;
                }
 
             ChMatrixDynamic<> transfer(nels, 3);
@@ -142,7 +143,8 @@ namespace chrono {
             for (int ii = 0; ii < mmatr.GetRows(); ii++)
                for (int jj = 0; jj < mmatr.GetColumns(); jj++) {
                   double elVal = ((ChSparseMatrix&) mmatr).GetElement(ii, jj);
-                  if (elVal || (ii + 1 == ((ChSparseMatrix&) mmatr).GetRows() && jj + 1 == ((ChSparseMatrix&) mmatr).GetColumns())) {
+                  if (elVal || (ii + 1 == ((ChSparseMatrix&) mmatr).GetRows() &&
+jj + 1 == ((ChSparseMatrix&) mmatr).GetColumns())) {
                      transfer(eln, 0) = ii + 1;
                      transfer(eln, 1) = jj + 1;
                      transfer(eln, 2) = elVal;
@@ -159,11 +161,13 @@ namespace chrono {
             return true;
          }
 
-         /// Fetch a matrix from Matlab environment, specifying its name as variable.
+         /// Fetch a matrix from Matlab environment, specifying its name as
+variable.
          /// The used matrix must be of ChMatrixDynamic<double> type because
          /// it might undergo resizing.
          bool GetVariable(ChMatrixDynamic<double>& mmatr, std::string varname) {
-            ChMatrixDynamic<> transfer;     // elements in Matlab are column-major
+            ChMatrixDynamic<> transfer;     // elements in Matlab are
+column-major
 
             mxArray* T = engGetVariable(ep, varname.c_str());
             if (T) {
@@ -174,7 +178,8 @@ namespace chrono {
                }
                const mwSize* siz = mxGetDimensions(T);
                transfer.Resize(siz[1], siz[0]);
-               memcpy((char *) transfer.GetAddress(), (char *) mxGetPr(T), transfer.GetRows() * transfer.GetColumns() * sizeof(double));
+               memcpy((char *) transfer.GetAddress(), (char *) mxGetPr(T),
+transfer.GetRows() * transfer.GetColumns() * sizeof(double));
                mxDestroyArray(T);
 
                mmatr.CopyFromMatrixT(transfer);
@@ -209,9 +214,11 @@ namespace chrono {
 
          /// Solve using the Matlab default direct solver (as in x=A\b)
 
-         virtual double Solve(ChLcpSystemDescriptor& sysd      ///< system description with constraints and variables
+         virtual double Solve(ChLcpSystemDescriptor& sysd      ///< system
+description with constraints and variables
                ) {
-            std::vector<ChLcpConstraint*>& mconstraints = sysd.GetConstraintsList();
+            std::vector<ChLcpConstraint*>& mconstraints =
+sysd.GetConstraintsList();
             std::vector<ChLcpVariables*>& mvariables = sysd.GetVariablesList();
 
             for (unsigned int ic = 0; ic < mconstraints.size(); ic++) {
@@ -243,7 +250,8 @@ namespace chrono {
                mengine->PutVariable(mdb, "c");
                mengine->PutVariable(mdfric, "fric");
                mengine->PutVariable(mq, "v0");
-               //mengine->Eval("mdZ = [mdM, mdCq'; mdCq, -mdE]; mdd=[mdf;-mdb];");
+               //mengine->Eval("mdZ = [mdM, mdCq'; mdCq, -mdE];
+mdd=[mdf;-mdb];");
 
                //mengine->Eval("mdx = mldivide(mdZ , mdd);");
                mengine->Eval("residual = 1;");
@@ -259,10 +267,12 @@ namespace chrono {
                mengine->Eval("Minv = inv(M);");
 
                mengine->Eval("rungams;");
-               //mengine->Eval("[~,gamma,residual,objective,~,~,~,~]   = solver_APGD   (M,-D,k,c,E,iterations,fric,x0);");
+               //mengine->Eval("[~,gamma,residual,objective,~,~,~,~]   =
+solver_APGD   (M,-D,k,c,E,iterations,fric,x0);");
 
                chrono::ChMatrixDynamic<> mx;
-               if (!mengine->GetVariable(mx, "gamma")) GetLog() << "ERROR!! cannot fetch gamma";
+               if (!mengine->GetVariable(mx, "gamma")) GetLog() << "ERROR!!
+cannot fetch gamma";
 
 
                sysd.FromVectorToConstraints(mx);
@@ -278,17 +288,20 @@ namespace chrono {
                chrono::ChMatrixDynamic<> mtime;
                mengine->GetVariable(mtime, "time");
 
-               //GetLog() << " [residual, objective]:  [" << mres(0, 0) << ",  " << mobj(0, 0) << "] " << miters(0, 0) << " " << mtime(0, 0) << " s\n";
+               //GetLog() << " [residual, objective]:  [" << mres(0, 0) << ",  "
+<< mobj(0, 0) << "] " << miters(0, 0) << " " << mtime(0, 0) << " s\n";
 
             }
             chrono::ChMatrixDynamic<> mq;
-            if (!mengine->GetVariable(mq, "deltav")) GetLog() << "ERROR!! cannot fetch gamma";
+            if (!mengine->GetVariable(mq, "deltav")) GetLog() << "ERROR!! cannot
+fetch gamma";
             sysd.FromVectorToVariables(mq);
 
 //
 //          for (unsigned int iv = 0; iv < mvariables.size(); iv++) {
 //             if (mvariables[iv]->IsActive()) {
-//                mvariables[iv]->Compute_invMb_v(mvariables[iv]->Get_qb(), mvariables[iv]->Get_fb());     // q = [M]'*fb
+//                mvariables[iv]->Compute_invMb_v(mvariables[iv]->Get_qb(),
+mvariables[iv]->Get_fb());     // q = [M]'*fb
 //             }
 //          }
 

@@ -15,7 +15,6 @@
 // This file contains an implementation of an iterative Steepest Descent solver.
 // =============================================================================
 
-
 #ifndef CHSOLVERSD_H
 #define CHSOLVERSD_H
 
@@ -25,32 +24,26 @@
 namespace chrono {
 class CH_PARALLEL_API ChSolverSD : public ChSolverParallel {
  public:
+  ChSolverSD() : ChSolverParallel() {}
+  ~ChSolverSD() {}
 
-   ChSolverSD()
-         :
-           ChSolverParallel() {
+  void Solve() {
+    if (num_constraints == 0) {
+      return;
+    }
+    data_container->system_timer.start("ChSolverParallel_Solve");
+    total_iteration += SolveSD(max_iteration, num_constraints, data_container->host_data.R, data_container->host_data.gamma);
+    data_container->system_timer.stop("ChSolverParallel_Solve");
+    current_iteration = total_iteration;
+  }
+  // Solve using the Accelerated Projected Gradient Descent Method
+  uint SolveSD(const uint max_iter,              // Maximum number of iterations
+               const uint size,                  // Number of unknowns
+               blaze::DynamicVector<real>& b,    // Rhs vector
+               blaze::DynamicVector<real>& x     // The vector of unknowns
+               );
 
-   }
-   ~ChSolverSD() {
-
-   }
-
-   void Solve() {
-      if (num_constraints == 0) {return;}
-      data_container->system_timer.start("ChSolverParallel_Solve");
-      total_iteration += SolveSD(max_iteration, num_constraints, data_container->host_data.rhs_data, data_container->host_data.gamma_data);
-      data_container->system_timer.stop("ChSolverParallel_Solve");
-      current_iteration = total_iteration;
-   }
-   // Solve using the Accelerated Projected Gradient Descent Method
-   uint SolveSD(
-                const uint max_iter,           // Maximum number of iterations
-                const uint size,               // Number of unknowns
-                const custom_vector<real> &b,  // Rhs vector
-                custom_vector<real> &x         // The vector of unknowns
-                );
-
-   blaze::DynamicVector<real> r,temp, mb, ml;
+  blaze::DynamicVector<real> r, temp;
 };
 }
 

@@ -205,8 +205,8 @@ int ChSolverPDIP::preconditionedConjugateGradient(blaze::DynamicVector<real> & x
 
 uint ChSolverPDIP::SolvePDIP(const uint max_iter,
     const uint size,
-    custom_vector<real> &b,
-    custom_vector<real> &x) {
+	blaze::DynamicVector<real>& b,
+	blaze::DynamicVector<real>& x) {
   data_container->system_timer.start("ChSolverParallel_solverA");
   int totalKrylovIterations = 0;
 
