@@ -53,43 +53,39 @@ ChSystemParallel::~ChSystemParallel() {
 }
 
 int ChSystemParallel::Integrate_Y() {
-	//Get the pointer for the system descriptor and store it into the
-	//data manager
+	//Get the pointer for the system descriptor and store it into the data manager
    data_manager->lcp_system_descriptor = this->LCP_descriptor;
-
 
    data_manager->system_timer.Reset();
    data_manager->system_timer.start("step");
-   //=============================================================================================
+
    data_manager->system_timer.start("update");
    Setup();
    Update();
    data_manager->system_timer.stop("update");
-   //=============================================================================================
+
    data_manager->system_timer.start("collision");
    collision_system->Run();
    collision_system->ReportContacts(this->contact_container);
    data_manager->system_timer.stop("collision");
-   //=============================================================================================
+
    data_manager->system_timer.start("lcp");
    ((ChLcpSolverParallel *) (LCP_solver_speed))->RunTimeStep(GetStep());
    data_manager->system_timer.stop("lcp");
-   //=============================================================================================
+
    data_manager->system_timer.start("update");
 
-   uint cntr = 0;
-   std::vector<ChLcpConstraint *> &mconstraints = (*this->LCP_descriptor).GetConstraintsList();
-   for (uint ic = 0; ic < mconstraints.size(); ic++) {
-      if (mconstraints[ic]->IsActive() == false) {
-         continue;
-      }
-      ChLcpConstraintTwoBodies *mbilateral = (ChLcpConstraintTwoBodies *) (mconstraints[ic]);
-      mconstraints[ic]->Set_l_i(data_manager->host_data.gamma_bilateral[cntr]);
-      cntr++;
+   ChLcpSystemDescriptor* lcp_sys = data_manager->lcp_system_descriptor;
+   std::vector<ChLcpConstraint*>& mconstraints = (*lcp_sys).GetConstraintsList();
+   //Iterate over the active bilateral constraints
+   for (int index = 0; index < data_manager->num_bilaterals; index++) {
+       //Get the mapping for the next active bilateral constraint
+       int cntr = data_manager->host_data.bilateral_mapping[index];
+       ChLcpConstraintTwoBodies* mbilateral = (ChLcpConstraintTwoBodies*)(mconstraints[cntr]);
+       mconstraints[cntr]->Set_l_i(data_manager->host_data.gamma_bilateral[index]);
    }
    // updates the reactions of the constraint
    LCPresult_Li_into_reactions(1.0 / this->GetStep());     // R = l/dt  , approximately
-
 
    //Here the velocities stores in the blaze data structures are copied back
    //into the chrono data structures
