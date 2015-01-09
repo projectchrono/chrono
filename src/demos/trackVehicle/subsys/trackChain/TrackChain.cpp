@@ -87,6 +87,8 @@ void TrackChain::Initialize(ChSharedPtr<ChBodyAuxRef> chassis,
   ChVector<> rad_dir;   // center to segment start/end point on rolling elments
   ChVector<> r_21;      // vector between two pulley centerpoints
   ChVector<> norm_dir;  // norm = r_12 cross r_32
+  // iterate over the line segments, first segment is between start_loc and rolling_elem 0
+  // last segment  is between rolling_elem[last] and rolling_elem[last-1]
   for(size_t i = 0; i < num_elem; i++)
   { 
     // convert the center of the rolling body to abs coords
@@ -206,7 +208,7 @@ void TrackChain::Initialize(ChSharedPtr<ChBodyAuxRef> chassis,
   // hard part: "wrap" the track chain around the trackSystem, e.g., drive-gear,
   // idler, road-wheels. First and last shoes are allowed to be in any orientation,
   // as long as the final pin joint connects correctly.
-  CreateChain(control_to_abs, rolling_to_abs, clearance, ChCoordsys<>(start_to_abs.GetPos(), start_to_abs.GetRot()) );
+  CreateChain(control_to_abs, rolling_to_abs, clearance, start_to_abs.GetPos() );
 }
 
 void TrackChain::AddVisualization(size_t track_idx)
@@ -311,7 +313,7 @@ void TrackChain::AddCollisionGeometry(size_t track_idx)
 void TrackChain::CreateChain(const std::vector<ChFrame<>>& control_points_abs,
                              const std::vector<ChFrame<>>& rolling_element_abs,
                              const std::vector<double>& clearance,
-                             const ChCoordsys<>& start_Csys)
+                             const ChVector<>& start_pos_abs)
 {
   // add collision geometry to the first track shoe
   AddCollisionGeometry(0);

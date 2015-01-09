@@ -70,7 +70,7 @@ private:
   void CreateChain(const std::vector<ChFrame<>>& control_points_abs,
     const std::vector<ChFrame<>>& rolling_element_abs,
     const std::vector<double>& clearance,
-    const ChVector<>& start_loc_abs );
+    const ChVector<>& start_pos_abs );
 
     // private functions
   const std::string& getMeshName() const { return m_meshName; }
