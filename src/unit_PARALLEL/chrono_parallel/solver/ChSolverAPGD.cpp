@@ -136,13 +136,10 @@ uint ChSolverAPGD::SolveAPGD(const uint max_iter, const uint size, const blaze::
     }
 
     residual = lastgoodres;
-    // if (update_rhs) {
-    // ComputeSRhs(ml_candidate, rhs, vel_data, omg_data, b);
-    //}
 
     AtIterationEnd(residual, objective_value, iter_hist.size());
-    if (data_container->settings.solver.tolerance_objective) {
-      if (objective_value <= data_container->settings.solver.tolerance) {
+    if (data_container->settings.solver.test_objective) {
+      if (objective_value <= data_container->settings.solver.tolerance_objective) {
         break;
       }
     } else {

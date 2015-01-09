@@ -153,7 +153,7 @@ struct solver_settings {
   uint max_iteration_spinning;
   uint max_iteration_bilateral;
 
-  //This variable is the tolerance for the solver
+  //This variable is the tolerance for the solver in terms of speeds
   real tolerance;
   //This variable defines the tolerance if the solver is using the objective
   //termination condition
