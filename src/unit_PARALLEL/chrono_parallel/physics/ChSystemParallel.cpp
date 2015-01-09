@@ -101,8 +101,6 @@ int ChSystemParallel::Integrate_Y() {
 #pragma omp parallel for
    for (int i = 0; i < bodylist.size(); i++) {
       if (data_manager->host_data.active_data[i] == true) {
-         real3 vel = data_manager->host_data.vel_data[i];
-         real3 omg = data_manager->host_data.omg_data[i];
          bodylist[i]->Variables().Get_qb().SetElement(0, 0, velocities[i * 6 + 0]);
          bodylist[i]->Variables().Get_qb().SetElement(1, 0, velocities[i * 6 + 1]);
          bodylist[i]->Variables().Get_qb().SetElement(2, 0, velocities[i * 6 + 2]);
