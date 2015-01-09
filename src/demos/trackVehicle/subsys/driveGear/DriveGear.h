@@ -22,6 +22,7 @@
 #include "subsys/ChApiSubsys.h"
 #include "physics/ChSystem.h"
 #include "physics/ChBodyAuxRef.h"
+#include "physics/ChShaft.h"
 #include "physics/ChShaftsBody.h"
 #include "ModelDefs.h"
 
@@ -45,6 +46,8 @@ public:
 
   // accessors
   ChSharedPtr<ChBody> GetBody() { return m_gear; }
+
+  ChSharedPtr<ChShaft> GetAxle() { return m_axle; }
   
   double GetRadius() { return m_radius; }
 
