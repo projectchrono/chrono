@@ -207,6 +207,8 @@ uint ChSolverPDIP::SolvePDIP(const uint max_iter,
     const uint size,
     custom_vector<real> &b,
     custom_vector<real> &x) {
+  bool verbose = false;
+  if(verbose) std::cout << "Number of constraints: " << size << "\nNumber of variables  : " << data_container->num_bodies << std::endl;
   data_container->system_timer.start("ChSolverParallel_solverA");
   int totalKrylovIterations = 0;
 
@@ -359,6 +361,8 @@ uint ChSolverPDIP::SolvePDIP(const uint max_iter,
     residual = sqrt((r_g, r_g));//Res4(gamma, gamma_tmp);
 
     // (21) if r < tau
+	AtIterationEnd(residual, objective_value, iter_hist.size());
+	if(verbose) std::cout << "Residual: " << residual << ", Iter: " << current_iteration << ", Krylov Iter: " << totalKrylovIterations << std::endl;
     if (residual < tol_speed) {
       // (22) break
       break;
