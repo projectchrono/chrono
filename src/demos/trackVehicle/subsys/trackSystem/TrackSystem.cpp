@@ -219,7 +219,7 @@ void TrackSystem::Initialize(ChSharedPtr<ChBodyAuxRef> chassis,
   start_pos.y += (clearance[0] + clearance[clearance.size()-1] )/2.0;
   
   // no rotation for the start coordsys = wrap chain around the front rolling body first.
-  m_chain->Initialize(chassis, control_points, clearance, ChCoordsys<>(start_pos, QUNIT) );
+  m_chain->Initialize(chassis, control_points, clearance, start_pos );
 }
 
 
