@@ -23,11 +23,6 @@ void ChConstraintBilateral::Build_E() {
 }
 
 void ChConstraintBilateral::Build_D() {
-  //   blaze::SparseSubmatrix<CompressedMatrix<real> > D_T =
-  //   submatrix(data_container->host_data.D_T, data_container->num_unilaterals,
-  //   0, data_container->num_bilaterals,
-  //   data_container->num_bodies * 6);
-
   data_container->host_data.gamma_bilateral.resize(num_bilaterals);
 
   ChLcpSystemDescriptor* lcp_sys = data_container->lcp_system_descriptor;

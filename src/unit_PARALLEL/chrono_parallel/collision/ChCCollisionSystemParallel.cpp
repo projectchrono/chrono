@@ -88,8 +88,6 @@ void ChCollisionSystemParallel::Run() {
       return;
    }
 
-   data_container->host_data.old_pair_rigid_rigid = data_container->host_data.pair_rigid_rigid;
-   data_container->host_data.old_norm_rigid_rigid = data_container->host_data.norm_rigid_rigid;
    data_container->old_num_contacts = data_container->num_contacts;
    data_container->system_timer.start("collision_broad");
 
