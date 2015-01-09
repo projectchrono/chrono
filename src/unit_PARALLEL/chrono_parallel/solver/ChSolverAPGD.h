@@ -36,7 +36,7 @@ public:
       return;
     }
 
-    total_iteration += SolveAPGDBlaze(max_iteration, num_constraints,
+    total_iteration += SolveAPGD(max_iteration, num_constraints,
         data_container->host_data.R,
         data_container->host_data.gamma);
 
@@ -44,23 +44,33 @@ public:
   }
 
   // Solve using a more streamlined but harder to read version of the APGD method
-  uint SolveAPGDBlaze(const uint max_iter,       // Maximum number of iterations
+  uint SolveAPGD(const uint max_iter,       // Maximum number of iterations
       const uint size,               // Number of unknowns
       const blaze::DynamicVector<real>& b,    // Rhs vector
       blaze::DynamicVector<real>& x     // The vector of unknowns
       );
 
   // Compute the residual for the solver
-  real Res4(blaze::DynamicVector<real> & gamma,
-      blaze::DynamicVector<real> & tmp);
+  real Res4(const int SIZE, blaze::DynamicVector<real>& mg_tmp2, blaze::DynamicVector<real>& x, blaze::DynamicVector<real>& mb_tmp);
 
-  // Compute the Schur Complement Product, dst = N * src
-  void SchurComplementProduct(blaze::DynamicVector<real> & src,
-      blaze::DynamicVector<real> & dst);
+  // Set parameters for growing and shrinking the step size
+  void SetAPGDParams(real theta_k, real shrink, real grow);
 
   //APGD specific vectors
-  blaze::DynamicVector<real> gamma_hat;
-  blaze::DynamicVector<real> gammaNew, g, y, gamma, yNew, r, tmp;
+  blaze::DynamicVector<real> obj2_temp, obj1_temp, ms, mg_tmp2, mb_tmp, mg_tmp, mg_tmp1, mg, mx, my, ml_candidate, mso;
+  real L_k, t_k;
+  real init_theta_k;
+  real step_shrink;
+  real step_grow;
+  real old_objective;
+  real lastgoodres;
+  real theta_k;
+  real theta_k1;
+  real beta_k1;
+  real mb_tmp_norm, mg_tmp_norm;
+  real obj1, obj2;
+  real dot_mg_ms, norm_ms;
+  real delta_obj;
 
 };
 }
