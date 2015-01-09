@@ -101,7 +101,7 @@ int main(int argc, char* argv[])
 
   // The vehicle inherits ChSystem. Input chassis visual and collision type
 	TrackVehicle vehicle("name", 
-    VisualizationType::PRIMITIVES,
+    VisualizationType::MESH,
     CollisionType::PRIMITIVES);
   
   // set the chassis REF at the specified initial config.
