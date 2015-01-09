@@ -60,3 +60,16 @@ void ChLcpSolverParallel::ComputeImpulses() {
     data_container->host_data.v = data_container->host_data.M_invk;
   }
 }
+
+void ChLcpSolverParallel::PerformStabilization() {
+  if (data_container->settings.solver.max_iteration_bilateral <= 0 || data_container->num_bilaterals <= 0) {
+    return;
+  }
+  blaze::DenseSubvector<DynamicVector<real> > bilateral_rhs = blaze::subvector(data_container->host_data.R, data_container->num_unilaterals, data_container->num_bilaterals);
+
+  blaze::DenseSubvector<DynamicVector<real> > bilateral_gamma = blaze::subvector(data_container->host_data.gamma, data_container->num_unilaterals, data_container->num_bilaterals);
+
+  data_container->system_timer.start("ChLcpSolverParallel_Stab");
+  solver->SolveStab(data_container->settings.solver.max_iteration_bilateral, data_container->num_bilaterals, bilateral_rhs, bilateral_gamma);
+  data_container->system_timer.stop("ChLcpSolverParallel_Stab");
+}

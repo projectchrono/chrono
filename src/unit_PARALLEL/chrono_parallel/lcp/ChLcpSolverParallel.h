@@ -61,6 +61,8 @@ class CH_PARALLEL_API ChLcpSolverParallel : public ChLcpIterativeSolver {
    virtual void ComputeR(SOLVERMODE mode) = 0;
    //This function computes the new velocities based on the lagrange multipliers
    void ComputeImpulses();
+   //Solves just the bilaterals so that they can be warm started
+   void PerformStabilization();
 
    real GetResidual() { return residual; }
    ChParallelDataManager *data_container;
