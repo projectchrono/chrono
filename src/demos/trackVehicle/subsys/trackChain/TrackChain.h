@@ -72,6 +72,16 @@ private:
     const std::vector<double>& clearance,
     const ChVector<>& start_pos_abs );
 
+  /// create the shoes along a line segment and associated curved section that define
+  /// the collision envelope.
+  /// Returns the current point along the line where we last created a shoe body.
+  ChVector<> CreateShoes(const ChVector<>& curr_pos,
+    const ChVector<>& start_seg,
+    const ChVector<>& end_seg,
+    const ChVector<>& end_curve,
+    const ChVector<>& rolling_elem_center,
+    double clearance);
+
     // private functions
   const std::string& getMeshName() const { return m_meshName; }
   const std::string& getMeshFile() const { return m_meshFile; }
@@ -93,9 +103,11 @@ private:
 
   static const double m_shoe_width;
   static const double m_shoe_height;
+  static const double m_shoe_chain_offset;  // figure this from your collision mesh
 
   static const double m_pin_dist;		  // linear distance between a shoe's two pin joint center
   static const double m_pin_radius;
+  
 
   static const std::string m_collisionFile;	// collision geometry filename
   static const std::string m_meshFile;  // visual geometry mesh filename
