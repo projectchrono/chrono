@@ -4,6 +4,10 @@
 using namespace chrono;
 
 uint ChSolverJacobi::SolveJacobi(const uint max_iter, const uint size, blaze::DynamicVector<real>& mb, blaze::DynamicVector<real>& ml) {
+
+  real& residual = data_container->measures.solver.residual;
+  custom_vector<real>& iter_hist = data_container->measures.solver.iter_hist;
+
   diagonal.resize(size, false);
   ml_old = ml;
   data_container->host_data.Nshur = data_container->host_data.D_T * data_container->host_data.M_invD;

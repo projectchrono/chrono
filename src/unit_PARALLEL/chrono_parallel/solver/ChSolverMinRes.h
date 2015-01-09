@@ -31,9 +31,8 @@ class CH_PARALLEL_API ChSolverMinRes : public ChSolverParallel {
       return;
     }
     data_container->system_timer.start("ChSolverParallel_Solve");
-    total_iteration += SolveMinRes(max_iteration, num_constraints, data_container->host_data.R, data_container->host_data.gamma);
+    data_container->measures.solver.total_iteration += SolveMinRes(max_iteration, num_constraints, data_container->host_data.R, data_container->host_data.gamma);
     data_container->system_timer.stop("ChSolverParallel_Solve");
-    current_iteration = total_iteration;
   }
   // Solve using the Accelerated Projected Gradient Descent Method
   uint SolveMinRes(const uint max_iter,              // Maximum number of iterations

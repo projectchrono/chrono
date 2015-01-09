@@ -79,12 +79,6 @@ class CH_PARALLEL_API ChSolverParallel : public ChBaseParallel {
                  const blaze::DenseSubvector<DynamicVector<real> >& b,    // Rhs vector
                  blaze::DenseSubvector<DynamicVector<real> >& x);         // The vector of unknowns
 
-
-  // Get the number of iterations perfomed by the solver
-  int GetIteration() { return current_iteration; }
-  // Get the current residual
-  real GetResidual() { return residual; }
-
   real GetObjectiveBlaze(blaze::DynamicVector<real>& x, blaze::DynamicVector<real>& b) {
     blaze::DynamicVector<real> Nl(x.size());
     // f_p = 0.5*l_candidate'*N*l_candidate - l_candidate'*b  =
@@ -105,25 +99,19 @@ class CH_PARALLEL_API ChSolverParallel : public ChBaseParallel {
   }
 
   void AtIterationEnd(real maxd, real maxdeltalambda, int iter) {
-    maxd_hist.push_back(maxd);
-    maxdeltalambda_hist.push_back(maxdeltalambda);
-    iter_hist.push_back(iter);
+	  data_container->measures.solver.maxd_hist.push_back(maxd);
+	  data_container->measures.solver.maxdeltalambda_hist.push_back(maxdeltalambda);
+	  data_container->measures.solver.iter_hist.push_back(iter);
   }
 
   // Set the maximum number of iterations for all solvers
   void SetMaxIterations(const int max_iteration_value) { max_iteration = max_iteration_value; }
 
-  int current_iteration;    // The current iteration number of the solver
-  int max_iteration;        // The maximum number of iterations that the solver will
-                            // perform
-  int total_iteration;      // The total number of iterations performed, this
-                            // variable accumulates
-  real residual;            // Current residual for the solver
-  real objective_value;
-
-  // These three variables are used to store the convergence history of the
-  // solver
-  custom_vector<real> maxd_hist, maxdeltalambda_hist, iter_hist;
+  // The maximum number of iterations that the solver will perform
+  // This is local to a solver because it can be changed depending on what is
+  //being solved
+  int max_iteration;
+  int current_iteration;  // The current iteration number of the solver
 
   ChConstraintRigidRigid* rigid_rigid;
   ChConstraintBilateral* bilateral;

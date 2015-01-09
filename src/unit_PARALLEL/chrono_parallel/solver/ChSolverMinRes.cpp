@@ -3,7 +3,10 @@
 using namespace chrono;
 
 uint ChSolverMinRes::SolveMinRes(const uint max_iter, const uint size, blaze::DynamicVector<real>& mb, blaze::DynamicVector<real>& ml) {
-  mr.resize(size, 0);
+  real& residual = data_container->measures.solver.residual;
+  custom_vector<real>& iter_hist = data_container->measures.solver.iter_hist;
+
+	mr.resize(size, 0);
   mp.resize(size, 0);
   mz.resize(size, 0);
   mNMr.resize(size, 0);

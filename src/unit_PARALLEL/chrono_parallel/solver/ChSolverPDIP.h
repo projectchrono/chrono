@@ -39,10 +39,10 @@ public:
       return;
     }
 
-    total_iteration += SolvePDIP(max_iteration, num_constraints,
+    data_container->measures.solver.total_iteration += SolvePDIP(max_iteration, num_constraints,
     		data_container->host_data.R, data_container->host_data.gamma);
 
-    current_iteration = total_iteration;
+
   }
 
   // Solve using a more streamlined but harder to read version of the APGD method

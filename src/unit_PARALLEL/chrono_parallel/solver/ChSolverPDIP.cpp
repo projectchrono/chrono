@@ -207,6 +207,8 @@ uint ChSolverPDIP::SolvePDIP(const uint max_iter,
     const uint size,
 	const blaze::DynamicVector<real>& b,
 	blaze::DynamicVector<real>& x) {
+
+  real& residual = data_container->measures.solver.residual;
   data_container->system_timer.start("ChSolverParallel_solverA");
   int totalKrylovIterations = 0;
 

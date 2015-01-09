@@ -45,10 +45,10 @@ void ChLcpSolverParallelDVI::RunTimeStep(real step) {
   bilateral.Setup(data_container);
   // Clear and reset solver history data and counters
   solver->current_iteration = 0;
-  solver->total_iteration = 0;
-  solver->maxd_hist.clear();
-  solver->maxdeltalambda_hist.clear();
-  solver->iter_hist.clear();
+  data_container->measures.solver.total_iteration = 0;
+  data_container->measures.solver.maxd_hist.clear();
+  data_container->measures.solver.maxdeltalambda_hist.clear();
+  data_container->measures.solver.iter_hist.clear();
   // Set pointers to constraint objects and perform setup actions for solver
   solver->rigid_rigid = &rigid_rigid;
   solver->bilateral = &bilateral;
@@ -111,11 +111,9 @@ void ChLcpSolverParallelDVI::RunTimeStep(real step) {
 
   ComputeImpulses();
 
-  tot_iterations = solver->GetIteration();
-  residual = solver->GetResidual();
   if (tot_iterations > 0) {
-    for (int i = 0; i < solver->iter_hist.size(); i++) {
-      AtIterationEnd(solver->maxd_hist[i], solver->maxdeltalambda_hist[i], solver->iter_hist[i]);
+    for (int i = 0; i <  data_container->measures.solver.iter_hist.size(); i++) {
+      AtIterationEnd( data_container->measures.solver.maxd_hist[i],  data_container->measures.solver.maxdeltalambda_hist[i],  data_container->measures.solver.iter_hist[i]);
     }
   }
 

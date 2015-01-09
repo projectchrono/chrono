@@ -320,10 +320,10 @@ ChLcpSolverParallelDEM::RunTimeStep(real step)
   bilateral.Setup(data_container);
 
   solver->current_iteration = 0;
-  solver->total_iteration = 0;
-  solver->maxd_hist.clear();               ////
-  solver->maxdeltalambda_hist.clear();     ////  currently not used
-  solver->iter_hist.clear();               ////
+  data_container->measures.solver.total_iteration = 0;
+  data_container->measures.solver.maxd_hist.clear();               ////
+  data_container->measures.solver.maxdeltalambda_hist.clear();     ////  currently not used
+  data_container->measures.solver.iter_hist.clear();               ////
 
   solver->bilateral = &bilateral;
   solver->Setup(data_container);
@@ -356,9 +356,6 @@ ChLcpSolverParallelDEM::RunTimeStep(real step)
 
   // Update velocity (linear and angular)
   ComputeImpulses();
-
-  tot_iterations = solver->GetIteration();
-  residual = solver->GetResidual();
 
   ////for (int i = 0; i < solver.iter_hist.size(); i++) {
   ////  AtIterationEnd(solver.maxd_hist[i], solver.maxdeltalambda_hist[i], solver.iter_hist[i]);

@@ -25,6 +25,12 @@ void ChSolverAPGDREF::SchurComplementProduct(blaze::DynamicVector<real> & src,
 uint ChSolverAPGDREF::SolveAPGDREF(const uint max_iter, const uint size,
 		 const blaze::DynamicVector<real>& b,
 		 blaze::DynamicVector<real>& x) {
+
+  real& residual = data_container->measures.solver.residual;
+  real& objective_value = data_container->measures.solver.objective_value;
+  custom_vector<real>& iter_hist = data_container->measures.solver.iter_hist;
+
+
   bool verbose = false;
   bool useWarmStarting = true;
   if(verbose) std::cout << "Number of constraints: " << size << "\nNumber of variables  : " << data_container->num_bodies << std::endl;

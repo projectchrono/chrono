@@ -3,6 +3,9 @@
 using namespace chrono;
 
 uint ChSolverSD::SolveSD(const uint max_iter, const uint size, blaze::DynamicVector<real>& mb, blaze::DynamicVector<real>& ml) {
+  real& residual = data_container->measures.solver.residual;
+  custom_vector<real>& iter_hist = data_container->measures.solver.iter_hist;
+
   r.resize(size);
   temp.resize(size);
 

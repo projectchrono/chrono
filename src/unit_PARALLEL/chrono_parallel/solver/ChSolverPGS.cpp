@@ -4,7 +4,10 @@
 using namespace chrono;
 
 uint ChSolverPGS::SolvePGS(const uint max_iter, const uint size, blaze::DynamicVector<real>& mb, blaze::DynamicVector<real>& ml) {
-  real rmax = 0, residual, flimit, aux;
+  real& residual = data_container->measures.solver.residual;
+  custom_vector<real>& iter_hist = data_container->measures.solver.iter_hist;
+
+  real rmax = 0, flimit, aux;
   diagonal.resize(size, false);
 
   for (size_t i = 0; i < size; ++i) {

@@ -19,6 +19,11 @@ real ChSolverAPGD::Res4(const int SIZE, blaze::DynamicVector<real>& mg_tmp2, bla
 }
 
 uint ChSolverAPGD::SolveAPGD(const uint max_iter, const uint size, const blaze::DynamicVector<real>& mb, blaze::DynamicVector<real>& ml) {
+  real& residual = data_container->measures.solver.residual;
+  real& objective_value = data_container->measures.solver.objective_value;
+  custom_vector<real>& iter_hist = data_container->measures.solver.iter_hist;
+
+
   // data_container->system_timer.start("ChSolverParallel_solverA");
   blaze::DynamicVector<real> one(size, 1.0);
   data_container->system_timer.start("ChSolverParallel_Solve");

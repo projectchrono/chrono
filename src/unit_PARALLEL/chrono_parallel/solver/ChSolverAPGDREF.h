@@ -15,8 +15,8 @@
 // This file contains an implementation of APGD that is exactly like the thesis
 // =============================================================================
 
-#ifndef CHSOLVERAPGD_H
-#define CHSOLVERAPGD_H
+#ifndef CHSOLVERAPGDREF_H
+#define CHSOLVERAPGDREF_H
 
 #include "chrono_parallel/ChConfigParallel.h"
 #include "chrono_parallel/solver/ChSolverParallel.h"
@@ -36,11 +36,10 @@ public:
       return;
     }
 
-    total_iteration += SolveAPGDREF(max_iteration, num_constraints,
+    data_container->measures.solver.total_iteration += SolveAPGDREF(max_iteration, num_constraints,
         data_container->host_data.R,
         data_container->host_data.gamma);
 
-    current_iteration = total_iteration;
   }
 
   // Solve using a more streamlined but harder to read version of the APGD method

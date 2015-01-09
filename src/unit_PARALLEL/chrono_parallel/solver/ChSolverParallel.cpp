@@ -4,7 +4,6 @@ using namespace chrono;
 
 ChSolverParallel::ChSolverParallel() {
   max_iteration = 100;
-  total_iteration = 0;
   current_iteration = 0;
   rigid_rigid = NULL;
   bilateral = NULL;
@@ -28,7 +27,6 @@ void ChSolverParallel::Project_Single(int index, real* gamma) {
 //=================================================================================================================================
 
 void ChSolverParallel::shurA(blaze::DynamicVector<real>& x, blaze::DynamicVector<real>& out) { out = data_container->host_data.M_invD * x; }
-
 
 void ChSolverParallel::ComputeSRhs(custom_vector<real>& gamma, const custom_vector<real>& rhs, custom_vector<real3>& vel_data, custom_vector<real3>& omg_data, custom_vector<real>& b) {
   // TODO change SHRS to use blaze
@@ -110,6 +108,9 @@ void ChSolverParallel::UpdateContacts() {
 }
 
 uint ChSolverParallel::SolveStab(const uint max_iter, const uint size, const blaze::DenseSubvector<DynamicVector<real> >& mb, blaze::DenseSubvector<DynamicVector<real> >& x) {
+  real& residual = data_container->measures.solver.residual;
+  custom_vector<real>& iter_hist = data_container->measures.solver.iter_hist;
+
   uint N = mb.size();
 
   blaze::DynamicVector<real> v(N, 0), v_hat(x.size()), w(N, 0), w_old, xMR, v_old, Av(x.size()), w_oold;
@@ -164,7 +165,5 @@ uint ChSolverParallel::SolveStab(const uint max_iter, const uint size, const bla
       break;
     }
   }
-  total_iteration += current_iteration;
-  current_iteration = total_iteration;
   return current_iteration;
 }
