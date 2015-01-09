@@ -36,6 +36,7 @@
 #include "chrono_parallel/math/mat33.h"
 #include "chrono_parallel/math/other_types.h"
 #include "chrono_parallel/ChSettings.h"
+#include "chrono_parallel/ChMeasures.h"
 
 // Blaze Includes
 #include <blaze/math/CompressedMatrix.h>
@@ -169,6 +170,7 @@ class CH_PARALLEL_API ChParallelDataManager {
    //Structure that contains all settings for the system, collision detection
    //and the solver
    settings_container settings;
+   measures_container measures;
 
    //Output a vector (one dimensional matrix) from blaze to a file
    int OutputBlazeVector(blaze::DynamicVector<real> src, std::string filename);
