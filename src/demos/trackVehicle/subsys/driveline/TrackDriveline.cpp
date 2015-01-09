@@ -76,14 +76,13 @@ TrackDriveline::TrackDriveline(const std::string& name)
 
 // -----------------------------------------------------------------------------
 // Initialize the driveline subsystem.
-// This function connects this driveline subsystem to the axles of the specified
-// suspension subsystems.
-// -----------------------------------------------------------------------------
+// This function connects this driveline subsystem to the DriveGear subsystems.
+// Add all the shaft components to the system after finished w/ init.
 void TrackDriveline::Initialize(ChSharedPtr<ChBody>     chassis,
-                                ChSharedPtr<DriveGear>  drivegear)
+                                ChSharedPtr<DriveGear>  drivegear_L,
+                                ChSharedPtr<DriveGear>  drivegear_R)
 {
   // m_driven_axles = driven_axles;
-
   ChSystem* my_system = chassis->GetSystem();
 
   // add driveshaft to system
@@ -103,8 +102,8 @@ void TrackDriveline::Initialize(ChSharedPtr<ChBody>     chassis,
 
   // inititalize differential, add to system
   m_differential->Initialize(m_differentialbox,
-                             GetDriveshaft(),
-                             GetDriveshaft() ); // NOTE: Shaft 1 and 2 are the same
+    drivegear_L->GetAxle(),
+    drivegear_R->GetAxle() );
 
   my_system->Add(m_differential);
 }

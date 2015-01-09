@@ -60,8 +60,9 @@ public:
 
   /// Initialize the driveline subsystem, connecting it to the drive gears
   void Initialize(
-    ChSharedPtr<ChBody>     chassis,     ///< handle to the chassis body
-    ChSharedPtr<DriveGear>  drivegear	///< handle to the drive gear
+    ChSharedPtr<ChBody>     chassis,      ///< handle to the chassis body
+    ChSharedPtr<DriveGear>  drivegear_L,	///< handle to the drive gear on the left side
+    ChSharedPtr<DriveGear>  drivegear_R   ///< handle to the drive gear on the right side
     );
 
   /// Apply the specified motor torque.
