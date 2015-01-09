@@ -42,8 +42,7 @@ function_CalcContactForces(
     real         dT,               // integration time step
     real3*       pos,              // body positions
     real4*       rot,              // body orientations
-    real3*       vel,              // body linear velocity (global frame)
-    real3*       omg,              // body angular velocity (local frame)
+    real*        vel,              // body linear velocity (global frame), angular velocity (local frame)
     real2*       elastic_moduli,   // Young's modulus (per body)
     real*        mu,               // coefficient of friction (per body)
     real*        alpha,            // disipation coefficient (per body)
@@ -86,8 +85,14 @@ function_CalcContactForces(
 
   // Calculate relative velocity (in global frame)
   //   vP = v + omg x s = v + A * (omg' x s')
-  real3 vel1 = vel[body1] + quatRotateMat(cross(omg[body1], pt1_loc), rot[body1]);
-  real3 vel2 = vel[body2] + quatRotateMat(cross(omg[body2], pt2_loc), rot[body2]);
+  real3 v_body1 = real3(vel[body1]*6+0, vel[body1]*6+1, vel[body1]*6+2);
+  real3 v_body2 = real3(vel[body2]*6+0, vel[body2]*6+1, vel[body2]*6+2);
+
+  real3 o_body1 = real3(vel[body1]*6+3, vel[body1]*6+4, vel[body1]*6+5);
+  real3 o_body2 = real3(vel[body2]*6+3, vel[body2]*6+4, vel[body2]*6+5);
+
+  real3 vel1 = v_body1 + quatRotateMat(cross(o_body1, pt1_loc), rot[body1]);
+  real3 vel2 = v_body2 + quatRotateMat(cross(o_body2, pt2_loc), rot[body2]);
   real3 relvel = vel2 - vel1;
   real  relvel_n_mag = dot(relvel, normal[index]);
   real3 relvel_n = relvel_n_mag * normal[index];
@@ -173,8 +178,7 @@ ChLcpSolverParallelDEM::host_CalcContactForces(
       data_container->settings.step_size,
       data_container->host_data.pos_data.data(),
       data_container->host_data.rot_data.data(),
-      data_container->host_data.vel_data.data(),
-      data_container->host_data.omg_data.data(),
+      data_container->host_data.v.data(),
       data_container->host_data.elastic_moduli.data(),
       data_container->host_data.mu.data(),
       data_container->host_data.alpha.data(),
@@ -208,9 +212,15 @@ ChLcpSolverParallelDEM::host_AddContactForces(
 {
 #pragma omp parallel for
   for (int index = 0; index < ct_body_count; index++) {
-    data_container->host_data.frc_data[ct_body_id[index]] += data_container->settings.step_size * ct_body_force[index];
-    data_container->host_data.trq_data[ct_body_id[index]] += data_container->settings.step_size * ct_body_torque[index];
-  }
+	real3 contact_force = data_container->settings.step_size * ct_body_force[index];
+	real3 contact_torque = data_container->settings.step_size * ct_body_torque[index];
+    data_container->host_data.hf[ct_body_id[index]*6+0] += contact_force.x;
+    data_container->host_data.hf[ct_body_id[index]*6+1] += contact_force.x;
+    data_container->host_data.hf[ct_body_id[index]*6+2] += contact_force.x;
+    data_container->host_data.hf[ct_body_id[index]*6+3] += contact_torque.x;
+    data_container->host_data.hf[ct_body_id[index]*6+4] += contact_torque.x;
+    data_container->host_data.hf[ct_body_id[index]*6+5] += contact_torque.x;
+   }
 }
 
 // -----------------------------------------------------------------------------
@@ -291,7 +301,7 @@ ChLcpSolverParallelDEM::RunTimeStep(real step)
   }
 
   // Include forces and torques (update derivatives: v += m_inv * h * f)
-  Preprocess();
+  ComputeMassMatrix();
 
   // Return now if there are no (bilateral) constraints
   if (data_container->num_constraints == 0)
@@ -302,9 +312,10 @@ ChLcpSolverParallelDEM::RunTimeStep(real step)
   // with an oblique projection (using the M-norm).
   data_container->system_timer.start("ChLcpSolverParallel_Setup");
 
-  data_container->host_data.rhs_data.resize(data_container->num_constraints);
-  data_container->host_data.diag.resize(data_container->num_constraints);
-  data_container->host_data.gamma_data.resize(data_container->num_constraints);
+//TODO: FIX THIS FOR BLAZE ONLY
+//  data_container->host_data.rhs_data.resize(data_container->num_constraints);
+//  data_container->host_data.diag.resize(data_container->num_constraints);
+//  data_container->host_data.gamma_data.resize(data_container->num_constraints);
 
   bilateral.Setup(data_container);
 
@@ -318,7 +329,8 @@ ChLcpSolverParallelDEM::RunTimeStep(real step)
   solver->Setup(data_container);
 
   data_container->system_timer.start("ChLcpSolverParallel_RHS");
-  bilateral.ComputeRHS();
+  //TODO: FIX THIS FOR BLAZE ONLY
+  //bilateral.ComputeRHS();
   data_container->system_timer.stop("ChLcpSolverParallel_RHS");
 
   // Set the initial guess for the iterative solver to zero.
@@ -331,18 +343,19 @@ ChLcpSolverParallelDEM::RunTimeStep(real step)
 
   // Calculate velocity corrections
   data_container->system_timer.start("ChLcpSolverParallel_Stab");
-  solver->SolveStab(data_container->settings.solver.max_iteration_bilateral,
-                   data_container->num_bilaterals,
-                   data_container->host_data.rhs_data,
-                   data_container->host_data.gamma_bilateral);
-  data_container->system_timer.stop("ChLcpSolverParallel_Stab");
-
-  thrust::copy_n(data_container->host_data.gamma_bilateral.begin(),
-                 data_container->num_bilaterals,
-                 data_container->host_data.gamma_data.begin());
+//TODO: FIX THIS FOR BLAZE ONLY
+//  solver->SolveStab(data_container->settings.solver.max_iteration_bilateral,
+//                   data_container->num_bilaterals,
+//                   data_container->host_data.rhs_data,
+//                   data_container->host_data.gamma_bilateral);
+//  data_container->system_timer.stop("ChLcpSolverParallel_Stab");
+//
+//  thrust::copy_n(data_container->host_data.gamma_bilateral.begin(),
+//                 data_container->num_bilaterals,
+//                 data_container->host_data.gamma_data.begin());
 
   // Update velocity (linear and angular)
-  solver->ComputeImpulses();
+  ComputeImpulses();
 
   tot_iterations = solver->GetIteration();
   residual = solver->GetResidual();

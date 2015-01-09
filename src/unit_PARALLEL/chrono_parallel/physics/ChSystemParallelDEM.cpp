@@ -46,16 +46,15 @@ void ChSystemParallelDEM::LoadMaterialSurfaceData(ChSharedPtr<ChBody> newbody)
 
 void ChSystemParallelDEM::UpdateBodies()
 {
-  real3 *vel_pointer = data_manager->host_data.vel_data.data();
-  real3 *omg_pointer = data_manager->host_data.omg_data.data();
-  real3 *pos_pointer = data_manager->host_data.pos_data.data();
-  real4 *rot_pointer = data_manager->host_data.rot_data.data();
-  real3 *inr_pointer = data_manager->host_data.inr_data.data();
-  real3 *frc_pointer = data_manager->host_data.frc_data.data();
-  real3 *trq_pointer = data_manager->host_data.trq_data.data();
-  bool *active_pointer = data_manager->host_data.active_data.data();
-  real *mass_pointer = data_manager->host_data.mass_data.data();
-  real3 *lim_pointer = data_manager->host_data.lim_data.data();
+  custom_vector<bool>& active_pointer = data_manager->host_data.active_data;
+  custom_vector<bool>& collide_pointer = data_manager->host_data.collide_data;
+  custom_vector<real>& inv_mass_pointer = data_manager->host_data.inv_mass_data;
+  custom_vector<real>& cohesion_pointer = data_manager->host_data.cohesion_data;
+  custom_vector<real3>& fric_pointer = data_manager->host_data.fric_data;
+  custom_vector<real3>& pos_pointer = data_manager->host_data.pos_data;
+  custom_vector<real4>& rot_pointer = data_manager->host_data.rot_data;
+  custom_vector<M33>& inr_pointer = data_manager->host_data.inr_data;
+  custom_vector<real4>& compliance_pointer = data_manager->host_data.compliance_data;
 
   real2* elastic_moduli = data_manager->host_data.elastic_moduli.data();
   real*  mu             = data_manager->host_data.mu.data();
@@ -75,16 +74,28 @@ void ChSystemParallelDEM::UpdateBodies()
     ChQuaternion<>& rot = bodylist[i]->GetRot();
     ChMatrix33<>&   inertia = bodylist[i]->VariablesBody().GetBodyInvInertia();
 
-    vel_pointer[i] = (R3(qb.ElementN(0), qb.ElementN(1), qb.ElementN(2)));
-    omg_pointer[i] = (R3(qb.ElementN(3), qb.ElementN(4), qb.ElementN(5)));
+    data_manager->host_data.v[i * 6 + 0] = bodylist[i]->Variables().Get_qb().GetElementN(0);
+    data_manager->host_data.v[i * 6 + 1] = bodylist[i]->Variables().Get_qb().GetElementN(1);
+    data_manager->host_data.v[i * 6 + 2] = bodylist[i]->Variables().Get_qb().GetElementN(2);
+    data_manager->host_data.v[i * 6 + 3] = bodylist[i]->Variables().Get_qb().GetElementN(3);
+    data_manager->host_data.v[i * 6 + 4] = bodylist[i]->Variables().Get_qb().GetElementN(4);
+    data_manager->host_data.v[i * 6 + 5] = bodylist[i]->Variables().Get_qb().GetElementN(5);
+
+    data_manager->host_data.hf[i * 6 + 0] = bodylist[i]->Variables().Get_fb().ElementN(0);
+    data_manager->host_data.hf[i * 6 + 1] = bodylist[i]->Variables().Get_fb().ElementN(1);
+    data_manager->host_data.hf[i * 6 + 2] = bodylist[i]->Variables().Get_fb().ElementN(2);
+    data_manager->host_data.hf[i * 6 + 3] = bodylist[i]->Variables().Get_fb().ElementN(3);
+    data_manager->host_data.hf[i * 6 + 4] = bodylist[i]->Variables().Get_fb().ElementN(4);
+    data_manager->host_data.hf[i * 6 + 5] = bodylist[i]->Variables().Get_fb().ElementN(5);
+
     pos_pointer[i] = (R3(pos.x, pos.y, pos.z));
     rot_pointer[i] = (R4(rot.e0, rot.e1, rot.e2, rot.e3));
-    inr_pointer[i] = (R3(inertia.GetElement(0, 0), inertia.GetElement(1, 1), inertia.GetElement(2, 2)));
-    frc_pointer[i] = (R3(fb.ElementN(0), fb.ElementN(1), fb.ElementN(2)));     //forces
-    trq_pointer[i] = (R3(fb.ElementN(3), fb.ElementN(4), fb.ElementN(5)));     //torques
+    inr_pointer[i] = (M33(R3(inertia.GetElement(0, 0), inertia.GetElement(1, 0), inertia.GetElement(2, 0)),
+                             R3(inertia.GetElement(0, 1), inertia.GetElement(1, 1), inertia.GetElement(2, 1)),
+                             R3(inertia.GetElement(0, 2), inertia.GetElement(1, 2), inertia.GetElement(2, 2))));
+
     active_pointer[i] = bodylist[i]->IsActive();
-    mass_pointer[i] = 1.0f / bodylist[i]->VariablesBody().GetBodyMass();
-    lim_pointer[i] = (R3(bodylist[i]->GetLimitSpeed(), .05 / GetStep(), .05 / GetStep()));
+    inv_mass_pointer[i] = 1.0f / bodylist[i]->VariablesBody().GetBodyMass();
 
     ChSharedPtr<ChMaterialSurfaceDEM>& mat = ((ChBodyDEM*) bodylist[i])->GetMaterialSurfaceDEM();
 
