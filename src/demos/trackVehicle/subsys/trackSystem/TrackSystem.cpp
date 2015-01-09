@@ -169,14 +169,11 @@ void TrackSystem::Initialize(ChSharedPtr<ChBodyAuxRef> chassis,
 			 const ChVector<>&  local_pos)
 {
   m_Pos_local = local_pos;
-  // to create the track chain, need a list of control points and their clearance.
-  // Points are centerof spheres with radius = clearance. Use a starting point on
-  // the line, and the chain will be "wrapped" around the x-direction initially. 
-  // NOTE: MUST add the idler and sprocket as the first and last entries in the two lists,
-  // ensures a list that is in an order than can be traversed successfully 
-  // by the TrackChain->Initilize() func.
-  std::vector<ChVector<>> control_points; // w.r.t. chassis ref. frame
-  std::vector<double> clearance;
+  // To create the track chain, need a list of the center location of the rolling elements and their clearance.
+  // Clearance is a sphere shaped envelope around each center location, where it can be guaranteed
+  // that the track chain geometry will not penetrate the sphere.
+  std::vector<ChVector<>> rolling_elem_locs; // w.r.t. chassis ref. frame
+  std::vector<double> clearance;  // 1 per rolling elem
 
   // initialize 1 of each of the following subsystems.
   // will use the chassis ref frame to do the transforms, since the TrackSystem
@@ -185,7 +182,7 @@ void TrackSystem::Initialize(ChSharedPtr<ChBodyAuxRef> chassis,
   m_idler->Initialize(chassis, ChCoordsys<>(m_idlerPos + local_pos, QUNIT) );
  
   // drive sprocket is First added to the lists passed into TrackChain Init()
-  control_points.push_back(m_gearPos + local_pos );
+  rolling_elem_locs.push_back(m_gearPos + local_pos );
   clearance.push_back(m_driveGear->GetRadius() );
 
   // initialize the road wheels & torsion arm suspension subsystems
@@ -194,7 +191,7 @@ void TrackSystem::Initialize(ChSharedPtr<ChBodyAuxRef> chassis,
     m_suspensions[i]->Initialize(chassis, ChCoordsys<>(m_suspensionLocs[i] + local_pos, QUNIT) );
 
     // add these to the lists passed into the track chain
-    control_points.push_back(m_suspensionLocs[i] + local_pos );
+    rolling_elem_locs.push_back(m_suspensionLocs[i] + local_pos );
     clearance.push_back(m_suspensions[i]->GetWheelRadius() );
   }
 
@@ -204,22 +201,24 @@ void TrackSystem::Initialize(ChSharedPtr<ChBodyAuxRef> chassis,
     initialize_roller(m_supportRollers[j], chassis, m_rollerLocs[j], QUNIT, j);
 
     // add these to the points passed into the track chain
-    control_points.push_back(m_rollerLocs[j] + local_pos );
+    rolling_elem_locs.push_back(m_rollerLocs[j] + local_pos );
     clearance.push_back( m_roller_radius);
   }
   
   // last control point: the idler body
-  control_points.push_back(m_idlerPos + local_pos );
+  rolling_elem_locs.push_back(m_idlerPos + local_pos );
   clearance.push_back(m_idler->GetRadius() );
 
   // last, initialize the trackChain.
   // Starting position will be between idler and gear control points, with a vertical offset
   // that is the average of the two clearances.
-  ChVector<> start_pos = (control_points[0] + control_points[control_points.size()-1])/2.0;
+  ChVector<> start_pos = (rolling_elem_locs[0] + rolling_elem_locs[rolling_elem_locs.size()-1])/2.0;
   start_pos.y += (clearance[0] + clearance[clearance.size()-1] )/2.0;
   
-  // no rotation for the start coordsys = wrap chain around the front rolling body first.
-  m_chain->Initialize(chassis, control_points, clearance, start_pos );
+  // Assumption: start_pos should lie close to where the actual track chain would 
+  //             pass between the idler and driveGears.
+  // MUST be on the top part of the chain (so the chain wrap rotation direction can be determined).
+  m_chain->Initialize(chassis, rolling_elem_locs, clearance, start_pos );
 }
 
 
