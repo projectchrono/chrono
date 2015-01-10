@@ -279,30 +279,28 @@ void ChLcpSolverParallelDEM::ProcessContacts()
 }
 
 
-void ChLcpSolverParallelDEM::ComputeD() {
-
-  CompressedMatrix<real>& D_T = data_container->host_data.D_T;
-
-  uint& num_constraints = data_container->num_constraints;
-  uint& num_bodies = data_container->num_bodies;
-  uint& num_shafts = data_container->num_shafts;
-  uint& num_dof = data_container->num_dof;
-  uint& num_contacts = data_container->num_contacts;
-  uint& num_bilaterals = data_container->num_bilaterals;
+void ChLcpSolverParallelDEM::ComputeD()
+{
+  uint num_constraints = data_container->num_constraints;
   if (num_constraints <= 0) {
     return;
   }
+
+  uint num_bodies = data_container->num_bodies;
+  uint num_shafts = data_container->num_shafts;
+  uint num_dof = data_container->num_dof;
+  uint num_contacts = data_container->num_contacts;
+  uint num_bilaterals = data_container->num_bilaterals;
+
+  uint constraint_reserve = num_bilaterals * 6 * 2;
+
+  CompressedMatrix<real>& D_T = data_container->host_data.D_T;
   clear(D_T);
-
-  int unilateral_reserve = 0;
-
-  int constraint_reserve = num_bilaterals * 6 * 2;
-
   if (D_T.capacity() < constraint_reserve) {
     D_T.reserve(constraint_reserve * 1.2);
   }
-
   D_T.resize(num_constraints, num_dof, false);
+
   bilateral.GenerateSparsity(data_container->settings.solver.solver_mode);
   bilateral.Build_D();
 
@@ -310,24 +308,26 @@ void ChLcpSolverParallelDEM::ComputeD() {
   data_container->host_data.M_invD = data_container->host_data.M_inv * data_container->host_data.D;
 }
 
-void ChLcpSolverParallelDEM::ComputeE() {
-
-  uint& num_constraints = data_container->num_constraints;
-  if (num_constraints <= 0) {
+void ChLcpSolverParallelDEM::ComputeE()
+{
+  if (data_container->num_constraints <= 0) {
     return;
   }
+
   DynamicVector<real>& E = data_container->host_data.E;
-  E.resize(num_constraints);
+  E.resize(data_container->num_constraints);
   reset(E);
 
   bilateral.Build_E();
 }
 
 
-void ChLcpSolverParallelDEM::ComputeR() {
+void ChLcpSolverParallelDEM::ComputeR()
+{
   if (data_container->num_constraints <= 0) {
     return;
   }
+
   data_container->host_data.b.resize(data_container->num_constraints);
   reset(data_container->host_data.b);
   bilateral.Build_b();
@@ -346,7 +346,7 @@ void ChLcpSolverParallelDEM::ComputeR() {
 void
 ChLcpSolverParallelDEM::RunTimeStep(real step)
 {
-   data_container->settings.step_size = step;
+  data_container->settings.step_size = step;
 
   data_container->num_unilaterals = 0;
   // This is the total number of constraints, note that there are no contacts
