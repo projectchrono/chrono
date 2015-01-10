@@ -164,7 +164,9 @@ void ChSystemParallel::AddBody(ChSharedPtr<ChBody> newbody) {
 
    newbody->AddRef();
    newbody->SetSystem(this);
-   newbody->SetId(counter);
+   // This is only need because bilaterals need to know what bodies to
+   // refer to. Not used by contacts
+   newbody->SetId(data_manager->num_bodies);
 
    data_manager->num_bodies++;
 
@@ -311,10 +313,10 @@ void ChSystemParallel::UpdateBilaterals() {
 
    for (uint ic = 0; ic < mconstraints.size(); ic++) {
       if (mconstraints[ic]->IsActive() == true) {
-         num_bilaterals++;
          data_manager->host_data.bilateral_mapping.push_back(ic);
       }
    }
+   num_bilaterals = data_manager->host_data.bilateral_mapping.size();
 }
 
 void ChSystemParallel::RecomputeThreads() {
