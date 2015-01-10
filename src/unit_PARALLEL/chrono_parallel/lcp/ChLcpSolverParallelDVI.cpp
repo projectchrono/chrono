@@ -145,7 +145,7 @@ void ChLcpSolverParallelDVI::ComputeD() {
     unilateral_reserve = 6 * 9 * data_container->num_contacts;
   }
 
-  int constraint_reserve = 0;
+  int constraint_reserve = unilateral_reserve + num_bilaterals * 6 * 2;
 
   if (D_T.capacity() < constraint_reserve) {
     D_T.reserve(constraint_reserve * 1.2);
