@@ -399,7 +399,10 @@ ChLcpSolverParallelDEM::RunTimeStep(real step)
   // Calculate velocity corrections
   data_container->system_timer.start("ChLcpSolverParallel_Stab");
 
-
+  //Compute the jacobian matrix, the compliance matrix and the right hand side
+  ComputeD();
+  ComputeE();
+  ComputeR(NORMAL);
 
 ////First copy the gamma's from the previous timestep into the gamma vector
 ////Currently because the initial guess is set to zero, this doesn't do anything so it has been commented out
