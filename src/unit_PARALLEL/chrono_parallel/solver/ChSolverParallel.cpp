@@ -35,7 +35,7 @@ void ChSolverParallel::ComputeSRhs(custom_vector<real>& gamma, const custom_vect
 }
 void ChSolverParallel::ShurProduct(const blaze::DynamicVector<real>& x, blaze::DynamicVector<real>& output) {
   data_container->system_timer.start("ShurProduct");
-  output = data_container->host_data.D_T * data_container->host_data.M_invD * x + data_container->host_data.E * x;
+  output = data_container->host_data.D_T * ( data_container->host_data.M_invD * x ) + data_container->host_data.E * x;
   data_container->system_timer.stop("ShurProduct");
 }
 
@@ -48,7 +48,7 @@ void ChSolverParallel::ShurBilaterals(const blaze::DynamicVector<real>& x, blaze
 
   blaze::SparseSubmatrix<CompressedMatrix<real> > D_T_sub = blaze::submatrix(D_T, num_unilaterals, 0, num_bilaterals, num_bodies * 6);
   blaze::SparseSubmatrix<CompressedMatrix<real> > M_invD_sub = blaze::submatrix(M_invD, 0, num_unilaterals, num_bodies * 6, num_bilaterals);
-  output = D_T_sub * M_invD_sub * x;
+  output = D_T_sub * ( M_invD_sub * x );
 }
 
 //=================================================================================================================================
