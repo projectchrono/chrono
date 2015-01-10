@@ -374,11 +374,6 @@ ChLcpSolverParallelDEM::RunTimeStep(real step)
   // with an oblique projection (using the M-norm).
   data_container->system_timer.start("ChLcpSolverParallel_Setup");
 
-//TODO: FIX THIS FOR BLAZE ONLY
-//  data_container->host_data.rhs_data.resize(data_container->num_constraints);
-//  data_container->host_data.diag.resize(data_container->num_constraints);
-//  data_container->host_data.gamma_data.resize(data_container->num_constraints);
-
   bilateral.Setup(data_container);
 
   solver->current_iteration = 0;
