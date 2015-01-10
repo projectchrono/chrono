@@ -151,15 +151,16 @@ class CH_PARALLEL_API ChParallelDataManager {
    //terms
    ChLcpSystemDescriptor* lcp_system_descriptor;
 
-   //Indexing variables
-   uint num_bodies;			//The number of objects in a system
-   uint num_models;			//The number of collision models in a system
-   uint num_contacts;		//The number of contacts in a system
-   uint old_num_contacts;	//The number of contacts during the previous step
-   uint num_unilaterals;	//The number of contact constraints
-   uint num_bilaterals;		//The number of bilateral constraints
-   uint num_constraints;	//Total number of constraints
-   uint num_shafts;			//The number of shafts in the system
+   // Indexing variables
+   uint num_bodies;        // The number of objects in a system
+   uint num_dof;           // The number of degrees of freedon in the system
+   uint num_models;        // The number of collision models in a system
+   uint num_contacts;      // The number of contacts in a system
+   uint old_num_contacts;  // The number of contacts during the previous step
+   uint num_unilaterals;   // The number of contact constraints
+   uint num_bilaterals;    // The number of bilateral constraints
+   uint num_constraints;   // Total number of constraints
+   uint num_shafts;        // The number of shafts in the system
 
    // Flag indicating whether or not effective contact radius is calculated
    bool erad_is_set;

@@ -89,11 +89,12 @@ class CH_PARALLEL_API ChLcpSolverParallelDEM : public ChLcpSolverParallel {
    ChLcpSolverParallelDEM() {
       solver = new ChSolverAPGD();
    }
+  virtual void RunTimeStep(real step);
+  virtual void ComputeD();
+  virtual void ComputeE();
+  virtual void ComputeR(SOLVERMODE mode);
 
-   virtual void RunTimeStep(real step);
-
-   void ProcessContacts();
-
+  void ProcessContacts();
  private:
    void host_CalcContactForces(custom_vector<int>& ext_body_id,
                                custom_vector<real3>& ext_body_force,

@@ -278,6 +278,64 @@ void ChLcpSolverParallelDEM::ProcessContacts()
   host_AddContactForces(ct_body_count, ct_body_id, ct_body_force, ct_body_torque);
 }
 
+
+void ChLcpSolverParallelDEM::ComputeD() {
+
+  CompressedMatrix<real>& D_T = data_container->host_data.D_T;
+
+  uint& num_constraints = data_container->num_constraints;
+  uint& num_bodies = data_container->num_bodies;
+  uint& num_shafts = data_container->num_shafts;
+  uint& num_dof = data_container->num_dof;
+  uint& num_contacts = data_container->num_contacts;
+  uint& num_bilaterals = data_container->num_bilaterals;
+  if (num_constraints <= 0) {
+    return;
+  }
+  clear(D_T);
+
+  int unilateral_reserve = 0;
+
+  int constraint_reserve = num_bilaterals * 6 * 2;
+
+  if (D_T.capacity() < constraint_reserve) {
+    D_T.reserve(constraint_reserve * 1.2);
+  }
+
+  D_T.resize(num_constraints, num_dof, false);
+  bilateral.GenerateSparsity(data_container->settings.solver.solver_mode);
+  bilateral.Build_D();
+
+  data_container->host_data.D = trans(data_container->host_data.D_T);
+  data_container->host_data.M_invD = data_container->host_data.M_inv * data_container->host_data.D;
+}
+
+void ChLcpSolverParallelDEM::ComputeE() {
+
+  uint& num_constraints = data_container->num_constraints;
+  if (num_constraints <= 0) {
+    return;
+  }
+  DynamicVector<real>& E = data_container->host_data.E;
+  E.resize(num_constraints);
+  reset(E);
+
+  bilateral.Build_E();
+}
+
+
+void ChLcpSolverParallelDEM::ComputeR(SOLVERMODE mode) {
+  if (data_container->num_constraints <= 0) {
+    return;
+  }
+  data_container->host_data.b.resize(data_container->num_constraints);
+  reset(data_container->host_data.b);
+  bilateral.Build_b();
+
+  data_container->host_data.R = -data_container->host_data.b - data_container->host_data.D_T * data_container->host_data.M_invk;
+}
+
+
 // -----------------------------------------------------------------------------
 // This is the main function for advancing the system state in time. On entry,
 // geometric contact information is available as calculated by the narrowphase
@@ -291,7 +349,11 @@ ChLcpSolverParallelDEM::RunTimeStep(real step)
    data_container->settings.step_size = step;
 
   data_container->num_unilaterals = 0;
+  // This is the total number of constraints, note that there are no contacts
   data_container->num_constraints = data_container->num_bilaterals;
+
+  // This is the total number of degrees of freedom in the system
+  data_container->num_dof = data_container->num_bodies  * 6 + data_container->num_shafts;
 
   // Calculate contact forces (impulses) and append them to the body forces
   if (data_container->num_contacts > 0) {
@@ -334,30 +396,29 @@ ChLcpSolverParallelDEM::RunTimeStep(real step)
   data_container->system_timer.stop("ChLcpSolverParallel_RHS");
 
   // Set the initial guess for the iterative solver to zero.
-#pragma omp parallel for
-  for (int i = 0; i < data_container->num_constraints; i++) {
-    data_container->host_data.gamma_bilateral[i] = 0;
-  }
+  data_container->host_data.gamma.resize(data_container->num_constraints);
+  data_container->host_data.gamma.reset();
 
   data_container->system_timer.stop("ChLcpSolverParallel_Setup");
 
   // Calculate velocity corrections
   data_container->system_timer.start("ChLcpSolverParallel_Stab");
-//TODO: FIX THIS FOR BLAZE ONLY
-//  solver->SolveStab(data_container->settings.solver.max_iteration_bilateral,
-//                   data_container->num_bilaterals,
-//                   data_container->host_data.rhs_data,
-//                   data_container->host_data.gamma_bilateral);
-//  data_container->system_timer.stop("ChLcpSolverParallel_Stab");
-//
-//  thrust::copy_n(data_container->host_data.gamma_bilateral.begin(),
-//                 data_container->num_bilaterals,
-//                 data_container->host_data.gamma_data.begin());
+
+
+
+////First copy the gamma's from the previous timestep into the gamma vector
+////Currently because the initial guess is set to zero, this doesn't do anything so it has been commented out
+//#pragma omp parallel for
+//  for (int i = 0; i < data_container->num_bilaterals; i++) {
+//    data_container->host_data.gamma[i + data_container->num_unilaterals] = data_container->host_data.gamma_bilateral[i];
+//  }
+  //This will solve the system for only the bilaterals
+  PerformStabilization();
 
   // Update velocity (linear and angular)
   ComputeImpulses();
 
-  ////for (int i = 0; i < solver.iter_hist.size(); i++) {
-  ////  AtIterationEnd(solver.maxd_hist[i], solver.maxdeltalambda_hist[i], solver.iter_hist[i]);
-  ////}
+  for (int i = 0; i <  data_container->measures.solver.iter_hist.size(); i++) {
+    AtIterationEnd( data_container->measures.solver.maxd_hist[i],  data_container->measures.solver.maxdeltalambda_hist[i],  data_container->measures.solver.iter_hist[i]);
+  }
 }

@@ -34,6 +34,9 @@ void ChLcpSolverParallelDVI::RunTimeStep(real step) {
   }
   // This is the total number of constraints
   data_container->num_constraints = data_container->num_unilaterals + data_container->num_bilaterals;
+  // This is the total number of degrees of freedom in the system
+  data_container->num_dof = data_container->num_bodies * 6 + data_container->num_shafts;
+
   // Generate the mass matrix and compute M_inv_k
   ComputeMassMatrix();
 
@@ -128,6 +131,8 @@ void ChLcpSolverParallelDVI::ComputeD() {
 
   uint& num_constraints = data_container->num_constraints;
   uint& num_bodies = data_container->num_bodies;
+  uint& num_shafts = data_container->num_shafts;
+  uint& num_dof = data_container->num_dof;
   uint& num_contacts = data_container->num_contacts;
   uint& num_bilaterals = data_container->num_bilaterals;
   if (num_constraints <= 0) {
@@ -151,7 +156,7 @@ void ChLcpSolverParallelDVI::ComputeD() {
     D_T.reserve(constraint_reserve * 1.2);
   }
 
-  D_T.resize(num_constraints, num_bodies * 6, false);
+  D_T.resize(num_constraints, num_dof, false);
   rigid_rigid.GenerateSparsity(data_container->settings.solver.solver_mode);
   bilateral.GenerateSparsity(data_container->settings.solver.solver_mode);
   rigid_rigid.Build_D(data_container->settings.solver.solver_mode);
