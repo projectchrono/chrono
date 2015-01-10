@@ -253,7 +253,7 @@ bool VerifySolution(
 
   double quat_tol = 1e-6;
   double avel_tol = 1e-6;
-  double aacc_tol = 1e-6;
+  double aacc_tol = 1e-5;
 
   // Position and orientation of the COGs
   ChVector<> pos_1 = pend_1->GetPos();
