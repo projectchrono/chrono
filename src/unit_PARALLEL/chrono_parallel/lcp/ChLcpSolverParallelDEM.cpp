@@ -362,65 +362,66 @@ ChLcpSolverParallelDEM::RunTimeStep(real step)
     data_container->system_timer.stop("ChLcpSolverParallelDEM_ProcessContact");
   }
 
-  // Include forces and torques (update derivatives: v += m_inv * h * f)
+  // Generate the mass matrix and compute M_inv_k
   ComputeMassMatrix();
 
-  // Return now if there are no (bilateral) constraints
-  if (data_container->num_constraints == 0)
-    return;
+  // If there are (bilateral) constraints, calculate Lagrange multipliers.
+  if (data_container->num_constraints == 0) {
 
-  // Perform stabilization of the bilateral constraints. Currently, we only 
-  // project the velocities onto the velocity constraint manifold. This is done
-  // with an oblique projection (using the M-norm).
-  data_container->system_timer.start("ChLcpSolverParallel_Setup");
+    // Perform stabilization of the bilateral constraints. Currently, we only 
+    // project the velocities onto the velocity constraint manifold. This is done
+    // with an oblique projection (using the M-norm).
+    data_container->system_timer.start("ChLcpSolverParallel_Setup");
 
-  bilateral.Setup(data_container);
+    bilateral.Setup(data_container);
 
-  solver->current_iteration = 0;
-  data_container->measures.solver.total_iteration = 0;
-  data_container->measures.solver.maxd_hist.clear();               ////
-  data_container->measures.solver.maxdeltalambda_hist.clear();     ////  currently not used
-  data_container->measures.solver.iter_hist.clear();               ////
+    solver->current_iteration = 0;
+    data_container->measures.solver.total_iteration = 0;
+    data_container->measures.solver.maxd_hist.clear();               ////
+    data_container->measures.solver.maxdeltalambda_hist.clear();     ////  currently not used
+    data_container->measures.solver.iter_hist.clear();               ////
 
-  solver->bilateral = &bilateral;
-  solver->Setup(data_container);
+    solver->bilateral = &bilateral;
+    solver->Setup(data_container);
 
-  data_container->system_timer.start("ChLcpSolverParallel_RHS");
-  //TODO: FIX THIS FOR BLAZE ONLY
-  //bilateral.ComputeRHS();
-  data_container->system_timer.stop("ChLcpSolverParallel_RHS");
+    data_container->system_timer.start("ChLcpSolverParallel_RHS");
+    //TODO: FIX THIS FOR BLAZE ONLY
+    //bilateral.ComputeRHS();
+    data_container->system_timer.stop("ChLcpSolverParallel_RHS");
 
-  // Set the initial guess for the iterative solver to zero.
-  data_container->host_data.gamma.resize(data_container->num_constraints);
-  data_container->host_data.gamma.reset();
+    // Set the initial guess for the iterative solver to zero.
+    data_container->host_data.gamma.resize(data_container->num_constraints);
+    data_container->host_data.gamma.reset();
 
-  data_container->system_timer.stop("ChLcpSolverParallel_Setup");
+    data_container->system_timer.stop("ChLcpSolverParallel_Setup");
 
-  // Calculate velocity corrections
-  data_container->system_timer.start("ChLcpSolverParallel_Stab");
+    // Calculate velocity corrections
+    data_container->system_timer.start("ChLcpSolverParallel_Stab");
 
-  //Compute the jacobian matrix, the compliance matrix and the right hand side
-  ComputeD();
-  ComputeE();
-  ComputeR(NORMAL);
+    //Compute the jacobian matrix, the compliance matrix and the right hand side
+    ComputeD();
+    ComputeE();
+    ComputeR(NORMAL);
 
-////First copy the gamma's from the previous timestep into the gamma vector
-////Currently because the initial guess is set to zero, this doesn't do anything so it has been commented out
-//#pragma omp parallel for
-//  for (int i = 0; i < data_container->num_bilaterals; i++) {
-//    data_container->host_data.gamma[i + data_container->num_unilaterals] = data_container->host_data.gamma_bilateral[i];
-//  }
-  //This will solve the system for only the bilaterals
-  PerformStabilization();
+    ////First copy the gamma's from the previous timestep into the gamma vector
+    ////Currently because the initial guess is set to zero, this doesn't do anything so it has been commented out
+    //#pragma omp parallel for
+    //  for (int i = 0; i < data_container->num_bilaterals; i++) {
+    //    data_container->host_data.gamma[i + data_container->num_unilaterals] = data_container->host_data.gamma_bilateral[i];
+    //  }
 
+    // This will solve the system for only the bilaterals
+    PerformStabilization();
 
-  data_container->host_data.gamma_bilateral.resize(data_container->num_bilaterals);
+    // Copy multipliers in the vector specific to bilaterals (these are the values
+    // used in calculating reaction forces)
+    data_container->host_data.gamma_bilateral.resize(data_container->num_bilaterals);
 
 #pragma omp parallel for
-  for (int i = 0; i < data_container->num_bilaterals; i++) {
-    data_container->host_data.gamma_bilateral[i] = data_container->host_data.gamma[i + data_container->num_unilaterals];
+    for (int i = 0; i < data_container->num_bilaterals; i++) {
+      data_container->host_data.gamma_bilateral[i] = data_container->host_data.gamma[i + data_container->num_unilaterals];
+    }
   }
-
 
   // Update velocity (linear and angular)
   ComputeImpulses();
