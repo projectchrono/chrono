@@ -2,79 +2,71 @@
 
 using namespace chrono;
 
-uint ChSolverCGS::SolveCGS(const uint max_iter,
-                           const uint size,
-                           const custom_vector<real> &b,
-                           custom_vector<real> &x) {
+uint ChSolverCGS::SolveCGS(const uint max_iter, const uint size, blaze::DynamicVector<real>& mb, blaze::DynamicVector<real>& ml) {
+  real& residual = data_container->measures.solver.residual;
+  real& objective_value = data_container->measures.solver.objective_value;
+  custom_vector<real>& iter_hist = data_container->measures.solver.iter_hist;
 
-   r.resize(size);
-   qhat.resize(size);
-   vhat.resize(size);
-   uhat.resize(size);
-   ml.resize(size);
-   mb.resize(size);
-#pragma omp parallel for
-   for (int i = 0; i < size; i++) {
-      ml[i] = x[i];
-      mb[i] = b[i];
-   }
 
-   r = data_container->host_data.D_T * (data_container->host_data.M_invD * ml);
-   r = mb - r;
-   p = r;
-   q = r;
+  r.resize(size);
+  qhat.resize(size);
+  vhat.resize(size);
+  uhat.resize(size);
 
-   u = r;
+  ShurProduct(ml, r);    // r = data_container->host_data.D_T *
+                         // (data_container->host_data.M_invD * ml);
+  r = mb - r;
+  p = r;
+  q = r;
 
-   real normb = sqrt((mb, mb));
-   rtilde = r;
+  u = r;
 
-   if (normb == 0.0) {
-      normb = 1;
-   }
+  real normb = sqrt((mb, mb));
+  rtilde = r;
 
-   if ((sqrt((r, r)) / normb) <= tol_speed) {
-      return 0;
-   }
+  if (normb == 0.0) {
+    normb = 1;
+  }
 
-   for (current_iteration = 0; current_iteration < max_iter; current_iteration++) {
-      rho_1 = Dot(rtilde, r);
+  if ((sqrt((r, r)) / normb) <= data_container->settings.solver.tolerance) {
+    return 0;
+  }
 
-      if (rho_1 == 0) {
-         break;
-      }
+  for (current_iteration = 0; current_iteration < max_iter; current_iteration++) {
+    rho_1 = (rtilde, r);
 
-      if (current_iteration > 0) {
-         beta = rho_1 / rho_2;
+    if (rho_1 == 0) {
+      break;
+    }
 
-         u = r + beta * q;
-         p = u + beta * (q + beta * p);
-      }
+    if (current_iteration > 0) {
+      beta = rho_1 / rho_2;
 
-      phat = p;
-      vhat = data_container->host_data.D_T * (data_container->host_data.M_invD * phat);
-      alpha = rho_1 / Dot(rtilde, vhat);
-      q = u - alpha * vhat;
-      uhat = (u + q);
-      ml = ml + alpha * uhat;
-      qhat = data_container->host_data.D_T * (data_container->host_data.M_invD * uhat);
-      r = r - alpha * qhat;
-      rho_2 = rho_1;
-      residual = (sqrt((r, r)) / normb);
+      u = r + beta * q;
+      p = u + beta * (q + beta * p);
+    }
 
-      objective_value = GetObjectiveBlaze(ml, mb);
-      AtIterationEnd(residual, objective_value, iter_hist.size());
+    phat = p;
+    ShurProduct(phat, vhat);    // vhat = data_container->host_data.D_T *
+                                // (data_container->host_data.M_invD * phat);
+    alpha = rho_1 / (rtilde, vhat);
+    q = u - alpha * vhat;
+    uhat = (u + q);
+    ml = ml + alpha * uhat;
+    ShurProduct(uhat, qhat);    // qhat = data_container->host_data.D_T *
+                                // (data_container->host_data.M_invD * uhat);
+    r = r - alpha * qhat;
+    rho_2 = rho_1;
+    residual = (sqrt((r, r)) / normb);
 
-      if (residual < tol_speed) {
-         break;
-      }
-   }
-   Project(ml.data());
+    objective_value = GetObjectiveBlaze(ml, mb);
+    AtIterationEnd(residual, objective_value, iter_hist.size());
 
-#pragma omp parallel for
-   for (int i = 0; i < size; i++) {
-      x[i] = ml[i];
-   }
+    if (residual < data_container->settings.solver.tolerance) {
+      break;
+    }
+  }
+  Project(ml.data());
 
-   return current_iteration;
+  return current_iteration;
 }

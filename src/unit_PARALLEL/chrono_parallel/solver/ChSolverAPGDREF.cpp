@@ -1,9 +1,9 @@
-#include "chrono_parallel/solver/ChSolverAPGDBlaze.h"
+#include "chrono_parallel/solver/ChSolverAPGDREF.h"
 #include <blaze/math/CompressedVector.h>
 
 using namespace chrono;
 
-real ChSolverAPGDBlaze::Res4(blaze::DynamicVector<real> & gamma,
+real ChSolverAPGDREF::Res4(blaze::DynamicVector<real> & gamma,
     blaze::DynamicVector<real> & tmp) {
 
   real gdiff = 1.0/pow(num_constraints,2.0);
@@ -16,17 +16,23 @@ real ChSolverAPGDBlaze::Res4(blaze::DynamicVector<real> & gamma,
   return sqrt((double) (tmp, tmp));
 }
 
-void ChSolverAPGDBlaze::SchurComplementProduct(blaze::DynamicVector<real> & src,
+void ChSolverAPGDREF::SchurComplementProduct(blaze::DynamicVector<real> & src,
     blaze::DynamicVector<real> & dst) {
   dst = data_container->host_data.D_T
       * (data_container->host_data.M_invD * src);
 }
 
-uint ChSolverAPGDBlaze::SolveAPGDBlaze(const uint max_iter, const uint size,
-custom_vector<real> &b,
-custom_vector<real> &x) {
+uint ChSolverAPGDREF::SolveAPGDREF(const uint max_iter, const uint size,
+		 const blaze::DynamicVector<real>& b,
+		 blaze::DynamicVector<real>& x) {
+
+  real& residual = data_container->measures.solver.residual;
+  real& objective_value = data_container->measures.solver.objective_value;
+  custom_vector<real>& iter_hist = data_container->measures.solver.iter_hist;
+
+
   bool verbose = false;
-  bool useWarmStarting = false;
+  bool useWarmStarting = true;
   if(verbose) std::cout << "Number of constraints: " << size << "\nNumber of variables  : " << data_container->num_bodies << std::endl;
 
   real L, t;
@@ -177,6 +183,7 @@ custom_vector<real> &x) {
   if(verbose) std::cout << "Residual: " << residual << ", Iter: " << current_iteration << std::endl;
 
   // (33) return Value at time step t_(l+1), gamma_(l+1) := gamma_hat
+  if(useWarmStarting) gamma = gamma_hat;
 #pragma omp parallel for
   for (int i = 0; i < size; i++) {
     x[i] = gamma_hat[i];
@@ -185,20 +192,3 @@ custom_vector<real> &x) {
   return current_iteration;
 }
 
-void ChSolverAPGDBlaze::ComputeImpulses() {
-  std::cout << "COMPUTE IMPULSES (BLAZE)" << std::endl;
-  blaze::CompressedVector<real> velocities = data_container->host_data.M_invD
-      * gamma_hat;
-
-  for (int i = 0; i < data_container->num_bodies; i++) {
-    real3 vel, omg;
-
-    vel = R3(velocities[i * 6 + 0], velocities[i * 6 + 1],
-        velocities[i * 6 + 2]);
-    omg = R3(velocities[i * 6 + 3], velocities[i * 6 + 4],
-        velocities[i * 6 + 5]);
-
-    data_container->host_data.vel_data[i] += vel;
-    data_container->host_data.omg_data[i] += omg;
-  }
-}

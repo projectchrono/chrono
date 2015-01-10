@@ -9,26 +9,26 @@
 // http://projectchrono.org/license-chrono.txt.
 //
 // =============================================================================
-// Authors: Hammad Mazhar
+// Authors: Hammad Mazhar, Daniel Melanz
 // =============================================================================
 //
-// This file contains an implementation of APGD that is more optimized.
+// This file contains an implementation of APGD that is exactly like the thesis
 // =============================================================================
 
-#ifndef CHSOLVERAPGDBLAZE_H
-#define CHSOLVERAPGDBLAZE_H
+#ifndef CHSOLVERAPGDREF_H
+#define CHSOLVERAPGDREF_H
 
 #include "chrono_parallel/ChConfigParallel.h"
 #include "chrono_parallel/solver/ChSolverParallel.h"
 
 namespace chrono {
-class CH_PARALLEL_API ChSolverAPGDBlaze: public ChSolverParallel {
+class CH_PARALLEL_API ChSolverAPGDREF: public ChSolverParallel {
 public:
 
-  ChSolverAPGDBlaze() :
+	ChSolverAPGDREF() :
       ChSolverParallel() {
   }
-  ~ChSolverAPGDBlaze() {
+  ~ChSolverAPGDREF() {
   }
 
   void Solve() {
@@ -36,26 +36,20 @@ public:
       return;
     }
 
-    total_iteration += SolveAPGDBlaze(max_iteration, num_constraints,
-        data_container->host_data.rhs_data,
-        data_container->host_data.gamma_data);
+    data_container->measures.solver.total_iteration += SolveAPGDREF(max_iteration, num_constraints,
+        data_container->host_data.R,
+        data_container->host_data.gamma);
 
-    current_iteration = total_iteration;
   }
 
   // Solve using a more streamlined but harder to read version of the APGD method
-  uint SolveAPGDBlaze(const uint max_iter,       // Maximum number of iterations
+  uint SolveAPGDREF(const uint max_iter,       // Maximum number of iterations
       const uint size,               // Number of unknowns
-      custom_vector<real> &b,        // Rhs vector
-      custom_vector<real> &x         // The vector of unknowns
+      const blaze::DynamicVector<real>& b,    // Rhs vector
+      blaze::DynamicVector<real>& x     // The vector of unknowns
       );
 
-  // Compute the updated velocities
-  // The solution for gamma is already here, so use it rather than having to copy it
-  void ComputeImpulses();
-
   // Compute the residual for the solver
-  // TODO: What is the best way to explain this...
   real Res4(blaze::DynamicVector<real> & gamma,
       blaze::DynamicVector<real> & tmp);
 

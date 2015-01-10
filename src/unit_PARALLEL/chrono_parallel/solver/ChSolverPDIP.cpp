@@ -157,7 +157,7 @@ void ChSolverPDIP::conjugateGradient(blaze::DynamicVector<real> & x) {
 void ChSolverPDIP::buildPreconditioner(const uint size)
 {
   prec_cg.resize(size);
-  blaze::DynamicMatrix<real> A = data_container->host_data.D_T * data_container->host_data.M_invD + M_hat + B * Dinv * diaglambda * grad_f;
+  blaze::CompressedMatrix<real> A = data_container->host_data.D_T * data_container->host_data.M_invD + M_hat + B * Dinv * diaglambda * grad_f;
 #pragma omp parallel for
   for(int i=0; i<prec_cg.size(); i++)
   {
@@ -205,8 +205,13 @@ int ChSolverPDIP::preconditionedConjugateGradient(blaze::DynamicVector<real> & x
 
 uint ChSolverPDIP::SolvePDIP(const uint max_iter,
     const uint size,
-    custom_vector<real> &b,
-    custom_vector<real> &x) {
+	const blaze::DynamicVector<real>& b,
+	blaze::DynamicVector<real>& x) {
+  bool verbose = false;
+  if(verbose) std::cout << "Number of constraints: " << size << "\nNumber of variables  : " << data_container->num_bodies << std::endl;
+  real& residual = data_container->measures.solver.residual;
+  real& objective_value = data_container->measures.solver.objective_value;
+  custom_vector<real>& iter_hist = data_container->measures.solver.iter_hist;
   data_container->system_timer.start("ChSolverParallel_solverA");
   int totalKrylovIterations = 0;
 
@@ -359,6 +364,9 @@ uint ChSolverPDIP::SolvePDIP(const uint max_iter,
     residual = sqrt((r_g, r_g));//Res4(gamma, gamma_tmp);
 
     // (21) if r < tau
+    AtIterationEnd(residual, objective_value, iter_hist.size());
+    if(verbose) std::cout << "Residual: " << residual << ", Iter: " << current_iteration << ", Krylov Iter: " << totalKrylovIterations << std::endl;
+
     if (residual < tol_speed) {
       // (22) break
       break;
@@ -378,19 +386,4 @@ uint ChSolverPDIP::SolvePDIP(const uint max_iter,
   data_container->system_timer.stop("ChSolverParallel_solverA");
 
   return current_iteration;
-}
-
-void ChSolverPDIP::ComputeImpulses() {
-  blaze::CompressedVector<real> velocities = data_container->host_data.M_invD * gamma;
-
-#pragma omp parallel for
-  for (int i = 0; i < data_container->num_bodies; i++) {
-    real3 vel, omg;
-
-    vel = R3(velocities[i * 6 + 0], velocities[i * 6 + 1], velocities[i * 6 + 2]);
-    omg = R3(velocities[i * 6 + 3], velocities[i * 6 + 4], velocities[i * 6 + 5]);
-
-    data_container->host_data.vel_data[i] += vel;
-    data_container->host_data.omg_data[i] += omg;
-  }
 }

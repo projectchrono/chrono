@@ -1,201 +1,156 @@
 #include "chrono_parallel/solver/ChSolverAPGD.h"
-
+#include <blaze/math/CompressedVector.h>
 using namespace chrono;
 
-void ChSolverAPGD::SetAPGDParams(
-      real theta_k,
-      real shrink,
-      real grow) {
-   init_theta_k = theta_k;
-   step_shrink = shrink;
-   step_grow = grow;
-
+void ChSolverAPGD::SetAPGDParams(real theta_k, real shrink, real grow) {
+  init_theta_k = theta_k;
+  step_shrink = shrink;
+  step_grow = grow;
 }
 
-real ChSolverAPGD::Res4(
-      const int SIZE,
-      real* mg_tmp,
-      const real* b,
-      real*x,
-      real* mb_tmp) {
-   real gdiff = 1e-6;
-   real sum = 0;
-
-#pragma omp  parallel for
-   for (int i = 0; i < SIZE; i++) {
-      real _mg_tmp2_ = mg_tmp[i] - b[i];
-      mb_tmp[i] = -gdiff * _mg_tmp2_ + x[i];
-   }
-
-   Project(mb_tmp);
-   //ms = mb_tmp - x;
-   //mb_tmp = (-1.0 / (gdiff)) * ms;
-
-#pragma omp  parallel for reduction(+:sum)
-   for (int i = 0; i < SIZE; i++) {
-      real _ms_ = mb_tmp[i] - x[i];
-      real _mb_tmp_ = (-1.0f / (gdiff)) * _ms_;
-      sum += _mb_tmp_ * _mb_tmp_;
-   }
-
-   return sqrt(sum);
-
+real ChSolverAPGD::Res4(const int SIZE, blaze::DynamicVector<real>& mg_tmp2, blaze::DynamicVector<real>& x, blaze::DynamicVector<real>& mb_tmp) {
+  real gdiff = 1e-6;
+  real sum = 0;
+  mb_tmp = -gdiff * mg_tmp2 + x;
+  Project(mb_tmp.data());
+  mb_tmp = (-1.0f / (gdiff)) * (mb_tmp - x);
+  sum = (mb_tmp, trans(mb_tmp));
+  return sqrt(sum);
 }
-uint ChSolverAPGD::SolveAPGD(const uint max_iter,const uint size,const custom_vector<real> &b,custom_vector<real> &x) {
-   ms.resize(size);
-   mg_tmp2.resize(size);
-   mb_tmp.resize(size);
-   mg_tmp.resize(size);
-   mg_tmp1.resize(size);
-   mg.resize(size);
-   ml.resize(size);
-   mx.resize(size);
-   my.resize(size);
 
-   bool verbose = false;
-   real lastgoodres = 10e30;
-   real theta_k = 1.0;
-   real theta_k1 = 0;
-   real beta_k1 = 0.0;
+uint ChSolverAPGD::SolveAPGD(const uint max_iter, const uint size, const blaze::DynamicVector<real>& mb, blaze::DynamicVector<real>& ml) {
+  real& residual = data_container->measures.solver.residual;
+  real& objective_value = data_container->measures.solver.objective_value;
+  custom_vector<real>& iter_hist = data_container->measures.solver.iter_hist;
 
 
-   ml = x;
+  // data_container->system_timer.start("ChSolverParallel_solverA");
+  blaze::DynamicVector<real> one(size, 1.0);
+  data_container->system_timer.start("ChSolverParallel_Solve");
+  ms.resize(size);
+  mg_tmp2.resize(size);
+  mb_tmp.resize(size);
+  mg_tmp.resize(size);
+  mg_tmp1.resize(size);
+  mg.resize(size);
+  mx.resize(size);
+  my.resize(size);
+  mso.resize(size);
 
-//#pragma omp  parallel for
-//		for(int i=0; i<x.size(); i++) {
-//			ml[i] = 0;
-//		}
+  lastgoodres = 10e30;
+  theta_k = init_theta_k;
+  theta_k1 = theta_k;
+  beta_k1 = 0.0;
+  mb_tmp_norm = 0, mg_tmp_norm = 0;
+  obj1 = 0.0, obj2 = 0.0;
+  dot_mg_ms = 0, norm_ms = 0;
+  delta_obj = 1e8;
 
-   Project(ml.data());
+  Project(ml.data());
+  ml_candidate = ml;
+  ShurProduct(ml, mg);
+  mg = mg - mb;
+  mb_tmp = ml - one;
+  ShurProduct(mb_tmp, mg_tmp);
 
-   ml_candidate = ml;
+  mb_tmp_norm = sqrt((mb_tmp, trans(mb_tmp)));
+  mg_tmp_norm = sqrt((mg_tmp, trans(mg_tmp)));
 
-   ShurProduct(ml, mg);
-   Sub(mg, mg, b); /*mg = mg -b;*/
+  if (mb_tmp_norm == 0) {
+    L_k = 1;
+  } else {
+    L_k = mg_tmp_norm / mb_tmp_norm;
+  }
 
-   thrust::fill(mb_tmp.begin(), mb_tmp.end(), -1.0);
-   mb_tmp += ml;
-   ShurProduct(mb_tmp, mg_tmp);
-   real L_k;
-   real mb_tmp_norm = Norm(mb_tmp);
-   if (mb_tmp_norm == 0) {
-      L_k = 1;
-   } else {
-      L_k = Norm(mg_tmp) / mb_tmp_norm;
-   }
+  t_k = 1.0 / L_k;
+  my = ml;
+  mx = ml;
 
-   real t_k = 1.0 / L_k;
-   if (verbose)
-      std::cout << "L_k:" << L_k << " t_k:" << -t_k << "\n";
-   my = ml;
-   mx = ml;
+  for (current_iteration = 0; current_iteration < max_iter; current_iteration++) {
 
-   real obj1 = 0.0;
-   real obj2 = 0.0;
+    ShurProduct(my, mg_tmp1);
 
-   for (current_iteration = 0; current_iteration < max_iter; current_iteration++) {
-      ShurProduct(my, mg_tmp1);
-      Sub(mg, mg_tmp1, b);     //mg = mg_tmp1-b;
-      SEAXPY(-t_k, mg, my, mx);     // mx = my + mg*(t_k);
-      Project(mx.data());
-      ShurProduct(mx, mg_tmp);
-      Sub(mg_tmp2, mg_tmp, b);     //mg_tmp2 = mg_tmp-b
-      SEAXMY(.5, mg_tmp, b, ms);     //use ms as a temp variable
-      obj1 = Dot(mx, ms);
-      SEAXMY(.5, mg_tmp1, b, ms);     //use ms as a temp variable
-      obj2 = Dot(my, ms);
-      Sub(ms, mx, my);     //ms = mx - my;
-      //cout<<obj1<<" "<<obj2<<endl;
-      while (obj1 > obj2 + Dot(mg, ms) + 0.5 * L_k * pow(Norm(ms), real(2.0))) {
-         L_k = step_grow * L_k;
-         t_k = 1.0 / L_k;
-         SEAXPY(-t_k, mg, my, mx);     // mx = my + mg*(t_k);
-         Project(mx.data());
+    mg = mg_tmp1 - mb;
+    mx = -t_k * mg + my;
 
-         ShurProduct(mx, mg_tmp);
-         Sub(mg_tmp2, mg_tmp, b);     //mg_tmp2 = mg_tmp-b
-         SEAXMY(.5, mg_tmp, b, ms);     //use ms as a temp variable
-         obj1 = Dot(mx, ms);
-         Sub(ms, mx, my);     //ms = mx - my;
-      }
-      theta_k1 = (-pow(theta_k, 2) + theta_k * sqrt(pow(theta_k, 2) + 4)) / 2.0;
-      beta_k1 = theta_k * (1.0 - theta_k) / (pow(theta_k, 2) + theta_k1);
+    Project(mx.data());
+    ShurProduct(mx, mg_tmp);
 
-      Sub(ms, mx, ml);     //ms = mx - ml;
-      SEAXPY(beta_k1, ms, mx, my);     //my = mx + beta_k1 * (ms);
+    // mg_tmp2 = mg_tmp - mb;
+    mso = .5 * mg_tmp - mb;
+    obj1 = (mx, trans(mso));
+    ms = .5 * mg_tmp1 - mb;
+    obj2 = (my, trans(ms));
+    ms = mx - my;
+    dot_mg_ms = (mg, trans(ms));
+    norm_ms = (ms, trans(ms));
 
-      if (Dot(mg, ms) > 0) {
-         my = mx;
-         theta_k1 = 1.0;
-      }
-      L_k = step_shrink * L_k;
+    while (obj1 > obj2 + dot_mg_ms + 0.5 * L_k * norm_ms) {
+      L_k = 2.0 * L_k;
       t_k = 1.0 / L_k;
+      mx = -t_k * mg + my;
+      Project(mx.data());
 
-      ml = mx;
-      theta_k = theta_k1;
+      ShurProduct(mx, mg_tmp);
+      mso = .5 * mg_tmp - mb;
+      obj1 = (mx, trans(mso));
+      ms = mx - my;
+      dot_mg_ms = (mg, trans(ms));
+      norm_ms = (ms, trans(ms));
 
-      //this is res1
-      //real g_proj_norm=fmax(real(0.0),-min_val);
-      //real g_proj_norm=0;//CompRes(mg_tmp2,num_contacts);
-      //real temp_norm = 0;
+    }
+    theta_k1 = (-pow(theta_k, 2) + theta_k * sqrt(pow(theta_k, 2) + 4)) / 2.0;
+    beta_k1 = theta_k * (1.0 - theta_k) / (pow(theta_k, 2) + theta_k1);
 
-      //temp_norm = mg_tmp2[thrust::min_element(thrust::omp::par,mg_tmp2.begin(),mg_tmp2.end())-mg_tmp2.begin()];
-      //cout<<"norm1: "<<temp_norm<<endl;
-      //g_proj_norm = fmax(real(0.0),-temp_norm);
-      //temp_norm = mg_tmp2[thrust::min_element(thrust::omp::par,mg_tmp2.begin()+num_unilaterals,mg_tmp2.end())-mg_tmp2.begin()];
-      //cout<<"norm2: "<<temp_norm<<endl;
-      //g_proj_norm = fmax(g_proj_norm,-temp_norm);
-//
-//			int count_resolved = mg_tmp2.size();
-//
-//			for(int i=0; i<mg_tmp2.size(); i++) {
-//				if(mg_tmp2[i]<tolerance) {
-//
-//					count_resolved --;
-//				}
-//			}
-//			cout<<"resolved "<<count_resolved<<endl;
-      //cout<<"MINVAL "<<g_proj_norm<<" "<<fmax(real(0.0),-min_val)<<endl;
-      //this is res4
+    ms = mx - ml;
+    my = beta_k1 * ms + mx;
+    real dot_mg_ms = (mg, trans(ms));
 
-      real g_proj_norm = Res4(x.size(), mg_tmp.data(), b.data(), ml.data(), mb_tmp.data());
+    if (dot_mg_ms > 0) {
+      my = mx;
+      theta_k1 = 1.0;
+    }
+    L_k = 0.9 * L_k;
+    t_k = 1.0 / L_k;
+    ml = mx;
+    step_grow = 2.0;
+    theta_k = theta_k1;
+    // if (current_iteration % 2 == 0) {
+    mg_tmp2 = mg_tmp - mb;
+    real g_proj_norm = Res4(num_unilaterals, mg_tmp2, ml, mb_tmp);
 
-      if (num_bilaterals > 0) {
-
-         real resid_bilat = -1;
-
-         for (int i = num_unilaterals; i < x.size(); i++) {
-            resid_bilat = std::max(resid_bilat, std::abs(mg_tmp2[i]));
-         }
-         g_proj_norm = std::max(g_proj_norm, resid_bilat);
-         //cout<<resid_bilat<<endl;
+    if (num_bilaterals > 0) {
+      real resid_bilat = -1;
+      for (int i = num_unilaterals; i < ml.size(); i++) {
+        resid_bilat = std::max(resid_bilat, std::abs(mg_tmp2[i]));
       }
+      g_proj_norm = std::max(g_proj_norm, resid_bilat);
+    }
 
-      if (g_proj_norm < lastgoodres) {
-         lastgoodres = g_proj_norm;
-         ml_candidate = ml;
+    bool update = false;
+    if (g_proj_norm < lastgoodres) {
+      lastgoodres = g_proj_norm;
+      ml_candidate = ml;
+      objective_value = (ml_candidate, mso);    // maxdeltalambda = GetObjectiveBlaze(ml_candidate, mb);
+      update = true;
+    }
+
+    residual = lastgoodres;
+
+    AtIterationEnd(residual, objective_value, iter_hist.size());
+    if (data_container->settings.solver.test_objective) {
+      if (objective_value <= data_container->settings.solver.tolerance_objective) {
+        break;
       }
-
-      residual = lastgoodres;
-      objective_value = CompRes(b, num_contacts);     //NormInf(ms);
-
-      AtIterationEnd(residual, objective_value, iter_hist.size());
-      //custom_vector<real> error = (x_initial-x)/x;
-      //x_initial = x;
-
-      //for(int i=0; i<x.size(); i++) {
-      //	if(x[i]==0) {
-      //		error[i]=0;
-      //	}
-      //}
-      //summary_stats_data<real> result = Statistics(error);
-      //cout<<"current_iteration: "<<current_iteration<<" Max: "<<result.max<<" Mean: "<<result.mean<<" StdDev: "<<std::sqrt(result.variance_n())<<" Variance: "<<result.variance()<<endl;
-      if (residual < tol_speed) {
-         break;
+    } else {
+      if (residual < data_container->settings.solver.tolerance) {
+        break;
       }
-   }
-   //cout<<x<<endl;
-   x = ml_candidate;
-   return current_iteration;
+    }
+  }
+
+  ml = ml_candidate;
+
+  data_container->system_timer.stop("ChSolverParallel_Solve");
+  return current_iteration;
 }
-

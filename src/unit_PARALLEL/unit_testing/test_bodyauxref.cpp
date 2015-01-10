@@ -104,7 +104,7 @@ int main(int argc, char* argv[])
   system->GetSettings()->solver.max_iteration_normal = max_iteration_normal;
   system->GetSettings()->solver.max_iteration_sliding = max_iteration_sliding;
   system->GetSettings()->solver.max_iteration_spinning = max_iteration_spinning;
-  system->ChangeSolverType(APGDBLAZE);
+  system->ChangeSolverType(APGD);
 
   // Define a couple of rotations for later use
   ChQuaternion<> y2x;

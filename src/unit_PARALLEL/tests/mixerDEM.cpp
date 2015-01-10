@@ -202,8 +202,6 @@ int main(int argc,
 
    // Settings for the broad-phase collision detection
    msystem.GetSettings()->collision.bins_per_axis = I3(10, 10, 10);
-   msystem.GetSettings()->collision.min_body_per_bin = 50;
-   msystem.GetSettings()->collision.max_body_per_bin = 100;
 
    // Select the narrow phase collision algorithm
    msystem.GetSettings()->collision.narrowphase_algorithm = NARROWPHASE_R;

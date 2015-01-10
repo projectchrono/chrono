@@ -35,6 +35,7 @@
 #include <time.h>
 #include <iostream>
 #include <numeric>
+#include <algorithm>
 #include <thrust/host_vector.h>
 #include <thrust/device_vector.h>
 #include <cmath>
@@ -173,8 +174,7 @@ enum SOLVERTYPE {
    MINIMUM_RESIDUAL,
    QUASAI_MINIMUM_RESIDUAL,
    APGD,
-   APGDRS,
-   APGDBLAZE,
+   APGDREF,
    JACOBI,
    GAUSS_SEIDEL,
    PDIP

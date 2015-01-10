@@ -3,71 +3,89 @@
 
 using namespace chrono;
 
-// -----------------------------------------------------------------------------
-// Kernel for adding invmass*force*step_size_const to body speed vector.
-// This kernel must be applied to the stream of the body buffer.
-// -----------------------------------------------------------------------------
-void function_addForces(int& index,
-                        bool* active,
-                        real* mass,
-                        real3* inertia,
-                        real3* forces,
-                        real3* torques,
-                        real3* vel,
-                        real3* omega) {
-   if (active[index] != 0) {
-      // v += m_inv * h * f
-      vel[index] += forces[index] * mass[index];
-      // w += J_inv * h * c
-      omega[index] += torques[index] * inertia[index];
-   }
+ChLcpSolverParallel::ChLcpSolverParallel() {
+  tolerance = 1e-7;
+  record_violation_history = true;
+  warm_start = false;
+  residual = 0;
+  data_container = 0;
+  solver = 0;
 }
 
-void ChLcpSolverParallel::host_addForces(bool* active,
-                                         real* mass,
-                                         real3* inertia,
-                                         real3* forces,
-                                         real3* torques,
-                                         real3* vel,
-                                         real3* omega) {
-#pragma omp parallel for
-   for (int index = 0; index < data_container->num_bodies; index++) {
-      function_addForces(index, active, mass, inertia, forces, torques, vel, omega);
-   }
+void ChLcpSolverParallel::ComputeMassMatrix() {
+  uint& num_bodies = data_container->num_bodies;
+  uint& num_shafts = data_container->num_shafts;
+  uint& num_dof = data_container->num_dof;
+  custom_vector<real>& inv_mass_data = data_container->host_data.inv_mass_data;
+  custom_vector<M33>& inr_data = data_container->host_data.inr_data;
+  custom_vector<real>& shaft_inr = data_container->host_data.shaft_inr;
+
+  CompressedMatrix<real>& M_inv = data_container->host_data.M_inv;
+  clear(M_inv);
+
+  // Each rigid object has 3 mass entries and 9 inertia entries
+  // Each shaft has one inertia entry
+  M_inv.reserve(num_bodies * 12 + num_shafts * 1);
+  // The mass matrix is square and each rigid body has 6 DOF
+  // Shafts have one DOF
+  M_inv.resize(num_dof, num_dof);
+
+  for (int i = 0; i < num_bodies; i++) {
+    if (data_container->host_data.active_data[i]) {
+      M_inv.append(i * 6 + 0, i * 6 + 0, inv_mass_data[i]);
+      M_inv.finalize(i * 6 + 0);
+      M_inv.append(i * 6 + 1, i * 6 + 1, inv_mass_data[i]);
+      M_inv.finalize(i * 6 + 1);
+      M_inv.append(i * 6 + 2, i * 6 + 2, inv_mass_data[i]);
+      M_inv.finalize(i * 6 + 2);
+
+      M_inv.append(i * 6 + 3, i * 6 + 3, inr_data[i].U.x);
+      M_inv.append(i * 6 + 3, i * 6 + 4, inr_data[i].V.x);
+      M_inv.append(i * 6 + 3, i * 6 + 5, inr_data[i].W.x);
+      M_inv.finalize(i * 6 + 3);
+      M_inv.append(i * 6 + 4, i * 6 + 3, inr_data[i].U.y);
+      M_inv.append(i * 6 + 4, i * 6 + 4, inr_data[i].V.y);
+      M_inv.append(i * 6 + 4, i * 6 + 5, inr_data[i].W.y);
+      M_inv.finalize(i * 6 + 4);
+      M_inv.append(i * 6 + 5, i * 6 + 3, inr_data[i].U.z);
+      M_inv.append(i * 6 + 5, i * 6 + 4, inr_data[i].V.z);
+      M_inv.append(i * 6 + 5, i * 6 + 5, inr_data[i].W.z);
+      M_inv.finalize(i * 6 + 5);
+    }
+  }
+
+  for (int i = 0; i < num_shafts; i++) {
+    M_inv.append(num_bodies * 6 + i, num_bodies * 6 + i, shaft_inr[i]);
+    M_inv.finalize(num_bodies * 6 + i);
+  }
+
+  data_container->host_data.M_invk = data_container->host_data.v + M_inv * data_container->host_data.hf;
 }
 
-void function_ComputeGyro(int& index,
-                          real3* omega,
-                          real3* inertia,
-                          real3* gyro,
-                          real3* torque) {
-   real3 body_inertia = inertia[index];
-   body_inertia = R3(1.0 / body_inertia.x, 1.0 / body_inertia.y, 1.0 / body_inertia.z);
-   real3 body_omega = omega[index];
-   real3 gyr = cross(body_omega, body_inertia * body_omega);
-   gyro[index] = gyr;
+void ChLcpSolverParallel::ComputeImpulses() {
+  if (data_container->num_constraints > 0) {
+	  //Compute new velocity based on the lagrange multipliers
+    data_container->host_data.v = data_container->host_data.M_invk + data_container->host_data.M_invD * data_container->host_data.gamma;
+  } else {
+	  //When there are no constraints we need to still apply gravity and other
+    //body forces!
+    data_container->host_data.v = data_container->host_data.M_invk;
+  }
 }
 
-void ChLcpSolverParallel::host_ComputeGyro(real3* omega,
-                                           real3* inertia,
-                                           real3* gyro,
-                                           real3* torque) {
-#pragma omp parallel for
-   for (int index = 0; index < data_container->num_bodies; index++) {
-      function_ComputeGyro(index, omega, inertia, gyro, torque);
-   }
-}
+void ChLcpSolverParallel::PerformStabilization() {
+  DynamicVector<real>& R = data_container->host_data.R;
+  DynamicVector<real>& gamma = data_container->host_data.gamma;
+  uint& num_unilaterals = data_container->num_unilaterals;
+  uint& num_bilaterals = data_container->num_bilaterals;
 
-void ChLcpSolverParallel::Preprocess() {
-   data_container->host_data.gyr_data.resize(data_container->num_bodies);
+  if (data_container->settings.solver.max_iteration_bilateral <= 0 || data_container->num_bilaterals <= 0) {
+    return;
+  }
+  blaze::DenseSubvector<DynamicVector<real> > bilateral_rhs = blaze::subvector(R, num_unilaterals, num_bilaterals);
+  blaze::DenseSubvector<DynamicVector<real> > bilateral_gamma = blaze::subvector(gamma, num_unilaterals, num_bilaterals);
 
-   //host_ComputeGyro(data_container->host_data.omg_data.data(),
-   //                 data_container->host_data.inr_data.data(),
-   //                 data_container->host_data.gyr_data.data(),
-   //                 data_container->host_data.trq_data.data());
-
-   host_addForces(data_container->host_data.active_data.data(), data_container->host_data.mass_data.data(), data_container->host_data.inr_data.data(),
-                  data_container->host_data.frc_data.data(), data_container->host_data.trq_data.data(), data_container->host_data.vel_data.data(),
-                  data_container->host_data.omg_data.data());
-
+  data_container->system_timer.start("ChLcpSolverParallel_Stab");
+  solver->SolveStab(data_container->settings.solver.max_iteration_bilateral, num_bilaterals, bilateral_rhs, bilateral_gamma);
+  data_container->system_timer.stop("ChLcpSolverParallel_Stab");
 }

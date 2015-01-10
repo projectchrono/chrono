@@ -2,78 +2,72 @@
 
 using namespace chrono;
 
-uint ChSolverBiCGStab::SolveBiCGStab(const uint max_iter,
-                                     const uint size,
-                                     const custom_vector<real> &b,
-                                     custom_vector<real> &x) {
-   real rho_1, rho_2, alpha = 1, beta, omega = 1;
-   ml.resize(size);
-   mb.resize(size);
-#pragma omp parallel for
-   for (int i = 0; i < size; i++) {
-      ml[i] = x[i];
-      mb[i] = b[i];
-   }
+uint ChSolverBiCGStab::SolveBiCGStab(const uint max_iter, const uint size, blaze::DynamicVector<real>& mb, blaze::DynamicVector<real>& ml) {
+  real& residual = data_container->measures.solver.residual;
+  real& objective_value = data_container->measures.solver.objective_value;
+  custom_vector<real>& iter_hist = data_container->measures.solver.iter_hist;
 
-   r.resize(size);
-   t.resize(size);
-   v.resize(size);
-   real normb = sqrt((mb, mb));
 
-   r = data_container->host_data.D_T * (data_container->host_data.M_invD * ml);
-   p = r = mb - r;
-   rtilde = r;
+  real rho_1, rho_2, alpha = 1, beta, omega = 1;
 
-   if (normb == 0.0) {
-      normb = 1;
-   }
+  r.resize(size);
+  t.resize(size);
+  v.resize(size);
+  real normb = sqrt((mb, mb));
 
-   if ((residual = sqrt((r, r)) / normb) <= tol_speed) {
-      return 0;
-   }
+  ShurProduct(ml, r);    // r = data_container->host_data.D_T *
+                         // (data_container->host_data.M_invD * ml);
+  p = r = mb - r;
+  rtilde = r;
 
-   for (current_iteration = 0; current_iteration <= max_iter; current_iteration++) {
-      rho_1 = Dot(rtilde, r);
+  if (normb == 0.0) {
+    normb = 1;
+  }
 
-      if (rho_1 == 0) {
-         break;
-      }
+  if ((residual = sqrt((r, r)) / normb) <= data_container->settings.solver.tolerance) {
+    return 0;
+  }
 
-      if (current_iteration > 0) {
-         beta = (rho_1 / rho_2) * (alpha / omega);
-         p = r + beta * (p - omega * v);
-      }
+  for (current_iteration = 0; current_iteration <= max_iter; current_iteration++) {
+    rho_1 = (rtilde, r);
 
-      phat = p;
-      v = data_container->host_data.D_T * (data_container->host_data.M_invD * phat);
-      alpha = rho_1 / Dot(rtilde, v);
-      s = r - alpha * v;  //SEAXPY(-alpha,v,r,s);//
-      residual = sqrt((s, s)) / normb;
+    if (rho_1 == 0) {
+      break;
+    }
 
-      if (residual < tol_speed) {
+    if (current_iteration > 0) {
+      beta = (rho_1 / rho_2) * (alpha / omega);
+      p = r + beta * (p - omega * v);
+    }
 
-         ml = ml + alpha * phat;
-         break;
-      }
+    phat = p;
+    ShurProduct(phat, v);    // v = data_container->host_data.D_T *
+                             // (data_container->host_data.M_invD * phat);
+    alpha = rho_1 / (rtilde, v);
+    s = r - alpha * v;    // SEAXPY(-alpha,v,r,s);//
+    residual = sqrt((s, s)) / normb;
 
-      shat = s;
-      t = data_container->host_data.D_T * (data_container->host_data.M_invD * shat);
-      omega = Dot(t, s) / Dot(t, t);
-      ml = ml + alpha * phat + omega * shat;
-      r = s - omega * t;
-      rho_2 = rho_1;
-      residual = Norm(r) / normb;
+    if (residual < data_container->settings.solver.tolerance) {
+      ml = ml + alpha * phat;
+      break;
+    }
 
-      objective_value = GetObjectiveBlaze(ml, mb);
-      AtIterationEnd(residual, objective_value, iter_hist.size());
+    shat = s;
+    ShurProduct(shat, t);    // t = data_container->host_data.D_T *
+                             // (data_container->host_data.M_invD * shat);
+    omega = (t, s) / (t, t);
+    ml = ml + alpha * phat + omega * shat;
+    r = s - omega * t;
+    rho_2 = rho_1;
+    residual = sqrt((r, r)) / normb;
 
-      if (residual < tol_speed || omega == 0) {
-         break;
-      }
-   }
-#pragma omp parallel for
-   for (int i = 0; i < size; i++) {
-      x[i] = ml[i];
-   }
-   return current_iteration;
+    objective_value = GetObjectiveBlaze(ml, mb);
+    AtIterationEnd(residual, objective_value, iter_hist.size());
+
+    if (residual < data_container->settings.solver.tolerance || omega == 0) {
+      break;
+    }
+  }
+
+  return current_iteration;
 }

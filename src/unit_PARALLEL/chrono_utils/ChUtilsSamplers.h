@@ -521,19 +521,21 @@ private:
 
     ChVector<T> bl = this->m_center - this->m_size;
 
-    T m_cos60 = 0.5 * sqrt(3.0);
+    T m_cos30 = 0.5 * sqrt(3.0);
 	int nx = (int) (2 * this->m_size.x / (m_spacing)) 			+ 1;  //Arman We don't probably need the +1
-	int ny = (int) (2 * this->m_size.y / (m_cos60 * m_spacing)) + 1;
-	int nz = (int) (2 * this->m_size.z / (m_cos60 * m_spacing)) + 1;
+	int ny = (int) (2 * this->m_size.y / (m_cos30 * m_spacing)) + 1;
+	int nz = (int) (2 * this->m_size.z / (m_cos30 * m_spacing)) + 1;
+    double offset_x = 0, offset_z = 0;
     for (int j = 0; j < ny; j++) {
+    	offset_x = offset_z = (j % 2 != 0) ? 0.5 * m_spacing : 0;
     	for (int i = 0; i < nx; i++) {
     	      for (int k = 0; k < nz; k++) {
 				  //need to offset alternate rows by radius
 				  T offset = (k % 2 != 0) ? 0.5 * m_spacing : 0;
 				  ChVector<T> p = bl + ChVector<T>(
-						  i * m_spacing + offset ,
-						  j * (m_cos60 * m_spacing) ,
-						  k * (m_cos60 * m_spacing) );
+						  i * m_spacing + offset + offset_x ,
+						  j * (m_cos30 * m_spacing) ,
+						  k * (m_cos30 * m_spacing) + offset_z );
 				  if (this->accept(t, p))
 					  out_points.push_back(p);
     	      }

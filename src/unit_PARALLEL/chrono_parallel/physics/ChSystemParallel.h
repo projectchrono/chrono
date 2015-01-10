@@ -56,8 +56,11 @@ CH_RTTI(ChSystemParallel, ChSystem)
    virtual int Integrate_Y();
    virtual void AddBody(ChSharedPtr<ChBody> newbody);
    virtual void AddOtherPhysicsItem (ChSharedPtr<ChPhysicsItem> newitem);
+
+   virtual void ClearBodyForceVector();
    virtual void Update();
    virtual void UpdateBilaterals();
+   void UpdateShafts();
    virtual void UpdateBodies() = 0;
    void RecomputeThreads();
    void RecomputeBins();
@@ -73,6 +76,10 @@ CH_RTTI(ChSystemParallel, ChSystem)
 
    int GetNumBodies() {
       return data_manager->num_bodies;
+   }
+
+   int GetNumShafts() {
+     return data_manager->num_shafts;
    }
 
    int GetNcontacts() {
@@ -101,6 +108,12 @@ CH_RTTI(ChSystemParallel, ChSystem)
    std::vector<double> timer_accumulator, cd_accumulator;
    uint frame_threads, frame_bins, counter;
    std::vector<ChLink *>::iterator it;
+
+  private:
+
+    void AddShaft(ChSharedPtr<ChShaft> shaft);
+
+    std::vector<ChShaft*> shaftlist;
 };
 
 class CH_PARALLEL_API ChSystemParallelDVI : public ChSystemParallel {
