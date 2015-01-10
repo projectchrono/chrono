@@ -3,9 +3,11 @@
 #include "physics/ChBody.h"
 using namespace chrono;
 
+using blaze::DenseSubvector;
+using blaze::subvector;
 
 void ChConstraintBilateral::Build_b() {
-  blaze::DenseSubvector<DynamicVector<real> > b = blaze::subvector(data_container->host_data.b, data_container->num_unilaterals, data_container->num_bilaterals);
+  DenseSubvector<DynamicVector<real> > b = subvector(data_container->host_data.b, data_container->num_unilaterals, data_container->num_bilaterals);
   std::vector<ChLcpConstraint*>& mconstraints = (*data_container->lcp_system_descriptor).GetConstraintsList();
 #pragma omp parallel for
   for (int index = 0; index < num_bilaterals; index++) {
@@ -65,6 +67,8 @@ void ChConstraintBilateral::GenerateSparsity(SOLVERMODE solver_mode) {
   std::vector<ChLcpConstraint*>& mconstraints = (*lcp_sys).GetConstraintsList();
 
   for (int index = 0; index < num_bilaterals; index++) {
+    //Here the active bilateral mapping that was generated during the update
+    //bilateral phase is used
     int cntr = data_container->host_data.bilateral_mapping[index];
 
     ChLcpConstraintTwoBodies* mbilateral = (ChLcpConstraintTwoBodies*)(mconstraints[cntr]);
@@ -73,8 +77,9 @@ void ChConstraintBilateral::GenerateSparsity(SOLVERMODE solver_mode) {
     int idB = ((ChBody*)((ChLcpVariablesBody*)(mbilateral->GetVariables_b()))->GetUserData())->GetId();
     int2 body_id = I2(idA, idB);
 
-    // std::cout<<" "<<index + num_unilaterals<<" "<<body_id.x * 6 +
-    // 0<<std::endl;
+    // Blaze the data needs to be appended in increasing column order for each
+    // row, this check ensures that the data is written properly
+
     if (idA > idB) {
       D_T.append(index + num_unilaterals, body_id.y * 6 + 0, 1);
       D_T.append(index + num_unilaterals, body_id.y * 6 + 1, 1);

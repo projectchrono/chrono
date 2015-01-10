@@ -9,6 +9,7 @@ ChLcpSolverParallel::ChLcpSolverParallel() {
   warm_start = false;
   residual = 0;
   data_container = 0;
+  solver = 0;
 }
 
 void ChLcpSolverParallel::ComputeMassMatrix() {
