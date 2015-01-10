@@ -130,7 +130,6 @@ void ChSystemParallelDEM::ChangeCollisionSystem(ChCollisionSystem* newcollsystem
 void ChSystemParallelDEM::PrintStepStats()
 {
   double timer_solver_setup = data_manager->system_timer.GetTime("ChLcpSolverParallel_Setup");
-  double timer_solver_rhs   = data_manager->system_timer.GetTime("ChLcpSolverParallel_RHS");
   double timer_solver_stab  = data_manager->system_timer.GetTime("ChLcpSolverParallel_Stab");
 
   std::cout << std::endl;
@@ -150,7 +149,6 @@ void ChSystemParallelDEM::PrintStepStats()
   std::cout << "  Solver                 " << GetTimerLcp() << std::endl;
   std::cout << "    contact force calc     " << GetTimerProcessContact() << std::endl;
   std::cout << "    setup                  " << timer_solver_setup << std::endl;
-  std::cout << "      RHS                    " << timer_solver_rhs << std::endl;
   std::cout << "    stabilization          " << timer_solver_stab << std::endl;
   std::cout << std::endl;
 }

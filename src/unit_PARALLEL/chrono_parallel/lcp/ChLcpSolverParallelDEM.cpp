@@ -384,24 +384,16 @@ ChLcpSolverParallelDEM::RunTimeStep(real step)
     solver->bilateral = &bilateral;
     solver->Setup(data_container);
 
-    data_container->system_timer.start("ChLcpSolverParallel_RHS");
-    //TODO: FIX THIS FOR BLAZE ONLY
-    //bilateral.ComputeRHS();
-    data_container->system_timer.stop("ChLcpSolverParallel_RHS");
-
     // Set the initial guess for the iterative solver to zero.
     data_container->host_data.gamma.resize(data_container->num_constraints);
     data_container->host_data.gamma.reset();
-
-    data_container->system_timer.stop("ChLcpSolverParallel_Setup");
-
-    // Calculate velocity corrections
-    data_container->system_timer.start("ChLcpSolverParallel_Stab");
 
     //Compute the jacobian matrix, the compliance matrix and the right hand side
     ComputeD();
     ComputeE();
     ComputeR(NORMAL);
+
+    data_container->system_timer.stop("ChLcpSolverParallel_Setup");
 
     ////First copy the gamma's from the previous timestep into the gamma vector
     ////Currently because the initial guess is set to zero, this doesn't do anything so it has been commented out

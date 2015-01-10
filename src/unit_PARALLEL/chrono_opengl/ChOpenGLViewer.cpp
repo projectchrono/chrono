@@ -526,12 +526,8 @@ void ChOpenGLViewer::DisplayHUD() {
          RenderText(buffer, -.95, -0.925 + .06 * 4, sx, sy);
          sprintf(buffer, "TimerG:  %04f", parallel_sys->data_manager->system_timer.GetTime("ChSolverParallel_solverG"));
          RenderText(buffer, -.95, -0.925 + .06 * 3, sx, sy);
-         sprintf(buffer, "Shur A:  %04f", parallel_sys->data_manager->system_timer.GetTime("ChSolverParallel_shurA"));
-         RenderText(buffer, -.95, -0.925 + .06 * 2, sx, sy);
-         sprintf(buffer, "Shur B:  %04f", parallel_sys->data_manager->system_timer.GetTime("ChSolverParallel_shurB"));
-         RenderText(buffer, -.95, -0.925 + .06 * 1, sx, sy);
          sprintf(buffer, "Proj  :  %04f", parallel_sys->data_manager->system_timer.GetTime("ChSolverParallel_Project"));
-         RenderText(buffer, -.95, -0.925 + .06 * 0, sx, sy);
+         RenderText(buffer, -.95, -0.925 + .06 * 2, sx, sy);
 
       }
    }
