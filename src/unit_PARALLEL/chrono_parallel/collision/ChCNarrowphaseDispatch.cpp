@@ -219,7 +219,7 @@ bool host_Dispatch_Init(const uint &index,
                         const real3 *obj_data_C,
                         const real4 *obj_data_R,
                         const uint *obj_data_ID,
-						 real3* convex_data,
+                        real3* convex_data,
                         const bool * obj_active,
                         const real3 *body_pos,
                         const real4 *body_rot,
@@ -229,7 +229,7 @@ bool host_Dispatch_Init(const uint &index,
                         uint & ID_A,
                         uint & ID_B,
                         ConvexShape & shapeA,
-                        ConvexShape& shapeB) {
+                        ConvexShape & shapeB) {
    long long p = contact_pair[index];
    int2 pair = I2(int(p >> 32), int(p & 0xffffffff));
    ID_A = obj_data_ID[pair.x];
@@ -300,7 +300,7 @@ void host_DispatchMPR(const uint &index,
                       const real3 *obj_data_C,
                       const real4 *obj_data_R,
                       const uint *obj_data_ID,
-					  real3* convex_data,
+                      real3* convex_data,
                       const bool * obj_active,
                       const real3 *body_pos,
                       const real4 *body_rot,
@@ -325,7 +325,7 @@ void host_DispatchMPR(const uint &index,
    }
    int nC = 0;
 
-   if (!MPRCollision(shapeA, shapeB, norm[icoll], ptA[icoll], ptB[icoll], contactDepth[icoll])) {
+   if (!MPRCollision(shapeA, shapeB,collision_envelope, norm[icoll], ptA[icoll], ptB[icoll], contactDepth[icoll])) {
       return;
    }
 
@@ -411,7 +411,7 @@ void host_DispatchHybridMPR(const uint &index,
 
    } else {
 
-      if (!MPRCollision(shapeA, shapeB, norm[icoll], ptA[icoll], ptB[icoll], contactDepth[icoll])) {
+      if (!MPRCollision(shapeA, shapeB,collision_envelope, norm[icoll], ptA[icoll], ptB[icoll], contactDepth[icoll])) {
          return;
       }
 

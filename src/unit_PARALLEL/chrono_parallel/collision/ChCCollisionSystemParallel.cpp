@@ -38,13 +38,9 @@ void ChCollisionSystemParallel::Add(ChCollisionModel *model) {
          int convex_data_offset = data_container->host_data.convex_data.size();
          data_container->host_data.convex_data.insert(data_container->host_data.convex_data.end(), pmodel->local_convex_data.begin(), pmodel->local_convex_data.end());
 
-         if (pmodel->mData[j].type != TRIANGLEMESH && pmodel->mData[j].type != CONVEX) {
-            obB += R3(data_container->settings.collision.collision_envelope);
-         }
          //Compute the global offset of the convex data structure based on the number of points
          //already present
          if (pmodel->mData[j].type == CONVEX) {
-         	obB.z = data_container->settings.collision.collision_envelope;
          	obB.y += convex_data_offset;    // update to get the global offset
          }
          real3 obC = pmodel->mData[j].C;

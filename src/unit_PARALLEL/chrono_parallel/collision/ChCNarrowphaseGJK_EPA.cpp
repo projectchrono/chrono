@@ -71,10 +71,10 @@ struct MinkowskiDiff {
    }
 
    inline real3 Support0(const real3& d) const {
-      return SupportVert(shapeA, d);
+      return SupportVert(shapeA, d, 0);
    }
    inline real3 Support1(const real3& d) const {
-      return SupportVert(shapeB, d);
+      return SupportVert(shapeB, d, 0);
    }
    inline real3 Support(const real3& d) const {
       return (Support0(d) - Support1(-d));
@@ -886,8 +886,8 @@ bool chrono::collision::GJKCollide(const ConvexShape& shape0,
       //printf("seperatingAxisInA: %f, %f, %f  ", seperatingAxisInA.x, seperatingAxisInA.y, seperatingAxisInA.z);
       //printf("seperatingAxisInB: %f, %f, %f  \n", seperatingAxisInB.x, seperatingAxisInB.y, seperatingAxisInB.z);
 
-      real3 pWorld = SupportVert(shape0, seperatingAxisInA);
-      real3 qWorld = SupportVert(shape1, seperatingAxisInB);
+      real3 pWorld = SupportVert(shape0, seperatingAxisInA, 0);
+      real3 qWorld = SupportVert(shape1, seperatingAxisInB, 0);
       //printf("pInA: %f, %f, %f  ", pWorld.x, pWorld.y, pWorld.z);
       //printf("qInB: %f, %f, %f  \n", qWorld.x, qWorld.y, qWorld.z);
 

@@ -212,7 +212,8 @@ inline real3 GetCenter_Cone(const real3 &B) {
 }
 
 inline real3 SupportVert(const chrono::collision::ConvexShape &Shape,
-                         const real3 &n) {
+                         const real3 &n,
+                         const real & envelope) {
    real3 localSupport;
 
    switch (Shape.type) {
@@ -247,37 +248,45 @@ inline real3 SupportVert(const chrono::collision::ConvexShape &Shape,
             localSupport = GetSupportPoint_Convex(Shape.B, Shape.convex, n);
          break;
    }
-
+   //The collision margin is applied as a compound support.
+   //A sphere with a radius equal to the collision envelope is swept around the
+   //entire shape.
+   localSupport += GetSupportPoint_Sphere(envelope, n);
    return localSupport;
 }
-;
+
 
 inline real3 LocalSupportVert(const chrono::collision::ConvexShape &Shape,
-                              const real3 &n) {
+                              const real3 &n,
+                              const real & envelope) {
    real3 rotated_n = quatRotateT(n, Shape.R);
-   return SupportVert(Shape, rotated_n);
+   return SupportVert(Shape, rotated_n, envelope);
 }
-;
+
 
 inline real3 TransformSupportVert(const chrono::collision::ConvexShape &Shape,
-                                  const real3 &n) {
+                                  const real3 &n,
+                                  const real & envelope) {
    real3 localSupport;
 
    switch (Shape.type) {
       case chrono::collision::TRIANGLEMESH: {
-         return GetSupportPoint_Triangle(Shape.A, Shape.B, Shape.C, n);
+         // Triangles are handles differently than other convex shapes but they
+         // still have an envelope around them. Prior to this there was no way
+         // to define envelopes for triangle meshes.
+         // Note that even with this change, large penetrations might cause the
+         // object to be pushed into the triangle mesh. If you need true
+         // inside/outside handling please use a convex decomposition
+         return GetSupportPoint_Triangle(Shape.A, Shape.B, Shape.C, n) + GetSupportPoint_Sphere(envelope, n);
          break;
       }
       default:
-         localSupport = LocalSupportVert(Shape, n);
+         localSupport = LocalSupportVert(Shape, n, envelope);
          break;
    }
 
    return TransformLocalToParent(Shape.A,Shape.R,localSupport ) ;
-
-
-       //  quatRotateMat(localSupport, Shape.R) + Shape.A;     //globalSupport
 }
-;
+
 
 #endif

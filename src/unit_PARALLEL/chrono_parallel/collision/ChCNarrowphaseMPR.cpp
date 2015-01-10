@@ -61,10 +61,11 @@ void FindCenter(const ConvexShape & shapeA,
 void MPRSupport(const ConvexShape & shapeA,
                 const ConvexShape & shapeB,
                 const real3 & n,
+                const real & envelope,
                 support & s) {
 
-   s.v1 = TransformSupportVert(shapeA, -n);
-   s.v2 = TransformSupportVert(shapeB, n);
+   s.v1 = TransformSupportVert(shapeA, -n, envelope);
+   s.v2 = TransformSupportVert(shapeB, n, envelope);
    s.v = s.v2 - s.v1;
 
 }
@@ -436,6 +437,7 @@ real Vec3PointTriDist2(const real3 & P,
 
 void FindPenetration(const ConvexShape & shapeA,
                      const ConvexShape & shapeB,
+                     const real & envelope,
                      simplex & portal,
                      real & depth,
                      real3 & n,
@@ -446,7 +448,7 @@ void FindPenetration(const ConvexShape & shapeA,
    for (int i = 0; i < MAX_ITERATIONS; i++) {
       //std::cout<<i<<std::endl;
       dir = PortalDir(portal);
-      MPRSupport(shapeA, shapeB, dir, portal.s4);
+      MPRSupport(shapeA, shapeB, dir, envelope,  portal.s4);
 
       real delta = dot((portal.s4.v - portal.s3.v), dir);
       //std::cout<<dir<<" "<<delta<<std::endl;
@@ -490,6 +492,7 @@ void FindPenetrationSegment(const ConvexShape & shapeA,
 
 bool FindPortal(const ConvexShape & shapeA,
                 const ConvexShape & shapeB,
+                const real & envelope,
                 simplex & portal,
                 real3 & n) {
 
@@ -498,7 +501,7 @@ bool FindPortal(const ConvexShape & shapeA,
 
       // Obtain the support point in a direction perpendicular to the existing plane
       // Note: This point is guaranteed to lie off the plane
-      MPRSupport(shapeA, shapeB, n, portal.s3);
+      MPRSupport(shapeA, shapeB, n, envelope, portal.s3);
 
       if (dot(portal.s3.v, n) <= 0.0) {
          //cout << "FAIL C" << endl;
@@ -524,6 +527,7 @@ bool FindPortal(const ConvexShape & shapeA,
 
 int DiscoverPortal(const ConvexShape & shapeA,
                    const ConvexShape & shapeB,
+                   const real & envelope,
                    simplex &portal) {
 
    real3 n, va, vb;
@@ -536,7 +540,7 @@ int DiscoverPortal(const ConvexShape & shapeA,
    }
    // v1 = support in direction of origin
    n = normalize(-portal.s0.v);
-   MPRSupport(shapeA, shapeB, n, portal.s1);
+   MPRSupport(shapeA, shapeB, n, envelope, portal.s1);
    // test if origin isn't outside of v1
    if (dot(portal.s1.v, n) < 0.0) {
       //no contact
@@ -556,7 +560,7 @@ int DiscoverPortal(const ConvexShape & shapeA,
    }
    n = normalize(n);
 
-   MPRSupport(shapeA, shapeB, n, portal.s2);
+   MPRSupport(shapeA, shapeB, n, envelope, portal.s2);
    if (dot(portal.s2.v, n) <= 0.0) {
       return -1;
    }
@@ -574,7 +578,7 @@ int DiscoverPortal(const ConvexShape & shapeA,
 
       // Obtain the support point in a direction perpendicular to the existing plane
       // Note: This point is guaranteed to lie off the plane
-      MPRSupport(shapeA, shapeB, n, portal.s3);
+      MPRSupport(shapeA, shapeB, n, envelope, portal.s3);
 
       if (dot(portal.s3.v, n) <= 0.0) {
          return -1;
@@ -598,6 +602,7 @@ int DiscoverPortal(const ConvexShape & shapeA,
 }
 int RefinePortal(const ConvexShape & shapeA,
                  const ConvexShape & shapeB,
+                 const real & envelope,
                  simplex &portal) {
    real3 n;
    for (int i = 0; i < MAX_ITERATIONS; i++) {
@@ -609,7 +614,7 @@ int RefinePortal(const ConvexShape & shapeA,
       }
 
       // Find the support point in the direction of the wedge face
-      MPRSupport(shapeA, shapeB, n, portal.s4);
+      MPRSupport(shapeA, shapeB, n, envelope,  portal.s4);
 
       // If the boundary is thin enough or the origin is outside the support plane for the newly discovered vertex, then we can terminate
       if (portalReachTolerance(portal, n) || !portalCanEncapsuleOrigin(portal, n)) {
@@ -626,23 +631,24 @@ int RefinePortal(const ConvexShape & shapeA,
 //Code for Convex-Convex Collision detection, adopted from xeno-collide
 bool chrono::collision::MPRContact(const ConvexShape & shapeA,
                                    const ConvexShape & shapeB,
+                                   const real & envelope,
                                    real3 &returnNormal,
                                    real3 &point,
                                    real &depth) {
 
    simplex portal;
 
-   int result = DiscoverPortal(shapeA, shapeB, portal);
+   int result = DiscoverPortal(shapeA, shapeB, envelope, portal);
    //std::cout << result << std::endl;
 
    if (result == 0) {
-      result = RefinePortal(shapeA, shapeB, portal);
+      result = RefinePortal(shapeA, shapeB,envelope, portal);
       //std::cout << result << std::endl;
 
       if (result < 0) {
          return 0;
       }
-      FindPenetration(shapeA, shapeB, portal, depth, returnNormal, point);
+      FindPenetration(shapeA, shapeB,envelope, portal, depth, returnNormal, point);
    } else if (result == 1) {
       FindPenetrationTouch(shapeA, shapeB, portal, depth, returnNormal, point);
    } else if (result == 2) {
@@ -655,13 +661,14 @@ bool chrono::collision::MPRContact(const ConvexShape & shapeA,
 
 void chrono::collision::MPRGetPoints(const ConvexShape & shapeA,
                                      const ConvexShape & shapeB,
+                                     const real & envelope,
                                      real3 &N,
                                      real3 p0,
                                      real3 & p1,
                                      real3 & p2) {
 
-   p1 = dot((TransformSupportVert(shapeA, -N) - p0), N) * N + p0;
-   p2 = dot((TransformSupportVert(shapeB, N) - p0), N) * N + p0;
+   p1 = dot((TransformSupportVert(shapeA, -N, envelope) - p0), N) * N + p0;
+   p2 = dot((TransformSupportVert(shapeB, N, envelope) - p0), N) * N + p0;
    N = -N;
 
 }
@@ -669,16 +676,17 @@ void chrono::collision::MPRGetPoints(const ConvexShape & shapeA,
 //Code for Convex-Convex Collision detection, adopted from xeno-collide
 bool chrono::collision::MPRCollision(const ConvexShape & shapeA,
                                      const ConvexShape & shapeB,
+                                     const real & envelope,
                                      real3 &normal,
                                      real3 &pointA,
                                      real3 &pointB,
                                      real &depth) {
    real3 point;
-   if (!MPRContact(shapeA, shapeB, normal, point, depth)) {
+   if (!MPRContact(shapeA, shapeB,envelope, normal, point, depth)) {
       return false;
    }
 
-   MPRGetPoints(shapeA, shapeB, normal, point, pointA, pointB);
+   MPRGetPoints(shapeA, shapeB,envelope, normal, point, pointA, pointB);
 
    depth = dot(normal, pointB - pointA);
 
