@@ -324,7 +324,7 @@ void ChLcpSolverParallelDEM::ComputeE() {
 }
 
 
-void ChLcpSolverParallelDEM::ComputeR(SOLVERMODE mode) {
+void ChLcpSolverParallelDEM::ComputeR() {
   if (data_container->num_constraints <= 0) {
     return;
   }
@@ -391,7 +391,7 @@ ChLcpSolverParallelDEM::RunTimeStep(real step)
     //Compute the jacobian matrix, the compliance matrix and the right hand side
     ComputeD();
     ComputeE();
-    ComputeR(NORMAL);
+    ComputeR();
 
     data_container->system_timer.stop("ChLcpSolverParallel_Setup");
 

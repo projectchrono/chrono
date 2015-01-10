@@ -34,21 +34,15 @@ namespace chrono {
 class CH_PARALLEL_API ChLcpSolverParallel : public ChLcpIterativeSolver {
  public:
    ChLcpSolverParallel();
-
    virtual ~ChLcpSolverParallel() {}
+
    //Each child class must define its own solve method
    virtual double Solve(ChLcpSystemDescriptor &sysd) {return 0;}
    //Similarly, the run timestep function needs to be defined
    virtual void RunTimeStep(real step) = 0;
+
    //Compute the inverse mass matrix and the term v+M_inv*hf
    void ComputeMassMatrix();
-   //Compute the jacobian matrix
-   virtual void ComputeD(){};
-   //Compute the compliance matrix
-   virtual void ComputeE(){};
-   //Compute the rhs matrix, depending on what type of solve is being performed
-   //the RHS vector will have different non zero entries
-   virtual void ComputeR(SOLVERMODE mode){};
    //This function computes the new velocities based on the lagrange multipliers
    void ComputeImpulses();
    //Solves just the bilaterals so that they can be warm started
@@ -57,10 +51,10 @@ class CH_PARALLEL_API ChLcpSolverParallel : public ChLcpIterativeSolver {
    real GetResidual() { return residual; }
    ChParallelDataManager *data_container;
    ChSolverParallel *solver;
+
  protected:
    real residual;
    ChConstraintBilateral bilateral;
-
 };
 
 class CH_PARALLEL_API ChLcpSolverParallelDVI : public ChLcpSolverParallel {
@@ -74,27 +68,42 @@ class CH_PARALLEL_API ChLcpSolverParallelDVI : public ChLcpSolverParallel {
    }
 
    virtual void RunTimeStep(real step);
-   virtual void ComputeD();
-   virtual void ComputeE();
-   virtual void ComputeR(SOLVERMODE mode);
-   //This function is used to change the solver algorithm
+
+   // Compute the constraint Jacobian matrix.
+   void ComputeD();
+   // Compute the compliance matrix.
+   void ComputeE();
+   // Compute the RHS vector. Depending on what type of solve is being performed
+   // the RHS vector will have different non zero entries.
+   void ComputeR(SOLVERMODE mode);
+   // This function is used to change the solver algorithm.
    void ChangeSolverType(SOLVERTYPE type);
+
  private:
    ChConstraintRigidRigid rigid_rigid;
 };
 
 class CH_PARALLEL_API ChLcpSolverParallelDEM : public ChLcpSolverParallel {
  public:
-
    ChLcpSolverParallelDEM() {
       solver = new ChSolverAPGD();
    }
+
+   ~ChLcpSolverParallelDEM() {
+     delete solver;
+   }
+
   virtual void RunTimeStep(real step);
-  virtual void ComputeD();
-  virtual void ComputeE();
-  virtual void ComputeR(SOLVERMODE mode);
+
+  // Compute the constraint Jacobian matrix.
+  void ComputeD();
+  // Compute the compliance matrix.
+  void ComputeE();
+  // Compute the RHS vector.
+  void ComputeR();
 
   void ProcessContacts();
+
  private:
    void host_CalcContactForces(custom_vector<int>& ext_body_id,
                                custom_vector<real3>& ext_body_force,
@@ -104,7 +113,6 @@ class CH_PARALLEL_API ChLcpSolverParallelDEM : public ChLcpSolverParallel {
                               const custom_vector<int>& ct_body_id,
                               const custom_vector<real3>& ct_body_force,
                               const custom_vector<real3>& ct_body_torque);
-
 };
 
 }
