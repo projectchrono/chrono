@@ -64,9 +64,13 @@ void ChSystemParallelDEM::UpdateBodies()
 
 #pragma omp parallel for
   for (int i = 0; i < bodylist.size(); i++) {
-    bodylist[i]->Update(ChTime);
+    bodylist[i]->UpdateTime(ChTime);
+    bodylist[i]->ClampSpeed();
+    bodylist[i]->ComputeGyro();
+    bodylist[i]->UpdateForces(ChTime);
     bodylist[i]->VariablesFbLoadForces(GetStep());
     bodylist[i]->VariablesQbLoadSpeed();
+    bodylist[i]->UpdateMarkers(ChTime);
 
     ChMatrix<>&     qb = bodylist[i]->Variables().Get_qb();
     ChMatrix<>&     fb = bodylist[i]->Variables().Get_fb();
