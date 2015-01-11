@@ -562,7 +562,7 @@ public:
 			Real sum;
 			for (colres = 0; colres < matrb.GetColumns(); ++colres)
 			{
-				#pragma omp parallel for private(sum) if (matra.GetRows()>CH_OMP_MATR) 
+				#pragma omp parallel for private(sum,col) if (matra.GetRows()>CH_OMP_MATR) 
 				for (row = 0; row < matra.GetRows(); ++row)
 				{
 					sum = 0;
@@ -586,7 +586,7 @@ public:
 			Real sum;
 			for (colres = 0; colres < matrb.GetRows(); ++colres)
 			{
-				#pragma omp parallel for private(sum) if (matra.GetRows()>CH_OMP_MATR)
+				#pragma omp parallel for private(sum,col) if (matra.GetRows()>CH_OMP_MATR)
 				for (row = 0; row < matra.GetRows(); ++row)
 				{
 					sum = 0;
@@ -609,7 +609,7 @@ public:
 			Real sum;
 			for (colres = 0; colres < matrb.GetColumns(); ++colres)
 			{
-				#pragma omp parallel for private(sum) if (matra.GetColumns()>CH_OMP_MATR)
+				#pragma omp parallel for private(sum,col) if (matra.GetColumns()>CH_OMP_MATR)
 				for (row = 0; row < matra.GetColumns(); ++row)
 				{
 					sum = 0;
