@@ -255,6 +255,64 @@ void ChSystemParallel::Update() {
   LCP_descriptor->EndInsertion();
 }
 
+void ChSystemParallel::UpdateBodies()
+{
+  custom_vector<real3>& position = data_manager->host_data.pos_data;
+  custom_vector<real4>& rotation = data_manager->host_data.rot_data;
+  custom_vector<real>& inv_mass = data_manager->host_data.inv_mass_data;
+  custom_vector<M33>& inv_inertia = data_manager->host_data.inr_data;
+  custom_vector<bool>& active = data_manager->host_data.active_data;
+  custom_vector<bool>& collide = data_manager->host_data.collide_data;
+
+#pragma omp parallel for
+  for (int i = 0; i < bodylist.size(); i++) {
+    bodylist[i]->UpdateTime(ChTime);
+    //bodylist[i]->TrySleeping();
+    bodylist[i]->ClampSpeed();
+    bodylist[i]->ComputeGyro();
+    bodylist[i]->UpdateForces(ChTime);
+    bodylist[i]->VariablesFbLoadForces(GetStep());
+    bodylist[i]->VariablesQbLoadSpeed();
+    bodylist[i]->UpdateMarkers(ChTime);
+
+    ChMatrix<>&     body_qb = bodylist[i]->Variables().Get_qb();
+    ChMatrix<>&     body_fb = bodylist[i]->Variables().Get_fb();
+    ChVector<>&     body_pos = bodylist[i]->GetPos();
+    ChQuaternion<>& body_rot = bodylist[i]->GetRot();
+    ChMatrix33<>&   body_inr = bodylist[i]->VariablesBody().GetBodyInvInertia();
+
+    data_manager->host_data.v[i * 6 + 0] = body_qb.GetElementN(0);
+    data_manager->host_data.v[i * 6 + 1] = body_qb.GetElementN(1);
+    data_manager->host_data.v[i * 6 + 2] = body_qb.GetElementN(2);
+    data_manager->host_data.v[i * 6 + 3] = body_qb.GetElementN(3);
+    data_manager->host_data.v[i * 6 + 4] = body_qb.GetElementN(4);
+    data_manager->host_data.v[i * 6 + 5] = body_qb.GetElementN(5);
+
+    data_manager->host_data.hf[i * 6 + 0] = body_fb.ElementN(0);
+    data_manager->host_data.hf[i * 6 + 1] = body_fb.ElementN(1);
+    data_manager->host_data.hf[i * 6 + 2] = body_fb.ElementN(2);
+    data_manager->host_data.hf[i * 6 + 3] = body_fb.ElementN(3);
+    data_manager->host_data.hf[i * 6 + 4] = body_fb.ElementN(4);
+    data_manager->host_data.hf[i * 6 + 5] = body_fb.ElementN(5);
+
+    position[i] = R3(body_pos.x, body_pos.y, body_pos.z);
+    rotation[i] = R4(body_rot.e0, body_rot.e1, body_rot.e2, body_rot.e3);
+
+    inv_mass[i] = 1.0f / bodylist[i]->VariablesBody().GetBodyMass();
+    inv_inertia[i] = M33(R3(body_inr.GetElement(0, 0), body_inr.GetElement(1, 0), body_inr.GetElement(2, 0)),
+                         R3(body_inr.GetElement(0, 1), body_inr.GetElement(1, 1), body_inr.GetElement(2, 1)),
+                         R3(body_inr.GetElement(0, 2), body_inr.GetElement(1, 2), body_inr.GetElement(2, 2)));
+
+    active[i] = bodylist[i]->IsActive();
+    collide[i] = bodylist[i]->GetCollide();
+
+    // Let derived classes set the specific material surface data.
+    UpdateMaterialSurfaceData(i, bodylist[i]);
+
+    bodylist[i]->GetCollisionModel()->SyncPosition();
+  }
+}
+
 void ChSystemParallel::UpdateShafts()
 {
   real* shaft_rot = data_manager->host_data.shaft_rot.data();
