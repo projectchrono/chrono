@@ -301,7 +301,7 @@ void ChLcpSolverParallelDEM::ComputeD()
   }
   D_T.resize(num_constraints, num_dof, false);
 
-  bilateral.GenerateSparsity(data_container->settings.solver.solver_mode);
+  bilateral.GenerateSparsity();
   bilateral.Build_D();
 
   data_container->host_data.D = trans(data_container->host_data.D_T);
