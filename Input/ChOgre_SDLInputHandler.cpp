@@ -1,3 +1,9 @@
+/*
+Author: Charles Ricchio
+
+An input manager based on SDL, as opposed to OIS. Will handle keyboard, mouse, and joystick input.
+*/
+
 #if defined(_WIN32) || defined(WIN32)
 
 #include <windows.h>
@@ -6,6 +12,7 @@
 
 #include <string>
 #include <climits>
+#include <algorithm>
 #include "../Input/ChOgre_SDLInputHandler.h"
 
 namespace ChOgre {
@@ -78,19 +85,39 @@ namespace ChOgre {
 		SDL_Event _event;
 		while (SDL_PollEvent(&_event)) {
 			if (_event.type == SDL_KEYDOWN) {
+				bool was_set = false;
+
+				if (m_KeyStates_keycode[_event.key.keysym.sym].down) {
+					was_set = true;
+				}
+
 				m_KeyStates_scancode[_event.key.keysym.scancode].down = true;
 				m_KeyStates_scancode[_event.key.keysym.scancode].timestamp = (double)(_event.key.timestamp) / 1000.0;
 				m_KeyStates_keycode[_event.key.keysym.sym].down = true;
 				m_KeyStates_keycode[_event.key.keysym.sym].timestamp = (double)(_event.key.timestamp) / 1000.0;
+
+				if (!was_set) {
+					m_CallKeyboardCallbacks(_event.key.keysym.sym, m_KeyStates_keycode[_event.key.keysym.sym]);
+				}
 #ifdef _DEBUG
 				Ogre::LogManager::getSingleton().logMessage(Ogre::LML_NORMAL, "Key press ; Scanecode: " + std::to_string(_event.key.keysym.scancode) + " Keycode: " + std::to_string(_event.key.keysym.sym) + "\n");
 #endif
 			}
 			else if (_event.type == SDL_KEYUP) {
+				bool was_set = false;
+
+				if (m_KeyStates_keycode[_event.key.keysym.sym].down) {
+					was_set = true;
+				}
+
 				m_KeyStates_scancode[_event.key.keysym.scancode].down = false;
 				m_KeyStates_scancode[_event.key.keysym.scancode].timestamp = (double)(_event.key.timestamp) / 1000.0;
 				m_KeyStates_keycode[_event.key.keysym.sym].down = false;
 				m_KeyStates_keycode[_event.key.keysym.sym].timestamp = (double)(_event.key.timestamp) / 1000.0;
+
+				if (was_set) {
+					m_CallKeyboardCallbacks(_event.key.keysym.sym, m_KeyStates_keycode[_event.key.keysym.sym]);
+				}
 #ifdef _DEBUG
 				Ogre::LogManager::getSingleton().logMessage(Ogre::LML_NORMAL, "Key release ; Scanecode: " + std::to_string(_event.key.keysym.scancode) + " Keycode: " + std::to_string(_event.key.keysym.sym) + "\n");
 #endif
@@ -103,6 +130,8 @@ namespace ChOgre {
 				case SDL_BUTTON_X1: m_MouseState.x1.down = true; m_MouseState.x1.timestamp = (double)(_event.button.timestamp) / 1000.0; break;
 				case SDL_BUTTON_X2: m_MouseState.x2.down = true; m_MouseState.x2.timestamp = (double)(_event.button.timestamp) / 1000.0; break;
 				}
+
+				m_CallMouseCallbacks();
 			}
 			else if (_event.type == SDL_MOUSEBUTTONUP) {
 				switch (_event.button.button) {
@@ -112,6 +141,8 @@ namespace ChOgre {
 				case SDL_BUTTON_X1: m_MouseState.x1.down = false; m_MouseState.x1.timestamp = (double)(_event.button.timestamp) / 1000.0; break;
 				case SDL_BUTTON_X2: m_MouseState.x2.down = false; m_MouseState.x2.timestamp = (double)(_event.button.timestamp) / 1000.0; break;
 				}
+
+				m_CallMouseCallbacks();
 			}
 			else if (_event.type == SDL_MOUSEMOTION) {
 				m_MouseState.position.timestamp = (double)(_event.motion.timestamp) / 1000.0;
@@ -160,11 +191,15 @@ namespace ChOgre {
 					m_MouseState.x2.down = false;
 				}
 
+				m_CallMouseCallbacks();
+
 			}
 			else if (_event.type == SDL_MOUSEWHEEL) {
 				m_MouseState.wheel.timestamp = (double)(_event.wheel.timestamp) / 1000.0;
 				m_MouseState.wheel.x = (double)(_event.wheel.x) / (double)INT_MAX;
 				m_MouseState.wheel.y = (double)(_event.wheel.y) / (double)INT_MAX;
+
+				m_CallMouseCallbacks();
 			}
 			else if (_event.type == SDL_JOYAXISMOTION) {
 
@@ -244,8 +279,8 @@ namespace ChOgre {
 
 				case 15: m_WheelState.black_up.down = true; m_WheelState.black_up.timestamp = (double)(_event.jbutton.timestamp) / 1000.0; break;
 
-				case 16: m_WheelState.black_left.down = true; m_WheelState.black_left.timestamp = (double)(_event.jbutton.timestamp) / 1000.0; break
-					;
+				case 16: m_WheelState.black_left.down = true; m_WheelState.black_left.timestamp = (double)(_event.jbutton.timestamp) / 1000.0; break;
+
 				case 17: m_WheelState.black_down.down = true; m_WheelState.black_down.timestamp = (double)(_event.jbutton.timestamp) / 1000.0; break;
 
 				case 18: m_WheelState.black_right.down = true; m_WheelState.black_right.timestamp = (double)(_event.jbutton.timestamp) / 1000.0; break;
@@ -416,6 +451,72 @@ namespace ChOgre {
 
 	ChOgreWheelState& ChOgre_SDLInputHandler::getWheelState() {
 		return m_WheelState;
+	}
+
+
+	///////////////////////////////////////////////////////////////////////////////////////////
+	void ChOgre_SDLInputHandler::addCallback(ChOgreKeyboardCallback& callback) {
+		m_KeyboardCallbackPtrs.push_back(&callback);
+	}
+
+	void ChOgre_SDLInputHandler::addCallback(ChOgreMouseCallback& callback) {
+		m_MouseCallbackPtrs.push_back(&callback);
+	}
+
+	void ChOgre_SDLInputHandler::addCallback(ChOgreControllerCallback& callback) {
+		m_ControllerCallbackPtrs.push_back(&callback);
+	}
+	///////////////////////////////////////////////////////////////////////////////////////////
+
+	///////////////////////////////////////////////////////////////////////////////////////////
+	void ChOgre_SDLInputHandler::removeCallback(ChOgreKeyboardCallback& callback) {
+		auto a = *std::find(m_KeyboardCallbackPtrs.begin(), m_KeyboardCallbackPtrs.end(), &callback)._Ptr;
+		auto b = m_KeyboardCallbackPtrs.back();
+		std::swap(a, b);
+		m_KeyboardCallbackPtrs.pop_back();
+	}
+
+	void ChOgre_SDLInputHandler::removeCallback(ChOgreMouseCallback& callback) {
+		auto a = *std::find(m_MouseCallbackPtrs.begin(), m_MouseCallbackPtrs.end(), &callback)._Ptr;
+		auto b = m_MouseCallbackPtrs.back();
+		std::swap(a, b);
+		m_MouseCallbackPtrs.pop_back();
+	}
+
+	void ChOgre_SDLInputHandler::removeCallback(ChOgreControllerCallback& callback) {
+		auto a = *std::find(m_ControllerCallbackPtrs.begin(), m_ControllerCallbackPtrs.end(), &callback)._Ptr;
+		auto b = m_ControllerCallbackPtrs.back();
+		std::swap(a, b);
+		m_ControllerCallbackPtrs.pop_back();
+	}
+	///////////////////////////////////////////////////////////////////////////////////////////
+
+
+	void ChOgre_SDLInputHandler::m_CallKeyboardCallbacks(keycode_t KeyCode, const ChOgreKeyState& KeyState) {
+		std::for_each(m_KeyboardCallbackPtrs.begin(), m_KeyboardCallbackPtrs.end(),
+
+			[KeyCode, &KeyState](ChOgreKeyboardCallback* ptr) {
+				ptr->call(KeyCode, KeyState);
+			}
+		);
+	}
+
+	void ChOgre_SDLInputHandler::m_CallMouseCallbacks() {
+		std::for_each(m_MouseCallbackPtrs.begin(), m_MouseCallbackPtrs.end(),
+
+			[this](ChOgreMouseCallback* ptr) {
+				ptr->call(this->getMouseState());
+			}
+		);
+	}
+
+	void ChOgre_SDLInputHandler::m_CallControllerCallbacks() {
+		std::for_each(m_ControllerCallbackPtrs.begin(), m_ControllerCallbackPtrs.end(),
+
+			[this](ChOgreControllerCallback* ptr) {
+				ptr->call(this->getControllerState());
+			}
+		);
 	}
 
 }

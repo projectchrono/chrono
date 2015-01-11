@@ -5,6 +5,7 @@ SET(ROOT_INCLUDE
 SET(CORE_FILES
 	Core/ChOgreApplication.cpp
 	Core/ChOgreApplication.h
+	Core/ChOgreCallback.h
 	)
 	
 SET(GRAPHICS_FILES
@@ -32,6 +33,11 @@ SET(GRAPHICS_FILES
 SET(INPUT_FILES
 	Input/ChOgre_SDLInputHandler.cpp
 	Input/ChOgre_SDLInputHandler.h
+	Input/ChOgreControllerCallback.h
+	Input/ChOgreMouseCallback.h
+	Input/ChOgreKeyboardCallback.h
+	Input/ChOgreInputCallback.h
+	Input/ChOgreInputDataStructures.h
 	)
 	
 SET(TINYOBJLOADER_FILES
