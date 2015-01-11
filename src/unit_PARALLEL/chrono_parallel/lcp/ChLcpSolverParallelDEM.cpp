@@ -366,7 +366,7 @@ ChLcpSolverParallelDEM::RunTimeStep(real step)
   ComputeMassMatrix();
 
   // If there are (bilateral) constraints, calculate Lagrange multipliers.
-  if (data_container->num_constraints == 0) {
+  if (data_container->num_constraints != 0) {
 
     // Perform stabilization of the bilateral constraints. Currently, we only 
     // project the velocities onto the velocity constraint manifold. This is done
