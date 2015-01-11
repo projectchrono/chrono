@@ -44,7 +44,6 @@
 #include "physics/ChLinkDistance.h"
 #include "physics/ChLinkBrake.h"
 #include "physics/ChLinkWheel.h"
-#include "physics/ChLinkFastContact.h"
 #include "physics/ChLinkClearance.h"
 #include "physics/ChLinkPointSpline.h"
 //#include "physics/ChLinkPointSurf.h"

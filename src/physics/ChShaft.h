@@ -85,6 +85,8 @@ private:
 	bool sleeping;
 	bool use_sleeping;
 
+    unsigned int id;    // shaft id used for indexing
+
 public:
 
 			//
@@ -139,6 +141,12 @@ public:
 			//
 	  		// FUNCTIONS
 			//
+
+                /// Set the shaft id
+    void SetId(unsigned int identifier) { id = identifier; }
+
+                /// Get the shaft id
+    unsigned int GetId() const { return id; }
 
 				/// Number of coordinates of the shaft
 	virtual int GetDOF  ()   {return 1;}

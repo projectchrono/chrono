@@ -274,10 +274,6 @@ public:
 	void Update (double mytime);
 
 
-					/// Tells to the associated external object ChExternalObject() ,if any,
-					/// that its 3D shape must be updated in order to syncronize to marker
-					/// coordinates
-	void UpdateExternalGeometry ();
 
 					/// Someone (ex. an ChExternalObject() ) may send this message to
 					/// the marker to tell that time has changed (even if simulation is

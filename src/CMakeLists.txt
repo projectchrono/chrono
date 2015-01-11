@@ -62,13 +62,25 @@ set_property(GLOBAL PROPERTY USE_FOLDERS Off)
 
 PROJECT(ChronoEngine)
 
-set (ChronoEngine_VERSION_MAJOR 1)
-set (ChronoEngine_VERSION_MINOR 0)
+set (CHRONOENGINE_VERSION_MAJOR 2)
+set (CHRONOENGINE_VERSION_MINOR 0)
+set (CHRONOENGINE_VERSION_PATCH 0)
 
-SET(CPACK_PACKAGE_VERSION "1.0.0")
-SET(CPACK_PACKAGE_VERSION_MAJOR "1")
-SET(CPACK_PACKAGE_VERSION_MINOR "0")
-SET(CPACK_PACKAGE_VERSION_PATCH "0")
+set (CHRONOENGINE_VERSION
+  "${CHRONOENGINE_VERSION_MAJOR}.${CHRONOENGINE_VERSION_MINOR}.${CHRONOENGINE_VERSION_PATCH}")
+
+SET(CPACK_PACKAGE_VERSION "${CHRONO_VERSION}")
+SET(CPACK_PACKAGE_VERSION_MAJOR "${CHRONOENGINE_VERSION_MAJOR}")
+SET(CPACK_PACKAGE_VERSION_MINOR "${CHRONOENGINE_VERSION_MINOR}")
+SET(CPACK_PACKAGE_VERSION_PATCH "${CHRONOENGINE_VERSION_PATCH}")
+
+list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake/")
+include(GetGitRevisionDescription)
+get_git_head_revision(GIT_REFSPEC VCS_REVISION)
+
+if("${VCS_REVISION}" MATCHES ".*-NOTFOUND$")
+  set(VCS_REVISION "")
+endif()
 
 #-----------------------------------------------------------------------------
 # OPTIONS AND USER SETTINGS
@@ -163,6 +175,15 @@ if(OPENMP_FOUND)
     SET(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${OpenMP_C_FLAGS}")
 ENDIF(OPENMP_FOUND)
 
+SET(CPACK_SYSTEM_NAME "${CMAKE_SYSTEM_NAME}-${CMAKE_SYSTEM_PROCESSOR}")
+IF(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
+    IF(CMAKE_SIZEOF_VOID_P MATCHES 4)
+        SET(CPACK_SYSTEM_NAME "win32-${CMAKE_SYSTEM_PROCESSOR}")
+    ELSE()
+        SET(CPACK_SYSTEM_NAME "win64-${CMAKE_SYSTEM_PROCESSOR}")
+    ENDIF()
+ENDIF()
+
 IF(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
     IF (MSVC)
         ADD_DEFINITIONS( "-D_CRT_SECURE_NO_DEPRECATE" )  # avoids deprecation warnings
@@ -171,34 +192,33 @@ IF(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
     IF ("${CH_COMPILER}" STREQUAL "COMPILER_MSVC")
         SET (CH_BUILDFLAGS "-DWIN32; -DNOMINMAX; -MP")
         SET (CH_LINKERFLAG_SHARED "/FORCE:MULTIPLE")
-        SET(CPACK_SYSTEM_NAME "Win-x86")
     ELSEIF ("${CH_COMPILER}" STREQUAL "COMPILER_MSVC_X64")
         SET (CH_BUILDFLAGS "-DWIN64; -D_WIN64; -DNOMINMAX; -MP")
         SET (CH_LINKERFLAG_SHARED "/FORCE:MULTIPLE")
-        SET(CPACK_SYSTEM_NAME "Win-x64")
     ELSEIF ("${CH_COMPILER}" STREQUAL "COMPILER_GCC")
         SET (CH_BUILDFLAGS "-DWIN32 -D_MINGW -D_WINDOWS")
         SET (CH_LINKERFLAG_EXE "-Wl,--enable-runtime-pseudo-reloc")
         SET (CH_LINKERFLAG_SHARED "-Wl,--export-all-symbols -Wl,--enable-auto-import -Wl,--enable-runtime-pseudo-reloc")
-        SET(CPACK_SYSTEM_NAME "Win-x86")
     ELSEIF ("${CH_COMPILER}" STREQUAL "COMPILER_GCC_X64")
         SET (CH_BUILDFLAGS "-DWIN64 -D_MINGW -D_WINDOWS -m64")
         SET (CH_LINKERFLAG_EXE "-Wl,--enable-runtime-pseudo-reloc")
         SET (CH_LINKERFLAG_SHARED "-Wl,--export-all-symbols -Wl,--enable-auto-import -Wl,--enable-runtime-pseudo-reloc")
-        SET(CPACK_SYSTEM_NAME "Win-x64")
     ENDIF()
 ELSEIF(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
     SET (CH_BUILDFLAGS "-DLINUX -D__linux__ -fpermissive")
-    SET (CH_LINKERFLAG_SHARED "-lpthread -z muldefs  -pthread")		
-    SET (CPACK_SYSTEM_NAME "Linux-x64")
+    if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
+        SET (CH_LINKERFLAG_SHARED "-z muldefs")
+    endif()
 ELSEIF(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
 	if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
 	elseif ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
 		SET (CH_BUILDFLAGS "-DAPPLE -D__APPLE__   -fpermissive")
-		SET (CH_LINKERFLAG_SHARED "-lpthread  -fpermissive")		
+		SET (CH_LINKERFLAG_SHARED "-fpermissive")
 	endif()
-    SET (CPACK_SYSTEM_NAME "OSX-x64")
 ENDIF()
+
+find_package(Threads)
+set(CH_LINKERFLAG_SHARED "${CMAKE_THREAD_LIBS_INIT} ${CH_LINKERFLAG_SHARED}")
 
 #-----------------------------------------------------------------------------
 # Some global  C++ definitions and includes that are used 
@@ -214,6 +234,7 @@ ADD_DEFINITIONS( "-DBP_USE_FIXEDPOINT_INT_32" )   # for Bullet to use 32 bit mat
 # Includes that are used by ALL targets
 
 SET(CH_INCLUDES "${CMAKE_SOURCE_DIR}")
+SET(CH_INCLUDES ${CH_INCLUDES} "${CMAKE_BINARY_DIR}")
 SET(CH_INCLUDES ${CH_INCLUDES} "${CMAKE_SOURCE_DIR}/collision/bullet" )
 SET(CH_INCLUDES ${CH_INCLUDES} "${CMAKE_SOURCE_DIR}/collision/gimpact" )
 SET(CH_INCLUDES ${CH_INCLUDES} "${CMAKE_SOURCE_DIR}/collision/convexdecomposition/HACD" )
@@ -233,6 +254,9 @@ IF (BUILD_CH_SDK)
 	# You can add both .cpp and .h, only the .cpp will be compiled. 
 	#
 	
+	# Set version string and Git commit hash.
+	configure_file("${CMAKE_CURRENT_SOURCE_DIR}/core/ChVersion.h.in" "${CMAKE_CURRENT_BINARY_DIR}/core/ChVersion.h" @ONLY)
+
 	
 	SET(ChronoEngine_core_SOURCES
 		core/ChLog.cpp 
@@ -285,6 +309,9 @@ IF (BUILD_CH_SDK)
 		core/ChDistribution.h
 		core/ChQuadrature.h
 		)
+
+	list(APPEND ChronoEngine_core_SOURCES "${CMAKE_CURRENT_BINARY_DIR}/core/ChVersion.h")
+
 	SOURCE_GROUP(core FILES 
 			${ChronoEngine_core_SOURCES}
 			${ChronoEngine_core_HEADERS}
@@ -312,8 +339,6 @@ IF (BUILD_CH_SDK)
 		physics/ChLinkLock.cpp 
 		physics/ChLinkBrake.cpp 
 		physics/ChLinkEngine.cpp 
-		physics/ChLinkContact.cpp 
-		physics/ChLinkFastContact.cpp 
 		physics/ChLinkGear.cpp 
 		physics/ChLinkPulley.cpp 
 		physics/ChLinkLinActuator.cpp 
@@ -412,10 +437,8 @@ IF (BUILD_CH_SDK)
 		physics/ChLinkBase.h
 		physics/ChLink.h
 		physics/ChLinkBrake.h
-		physics/ChLinkContact.h
 		physics/ChLinkDistance.h
 		physics/ChLinkEngine.h
-		physics/ChLinkFastContact.h
 		physics/ChLinkforce.h
 		physics/ChLinkGear.h
 		physics/ChLinkLinActuator.h

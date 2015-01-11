@@ -55,13 +55,11 @@ ChObj::ChObj ()
 	ChTime = 0;
 	identifier = 0;
 
-	external_obj = 0;
 }
 
 ChObj::~ChObj()
 {
-	if (external_obj)
-		delete external_obj;
+
 }
 
 
@@ -71,27 +69,6 @@ void ChObj::Copy(ChObj* source)
 
 	name = source->name;
 	ChTime = source->ChTime;
-
-	if (source->GetExternalObject())
-		SetExternalObject(source->GetExternalObject());
-	else
-		SetNoExternalObject();
-}
-
-
-
-void ChObj::SetExternalObject(ChExternalObject* m_obj)
-{
-	if (external_obj)
-		delete external_obj;
-	external_obj = m_obj->new_Duplicate();
-}
-
-void ChObj::SetNoExternalObject()
-{
-	if (external_obj)
-		delete external_obj;
-	external_obj = NULL;
 }
 
 
@@ -102,10 +79,7 @@ void ChObj::SetNoExternalObject()
 
 const char* ChObj::GetName () const
 {
-	if (this->external_obj)
-		return external_obj->GetName();
-	else
-		return (char*)this->name.c_str();
+	return (char*)this->name.c_str();
 }
 
 void ChObj::SetName (const char myname[])
@@ -116,10 +90,7 @@ void ChObj::SetName (const char myname[])
 
 std::string ChObj::GetNameString () const
 {
-	if (this->external_obj)
-		return std::string(external_obj->GetName());
-	else
-		return this->name;
+	return this->name;
 }
 
 void ChObj::SetNameString (const std::string& myname)

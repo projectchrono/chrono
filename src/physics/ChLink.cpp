@@ -131,18 +131,6 @@ void ChLink::Update ()
 
 
 
-
-
-
-void ChLink::UpdateExternalGeometry ()
-{
-	if (GetExternalObject())
-		GetExternalObject()->onChronoChanged();
-}
-
-
-
-
 /////////
 ///////// FILE I/O
 /////////

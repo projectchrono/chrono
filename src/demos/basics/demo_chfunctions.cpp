@@ -27,6 +27,7 @@
  
   
  
+#include "core/ChVersion.h"
 #include "physics/ChFunction.h"
 
 
@@ -45,6 +46,9 @@ int main(int argc, char* argv[])
 	// 
 	// EXAMPLE 1: create a ramp ChFunction, set properties, evaluate it.
 	//
+	
+	GetLog() << "Chrono revision: " << CHRONOENGINE_VCS_REVISION << "\n";
+	GetLog() << "Chrono version: " << CHRONOENGINE_VERSION << "\n";
 
 	GetLog() << "==== Test 1...\n\n";
 

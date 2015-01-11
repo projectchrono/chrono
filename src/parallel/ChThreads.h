@@ -36,7 +36,7 @@
 	#include "ChThreadsWIN32.h"
 #endif
 
-#if (defined(__linux__) || defined(__APPLE__))
+#if ( defined(__linux__) || defined(__APPLE__) || defined(__FreeBSD__))
     #include "ChThreadsPOSIX.h"
 #endif
 
