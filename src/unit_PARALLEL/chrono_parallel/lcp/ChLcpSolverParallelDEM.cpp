@@ -85,11 +85,11 @@ function_CalcContactForces(
 
   // Calculate relative velocity (in global frame)
   //   vP = v + omg x s = v + A * (omg' x s')
-  real3 v_body1 = real3(vel[body1]*6+0, vel[body1]*6+1, vel[body1]*6+2);
-  real3 v_body2 = real3(vel[body2]*6+0, vel[body2]*6+1, vel[body2]*6+2);
+  real3 v_body1 = real3(vel[body1*6+0], vel[body1*6+1], vel[body1*6+2]);
+  real3 v_body2 = real3(vel[body2*6+0], vel[body2*6+1], vel[body2*6+2]);
 
-  real3 o_body1 = real3(vel[body1]*6+3, vel[body1]*6+4, vel[body1]*6+5);
-  real3 o_body2 = real3(vel[body2]*6+3, vel[body2]*6+4, vel[body2]*6+5);
+  real3 o_body1 = real3(vel[body1*6+3], vel[body1*6+4], vel[body1*6+5]);
+  real3 o_body2 = real3(vel[body2*6+3], vel[body2*6+4], vel[body2*6+5]);
 
   real3 vel1 = v_body1 + quatRotateMat(cross(o_body1, pt1_loc), rot[body1]);
   real3 vel2 = v_body2 + quatRotateMat(cross(o_body2, pt2_loc), rot[body2]);
