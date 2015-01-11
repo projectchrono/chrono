@@ -33,16 +33,14 @@ ChSystemParallelDVI::ChSystemParallelDVI(unsigned int max_objects)
 
 }
 
-void ChSystemParallelDVI::LoadMaterialSurfaceData(ChSharedPtr<ChBody> newbody) {
+void ChSystemParallelDVI::AddMaterialSurfaceData(ChSharedPtr<ChBody> newbody) {
    assert(typeid(*newbody.get_ptr()) == typeid(ChBody) || typeid(*newbody.get_ptr()) == typeid(ChBodyAuxRef));
 
-   ChSharedPtr<ChMaterialSurface>& mat = newbody->GetMaterialSurface();
-
-   data_manager->host_data.fric_data.push_back(
-   R3(mat->GetKfriction(), mat->GetRollingFriction(), mat->GetSpinningFriction()));
-   data_manager->host_data.cohesion_data.push_back(mat->GetCohesion());
-   data_manager->host_data.compliance_data.push_back(
-   R4(mat->GetCompliance(), mat->GetComplianceT(), mat->GetComplianceRolling(), mat->GetComplianceSpinning()));
+   // Reserve space for material properties for the specified body. Not that the
+   // actual data is set in UpdateMaterialProperties().
+   data_manager->host_data.fric_data.push_back(R3(0));
+   data_manager->host_data.cohesion_data.push_back(0);
+   data_manager->host_data.compliance_data.push_back(R4(0));
 }
 
 void ChSystemParallelDVI::UpdateBodies() {

@@ -24,23 +24,22 @@ ChSystemParallelDEM::ChSystemParallelDEM(unsigned int                       max_
 }
 
 
-void ChSystemParallelDEM::LoadMaterialSurfaceData(ChSharedPtr<ChBody> newbody)
+void ChSystemParallelDEM::AddMaterialSurfaceData(ChSharedPtr<ChBody> newbody)
 {
   assert(typeid(*newbody.get_ptr()) == typeid(ChBodyDEM));
 
-  ChSharedPtr<ChMaterialSurfaceDEM>& mat = ((ChBodyDEM*) newbody.get_ptr())->GetMaterialSurfaceDEM();
-
-  data_manager->host_data.elastic_moduli.push_back(R2(mat->GetYoungModulus(), mat->GetPoissonRatio()));
-  data_manager->host_data.mu.push_back(mat->GetSfriction());
-  data_manager->host_data.cohesion_data.push_back(mat->GetCohesion());
+  // Reserve space for material properties for the specified body. Not that the
+  // actual data is set in UpdateMaterialProperties().
+  data_manager->host_data.elastic_moduli.push_back(R2(0, 0));
+  data_manager->host_data.mu.push_back(0);
+  data_manager->host_data.cohesion_data.push_back(0);
+  //data_manager->host_data.cr.push_back(0);
 
   switch (normal_force_model) {
   case ChContactDEM::HuntCrossley:
-    data_manager->host_data.alpha.push_back(mat->GetDissipationFactor());
+    data_manager->host_data.alpha.push_back(0);
     break;
   }
-
-  //gpu_data_manager->host_data.cr.push_back(mat->GetRestitution());
 }
 
 

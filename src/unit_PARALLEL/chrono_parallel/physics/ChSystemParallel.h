@@ -67,7 +67,7 @@ CH_RTTI(ChSystemParallel, ChSystem)
    void PerturbBins(bool increase,
                     int number = 2);
 
-   virtual void LoadMaterialSurfaceData(ChSharedPtr<ChBody> newbody) = 0;
+   virtual void AddMaterialSurfaceData(ChSharedPtr<ChBody> newbody) = 0;
    virtual void ChangeCollisionSystem(collision::ChCollisionSystem *newcollsystem);
 
    virtual void PrintStepStats() {
@@ -125,8 +125,9 @@ CH_RTTI(ChSystemParallelDVI, ChSystemParallel)
    void ChangeSolverType(SOLVERTYPE type) {
       ((ChLcpSolverParallelDVI *) (LCP_solver_speed))->ChangeSolverType(type);
    }
-   virtual void LoadMaterialSurfaceData(ChSharedPtr<ChBody> newbody);
+   virtual void AddMaterialSurfaceData(ChSharedPtr<ChBody> newbody);
    virtual void UpdateBodies();
+
    virtual void AssembleSystem();
    virtual void SolveSystem();
 };
@@ -140,7 +141,7 @@ CH_RTTI(ChSystemParallelDEM, ChSystemParallel)
                        ChContactDEM::NormalForceModel normal_model = ChContactDEM::HuntCrossley,
                        ChContactDEM::TangentialForceModel tangential_model = ChContactDEM::SimpleCoulombSliding);
 
-   virtual void LoadMaterialSurfaceData(ChSharedPtr<ChBody> newbody);
+   virtual void AddMaterialSurfaceData(ChSharedPtr<ChBody> newbody);
    virtual void UpdateBodies();
    virtual void ChangeCollisionSystem(collision::ChCollisionSystem *newcollsystem);
 

@@ -159,34 +159,24 @@ void ChSystemParallel::AddBody(ChSharedPtr<ChBody> newbody) {
    // refer to. Not used by contacts
    newbody->SetId(data_manager->num_bodies);
 
-   data_manager->num_bodies++;
-
    bodylist.push_back(newbody.get_ptr());
+   data_manager->num_bodies++;
 
    if (newbody->GetCollide()) {
       newbody->AddCollisionModelsToSystem();
    }
-   ChLcpVariablesBodyOwnMass& mbodyvar = newbody->VariablesBody();
-   real inv_mass = (1.0) / (mbodyvar.GetBodyMass());
-   ChMatrix33<>& inertia = mbodyvar.GetBodyInvInertia();
 
-   data_manager->host_data.pos_data.push_back(R3(newbody->GetPos().x, newbody->GetPos().y, newbody->GetPos().z));
-   data_manager->host_data.rot_data.push_back(R4(newbody->GetRot().e0, newbody->GetRot().e1, newbody->GetRot().e2, newbody->GetRot().e3));
+   // Reserve space for this body in the system-wide vectors. Note that the
+   // actual data is set in UpdateBodies().
+   data_manager->host_data.pos_data.push_back(R3());
+   data_manager->host_data.rot_data.push_back(R4());
+   data_manager->host_data.inv_mass_data.push_back(0);
+   data_manager->host_data.inr_data.push_back(M33());
+   data_manager->host_data.active_data.push_back(true);
+   data_manager->host_data.collide_data.push_back(true);
 
-   M33 Inertia = M33(
- 		  R3(inertia.GetElement(0, 0), inertia.GetElement(1, 0), inertia.GetElement(2, 0)),
- 		  R3(inertia.GetElement(0, 1), inertia.GetElement(1, 1), inertia.GetElement(2, 1)),
- 		  R3(inertia.GetElement(0, 2), inertia.GetElement(1, 2), inertia.GetElement(2, 2)));
-
-
-   data_manager->host_data.inr_data.push_back(Inertia);
-
-   data_manager->host_data.active_data.push_back(newbody->IsActive());
-   data_manager->host_data.collide_data.push_back(newbody->GetCollide());
-   data_manager->host_data.inv_mass_data.push_back(inv_mass);
-
-   // Let derived classes load specific material surface data
-   LoadMaterialSurfaceData(newbody);
+   // Let derived classes reserve space for specific material surface data
+   AddMaterialSurfaceData(newbody);
 }
 
 void ChSystemParallel::AddOtherPhysicsItem(ChSharedPtr<ChPhysicsItem> newitem) {
@@ -221,13 +211,15 @@ void ChSystemParallel::AddShaft(ChSharedPtr<ChShaft> shaft)
   shaft->AddRef();
   shaft->SetId(data_manager->num_shafts);
   shaft->SetSystem(this);
+
   shaftlist.push_back(shaft.get_ptr());
-
-  data_manager->host_data.shaft_rot.push_back(0);
-  data_manager->host_data.shaft_inr.push_back(1);
-  data_manager->host_data.shaft_active.push_back(true);
-
   data_manager->num_shafts++;
+
+  // Reserve space for this shaft in the system-wide vectors. Not that the
+  // actual data is set in UpdateShafts().
+  data_manager->host_data.shaft_rot.push_back(0);
+  data_manager->host_data.shaft_inr.push_back(0);
+  data_manager->host_data.shaft_active.push_back(true);
 }
 
 void ChSystemParallel::ClearForceVariables()
