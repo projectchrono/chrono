@@ -215,11 +215,11 @@ ChLcpSolverParallelDEM::host_AddContactForces(
 	real3 contact_force = data_container->settings.step_size * ct_body_force[index];
 	real3 contact_torque = data_container->settings.step_size * ct_body_torque[index];
     data_container->host_data.hf[ct_body_id[index]*6+0] += contact_force.x;
-    data_container->host_data.hf[ct_body_id[index]*6+1] += contact_force.x;
-    data_container->host_data.hf[ct_body_id[index]*6+2] += contact_force.x;
+    data_container->host_data.hf[ct_body_id[index]*6+1] += contact_force.y;
+    data_container->host_data.hf[ct_body_id[index]*6+2] += contact_force.z;
     data_container->host_data.hf[ct_body_id[index]*6+3] += contact_torque.x;
-    data_container->host_data.hf[ct_body_id[index]*6+4] += contact_torque.x;
-    data_container->host_data.hf[ct_body_id[index]*6+5] += contact_torque.x;
+    data_container->host_data.hf[ct_body_id[index]*6+4] += contact_torque.y;
+    data_container->host_data.hf[ct_body_id[index]*6+5] += contact_torque.z;
    }
 }
 
