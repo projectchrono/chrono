@@ -230,7 +230,7 @@ void ChSystemParallel::AddShaft(ChSharedPtr<ChShaft> shaft)
   data_manager->num_shafts++;
 }
 
-void ChSystemParallel::ClearBodyForceVector()
+void ChSystemParallel::ClearForceVariables()
 {
   ////#pragma omp parallel for
   for (int i = 0; i < data_manager->num_bodies; i++) {
@@ -249,7 +249,7 @@ void ChSystemParallel::Update() {
   // Write forces into the fh vector
 
   // Clears the forces for all lcp variables
-  ClearBodyForceVector();
+  ClearForceVariables();
 
   //Allocate space for the velocities and forces for all objects
   data_manager->host_data.v.resize(data_manager->num_bodies * 6 + data_manager->num_shafts * 1);
@@ -271,7 +271,6 @@ void ChSystemParallel::UpdateShafts()
 
 ////#pragma omp parallel for
   for (int i = 0; i < data_manager->num_shafts; i++) {
-	  shaftlist[i]->VariablesFbReset();
     shaftlist[i]->Update(ChTime);
     shaftlist[i]->VariablesFbLoadForces(GetStep());
     shaftlist[i]->VariablesQbLoadSpeed();
