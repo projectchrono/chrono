@@ -326,7 +326,7 @@ void ChSystemParallel::UpdateShafts()
     shaftlist[i]->VariablesQbLoadSpeed();
 
     shaft_rot[i] = shaftlist[i]->GetPos();
-    shaft_inr[i] = shaftlist[i]->Variables().GetInvMass().GetElementN(0);
+    shaft_inr[i] = shaftlist[i]->Variables().GetInvInertia();
     shaft_active[i] = shaftlist[i]->IsActive();
 
     data_manager->host_data.v[data_manager->num_bodies * 6 + i] = shaftlist[i]->Variables().Get_qb().GetElementN(0);
