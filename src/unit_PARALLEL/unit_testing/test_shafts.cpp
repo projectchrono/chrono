@@ -19,7 +19,6 @@
 #include "physics/ChShaftsGear.h"
 
 #include "chrono_parallel/physics/ChSystemParallel.h"
-#include "chrono_parallel/lcp/ChLcpSystemDescriptorParallel.h"
 
 #include "chrono_utils/ChUtilsCreators.h"
 #include "chrono_utils/ChUtilsInputOutput.h"
@@ -115,21 +114,20 @@ bool TestShaftShaft(utils::SystemType sys_type)
   {
     system->DoStepDynamics(time_step);
     time += time_step;
-
-    std::cout << "Time: " << time << "\n"
-      << "  shaft A rot: " << shaftA->GetPos()
-      << "  speed: " << shaftA->GetPos_dt()
-      << "  accel: " << shaftA->GetPos_dtdt()
-      << "\n"
-      << "  shaft B rot: " << shaftB->GetPos()
-      << "  speed: " << shaftB->GetPos_dt()
-      << "  accel: " << shaftB->GetPos_dtdt()
-      << "\n"
-      << "  torque on A side: " << gearAB->GetTorqueReactionOn1()
-      << "  torque on B side: " << gearAB->GetTorqueReactionOn2()
-      << "\n";
   }
 
+  std::cout << "Time: " << time << "\n"
+    << "  shaft A rot: " << shaftA->GetPos()
+    << "  speed: " << shaftA->GetPos_dt()
+    << "  accel: " << shaftA->GetPos_dtdt()
+    << "\n"
+    << "  shaft B rot: " << shaftB->GetPos()
+    << "  speed: " << shaftB->GetPos_dt()
+    << "  accel: " << shaftB->GetPos_dtdt()
+    << "\n"
+    << "  torque on A side: " << gearAB->GetTorqueReactionOn1()
+    << "  torque on B side: " << gearAB->GetTorqueReactionOn2()
+    << "\n";
 
   // Delete the system
   delete system;
