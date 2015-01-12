@@ -6,8 +6,7 @@ using namespace chrono;
 ChSystemParallelDVI::ChSystemParallelDVI(unsigned int max_objects)
       : ChSystemParallel(max_objects)
 {
-   LCP_solver_speed = new ChLcpSolverParallelDVI();
-   ((ChLcpSolverParallel*) LCP_solver_speed)->data_container = data_manager;
+   LCP_solver_speed = new ChLcpSolverParallelDVI(data_manager);
 
    //Set this so that the CD can check what type of system it is (needed for narrowphase)
    data_manager->settings.system_type = SYSTEM_DVI;

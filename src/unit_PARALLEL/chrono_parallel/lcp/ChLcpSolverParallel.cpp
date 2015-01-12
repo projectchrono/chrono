@@ -3,13 +3,19 @@
 
 using namespace chrono;
 
-ChLcpSolverParallel::ChLcpSolverParallel() {
+ChLcpSolverParallel::ChLcpSolverParallel(ChParallelDataManager* dc)
+: data_container(dc)
+{
   tolerance = 1e-7;
   record_violation_history = true;
   warm_start = false;
   residual = 0;
-  data_container = 0;
-  solver = 0;
+  solver = new ChSolverAPGD();
+}
+
+ChLcpSolverParallel::~ChLcpSolverParallel()
+{
+  delete solver;
 }
 
 void ChLcpSolverParallel::ComputeMassMatrix() {

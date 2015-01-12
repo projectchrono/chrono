@@ -11,8 +11,7 @@ ChSystemParallelDEM::ChSystemParallelDEM(unsigned int                       max_
   normal_force_model(normal_model),
   tangential_force_model(tangential_model)
 {
-  LCP_solver_speed = new ChLcpSolverParallelDEM();
-  ((ChLcpSolverParallel*) LCP_solver_speed)->data_container = data_manager;
+  LCP_solver_speed = new ChLcpSolverParallelDEM(data_manager);
 
   ((ChCollisionSystemParallel *) collision_system)->SetCollisionEnvelope(0);
 
