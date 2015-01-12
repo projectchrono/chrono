@@ -391,8 +391,8 @@ void host_DispatchR(const uint& index,
   if (!RCollision(icoll, shapeA, shapeB, ID_A, ID_B, flag, norm, ptA, ptB, contactDepth, effective_radius, body_ids, nC)) {
     return;
   }
-
-  host_Dispatch_Finalize(icoll, body_pos, collision_envelope, system_type, ID_A, ID_B, nC, norm, ptA, ptB, contactDepth);
+  //There is no envelope applied when using the R narrowphase, set it to zero and finalize
+  host_Dispatch_Finalize(icoll, body_pos, 0, system_type, ID_A, ID_B, nC, norm, ptA, ptB, contactDepth);
 }
 
 void host_DispatchHybridMPR(const uint& index,
@@ -419,6 +419,8 @@ void host_DispatchHybridMPR(const uint& index,
                             int2* body_ids) {
   uint ID_A, ID_B, icoll;
   ConvexShape shapeA, shapeB;
+  //The envelope is set to zero if the R narrowphase found the contact.
+  real envelope = collision_envelope;
 
   if (!host_Dispatch_Init(
            index, obj_data_T, obj_data_A, obj_data_B, obj_data_C, obj_data_R, obj_data_ID, convex_data, obj_active, body_pos, body_rot, contact_pair, start_index, icoll, ID_A, ID_B, shapeA, shapeB)) {
@@ -428,7 +430,7 @@ void host_DispatchHybridMPR(const uint& index,
 
   if (RCollision(icoll, shapeA, shapeB, ID_A, ID_B, flag, norm, ptA, ptB, contactDepth, effective_radius, body_ids, nC)) {
     // this is needed for DVI
-
+    envelope = 0;
   } else {
 
     if (!MPRCollision(shapeA, shapeB, collision_envelope, norm[icoll], ptA[icoll], ptB[icoll], contactDepth[icoll])) {
@@ -442,7 +444,7 @@ void host_DispatchHybridMPR(const uint& index,
     nC = 1;
   }
 
-  host_Dispatch_Finalize(icoll, body_pos, collision_envelope, system_type, ID_A, ID_B, nC, norm, ptA, ptB, contactDepth);
+  host_Dispatch_Finalize(icoll, body_pos, envelope, system_type, ID_A, ID_B, nC, norm, ptA, ptB, contactDepth);
 }
 
 void ChCNarrowphaseDispatch::Dispatch(const shape_type* obj_data_T,
