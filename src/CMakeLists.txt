@@ -831,6 +831,7 @@ IF (BUILD_CH_SDK)
 		lcp/ChLcpVariablesBody.cpp 
 		lcp/ChLcpVariablesBodySharedMass.cpp 
 		lcp/ChLcpVariablesBodyOwnMass.cpp 
+		lcp/ChLcpVariablesShaft.cpp
 		lcp/ChLcpVariablesNode.cpp 
 		lcp/ChLcpKblockGeneric.cpp
 		lcp/ChLcpSolverDEM.cpp
@@ -871,6 +872,7 @@ IF (BUILD_CH_SDK)
 		lcp/ChLcpVariablesBody.h
 		lcp/ChLcpVariablesBodyOwnMass.h
 		lcp/ChLcpVariablesBodySharedMass.h
+		lcp/ChLcpVariablesShaft.h
 		lcp/ChLcpVariablesGeneric.h
 		lcp/ChLcpVariablesNode.h
 		lcp/ChLcpKblock.h

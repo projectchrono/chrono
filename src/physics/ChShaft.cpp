@@ -62,7 +62,7 @@ ChShaft::ChShaft ()
 	this->sleeping = false;
 	SetUseSleeping(true); 
 
-	//variables.SetUserData((void*)this);
+	variables.SetShaft(this);
 }
 
 
@@ -106,9 +106,8 @@ void ChShaft::SetInertia (double newJ)
 	assert(newJ >0.);
 	if (newJ<=0.) 
 		return;
-	this->inertia = newJ; 
-	this->variables.GetMass().SetElementN(0, newJ); 
-	this->variables.GetInvMass().SetElementN(0, (1.0/newJ)); 
+	this->inertia = newJ;
+    this->variables.SetInertia(newJ);
 }
 
 
