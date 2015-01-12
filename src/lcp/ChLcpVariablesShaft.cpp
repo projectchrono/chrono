@@ -111,7 +111,7 @@ void ChLcpVariablesShaft::Build_M(ChSparseMatrix& storage, int insrow, int insco
 
 // Register into the object factory, to enable run-time
 // dynamic creation and persistence
-ChClassRegister<ChLcpVariablesShaft> a_registration_ChLcpVariablesNode;
+ChClassRegister<ChLcpVariablesShaft> a_registration_ChLcpVariablesShaft;
 
 
 
