@@ -4,10 +4,11 @@
 using namespace chrono;
 
 real ChSolverAPGDREF::Res4(blaze::DynamicVector<real> & gamma,
+    const blaze::DynamicVector<real> & r,
     blaze::DynamicVector<real> & tmp) {
 
   real gdiff = 1.0/pow(num_constraints,2.0);
-  SchurComplementProduct(gamma, tmp);
+  ShurProduct(gamma, tmp);
   tmp = tmp + r;
   tmp = gamma - gdiff * (tmp);
   Project(tmp.data());
@@ -16,20 +17,13 @@ real ChSolverAPGDREF::Res4(blaze::DynamicVector<real> & gamma,
   return sqrt((double) (tmp, tmp));
 }
 
-void ChSolverAPGDREF::SchurComplementProduct(blaze::DynamicVector<real> & src,
-    blaze::DynamicVector<real> & dst) {
-  dst = data_container->host_data.D_T
-      * (data_container->host_data.M_invD * src);
-}
-
 uint ChSolverAPGDREF::SolveAPGDREF(const uint max_iter, const uint size,
-		 const blaze::DynamicVector<real>& b,
-		 blaze::DynamicVector<real>& x) {
+		 const blaze::DynamicVector<real>& r,
+		 blaze::DynamicVector<real>& gamma) {
 
   real& residual = data_container->measures.solver.residual;
   real& objective_value = data_container->measures.solver.objective_value;
   custom_vector<real>& iter_hist = data_container->measures.solver.iter_hist;
-
 
   bool verbose = false;
   bool useWarmStarting = true;
@@ -45,25 +39,20 @@ uint ChSolverAPGDREF::SolveAPGDREF(const uint max_iter, const uint size,
   gammaNew.resize(size);
   g.resize(size);
   y.resize(size);
-  gamma.resize(size);
   yNew.resize(size);
-  r.resize(size);
   tmp.resize(size);
 
   residual = 10e30;
+  r = -r; //TODO: WHY DO I NEED A MINUS SIGN?
 
-#pragma omp parallel for
-  for (int i = 0; i < size; i++) {
-    // (1) gamma_0 = zeros(nc,1)
-    if(!useWarmStarting) gamma[i] = 0;
+  // (1) gamma_0 = zeros(nc,1)
+  if(!useWarmStarting) gamma = 0.0;
 
-    // (2) gamma_hat_0 = ones(nc,1)
-    gamma_hat[i] = 1.0;
+  // (2) gamma_hat_0 = ones(nc,1)
+  gamma_hat = 1.0;
 
-    // (3) y_0 = gamma_0
-    y[i] = gamma[i];
-    r[i] = -b[i]; // convert r to a blaze vector //TODO: WHY DO I NEED A MINUS SIGN?
-  }
+  // (3) y_0 = gamma_0
+  y = gamma;
 
   // (4) theta_0 = 1
   theta = 1.0;
@@ -75,7 +64,7 @@ uint ChSolverAPGDREF::SolveAPGDREF(const uint max_iter, const uint size,
   // (5) L_k = norm(N * (gamma_0 - gamma_hat_0)) / norm(gamma_0 - gamma_hat_0)
   tmp = gamma - gamma_hat;
   L = sqrt((double) (tmp, tmp));
-  SchurComplementProduct(tmp, tmp);
+  ShurProduct(tmp, tmp);
   L = sqrt((double) (tmp, tmp)) / L;
 
   // (6) t_k = 1 / L_k
@@ -85,7 +74,7 @@ uint ChSolverAPGDREF::SolveAPGDREF(const uint max_iter, const uint size,
   for (current_iteration = 0; current_iteration < max_iter;
       current_iteration++) {
     // (8) g = N * y_k - r
-    SchurComplementProduct(y, g);
+    ShurProduct(y, g);
     g = g + r;
 
     // (9) gamma_(k+1) = ProjectionOperator(y_k - t_k * g)
@@ -93,9 +82,9 @@ uint ChSolverAPGDREF::SolveAPGDREF(const uint max_iter, const uint size,
     Project(gammaNew.data());
 
     // (10) while 0.5 * gamma_(k+1)' * N * gamma_(k+1) - gamma_(k+1)' * r >= 0.5 * y_k' * N * y_k - y_k' * r + g' * (gamma_(k+1) - y_k) + 0.5 * L_k * norm(gamma_(k+1) - y_k)^2
-    SchurComplementProduct(gammaNew, tmp); // Here tmp is equal to N*gammaNew;
+    ShurProduct(gammaNew, tmp); // Here tmp is equal to N*gammaNew;
     obj1 = 0.5 * (gammaNew, tmp) + (gammaNew, r);
-    SchurComplementProduct(y, tmp); // Here tmp is equal to N*y;
+    ShurProduct(y, tmp); // Here tmp is equal to N*y;
     obj2 = 0.5 * (y, tmp) + (y, r);
     tmp = gammaNew - y; // Here tmp is equal to gammaNew - y
     obj2 = obj2 + (g, tmp) + 0.5 * L * (tmp, tmp);
@@ -112,9 +101,9 @@ uint ChSolverAPGDREF::SolveAPGDREF(const uint max_iter, const uint size,
       Project(gammaNew.data());
 
       // Update the components of the while condition
-      SchurComplementProduct(gammaNew, tmp); // Here tmp is equal to N*gammaNew;
+      ShurProduct(gammaNew, tmp); // Here tmp is equal to N*gammaNew;
       obj1 = 0.5 * (gammaNew, tmp) + (gammaNew, r);
-      SchurComplementProduct(y, tmp); // Here tmp is equal to N*y;
+      ShurProduct(y, tmp); // Here tmp is equal to N*y;
       obj2 = 0.5 * (y, tmp) + (y, r);
       tmp = gammaNew - y; // Here tmp is equal to gammaNew - y
       obj2 = obj2 + (g, tmp) + 0.5 * L * (tmp, tmp);
@@ -132,7 +121,7 @@ uint ChSolverAPGDREF::SolveAPGDREF(const uint max_iter, const uint size,
     yNew = gammaNew + Beta * (gammaNew - gamma);
 
     // (18) r = r(gamma_(k+1))
-    real res = Res4(gammaNew, tmp);
+    real res = Res4(gammaNew, r, tmp);
 
     // (19) if r < epsilon_min
     if (res < residual) {
@@ -146,6 +135,8 @@ uint ChSolverAPGDREF::SolveAPGDREF(const uint max_iter, const uint size,
     }
 
     // (23) if r < Tau
+    if(verbose) std::cout << "Residual: " << residual << ", Iter: " << current_iteration << std::endl;
+    AtIterationEnd(residual, objective_value, iter_hist.size());
     if (residual < tol_speed) {
       // (24) break
       break;
@@ -175,20 +166,11 @@ uint ChSolverAPGDREF::SolveAPGDREF(const uint max_iter, const uint size,
     gamma = gammaNew;
     y = yNew;
 
-    // perform some tasks at the end of the iteration
-    AtIterationEnd(residual, objective_value, iter_hist.size());
-
     // (32) endfor
   }
-  if(verbose) std::cout << "Residual: " << residual << ", Iter: " << current_iteration << std::endl;
 
   // (33) return Value at time step t_(l+1), gamma_(l+1) := gamma_hat
-  if(useWarmStarting) gamma = gamma_hat;
-#pragma omp parallel for
-  for (int i = 0; i < size; i++) {
-    x[i] = gamma_hat[i];
-  }
+  gamma = gamma_hat;
 
   return current_iteration;
 }
-

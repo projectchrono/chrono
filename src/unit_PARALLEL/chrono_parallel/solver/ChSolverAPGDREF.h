@@ -42,24 +42,21 @@ public:
 
   }
 
-  // Solve using a more streamlined but harder to read version of the APGD method
-  uint SolveAPGDREF(const uint max_iter,       // Maximum number of iterations
-      const uint size,               // Number of unknowns
-      const blaze::DynamicVector<real>& b,    // Rhs vector
-      blaze::DynamicVector<real>& x     // The vector of unknowns
+  // Solve using the APGD method
+  uint SolveAPGDREF(const uint max_iter,      // Maximum number of iterations
+      const uint size,                        // Number of unknowns
+      const blaze::DynamicVector<real>& r,    // Rhs vector
+      blaze::DynamicVector<real>& gamma       // The vector of unknowns
       );
 
   // Compute the residual for the solver
   real Res4(blaze::DynamicVector<real> & gamma,
+      const blaze::DynamicVector<real> & r,
       blaze::DynamicVector<real> & tmp);
-
-  // Compute the Schur Complement Product, dst = N * src
-  void SchurComplementProduct(blaze::DynamicVector<real> & src,
-      blaze::DynamicVector<real> & dst);
 
   //APGD specific vectors
   blaze::DynamicVector<real> gamma_hat;
-  blaze::DynamicVector<real> gammaNew, g, y, gamma, yNew, r, tmp;
+  blaze::DynamicVector<real> gammaNew, g, y, yNew, tmp;
 
 };
 }
