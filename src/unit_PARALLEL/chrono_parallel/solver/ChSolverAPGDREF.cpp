@@ -9,7 +9,7 @@ real ChSolverAPGDREF::Res4(blaze::DynamicVector<real> & gamma,
 
   real gdiff = 1.0/pow(num_constraints,2.0);
   ShurProduct(gamma, tmp);
-  tmp = tmp + r;
+  tmp = tmp - r;
   tmp = gamma - gdiff * (tmp);
   Project(tmp.data());
   tmp = (1.0 / gdiff) * (gamma - tmp);
@@ -18,8 +18,8 @@ real ChSolverAPGDREF::Res4(blaze::DynamicVector<real> & gamma,
 }
 
 uint ChSolverAPGDREF::SolveAPGDREF(const uint max_iter, const uint size,
-		 const blaze::DynamicVector<real>& r,
-		 blaze::DynamicVector<real>& gamma) {
+    const blaze::DynamicVector<real>& r,
+    blaze::DynamicVector<real>& gamma) {
 
   real& residual = data_container->measures.solver.residual;
   real& objective_value = data_container->measures.solver.objective_value;
@@ -43,7 +43,6 @@ uint ChSolverAPGDREF::SolveAPGDREF(const uint max_iter, const uint size,
   tmp.resize(size);
 
   residual = 10e30;
-  r = -r; //TODO: WHY DO I NEED A MINUS SIGN?
 
   // (1) gamma_0 = zeros(nc,1)
   if(!useWarmStarting) gamma = 0.0;
@@ -75,7 +74,7 @@ uint ChSolverAPGDREF::SolveAPGDREF(const uint max_iter, const uint size,
       current_iteration++) {
     // (8) g = N * y_k - r
     ShurProduct(y, g);
-    g = g + r;
+    g = g - r;
 
     // (9) gamma_(k+1) = ProjectionOperator(y_k - t_k * g)
     gammaNew = y - t * g;
@@ -83,9 +82,9 @@ uint ChSolverAPGDREF::SolveAPGDREF(const uint max_iter, const uint size,
 
     // (10) while 0.5 * gamma_(k+1)' * N * gamma_(k+1) - gamma_(k+1)' * r >= 0.5 * y_k' * N * y_k - y_k' * r + g' * (gamma_(k+1) - y_k) + 0.5 * L_k * norm(gamma_(k+1) - y_k)^2
     ShurProduct(gammaNew, tmp); // Here tmp is equal to N*gammaNew;
-    obj1 = 0.5 * (gammaNew, tmp) + (gammaNew, r);
+    obj1 = 0.5 * (gammaNew, tmp) - (gammaNew, r);
     ShurProduct(y, tmp); // Here tmp is equal to N*y;
-    obj2 = 0.5 * (y, tmp) + (y, r);
+    obj2 = 0.5 * (y, tmp) - (y, r);
     tmp = gammaNew - y; // Here tmp is equal to gammaNew - y
     obj2 = obj2 + (g, tmp) + 0.5 * L * (tmp, tmp);
 
@@ -102,9 +101,9 @@ uint ChSolverAPGDREF::SolveAPGDREF(const uint max_iter, const uint size,
 
       // Update the components of the while condition
       ShurProduct(gammaNew, tmp); // Here tmp is equal to N*gammaNew;
-      obj1 = 0.5 * (gammaNew, tmp) + (gammaNew, r);
+      obj1 = 0.5 * (gammaNew, tmp) - (gammaNew, r);
       ShurProduct(y, tmp); // Here tmp is equal to N*y;
-      obj2 = 0.5 * (y, tmp) + (y, r);
+      obj2 = 0.5 * (y, tmp) - (y, r);
       tmp = gammaNew - y; // Here tmp is equal to gammaNew - y
       obj2 = obj2 + (g, tmp) + 0.5 * L * (tmp, tmp);
 
