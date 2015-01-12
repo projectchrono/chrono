@@ -10,10 +10,9 @@ ChSystemParallel::ChSystemParallel(unsigned int max_objects)
    data_manager = new ChParallelDataManager();
 
    LCP_descriptor = new ChLcpSystemDescriptorParallel(data_manager);
-   contact_container = new ChContactContainerParallel();
+   contact_container = new ChContactContainerParallel(data_manager);
    collision_system = new ChCollisionSystemParallel();
    ((ChCollisionSystemParallel *) collision_system)->data_container = data_manager;
-   ((ChContactContainerParallel*) contact_container)->data_container = data_manager;
 
    counter = 0;
    timer_accumulator.resize(10, 0);

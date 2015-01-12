@@ -20,21 +20,23 @@
 #include "core/ChMemory.h" // must be last include (memory leak debugger). In .cpp only.
 
 namespace chrono {
-    using namespace collision;
-    using namespace geometry;
 
-    // Register into the object factory, to enable run-time
-    // dynamic creation and persistence
-    ChClassRegister<ChContactContainerParallel> a_registration_ChContactContainerGPU;
+using namespace collision;
+using namespace geometry;
 
-    ChContactContainerParallel::ChContactContainerParallel() {
-        n_added = 0;
-        data_container = 0;
-    }
+// Register into the object factory, to enable run-time
+// dynamic creation and persistence
+ChClassRegister<ChContactContainerParallel> a_registration_ChContactContainerGPU;
 
-    ChContactContainerParallel::~ChContactContainerParallel() {
-        n_added = 0;
-    }
+ChContactContainerParallel::ChContactContainerParallel(ChParallelDataManager* dc)
+: data_container(dc)
+{
+  n_added = 0;
+}
+
+ChContactContainerParallel::~ChContactContainerParallel() {
+  n_added = 0;
+}
 
 } // END_OF_NAMESPACE____
 
