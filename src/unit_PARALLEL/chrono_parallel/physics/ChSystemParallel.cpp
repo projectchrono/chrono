@@ -5,10 +5,11 @@ using namespace chrono;
 using namespace chrono::collision;
 
 ChSystemParallel::ChSystemParallel(unsigned int max_objects)
-      : ChSystem(1000, 10000, false) {
-
+      : ChSystem(1000, 10000, false)
+{
    data_manager = new ChParallelDataManager();
 
+   LCP_descriptor = new ChLcpSystemDescriptorParallel(data_manager);
    contact_container = new ChContactContainerParallel();
    collision_system = new ChCollisionSystemParallel();
    ((ChCollisionSystemParallel *) collision_system)->data_container = data_manager;
@@ -347,7 +348,7 @@ void ChSystemParallel::UpdateBilaterals() {
 	   linklist[i]->ConstraintsLiLoadSuggestedSpeedSolution();
 	   linklist[i]->InjectConstraints(*this->LCP_descriptor);
    }
-   uint & num_bilaterals  = data_manager->num_bilaterals;
+
    std::vector<ChLcpConstraint *> &mconstraints = (*this->LCP_descriptor).GetConstraintsList();
    data_manager->host_data.bilateral_mapping.clear();
 
@@ -356,7 +357,8 @@ void ChSystemParallel::UpdateBilaterals() {
          data_manager->host_data.bilateral_mapping.push_back(ic);
       }
    }
-   num_bilaterals = data_manager->host_data.bilateral_mapping.size();
+
+   data_manager->num_bilaterals = data_manager->host_data.bilateral_mapping.size();
 }
 
 void ChSystemParallel::RecomputeThreads() {

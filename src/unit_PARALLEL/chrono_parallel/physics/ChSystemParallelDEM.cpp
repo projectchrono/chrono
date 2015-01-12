@@ -11,15 +11,14 @@ ChSystemParallelDEM::ChSystemParallelDEM(unsigned int                       max_
   normal_force_model(normal_model),
   tangential_force_model(tangential_model)
 {
-  LCP_descriptor = new ChLcpSystemDescriptorParallelDEM();
   LCP_solver_speed = new ChLcpSolverParallelDEM();
-  ((ChLcpSystemDescriptorParallelDEM*) LCP_descriptor)->data_container = data_manager;
   ((ChLcpSolverParallel*) LCP_solver_speed)->data_container = data_manager;
 
   ((ChCollisionSystemParallel *) collision_system)->SetCollisionEnvelope(0);
 
   //Set this so that the CD can check what type of system it is (needed for narrowphase)
   data_manager->settings.system_type = SYSTEM_DEM;
+
   data_manager->system_timer.AddTimer("ChLcpSolverParallelDEM_ProcessContact");
 }
 
