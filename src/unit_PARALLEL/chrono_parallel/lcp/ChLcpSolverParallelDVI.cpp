@@ -158,7 +158,7 @@ void ChLcpSolverParallelDVI::ComputeD() {
 
   D_T.resize(num_constraints, num_dof, false);
   rigid_rigid.GenerateSparsity(data_container->settings.solver.solver_mode);
-  bilateral.GenerateSparsity(data_container->settings.solver.solver_mode);
+  bilateral.GenerateSparsity();
   rigid_rigid.Build_D(data_container->settings.solver.solver_mode);
   bilateral.Build_D();
 

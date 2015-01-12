@@ -36,15 +36,6 @@ ChSystemParallel::ChSystemParallel(unsigned int max_objects)
    data_manager->system_timer.AddTimer("ChLcpSolverParallel_Solve");
    data_manager->system_timer.AddTimer("ChLcpSolverParallel_Setup");
    data_manager->system_timer.AddTimer("ChLcpSolverParallel_Stab");
-   data_manager->system_timer.AddTimer("ChLcpSolverParallel_Jacobians");
-   data_manager->system_timer.AddTimer("ChLcpSolverParallel_RHS");
-
-   data_manager->system_timer.AddTimer("ChConstraintBilateral_shurA_compute");
-   data_manager->system_timer.AddTimer("ChConstraintBilateral_shurA_reduce");
-   data_manager->system_timer.AddTimer("ChConstraintBilateral_shurB_compute");
-
-   data_manager->system_timer.AddTimer("ChSolverParallel_shurA");
-   data_manager->system_timer.AddTimer("ChSolverParallel_shurB");
 
 }
 

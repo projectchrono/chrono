@@ -61,7 +61,7 @@ void ChConstraintBilateral::Build_D() {
   }
 }
 
-void ChConstraintBilateral::GenerateSparsity(SOLVERMODE solver_mode) {
+void ChConstraintBilateral::GenerateSparsity() {
   CompressedMatrix<real>& D_T = data_container->host_data.D_T;
   ChLcpSystemDescriptor* lcp_sys = data_container->lcp_system_descriptor;
   std::vector<ChLcpConstraint*>& mconstraints = (*lcp_sys).GetConstraintsList();
