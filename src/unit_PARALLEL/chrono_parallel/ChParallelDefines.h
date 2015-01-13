@@ -201,5 +201,13 @@ enum SYSTEMTYPE{
    SYSTEM_DEM
 };
 
+enum BILATERALTYPE {
+  BODY_BODY,
+  SHAFT_SHAFT,
+  BODY_SHAFT,
+  UNKNOWN
+};
+
+
 #endif
 

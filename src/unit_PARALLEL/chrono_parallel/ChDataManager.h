@@ -86,6 +86,9 @@ struct host_container {
    thrust::host_vector<bool> collide_data;
    thrust::host_vector<real> inv_mass_data;
 
+   // Bilateral constraint type (all supported constraints)
+   thrust::host_vector<int> bilateral_type;
+
    // keeps track of active bilateral constraints
    thrust::host_vector<int> bilateral_mapping;
 
