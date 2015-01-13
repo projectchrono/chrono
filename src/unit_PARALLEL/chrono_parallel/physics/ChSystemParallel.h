@@ -60,6 +60,8 @@ CH_RTTI(ChSystemParallel, ChSystem)
    void ClearForceVariables();
    void Update();
    void UpdateBilaterals();
+   void UpdateLinks();
+   void UpdateOtherPhysics();
    void UpdateBodies();
    void UpdateShafts();
    void RecomputeThreads();
