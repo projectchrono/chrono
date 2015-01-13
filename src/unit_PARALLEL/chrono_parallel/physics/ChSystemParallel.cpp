@@ -1,3 +1,7 @@
+#include "physics/ChShaftsCouple.h"
+#include "physics/ChShaftsPlanetary.h"
+#include "physics/ChShaftsBody.h"
+
 #include "chrono_parallel/physics/ChSystemParallel.h"
 #include <omp.h>
 
@@ -334,30 +338,98 @@ void ChSystemParallel::UpdateShafts()
   }
 }
 
-void ChSystemParallel::UpdateBilaterals() {
-   for (int i=0; i<linklist.size(); i++) {
-	   linklist[i]->Update(ChTime);
-	   linklist[i]->ConstraintsBiReset();
-	   linklist[i]->ConstraintsBiLoad_C(1.0 / GetStep(),
-                                 data_manager->settings.solver.bilateral_clamp_speed,
-                                 data_manager->settings.solver.clamp_bilaterals);
-	   linklist[i]->ConstraintsBiLoad_Ct(1);
-	   linklist[i]->ConstraintsFbLoadForces(GetStep());
-	   linklist[i]->ConstraintsLoadJacobians();
-	   linklist[i]->ConstraintsLiLoadSuggestedSpeedSolution();
-	   linklist[i]->InjectConstraints(*this->LCP_descriptor);
-   }
+// This utility function returns the type of constraints associated with the
+// specified physics item.
+BILATERALTYPE GetBilateralType(ChPhysicsItem* item)
+{
+  if (dynamic_cast<ChShaftsCouple*>(item))
+    return SHAFT_SHAFT;
 
-   std::vector<ChLcpConstraint *> &mconstraints = (*this->LCP_descriptor).GetConstraintsList();
-   data_manager->host_data.bilateral_mapping.clear();
+  if (dynamic_cast<ChShaftsPlanetary*>(item))
+    return SHAFT_SHAFT_SHAFT;
 
-   for (uint ic = 0; ic < mconstraints.size(); ic++) {
-      if (mconstraints[ic]->IsActive() == true) {
-         data_manager->host_data.bilateral_mapping.push_back(ic);
+  if (dynamic_cast<ChShaftsBody*>(item))
+    return SHAFT_BODY;
+
+  return UNKNOWN;
+}
+
+void ChSystemParallel::UpdateBilaterals()
+{
+  double oostep = 1 / GetStep();
+  real clamp_speed = data_manager->settings.solver.bilateral_clamp_speed;
+  bool clamp = data_manager->settings.solver.clamp_bilaterals;
+
+  // Clear system-wide vectors
+  data_manager->host_data.bilateral_mapping.clear();
+  data_manager->host_data.bilateral_type.clear();
+
+  // Update all joints in the system and set the type of the associated
+  // constraints to BODY_BODY.
+  for (int i = 0; i < linklist.size(); i++) {
+    linklist[i]->Update(ChTime);
+    linklist[i]->ConstraintsBiReset();
+    linklist[i]->ConstraintsBiLoad_C(oostep, clamp_speed, clamp);
+    linklist[i]->ConstraintsBiLoad_Ct(1);
+    linklist[i]->ConstraintsFbLoadForces(GetStep());
+    linklist[i]->ConstraintsLoadJacobians();
+    linklist[i]->ConstraintsLiLoadSuggestedSpeedSolution();
+
+    linklist[i]->InjectConstraints(*this->LCP_descriptor);
+
+    for (int j = 0; j < linklist[i]->GetDOC_c(); j++)
+      data_manager->host_data.bilateral_type.push_back(BODY_BODY);
+  }
+
+  // Update all other supported physics items and set the type of the associated
+  // constraints.
+  for (int i = 0; i < otherphysicslist.size(); i++) {
+    BILATERALTYPE type = GetBilateralType(otherphysicslist[i]);
+
+    if (type == UNKNOWN)
+      continue;
+
+    otherphysicslist[i]->Update(ChTime);
+    otherphysicslist[i]->ConstraintsBiReset();
+    otherphysicslist[i]->ConstraintsBiLoad_C(oostep, clamp_speed, clamp);
+    otherphysicslist[i]->ConstraintsBiLoad_Ct(1);
+    otherphysicslist[i]->ConstraintsFbLoadForces(GetStep());
+    otherphysicslist[i]->ConstraintsLoadJacobians();
+    otherphysicslist[i]->ConstraintsLiLoadSuggestedSpeedSolution();
+
+    otherphysicslist[i]->InjectConstraints(*this->LCP_descriptor);
+
+    for (int j = 0; j < otherphysicslist[i]->GetDOC_c(); j++)
+      data_manager->host_data.bilateral_type.push_back(type);
+  }
+
+  // Collect indexes of all active bilateral constraints and calculate number of
+  // non-zero entries in the constraint Jacobian.
+  data_manager->nnz_bilaterals = 0;
+  std::vector<ChLcpConstraint *> &mconstraints = (*this->LCP_descriptor).GetConstraintsList();
+
+  for (uint ic = 0; ic < mconstraints.size(); ic++) {
+    if (mconstraints[ic]->IsActive() == true) {
+      data_manager->host_data.bilateral_mapping.push_back(ic);
+      switch (data_manager->host_data.bilateral_type[ic]) {
+      case BODY_BODY:
+        data_manager->nnz_bilaterals += 12;
+        break;
+      case SHAFT_SHAFT:
+        data_manager->nnz_bilaterals += 2;
+        break;
+      case SHAFT_SHAFT_SHAFT:
+        data_manager->nnz_bilaterals += 3;
+        break;
+      case SHAFT_BODY:
+        data_manager->nnz_bilaterals += 7;
+        break;
       }
-   }
+    }
+  }
 
-   data_manager->num_bilaterals = data_manager->host_data.bilateral_mapping.size();
+  // Set the number of currently active bilateral constraints.
+  data_manager->num_bilaterals = data_manager->host_data.bilateral_mapping.size();
 }
 
 void ChSystemParallel::RecomputeThreads() {
