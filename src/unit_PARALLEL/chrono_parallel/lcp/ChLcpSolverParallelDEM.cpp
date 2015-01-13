@@ -291,13 +291,12 @@ void ChLcpSolverParallelDEM::ComputeD()
   uint num_dof = data_container->num_dof;
   uint num_contacts = data_container->num_contacts;
   uint num_bilaterals = data_container->num_bilaterals;
-
-  uint constraint_reserve = num_bilaterals * 6 * 2;
+  uint nnz_bilaterals = data_container->nnz_bilaterals;
 
   CompressedMatrix<real>& D_T = data_container->host_data.D_T;
   clear(D_T);
-  if (D_T.capacity() < constraint_reserve) {
-    D_T.reserve(constraint_reserve * 1.2);
+  if (D_T.capacity() < nnz_bilaterals) {
+    D_T.reserve(nnz_bilaterals * 1.2);
   }
   D_T.resize(num_constraints, num_dof, false);
 
@@ -314,9 +313,8 @@ void ChLcpSolverParallelDEM::ComputeE()
     return;
   }
 
-  DynamicVector<real>& E = data_container->host_data.E;
-  E.resize(data_container->num_constraints);
-  reset(E);
+  data_container->host_data.E.resize(data_container->num_constraints);
+  reset(data_container->host_data.E);
 
   bilateral.Build_E();
 }
