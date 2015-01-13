@@ -1,6 +1,10 @@
 #include "chrono_parallel/constraints/ChConstraintBilateral.h"
 #include "lcp/ChLcpConstraintTwoBodies.h"
+#include "lcp/ChLcpConstraintTwoGeneric.h"
+#include "lcp/ChLcpConstraintThreeGeneric.h"
 #include "physics/ChBody.h"
+#include "physics/ChShaft.h"
+
 using namespace chrono;
 
 using blaze::DenseSubvector;
@@ -37,35 +41,59 @@ void ChConstraintBilateral::Build_D()
   // Loop over the active constraints and fill in the rows of the Jacobian,
   // taking into account the type of each constraint.
   CompressedMatrix<real>& D_T = data_container->host_data.D_T;
-#pragma omp parallel for
+
+//#pragma omp parallel for
   for (int index = 0; index < num_bilaterals; index++) {
     int cntr = data_container->host_data.bilateral_mapping[index];
     int type = data_container->host_data.bilateral_type[cntr];
     int row = index + num_unilaterals;
 
-    ChLcpConstraintTwoBodies* mbilateral = (ChLcpConstraintTwoBodies*)(mconstraints[cntr]);
     mconstraints[cntr]->Update_auxiliary();
 
-    int idA = ((ChBody*)((ChLcpVariablesBody*)(mbilateral->GetVariables_a()))->GetUserData())->GetId();
-    int idB = ((ChBody*)((ChLcpVariablesBody*)(mbilateral->GetVariables_b()))->GetUserData())->GetId();
-    int colA = idA * 6;
-    int colB = idB * 6;
+    switch (type) {
 
-    D_T(row, colA + 0) = mbilateral->Get_Cq_a()->GetElementN(0);
-    D_T(row, colA + 1) = mbilateral->Get_Cq_a()->GetElementN(1);
-    D_T(row, colA + 2) = mbilateral->Get_Cq_a()->GetElementN(2);
+    case BODY_BODY:
+    {
+      ChLcpConstraintTwoBodies* mbilateral = (ChLcpConstraintTwoBodies*)(mconstraints[cntr]);
 
-    D_T(row, colA + 3) = mbilateral->Get_Cq_a()->GetElementN(3);
-    D_T(row, colA + 4) = mbilateral->Get_Cq_a()->GetElementN(4);
-    D_T(row, colA + 5) = mbilateral->Get_Cq_a()->GetElementN(5);
+      int idA = ((ChBody*)((ChLcpVariablesBody*)(mbilateral->GetVariables_a()))->GetUserData())->GetId();
+      int idB = ((ChBody*)((ChLcpVariablesBody*)(mbilateral->GetVariables_b()))->GetUserData())->GetId();
+      int colA = idA * 6;
+      int colB = idB * 6;
 
-    D_T(row, colB + 0) = mbilateral->Get_Cq_b()->GetElementN(0);
-    D_T(row, colB + 1) = mbilateral->Get_Cq_b()->GetElementN(1);
-    D_T(row, colB + 2) = mbilateral->Get_Cq_b()->GetElementN(2);
+      D_T(row, colA + 0) = mbilateral->Get_Cq_a()->GetElementN(0);
+      D_T(row, colA + 1) = mbilateral->Get_Cq_a()->GetElementN(1);
+      D_T(row, colA + 2) = mbilateral->Get_Cq_a()->GetElementN(2);
 
-    D_T(row, colB + 3) = mbilateral->Get_Cq_b()->GetElementN(3);
-    D_T(row, colB + 4) = mbilateral->Get_Cq_b()->GetElementN(4);
-    D_T(row, colB + 5) = mbilateral->Get_Cq_b()->GetElementN(5);
+      D_T(row, colA + 3) = mbilateral->Get_Cq_a()->GetElementN(3);
+      D_T(row, colA + 4) = mbilateral->Get_Cq_a()->GetElementN(4);
+      D_T(row, colA + 5) = mbilateral->Get_Cq_a()->GetElementN(5);
+
+      D_T(row, colB + 0) = mbilateral->Get_Cq_b()->GetElementN(0);
+      D_T(row, colB + 1) = mbilateral->Get_Cq_b()->GetElementN(1);
+      D_T(row, colB + 2) = mbilateral->Get_Cq_b()->GetElementN(2);
+
+      D_T(row, colB + 3) = mbilateral->Get_Cq_b()->GetElementN(3);
+      D_T(row, colB + 4) = mbilateral->Get_Cq_b()->GetElementN(4);
+      D_T(row, colB + 5) = mbilateral->Get_Cq_b()->GetElementN(5);
+    }
+      break;
+
+    case SHAFT_SHAFT:
+    {
+      ChLcpConstraintTwoGeneric* mbilateral = (ChLcpConstraintTwoGeneric*)(mconstraints[cntr]);
+
+      int idA = ((ChLcpVariablesShaft*)(mbilateral->GetVariables_a()))->GetShaft()->GetId();
+      int idB = ((ChLcpVariablesShaft*)(mbilateral->GetVariables_b()))->GetShaft()->GetId();
+      int colA = data_container->num_bodies * 6 + idA;
+      int colB = data_container->num_bodies * 6 + idB;
+
+      D_T(row, colA) = mbilateral->Get_Cq_a()->GetElementN(0);
+      D_T(row, colB) = mbilateral->Get_Cq_b()->GetElementN(0);
+    }
+      break;
+
+    }
   }
 }
 
@@ -85,23 +113,53 @@ void ChConstraintBilateral::GenerateSparsity()
     int cntr = data_container->host_data.bilateral_mapping[index];
     int type = data_container->host_data.bilateral_type[cntr];
     int row = index + num_unilaterals;
+    int col1;
+    int col2;
 
-    ChLcpConstraintTwoBodies* mbilateral = (ChLcpConstraintTwoBodies*)(mconstraints[cntr]);
+    switch (type) {
 
-    int idA = ((ChBody*)((ChLcpVariablesBody*)(mbilateral->GetVariables_a()))->GetUserData())->GetId();
-    int idB = ((ChBody*)((ChLcpVariablesBody*)(mbilateral->GetVariables_b()))->GetUserData())->GetId();
-    int col1 = idA * 6;
-    int col2 = idB * 6;
-    if (idA > idB) {
-      col1 = idB * 6;
-      col2 = idA * 6;
+    case BODY_BODY:
+    {
+      ChLcpConstraintTwoBodies* mbilateral = (ChLcpConstraintTwoBodies*)(mconstraints[cntr]);
+
+      int idA = ((ChBody*)((ChLcpVariablesBody*)(mbilateral->GetVariables_a()))->GetUserData())->GetId();
+      int idB = ((ChBody*)((ChLcpVariablesBody*)(mbilateral->GetVariables_b()))->GetUserData())->GetId();
+      if (idA < idB) {
+        col1 = idA * 6;
+        col2 = idB * 6;
+      } else {
+        col1 = idB * 6;
+        col2 = idA * 6;
+      }
+
+      D_T.append(row, col1 + 0, 1); D_T.append(row, col1 + 1, 1); D_T.append(row, col1 + 2, 1);
+      D_T.append(row, col1 + 3, 1); D_T.append(row, col1 + 4, 1); D_T.append(row, col1 + 5, 1);
+
+      D_T.append(row, col2 + 0, 1); D_T.append(row, col2 + 1, 1); D_T.append(row, col2 + 2, 1);
+      D_T.append(row, col2 + 3, 1); D_T.append(row, col2 + 4, 1); D_T.append(row, col2 + 5, 1);
     }
+      break;
 
-    D_T.append(row, col1 + 0, 1); D_T.append(row, col1 + 1, 1); D_T.append(row, col1 + 2, 1);
-    D_T.append(row, col1 + 3, 1); D_T.append(row, col1 + 4, 1); D_T.append(row, col1 + 5, 1);
+    case SHAFT_SHAFT:
+    {
+      ChLcpConstraintTwoGeneric* mbilateral = (ChLcpConstraintTwoGeneric*)(mconstraints[cntr]);
 
-    D_T.append(row, col2 + 0, 1); D_T.append(row, col2 + 1, 1); D_T.append(row, col2 + 2, 1);
-    D_T.append(row, col2 + 3, 1); D_T.append(row, col2 + 4, 1); D_T.append(row, col2 + 5, 1);
+      int idA = ((ChLcpVariablesShaft*)(mbilateral->GetVariables_a()))->GetShaft()->GetId();
+      int idB = ((ChLcpVariablesShaft*)(mbilateral->GetVariables_b()))->GetShaft()->GetId();
+      if (idA < idB) {
+        col1 = data_container->num_bodies * 6 + idA;
+        col2 = data_container->num_bodies * 6 + idB;
+      } else {
+        col1 = data_container->num_bodies * 6 + idB;
+        col2 = data_container->num_bodies * 6 + idA;
+      }
+
+      D_T.append(row, col1, 1);
+      D_T.append(row, col2, 1);
+    }
+      break;
+
+    }
 
     D_T.finalize(row);
   }
