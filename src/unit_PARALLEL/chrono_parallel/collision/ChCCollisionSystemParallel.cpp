@@ -52,7 +52,7 @@ void ChCollisionSystemParallel::Add(ChCollisionModel *model) {
          data_container->host_data.fam_rigid.push_back(fam);
          data_container->host_data.typ_rigid.push_back(pmodel->mData[j].type);
          data_container->host_data.id_rigid.push_back(body_id);
-         data_container->num_models++;
+         data_container->num_shapes++;
       }
    }
 }
@@ -90,7 +90,7 @@ void ChCollisionSystemParallel::Run() {
       }
    }
 
-   if (data_container->num_models <= 0) {
+   if (data_container->num_shapes <= 0) {
       return;
    }
 

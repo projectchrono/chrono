@@ -26,6 +26,8 @@ void ChCNarrowphaseDispatch::Process(ChParallelDataManager* data_container) {
   custom_vector<real4>& obj_data_R = data_container->host_data.ObR_rigid;
   custom_vector<uint>& obj_data_ID = data_container->host_data.id_rigid;
   custom_vector<real3>& convex_data = data_container->host_data.convex_data;
+  const uint& num_shapes = data_container->num_shapes;
+
   //======== Body state information
   custom_vector<bool>& obj_active = data_container->host_data.active_data;
   custom_vector<real3>& body_pos = data_container->host_data.pos_data;
@@ -51,8 +53,6 @@ void ChCNarrowphaseDispatch::Process(ChParallelDataManager* data_container) {
     number_of_contacts = 0;
     return;
   }
-
-  uint num_shapes = obj_data_T.size();
 
   obj_data_A_global = obj_data_A;      //.resize(num_shapes);
   obj_data_B_global = obj_data_B;      //.resize(num_shapes);
@@ -391,7 +391,7 @@ void host_DispatchR(const uint& index,
   if (!RCollision(icoll, shapeA, shapeB, ID_A, ID_B, flag, norm, ptA, ptB, contactDepth, effective_radius, body_ids, nC)) {
     return;
   }
-  //There is no envelope applied when using the R narrowphase, set it to zero and finalize
+  // There is no envelope applied when using the R narrowphase, set it to zero and finalize
   host_Dispatch_Finalize(icoll, body_pos, 0, system_type, ID_A, ID_B, nC, norm, ptA, ptB, contactDepth);
 }
 
@@ -419,7 +419,7 @@ void host_DispatchHybridMPR(const uint& index,
                             int2* body_ids) {
   uint ID_A, ID_B, icoll;
   ConvexShape shapeA, shapeB;
-  //The envelope is set to zero if the R narrowphase found the contact.
+  // The envelope is set to zero if the R narrowphase found the contact.
   real envelope = collision_envelope;
 
   if (!host_Dispatch_Init(
