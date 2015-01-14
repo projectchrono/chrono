@@ -1,4 +1,6 @@
 #include "chrono_parallel/constraints/ChConstraintBilateral.h"
+#include <algorithm>
+
 #include "lcp/ChLcpConstraintTwoBodies.h"
 #include "lcp/ChLcpConstraintTwoGeneric.h"
 #include "lcp/ChLcpConstraintThreeGeneric.h"
@@ -114,6 +116,22 @@ void ChConstraintBilateral::Build_D()
     }
       break;
 
+    case SHAFT_SHAFT_SHAFT:
+    {
+      ChLcpConstraintThreeGeneric* mbilateral = (ChLcpConstraintThreeGeneric*)(mconstraints[cntr]);
+      int idA = ((ChLcpVariablesShaft*)(mbilateral->GetVariables_a()))->GetShaft()->GetId();
+      int idB = ((ChLcpVariablesShaft*)(mbilateral->GetVariables_b()))->GetShaft()->GetId();
+      int idC = ((ChLcpVariablesShaft*)(mbilateral->GetVariables_c()))->GetShaft()->GetId();
+      int colA = data_container->num_bodies * 6 + idA;
+      int colB = data_container->num_bodies * 6 + idB;
+      int colC = data_container->num_bodies * 6 + idC;
+
+      D_T(row, colA) = mbilateral->Get_Cq_a()->GetElementN(0);
+      D_T(row, colB) = mbilateral->Get_Cq_b()->GetElementN(0);
+      D_T(row, colC) = mbilateral->Get_Cq_c()->GetElementN(0);
+    }
+      break;
+
     }
   }
 }
@@ -193,6 +211,21 @@ void ChConstraintBilateral::GenerateSparsity()
       D_T.append(row, col1 + 3, 1); D_T.append(row, col1 + 4, 1); D_T.append(row, col1 + 5, 1);
 
       D_T.append(row, col2, 1);
+    }
+      break;
+
+    case SHAFT_SHAFT_SHAFT:
+    {
+      ChLcpConstraintThreeGeneric* mbilateral = (ChLcpConstraintThreeGeneric*)(mconstraints[cntr]);
+      std::vector<int> ids(3);
+      ids[0] = ((ChLcpVariablesShaft*)(mbilateral->GetVariables_a()))->GetShaft()->GetId();
+      ids[1] = ((ChLcpVariablesShaft*)(mbilateral->GetVariables_b()))->GetShaft()->GetId();
+      ids[2] = ((ChLcpVariablesShaft*)(mbilateral->GetVariables_c()))->GetShaft()->GetId();
+      std::sort(ids.begin(), ids.end());
+
+      D_T.append(row, data_container->num_bodies * 6 + ids[0], 1);
+      D_T.append(row, data_container->num_bodies * 6 + ids[1], 1);
+      D_T.append(row, data_container->num_bodies * 6 + ids[2], 1);
     }
       break;
 
