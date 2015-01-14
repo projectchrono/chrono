@@ -24,9 +24,9 @@
 // undefined so that symbols are imported.
 
 #if defined(CH_API_COMPILE_OPENGL)
-	#define CH_OPENGL_API ChApiEXPORT
+#define CH_OPENGL_API ChApiEXPORT
 #else
-	#define CH_OPENGL_API ChApiIMPORT
+#define CH_OPENGL_API ChApiIMPORT
 #endif
 
-#endif  // END of header
+#endif    // END of header
