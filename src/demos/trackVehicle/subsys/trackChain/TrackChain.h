@@ -45,8 +45,8 @@ public:
   /// Use the clearance to define a spherical envelope for each rolling element.
   /// An envelope is where the surface of the track chain will not penetrate.
   /// Start_loc should be somewhere between the idler and driveGear, e.g. the top of the chain.
-  /// Start_loc c-sys x-dir should point towards first control point
-  /// Q: control_points must begin and end with the idler and driveGear ???
+  /// Start_loc is expressed w.r.t chassis c-sys.
+  /// NOTE: control_points begin and end with the idler and driveGear
   void Initialize(ChSharedPtr<ChBodyAuxRef> chassis,
     const std::vector<ChVector<>>& rolling_element_loc,
     const std::vector<double>& clearance,
@@ -89,7 +89,8 @@ private:
 
   // private variables
   std::vector<ChSharedPtr<ChBody>> m_shoes;  ///< handle to track shoes
-  size_t m_numShoes;      ///< number of track shoes
+  std::vector<ChSharedPtr<ChLinkLockRevolute>> m_pins; ///< handles to pin joints
+  size_t m_numShoes;      ///< number of track shoes and pins
 
 
   VisualizationType m_vis;    // visual asset geometry type
@@ -101,7 +102,8 @@ private:
   static const double m_mass;         // mass per shoe
   static const ChVector<> m_inertia;  // inertia of a shoe
 
-  static const double m_shoe_width;
+  static const double m_shoe_width_box;
+  static const double m_shoe_width_cyl;
   static const double m_shoe_height;
   static const double m_shoe_chain_offset;  // figure this from your collision mesh
 
