@@ -125,6 +125,13 @@ int ChSystemParallel::Integrate_Y() {
      shaftlist[i]->Update(ChTime);
    }
 
+   for (int i = 0; i < otherphysicslist.size(); i++) {
+     if (dynamic_cast<ChShaft*>(otherphysicslist[i]))
+       continue;
+
+     otherphysicslist[i]->Update(ChTime);
+   }
+
    data_manager->system_timer.stop("update");
 
    //=============================================================================================
