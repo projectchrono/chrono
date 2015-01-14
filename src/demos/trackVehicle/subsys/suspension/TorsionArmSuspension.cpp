@@ -157,11 +157,11 @@ void TorsionArmSuspension::Initialize(ChSharedPtr<ChBodyAuxRef> chassis,
   chassis->GetSystem()->Add(m_wheel);
 
   // init and add the revolute joints
-  // arm-chassis, 
+  // arm-chassis, z-axis is already in the lateral direction
   m_armChassis_rev->Initialize(m_arm, chassis, ChCoordsys<>(rev_loc_to_abs.GetPos(), rev_loc_to_abs.GetRot()) );
   // init and finish setting up the torsional spring, since it's part of this revolute constraint
   chassis->GetSystem()->AddLink(m_armChassis_rev);
-  // wheel-arm
+  // wheel-arm, z-axis is already in the lateral direction
   m_armWheel_rev->Initialize(m_wheel, m_arm, ChCoordsys<>(wheel_to_abs.GetPos(), wheel_to_abs.GetRot()) );
   chassis->GetSystem()->AddLink(m_armWheel_rev);
 

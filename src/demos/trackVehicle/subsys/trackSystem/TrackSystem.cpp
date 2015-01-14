@@ -168,10 +168,10 @@ void TrackSystem::BuildSubsystems()
 void TrackSystem::Initialize(ChSharedPtr<ChBodyAuxRef> chassis,
 			 const ChVector<>&  local_pos)
 {
-  m_Pos_local = local_pos;
-  // To create the track chain, need a list of the center location of the rolling elements and their clearance.
-  // Clearance is a sphere shaped envelope around each center location, where it can be guaranteed
-  // that the track chain geometry will not penetrate the sphere.
+  m_Pos_local = local_pos;  // same rotation as chassis
+  // Need a list of the center location of the rolling elements and their clearance for TrackChain.
+  // Clearance is a sphere shaped envelope at each center location, where it can
+  //  be guaranteed that the track chain geometry will not penetrate the sphere.
   std::vector<ChVector<>> rolling_elem_locs; // w.r.t. chassis ref. frame
   std::vector<double> clearance;  // 1 per rolling elem
 
@@ -179,8 +179,6 @@ void TrackSystem::Initialize(ChSharedPtr<ChBodyAuxRef> chassis,
   // will use the chassis ref frame to do the transforms, since the TrackSystem
   // local ref. frame has same rot (just difference in position)
   m_driveGear->Initialize(chassis, ChCoordsys<>(m_gearPos + local_pos, QUNIT) );
-  m_idler->Initialize(chassis, ChCoordsys<>(m_idlerPos + local_pos, QUNIT) );
- 
   // drive sprocket is First added to the lists passed into TrackChain Init()
   rolling_elem_locs.push_back(m_gearPos + local_pos );
   clearance.push_back(m_driveGear->GetRadius() );
@@ -189,38 +187,37 @@ void TrackSystem::Initialize(ChSharedPtr<ChBodyAuxRef> chassis,
   for(int i = 0; i < m_suspensionLocs.size(); i++)
   {
     m_suspensions[i]->Initialize(chassis, ChCoordsys<>(m_suspensionLocs[i] + local_pos, QUNIT) );
-
-    // add these to the lists passed into the track chain
+    // add to the lists passed into the track chain
     rolling_elem_locs.push_back(m_suspensionLocs[i] + local_pos );
     clearance.push_back(m_suspensions[i]->GetWheelRadius() );
   }
 
-  // initialize the support rollers. None for the M113
+  // initialize the support rollers.
+  // NOTE: None for the M113
   for(int j = 0; j < m_rollerLocs.size(); j++)
   {
     initialize_roller(m_supportRollers[j], chassis, m_rollerLocs[j], QUNIT, j);
-
-    // add these to the points passed into the track chain
+    // add to the points passed into the track chain
     rolling_elem_locs.push_back(m_rollerLocs[j] + local_pos );
-    clearance.push_back( m_roller_radius);
+    clearance.push_back(m_roller_radius);
   }
   
   // last control point: the idler body
+  m_idler->Initialize(chassis, ChCoordsys<>(m_idlerPos + local_pos, QUNIT) );
   rolling_elem_locs.push_back(m_idlerPos + local_pos );
   clearance.push_back(m_idler->GetRadius() );
 
-  // last, initialize the trackChain.
-  // Starting position will be between idler and gear control points, with a vertical offset
-  // that is the average of the two clearances.
-  ChVector<> start_pos = (rolling_elem_locs[0] + rolling_elem_locs[rolling_elem_locs.size()-1])/2.0;
-  start_pos.y += (clearance[0] + clearance[clearance.size()-1] )/2.0;
-  ChCoordsys<> start_frame_rel(start_pos, QUNIT);
-  // get the starting position w.r.t. chassis c-sys
-  ChVector<> start_pos_rel = chassis->GetCoord().TransformParentToLocal(start_pos);
+  // After all rolling elements have been initialized, now able to setup the TrackChain.
+  // Assumed that start_pos is between idler and gear control points, e.g., on the top 
+  //   of the track chain.
+  ChVector<> start_pos = (rolling_elem_locs[0] + rolling_elem_locs.back())/2.0;
+  start_pos.y += (clearance[0] + clearance.back() )/2.0;
+
   // Assumption: start_pos should lie close to where the actual track chain would 
   //             pass between the idler and driveGears.
   // MUST be on the top part of the chain so the chain wrap rotation direction can be assumed.
-  m_chain->Initialize(chassis, rolling_elem_locs, clearance, start_pos_rel );
+  // rolling_elem_locs, start_pos w.r.t. chassis c-sys
+  m_chain->Initialize(chassis, rolling_elem_locs, clearance, start_pos );
 }
 
 
