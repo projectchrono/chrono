@@ -96,6 +96,7 @@ private:
   // static const std::string m_suspensionFilename;
   std::vector<ChVector<> > m_suspensionLocs;  // relative to local c-sys
   static const int m_numSuspensions;
+  static const ChVector<> m_armWheel;   // relative arm distance to wheel
   
   // Track Chain
   // std::string m_trackChainFilename;
