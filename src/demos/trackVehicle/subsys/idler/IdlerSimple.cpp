@@ -138,15 +138,26 @@ void IdlerSimple::Initialize(ChSharedPtr<ChBodyAuxRef> chassis,
   
   // init joint, add to system
   // body 1 should rotate about z-axis, translate about x-axis of body2
-  m_idler_joint->Initialize(m_idler, chassis, local_Csys);
+  // TODO: (check) idler joint translates, rotates in correct direction.
+  // NOTE: I created the idler to translate x-dir, rotate about z-dir, according
+  //      to how the chassis is rotated by default.
+  m_idler_joint->Initialize(m_idler, chassis, m_idler->GetCoord() );
   chassis->GetSystem()->AddLink(m_idler_joint);
 
   // init shock, add to system
-  ChVector<> marker2(local_Csys.pos);
   // put the second marker some length behind (-x) marker1, based on desired preload
   double preLoad = 10000; // [N]
-  marker2.x -= m_springRestLength + (preLoad / m_springK);
-  m_shock->Initialize(m_idler, chassis, false, local_Csys.pos, ChVector<>() );
+  // chassis spring attachment point in -x dir w.r.t. chassis c-sys
+  ChVector<> pos_chassis_abs = local_Csys.pos;
+  pos_chassis_abs.x -= m_springRestLength - (preLoad / m_springK);
+  // transform 2nd attachment point to abs coords
+  pos_chassis_abs = chassis->GetCoord().TransformPointLocalToParent(pos_chassis_abs);
+
+  // init. points based on desired preload and free lengths
+  m_shock->Initialize(m_idler, chassis, false, m_idler->GetPos(), pos_chassis_abs );
+  // setting rest length should yield desired preload at time = 0
+  m_shock->Set_SpringRestLength(m_springRestLength);
+
   chassis->GetSystem()->AddLink(m_shock);
 }
 
