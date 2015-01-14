@@ -154,18 +154,23 @@ void TrackChain::Initialize(ChSharedPtr<ChBodyAuxRef> chassis,
       {
         norm_dir = Vcross( rolling_element_loc.back() - rolling_element_loc[i-1],
           rolling_element_loc[i] - rolling_element_loc[i-1]);
-      } else
+      } else if( abs(clearance[i] - clearance[i-1]) < 1e-3 && abs(clearance[i-2] - clearance[i-1]) < 1e-3) 
       {
+        // this works, as long as i, i-1 and i-2 don't have the same clearance (then it's just a line).
+        norm_dir = Vcross( rolling_element_loc[0] - rolling_element_loc[i-1],
+          rolling_element_loc[i] - rolling_element_loc[i-1]);
+      } else {
+        // this works, as long as i, i-1 and i-2 don't have the same clearance (then it's just a line).
         norm_dir = Vcross( rolling_element_loc[i-2] - rolling_element_loc[i-1],
           rolling_element_loc[i] - rolling_element_loc[i-1]);
       }
       norm_dir.Normalize();
       // if the two rolling elements have the same radius, no angle of wrap.
-      rad_dir = Vcross(norm_dir, r_21);
+      rad_dir = Vcross(norm_dir, r_21.GetNormalized());
       rad_dir.Normalize();
       // when not the same size, find the angle of pulley wrap.
       // Probably overkill, but check that the radial vector is ortho. to r_21
-      if( abs(clearance[i] - clearance[i-1]) > 1.0e-3 || abs(Vdot(r_21,rad_dir)) > 1.0e-3)
+      if(  abs(clearance[i] - clearance[i-1]) > 1.0e-3 || abs(Vdot(r_21.GetNormalized(), rad_dir)) > 1.0e-3)
       {
         // pulley wrap angle, a = (r2-r1)/center_len
         double alpha = asin( (clearance[i] - clearance[i-1]) / r_21.Length() );
@@ -203,7 +208,7 @@ void TrackChain::Initialize(ChSharedPtr<ChBodyAuxRef> chassis,
 
   // no second pulley to use to find r_21
   ChVector<> top_center = rolling_element_loc.back();
-  top_center.y += clearance.back();
+  top_center.y += clearance.back(); // top center of the last rolling element
   r_21 = start_loc - top_center;  // first guess at start and end points
   ChVector<> tan_dir = r_21.GetNormalized();
 
@@ -218,18 +223,18 @@ void TrackChain::Initialize(ChSharedPtr<ChBodyAuxRef> chassis,
     // i.e., rad_dir dot r_21 = 0
     // easier to figure out the relative angle rad_dir needs to be rotated about the norm axis.
     ChVector<> start_cen = start_loc - rolling_element_loc.back();
-    start_cen.Normalize();
-    double theta = std::acos( Vdot(start_cen, rad_dir));  // angle between vector directions
-    double phi = std::acos(clearance.back() / start_cen.Length() );
-    double rot_ang = theta - phi;
+    double theta = std::acos( Vdot(start_cen.GetNormalized(), rad_dir));  // angle between direction vectors
+    double seglen = std::sqrt(start_cen.Length2() - pow(clearance.back(),2));
+    double h = start_cen.Length();
+    double phi = std::asin( seglen / h ); // what theta should be
+    double rot_ang = phi - theta; // since we're looking at it backwards compared to the first rolling element
     // find the radial direction from the center of adjacent rolling elements
-    //  norm = r12 x r32
-    norm_dir = Vcross( rolling_element_loc[num_elem-2] - rolling_element_loc.back(),
-        rolling_element_loc[0] - rolling_element_loc.back());
+    // for seg i, norm = r12 x r32
+    norm_dir = Vcross(rolling_element_loc.back() - rolling_element_loc[0],
+      rolling_element_loc[num_elem-2] - rolling_element_loc.back() );
     norm_dir.Normalize();
     // rotate rad_dir about norm axis
-    ChQuaternion<> alpha_rot(Q_from_AngAxis(rot_ang, norm_dir) );
-    ChFrame<> rot_frame(ChVector<>(),alpha_rot);
+    ChFrame<> rot_frame(ChVector<>(), Q_from_AngAxis(rot_ang, norm_dir));
     rad_dir =  rad_dir >> rot_frame;
   }
   // rad_dir is now tangent to r_21, so define the new endpoint of this segment
