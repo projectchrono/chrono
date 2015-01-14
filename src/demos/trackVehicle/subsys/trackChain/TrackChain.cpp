@@ -42,10 +42,11 @@ const std::string TrackChain::m_meshFile = utils::GetModelDataFile("track_data/M
 
 const double TrackChain::m_mass = 18.02;
 const ChVector<> TrackChain::m_inertia(0.04, 0.22, 0.25);
-const double TrackChain::m_shoe_width = 0.4;
-const double TrackChain::m_shoe_height = 0.2; 
-const double TrackChain::m_pin_dist = 0.3;		// linear distance between a shoe's two pin joint center
-const double TrackChain::m_pin_radius = 0.05;
+const double TrackChain::m_shoe_width_box = 0.38; // total width of box
+const double TrackChain::m_shoe_width_cyl = 0.531; // total width of cylinder pins
+const double TrackChain::m_shoe_height = 0.0663; 
+const double TrackChain::m_pin_dist = 0.21;		// linear distance between a shoe chain spacing. exact = 0.205
+const double TrackChain::m_pin_radius = 0.02317;
  // distance between body center and the vertical offset to the inner-surface of the collision geometry
 //  used for initializing shoes as a chain
 const double TrackChain::m_shoe_chain_offset = 0.035; // .03315 exact
@@ -188,9 +189,9 @@ void TrackChain::Initialize(ChSharedPtr<ChBodyAuxRef> chassis,
     {
       // intermediate segments, use both start and end points
       control_to_abs.push_back(ChFrame<>(start_point));
-      (*control_to_abs.end()).ConcatenatePreTransformation(chassis->GetFrame_REF_to_abs() );
+      control_to_abs.back().ConcatenatePreTransformation(chassis->GetFrame_REF_to_abs() );
       control_to_abs.push_back(ChFrame<>(end_point));
-      (*control_to_abs.end()).ConcatenatePreTransformation(chassis->GetFrame_REF_to_abs() );
+      control_to_abs.back().ConcatenatePreTransformation(chassis->GetFrame_REF_to_abs() );
     }
 
   }
@@ -253,7 +254,7 @@ void TrackChain::AddVisualization(size_t track_idx)
     // primitive box, also used for collision.
     // shoes will be added to the same collision family so self-collision can be toggled
     ChSharedPtr<ChBoxShape> box(new ChBoxShape);
-    box->GetBoxGeometry().SetLengths( 0.5 * ChVector<>( m_pin_dist-2*m_pin_radius, m_shoe_height, m_shoe_width) );
+    box->GetBoxGeometry().SetLengths( 0.5 * ChVector<>( m_pin_dist-2*m_pin_radius, m_shoe_height, m_shoe_width_box) );
     m_shoes[track_idx]->AddAsset(box);
 
     ChSharedPtr<ChTexture> tex(new ChTexture);
@@ -293,7 +294,7 @@ void TrackChain::AddCollisionGeometry(size_t track_idx)
   case CollisionType::PRIMITIVES:
   {
     // use a simple box
-    m_shoes[track_idx]->GetCollisionModel()->AddBox(m_pin_dist-2*m_pin_radius, m_shoe_height, m_shoe_width);
+    m_shoes[track_idx]->GetCollisionModel()->AddBox(m_pin_dist-2*m_pin_radius, m_shoe_height, m_shoe_width_box);
 
     break;
   }
@@ -348,10 +349,12 @@ void TrackChain::CreateChain(const std::vector<ChFrame<>>& control_points_abs,
                              const ChVector<>& start_pos_abs)
 {
   // Each segment has 2 parts, the initial linear portion, then wrapping around 
-  //   the rolling element envelope to the next start point.
-  size_t num_elems = clearance.size() - 1;
-  ChVector<> curr_pos = start_pos_abs;  // keep track of the current position along the line segment.
-                                        // build shoe body directly this point, normal to the line segments.
+  //   the rolling element the start point of the next linear line segment.
+  size_t num_elems = clearance.size();
+  // keep track of the current position along the line segment
+  // defined by projecting the shoe body normal at the shoe COM down to the linear line segment,
+  // or toward the center of the rolling element.
+  ChVector<> curr_pos = start_pos_abs;  
   for(int idx = 0; idx < num_elems; idx++)
   {
     ChVector<> start_seg;  // start and end point of the line segment
@@ -367,7 +370,9 @@ void TrackChain::CreateChain(const std::vector<ChFrame<>>& control_points_abs,
 }
 
 // all locations are in the abs ref. frame.
-// find envelope norm. dir by 
+// Some assumptions:
+// Body orientation and axis of pin rotation always in the lateral_dir
+// 
 ChVector<> TrackChain::CreateShoes(const ChVector<>& curr_pos,
     const ChVector<>& start_seg,
     const ChVector<>& end_seg,
@@ -390,7 +395,7 @@ ChVector<> TrackChain::CreateShoes(const ChVector<>& curr_pos,
   ChVector<> shoe_pos;
   ChQuaternion<> shoe_rot;
   ChMatrix33<> shoe_rot_A;
-  while(dist_to_end > m_pin_dist/2.0 )  // keep going until within half pin dist.
+  while(dist_to_end > 0 )  // keep going until within half pin dist.
   {
     // build the shoe here, unless it's the first pass thru
     if(m_shoes.size() == 1) 
@@ -419,7 +424,14 @@ ChVector<> TrackChain::CreateShoes(const ChVector<>& curr_pos,
     dist_to_end = Vdot(end_seg - pos_on_seg, tan_dir);
   }
 
-  // At this point, wrap the shoes around the 
+  // At this point, wrap the shoes around the curved segment.
+  dist_to_end = (end_curve - shoe_pos).Length();
+  while(dist_to_end > 0) // keep going until within half spacing dist
+  {
+
+
+  }
+
 
   return shoe_pos;
 }
