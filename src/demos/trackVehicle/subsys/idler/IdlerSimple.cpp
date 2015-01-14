@@ -42,8 +42,9 @@ const std::string IdlerSimple::m_meshName = "idler_mesh";
 const std::string IdlerSimple::m_meshFile = utils::GetModelDataFile("data/idlerMesh.obj");
 
 // guessing at these values
-const double IdlerSimple::m_radius = 0.5;
-const double IdlerSimple::m_width = 0.35;
+const double IdlerSimple::m_radius = 0.255;
+const double IdlerSimple::m_width = 0.166;
+const double IdlerSimple::m_widthGap = 0.049; 
 const double IdlerSimple::m_springK = 100000;
 const double IdlerSimple::m_springC = 1000;
 const double IdlerSimple::m_springRestLength = 1.0;

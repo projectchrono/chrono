@@ -78,6 +78,7 @@ private:
   static const double m_springC;  ///< shock linear damping coefficient
   static const double m_springRestLength; ///< shock rest length
   static const double m_width;
+  static const double m_widthGap; // // inner distance between cydliners
   static const double m_radius;
 
   static const std::string m_meshName;
