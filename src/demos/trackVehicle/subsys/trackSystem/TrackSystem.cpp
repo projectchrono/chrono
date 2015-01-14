@@ -25,12 +25,12 @@ namespace chrono {
 // -----------------------------------------------------------------------------
 // Static variables
 
-// idler
-const ChVector<> TrackSystem::m_idlerPos(-2.0, 0.75, 0);
+// idler, right side
+const ChVector<> TrackSystem::m_idlerPos(-2.1904, -0.1443, 0); // relative to local csys
 const ChQuaternion<> TrackSystem::m_idlerRot(QUNIT);
   
-// drive gear
-const ChVector<> TrackSystem::m_gearPos(2.0, 0.75, 0);
+// drive gear, right side
+const ChVector<> TrackSystem::m_gearPos(1.7741, -0.0099, 0);  // relative to local csys
 const ChQuaternion<> TrackSystem::m_gearRot(QUNIT);
   
 // Support rollers
@@ -116,15 +116,25 @@ void TrackSystem::Create(int track_idx)
   m_suspensionFilename = d["Suspension"]["Input File"].GetString();
   m_NumSuspensions = d["Suspension"]["Location"].Size();
 
-  */
+ 
 
   m_suspensions.resize(m_numSuspensions);
   m_suspensionLocs.resize(m_numSuspensions);
   for(int j = 0; j < m_numSuspensions; j++)
   {
     // m_suspensionLocs[j] = loadVector(d["Suspension"]["Locaiton"][j]);
-    m_suspensionLocs[j] = ChVector<>(-1.0*j, 0, 0);
   }
+  */
+
+  m_suspensions.resize(m_numSuspensions);
+  m_suspensionLocs.resize(m_numSuspensions);
+  // hard-code positions relative to trackSystem csys. Start w/ one nearest sprocket
+  m_suspensionLocs[0] = ChVector<>(1.3336, 0, 0);
+  m_suspensionLocs[1] = ChVector<>(0.6668, 0, 0);
+  // trackSystem c-sys aligned with middle suspension subsystem arm/chassis revolute constraint position
+  m_suspensionLocs[2] = ChVector<>(0,0,0); 
+  m_suspensionLocs[3] = ChVector<>(-0.6682, 0, 0);
+  m_suspensionLocs[4] = ChVector<>(-1.3368, 0, 0);
 
   /*
 
