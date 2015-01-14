@@ -18,27 +18,25 @@
 #ifndef CHOPENGLMATERIAL_H
 #define CHOPENGLMATERIAL_H
 
-#include "chrono_opengl/core/ChOpenGLShader.h"
+#include "chrono_opengl/core/ChOpenGLBase.h"
 
 namespace chrono {
-	namespace opengl{
+namespace opengl {
 
-		class ChOpenGLMaterial: public ChOpenGLBase
-		{
-		public:
-	//constructor accepts 4 colors and sets them.
-			ChOpenGLMaterial(glm::vec3 a,glm::vec3 d, glm::vec3 s){
-				ambient_color = a;
-				diffuse_color = d;
-				specular_color = s;
-			}
-	//Dont need to take anything down so this function is empty
-			void TakeDown(){}
-			glm::vec3 ambient_color;
-			glm::vec3 diffuse_color;
-			glm::vec3 specular_color;
-
-		};
-	}
+class ChOpenGLMaterial : public ChOpenGLBase {
+ public:
+  // constructor accepts 4 colors and sets them.
+  ChOpenGLMaterial(glm::vec3 a, glm::vec3 d, glm::vec3 s) {
+    ambient_color = a;
+    diffuse_color = d;
+    specular_color = s;
+  }
+  // Dont need to take anything down so this function is empty
+  void TakeDown() {}
+  glm::vec3 ambient_color;
+  glm::vec3 diffuse_color;
+  glm::vec3 specular_color;
+};
 }
-#endif  // END of CHOPENGLMATERIAL_H
+}
+#endif    // END of CHOPENGLMATERIAL_H

@@ -20,31 +20,29 @@
 #include "chrono_opengl/core/ChOpenGLObject.h"
 #include "chrono_opengl/shapes/ChOpenGLMesh.h"
 #include "chrono_opengl/shapes/obj/ChOpenGLOBJLoader.h"
+#include "chrono_opengl/core/ChOpenGLMaterial.h"
+
 namespace chrono {
 namespace opengl {
 class CH_OPENGL_API ChOpenGLOBJ : public ChOpenGLBase {
  public:
-   ChOpenGLOBJ();
-   bool Initialize(
-         std::string filename,
-         ChOpenGLMaterial mat,
-         ChOpenGLShader * shader);
-   void Update(std::vector<glm::mat4> & model);
-   virtual void Draw(
-         const glm::mat4 & projection,
-         const glm::mat4 & modelview);
-   void TakeDown();
- protected:
+  ChOpenGLOBJ();
+  virtual ~ChOpenGLOBJ();
+  bool Initialize(std::string filename, ChOpenGLMaterial mat, ChOpenGLShader* shader);
+  void Update(std::vector<glm::mat4>& model);
+  virtual void Draw(const glm::mat4& projection, const glm::mat4& modelview);
+  virtual void TakeDown();
 
-   std::vector<std::vector<glm::vec3> > vertices;
-   std::vector<std::vector<glm::vec3> > normals;
-   std::vector<std::vector<glm::vec2> > texcoords;
-   std::vector<std::vector<GLuint> > indices;
-   std::vector<std::string> names;
-   std::vector<ChOpenGLMesh> meshes;
-   ChOpenGLOBJLoader loader;
+ protected:
+  std::vector<std::vector<glm::vec3> > vertices;
+  std::vector<std::vector<glm::vec3> > normals;
+  std::vector<std::vector<glm::vec2> > texcoords;
+  std::vector<std::vector<GLuint> > indices;
+  std::vector<std::string> names;
+  std::vector<ChOpenGLMesh> meshes;
+  ChOpenGLOBJLoader loader;
 };
 }
 }
 
-#endif  // END of CHOPENGLOBJ_H
+#endif    // END of CHOPENGLOBJ_H

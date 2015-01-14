@@ -22,22 +22,18 @@ namespace chrono {
 namespace opengl {
 class ChOpenGLOBJLoader : public ChOpenGLBase {
  public:
-   ChOpenGLOBJLoader();
-   void LoadObject(
-         std::string fname,
-         std::vector<std::vector<glm::vec3> > &vertices,
-         std::vector<std::vector<glm::vec3> > &normals,
-         std::vector<std::vector<glm::vec2> > &texcoords,
-         std::vector<std::vector<GLuint> > &indices,
-         std::vector<std::string> & names);
-   void TakeDown() {
-
-   }
+  ChOpenGLOBJLoader();
+  void LoadObject(std::string fname,
+                  std::vector<std::vector<glm::vec3> >& vertices,
+                  std::vector<std::vector<glm::vec3> >& normals,
+                  std::vector<std::vector<glm::vec2> >& texcoords,
+                  std::vector<std::vector<GLuint> >& indices,
+                  std::vector<std::string>& names);
+  void TakeDown() {}
 
  private:
-
 };
 }
 }
 
-#endif // END of CHOPENGLOBJLOADER_H
+#endif    // END of CHOPENGLOBJLOADER_H

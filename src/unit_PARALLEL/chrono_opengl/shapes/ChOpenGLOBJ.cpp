@@ -20,58 +20,52 @@
 using namespace glm;
 using namespace chrono::opengl;
 
-ChOpenGLOBJ::ChOpenGLOBJ() {
-}
+ChOpenGLOBJ::ChOpenGLOBJ() {}
+ChOpenGLOBJ::~ChOpenGLOBJ() {}
+bool ChOpenGLOBJ::Initialize(std::string filename, ChOpenGLMaterial mat, ChOpenGLShader* shader) {
+  if (this->GLReturnedError("ChOpenGLOBJ::Initialize - on entry")) {
+    return false;
+  }
 
-bool ChOpenGLOBJ::Initialize(std::string filename,
-                             ChOpenGLMaterial mat,
-                             ChOpenGLShader * shader) {
-   if (this->GLReturnedError("ChOpenGLOBJ::Initialize - on entry")) {
-      return false;
-   }
+  loader.LoadObject(filename, vertices, normals, texcoords, indices, names);
+  meshes.resize(vertices.size());
+  for (unsigned int i = 0; i < meshes.size(); i++) {
+    meshes[i].Initialize(vertices[i], normals[i], texcoords[i], indices[i], mat);
+    meshes[i].AttachShader(shader);
+  }
 
-   loader.LoadObject(filename, vertices, normals, texcoords, indices, names);
-   meshes.resize(vertices.size());
-   for (unsigned int i = 0; i < meshes.size(); i++) {
-      meshes[i].Initialize(vertices[i], normals[i], texcoords[i], indices[i], mat);
-      meshes[i].AttachShader(shader);
-   }
+  if (this->GLReturnedError("ChOpenGLOBJ::Initialize - on exit")) {
+    return false;
+  }
 
-   if (this->GLReturnedError("ChOpenGLOBJ::Initialize - on exit")) {
-      return false;
-   }
-
-   return true;
+  return true;
 }
 
 void ChOpenGLOBJ::TakeDown() {
-   for (unsigned int i = 0; i < meshes.size(); i++) {
-      meshes[i].TakeDown();
-   }
+  for (unsigned int i = 0; i < meshes.size(); i++) {
+    meshes[i].TakeDown();
+  }
 
-   meshes.clear();
-   vertices.clear();
-   normals.clear();
-   texcoords.clear();
-   indices.clear();
-   names.clear();
-
+  meshes.clear();
+  vertices.clear();
+  normals.clear();
+  texcoords.clear();
+  indices.clear();
+  names.clear();
 }
-void ChOpenGLOBJ::Update(std::vector<glm::mat4> & model) {
-   for (unsigned int i = 0; i < meshes.size(); i++) {
-      meshes[i].Update(model);
-   }
+void ChOpenGLOBJ::Update(std::vector<glm::mat4>& model) {
+  for (unsigned int i = 0; i < meshes.size(); i++) {
+    meshes[i].Update(model);
+  }
 }
-void ChOpenGLOBJ::Draw(const mat4 & projection,
-                       const mat4 & view) {
-   if (this->GLReturnedError("ChOpenGLOBJ::Draw - on entry"))
-      return;
+void ChOpenGLOBJ::Draw(const mat4& projection, const mat4& view) {
+  if (this->GLReturnedError("ChOpenGLOBJ::Draw - on entry"))
+    return;
 
-   for (unsigned int i = 0; i < meshes.size(); i++) {
-      meshes[i].Draw(projection, view);
-   }
+  for (unsigned int i = 0; i < meshes.size(); i++) {
+    meshes[i].Draw(projection, view);
+  }
 
-   if (this->GLReturnedError("ChOpenGLOBJ::Draw - on exit"))
-      return;
+  if (this->GLReturnedError("ChOpenGLOBJ::Draw - on exit"))
+    return;
 }
-
