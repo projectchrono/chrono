@@ -54,10 +54,9 @@ const ChCoordsys<> TrackVehicle::m_driverCsys(ChVector<>(0.0, 0.5, 1.2), ChQuate
 const ChVector<> TrackVehicle::m_chassisBoxSize(4.0, 2.0, 3.0);
 
 /// constructor sets the basic integrator settings for this ChSystem, as well as the usual stuff
-TrackVehicle::TrackVehicle(bool fixed, VisualizationType chassisVis, CollisionType chassisCollide)
+TrackVehicle::TrackVehicle(const std::string& name, VisualizationType chassisVis, CollisionType chassisCollide)
   : m_vis(chassisVis), m_collide(chassisCollide)
 {
-  // Integration settings
   // Integration and Solver settings
   SetLcpSolverType(ChSystem::LCP_ITERATIVE_SOR);
   SetIterLCPmaxItersSpeed(150);
@@ -67,14 +66,16 @@ TrackVehicle::TrackVehicle(bool fixed, VisualizationType chassisVis, CollisionTy
   // create the chassis body    
   m_chassis = ChSharedPtr<ChBodyAuxRef>(new ChBodyAuxRef);
   m_chassis->SetIdentifier(0);
-  m_chassis->SetName("chassis");
+  m_chassis->SetNameString(name);
   m_chassis->SetFrame_COG_to_REF(ChFrame<>(m_COM, ChQuaternion<>(1, 0, 0, 0)));
   // basic body info
   m_chassis->SetMass(m_mass);
   m_chassis->SetInertiaXX(m_inertia);
-  m_chassis->SetBodyFixed(fixed);
+
   // add visualization assets to the chassis
   AddVisualization();
+
+  m_chassis->SetBodyFixed(false);
   // add the chassis body to the system
   Add(m_chassis);
 

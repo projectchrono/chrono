@@ -47,7 +47,8 @@ class CH_SUBSYS_API TrackVehicle : public ChSystem
 {
 public:
 
-  TrackVehicle(bool fixed = false, VisualizationType chassisVis = VisualizationType::PRIMITIVES,
+  TrackVehicle(const std::string& name,
+    VisualizationType chassisVis = VisualizationType::PRIMITIVES,
     CollisionType chassisCollide = CollisionType::PRIMITIVES);
 
   ~TrackVehicle() {}
@@ -98,7 +99,7 @@ public:
   const ChSharedPtr<TrackDriveline> GetDriveline(int idx) const { return m_drivelines[idx]; }
 
   /// vehicle's driveshaft body.
-  const ChSharedPtr<ChShaft> GetDriveshaft() const;
+  const ChSharedPtr<ChShaft> GetDriveshaft(size_t idx) const {return m_drivelines[idx]->GetDriveshaft(); }
 
   /// current value of the integration step size for the vehicle system.
   double GetStepsize() const { return m_stepsize; }
