@@ -184,6 +184,10 @@ bool TestShaftShaft(const char* test_name,
     if (std::abs(acc1 - acc1_an) > tol_acc || std::abs(acc2 - acc2_an) > tol_acc) {
       passed = false;
     }
+
+    if (std::abs(Tr1 - Tr1_an) > tol_trq || std::abs(Tr2 - Tr2_an) > tol_trq) {
+      passed = false;
+    }
   }
 
   std::cout << (passed ? "PASSED" : "FAILED") << std::endl;
