@@ -44,8 +44,11 @@ namespace chrono {
 const size_t TrackVehicle::m_num_tracks = 2;    // number of trackSystems to create
 const size_t TrackVehicle::m_num_engines = 1;   // number of powertrains (and drivelines) to create
 
+const ChVector<> TrackVehicle::m_trackPos_Left(0.23644, -0.4780, 0.83475);   // relative to chassis c-sys
+const ChVector<> TrackVehicle::m_trackPos_Right(0.23644, -0.4780, 0.83475);  // 
+
 const double     TrackVehicle::m_mass = 5489.2;   // chassis sprung mass
-const ChVector<> TrackVehicle::m_COM = ChVector<>(0.1, 0.0, 0.3);  // COM location, relative to body Csys REF frame
+const ChVector<> TrackVehicle::m_COM = ChVector<>(0., 0., 0.);  // COM location, relative to body Csys REF frame
 const ChVector<> TrackVehicle::m_inertia(1786.9, 10449.7, 10721.2);  // chassis inertia (roll,yaw,pitch)
 
 const std::string TrackVehicle::m_meshName("M113_mesh");
@@ -82,6 +85,9 @@ TrackVehicle::TrackVehicle(const std::string& name, VisualizationType chassisVis
   // resize all vectors for the number of track systems
   m_TrackSystems.resize(m_num_tracks);
   m_TrackSystem_locs.resize(m_num_tracks);
+  // Right and Left track System relative locations, respectively
+  m_TrackSystem_locs[0] = m_trackPos_Right;
+  m_TrackSystem_locs[1] = m_trackPos_Left;
 
   // Each trackSystem has its own driveline and powertrain, so the left and right
   // sides can have power applied independently
