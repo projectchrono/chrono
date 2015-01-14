@@ -24,9 +24,7 @@ class CH_PARALLEL_API ChCBroadphase {
       min_body_per_bin = min;
       max_body_per_bin = max;
    }
-
- private:
-   // variables
+   //These are measured variables for the broadphase
    real3 min_bounding_point;
    real3 max_bounding_point;
    real3 global_origin;
@@ -34,9 +32,14 @@ class CH_PARALLEL_API ChCBroadphase {
    int3 grid_size;
 
    uint numAABB;
+   int min_body_per_bin, max_body_per_bin;
+
+ private:
+   // variables
+
    uint last_active_bin, number_of_bin_intersections, number_of_contacts_possible;
    uint val;
-   int min_body_per_bin, max_body_per_bin;
+
 
    custom_vector<uint> Bins_Intersected;custom_vector<uint> bin_number;custom_vector<uint> body_number;custom_vector<uint> bin_start_index;custom_vector<uint> Num_ContactD;
 
