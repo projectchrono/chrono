@@ -125,9 +125,10 @@ void TrackChain::Initialize(ChSharedPtr<ChBodyAuxRef> chassis,
         // i.e., rad_dir dot r_21 = 0
         // easier to figure out the relative angle rad_dir needs to be rotated about the norm axis.
         ChVector<> start_cen = start_loc - rolling_element_loc[i];
-        start_cen.Normalize();
-        double theta = std::acos( Vdot(start_cen, rad_dir));  // angle between direction vectors
-        double phi = std::asin( std::sqrt(start_cen.Length2() + pow(clearance[i],2)) / start_cen.Length() ); // what theta should be
+        double theta = std::acos( Vdot(start_cen.GetNormalized(), rad_dir));  // angle between direction vectors
+        double seglen = std::sqrt(start_cen.Length2() - pow(clearance[i],2));
+        double h = start_cen.Length();
+        double phi = std::asin( seglen / h ); // what theta should be
         double rot_ang = theta - phi;
         // find the radial direction from the center of adjacent rolling elements
         // for seg i, norm = r12 x r32
@@ -135,8 +136,7 @@ void TrackChain::Initialize(ChSharedPtr<ChBodyAuxRef> chassis,
           rolling_element_loc[1] - rolling_element_loc[0]);
         norm_dir.Normalize();
         // rotate rad_dir about norm axis
-        ChQuaternion<> alpha_rot(Q_from_AngAxis(rot_ang, norm_dir) );
-        ChFrame<> rot_frame(ChVector<>(),alpha_rot);
+        ChFrame<> rot_frame(ChVector<>(), Q_from_AngAxis(rot_ang, norm_dir));
         rad_dir =  rad_dir >> rot_frame;
       }
       // rad_dir is now tangent to r_21, so define the new endpoint of this segment
