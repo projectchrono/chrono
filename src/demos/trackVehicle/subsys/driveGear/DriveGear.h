@@ -73,6 +73,7 @@ private:
   static const double m_mass;
   static const double m_radius;
   static const double m_width;
+  static const double m_widthGap; // inner distance between cydliners
   static const double m_shaft_inertia;
 
   static const std::string m_meshName;
