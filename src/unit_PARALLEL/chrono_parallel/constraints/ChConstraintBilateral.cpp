@@ -93,6 +93,27 @@ void ChConstraintBilateral::Build_D()
     }
       break;
 
+    case SHAFT_BODY:
+    {
+      ChLcpConstraintTwoGeneric* mbilateral = (ChLcpConstraintTwoGeneric*)(mconstraints[cntr]);
+
+      int idA = ((ChLcpVariablesShaft*)(mbilateral->GetVariables_a()))->GetShaft()->GetId();
+      int idB = ((ChBody*)((ChLcpVariablesBody*)(mbilateral->GetVariables_b()))->GetUserData())->GetId();
+      int colA = data_container->num_bodies * 6 + idA;
+      int colB = idB * 6;
+
+      D_T(row, colA) = mbilateral->Get_Cq_a()->GetElementN(0);
+
+      D_T(row, colB + 0) = mbilateral->Get_Cq_b()->GetElementN(0);
+      D_T(row, colB + 1) = mbilateral->Get_Cq_b()->GetElementN(1);
+      D_T(row, colB + 2) = mbilateral->Get_Cq_b()->GetElementN(2);
+
+      D_T(row, colB + 3) = mbilateral->Get_Cq_b()->GetElementN(3);
+      D_T(row, colB + 4) = mbilateral->Get_Cq_b()->GetElementN(4);
+      D_T(row, colB + 5) = mbilateral->Get_Cq_b()->GetElementN(5);
+    }
+      break;
+
     }
   }
 }
@@ -155,6 +176,22 @@ void ChConstraintBilateral::GenerateSparsity()
       }
 
       D_T.append(row, col1, 1);
+      D_T.append(row, col2, 1);
+    }
+      break;
+
+    case SHAFT_BODY:
+    {
+      ChLcpConstraintTwoGeneric* mbilateral = (ChLcpConstraintTwoGeneric*)(mconstraints[cntr]);
+
+      int idA = ((ChLcpVariablesShaft*)(mbilateral->GetVariables_a()))->GetShaft()->GetId();
+      int idB = ((ChBody*)((ChLcpVariablesBody*)(mbilateral->GetVariables_b()))->GetUserData())->GetId();
+      col1 = idB * 6;
+      col2 = data_container->num_bodies * 6 + idA;
+
+      D_T.append(row, col1 + 0, 1); D_T.append(row, col1 + 1, 1); D_T.append(row, col1 + 2, 1);
+      D_T.append(row, col1 + 3, 1); D_T.append(row, col1 + 4, 1); D_T.append(row, col1 + 5, 1);
+
       D_T.append(row, col2, 1);
     }
       break;
