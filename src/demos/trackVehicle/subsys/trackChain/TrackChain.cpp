@@ -85,6 +85,7 @@ void TrackChain::Initialize(ChSharedPtr<ChBodyAuxRef> chassis,
   std::vector<ChFrame<>> rolling_to_abs;
 
   size_t num_elem = rolling_element_loc.size();  // number of control points
+
   // define the envelope to wrap the chain around using 1) body locs and clearances, 2) control_points.
   // each rolling element has 2 control points, a start and end point for a given envenlope line segment.
   ChVector<> start_point;  // current start_loc for this segment
@@ -111,7 +112,7 @@ void TrackChain::Initialize(ChSharedPtr<ChBodyAuxRef> chassis,
       ChVector<> top_center = rolling_element_loc[i];
       top_center.y += clearance[i];
       r_21 = top_center - start_loc;  // first guess at start and end points
-      ChVector<> tan_dir = r_21.Normalize();
+      ChVector<> tan_dir = r_21.GetNormalized();
 
      // If start_loc is precisely located, this rad_dir will define the end point as it is now.
       rad_dir = top_center - rolling_element_loc[i];
@@ -126,11 +127,11 @@ void TrackChain::Initialize(ChSharedPtr<ChBodyAuxRef> chassis,
         ChVector<> start_cen = start_loc - rolling_element_loc[i];
         start_cen.Normalize();
         double theta = std::acos( Vdot(start_cen, rad_dir));  // angle between direction vectors
-        double phi = std::acos(clearance[i] / start_cen.Length() );
+        double phi = std::asin( std::sqrt(start_cen.Length2() + pow(clearance[i],2)) / start_cen.Length() ); // what theta should be
         double rot_ang = theta - phi;
         // find the radial direction from the center of adjacent rolling elements
         // for seg i, norm = r12 x r32
-        norm_dir = Vcross(rolling_element_loc[num_elem-1] - rolling_element_loc[0],
+        norm_dir = Vcross(rolling_element_loc.back() - rolling_element_loc[0],
           rolling_element_loc[1] - rolling_element_loc[0]);
         norm_dir.Normalize();
         // rotate rad_dir about norm axis
@@ -151,7 +152,7 @@ void TrackChain::Initialize(ChSharedPtr<ChBodyAuxRef> chassis,
       // for seg i, norm = [r(i-2)-r(i-1)] x [r(i)-r(i-1)
       if(i == 1)
       {
-        norm_dir = Vcross( rolling_element_loc[num_elem-1] - rolling_element_loc[i-1],
+        norm_dir = Vcross( rolling_element_loc.back() - rolling_element_loc[i-1],
           rolling_element_loc[i] - rolling_element_loc[i-1]);
       } else
       {
@@ -201,13 +202,13 @@ void TrackChain::Initialize(ChSharedPtr<ChBodyAuxRef> chassis,
   end_point = start_point;
 
   // no second pulley to use to find r_21
-  ChVector<> top_center = rolling_element_loc[num_elem-1];
-  top_center.y += clearance[num_elem-1];
+  ChVector<> top_center = rolling_element_loc.back();
+  top_center.y += clearance.back();
   r_21 = start_loc - top_center;  // first guess at start and end points
-  ChVector<> tan_dir = r_21.Normalize();
+  ChVector<> tan_dir = r_21.GetNormalized();
 
   // If start_loc is precisely located, this rad_dir will define the end point as it is now.
-  rad_dir = top_center - rolling_element_loc[num_elem-1];
+  rad_dir = top_center - rolling_element_loc.back();
   rad_dir.Normalize();
   // If start_loc isn't exactly placed, r_21 won't be tangent to the envelope at point top_center.
   // Enforce that the vector between the start and end points is tangent.
@@ -216,15 +217,15 @@ void TrackChain::Initialize(ChSharedPtr<ChBodyAuxRef> chassis,
     // move top_center so r_21 is orthogonal to rad_dir
     // i.e., rad_dir dot r_21 = 0
     // easier to figure out the relative angle rad_dir needs to be rotated about the norm axis.
-    ChVector<> start_cen = start_loc - rolling_element_loc[num_elem-1];
+    ChVector<> start_cen = start_loc - rolling_element_loc.back();
     start_cen.Normalize();
     double theta = std::acos( Vdot(start_cen, rad_dir));  // angle between vector directions
-    double phi = std::acos(clearance[num_elem-1] / start_cen.Length() );
+    double phi = std::acos(clearance.back() / start_cen.Length() );
     double rot_ang = theta - phi;
     // find the radial direction from the center of adjacent rolling elements
     //  norm = r12 x r32
-    norm_dir = Vcross( rolling_element_loc[num_elem-2] - rolling_element_loc[num_elem-1],
-        rolling_element_loc[0] - rolling_element_loc[num_elem-1]);
+    norm_dir = Vcross( rolling_element_loc[num_elem-2] - rolling_element_loc.back(),
+        rolling_element_loc[0] - rolling_element_loc.back());
     norm_dir.Normalize();
     // rotate rad_dir about norm axis
     ChQuaternion<> alpha_rot(Q_from_AngAxis(rot_ang, norm_dir) );
@@ -232,11 +233,11 @@ void TrackChain::Initialize(ChSharedPtr<ChBodyAuxRef> chassis,
     rad_dir =  rad_dir >> rot_frame;
   }
   // rad_dir is now tangent to r_21, so define the new endpoint of this segment
-  start_point = rolling_element_loc[num_elem-1] + rad_dir * clearance[num_elem];
+  start_point = rolling_element_loc.back() + rad_dir * clearance.back();
 
   // last segment, only use the start_point
   control_to_abs.push_back(ChFrame<>(start_point));
-  (*control_to_abs.end()).ConcatenatePreTransformation(chassis->GetFrame_REF_to_abs() );
+  (control_to_abs.back()).ConcatenatePreTransformation(chassis->GetFrame_REF_to_abs() );
 
   // "wrap" the track chain around the trackSystem rolling elements, e.g., drive-gear,
   // idler, road-wheels. First and last shoes are allowed to be in any orientation,
