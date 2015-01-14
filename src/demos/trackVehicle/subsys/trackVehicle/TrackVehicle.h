@@ -53,6 +53,12 @@ public:
 
   ~TrackVehicle() {}
 
+  // multiply lateral directions to get correct coord
+  enum TrackVehicleSide{
+    LEFT = -1,
+    RIGHT = 1
+  };
+
   /// Initialize the tracked vehicle REF frame with the specified Coordinate system.
   /// This initial transform is inherited by all vehicle subsystems.
   /// Will add the collision geometry and add modeling elements to the ChSystem.
@@ -140,6 +146,9 @@ private:
   // static variables
   static const size_t m_num_tracks;  // number of tracks for this vehicle
   static const size_t m_num_engines; // number of engines (powertrains and drivelines)
+
+  static const ChVector<> m_trackPos_Left;  // relative to chassis c-sys
+  static const ChVector<> m_trackPos_Right;
 
   static const double     m_mass;                   // chassis mass
   static const ChVector<> m_COM;                    // location of the chassis COM in the local ref frame
