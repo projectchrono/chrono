@@ -26,13 +26,13 @@ namespace chrono {
 // Static variables
 
 // idler, right side
-const ChVector<> TrackSystem::m_idlerPos(-2.1904, -0.1443, 0); // relative to local csys
+const ChVector<> TrackSystem::m_idlerPos(-2.1904, -0.1443, 0.2447); // relative to local csys
 const ChQuaternion<> TrackSystem::m_idlerRot(QUNIT);
   
 // drive gear, right side
-const ChVector<> TrackSystem::m_gearPos(1.7741, -0.0099, 0);  // relative to local csys
+const ChVector<> TrackSystem::m_gearPos(1.7741, -0.0099, 0.2447);  // relative to local csys
 const ChQuaternion<> TrackSystem::m_gearRot(QUNIT);
-  
+
 // Support rollers
 const int TrackSystem::m_numRollers = 0;
 const double TrackSystem::m_roller_mass = 100.0;
@@ -42,7 +42,7 @@ const double TrackSystem::m_roller_width = 0.2;
   
 // suspension
 const int TrackSystem::m_numSuspensions = 5;
-  
+const ChVector<> TrackSystem::m_armWheel(-0.203, -0.2271, 0.2447);  // relative arm distance to right wheel
 
 TrackSystem::TrackSystem(const std::string& name, int track_idx)
   : m_track_idx(track_idx), m_name(name)
@@ -198,7 +198,11 @@ void TrackSystem::Initialize(ChSharedPtr<ChBodyAuxRef> chassis,
   {
     m_suspensions[i]->Initialize(chassis, ChCoordsys<>(m_suspensionLocs[i] + local_pos, QUNIT) );
     // add to the lists passed into the track chain
-    rolling_elem_locs.push_back(m_suspensionLocs[i] + local_pos );
+    ChVector<> armWheel = m_armWheel;
+    // if it's the left side, switch the lateral direction
+    if( local_pos.z < 0 )
+      armWheel.z = armWheel.z * -1.0;
+    rolling_elem_locs.push_back(m_suspensionLocs[i] + local_pos + armWheel);
     clearance.push_back(m_suspensions[i]->GetWheelRadius() );
   }
 
