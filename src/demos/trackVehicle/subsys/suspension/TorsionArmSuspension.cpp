@@ -32,12 +32,13 @@ namespace chrono {
 // static variables
 const double TorsionArmSuspension::m_armMass = 75.26; // [kg]
 const ChVector<> TorsionArmSuspension::m_armInertia(0.77, 0.37, 0.77);  // [kg-m2]
-const double TorsionArmSuspension::m_armRadius = 0.2; // [m]
+const double TorsionArmSuspension::m_armRadius = 0.1; // [m]
 
 const double TorsionArmSuspension::m_wheelMass = 561.1; // [kg]
 const ChVector<> TorsionArmSuspension::m_wheelInertia(19.82, 19.82, 26.06); // [kg-m2]
-const double TorsionArmSuspension::m_wheelWidth = 0.4;  // [m]
-const double TorsionArmSuspension::m_wheelRadius = 0.7; // [m]
+const double TorsionArmSuspension::m_wheelWidth = 0.16;  // [m]
+const double TorsionArmSuspension::m_wheelWidthGap = 0.038;  // inner gap between outer cylinders
+const double TorsionArmSuspension::m_wheelRadius = 0.305; // [m]
 const ChVector<> TorsionArmSuspension::m_wheel_Pos(-0.116, -0.1136, 0); // loc of wheel CM in the local c-sys
 
 const double TorsionArmSuspension::m_springK = 10000;	// torsional spring constant [N-m/rad]

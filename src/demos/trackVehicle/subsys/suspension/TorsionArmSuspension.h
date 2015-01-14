@@ -106,6 +106,7 @@ private:
   static const double m_wheelMass;
   static const ChVector<> m_wheelInertia;
   static const double m_wheelWidth;
+  static const double m_wheelWidthGap;
   static const double m_wheelRadius;
   static const ChVector<> m_wheel_Pos;
 
