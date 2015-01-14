@@ -100,7 +100,7 @@ int main(int argc, char* argv[])
   // Create the tracked vehicle and the ground/environment
 
   // The vehicle inherits ChSystem. Input chassis visual and collision type
-	TrackVehicle vehicle("name", 
+	TrackVehicle vehicle("Justins M113 model", 
     VisualizationType::MESH,
     CollisionType::PRIMITIVES);
   
