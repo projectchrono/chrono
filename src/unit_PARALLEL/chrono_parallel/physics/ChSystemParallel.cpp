@@ -81,9 +81,8 @@ int ChSystemParallel::Integrate_Y() {
    // updates the reactions of the constraint
    LCPresult_Li_into_reactions(1.0 / this->GetStep());     // R = l/dt  , approximately
 
-   //Here the velocities stores in the blaze data structures are copied back
-   //into the chrono data structures
-   uint num_bodies = data_manager->num_bodies;
+   // Scatter the states to the Chrono objects (bodies and shafts) and update
+   // all physics items at the end of the step.
    DynamicVector<real>& velocities = data_manager->host_data.v;
    custom_vector<real3>& pos_pointer = data_manager->host_data.pos_data;
    custom_vector<real4>& rot_pointer = data_manager->host_data.rot_data;
@@ -110,7 +109,6 @@ int ChSystemParallel::Integrate_Y() {
          //update the position and rotation vectors
          pos_pointer[i] = (R3(bodylist[i]->GetPos().x, bodylist[i]->GetPos().y, bodylist[i]->GetPos().z));
          rot_pointer[i] = (R4(bodylist[i]->GetRot().e0, bodylist[i]->GetRot().e1, bodylist[i]->GetRot().e2, bodylist[i]->GetRot().e3));
-
       }
    }
 
@@ -119,16 +117,13 @@ int ChSystemParallel::Integrate_Y() {
      if (!data_manager->host_data.shaft_active[i])
        continue;
 
-     shaftlist[i]->Variables().Get_qb().SetElementN(0, velocities[num_bodies * 6 + i]);
+     shaftlist[i]->Variables().Get_qb().SetElementN(0, velocities[data_manager->num_bodies * 6 + i]);
      shaftlist[i]->VariablesQbIncrementPosition(GetStep());
      shaftlist[i]->VariablesQbSetSpeed(GetStep());
      shaftlist[i]->Update(ChTime);
    }
 
    for (int i = 0; i < otherphysicslist.size(); i++) {
-     if (dynamic_cast<ChShaft*>(otherphysicslist[i]))
-       continue;
-
      otherphysicslist[i]->Update(ChTime);
    }
 
@@ -161,7 +156,14 @@ int ChSystemParallel::Integrate_Y() {
    return 1;
 }
 
-void ChSystemParallel::AddBody(ChSharedPtr<ChBody> newbody) {
+//
+// Add the specified body to the system.
+// A unique identifier is assigned to each body for indexing purposes.
+// Space is allocated in system-wide vectors for data corresponding to the
+// body.
+//
+void ChSystemParallel::AddBody(ChSharedPtr<ChBody> newbody)
+{
 
    newbody->AddRef();
    newbody->SetSystem(this);
@@ -189,33 +191,43 @@ void ChSystemParallel::AddBody(ChSharedPtr<ChBody> newbody) {
    AddMaterialSurfaceData(newbody);
 }
 
-void ChSystemParallel::AddOtherPhysicsItem(ChSharedPtr<ChPhysicsItem> newitem) {
-   //assert(std::find<std::vector<ChPhysicsItem*>::iterator>(otherphysicslist.begin(), otherphysicslist.end(), newitem.get_ptr()) == otherphysicslist.end());
-   //assert(newitem->GetSystem()==0); // should remove from other system before adding here
-
-   newitem->AddRef();
-   newitem->SetSystem(this);
-   otherphysicslist.push_back((newitem).get_ptr());
-
-   // add to collision system too
-   if (newitem->GetCollide()) {
-      newitem->AddCollisionModelsToSystem();
-   }
-
-   //// Ideally, the function AddShaft() would be an override of a ChSystem
-   //// virtual function and the vector shaftlist would be maintained by the base
-   //// class ChSystem.  For now, users must use AddOtherPhysicsItem in order to
-   //// properly account for the variables of a shaft elelement in ChSystem::Setup().
-   //// Note that this also means we duplicate pointers in two lists: shaftlist
-   //// and otherphysicslist...
+//
+// Add physics items, other than bodies or links, to the system.
+// We keep track separately of ChShaft elements which are maintained in their
+// own list (shaftlist).  All other items are stored in otherphysicslist.
+//
+// Note that no test is performed to check if the item was already added.
+//
+// Ideally, the function AddShaft() would be an override of a ChSystem
+// virtual function and the vector shaftlist would be maintained by the base
+// class ChSystem.  For now, users must use AddOtherPhysicsItem in order to
+// properly account for the variables of a shaft elelement in ChSystem::Setup().
+//
+void ChSystemParallel::AddOtherPhysicsItem(ChSharedPtr<ChPhysicsItem> newitem)
+{
    if (ChSharedPtr<ChShaft> shaft = newitem.DynamicCastTo<ChShaft>()) {
      AddShaft(shaft);
+   } else {
+     newitem->AddRef();
+     newitem->SetSystem(this);
+     otherphysicslist.push_back((newitem).get_ptr());
+
+     if (newitem->GetCollide()) {
+       newitem->AddCollisionModelsToSystem();
+     }
    }
 }
 
-//// Currently, this function is private to prevent the user from directly calling
-//// it and instead force them to use AddOtherPhysicsItem().  See comment above.
-//// Eventually, this should be an override of a virtual function declared by ChSystem.
+//
+// Add the specified shaft to the system.
+// A unique identifier is assigned to each shaft for indexing purposes.
+// Space is allocated in system-wide vectors for data corresponding to the
+// shaft.
+//
+// Currently, this function is private to prevent the user from directly calling
+// it and instead force them to use AddOtherPhysicsItem().  See comment above.
+// Eventually, this should be an override of a virtual function declared by ChSystem.
+//
 void ChSystemParallel::AddShaft(ChSharedPtr<ChShaft> shaft)
 {
   shaft->AddRef();
@@ -421,7 +433,7 @@ BILATERALTYPE GetBilateralType(ChPhysicsItem* item)
 // Update other physics items in the system and set the type of the associated
 // constraints.
 // Notes:
-// - explicitly exclude ChShaft elements (as these are treated separately)
+// - ChShaft elements have already been excluded (as these are treated separately)
 // - allow all items to include body forces (required e.g. ChShaftsTorqueBase)
 // - no support for any items that introduce additional state variables
 // - only include constraints from items of supported type (see GetBilateralType above)
@@ -433,9 +445,6 @@ void ChSystemParallel::UpdateOtherPhysics()
   bool clamp = data_manager->settings.solver.clamp_bilaterals;
 
   for (int i = 0; i < otherphysicslist.size(); i++) {
-    if (dynamic_cast<ChShaft*>(otherphysicslist[i]))
-      continue;
-
     otherphysicslist[i]->Update(ChTime);
     otherphysicslist[i]->ConstraintsBiReset();
     otherphysicslist[i]->ConstraintsBiLoad_C(oostep, clamp_speed, clamp);
