@@ -426,6 +426,9 @@ BILATERALTYPE GetBilateralType(ChPhysicsItem* item)
   if (dynamic_cast<ChShaftsBody*>(item))
     return SHAFT_BODY;
 
+  // Debug check - do we ignore any constraints?
+  assert(item->GetDOC_c() == 0);
+
   return UNKNOWN;
 }
 
