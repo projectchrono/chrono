@@ -177,7 +177,7 @@ void TrackSystem::Initialize(ChSharedPtr<ChBodyAuxRef> chassis,
 
   // initialize 1 of each of the following subsystems.
   // will use the chassis ref frame to do the transforms, since the TrackSystem
-  // local ref. frame 
+  // local ref. frame has same rot (just difference in position)
   m_driveGear->Initialize(chassis, ChCoordsys<>(m_gearPos + local_pos, QUNIT) );
   m_idler->Initialize(chassis, ChCoordsys<>(m_idlerPos + local_pos, QUNIT) );
  
@@ -214,11 +214,13 @@ void TrackSystem::Initialize(ChSharedPtr<ChBodyAuxRef> chassis,
   // that is the average of the two clearances.
   ChVector<> start_pos = (rolling_elem_locs[0] + rolling_elem_locs[rolling_elem_locs.size()-1])/2.0;
   start_pos.y += (clearance[0] + clearance[clearance.size()-1] )/2.0;
-  
+  ChCoordsys<> start_frame_rel(start_pos, QUNIT);
+  // get the starting position w.r.t. chassis c-sys
+  ChVector<> start_pos_rel = chassis->GetCoord().TransformParentToLocal(start_pos);
   // Assumption: start_pos should lie close to where the actual track chain would 
   //             pass between the idler and driveGears.
-  // MUST be on the top part of the chain (so the chain wrap rotation direction can be determined).
-  m_chain->Initialize(chassis, rolling_elem_locs, clearance, start_pos );
+  // MUST be on the top part of the chain so the chain wrap rotation direction can be assumed.
+  m_chain->Initialize(chassis, rolling_elem_locs, clearance, start_pos_rel );
 }
 
 
