@@ -84,7 +84,9 @@ void DriveGear::Initialize(ChSharedPtr<ChBodyAuxRef> chassis,
   chassis->GetSystem()->Add(m_gear);
 
   // initialize the revolute joint, add to system
-  // may need to rotate the rotation axis
+
+
+  // TODO: (check) may need to rotate the rotation axis
   m_revolute->Initialize(chassis, m_gear, ChCoordsys<>(gear_to_abs.GetPos(), gear_to_abs.GetRot()) );
   chassis->GetSystem()->AddLink(m_revolute);
 
