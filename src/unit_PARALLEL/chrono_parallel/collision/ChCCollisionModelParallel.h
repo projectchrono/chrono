@@ -218,6 +218,7 @@ class CH_PARALLEL_API ChCollisionModelParallel : public ChCollisionModel {
    };
 
    std::vector<bData> mData;
+   std::vector<real3> local_convex_data;
 
  protected:
 

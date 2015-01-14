@@ -34,8 +34,14 @@ void ChCollisionSystemParallel::Add(ChCollisionModel *model) {
       for (int j = 0; j < pmodel->GetNObjects(); j++) {
          real3 obA = pmodel->mData[j].A;
          real3 obB = pmodel->mData[j].B;
-         if (pmodel->mData[j].type != TRIANGLEMESH) {
-            obB += R3(data_container->settings.collision.collision_envelope);
+
+         int convex_data_offset = data_container->host_data.convex_data.size();
+         data_container->host_data.convex_data.insert(data_container->host_data.convex_data.end(), pmodel->local_convex_data.begin(), pmodel->local_convex_data.end());
+
+         //Compute the global offset of the convex data structure based on the number of points
+         //already present
+         if (pmodel->mData[j].type == CONVEX) {
+         	obB.y += convex_data_offset;    // update to get the global offset
          }
          real3 obC = pmodel->mData[j].C;
          real4 obR = pmodel->mData[j].R;
@@ -46,7 +52,7 @@ void ChCollisionSystemParallel::Add(ChCollisionModel *model) {
          data_container->host_data.fam_rigid.push_back(fam);
          data_container->host_data.typ_rigid.push_back(pmodel->mData[j].type);
          data_container->host_data.id_rigid.push_back(body_id);
-         data_container->num_models++;
+         data_container->num_shapes++;
       }
    }
 }
@@ -84,16 +90,24 @@ void ChCollisionSystemParallel::Run() {
       }
    }
 
-   if (data_container->num_models <= 0) {
+   if (data_container->num_shapes <= 0) {
       return;
    }
 
    data_container->old_num_contacts = data_container->num_contacts;
    data_container->system_timer.start("collision_broad");
 
-   aabb_generator.GenerateAABB(data_container->host_data.typ_rigid, data_container->host_data.ObA_rigid, data_container->host_data.ObB_rigid, data_container->host_data.ObC_rigid,
-                               data_container->host_data.ObR_rigid, data_container->host_data.id_rigid, data_container->host_data.pos_data, data_container->host_data.rot_data,
-                               data_container->host_data.aabb_rigid);
+   aabb_generator.GenerateAABB(
+   		   data_container->host_data.typ_rigid,
+   		   data_container->host_data.ObA_rigid,
+   		   data_container->host_data.ObB_rigid,
+   		   data_container->host_data.ObC_rigid,
+           data_container->host_data.ObR_rigid,
+   		   data_container->host_data.id_rigid,
+   		   data_container->host_data.convex_data,
+   		   data_container->host_data.pos_data,
+   		   data_container->host_data.rot_data,
+           data_container->host_data.aabb_rigid);
 
    //aabb_generator.GenerateAABBFluid(data_container->host_data.fluid_pos, data_container->fluid_rad, data_container->host_data.aabb_fluid);
    broadphase->setBinsPerAxis(data_container->settings.collision.bins_per_axis);
@@ -111,9 +125,17 @@ void ChCollisionSystemParallel::GetOverlappingAABB(custom_vector<bool> &active_i
                                                    real3 Amax) {
    ChCAABBGenerator aabb_generator;
 
-   aabb_generator.GenerateAABB(data_container->host_data.typ_rigid, data_container->host_data.ObA_rigid, data_container->host_data.ObB_rigid, data_container->host_data.ObC_rigid,
-                               data_container->host_data.ObR_rigid, data_container->host_data.id_rigid, data_container->host_data.pos_data, data_container->host_data.rot_data,
-                               data_container->host_data.aabb_rigid);
+   aabb_generator.GenerateAABB(
+		   data_container->host_data.typ_rigid,
+		   data_container->host_data.ObA_rigid,
+		   data_container->host_data.ObB_rigid,
+		   data_container->host_data.ObC_rigid,
+           data_container->host_data.ObR_rigid,
+		   data_container->host_data.id_rigid,
+		   data_container->host_data.convex_data,
+		   data_container->host_data.pos_data,
+		   data_container->host_data.rot_data,
+           data_container->host_data.aabb_rigid);
 #pragma omp parallel for
    for (int i = 0; i < data_container->host_data.typ_rigid.size(); i++) {
       real3 Bmin = data_container->host_data.aabb_rigid[i];

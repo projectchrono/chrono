@@ -38,6 +38,8 @@ using namespace chrono::collision;
 using std::cout;
 using std::endl;
 
+real envelope = 0;
+
 #ifdef CHRONO_PARALLEL_USE_DOUBLE
 const double precision = 5e-7;
 #else
@@ -177,9 +179,9 @@ void test_sphere_sphere() {
       shapeB.C = real3(0);
       shapeB.R = real4(1, 0, 0, 0);
 
-      MPRContact(shapeA, shapeB, n, p, d);
+      MPRContact(shapeA, shapeB,envelope, n, p, d);
       real3 p1, p2;
-      MPRGetPoints(shapeA, shapeB, n, p, p1, p2);
+      MPRGetPoints(shapeA, shapeB,envelope, n, p, p1, p2);
 
       //cout << n << p1 << p2 << d << endl;
       WeakEqual(n, real3(0, -1, 0), precision);
@@ -205,9 +207,9 @@ void test_sphere_sphere() {
       shapeB.C = real3(0);
       shapeB.R = real4(1, 0, 0, 0);
 
-      MPRContact(shapeA, shapeB, n, p, d);
+      MPRContact(shapeA, shapeB,envelope, n, p, d);
       real3 p1, p2;
-      MPRGetPoints(shapeA, shapeB, n, p, p1, p2);
+      MPRGetPoints(shapeA, shapeB,envelope, n, p, p1, p2);
       d = dot(n, p2 - p1);
       //cout << n << p1 << p2 << d << endl;
       real3 n_check = real3(sin(CH_C_PI / 4.0), -sin(CH_C_PI / 4.0), 0);
@@ -240,9 +242,9 @@ void test_ellipsoid_ellipsoid() {
       shapeB.C = real3(0);
       shapeB.R = real4(1, 0, 0, 0);
 
-      MPRContact(shapeA, shapeB, n, p, d);
+      MPRContact(shapeA, shapeB,envelope, n, p, d);
       real3 p1, p2;
-      MPRGetPoints(shapeA, shapeB, n, p, p1, p2);
+      MPRGetPoints(shapeA, shapeB,envelope, n, p, p1, p2);
 
       //cout << n << p1 << p2 << d << endl;
       WeakEqual(n, real3(0, -1, 0), precision);
@@ -268,9 +270,9 @@ void test_ellipsoid_ellipsoid() {
       shapeB.C = real3(0);
       shapeB.R = real4(1, 0, 0, 0);
 
-      MPRContact(shapeA, shapeB, n, p, d);
+      MPRContact(shapeA, shapeB,envelope, n, p, d);
       real3 p1, p2;
-      MPRGetPoints(shapeA, shapeB, n, p, p1, p2);
+      MPRGetPoints(shapeA, shapeB,envelope, n, p, p1, p2);
       d = dot(n, p2 - p1);
       // cout << n << p1 << p2 << d << endl;
 
@@ -310,9 +312,9 @@ void test_sphere_box() {
       shapeB.C = real3(0);
       shapeB.R = real4(1, 0, 0, 0);
 
-      MPRContact(shapeA, shapeB, n, p, d);
+      MPRContact(shapeA, shapeB,envelope, n, p, d);
       real3 p1, p2;
-      MPRGetPoints(shapeA, shapeB, n, p, p1, p2);
+      MPRGetPoints(shapeA, shapeB,envelope, n, p, p1, p2);
       //cout << n << p << d << endl << p1 << p2 << endl;
 
       WeakEqual(n, real3(0, -1, 0), precision);
@@ -338,11 +340,11 @@ void test_sphere_box() {
       shapeB.C = real3(0);
       shapeB.R = real4(1, 0, 0, 0);
 
-      if (!MPRContact(shapeA, shapeB, n, p, d)) {
+      if (!MPRContact(shapeA, shapeB,envelope, n, p, d)) {
          cout << "No Contact!\n";
       }
       real3 p1, p2;
-      MPRGetPoints(shapeA, shapeB, n, p, p1, p2);
+      MPRGetPoints(shapeA, shapeB,envelope, n, p, p1, p2);
       //cout << n << p << d << endl << p1 << p2 << endl;
       WeakEqual(n, real3(0, -1, 0), precision);
       WeakEqual(p1, real3(.1, 1, 0), precision);
@@ -525,7 +527,7 @@ void test_cylinder_sphere() {
       shapeB.C = real3(0);
       shapeB.R = real4(1, 0, 0, 0);
 
-      bool res = MPRContact(shapeA, shapeB, norm, pt, depth);
+      bool res = MPRContact(shapeA, shapeB,envelope, norm, pt, depth);
 
       //// TODO:  WHAT IS EXPECTED HERE?
       /*
@@ -553,7 +555,7 @@ void test_cylinder_sphere() {
       shapeB.C = real3(0);
       shapeB.R = real4(1, 0, 0, 0);
 
-      bool res = MPRContact(shapeA, shapeB, norm, pt, depth);
+      bool res = MPRContact(shapeA, shapeB,envelope, norm, pt, depth);
 
       if (res) {
          cout << "    test failed" << endl;
@@ -576,8 +578,8 @@ void test_cylinder_sphere() {
       shapeB.B = real3(s_rad, 0, 0);
       shapeB.C = real3(0);
       shapeB.R = real4(1, 0, 0, 0);
-      bool res = MPRContact(shapeA, shapeB, norm, pt, depth);
-      MPRGetPoints(shapeA, shapeB, norm, pt, pt1, pt2);
+      bool res = MPRContact(shapeA, shapeB,envelope, norm, pt, depth);
+      MPRGetPoints(shapeA, shapeB,envelope, norm, pt, pt1, pt2);
       depth = dot(norm, pt2 - pt1);
 
       if (!res) {
@@ -605,7 +607,7 @@ void test_cylinder_sphere() {
       shapeB.B = real3(s_rad, 0, 0);
       shapeB.C = real3(0);
       shapeB.R = real4(1, 0, 0, 0);
-      bool res = MPRContact(shapeA, shapeB, norm, pt, depth);
+      bool res = MPRContact(shapeA, shapeB,envelope, norm, pt, depth);
 
       if (res) {
          cout << "    test failed" << endl;
@@ -628,8 +630,8 @@ void test_cylinder_sphere() {
       shapeB.B = real3(s_rad, 0, 0);
       shapeB.C = real3(0);
       shapeB.R = real4(1, 0, 0, 0);
-      bool res = MPRContact(shapeA, shapeB, norm, pt, depth);
-      MPRGetPoints(shapeA, shapeB, norm, pt, pt1, pt2);
+      bool res = MPRContact(shapeA, shapeB,envelope, norm, pt, depth);
+      MPRGetPoints(shapeA, shapeB,envelope, norm, pt, pt1, pt2);
       depth = dot(norm, pt2 - pt1);
 
       if (!res) {
@@ -657,7 +659,7 @@ void test_cylinder_sphere() {
       shapeB.B = real3(s_rad, 0, 0);
       shapeB.C = real3(0);
       shapeB.R = real4(1, 0, 0, 0);
-      bool res = MPRContact(shapeA, shapeB, norm, pt, depth);
+      bool res = MPRContact(shapeA, shapeB,envelope, norm, pt, depth);
 
       if (res) {
          cout << "    test failed" << endl;
@@ -748,7 +750,7 @@ void test_roundedcyl_sphere() {
       shapeB.B = real3(s_rad, 0, 0);
       shapeB.C = real3(0);
       shapeB.R = real4(1, 0, 0, 0);
-      bool res = MPRContact(shapeA, shapeB, norm, pt, depth);
+      bool res = MPRContact(shapeA, shapeB,envelope, norm, pt, depth);
 
       //// TODO: WHAT IS EXPECTED HERE?
       /*
@@ -774,7 +776,7 @@ void test_roundedcyl_sphere() {
       shapeB.B = real3(s_rad, 0, 0);
       shapeB.C = real3(0);
       shapeB.R = real4(1, 0, 0, 0);
-      bool res = MPRContact(shapeA, shapeB, norm, pt, depth);
+      bool res = MPRContact(shapeA, shapeB,envelope, norm, pt, depth);
 
       if (res) {
          cout << "    test failed" << endl;
@@ -797,8 +799,8 @@ void test_roundedcyl_sphere() {
       shapeB.B = real3(s_rad, 0, 0);
       shapeB.C = real3(0);
       shapeB.R = real4(1, 0, 0, 0);
-      bool res = MPRContact(shapeA, shapeB, norm, pt, depth);
-      MPRGetPoints(shapeA, shapeB, norm, pt, pt1, pt2);
+      bool res = MPRContact(shapeA, shapeB,envelope, norm, pt, depth);
+      MPRGetPoints(shapeA, shapeB,envelope, norm, pt, pt1, pt2);
       depth = dot(norm, pt2 - pt1);
 
       if (!res) {
@@ -826,7 +828,7 @@ void test_roundedcyl_sphere() {
       shapeB.B = real3(s_rad, 0, 0);
       shapeB.C = real3(0);
       shapeB.R = real4(1, 0, 0, 0);
-      bool res = MPRContact(shapeA, shapeB, norm, pt, depth);
+      bool res = MPRContact(shapeA, shapeB,envelope, norm, pt, depth);
       if (res) {
          cout << "    test failed" << endl;
          exit(1);
@@ -848,8 +850,8 @@ void test_roundedcyl_sphere() {
       shapeB.B = real3(s_rad, 0, 0);
       shapeB.C = real3(0);
       shapeB.R = real4(1, 0, 0, 0);
-      bool res = MPRContact(shapeA, shapeB, norm, pt, depth);
-      MPRGetPoints(shapeA, shapeB, norm, pt, pt1, pt2);
+      bool res = MPRContact(shapeA, shapeB,envelope, norm, pt, depth);
+      MPRGetPoints(shapeA, shapeB,envelope, norm, pt, pt1, pt2);
       depth = dot(norm, pt2 - pt1);
 
       if (!res) {
@@ -877,7 +879,7 @@ void test_roundedcyl_sphere() {
       shapeB.B = real3(s_rad, 0, 0);
       shapeB.C = real3(0);
       shapeB.R = real4(1, 0, 0, 0);
-      bool res = MPRContact(shapeA, shapeB, norm, pt, depth);
+      bool res = MPRContact(shapeA, shapeB,envelope, norm, pt, depth);
       if (res) {
          cout << "    test failed" << endl;
          exit(1);

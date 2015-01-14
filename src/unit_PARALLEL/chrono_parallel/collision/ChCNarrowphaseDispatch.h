@@ -45,7 +45,8 @@ class CH_PARALLEL_API ChCNarrowphaseDispatch {
                                 const real4 *body_rot,
                                 real3 *obj_data_A_mod,
                                 real3 *obj_data_B_mod,
-                                real3 *obj_data_C_mod);
+                                real3 *obj_data_C_mod,
+	                            real3 *convex_data_mod);
 
    //For each contact pair decide what to do.
    void Dispatch(const shape_type *obj_data_T,
@@ -54,6 +55,7 @@ class CH_PARALLEL_API ChCNarrowphaseDispatch {
                  const real3 *obj_data_C,
                  const real4 *obj_data_R,
                  const uint *obj_data_ID,
+				 real3* convex_data,
                  const bool * obj_active,
                  const real3 *body_pos,
                  const real4 *body_rot,
@@ -70,6 +72,7 @@ class CH_PARALLEL_API ChCNarrowphaseDispatch {
  private:
 
    custom_vector<real3> obj_data_A_global, obj_data_B_global, obj_data_C_global;   //
+   custom_vector<real3> convex_data_global;
    custom_vector<uint> contact_active;   //
    custom_vector<uint> contact_index;
    unsigned int num_potentialCollisions;

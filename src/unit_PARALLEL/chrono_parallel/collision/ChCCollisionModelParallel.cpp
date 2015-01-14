@@ -335,8 +335,25 @@ bool ChCollisionModelParallel::AddCapsule(double radius,
 bool ChCollisionModelParallel::AddConvexHull(std::vector<ChVector<double> > &pointlist,
                                              const ChVector<> &pos,
                                              const ChMatrix33<> &rot) {
-   //NOT SUPPORTED
-   return false;
+	  inertia = R3(1);    // so that it gets initialized to something
+	  model_type = CONVEX;
+	  nObjects++;
+	  bData tData;
+	  tData.A = R3(pos.x, pos.y, pos.z);
+	  tData.B = R3(pointlist.size(), local_convex_data.size(), 0);
+	  tData.C = R3(0, 0, 0);
+	  ChMatrix33<> rotation = rot;
+
+	  tData.R = R4(rotation.Get_A_quaternion().e0, rotation.Get_A_quaternion().e1, rotation.Get_A_quaternion().e2, rotation.Get_A_quaternion().e3);
+	  tData.type = CONVEX;
+	  mData.push_back(tData);
+	  total_volume += 0;
+
+	  for (int i = 0; i < pointlist.size(); i++) {
+	    local_convex_data.push_back(R3(pointlist[i].x, pointlist[i].y, pointlist[i].z));
+	  }
+
+	  return true;
 }
 bool ChCollisionModelParallel::AddBarrel(double Y_low,
                                          double Y_high,

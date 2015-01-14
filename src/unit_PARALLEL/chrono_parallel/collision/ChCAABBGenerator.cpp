@@ -91,6 +91,38 @@ static __host__ __device__ void ComputeAABBCone(const real3 &dim, const real3 &l
 	maxp = pos + temp;
 }
 //%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+static __host__ __device__ void ComputeAABBConvex(const real3* convex_points, const real3& B, const real3& lpos, const real3& pos, const real4& rot, real3& minp, real3& maxp) {
+  int start = B.y;
+  int size = B.x;
+  real3 point_0 = quatRotate(convex_points[start] + lpos, rot) + pos;
+
+  minp = maxp = point_0;
+  for (int i = start; i < start + size; i++) {
+    real3 p = quatRotate(convex_points[i] + lpos, rot) + pos;
+    if (minp.x > p.x) {
+      minp.x = p.x;
+    }
+    if (minp.y > p.y) {
+      minp.y = p.y;
+    }
+    if (minp.z > p.z) {
+      minp.z = p.z;
+    }
+    if (maxp.x < p.x) {
+      maxp.x = p.x;
+    }
+    if (maxp.y < p.y) {
+      maxp.y = p.y;
+    }
+    if (maxp.z < p.z) {
+      maxp.z = p.z;
+    }
+  }
+
+  minp = minp - R3(B.z);
+  maxp = maxp + R3(B.z);
+}
+//%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 __device__ __host__ void function_ComputeAABB(
 		const uint &index,
 		const shape_type *obj_data_T,
@@ -99,6 +131,7 @@ __device__ __host__ void function_ComputeAABB(
 		const real3 *obj_data_C,
 		const real4 *obj_data_R,
 		const uint *obj_data_ID,
+		const real3* convex_points,
 		const real3 *body_pos,
 		const real4 *body_rot,
 		const uint &numAABB,
@@ -129,10 +162,12 @@ __device__ __host__ void function_ComputeAABB(
 		ComputeAABBBox(B, A, position, obj_data_R[index], body_rot[id], temp_min, temp_max);
 	} else if (type == ROUNDEDBOX || type == ROUNDEDCYL || type == ROUNDEDCONE) {
       ComputeAABBBox(B+C.x, A, position, obj_data_R[index], body_rot[id], temp_min, temp_max);
-   } else if (type == CAPSULE) {
+    } else if (type == CAPSULE) {
 		real3 B_ = R3(B.x, B.x + B.y, B.z);
 		ComputeAABBBox(B_, A, position, obj_data_R[index], body_rot[id], temp_min, temp_max);
-	} else {
+    } else if (type == CONVEX) {
+       ComputeAABBConvex(convex_points, B, A, position, rotation, temp_min, temp_max);
+    } else {
 		return;
 	}
 
@@ -148,13 +183,14 @@ void ChCAABBGenerator::host_ComputeAABB(
 		const real3 *obj_data_C,
 		const real4 *obj_data_R,
 		const uint *obj_data_ID,
+		const real3* convex_data,
 		const real3 *body_pos,
 		const real4 *body_rot,
 		real3 *aabb_data) {
 #pragma omp parallel for
 
 	for (int i = 0; i < numAABB; i++) {
-		function_ComputeAABB(i, obj_data_T, obj_data_A, obj_data_B, obj_data_C, obj_data_R, obj_data_ID, body_pos, body_rot, numAABB, aabb_data);
+		function_ComputeAABB(i, obj_data_T, obj_data_A, obj_data_B, obj_data_C, obj_data_R, obj_data_ID,convex_data, body_pos, body_rot, numAABB, aabb_data);
 	}
 }
 //%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -167,6 +203,7 @@ const custom_vector<real3> &obj_data_B,
 const custom_vector<real3> &obj_data_C,
 const custom_vector<real4> &obj_data_R,
 const custom_vector<uint> &obj_data_ID,
+const custom_vector<real3>& convex_data,
 const custom_vector<real3> &body_pos,
 const custom_vector<real4> &body_rot,
 custom_vector<real3> &aabb_data) {
@@ -197,6 +234,7 @@ custom_vector<real3> &aabb_data) {
 				obj_data_C.data(),
 				obj_data_R.data(),
 				obj_data_ID.data(),
+				convex_data.data(),
 				body_pos.data(),
 				body_rot.data(),
 				aabb_data.data());
@@ -215,13 +253,3 @@ custom_vector<real3> &aabb_data) {
 #endif
 
 	}
-
-void ChCAABBGenerator::GenerateAABBFluid(const custom_vector<real3> &fluid_pos,
-const real radius,
-custom_vector<real3> &aabb_data) {
-
-
-
-
-
-}
