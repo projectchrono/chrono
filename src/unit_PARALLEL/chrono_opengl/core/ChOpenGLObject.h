@@ -20,41 +20,35 @@
 
 #include "chrono_opengl/core/ChOpenGLBase.h"
 #include "chrono_opengl/core/ChOpenGLShader.h"
-#include "chrono_opengl/core/ChOpenGLVertexAttributes.h"
-#include "chrono_opengl/core/ChOpenGLMaterial.h"
+#include <vector>
 
 namespace chrono {
 namespace opengl {
 class CH_OPENGL_API ChOpenGLObject : public ChOpenGLBase {
  public:
-   ChOpenGLObject();
-   virtual ~ChOpenGLObject();
-   virtual void TakeDown();
-   virtual bool Initialize();
-   virtual bool PostGLInitialize(
-         const GLvoid * ptr,
-         GLsizeiptr size);
-   virtual void Draw(
-         const glm::mat4 & projection,
-         const glm::mat4 & modelview) = 0;
-   void AttachShader(
-         ChOpenGLShader * new_shader);
+  ChOpenGLObject();
+  virtual ~ChOpenGLObject();
+  virtual void TakeDown();
+  virtual bool Initialize();
+  virtual bool PostGLInitialize(const GLvoid* ptr, GLsizeiptr size);
+  virtual void Draw(const glm::mat4& projection, const glm::mat4& modelview) = 0;
+  void AttachShader(ChOpenGLShader* new_shader);
 
  protected:
-   GLuint vertex_array_handle;
-   GLuint vertex_data_handle;
-   GLuint vertex_element_handle;
-   GLuint vertex_ambient_handle;
-   GLuint vertex_diffuse_handle;
-   GLuint vertex_specular_handle;
-   GLuint vertex_model_handle;
-   std::vector<GLuint> vertex_indices;
-   ChOpenGLShader * shader;
+  GLuint vertex_array_handle;
+  GLuint vertex_data_handle;
+  GLuint vertex_element_handle;
+  GLuint vertex_ambient_handle;
+  GLuint vertex_diffuse_handle;
+  GLuint vertex_specular_handle;
+  GLuint vertex_model_handle;
+  std::vector<GLuint> vertex_indices;
+  ChOpenGLShader* shader;
+
  private:
-   void InternalInitialize();
+  void InternalInitialize();
 };
-
 }
 }
 
-#endif  // END of CHOPENGLOBJECT_H
+#endif    // END of CHOPENGLOBJECT_H
