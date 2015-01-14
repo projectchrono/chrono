@@ -9,12 +9,14 @@ namespace collision {
 CH_PARALLEL_API
 bool MPRContact(const ConvexShape &ShapeA,
                   const ConvexShape &ShapeB,
+                  const real & envelope,
                   real3 &returnNormal,
                   real3 &point,
                   real &depth);
 CH_PARALLEL_API
 bool MPRCollision(const ConvexShape &ShapeA,
                   const ConvexShape &ShapeB,
+                  const real & envelope,
                   real3 &returnNormal,
                   real3 &pointA,
                   real3 &pointB,
@@ -22,6 +24,7 @@ bool MPRCollision(const ConvexShape &ShapeA,
 CH_PARALLEL_API
 void MPRGetPoints(const ConvexShape &ShapeA,
                   const ConvexShape &ShapeB,
+                  const real & envelope,
                   real3 &N,
                   real3 p0,
                   real3 & p1,

@@ -20,13 +20,11 @@ class CH_PARALLEL_API ChCAABBGenerator {
 				const custom_vector<real3> &obj_data_C,//Data C
 				const custom_vector<real4> &obj_data_R,//Data D
 				const custom_vector<uint> &obj_data_ID,//Body ID
+				const custom_vector<real3>& convex_data,// Convex object data
 				const custom_vector<real3> &body_pos,//Position global
 				const custom_vector<real4> &body_rot,//Rotation global
 				custom_vector<real3> &aabb_data);
-				void GenerateAABBFluid(
-						const custom_vector<real3> &fluid_pos,	// fluid position data
-						const real radius,						//fluid radius
-						custom_vector<real3> &aabb_data);		//aabb data output
+
 				private:
 
 				void host_ComputeAABB(
@@ -36,6 +34,7 @@ class CH_PARALLEL_API ChCAABBGenerator {
 						const real3 *obj_data_C,
 						const real4 *obj_data_R,
 						const uint *obj_data_ID,
+						const real3* convex_data,
 						const real3 *body_pos,
 						const real4 *body_rot,
 						real3 *aabb_data
