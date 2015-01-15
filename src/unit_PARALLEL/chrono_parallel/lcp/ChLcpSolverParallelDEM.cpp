@@ -344,7 +344,9 @@ void ChLcpSolverParallelDEM::ComputeR()
 void
 ChLcpSolverParallelDEM::RunTimeStep(real step)
 {
+  // Setup constants and other values for system
   data_container->settings.step_size = step;
+  data_container->settings.solver.tol_speed = step * data_container->settings.solver.tolerance;
 
   data_container->num_unilaterals = 0;
   // This is the total number of constraints, note that there are no contacts

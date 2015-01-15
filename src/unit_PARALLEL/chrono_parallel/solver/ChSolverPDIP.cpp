@@ -146,7 +146,7 @@ void ChSolverPDIP::conjugateGradient(blaze::DynamicVector<real> & x) {
     x = x + alpha_cg * p_cg;
     r_cg = r_cg - alpha_cg * Ap_cg;
     rsnew_cg = (r_cg, r_cg);
-    if (sqrt(rsnew_cg) < tol_speed / 100.0) {
+    if (sqrt(rsnew_cg) < data_container->settings.solver.tol_speed / 100.0) {
       return;
     }
     p_cg = r_cg + rsnew_cg / rsold_cg * p_cg;
@@ -193,7 +193,7 @@ int ChSolverPDIP::preconditionedConjugateGradient(blaze::DynamicVector<real> & x
     r_cg = r_cg - alpha_cg * Ap_cg;
     applyPreconditioning(r_cg,z_cg);
     rsnew_cg = (z_cg, r_cg);
-    if (sqrt(rsnew_cg) < tol_speed / 100.0) {
+    if (sqrt(rsnew_cg) < data_container->settings.solver.tol_speed / 100.0) {
       return iter;
     }
     p_cg = z_cg + rsnew_cg / rsold_cg * p_cg;
@@ -367,7 +367,7 @@ uint ChSolverPDIP::SolvePDIP(const uint max_iter,
     AtIterationEnd(residual, objective_value, iter_hist.size());
     if(verbose) std::cout << "Residual: " << residual << ", Iter: " << current_iteration << ", Krylov Iter: " << totalKrylovIterations << std::endl;
 
-    if (residual < tol_speed) {
+    if (residual < data_container->settings.solver.tol_speed) {
       // (22) break
       break;
 
