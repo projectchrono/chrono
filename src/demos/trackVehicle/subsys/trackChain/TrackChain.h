@@ -54,6 +54,7 @@ public:
   
   /// handle to the shoe body
   ChSharedPtr<ChBody> GetShoeBody(size_t track_idx); 
+  // ChSharedPtr<ChBodyAuxRef> GetShoeBody(size_t track_idx); 
 
 private:
 
@@ -89,6 +90,7 @@ private:
 
   // private variables
   std::vector<ChSharedPtr<ChBody>> m_shoes;  ///< handle to track shoes
+  // std::vector<ChSharedPtr<ChBodyAuxRef>> m_shoes;  ///< handle to track shoes
   std::vector<ChSharedPtr<ChLinkLockRevolute>> m_pins; ///< handles to pin joints
   size_t m_numShoes;      ///< number of track shoes and pins
 
@@ -101,6 +103,7 @@ private:
   //static values 
   static const double m_mass;         // mass per shoe
   static const ChVector<> m_inertia;  // inertia of a shoe
+  static const ChVector<> m_COM;      // location of COM, relative to REF (e.g, geomtric center)
 
   static const ChVector<> m_shoe_box;
   static const double m_pin_width;

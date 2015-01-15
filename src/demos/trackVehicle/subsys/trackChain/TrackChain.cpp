@@ -41,7 +41,8 @@ const std::string TrackChain::m_meshName = "M113 shoe";
 const std::string TrackChain::m_meshFile = utils::GetModelDataFile("track_data/M113/shoe_view.obj");
 
 const double TrackChain::m_mass = 18.02;
-const ChVector<> TrackChain::m_inertia(0.22, 0.25,  0.04); // using modified geometry, clear that min. inertia occurs about z-axis
+const ChVector<> TrackChain::m_inertia(0.22, 0.25,  0.04); // TODO: what is this w/ new single pin configuration???
+const ChVector<> TrackChain::m_COM = ChVector<>(0., 0., 0.);  // location of COM, relative to REF (e.g, geomtric center)
 const ChVector<> TrackChain::m_shoe_box(0.205 *0.5, 0.0663 *0.5, 0.38 *0.5); // length, height, width HALF DIMS!
 const double TrackChain::m_pin_width = 0.531; // total width of cylinder pins
 const double TrackChain::m_pin_dist = 0.15162;		// linear distance between a shoe chain spacing. exact = 0.205
@@ -60,6 +61,8 @@ TrackChain::TrackChain(const std::string& name,
   m_shoes.clear();
   // add first track shoe body
   m_shoes.push_back(ChSharedPtr<ChBody>(new ChBody));
+  // m_shoes.push_back(ChSharedPtr<ChBodyAuxRef>(new ChBodyAuxRef));
+  // m_shoes[0]->SetFrame_COG_to_REF(ChFrame<>(m_COM,QUNIT));
   m_shoes[0]->SetNameString("shoe 1, "+name);
   m_shoes[0]->SetMass(m_mass);
   m_shoes[0]->SetInertiaXX(m_inertia);
@@ -424,9 +427,10 @@ ChVector<> TrackChain::CreateShoes(const ChVector<>& curr_pos,
   ChMatrix33<> shoe_rot_A;
   while(dist_to_end > 0 )  // keep going until within half pin dist.
   {
+    size_t idx = m_numShoes - 1;
     // build the shoe here, unless it's the first pass thru. 
     // A single ChBody shoe is created upon construction.
-    if(m_shoes.size() == 1) 
+    if(idx == 0) 
     {    
       // add collision geometry only once!
       AddCollisionGeometry(0);
@@ -434,15 +438,16 @@ ChVector<> TrackChain::CreateShoes(const ChVector<>& curr_pos,
     {
       // create a new body by copying the first. Should pick up collision shape, etc.
       // just rename it
+      // m_shoes.push_back(ChSharedPtr<ChBodyAuxRef>(new ChBodyAuxRef( *(m_shoes[0].get_ptr()) )) );
       m_shoes.push_back(ChSharedPtr<ChBody>(new ChBody( *(m_shoes[0].get_ptr()) )) );
-      m_shoes[m_numShoes]->SetNameString( "shoe " + std::to_string(m_numShoes+1) );
+      m_shoes[idx]->SetNameString( "shoe " + std::to_string(m_numShoes+1) );
     }
     
     // initialize pos, rot of this shoe.
     shoe_pos = pos_on_seg + norm_dir * m_shoe_chain_offset;
-    shoe_rot_A.Set_A_axis(tan_dir, -norm_dir, lateral_dir);
-    m_shoes[m_numShoes]->SetPos(shoe_pos);
-    m_shoes[m_numShoes]->SetRot(shoe_rot_A);
+    shoe_rot_A.Set_A_axis(tan_dir, norm_dir, lateral_dir);
+    m_shoes[idx]->SetPos(shoe_pos);
+    m_shoes[idx]->SetRot(shoe_rot_A);
 
     // done adding this shoe
     m_numShoes++;
@@ -464,8 +469,8 @@ ChVector<> TrackChain::CreateShoes(const ChVector<>& curr_pos,
   return shoe_pos;
 }
 
-
 ChSharedPtr<ChBody> TrackChain::GetShoeBody(size_t track_idx)
+// ChSharedPtr<ChBodyAuxRef> TrackChain::GetShoeBody(size_t track_idx)
 {
   assert( track_idx < m_numShoes);
   return (track_idx > m_numShoes-1) ? m_shoes[track_idx] : m_shoes[0] ;
