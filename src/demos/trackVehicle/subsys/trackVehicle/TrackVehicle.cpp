@@ -54,7 +54,7 @@ const ChVector<> TrackVehicle::m_inertia(1786.9, 10449.7, 10721.2);  // chassis 
 const std::string TrackVehicle::m_meshName("M113_mesh");
 const std::string TrackVehicle::m_meshFile = utils::GetModelDataFile("data/M113_hull.obj");
 const ChCoordsys<> TrackVehicle::m_driverCsys(ChVector<>(0.0, 0.5, 1.2), ChQuaternion<>(1, 0, 0, 0));
-const ChVector<> TrackVehicle::m_chassisBoxSize(4.0, 2.0, 3.0);
+const ChVector<> TrackVehicle::m_chassisBoxSize(4.0 *0.5, 2.0 *0.5, 3.0 *0.5);  // length, height, width HALF DIMS
 
 /// constructor sets the basic integrator settings for this ChSystem, as well as the usual stuff
 TrackVehicle::TrackVehicle(const std::string& name, VisualizationType chassisVis, CollisionType chassisCollide)
