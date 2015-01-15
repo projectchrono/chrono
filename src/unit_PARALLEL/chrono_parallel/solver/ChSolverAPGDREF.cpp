@@ -7,7 +7,7 @@ real ChSolverAPGDREF::Res4(blaze::DynamicVector<real> & gamma,
     const blaze::DynamicVector<real> & r,
     blaze::DynamicVector<real> & tmp) {
 
-  real gdiff = 1.0/pow(num_constraints,2.0);
+  real gdiff = 1.0 / pow(data_container->num_constraints, 2.0);
   ShurProduct(gamma, tmp);
   tmp = tmp - r;
   tmp = gamma - gdiff * (tmp);
