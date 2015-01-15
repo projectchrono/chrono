@@ -57,7 +57,6 @@ int ChSystemParallel::Integrate_Y() {
    data_manager->system_timer.start("step");
 
    data_manager->system_timer.start("update");
-   Setup();
    Update();
    data_manager->system_timer.stop("update");
 
