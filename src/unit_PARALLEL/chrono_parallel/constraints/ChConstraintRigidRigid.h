@@ -1,8 +1,9 @@
 #ifndef CHCONSTRAINT_RIGIDRIGID_H
 #define CHCONSTRAINT_RIGIDRIGID_H
 
-#include "chrono_parallel/ChBaseParallel.h"
+#include "chrono_parallel/ChDataManager.h"
 #include "chrono_parallel/math/ChParallelMath.h"
+
 namespace chrono {
 
 CH_PARALLEL_API
@@ -14,7 +15,7 @@ void Compute_Jacobian(const real4& quat, const real3& U, const real3& V, const r
 CH_PARALLEL_API
 void Compute_Jacobian_Rolling(const real4& quat, const real3& U, const real3& V, const real3& W, real3& T1, real3& T2, real3& T3);
 
-class CH_PARALLEL_API ChConstraintRigidRigid : public ChBaseParallel {
+class CH_PARALLEL_API ChConstraintRigidRigid {
  public:
   ChConstraintRigidRigid() {
     solve_sliding = false;
@@ -25,9 +26,9 @@ class CH_PARALLEL_API ChConstraintRigidRigid : public ChBaseParallel {
 
   ~ChConstraintRigidRigid() {}
 
-  void Setup(ChParallelDataManager* data_container_) {
+  void Setup(ChParallelDataManager* data_container_)
+  {
     data_container = data_container_;
-    Initialize();
     uint num_contacts = data_container->num_contacts;
     inv_h = 1 / data_container->settings.step_size;
     inv_hpa = 1 / (data_container->settings.step_size + data_container->settings.solver.alpha);
@@ -100,7 +101,11 @@ class CH_PARALLEL_API ChConstraintRigidRigid : public ChBaseParallel {
   real inv_h;
   real inv_hpa;
   real inv_hhpa;
+
+  // Pointer to the system's data manager
+  ChParallelDataManager *data_container;
 };
+
 }
 
 #endif

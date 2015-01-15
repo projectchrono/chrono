@@ -2,40 +2,48 @@
 
 using namespace chrono;
 
-ChSolverParallel::ChSolverParallel() {
+ChSolverParallel::ChSolverParallel()
+{
   max_iteration = 100;
   current_iteration = 0;
   rigid_rigid = NULL;
   bilateral = NULL;
 }
-ChSolverParallel::~ChSolverParallel() {}
-void ChSolverParallel::Setup(ChParallelDataManager* data_container_) {
-  data_container = data_container_;
-  Initialize();
-}
 
-void ChSolverParallel::Project(real* gamma) {
+void ChSolverParallel::Project(real* gamma)
+{
   data_container->system_timer.start("ChSolverParallel_Project");
   rigid_rigid->Project(gamma);
   data_container->system_timer.stop("ChSolverParallel_Project");
 }
-void ChSolverParallel::Project_Single(int index, real* gamma) {
+
+void ChSolverParallel::Project_Single(int index, real* gamma)
+{
   data_container->system_timer.start("ChSolverParallel_Project");
   rigid_rigid->Project_Single(index, gamma);
   data_container->system_timer.stop("ChSolverParallel_Project");
 }
 //=================================================================================================================================
 
-void ChSolverParallel::shurA(blaze::DynamicVector<real>& x, blaze::DynamicVector<real>& out) { out = data_container->host_data.M_invD * x; }
+void ChSolverParallel::shurA(blaze::DynamicVector<real>& x, blaze::DynamicVector<real>& out)
+{
+  out = data_container->host_data.M_invD * x;
+}
 
-void ChSolverParallel::ComputeSRhs(custom_vector<real>& gamma, const custom_vector<real>& rhs, custom_vector<real3>& vel_data, custom_vector<real3>& omg_data, custom_vector<real>& b) {
+void ChSolverParallel::ComputeSRhs(custom_vector<real>& gamma,
+                                   const custom_vector<real>& rhs,
+                                   custom_vector<real3>& vel_data,
+                                   custom_vector<real3>& omg_data,
+                                   custom_vector<real>& b)
+{
   // TODO change SHRS to use blaze
   // ComputeImpulses(gamma, vel_data, omg_data);
   // rigid_rigid->ComputeS(rhs, vel_data, omg_data, b);
 }
 
 void ChSolverParallel::ShurProduct(const blaze::DynamicVector<real>& x,
-                                   blaze::DynamicVector<real>& output) {
+                                   blaze::DynamicVector<real>& output)
+{
   data_container->system_timer.start("ShurProduct");
   output = data_container->host_data.D_T * ( data_container->host_data.M_invD * x ) + data_container->host_data.E * x;
   data_container->system_timer.stop("ShurProduct");
@@ -57,7 +65,8 @@ void ChSolverParallel::ShurBilaterals(const blaze::DynamicVector<real>& x,
 
 //=================================================================================================================================
 
-void ChSolverParallel::UpdatePosition(custom_vector<real>& x) {
+void ChSolverParallel::UpdatePosition(custom_vector<real>& x)
+{
   //
   //   if (rigid_rigid->solve_sliding == true || rigid_rigid->solve_spinning ==
   //   true) {
@@ -92,7 +101,8 @@ void ChSolverParallel::UpdatePosition(custom_vector<real>& x) {
   //   }
 }
 
-void ChSolverParallel::UpdateContacts() {
+void ChSolverParallel::UpdateContacts()
+{
   ////TODO: Re-implement this using new dispatch
   //   if (rigid_rigid->solve_sliding == true || rigid_rigid->solve_spinning ==
   //   true) {

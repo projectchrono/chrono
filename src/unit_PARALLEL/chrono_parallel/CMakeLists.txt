@@ -10,11 +10,9 @@
 
 SET(ChronoEngine_Parallel_BASE
     ChApiParallel.h
-    ChBaseParallel.h
     ChParallelDefines.h
     ChDataManager.h
     ChTimerParallel.h
-    ChBaseParallel.cpp
     ChDataManager.cpp
     )
 

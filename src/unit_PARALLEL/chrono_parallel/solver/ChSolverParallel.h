@@ -19,7 +19,6 @@
 #ifndef CHSOLVERPARALLEL_H
 #define CHSOLVERPARALLEL_H
 
-#include "chrono_parallel/ChBaseParallel.h"
 #include "chrono_parallel/ChDataManager.h"
 #include "chrono_parallel/math/ChParallelMath.h"
 #include "chrono_parallel/constraints/ChConstraintRigidRigid.h"
@@ -28,17 +27,18 @@
 #include "chrono_parallel/constraints/ChConstraintBilateral.h"
 
 namespace chrono {
-class CH_PARALLEL_API ChSolverParallel : public ChBaseParallel {
+
+class CH_PARALLEL_API ChSolverParallel {
  public:
   ChSolverParallel();
-  virtual ~ChSolverParallel();
+  virtual ~ChSolverParallel() {}
 
-  // At the beginning of the step reset the size/indexing variables,
-  // resize for new contact list and clear temporary accumulation variables
-  void Setup(ChParallelDataManager* data_container_);    // pointer to data container
+  void Setup(ChParallelDataManager* data_container_)
+  {
+    data_container = data_container_;
+  }
 
-
-  // Project the lagrange multipliers
+  // Project the Lagrange multipliers
   void Project(real* gamma);    // Lagrange Multipliers
 
   // Project a single lagrange multiplier
@@ -99,9 +99,9 @@ class CH_PARALLEL_API ChSolverParallel : public ChBaseParallel {
   }
 
   void AtIterationEnd(real maxd, real maxdeltalambda, int iter) {
-	  data_container->measures.solver.maxd_hist.push_back(maxd);
-	  data_container->measures.solver.maxdeltalambda_hist.push_back(maxdeltalambda);
-	  data_container->measures.solver.iter_hist.push_back(iter);
+    data_container->measures.solver.maxd_hist.push_back(maxd);
+    data_container->measures.solver.maxdeltalambda_hist.push_back(maxdeltalambda);
+    data_container->measures.solver.iter_hist.push_back(iter);
   }
 
   // Set the maximum number of iterations for all solvers
@@ -115,7 +115,11 @@ class CH_PARALLEL_API ChSolverParallel : public ChBaseParallel {
 
   ChConstraintRigidRigid* rigid_rigid;
   ChConstraintBilateral* bilateral;
+
+  // Pointer to the system's data manager
+  ChParallelDataManager *data_container;
 };
+
 }
 
 #endif
