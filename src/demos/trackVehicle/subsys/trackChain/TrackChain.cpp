@@ -41,12 +41,12 @@ const std::string TrackChain::m_meshName = "M113 shoe";
 const std::string TrackChain::m_meshFile = utils::GetModelDataFile("track_data/M113/shoe_view.obj");
 
 const double TrackChain::m_mass = 18.02;
-const ChVector<> TrackChain::m_inertia(0.04, 0.22, 0.25);
-const double TrackChain::m_shoe_width_box = 0.38; // total width of box
-const double TrackChain::m_shoe_width_cyl = 0.531; // total width of cylinder pins
-const double TrackChain::m_shoe_height = 0.0663; 
-const double TrackChain::m_pin_dist = 0.21;		// linear distance between a shoe chain spacing. exact = 0.205
+const ChVector<> TrackChain::m_inertia(0.22, 0.25,  0.04); // using modified geometry, clear that min. inertia occurs about z-axis
+const ChVector<> TrackChain::m_shoe_box(0.15162, 0.0663, 0.38); // length, height, width
+const double TrackChain::m_pin_width = 0.531; // total width of cylinder pins
+const double TrackChain::m_pin_dist = 0.15162;		// linear distance between a shoe chain spacing. exact = 0.205
 const double TrackChain::m_pin_radius = 0.02317;
+const ChVector<> TrackChain::m_tooth_box(0.08, 0.075, 0.08);  // length, height, width
  // distance between body center and the vertical offset to the inner-surface of the collision geometry
 //  used for initializing shoes as a chain
 const double TrackChain::m_shoe_chain_offset = 0.035; // .03315 exact
@@ -260,7 +260,7 @@ void TrackChain::AddVisualization(size_t track_idx)
     // primitive box, also used for collision.
     // shoes will be added to the same collision family so self-collision can be toggled
     ChSharedPtr<ChBoxShape> box(new ChBoxShape);
-    box->GetBoxGeometry().SetLengths( 0.5 * ChVector<>( m_pin_dist-2*m_pin_radius, m_shoe_height, m_shoe_width_box) );
+    box->GetBoxGeometry().SetLengths( 0.5 * m_shoe_box);  // use half-distances
     m_shoes[track_idx]->AddAsset(box);
 
     ChSharedPtr<ChTexture> tex(new ChTexture);
@@ -299,9 +299,32 @@ void TrackChain::AddCollisionGeometry(size_t track_idx)
   switch (m_collide) {
   case CollisionType::PRIMITIVES:
   {
-    // use a simple box
-    m_shoes[track_idx]->GetCollisionModel()->AddBox(m_pin_dist-2*m_pin_radius, m_shoe_height, m_shoe_width_box);
-
+    // use a simple box, single pin
+    m_shoes[track_idx]->GetCollisionModel()->AddBox(m_shoe_box.x, m_shoe_box.y, m_shoe_box.z);
+    // pin is a single cylinder
+    double pin_offset = -0.07581;
+    m_shoes[track_idx]->GetCollisionModel()->AddCylinder(m_pin_radius, m_pin_radius, m_pin_width, ChVector<>(pin_offset, 0, 0) );
+    
+    break;
+  }
+  case CollisionType::COMPOUNDPRIMITIVES:
+  {
+    // shoe geometry provided can be exactly represented by 6 smaller boxes, 2 cylinders.
+    double subBox_width = 0.082;
+    double stagger_offset = 0.03;
+    // 5 smaller boxes make up the base of the shoe
+    m_shoes[track_idx]->GetCollisionModel()->AddBox(m_shoe_box.x, m_shoe_box.y, subBox_width);
+    m_shoes[track_idx]->GetCollisionModel()->AddBox(m_shoe_box.x, m_shoe_box.y, subBox_width, ChVector<>(-stagger_offset, 0, subBox_width));
+    m_shoes[track_idx]->GetCollisionModel()->AddBox(m_shoe_box.x, m_shoe_box.y, subBox_width, ChVector<>(-stagger_offset, 0, -subBox_width));
+    m_shoes[track_idx]->GetCollisionModel()->AddBox(m_shoe_box.x, m_shoe_box.y, subBox_width, ChVector<>(0, 0, 2.0*subBox_width));
+    m_shoes[track_idx]->GetCollisionModel()->AddBox(m_shoe_box.x, m_shoe_box.y, subBox_width, ChVector<>(0, 0, 2.0*subBox_width));
+    // add the tooth box
+    double tooth_offset = -0.07315; // vertical offset
+    m_shoes[track_idx]->GetCollisionModel()->AddBox(m_tooth_box.x, m_tooth_box.y, m_tooth_box.z, ChVector<>(0, tooth_offset, 0));
+    // add the pin as a single cylinder
+    double pin_offset = -0.07581;
+    m_shoes[track_idx]->GetCollisionModel()->AddCylinder(m_pin_radius, m_pin_radius, m_pin_width, ChVector<>(pin_offset, 0, 0) );
+    
     break;
   }
   case CollisionType::MESH:
@@ -357,8 +380,8 @@ void TrackChain::CreateChain(const std::vector<ChFrame<>>& control_points_abs,
   // Each segment has 2 parts, the initial linear portion, then wrapping around 
   //   the rolling element the start point of the next linear line segment.
   size_t num_elems = clearance.size();
-  // keep track of the current position along the line segment
-  // defined by projecting the shoe body normal at the shoe COM down to the linear line segment,
+  // Keep track of the current position along the line segment as new shoe bodies are created.
+  // position along line defined by projecting the shoe body normal at the shoe COM down to the linear line segment,
   // or toward the center of the rolling element.
   ChVector<> curr_pos = start_pos_abs;  
   for(int idx = 0; idx < num_elems; idx++)
@@ -391,22 +414,22 @@ ChVector<> TrackChain::CreateShoes(const ChVector<>& curr_pos,
   // lateral in terms of the vehicle chassis
   ChVector<> lateral_dir = Vcross(pos_on_seg-end_seg, end_curve-end_seg);
   lateral_dir.Normalize();
-  ChVector<> tan_dir = end_seg - pos_on_seg;
-  tan_dir.Normalize();
+  ChVector<> tan_dir = (end_seg - pos_on_seg).GetNormalized();
   // normal to the envelope surface
   ChVector<> norm_dir = Vcross( lateral_dir, tan_dir);
 
-  // create the shoes along the segment!
+  // create the shoes along the segment! (may not be creating shoes exactly parallel to envelope surface)
   double dist_to_end = Vdot(end_seg - pos_on_seg, tan_dir);
   ChVector<> shoe_pos;
   ChQuaternion<> shoe_rot;
   ChMatrix33<> shoe_rot_A;
   while(dist_to_end > 0 )  // keep going until within half pin dist.
   {
-    // build the shoe here, unless it's the first pass thru
+    // build the shoe here, unless it's the first pass thru. 
+    // A single ChBody shoe is created upon construction.
     if(m_shoes.size() == 1) 
     {    
-      // add collision geometry
+      // add collision geometry only once!
       AddCollisionGeometry(0);
     } else 
     {
