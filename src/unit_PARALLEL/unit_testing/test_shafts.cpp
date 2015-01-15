@@ -19,6 +19,8 @@
 #include "physics/ChShaftsGear.h"
 #include "physics/ChShaftsTorsionSpring.h"
 #include "physics/ChShaftsBody.h"
+#include "physics/ChShaftsPlanetary.h"
+#include "physics/ChShaftsClutch.h"
 
 #include "chrono_parallel/physics/ChSystemParallel.h"
 
@@ -301,20 +303,20 @@ bool TestShaftBody(const char* test_name,
   double trqB = -2.83766;   // reaction on bodyB (z component)
 
   if (std::abs(shaftA->GetPos() - posA) > tol_pos ||
-      std::abs(shaftA->GetPos_dt() - velA) > tol_vel ||
-      std::abs(shaftA->GetPos_dtdt() - accA) > tol_acc)
+    std::abs(shaftA->GetPos_dt() - velA) > tol_vel ||
+    std::abs(shaftA->GetPos_dtdt() - accA) > tol_acc)
     passed = false;
 
   if (std::abs(bodyB->GetWvel_loc().z - avelB) > tol_acc ||
-      std::abs(bodyB->GetWacc_loc().z - aaccB) > tol_acc)
+    std::abs(bodyB->GetWacc_loc().z - aaccB) > tol_acc)
     passed = false;
 
   if (std::abs(shaft_torsionAC->GetTorqueReactionOn1() - spring_trqA) > tol_trq ||
-      std::abs(shaft_torsionAC->GetTorqueReactionOn2() - spring_trqC) > tol_trq)
+    std::abs(shaft_torsionAC->GetTorqueReactionOn2() - spring_trqC) > tol_trq)
     passed = false;
 
   if (std::abs(shaftbody_connection->GetTorqueReactionOnShaft() - trqA) > tol_trq ||
-      std::abs(shaftbody_connection->GetTorqueReactionOnBody().z - trqB) > tol_trq)
+    std::abs(shaftbody_connection->GetTorqueReactionOnBody().z - trqB) > tol_trq)
     passed = false;
 
   std::cout << (passed ? "PASSED" : "FAILED") << std::endl;
@@ -346,6 +348,204 @@ bool TestShaftBody(const char* test_name,
 
 
 // -----------------------------------------------------------------------------
+// Two shafts A and B, connected by a clutch [ c ]. Shafts starts with nonzero
+// speed, and are free to rotate independently until the clutch is activated.
+// After activation, the shafts decelerateuntil they have the same speed.
+// 
+//       A           B
+//  Ta  ||---[ c ]---||
+// 
+// -----------------------------------------------------------------------------
+bool TestClutch(const char* test_name,
+                utils::SystemType sys_type)
+{
+  std::cout << test_name << std::endl;
+
+  // Create the system
+  ChSystemParallel* system = CreateSystem(sys_type);
+
+  // Create a ChShaft that starts with nonzero angular velocity
+  ChSharedShaftPtr shaftA(new ChShaft);
+  shaftA->SetInertia(0.5);
+  shaftA->SetPos_dt(30);
+  system->Add(shaftA);
+
+  // Create another ChShaft, with opposite initial angular velocity
+  ChSharedShaftPtr shaftB(new ChShaft);
+  shaftB->SetInertia(0.6);
+  shaftB->SetPos_dt(-10);
+  system->Add(shaftB);
+
+  // Create a ChShaftsClutch, that represents a simplified model
+  // of a clutch between two ChShaft objects (something that limits
+  // the max transmitted torque, up to slippage).
+  ChSharedPtr<ChShaftsClutch> clutchAB(new ChShaftsClutch);
+  clutchAB->Initialize(shaftA, shaftB);
+  clutchAB->SetTorqueLimit(60);
+  clutchAB->SetModulation(0);
+  system->Add(clutchAB);
+
+  // Perform the simulation and verify results.
+  bool passed = true;
+  double tol_pos = 1e-3;
+  double tol_vel = 1e-4;
+  double tol_acc = 1e-4;
+  double tol_trq = 1e-4;
+
+  double time_end = 1.5;
+  double time_step = 1e-3;
+  double time = 0;
+
+  while (time < time_end)
+  {
+    system->DoStepDynamics(time_step);
+    time += time_step;
+
+    if (time > 0.8)
+      clutchAB->SetModulation(1);
+
+    std::cout << "Time: " << time << "\n"
+      << "  shaft A rot: " << shaftA->GetPos()
+      << "  speed: " << shaftA->GetPos_dt()
+      << "  accel: " << shaftA->GetPos_dtdt()
+      << "\n"
+      << "  shaft B rot: " << shaftB->GetPos()
+      << "  speed: " << shaftB->GetPos_dt()
+      << "  accel: " << shaftB->GetPos_dtdt()
+      << "\n"
+      << "  torque on A side: " << clutchAB->GetTorqueReactionOn1()
+      << "  torque on B side: " << clutchAB->GetTorqueReactionOn2()
+      << "\n";
+  }
+
+  std::cout << "Time: " << time << "\n"
+    << "  shaft A rot: " << shaftA->GetPos()
+    << "  speed: " << shaftA->GetPos_dt()
+    << "  accel: " << shaftA->GetPos_dtdt()
+    << "\n"
+    << "  shaft B rot: " << shaftB->GetPos()
+    << "  speed: " << shaftB->GetPos_dt()
+    << "  accel: " << shaftB->GetPos_dtdt()
+    << "\n"
+    << "  torque on A side: " << clutchAB->GetTorqueReactionOn1()
+    << "  torque on B side: " << clutchAB->GetTorqueReactionOn2()
+    << "\n\n\n";
+
+
+  // Delete the system
+  delete system;
+
+  return passed;
+}
+
+
+// -----------------------------------------------------------------------------
+// -----------------------------------------------------------------------------
+bool TestShaftShaftShaft(const char* test_name,
+                         utils::SystemType sys_type)
+{
+  std::cout << test_name << std::endl;
+
+  // Create the system
+  ChSystemParallel* system = CreateSystem(sys_type);
+
+  // Create shaft A, with applied torque
+  ChSharedShaftPtr shaftA(new ChShaft);
+  shaftA->SetInertia(0.5);
+  shaftA->SetAppliedTorque(10);
+  system->Add(shaftA);
+
+  // Create shaft B
+  ChSharedShaftPtr shaftB(new ChShaft);
+  shaftB->SetInertia(0.5);
+  system->Add(shaftB);
+
+  // Create shaft C, that will be fixed (to be used as truss of epicycloidal reducer)
+  ChSharedShaftPtr shaftC(new ChShaft);
+  shaftC->SetShaftFixed(true);
+  system->Add(shaftC);
+
+  // Create a ChShaftsPlanetary, that represents a simplified model
+  // of a planetary gear between THREE ChShaft objects (ex.: a car differential)
+  // An epicycloidal reducer is a special type of planetary gear.
+  ChSharedPtr<ChShaftsPlanetary> planetaryBAC(new ChShaftsPlanetary);
+  planetaryBAC->Initialize(shaftB, shaftA, shaftC); // output, carrier, fixed
+
+  // We can set the ratios of the planetary using a simplified formula, for the
+  // so called 'Willis' case. Imagine we hold fixed the carrier (shaft B in epic. reducers),
+  // and leave free the truss C (the outer gear with inner teeth in our reducer); which is 
+  // the transmission ratio t0 that we get? It is simply t0=-Za/Zc, with Z = num of teeth of gears.
+  // So just use the following to set all the three ratios automatically:
+  double t0 = -50.0 / 100.0;  // suppose, in the reducer, that pinion A has 50 teeth and truss has 100 inner teeth.
+  planetaryBAC->SetTransmissionRatioOrdinary(t0);
+  system->Add(planetaryBAC);
+
+  // Now, let's make a shaft D, that is fixed, and used for the right side
+  // of a clutch (so the clutch will act as a brake).
+  ChSharedShaftPtr shaftD(new ChShaft);
+  shaftD->SetShaftFixed(true);
+  system->Add(shaftD);
+
+  // Make the brake. It is, in fact a clutch between shafts B and D, where
+  // D is fixed as a truss, so the clutch will operate as a brake.
+  ChSharedPtr<ChShaftsClutch> clutchBD(new ChShaftsClutch);
+  clutchBD->Initialize(shaftB, shaftD);
+  clutchBD->SetTorqueLimit(60);
+  system->Add(clutchBD);
+
+  // Perform the simulation and verify results.
+  bool passed = true;
+  double tol_pos = 1e-3;
+  double tol_vel = 1e-4;
+  double tol_acc = 1e-4;
+  double tol_trq = 1e-4;
+
+  double time_end = 0.5;
+  double time_step = 1e-3;
+  double time = 0;
+
+  while (time < time_end)
+  {
+    system->DoStepDynamics(time_step);
+    time += time_step;
+
+    std::cout << "Time: " << time << "\n"
+      << "  shaft A rot: " << shaftA->GetPos()
+      << "  speed: " << shaftA->GetPos_dt()
+      << "  accel: " << shaftA->GetPos_dtdt()
+      << "\n"
+      << "  shaft B rot: " << shaftB->GetPos()
+      << "  speed: " << shaftB->GetPos_dt()
+      << "  accel: " << shaftB->GetPos_dtdt()
+      << "\n"
+      << "  planetary react torques on shafts:\n"
+      << "     on A: " << planetaryBAC->GetTorqueReactionOn2()
+      << "     on B: " << planetaryBAC->GetTorqueReactionOn1()
+      << "     on C: " << planetaryBAC->GetTorqueReactionOn3()
+      << "\n";
+
+  }
+
+  std::cout << "Time: " << time << "\n"
+    << "  shaft A rot: " << shaftA->GetPos()
+    << "  speed: " << shaftA->GetPos_dt()
+    << "  accel: " << shaftA->GetPos_dtdt()
+    << "\n"
+    << "  shaft B rot: " << shaftB->GetPos()
+    << "  speed: " << shaftB->GetPos_dt()
+    << "  accel: " << shaftB->GetPos_dtdt()
+    << "\n"
+    << "  planetary react torques on shafts:\n"
+    << "     on A: " << planetaryBAC->GetTorqueReactionOn2()
+    << "     on B: " << planetaryBAC->GetTorqueReactionOn1()
+    << "     on C: " << planetaryBAC->GetTorqueReactionOn3()
+    << "\n\n\n";
+
+  return passed;
+}
+
+
+// -----------------------------------------------------------------------------
 // Main driver function for running the simulation and validating the results.
 // -----------------------------------------------------------------------------
 int main(int argc, char* argv[])
@@ -359,6 +559,14 @@ int main(int argc, char* argv[])
   // Test shaft - body connection
   test_passed &= TestShaftBody("shaft-body (DEM)", utils::PARALLEL_DEM);
   test_passed &= TestShaftBody("shaft-body (DVI)", utils::PARALLEL_DVI);
+
+  // Test clutch between shafts
+  ////test_passed &= TestClutch("clutch (DEM)", utils::PARALLEL_DEM);
+  ////test_passed &= TestClutch("clutch (DVI)", utils::PARALLEL_DVI);
+
+  // Test shaft - shaft - shaft connection
+  ////test_passed &= TestShaftShaftShaft("shaft-shaft-shaft (DEM)", utils::PARALLEL_DEM);
+  ////test_passed &= TestShaftShaftShaft("shaft-shaft-shaft (DVI)", utils::PARALLEL_DVI);
 
 
   // Return 0 if all tests passed and 1 otherwise
