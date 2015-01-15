@@ -29,7 +29,8 @@ enum struct CollisionType {
   NONE,
   PRIMITIVES,
   MESH,
-  CONVEXHULL
+  CONVEXHULL,
+  COMPOUNDPRIMITIVES
 };
 
 // Collision family definitions
