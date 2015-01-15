@@ -50,8 +50,6 @@ void ChConstraintBilateral::Build_D()
     int type = data_container->host_data.bilateral_type[cntr];
     int row = index + num_unilaterals;
 
-    mconstraints[cntr]->Update_auxiliary();
-
     switch (type) {
 
     case BODY_BODY:
