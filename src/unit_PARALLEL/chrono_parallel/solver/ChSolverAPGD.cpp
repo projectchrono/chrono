@@ -119,7 +119,7 @@ uint ChSolverAPGD::SolveAPGD(const uint max_iter, const uint size, const blaze::
     mg_tmp2 = mg_tmp - mb;
     real g_proj_norm = Res4(num_unilaterals, mg_tmp2, ml, mb_tmp);
 
-    if (num_bilaterals > 0) {
+    if (data_container->num_bilaterals > 0) {
       real resid_bilat = -1;
       for (int i = num_unilaterals; i < ml.size(); i++) {
         resid_bilat = std::max(resid_bilat, std::abs(mg_tmp2[i]));

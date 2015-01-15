@@ -17,7 +17,7 @@ void ChConstraintBilateral::Build_b()
   std::vector<ChLcpConstraint*>& mconstraints = data_container->lcp_system_descriptor->GetConstraintsList();
 
 #pragma omp parallel for
-  for (int index = 0; index < num_bilaterals; index++) {
+  for (int index = 0; index < data_container->num_bilaterals; index++) {
     int cntr = data_container->host_data.bilateral_mapping[index];
     ChLcpConstraintTwoBodies* mbilateral = (ChLcpConstraintTwoBodies*)(mconstraints[cntr]);
     data_container->host_data.b[index + num_unilaterals] = mbilateral->Get_b_i();
@@ -27,14 +27,14 @@ void ChConstraintBilateral::Build_b()
 void ChConstraintBilateral::Build_E()
 {
 #pragma omp parallel for
-  for (int index = 0; index < num_bilaterals; index++) {
+  for (int index = 0; index < data_container->num_bilaterals; index++) {
     data_container->host_data.E[index + num_unilaterals] = 0;
   }
 }
 
 void ChConstraintBilateral::Build_D()
 {
-  data_container->host_data.gamma_bilateral.resize(num_bilaterals);
+  data_container->host_data.gamma_bilateral.resize(data_container->num_bilaterals);
 
   // Grab the list of all bilateral constraints present in the system
   // (note that this includes possibly inactive constraints)
@@ -45,7 +45,7 @@ void ChConstraintBilateral::Build_D()
   CompressedMatrix<real>& D_T = data_container->host_data.D_T;
 
 //#pragma omp parallel for
-  for (int index = 0; index < num_bilaterals; index++) {
+  for (int index = 0; index < data_container->num_bilaterals; index++) {
     int cntr = data_container->host_data.bilateral_mapping[index];
     int type = data_container->host_data.bilateral_type[cntr];
     int row = index + num_unilaterals;
@@ -146,7 +146,7 @@ void ChConstraintBilateral::GenerateSparsity()
   // order of the column index for each row.
   CompressedMatrix<real>& D_T = data_container->host_data.D_T;
 
-  for (int index = 0; index < num_bilaterals; index++) {
+  for (int index = 0; index < data_container->num_bilaterals; index++) {
     int cntr = data_container->host_data.bilateral_mapping[index];
     int type = data_container->host_data.bilateral_type[cntr];
     int row = index + num_unilaterals;
