@@ -21,7 +21,6 @@
 #ifndef CHSOLVERPDIP_H
 #define CHSOLVERPDIP_H
 
-#include "chrono_parallel/ChConfigParallel.h"
 #include "chrono_parallel/solver/ChSolverParallel.h"
 
 namespace chrono {
@@ -35,11 +34,13 @@ public:
     if (data_container->num_constraints == 0) {
       return;
     }
+    data_container->system_timer.start("ChSolverParallel_Solve");
     data_container->measures.solver.total_iteration +=
       SolvePDIP(max_iteration,
                 data_container->num_constraints,
                 data_container->host_data.R,
                 data_container->host_data.gamma);
+    data_container->system_timer.stop("ChSolverParallel_Solve");
   }
 
   // Solve using the primal-dual interior point method

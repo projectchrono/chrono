@@ -38,7 +38,6 @@ public:
                     data_container->host_data.R,
                     data_container->host_data.gamma);
     data_container->system_timer.stop("ChSolverParallel_Solve");
-
   }
 
   // Solve using the stabilized biconjugate gradient method

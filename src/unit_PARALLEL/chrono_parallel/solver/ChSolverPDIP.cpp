@@ -401,7 +401,6 @@ uint ChSolverPDIP::SolvePDIP(const uint max_iter,
     x[i] = gamma[i];
   }
 
-  data_container->system_timer.stop("ChSolverParallel_Solve");
   data_container->system_timer.stop("ChSolverParallel_solverA");
 
   return current_iteration;

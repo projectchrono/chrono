@@ -26,7 +26,6 @@ uint ChSolverAPGD::SolveAPGD(const uint max_iter, const uint size, const blaze::
 
   // data_container->system_timer.start("ChSolverParallel_solverA");
   blaze::DynamicVector<real> one(size, 1.0);
-  data_container->system_timer.start("ChSolverParallel_Solve");
   ms.resize(size);
   mg_tmp2.resize(size);
   mb_tmp.resize(size);
@@ -151,6 +150,5 @@ uint ChSolverAPGD::SolveAPGD(const uint max_iter, const uint size, const blaze::
 
   ml = ml_candidate;
 
-  data_container->system_timer.stop("ChSolverParallel_Solve");
   return current_iteration;
 }

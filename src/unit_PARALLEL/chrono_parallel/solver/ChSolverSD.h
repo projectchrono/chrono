@@ -18,7 +18,6 @@
 #ifndef CHSOLVERSD_H
 #define CHSOLVERSD_H
 
-#include "chrono_parallel/ChConfigParallel.h"
 #include "chrono_parallel/solver/ChSolverParallel.h"
 
 namespace chrono {
