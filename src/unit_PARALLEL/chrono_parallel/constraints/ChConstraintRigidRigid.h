@@ -28,6 +28,7 @@ class CH_PARALLEL_API ChConstraintRigidRigid : public ChBaseParallel {
   void Setup(ChParallelDataManager* data_container_) {
     data_container = data_container_;
     Initialize();
+    uint num_contacts = data_container->num_contacts;
     inv_h = 1 / data_container->settings.step_size;
     inv_hpa = 1 / (data_container->settings.step_size + data_container->settings.solver.alpha);
     inv_hhpa = inv_h * inv_hpa;
