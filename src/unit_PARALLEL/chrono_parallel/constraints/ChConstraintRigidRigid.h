@@ -20,13 +20,17 @@ class CH_PARALLEL_API ChConstraintRigidRigid : public ChBaseParallel {
     solve_sliding = false;
     solve_spinning = false;
     offset = 3;
-    inv_hpa = inv_hhpa = 0;
+    inv_h = inv_hpa = inv_hhpa = 0;
   }
+
+  ~ChConstraintRigidRigid() {}
+
   void Setup(ChParallelDataManager* data_container_) {
     data_container = data_container_;
     Initialize();
-    inv_hpa = 1.0 / (step_size + data_container->settings.solver.alpha);
-    inv_hhpa = 1.0 / (step_size * (step_size + data_container->settings.solver.alpha));
+    inv_h = 1 / data_container->settings.step_size;
+    inv_hpa = 1 / (data_container->settings.step_size + data_container->settings.solver.alpha);
+    inv_hhpa = inv_h * inv_hpa;
 
     if (num_contacts > 0) {
       contact_active_pairs.resize(int(num_contacts));
@@ -62,7 +66,7 @@ class CH_PARALLEL_API ChConstraintRigidRigid : public ChBaseParallel {
     solve_sliding = false;
     solve_spinning = false;
   }
-  ~ChConstraintRigidRigid() {}
+
   void host_Project_single(int index, int2* ids, real3* friction, real* cohesion, real* gamma);
 
   void host_Project(int2* ids, real3* friction, real* cohesion, real* gamma);
@@ -92,6 +96,7 @@ class CH_PARALLEL_API ChConstraintRigidRigid : public ChBaseParallel {
   custom_vector<bool2> contact_active_pairs;
   custom_vector<real4> contact_rotation;
 
+  real inv_h;
   real inv_hpa;
   real inv_hhpa;
 };

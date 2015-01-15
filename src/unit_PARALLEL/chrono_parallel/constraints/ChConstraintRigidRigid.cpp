@@ -292,14 +292,13 @@ void ChConstraintRigidRigid::Build_b(SOLVERMODE solver_mode) {
   for (int index = 0; index < num_contacts; index++) {
     real bi = 0;
     real depth = data_container->host_data.dpth_rigid_rigid[index];
+
     if (data_container->settings.solver.alpha > 0) {
       bi = inv_hpa * depth;
+    } else if (data_container->settings.solver.contact_recovery_speed < 0) {
+      bi = inv_h * depth;
     } else {
-      if (data_container->settings.solver.contact_recovery_speed < 0) {
-        bi = real(1.0) / step_size * depth;
-      } else {
-        bi = std::max(real(1.0) / step_size * depth, -data_container->settings.solver.contact_recovery_speed);
-      }
+      bi = std::max(inv_h * depth, -data_container->settings.solver.contact_recovery_speed);
     }
 
     data_container->host_data.b[_index_ + 0] = bi;
