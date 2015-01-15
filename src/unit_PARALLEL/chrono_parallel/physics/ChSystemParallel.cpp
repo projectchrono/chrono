@@ -396,7 +396,6 @@ void ChSystemParallel::UpdateLinks()
     linklist[i]->ConstraintsBiLoad_Ct(1);
     linklist[i]->ConstraintsFbLoadForces(GetStep());
     linklist[i]->ConstraintsLoadJacobians();
-    linklist[i]->ConstraintsLiLoadSuggestedSpeedSolution();
 
     linklist[i]->InjectConstraints(*LCP_descriptor);
 
@@ -454,7 +453,6 @@ void ChSystemParallel::UpdateOtherPhysics()
     otherphysicslist[i]->ConstraintsBiLoad_Ct(1);
     otherphysicslist[i]->ConstraintsFbLoadForces(GetStep());
     otherphysicslist[i]->ConstraintsLoadJacobians();
-    otherphysicslist[i]->ConstraintsLiLoadSuggestedSpeedSolution();
     otherphysicslist[i]->VariablesFbLoadForces(GetStep());
     otherphysicslist[i]->VariablesQbLoadSpeed();
 
