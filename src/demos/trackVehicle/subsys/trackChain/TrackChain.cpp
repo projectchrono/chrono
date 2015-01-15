@@ -42,11 +42,11 @@ const std::string TrackChain::m_meshFile = utils::GetModelDataFile("track_data/M
 
 const double TrackChain::m_mass = 18.02;
 const ChVector<> TrackChain::m_inertia(0.22, 0.25,  0.04); // using modified geometry, clear that min. inertia occurs about z-axis
-const ChVector<> TrackChain::m_shoe_box(0.15162, 0.0663, 0.38); // length, height, width
+const ChVector<> TrackChain::m_shoe_box(0.205 *0.5, 0.0663 *0.5, 0.38 *0.5); // length, height, width HALF DIMS!
 const double TrackChain::m_pin_width = 0.531; // total width of cylinder pins
 const double TrackChain::m_pin_dist = 0.15162;		// linear distance between a shoe chain spacing. exact = 0.205
 const double TrackChain::m_pin_radius = 0.02317;
-const ChVector<> TrackChain::m_tooth_box(0.08, 0.075, 0.08);  // length, height, width
+const ChVector<> TrackChain::m_tooth_box(0.08 *0.5, 0.075 *0.5, 0.08 *0.5);  // length, height, width HALF DIMS
  // distance between body center and the vertical offset to the inner-surface of the collision geometry
 //  used for initializing shoes as a chain
 const double TrackChain::m_shoe_chain_offset = 0.035; // .03315 exact
@@ -257,10 +257,9 @@ void TrackChain::AddVisualization(size_t track_idx)
   switch (m_vis) {
   case VisualizationType::PRIMITIVES:
   {
-    // primitive box, also used for collision.
     // shoes will be added to the same collision family so self-collision can be toggled
     ChSharedPtr<ChBoxShape> box(new ChBoxShape);
-    box->GetBoxGeometry().SetLengths( 0.5 * m_shoe_box);  // use half-distances
+    box->GetBoxGeometry().SetLengths(2.0 * m_shoe_box);  // use full distances w/ assets
     m_shoes[track_idx]->AddAsset(box);
 
     ChSharedPtr<ChTexture> tex(new ChTexture);
@@ -303,7 +302,7 @@ void TrackChain::AddCollisionGeometry(size_t track_idx)
     m_shoes[track_idx]->GetCollisionModel()->AddBox(m_shoe_box.x, m_shoe_box.y, m_shoe_box.z);
     // pin is a single cylinder
     double pin_offset = -0.07581;
-    m_shoes[track_idx]->GetCollisionModel()->AddCylinder(m_pin_radius, m_pin_radius, m_pin_width, ChVector<>(pin_offset, 0, 0) );
+    m_shoes[track_idx]->GetCollisionModel()->AddCylinder(m_pin_radius, m_pin_radius, m_pin_width/2.0, ChVector<>(pin_offset, 0, 0) );
     
     break;
   }
