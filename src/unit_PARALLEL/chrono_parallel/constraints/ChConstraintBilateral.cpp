@@ -20,7 +20,7 @@ void ChConstraintBilateral::Build_b()
   for (int index = 0; index < data_container->num_bilaterals; index++) {
     int cntr = data_container->host_data.bilateral_mapping[index];
     ChLcpConstraintTwoBodies* mbilateral = (ChLcpConstraintTwoBodies*)(mconstraints[cntr]);
-    data_container->host_data.b[index + num_unilaterals] = mbilateral->Get_b_i();
+    data_container->host_data.b[index + data_container->num_unilaterals] = mbilateral->Get_b_i();
   }
 }
 
@@ -28,7 +28,7 @@ void ChConstraintBilateral::Build_E()
 {
 #pragma omp parallel for
   for (int index = 0; index < data_container->num_bilaterals; index++) {
-    data_container->host_data.E[index + num_unilaterals] = 0;
+    data_container->host_data.E[index + data_container->num_unilaterals] = 0;
   }
 }
 
@@ -48,7 +48,7 @@ void ChConstraintBilateral::Build_D()
   for (int index = 0; index < data_container->num_bilaterals; index++) {
     int cntr = data_container->host_data.bilateral_mapping[index];
     int type = data_container->host_data.bilateral_type[cntr];
-    int row = index + num_unilaterals;
+    int row = index + data_container->num_unilaterals;
 
     switch (type) {
 
@@ -149,7 +149,7 @@ void ChConstraintBilateral::GenerateSparsity()
   for (int index = 0; index < data_container->num_bilaterals; index++) {
     int cntr = data_container->host_data.bilateral_mapping[index];
     int type = data_container->host_data.bilateral_type[cntr];
-    int row = index + num_unilaterals;
+    int row = index + data_container->num_unilaterals;
     int col1;
     int col2;
 
