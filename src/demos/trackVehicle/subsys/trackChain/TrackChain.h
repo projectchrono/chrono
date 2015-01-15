@@ -102,11 +102,13 @@ private:
   static const double m_mass;         // mass per shoe
   static const ChVector<> m_inertia;  // inertia of a shoe
 
-  static const double m_shoe_width_box;
-  static const double m_shoe_width_cyl;
-  static const double m_shoe_height;
-  static const double m_shoe_chain_offset;  // figure this from your collision mesh
+  static const ChVector<> m_shoe_box;
+  static const double m_pin_width;
+  // figure this from your collision mesh
+  // e.g., vert. distance from COM to surface that collides with rolling elements
+  static const double m_shoe_chain_offset; 
 
+  static const ChVector<> m_tooth_box;  //
   static const double m_pin_dist;		  // linear distance between a shoe's two pin joint center
   static const double m_pin_radius;
   
