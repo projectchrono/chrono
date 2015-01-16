@@ -487,6 +487,7 @@ ChVector<> TrackChain::CreateShoes(ChSharedPtr<ChBodyAuxRef> chassis,
       // rot from that shoe will be incorrect. Instead, use the updated pin rot.
       pin_frame.SetRot(seg_rot_A);
       // now the position can be found relative to the newly oriented pin frame.
+      // doesn't change if last shoe has the same orientation.
       COG_frame.SetPos(pin_frame * COG_to_pin_rel);
     }
     else 
@@ -542,8 +543,13 @@ ChVector<> TrackChain::CreateShoes(ChSharedPtr<ChBodyAuxRef> chassis,
     m_pins.back()->Initialize(m_shoes.back(), m_shoes.end()[-2], ChCoordsys<>(pin_frame.GetPos(), pin_frame.GetRot() ) );
     chassis->GetSystem()->AddLink(m_pins.back());
     
-    // move along the line segment, in the tangent dir
-    pos_on_seg += tan_dir * Vdot(m_pin_dist*COG_frame.GetRot().GetXaxis(), tan_dir);
+    // project the COG normal to segment surface
+    double proj_dist = Vdot(norm_dir, COG_frame.GetPos() - start_seg);
+    pos_on_seg = COG_frame.GetPos() - norm_dir*proj_dist;
+
+    // could just step along the line in the tangent direction
+    // pos_on_seg += tan_dir * Vdot(m_pin_dist*COG_frame.GetRot().GetXaxis(), tan_dir);
+
     // update distance, so we can get out of this loop eventually
     dist_to_end = Vdot(end_seg - pos_on_seg, tan_dir);
   }
