@@ -440,7 +440,7 @@ ChVector<> TrackChain::CreateShoes(ChSharedPtr<ChBodyAuxRef> chassis,
     m_shoes.front()->SetPos(shoe_pos);
     m_shoes.front()->SetRot(shoe_rot_A);
     // pos, rot set, add to system
-    chassis->GetSystem.Add(m_shoes.front());
+    chassis->GetSystem()->Add(m_shoes.front());
 
   } 
   while(dist_to_end > 0 )  // keep going until within half pin dist.
@@ -463,15 +463,17 @@ ChVector<> TrackChain::CreateShoes(ChSharedPtr<ChBodyAuxRef> chassis,
     // 1) shoe is exactly on the envelope boundary, and exactly parallel (e.g., first segment this is guaranteed).
     // 2) shoe is off the boundary, and will have a rot slightly different than previous shoe to get it closer
     //    e.g., after a straight segment follows a curved segment.
-    ChFrame<> COG_frame = m_shoes.end()[-2]->GetFrame_COG_to_abs;
+    ChFrame<> COG_frame( (m_shoes.end()[-2])->GetFrame_COG_to_abs() );
     ChFrame<> pin_frame(pin_pos, COG_frame.GetRot() );
     // set the body pos. from the pin_pos;
-    COG_frame.SetPos( pin_frame * COG_to_pin_rel);
+    COG_frame.SetPos(pin_frame * COG_to_pin_rel);
 
     // verify that this configuration:
     //  1) does not cross the line segment boundary, and
     //  2) stays as clsoe as possible to the line segment (e.g., by rotating the body slightly at the pin_pos)
-
+    // For 1), consider a point at the very edge of a bounding box
+    ChVector<> corner_pos_rel( (m_pin_dist + m_shoe_box.x)/2.0, m_shoe_chain_Yoffset, 0);
+    ChVector<> corner_pos_abs = pin_frame * corner_pos_rel;
 
 
     // COG_frame is set correctly, add the body and pin to the system
@@ -482,11 +484,11 @@ ChVector<> TrackChain::CreateShoes(ChSharedPtr<ChBodyAuxRef> chassis,
     m_pins.push_back(ChSharedPtr<ChLinkLockRevolute>(new ChLinkLockRevolute));
     m_pins.back()->SetNameString(" pin " + std::to_string(m_numShoes) );
     // pin frame picked up from COG_frame, where z-axis should be in the lateral direction.
-    m_pins.back()->Initialize(m_pins.back(), m_pins.end()[-2], ChCoordsys<>(pin_frame.GetPos(), pin_frame.GetRot() ) );
-    chassis->GetSystem()->Add(m_pins.back());
+    m_pins.back()->Initialize(m_shoes.back(), m_shoes.end()[-2], ChCoordsys<>(pin_frame.GetPos(), pin_frame.GetRot() ) );
+    chassis->GetSystem()->AddLink(m_pins.back());
     
     // move along the line segment, in the tangent dir
-    pos_on_seg += tan_dir*m_pin_dist;
+    pos_on_seg += tan_dir * Vdot(m_pin_dist*COG_frame.GetRot().GetXaxis(), tan_dir);
     // update distance, so we can get out of this loop eventually
     dist_to_end = Vdot(end_seg - pos_on_seg, tan_dir);
   }
