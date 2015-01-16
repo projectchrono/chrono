@@ -60,13 +60,6 @@ void ChLcpSolverParallelDVI::RunTimeStep(real step)
   ComputeD();
   ComputeE();
 
-  // Copy gamma values for bilaterals from the previous timestep
-  // these will be used to warm start the bilateral solution
-#pragma omp parallel for
-  for (int i = 0; i < data_container->num_bilaterals; i++) {
-    data_container->host_data.gamma[i + data_container->num_unilaterals] = data_container->host_data.gamma_bilateral[i];
-  }
-
   // solve for the normal
   if (data_container->settings.solver.solver_mode == NORMAL || data_container->settings.solver.solver_mode == SLIDING || data_container->settings.solver.solver_mode == SPINNING) {
     if (data_container->settings.solver.max_iteration_normal > 0) {
@@ -103,13 +96,6 @@ void ChLcpSolverParallelDVI::RunTimeStep(real step)
       solver->Solve();
       data_container->system_timer.stop("ChLcpSolverParallel_Solve");
     }
-  }
-
-  data_container->host_data.gamma_bilateral.resize(data_container->num_bilaterals);
-
-#pragma omp parallel for
-  for (int i = 0; i < data_container->num_bilaterals; i++) {
-    data_container->host_data.gamma_bilateral[i] = data_container->host_data.gamma[i + data_container->num_unilaterals];
   }
 
   ComputeImpulses();

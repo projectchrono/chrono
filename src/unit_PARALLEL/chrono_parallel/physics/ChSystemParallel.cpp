@@ -70,12 +70,14 @@ int ChSystemParallel::Integrate_Y() {
 
    data_manager->system_timer.start("update");
 
+   // Iterate over the active bilateral constraints and store their Lagrange
+   // multiplier.
    std::vector<ChLcpConstraint*>& mconstraints = LCP_descriptor->GetConstraintsList();
-   //Iterate over the active bilateral constraints
    for (int index = 0; index < data_manager->num_bilaterals; index++) {
        int cntr = data_manager->host_data.bilateral_mapping[index];
-       mconstraints[cntr]->Set_l_i(data_manager->host_data.gamma_bilateral[index]);
+       mconstraints[cntr]->Set_l_i(data_manager->host_data.gamma[data_manager->num_unilaterals + index]);
    }
+
    // updates the reactions of the constraint
    LCPresult_Li_into_reactions(1.0 / this->GetStep());     // R = l/dt  , approximately
 

@@ -137,8 +137,6 @@ struct host_container {
    //While E is the compliance matrix, in reality it is completely diagonal
    //therefore it is stored in a vector for performance reasons
    DynamicVector<real> E;
-   //Vector that stores the gamma values for just the bilaterals
-   DynamicVector<real> gamma_bilateral;
 
 };
 

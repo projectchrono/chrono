@@ -368,9 +368,6 @@ ChLcpSolverParallelDEM::RunTimeStep(real step)
   // If there are (bilateral) constraints, calculate Lagrange multipliers.
   if (data_container->num_constraints != 0) {
 
-    // Perform stabilization of the bilateral constraints. Currently, we only 
-    // project the velocities onto the velocity constraint manifold. This is done
-    // with an oblique projection (using the M-norm).
     data_container->system_timer.start("ChLcpSolverParallel_Setup");
 
     bilateral.Setup(data_container);
@@ -395,24 +392,9 @@ ChLcpSolverParallelDEM::RunTimeStep(real step)
 
     data_container->system_timer.stop("ChLcpSolverParallel_Setup");
 
-    ////First copy the gamma's from the previous timestep into the gamma vector
-    ////Currently because the initial guess is set to zero, this doesn't do anything so it has been commented out
-    //#pragma omp parallel for
-    //  for (int i = 0; i < data_container->num_bilaterals; i++) {
-    //    data_container->host_data.gamma[i + data_container->num_unilaterals] = data_container->host_data.gamma_bilateral[i];
-    //  }
-
-    // This will solve the system for only the bilaterals
+    // Solve for the Lagrange multipliers associated with bilateral constraints.
     PerformStabilization();
 
-    // Copy multipliers in the vector specific to bilaterals (these are the values
-    // used in calculating reaction forces)
-    data_container->host_data.gamma_bilateral.resize(data_container->num_bilaterals);
-
-#pragma omp parallel for
-    for (int i = 0; i < data_container->num_bilaterals; i++) {
-      data_container->host_data.gamma_bilateral[i] = data_container->host_data.gamma[i + data_container->num_unilaterals];
-    }
   }
 
   // Update velocity (linear and angular)
