@@ -11,6 +11,7 @@
 SET(ChronoEngine_Parallel_BASE
     ChApiParallel.h
     ChParallelDefines.h
+    ChSettings.h
     ChDataManager.h
     ChTimerParallel.h
     ChDataManager.cpp
