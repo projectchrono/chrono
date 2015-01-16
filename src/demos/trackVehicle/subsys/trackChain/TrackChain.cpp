@@ -250,7 +250,7 @@ void TrackChain::Initialize(ChSharedPtr<ChBodyAuxRef> chassis,
   // "wrap" the track chain around the trackSystem rolling elements, e.g., drive-gear,
   // idler, road-wheels. First and last shoes are allowed to be in any orientation,
   // as long as the final pin joint connects correctly.
-  CreateChain(control_to_abs, rolling_to_abs, clearance, start_to_abs.GetPos() );
+  CreateChain(chassis, control_to_abs, rolling_to_abs, clearance, start_to_abs.GetPos() );
 }
 
 void TrackChain::AddVisualization(size_t track_idx)
@@ -374,7 +374,8 @@ void TrackChain::AddCollisionGeometry(size_t track_idx)
 
 // two control points per rolling body.
 // each two control points correspond to a single rolling element & clearance value, in the same order.
-void TrackChain::CreateChain(const std::vector<ChFrame<>>& control_points_abs,
+void TrackChain::CreateChain(ChSharedPtr<ChBodyAuxRef> chassis,
+                             const std::vector<ChFrame<>>& control_points_abs,
                              const std::vector<ChFrame<>>& rolling_element_abs,
                              const std::vector<double>& clearance,
                              const ChVector<>& start_pos_abs)
@@ -396,7 +397,7 @@ void TrackChain::CreateChain(const std::vector<ChFrame<>>& control_points_abs,
     ChVector<> end_seg = control_points_abs[2*idx].GetPos();  // end of line seg.
     ChVector<> end_curve = control_points_abs[2*idx+1].GetPos();  // end of curved section
     // build the bodies for this line segment and rolling element curved section
-    curr_pos = CreateShoes(curr_pos, start_seg, end_seg, end_curve, rolling_element_abs[idx].GetPos(), clearance[idx]);
+    curr_pos = CreateShoes(chassis, curr_pos, start_seg, end_seg, end_curve, rolling_element_abs[idx].GetPos(), clearance[idx]);
   }
 }
 
@@ -404,7 +405,8 @@ void TrackChain::CreateChain(const std::vector<ChFrame<>>& control_points_abs,
 // Some assumptions:
 // Body orientation and axis of pin rotation always in the lateral_dir
 // 
-ChVector<> TrackChain::CreateShoes(const ChVector<>& curr_pos,
+ChVector<> TrackChain::CreateShoes(ChSharedPtr<ChBodyAuxRef> chassis,
+    const ChVector<>& curr_pos,
     const ChVector<>& start_seg,
     const ChVector<>& end_seg,
     const ChVector<>& end_curve,
