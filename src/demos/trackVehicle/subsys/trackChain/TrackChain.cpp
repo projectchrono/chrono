@@ -450,11 +450,15 @@ ChVector<> TrackChain::CreateShoes(ChSharedPtr<ChBodyAuxRef> chassis,
   // keep going until last created shoe COG passes the end point
   while(dist_to_end > 0 )  
   {
-    // create a new body by copying the first. Should pick up collision shape, etc.
-    // just rename it
-    m_shoes.push_back(ChSharedPtr<ChBody>(new ChBody( *(m_shoes[0].get_ptr()) )) );
-    // m_shoes.push_back(ChSharedPtr<ChBodyAuxRef>(new ChBodyAuxRef( *(m_shoes[0].get_ptr()) )) );
+    // create a new body by copying the first.
+    // need to reset the collision shape.
+    // TODO: reset visualization asset also?? 
+    m_shoes.push_back(ChSharedPtr<ChBody>(new ChBody));
     m_numShoes++;
+    m_shoes.back()->Copy( m_shoes.front().get_ptr() );
+    AddCollisionGeometry(m_numShoes);
+    // m_shoes.push_back(ChSharedPtr<ChBodyAuxRef>(new ChBodyAuxRef( *(m_shoes[0].get_ptr()) )) );
+
     m_shoes.back()->SetNameString( "shoe " + std::to_string(m_numShoes) );
 
     // Find where the pin to the previous shoe should be positioned.
