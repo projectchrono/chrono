@@ -64,9 +64,9 @@ void ChSystemParallelDEM::UpdateMaterialSurfaceData(int index, ChBody* body)
 }
 
 
-void ChSystemParallelDEM::ChangeCollisionSystem(ChCollisionSystem* newcollsystem)
+void ChSystemParallelDEM::ChangeCollisionSystem(COLLISIONSYSTEMTYPE type)
 {
-  ChSystemParallel::ChangeCollisionSystem(newcollsystem);
+  ChSystemParallel::ChangeCollisionSystem(type);
 
   if (ChCollisionSystemParallel* coll_sys = dynamic_cast<ChCollisionSystemParallel*>(collision_system))
     coll_sys->SetCollisionEnvelope(0);

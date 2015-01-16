@@ -39,8 +39,7 @@ int main(int argc,
    std::stringstream ss;
    ss << "Jacobian_checkpoint_1.txt";
 
-   ChCollisionSystemBulletParallel * bullet_coll = new ChCollisionSystemBulletParallel();
-   system_gpu->ChangeCollisionSystem(bullet_coll);
+   system_gpu->ChangeCollisionSystem(COLLSYS_BULLET_PARALLEL);
 
    utils::ReadCheckpoint(system_gpu, ss.str());
 

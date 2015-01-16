@@ -1,13 +1,3 @@
-//////////////////////////////////////////////////
-//
-//   ChCCollisionSystemBullet.cpp
-//
-// ------------------------------------------------
-// 	 Copyright:Alessandro Tasora / DeltaKnowledge
-//             www.deltaknowledge.com
-// ------------------------------------------------
-///////////////////////////////////////////////////
-
 #include "chrono_parallel/collision/ChCCollisionSystemBulletParallel.h"
 
 namespace chrono {
@@ -20,10 +10,13 @@ namespace collision {
  if (broad_callback)
  broad_callback(collisionPair, dispatcher, dispatchInfo);
  }
- */
+*/
 
-ChCollisionSystemBulletParallel::ChCollisionSystemBulletParallel(unsigned int max_objects,
-                                                                 double scene_size) {
+ChCollisionSystemBulletParallel::ChCollisionSystemBulletParallel(ChParallelDataManager* dc,
+                                                                 unsigned int max_objects,
+                                                                 double scene_size)
+: data_container(dc)
+  {
    // btDefaultCollisionConstructionInfo conf_info(...); ***TODO***
    bt_collision_configuration = new btDefaultCollisionConfiguration();
    bt_dispatcher = new btCollisionDispatcher(bt_collision_configuration);
@@ -47,8 +40,6 @@ ChCollisionSystemBulletParallel::ChCollisionSystemBulletParallel(unsigned int ma
    btGImpactCollisionAlgorithm::registerAlgorithm(bt_dispatcher);
 
    counter = 0;
-   data_container = 0;
-
 }
 
 ChCollisionSystemBulletParallel::~ChCollisionSystemBulletParallel() {

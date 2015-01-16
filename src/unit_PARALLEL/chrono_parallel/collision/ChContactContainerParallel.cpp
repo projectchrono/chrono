@@ -1,13 +1,3 @@
-///////////////////////////////////////////////////
-//
-//   ChContactContainerGPU.cpp
-//
-// ------------------------------------------------
-//       Copyright:Alessandro Tasora / DeltaKnowledge
-//             www.deltaknowledge.com
-// ------------------------------------------------
-///////////////////////////////////////////////////
-
 #include "chrono_parallel/collision/ChContactContainerParallel.h"
 
 #include "physics/ChSystem.h"

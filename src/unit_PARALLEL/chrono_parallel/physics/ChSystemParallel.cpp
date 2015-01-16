@@ -17,8 +17,7 @@ ChSystemParallel::ChSystemParallel(unsigned int max_objects)
 
    LCP_descriptor = new ChLcpSystemDescriptorParallel(data_manager);
    contact_container = new ChContactContainerParallel(data_manager);
-   collision_system = new ChCollisionSystemParallel();
-   ((ChCollisionSystemParallel *) collision_system)->data_container = data_manager;
+   collision_system = new ChCollisionSystemParallel(data_manager);
 
    counter = 0;
    timer_accumulator.resize(10, 0);
@@ -635,19 +634,18 @@ void ChSystemParallel::RecomputeBins() {
 
 }
 
-void ChSystemParallel::ChangeCollisionSystem(ChCollisionSystem *newcollsystem) {
-   assert(this->GetNbodies() == 0);
-   assert(newcollsystem);
+void ChSystemParallel::ChangeCollisionSystem(COLLISIONSYSTEMTYPE type)
+{
+   assert(GetNbodies() == 0);
 
-   if (this->collision_system) {
-      delete (this->collision_system);
+   delete collision_system;
+
+   switch (type) {
+   case COLLSYS_PARALLEL:
+     collision_system = new ChCollisionSystemParallel(data_manager);
+     break;
+   case COLLSYS_BULLET_PARALLEL:
+     collision_system = new ChCollisionSystemBulletParallel(data_manager);
+     break;
    }
-   this->collision_system = newcollsystem;
-
-   if (ChCollisionSystemParallel* coll_sys = dynamic_cast<ChCollisionSystemParallel*>(collision_system)) {
-      coll_sys->data_container = data_manager;
-   } else if (ChCollisionSystemBulletParallel* coll_sys = dynamic_cast<ChCollisionSystemBulletParallel*>(collision_system)) {
-      coll_sys->data_container = data_manager;
-   }
-
 }

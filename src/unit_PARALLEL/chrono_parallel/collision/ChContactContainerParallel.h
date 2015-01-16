@@ -1,21 +1,5 @@
-#ifndef CHCONTACTCONTAINERGPUSIMPLE_H
-#define CHCONTACTCONTAINERGPUSIMPLE_H
-
-///////////////////////////////////////////////////
-//
-//   ChContactContainerGPUsimple.h
-//
-//   Class for container of many contacts, as CPU
-//   typical linked list of ChContactGPUsimple objects
-//
-//   HEADER file for CHRONO,
-//   Multibody dynamics engine
-//
-// ------------------------------------------------
-//   Copyright:Alessandro Tasora / DeltaKnowledge
-//             www.deltaknowledge.com
-// ------------------------------------------------
-///////////////////////////////////////////////////
+#ifndef CHCONTACTCONTAINERPARALLEL_H
+#define CHCONTACTCONTAINERPARALLEL_H
 
 #include <list>
 

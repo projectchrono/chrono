@@ -72,7 +72,7 @@ CH_RTTI(ChSystemParallel, ChSystem)
    virtual void AddMaterialSurfaceData(ChSharedPtr<ChBody> newbody) = 0;
    virtual void UpdateMaterialSurfaceData(int index, ChBody* body) = 0;
 
-   virtual void ChangeCollisionSystem(collision::ChCollisionSystem *newcollsystem);
+   virtual void ChangeCollisionSystem(COLLISIONSYSTEMTYPE type);
 
    virtual void PrintStepStats() {
       data_manager->system_timer.PrintReport();
@@ -147,7 +147,7 @@ CH_RTTI(ChSystemParallelDEM, ChSystemParallel)
 
    virtual void AddMaterialSurfaceData(ChSharedPtr<ChBody> newbody);
    virtual void UpdateMaterialSurfaceData(int index, ChBody* body);
-   virtual void ChangeCollisionSystem(collision::ChCollisionSystem *newcollsystem);
+   virtual void ChangeCollisionSystem(COLLISIONSYSTEMTYPE type);
 
    virtual void PrintStepStats();
 
