@@ -63,10 +63,12 @@ TrackChain::TrackChain(const std::string& name,
   m_shoes.push_back(ChSharedPtr<ChBody>(new ChBody));
   // m_shoes.push_back(ChSharedPtr<ChBodyAuxRef>(new ChBodyAuxRef));
   // m_shoes[0]->SetFrame_COG_to_REF(ChFrame<>(m_COM,QUNIT));
+  m_numShoes++;
+
   m_shoes[0]->SetNameString("shoe 1, "+name);
   m_shoes[0]->SetMass(m_mass);
   m_shoes[0]->SetInertiaXX(m_inertia);
-  m_numShoes++;
+
 
   // Attach visualization to the base track shoe
   AddVisualization(0);
@@ -427,32 +429,50 @@ ChVector<> TrackChain::CreateShoes(ChSharedPtr<ChBodyAuxRef> chassis,
   ChVector<> shoe_pos;
   ChQuaternion<> shoe_rot;
   ChMatrix33<> shoe_rot_A;
-  while(dist_to_end > 0 )  // keep going until within half pin dist.
-  {
-    size_t idx = m_numShoes - 1;
-    // build the shoe here, unless it's the first pass thru. 
-    // A single ChBody shoe is created upon construction.
-    if(idx == 0) 
-    {    
-      // add collision geometry only once!
-      AddCollisionGeometry(0);
-    } else 
-    {
-      // create a new body by copying the first. Should pick up collision shape, etc.
-      // just rename it
-      // m_shoes.push_back(ChSharedPtr<ChBodyAuxRef>(new ChBodyAuxRef( *(m_shoes[0].get_ptr()) )) );
-      m_shoes.push_back(ChSharedPtr<ChBody>(new ChBody( *(m_shoes[0].get_ptr()) )) );
-      m_shoes[idx]->SetNameString( "shoe " + std::to_string(m_numShoes+1) );
-    }
-    
+  // special case: very first shoe
+  // A single ChBody shoe is created upon construction, so it be can copied by the other shoes.
+  if(m_numShoes == 1) 
+  {    
+    AddCollisionGeometry(0);
     // initialize pos, rot of this shoe.
     shoe_pos = pos_on_seg + norm_dir * m_shoe_chain_offset;
     shoe_rot_A.Set_A_axis(tan_dir, norm_dir, lateral_dir);
-    m_shoes[idx]->SetPos(shoe_pos);
-    m_shoes[idx]->SetRot(shoe_rot_A);
+    m_shoes.front()->SetPos(shoe_pos);
+    m_shoes.front()->SetRot(shoe_rot_A);
+    // pos, rot set, add to system
+    chassis->GetSystem.Add(m_shoes.front());
 
-    // done adding this shoe
+  } 
+  while(dist_to_end > 0 )  // keep going until within half pin dist.
+  {
+    // create a new body by copying the first. Should pick up collision shape, etc.
+    // just rename it
+    m_shoes.push_back(ChSharedPtr<ChBody>(new ChBody( *(m_shoes[0].get_ptr()) )) );
+    // m_shoes.push_back(ChSharedPtr<ChBodyAuxRef>(new ChBodyAuxRef( *(m_shoes[0].get_ptr()) )) );
     m_numShoes++;
+    m_shoes.back()->SetNameString( "shoe " + std::to_string(m_numShoes) );
+
+    // Find where the pin to the previous shoe should be positioned.
+    // From there, calculate what the body pos/rot should be.
+    // Add both the body and the pin.
+    ChVector<> COG_to_pin_rel(m_pin_dist/2.0, 0, 0);  // pin is just forward of the COG.
+    // use the COG pos, rot of the previous shoe
+    ChVector<> pin_pos = (m_shoes.end()[-2])->GetFrame_COG_to_abs() * COG_to_pin_rel;
+    
+    // creating shoes along the line segment, one of two situations:
+    // 1) shoe is exactly on the envelope boundary, and exactly parallel (e.g., first segment this is guaranteed).
+    // 2) shoe is off the boundary, and will have a rot slightly different than previous shoe to get it closer
+    //    e.g., after a straight segment follows a curved segment.
+    ChFrame<> COG_frame = m_shoes.end()[-2]->GetFrame_COG_to_abs;
+    // set the body pos. from the pin_pos;
+    COG_frame.SetPos(ChFrame<>(pin_pos,COG_frame.GetRot()) * COG_to_pin_rel);
+
+    // verify that this configuration 1) does not cross the line segment boundary, and
+    //  2) stays as clsoe as possible to the line segment (e.g., by rotating the body slightly at the pin_pos)
+    m_shoes.back()->SetPos(COG_frame.GetPos() );
+    m_shoes.back()->SetRot(shoe_rot_A);
+
+
     // move along the line segment, in the tangent dir
     pos_on_seg += tan_dir*m_pin_dist;
     // update distance, so we can get out of this loop eventually
