@@ -85,6 +85,13 @@ private:
     const ChVector<>& rolling_elem_center,
     double clearance);
 
+  /// check if the shoe placement meets the criteria for being aligned.
+  /// sets the boolean, m_aligned_with_seg, and returns it also.
+  bool check_shoe_aligned(const ChVector<>& pin2_pos_abs,
+    const ChVector<>& start_seg_pos,
+    const ChVector<>& end_seg_pos,
+    const ChVector<>& seg_norm_axis);
+
     // private functions
   const std::string& getMeshName() const { return m_meshName; }
   const std::string& getMeshFile() const { return m_meshFile; }
@@ -95,6 +102,7 @@ private:
   // std::vector<ChSharedPtr<ChBodyAuxRef>> m_shoes;  ///< handle to track shoes
   std::vector<ChSharedPtr<ChLinkLockRevolute>> m_pins; ///< handles to pin joints
   size_t m_numShoes;      ///< number of track shoes and pins
+  bool m_aligned_with_seg;  ///< when building track chain, was last shoe created exactly aligned with the envelope?
 
 
   VisualizationType m_vis;    // visual asset geometry type

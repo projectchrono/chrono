@@ -502,7 +502,29 @@ ChVector<> TrackChain::CreateShoes(ChSharedPtr<ChBodyAuxRef> chassis,
   }
 
 
+  // assume we aren't aligned after creating shoes around the curved segment
+  m_aligned_with_seg = false;
   return shoe_pos;
+}
+
+// all inputs in absolute coords.
+// Sets m_aligned_with_seg, and returns it also
+bool TrackChain::check_shoe_aligned(const ChVector<>& pin2_pos_abs,
+    const ChVector<>& start_seg_pos,
+    const ChVector<>& end_seg_pos,
+    const ChVector<>& seg_norm_axis)
+{
+  bool out = false;
+  ChVector<> tan_hat = (end_seg_pos - start_seg_pos).GetNormalized();
+  // criteria 1) pin2 should be less than m_shoe_chain_Yoffset from the line segment.
+  //  If it's too much less, the shoe might penetrate the envelope, so cap it in either direction.
+  double dist = Vdot(seg_norm_axis, pin2_pos_abs - start_seg_pos);
+  if( abs(dist - m_shoe_chain_Yoffset) < 1e-3 )
+    out = true;
+
+  // set the outcome, and return it
+  m_aligned_with_seg = out;
+  return out;
 }
 
 ChSharedPtr<ChBody> TrackChain::GetShoeBody(size_t track_idx)
