@@ -435,7 +435,7 @@ ChVector<> TrackChain::CreateShoes(ChSharedPtr<ChBodyAuxRef> chassis,
   {    
     AddCollisionGeometry(0);
     // initialize pos, rot of this shoe.
-    shoe_pos = pos_on_seg + norm_dir * m_shoe_chain_offset;
+    shoe_pos = pos_on_seg + norm_dir * m_shoe_chain_Yoffset;
     shoe_rot_A.Set_A_axis(tan_dir, norm_dir, lateral_dir);
     m_shoes.front()->SetPos(shoe_pos);
     m_shoes.front()->SetRot(shoe_rot_A);
@@ -464,15 +464,27 @@ ChVector<> TrackChain::CreateShoes(ChSharedPtr<ChBodyAuxRef> chassis,
     // 2) shoe is off the boundary, and will have a rot slightly different than previous shoe to get it closer
     //    e.g., after a straight segment follows a curved segment.
     ChFrame<> COG_frame = m_shoes.end()[-2]->GetFrame_COG_to_abs;
+    ChFrame<> pin_frame(pin_pos, COG_frame.GetRot() );
     // set the body pos. from the pin_pos;
-    COG_frame.SetPos(ChFrame<>(pin_pos,COG_frame.GetRot()) * COG_to_pin_rel);
+    COG_frame.SetPos( pin_frame * COG_to_pin_rel);
 
-    // verify that this configuration 1) does not cross the line segment boundary, and
+    // verify that this configuration:
+    //  1) does not cross the line segment boundary, and
     //  2) stays as clsoe as possible to the line segment (e.g., by rotating the body slightly at the pin_pos)
+
+
+
+    // COG_frame is set correctly, add the body and pin to the system
     m_shoes.back()->SetPos(COG_frame.GetPos() );
-    m_shoes.back()->SetRot(shoe_rot_A);
+    m_shoes.back()->SetRot(COG_frame.GetRot() );
+    chassis->GetSystem()->Add(m_shoes.back());
 
-
+    m_pins.push_back(ChSharedPtr<ChLinkLockRevolute>(new ChLinkLockRevolute));
+    m_pins.back()->SetNameString(" pin " + std::to_string(m_numShoes) );
+    // pin frame picked up from COG_frame, where z-axis should be in the lateral direction.
+    m_pins.back()->Initialize(m_pins.back(), m_pins.end()[-2], ChCoordsys<>(pin_frame.GetPos(), pin_frame.GetRot() ) );
+    chassis->GetSystem()->Add(m_pins.back());
+    
     // move along the line segment, in the tangent dir
     pos_on_seg += tan_dir*m_pin_dist;
     // update distance, so we can get out of this loop eventually
