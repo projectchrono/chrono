@@ -50,7 +50,7 @@ const double TrackChain::m_pin_radius = 0.02317;
 const ChVector<> TrackChain::m_tooth_box(0.08 *0.5, 0.075 *0.5, 0.08 *0.5);  // length, height, width HALF DIMS
  // distance between body center and the vertical offset to the inner-surface of the collision geometry
 //  used for initializing shoes as a chain
-const double TrackChain::m_shoe_chain_offset = 0.035; // .03315 exact
+const double TrackChain::m_shoe_chain_Yoffset = 0.035; // .03315 exact
 
 TrackChain::TrackChain(const std::string& name, 
                        VisualizationType vis, 
