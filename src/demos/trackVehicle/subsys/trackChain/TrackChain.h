@@ -68,7 +68,8 @@ private:
   /// initialize shoe bodies by wrapping the track chain around the rolling elements.
   /// Define a string along which the chain is wrapper, using the input values.
   /// Note: start_loc_abs should be between the idler and sprockets
-  void CreateChain(const std::vector<ChFrame<>>& control_points_abs,
+  void CreateChain(ChSharedPtr<ChBodyAuxRef> chassis,
+    const std::vector<ChFrame<>>& control_points_abs,
     const std::vector<ChFrame<>>& rolling_element_abs,
     const std::vector<double>& clearance,
     const ChVector<>& start_pos_abs );
@@ -76,7 +77,8 @@ private:
   /// create the shoes along a line segment and associated curved section that define
   /// the collision envelope.
   /// Returns the current point along the line where we last created a shoe body.
-  ChVector<> CreateShoes(const ChVector<>& curr_pos,
+  ChVector<> CreateShoes(ChSharedPtr<ChBodyAuxRef> chassis,
+    const ChVector<>& curr_pos,
     const ChVector<>& start_seg,
     const ChVector<>& end_seg,
     const ChVector<>& end_curve,
