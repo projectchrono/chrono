@@ -420,15 +420,15 @@ ChVector<> TrackChain::CreateShoes(ChSharedPtr<ChBodyAuxRef> chassis,
   // lateral in terms of the vehicle chassis
   ChVector<> lateral_dir = Vcross(pos_on_seg-end_seg, end_curve-end_seg);
   lateral_dir.Normalize();
-  ChVector<> tan_dir = (end_seg - pos_on_seg).GetNormalized();
+  ChVector<> tan_dir = (end_seg - start_seg).GetNormalized();
   // normal to the envelope surface
-  ChVector<> norm_dir = Vcross( lateral_dir, tan_dir);
+  ChVector<> norm_dir = Vcross(lateral_dir, tan_dir);
 
-  // create the shoes along the segment! (may not be creating shoes exactly parallel to envelope surface)
+  // create the shoes along the segment
+  // (may not be creating shoes exactly parallel to envelope surface)
   double dist_to_end = Vdot(end_seg - pos_on_seg, tan_dir);
   ChVector<> shoe_pos;
-  ChQuaternion<> shoe_rot;
-  ChMatrix33<> shoe_rot_A;
+  ChMatrix33<> seg_rot_A; // line segment orientation, x points from start to end.
   // special case: very first shoe
   // A single ChBody shoe is created upon construction, so it be can copied by the other shoes.
   if(m_numShoes == 1) 
