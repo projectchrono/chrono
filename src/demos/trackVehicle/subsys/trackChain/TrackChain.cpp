@@ -441,8 +441,15 @@ void TrackChain::CreateShoes(ChSharedPtr<ChBodyAuxRef> chassis,
     m_shoes.front()->SetRot(seg_rot_A);
     // pos, rot set, add to system
     chassis->GetSystem()->Add(m_shoes.front());
+  }
+  else
+  {
+    // normal height above envelope surface of last place shoe
+    double h = Vdot(norm_dir, m_shoes.back()->GetPos() - start_seg);
+    // point projected on the surface of the envelope
+    pos_on_seg = m_shoes.back()->GetPos() - norm_dir * h;
+  }
 
-  } 
 
   // when the track chain is not exactly aligned to the envelope, rotate the shoe about the pin.
   // First shoe is where it should be.
@@ -456,7 +463,7 @@ void TrackChain::CreateShoes(ChSharedPtr<ChBodyAuxRef> chassis,
     m_shoes.push_back(ChSharedPtr<ChBody>(new ChBody));
     m_numShoes++;
     m_shoes.back()->Copy( m_shoes.front().get_ptr() );
-    AddCollisionGeometry(m_numShoes);
+    AddCollisionGeometry(m_numShoes-1);
     // m_shoes.push_back(ChSharedPtr<ChBodyAuxRef>(new ChBodyAuxRef( *(m_shoes[0].get_ptr()) )) );
 
     m_shoes.back()->SetNameString( "shoe " + std::to_string(m_numShoes) );
@@ -495,16 +502,21 @@ void TrackChain::CreateShoes(ChSharedPtr<ChBodyAuxRef> chassis,
       // verify that this configuration:
       //  1) does not cross the line segment boundary, and
       //  2) stays as clsoe as possible to the line segment (e.g., by rotating the body slightly at the pin_pos)
+      //  3) does not rotate the body too aggressively
+
       // For 1), consider a point at the very edge of a bounding box
       ChVector<> corner_pos_rel( (m_pin_dist + m_shoe_box.x)/2.0, m_shoe_chain_Yoffset, 0);
       double corner_pos_len = corner_pos_rel.Length();
       ChVector<> corner_pos_abs = pin_frame * corner_pos_rel;
+
       // distance the corner point is above the line segment surface
       double corner_clearance = Vdot(norm_dir, corner_pos_abs - start_seg);
+
       // distance the pin position is above the line segment surface
       double pin_clearance = Vdot(norm_dir, pin_pos - start_seg);
       double lim_angle = CH_C_PI_4; // don't rotate the shoe more than 45 deg. 
       double psi = 0;
+
       // rotate the max amount in this case
       if( corner_clearance > corner_pos_len*std::cos(lim_angle) )
       {
@@ -532,23 +544,28 @@ void TrackChain::CreateShoes(ChSharedPtr<ChBodyAuxRef> chassis,
       }
     }
 
-    // COG_frame is set correctly, add the body and pin to the system
+    // COG_frame is set correctly, add the body to the system
     m_shoes.back()->SetPos(COG_frame.GetPos() );
     m_shoes.back()->SetRot(COG_frame.GetRot() );
     chassis->GetSystem()->Add(m_shoes.back());
 
+    // create and init. the pin between the last shoe and this one, add to system.
     m_pins.push_back(ChSharedPtr<ChLinkLockRevolute>(new ChLinkLockRevolute));
-    m_pins.back()->SetNameString(" pin " + std::to_string(m_numShoes) );
+    m_pins.back()->SetNameString(" pin " + std::to_string(m_pins.size()) );
     // pin frame picked up from COG_frame, where z-axis should be in the lateral direction.
     m_pins.back()->Initialize(m_shoes.back(), m_shoes.end()[-2], ChCoordsys<>(pin_frame.GetPos(), pin_frame.GetRot() ) );
     chassis->GetSystem()->AddLink(m_pins.back());
     
     // project the COG normal to segment surface
     double proj_dist = Vdot(norm_dir, COG_frame.GetPos() - start_seg);
-    pos_on_seg = COG_frame.GetPos() - norm_dir*proj_dist;
 
     // could just step along the line in the tangent direction
-    // pos_on_seg += tan_dir * Vdot(m_pin_dist*COG_frame.GetRot().GetXaxis(), tan_dir);
+    ChVector<> pos_on_check = pos_on_seg + Vdot(m_pin_dist*COG_frame.GetRot().GetXaxis(), tan_dir);
+
+    pos_on_seg = COG_frame.GetPos() - norm_dir*proj_dist;
+
+    if( 1 )
+      GetLog() << " comparing pos_on_seg error: " << pos_on_seg - pos_on_check << "\n";
 
     // update distance, so we can get out of this loop eventually
     dist_to_end = Vdot(end_seg - pos_on_seg, tan_dir);
@@ -565,7 +582,6 @@ void TrackChain::CreateShoes(ChSharedPtr<ChBodyAuxRef> chassis,
 
   // assume we aren't aligned after creating shoes around the curved segment
   m_aligned_with_seg = false;
-  return shoe_pos;
 }
 
 // all inputs in absolute coords.
