@@ -399,40 +399,40 @@ void TrackChain::CreateChain(ChSharedPtr<ChBodyAuxRef> chassis,
     ChVector<> end_seg = control_points_abs[2*idx].GetPos();  // end of line seg.
     ChVector<> end_curve = control_points_abs[2*idx+1].GetPos();  // end of curved section
     // build the bodies for this line segment and rolling element curved section
-    curr_pos = CreateShoes(chassis, curr_pos, start_seg, end_seg, end_curve, rolling_element_abs[idx].GetPos(), clearance[idx]);
+    CreateShoes(chassis, start_seg, end_seg, end_curve, rolling_element_abs[idx].GetPos(), clearance[idx]);
   }
 }
 
 // all locations are in the abs ref. frame.
 // Some assumptions:
 // Body orientation and axis of pin rotation always in the lateral_dir
-// 
-ChVector<> TrackChain::CreateShoes(ChSharedPtr<ChBodyAuxRef> chassis,
-    const ChVector<>& curr_pos,
+void TrackChain::CreateShoes(ChSharedPtr<ChBodyAuxRef> chassis,
     const ChVector<>& start_seg,
     const ChVector<>& end_seg,
     const ChVector<>& end_curve,
     const ChVector<>& rolling_elem_center,
     double clearance)
 {
-  // used to place next shoe center
-  ChVector<> pos_on_seg = curr_pos;
+  // get coordinate directions of the envelope surface
   // lateral in terms of the vehicle chassis
-  ChVector<> lateral_dir = Vcross(pos_on_seg-end_seg, end_curve-end_seg);
+  ChVector<> lateral_dir = Vcross(start_seg-end_seg, end_curve-end_seg);
   lateral_dir.Normalize();
   ChVector<> tan_dir = (end_seg - start_seg).GetNormalized();
   // normal to the envelope surface
   ChVector<> norm_dir = Vcross(lateral_dir, tan_dir);
 
-  // create the shoes along the segment
-  // (may not be creating shoes exactly parallel to envelope surface)
+  // used to place next shoe center
+  ChVector<> pos_on_seg;
+  // create the shoes along the segment.
+  // may not be creating shoes exactly parallel to envelope surface.
   double dist_to_end = Vdot(end_seg - pos_on_seg, tan_dir);
   ChVector<> shoe_pos;
   ChMatrix33<> seg_rot_A; // line segment orientation, x points from start to end.
   // special case: very first shoe
   // A single ChBody shoe is created upon construction, so it be can copied by the other shoes.
-  if(m_numShoes == 1) 
-  {    
+  if(m_numShoes == 1)
+  {
+    pos_on_seg = start_seg;
     AddCollisionGeometry(0);
     // initialize pos, rot of this shoe.
     shoe_pos = pos_on_seg + norm_dir * m_shoe_chain_Yoffset;

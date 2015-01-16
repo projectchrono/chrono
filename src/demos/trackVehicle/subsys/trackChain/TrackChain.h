@@ -76,9 +76,7 @@ private:
 
   /// create the shoes along a line segment and associated curved section that define
   /// the collision envelope.
-  /// Returns the current point along the line where we last created a shoe body.
-  ChVector<> CreateShoes(ChSharedPtr<ChBodyAuxRef> chassis,
-    const ChVector<>& curr_pos,
+  void CreateShoes(ChSharedPtr<ChBodyAuxRef> chassis,
     const ChVector<>& start_seg,
     const ChVector<>& end_seg,
     const ChVector<>& end_curve,
