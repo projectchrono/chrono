@@ -12,8 +12,7 @@
 // Authors: Hammad Mazhar
 // =============================================================================
 //
-// This file contains an implementation of an iterative Conjugate Gradient
-// Squared solver.
+// Implementation of an iterative Conjugate Gradient Squared solver.
 // =============================================================================
 
 #ifndef CHSOLVERCGS_H
@@ -22,20 +21,26 @@
 #include "chrono_parallel/solver/ChSolverParallel.h"
 
 namespace chrono {
+
 class CH_PARALLEL_API ChSolverCGS : public ChSolverParallel {
- public:
+public:
   ChSolverCGS() : ChSolverParallel() {}
   ~ChSolverCGS() {}
 
   void Solve() {
-    if (num_constraints == 0) {
+    if (data_container->num_constraints == 0) {
       return;
     }
     data_container->system_timer.start("ChSolverParallel_Solve");
-    data_container->measures.solver.total_iteration += SolveCGS(max_iteration, num_constraints, data_container->host_data.R, data_container->host_data.gamma);
+    data_container->measures.solver.total_iteration +=
+      SolveCGS(max_iteration,
+               data_container->num_constraints,
+               data_container->host_data.R,
+               data_container->host_data.gamma);
     data_container->system_timer.stop("ChSolverParallel_Solve");
   }
-  // Solve using the Accelerated Projected Gradient Descent Method
+
+  // Solve using the conjugate gradient squared method
   uint SolveCGS(const uint max_iter,              // Maximum number of iterations
                 const uint size,                  // Number of unknowns
                 blaze::DynamicVector<real>& b,    // Rhs vector
@@ -45,5 +50,7 @@ class CH_PARALLEL_API ChSolverCGS : public ChSolverParallel {
   real rho_1, rho_2, alpha, beta;
   blaze::DynamicVector<real> p, phat, q, qhat, vhat, u, uhat, r, rtilde, mb;
 };
+
 }
+
 #endif

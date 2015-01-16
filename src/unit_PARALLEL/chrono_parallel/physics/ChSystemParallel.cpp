@@ -1,3 +1,9 @@
+#include "physics/ChShaftsCouple.h"
+#include "physics/ChShaftsGearbox.h"
+#include "physics/ChShaftsGearboxAngled.h"
+#include "physics/ChShaftsPlanetary.h"
+#include "physics/ChShaftsBody.h"
+
 #include "chrono_parallel/physics/ChSystemParallel.h"
 #include <omp.h>
 
@@ -5,14 +11,13 @@ using namespace chrono;
 using namespace chrono::collision;
 
 ChSystemParallel::ChSystemParallel(unsigned int max_objects)
-      : ChSystem(1000, 10000, false) {
-
+      : ChSystem(1000, 10000, false)
+{
    data_manager = new ChParallelDataManager();
 
-   contact_container = new ChContactContainerParallel();
-   collision_system = new ChCollisionSystemParallel();
-   ((ChCollisionSystemParallel *) collision_system)->data_container = data_manager;
-   ((ChContactContainerParallel*) contact_container)->data_container = data_manager;
+   LCP_descriptor = new ChLcpSystemDescriptorParallel(data_manager);
+   contact_container = new ChContactContainerParallel(data_manager);
+   collision_system = new ChCollisionSystemParallel(data_manager);
 
    counter = 0;
    timer_accumulator.resize(10, 0);
@@ -44,14 +49,13 @@ ChSystemParallel::~ChSystemParallel() {
 }
 
 int ChSystemParallel::Integrate_Y() {
-	//Get the pointer for the system descriptor and store it into the data manager
+  //Get the pointer for the system descriptor and store it into the data manager
    data_manager->lcp_system_descriptor = this->LCP_descriptor;
 
    data_manager->system_timer.Reset();
    data_manager->system_timer.start("step");
 
    data_manager->system_timer.start("update");
-   Setup();
    Update();
    data_manager->system_timer.stop("update");
 
@@ -66,21 +70,17 @@ int ChSystemParallel::Integrate_Y() {
 
    data_manager->system_timer.start("update");
 
-   ChLcpSystemDescriptor* lcp_sys = data_manager->lcp_system_descriptor;
-   std::vector<ChLcpConstraint*>& mconstraints = (*lcp_sys).GetConstraintsList();
+   std::vector<ChLcpConstraint*>& mconstraints = LCP_descriptor->GetConstraintsList();
    //Iterate over the active bilateral constraints
    for (int index = 0; index < data_manager->num_bilaterals; index++) {
-       //Get the mapping for the next active bilateral constraint
        int cntr = data_manager->host_data.bilateral_mapping[index];
-       ChLcpConstraintTwoBodies* mbilateral = (ChLcpConstraintTwoBodies*)(mconstraints[cntr]);
        mconstraints[cntr]->Set_l_i(data_manager->host_data.gamma_bilateral[index]);
    }
    // updates the reactions of the constraint
    LCPresult_Li_into_reactions(1.0 / this->GetStep());     // R = l/dt  , approximately
 
-   //Here the velocities stores in the blaze data structures are copied back
-   //into the chrono data structures
-   uint num_bodies = data_manager->num_bodies;
+   // Scatter the states to the Chrono objects (bodies and shafts) and update
+   // all physics items at the end of the step.
    DynamicVector<real>& velocities = data_manager->host_data.v;
    custom_vector<real3>& pos_pointer = data_manager->host_data.pos_data;
    custom_vector<real4>& rot_pointer = data_manager->host_data.rot_data;
@@ -107,7 +107,6 @@ int ChSystemParallel::Integrate_Y() {
          //update the position and rotation vectors
          pos_pointer[i] = (R3(bodylist[i]->GetPos().x, bodylist[i]->GetPos().y, bodylist[i]->GetPos().z));
          rot_pointer[i] = (R4(bodylist[i]->GetRot().e0, bodylist[i]->GetRot().e1, bodylist[i]->GetRot().e2, bodylist[i]->GetRot().e3));
-
       }
    }
 
@@ -116,10 +115,14 @@ int ChSystemParallel::Integrate_Y() {
      if (!data_manager->host_data.shaft_active[i])
        continue;
 
-     shaftlist[i]->Variables().Get_qb().SetElementN(0, velocities[num_bodies * 6 + i]);
+     shaftlist[i]->Variables().Get_qb().SetElementN(0, velocities[data_manager->num_bodies * 6 + i]);
      shaftlist[i]->VariablesQbIncrementPosition(GetStep());
      shaftlist[i]->VariablesQbSetSpeed(GetStep());
      shaftlist[i]->Update(ChTime);
+   }
+
+   for (int i = 0; i < otherphysicslist.size(); i++) {
+     otherphysicslist[i]->Update(ChTime);
    }
 
    data_manager->system_timer.stop("update");
@@ -151,7 +154,14 @@ int ChSystemParallel::Integrate_Y() {
    return 1;
 }
 
-void ChSystemParallel::AddBody(ChSharedPtr<ChBody> newbody) {
+//
+// Add the specified body to the system.
+// A unique identifier is assigned to each body for indexing purposes.
+// Space is allocated in system-wide vectors for data corresponding to the
+// body.
+//
+void ChSystemParallel::AddBody(ChSharedPtr<ChBody> newbody)
+{
 
    newbody->AddRef();
    newbody->SetSystem(this);
@@ -159,110 +169,193 @@ void ChSystemParallel::AddBody(ChSharedPtr<ChBody> newbody) {
    // refer to. Not used by contacts
    newbody->SetId(data_manager->num_bodies);
 
-   data_manager->num_bodies++;
-
    bodylist.push_back(newbody.get_ptr());
+   data_manager->num_bodies++;
 
    if (newbody->GetCollide()) {
       newbody->AddCollisionModelsToSystem();
    }
-   ChLcpVariablesBodyOwnMass& mbodyvar = newbody->VariablesBody();
-   real inv_mass = (1.0) / (mbodyvar.GetBodyMass());
-   ChMatrix33<>& inertia = mbodyvar.GetBodyInvInertia();
 
-   data_manager->host_data.pos_data.push_back(R3(newbody->GetPos().x, newbody->GetPos().y, newbody->GetPos().z));
-   data_manager->host_data.rot_data.push_back(R4(newbody->GetRot().e0, newbody->GetRot().e1, newbody->GetRot().e2, newbody->GetRot().e3));
+   // Reserve space for this body in the system-wide vectors. Note that the
+   // actual data is set in UpdateBodies().
+   data_manager->host_data.pos_data.push_back(R3());
+   data_manager->host_data.rot_data.push_back(R4());
+   data_manager->host_data.inv_mass_data.push_back(0);
+   data_manager->host_data.inr_data.push_back(M33());
+   data_manager->host_data.active_data.push_back(true);
+   data_manager->host_data.collide_data.push_back(true);
 
-   M33 Inertia = M33(
- 		  R3(inertia.GetElement(0, 0), inertia.GetElement(1, 0), inertia.GetElement(2, 0)),
- 		  R3(inertia.GetElement(0, 1), inertia.GetElement(1, 1), inertia.GetElement(2, 1)),
- 		  R3(inertia.GetElement(0, 2), inertia.GetElement(1, 2), inertia.GetElement(2, 2)));
-
-
-   data_manager->host_data.inr_data.push_back(Inertia);
-
-   data_manager->host_data.active_data.push_back(newbody->IsActive());
-   data_manager->host_data.collide_data.push_back(newbody->GetCollide());
-   data_manager->host_data.inv_mass_data.push_back(inv_mass);
-
-   // Let derived classes load specific material surface data
-   LoadMaterialSurfaceData(newbody);
+   // Let derived classes reserve space for specific material surface data
+   AddMaterialSurfaceData(newbody);
 }
 
-void ChSystemParallel::AddOtherPhysicsItem(ChSharedPtr<ChPhysicsItem> newitem) {
-   //assert(std::find<std::vector<ChPhysicsItem*>::iterator>(otherphysicslist.begin(), otherphysicslist.end(), newitem.get_ptr()) == otherphysicslist.end());
-   //assert(newitem->GetSystem()==0); // should remove from other system before adding here
-
-   newitem->AddRef();
-   newitem->SetSystem(this);
-   otherphysicslist.push_back((newitem).get_ptr());
-
-   // add to collision system too
-   if (newitem->GetCollide()) {
-      newitem->AddCollisionModelsToSystem();
-   }
-
-   //// Ideally, the function AddShaft() would be an override of a ChSystem
-   //// virtual function and the vector shaftlist would be maintained by the base
-   //// class ChSystem.  For now, users must use AddOtherPhysicsItem in order to
-   //// properly account for the variables of a shaft elelement in ChSystem::Setup().
-   //// Note that this also means we duplicate pointers in two lists: shaftlist
-   //// and otherphysicslist...
+//
+// Add physics items, other than bodies or links, to the system.
+// We keep track separately of ChShaft elements which are maintained in their
+// own list (shaftlist).  All other items are stored in otherphysicslist.
+//
+// Note that no test is performed to check if the item was already added.
+//
+// Ideally, the function AddShaft() would be an override of a ChSystem
+// virtual function and the vector shaftlist would be maintained by the base
+// class ChSystem.  For now, users must use AddOtherPhysicsItem in order to
+// properly account for the variables of a shaft elelement in ChSystem::Setup().
+//
+void ChSystemParallel::AddOtherPhysicsItem(ChSharedPtr<ChPhysicsItem> newitem)
+{
    if (ChSharedPtr<ChShaft> shaft = newitem.DynamicCastTo<ChShaft>()) {
      AddShaft(shaft);
+   } else {
+     newitem->AddRef();
+     newitem->SetSystem(this);
+     otherphysicslist.push_back((newitem).get_ptr());
+
+     if (newitem->GetCollide()) {
+       newitem->AddCollisionModelsToSystem();
+     }
    }
 }
 
-//// Currently, this function is private to prevent the user from directly calling
-//// it and instead force them to use AddOtherPhysicsItem().  See comment above.
-//// Eventually, this should be an override of a virtual function declared by ChSystem.
+//
+// Add the specified shaft to the system.
+// A unique identifier is assigned to each shaft for indexing purposes.
+// Space is allocated in system-wide vectors for data corresponding to the
+// shaft.
+//
+// Currently, this function is private to prevent the user from directly calling
+// it and instead force them to use AddOtherPhysicsItem().  See comment above.
+// Eventually, this should be an override of a virtual function declared by ChSystem.
+//
 void ChSystemParallel::AddShaft(ChSharedPtr<ChShaft> shaft)
 {
   shaft->AddRef();
   shaft->SetId(data_manager->num_shafts);
   shaft->SetSystem(this);
+
   shaftlist.push_back(shaft.get_ptr());
-
-  data_manager->host_data.shaft_rot.push_back(0);
-  data_manager->host_data.shaft_inr.push_back(1);
-  data_manager->host_data.shaft_active.push_back(true);
-
   data_manager->num_shafts++;
+
+  // Reserve space for this shaft in the system-wide vectors. Not that the
+  // actual data is set in UpdateShafts().
+  data_manager->host_data.shaft_rot.push_back(0);
+  data_manager->host_data.shaft_inr.push_back(0);
+  data_manager->host_data.shaft_active.push_back(true);
 }
 
-void ChSystemParallel::ClearBodyForceVector()
+//
+// Reset forces for all lcp variables
+//
+void ChSystemParallel::ClearForceVariables()
 {
   ////#pragma omp parallel for
   for (int i = 0; i < data_manager->num_bodies; i++) {
     bodylist[i]->VariablesFbReset();
   }
+
   ////#pragma omp parallel for
   for (int i = 0; i < data_manager->num_shafts; i++) {
     shaftlist[i]->VariablesFbReset();
   }
 }
-void ChSystemParallel::Update() {
-  // In order to properly compute, the following must occur
-  // Clear the force vectors by calling VariablesFbReset for all objects
-  // Compute bilateral constraint forces
-  // Update bodies, update shafts
-  // Write forces into the fh vector
 
-  // Clears the forces for all lcp variables
-  ClearBodyForceVector();
+//
+// Update all items in the system. The following order of operations is important:
+// 1. Clear the force vectors by calling VariablesFbReset for all objects
+// 2. Compute link constraint forces
+// 3. Update other physics items (other than shafts)
+// 4. Update bodies (these introduce state variables)
+// 5. Update shafts (these introduce state variables)
+// 6. Process bilateral constraints
+//
+void ChSystemParallel::Update()
+{
+  // Clear the forces for all lcp variables
+  ClearForceVariables();
 
-  //Allocate space for the velocities and forces for all objects
+  // Allocate space for the velocities and forces for all objects
   data_manager->host_data.v.resize(data_manager->num_bodies * 6 + data_manager->num_shafts * 1);
   data_manager->host_data.hf.resize(data_manager->num_bodies * 6 + data_manager->num_shafts * 1);
 
+  // Clear system-wide vectors for bilateral constraints
+  data_manager->host_data.bilateral_mapping.clear();
+  data_manager->host_data.bilateral_type.clear();
 
   this->LCP_descriptor->BeginInsertion();
-  UpdateBilaterals();
+  UpdateLinks();
+  UpdateOtherPhysics();
   UpdateBodies();
   UpdateShafts();
   LCP_descriptor->EndInsertion();
+
+  UpdateBilaterals();
 }
 
+//
+// Update all bodies in the system and populate system-wide state and force
+// vectors.
+//
+void ChSystemParallel::UpdateBodies()
+{
+  custom_vector<real3>& position = data_manager->host_data.pos_data;
+  custom_vector<real4>& rotation = data_manager->host_data.rot_data;
+  custom_vector<real>& inv_mass = data_manager->host_data.inv_mass_data;
+  custom_vector<M33>& inv_inertia = data_manager->host_data.inr_data;
+  custom_vector<bool>& active = data_manager->host_data.active_data;
+  custom_vector<bool>& collide = data_manager->host_data.collide_data;
+
+#pragma omp parallel for
+  for (int i = 0; i < bodylist.size(); i++) {
+    bodylist[i]->UpdateTime(ChTime);
+    //bodylist[i]->TrySleeping();
+    bodylist[i]->ClampSpeed();
+    bodylist[i]->ComputeGyro();
+    bodylist[i]->UpdateForces(ChTime);
+    bodylist[i]->VariablesFbLoadForces(GetStep());
+    bodylist[i]->VariablesQbLoadSpeed();
+    bodylist[i]->UpdateMarkers(ChTime);
+
+    ChMatrix<>&     body_qb = bodylist[i]->Variables().Get_qb();
+    ChMatrix<>&     body_fb = bodylist[i]->Variables().Get_fb();
+    ChVector<>&     body_pos = bodylist[i]->GetPos();
+    ChQuaternion<>& body_rot = bodylist[i]->GetRot();
+    ChMatrix33<>&   body_inr = bodylist[i]->VariablesBody().GetBodyInvInertia();
+
+    data_manager->host_data.v[i * 6 + 0] = body_qb.GetElementN(0);
+    data_manager->host_data.v[i * 6 + 1] = body_qb.GetElementN(1);
+    data_manager->host_data.v[i * 6 + 2] = body_qb.GetElementN(2);
+    data_manager->host_data.v[i * 6 + 3] = body_qb.GetElementN(3);
+    data_manager->host_data.v[i * 6 + 4] = body_qb.GetElementN(4);
+    data_manager->host_data.v[i * 6 + 5] = body_qb.GetElementN(5);
+
+    data_manager->host_data.hf[i * 6 + 0] = body_fb.ElementN(0);
+    data_manager->host_data.hf[i * 6 + 1] = body_fb.ElementN(1);
+    data_manager->host_data.hf[i * 6 + 2] = body_fb.ElementN(2);
+    data_manager->host_data.hf[i * 6 + 3] = body_fb.ElementN(3);
+    data_manager->host_data.hf[i * 6 + 4] = body_fb.ElementN(4);
+    data_manager->host_data.hf[i * 6 + 5] = body_fb.ElementN(5);
+
+    position[i] = R3(body_pos.x, body_pos.y, body_pos.z);
+    rotation[i] = R4(body_rot.e0, body_rot.e1, body_rot.e2, body_rot.e3);
+
+    inv_mass[i] = 1.0f / bodylist[i]->VariablesBody().GetBodyMass();
+    inv_inertia[i] = M33(R3(body_inr.GetElement(0, 0), body_inr.GetElement(1, 0), body_inr.GetElement(2, 0)),
+                         R3(body_inr.GetElement(0, 1), body_inr.GetElement(1, 1), body_inr.GetElement(2, 1)),
+                         R3(body_inr.GetElement(0, 2), body_inr.GetElement(1, 2), body_inr.GetElement(2, 2)));
+
+    active[i] = bodylist[i]->IsActive();
+    collide[i] = bodylist[i]->GetCollide();
+
+    // Let derived classes set the specific material surface data.
+    UpdateMaterialSurfaceData(i, bodylist[i]);
+
+    bodylist[i]->GetCollisionModel()->SyncPosition();
+  }
+}
+
+//
+// Update all shaft elements in the system and populate system-wide state and
+// force vectors.
+//
 void ChSystemParallel::UpdateShafts()
 {
   real* shaft_rot = data_manager->host_data.shaft_rot.data();
@@ -271,7 +364,6 @@ void ChSystemParallel::UpdateShafts()
 
 ////#pragma omp parallel for
   for (int i = 0; i < data_manager->num_shafts; i++) {
-	  shaftlist[i]->VariablesFbReset();
     shaftlist[i]->Update(ChTime);
     shaftlist[i]->VariablesFbLoadForces(GetStep());
     shaftlist[i]->VariablesQbLoadSpeed();
@@ -285,29 +377,126 @@ void ChSystemParallel::UpdateShafts()
   }
 }
 
-void ChSystemParallel::UpdateBilaterals() {
-   for (int i=0; i<linklist.size(); i++) {
-	   linklist[i]->Update(ChTime);
-	   linklist[i]->ConstraintsBiReset();
-	   linklist[i]->ConstraintsBiLoad_C(1.0 / GetStep(),
-                                 data_manager->settings.solver.bilateral_clamp_speed,
-                                 data_manager->settings.solver.clamp_bilaterals);
-	   linklist[i]->ConstraintsBiLoad_Ct(1);
-	   linklist[i]->ConstraintsFbLoadForces(GetStep());
-	   linklist[i]->ConstraintsLoadJacobians();
-	   linklist[i]->ConstraintsLiLoadSuggestedSpeedSolution();
-	   linklist[i]->InjectConstraints(*this->LCP_descriptor);
-   }
-   uint & num_bilaterals  = data_manager->num_bilaterals;
-   std::vector<ChLcpConstraint *> &mconstraints = (*this->LCP_descriptor).GetConstraintsList();
-   data_manager->host_data.bilateral_mapping.clear();
+//
+// Update all links in the system and set the type of the associated constraints
+// to BODY_BODY.
+//
+void ChSystemParallel::UpdateLinks()
+{
+  double oostep = 1 / GetStep();
+  real clamp_speed = data_manager->settings.solver.bilateral_clamp_speed;
+  bool clamp = data_manager->settings.solver.clamp_bilaterals;
 
-   for (uint ic = 0; ic < mconstraints.size(); ic++) {
-      if (mconstraints[ic]->IsActive() == true) {
-         data_manager->host_data.bilateral_mapping.push_back(ic);
+  for (int i = 0; i < linklist.size(); i++) {
+    linklist[i]->Update(ChTime);
+    linklist[i]->ConstraintsBiReset();
+    linklist[i]->ConstraintsBiLoad_C(oostep, clamp_speed, clamp);
+    linklist[i]->ConstraintsBiLoad_Ct(1);
+    linklist[i]->ConstraintsFbLoadForces(GetStep());
+    linklist[i]->ConstraintsLoadJacobians();
+
+    linklist[i]->InjectConstraints(*LCP_descriptor);
+
+    for (int j = 0; j < linklist[i]->GetDOC_c(); j++)
+      data_manager->host_data.bilateral_type.push_back(BODY_BODY);
+  }
+}
+
+//
+// This utility function returns the type of constraints associated with the
+// specified physics item. Return UNKNOWN if the item has no associated
+// bilateral constraints or if it is unsupported.
+//
+BILATERALTYPE GetBilateralType(ChPhysicsItem* item)
+{
+  if (item->GetDOC_c() == 0)
+    return UNKNOWN;
+
+  if (dynamic_cast<ChShaftsCouple*>(item))
+    return SHAFT_SHAFT;
+
+  if (dynamic_cast<ChShaftsPlanetary*>(item) ||
+      dynamic_cast<ChShaftsGearbox*>(item)   ||
+      dynamic_cast<ChShaftsGearboxAngled*>(item))
+    return SHAFT_SHAFT_SHAFT;
+
+  if (dynamic_cast<ChShaftsBody*>(item))
+    return SHAFT_BODY;
+
+  // Debug check - do we ignore any constraints?
+  assert(item->GetDOC_c() == 0);
+
+  return UNKNOWN;
+}
+
+//
+// Update other physics items in the system and set the type of the associated
+// constraints.
+// Notes:
+// - ChShaft elements have already been excluded (as these are treated separately)
+// - allow all items to include body forces (required e.g. ChShaftsTorqueBase)
+// - no support for any items that introduce additional state variables
+// - only include constraints from items of supported type (see GetBilateralType above)
+//
+void ChSystemParallel::UpdateOtherPhysics()
+{
+  double oostep = 1 / GetStep();
+  real clamp_speed = data_manager->settings.solver.bilateral_clamp_speed;
+  bool clamp = data_manager->settings.solver.clamp_bilaterals;
+
+  for (int i = 0; i < otherphysicslist.size(); i++) {
+    otherphysicslist[i]->Update(ChTime);
+    otherphysicslist[i]->ConstraintsBiReset();
+    otherphysicslist[i]->ConstraintsBiLoad_C(oostep, clamp_speed, clamp);
+    otherphysicslist[i]->ConstraintsBiLoad_Ct(1);
+    otherphysicslist[i]->ConstraintsFbLoadForces(GetStep());
+    otherphysicslist[i]->ConstraintsLoadJacobians();
+    otherphysicslist[i]->VariablesFbLoadForces(GetStep());
+    otherphysicslist[i]->VariablesQbLoadSpeed();
+
+    BILATERALTYPE type = GetBilateralType(otherphysicslist[i]);
+
+    if (type == UNKNOWN)
+      continue;
+
+    otherphysicslist[i]->InjectConstraints(*LCP_descriptor);
+
+    for (int j = 0; j < otherphysicslist[i]->GetDOC_c(); j++)
+      data_manager->host_data.bilateral_type.push_back(type);
+  }
+}
+
+//
+// Collect indexes of all active bilateral constraints and calculate number of
+// non-zero entries in the constraint Jacobian.
+//
+void ChSystemParallel::UpdateBilaterals()
+{
+  data_manager->nnz_bilaterals = 0;
+  std::vector<ChLcpConstraint *> &mconstraints = LCP_descriptor->GetConstraintsList();
+
+  for (uint ic = 0; ic < mconstraints.size(); ic++) {
+    if (mconstraints[ic]->IsActive()) {
+      data_manager->host_data.bilateral_mapping.push_back(ic);
+      switch (data_manager->host_data.bilateral_type[ic]) {
+      case BODY_BODY:
+        data_manager->nnz_bilaterals += 12;
+        break;
+      case SHAFT_SHAFT:
+        data_manager->nnz_bilaterals += 2;
+        break;
+      case SHAFT_SHAFT_SHAFT:
+        data_manager->nnz_bilaterals += 3;
+        break;
+      case SHAFT_BODY:
+        data_manager->nnz_bilaterals += 7;
+        break;
       }
-   }
-   num_bilaterals = data_manager->host_data.bilateral_mapping.size();
+    }
+  }
+
+  // Set the number of currently active bilateral constraints.
+  data_manager->num_bilaterals = data_manager->host_data.bilateral_mapping.size();
 }
 
 void ChSystemParallel::RecomputeThreads() {
@@ -445,19 +634,18 @@ void ChSystemParallel::RecomputeBins() {
 
 }
 
-void ChSystemParallel::ChangeCollisionSystem(ChCollisionSystem *newcollsystem) {
-   assert(this->GetNbodies() == 0);
-   assert(newcollsystem);
+void ChSystemParallel::ChangeCollisionSystem(COLLISIONSYSTEMTYPE type)
+{
+   assert(GetNbodies() == 0);
 
-   if (this->collision_system) {
-      delete (this->collision_system);
+   delete collision_system;
+
+   switch (type) {
+   case COLLSYS_PARALLEL:
+     collision_system = new ChCollisionSystemParallel(data_manager);
+     break;
+   case COLLSYS_BULLET_PARALLEL:
+     collision_system = new ChCollisionSystemBulletParallel(data_manager);
+     break;
    }
-   this->collision_system = newcollsystem;
-
-   if (ChCollisionSystemParallel* coll_sys = dynamic_cast<ChCollisionSystemParallel*>(collision_system)) {
-      coll_sys->data_container = data_manager;
-   } else if (ChCollisionSystemBulletParallel* coll_sys = dynamic_cast<ChCollisionSystemBulletParallel*>(collision_system)) {
-      coll_sys->data_container = data_manager;
-   }
-
 }

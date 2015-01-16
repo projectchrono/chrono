@@ -155,6 +155,7 @@ struct solver_settings {
 
   //This variable is the tolerance for the solver in terms of speeds
   real tolerance;
+  real tol_speed;
   //This variable defines the tolerance if the solver is using the objective
   //termination condition
   real tolerance_objective;

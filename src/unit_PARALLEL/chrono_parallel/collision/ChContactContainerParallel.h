@@ -1,21 +1,5 @@
-#ifndef CHCONTACTCONTAINERGPUSIMPLE_H
-#define CHCONTACTCONTAINERGPUSIMPLE_H
-
-///////////////////////////////////////////////////
-//
-//   ChContactContainerGPUsimple.h
-//
-//   Class for container of many contacts, as CPU
-//   typical linked list of ChContactGPUsimple objects
-//
-//   HEADER file for CHRONO,
-//   Multibody dynamics engine
-//
-// ------------------------------------------------
-//   Copyright:Alessandro Tasora / DeltaKnowledge
-//             www.deltaknowledge.com
-// ------------------------------------------------
-///////////////////////////////////////////////////
+#ifndef CHCONTACTCONTAINERPARALLEL_H
+#define CHCONTACTCONTAINERPARALLEL_H
 
 #include <list>
 
@@ -34,20 +18,17 @@ namespace chrono {
 /// that does not use linked lists of cpu objects but rather
 /// keeps all contact data as GPU buffers on the GPU device.
 
-class CH_PARALLEL_API ChContactContainerParallel: public ChContactContainer {
-	CH_RTTI(ChContactContainerParallel, ChContactContainer)
-		;
+class CH_PARALLEL_API ChContactContainerParallel : public ChContactContainer {
+  CH_RTTI(ChContactContainerParallel, ChContactContainer);
 
-	protected:
+public:
 
-	public:
+  ChContactContainerParallel(ChParallelDataManager* dc);
 
-		ChContactContainerParallel();
+  virtual ~ChContactContainerParallel();
+  int GetNcontacts() { return data_container->num_contacts; }
 
-		virtual ~ChContactContainerParallel();
-		int GetNcontacts() {return data_container->num_contacts;}
-
-		ChParallelDataManager* data_container;
+  ChParallelDataManager* data_container;
 };
 
 

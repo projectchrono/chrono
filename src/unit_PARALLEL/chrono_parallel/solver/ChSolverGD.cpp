@@ -6,7 +6,7 @@ uint ChSolverGD::SolveGD(const uint max_iter, const uint size, blaze::DynamicVec
   real& residual = data_container->measures.solver.residual;
   custom_vector<real>& iter_hist = data_container->measures.solver.iter_hist;
 
-  real eps = step_size;
+  real eps = data_container->settings.step_size;
   r.resize(size);
 
   ShurProduct(ml, r);    // r = data_container->host_data.D_T *

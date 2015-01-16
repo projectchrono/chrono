@@ -163,12 +163,12 @@ void ChConstraintRigidRigid::host_Project(int2* ids, real3* friction, real* cohe
   // always project normal
   if (solve_sliding) {
 #pragma omp parallel for
-    for (int index = 0; index < num_contacts; index++) {
+    for (int index = 0; index < data_container->num_contacts; index++) {
       func_Project(index, ids, friction, cohesion, gamma);
     }
   } else {
 #pragma omp parallel for
-    for (int index = 0; index < num_contacts; index++) {
+    for (int index = 0; index < data_container->num_contacts; index++) {
       real gamma_x = gamma[_index_ + 0];
       int2 body_id = ids[index];
       real coh = cohesion[index];
@@ -184,7 +184,7 @@ void ChConstraintRigidRigid::host_Project(int2* ids, real3* friction, real* cohe
   }
   if (solve_spinning) {
 #pragma omp parallel for
-    for (int index = 0; index < num_contacts; index++) {
+    for (int index = 0; index < data_container->num_contacts; index++) {
       func_Project_rolling(index, ids, friction, gamma);
     }
   }
@@ -231,7 +231,7 @@ void chrono::Compute_Jacobian_Rolling(const real4& quat, const real3& U, const r
 
 void ChConstraintRigidRigid::host_ComputeS(int2* ids, real3* mu, bool2* active, real3* norm, real3* vel, real3* omega, real3* ptA, real3* ptB, real4* rot, const real* rhs, real* b) {
 #pragma omp parallel for
-  for (int index = 0; index < num_contacts; index++) {
+  for (int index = 0; index < data_container->num_contacts; index++) {
     int2 bid = ids[index];
     bool2 isactive = active[index];
 
@@ -253,7 +253,7 @@ void ChConstraintRigidRigid::host_ComputeS(int2* ids, real3* mu, bool2* active, 
       real3 omega_b2 = omega[bid.y];
       real3 vel_b2 = vel[bid.y];
       real3 T6, T7, T8;
-      Compute_Jacobian(rot[index + num_contacts], U, V, W, ptB[index], T6, T7, T8);
+      Compute_Jacobian(rot[index + data_container->num_contacts], U, V, W, ptB[index], T6, T7, T8);
       temp.x += dot(U, vel_b2) + dot(-T6, omega_b2);
       temp.y += dot(V, vel_b2) + dot(-T7, omega_b2);
       temp.z += dot(W, vel_b2) + dot(-T8, omega_b2);
@@ -284,22 +284,23 @@ void ChConstraintRigidRigid::ComputeS(const custom_vector<real>& rhs, custom_vec
 }
 //%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-void ChConstraintRigidRigid::Build_b(SOLVERMODE solver_mode) {
-  if (num_contacts <= 0) {
+void ChConstraintRigidRigid::Build_b(SOLVERMODE solver_mode)
+{
+  if (data_container->num_contacts <= 0) {
     return;
   }
+
 #pragma omp parallel for
-  for (int index = 0; index < num_contacts; index++) {
+  for (int index = 0; index < data_container->num_contacts; index++) {
     real bi = 0;
     real depth = data_container->host_data.dpth_rigid_rigid[index];
+
     if (data_container->settings.solver.alpha > 0) {
       bi = inv_hpa * depth;
+    } else if (data_container->settings.solver.contact_recovery_speed < 0) {
+      bi = inv_h * depth;
     } else {
-      if (data_container->settings.solver.contact_recovery_speed < 0) {
-        bi = real(1.0) / step_size * depth;
-      } else {
-        bi = std::max(real(1.0) / step_size * depth, -data_container->settings.solver.contact_recovery_speed);
-      }
+      bi = std::max(inv_h * depth, -data_container->settings.solver.contact_recovery_speed);
     }
 
     data_container->host_data.b[_index_ + 0] = bi;
@@ -314,13 +315,16 @@ void ChConstraintRigidRigid::Build_b(SOLVERMODE solver_mode) {
     //      }
   }
 }
-void ChConstraintRigidRigid::Build_E(SOLVERMODE solver_mode) {
-  if (num_contacts <= 0) {
+
+void ChConstraintRigidRigid::Build_E(SOLVERMODE solver_mode)
+{
+  if (data_container->num_contacts <= 0) {
     return;
   }
+
   DynamicVector<real>& E = data_container->host_data.E;
 #pragma omp parallel for
-  for (int index = 0; index < num_contacts; index++) {
+  for (int index = 0; index < data_container->num_contacts; index++) {
     int2 body = data_container->host_data.bids_rigid_rigid[index];
 
     real4 cA = data_container->host_data.compliance_data[body.x];
@@ -343,7 +347,9 @@ void ChConstraintRigidRigid::Build_E(SOLVERMODE solver_mode) {
     }
   }
 }
-void ChConstraintRigidRigid::Build_D(SOLVERMODE solver_mode) {
+
+void ChConstraintRigidRigid::Build_D(SOLVERMODE solver_mode)
+{
   real3* norm = data_container->host_data.norm_rigid_rigid.data();
   real3* ptA = data_container->host_data.cpta_rigid_rigid.data();
   real3* ptB = data_container->host_data.cptb_rigid_rigid.data();
@@ -352,7 +358,7 @@ void ChConstraintRigidRigid::Build_D(SOLVERMODE solver_mode) {
   CompressedMatrix<real>& D_T = data_container->host_data.D_T;
 
 #pragma omp parallel for
-  for (int index = 0; index < num_contacts; index++) {
+  for (int index = 0; index < data_container->num_contacts; index++) {
     real3 U = norm[index], V, W;
     real3 T3, T4, T5, T6, T7, T8;
     real3 TA, TB, TC;
@@ -366,7 +372,7 @@ void ChConstraintRigidRigid::Build_D(SOLVERMODE solver_mode) {
 
     if (solver_mode == SLIDING || solver_mode == SPINNING) {
       Compute_Jacobian(rot[index], U, V, W, ptA[index], T3, T4, T5);
-      Compute_Jacobian(rot[index + num_contacts], U, V, W, ptB[index], T6, T7, T8);
+      Compute_Jacobian(rot[index + data_container->num_contacts], U, V, W, ptB[index], T6, T7, T8);
     }
     if (contact_active_pairs[index].x) {
       D_T(index_mult + 0, body_id.x* 6 + 0) = -U.x;
@@ -425,7 +431,7 @@ void ChConstraintRigidRigid::Build_D(SOLVERMODE solver_mode) {
     }
     if (solver_mode == SPINNING) {
       Compute_Jacobian_Rolling(rot[index], U, V, W, TA, TB, TC);
-      Compute_Jacobian_Rolling(rot[index + num_contacts], U, V, W, TD, TE, TF);
+      Compute_Jacobian_Rolling(rot[index + data_container->num_contacts], U, V, W, TD, TE, TF);
       if (contact_active_pairs[index].x) {
         D_T(index_mult + 3, body_id.x* 6 + 3) = -TA.x;
         D_T(index_mult + 3, body_id.x* 6 + 4) = -TA.y;
@@ -456,11 +462,12 @@ void ChConstraintRigidRigid::Build_D(SOLVERMODE solver_mode) {
   }
 }
 
-void ChConstraintRigidRigid::GenerateSparsity(SOLVERMODE solver_mode) {
+void ChConstraintRigidRigid::GenerateSparsity(SOLVERMODE solver_mode)
+{
   CompressedMatrix<real>& D_T = data_container->host_data.D_T;
   int2* ids = data_container->host_data.bids_rigid_rigid.data();
 
-  for (int index = 0; index < num_contacts; index++) {
+  for (int index = 0; index < data_container->num_contacts; index++) {
     int2 body_id = ids[index];
     int index_mult = _index_;
     if (contact_active_pairs[index].x) {

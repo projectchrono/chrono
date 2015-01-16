@@ -57,18 +57,22 @@ CH_RTTI(ChSystemParallel, ChSystem)
    virtual void AddBody(ChSharedPtr<ChBody> newbody);
    virtual void AddOtherPhysicsItem (ChSharedPtr<ChPhysicsItem> newitem);
 
-   virtual void ClearBodyForceVector();
-   virtual void Update();
-   virtual void UpdateBilaterals();
+   void ClearForceVariables();
+   void Update();
+   void UpdateBilaterals();
+   void UpdateLinks();
+   void UpdateOtherPhysics();
+   void UpdateBodies();
    void UpdateShafts();
-   virtual void UpdateBodies() = 0;
    void RecomputeThreads();
    void RecomputeBins();
    void PerturbBins(bool increase,
                     int number = 2);
 
-   virtual void LoadMaterialSurfaceData(ChSharedPtr<ChBody> newbody) = 0;
-   virtual void ChangeCollisionSystem(collision::ChCollisionSystem *newcollsystem);
+   virtual void AddMaterialSurfaceData(ChSharedPtr<ChBody> newbody) = 0;
+   virtual void UpdateMaterialSurfaceData(int index, ChBody* body) = 0;
+
+   virtual void ChangeCollisionSystem(COLLISIONSYSTEMTYPE type);
 
    virtual void PrintStepStats() {
       data_manager->system_timer.PrintReport();
@@ -125,8 +129,9 @@ CH_RTTI(ChSystemParallelDVI, ChSystemParallel)
    void ChangeSolverType(SOLVERTYPE type) {
       ((ChLcpSolverParallelDVI *) (LCP_solver_speed))->ChangeSolverType(type);
    }
-   virtual void LoadMaterialSurfaceData(ChSharedPtr<ChBody> newbody);
-   virtual void UpdateBodies();
+   virtual void AddMaterialSurfaceData(ChSharedPtr<ChBody> newbody);
+   virtual void UpdateMaterialSurfaceData(int index, ChBody* body);
+
    virtual void AssembleSystem();
    virtual void SolveSystem();
 };
@@ -140,9 +145,9 @@ CH_RTTI(ChSystemParallelDEM, ChSystemParallel)
                        ChContactDEM::NormalForceModel normal_model = ChContactDEM::HuntCrossley,
                        ChContactDEM::TangentialForceModel tangential_model = ChContactDEM::SimpleCoulombSliding);
 
-   virtual void LoadMaterialSurfaceData(ChSharedPtr<ChBody> newbody);
-   virtual void UpdateBodies();
-   virtual void ChangeCollisionSystem(collision::ChCollisionSystem *newcollsystem);
+   virtual void AddMaterialSurfaceData(ChSharedPtr<ChBody> newbody);
+   virtual void UpdateMaterialSurfaceData(int index, ChBody* body);
+   virtual void ChangeCollisionSystem(COLLISIONSYSTEMTYPE type);
 
    virtual void PrintStepStats();
 
