@@ -163,7 +163,7 @@ core::array<SDefineExp> grabDefineExpressions(core::stringc &shaderProgram)
 	core::array<SDefineExp> DefineArray;
 
 	// Dont bother stripping comments if theres no defines.
-	if(CurrentSearchPos = shaderProgram.find("##ifdef") == -1)
+	if((CurrentSearchPos = shaderProgram.find("##ifdef") == -1))
 		return DefineArray;
 
 	// Strip all comments, they get in the way.
