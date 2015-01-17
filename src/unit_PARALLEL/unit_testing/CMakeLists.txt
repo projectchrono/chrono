@@ -164,6 +164,7 @@ ENDIF()
 SET(TESTS_G
     test_linactuator
     test_bodyauxref
+    test_joints_dvi
 )
 
 FOREACH(PROGRAM ${TESTS_G})
