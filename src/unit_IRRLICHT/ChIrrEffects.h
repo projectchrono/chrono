@@ -1234,6 +1234,8 @@ class IPostProcessingRenderCallback
 public:
 	virtual void OnPreRender(EffectHandler* effect) = 0;
 	virtual void OnPostRender(EffectHandler* effect) = 0;
+
+	virtual ~IPostProcessingRenderCallback();
 };
 
 // Shader callback prototypes.
