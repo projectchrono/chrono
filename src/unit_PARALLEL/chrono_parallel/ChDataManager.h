@@ -87,6 +87,9 @@ struct host_container {
    thrust::host_vector<bool> collide_data;
    thrust::host_vector<real> inv_mass_data;
 
+   // Bilateral constraint type (all supported constraints)
+   thrust::host_vector<int> bilateral_type;
+
    // keeps track of active bilateral constraints
    thrust::host_vector<int> bilateral_mapping;
 
@@ -134,8 +137,6 @@ struct host_container {
    //While E is the compliance matrix, in reality it is completely diagonal
    //therefore it is stored in a vector for performance reasons
    DynamicVector<real> E;
-   //Vector that stores the gamma values for just the bilaterals
-   DynamicVector<real> gamma_bilateral;
 
 };
 
@@ -153,7 +154,8 @@ class CH_PARALLEL_API ChParallelDataManager {
    ChLcpSystemDescriptor* lcp_system_descriptor;
 
    // Indexing variables
-   uint num_bodies;        // The number of objects in a system
+   uint num_bodies;        // The number of rigid bodies in a system
+   uint num_shafts;        // the number of shafts in a system
    uint num_dof;           // The number of degrees of freedom in the system
    uint num_shapes;        // The number of collision models in a system
    uint num_contacts;      // The number of contacts in a system
@@ -161,7 +163,7 @@ class CH_PARALLEL_API ChParallelDataManager {
    uint num_unilaterals;   // The number of contact constraints
    uint num_bilaterals;    // The number of bilateral constraints
    uint num_constraints;   // Total number of constraints
-   uint num_shafts;        // The number of shafts in the system
+   uint nnz_bilaterals;    // The number of non-zero entries in the bilateral Jacobian
 
    // Flag indicating whether or not effective contact radius is calculated
    bool erad_is_set;

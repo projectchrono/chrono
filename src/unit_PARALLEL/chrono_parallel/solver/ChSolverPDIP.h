@@ -21,41 +21,38 @@
 #ifndef CHSOLVERPDIP_H
 #define CHSOLVERPDIP_H
 
-#include "chrono_parallel/ChConfigParallel.h"
 #include "chrono_parallel/solver/ChSolverParallel.h"
 
 namespace chrono {
+
 class CH_PARALLEL_API ChSolverPDIP: public ChSolverParallel {
 public:
-
-  ChSolverPDIP() :
-    ChSolverParallel() {
-  }
-  ~ChSolverPDIP() {
-  }
+  ChSolverPDIP() : ChSolverParallel() {}
+  ~ChSolverPDIP() {}
 
   void Solve() {
-    if (num_constraints == 0) {
+    if (data_container->num_constraints == 0) {
       return;
     }
-
-    data_container->measures.solver.total_iteration += SolvePDIP(max_iteration, num_constraints,
-    		data_container->host_data.R, data_container->host_data.gamma);
-
-
+    data_container->system_timer.start("ChSolverParallel_Solve");
+    data_container->measures.solver.total_iteration +=
+      SolvePDIP(max_iteration,
+                data_container->num_constraints,
+                data_container->host_data.R,
+                data_container->host_data.gamma);
+    data_container->system_timer.stop("ChSolverParallel_Solve");
   }
 
-  // Solve using a more streamlined but harder to read version of the APGD method
-  uint SolvePDIP(const uint max_iter,       // Maximum number of iterations
-      const uint size,               // Number of unknowns
-      const blaze::DynamicVector<real>& b,    // Rhs vector
-      blaze::DynamicVector<real>& x     // The vector of unknowns
-  );
-
+  // Solve using the primal-dual interior point method
+  uint SolvePDIP(const uint max_iter,                    // Maximum number of iterations
+                 const uint size,                        // Number of unknowns
+                 const blaze::DynamicVector<real>& b,    // Rhs vector
+                 blaze::DynamicVector<real>& x           // The vector of unknowns
+                 );
 
   // Compute the residual for the solver
   real Res4(blaze::DynamicVector<real> & gamma,
-      blaze::DynamicVector<real> & tmp);
+            blaze::DynamicVector<real> & tmp);
 
   // Compute the Schur Complement Product, dst = N * src
   void SchurComplementProduct(blaze::DynamicVector<real> & src, blaze::DynamicVector<real> & dst);
@@ -75,8 +72,8 @@ public:
   blaze::DynamicVector<real> gamma, f, r, lambda, r_d, r_g, ones, delta_gamma, delta_lambda, lambda_tmp, gamma_tmp;
   blaze::DynamicVector<real> r_cg, p_cg, z_cg, Ap_cg, prec_cg;
   blaze::CompressedMatrix<real> grad_f, M_hat, B, diaglambda, Dinv;
-
 };
-}
-#endif
 
+}
+
+#endif

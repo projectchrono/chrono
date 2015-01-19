@@ -2,58 +2,71 @@
 
 using namespace chrono;
 
-ChSolverParallel::ChSolverParallel() {
+ChSolverParallel::ChSolverParallel()
+{
   max_iteration = 100;
   current_iteration = 0;
   rigid_rigid = NULL;
   bilateral = NULL;
 }
-ChSolverParallel::~ChSolverParallel() {}
-void ChSolverParallel::Setup(ChParallelDataManager* data_container_) {
-  data_container = data_container_;
-  Initialize();
-}
 
-void ChSolverParallel::Project(real* gamma) {
+void ChSolverParallel::Project(real* gamma)
+{
   data_container->system_timer.start("ChSolverParallel_Project");
   rigid_rigid->Project(gamma);
   data_container->system_timer.stop("ChSolverParallel_Project");
 }
-void ChSolverParallel::Project_Single(int index, real* gamma) {
+
+void ChSolverParallel::Project_Single(int index, real* gamma)
+{
   data_container->system_timer.start("ChSolverParallel_Project");
   rigid_rigid->Project_Single(index, gamma);
   data_container->system_timer.stop("ChSolverParallel_Project");
 }
 //=================================================================================================================================
 
-void ChSolverParallel::shurA(blaze::DynamicVector<real>& x, blaze::DynamicVector<real>& out) { out = data_container->host_data.M_invD * x; }
+void ChSolverParallel::shurA(blaze::DynamicVector<real>& x, blaze::DynamicVector<real>& out)
+{
+  out = data_container->host_data.M_invD * x;
+}
 
-void ChSolverParallel::ComputeSRhs(custom_vector<real>& gamma, const custom_vector<real>& rhs, custom_vector<real3>& vel_data, custom_vector<real3>& omg_data, custom_vector<real>& b) {
+void ChSolverParallel::ComputeSRhs(custom_vector<real>& gamma,
+                                   const custom_vector<real>& rhs,
+                                   custom_vector<real3>& vel_data,
+                                   custom_vector<real3>& omg_data,
+                                   custom_vector<real>& b)
+{
   // TODO change SHRS to use blaze
   // ComputeImpulses(gamma, vel_data, omg_data);
   // rigid_rigid->ComputeS(rhs, vel_data, omg_data, b);
 }
-void ChSolverParallel::ShurProduct(const blaze::DynamicVector<real>& x, blaze::DynamicVector<real>& output) {
+
+void ChSolverParallel::ShurProduct(const blaze::DynamicVector<real>& x,
+                                   blaze::DynamicVector<real>& output)
+{
   data_container->system_timer.start("ShurProduct");
   output = data_container->host_data.D_T * ( data_container->host_data.M_invD * x ) + data_container->host_data.E * x;
   data_container->system_timer.stop("ShurProduct");
 }
 
-void ChSolverParallel::ShurBilaterals(const blaze::DynamicVector<real>& x, blaze::DynamicVector<real>& output) {
+void ChSolverParallel::ShurBilaterals(const blaze::DynamicVector<real>& x,
+                                      blaze::DynamicVector<real>& output)
+{
   CompressedMatrix<real>& D_T = data_container->host_data.D_T;
   CompressedMatrix<real>& M_invD = data_container->host_data.M_invD;
-  uint& num_bodies = data_container->num_bodies;
-  uint& num_unilaterals = data_container->num_unilaterals;
-  uint& num_bilaterals = data_container->num_bilaterals;
+  uint num_dof = data_container->num_dof;
+  uint num_unilaterals = data_container->num_unilaterals;
+  uint num_bilaterals = data_container->num_bilaterals;
 
-  blaze::SparseSubmatrix<CompressedMatrix<real> > D_T_sub = blaze::submatrix(D_T, num_unilaterals, 0, num_bilaterals, num_bodies * 6);
-  blaze::SparseSubmatrix<CompressedMatrix<real> > M_invD_sub = blaze::submatrix(M_invD, 0, num_unilaterals, num_bodies * 6, num_bilaterals);
+  blaze::SparseSubmatrix<CompressedMatrix<real> > D_T_sub = blaze::submatrix(D_T, num_unilaterals, 0, num_bilaterals, num_dof);
+  blaze::SparseSubmatrix<CompressedMatrix<real> > M_invD_sub = blaze::submatrix(M_invD, 0, num_unilaterals, num_dof, num_bilaterals);
   output = D_T_sub * ( M_invD_sub * x );
 }
 
 //=================================================================================================================================
 
-void ChSolverParallel::UpdatePosition(custom_vector<real>& x) {
+void ChSolverParallel::UpdatePosition(custom_vector<real>& x)
+{
   //
   //   if (rigid_rigid->solve_sliding == true || rigid_rigid->solve_spinning ==
   //   true) {
@@ -88,7 +101,8 @@ void ChSolverParallel::UpdatePosition(custom_vector<real>& x) {
   //   }
 }
 
-void ChSolverParallel::UpdateContacts() {
+void ChSolverParallel::UpdateContacts()
+{
   ////TODO: Re-implement this using new dispatch
   //   if (rigid_rigid->solve_sliding == true || rigid_rigid->solve_spinning ==
   //   true) {
@@ -107,7 +121,11 @@ void ChSolverParallel::UpdateContacts() {
   //   rigid_rigid->UpdateRHS();
 }
 
-uint ChSolverParallel::SolveStab(const uint max_iter, const uint size, const blaze::DenseSubvector<DynamicVector<real> >& mb, blaze::DenseSubvector<DynamicVector<real> >& x) {
+uint ChSolverParallel::SolveStab(const uint max_iter,
+                                 const uint size,
+                                 const blaze::DenseSubvector<DynamicVector<real> >& mb,
+                                 blaze::DenseSubvector<DynamicVector<real> >& x)
+{
   real& residual = data_container->measures.solver.residual;
   custom_vector<real>& iter_hist = data_container->measures.solver.iter_hist;
 

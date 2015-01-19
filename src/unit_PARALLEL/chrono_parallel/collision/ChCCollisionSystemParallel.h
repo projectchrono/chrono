@@ -1,20 +1,5 @@
-#ifndef CHC_COLLISIONSYSTEMGPUA_H
-#define CHC_COLLISIONSYSTEMGPUA_H
-//////////////////////////////////////////////////
-//
-//   ChCCollisionSystemGPU.h
-//
-//   Header for class for collision engine based on
-//   spatial subdivision method, performed on GPU.
-//
-//   HEADER file for CHRONO,
-//   Multibody dynamics engine
-//
-// ------------------------------------------------
-//   Copyright:Alessandro Tasora / DeltaKnowledge
-//             www.deltaknowledge.com
-// ------------------------------------------------
-///////////////////////////////////////////////////
+#ifndef CHC_COLLISIONSYSTEMPARALLEL_H
+#define CHC_COLLISIONSYSTEMPARALLEL_H
 
 #include "physics/ChProximityContainerBase.h"
 #include "physics/ChBody.h"
@@ -31,7 +16,7 @@
 
 namespace chrono {
 
-  class ChSystemParallel;  // forward declaration
+class ChSystemParallel;  // forward declaration
 
 namespace collision {
 ///
@@ -42,7 +27,7 @@ namespace collision {
 class CH_PARALLEL_API ChCollisionSystemParallel : public ChCollisionSystem {
  public:
 
-   ChCollisionSystemParallel();
+   ChCollisionSystemParallel(ChParallelDataManager* dc);
    virtual ~ChCollisionSystemParallel();
 
    /// Clears all data instanced by this algorithm
@@ -138,8 +123,8 @@ class CH_PARALLEL_API ChCollisionSystemParallel : public ChCollisionSystem {
    friend class chrono::ChSystemParallel;
 };
 
-}     // END_OF_NAMESPACE____
-}     // END_OF_NAMESPACE____
+}     // end namespace collision
+}     // end namespace chrono
 
 #endif
 

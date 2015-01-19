@@ -7,7 +7,7 @@ real ChSolverAPGDREF::Res4(blaze::DynamicVector<real> & gamma,
     const blaze::DynamicVector<real> & r,
     blaze::DynamicVector<real> & tmp) {
 
-  real gdiff = 1.0/pow(num_constraints,2.0);
+  real gdiff = 1.0 / pow(data_container->num_constraints, 2.0);
   ShurProduct(gamma, tmp);
   tmp = tmp - r;
   tmp = gamma - gdiff * (tmp);
@@ -136,7 +136,7 @@ uint ChSolverAPGDREF::SolveAPGDREF(const uint max_iter, const uint size,
     // (23) if r < Tau
     if(verbose) std::cout << "Residual: " << residual << ", Iter: " << current_iteration << std::endl;
     AtIterationEnd(residual, objective_value, iter_hist.size());
-    if (residual < tol_speed) {
+    if (residual < data_container->settings.solver.tol_speed) {
       // (24) break
       break;
 

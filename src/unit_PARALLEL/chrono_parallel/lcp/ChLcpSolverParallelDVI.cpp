@@ -15,13 +15,13 @@
 #include "chrono_parallel/solver/ChSolverPDIP.h"
 using namespace chrono;
 
-void ChLcpSolverParallelDVI::RunTimeStep(real step) {
+void ChLcpSolverParallelDVI::RunTimeStep(real step)
+{
   // Setup constants and other values for system
-
   data_container->settings.step_size = step;
+  data_container->settings.solver.tol_speed = step * data_container->settings.solver.tolerance;
 
-  // Compute the offsets and number of constrains depending on the solver
-  // mode
+  // Compute the offsets and number of constrains depending on the solver mode
   if (data_container->settings.solver.solver_mode == NORMAL) {
     rigid_rigid.offset = 1;
     data_container->num_unilaterals = 1 * data_container->num_contacts;
@@ -59,13 +59,6 @@ void ChLcpSolverParallelDVI::RunTimeStep(real step) {
 
   ComputeD();
   ComputeE();
-
-  // Copy gamma values for bilaterals from the previous timestep
-  // these will be used to warm start the bilateral solution
-#pragma omp parallel for
-  for (int i = 0; i < data_container->num_bilaterals; i++) {
-    data_container->host_data.gamma[i + data_container->num_unilaterals] = data_container->host_data.gamma_bilateral[i];
-  }
 
   // solve for the normal
   if (data_container->settings.solver.solver_mode == NORMAL || data_container->settings.solver.solver_mode == SLIDING || data_container->settings.solver.solver_mode == SPINNING) {
@@ -105,13 +98,6 @@ void ChLcpSolverParallelDVI::RunTimeStep(real step) {
     }
   }
 
-  data_container->host_data.gamma_bilateral.resize(data_container->num_bilaterals);
-
-#pragma omp parallel for
-  for (int i = 0; i < data_container->num_bilaterals; i++) {
-    data_container->host_data.gamma_bilateral[i] = data_container->host_data.gamma[i + data_container->num_unilaterals];
-  }
-
   ComputeImpulses();
 
     for (int i = 0; i <  data_container->measures.solver.iter_hist.size(); i++) {
@@ -123,38 +109,43 @@ void ChLcpSolverParallelDVI::RunTimeStep(real step) {
 #endif
 }
 
-void ChLcpSolverParallelDVI::ComputeD() {
-
-  CompressedMatrix<real>& D_T = data_container->host_data.D_T;
-
-  uint& num_constraints = data_container->num_constraints;
-  uint& num_bodies = data_container->num_bodies;
-  uint& num_shafts = data_container->num_shafts;
-  uint& num_dof = data_container->num_dof;
-  uint& num_contacts = data_container->num_contacts;
-  uint& num_bilaterals = data_container->num_bilaterals;
+void ChLcpSolverParallelDVI::ComputeD()
+{
+  uint num_constraints = data_container->num_constraints;
   if (num_constraints <= 0) {
     return;
   }
+
+  uint num_bodies = data_container->num_bodies;
+  uint num_shafts = data_container->num_shafts;
+  uint num_dof = data_container->num_dof;
+  uint num_contacts = data_container->num_contacts;
+  uint num_bilaterals = data_container->num_bilaterals;
+  uint nnz_bilaterals = data_container->nnz_bilaterals;
+
+  int nnz_unilaterals = 0;
+
+  switch (data_container->settings.solver.solver_mode) {
+  case NORMAL:
+    nnz_unilaterals = 6 * 2 * data_container->num_contacts;
+    break;
+  case SLIDING:
+    nnz_unilaterals = 6 * 6 * data_container->num_contacts;
+    break;
+  case SPINNING:
+    nnz_unilaterals = 6 * 9 * data_container->num_contacts;
+    break;
+  }
+
+  int nnz_total = nnz_unilaterals + nnz_bilaterals;
+
+  CompressedMatrix<real>& D_T = data_container->host_data.D_T;
   clear(D_T);
-
-  int unilateral_reserve = 0;
-
-  if (data_container->settings.solver.solver_mode == NORMAL) {
-    unilateral_reserve = 6 * 2 * data_container->num_contacts;
-  } else if (data_container->settings.solver.solver_mode == SLIDING) {
-    unilateral_reserve = 6 * 6 * data_container->num_contacts;
-  } else if (data_container->settings.solver.solver_mode == SPINNING) {
-    unilateral_reserve = 6 * 9 * data_container->num_contacts;
+  if (D_T.capacity() < nnz_total) {
+    D_T.reserve(nnz_total * 1.2);
   }
-
-  int constraint_reserve = unilateral_reserve + num_bilaterals * 6 * 2;
-
-  if (D_T.capacity() < constraint_reserve) {
-    D_T.reserve(constraint_reserve * 1.2);
-  }
-
   D_T.resize(num_constraints, num_dof, false);
+
   rigid_rigid.GenerateSparsity(data_container->settings.solver.solver_mode);
   bilateral.GenerateSparsity();
   rigid_rigid.Build_D(data_container->settings.solver.solver_mode);
@@ -164,24 +155,25 @@ void ChLcpSolverParallelDVI::ComputeD() {
   data_container->host_data.M_invD = data_container->host_data.M_inv * data_container->host_data.D;
 }
 
-void ChLcpSolverParallelDVI::ComputeE() {
-
-  uint& num_constraints = data_container->num_constraints;
-  if (num_constraints <= 0) {
+void ChLcpSolverParallelDVI::ComputeE()
+{
+  if (data_container->num_constraints <= 0) {
     return;
   }
-  DynamicVector<real>& E = data_container->host_data.E;
-  E.resize(num_constraints);
-  reset(E);
+
+  data_container->host_data.E.resize(data_container->num_constraints);
+  reset(data_container->host_data.E);
 
   rigid_rigid.Build_E(data_container->settings.solver.solver_mode);
   bilateral.Build_E();
 }
 
-void ChLcpSolverParallelDVI::ComputeR(SOLVERMODE mode) {
+void ChLcpSolverParallelDVI::ComputeR(SOLVERMODE mode)
+{
   if (data_container->num_constraints <= 0) {
     return;
   }
+
   data_container->host_data.b.resize(data_container->num_constraints);
   reset(data_container->host_data.b);
 

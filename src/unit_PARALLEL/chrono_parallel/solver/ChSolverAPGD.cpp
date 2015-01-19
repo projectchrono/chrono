@@ -26,7 +26,6 @@ uint ChSolverAPGD::SolveAPGD(const uint max_iter, const uint size, const blaze::
 
   // data_container->system_timer.start("ChSolverParallel_solverA");
   blaze::DynamicVector<real> one(size, 1.0);
-  data_container->system_timer.start("ChSolverParallel_Solve");
   ms.resize(size);
   mg_tmp2.resize(size);
   mb_tmp.resize(size);
@@ -117,11 +116,11 @@ uint ChSolverAPGD::SolveAPGD(const uint max_iter, const uint size, const blaze::
     theta_k = theta_k1;
     // if (current_iteration % 2 == 0) {
     mg_tmp2 = mg_tmp - mb;
-    real g_proj_norm = Res4(num_unilaterals, mg_tmp2, ml, mb_tmp);
+    real g_proj_norm = Res4(data_container->num_unilaterals, mg_tmp2, ml, mb_tmp);
 
-    if (num_bilaterals > 0) {
+    if (data_container->num_bilaterals > 0) {
       real resid_bilat = -1;
-      for (int i = num_unilaterals; i < ml.size(); i++) {
+      for (int i = data_container->num_unilaterals; i < ml.size(); i++) {
         resid_bilat = std::max(resid_bilat, std::abs(mg_tmp2[i]));
       }
       g_proj_norm = std::max(g_proj_norm, resid_bilat);
@@ -151,6 +150,5 @@ uint ChSolverAPGD::SolveAPGD(const uint max_iter, const uint size, const blaze::
 
   ml = ml_candidate;
 
-  data_container->system_timer.stop("ChSolverParallel_Solve");
   return current_iteration;
 }

@@ -33,8 +33,7 @@ namespace chrono {
 
 class CH_PARALLEL_API ChLcpSolverParallel : public ChLcpIterativeSolver {
  public:
-   ChLcpSolverParallel();
-   virtual ~ChLcpSolverParallel() {}
+   virtual ~ChLcpSolverParallel();
 
    //Each child class must define its own solve method
    virtual double Solve(ChLcpSystemDescriptor &sysd) {return 0;}
@@ -53,19 +52,15 @@ class CH_PARALLEL_API ChLcpSolverParallel : public ChLcpIterativeSolver {
    ChSolverParallel *solver;
 
  protected:
+   ChLcpSolverParallel(ChParallelDataManager* dc);
+
    real residual;
    ChConstraintBilateral bilateral;
 };
 
 class CH_PARALLEL_API ChLcpSolverParallelDVI : public ChLcpSolverParallel {
  public:
-   ChLcpSolverParallelDVI() {
-      solver = new ChSolverAPGD();
-   }
-
-   ~ChLcpSolverParallelDVI() {
-      delete solver;
-   }
+   ChLcpSolverParallelDVI(ChParallelDataManager* dc) : ChLcpSolverParallel(dc) {}
 
    virtual void RunTimeStep(real step);
 
@@ -85,13 +80,7 @@ class CH_PARALLEL_API ChLcpSolverParallelDVI : public ChLcpSolverParallel {
 
 class CH_PARALLEL_API ChLcpSolverParallelDEM : public ChLcpSolverParallel {
  public:
-   ChLcpSolverParallelDEM() {
-      solver = new ChSolverAPGD();
-   }
-
-   ~ChLcpSolverParallelDEM() {
-     delete solver;
-   }
+  ChLcpSolverParallelDEM(ChParallelDataManager* dc) : ChLcpSolverParallel(dc) {}
 
   virtual void RunTimeStep(real step);
 

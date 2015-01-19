@@ -47,8 +47,7 @@ int main(int argc,
    stringstream ss;
    ss << "container_checkpoint_50_settled.txt";
 
-   ChCollisionSystemBulletParallel * bullet_coll = new ChCollisionSystemBulletParallel();
-   system_gpu->ChangeCollisionSystem(bullet_coll);
+   system_gpu->ChangeCollisionSystem(COLLSYS_BULLET_PARALLEL);
    system_gpu->SetStep(timestep);
    system_gpu->SetMaxPenetrationRecoverySpeed(10000);
    utils::ReadCheckpoint(system_gpu, ss.str());

@@ -3,22 +3,30 @@
 
 using namespace chrono;
 
-ChLcpSolverParallel::ChLcpSolverParallel() {
+ChLcpSolverParallel::ChLcpSolverParallel(ChParallelDataManager* dc)
+: data_container(dc)
+{
   tolerance = 1e-7;
   record_violation_history = true;
   warm_start = false;
   residual = 0;
-  data_container = 0;
-  solver = 0;
+  solver = new ChSolverAPGD();
 }
 
-void ChLcpSolverParallel::ComputeMassMatrix() {
-  uint& num_bodies = data_container->num_bodies;
-  uint& num_shafts = data_container->num_shafts;
-  uint& num_dof = data_container->num_dof;
-  custom_vector<real>& inv_mass_data = data_container->host_data.inv_mass_data;
-  custom_vector<M33>& inr_data = data_container->host_data.inr_data;
-  custom_vector<real>& shaft_inr = data_container->host_data.shaft_inr;
+ChLcpSolverParallel::~ChLcpSolverParallel()
+{
+  delete solver;
+}
+
+void ChLcpSolverParallel::ComputeMassMatrix()
+{
+  uint num_bodies = data_container->num_bodies;
+  uint num_shafts = data_container->num_shafts;
+  uint num_dof = data_container->num_dof;
+
+  const custom_vector<real>& inv_mass_data = data_container->host_data.inv_mass_data;
+  const custom_vector<M33>& inr_data = data_container->host_data.inr_data;
+  const custom_vector<real>& shaft_inr = data_container->host_data.shaft_inr;
 
   CompressedMatrix<real>& M_inv = data_container->host_data.M_inv;
   clear(M_inv);

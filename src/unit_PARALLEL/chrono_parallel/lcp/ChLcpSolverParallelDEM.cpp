@@ -212,8 +212,8 @@ ChLcpSolverParallelDEM::host_AddContactForces(
 {
 #pragma omp parallel for
   for (int index = 0; index < ct_body_count; index++) {
-	real3 contact_force = data_container->settings.step_size * ct_body_force[index];
-	real3 contact_torque = data_container->settings.step_size * ct_body_torque[index];
+    real3 contact_force = data_container->settings.step_size * ct_body_force[index];
+    real3 contact_torque = data_container->settings.step_size * ct_body_torque[index];
     data_container->host_data.hf[ct_body_id[index]*6+0] += contact_force.x;
     data_container->host_data.hf[ct_body_id[index]*6+1] += contact_force.y;
     data_container->host_data.hf[ct_body_id[index]*6+2] += contact_force.z;
@@ -291,13 +291,12 @@ void ChLcpSolverParallelDEM::ComputeD()
   uint num_dof = data_container->num_dof;
   uint num_contacts = data_container->num_contacts;
   uint num_bilaterals = data_container->num_bilaterals;
-
-  uint constraint_reserve = num_bilaterals * 6 * 2;
+  uint nnz_bilaterals = data_container->nnz_bilaterals;
 
   CompressedMatrix<real>& D_T = data_container->host_data.D_T;
   clear(D_T);
-  if (D_T.capacity() < constraint_reserve) {
-    D_T.reserve(constraint_reserve * 1.2);
+  if (D_T.capacity() < nnz_bilaterals) {
+    D_T.reserve(nnz_bilaterals * 1.2);
   }
   D_T.resize(num_constraints, num_dof, false);
 
@@ -314,9 +313,8 @@ void ChLcpSolverParallelDEM::ComputeE()
     return;
   }
 
-  DynamicVector<real>& E = data_container->host_data.E;
-  E.resize(data_container->num_constraints);
-  reset(E);
+  data_container->host_data.E.resize(data_container->num_constraints);
+  reset(data_container->host_data.E);
 
   bilateral.Build_E();
 }
@@ -346,7 +344,9 @@ void ChLcpSolverParallelDEM::ComputeR()
 void
 ChLcpSolverParallelDEM::RunTimeStep(real step)
 {
+  // Setup constants and other values for system
   data_container->settings.step_size = step;
+  data_container->settings.solver.tol_speed = step * data_container->settings.solver.tolerance;
 
   data_container->num_unilaterals = 0;
   // This is the total number of constraints, note that there are no contacts
@@ -368,9 +368,6 @@ ChLcpSolverParallelDEM::RunTimeStep(real step)
   // If there are (bilateral) constraints, calculate Lagrange multipliers.
   if (data_container->num_constraints != 0) {
 
-    // Perform stabilization of the bilateral constraints. Currently, we only 
-    // project the velocities onto the velocity constraint manifold. This is done
-    // with an oblique projection (using the M-norm).
     data_container->system_timer.start("ChLcpSolverParallel_Setup");
 
     bilateral.Setup(data_container);
@@ -395,24 +392,9 @@ ChLcpSolverParallelDEM::RunTimeStep(real step)
 
     data_container->system_timer.stop("ChLcpSolverParallel_Setup");
 
-    ////First copy the gamma's from the previous timestep into the gamma vector
-    ////Currently because the initial guess is set to zero, this doesn't do anything so it has been commented out
-    //#pragma omp parallel for
-    //  for (int i = 0; i < data_container->num_bilaterals; i++) {
-    //    data_container->host_data.gamma[i + data_container->num_unilaterals] = data_container->host_data.gamma_bilateral[i];
-    //  }
-
-    // This will solve the system for only the bilaterals
+    // Solve for the Lagrange multipliers associated with bilateral constraints.
     PerformStabilization();
 
-    // Copy multipliers in the vector specific to bilaterals (these are the values
-    // used in calculating reaction forces)
-    data_container->host_data.gamma_bilateral.resize(data_container->num_bilaterals);
-
-#pragma omp parallel for
-    for (int i = 0; i < data_container->num_bilaterals; i++) {
-      data_container->host_data.gamma_bilateral[i] = data_container->host_data.gamma[i + data_container->num_unilaterals];
-    }
   }
 
   // Update velocity (linear and angular)
