@@ -71,7 +71,7 @@ TrackChain::TrackChain(const std::string& name,
 
 
   // Attach visualization to the base track shoe
-  AddVisualization(0);
+  AddVisualization();
 }
 
 // figure out the control points, 2 per rolling element to wrap the chain around.
@@ -421,38 +421,35 @@ void TrackChain::CreateChain(ChSharedPtr<ChBodyAuxRef> chassis,
 void TrackChain::CreateShoes(ChSharedPtr<ChBodyAuxRef> chassis,
     const ChVector<>& start_seg,
     const ChVector<>& end_seg,
-    const ChVector<>& end_curve,
+    const ChVector<>& end_curve_seg,
     const ChVector<>& rolling_elem_center,
     double clearance)
 {
   // get coordinate directions of the envelope surface
   // lateral in terms of the vehicle chassis
-  ChVector<> lateral_dir = Vcross(start_seg-end_seg, end_curve-end_seg);
-  lateral_dir.Normalize();
+  ChVector<> lateral_dir = Vcross(start_seg-end_seg, end_curve_seg-end_seg).GetNormalized();
   ChVector<> tan_dir = (end_seg - start_seg).GetNormalized();
-  // normal to the envelope surface
-  ChVector<> norm_dir = Vcross(lateral_dir, tan_dir);
+  ChVector<> norm_dir = Vcross(lateral_dir, tan_dir).GetNormalized();   // normal to the envelope surface
 
-  // used to place next shoe center
-  ChVector<> pos_on_seg;
-  // create the shoes along the segment.
-  // may not be creating shoes exactly parallel to envelope surface.
-  double dist_to_end = Vdot(end_seg - pos_on_seg, tan_dir);
-  ChVector<> shoe_pos;
+  ChVector<> pos_on_seg;  // current position on the boundary, e.g. the line segment.
+  ChVector<> shoe_pos;    // current shoe position, abs coords.
   ChMatrix33<> seg_rot_A; // line segment orientation, x points from start to end.
+
   // special case: very first shoe
   // A single ChBody shoe is created upon construction, so it be can copied by the other shoes.
+  // add 1) collision geometry, 2) set init. pos/rot, 3) add to system.
   if(m_numShoes == 1)
   {
-    pos_on_seg = start_seg;
-    AddCollisionGeometry(0);
-    // initialize pos, rot of this shoe.
+    pos_on_seg = start_seg; // special case
+    AddCollisionGeometry(); // add collision geometry to the last 
     shoe_pos = pos_on_seg + norm_dir * m_shoe_chain_Yoffset;
     seg_rot_A.Set_A_axis(tan_dir, norm_dir, lateral_dir);
     m_shoes.front()->SetPos(shoe_pos);
     m_shoes.front()->SetRot(seg_rot_A);
-    // pos, rot set, add to system
     chassis->GetSystem()->Add(m_shoes.front());
+
+    // First shoe on first line segment should always be aligned.
+    m_aligned_with_seg = true; 
   }
   else
   {

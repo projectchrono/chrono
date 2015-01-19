@@ -86,7 +86,7 @@ private:
   void CreateShoes(ChSharedPtr<ChBodyAuxRef> chassis,
     const ChVector<>& start_seg,
     const ChVector<>& end_seg,
-    const ChVector<>& end_curve,
+    const ChVector<>& end_curve_seg,
     const ChVector<>& rolling_elem_center,
     double clearance);
 
@@ -106,7 +106,7 @@ private:
   std::vector<ChSharedPtr<ChBody>> m_shoes;  ///< handle to track shoes
   // std::vector<ChSharedPtr<ChBodyAuxRef>> m_shoes;  ///< handle to track shoes
   std::vector<ChSharedPtr<ChLinkLockRevolute>> m_pins; ///< handles to pin joints
-  size_t m_numShoes;      ///< number of track shoes and pins
+  size_t m_numShoes;      ///< number of track shoe bodies added to m_shoes;
   bool m_aligned_with_seg;  ///< when building track chain, was last shoe created exactly aligned with the envelope?
 
 
