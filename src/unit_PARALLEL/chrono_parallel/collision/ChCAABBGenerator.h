@@ -23,6 +23,7 @@ class CH_PARALLEL_API ChCAABBGenerator {
 				const custom_vector<real3>& convex_data,// Convex object data
 				const custom_vector<real3> &body_pos,//Position global
 				const custom_vector<real4> &body_rot,//Rotation global
+				const real collision_envelope,
 				custom_vector<real3> &aabb_data);
 
 				private:
@@ -37,6 +38,7 @@ class CH_PARALLEL_API ChCAABBGenerator {
 						const real3* convex_data,
 						const real3 *body_pos,
 						const real4 *body_rot,
+						const real collision_envelope,
 						real3 *aabb_data
 				);
 

@@ -1,11 +1,21 @@
+//////////////////////////////////////////////////
+//
+//   ChCCollisionSystemGPU->cpp
+//
+// ------------------------------------------------
+//       Copyright:Alessandro Tasora / DeltaKnowledge
+//             www.deltaknowledge.com
+// ------------------------------------------------
+///////////////////////////////////////////////////
+
 #include "chrono_parallel/collision/ChCCollisionSystemParallel.h"
 
 namespace chrono {
 namespace collision {
 
-ChCollisionSystemParallel::ChCollisionSystemParallel(ChParallelDataManager* dc)
-: data_container(dc)
-{
+ChCollisionSystemParallel::ChCollisionSystemParallel() {
+  data_container = 0;
+  // Default broadphase and narrowphase processing.
   broadphase = new ChCBroadphase;
   narrowphase = new ChCNarrowphaseDispatch;
 }
@@ -96,6 +106,7 @@ void ChCollisionSystemParallel::Run() {
                               data_container->host_data.convex_data,
                               data_container->host_data.pos_data,
                               data_container->host_data.rot_data,
+                              data_container->settings.collision.collision_envelope,
                               data_container->host_data.aabb_rigid);
 
   // aabb_generator.GenerateAABBFluid(data_container->host_data.fluid_pos, data_container->fluid_rad, data_container->host_data.aabb_fluid);
@@ -128,6 +139,7 @@ void ChCollisionSystemParallel::GetOverlappingAABB(custom_vector<bool>& active_i
                               data_container->host_data.convex_data,
                               data_container->host_data.pos_data,
                               data_container->host_data.rot_data,
+                              data_container->settings.collision.collision_envelope,
                               data_container->host_data.aabb_rigid);
 #pragma omp parallel for
   for (int i = 0; i < data_container->host_data.typ_rigid.size(); i++) {

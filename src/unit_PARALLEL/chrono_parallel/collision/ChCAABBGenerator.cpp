@@ -135,6 +135,7 @@ __device__ __host__ void function_ComputeAABB(
 		const real3 *body_pos,
 		const real4 *body_rot,
 		const uint &numAABB,
+		const real & collision_envelope,
 		real3 *aabb_data) {
 	shape_type type = obj_data_T[index];
 	uint id = obj_data_ID[index];
@@ -148,7 +149,7 @@ __device__ __host__ void function_ComputeAABB(
 
 	if (type == SPHERE) {
 		A = quatRotate(A, body_rot[id]);
-		ComputeAABBSphere(B.x, A + position, temp_min, temp_max);
+		ComputeAABBSphere(B.x + collision_envelope, A + position, temp_min, temp_max);
 		//if(id==6){
 		//cout<<temp_min.x<<" "<<temp_min.y<<" "<<temp_min.z<<"  |  "<<temp_max.x<<" "<<temp_max.y<<" "<<temp_max.z<<endl;
 
@@ -159,11 +160,11 @@ __device__ __host__ void function_ComputeAABB(
 		C = quatRotate(C, body_rot[id]) + position;
 		ComputeAABBTriangle(A, B, C, temp_min, temp_max);
 	} else if (type == ELLIPSOID || type == BOX || type == CYLINDER || type == CONE) {
-		ComputeAABBBox(B, A, position, obj_data_R[index], body_rot[id], temp_min, temp_max);
+		ComputeAABBBox(B + collision_envelope, A, position, obj_data_R[index], body_rot[id], temp_min, temp_max);
 	} else if (type == ROUNDEDBOX || type == ROUNDEDCYL || type == ROUNDEDCONE) {
-      ComputeAABBBox(B+C.x, A, position, obj_data_R[index], body_rot[id], temp_min, temp_max);
+      ComputeAABBBox(B+C.x + collision_envelope, A, position, obj_data_R[index], body_rot[id], temp_min, temp_max);
     } else if (type == CAPSULE) {
-		real3 B_ = R3(B.x, B.x + B.y, B.z);
+		real3 B_ = R3(B.x, B.x + B.y, B.z) + collision_envelope;
 		ComputeAABBBox(B_, A, position, obj_data_R[index], body_rot[id], temp_min, temp_max);
     } else if (type == CONVEX) {
        ComputeAABBConvex(convex_points, B, A, position, rotation, temp_min, temp_max);
@@ -186,11 +187,12 @@ void ChCAABBGenerator::host_ComputeAABB(
 		const real3* convex_data,
 		const real3 *body_pos,
 		const real4 *body_rot,
+		const real collision_envelope,
 		real3 *aabb_data) {
 #pragma omp parallel for
 
 	for (int i = 0; i < numAABB; i++) {
-		function_ComputeAABB(i, obj_data_T, obj_data_A, obj_data_B, obj_data_C, obj_data_R, obj_data_ID,convex_data, body_pos, body_rot, numAABB, aabb_data);
+		function_ComputeAABB(i, obj_data_T, obj_data_A, obj_data_B, obj_data_C, obj_data_R, obj_data_ID,convex_data, body_pos, body_rot, numAABB, collision_envelope, aabb_data);
 	}
 }
 //%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -206,6 +208,7 @@ const custom_vector<uint> &obj_data_ID,
 const custom_vector<real3>& convex_data,
 const custom_vector<real3> &body_pos,
 const custom_vector<real4> &body_rot,
+const real collision_envelope,
 custom_vector<real3> &aabb_data) {
 
 #if PRINT_LEVEL==2
@@ -237,6 +240,7 @@ custom_vector<real3> &aabb_data) {
 				convex_data.data(),
 				body_pos.data(),
 				body_rot.data(),
+				collision_envelope,
 				aabb_data.data());
 #endif
 #if PRINT_LEVEL==2
