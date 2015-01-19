@@ -3,20 +3,23 @@
 using namespace chrono;
 
 void ChSolverAPGD::SetAPGDParams(real theta_k, real shrink, real grow) {
-  init_theta_k = theta_k;
+  init_theta = theta_k;
   step_shrink = shrink;
   step_grow = grow;
 }
 
-real ChSolverAPGD::Res4(const int SIZE, blaze::DynamicVector<real>& mg_tmp2, blaze::DynamicVector<real>& x, blaze::DynamicVector<real>& mb_tmp) {
+real ChSolverAPGD::Res4(blaze::DynamicVector<real>& mg_tmp2, blaze::DynamicVector<real>& x, blaze::DynamicVector<real>& temp) {
   real gdiff = 1e-6;
   real sum = 0;
-  mb_tmp = -gdiff * mg_tmp2 + x;
-  Project(mb_tmp.data());
-  mb_tmp = (-1.0f / (gdiff)) * (mb_tmp - x);
-  sum = (mb_tmp, trans(mb_tmp));
+  temp = x - gdiff * mg_tmp2;
+  Project(temp.data());
+  temp = (-1.0f / (gdiff)) * (temp - x);
+  sum = (temp, temp);
   return sqrt(sum);
 }
+
+
+#define SHUR(x) (data_container->host_data.D_T * ( data_container->host_data.M_invD * x ) + data_container->host_data.E * x)
 
 uint ChSolverAPGD::SolveAPGD(const uint max_iter, const uint size, const blaze::DynamicVector<real>& r, blaze::DynamicVector<real>& gamma) {
   real& residual = data_container->measures.solver.residual;
@@ -26,20 +29,17 @@ uint ChSolverAPGD::SolveAPGD(const uint max_iter, const uint size, const blaze::
   blaze::DynamicVector<real> one(size, 1.0);
   data_container->system_timer.start("ChSolverParallel_Solve");
 
-  ms.resize(size);
-  mg_tmp2.resize(size);
+  N_gamma_new.resize(size);
   temp.resize(size);
   g.resize(size);
-  mg.resize(size);
-  mx.resize(size);
+  gamma_new.resize(size);
   y.resize(size);
-  mso.resize(size);
 
   residual = 10e30;
 
-  theta_k = init_theta_k;
-  theta_k1 = theta_k;
-  beta_k1 = 0.0;
+  theta = init_theta;
+  theta_new = theta;
+  beta_new = 0.0;
   mb_tmp_norm = 0, mg_tmp_norm = 0;
   obj1 = 0.0, obj2 = 0.0;
   dot_mg_ms = 0, norm_ms = 0;
@@ -53,7 +53,7 @@ uint ChSolverAPGD::SolveAPGD(const uint max_iter, const uint size, const blaze::
 
   temp = gamma - one;
   L = sqrt((real)(temp, temp));
-  ShurProduct(temp, temp);
+  temp = SHUR(temp); //ShurProduct(temp, temp);
   L = L == 0 ? 1 : L;
   L = sqrt((double)(temp, temp)) / L;
 
@@ -62,81 +62,75 @@ uint ChSolverAPGD::SolveAPGD(const uint max_iter, const uint size, const blaze::
 
   for (current_iteration = 0; current_iteration < max_iter; current_iteration++) {
 
-    ShurProduct(y, g);
-    g = g - r;
-    mx = y - t * g;
+    //ShurProduct(y, g);
+    g = SHUR(y) - r;
+    gamma_new = y - t * g;
 
-    Project(mx.data());
+    Project(gamma_new.data());
 
-    ShurProduct(mx, temp);
+    N_gamma_new = SHUR(gamma_new); //ShurProduct(mx, temp_N_mx);
+    obj1 = 0.5 * (gamma_new, N_gamma_new) - (gamma_new, r);
 
-    obj1 = 0.5 *(mx, temp) - (mx , r);
-    obj2 = 0.5 * (y, temp) - (y, r);
+    //ShurProduct(y, temp);
+    obj2 = 0.5 * (y, SHUR(y)) - (y, r);
 
-   // ms = .5 * mg_tmp1 - r;
-    ms = mx - y;
-    dot_mg_ms = (mg,ms);
-    norm_ms = (ms,ms);
+    temp = gamma_new - y;
+    dot_mg_ms = (g, temp);
+    norm_ms = (temp, temp);
 
     while (obj1 > obj2 + dot_mg_ms + 0.5 * L * norm_ms) {
       L = 2.0 * L;
       t = 1.0 / L;
-      mx = -t * mg + y;
-      Project(mx.data());
-
-      ShurProduct(mx, temp);
-      mso = .5 * temp - r;
-      obj1 = (mx, trans(mso));
-      ms = mx - y;
-      dot_mg_ms = (mg, trans(ms));
-      norm_ms = (ms, trans(ms));
+      gamma_new = y - t * g;
+      Project(gamma_new.data());
+      N_gamma_new = SHUR(gamma_new);       //ShurProduct(mx, temp_N_mx);
+      obj1 = 0.5 * (gamma_new, N_gamma_new) - (gamma_new, r);
+      temp = gamma_new - y;
+      dot_mg_ms = (g, temp);
+      norm_ms = (temp, temp);
     }
-    theta_k1 = (-pow(theta_k, 2) + theta_k * sqrt(pow(theta_k, 2) + 4)) / 2.0;
-    beta_k1 = theta_k * (1.0 - theta_k) / (pow(theta_k, 2) + theta_k1);
+    theta_new = (-pow(theta, 2.0) + theta * sqrt(pow(theta, 2.0) + 4.0)) / 2.0;
+    beta_new = theta * (1.0 - theta) / (pow(theta, 2.0) + theta_new);
 
-    ms = mx - gamma;
-    y = beta_k1 * ms + mx;
-    real dot_mg_ms = (mg, trans(ms));
+    temp = gamma_new - gamma;
+    y = beta_new * temp + gamma_new;
+    real dot_mg_ms = (g, temp);
 
-    if (dot_mg_ms > 0) {
-      y = mx;
-      theta_k1 = 1.0;
-    }
-    L = 0.9 * L;
-    t = 1.0 / L;
-    gamma = mx;
-    step_grow = 2.0;
-    theta_k = theta_k1;
-    // if (current_iteration % 2 == 0) {
-    mg_tmp2 = temp - r;
-    real g_proj_norm = Res4(num_unilaterals, mg_tmp2, gamma, temp);
+    N_gamma_new = N_gamma_new - r;
+    real res = Res4(N_gamma_new, gamma, temp);
 
-    if (num_bilaterals > 0) {
-      real resid_bilat = -1;
-      for (int i = num_unilaterals; i < gamma.size(); i++) {
-        resid_bilat = std::max(resid_bilat, std::abs(mg_tmp2[i]));
-      }
-      g_proj_norm = std::max(g_proj_norm, resid_bilat);
-    }
-
-    bool update = false;
-    if (g_proj_norm < residual) {
-      residual = g_proj_norm;
-      gamma_hat = gamma;
-      objective_value = (gamma_hat, mso);    // maxdeltalambda = GetObjectiveBlaze(gamma_hat, r);
-      update = true;
+    if (res < residual) {
+      residual = res;
+      gamma_hat = gamma_new;
     }
 
     AtIterationEnd(residual, objective_value, iter_hist.size());
-    if (data_container->settings.solver.test_objective) {
-      if (objective_value <= data_container->settings.solver.tolerance_objective) {
-        break;
-      }
-    } else {
-      if (residual < data_container->settings.solver.tolerance) {
-        break;
-      }
+    if (residual < data_container->settings.solver.tolerance) {
+      break;
     }
+
+    if (dot_mg_ms > 0) {
+      y = gamma_new;
+      theta_new = 1.0;
+    }
+
+    L = 0.9 * L;
+    t = 1.0 / L;
+    step_grow = 2.0;
+    theta = theta_new;
+
+    gamma = gamma_new;
+    //objective_value = (gamma_hat, mso);    // maxdeltalambda = GetObjectiveBlaze(gamma_hat, r);
+
+
+
+
+//    if (data_container->settings.solver.test_objective) {
+//      if (objective_value <= data_container->settings.solver.tolerance_objective) {
+//        break;
+//      }
+//    } else {
+//    }
   }
 
   gamma = gamma_hat;
