@@ -459,40 +459,48 @@ void TrackChain::CreateShoes(ChSharedPtr<ChBodyAuxRef> chassis,
     pos_on_seg = m_shoes.back()->GetPos() - norm_dir * h;
   }
 
+  // First, create the shoes along the linear segment. Connect by pins via revolute constraints.
+  double dist_to_end = Vdot(end_seg - pos_on_seg, tan_dir);
 
-  // when the track chain is not exactly aligned to the envelope, rotate the shoe about the pin.
-  // First shoe is where it should be.
-  m_aligned_with_seg = true; 
-  // keep going until last created shoe COG passes the end point
+  ChFrame<> COG_frame;
+  ChFrame<> pin_frame;  // between this shoe and the last one
+  // pin is just forward of the COG, and vice-versa
+  ChVector<> COG_to_pin_rel(m_pin_dist/2.0, 0, 0); 
+
+  // keep going until last created shoe COG pos_on_seg passes the end point.
+  // Want to overshoot upon reaching curved segment, to not interpenetrate surface boundary.
   while(dist_to_end > 0 )  
   {
-    // create a new body by copying the first.
-    // need to reset the collision shape.
-    // TODO: reset visualization asset also?? 
+    // create a new body by copying the first, add to handle vector.
+    // Copy doesn't set the collision shape.
+    // Don't reset visualization assets, copied in ChPhysicsItem::Copy()
     m_shoes.push_back(ChSharedPtr<ChBody>(new ChBody));
     m_numShoes++;
     m_shoes.back()->Copy( m_shoes.front().get_ptr() );
-    AddCollisionGeometry(m_numShoes-1);
-    // m_shoes.push_back(ChSharedPtr<ChBodyAuxRef>(new ChBodyAuxRef( *(m_shoes[0].get_ptr()) )) );
+    AddCollisionGeometry();
+    // m_shoes.push_back(ChSharedPtr<ChBodyAuxRef>(new ChBodyAuxRef( m_shoes.front())));
 
     m_shoes.back()->SetNameString( "shoe " + std::to_string(m_numShoes) );
 
     // Find where the pin to the previous shoe should be positioned.
     // From there, calculate what the body pos/rot should be.
-    // Add both the body and the pin.
-    ChVector<> COG_to_pin_rel(m_pin_dist/2.0, 0, 0);  // pin is just forward of the COG.
-    // use the COG pos, rot of the previous shoe
+    // Rse the COG pos, rot of the previous shoe to get us there.
     ChVector<> pin_pos = (m_shoes.end()[-2])->GetFrame_COG_to_abs() * COG_to_pin_rel;
-    
-    // creating shoes along the line segment, one of two situations:
+    pin_frame = ChFrame<>(pin_pos, (m_shoes.end()[-2])->GetRot() );
+
+    // Creating shoes along the line segment, one of two situations possible:
     // 1) shoe is exactly on the envelope boundary, and exactly parallel (e.g., first segment this is guaranteed).
-    // 2) shoe is off the boundary, and will have a rot slightly different than previous shoe to get it closer
-    //    e.g., after a straight segment follows a curved segment.
-    ChFrame<> COG_frame( (m_shoes.end()[-2])->GetFrame_COG_to_abs() );
-    ChFrame<> pin_frame(pin_pos, COG_frame.GetRot() );
-    // set the body pos. from the pin_pos;
+    // 2) shoe is off the boundary, and will have a rot slightly different than previous shoe to get it closer,
+    //      e.g., after a straight segment follows a curved segment.
+
+    // At first,COG frame assume this shoe has same orientation as the previous.
+    COG_frame = ChFrame<>((m_shoes.end()[-2])->GetFrame_COG_to_abs() );
+    // set the body pos. from the pin_pos w/ the previous shoe;
     COG_frame.SetPos(pin_frame * COG_to_pin_rel);
-    // the last shoe pin is set so this shoe can be exactly aligned with the line segment
+
+    // Assumption 1) is true if: 
+    //  A) We set the last shoe pin in such a way so this shoe can be exactly aligned with the line segment, or
+    //  B) the last shoe on the linear segment was already aligned
     if( m_aligned_with_seg )
     {
       // previous shoe has been positioned so pin location is exactly 
