@@ -582,28 +582,89 @@ void TrackChain::CreateShoes(ChSharedPtr<ChBodyAuxRef> chassis,
     //  the last two shoes.
     ChVector<> COG1_pin = pin_frame.GetPos() - (m_shoes.end()[-2])->GetPos();
     ChVector<> pin_COG2 = COG_frame.GetPos() - pin_frame.GetPos();
-    ChVector<> pos_on_seg_A = pos_on_seg + Vdot(COG1_pin, tan_dir) + Vdot(pin_COG2, tan_dir);
+    ChVector<> pos_on_seg_A = pos_on_seg + tan_dir*(Vdot(COG1_pin, tan_dir) + Vdot(pin_COG2, tan_dir));
 
     // B) when the COG of the last shoe passes the endpoint.
     // project the COG normal to segment surface.
     double proj_dist = Vdot(norm_dir, COG_frame.GetPos() - start_seg);
     ChVector<> pos_on_seg_B = COG_frame.GetPos() - norm_dir*proj_dist;
     
-
-    if( 1 )
+    // check the largest error term. Say something if it's exceeded.
+    if( (pos_on_seg_A - pos_on_seg_B).LengthInf() > 1e-6 )
       GetLog() << " comparing pos_on_seg error: " << pos_on_seg_A - pos_on_seg_B << "\n";
 
-    // update distance, so we can get out of this loop eventually
+    // update distance using method B
     pos_on_seg = pos_on_seg_B;
+    // will become negative when the last created shoe COG center is past the endpoint.
     dist_to_end = Vdot(end_seg - pos_on_seg, tan_dir);
   }
 
-  // At this point, wrap the shoes around the curved segment.
-  ChVector<> next_pin_loc = COG_frame*COG_to_pin_rel;
-  dist_to_end = (end_curve_seg - shoe_pos).Length();
-  while(dist_to_end > 0) // keep going until 
+  // At this point, wrap the shoes around the curved segment (if there is one).
+  //  E.g., roadwheels 1-2, 2-3, 3-4, 4-5 have no curved segment, so skip.
+  if( (end_curve_seg - end_seg).LengthInf() < 1e-3)
   {
+    GetLog() << " no curved line segment, at location: " << end_curve_seg << " ... \n";
+    return;
+  }
 
+  // It is assumed that there is a previous shoe with a pin location that is compatible.
+  // Guess the next pin location assuming the same orientation as the last created body.
+  ChVector<> next_pin_loc;
+  dist_to_end = 1;
+  // radius of the next pin position
+  double r_pin2 = std::sqrt( pow(clearance + m_shoe_chain_Yoffset,2) + pow(m_pin_dist/2.0,2) );
+  // tangent direction at the end of the curved segment
+  ChVector<> tan_dir_end_curved_seg = Vcross(end_curve_seg - rolling_elem_center, lateral_dir).GetNormalized();
+
+  // stop when furthest pin location on last created shoe body passes the end point
+  while(dist_to_end > 0) 
+  {
+    // create a new body by copying the first, add to handle vector.
+    // Copy doesn't set the collision shape.
+    // Don't reset visualization assets, copied in ChPhysicsItem::Copy()
+    m_shoes.push_back(ChSharedPtr<ChBody>(new ChBody));
+    m_numShoes++;
+    m_shoes.back()->Copy( m_shoes.front().get_ptr() );
+    AddCollisionGeometry();
+    // m_shoes.push_back(ChSharedPtr<ChBodyAuxRef>(new ChBodyAuxRef( m_shoes.front())));
+
+    m_shoes.back()->SetNameString( "shoe " + std::to_string(m_numShoes) );
+
+    // pin between shoes position is know, orient the same as the previous shoe.
+    pin_frame = ChFrame<>(COG_frame*COG_to_pin_rel, COG_frame.GetRot() );
+    ChVector<> r1 = pin_frame.GetPos() - rolling_elem_center; // center to first pin
+
+    // COG orientation will need to be modified, according to clearance of the rolling element
+    double theta = std::acos(r_pin2 / r1.Length() );
+    ChFrame<> rot_frame(ChVector<>(), Q_from_AngAxis(-theta, pin_frame.GetRot().GetZaxis() ));
+    // rotate r1 vector about the lateral axis, to get the direction of r2
+    ChVector<> r2_hat = (r1 >> rot_frame).GetNormalized();
+    ChVector<> r2 = r2_hat * r_pin2;
+
+    // orient the COG so x-hat = r2 - r1, z-axis is the same as the pin.
+    ChVector<> x_hat = (r2 - r1).GetNormalized();
+    ChVector<> y_hat = Vcross( pin_frame.GetRot().GetZaxis(), x_hat).GetNormalized();
+    ChMatrix33<> COG_Amat;
+    COG_Amat.Set_A_axis(x_hat, y_hat, pin_frame.GetRot().GetZaxis());
+    COG_frame.SetRot(COG_Amat);
+
+    // orient the pin the same as the new shoe
+    pin_frame.SetRot(COG_Amat);
+
+    // finally, find COG pos w/ the newly oriented pin, add to system
+    COG_frame.SetPos( pin_frame * COG_to_pin_rel );
+    chassis->GetSystem()->Add(m_shoes.back());
+
+    // create and init. the pin between the last shoe and this one, add to system.
+    m_pins.push_back(ChSharedPtr<ChLinkLockRevolute>(new ChLinkLockRevolute));
+    m_pins.back()->SetNameString(" pin " + std::to_string(m_pins.size()) );
+    // pin frame picked up from COG_frame, where z-axis should be in the lateral direction.
+    m_pins.back()->Initialize(m_shoes.back(), m_shoes.end()[-2], ChCoordsys<>(pin_frame.GetPos(), pin_frame.GetRot() ) );
+    chassis->GetSystem()->AddLink(m_pins.back());
+
+    // figure out how far pin 2 is from the end of the circular segment, abs. coords
+    ChVector<> p2_end = end_curve_seg - (COG_frame * COG_to_pin_rel);
+    dist_to_end = Vdot(p2_end, tan_dir_end_curved_seg);
 
   }
 
