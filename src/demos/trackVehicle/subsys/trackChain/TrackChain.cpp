@@ -513,7 +513,7 @@ void TrackChain::CreateShoes(ChSharedPtr<ChBodyAuxRef> chassis,
       //  2) stays as clsoe as possible to the line segment (e.g., by rotating the body slightly at the pin_pos)
       //  3) does not rotate the body too aggressively
 
-      // For 1), consider a point at the very edge of a bounding box
+      // For 1), consider a point at the very front edge of a bounding box
       ChVector<> corner_pos_rel( (m_pin_dist + m_shoe_box.x)/2.0, m_shoe_chain_Yoffset, 0);
       double corner_pos_len = corner_pos_rel.Length();
       ChVector<> corner_pos_abs = pin_frame * corner_pos_rel;
@@ -533,14 +533,17 @@ void TrackChain::CreateShoes(ChSharedPtr<ChBodyAuxRef> chassis,
       }
       else
       {
+        // place the shoe relative to the pin location, so the next pin location is set such 
+        //  that the next shoe body can be easily aligned to the line segment.
         ChVector<> r0 = corner_pos_abs - pin_pos;
         // project pin center down to the line segment, normal to segment. Distance to r1.
         double len_on_seg = std::sqrt( pow(corner_pos_len,2) - pow(pin_clearance,2) );
         ChVector<> r1 = -norm_dir * pin_clearance + tan_dir * len_on_seg;
         // rotate shoe about the z-axis of the pin, at the pin
-        psi = std::acos( Vdot(r0,r1) );
+        psi = std::acos( Vdot(r0.GetNormalized(), r1.GetNormalized()) );
         ChFrame<> rot_frame(ChVector<>(), Q_from_AngAxis(-psi, pin_frame.GetRot().GetZaxis() ));
         pin_frame = pin_frame >> rot_frame;
+
         // can find the shoe COG pos/rot now, from pin orientation, and COG offset from pin pos
         COG_frame.SetRot(pin_frame.GetRot() );
         COG_frame.SetPos(pin_frame * COG_to_pin_rel); 
