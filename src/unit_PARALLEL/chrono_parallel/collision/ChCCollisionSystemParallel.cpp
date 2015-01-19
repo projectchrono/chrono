@@ -13,9 +13,9 @@
 namespace chrono {
 namespace collision {
 
-ChCollisionSystemParallel::ChCollisionSystemParallel() {
-  data_container = 0;
-  // Default broadphase and narrowphase processing.
+ChCollisionSystemParallel::ChCollisionSystemParallel(ChParallelDataManager* dc)
+: data_container(dc)
+{
   broadphase = new ChCBroadphase;
   narrowphase = new ChCNarrowphaseDispatch;
 }
