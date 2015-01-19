@@ -59,10 +59,17 @@ public:
 private:
 
   // private functions
-  /// add visualization assets to a track shoe
+
+  /// add visualization assets to the last added body
+  void TrackChain::AddVisualization();
+
+  /// add visualization assets to a specific track shoe body
   void AddVisualization(size_t track_idx);
 
-  /// add collision geometrey to a track shoe
+  /// add collision geometry to the last shoe added
+  void AddCollisionGeometry();
+
+  /// add collision geometrey to a certain track shoe
   void AddCollisionGeometry(size_t track_idx);
    
   /// initialize shoe bodies by wrapping the track chain around the rolling elements.

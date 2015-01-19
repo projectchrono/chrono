@@ -255,6 +255,12 @@ void TrackChain::Initialize(ChSharedPtr<ChBodyAuxRef> chassis,
   CreateChain(chassis, control_to_abs, rolling_to_abs, clearance, start_to_abs.GetPos() );
 }
 
+void TrackChain::AddVisualization()
+{
+  assert(m_numShoes > 0);
+  AddVisualization(m_numShoes -1);
+}
+
 void TrackChain::AddVisualization(size_t track_idx)
 {
   assert(track_idx < m_numShoes);
@@ -292,6 +298,12 @@ void TrackChain::AddVisualization(size_t track_idx)
   }
 }
 
+
+void TrackChain::AddCollisionGeometry()
+{
+  assert(m_numShoes > 0);
+  AddCollisionGeometry(m_numShoes-1);
+}
 
 void TrackChain::AddCollisionGeometry(size_t track_idx)
 {
