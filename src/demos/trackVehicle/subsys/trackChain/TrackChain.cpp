@@ -430,10 +430,11 @@ void TrackChain::CreateShoes(ChSharedPtr<ChBodyAuxRef> chassis,
   ChVector<> lateral_dir = Vcross(start_seg-end_seg, end_curve_seg-end_seg).GetNormalized();
   ChVector<> tan_dir = (end_seg - start_seg).GetNormalized();
   ChVector<> norm_dir = Vcross(lateral_dir, tan_dir).GetNormalized();   // normal to the envelope surface
+  ChMatrix33<> rot_seg_A;  // orientation of line segment
+  rot_seg_A.Set_A_axis(tan_dir, norm_dir, lateral_dir);
 
   ChVector<> pos_on_seg;  // current position on the boundary, e.g. the line segment.
   ChVector<> shoe_pos;    // current shoe position, abs coords.
-  ChMatrix33<> seg_rot_A; // line segment orientation, x points from start to end.
 
   // special case: very first shoe
   // A single ChBody shoe is created upon construction, so it be can copied by the other shoes.
@@ -441,11 +442,10 @@ void TrackChain::CreateShoes(ChSharedPtr<ChBodyAuxRef> chassis,
   if(m_numShoes == 1)
   {
     pos_on_seg = start_seg; // special case
-    AddCollisionGeometry(); // add collision geometry to the last 
+    AddCollisionGeometry(); // add collision geometry
     shoe_pos = pos_on_seg + norm_dir * m_shoe_chain_Yoffset;
-    seg_rot_A.Set_A_axis(tan_dir, norm_dir, lateral_dir);
     m_shoes.front()->SetPos(shoe_pos);
-    m_shoes.front()->SetRot(seg_rot_A);
+    m_shoes.front()->SetRot(rot_seg_A); // can assume its the same as the line segment
     chassis->GetSystem()->Add(m_shoes.front());
 
     // First shoe on first line segment should always be aligned.
@@ -506,10 +506,10 @@ void TrackChain::CreateShoes(ChSharedPtr<ChBodyAuxRef> chassis,
       // previous shoe has been positioned so pin location is exactly 
       //  m_shoe_chain_Yoffset above the envelope surface (norm. dir).
       // Use the rotation frame for the line segment for the shoe to keep the x-axis parallel to segment.
-      COG_frame.SetRot(seg_rot_A);
+      COG_frame.SetRot(rot_seg_A);
       // if the previous shoe x-axis is not parallel to segment, using COG_frame 
       // rot from that shoe will be incorrect. Instead, use the updated pin rot.
-      pin_frame.SetRot(seg_rot_A);
+      pin_frame.SetRot(rot_seg_A);
       // now the position can be found relative to the newly oriented pin frame.
       // doesn't change if last shoe has the same orientation.
       COG_frame.SetPos(pin_frame * COG_to_pin_rel);
