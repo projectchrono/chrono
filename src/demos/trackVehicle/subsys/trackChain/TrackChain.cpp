@@ -576,24 +576,32 @@ void TrackChain::CreateShoes(ChSharedPtr<ChBodyAuxRef> chassis,
     m_pins.back()->Initialize(m_shoes.back(), m_shoes.end()[-2], ChCoordsys<>(pin_frame.GetPos(), pin_frame.GetRot() ) );
     chassis->GetSystem()->AddLink(m_pins.back());
     
-    // project the COG normal to segment surface
+    // See if the end of the linear segment has been reached.
+    //  Could use either A) or B), but B) is simpler.
+    // A) step along the line in the tangent direction, for the added half-pin lengths on 
+    //  the last two shoes.
+    ChVector<> COG1_pin = pin_frame.GetPos() - (m_shoes.end()[-2])->GetPos();
+    ChVector<> pin_COG2 = COG_frame.GetPos() - pin_frame.GetPos();
+    ChVector<> pos_on_seg_A = pos_on_seg + Vdot(COG1_pin, tan_dir) + Vdot(pin_COG2, tan_dir);
+
+    // B) when the COG of the last shoe passes the endpoint.
+    // project the COG normal to segment surface.
     double proj_dist = Vdot(norm_dir, COG_frame.GetPos() - start_seg);
-
-    // could just step along the line in the tangent direction
-    ChVector<> pos_on_check = pos_on_seg + Vdot(m_pin_dist*COG_frame.GetRot().GetXaxis(), tan_dir);
-
-    pos_on_seg = COG_frame.GetPos() - norm_dir*proj_dist;
+    ChVector<> pos_on_seg_B = COG_frame.GetPos() - norm_dir*proj_dist;
+    
 
     if( 1 )
-      GetLog() << " comparing pos_on_seg error: " << pos_on_seg - pos_on_check << "\n";
+      GetLog() << " comparing pos_on_seg error: " << pos_on_seg_A - pos_on_seg_B << "\n";
 
     // update distance, so we can get out of this loop eventually
+    pos_on_seg = pos_on_seg_B;
     dist_to_end = Vdot(end_seg - pos_on_seg, tan_dir);
   }
 
   // At this point, wrap the shoes around the curved segment.
-  dist_to_end = (end_curve - shoe_pos).Length();
-  while(dist_to_end > 0) // keep going until within half spacing dist
+  ChVector<> next_pin_loc = COG_frame*COG_to_pin_rel;
+  dist_to_end = (end_curve_seg - shoe_pos).Length();
+  while(dist_to_end > 0) // keep going until 
   {
 
 
