@@ -650,14 +650,16 @@ void TrackChain::CreateShoes(ChSharedPtr<ChBodyAuxRef> chassis,
       ChFrame<> pin_frameCHECK = rot_frame * pin_frame;
       GetLog() << " x, y-axis, POST xform: " << pin_frameCHECK.GetRot().GetXaxis() << "\n" << pin_frameCHECK.GetRot().GetYaxis() <<"\n";
     }
+
     // COG rotation is the same as the rotated pin
     COG_frame.SetRot(pin_frame.GetRot());
 
-    // Find COG pos w/ the newly oriented pin, add to system
+    // Find COG pos w/ the newly oriented pin,
     COG_frame.SetPos( pin_frame * COG_to_pin_rel );
+    //  set the body info, add to system
+    m_shoes.back()->SetPos(COG_frame.GetPos() );
+    m_shoes.back()->SetRot(COG_frame.GetRot() );
     chassis->GetSystem()->Add(m_shoes.back());
-
-    ChVector<> p2_check = COG_frame * COG_to_pin_rel;
 
     // create and init. the pin between the last shoe and this one, add to system.
     m_pins.push_back(ChSharedPtr<ChLinkLockRevolute>(new ChLinkLockRevolute));
