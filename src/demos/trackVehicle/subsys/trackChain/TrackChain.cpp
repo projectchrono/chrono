@@ -414,6 +414,8 @@ void TrackChain::CreateChain(ChSharedPtr<ChBodyAuxRef> chassis,
     // build the bodies for this line segment and rolling element curved section
     CreateShoes(chassis, start_seg, end_seg, end_curve, rolling_element_abs[idx].GetPos(), clearance[idx]);
   }
+  // this will get us around the last rolling element curved segment. Add the final length of shoes
+  CreateShoes_closeChain(chassis, control_points_abs.back().GetPos(), start_pos_abs);
 }
 
 // all locations are in the abs ref. frame.
