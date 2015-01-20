@@ -82,6 +82,8 @@ if("${VCS_REVISION}" MATCHES ".*-NOTFOUND$")
   set(VCS_REVISION "")
 endif()
 
+SET (CMAKE_EXPORT_COMPILE_COMMANDS ON)
+
 #-----------------------------------------------------------------------------
 # OPTIONS AND USER SETTINGS
 # These cached variables will be shown in the GUI of CMake as 
