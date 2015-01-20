@@ -141,8 +141,9 @@ void TrackChain::Initialize(ChSharedPtr<ChBodyAuxRef> chassis,
           rolling_element_loc[1] - rolling_element_loc[0]);
         norm_dir.Normalize();
         // rotate rad_dir about norm axis
-        ChFrame<> rot_frame(ChVector<>(), Q_from_AngAxis(rot_ang, norm_dir));
-        rad_dir =  rad_dir >> rot_frame;
+        ChQuaternion<> rot_q = Q_from_AngAxis(rot_ang, norm_dir);
+        ChFrame<> rad_dir_frame(rad_dir, QUNIT);
+        rad_dir =  (rot_q * rad_dir_frame).GetPos();
       }
       // rad_dir is now tangent to r_21, so define the new endpoint of this segment
       end_point = rolling_element_loc[i] + rad_dir * clearance[i];
@@ -547,8 +548,8 @@ void TrackChain::CreateShoes(ChSharedPtr<ChBodyAuxRef> chassis,
         ChVector<> r1 = -norm_dir * pin_clearance + tan_dir * len_on_seg;
         // rotate shoe about the z-axis of the pin, at the pin
         psi = std::acos( Vdot(r0.GetNormalized(), r1.GetNormalized()) );
-        ChFrame<> rot_frame(ChVector<>(), Q_from_AngAxis(-psi, pin_frame.GetRot().GetZaxis() ));
-        pin_frame = pin_frame >> rot_frame;
+        ChQuaternion<> rot_frame =  Q_from_AngAxis(-psi, pin_frame.GetRot().GetZaxis() );
+        pin_frame = rot_frame * pin_frame;
 
         // can find the shoe COG pos/rot now, from pin orientation, and COG offset from pin pos
         COG_frame.SetRot(pin_frame.GetRot() );
@@ -587,6 +588,7 @@ void TrackChain::CreateShoes(ChSharedPtr<ChBodyAuxRef> chassis,
     double proj_dist = Vdot(norm_dir, COG_frame.GetPos() - start_seg);
     ChVector<> pos_on_seg_B = COG_frame.GetPos() - norm_dir*proj_dist;
     
+
     // check the largest error term. Say something if it's exceeded.
     if( (pos_on_seg_A - pos_on_seg_B).LengthInf() > 1e-6 )
       GetLog() << " comparing pos_on_seg error: " << pos_on_seg_A - pos_on_seg_B << "\n";
@@ -638,16 +640,23 @@ void TrackChain::CreateShoes(ChSharedPtr<ChBodyAuxRef> chassis,
     double h1 = std::sqrt( pow(m_pin_dist,2) - pow( (len_r1*len_r1 - len_r2*len_r2) / (2.0*len_r1), 2) );
     double theta = std::asin( h1 / m_pin_dist );
     double psi = phi - theta;
-    ChFrame<> rot_frame(ChVector<>(), Q_from_AngAxis(-psi, pin_frame.GetRot().GetZaxis() ));
     // rotate r1 vector about the lateral axis, to get the direction of r2
-    pin_frame = pin_frame >> rot_frame;
+    ChQuaternion<> rot_frame =  Q_from_AngAxis(-psi, pin_frame.GetRot().GetZaxis() );
 
+    if(0)
+    {
+      GetLog() << " x, y-axis, pre-xform: " << pin_frame.GetRot().GetXaxis() << "\n" << pin_frame.GetRot().GetYaxis() << "\n";
+      ChFrame<> pin_frameCHECK = rot_frame * pin_frame;
+      GetLog() << " x, y-axis, POST xform: " << pin_frameCHECK.GetRot().GetXaxis() << "\n" << pin_frameCHECK.GetRot().GetYaxis() <<"\n";
+    }
     // COG rotation is the same as the rotated pin
     COG_frame.SetRot(pin_frame.GetRot());
 
     // Find COG pos w/ the newly oriented pin, add to system
     COG_frame.SetPos( pin_frame * COG_to_pin_rel );
     chassis->GetSystem()->Add(m_shoes.back());
+
+    ChVector<> p2_check = COG_frame * COG_to_pin_rel;
 
     // create and init. the pin between the last shoe and this one, add to system.
     m_pins.push_back(ChSharedPtr<ChLinkLockRevolute>(new ChLinkLockRevolute));
