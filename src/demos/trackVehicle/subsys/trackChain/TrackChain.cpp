@@ -640,8 +640,9 @@ void TrackChain::CreateShoes(ChSharedPtr<ChBodyAuxRef> chassis,
     double h1 = std::sqrt( pow(m_pin_dist,2) - pow( (len_r1*len_r1 - len_r2*len_r2) / (2.0*len_r1), 2) );
     double theta = std::asin( h1 / m_pin_dist );
     double psi = phi - theta;
-    // rotate r1 vector about the lateral axis, to get the direction of r2
+    // rotate the pin frame
     ChQuaternion<> rot_frame =  Q_from_AngAxis(-psi, pin_frame.GetRot().GetZaxis() );
+    pin_frame.SetRot(rot_frame * pin_frame.GetRot());
 
     if(0)
     {
