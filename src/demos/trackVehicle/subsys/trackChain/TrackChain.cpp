@@ -668,10 +668,14 @@ void TrackChain::CreateShoes(ChSharedPtr<ChBodyAuxRef> chassis,
     m_pins.back()->Initialize(m_shoes.back(), m_shoes.end()[-2], ChCoordsys<>(pin_frame.GetPos(), pin_frame.GetRot() ) );
     chassis->GetSystem()->AddLink(m_pins.back());
 
-    // figure out how far pin 2 is from the end of the circular segment, abs. coords
-    ChVector<> p2_end = end_curve_seg - (COG_frame * COG_to_pin_rel);
-    dist_to_end = Vdot(p2_end, tan_dir_end_curved_seg);
-
+    // figure out how far pin 2 is from the end of the circular segment.
+    next_pin_pos = COG_frame * COG_to_pin_rel;
+    // project the pin towards the center of the rolling element.
+    ChVector<> rad_dir = (next_pin_pos - rolling_elem_center).GetNormalized();
+    // pin is not exactly a known height above the surface,
+    //  project outrwards from center of rolling element instead.
+    pos_on_seg = rolling_elem_center + rad_dir * clearance;
+    dist_to_end = Vdot(end_curve_seg - pos_on_seg, tan_dir_end_curved_seg);
   }
 
   // assume we aren't aligned after creating shoes around the curved segment
