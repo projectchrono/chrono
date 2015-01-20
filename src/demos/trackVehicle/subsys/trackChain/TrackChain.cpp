@@ -611,7 +611,7 @@ void TrackChain::CreateShoes(ChSharedPtr<ChBodyAuxRef> chassis,
 
   // It is assumed that there is a previous shoe with a pin location that is compatible.
   // Guess the next pin location assuming the same orientation as the last created body.
-  ChVector<> next_pin_loc;
+  ChVector<> next_pin_pos;
   dist_to_end = 1;
   // radius of the next pin position, relative to rolling element center
   double len_r2 = std::sqrt( pow(clearance + m_shoe_chain_Yoffset,2) + pow(m_pin_dist/2.0,2) );
@@ -628,8 +628,6 @@ void TrackChain::CreateShoes(ChSharedPtr<ChBodyAuxRef> chassis,
     m_numShoes++;
     m_shoes.back()->Copy( m_shoes.front().get_ptr() );
     AddCollisionGeometry();
-    // m_shoes.push_back(ChSharedPtr<ChBodyAuxRef>(new ChBodyAuxRef( m_shoes.front())));
-
     m_shoes.back()->SetNameString( "shoe " + std::to_string(m_numShoes) );
 
     // pin between shoes position is know, orient the same as the previous shoe.
