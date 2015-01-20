@@ -90,6 +90,12 @@ private:
     const ChVector<>& rolling_elem_center,
     double clearance);
 
+  /// close the trackChain loop by connecting the end of the chain to the start.
+  /// Absolute coordinates.
+  void CreateShoes_closeChain(ChSharedPtr<ChBodyAuxRef> chassis,
+    const ChVector<>& start_seg,
+    const ChVector<>& end_seg);
+
   /// check if the shoe placement meets the criteria for being aligned.
   /// sets the boolean, m_aligned_with_seg, and returns it also.
   bool check_shoe_aligned(const ChVector<>& pin2_pos_abs,
