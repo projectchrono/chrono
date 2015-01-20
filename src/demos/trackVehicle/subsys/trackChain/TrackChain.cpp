@@ -675,6 +675,218 @@ void TrackChain::CreateShoes(ChSharedPtr<ChBodyAuxRef> chassis,
   m_aligned_with_seg = false;
 }
 
+
+/// close the trackChain loop by connecting the end of the chain to the start.
+/// Absolute coordinates.
+void TrackChain::CreateShoes_closeChain(ChSharedPtr<ChBodyAuxRef> chassis,
+  const ChVector<>& start_seg,
+  const ChVector<>& end_seg)
+{
+  // coming off the end of a curved segment, then following a straight line until near the end.
+  // Once forward-most pin location crosses that of the first shoe, stop, and modify the first and last bodies.
+  // Then, create the final pin joint.
+
+
+  // get coordinate directions of the envelope surface
+  // lateral in terms of the vehicle chassis
+  ChVector<> lateral_dir = (m_shoes.front()->GetRot()).GetZaxis();
+  ChVector<> tan_dir = (end_seg - start_seg).GetNormalized();
+  ChVector<> norm_dir = Vcross(lateral_dir, tan_dir).GetNormalized();   // normal to the envelope surface
+  ChMatrix33<> rot_seg_A;  // orientation of line segment
+  rot_seg_A.Set_A_axis(tan_dir, norm_dir, lateral_dir);
+
+  ChVector<> pos_on_seg;  // current position on the boundary, e.g. the line segment.
+  ChVector<> shoe_pos;    // current shoe position, abs coords.
+
+  // normal height above envelope surface of last place shoe
+  double h = Vdot(norm_dir, m_shoes.back()->GetPos() - start_seg);
+  // point projected on the surface of the envelope
+  pos_on_seg = m_shoes.back()->GetPos() - norm_dir * h;
+
+  // First, create the shoes along the linear segment. Connect by pins via revolute constraints.
+  double dist_to_end = Vdot(end_seg - pos_on_seg, tan_dir);
+
+  ChFrame<> COG_frame;
+  ChFrame<> pin_frame;  // between this shoe and the last one
+  // pin is just forward of the COG, and vice-versa
+  ChVector<> COG_to_pin_rel(m_pin_dist/2.0, 0, 0); 
+
+  // keep going until last created shoe COG pos_on_seg passes the end point.
+  // Want to overshoot upon reaching curved segment, to not interpenetrate surface boundary.
+  while( dist_to_end > m_pin_dist/2.0 )  
+  {
+    // create a new body by copying the first, add to handle vector.
+    // Copy doesn't set the collision shape.
+    // Don't reset visualization assets, copied in ChPhysicsItem::Copy()
+    m_shoes.push_back(ChSharedPtr<ChBody>(new ChBody));
+    m_numShoes++;
+    m_shoes.back()->Copy( m_shoes.front().get_ptr() );
+    AddCollisionGeometry();
+    m_shoes.back()->SetNameString( "shoe " + std::to_string(m_numShoes) );
+
+    // Find where the pin to the previous shoe should be positioned.
+    // From there, calculate what the body pos/rot should be.
+    ChVector<> pin_pos = (m_shoes.end()[-2])->GetFrame_COG_to_abs() * COG_to_pin_rel;
+    pin_frame = ChFrame<>(pin_pos, (m_shoes.end()[-2])->GetRot() );
+
+    // Creating shoes along the line segment, one of two situations possible:
+    // 1) shoe is exactly on the envelope boundary, and exactly parallel (e.g., first segment this is guaranteed).
+    // 2) shoe is off the boundary, and will have a rot slightly different than previous shoe to get it closer,
+    //      e.g., after a straight segment follows a curved segment.
+
+    // At first,COG frame assume this shoe has same orientation as the previous.
+    COG_frame = ChFrame<>((m_shoes.end()[-2])->GetFrame_COG_to_abs() );
+    // set the body pos. from the pin_pos w/ the previous shoe;
+    COG_frame.SetPos(pin_frame * COG_to_pin_rel);
+
+    // Assumption 1) is true if: 
+    //  A) We set the last shoe pin in such a way so this shoe can be exactly aligned with the line segment, or
+    //  B) the last shoe on the linear segment was already aligned
+    if( m_aligned_with_seg )
+    {
+      // previous shoe has been positioned so pin location is exactly 
+      //  m_shoe_chain_Yoffset above the envelope surface (norm. dir).
+      // Use the rotation frame for the line segment for the shoe to keep the x-axis parallel to segment.
+      COG_frame.SetRot(rot_seg_A);
+      // if the previous shoe x-axis is not parallel to segment, using COG_frame 
+      // rot from that shoe will be incorrect. Instead, use the updated pin rot.
+      pin_frame.SetRot(rot_seg_A);
+      // now the position can be found relative to the newly oriented pin frame.
+      // doesn't change if last shoe has the same orientation.
+      COG_frame.SetPos(pin_frame * COG_to_pin_rel);
+    }
+    else 
+    {
+      // verify that this configuration:
+      //  1) does not cross the line segment boundary, and
+      //  2) stays as clsoe as possible to the line segment (e.g., by rotating the body slightly at the pin_pos)
+      //  3) does not rotate the body too aggressively
+
+      // For 1), consider a point at the very front edge of a bounding box
+      ChVector<> corner_pos_rel( (m_pin_dist + m_shoe_box.x)/2.0, m_shoe_chain_Yoffset, 0);
+      double corner_pos_len = corner_pos_rel.Length();
+      ChVector<> corner_pos_abs = pin_frame * corner_pos_rel;
+
+      // distance the corner point is above the line segment surface
+      double corner_clearance = Vdot(norm_dir, corner_pos_abs - start_seg);
+
+      // distance the pin position is above the line segment surface
+      double pin_clearance = Vdot(norm_dir, pin_pos - start_seg);
+      double lim_angle = CH_C_PI_4; // don't rotate the shoe more than 45 deg. 
+      double psi = 0;
+
+      // rotate the max amount in this case
+      if( corner_clearance > corner_pos_len*std::cos(lim_angle) )
+      {
+        psi = lim_angle;
+      }
+      else
+      {
+        // place the shoe relative to the pin location, so the next pin location is set such 
+        //  that the next shoe body can be easily aligned to the line segment.
+        ChVector<> r0 = corner_pos_abs - pin_pos;
+        // project pin center down to the line segment, normal to segment. Distance to r1.
+        double len_on_seg = std::sqrt( pow(corner_pos_len,2) - pow(pin_clearance,2) );
+        ChVector<> r1 = -norm_dir * pin_clearance + tan_dir * len_on_seg;
+        // rotate shoe about the z-axis of the pin, at the pin
+        psi = std::acos( Vdot(r0.GetNormalized(), r1.GetNormalized()) );
+        ChQuaternion<> rot_frame =  Q_from_AngAxis(-psi, pin_frame.GetRot().GetZaxis() );
+        pin_frame = rot_frame * pin_frame;
+
+        // can find the shoe COG pos/rot now, from pin orientation, and COG offset from pin pos
+        COG_frame.SetRot(pin_frame.GetRot() );
+        COG_frame.SetPos(pin_frame * COG_to_pin_rel); 
+
+        // let's check to see if the criteria for setting m_aligned_with_seg = true.
+        // Note: the function also sets the bool
+        bool check_alignment = check_shoe_aligned(COG_frame*COG_to_pin_rel, start_seg, end_seg, norm_dir);
+        if( 1 ) 
+          GetLog() << " aligned ?? shoe # : " << m_numShoes << " ?? " << check_alignment << "\n";
+      }
+    }
+
+    // COG_frame is set correctly, add the body to the system
+    m_shoes.back()->SetPos(COG_frame.GetPos() );
+    m_shoes.back()->SetRot(COG_frame.GetRot() );
+    chassis->GetSystem()->Add(m_shoes.back());
+
+    // create and init. the pin between the last shoe and this one, add to system.
+    m_pins.push_back(ChSharedPtr<ChLinkLockRevolute>(new ChLinkLockRevolute));
+    m_pins.back()->SetNameString(" pin " + std::to_string(m_pins.size()) );
+    // pin frame picked up from COG_frame, where z-axis should be in the lateral direction.
+    m_pins.back()->Initialize(m_shoes.back(), m_shoes.end()[-2], ChCoordsys<>(pin_frame.GetPos(), pin_frame.GetRot() ) );
+    chassis->GetSystem()->AddLink(m_pins.back());
+    
+    // See if the end of the linear segment has been reached.
+    ChVector<> next_pin_loc = COG_frame * COG_to_pin_rel;
+    // project this point down to the surface of the line segment.
+    double proj_dist = Vdot(norm_dir, next_pin_loc - start_seg);
+    ChVector<> pos_on_seg = next_pin_loc - norm_dir*proj_dist;
+    
+    // stop when the next pin pos on seg. is within half a shoe width of the beginning pos on seg.
+    dist_to_end = Vdot(end_seg - pos_on_seg, tan_dir);
+  }
+
+  // If assumptions were followed throughout, first shoe is somewhere near the middle of the gear and idler.
+  // The first and last shoes ought to be aligned at first, e.g. same Rot().
+  // If the stars align, the pin locations will line up
+  ChVector<> last_pin_pos = m_shoes.back()->GetFrame_COG_to_abs() * COG_to_pin_rel;
+  ChVector<> first_pin_pos = m_shoes.front()->GetFrame_COG_to_abs() * COG_to_pin_rel;
+
+  // no way does this occur accidentally, but check anyway
+  if( (first_pin_pos - last_pin_pos).LengthInf() < 1e-6 )
+  {
+    GetLog() << "You are super lucky ! \n\n";
+
+  }
+  else
+  {
+    // pin overlap distance
+    ChVector<> r_last_first = last_pin_pos - first_pin_pos;
+    // assuming both shoes are aligned (same Rot), rotation is symmetric and angle is:
+    double rotAng = std::acos( (m_pin_dist - r_last_first.Length()/2.0) / m_pin_dist);
+    
+    // rotate the first body about it's 2nd pin by -rotAng
+    COG_frame = ChFrame<>(m_pins.front()->GetMarker2()->GetPos(), m_shoes.front()->GetRot() );
+    ChQuaternion<> rot_q = Q_from_AngAxis( -rotAng, lateral_dir);
+    COG_frame = rot_q * COG_frame;
+
+    // now, reposition the COG backwards from the first pin location
+    COG_frame.SetPos( COG_frame * -COG_to_pin_rel);
+    // know the COG frame for the first shoe, set the body info
+    m_shoes.front()->SetPos(COG_frame.GetPos() );
+    m_shoes.front()->SetRot(COG_frame.GetRot() );
+
+    // rotate the last body about it's 1st pin by rotAng
+    COG_frame = ChFrame<>(m_pins.back()->GetMarker1()->GetPos(), m_shoes.back()->GetRot() );
+    rot_q = Q_from_AngAxis( rotAng, lateral_dir);
+    COG_frame = rot_q * COG_frame;
+
+    // reposition COG of last body forward from the last pin
+    COG_frame.SetPos( COG_frame * COG_to_pin_rel);
+    // set the pos, rot of the last shoe body
+    m_shoes.back()->SetPos(COG_frame.GetPos() );
+    m_shoes.back()->SetRot(COG_frame.GetRot() );
+
+    // TODO: did I just rotate the markers on the first and last ChLinkLockRevolute objects,
+    //       when using SetRot() on the shoe body, since they're connected?
+    // I may have to rotate Marker2 on the first pin, Marker1 on the last pin, align them to the COG_frame.
+    // Might just mess up reported measured values for initial conditions.
+
+  }
+
+  // re-positioned the first and last shoe to share final pin.
+  ChVector<> pin_pos_abs = m_shoes.back()->GetFrame_COG_to_abs() * COG_to_pin_rel;
+
+  // create and init. the pin between the last shoe and first, add to system.
+  m_pins.push_back(ChSharedPtr<ChLinkLockRevolute>(new ChLinkLockRevolute));
+  m_pins.back()->SetNameString(" pin " + std::to_string(m_pins.size()) );
+  // use the orientation of the last shoe added
+  m_pins.back()->Initialize(m_shoes.front(), m_shoes.back(), ChCoordsys<>(pin_pos_abs, m_shoes.back()->GetRot() ) );
+  chassis->GetSystem()->AddLink(m_pins.back());
+
+}
+
 // all inputs in absolute coords.
 // Sets m_aligned_with_seg, and returns it also
 bool TrackChain::check_shoe_aligned(const ChVector<>& pin2_pos_abs,
