@@ -478,8 +478,6 @@ void TrackChain::CreateShoes(ChSharedPtr<ChBodyAuxRef> chassis,
     m_numShoes++;
     m_shoes.back()->Copy( m_shoes.front().get_ptr() );
     AddCollisionGeometry();
-    // m_shoes.push_back(ChSharedPtr<ChBodyAuxRef>(new ChBodyAuxRef( m_shoes.front())));
-
     m_shoes.back()->SetNameString( "shoe " + std::to_string(m_numShoes) );
 
     // Find where the pin to the previous shoe should be positioned.
@@ -611,8 +609,8 @@ void TrackChain::CreateShoes(ChSharedPtr<ChBodyAuxRef> chassis,
   // Guess the next pin location assuming the same orientation as the last created body.
   ChVector<> next_pin_loc;
   dist_to_end = 1;
-  // radius of the next pin position
-  double r_pin2 = std::sqrt( pow(clearance + m_shoe_chain_Yoffset,2) + pow(m_pin_dist/2.0,2) );
+  // radius of the next pin position, relative to rolling element center
+  double len_r2 = std::sqrt( pow(clearance + m_shoe_chain_Yoffset,2) + pow(m_pin_dist/2.0,2) );
   // tangent direction at the end of the curved segment
   ChVector<> tan_dir_end_curved_seg = Vcross(end_curve_seg - rolling_elem_center, lateral_dir).GetNormalized();
 
@@ -634,24 +632,20 @@ void TrackChain::CreateShoes(ChSharedPtr<ChBodyAuxRef> chassis,
     pin_frame = ChFrame<>(COG_frame*COG_to_pin_rel, COG_frame.GetRot() );
     ChVector<> r1 = pin_frame.GetPos() - rolling_elem_center; // center to first pin
 
+    double len_r1 = r1.Length();
     // COG orientation will need to be modified, according to clearance of the rolling element
-    double theta = std::acos(r_pin2 / r1.Length() );
-    ChFrame<> rot_frame(ChVector<>(), Q_from_AngAxis(-theta, pin_frame.GetRot().GetZaxis() ));
+    double phi = std::acos( Vdot( -r1 / len_r1, pin_frame.GetRot().GetXaxis() ));
+    double h1 = std::sqrt( pow(m_pin_dist,2) - pow( (len_r1*len_r1 - len_r2*len_r2) / (2.0*len_r1), 2) );
+    double theta = std::asin( h1 / m_pin_dist );
+    double psi = phi - theta;
+    ChFrame<> rot_frame(ChVector<>(), Q_from_AngAxis(-psi, pin_frame.GetRot().GetZaxis() ));
     // rotate r1 vector about the lateral axis, to get the direction of r2
-    ChVector<> r2_hat = (r1 >> rot_frame).GetNormalized();
-    ChVector<> r2 = r2_hat * r_pin2;
+    pin_frame = pin_frame >> rot_frame;
 
-    // orient the COG so x-hat = r2 - r1, z-axis is the same as the pin.
-    ChVector<> x_hat = (r2 - r1).GetNormalized();
-    ChVector<> y_hat = Vcross( pin_frame.GetRot().GetZaxis(), x_hat).GetNormalized();
-    ChMatrix33<> COG_Amat;
-    COG_Amat.Set_A_axis(x_hat, y_hat, pin_frame.GetRot().GetZaxis());
-    COG_frame.SetRot(COG_Amat);
+    // COG rotation is the same as the rotated pin
+    COG_frame.SetRot(pin_frame.GetRot());
 
-    // orient the pin the same as the new shoe
-    pin_frame.SetRot(COG_Amat);
-
-    // finally, find COG pos w/ the newly oriented pin, add to system
+    // Find COG pos w/ the newly oriented pin, add to system
     COG_frame.SetPos( pin_frame * COG_to_pin_rel );
     chassis->GetSystem()->Add(m_shoes.back());
 
@@ -667,7 +661,6 @@ void TrackChain::CreateShoes(ChSharedPtr<ChBodyAuxRef> chassis,
     dist_to_end = Vdot(p2_end, tan_dir_end_curved_seg);
 
   }
-
 
   // assume we aren't aligned after creating shoes around the curved segment
   m_aligned_with_seg = false;
