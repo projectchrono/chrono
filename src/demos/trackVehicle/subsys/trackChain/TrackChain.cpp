@@ -486,8 +486,11 @@ void TrackChain::CreateShoes(ChSharedPtr<ChBodyAuxRef> chassis,
     // Find where the pin to the previous shoe should be positioned.
     // From there, calculate what the body pos/rot should be.
     // Rse the COG pos, rot of the previous shoe to get us there.
-    ChVector<> pin_pos = (m_shoes.end()[-2])->GetFrame_COG_to_abs() * COG_to_pin_rel;
-    pin_frame = ChFrame<>(pin_pos, (m_shoes.end()[-2])->GetRot() );
+
+    pin_frame = ChFrame<>( (m_shoes.end()[-2])->GetFrame_COG_to_abs() * COG_to_pin_rel,
+       (m_shoes.end()[-2])->GetRot() );
+    // ChVector<> pin_pos = (m_shoes.end()[-2])->GetFrame_COG_to_abs() * COG_to_pin_rel;
+    // pin_frame = ChFrame<>(pin_pos, (m_shoes.end()[-2])->GetRot() );
 
     // Creating shoes along the line segment, one of two situations possible:
     // 1) shoe is exactly on the envelope boundary, and exactly parallel (e.g., first segment this is guaranteed).
