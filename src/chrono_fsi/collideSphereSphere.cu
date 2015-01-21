@@ -2157,7 +2157,7 @@ void cudaCollisions(
 		UpdateFluid(posRadD2, velMasD2, vel_XSPH_D, rhoPresMuD2, derivVelRhoD, referenceArray, 0.5 * currentParamsH.dT); //assumes ...D2 is a copy of ...D
 		//UpdateBoundary(posRadD2, velMasD2, rhoPresMuD2, derivVelRhoD, referenceArray, 0.5 * currentParamsH.dT);		//assumes ...D2 is a copy of ...D
 
-		if (realTime > paramsH.timePauseRigidFlex) {
+		if (realTime > paramsH.timePauseRigidFlex + paramsH.timePause) {
 			UpdateRigidBody(
 					posRadD2, velMasD2,
 					posRigidD2, posRigidCumulativeD2, velMassRigidD2, qD2, AD1_2, AD2_2, AD3_2, omegaLRF_D2,
@@ -2196,7 +2196,7 @@ void cudaCollisions(
 		printMaxStress("maxParticlesStress.txt", maxStress, tStep);
 		//UpdateBoundary(posRadD, velMasD, rhoPresMuD, derivVelRhoD, referenceArray, currentParamsH.dT);
 
-		if (realTime > paramsH.timePauseRigidFlex) {
+		if (realTime > paramsH.timePauseRigidFlex + paramsH.timePause) {
 			UpdateRigidBody(
 					posRadD, velMasD,
 					posRigidD, posRigidCumulativeD, velMassRigidD, qD1, AD1, AD2, AD3, omegaLRF_D,
