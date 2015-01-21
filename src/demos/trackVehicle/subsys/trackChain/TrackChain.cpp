@@ -533,7 +533,7 @@ void TrackChain::CreateShoes(ChSharedPtr<ChBodyAuxRef> chassis,
       // distance the pin position is above the line segment surface
       double pin_clearance = Vdot(norm_dir, pin_pos - start_seg);
       double lim_angle = CH_C_PI_4; // don't rotate the shoe more than 45 deg. 
-      double psi = 0;
+      double psi = 0; // rotation angle of next shoe relative to this one
 
       // rotate the max amount in this case
       if( corner_clearance > corner_pos_len*std::cos(lim_angle) )
@@ -548,21 +548,25 @@ void TrackChain::CreateShoes(ChSharedPtr<ChBodyAuxRef> chassis,
         // project pin center down to the line segment, normal to segment. Distance to r1.
         double len_on_seg = std::sqrt( pow(corner_pos_len,2) - pow(pin_clearance,2) );
         ChVector<> r1 = -norm_dir * pin_clearance + tan_dir * len_on_seg;
-        // rotate shoe about the z-axis of the pin, at the pin
+
         psi = std::acos( Vdot(r0.GetNormalized(), r1.GetNormalized()) );
-        ChQuaternion<> rot_frame =  Q_from_AngAxis(-psi, pin_frame.GetRot().GetZaxis() );
-        pin_frame = rot_frame * pin_frame;
-
-        // can find the shoe COG pos/rot now, from pin orientation, and COG offset from pin pos
-        COG_frame.SetRot(pin_frame.GetRot() );
-        COG_frame.SetPos(pin_frame * COG_to_pin_rel); 
-
-        // let's check to see if the criteria for setting m_aligned_with_seg = true.
-        // Note: the function also sets the bool
-        bool check_alignment = check_shoe_aligned(COG_frame*COG_to_pin_rel, start_seg, end_seg, norm_dir);
-        if( 1 ) 
-          GetLog() << " aligned ?? shoe # : " << m_numShoes << " ?? " << check_alignment << "\n";
       }
+
+      // rotate shoe about the z-axis of the pin, at the pin
+      ChQuaternion<> rot_frame =  Q_from_AngAxis(-psi, pin_frame.GetRot().GetZaxis() );
+      pin_frame = rot_frame * pin_frame;
+
+      // can find the shoe COG pos/rot now, from pin orientation, and COG offset from pin pos
+      COG_frame.SetRot(pin_frame.GetRot() );
+      COG_frame.SetPos(pin_frame * COG_to_pin_rel); 
+
+      // let's check to see if the criteria for setting m_aligned_with_seg = true.
+      // Note: the function also sets the bool
+      bool check_alignment = check_shoe_aligned(COG_frame*COG_to_pin_rel, start_seg, end_seg, norm_dir);
+      if( 1 ) 
+        GetLog() << " aligned ?? shoe # : " << m_numShoes << " ?? " << check_alignment << "\n";
+
+
     }
 
     // COG_frame is set correctly, add the body to the system
