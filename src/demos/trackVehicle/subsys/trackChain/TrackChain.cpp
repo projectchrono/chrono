@@ -428,7 +428,7 @@ void TrackChain::CreateShoes(ChSharedPtr<ChBodyAuxRef> chassis,
     const ChVector<>& rolling_elem_center,
     double clearance)
 {
-  // get coordinate directions of the linear segment.
+  // get coordinate directions of the linear segment, in the global c-sys.
   // lateral in terms of the vehicle chassis
   ChVector<> lateral_dir;
   if( m_numShoes == 1)
@@ -613,7 +613,7 @@ void TrackChain::CreateShoes(ChSharedPtr<ChBodyAuxRef> chassis,
     ChVector<> pos_on_seg_B = COG_frame.GetPos() - norm_dir*proj_dist;
     
 
-    // check the largest error term. Say something if it's exceeded.
+    // should be equal; check the largest error term. Say something if it's exceeded.
     if( (pos_on_seg_A - pos_on_seg_B).LengthInf() > 1e-6 )
       GetLog() << " comparing pos_on_seg error: shoe # " << int(m_numShoes) << pos_on_seg_A - pos_on_seg_B << "\n";
 
@@ -632,13 +632,18 @@ void TrackChain::CreateShoes(ChSharedPtr<ChBodyAuxRef> chassis,
   }
 
   // It is assumed that there is a previous shoe with a pin location that is compatible.
-  // Guess the next pin location assuming the same orientation as the last created body.
-  ChVector<> next_pin_pos;
-  dist_to_end = 1;  // if there is a curved section w/ non-zero length, need at least 1 shoe.
-  // radius of the next pin position, relative to rolling element center
-  double len_r2 = std::sqrt( pow(clearance + m_shoe_chain_Yoffset,2) + pow(m_pin_dist/2.0,2) );
   // tangent direction at the end of the curved segment
   ChVector<> tan_dir_end_curved_seg = Vcross(end_curve_seg - rolling_elem_center, lateral_dir).GetNormalized();
+
+  // project the pin at the front of the shoe towards the center of the rolling element.
+  ChVector<> next_pin_pos = COG_frame * COG_to_pin_rel;
+  ChVector<> rad_dir = (next_pin_pos - rolling_elem_center).GetNormalized();
+  // pin is not exactly a known height above the surface,
+  //  project outrwards from center of rolling element instead.
+  pos_on_seg = rolling_elem_center + rad_dir * clearance;
+  dist_to_end = Vdot(end_curve_seg - pos_on_seg, tan_dir_end_curved_seg);// if there is a curved section w/ non-zero length, need at least 1 shoe.
+  // radius of the next pin position, relative to rolling element center
+  double len_r2 = std::sqrt( pow(clearance + m_shoe_chain_Yoffset,2) + pow(m_pin_dist/2.0,2) );
 
   // stop when furthest pin location on last created shoe body passes the end point
   while(dist_to_end > 0) 
