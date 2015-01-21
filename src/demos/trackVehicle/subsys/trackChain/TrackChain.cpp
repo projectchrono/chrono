@@ -555,8 +555,8 @@ void TrackChain::CreateShoes(ChSharedPtr<ChBodyAuxRef> chassis,
         double len_on_seg = std::sqrt(m_pin_dist*m_pin_dist - pow(pin_len_norm_seg,2) );
         // know the next pin location
         nextPin_pos_abs = pin_frame.GetPos() - norm_dir*pin_len_norm_seg + tan_dir*len_on_seg;
-        // direction vector between pins now
-        ChVector<> pin_dir_modified = nextPin_pos_abs - pin_frame.GetPos();
+        // direction vector between pins now, normalized.
+        ChVector<> pin_dir_modified = (nextPin_pos_abs - pin_frame.GetPos()).GetNormalized();
 
         // find rotation angles based on cos(psi) = pin_dir_original dot pin_dir_modified
         psi = std::acos( Vdot(pin_dir_original, pin_dir_modified) );
@@ -813,8 +813,8 @@ void TrackChain::CreateShoes_closeChain(ChSharedPtr<ChBodyAuxRef> chassis,
         double len_on_seg = std::sqrt(m_pin_dist*m_pin_dist - pow(pin_len_norm_seg,2) );
         // know the next pin location
         nextPin_pos_abs = pin_frame.GetPos() - norm_dir*pin_len_norm_seg + tan_dir*len_on_seg;
-        // direction vector between pins now
-        ChVector<> pin_dir_modified = nextPin_pos_abs - pin_frame.GetPos();
+        // direction vector between pins 1-2, normalized.
+        ChVector<> pin_dir_modified = (nextPin_pos_abs - pin_frame.GetPos()).GetNormalized();
 
         // find rotation angles based on cos(psi) = pin_dir_original dot pin_dir_modified
         psi = std::acos( Vdot(pin_dir_original, pin_dir_modified) );
