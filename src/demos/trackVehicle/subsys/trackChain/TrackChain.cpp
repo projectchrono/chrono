@@ -574,7 +574,7 @@ void TrackChain::CreateShoes(ChSharedPtr<ChBodyAuxRef> chassis,
       // Note: the function also sets the bool
       bool check_alignment = check_shoe_aligned(COG_frame*COG_to_pin_rel, start_seg, end_seg, norm_dir);
       if( 1 ) 
-        GetLog() << " aligned ?? shoe # : " << m_numShoes << " ?? " << check_alignment << "\n";
+        GetLog() << " aligned shoe # : " << int(m_numShoes) << " ?? " << check_alignment << "\n";
 
 
     }
@@ -607,7 +607,7 @@ void TrackChain::CreateShoes(ChSharedPtr<ChBodyAuxRef> chassis,
 
     // check the largest error term. Say something if it's exceeded.
     if( (pos_on_seg_A - pos_on_seg_B).LengthInf() > 1e-6 )
-      GetLog() << " comparing pos_on_seg error: " << pos_on_seg_A - pos_on_seg_B << "\n";
+      GetLog() << " comparing pos_on_seg error: shoe # " << int(m_numShoes) << pos_on_seg_A - pos_on_seg_B << "\n";
 
     // update distance using method B
     pos_on_seg = pos_on_seg_B;
@@ -626,7 +626,7 @@ void TrackChain::CreateShoes(ChSharedPtr<ChBodyAuxRef> chassis,
   // It is assumed that there is a previous shoe with a pin location that is compatible.
   // Guess the next pin location assuming the same orientation as the last created body.
   ChVector<> next_pin_pos;
-  dist_to_end = 1;
+  dist_to_end = 1;  // if there is a curved section w/ non-zero length, need at least 1 shoe.
   // radius of the next pin position, relative to rolling element center
   double len_r2 = std::sqrt( pow(clearance + m_shoe_chain_Yoffset,2) + pow(m_pin_dist/2.0,2) );
   // tangent direction at the end of the curved segment
