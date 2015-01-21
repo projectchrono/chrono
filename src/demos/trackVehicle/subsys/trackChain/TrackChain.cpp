@@ -428,9 +428,14 @@ void TrackChain::CreateShoes(ChSharedPtr<ChBodyAuxRef> chassis,
     const ChVector<>& rolling_elem_center,
     double clearance)
 {
-  // get coordinate directions of the envelope surface
+  // get coordinate directions of the linear segment.
   // lateral in terms of the vehicle chassis
-  ChVector<> lateral_dir = Vcross(start_seg-end_seg, end_curve_seg-end_seg).GetNormalized();
+  ChVector<> lateral_dir;
+  if( m_numShoes == 1)
+    lateral_dir = Vcross(start_seg-end_seg, end_curve_seg-end_seg).GetNormalized();
+  else
+    lateral_dir = m_shoes.back()->GetRot().GetZaxis();
+
   ChVector<> tan_dir = (end_seg - start_seg).GetNormalized();
   ChVector<> norm_dir = Vcross(lateral_dir, tan_dir).GetNormalized();   // normal to the envelope surface
   ChMatrix33<> rot_seg_A;  // orientation of line segment
