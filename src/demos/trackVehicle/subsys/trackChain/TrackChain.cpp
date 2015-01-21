@@ -780,53 +780,61 @@ void TrackChain::CreateShoes_closeChain(ChSharedPtr<ChBodyAuxRef> chassis,
       COG_frame.SetPos(pin_frame * COG_to_pin_rel);
     }
     else 
-    {
+   {
       // verify that this configuration:
       //  1) does not cross the line segment boundary, and
       //  2) stays as clsoe as possible to the line segment (e.g., by rotating the body slightly at the pin_pos)
-      //  3) does not rotate the body too aggressively
+      //  3) does not rotate the body too aggressively, by setting the following limit:
+      double lim_rot_angle = CH_C_PI_4; // don't rotate the shoe more than 45 deg. towards the line segment
 
-      // For 1), consider a point at the very front edge of a bounding box
-      ChVector<> corner_pos_rel( (m_pin_dist + m_shoe_box.x)/2.0, m_shoe_chain_Yoffset, 0);
-      double corner_pos_len = corner_pos_rel.Length();
-      ChVector<> corner_pos_abs = pin_frame * corner_pos_rel;
+      // Consider the next pin location, relative to the current pin
+      ChVector<> nextPin_pos_rel(m_pin_dist, 0, 0);
+      ChVector<> nextPin_pos_abs = pin_frame * nextPin_pos_rel;
 
-      // distance the corner point is above the line segment surface
-      double corner_clearance = Vdot(norm_dir, corner_pos_abs - start_seg);
+      // distance the nextpin is above the line segment surface
+      double nextPin_clearance = Vdot(norm_dir, nextPin_pos_abs - start_seg);
 
       // distance the pin position is above the line segment surface
-      double pin_clearance = Vdot(norm_dir, pin_pos - start_seg);
-      double lim_angle = CH_C_PI_4; // don't rotate the shoe more than 45 deg. 
-      double psi = 0;
+      double pin_clearance = Vdot(norm_dir, pin_frame.GetPos() - start_seg);
 
-      // rotate the max amount in this case
-      if( corner_clearance > corner_pos_len*std::cos(lim_angle) )
+      // going to need the next pin to be ::m_shoe_chain_Yoffset above the line segment.
+      // normal distance between pins relative to the line segment.
+      double pin_len_norm_seg = pin_clearance - nextPin_clearance;
+
+      double psi = 0; // find rotation angle of shoe relative to the last one
+      if( pin_len_norm_seg > m_pin_dist * std::sin(lim_rot_angle) )
       {
-        psi = lim_angle;
+        // don't rotate too aggressively
+        psi = lim_rot_angle;
       }
       else
       {
-        // place the shoe relative to the pin location, so the next pin location is set such 
-        //  that the next shoe body can be easily aligned to the line segment.
-        ChVector<> r0 = corner_pos_abs - pin_pos;
-        // project pin center down to the line segment, normal to segment. Distance to r1.
-        double len_on_seg = std::sqrt( pow(corner_pos_len,2) - pow(pin_clearance,2) );
-        ChVector<> r1 = -norm_dir * pin_clearance + tan_dir * len_on_seg;
-        // rotate shoe about the z-axis of the pin, at the pin
-        psi = std::acos( Vdot(r0.GetNormalized(), r1.GetNormalized()) );
-        ChQuaternion<> rot_frame =  Q_from_AngAxis(-psi, pin_frame.GetRot().GetZaxis() );
-        pin_frame = rot_frame * pin_frame;
+        // distance of pins, tangent to the line segment.
+        double len_on_seg = std::sqrt(m_pin_dist*m_pin_dist - pow(pin_len_norm_seg,2) );
+        // know the next pin location
+        nextPin_pos_abs = pin_frame.GetPos() - norm_dir*pin_len_norm_seg + tan_dir*len_on_seg;
+        // direction vector between pins now
+        ChVector<> pin_dir_modified = nextPin_pos_abs - pin_frame.GetPos();
 
-        // can find the shoe COG pos/rot now, from pin orientation, and COG offset from pin pos
-        COG_frame.SetRot(pin_frame.GetRot() );
-        COG_frame.SetPos(pin_frame * COG_to_pin_rel); 
-
-        // let's check to see if the criteria for setting m_aligned_with_seg = true.
-        // Note: the function also sets the bool
-        bool check_alignment = check_shoe_aligned(COG_frame*COG_to_pin_rel, start_seg, end_seg, norm_dir);
-        if( 1 ) 
-          GetLog() << " aligned ?? shoe # : " << m_numShoes << " ?? " << check_alignment << "\n";
+        // find rotation angles based on cos(psi) = pin_dir_original dot pin_dir_modified
+        psi = std::acos( Vdot(pin_dir_original, pin_dir_modified) );
       }
+
+      // rotate the pin frame about z-axis of the pin, at the pin
+      ChQuaternion<> rot_frame =  Q_from_AngAxis(-psi, pin_frame.GetRot().GetZaxis() );
+      pin_frame.SetRot(rot_frame * pin_frame.GetRot());
+
+      // can find the shoe COG pos/rot now, from pin orientation, and COG offset from pin pos
+      COG_frame.SetRot(pin_frame.GetRot() );
+      COG_frame.SetPos(pin_frame * COG_to_pin_rel); 
+
+      // let's check to see if the criteria for setting m_aligned_with_seg = true.
+      // Note: the function also sets the bool
+      bool check_alignment = check_shoe_aligned(COG_frame*COG_to_pin_rel, start_seg, end_seg, norm_dir);
+      if( 1 ) 
+        GetLog() << " aligned ?? shoe # : " << m_numShoes << " ?? " << check_alignment << "\n";
+
+
     }
 
     // COG_frame is set correctly, add the body to the system
