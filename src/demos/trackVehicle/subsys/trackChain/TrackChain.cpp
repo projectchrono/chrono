@@ -565,6 +565,9 @@ void TrackChain::CreateShoes(ChSharedPtr<ChBodyAuxRef> chassis,
 
         // find rotation angles based on cos(psi) = pin_dir_original dot pin_dir_modified
         psi = std::acos( Vdot(pin_dir_original, pin_dir_modified) );
+        if( psi > lim_rot_angle )
+          GetLog () << " incorrect rotation angle for shoe #: " << int(m_numShoes) << ", psi = " << psi << "\n";
+        int arg = 2;
       }
 
       // rotate the pin frame about z-axis of the pin, at the pin
