@@ -522,8 +522,8 @@ void TrackChain::CreateShoes(ChSharedPtr<ChBodyAuxRef> chassis,
       //  2) stays as clsoe as possible to the line segment (e.g., by rotating the body slightly at the pin_pos)
       //  3) does not rotate the body too aggressively
 
-      // For 1), consider a point at the very front edge of a bounding box
-      ChVector<> corner_pos_rel( (m_pin_dist + m_shoe_box.x)/2.0, m_shoe_chain_Yoffset, 0);
+      // For 1), consider a point at the very front edge of a bounding box, relative to the pin.
+      ChVector<> corner_pos_rel( m_pin_dist + (m_shoe_box.x/2.0), m_shoe_chain_Yoffset, 0);
       double corner_pos_len = corner_pos_rel.Length();
       ChVector<> corner_pos_abs = pin_frame * corner_pos_rel;
 
