@@ -878,7 +878,7 @@ void TrackChain::CreateShoes_closeChain(ChSharedPtr<ChBodyAuxRef> chassis,
   // If assumptions were followed throughout, first shoe is somewhere near the middle of the gear and idler.
   // The first and last shoes ought to be aligned at first, e.g. same Rot().
   // If the stars align, the pin locations will line up
-  ChVector<> last_pin_pos = m_shoes.back()->GetFrame_COG_to_abs() * COG_to_pin_rel;
+  ChVector<> last_pin_pos = m_shoes.back()->GetFrame_COG_to_abs() * -COG_to_pin_rel;
   ChVector<> first_pin_pos = m_shoes.front()->GetFrame_COG_to_abs() * COG_to_pin_rel;
 
   // no way does this occur accidentally, but check anyway
@@ -889,15 +889,15 @@ void TrackChain::CreateShoes_closeChain(ChSharedPtr<ChBodyAuxRef> chassis,
   }
   else
   {
-    // pin overlap distance
-    ChVector<> r_last_first = last_pin_pos - first_pin_pos;
+    // pin 1 - pin last
+    ChVector<> r_first_last = last_pin_pos - first_pin_pos;
     // assuming both shoes are aligned (same Rot), rotation is symmetric and angle is:
-    double rotAng = std::acos( (m_pin_dist - r_last_first.Length()/2.0) / m_pin_dist);
+    double rotAng = std::acos( r_first_last.Length() / (2.0 * m_pin_dist));
     
     // rotate the first body about it's 2nd pin by -rotAng
     COG_frame = ChFrame<>(m_pins.front()->GetMarker2()->GetPos(), m_shoes.front()->GetRot() );
     ChQuaternion<> rot_q = Q_from_AngAxis( -rotAng, lateral_dir);
-    COG_frame = rot_q * COG_frame;
+    COG_frame.SetRot( rot_q * COG_frame.GetRot());
 
     // now, reposition the COG backwards from the first pin location
     COG_frame.SetPos( COG_frame * -COG_to_pin_rel);
@@ -908,7 +908,7 @@ void TrackChain::CreateShoes_closeChain(ChSharedPtr<ChBodyAuxRef> chassis,
     // rotate the last body about it's 1st pin by rotAng
     COG_frame = ChFrame<>(m_pins.back()->GetMarker1()->GetPos(), m_shoes.back()->GetRot() );
     rot_q = Q_from_AngAxis( rotAng, lateral_dir);
-    COG_frame = rot_q * COG_frame;
+    COG_frame.SetRot(rot_q * COG_frame.GetRot() );
 
     // reposition COG of last body forward from the last pin
     COG_frame.SetPos( COG_frame * COG_to_pin_rel);
@@ -925,7 +925,11 @@ void TrackChain::CreateShoes_closeChain(ChSharedPtr<ChBodyAuxRef> chassis,
 
   // re-positioned the first and last shoe to share final pin.
   ChVector<> pin_pos_abs = m_shoes.back()->GetFrame_COG_to_abs() * COG_to_pin_rel;
-
+  if(1)
+  {
+    ChVector<> pin_pos_abs_check = m_shoes.front()->GetFrame_COG_to_abs() * -COG_to_pin_rel;
+    GetLog() << " final pin pos., Inf norm(rear - front) = " << (pin_pos_abs - pin_pos_abs_check).LengthInf() <<"\n";
+  } 
   // create and init. the pin between the last shoe and first, add to system.
   m_pins.push_back(ChSharedPtr<ChLinkLockRevolute>(new ChLinkLockRevolute));
   m_pins.back()->SetNameString(" pin " + std::to_string(m_pins.size()) );
