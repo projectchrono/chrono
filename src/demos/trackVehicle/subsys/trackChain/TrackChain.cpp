@@ -895,19 +895,23 @@ void TrackChain::CreateShoes_closeChain(ChSharedPtr<ChBodyAuxRef> chassis,
     double rotAng = std::acos( r_first_last.Length() / (2.0 * m_pin_dist));
     
     // rotate the first body about it's 2nd pin by -rotAng
-    COG_frame = ChFrame<>(m_pins.front()->GetMarker2()->GetPos(), m_shoes.front()->GetRot() );
+    // get the the first pin frame from the first shoe Frame
+    COG_frame = ChFrame<>(m_shoes.front()->GetFrame_COG_to_abs() * COG_to_pin_rel, m_shoes.front()->GetRot() );
+    // rotate about that pin
     ChQuaternion<> rot_q = Q_from_AngAxis( -rotAng, lateral_dir);
     COG_frame.SetRot( rot_q * COG_frame.GetRot());
-
-    // now, reposition the COG backwards from the first pin location
+    // now, reposition the COG backwards from the first pin
     COG_frame.SetPos( COG_frame * -COG_to_pin_rel);
     // know the COG frame for the first shoe, set the body info
     m_shoes.front()->SetPos(COG_frame.GetPos() );
     m_shoes.front()->SetRot(COG_frame.GetRot() );
 
-    // rotate the last body about it's 1st pin by rotAng
-    COG_frame = ChFrame<>(m_pins.back()->GetMarker1()->GetPos(), m_shoes.back()->GetRot() );
+    // rotate the last body about the last pin
+    // get the pin location by stepping back from the shoe COG frame
+    COG_frame = ChFrame<>(m_shoes.back()->GetFrame_COG_to_abs()*-COG_to_pin_rel, m_shoes.back()->GetRot() );
+    // rotate about that pin
     rot_q = Q_from_AngAxis( rotAng, lateral_dir);
+    // reposition COG forward from this pin
     COG_frame.SetRot(rot_q * COG_frame.GetRot() );
 
     // reposition COG of last body forward from the last pin
