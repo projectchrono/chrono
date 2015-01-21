@@ -70,7 +70,7 @@ ChIrrGuiTrack::ChIrrGuiTrack(ChIrrApp&           app,
     m_app.GetSceneManager()->getRootSceneNode(),
     core::vector3df(0, 0, 0), core::vector3df(0, 0, 0));
 
-  camera->setUpVector(core::vector3df(0, 0, 1));
+  camera->setUpVector(core::vector3df(0, 1, 0));
   camera->setPosition(core::vector3df((f32)cam_pos.x, (f32)cam_pos.y, (f32)cam_pos.z));
   camera->setTarget(core::vector3df((f32)cam_target.x, (f32)cam_target.y, (f32)cam_target.z));
 
