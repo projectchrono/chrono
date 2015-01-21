@@ -541,7 +541,7 @@ void TrackChain::CreateShoes(ChSharedPtr<ChBodyAuxRef> chassis,
 
       // going to need the next pin to be ::m_shoe_chain_Yoffset above the line segment.
       // normal distance between pins relative to the line segment.
-      double pin_len_norm_seg = pin_clearance - nextPin_clearance;
+      double pin_len_norm_seg = pin_clearance - m_shoe_chain_Yoffset;
 
       double psi = 0; // find rotation angle of shoe relative to the last one
       if( pin_len_norm_seg > m_pin_dist * std::sin(lim_rot_angle) )
@@ -799,7 +799,7 @@ void TrackChain::CreateShoes_closeChain(ChSharedPtr<ChBodyAuxRef> chassis,
 
       // going to need the next pin to be ::m_shoe_chain_Yoffset above the line segment.
       // normal distance between pins relative to the line segment.
-      double pin_len_norm_seg = pin_clearance - nextPin_clearance;
+      double pin_len_norm_seg = pin_clearance - m_shoe_chain_Yoffset;
 
       double psi = 0; // find rotation angle of shoe relative to the last one
       if( pin_len_norm_seg > m_pin_dist * std::sin(lim_rot_angle) )
