@@ -642,10 +642,13 @@ void TrackChain::CreateShoes(ChSharedPtr<ChBodyAuxRef> chassis,
   //  project outrwards from center of rolling element instead.
   pos_on_seg = rolling_elem_center + rad_dir * clearance;
   dist_to_end = Vdot(end_curve_seg - pos_on_seg, tan_dir_end_curved_seg);// if there is a curved section w/ non-zero length, need at least 1 shoe.
+  
   // radius of the next pin position, relative to rolling element center
   double len_r2 = std::sqrt( pow(clearance + m_shoe_chain_Yoffset,2) + pow(m_pin_dist/2.0,2) );
 
-  // stop when furthest pin location on last created shoe body passes the end point
+  // stop when furthest pin location on last created shoe body passes the end point.
+  // Note: some rolling elements with short curved segments may end up skipping this, depending
+  //      on initial placement of first shoe.
   while(dist_to_end > 0) 
   {
     // create a new body by copying the first, add to handle vector.
