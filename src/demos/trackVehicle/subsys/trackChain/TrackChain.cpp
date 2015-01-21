@@ -926,12 +926,12 @@ bool TrackChain::check_shoe_aligned(const ChVector<>& pin2_pos_abs,
     const ChVector<>& end_seg_pos,
     const ChVector<>& seg_norm_axis)
 {
-  bool out = false;
+  bool out = false; // guilty, until proven innocent.
   ChVector<> tan_hat = (end_seg_pos - start_seg_pos).GetNormalized();
   // criteria 1) pin2 should be less than m_shoe_chain_Yoffset from the line segment.
   //  If it's too much less, the shoe might penetrate the envelope, so cap it in either direction.
   double dist = Vdot(seg_norm_axis, pin2_pos_abs - start_seg_pos);
-  if( abs(dist - m_shoe_chain_Yoffset) < 1e-3 )
+  if( abs(dist - m_shoe_chain_Yoffset) < 1e-6 )
     out = true;
 
   // set the outcome, and return it
