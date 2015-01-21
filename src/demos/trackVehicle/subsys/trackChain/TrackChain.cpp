@@ -502,8 +502,8 @@ void TrackChain::CreateShoes(ChSharedPtr<ChBodyAuxRef> chassis,
     // set the body pos. from the pin_pos w/ the previous shoe;
     COG_frame.SetPos(pin_frame * COG_to_pin_rel);
 
-    // hold on to the global direction vector between the original 2 pin locations.
-    ChVector<> pin_dir_original = (pin_frame.GetPos() - COG_frame.GetPos()).GetNormalized();
+    // hold on to the global direction vector between the original 1-2 pin locations.
+    ChVector<> pin_dir_original = (COG_frame.GetPos() - pin_frame.GetPos()).GetNormalized();
 
     // Assumption 1) is true if: 
     //  A) We set the last shoe pin in such a way so this shoe can be exactly aligned with the line segment, or
@@ -761,7 +761,7 @@ void TrackChain::CreateShoes_closeChain(ChSharedPtr<ChBodyAuxRef> chassis,
     COG_frame.SetPos(pin_frame * COG_to_pin_rel);
 
     // hold on to the global direction vector between the original 2 pin locations.
-    ChVector<> pin_dir_original = (pin_frame.GetPos() - COG_frame.GetPos()).GetNormalized();
+    ChVector<> pin_dir_original =  (COG_frame.GetPos() - pin_frame.GetPos()).GetNormalized();
 
     // Assumption 1) is true if: 
     //  A) We set the last shoe pin in such a way so this shoe can be exactly aligned with the line segment, or
