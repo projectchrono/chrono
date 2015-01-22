@@ -19,6 +19,8 @@
 
 // #include "ChronoT_config.h"
 
+namespace chrono {
+
 enum struct VisualizationType {
   NONE,
   PRIMITIVES,
@@ -46,5 +48,13 @@ enum struct CollisionFam {
   SHOES,
   ALL
 };
+
+
+enum struct VehicleSide {
+  RIGHT = 0,    
+  LEFT = 1     ///< x-forward leads to right side being position z-dir
+};
+
+} // end namespace chrono
 
 #endif
