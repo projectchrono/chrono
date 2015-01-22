@@ -130,11 +130,11 @@ void TrackVehicle::Initialize(const ChCoordsys<>& chassis_Csys)
   // initialize the powertrain, drivelines
   for (int j = 0; j < m_num_engines; j++)
   {
-    size_t driveGear_L_idx = 2*j;
-    size_t driveGear_R_idx = 2*j + 1;
+    size_t driveGear_R_idx = 2*j;
+    size_t driveGear_L_idx = 2*j + 1;
     m_drivelines[j]->Initialize(m_chassis,
-      m_TrackSystems[driveGear_L_idx]->GetDriveGear(),
-      m_TrackSystems[driveGear_R_idx]->GetDriveGear());
+      m_TrackSystems[driveGear_R_idx]->GetDriveGear(),
+      m_TrackSystems[driveGear_L_idx]->GetDriveGear());
     m_ptrains[j]->Initialize(m_chassis, m_drivelines[j]->GetDriveshaft());
   }
 
@@ -147,8 +147,11 @@ void TrackVehicle::Update(double	time,
 {
  
   // update left and right powertrains, with the new left and right throttle/shaftspeed
-  m_ptrains[0]->Update(time, throttle[0], m_drivelines[0]->GetDriveshaftSpeed() );
-  m_ptrains[1]->Update(time, throttle[1], m_drivelines[1]->GetDriveshaftSpeed() );
+  for(int i = 0; i < m_num_engines; i++)
+  {
+    m_ptrains[i]->Update(time, throttle[0], throttle[1], m_drivelines[0]->GetDriveshaftSpeed() );
+  }
+
 }
 
 void TrackVehicle::AddVisualization()
