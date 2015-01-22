@@ -72,10 +72,6 @@ DriveGear::DriveGear(const std::string& name,
 void DriveGear::Initialize(ChSharedPtr<ChBodyAuxRef> chassis, 
                            const ChCoordsys<>& local_Csys)
 {
-  // correct for which side we're on
-  m_PosRel = local_Csys.pos;
-  if(local_Csys.pos.z < 0)
-    m_PosRel.z *= -1;
 
   // add any collision geometry
   AddCollisionGeometry();

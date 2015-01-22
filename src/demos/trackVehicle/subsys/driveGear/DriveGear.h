@@ -48,8 +48,6 @@ public:
   ChSharedPtr<ChBody> GetBody() { return m_gear; }
 
   ChSharedPtr<ChShaft> GetAxle() { return m_axle; }
-  
-  const ChVector<> GetPosRel() { return m_PosRel; }
 
   double GetRadius() { return m_radius; }
 
@@ -66,8 +64,6 @@ private:
   ChSharedPtr<ChShaft> m_axle;                  ///< handle to axle shaft
   ChSharedPtr<ChShaftsBody>  m_axle_to_gear;    ///< handle to gear-shaft connector
   ChSharedPtr<ChLinkLockRevolute>  m_revolute;  ///< handle to revolute joint
-
-  ChVector<> m_PosRel;    ///< distance from the trackSystem Ref frame.
 
   VisualizationType m_vis;    // visual asset geometry type
   CollisionType m_collide;    // collision geometry type
