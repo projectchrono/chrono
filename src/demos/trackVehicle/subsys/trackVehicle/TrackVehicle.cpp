@@ -44,8 +44,8 @@ namespace chrono {
 const size_t TrackVehicle::m_num_tracks = 2;    // number of trackSystems to create
 const size_t TrackVehicle::m_num_engines = 1;   // number of powertrains (and drivelines) to create
 
-const ChVector<> TrackVehicle::m_trackPos_Left(0.23644, -0.4780, 0.83475);   // relative to chassis c-sys
-const ChVector<> TrackVehicle::m_trackPos_Right(0.23644, -0.4780, 0.83475);  // 
+const ChVector<> TrackVehicle::m_trackPos_Right(0.23644, -0.4780, 0.83475); // relative to chassis c-sys
+const ChVector<> TrackVehicle::m_trackPos_Left(0.23644, -0.4780, -0.83475); // relative to chassis c-sys
 
 const double     TrackVehicle::m_mass = 5489.2;   // chassis sprung mass
 const ChVector<> TrackVehicle::m_COM = ChVector<>(0., 0., 0.);  // COM location, relative to body Csys REF frame
