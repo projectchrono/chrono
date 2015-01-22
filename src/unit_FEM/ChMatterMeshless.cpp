@@ -561,14 +561,6 @@ void ChMatterMeshless::Update (double mytime)
 	
 }
 
-
-
-void ChMatterMeshless::UpdateExternalGeometry ()
-{
-	if (this->GetExternalObject())
-		this->GetExternalObject()->onChronoChanged();
-}
-
  
 // collision stuff
 void ChMatterMeshless::SetCollide (bool mcoll)

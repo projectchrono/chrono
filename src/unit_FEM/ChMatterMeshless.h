@@ -272,11 +272,6 @@ public:
 				/// Update all auxiliary data of the particles
 	virtual void Update ();
 
-				/// Tells to the associated external object ChExternalObject() ,if any,
-				/// that its 3D shape must be updated in order to syncronize to ChBody
-				/// coordinates
-	void UpdateExternalGeometry ();
-
 
 			//
 			// STREAMING

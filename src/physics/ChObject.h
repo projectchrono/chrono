@@ -52,11 +52,9 @@ namespace chrono
 
 class ChVar;
 class ChTag;
-class ChExternalObject;
 
 
 
-#define CHOBJ_NAMELENGTH 20
 
 
 ///
@@ -99,9 +97,6 @@ private:
 	int identifier;
 
 
-				// Reference to an external object associated to this item,
-				// useful if encapsulating into other 3d engines or apps.
-	ChExternalObject* external_obj;
 
 
 protected: 
@@ -147,17 +142,6 @@ public:
 				/// Sets the name of this object, as std::string 
 	void SetNameString (const std::string& myname);
 
-
-				/// Returns a reference to the ChExternalObject object associated
-				/// to this item. The external object can be used to handle 
-				/// external objects when encapsulating other 3d engines or apps.
-				/// Return value may be null.
-	ChExternalObject* GetExternalObject() const {return external_obj;}
-
-				/// Sets the ChExternalObject of this object (the m_obj will be cloned)
-	void   SetExternalObject(ChExternalObject* m_obj);
-				/// Sets no external object.
-	void   SetNoExternalObject();
 
 
 		// Set-get generic LONG flags, passed as reference

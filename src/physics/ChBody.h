@@ -292,6 +292,8 @@ public:
                 /// Set no speed and no accelerations (but does not change the position)
     void SetNoSpeedNoAcceleration();
 
+                /// Change the collision model.
+    void ChangeCollisionModel(collision::ChCollisionModel* new_collision_model);
 
                 /// Acess the collision model for the collision engine.
                 /// To get a non-null pointer, remember to SetCollide(true), before.
@@ -594,11 +596,6 @@ public:
                 /// its children (markers, forces..)
     virtual void Update();
 
-
-                /// Tells to the associated external object ChExternalObject() ,if any,
-                /// that its 3D shape must be updated in order to syncronize to ChBody
-                /// coordinates
-    void UpdateExternalGeometry ();
 
 
             //

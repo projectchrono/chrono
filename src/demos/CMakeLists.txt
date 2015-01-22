@@ -37,7 +37,7 @@ ENDIF("${isSystemDir}" STREQUAL "-1")
 
 #--------------------------------------------------------------
 # this contains its own set of demos, for the tracked vehicle subsystems built by Justin
-ADD_SUBDIRECTORY(trackedVehicle)
+ADD_SUBDIRECTORY(trackVehicle)
 
 IF(BUILD_DEMOS)
 ADD_SUBDIRECTORY(basics)

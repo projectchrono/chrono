@@ -49,8 +49,8 @@ public:
   /// Get the type of this joint.
   virtual int GetType()  { return LNK_REVOLUTESPHERICAL; }
 
-  /// Get the number of constraints imposed by this joint.
-  virtual int GetDOC_d() { return 2; }
+  /// Get the number of (bilateral) constraints introduced by this joint.
+  virtual int GetDOC_c() { return 2; }
 
   /// Get the point on Body1 (revolute side), expressed in Body1 coordinate system.
   const ChVector<>& GetPoint1Rel() const { return m_pos1; }

@@ -631,11 +631,6 @@ public:
 				/// bodies, forces, links, given their current state.
 	void Update();
 
-				/// Tells to the associated external object of class ChExternalObject() ,
-				/// if any, that all 3D shapes of the system must be updated in order
-				/// to syncronize to the current system's state. OBSOLETE
-	void UpdateExternalGeometry ();
-
 
 
 protected:

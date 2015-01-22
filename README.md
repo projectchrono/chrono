@@ -32,3 +32,6 @@ How to develop your application based on Chrono::Engine
 See the [tutorials](http://www.projectchrono.org/mediawiki/index.php/Tutorials) for examples of C++ code using the Chrono:::Engine library.
 
 A place for discussions can be the [projectchrono group](https://groups.google.com/forum/#!forum/projectchrono).
+
+-------------------------------------
+TrackVehicle library and demos are built with ENABLE_TRACK_VEHICLE

@@ -358,7 +358,14 @@ public:
 	ChLinkLockPerpend() {ChangeLinkType(LNK_PERPEND);}
 };
 
-
+/// RevolutePrismatic joint , with the 'ChLinkLock' formulation.
+/// Translates along x-dir, rotates about z-axis
+class ChApi ChLinkLockRevolutePrismatic : public ChLinkLock 
+{
+	CH_RTTI(ChLinkLockRevolutePrismatic,ChLinkLock);
+public:
+	ChLinkLockRevolutePrismatic() {ChangeLinkType(LNK_REVOLUTEPRISMATIC);}
+};
 
 } // END_OF_NAMESPACE____
 

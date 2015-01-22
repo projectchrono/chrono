@@ -30,7 +30,6 @@
 
 #include "physics/ChForce.h"
 #include "physics/ChBody.h"
-#include "physics/ChExternalObject.h"
  
 
 namespace chrono
@@ -394,11 +393,6 @@ void ChForce::Update (double mytime)
 }
 
 
-void ChForce::UpdateExternalGeometry ()
-{
-	if (GetExternalObject())
-		GetExternalObject()->onChronoChanged();
-}
 
 
 

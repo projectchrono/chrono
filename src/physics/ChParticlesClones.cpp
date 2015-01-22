@@ -440,14 +440,6 @@ void ChParticlesClones::Update (double mytime)
 	
 }
 
-
-
-void ChParticlesClones::UpdateExternalGeometry ()
-{
-	if (this->GetExternalObject())
-		this->GetExternalObject()->onChronoChanged();
-}
-
  
 // collision stuff
 void ChParticlesClones::SetCollide (bool mcoll)
