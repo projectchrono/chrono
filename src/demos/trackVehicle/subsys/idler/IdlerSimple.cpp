@@ -146,11 +146,15 @@ void IdlerSimple::Initialize(ChSharedPtr<ChBodyAuxRef> chassis,
   chassis->GetSystem()->AddLink(m_idler_joint);
 
   // init shock, add to system
-  // put the second marker some length behind (-x) marker1, based on desired preload
+  // put the second marker some length in front of marker1, based on desired preload
   double preLoad = 10000; // [N]
-  // chassis spring attachment point in -x dir w.r.t. chassis c-sys
+  // chassis spring attachment point is towards the center of the vehicle
   ChVector<> pos_chassis_abs = local_Csys.pos;
-  pos_chassis_abs.x -= m_springRestLength - (preLoad / m_springK);
+  if(local_Csys.pos.x < 0 ) 
+    pos_chassis_abs.x += m_springRestLength - (preLoad / m_springK);
+  else
+    pos_chassis_abs.x -= m_springRestLength - (preLoad / m_springK);
+
   // transform 2nd attachment point to abs coords
   pos_chassis_abs = chassis->GetCoord().TransformPointLocalToParent(pos_chassis_abs);
 
