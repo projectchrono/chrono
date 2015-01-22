@@ -109,7 +109,7 @@ int main(int argc, char* argv[])
 
   // ground is a large flat plate, with superimposed obstacles. Top surface at y = 0
   ChSharedPtr<ChBody> ground(new ChBodyEasyBox(60.0, 1.0, 100.0, 1000.0, true, true));
-  ground->SetPos(ChVector<>(0,-0.5,0));
+  ground->SetPos(ChVector<>(0, -1.0, 0));
 	ground->SetIdentifier(-1);
   ground->SetName("ground");
   ground->SetFriction(1.0);
@@ -172,7 +172,7 @@ int main(int argc, char* argv[])
   application.SetTimestep(step_size);
 
   // the GUI driver
-  ChIrrGuiTrack driver(application, vehicle, trackPoint, 4.0, 1.0);
+  ChIrrGuiTrack driver(application, vehicle, trackPoint, 3.0, 1.0);
 
   // Set the time response for steering and throttle keyboard inputs.
   // NOTE: this is not exact, since we do not render quite at the specified FPS.
@@ -212,7 +212,6 @@ int main(int argc, char* argv[])
   GetLog() << "\n\n============ System Configuration ============\n";
   vehicle.ShowHierarchy(GetLog() );
 #endif
-
 
   // Initialize simulation frame counter and simulation time
   int step_number = 0;
