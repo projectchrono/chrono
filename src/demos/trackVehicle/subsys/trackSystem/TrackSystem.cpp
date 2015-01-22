@@ -42,7 +42,6 @@ const double TrackSystem::m_roller_width = 0.2;
   
 // suspension
 const int TrackSystem::m_numSuspensions = 5;
-const ChVector<> TrackSystem::m_armWheel(-0.203, -0.2271, 0.2447);  // relative arm distance to right wheel
 
 TrackSystem::TrackSystem(const std::string& name, int track_idx)
   : m_track_idx(track_idx), m_name(name)
