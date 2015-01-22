@@ -183,14 +183,24 @@ void TorsionArmSuspension::AddVisualization()
   switch (m_vis) {
   case VisualizationType::PRIMITIVES:
   {
-    // define the wheel cylinder shape with the two end points of the cylinder
+    // define the wheel as two concentric cylinders with a gap
     ChSharedPtr<ChCylinderShape> cyl(new ChCylinderShape);
     ChVector<> p1(0, 0, m_wheelWidth/2.0);
-    ChVector<> p2(0, 0, -m_wheelWidth/2.0);
+    ChVector<> p2(0, 0, m_wheelWidthGap/2.0);
     cyl->GetCylinderGeometry().p1 = p1;
     cyl->GetCylinderGeometry().p2 = p2;
     cyl->GetCylinderGeometry().rad = m_wheelRadius;
     m_wheel->AddAsset(cyl);
+
+    // second cylinder is a mirror of the first
+    cyl->GetCylinderGeometry().p1.z = -m_wheelWidth/2.0;
+    cyl->GetCylinderGeometry().p2.z = -m_wheelWidthGap/2.0;
+    m_wheel->AddAsset(cyl);
+
+    // put a texture on the wheel
+    ChSharedPtr<ChTexture> tex(new ChTexture);
+    tex->SetTextureFilename(GetChronoDataFile("bluwhite.png"));
+    m_wheel->AddAsset(tex);
 
     // define the arm cylinder shape, link is along the y-axis
     double armLength = m_wheel_Pos.Length();
