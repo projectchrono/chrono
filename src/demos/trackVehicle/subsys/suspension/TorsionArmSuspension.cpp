@@ -120,6 +120,9 @@ void TorsionArmSuspension::Create(const std::string& name)
   AddVisualization();
 }
 
+// local_Csys is at the pin location between arm and chassis.
+// z-axis defines axis of revolute joint rotation.
+// Wheel rot is the same as local_Csys.
 void TorsionArmSuspension::Initialize(ChSharedPtr<ChBodyAuxRef> chassis,
                                       const ChCoordsys<>& local_Csys)
 {
@@ -140,7 +143,7 @@ void TorsionArmSuspension::Initialize(ChSharedPtr<ChBodyAuxRef> chassis,
   ChFrame<> wheel_to_abs(wheel_pos_loc);
   wheel_to_abs.ConcatenatePreTransformation(chassis->GetFrame_REF_to_abs());
 
-  // arm is between these two points.
+  // arm COG is between these two points.
   m_arm->SetPos( (rev_loc_to_abs.GetPos() + wheel_to_abs.GetPos() )/2.0 );
   // y-axis should point along length of arm, according to inertia tensor
   ChVector<> v = (rev_loc_to_abs.GetPos()-wheel_to_abs.GetPos()).GetNormalized();
@@ -171,7 +174,6 @@ void TorsionArmSuspension::Initialize(ChSharedPtr<ChBodyAuxRef> chassis,
   // wheel-arm, z-axis is already in the lateral direction
   m_armWheel_rev->Initialize(m_wheel, m_arm, ChCoordsys<>(wheel_to_abs.GetPos(), wheel_to_abs.GetRot()) );
   chassis->GetSystem()->AddLink(m_armWheel_rev);
-
 }
 
 /// add a cylinder to model the torsion bar arm and the wheel
