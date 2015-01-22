@@ -116,7 +116,8 @@ public:
   /// shaft (from the driveline).
   void Update(
     double time,       ///< [in] current time
-    double throttle,   ///< [in] current throttle input [0,1]
+    double throttle_Right,   ///< [in] current throttle input [0,1], right track
+    double throttle_Left,   ///< [in] current throttle input [0,1], left track
     double shaft_speed ///< [in] current angular speed of the transmission shaft
     );
 
