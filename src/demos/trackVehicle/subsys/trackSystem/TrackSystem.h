@@ -50,9 +50,17 @@ public:
 
   void Create(int track_idx);
 
+  // Accessors
+
   /// handle to the drive gear subsystem, to initialize the driveline
   ChSharedPtr<DriveGear> GetDriveGear() { return m_driveGear; }
   
+  // subsystem relative to trackSystem coords
+  ChVector<> Get_gearPosRel() { return m_gearPosRel; }
+  
+  // subsystem relative to trackSystem coords
+  ChVector<> Get_idlerPosRel() { return m_idlerPosRel; }
+
 private:
 
   // private functions
@@ -72,7 +80,10 @@ private:
   std::vector<ChSharedPtr<ChLinkLockRevolute>> m_supportRollers_rev;
   
   std::string m_name; ///< name of the track chain system
-  ChVector<> m_Pos_local; ///< location of ref-frame, w.r.t. chassis c-sys
+  ChVector<> m_local_pos; ///< location of ref-frame, w.r.t. chassis c-sys
+
+  ChVector<> m_gearPosRel;
+  ChVector<> m_idlerPosRel;
 
   // hard-coded in TrackSystem.cpp, for now
   // idler
