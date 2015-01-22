@@ -46,7 +46,7 @@
 #include <windows.h>
 #endif
 
-#if defined(__APPLE__) || defined(LINUX)
+#if defined(__APPLE__) || defined(__linux__)
 #include <pthread.h>
 #endif
 
@@ -73,7 +73,7 @@ class MemMutex
 private:
 		#if defined(_WIN32) || defined(_XBOX)
 		CRITICAL_SECTION m_Mutex;
-		#elif defined(__APPLE__) || defined(LINUX)
+		#elif defined(__APPLE__) || defined(__linux__)
 		pthread_mutex_t  m_Mutex;
 		#endif
 };
@@ -83,7 +83,7 @@ MemMutex::MemMutex(void)
 {
 #if defined(_WIN32) || defined(_XBOX)
 	InitializeCriticalSection(&m_Mutex);
-#elif defined(__APPLE__) || defined(LINUX)
+#elif defined(__APPLE__) || defined(__linux__)
 	pthread_mutexattr_t mta;
 	pthread_mutexattr_init(&mta);
 	pthread_mutexattr_settype(&mta, PTHREAD_MUTEX_RECURSIVE);
@@ -97,7 +97,7 @@ MemMutex::~MemMutex(void)
 {
 #if defined(_WIN32) || defined(_XBOX)
 	DeleteCriticalSection(&m_Mutex);
-#elif defined(__APPLE__) || defined(LINUX)
+#elif defined(__APPLE__) || defined(__linux__)
 	pthread_mutex_destroy(&m_Mutex);
 #endif
 }
@@ -109,7 +109,7 @@ void MemMutex::Lock(void)
 {
 #if defined(_WIN32) || defined(_XBOX)
 	EnterCriticalSection(&m_Mutex);
-#elif defined(__APPLE__) || defined(LINUX)
+#elif defined(__APPLE__) || defined(__linux__)
 	pthread_mutex_lock(&m_Mutex);
 #endif
 }
@@ -121,7 +121,7 @@ void MemMutex::Unlock(void)
 {
 #if defined(_WIN32) || defined(_XBOX)
 	LeaveCriticalSection(&m_Mutex);
-#elif defined(__APPLE__) || defined(LINUX)
+#elif defined(__APPLE__) || defined(__linux__)
 	pthread_mutex_unlock(&m_Mutex);
 #endif
 }

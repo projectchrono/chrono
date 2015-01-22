@@ -82,6 +82,8 @@ if("${VCS_REVISION}" MATCHES ".*-NOTFOUND$")
   set(VCS_REVISION "")
 endif()
 
+SET (CMAKE_EXPORT_COMPILE_COMMANDS ON)
+
 #-----------------------------------------------------------------------------
 # OPTIONS AND USER SETTINGS
 # These cached variables will be shown in the GUI of CMake as 
@@ -204,17 +206,6 @@ IF(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
         SET (CH_LINKERFLAG_EXE "-Wl,--enable-runtime-pseudo-reloc")
         SET (CH_LINKERFLAG_SHARED "-Wl,--export-all-symbols -Wl,--enable-auto-import -Wl,--enable-runtime-pseudo-reloc")
     ENDIF()
-ELSEIF(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
-    SET (CH_BUILDFLAGS "-DLINUX -D__linux__ -fpermissive")
-    if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
-        SET (CH_LINKERFLAG_SHARED "-z muldefs")
-    endif()
-ELSEIF(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
-	if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
-	elseif ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
-		SET (CH_BUILDFLAGS "-DAPPLE -D__APPLE__   -fpermissive")
-		SET (CH_LINKERFLAG_SHARED "-fpermissive")
-	endif()
 ENDIF()
 
 find_package(Threads)
@@ -833,6 +824,7 @@ IF (BUILD_CH_SDK)
 		lcp/ChLcpVariablesBody.cpp 
 		lcp/ChLcpVariablesBodySharedMass.cpp 
 		lcp/ChLcpVariablesBodyOwnMass.cpp 
+		lcp/ChLcpVariablesShaft.cpp
 		lcp/ChLcpVariablesNode.cpp 
 		lcp/ChLcpKblockGeneric.cpp
 		lcp/ChLcpSolverDEM.cpp
@@ -873,6 +865,7 @@ IF (BUILD_CH_SDK)
 		lcp/ChLcpVariablesBody.h
 		lcp/ChLcpVariablesBodyOwnMass.h
 		lcp/ChLcpVariablesBodySharedMass.h
+		lcp/ChLcpVariablesShaft.h
 		lcp/ChLcpVariablesGeneric.h
 		lcp/ChLcpVariablesNode.h
 		lcp/ChLcpKblock.h
