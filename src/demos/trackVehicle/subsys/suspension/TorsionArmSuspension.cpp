@@ -37,7 +37,7 @@ const double TorsionArmSuspension::m_armRadius = 0.1; // [m]
 const double TorsionArmSuspension::m_wheelMass = 561.1; // [kg]
 const ChVector<> TorsionArmSuspension::m_wheelInertia(19.82, 19.82, 26.06); // [kg-m2]
 const double TorsionArmSuspension::m_wheelWidth = 0.16;  // [m]
-const double TorsionArmSuspension::m_wheelWidthGap = 0.038;  // inner gap between outer cylinders
+const double TorsionArmSuspension::m_wheelWidthGap = 0.03;  // inner gap between outer cylinders .038?
 const double TorsionArmSuspension::m_wheelRadius = 0.305; // [m]
 const ChVector<> TorsionArmSuspension::m_wheel_Pos(-0.2034, -0.2271, 0.24475); // loc of right wheel COG in the local c-sys
 const double TorsionArmSuspension::m_springK = 10000;	// torsional spring constant [N-m/rad]
@@ -185,10 +185,8 @@ void TorsionArmSuspension::AddVisualization()
   {
     // define the wheel as two concentric cylinders with a gap
     ChSharedPtr<ChCylinderShape> cyl(new ChCylinderShape);
-    ChVector<> p1(0, 0, m_wheelWidth/2.0);
-    ChVector<> p2(0, 0, m_wheelWidthGap/2.0);
-    cyl->GetCylinderGeometry().p1 = p1;
-    cyl->GetCylinderGeometry().p2 = p2;
+    cyl->GetCylinderGeometry().p1 = ChVector<>(0, 0, m_wheelWidth/2.0);
+    cyl->GetCylinderGeometry().p2 = ChVector<>(0, 0, m_wheelWidthGap/2.0);
     cyl->GetCylinderGeometry().rad = m_wheelRadius;
     m_wheel->AddAsset(cyl);
 
