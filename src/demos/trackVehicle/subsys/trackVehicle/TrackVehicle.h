@@ -51,7 +51,7 @@ public:
     VisualizationType chassisVis = VisualizationType::PRIMITIVES,
     CollisionType chassisCollide = CollisionType::PRIMITIVES);
 
-  ~TrackVehicle() {}
+  ~TrackVehicle();
 
   // multiply lateral directions to get correct coord
   enum TrackVehicleSide{
@@ -160,6 +160,10 @@ private:
   static const ChVector<> m_chassisBoxSize; // length, height, width of chassis collision box (if collisiontype = PRIMITIVES)
 
   double m_stepsize;          ///< integration time step for tracked vehicle system
+
+protected:
+  ChSystem*                  m_system;       ///< pointer to the Chrono system
+  bool                       m_ownsSystem;   ///< true if system created at construction
 
   // friend class irrDriver
 };
