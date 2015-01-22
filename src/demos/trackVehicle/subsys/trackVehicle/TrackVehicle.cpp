@@ -96,13 +96,13 @@ TrackVehicle::TrackVehicle(const std::string& name, VisualizationType chassisVis
 
   // create track systems
   for (int i = 0; i < m_num_tracks; i++) {
-    m_TrackSystems[i] = ChSharedPtr<TrackSystem>(new TrackSystem("track chain "+std::to_string(i), i));
+    m_TrackSystems[i] = ChSharedPtr<TrackSystem>(new TrackSystem("track chain "+std::to_string(i), i) );
   }
   
   // create the powertrain and drivelines
   for (int j = 0; j < m_num_engines; j++)
   {
-    m_drivelines[j] = ChSharedPtr<TrackDriveline>(new TrackDriveline("driveline "+std::to_string(j))  );
+    m_drivelines[j] = ChSharedPtr<TrackDriveline>(new TrackDriveline("driveline "+std::to_string(j)) );
     m_ptrains[j] = ChSharedPtr<TrackPowertrain>(new TrackPowertrain("powertrain "+std::to_string(j)) );
   
   }
