@@ -71,6 +71,9 @@ public:
   ChSharedPtr<ChBody> GetArmBody() { return m_arm; }
   ChSharedPtr<ChBody> GetWheelBody() { return m_wheel; }
 
+  /// return the distance to the wheel, in the suspension local coords
+  const ChVector<> GetWheelPosRel() { return m_wheel_PosRel; }
+
   double GetWheelRadius() { return m_wheelRadius; }
 
 private:
@@ -91,6 +94,7 @@ private:
 
   ChSharedPtr<ChBody> m_wheel;  ///< wheel body
   ChSharedPtr<ChLinkLockRevolute> m_armWheel_rev; ///< arm-wheel revolute joint
+  ChVector<> m_wheel_PosRel;  ///< position of wheel center w.r.t. arm pin to chassis, corrected for left/right side.
 
   ChFrame<> m_Loc; // location of subsystem, relative to trackSystem ref c-sys
 

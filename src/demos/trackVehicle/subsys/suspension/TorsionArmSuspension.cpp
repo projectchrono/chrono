@@ -90,6 +90,9 @@ void TorsionArmSuspension::Create(const std::string& name)
   m_wheel->SetMass(m_wheelMass);
   m_wheel->SetInertiaXX(m_wheelInertia);  // wheel width along z-axis
 
+  // relative distance from chassis/arm pin to wheel center 
+  // NOTE: correct for which side its on Initialize()
+  m_wheel_PosRel = m_wheel_Pos;
 
   // create the constraints
   m_armChassis_rev = ChSharedPtr<ChLinkLockRevolute>(new ChLinkLockRevolute);
@@ -120,6 +123,10 @@ void TorsionArmSuspension::Create(const std::string& name)
 void TorsionArmSuspension::Initialize(ChSharedPtr<ChBodyAuxRef> chassis,
                                       const ChCoordsys<>& local_Csys)
 {
+  // correct armpin to wheel distance for left/right sides
+  if(local_Csys.pos.z < 0)
+    m_wheel_PosRel.z *= -1;
+
   // add collision geometry
   AddCollisionGeometry();
 
