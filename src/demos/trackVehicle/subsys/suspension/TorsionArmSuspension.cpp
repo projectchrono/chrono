@@ -139,7 +139,7 @@ void TorsionArmSuspension::Initialize(ChSharedPtr<ChBodyAuxRef> chassis,
 
   // wheel is offset from local csys, in local coordinates
   ChFrame<> wheel_pos_loc(local_Csys);
-  wheel_pos_loc.SetPos(local_Csys.pos + m_wheel_Pos);
+  wheel_pos_loc.SetPos(local_Csys.pos + GetWheelPosRel());
   ChFrame<> wheel_to_abs(wheel_pos_loc);
   wheel_to_abs.ConcatenatePreTransformation(chassis->GetFrame_REF_to_abs());
 
