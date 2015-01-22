@@ -222,9 +222,16 @@ void IdlerSimple::AddCollisionGeometry()
     }
   case CollisionType::PRIMITIVES:
   {
-    // use a simple cylinder
-    m_idler->GetCollisionModel()->AddCylinder(m_radius, m_radius, m_width,
-      ChVector<>(),Q_from_AngAxis(CH_C_PI_2,VECT_X));
+    double half_cyl_width =  (m_width - m_widthGap)/2.0;
+    ChVector<> shape_offset =  ChVector<>(0, 0, half_cyl_width + m_widthGap/2.0);
+    // use two cylinders.
+    m_idler->GetCollisionModel()->AddCylinder(m_radius, m_radius, half_cyl_width,
+      shape_offset,Q_from_AngAxis(CH_C_PI_2,VECT_X));
+
+    // mirror first cylinder about the x-y plane
+    shape_offset.z *= -1;
+    m_idler->GetCollisionModel()->AddCylinder(m_radius, m_radius, half_cyl_width,
+      shape_offset,Q_from_AngAxis(CH_C_PI_2,VECT_X));
 
     break;
   }
