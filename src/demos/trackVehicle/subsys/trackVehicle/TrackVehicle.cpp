@@ -91,8 +91,8 @@ TrackVehicle::TrackVehicle(const std::string& name, VisualizationType chassisVis
 
   // Each trackSystem has its own driveline and powertrain, so the left and right
   // sides can have power applied independently
-  m_drivelines.resize(m_num_tracks);
-  m_ptrains.resize(m_num_tracks);
+  m_drivelines.resize(m_num_engines);
+  m_ptrains.resize(m_num_engines);
 
   // create track systems
   for (int i = 0; i < m_num_tracks; i++) {
