@@ -173,12 +173,15 @@ void IdlerSimple::AddVisualization()
   case VisualizationType::PRIMITIVES:
   {
     ChSharedPtr<ChCylinderShape> cyl(new ChCylinderShape);
-    // define the cylinder shape with the two end points of the cylinder
-    ChVector<> p1(0, 0, m_width/2.0);
-    ChVector<> p2(0, 0, -m_width/2.0);
-    cyl->GetCylinderGeometry().p1 = p1;
-    cyl->GetCylinderGeometry().p2 = p2;
+    // define the shape with two concentric cyclinders, with a gap.
+    cyl->GetCylinderGeometry().p1 = ChVector<>(0, 0, m_width/2.0);
+    cyl->GetCylinderGeometry().p2 = ChVector<>(0, 0, m_widthGap/2.0);
     cyl->GetCylinderGeometry().rad = m_radius;
+    m_idler->AddAsset(cyl);
+
+    // second cylinder is a mirror of the first
+    cyl->GetCylinderGeometry().p1.z = -m_width/2.0;
+    cyl->GetCylinderGeometry().p2.z = -m_widthGap/2.0;
     m_idler->AddAsset(cyl);
 
     // add a color asset
