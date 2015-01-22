@@ -172,7 +172,7 @@ int main(int argc, char* argv[])
   application.SetTimestep(step_size);
 
   // the GUI driver
-  ChIrrGuiTrack driver(application, vehicle, trackPoint,3.0, 2.0);
+  ChIrrGuiTrack driver(application, vehicle, trackPoint, 4.0, 1.0);
 
   // Set the time response for steering and throttle keyboard inputs.
   // NOTE: this is not exact, since we do not render quite at the specified FPS.

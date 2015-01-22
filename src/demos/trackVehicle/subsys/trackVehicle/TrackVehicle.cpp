@@ -266,8 +266,17 @@ void TrackVehicle::AddCollisionGeometry()
 void TrackVehicle::Advance(double step)
 {
   double t = 0;
+  double settlePhaseA = 0.001;
+  double settlePhaseB = 0.01;
   while (t < step) {
     double h = std::min<>(m_stepsize, step - t);
+    if( GetChTime() < settlePhaseA )
+    {
+      h = 1e-5;
+    } else if ( GetChTime() < settlePhaseB )
+    {
+      h = 1e-4;
+    }
     DoStepDynamics(h);
     t += h;
   }
