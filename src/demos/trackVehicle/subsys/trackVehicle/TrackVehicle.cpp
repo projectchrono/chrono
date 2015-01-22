@@ -58,7 +58,10 @@ const ChVector<> TrackVehicle::m_chassisBoxSize(4.0 *0.5, 2.0 *0.5, 3.0 *0.5);  
 
 /// constructor sets the basic integrator settings for this ChSystem, as well as the usual stuff
 TrackVehicle::TrackVehicle(const std::string& name, VisualizationType chassisVis, CollisionType chassisCollide)
-  : m_vis(chassisVis), m_collide(chassisCollide)
+  : m_vis(chassisVis),
+  m_collide(chassisCollide),
+  m_ownsSystem(true),
+  m_stepsize(1e-3)
 {
   // Integration and Solver settings
   SetLcpSolverType(ChSystem::LCP_ITERATIVE_SOR);
@@ -112,6 +115,12 @@ TrackVehicle::TrackVehicle(const std::string& name, VisualizationType chassisVis
 }
 
 
+TrackVehicle::~TrackVehicle()
+{
+  if(m_ownsSystem)
+    delete m_system;
+}
+
 // Set any collision geometry on the hull, then Initialize() all subsystems
 void TrackVehicle::Initialize(const ChCoordsys<>& chassis_Csys)
 {
@@ -145,7 +154,8 @@ void TrackVehicle::Update(double	time,
                           const std::vector<double>&  throttle,
                           const std::vector<double>&  braking)
 {
- 
+  assert( throttle.size() == m_num_tracks);
+  assert( braking.size() == m_num_tracks );
   // update left and right powertrains, with the new left and right throttle/shaftspeed
   for(int i = 0; i < m_num_engines; i++)
   {
