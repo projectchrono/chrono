@@ -60,7 +60,7 @@ uint ChSolverCGS::SolveCGS(const uint max_iter, const uint size, blaze::DynamicV
     residual = (sqrt((r, r)) / normb);
 
     objective_value = GetObjectiveBlaze(ml, mb);
-    AtIterationEnd(residual, objective_value, iter_hist.size());
+    AtIterationEnd(residual, objective_value);
 
     if (residual < data_container->settings.solver.tolerance) {
       break;

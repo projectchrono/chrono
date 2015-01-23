@@ -22,7 +22,7 @@ uint ChSolverGD::SolveGD(const uint max_iter, const uint size, blaze::DynamicVec
     r = mb - r;
     resnew = sqrt((ml, ml));
     residual = std::abs(resnew - resold);
-    AtIterationEnd(residual, GetObjectiveBlaze(ml, mb), iter_hist.size());
+    AtIterationEnd(residual, GetObjectiveBlaze(ml, mb));
     if (residual < data_container->settings.solver.tolerance) {
       break;
     }

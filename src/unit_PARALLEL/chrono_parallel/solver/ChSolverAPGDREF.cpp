@@ -135,7 +135,7 @@ uint ChSolverAPGDREF::SolveAPGDREF(const uint max_iter, const uint size,
 
     // (23) if r < Tau
     if(verbose) std::cout << "Residual: " << residual << ", Iter: " << current_iteration << std::endl;
-    AtIterationEnd(residual, objective_value, iter_hist.size());
+    AtIterationEnd(residual, objective_value);
     if (residual < data_container->settings.solver.tol_speed) {
       // (24) break
       break;

@@ -33,7 +33,7 @@ uint ChSolverPGS::SolvePGS(const uint max_iter, const uint size, blaze::DynamicV
       Project_Single(i, ml.data());
     }
     residual = Res4Blaze(ml, mb);
-    AtIterationEnd(residual, GetObjectiveBlaze(ml, mb), iter_hist.size());
+    AtIterationEnd(residual, GetObjectiveBlaze(ml, mb));
   }
 
   return current_iteration;

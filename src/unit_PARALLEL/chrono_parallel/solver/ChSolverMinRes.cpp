@@ -97,7 +97,7 @@ uint ChSolverMinRes::SolveMinRes(const uint max_iter, const uint size, blaze::Dy
     mp = mz + mtmp;
     mNp = mNp * beta + mNMr;
 
-    AtIterationEnd(residual, GetObjectiveBlaze(ml, mb), iter_hist.size());
+    AtIterationEnd(residual, GetObjectiveBlaze(ml, mb));
   }
 
   //	uint N = b.size();

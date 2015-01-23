@@ -39,7 +39,7 @@ uint ChSolverJacobi::SolveJacobi(const uint max_iter, const uint size, blaze::Dy
     Project(ml.data());
     ml_old = ml;
     residual = Res4Blaze(ml, mb);
-    AtIterationEnd(residual, GetObjectiveBlaze(ml, mb), iter_hist.size());
+    AtIterationEnd(residual, GetObjectiveBlaze(ml, mb));
   }
 
   return current_iteration;

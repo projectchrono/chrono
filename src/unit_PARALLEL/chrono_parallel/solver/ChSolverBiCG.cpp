@@ -56,7 +56,7 @@ uint ChSolverBiCG::SolveBiCG(const uint max_iter, const uint size, blaze::Dynami
     residual = sqrt((r, r)) / normb;
 
     objective_value = GetObjectiveBlaze(ml, mb);
-    AtIterationEnd(residual, objective_value, iter_hist.size());
+    AtIterationEnd(residual, objective_value);
 
     if (residual < data_container->settings.solver.tolerance) {
       break;

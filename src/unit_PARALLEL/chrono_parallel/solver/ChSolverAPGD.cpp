@@ -104,7 +104,7 @@ uint ChSolverAPGD::SolveAPGD(const uint max_iter, const uint size, const blaze::
       gamma_hat = gamma_new;
     }
 
-    AtIterationEnd(residual, objective_value, iter_hist.size());
+    AtIterationEnd(residual, objective_value);
     if (residual < data_container->settings.solver.tolerance) {
       break;
     }

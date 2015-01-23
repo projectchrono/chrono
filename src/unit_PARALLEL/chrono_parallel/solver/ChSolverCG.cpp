@@ -38,7 +38,7 @@ uint ChSolverCG::SolveCG(const uint max_iter, const uint size, blaze::DynamicVec
     rsold = rsnew;
 
     objective_value = GetObjectiveBlaze(ml, mb);
-    AtIterationEnd(residual, objective_value, iter_hist.size());
+    AtIterationEnd(residual, objective_value);
   }
   Project(ml.data());
 
