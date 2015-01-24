@@ -19,21 +19,24 @@ namespace chrono
 namespace fem
 {
 
-void ChElementGeneric::EleIntLoadResidual_F(const unsigned int off,	ChVectorDynamic<>& R, const double c )
+void ChElementGeneric::EleIntLoadResidual_F(ChVectorDynamic<>& R, const double c )
 {
 	ChMatrixDynamic<> mFi(this->GetNdofs(), 1);
 	this->ComputeInternalForces(mFi);
+	//GetLog() << "EleIntLoadResidual_F , mFi=" << mFi << "  c=" << c << "\n";
 	mFi.MatrScale(c);
 	int stride = 0;
 	for (int in=0; in < this->GetNnodes(); in++)
 	{
-		int nodedofs = GetNodeN(in)->Get_ndof();
-		R.PasteSumClippedMatrix(&mFi, stride, 0, nodedofs,1, GetNodeN(in)->Variables().GetOffset(), 0);
+		int nodedofs = GetNodeN(in)->Get_ndof_w();
+		//GetLog() << "  in=" << in << "  stride=" << stride << "  nodedofs=" << nodedofs << " offset=" <<  GetNodeN(in)->NodeGetOffset_w() << "\n";
+		R.PasteSumClippedMatrix(&mFi, stride, 0, nodedofs,1, GetNodeN(in)->NodeGetOffset_w(), 0);
 		stride += nodedofs;
 	}
+	//GetLog() << "EleIntLoadResidual_F , R=" << R << "\n";
 }
 
-void ChElementGeneric::EleIntLoadResidual_Mv(const unsigned int off,	ChVectorDynamic<>& R, const ChVectorDynamic<>& w, const double c)
+void ChElementGeneric::EleIntLoadResidual_Mv(ChVectorDynamic<>& R, const ChVectorDynamic<>& w, const double c)
 {
 	// This is a default (VERY UNOPTIMAL) book keeping so that in children classes you can avoid 
 	// implementing this VariablesFbIncrementMq function, unless you need faster code)
@@ -45,19 +48,20 @@ void ChElementGeneric::EleIntLoadResidual_Mv(const unsigned int off,	ChVectorDyn
 	int stride = 0;
 	for (int in=0; in < this->GetNnodes(); in++)
 	{
-		int nodedofs = GetNodeN(in)->Get_ndof();
-		mqi.PasteMatrix(&GetNodeN(in)->Variables().Get_qb(), stride, 0);
+		int nodedofs = GetNodeN(in)->Get_ndof_w();
+		mqi.PasteClippedMatrix(&w, GetNodeN(in)->NodeGetOffset_w(), 0, nodedofs, 1, stride,0);
 		stride += nodedofs;
 	}
 
 	ChMatrixDynamic<> mFi(this->GetNdofs(), 1);
 	mFi.MatrMultiply(mMi, mqi);
+	mFi.MatrScale(c);
 
 	stride = 0;
 	for (int in=0; in < this->GetNnodes(); in++)
 	{
-		int nodedofs = GetNodeN(in)->Get_ndof();
-		R.PasteSumClippedMatrix(&mFi, stride,0, nodedofs,1, GetNodeN(in)->Variables().GetOffset(),0);
+		int nodedofs = GetNodeN(in)->Get_ndof_w();
+		R.PasteSumClippedMatrix(&mFi, stride,0, nodedofs,1, GetNodeN(in)->NodeGetOffset_w(),0);
 		stride += nodedofs;
 	}
 }
@@ -72,7 +76,7 @@ void ChElementGeneric::VariablesFbLoadInternalForces(double factor)
 	int stride = 0;
 	for (int in=0; in < this->GetNnodes(); in++)
 	{
-		int nodedofs = GetNodeN(in)->Get_ndof();
+		int nodedofs = GetNodeN(in)->Get_ndof_w();
 		GetNodeN(in)->Variables().Get_fb().PasteSumClippedMatrix(&mFi, stride,0, nodedofs,1, 0,0);
 		stride += nodedofs;
 	}
@@ -92,7 +96,7 @@ void ChElementGeneric::VariablesFbIncrementMq()
 	int stride = 0;
 	for (int in=0; in < this->GetNnodes(); in++)
 	{
-		int nodedofs = GetNodeN(in)->Get_ndof();
+		int nodedofs = GetNodeN(in)->Get_ndof_w();
 		mqi.PasteMatrix(&GetNodeN(in)->Variables().Get_qb(), stride, 0);
 		stride += nodedofs;
 	}
@@ -103,7 +107,7 @@ void ChElementGeneric::VariablesFbIncrementMq()
 	stride = 0;
 	for (int in=0; in < this->GetNnodes(); in++)
 	{
-		int nodedofs = GetNodeN(in)->Get_ndof();
+		int nodedofs = GetNodeN(in)->Get_ndof_w();
 		GetNodeN(in)->Variables().Get_fb().PasteSumClippedMatrix(&mFi, stride,0, nodedofs,1, 0,0);
 		stride += nodedofs;
 	}

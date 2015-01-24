@@ -53,11 +53,11 @@ public:
 
 				/// (This is a default (a bit unoptimal) book keeping so that in children classes you can avoid 
 				/// implementing this EleIntLoadResidual_F function, unless you need faster code)
-	virtual void EleIntLoadResidual_F(const unsigned int off,	ChVectorDynamic<>& R, const double c );
+	virtual void EleIntLoadResidual_F(ChVectorDynamic<>& R, const double c );
 
 				/// (This is a default (VERY UNOPTIMAL) book keeping so that in children classes you can avoid 
 				/// implementing this EleIntLoadResidual_Mv function, unless you need faster code.)
-	virtual void EleIntLoadResidual_Mv(const unsigned int off,	ChVectorDynamic<>& R, const ChVectorDynamic<>& w, const double c);
+	virtual void EleIntLoadResidual_Mv(ChVectorDynamic<>& R, const ChVectorDynamic<>& w, const double c);
 
 			//
 			// Functions for interfacing to the LCP solver

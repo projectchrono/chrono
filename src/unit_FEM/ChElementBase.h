@@ -67,9 +67,9 @@ public:
 				/// CHLDREN CLASSES MUST IMPLEMENT THIS!!!
 	virtual void GetField(ChMatrixDynamic<>& mD) = 0;
 
-				/// Sets H as the global stiffness matrix K, scaled  by Kfactor. Optionally, also
-				/// superimposes global damping matrix R, scaled by Rfactor, and global mass matrix M, 
-				/// scaled by Mfactor. 
+				/// Sets H as the stiffness matrix K, scaled  by Kfactor. Optionally, also
+				/// superimposes global damping matrix R, scaled by Rfactor, and mass matrix M, 
+				/// scaled by Mfactor. Matrices are expressed in global reference.
 				/// Corotational elements can take the local Kl & Rl matrices and rotate them.
 				/// CHLDREN CLASSES MUST IMPLEMENT THIS!!!
 	virtual void ComputeKRMmatricesGlobal (ChMatrix<>& H, double Kfactor, double Rfactor=0, double Mfactor=0) = 0;
@@ -94,9 +94,15 @@ public:
 			// Functions for interfacing to the state bookkeeping
 			//
 
-	virtual void EleIntLoadResidual_F(const unsigned int off,	ChVectorDynamic<>& R, const double c ) {};
+				/// Adds the internal forces (pasted at global nodes offsets) into 
+				/// a global vector R, multiplied by a scaling factor c, as
+				///   R += forces * c
+	virtual void EleIntLoadResidual_F(ChVectorDynamic<>& R, const double c ) {};
 
-	virtual void EleIntLoadResidual_Mv(const unsigned int off,	ChVectorDynamic<>& R, const ChVectorDynamic<>& w, const double c) {};
+				/// Adds the product of element mass M by a vector w (pasted at global nodes offsets) into 
+				/// a global vector R, multiplied by a scaling factor c, as
+				///   R += M * v * c
+	virtual void EleIntLoadResidual_Mv(ChVectorDynamic<>& R, const ChVectorDynamic<>& w, const double c) {};
 
 			//
 			// Functions for interfacing to the LCP solver
@@ -114,11 +120,13 @@ public:
 
 				/// Adds the internal forces, expressed as nodal forces, into the
 				/// encapsulated ChLcpVariables, in the 'fb' part: qf+=forces*factor
+				/// WILL BE DEPRECATED - see EleIntLoadResidual_F
 	virtual void VariablesFbLoadInternalForces(double factor=1.) {};
 
 				/// Adds M*q (internal masses multiplied current 'qb') to Fb, ex. if qb is initialized
 				/// with v_old using VariablesQbLoadSpeed, this method can be used in 
 				/// timestepping schemes that do: M*v_new = M*v_old + forces*dt
+				/// WILL BE DEPRECATED 
 	virtual void VariablesFbIncrementMq() {};
 
 
