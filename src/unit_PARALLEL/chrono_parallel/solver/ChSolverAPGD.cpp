@@ -2,6 +2,14 @@
 #include <blaze/math/CompressedVector.h>
 using namespace chrono;
 
+ChSolverAPGD::ChSolverAPGD()
+: ChSolverParallel(),
+  init_theta(1),
+  step_shrink(0.5),      ////   NOT USED
+  step_grow(2)           ////   still needed?
+{
+}
+
 void ChSolverAPGD::SetAPGDParams(real theta_k, real shrink, real grow) {
   init_theta = theta_k;
   step_shrink = shrink;

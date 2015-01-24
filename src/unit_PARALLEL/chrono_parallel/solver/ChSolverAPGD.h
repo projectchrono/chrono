@@ -24,7 +24,7 @@
 namespace chrono {
 class CH_PARALLEL_API ChSolverAPGD : public ChSolverParallel {
  public:
-  ChSolverAPGD() : ChSolverParallel() {}
+  ChSolverAPGD();
   ~ChSolverAPGD() {}
 
   void Solve() {
