@@ -149,13 +149,20 @@ public:
 /// Base properties for implicit solvers (double inheritance)
 class ChImplicitTimestepper 
 {
+};
+
+
+/// Base properties for implicit solvers that compute the solution by iterative
+/// process up to a desired tolerance
+class ChImplicitIterativeTimestepper  : public ChImplicitTimestepper
+{
 private:
 	int maxiters;
 	double tolerance;
 
 public:
 					/// Constructors 
-	ChImplicitTimestepper() :
+	ChImplicitIterativeTimestepper() :
 		maxiters(10),
 		tolerance(1e-10)
 	{}
@@ -480,7 +487,7 @@ public:
 
 /// Performs a step of Euler implicit for II order systems
 
-class ChTimestepperEulerImplicit : public ChTimestepperIIorder, public ChImplicitTimestepper
+class ChTimestepperEulerImplicit : public ChTimestepperIIorder, public ChImplicitIterativeTimestepper
 {
 protected:
 	ChStateDelta		Dv;
@@ -494,7 +501,7 @@ public:
 	/// Constructors (default empty)
 	ChTimestepperEulerImplicit(ChIntegrableIIorder& mintegrable)
 		: ChTimestepperIIorder(mintegrable) ,
-		  ChImplicitTimestepper() 
+		  ChImplicitIterativeTimestepper() 
 	{};
 
 	/// Performs an integration timestep
@@ -539,8 +546,9 @@ public:
 			mintegrable->LoadResidual_Mv (R, (V-Vnew), 1.0);
 			mintegrable->LoadResidual_CqL(R, L, dt);
 			mintegrable->LoadConstraint_C(Qc, 1.0/dt);
-			
-			if (R.NormInf() < this->GetTolerance())
+	GetLog()<< "Euler iteration=" << i << "  |R|=" << R.NormInf() << "  |Qc|=" << Qc.NormInf() << "\n";						
+			if ((R.NormInf()  < this->GetTolerance()) &&
+				(Qc.NormInf() < this->GetTolerance()))
 				break;
 
 			mintegrable->StateSolveCorrection(
@@ -631,8 +639,8 @@ public:
 		mintegrable->LoadConstraint_Ct(Qc, 1.0);
 
 		mintegrable->StateSolveCorrection(
-				Dv,
-				Dl,
+				V,
+				L,
 				R,
 				Qc,
 				1.0,  // factor for  M
@@ -658,7 +666,7 @@ public:
 
 /// Performs a step of trapezoidal implicit for II order systems
 
-class ChTimestepperTrapezoidal : public ChTimestepperIIorder, public ChImplicitTimestepper
+class ChTimestepperTrapezoidal : public ChTimestepperIIorder, public ChImplicitIterativeTimestepper
 {
 protected:
 	ChStateDelta		Dv;
@@ -673,7 +681,7 @@ public:
 	/// Constructors (default empty)
 	ChTimestepperTrapezoidal(ChIntegrableIIorder& mintegrable)
 		: ChTimestepperIIorder(mintegrable),
-		ChImplicitTimestepper()
+		ChImplicitIterativeTimestepper()
 	{};
 
 	/// Performs an integration timestep
@@ -699,7 +707,8 @@ public:
 
 
 		mintegrable->StateGather(X, V, T);	// state <- system
-
+//GetLog()<< "trapezoidal T=" << T<< " , X=" << X <<"\n";
+//GetLog()<< "trapezoidal T=" << T<< " , V=" << V <<"\n";
 		// extrapolate a prediction as a warm start
 
 		Xnew = X + V*dt;		
@@ -713,7 +722,7 @@ public:
 		mintegrable->LoadResidual_F(Rold, dt*0.5);    // dt/2*f_old
 		mintegrable->LoadResidual_Mv(Rold, V, 1.0);  // M*v_old
 		mintegrable->LoadResidual_CqL(Rold, L, dt*0.5); // dt/2*l_old
-
+	
 		for (int i = 0; i < this->GetMaxiters(); ++i)
 		{
 			mintegrable->StateScatter(Xnew, Vnew, T + dt);	// state -> system
@@ -723,8 +732,11 @@ public:
 			mintegrable->LoadResidual_Mv(R, Vnew, -1.0); // - M*v_new
 			mintegrable->LoadResidual_CqL(R, L, dt*0.5); // + dt/2*Cq*l_new
 			mintegrable->LoadConstraint_C(Qc, 1.0 / dt); // C/dt
-
-			if (R.NormInf() < this->GetTolerance())
+//GetLog()<< "trapezoidal iter="<<i<<" R =" << R <<"\n";
+//GetLog()<< "trapezoidal iter="<<i<<" Qc =" << Qc <<"\n";
+GetLog()<< "trapezoidal iteration=" << i << "  |R|=" << R.NormInf() << "  |Qc|=" << Qc.NormInf() << "\n";
+			if ((R.NormInf()  < this->GetTolerance()) &&
+				(Qc.NormInf() < this->GetTolerance()))
 				break;
 
 			mintegrable->StateSolveCorrection(
@@ -761,7 +773,7 @@ public:
 /// Performs a step of HHT (generalized alpha) implicit for II order systems
 /// See Negrut et al. 2007.
 
-class ChTimestepperHHT : public ChTimestepperIIorder, public ChImplicitTimestepper
+class ChTimestepperHHT : public ChTimestepperIIorder, public ChImplicitIterativeTimestepper
 {
 private:
 	double alpha;
@@ -780,7 +792,7 @@ public:
 	/// Constructors (default empty)
 	ChTimestepperHHT(ChIntegrableIIorder& mintegrable)
 		: ChTimestepperIIorder(mintegrable),
-		ChImplicitTimestepper()
+		ChImplicitIterativeTimestepper()
 	{
 		SetAlpha(0.0);
 	};
@@ -855,7 +867,9 @@ public:
 			mintegrable->LoadResidual_CqL(R, L,  1.0);      //  Cq'*l_new
 			mintegrable->LoadResidual_Mv (R, Anew, -(1.0 / (1.0 + alpha)) ); // -1/(1+alpha)*M*a_new
 			mintegrable->LoadConstraint_C(Qc,  (1.0/(beta*dt*dt)) );  //  1/(beta*dt^2)*C
-			if (R.NormInf() < this->GetTolerance())
+
+			if ((R.NormInf()  < this->GetTolerance()) &&
+				(Qc.NormInf() < this->GetTolerance()))
 				break;
 
 			mintegrable->StateSolveCorrection(
