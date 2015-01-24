@@ -78,6 +78,11 @@ public:
 				/// Set no speed and no accelerations in nodes (but does not change reference positions)
     void SetNoSpeedNoAcceleration();
 
+
+				/// This recomputes the number of DOFs, constraints,
+				/// as well as state offsets of contained items 
+	virtual void Setup();
+
 				/// Update time dependent data, for all elements. 
 				/// Updates all [A] coord.systems for all (corotational) elements.
 	void Update(double m_time);
