@@ -79,13 +79,9 @@ class CH_PARALLEL_API ChSolverParallel {
                  const blaze::DenseSubvector<DynamicVector<real> >& b,    // Rhs vector
                  blaze::DenseSubvector<DynamicVector<real> >& x);         // The vector of unknowns
 
-  real GetObjectiveBlaze(blaze::DynamicVector<real>& x, blaze::DynamicVector<real>& b) {
+  real GetObjectiveBlaze(const blaze::DynamicVector<real>& x, const blaze::DynamicVector<real>& b) {
     blaze::DynamicVector<real> Nl(x.size());
-    // f_p = 0.5*l_candidate'*N*l_candidate - l_candidate'*b  =
-    // l_candidate'*(0.5*Nl_candidate - b);
-    Nl = data_container->host_data.D_T * (data_container->host_data.M_invD * x);    // 1)  g_tmp = N*l_candidate
-                                                                                    // ...        ####
-                                                                                    // MATR.MULTIPLICATION!!!###
+    Nl = (data_container->host_data.D_T * ( data_container->host_data.M_invD * x ) + data_container->host_data.E * x);    // 1)  g_tmp = N*l_candidate
     Nl = 0.5 * Nl - b;                                                              // 2) 0.5*N*l_candidate-b_shur
     return (x, Nl);                                                                 // 3)  mf_p  = l_candidate'*(0.5*N*l_candidate-b_shur)
   }
