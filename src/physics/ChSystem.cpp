@@ -1434,6 +1434,8 @@ void ChSystem::Setup()
 			Bpointer->SetOffset_w(ncoords_w);
 			Bpointer->SetOffset_L(ndoc_w);
 
+			//Bpointer->Setup(); // unneded since in bodies does nothing
+
 			ncoords += Bpointer->GetDOF();
 			ncoords_w += Bpointer->GetDOF_w();
 		}
@@ -1451,6 +1453,8 @@ void ChSystem::Setup()
 		PHpointer->SetOffset_x(ncoords);
 		PHpointer->SetOffset_w(ncoords_w);
 		PHpointer->SetOffset_L(ndoc_w);
+
+		PHpointer->Setup(); // compute DOFs etc. and sets the offsets also in child items, if assembly-type or mesh-type stuff
 
 		ncoords   += PHpointer->GetDOF();
 		ncoords_w += PHpointer->GetDOF_w();
@@ -1470,6 +1474,8 @@ void ChSystem::Setup()
 			Lpointer->SetOffset_x(ncoords);
 			Lpointer->SetOffset_w(ncoords_w);
 			Lpointer->SetOffset_L(ndoc_w);
+
+			Lpointer->Setup(); // compute DOFs etc. and sets the offsets also in child items, if assembly-type or mesh-type stuff
 
 			ndoc_w   += Lpointer->GetDOC();
 			ndoc_w_C += Lpointer->GetDOC_c();
@@ -1853,6 +1859,7 @@ void ChSystem::StateScatter(const ChState& x, const ChStateDelta& v, const doubl
 			Lpointer->IntStateScatter(Lpointer->GetOffset_x(), x, Lpointer->GetOffset_w(), v, T);
 	}
 	this->SetChTime(T);
+	this->Update(); //***TODO*** optimize because maybe IntStateScatter above might have already called Update?
 }
 
 /// Perform x_new = x + dx    for x in    Y = {x, dx/dt}
@@ -1962,10 +1969,10 @@ void ChSystem::StateSolveCorrection(
 	if (dump_data)
 	{
 		const char* numformat = "%.12g";
-		//GetLog() << "R=" << R << "\n\n";
-		//GetLog() << "Qc=" << Qc << "\n\n";
-		//GetLog() << "X=" << x << "\n\n";
-		//GetLog() << "V=" << v << "\n\n";
+		//GetLog() << "StateSolveCorrection R=" << R << "\n\n";
+		//GetLog() << "StateSolveCorrection Qc="<< Qc << "\n\n";
+		//GetLog() << "StateSolveCorrection X=" << x << "\n\n";
+		//GetLog() << "StateSolveCorrection V=" << v << "\n\n";
 		
 		this->LCP_descriptor->DumpLastMatrices("intpre_");
 
@@ -2017,18 +2024,18 @@ void ChSystem::StateSolveCorrection(
 	{
 		const char* numformat = "%.12g";
 
-		chrono::ChStreamOutAsciiFile file_Dv("intpost_Dv");
+		chrono::ChStreamOutAsciiFile file_Dv("intpost_Dv.dat");
 		file_Dv.SetNumFormat(numformat);
 		((ChMatrix<>)Dv).StreamOUTdenseMatlabFormat(file_Dv);
 
-		chrono::ChStreamOutAsciiFile file_L("intpost_L");
+		chrono::ChStreamOutAsciiFile file_L("intpost_L.dat");
 		file_L.SetNumFormat(numformat);
 		((ChMatrix<>)L).StreamOUTdenseMatlabFormat(file_L);
 
-		//GetLog() << "Dv=" << Dv << "\n\n";
-		//GetLog() << "L=" << L << "\n\n";
-		//GetLog() << "Xn=" << x << "\n\n";
-		//GetLog() << "Vn=" << v << "\n\n";
+		//GetLog() << "StateSolveCorrection Dv=" << Dv << "\n\n";
+		//GetLog() << "StateSolveCorrection L="  << L << "\n\n";
+		//GetLog() << "StateSolveCorrection Xn=" << x << "\n\n";
+		//GetLog() << "StateSolveCorrection Vn=" << v << "\n\n";
 	}
 }
 
