@@ -2,6 +2,8 @@
 #define SDKCOLLISIONSYSTEM_CUH
 #include <cstdio>
 #include "custom_cutil_math.h"
+#include <thrust/device_vector.h>
+
 
 #ifdef __CDT_PARSER__
 #define __host__
@@ -399,5 +401,30 @@ void CalcJacobianAndResidual(
 		int totalNumberOfInterferenceFTotal,
 		uint numAllMarkers,
 		uint numFluidMarkers);
+
+void UpdateFluid(
+		thrust::device_vector<real3> & posRadD,
+		thrust::device_vector<real4> & velMasD,
+		thrust::device_vector<real3> & vel_XSPH_D,
+		thrust::device_vector<real4> & rhoPresMuD,
+		thrust::device_vector<real4> & derivVelRhoD,
+		const thrust::host_vector<int3> & referenceArray,
+		real_ dT);
+
+void Copy_SortedVelXSPH_To_VelXSPH(real3 * vel_XSPH_D, real3 * vel_XSPH_Sorted_D, uint * m_dGridMarkerIndex, int numAllMarkers);
+
+void UpdateBoundary(
+		thrust::device_vector<real3> & posRadD,
+		thrust::device_vector<real4> & velMasD,
+		thrust::device_vector<real4> & rhoPresMuD,
+		thrust::device_vector<real4> & derivVelRhoD,
+		const thrust::host_vector<int3> & referenceArray,
+		real_ dT);
+
+void ApplyBoundarySPH_Markers(
+		thrust::device_vector<real3> & posRadD,
+		thrust::device_vector<real4> & rhoPresMuD,
+		int numAllMarkers);
+
 
 #endif

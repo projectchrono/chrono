@@ -1,9 +1,15 @@
 #include "custom_cutil_math.h"
 #include "SPHCudaUtils.h"
 #include "SDKCollisionSystem.cuh"
+
+//#include "extraOptionalFunctions.cuh"
+
 //#include "SDKCollisionSystemAdditional.cuh"
 
 __constant__ real_ dTD_SDK;
+__constant__ int2 updatePortionD;
+__constant__ real_ dTD;
+
 
 //--------------------------------------------------------------------------------------------------------------------------------
 // calculate position in uniform grid
@@ -837,6 +843,175 @@ void CalcCartesianDataD(
 	rho_Pres_CartD[index] = rho_pres_share;
 	vel_VelMag_CartD[index] = R4(vel_share, length(vel_share));
 }
+
+//%%%%%%%%%%%%%%%%%%%%%%%%
+//--------------------------------------------------------------------------------------------------------------------------------
+//--------------------------------------------------------------------------------------------------------------------------------
+//updates the fluid particles' properties, i.e. velocity, density, pressure, position
+__global__ void UpdateFluidD(real3 * posRadD, real4 * velMasD, real3 * vel_XSPH_D, real4 * rhoPresMuD, real4 * derivVelRhoD) {
+	uint index = blockIdx.x * blockDim.x + threadIdx.x;
+	index += updatePortionD.x; // updatePortionD = [start, end] index of the update portion
+	if (index >= updatePortionD.y) {
+		return;
+	}
+	real3 vel_XSPH = vel_XSPH_D[index];
+	// 1*** let's tweak a little bit :)
+	if (length(vel_XSPH) > .2 * paramsD.HSML / dTD) {
+		vel_XSPH *= ( .2 * paramsD.HSML / dTD ) / length(vel_XSPH);
+	}
+	// 1*** end tweak
+	real3 posRad = posRadD[index];
+	real3 updatedPositon = posRad + vel_XSPH * dTD;
+	posRadD[index] = updatedPositon; //posRadD updated
+
+	real4 derivVelRho = derivVelRhoD[index];
+	real4 velMas = velMasD[index];
+	real3 updatedVelocity = R3(velMas + derivVelRho * dTD);
+	// 2*** let's tweak a little bit :)
+	if (length(updatedVelocity) > .2 * paramsD.HSML / dTD) {
+		updatedVelocity *= ( .2 * paramsD.HSML / dTD ) / length(updatedVelocity);
+	}
+	// 2*** end tweak
+	velMasD[index] = R4(updatedVelocity, /*rho2 / rhoPresMu.x * */velMas.w); //velMasD updated
+
+	real4 rhoPresMu = rhoPresMuD[index];
+	real_ rho2 = rhoPresMu.x + derivVelRho.w * dTD; //rho update. (i.e. rhoPresMu.x), still not wriiten to global matrix
+	rhoPresMu.y = Eos(rho2, rhoPresMu.w);
+	rhoPresMu.x = rho2;
+	rhoPresMuD[index] = rhoPresMu; //rhoPresMuD updated
+}
+//--------------------------------------------------------------------------------------------------------------------------------
+//copies the sortedVelXSPH to velXSPH according to indexing
+__global__ void Copy_SortedVelXSPH_To_VelXSPHD(real3 * vel_XSPH_D, real3 * vel_XSPH_Sorted_D, uint * m_dGridMarkerIndex) {
+	uint index = __mul24(blockIdx.x, blockDim.x) + threadIdx.x;
+	if (index >= numObjectsD.numAllMarkers) return;
+	vel_XSPH_D[m_dGridMarkerIndex[index]] = vel_XSPH_Sorted_D[index];
+}
+
+//--------------------------------------------------------------------------------------------------------------------------------
+//updates the fluid particles' properties, i.e. velocity, density, pressure, position
+__global__ void UpdateKernelBoundary(real3 * posRadD, real4 * velMasD, real4 * rhoPresMuD, real4 * derivVelRhoD) {
+	uint index = blockIdx.x * blockDim.x + threadIdx.x;
+	index += updatePortionD.x; // updatePortionD = [start, end] index of the update portion
+	if (index >= updatePortionD.y) {
+		return;
+	}
+
+	real4 derivVelRho = derivVelRhoD[index];
+	real4 rhoPresMu = rhoPresMuD[index];
+	real_ rho2 = rhoPresMu.x + derivVelRho.w * dTD; //rho update. (i.e. rhoPresMu.x), still not wriiten to global matrix
+	rhoPresMu.y = Eos(rho2, rhoPresMu.w);
+	rhoPresMu.x = rho2;
+	rhoPresMuD[index] = rhoPresMu; //rhoPresMuD updated
+}
+
+
+//--------------------------------------------------------------------------------------------------------------------------------
+//applies periodic BC along x
+__global__ void ApplyPeriodicBoundaryXKernel(real3 * posRadD, real4 * rhoPresMuD) {
+	uint index = blockIdx.x * blockDim.x + threadIdx.x;
+	if (index >= numObjectsD.numAllMarkers) {
+		return;
+	}
+	real4 rhoPresMu = rhoPresMuD[index];
+	if (fabs(rhoPresMu.w) < .1) {
+		return;
+	} //no need to do anything if it is a boundary particle
+	real3 posRad = posRadD[index];
+	if (posRad.x > paramsD.cMax.x) {
+		posRad.x -= (paramsD.cMax.x - paramsD.cMin.x);
+		posRadD[index] = posRad;
+		if (rhoPresMu.w < -.1) {
+			rhoPresMu.y = rhoPresMu.y + paramsD.deltaPress.x;
+			rhoPresMuD[index] = rhoPresMu;
+		}
+		return;
+	}
+	if (posRad.x < paramsD.cMin.x) {
+		posRad.x += (paramsD.cMax.x - paramsD.cMin.x);
+		posRadD[index] = posRad;
+		if (rhoPresMu.w < -.1) {
+			rhoPresMu.y = rhoPresMu.y - paramsD.deltaPress.x;
+			rhoPresMuD[index] = rhoPresMu;
+		}
+		return;
+	}
+}
+//--------------------------------------------------------------------------------------------------------------------------------
+//applies periodic BC along y
+__global__ void ApplyPeriodicBoundaryYKernel(real3 * posRadD, real4 * rhoPresMuD) {
+	uint index = blockIdx.x * blockDim.x + threadIdx.x;
+	if (index >= numObjectsD.numAllMarkers) {
+		return;
+	}
+	real4 rhoPresMu = rhoPresMuD[index];
+	if (fabs(rhoPresMu.w) < .1) {
+		return;
+	} //no need to do anything if it is a boundary particle
+	real3 posRad = posRadD[index];
+	if (posRad.y > paramsD.cMax.y) {
+		posRad.y -= (paramsD.cMax.y - paramsD.cMin.y);
+		posRadD[index] = posRad;
+		if (rhoPresMu.w < -.1) {
+			rhoPresMu.y = rhoPresMu.y + paramsD.deltaPress.y;
+			rhoPresMuD[index] = rhoPresMu;
+		}
+		return;
+	}
+	if (posRad.y < paramsD.cMin.y) {
+		posRad.y += (paramsD.cMax.y - paramsD.cMin.y);
+		posRadD[index] = posRad;
+		if (rhoPresMu.w < -.1) {
+			rhoPresMu.y = rhoPresMu.y - paramsD.deltaPress.y;
+			rhoPresMuD[index] = rhoPresMu;
+		}
+		return;
+	}
+}
+
+//--------------------------------------------------------------------------------------------------------------------------------
+//applies periodic BC along z
+__global__ void ApplyPeriodicBoundaryZKernel(real3 * posRadD, real4 * rhoPresMuD) {
+	uint index = blockIdx.x * blockDim.x + threadIdx.x;
+	if (index >= numObjectsD.numAllMarkers) {
+		return;
+	}
+	real4 rhoPresMu = rhoPresMuD[index];
+	if (fabs(rhoPresMu.w) < .1) {
+		return;
+	} //no need to do anything if it is a boundary particle
+	real3 posRad = posRadD[index];
+	if (posRad.z > paramsD.cMax.z) {
+		posRad.z -= (paramsD.cMax.z - paramsD.cMin.z);
+		posRadD[index] = posRad;
+		if (rhoPresMu.w < -.1) {
+			rhoPresMu.y = rhoPresMu.y + paramsD.deltaPress.z;
+			rhoPresMuD[index] = rhoPresMu;
+		}
+		return;
+	}
+	if (posRad.z < paramsD.cMin.z) {
+		posRad.z += (paramsD.cMax.z - paramsD.cMin.z);
+		posRadD[index] = posRad;
+		if (rhoPresMu.w < -.1) {
+			rhoPresMu.y = rhoPresMu.y - paramsD.deltaPress.z;
+			rhoPresMuD[index] = rhoPresMu;
+		}
+		return;
+	}
+}
+
+
+
+//%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+
+
+
+
+
+
 //--------------------------------------------------------------------------------------------------------------------------------
 void allocateArray(void **devPtr, size_t size) {
 	cutilSafeCall(cudaMalloc(devPtr, size));
@@ -1176,4 +1351,87 @@ void CalcCartesianData(
 	//    cutilSafeCall(cudaUnbindTexture(cellStartTex));
 	//    cutilSafeCall(cudaUnbindTexture(cellEndTex));
 	//#endif
+}
+
+//%%%%%%%%%%%%%%%%%%%%%%%%%%
+//--------------------------------------------------------------------------------------------------------------------------------
+//updates the fluid particles by calling UpdateFluidD
+void UpdateFluid(
+		thrust::device_vector<real3> & posRadD,
+		thrust::device_vector<real4> & velMasD,
+		thrust::device_vector<real3> & vel_XSPH_D,
+		thrust::device_vector<real4> & rhoPresMuD,
+		thrust::device_vector<real4> & derivVelRhoD,
+		const thrust::host_vector<int3> & referenceArray,
+		real_ dT) {
+	int3 referencePortion = referenceArray[0];
+	if (referencePortion.z != -1) {
+		printf("error in UpdateFluid, accessing non fluid\n");
+		return;
+	}
+	int2 updatePortion = I2(referencePortion);
+	//int2 updatePortion = I2(referenceArray[0].x, referenceArray[0].y);
+	cudaMemcpyToSymbolAsync(dTD, &dT, sizeof(dT));
+	cudaMemcpyToSymbolAsync(updatePortionD, &updatePortion, sizeof(updatePortion));
+
+	uint nBlock_UpdateFluid, nThreads;
+	computeGridSize(updatePortion.y - updatePortion.x, 128, nBlock_UpdateFluid, nThreads);
+	UpdateFluidD<<<nBlock_UpdateFluid, nThreads>>>(R3CAST(posRadD), R4CAST(velMasD), R3CAST(vel_XSPH_D), R4CAST(rhoPresMuD), R4CAST(derivVelRhoD));
+	cudaThreadSynchronize();
+	CUT_CHECK_ERROR("Kernel execution failed: UpdateFluidD");
+}
+//--------------------------------------------------------------------------------------------------------------------------------
+void Copy_SortedVelXSPH_To_VelXSPH(real3 * vel_XSPH_D, real3 * vel_XSPH_Sorted_D, uint * m_dGridMarkerIndex, int numAllMarkers) {
+	uint nBlock_NumSpheres, nThreads_SphMarkers;
+	computeGridSize(numAllMarkers, 256, nBlock_NumSpheres, nThreads_SphMarkers);
+	Copy_SortedVelXSPH_To_VelXSPHD<<<nBlock_NumSpheres, nThreads_SphMarkers>>>(R3CAST(vel_XSPH_D), R3CAST(vel_XSPH_Sorted_D), U1CAST(m_dGridMarkerIndex));
+	cudaThreadSynchronize();
+	CUT_CHECK_ERROR("Kernel execution failed: Copy_SortedVelXSPH_To_VelXSPH");
+}
+//--------------------------------------------------------------------------------------------------------------------------------
+//updates the fluid particles by calling UpdateBoundary
+void UpdateBoundary(
+		thrust::device_vector<real3> & posRadD,
+		thrust::device_vector<real4> & velMasD,
+		thrust::device_vector<real4> & rhoPresMuD,
+		thrust::device_vector<real4> & derivVelRhoD,
+		const thrust::host_vector<int3> & referenceArray,
+		real_ dT) {
+	int3 referencePortion = referenceArray[1];
+	if (referencePortion.z != 0) {
+		printf("error in UpdateBoundary, accessing non boundary\n");
+		return;
+	}
+	int2 updatePortion = I2(referencePortion);
+	cudaMemcpyToSymbolAsync(dTD, &dT, sizeof(dT));
+	cudaMemcpyToSymbolAsync(updatePortionD, &updatePortion, sizeof(updatePortion));
+
+	uint nBlock_UpdateFluid, nThreads;
+	computeGridSize(updatePortion.y - updatePortion.x, 128, nBlock_UpdateFluid, nThreads);
+	UpdateKernelBoundary<<<nBlock_UpdateFluid, nThreads>>>(R3CAST(posRadD), R4CAST(velMasD), R4CAST(rhoPresMuD), R4CAST(derivVelRhoD));
+	cudaThreadSynchronize();
+	CUT_CHECK_ERROR("Kernel execution failed: UpdateKernelBoundary");
+}
+
+//--------------------------------------------------------------------------------------------------------------------------------
+void ApplyBoundarySPH_Markers(
+		thrust::device_vector<real3> & posRadD,
+		thrust::device_vector<real4> & rhoPresMuD,
+		int numAllMarkers) {
+	uint nBlock_NumSpheres, nThreads_SphMarkers;
+	computeGridSize(numAllMarkers, 256, nBlock_NumSpheres, nThreads_SphMarkers);
+	ApplyPeriodicBoundaryXKernel<<<nBlock_NumSpheres, nThreads_SphMarkers>>>(R3CAST(posRadD), R4CAST(rhoPresMuD));
+	cudaThreadSynchronize();
+	CUT_CHECK_ERROR("Kernel execution failed: ApplyPeriodicBoundaryXKernel");
+	// these are useful anyway for out of bound particles
+	ApplyPeriodicBoundaryYKernel<<<nBlock_NumSpheres, nThreads_SphMarkers>>>(R3CAST(posRadD), R4CAST(rhoPresMuD));
+	cudaThreadSynchronize();
+	CUT_CHECK_ERROR("Kernel execution failed: ApplyPeriodicBoundaryYKernel");
+	ApplyPeriodicBoundaryZKernel<<<nBlock_NumSpheres, nThreads_SphMarkers>>>(R3CAST(posRadD), R4CAST(rhoPresMuD));
+	cudaThreadSynchronize();
+	CUT_CHECK_ERROR("Kernel execution failed: ApplyPeriodicBoundaryZKernel");
+
+//	SetOutputPressureToZero_X<<<nBlock_NumSpheres, nThreads_SphMarkers>>>(R3CAST(posRadD), R4CAST(rhoPresMuD));
+//	cudaThreadSynchronize();
+//	CUT_CHECK_ERROR("Kernel execution failed: SetOutputPressureToZero");
 }
