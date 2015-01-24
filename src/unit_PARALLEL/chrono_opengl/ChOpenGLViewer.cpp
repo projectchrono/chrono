@@ -475,21 +475,35 @@ void ChOpenGLViewer::DisplayHUD() {
       sprintf(buffer, "Time:  %04f", physics_system->GetChTime());
       RenderText(buffer, -.95, 0.925, sx, sy);
 
-      std::vector<double> history = ((ChLcpIterativeSolver*) (physics_system->GetLcpSolverSpeed()))->GetViolationHistory();
-      std::vector<double> dlambda = ((ChLcpIterativeSolver*) (physics_system->GetLcpSolverSpeed()))->GetDeltalambdaHistory();
 
-      sprintf(buffer, "Iters   :  %04d", history.size());
-      RenderText(buffer, .6, 0.925 - .06 * 0, sx, sy);
+
+      double iters = ((ChLcpIterativeSolver*)(physics_system->GetLcpSolverSpeed()))->GetTotalIterations();
+
+      if (iters > 0) {
+        double residual = ((ChLcpIterativeSolver*)(physics_system->GetLcpSolverSpeed()))->GetViolationHistory().back();
+        double dlambda = ((ChLcpIterativeSolver*)(physics_system->GetLcpSolverSpeed()))->GetDeltalambdaHistory().back();
+
+        sprintf(buffer, "Iters   :  %04d",int(iters));
+        RenderText(buffer, .6, 0.925 - .06 * 0, sx, sy);
+        sprintf(buffer, "Residual:  %04f", residual);
+        RenderText(buffer, .6, 0.925 - .06 * 4, sx, sy);
+        sprintf(buffer, "Correct :  %04f", dlambda);
+        RenderText(buffer, .6, 0.925 - .06 * 5, sx, sy);
+      } else {
+        sprintf(buffer, "Iters   :  %04d", 0);
+        RenderText(buffer, .6, 0.925 - .06 * 0, sx, sy);
+        sprintf(buffer, "Residual:  %04f", 0);
+        RenderText(buffer, .6, 0.925 - .06 * 4, sx, sy);
+        sprintf(buffer, "Correct :  %04f", 0);
+        RenderText(buffer, .6, 0.925 - .06 * 5, sx, sy);
+      }
+
+
       sprintf(buffer, "Bodies  :  %04d", physics_system->GetNbodiesTotal());
       RenderText(buffer, .6, 0.925 - .06 * 1, sx, sy);
       sprintf(buffer, "Contacts:  %04d", physics_system->GetNcontacts());
       RenderText(buffer, .6, 0.925 - .06 * 2, sx, sy);
-      if (history.size() > 0) {
-         sprintf(buffer, "Residual:  %04f", history[history.size() - 1]);
-         RenderText(buffer, .6, 0.925 - .06 * 4, sx, sy);
-         sprintf(buffer, "Correct :  %04f", dlambda[dlambda.size() - 1]);
-         RenderText(buffer, .6, 0.925 - .06 * 5, sx, sy);
-      }
+
 
       sprintf(buffer, "Step  :  %04f", physics_system->GetTimerStep());
       RenderText(buffer, .6, -0.925 + .06 * 9, sx, sy);
