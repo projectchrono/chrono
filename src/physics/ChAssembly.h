@@ -69,6 +69,20 @@ protected:
 						// list of rigid bodies
 	std::vector<ChBody*> bodylist;
 
+	int nbodies;		// number of bodies (currently active)
+	int nlinks;			// number of links
+	int ncoords;		// number of scalar coordinates (including 4th dimension of quaternions) for all active bodies
+	int ndoc;			// number of scalar costraints (including constr. on quaternions)
+	int nsysvars;		// number of variables (coords+lagrangian mult.), i.e. = ncoords+ndoc  for all active bodies
+	int ncoords_w;		// number of scalar coordinates when using 3 rot. dof. per body;  for all active bodies
+	int ndoc_w;			// number of scalar costraints  when using 3 rot. dof. per body;  for all active bodies
+	int nsysvars_w;		// number of variables when using 3 rot. dof. per body; i.e. = ncoords_w+ndoc_w
+	int ndof;			// number of degrees of freedom, = ncoords-ndoc =  ncoords_w-ndoc_w ,
+	int ndoc_w_C;		// number of scalar costraints C, when using 3 rot. dof. per body (excluding unilaterals)
+	int ndoc_w_D;		// number of scalar costraints D, when using 3 rot. dof. per body (only unilaterals)
+	int nbodies_sleep;  // number of bodies that are sleeping
+	int nbodies_fixed;  // number of bodies that are fixed
+
 private:
 			//
 	  		// DATA
@@ -139,17 +153,39 @@ public:
 				/// about the marker IDs.
 	void Reference_LM_byID();
 
+					/// Gets the number of links .
+	int GetNlinks() {return nlinks;}
+				/// Gets the number of coordinates (considering 7 coords for rigid bodies because of the 4 dof of quaternions)
+	int GetNcoords() {return ncoords;}
+				/// Gets the number of degrees of freedom of the system.
+	int GetNdof() {return ndof;}
+				/// Gets the number of scalar constraints added to the system, including constraints on quaternion norms
+	int GetNdoc() {return ndoc;}
+				/// Gets the number of system variables (coordinates plus the constraint multipliers, in case of quaternions)
+	int GetNsysvars() {return nsysvars;}
+				/// Gets the number of coordinates (considering 6 coords for rigid bodies, 3 transl.+3rot.)
+	int GetNcoords_w() {return ncoords_w;}
+				/// Gets the number of scalar constraints added to the system		
+	int GetNdoc_w() {return ndoc_w;}
+				/// Gets the number of scalar constraints added to the system (only bilaterals)
+	int GetNdoc_w_C() {return ndoc_w_C;}
+				/// Gets the number of scalar constraints added to the system (only unilaterals)
+	int GetNdoc_w_D() {return ndoc_w_D;}
+				/// Gets the number of system variables (coordinates plus the constraint multipliers)
+	int GetNsysvars_w() {return nsysvars_w;}
+
+
 				/// Number of coordinates of the rigid body =6 (internally, 3+4=7 coords are used 
 				/// since quaternions are used for large rotations, but local coords -ex. w&v velocity- are 6)
-	virtual int GetDOF  ();
+	virtual int GetDOF  () {return GetNcoords();}
 				/// Number of coordinates of the particle cluster, x6 because derivatives es. angular vel.
-	virtual int GetDOF_w();
+	virtual int GetDOF_w() {return GetNcoords_w();}
 				/// Get the number of scalar constraints, if any, in this item 
-	virtual int GetDOC  ()   {return GetDOC_c()+GetDOC_d();}
+	virtual int GetDOC  ()   {return GetNdoc_w();}
 				/// Get the number of scalar constraints, if any, in this item (only bilateral constr.)
-	virtual int GetDOC_c  ();
+	virtual int GetDOC_c  () {return GetNdoc_w_C();};
 				/// Get the number of scalar constraints, if any, in this item (only unilateral constr.)
-	virtual int GetDOC_d  ();
+	virtual int GetDOC_d  () {return GetNdoc_w_D();};
 
 
 			//
@@ -346,6 +382,11 @@ public:
 			//
 			// UPDATE FUNCTIONS
 			//
+
+				/// Counts the number of bodies and links. 
+				/// Computes the offsets of object states in the global state.
+	virtual void Setup();
+
 
 				/// Update all auxiliary data of the rigid body and of
 				/// its children (markers, forces..), at given time

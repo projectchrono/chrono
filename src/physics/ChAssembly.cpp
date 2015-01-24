@@ -65,6 +65,21 @@ ChAssembly::ChAssembly ()
 
 	SetIdentifier(GetUniqueIntID()); // mark with unique ID
 
+	nbodies=0;
+	nlinks=0;
+	ndof=0;
+	ndoc=0;
+	ndoc_w=0;
+	ndoc_w_C=0;
+	ndoc_w_D=0;
+	nsysvars_w=0;
+	ncoords=0;
+	ncoords_w=0;
+	nsysvars = 0;
+	ncoords_w=0;
+	nbodies_sleep = 0;
+	nbodies_fixed = 0;
+
 }
 
 
@@ -142,54 +157,6 @@ void ChAssembly::RemoveAllLinks()
 	linklist.clear(); 
 }
 
-int ChAssembly::GetDOF()
-{
-	int ndof = 0;
-					
-	for (unsigned int ip = 0; ip < bodylist.size(); ++ip)  // ITERATE on bodies		
-	{
-		ChBody* Bpointer = bodylist[ip];
-		ndof+=Bpointer->GetDOF();
-	}
-	return ndof;
-}
-
-int ChAssembly::GetDOF_w()
-{
-	int ndof = 0;
-
-	for (unsigned int ip = 0; ip < bodylist.size(); ++ip)  // ITERATE on bodies		
-	{
-		ChBody* Bpointer = bodylist[ip];
-		ndof += Bpointer->GetDOF_w();
-	}
-	return ndof;
-}
-
-int ChAssembly::GetDOC_c()
-{
-	int ndoc=0;
-
-	for (unsigned int ip = 0; ip < linklist.size(); ++ip)  // ITERATE on links
-	{
-		ChLink* Lpointer = linklist[ip];
-		ndoc   += Lpointer->GetDOC_c();
-	}
-	return ndoc;
-}
-
-int ChAssembly::GetDOC_d()
-{
-	int ndoc=0;
-
-	for (unsigned int ip = 0; ip < linklist.size(); ++ip)  // ITERATE on links
-	{
-		ChLink* Lpointer = linklist[ip];
-		ndoc   += Lpointer->GetDOC_d();
-	}
-	return ndoc;
-}
-
 
 //// STATE BOOKKEEPING FUNCTIONS
 
@@ -205,17 +172,24 @@ void ChAssembly::IntStateGather(
 	for (unsigned int ip = 0; ip < bodylist.size(); ++ip)  // ITERATE on bodies
 	{
 		ChBody* Bpointer = bodylist[ip];
-		Bpointer->IntStateGather(off_x+local_off_x, x, off_v+local_off_v, v, T);
-		local_off_x += Bpointer->GetDOF();
-		local_off_v += Bpointer->GetDOF_w();
+		if (Bpointer->IsActive())
+		{
+			Bpointer->IntStateGather(off_x+local_off_x, x, off_v+local_off_v, v, T);
+			local_off_x += Bpointer->GetDOF();
+			local_off_v += Bpointer->GetDOF_w();
+		}
 	}
 	for (unsigned int ip = 0; ip < linklist.size(); ++ip)  // ITERATE on links
 	{
 		ChLink* Lpointer = linklist[ip];
-		Lpointer->IntStateGather(off_x+local_off_x, x, off_v+local_off_v, v, T);
-		local_off_x += Lpointer->GetDOF();
-		local_off_v += Lpointer->GetDOF_w();
+		if (Lpointer->IsActive())
+		{
+			Lpointer->IntStateGather(off_x+local_off_x, x, off_v+local_off_v, v, T);
+			local_off_x += Lpointer->GetDOF();
+			local_off_v += Lpointer->GetDOF_w();
+		}
 	}
+	T = this->GetChTime();
 }
 
 void ChAssembly::IntStateScatter(
@@ -230,17 +204,24 @@ void ChAssembly::IntStateScatter(
 	for (unsigned int ip = 0; ip < bodylist.size(); ++ip)  // ITERATE on bodies
 	{
 		ChBody* Bpointer = bodylist[ip];
-		Bpointer->IntStateScatter(off_x+local_off_x, x, off_v+local_off_v, v, T);
-		local_off_x += Bpointer->GetDOF();
-		local_off_v += Bpointer->GetDOF_w();
+		if (Bpointer->IsActive())
+		{
+			Bpointer->IntStateScatter(off_x+local_off_x, x, off_v+local_off_v, v, T);
+			local_off_x += Bpointer->GetDOF();
+			local_off_v += Bpointer->GetDOF_w();
+		}
 	}
 	for (unsigned int ip = 0; ip < linklist.size(); ++ip)  // ITERATE on links
 	{
 		ChLink* Lpointer = linklist[ip];
-		Lpointer->IntStateScatter(off_x+local_off_x, x, off_v+local_off_v, v, T);
-		local_off_x += Lpointer->GetDOF();
-		local_off_v += Lpointer->GetDOF_w();
+		if (Lpointer->IsActive())
+		{
+			Lpointer->IntStateScatter(off_x+local_off_x, x, off_v+local_off_v, v, T);
+			local_off_x += Lpointer->GetDOF();
+			local_off_v += Lpointer->GetDOF_w();
+		}
 	}	
+	this->SetChTime(T);
 }
 
 void ChAssembly::IntStateIncrement(
@@ -255,16 +236,22 @@ void ChAssembly::IntStateIncrement(
 	for (unsigned int ip = 0; ip < bodylist.size(); ++ip)  // ITERATE on bodies
 	{
 		ChBody* Bpointer = bodylist[ip];
-		Bpointer->IntStateIncrement(off_x+local_off_x, x_new, x, off_v+local_off_v, Dv);
-		local_off_x += Bpointer->GetDOF();
-		local_off_v += Bpointer->GetDOF_w();
+		if (Bpointer->IsActive())
+		{
+			Bpointer->IntStateIncrement(off_x+local_off_x, x_new, x, off_v+local_off_v, Dv);
+			local_off_x += Bpointer->GetDOF();
+			local_off_v += Bpointer->GetDOF_w();
+		}
 	}
 	for (unsigned int ip = 0; ip < linklist.size(); ++ip)  // ITERATE on links
 	{
 		ChLink* Lpointer = linklist[ip];
-		Lpointer->IntStateIncrement(off_x+local_off_x, x_new, x, off_v+local_off_v, Dv);
-		local_off_x += Lpointer->GetDOF();
-		local_off_v += Lpointer->GetDOF_w();
+		if (Lpointer->IsActive())
+		{
+			Lpointer->IntStateIncrement(off_x+local_off_x, x_new, x, off_v+local_off_v, Dv);
+			local_off_x += Lpointer->GetDOF();
+			local_off_v += Lpointer->GetDOF_w();
+		}
 	}
 }
  
@@ -278,14 +265,20 @@ void ChAssembly::IntLoadResidual_F(
 	for (unsigned int ip = 0; ip < bodylist.size(); ++ip)  // ITERATE on bodies
 	{
 		ChBody* Bpointer = bodylist[ip];
-		Bpointer->IntLoadResidual_F(off+local_off_v, R, c);
-		local_off_v += Bpointer->GetDOF_w();
+		if (Bpointer->IsActive())
+		{
+			Bpointer->IntLoadResidual_F(off+local_off_v, R, c);
+			local_off_v += Bpointer->GetDOF_w();
+		}
 	}
 	for (unsigned int ip = 0; ip < linklist.size(); ++ip)  // ITERATE on links
 	{
 		ChLink* Lpointer = linklist[ip];
-		Lpointer->IntLoadResidual_F(off+local_off_v, R, c);
-		local_off_v += Lpointer->GetDOF_w();
+		if (Lpointer->IsActive())
+		{
+			Lpointer->IntLoadResidual_F(off+local_off_v, R, c);
+			local_off_v += Lpointer->GetDOF_w();
+		}
 	}	
 }
 
@@ -301,14 +294,20 @@ void ChAssembly::IntLoadResidual_Mv(
 	for (unsigned int ip = 0; ip < bodylist.size(); ++ip)  // ITERATE on bodies
 	{
 		ChBody* Bpointer = bodylist[ip];
-		Bpointer->IntLoadResidual_Mv(off+local_off_v, R, w, c);
-		local_off_v += Bpointer->GetDOF_w();
+		if (Bpointer->IsActive())
+		{
+			Bpointer->IntLoadResidual_Mv(off+local_off_v, R, w, c);
+			local_off_v += Bpointer->GetDOF_w();
+		}
 	}
 	for (unsigned int ip = 0; ip < linklist.size(); ++ip)  // ITERATE on links
 	{
 		ChLink* Lpointer = linklist[ip];
-		Lpointer->IntLoadResidual_Mv(off+local_off_v, R, w, c);
-		local_off_v += Lpointer->GetDOF_w();
+		if (Lpointer->IsActive())
+		{
+			Lpointer->IntLoadResidual_Mv(off+local_off_v, R, w, c);
+			local_off_v += Lpointer->GetDOF_w();
+		}
 	}
 }
 
@@ -323,14 +322,20 @@ void ChAssembly::IntLoadResidual_CqL(
 	for (unsigned int ip = 0; ip < bodylist.size(); ++ip)  // ITERATE on bodies
 	{
 		ChBody* Bpointer = bodylist[ip];
-		Bpointer->IntLoadResidual_CqL(off_L+local_off_L, R, L, c);
-		local_off_L += Bpointer->GetDOC();
+		if (Bpointer->IsActive())
+		{
+			Bpointer->IntLoadResidual_CqL(off_L+local_off_L, R, L, c);
+			local_off_L += Bpointer->GetDOC();
+		}
 	}
 	for (unsigned int ip = 0; ip < linklist.size(); ++ip)  // ITERATE on links
 	{
 		ChLink* Lpointer = linklist[ip];
-		Lpointer->IntLoadResidual_CqL(off_L+local_off_L, R, L, c);
-		local_off_L += Lpointer->GetDOC();
+		if (Lpointer->IsActive())
+		{
+			Lpointer->IntLoadResidual_CqL(off_L+local_off_L, R, L, c);
+			local_off_L += Lpointer->GetDOC();
+		}
 	}
 }
 
@@ -346,14 +351,20 @@ void ChAssembly::IntLoadConstraint_C(
 	for (unsigned int ip = 0; ip < bodylist.size(); ++ip)  // ITERATE on bodies
 	{
 		ChBody* Bpointer = bodylist[ip];
-		Bpointer->IntLoadConstraint_C(off_L+local_off_L, Qc, c, do_clamp, recovery_clamp);
-		local_off_L += Bpointer->GetDOC();
+		if (Bpointer->IsActive())
+		{
+			Bpointer->IntLoadConstraint_C(off_L+local_off_L, Qc, c, do_clamp, recovery_clamp);
+			local_off_L += Bpointer->GetDOC();
+		}
 	}
 	for (unsigned int ip = 0; ip < linklist.size(); ++ip)  // ITERATE on links
 	{
 		ChLink* Lpointer = linklist[ip];
-		Lpointer->IntLoadConstraint_C(off_L+local_off_L, Qc, c, do_clamp, recovery_clamp);
-		local_off_L += Lpointer->GetDOC();
+		if (Lpointer->IsActive())
+		{
+			Lpointer->IntLoadConstraint_C(off_L+local_off_L, Qc, c, do_clamp, recovery_clamp);
+			local_off_L += Lpointer->GetDOC();
+		}
 	}
 }
 
@@ -368,14 +379,20 @@ void ChAssembly::IntLoadConstraint_Ct(
 	for (unsigned int ip = 0; ip < bodylist.size(); ++ip)  // ITERATE on bodies
 	{
 		ChBody* Bpointer = bodylist[ip];
-		Bpointer->IntLoadConstraint_Ct(off_L+local_off_L, Qc, c);
-		local_off_L += Bpointer->GetDOC();
+		if (Bpointer->IsActive())
+		{
+			Bpointer->IntLoadConstraint_Ct(off_L+local_off_L, Qc, c);
+			local_off_L += Bpointer->GetDOC();
+		}
 	}
 	for (unsigned int ip = 0; ip < linklist.size(); ++ip)  // ITERATE on links
 	{
 		ChLink* Lpointer = linklist[ip];
-		Lpointer->IntLoadConstraint_Ct(off_L+local_off_L, Qc, c);
-		local_off_L += Lpointer->GetDOC();
+		if (Lpointer->IsActive())
+		{
+			Lpointer->IntLoadConstraint_Ct(off_L+local_off_L, Qc, c);
+			local_off_L += Lpointer->GetDOC();
+		}
 	}
 }
 
@@ -394,16 +411,22 @@ void ChAssembly::IntToLCP(
 	for (unsigned int ip = 0; ip < bodylist.size(); ++ip)  // ITERATE on bodies
 	{
 		ChBody* Bpointer = bodylist[ip];
-		Bpointer->IntToLCP(off_v+local_off_v, v, R, off_L+local_off_L, L, Qc);
-		local_off_L += Bpointer->GetDOC();
-		local_off_v += Bpointer->GetDOF_w();
+		if (Bpointer->IsActive())
+		{
+			Bpointer->IntToLCP(off_v+local_off_v, v, R, off_L+local_off_L, L, Qc);
+			local_off_L += Bpointer->GetDOC();
+			local_off_v += Bpointer->GetDOF_w();
+		}
 	}
 	for (unsigned int ip = 0; ip < linklist.size(); ++ip)  // ITERATE on links
 	{
 		ChLink* Lpointer = linklist[ip];
-		Lpointer->IntToLCP(off_v+local_off_v, v, R, off_L+local_off_L, L, Qc);
-		local_off_L += Lpointer->GetDOC();
-		local_off_v += Lpointer->GetDOF_w();
+		if (Lpointer->IsActive())
+		{
+			Lpointer->IntToLCP(off_v+local_off_v, v, R, off_L+local_off_L, L, Qc);
+			local_off_L += Lpointer->GetDOC();
+			local_off_v += Lpointer->GetDOF_w();
+		}
 	}
 }
 
@@ -419,16 +442,22 @@ void ChAssembly::IntFromLCP(
 	for (unsigned int ip = 0; ip < bodylist.size(); ++ip)  // ITERATE on bodies
 	{
 		ChBody* Bpointer = bodylist[ip];
-		Bpointer->IntFromLCP(off_v+local_off_v, v, off_L+local_off_L, L);
-		local_off_L += Bpointer->GetDOC();
-		local_off_v += Bpointer->GetDOF_w();
+		if (Bpointer->IsActive())
+		{
+			Bpointer->IntFromLCP(off_v+local_off_v, v, off_L+local_off_L, L);
+			local_off_L += Bpointer->GetDOC();
+			local_off_v += Bpointer->GetDOF_w();
+		}
 	}
 	for (unsigned int ip = 0; ip < linklist.size(); ++ip)  // ITERATE on links
 	{
 		ChLink* Lpointer = linklist[ip];
-		Lpointer->IntFromLCP(off_v+local_off_v, v, off_L+local_off_L, L);
-		local_off_L += Lpointer->GetDOC();
-		local_off_v += Lpointer->GetDOF_w();
+		if (Lpointer->IsActive())
+		{
+			Lpointer->IntFromLCP(off_v+local_off_v, v, off_L+local_off_L, L);
+			local_off_L += Lpointer->GetDOC();
+			local_off_v += Lpointer->GetDOF_w();
+		}
 	}
 }
 
@@ -628,6 +657,72 @@ void ChAssembly::ClampSpeed()
 		Bpointer->ClampSpeed();
 	}
 }
+
+
+
+
+void ChAssembly::Setup()
+{
+	nbodies = 0;
+	nbodies_sleep = 0;
+	nbodies_fixed = 0;
+	ncoords = 0;
+	ncoords_w = 0;
+	ndoc = 0;
+	ndoc_w = 0;
+	ndoc_w_C = 0;
+	ndoc_w_D = 0;
+	nlinks = 0;
+
+	for (unsigned int ip = 0; ip < bodylist.size(); ++ip)  // ITERATE on bodies
+	{
+		ChBody* Bpointer = bodylist[ip];
+
+		if (Bpointer->GetBodyFixed())
+			nbodies_fixed++;
+		else if (Bpointer->GetSleeping())
+			nbodies_sleep++;
+		else
+		{
+			nbodies++;
+
+			Bpointer->SetOffset_x(this->GetOffset_x() + ncoords);
+			Bpointer->SetOffset_w(this->GetOffset_w() + ncoords_w);
+			Bpointer->SetOffset_L(this->GetOffset_L() + ndoc_w);
+
+			ncoords += Bpointer->GetDOF();
+			ncoords_w += Bpointer->GetDOF_w();
+		}
+	}
+
+	ndoc += nbodies;     // add one quaternion constr. for each active body.
+
+	for (unsigned int ip = 0; ip < linklist.size(); ++ip)  // ITERATE on links
+	{
+		ChLink* Lpointer = linklist[ip];
+
+		if (Lpointer->IsActive())
+		{
+			nlinks++;
+
+			Lpointer->SetOffset_x(this->GetOffset_x() +ncoords);
+			Lpointer->SetOffset_w(this->GetOffset_w() +ncoords_w);
+			Lpointer->SetOffset_L(this->GetOffset_L() +ndoc_w);
+
+			ndoc_w   += Lpointer->GetDOC();
+			ndoc_w_C += Lpointer->GetDOC_c();
+			ndoc_w_D += Lpointer->GetDOC_d();
+		}
+	}
+
+	ndoc       = ndoc_w + nbodies;   // number of constraints including quaternion constraints.
+	nsysvars   = ncoords   + ndoc;   // total number of variables (coordinates + lagrangian multipliers)
+	nsysvars_w = ncoords_w + ndoc_w; // total number of variables (with 6 dof per body)
+
+	ndof= ncoords - ndoc;            // number of degrees of freedom (approximate - does not consider constr. redundancy, etc)
+}
+
+
 
 
 							// UpdateALL updates the state and time
