@@ -116,7 +116,7 @@ public:
 	virtual void SetMass(double mm) {this->variables.GetMass()(0) =mm;}
 
 				/// Get the number of degrees of freedom
-	virtual int Get_ndof() { return 1; }
+	virtual int Get_ndof_x() { return 1; }
 
 			//
 			// Functions for interfacing to the state bookkeeping

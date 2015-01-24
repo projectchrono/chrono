@@ -144,7 +144,7 @@ public:
 
 
 				/// Get the number of degrees of freedom (7 because quaternion for rotation)
-	virtual int Get_ndof() { return 7; }
+	virtual int Get_ndof_x() { return 7; }
 
 				/// Get the number of degrees of freedom, derivative (6 because angular velocity for rotation derivative)
 	virtual int Get_ndof_w() { return 6; }

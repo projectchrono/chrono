@@ -61,7 +61,7 @@ public:
 
 
 			/// Get the number of degrees of freedom
-	virtual int Get_ndof() { return 3; }
+	virtual int Get_ndof_x() { return 3; }
 
 
 					//

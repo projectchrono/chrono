@@ -43,7 +43,7 @@ void ChMesh::SetupInitial()
 	for (unsigned int i=0; i< vnodes.size(); i++)
 	{
 			//    - count the degrees of freedom 
-		n_dofs += vnodes[i]->Get_ndof();
+		n_dofs += vnodes[i]->Get_ndof_x();
 		n_dofs_w += vnodes[i]->Get_ndof_w();
 	}
 
@@ -97,6 +97,24 @@ void ChMesh::ClearNodes ()
 	vnodes.clear();
 }
 
+
+/// This recomputes the number of DOFs, constraints,
+/// as well as state offsets of contained items 
+void ChMesh::Setup()
+{
+	n_dofs = 0;
+	n_dofs_w = 0;
+
+	for (unsigned int i=0; i< vnodes.size(); i++)
+	{
+		vnodes[i]->NodeSetOffset_x(this->GetOffset_x() + n_dofs);
+		vnodes[i]->NodeSetOffset_w(this->GetOffset_w() + n_dofs_w);
+
+			//    - count the degrees of freedom 
+		n_dofs += vnodes[i]->Get_ndof_x();
+		n_dofs_w += vnodes[i]->Get_ndof_w();
+	}
+}
 
 
 
@@ -504,10 +522,19 @@ void ChMesh::IntStateGather(
 					ChStateDelta& v,				///< state vector, speed part
 					double& T)						///< time
 {
+	unsigned int local_off_x=0;
+	unsigned int local_off_v=0;
 	for (unsigned int j = 0; j < vnodes.size(); j++)
 	{
-		vnodes[j]->NodeIntStateGather(off_x, x, off_v, v, T);
+		vnodes[j]->NodeIntStateGather(	off_x+local_off_x, 
+										x, 
+										off_v+local_off_v, 
+										v, 
+										T);
+		local_off_x += vnodes[j]->Get_ndof_x();
+		local_off_v += vnodes[j]->Get_ndof_w();
 	}
+
 	T = this->GetChTime();
 }
 
@@ -518,8 +545,18 @@ void ChMesh::IntStateScatter(
 					const ChStateDelta& v,			///< state vector, speed part
 					const double T) 				///< time
 {
+	unsigned int local_off_x=0;
+	unsigned int local_off_v=0;
 	for (unsigned int j = 0; j < vnodes.size(); j++)
-		vnodes[j]->NodeIntStateScatter(off_x, x, off_v, v, T);
+	{
+		vnodes[j]->NodeIntStateScatter(	off_x+local_off_x, 
+										x, 
+										off_v+local_off_v, 
+										v, 
+										T);
+		local_off_x += vnodes[j]->Get_ndof_x();
+		local_off_v += vnodes[j]->Get_ndof_w();
+	}
 
 	this->Update(T);
 }
@@ -531,8 +568,18 @@ void ChMesh::IntStateIncrement(
 					const unsigned int off_v,		///< offset in v state vector
 					const ChStateDelta& Dv)  		///< state vector, increment
 {
+	unsigned int local_off_x=0;
+	unsigned int local_off_v=0;
 	for (unsigned int j = 0; j < vnodes.size(); j++)
-		vnodes[j]->NodeIntStateIncrement(off_x, x_new, x, off_v, Dv);
+	{
+		vnodes[j]->NodeIntStateIncrement(	off_x+local_off_x, 
+											x_new, 
+											x, 
+											off_v+local_off_v, 
+											Dv);
+		local_off_x += vnodes[j]->Get_ndof_x();
+		local_off_v += vnodes[j]->Get_ndof_w();
+	}
 }
 
 void ChMesh::IntLoadResidual_F(
@@ -542,12 +589,20 @@ void ChMesh::IntLoadResidual_F(
 					)
 {
 	// applied nodal forces
+	unsigned int local_off_v=0;
 	for (unsigned int j = 0; j < vnodes.size(); j++)
-		this->vnodes[j]->NodeIntLoadResidual_F(off, R, c);
+	{
+		this->vnodes[j]->NodeIntLoadResidual_F(	off+local_off_v, 
+												R, 
+												c);
+		local_off_v += vnodes[j]->Get_ndof_w();
+	}
 
 	// internal forces
 	for (unsigned int ie = 0; ie < this->velements.size(); ie++)
-		this->velements[ie]->EleIntLoadResidual_F(off, R, c);
+	{
+		this->velements[ie]->EleIntLoadResidual_F(R, c);
+	}
 }
 
 
@@ -559,12 +614,18 @@ void ChMesh::IntLoadResidual_Mv(
 					)
 {
 	// nodal masses
+	unsigned int local_off_v=0;
 	for (unsigned int j = 0; j < vnodes.size(); j++)
-		vnodes[j]->NodeIntLoadResidual_Mv(off, R, w, c);
+	{
+		vnodes[j]->NodeIntLoadResidual_Mv(	off+local_off_v,  R, w, c);
+		local_off_v += vnodes[j]->Get_ndof_w();
+	}
 
 	// internal masses
 	for (unsigned int ie = 0; ie < this->velements.size(); ie++)
-		this->velements[ie]->EleIntLoadResidual_Mv(off, R, w, c);
+	{
+		this->velements[ie]->EleIntLoadResidual_Mv(R, w, c);
+	}
 }
 
 void ChMesh::IntToLCP(
@@ -576,8 +637,12 @@ void ChMesh::IntToLCP(
 					const ChVectorDynamic<>& Qc
 					)
 {
+	unsigned int local_off_v=0;
 	for (unsigned int j = 0; j < vnodes.size(); j++)
-		vnodes[j]->NodeIntToLCP(off_v, v, R);
+	{
+		vnodes[j]->NodeIntToLCP(off_v + local_off_v,  v, R);
+		local_off_v += vnodes[j]->Get_ndof_w();
+	}
 }
 
 void ChMesh::IntFromLCP(
@@ -587,8 +652,12 @@ void ChMesh::IntFromLCP(
 					ChVectorDynamic<>& L
 					)
 {
+	unsigned int local_off_v=0;
 	for (unsigned int j = 0; j < vnodes.size(); j++)
-		vnodes[j]->NodeIntFromLCP(off_v, v);
+	{
+		vnodes[j]->NodeIntFromLCP(off_v + local_off_v,  v);
+		local_off_v += vnodes[j]->Get_ndof_w();
+	}
 }
 
 
