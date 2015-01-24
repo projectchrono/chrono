@@ -121,14 +121,14 @@ int main(int argc, char* argv[])
 	// ..create the five pendulums (bodies are Irrlicht nodes of
 	//   the special class ChBodySceneNode, which encapsulate ChBody items ): 
 
-	for (int k=0;k<1; k++)
+	for (int k=0;k<5; k++)
 	{
 		double z_step =(double)k*2.;
 
 		 // .. the truss
 		ChSharedPtr<ChBodyEasyBox> mrigidBody0(new ChBodyEasyBox(
 											5, 1, 0.5,	// x,y,z size
-											1000,		// density
+											100,		// density
 											false,		// collide enable?
 											true));		// visualization?
 		mrigidBody0->SetPos( ChVector<>(0, 0, z_step) );
@@ -137,7 +137,7 @@ int main(int argc, char* argv[])
 
 		ChSharedPtr<ChBodyEasyBox> mrigidBody1(new ChBodyEasyBox(
 											1, 6, 1,	// x,y,z size
-											100,		// density
+											1,			// density
 											false,		// collide enable?
 											true));		// visualization?
 		mrigidBody1->SetPos( ChVector<>(0, -3, z_step) );
@@ -145,7 +145,7 @@ int main(int argc, char* argv[])
 
 		ChSharedPtr<ChBodyEasyBox> mrigidBody2(new ChBodyEasyBox(
 											1, 6, 1,	// x,y,z size
-											100,		// density
+											1,			// density
 											false,		// collide enable?
 											true));		// visualization?
 		mrigidBody2->SetPos( ChVector<>(0, -9, z_step) );
@@ -153,7 +153,7 @@ int main(int argc, char* argv[])
 
 		ChSharedPtr<ChBodyEasyBox> mrigidBody3(new ChBodyEasyBox(
 											6, 1, 1,	// x,y,z size
-											100,		// density
+											1,			// density
 											false,		// collide enable?
 											true));		// visualization?
 		mrigidBody3->SetPos( ChVector<>(3, -12, z_step) );
@@ -171,7 +171,7 @@ int main(int argc, char* argv[])
 							   mrigidBody0, 
 							   ChCoordsys<>(ChVector<>(0,0,z_step)));
 
-		//my_link_01->GetLimit_X()->Set_active(true);
+		my_link_01->GetLimit_X()->Set_active(true);
 		my_link_01->GetLimit_X()->Set_max( 1.0);
 		my_link_01->GetLimit_X()->Set_min(-1.0);
 
@@ -219,6 +219,8 @@ int main(int argc, char* argv[])
 	application.SetStepManage(true);
 	application.SetTimestep(0.01);
 	application.SetTryRealtime(true);
+	//application.GetSystem()->SetMaxPenetrationRecoverySpeed(10e23);
+	application.GetSystem()->SetLcpSolverType(ChSystem::LCP_ITERATIVE_MINRES);
 
 	while(application.GetDevice()->run())
 	{
@@ -249,7 +251,7 @@ int main(int argc, char* argv[])
 
 		// Apply forces caused by fan & wind if Chrono rigid bodies are
 		// in front of the fan, using a simple tutorial function (see above):
-		apply_fan_force(&my_system, my_fan_coord, fan_radius, 2.2, 0.5);
+		apply_fan_force(&my_system, my_fan_coord, fan_radius, 5.2, 0.5);
 
 		// HERE CHRONO INTEGRATION IS PERFORMED: THE 
 		// TIME OF THE SIMULATION ADVANCES FOR A SINGLE
