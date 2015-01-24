@@ -120,7 +120,7 @@ class  ChApi ChIntegrable
 			///  Dy = [ c_a*H + c_b*dF/dy ]^-1 * R
 			///  Dy = [ G ]^-1 * R
 			/// If with DAE constraints: 
-			///  |Du| = [ G   Cq' ]^-1 * | R |
+			///  |Dy| = [ G   Cq' ]^-1 * | R |
 			///  |DL|   [ Cq  0   ]      | Qc|
 			/// where R is a given residual, dF/dy is F jacobian. 
 			/// It is up to the child class how to solve such linear system.
@@ -313,7 +313,7 @@ public:
 	///  |Du| = [ G   Cq' ]^-1 * | R |
 	///  |DL|   [ Cq  0   ]      | Qc|
  	/// where R is a given residual, dF/dv and dF/dx, dF/dv are jacobians (that are also 
-	/// -R and -K, damping and stiffness (tangent) matrices in many mechanical problems). 
+	/// -R and -K, damping and stiffness (tangent) matrices in many mechanical problems, note the minus sign!). 
 	/// It is up to the child class how to solve such linear system.
 	virtual void StateSolveCorrection(
 		ChStateDelta& Dv,	  ///< result: computed Dv 
