@@ -180,6 +180,11 @@ public:
 			// UPDATING  - child classes may implement these functions
 			//
 
+				/// This might recompute the number of coordinates, DOFs, constraints,
+				/// in case this might change (ex in ChAssembly), as well as state offsets
+				/// of contained items (ex in ChMesh)
+	virtual void Setup() {};
+
 				/// This is an important function, which is called by the 
 				/// owner ChSystem at least once per integration step.
 				/// It may update all auxiliary data of the item, such as
@@ -462,6 +467,7 @@ public:
 				/// Adds the current stiffness K and damping R and mass M matrices in encapsulated
 				/// ChLcpKblock item(s), if any. The K, R, M matrices are added with scaling 
 				/// values Kfactor, Rfactor, Mfactor.  
+				/// NOTE: signs are flipped respect to the ChTimestepper dF/dx terms:  K = -dF/dq, R = -dF/dv 
 	virtual void KRMmatricesLoad(double Kfactor, double Rfactor, double Mfactor) {};
 
 
