@@ -2307,9 +2307,6 @@ double ChSystem::ComputeCollisions()
 
 
 
-// internal codes for m_repeat: if FALSE (null or 0) the step won't repeat
-//#define TRUE_REFINE 1
-//#define TRUE_FORCED 2
 
 
 int ChSystem::Integrate_Y()
