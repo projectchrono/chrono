@@ -94,7 +94,7 @@ uint ChSolverAPGD::SolveAPGD(const uint max_iter, const uint size, const blaze::
 
     temp = gamma_new - gamma;
     y = beta_new * temp + gamma_new;
-    real dot_mg_ms = (g, temp);
+    dot_mg_ms = (g, temp);
 
     N_gamma_new = N_gamma_new - r;
     real res = Res4(N_gamma_new, gamma, temp);
