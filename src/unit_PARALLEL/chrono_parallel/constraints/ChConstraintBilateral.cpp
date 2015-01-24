@@ -132,6 +132,29 @@ void ChConstraintBilateral::Build_D()
     }
       break;
 
+    case SHAFT_SHAFT_BODY:
+    {
+      ChLcpConstraintThreeGeneric* mbilateral = (ChLcpConstraintThreeGeneric*)(mconstraints[cntr]);
+      int idA = ((ChLcpVariablesShaft*)(mbilateral->GetVariables_a()))->GetShaft()->GetId();
+      int idB = ((ChLcpVariablesShaft*)(mbilateral->GetVariables_b()))->GetShaft()->GetId();
+      int idC = ((ChBody*)((ChLcpVariablesBody*)(mbilateral->GetVariables_c()))->GetUserData())->GetId();
+      int colA = data_container->num_bodies * 6 + idA;
+      int colB = data_container->num_bodies * 6 + idB;
+      int colC = idC * 6;
+
+      D_T(row, colA) = mbilateral->Get_Cq_a()->GetElementN(0);
+      D_T(row, colB) = mbilateral->Get_Cq_b()->GetElementN(0);
+
+      D_T(row, colC + 0) = mbilateral->Get_Cq_c()->GetElementN(0);
+      D_T(row, colC + 1) = mbilateral->Get_Cq_c()->GetElementN(1);
+      D_T(row, colC + 2) = mbilateral->Get_Cq_c()->GetElementN(2);
+
+      D_T(row, colC + 3) = mbilateral->Get_Cq_c()->GetElementN(3);
+      D_T(row, colC + 4) = mbilateral->Get_Cq_c()->GetElementN(4);
+      D_T(row, colC + 5) = mbilateral->Get_Cq_c()->GetElementN(5);
+    }
+      break;
+
     }
   }
 }
@@ -145,7 +168,8 @@ void ChConstraintBilateral::GenerateSparsity()
   // Loop over the active constraints and fill in the sparsity pattern of the
   // Jacobian, taking into account the type of each constraint.
   // Note that the data for a Blaze compressed matrix must be filled in increasing
-  // order of the column index for each row.
+  // order of the column index for each row. Recall that body states are always
+  // before shaft states.
   CompressedMatrix<real>& D_T = data_container->host_data.D_T;
 
   for (int index = 0; index < data_container->num_bilaterals; index++) {
@@ -154,6 +178,7 @@ void ChConstraintBilateral::GenerateSparsity()
     int row = index + data_container->num_unilaterals;
     int col1;
     int col2;
+    int col3;
 
     switch (type) {
 
@@ -222,10 +247,36 @@ void ChConstraintBilateral::GenerateSparsity()
       ids[1] = ((ChLcpVariablesShaft*)(mbilateral->GetVariables_b()))->GetShaft()->GetId();
       ids[2] = ((ChLcpVariablesShaft*)(mbilateral->GetVariables_c()))->GetShaft()->GetId();
       std::sort(ids.begin(), ids.end());
+      col1 = data_container->num_bodies * 6 + ids[0];
+      col2 = data_container->num_bodies * 6 + ids[1];
+      col3 = data_container->num_bodies * 6 + ids[2];
 
-      D_T.append(row, data_container->num_bodies * 6 + ids[0], 1);
-      D_T.append(row, data_container->num_bodies * 6 + ids[1], 1);
-      D_T.append(row, data_container->num_bodies * 6 + ids[2], 1);
+      D_T.append(row, col1, 1);
+      D_T.append(row, col2, 1);
+      D_T.append(row, col3, 1);
+    }
+      break;
+
+    case SHAFT_SHAFT_BODY:
+    {
+      ChLcpConstraintThreeGeneric* mbilateral = (ChLcpConstraintThreeGeneric*)(mconstraints[cntr]);
+      int idA = ((ChLcpVariablesShaft*)(mbilateral->GetVariables_a()))->GetShaft()->GetId();
+      int idB = ((ChLcpVariablesShaft*)(mbilateral->GetVariables_b()))->GetShaft()->GetId();
+      int idC = ((ChBody*)((ChLcpVariablesBody*)(mbilateral->GetVariables_c()))->GetUserData())->GetId();
+      col1 = idC * 6;
+      if (idA < idB) {
+        col2 = data_container->num_bodies * 6 + idA;
+        col3 = data_container->num_bodies * 6 + idB;
+      } else {
+        col2 = data_container->num_bodies * 6 + idB;
+        col3 = data_container->num_bodies * 6 + idA;
+      }
+
+      D_T.append(row, col1 + 0, 1); D_T.append(row, col1 + 1, 1); D_T.append(row, col1 + 2, 1);
+      D_T.append(row, col1 + 3, 1); D_T.append(row, col1 + 4, 1); D_T.append(row, col1 + 5, 1);
+
+      D_T.append(row, col2, 1);
+      D_T.append(row, col3, 1);
     }
       break;
 

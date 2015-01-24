@@ -100,9 +100,10 @@ void ChLcpSolverParallelDVI::RunTimeStep(real step)
 
   ComputeImpulses();
 
-    for (int i = 0; i <  data_container->measures.solver.iter_hist.size(); i++) {
-      AtIterationEnd( data_container->measures.solver.maxd_hist[i],  data_container->measures.solver.maxdeltalambda_hist[i],  data_container->measures.solver.iter_hist[i]);
+  for (int i = 0; i < data_container->measures.solver.iter_hist.size(); i++) {
+    AtIterationEnd(data_container->measures.solver.maxd_hist[i], data_container->measures.solver.maxdeltalambda_hist[i], data_container->measures.solver.iter_hist[i]);
   }
+  tot_iterations = data_container->measures.solver.iter_hist.size();
 
 #if PRINT_LEVEL == 2
   std::cout << "Solve Done: " << residual << std::endl;

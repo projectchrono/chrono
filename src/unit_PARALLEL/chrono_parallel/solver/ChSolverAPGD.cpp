@@ -103,8 +103,8 @@ uint ChSolverAPGD::SolveAPGD(const uint max_iter, const uint size, const blaze::
       residual = res;
       gamma_hat = gamma_new;
     }
-
-    AtIterationEnd(residual, objective_value, iter_hist.size());
+    objective_value = GetObjective(gamma_new, r);
+    AtIterationEnd(residual, objective_value);
     if (residual < data_container->settings.solver.tolerance) {
       break;
     }
@@ -120,7 +120,6 @@ uint ChSolverAPGD::SolveAPGD(const uint max_iter, const uint size, const blaze::
     theta = theta_new;
 
     gamma = gamma_new;
-    //objective_value = (gamma_hat, mso);    // maxdeltalambda = GetObjectiveBlaze(gamma_hat, r);
 
 
 

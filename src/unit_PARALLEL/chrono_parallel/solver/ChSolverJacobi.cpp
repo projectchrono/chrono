@@ -6,6 +6,7 @@ using namespace chrono;
 uint ChSolverJacobi::SolveJacobi(const uint max_iter, const uint size, blaze::DynamicVector<real>& mb, blaze::DynamicVector<real>& ml) {
 
   real& residual = data_container->measures.solver.residual;
+  real& objective_value = data_container->measures.solver.objective_value;
   custom_vector<real>& iter_hist = data_container->measures.solver.iter_hist;
 
   diagonal.resize(size, false);
@@ -39,7 +40,8 @@ uint ChSolverJacobi::SolveJacobi(const uint max_iter, const uint size, blaze::Dy
     Project(ml.data());
     ml_old = ml;
     residual = Res4Blaze(ml, mb);
-    AtIterationEnd(residual, GetObjectiveBlaze(ml, mb), iter_hist.size());
+    objective_value = GetObjective(ml, mb);
+    AtIterationEnd(residual, objective_value);
   }
 
   return current_iteration;

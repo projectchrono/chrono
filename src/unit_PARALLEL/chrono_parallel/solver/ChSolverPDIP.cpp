@@ -382,7 +382,7 @@ uint ChSolverPDIP::SolvePDIP(const uint max_iter,
     residual = sqrt((r_g, r_g));//Res4(gamma, gamma_tmp);
 
     // (21) if r < tau
-    AtIterationEnd(residual, objective_value, iter_hist.size());
+    AtIterationEnd(residual, objective_value);
     if(verbose) std::cout << "Residual: " << residual << ", Iter: " << current_iteration << ", Krylov Iter: " << totalKrylovIterations << std::endl;
 
     if (residual < data_container->settings.solver.tol_speed) {

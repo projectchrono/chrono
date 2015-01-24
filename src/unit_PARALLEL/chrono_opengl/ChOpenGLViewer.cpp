@@ -574,24 +574,29 @@ void ChOpenGLViewer::DisplayHUD() {
     sprintf(buffer, "Camera Up  :  [%04f, %04f, %04f]", render_camera.camera_up.x, render_camera.camera_up.y, render_camera.camera_up.z);
     RenderText(buffer, -.95, 0.925 - spacing * 3, sx, sy);
 
-    if (((ChLcpIterativeSolver*)(physics_system->GetLcpSolverSpeed()))->GetRecordViolation()) {
-      std::vector<double> history(0);
-      std::vector<double> dlambda(0);
+    sprintf(buffer, "SOLVER INFO");
+    RenderText(buffer, .6, 0.925 - spacing * 6, sx, sy);
 
-      history = ((ChLcpIterativeSolver*)(physics_system->GetLcpSolverSpeed()))->GetViolationHistory();
-      dlambda = ((ChLcpIterativeSolver*)(physics_system->GetLcpSolverSpeed()))->GetDeltalambdaHistory();
+    double iters = ((ChLcpIterativeSolver*)(physics_system->GetLcpSolverSpeed()))->GetTotalIterations();
+    if (iters > 0) {
+      double residual = ((ChLcpIterativeSolver*)(physics_system->GetLcpSolverSpeed()))->GetViolationHistory().back();
+      double dlambda = ((ChLcpIterativeSolver*)(physics_system->GetLcpSolverSpeed()))->GetDeltalambdaHistory().back();
 
-      if (history.size() > 0) {
-        sprintf(buffer, "SOLVER INFO");
-        RenderText(buffer, .6, 0.925 - spacing * 6, sx, sy);
-        sprintf(buffer, "ITERS    %04d", history.size());
-        RenderText(buffer, .6, 0.925 - spacing * 7, sx, sy);
-        sprintf(buffer, "RESIDUAL %04f", history[history.size() - 1]);
-        RenderText(buffer, .6, 0.925 - spacing * 8, sx, sy);
-        sprintf(buffer, "CORRECT  %04f", dlambda[dlambda.size() - 1]);
-        RenderText(buffer, .6, 0.925 - spacing * 9, sx, sy);
-      }
+      sprintf(buffer, "ITERS    %04d", int(iters));
+      RenderText(buffer, .6, 0.925 - spacing * 7, sx, sy);
+      sprintf(buffer, "RESIDUAL %04f", residual);
+      RenderText(buffer, .6, 0.925 - spacing * 8, sx, sy);
+      sprintf(buffer, "CORRECT  %04f", dlambda);
+      RenderText(buffer, .6, 0.925 - spacing * 9, sx, sy);
+    } else {
+      sprintf(buffer, "ITERS    %04d", 0);
+      RenderText(buffer, .6, 0.925 - spacing * 7, sx, sy);
+      sprintf(buffer, "RESIDUAL %04f", 0);
+      RenderText(buffer, .6, 0.925 - spacing * 8, sx, sy);
+      sprintf(buffer, "CORRECT  %04f", 0);
+      RenderText(buffer, .6, 0.925 - spacing * 9, sx, sy);
     }
+
     int num_bodies = (physics_system->GetNbodiesTotal() + physics_system->GetNphysicsItems());
     int num_contacts = ((ChSystemParallel*)physics_system)->GetNcontacts();
     int average_contacts_per_body = 0;

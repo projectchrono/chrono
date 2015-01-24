@@ -417,10 +417,12 @@ BILATERALTYPE GetBilateralType(ChPhysicsItem* item)
   if (dynamic_cast<ChShaftsCouple*>(item))
     return SHAFT_SHAFT;
 
-  if (dynamic_cast<ChShaftsPlanetary*>(item) ||
-      dynamic_cast<ChShaftsGearbox*>(item)   ||
-      dynamic_cast<ChShaftsGearboxAngled*>(item))
+  if (dynamic_cast<ChShaftsPlanetary*>(item))
     return SHAFT_SHAFT_SHAFT;
+
+  if (dynamic_cast<ChShaftsGearbox*>(item)   ||
+      dynamic_cast<ChShaftsGearboxAngled*>(item))
+    return SHAFT_SHAFT_BODY;
 
   if (dynamic_cast<ChShaftsBody*>(item))
     return SHAFT_BODY;
@@ -492,6 +494,9 @@ void ChSystemParallel::UpdateBilaterals()
         break;
       case SHAFT_BODY:
         data_manager->nnz_bilaterals += 7;
+        break;
+      case SHAFT_SHAFT_BODY:
+        data_manager->nnz_bilaterals += 8;
         break;
       }
     }
