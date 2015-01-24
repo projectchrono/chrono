@@ -313,11 +313,13 @@ ChSystem::ChSystem(unsigned int max_objects, double scene_size, bool init_sys)
 		collision_system = new ChCollisionSystemBullet(max_objects, scene_size);
 	}
 	
-	this->timestepper= ChSharedPtr<ChTimestepperEulerImplicitLinearized> (new ChTimestepperEulerImplicitLinearized(*this)); // OK
-	//this->timestepper= ChSharedPtr<ChTimestepperTrapezoidal> (new ChTimestepperTrapezoidal(*this));  // NO - to fix
-	//(this->timestepper.DynamicCastTo<ChTimestepperTrapezoidal>())->SetMaxiters(2);
-	//this->timestepper= ChSharedPtr<ChTimestepperEulerImplicit> (new ChTimestepperEulerImplicit(*this)); // NO - to fix
-	//this->timestepper= ChSharedPtr<ChTimestepperRungeKuttaExpl> (new ChTimestepperRungeKuttaExpl(*this)); // NO?
+	//this->timestepper= ChSharedPtr<ChTimestepperEulerImplicitLinearized> (new ChTimestepperEulerImplicitLinearized(*this)); // OK
+	//this->timestepper= ChSharedPtr<ChTimestepperTrapezoidal> (new ChTimestepperTrapezoidal(*this));  // OK 
+	//(this->timestepper.DynamicCastTo<ChTimestepperTrapezoidal>())->SetMaxiters(4);
+	this->timestepper= ChSharedPtr<ChTimestepperEulerImplicit> (new ChTimestepperEulerImplicit(*this)); // OK
+	(this->timestepper.DynamicCastTo<ChTimestepperEulerImplicit>())->SetMaxiters(4);
+	//this->timestepper= ChSharedPtr<ChTimestepperRungeKuttaExpl> (new ChTimestepperRungeKuttaExpl(*this)); // OK
+	//this->timestepper= ChSharedPtr<ChTimestepperHHT> (new ChTimestepperHHT(*this)); // NO- to fix
 
 	LCP_descriptor = 0;
 	LCP_solver_speed = 0;
@@ -673,7 +675,7 @@ void ChSystem::SetParallelThreadNumber(int mthreads)
 void ChSystem::ChangeLcpSystemDescriptor(ChLcpSystemDescriptor* newdescriptor)
 {
 	assert (newdescriptor);
-	if (this->LCP_descriptor) 
+	if (this->LCP_descriptor)
 		delete (this->LCP_descriptor);
 	this->LCP_descriptor = newdescriptor;
 }
@@ -1249,9 +1251,54 @@ void ChSystem::Reference_LM_byID()
 
 
 void ChSystem::SetIntegrationType (eCh_integrationType m_integration)
-{									
+{	
+	if (m_integration == integration_type) 
+		return;
+
 	// set integration scheme:
-	integration_type = m_integration;				
+	integration_type = m_integration;
+
+	// plug in the new required timestepper 
+	// (the previous will be automatically deallocated thanks to shared pointers)
+	switch (integration_type)
+	{
+	case INT_ANITESCU:
+		this->timestepper= ChSharedPtr<ChTimestepper>();  // null because Integrate_Y_impulse will fallback to old code
+		break;
+	case INT_TASORA:
+		this->timestepper= ChSharedPtr<ChTimestepper>();  // null because Integrate_Y_impulse will fallback to old code
+		break;
+	case INT_EULER_IMPLICIT:
+		this->timestepper= ChSharedPtr<ChTimestepperEulerImplicit> (new ChTimestepperEulerImplicit(*this)); 
+		(this->timestepper.DynamicCastTo<ChTimestepperEulerImplicit>())->SetMaxiters(4);
+		break;
+	case INT_EULER_IMPLICIT_LINEARIZED:
+		this->timestepper= ChSharedPtr<ChTimestepperEulerImplicitLinearized> (new ChTimestepperEulerImplicitLinearized(*this)); 
+		break;
+	case INT_TRAPEZOIDAL:
+		this->timestepper= ChSharedPtr<ChTimestepperTrapezoidal> (new ChTimestepperTrapezoidal(*this)); 
+		(this->timestepper.DynamicCastTo<ChTimestepperTrapezoidal>())->SetMaxiters(4);
+		break;
+	case INT_HHT:
+		this->timestepper= ChSharedPtr<ChTimestepperHHT> (new ChTimestepperHHT(*this)); 
+		(this->timestepper.DynamicCastTo<ChTimestepperHHT>())->SetMaxiters(4);
+		break;
+	case INT_HEUN:
+		this->timestepper= ChSharedPtr<ChTimestepperHeun> (new ChTimestepperHeun(*this)); 
+		break;
+	case INT_RUNGEKUTTA45:
+		this->timestepper= ChSharedPtr<ChTimestepperRungeKuttaExpl> (new ChTimestepperRungeKuttaExpl(*this)); 
+		break;
+	case INT_EULER_EXPLICIT:
+		this->timestepper= ChSharedPtr<ChTimestepperEulerExplIIorder> (new ChTimestepperEulerExplIIorder(*this)); 
+		break;
+	case INT_LEAPFROG:
+		this->timestepper= ChSharedPtr<ChTimestepperLeapfrog> (new ChTimestepperLeapfrog(*this)); 
+		break;
+	default:
+		throw ChException("SetIntegrationType: timestepper not supported");
+	}
+
 }
 
 
@@ -2266,10 +2313,8 @@ int ChSystem::Integrate_Y()
 			return Integrate_Y_impulse_Anitescu();
 		case INT_TASORA:
 			return Integrate_Y_impulse_Tasora();
-		case INT_CUSTOM:
-			return Integrate_Y_timestepper();
 		default:
-			return Integrate_Y_impulse_Anitescu();
+			return Integrate_Y_timestepper();
 	}
 
 	return TRUE;

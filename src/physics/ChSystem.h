@@ -166,11 +166,17 @@ public:
 	double GetStepMax () {return step_max;}
 
 				/// Available methods for time integration (time steppers). 
-				/// Only fixed-step Anitescu and Tasora types are currently supported.
 					enum eCh_integrationType{ 
 						 INT_ANITESCU = 0,
 						 INT_TASORA =6,
-						 INT_CUSTOM =7
+						 INT_EULER_IMPLICIT =7,
+						 INT_EULER_IMPLICIT_LINEARIZED =8,
+						 INT_TRAPEZOIDAL =9,
+						 INT_HHT =11,
+						 INT_HEUN =12,
+						 INT_RUNGEKUTTA45 =13,
+						 INT_EULER_EXPLICIT =14,
+						 INT_LEAPFROG =15,
 					};
 				/// Sets the method for time integration (time stepper).
 				/// Some steppers are faster but can run into some troubles 
@@ -623,6 +629,7 @@ public:
 			//
 
 				/// Counts the number of bodies and links. 
+				/// Computes the offsets of object states in the global state.
 	void Setup();
 
 				/// Updates all the auxiliary data and children of
