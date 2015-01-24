@@ -555,7 +555,7 @@ public:
 				false  // do not StateScatter update to Xnew Vnew T+dt before computing correction
 				);
 
-			Dl *= -(1.0/dt);
+			Dl *= (1.0/dt); // Note it is not -(1.0/dt) because we assume StateSolveCorrection already flips sign of Dl
 			L += Dl;
 
 			Vnew += Dv;
@@ -642,10 +642,7 @@ public:
 				false  // do not StateScatter update to Xnew Vnew T+dt before computing correction
 				);
 
-		Dl *= -(1.0 / dt);
-		L += Dl;
-
-		V = Dv;  // as V_new = V + Dv, 
+		L *= (1.0 / dt);  // Note it is not -(1.0/dt) because we assume StateSolveCorrection already flips sign of Dl
 
 		X += V *dt;
 
@@ -741,13 +738,14 @@ public:
 				Xnew, Vnew, T + dt,
 				false  // do not StateScatter update to Xnew Vnew T+dt before computing correction
 				);
-
-			Dl *= -(2.0 / dt);
+//GetLog()<< "trapezoidal iter="<<i<<" Dv =" << Dv <<"\n";
+			Dl *= (2.0 / dt);  // Note it is not -(2.0/dt) because we assume StateSolveCorrection already flips sign of Dl
 			L += Dl;
 
 			Vnew += Dv;
-
+//GetLog()<< "trapezoidal iter="<<i<<" Vnew =" << Vnew <<"\n";
 			Xnew = X + ((Vnew + V)*(dt*0.5));  // Xnew = Xold + h/2(Vnew+Vold)
+//GetLog()<< "trapezoidal iter="<<i<<" Xnew =" << Xnew <<"\n";
 		}
 
 		X = Xnew;
@@ -872,7 +870,7 @@ public:
 				false  // do not StateScatter update to Xnew Vnew T+dt before computing correction
 				);
 
-			L    += Dl;
+			L    -= Dl;  // Note it is not += Dl because we assume StateSolveCorrection flips sign of Dl
 			Anew += Da;
 
 			Xnew = X + V*dt + A*(dt*dt*(0.5 - beta)) + Anew*(dt*dt*beta);
