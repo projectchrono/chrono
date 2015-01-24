@@ -61,7 +61,7 @@ uint ChSolverBiCGStab::SolveBiCGStab(const uint max_iter, const uint size, blaze
     rho_2 = rho_1;
     residual = sqrt((r, r)) / normb;
 
-    objective_value = GetObjectiveBlaze(ml, mb);
+    objective_value = GetObjective(ml, mb);
     AtIterationEnd(residual, objective_value);
 
     if (residual < data_container->settings.solver.tolerance || omega == 0) {
