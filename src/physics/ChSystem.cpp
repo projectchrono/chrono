@@ -1900,7 +1900,7 @@ void ChSystem::StateSolveCorrection(
 		PHpointer->ConstraintsLoadJacobians();
 
 		if (c_a || c_v || c_x)
-			PHpointer->KRMmatricesLoad(c_x, c_v, c_a);
+			PHpointer->KRMmatricesLoad(-c_x, -c_v, c_a);
 	}
 
 	contact_container->ConstraintsLoadJacobians();
