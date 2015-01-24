@@ -8,11 +8,11 @@ SET(FEM_DEMOS
 SET(FEM_DEMOS_IRR
 	demo_FEMthermal
 	demo_FEMelectrostatics
+	demo_FEMvisualize
 )
 
 #List all FEM demos that use both Irrlicht and Matlab
 SET(FEM_DEMOS_IRR_MATLAB
-	demo_FEMvisualize
 	demo_FEMbeams
 	demo_FEMbeamsconstr
 	demo_FEMminiature
