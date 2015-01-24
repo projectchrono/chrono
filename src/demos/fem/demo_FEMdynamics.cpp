@@ -76,14 +76,16 @@ void test_1()
 
 				// Create some elements of 'spring-damper' type, each connecting
 				// two 3D nodes:
-	ChSharedPtr<ChElementSpring> melementA;
+	ChSharedPtr<ChElementSpring> melementA (new ChElementSpring);
 	melementA->SetNodes(mnodeA, mnodeB);
 	melementA->SetSpringK(2000);
-	melementA->SetDamperR(100);
+	melementA->SetDamperR(0);
 
 				// Remember to add elements to the mesh!
 	my_mesh->AddElement(melementA);
 
+				// This is mandatory
+	my_mesh->SetupInitial();
 
 				// Remember to add the mesh to the system!
 	my_system.Add(my_mesh);
@@ -97,12 +99,12 @@ void test_1()
 				// Create a constraint between a node and the truss
 	ChSharedPtr<ChLinkPointFrame> constraintA(new ChLinkPointFrame);
 
-	constraintA->Initialize(my_mesh,		// node container
-							0,				// index of node in node container 
-							truss);			// body to be connected to
+	constraintA->Initialize(mnodeA,		// node 
+							truss);		// body to be connected to
 							
 	my_system.Add(constraintA);
 		
+
 				// Set no gravity
 	//my_system.Set_G_acc(VNULL);
 
@@ -113,6 +115,8 @@ void test_1()
 	chrono::ChLcpIterativeMINRES* msolver = (chrono::ChLcpIterativeMINRES*)my_system.GetLcpSolverSpeed();
 	my_system.SetIterLCPmaxItersSpeed(40);
     my_system.SetTolForce(1e-10);
+
+	my_system.SetIntegrationType(ChSystem::INT_EULER_IMPLICIT_LINEARIZED);//INT_HHT);//INT_EULER_IMPLICIT);
 
 	double timestep = 0.01;
 	while (my_system.GetChTime() < 2)
@@ -150,7 +154,7 @@ void test_2()
 	mnodeB->SetMass(0.0);
 	
 				// For example, set an applied force to a node:
-	//mnodeB->SetForce(ChVector<>(0,5,0));
+	mnodeB->SetForce(ChVector<>(0,5,0));
 
 				// For example, set an initial displacement to a node:
 	mnodeB->SetPos( mnodeB->GetX0() + ChVector<>(0,0.1,0) );
@@ -175,7 +179,7 @@ void test_2()
 				// Remember to add elements to the mesh!
 	my_mesh->AddElement(melementA);
 
-				// This is mandatory, to initialize rest lengths, masses, etc.
+				// This is mandatory
 	my_mesh->SetupInitial();
 
 				// Remember to add the mesh to the system!
@@ -190,9 +194,8 @@ void test_2()
 				// Create a constraint between a node and the truss
 	ChSharedPtr<ChLinkPointFrame> constraintA(new ChLinkPointFrame);
 
-	constraintA->Initialize(my_mesh,		// node container
-							0,				// index of node in node container 
-							truss);			// body to be connected to
+	constraintA->Initialize(mnodeA,		// node 
+							truss);		// body to be connected to
 							
 	my_system.Add(constraintA);
 		
@@ -207,6 +210,8 @@ void test_2()
 	msolver->SetDiagonalPreconditioning(true);
 	my_system.SetIterLCPmaxItersSpeed(100);
     my_system.SetTolForce(1e-10);
+
+	my_system.SetIntegrationType(ChSystem::INT_EULER_IMPLICIT);//INT_HHT);//INT_EULER_IMPLICIT);
 
 	double timestep = 0.001;
 	while (my_system.GetChTime() < 0.2)
@@ -244,7 +249,7 @@ void test_2b()
 	mnodeB->SetMass( 0.1);
 	
 				// For example, set an applied force to a node:
-	//mnodeB->SetForce(ChVector<>(0,5,0));
+	mnodeB->SetForce(ChVector<>(0,5,0));
 
 				// For example, set an initial displacement to a node:
 	mnodeB->SetPos( mnodeB->GetX0() + ChVector<>(0,0.1,0) );
@@ -264,6 +269,8 @@ void test_2b()
 				// Remember to add elements to the mesh!
 	my_mesh->AddElement(melementA);
 
+				// This is mandatory 
+	my_mesh->SetupInitial();
 
 				// Remember to add the mesh to the system!
 	my_system.Add(my_mesh);
@@ -277,9 +284,8 @@ void test_2b()
 				// Create a constraint between a node and the truss
 	ChSharedPtr<ChLinkPointFrame> constraintA(new ChLinkPointFrame);
 
-	constraintA->Initialize(my_mesh,		// node container
-							0,				// index of node in node container 
-							truss);			// body to be connected to
+	constraintA->Initialize(mnodeA,		// node 
+							truss);		// body to be connected to
 							
 	my_system.Add(constraintA);
 		
@@ -293,6 +299,8 @@ void test_2b()
 	chrono::ChLcpIterativeMINRES* msolver = (chrono::ChLcpIterativeMINRES*)my_system.GetLcpSolverSpeed();
 	my_system.SetIterLCPmaxItersSpeed(200);
     my_system.SetTolForce(1e-10);
+
+	my_system.SetIntegrationType(ChSystem::INT_EULER_IMPLICIT);//INT_HHT);//INT_EULER_IMPLICIT);
 
 	double timestep = 0.001;
 	while (my_system.GetChTime() < 0.2)
@@ -334,8 +342,10 @@ void test_3()
 	ChSharedPtr<ChNodeFEMxyz> mnode4( new ChNodeFEMxyz(ChVector<>(1,0,0)) );
 
 				// For example, set a point-like mass at a node:
+	mnode1->SetMass(200);
+	mnode2->SetMass(200);
 	mnode3->SetMass(200);
-
+	mnode4->SetMass(200);
 				// For example, set an initial displacement to a node:
 	mnode3->SetPos( mnode3->GetX0() + ChVector<>(0,0.01,0) );
 
@@ -372,21 +382,19 @@ void test_3()
 	ChSharedPtr<ChLinkPointFrame> constraint2(new ChLinkPointFrame);
 	ChSharedPtr<ChLinkPointFrame> constraint3(new ChLinkPointFrame);
 
-	constraint1->Initialize(my_mesh,		// node container
-							0,				// index of node in node container 
-							truss);			// body to be connected to
+	constraint1->Initialize(mnode1,		// node 
+							truss);		// body to be connected to
 
-	constraint2->Initialize(my_mesh,		// node container
-							1,				// index of node in node container 
-							truss);			// body to be connected to
+	constraint2->Initialize(mnode2,		// node  
+							truss);		// body to be connected to
 							
-	constraint3->Initialize(my_mesh,		// node container
-							3,				// index of node in node container 
-							truss);			// body to be connected to
+	constraint3->Initialize(mnode4,		// node 
+							truss);		// body to be connected to
 					
 	my_system.Add(constraint1);
 	my_system.Add(constraint2);
 	my_system.Add(constraint3);
+
 
 				// Perform a dynamic time integration:
 
@@ -395,8 +403,10 @@ void test_3()
 	my_system.SetIterLCPmaxItersSpeed(40);
     my_system.SetTolForce(1e-10);
 
+	my_system.SetIntegrationType(ChSystem::INT_EULER_IMPLICIT_LINEARIZED);//INT_EULER_IMPLICIT_LINEARIZED);//INT_EULER_IMPLICIT);
+
 	double timestep = 0.001;
-	while (my_system.GetChTime() < 0.2)
+	while (my_system.GetChTime() < 0.1)
 	{
 		my_system.DoStepDynamics(timestep);
 
@@ -406,7 +416,108 @@ void test_3()
 }
 
 
+void test_4()
+{
+	GetLog() << "\n-------------------------------------------------\n";
+	GetLog() << "TEST: bar FEM dynamics (2 elements),  implicit integration \n\n";
 
+				// The physical system: it contains all physical objects.
+	ChSystem my_system; 
+					
+				// Create a mesh, that is a container for groups
+				// of elements and their referenced nodes.
+	ChSharedPtr<ChMesh> my_mesh(new ChMesh);
+	
+				// Create some nodes. These are the classical point-like
+				// nodes with x,y,z degrees of freedom, that can be used 
+				// for many types of FEM elements in space.
+	ChSharedPtr<ChNodeFEMxyz> mnodeA ( new ChNodeFEMxyz(ChVector<>(0,0,0)) );
+	ChSharedPtr<ChNodeFEMxyz> mnodeB ( new ChNodeFEMxyz(ChVector<>(0,1,0)) );
+	ChSharedPtr<ChNodeFEMxyz> mnodeC ( new ChNodeFEMxyz(ChVector<>(0,2,0)) );
+
+				// Set no point-like masses because mass is already in bar element:
+	mnodeA->SetMass(0.0);	
+	mnodeB->SetMass(0.0);
+	mnodeC->SetMass(0.0);
+	
+				// For example, set an applied force to a node:
+	mnodeB->SetForce(ChVector<>(0,5,0));
+				// For example, set an applied force to a node:
+	mnodeC->SetForce(ChVector<>(0,2,0));
+
+				// For example, set an initial displacement to a node:
+	mnodeC->SetPos( mnodeC->GetX0() + ChVector<>(0,0.1,0) );
+
+				// Remember to add nodes and elements to the mesh!
+	my_mesh->AddNode(mnodeA);
+	my_mesh->AddNode(mnodeB);
+	my_mesh->AddNode(mnodeC);
+
+
+				// Create some elements of 'bar' type, each connecting
+				// two 3D nodes:
+	ChSharedPtr<ChElementBar> melementA ( new ChElementBar );
+	melementA->SetNodes(mnodeA, mnodeB);
+	melementA->SetBarArea(0.1*0.02);
+	melementA->SetBarYoungModulus(0.01e9); // rubber 0.01e9, steel 200e9
+	melementA->SetBarRaleyghDamping(0.01);
+	melementA->SetBarDensity(2.*0.1/(melementA->GetBarArea()*1.0));
+	
+	ChSharedPtr<ChElementBar> melementB ( new ChElementBar );
+	melementB->SetNodes(mnodeB, mnodeC);
+	melementB->SetBarArea(0.1*0.02);
+	melementB->SetBarYoungModulus(0.01e9); // rubber 0.01e9, steel 200e9
+	melementB->SetBarRaleyghDamping(0.01);
+	melementB->SetBarDensity(2.*0.1/(melementB->GetBarArea()*1.0));
+
+
+				// Remember to add elements to the mesh!
+	my_mesh->AddElement(melementA);
+	my_mesh->AddElement(melementB);
+
+				// This is mandatory
+	my_mesh->SetupInitial();
+
+				// Remember to add the mesh to the system!
+	my_system.Add(my_mesh);
+			
+
+				// Create also a truss
+	ChSharedPtr<ChBody> truss(new ChBody);
+	truss->SetBodyFixed(true);
+	my_system.Add(truss);
+
+				// Create a constraint between a node and the truss
+	ChSharedPtr<ChLinkPointFrame> constraintA(new ChLinkPointFrame);
+
+	constraintA->Initialize(mnodeA,		// node 
+							truss);		// body to be connected to
+							
+	my_system.Add(constraintA);
+		
+				// Set no gravity
+	//my_system.Set_G_acc(VNULL);
+
+
+				// Perform a dynamic time integration:
+
+	my_system.SetLcpSolverType(ChSystem::LCP_ITERATIVE_MINRES); // <- NEEDED because other solvers can't handle stiffness matrices
+	chrono::ChLcpIterativeMINRES* msolver = (chrono::ChLcpIterativeMINRES*)my_system.GetLcpSolverSpeed();
+	msolver->SetDiagonalPreconditioning(true);
+	my_system.SetIterLCPmaxItersSpeed(100);
+    my_system.SetTolForce(1e-10);
+
+	my_system.SetIntegrationType(ChSystem::INT_EULER_IMPLICIT);//INT_HHT);//INT_EULER_IMPLICIT);
+
+	double timestep = 0.001;
+	while (my_system.GetChTime() < 0.2)
+	{
+		my_system.DoStepDynamics(timestep);
+
+		GetLog() << " t=" << my_system.GetChTime()	<< "  nodeB pos.y=" << mnodeB->GetPos().y 
+													<< "  nodeC pos.y=" << mnodeC->GetPos().y <<  "  \n";
+	}
+}
 
 // Do some tests in a single run, inside the main() function.
 // Results will be simply text-formatted outputs in the console..
@@ -414,7 +525,7 @@ void test_3()
 int main(int argc, char* argv[])
 {
 	// Test: an introductory problem:
-	test_2b();
+	test_4();
 
 	system("pause");
 	return 0;
