@@ -94,7 +94,7 @@ public:
 
 
 				/// Number of scalar constraints, for statistical reasons 
-	virtual int GetDOC_d  () {return 1;}
+	virtual int GetDOC_c  () {return 1;}
 
 	//
 	// STATE FUNCTIONS
