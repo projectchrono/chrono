@@ -72,6 +72,7 @@ ChOpenGLViewer::ChOpenGLViewer(ChSystem* system) {
   render_mode = POINTS;
   old_time = current_time = 0;
   time_total = time_text = time_geometry = 0;
+   fps=0;
 }
 
 ChOpenGLViewer::~ChOpenGLViewer() {}

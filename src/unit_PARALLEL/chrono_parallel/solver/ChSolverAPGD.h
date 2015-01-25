@@ -24,7 +24,7 @@
 namespace chrono {
 class CH_PARALLEL_API ChSolverAPGD : public ChSolverParallel {
  public:
-  ChSolverAPGD() : ChSolverParallel() {}
+  ChSolverAPGD();
   ~ChSolverAPGD() {}
 
   void Solve() {
@@ -45,24 +45,13 @@ class CH_PARALLEL_API ChSolverAPGD : public ChSolverParallel {
   // Compute the residual for the solver
   real Res4(blaze::DynamicVector<real>& mg_tmp2, blaze::DynamicVector<real>& x, blaze::DynamicVector<real>& mb_tmp);
 
-  // Set parameters for growing and shrinking the step size
-  void SetAPGDParams(real theta_k, real shrink, real grow);
-
   // APGD specific vectors
   blaze::DynamicVector<real> obj2_temp, obj1_temp, temp, g, gamma_new, y, gamma_hat, N_gamma_new;
   real L, t;
-  real init_theta;
-  real step_shrink;
-  real step_grow;
-  real old_objective;
-  real lastgoodres;
-  real theta;
-  real theta_new;
-  real beta_new;
+  real theta, theta_new, beta_new;
   real mb_tmp_norm, mg_tmp_norm;
   real obj1, obj2;
-  real dot_mg_ms, norm_ms;
-  real delta_obj;
+  real dot_g_temp, norm_ms;
 };
 }
 #endif

@@ -27,6 +27,16 @@ namespace chrono {
 // collision_measures, like the name implies is the structure that contains all
 // measures associated with the collision detection step of chrono parallel
 struct collision_measures {
+  collision_measures(){
+    min_bounding_point = 0;
+    max_bounding_point = 0;
+    numAABB = 0;
+    max_aabb_per_bin = 0;
+    global_origin = 0;
+    bin_size_vec = 0;
+    grid_size = I3(0);
+
+  }
   real3 min_bounding_point; //The minimal global bounding point
   real3 max_bounding_point; //The maximum global bounding point
   uint numAABB;             //The number of AABBs
@@ -38,6 +48,11 @@ struct collision_measures {
 // solver_measures, like the name implies is the structure that contains all
 // measures associated with the parallel solver.
 struct solver_measures {
+  solver_measures(){
+    total_iteration=0;
+    residual=0;
+    objective_value=0;
+  }
   int total_iteration;      // The total number of iterations performed, this variable accumulates
   real residual;            // Current residual for the solver
   real objective_value;     // Current objective value for the solver
