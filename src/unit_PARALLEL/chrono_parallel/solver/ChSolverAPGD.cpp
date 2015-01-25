@@ -3,17 +3,8 @@
 using namespace chrono;
 
 ChSolverAPGD::ChSolverAPGD()
-: ChSolverParallel(),
-  init_theta(1),
-  step_shrink(0.5),      ////   NOT USED
-  step_grow(2)           ////   still needed?
+: ChSolverParallel(),mg_tmp_norm(0),mb_tmp_norm(0),obj1(0),obj2(0),norm_ms(0),dot_g_temp(0),theta(0),theta_new(0),beta_new(0),t(0),L(0)
 {
-}
-
-void ChSolverAPGD::SetAPGDParams(real theta_k, real shrink, real grow) {
-  init_theta = theta_k;
-  step_shrink = shrink;
-  step_grow = grow;
 }
 
 real ChSolverAPGD::Res4(blaze::DynamicVector<real>& mg_tmp2, blaze::DynamicVector<real>& x, blaze::DynamicVector<real>& temp) {
@@ -45,13 +36,12 @@ uint ChSolverAPGD::SolveAPGD(const uint max_iter, const uint size, const blaze::
 
   residual = 10e30;
 
-  theta = init_theta;
+  theta = 0;
   theta_new = theta;
   beta_new = 0.0;
   mb_tmp_norm = 0, mg_tmp_norm = 0;
   obj1 = 0.0, obj2 = 0.0;
-  dot_mg_ms = 0, norm_ms = 0;
-  delta_obj = 1e8;
+  dot_g_temp = 0, norm_ms = 0;
 
   // Is the initial projection necessary?
   // Project(gamma.data());
@@ -83,10 +73,10 @@ uint ChSolverAPGD::SolveAPGD(const uint max_iter, const uint size, const blaze::
     obj2 = 0.5 * (y, SHUR(y)) - (y, r);
 
     temp = gamma_new - y;
-    dot_mg_ms = (g, temp);
+    dot_g_temp = (g, temp);
     norm_ms = (temp, temp);
 
-    while (obj1 > obj2 + dot_mg_ms + 0.5 * L * norm_ms) {
+    while (obj1 > obj2 + dot_g_temp + 0.5 * L * norm_ms) {
       L = 2.0 * L;
       t = 1.0 / L;
       gamma_new = y - t * g;
@@ -94,7 +84,7 @@ uint ChSolverAPGD::SolveAPGD(const uint max_iter, const uint size, const blaze::
       N_gamma_new = SHUR(gamma_new);       //ShurProduct(mx, temp_N_mx);
       obj1 = 0.5 * (gamma_new, N_gamma_new) - (gamma_new, r);
       temp = gamma_new - y;
-      dot_mg_ms = (g, temp);
+      dot_g_temp = (g, temp);
       norm_ms = (temp, temp);
     }
     theta_new = (-pow(theta, 2.0) + theta * sqrt(pow(theta, 2.0) + 4.0)) / 2.0;
@@ -102,7 +92,7 @@ uint ChSolverAPGD::SolveAPGD(const uint max_iter, const uint size, const blaze::
 
     temp = gamma_new - gamma;
     y = beta_new * temp + gamma_new;
-    dot_mg_ms = (g, temp);
+    dot_g_temp = (g, temp);
 
     N_gamma_new = N_gamma_new - r;
     real res = Res4(N_gamma_new, gamma, temp);
@@ -117,20 +107,16 @@ uint ChSolverAPGD::SolveAPGD(const uint max_iter, const uint size, const blaze::
       break;
     }
 
-    if (dot_mg_ms > 0) {
+    if (dot_g_temp > 0) {
       y = gamma_new;
       theta_new = 1.0;
     }
 
     L = 0.9 * L;
     t = 1.0 / L;
-    step_grow = 2.0;
     theta = theta_new;
 
     gamma = gamma_new;
-
-
-
 
 //    if (data_container->settings.solver.test_objective) {
 //      if (objective_value <= data_container->settings.solver.tolerance_objective) {
