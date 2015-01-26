@@ -134,17 +134,9 @@ int main(int argc, char* argv[])
   // set the chassis REF at the specified initial config.
   vehicle.Initialize(ChCoordsys<>(initLoc, initRot));
 
-  // ground is a large flat plate, with superimposed obstacles. Top surface at y = 0
-  ChSharedPtr<ChBody> ground(new ChBodyEasyBox(60.0, 1.0, 100.0, 1000.0, true, true));
-  ground->SetPos(ChVector<>(0, -1.0, 0));
-	ground->SetIdentifier(-1);
-  ground->SetName("ground");
-  ground->SetFriction(1.0);
-  // color asset for the ground
-  ChSharedPtr<ChColorAsset> groundColor(new ChColorAsset);
-  groundColor->SetColor(ChColor(0.4f, 0.4f, 0.6f));
-  ground->AddAsset(groundColor);
-  vehicle.Add(ground);  // add this body to the system, which is the vehicle
+  // ground is a large flat plate
+  // TODO: superimposed obstacles using ChParticleEmitter class.
+  ChSharedPtr<ChBody> ground = Add_FlatGround(&vehicle, groundSize, groundPos, mu);  
 
   // --------------------------
   // Setup the Irrlicht GUI
