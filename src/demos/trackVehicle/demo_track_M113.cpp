@@ -107,9 +107,7 @@ ChSharedPtr<ChBody> Add_FlatGround(TrackVehicle* vehicle,
 
   // Don't forget to set this collision family!
   ground->GetCollisionModel()->SetFamily((int)CollisionFam::GROUND);
-  // Probably doesn't collide with the ground, unless we throw a shoe, roll over, etc.
-  ground->GetCollisionModel()->SetFamilyMaskNoCollisionWithFamily((int)CollisionFam::WHEELS);
-
+  
   // color asset for the ground
   ChSharedPtr<ChColorAsset> groundColor(new ChColorAsset);
   groundColor->SetColor(ChColor(0.2f, 0.4f, 0.6f));
