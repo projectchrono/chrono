@@ -92,6 +92,33 @@ double output_step_size = 1.0 / 1;    // once a second
   */
 
 
+/// the ground body, visual assets and collision shape. 
+ChSharedPtr<ChBody> Add_FlatGround(TrackVehicle* vehicle,
+                    const ChVector<>& size,
+                    const ChVector<>& pos,
+                    double friction_mu) 
+{
+  // body, visual and collision all in one.
+  ChSharedPtr<ChBody> ground(new ChBodyEasyBox(size.x, size.y, size.z, 1000.0, true, true));
+  ground->SetPos(pos);
+	// ground->SetIdentifier(-1);
+  ground->SetName("ground");
+  ground->SetFriction(friction_mu);
+
+  // Don't forget to set this collision family!
+  ground->GetCollisionModel()->SetFamily((int)CollisionFam::GROUND);
+  // Probably doesn't collide with the ground, unless we throw a shoe, roll over, etc.
+  ground->GetCollisionModel()->SetFamilyMaskNoCollisionWithFamily((int)CollisionFam::WHEELS);
+
+  // color asset for the ground
+  ChSharedPtr<ChColorAsset> groundColor(new ChColorAsset);
+  groundColor->SetColor(ChColor(0.2f, 0.4f, 0.6f));
+  ground->AddAsset(groundColor);
+
+  vehicle->Add(ground);  // add this body to the system, which is the vehicle
+
+  return ground;
+}
 
 
 int main(int argc, char* argv[])
