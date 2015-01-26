@@ -273,9 +273,7 @@ void IdlerSimple::AddCollisionGeometry()
 
   // setup collision family, idler is a rolling element
   m_idler->GetCollisionModel()->SetFamily( (int)CollisionFam::WHEELS );
-  // don't collide with other roling elements or the ground
-  // m_idler->GetCollisionModel()->SetFamilyMaskNoCollisionWithFamily( (int)CollisionFam::HULL );
-  // m_idler->GetCollisionModel()->SetFamilyMaskNoCollisionWithFamily( (int)CollisionFam::WHEELS );
+  // don't collide with the ground
   // m_idler->GetCollisionModel()->SetFamilyMaskNoCollisionWithFamily( (int)CollisionFam::GROUND );
 
   m_idler->GetCollisionModel()->BuildModel();
