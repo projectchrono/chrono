@@ -53,6 +53,7 @@ public:
     const ChVector<>&   ptOnChassis,
     double              chaseDist,
     double              chaseHeight,
+    double              chaseLateral = 0,
     int                 HUD_x = 740,
     int                 HUD_y = 20
     );

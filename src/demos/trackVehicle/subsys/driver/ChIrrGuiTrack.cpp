@@ -43,6 +43,7 @@ ChIrrGuiTrack::ChIrrGuiTrack(ChIrrApp&           app,
                             const ChVector<>&   ptOnChassis,
                             double              chaseDist,
                             double              chaseHeight,
+                            double              chaseLateral,
                             int                 HUD_x,
                             int                 HUD_y)
 : m_app(app),
