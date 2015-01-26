@@ -65,9 +65,9 @@ TrackChain::TrackChain(const std::string& name,
   // m_shoes[0]->SetFrame_COG_to_REF(ChFrame<>(m_COM,QUNIT));
   m_numShoes++;
 
-  m_shoes[0]->SetNameString("shoe 1, "+name);
-  m_shoes[0]->SetMass(m_mass);
-  m_shoes[0]->SetInertiaXX(m_inertia);
+  m_shoes.front()->SetNameString("shoe 1, "+name);
+  m_shoes.front()->SetMass(m_mass);
+  m_shoes.front()->SetInertiaXX(m_inertia);
 
 
   // Attach visualization to the base track shoe
@@ -380,6 +380,7 @@ void TrackChain::AddCollisionGeometry(size_t track_idx)
 
   // set collision family
   m_shoes[track_idx]->GetCollisionModel()->SetFamily( (int)CollisionFam::SHOES);
+
   // don't collide with other shoes, but with everything else
   m_shoes[track_idx]->GetCollisionModel()->SetFamilyMaskNoCollisionWithFamily( (int)CollisionFam::SHOES );
 
