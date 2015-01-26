@@ -43,7 +43,6 @@ enum struct CollisionType {
 enum struct CollisionFam {
   GROUND,
   HULL,
-  GEARS,
   WHEELS,
   SHOES,
   ALL
