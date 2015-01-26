@@ -61,14 +61,14 @@ using namespace core;
 // display the 1) system heirarchy, 2) a set of subsystem hardpoints, 3) constraint violations
 // #define DEBUG_LOG 
 
-// // Initial vehicle position and heading. Defines the REF frame for the hull body
+// Initial vehicle position and heading. Defines the REF frame for the hull body
 ChVector<> initLoc(0, 1.0, 0);
 ChQuaternion<> initRot(1, 0, 0, 0);
 
-//ChQuaternion<> initRot(0.866025, 0, 0, 0.5);
-//ChQuaternion<> initRot(0.7071068, 0, 0, 0.7071068);
-//ChQuaternion<> initRot(0.25882, 0, 0, 0.965926);
-//ChQuaternion<> initRot(0, 0, 0, 1);
+// flat ground size and COG location
+ChVector<> groundSize(60.0, 1.0, 100.0);
+ChVector<> groundPos(0, -1.0, 0);
+double mu = 0.8;  // dry friction coef.
 
 // Simulation step size
 double step_size = 0.001;
