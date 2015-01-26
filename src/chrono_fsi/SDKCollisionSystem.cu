@@ -968,7 +968,6 @@ __global__ void ApplyPeriodicBoundaryYKernel(real3 * posRadD, real4 * rhoPresMuD
 		return;
 	}
 }
-
 //--------------------------------------------------------------------------------------------------------------------------------
 //applies periodic BC along z
 __global__ void ApplyPeriodicBoundaryZKernel(real3 * posRadD, real4 * rhoPresMuD) {
@@ -1039,14 +1038,19 @@ void setParameters(SimParams *hostParams, NumberOfObjects *numObjects) {
 	cutilSafeCall( cudaMemcpyToSymbolAsync(numObjectsD, numObjects, sizeof(NumberOfObjects)));
 }
 //--------------------------------------------------------------------------------------------------------------------------------
-void calcHash(uint* gridMarkerHash, uint* gridMarkerIndex, real3 * posRad, int numAllMarkers) {
+void calcHash(
+		thrust::device_vector<uint>   & gridMarkerHash,
+		thrust::device_vector<uint>   & gridMarkerIndex,
+		thrust::device_vector<real3>  & posRad,
+		int numAllMarkers) {
 	uint numThreads, numBlocks;
 	computeGridSize(numAllMarkers, 256, numBlocks, numThreads);
 
 	// execute the kernel
-	calcHashD<<< numBlocks, numThreads >>>(gridMarkerHash,
-			gridMarkerIndex,
-			posRad,
+	calcHashD<<< numBlocks, numThreads >>>(
+			U1CAST(gridMarkerHash),
+			U1CAST(gridMarkerIndex),
+			R3CAST(posRad),
 			numAllMarkers);
 
 	// check if kernel invocation generated an error
@@ -1055,20 +1059,20 @@ void calcHash(uint* gridMarkerHash, uint* gridMarkerIndex, real3 * posRad, int n
 }
 //--------------------------------------------------------------------------------------------------------------------------------
 void reorderDataAndFindCellStart(
-		uint* cellStart,
-		uint* cellEnd,
-		real3* sortedPosRad,
-		real4* sortedVelMas,
-		real4* sortedRhoPreMu,
+		thrust::device_vector<uint>  & cellStart,
+		thrust::device_vector<uint>  & cellEnd,
+		thrust::device_vector<real3> & sortedPosRad,
+		thrust::device_vector<real4> & sortedVelMas,
+		thrust::device_vector<real4> & sortedRhoPreMu,
 
-		uint* gridMarkerHash,
-		uint* gridMarkerIndex,
+		thrust::device_vector<uint>  & gridMarkerHash,
+		thrust::device_vector<uint>  & gridMarkerIndex,
 
-		uint* mapOriginalToSorted,
+		thrust::device_vector<uint>  & mapOriginalToSorted,
 
-		real3* oldPosRad,
-		real4* oldVelMas,
-		real4* oldRhoPreMu,
+		thrust::device_vector<real3> & oldPosRad,
+		thrust::device_vector<real4> & oldVelMas,
+		thrust::device_vector<real4> & oldRhoPreMu,
 		uint numAllMarkers,
 		uint numCells) {
 	uint numThreads, numBlocks;
@@ -1076,7 +1080,7 @@ void reorderDataAndFindCellStart(
 
 
 	// set all cells to empty
-	cutilSafeCall(cudaMemset(cellStart, 0xffffffff, numCells*sizeof(uint)));
+	cutilSafeCall(cudaMemset(U1CAST(cellStart), 0xffffffff, numCells*sizeof(uint)));
 
 //#if USE_TEX
 //#if 0
@@ -1086,17 +1090,17 @@ void reorderDataAndFindCellStart(
 
 	uint smemSize = sizeof(uint) * (numThreads + 1);
 	reorderDataAndFindCellStartD<<< numBlocks, numThreads, smemSize>>>(
-			cellStart,
-			cellEnd,
-			sortedPosRad,
-			sortedVelMas,
-			sortedRhoPreMu,
-			gridMarkerHash,
-			gridMarkerIndex,
-			mapOriginalToSorted,
-			oldPosRad,
-			oldVelMas,
-			oldRhoPreMu,
+			U1CAST(cellStart),
+			U1CAST(cellEnd),
+			R3CAST(sortedPosRad),
+			R4CAST(sortedVelMas),
+			R4CAST(sortedRhoPreMu),
+			U1CAST(gridMarkerHash),
+			U1CAST(gridMarkerIndex),
+			U1CAST(mapOriginalToSorted),
+			R3CAST(oldPosRad),
+			R4CAST(oldVelMas),
+			R4CAST(oldRhoPreMu),
 			numAllMarkers);
 	cudaThreadSynchronize();
 	CUT_CHECK_ERROR("Kernel execution failed: reorderDataAndFindCellStartD");
@@ -1108,13 +1112,13 @@ void reorderDataAndFindCellStart(
 }
 //--------------------------------------------------------------------------------------------------------------------------------
 void RecalcVelocity_XSPH(
-		real3* vel_XSPH_Sorted_D,
-		real3* sortedPosRad,
-		real4* sortedVelMas,
-		real4* sortedRhoPreMu,
-		uint* gridMarkerIndex,
-		uint* cellStart,
-		uint* cellEnd,
+		thrust::device_vector<real3> & vel_XSPH_Sorted_D,
+		thrust::device_vector<real3> & sortedPosRad,
+		thrust::device_vector<real4> & sortedVelMas,
+		thrust::device_vector<real4> & sortedRhoPreMu,
+		thrust::device_vector<uint>  & gridMarkerIndex,
+		thrust::device_vector<uint>  & cellStart,
+		thrust::device_vector<uint>  & cellEnd,
 		uint numAllMarkers,
 		uint numCells) {
 	//#if USE_TEX
@@ -1129,13 +1133,14 @@ void RecalcVelocity_XSPH(
 	computeGridSize(numAllMarkers, 64, numBlocks, numThreads);
 
 	// execute the kernel
-	newVel_XSPH_D<<< numBlocks, numThreads >>>(vel_XSPH_Sorted_D,
-			sortedPosRad,
-			sortedVelMas,
-			sortedRhoPreMu,
-			gridMarkerIndex,
-			cellStart,
-			cellEnd,
+	newVel_XSPH_D<<< numBlocks, numThreads >>>(
+			R3CAST(vel_XSPH_Sorted_D),
+			R3CAST(sortedPosRad),
+			R4CAST(sortedVelMas),
+			R4CAST(sortedRhoPreMu),
+			U1CAST(gridMarkerIndex),
+			U1CAST(cellStart),
+			U1CAST(cellEnd),
 			numAllMarkers);
 
 	cudaThreadSynchronize();
@@ -1150,43 +1155,43 @@ void RecalcVelocity_XSPH(
 }
 //--------------------------------------------------------------------------------------------------------------------------------
 void CalcBCE_Stresses(
-		real3* devStressD,
-		real3* volStressD,
-		real4* mainStressD,
-		real3* sortedPosRad,
-		real4* sortedVelMas,
-		real4* sortedRhoPreMu,
-		uint* mapOriginalToSorted,
-		uint* cellStart,
-		uint* cellEnd,
+		thrust::device_vector<real3> & devStressD,
+		thrust::device_vector<real3> & volStressD,
+		thrust::device_vector<real4> & mainStressD,
+		thrust::device_vector<real3> & sortedPosRad,
+		thrust::device_vector<real4> & sortedVelMas,
+		thrust::device_vector<real4> & sortedRhoPreMu,
+		thrust::device_vector<uint>  & mapOriginalToSorted,
+		thrust::device_vector<uint>  & cellStart,
+		thrust::device_vector<uint>  & cellEnd,
 		int numBCE) {
 
 	// thread per particle
 	uint numThreads, numBlocks;
 	computeGridSize(numBCE, 128, numBlocks, numThreads);
-	CalcBCE_Stresses_kernel<<<numBlocks, numThreads>>>(devStressD, volStressD, sortedPosRad, sortedVelMas, sortedRhoPreMu,
-			mapOriginalToSorted, cellStart, cellEnd, numBCE);
+	CalcBCE_Stresses_kernel<<<numBlocks, numThreads>>>(R3CAST(devStressD), R3CAST(volStressD), R3CAST(sortedPosRad), R4CAST(sortedVelMas), R4CAST(sortedRhoPreMu),
+			U1CAST(mapOriginalToSorted), U1CAST(cellStart), U1CAST(cellEnd), numBCE);
 
 	cudaThreadSynchronize();
 	CUT_CHECK_ERROR("Kernel execution failed: CalcBCE_Stresses_kernel");
 
-	CalcBCE_MainStresses_kernel<<<numBlocks, numThreads>>>(mainStressD, devStressD, volStressD, numBCE);
+	CalcBCE_MainStresses_kernel<<<numBlocks, numThreads>>>(R4CAST(mainStressD), R3CAST(devStressD), R3CAST(volStressD), numBCE);
 
 	cudaThreadSynchronize();
 	CUT_CHECK_ERROR("Kernel execution failed: CalcBCE_MainStresses_kernel");
 }
 //--------------------------------------------------------------------------------------------------------------------------------
 void collide(
-		real4* derivVelRhoD,
-		real3* sortedPosRad,
-		real4* sortedVelMas,
-		real3* vel_XSPH_Sorted_D,
-		real4* sortedRhoPreMu,
-		real3* posRigidD,
-		int* rigidIdentifierD,
-		uint* gridMarkerIndex,
-		uint* cellStart,
-		uint* cellEnd,
+		thrust::device_vector<real4> & derivVelRhoD,
+		thrust::device_vector<real3> & sortedPosRad,
+		thrust::device_vector<real4> & sortedVelMas,
+		thrust::device_vector<real3> & vel_XSPH_Sorted_D,
+		thrust::device_vector<real4> & sortedRhoPreMu,
+		const thrust::device_vector<real3> & posRigidD,
+		const thrust::device_vector<int>   & rigidIdentifierD,
+		thrust::device_vector<uint>  & gridMarkerIndex,
+		thrust::device_vector<uint>  & cellStart,
+		thrust::device_vector<uint>  & cellEnd,
 		uint numAllMarkers,
 		uint numCells,
 		real_ dT) {
@@ -1204,16 +1209,17 @@ void collide(
 	computeGridSize(numAllMarkers, 64, numBlocks, numThreads);
 
 	// execute the kernel
-	collideD<<< numBlocks, numThreads >>>(derivVelRhoD,
-			sortedPosRad,
-			sortedVelMas,
-			vel_XSPH_Sorted_D,
-			sortedRhoPreMu,
-			posRigidD,
-			rigidIdentifierD,
-			gridMarkerIndex,
-			cellStart,
-			cellEnd,
+	collideD<<< numBlocks, numThreads >>>(
+			R4CAST(derivVelRhoD),
+			R3CAST(sortedPosRad),
+			R4CAST(sortedVelMas),
+			R3CAST(vel_XSPH_Sorted_D),
+			R4CAST(sortedRhoPreMu),
+			R3CAST(posRigidD),
+			I1CAST(rigidIdentifierD),
+			U1CAST(gridMarkerIndex),
+			U1CAST(cellStart),
+			U1CAST(cellEnd),
 			numAllMarkers);
 
 	cudaThreadSynchronize();
@@ -1228,15 +1234,15 @@ void collide(
 }
 //--------------------------------------------------------------------------------------------------------------------------------
 void ReCalcDensity(
-		real3* oldPosRad,
-		real4* oldVelMas,
-		real4* oldRhoPreMu,
-		real3* sortedPosRad,
-		real4* sortedVelMas,
-		real4* sortedRhoPreMu,
-		uint* gridMarkerIndex,
-		uint* cellStart,
-		uint* cellEnd,
+		thrust::device_vector<real3> & oldPosRad,
+		thrust::device_vector<real4> & oldVelMas,
+		thrust::device_vector<real4> & oldRhoPreMu,
+		thrust::device_vector<real3> & sortedPosRad,
+		thrust::device_vector<real4> & sortedVelMas,
+		thrust::device_vector<real4> & sortedRhoPreMu,
+		thrust::device_vector<uint>  & gridMarkerIndex,
+		thrust::device_vector<uint>  & cellStart,
+		thrust::device_vector<uint>  & cellEnd,
 		uint numAllMarkers) {
 	//#if USE_TEX
 	//    cutilSafeCall(cudaBindTexture(0, oldPosTex, sortedPosRad, numAllMarkers*sizeof(real4)));
@@ -1250,15 +1256,16 @@ void ReCalcDensity(
 	computeGridSize(numAllMarkers, 64, numBlocks, numThreads);
 
 	// execute the kernel
-	ReCalcDensityD_F1<<< numBlocks, numThreads >>>(oldPosRad,
-			oldVelMas,
-			oldRhoPreMu,
-			sortedPosRad,
-			sortedVelMas,
-			sortedRhoPreMu,
-			gridMarkerIndex,
-			cellStart,
-			cellEnd,
+	ReCalcDensityD_F1<<< numBlocks, numThreads >>>(
+			R3CAST(oldPosRad),
+			R4CAST(oldVelMas),
+			R4CAST(oldRhoPreMu),
+			R3CAST(sortedPosRad),
+			R4CAST(sortedVelMas),
+			R4CAST(sortedRhoPreMu),
+			U1CAST(gridMarkerIndex),
+			U1CAST(cellStart),
+			U1CAST(cellEnd),
 			numAllMarkers);
 
 	cudaThreadSynchronize();
@@ -1273,12 +1280,12 @@ void ReCalcDensity(
 }
 //--------------------------------------------------------------------------------------------------------------------------------
 void ProjectDensityPressureToBCandBCE(
-		real4* oldRhoPreMu,
-		real3* sortedPosRad,
-		real4* sortedRhoPreMu,
-		uint* gridMarkerIndex,
-		uint* cellStart,
-		uint* cellEnd,
+		thrust::device_vector<real4> &  oldRhoPreMu,
+		thrust::device_vector<real3> &  sortedPosRad,
+		thrust::device_vector<real4> &  sortedRhoPreMu,
+		thrust::device_vector<uint>  & gridMarkerIndex,
+		thrust::device_vector<uint>  & cellStart,
+		thrust::device_vector<uint>  & cellEnd,
 		uint numAllMarkers) {
 	//#if USE_TEX
 	//    cutilSafeCall(cudaBindTexture(0, oldPosTex, sortedPosRad, numAllMarkers*sizeof(real4)));
@@ -1293,12 +1300,12 @@ void ProjectDensityPressureToBCandBCE(
 
 	// execute the kernel
 	ProjectDensityPressureToBCandBCE_D<<< numBlocks, numThreads >>>(
-			oldRhoPreMu,
-			sortedPosRad,
-			sortedRhoPreMu,
-			gridMarkerIndex,
-			cellStart,
-			cellEnd,
+			R4CAST(oldRhoPreMu),
+			R3CAST(sortedPosRad),
+			R4CAST(sortedRhoPreMu),
+			U1CAST(gridMarkerIndex),
+			U1CAST(cellStart),
+			U1CAST(cellEnd),
 			numAllMarkers);
 
 	cudaThreadSynchronize();
@@ -1313,14 +1320,14 @@ void ProjectDensityPressureToBCandBCE(
 }
 //--------------------------------------------------------------------------------------------------------------------------------
 void CalcCartesianData(
-		real4* rho_Pres_CartD,
-		real4* vel_VelMag_CartD,
-		real3* sortedPosRad,
-		real4* sortedVelMas,
-		real4* sortedRhoPreMu,
-		uint* gridMarkerIndex,
-		uint* cellStart,
-		uint* cellEnd,
+		thrust::device_vector<real4> & rho_Pres_CartD,
+		thrust::device_vector<real4> & vel_VelMag_CartD,
+		thrust::device_vector<real3> & sortedPosRad,
+		thrust::device_vector<real4> & sortedVelMas,
+		thrust::device_vector<real4> & sortedRhoPreMu,
+		thrust::device_vector<uint>  & gridMarkerIndex,
+		thrust::device_vector<uint>  & cellStart,
+		thrust::device_vector<uint>  & cellEnd,
 		uint cartesianGridSize,
 		int3 cartesianGridDims,
 		real_ resolution) {
@@ -1333,14 +1340,9 @@ void CalcCartesianData(
 	computeGridSize(cartesianGridSize, 64, numBlocks, numThreads);
 
 	// execute the kernel
-	CalcCartesianDataD<<< numBlocks, numThreads >>>(rho_Pres_CartD,
-			vel_VelMag_CartD,
-			sortedPosRad,
-			sortedVelMas,
-			sortedRhoPreMu,
-			gridMarkerIndex,
-			cellStart,
-			cellEnd);
+	CalcCartesianDataD<<< numBlocks, numThreads >>>(
+			R4CAST(rho_Pres_CartD), R4CAST(vel_VelMag_CartD), R3CAST(sortedPosRad), R4CAST(sortedVelMas), R4CAST(sortedRhoPreMu),
+					U1CAST(gridMarkerIndex), U1CAST(cellStart), U1CAST(cellEnd));
 
 	cudaThreadSynchronize();
 	CUT_CHECK_ERROR("Kernel execution failed: ReCalcDensityD");
@@ -1381,7 +1383,11 @@ void UpdateFluid(
 	CUT_CHECK_ERROR("Kernel execution failed: UpdateFluidD");
 }
 //--------------------------------------------------------------------------------------------------------------------------------
-void Copy_SortedVelXSPH_To_VelXSPH(real3 * vel_XSPH_D, real3 * vel_XSPH_Sorted_D, uint * m_dGridMarkerIndex, int numAllMarkers) {
+void Copy_SortedVelXSPH_To_VelXSPH(
+		thrust::device_vector<real3> & vel_XSPH_D,
+		thrust::device_vector<real3> & vel_XSPH_Sorted_D,
+		thrust::device_vector<uint> & m_dGridMarkerIndex,
+		int numAllMarkers) {
 	uint nBlock_NumSpheres, nThreads_SphMarkers;
 	computeGridSize(numAllMarkers, 256, nBlock_NumSpheres, nThreads_SphMarkers);
 	Copy_SortedVelXSPH_To_VelXSPHD<<<nBlock_NumSpheres, nThreads_SphMarkers>>>(R3CAST(vel_XSPH_D), R3CAST(vel_XSPH_Sorted_D), U1CAST(m_dGridMarkerIndex));

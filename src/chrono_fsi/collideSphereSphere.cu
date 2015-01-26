@@ -935,13 +935,13 @@ void MapSPH_ToGrid(
 	thrust::device_vector<uint> m_dCellEnd(m_numGridCells);
 
 	// calculate grid hash
-	calcHash(U1CAST(m_dGridMarkerHash), U1CAST(m_dGridMarkerIndex), R3CAST(posRadD), numAllMarkers);
+	calcHash(m_dGridMarkerHash, m_dGridMarkerIndex, posRadD, numAllMarkers);
 
 	thrust::sort_by_key(m_dGridMarkerHash.begin(), m_dGridMarkerHash.end(), m_dGridMarkerIndex.begin());
 
 	// reorder particle arrays into sorted order and find start and end of each cell
-	reorderDataAndFindCellStart(U1CAST(m_dCellStart), U1CAST(m_dCellEnd), R3CAST(m_dSortedPosRad), R4CAST(m_dSortedVelMas), R4CAST(m_dSortedRhoPreMu), U1CAST(m_dGridMarkerHash),
-			U1CAST(m_dGridMarkerIndex), U1CAST(mapOriginalToSorted), TCAST(posRadD), R4CAST(velMasD), R4CAST(rhoPresMuD), numAllMarkers, m_numGridCells);
+	reorderDataAndFindCellStart(m_dCellStart, m_dCellEnd, m_dSortedPosRad, m_dSortedVelMas, m_dSortedRhoPreMu, m_dGridMarkerHash,
+			m_dGridMarkerIndex, mapOriginalToSorted, posRadD, velMasD, rhoPresMuD, numAllMarkers, m_numGridCells);
 
 	//real_ resolution = 8 * paramsH.markerRadius;
 	cartesianGridDims = I3(paramsH.boxDims / resolution) + I3(1);
@@ -951,8 +951,8 @@ void MapSPH_ToGrid(
 	thrust::device_vector<real4> rho_Pres_CartD(cartesianGridSize);
 	thrust::device_vector<real4> vel_VelMag_CartD(cartesianGridSize);
 
-	CalcCartesianData(R4CAST(rho_Pres_CartD), R4CAST(vel_VelMag_CartD), R3CAST(m_dSortedPosRad), R4CAST(m_dSortedVelMas), R4CAST(m_dSortedRhoPreMu),
-			U1CAST(m_dGridMarkerIndex), U1CAST(m_dCellStart), U1CAST(m_dCellEnd), cartesianGridSize, cartesianGridDims, resolution);
+	CalcCartesianData(rho_Pres_CartD, vel_VelMag_CartD, m_dSortedPosRad, m_dSortedVelMas, m_dSortedRhoPreMu,
+			m_dGridMarkerIndex, m_dCellStart, m_dCellEnd, cartesianGridSize, cartesianGridDims, resolution);
 
 //	freeArray(m_dSortedPosRad);
 //	freeArray(m_dSortedVelMas);
@@ -1025,7 +1025,7 @@ void ForceSPH(
 	thrust::device_vector<uint> m_dCellStart(m_numGridCells);
 	thrust::device_vector<uint> m_dCellEnd(m_numGridCells);
 	// calculate grid hash
-	calcHash(U1CAST(m_dGridMarkerHash), U1CAST(m_dGridMarkerIndex), R3CAST(posRadD), numAllMarkers);
+	calcHash(m_dGridMarkerHash, m_dGridMarkerIndex, posRadD, numAllMarkers);
 
 //	GpuTimer myT0;
 //	myT0.Start();
@@ -1036,8 +1036,8 @@ void ForceSPH(
 
 
 	// reorder particle arrays into sorted order and find start and end of each cell
-	reorderDataAndFindCellStart(U1CAST(m_dCellStart), U1CAST(m_dCellEnd), R3CAST(m_dSortedPosRad), R4CAST(m_dSortedVelMas), R4CAST(m_dSortedRhoPreMu), U1CAST(m_dGridMarkerHash),
-			U1CAST(m_dGridMarkerIndex), U1CAST(mapOriginalToSorted), TCAST(posRadD), R4CAST(velMasD), R4CAST(rhoPresMuD), numAllMarkers, m_numGridCells);
+	reorderDataAndFindCellStart(m_dCellStart, m_dCellEnd, m_dSortedPosRad, m_dSortedVelMas, m_dSortedRhoPreMu, m_dGridMarkerHash,
+			m_dGridMarkerIndex, mapOriginalToSorted, posRadD, velMasD, rhoPresMuD, numAllMarkers, m_numGridCells);
 
 	//process collisions
 	real3 totalFluidBodyForce3 = paramsH.bodyForce3 + paramsH.gravity;
@@ -1049,29 +1049,29 @@ void ForceSPH(
 //	real_ t1 = (real_)myT1.Elapsed();
 //	printf("(1) *** fill timer %f, array size %d\n", t1, referenceArray[0].y - referenceArray[0].x);
 
-	RecalcVelocity_XSPH(R3CAST(vel_XSPH_Sorted_D), R3CAST(m_dSortedPosRad), R4CAST(m_dSortedVelMas), R4CAST(m_dSortedRhoPreMu), U1CAST(m_dGridMarkerIndex), U1CAST(m_dCellStart),
-			U1CAST(m_dCellEnd), numAllMarkers, m_numGridCells);
+	RecalcVelocity_XSPH(vel_XSPH_Sorted_D, m_dSortedPosRad, m_dSortedVelMas, m_dSortedRhoPreMu, m_dGridMarkerIndex, m_dCellStart,
+			m_dCellEnd, numAllMarkers, m_numGridCells);
 
-	collide(R4CAST(derivVelRhoD), R3CAST(m_dSortedPosRad), R4CAST(m_dSortedVelMas), R3CAST(vel_XSPH_Sorted_D), R4CAST(m_dSortedRhoPreMu), R3CAST(posRigidD), I1CAST(rigidIdentifierD), U1CAST(m_dGridMarkerIndex), U1CAST(m_dCellStart),
-			U1CAST(m_dCellEnd), numAllMarkers, m_numGridCells, dT);
+	collide(derivVelRhoD, m_dSortedPosRad, m_dSortedVelMas, vel_XSPH_Sorted_D, m_dSortedRhoPreMu, posRigidD, rigidIdentifierD, m_dGridMarkerIndex, m_dCellStart,
+			m_dCellEnd, numAllMarkers, m_numGridCells, dT);
 
 
-	Copy_SortedVelXSPH_To_VelXSPH(R3CAST(vel_XSPH_D), R3CAST(vel_XSPH_Sorted_D), U1CAST(m_dGridMarkerIndex), numAllMarkers);
+	Copy_SortedVelXSPH_To_VelXSPH(vel_XSPH_D, vel_XSPH_Sorted_D, m_dGridMarkerIndex, numAllMarkers);
 
 
 	// set the pressure and density of BC and BCE markers to those of the nearest fluid marker.
 	// I put it here to use the already determined proximity computation
 	//********************************************************************************************************************************
-//	ProjectDensityPressureToBCandBCE(R4CAST(rhoPresMuD), R3CAST(m_dSortedPosRad), R4CAST(m_dSortedRhoPreMu),
-//				U1CAST(m_dGridMarkerIndex), U1CAST(m_dCellStart), U1CAST(m_dCellEnd), numAllMarkers);
+//	ProjectDensityPressureToBCandBCE(rhoPresMuD, m_dSortedPosRad, m_dSortedRhoPreMu,
+//				m_dGridMarkerIndex, m_dCellStart, m_dCellEnd, numAllMarkers);
 	//********************************************************************************************************************************
 	//*********************** Calculate MaxStress on Particles ***********************************************************************
 	thrust::device_vector<real3> devStressD(numObjects.numRigid_SphMarkers + numObjects.numFlex_SphMarkers);
 	thrust::device_vector<real3> volStressD(numObjects.numRigid_SphMarkers + numObjects.numFlex_SphMarkers);
 	thrust::device_vector<real4> mainStressD(numObjects.numRigid_SphMarkers + numObjects.numFlex_SphMarkers);
 	int numBCE = numObjects.numRigid_SphMarkers + numObjects.numFlex_SphMarkers;
-	CalcBCE_Stresses(R3CAST(devStressD), R3CAST(volStressD), R4CAST(mainStressD), R3CAST(m_dSortedPosRad), R4CAST(m_dSortedVelMas), R4CAST(m_dSortedRhoPreMu),
-			U1CAST(mapOriginalToSorted), U1CAST(m_dCellStart), U1CAST(m_dCellEnd),numBCE);
+	CalcBCE_Stresses(devStressD, volStressD, mainStressD, m_dSortedPosRad, m_dSortedVelMas, m_dSortedRhoPreMu,
+			mapOriginalToSorted, m_dCellStart, m_dCellEnd,numBCE);
 
 	real4 maxStress4 = R4(0);
 	if (numBCE > 0) {
@@ -1126,16 +1126,16 @@ void DensityReinitialization(
 	thrust::device_vector<uint> m_dCellEnd(m_numGridCells);
 
 	// calculate grid hash
-	calcHash(U1CAST(m_dGridMarkerHash), U1CAST(m_dGridMarkerIndex), R3CAST(posRadD), numAllMarkers);
+	calcHash(m_dGridMarkerHash, m_dGridMarkerIndex, posRadD, numAllMarkers);
 
 	thrust::sort_by_key(m_dGridMarkerHash.begin(), m_dGridMarkerHash.end(), m_dGridMarkerIndex.begin());
 
 	// reorder particle arrays into sorted order and find start and end of each cell
-	reorderDataAndFindCellStart(U1CAST(m_dCellStart), U1CAST(m_dCellEnd), R3CAST(m_dSortedPosRad), R4CAST(m_dSortedVelMas), R4CAST(m_dSortedRhoPreMu), U1CAST(m_dGridMarkerHash),
-			U1CAST(m_dGridMarkerIndex), U1CAST(mapOriginalToSorted), TCAST(posRadD), R4CAST(velMasD), R4CAST(rhoPresMuD), numAllMarkers, m_numGridCells);
+	reorderDataAndFindCellStart(m_dCellStart, m_dCellEnd, m_dSortedPosRad, m_dSortedVelMas, m_dSortedRhoPreMu, m_dGridMarkerHash,
+			m_dGridMarkerIndex, mapOriginalToSorted, posRadD, velMasD, rhoPresMuD, numAllMarkers, m_numGridCells);
 
-	ReCalcDensity(R3CAST(posRadD), R4CAST(velMasD), R4CAST(rhoPresMuD), R3CAST(m_dSortedPosRad), R4CAST(m_dSortedVelMas), R4CAST(m_dSortedRhoPreMu),
-			U1CAST(m_dGridMarkerIndex), U1CAST(m_dCellStart), U1CAST(m_dCellEnd), numAllMarkers);
+	ReCalcDensity(posRadD, velMasD, rhoPresMuD, m_dSortedPosRad, m_dSortedVelMas, m_dSortedRhoPreMu,
+			m_dGridMarkerIndex, m_dCellStart, m_dCellEnd, numAllMarkers);
 
 	m_dSortedPosRad.clear();
 	m_dSortedVelMas.clear();
