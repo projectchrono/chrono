@@ -313,6 +313,10 @@ void TrackChain::AddCollisionGeometry(size_t track_idx)
   m_shoes[track_idx]->SetCollide(true);
   m_shoes[track_idx]->GetCollisionModel()->ClearModel();
 
+  // 1 cm outwards, 0.5 inwards for envelope and margin, respectfully.
+  m_shoes[track_idx]->GetCollisionModel()->SetSafeMargin(0.005);	// inward safe margin
+	m_shoes[track_idx]->GetCollisionModel()->SetEnvelope(0.010);		// distance of the outward "collision envelope"
+
   switch (m_collide) {
   case CollisionType::PRIMITIVES:
   {
@@ -351,10 +355,6 @@ void TrackChain::AddCollisionGeometry(size_t track_idx)
 		geometry::ChTriangleMeshSoup temp_trianglemesh; 
 		
     // TODO: fill the triangleMesh here with some track shoe geometry
-
-		m_shoes[track_idx]->GetCollisionModel()->SetSafeMargin(0.004);	// inward safe margin
-		m_shoes[track_idx]->GetCollisionModel()->SetEnvelope(0.010);		// distance of the outward "collision envelope"
-		m_shoes[track_idx]->GetCollisionModel()->ClearModel();
 
     // is there an offset??
     double shoelength = 0.2;
