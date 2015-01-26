@@ -32,7 +32,7 @@
 
 //#include "core/ChShared.h"
 #include "physics/ChPhysicsItem.h"
-#include "lcp/ChLcpVariablesGeneric.h"
+#include "lcp/ChLcpVariablesShaft.h"
 
 
 
@@ -71,7 +71,7 @@ private:
 	double inertia;		// the J moment of inertia (or mass, if used as linear DOF)
 
 						// used as an interface to the LCP solver.
-	ChLcpVariablesGeneric variables;
+	ChLcpVariablesShaft variables;
 
 	float max_speed;	// limit on linear speed (useful for VR & videagames)
 
@@ -152,7 +152,7 @@ public:
 	virtual int GetDOF  ()   {return 1;}
 
 				/// Returns reference to the encapsulated ChLcpVariables,
-	ChLcpVariablesGeneric& Variables() {return variables;}
+	ChLcpVariablesShaft& Variables() {return variables;}
 
 			 // Override/implement LCP system functions of ChPhysicsItem
 			 // (to assembly/manage data for LCP system solver)

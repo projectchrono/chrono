@@ -62,7 +62,7 @@ NvSimpleTypes.h : Defines basic data types for integers and floats.
 #endif
 #include <assert.h>
 
-#if defined(__APPLE__) || defined(__CELLOS_LV2__) || defined(LINUX) || defined(__FreeBSD__)
+#if defined(__APPLE__) || defined(__CELLOS_LV2__) || defined(__linux__) || defined(__FreeBSD__)
 
 #ifndef stricmp
 #define stricmp(a, b) strcasecmp((a), (b))

@@ -1562,7 +1562,17 @@ void ChSystem::LCPprepare_load(bool load_jacobians,
 		} 
 	}
 
-	#pragma omp parallel for 
+    // Radu:
+    //   The loop below is not immediately parallelizable because of items such as
+    //   ChShaftsTorqueBase which add torques to other items' variables.  As such,
+    //   there is potential contention with the various VariablesFbLoadForces and
+    //   VariablesFbIncrementMq functions.
+    //
+    //   While it would be possible to protect the calls to the above two functions
+    //   in additional critical sections, more experimentation is needed to decide
+    //   if it's worth it.  In the meantime, the loop is processed sequentially.
+
+	////#pragma omp parallel for 
 	for (int ip = 0; ip < otherphysicslist.size(); ++ip)  // ITERATE on other physics
 	{
 		ChPhysicsItem* PHpointer = otherphysicslist[ip];
@@ -1583,10 +1593,10 @@ void ChSystem::LCPprepare_load(bool load_jacobians,
 			PHpointer->KRMmatricesLoad(K_factor, R_factor, M_factor);
 		if (F_factor)
 		{
-			#pragma omp critical
-			{
+			////#pragma omp critical
+			////{
 				PHpointer->ConstraintsFbLoadForces(F_factor);		// f*dt
-			}
+			////}
 		}
 	}
 

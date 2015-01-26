@@ -97,7 +97,7 @@ public:
 			//
 
 				/// Number of scalar constraints 
-	virtual int GetDOC_c  () {return 0;}
+	virtual int GetDOC_c  () {return 1;}
 
 
 			// Override/implement LCP system functions of ChShaftsCouple

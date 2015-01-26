@@ -39,7 +39,7 @@ private:
 			// rispettivamente portata, pressione, volume, derivata del volume;
 
 public:
-	volume() {rho=1.225; p0=101325, n = 1,4;g=p=v=v1=0;};
+	volume() {rho=1.225; p0=101325, n = 1;g=p=v=v1=0;};
 	virtual ~volume() {};
 
 	void SetG (double myg) { g = myg;};

@@ -99,7 +99,7 @@ ChStreamOutAscii& ChStreamOutAscii::operator <<(unsigned long long unVal)
 {
     char buffer[100];
         
-    sprintf(buffer, "%ll", unVal);
+    sprintf(buffer, "%llu", unVal);
         
     Output(buffer, strlen(buffer));
         
