@@ -202,29 +202,34 @@ void TrackSystem::Initialize(ChSharedPtr<ChBodyAuxRef> chassis,
   rolling_elem_locs.push_back(m_local_pos + Get_gearPosRel() );
   clearance.push_back(m_driveGear->GetRadius() );
 
-  // initialize the road wheels & torsion arm suspension subsystems
-  for(int i = 0; i < m_suspensionLocs.size(); i++)
+  // initialize the torsion arm suspension subsystems
+  for(int s_idx = 0; s_idx < m_suspensionLocs.size(); s_idx++)
   {
-    m_suspensions[i]->Initialize(chassis, ChCoordsys<>(m_local_pos + m_suspensionLocs[i], QUNIT) );
+    m_suspensions[s_idx]->Initialize(chassis,
+      ChCoordsys<>(m_local_pos + m_suspensionLocs[s_idx], QUNIT) );
 
     // add to the lists passed into the track chain, find location of each wheel center w.r.t. chassis coords.
-    rolling_elem_locs.push_back(m_local_pos + m_suspensionLocs[i] + m_suspensions[i]->GetWheelPosRel() );
-    clearance.push_back(m_suspensions[i]->GetWheelRadius() );
+    rolling_elem_locs.push_back(m_local_pos + m_suspensionLocs[s_idx] + m_suspensions[s_idx]->GetWheelPosRel() );
+    clearance.push_back(m_suspensions[s_idx]->GetWheelRadius() );
   }
 
   // initialize the support rollers.
   // NOTE: None for the M113
-  for(int j = 0; j < m_rollerLocs.size(); j++)
+  for(int r_idx = 0; r_idx < m_rollerLocs.size(); r_idx++)
   {
-    initialize_roller(m_supportRollers[j], chassis, m_local_pos + m_rollerLocs[j], QUNIT, j);
+    initialize_roller(m_supportRollers[r_idx], chassis,
+      m_local_pos + m_rollerLocs[r_idx], QUNIT, r_idx);
 
     // add to the points passed into the track chain
-    rolling_elem_locs.push_back( m_local_pos + m_rollerLocs[j] );
+    rolling_elem_locs.push_back( m_local_pos + m_rollerLocs[r_idx] );
     clearance.push_back(m_roller_radius);
   }
   
   // last control point: the idler body
-  m_idler->Initialize(chassis, ChCoordsys<>(m_local_pos + Get_idlerPosRel(), QUNIT) );
+  m_idler->Initialize(chassis,
+    ChCoordsys<>(m_local_pos + Get_idlerPosRel(), QUNIT) );
+
+  // add to the lists passed into the track chain Init()
   rolling_elem_locs.push_back(m_local_pos + Get_idlerPosRel() );
   clearance.push_back(m_idler->GetRadius() );
 
@@ -239,6 +244,7 @@ void TrackSystem::Initialize(ChSharedPtr<ChBodyAuxRef> chassis,
   // MUST be on the top part of the chain so the chain wrap rotation direction can be assumed.
   // rolling_elem_locs, start_pos w.r.t. chassis c-sys
   m_chain->Initialize(chassis, rolling_elem_locs, clearance, start_pos );
+
 }
 
 
@@ -259,6 +265,16 @@ void TrackSystem::initialize_roller(ChSharedPtr<ChBody> body, ChSharedPtr<ChBody
 
 
   // Add a visual asset
+
+  // Add a collision shape
+  body->SetCollide(true);
+  body->GetCollisionModel()->ClearModel();
+  // set collision family, gear is a rolling element like the wheels
+  body->GetCollisionModel()->SetFamily((int)CollisionFam::WHEELS);
+  // don't collide with other rolling elements or ground
+  body->GetCollisionModel()->SetFamilyMaskNoCollisionWithFamily((int)CollisionFam::GROUND);
+
+  body->GetCollisionModel()->BuildModel();
 }
 
 } // end namespace chrono
