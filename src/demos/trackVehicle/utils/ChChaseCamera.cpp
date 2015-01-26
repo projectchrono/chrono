@@ -57,7 +57,8 @@ ChChaseCamera::ChChaseCamera(const ChSharedBodyPtr chassis)
 void ChChaseCamera::Initialize(const ChVector<>&   ptOnChassis,
                                const ChCoordsys<>& driverCoordsys,
                                double              chaseDist,
-                               double              chaseHeight)
+                               double              chaseHeight,
+                               double              chaseLateral)
 {
   m_ptOnChassis = ptOnChassis;
   m_driverCsys = driverCoordsys;
@@ -65,7 +66,7 @@ void ChChaseCamera::Initialize(const ChVector<>&   ptOnChassis,
   m_height = chaseHeight;
   m_angle = 0;
 
-  ChVector<> localOffset(-chaseDist, chaseHeight, 0);
+  ChVector<> localOffset(-chaseDist, chaseHeight, chaseLateral);
   m_loc = m_chassis->GetFrame_REF_to_abs().TransformPointLocalToParent(ptOnChassis + localOffset);
   m_lastLoc = m_loc;
 }

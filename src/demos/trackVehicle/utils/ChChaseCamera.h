@@ -50,11 +50,14 @@ public:
   ChChaseCamera(const ChSharedBodyPtr chassis);
   ~ChChaseCamera() {}
 
+  // offset camera laterally, if desired. 
+  // Radu: will this break anything?
   void Initialize(
     const ChVector<>&   ptOnChassis,
     const ChCoordsys<>& driverCoordsys,
     double              chaseDist,
-    double              chaseHeight);
+    double              chaseHeight,
+    double              chaseLateral = 0);
 
   void Update(double step);
 
