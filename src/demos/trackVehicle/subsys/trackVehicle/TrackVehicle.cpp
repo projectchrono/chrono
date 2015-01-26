@@ -211,6 +211,10 @@ void TrackVehicle::AddCollisionGeometry()
   m_chassis->SetCollide(true);
   m_chassis->GetCollisionModel()->ClearModel();
 
+  // 1 cm outwards, 0.5 inwards for envelope and margin, respectfully.
+  m_chassis->GetCollisionModel()->SetSafeMargin(0.005);	// inward safe margin
+	m_chassis->GetCollisionModel()->SetEnvelope(0.010);		// distance of the outward "collision envelope"
+
   switch (m_collide) {
   case CollisionType::PRIMITIVES:
   {
@@ -226,10 +230,6 @@ void TrackVehicle::AddCollisionGeometry()
 		geometry::ChTriangleMeshSoup temp_trianglemesh; 
 		
     // TODO: fill the triangleMesh here with some track shoe geometry
-
-		m_chassis->GetCollisionModel()->SetSafeMargin(0.004);	// inward safe margin
-		m_chassis->GetCollisionModel()->SetEnvelope(0.010);		// distance of the outward "collision envelope"
-		m_chassis->GetCollisionModel()->ClearModel();
 
     // is there an offset??
     double shoelength = 0.2;
@@ -257,7 +257,7 @@ void TrackVehicle::AddCollisionGeometry()
   m_chassis->GetCollisionModel()->SetFamily( (int)CollisionFam::HULL );
   // don't collide with rolling elements or tracks
   // m_chassis->GetCollisionModel()->SetFamilyMaskNoCollisionWithFamily( (int)(CollisionFam::WHEELS) );
-  // m_chassis->GetCollisionModel()->SetFamilyMaskNoCollisionWithFamily( (int)(CollisionFam::SHOES) );
+  m_chassis->GetCollisionModel()->SetFamilyMaskNoCollisionWithFamily( (int)(CollisionFam::SHOES) );
 
   m_chassis->GetCollisionModel()->BuildModel();
 }
