@@ -305,8 +305,8 @@ void TorsionArmSuspension::AddCollisionGeometry()
   // setup collision family, road wheel is a rolling element
   m_wheel->GetCollisionModel()->SetFamily((int)CollisionFam::WHEELS);
 
-  // don't collide with the ground
-  m_wheel->GetCollisionModel()->SetFamilyMaskNoCollisionWithFamily((int)CollisionFam::GROUND);
+  // don't collide with the other rolling elements
+  m_wheel->GetCollisionModel()->SetFamilyMaskNoCollisionWithFamily((int)CollisionFam::WHEELS);
   
   m_wheel->GetCollisionModel()->BuildModel();
 }
