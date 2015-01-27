@@ -36,9 +36,9 @@ namespace chrono {
 
 
 // static variables
-const std::string TrackChain::m_collisionFile = utils::GetModelDataFile("track_data/M113/shoe_collision.obj");
+const std::string TrackChain::m_collisionFile = utils::GetModelDataFile("M113/shoe_collision.obj");
 const std::string TrackChain::m_meshName = "M113 shoe"; 
-const std::string TrackChain::m_meshFile = utils::GetModelDataFile("track_data/M113/shoe_view.obj");
+const std::string TrackChain::m_meshFile = utils::GetModelDataFile("M113/shoe_view.obj");
 
 const double TrackChain::m_mass = 18.02;
 const ChVector<> TrackChain::m_inertia(0.22, 0.25,  0.04); // TODO: what is this w/ new single pin configuration???
@@ -309,7 +309,13 @@ void TrackChain::AddCollisionGeometry()
 void TrackChain::AddCollisionGeometry(size_t track_idx)
 {
   assert(track_idx < m_numShoes);
-   // add collision geometrey to the chassis, if enabled
+   // add collision geometrey to the chassis, if enabled. Warn if disabled
+  if( m_collide == CollisionType::NONE)
+  {
+    GetLog() << " !!! track shoe # " << track_idx << " collision deactivated !!! \n\n";
+    m_shoes[track_idx]->SetCollide(false);
+    return;
+  }
   m_shoes[track_idx]->SetCollide(true);
   m_shoes[track_idx]->GetCollisionModel()->ClearModel();
 
@@ -376,6 +382,11 @@ void TrackChain::AddCollisionGeometry(size_t track_idx)
     m_shoes[track_idx]->GetCollisionModel()->AddConvexHullsFromFile(chull_file, disp_offset, rot_offset);
     break;
   }
+  default:
+    // no collision shape
+    GetLog() << "not recognized CollisionType: " << (int)m_collide <<" for shoe # " << track_idx <<  "\n";
+    m_shoes[track_idx]->SetCollide(false);
+    return;
   } // end switch
 
   // set collision family
