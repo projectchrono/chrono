@@ -624,6 +624,8 @@ void collideD(real4* derivVelRhoD, // output: new velocity
 	// write new velocity back to original unsorted location
 	// *** let's tweak a little bit :)
 	real3 derivV = R3(derivVelRho);
+
+	// Arman move this to integrator instead of collide . take care of action reaction on fluid and solid
 	if (length(derivV) > .2 * paramsD.HSML / (dTD_SDK * dTD_SDK)) {
 		derivV *= ( .2 * paramsD.HSML / (dTD_SDK * dTD_SDK) ) / length(derivV);
 		derivVelRho = R4(derivV, derivVelRho.w);
