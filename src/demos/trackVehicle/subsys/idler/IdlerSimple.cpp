@@ -39,7 +39,7 @@ const double IdlerSimple::m_mass = 429.6;
 const ChVector<> IdlerSimple::m_inertia = ChVector<>(14.7, 12.55, 12.55);
 
 const std::string IdlerSimple::m_meshName = "idler_mesh";
-const std::string IdlerSimple::m_meshFile = utils::GetModelDataFile("data/idlerMesh.obj");
+const std::string IdlerSimple::m_meshFile = utils::GetModelDataFile("M113/Idler_XforwardYup.obj");
 
 // guessing at these values
 const double IdlerSimple::m_radius = 0.255;
@@ -212,6 +212,14 @@ void IdlerSimple::AddVisualization()
 void IdlerSimple::AddCollisionGeometry()
 {
   // add collision geometrey to the chassis, if enabled
+  if(m_collide == CollisionType::NONE)
+  {
+      m_idler->SetCollide(false);
+      GetLog() << " !!! Idler " << m_idler->GetName() << " collision deactivated !!! \n\n";
+      return;
+  }
+    
+
   m_idler->SetCollide(true);
   m_idler->GetCollisionModel()->ClearModel();
 
@@ -220,10 +228,6 @@ void IdlerSimple::AddCollisionGeometry()
 	m_idler->GetCollisionModel()->SetEnvelope(0.010);		// distance of the outward "collision envelope"
 
   switch (m_collide) {
-  case CollisionType::NONE:
-    {
-      m_idler->SetCollide(false);
-    }
   case CollisionType::PRIMITIVES:
   {
     double half_cyl_width =  (m_width - m_widthGap)/2.0;
@@ -268,6 +272,11 @@ void IdlerSimple::AddCollisionGeometry()
     m_idler->GetCollisionModel()->AddConvexHullsFromFile(chull_file, disp_offset, rot_offset);
     break;
   }
+  default:
+    // no collision geometry
+    GetLog() << "not recognized CollisionType: " << (int)m_collide <<" for idler wheel \n";
+    m_idler->SetCollide(false);
+    return;
   } // end switch
 
   // setup collision family, idler is a rolling element
