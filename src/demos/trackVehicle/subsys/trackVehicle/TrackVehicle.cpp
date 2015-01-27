@@ -61,7 +61,7 @@ TrackVehicle::TrackVehicle(const std::string& name, VisualizationType chassisVis
   : m_vis(chassisVis),
   m_collide(chassisCollide),
   m_ownsSystem(true),
-  m_stepsize(1e-3)
+  m_stepsize(1e-4)
 {
   // Integration and Solver settings
   SetLcpSolverType(ChSystem::LCP_ITERATIVE_SOR);

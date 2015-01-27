@@ -71,7 +71,7 @@ ChVector<> groundPos(0, -1.0, 0);
 double mu = 0.8;  // dry friction coef.
 
 // Simulation step size
-double step_size = 0.001;
+double step_size = 0.0001;
 
 // Time interval between two render frames
 int FPS = 50;
@@ -260,11 +260,11 @@ int main(int argc, char* argv[])
 
     vehicle.Update(time, throttle_input, braking_input);
     // Advance simulation for one timestep for all modules
-    double step = realtime_timer.SuggestSimulationStep(step_size);
+    // double step = realtime_timer.SuggestSimulationStep(step_size);
 
-    driver.Advance(step);
+    driver.Advance(step_size);
 
-    vehicle.Advance(step);
+    vehicle.Advance(step_size);
 
 	}
 
