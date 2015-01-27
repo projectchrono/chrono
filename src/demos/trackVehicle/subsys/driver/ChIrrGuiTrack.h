@@ -93,7 +93,7 @@ private:
 
   irr::ChIrrAppInterface&   m_app;
   TrackVehicle&             m_vehicle;
-  TrackPowertrain& m_powertrain;
+  TrackPowertrain* m_powertrain;
 
   utils::ChChaseCamera      m_camera;
 

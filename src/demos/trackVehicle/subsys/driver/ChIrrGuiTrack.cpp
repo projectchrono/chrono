@@ -38,7 +38,7 @@ namespace chrono {
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-ChIrrGuiTrack::ChIrrGuiTrack(ChIrrApp&           app,
+ChIrrGuiTrack::ChIrrGuiTrack(ChIrrApp&          app,
                             TrackVehicle&       vehicle,
                             const ChVector<>&   ptOnChassis,
                             double              chaseDist,
@@ -48,7 +48,7 @@ ChIrrGuiTrack::ChIrrGuiTrack(ChIrrApp&           app,
                             int                 HUD_y)
 : m_app(app),
   m_vehicle(vehicle),
-  m_powertrain( *(vehicle.GetPowertrain(0).get_ptr()) ),
+  m_powertrain( vehicle.GetPowertrain(0) ),
   m_HUD_x(HUD_x),
   m_HUD_y(HUD_y),
   m_terrainHeight(0),
@@ -158,13 +158,13 @@ bool ChIrrGuiTrack::OnEvent(const SEvent& event)
       return true;
 
     case KEY_KEY_Z:
-      m_powertrain.SetDriveMode(TrackPowertrain::FORWARD);
+      m_powertrain->SetDriveMode(TrackPowertrain::FORWARD);
       return true;
     case KEY_KEY_X:
-      m_powertrain.SetDriveMode(TrackPowertrain::NEUTRAL);
+      m_powertrain->SetDriveMode(TrackPowertrain::NEUTRAL);
       return true;
     case KEY_KEY_C:
-      m_powertrain.SetDriveMode(TrackPowertrain::REVERSE);
+      m_powertrain->SetDriveMode(TrackPowertrain::REVERSE);
       return true;
 
     // TODO: no LogConstraintViolation() func., yet
@@ -331,50 +331,51 @@ void ChIrrGuiTrack::renderStats()
   sprintf(msg, "Speed: %+.2f", speed);
   renderLinGauge(std::string(msg), speed/30, false, m_HUD_x, m_HUD_y + 100, 120, 15);
 
-
-  double engine_rpm = m_powertrain.GetMotorSpeed() * 60 / chrono::CH_C_2PI;
-  sprintf(msg, "Eng. RPM: %+.2f", engine_rpm);
-  renderLinGauge(std::string(msg), engine_rpm / 7000, false, m_HUD_x, m_HUD_y + 120, 120, 15);
-
-  double engine_torque = m_powertrain.GetMotorTorque();
-  sprintf(msg, "Eng. Nm: %+.2f", engine_torque);
-  renderLinGauge(std::string(msg), engine_torque / 600, false, m_HUD_x, m_HUD_y + 140, 120, 15);
-
-  double tc_slip = m_powertrain.GetTorqueConverterSlippage();
-  sprintf(msg, "T.conv. slip: %+.2f", tc_slip);
-  renderLinGauge(std::string(msg), tc_slip / 1, false, m_HUD_x, m_HUD_y + 160, 120, 15);
-
-  double tc_torquein = m_powertrain.GetTorqueConverterInputTorque();
-  sprintf(msg, "T.conv. in  Nm: %+.2f", tc_torquein);
-  renderLinGauge(std::string(msg), tc_torquein / 600, false, m_HUD_x, m_HUD_y + 180, 120, 15);
-
-  double tc_torqueout = m_powertrain.GetTorqueConverterOutputTorque();
-  sprintf(msg, "T.conv. out Nm: %+.2f", tc_torqueout);
-  renderLinGauge(std::string(msg), tc_torqueout / 600, false, m_HUD_x, m_HUD_y + 200, 120, 15);
-
-  int ngear = m_powertrain.GetCurrentTransmissionGear();
-  TrackPowertrain::DriveMode drivemode = m_powertrain.GetDriveMode();
-  switch (drivemode)
+  if( m_vehicle.GetNum_Engines() > 0 )
   {
-  case TrackPowertrain::FORWARD:
-    sprintf(msg, "Gear: forward, n.gear: %d", ngear);
-    break;
-  case TrackPowertrain::NEUTRAL:
-    sprintf(msg, "Gear: neutral");
-    break;
-  case TrackPowertrain::REVERSE:
-    sprintf(msg, "Gear: reverse");
-    break;
-  default:
-    sprintf(msg, "Gear:");
-    break;
+    double engine_rpm = m_powertrain->GetMotorSpeed() * 60 / chrono::CH_C_2PI;
+    sprintf(msg, "Eng. RPM: %+.2f", engine_rpm);
+    renderLinGauge(std::string(msg), engine_rpm / 7000, false, m_HUD_x, m_HUD_y + 120, 120, 15);
+
+    double engine_torque = m_powertrain->GetMotorTorque();
+    sprintf(msg, "Eng. Nm: %+.2f", engine_torque);
+    renderLinGauge(std::string(msg), engine_torque / 600, false, m_HUD_x, m_HUD_y + 140, 120, 15);
+
+    double tc_slip = m_powertrain->GetTorqueConverterSlippage();
+    sprintf(msg, "T.conv. slip: %+.2f", tc_slip);
+    renderLinGauge(std::string(msg), tc_slip / 1, false, m_HUD_x, m_HUD_y + 160, 120, 15);
+
+    double tc_torquein = m_powertrain->GetTorqueConverterInputTorque();
+    sprintf(msg, "T.conv. in  Nm: %+.2f", tc_torquein);
+    renderLinGauge(std::string(msg), tc_torquein / 600, false, m_HUD_x, m_HUD_y + 180, 120, 15);
+
+    double tc_torqueout = m_powertrain->GetTorqueConverterOutputTorque();
+    sprintf(msg, "T.conv. out Nm: %+.2f", tc_torqueout);
+    renderLinGauge(std::string(msg), tc_torqueout / 600, false, m_HUD_x, m_HUD_y + 200, 120, 15);
+
+    int ngear = m_powertrain->GetCurrentTransmissionGear();
+    TrackPowertrain::DriveMode drivemode = m_powertrain->GetDriveMode();
+    switch (drivemode)
+    {
+    case TrackPowertrain::FORWARD:
+      sprintf(msg, "Gear: forward, n.gear: %d", ngear);
+      break;
+    case TrackPowertrain::NEUTRAL:
+      sprintf(msg, "Gear: neutral");
+      break;
+    case TrackPowertrain::REVERSE:
+      sprintf(msg, "Gear: reverse");
+      break;
+    default:
+      sprintf(msg, "Gear:");
+      break;
+    }
+    renderLinGauge(std::string(msg), (double)ngear / 4.0, false, m_HUD_x, m_HUD_y + 220, 120, 15);
+
+    // driveline data
+    double torque;
+    int axle = 0;
   }
-  renderLinGauge(std::string(msg), (double)ngear / 4.0, false, m_HUD_x, m_HUD_y + 220, 120, 15);
-
-  // driveline data
-  double torque;
-  int axle = 0;
-
   /*
   torque = driveline->GetWheelTorque(ChWheelID(axle, LEFT));
   sprintf(msg, "Torque wheel L: %+.2f", torque);
