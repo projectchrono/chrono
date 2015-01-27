@@ -32,7 +32,7 @@ namespace chrono {
 
 // static variables
 const std::string DriveGear::m_meshName = "gear_mesh";
-const std::string DriveGear::m_meshFile = utils::GetModelDataFile("gearMesh.obj");
+const std::string DriveGear::m_meshFile = utils::GetModelDataFile("M113/M113SprocketLeft_XforwardYup.obj");
 
 const double DriveGear::m_mass = 436.7;
 const ChVector<> DriveGear::m_inertia(13.87, 12.22, 12.22);
@@ -144,6 +144,12 @@ void DriveGear::AddVisualization()
 void DriveGear::AddCollisionGeometry()
 {
   // add collision geometrey, if enabled. Warn if disabled
+  if( m_collide == CollisionType::NONE)
+  {
+      m_gear->SetCollide(false);
+      GetLog() << " !!! DriveGear " << m_gear->GetName() << " collision deactivated !!! \n\n";
+      return;
+  }
   m_gear->SetCollide(true);
   m_gear->GetCollisionModel()->ClearModel();
 
@@ -152,11 +158,6 @@ void DriveGear::AddCollisionGeometry()
 	m_gear->GetCollisionModel()->SetEnvelope(0.010);		// distance of the outward "collision envelope"
 
   switch (m_collide) {
-  case CollisionType::NONE:
-  {
-      m_gear->SetCollide(false);
-      GetLog() << " !!! DriveGear " << m_gear->GetName() << " collision deactivated !!! \n\n";
-  }
   case CollisionType::PRIMITIVES:
   {
     double half_cyl_width =  (m_width - m_widthGap)/2.0;
@@ -200,6 +201,11 @@ void DriveGear::AddCollisionGeometry()
     m_gear->GetCollisionModel()->AddConvexHullsFromFile(chull_file, disp_offset, rot_offset);
     break;
   }
+  default:
+    // no collision geometry
+    GetLog() << "not recognized CollisionType: " << (int)m_collide <<" for drive gear \n";
+    m_gear->SetCollide(false);
+    return;
   } // end switch
 
   // set collision family, gear is a rolling element like the wheels
