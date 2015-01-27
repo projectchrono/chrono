@@ -168,7 +168,7 @@ void TrackVehicle::AddVisualization()
 {
   // add visual geometry asset to the chassis, if enabled
   switch (m_vis) {
-  case VisualizationType::PRIMITIVES:
+  case VisualizationType::NONE:
   {
     // put a sphere at the chassis COM and at the REF point
     ChSharedPtr<ChSphereShape> COMsphere(new ChSphereShape);
@@ -186,6 +186,13 @@ void TrackVehicle::AddVisualization()
     REFsphere->SetColor(ChColor(0.8f, 0.2f, 0.1f));
     m_chassis->AddAsset(REFsphere);
 
+    break;
+  }
+  case VisualizationType::PRIMITIVES:
+  {
+    ChSharedPtr<ChBoxShape> box(new ChBoxShape);
+    box->GetBoxGeometry().SetLengths(m_chassisBoxSize );
+    m_chassis->AddAsset(box);
     break;
   }
   case VisualizationType::MESH:
