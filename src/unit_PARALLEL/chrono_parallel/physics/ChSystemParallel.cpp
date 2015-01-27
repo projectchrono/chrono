@@ -51,6 +51,9 @@ ChSystemParallel::~ChSystemParallel() {
 int ChSystemParallel::Integrate_Y() {
   //Get the pointer for the system descriptor and store it into the data manager
    data_manager->lcp_system_descriptor = this->LCP_descriptor;
+   data_manager->body_list = &this->bodylist;
+   data_manager->link_list = &this->linklist;
+   data_manager->other_physics_list = &this->otherphysicslist;
 
    data_manager->system_timer.Reset();
    data_manager->system_timer.start("step");
@@ -182,8 +185,6 @@ void ChSystemParallel::AddBody(ChSharedPtr<ChBody> newbody)
    // actual data is set in UpdateBodies().
    data_manager->host_data.pos_data.push_back(R3());
    data_manager->host_data.rot_data.push_back(R4());
-   data_manager->host_data.inv_mass_data.push_back(0);
-   data_manager->host_data.inr_data.push_back(M33());
    data_manager->host_data.active_data.push_back(true);
    data_manager->host_data.collide_data.push_back(true);
 
@@ -300,8 +301,6 @@ void ChSystemParallel::UpdateBodies()
 {
   custom_vector<real3>& position = data_manager->host_data.pos_data;
   custom_vector<real4>& rotation = data_manager->host_data.rot_data;
-  custom_vector<real>& inv_mass = data_manager->host_data.inv_mass_data;
-  custom_vector<M33>& inv_inertia = data_manager->host_data.inr_data;
   custom_vector<bool>& active = data_manager->host_data.active_data;
   custom_vector<bool>& collide = data_manager->host_data.collide_data;
 
@@ -320,7 +319,6 @@ void ChSystemParallel::UpdateBodies()
     ChMatrix<>&     body_fb = bodylist[i]->Variables().Get_fb();
     ChVector<>&     body_pos = bodylist[i]->GetPos();
     ChQuaternion<>& body_rot = bodylist[i]->GetRot();
-    ChMatrix33<>&   body_inr = bodylist[i]->VariablesBody().GetBodyInvInertia();
 
     data_manager->host_data.v[i * 6 + 0] = body_qb.GetElementN(0);
     data_manager->host_data.v[i * 6 + 1] = body_qb.GetElementN(1);
@@ -338,11 +336,6 @@ void ChSystemParallel::UpdateBodies()
 
     position[i] = R3(body_pos.x, body_pos.y, body_pos.z);
     rotation[i] = R4(body_rot.e0, body_rot.e1, body_rot.e2, body_rot.e3);
-
-    inv_mass[i] = 1.0f / bodylist[i]->VariablesBody().GetBodyMass();
-    inv_inertia[i] = M33(R3(body_inr.GetElement(0, 0), body_inr.GetElement(1, 0), body_inr.GetElement(2, 0)),
-                         R3(body_inr.GetElement(0, 1), body_inr.GetElement(1, 1), body_inr.GetElement(2, 1)),
-                         R3(body_inr.GetElement(0, 2), body_inr.GetElement(1, 2), body_inr.GetElement(2, 2)));
 
     active[i] = bodylist[i]->IsActive();
     collide[i] = bodylist[i]->GetCollide();

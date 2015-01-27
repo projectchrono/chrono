@@ -28,6 +28,8 @@
 
 // Chrono Includes
 #include "lcp/ChLcpSystemDescriptor.h"
+#include "physics/ChBody.h"
+#include "physics/ChLinksAll.h"
 
 // Chrono Parallel Includes
 #include "chrono_parallel/ChTimerParallel.h"
@@ -82,10 +84,10 @@ struct host_container {
    // Object data
    thrust::host_vector<real3> pos_data, pos_new_data;
    thrust::host_vector<real4> rot_data, rot_new_data;
-   thrust::host_vector<M33> inr_data;
+   //thrust::host_vector<M33> inr_data;
    thrust::host_vector<bool> active_data;
    thrust::host_vector<bool> collide_data;
-   thrust::host_vector<real> inv_mass_data;
+   //thrust::host_vector<real> inv_mass_data;
 
    // Bilateral constraint type (all supported constraints)
    thrust::host_vector<int> bilateral_type;
@@ -120,6 +122,9 @@ struct host_container {
    //M_inv is the inverse mass matrix, This matrix, if holding the full inertia
    //tensor is block diagonal
    CompressedMatrix<real> M_inv;
+   //M is the mass matrix, this is only computed in certain situations for some
+   //experimental features in the solver
+   CompressedMatrix<real> M;
    //Minv_D holds M_inv multiplied by D, this is done as a preprocessing step
    //so that later, when the full matrix vector product is needed it can be
    //performed in two steps, first R = Minv_D*x, and then D_T*R where R is just
@@ -152,6 +157,13 @@ class CH_PARALLEL_API ChParallelDataManager {
    //This pointer is used by the bilarerals for computing the jacobian and other
    //terms
    ChLcpSystemDescriptor* lcp_system_descriptor;
+
+   //These pointers are used to compute the mass matrix instead of filling a
+   //a temporary data structure
+   std::vector<ChBody*>* body_list;      //List of bodies
+   std::vector<ChLink*>* link_list;      //List of bilaterals
+   std::vector<ChPhysicsItem*>* other_physics_list; //List to other items
+
 
    // Indexing variables
    uint num_bodies;        // The number of rigid bodies in a system
