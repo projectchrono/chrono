@@ -19,6 +19,7 @@
 using namespace chrono;
 using namespace chrono::opengl;
 
+<<<<<<< HEAD
 void ChOpenGLWindow::Initialize(int size_x, int size_y, const char* title, ChSystem* msystem) {
   if (!glfwInit()) {
     std::cout << "could not initialize glfw- exiting" << std::endl;
@@ -69,6 +70,12 @@ void ChOpenGLWindow::Initialize(int size_x, int size_y, const char* title, ChSys
   if (size_y > 0) {
     viewer->window_size = glm::ivec2(size_x, size_y);
     viewer->window_aspect = float(size_x) / float(size_y);
+
+    GLFWmonitor* primary = glfwGetPrimaryMonitor();
+    glfwGetMonitorPhysicalSize(primary, &viewer->window_physical_size.x, &viewer->window_physical_size.y);
+    glfwGetMonitorPos(primary, &viewer->window_position.x, &viewer->window_position.y);
+    const GLFWvidmode* mode = glfwGetVideoMode(primary);
+    viewer->dpi = mode->width / (viewer->window_physical_size.x / 25.4);
   }
   viewer->Initialize();
 
@@ -165,6 +172,13 @@ void ChOpenGLWindow::CallbackReshape(GLFWwindow* window, int w, int h) {
     pointer->window_size = glm::ivec2(w, h);
     pointer->window_aspect = float(w) / float(h);
   }
+
+  GLFWmonitor* primary = glfwGetPrimaryMonitor();
+  glfwGetMonitorPhysicalSize(primary, &pointer->window_physical_size.x, &pointer->window_physical_size.y);
+  glfwGetMonitorPos(primary, &pointer->window_position.x, &pointer->window_position.y);
+  const GLFWvidmode* mode = glfwGetVideoMode(primary);
+  pointer->dpi = mode->width / (pointer->window_physical_size.x / 25.4);
+
 }
 
 void ChOpenGLWindow::CallbackKeyboard(GLFWwindow* window, int key, int scancode, int action, int mode) {

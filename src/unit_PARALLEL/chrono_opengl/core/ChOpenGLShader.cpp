@@ -106,6 +106,7 @@ bool ChOpenGLShader::CompileStrings(std::string shader_name, const char* vertex_
     std::cerr << "GLSL compilation failed - fragment shader: " << shader_name << std::endl;
     return false;
   }
+  return true;
 }
 bool ChOpenGLShader::CompileFiles(std::string vertex_shader_file, std::string fragment_shader_file) {
   GLint check_value;
@@ -140,6 +141,7 @@ bool ChOpenGLShader::CompileFiles(std::string vertex_shader_file, std::string fr
     std::cerr << "GLSL compilation failed - fragment shader: " << fragment_shader_file << std::endl;
     return false;
   }
+  return true;
 }
 
 void ChOpenGLShader::CompleteInit() {
