@@ -19,7 +19,6 @@
 using namespace chrono;
 using namespace chrono::opengl;
 
-<<<<<<< HEAD
 void ChOpenGLWindow::Initialize(int size_x, int size_y, const char* title, ChSystem* msystem) {
   if (!glfwInit()) {
     std::cout << "could not initialize glfw- exiting" << std::endl;
