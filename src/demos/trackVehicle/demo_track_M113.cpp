@@ -266,6 +266,7 @@ int main(int argc, char* argv[])
 
     vehicle.Advance(step_size);
 
+    step_number++;
 	}
 
 	return 0;
