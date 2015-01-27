@@ -62,7 +62,7 @@ ChIrrGuiTrack::ChIrrGuiTrack(ChIrrApp&           app,
   app.SetUserEventReceiver(this);
 
   // Initialize the ChChaseCamera
-  m_camera.Initialize(ptOnChassis, vehicle.GetLocalDriverCoordsys(), chaseDist, chaseHeight);
+  m_camera.Initialize(ptOnChassis, vehicle.GetLocalDriverCoordsys(), chaseDist, chaseHeight,chaseLateral);
   ChVector<> cam_pos = m_camera.GetCameraPos();
   ChVector<> cam_target = m_camera.GetTargetPos();
 

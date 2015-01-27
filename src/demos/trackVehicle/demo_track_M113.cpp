@@ -81,7 +81,8 @@ double output_step_size = 1.0 / 1;    // once a second
 
 // #ifdef USE_IRRLICHT
   // Point on chassis tracked by the camera
-  ChVector<> trackPoint(0.0, 1.0, 0);
+ChVector<> chaseDist(2.0, 0, 3.0);
+ChVector<> trackPoint(0, 0, 0);
   /*
 #else
   double tend = 20.0;
@@ -189,7 +190,7 @@ int main(int argc, char* argv[])
   application.SetTimestep(step_size);
 
   // the GUI driver
-  ChIrrGuiTrack driver(application, vehicle, trackPoint, 4.0, 0.0, 1.0);
+  ChIrrGuiTrack driver(application, vehicle, trackPoint, chaseDist.x, chaseDist.y, chaseDist.z);
 
   // Set the time response for steering and throttle keyboard inputs.
   // NOTE: this is not exact, since we do not render quite at the specified FPS.

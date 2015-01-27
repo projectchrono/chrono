@@ -67,7 +67,7 @@ TrackVehicle::TrackVehicle(const std::string& name, VisualizationType chassisVis
   SetLcpSolverType(ChSystem::LCP_ITERATIVE_SOR);
   SetIterLCPmaxItersSpeed(150);
   SetIterLCPmaxItersStab(150);
-  SetMaxPenetrationRecoverySpeed(4.0);
+  SetMaxPenetrationRecoverySpeed(1.0);
 
   // create the chassis body    
   m_chassis = ChSharedPtr<ChBodyAuxRef>(new ChBodyAuxRef);

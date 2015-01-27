@@ -236,13 +236,19 @@ void TrackSystem::Initialize(ChSharedPtr<ChBodyAuxRef> chassis,
   // After all rolling elements have been initialized, now able to setup the TrackChain.
   // Assumed that start_pos is between idler and gear control points, e.g., on the top 
   //   of the track chain.
-  ChVector<> start_pos = (rolling_elem_locs[0] + rolling_elem_locs.back())/2.0;
-  start_pos.y += (clearance[0] + clearance.back() )/2.0;
+  ChVector<> start_pos = (rolling_elem_locs.front() + rolling_elem_locs.back())/2.0;
+  start_pos.y += (clearance.front() + clearance.back() )/2.0;
 
   // Assumption: start_pos should lie close to where the actual track chain would 
   //             pass between the idler and driveGears.
   // MUST be on the top part of the chain so the chain wrap rotation direction can be assumed.
   // rolling_elem_locs, start_pos w.r.t. chassis c-sys
+  
+  
+  
+  
+  
+  
   m_chain->Initialize(chassis, rolling_elem_locs, clearance, start_pos );
 
 }
