@@ -42,12 +42,10 @@ class CH_PARALLEL_API ChSolverAPGD : public ChSolverParallel {
                  blaze::DynamicVector<real>& x           // The vector of unknowns
                  );
 
-  // Compute the residual for the solver
-  real Res4(blaze::DynamicVector<real>& mg_tmp2, blaze::DynamicVector<real>& x, blaze::DynamicVector<real>& mb_tmp);
-
   // APGD specific vectors
   blaze::DynamicVector<real> obj2_temp, obj1_temp, temp, g, gamma_new, y, gamma_hat, N_gamma_new;
   real L, t;
+  real g_diff;
   real theta, theta_new, beta_new;
   real mb_tmp_norm, mg_tmp_norm;
   real obj1, obj2;

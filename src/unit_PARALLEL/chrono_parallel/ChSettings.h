@@ -80,9 +80,11 @@ struct solver_settings {
   solver_settings() {
 
     tolerance = 1e-4;
+    tol_speed = 1e-4;
     tolerance_objective = 1e-6;
     collision_in_solver = false;
     update_rhs = false;
+    scale_mass_matrix = false;
     verbose = false;
     test_objective = false;
 
@@ -134,6 +136,7 @@ struct solver_settings {
   //Experimental options that probably don't work for all solvers
   bool collision_in_solver;
   bool update_rhs;
+  bool scale_mass_matrix;
   bool verbose;
   bool test_objective;
 

@@ -2,19 +2,9 @@
 #include <blaze/math/CompressedVector.h>
 using namespace chrono;
 
-ChSolverAPGD::ChSolverAPGD() : ChSolverParallel(), mg_tmp_norm(0), mb_tmp_norm(0), obj1(0), obj2(0), norm_ms(0), dot_g_temp(0), theta(0), theta_new(0), beta_new(0), t(0), L(0) {}
-
-real ChSolverAPGD::Res4(blaze::DynamicVector<real>& mg_tmp2, blaze::DynamicVector<real>& x, blaze::DynamicVector<real>& temp) {
-  real gdiff = 1e-6;
-  real sum = 0;
-  temp = x - gdiff * mg_tmp2;
-  Project(temp.data());
-  temp = (-1.0f / (gdiff)) * (temp - x);
-  sum = (temp, temp);
-  return sqrt(sum);
-}
-
 #define SHUR(x) (data_container->host_data.D_T * (data_container->host_data.M_invD * x) + data_container->host_data.E * x)
+
+ChSolverAPGD::ChSolverAPGD() : ChSolverParallel(), mg_tmp_norm(0), mb_tmp_norm(0), obj1(0), obj2(0), norm_ms(0), dot_g_temp(0), theta(1), theta_new(0), beta_new(0), t(0), L(0), g_diff(0) {}
 
 uint ChSolverAPGD::SolveAPGD(const uint max_iter, const uint size, const blaze::DynamicVector<real>& r, blaze::DynamicVector<real>& gamma) {
   real& residual = data_container->measures.solver.residual;
@@ -31,6 +21,7 @@ uint ChSolverAPGD::SolveAPGD(const uint max_iter, const uint size, const blaze::
   y.resize(size);
 
   residual = 10e30;
+  g_diff = 1.0 / pow(size, 2.0);
 
   theta = 1;
   theta_new = theta;
@@ -49,7 +40,7 @@ uint ChSolverAPGD::SolveAPGD(const uint max_iter, const uint size, const blaze::
   L = sqrt((real)(temp, temp));
   temp = SHUR(temp);    // ShurProduct(temp, temp);
   L = L == 0 ? 1 : L;
-  L = sqrt((double)(temp, temp)) / L;
+  L = sqrt((real)(temp, temp)) / L;
 
   t = 1.0 / L;
   y = gamma;
@@ -90,17 +81,31 @@ uint ChSolverAPGD::SolveAPGD(const uint max_iter, const uint size, const blaze::
     y = beta_new * temp + gamma_new;
     dot_g_temp = (g, temp);
 
-    N_gamma_new = N_gamma_new - r;
-    real res = Res4(N_gamma_new, gamma, temp);
+    // Compute the residual
+    temp = gamma_new - g_diff * (N_gamma_new - r);
+    Project(temp.data());
+    temp = (1.0 / g_diff) * (gamma_new-temp);
+    real res = sqrt((real)(temp, temp));
 
     if (res < residual) {
       residual = res;
       gamma_hat = gamma_new;
     }
-    objective_value = GetObjective(gamma_new, r);
+
+    // Compute the objective value
+    temp = 0.5 * N_gamma_new - r;
+    objective_value = (gamma_new, temp);
+
     AtIterationEnd(residual, objective_value);
-    if (residual < data_container->settings.solver.tolerance) {
-      break;
+
+    if (data_container->settings.solver.test_objective) {
+      if (objective_value <= data_container->settings.solver.tolerance_objective) {
+        break;
+      }
+    } else {
+      if (residual < data_container->settings.solver.tolerance) {
+        break;
+      }
     }
 
     if (dot_g_temp > 0) {
@@ -113,13 +118,6 @@ uint ChSolverAPGD::SolveAPGD(const uint max_iter, const uint size, const blaze::
     theta = theta_new;
 
     gamma = gamma_new;
-
-    //    if (data_container->settings.solver.test_objective) {
-    //      if (objective_value <= data_container->settings.solver.tolerance_objective) {
-    //        break;
-    //      }
-    //    } else {
-    //    }
   }
 
   gamma = gamma_hat;
