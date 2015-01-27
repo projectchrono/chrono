@@ -101,6 +101,7 @@ ChSharedPtr<ChBody> Add_FlatGround(TrackVehicle* vehicle,
 {
   // body, visual and collision all in one.
   ChSharedPtr<ChBody> ground(new ChBodyEasyBox(size.x, size.y, size.z, 1000.0, true, true));
+  ground->SetBodyFixed(true);
   ground->SetPos(pos);
 	// ground->SetIdentifier(-1);
   ground->SetName("ground");
