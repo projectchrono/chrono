@@ -102,10 +102,10 @@ public:
   double GetVehicleSpeedCOM() const { return m_chassis->GetPos_dt().Length(); }
 
   /// vehicle's driveline subsystem.
-  const ChSharedPtr<TrackDriveline> GetDriveline(int idx) const { return m_drivelines[idx]; }
+  TrackDriveline* GetDriveline(int idx) { return (m_num_engines > 0 ? m_drivelines[idx].get_ptr(): NULL); }
 
   /// vehicle's driveshaft body.
-  const ChSharedPtr<ChShaft> GetDriveshaft(size_t idx) const {return m_drivelines[idx]->GetDriveshaft(); }
+  ChShaft* GetDriveshaft(size_t idx) {return (m_num_engines > 0 ? m_drivelines[idx]->GetDriveshaft().get_ptr(): NULL); }
 
   /// current value of the integration step size for the vehicle system.
   double GetStepsize() const { return m_stepsize; }
@@ -113,11 +113,14 @@ public:
   /// shared pointer to chassis body
   ChSharedPtr<ChBody> GetChassis() { return m_chassis; }
 
-  /// shared pointer to the powertrain
-  ChSharedPtr<TrackPowertrain> GetPowertrain(int idx) { return m_ptrains[idx]; }
+  /// pointer to the powertrain
+  TrackPowertrain* GetPowertrain(int idx) { return (m_num_engines > 0 ? m_ptrains[idx].get_ptr(): NULL); }
 
   /// number of track chain systems attached to the vehicle
   int GetNum_TrackSystems() const { return m_num_tracks; }
+
+  /// number of track chain systems attached to the vehicle
+  int GetNum_Engines() const { return m_num_engines; }
 
   ChCoordsys<> GetLocalDriverCoordsys() const { return m_driverCsys; }
 
