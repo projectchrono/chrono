@@ -74,6 +74,8 @@ class CH_OPENGL_API ChOpenGLViewer : public ChOpenGLBase {
 
    glm::ivec2 window_size;
    glm::ivec2 window_position;
+   glm::ivec2 window_physical_size;
+   double     dpi;
    float window_aspect;
    int interval;
 

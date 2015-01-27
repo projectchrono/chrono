@@ -438,8 +438,8 @@ void ChOpenGLViewer::RenderText(
 void ChOpenGLViewer::DisplayHUD() {
 
    GLReturnedError("Start text");
-   float sx = 2.0 / window_size.x;
-   float sy = 2.0 / window_size.y;
+   float sx = (2*dpi/147.782) / window_size.x;
+   float sy = (2*dpi/147.782) / window_size.y;
    text_data.reserve(300);
    text_data.clear();
 
