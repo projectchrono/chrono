@@ -235,6 +235,12 @@ void TorsionArmSuspension::AddVisualization()
 void TorsionArmSuspension::AddCollisionGeometry()
 {
   // add collision geometrey, if enabled. Warn if not
+  if( m_collide == CollisionType::NONE)
+  {
+    m_wheel->SetCollide(false);
+    GetLog() << " !!! Road Wheel " << m_wheel->GetName() << " collision deactivated !!! \n\n";
+    return;
+  }
   m_wheel->SetCollide(true);
   m_wheel->GetCollisionModel()->ClearModel();
 
@@ -243,11 +249,6 @@ void TorsionArmSuspension::AddCollisionGeometry()
 	m_wheel->GetCollisionModel()->SetEnvelope(0.010);		// distance of the outward "collision envelope"
 
   switch (m_collide) {
-  case CollisionType::NONE:
-  {
-    m_wheel->SetCollide(false);
-    GetLog() << " !!! Road Wheel " << m_wheel->GetName() << " collision deactivated !!! \n\n";
-  }
   case CollisionType::PRIMITIVES:
   {
     double half_cyl_width =  (m_wheelWidth - m_wheelWidthGap)/2.0;
@@ -294,6 +295,11 @@ void TorsionArmSuspension::AddCollisionGeometry()
 
     break;
   }
+  default:
+    // no collision geometry
+    GetLog() << "not recognized CollisionType: " << (int)m_collide <<" for road wheel \n";
+    m_wheel->SetCollide(false);
+    return;
   } // end switch
 
   // setup collision family, road wheel is a rolling element
