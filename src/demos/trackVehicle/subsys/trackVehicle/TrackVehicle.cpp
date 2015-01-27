@@ -51,8 +51,8 @@ const double     TrackVehicle::m_mass = 5489.2;   // chassis sprung mass
 const ChVector<> TrackVehicle::m_COM = ChVector<>(0., 0., 0.);  // COM location, relative to body Csys REF frame
 const ChVector<> TrackVehicle::m_inertia(1786.9, 10449.7, 10721.2);  // chassis inertia (roll,yaw,pitch)
 
-const std::string TrackVehicle::m_meshName("M113_mesh");
-const std::string TrackVehicle::m_meshFile = utils::GetModelDataFile("data/M113_hull.obj");
+const std::string TrackVehicle::m_meshName("M113_chassis");
+const std::string TrackVehicle::m_meshFile = utils::GetModelDataFile("M113/Chassis_XforwardYup.obj");
 const ChCoordsys<> TrackVehicle::m_driverCsys(ChVector<>(0.0, 0.5, 1.2), ChQuaternion<>(1, 0, 0, 0));
 const ChVector<> TrackVehicle::m_chassisBoxSize(4.0 *0.5, 2.0 *0.5, 3.0 *0.5);  // length, height, width HALF DIMS
 
@@ -191,7 +191,7 @@ void TrackVehicle::AddVisualization()
   case VisualizationType::MESH:
   {
     geometry::ChTriangleMeshConnected trimesh;
-    trimesh.LoadWavefrontMesh(utils::GetModelDataFile(m_meshFile), false, false);
+    trimesh.LoadWavefrontMesh(m_meshFile, true, true);
 
     ChSharedPtr<ChTriangleMeshShape> trimesh_shape(new ChTriangleMeshShape);
     trimesh_shape->SetMesh(trimesh);
@@ -208,6 +208,11 @@ void TrackVehicle::AddVisualization()
 void TrackVehicle::AddCollisionGeometry()
 {
   // add collision geometrey to the chassis, if enabled
+  if( m_collide == CollisionType::NONE)
+  {
+    m_chassis->SetCollide(false);
+    return;
+  }
   m_chassis->SetCollide(true);
   m_chassis->GetCollisionModel()->ClearModel();
 
@@ -251,6 +256,11 @@ void TrackVehicle::AddCollisionGeometry()
     m_chassis->GetCollisionModel()->AddConvexHullsFromFile(chull_file, disp_offset, rot_offset);
     break;
   }
+  default:
+    // no collision geometry
+    GetLog() << "not recognized CollisionType: " << (int)m_collide <<" for chassis \n";
+    m_chassis->SetCollide(false);
+    return;
   } // end switch
 
   // set the collision family
