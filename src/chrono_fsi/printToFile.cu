@@ -60,146 +60,22 @@ void PrintCartesianData_MidLine(
 	midLineData.close();
 }
 //*******************************************************************************************************************************
-
-void PrintToFile(
+void PrintToFile_SPH(
 		const thrust::device_vector<real3> & posRadD,
 		const thrust::device_vector<real4> & velMasD,
 		const thrust::device_vector<real4> & rhoPresMuD,
 		const thrust::host_vector<int3> & referenceArray,
-		const thrust::device_vector<int> & rigidIdentifierD,
-		const thrust::device_vector<real3> & posRigidD,
-		const thrust::device_vector<real3> & posRigidCumulativeD,
-		const thrust::device_vector<real4> & velMassRigidD,
-		const thrust::device_vector<real4> & qD1,
-		const thrust::device_vector<real3> & AD1,
-		const thrust::device_vector<real3> & AD2,
-		const thrust::device_vector<real3> & AD3,
-		const thrust::device_vector<real3> & omegaLRF_D,
-
-		const thrust::device_vector<real3> & ANCF_NodesD,
-		const thrust::device_vector<real3> & ANCF_SlopesD,
-		const thrust::device_vector<real3> & ANCF_NodesVelD,
-		const thrust::device_vector<real3> & ANCF_SlopesVelD,
-		const thrust::device_vector<int2> & ANCF_ReferenceArrayNodesOnBeamsD,
 
 		const SimParams paramsH,
 		const real_ realTime,
-		int tStep,
-		const real_ channelRadius,
-		const real2 channelCenterYZ,
-		const int numRigidBodies,
-		const int numFlexBodies) {
+		int tStep) {
+
+
 	thrust::host_vector<real3> posRadH = posRadD;
 	thrust::host_vector<real4> velMasH = velMasD;
 	thrust::host_vector<real4> rhoPresMuH = rhoPresMuD;
-	thrust::host_vector<int> rigidIdentifierH = rigidIdentifierD;
-	thrust::host_vector<real3> posRigidH = posRigidD;
-	thrust::host_vector<real3> posRigidCumulativeH = posRigidCumulativeD;
-	thrust::host_vector<real4> velMassRigidH = velMassRigidD;
-	thrust::host_vector<real4> qH1 = qD1;
-	thrust::host_vector<real3> omegaLRF_H = omegaLRF_D;
-	thrust::host_vector<real3> ANCF_NodesH = ANCF_NodesD;
-	thrust::host_vector<real3> ANCF_SlopesH = ANCF_SlopesD;
-	thrust::host_vector<real3> ANCF_NodesVelH = ANCF_NodesVelD;
-	thrust::host_vector<real3> ANCF_SlopesVelH = ANCF_SlopesVelD;
 
-	thrust::device_vector<int2> ANCF_ReferenceArrayNodesOnBeams = ANCF_ReferenceArrayNodesOnBeamsD;
-//////-+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++com
-	ofstream fileNameFluid;
-	int stepSaveFluid = 200000;
-	if (tStep % stepSaveFluid == 0) {
-		if (tStep / stepSaveFluid == 0) {
-			fileNameFluid.open("dataFluid.txt");
-			fileNameFluid<<"variables = \"x\", \"y\", \"z\", \"Vx\", \"Vy\", \"Vz\", \"Velocity Magnitude\", \"Rho\", \"Pressure\", \"type\"\n";
-		} else {
-			fileNameFluid.open("dataFluid.txt", ios::app);
-		}
-
-		fileNameFluid<<"zone\n";
-		stringstream ssFluid;
-		for (int i = referenceArray[0].x; i < referenceArray[1].y; i++) {
-			real3 pos = posRadH[i];
-			real3 vel = R3(velMasH[i]);
-			real4 rP = rhoPresMuH[i];
-			real_ velMag = length(vel);
-			ssFluid<< pos.x<<", "<< pos.y<<", "<< pos.z<<", "<< vel.x<<", "<< vel.y<<", "<< vel.z<<", "<< velMag<<", "<< rP.x<<", "<< rP.y<<", "<< rP.w << endl;
-		}
-		fileNameFluid<<ssFluid.str();
-		fileNameFluid.close();
-	}
-////-+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-	ofstream fileNameRigidsSPH;
-	int stepSaveRigid = 10000;
-	///if (tStep % 20 == 0 && tStep > 56000) {
-	//if (tStep > 12506) {
-	if (tStep % stepSaveRigid == 0) {
-		if (tStep / stepSaveRigid == 0) {
-			fileNameRigidsSPH.open("dataRigidParticle.txt");
-			fileNameRigidsSPH<<"variables = \"x\", \"y\", \"z\", \"Vx\", \"Vy\", \"Vz\", \"Velocity Magnitude\", \"OmegaX\", \"OmegaY\", \"OmegaZ\", \"Rho\", \"Pressure\", \"bodySize\", \"type\"\n";
-
-//			fprintf(
-//					fileNameRigidsSPH,
-//					);
-		} else {
-			fileNameRigidsSPH.open("dataRigidParticle.txt", ios::app);
-		}
-		fileNameRigidsSPH<<"zone\n";
-		//fprintf(fileNameRigidsSPH, "zone\n");
-		stringstream ssRigidsSPH;
-		if (numRigidBodies > 0) {
-			const int numRigidBodies = posRigidH.size();
-			int startRigidParticle = (referenceArray[2]).x;
-
-			for (int i = startRigidParticle; i < referenceArray[2 + numRigidBodies - 1].y; i++) {
-				real3 pos = posRadH[i];
-				real3 vel = R3(velMasH[i]);
-				//printf("velocccc %f %f %f\n", vel.x, vel.y, vel.z);
-				real4 rP = rhoPresMuH[i];
-				real_ velMag = length(vel);
-				int rigidID = rigidIdentifierH[i - startRigidParticle];
-				real3 posRigid = posRigidH[rigidID];
-				real3 omega = omegaLRF_H[rigidID];
-				real_ fakeRad = 9;
-				ssRigidsSPH<<pos.x<<", "<< pos.y<<", "<< pos.z<<", "<<vel.x<<", "<<vel.y<<", "<< vel.z<<", "<< velMag<<", "<<omega.x<<", "<< omega.y<<", "<< omega.z<<", "<< rP.x<<", "<< rP.y<<", "<<fakeRad<<", "<< rP.w<<endl;
-
-//				fprintf(fileNameRigidsSPH, "%f, %f, %f, %f, %f, %f, %f, %f, %f, %f, %f, %f, %f, %f\n", pos.x, pos.y, pos.z, vel.x, vel.y, vel.z, velMag,
-//						omega.x, omega.y, omega.z, rP.x, rP.y, fakeRad, rP.w);
-			}
-		}
-		fileNameRigidsSPH<<ssRigidsSPH.str();
-		fileNameRigidsSPH.close();
-	//	fflush(fileNameRigidsSPH);
-		//fclose(fileNameRigidsSPH);
-	}
-//////-+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-	ofstream fileNameSlice;
-	int stepSaveFluidSlice = 50000; //1;//20000;
-	//if (tStep%100 == 0 &&  tStep > 20400) {
-	//if (tStep > 49100) {
-	if (tStep % stepSaveFluidSlice == 0) {
-		//if (tStep / stepSaveFluidSlice == 49101) {
-		if (tStep / stepSaveFluidSlice == 0) {
-			fileNameSlice.open("dataTotalSlice.txt");
-			fileNameSlice<<"variables = \"x\", \"y\", \"z\", \"Vx\", \"Vy\", \"Vz\", \"Velocity Magnitude\", \"Rho\", \"Pressure\", \"type\"\n";
-		} else {
-			fileNameSlice.open("dataTotalSlice.txt", ios::app);
-		}
-		fileNameSlice<<"zone\n";
-		stringstream ssSlice;
-		for (int i = referenceArray[0].x; i < referenceArray[referenceArray.size() - 1].y; i++) {
-			real3 posRad = posRadH[i];
-			real3 pos = posRad;
-			real_ rad = paramsH.HSML;
-			real3 vel = R3(velMasH[i]);
-			real4 rP = rhoPresMuH[i];
-			real_ velMag = length(vel);
-			if ((pos.y < paramsH.cMin.y + 0.5 * (paramsH.cMax.y - paramsH.cMin.y) + 3 * rad) && (pos.y > paramsH.cMin.y + 0.5 * (paramsH.cMax.y - paramsH.cMin.y) - 3 * rad)) {
-				ssSlice<< pos.x<<", "<< pos.y<<", "<< pos.z<<", "<< vel.x<<", "<< vel.y<<", "<< vel.z<<", "<< velMag<<", "<< rP.x<<", "<< rP.y<<", "<< rP.w<<endl;
-			}
-		}
-		fileNameSlice<<ssSlice.str();
-		fileNameSlice.close();
-	}
+// ######## the commented sections need to be fixed. you need cartesian data by calling SphSystemGpu.MapSPH_ToGrid
 ////////-+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++//comcom
 //	ofstream fileNameCartesianTotal;
 //	thrust::host_vector<real4> rho_Pres_CartH(1);
@@ -290,6 +166,145 @@ void PrintToFile(
 //		fileVelocityProfPoiseuille.close();
 //	}
 //	vel_VelMag_CartH.clear();
+//////////-+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++comcom
+
+
+	ofstream fileNameFluidParticles;
+	ofstream fileNameBoundaries;
+	ofstream fileNameFluidBoundaries;
+	ofstream fileNameRigidFlexBCE;
+
+	int tStepsPovFiles = 100;//2000;
+	if (tStep % tStepsPovFiles == 0) {
+#ifdef _WIN32
+			system("mkdir povFiles");
+#else
+			system("mkdir -p povFiles");
+#endif
+		if (tStep / tStepsPovFiles == 0) {
+					//linux. In windows, it is System instead of system (to invoke a command in the command line)
+			system("rm povFiles/*.csv");
+		}
+		char fileCounter[5];
+		int dumNumChar = sprintf(fileCounter, "%d", int(tStep / tStepsPovFiles) );
+
+		char nameFluid[255];
+		sprintf(nameFluid, "povFiles/fluid");
+		strcat(nameFluid, fileCounter);
+		strcat(nameFluid, ".csv");
+		char nameBoundary[255];
+		sprintf(nameBoundary, "povFiles/boundary");
+		strcat(nameBoundary, fileCounter);
+		strcat(nameBoundary, ".csv");
+		char nameFluidBoundaries[255];
+		sprintf(nameFluidBoundaries, "povFiles/fluid_boundary");
+		strcat(nameFluidBoundaries, fileCounter);
+		strcat(nameFluidBoundaries, ".csv");
+		char nameRigidFlexBCE[255];
+		sprintf(nameRigidFlexBCE, "povFiles/rigid_flex_BCE");
+		strcat(nameRigidFlexBCE, fileCounter);
+		strcat(nameRigidFlexBCE, ".csv");
+	//*****************************************************
+		fileNameFluidParticles.open(nameFluid);
+		stringstream ssFluidParticles;
+		for (int i = referenceArray[0].x; i < referenceArray[0].y; i++) {
+			real3 pos = posRadH[i];
+			real3 vel = R3(velMasH[i]);
+			real4 rP = rhoPresMuH[i];
+			real_ velMag = length(vel);
+			ssFluidParticles<< pos.x<<", "<< pos.y<<", "<< pos.z<<", "<< vel.x<<", "<< vel.y<<", "<< vel.z<<", "<< velMag<<", "<< rP.x<<", "<< rP.y<<", "<< rP.w<<", "<<endl;
+		}
+		fileNameFluidParticles<<ssFluidParticles.str();
+		fileNameFluidParticles.close();
+	//*****************************************************
+//		fileNameBoundaries.open(nameBoundary);
+//		stringstream ssBoundary;
+//		for (int i = referenceArray[1].x; i < referenceArray[1].y; i++) {
+//			real3 pos = posRadH[i];
+//			real3 vel = R3(velMasH[i]);
+//			real4 rP = rhoPresMuH[i];
+//			real_ velMag = length(vel);
+//			ssBoundary<<pos.x<<", "<< pos.y<<", "<< pos.z<<", "<< vel.x<<", "<< vel.y<<", "<< vel.z<<", "<< velMag<<", "<< rP.x<<", "<< rP.y<<", "<< rP.w<<", "<<endl;
+//		}
+//		fileNameBoundaries << ssBoundary.str();
+//		fileNameBoundaries.close();
+	//*****************************************************
+		fileNameFluidBoundaries.open(nameFluidBoundaries);
+		stringstream ssFluidBoundaryParticles;
+	//		ssFluidBoundaryParticles.precision(20);
+		for (int i = referenceArray[0].x; i < referenceArray[1].y; i++) {
+			real3 pos = posRadH[i];
+			real3 vel = R3(velMasH[i]);
+			real4 rP = rhoPresMuH[i];
+			real_ velMag = length(vel);
+			//if (pos.y > .0002 && pos.y < .0008)
+			ssFluidBoundaryParticles<< pos.x<<", "<< pos.y<<", "<< pos.z<<", "<< vel.x<<", "<< vel.y<<", "<< vel.z<<", "<< velMag<<", "<< rP.x<<", "<< rP.y<<", "<< rP.z<<", "<< rP.w<<", "<<endl;
+		}
+		fileNameFluidBoundaries<<ssFluidBoundaryParticles.str();
+		fileNameFluidBoundaries.close();
+	//*****************************************************
+		fileNameRigidFlexBCE.open(nameRigidFlexBCE);
+		stringstream ssRigidFlexBCE;
+		if (referenceArray.size() > 2) {
+			for (int i = referenceArray[2].x; i < referenceArray[referenceArray.size() - 1].y; i++) {
+				real3 pos = posRadH[i];
+				real3 vel = R3(velMasH[i]);
+				real4 rP = rhoPresMuH[i];
+				real_ velMag = length(vel);
+				ssRigidFlexBCE<< pos.x<<", "<< pos.y<<", "<< pos.z<<", "<< vel.x<<", "<< vel.y<<", "<< vel.z<<", "<< velMag<<", "<< rP.x<<", "<< rP.y<<", "<< rP.z<<", "<< rP.w<<", "<<endl;
+			}
+		}
+		fileNameRigidFlexBCE<<ssRigidFlexBCE.str();
+		fileNameRigidFlexBCE.close();
+	//*****************************************************
+	}
+	posRadH.clear();
+	velMasH.clear();
+	rhoPresMuH.clear();
+}
+
+//*******************************************************************************************************************************
+void PrintToFile_RigidFlex(
+		const thrust::device_vector<real4> & velMasD,
+		const thrust::host_vector<int3> & referenceArray,
+		const thrust::device_vector<int> & rigidIdentifierD,
+		const thrust::device_vector<real3> & posRigidD,
+		const thrust::device_vector<real3> & posRigidCumulativeD,
+		const thrust::device_vector<real4> & velMassRigidD,
+		const thrust::device_vector<real4> & qD1,
+		const thrust::device_vector<real3> & AD1,
+		const thrust::device_vector<real3> & AD2,
+		const thrust::device_vector<real3> & AD3,
+		const thrust::device_vector<real3> & omegaLRF_D,
+
+		const thrust::device_vector<real3> & ANCF_NodesD,
+		const thrust::device_vector<real3> & ANCF_SlopesD,
+		const thrust::device_vector<real3> & ANCF_NodesVelD,
+		const thrust::device_vector<real3> & ANCF_SlopesVelD,
+		const thrust::device_vector<int2> & ANCF_ReferenceArrayNodesOnBeamsD,
+
+		const SimParams paramsH,
+		const real_ realTime,
+		int tStep,
+		const real_ channelRadius,
+		const real2 channelCenterYZ,
+		const int numRigidBodies,
+		const int numFlexBodies) {
+
+	thrust::host_vector<real4> velMasH = velMasD;
+	thrust::host_vector<int> rigidIdentifierH = rigidIdentifierD;
+	thrust::host_vector<real3> posRigidH = posRigidD;
+	thrust::host_vector<real3> posRigidCumulativeH = posRigidCumulativeD;
+	thrust::host_vector<real4> velMassRigidH = velMassRigidD;
+	thrust::host_vector<real4> qH1 = qD1;
+	thrust::host_vector<real3> omegaLRF_H = omegaLRF_D;
+	thrust::host_vector<real3> ANCF_NodesH = ANCF_NodesD;
+	thrust::host_vector<real3> ANCF_SlopesH = ANCF_SlopesD;
+	thrust::host_vector<real3> ANCF_NodesVelH = ANCF_NodesVelD;
+	thrust::host_vector<real3> ANCF_SlopesVelH = ANCF_SlopesVelD;
+
+	thrust::device_vector<int2> ANCF_ReferenceArrayNodesOnBeams = ANCF_ReferenceArrayNodesOnBeamsD;
+
 //////-+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 	ofstream fileRigidParticleCenterVsTimeAndDistance;
 	int numRigidBodiesInOnePeriod = int(posRigidH.size() / real_(paramsH.nPeriod) + .5);
@@ -359,16 +374,10 @@ void PrintToFile(
 	if (tStep % tFlexTipPos == 0) {
 		if (tStep / tFlexTipPos == 0) {
 			flexTipPos.open("dataFlexTip.txt");
-			flexTipPos<<"(t, x, y, z, vx, vy, vz, vCx, vCy, vCz, thetaX_tip, thetaY_tip, thetaZ_tip, fluidVelocity\n" << endl;
+			flexTipPos<<"(t, x, y, z, vx, vy, vz, vCx, vCy, vCz, thetaX_tip, thetaY_tip, thetaZ_tip\n" << endl;
 		} else {
 			flexTipPos.open("dataFlexTip.txt", ios::app);
 		}
-
-		real4 sumVelocity = R4(0);
-		real4 initSumR4 = R4(0);
-		sumVelocity = thrust::reduce(velMasD.begin() + referenceArray[0].x, velMasD.begin() + referenceArray[0].y, initSumR4, thrust::plus<real4>());
-		real3 aveVel = R3(sumVelocity / (referenceArray[0].y - referenceArray[0].x));
-
 		stringstream ssBeamTipVsTime;
 		if (numFlexBodies > 0) {
 			for (int j = 0; j < numFlexBodiesInOnePeriod; j++) {
@@ -387,8 +396,7 @@ void PrintToFile(
 						p_tip.x << ", " << p_tip.y << ", " << p_tip.z << ", " <<
 						v_tip.x << ", " << v_tip.y << ", " << v_tip.z << ", " <<
 						v_C.x << ", " << v_C.y << ", " << v_C.z << ", " <<
-						thetaX << ", " << thetaY << ", " << thetaZ << ", " <<
-						length(aveVel) << ", ";
+						thetaX << ", " << thetaY << ", " << thetaZ << ", ";
 			}
 			ssBeamTipVsTime<<endl;
 		}
@@ -396,178 +404,65 @@ void PrintToFile(
 		flexTipPos.close();
 	}
 //////-+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-//		ofstream fileRigidParticlesDataForTecplot;
-//		int tStepRigidParticlesDataForTecplot = 1000;
-//		if (tStep % tStepRigidParticlesDataForTecplot == 0) {
-//			if (tStep / tStepRigidParticlesDataForTecplot == 0) {
-//				fileRigidParticlesDataForTecplot.open("dataRigidParticlesDataForTecplot.txt");
-//				fileRigidParticlesDataForTecplot<<"PipeRadius, PipeLength\n";
-//				fileRigidParticlesDataForTecplot<<	channelRadius <<", "<< paramsH.cMax.x - paramsH.cMin.x<<", "<< posRigidH.size()<<endl;
-//				fileRigidParticlesDataForTecplot<<"variables = \"t(s)\", \"x\", \"y\", \"z\", \"r\", \"CumulX\", \"vX\", \"vY\", \"vZ\", \"velMagnitude\", \"angleAxisXWithPipeAxis\", \"angleAxisYWithPipeAxis\", \"angleAxisZWithPipeAxis\"\n";
-//			} else {
-//				fileRigidParticlesDataForTecplot.open("dataRigidParticlesDataForTecplot.txt", ios::app);
-//			}
-//			fileRigidParticlesDataForTecplot<<"zone\n";
-//			stringstream ssRigidParticlesDataForTecplot;
-//			for (int j = 0; j < posRigidH.size(); j++) {
-//				real3 p_rigid = posRigidH[j];
-//
-//				//rotate the principal axis
-//				real3 aD1 = AD1[j];
-//				real3 aD2 = AD2[j];
-//				real3 aD3 = AD3[j];
-//				real3 axisX = R3(aD1.x, aD2.x, aD3.x);
-//				real3 axisY = R3(aD1.y, aD2.y, aD3.y);
-//				real3 axisZ = R3(aD1.z, aD2.z, aD3.z);
-//
-//				real4 q_rigid = qH1[j];
-//				real3 p_rigidCumul = posRigidCumulativeH[j];
-//				real3 v_rigid = R3(velMassRigidH[j]);
-//				real2 dist2 = R2(channelCenterYZ.x - p_rigid.y, channelCenterYZ.y - p_rigid.z);
-//				real_ angleAxisXWithPipeAxis = AngleF3F3(axisX, R3(1, 0, 0));
-//				real_ angleAxisYWithPipeAxis = AngleF3F3(axisY, R3(1, 0, 0));
-//				real_ angleAxisZWithPipeAxis = AngleF3F3(axisZ, R3(1, 0, 0));
-//
-//				ssRigidParticlesDataForTecplot<< realTime <<", "<<p_rigid.x<<", "<<p_rigid.y<<", "<<p_rigid.z<<", "<<length(dist2) / channelRadius<<", "<<p_rigidCumul.x<<", "<<v_rigid.x<<", "<<v_rigid.y<<", "<<v_rigid.z<<", "<<length(v_rigid)<<", "<<angleAxisXWithPipeAxis<<", "<<angleAxisYWithPipeAxis<<", "<<angleAxisZWithPipeAxis<<endl;
-//			}
-//			fileRigidParticlesDataForTecplot << ssRigidParticlesDataForTecplot.str();
-//			fileRigidParticlesDataForTecplot.close();
-//		}
-//////-+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++com
-		ofstream fileNameRigidBodies;
-		ofstream fileNameFlexBodies;
-		ofstream fileNameFluidParticles;
-		ofstream fileNameBoundaries;
-		ofstream fileNameFluidBoundaries;
-		ofstream fileNameRigidFlexBCE;
+	ofstream fileNameRigidBodies;
+	ofstream fileNameFlexBodies;
 
-		int tStepsPovFiles = 1000;//2000;
+	int tStepsPovFiles = 100;//2000;
+	if (tStep % tStepsPovFiles == 0) {
 
-//		if (tStep > 1000) tStepsPovFiles = 2;
-		if (tStep % tStepsPovFiles == 0) {
 #ifdef _WIN32
 			system("mkdir povFiles");
 #else
 			system("mkdir -p povFiles");
 #endif
-			if (tStep / tStepsPovFiles == 0) {
-						//linux. In windows, it is System instead of system (to invoke a command in the command line)
-				system("rm povFiles/*.csv");
-			}
-			char fileCounter[5];
-			int dumNumChar = sprintf(fileCounter, "%d", int(tStep / tStepsPovFiles) );
-
-			char nameRigid[255];
-			sprintf(nameRigid, "povFiles/rigid");
-			strcat(nameRigid, fileCounter);
-			strcat(nameRigid, ".csv");
-			char nameFlex[255];
-			sprintf(nameFlex, "povFiles/flex");
-			strcat(nameFlex, fileCounter);
-			strcat(nameFlex, ".csv");
-			char nameFluid[255];
-			sprintf(nameFluid, "povFiles/fluid");
-			strcat(nameFluid, fileCounter);
-			strcat(nameFluid, ".csv");
-			char nameBoundary[255];
-			sprintf(nameBoundary, "povFiles/boundary");
-			strcat(nameBoundary, fileCounter);
-			strcat(nameBoundary, ".csv");
-			char nameFluidBoundaries[255];
-			sprintf(nameFluidBoundaries, "povFiles/fluid_boundary");
-			strcat(nameFluidBoundaries, fileCounter);
-			strcat(nameFluidBoundaries, ".csv");
-			char nameRigidFlexBCE[255];
-			sprintf(nameRigidFlexBCE, "povFiles/rigid_flex_BCE");
-			strcat(nameRigidFlexBCE, fileCounter);
-			strcat(nameRigidFlexBCE, ".csv");
-//*****************************************************
-			fileNameRigidBodies.open(nameRigid);
-			stringstream ssRigidBodies;
-			if (numRigidBodies > 0) {
-				for (int j = 0; j < numRigidBodies; j++) {
-					real3 p_rigid = posRigidH[j];
-					real4 q_rigid = qH1[j];
-					real4 velMassRigid = velMassRigidH[j];
-					ssRigidBodies<<p_rigid.x<<", "<< p_rigid.y<<", "<< p_rigid.z<<", "<< velMassRigid.x << ", " <<  velMassRigid.y << ", " <<  velMassRigid.z <<", "<< length(R3(velMassRigid)) <<  ", "<< length(R3(velMassRigid)) << ", "<< q_rigid.x<<", "<< q_rigid.y<<", "<< q_rigid.z<<", "<< q_rigid.w<<", "<<endl;
-				}
-			}
-			fileNameRigidBodies << ssRigidBodies.str();
-			fileNameRigidBodies.close();
-//*****************************************************
-			fileNameFlexBodies.open(nameFlex);
-			stringstream ssFlexBodies;
-			const int numFlexNodes = ANCF_NodesD.size();
-			if (numFlexNodes > 0) {
-				for (int j = 0; j < numFlexNodes; j++) {
-					real3 nodePos = ANCF_NodesD[j];
-					real3 nodeSlo = ANCF_SlopesD[j];
-					real3 nodeVel = ANCF_NodesVelD[j];
-					real3 nodeSloVel = ANCF_SlopesVelD[j];
-					ssFlexBodies << nodePos.x<<", "<< nodePos.y<<", "<< nodePos.z<<", " << nodeSlo.x<<", "<< nodeSlo.y<<", "<< nodeSlo.z<<", "
-							<< nodeVel.x << ", " <<  nodeVel.y << ", " <<  nodeVel.z <<", "<< nodeSloVel.x << ", " <<  nodeSloVel.y << ", " <<  nodeSloVel.z <<", ";
-				}
-				ssFlexBodies<<endl;
-			}
-			fileNameFlexBodies << ssFlexBodies.str();
-			fileNameFlexBodies.close();
-//*****************************************************
-			fileNameFluidParticles.open(nameFluid);
-			stringstream ssFluidParticles;
-			for (int i = referenceArray[0].x; i < referenceArray[0].y; i++) {
-				real3 pos = posRadH[i];
-				real3 vel = R3(velMasH[i]);
-				real4 rP = rhoPresMuH[i];
-				real_ velMag = length(vel);
-				ssFluidParticles<< pos.x<<", "<< pos.y<<", "<< pos.z<<", "<< vel.x<<", "<< vel.y<<", "<< vel.z<<", "<< velMag<<", "<< rP.x<<", "<< rP.y<<", "<< rP.w<<", "<<endl;
-			}
-			fileNameFluidParticles<<ssFluidParticles.str();
-			fileNameFluidParticles.close();
-//*****************************************************
-//			fileNameBoundaries.open(nameBoundary);
-//			stringstream ssBoundary;
-//			for (int i = referenceArray[1].x; i < referenceArray[1].y; i++) {
-//				real3 pos = posRadH[i];
-//				real3 vel = R3(velMasH[i]);
-//				real4 rP = rhoPresMuH[i];
-//				real_ velMag = length(vel);
-//				ssBoundary<<pos.x<<", "<< pos.y<<", "<< pos.z<<", "<< vel.x<<", "<< vel.y<<", "<< vel.z<<", "<< velMag<<", "<< rP.x<<", "<< rP.y<<", "<< rP.w<<", "<<endl;
-//			}
-//			fileNameBoundaries << ssBoundary.str();
-//			fileNameBoundaries.close();
-//*****************************************************
-			fileNameFluidBoundaries.open(nameFluidBoundaries);
-			stringstream ssFluidBoundaryParticles;
-	//		ssFluidBoundaryParticles.precision(20);
-			for (int i = referenceArray[0].x; i < referenceArray[1].y; i++) {
-				real3 pos = posRadH[i];
-				real3 vel = R3(velMasH[i]);
-				real4 rP = rhoPresMuH[i];
-				real_ velMag = length(vel);
-				//if (pos.y > .0002 && pos.y < .0008)
-				ssFluidBoundaryParticles<< pos.x<<", "<< pos.y<<", "<< pos.z<<", "<< vel.x<<", "<< vel.y<<", "<< vel.z<<", "<< velMag<<", "<< rP.x<<", "<< rP.y<<", "<< rP.z<<", "<< rP.w<<", "<<endl;
-			}
-			fileNameFluidBoundaries<<ssFluidBoundaryParticles.str();
-			fileNameFluidBoundaries.close();
-//*****************************************************
-			fileNameRigidFlexBCE.open(nameRigidFlexBCE);
-			stringstream ssRigidFlexBCE;
-			if (referenceArray.size() > 2) {
-				for (int i = referenceArray[2].x; i < referenceArray[referenceArray.size() - 1].y; i++) {
-					real3 pos = posRadH[i];
-					real3 vel = R3(velMasH[i]);
-					real4 rP = rhoPresMuH[i];
-					real_ velMag = length(vel);
-					ssRigidFlexBCE<< pos.x<<", "<< pos.y<<", "<< pos.z<<", "<< vel.x<<", "<< vel.y<<", "<< vel.z<<", "<< velMag<<", "<< rP.x<<", "<< rP.y<<", "<< rP.z<<", "<< rP.w<<", "<<endl;
-				}
-			}
-			fileNameRigidFlexBCE<<ssRigidFlexBCE.str();
-			fileNameRigidFlexBCE.close();
-//*****************************************************
+		if (tStep / tStepsPovFiles == 0) {
+					//linux. In windows, it is System instead of system (to invoke a command in the command line)
+			system("rm povFiles/*.csv");
 		}
-	posRadH.clear();
+		char fileCounter[5];
+		int dumNumChar = sprintf(fileCounter, "%d", int(tStep / tStepsPovFiles) );
+
+		char nameRigid[255];
+		sprintf(nameRigid, "povFiles/rigid");
+		strcat(nameRigid, fileCounter);
+		strcat(nameRigid, ".csv");
+		char nameFlex[255];
+		sprintf(nameFlex, "povFiles/flex");
+		strcat(nameFlex, fileCounter);
+		strcat(nameFlex, ".csv");
+//*****************************************************
+		fileNameRigidBodies.open(nameRigid);
+		stringstream ssRigidBodies;
+		if (numRigidBodies > 0) {
+			for (int j = 0; j < numRigidBodies; j++) {
+				real3 p_rigid = posRigidH[j];
+				real4 q_rigid = qH1[j];
+				real4 velMassRigid = velMassRigidH[j];
+				ssRigidBodies<<p_rigid.x<<", "<< p_rigid.y<<", "<< p_rigid.z<<", "<< velMassRigid.x << ", " <<  velMassRigid.y << ", " <<  velMassRigid.z <<", "<< length(R3(velMassRigid)) <<  ", "<< length(R3(velMassRigid)) << ", "<< q_rigid.x<<", "<< q_rigid.y<<", "<< q_rigid.z<<", "<< q_rigid.w<<", "<<endl;
+			}
+		}
+		fileNameRigidBodies << ssRigidBodies.str();
+		fileNameRigidBodies.close();
+//*****************************************************
+		fileNameFlexBodies.open(nameFlex);
+		stringstream ssFlexBodies;
+		const int numFlexNodes = ANCF_NodesD.size();
+		if (numFlexNodes > 0) {
+			for (int j = 0; j < numFlexNodes; j++) {
+				real3 nodePos = ANCF_NodesD[j];
+				real3 nodeSlo = ANCF_SlopesD[j];
+				real3 nodeVel = ANCF_NodesVelD[j];
+				real3 nodeSloVel = ANCF_SlopesVelD[j];
+				ssFlexBodies << nodePos.x<<", "<< nodePos.y<<", "<< nodePos.z<<", " << nodeSlo.x<<", "<< nodeSlo.y<<", "<< nodeSlo.z<<", "
+						<< nodeVel.x << ", " <<  nodeVel.y << ", " <<  nodeVel.z <<", "<< nodeSloVel.x << ", " <<  nodeSloVel.y << ", " <<  nodeSloVel.z <<", ";
+			}
+			ssFlexBodies<<endl;
+		}
+		fileNameFlexBodies << ssFlexBodies.str();
+		fileNameFlexBodies.close();
+//*****************************************************
+	}
 	velMasH.clear();
-	rhoPresMuH.clear();
 	rigidIdentifierH.clear();
 	posRigidH.clear();
 	posRigidCumulativeH.clear();
@@ -582,6 +477,48 @@ void PrintToFile(
 }
 
 //*******************************************************************************************************************************
+
+void PrintToFile(
+		const thrust::device_vector<real3> & posRadD,
+		const thrust::device_vector<real4> & velMasD,
+		const thrust::device_vector<real4> & rhoPresMuD,
+		const thrust::host_vector<int3> & referenceArray,
+		const thrust::device_vector<int> & rigidIdentifierD,
+		const thrust::device_vector<real3> & posRigidD,
+		const thrust::device_vector<real3> & posRigidCumulativeD,
+		const thrust::device_vector<real4> & velMassRigidD,
+		const thrust::device_vector<real4> & qD1,
+		const thrust::device_vector<real3> & AD1,
+		const thrust::device_vector<real3> & AD2,
+		const thrust::device_vector<real3> & AD3,
+		const thrust::device_vector<real3> & omegaLRF_D,
+
+		const thrust::device_vector<real3> & ANCF_NodesD,
+		const thrust::device_vector<real3> & ANCF_SlopesD,
+		const thrust::device_vector<real3> & ANCF_NodesVelD,
+		const thrust::device_vector<real3> & ANCF_SlopesVelD,
+		const thrust::device_vector<int2> & ANCF_ReferenceArrayNodesOnBeamsD,
+
+		const SimParams paramsH,
+		const real_ realTime,
+		int tStep,
+		const real_ channelRadius,
+		const real2 channelCenterYZ,
+		const int numRigidBodies,
+		const int numFlexBodies) {
+	// print fluid stuff
+	PrintToFile_SPH(posRadD, velMasD, rhoPresMuD, referenceArray, paramsH, realTime, tStep);
+
+	// print rigid stuff
+	PrintToFile_RigidFlex(velMasD, referenceArray,
+			rigidIdentifierD, posRigidD, posRigidCumulativeD, velMassRigidD,
+			qD1, AD1, AD2, AD3, omegaLRF_D,
+			ANCF_NodesD, ANCF_SlopesD, ANCF_NodesVelD, ANCF_SlopesVelD, ANCF_ReferenceArrayNodesOnBeamsD,
+			paramsH, realTime, tStep, channelRadius, channelCenterYZ, numRigidBodies, numFlexBodies);
+}
+//*******************************************************************************************************************************
+
+
 void PrintToFileDistribution(
 		thrust::device_vector<int> & distributionD,
 		real_ channelRadius,
