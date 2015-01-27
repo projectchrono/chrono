@@ -24,10 +24,10 @@ namespace utils {
 
 
 // -----------------------------------------------------------------------------
-// Functions for manipulating the ChronoT data directory
+// Functions for manipulating the track_data data directory
 // -----------------------------------------------------------------------------
 
-static std::string model_data_path("../data/");
+static std::string model_data_path("../data/track_data/");
 
 // Set the path to the ChronoT model data directory (ATTENTION: not thread safe)
 void SetModelDataPath(const std::string& path)
