@@ -49,7 +49,7 @@ public:
 
   TrackVehicle(const std::string& name,
     VisualizationType chassisVis = VisualizationType::PRIMITIVES,
-    CollisionType chassisCollide = CollisionType::PRIMITIVES);
+    CollisionType chassisCollide = CollisionType::NONE);
 
   ~TrackVehicle();
 
