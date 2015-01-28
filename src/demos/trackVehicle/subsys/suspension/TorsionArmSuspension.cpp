@@ -41,9 +41,9 @@ const double TorsionArmSuspension::m_wheelWidth = 0.16;  // [m]
 const double TorsionArmSuspension::m_wheelWidthGap = 0.03;  // inner gap between outer cylinders .038?
 const double TorsionArmSuspension::m_wheelRadius = 0.305; // [m]
 const ChVector<> TorsionArmSuspension::m_wheel_Pos(-0.2034, -0.2271, 0.24475); // loc of right wheel COG in the local c-sys
-const double TorsionArmSuspension::m_springK = 10000;	// torsional spring constant [N-m/rad]
-const double TorsionArmSuspension::m_springC = 100;	// torsional damping constant [N-m-s/rad]
-const double TorsionArmSuspension::m_TorquePreload = 10.0;  // torque preload [N-m]
+const double TorsionArmSuspension::m_springK = 20000;	// torsional spring constant [N-m/rad]
+const double TorsionArmSuspension::m_springC = 200;	// torsional damping constant [N-m-s/rad]
+const double TorsionArmSuspension::m_TorquePreload = 1000.0;  // torque preload [N-m]
 
 TorsionArmSuspension::TorsionArmSuspension(const std::string& name,
                                            VisualizationType vis,
@@ -106,6 +106,7 @@ void TorsionArmSuspension::Create(const std::string& name)
   m_rot_spring->Set_active(1);
   m_rot_spring->Set_K(m_springK);
   m_rot_spring->Set_R(m_springC);
+  m_rot_spring->Set_iforce(m_TorquePreload);
 
   // if we're using a custom spring...
   if(m_use_custom_spring)
@@ -129,7 +130,9 @@ void TorsionArmSuspension::Initialize(ChSharedPtr<ChBodyAuxRef> chassis,
 {
   // correct armpin to wheel distance for left/right sides
   if(local_Csys.pos.z < 0)
+  {
     m_wheel_PosRel.z *= -1;
+  }
 
   // add collision geometry, for the wheel
   AddCollisionGeometry();
@@ -204,16 +207,18 @@ void TorsionArmSuspension::AddVisualization()
   case VisualizationType::PRIMITIVES:
   {
     // define the wheel as two concentric cylinders with a gap
-    ChSharedPtr<ChCylinderShape> cyl(new ChCylinderShape);
-    cyl->GetCylinderGeometry().p1 = ChVector<>(0, 0, m_wheelWidth/2.0);
-    cyl->GetCylinderGeometry().p2 = ChVector<>(0, 0, m_wheelWidthGap/2.0);
-    cyl->GetCylinderGeometry().rad = m_wheelRadius;
-    m_wheel->AddAsset(cyl);
+    ChSharedPtr<ChCylinderShape> cylA(new ChCylinderShape);
+    cylA->GetCylinderGeometry().p1 = ChVector<>(0, 0, m_wheelWidth/2.0);
+    cylA->GetCylinderGeometry().p2 = ChVector<>(0, 0, m_wheelWidthGap/2.0);
+    cylA->GetCylinderGeometry().rad = m_wheelRadius;
+    m_wheel->AddAsset(cylA);
 
     // second cylinder is a mirror of the first
-    cyl->GetCylinderGeometry().p1.z = -m_wheelWidth/2.0;
-    cyl->GetCylinderGeometry().p2.z = -m_wheelWidthGap/2.0;
-    m_wheel->AddAsset(cyl);
+    ChSharedPtr<ChCylinderShape> cylB(new ChCylinderShape);
+    cylB->GetCylinderGeometry().p1 = ChVector<>(0, 0, -m_wheelWidth/2.0);
+    cylB->GetCylinderGeometry().p2 = ChVector<>(0, 0, -m_wheelWidthGap/2.0);
+    cylB ->GetCylinderGeometry().rad = m_wheelRadius;
+    m_wheel->AddAsset(cylB);
 
     // put a texture on the wheel
     ChSharedPtr<ChTexture> tex(new ChTexture);
