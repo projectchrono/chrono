@@ -273,14 +273,47 @@ void TrackChain::AddVisualization(size_t track_idx)
   switch (m_vis) {
   case VisualizationType::PRIMITIVES:
   {
+
+    // color the boxes and cylinders differently
+    ChSharedPtr<ChAssetLevel> boxLevel(new ChAssetLevel);
+    ChSharedPtr<ChAssetLevel> pinLevel(new ChAssetLevel);
+
     // shoes will be added to the same collision family so self-collision can be toggled
     ChSharedPtr<ChBoxShape> box(new ChBoxShape);
-    box->GetBoxGeometry().SetLengths(2.0 * m_shoe_box);  // use full distances w/ assets
-    m_shoes[track_idx]->AddAsset(box);
+    box->GetBoxGeometry().SetLengths(m_shoe_box);  // use full distances w/ assets
+    boxLevel->AddAsset(box);
 
-    ChSharedPtr<ChTexture> tex(new ChTexture);
-    tex->SetTextureFilename(GetChronoDataFile("bluwhite.png"));
-    m_shoes[track_idx]->AddAsset(tex);
+    // add a color to the shoes
+    ChSharedPtr<ChTexture> box_tex(new ChTexture);
+    if( track_idx % 2 == 0)
+      box_tex->SetTextureFilename(GetChronoDataFile("blu.png"));
+    else
+      box_tex->SetTextureFilename(GetChronoDataFile("concrete.jpg"));
+    boxLevel->AddAsset(box_tex);
+
+    // finally, add the box asset level to the shoe
+    m_shoes[track_idx]->AddAsset(boxLevel);
+    
+    // add the pin as a single cylinder
+    double pin_offset = -0.07581;
+    ChSharedPtr<ChCylinderShape> pin(new ChCylinderShape);
+    pin->GetCylinderGeometry().p1 = ChVector<>(pin_offset, 0, m_pin_width/2.0);
+    pin->GetCylinderGeometry().p2 = ChVector<>(pin_offset, 0, -m_pin_width/2.0);
+    pin->GetCylinderGeometry().rad = m_pin_radius;
+    pinLevel->AddAsset(pin);
+
+    // add a color to the pin
+    ChSharedPtr<ChColorAsset> pinCol(new ChColorAsset);
+    // blue, or grey
+    if( track_idx % 2 == 0)
+      pinCol->SetColor(ChColor(0.3f, 0.3f, 0.7f));
+    else
+      pinCol->SetColor(ChColor(0.2f, 0.2f, 0.2f ));
+
+    pinLevel->AddAsset(pinCol);
+
+    //finally, add the pin asset level to the shoe
+    m_shoes[track_idx]->AddAsset(pinLevel);
 
     break;
   }
