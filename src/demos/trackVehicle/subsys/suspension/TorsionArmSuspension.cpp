@@ -25,6 +25,7 @@
 #include "assets/ChTriangleMeshShape.h"
 #include "assets/ChTexture.h"
 #include "assets/ChColorAsset.h"
+#include "physics/ChFunction.h"
 
 
 namespace chrono {
@@ -130,25 +131,31 @@ void TorsionArmSuspension::Initialize(ChSharedPtr<ChBodyAuxRef> chassis,
   if(local_Csys.pos.z < 0)
     m_wheel_PosRel.z *= -1;
 
-  // add collision geometry
+  // add collision geometry, for the wheel
   AddCollisionGeometry();
 
   // Express the revolute joint location in the absolute coordinate system.
-  ChFrame<> rev_loc_to_abs(local_Csys);
-  rev_loc_to_abs.ConcatenatePreTransformation(chassis->GetFrame_REF_to_abs());
+  ChFrame<> pin1_abs(local_Csys);
+  pin1_abs.ConcatenatePreTransformation(chassis->GetFrame_REF_to_abs());
 
-  // wheel is offset from local csys, in local coordinates
-  ChFrame<> wheel_pos_loc(local_Csys);
-  wheel_pos_loc.SetPos(local_Csys.pos + GetWheelPosRel());
-  ChFrame<> wheel_to_abs(wheel_pos_loc);
-  wheel_to_abs.ConcatenatePreTransformation(chassis->GetFrame_REF_to_abs());
+  // wheel COM frame, absoluate c-sys
+  ChFrame<> wheel_COG_abs(local_Csys.pos + GetWheelPosRel(), local_Csys.rot);
+  wheel_COG_abs.ConcatenatePreTransformation(chassis->GetFrame_REF_to_abs());
 
-  // arm COG is between these two points.
-  m_arm->SetPos( (rev_loc_to_abs.GetPos() + wheel_to_abs.GetPos() )/2.0 );
+  // arm COG is between the two pin locastions on the arm
+  ChFrame<> pin2_abs(local_Csys);
+  // second pin on arm is not offset in the lateral direction
+  ChVector<> arm_rel(GetWheelPosRel());
+  arm_rel.z = 0;
+  pin2_abs.SetPos(local_Csys.pos + arm_rel);
+  pin2_abs.ConcatenatePreTransformation(chassis->GetFrame_REF_to_abs());
+
+  m_arm->SetPos( (pin1_abs.GetPos() + pin2_abs.GetPos())/2.0 );
+
   // y-axis should point along length of arm, according to inertia tensor
-  ChVector<> v = (rev_loc_to_abs.GetPos()-wheel_to_abs.GetPos()).GetNormalized();
+  ChVector<> v = (pin2_abs.GetPos()-pin1_abs.GetPos()).GetNormalized();
   // use the z-axis from the wheel frame
-  ChVector<> w = (wheel_to_abs.GetRot().GetZaxis()).GetNormalized();
+  ChVector<> w = (pin1_abs.GetRot().GetZaxis()).GetNormalized();
   ChVector<> u = Vcross(v, w);
   u.Normalize();
   ChMatrix33<> rot;
@@ -160,19 +167,32 @@ void TorsionArmSuspension::Initialize(ChSharedPtr<ChBodyAuxRef> chassis,
   chassis->GetSystem()->Add(m_arm);
 
   // set the wheel in the correct position.
-  m_wheel->SetPos(wheel_to_abs.GetPos());
+  m_wheel->SetPos(wheel_COG_abs.GetPos());
   // inertia and visual assets have wheel width along z-axis locally.
   // No need to rotate the wheel.
-  m_wheel->SetRot(wheel_to_abs.GetRot());
+  m_wheel->SetRot(wheel_COG_abs.GetRot());
   chassis->GetSystem()->Add(m_wheel);
 
   // init and add the revolute joints
   // arm-chassis, z-axis is already in the lateral direction
-  m_armChassis_rev->Initialize(m_arm, chassis, ChCoordsys<>(rev_loc_to_abs.GetPos(), rev_loc_to_abs.GetRot()) );
+  m_armChassis_rev->Initialize(m_arm, chassis, 
+    ChCoordsys<>(pin1_abs.GetPos(), pin1_abs.GetRot()) );
   // init and finish setting up the torsional spring, since it's part of this revolute constraint
   chassis->GetSystem()->AddLink(m_armChassis_rev);
+
   // wheel-arm, z-axis is already in the lateral direction
-  m_armWheel_rev->Initialize(m_wheel, m_arm, ChCoordsys<>(wheel_to_abs.GetPos(), wheel_to_abs.GetRot()) );
+  
+  // TODO: figure out how to have a non-zero, constant, lateral (z-dir) offset (to calculate rxn. forces correctly)
+  //      For now, just use the point in the middle of pin2 and wheel COG.
+  ChVector<> rev_pos_abs = (wheel_COG_abs.GetPos() - pin2_abs.GetPos())/2.0 + pin2_abs.GetPos();
+  m_armWheel_rev->Initialize(m_wheel, m_arm, ChCoordsys<>(rev_pos_abs, wheel_COG_abs.GetRot()) );
+  /*
+  m_armWheel_rev->Initialize(m_wheel, m_arm, true, 
+    ChCoordsys<>(ChVector<>(), QUNIT), 
+    ChCoordsys<>(ChVector<>(0, arm_rel.Length()/2.0 ,0), QUNIT) );
+  ChSharedPtr<ChFunction_Const> z_func(new ChFunction_Const(abs(GetWheelPosRel().z) ));
+  m_armWheel_rev->SetMotion_Z(z_func.get_ptr());
+  */
   chassis->GetSystem()->AddLink(m_armWheel_rev);
 }
 
