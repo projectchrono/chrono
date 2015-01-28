@@ -33,7 +33,7 @@ namespace chrono {
 // static variables
 const double TorsionArmSuspension::m_armMass = 75.26; // [kg]
 const ChVector<> TorsionArmSuspension::m_armInertia(0.77, 0.37, 0.77);  // [kg-m2]
-const double TorsionArmSuspension::m_armRadius = 0.1; // [m]
+const double TorsionArmSuspension::m_armRadius = 0.05; // [m]
 
 const double TorsionArmSuspension::m_wheelMass = 561.1; // [kg]
 const ChVector<> TorsionArmSuspension::m_wheelInertia(19.82, 19.82, 26.06); // [kg-m2]
