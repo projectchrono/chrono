@@ -59,6 +59,7 @@ void ChLcpSolverParallelDVI::RunTimeStep(real step)
 
   ComputeD();
   ComputeE();
+  ComputeR();
 
   // solve for the normal
   if (data_container->settings.solver.solver_mode == NORMAL || data_container->settings.solver.solver_mode == SLIDING || data_container->settings.solver.solver_mode == SPINNING) {
@@ -67,7 +68,6 @@ void ChLcpSolverParallelDVI::RunTimeStep(real step)
       rigid_rigid.solve_sliding = false;
       rigid_rigid.solve_spinning = false;
       data_container->settings.solver.local_solver_mode = NORMAL;
-      ComputeR();
       data_container->system_timer.start("ChLcpSolverParallel_Solve");
       PerformStabilization();
       solver->Solve();
@@ -80,7 +80,6 @@ void ChLcpSolverParallelDVI::RunTimeStep(real step)
       rigid_rigid.solve_sliding = true;
       rigid_rigid.solve_spinning = false;
       data_container->settings.solver.local_solver_mode = SLIDING;
-      ComputeR();
       data_container->system_timer.start("ChLcpSolverParallel_Solve");
       PerformStabilization();
       solver->Solve();
@@ -93,7 +92,6 @@ void ChLcpSolverParallelDVI::RunTimeStep(real step)
       rigid_rigid.solve_sliding = true;
       rigid_rigid.solve_spinning = true;
       data_container->settings.solver.local_solver_mode = SPINNING;
-      ComputeR();
       data_container->system_timer.start("ChLcpSolverParallel_Solve");
       PerformStabilization();
       solver->Solve();
