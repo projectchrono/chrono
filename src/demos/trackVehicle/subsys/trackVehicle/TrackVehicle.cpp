@@ -47,20 +47,20 @@ namespace chrono {
   
   
 const size_t TrackVehicle::m_num_tracks = 2;    // number of trackSystems to create
-const size_t TrackVehicle::m_num_engines = 0;   // number of powertrains (and drivelines) to create
+const size_t TrackVehicle::m_num_engines = 1;   // number of powertrains (and drivelines) to create
 
 
-const ChVector<> TrackVehicle::m_trackPos_Right(0.23644, -0.4780, 0.83475); // relative to chassis c-sys
-const ChVector<> TrackVehicle::m_trackPos_Left(0.23644, -0.4780, -0.83475); // relative to chassis c-sys
+const ChVector<> TrackVehicle::m_trackPos_Right(0.23644, -0.4780, 0.83475); // relative to chassis COG
+const ChVector<> TrackVehicle::m_trackPos_Left(0.23644, -0.4780, -0.83475); // relative to chassis COG
 
 const double     TrackVehicle::m_mass = 5489.2;   // chassis sprung mass
-const ChVector<> TrackVehicle::m_COM = ChVector<>(0., 0.2, 0.);  // COM location, relative to body Csys REF frame
+const ChVector<> TrackVehicle::m_COM = ChVector<>(0., 0.0, 0.);  // COM location, relative to body Csys REF frame
 const ChVector<> TrackVehicle::m_inertia(1786.9, 10449.7, 10721.2);  // chassis inertia (roll,yaw,pitch)
 
 const std::string TrackVehicle::m_meshName("M113_chassis");
 const std::string TrackVehicle::m_meshFile = utils::GetModelDataFile("M113/Chassis_XforwardYup.obj");
 const ChCoordsys<> TrackVehicle::m_driverCsys(ChVector<>(0.0, 0.5, 1.2), ChQuaternion<>(1, 0, 0, 0));
-const ChVector<> TrackVehicle::m_chassisBoxSize(2.0, 0.7, 0.75);  // length, height, width HALF DIMS
+const ChVector<> TrackVehicle::m_chassisBoxSize(2.0, 0.6, 0.75);  // length, height, width HALF DIMS
 
 /// constructor sets the basic integrator settings for this ChSystem, as well as the usual stuff
 TrackVehicle::TrackVehicle(const std::string& name, VisualizationType chassisVis, CollisionType chassisCollide)
@@ -315,7 +315,7 @@ double TrackVehicle::GetIdlerForce(size_t side)
   assert(side < m_num_tracks);
   ChVector<> out_force = m_TrackSystems[side]->Get_idler_spring_react();
 
-  return out_force.x;
+  return out_force.Length();
 }
 
 } // end namespace chrono
