@@ -192,12 +192,18 @@ void ChConstraintRigidRigid::host_Project(int2* ids, real3* friction, real* cohe
 //%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 void ChConstraintRigidRigid::Project(real* gamma) {
+  solve_sliding = data_container->settings.solver.local_solver_mode!=NORMAL;
+  solve_spinning = data_container->settings.solver.local_solver_mode==SPINNING;
   host_Project(data_container->host_data.bids_rigid_rigid.data(), data_container->host_data.fric_rigid_rigid.data(), data_container->host_data.coh_rigid_rigid.data(), gamma);
 }
 void ChConstraintRigidRigid::Project_NoPar(real* gamma) {
+  solve_sliding = data_container->settings.solver.local_solver_mode!=NORMAL;
+  solve_spinning = data_container->settings.solver.local_solver_mode==SPINNING;
   host_Project(data_container->host_data.bids_rigid_rigid.data(), data_container->host_data.fric_rigid_rigid.data(), data_container->host_data.coh_rigid_rigid.data(), gamma);
 }
 void ChConstraintRigidRigid::Project_Single(int index, real* gamma) {
+  solve_sliding = data_container->settings.solver.local_solver_mode!=NORMAL;
+  solve_spinning = data_container->settings.solver.local_solver_mode==SPINNING;
   host_Project_single(index, data_container->host_data.bids_rigid_rigid.data(), data_container->host_data.fric_rigid_rigid.data(), data_container->host_data.coh_rigid_rigid.data(), gamma);
 }
 

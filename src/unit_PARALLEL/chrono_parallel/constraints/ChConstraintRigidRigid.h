@@ -18,6 +18,7 @@ void Compute_Jacobian_Rolling(const real4& quat, const real3& U, const real3& V,
 class CH_PARALLEL_API ChConstraintRigidRigid {
  public:
   ChConstraintRigidRigid() {
+    data_container = 0;
     solve_sliding = false;
     solve_spinning = false;
     offset = 3;

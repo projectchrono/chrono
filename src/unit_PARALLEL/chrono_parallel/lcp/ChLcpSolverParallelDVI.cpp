@@ -65,8 +65,6 @@ void ChLcpSolverParallelDVI::RunTimeStep(real step)
   if (data_container->settings.solver.solver_mode == NORMAL || data_container->settings.solver.solver_mode == SLIDING || data_container->settings.solver.solver_mode == SPINNING) {
     if (data_container->settings.solver.max_iteration_normal > 0) {
       solver->SetMaxIterations(data_container->settings.solver.max_iteration_normal);
-      rigid_rigid.solve_sliding = false;
-      rigid_rigid.solve_spinning = false;
       data_container->settings.solver.local_solver_mode = NORMAL;
       data_container->system_timer.start("ChLcpSolverParallel_Solve");
       PerformStabilization();
@@ -77,8 +75,6 @@ void ChLcpSolverParallelDVI::RunTimeStep(real step)
   if (data_container->settings.solver.solver_mode != NORMAL) {
     if (data_container->settings.solver.max_iteration_sliding > 0) {
       solver->SetMaxIterations(data_container->settings.solver.max_iteration_sliding);
-      rigid_rigid.solve_sliding = true;
-      rigid_rigid.solve_spinning = false;
       data_container->settings.solver.local_solver_mode = SLIDING;
       data_container->system_timer.start("ChLcpSolverParallel_Solve");
       PerformStabilization();
@@ -89,8 +85,6 @@ void ChLcpSolverParallelDVI::RunTimeStep(real step)
   if (data_container->settings.solver.solver_mode == SPINNING) {
     if (data_container->settings.solver.max_iteration_spinning > 0) {
       solver->SetMaxIterations(data_container->settings.solver.max_iteration_spinning);
-      rigid_rigid.solve_sliding = true;
-      rigid_rigid.solve_spinning = true;
       data_container->settings.solver.local_solver_mode = SPINNING;
       data_container->system_timer.start("ChLcpSolverParallel_Solve");
       PerformStabilization();
