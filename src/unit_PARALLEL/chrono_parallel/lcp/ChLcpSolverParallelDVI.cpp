@@ -59,14 +59,13 @@ void ChLcpSolverParallelDVI::RunTimeStep(real step)
 
   ComputeD();
   ComputeE();
+  ComputeR();
 
   // solve for the normal
   if (data_container->settings.solver.solver_mode == NORMAL || data_container->settings.solver.solver_mode == SLIDING || data_container->settings.solver.solver_mode == SPINNING) {
     if (data_container->settings.solver.max_iteration_normal > 0) {
       solver->SetMaxIterations(data_container->settings.solver.max_iteration_normal);
-      rigid_rigid.solve_sliding = false;
-      rigid_rigid.solve_spinning = false;
-      ComputeR(NORMAL);
+      data_container->settings.solver.local_solver_mode = NORMAL;
       data_container->system_timer.start("ChLcpSolverParallel_Solve");
       PerformStabilization();
       solver->Solve();
@@ -76,9 +75,7 @@ void ChLcpSolverParallelDVI::RunTimeStep(real step)
   if (data_container->settings.solver.solver_mode != NORMAL) {
     if (data_container->settings.solver.max_iteration_sliding > 0) {
       solver->SetMaxIterations(data_container->settings.solver.max_iteration_sliding);
-      rigid_rigid.solve_sliding = true;
-      rigid_rigid.solve_spinning = false;
-      ComputeR(SLIDING);
+      data_container->settings.solver.local_solver_mode = SLIDING;
       data_container->system_timer.start("ChLcpSolverParallel_Solve");
       PerformStabilization();
       solver->Solve();
@@ -88,9 +85,7 @@ void ChLcpSolverParallelDVI::RunTimeStep(real step)
   if (data_container->settings.solver.solver_mode == SPINNING) {
     if (data_container->settings.solver.max_iteration_spinning > 0) {
       solver->SetMaxIterations(data_container->settings.solver.max_iteration_spinning);
-      rigid_rigid.solve_sliding = true;
-      rigid_rigid.solve_spinning = true;
-      ComputeR(SPINNING);
+      data_container->settings.solver.local_solver_mode = SPINNING;
       data_container->system_timer.start("ChLcpSolverParallel_Solve");
       PerformStabilization();
       solver->Solve();
@@ -147,9 +142,9 @@ void ChLcpSolverParallelDVI::ComputeD()
   }
   D_T.resize(num_constraints, num_dof, false);
 
-  rigid_rigid.GenerateSparsity(data_container->settings.solver.solver_mode);
+  rigid_rigid.GenerateSparsity();
   bilateral.GenerateSparsity();
-  rigid_rigid.Build_D(data_container->settings.solver.solver_mode);
+  rigid_rigid.Build_D();
   bilateral.Build_D();
 
   data_container->host_data.D = trans(data_container->host_data.D_T);
@@ -165,11 +160,11 @@ void ChLcpSolverParallelDVI::ComputeE()
   data_container->host_data.E.resize(data_container->num_constraints);
   reset(data_container->host_data.E);
 
-  rigid_rigid.Build_E(data_container->settings.solver.solver_mode);
+  rigid_rigid.Build_E();
   bilateral.Build_E();
 }
 
-void ChLcpSolverParallelDVI::ComputeR(SOLVERMODE mode)
+void ChLcpSolverParallelDVI::ComputeR()
 {
   if (data_container->num_constraints <= 0) {
     return;
@@ -178,7 +173,7 @@ void ChLcpSolverParallelDVI::ComputeR(SOLVERMODE mode)
   data_container->host_data.b.resize(data_container->num_constraints);
   reset(data_container->host_data.b);
 
-  rigid_rigid.Build_b(mode);
+  rigid_rigid.Build_b();
   bilateral.Build_b();
 
   data_container->host_data.R = -data_container->host_data.b - data_container->host_data.D_T * data_container->host_data.M_invk;
