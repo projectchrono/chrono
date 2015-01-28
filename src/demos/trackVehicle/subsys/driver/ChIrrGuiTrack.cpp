@@ -312,19 +312,28 @@ void ChIrrGuiTrack::renderStats()
   renderTextBox(std::string(msg), m_HUD_x, m_HUD_y + 10, 120, 15);
 
   // Left [0] and right [1] throttle
-  sprintf(msg, "Throttle Left: %+.2f", m_throttle[0]*100.);
-  renderLinGauge(std::string(msg), m_throttle[0], false, m_HUD_x, m_HUD_y + 60, 120, 15);
-
   sprintf(msg, "Throttle Right: %+.2f", m_throttle[1]*100.);
   renderLinGauge(std::string(msg), m_throttle[1], false, m_HUD_x, m_HUD_y + 60, 120, 15);
 
+  sprintf(msg, "Throttle Left: %+.2f", m_throttle[0]*100.);
+  renderLinGauge(std::string(msg), m_throttle[0], false, m_HUD_x, m_HUD_y + 60, 120, 15);
+
+  // idler spring displacement
+  sprintf(msg, "idler Right: %+.2f", m_vehicle.GetIdlerForce(0) );
+  renderLinGauge(std::string(msg), m_vehicle.GetIdlerForce(0), false, m_HUD_x, m_HUD_y + 80, 120, 15);
+
+  sprintf(msg, "idler Left: %+.2f", m_vehicle.GetIdlerForce(1) );
+  renderLinGauge(std::string(msg),  m_vehicle.GetIdlerForce(1), false, m_HUD_x, m_HUD_y + 80, 120, 15);
+
+
+  /*
   // Left and Right braking
   sprintf(msg, "Braking Left: %+.2f", m_braking[0]*100.);
   renderLinGauge(std::string(msg), m_braking[0], false, m_HUD_x, m_HUD_y + 80, 120, 15);
 
   sprintf(msg, "Braking Right: %+.2f", m_braking[1]*100.);
   renderLinGauge(std::string(msg), m_braking[1], false, m_HUD_x, m_HUD_y + 80, 120, 15);
-
+  */
 
   double speed = m_vehicle.GetVehicleSpeed();
   sprintf(msg, "Speed: %+.2f", speed);
