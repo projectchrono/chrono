@@ -250,7 +250,7 @@ void ChSystemParallel::AddShaft(ChSharedPtr<ChShaft> shaft)
 //
 void ChSystemParallel::ClearForceVariables()
 {
-  ////#pragma omp parallel for
+  #pragma omp parallel for
   for (int i = 0; i < data_manager->num_bodies; i++) {
     bodylist[i]->VariablesFbReset();
   }
