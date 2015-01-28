@@ -172,17 +172,18 @@ void IdlerSimple::AddVisualization()
   switch (m_vis) {
   case VisualizationType::PRIMITIVES:
   {
-    ChSharedPtr<ChCylinderShape> cyl(new ChCylinderShape);
+    ChSharedPtr<ChCylinderShape> cylA(new ChCylinderShape);
     // define the shape with two concentric cyclinders, with a gap.
-    cyl->GetCylinderGeometry().p1 = ChVector<>(0, 0, m_width/2.0);
-    cyl->GetCylinderGeometry().p2 = ChVector<>(0, 0, m_widthGap/2.0);
-    cyl->GetCylinderGeometry().rad = m_radius;
-    m_idler->AddAsset(cyl);
+    cylA->GetCylinderGeometry().p1 = ChVector<>(0, 0, m_width/2.0);
+    cylA->GetCylinderGeometry().p2 = ChVector<>(0, 0, m_widthGap/2.0);
+    cylA->GetCylinderGeometry().rad = m_radius;
+    m_idler->AddAsset(cylA);
 
     // second cylinder is a mirror of the first
-    cyl->GetCylinderGeometry().p1.z = -m_width/2.0;
-    cyl->GetCylinderGeometry().p2.z = -m_widthGap/2.0;
-    m_idler->AddAsset(cyl);
+    ChSharedPtr<ChCylinderShape> cylB(new ChCylinderShape( *cylA.get_ptr() ));
+    cylB->GetCylinderGeometry().p1.z = -m_width/2.0;
+    cylB->GetCylinderGeometry().p2.z = -m_widthGap/2.0;
+    m_idler->AddAsset(cylB);
 
     // add a color asset
     ChSharedPtr<ChColorAsset> mcolor(new ChColorAsset(0.5f, 0.1f, 0.4f));
