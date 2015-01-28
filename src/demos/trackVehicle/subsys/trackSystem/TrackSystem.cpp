@@ -163,7 +163,7 @@ void TrackSystem::BuildSubsystems()
     CollisionType::PRIMITIVES) );
 
   m_chain = ChSharedPtr<TrackChain>(new TrackChain("chain "+std::to_string(m_track_idx),
-    VisualizationType::COMPOUNDPRIMITIVES,
+    VisualizationType::PRIMITIVES,
     CollisionType::PRIMITIVES) );
     // CollisionType::COMPOUNDPRIMITIVES) );
   
