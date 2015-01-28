@@ -34,6 +34,7 @@ namespace chrono {
 
 class CH_SUBSYS_API TrackSystem : public ChShared
 {
+friend class TrackVehicle;
 public:
 
   /// specify name and a unique track identifier
@@ -56,10 +57,13 @@ public:
   ChSharedPtr<DriveGear> GetDriveGear() { return m_driveGear; }
   
   // subsystem relative to trackSystem coords
-  ChVector<> Get_gearPosRel() { return m_gearPosRel; }
+  ChVector<> Get_gearPosRel() const { return m_gearPosRel; }
   
   // subsystem relative to trackSystem coords
-  ChVector<> Get_idlerPosRel() { return m_idlerPosRel; }
+  ChVector<> Get_idlerPosRel() const { return m_idlerPosRel; }
+
+  /// get the reaction force vector from the spring in the idler subsystem
+  ChVector<> Get_idler_spring_react();
 
 private:
 

@@ -128,7 +128,8 @@ void TrackSystem::Create(int track_idx)
   m_suspensions.resize(m_numSuspensions);
   m_suspensionLocs.resize(m_numSuspensions);
   // hard-code positions relative to trackSystem csys. Start w/ one nearest sprocket
-  m_suspensionLocs[0] = ChVector<>(1.3336, 0, 0);
+  
+    m_suspensionLocs[0] = ChVector<>(1.3336, 0, 0);
   m_suspensionLocs[1] = ChVector<>(0.6668, 0, 0);
   // trackSystem c-sys aligned with middle suspension subsystem arm/chassis revolute constraint position
   m_suspensionLocs[2] = ChVector<>(0,0,0); 
@@ -155,9 +156,15 @@ void TrackSystem::BuildSubsystems()
   // build one of each of the following subsystems. VisualizationType and CollisionType defaults are PRIMITIVES
   m_driveGear = ChSharedPtr<DriveGear>(new DriveGear("drive gear "+std::to_string(m_track_idx)) );
   m_idler = ChSharedPtr<IdlerSimple>(new IdlerSimple("idler "+std::to_string(m_track_idx)) );
-  m_chain = ChSharedPtr<TrackChain>(new TrackChain("chain "+std::to_string(m_track_idx)) );
+
+
+
+
+
+
+  //m_chain = ChSharedPtr<TrackChain>(new TrackChain("chain "+std::to_string(m_track_idx)) );
   
-  // build suspension/road wheel subsystems
+    // build suspension/road wheel subsystems
   for(int i = 0; i < m_numSuspensions; i++)
   {
     m_suspensions[i] = ChSharedPtr<TorsionArmSuspension>(new TorsionArmSuspension("suspension "+std::to_string(i) +", chain "+std::to_string(m_track_idx)) );
@@ -226,8 +233,7 @@ void TrackSystem::Initialize(ChSharedPtr<ChBodyAuxRef> chassis,
   }
   
   // last control point: the idler body
-  m_idler->Initialize(chassis,
-    ChCoordsys<>(m_local_pos + Get_idlerPosRel(), QUNIT) );
+  m_idler->Initialize(chassis, ChCoordsys<>(m_local_pos + Get_idlerPosRel(), QUNIT) );
 
   // add to the lists passed into the track chain Init()
   rolling_elem_locs.push_back(m_local_pos + Get_idlerPosRel() );
@@ -249,7 +255,7 @@ void TrackSystem::Initialize(ChSharedPtr<ChBodyAuxRef> chassis,
   
   
   
-  m_chain->Initialize(chassis, rolling_elem_locs, clearance, start_pos );
+  // m_chain->Initialize(chassis, rolling_elem_locs, clearance, start_pos );
 
 }
 
@@ -282,5 +288,13 @@ void TrackSystem::initialize_roller(ChSharedPtr<ChBody> body, ChSharedPtr<ChBody
 
   body->GetCollisionModel()->BuildModel();
 }
+
+ChVector<> TrackSystem::Get_idler_spring_react()
+{
+  ChVector<> outVect = m_idler->m_shock->Get_react_force();
+  return outVect;
+
+}
+
 
 } // end namespace chrono
