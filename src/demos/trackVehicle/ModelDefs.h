@@ -24,6 +24,7 @@ namespace chrono {
 enum struct VisualizationType {
   NONE,
   PRIMITIVES,
+  COMPOUNDPRIMITIVES,
   MESH
 };
 

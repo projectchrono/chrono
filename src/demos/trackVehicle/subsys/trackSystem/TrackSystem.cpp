@@ -37,8 +37,8 @@ const ChQuaternion<> TrackSystem::m_gearRot(QUNIT);
 const int TrackSystem::m_numRollers = 0;
 const double TrackSystem::m_roller_mass = 100.0;
 const ChVector<> TrackSystem::m_roller_inertia(19.82, 19.82, 26.06);  // rotates about z-axis initially
-const double TrackSystem::m_roller_radius = 0.2;
-const double TrackSystem::m_roller_width = 0.2;
+const double TrackSystem::m_roller_radius = 0.2;  // Unused on M113
+const double TrackSystem::m_roller_width = 0.2;   // Unused on M113
   
 // suspension
 const int TrackSystem::m_numSuspensions = 5;
@@ -154,20 +154,25 @@ void TrackSystem::Create(int track_idx)
 void TrackSystem::BuildSubsystems()
 {
   // build one of each of the following subsystems. VisualizationType and CollisionType defaults are PRIMITIVES
-  m_driveGear = ChSharedPtr<DriveGear>(new DriveGear("drive gear "+std::to_string(m_track_idx)) );
-  m_idler = ChSharedPtr<IdlerSimple>(new IdlerSimple("idler "+std::to_string(m_track_idx)) );
+  m_driveGear = ChSharedPtr<DriveGear>(new DriveGear("drive gear "+std::to_string(m_track_idx),
+    VisualizationType::PRIMITIVES,
+    CollisionType::PRIMITIVES) );
 
+  m_idler = ChSharedPtr<IdlerSimple>(new IdlerSimple("idler "+std::to_string(m_track_idx),
+    VisualizationType::PRIMITIVES,
+    CollisionType::PRIMITIVES) );
 
-
-
-
-
-  //m_chain = ChSharedPtr<TrackChain>(new TrackChain("chain "+std::to_string(m_track_idx)) );
+  m_chain = ChSharedPtr<TrackChain>(new TrackChain("chain "+std::to_string(m_track_idx),
+    VisualizationType::COMPOUNDPRIMITIVES,
+    CollisionType::PRIMITIVES) );
+    // CollisionType::COMPOUNDPRIMITIVES) );
   
-    // build suspension/road wheel subsystems
+  // build suspension/road wheel subsystems
   for(int i = 0; i < m_numSuspensions; i++)
   {
-    m_suspensions[i] = ChSharedPtr<TorsionArmSuspension>(new TorsionArmSuspension("suspension "+std::to_string(i) +", chain "+std::to_string(m_track_idx)) );
+    m_suspensions[i] = ChSharedPtr<TorsionArmSuspension>(new TorsionArmSuspension("suspension "+std::to_string(i) +", chain "+std::to_string(m_track_idx),
+      VisualizationType::PRIMITIVES,
+      CollisionType::PRIMITIVES) );
   }
   
   // build support rollers manually (if any)
@@ -249,13 +254,7 @@ void TrackSystem::Initialize(ChSharedPtr<ChBodyAuxRef> chassis,
   //             pass between the idler and driveGears.
   // MUST be on the top part of the chain so the chain wrap rotation direction can be assumed.
   // rolling_elem_locs, start_pos w.r.t. chassis c-sys
-  
-  
-  
-  
-  
-  
-  // m_chain->Initialize(chassis, rolling_elem_locs, clearance, start_pos );
+  m_chain->Initialize(chassis, rolling_elem_locs, clearance, start_pos );
 
 }
 

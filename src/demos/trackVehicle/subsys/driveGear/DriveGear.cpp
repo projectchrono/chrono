@@ -139,6 +139,10 @@ void DriveGear::AddVisualization()
 
     break;
   }
+  default:
+  {
+    GetLog() << "Didn't recognize VisualizationType for DriveGear \n";
+  }
   }
 }
 
