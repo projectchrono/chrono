@@ -34,6 +34,7 @@ namespace chrono {
 /// along the DOF axis
 class CH_SUBSYS_API IdlerSimple : public ChShared
 {
+friend class TrackSystem;
 public:
 
   IdlerSimple(const std::string& name,

@@ -122,6 +122,9 @@ public:
   /// number of track chain systems attached to the vehicle
   int GetNum_Engines() const { return m_num_engines; }
 
+  /// return the force exerted by the idler subsystem on the idler body
+  double GetIdlerForce(size_t side);
+
   ChCoordsys<> GetLocalDriverCoordsys() const { return m_driverCsys; }
 
 private:
@@ -168,7 +171,6 @@ protected:
   ChSystem*                  m_system;       ///< pointer to the Chrono system
   bool                       m_ownsSystem;   ///< true if system created at construction
 
-  // friend class irrDriver
 };
 
 

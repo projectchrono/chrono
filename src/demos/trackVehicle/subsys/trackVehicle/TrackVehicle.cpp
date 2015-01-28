@@ -24,6 +24,7 @@
 #include "assets/ChTriangleMeshShape.h"
 #include "assets/ChTexture.h"
 #include "assets/ChColorAsset.h"
+#include "assets/ChAssetLevel.h"
 #include "physics/ChGlobal.h"
 
 #include "TrackVehicle.h"
@@ -41,27 +42,32 @@ namespace chrono {
 
 // -----------------------------------------------------------------------------
 // Static variables
+
+  
+  
+  
 const size_t TrackVehicle::m_num_tracks = 2;    // number of trackSystems to create
-const size_t TrackVehicle::m_num_engines = 1;   // number of powertrains (and drivelines) to create
+const size_t TrackVehicle::m_num_engines = 0;   // number of powertrains (and drivelines) to create
+
 
 const ChVector<> TrackVehicle::m_trackPos_Right(0.23644, -0.4780, 0.83475); // relative to chassis c-sys
 const ChVector<> TrackVehicle::m_trackPos_Left(0.23644, -0.4780, -0.83475); // relative to chassis c-sys
 
 const double     TrackVehicle::m_mass = 5489.2;   // chassis sprung mass
-const ChVector<> TrackVehicle::m_COM = ChVector<>(0., 0., 0.);  // COM location, relative to body Csys REF frame
+const ChVector<> TrackVehicle::m_COM = ChVector<>(0., 0.2, 0.);  // COM location, relative to body Csys REF frame
 const ChVector<> TrackVehicle::m_inertia(1786.9, 10449.7, 10721.2);  // chassis inertia (roll,yaw,pitch)
 
 const std::string TrackVehicle::m_meshName("M113_chassis");
 const std::string TrackVehicle::m_meshFile = utils::GetModelDataFile("M113/Chassis_XforwardYup.obj");
 const ChCoordsys<> TrackVehicle::m_driverCsys(ChVector<>(0.0, 0.5, 1.2), ChQuaternion<>(1, 0, 0, 0));
-const ChVector<> TrackVehicle::m_chassisBoxSize(4.0 *0.5, 2.0 *0.5, 3.0 *0.5);  // length, height, width HALF DIMS
+const ChVector<> TrackVehicle::m_chassisBoxSize(2.0, 0.7, 0.75);  // length, height, width HALF DIMS
 
 /// constructor sets the basic integrator settings for this ChSystem, as well as the usual stuff
 TrackVehicle::TrackVehicle(const std::string& name, VisualizationType chassisVis, CollisionType chassisCollide)
   : m_vis(chassisVis),
   m_collide(chassisCollide),
   m_ownsSystem(true),
-  m_stepsize(1e-4)
+  m_stepsize(1e-3)
 {
   // Integration and Solver settings
   SetLcpSolverType(ChSystem::LCP_ITERATIVE_SOR);
@@ -81,7 +87,7 @@ TrackVehicle::TrackVehicle(const std::string& name, VisualizationType chassisVis
   // add visualization assets to the chassis
   AddVisualization();
 
-  m_chassis->SetBodyFixed(false);
+  // m_chassis->SetBodyFixed(true);
   // add the chassis body to the system
   Add(m_chassis);
 
@@ -154,8 +160,8 @@ void TrackVehicle::Update(double	time,
                           const std::vector<double>&  throttle,
                           const std::vector<double>&  braking)
 {
-  assert( throttle.size() == m_num_tracks);
-  assert( braking.size() == m_num_tracks );
+  assert( throttle.size() >= m_num_tracks);
+  assert( braking.size() >= m_num_tracks );
   // update left and right powertrains, with the new left and right throttle/shaftspeed
   for(int i = 0; i < m_num_engines; i++)
   {
@@ -174,17 +180,22 @@ void TrackVehicle::AddVisualization()
     ChSharedPtr<ChSphereShape> COMsphere(new ChSphereShape);
     COMsphere->GetSphereGeometry().rad = 0.1;
     COMsphere->Pos = m_COM;
-    // make the COM sphere blue
-    COMsphere->SetColor(ChColor(0.1f, 0.2f, 0.8f));
     m_chassis->AddAsset(COMsphere);
-    
+    // make the COM sphere blue
+    ChSharedPtr<ChColorAsset> blue(new ChColorAsset(0.1f, 0.2f, 0.8f));
+    m_chassis->AddAsset(blue);
    
+    // to give the REF sphere a different color, add it to the level first.
+    ChSharedPtr<ChAssetLevel> ref_level(new ChAssetLevel);
     ChSharedPtr<ChSphereShape> REFsphere(new ChSphereShape);
     REFsphere->GetSphereGeometry().rad = 0.1;
     REFsphere->Pos = ChVector<>(0,0,0); // REF should be at the body c-sys origin
+    ref_level->AddAsset(REFsphere);
     // make the REF sphere red
-    REFsphere->SetColor(ChColor(0.8f, 0.2f, 0.1f));
-    m_chassis->AddAsset(REFsphere);
+    ChSharedPtr<ChColorAsset> red(new ChColorAsset(0.8f, 0.2f, 0.1f) );
+    ref_level->AddAsset(red);
+    // add the level to the body
+    m_chassis->AddAsset(ref_level);
 
     break;
   }
@@ -299,5 +310,12 @@ void TrackVehicle::Advance(double step)
 }
 
 
+double TrackVehicle::GetIdlerForce(size_t side)
+{
+  assert(side < m_num_tracks);
+  ChVector<> out_force = m_TrackSystems[side]->Get_idler_spring_react();
+
+  return out_force.x;
+}
 
 } // end namespace chrono
