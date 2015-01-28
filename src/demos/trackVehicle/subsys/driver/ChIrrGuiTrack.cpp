@@ -307,23 +307,23 @@ void ChIrrGuiTrack::renderTextBox(const std::string& msg,
 void ChIrrGuiTrack::renderStats()
 {
   char msg[100];
-
+  int y_pos = m_HUD_y + 10;
   sprintf(msg, "Camera mode: %s", m_camera.GetStateName().c_str());
-  renderTextBox(std::string(msg), m_HUD_x, m_HUD_y + 10, 120, 15);
+  renderTextBox(std::string(msg), m_HUD_x, y_pos, 120, 15);
 
   // Left [0] and right [1] throttle
   sprintf(msg, "Throttle Right: %+.2f", m_throttle[1]*100.);
-  renderLinGauge(std::string(msg), m_throttle[1], false, m_HUD_x, m_HUD_y + 60, 120, 15);
+  renderLinGauge(std::string(msg), m_throttle[1], false, m_HUD_x, y_pos += 20, 120, 15);
 
   sprintf(msg, "Throttle Left: %+.2f", m_throttle[0]*100.);
-  renderLinGauge(std::string(msg), m_throttle[0], false, m_HUD_x, m_HUD_y + 60, 120, 15);
+  renderLinGauge(std::string(msg), m_throttle[0], false, m_HUD_x, y_pos += 20, 120, 15);
 
   // idler spring displacement
   sprintf(msg, "idler Right: %+.2f", m_vehicle.GetIdlerForce(0) );
-  renderLinGauge(std::string(msg), m_vehicle.GetIdlerForce(0), false, m_HUD_x, m_HUD_y + 80, 120, 15);
+  renderLinGauge(std::string(msg), m_vehicle.GetIdlerForce(0), false, m_HUD_x, y_pos += 20, 120, 15);
 
   sprintf(msg, "idler Left: %+.2f", m_vehicle.GetIdlerForce(1) );
-  renderLinGauge(std::string(msg),  m_vehicle.GetIdlerForce(1), false, m_HUD_x, m_HUD_y + 80, 120, 15);
+  renderLinGauge(std::string(msg),  m_vehicle.GetIdlerForce(1), false, m_HUD_x, y_pos += 20, 120, 15);
 
 
   /*
@@ -337,29 +337,29 @@ void ChIrrGuiTrack::renderStats()
 
   double speed = m_vehicle.GetVehicleSpeed();
   sprintf(msg, "Speed: %+.2f", speed);
-  renderLinGauge(std::string(msg), speed/30, false, m_HUD_x, m_HUD_y + 100, 120, 15);
+  renderLinGauge(std::string(msg), speed/30, false, m_HUD_x, y_pos += 20, 120, 15);
 
   if( m_vehicle.GetNum_Engines() > 0 )
   {
     double engine_rpm = m_powertrain->GetMotorSpeed() * 60 / chrono::CH_C_2PI;
     sprintf(msg, "Eng. RPM: %+.2f", engine_rpm);
-    renderLinGauge(std::string(msg), engine_rpm / 7000, false, m_HUD_x, m_HUD_y + 120, 120, 15);
+    renderLinGauge(std::string(msg), engine_rpm / 7000, false, m_HUD_x, y_pos += 20, 120, 15);
 
     double engine_torque = m_powertrain->GetMotorTorque();
     sprintf(msg, "Eng. Nm: %+.2f", engine_torque);
-    renderLinGauge(std::string(msg), engine_torque / 600, false, m_HUD_x, m_HUD_y + 140, 120, 15);
+    renderLinGauge(std::string(msg), engine_torque / 600, false, m_HUD_x,y_pos += 20, 120, 15);
 
     double tc_slip = m_powertrain->GetTorqueConverterSlippage();
     sprintf(msg, "T.conv. slip: %+.2f", tc_slip);
-    renderLinGauge(std::string(msg), tc_slip / 1, false, m_HUD_x, m_HUD_y + 160, 120, 15);
+    renderLinGauge(std::string(msg), tc_slip / 1, false, m_HUD_x, y_pos += 20, 120, 15);
 
     double tc_torquein = m_powertrain->GetTorqueConverterInputTorque();
     sprintf(msg, "T.conv. in  Nm: %+.2f", tc_torquein);
-    renderLinGauge(std::string(msg), tc_torquein / 600, false, m_HUD_x, m_HUD_y + 180, 120, 15);
+    renderLinGauge(std::string(msg), tc_torquein / 600, false, m_HUD_x, y_pos += 20, 120, 15);
 
     double tc_torqueout = m_powertrain->GetTorqueConverterOutputTorque();
     sprintf(msg, "T.conv. out Nm: %+.2f", tc_torqueout);
-    renderLinGauge(std::string(msg), tc_torqueout / 600, false, m_HUD_x, m_HUD_y + 200, 120, 15);
+    renderLinGauge(std::string(msg), tc_torqueout / 600, false, m_HUD_x, y_pos += 20, 120, 15);
 
     int ngear = m_powertrain->GetCurrentTransmissionGear();
     TrackPowertrain::DriveMode drivemode = m_powertrain->GetDriveMode();
@@ -378,7 +378,7 @@ void ChIrrGuiTrack::renderStats()
       sprintf(msg, "Gear:");
       break;
     }
-    renderLinGauge(std::string(msg), (double)ngear / 4.0, false, m_HUD_x, m_HUD_y + 220, 120, 15);
+    renderLinGauge(std::string(msg), (double)ngear / 4.0, false, m_HUD_x, y_pos += 20, 120, 15);
 
     // driveline data
     double torque;
