@@ -93,9 +93,11 @@ class CH_PARALLEL_API ChConstraintRigidRigid {
   // Compute the jacobian matrix, no allocation is performed here,
   // GenerateSparsity should take care of that
   void Build_D();
+  void Build_s();
   // Fill-in the non zero entries in the bilateral jacobian with ones.
   // This operation is sequential.
   void GenerateSparsity();
+
 
   bool solve_sliding;
   bool solve_spinning;

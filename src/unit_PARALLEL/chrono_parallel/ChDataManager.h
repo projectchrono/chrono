@@ -134,6 +134,7 @@ struct host_container {
 
    DynamicVector<real> R; //The right hand side of the system
    DynamicVector<real> b; //Correction terms
+   DynamicVector<real> s;
    DynamicVector<real> M_invk; //result of M_inv multiplied by vector of forces
    DynamicVector<real> gamma; //THe unknowns we are solving for
    DynamicVector<real> v; //This vector holds the velocities for all objects

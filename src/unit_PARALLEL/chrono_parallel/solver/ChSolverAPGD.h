@@ -42,6 +42,9 @@ class CH_PARALLEL_API ChSolverAPGD : public ChSolverParallel {
                  blaze::DynamicVector<real>& x           // The vector of unknowns
                  );
 
+  void UpdateR();
+
+
   // APGD specific vectors
   blaze::DynamicVector<real> obj2_temp, obj1_temp, temp, g, gamma_new, y, gamma_hat, N_gamma_new;
   real L, t;

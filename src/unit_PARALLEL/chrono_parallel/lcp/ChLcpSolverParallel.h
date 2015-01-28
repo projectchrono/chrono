@@ -71,6 +71,8 @@ class CH_PARALLEL_API ChLcpSolverParallelDVI : public ChLcpSolverParallel {
    // Compute the RHS vector. Depending on what type of solve is being performed
    // the RHS vector will have different non zero entries.
    void ComputeR();
+   // Update the RHS vector
+   void UpdateR();
    // This function is used to change the solver algorithm.
    void ChangeSolverType(SOLVERTYPE type);
 
