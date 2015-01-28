@@ -56,8 +56,7 @@ public:
     const ChVector<>&   ptOnChassis,
     const ChCoordsys<>& driverCoordsys,
     double              chaseDist,
-    double              chaseHeight,
-    double              chaseLateral = 0);
+    double              chaseHeight);
 
   void Update(double step);
 
