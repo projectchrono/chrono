@@ -537,7 +537,6 @@ void ChConstraintRigidRigid::Build_D()
 
 void ChConstraintRigidRigid::GenerateSparsity()
 {
-
   SOLVERMODE solver_mode = data_container->settings.solver.solver_mode;
 
   CompressedMatrix<real>& D_T = data_container->host_data.D_T;
@@ -546,6 +545,7 @@ void ChConstraintRigidRigid::GenerateSparsity()
   for (int index = 0; index < data_container->num_contacts; index++) {
     int2 body_id = ids[index];
     int index_mult = _index_;
+
     if (contact_active_pairs[index].x) {
       D_T.append(index_mult + 0, body_id.x * 6 + 0, 1);
       D_T.append(index_mult + 0, body_id.x * 6 + 1, 1);
@@ -565,8 +565,9 @@ void ChConstraintRigidRigid::GenerateSparsity()
       D_T.append(index_mult + 0, body_id.y * 6 + 5, 1);
     }
     D_T.finalize(index_mult + 0);
-    if (contact_active_pairs[index].x) {
-      if (solver_mode == SLIDING || solver_mode == SPINNING) {
+
+    if (solver_mode == SLIDING || solver_mode == SPINNING) {
+      if (contact_active_pairs[index].x) {
         D_T.append(index_mult + 1, body_id.x * 6 + 0, 1);
         D_T.append(index_mult + 1, body_id.x * 6 + 1, 1);
         D_T.append(index_mult + 1, body_id.x * 6 + 2, 1);
@@ -575,9 +576,7 @@ void ChConstraintRigidRigid::GenerateSparsity()
         D_T.append(index_mult + 1, body_id.x * 6 + 4, 1);
         D_T.append(index_mult + 1, body_id.x * 6 + 5, 1);
       }
-    }
-    if (contact_active_pairs[index].y) {
-      if (solver_mode == SLIDING || solver_mode == SPINNING) {
+      if (contact_active_pairs[index].y) {
         D_T.append(index_mult + 1, body_id.y * 6 + 0, 1);
         D_T.append(index_mult + 1, body_id.y * 6 + 1, 1);
         D_T.append(index_mult + 1, body_id.y * 6 + 2, 1);
@@ -586,10 +585,8 @@ void ChConstraintRigidRigid::GenerateSparsity()
         D_T.append(index_mult + 1, body_id.y * 6 + 4, 1);
         D_T.append(index_mult + 1, body_id.y * 6 + 5, 1);
       }
-    }
-    D_T.finalize(index_mult + 1);
-    if (contact_active_pairs[index].x) {
-      if (solver_mode == SLIDING || solver_mode == SPINNING) {
+      D_T.finalize(index_mult + 1);
+      if (contact_active_pairs[index].x) {
         D_T.append(index_mult + 2, body_id.x * 6 + 0, 1);
         D_T.append(index_mult + 2, body_id.x * 6 + 1, 1);
         D_T.append(index_mult + 2, body_id.x * 6 + 2, 1);
@@ -598,9 +595,7 @@ void ChConstraintRigidRigid::GenerateSparsity()
         D_T.append(index_mult + 2, body_id.x * 6 + 4, 1);
         D_T.append(index_mult + 2, body_id.x * 6 + 5, 1);
       }
-    }
-    if (contact_active_pairs[index].y) {
-      if (solver_mode == SLIDING || solver_mode == SPINNING) {
+      if (contact_active_pairs[index].y) {
         D_T.append(index_mult + 2, body_id.y * 6 + 0, 1);
         D_T.append(index_mult + 2, body_id.y * 6 + 1, 1);
         D_T.append(index_mult + 2, body_id.y * 6 + 2, 1);
@@ -609,8 +604,9 @@ void ChConstraintRigidRigid::GenerateSparsity()
         D_T.append(index_mult + 2, body_id.y * 6 + 4, 1);
         D_T.append(index_mult + 2, body_id.y * 6 + 5, 1);
       }
+      D_T.finalize(index_mult + 2);
     }
-    D_T.finalize(index_mult + 2);
+
     if (solver_mode == SPINNING) {
       if (contact_active_pairs[index].x) {
         D_T.append(index_mult + 3, body_id.x * 6 + 3, 1);
