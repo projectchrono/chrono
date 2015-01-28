@@ -41,9 +41,9 @@ const double TorsionArmSuspension::m_wheelWidth = 0.16;  // [m]
 const double TorsionArmSuspension::m_wheelWidthGap = 0.03;  // inner gap between outer cylinders .038?
 const double TorsionArmSuspension::m_wheelRadius = 0.305; // [m]
 const ChVector<> TorsionArmSuspension::m_wheel_Pos(-0.2034, -0.2271, 0.24475); // loc of right wheel COG in the local c-sys
-const double TorsionArmSuspension::m_springK = 20000;	// torsional spring constant [N-m/rad]
-const double TorsionArmSuspension::m_springC = 200;	// torsional damping constant [N-m-s/rad]
-const double TorsionArmSuspension::m_TorquePreload = 1000.0;  // torque preload [N-m]
+const double TorsionArmSuspension::m_springK = 25000;	// torsional spring constant [N-m/rad]
+const double TorsionArmSuspension::m_springC = 250;	// torsional damping constant [N-m-s/rad]
+const double TorsionArmSuspension::m_TorquePreload = 1500.0;  // torque preload [N-m]
 
 TorsionArmSuspension::TorsionArmSuspension(const std::string& name,
                                            VisualizationType vis,
@@ -252,6 +252,10 @@ void TorsionArmSuspension::AddVisualization()
     */
 
     break;
+  }
+  default:
+  {
+    GetLog() << "Didn't recognize VisualizationType for TorsionarmSuspension \n";
   }
   } // end switch
 }
