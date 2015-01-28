@@ -85,10 +85,16 @@ class CH_PARALLEL_API ChConstraintRigidRigid {
 
   void ComputeS(const custom_vector<real>& rhs, custom_vector<real3>& vel_data, custom_vector<real3>& omg_data, custom_vector<real>& b);
 
-  void Build_D(SOLVERMODE solver_mode);
-  void Build_b(SOLVERMODE solver_mode);
-  void Build_E(SOLVERMODE solver_mode);
-  void GenerateSparsity(SOLVERMODE solver_mode);
+  // Compute the vector of corrections
+  void Build_b();
+  // Compute the diagonal compliance matrix
+  void Build_E();
+  // Compute the jacobian matrix, no allocation is performed here,
+  // GenerateSparsity should take care of that
+  void Build_D();
+  // Fill-in the non zero entries in the bilateral jacobian with ones.
+  // This operation is sequential.
+  void GenerateSparsity();
 
   bool solve_sliding;
   bool solve_spinning;

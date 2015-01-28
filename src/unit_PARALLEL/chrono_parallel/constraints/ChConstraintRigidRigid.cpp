@@ -284,11 +284,13 @@ void ChConstraintRigidRigid::ComputeS(const custom_vector<real>& rhs, custom_vec
 }
 //%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-void ChConstraintRigidRigid::Build_b(SOLVERMODE solver_mode)
+void ChConstraintRigidRigid::Build_b()
 {
   if (data_container->num_contacts <= 0) {
     return;
   }
+
+  SOLVERMODE solver_mode = data_container->settings.solver.local_solver_mode;
 
 #pragma omp parallel for
   for (int index = 0; index < data_container->num_contacts; index++) {
@@ -316,12 +318,12 @@ void ChConstraintRigidRigid::Build_b(SOLVERMODE solver_mode)
   }
 }
 
-void ChConstraintRigidRigid::Build_E(SOLVERMODE solver_mode)
+void ChConstraintRigidRigid::Build_E()
 {
   if (data_container->num_contacts <= 0) {
     return;
   }
-
+  SOLVERMODE solver_mode = data_container->settings.solver.solver_mode;
   DynamicVector<real>& E = data_container->host_data.E;
 #pragma omp parallel for
   for (int index = 0; index < data_container->num_contacts; index++) {
@@ -348,7 +350,7 @@ void ChConstraintRigidRigid::Build_E(SOLVERMODE solver_mode)
   }
 }
 
-void ChConstraintRigidRigid::Build_D(SOLVERMODE solver_mode)
+void ChConstraintRigidRigid::Build_D()
 {
   real3* norm = data_container->host_data.norm_rigid_rigid.data();
   real3* ptA = data_container->host_data.cpta_rigid_rigid.data();
@@ -356,6 +358,8 @@ void ChConstraintRigidRigid::Build_D(SOLVERMODE solver_mode)
   int2* ids = data_container->host_data.bids_rigid_rigid.data();
   real4* rot = contact_rotation.data();
   CompressedMatrix<real>& D_T = data_container->host_data.D_T;
+
+  SOLVERMODE solver_mode = data_container->settings.solver.solver_mode;
 
 #pragma omp parallel for
   for (int index = 0; index < data_container->num_contacts; index++) {
@@ -462,8 +466,11 @@ void ChConstraintRigidRigid::Build_D(SOLVERMODE solver_mode)
   }
 }
 
-void ChConstraintRigidRigid::GenerateSparsity(SOLVERMODE solver_mode)
+void ChConstraintRigidRigid::GenerateSparsity()
 {
+
+  SOLVERMODE solver_mode = data_container->settings.solver.solver_mode;
+
   CompressedMatrix<real>& D_T = data_container->host_data.D_T;
   int2* ids = data_container->host_data.bids_rigid_rigid.data();
 
