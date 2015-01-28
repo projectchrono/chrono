@@ -82,8 +82,8 @@ double output_step_size = 1.0 / 1;    // once a second
 
 // #ifdef USE_IRRLICHT
   // Point on chassis tracked by the camera
-double chaseDist = 3.0;
-double chaseHeight = 0.5;
+double chaseDist = 4.0;
+double chaseHeight = 0.0;
 ChVector<> trackPoint(0, 0, 0);
   /*
 #else
@@ -130,7 +130,7 @@ int main(int argc, char* argv[])
 
   // The vehicle inherits ChSystem. Input chassis visual and collision type
 	TrackVehicle vehicle("Justins M113 model", 
-    VisualizationType::NONE,
+    VisualizationType::PRIMITIVES,
     CollisionType::PRIMITIVES);
   
   // set the chassis REF at the specified initial config.
