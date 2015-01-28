@@ -25,6 +25,8 @@
 #include "assets/ChTriangleMeshShape.h"
 #include "assets/ChTexture.h"
 #include "assets/ChColorAsset.h"
+#include "assets/ChAssetLevel.h"
+
 // collision mesh
 #include "geometry/ChCTriangleMeshSoup.h"
 
@@ -33,7 +35,6 @@
 
 
 namespace chrono {
-
 
 // static variables
 const std::string TrackChain::m_collisionFile = utils::GetModelDataFile("M113/shoe_collision.obj");
@@ -50,7 +51,7 @@ const double TrackChain::m_pin_radius = 0.02317;
 const ChVector<> TrackChain::m_tooth_box(0.08 *0.5, 0.075 *0.5, 0.08 *0.5);  // length, height, width HALF DIMS
  // distance between body center and the vertical offset to the inner-surface of the collision geometry
 //  used for initializing shoes as a chain
-const double TrackChain::m_shoe_chain_Yoffset = 0.035; // .03315 exact
+const double TrackChain::m_shoe_chain_Yoffset = 0.04; // .03315 exact
 
 TrackChain::TrackChain(const std::string& name, 
                        VisualizationType vis, 
@@ -265,6 +266,9 @@ void TrackChain::AddVisualization()
 void TrackChain::AddVisualization(size_t track_idx)
 {
   assert(track_idx < m_numShoes);
+
+  if(m_shoes[track_idx]->GetAssets().size() > 0 )
+    m_shoes[track_idx]->GetAssets().clear();
   // Attach visualization asset
   switch (m_vis) {
   case VisualizationType::PRIMITIVES:
@@ -280,6 +284,80 @@ void TrackChain::AddVisualization(size_t track_idx)
 
     break;
   }
+  case VisualizationType::COMPOUNDPRIMITIVES:
+  {
+    // use same set of primitives as was used for the corresponding collsion shape
+    // shoe geometry provided can be exactly represented by 6 smaller boxes, 2 cylinders.
+    double subBox_width = 0.082;
+    double stagger_offset = 0.03;
+
+    // color the boxes and cylinders differently
+    ChSharedPtr<ChAssetLevel> boxLevel(new ChAssetLevel);
+    ChSharedPtr<ChAssetLevel> pinLevel(new ChAssetLevel);
+
+    // 5 smaller boxes make up the base of the shoe
+    ChSharedPtr<ChBoxShape> box1(new ChBoxShape);
+    box1->GetBoxGeometry().SetLengths(ChVector<>(m_shoe_box.x, m_shoe_box.y, subBox_width));  // use full distances w/ assets
+    boxLevel->AddAsset(box1);
+
+    ChSharedPtr<ChBoxShape> box2(new ChBoxShape(*box1.get_ptr() ) );
+    box2->GetBoxGeometry().Pos = ChVector<>(-stagger_offset, 0, subBox_width);
+    boxLevel->AddAsset(box2);
+
+    ChSharedPtr<ChBoxShape> box3(new ChBoxShape(*box1.get_ptr() ) );
+    box3->GetBoxGeometry().Pos =  ChVector<>(-stagger_offset, 0, -subBox_width);
+    boxLevel->AddAsset(box3);
+
+    ChSharedPtr<ChBoxShape> box4(new ChBoxShape(*box1.get_ptr() ) );
+    box4->GetBoxGeometry().Pos =  ChVector<>(0, 0, 2.0*subBox_width);
+    boxLevel->AddAsset(box4);
+
+    ChSharedPtr<ChBoxShape> box5(new ChBoxShape(*box1.get_ptr() ) );
+    box5->GetBoxGeometry().Pos = ChVector<>(0, 0, -2.0*subBox_width);
+    boxLevel->AddAsset(box5);
+
+    // add the tooth box
+    double tooth_offset = -0.07315; // vertical offset
+    ChSharedPtr<ChBoxShape> tooth_box(new ChBoxShape);
+    tooth_box->GetBoxGeometry().SetLengths(ChVector<>(m_tooth_box.x, m_tooth_box.y, m_tooth_box.z) );
+    tooth_box->GetBoxGeometry().Pos =  ChVector<>(0, tooth_offset, 0);
+    boxLevel->AddAsset(tooth_box);
+
+    // add a color to the shoes
+    ChSharedPtr<ChTexture> box_tex(new ChTexture);
+    if( track_idx % 2 == 0)
+      box_tex->SetTextureFilename(GetChronoDataFile("blu.png"));
+    else
+      box_tex->SetTextureFilename(GetChronoDataFile("concrete.jpg"));
+    boxLevel->AddAsset(box_tex);
+
+    // finally, add the box asset level to the shoe
+    m_shoes[track_idx]->AddAsset(boxLevel);
+
+
+    // add the pin as a single cylinder
+    double pin_offset = -0.07581;
+    ChSharedPtr<ChCylinderShape> pin(new ChCylinderShape);
+    pin->GetCylinderGeometry().p1 = ChVector<>(pin_offset, 0, m_pin_width/2.0);
+    pin->GetCylinderGeometry().p2 = ChVector<>(pin_offset, 0, -m_pin_width/2.0);
+    pin->GetCylinderGeometry().rad = m_pin_radius;
+    pinLevel->AddAsset(pin);
+
+    // add a color to the pin
+    ChSharedPtr<ChColorAsset> pinCol(new ChColorAsset);
+    // blue, or grey
+    if( track_idx % 2 == 0)
+      pinCol->SetColor(ChColor(0.3f, 0.3f, 0.7f));
+    else
+      pinCol->SetColor(ChColor(0.2f, 0.2f, 0.2f ));
+
+    pinLevel->AddAsset(pinCol);
+
+    //finally, add the pin asset level to the shoe
+    m_shoes[track_idx]->AddAsset(pinLevel);
+
+    break;
+  } 
   case VisualizationType::MESH:
   {
     // mesh for visualization only.
@@ -296,7 +374,11 @@ void TrackChain::AddVisualization(size_t track_idx)
 
     break;
   }
+  default:
+  {
+    GetLog() << "Didn't recognize VisualizationType for TrackChain \n";
   }
+  } // end switch
 }
 
 
@@ -327,10 +409,14 @@ void TrackChain::AddCollisionGeometry(size_t track_idx)
   case CollisionType::PRIMITIVES:
   {
     // use a simple box, single pin
-    m_shoes[track_idx]->GetCollisionModel()->AddBox(m_shoe_box.x, m_shoe_box.y, m_shoe_box.z);
+    // m_shoes[track_idx]->GetCollisionModel()->AddBox(m_shoe_box.x, m_shoe_box.y, m_shoe_box.z);
     // pin is a single cylinder
     double pin_offset = -0.07581;
-    m_shoes[track_idx]->GetCollisionModel()->AddCylinder(m_pin_radius, m_pin_radius, m_pin_width/2.0, ChVector<>(pin_offset, 0, 0) );
+    m_shoes[track_idx]->GetCollisionModel()->AddCylinder(m_pin_radius,
+      m_pin_radius,
+      m_pin_width/2.0,
+      ChVector<>(pin_offset, 0, 0),
+      ChMatrix33<>(Q_from_AngAxis(CH_C_PI_2,VECT_X)) );
     
     break;
   }
@@ -344,7 +430,7 @@ void TrackChain::AddCollisionGeometry(size_t track_idx)
     m_shoes[track_idx]->GetCollisionModel()->AddBox(m_shoe_box.x, m_shoe_box.y, subBox_width, ChVector<>(-stagger_offset, 0, subBox_width));
     m_shoes[track_idx]->GetCollisionModel()->AddBox(m_shoe_box.x, m_shoe_box.y, subBox_width, ChVector<>(-stagger_offset, 0, -subBox_width));
     m_shoes[track_idx]->GetCollisionModel()->AddBox(m_shoe_box.x, m_shoe_box.y, subBox_width, ChVector<>(0, 0, 2.0*subBox_width));
-    m_shoes[track_idx]->GetCollisionModel()->AddBox(m_shoe_box.x, m_shoe_box.y, subBox_width, ChVector<>(0, 0, 2.0*subBox_width));
+    m_shoes[track_idx]->GetCollisionModel()->AddBox(m_shoe_box.x, m_shoe_box.y, subBox_width, ChVector<>(0, 0, -2.0*subBox_width));
     // add the tooth box
     double tooth_offset = -0.07315; // vertical offset
     m_shoes[track_idx]->GetCollisionModel()->AddBox(m_tooth_box.x, m_tooth_box.y, m_tooth_box.z, ChVector<>(0, tooth_offset, 0));
@@ -497,6 +583,7 @@ void TrackChain::CreateShoes(ChSharedPtr<ChBodyAuxRef> chassis,
     m_shoes.push_back(ChSharedPtr<ChBody>(new ChBody));
     m_numShoes++;
     m_shoes.back()->Copy( m_shoes.front().get_ptr() );
+    AddVisualization();
     AddCollisionGeometry();
     m_shoes.back()->SetNameString( "shoe " + std::to_string(m_numShoes) );
 
@@ -669,6 +756,7 @@ void TrackChain::CreateShoes(ChSharedPtr<ChBodyAuxRef> chassis,
     m_shoes.push_back(ChSharedPtr<ChBody>(new ChBody));
     m_numShoes++;
     m_shoes.back()->Copy( m_shoes.front().get_ptr() );
+    AddVisualization();
     AddCollisionGeometry();
     m_shoes.back()->SetNameString( "shoe " + std::to_string(m_numShoes) );
 
@@ -735,7 +823,6 @@ void TrackChain::CreateShoes_closeChain(ChSharedPtr<ChBodyAuxRef> chassis,
   // Once forward-most pin location crosses that of the first shoe, stop, and modify the first and last bodies.
   // Then, create the final pin joint.
 
-
   // get coordinate directions of the envelope surface
   // lateral in terms of the vehicle chassis
   ChVector<> lateral_dir = (m_shoes.front()->GetRot()).GetZaxis();
@@ -770,6 +857,7 @@ void TrackChain::CreateShoes_closeChain(ChSharedPtr<ChBodyAuxRef> chassis,
     m_shoes.push_back(ChSharedPtr<ChBody>(new ChBody));
     m_numShoes++;
     m_shoes.back()->Copy( m_shoes.front().get_ptr() );
+    AddVisualization();
     AddCollisionGeometry();
     m_shoes.back()->SetNameString( "shoe " + std::to_string(m_numShoes) );
 
