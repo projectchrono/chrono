@@ -113,9 +113,10 @@ void DriveGear::AddVisualization()
     m_gear->AddAsset(cyl);
 
     // second cylinder is a mirror of the first, about x-y plane
-    cyl->GetCylinderGeometry().p1.z *= -1;
-    cyl->GetCylinderGeometry().p2.z *= -1;
-    m_gear->AddAsset(cyl);
+    ChSharedPtr<ChCylinderShape> cylB(new ChCylinderShape(*cyl.get_ptr()));
+    cylB->GetCylinderGeometry().p1.z *= -1;
+    cylB->GetCylinderGeometry().p2.z *= -1;
+    m_gear->AddAsset(cylB);
 
     ChSharedPtr<ChTexture> tex(new ChTexture);
     tex->SetTextureFilename(GetChronoDataFile("bluwhite.png"));
