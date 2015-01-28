@@ -59,11 +59,12 @@ using namespace core;
 // User Settings
 // =============================================================================
 // display the 1) system heirarchy, 2) a set of subsystem hardpoints, 3) constraint violations
-// #define DEBUG_LOG 
+#define DEBUG_LOG 
 
 // Initial vehicle position and heading. Defines the REF frame for the hull body
 ChVector<> initLoc(0, 1.0, 0);
-ChQuaternion<> initRot(1, 0, 0, 0);
+//ChQuaternion<> initRot = Q_from_AngAxis(CH_C_PI_4, VECT_Y);
+ChQuaternion<> initRot(QUNIT);
 
 // flat ground size and COG location
 ChVector<> groundSize(60.0, 1.0, 100.0);
@@ -71,7 +72,7 @@ ChVector<> groundPos(0, -1.0, 0);
 double mu = 0.8;  // dry friction coef.
 
 // Simulation step size
-double step_size = 0.0001;
+double step_size = 0.001;
 
 // Time interval between two render frames
 int FPS = 50;
@@ -81,7 +82,8 @@ double output_step_size = 1.0 / 1;    // once a second
 
 // #ifdef USE_IRRLICHT
   // Point on chassis tracked by the camera
-ChVector<> chaseDist(2.0, 0, 3.0);
+double chaseDist = 3.0;
+double chaseHeight = 0.5;
 ChVector<> trackPoint(0, 0, 0);
   /*
 #else
@@ -128,7 +130,7 @@ int main(int argc, char* argv[])
 
   // The vehicle inherits ChSystem. Input chassis visual and collision type
 	TrackVehicle vehicle("Justins M113 model", 
-    VisualizationType::PRIMITIVES,
+    VisualizationType::NONE,
     CollisionType::PRIMITIVES);
   
   // set the chassis REF at the specified initial config.
@@ -191,7 +193,7 @@ int main(int argc, char* argv[])
   application.SetTimestep(step_size);
 
   // the GUI driver
-  ChIrrGuiTrack driver(application, vehicle, trackPoint, chaseDist.x, chaseDist.y, chaseDist.z);
+  ChIrrGuiTrack driver(application, vehicle, trackPoint, chaseDist, chaseHeight);
 
   // Set the time response for steering and throttle keyboard inputs.
   // NOTE: this is not exact, since we do not render quite at the specified FPS.
@@ -260,13 +262,13 @@ int main(int argc, char* argv[])
     driver.Update(time);
 
     vehicle.Update(time, throttle_input, braking_input);
+
     // Advance simulation for one timestep for all modules
     // double step = realtime_timer.SuggestSimulationStep(step_size);
 
     driver.Advance(step_size);
 
     vehicle.Advance(step_size);
-
     step_number++;
 	}
 
