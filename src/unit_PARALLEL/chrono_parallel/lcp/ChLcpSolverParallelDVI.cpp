@@ -215,16 +215,36 @@ void ChLcpSolverParallelDVI::ComputeR()
     return;
   }
 
-  data_container->host_data.b.resize(data_container->num_constraints);
-  reset(data_container->host_data.b);
+  const CompressedMatrix<real>& D_n_T = data_container->host_data.D_n_T;
+  const CompressedMatrix<real>& D_t_T = data_container->host_data.D_t_T;
+  const CompressedMatrix<real>& D_s_T = data_container->host_data.D_s_T;
+  const CompressedMatrix<real>& D_b_T = data_container->host_data.D_b_T;
+
+  const DynamicVector<real>& M_invk = data_container->host_data.M_invk;
+
+  DynamicVector<real>& R = data_container->host_data.R;
+  DynamicVector<real>& b = data_container->host_data.b;
+
+  b.resize(data_container->num_constraints);
+  reset(b);
 
   rigid_rigid.Build_b();
   bilateral.Build_b();
 
-  data_container->host_data.R = -data_container->host_data.b - data_container->host_data.D_T * data_container->host_data.M_invk;
+  switch (data_container->settings.solver.solver_mode) {
+    case NORMAL: {
+      R = -b - D_n_T * M_invk;
+    } break;
+
+    case SLIDING: {
+      R = -b - D_n_T * M_invk - D_t_T * M_invk;
+    } break;
+
+    case SPINNING: {
+      R = -b - D_n_T * M_invk - D_t_T * M_invk - D_s_T * M_invk;
+    } break;
+  }
 }
-
-
 
 void ChLcpSolverParallelDVI::ChangeSolverType(SOLVERTYPE type) {
   data_container->settings.solver.solver_type = type;
