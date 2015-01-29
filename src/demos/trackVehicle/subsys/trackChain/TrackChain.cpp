@@ -280,8 +280,8 @@ void TrackChain::AddVisualization(size_t track_idx)
 
     // shoes will be added to the same collision family so self-collision can be toggled
     ChSharedPtr<ChBoxShape> box(new ChBoxShape);
-    box->GetBoxGeometry().SetLengths(ChVector<>(m_shoe_box.x - 2*m_pin_radius, m_shoe_box.y, m_shoe_box.z) );
-    box->GetBoxGeometry().Pos = ChVector<>(-m_pin_radius, 0, 0);
+    box->GetBoxGeometry().SetLengths(ChVector<>(m_shoe_box.x, m_shoe_box.y, m_shoe_box.z) );
+    box->GetBoxGeometry().Pos = ChVector<>(0, 0, 0);
     boxLevel->AddAsset(box);
 
     // add the tooth box
@@ -338,7 +338,7 @@ void TrackChain::AddVisualization(size_t track_idx)
 
     // 5 smaller boxes make up the base of the shoe
     ChSharedPtr<ChBoxShape> box1(new ChBoxShape);
-    box1->GetBoxGeometry().SetLengths(ChVector<>(m_shoe_box.x, m_shoe_box.y, subBox_width));  // use full distances w/ assets
+    box1->GetBoxGeometry().SetLengths(ChVector<>(m_shoe_box.x, m_shoe_box.y, subBox_width));
     boxLevel->AddAsset(box1);
 
     ChSharedPtr<ChBoxShape> box2(new ChBoxShape(*box1.get_ptr() ) );
@@ -367,9 +367,15 @@ void TrackChain::AddVisualization(size_t track_idx)
     // add a color to the shoes
     ChSharedPtr<ChTexture> box_tex(new ChTexture);
     if( track_idx % 2 == 0)
-      box_tex->SetTextureFilename(GetChronoDataFile("blu.png"));
+    {
+      // box_tex->SetTextureFilename(GetChronoDataFile("blu.png"));
+      box_tex->SetTextureFilename(GetChronoDataFile("cubetexture_bluwhite.png"));
+    }
     else
-      box_tex->SetTextureFilename(GetChronoDataFile("concrete.jpg"));
+    {
+      // box_tex->SetTextureFilename(GetChronoDataFile("concrete.jpg"));
+      box_tex->SetTextureFilename(GetChronoDataFile("cubetexture_pinkwhite.png"));
+    }
     boxLevel->AddAsset(box_tex);
 
     // finally, add the box asset level to the shoe
@@ -449,19 +455,18 @@ void TrackChain::AddCollisionGeometry(size_t track_idx)
   switch (m_collide) {
   case CollisionType::PRIMITIVES:
   {
-    /*
-    // use a simple box for the shoe
-    m_shoes[track_idx]->GetCollisionModel()->AddBox(0.5*(m_shoe_box.x-5*m_pin_radius), 0.5*m_shoe_box.y, 0.5*m_shoe_box.z);
     
+    // use a simple box for the shoe
+    m_shoes[track_idx]->GetCollisionModel()->AddBox(0.5*m_shoe_box.x - m_pin_radius, 0.5*m_shoe_box.y, 0.5*m_shoe_box.z,
+      ChVector<>(-m_pin_radius,0,0));
+    
+    
+    /*
     // add the tooth
     double tooth_offset = -0.07315; // vertical offset
     m_shoes[track_idx]->GetCollisionModel()->AddBox(0.5*m_tooth_box.x, 0.5*m_tooth_box.y, 0.5*m_tooth_box.z,
-      ChVector<>(0, tooth_offset, 0));
+      ChVector<>(-0, tooth_offset, 0));
     */
-
-
-
-
 
     // pin is a single cylinder
     double pin_offset = -0.07581;
@@ -479,7 +484,8 @@ void TrackChain::AddCollisionGeometry(size_t track_idx)
     double subBox_width = 0.5*0.082;
     double stagger_offset = 0.03;
 
-    // 5 smaller boxes make up the base of the shoe
+    // 5 smaller boxes make up the base of the shoe. Use half-lengths w/ collision shape Adds.
+    // middle 2 boxes are shifted back slightly
     m_shoes[track_idx]->GetCollisionModel()->AddBox(0.5*m_shoe_box.x, 0.5*m_shoe_box.y, subBox_width);
     m_shoes[track_idx]->GetCollisionModel()->AddBox(0.5*m_shoe_box.x, 0.5*m_shoe_box.y, subBox_width,
       ChVector<>(-stagger_offset, 0, subBox_width));
