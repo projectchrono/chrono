@@ -42,13 +42,8 @@ namespace chrono {
 
 // -----------------------------------------------------------------------------
 // Static variables
-
-  
-  
-  
 const size_t TrackVehicle::m_num_tracks = 2;    // number of trackSystems to create
 const size_t TrackVehicle::m_num_engines = 1;   // number of powertrains (and drivelines) to create
-
 
 const ChVector<> TrackVehicle::m_trackPos_Right(0.23644, -0.4780, 0.83475); // relative to chassis COG
 const ChVector<> TrackVehicle::m_trackPos_Left(0.23644, -0.4780, -0.83475); // relative to chassis COG
@@ -73,7 +68,10 @@ TrackVehicle::TrackVehicle(const std::string& name, VisualizationType chassisVis
   SetLcpSolverType(ChSystem::LCP_ITERATIVE_SOR);
   SetIterLCPmaxItersSpeed(150);
   SetIterLCPmaxItersStab(150);
-  SetMaxPenetrationRecoverySpeed(1.0);
+  SetMaxPenetrationRecoverySpeed(2.0);
+  // SetIterLCPomega(2.0);
+  // SetIterLCPsharpnessLambda(2.0);
+  
 
   // create the chassis body    
   m_chassis = ChSharedPtr<ChBodyAuxRef>(new ChBodyAuxRef);
