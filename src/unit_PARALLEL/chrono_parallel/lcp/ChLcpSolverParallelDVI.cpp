@@ -252,32 +252,46 @@ void ChLcpSolverParallelDVI::ChangeSolverType(SOLVERTYPE type) {
   if (this->solver) {
     delete (this->solver);
   }
-  if (type == STEEPEST_DESCENT) {
-    solver = new ChSolverSD();
-  } else if (type == GRADIENT_DESCENT) {
-    solver = new ChSolverGD();
-  } else if (type == CONJUGATE_GRADIENT) {
-    solver = new ChSolverCG();
-  } else if (type == CONJUGATE_GRADIENT_SQUARED) {
-    solver = new ChSolverCGS();
-  } else if (type == BICONJUGATE_GRADIENT) {
-    solver = new ChSolverBiCG();
-  } else if (type == BICONJUGATE_GRADIENT_STAB) {
-    solver = new ChSolverBiCGStab();
-  } else if (type == MINIMUM_RESIDUAL) {
-    solver = new ChSolverMinRes();
-  } else if (type == QUASAI_MINIMUM_RESIDUAL) {
-    //         // This solver has not been implemented yet
-    //         //SolveQMR(data_container->gpu_data.device_gam_data, rhs, max_iteration);
-  } else if (type == APGD) {
-    solver = new ChSolverAPGD();
-  } else if (type == APGDREF) {
-    solver = new ChSolverAPGDREF();
-  } else if (type == JACOBI) {
-    solver = new ChSolverJacobi();
-  } else if (type == GAUSS_SEIDEL) {
-    solver = new ChSolverPGS();
-  } else if (type == PDIP) {
-    solver = new ChSolverPDIP();
+  switch (type) {
+    case STEEPEST_DESCENT:
+      solver = new ChSolverSD();
+      break;
+    case GRADIENT_DESCENT:
+      solver = new ChSolverGD();
+      break;
+    case CONJUGATE_GRADIENT:
+      solver = new ChSolverCG();
+      break;
+    case CONJUGATE_GRADIENT_SQUARED:
+      solver = new ChSolverCGS();
+      break;
+    case BICONJUGATE_GRADIENT:
+      solver = new ChSolverBiCG();
+      break;
+    case BICONJUGATE_GRADIENT_STAB:
+      solver = new ChSolverBiCGStab();
+      break;
+    case MINIMUM_RESIDUAL:
+      solver = new ChSolverMinRes();
+      break;
+    case QUASAI_MINIMUM_RESIDUAL:
+      // This solver has not been implemented yet
+      break;
+    case APGD:
+      solver = new ChSolverAPGD();
+      break;
+    case APGDREF:
+      solver = new ChSolverAPGDREF();
+      break;
+    case JACOBI:
+      solver = new ChSolverJacobi();
+      break;
+    case GAUSS_SEIDEL:
+      solver = new ChSolverPGS();
+      break;
+    case PDIP:
+      solver = new ChSolverPDIP();
+      break;
   }
+
 }
