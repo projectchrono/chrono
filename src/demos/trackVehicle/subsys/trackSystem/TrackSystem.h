@@ -89,6 +89,8 @@ private:
   ChVector<> m_gearPosRel;
   ChVector<> m_idlerPosRel;
 
+  int m_track_idx;  // give unique ID to each TrackSystem, to use as a collision family ID for all associated sub-systems 
+  
   // hard-coded in TrackSystem.cpp, for now
   // idler
   static const ChVector<> m_idlerPos; // relative to TrackSystem _REF c-sys
@@ -112,10 +114,6 @@ private:
   std::vector<ChVector<> > m_suspensionLocs;  // relative to local c-sys
   static const int m_numSuspensions;
   static const ChVector<> m_armWheel;   // relative arm distance to wheel
-  
-  // Track Chain
-  // std::string m_trackChainFilename;
-  int m_track_idx;  // give unique ID to each TrackSystem, to use as a collision family ID for all associated sub-systems
 };
 
 
