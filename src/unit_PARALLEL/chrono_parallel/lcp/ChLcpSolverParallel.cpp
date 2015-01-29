@@ -146,8 +146,8 @@ void ChLcpSolverParallel::ComputeImpulses() {
 
   if (data_container->num_constraints > 0) {
 
-    blaze::DenseSubvector<DynamicVector<real> > gamma_b = blaze::subvector(gamma, num_unilaterals, num_bilaterals);
-    blaze::DenseSubvector<DynamicVector<real> > gamma_n = blaze::subvector(gamma, 0, num_contacts);
+    blaze::DenseSubvector<const DynamicVector<real> > gamma_b = blaze::subvector(gamma, num_unilaterals, num_bilaterals);
+    blaze::DenseSubvector<const DynamicVector<real> > gamma_n = blaze::subvector(gamma, 0, num_contacts);
 
     //Compute new velocity based on the lagrange multipliers
     switch (data_container->settings.solver.solver_mode) {
@@ -156,15 +156,15 @@ void ChLcpSolverParallel::ComputeImpulses() {
       } break;
 
       case SLIDING: {
-        blaze::DenseSubvector<DynamicVector<real> > gamma_t = blaze::subvector(gamma, num_contacts, num_contacts * 2);
+         blaze::DenseSubvector<const DynamicVector<real> > gamma_t = blaze::subvector(gamma, num_contacts, num_contacts * 2);
 
         v = M_invk + M_invD_n * gamma_n + M_invD_t * gamma_t + M_invD_b * gamma_b;
 
       } break;
 
       case SPINNING: {
-        blaze::DenseSubvector<DynamicVector<real> > gamma_t = blaze::subvector(gamma, num_contacts, num_contacts * 2);
-        blaze::DenseSubvector<DynamicVector<real> > gamma_s = blaze::subvector(gamma, num_contacts * 3, num_contacts * 3);
+         blaze::DenseSubvector<const DynamicVector<real> > gamma_t = blaze::subvector(gamma, num_contacts, num_contacts * 2);
+         blaze::DenseSubvector<const DynamicVector<real> > gamma_s = blaze::subvector(gamma, num_contacts * 3, num_contacts * 3);
 
         v = M_invk + M_invD_n * gamma_n + M_invD_t * gamma_t + M_invD_s * gamma_s + M_invD_b * gamma_b;
 
