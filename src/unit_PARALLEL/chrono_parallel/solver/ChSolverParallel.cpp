@@ -63,8 +63,8 @@ void ChSolverParallel::ShurProduct(const blaze::DynamicVector<real>& x,
   uint num_unilaterals = data_container->num_unilaterals;
   uint num_bilaterals = data_container->num_bilaterals;
 
-  blaze::DenseSubvector<DynamicVector<real> > x_b = blaze::subvector(x, num_unilaterals, num_bilaterals);
-  blaze::DenseSubvector<DynamicVector<real> > x_n = blaze::subvector(x, 0, num_contacts);
+  blaze::DenseSubvector<const DynamicVector<real> > x_b = blaze::subvector(x, num_unilaterals, num_bilaterals);
+  blaze::DenseSubvector<const DynamicVector<real> > x_n = blaze::subvector(x, 0, num_contacts);
 
   switch (data_container->settings.solver.local_solver_mode) {
     case NORMAL: {
@@ -72,14 +72,14 @@ void ChSolverParallel::ShurProduct(const blaze::DynamicVector<real>& x,
     } break;
 
     case SLIDING: {
-      blaze::DenseSubvector<DynamicVector<real> > x_t = blaze::subvector(x, num_contacts, num_contacts * 2);
+      blaze::DenseSubvector<const DynamicVector<real> > x_t = blaze::subvector(x, num_contacts, num_contacts * 2);
 
       output = D_n_T * (M_invD_n * x_n) + D_t_T * (M_invD_t * x_t) + D_b_T * (M_invD_b * x_b) + E * x;
     } break;
 
     case SPINNING: {
-      blaze::DenseSubvector<DynamicVector<real> > x_t = blaze::subvector(x, num_contacts, num_contacts * 2);
-      blaze::DenseSubvector<DynamicVector<real> > x_s = blaze::subvector(x, num_contacts * 3, num_contacts * 3);
+      blaze::DenseSubvector<const DynamicVector<real> > x_t = blaze::subvector(x, num_contacts, num_contacts * 2);
+      blaze::DenseSubvector<const DynamicVector<real> > x_s = blaze::subvector(x, num_contacts * 3, num_contacts * 3);
 
       output = D_n_T * (M_invD_n * x_n) + D_t_T * (M_invD_t * x_t) + D_s_T * (M_invD_s * x_s) + D_b_T * (M_invD_b * x_b) + E * x;
     } break;
