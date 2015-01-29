@@ -136,75 +136,77 @@ void ChConstraintRigidRigid::func_Project_rolling(int& index, int2* ids, real3* 
   gam[_index_ + 4] = gamma_tu;
   gam[_index_ + 5] = gamma_tv;
 }
+//%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 void ChConstraintRigidRigid::host_Project_single(int index, int2* ids, real3* friction, real* cohesion, real* gamma) {
   // always project normal
-  if (solve_sliding) {
-    func_Project(index, ids, friction, cohesion, gamma);
-  } else {
-    real gamma_x = gamma[_index_ + 0];
-    int2 body_id = ids[index];
-    real coh = cohesion[index];
+  switch (data_container->settings.solver.local_solver_mode) {
+    case NORMAL: {
+      for (int index = 0; index < data_container->num_contacts; index++) {
+        real gamma_x = gamma[_index_ + 0];
+        int2 body_id = ids[index];
+        real coh = cohesion[index];
 
-    gamma_x += coh;
+        gamma_x += coh;
+        gamma_x = gamma_x < 0 ? 0 : gamma_x - coh;
+        gamma[_index_ + 0] = gamma_x;
+      }
+    } break;
 
-    gamma_x = gamma_x < 0 ? 0 : gamma_x - coh;
-
-    gamma[_index_ + 0] = gamma_x;
-    gamma[_index_ + 1] = 0;
-    gamma[_index_ + 2] = 0;
-  }
-  if (solve_spinning) {
-    func_Project_rolling(index, ids, friction, gamma);
-  }
-}
-
-void ChConstraintRigidRigid::host_Project(int2* ids, real3* friction, real* cohesion, real* gamma) {
-  // always project normal
-  if (solve_sliding) {
-#pragma omp parallel for
-    for (int index = 0; index < data_container->num_contacts; index++) {
+    case SLIDING: {
       func_Project(index, ids, friction, cohesion, gamma);
-    }
-  } else {
-#pragma omp parallel for
-    for (int index = 0; index < data_container->num_contacts; index++) {
-      real gamma_x = gamma[_index_ + 0];
-      int2 body_id = ids[index];
-      real coh = cohesion[index];
+    } break;
 
-      gamma_x += coh;
-
-      gamma_x = gamma_x < 0 ? 0 : gamma_x - coh;
-
-      gamma[_index_ + 0] = gamma_x;
-      gamma[_index_ + 1] = 0;
-      gamma[_index_ + 2] = 0;
-    }
-  }
-  if (solve_spinning) {
-#pragma omp parallel for
-    for (int index = 0; index < data_container->num_contacts; index++) {
+    case SPINNING: {
+      func_Project(index, ids, friction, cohesion, gamma);
       func_Project_rolling(index, ids, friction, gamma);
-    }
+    } break;
   }
 }
-//%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 void ChConstraintRigidRigid::Project(real* gamma) {
-  solve_sliding = data_container->settings.solver.local_solver_mode!=NORMAL;
-  solve_spinning = data_container->settings.solver.local_solver_mode==SPINNING;
-  host_Project(data_container->host_data.bids_rigid_rigid.data(), data_container->host_data.fric_rigid_rigid.data(), data_container->host_data.coh_rigid_rigid.data(), gamma);
-}
-void ChConstraintRigidRigid::Project_NoPar(real* gamma) {
-  solve_sliding = data_container->settings.solver.local_solver_mode!=NORMAL;
-  solve_spinning = data_container->settings.solver.local_solver_mode==SPINNING;
-  host_Project(data_container->host_data.bids_rigid_rigid.data(), data_container->host_data.fric_rigid_rigid.data(), data_container->host_data.coh_rigid_rigid.data(), gamma);
+  thrust::host_vector<int2> & bids = data_container->host_data.bids_rigid_rigid;
+  thrust::host_vector<real3> & friction = data_container->host_data.fric_rigid_rigid;
+  thrust::host_vector<real> & cohesion = data_container->host_data.coh_rigid_rigid;
+
+  switch (data_container->settings.solver.local_solver_mode) {
+    case NORMAL: {
+
+#pragma omp parallel for
+      for (int index = 0; index < data_container->num_contacts; index++) {
+        real gamma_x = gamma[_index_ + 0];
+        int2 body_id = bids[index];
+        real coh = cohesion[index];
+
+        gamma_x += coh;
+        gamma_x = gamma_x < 0 ? 0 : gamma_x - coh;
+        gamma[_index_ + 0] = gamma_x;
+      }
+    } break;
+
+    case SLIDING: {
+#pragma omp parallel for
+      for (int index = 0; index < data_container->num_contacts; index++) {
+        func_Project(index, bids.data(), friction.data(), cohesion.data(), gamma);
+      }
+    } break;
+
+    case SPINNING: {
+#pragma omp parallel for
+      for (int index = 0; index < data_container->num_contacts; index++) {
+        func_Project(index, bids.data(), friction.data(), cohesion.data(), gamma);
+        func_Project_rolling(index, bids.data(), friction.data(), gamma);
+      }
+    } break;
+  }
 }
 void ChConstraintRigidRigid::Project_Single(int index, real* gamma) {
-  solve_sliding = data_container->settings.solver.local_solver_mode!=NORMAL;
-  solve_spinning = data_container->settings.solver.local_solver_mode==SPINNING;
-  host_Project_single(index, data_container->host_data.bids_rigid_rigid.data(), data_container->host_data.fric_rigid_rigid.data(), data_container->host_data.coh_rigid_rigid.data(), gamma);
+
+  thrust::host_vector<int2>& bids = data_container->host_data.bids_rigid_rigid;
+  thrust::host_vector<real3>& friction = data_container->host_data.fric_rigid_rigid;
+  thrust::host_vector<real>& cohesion = data_container->host_data.coh_rigid_rigid;
+
+  host_Project_single(index, bids.data(), friction.data(), cohesion.data(), gamma);
 }
 
 void chrono::Compute_Jacobian(const real4& quat, const real3& U, const real3& V, const real3& W, const real3& point, real3& T1, real3& T2, real3& T3) {

@@ -19,8 +19,6 @@ class CH_PARALLEL_API ChConstraintRigidRigid {
  public:
   ChConstraintRigidRigid() {
     data_container = 0;
-    solve_sliding = false;
-    solve_spinning = false;
     offset = 3;
     inv_h = inv_hpa = inv_hhpa = 0;
   }
@@ -66,17 +64,12 @@ class CH_PARALLEL_API ChConstraintRigidRigid {
         data_container->host_data.fric_rigid_rigid[i] = mu;
       }
     }
-    solve_sliding = false;
-    solve_spinning = false;
   }
 
-  void host_Project_single(int index, int2* ids, real3* friction, real* cohesion, real* gamma);
-
-  void host_Project(int2* ids, real3* friction, real* cohesion, real* gamma);
 
   void Project(real* gamma);
-  void Project_NoPar(real* gamma);
   void Project_Single(int index, real* gamma);
+  void host_Project_single(int index, int2* ids, real3* friction, real* cohesion, real* gamma);
 
   void func_Project(int& index, int2* ids, real3* fric, real* cohesion, real* gam);
 
@@ -97,8 +90,6 @@ class CH_PARALLEL_API ChConstraintRigidRigid {
   // This operation is sequential.
   void GenerateSparsity();
 
-  bool solve_sliding;
-  bool solve_spinning;
   int offset;
 
  protected:
