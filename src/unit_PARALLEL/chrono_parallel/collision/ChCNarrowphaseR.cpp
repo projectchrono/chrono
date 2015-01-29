@@ -37,19 +37,19 @@ using namespace chrono::collision;
 //   - ct_norm:     contact normal, from ct_pt2 to ct_pt1 (in global frame)
 //   - ct_eff_rad:  effective contact radius
 //   - ct_body_ids: IDs of the bodies for the two contact shapes
-bool chrono::collision::RCollision(const uint& icoll,           // index of this contact pair candidate
+bool chrono::collision::RCollision(uint icoll,                // index of this contact pair candidate
                                    const ConvexShape &shapeA,
                                    const ConvexShape &shapeB,
-                                   const int& body1,
-                                   const int& body2,
-                                   uint* ct_flag,         // [output] flag for actual contact (per contact pair)
-                                   real3* ct_norm,         // [output] contact normal (per contact pair)
-                                   real3* ct_pt1,          // [output] point on shape1 (per contact pair)
-                                   real3* ct_pt2,          // [output] point on shape2 (per contact pair)
-                                   real* ct_depth,        // [output] penetration depth (per contact pair)
-                                   real* ct_eff_rad,      // [output] effective contact radius (per contact pair)
-                                   int2* ct_body_ids,     // [output] body IDs (per contact pair)
-                                   int & nC)              // [output] number of contacts found
+                                   int body1,
+                                   int body2,
+                                   uint* ct_flag,            // [output] flag for actual contact (per contact pair)
+                                   real3* ct_norm,           // [output] contact normal (per contact pair)
+                                   real3* ct_pt1,            // [output] point on shape1 (per contact pair)
+                                   real3* ct_pt2,            // [output] point on shape2 (per contact pair)
+                                   real* ct_depth,           // [output] penetration depth (per contact pair)
+                                   real* ct_eff_rad,         // [output] effective contact radius (per contact pair)
+                                   int2* ct_body_ids,        // [output] body IDs (per contact pair)
+                                   int& nC)                  // [output] number of contacts found
                                    {
    // Special-case the collision detection based on the types of the
    // two potentially colliding shapes.

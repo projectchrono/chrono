@@ -139,10 +139,10 @@ void ChCNarrowphaseDispatch::Process(ChParallelDataManager* data_container) {
   // std::cout << num_potentialContacts << " " << number_of_contacts << std::endl;
 }
 
-void host_count(const int& index,                                // index of this potential collision
+void host_count(int index,                                       // index of this potential collision
                 const shape_type* obj_data_T,                    // shape type (per shape)
                 const long long* collision_pair,                 // encoded shape IDs (per collision pair)
-                const NARROWPHASETYPE& narrowphase_algorithm,    // Type of narrowphase being used
+                NARROWPHASETYPE narrowphase_algorithm,           // Type of narrowphase being used
                 uint* max_contacts)                              // max. number of contacts (per collision pair)
 {
   // Identify the two candidate shapes and get their types.
@@ -190,7 +190,7 @@ void ChCNarrowphaseDispatch::PreprocessCount(const shape_type* obj_data_T,      
     host_count(icoll, obj_data_T, collision_pair, narrowphase_algorithm, max_contacts);
   }
 }
-void host_Preprocess(const uint& index,
+void host_Preprocess(uint index,
                      const shape_type* obj_data_T,
                      const real3* obj_data_A,
                      const real3* obj_data_B,
@@ -237,7 +237,7 @@ void ChCNarrowphaseDispatch::PreprocessLocalToParent(const int num_shapes,
   }
 }
 
-bool host_Dispatch_Init(const uint& index,
+bool host_Dispatch_Init(uint index,
                         const shape_type* obj_data_T,
                         const real3* obj_data_A,
                         const real3* obj_data_B,
@@ -287,13 +287,13 @@ bool host_Dispatch_Init(const uint& index,
   return true;
 }
 
-void host_Dispatch_Finalize(const uint& icoll,
+void host_Dispatch_Finalize(uint icoll,
                             const real3* body_pos,
-                            const real& collision_envelope,
-                            const SYSTEMTYPE& system_type,
-                            const uint& ID_A,
-                            const uint& ID_B,
-                            const int& nC,
+                            real collision_envelope,
+                            SYSTEMTYPE system_type,
+                            uint ID_A,
+                            uint ID_B,
+                            int nC,
                             real3* norm,
                             real3* ptA,
                             real3* ptB,
@@ -317,7 +317,7 @@ void host_Dispatch_Finalize(const uint& icoll,
   }
 }
 
-void host_DispatchMPR(const uint& index,
+void host_DispatchMPR(uint index,
                       const shape_type* obj_data_T,
                       const real3* obj_data_A,
                       const real3* obj_data_B,
@@ -328,8 +328,8 @@ void host_DispatchMPR(const uint& index,
                       const bool* obj_active,
                       const real3* body_pos,
                       const real4* body_rot,
-                      const real& collision_envelope,
-                      const SYSTEMTYPE& system_type,
+                      real collision_envelope,
+                      SYSTEMTYPE system_type,
                       const long long* contact_pair,
                       const uint* start_index,
                       uint* flag,
@@ -358,7 +358,7 @@ void host_DispatchMPR(const uint& index,
   host_Dispatch_Finalize(icoll, body_pos, collision_envelope, system_type, ID_A, ID_B, nC, norm, ptA, ptB, contactDepth);
 }
 
-void host_DispatchR(const uint& index,
+void host_DispatchR(uint index,
                     const shape_type* obj_data_T,
                     const real3* obj_data_A,
                     const real3* obj_data_B,
@@ -369,8 +369,8 @@ void host_DispatchR(const uint& index,
                     const bool* obj_active,
                     const real3* body_pos,
                     const real4* body_rot,
-                    const real& collision_envelope,
-                    const SYSTEMTYPE& system_type,
+                    real collision_envelope,
+                    SYSTEMTYPE system_type,
                     const long long* contact_pair,
                     const uint* start_index,
                     uint* flag,
@@ -395,7 +395,7 @@ void host_DispatchR(const uint& index,
   host_Dispatch_Finalize(icoll, body_pos, 0, system_type, ID_A, ID_B, nC, norm, ptA, ptB, contactDepth);
 }
 
-void host_DispatchHybridMPR(const uint& index,
+void host_DispatchHybridMPR(uint index,
                             const shape_type* obj_data_T,
                             const real3* obj_data_A,
                             const real3* obj_data_B,
@@ -406,8 +406,8 @@ void host_DispatchHybridMPR(const uint& index,
                             const bool* obj_active,
                             const real3* body_pos,
                             const real4* body_rot,
-                            const real& collision_envelope,
-                            const SYSTEMTYPE& system_type,
+                            real collision_envelope,
+                            SYSTEMTYPE system_type,
                             const long long* contact_pair,
                             const uint* start_index,
                             uint* flag,

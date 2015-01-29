@@ -108,12 +108,12 @@ void ChCBroadphase::host_Count_AABB_BIN_Intersection(const real3 *aabb_data,
 //%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 //Function to Store AABB Bin Intersections
 
-inline void __host__ __device__ function_Store_AABB_BIN_Intersection(const uint &index,
+inline void __host__ __device__ function_Store_AABB_BIN_Intersection(uint index,
                                                                      const real3 *aabb_data,
                                                                      const uint *Bins_Intersected,
                                                                      const real3 &bin_size_vec,
                                                                      const int3 &grid_size,
-                                                                     const uint &number_of_particles,
+                                                                     uint number_of_particles,
                                                                      uint *bin_number,
                                                                      uint *body_number) {
    uint count = 0, i, j, k;
@@ -170,9 +170,9 @@ inline bool __host__ __device__ overlap(real3 Amin,
 //%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 //Function to count AABB AABB intersection
 
-inline void __host__ __device__ function_Count_AABB_AABB_Intersection(const uint &index,
+inline void __host__ __device__ function_Count_AABB_AABB_Intersection(uint index,
                                                                       const real3 *aabb_data,
-                                                                      const uint &number_of_particles,
+                                                                      uint number_of_particles,
                                                                       const uint *bin_number,
                                                                       const uint *body_number,
                                                                       const uint *bin_start_index,
@@ -216,9 +216,9 @@ void ChCBroadphase::host_Count_AABB_AABB_Intersection(const real3 *aabb_data,
 
 //%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 //Function to store AABB-AABB intersections
-inline void __host__ __device__ function_Store_AABB_AABB_Intersection(const uint &index,
+inline void __host__ __device__ function_Store_AABB_AABB_Intersection(uint index,
                                                                       const real3 *aabb_data,
-                                                                      const uint &number_of_particles,
+                                                                      uint number_of_particles,
                                                                       const uint *bin_number,
                                                                       const uint *body_number,
                                                                       const uint *bin_start_index,
