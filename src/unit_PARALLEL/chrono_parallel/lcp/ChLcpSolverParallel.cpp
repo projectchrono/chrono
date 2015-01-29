@@ -31,8 +31,12 @@ void ChLcpSolverParallel::ComputeMassMatrix()
   const std::vector<ChLink*> *link_list= data_container->link_list;
   const std::vector<ChPhysicsItem*> *other_physics_list= data_container->other_physics_list;
 
+  const DynamicVector<real>& hf = data_container->host_data.hf;
+  const DynamicVector<real>& v = data_container->host_data.v;
 
+  DynamicVector<real>& M_invk = data_container->host_data.M_invk;
   CompressedMatrix<real>& M_inv = data_container->host_data.M_inv;
+
   clear(M_inv);
 
   // Each rigid object has 3 mass entries and 9 inertia entries
@@ -121,7 +125,7 @@ void ChLcpSolverParallel::ComputeMassMatrix()
   }
 
 
-  data_container->host_data.M_invk = data_container->host_data.v + M_inv * data_container->host_data.hf;
+  M_invk = v + M_inv * hf;
 }
 
 void ChLcpSolverParallel::ComputeImpulses() {
