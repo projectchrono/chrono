@@ -38,7 +38,7 @@ const double TorsionArmSuspension::m_armRadius = 0.05; // [m]
 const double TorsionArmSuspension::m_wheelMass = 561.1; // [kg]
 const ChVector<> TorsionArmSuspension::m_wheelInertia(19.82, 19.82, 26.06); // [kg-m2]
 const double TorsionArmSuspension::m_wheelWidth = 0.16;  // [m]
-const double TorsionArmSuspension::m_wheelWidthGap = 0.03;  // inner gap between outer cylinders .038?
+const double TorsionArmSuspension::m_wheelWidthGap = 0.05;  // inner gap between outer cylinders .038?
 const double TorsionArmSuspension::m_wheelRadius = 0.305; // [m]
 const ChVector<> TorsionArmSuspension::m_wheel_Pos(-0.2034, -0.2271, 0.24475); // loc of right wheel COG in the local c-sys
 const double TorsionArmSuspension::m_springK = 25000;	// torsional spring constant [N-m/rad]
