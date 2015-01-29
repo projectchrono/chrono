@@ -13,10 +13,6 @@
 //   Build the vehicle using a hierarchy of subsystems.
 //   Simulate by GUI input to an irrlicht EventReceiver.
 //   Y-up, X-forward, Z-lateral global c-sys
-//    - similar to demo_tracks:
-//     - model track shoes with simple or complex collision geometry
-//     - using clones of collision shapes
-//     - use  SetFamilyMaskNoCollisionWithFamily, SetFamily etc., to avoid collisions between different families of bodies.
 //
 //	 Author: Justin Madsen, 2014
 ///////////////////////////////////////////////////
@@ -24,7 +20,6 @@
  
 #include "physics/ChSystem.h"
 // #include "particlefactory/ChParticleEmitter.h"
-
 
 #include "core/ChFileutils.h"
 #include "core/ChStream.h"
