@@ -293,18 +293,17 @@ void ChLcpSolverParallelDEM::ComputeD()
   uint num_bilaterals = data_container->num_bilaterals;
   uint nnz_bilaterals = data_container->nnz_bilaterals;
 
-  CompressedMatrix<real>& D_T = data_container->host_data.D_T;
-  clear(D_T);
-  if (D_T.capacity() < nnz_bilaterals) {
-    D_T.reserve(nnz_bilaterals * 1.2);
-  }
-  D_T.resize(num_constraints, num_dof, false);
+  CompressedMatrix<real>& D_b_T = data_container->host_data.D_b_T;
+  clear(D_b_T);
+  D_b_T.reserve(nnz_bilaterals );
+
+  D_b_T.resize(num_constraints, num_dof, false);
 
   bilateral.GenerateSparsity();
   bilateral.Build_D();
 
-  data_container->host_data.D = trans(data_container->host_data.D_T);
-  data_container->host_data.M_invD = data_container->host_data.M_inv * data_container->host_data.D;
+  data_container->host_data.D_b = trans(data_container->host_data.D_b_T);
+  data_container->host_data.M_invD_b = data_container->host_data.M_inv * data_container->host_data.D_b;
 }
 
 void ChLcpSolverParallelDEM::ComputeE()
@@ -330,7 +329,7 @@ void ChLcpSolverParallelDEM::ComputeR()
   reset(data_container->host_data.b);
   bilateral.Build_b();
 
-  data_container->host_data.R = -data_container->host_data.b - data_container->host_data.D_T * data_container->host_data.M_invk;
+  data_container->host_data.R = -data_container->host_data.b - data_container->host_data.D_b_T * data_container->host_data.M_invk;
 }
 
 
