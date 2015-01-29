@@ -111,14 +111,21 @@ struct host_container {
    thrust::host_vector<real> alpha;            // Dissipation factor (Hunt-Crossley)
    thrust::host_vector<real> cr;               // Coefficient of restitution
 
+   //For the variables below the convention is:
+   //_n is normal
+   //_t is tangential
+   //_r is rolling and spinning
+   //_b is bilateral
+   //_T is transpose
+   //_inv is inverse
    //This matrix, if used will hold D^TxM^-1xD in sparse form
    CompressedMatrix<real> Nshur;
    //The D Matrix hold the Jacobian for the entire system
-   CompressedMatrix<real> D;
+   CompressedMatrix<real> D_n, D_t, D_r, D_b;
    //D_T is the transpose of the D matrix, note that D_T is actually computed
    //first and D is taken as the transpose. This is due to the way that blaze
    //handles sparse matrix allocation, it is easier to do it on a per row basis
-   CompressedMatrix<real> D_T;
+   CompressedMatrix<real> D_n_T, D_t_T, D_r_T, D_b_T;
    //M_inv is the inverse mass matrix, This matrix, if holding the full inertia
    //tensor is block diagonal
    CompressedMatrix<real> M_inv;
@@ -130,7 +137,7 @@ struct host_container {
    //performed in two steps, first R = Minv_D*x, and then D_T*R where R is just
    //a temporary variable used here for illustrative purposes. In reality the
    //entire operation happens inline without a temp variable.
-   CompressedMatrix<real> M_invD;
+   CompressedMatrix<real> M_invD_n, M_invD_t, M_invD_r, M_invD_b;
 
    DynamicVector<real> R; //The right hand side of the system
    DynamicVector<real> b; //Correction terms
