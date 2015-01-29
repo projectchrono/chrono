@@ -185,14 +185,28 @@ void ChLcpSolverParallelDVI::ComputeD()
   rigid_rigid.Build_D();
   bilateral.Build_D();
 
-  D_n = trans(D_n_T);
-  D_t = trans(D_t_T);
-  D_s = trans(D_s_T);
-  D_b = trans(D_b_T);
+  switch (data_container->settings.solver.solver_mode) {
+    case NORMAL:
+      D_n = trans(D_n_T);
+      M_invD_n = M_inv * D_n;
+      break;
+    case SLIDING:
+      D_n = trans(D_n_T);
+      D_t = trans(D_t_T);
+      M_invD_n = M_inv * D_n;
+      M_invD_t = M_inv * D_t;
+      break;
+    case SPINNING:
+      D_n = trans(D_n_T);
+      D_t = trans(D_t_T);
+      D_s = trans(D_s_T);
+      M_invD_n = M_inv * D_n;
+      M_invD_t = M_inv * D_t;
+      M_invD_s = M_inv * D_s;
+      break;
+  }
 
-  M_invD_n = M_inv * D_n;
-  M_invD_t = M_inv * D_t;
-  M_invD_s = M_inv * D_s;
+  D_b = trans(D_b_T);
   M_invD_b = M_inv * D_b;
 }
 
