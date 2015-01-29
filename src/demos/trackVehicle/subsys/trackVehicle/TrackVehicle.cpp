@@ -292,7 +292,7 @@ void TrackVehicle::Advance(double step)
 {
   double t = 0;
   double settlePhaseA = 0.001;
-  double settlePhaseB = 0.01;
+  double settlePhaseB = 0.1;
   while (t < step) {
     double h = std::min<>(m_stepsize, step - t);
     if( GetChTime() < settlePhaseA )
