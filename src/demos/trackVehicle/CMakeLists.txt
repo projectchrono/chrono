@@ -35,6 +35,7 @@ SET(ChronoEngine_unit_TrackVehicle_SOURCES
 	subsys/trackChain/TrackChain.cpp
 	subsys/trackSystem/TrackSystem.cpp
 	subsys/trackVehicle/TrackVehicle.cpp
+	subsys/trackVehicle/DriveChain.cpp
 )
 
 SET(ChronoEngine_unit_TrackVehicle_HEADERS
@@ -50,6 +51,7 @@ SET(ChronoEngine_unit_TrackVehicle_HEADERS
 	subsys/trackChain/TrackChain.h
 	subsys/trackSystem/TrackSystem.h
 	subsys/trackVehicle/TrackVehicle.h
+	subsys/trackVehicle/DriveChain.h
 )
 
 
