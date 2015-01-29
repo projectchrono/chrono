@@ -137,7 +137,7 @@ void ChLcpSolverParallel::ComputeImpulses() {
 
   const CompressedMatrix<real>& M_invD_n = data_container->host_data.M_invD_n;
   const CompressedMatrix<real>& M_invD_t = data_container->host_data.M_invD_t;
-  const CompressedMatrix<real>& M_invD_r = data_container->host_data.M_invD_r;
+  const CompressedMatrix<real>& M_invD_s = data_container->host_data.M_invD_s;
   const CompressedMatrix<real>& M_invD_b = data_container->host_data.M_invD_b;
 
   uint num_contacts = data_container->num_contacts;
@@ -164,9 +164,9 @@ void ChLcpSolverParallel::ComputeImpulses() {
 
       case SPINNING: {
         blaze::DenseSubvector<DynamicVector<real> > gamma_t = blaze::subvector(gamma, num_contacts, num_contacts * 2);
-        blaze::DenseSubvector<DynamicVector<real> > gamma_r = blaze::subvector(gamma, num_contacts * 3, num_contacts * 3);
+        blaze::DenseSubvector<DynamicVector<real> > gamma_s = blaze::subvector(gamma, num_contacts * 3, num_contacts * 3);
 
-        v = M_invk + M_invD_n * gamma_n + M_invD_t * gamma_t + M_invD_r * gamma_r + M_invD_b * gamma_b;
+        v = M_invk + M_invD_n * gamma_n + M_invD_t * gamma_t + M_invD_s * gamma_s + M_invD_b * gamma_b;
 
       } break;
     }

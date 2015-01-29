@@ -121,25 +121,25 @@ void ChLcpSolverParallelDVI::ComputeD()
 
   int nnz_normal = 6 * 2 * data_container->num_contacts;
   int nnz_tangential = 6 * 4 * data_container->num_contacts;
-  int nnz_rolling = 6 * 3 * data_container->num_contacts;
+  int nnz_spinning = 6 * 3 * data_container->num_contacts;
 
   int num_normal = 1 * data_container->num_contacts;
   int num_tangential = 2 * data_container->num_contacts;
-  int num_rolling = 3 * data_container->num_contacts;
+  int num_spinning = 3 * data_container->num_contacts;
 
   CompressedMatrix<real>& D_n_T = data_container->host_data.D_n_T;
   CompressedMatrix<real>& D_t_T = data_container->host_data.D_t_T;
-  CompressedMatrix<real>& D_r_T = data_container->host_data.D_r_T;
+  CompressedMatrix<real>& D_s_T = data_container->host_data.D_s_T;
   CompressedMatrix<real>& D_b_T = data_container->host_data.D_b_T;
 
   CompressedMatrix<real>& D_n = data_container->host_data.D_n;
   CompressedMatrix<real>& D_t = data_container->host_data.D_t;
-  CompressedMatrix<real>& D_r = data_container->host_data.D_r;
+  CompressedMatrix<real>& D_s = data_container->host_data.D_s;
   CompressedMatrix<real>& D_b = data_container->host_data.D_b;
 
   CompressedMatrix<real>& M_invD_n = data_container->host_data.M_invD_n;
   CompressedMatrix<real>& M_invD_t = data_container->host_data.M_invD_t;
-  CompressedMatrix<real>& M_invD_r = data_container->host_data.M_invD_r;
+  CompressedMatrix<real>& M_invD_s = data_container->host_data.M_invD_s;
   CompressedMatrix<real>& M_invD_b = data_container->host_data.M_invD_b;
 
   const CompressedMatrix<real>& M_inv = data_container->host_data.M_inv;
@@ -165,15 +165,15 @@ void ChLcpSolverParallelDVI::ComputeD()
     case SPINNING:
       clear(D_n_T);
       clear(D_t_T);
-      clear(D_r_T);
+      clear(D_s_T);
 
       D_n_T.reserve(nnz_normal);
       D_t_T.reserve(nnz_tangential);
-      D_r_T.reserve(nnz_rolling);
+      D_s_T.reserve(nnz_spinning);
 
       D_n_T.resize(num_normal, num_dof, false);
       D_t_T.resize(num_tangential, num_dof, false);
-      D_r_T.resize(nnz_rolling, num_dof, false);
+      D_s_T.resize(num_spinning, num_dof, false);
       break;
   }
 
@@ -187,12 +187,12 @@ void ChLcpSolverParallelDVI::ComputeD()
 
   D_n = trans(D_n_T);
   D_t = trans(D_t_T);
-  D_r = trans(D_r_T);
+  D_s = trans(D_s_T);
   D_b = trans(D_b_T);
 
   M_invD_n = M_inv * D_n;
   M_invD_t = M_inv * D_t;
-  M_invD_r = M_inv * D_r;
+  M_invD_s = M_inv * D_s;
   M_invD_b = M_inv * D_b;
 }
 
