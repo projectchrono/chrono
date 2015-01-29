@@ -204,12 +204,12 @@ void ChIrrGuiTrack::Advance(double step)
 // -----------------------------------------------------------------------------
 void ChIrrGuiTrack::DrawAll()
 {
-  renderGrid();
+  // renderGrid();
 
   m_app.DrawAll();
 
   renderSprings();
-  renderLinks();
+  // renderLinks();
   renderStats();
 }
 

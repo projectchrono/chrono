@@ -147,7 +147,7 @@ void IdlerSimple::Initialize(ChSharedPtr<ChBodyAuxRef> chassis,
 
   // init shock, add to system
   // put the second marker some length in front of marker1, based on desired preload
-  double preLoad = 50000; // [N]
+  double preLoad = 20000; // [N]
   // chassis spring attachment point is towards the center of the vehicle
   ChVector<> pos_chassis_abs = local_Csys.pos;
   if(local_Csys.pos.x < 0 ) 
