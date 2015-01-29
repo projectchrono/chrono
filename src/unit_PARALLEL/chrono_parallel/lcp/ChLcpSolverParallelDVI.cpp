@@ -119,36 +119,81 @@ void ChLcpSolverParallelDVI::ComputeD()
   uint num_bilaterals = data_container->num_bilaterals;
   uint nnz_bilaterals = data_container->nnz_bilaterals;
 
-  int nnz_unilaterals = 0;
+  int nnz_normal = 6 * 2 * data_container->num_contacts;
+  int nnz_tangential = 6 * 4 * data_container->num_contacts;
+  int nnz_rolling = 6 * 3 * data_container->num_contacts;
+
+  int num_normal = 1 * data_container->num_contacts;
+  int num_tangential = 2 * data_container->num_contacts;
+  int num_rolling = 3 * data_container->num_contacts;
+
+  CompressedMatrix<real>& D_n_T = data_container->host_data.D_n_T;
+  CompressedMatrix<real>& D_t_T = data_container->host_data.D_t_T;
+  CompressedMatrix<real>& D_r_T = data_container->host_data.D_r_T;
+  CompressedMatrix<real>& D_b_T = data_container->host_data.D_b_T;
+
+  CompressedMatrix<real>& D_n = data_container->host_data.D_n;
+  CompressedMatrix<real>& D_t = data_container->host_data.D_t;
+  CompressedMatrix<real>& D_r = data_container->host_data.D_r;
+  CompressedMatrix<real>& D_b = data_container->host_data.D_b;
+
+  CompressedMatrix<real>& M_invD_n = data_container->host_data.M_invD_n;
+  CompressedMatrix<real>& M_invD_t = data_container->host_data.M_invD_t;
+  CompressedMatrix<real>& M_invD_r = data_container->host_data.M_invD_r;
+  CompressedMatrix<real>& M_invD_b = data_container->host_data.M_invD_b;
+
+  const CompressedMatrix<real>& M_inv = data_container->host_data.M_inv;
 
   switch (data_container->settings.solver.solver_mode) {
-  case NORMAL:
-    nnz_unilaterals = 6 * 2 * data_container->num_contacts;
-    break;
-  case SLIDING:
-    nnz_unilaterals = 6 * 6 * data_container->num_contacts;
-    break;
-  case SPINNING:
-    nnz_unilaterals = 6 * 9 * data_container->num_contacts;
-    break;
+    case NORMAL:
+      clear(D_n_T);
+
+      D_n_T.reserve(nnz_normal);
+
+      D_n_T.resize(num_normal, num_dof, false);
+      break;
+    case SLIDING:
+      clear(D_n_T);
+      clear(D_t_T);
+
+      D_n_T.reserve(nnz_normal);
+      D_t_T.reserve(nnz_tangential);
+
+      D_n_T.resize(num_normal, num_dof, false);
+      D_t_T.resize(num_tangential, num_dof, false);
+      break;
+    case SPINNING:
+      clear(D_n_T);
+      clear(D_t_T);
+      clear(D_r_T);
+
+      D_n_T.reserve(nnz_normal);
+      D_t_T.reserve(nnz_tangential);
+      D_r_T.reserve(nnz_rolling);
+
+      D_n_T.resize(num_normal, num_dof, false);
+      D_t_T.resize(num_tangential, num_dof, false);
+      D_r_T.resize(nnz_rolling, num_dof, false);
+      break;
   }
 
-  int nnz_total = nnz_unilaterals + nnz_bilaterals;
-
-  CompressedMatrix<real>& D_T = data_container->host_data.D_T;
-  clear(D_T);
-  if (D_T.capacity() < nnz_total) {
-    D_T.reserve(nnz_total * 1.2);
-  }
-  D_T.resize(num_constraints, num_dof, false);
+  clear(D_b_T);
+  D_b_T.reserve(nnz_bilaterals);
 
   rigid_rigid.GenerateSparsity();
   bilateral.GenerateSparsity();
   rigid_rigid.Build_D();
   bilateral.Build_D();
 
-  data_container->host_data.D = trans(data_container->host_data.D_T);
-  data_container->host_data.M_invD = data_container->host_data.M_inv * data_container->host_data.D;
+  D_n = trans(D_n_T);
+  D_t = trans(D_t_T);
+  D_r = trans(D_r_T);
+  D_b = trans(D_b_T);
+
+  M_invD_n = M_inv * D_n;
+  M_invD_t = M_inv * D_t;
+  M_invD_r = M_inv * D_r;
+  M_invD_b = M_inv * D_b;
 }
 
 void ChLcpSolverParallelDVI::ComputeE()
