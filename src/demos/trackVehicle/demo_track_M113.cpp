@@ -84,7 +84,7 @@ ChVector<> trackPoint(0, 0, 0);
 #else
   double tend = 20.0;
 
-  const std::string out_dir = "../HMMWV9";
+  const std::string out_dir = "../M113";
   const std::string pov_dir = out_dir + "/POVRAY";
 #endif
   */
@@ -120,6 +120,7 @@ ChSharedPtr<ChBody> Add_FlatGround(TrackVehicle* vehicle,
 
 int main(int argc, char* argv[])
 {
+  // SetChronoDataPath(CHRONO_DATA_DIR);
   // --------------------------
   // Create the tracked vehicle and the ground/environment
 
@@ -142,11 +143,13 @@ int main(int argc, char* argv[])
 #ifdef USE_IRRLICHT
 */
 	// Create the Irrlicht visualization applicaiton
+  bool do_shadows = false; // shadow map is experimental
+
   ChIrrApp application(&vehicle,
                       L"M113 tracked vehicle demo",
                       dimension2d<u32>(1000, 800),
                       false,
-                      true);
+                      do_shadows);
   // assumes Y-up
   application.AddTypicalSky();
   /*
@@ -167,7 +170,6 @@ int main(int argc, char* argv[])
   mbox->setRotation( irr::core::vector3df(90,0,0));  // rotate skybox for z-up 
   */
  
-  bool do_shadows = false; // shadow map is experimental
   irr::scene::ILightSceneNode* mlight = 0;
 
   if (do_shadows)
@@ -206,7 +208,11 @@ int main(int argc, char* argv[])
   {
     application.AddShadowAll();
   }
-
+/*
+#else
+  Track_FuncDriver driver;
+#endif
+*/
 
   // ---------------------
   // GUI and render settings
@@ -232,6 +238,10 @@ int main(int argc, char* argv[])
   // Initialize simulation frame counter and simulation time
   int step_number = 0;
   double time = 0;
+/*
+#ifdef USE_IRRLICHT
+*/
+
   ChRealtimeStepTimer realtime_timer;
   while (application.GetDevice()->run())
 	{ 
@@ -268,6 +278,65 @@ int main(int argc, char* argv[])
     vehicle.Advance(step_size);
     step_number++;
 	}
+
+  application.GetDevice()->drop();
+
+/*
+#else
+
+  int render_frame = 0;
+
+  if(ChFileutils::MakeDirectory(out_dir.c_str()) < 0) {
+    std::cout << "Error creating directory " << out_dir << std::endl;
+    return 1;
+  }
+  if(ChFileutils::MakeDirectory(pov_dir.c_str()) < 0) {
+    std::cout << "Error creating directory " << pov_dir << std::endl;
+    return 1;
+  }
+
+  vehicle.ExportMeshPovray(out_dir);
+
+  char filename[100];
+
+  while (time < tend)
+  {
+    if (step_number % render_steps == 0) {
+      // Output render data
+      sprintf(filename, "%s/data_%03d.dat", pov_dir.c_str(), render_frame + 1);
+      utils::WriteShapesPovray(vehicle.GetSystem(), filename);
+      std::cout << "Output frame:   " << render_frame << std::endl;
+      std::cout << "Sim frame:      " << step_number << std::endl;
+      std::cout << "Time:           " << time << std::endl;
+      std::cout << " throttle: " << driver.GetThrottle() << " steering: " << driver.GetSteering() << std::endl;
+      std::cout << std::endl;
+      render_frame++;
+    }
+
+    // Collect output data from modules (for inter-module communication)
+    throttle_input = driver.GetThrottle();
+    steering_input = driver.GetSteering();
+    braking_input = driver.GetBraking();
+
+    // Update modules (process inputs from other modules)
+    time = vehicle.GetSystem()->GetChTime();
+
+    driver.Update(time);
+
+    vehicle.Update(time, steering_input, braking_input, powertrain_torque, tire_forces);
+
+    // Advance simulation for one timestep for all modules
+    driver.Advance(step_size);
+
+    vehicle.Advance(step_size);
+
+    // Increment frame number
+    step_number++;
+  }
+
+#endif
+
+*/
 
 	return 0;
 }
