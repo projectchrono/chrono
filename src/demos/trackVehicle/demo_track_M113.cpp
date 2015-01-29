@@ -75,7 +75,7 @@ double mu = 0.8;  // dry friction coef.
 double step_size = 0.001;
 
 // Time interval between two render frames
-int FPS = 20;
+int FPS = 40;
 double render_step_size = 1.0 / FPS;   // FPS = 50
 // Time interval between two output frames
 double output_step_size = 1.0 / 1;    // once a second

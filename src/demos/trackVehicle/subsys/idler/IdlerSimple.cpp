@@ -91,7 +91,8 @@ private:
 
 IdlerSimple::IdlerSimple(const std::string& name,
                          VisualizationType vis,
-                         CollisionType collide)
+                         CollisionType collide,
+                         size_t chain_idx)
   : m_vis(vis), m_collide(collide)
 //  , m_shockCB(NULL), m_springCB(NULL)
 {
@@ -112,7 +113,7 @@ IdlerSimple::IdlerSimple(const std::string& name,
   m_shock->Set_SpringR(m_springC);
   m_shock->Set_SpringRestLength(m_springRestLength);
 
-  AddVisualization();
+  AddVisualization(chain_idx);
  
 }
 
@@ -166,7 +167,7 @@ void IdlerSimple::Initialize(ChSharedPtr<ChBodyAuxRef> chassis,
   chassis->GetSystem()->AddLink(m_shock);
 }
 
-void IdlerSimple::AddVisualization()
+void IdlerSimple::AddVisualization(size_t chain_idx)
 {
   // add visualization asset
   switch (m_vis) {
@@ -185,8 +186,13 @@ void IdlerSimple::AddVisualization()
     cylB->GetCylinderGeometry().p2.z = -m_widthGap/2.0;
     m_idler->AddAsset(cylB);
 
-    // add a color asset
-    ChSharedPtr<ChColorAsset> mcolor(new ChColorAsset(0.5f, 0.1f, 0.4f));
+    // add a color asset. Chain index 0 = green, otherwise red/pink
+    ChSharedPtr<ChColorAsset> mcolor(new ChColorAsset);
+    if( chain_idx == 0)
+      mcolor->SetColor(ChColor(0.2f, 0.6f, 0.3f));
+    else
+      mcolor->SetColor(ChColor(0.5f, 0.1f, 0.4f));
+
     m_idler->AddAsset(mcolor);
 
     break;

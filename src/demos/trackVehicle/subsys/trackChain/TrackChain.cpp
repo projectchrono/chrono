@@ -368,13 +368,13 @@ void TrackChain::AddVisualization(size_t track_idx)
     ChSharedPtr<ChTexture> box_tex(new ChTexture);
     if( track_idx % 2 == 0)
     {
-      // box_tex->SetTextureFilename(GetChronoDataFile("blu.png"));
-      box_tex->SetTextureFilename(GetChronoDataFile("cubetexture_bluwhite.png"));
+      box_tex->SetTextureFilename(GetChronoDataFile("blu.png"));
+      // box_tex->SetTextureFilename(GetChronoDataFile("cubetexture_bluwhite.png"));
     }
     else
     {
-      // box_tex->SetTextureFilename(GetChronoDataFile("concrete.jpg"));
-      box_tex->SetTextureFilename(GetChronoDataFile("cubetexture_pinkwhite.png"));
+      box_tex->SetTextureFilename(GetChronoDataFile("concrete.jpg"));
+      // box_tex->SetTextureFilename(GetChronoDataFile("cubetexture_pinkwhite.png"));
     }
     boxLevel->AddAsset(box_tex);
 

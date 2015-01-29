@@ -37,9 +37,11 @@ class CH_SUBSYS_API IdlerSimple : public ChShared
 friend class TrackSystem;
 public:
 
+  /// chain_idx allows the right idler to be colored green
   IdlerSimple(const std::string& name,
     VisualizationType vis = VisualizationType::PRIMITIVES,
-    CollisionType collide = CollisionType::PRIMITIVES);
+    CollisionType collide = CollisionType::PRIMITIVES,
+    size_t chain_idx = 0);
 
   ~IdlerSimple();
 
@@ -56,7 +58,7 @@ public:
 
 private:
   // private functions
-  void AddVisualization();
+  void AddVisualization(size_t chain_idx);
   void AddCollisionGeometry();
     // private functions
   const std::string& getMeshName() const { return m_meshName; }
