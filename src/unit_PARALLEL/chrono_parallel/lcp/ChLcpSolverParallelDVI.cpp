@@ -59,40 +59,38 @@ void ChLcpSolverParallelDVI::RunTimeStep(real step)
 
   ComputeD();
   ComputeE();
-  ComputeR();
 
-  // solve for the normal
+
+  data_container->system_timer.start("ChLcpSolverParallel_Solve");
+
   if (data_container->settings.solver.solver_mode == NORMAL || data_container->settings.solver.solver_mode == SLIDING || data_container->settings.solver.solver_mode == SPINNING) {
     if (data_container->settings.solver.max_iteration_normal > 0) {
       solver->SetMaxIterations(data_container->settings.solver.max_iteration_normal);
       data_container->settings.solver.local_solver_mode = NORMAL;
-      data_container->system_timer.start("ChLcpSolverParallel_Solve");
+      ComputeR();
       PerformStabilization();
       solver->Solve();
-      data_container->system_timer.stop("ChLcpSolverParallel_Solve");
     }
   }
   if (data_container->settings.solver.solver_mode != NORMAL) {
     if (data_container->settings.solver.max_iteration_sliding > 0) {
       solver->SetMaxIterations(data_container->settings.solver.max_iteration_sliding);
       data_container->settings.solver.local_solver_mode = SLIDING;
-      data_container->system_timer.start("ChLcpSolverParallel_Solve");
+      ComputeR();
       PerformStabilization();
       solver->Solve();
-      data_container->system_timer.stop("ChLcpSolverParallel_Solve");
     }
   }
   if (data_container->settings.solver.solver_mode == SPINNING) {
     if (data_container->settings.solver.max_iteration_spinning > 0) {
       solver->SetMaxIterations(data_container->settings.solver.max_iteration_spinning);
       data_container->settings.solver.local_solver_mode = SPINNING;
-      data_container->system_timer.start("ChLcpSolverParallel_Solve");
+      ComputeR();
       PerformStabilization();
       solver->Solve();
-      data_container->system_timer.stop("ChLcpSolverParallel_Solve");
     }
   }
-
+  data_container->system_timer.stop("ChLcpSolverParallel_Solve");
   ComputeImpulses();
 
   for (int i = 0; i < data_container->measures.solver.iter_hist.size(); i++) {
@@ -247,6 +245,7 @@ void ChLcpSolverParallelDVI::ComputeR() {
   reset(b);
 
   R.resize(data_container->num_constraints);
+  reset(R);
 
   rigid_rigid.Build_b();
   bilateral.Build_b();
@@ -258,7 +257,7 @@ void ChLcpSolverParallelDVI::ComputeR() {
   blaze::DenseSubvector<DynamicVector<real> > R_b = blaze::subvector(R, num_unilaterals, num_bilaterals);
 
   R_b = -b_b - D_b_T * M_invk;
-  switch (data_container->settings.solver.solver_mode) {
+  switch (data_container->settings.solver.local_solver_mode) {
     case NORMAL: {
       R_n = -b_n - D_n_T * M_invk;
     } break;
