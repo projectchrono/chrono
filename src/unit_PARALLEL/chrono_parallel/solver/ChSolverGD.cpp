@@ -19,7 +19,7 @@ uint ChSolverGD::SolveGD(const uint max_iter, const uint size, blaze::DynamicVec
   };
   for (current_iteration = 0; current_iteration < max_iter; current_iteration++) {
     ml = ml + eps * r;
-    r = data_container->host_data.D_T * (data_container->host_data.M_invD * ml);
+    ShurProduct(ml, r);
     r = mb - r;
     resnew = sqrt((ml, ml));
     residual = std::abs(resnew - resold);
