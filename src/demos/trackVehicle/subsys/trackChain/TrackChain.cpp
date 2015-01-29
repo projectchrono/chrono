@@ -45,10 +45,10 @@ const double TrackChain::m_mass = 18.02;
 const ChVector<> TrackChain::m_inertia(0.22, 0.25,  0.04); // TODO: what is this w/ new single pin configuration???
 const ChVector<> TrackChain::m_COM = ChVector<>(0., 0., 0.);  // location of COM, relative to REF (e.g, geomtric center)
 const ChVector<> TrackChain::m_shoe_box(0.205, 0.0663, 0.38); // length, height, width HALF DIMS!
-const double TrackChain::m_pin_width = 0.531; // total width of cylinder pins
-const double TrackChain::m_pin_dist = 0.15162;		// linear distance between a shoe chain spacing. exact = 0.205
+const double TrackChain::m_pin_width = 0.531; // total width of cylinder pinseach 
+const double TrackChain::m_pin_dist = 0.205; // 0.15162;		// linear distance between a shoe chain spacing. exact = 0.205
 const double TrackChain::m_pin_radius = 0.02317;
-const ChVector<> TrackChain::m_tooth_box(0.08, 0.075, 0.08);  // length, height, width HALF DIMS
+const ChVector<> TrackChain::m_tooth_box(0.08, 0.075/2.0, 0.04);  // length, height, width
  // distance between body center and the vertical offset to the inner-surface of the collision geometry
 //  used for initializing shoes as a chain
 const double TrackChain::m_shoe_chain_Yoffset = 0.04; // .03315 exact
