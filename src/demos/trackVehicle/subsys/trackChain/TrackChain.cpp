@@ -285,7 +285,7 @@ void TrackChain::AddVisualization(size_t track_idx)
     boxLevel->AddAsset(box);
 
     // add the tooth box
-    double tooth_offset = -0.07315; // vertical offset
+    double tooth_offset = -0.07313; // vertical offset
     ChSharedPtr<ChBoxShape> tooth_box(new ChBoxShape);
     tooth_box->GetBoxGeometry().SetLengths(ChVector<>(m_tooth_box.x, m_tooth_box.y, m_tooth_box.z) );
     tooth_box->GetBoxGeometry().Pos =  ChVector<>(0, tooth_offset, 0);
@@ -358,7 +358,7 @@ void TrackChain::AddVisualization(size_t track_idx)
     boxLevel->AddAsset(box5);
 
     // add the tooth box
-    double tooth_offset = -0.07315; // vertical offset
+    double tooth_offset = -0.07313; // vertical offset
     ChSharedPtr<ChBoxShape> tooth_box(new ChBoxShape);
     tooth_box->GetBoxGeometry().SetLengths(ChVector<>(m_tooth_box.x, m_tooth_box.y, m_tooth_box.z) );
     tooth_box->GetBoxGeometry().Pos =  ChVector<>(0, tooth_offset, 0);
@@ -457,17 +457,13 @@ void TrackChain::AddCollisionGeometry(size_t track_idx)
   {
     
     // use a simple box for the shoe
-    m_shoes[track_idx]->GetCollisionModel()->AddBox(0.5*m_shoe_box.x - m_pin_radius, 0.5*m_shoe_box.y, 0.5*m_shoe_box.z,
-      ChVector<>(-m_pin_radius,0,0));
-    
-    
-    /*
+    m_shoes[track_idx]->GetCollisionModel()->AddBox(0.5*m_shoe_box.x, 0.5*m_shoe_box.y, 0.5*m_shoe_box.z);
+     
     // add the tooth
-    double tooth_offset = -0.07315; // vertical offset
+    double tooth_offset = -0.07313; // vertical offset
     m_shoes[track_idx]->GetCollisionModel()->AddBox(0.5*m_tooth_box.x, 0.5*m_tooth_box.y, 0.5*m_tooth_box.z,
-      ChVector<>(-0, tooth_offset, 0));
-    */
-
+      ChVector<>(0, tooth_offset, 0));
+    
     // pin is a single cylinder
     double pin_offset = -0.07581;
     m_shoes[track_idx]->GetCollisionModel()->AddCylinder(m_pin_radius,
@@ -497,7 +493,7 @@ void TrackChain::AddCollisionGeometry(size_t track_idx)
       ChVector<>(0, 0, -2.0*subBox_width));
 
     // add the tooth box
-    double tooth_offset = -0.07315; // vertical offset
+    double tooth_offset = -0.07313; // vertical offset
     m_shoes[track_idx]->GetCollisionModel()->AddBox(0.5*m_tooth_box.x, 0.5*m_tooth_box.y, 0.5*m_tooth_box.z,
       ChVector<>(0, tooth_offset, 0));
 
@@ -751,7 +747,7 @@ void TrackChain::CreateShoes(ChSharedPtr<ChBodyAuxRef> chassis,
       // let's check to see if the criteria for setting m_aligned_with_seg = true.
       // Note: the function also sets the bool
       bool check_alignment = check_shoe_aligned(COG_frame*COG_to_pin_rel, start_seg, end_seg, norm_dir);
-      if( 1 ) 
+      if(0) 
         GetLog() << " aligned shoe # : " << int(m_numShoes) << " ?? " << check_alignment << "\n";
 
 
@@ -784,7 +780,7 @@ void TrackChain::CreateShoes(ChSharedPtr<ChBodyAuxRef> chassis,
     
 
     // should be equal; check the largest error term. Say something if it's exceeded.
-    if( (pos_on_seg_A - pos_on_seg_B).LengthInf() > 1e-6 )
+    if( (pos_on_seg_A - pos_on_seg_B).LengthInf() > 1e-5 )
       GetLog() << " comparing pos_on_seg error: shoe # " << int(m_numShoes) << pos_on_seg_A - pos_on_seg_B << "\n";
 
     // update distance using method B
@@ -1018,7 +1014,7 @@ void TrackChain::CreateShoes_closeChain(ChSharedPtr<ChBodyAuxRef> chassis,
       // let's check to see if the criteria for setting m_aligned_with_seg = true.
       // Note: the function also sets the bool
       bool check_alignment = check_shoe_aligned(COG_frame*COG_to_pin_rel, start_seg, end_seg, norm_dir);
-      if( 1 ) 
+      if(0) 
         GetLog() << " aligned ?? shoe # : " << m_numShoes << " ?? " << check_alignment << "\n";
 
 
@@ -1100,7 +1096,7 @@ void TrackChain::CreateShoes_closeChain(ChSharedPtr<ChBodyAuxRef> chassis,
 
   // re-positioned the first and last shoe to share final pin.
   ChVector<> pin_pos_abs = m_shoes.back()->GetFrame_COG_to_abs() * COG_to_pin_rel;
-  if(1)
+  if(0)
   {
     ChVector<> pin_pos_abs_check = m_shoes.front()->GetFrame_COG_to_abs() * -COG_to_pin_rel;
     GetLog() << " final pin pos., Inf norm(rear - front) = " << (pin_pos_abs - pin_pos_abs_check).LengthInf() <<"\n";
