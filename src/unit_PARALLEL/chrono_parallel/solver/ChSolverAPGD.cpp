@@ -16,7 +16,7 @@ void ChSolverAPGD::UpdateR() {
     return;
   }
 
-  CompressedMatrix<real>& M_inv = data_container->host_data.M_inv;
+  DynamicVector<real>& M_invk = data_container->host_data.M_invk;
   CompressedMatrix<real>& D_T = data_container->host_data.D_T;
   DynamicVector<real>& b = data_container->host_data.b;
   DynamicVector<real>& v = data_container->host_data.hf;
@@ -28,7 +28,7 @@ void ChSolverAPGD::UpdateR() {
   rigid_rigid->Build_s();
 
 
-  data_container->host_data.R = -b - D_T * (data_container->host_data.M_invk) + s;
+  data_container->host_data.R = -b - D_T * M_invk - s;
 }
 
 uint ChSolverAPGD::SolveAPGD(const uint max_iter, const uint size, const blaze::DynamicVector<real>& r, blaze::DynamicVector<real>& gamma) {

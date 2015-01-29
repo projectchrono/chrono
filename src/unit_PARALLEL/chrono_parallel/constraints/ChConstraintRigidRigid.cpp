@@ -324,10 +324,10 @@ void ChConstraintRigidRigid::Build_s()
   }
 
   int2* ids = data_container->host_data.bids_rigid_rigid.data();
-  CompressedMatrix<real>& D_T = data_container->host_data.D_T;
+  const CompressedMatrix<real>& D_T = data_container->host_data.D_T;
   DynamicVector<real>& v = data_container->host_data.v;
 
-  DynamicVector<real> v_new = data_container->host_data.M_invk + data_container->host_data.M_invD * data_container->host_data.gamma;
+  const DynamicVector<real> v_new = data_container->host_data.M_invk + data_container->host_data.M_invD * data_container->host_data.gamma;
 
 #pragma omp parallel for
   for (int index = 0; index < data_container->num_contacts; index++) {
@@ -379,7 +379,7 @@ void ChConstraintRigidRigid::Build_s()
         D_T(index_mult + 2, body_id.y* 6 + 5)* +v_new[body_id.y* 6 + 5];
 
 
-    data_container->host_data.s[_index_ + 0] = sqrt(s_v* s_v + s_w* s_w) * fric;
+    data_container->host_data.s[index_mult + 0] = sqrt(s_v* s_v + s_w* s_w) * fric;
 
     //std::cout<<s_v<<" "<<s_w<<" "<<data_container->host_data.s[_index_ + 0]<<std::endl;
 
