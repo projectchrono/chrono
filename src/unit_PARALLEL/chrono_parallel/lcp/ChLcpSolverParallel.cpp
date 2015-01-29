@@ -129,13 +129,51 @@ void ChLcpSolverParallel::ComputeMassMatrix()
 }
 
 void ChLcpSolverParallel::ComputeImpulses() {
+
+  DynamicVector<real>& v = data_container->host_data.v;
+
+  const DynamicVector<real>& M_invk = data_container->host_data.M_invk;
+  const DynamicVector<real>& gamma = data_container->host_data.gamma;
+
+  const CompressedMatrix<real>& M_invD_n = data_container->host_data.M_invD_n;
+  const CompressedMatrix<real>& M_invD_t = data_container->host_data.M_invD_t;
+  const CompressedMatrix<real>& M_invD_r = data_container->host_data.M_invD_r;
+  const CompressedMatrix<real>& M_invD_b = data_container->host_data.M_invD_b;
+
+  uint num_contacts = data_container->num_contacts;
+  uint num_unilaterals = data_container->num_unilaterals;
+  uint num_bilaterals = data_container->num_bilaterals;
+
   if (data_container->num_constraints > 0) {
-	  //Compute new velocity based on the lagrange multipliers
-    data_container->host_data.v = data_container->host_data.M_invk + data_container->host_data.M_invD * data_container->host_data.gamma;
+
+    blaze::DenseSubvector<DynamicVector<real> > gamma_b = blaze::subvector(gamma, num_unilaterals, num_bilaterals);
+    blaze::DenseSubvector<DynamicVector<real> > gamma_n = blaze::subvector(gamma, 0, num_contacts);
+
+    //Compute new velocity based on the lagrange multipliers
+    switch (data_container->settings.solver.solver_mode) {
+      case NORMAL: {
+        v = M_invk + M_invD_n * gamma_n + M_invD_b * gamma_b;
+      } break;
+
+      case SLIDING: {
+        blaze::DenseSubvector<DynamicVector<real> > gamma_t = blaze::subvector(gamma, num_contacts, num_contacts * 2);
+
+        v = M_invk + M_invD_n * gamma_n + M_invD_t * gamma_t + M_invD_b * gamma_b;
+
+      } break;
+
+      case SPINNING: {
+        blaze::DenseSubvector<DynamicVector<real> > gamma_t = blaze::subvector(gamma, num_contacts, num_contacts * 2);
+        blaze::DenseSubvector<DynamicVector<real> > gamma_r = blaze::subvector(gamma, num_contacts * 3, num_contacts * 3);
+
+        v = M_invk + M_invD_n * gamma_n + M_invD_t * gamma_t + M_invD_r * gamma_r + M_invD_b * gamma_b;
+
+      } break;
+    }
   } else {
 	  //When there are no constraints we need to still apply gravity and other
     //body forces!
-    data_container->host_data.v = data_container->host_data.M_invk;
+    v = M_invk;
   }
 }
 
