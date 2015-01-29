@@ -82,8 +82,8 @@ class CH_PARALLEL_API ChSolverParallel {
   real GetObjective(const blaze::DynamicVector<real>& x, const blaze::DynamicVector<real>& b) {
     blaze::DynamicVector<real> Nl(x.size());
     ShurProduct(x,Nl);// 1)  g_tmp = N*l_candidate
-    Nl = 0.5 * Nl - b;                                                              // 2) 0.5*N*l_candidate-b_shur
-    return (x, Nl);                                                                 // 3)  mf_p  = l_candidate'*(0.5*N*l_candidate-b_shur)
+    Nl = 0.5 * Nl - b;// 2) 0.5*N*l_candidate-b_shur
+    return (x, Nl);   // 3)  mf_p  = l_candidate'*(0.5*N*l_candidate-b_shur)
   }
 
   real Res4Blaze(blaze::DynamicVector<real>& x, blaze::DynamicVector<real>& b) {

@@ -179,6 +179,7 @@ void ChLcpSolverParallelDVI::ComputeD()
 
   clear(D_b_T);
   D_b_T.reserve(nnz_bilaterals);
+  D_b_T.resize(num_bilaterals, num_dof, false);
 
   rigid_rigid.GenerateSparsity();
   bilateral.GenerateSparsity();
@@ -223,8 +224,7 @@ void ChLcpSolverParallelDVI::ComputeE()
   bilateral.Build_E();
 }
 
-void ChLcpSolverParallelDVI::ComputeR()
-{
+void ChLcpSolverParallelDVI::ComputeR() {
   if (data_container->num_constraints <= 0) {
     return;
   }
@@ -239,23 +239,49 @@ void ChLcpSolverParallelDVI::ComputeR()
   DynamicVector<real>& R = data_container->host_data.R;
   DynamicVector<real>& b = data_container->host_data.b;
 
+  uint num_contacts = data_container->num_contacts;
+  uint num_unilaterals = data_container->num_unilaterals;
+  uint num_bilaterals = data_container->num_bilaterals;
+
   b.resize(data_container->num_constraints);
   reset(b);
+
+  R.resize(data_container->num_constraints);
 
   rigid_rigid.Build_b();
   bilateral.Build_b();
 
+  blaze::DenseSubvector<DynamicVector<real> > b_n = blaze::subvector(b, 0, num_contacts);
+  blaze::DenseSubvector<DynamicVector<real> > R_n = blaze::subvector(R, 0, num_contacts);
+
+  blaze::DenseSubvector<DynamicVector<real> > b_b = blaze::subvector(b, num_unilaterals, num_bilaterals);
+  blaze::DenseSubvector<DynamicVector<real> > R_b = blaze::subvector(R, num_unilaterals, num_bilaterals);
+
+  R_b = -b_b - D_b_T * M_invk;
   switch (data_container->settings.solver.solver_mode) {
     case NORMAL: {
-      R = -b - D_n_T * M_invk;
+      R_n = -b_n - D_n_T * M_invk;
     } break;
 
     case SLIDING: {
-      R = -b - D_n_T * M_invk - D_t_T * M_invk;
+
+      blaze::DenseSubvector<DynamicVector<real> > b_t = blaze::subvector(b, num_contacts, num_contacts * 2);
+      blaze::DenseSubvector<DynamicVector<real> > R_t = blaze::subvector(R, num_contacts, num_contacts * 2);
+
+      R_n = -b_n - D_n_T * M_invk;
+      R_t = -b_t - D_t_T * M_invk;
     } break;
 
     case SPINNING: {
-      R = -b - D_n_T * M_invk - D_t_T * M_invk - D_s_T * M_invk;
+      blaze::DenseSubvector<DynamicVector<real> > b_t = blaze::subvector(b, num_contacts, num_contacts * 2);
+      blaze::DenseSubvector<DynamicVector<real> > R_t = blaze::subvector(R, num_contacts, num_contacts * 2);
+
+      blaze::DenseSubvector<DynamicVector<real> > b_s = blaze::subvector(b, num_contacts * 3, num_contacts * 3);
+      blaze::DenseSubvector<DynamicVector<real> > R_s = blaze::subvector(R, num_contacts * 3, num_contacts * 3);
+
+      R_n = -b_n - D_n_T * M_invk;
+      R_t = -b_t - D_t_T * M_invk;
+      R_s = -b_s - D_s_T * M_invk;
     } break;
   }
 }
