@@ -191,12 +191,11 @@ void TrackPowertrain::SetDriveMode(DriveMode mmode)
 
 
 void TrackPowertrain::Update(double time,
-                             double throttle_Right,
-                             double throttle_Left,
+                             double throttle,
                              double shaft_speed)
 {
   // Just update the throttle level in the thermal engine
-  m_engine->SetThrottle( (abs(throttle_Right)+abs(throttle_Left) ) / 2.0);
+  m_engine->SetThrottle( throttle );
 
   // To avoid bursts of gear shifts, do nothing if the last shift was too recent
   if (time - m_last_time_gearshift < m_gear_shift_latency)
