@@ -71,9 +71,9 @@ class CH_PARALLEL_API ChConstraintRigidRigid {
   void Project_Single(int index, real* gamma);
   void host_Project_single(int index, int2* ids, real3* friction, real* cohesion, real* gamma);
 
-  void func_Project(int index, const int2* ids, const real3* fric, const real* cohesion, real* gam);
-
-  void func_Project_rolling(int index, const int2* ids, const real3* fric, real* gam);
+  void func_Project_normal(int index, const int2* ids, const real* cohesion, real* gam);
+  void func_Project_sliding(int index, const int2* ids, const real3* fric, const real* cohesion, real* gam);
+  void func_Project_spinning(int index, const int2* ids, const real3* fric, real* gam);
 
   // Compute the vector of corrections
   void Build_b();

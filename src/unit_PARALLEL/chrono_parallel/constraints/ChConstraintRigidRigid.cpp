@@ -9,12 +9,9 @@ void chrono::Orthogonalize(real3& Vx, real3& Vy, real3& Vz) {
   real3 mVsingular = R3(0, 1, 0);
   Vz = cross(Vx, mVsingular);
   real mzlen = Vz.length();
-
-  if (mzlen < real(0.0001)) {    // was near singularity? change singularity
-                                 // reference custom_vector!
-
+  // was near singularity? change singularity reference vector!
+  if (mzlen < real(0.0001)) {
     mVsingular = R3(1, 0, 0);
-
     Vz = cross(Vx, mVsingular);
     mzlen = Vz.length();
   }
@@ -40,7 +37,6 @@ bool Cone_generalized(real& gamma_n, real& gamma_u, real& gamma_v, const real& m
   }
 
   // remaining case: project orthogonally to generator segment of upper cone
-
   gamma_n = (f_tang * mu + gamma_n) / (mu * mu + 1);
   real tproj_div_t = (gamma_n * mu) / f_tang;
   gamma_u *= tproj_div_t;
@@ -65,17 +61,42 @@ void Cone_single(real& gamma_n, real& gamma_s, const real& mu) {
   }
 
   // remaining case: project orthogonally to generator segment of upper cone
-
   gamma_n = (f_tang * mu + gamma_n) / (mu * mu + 1);
   real tproj_div_t = (gamma_n * mu) / f_tang;
   gamma_s *= tproj_div_t;
 }
 
-void ChConstraintRigidRigid::func_Project(int index, const int2* ids, const real3* fric, const real* cohesion, real* gam) {
+void ChConstraintRigidRigid::func_Project_normal(int index, const int2* ids, const real* cohesion, real* gamma) {
+
+  real gamma_x = gamma[index * 1 + 0];
+  int2 body_id = ids[index];
+  real coh = cohesion[index];
+
+  gamma_x += coh;
+  gamma_x = gamma_x < 0 ? 0 : gamma_x - coh;
+  gamma[index * 1 + 0] = gamma_x;
+  if (data_container->settings.solver.solver_mode == SLIDING) {
+    gamma[data_container->num_contacts + index * 2 + 0] = 0;
+    gamma[data_container->num_contacts + index * 2 + 1] = 0;
+  }
+  if (data_container->settings.solver.solver_mode == SPINNING) {
+    gamma[3 * data_container->num_contacts + index * 3 + 0] = 0;
+    gamma[3 * data_container->num_contacts + index * 3 + 1] = 0;
+    gamma[3 * data_container->num_contacts + index * 3 + 2] = 0;
+  }
+}
+
+void ChConstraintRigidRigid::func_Project_sliding(int index, const int2* ids, const real3* fric, const real* cohesion, real* gam) {
   real3 gamma;
   gamma.x = gam[index * 1 + 0];
   gamma.y = gam[data_container->num_contacts + index * 2 + 0];
   gamma.z = gam[data_container->num_contacts + index * 2 + 1];
+
+  if (data_container->settings.solver.solver_mode == SPINNING) {
+    gamma[3 * data_container->num_contacts + index * 3 + 0] = 0;
+    gamma[3 * data_container->num_contacts + index * 3 + 1] = 0;
+    gamma[3 * data_container->num_contacts + index * 3 + 2] = 0;
+  }
 
   real coh = cohesion[index];
   gamma.x += coh;
@@ -99,7 +120,7 @@ void ChConstraintRigidRigid::func_Project(int index, const int2* ids, const real
   gam[data_container->num_contacts + index * 2 + 0] = gamma.y;
   gam[data_container->num_contacts + index * 2 + 1] = gamma.z;
 }
-void ChConstraintRigidRigid::func_Project_rolling(int index, const int2* ids, const real3* fric, real* gam) {
+void ChConstraintRigidRigid::func_Project_spinning(int index, const int2* ids, const real3* fric, real* gam) {
   // real3 gamma_roll = R3(0);
   real rollingfriction = fric[index].y;
   real spinningfriction = fric[index].z;
@@ -131,46 +152,26 @@ void ChConstraintRigidRigid::func_Project_rolling(int index, const int2* ids, co
     Cone_generalized(gamma_n, gamma_tu, gamma_tv, rollingfriction);
   }
   // gam[index + number_of_contacts * 0] = gamma_n;
-  gam[index * 1 + 0] = gamma_s;
-  gam[data_container->num_contacts + index * 2 + 0] = gamma_tu;
-  gam[data_container->num_contacts + index * 2 + 1] = gamma_tv;
+  gam[3 * data_container->num_contacts + index * 3 + 0] = gamma_s;
+  gam[3 * data_container->num_contacts + index * 3 + 1] = gamma_tu;
+  gam[3 * data_container->num_contacts + index * 3 + 2] = gamma_tv;
 }
 //%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
-void func_Project_normal(int index, const int2* ids, const real* cohesion, real* gam) {
-
-  real gamma_x = gam[index * 1 + 0];
-  int2 body_id = ids[index];
-  real coh = cohesion[index];
-
-  gamma_x += coh;
-  gamma_x = gamma_x < 0 ? 0 : gamma_x - coh;
-  gam[index * 1 + 0] = gamma_x;
-
-}
-
 
 void ChConstraintRigidRigid::host_Project_single(int index, int2* ids, real3* friction, real* cohesion, real* gamma) {
   // always project normal
   switch (data_container->settings.solver.local_solver_mode) {
     case NORMAL: {
-      real gamma_x = gamma[index * 1 + 0];
-      int2 body_id = ids[index];
-      real coh = cohesion[index];
-
-      gamma_x += coh;
-      gamma_x = gamma_x < 0 ? 0 : gamma_x - coh;
-      gamma[index * 1 + 0] = gamma_x;
-
+      func_Project_normal(index, ids, cohesion, gamma);
     } break;
 
     case SLIDING: {
-      func_Project(index, ids, friction, cohesion, gamma);
+      func_Project_sliding(index, ids, friction, cohesion, gamma);
     } break;
 
     case SPINNING: {
-      func_Project(index, ids, friction, cohesion, gamma);
-      func_Project_rolling(index, ids, friction, gamma);
+      func_Project_sliding(index, ids, friction, cohesion, gamma);
+      func_Project_spinning(index, ids, friction, gamma);
     } break;
   }
 }
@@ -191,15 +192,15 @@ void ChConstraintRigidRigid::Project(real* gamma) {
     case SLIDING: {
 #pragma omp parallel for
       for (int index = 0; index < data_container->num_contacts; index++) {
-        func_Project(index, bids.data(), friction.data(), cohesion.data(), gamma);
+        func_Project_sliding(index, bids.data(), friction.data(), cohesion.data(), gamma);
       }
     } break;
 
     case SPINNING: {
 #pragma omp parallel for
       for (int index = 0; index < data_container->num_contacts; index++) {
-        func_Project(index, bids.data(), friction.data(), cohesion.data(), gamma);
-        func_Project_rolling(index, bids.data(), friction.data(), gamma);
+        func_Project_sliding(index, bids.data(), friction.data(), cohesion.data(), gamma);
+        func_Project_spinning(index, bids.data(), friction.data(), gamma);
       }
     } break;
   }
@@ -215,23 +216,11 @@ void ChConstraintRigidRigid::Project_Single(int index, real* gamma) {
 
 void chrono::Compute_Jacobian(const real4& quat, const real3& U, const real3& V, const real3& W, const real3& point, real3& T1, real3& T2, real3& T3) {
   real4 quaternion_conjugate = ~quat;
-
   real3 sbar = quatRotate(point, quaternion_conjugate);
 
   T1 = cross(quatRotate(U, quaternion_conjugate), sbar);
   T2 = cross(quatRotate(V, quaternion_conjugate), sbar);
   T3 = cross(quatRotate(W, quaternion_conjugate), sbar);
-
-  //  M33 X =  XMatrix(sbar);
-  //  M33 R = AMat(quat);
-  //
-  //  M33 T = R*X;
-  //  M33 C(U,V,W);
-  //  M33 Res = Transpose(MatTMult(C,T));
-  //
-  //  T1 = Res.U;
-  //  T2 = Res.V;
-  //  T3 = Res.W;
 }
 void chrono::Compute_Jacobian_Rolling(const real4& quat, const real3& U, const real3& V, const real3& W, real3& T1, real3& T2, real3& T3) {
   real4 quaternion_conjugate = ~quat;
