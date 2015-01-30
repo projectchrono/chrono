@@ -26,6 +26,7 @@ cmake_minimum_required(VERSION 2.8)
 SET(ChronoEngine_unit_TrackVehicle_SOURCES
 	subsys/driveGear/DriveGear.cpp
 	subsys/driveline/TrackDriveline.cpp
+	subsys/driveline/TrackDriveline_1WD.cpp
 	subsys/driver/ChDriverTrack.cpp
 	subsys/driver/ChIrrGuiTrack.cpp
 	subsys/driver/Track_FuncDriver.cpp
@@ -42,6 +43,7 @@ SET(ChronoEngine_unit_TrackVehicle_HEADERS
 	subsys/ChApiSubsys.h
 	subsys/driveGear/DriveGear.h
 	subsys/driveline/TrackDriveline.h
+	subsys/driveline/TrackDriveline_1WD.h
 	subsys/driver/ChDriverTrack.h
 	subsys/driver/ChIrrGuiTrack.h
 	subsys/driver/Track_FuncDriver.h
@@ -126,6 +128,7 @@ TARGET_LINK_LIBRARIES(demo_track_M113
 # ADD_DEPENDENCIES (demo_track_M113 ChronoEngine ChronoEngine_IRRLICHT TrackVehicle)
 
 INSTALL(TARGETS demo_track_M113 DESTINATION bin)
+MESSAGE("Added DEMO 1: M113 track vehicle, user driven with GUI")
 
 # ---------------------------------------------
 # DEMO 2: test the kinematics of the new constraint
@@ -150,3 +153,29 @@ TARGET_LINK_LIBRARIES(test_idlerJoint
 # ADD_DEPENDENCIES (test_idlerJoint ChronoEngine ChronoEngine_IRRLICHT TrackVehicle)
 
 INSTALL(TARGETS test_idlerJoint DESTINATION bin)
+MESSAGE("Added DEMO 2: test idlerJoint motion against conventional 2 body/2 constraint system")
+
+# ---------------------------------------------
+# DEMO 3: DriveChain test
+ADD_EXECUTABLE(test_driveChain  test_driveChain.cpp)
+
+SOURCE_GROUP(""  FILES  test_driveChain.cpp)
+
+SET_TARGET_PROPERTIES(test_driveChain  PROPERTIES
+    FOLDER demos
+    COMPILE_FLAGS "${CH_BUILDFLAGS_IRR}"
+    LINK_FLAGS "${CH_LINKERFLAG_EXE}"
+)
+
+TARGET_LINK_LIBRARIES(test_driveChain
+	ChronoEngine
+	ChronoEngine_IRRLICHT
+	TrackVehicle
+	Chrono_Utils
+    ${CH_IRRLICHTLIB}
+)
+
+# ADD_DEPENDENCIES (test_driveChain ChronoEngine ChronoEngine_IRRLICHT TrackVehicle)
+
+INSTALL(TARGETS test_driveChain DESTINATION bin)
+MESSAGE("Added DEMO 3: test a driveChain system. Power to a gear is transferred to an idler wheel via rigid-body chain")
