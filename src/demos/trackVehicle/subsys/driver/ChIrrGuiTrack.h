@@ -38,18 +38,19 @@
 #include "subsys/ChApiSubsys.h"
 #include "subsys/driver/ChDriverTrack.h"
 #include "subsys/trackVehicle/TrackVehicle.h"
+#include "subsys/trackVehicle/DriveChain.h"
 #include "subsys/powertrain/TrackPowertrain.h"
 
 
 namespace chrono {
-
+template <class T>
 class CH_SUBSYS_API ChIrrGuiTrack : public ChDriverTrack, public irr::IEventReceiver
 {
 public:
 
   ChIrrGuiTrack(
     irr::ChIrrApp&      app,
-    TrackVehicle&       vehicle,
+    T*                  vehicle,
     const ChVector<>&   ptOnChassis,
     double              chaseDist,
     double              chaseHeight,
@@ -59,9 +60,9 @@ public:
 
   ~ChIrrGuiTrack() {}
 
-  virtual bool OnEvent(const irr::SEvent& event);
+  bool OnEvent(const irr::SEvent& event);
 
-  virtual void Advance(double step);
+  void Advance(double step);
 
   void DrawAll();
 
@@ -91,7 +92,7 @@ private:
                      int length = 120, int height = 15);
 
   irr::ChIrrAppInterface&   m_app;
-  TrackVehicle&             m_vehicle;
+  T*  m_vehicle;
   TrackPowertrain* m_powertrain;
 
   utils::ChChaseCamera      m_camera;

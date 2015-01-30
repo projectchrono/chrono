@@ -35,11 +35,15 @@
 using namespace irr;
 
 namespace chrono {
+template class ChIrrGuiTrack<TrackVehicle>;
+template class ChIrrGuiTrack<DriveChain>;
+
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-ChIrrGuiTrack::ChIrrGuiTrack(ChIrrApp&          app,
-                            TrackVehicle&       vehicle,
+template <class T>
+ChIrrGuiTrack<T>::ChIrrGuiTrack(ChIrrApp&       app,
+                            T*                  vehicle,
                             const ChVector<>&   ptOnChassis,
                             double              chaseDist,
                             double              chaseHeight,
@@ -47,21 +51,21 @@ ChIrrGuiTrack::ChIrrGuiTrack(ChIrrApp&          app,
                             int                 HUD_y)
 : m_app(app),
   m_vehicle(vehicle),
-  m_powertrain( vehicle.GetPowertrain(0) ),
+  m_powertrain( vehicle->GetPowertrain(0) ),
   m_HUD_x(HUD_x),
   m_HUD_y(HUD_y),
   m_terrainHeight(0),
   m_throttleDelta(1.0/50),
   m_steeringDelta(1.0/50),
   m_brakingDelta(1.0/50),
-  m_camera(vehicle.GetChassis()),
+  m_camera(vehicle->GetChassis()),
   m_stepsize(1e-3),
   ChDriverTrack(2)
 {
   app.SetUserEventReceiver(this);
 
   // Initialize the ChChaseCamera
-  m_camera.Initialize(ptOnChassis, vehicle.GetLocalDriverCoordsys(), chaseDist, chaseHeight);
+  m_camera.Initialize(ptOnChassis, vehicle->GetLocalDriverCoordsys(), chaseDist, chaseHeight);
   ChVector<> cam_pos = m_camera.GetCameraPos();
   ChVector<> cam_target = m_camera.GetTargetPos();
 
@@ -79,7 +83,8 @@ ChIrrGuiTrack::ChIrrGuiTrack(ChIrrApp&          app,
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-bool ChIrrGuiTrack::OnEvent(const SEvent& event)
+template <class T>
+bool ChIrrGuiTrack<T>::OnEvent(const SEvent& event)
 {
   // Only interpret keyboard inputs.
   if (event.EventType != EET_KEY_INPUT_EVENT)
@@ -168,7 +173,7 @@ bool ChIrrGuiTrack::OnEvent(const SEvent& event)
 
     // TODO: no LogConstraintViolation() func., yet
     // case KEY_KEY_V:
-    //  m_vehicle.LogConstraintViolations();
+    //  m_vehicle->LogConstraintViolations();
     // return true;
     }
 
@@ -179,7 +184,8 @@ bool ChIrrGuiTrack::OnEvent(const SEvent& event)
 
 
 // -----------------------------------------------------------------------------
-void ChIrrGuiTrack::Advance(double step)
+template <class T>
+void ChIrrGuiTrack<T>::Advance(double step)
 {
   // Update the ChChaseCamera: take as many integration steps as needed to
   // exactly reach the value 'step'
@@ -202,7 +208,8 @@ void ChIrrGuiTrack::Advance(double step)
 }
 
 // -----------------------------------------------------------------------------
-void ChIrrGuiTrack::DrawAll()
+template <class T>
+void ChIrrGuiTrack<T>::DrawAll()
 {
   // renderGrid();
 
@@ -213,7 +220,8 @@ void ChIrrGuiTrack::DrawAll()
   renderStats();
 }
 
-void ChIrrGuiTrack::renderSprings()
+template <class T>
+void ChIrrGuiTrack<T>::renderSprings()
 {
   std::vector<chrono::ChLink*>::iterator ilink = m_app.GetSystem()->Get_linklist()->begin();
   for (; ilink != m_app.GetSystem()->Get_linklist()->end(); ++ilink) {
@@ -232,7 +240,8 @@ void ChIrrGuiTrack::renderSprings()
   }
 }
 
-void ChIrrGuiTrack::renderLinks()
+template <class T>
+void ChIrrGuiTrack<T>::renderLinks()
 {
   std::vector<chrono::ChLink*>::iterator ilink = m_app.GetSystem()->Get_linklist()->begin();
   for (; ilink != m_app.GetSystem()->Get_linklist()->end(); ++ilink) {
@@ -251,7 +260,8 @@ void ChIrrGuiTrack::renderLinks()
   }
 }
 
-void ChIrrGuiTrack::renderGrid()
+template <class T>
+void ChIrrGuiTrack<T>::renderGrid()
 {
   ChCoordsys<> gridCsys(ChVector<>(0, 0, m_terrainHeight + 0.02),
                         chrono::Q_from_AngAxis(-CH_C_PI_2, VECT_Z));
@@ -263,7 +273,8 @@ void ChIrrGuiTrack::renderGrid()
                        true);
 }
 
-void ChIrrGuiTrack::renderLinGauge(const std::string& msg,
+template <class T>
+void ChIrrGuiTrack<T>::renderLinGauge(const std::string& msg,
                                     double factor, bool sym,
                                     int xpos, int ypos,
                                     int length, int height)
@@ -288,7 +299,8 @@ void ChIrrGuiTrack::renderLinGauge(const std::string& msg,
              irr::video::SColor(255,20,20,20));
 }
 
-void ChIrrGuiTrack::renderTextBox(const std::string& msg,
+template <class T>
+void ChIrrGuiTrack<T>::renderTextBox(const std::string& msg,
                                    int xpos, int ypos,
                                    int length, int height)
 {
@@ -304,7 +316,8 @@ void ChIrrGuiTrack::renderTextBox(const std::string& msg,
     irr::video::SColor(255, 20, 20, 20));
 }
 
-void ChIrrGuiTrack::renderStats()
+template <class T>
+void ChIrrGuiTrack<T>::renderStats()
 {
   char msg[100];
   int y_pos = m_HUD_y + 10;
@@ -319,11 +332,11 @@ void ChIrrGuiTrack::renderStats()
   renderLinGauge(std::string(msg), m_throttle[0], false, m_HUD_x, y_pos += 20, 120, 15);
 
   // idler spring displacement
-  sprintf(msg, "idler Right: %+.2f", m_vehicle.GetIdlerForce(0) );
-  renderLinGauge(std::string(msg), m_vehicle.GetIdlerForce(0), false, m_HUD_x, y_pos += 20, 120, 15);
+  sprintf(msg, "idler Right: %+.2f", m_vehicle->GetIdlerForce(0) );
+  renderLinGauge(std::string(msg), m_vehicle->GetIdlerForce(0), false, m_HUD_x, y_pos += 20, 120, 15);
 
-  sprintf(msg, "idler Left: %+.2f", m_vehicle.GetIdlerForce(1) );
-  renderLinGauge(std::string(msg),  m_vehicle.GetIdlerForce(1), false, m_HUD_x, y_pos += 20, 120, 15);
+  sprintf(msg, "idler Left: %+.2f", m_vehicle->GetIdlerForce(1) );
+  renderLinGauge(std::string(msg),  m_vehicle->GetIdlerForce(1), false, m_HUD_x, y_pos += 20, 120, 15);
 
 
   /*
@@ -335,11 +348,11 @@ void ChIrrGuiTrack::renderStats()
   renderLinGauge(std::string(msg), m_braking[1], false, m_HUD_x, m_HUD_y + 80, 120, 15);
   */
 
-  double speed = m_vehicle.GetVehicleSpeed();
+  double speed = m_vehicle->GetVehicleSpeed();
   sprintf(msg, "Speed: %+.2f", speed);
   renderLinGauge(std::string(msg), speed/30, false, m_HUD_x, y_pos += 20, 120, 15);
 
-  if( m_vehicle.GetNum_Engines() > 0 )
+  if( m_vehicle->GetNum_Engines() > 0 )
   {
     double engine_rpm = m_powertrain->GetMotorSpeed() * 60 / chrono::CH_C_2PI;
     sprintf(msg, "Eng. RPM: %+.2f", engine_rpm);
