@@ -9,7 +9,7 @@
 // http://projectchrono.org/license-chrono.txt.
 //
 // =============================================================================
-// Authors: Justin Madsen, 
+// Authors: Justin Madsen
 // =============================================================================
 //
 // Use some track vehicle components to model a drive gear, attached to a powertrain
@@ -30,7 +30,7 @@
 #include "subsys/idler/IdlerSimple.h"
 #include "subsys/trackChain/TrackChain.h"
 #include "subsys/powertrain/TrackPowertrain.h"
-#include "subsys/driveline/TrackDriveline.h"
+#include "subsys/driveline/TrackDriveline_1WD.h"
 
 namespace chrono {
 
@@ -63,7 +63,7 @@ public:
   // Accessors
 
   /// vehicle's driveline subsystem.
-  TrackDriveline* GetDriveline(int idx) { return m_driveline.get_ptr(); }
+  TrackDriveline_1WD* GetDriveline(int idx) { return m_driveline.get_ptr(); }
 
   /// vehicle's driveshaft body.
   ChShaft* GetDriveshaft(size_t idx) {return m_driveline->GetDriveshaft().get_ptr(); }
@@ -75,32 +75,37 @@ public:
   ChSharedPtr<ChBody> GetChassis() { return m_chassis; }
 
   /// pointer to the powertrain
-  TrackPowertrain* GetPowertrain() { return m_ptrain.get_ptr(); }
+  TrackPowertrain* GetPowertrain(int idx) { return m_ptrain.get_ptr(); }
 
   /// return the force exerted by the idler subsystem on the idler body
   double GetIdlerForce(size_t side);
 
+  /// just return the COG of the gear
+  ChCoordsys<> GetLocalDriverCoordsys() const { return ChCoordsys<>(m_chassis->GetPos(), m_chassis->GetRot()); }
+
+  /// vehicle speed, doesn't matter
+  double GetVehicleSpeed() const { return 0; }
+  int GetNum_Engines() const { return 1;}
 
 private:
 
   // private variables
-
   ChSharedPtr<ChBody> m_chassis;  		///< fixed to gorund
   ChSharedPtr<DriveGear> m_gear;  		///< drive gear
   ChSharedPtr<IdlerSimple>	m_idler;	///< idler wheel
+  ChSharedPtr<TrackChain> m_chain;    ///< chain
 
   ChVector<> m_idlerPosRel;	///< position of idler COG relative to local c-sys
   
-  ChSharedPtr<TrackDriveline>   m_driveline;    ///< handle to the driveline subsystem, one for each powertrain/drivegear pair
-  ChSharedPtr<TrackPowertrain>  m_ptrain;  ///< powertrain system, one per track system
+  ChSharedPtr<TrackDriveline_1WD>   m_driveline;  ///< handle to the driveline subsystem
+  ChSharedPtr<TrackPowertrain>  m_ptrain;  ///< powertrain system
 
-  double m_stepsize;          ///< integration time step for tracked vehicle system
+  size_t m_num_idlers;
+  double m_stepsize;          ///< integration time step for the system
 	
   // static variables. hard-coded for now
-  // idler
   static const ChVector<> m_idlerPos; // relative to chassis frame, which is the same as the gear's (initially)
   static const ChQuaternion<> m_idlerRot; 
-
   
 
 protected:

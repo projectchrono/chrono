@@ -45,7 +45,8 @@ const ChQuaternion<> DriveChain::m_idlerRot(QUNIT);
 /// constructor sets the basic integrator settings for this ChSystem, as well as the usual stuff
 DriveChain::DriveChain(const std::string& name, VisualizationType vis, CollisionType collide)
   : m_ownsSystem(true),
-  m_stepsize(1e-3)
+  m_stepsize(1e-3),
+  m_num_idlers(1)
 {
   // Integration and Solver settings
   SetLcpSolverType(ChSystem::LCP_ITERATIVE_SOR);
@@ -61,9 +62,8 @@ DriveChain::DriveChain(const std::string& name, VisualizationType vis, Collision
   m_chassis->SetIdentifier(0);
   m_chassis->SetNameString(name);
   // basic body info. Not relevant since it's fixed.
-  m_chassis->SetMass(m_mass);
-  m_chassis->SetInertiaXX(m_inertia);
-
+  m_chassis->SetMass(100);
+  m_chassis->SetInertiaXX(ChVector<>(10,10,10));
   // chassis is fixed to ground
   m_chassis->SetBodyFixed(true);
     
@@ -71,21 +71,21 @@ DriveChain::DriveChain(const std::string& name, VisualizationType vis, Collision
   Add(m_chassis);
   
   // build one of each of the following subsystems. 
-  m_gear = ChSharedPtr<DriveGear>(new DriveGear("drive gear ",
+  m_gear = ChSharedPtr<DriveGear>(new DriveGear("drive gear",
     vis,	//VisualizationType::PRIMITIVES,
     collide));	//CollisionType::PRIMITIVES) );
 
-  m_idler = ChSharedPtr<IdlerSimple>(new IdlerSimple("idler ",
+  m_idler = ChSharedPtr<IdlerSimple>(new IdlerSimple("idler",
     vis,	// VisualizationType::PRIMITIVES,
     collide));	// CollisionType::PRIMITIVES) );
 
-  m_chain = ChSharedPtr<TrackChain>(new TrackChain("chain ",
+  m_chain = ChSharedPtr<TrackChain>(new TrackChain("chain",
     vis,	// VisualizationType::PRIMITIVES,
     collide));	// CollisionType::PRIMITIVES) );
   
   
   // create the powertrain and drivelines
-  m_driveline = ChSharedPtr<TrackDriveline>(new TrackDriveline("driveline ") );
+  m_driveline = ChSharedPtr<TrackDriveline_1WD>(new TrackDriveline_1WD("driveline ") );
   m_ptrain = ChSharedPtr<TrackPowertrain>(new TrackPowertrain("powertrain ") );
 
 
@@ -109,9 +109,13 @@ void DriveChain::Initialize(const ChCoordsys<>& gear_Csys)
   // initialize 1 of each of the following subsystems.
   // will use the chassis ref frame to do the transforms, since the TrackSystem
   // local ref. frame has same rot (just difference in position)
-  m_driveGear->Initialize(chassis, ChCoordsys<>());
+  m_gear->Initialize(m_chassis, 
+    m_chassis->GetFrame_REF_to_abs(),
+    ChCoordsys<>());
 
-  m_idler->Initialize(chassis, ChCoordsys<>(m_idlerPosRel, QUNIT) );
+  m_idler->Initialize(m_chassis, 
+    m_chassis->GetFrame_REF_to_abs(),
+    ChCoordsys<>(m_idlerPosRel, QUNIT) );
 
   // Create list of the center location of the rolling elements and their clearance.
   // Clearance is a sphere shaped envelope at each center location, where it can
@@ -131,10 +135,12 @@ void DriveChain::Initialize(const ChCoordsys<>& gear_Csys)
   //             pass between the idler and driveGears.
   // MUST be on the top part of the chain so the chain wrap rotation direction can be assumed.
   // rolling_elem_locs, start_pos w.r.t. chassis c-sys
-  m_chain->Initialize(chassis, rolling_elem_locs, clearance, ChVector<>(m_gear->GetRadius(),0,0) );
+  m_chain->Initialize(m_chassis, 
+    m_chassis->GetFrame_REF_to_abs(),
+    rolling_elem_locs, clearance, ChVector<>(m_gear->GetRadius(),0,0) );
   
   // initialize the powertrain, drivelines
-  m_driveline->Initialize(m_chassis, m_gear, m_gear);
+  m_driveline->Initialize(m_chassis, m_gear);
   m_ptrain->Initialize(m_chassis, m_driveline->GetDriveshaft() );
 }
 
@@ -168,10 +174,12 @@ void DriveChain::Advance(double step)
 }
 
 
-double DriveChain::GetIdlerForce(size_t side)
+double DriveChain::GetIdlerForce(size_t idler_idx)
 {
-  assert(side < m_num_tracks);
-  ChVector<> out_force = m_TrackSystems[side]->Get_idler_spring_react();
+  assert(idler_idx < m_num_idlers);
+
+  // only 1 idler, for now
+  ChVector<> out_force = m_idler->GetSpringForce();
 
   return out_force.Length();
 }
