@@ -404,3 +404,20 @@ ChLcpSolverParallelDEM::RunTimeStep(real step)
   }
   tot_iterations = data_container->measures.solver.iter_hist.size();
 }
+
+void ChLcpSolverParallelDEM::ComputeImpulses() {
+  DynamicVector<real>& v = data_container->host_data.v;
+  const DynamicVector<real>& M_invk = data_container->host_data.M_invk;
+  const DynamicVector<real>& gamma = data_container->host_data.gamma;
+  const CompressedMatrix<real>& M_invD_b = data_container->host_data.M_invD_b;
+
+  uint num_unilaterals = data_container->num_unilaterals;
+  uint num_bilaterals = data_container->num_bilaterals;
+
+  if (data_container->num_constraints > 0) {
+    blaze::DenseSubvector<const DynamicVector<real> > gamma_b = blaze::subvector(gamma, num_unilaterals, num_bilaterals);
+    v = M_invk + M_invD_b * gamma_b;
+  } else {
+    v = M_invk;
+  }
+}

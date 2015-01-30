@@ -285,6 +285,56 @@ void ChLcpSolverParallelDVI::ComputeR() {
   }
 }
 
+void ChLcpSolverParallelDVI::ComputeImpulses() {
+
+  DynamicVector<real>& v = data_container->host_data.v;
+
+  const DynamicVector<real>& M_invk = data_container->host_data.M_invk;
+  const DynamicVector<real>& gamma = data_container->host_data.gamma;
+
+  const CompressedMatrix<real>& M_invD_n = data_container->host_data.M_invD_n;
+  const CompressedMatrix<real>& M_invD_t = data_container->host_data.M_invD_t;
+  const CompressedMatrix<real>& M_invD_s = data_container->host_data.M_invD_s;
+  const CompressedMatrix<real>& M_invD_b = data_container->host_data.M_invD_b;
+
+  uint num_contacts = data_container->num_contacts;
+  uint num_unilaterals = data_container->num_unilaterals;
+  uint num_bilaterals = data_container->num_bilaterals;
+
+  if (data_container->num_constraints > 0) {
+
+    blaze::DenseSubvector<const DynamicVector<real> > gamma_b = blaze::subvector(gamma, num_unilaterals, num_bilaterals);
+    blaze::DenseSubvector<const DynamicVector<real> > gamma_n = blaze::subvector(gamma, 0, num_contacts);
+
+    //Compute new velocity based on the lagrange multipliers
+    switch (data_container->settings.solver.solver_mode) {
+      case NORMAL: {
+        v = M_invk + M_invD_n * gamma_n + M_invD_b * gamma_b;
+      } break;
+
+      case SLIDING: {
+         blaze::DenseSubvector<const DynamicVector<real> > gamma_t = blaze::subvector(gamma, num_contacts, num_contacts * 2);
+
+        v = M_invk + M_invD_n * gamma_n + M_invD_t * gamma_t + M_invD_b * gamma_b;
+
+      } break;
+
+      case SPINNING: {
+         blaze::DenseSubvector<const DynamicVector<real> > gamma_t = blaze::subvector(gamma, num_contacts, num_contacts * 2);
+         blaze::DenseSubvector<const DynamicVector<real> > gamma_s = blaze::subvector(gamma, num_contacts * 3, num_contacts * 3);
+
+        v = M_invk + M_invD_n * gamma_n + M_invD_t * gamma_t + M_invD_s * gamma_s + M_invD_b * gamma_b;
+
+      } break;
+    }
+  } else {
+    //When there are no constraints we need to still apply gravity and other
+    //body forces!
+    v = M_invk;
+  }
+}
+
+
 void ChLcpSolverParallelDVI::ChangeSolverType(SOLVERTYPE type) {
   data_container->settings.solver.solver_type = type;
 
