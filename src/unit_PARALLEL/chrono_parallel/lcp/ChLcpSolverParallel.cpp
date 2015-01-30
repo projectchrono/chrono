@@ -31,8 +31,12 @@ void ChLcpSolverParallel::ComputeMassMatrix()
   const std::vector<ChLink*> *link_list= data_container->link_list;
   const std::vector<ChPhysicsItem*> *other_physics_list= data_container->other_physics_list;
 
+  const DynamicVector<real>& hf = data_container->host_data.hf;
+  const DynamicVector<real>& v = data_container->host_data.v;
 
+  DynamicVector<real>& M_invk = data_container->host_data.M_invk;
   CompressedMatrix<real>& M_inv = data_container->host_data.M_inv;
+
   clear(M_inv);
 
   // Each rigid object has 3 mass entries and 9 inertia entries
@@ -121,18 +125,7 @@ void ChLcpSolverParallel::ComputeMassMatrix()
   }
 
 
-  data_container->host_data.M_invk = data_container->host_data.v + M_inv * data_container->host_data.hf;
-}
-
-void ChLcpSolverParallel::ComputeImpulses() {
-  if (data_container->num_constraints > 0) {
-	  //Compute new velocity based on the lagrange multipliers
-    data_container->host_data.v = data_container->host_data.M_invk + data_container->host_data.M_invD * data_container->host_data.gamma;
-  } else {
-	  //When there are no constraints we need to still apply gravity and other
-    //body forces!
-    data_container->host_data.v = data_container->host_data.M_invk;
-  }
+  M_invk = v + M_inv * hf;
 }
 
 void ChLcpSolverParallel::PerformStabilization() {

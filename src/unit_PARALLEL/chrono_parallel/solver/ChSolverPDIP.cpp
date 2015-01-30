@@ -28,7 +28,7 @@ real ChSolverPDIP::Res4(blaze::DynamicVector<real> & gamma,
 void ChSolverPDIP::SchurComplementProduct(blaze::DynamicVector<real> & src,
                                           blaze::DynamicVector<real> & dst)
 {
-  dst = data_container->host_data.D_T * (data_container->host_data.M_invD * src);
+  dst = D_T * (M_invD * src);
 }
 
 void ChSolverPDIP::getConstraintVector(blaze::DynamicVector<real> & src,
@@ -136,7 +136,7 @@ void ChSolverPDIP::updateNewtonStepVector(blaze::DynamicVector<real> & gamma,
                                           const uint size)
 {
   updateConstraintGradient(gamma, size);
-  r_d = data_container->host_data.D_T * (data_container->host_data.M_invD * gamma) + r + trans(grad_f) * lambda;
+  r_d = D_T * (M_invD * gamma) + r + trans(grad_f) * lambda;
   MultiplyByDiagMatrix(lambda, f, r_g);
   r_g = - (1 / t) * ones - r_g;
 }
@@ -146,12 +146,12 @@ void ChSolverPDIP::conjugateGradient(blaze::DynamicVector<real> & x)
   real rsold_cg = 0;
   real rsnew_cg = 0;
   real alpha_cg = 0;
-  r_cg = (B * (Dinv * r_g) - r_d) - (data_container->host_data.D_T * data_container->host_data.M_invD + M_hat + B * Dinv * diaglambda * grad_f) * x;
+  r_cg = (B * (Dinv * r_g) - r_d) - (D_T * M_invD + M_hat + B * Dinv * diaglambda * grad_f) * x;
   p_cg = r_cg;
   rsold_cg = (r_cg, r_cg);
 
   for (int i = 0; i < 10*gamma.size(); i++) {
-    Ap_cg = (data_container->host_data.D_T * data_container->host_data.M_invD + M_hat + B * Dinv * diaglambda * grad_f) * p_cg;
+    Ap_cg = (D_T * M_invD + M_hat + B * Dinv * diaglambda * grad_f) * p_cg;
     alpha_cg = rsold_cg / (p_cg, Ap_cg);
     x = x + alpha_cg * p_cg;
     r_cg = r_cg - alpha_cg * Ap_cg;
@@ -167,7 +167,7 @@ void ChSolverPDIP::conjugateGradient(blaze::DynamicVector<real> & x)
 void ChSolverPDIP::buildPreconditioner(const uint size)
 {
   prec_cg.resize(size);
-  blaze::CompressedMatrix<real> A = data_container->host_data.D_T * data_container->host_data.M_invD + M_hat + B * Dinv * diaglambda * grad_f;
+  blaze::CompressedMatrix<real> A = D_T * M_invD + M_hat + B * Dinv * diaglambda * grad_f;
 #pragma omp parallel for
   for(int i=0; i<prec_cg.size(); i++)
   {
@@ -193,14 +193,14 @@ int ChSolverPDIP::preconditionedConjugateGradient(blaze::DynamicVector<real> & x
   real rsold_cg = 0;
   real rsnew_cg = 0;
   real alpha_cg = 0;
-  r_cg = (B * (Dinv * r_g) - r_d) - (data_container->host_data.D_T * data_container->host_data.M_invD + M_hat + B * Dinv * diaglambda * grad_f) * x;
+  r_cg = (B * (Dinv * r_g) - r_d) - (D_T * M_invD + M_hat + B * Dinv * diaglambda * grad_f) * x;
   applyPreconditioning(r_cg,z_cg);
   p_cg = z_cg;
   rsold_cg = (r_cg, z_cg);
 
   for (int i = 0; i < 1000*gamma.size(); i++) {
     iter++;
-    Ap_cg = (data_container->host_data.D_T * data_container->host_data.M_invD + M_hat + B * Dinv * diaglambda * grad_f) * p_cg;
+    Ap_cg = (D_T * M_invD + M_hat + B * Dinv * diaglambda * grad_f) * p_cg;
     alpha_cg = rsold_cg / (p_cg, Ap_cg);
     x = x + alpha_cg * p_cg;
     r_cg = r_cg - alpha_cg * Ap_cg;
