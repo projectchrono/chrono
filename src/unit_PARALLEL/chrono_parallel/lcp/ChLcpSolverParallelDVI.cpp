@@ -59,7 +59,7 @@ void ChLcpSolverParallelDVI::RunTimeStep(real step)
 
   ComputeD();
   ComputeE();
-
+  ComputeR();
 
   data_container->system_timer.start("ChLcpSolverParallel_Solve");
 
@@ -67,7 +67,7 @@ void ChLcpSolverParallelDVI::RunTimeStep(real step)
     if (data_container->settings.solver.max_iteration_normal > 0) {
       solver->SetMaxIterations(data_container->settings.solver.max_iteration_normal);
       data_container->settings.solver.local_solver_mode = NORMAL;
-      ComputeR();
+      SetR();
       PerformStabilization();
       solver->Solve();
     }
@@ -76,7 +76,7 @@ void ChLcpSolverParallelDVI::RunTimeStep(real step)
     if (data_container->settings.solver.max_iteration_sliding > 0) {
       solver->SetMaxIterations(data_container->settings.solver.max_iteration_sliding);
       data_container->settings.solver.local_solver_mode = SLIDING;
-      ComputeR();
+      SetR();
       PerformStabilization();
       solver->Solve();
     }
@@ -85,7 +85,7 @@ void ChLcpSolverParallelDVI::RunTimeStep(real step)
     if (data_container->settings.solver.max_iteration_spinning > 0) {
       solver->SetMaxIterations(data_container->settings.solver.max_iteration_spinning);
       data_container->settings.solver.local_solver_mode = SPINNING;
-      ComputeR();
+      SetR();
       PerformStabilization();
       solver->Solve();
     }
@@ -234,7 +234,7 @@ void ChLcpSolverParallelDVI::ComputeR() {
 
   const DynamicVector<real>& M_invk = data_container->host_data.M_invk;
 
-  DynamicVector<real>& R = data_container->host_data.R;
+  DynamicVector<real>& R = data_container->host_data.R_full;
   DynamicVector<real>& b = data_container->host_data.b;
 
   uint num_contacts = data_container->num_contacts;
@@ -257,7 +257,7 @@ void ChLcpSolverParallelDVI::ComputeR() {
   blaze::DenseSubvector<DynamicVector<real> > R_b = blaze::subvector(R, num_unilaterals, num_bilaterals);
 
   R_b = -b_b - D_b_T * M_invk;
-  switch (data_container->settings.solver.local_solver_mode) {
+  switch (data_container->settings.solver.solver_mode) {
     case NORMAL: {
       R_n = -b_n - D_n_T * M_invk;
     } break;
@@ -284,6 +284,48 @@ void ChLcpSolverParallelDVI::ComputeR() {
     } break;
   }
 }
+
+void ChLcpSolverParallelDVI::SetR() {
+  if (data_container->num_constraints <= 0) {
+    return;
+  }
+
+  DynamicVector<real>& R = data_container->host_data.R;
+  const DynamicVector<real>& R_full = data_container->host_data.R_full;
+
+  uint num_contacts = data_container->num_contacts;
+  uint num_unilaterals = data_container->num_unilaterals;
+  uint num_bilaterals = data_container->num_bilaterals;
+
+  R = R_full;
+
+  switch (data_container->settings.solver.local_solver_mode) {
+    case NORMAL: {
+      if (data_container->settings.solver.solver_mode == SLIDING || data_container->settings.solver.solver_mode == SPINNING) {
+        blaze::DenseSubvector<DynamicVector<real> > R_t = blaze::subvector(R, num_contacts, num_contacts * 2);
+        R_t = 0;
+      }
+      if (data_container->settings.solver.solver_mode == SPINNING) {
+        blaze::DenseSubvector<DynamicVector<real> > R_s = blaze::subvector(R, num_contacts * 3, num_contacts * 3);
+        R_s = 0;
+      }
+    } break;
+
+    case SLIDING: {
+      if (data_container->settings.solver.solver_mode == SPINNING) {
+        blaze::DenseSubvector<DynamicVector<real> > R_s = blaze::subvector(R, num_contacts * 3, num_contacts * 3);
+        R_s = 0;
+      }
+
+    } break;
+
+    case SPINNING: {
+    } break;
+  }
+}
+
+
+
 
 void ChLcpSolverParallelDVI::ComputeImpulses() {
 

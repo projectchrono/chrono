@@ -139,7 +139,8 @@ struct host_container {
    //entire operation happens inline without a temp variable.
    CompressedMatrix<real> M_invD_n, M_invD_t, M_invD_s, M_invD_b;
 
-   DynamicVector<real> R; //The right hand side of the system
+   DynamicVector<real> R_full; //The right hand side of the system
+   DynamicVector<real> R; //The rhs of the system, changes during solve
    DynamicVector<real> b; //Correction terms
    DynamicVector<real> M_invk; //result of M_inv multiplied by vector of forces
    DynamicVector<real> gamma; //THe unknowns we are solving for

@@ -70,9 +70,10 @@ class CH_PARALLEL_API ChLcpSolverParallelDVI : public ChLcpSolverParallel {
    void ComputeD();
    // Compute the compliance matrix.
    void ComputeE();
-   // Compute the RHS vector. Depending on what type of solve is being performed
-   // the RHS vector will have different non zero entries.
+   // Compute the RHS vector. This will not change depending on the solve
    void ComputeR();
+   // Set the RHS vector depending on the local solver mode
+   void SetR();
    // This function is used to change the solver algorithm.
    void ChangeSolverType(SOLVERTYPE type);
 
