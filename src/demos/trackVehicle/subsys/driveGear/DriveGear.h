@@ -42,7 +42,9 @@ public:
   ~DriveGear() {}
 
   /// init the gear with the initial pos. and rot., w.r.t. the chassis c-sys
-  void Initialize(ChSharedPtr<ChBodyAuxRef> chassis, const ChCoordsys<>& local_Csys);
+  void Initialize(ChSharedPtr<ChBody> chassis,
+    const ChFrame<>& chassis_REF,
+    const ChCoordsys<>& local_Csys);
 
   // accessors
   ChSharedPtr<ChBody> GetBody() { return m_gear; }

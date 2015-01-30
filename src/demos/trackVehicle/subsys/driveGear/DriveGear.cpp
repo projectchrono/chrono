@@ -69,7 +69,8 @@ DriveGear::DriveGear(const std::string& name,
  
 }
 
-void DriveGear::Initialize(ChSharedPtr<ChBodyAuxRef> chassis, 
+void DriveGear::Initialize(ChSharedPtr<ChBody> chassis,
+                           const ChFrame<>& chassis_REF,
                            const ChCoordsys<>& local_Csys)
 {
 
@@ -78,7 +79,7 @@ void DriveGear::Initialize(ChSharedPtr<ChBodyAuxRef> chassis,
 
   // get the local frame in the absolute ref. frame
   ChFrame<> gear_to_abs(local_Csys);
-  gear_to_abs.ConcatenatePreTransformation(chassis->GetFrame_REF_to_abs());
+  gear_to_abs.ConcatenatePreTransformation(chassis_REF);
 
   // transform the drive gear body, add to system
   m_gear->SetPos(gear_to_abs.GetPos());
