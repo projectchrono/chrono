@@ -58,6 +58,8 @@ class CH_PARALLEL_API ChCBroadphase {
                                           const uint *shape_number,
                                           const uint *bin_start_index,
                                           const short2 * fam_data,
+                                          const bool* body_active,
+                                          const uint* body_id,
                                           uint *Num_ContactD);
    void host_Store_AABB_AABB_Intersection(const real3 *aabb_data,
                                           const uint *bin_number,
@@ -65,6 +67,8 @@ class CH_PARALLEL_API ChCBroadphase {
                                           const uint *bin_start_index,
                                           const uint *Num_ContactD,
                                           const short2 * fam_data,
+                                          const bool* body_active,
+                                          const uint* body_id,
                                           long long *potentialCollisions);
 
 };
