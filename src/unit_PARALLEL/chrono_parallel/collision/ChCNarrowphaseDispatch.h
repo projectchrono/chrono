@@ -40,7 +40,6 @@ class CH_PARALLEL_API ChCNarrowphaseDispatch {
                                 const real3 *obj_data_C,
                                 const real4 *obj_data_R,
                                 const uint *obj_data_ID,
-                                const bool * obj_active,
                                 const real3 *body_pos,
                                 const real4 *body_rot,
                                 real3 *obj_data_A_mod,
