@@ -163,7 +163,7 @@ void TrackVehicle::Update(double	time,
   // update left and right powertrains, with the new left and right throttle/shaftspeed
   for(int i = 0; i < m_num_engines; i++)
   {
-    m_ptrains[i]->Update(time, throttle[0], throttle[1], m_drivelines[0]->GetDriveshaftSpeed() );
+    m_ptrains[i]->Update(time, throttle[i], m_drivelines[0]->GetDriveshaftSpeed() );
   }
 
 }
@@ -292,7 +292,7 @@ void TrackVehicle::Advance(double step)
 {
   double t = 0;
   double settlePhaseA = 0.001;
-  double settlePhaseB = 0.1;
+  double settlePhaseB = 0.01;
   while (t < step) {
     double h = std::min<>(m_stepsize, step - t);
     if( GetChTime() < settlePhaseA )
