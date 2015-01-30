@@ -241,7 +241,7 @@ void ChCNarrowphaseDispatch::PreprocessLocalToParent(int num_shapes,
   }
 }
 
-bool host_Dispatch_Init(uint index,
+void host_Dispatch_Init(uint index,
                         const shape_type* obj_data_T,
                         const real3* obj_data_A,
                         const real3* obj_data_B,
@@ -249,28 +249,22 @@ bool host_Dispatch_Init(uint index,
                         const real4* obj_data_R,
                         const uint* obj_data_ID,
                         real3* convex_data,
-                        const bool* obj_active,
                         const long long* contact_pair,
                         const uint* start_index,
                         uint& icoll,
                         uint& ID_A,
                         uint& ID_B,
                         ConvexShape& shapeA,
-                        ConvexShape& shapeB) {
+                        ConvexShape& shapeB)
+{
   long long p = contact_pair[index];
-  int2 pair = I2(int(p >> 32), int(p & 0xffffffff));
-  ID_A = obj_data_ID[pair.x];
-  ID_B = obj_data_ID[pair.y];
+  int2 pair = I2(int(p >> 32), int(p & 0xffffffff));    // Get the identifiers for the two shapes involved in this collision
 
-  if (obj_active[ID_A] == false && obj_active[ID_B] == false) {
-    return false;
-  }
-  if (ID_A == ID_B) {
-    return false;
-  }
+  ID_A = obj_data_ID[pair.x];
+  ID_B = obj_data_ID[pair.y];    // Get the identifiers of the two associated objects (bodies)
 
   shapeA.type = obj_data_T[pair.x];
-  shapeB.type = obj_data_T[pair.y];    // Get the type data for each object in the collision pair
+  shapeB.type = obj_data_T[pair.y];    // Load the type data for each object in the collision pair
 
   shapeA.A = obj_data_A[pair.x];
   shapeB.A = obj_data_A[pair.y];
@@ -285,7 +279,6 @@ bool host_Dispatch_Init(uint index,
 
   //// TODO: what is the best way to dispatch this?
   icoll = start_index[index];
-  return true;
 }
 
 void host_Dispatch_Finalize(uint icoll,
@@ -326,7 +319,6 @@ void host_DispatchMPR(uint index,
                       const real4* obj_data_R,
                       const uint* obj_data_ID,
                       real3* convex_data,
-                      const bool* obj_active,
                       const real3* body_pos,
                       const real4* body_rot,
                       real collision_envelope,
@@ -339,24 +331,20 @@ void host_DispatchMPR(uint index,
                       real3* ptB,
                       real* contactDepth,
                       real* effective_radius,
-                      int2* body_ids) {
-
+                      int2* body_ids)
+{
   uint ID_A, ID_B, icoll;
   ConvexShape shapeA, shapeB;
 
-  if (!host_Dispatch_Init(
-           index, obj_data_T, obj_data_A, obj_data_B, obj_data_C, obj_data_R, obj_data_ID, convex_data, obj_active, contact_pair, start_index, icoll, ID_A, ID_B, shapeA, shapeB)) {
-    return;
-  }
-  int nC = 0;
+  host_Dispatch_Init(index, obj_data_T, obj_data_A, obj_data_B, obj_data_C, obj_data_R, obj_data_ID, convex_data, contact_pair, start_index, icoll, ID_A, ID_B, shapeA, shapeB);
   if (!MPRCollision(shapeA, shapeB, collision_envelope, norm[icoll], ptA[icoll], ptB[icoll], contactDepth[icoll])) {
     return;
   }
   effective_radius[icoll] = edge_radius;
   body_ids[icoll] = I2(ID_A, ID_B);
   flag[icoll] = 0;
-  nC = 1;
-  host_Dispatch_Finalize(icoll, body_pos, collision_envelope, system_type, ID_A, ID_B, nC, norm, ptA, ptB, contactDepth);
+  // The number of contacts reported by MPR is always 1.
+  host_Dispatch_Finalize(icoll, body_pos, collision_envelope, system_type, ID_A, ID_B, 1, norm, ptA, ptB, contactDepth);
 }
 
 void host_DispatchR(uint index,
@@ -367,7 +355,6 @@ void host_DispatchR(uint index,
                     const real4* obj_data_R,
                     const uint* obj_data_ID,
                     real3* convex_data,
-                    const bool* obj_active,
                     const real3* body_pos,
                     const real4* body_rot,
                     real collision_envelope,
@@ -380,14 +367,12 @@ void host_DispatchR(uint index,
                     real3* ptB,
                     real* contactDepth,
                     real* effective_radius,
-                    int2* body_ids) {
+                    int2* body_ids)
+{
   uint ID_A, ID_B, icoll;
   ConvexShape shapeA, shapeB;
 
-  if (!host_Dispatch_Init(
-           index, obj_data_T, obj_data_A, obj_data_B, obj_data_C, obj_data_R, obj_data_ID, convex_data, obj_active, contact_pair, start_index, icoll, ID_A, ID_B, shapeA, shapeB)) {
-    return;
-  }
+  host_Dispatch_Init(index, obj_data_T, obj_data_A, obj_data_B, obj_data_C, obj_data_R, obj_data_ID, convex_data, contact_pair, start_index, icoll, ID_A, ID_B, shapeA, shapeB);
   int nC = 0;
   if (!RCollision(icoll, shapeA, shapeB, ID_A, ID_B, flag, norm, ptA, ptB, contactDepth, effective_radius, body_ids, nC)) {
     return;
@@ -404,7 +389,6 @@ void host_DispatchHybridMPR(uint index,
                             const real4* obj_data_R,
                             const uint* obj_data_ID,
                             real3* convex_data,
-                            const bool* obj_active,
                             const real3* body_pos,
                             const real4* body_rot,
                             real collision_envelope,
@@ -417,16 +401,14 @@ void host_DispatchHybridMPR(uint index,
                             real3* ptB,
                             real* contactDepth,
                             real* effective_radius,
-                            int2* body_ids) {
+                            int2* body_ids)
+{
   uint ID_A, ID_B, icoll;
   ConvexShape shapeA, shapeB;
   // The envelope is set to zero if the R narrowphase found the contact.
   real envelope = collision_envelope;
 
-  if (!host_Dispatch_Init(
-           index, obj_data_T, obj_data_A, obj_data_B, obj_data_C, obj_data_R, obj_data_ID, convex_data, obj_active, contact_pair, start_index, icoll, ID_A, ID_B, shapeA, shapeB)) {
-    return;
-  }
+  host_Dispatch_Init(index, obj_data_T, obj_data_A, obj_data_B, obj_data_C, obj_data_R, obj_data_ID, convex_data, contact_pair, start_index, icoll, ID_A, ID_B, shapeA, shapeB);
   int nC = 0;
 
   if (RCollision(icoll, shapeA, shapeB, ID_A, ID_B, flag, norm, ptA, ptB, contactDepth, effective_radius, body_ids, nC)) {
@@ -480,7 +462,6 @@ void ChCNarrowphaseDispatch::Dispatch(const shape_type* obj_data_T,
                          obj_data_R,
                          obj_data_ID,
                          convex_data,
-                         obj_active,
                          body_pos,
                          body_rot,
                          collision_envelope,
@@ -507,7 +488,6 @@ void ChCNarrowphaseDispatch::Dispatch(const shape_type* obj_data_T,
                        obj_data_R,
                        obj_data_ID,
                        convex_data,
-                       obj_active,
                        body_pos,
                        body_rot,
                        collision_envelope,
@@ -534,7 +514,6 @@ void ChCNarrowphaseDispatch::Dispatch(const shape_type* obj_data_T,
                                obj_data_R,
                                obj_data_ID,
                                convex_data,
-                               obj_active,
                                body_pos,
                                body_rot,
                                collision_envelope,
