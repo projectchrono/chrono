@@ -87,6 +87,8 @@ void AddContainer(ChSystemParallelDVI* sys) {
    utils::AddBoxGeometry(bin.get_ptr(), ChVector<>(hthick, hdim.y, hdim.z), ChVector<>(hdim.x + hthick, 0, hdim.z));
    utils::AddBoxGeometry(bin.get_ptr(), ChVector<>(hdim.x, hthick, hdim.z), ChVector<>(0, -hdim.y - hthick, hdim.z));
    utils::AddBoxGeometry(bin.get_ptr(), ChVector<>(hdim.x, hthick, hdim.z), ChVector<>(0, hdim.y + hthick, hdim.z));
+   bin->GetCollisionModel()->SetFamily(1);
+   bin->GetCollisionModel()->SetFamilyMaskNoCollisionWithFamily(2);
    bin->GetCollisionModel()->BuildModel();
 
    sys->AddBody(bin);
@@ -105,6 +107,7 @@ void AddContainer(ChSystemParallelDVI* sys) {
 
    mixer->GetCollisionModel()->ClearModel();
    utils::AddBoxGeometry(mixer.get_ptr(), hsize);
+   mixer->GetCollisionModel()->SetFamily(2);
    mixer->GetCollisionModel()->BuildModel();
 
    sys->AddBody(mixer);
