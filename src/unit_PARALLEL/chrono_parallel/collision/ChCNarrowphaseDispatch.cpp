@@ -57,6 +57,7 @@ void ChCNarrowphaseDispatch::Process(ChParallelDataManager* data_container) {
   obj_data_A_global = obj_data_A;      //.resize(num_shapes);
   obj_data_B_global = obj_data_B;      //.resize(num_shapes);
   obj_data_C_global = obj_data_C;      //.resize(num_shapes);
+  obj_data_R_global = obj_data_R;
   convex_data_global = convex_data;    //.resize(num_shapes); //NOT USED RIGHT NOW
   // Transform to global coordinate system
   PreprocessLocalToParent(num_shapes,
@@ -71,6 +72,7 @@ void ChCNarrowphaseDispatch::Process(ChParallelDataManager* data_container) {
                           obj_data_A_global.data(),
                           obj_data_B_global.data(),
                           obj_data_C_global.data(),
+                          obj_data_R_global.data(),
                           convex_data_global.data());
 
   contact_index.resize(num_potentialCollisions);
@@ -99,7 +101,7 @@ void ChCNarrowphaseDispatch::Process(ChParallelDataManager* data_container) {
            obj_data_A_global.data(),
            obj_data_B_global.data(),
            obj_data_C_global.data(),
-           obj_data_R.data(),
+           obj_data_R_global.data(),
            obj_data_ID.data(),
            convex_data.data(),
            obj_active.data(),
@@ -194,13 +196,15 @@ void host_Preprocess(uint index,
                      const real3* obj_data_A,
                      const real3* obj_data_B,
                      const real3* obj_data_C,
+                     const real4* obj_data_R,
                      const uint* obj_data_ID,
                      const real3* body_pos,
                      const real4* body_rot,
                      real3* obj_data_A_global,
                      real3* obj_data_B_global,
-                     real3* obj_data_C_global) {
-
+                     real3* obj_data_C_global,
+                     real4* obj_data_R_global)
+{
   shape_type T = obj_data_T[index];
 
   // Get the identifier for the object associated with this collision shape
@@ -214,9 +218,10 @@ void host_Preprocess(uint index,
     obj_data_B_global[index] = TransformLocalToParent(pos, rot, obj_data_B[index]);
     obj_data_C_global[index] = TransformLocalToParent(pos, rot, obj_data_C[index]);
   }
+  obj_data_R_global[index] = mult(rot, obj_data_R[index]);
 }
 
-void ChCNarrowphaseDispatch::PreprocessLocalToParent(const int num_shapes,
+void ChCNarrowphaseDispatch::PreprocessLocalToParent(int num_shapes,
                                                      const shape_type* obj_data_T,
                                                      const real3* obj_data_A,
                                                      const real3* obj_data_B,
@@ -228,10 +233,11 @@ void ChCNarrowphaseDispatch::PreprocessLocalToParent(const int num_shapes,
                                                      real3* obj_data_A_global,
                                                      real3* obj_data_B_global,
                                                      real3* obj_data_C_global,
+                                                     real4* obj_data_R_global,
                                                      real3* convex_data_mod) {
 #pragma omp parallel for
   for (int index = 0; index < num_shapes; index++) {
-    host_Preprocess(index, obj_data_T, obj_data_A, obj_data_B, obj_data_C, obj_data_ID, body_pos, body_rot, obj_data_A_global, obj_data_B_global, obj_data_C_global);
+    host_Preprocess(index, obj_data_T, obj_data_A, obj_data_B, obj_data_C, obj_data_R, obj_data_ID, body_pos, body_rot, obj_data_A_global, obj_data_B_global, obj_data_C_global, obj_data_R_global);
   }
 }
 
@@ -244,8 +250,6 @@ bool host_Dispatch_Init(uint index,
                         const uint* obj_data_ID,
                         real3* convex_data,
                         const bool* obj_active,
-                        const real3* body_pos,
-                        const real4* body_rot,
                         const long long* contact_pair,
                         const uint* start_index,
                         uint& icoll,
@@ -268,15 +272,14 @@ bool host_Dispatch_Init(uint index,
   shapeA.type = obj_data_T[pair.x];
   shapeB.type = obj_data_T[pair.y];    // Get the type data for each object in the collision pair
 
-  real4 rotA = (body_rot[ID_A]), rotB = (body_rot[ID_B]);    // Get the global object rotation
   shapeA.A = obj_data_A[pair.x];
   shapeB.A = obj_data_A[pair.y];
   shapeA.B = obj_data_B[pair.x];
   shapeB.B = obj_data_B[pair.y];
   shapeA.C = obj_data_C[pair.x];
   shapeB.C = obj_data_C[pair.y];
-  shapeA.R = (mult(rotA, obj_data_R[pair.x]));
-  shapeB.R = (mult(rotB, obj_data_R[pair.y]));
+  shapeA.R = obj_data_R[pair.x];
+  shapeB.R = obj_data_R[pair.y];
   shapeA.convex = convex_data;
   shapeB.convex = convex_data;
 
@@ -342,7 +345,7 @@ void host_DispatchMPR(uint index,
   ConvexShape shapeA, shapeB;
 
   if (!host_Dispatch_Init(
-           index, obj_data_T, obj_data_A, obj_data_B, obj_data_C, obj_data_R, obj_data_ID, convex_data, obj_active, body_pos, body_rot, contact_pair, start_index, icoll, ID_A, ID_B, shapeA, shapeB)) {
+           index, obj_data_T, obj_data_A, obj_data_B, obj_data_C, obj_data_R, obj_data_ID, convex_data, obj_active, contact_pair, start_index, icoll, ID_A, ID_B, shapeA, shapeB)) {
     return;
   }
   int nC = 0;
@@ -382,7 +385,7 @@ void host_DispatchR(uint index,
   ConvexShape shapeA, shapeB;
 
   if (!host_Dispatch_Init(
-           index, obj_data_T, obj_data_A, obj_data_B, obj_data_C, obj_data_R, obj_data_ID, convex_data, obj_active, body_pos, body_rot, contact_pair, start_index, icoll, ID_A, ID_B, shapeA, shapeB)) {
+           index, obj_data_T, obj_data_A, obj_data_B, obj_data_C, obj_data_R, obj_data_ID, convex_data, obj_active, contact_pair, start_index, icoll, ID_A, ID_B, shapeA, shapeB)) {
     return;
   }
   int nC = 0;
@@ -421,7 +424,7 @@ void host_DispatchHybridMPR(uint index,
   real envelope = collision_envelope;
 
   if (!host_Dispatch_Init(
-           index, obj_data_T, obj_data_A, obj_data_B, obj_data_C, obj_data_R, obj_data_ID, convex_data, obj_active, body_pos, body_rot, contact_pair, start_index, icoll, ID_A, ID_B, shapeA, shapeB)) {
+           index, obj_data_T, obj_data_A, obj_data_B, obj_data_C, obj_data_R, obj_data_ID, convex_data, obj_active, contact_pair, start_index, icoll, ID_A, ID_B, shapeA, shapeB)) {
     return;
   }
   int nC = 0;

@@ -33,19 +33,20 @@ class CH_PARALLEL_API ChCNarrowphaseDispatch {
    //Performance is improved because the amount of data loaded is still the same
    // but it does not have to be transformed per contact pair, now it is
    // transformed once per shape
-   void PreprocessLocalToParent(const int numAABB,
-                                const shape_type *obj_data_T,
-                                const real3 *obj_data_A,
-                                const real3 *obj_data_B,
-                                const real3 *obj_data_C,
-                                const real4 *obj_data_R,
-                                const uint *obj_data_ID,
-                                const real3 *body_pos,
-                                const real4 *body_rot,
-                                real3 *obj_data_A_mod,
-                                real3 *obj_data_B_mod,
-                                real3 *obj_data_C_mod,
-                                real3 *convex_data_mod);
+   void PreprocessLocalToParent(int numAABB,
+                                const shape_type* obj_data_T,
+                                const real3* obj_data_A,
+                                const real3* obj_data_B,
+                                const real3* obj_data_C,
+                                const real4* obj_data_R,
+                                const uint* obj_data_ID,
+                                const real3* body_pos,
+                                const real4* body_rot,
+                                real3* obj_data_A_global,
+                                real3* obj_data_B_global,
+                                real3* obj_data_C_global,
+                                real4* obj_data_R_global,
+                                real3* convex_data_mod);
 
    //For each contact pair decide what to do.
    void Dispatch(const shape_type *obj_data_T,
@@ -71,6 +72,7 @@ class CH_PARALLEL_API ChCNarrowphaseDispatch {
  private:
 
    custom_vector<real3> obj_data_A_global, obj_data_B_global, obj_data_C_global;   //
+   custom_vector<real4> obj_data_R_global;
    custom_vector<real3> convex_data_global;
    custom_vector<uint> contact_active;   //
    custom_vector<uint> contact_index;
