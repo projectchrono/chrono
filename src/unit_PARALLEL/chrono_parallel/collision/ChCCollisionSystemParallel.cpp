@@ -111,7 +111,7 @@ void ChCollisionSystemParallel::Run() {
 
   // aabb_generator.GenerateAABBFluid(data_container->host_data.fluid_pos, data_container->fluid_rad, data_container->host_data.aabb_fluid);
   broadphase->setBinsPerAxis(data_container->settings.collision.bins_per_axis);
-  broadphase->detectPossibleCollisions(data_container->host_data.aabb_rigid, data_container->host_data.fam_rigid, data_container->host_data.pair_rigid_rigid);
+  broadphase->detectPossibleCollisions(data_container);
   data_container->system_timer.stop("collision_broad");
 
   data_container->measures.collision.bin_size_vec = broadphase->bin_size_vec;

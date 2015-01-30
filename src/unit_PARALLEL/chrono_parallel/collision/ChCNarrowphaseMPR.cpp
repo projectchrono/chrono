@@ -676,7 +676,7 @@ void chrono::collision::MPRGetPoints(const ConvexShape & shapeA,
 //Code for Convex-Convex Collision detection, adopted from xeno-collide
 bool chrono::collision::MPRCollision(const ConvexShape & shapeA,
                                      const ConvexShape & shapeB,
-                                     const real & envelope,
+                                     real envelope,
                                      real3 &normal,
                                      real3 &pointA,
                                      real3 &pointB,

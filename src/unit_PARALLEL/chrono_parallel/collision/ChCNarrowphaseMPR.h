@@ -16,7 +16,7 @@ bool MPRContact(const ConvexShape &ShapeA,
 CH_PARALLEL_API
 bool MPRCollision(const ConvexShape &ShapeA,
                   const ConvexShape &ShapeB,
-                  const real & envelope,
+                  real envelope,
                   real3 &returnNormal,
                   real3 &pointA,
                   real3 &pointB,
