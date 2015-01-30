@@ -120,6 +120,7 @@ ChSharedPtr<ChBody> Add_FlatGround(TrackVehicle* vehicle,
 
 int main(int argc, char* argv[])
 {
+  // NOTE: utils library built with this sets this statically
   // SetChronoDataPath(CHRONO_DATA_DIR);
   // --------------------------
   // Create the tracked vehicle and the ground/environment
@@ -152,23 +153,6 @@ int main(int argc, char* argv[])
                       do_shadows);
   // assumes Y-up
   application.AddTypicalSky();
-  /*
-  // a skybox that has Z pointing up (default application.AddTypicalSky() makes Y up) 
-  std::string mtexturedir = GetChronoDataFile("skybox/");
-  std::string str_lf = mtexturedir + "sky_lf.jpg";
-  std::string str_up = mtexturedir + "sky_up.jpg";
-  std::string str_dn = mtexturedir + "sky_dn.jpg";
-  irr::video::ITexture* map_skybox_side = 
-      application.GetVideoDriver()->getTexture(str_lf.c_str());
-  irr::scene::ISceneNode* mbox = application.GetSceneManager()->addSkyBoxSceneNode(
-      application.GetVideoDriver()->getTexture(str_up.c_str()),
-      application.GetVideoDriver()->getTexture(str_dn.c_str()),
-      map_skybox_side,
-      map_skybox_side,
-      map_skybox_side,
-      map_skybox_side);
-  mbox->setRotation( irr::core::vector3df(90,0,0));  // rotate skybox for z-up 
-  */
  
   irr::scene::ILightSceneNode* mlight = 0;
 
@@ -190,7 +174,7 @@ int main(int argc, char* argv[])
   application.SetTimestep(step_size);
 
   // the GUI driver
-  ChIrrGuiTrack driver(application, vehicle, trackPoint, chaseDist, chaseHeight);
+  ChIrrGuiTrack<TrackVehicle> driver(application, &vehicle, trackPoint, chaseDist, chaseHeight);
 
   // Set the time response for steering and throttle keyboard inputs.
   // NOTE: this is not exact, since we do not render quite at the specified FPS.
