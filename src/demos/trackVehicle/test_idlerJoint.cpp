@@ -220,7 +220,8 @@ void draw_springs(ChSystem& system, ChIrrApp& app)
 int main(int   argc,
          char* argv[])
 {
-
+  // NOTE: utils library built with this sets this statically
+  // SetChronoDataPath(CHRONO_DATA_DIR);
   GetLog() << "Test ChLinkLockRevolutePrismatic constraint kinematics.\n Idler constraint compared to a 2-body 2-constraint equivalent\n";
   // 0. Create output directories.
   if(ChFileutils::MakeDirectory(out_dir.c_str()) < 0) {
