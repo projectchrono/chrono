@@ -208,7 +208,9 @@ void TrackSystem::Initialize(ChSharedPtr<ChBodyAuxRef> chassis,
   // initialize 1 of each of the following subsystems.
   // will use the chassis ref frame to do the transforms, since the TrackSystem
   // local ref. frame has same rot (just difference in position)
-  m_driveGear->Initialize(chassis, ChCoordsys<>(m_local_pos + Get_gearPosRel(), QUNIT) );
+  m_driveGear->Initialize(chassis, 
+    chassis->GetFrame_REF_to_abs(),
+    ChCoordsys<>(m_local_pos + Get_gearPosRel(), QUNIT) );
 
   // drive sprocket is First added to the lists passed into TrackChain Init()
   rolling_elem_locs.push_back(m_local_pos + Get_gearPosRel() );
@@ -218,6 +220,7 @@ void TrackSystem::Initialize(ChSharedPtr<ChBodyAuxRef> chassis,
   for(int s_idx = 0; s_idx < m_suspensionLocs.size(); s_idx++)
   {
     m_suspensions[s_idx]->Initialize(chassis,
+      chassis->GetFrame_REF_to_abs(),
       ChCoordsys<>(m_local_pos + m_suspensionLocs[s_idx], QUNIT) );
 
     // add to the lists passed into the track chain, find location of each wheel center w.r.t. chassis coords.
@@ -238,7 +241,9 @@ void TrackSystem::Initialize(ChSharedPtr<ChBodyAuxRef> chassis,
   }
   
   // last control point: the idler body
-  m_idler->Initialize(chassis, ChCoordsys<>(m_local_pos + Get_idlerPosRel(), QUNIT) );
+  m_idler->Initialize(chassis, 
+    chassis->GetFrame_REF_to_abs(),
+    ChCoordsys<>(m_local_pos + Get_idlerPosRel(), QUNIT) );
 
   // add to the lists passed into the track chain Init()
   rolling_elem_locs.push_back(m_local_pos + Get_idlerPosRel() );
@@ -254,7 +259,9 @@ void TrackSystem::Initialize(ChSharedPtr<ChBodyAuxRef> chassis,
   //             pass between the idler and driveGears.
   // MUST be on the top part of the chain so the chain wrap rotation direction can be assumed.
   // rolling_elem_locs, start_pos w.r.t. chassis c-sys
-  m_chain->Initialize(chassis, rolling_elem_locs, clearance, start_pos );
+  m_chain->Initialize(chassis, 
+    chassis->GetFrame_REF_to_abs(),
+    rolling_elem_locs, clearance, start_pos );
 
 }
 
