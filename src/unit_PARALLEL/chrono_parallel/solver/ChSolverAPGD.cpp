@@ -10,23 +10,28 @@ void ChSolverAPGD::UpdateR() {
     return;
   }
 
-  if(!data_container->settings.solver.update_rhs){
+  if (!data_container->settings.solver.update_rhs) {
     return;
   }
 
-  DynamicVector<real>& M_invk = data_container->host_data.M_invk;
-  CompressedMatrix<real>& D_T = data_container->host_data.D_T;
-  DynamicVector<real>& b = data_container->host_data.b;
-  DynamicVector<real>& v = data_container->host_data.hf;
+  const CompressedMatrix<real>& D_n_T = data_container->host_data.D_n_T;
+  const DynamicVector<real>& M_invk = data_container->host_data.M_invk;
+  const DynamicVector<real>& b = data_container->host_data.b;
+  DynamicVector<real>& R = data_container->host_data.R;
   DynamicVector<real>& s = data_container->host_data.s;
-  DynamicVector<real>& hf = data_container->host_data.hf;
 
-  s.resize(data_container->num_constraints);
-  s.reset();
+  uint num_contacts = data_container->num_contacts;
+
+  s.resize(data_container->num_contacts);
+  reset(s);
+
   rigid_rigid->Build_s();
 
+  blaze::DenseSubvector<const DynamicVector<real> > b_n = blaze::subvector(b, 0, num_contacts);
+  blaze::DenseSubvector<DynamicVector<real> > R_n = blaze::subvector(R, 0, num_contacts);
+  blaze::DenseSubvector<DynamicVector<real> > s_n = blaze::subvector(s, 0, num_contacts);
 
-  data_container->host_data.R = -b - D_T * M_invk - s;
+  R_n = -b_n - D_n_T * M_invk + s_n;
 }
 
 uint ChSolverAPGD::SolveAPGD(const uint max_iter, const uint size, const blaze::DynamicVector<real>& r, blaze::DynamicVector<real>& gamma) {

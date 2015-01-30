@@ -254,75 +254,78 @@ void ChConstraintRigidRigid::Build_b()
   }
 }
 
-void ChConstraintRigidRigid::Build_s()
-{
+void ChConstraintRigidRigid::Build_s() {
   if (data_container->num_contacts <= 0) {
     return;
   }
 
-  if( data_container->settings.solver.solver_mode == NORMAL){
+  if (data_container->settings.solver.solver_mode == NORMAL) {
     return;
   }
 
   int2* ids = data_container->host_data.bids_rigid_rigid.data();
   const CompressedMatrix<real>& D_t_T = data_container->host_data.D_t_T;
-  DynamicVector<real>& v = data_container->host_data.v;
+  DynamicVector<real> v_new;
 
-  const DynamicVector<real> v_new = data_container->host_data.M_invk + data_container->host_data.M_invD * data_container->host_data.gamma;
+  const DynamicVector<real>& M_invk = data_container->host_data.M_invk;
+  const DynamicVector<real>& gamma = data_container->host_data.gamma;
+
+  const CompressedMatrix<real>& M_invD_n = data_container->host_data.M_invD_n;
+  const CompressedMatrix<real>& M_invD_t = data_container->host_data.M_invD_t;
+  const CompressedMatrix<real>& M_invD_s = data_container->host_data.M_invD_s;
+  const CompressedMatrix<real>& M_invD_b = data_container->host_data.M_invD_b;
+
+  uint num_contacts = data_container->num_contacts;
+    uint num_unilaterals = data_container->num_unilaterals;
+    uint num_bilaterals = data_container->num_bilaterals;
+
+  blaze::DenseSubvector<const DynamicVector<real> > gamma_b = blaze::subvector(gamma, num_unilaterals, num_bilaterals);
+  blaze::DenseSubvector<const DynamicVector<real> > gamma_n = blaze::subvector(gamma, 0, num_contacts);
+
+  // Compute new velocity based on the lagrange multipliers
+  switch (data_container->settings.solver.solver_mode) {
+    case NORMAL: {
+      v_new = M_invk + M_invD_n * gamma_n + M_invD_b * gamma_b;
+    } break;
+
+    case SLIDING: {
+      blaze::DenseSubvector<const DynamicVector<real> > gamma_t = blaze::subvector(gamma, num_contacts, num_contacts * 2);
+
+      v_new = M_invk + M_invD_n * gamma_n + M_invD_t * gamma_t + M_invD_b * gamma_b;
+
+    } break;
+
+    case SPINNING: {
+      blaze::DenseSubvector<const DynamicVector<real> > gamma_t = blaze::subvector(gamma, num_contacts, num_contacts * 2);
+      blaze::DenseSubvector<const DynamicVector<real> > gamma_s = blaze::subvector(gamma, num_contacts * 3, num_contacts * 3);
+
+      v_new = M_invk + M_invD_n * gamma_n + M_invD_t * gamma_t + M_invD_s * gamma_s + M_invD_b * gamma_b;
+
+    } break;
+  }
 
 #pragma omp parallel for
   for (int index = 0; index < data_container->num_contacts; index++) {
     real fric = data_container->host_data.fric_rigid_rigid[index].x;
-    int index_mult = _index_;
     int2 body_id = ids[index];
 
+    real s_v = D_t_T(index * 2 + 0, body_id.x * 6 + 0) * +v_new[body_id.x * 6 + 0] + D_t_T(index * 2 + 0, body_id.x * 6 + 1) * +v_new[body_id.x * 6 + 1] +
+               D_t_T(index * 2 + 0, body_id.x * 6 + 2) * +v_new[body_id.x * 6 + 2] + D_t_T(index * 2 + 0, body_id.x * 6 + 3) * +v_new[body_id.x * 6 + 3] +
+               D_t_T(index * 2 + 0, body_id.x * 6 + 4) * +v_new[body_id.x * 6 + 4] + D_t_T(index * 2 + 0, body_id.x * 6 + 5) * +v_new[body_id.x * 6 + 5] +
 
+               D_t_T(index * 2 + 0, body_id.y * 6 + 0) * +v_new[body_id.y * 6 + 0] + D_t_T(index * 2 + 0, body_id.y * 6 + 1) * +v_new[body_id.y * 6 + 1] +
+               D_t_T(index * 2 + 0, body_id.y * 6 + 2) * +v_new[body_id.y * 6 + 2] + D_t_T(index * 2 + 0, body_id.y * 6 + 3) * +v_new[body_id.y * 6 + 3] +
+               D_t_T(index * 2 + 0, body_id.y * 6 + 4) * +v_new[body_id.y * 6 + 4] + D_t_T(index * 2 + 0, body_id.y * 6 + 5) * +v_new[body_id.y * 6 + 5];
 
-//    blaze::SparseSubmatrix< CompressedMatrix<real> > D_v_a = submatrix( D_T, index_mult + 1, body_id.x* 6 + 0, 1, 6 );
-//    blaze::SparseSubmatrix< CompressedMatrix<real> > D_v_b = submatrix( D_T, index_mult + 1, body_id.y* 6 + 0, 1, 6 );
-//
-//    blaze::SparseSubmatrix< CompressedMatrix<real> > D_w_a = submatrix( D_T, index_mult + 2, body_id.x* 6 + 0, 1, 6 );
-//    blaze::SparseSubmatrix< CompressedMatrix<real> > D_w_b = submatrix( D_T, index_mult + 2, body_id.y* 6 + 0, 1, 6 );
-//
-//
-//    blaze::DenseSubvector<DynamicVector<real> > v_a = blaze::subvector(v_new, body_id.x* 6 + 0, 6);
-//    blaze::DenseSubvector<DynamicVector<real> > v_b = blaze::subvector(v_new, body_id.y* 6 + 0, 6);
-//    real s_v, s_w;
+    real s_w = D_t_T(index * 2 + 1, body_id.x * 6 + 0) * +v_new[body_id.x * 6 + 0] + D_t_T(index * 2 + 1, body_id.x * 6 + 1) * +v_new[body_id.x * 6 + 1] +
+               D_t_T(index * 2 + 1, body_id.x * 6 + 2) * +v_new[body_id.x * 6 + 2] + D_t_T(index * 2 + 1, body_id.x * 6 + 3) * +v_new[body_id.x * 6 + 3] +
+               D_t_T(index * 2 + 1, body_id.x * 6 + 4) * +v_new[body_id.x * 6 + 4] + D_t_T(index * 2 + 1, body_id.x * 6 + 5) * +v_new[body_id.x * 6 + 5] +
 
-    real s_v =
-        D_t_T(index * 2 + 0, body_id.x* 6 + 0)* +v_new[body_id.x* 6 + 0]+
-        D_t_T(index * 2 + 0, body_id.x* 6 + 1)* +v_new[body_id.x* 6 + 1]+
-        D_t_T(index * 2 + 0, body_id.x* 6 + 2)* +v_new[body_id.x* 6 + 2]+
-        D_t_T(index * 2 + 0, body_id.x* 6 + 3)* +v_new[body_id.x* 6 + 3]+
-        D_t_T(index * 2 + 0, body_id.x* 6 + 4)* +v_new[body_id.x* 6 + 4]+
-        D_t_T(index * 2 + 0, body_id.x* 6 + 5)* +v_new[body_id.x* 6 + 5]+
+               D_t_T(index * 2 + 1, body_id.y * 6 + 0) * +v_new[body_id.y * 6 + 0] + D_t_T(index * 2 + 1, body_id.y * 6 + 1) * +v_new[body_id.y * 6 + 1] +
+               D_t_T(index * 2 + 1, body_id.y * 6 + 2) * +v_new[body_id.y * 6 + 2] + D_t_T(index * 2 + 1, body_id.y * 6 + 3) * +v_new[body_id.y * 6 + 3] +
+               D_t_T(index * 2 + 1, body_id.y * 6 + 4) * +v_new[body_id.y * 6 + 4] + D_t_T(index * 2 + 1, body_id.y * 6 + 5) * +v_new[body_id.y * 6 + 5];
 
-        D_t_T(index * 2 + 0, body_id.y* 6 + 0)* +v_new[body_id.y* 6 + 0]+
-        D_t_T(index * 2 + 0, body_id.y* 6 + 1)* +v_new[body_id.y* 6 + 1]+
-        D_t_T(index * 2 + 0, body_id.y* 6 + 2)* +v_new[body_id.y* 6 + 2]+
-        D_t_T(index * 2 + 0, body_id.y* 6 + 3)* +v_new[body_id.y* 6 + 3]+
-        D_t_T(index * 2 + 0, body_id.y* 6 + 4)* +v_new[body_id.y* 6 + 4]+
-        D_t_T(index * 2 + 0, body_id.y* 6 + 5)* +v_new[body_id.y* 6 + 5];
-
-    real s_w =
-        D_t_T(index * 2 + 1, body_id.x* 6 + 0)* +v_new[body_id.x* 6 + 0]+
-        D_t_T(index * 2 + 1, body_id.x* 6 + 1)* +v_new[body_id.x* 6 + 1]+
-        D_t_T(index * 2 + 1, body_id.x* 6 + 2)* +v_new[body_id.x* 6 + 2]+
-        D_t_T(index * 2 + 1, body_id.x* 6 + 3)* +v_new[body_id.x* 6 + 3]+
-        D_t_T(index * 2 + 1, body_id.x* 6 + 4)* +v_new[body_id.x* 6 + 4]+
-        D_t_T(index * 2 + 1, body_id.x* 6 + 5)* +v_new[body_id.x* 6 + 5]+
-
-        D_t_T(index * 2 + 1, body_id.y* 6 + 0)* +v_new[body_id.y* 6 + 0]+
-        D_t_T(index * 2 + 1, body_id.y* 6 + 1)* +v_new[body_id.y* 6 + 1]+
-        D_t_T(index * 2 + 1, body_id.y* 6 + 2)* +v_new[body_id.y* 6 + 2]+
-        D_t_T(index * 2 + 1, body_id.y* 6 + 3)* +v_new[body_id.y* 6 + 3]+
-        D_t_T(index * 2 + 1, body_id.y* 6 + 4)* +v_new[body_id.y* 6 + 4]+
-        D_t_T(index * 2 + 1, body_id.y* 6 + 5)* +v_new[body_id.y* 6 + 5];
-
-
-    data_container->host_data.s[index * 1 + 0] = sqrt(s_v* s_v + s_w* s_w) * fric;
-
-    //std::cout<<s_v<<" "<<s_w<<" "<<data_container->host_data.s[_index_ + 0]<<std::endl;
+    data_container->host_data.s[index * 1 + 0] = sqrt(s_v * s_v + s_w * s_w) * fric;
   }
 }
 

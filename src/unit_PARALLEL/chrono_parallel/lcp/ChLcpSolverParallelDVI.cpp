@@ -334,28 +334,6 @@ void ChLcpSolverParallelDVI::ComputeImpulses() {
   }
 }
 
-void ChLcpSolverParallelDVI::UpdateR()
-{
-  if (data_container->num_constraints <= 0) {
-    return;
-  }
-  CompressedMatrix<real>& M_inv = data_container->host_data.M_inv;
-  CompressedMatrix<real>& D_T = data_container->host_data.D_T;
-  DynamicVector<real>& b =  data_container->host_data.b;
-  DynamicVector<real>& v =  data_container->host_data.hf;
-  DynamicVector<real>& s =  data_container->host_data.hf;
-  DynamicVector<real>& hf =  data_container->host_data.hf;
-
-  s.resize(data_container->num_constraints);
-  reset(s);
-
-  rigid_rigid.Build_s();
-
-  data_container->host_data.R = -b - D_T * (v + M_inv * hf) + s;
-}
-
-
-
 void ChLcpSolverParallelDVI::ChangeSolverType(SOLVERTYPE type) {
   data_container->settings.solver.solver_type = type;
 
