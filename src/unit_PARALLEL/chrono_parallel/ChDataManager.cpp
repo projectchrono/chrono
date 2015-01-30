@@ -87,23 +87,16 @@ int ChParallelDataManager::ExportCurrentSystem(std::string output_dir) {
 
   // output D_T
 
-  uint num_bilaterals = num_bilaterals;
-  uint nnz_bilaterals = nnz_bilaterals;
-
   int nnz_normal = 6 * 2 * num_contacts;
   int nnz_tangential = 6 * 4 * num_contacts;
   int nnz_spinning = 6 * 3 * num_contacts;
-
 
   int num_normal = 1 * num_contacts;
   int num_tangential = 2 * num_contacts;
   int num_spinning = 3 * num_contacts;
 
-  CompressedMatrix<real> D_T;
+  blaze::CompressedMatrix<real> D_T;
   uint nnz_total = nnz_bilaterals;
-
-  blaze::SparseSubmatrix<CompressedMatrix<real> > D_b_T = blaze::submatrix(D_T, num_unilaterals, 0, num_bilaterals, num_dof);
-  D_b_T = host_data.D_b_T;
 
   switch (settings.solver.solver_mode) {
     case NORMAL: {
@@ -132,6 +125,9 @@ int ChParallelDataManager::ExportCurrentSystem(std::string output_dir) {
       D_s_T_sub = host_data.D_t_T;
     } break;
   }
+
+  blaze::SparseSubmatrix<CompressedMatrix<real> > D_b_T = blaze::submatrix(D_T, num_unilaterals, 0, num_bilaterals, num_dof);
+  D_b_T = host_data.D_b_T;
 
   filename = output_dir + "dump_D.dat";
   OutputBlazeMatrix(D_T, filename);
