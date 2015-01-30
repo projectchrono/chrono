@@ -76,7 +76,8 @@ TrackChain::TrackChain(const std::string& name,
 }
 
 // figure out the control points, 2 per rolling element to wrap the chain around.
-void TrackChain::Initialize(ChSharedPtr<ChBodyAuxRef> chassis,
+void TrackChain::Initialize(ChSharedPtr<ChBody> chassis,
+                            const ChFrame<>& chassis_REF,
                             const std::vector<ChVector<>>& rolling_element_loc,
                             const std::vector<double>& clearance,
                             const ChVector<>& start_loc)
@@ -254,7 +255,9 @@ void TrackChain::Initialize(ChSharedPtr<ChBodyAuxRef> chassis,
   // "wrap" the track chain around the trackSystem rolling elements, e.g., drive-gear,
   // idler, road-wheels. First and last shoes are allowed to be in any orientation,
   // as long as the final pin joint connects correctly.
-  CreateChain(chassis, control_to_abs, rolling_to_abs, clearance, start_to_abs.GetPos() );
+  CreateChain(chassis, 
+    chassis->GetFrame_REF_to_abs(),
+    control_to_abs, rolling_to_abs, clearance, start_to_abs.GetPos() );
 }
 
 void TrackChain::AddVisualization()
@@ -554,7 +557,8 @@ void TrackChain::AddCollisionGeometry(size_t track_idx)
 
 // two control points per rolling body.
 // each two control points correspond to a single rolling element & clearance value, in the same order.
-void TrackChain::CreateChain(ChSharedPtr<ChBodyAuxRef> chassis,
+void TrackChain::CreateChain(ChSharedPtr<ChBody> chassis,
+                             const ChFrame<>& chassis_REF,
                              const std::vector<ChFrame<>>& control_points_abs,
                              const std::vector<ChFrame<>>& rolling_element_abs,
                              const std::vector<double>& clearance,
@@ -577,21 +581,26 @@ void TrackChain::CreateChain(ChSharedPtr<ChBodyAuxRef> chassis,
     ChVector<> end_seg = control_points_abs[2*idx].GetPos();  // end of line seg.
     ChVector<> end_curve = control_points_abs[2*idx+1].GetPos();  // end of curved section
     // build the bodies for this line segment and rolling element curved section
-    CreateShoes(chassis, start_seg, end_seg, end_curve, rolling_element_abs[idx].GetPos(), clearance[idx]);
+    CreateShoes(chassis, 
+      chassis->GetFrame_REF_to_abs(),
+      start_seg, end_seg, end_curve, rolling_element_abs[idx].GetPos(), clearance[idx]);
   }
   // this will get us around the last rolling element curved segment. Add the final length of shoes
-  CreateShoes_closeChain(chassis, control_points_abs.back().GetPos(), start_pos_abs);
+  CreateShoes_closeChain(chassis, 
+    chassis->GetFrame_REF_to_abs(),
+    control_points_abs.back().GetPos(), start_pos_abs);
 }
 
 // all locations are in the abs ref. frame.
 // Some assumptions:
 // Body orientation and axis of pin rotation always in the lateral_dir
-void TrackChain::CreateShoes(ChSharedPtr<ChBodyAuxRef> chassis,
-    const ChVector<>& start_seg,
-    const ChVector<>& end_seg,
-    const ChVector<>& end_curve_seg,
-    const ChVector<>& rolling_elem_center,
-    double clearance)
+void TrackChain::CreateShoes(ChSharedPtr<ChBody> chassis,
+                             const ChFrame<>& chassis_REF,
+                             const ChVector<>& start_seg,
+                             const ChVector<>& end_seg,
+                             const ChVector<>& end_curve_seg,
+                             const ChVector<>& rolling_elem_center,
+                             double clearance)
 {
   // get coordinate directions of the linear segment, in the global c-sys.
   // lateral in terms of the vehicle chassis
@@ -882,9 +891,10 @@ void TrackChain::CreateShoes(ChSharedPtr<ChBodyAuxRef> chassis,
 
 /// close the trackChain loop by connecting the end of the chain to the start.
 /// Absolute coordinates.
-void TrackChain::CreateShoes_closeChain(ChSharedPtr<ChBodyAuxRef> chassis,
-  const ChVector<>& start_seg,
-  const ChVector<>& end_seg)
+void TrackChain::CreateShoes_closeChain(ChSharedPtr<ChBody> chassis,
+                                        const ChFrame<>& chassis_REF,
+                                        const ChVector<>& start_seg,
+                                        const ChVector<>& end_seg)
 {
   // coming off the end of a curved segment, then following a straight line until near the end.
   // Once forward-most pin location crosses that of the first shoe, stop, and modify the first and last bodies.

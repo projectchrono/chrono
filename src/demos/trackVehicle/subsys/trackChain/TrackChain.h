@@ -47,7 +47,8 @@ public:
   /// Start_loc should be somewhere between the idler and driveGear, e.g. the top of the chain.
   /// Start_loc is expressed w.r.t chassis c-sys.
   /// NOTE: control_points begin and end with the idler and driveGear
-  void Initialize(ChSharedPtr<ChBodyAuxRef> chassis,
+  void Initialize(ChSharedPtr<ChBody> chassis,
+    const ChFrame<>& chassis_REF,
     const std::vector<ChVector<>>& rolling_element_loc,
     const std::vector<double>& clearance,
     const ChVector<>& start_loc);
@@ -75,7 +76,8 @@ private:
   /// initialize shoe bodies by wrapping the track chain around the rolling elements.
   /// Define a string along which the chain is wrapper, using the input values.
   /// Note: start_loc_abs should be between the idler and sprockets
-  void CreateChain(ChSharedPtr<ChBodyAuxRef> chassis,
+  void CreateChain(ChSharedPtr<ChBody> chassis,
+    const ChFrame<>& chassis_REF,
     const std::vector<ChFrame<>>& control_points_abs,
     const std::vector<ChFrame<>>& rolling_element_abs,
     const std::vector<double>& clearance,
@@ -83,7 +85,8 @@ private:
 
   /// create the shoes along a line segment and associated curved section that define
   /// the collision envelope.
-  void CreateShoes(ChSharedPtr<ChBodyAuxRef> chassis,
+  void CreateShoes(ChSharedPtr<ChBody> chassis,
+    const ChFrame<>& chassis_REF,
     const ChVector<>& start_seg,
     const ChVector<>& end_seg,
     const ChVector<>& end_curve_seg,
@@ -92,7 +95,8 @@ private:
 
   /// close the trackChain loop by connecting the end of the chain to the start.
   /// Absolute coordinates.
-  void CreateShoes_closeChain(ChSharedPtr<ChBodyAuxRef> chassis,
+  void CreateShoes_closeChain(ChSharedPtr<ChBody> chassis,
+    const ChFrame<>& chassis_REF,
     const ChVector<>& start_seg,
     const ChVector<>& end_seg);
 
