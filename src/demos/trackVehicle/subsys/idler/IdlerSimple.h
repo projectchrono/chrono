@@ -46,7 +46,8 @@ public:
   ~IdlerSimple();
 
   /// init the idler with the initial pos. and rot., w.r.t. the chassis c-sys
-  void Initialize(ChSharedPtr<ChBodyAuxRef> chassis,
+  void Initialize(ChSharedPtr<ChBody> chassis,
+                  const ChFrame<>& chassis_REF,
                   const ChCoordsys<>& local_Csys);
   
   
@@ -55,6 +56,8 @@ public:
   double getSpringRestLength() const { return m_springRestLength; }
   ChSharedPtr<ChBody> GetBody() { return m_idler; }
   double GetRadius() { return m_radius; }
+
+  double GetSpringForce() const { return m_shock->Get_SpringReact();}
 
 private:
   // private functions

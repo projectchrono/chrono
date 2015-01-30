@@ -123,7 +123,8 @@ IdlerSimple::~IdlerSimple()
   // delete m_shockCB;
 }
 
-void IdlerSimple::Initialize(ChSharedPtr<ChBodyAuxRef> chassis,
+void IdlerSimple::Initialize(ChSharedPtr<ChBody> chassis,
+                             const ChFrame<>& chassis_REF,
                              const ChCoordsys<>& local_Csys)
 {
   // add collision geometry
@@ -131,7 +132,7 @@ void IdlerSimple::Initialize(ChSharedPtr<ChBodyAuxRef> chassis,
 
   // Express the steering reference frame in the absolute coordinate system.
   ChFrame<> idler_to_abs(local_Csys);
-  idler_to_abs.ConcatenatePreTransformation(chassis->GetFrame_REF_to_abs());
+  idler_to_abs.ConcatenatePreTransformation(chassis_REF);
 
   // transform the idler body, add to system
   m_idler->SetPos(idler_to_abs.GetPos());
