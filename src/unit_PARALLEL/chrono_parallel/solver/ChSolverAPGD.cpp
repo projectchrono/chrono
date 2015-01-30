@@ -2,8 +2,6 @@
 #include <blaze/math/CompressedVector.h>
 using namespace chrono;
 
-#define SHUR(x) (data_container->host_data.D_T * (data_container->host_data.M_invD * x) + data_container->host_data.E * x)
-
 ChSolverAPGD::ChSolverAPGD() : ChSolverParallel(), mg_tmp_norm(0), mb_tmp_norm(0), obj1(0), obj2(0), norm_ms(0), dot_g_temp(0), theta(1), theta_new(0), beta_new(0), t(0), L(0), g_diff(0) {}
 
 uint ChSolverAPGD::SolveAPGD(const uint max_iter, const uint size, const blaze::DynamicVector<real>& r, blaze::DynamicVector<real>& gamma) {
@@ -38,7 +36,7 @@ uint ChSolverAPGD::SolveAPGD(const uint max_iter, const uint size, const blaze::
 
   temp = gamma - one;
   L = sqrt((real)(temp, temp));
-  temp = SHUR(temp);    // ShurProduct(temp, temp);
+  ShurProduct(temp, temp);
   L = L == 0 ? 1 : L;
   L = sqrt((real)(temp, temp)) / L;
 
@@ -47,17 +45,17 @@ uint ChSolverAPGD::SolveAPGD(const uint max_iter, const uint size, const blaze::
 
   for (current_iteration = 0; current_iteration < max_iter; current_iteration++) {
 
-    // ShurProduct(y, g);
-    g = SHUR(y) - r;
+    ShurProduct(y, g);
+    g = g - r;
     gamma_new = y - t * g;
 
     Project(gamma_new.data());
 
-    N_gamma_new = SHUR(gamma_new);    // ShurProduct(mx, temp_N_mx);
+    ShurProduct(gamma_new, N_gamma_new);
     obj1 = 0.5 * (gamma_new, N_gamma_new) - (gamma_new, r);
 
-    // ShurProduct(y, temp);
-    obj2 = 0.5 * (y, SHUR(y)) - (y, r);
+    ShurProduct(y, temp);
+    obj2 = 0.5 * (y, temp) - (y, r);
 
     temp = gamma_new - y;
     dot_g_temp = (g, temp);
@@ -68,7 +66,7 @@ uint ChSolverAPGD::SolveAPGD(const uint max_iter, const uint size, const blaze::
       t = 1.0 / L;
       gamma_new = y - t * g;
       Project(gamma_new.data());
-      N_gamma_new = SHUR(gamma_new);    // ShurProduct(mx, temp_N_mx);
+      ShurProduct(gamma_new, N_gamma_new);
       obj1 = 0.5 * (gamma_new, N_gamma_new) - (gamma_new, r);
       temp = gamma_new - y;
       dot_g_temp = (g, temp);
