@@ -125,7 +125,8 @@ void TorsionArmSuspension::Create(const std::string& name)
 // local_Csys is at the pin location between arm and chassis.
 // z-axis defines axis of revolute joint rotation.
 // Wheel rot is the same as local_Csys.
-void TorsionArmSuspension::Initialize(ChSharedPtr<ChBodyAuxRef> chassis,
+void TorsionArmSuspension::Initialize(ChSharedPtr<ChBody> chassis,
+                                      const ChFrame<>& chassis_REF,
                                       const ChCoordsys<>& local_Csys)
 {
   // correct armpin to wheel distance for left/right sides
@@ -139,11 +140,11 @@ void TorsionArmSuspension::Initialize(ChSharedPtr<ChBodyAuxRef> chassis,
 
   // Express the revolute joint location in the absolute coordinate system.
   ChFrame<> pin1_abs(local_Csys);
-  pin1_abs.ConcatenatePreTransformation(chassis->GetFrame_REF_to_abs());
+  pin1_abs.ConcatenatePreTransformation(chassis_REF);
 
   // wheel COM frame, absoluate c-sys
   ChFrame<> wheel_COG_abs(local_Csys.pos + GetWheelPosRel(), local_Csys.rot);
-  wheel_COG_abs.ConcatenatePreTransformation(chassis->GetFrame_REF_to_abs());
+  wheel_COG_abs.ConcatenatePreTransformation(chassis_REF);
 
   // arm COG is between the two pin locastions on the arm
   ChFrame<> pin2_abs(local_Csys);
@@ -151,7 +152,7 @@ void TorsionArmSuspension::Initialize(ChSharedPtr<ChBodyAuxRef> chassis,
   ChVector<> arm_rel(GetWheelPosRel());
   arm_rel.z = 0;
   pin2_abs.SetPos(local_Csys.pos + arm_rel);
-  pin2_abs.ConcatenatePreTransformation(chassis->GetFrame_REF_to_abs());
+  pin2_abs.ConcatenatePreTransformation(chassis_REF);
 
   m_arm->SetPos( (pin1_abs.GetPos() + pin2_abs.GetPos())/2.0 );
 

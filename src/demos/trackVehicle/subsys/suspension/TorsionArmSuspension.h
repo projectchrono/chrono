@@ -61,7 +61,8 @@ public:
 
   /// init the suspension with the initial pos. and rot., w.r.t. the chassis c-sys
   /// specifies the attachment point of the arm to the hull bodies
-  void Initialize(ChSharedPtr<ChBodyAuxRef> chassis,
+  void Initialize(ChSharedPtr<ChBody> chassis,
+                  const ChFrame<>& chassis_REF,
                   const ChCoordsys<>& local_Csys);
   
   
