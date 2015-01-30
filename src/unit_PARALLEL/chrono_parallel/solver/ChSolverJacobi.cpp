@@ -45,4 +45,5 @@ uint ChSolverJacobi::SolveJacobi(const uint max_iter, const uint size, blaze::Dy
 //  }
 //
 //  return current_iteration;
+  return 0;
 }

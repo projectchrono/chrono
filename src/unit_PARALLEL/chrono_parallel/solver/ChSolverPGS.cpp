@@ -39,4 +39,5 @@ uint ChSolverPGS::SolvePGS(const uint max_iter, const uint size, blaze::DynamicV
 //  }
 //
 //  return current_iteration;
+  return 0;
 }
