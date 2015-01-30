@@ -3,6 +3,7 @@
 
 #include "chrono_parallel/ChParallelDefines.h"
 #include "chrono_parallel/math/ChParallelMath.h"
+#include "chrono_parallel/ChDataManager.h"
 #include "chrono_parallel/collision/ChCAABBGenerator.h"
 
 namespace chrono {
@@ -14,9 +15,7 @@ class CH_PARALLEL_API ChCBroadphase {
 
    // functions
    ChCBroadphase();
-   int detectPossibleCollisions(custom_vector<real3> &aabb_data,
-                                custom_vector<short2> & fam_data,
-                                custom_vector<long long> &potentialCollisions);
+   int detectPossibleCollisions(ChParallelDataManager* data_container);
    void setBinsPerAxis(int3 binsPerAxis);
    int3 getBinsPerAxis();
    void setBodyPerBin(int max,
@@ -41,7 +40,11 @@ class CH_PARALLEL_API ChCBroadphase {
    uint val;
 
 
-   custom_vector<uint> Bins_Intersected;custom_vector<uint> bin_number;custom_vector<uint> body_number;custom_vector<uint> bin_start_index;custom_vector<uint> Num_ContactD;
+   custom_vector<uint> Bins_Intersected;
+   custom_vector<uint> bin_number;
+   custom_vector<uint> shape_number;
+   custom_vector<uint> bin_start_index;
+   custom_vector<uint> Num_ContactD;
 
    // functions
    void host_Count_AABB_BIN_Intersection(const real3 *aabb_data,
@@ -49,16 +52,16 @@ class CH_PARALLEL_API ChCBroadphase {
    void host_Store_AABB_BIN_Intersection(const real3 *aabb_data,
                                          const uint *Bins_Intersected,
                                          uint *bin_number,
-                                         uint *body_number);
+                                         uint *shape_number);
    void host_Count_AABB_AABB_Intersection(const real3 *aabb_data,
                                           const uint *bin_number,
-                                          const uint *body_number,
+                                          const uint *shape_number,
                                           const uint *bin_start_index,
                                           const short2 * fam_data,
                                           uint *Num_ContactD);
    void host_Store_AABB_AABB_Intersection(const real3 *aabb_data,
                                           const uint *bin_number,
-                                          const uint *body_number,
+                                          const uint *shape_number,
                                           const uint *bin_start_index,
                                           const uint *Num_ContactD,
                                           const short2 * fam_data,
