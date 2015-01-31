@@ -218,8 +218,9 @@ void DriveGear::AddCollisionGeometry()
   m_gear->GetCollisionModel()->SetFamily((int)CollisionFam::WHEELS);
 
   // don't collide with other rolling elements
-  // m_gear->GetCollisionModel()->SetFamilyMaskNoCollisionWithFamily((int)CollisionFam::GROUND);
+  m_gear->GetCollisionModel()->SetFamilyMaskNoCollisionWithFamily((int)CollisionFam::GROUND);
   m_gear->GetCollisionModel()->SetFamilyMaskNoCollisionWithFamily((int)CollisionFam::WHEELS);
+  m_gear->GetCollisionModel()->SetFamilyMaskNoCollisionWithFamily((int)CollisionFam::HULL);
 
   m_gear->GetCollisionModel()->BuildModel();
 

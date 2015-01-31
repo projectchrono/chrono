@@ -296,6 +296,8 @@ void IdlerSimple::AddCollisionGeometry()
   
   // don't collide with the other wheels, nor ground
   m_idler->GetCollisionModel()->SetFamilyMaskNoCollisionWithFamily( (int)CollisionFam::WHEELS );
+  m_idler->GetCollisionModel()->SetFamilyMaskNoCollisionWithFamily((int)CollisionFam::HULL);
+  m_idler->GetCollisionModel()->SetFamilyMaskNoCollisionWithFamily((int)CollisionFam::GROUND);
 
   m_idler->GetCollisionModel()->BuildModel();
 }
