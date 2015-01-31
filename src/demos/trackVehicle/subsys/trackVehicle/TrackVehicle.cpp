@@ -100,7 +100,6 @@ TrackVehicle::TrackVehicle(const std::string& name, VisualizationType chassisVis
   {
     m_drivelines[j] = ChSharedPtr<TrackDriveline>(new TrackDriveline("driveline "+std::to_string(j)) );
     m_ptrains[j] = ChSharedPtr<TrackPowertrain>(new TrackPowertrain("powertrain "+std::to_string(j)) );
-  
   }
 
   // TODO: add brakes. Perhaps they are a part of the suspension subsystem?
@@ -310,6 +309,14 @@ double TrackVehicle::GetDriveshaftSpeed(size_t idx) const
 {
   assert(idx < m_drivelines.size() );
   return m_drivelines[idx]->GetDriveshaftSpeed();
+}
+
+
+TrackPowertrain* TrackVehicle::GetPowertrain(size_t idx)
+{ 
+  assert( idx < m_num_engines );
+  TrackPowertrain* out_ptr = m_ptrains[idx].get_ptr();
+  return out_ptr;
 }
 
 

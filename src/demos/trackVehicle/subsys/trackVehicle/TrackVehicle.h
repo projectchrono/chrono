@@ -75,7 +75,10 @@ public:
 
 
   // Accessors
-   virtual double GetDriveshaftSpeed(size_t idx) const;
+  virtual double GetDriveshaftSpeed(size_t idx) const;
+
+  /// pointer to the powertrain
+  virtual TrackPowertrain* GetPowertrain(size_t idx);
 
   /// vehicle's driveline subsystem.
   TrackDriveline* GetDriveline(int idx) { return (m_num_engines > 0 ? m_drivelines[idx].get_ptr(): NULL); }
