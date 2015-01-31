@@ -23,9 +23,10 @@
 #define DRIVECHAIN_H
 
 #include "core/ChCoordsys.h"
-#include "physics/ChSystem.h"
+// #include "physics/ChSystem.h"
 #include "ModelDefs.h"
 
+#include "subsys/base/ChTrackVehicle.h"
 #include "subsys/driveGear/DriveGear.h"
 #include "subsys/idler/IdlerSimple.h"
 #include "subsys/trackChain/TrackChain.h"
@@ -36,7 +37,7 @@ namespace chrono {
 
 /// Model a static DriveChain, with a powered Gear and
 /// an idler attached to some large inertial load
-class CH_SUBSYS_API DriveChain : public ChSystem
+class CH_SUBSYS_API DriveChain : public ChTrackVehicle
 {
 public:
 
@@ -50,15 +51,15 @@ public:
   void Initialize(const ChCoordsys<>& gear_Csys);  ///< [in] initial config of gear
   
   /// Update the vehicle with the new settings for throttle and brake
-  void Update(double time,
+  virtual void Update(double time,
               double throttle,
 			  double braking);
 
   /// Advance the vehicle (and the ChSystem)
-  void Advance(double step);
+  virtual void Advance(double step);
 
-  /// integration step size for the vehicle system.
-  void SetStepsize(double val) { m_stepsize = val; }
+  /// Get the angular speed of the driveshaft.
+  virtual double GetDriveshaftSpeed(size_t idx) const { return m_driveline->GetDriveshaftSpeed(); }
 
   // Accessors
 
