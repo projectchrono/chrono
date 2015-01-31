@@ -24,6 +24,7 @@ ADD_SUBDIRECTORY(utils)
 cmake_minimum_required(VERSION 2.8)
 
 SET(ChronoEngine_unit_TrackVehicle_SOURCES
+	subsys/base/ChTrackVehicle.cpp
 	subsys/driveGear/DriveGear.cpp
 	subsys/driveline/TrackDriveline.cpp
 	subsys/driveline/TrackDriveline_1WD.cpp
@@ -41,6 +42,7 @@ SET(ChronoEngine_unit_TrackVehicle_SOURCES
 
 SET(ChronoEngine_unit_TrackVehicle_HEADERS
 	subsys/ChApiSubsys.h
+	subsys/base/ChTrackVehicle.h
 	subsys/driveGear/DriveGear.h
 	subsys/driveline/TrackDriveline.h
 	subsys/driveline/TrackDriveline_1WD.h
