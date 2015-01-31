@@ -58,10 +58,14 @@ public:
   /// Advance the vehicle (and the ChSystem)
   virtual void Advance(double step);
 
+
+  // Accessors
+
   /// Get the angular speed of the driveshaft.
   virtual double GetDriveshaftSpeed(size_t idx) const { return m_driveline->GetDriveshaftSpeed(); }
 
-  // Accessors
+  /// pointer to the powertrain
+  virtual TrackPowertrain* GetPowertrain(size_t idx) { return m_ptrain.get_ptr(); }
 
   /// vehicle's driveline subsystem.
   TrackDriveline_1WD* GetDriveline(int idx) { return m_driveline.get_ptr(); }
@@ -74,9 +78,6 @@ public:
 
   /// shared pointer to chassis body (fixed to ground)
   ChSharedPtr<ChBody> GetChassis() { return m_chassis; }
-
-  /// pointer to the powertrain
-  TrackPowertrain* GetPowertrain(int idx) { return m_ptrain.get_ptr(); }
 
   /// return the force exerted by the idler subsystem on the idler body
   double GetIdlerForce(size_t side);
