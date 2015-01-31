@@ -89,6 +89,8 @@ SET(CV_DRIVELINE_FILES
     driveline/ShaftsDriveline2WD.cpp
     driveline/ShaftsDriveline4WD.h
     driveline/ShaftsDriveline4WD.cpp
+    driveline/SimpleDriveline.h
+    driveline/SimpleDriveline.cpp
 )
 
 SET(CV_DRIVER_FILES

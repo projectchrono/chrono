@@ -37,6 +37,7 @@
 
 #include "subsys/driveline/ShaftsDriveline2WD.h"
 #include "subsys/driveline/ShaftsDriveline4WD.h"
+#include "subsys/driveline/SimpleDriveline.h"
 #include "subsys/wheel/Wheel.h"
 #include "subsys/brake/BrakeSimple.h"
 
@@ -136,6 +137,9 @@ void Vehicle::LoadDriveline(const std::string& filename)
   else if (subtype.compare("ShaftsDriveline4WD") == 0)
   {
     m_driveline = ChSharedPtr<ChDriveline>(new ShaftsDriveline4WD(d));
+  }
+  else if (subtype.compare("SimpleDriveline") == 0) {
+    m_driveline = ChSharedPtr<ChDriveline>(new SimpleDriveline(d));
   }
 }
 
