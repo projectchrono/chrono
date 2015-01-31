@@ -37,8 +37,8 @@ using namespace irr;
 namespace chrono {
 
 // -----------------------------------------------------------------------------
-ChIrrGuiTrack::ChIrrGuiTrack(ChIrrApp&       app,
-                            ChTrackVehicle&   vehicle,
+ChIrrGuiTrack::ChIrrGuiTrack(ChIrrApp&          app,
+                            ChTrackVehicle&     vehicle,
                             const ChVector<>&   ptOnChassis,
                             double              chaseDist,
                             double              chaseHeight,
