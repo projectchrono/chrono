@@ -48,14 +48,7 @@ DriveChain::DriveChain(const std::string& name, VisualizationType vis, Collision
   m_stepsize(1e-3),
   m_num_idlers(1)
 {
-  // Integration and Solver settings
-  SetLcpSolverType(ChSystem::LCP_ITERATIVE_SOR);
-  SetIterLCPmaxItersSpeed(150);
-  SetIterLCPmaxItersStab(150);
-  SetMaxPenetrationRecoverySpeed(2.0);
-  // SetIterLCPomega(2.0);
-  // SetIterLCPsharpnessLambda(2.0);
-  
+  // Integration and Solver settings set in ChTrackVehicle
 
   // create the chassis body    
   m_chassis = ChSharedPtr<ChBody>(new ChBody);
@@ -68,7 +61,7 @@ DriveChain::DriveChain(const std::string& name, VisualizationType vis, Collision
   m_chassis->SetBodyFixed(true);
     
   // add the chassis body to the system
-  Add(m_chassis);
+  m_system->Add(m_chassis);
   
   // build one of each of the following subsystems. 
   m_gear = ChSharedPtr<DriveGear>(new DriveGear("drive gear",
@@ -161,14 +154,14 @@ void DriveChain::Advance(double step)
   double settlePhaseB = 0.1;
   while (t < step) {
     double h = std::min<>(m_stepsize, step - t);
-    if( GetChTime() < settlePhaseA )
+    if( m_system->GetChTime() < settlePhaseA )
     {
       h = 1e-5;
-    } else if ( GetChTime() < settlePhaseB )
+    } else if ( m_system->GetChTime() < settlePhaseB )
     {
       h = 1e-4;
     }
-    DoStepDynamics(h);
+    m_system->DoStepDynamics(h);
     t += h;
   }
 }
@@ -183,5 +176,6 @@ double DriveChain::GetIdlerForce(size_t idler_idx)
 
   return out_force.Length();
 }
+
 
 } // end namespace chrono
