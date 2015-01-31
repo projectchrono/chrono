@@ -24,6 +24,7 @@
 #include "physics/ChSystem.h"
 #include "ModelDefs.h"
 
+#include "subsys/base/ChTrackVehicle.h"
 #include "subsys/trackSystem/TrackSystem.h"
 #include "subsys/powertrain/TrackPowertrain.h"
 #include "subsys/driveline/TrackDriveline.h"
@@ -43,7 +44,7 @@ namespace chrono {
 ///   >>  while ( simulate )
 ///   >>    tankA.Update( time, throttle, braking);
 ///   >>    tankA.Advance( step_size );
-class CH_SUBSYS_API TrackVehicle : public ChSystem
+class CH_SUBSYS_API TrackVehicle : public ChTrackVehicle
 {
 public:
 
@@ -62,44 +63,19 @@ public:
   /// Initialize the tracked vehicle REF frame with the specified Coordinate system.
   /// This initial transform is inherited by all vehicle subsystems.
   /// Will add the collision geometry and add modeling elements to the ChSystem.
-  void Initialize(const ChCoordsys<>& chassis_Csys);  ///< [in] initial config of vehicle REF frame
+  virtual void Initialize(const ChCoordsys<>& chassis_Csys);  ///< [in] initial config of vehicle REF frame
   
   /// Update the vehicle with the new settings for throttle and brake
-  void Update(double	time,
-              const std::vector<double>&  throttle,
-			        const std::vector<double>&  braking);
+  virtual void Update(double	time,
+    const std::vector<double>&  throttle, 
+    const std::vector<double>&  braking);
 
   /// Advance the vehicle (and the ChSystem)
-  void Advance(double step);
+  virtual void Advance(double step);
 
-  /// integration step size for the vehicle system.
-  void SetStepsize(double val) { m_stepsize = val; }
 
   // Accessors
-
-  /// global location of the chassis reference frame origin.
-  const ChVector<>& GetChassisPos() const { return m_chassis->GetFrame_REF_to_abs().GetPos(); }
-
-  /// orientation of the chassis reference frame.
-  /// The chassis orientation is returned as a quaternion representing a
-  /// rotation with respect to the global reference frame.
-  const ChQuaternion<>& GetChassisRot() const { return m_chassis->GetFrame_REF_to_abs().GetRot(); }
-
-  /// global location of the chassis center of mass.
-  const ChVector<>& GetChassisPosCOM() const { return m_chassis->GetPos(); }
-
-  /// orientation of the chassis centroidal frame.
-  /// The chassis orientation is returned as a quaternion representing a
-  /// rotation with respect to the global reference frame.
-  const ChQuaternion<>& GetChassisRotCOM() const { return m_chassis->GetRot(); }
-
-  /// vehicle speed.
-  /// Return the speed measured at the origin of the chassis reference frame.
-  double GetVehicleSpeed() const { return m_chassis->GetFrame_REF_to_abs().GetPos_dt().Length(); }
-
-  /// speed of the chassis COM.
-  /// Return the speed measured at the chassis center of mass.
-  double GetVehicleSpeedCOM() const { return m_chassis->GetPos_dt().Length(); }
+   virtual double GetDriveshaftSpeed(size_t idx) const;
 
   /// vehicle's driveline subsystem.
   TrackDriveline* GetDriveline(int idx) { return (m_num_engines > 0 ? m_drivelines[idx].get_ptr(): NULL); }
@@ -113,14 +89,8 @@ public:
   /// shared pointer to chassis body
   ChSharedPtr<ChBody> GetChassis() { return m_chassis; }
 
-  /// pointer to the powertrain
-  TrackPowertrain* GetPowertrain(int idx) { return (m_num_engines > 0 ? m_ptrains[idx].get_ptr(): NULL); }
-
   /// number of track chain systems attached to the vehicle
   int GetNum_TrackSystems() const { return m_num_tracks; }
-
-  /// number of track chain systems attached to the vehicle
-  int GetNum_Engines() const { return m_num_engines; }
 
   /// return the force exerted by the idler subsystem on the idler body
   double GetIdlerForce(size_t side);
@@ -137,11 +107,9 @@ private:
   void AddCollisionGeometry();
 
   // private variables
-
-  ChSharedPtr<ChBodyAuxRef> m_chassis;  ///< hull body
-
   std::vector<ChVector<> > m_TrackSystem_locs;   // locations of the track system c-sys relative to chassis
   std::vector<ChSharedPtr<TrackSystem> > m_TrackSystems;	// list of track systems
+  int m_num_tracks; ///< how many track systems to build
 
   std::vector<ChSharedPtr<TrackDriveline>>   m_drivelines;    ///< handle to the driveline subsystem, one for each powertrain/drivegear pair
   std::vector<ChSharedPtr<TrackPowertrain>>  m_ptrains;  ///< powertrain system, one per track system
@@ -150,9 +118,6 @@ private:
   CollisionType m_collide;  // how to handle chassis collision geometry
 
   // static variables
-  static const size_t m_num_tracks;  // number of tracks for this vehicle
-  static const size_t m_num_engines; // number of engines (powertrains and drivelines)
-
   static const ChVector<> m_trackPos_Left;  // relative to chassis c-sys
   static const ChVector<> m_trackPos_Right;
 
@@ -164,13 +129,6 @@ private:
   static const std::string m_meshName;
   static const std::string  m_meshFile;
   static const ChVector<> m_chassisBoxSize; // length, height, width of chassis collision box (if collisiontype = PRIMITIVES)
-
-  double m_stepsize;          ///< integration time step for tracked vehicle system
-
-protected:
-  ChSystem*                  m_system;       ///< pointer to the Chrono system
-  bool                       m_ownsSystem;   ///< true if system created at construction
-
 };
 
 
