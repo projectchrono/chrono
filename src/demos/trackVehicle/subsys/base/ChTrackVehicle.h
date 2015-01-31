@@ -78,7 +78,7 @@ public:
   virtual double GetDriveshaftSpeed(size_t idx) const = 0;
 
     /// pointer to the powertrain
-  TrackPowertrain* GetPowertrain(int idx) { return (m_num_engines > 0 ? m_ptrains[idx].get_ptr(): NULL); }
+  virtual TrackPowertrain* GetPowertrain(size_t idx) = 0;
 
   /// Get the local driver position and orientation, relative to the chassis reference frame.
   virtual ChCoordsys<> GetLocalDriverCoordsys() const = 0;

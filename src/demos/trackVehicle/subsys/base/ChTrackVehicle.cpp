@@ -81,5 +81,4 @@ ChVector<> ChTrackVehicle::GetDriverPos() const
   return m_chassis->GetCoord().TransformPointLocalToParent(GetLocalDriverCoordsys().pos);
 }
 
-
 }  // end namespace chrono
