@@ -57,13 +57,15 @@ public:
 
   /// Get the angular speed of the driveshaft.
   /// This represents the output from the driveline subsystem that is passed to
-  /// the powertrain system.
-  double GetDriveshaftSpeed() const { return m_driveshaft->GetPos_dt(); }
+  /// the powertrain system. The default implementation returns the driveline's
+  /// driveshaft speed.
+  virtual double GetDriveshaftSpeed() const { return m_driveshaft->GetPos_dt(); }
 
   /// Apply the specified motor torque.
   /// This represents the input to the driveline subsystem from the powertrain
-  /// system.
-  void ApplyDriveshaftTorque(double torque)  { m_driveshaft->SetAppliedTorque(torque); }
+  /// system. The default implementation applies this torque to the driveline's
+  /// driveshaft.
+  virtual void ApplyDriveshaftTorque(double torque)  { m_driveshaft->SetAppliedTorque(torque); }
 
   /// Get the indexes of the vehicle's axles driven by this driveline subsystem.
   const std::vector<int>& GetDrivenAxleIndexes() const { return m_driven_axles; }
