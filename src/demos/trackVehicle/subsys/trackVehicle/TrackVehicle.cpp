@@ -42,9 +42,6 @@ namespace chrono {
 
 // -----------------------------------------------------------------------------
 // Static variables
-const size_t TrackVehicle::m_num_tracks = 2;    // number of trackSystems to create
-const size_t TrackVehicle::m_num_engines = 1;   // number of powertrains (and drivelines) to create
-
 const ChVector<> TrackVehicle::m_trackPos_Right(0.23644, -0.4780, 0.83475); // relative to chassis COG
 const ChVector<> TrackVehicle::m_trackPos_Left(0.23644, -0.4780, -0.83475); // relative to chassis COG
 
@@ -61,17 +58,9 @@ const ChVector<> TrackVehicle::m_chassisBoxSize(2.0, 0.6, 0.75);  // length, hei
 TrackVehicle::TrackVehicle(const std::string& name, VisualizationType chassisVis, CollisionType chassisCollide)
   : m_vis(chassisVis),
   m_collide(chassisCollide),
-  m_ownsSystem(true),
-  m_stepsize(1e-3)
+  m_num_tracks(2)
 {
-  // Integration and Solver settings
-  SetLcpSolverType(ChSystem::LCP_ITERATIVE_SOR);
-  SetIterLCPmaxItersSpeed(150);
-  SetIterLCPmaxItersStab(150);
-  SetMaxPenetrationRecoverySpeed(2.0);
-  // SetIterLCPomega(2.0);
-  // SetIterLCPsharpnessLambda(2.0);
-  
+  // Integration and Solver settings, set in ChTrackVehicle
 
   // create the chassis body    
   m_chassis = ChSharedPtr<ChBodyAuxRef>(new ChBodyAuxRef);
@@ -87,7 +76,7 @@ TrackVehicle::TrackVehicle(const std::string& name, VisualizationType chassisVis
 
   // m_chassis->SetBodyFixed(true);
   // add the chassis body to the system
-  Add(m_chassis);
+  m_system->Add(m_chassis);
 
   // resize all vectors for the number of track systems
   m_TrackSystems.resize(m_num_tracks);
@@ -96,8 +85,8 @@ TrackVehicle::TrackVehicle(const std::string& name, VisualizationType chassisVis
   m_TrackSystem_locs[0] = m_trackPos_Right;
   m_TrackSystem_locs[1] = m_trackPos_Left;
 
-  // Each trackSystem has its own driveline and powertrain, so the left and right
-  // sides can have power applied independently
+  // two drive Gears, like a 2WD driven vehicle.
+  m_num_engines = 1;
   m_drivelines.resize(m_num_engines);
   m_ptrains.resize(m_num_engines);
 
@@ -295,14 +284,14 @@ void TrackVehicle::Advance(double step)
   double settlePhaseB = 0.01;
   while (t < step) {
     double h = std::min<>(m_stepsize, step - t);
-    if( GetChTime() < settlePhaseA )
+    if( m_system->GetChTime() < settlePhaseA )
     {
       h = 1e-5;
-    } else if ( GetChTime() < settlePhaseB )
+    } else if ( m_system->GetChTime() < settlePhaseB )
     {
       h = 1e-4;
     }
-    DoStepDynamics(h);
+    m_system->DoStepDynamics(h);
     t += h;
   }
 }
@@ -315,5 +304,13 @@ double TrackVehicle::GetIdlerForce(size_t side)
 
   return out_force.Length();
 }
+
+
+double TrackVehicle::GetDriveshaftSpeed(size_t idx) const
+{
+  assert(idx < m_drivelines.size() );
+  return m_drivelines[idx]->GetDriveshaftSpeed();
+}
+
 
 } // end namespace chrono
