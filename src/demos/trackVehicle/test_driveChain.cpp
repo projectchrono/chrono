@@ -107,7 +107,7 @@ int main(int argc, char* argv[])
   // Create the Irrlicht visualization applicaiton
   bool do_shadows = false; // shadow map is experimental
 
-  ChIrrApp application(&chainSystem,
+  ChIrrApp application(chainSystem.GetSystem(),
                       L"test driveChain demo",
                       dimension2d<u32>(1000, 800),
                       false,
@@ -135,7 +135,7 @@ int main(int argc, char* argv[])
   application.SetTimestep(step_size);
 
   // the GUI driver
-  ChIrrGuiTrack<DriveChain> driver(application, &chainSystem, trackPoint, chaseDist, chaseHeight);
+  ChIrrGuiTrack driver(application, chainSystem, trackPoint, chaseDist, chaseHeight);
 
   // Set the time response for steering and throttle keyboard inputs.
   // NOTE: this is not exact, since we do not render quite at the specified FPS.
@@ -175,7 +175,7 @@ int main(int argc, char* argv[])
   // Simulation loop
 #ifdef DEBUG_LOG
   GetLog() << "\n\n============ System Configuration ============\n";
-  chainSystem.ShowHierarchy(GetLog() );
+  chainSystem.GetSystem()->ShowHierarchy(GetLog() );
 #endif
 
   // Initialize simulation frame counter and simulation time
@@ -204,7 +204,7 @@ int main(int argc, char* argv[])
     braking_input = driver.GetBraking();
 
     // Update
-    time = chainSystem.GetChTime();
+    time = chainSystem.GetSystem()->GetChTime();
 
     driver.Update(time);
 

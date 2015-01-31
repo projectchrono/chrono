@@ -112,7 +112,7 @@ ChSharedPtr<ChBody> Add_FlatGround(TrackVehicle* vehicle,
   groundColor->SetColor(ChColor(0.2f, 0.4f, 0.6f));
   ground->AddAsset(groundColor);
 
-  vehicle->Add(ground);  // add this body to the system, which is the vehicle
+  vehicle->GetSystem()->Add(ground);  // add this body to the system, which is the vehicle
 
   return ground;
 }
@@ -146,7 +146,7 @@ int main(int argc, char* argv[])
 	// Create the Irrlicht visualization applicaiton
   bool do_shadows = false; // shadow map is experimental
 
-  ChIrrApp application(&vehicle,
+  ChIrrApp application(vehicle.GetSystem(),
                       L"M113 tracked vehicle demo",
                       dimension2d<u32>(1000, 800),
                       false,
@@ -174,7 +174,7 @@ int main(int argc, char* argv[])
   application.SetTimestep(step_size);
 
   // the GUI driver
-  ChIrrGuiTrack<TrackVehicle> driver(application, &vehicle, trackPoint, chaseDist, chaseHeight);
+  ChIrrGuiTrack driver(application, vehicle, trackPoint, chaseDist, chaseHeight);
 
   // Set the time response for steering and throttle keyboard inputs.
   // NOTE: this is not exact, since we do not render quite at the specified FPS.
@@ -216,7 +216,7 @@ int main(int argc, char* argv[])
   // Simulation loop
 #ifdef DEBUG_LOG
   GetLog() << "\n\n============ System Configuration ============\n";
-  vehicle.ShowHierarchy(GetLog() );
+  vehicle.GetSystem()->ShowHierarchy(GetLog() );
 #endif
 
   // Initialize simulation frame counter and simulation time
@@ -246,7 +246,7 @@ int main(int argc, char* argv[])
     braking_input = driver.GetBraking();
 
     // Update
-    time = vehicle.GetChTime();
+    time = vehicle.GetSystem()->GetChTime();
 
     driver.Update(time);
 
