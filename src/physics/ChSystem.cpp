@@ -314,13 +314,7 @@ ChSystem::ChSystem(unsigned int max_objects, double scene_size, bool init_sys)
 		collision_system = new ChCollisionSystemBullet(max_objects, scene_size);
 	}
 	
-	//this->timestepper= ChSharedPtr<ChTimestepperEulerImplicitLinearized> (new ChTimestepperEulerImplicitLinearized(*this)); // OK
-	//this->timestepper= ChSharedPtr<ChTimestepperTrapezoidal> (new ChTimestepperTrapezoidal(*this));  // OK 
-	//(this->timestepper.DynamicCastTo<ChTimestepperTrapezoidal>())->SetMaxiters(4);
-	this->timestepper= ChSharedPtr<ChTimestepperEulerImplicit> (new ChTimestepperEulerImplicit(*this)); // OK
-	(this->timestepper.DynamicCastTo<ChTimestepperEulerImplicit>())->SetMaxiters(4);
-	//this->timestepper= ChSharedPtr<ChTimestepperRungeKuttaExpl> (new ChTimestepperRungeKuttaExpl(*this)); // OK
-	//this->timestepper= ChSharedPtr<ChTimestepperHHT> (new ChTimestepperHHT(*this)); // NO- to fix
+	this->timestepper= ChSharedPtr<ChTimestepperEulerImplicitLinearized> (new ChTimestepperEulerImplicitLinearized(*this)); // OK
 
 	LCP_descriptor = 0;
 	LCP_solver_speed = 0;
@@ -2138,7 +2132,7 @@ void ChSystem::LoadConstraint_C(
 	)
 {
 	bool do_clamp = true;
-
+	//max_penetration_recovery_speed = 1e10;
 	for (unsigned int ip = 0; ip < bodylist.size(); ++ip)  // ITERATE on bodies
 	{
 		ChBody* Bpointer = bodylist[ip];
