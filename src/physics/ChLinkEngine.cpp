@@ -488,51 +488,69 @@ int ChLinkEngine::GetDOC_c  ()
 
 void ChLinkEngine::IntStateGather(const unsigned int off_x,	ChState& x,	const unsigned int off_v, ChStateDelta& v,	double& T)	
 {
+	// First, inherit to parent class
+	ChLinkLock::IntStateGather(off_x,x,	off_v,v, T);
+
 	if (eng_mode == ENG_MODE_TO_POWERTRAIN_SHAFT)
 	{
-		innershaft1->IntStateGather(off_x  , x, off_v,   v, T);
-		innershaft2->IntStateGather(off_x+1, x, off_v+1, v, T);
+		innershaft1->IntStateGather(off_x+0, x, off_v+0, v, T);
+		innershaft2->IntStateGather(off_x+2, x, off_v+1, v, T);
 	}
 }
 
 void ChLinkEngine::IntStateScatter(const unsigned int off_x,	const ChState& x, const unsigned int off_v,	const ChStateDelta& v,	const double T)
 {
+	// First, inherit to parent class
+	ChLinkLock::IntStateScatter(off_x,	x, off_v, v, T);
+
 	if (eng_mode == ENG_MODE_TO_POWERTRAIN_SHAFT)
 	{
-		innershaft1->IntStateScatter(off_x  , x, off_v,   v, T);
+		innershaft1->IntStateScatter(off_x+0, x, off_v+0, v, T);
 		innershaft2->IntStateScatter(off_x+1, x, off_v+1, v, T);
 	}
 }
 
 void ChLinkEngine::IntStateIncrement(const unsigned int off_x, ChState& x_new, const ChState& x,	const unsigned int off_v, const ChStateDelta& Dv)
 {
+	// First, inherit to parent class
+	ChLinkLock::IntStateIncrement(off_x, x_new, x, off_v, Dv);
+
 	if (eng_mode == ENG_MODE_TO_POWERTRAIN_SHAFT)
 	{
-		innershaft1->IntStateIncrement(off_x  , x_new, x, off_v,   Dv);
+		innershaft1->IntStateIncrement(off_x+0, x_new, x, off_v+0, Dv);
 		innershaft2->IntStateIncrement(off_x+1, x_new, x, off_v+1, Dv);
 	}
 }
 
 void ChLinkEngine::IntLoadResidual_F(const unsigned int off,	ChVectorDynamic<>& R, const double c )
 {
+	// First, inherit to parent class
+	ChLinkLock::IntLoadResidual_F(off, R, c );
+
 	if (eng_mode == ENG_MODE_TO_POWERTRAIN_SHAFT)
 	{
-		innershaft1->IntLoadResidual_F(off,   R, c);
+		innershaft1->IntLoadResidual_F(off+0, R, c);
 		innershaft2->IntLoadResidual_F(off+1, R, c);
 	}
 }
 
 void ChLinkEngine::IntLoadResidual_Mv(const unsigned int off,	ChVectorDynamic<>& R, const ChVectorDynamic<>& w, const double c)
 {
+	// First, inherit to parent class
+	ChLinkLock::IntLoadResidual_Mv(off,	R, w, c);
+
 	if (eng_mode == ENG_MODE_TO_POWERTRAIN_SHAFT)
 	{
-		innershaft1->IntLoadResidual_Mv(off,   R, w, c);
+		innershaft1->IntLoadResidual_Mv(off+0, R, w, c);
 		innershaft2->IntLoadResidual_Mv(off+1, R, w, c);
 	}
 }
 
 void ChLinkEngine::IntLoadResidual_CqL(const unsigned int off_L, ChVectorDynamic<>& R, const ChVectorDynamic<>& L, const double c)
 {
+	// First, inherit to parent class
+	ChLinkLock::IntLoadResidual_CqL(off_L, R, L, c);
+
 	if (eng_mode == ENG_MODE_TO_POWERTRAIN_SHAFT)
 	{
 		innerconstraint1->IntLoadResidual_CqL(off_L,   R, L, c);
@@ -542,6 +560,9 @@ void ChLinkEngine::IntLoadResidual_CqL(const unsigned int off_L, ChVectorDynamic
 
 void ChLinkEngine::IntLoadConstraint_C(const unsigned int off_L, ChVectorDynamic<>& Qc,	const double c, bool do_clamp,	double recovery_clamp)
 {
+	// First, inherit to parent class
+	ChLinkLock::IntLoadConstraint_C(off_L, Qc,	c, do_clamp, recovery_clamp);
+
 	if (eng_mode == ENG_MODE_TO_POWERTRAIN_SHAFT)
 	{
 		innerconstraint1->IntLoadConstraint_C(off_L,     Qc, c, do_clamp, recovery_clamp);
@@ -551,6 +572,9 @@ void ChLinkEngine::IntLoadConstraint_C(const unsigned int off_L, ChVectorDynamic
 
 void ChLinkEngine::IntLoadConstraint_Ct(const unsigned int off_L, ChVectorDynamic<>& Qc, const double c)
 {
+	// First, inherit to parent class
+	ChLinkLock::IntLoadConstraint_Ct(off_L, Qc, c);
+
 	if (eng_mode == ENG_MODE_TO_POWERTRAIN_SHAFT)
 	{
 		innerconstraint1->IntLoadConstraint_Ct(off_L,     Qc, c);
@@ -560,6 +584,9 @@ void ChLinkEngine::IntLoadConstraint_Ct(const unsigned int off_L, ChVectorDynami
 
 void ChLinkEngine::IntToLCP(const unsigned int off_v,	const ChStateDelta& v, const ChVectorDynamic<>& R, const unsigned int off_L, const ChVectorDynamic<>& L, const ChVectorDynamic<>& Qc)
 {
+	// First, inherit to parent class
+	ChLinkLock::IntToLCP(off_v,	v, R, off_L, L, Qc);
+
 	if (eng_mode == ENG_MODE_TO_POWERTRAIN_SHAFT)
 	{
 		innershaft1->IntToLCP(off_v,   v, R, off_L, L, Qc);
@@ -571,6 +598,9 @@ void ChLinkEngine::IntToLCP(const unsigned int off_v,	const ChStateDelta& v, con
 
 void ChLinkEngine::IntFromLCP(const unsigned int off_v, ChStateDelta& v, const unsigned int off_L, ChVectorDynamic<>& L)
 {
+	// First, inherit to parent class
+	ChLinkLock::IntFromLCP(off_v, v, off_L, L);
+
 	if (eng_mode == ENG_MODE_TO_POWERTRAIN_SHAFT)
 	{
 		innershaft1->IntFromLCP(off_v,     v, off_L, L);
