@@ -102,12 +102,8 @@ int ChSystemParallel::Integrate_Y() {
 
          bodylist[i]->VariablesQbIncrementPosition(this->GetStep());
          bodylist[i]->VariablesQbSetSpeed(this->GetStep());
-         bodylist[i]->UpdateTime(ChTime);
-         //TrySleeping();			     // See if the body can fall asleep; if so, put it to sleeping
-         bodylist[i]->ClampSpeed();      // Apply limits (if in speed clamping mode) to speeds.
-         bodylist[i]->ComputeGyro();     // Set the gyroscopic momentum.
-         bodylist[i]->UpdateForces(ChTime);
-         bodylist[i]->UpdateMarkers(ChTime);
+
+         bodylist[i]->Update(ChTime);
 
          //update the position and rotation vectors
          pos_pointer[i] = (R3(bodylist[i]->GetPos().x, bodylist[i]->GetPos().y, bodylist[i]->GetPos().z));
@@ -306,14 +302,9 @@ void ChSystemParallel::UpdateBodies()
 
 #pragma omp parallel for
   for (int i = 0; i < bodylist.size(); i++) {
-    bodylist[i]->UpdateTime(ChTime);
-    //bodylist[i]->TrySleeping();
-    bodylist[i]->ClampSpeed();
-    bodylist[i]->ComputeGyro();
-    bodylist[i]->UpdateForces(ChTime);
+    bodylist[i]->Update(ChTime);
     bodylist[i]->VariablesFbLoadForces(GetStep());
     bodylist[i]->VariablesQbLoadSpeed();
-    bodylist[i]->UpdateMarkers(ChTime);
 
     ChMatrix<>&     body_qb = bodylist[i]->Variables().Get_qb();
     ChMatrix<>&     body_fb = bodylist[i]->Variables().Get_fb();

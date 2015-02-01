@@ -71,6 +71,13 @@ void ChLcpSolverParallel::ComputeMassMatrix()
       M_inv.append(i * 6 + 5, i * 6 + 4, body_inv_inr.GetElement(2, 1));
       M_inv.append(i * 6 + 5, i * 6 + 5, body_inv_inr.GetElement(2, 2));
       M_inv.finalize(i * 6 + 5);
+    } else {
+      M_inv.finalize(i * 6 + 0);
+      M_inv.finalize(i * 6 + 1);
+      M_inv.finalize(i * 6 + 2);
+      M_inv.finalize(i * 6 + 3);
+      M_inv.finalize(i * 6 + 4);
+      M_inv.finalize(i * 6 + 5);
     }
   }
 
@@ -78,6 +85,7 @@ void ChLcpSolverParallel::ComputeMassMatrix()
     M_inv.append(num_bodies * 6 + i, num_bodies * 6 + i, shaft_inr[i]);
     M_inv.finalize(num_bodies * 6 + i);
   }
+
   //If this experimental feature is requested compute the real mass matrix
   if(data_container->settings.solver.scale_mass_matrix){
 
@@ -93,7 +101,6 @@ void ChLcpSolverParallel::ComputeMassMatrix()
 
       for (int i = 0; i < num_bodies; i++) {
         if (data_container->host_data.active_data[i]) {
-
           real mass = body_list->at(i)->GetMass();
           ChMatrix33<>&   body_inr = body_list->at(i)->VariablesBody().GetBodyInertia();
 
@@ -116,8 +123,16 @@ void ChLcpSolverParallel::ComputeMassMatrix()
           M.append(i * 6 + 5, i * 6 + 4, body_inr.GetElement(2, 1));
           M.append(i * 6 + 5, i * 6 + 5, body_inr.GetElement(2, 2));
           M.finalize(i * 6 + 5);
+        } else {
+          M.finalize(i * 6 + 0);
+          M.finalize(i * 6 + 1);
+          M.finalize(i * 6 + 2);
+          M.finalize(i * 6 + 3);
+          M.finalize(i * 6 + 4);
+          M.finalize(i * 6 + 5);
         }
       }
+
       for (int i = 0; i < num_shafts; i++) {
         M.append(num_bodies * 6 + i, num_bodies * 6 + i, 1.0/shaft_inr[i]);
         M.finalize(num_bodies * 6 + i);
