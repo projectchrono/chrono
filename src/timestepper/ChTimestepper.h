@@ -546,7 +546,7 @@ public:
 			mintegrable->LoadResidual_Mv (R, (V-Vnew), 1.0);
 			mintegrable->LoadResidual_CqL(R, L, dt);
 			mintegrable->LoadConstraint_C(Qc, 1.0/dt);
-	GetLog()<< "Euler iteration=" << i << "  |R|=" << R.NormInf() << "  |Qc|=" << Qc.NormInf() << "\n";						
+//	GetLog()<< "Euler iteration=" << i << "  |R|=" << R.NormInf() << "  |Qc|=" << Qc.NormInf() << "\n";						
 			if ((R.NormInf()  < this->GetTolerance()) &&
 				(Qc.NormInf() < this->GetTolerance()))
 				break;
@@ -734,7 +734,7 @@ public:
 			mintegrable->LoadConstraint_C(Qc, 1.0 / dt); // C/dt
 //GetLog()<< "trapezoidal iter="<<i<<" R =" << R <<"\n";
 //GetLog()<< "trapezoidal iter="<<i<<" Qc =" << Qc <<"\n";
-GetLog()<< "trapezoidal iteration=" << i << "  |R|=" << R.NormInf() << "  |Qc|=" << Qc.NormInf() << "\n";
+//GetLog()<< "trapezoidal iteration=" << i << "  |R|=" << R.NormInf() << "  |Qc|=" << Qc.NormInf() << "\n";
 			if ((R.NormInf()  < this->GetTolerance()) &&
 				(Qc.NormInf() < this->GetTolerance()))
 				break;
