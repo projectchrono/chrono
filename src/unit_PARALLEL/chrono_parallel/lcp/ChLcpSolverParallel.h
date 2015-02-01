@@ -74,6 +74,8 @@ class CH_PARALLEL_API ChLcpSolverParallelDVI : public ChLcpSolverParallel {
    void ComputeR();
    // Set the RHS vector depending on the local solver mode
    void SetR();
+   // This function computes an initial guess for each contact
+   void PreSolve();
    // This function is used to change the solver algorithm.
    void ChangeSolverType(SOLVERTYPE type);
 

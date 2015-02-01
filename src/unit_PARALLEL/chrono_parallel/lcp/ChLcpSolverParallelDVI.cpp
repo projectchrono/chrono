@@ -61,6 +61,8 @@ void ChLcpSolverParallelDVI::RunTimeStep(real step)
   ComputeE();
   ComputeR();
 
+  PreSolve();
+
   data_container->system_timer.start("ChLcpSolverParallel_Solve");
 
   if (data_container->settings.solver.solver_mode == NORMAL || data_container->settings.solver.solver_mode == SLIDING || data_container->settings.solver.solver_mode == SPINNING) {
@@ -264,23 +266,23 @@ void ChLcpSolverParallelDVI::ComputeR() {
 
     case SLIDING: {
 
-      blaze::DenseSubvector<DynamicVector<real> > b_t = blaze::subvector(b, num_contacts, num_contacts * 2);
+      //blaze::DenseSubvector<DynamicVector<real> > b_t = blaze::subvector(b, num_contacts, num_contacts * 2);
       blaze::DenseSubvector<DynamicVector<real> > R_t = blaze::subvector(R, num_contacts, num_contacts * 2);
 
       R_n = -b_n - D_n_T * M_invk;
-      R_t = -b_t - D_t_T * M_invk;
+      R_t = - D_t_T * M_invk;
     } break;
 
     case SPINNING: {
-      blaze::DenseSubvector<DynamicVector<real> > b_t = blaze::subvector(b, num_contacts, num_contacts * 2);
+      //blaze::DenseSubvector<DynamicVector<real> > b_t = blaze::subvector(b, num_contacts, num_contacts * 2);
       blaze::DenseSubvector<DynamicVector<real> > R_t = blaze::subvector(R, num_contacts, num_contacts * 2);
 
-      blaze::DenseSubvector<DynamicVector<real> > b_s = blaze::subvector(b, num_contacts * 3, num_contacts * 3);
+      //blaze::DenseSubvector<DynamicVector<real> > b_s = blaze::subvector(b, num_contacts * 3, num_contacts * 3);
       blaze::DenseSubvector<DynamicVector<real> > R_s = blaze::subvector(R, num_contacts * 3, num_contacts * 3);
 
       R_n = -b_n - D_n_T * M_invk;
-      R_t = -b_t - D_t_T * M_invk;
-      R_s = -b_s - D_s_T * M_invk;
+      R_t =  - D_t_T * M_invk;
+      R_s =  - D_s_T * M_invk;
     } break;
   }
 }
@@ -345,6 +347,9 @@ void ChLcpSolverParallelDVI::ComputeImpulses() {
 
   if (data_container->num_constraints > 0) {
 
+
+
+
     blaze::DenseSubvector<const DynamicVector<real> > gamma_b = blaze::subvector(gamma, num_unilaterals, num_bilaterals);
     blaze::DenseSubvector<const DynamicVector<real> > gamma_n = blaze::subvector(gamma, 0, num_contacts);
 
@@ -358,7 +363,7 @@ void ChLcpSolverParallelDVI::ComputeImpulses() {
          blaze::DenseSubvector<const DynamicVector<real> > gamma_t = blaze::subvector(gamma, num_contacts, num_contacts * 2);
 
         v = M_invk + M_invD_n * gamma_n + M_invD_t * gamma_t + M_invD_b * gamma_b;
-
+        //printf("-gamma: %f %f %f \n", gamma_n[0],gamma_t[0],gamma_t[1]);
       } break;
 
       case SPINNING: {
@@ -375,6 +380,23 @@ void ChLcpSolverParallelDVI::ComputeImpulses() {
     v = M_invk;
   }
 }
+
+void ChLcpSolverParallelDVI::PreSolve(){
+  if (data_container->num_contacts <= 0) {
+    return;
+  }
+
+  if (data_container->settings.solver.solver_mode == NORMAL) {
+    return;
+  }
+
+  if(data_container->settings.solver.presolve){
+    rigid_rigid.SolveLocal();
+  }
+
+}
+
+
 
 void ChLcpSolverParallelDVI::ChangeSolverType(SOLVERTYPE type) {
   data_container->settings.solver.solver_type = type;

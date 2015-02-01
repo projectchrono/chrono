@@ -78,7 +78,8 @@
 typedef unsigned int uint;
 typedef int shape_type;
 
-//#ifdef __CDT_PARSER__
+#ifdef __CDT_PARSER__
+#define BLAZE_SERIAL_SECTION
 //#define __host__
 //#define __device__
 //#define __global__
@@ -89,7 +90,7 @@ typedef int shape_type;
 //#else
 //#define CUDA_KERNEL_DIM(...)  <<< __VA_ARGS__ >>>
 //#define __KERNEL__(...)  <<< __VA_ARGS__ >>>
-//#endif
+#endif
 
 //#define SIM_ENABLE_GPU_MODE
 #ifdef SIM_ENABLE_GPU_MODE

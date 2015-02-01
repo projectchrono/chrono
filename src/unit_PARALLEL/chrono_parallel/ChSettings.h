@@ -94,7 +94,7 @@ struct solver_settings {
     clamp_bilaterals = true;
     perform_stabilization = false;
     collision_in_solver = false;
-
+    presolve = false;
     max_iteration = 100;
     max_iteration_normal = 0;
     max_iteration_sliding = 100;
@@ -142,6 +142,7 @@ struct solver_settings {
   //Experimental options that probably don't work for all solvers
   bool collision_in_solver;
   bool update_rhs;
+  bool presolve;
   bool scale_mass_matrix;
   bool verbose;
   bool test_objective;
