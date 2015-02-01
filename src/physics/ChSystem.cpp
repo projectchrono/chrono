@@ -52,6 +52,7 @@
 #include "core/ChTimer.h"
 #include "collision/ChCCollisionSystemBullet.h"
 #include "collision/ChCModelBulletBody.h"
+#include "timestepper/ChStaticAnalysis.h"
 
 #include "core/ChMemory.h" // must be last include (memory leak debugger). In .cpp only.
 
@@ -2915,96 +2916,37 @@ int ChSystem::DoStaticLinear()
 	Setup();
 	Update();
 
-		// reset known-term vectors
-	LCPprepare_reset();
+	int old_maxsteps = this->GetIterLCPmaxItersSpeed();
+	this->SetIterLCPmaxItersSpeed(300);
 
-	// Fill known-term vectors with proper terms 0 and -C :
-	//
-	// | K   -Cq'|*|Dpos|- |f |= |0| ,  c>=0, l>=0, l*c=0;
-	// | Cq    0 | |l   |  |C |  |c|
-	//
+	ChStaticLinearAnalysis manalysis(*this);
 
-	LCPprepare_load(true,  // Cq 
-			false,	// no addition of [M]*v_old to the known vector
-			1.0,	// f  forces
-			1.0,	// K  matrix
-			0,		// no R matrix
-			0,		// no M matrix (for FEM with non-lumped masses, do not add their mass-matrices)
-			0,		// no Ct term
-			1.0,	// C constraint gap violation, if any
-			0.0,	// 
-			false);	// no clamping on -C/dt
-	
-	// make the vectors of pointers to constraint and variables, for LCP solver
-	LCPprepare_inject(*this->LCP_descriptor);
+	// Perform analysis
+	manalysis.StaticAnalysis();
 
-//***DEBUG***
-this->GetLcpSystemDescriptor()->DumpLastMatrices();
+	this->SetIterLCPmaxItersSpeed(old_maxsteps);
 
+	bool dump_data = false;
 
-
-		// Solve the LCP problem.
-		// Solution variables are 'Dpos', delta positions.
-		// Note: use settings of the 'speed' lcp solver (i.e. use max number
-		// of iterations as you would use for the speed probl., if iterative solver)
-	GetLcpSolverSpeed()->Solve(
-							*this->LCP_descriptor
-							);	
-
-//***DEBUG***
-
-// **CHECK*** optional check for correctness in result
-chrono::ChMatrixDynamic<double> md;
-GetLcpSystemDescriptor()->BuildDiVector(md);			// d={f;-b}
-
-chrono::ChMatrixDynamic<double> mx;
-GetLcpSystemDescriptor()->FromUnknownsToVector(mx);		// x ={q,-l}
-chrono::ChStreamOutAsciiFile file_x("dump_x.dat");
-mx.StreamOUTdenseMatlabFormat(file_x);
-
-chrono::ChMatrixDynamic<double> mZx;
-GetLcpSystemDescriptor()->SystemProduct(mZx, &mx);		// Zx = Z*x
-
-GetLog() << "CHECK: norm of solver residual: ||Z*x-d|| -------------------\n";
-GetLog() << (mZx - md).NormInf() << "\n";
-
-
-	// Updates the reactions of the constraint, getting them from solver data
-	LCPresult_Li_into_reactions(1.0) ; 
-
-	// Move bodies to updated position
-	#pragma omp parallel for
-	for (int ip = 0; ip < bodylist.size(); ++ip)  // ITERATE on bodies
+	if (dump_data)
 	{
-		ChBody* Bpointer = bodylist[ip];
-		Bpointer->VariablesQbIncrementPosition(1.0); // pos+=Dpos
-		Bpointer->Update(this->ChTime);
-	}
-	#pragma omp parallel for
-	for (int ip = 0; ip < otherphysicslist.size(); ++ip)  // ITERATE on other physics
-	{
-		ChPhysicsItem* PHpointer = otherphysicslist[ip];
-		PHpointer->VariablesQbIncrementPosition(1.0); // pos+=Dpos
-		PHpointer->Update(this->ChTime);
-	}
+		this->GetLcpSystemDescriptor()->DumpLastMatrices();
 
-	// Set no body speed and no body accel.
-	{
-		#pragma omp parallel for
-		for (int ip = 0; ip < bodylist.size(); ++ip)  // ITERATE on bodies
-		{
-			ChBody* Bpointer = bodylist[ip];
-			Bpointer->SetNoSpeedNoAcceleration();
-		}
-		#pragma omp parallel for
-		for (int ip = 0; ip < otherphysicslist.size(); ++ip)  // ITERATE on other physics
-		{
-			ChPhysicsItem* PHpointer = otherphysicslist[ip];
-			PHpointer->SetNoSpeedNoAcceleration();
-		}
-	}
+		// optional check for correctness in result
+		chrono::ChMatrixDynamic<double> md;
+		GetLcpSystemDescriptor()->BuildDiVector(md);			// d={f;-b}
 
-	Update(); // Update everything
+		chrono::ChMatrixDynamic<double> mx;
+		GetLcpSystemDescriptor()->FromUnknownsToVector(mx);		// x ={q,-l}
+		chrono::ChStreamOutAsciiFile file_x("dump_x.dat");
+		mx.StreamOUTdenseMatlabFormat(file_x);
+
+		chrono::ChMatrixDynamic<double> mZx;
+		GetLcpSystemDescriptor()->SystemProduct(mZx, &mx);		// Zx = Z*x
+
+		GetLog() << "CHECK: norm of solver residual: ||Z*x-d|| -------------------\n";
+		GetLog() << (mZx - md).NormInf() << "\n";
+	}
 
 	return 0;
 }
@@ -3019,92 +2961,16 @@ int ChSystem::DoStaticNonlinear(int nsteps)
 	Setup();
 	Update();
 
-	for (int i=0; i<nsteps; i++)
-	{
-		// reset known-term vectors
-		LCPprepare_reset();
+	int old_maxsteps = this->GetIterLCPmaxItersSpeed();
+	this->SetIterLCPmaxItersSpeed(300);
 
-		// Fill known-term vectors with proper terms 0 and -C :
-		//
-		// | K   -Cq'|*|Dpos|- |z*f|= |0| ,  c>=0, l>=0, l*c=0;
-		// | Cq    0 | |l   |  |C  |  |c|
-		//
-		double zfactor = ((double)(i+1.0))/((double)nsteps);
+	ChStaticNonLinearAnalysis manalysis(*this);
+	manalysis.SetMaxiters(nsteps);
+	
+	// Perform analysis
+	manalysis.StaticAnalysis();
 
-		LCPprepare_load(true,  // Cq 
-				false,	// no addition of [M]*v_old to the known vector
-				1.0*zfactor,	// f  forces
-				1.0,	// K  matrix
-				0,		// no R matrix
-				0,		// no M matrix (for FEM with non-lumped masses, do not add their mass-matrices)
-				0,		// no Ct term
-				1.0,	// C constraint gap violation, if any
-				0.0,	// 
-				false);	// no clamping on -C/dt
-		
-			// make the vectors of pointers to constraint and variables, for LCP solver
-		LCPprepare_inject(*this->LCP_descriptor);
-
-			// Solve the LCP problem.
-			// Solution variables are 'Dpos', delta positions.
-		GetLcpSolverSpeed()->Solve(
-								*this->LCP_descriptor
-								);	
-
-		// Updates the reactions of the constraint, getting them from solver data
-		LCPresult_Li_into_reactions(1.0) ; 
-
-		// Move bodies to updated position
-		#pragma omp parallel for
-		for (int ip = 0; ip < bodylist.size(); ++ip)  // ITERATE on bodies
-		{
-			ChBody* Bpointer = bodylist[ip];
-			Bpointer->VariablesQbIncrementPosition(1.0); // pos+=Dpos
-			Bpointer->Update(this->ChTime);
-		}
-		#pragma omp parallel for
-		for (int ip = 0; ip < otherphysicslist.size(); ++ip)  // ITERATE on other physics
-		{
-			ChPhysicsItem* PHpointer = otherphysicslist[ip];
-			PHpointer->VariablesQbIncrementPosition(1.0); // pos+=Dpos
-			PHpointer->Update(this->ChTime);
-		}
-
-		// Set no body speed and no body accel.
-		{
-			#pragma omp parallel for
-			for (int ip = 0; ip < bodylist.size(); ++ip)  // ITERATE on bodies
-			{
-				ChBody* Bpointer = bodylist[ip];
-				Bpointer->SetNoSpeedNoAcceleration();
-			}
-			#pragma omp parallel for
-			for (int ip = 0; ip < otherphysicslist.size(); ++ip)  // ITERATE on other physics
-			{
-				ChPhysicsItem* PHpointer = otherphysicslist[ip];
-				PHpointer->SetNoSpeedNoAcceleration();
-			}
-		}
-
-		Update(); // Update everything
-	}
-
-	//***DEBUG***
-
-// **CHECK*** optional check for correctness in result
-chrono::ChMatrixDynamic<double> md;
-GetLcpSystemDescriptor()->BuildDiVector(md);			// d={f;-b}
-
-chrono::ChMatrixDynamic<double> mx;
-GetLcpSystemDescriptor()->FromUnknownsToVector(mx);		// x ={q,-l}
-chrono::ChStreamOutAsciiFile file_x("dump_x.dat");
-mx.StreamOUTdenseMatlabFormat(file_x);
-
-chrono::ChMatrixDynamic<double> mZx;
-GetLcpSystemDescriptor()->SystemProduct(mZx, &mx);		// Zx = Z*x
-
-GetLog() << "CHECK: norm of solver residual: ||Z*x-d|| -------------------\n";
-GetLog() << (mZx - md).NormInf() << "\n";
+	this->SetIterLCPmaxItersSpeed(old_maxsteps);
 
 	return 0;
 }
