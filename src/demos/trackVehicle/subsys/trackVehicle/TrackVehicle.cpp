@@ -20,11 +20,6 @@
 
 #include <cstdio>
 
-#include "assets/ChCylinderShape.h"
-#include "assets/ChTriangleMeshShape.h"
-#include "assets/ChTexture.h"
-#include "assets/ChColorAsset.h"
-#include "assets/ChAssetLevel.h"
 #include "physics/ChGlobal.h"
 
 #include "TrackVehicle.h"
@@ -35,8 +30,6 @@
 #include "utils/ChUtilsInputOutput.h"
 #include "utils/ChUtilsData.h"
 
-// collision mesh
-#include "geometry/ChCTriangleMeshSoup.h"
 
 namespace chrono {
 
@@ -49,18 +42,22 @@ const double     TrackVehicle::m_mass = 5489.2;   // chassis sprung mass
 const ChVector<> TrackVehicle::m_COM = ChVector<>(0., 0.0, 0.);  // COM location, relative to body Csys REF frame
 const ChVector<> TrackVehicle::m_inertia(1786.9, 10449.7, 10721.2);  // chassis inertia (roll,yaw,pitch)
 
-const std::string TrackVehicle::m_meshName("M113_chassis");
-const std::string TrackVehicle::m_meshFile = utils::GetModelDataFile("M113/Chassis_XforwardYup.obj");
 const ChCoordsys<> TrackVehicle::m_driverCsys(ChVector<>(0.0, 0.5, 1.2), ChQuaternion<>(1, 0, 0, 0));
-const ChVector<> TrackVehicle::m_chassisBoxSize(2.0, 0.6, 0.75);  // length, height, width HALF DIMS
 
 /// constructor sets the basic integrator settings for this ChSystem, as well as the usual stuff
-TrackVehicle::TrackVehicle(const std::string& name, VisualizationType chassisVis, CollisionType chassisCollide)
-  : m_vis(chassisVis),
-  m_collide(chassisCollide),
+TrackVehicle::TrackVehicle(const std::string& name,
+                           VisualizationType chassisVis,
+                           CollisionType chassisCollide)
+  :ChTrackVehicle(),
   m_num_tracks(2)
 {
-  // Integration and Solver settings, set in ChTrackVehicle
+  // ---------------------------------------------------------------------------
+  // Set the base class variables
+  m_vis = chassisVis;
+  m_collide = chassisCollide;
+  m_meshName = "M113_chassis";
+  m_meshFile = utils::GetModelDataFile("M113/Chassis_XforwardYup.obj");
+  m_chassisBoxSize = ChVector<>(2.0, 0.6, 0.75);
 
   // create the chassis body    
   m_chassis = ChSharedPtr<ChBodyAuxRef>(new ChBodyAuxRef);
@@ -154,126 +151,6 @@ void TrackVehicle::Update(double	time,
     m_ptrains[i]->Update(time, throttle[i], m_drivelines[0]->GetDriveshaftSpeed() );
   }
 
-}
-
-void TrackVehicle::AddVisualization()
-{
-  // add visual geometry asset to the chassis, if enabled
-  switch (m_vis) {
-  case VisualizationType::NONE:
-  {
-    // put a sphere at the chassis COM and at the REF point
-    ChSharedPtr<ChSphereShape> COMsphere(new ChSphereShape);
-    COMsphere->GetSphereGeometry().rad = 0.1;
-    COMsphere->Pos = m_COM;
-    m_chassis->AddAsset(COMsphere);
-    // make the COM sphere blue
-    ChSharedPtr<ChColorAsset> blue(new ChColorAsset(0.1f, 0.2f, 0.8f));
-    m_chassis->AddAsset(blue);
-   
-    // to give the REF sphere a different color, add it to the level first.
-    ChSharedPtr<ChAssetLevel> ref_level(new ChAssetLevel);
-    ChSharedPtr<ChSphereShape> REFsphere(new ChSphereShape);
-    REFsphere->GetSphereGeometry().rad = 0.1;
-    REFsphere->Pos = ChVector<>(0,0,0); // REF should be at the body c-sys origin
-    ref_level->AddAsset(REFsphere);
-    // make the REF sphere red
-    ChSharedPtr<ChColorAsset> red(new ChColorAsset(0.8f, 0.2f, 0.1f) );
-    ref_level->AddAsset(red);
-    // add the level to the body
-    m_chassis->AddAsset(ref_level);
-
-    break;
-  }
-  case VisualizationType::PRIMITIVES:
-  {
-    ChSharedPtr<ChBoxShape> box(new ChBoxShape);
-    box->GetBoxGeometry().SetLengths(m_chassisBoxSize );
-    m_chassis->AddAsset(box);
-    break;
-  }
-  case VisualizationType::MESH:
-  {
-    geometry::ChTriangleMeshConnected trimesh;
-    trimesh.LoadWavefrontMesh(m_meshFile, true, true);
-
-    ChSharedPtr<ChTriangleMeshShape> trimesh_shape(new ChTriangleMeshShape);
-    trimesh_shape->SetMesh(trimesh);
-    trimesh_shape->SetName("chassis triMesh");
-    m_chassis->AddAsset(trimesh_shape);
-
-    break;
-  }
-  } // end switch
-
-
-}
-
-void TrackVehicle::AddCollisionGeometry()
-{
-  // add collision geometrey to the chassis, if enabled
-  if( m_collide == CollisionType::NONE)
-  {
-    m_chassis->SetCollide(false);
-    return;
-  }
-  m_chassis->SetCollide(true);
-  m_chassis->GetCollisionModel()->ClearModel();
-
-  // 1 cm outwards, 0.5 inwards for envelope and margin, respectfully.
-  m_chassis->GetCollisionModel()->SetSafeMargin(0.005);	// inward safe margin
-	m_chassis->GetCollisionModel()->SetEnvelope(0.010);		// distance of the outward "collision envelope"
-
-  switch (m_collide) {
-  case CollisionType::PRIMITIVES:
-  {
-    // use a simple box
-    m_chassis->GetCollisionModel()->AddBox(m_chassisBoxSize.x, m_chassisBoxSize.y, m_chassisBoxSize.z);
-
-    break;
-  }
-  case CollisionType::MESH:
-  {
-    // use a triangle mesh
-   
-		geometry::ChTriangleMeshSoup temp_trianglemesh; 
-		
-    // TODO: fill the triangleMesh here with some track shoe geometry
-
-    // is there an offset??
-    double shoelength = 0.2;
-    ChVector<> mesh_displacement(shoelength*0.5,0,0);  // since mesh origin is not in body center of mass
-    m_chassis->GetCollisionModel()->AddTriangleMesh(temp_trianglemesh, false, false, mesh_displacement);
-
-    break;
-  }
-  case CollisionType::CONVEXHULL:
-  {
-    // use convex hulls, loaded from file
-    ChStreamInAsciiFile chull_file(GetChronoDataFile("track_shoe.chulls").c_str());
-    // transform the collision geometry as needed
-    double mangle = 45.0; // guess
-    ChQuaternion<>rot;
-    rot.Q_from_AngAxis(mangle*(CH_C_PI/180.),VECT_X);
-    ChMatrix33<> rot_offset(rot);
-    ChVector<> disp_offset(0,0,0);  // no displacement offset
-    m_chassis->GetCollisionModel()->AddConvexHullsFromFile(chull_file, disp_offset, rot_offset);
-    break;
-  }
-  default:
-    // no collision geometry
-    GetLog() << "not recognized CollisionType: " << (int)m_collide <<" for chassis \n";
-    m_chassis->SetCollide(false);
-    return;
-  } // end switch
-
-  // set the collision family
-  m_chassis->GetCollisionModel()->SetFamily( (int)CollisionFam::HULL );
-  // don't collide with rolling elements or tracks
-  m_chassis->GetCollisionModel()->SetFamilyMaskNoCollisionWithFamily( (int)(CollisionFam::WHEELS) );
-  m_chassis->GetCollisionModel()->SetFamilyMaskNoCollisionWithFamily( (int)(CollisionFam::SHOES) );
-
-  m_chassis->GetCollisionModel()->BuildModel();
 }
 
 void TrackVehicle::Advance(double step)

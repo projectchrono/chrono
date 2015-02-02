@@ -20,6 +20,16 @@
 
 #include "ChTrackVehicle.h"
 
+#include "assets/ChAssetLevel.h"
+#include "assets/ChBoxShape.h"
+#include "assets/ChColorAsset.h"
+#include "assets/ChCylinderShape.h"
+#include "assets/ChSphereShape.h"
+#include "assets/ChTriangleMeshShape.h"
+#include "assets/ChTexture.h"
+
+// collision mesh
+#include "geometry/ChCTriangleMeshSoup.h"
 
 namespace chrono {
 
@@ -27,7 +37,9 @@ namespace chrono {
 ChTrackVehicle::ChTrackVehicle()
 : m_ownsSystem(true),
   m_stepsize(1e-3),
-  m_num_engines(0)
+  m_num_engines(0),
+  m_vis(VisualizationType::NONE),
+  m_collide(CollisionType::NONE)
 {
   m_system = new ChSystem;
 
@@ -80,5 +92,128 @@ ChVector<> ChTrackVehicle::GetDriverPos() const
 {
   return m_chassis->GetCoord().TransformPointLocalToParent(GetLocalDriverCoordsys().pos);
 }
+
+
+
+void ChTrackVehicle::AddVisualization()
+{
+  // add visual geometry asset to the chassis, if enabled
+  switch (m_vis) {
+  case VisualizationType::NONE:
+  {
+    // put a sphere at the chassis COM and at the REF point
+    ChSharedPtr<ChSphereShape> COMsphere(new ChSphereShape);
+    COMsphere->GetSphereGeometry().rad = 0.1;
+    COMsphere->Pos = m_chassis->GetPos();
+    m_chassis->AddAsset(COMsphere);
+    // make the COM sphere blue
+    ChSharedPtr<ChColorAsset> blue(new ChColorAsset(0.1f, 0.2f, 0.8f));
+    m_chassis->AddAsset(blue);
+   
+    // to give the REF sphere a different color, add it to the level first.
+    ChSharedPtr<ChAssetLevel> ref_level(new ChAssetLevel);
+    ChSharedPtr<ChSphereShape> REFsphere(new ChSphereShape);
+    REFsphere->GetSphereGeometry().rad = 0.1;
+    REFsphere->Pos = ChVector<>(0,0,0); // REF should be at the body c-sys origin
+    ref_level->AddAsset(REFsphere);
+    // make the REF sphere red
+    ChSharedPtr<ChColorAsset> red(new ChColorAsset(0.8f, 0.2f, 0.1f) );
+    ref_level->AddAsset(red);
+    // add the level to the body
+    m_chassis->AddAsset(ref_level);
+
+    break;
+  }
+  case VisualizationType::PRIMITIVES:
+  {
+    ChSharedPtr<ChBoxShape> box(new ChBoxShape);
+    box->GetBoxGeometry().SetLengths(m_chassisBoxSize );
+    m_chassis->AddAsset(box);
+    break;
+  }
+  case VisualizationType::MESH:
+  {
+    geometry::ChTriangleMeshConnected trimesh;
+    trimesh.LoadWavefrontMesh(m_meshFile, true, true);
+
+    ChSharedPtr<ChTriangleMeshShape> trimesh_shape(new ChTriangleMeshShape);
+    trimesh_shape->SetMesh(trimesh);
+    trimesh_shape->SetName("chassis triMesh");
+    m_chassis->AddAsset(trimesh_shape);
+
+    break;
+  }
+  } // end switch
+
+
+}
+
+void ChTrackVehicle::AddCollisionGeometry()
+{
+  // add collision geometrey to the chassis, if enabled
+  if( m_collide == CollisionType::NONE)
+  {
+    m_chassis->SetCollide(false);
+    return;
+  }
+  m_chassis->SetCollide(true);
+  m_chassis->GetCollisionModel()->ClearModel();
+
+  // 1 cm outwards, 0.5 inwards for envelope and margin, respectfully.
+  m_chassis->GetCollisionModel()->SetSafeMargin(0.005);	// inward safe margin
+	m_chassis->GetCollisionModel()->SetEnvelope(0.010);		// distance of the outward "collision envelope"
+
+  switch (m_collide) {
+  case CollisionType::PRIMITIVES:
+  {
+    // use a simple box
+    m_chassis->GetCollisionModel()->AddBox(m_chassisBoxSize.x, m_chassisBoxSize.y, m_chassisBoxSize.z);
+
+    break;
+  }
+  case CollisionType::MESH:
+  {
+    // use a triangle mesh
+   
+		geometry::ChTriangleMeshSoup temp_trianglemesh; 
+		
+    // TODO: fill the triangleMesh here with some track shoe geometry
+
+    // is there an offset??
+    double shoelength = 0.2;
+    ChVector<> mesh_displacement(shoelength*0.5,0,0);  // since mesh origin is not in body center of mass
+    m_chassis->GetCollisionModel()->AddTriangleMesh(temp_trianglemesh, false, false, mesh_displacement);
+
+    break;
+  }
+  case CollisionType::CONVEXHULL:
+  {
+    // use convex hulls, loaded from file
+    ChStreamInAsciiFile chull_file(GetChronoDataFile("track_shoe.chulls").c_str());
+    // transform the collision geometry as needed
+    double mangle = 45.0; // guess
+    ChQuaternion<>rot;
+    rot.Q_from_AngAxis(mangle*(CH_C_PI/180.),VECT_X);
+    ChMatrix33<> rot_offset(rot);
+    ChVector<> disp_offset(0,0,0);  // no displacement offset
+    m_chassis->GetCollisionModel()->AddConvexHullsFromFile(chull_file, disp_offset, rot_offset);
+    break;
+  }
+  default:
+    // no collision geometry
+    GetLog() << "not recognized CollisionType: " << (int)m_collide <<" for chassis \n";
+    m_chassis->SetCollide(false);
+    return;
+  } // end switch
+
+  // set the collision family
+  m_chassis->GetCollisionModel()->SetFamily( (int)CollisionFam::HULL );
+  // don't collide with rolling elements or tracks
+  m_chassis->GetCollisionModel()->SetFamilyMaskNoCollisionWithFamily( (int)(CollisionFam::WHEELS) );
+  m_chassis->GetCollisionModel()->SetFamilyMaskNoCollisionWithFamily( (int)(CollisionFam::SHOES) );
+
+  m_chassis->GetCollisionModel()->BuildModel();
+}
+
 
 }  // end namespace chrono

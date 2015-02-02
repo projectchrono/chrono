@@ -43,25 +43,35 @@ const ChQuaternion<> DriveChain::m_idlerRot(QUNIT);
 
 
 /// constructor sets the basic integrator settings for this ChSystem, as well as the usual stuff
-DriveChain::DriveChain(const std::string& name, VisualizationType vis, CollisionType collide)
-  : m_ownsSystem(true),
-  m_stepsize(1e-3),
+DriveChain::DriveChain(const std::string& name,
+                       VisualizationType vis,
+                       CollisionType collide)
+  : ChTrackVehicle(),
   m_num_idlers(1)
 {
   // Integration and Solver settings set in ChTrackVehicle
+   // Set the base class variables
+  m_vis = vis;
+  m_collide = collide;
+  // doesn't matter for the chassis, since no visuals used
+  m_meshName = "na";
+  m_meshFile = utils::GetModelDataFile("M113/M113SprocketLeft_XforwardYup.obj");
+  // m_chassisBoxSize = ChVector<>(2.0, 0.6, 0.75);
+
 
   // create the chassis body    
-  m_chassis = ChSharedPtr<ChBody>(new ChBody);
+  m_chassis = ChSharedPtr<ChBodyAuxRef>(new ChBodyAuxRef);
   m_chassis->SetIdentifier(0);
   m_chassis->SetNameString(name);
   // basic body info. Not relevant since it's fixed.
+   m_chassis->SetFrame_COG_to_REF(ChFrame<>() );
   m_chassis->SetMass(100);
-  m_chassis->SetInertiaXX(ChVector<>(10,10,10));
+  m_chassis->SetInertiaXX(ChVector<>(10,10,10) );
   // chassis is fixed to ground
   m_chassis->SetBodyFixed(true);
     
   // add the chassis body to the system
-  m_system->Add(m_chassis);
+  GetSystem()->Add(m_chassis);
   
   // build one of each of the following subsystems. 
   m_gear = ChSharedPtr<DriveGear>(new DriveGear("drive gear",
@@ -76,7 +86,7 @@ DriveChain::DriveChain(const std::string& name, VisualizationType vis, Collision
     vis,	// VisualizationType::PRIMITIVES,
     collide));	// CollisionType::PRIMITIVES) );
   
-  
+  m_num_engines = 1;
   // create the powertrain and drivelines
   m_driveline = ChSharedPtr<TrackDriveline_1WD>(new TrackDriveline_1WD("driveline ") );
   m_ptrain = ChSharedPtr<TrackPowertrain>(new TrackPowertrain("powertrain ") );
