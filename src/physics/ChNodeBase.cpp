@@ -21,6 +21,8 @@ namespace chrono
 
 ChNodeBase::ChNodeBase()
 {
+	this->offset_x = 0;
+	this->offset_w = 0;
 }
 
 ChNodeBase::~ChNodeBase()
@@ -29,12 +31,17 @@ ChNodeBase::~ChNodeBase()
 
 ChNodeBase::ChNodeBase (const ChNodeBase& other) 
 {
+	this->offset_x = other.offset_x;
+	this->offset_w = other.offset_w;
 }
 
 ChNodeBase& ChNodeBase::operator= (const ChNodeBase& other)
 {
 	if (&other == this) 
 		return *this;
+
+	this->offset_x = other.offset_x;
+	this->offset_w = other.offset_w;
 
 	return *this;
 }

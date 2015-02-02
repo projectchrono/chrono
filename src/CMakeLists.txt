@@ -683,6 +683,7 @@ IF (BUILD_CH_SDK)
 		timestepper/ChState.h
 		timestepper/ChIntegrable.h
 		timestepper/ChTimestepper.h
+		timestepper/ChStaticAnalysis.h
 	)
 	SOURCE_GROUP(timestepper FILES  
 			${ChronoEngine_timestepper_SOURCES}

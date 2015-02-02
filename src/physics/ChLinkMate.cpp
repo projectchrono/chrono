@@ -36,14 +36,8 @@ namespace chrono
 
 // Register into the object factory, to enable run-time
 // dynamic creation and persistence
-ChClassRegister<ChLinkMate> a_registration_ChLinkMate;
+ChClassRegisterABSTRACT<ChLinkMate> a_registration_ChLinkMate;
 
-ChLink* ChLinkMate::new_Duplicate ()
-{
-    ChLinkMate* m_l = new ChLinkMate;
-    m_l->Copy(this);
-    return (m_l);
-}
 
 
 
@@ -376,6 +370,106 @@ void ChLinkMateGeneric::Initialize(ChSharedPtr<ChBodyFrame> mbody1,	///< first b
 		static_cast<ChFrame<>*>(this->Body2)->TransformParentToLocal(mpos2, this->frame2);
 	}
 }
+
+
+
+//// STATE BOOKKEEPING FUNCTIONS
+
+ 
+
+void ChLinkMateGeneric::IntLoadResidual_CqL(
+					const unsigned int off_L,	 ///< offset in L multipliers
+					ChVectorDynamic<>& R,		 ///< result: the R residual, R += c*Cq'*L 
+					const ChVectorDynamic<>& L,  ///< the L vector 
+					const double c				 ///< a scaling factor
+					)
+{
+	int cnt=0;
+	for (int i=0; i< mask->nconstr; i++)
+	{
+		if (mask->Constr_N(i).IsActive())
+		{
+			mask->Constr_N(i).MultiplyTandAdd(R, L( off_L+cnt  ) *c);
+			cnt++;
+		}
+	}
+}
+
+void ChLinkMateGeneric::IntLoadConstraint_C(
+					const unsigned int off_L,	 ///< offset in Qc residual
+					ChVectorDynamic<>& Qc,		 ///< result: the Qc residual, Qc += c*C 
+					const double c,				 ///< a scaling factor
+					bool do_clamp,				 ///< apply clamping to c*C?
+					double recovery_clamp		 ///< value for min/max clamping of c*C
+					)
+{
+	int cnt=0;
+	for (int i=0; i< mask->nconstr; i++)
+	{
+		if (mask->Constr_N(i).IsActive())
+		{
+			if (do_clamp)
+			{
+				if (mask->Constr_N(i).IsUnilateral())
+					Qc(off_L+cnt) += ChMax (c * C->ElementN(cnt), -recovery_clamp);
+				else 
+					Qc(off_L+cnt) += ChMin(ChMax (c * C->ElementN(cnt), -recovery_clamp), recovery_clamp);
+			}
+			else
+				Qc(off_L+cnt) +=  c * C->ElementN(cnt);
+			cnt++;
+		}
+	}
+}
+
+void ChLinkMateGeneric::IntLoadConstraint_Ct(
+					const unsigned int off_L,	 ///< offset in Qc residual
+					ChVectorDynamic<>& Qc,		 ///< result: the Qc residual, Qc += c*Ct 
+					const double c				 ///< a scaling factor
+					)
+{
+	// NOT NEEDED BECAUSE NO RHEONOMIC TERM
+}
+
+void ChLinkMateGeneric::IntToLCP(
+					const unsigned int off_v,			///< offset in v, R
+					const ChStateDelta& v,
+					const ChVectorDynamic<>& R,
+					const unsigned int off_L,			///< offset in L, Qc
+					const ChVectorDynamic<>& L,
+					const ChVectorDynamic<>& Qc
+					)
+{
+	int cnt=0;
+	for (int i=0; i< mask->nconstr; i++)
+	{
+		if (mask->Constr_N(i).IsActive())
+		{
+			mask->Constr_N(i).Set_l_i( L(off_L+cnt) );
+			mask->Constr_N(i).Set_b_i( Qc(off_L+cnt) );
+			cnt++;
+		}
+	}
+}
+
+void ChLinkMateGeneric::IntFromLCP(
+					const unsigned int off_v,			///< offset in v
+					ChStateDelta& v,
+					const unsigned int off_L,			///< offset in L
+					ChVectorDynamic<>& L
+					)
+{
+	int cnt=0;
+	for (int i=0; i< mask->nconstr; i++)
+	{
+		if (mask->Constr_N(i).IsActive())
+		{
+			L(off_L+cnt) = mask->Constr_N(i).Get_l_i();
+			cnt++;
+		}
+	}
+}
+
 
 
 

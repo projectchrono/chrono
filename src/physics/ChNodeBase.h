@@ -36,6 +36,10 @@ namespace chrono
 class ChApi ChNodeBase : public virtual ChShared,
 						 public ChVariablesInterface	
 {
+protected:
+	unsigned int offset_x; // offset in vector of state (position part)
+	unsigned int offset_w; // offset in vector of state (speed part)
+
 public:
 	ChNodeBase ();
 	virtual ~ChNodeBase ();
@@ -48,9 +52,41 @@ public:
 					//
 
 
-			/// Get the number of degrees of freedom
-	int Get_ndof() { return this->Variables().Get_ndof();}
+			//
+			// Functions for interfacing to the state bookkeeping
+			//
 
+				/// Get the number of degrees of freedom
+	virtual int Get_ndof_x() = 0; 
+			
+				/// Get the number of degrees of freedom, derivative
+				/// This might be different from ndof if quaternions are used for rotations, 
+				/// as derivative might be angular velocity.
+	virtual int Get_ndof_w() { return this->Get_ndof_x(); }
+
+				/// Get offset in the state vector (position part)
+	unsigned int NodeGetOffset_x()	{ return this->offset_x; }
+				/// Get offset in the state vector (speed part)
+	unsigned int NodeGetOffset_w()	{ return this->offset_w; }
+
+				/// Set offset in the state vector (position part)
+	void NodeSetOffset_x(const unsigned int moff) { this->offset_x= moff; }
+				/// Set offset in the state vector (speed part)
+	void NodeSetOffset_w(const unsigned int moff) { this->offset_w = moff; }
+
+	virtual void NodeIntStateGather(const unsigned int off_x,	ChState& x,	const unsigned int off_v, ChStateDelta& v,	double& T) {};	
+	virtual void NodeIntStateScatter(const unsigned int off_x,	const ChState& x, const unsigned int off_v,	const ChStateDelta& v,	const double T) {};
+	virtual void NodeIntStateIncrement(const unsigned int off_x, ChState& x_new, const ChState& x,	const unsigned int off_v, const ChStateDelta& Dv)
+		{
+				for (int i = 0; i< this->Get_ndof_x(); ++i)
+				{
+					x_new(off_x + i) = x(off_x + i) + Dv(off_v + i);
+				}
+		}
+	virtual void NodeIntLoadResidual_F(const unsigned int off,	ChVectorDynamic<>& R, const double c ) {};
+	virtual void NodeIntLoadResidual_Mv(const unsigned int off,	ChVectorDynamic<>& R, const ChVectorDynamic<>& w, const double c) {};
+	virtual void NodeIntToLCP(const unsigned int off_v,	const ChStateDelta& v, const ChVectorDynamic<>& R) {};
+	virtual void NodeIntFromLCP(const unsigned int off_v, ChStateDelta& v) {};
 
 			//
 			// Functions for interfacing to the LCP solver

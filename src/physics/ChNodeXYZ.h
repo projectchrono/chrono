@@ -59,6 +59,11 @@ public:
 			// Set mass of the node. To be implemented in children classes
 	virtual void SetMass(double mm) = 0;
 
+
+			/// Get the number of degrees of freedom
+	virtual int Get_ndof_x() { return 3; }
+
+
 					//
 					// DATA
 					// 

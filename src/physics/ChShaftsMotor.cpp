@@ -101,6 +101,100 @@ void ChShaftsMotor::Update (double mytime)
 }
 
 
+//// STATE BOOKKEEPING FUNCTIONS
+
+void ChShaftsMotor::IntLoadResidual_F(
+					const unsigned int off,		 ///< offset in R residual
+					ChVectorDynamic<>& R,		 ///< result: the R residual, R += c*F 
+					const double c				 ///< a scaling factor
+					)
+{
+	if (motor_mode == MOT_MODE_TORQUE)
+	{
+		R(shaft1->Variables().GetOffset()) +=  motor_torque * c;
+		R(shaft2->Variables().GetOffset()) += -motor_torque * c;
+	}
+}
+
+void ChShaftsMotor::IntLoadResidual_CqL(
+					const unsigned int off_L,	 ///< offset in L multipliers
+					ChVectorDynamic<>& R,		 ///< result: the R residual, R += c*Cq'*L 
+					const ChVectorDynamic<>& L,  ///< the L vector 
+					const double c				 ///< a scaling factor
+					)
+{
+	if (motor_mode != MOT_MODE_TORQUE)
+		constraint.MultiplyTandAdd(R, L(off_L) *c);
+}
+
+void ChShaftsMotor::IntLoadConstraint_C(
+					const unsigned int off_L,	 ///< offset in Qc residual
+					ChVectorDynamic<>& Qc,		 ///< result: the Qc residual, Qc += c*C 
+					const double c,				 ///< a scaling factor
+					bool do_clamp,				 ///< apply clamping to c*C?
+					double recovery_clamp		 ///< value for min/max clamping of c*C
+					)
+{
+	if (motor_mode != MOT_MODE_TORQUE)
+	{
+		double res;
+
+		if (motor_mode == MOT_MODE_SPEED)
+			res = 0; // no need to stabilize positions
+
+		if (motor_mode == MOT_MODE_ROTATION)
+			res = c * (this->GetMotorRot() - this->motor_set_rot);
+
+		if (do_clamp) {
+			res = ChMin(ChMax(res, -recovery_clamp), recovery_clamp);
+		}
+
+		Qc(off_L) += res;
+	}
+}
+
+void ChShaftsMotor::IntLoadConstraint_Ct(
+					const unsigned int off_L,	 ///< offset in Qc residual
+					ChVectorDynamic<>& Qc,		 ///< result: the Qc residual, Qc += c*Ct 
+					const double c				 ///< a scaling factor
+					)
+{
+	if (motor_mode == MOT_MODE_SPEED)
+	{
+		double ct = this->motor_set_rot_dt;
+		Qc(off_L) +=  c * ct;
+	}
+}
+
+void ChShaftsMotor::IntToLCP(
+					const unsigned int off_v,			///< offset in v, R
+					const ChStateDelta& v,
+					const ChVectorDynamic<>& R,
+					const unsigned int off_L,			///< offset in L, Qc
+					const ChVectorDynamic<>& L,
+					const ChVectorDynamic<>& Qc
+					)
+{
+	if (motor_mode != MOT_MODE_TORQUE)
+	{
+		constraint.Set_l_i(L(off_L));
+
+		constraint.Set_b_i(Qc(off_L));
+	}
+}
+
+void ChShaftsMotor::IntFromLCP(
+					const unsigned int off_v,			///< offset in v
+					ChStateDelta& v,
+					const unsigned int off_L,			///< offset in L
+					ChVectorDynamic<>& L
+					)
+{
+	if (motor_mode != MOT_MODE_TORQUE)
+	{
+		L(off_L)=constraint.Get_l_i();
+	}
+}
 
 
 ////////// LCP INTERFACES ////

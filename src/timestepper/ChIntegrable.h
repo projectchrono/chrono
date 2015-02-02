@@ -28,7 +28,7 @@ namespace chrono
 	/// four functions. By doing this, you can use time integrators from
 	/// the ChTimestepper hierarchy to integrate in time.
 
-class ChIntegrable
+class  ChApi ChIntegrable
 {
 	public:
 
@@ -96,6 +96,7 @@ class ChIntegrable
 							const ChStateDelta& Dy	///< state increment Dy
 							) 
 			{
+				assert (y_new.GetRows()==y.GetRows() && y.GetRows()==Dy.GetRows());
 				y_new.Resize(y.GetRows(), y.GetColumns());
 				for (int i = 0; i< y.GetRows(); ++i)
 				{
@@ -119,7 +120,7 @@ class ChIntegrable
 			///  Dy = [ c_a*H + c_b*dF/dy ]^-1 * R
 			///  Dy = [ G ]^-1 * R
 			/// If with DAE constraints: 
-			///  |Du| = [ G   Cq' ]^-1 * | R |
+			///  |Dy| = [ G   Cq' ]^-1 * | R |
 			///  |DL|   [ Cq  0   ]      | Qc|
 			/// where R is a given residual, dF/dy is F jacobian. 
 			/// It is up to the child class how to solve such linear system.
@@ -210,7 +211,7 @@ class ChIntegrable
 /// four functions. By doing this, you can use time integrators from
 /// the ChTimestepper hierarchy to integrate in time.
 
-class ChIntegrableIIorder : public ChIntegrable
+class   ChApi ChIntegrableIIorder : public ChIntegrable
 {
 public:
 
@@ -312,7 +313,7 @@ public:
 	///  |Du| = [ G   Cq' ]^-1 * | R |
 	///  |DL|   [ Cq  0   ]      | Qc|
  	/// where R is a given residual, dF/dv and dF/dx, dF/dv are jacobians (that are also 
-	/// -R and -K, damping and stiffness (tangent) matrices in many mechanical problems). 
+	/// -R and -K, damping and stiffness (tangent) matrices in many mechanical problems, note the minus sign!). 
 	/// It is up to the child class how to solve such linear system.
 	virtual void StateSolveCorrection(
 		ChStateDelta& Dv,	  ///< result: computed Dv 
@@ -516,7 +517,7 @@ public:
 		this->StateSolveA(ma, L, mx, mv, T, dt, force_state_scatter); // Solve with custom II order solver
 
 		dydt.PasteMatrix(&mv, 0, 0);
-		dydt.PasteMatrix(&ma, this->GetNcoords_x(), 0);
+		dydt.PasteMatrix(&ma, this->GetNcoords_v(), 0);
 	}
 
 	/// This was for Ist order implicit integrators, but here we disable it.
@@ -543,7 +544,7 @@ public:
 /// to implement only the StateSolveCorrection  LoadResidual... and LoadConstraint...
 /// functions.
 
-class ChIntegrableIIorderEasy : public ChIntegrableIIorder
+class   ChApi ChIntegrableIIorderEasy : public ChIntegrableIIorder
 {
 public:
 
@@ -570,17 +571,23 @@ public:
 
 		ChVectorDynamic<> R (this->GetNcoords_v());
 		ChVectorDynamic<> Qc(this->GetNconstr());
-		double Delta = 1e-6;
+		const double Delta = 1e-6;
 
 		this->LoadResidual_F(R, 1.0);
 
 		this->LoadConstraint_C (Qc, -2.0 / (Delta*Delta));
 		
 		// numerical differentiation to get the Qc term in constraints
-		this->StateScatter(x + (v*Delta), v, T + Delta);
+		ChStateDelta dx(v);
+		dx*=Delta;
+		ChState xdx(x.GetRows(),this);
+
+		this->StateIncrement(xdx, x, dx);
+		this->StateScatter(xdx, v, T + Delta);
 		this->LoadConstraint_C (Qc, 1.0 / (Delta*Delta));
 
-		this->StateScatter(x - (v*Delta), v, T - Delta);
+		this->StateIncrement(xdx, x, -dx);
+		this->StateScatter(xdx, v, T - Delta);
 		this->LoadConstraint_C (Qc, 1.0 / (Delta*Delta));
 
 		this->StateScatter(x, v, T); // back to original state
@@ -596,11 +603,19 @@ public:
 /// the specialized StateIncrement() in the ChIntegrable (if any, otherwise 
 /// it will be a simple vector sum).
 
+inline
 ChState operator+ (const ChState& y, const ChStateDelta& Dy) 
 		{
 			ChState result(y.GetRows(), y.GetIntegrable());
 			y.GetIntegrable()->StateIncrement(result, y, Dy);
 			return result;
+		}
+inline
+ChState& operator+= (ChState& y, const ChStateDelta& Dy) 
+		{
+			ChState tmp_y(y);
+			y.GetIntegrable()->StateIncrement(y, tmp_y, Dy);
+			return y;
 		}
 
 /// This is a custom operator "+" that takes care of incremental update
@@ -608,13 +623,13 @@ ChState operator+ (const ChState& y, const ChStateDelta& Dy)
 /// the specialized StateIncrement() in the ChIntegrable (if any, otherwise 
 /// it will be a simple vector sum).
 
+inline
 ChState operator+ (const ChStateDelta& Dy, const ChState& y) 
 		{
 			ChState result(y.GetRows(), y.GetIntegrable());
 			y.GetIntegrable()->StateIncrement(result, y, Dy);
 			return result;
 		}
-
 
 
 

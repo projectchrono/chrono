@@ -699,7 +699,7 @@ public:
 				/// in the Fi vector.
 	virtual void ComputeInternalForces	(ChMatrixDynamic<>& Fi)
 				{
-					assert((Fi.GetRows() == 12) && (Fi.GetColumns()==12));
+					assert((Fi.GetRows() == 12) && (Fi.GetColumns()==1));
 					assert (!section.IsNull());
 
 						// set up vector of nodal displacements and small rotations (in local element system) 

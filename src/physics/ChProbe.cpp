@@ -60,10 +60,12 @@ void ChProbe::Copy(ChProbe* source)
 
 void ChProbe::Record(double mtime)
 {
+
 }
 
 void ChProbe::Reset()
 {
+
 }
 
 

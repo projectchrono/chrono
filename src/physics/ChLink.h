@@ -70,7 +70,7 @@ public:
 	ChLink ();
 	virtual ~ChLink ();
 	virtual void Copy(ChLink* source);
-	virtual ChLink* new_Duplicate ();  
+	virtual ChLink* new_Duplicate () = 0;  
 
 
 public:
@@ -90,7 +90,7 @@ public:
 				/// Get the number of free degrees of freedom left by this link, between two bodies.
 	virtual int GetLeftDOF  () {return 6 - GetDOC();}
 				/// Get the number of scalar variables affected by constraints in this link 
-	int GetNumCoords() {return 14;}
+	virtual int GetNumCoords() {return 12;}
 
 				/// Get the constrained body '1', the 'slave' body.
 	ChBodyFrame* GetBody1 () {return Body1;}
@@ -154,6 +154,8 @@ public:
 
 					/// As above, but with current time
 	virtual void Update();
+
+
 
 					/// Called from a foreign software (i.e. a plugin, a CAD appl.), if any, to report 
 					/// that time has changed. Most often you can leave this unimplemented.
