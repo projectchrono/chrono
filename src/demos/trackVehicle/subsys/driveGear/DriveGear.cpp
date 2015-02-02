@@ -35,7 +35,7 @@ const std::string DriveGear::m_meshName = "gear_mesh";
 const std::string DriveGear::m_meshFile = utils::GetModelDataFile("M113/M113SprocketLeft_XforwardYup.obj");
 
 const double DriveGear::m_mass = 436.7;
-const ChVector<> DriveGear::m_inertia(13.87, 12.22, 12.22);
+const ChVector<> DriveGear::m_inertia(12.22, 12.22, 13.87); // z-axis of rotation
 const double DriveGear::m_radius = 0.212; // to collision surface
 const double DriveGear::m_width = 0.259;
 const double DriveGear::m_widthGap = 0.189; // inner distance between cydliners
@@ -49,7 +49,7 @@ DriveGear::DriveGear(const std::string& name,
 {
   // create the body, set the basic info
   m_gear = ChSharedPtr<ChBody>(new ChBody);
-  m_gear->SetNameString(name+"_body");
+  m_gear->SetNameString(name+"body");
   m_gear->SetMass(m_mass);
   m_gear->SetInertiaXX(m_inertia);
 

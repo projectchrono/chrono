@@ -36,7 +36,7 @@ namespace chrono {
 
 // Static variables
 const double IdlerSimple::m_mass = 429.6;
-const ChVector<> IdlerSimple::m_inertia = ChVector<>(14.7, 12.55, 12.55);
+const ChVector<> IdlerSimple::m_inertia = ChVector<>(12.55, 12.55, 14.7); // z-axis of rotation
 
 const std::string IdlerSimple::m_meshName = "idler_mesh";
 const std::string IdlerSimple::m_meshFile = utils::GetModelDataFile("M113/Idler_XforwardYup.obj");

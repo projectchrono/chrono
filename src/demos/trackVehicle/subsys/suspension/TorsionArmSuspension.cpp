@@ -36,7 +36,7 @@ const ChVector<> TorsionArmSuspension::m_armInertia(0.77, 0.37, 0.77);  // [kg-m
 const double TorsionArmSuspension::m_armRadius = 0.05; // [m]
 
 const double TorsionArmSuspension::m_wheelMass = 561.1; // [kg]
-const ChVector<> TorsionArmSuspension::m_wheelInertia(19.82, 19.82, 26.06); // [kg-m2]
+const ChVector<> TorsionArmSuspension::m_wheelInertia(19.82, 19.82, 26.06); // [kg-m2], z-axis of rotation
 const double TorsionArmSuspension::m_wheelWidth = 0.16;  // [m]
 const double TorsionArmSuspension::m_wheelWidthGap = 0.05;  // inner gap between outer cylinders .038?
 const double TorsionArmSuspension::m_wheelRadius = 0.305; // [m]
