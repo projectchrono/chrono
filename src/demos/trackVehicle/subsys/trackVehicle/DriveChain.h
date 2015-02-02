@@ -76,8 +76,6 @@ public:
   /// current value of the integration step size for the vehicle system.
   double GetStepsize() const { return m_stepsize; }
 
-  /// shared pointer to chassis body (fixed to ground)
-  ChSharedPtr<ChBody> GetChassis() { return m_chassis; }
 
   /// return the force exerted by the idler subsystem on the idler body
   double GetIdlerForce(size_t side);
@@ -92,7 +90,7 @@ public:
 private:
 
   // private variables
-  ChSharedPtr<ChBody> m_chassis;  		///< fixed to gorund
+  // <ChBodyAuxRef> m_chassis   in base class
   ChSharedPtr<DriveGear> m_gear;  		///< drive gear
   ChSharedPtr<IdlerSimple>	m_idler;	///< idler wheel
   ChSharedPtr<TrackChain> m_chain;    ///< chain
@@ -108,11 +106,6 @@ private:
   // static variables. hard-coded for now
   static const ChVector<> m_idlerPos; // relative to chassis frame, which is the same as the gear's (initially)
   static const ChQuaternion<> m_idlerRot; 
-  
-
-protected:
-  ChSystem*                  m_system;       ///< pointer to the Chrono system
-  bool                       m_ownsSystem;   ///< true if system created at construction
 
 };
 
