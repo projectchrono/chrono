@@ -105,7 +105,8 @@ DriveChain::~DriveChain()
 void DriveChain::Initialize(const ChCoordsys<>& gear_Csys)
 {
   // initialize the drive gear, idler and track chain
-  m_idlerPosRel = m_idlerPos;
+  // m_idlerPosRel = m_idlerPos;
+  m_idlerPosRel = ChVector<>(1.0, 0, 0);
   m_chassis->SetPos(gear_Csys.pos);
   m_chassis->SetRot(gear_Csys.rot);
   
@@ -127,20 +128,31 @@ void DriveChain::Initialize(const ChCoordsys<>& gear_Csys)
   std::vector<double> clearance;  // 1 per rolling elem  
   
   // drive sprocket is First added to the lists passed into TrackChain Init()
-  rolling_elem_locs.push_back(gear_Csys.pos );
+  rolling_elem_locs.push_back(ChVector<>() );
   clearance.push_back(m_gear->GetRadius() );
 
   // add to the lists passed into the track chain Init()
   rolling_elem_locs.push_back(m_idlerPosRel );
   clearance.push_back(m_idler->GetRadius() );
 
+  // loop back around to the gear.
+  rolling_elem_locs.push_back(ChVector<>() );
+  clearance.push_back(m_gear->GetRadius() );
+  // when there's only 2 rolling elements, the above locations will repeat
+  // the first rolling element at the front and end of the vector.
+  // So, just use the mid-point between the first two rolling elements.
+  ChVector<> start_pos = (rolling_elem_locs[0] + rolling_elem_locs[1])/2.0;
+  start_pos.y += (clearance[0] + clearance[1])/2.0;
+
+
   // Assumption: start_pos should lie close to where the actual track chain would 
-  //             pass between the idler and driveGears.
+  //             pass between the first and last rolling elements. (e.g., idler and gear)
   // MUST be on the top part of the chain so the chain wrap rotation direction can be assumed.
   // rolling_elem_locs, start_pos w.r.t. chassis c-sys
   m_chain->Initialize(m_chassis, 
     m_chassis->GetFrame_REF_to_abs(),
-    rolling_elem_locs, clearance, ChVector<>(m_gear->GetRadius(),0,0) );
+    rolling_elem_locs, clearance,
+    start_pos );
   
   // initialize the powertrain, drivelines
   m_driveline->Initialize(m_chassis, m_gear);

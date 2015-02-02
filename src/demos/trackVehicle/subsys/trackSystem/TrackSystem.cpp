@@ -261,7 +261,8 @@ void TrackSystem::Initialize(ChSharedPtr<ChBodyAuxRef> chassis,
   // rolling_elem_locs, start_pos w.r.t. chassis c-sys
   m_chain->Initialize(chassis, 
     chassis->GetFrame_REF_to_abs(),
-    rolling_elem_locs, clearance, start_pos );
+    rolling_elem_locs, clearance,
+    start_pos );
 
 }
 
