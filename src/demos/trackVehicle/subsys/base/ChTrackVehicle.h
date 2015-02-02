@@ -29,7 +29,7 @@
 #include "subsys/powertrain/TrackPowertrain.h"
 
 #include "subsys/ChApiSubsys.h"
-
+#include "ModelDefs.h"
 
 namespace chrono {
 
@@ -50,6 +50,18 @@ public:
   /// Destructor.
   virtual ~ChTrackVehicle();
 
+
+  // pure virtuals
+  /// Get the angular speed of the driveshaft.
+  virtual double GetDriveshaftSpeed(size_t idx) const = 0;
+
+    /// pointer to the powertrain
+  virtual TrackPowertrain* GetPowertrain(size_t idx) = 0;
+
+  /// Get the local driver position and orientation, relative to the chassis reference frame.
+  virtual ChCoordsys<> GetLocalDriverCoordsys() const { return ChCoordsys<>(); }
+
+  // accessors
   /// Get a pointer to the Chrono ChSystem.
   ChSystem* GetSystem() { return m_system; }
 
@@ -74,21 +86,11 @@ public:
   /// Get the speed of the chassis COM.
   double GetVehicleSpeedCOM() const { return m_chassis->GetPos_dt().Length(); }
 
-  /// Get the angular speed of the driveshaft.
-  virtual double GetDriveshaftSpeed(size_t idx) const = 0;
-
-    /// pointer to the powertrain
-  virtual TrackPowertrain* GetPowertrain(size_t idx) = 0;
-
-  /// Get the local driver position and orientation, relative to the chassis reference frame.
-  virtual ChCoordsys<> GetLocalDriverCoordsys() const = 0;
-
   /// Get the global location of the driver.
   ChVector<> GetDriverPos() const;
 
   /// number of track chain systems attached to the vehicle
   int GetNum_Engines() const { return m_num_engines; }
-
 
   /// Initialize at the specified global location and orientation.
   virtual void Initialize(
@@ -115,10 +117,23 @@ public:
 
 protected:
 
+  // private functions
+  const std::string& getMeshName() const { return m_meshName; }
+  const std::string& getMeshFile() const { return m_meshFile; }
+
+  virtual void AddVisualization();
+  virtual void AddCollisionGeometry();
+
   ChSystem*                  m_system;       ///< pointer to the Chrono system
   bool                       m_ownsSystem;   ///< true if system created at construction
 
   ChSharedPtr<ChBodyAuxRef>  m_chassis;      ///< handle to the chassis body
+  VisualizationType m_vis;  // how to visualize chassis geometry
+  CollisionType m_collide;  // how to handle chassis collision geometry
+  std::string m_meshName; ///< name of the mesh, if any
+  std::string  m_meshFile;  ///< filename of the mesh, if any
+  ChVector<> m_chassisBoxSize; // length, height, width of chassis collision box (if collisiontype = PRIMITIVES)
+
   int m_num_engines;  ///< can support multiple powertrain/drivetrains
   std::vector<ChSharedPtr<TrackPowertrain>>  m_ptrains;  ///< powertrain system, one per track system
 

@@ -89,8 +89,6 @@ public:
   /// current value of the integration step size for the vehicle system.
   double GetStepsize() const { return m_stepsize; }
 
-  /// shared pointer to chassis body
-  ChSharedPtr<ChBody> GetChassis() { return m_chassis; }
 
   /// number of track chain systems attached to the vehicle
   int GetNum_TrackSystems() const { return m_num_tracks; }
@@ -98,16 +96,10 @@ public:
   /// return the force exerted by the idler subsystem on the idler body
   double GetIdlerForce(size_t side);
 
-  ChCoordsys<> GetLocalDriverCoordsys() const { return m_driverCsys; }
+  // not really relevant, since it's a static system
+  // ChCoordsys<> GetLocalDriverCoordsys() const { return m_driverCsys; }
 
 private:
-
-  // private functions
-  const std::string& getMeshName() const { return m_meshName; }
-  const std::string& getMeshFile() const { return m_meshFile; }
-
-  void AddVisualization();
-  void AddCollisionGeometry();
 
   // private variables
   std::vector<ChVector<> > m_TrackSystem_locs;   // locations of the track system c-sys relative to chassis
@@ -115,10 +107,6 @@ private:
   int m_num_tracks; ///< how many track systems to build
 
   std::vector<ChSharedPtr<TrackDriveline>>   m_drivelines;    ///< handle to the driveline subsystem, one for each powertrain/drivegear pair
-  std::vector<ChSharedPtr<TrackPowertrain>>  m_ptrains;  ///< powertrain system, one per track system
-
-  VisualizationType m_vis;  // how to visualize chassis geometry
-  CollisionType m_collide;  // how to handle chassis collision geometry
 
   // static variables
   static const ChVector<> m_trackPos_Left;  // relative to chassis c-sys
@@ -129,9 +117,7 @@ private:
   static const ChVector<> m_inertia;                // symmetric moments of inertia of the chassis
 
   static const ChCoordsys<> m_driverCsys;  // driver position and orientation relative to chassis
-  static const std::string m_meshName;
-  static const std::string  m_meshFile;
-  static const ChVector<> m_chassisBoxSize; // length, height, width of chassis collision box (if collisiontype = PRIMITIVES)
+
 };
 
 
