@@ -131,7 +131,7 @@ uint ChSolverAPGD::SolveAPGD(const uint max_iter, const uint size, const blaze::
         break;
       }
     } else {
-      if (residual < data_container->settings.solver.tolerance) {
+      if (residual < data_container->settings.solver.tol_speed) {
         break;
       }
     }
