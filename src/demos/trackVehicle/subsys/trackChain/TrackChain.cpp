@@ -46,7 +46,7 @@ const ChVector<> TrackChain::m_inertia(0.22, 0.25,  0.04); // TODO: what is this
 const ChVector<> TrackChain::m_COM = ChVector<>(0., 0., 0.);  // location of COM, relative to REF (e.g, geomtric center)
 const ChVector<> TrackChain::m_shoe_box(0.205, 0.0663, 0.38); // length, height, width HALF DIMS!
 const double TrackChain::m_pin_width = 0.531; // total width of cylinder pinseach 
-const double TrackChain::m_pin_dist = 0.205; // 0.15162;		// linear distance between a shoe chain spacing. exact = 0.205
+const double TrackChain::m_pin_dist = 0.15162;   // 0.205; // linear distance between a shoe chain spacing. exact = 0.205
 const double TrackChain::m_pin_radius = 0.02317;
 const ChVector<> TrackChain::m_tooth_box(0.08, 0.075/2.0, 0.04);  // length, height, width
  // distance between body center and the vertical offset to the inner-surface of the collision geometry
@@ -72,7 +72,7 @@ TrackChain::TrackChain(const std::string& name,
 
 
   // Attach visualization to the base track shoe
-  AddVisualization();
+  AddVisualization(0, true, "cubetexture_pinkwhite.png");
 }
 
 // figure out the control points, 2 per rolling element to wrap the chain around.
@@ -266,12 +266,16 @@ void TrackChain::AddVisualization()
   AddVisualization(m_numShoes -1);
 }
 
-void TrackChain::AddVisualization(size_t track_idx)
+// use a custom texture, if desired.
+void TrackChain::AddVisualization(size_t track_idx,
+    bool custom_texture,
+    const std::string& tex_name)
 {
   assert(track_idx < m_numShoes);
 
   if(m_shoes[track_idx]->GetAssets().size() > 0 )
     m_shoes[track_idx]->GetAssets().clear();
+
   // Attach visualization asset
   switch (m_vis) {
   case VisualizationType::PRIMITIVES:
@@ -296,10 +300,10 @@ void TrackChain::AddVisualization(size_t track_idx)
 
     // add a color to the shoes
     ChSharedPtr<ChTexture> box_tex(new ChTexture);
-    if( track_idx % 2 == 0)
-      box_tex->SetTextureFilename(GetChronoDataFile("blu.png"));
+    if(custom_texture)
+      box_tex->SetTextureFilename(GetChronoDataFile(tex_name));
     else
-      box_tex->SetTextureFilename(GetChronoDataFile("concrete.jpg"));
+      box_tex->SetTextureFilename(GetChronoDataFile("blu.png"));
     boxLevel->AddAsset(box_tex);
 
     // finally, add the box asset level to the shoe
@@ -369,21 +373,14 @@ void TrackChain::AddVisualization(size_t track_idx)
 
     // add a color to the shoes
     ChSharedPtr<ChTexture> box_tex(new ChTexture);
-    if( track_idx % 2 == 0)
-    {
-      box_tex->SetTextureFilename(GetChronoDataFile("blu.png"));
-      // box_tex->SetTextureFilename(GetChronoDataFile("cubetexture_bluwhite.png"));
-    }
+    if(custom_texture)
+      box_tex->SetTextureFilename(GetChronoDataFile(tex_name));
     else
-    {
-      box_tex->SetTextureFilename(GetChronoDataFile("concrete.jpg"));
-      // box_tex->SetTextureFilename(GetChronoDataFile("cubetexture_pinkwhite.png"));
-    }
+      box_tex->SetTextureFilename(GetChronoDataFile("blu.png"));
     boxLevel->AddAsset(box_tex);
 
     // finally, add the box asset level to the shoe
     m_shoes[track_idx]->AddAsset(boxLevel);
-
 
     // add the pin as a single cylinder
     double pin_offset = -0.07581;
@@ -419,8 +416,21 @@ void TrackChain::AddVisualization(size_t track_idx)
     trimesh_shape->SetName(getMeshName());
     m_shoes[track_idx]->AddAsset(trimesh_shape);
 
-    ChSharedPtr<ChColorAsset> mcolor(new ChColorAsset(0.3f, 0.3f, 0.3f));
-    m_shoes[track_idx]->AddAsset(mcolor);
+    // add a color to the shoes
+    if(custom_texture)
+    {
+      ChSharedPtr<ChTexture> box_tex(new ChTexture);
+      box_tex->SetTextureFilename(GetChronoDataFile(tex_name));
+      m_shoes[track_idx]->AddAsset(box_tex);
+    }
+    else
+    {
+      ChSharedPtr<ChColorAsset> mcolor(new ChColorAsset(0.3f, 0.3f, 0.3f));
+      m_shoes[track_idx]->AddAsset(mcolor);
+    }
+    
+
+
 
     break;
   }
@@ -451,9 +461,9 @@ void TrackChain::AddCollisionGeometry(size_t track_idx)
   m_shoes[track_idx]->SetCollide(true);
   m_shoes[track_idx]->GetCollisionModel()->ClearModel();
 
-  // 1 cm outwards, 0.5 inwards for envelope and margin, respectfully.
-  m_shoes[track_idx]->GetCollisionModel()->SetSafeMargin(0.005);	// inward safe margin
-	m_shoes[track_idx]->GetCollisionModel()->SetEnvelope(0.010);		// distance of the outward "collision envelope"
+
+  m_shoes[track_idx]->GetCollisionModel()->SetSafeMargin(0.001);	// inward safe margin
+	m_shoes[track_idx]->GetCollisionModel()->SetEnvelope(0.002);		// distance of the outward "collision envelope"
 
   switch (m_collide) {
   case CollisionType::PRIMITIVES:
@@ -661,7 +671,9 @@ void TrackChain::CreateShoes(ChSharedPtr<ChBody> chassis,
     m_shoes.push_back(ChSharedPtr<ChBody>(new ChBody));
     m_numShoes++;
     m_shoes.back()->Copy( m_shoes.front().get_ptr() );
-    AddVisualization();
+    // even shoes can be a different texture
+    (m_numShoes % 2 == 0) ? AddVisualization(m_numShoes -1, true, "spheretexture.png") : AddVisualization();
+    
     AddCollisionGeometry();
     m_shoes.back()->SetNameString( "shoe " + std::to_string(m_numShoes) );
 
@@ -834,7 +846,8 @@ void TrackChain::CreateShoes(ChSharedPtr<ChBody> chassis,
     m_shoes.push_back(ChSharedPtr<ChBody>(new ChBody));
     m_numShoes++;
     m_shoes.back()->Copy( m_shoes.front().get_ptr() );
-    AddVisualization();
+     // even shoes can be a different texture
+    (m_numShoes % 2 == 0) ? AddVisualization(m_numShoes -1, true, "spheretexture.png") : AddVisualization();
     AddCollisionGeometry();
     m_shoes.back()->SetNameString( "shoe " + std::to_string(m_numShoes) );
 
@@ -936,7 +949,8 @@ void TrackChain::CreateShoes_closeChain(ChSharedPtr<ChBody> chassis,
     m_shoes.push_back(ChSharedPtr<ChBody>(new ChBody));
     m_numShoes++;
     m_shoes.back()->Copy( m_shoes.front().get_ptr() );
-    AddVisualization();
+     // even shoes can be a different texture
+    (m_numShoes % 2 == 0) ? AddVisualization(m_numShoes -1, true, "spheretexture.png") : AddVisualization();
     AddCollisionGeometry();
     m_shoes.back()->SetNameString( "shoe " + std::to_string(m_numShoes) );
 
