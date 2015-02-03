@@ -235,9 +235,8 @@ void IdlerSimple::AddCollisionGeometry()
   m_idler->SetCollide(true);
   m_idler->GetCollisionModel()->ClearModel();
 
-  // 1 cm outwards, 0.5 inwards for envelope and margin, respectfully.
-  m_idler->GetCollisionModel()->SetSafeMargin(0.005);	// inward safe margin
-	m_idler->GetCollisionModel()->SetEnvelope(0.010);		// distance of the outward "collision envelope"
+  m_idler->GetCollisionModel()->SetSafeMargin(0.001);	// inward safe margin
+	m_idler->GetCollisionModel()->SetEnvelope(0.002);		// distance of the outward "collision envelope"
 
   switch (m_collide) {
   case CollisionType::PRIMITIVES:

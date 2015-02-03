@@ -274,9 +274,8 @@ void TorsionArmSuspension::AddCollisionGeometry()
   m_wheel->SetCollide(true);
   m_wheel->GetCollisionModel()->ClearModel();
 
-  // 1 cm outwards, 0.5 inwards for envelope and margin, respectfully.
-  m_wheel->GetCollisionModel()->SetSafeMargin(0.005);	// inward safe margin
-	m_wheel->GetCollisionModel()->SetEnvelope(0.010);		// distance of the outward "collision envelope"
+  m_wheel->GetCollisionModel()->SetSafeMargin(0.001);	// inward safe margin
+	m_wheel->GetCollisionModel()->SetEnvelope(0.002);		// distance of the outward "collision envelope"
 
   switch (m_collide) {
   case CollisionType::PRIMITIVES:

@@ -38,7 +38,7 @@ const double DriveGear::m_mass = 436.7;
 const ChVector<> DriveGear::m_inertia(12.22, 12.22, 13.87); // z-axis of rotation
 const double DriveGear::m_radius = 0.212; // to collision surface
 const double DriveGear::m_width = 0.259;
-const double DriveGear::m_widthGap = 0.189; // inner distance between cydliners
+const double DriveGear::m_widthGap = 0.092; // 0.189; // inner distance between cydliners
 const double DriveGear::m_shaft_inertia = 0.4;  // connects to driveline
 
 
@@ -156,9 +156,8 @@ void DriveGear::AddCollisionGeometry()
   m_gear->SetCollide(true);
   m_gear->GetCollisionModel()->ClearModel();
 
-  // 1 cm outwards, 0.5 inwards for envelope and margin, respectfully.
-  m_gear->GetCollisionModel()->SetSafeMargin(0.005);	// inward safe margin
-	m_gear->GetCollisionModel()->SetEnvelope(0.010);		// distance of the outward "collision envelope"
+  m_gear->GetCollisionModel()->SetSafeMargin(0.001);	// inward safe margin
+	m_gear->GetCollisionModel()->SetEnvelope(0.002);		// distance of the outward "collision envelope"
 
   switch (m_collide) {
   case CollisionType::PRIMITIVES:
