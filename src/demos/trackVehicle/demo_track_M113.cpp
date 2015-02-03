@@ -54,7 +54,7 @@ using namespace core;
 // User Settings
 // =============================================================================
 // display the 1) system heirarchy, 2) a set of subsystem hardpoints, 3) constraint violations
-#define DEBUG_LOG 
+// #define DEBUG_LOG 
 
 // Initial vehicle position and heading. Defines the REF frame for the hull body
 ChVector<> initLoc(0, 1.0, 0);
@@ -70,14 +70,14 @@ double mu = 0.8;  // dry friction coef.
 double step_size = 0.001;
 
 // Time interval between two render frames
-int FPS = 40;
+int FPS = 20;
 double render_step_size = 1.0 / FPS;   // FPS = 50
 // Time interval between two output frames
 double output_step_size = 1.0 / 1;    // once a second
 
 // #ifdef USE_IRRLICHT
   // Point on chassis tracked by the camera
-double chaseDist = 3.0;
+double chaseDist = 3.5;
 double chaseHeight = 0.0;
 ChVector<> trackPoint(0, 0, 0);
   /*
@@ -127,7 +127,7 @@ int main(int argc, char* argv[])
 
   // The vehicle inherits ChSystem. Input chassis visual and collision type
 	TrackVehicle vehicle("Justins M113 model", 
-    VisualizationType::MESH,
+    VisualizationType::NONE,
     CollisionType::PRIMITIVES);
   
   // set the chassis REF at the specified initial config.
@@ -148,7 +148,7 @@ int main(int argc, char* argv[])
 
   ChIrrApp application(vehicle.GetSystem(),
                       L"M113 tracked vehicle demo",
-                      dimension2d<u32>(1000, 800),
+                      dimension2d<u32>(1400, 1000),
                       false,
                       do_shadows);
   // assumes Y-up
