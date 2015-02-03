@@ -729,7 +729,10 @@ int OBJ::ParseLine(int /*lineno*/,int argc,const char **argv)  // return TRUE to
 			{
 				// the index of i-th texel
 				int tindex = atoi( texel+1) - 1;
-				this->mIndexesTexels.push_back(tindex);
+        // Justin: if input file only specifies a face w/ verts, normals, this is -1.
+        //        Which crashes your Chrono application if someone (e.g., Irrlicht)
+        //        tries to iterate thru. So just don't push it to the array if that happens
+        (tindex > -1) ? this->mIndexesTexels.push_back(tindex) : GetLog() << " no texture coordinate for face #: " << mIndexesVerts.size() << "\n";
 
 				const char *normal = strstr(texel+1,"/");
 				if ( normal )
