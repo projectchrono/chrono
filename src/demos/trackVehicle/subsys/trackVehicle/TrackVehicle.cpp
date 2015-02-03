@@ -156,16 +156,16 @@ void TrackVehicle::Update(double	time,
 void TrackVehicle::Advance(double step)
 {
   double t = 0;
-  double settlePhaseA = 0.001;
-  double settlePhaseB = 0.01;
+  double settlePhaseA = 0.5;
+  double settlePhaseB = 0.8;
   while (t < step) {
     double h = std::min<>(m_stepsize, step - t);
     if( m_system->GetChTime() < settlePhaseA )
     {
-      h = 1e-5;
+      h = 4e-4;
     } else if ( m_system->GetChTime() < settlePhaseB )
     {
-      h = 1e-4;
+      h = 6e-4;
     }
     m_system->DoStepDynamics(h);
     t += h;
