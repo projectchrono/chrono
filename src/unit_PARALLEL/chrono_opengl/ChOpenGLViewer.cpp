@@ -185,6 +185,10 @@ bool ChOpenGLViewer::Initialize() {
     }
   }
 
+  cloud_data.push_back(glm::vec3(0,0,0));
+  grid_data.push_back(glm::vec3(0,0,0));
+  fluid_data.push_back(glm::vec3(0,0,0));
+
   cloud.Initialize(cloud_data, white, &cloud_shader);
   fluid.Initialize(fluid_data, river, &dot_shader);
   contacts.Initialize(cloud_data, darkred, &cloud_shader);
