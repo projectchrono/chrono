@@ -67,17 +67,17 @@ ChVector<> groundPos(0, -1.0, 0);
 double mu = 0.8;  // dry friction coef.
 
 // Simulation step size
-double step_size = 0.001;
+double step_size = 8e-4;
 
 // Time interval between two render frames
-int FPS = 20;
+int FPS = 40;
 double render_step_size = 1.0 / FPS;   // FPS = 50
 // Time interval between two output frames
 double output_step_size = 1.0 / 1;    // once a second
 
 // #ifdef USE_IRRLICHT
   // Point on chassis tracked by the camera
-double chaseDist = 3.5;
+double chaseDist = 4.0;
 double chaseHeight = 0.0;
 ChVector<> trackPoint(0, 0, 0);
   /*
@@ -127,7 +127,7 @@ int main(int argc, char* argv[])
 
   // The vehicle inherits ChSystem. Input chassis visual and collision type
 	TrackVehicle vehicle("Justins M113 model", 
-    VisualizationType::NONE,
+    VisualizationType::MESH,
     CollisionType::PRIMITIVES);
   
   // set the chassis REF at the specified initial config.
