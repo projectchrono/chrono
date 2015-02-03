@@ -71,6 +71,11 @@ public:
   /// Get the point on Body2 (spherical side), expressed in absolute coordinate system.
   ChVector<> GetPoint2Abs() const { return Body2->TransformPointLocalToParent(m_pos2); }
 
+  /// Get the link coordinate system, expressed relative to Body2 (spherical side).
+  /// This represents the 'main' reference of the link: reaction forces 
+  /// and reaction torques are reported in this coordinate system.
+  virtual ChCoordsys<> GetLinkRelativeCoords();
+
   /// Get the joint violation (residuals of the constraint equations)
   ChMatrix<>* GetC() { return m_C; }
 
@@ -126,6 +131,15 @@ public:
   virtual void ConstraintsLiLoadSuggestedPositionSolution();
   virtual void ConstraintsLiFetchSuggestedSpeedSolution();
   virtual void ConstraintsLiFetchSuggestedPositionSolution();
+
+    //
+    // EXTRA REACTION FORCE & TORQUE FUNCTIONS
+    //
+
+  ChVector<> Get_react_force_body1();
+  ChVector<> Get_react_torque_body1();
+  ChVector<> Get_react_force_body2();
+  ChVector<> Get_react_torque_body2();
 
 private:
   ChVector<> m_pos1;     // point on first frame (in local frame)
