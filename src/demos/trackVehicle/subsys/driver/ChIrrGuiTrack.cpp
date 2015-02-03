@@ -103,7 +103,7 @@ bool ChIrrGuiTrack::OnEvent(const SEvent& event)
       return true;
     case KEY_KEY_S:
       // both throttles decrease
-      SetThrottle(m_throttleDelta*3.0);
+      SetThrottle(-m_throttleDelta);
       return true;
 
     // control each track throttle/brake individually
