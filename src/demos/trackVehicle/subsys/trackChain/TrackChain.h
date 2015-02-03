@@ -65,7 +65,9 @@ private:
   void TrackChain::AddVisualization();
 
   /// add visualization assets to a specific track shoe body
-  void AddVisualization(size_t track_idx);
+  void AddVisualization(size_t track_idx,
+    bool custom_texture = false,
+    const std::string& tex_name = "none");
 
   /// add collision geometry to the last shoe added
   void AddCollisionGeometry();
