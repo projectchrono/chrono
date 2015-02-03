@@ -230,12 +230,19 @@ int main(int argc,
    // run the simulation in an infinite loop.
    //gl_window.StartDrawLoop(time_step);
    //return 0;
-#endif
 
+   while (true) {
+     if (gl_window.Active()) {
+       gl_window.DoStepDynamics(time_step);
+       gl_window.Render();
+     } else {
+       break;
+     }
+   }
+#else
    // Run simulation for specified time
    int num_steps = std::ceil(time_end / time_step);
    int out_steps = std::ceil((1 / time_step) / out_fps);
-   double time = 0;
    int out_frame = 0;
 
    for (int i = 0; i < num_steps; i++) {
@@ -243,18 +250,10 @@ int main(int argc,
          OutputData(&msystem, out_frame, time);
          out_frame++;
       }
-
-#ifdef CHRONO_PARALLEL_HAS_OPENGL
-      if (gl_window.Active()) {
-         gl_window.DoStepDynamics(time_step);
-         gl_window.Render();
-      }
-#else
       msystem.DoStepDynamics(time_step);
-#endif
-
       time += time_step;
    }
+#endif
 
    return 0;
 }
