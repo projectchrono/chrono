@@ -49,10 +49,12 @@ ChTrackVehicle::ChTrackVehicle()
   m_system->SetLcpSolverType(ChSystem::LCP_ITERATIVE_SOR);
   m_system->SetIterLCPmaxItersSpeed(150);
   m_system->SetIterLCPmaxItersStab(150);
-  m_system->SetMaxPenetrationRecoverySpeed(2.0);
-  // SetMaxPenetrationRecoverySpeed(2.0);
-  // SetIterLCPomega(2.0);
-  // SetIterLCPsharpnessLambda(2.0);
+  m_system->SetMaxPenetrationRecoverySpeed(1.5);
+  m_system->SetMinBounceSpeed(0.5);
+  // m_system->SetIterLCPomega(0.8);
+  // m_system->SetIterLCPsharpnessLambda(0.9);
+
+
 }
 
 
@@ -159,9 +161,8 @@ void ChTrackVehicle::AddCollisionGeometry()
   m_chassis->SetCollide(true);
   m_chassis->GetCollisionModel()->ClearModel();
 
-  // 1 cm outwards, 0.5 inwards for envelope and margin, respectfully.
-  m_chassis->GetCollisionModel()->SetSafeMargin(0.005);	// inward safe margin
-	m_chassis->GetCollisionModel()->SetEnvelope(0.010);		// distance of the outward "collision envelope"
+  m_chassis->GetCollisionModel()->SetSafeMargin(0.001);	// inward safe margin
+	m_chassis->GetCollisionModel()->SetEnvelope(0.002);		// distance of the outward "collision envelope"
 
   switch (m_collide) {
   case CollisionType::PRIMITIVES:
