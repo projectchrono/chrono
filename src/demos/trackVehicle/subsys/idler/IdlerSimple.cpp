@@ -44,7 +44,7 @@ const std::string IdlerSimple::m_meshFile = utils::GetModelDataFile("M113/Idler_
 // guessing at these values
 const double IdlerSimple::m_radius = 0.255;
 const double IdlerSimple::m_width = 0.166;
-const double IdlerSimple::m_widthGap = 0.092; 
+const double IdlerSimple::m_widthGap = .08; // 0.092; 
 const double IdlerSimple::m_springK = 150000;
 const double IdlerSimple::m_springC = 1500;
 const double IdlerSimple::m_springRestLength = 1.0;
@@ -149,7 +149,7 @@ void IdlerSimple::Initialize(ChSharedPtr<ChBody> chassis,
 
   // init shock, add to system
   // put the second marker some length in front of marker1, based on desired preload
-  double preLoad = 30000; // [N]
+  double preLoad = 80000; // [N]
   // chassis spring attachment point is towards the center of the vehicle
   ChVector<> pos_chassis_abs = local_Csys.pos;
   if(local_Csys.pos.x < 0 ) 
