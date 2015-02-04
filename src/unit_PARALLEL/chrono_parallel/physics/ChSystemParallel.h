@@ -135,6 +135,8 @@ CH_RTTI(ChSystemParallelDVI, ChSystemParallel);
    virtual void AddMaterialSurfaceData(ChSharedPtr<ChBody> newbody);
    virtual void UpdateMaterialSurfaceData(int index, ChBody* body);
 
+   void CalculateContactForces();
+
    virtual real3 GetBodyContactForce(uint body_id) const;
    virtual real3 GetBodyContactTorque(uint body_id) const;
 

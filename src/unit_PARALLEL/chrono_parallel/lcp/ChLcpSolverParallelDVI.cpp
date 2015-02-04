@@ -92,7 +92,10 @@ void ChLcpSolverParallelDVI::RunTimeStep(real step)
       solver->Solve();
     }
   }
+
+  data_container->Fc_current = false;
   data_container->system_timer.stop("ChLcpSolverParallel_Solve");
+  
   ComputeImpulses();
 
   for (int i = 0; i < data_container->measures.solver.iter_hist.size(); i++) {

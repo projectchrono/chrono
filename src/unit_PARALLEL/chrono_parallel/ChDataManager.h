@@ -163,6 +163,8 @@ struct host_container {
    //therefore it is stored in a vector for performance reasons
    DynamicVector<real> E;
 
+   // Contact forces (DVI)
+   DynamicVector<real> Fc;
 };
 
 class CH_PARALLEL_API ChParallelDataManager {
@@ -197,6 +199,8 @@ class CH_PARALLEL_API ChParallelDataManager {
    uint num_constraints;   // Total number of constraints
    uint nnz_bilaterals;    // The number of non-zero entries in the bilateral Jacobian
 
+   // Flag indicating whether or not the contact forces are current (DVI only).
+   bool Fc_current;
    // Flag indicating whether or not effective contact radius is calculated
    bool erad_is_set;
    //This object hold all of the timers for the system
