@@ -292,7 +292,7 @@ void TrackChain::AddVisualization(size_t track_idx,
     boxLevel->AddAsset(box);
 
     // add the tooth box
-    double tooth_offset = -0.07313; // vertical offset
+    double tooth_offset = -0.07313; // vertical offset. -.03315 + -tooth_height/2
     ChSharedPtr<ChBoxShape> tooth_box(new ChBoxShape);
     tooth_box->GetBoxGeometry().SetLengths(ChVector<>(m_tooth_box.x, m_tooth_box.y, m_tooth_box.z) );
     tooth_box->GetBoxGeometry().Pos =  ChVector<>(0, tooth_offset, 0);
@@ -429,9 +429,6 @@ void TrackChain::AddVisualization(size_t track_idx,
       m_shoes[track_idx]->AddAsset(mcolor);
     }
     
-
-
-
     break;
   }
   default:
@@ -442,13 +439,20 @@ void TrackChain::AddVisualization(size_t track_idx,
 }
 
 
-void TrackChain::AddCollisionGeometry()
+void TrackChain::AddCollisionGeometry(double mu,
+                                      double mu_sliding,
+                                      double mu_roll,
+                                      double mu_spin)
 {
   assert(m_numShoes > 0);
-  AddCollisionGeometry(m_numShoes-1);
+  AddCollisionGeometry(m_numShoes-1, mu, mu_sliding, mu_roll, mu_spin);
 }
 
-void TrackChain::AddCollisionGeometry(size_t track_idx)
+void TrackChain::AddCollisionGeometry(size_t track_idx,
+                                      double mu,
+                                      double mu_sliding,
+                                      double mu_roll,
+                                      double mu_spin)
 {
   assert(track_idx < m_numShoes);
    // add collision geometrey to the chassis, if enabled. Warn if disabled
@@ -458,12 +462,18 @@ void TrackChain::AddCollisionGeometry(size_t track_idx)
     m_shoes[track_idx]->SetCollide(false);
     return;
   }
+
   m_shoes[track_idx]->SetCollide(true);
   m_shoes[track_idx]->GetCollisionModel()->ClearModel();
 
-
   m_shoes[track_idx]->GetCollisionModel()->SetSafeMargin(0.001);	// inward safe margin
 	m_shoes[track_idx]->GetCollisionModel()->SetEnvelope(0.002);		// distance of the outward "collision envelope"
+
+  // set the collision material
+  m_shoes[track_idx]->GetMaterialSurface()->SetSfriction(mu);
+  m_shoes[track_idx]->GetMaterialSurface()->SetKfriction(mu_sliding);
+  m_shoes[track_idx]->GetMaterialSurface()->SetRollingFriction(mu_roll);
+  m_shoes[track_idx]->GetMaterialSurface()->SetSpinningFriction(mu_spin);
 
   switch (m_collide) {
   case CollisionType::PRIMITIVES:
@@ -642,7 +652,7 @@ void TrackChain::CreateShoes(ChSharedPtr<ChBody> chassis,
     m_shoes.front()->SetRot(rot_seg_A); // can assume its the same as the line segment
     chassis->GetSystem()->Add(m_shoes.front());
 
-    // First shoe on first line segment should always be aligned.
+   // First shoe on first line segment should always be aligned.
     m_aligned_with_seg = true; 
   }
   else
@@ -941,7 +951,7 @@ void TrackChain::CreateShoes_closeChain(ChSharedPtr<ChBody> chassis,
 
   // keep going until last created shoe COG pos_on_seg passes the end point.
   // Want to overshoot upon reaching curved segment, to not interpenetrate surface boundary.
-  while( dist_to_end > m_pin_dist/2.0 )  
+  while( dist_to_end > 0 )  
   {
     // create a new body by copying the first, add to handle vector.
     // Copy doesn't set the collision shape.
@@ -1065,7 +1075,7 @@ void TrackChain::CreateShoes_closeChain(ChSharedPtr<ChBody> chassis,
     ChVector<> pos_on_seg = next_pin_loc - norm_dir*proj_dist;
     
     // stop when the next pin pos on seg. is within half a shoe width of the beginning pos on seg.
-    dist_to_end = Vdot(end_seg - pos_on_seg, tan_dir);
+    dist_to_end = Vdot(end_seg - pos_on_seg, tan_dir) -  m_pin_dist/2.0;
   }
 
   // If assumptions were followed throughout, first shoe is somewhere near the middle of the gear and idler.

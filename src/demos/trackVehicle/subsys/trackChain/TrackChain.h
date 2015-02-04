@@ -70,10 +70,17 @@ private:
     const std::string& tex_name = "none");
 
   /// add collision geometry to the last shoe added
-  void AddCollisionGeometry();
+  void AddCollisionGeometry(double mu = 0.8,
+                            double mu_sliding = 0.7,
+                            double mu_roll = 0.2,
+                            double mu_spin = 0.2);
 
   /// add collision geometrey to a certain track shoe
-  void AddCollisionGeometry(size_t track_idx);
+  void AddCollisionGeometry(size_t track_idx,
+                            double mu = 0.8,
+                            double mu_sliding = 0.7,
+                            double mu_roll = 0.2,
+                            double mu_spin = 0.2);
    
   /// initialize shoe bodies by wrapping the track chain around the rolling elements.
   /// Define a string along which the chain is wrapper, using the input values.
