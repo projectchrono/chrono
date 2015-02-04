@@ -390,94 +390,86 @@ void ChConstraintRigidRigid::Build_D()
 
     int row = index;
 
-    if (solver_mode == SLIDING || solver_mode == SPINNING) {
-      Compute_Jacobian(rot[index], U, V, W, ptA[index], T3, T4, T5);
-      Compute_Jacobian(rot[index + data_container->num_contacts], U, V, W, ptB[index], T6, T7, T8);
-    }
-    if (contact_active_pairs[index].x) {
-      D_n_T(row * 1 + 0, body_id.x* 6 + 0) = -U.x;
-      D_n_T(row * 1 + 0, body_id.x* 6 + 1) = -U.y;
-      D_n_T(row * 1 + 0, body_id.x* 6 + 2) = -U.z;
+    Compute_Jacobian(rot[index], U, V, W, ptA[index], T3, T4, T5);
+    Compute_Jacobian(rot[index + data_container->num_contacts], U, V, W, ptB[index], T6, T7, T8);
 
-      D_n_T(row * 1 + 0, body_id.x* 6 + 3) = T3.x;
-      D_n_T(row * 1 + 0, body_id.x* 6 + 4) = T3.y;
-      D_n_T(row * 1 + 0, body_id.x* 6 + 5) = T3.z;
-    }
-    if (contact_active_pairs[index].y) {
-      D_n_T(row * 1 + 0, body_id.y* 6 + 0) = U.x;
-      D_n_T(row * 1 + 0, body_id.y* 6 + 1) = U.y;
-      D_n_T(row * 1 + 0, body_id.y* 6 + 2) = U.z;
+    D_n_T(row * 1 + 0, body_id.x * 6 + 0) = -U.x;
+    D_n_T(row * 1 + 0, body_id.x * 6 + 1) = -U.y;
+    D_n_T(row * 1 + 0, body_id.x * 6 + 2) = -U.z;
 
-      D_n_T(row * 1 + 0, body_id.y* 6 + 3) = -T6.x;
-      D_n_T(row * 1 + 0, body_id.y* 6 + 4) = -T6.y;
-      D_n_T(row * 1 + 0, body_id.y* 6 + 5) = -T6.z;
-    }
+    D_n_T(row * 1 + 0, body_id.x * 6 + 3) = T3.x;
+    D_n_T(row * 1 + 0, body_id.x * 6 + 4) = T3.y;
+    D_n_T(row * 1 + 0, body_id.x * 6 + 5) = T3.z;
+
+    D_n_T(row * 1 + 0, body_id.y * 6 + 0) = U.x;
+    D_n_T(row * 1 + 0, body_id.y * 6 + 1) = U.y;
+    D_n_T(row * 1 + 0, body_id.y * 6 + 2) = U.z;
+
+    D_n_T(row * 1 + 0, body_id.y * 6 + 3) = -T6.x;
+    D_n_T(row * 1 + 0, body_id.y * 6 + 4) = -T6.y;
+    D_n_T(row * 1 + 0, body_id.y * 6 + 5) = -T6.z;
 
     if (solver_mode == SLIDING || solver_mode == SPINNING) {
-      if (contact_active_pairs[index].x) {
-        D_t_T(row * 2 + 0, body_id.x* 6 + 0) = -V.x;
-        D_t_T(row * 2 + 0, body_id.x* 6 + 1) = -V.y;
-        D_t_T(row * 2 + 0, body_id.x* 6 + 2) = -V.z;
+      D_t_T(row * 2 + 0, body_id.x * 6 + 0) = -V.x;
+      D_t_T(row * 2 + 0, body_id.x * 6 + 1) = -V.y;
+      D_t_T(row * 2 + 0, body_id.x * 6 + 2) = -V.z;
 
-        D_t_T(row * 2 + 0, body_id.x* 6 + 3) = T4.x;
-        D_t_T(row * 2 + 0, body_id.x* 6 + 4) = T4.y;
-        D_t_T(row * 2 + 0, body_id.x* 6 + 5) = T4.z;
+      D_t_T(row * 2 + 0, body_id.x * 6 + 3) = T4.x;
+      D_t_T(row * 2 + 0, body_id.x * 6 + 4) = T4.y;
+      D_t_T(row * 2 + 0, body_id.x * 6 + 5) = T4.z;
 
-        D_t_T(row * 2 + 1, body_id.x* 6 + 0) = -W.x;
-        D_t_T(row * 2 + 1, body_id.x* 6 + 1) = -W.y;
-        D_t_T(row * 2 + 1, body_id.x* 6 + 2) = -W.z;
+      D_t_T(row * 2 + 1, body_id.x * 6 + 0) = -W.x;
+      D_t_T(row * 2 + 1, body_id.x * 6 + 1) = -W.y;
+      D_t_T(row * 2 + 1, body_id.x * 6 + 2) = -W.z;
 
-        D_t_T(row * 2 + 1, body_id.x* 6 + 3) = T5.x;
-        D_t_T(row * 2 + 1, body_id.x* 6 + 4) = T5.y;
-        D_t_T(row * 2 + 1, body_id.x* 6 + 5) = T5.z;
-      }
-      if (contact_active_pairs[index].y) {
-        D_t_T(row * 2 + 0, body_id.y* 6 + 0) = V.x;
-        D_t_T(row * 2 + 0, body_id.y* 6 + 1) = V.y;
-        D_t_T(row * 2 + 0, body_id.y* 6 + 2) = V.z;
+      D_t_T(row * 2 + 1, body_id.x * 6 + 3) = T5.x;
+      D_t_T(row * 2 + 1, body_id.x * 6 + 4) = T5.y;
+      D_t_T(row * 2 + 1, body_id.x * 6 + 5) = T5.z;
 
-        D_t_T(row * 2 + 0, body_id.y* 6 + 3) = -T7.x;
-        D_t_T(row * 2 + 0, body_id.y* 6 + 4) = -T7.y;
-        D_t_T(row * 2 + 0, body_id.y* 6 + 5) = -T7.z;
+      D_t_T(row * 2 + 0, body_id.y * 6 + 0) = V.x;
+      D_t_T(row * 2 + 0, body_id.y * 6 + 1) = V.y;
+      D_t_T(row * 2 + 0, body_id.y * 6 + 2) = V.z;
 
-        D_t_T(row * 2 + 1, body_id.y* 6 + 0) = W.x;
-        D_t_T(row * 2 + 1, body_id.y* 6 + 1) = W.y;
-        D_t_T(row * 2 + 1, body_id.y* 6 + 2) = W.z;
+      D_t_T(row * 2 + 0, body_id.y * 6 + 3) = -T7.x;
+      D_t_T(row * 2 + 0, body_id.y * 6 + 4) = -T7.y;
+      D_t_T(row * 2 + 0, body_id.y * 6 + 5) = -T7.z;
 
-        D_t_T(row * 2 + 1, body_id.y* 6 + 3) = -T8.x;
-        D_t_T(row * 2 + 1, body_id.y* 6 + 4) = -T8.y;
-        D_t_T(row * 2 + 1, body_id.y* 6 + 5) = -T8.z;
-      }
+      D_t_T(row * 2 + 1, body_id.y * 6 + 0) = W.x;
+      D_t_T(row * 2 + 1, body_id.y * 6 + 1) = W.y;
+      D_t_T(row * 2 + 1, body_id.y * 6 + 2) = W.z;
+
+      D_t_T(row * 2 + 1, body_id.y * 6 + 3) = -T8.x;
+      D_t_T(row * 2 + 1, body_id.y * 6 + 4) = -T8.y;
+      D_t_T(row * 2 + 1, body_id.y * 6 + 5) = -T8.z;
     }
+
     if (solver_mode == SPINNING) {
       Compute_Jacobian_Rolling(rot[index], U, V, W, TA, TB, TC);
       Compute_Jacobian_Rolling(rot[index + data_container->num_contacts], U, V, W, TD, TE, TF);
-      if (contact_active_pairs[index].x) {
-        D_s_T(row * 3 + 0, body_id.x* 6 + 3) = -TA.x;
-        D_s_T(row * 3 + 0, body_id.x* 6 + 4) = -TA.y;
-        D_s_T(row * 3 + 0, body_id.x* 6 + 5) = -TA.z;
 
-        D_s_T(row * 3 + 1, body_id.x* 6 + 3) = -TB.x;
-        D_s_T(row * 3 + 1, body_id.x* 6 + 4) = -TB.y;
-        D_s_T(row * 3 + 1, body_id.x* 6 + 5) = -TB.z;
+      D_s_T(row * 3 + 0, body_id.x * 6 + 3) = -TA.x;
+      D_s_T(row * 3 + 0, body_id.x * 6 + 4) = -TA.y;
+      D_s_T(row * 3 + 0, body_id.x * 6 + 5) = -TA.z;
 
-        D_s_T(row * 3 + 2, body_id.x* 6 + 3) = -TC.x;
-        D_s_T(row * 3 + 2, body_id.x* 6 + 4) = -TC.y;
-        D_s_T(row * 3 + 2, body_id.x* 6 + 5) = -TC.z;
-      }
-      if (contact_active_pairs[index].y) {
-        D_s_T(row * 3 + 0, body_id.y* 6 + 3) = TD.x;
-        D_s_T(row * 3 + 0, body_id.y* 6 + 4) = TD.y;
-        D_s_T(row * 3 + 0, body_id.y* 6 + 5) = TD.z;
+      D_s_T(row * 3 + 1, body_id.x * 6 + 3) = -TB.x;
+      D_s_T(row * 3 + 1, body_id.x * 6 + 4) = -TB.y;
+      D_s_T(row * 3 + 1, body_id.x * 6 + 5) = -TB.z;
 
-        D_s_T(row * 3 + 1, body_id.y* 6 + 3) = TE.x;
-        D_s_T(row * 3 + 1, body_id.y* 6 + 4) = TE.y;
-        D_s_T(row * 3 + 1, body_id.y* 6 + 5) = TE.z;
+      D_s_T(row * 3 + 2, body_id.x * 6 + 3) = -TC.x;
+      D_s_T(row * 3 + 2, body_id.x * 6 + 4) = -TC.y;
+      D_s_T(row * 3 + 2, body_id.x * 6 + 5) = -TC.z;
 
-        D_s_T(row * 3 + 2, body_id.y* 6 + 3) = TF.x;
-        D_s_T(row * 3 + 2, body_id.y* 6 + 4) = TF.y;
-        D_s_T(row * 3 + 2, body_id.y* 6 + 5) = TF.z;
-      }
+      D_s_T(row * 3 + 0, body_id.y * 6 + 3) = TD.x;
+      D_s_T(row * 3 + 0, body_id.y * 6 + 4) = TD.y;
+      D_s_T(row * 3 + 0, body_id.y * 6 + 5) = TD.z;
+
+      D_s_T(row * 3 + 1, body_id.y * 6 + 3) = TE.x;
+      D_s_T(row * 3 + 1, body_id.y * 6 + 4) = TE.y;
+      D_s_T(row * 3 + 1, body_id.y * 6 + 5) = TE.z;
+
+      D_s_T(row * 3 + 2, body_id.y * 6 + 3) = TF.x;
+      D_s_T(row * 3 + 2, body_id.y * 6 + 4) = TF.y;
+      D_s_T(row * 3 + 2, body_id.y * 6 + 5) = TF.z;
     }
   }
 }
@@ -496,103 +488,91 @@ void ChConstraintRigidRigid::GenerateSparsity()
     int2 body_id = ids[index];
     int row = index;
 
-    if (contact_active_pairs[index].x) {
-      D_n_T.append(row * 1 + 0, body_id.x * 6 + 0, 1);
-      D_n_T.append(row * 1 + 0, body_id.x * 6 + 1, 1);
-      D_n_T.append(row * 1 + 0, body_id.x * 6 + 2, 1);
+    D_n_T.append(row * 1 + 0, body_id.x * 6 + 0, 1);
+    D_n_T.append(row * 1 + 0, body_id.x * 6 + 1, 1);
+    D_n_T.append(row * 1 + 0, body_id.x * 6 + 2, 1);
 
-      D_n_T.append(row * 1 + 0, body_id.x * 6 + 3, 1);
-      D_n_T.append(row * 1 + 0, body_id.x * 6 + 4, 1);
-      D_n_T.append(row * 1 + 0, body_id.x * 6 + 5, 1);
-    }
-    if (contact_active_pairs[index].y) {
-      D_n_T.append(row * 1 + 0, body_id.y * 6 + 0, 1);
-      D_n_T.append(row * 1 + 0, body_id.y * 6 + 1, 1);
-      D_n_T.append(row * 1 + 0, body_id.y * 6 + 2, 1);
+    D_n_T.append(row * 1 + 0, body_id.x * 6 + 3, 1);
+    D_n_T.append(row * 1 + 0, body_id.x * 6 + 4, 1);
+    D_n_T.append(row * 1 + 0, body_id.x * 6 + 5, 1);
 
-      D_n_T.append(row * 1 + 0, body_id.y * 6 + 3, 1);
-      D_n_T.append(row * 1 + 0, body_id.y * 6 + 4, 1);
-      D_n_T.append(row * 1 + 0, body_id.y * 6 + 5, 1);
-    }
+    D_n_T.append(row * 1 + 0, body_id.y * 6 + 0, 1);
+    D_n_T.append(row * 1 + 0, body_id.y * 6 + 1, 1);
+    D_n_T.append(row * 1 + 0, body_id.y * 6 + 2, 1);
+
+    D_n_T.append(row * 1 + 0, body_id.y * 6 + 3, 1);
+    D_n_T.append(row * 1 + 0, body_id.y * 6 + 4, 1);
+    D_n_T.append(row * 1 + 0, body_id.y * 6 + 5, 1);
+
     D_n_T.finalize(row * 1 + 0);
 
     if (solver_mode == SLIDING || solver_mode == SPINNING) {
-      if (contact_active_pairs[index].x) {
-        D_t_T.append(row * 2 + 0, body_id.x * 6 + 0, 1);
-        D_t_T.append(row * 2 + 0, body_id.x * 6 + 1, 1);
-        D_t_T.append(row * 2 + 0, body_id.x * 6 + 2, 1);
+      D_t_T.append(row * 2 + 0, body_id.x * 6 + 0, 1);
+      D_t_T.append(row * 2 + 0, body_id.x * 6 + 1, 1);
+      D_t_T.append(row * 2 + 0, body_id.x * 6 + 2, 1);
 
-        D_t_T.append(row * 2 + 0, body_id.x * 6 + 3, 1);
-        D_t_T.append(row * 2 + 0, body_id.x * 6 + 4, 1);
-        D_t_T.append(row * 2 + 0, body_id.x * 6 + 5, 1);
-      }
-      if (contact_active_pairs[index].y) {
-        D_t_T.append(row * 2 + 0, body_id.y * 6 + 0, 1);
-        D_t_T.append(row * 2 + 0, body_id.y * 6 + 1, 1);
-        D_t_T.append(row * 2 + 0, body_id.y * 6 + 2, 1);
+      D_t_T.append(row * 2 + 0, body_id.x * 6 + 3, 1);
+      D_t_T.append(row * 2 + 0, body_id.x * 6 + 4, 1);
+      D_t_T.append(row * 2 + 0, body_id.x * 6 + 5, 1);
 
-        D_t_T.append(row * 2 + 0, body_id.y * 6 + 3, 1);
-        D_t_T.append(row * 2 + 0, body_id.y * 6 + 4, 1);
-        D_t_T.append(row * 2 + 0, body_id.y * 6 + 5, 1);
-      }
+      D_t_T.append(row * 2 + 0, body_id.y * 6 + 0, 1);
+      D_t_T.append(row * 2 + 0, body_id.y * 6 + 1, 1);
+      D_t_T.append(row * 2 + 0, body_id.y * 6 + 2, 1);
+
+      D_t_T.append(row * 2 + 0, body_id.y * 6 + 3, 1);
+      D_t_T.append(row * 2 + 0, body_id.y * 6 + 4, 1);
+      D_t_T.append(row * 2 + 0, body_id.y * 6 + 5, 1);
+
       D_t_T.finalize(row * 2 + 0);
 
-      if (contact_active_pairs[index].x) {
-        D_t_T.append(row * 2 + 1, body_id.x * 6 + 0, 1);
-        D_t_T.append(row * 2 + 1, body_id.x * 6 + 1, 1);
-        D_t_T.append(row * 2 + 1, body_id.x * 6 + 2, 1);
+      D_t_T.append(row * 2 + 1, body_id.x * 6 + 0, 1);
+      D_t_T.append(row * 2 + 1, body_id.x * 6 + 1, 1);
+      D_t_T.append(row * 2 + 1, body_id.x * 6 + 2, 1);
 
-        D_t_T.append(row * 2 + 1, body_id.x * 6 + 3, 1);
-        D_t_T.append(row * 2 + 1, body_id.x * 6 + 4, 1);
-        D_t_T.append(row * 2 + 1, body_id.x * 6 + 5, 1);
-      }
-      if (contact_active_pairs[index].y) {
-        D_t_T.append(row * 2 + 1, body_id.y * 6 + 0, 1);
-        D_t_T.append(row * 2 + 1, body_id.y * 6 + 1, 1);
-        D_t_T.append(row * 2 + 1, body_id.y * 6 + 2, 1);
+      D_t_T.append(row * 2 + 1, body_id.x * 6 + 3, 1);
+      D_t_T.append(row * 2 + 1, body_id.x * 6 + 4, 1);
+      D_t_T.append(row * 2 + 1, body_id.x * 6 + 5, 1);
 
-        D_t_T.append(row * 2 + 1, body_id.y * 6 + 3, 1);
-        D_t_T.append(row * 2 + 1, body_id.y * 6 + 4, 1);
-        D_t_T.append(row * 2 + 1, body_id.y * 6 + 5, 1);
-      }
+      D_t_T.append(row * 2 + 1, body_id.y * 6 + 0, 1);
+      D_t_T.append(row * 2 + 1, body_id.y * 6 + 1, 1);
+      D_t_T.append(row * 2 + 1, body_id.y * 6 + 2, 1);
+
+      D_t_T.append(row * 2 + 1, body_id.y * 6 + 3, 1);
+      D_t_T.append(row * 2 + 1, body_id.y * 6 + 4, 1);
+      D_t_T.append(row * 2 + 1, body_id.y * 6 + 5, 1);
+
       D_t_T.finalize(row * 2 + 1);
     }
 
     if (solver_mode == SPINNING) {
-      if (contact_active_pairs[index].x) {
-        D_s_T.append(row * 3 + 0, body_id.x * 6 + 3, 1);
-        D_s_T.append(row * 3 + 0, body_id.x * 6 + 4, 1);
-        D_s_T.append(row * 3 + 0, body_id.x * 6 + 5, 1);
-      }
-      if (contact_active_pairs[index].y) {
-        D_s_T.append(row * 3 + 0, body_id.y * 6 + 3, 1);
-        D_s_T.append(row * 3 + 0, body_id.y * 6 + 4, 1);
-        D_s_T.append(row * 3 + 0, body_id.y * 6 + 5, 1);
-      }
+      D_s_T.append(row * 3 + 0, body_id.x * 6 + 3, 1);
+      D_s_T.append(row * 3 + 0, body_id.x * 6 + 4, 1);
+      D_s_T.append(row * 3 + 0, body_id.x * 6 + 5, 1);
+
+      D_s_T.append(row * 3 + 0, body_id.y * 6 + 3, 1);
+      D_s_T.append(row * 3 + 0, body_id.y * 6 + 4, 1);
+      D_s_T.append(row * 3 + 0, body_id.y * 6 + 5, 1);
+
       D_s_T.finalize(row * 3 + 0);
 
-      if (contact_active_pairs[index].x) {
-        D_s_T.append(row * 3 + 1, body_id.x * 6 + 3, 1);
-        D_s_T.append(row * 3 + 1, body_id.x * 6 + 4, 1);
-        D_s_T.append(row * 3 + 1, body_id.x * 6 + 5, 1);
-      }
-      if (contact_active_pairs[index].y) {
-        D_s_T.append(row * 3 + 1, body_id.y * 6 + 3, 1);
-        D_s_T.append(row * 3 + 1, body_id.y * 6 + 4, 1);
-        D_s_T.append(row * 3 + 1, body_id.y * 6 + 5, 1);
-      }
+      D_s_T.append(row * 3 + 1, body_id.x * 6 + 3, 1);
+      D_s_T.append(row * 3 + 1, body_id.x * 6 + 4, 1);
+      D_s_T.append(row * 3 + 1, body_id.x * 6 + 5, 1);
+
+      D_s_T.append(row * 3 + 1, body_id.y * 6 + 3, 1);
+      D_s_T.append(row * 3 + 1, body_id.y * 6 + 4, 1);
+      D_s_T.append(row * 3 + 1, body_id.y * 6 + 5, 1);
+
       D_s_T.finalize(row * 3 + 1);
-      
-      if (contact_active_pairs[index].x) {
-        D_s_T.append(row * 3 + 2, body_id.x * 6 + 3, 1);
-        D_s_T.append(row * 3 + 2, body_id.x * 6 + 4, 1);
-        D_s_T.append(row * 3 + 2, body_id.x * 6 + 5, 1);
-      }
-      if (contact_active_pairs[index].y) {
-        D_s_T.append(row * 3 + 2, body_id.y * 6 + 3, 1);
-        D_s_T.append(row * 3 + 2, body_id.y * 6 + 4, 1);
-        D_s_T.append(row * 3 + 2, body_id.y * 6 + 5, 1);
-      }
+
+      D_s_T.append(row * 3 + 2, body_id.x * 6 + 3, 1);
+      D_s_T.append(row * 3 + 2, body_id.x * 6 + 4, 1);
+      D_s_T.append(row * 3 + 2, body_id.x * 6 + 5, 1);
+
+      D_s_T.append(row * 3 + 2, body_id.y * 6 + 3, 1);
+      D_s_T.append(row * 3 + 2, body_id.y * 6 + 4, 1);
+      D_s_T.append(row * 3 + 2, body_id.y * 6 + 5, 1);
+
       D_s_T.finalize(row * 3 + 2);
     }
   }
