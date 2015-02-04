@@ -56,22 +56,21 @@ DriveChain::DriveChain(const std::string& name,
   // doesn't matter for the chassis, since no visuals used
   m_meshName = "na";
   m_meshFile = utils::GetModelDataFile("M113/M113SprocketLeft_XforwardYup.obj");
-  // m_chassisBoxSize = ChVector<>(2.0, 0.6, 0.75);
-
+  m_chassisBoxSize = ChVector<>(2.0, 0.6, 0.75);
 
   // create the chassis body    
   m_chassis = ChSharedPtr<ChBodyAuxRef>(new ChBodyAuxRef);
   m_chassis->SetIdentifier(0);
   m_chassis->SetNameString(name);
   // basic body info. Not relevant since it's fixed.
-   m_chassis->SetFrame_COG_to_REF(ChFrame<>() );
+  m_chassis->SetFrame_COG_to_REF(ChFrame<>() );
   m_chassis->SetMass(100);
   m_chassis->SetInertiaXX(ChVector<>(10,10,10) );
   // chassis is fixed to ground
   m_chassis->SetBodyFixed(true);
     
   // add the chassis body to the system
-  GetSystem()->Add(m_chassis);
+  m_system->Add(m_chassis);
   
   // build one of each of the following subsystems. 
   m_gear = ChSharedPtr<DriveGear>(new DriveGear("drive gear",
@@ -83,14 +82,13 @@ DriveChain::DriveChain(const std::string& name,
     collide));	// CollisionType::PRIMITIVES) );
 
   m_chain = ChSharedPtr<TrackChain>(new TrackChain("chain",
-    vis,	// VisualizationType::PRIMITIVES,
-    collide));	// CollisionType::PRIMITIVES) );
+    VisualizationType::COMPOUNDPRIMITIVES,
+    CollisionType::PRIMITIVES) );
   
   m_num_engines = 1;
-  // create the powertrain and drivelines
-  m_driveline = ChSharedPtr<TrackDriveline_1WD>(new TrackDriveline_1WD("driveline ") );
-  m_ptrain = ChSharedPtr<TrackPowertrain>(new TrackPowertrain("powertrain ") );
 
+  // create the powertrain, connect transmission shaft directly to gear shaft
+  m_ptrain = ChSharedPtr<TrackPowertrain>(new TrackPowertrain("powertrain ") );
 
 }
 
@@ -105,10 +103,10 @@ DriveChain::~DriveChain()
 void DriveChain::Initialize(const ChCoordsys<>& gear_Csys)
 {
   // initialize the drive gear, idler and track chain
+  double idler_preload = 20000;
   // m_idlerPosRel = m_idlerPos;
-  m_idlerPosRel = ChVector<>(1.0, 0, 0);
-  m_chassis->SetPos(gear_Csys.pos);
-  m_chassis->SetRot(gear_Csys.rot);
+  m_idlerPosRel = ChVector<>(-1.5, 0, 0);
+  m_chassis->SetFrame_REF_to_abs(ChFrame<>(gear_Csys.pos, gear_Csys.rot));
   
   // initialize 1 of each of the following subsystems.
   // will use the chassis ref frame to do the transforms, since the TrackSystem
@@ -119,53 +117,53 @@ void DriveChain::Initialize(const ChCoordsys<>& gear_Csys)
 
   m_idler->Initialize(m_chassis, 
     m_chassis->GetFrame_REF_to_abs(),
-    ChCoordsys<>(m_idlerPosRel, QUNIT) );
+    ChCoordsys<>(m_idlerPosRel, QUNIT),
+    idler_preload);
 
   // Create list of the center location of the rolling elements and their clearance.
   // Clearance is a sphere shaped envelope at each center location, where it can
   //  be guaranteed that the track chain geometry will not penetrate the sphere.
   std::vector<ChVector<>> rolling_elem_locs; // w.r.t. chassis ref. frame
   std::vector<double> clearance;  // 1 per rolling elem  
+  std::vector<ChVector<>> rolling_elem_spin_axis; /// w.r.t. abs. frame
   
   // drive sprocket is First added to the lists passed into TrackChain Init()
   rolling_elem_locs.push_back(ChVector<>() );
   clearance.push_back(m_gear->GetRadius() );
+  rolling_elem_spin_axis.push_back(m_gear->GetBody()->GetRot().GetZaxis() );
 
   // add to the lists passed into the track chain Init()
   rolling_elem_locs.push_back(m_idlerPosRel );
   clearance.push_back(m_idler->GetRadius() );
+  rolling_elem_spin_axis.push_back(m_idler->GetBody()->GetRot().GetZaxis() );
 
-  // loop back around to the gear.
-  rolling_elem_locs.push_back(ChVector<>() );
-  clearance.push_back(m_gear->GetRadius() );
   // when there's only 2 rolling elements, the above locations will repeat
   // the first rolling element at the front and end of the vector.
   // So, just use the mid-point between the first two rolling elements.
   ChVector<> start_pos = (rolling_elem_locs[0] + rolling_elem_locs[1])/2.0;
   start_pos.y += (clearance[0] + clearance[1])/2.0;
 
+  // NOTE: start_pos needs to somewhere on the top length of chain.
+  // Rolling_elem_locs MUST be ordered from front-most to the rear, 
+  //  w.r.t. the chassis x-dir, so chain links created in a clockwise direction.
 
-  // Assumption: start_pos should lie close to where the actual track chain would 
-  //             pass between the first and last rolling elements. (e.g., idler and gear)
-  // MUST be on the top part of the chain so the chain wrap rotation direction can be assumed.
-  // rolling_elem_locs, start_pos w.r.t. chassis c-sys
   m_chain->Initialize(m_chassis, 
     m_chassis->GetFrame_REF_to_abs(),
     rolling_elem_locs, clearance,
+    rolling_elem_spin_axis,
     start_pos );
   
   // initialize the powertrain, drivelines
-  m_driveline->Initialize(m_chassis, m_gear);
-  m_ptrain->Initialize(m_chassis, m_driveline->GetDriveshaft() );
+  m_ptrain->Initialize(m_chassis, m_gear->GetAxle() );
 }
 
 
 void DriveChain::Update(double time,
                         double throttle,
-                        double  braking)
+                        double braking)
 {
   // update left and right powertrains, with the new left and right throttle/shaftspeed
-  m_ptrain->Update(time, throttle, m_driveline->GetDriveshaftSpeed() );
+  m_ptrain->Update(time, throttle, GetDriveshaftSpeed(0) );
 
 }
 

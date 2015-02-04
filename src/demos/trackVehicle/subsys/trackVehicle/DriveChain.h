@@ -31,7 +31,6 @@
 #include "subsys/idler/IdlerSimple.h"
 #include "subsys/trackChain/TrackChain.h"
 #include "subsys/powertrain/TrackPowertrain.h"
-#include "subsys/driveline/TrackDriveline_1WD.h"
 
 namespace chrono {
 
@@ -62,16 +61,13 @@ public:
   // Accessors
 
   /// Get the angular speed of the driveshaft.
-  virtual double GetDriveshaftSpeed(size_t idx) const { return m_driveline->GetDriveshaftSpeed(); }
+  virtual double GetDriveshaftSpeed(size_t idx) const { return m_gear->GetAxle()->GetPos_dt(); }
 
   /// pointer to the powertrain
-  virtual TrackPowertrain* GetPowertrain(size_t idx) { return m_ptrain.get_ptr(); }
-
-  /// vehicle's driveline subsystem.
-  TrackDriveline_1WD* GetDriveline(int idx) { return m_driveline.get_ptr(); }
+  virtual const ChSharedPtr<TrackPowertrain> GetPowertrain(size_t idx) const { return m_ptrain; }
 
   /// vehicle's driveshaft body.
-  ChShaft* GetDriveshaft(size_t idx) {return m_driveline->GetDriveshaft().get_ptr(); }
+  ChShaft* GetDriveshaft(size_t idx) {return m_gear->GetAxle().get_ptr(); }
 
   /// current value of the integration step size for the vehicle system.
   double GetStepsize() const { return m_stepsize; }
@@ -97,11 +93,9 @@ private:
 
   ChVector<> m_idlerPosRel;	///< position of idler COG relative to local c-sys
   
-  ChSharedPtr<TrackDriveline_1WD>   m_driveline;  ///< handle to the driveline subsystem
   ChSharedPtr<TrackPowertrain>  m_ptrain;  ///< powertrain system
 
   size_t m_num_idlers;
-  double m_stepsize;          ///< integration time step for the system
 	
   // static variables. hard-coded for now
   static const ChVector<> m_idlerPos; // relative to chassis frame, which is the same as the gear's (initially)
