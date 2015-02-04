@@ -28,7 +28,6 @@ ChSystemParallelDVI::ChSystemParallelDVI(unsigned int max_objects)
    data_manager->system_timer.AddTimer("ChSolverParallel_solverG");
    data_manager->system_timer.AddTimer("ChSolverParallel_Project");
    data_manager->system_timer.AddTimer("ChSolverParallel_Solve");
-
 }
 
 void ChSystemParallelDVI::AddMaterialSurfaceData(ChSharedPtr<ChBody> newbody) {
@@ -52,6 +51,18 @@ void ChSystemParallelDVI::UpdateMaterialSurfaceData(int index, ChBody* body)
   friction[index] = R3(mat->GetKfriction(), mat->GetRollingFriction(), mat->GetSpinningFriction());
   cohesion[index] = mat->GetCohesion();
   compliance[index] = R4(mat->GetCompliance(), mat->GetComplianceT(), mat->GetComplianceRolling(), mat->GetComplianceSpinning());
+}
+
+real3 ChSystemParallelDVI::GetBodyContactForce(uint body_id) const
+{
+  //// TODO
+  return R3(0);
+}
+
+real3 ChSystemParallelDVI::GetBodyContactTorque(uint body_id) const
+{
+  //// TODO
+  return R3(0);
 }
 
 static inline chrono::ChVector<real> ToChVector(const real3 &a) {

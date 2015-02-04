@@ -63,13 +63,32 @@ void ChSystemParallelDEM::UpdateMaterialSurfaceData(int index, ChBody* body)
   }
 }
 
-
 void ChSystemParallelDEM::ChangeCollisionSystem(COLLISIONSYSTEMTYPE type)
 {
   ChSystemParallel::ChangeCollisionSystem(type);
 
   if (ChCollisionSystemParallel* coll_sys = dynamic_cast<ChCollisionSystemParallel*>(collision_system))
     coll_sys->SetCollisionEnvelope(0);
+}
+
+real3 ChSystemParallelDEM::GetBodyContactForce(uint body_id) const
+{
+  int index = data_manager->host_data.ct_body_map[body_id];
+
+  if (index == -1)
+    return R3(0);
+
+  return data_manager->host_data.ct_body_force[index];
+}
+
+real3 ChSystemParallelDEM::GetBodyContactTorque(uint body_id) const
+{
+  int index = data_manager->host_data.ct_body_map[body_id];
+
+  if (index == -1)
+    return R3(0);
+
+  return data_manager->host_data.ct_body_torque[index];
 }
 
 void ChSystemParallelDEM::PrintStepStats()

@@ -46,8 +46,7 @@
 namespace chrono {
 
 class CH_PARALLEL_API ChSystemParallel : public ChSystem {
-CH_RTTI(ChSystemParallel, ChSystem)
-   ;
+CH_RTTI(ChSystemParallel, ChSystem);
 
  public:
    ChSystemParallel(unsigned int max_objects);
@@ -97,9 +96,14 @@ CH_RTTI(ChSystemParallel, ChSystem)
    double GetTimerCollision() {
       return timer_collision;
    }
+
+   virtual real3 GetBodyContactForce(uint body_id) const = 0;
+   virtual real3 GetBodyContactTorque(uint body_id) const = 0;
+
    settings_container * GetSettings() {
       return &(data_manager->settings);
    }
+
    ChParallelDataManager *data_manager;
 
  protected:
@@ -121,8 +125,7 @@ CH_RTTI(ChSystemParallel, ChSystem)
 };
 
 class CH_PARALLEL_API ChSystemParallelDVI : public ChSystemParallel {
-CH_RTTI(ChSystemParallelDVI, ChSystemParallel)
-   ;
+CH_RTTI(ChSystemParallelDVI, ChSystemParallel);
 
  public:
    ChSystemParallelDVI(unsigned int max_objects = 1000);
@@ -132,13 +135,15 @@ CH_RTTI(ChSystemParallelDVI, ChSystemParallel)
    virtual void AddMaterialSurfaceData(ChSharedPtr<ChBody> newbody);
    virtual void UpdateMaterialSurfaceData(int index, ChBody* body);
 
+   virtual real3 GetBodyContactForce(uint body_id) const;
+   virtual real3 GetBodyContactTorque(uint body_id) const;
+
    virtual void AssembleSystem();
    virtual void SolveSystem();
 };
 
 class CH_PARALLEL_API ChSystemParallelDEM : public ChSystemParallel {
-CH_RTTI(ChSystemParallelDEM, ChSystemParallel)
-   ;
+CH_RTTI(ChSystemParallelDEM, ChSystemParallel);
 
  public:
    ChSystemParallelDEM(unsigned int max_objects = 1000,
@@ -148,6 +153,9 @@ CH_RTTI(ChSystemParallelDEM, ChSystemParallel)
    virtual void AddMaterialSurfaceData(ChSharedPtr<ChBody> newbody);
    virtual void UpdateMaterialSurfaceData(int index, ChBody* body);
    virtual void ChangeCollisionSystem(COLLISIONSYSTEMTYPE type);
+
+   virtual real3 GetBodyContactForce(uint body_id) const;
+   virtual real3 GetBodyContactTorque(uint body_id) const;
 
    virtual void PrintStepStats();
 
