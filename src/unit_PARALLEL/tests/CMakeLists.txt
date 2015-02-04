@@ -57,6 +57,7 @@ ENDIF()
 # List of all executables
 
 SET(DEMOS
+    ballsDEM
     ballsDVI
     mixerDEM
     mixerDVI
