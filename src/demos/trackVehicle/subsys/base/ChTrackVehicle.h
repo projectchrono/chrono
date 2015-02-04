@@ -56,7 +56,7 @@ public:
   virtual double GetDriveshaftSpeed(size_t idx) const = 0;
 
     /// pointer to the powertrain
-  virtual TrackPowertrain* GetPowertrain(size_t idx) = 0;
+  virtual const ChSharedPtr<TrackPowertrain> GetPowertrain(size_t idx) const = 0;
 
   /// Get the local driver position and orientation, relative to the chassis reference frame.
   virtual ChCoordsys<> GetLocalDriverCoordsys() const { return ChCoordsys<>(); }
@@ -87,7 +87,7 @@ public:
   double GetVehicleSpeedCOM() const { return m_chassis->GetPos_dt().Length(); }
 
   /// Get the global location of the driver.
-  ChVector<> GetDriverPos() const;
+  const ChVector<>& GetDriverPos() const;
 
   /// number of track chain systems attached to the vehicle
   int GetNum_Engines() const { return m_num_engines; }
@@ -95,7 +95,7 @@ public:
   /// Initialize at the specified global location and orientation.
   virtual void Initialize(
     const ChCoordsys<>& chassis_Csys   ///< [in] initial config of vehicle REF frame
-    ) {}
+  ) {}
 
   /// Update the state at the current time, driver inputs between 0 and 1.
   virtual void Update(double    time,       ///< [in] current time
@@ -118,11 +118,14 @@ public:
 protected:
 
   // private functions
+  virtual void AddVisualization();
+  virtual void AddCollisionGeometry(double mu = 0.8,
+                                    double mu_sliding = 0.7,
+                                    double mu_roll = 0.2,
+                                    double mu_spin = 0.2);
+
   const std::string& getMeshName() const { return m_meshName; }
   const std::string& getMeshFile() const { return m_meshFile; }
-
-  virtual void AddVisualization();
-  virtual void AddCollisionGeometry();
 
   ChSystem*                  m_system;       ///< pointer to the Chrono system
   bool                       m_ownsSystem;   ///< true if system created at construction

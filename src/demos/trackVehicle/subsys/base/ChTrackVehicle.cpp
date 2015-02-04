@@ -90,7 +90,7 @@ void ChTrackVehicle::Advance(double step)
 // -----------------------------------------------------------------------------
 // Return the global driver position
 // -----------------------------------------------------------------------------
-ChVector<> ChTrackVehicle::GetDriverPos() const
+const ChVector<>& ChTrackVehicle::GetDriverPos() const
 {
   return m_chassis->GetCoord().TransformPointLocalToParent(GetLocalDriverCoordsys().pos);
 }
@@ -150,7 +150,10 @@ void ChTrackVehicle::AddVisualization()
 
 }
 
-void ChTrackVehicle::AddCollisionGeometry()
+void ChTrackVehicle::AddCollisionGeometry(double mu,
+                                          double mu_sliding,
+                                          double mu_roll,
+                                          double mu_spin)
 {
   // add collision geometrey to the chassis, if enabled
   if( m_collide == CollisionType::NONE)
@@ -163,6 +166,12 @@ void ChTrackVehicle::AddCollisionGeometry()
 
   m_chassis->GetCollisionModel()->SetSafeMargin(0.001);	// inward safe margin
 	m_chassis->GetCollisionModel()->SetEnvelope(0.002);		// distance of the outward "collision envelope"
+
+  // set the collision material
+  m_chassis->GetMaterialSurface()->SetSfriction(mu);
+  m_chassis->GetMaterialSurface()->SetKfriction(mu_sliding);
+  m_chassis->GetMaterialSurface()->SetRollingFriction(mu_roll);
+  m_chassis->GetMaterialSurface()->SetSpinningFriction(mu_spin);
 
   switch (m_collide) {
   case CollisionType::PRIMITIVES:
