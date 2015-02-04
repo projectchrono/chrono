@@ -6,6 +6,8 @@
 #include "chrono_parallel/math/ChParallelMath.h"
 #include "chrono_parallel/ChParallelDefines.h"
 
+#include <thrust/host_vector.h>
+
 namespace chrono {
 namespace collision {
 

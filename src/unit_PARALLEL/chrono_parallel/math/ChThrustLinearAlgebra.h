@@ -19,7 +19,9 @@
 #define CHTHRUSTLINEARALGEBRA_H
 
 #include <algorithm>
-
+#include <iostream>
+#include <thrust/execution_policy.h>
+#include <thrust/system/omp/execution_policy.h>
 #include "chrono_parallel/ChConfigParallel.h"
 #include "chrono_parallel/math/ChParallelMath.h"
 

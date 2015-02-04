@@ -20,7 +20,7 @@
 
 #include "chrono_parallel/ChParallelDefines.h"
 #include "chrono_parallel/math/real.h"
-
+#include <iostream>
 #define R2  make_real2
 
 struct real2 {

@@ -1,4 +1,5 @@
 #include <algorithm>
+#include <thrust/iterator/constant_iterator.h>
 #include "chrono_parallel/collision/ChCBroadphase.h"
 
 namespace chrono {

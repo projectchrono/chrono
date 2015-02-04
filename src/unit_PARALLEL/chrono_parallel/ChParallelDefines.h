@@ -31,37 +31,6 @@
 #ifndef _MSC_VER
 #include <fenv.h>
 #endif
-
-#include <time.h>
-#include <iostream>
-#include <numeric>
-#include <algorithm>
-#include <thrust/host_vector.h>
-#include <thrust/device_vector.h>
-#include <cmath>
-#include <vector>
-#include <string.h>
-#include <thrust/transform.h>
-#include <thrust/functional.h>
-#include <thrust/inner_product.h>
-#include <thrust/sort.h>
-#include <thrust/copy.h>
-#include <thrust/count.h>
-#include <thrust/scan.h>
-#include <thrust/merge.h>
-#include <thrust/sequence.h>
-#include <thrust/extrema.h>
-#include <thrust/binary_search.h>
-#include <thrust/set_operations.h>
-#include <thrust/iterator/constant_iterator.h>
-#include <thrust/for_each.h>
-#include <thrust/iterator/zip_iterator.h>
-#include <thrust/unique.h>
-#include <thrust/remove.h>
-#include <thrust/random.h>
-#include <thrust/system/omp/execution_policy.h>
-//#include <thrust/system/tbb/execution_policy.h>
-#include <thrust/execution_policy.h>
 #include "chrono_parallel/ChApiParallel.h"
 #include "chrono_parallel/ChConfigParallel.h"
 
