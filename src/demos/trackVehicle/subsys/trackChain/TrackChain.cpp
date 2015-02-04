@@ -44,11 +44,11 @@ const std::string TrackChain::m_meshFile = utils::GetModelDataFile("M113/shoe_vi
 const double TrackChain::m_mass = 18.02;
 const ChVector<> TrackChain::m_inertia(0.22, 0.25,  0.04); // TODO: what is this w/ new single pin configuration???
 const ChVector<> TrackChain::m_COM = ChVector<>(0., 0., 0.);  // location of COM, relative to REF (e.g, geomtric center)
-const ChVector<> TrackChain::m_shoe_box(0.205, 0.0663, 0.38); // length, height, width HALF DIMS!
+const ChVector<> TrackChain::m_shoe_box(0.205, 0.0663, 0.38); // length, height, width
 const double TrackChain::m_pin_width = 0.531; // total width of cylinder pinseach 
-const double TrackChain::m_pin_dist = 0.15162;   // 0.205; // linear distance between a shoe chain spacing. exact = 0.205
+const double TrackChain::m_pin_dist = 0.15162;   // .205; // linear distance between a shoe chain spacing. exact = 0.205
 const double TrackChain::m_pin_radius = 0.02317;
-const ChVector<> TrackChain::m_tooth_box(0.08, 0.075/2.0, 0.04);  // length, height, width
+const ChVector<> TrackChain::m_tooth_box(0.08, 0.07967/2.0, 0.08/2.0);  // length, height, width
  // distance between body center and the vertical offset to the inner-surface of the collision geometry
 //  used for initializing shoes as a chain
 const double TrackChain::m_shoe_chain_Yoffset = 0.04; // .03315 exact
@@ -64,12 +64,12 @@ TrackChain::TrackChain(const std::string& name,
   m_shoes.push_back(ChSharedPtr<ChBody>(new ChBody));
   // m_shoes.push_back(ChSharedPtr<ChBodyAuxRef>(new ChBodyAuxRef));
   // m_shoes[0]->SetFrame_COG_to_REF(ChFrame<>(m_COM,QUNIT));
+
   m_numShoes++;
 
   m_shoes.front()->SetNameString("shoe 1, "+name);
   m_shoes.front()->SetMass(m_mass);
   m_shoes.front()->SetInertiaXX(m_inertia);
-
 
   // Attach visualization to the base track shoe
   AddVisualization(0, true, "cubetexture_pinkwhite.png");
@@ -80,6 +80,7 @@ void TrackChain::Initialize(ChSharedPtr<ChBody> chassis,
                             const ChFrame<>& chassis_REF,
                             const std::vector<ChVector<>>& rolling_element_loc,
                             const std::vector<double>& clearance,
+                            const std::vector<ChVector<>>& spin_axis,
                             const ChVector<>& start_loc)
 {
   assert(rolling_element_loc.size() == clearance.size() );
@@ -99,7 +100,8 @@ void TrackChain::Initialize(ChSharedPtr<ChBody> chassis,
   ChVector<> end_point; // end point of the current segment
   ChVector<> rad_dir;   // center to segment start/end point on rolling elments
   ChVector<> r_21;      // vector between two pulley centerpoints
-  ChVector<> norm_dir;  // norm = r_12 cross r_32
+  //ChVector<> lateral_dir;  // norm = r_12 cross r_32
+
   // iterate over the line segments, first segment is between start_loc and rolling_elem 0
   // last segment  is between rolling_elem[last] and rolling_elem[last-1]
   for(size_t i = 0; i < num_elem; i++)
@@ -137,13 +139,14 @@ void TrackChain::Initialize(ChSharedPtr<ChBody> chassis,
         double h = start_cen.Length();
         double phi = std::asin( seglen / h ); // what theta should be
         double rot_ang = theta - phi;
+
         // find the radial direction from the center of adjacent rolling elements
         // for seg i, norm = r12 x r32
-        norm_dir = Vcross(rolling_element_loc.back() - rolling_element_loc[0],
-          rolling_element_loc[1] - rolling_element_loc[0]);
-        norm_dir.Normalize();
+        // lateral_dir = Vcross(rolling_element_loc.back() - rolling_element_loc[0], rolling_element_loc[1] - rolling_element_loc[0]);
+        // no real reason why this wouldn't be the z-axis of the rolling element body???
+
         // rotate rad_dir about norm axis
-        ChQuaternion<> rot_q = Q_from_AngAxis(rot_ang, norm_dir);
+        ChQuaternion<> rot_q = Q_from_AngAxis(rot_ang, spin_axis[i].GetNormalized());
         ChFrame<> rad_dir_frame(rad_dir, QUNIT);
         rad_dir =  (rot_q * rad_dir_frame).GetPos();
       }
@@ -156,6 +159,7 @@ void TrackChain::Initialize(ChSharedPtr<ChBody> chassis,
       // first guess at start/end points: center distance vector
       r_21 = rolling_element_loc[i] - rolling_element_loc[i-1];
 
+      /*
       // find the radial direction from the center of adjacent rolling elements
       // for seg i, norm = [r(i-2)-r(i-1)] x [r(i)-r(i-1)
       if(i == 1)
@@ -173,8 +177,10 @@ void TrackChain::Initialize(ChSharedPtr<ChBody> chassis,
           rolling_element_loc[i] - rolling_element_loc[i-1]);
       }
       norm_dir.Normalize();
+      */
+
       // if the two rolling elements have the same radius, no angle of wrap.
-      rad_dir = Vcross(norm_dir, r_21.GetNormalized());
+      rad_dir = Vcross(spin_axis[i].GetNormalized(), r_21.GetNormalized());
       rad_dir.Normalize();
       // when not the same size, find the angle of pulley wrap.
       // Probably overkill, but check that the radial vector is ortho. to r_21
@@ -182,7 +188,7 @@ void TrackChain::Initialize(ChSharedPtr<ChBody> chassis,
       {
         // pulley wrap angle, a = (r2-r1)/center_len
         double alpha = asin( (clearance[i] - clearance[i-1]) / r_21.Length() );
-        ChQuaternion<> alpha_rot = Q_from_AngAxis(alpha, norm_dir);
+        ChQuaternion<> alpha_rot = Q_from_AngAxis(alpha, spin_axis[i].GetNormalized());
         ChFrame<> rot_frame(ChVector<>(),alpha_rot);
         // rotate rad_dir the angle of wrap about the normal axis
         rad_dir =  rad_dir >> rot_frame;
@@ -236,13 +242,16 @@ void TrackChain::Initialize(ChSharedPtr<ChBody> chassis,
     double h = start_cen.Length();
     double phi = std::asin( seglen / h ); // what theta should be
     double rot_ang = phi - theta; // since we're looking at it backwards compared to the first rolling element
+    
+    
     // find the radial direction from the center of adjacent rolling elements
     // for seg i, norm = r12 x r32
-    norm_dir = Vcross(rolling_element_loc.back() - rolling_element_loc[0],
-      rolling_element_loc[num_elem-2] - rolling_element_loc.back() );
-    norm_dir.Normalize();
+    // norm_dir = Vcross(rolling_element_loc.back() - rolling_element_loc[0], rolling_element_loc[num_elem-2] - rolling_element_loc.back() );
+    // norm_dir.Normalize();
+    // assert(norm_dir.Length() == 1);
+
     // rotate rad_dir about norm axis
-    ChFrame<> rot_frame(ChVector<>(), Q_from_AngAxis(rot_ang, norm_dir));
+    ChFrame<> rot_frame(ChVector<>(), Q_from_AngAxis(rot_ang, spin_axis.back().GetNormalized()));
     rad_dir =  rad_dir >> rot_frame;
   }
   // rad_dir is now tangent to r_21, so define the new endpoint of this segment

@@ -41,17 +41,17 @@ public:
   
   ~TrackChain() {}
 
-  /// Pass in a vector of center of rolling element bodies w.r.t. chassis c-sys.
   /// Use the clearance to define a spherical envelope for each rolling element.
   /// An envelope is where the surface of the track chain will not penetrate.
   /// Start_loc should be somewhere between the idler and driveGear, e.g. the top of the chain.
-  /// Start_loc is expressed w.r.t chassis c-sys.
   /// NOTE: control_points begin and end with the idler and driveGear
   void Initialize(ChSharedPtr<ChBody> chassis,
     const ChFrame<>& chassis_REF,
-    const std::vector<ChVector<>>& rolling_element_loc,
-    const std::vector<double>& clearance,
-    const ChVector<>& start_loc);
+    const std::vector<ChVector<>>& rolling_element_loc, ///< center of rolling element geometry, w.r.t chassis_REF
+    const std::vector<double>& clearance,       ///< rolling element geometry clearance from center
+     const std::vector<ChVector<>>& spin_axis,  ///< rolling element revolute joint DOF axis, w.r.t absolute c-ssy
+    const ChVector<>& start_loc                 ///< where to place the middle of the first shoe, w.r.t. chassis_REF
+    );
   
   /// handle to the shoe body
   ChSharedPtr<ChBody> GetShoeBody(size_t track_idx); 
