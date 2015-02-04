@@ -18,6 +18,8 @@
 #ifndef REAL3_H
 #define REAL3_H
 
+#include <algorithm>
+
 #include "chrono_parallel/ChParallelDefines.h"
 #include "chrono_parallel/math/real.h"
 #include "chrono_parallel/math/real2.h"
