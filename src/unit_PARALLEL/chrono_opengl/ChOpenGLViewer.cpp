@@ -760,6 +760,10 @@ void ChOpenGLViewer::RenderContacts() {
   if (ChSystemParallel* system = dynamic_cast<ChSystemParallel*>(physics_system)) {
     ChParallelDataManager* data_manager = system->data_manager;
     int num_contacts = data_manager->num_contacts;
+    if (num_contacts == 0) {
+      return;
+    }
+
     contact_data.clear();
     contact_data.resize(num_contacts * 2);
 #pragma omp parallel for
