@@ -1,4 +1,5 @@
 #include <algorithm>
+#include <limits>
 
 #include "chrono_parallel/ChConfigParallel.h"
 #include "chrono_parallel/constraints/ChConstraintRigidRigid.h"
@@ -622,8 +623,8 @@ void compute_roots(real* Poly, int& nbRealRacines, real* Racines) {
 void solve2x2(real& a, real& b, real& c, real& a1, real& b1, real& c1, real& x, real& y) {
   real delta = a * b1 - a1 * b;
   if (delta == 0) {
-    x = NAN;
-    y = NAN;
+    x = std::numeric_limits<real>::quiet_NaN();
+    y = std::numeric_limits<real>::quiet_NaN();
   } else {
     real invd = 1.0 / delta;
     x = (b * c1 - c * b1) * invd;
