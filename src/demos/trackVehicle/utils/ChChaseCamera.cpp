@@ -135,6 +135,13 @@ ChVector<> ChChaseCamera::GetCameraPos() const
   return (m_state == Track) ? m_lastLoc : m_loc;
 }
 
+void ChChaseCamera::SetCameraPos(const ChVector<>& pos)
+{
+  m_loc = pos;
+  m_lastLoc = pos;
+}
+
+
 ChVector<> ChChaseCamera::GetTargetPos() const
 {
   if (m_state == Inside) {

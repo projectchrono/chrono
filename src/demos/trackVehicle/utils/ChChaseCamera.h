@@ -70,6 +70,7 @@ public:
   ChVector<> GetCameraPos() const;
   ChVector<> GetTargetPos() const;
 
+  void SetCameraPos(const ChVector<>& pos);
   void SetHorizGain(double g)             { m_horizGain = g; }
   void SetVertGain(double g)              { m_vertGain = g; }
 
