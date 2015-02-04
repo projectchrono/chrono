@@ -67,7 +67,7 @@ ChVector<> groundPos(0, -1.0, 0);
 double mu = 0.8;  // dry friction coef.
 
 // Simulation step size
-double step_size = 8e-4;
+double step_size = 1e-3;
 
 // Time interval between two render frames
 int FPS = 40;
@@ -127,7 +127,7 @@ int main(int argc, char* argv[])
 
   // The vehicle inherits ChSystem. Input chassis visual and collision type
 	TrackVehicle vehicle("Justins M113 model", 
-    VisualizationType::MESH,
+    VisualizationType::NONE,
     CollisionType::PRIMITIVES);
   
   // set the chassis REF at the specified initial config.
