@@ -262,7 +262,10 @@ void TorsionArmSuspension::AddVisualization()
 }
 
 /// only the road wheels are used for collision
-void TorsionArmSuspension::AddCollisionGeometry()
+void TorsionArmSuspension::AddCollisionGeometry(double mu,
+                            double mu_sliding,
+                            double mu_roll,
+                            double mu_spin)
 {
   // add collision geometrey, if enabled. Warn if not
   if( m_collide == CollisionType::NONE)
@@ -271,11 +274,18 @@ void TorsionArmSuspension::AddCollisionGeometry()
     GetLog() << " !!! Road Wheel " << m_wheel->GetName() << " collision deactivated !!! \n\n";
     return;
   }
+
   m_wheel->SetCollide(true);
   m_wheel->GetCollisionModel()->ClearModel();
 
   m_wheel->GetCollisionModel()->SetSafeMargin(0.001);	// inward safe margin
 	m_wheel->GetCollisionModel()->SetEnvelope(0.002);		// distance of the outward "collision envelope"
+
+  // set the collision material
+  m_wheel->GetMaterialSurface()->SetSfriction(mu);
+  m_wheel->GetMaterialSurface()->SetKfriction(mu_sliding);
+  m_wheel->GetMaterialSurface()->SetRollingFriction(mu_roll);
+  m_wheel->GetMaterialSurface()->SetSpinningFriction(mu_spin);
 
   switch (m_collide) {
   case CollisionType::PRIMITIVES:
