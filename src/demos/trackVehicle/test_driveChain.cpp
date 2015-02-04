@@ -69,9 +69,13 @@ double output_step_size = 1.0 / 1;    // once a second
 
 // #ifdef USE_IRRLICHT
   // Point on chassis tracked by the camera
+ChVector<> trackPoint(-0.5, 0, 0);
+// if chase cam enabled:
 double chaseDist = 3.0;
 double chaseHeight = 0.0;
-ChVector<> trackPoint(0, 0, 0);
+// set a static camera position
+ChVector<> cameraPos(-0.5, 1.25, 2);
+
   /*
 #else
   double tend = 20.0;
@@ -136,6 +140,8 @@ int main(int argc, char* argv[])
 
   // the GUI driver
   ChIrrGuiTrack driver(application, chainSystem, trackPoint, chaseDist, chaseHeight);
+  // even though using a chase camera, set the initial camera position laterally
+  driver.SetCameraPos(cameraPos);
 
   // Set the time response for steering and throttle keyboard inputs.
   // NOTE: this is not exact, since we do not render quite at the specified FPS.
@@ -199,6 +205,8 @@ int main(int argc, char* argv[])
       application.GetVideoDriver()->endScene();
     }
 
+
+
     // Collect output data from modules (for inter-module communication)
     throttle_input = driver.GetThrottle();
     braking_input = driver.GetBraking();
@@ -213,12 +221,17 @@ int main(int argc, char* argv[])
     // Advance simulation for one timestep for all modules
     // double step = realtime_timer.SuggestSimulationStep(step_size);
 
-    driver.Advance(step_size);
+    driver.Advance(step_size, cameraPos);
 
     // SETTLING FOLLOWED BY NORMAL OPERATION STEP SIZES HARDCODED
     // 1e-5 and 1e-4, respectively
-    chainSystem.Advance(step_size);
+    // application.SetPaused(true);
+    if( !application.GetPaused() )
+      chainSystem.Advance(step_size);
+
     step_number++;
+
+    
   }
 
   application.GetDevice()->drop();
