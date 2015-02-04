@@ -67,7 +67,6 @@ void OutputData(ChSystemParallel* sys,
 void AddContainer(ChSystemParallelDVI* sys) {
    // IDs for the two bodies
    int binId = -200;
-   int mixerId = -201;
 
    // Create a common material
    ChSharedPtr<ChMaterialSurface> mat(new ChMaterialSurface);
@@ -151,7 +150,7 @@ int main(int argc,
 
    double out_fps = 50;
 
-   uint max_iteration = 30;
+   uint max_iteration = 300;
    real tolerance = 1e-3;
 
    // Create system
@@ -207,6 +206,11 @@ int main(int argc,
      if (gl_window.Active()) {
        gl_window.DoStepDynamics(time_step);
        gl_window.Render();
+       ////if (gl_window.Running()) {
+       ////  msystem.CalculateContactForces();
+       ////  real3 frc = msystem.GetBodyContactForce(0);
+       ////  std::cout << frc.x << "  " << frc.y << "  " << frc.z << std::endl;
+       ////}
      } else {
        break;
      }
