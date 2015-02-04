@@ -47,9 +47,9 @@ public:
     const ChCoordsys<>& local_Csys);
 
   // accessors
-  ChSharedPtr<ChBody> GetBody() { return m_gear; }
+  ChSharedPtr<ChBody> GetBody() const { return m_gear; }
 
-  ChSharedPtr<ChShaft> GetAxle() { return m_axle; }
+  ChSharedPtr<ChShaft> GetAxle() const { return m_axle; }
 
   double GetRadius() { return m_radius; }
 
@@ -59,7 +59,10 @@ private:
   const std::string& getMeshFile() const { return m_meshFile; }
 
   void AddVisualization();
-  void AddCollisionGeometry();
+  void AddCollisionGeometry(double mu = 0.8,
+                            double mu_sliding = 0.7,
+                            double mu_roll = 0.2,
+                            double mu_spin = 0.2);
   
   // private variables
   ChSharedPtr<ChBody> m_gear;

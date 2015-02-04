@@ -144,7 +144,10 @@ void DriveGear::AddVisualization()
   }
 }
 
-void DriveGear::AddCollisionGeometry()
+void DriveGear::AddCollisionGeometry(double mu,
+                            double mu_sliding,
+                            double mu_roll,
+                            double mu_spin)
 {
   // add collision geometrey, if enabled. Warn if disabled
   if( m_collide == CollisionType::NONE)
@@ -153,11 +156,19 @@ void DriveGear::AddCollisionGeometry()
       GetLog() << " !!! DriveGear " << m_gear->GetName() << " collision deactivated !!! \n\n";
       return;
   }
+
   m_gear->SetCollide(true);
   m_gear->GetCollisionModel()->ClearModel();
 
   m_gear->GetCollisionModel()->SetSafeMargin(0.001);	// inward safe margin
 	m_gear->GetCollisionModel()->SetEnvelope(0.002);		// distance of the outward "collision envelope"
+
+  // set the collision material
+  m_gear->GetMaterialSurface()->SetSfriction(mu);
+  m_gear->GetMaterialSurface()->SetKfriction(mu_sliding);
+  m_gear->GetMaterialSurface()->SetRollingFriction(mu_roll);
+  m_gear->GetMaterialSurface()->SetSpinningFriction(mu_spin);
+
 
   switch (m_collide) {
   case CollisionType::PRIMITIVES:
