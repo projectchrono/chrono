@@ -173,7 +173,7 @@ void TrackVehicle::Advance(double step)
 }
 
 
-double TrackVehicle::GetIdlerForce(size_t side)
+double TrackVehicle::GetIdlerForce(size_t side) const
 {
   assert(side < m_num_tracks);
   ChVector<> out_force = m_TrackSystems[side]->Get_idler_spring_react();
@@ -189,11 +189,10 @@ double TrackVehicle::GetDriveshaftSpeed(size_t idx) const
 }
 
 
-TrackPowertrain* TrackVehicle::GetPowertrain(size_t idx)
+const ChSharedPtr<TrackPowertrain> TrackVehicle::GetPowertrain(size_t idx) const
 { 
   assert( idx < m_num_engines );
-  TrackPowertrain* out_ptr = m_ptrains[idx].get_ptr();
-  return out_ptr;
+  return  m_ptrains[idx];
 }
 
 

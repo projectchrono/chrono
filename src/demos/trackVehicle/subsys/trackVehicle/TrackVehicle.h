@@ -78,13 +78,13 @@ public:
   virtual double GetDriveshaftSpeed(size_t idx) const;
 
   /// pointer to the powertrain
-  virtual TrackPowertrain* GetPowertrain(size_t idx);
+  virtual const ChSharedPtr<TrackPowertrain> GetPowertrain(size_t idx) const;
 
   /// vehicle's driveline subsystem.
-  TrackDriveline* GetDriveline(int idx) { return (m_num_engines > 0 ? m_drivelines[idx].get_ptr(): NULL); }
+  const ChSharedPtr<TrackDriveline> GetDriveline(int idx) const { return m_drivelines[idx]; }
 
   /// vehicle's driveshaft body.
-  ChShaft* GetDriveshaft(size_t idx) {return (m_num_engines > 0 ? m_drivelines[idx]->GetDriveshaft().get_ptr(): NULL); }
+  const ChSharedPtr<ChShaft> GetDriveshaft(size_t idx) const {return m_drivelines[idx]->GetDriveshaft(); }
 
   /// current value of the integration step size for the vehicle system.
   double GetStepsize() const { return m_stepsize; }
@@ -94,7 +94,7 @@ public:
   int GetNum_TrackSystems() const { return m_num_tracks; }
 
   /// return the force exerted by the idler subsystem on the idler body
-  double GetIdlerForce(size_t side);
+  double GetIdlerForce(size_t side) const;
 
   // not really relevant, since it's a static system
   // ChCoordsys<> GetLocalDriverCoordsys() const { return m_driverCsys; }
