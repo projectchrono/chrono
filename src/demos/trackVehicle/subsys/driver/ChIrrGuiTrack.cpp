@@ -46,7 +46,7 @@ ChIrrGuiTrack::ChIrrGuiTrack(ChIrrApp&          app,
                             int                 HUD_y)
 : m_app(app),
   m_vehicle(vehicle),
-  m_powertrain( *vehicle.GetPowertrain(0) ),
+  m_powertrain( vehicle.GetPowertrain(0) ),
   m_HUD_x(HUD_x),
   m_HUD_y(HUD_y),
   m_terrainHeight(0),
@@ -155,13 +155,13 @@ bool ChIrrGuiTrack::OnEvent(const SEvent& event)
       return true;
 
     case KEY_KEY_Z:
-      m_powertrain.SetDriveMode(TrackPowertrain::FORWARD);
+      m_powertrain->SetDriveMode(TrackPowertrain::FORWARD);
       return true;
     case KEY_KEY_X:
-      m_powertrain.SetDriveMode(TrackPowertrain::NEUTRAL);
+      m_powertrain->SetDriveMode(TrackPowertrain::NEUTRAL);
       return true;
     case KEY_KEY_C:
-      m_powertrain.SetDriveMode(TrackPowertrain::REVERSE);
+      m_powertrain->SetDriveMode(TrackPowertrain::REVERSE);
       return true;
 
     // TODO: no LogConstraintViolation() func., yet
@@ -198,6 +198,37 @@ void ChIrrGuiTrack::Advance(double step)
   camera->setTarget(core::vector3df((f32)cam_target.x, (f32)cam_target.y, (f32)cam_target.z));
 
 }
+
+// -----------------------------------------------------------------------------
+void ChIrrGuiTrack::Advance(double step,
+                            const ChVector<>& cam_pos)
+{
+  // Update the ChChaseCamera: take as many integration steps as needed to
+  // exactly reach the value 'step'
+  double t = 0;
+  while (t < step) {
+    double h = std::min<>(m_stepsize, step - t);
+    m_camera.Update(step);
+    t += h;
+  }
+
+  // in this case, just manually set the camera pos
+  ChVector<> cam_target = m_camera.GetTargetPos();
+
+  scene::ICameraSceneNode *camera = m_app.GetSceneManager()->getActiveCamera();
+
+  camera->setPosition(core::vector3df((f32)cam_pos.x, (f32)cam_pos.y, (f32)cam_pos.z));
+  camera->setTarget(core::vector3df((f32)cam_target.x, (f32)cam_target.y, (f32)cam_target.z));
+
+}
+
+// set the Irrlicht camera, and also the have the chaseCamera loc match.
+void ChIrrGuiTrack::SetCameraPos(const ChVector<>& pos)
+{
+  m_app.GetSceneManager()->getActiveCamera()->setPosition(core::vector3df((f32)pos.x, (f32)pos.y, (f32)pos.z));
+  m_camera.SetCameraPos(pos);
+}
+
 
 // -----------------------------------------------------------------------------
 void ChIrrGuiTrack::DrawAll()
@@ -339,28 +370,28 @@ void ChIrrGuiTrack::renderStats()
 
   if( m_vehicle.GetNum_Engines() > 0 )
   {
-    double engine_rpm = m_powertrain.GetMotorSpeed() * 60 / chrono::CH_C_2PI;
+    double engine_rpm = m_powertrain->GetMotorSpeed() * 60 / chrono::CH_C_2PI;
     sprintf(msg, "Eng. RPM: %+.2f", engine_rpm);
     renderLinGauge(std::string(msg), engine_rpm / 7000, false, m_HUD_x, y_pos += 20, 120, 15);
 
-    double engine_torque = m_powertrain.GetMotorTorque();
+    double engine_torque = m_powertrain->GetMotorTorque();
     sprintf(msg, "Eng. Nm: %+.2f", engine_torque);
     renderLinGauge(std::string(msg), engine_torque / 600, false, m_HUD_x,y_pos += 20, 120, 15);
 
-    double tc_slip = m_powertrain.GetTorqueConverterSlippage();
+    double tc_slip = m_powertrain->GetTorqueConverterSlippage();
     sprintf(msg, "T.conv. slip: %+.2f", tc_slip);
     renderLinGauge(std::string(msg), tc_slip / 1, false, m_HUD_x, y_pos += 20, 120, 15);
 
-    double tc_torquein = m_powertrain.GetTorqueConverterInputTorque();
+    double tc_torquein = m_powertrain->GetTorqueConverterInputTorque();
     sprintf(msg, "T.conv. in  Nm: %+.2f", tc_torquein);
     renderLinGauge(std::string(msg), tc_torquein / 600, false, m_HUD_x, y_pos += 20, 120, 15);
 
-    double tc_torqueout = m_powertrain.GetTorqueConverterOutputTorque();
+    double tc_torqueout = m_powertrain->GetTorqueConverterOutputTorque();
     sprintf(msg, "T.conv. out Nm: %+.2f", tc_torqueout);
     renderLinGauge(std::string(msg), tc_torqueout / 600, false, m_HUD_x, y_pos += 20, 120, 15);
 
-    int ngear = m_powertrain.GetCurrentTransmissionGear();
-    TrackPowertrain::DriveMode drivemode = m_powertrain.GetDriveMode();
+    int ngear = m_powertrain->GetCurrentTransmissionGear();
+    TrackPowertrain::DriveMode drivemode = m_powertrain->GetDriveMode();
     switch (drivemode)
     {
     case TrackPowertrain::FORWARD:

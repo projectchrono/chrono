@@ -62,6 +62,10 @@ public:
 
   void Advance(double step);
 
+  /// manually set the camera position
+  void Advance(double step,
+    const ChVector<>& cam_pos);
+
   void DrawAll();
 
   void SetTerrainHeight(double height) { m_terrainHeight = height; }
@@ -71,6 +75,9 @@ public:
   void SetBrakingDelta (double delta)  { m_brakingDelta = delta; }
 
   void SetStepsize(double val) { m_stepsize = val; }
+
+  // absolute c-sys
+  void SetCameraPos(const ChVector<>& pos) ;
 
   // Accessors
   double GetStepsize() const { return m_stepsize; }
@@ -91,7 +98,7 @@ private:
 
   irr::ChIrrAppInterface&   m_app;
   ChTrackVehicle&  m_vehicle;
-  TrackPowertrain& m_powertrain;
+  ChSharedPtr<TrackPowertrain> m_powertrain;
 
   utils::ChChaseCamera      m_camera;
 
