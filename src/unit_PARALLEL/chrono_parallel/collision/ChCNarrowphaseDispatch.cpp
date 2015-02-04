@@ -293,14 +293,9 @@ void host_Dispatch_Finalize(uint icoll,
                             real3* ptB,
                             real* contactDepth) {
   if (system_type == SYSTEM_DVI) {
-    // perform offset for DVI
-
-    real3 posA = body_pos[ID_A], posB = body_pos[ID_B];    // Get the global object position
-
     for (int i = 0; i < nC; i++) {
-      ptA[icoll + i] = ptA[icoll + i] - (norm[icoll + i]) * collision_envelope - posA;
-      ptB[icoll + i] = ptB[icoll + i] + (norm[icoll + i]) * collision_envelope - posB;
-
+      ptA[icoll + i] = ptA[icoll + i] - (norm[icoll + i]) * collision_envelope;
+      ptB[icoll + i] = ptB[icoll + i] + (norm[icoll + i]) * collision_envelope;
       contactDepth[icoll + i] += collision_envelope * 2;
 
       //         std::cout << "N" << norm[icoll + i];

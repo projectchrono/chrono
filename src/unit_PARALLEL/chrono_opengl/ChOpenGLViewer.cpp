@@ -768,10 +768,9 @@ void ChOpenGLViewer::RenderContacts() {
     contact_data.resize(num_contacts * 2);
 #pragma omp parallel for
     for (int i = 0; i < data_manager->num_contacts; i++) {
-      int2 ID = data_manager->host_data.bids_rigid_rigid[i];
 
-      real3 cpta = data_manager->host_data.cpta_rigid_rigid[i] + data_manager->host_data.pos_data[ID.x];
-      real3 cptb = data_manager->host_data.cptb_rigid_rigid[i] + data_manager->host_data.pos_data[ID.y];
+      real3 cpta = data_manager->host_data.cpta_rigid_rigid[i];
+      real3 cptb = data_manager->host_data.cptb_rigid_rigid[i];
 
       contact_data[i] = glm::vec3(cpta.x, cpta.y, cpta.z);
       contact_data[i + data_manager->num_contacts] = glm::vec3(cptb.x, cptb.y, cptb.z);
