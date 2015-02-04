@@ -28,6 +28,7 @@ namespace chrono {
 // idler, right side
 const ChVector<> TrackSystem::m_idlerPos(-2.1904, -0.1443, 0.2447); // relative to local csys
 const ChQuaternion<> TrackSystem::m_idlerRot(QUNIT);
+const double TrackSystem::m_idler_preload = 50000;  // [N]
   
 // drive gear, right side
 const ChVector<> TrackSystem::m_gearPos(1.7741, -0.0099, 0.2447);  // relative to local csys
@@ -129,7 +130,7 @@ void TrackSystem::Create(int track_idx)
   m_suspensionLocs.resize(m_numSuspensions);
   // hard-code positions relative to trackSystem csys. Start w/ one nearest sprocket
   
-    m_suspensionLocs[0] = ChVector<>(1.3336, 0, 0);
+  m_suspensionLocs[0] = ChVector<>(1.3336, 0, 0);
   m_suspensionLocs[1] = ChVector<>(0.6668, 0, 0);
   // trackSystem c-sys aligned with middle suspension subsystem arm/chassis revolute constraint position
   m_suspensionLocs[2] = ChVector<>(0,0,0); 
@@ -205,6 +206,7 @@ void TrackSystem::Initialize(ChSharedPtr<ChBodyAuxRef> chassis,
   //  be guaranteed that the track chain geometry will not penetrate the sphere.
   std::vector<ChVector<>> rolling_elem_locs; // w.r.t. chassis ref. frame
   std::vector<double> clearance;  // 1 per rolling elem
+  std::vector<ChVector<>> rolling_elem_spin_axis; /// w.r.t. abs. frame
 
   // initialize 1 of each of the following subsystems.
   // will use the chassis ref frame to do the transforms, since the TrackSystem
@@ -216,6 +218,7 @@ void TrackSystem::Initialize(ChSharedPtr<ChBodyAuxRef> chassis,
   // drive sprocket is First added to the lists passed into TrackChain Init()
   rolling_elem_locs.push_back(m_local_pos + Get_gearPosRel() );
   clearance.push_back(m_driveGear->GetRadius() );
+  rolling_elem_spin_axis.push_back(m_driveGear->GetBody()->GetRot().GetZaxis() );
 
   // initialize the torsion arm suspension subsystems
   for(int s_idx = 0; s_idx < m_suspensionLocs.size(); s_idx++)
@@ -227,6 +230,7 @@ void TrackSystem::Initialize(ChSharedPtr<ChBodyAuxRef> chassis,
     // add to the lists passed into the track chain, find location of each wheel center w.r.t. chassis coords.
     rolling_elem_locs.push_back(m_local_pos + m_suspensionLocs[s_idx] + m_suspensions[s_idx]->GetWheelPosRel() );
     clearance.push_back(m_suspensions[s_idx]->GetWheelRadius() );
+    rolling_elem_spin_axis.push_back(m_suspensions[s_idx]->GetWheelBody()->GetRot().GetZaxis() );
   }
 
   // initialize the support rollers.
@@ -239,16 +243,19 @@ void TrackSystem::Initialize(ChSharedPtr<ChBodyAuxRef> chassis,
     // add to the points passed into the track chain
     rolling_elem_locs.push_back( m_local_pos + m_rollerLocs[r_idx] );
     clearance.push_back(m_roller_radius);
+    rolling_elem_spin_axis.push_back(m_supportRollers[r_idx]->GetRot().GetZaxis() );
   }
   
   // last control point: the idler body
   m_idler->Initialize(chassis, 
     chassis->GetFrame_REF_to_abs(),
-    ChCoordsys<>(m_local_pos + Get_idlerPosRel(), QUNIT) );
+    ChCoordsys<>(m_local_pos + Get_idlerPosRel(), QUNIT),
+    m_idler_preload);
 
   // add to the lists passed into the track chain Init()
   rolling_elem_locs.push_back(m_local_pos + Get_idlerPosRel() );
   clearance.push_back(m_idler->GetRadius() );
+  rolling_elem_spin_axis.push_back(m_idler->GetBody()->GetRot().GetZaxis() );
 
   // After all rolling elements have been initialized, now able to setup the TrackChain.
   // Assumed that start_pos is between idler and gear control points, e.g., on the top 
@@ -259,10 +266,9 @@ void TrackSystem::Initialize(ChSharedPtr<ChBodyAuxRef> chassis,
   // Assumption: start_pos should lie close to where the actual track chain would 
   //             pass between the idler and driveGears.
   // MUST be on the top part of the chain so the chain wrap rotation direction can be assumed.
-  // rolling_elem_locs, start_pos w.r.t. chassis c-sys
   m_chain->Initialize(chassis, 
     chassis->GetFrame_REF_to_abs(),
-    rolling_elem_locs, clearance,
+    rolling_elem_locs, clearance, rolling_elem_spin_axis,
     start_pos );
 
 }
@@ -297,10 +303,9 @@ void TrackSystem::initialize_roller(ChSharedPtr<ChBody> body, ChSharedPtr<ChBody
   body->GetCollisionModel()->BuildModel();
 }
 
-ChVector<> TrackSystem::Get_idler_spring_react()
+ChVector<> TrackSystem::Get_idler_spring_react() const
 {
-  ChVector<> outVect = m_idler->m_shock->Get_react_force();
-  return outVect;
+  return m_idler->m_shock->Get_react_force();
 
 }
 

@@ -54,16 +54,16 @@ public:
   // Accessors
 
   /// handle to the drive gear subsystem, to initialize the driveline
-  ChSharedPtr<DriveGear> GetDriveGear() { return m_driveGear; }
+  const ChSharedPtr<DriveGear> GetDriveGear() const { return m_driveGear; }
   
   // subsystem relative to trackSystem coords
-  ChVector<> Get_gearPosRel() const { return m_gearPosRel; }
+  const ChVector<>& Get_gearPosRel() const { return m_gearPosRel; }
   
   // subsystem relative to trackSystem coords
-  ChVector<> Get_idlerPosRel() const { return m_idlerPosRel; }
+  const ChVector<>& Get_idlerPosRel() const { return m_idlerPosRel; }
 
   /// get the reaction force vector from the spring in the idler subsystem
-  ChVector<> Get_idler_spring_react();
+  ChVector<> Get_idler_spring_react() const;
 
 private:
 
@@ -76,9 +76,9 @@ private:
 
   // private variables
   // subsystems, and other bodies attached to this tracksystem
-  ChSharedPtr<DriveGear> m_driveGear;
+  ChSharedPtr<DriveGear>    m_driveGear;
   ChSharedPtr<IdlerSimple>	m_idler;
-  ChSharedPtr<TrackChain> m_chain;
+  ChSharedPtr<TrackChain>   m_chain;
   std::vector<ChSharedPtr<TorsionArmSuspension>> m_suspensions;
   std::vector<ChSharedPtr<ChBody>> m_supportRollers;
   std::vector<ChSharedPtr<ChLinkLockRevolute>> m_supportRollers_rev;
@@ -93,26 +93,27 @@ private:
   
   // hard-coded in TrackSystem.cpp, for now
   // idler
-  static const ChVector<> m_idlerPos; // relative to TrackSystem _REF c-sys
+  static const ChVector<>     m_idlerPos; // relative to TrackSystem _REF c-sys
   static const ChQuaternion<> m_idlerRot; 
+  static const double         m_idler_preload;
   
   // drive gear
   static const ChVector<> m_gearPos;  // relative to Tracksystem _REF c-sys
   static const ChQuaternion<> m_gearRot;
   
   // Support rollers
-  static const int m_numRollers;
-  static const double m_roller_mass;
+  static const int        m_numRollers;
+  static const double     m_roller_mass;
   static const ChVector<> m_roller_inertia;
-  static const double m_roller_radius;
-  static const double m_roller_width;
+  static const double     m_roller_radius;
+  static const double     m_roller_width;
   std::vector<ChVector<> > m_rollerLocs;  ///< relative to the Tracksys _REF c-sys
   std::vector<ChQuaternion<> > m_rollerRots;
   
   // suspension
   // static const std::string m_suspensionFilename;
-  std::vector<ChVector<> > m_suspensionLocs;  // relative to local c-sys
-  static const int m_numSuspensions;
+  std::vector<ChVector<>> m_suspensionLocs;  // relative to local c-sys
+  static const int        m_numSuspensions;
   static const ChVector<> m_armWheel;   // relative arm distance to wheel
 };
 
