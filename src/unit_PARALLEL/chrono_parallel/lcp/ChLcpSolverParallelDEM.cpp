@@ -199,17 +199,18 @@ ChLcpSolverParallelDEM::host_CalcContactForces(
 // -----------------------------------------------------------------------------
 // Include contact impulses (linear and rotational) for all bodies that are
 // involved in at least one contact. For each such body, the corresponding
-// entries in the input arrays 'ct_body_force' and 'ct_body_torque' contain the
+// entries in the arrays 'ct_body_force' and 'ct_body_torque' contain the
 // cummulative force and torque, respectively, over all contacts involving that
 // body.
 // -----------------------------------------------------------------------------
 void
 ChLcpSolverParallelDEM::host_AddContactForces(
-    uint                         ct_body_count,
-    const custom_vector<int>&    ct_body_id,
-    const custom_vector<real3>&  ct_body_force,
-    const custom_vector<real3>&  ct_body_torque)
+    uint                      ct_body_count,
+    const custom_vector<int>& ct_body_id)
 {
+  const custom_vector<real3>& ct_body_force = data_container->host_data.ct_body_force;
+  const custom_vector<real3>& ct_body_torque = data_container->host_data.ct_body_torque;
+
 #pragma omp parallel for
   for (int index = 0; index < ct_body_count; index++) {
     real3 contact_force = data_container->settings.step_size * ct_body_force[index];
@@ -221,6 +222,21 @@ ChLcpSolverParallelDEM::host_AddContactForces(
     data_container->host_data.hf[ct_body_id[index]*6+4] += contact_torque.y;
     data_container->host_data.hf[ct_body_id[index]*6+5] += contact_torque.z;
    }
+}
+
+// -----------------------------------------------------------------------------
+// -----------------------------------------------------------------------------
+void
+ChLcpSolverParallelDEM::host_SetContactForcesMap(
+    uint                      ct_body_count,
+    const custom_vector<int>& ct_body_id)
+{
+  custom_vector<int>& ct_body_map = data_container->host_data.ct_body_map;
+
+#pragma omp parallel for
+  for (int index = 0; index < ct_body_count; index++) {
+    ct_body_map[ct_body_id[index]] = index;
+  }
 }
 
 // -----------------------------------------------------------------------------
@@ -249,15 +265,17 @@ void ChLcpSolverParallelDEM::ProcessContacts()
   //    Accumulate the contact forces and torques for all bodies that are
   //    involved in at least one contact, by reducing the contact forces and
   //    torques from all contacts these bodies are involved in. The number of
-  //    bodies that experience at least one contact is calculated in
-  //    'ct_body_count'.
+  //    bodies that experience at least one contact is 'ct_body_count'.
   thrust::sort_by_key(thrust_parallel,
     ext_body_id.begin(), ext_body_id.end(),
     thrust::make_zip_iterator(thrust::make_tuple(ext_body_force.begin(), ext_body_torque.begin())));
 
-  custom_vector<int>   ct_body_id(data_container->num_bodies);
-  custom_vector<real3> ct_body_force(data_container->num_bodies);
-  custom_vector<real3> ct_body_torque(data_container->num_bodies);
+  custom_vector<int> ct_body_id(data_container->num_bodies);
+  custom_vector<real3>& ct_body_force = data_container->host_data.ct_body_force;
+  custom_vector<real3>& ct_body_torque = data_container->host_data.ct_body_torque;
+
+  ct_body_force.resize(data_container->num_bodies);
+  ct_body_torque.resize(data_container->num_bodies);
 
   // Reduce contact forces from all contacts and count bodies currently involved
   // in contact. We do this simultaneously for contact forces and torques, using
@@ -272,10 +290,16 @@ void ChLcpSolverParallelDEM::ProcessContacts()
     sum_tuples()
     ).first - ct_body_id.begin();
 
+  ct_body_force.resize(ct_body_count);
+  ct_body_torque.resize(ct_body_count);
+
   // 3. Add contact forces and torques to existing forces (impulses):
   //    For all bodies involved in a contact, update the body forces and torques
   //    (scaled by the integration time step).
-  host_AddContactForces(ct_body_count, ct_body_id, ct_body_force, ct_body_torque);
+  host_AddContactForces(ct_body_count, ct_body_id);
+
+  // 4. Set up map from all bodies in the system to bodies involved in a contact.
+  host_SetContactForcesMap(ct_body_count, ct_body_id);
 }
 
 
@@ -347,14 +371,17 @@ ChLcpSolverParallelDEM::RunTimeStep(real step)
   data_container->settings.step_size = step;
   data_container->settings.solver.tol_speed = step * data_container->settings.solver.tolerance;
 
-  data_container->num_unilaterals = 0;
   // This is the total number of constraints, note that there are no contacts
   data_container->num_constraints = data_container->num_bilaterals;
+  data_container->num_unilaterals = 0;
 
   // This is the total number of degrees of freedom in the system
   data_container->num_dof = data_container->num_bodies  * 6 + data_container->num_shafts;
 
   // Calculate contact forces (impulses) and append them to the body forces
+  data_container->host_data.ct_body_map.resize(data_container->num_bodies);
+  thrust::fill(data_container->host_data.ct_body_map.begin(), data_container->host_data.ct_body_map.end(), -1);
+
   if (data_container->num_contacts > 0) {
     data_container->system_timer.start("ChLcpSolverParallelDEM_ProcessContact");
     ProcessContacts();

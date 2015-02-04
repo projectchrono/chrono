@@ -106,9 +106,10 @@ class CH_PARALLEL_API ChLcpSolverParallelDEM : public ChLcpSolverParallel {
                                custom_vector<real3>& ext_body_torque);
 
    void host_AddContactForces(uint ct_body_count,
-                              const custom_vector<int>& ct_body_id,
-                              const custom_vector<real3>& ct_body_force,
-                              const custom_vector<real3>& ct_body_torque);
+                              const custom_vector<int>& ct_body_id);
+
+   void host_SetContactForcesMap(uint ct_body_count,
+                                 const custom_vector<int>& ct_body_id);
 };
 
 }

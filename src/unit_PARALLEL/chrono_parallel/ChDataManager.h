@@ -70,6 +70,17 @@ struct host_container {
    thrust::host_vector<int2> bids_rigid_rigid;
    thrust::host_vector<long long> pair_rigid_rigid;
 
+   // Contact forces (DEM)
+   // These vectors hold the total contact force and torque, respectively,
+   // for bodies that are involved in at least one contact.
+   thrust::host_vector<real3> ct_body_force;  // Total contact force on bodies
+   thrust::host_vector<real3> ct_body_torque; // Total contact torque on these bodies
+
+   // Mapping from all bodies in the system to bodies involved in a contact.
+   // For bodies that are currently not in contact, the mapping entry is -1.
+   // Otherwise, the mapping holds the appropriate index in the vectors above.
+   thrust::host_vector<int> ct_body_map;
+
    // This vector holds the friction information as a triplet
    // x - Sliding friction
    // y - Rolling friction
