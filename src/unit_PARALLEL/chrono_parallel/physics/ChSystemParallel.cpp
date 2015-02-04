@@ -5,6 +5,7 @@
 #include "physics/ChShaftsBody.h"
 
 #include "chrono_parallel/physics/ChSystemParallel.h"
+#include <numeric>
 #include <omp.h>
 
 using namespace chrono;
