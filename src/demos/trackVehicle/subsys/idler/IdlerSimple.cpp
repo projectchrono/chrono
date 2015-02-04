@@ -25,6 +25,7 @@
 #include "assets/ChCylinderShape.h"
 #include "assets/ChTriangleMeshShape.h"
 #include "assets/ChColorAsset.h"
+#include "assets/ChTexture.h"
 // collision mesh
 #include "geometry/ChCTriangleMeshSoup.h"
 
@@ -45,8 +46,8 @@ const std::string IdlerSimple::m_meshFile = utils::GetModelDataFile("M113/Idler_
 const double IdlerSimple::m_radius = 0.255;
 const double IdlerSimple::m_width = 0.166;
 const double IdlerSimple::m_widthGap = .08; // 0.092; 
-const double IdlerSimple::m_springK = 150000;
-const double IdlerSimple::m_springC = 1500;
+const double IdlerSimple::m_springK = 100000;
+const double IdlerSimple::m_springC = 1000;
 const double IdlerSimple::m_springRestLength = 1.0;
 
 
@@ -125,7 +126,8 @@ IdlerSimple::~IdlerSimple()
 
 void IdlerSimple::Initialize(ChSharedPtr<ChBody> chassis,
                              const ChFrame<>& chassis_REF,
-                             const ChCoordsys<>& local_Csys)
+                             const ChCoordsys<>& local_Csys,
+                             double preLoad)
 {
   // add collision geometry
   AddCollisionGeometry();
@@ -149,27 +151,33 @@ void IdlerSimple::Initialize(ChSharedPtr<ChBody> chassis,
 
   // init shock, add to system
   // put the second marker some length in front of marker1, based on desired preload
-  double preLoad = 80000; // [N]
+  // double preLoad = 80000; // [N]
   // chassis spring attachment point is towards the center of the vehicle
-  ChVector<> pos_chassis_abs = local_Csys.pos;
+  ChFrame<> pos_on_chassis_abs = ChFrame<>(local_Csys);
   if(local_Csys.pos.x < 0 ) 
-    pos_chassis_abs.x += m_springRestLength - (preLoad / m_springK);
+    pos_on_chassis_abs.GetPos().x += m_springRestLength - (preLoad / m_springK);
   else
-    pos_chassis_abs.x -= m_springRestLength - (preLoad / m_springK);
+    pos_on_chassis_abs.GetPos().x -= m_springRestLength - (preLoad / m_springK);
 
   // transform 2nd attachment point to abs coords
-  pos_chassis_abs = chassis->GetCoord().TransformPointLocalToParent(pos_chassis_abs);
+  pos_on_chassis_abs.ConcatenatePreTransformation(chassis_REF);
 
   // init. points based on desired preload and free lengths
-  m_shock->Initialize(m_idler, chassis, false, m_idler->GetPos(), pos_chassis_abs );
+  m_shock->Initialize(m_idler, chassis, false, m_idler->GetPos(), pos_on_chassis_abs.GetPos() );
   // setting rest length should yield desired preload at time = 0
   m_shock->Set_SpringRestLength(m_springRestLength);
 
   chassis->GetSystem()->AddLink(m_shock);
 }
 
-void IdlerSimple::AddVisualization(size_t chain_idx)
+void IdlerSimple::AddVisualization(size_t chain_idx,
+                                   bool custom_texture,
+                                   const std::string& tex_name)
 {
+  assert(track_idx < m_numShoes);
+  if(m_idler->GetAssets().size() > 0)
+    m_idler->GetAssets().clear();
+
   // add visualization asset
   switch (m_vis) {
   case VisualizationType::PRIMITIVES:
@@ -187,14 +195,15 @@ void IdlerSimple::AddVisualization(size_t chain_idx)
     cylB->GetCylinderGeometry().p2.z = -m_widthGap/2.0;
     m_idler->AddAsset(cylB);
 
-    // add a color asset. Chain index 0 = green, otherwise red/pink
-    ChSharedPtr<ChColorAsset> mcolor(new ChColorAsset);
-    if( chain_idx == 0)
-      mcolor->SetColor(ChColor(0.2f, 0.6f, 0.3f));
+    // add a texture asset.
+    ChSharedPtr<ChTexture> cyl_tex(new ChTexture);
+    if(custom_texture)
+      cyl_tex->SetTextureFilename(GetChronoDataFile(tex_name));
     else
-      mcolor->SetColor(ChColor(0.5f, 0.1f, 0.4f));
-
-    m_idler->AddAsset(mcolor);
+    {
+      cyl_tex->SetTextureFilename(GetChronoDataFile("greenwhite.png"));
+    }
+    m_idler->AddAsset(cyl_tex);
 
     break;
   }
@@ -221,7 +230,10 @@ void IdlerSimple::AddVisualization(size_t chain_idx)
   } // end switch
 }
 
-void IdlerSimple::AddCollisionGeometry()
+void IdlerSimple::AddCollisionGeometry(double mu,
+                                       double mu_sliding,
+                                       double mu_roll,
+                                       double mu_spin)
 {
   // add collision geometrey to the chassis, if enabled
   if(m_collide == CollisionType::NONE)
@@ -231,12 +243,17 @@ void IdlerSimple::AddCollisionGeometry()
       return;
   }
     
-
   m_idler->SetCollide(true);
   m_idler->GetCollisionModel()->ClearModel();
 
   m_idler->GetCollisionModel()->SetSafeMargin(0.001);	// inward safe margin
 	m_idler->GetCollisionModel()->SetEnvelope(0.002);		// distance of the outward "collision envelope"
+
+  // set the collision material
+  m_idler->GetMaterialSurface()->SetSfriction(mu);
+  m_idler->GetMaterialSurface()->SetKfriction(mu_sliding);
+  m_idler->GetMaterialSurface()->SetRollingFriction(mu_roll);
+  m_idler->GetMaterialSurface()->SetSpinningFriction(mu_spin);
 
   switch (m_collide) {
   case CollisionType::PRIMITIVES:

@@ -48,7 +48,8 @@ public:
   /// init the idler with the initial pos. and rot., w.r.t. the chassis c-sys
   void Initialize(ChSharedPtr<ChBody> chassis,
                   const ChFrame<>& chassis_REF,
-                  const ChCoordsys<>& local_Csys);
+                  const ChCoordsys<>& local_Csys,
+                  double preLoad = 0);
   
   
   double getSpringCoefficient() const { return m_springK; }
@@ -61,8 +62,14 @@ public:
 
 private:
   // private functions
-  void AddVisualization(size_t chain_idx);
-  void AddCollisionGeometry();
+  void AddVisualization(size_t chain_idx,
+                        bool custom_texture = false,
+                        const std::string& tex_name = "none");
+  void AddCollisionGeometry(double mu = 0.8,
+                            double mu_sliding = 0.7,
+                            double mu_roll = 0.2,
+                            double mu_spin = 0.2);
+
     // private functions
   const std::string& getMeshName() const { return m_meshName; }
   const std::string& getMeshFile() const { return m_meshFile; }
