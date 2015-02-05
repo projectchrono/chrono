@@ -67,7 +67,7 @@ public:
   virtual const ChSharedPtr<TrackPowertrain> GetPowertrain(size_t idx) const { return m_ptrain; }
 
   /// vehicle's driveshaft body.
-  ChShaft* GetDriveshaft(size_t idx) {return m_gear->GetAxle().get_ptr(); }
+  const ChSharedPtr<ChShaft> GetDriveshaft(size_t idx) const {return m_gear->GetAxle(); }
 
   /// current value of the integration step size for the vehicle system.
   double GetStepsize() const { return m_stepsize; }
