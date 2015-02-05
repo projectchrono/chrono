@@ -57,6 +57,7 @@ SET(TESTS
     test_apgd
     test_shur_performance
     test_shafts
+    
 )
 
 MESSAGE(STATUS "Unit test programs...")
@@ -165,6 +166,7 @@ SET(TESTS_G
     test_linactuator
     test_bodyauxref
     test_joints_dvi
+    test_narrowphase
 )
 
 FOREACH(PROGRAM ${TESTS_G})
