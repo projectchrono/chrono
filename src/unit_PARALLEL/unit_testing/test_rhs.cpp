@@ -14,6 +14,8 @@
 //
 // ChronoParallel unit test for MPR collision detection
 // =============================================================================
+//not used but prevents compilation errors with cuda 7 RC
+#include <thrust/transform.h>
 
 #include <stdio.h>
 #include <vector>
