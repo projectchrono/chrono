@@ -59,7 +59,7 @@ bool loadCheckPointFile = false;
 
 // Simulation times
 double time_settling_min = 0.1;
-double time_settling_max = 3.0;
+double time_settling_max = 1.0;
 
 // Stopping criteria for settling (fraction of particle radius)
 double settling_tol = 0.2;
@@ -241,53 +241,57 @@ bool CompareContacts(ChSystemParallel* msystem_A, ChSystemParallel* msystem_B) {
         std::cout << x << " does not equal " << y << " " << fabs(x - y) << std::endl;
         passing = false;
       }
-       x = norm_A.y;
-       y = norm_B.y;
+      x = norm_A.y;
+      y = norm_B.y;
       if (fabs(x - y) > test_tolerance) {
         std::cout << x << " does not equal " << y << " " << fabs(x - y) << std::endl;
         passing = false;
       }
-       x = norm_A.z;
-       y = norm_B.z;
+      x = norm_A.z;
+      y = norm_B.z;
       if (fabs(x - y) > test_tolerance) {
         std::cout << x << " does not equal " << y << " " << fabs(x - y) << std::endl;
         passing = false;
       }
     }
   }
-  if (passing) {
-    cout << "Compare Contact Points" << endl;
-    for (int i = 0; i < num_contacts_A; i++) {
-      real3 pta_A = msystem_A->data_manager->host_data.cpta_rigid_rigid[i];
-      real3 pta_B = msystem_B->data_manager->host_data.cpta_rigid_rigid[i];
-      WeakEqual(pta_A, pta_B, test_tolerance);
-      real3 ptb_A = msystem_A->data_manager->host_data.cptb_rigid_rigid[i];
-      real3 ptb_B = msystem_B->data_manager->host_data.cptb_rigid_rigid[i];
-      WeakEqual(ptb_A, ptb_B, test_tolerance);
-    }
-  }
-  if (!passing) {
-
-    cout << "MPR:" << endl;
-    for (int i = 0; i < num_contacts_A; i++) {
-      int2 id = msystem_A->data_manager->host_data.bids_rigid_rigid[i];
-      real depth = msystem_A->data_manager->host_data.dpth_rigid_rigid[i];
-      cout << id.x << " " << id.y << " " << depth << endl;
-    }
-    cout << "R:" << endl;
-    for (int i = 0; i < num_contacts_B; i++) {
-      int2 id = msystem_B->data_manager->host_data.bids_rigid_rigid[i];
-      real depth = msystem_B->data_manager->host_data.dpth_rigid_rigid[i];
-      cout << id.x << " " << id.y << " " << depth << endl;
-    }
-
-    //exit(1);
-  }
+//  if (passing) {
+//    cout << "Compare Contact Points" << endl;
+//    for (int i = 0; i < num_contacts_A; i++) {
+//      real3 pta_A = msystem_A->data_manager->host_data.cpta_rigid_rigid[i];
+//      real3 pta_B = msystem_B->data_manager->host_data.cpta_rigid_rigid[i];
+//      WeakEqual(pta_A, pta_B, test_tolerance);
+//      real3 ptb_A = msystem_A->data_manager->host_data.cptb_rigid_rigid[i];
+//      real3 ptb_B = msystem_B->data_manager->host_data.cptb_rigid_rigid[i];
+//      WeakEqual(ptb_A, ptb_B, test_tolerance);
+//    }
+//  }
+//  if (!passing) {
+//
+//    cout << "MPR:" << endl;
+//    for (int i = 0; i < num_contacts_A; i++) {
+//      int2 id = msystem_A->data_manager->host_data.bids_rigid_rigid[i];
+//      real depth = msystem_A->data_manager->host_data.dpth_rigid_rigid[i];
+//      cout << id.x << " " << id.y << " " << depth << endl;
+//    }
+//    cout << "R:" << endl;
+//    for (int i = 0; i < num_contacts_B; i++) {
+//      int2 id = msystem_B->data_manager->host_data.bids_rigid_rigid[i];
+//      real depth = msystem_B->data_manager->host_data.dpth_rigid_rigid[i];
+//      cout << id.x << " " << id.y << " " << depth << endl;
+//    }
+//
+//    // exit(1);
+//  }
 
   return true;
 }
 
 int main(int argc, char* argv[]) {
+
+  // No animation by default (i.e. when no program arguments)
+  bool animate = (argc > 1);
+
   ChSystemParallelDVI* msystem_mpr = new ChSystemParallelDVI();
   ChSystemParallelDVI* msystem_r = new ChSystemParallelDVI();
 
@@ -310,36 +314,42 @@ int main(int argc, char* argv[]) {
   int num_contacts = 0;
   double time_end = time_settling_max;
 
+  if (animate) {
 #ifdef CHRONO_PARALLEL_HAS_OPENGL
-  opengl::ChOpenGLWindow& gl_window = opengl::ChOpenGLWindow::getInstance();
-  gl_window.Initialize(1280, 720, "Filling Test", msystem_mpr);
-  gl_window.SetCamera(ChVector<>(0, -10 * hdimY, hdimZ), ChVector<>(0, 0, hdimZ), ChVector<>(0, 0, 1));
-  gl_window.SetRenderMode(opengl::WIREFRAME);
-#endif
+    opengl::ChOpenGLWindow& gl_window = opengl::ChOpenGLWindow::getInstance();
+    gl_window.Initialize(1280, 720, "Narrowphase", msystem_mpr);
+    gl_window.SetCamera(ChVector<>(6, -6, 1), ChVector<>(0, 0, 0), ChVector<>(0, 0, 1));
+    gl_window.SetRenderMode(opengl::WIREFRAME);
 
-  // Loop until reaching the end time...
-  while (time < time_end) {
+    // Loop until reaching the end time...
+    while (time < time_end) {
+      if (gl_window.Active()) {
+        gl_window.DoStepDynamics(time_step);
+        gl_window.Render();
+      }
+      msystem_mpr->DoStepDynamics(time_step);
+      msystem_r->DoStepDynamics(time_step);
+      Sync(msystem_mpr, msystem_r);
+      CompareContacts(msystem_mpr, msystem_r);
 
-    // Advance simulation by one step
-    //#ifdef CHRONO_PARALLEL_HAS_OPENGL
-    if (gl_window.Active()) {
-      gl_window.DoStepDynamics(time_step);
-      gl_window.Render();
+      cout << "Time: " << time << endl;
+      time += time_step;
     }
-    //#else
-    // msystem_mpr->DoStepDynamics(time_step);
-    msystem_r->DoStepDynamics(time_step);
-    Sync(msystem_mpr, msystem_r);
-    CompareContacts(msystem_mpr, msystem_r);
 
-    cout << "Time: " << time << endl;
-    time += time_step;
-    //#endif
+#else
+    std::cout << "OpenGL support not available.  Cannot animate mechanism." << std::endl;
+    return false;
+#endif
+  } else {
+    while (time < time_end) {
+      msystem_mpr->DoStepDynamics(time_step);
+      msystem_r->DoStepDynamics(time_step);
+      Sync(msystem_mpr, msystem_r);
+      CompareContacts(msystem_mpr, msystem_r);
 
-    // If requested, output detailed timing information for this step
-
-    // msystem_mpr->PrintStepStats();
-    // msystem_r->PrintStepStats();
+      cout << "Time: " << time << endl;
+      time += time_step;
+    }
   }
 
   return 0;
