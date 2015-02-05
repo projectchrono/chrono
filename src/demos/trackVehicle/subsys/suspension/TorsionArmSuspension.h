@@ -82,10 +82,10 @@ private:
   // private functions
   void Create(const std::string& name);
   void AddVisualization();
-  void AddCollisionGeometry(double mu = 0.8,
-                            double mu_sliding = 0.7,
-                            double mu_roll = 0.2,
-                            double mu_spin = 0.2);
+  void AddCollisionGeometry(double mu = 0.7,
+                            double mu_sliding = 0.6,
+                            double mu_roll = 0,
+                            double mu_spin = 0);
   
   // private variables
   ChSharedPtr<ChBody> m_arm;  ///< arm body
