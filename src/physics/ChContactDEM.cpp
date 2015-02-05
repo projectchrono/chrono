@@ -10,14 +10,6 @@
 // and at http://projectchrono.org/license-chrono.txt.
 //
 
-///////////////////////////////////////////////////
-//
-//   ChContactDEM.cpp
-//
-// ------------------------------------------------
-//             www.projectchrono.org
-// ------------------------------------------------
-///////////////////////////////////////////////////
 
 #include <cmath>
 #include <algorithm>
@@ -37,6 +29,7 @@ using namespace collision;
 
 // Initialize static members
 double ChContactDEM::m_minSlipVelocity = 1e-4;
+double ChContactDEM::m_characteristicVelocity = 1;
 
 
 // Construct a new DEM contact between two models using the specified contact pair information.
@@ -127,7 +120,13 @@ void ChContactDEM::CalculateForce()
   switch (force_model) {
   case Hooke:
     if (use_mat_props) {
-
+      double tmp_k = (16.0 / 15) * std::sqrt(R_eff) * mat.E_eff;
+      double v2 = m_characteristicVelocity * m_characteristicVelocity;
+      double tmp_g = 1 + pow(CH_C_PI / std::log(mat.cr_eff) , 2);
+      kn = tmp_k * std::pow(m_eff * v2 / tmp_k, 1.0 / 5);
+      kt = 0;
+      gn = std::sqrt(4 * m_eff * kn / tmp_g);
+      gt = gn / 2;
     } else {
 
     }
@@ -136,7 +135,15 @@ void ChContactDEM::CalculateForce()
 
   case Hooke_history:
     if (use_mat_props) {
+      double tmp_k = (16.0 / 15) * std::sqrt(R_eff) * mat.E_eff;
+      double v2 = m_characteristicVelocity * m_characteristicVelocity;
+      double tmp_g = 1 + pow(CH_C_PI / std::log(mat.cr_eff), 2);
+      kn = tmp_k * std::pow(m_eff * v2 / tmp_k, 1.0 / 5);
+      kt = 2 * (1 - mat.poisson_eff) / (2 - mat.poisson_eff) * kn;
+      gn = std::sqrt(4 * m_eff * kn / tmp_g);
+      gt = gn / 2;
 
+      delta_t = relvel_t_mag * dT;
     } else {
 
     }

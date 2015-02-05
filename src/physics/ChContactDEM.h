@@ -98,26 +98,29 @@ public:
 	/// Apply contact forces to bodies (new version, for interfacing to ChTimestepper and ChIntegrable)
 	void DemIntLoadResidual_F(ChVectorDynamic<>& R, const double c );
 
-	/// Slip velocity threshold. No tangential contact forces are generated
-	/// if the magnitude of the tangential relative velocity is below this.
-	static double m_minSlipVelocity;
+  /// Slip velocity threshold. No tangential contact forces are generated
+  /// if the magnitude of the tangential relative velocity is below this.
+  static double m_minSlipVelocity;
+  static void SetSlipVelocitythreshold(double vel) { m_minSlipVelocity = vel; }
 
-	static void SetSlipVelocitythreshold(double vel) {m_minSlipVelocity = vel;}
+  /// Characteristic impact velocity (Hooke)
+  static double m_characteristicVelocity;
+  static void SetCharacteristicImpactVelocity(double vel) {m_characteristicVelocity = vel;}
 
 private:
 
-	collision::ChModelBulletBody*  m_mod1;          ///< first contact model
-	collision::ChModelBulletBody*  m_mod2;          ///< second contact model
+  collision::ChModelBulletBody*  m_mod1;          ///< first contact model
+  collision::ChModelBulletBody*  m_mod2;          ///< second contact model
 
-	double                         m_delta;         ///< penetration distance (positive if going inside)
-	ChVector<>                     m_p1;            ///< max penetration point on surf1, in abs frame
-	ChVector<>                     m_p2;            ///< max penetration point on surf2, in abs frame
-	ChVector<>                     m_normal;        ///< normal, on surface of master reference (surf1)
-	ChMatrix33<float>              m_contact_plane; ///< the plane of contact (X is normal direction)
-	ChVector<>                     m_p1_loc;        ///< max. penetration point on surf1, in local frame
-	ChVector<>                     m_p2_loc;        ///< max. penetration point on surf2, in local frame
+  double                         m_delta;         ///< penetration distance (positive if going inside)
+  ChVector<>                     m_p1;            ///< max penetration point on surf1, in abs frame
+  ChVector<>                     m_p2;            ///< max penetration point on surf2, in abs frame
+  ChVector<>                     m_normal;        ///< normal, on surface of master reference (surf1)
+  ChMatrix33<float>              m_contact_plane; ///< the plane of contact (X is normal direction)
+  ChVector<>                     m_p1_loc;        ///< max. penetration point on surf1, in local frame
+  ChVector<>                     m_p2_loc;        ///< max. penetration point on surf2, in local frame
 
-	ChVector<>                     m_force;         ///< contact force on body2
+  ChVector<>                     m_force;         ///< contact force on body2
 };
 
 
