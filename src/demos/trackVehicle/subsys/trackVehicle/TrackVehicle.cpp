@@ -48,13 +48,11 @@ const ChCoordsys<> TrackVehicle::m_driverCsys(ChVector<>(0.0, 0.5, 1.2), ChQuate
 TrackVehicle::TrackVehicle(const std::string& name,
                            VisualizationType chassisVis,
                            CollisionType chassisCollide)
-  :ChTrackVehicle(),
+  :ChTrackVehicle(1e-3, 1, chassisVis, chassisCollide),
   m_num_tracks(2)
 {
   // ---------------------------------------------------------------------------
   // Set the base class variables
-  m_vis = chassisVis;
-  m_collide = chassisCollide;
   m_meshName = "M113_chassis";
   m_meshFile = utils::GetModelDataFile("M113/Chassis_XforwardYup.obj");
   m_chassisBoxSize = ChVector<>(2.0, 0.6, 0.75);
