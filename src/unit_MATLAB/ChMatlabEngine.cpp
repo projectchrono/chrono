@@ -105,7 +105,7 @@ bool ChMatlabEngine::GetVariable(ChMatrixDynamic<double>& mmatr,
          return false;
       }
 	  const matlabengine::mwSize* siz = mxGetDimensions(T);
-      transfer.Resize(siz[1], siz[0]);
+      transfer.Resize((int)siz[1], (int)siz[0]);
       memcpy((char *) transfer.GetAddress(), (char *) mxGetPr(T), transfer.GetRows() * transfer.GetColumns() * sizeof(double));
 	  matlabengine::mxDestroyArray(T);
 

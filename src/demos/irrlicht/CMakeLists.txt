@@ -31,6 +31,7 @@ SET(DEMOS
   demo_rev_sph
   demo_spring
   demo_ujoint
+  demo_earthquake
 )
 
 #--------------------------------------------------------------

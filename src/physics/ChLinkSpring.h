@@ -121,6 +121,11 @@ public:
       /// the C_force and C_torque. 
   virtual void UpdateForces(double mytime);
 
+    //
+	// STATE FUNCTIONS
+	//
+  				// (override/implement interfaces for global state vectors, see ChPhysicsItem for comments.)
+
 
   //
   // STREAMING

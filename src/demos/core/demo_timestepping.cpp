@@ -627,7 +627,7 @@ int main(int argc, char* argv[])
 				ChLinearAlgebra::Solve_LinSys(A, &b, &w);
 				Dv(0) = w(0);
 				Dv(1) = w(1);
-				L(0)  = w(2);
+				L(0)  = -w(2); //note assume result sign in multiplier is flipped
 			}
 
 			///    R += c*F
@@ -696,7 +696,7 @@ int main(int argc, char* argv[])
 		MyIntegrable mintegrable5;
 
 		// Create few time-integrators to be compared:
-		ChTimestepperEulerExplIIorder  mystepper1(mintegrable1);
+		ChTimestepperEulerImplicitLinearized  mystepper1(mintegrable1);
 		ChTimestepperEulerImplicit		 mystepper2(mintegrable2);
 		ChTimestepperTrapezoidal		 mystepper3(mintegrable3);
 		ChTimestepperHHT				 mystepper4(mintegrable4);

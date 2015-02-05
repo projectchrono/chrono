@@ -175,6 +175,56 @@ ChCoordsys<> ChContact::GetContactCoords()
 
 
  
+void ChContact::ContIntLoadResidual_CqL(
+					const unsigned int off_L,	 ///< offset in L multipliers
+					ChVectorDynamic<>& R,		 ///< result: the R residual, R += c*Cq'*L 
+					const ChVectorDynamic<>& L,  ///< the L vector 
+					const double c				 ///< a scaling factor
+					)
+{
+	this->Nx.MultiplyTandAdd(R, L(off_L  ) *c);
+	this->Tu.MultiplyTandAdd(R, L(off_L+1) *c);
+	this->Tv.MultiplyTandAdd(R, L(off_L+2) *c);
+}
+void ChContact::ContIntLoadConstraint_C(
+					const unsigned int off_L,	 ///< offset in Qc residual
+					ChVectorDynamic<>& Qc,		 ///< result: the Qc residual, Qc += c*C 
+					const double c,				 ///< a scaling factor
+					bool do_clamp,				 ///< apply clamping to c*C?
+					double recovery_clamp		 ///< value for min/max clamping of c*C
+					)
+{
+	this->ConstraintsBiLoad_C(1, recovery_clamp, do_clamp); // TO DO: move the ConstraintsBiLoad_C code here...
+	Qc(off_L)   += c * Nx.Get_b_i();
+	//Qc(off_L+1) += c * Tu.Get_b_i();  // not needed: assume always zero residual in tangential dir.
+	//Qc(off_L+2) += c * Tv.Get_b_i();  // Not needed: assume always zero residual in tangential dir.
+}
+void ChContact::ContIntToLCP(
+					const unsigned int off_L,			///< offset in L, Qc
+					const ChVectorDynamic<>& L,
+					const ChVectorDynamic<>& Qc
+					)
+{
+	 // only for LCP warm start
+	Nx.Set_l_i(L(off_L  )); 
+	Tu.Set_l_i(L(off_L+1));
+	Tv.Set_l_i(L(off_L+2));
+
+	 // LCP known terms
+	Nx.Set_b_i(Qc(off_L  ));
+	Tu.Set_b_i(Qc(off_L+1));
+	Tv.Set_b_i(Qc(off_L+2));
+}
+void ChContact::ContIntFromLCP(
+					const unsigned int off_L,			///< offset in L
+					ChVectorDynamic<>& L
+					)
+{
+	L(off_L)   = Nx.Get_l_i();
+	L(off_L+1) = Tu.Get_l_i();
+	L(off_L+2) = Tv.Get_l_i();
+}
+
 
 
 void ChContact::InjectConstraints(ChLcpSystemDescriptor& mdescriptor)

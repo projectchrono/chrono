@@ -65,6 +65,21 @@ ChAssembly::ChAssembly ()
 
 	SetIdentifier(GetUniqueIntID()); // mark with unique ID
 
+	nbodies=0;
+	nlinks=0;
+	ndof=0;
+	ndoc=0;
+	ndoc_w=0;
+	ndoc_w_C=0;
+	ndoc_w_D=0;
+	nsysvars_w=0;
+	ncoords=0;
+	ncoords_w=0;
+	nsysvars = 0;
+	ncoords_w=0;
+	nbodies_sleep = 0;
+	nbodies_fixed = 0;
+
 }
 
 
@@ -142,41 +157,311 @@ void ChAssembly::RemoveAllLinks()
 	linklist.clear(); 
 }
 
-int ChAssembly::GetDOF()
+
+//// STATE BOOKKEEPING FUNCTIONS
+
+void ChAssembly::IntStateGather(
+					const unsigned int off_x,		///< offset in x state vector
+					ChState& x,						///< state vector, position part
+					const unsigned int off_v,		///< offset in v state vector
+					ChStateDelta& v,				///< state vector, speed part
+					double& T)						///< time
 {
-	int ndof = 0;
-					
-	for (unsigned int ip = 0; ip < bodylist.size(); ++ip)  // ITERATE on bodies		
+	unsigned int local_off_x=0;
+	unsigned int local_off_v=0;
+	for (unsigned int ip = 0; ip < bodylist.size(); ++ip)  // ITERATE on bodies
 	{
 		ChBody* Bpointer = bodylist[ip];
-		ndof+=Bpointer->GetDOF();
+		if (Bpointer->IsActive())
+		{
+			Bpointer->IntStateGather(off_x+local_off_x, x, off_v+local_off_v, v, T);
+			local_off_x += Bpointer->GetDOF();
+			local_off_v += Bpointer->GetDOF_w();
+		}
 	}
-	return ndof;
-}
-
-int ChAssembly::GetDOC_c()
-{
-	int ndoc=0;
-
 	for (unsigned int ip = 0; ip < linklist.size(); ++ip)  // ITERATE on links
 	{
 		ChLink* Lpointer = linklist[ip];
-		ndoc   += Lpointer->GetDOC_c();
+		if (Lpointer->IsActive())
+		{
+			Lpointer->IntStateGather(off_x+local_off_x, x, off_v+local_off_v, v, T);
+			local_off_x += Lpointer->GetDOF();
+			local_off_v += Lpointer->GetDOF_w();
+		}
 	}
-	return ndoc;
+	T = this->GetChTime();
 }
 
-int ChAssembly::GetDOC_d()
+void ChAssembly::IntStateScatter(
+					const unsigned int off_x,		///< offset in x state vector
+					const ChState& x,				///< state vector, position part
+					const unsigned int off_v,		///< offset in v state vector
+					const ChStateDelta& v,			///< state vector, speed part
+					const double T) 				///< time
 {
-	int ndoc=0;
-
+	unsigned int local_off_x=0;
+	unsigned int local_off_v=0;
+	for (unsigned int ip = 0; ip < bodylist.size(); ++ip)  // ITERATE on bodies
+	{
+		ChBody* Bpointer = bodylist[ip];
+		if (Bpointer->IsActive())
+		{
+			Bpointer->IntStateScatter(off_x+local_off_x, x, off_v+local_off_v, v, T);
+			local_off_x += Bpointer->GetDOF();
+			local_off_v += Bpointer->GetDOF_w();
+		}
+	}
 	for (unsigned int ip = 0; ip < linklist.size(); ++ip)  // ITERATE on links
 	{
 		ChLink* Lpointer = linklist[ip];
-		ndoc   += Lpointer->GetDOC_d();
-	}
-	return ndoc;
+		if (Lpointer->IsActive())
+		{
+			Lpointer->IntStateScatter(off_x+local_off_x, x, off_v+local_off_v, v, T);
+			local_off_x += Lpointer->GetDOF();
+			local_off_v += Lpointer->GetDOF_w();
+		}
+	}	
+	this->SetChTime(T);
 }
+
+void ChAssembly::IntStateIncrement(
+					const unsigned int off_x,		///< offset in x state vector
+					ChState& x_new,					///< state vector, position part, incremented result
+					const ChState& x,				///< state vector, initial position part
+					const unsigned int off_v,		///< offset in v state vector
+					const ChStateDelta& Dv)  		///< state vector, increment
+{
+	unsigned int local_off_x=0;
+	unsigned int local_off_v=0;
+	for (unsigned int ip = 0; ip < bodylist.size(); ++ip)  // ITERATE on bodies
+	{
+		ChBody* Bpointer = bodylist[ip];
+		if (Bpointer->IsActive())
+		{
+			Bpointer->IntStateIncrement(off_x+local_off_x, x_new, x, off_v+local_off_v, Dv);
+			local_off_x += Bpointer->GetDOF();
+			local_off_v += Bpointer->GetDOF_w();
+		}
+	}
+	for (unsigned int ip = 0; ip < linklist.size(); ++ip)  // ITERATE on links
+	{
+		ChLink* Lpointer = linklist[ip];
+		if (Lpointer->IsActive())
+		{
+			Lpointer->IntStateIncrement(off_x+local_off_x, x_new, x, off_v+local_off_v, Dv);
+			local_off_x += Lpointer->GetDOF();
+			local_off_v += Lpointer->GetDOF_w();
+		}
+	}
+}
+ 
+void ChAssembly::IntLoadResidual_F(
+					const unsigned int off,		 ///< offset in R residual
+					ChVectorDynamic<>& R,		 ///< result: the R residual, R += c*F 
+					const double c				 ///< a scaling factor
+					)
+{
+	unsigned int local_off_v=0;
+	for (unsigned int ip = 0; ip < bodylist.size(); ++ip)  // ITERATE on bodies
+	{
+		ChBody* Bpointer = bodylist[ip];
+		if (Bpointer->IsActive())
+		{
+			Bpointer->IntLoadResidual_F(off+local_off_v, R, c);
+			local_off_v += Bpointer->GetDOF_w();
+		}
+	}
+	for (unsigned int ip = 0; ip < linklist.size(); ++ip)  // ITERATE on links
+	{
+		ChLink* Lpointer = linklist[ip];
+		if (Lpointer->IsActive())
+		{
+			Lpointer->IntLoadResidual_F(off+local_off_v, R, c);
+			local_off_v += Lpointer->GetDOF_w();
+		}
+	}	
+}
+
+
+void ChAssembly::IntLoadResidual_Mv(
+					const unsigned int off,		 ///< offset in R residual
+					ChVectorDynamic<>& R,		 ///< result: the R residual, R += c*M*v 
+					const ChVectorDynamic<>& w,  ///< the w vector 
+					const double c				 ///< a scaling factor
+					)
+{
+	unsigned int local_off_v=0;
+	for (unsigned int ip = 0; ip < bodylist.size(); ++ip)  // ITERATE on bodies
+	{
+		ChBody* Bpointer = bodylist[ip];
+		if (Bpointer->IsActive())
+		{
+			Bpointer->IntLoadResidual_Mv(off+local_off_v, R, w, c);
+			local_off_v += Bpointer->GetDOF_w();
+		}
+	}
+	for (unsigned int ip = 0; ip < linklist.size(); ++ip)  // ITERATE on links
+	{
+		ChLink* Lpointer = linklist[ip];
+		if (Lpointer->IsActive())
+		{
+			Lpointer->IntLoadResidual_Mv(off+local_off_v, R, w, c);
+			local_off_v += Lpointer->GetDOF_w();
+		}
+	}
+}
+
+void ChAssembly::IntLoadResidual_CqL(
+					const unsigned int off_L,	 ///< offset in L multipliers
+					ChVectorDynamic<>& R,		 ///< result: the R residual, R += c*Cq'*L 
+					const ChVectorDynamic<>& L,  ///< the L vector 
+					const double c				 ///< a scaling factor
+					)
+{
+	unsigned int local_off_L=0;
+	for (unsigned int ip = 0; ip < bodylist.size(); ++ip)  // ITERATE on bodies
+	{
+		ChBody* Bpointer = bodylist[ip];
+		if (Bpointer->IsActive())
+		{
+			Bpointer->IntLoadResidual_CqL(off_L+local_off_L, R, L, c);
+			local_off_L += Bpointer->GetDOC();
+		}
+	}
+	for (unsigned int ip = 0; ip < linklist.size(); ++ip)  // ITERATE on links
+	{
+		ChLink* Lpointer = linklist[ip];
+		if (Lpointer->IsActive())
+		{
+			Lpointer->IntLoadResidual_CqL(off_L+local_off_L, R, L, c);
+			local_off_L += Lpointer->GetDOC();
+		}
+	}
+}
+
+void ChAssembly::IntLoadConstraint_C(
+					const unsigned int off_L,		 ///< offset in Qc residual
+					ChVectorDynamic<>& Qc,		 ///< result: the Qc residual, Qc += c*C 
+					const double c,				 ///< a scaling factor
+					bool do_clamp,				 ///< apply clamping to c*C?
+					double recovery_clamp		 ///< value for min/max clamping of c*C
+					)
+{
+	unsigned int local_off_L=0;
+	for (unsigned int ip = 0; ip < bodylist.size(); ++ip)  // ITERATE on bodies
+	{
+		ChBody* Bpointer = bodylist[ip];
+		if (Bpointer->IsActive())
+		{
+			Bpointer->IntLoadConstraint_C(off_L+local_off_L, Qc, c, do_clamp, recovery_clamp);
+			local_off_L += Bpointer->GetDOC();
+		}
+	}
+	for (unsigned int ip = 0; ip < linklist.size(); ++ip)  // ITERATE on links
+	{
+		ChLink* Lpointer = linklist[ip];
+		if (Lpointer->IsActive())
+		{
+			Lpointer->IntLoadConstraint_C(off_L+local_off_L, Qc, c, do_clamp, recovery_clamp);
+			local_off_L += Lpointer->GetDOC();
+		}
+	}
+}
+
+
+void ChAssembly::IntLoadConstraint_Ct(
+					const unsigned int off_L,		 ///< offset in Qc residual
+					ChVectorDynamic<>& Qc,		 ///< result: the Qc residual, Qc += c*Ct 
+					const double c			 ///< a scaling factor
+					)
+{
+	unsigned int local_off_L=0;
+	for (unsigned int ip = 0; ip < bodylist.size(); ++ip)  // ITERATE on bodies
+	{
+		ChBody* Bpointer = bodylist[ip];
+		if (Bpointer->IsActive())
+		{
+			Bpointer->IntLoadConstraint_Ct(off_L+local_off_L, Qc, c);
+			local_off_L += Bpointer->GetDOC();
+		}
+	}
+	for (unsigned int ip = 0; ip < linklist.size(); ++ip)  // ITERATE on links
+	{
+		ChLink* Lpointer = linklist[ip];
+		if (Lpointer->IsActive())
+		{
+			Lpointer->IntLoadConstraint_Ct(off_L+local_off_L, Qc, c);
+			local_off_L += Lpointer->GetDOC();
+		}
+	}
+}
+
+
+void ChAssembly::IntToLCP(
+					const unsigned int off_v,			///< offset in v, R
+					const ChStateDelta& v,
+					const ChVectorDynamic<>& R,
+					const unsigned int off_L,			///< offset in L, Qc
+					const ChVectorDynamic<>& L,
+					const ChVectorDynamic<>& Qc
+					)
+{
+	unsigned int local_off_L=0;
+	unsigned int local_off_v=0;
+	for (unsigned int ip = 0; ip < bodylist.size(); ++ip)  // ITERATE on bodies
+	{
+		ChBody* Bpointer = bodylist[ip];
+		if (Bpointer->IsActive())
+		{
+			Bpointer->IntToLCP(off_v+local_off_v, v, R, off_L+local_off_L, L, Qc);
+			local_off_L += Bpointer->GetDOC();
+			local_off_v += Bpointer->GetDOF_w();
+		}
+	}
+	for (unsigned int ip = 0; ip < linklist.size(); ++ip)  // ITERATE on links
+	{
+		ChLink* Lpointer = linklist[ip];
+		if (Lpointer->IsActive())
+		{
+			Lpointer->IntToLCP(off_v+local_off_v, v, R, off_L+local_off_L, L, Qc);
+			local_off_L += Lpointer->GetDOC();
+			local_off_v += Lpointer->GetDOF_w();
+		}
+	}
+}
+
+void ChAssembly::IntFromLCP(
+					const unsigned int off_v,			///< offset in v
+					ChStateDelta& v,
+					const unsigned int off_L,			///< offset in L
+					ChVectorDynamic<>& L
+					)
+{
+	unsigned int local_off_L=0;
+	unsigned int local_off_v=0;
+	for (unsigned int ip = 0; ip < bodylist.size(); ++ip)  // ITERATE on bodies
+	{
+		ChBody* Bpointer = bodylist[ip];
+		if (Bpointer->IsActive())
+		{
+			Bpointer->IntFromLCP(off_v+local_off_v, v, off_L+local_off_L, L);
+			local_off_L += Bpointer->GetDOC();
+			local_off_v += Bpointer->GetDOF_w();
+		}
+	}
+	for (unsigned int ip = 0; ip < linklist.size(); ++ip)  // ITERATE on links
+	{
+		ChLink* Lpointer = linklist[ip];
+		if (Lpointer->IsActive())
+		{
+			Lpointer->IntFromLCP(off_v+local_off_v, v, off_L+local_off_L, L);
+			local_off_L += Lpointer->GetDOC();
+			local_off_v += Lpointer->GetDOF_w();
+		}
+	}
+}
+
+
 
 //// 
 void ChAssembly::InjectVariables(ChLcpSystemDescriptor& mdescriptor)
@@ -372,6 +657,72 @@ void ChAssembly::ClampSpeed()
 		Bpointer->ClampSpeed();
 	}
 }
+
+
+
+
+void ChAssembly::Setup()
+{
+	nbodies = 0;
+	nbodies_sleep = 0;
+	nbodies_fixed = 0;
+	ncoords = 0;
+	ncoords_w = 0;
+	ndoc = 0;
+	ndoc_w = 0;
+	ndoc_w_C = 0;
+	ndoc_w_D = 0;
+	nlinks = 0;
+
+	for (unsigned int ip = 0; ip < bodylist.size(); ++ip)  // ITERATE on bodies
+	{
+		ChBody* Bpointer = bodylist[ip];
+
+		if (Bpointer->GetBodyFixed())
+			nbodies_fixed++;
+		else if (Bpointer->GetSleeping())
+			nbodies_sleep++;
+		else
+		{
+			nbodies++;
+
+			Bpointer->SetOffset_x(this->GetOffset_x() + ncoords);
+			Bpointer->SetOffset_w(this->GetOffset_w() + ncoords_w);
+			Bpointer->SetOffset_L(this->GetOffset_L() + ndoc_w);
+
+			ncoords += Bpointer->GetDOF();
+			ncoords_w += Bpointer->GetDOF_w();
+		}
+	}
+
+	ndoc += nbodies;     // add one quaternion constr. for each active body.
+
+	for (unsigned int ip = 0; ip < linklist.size(); ++ip)  // ITERATE on links
+	{
+		ChLink* Lpointer = linklist[ip];
+
+		if (Lpointer->IsActive())
+		{
+			nlinks++;
+
+			Lpointer->SetOffset_x(this->GetOffset_x() +ncoords);
+			Lpointer->SetOffset_w(this->GetOffset_w() +ncoords_w);
+			Lpointer->SetOffset_L(this->GetOffset_L() +ndoc_w);
+
+			ndoc_w   += Lpointer->GetDOC();
+			ndoc_w_C += Lpointer->GetDOC_c();
+			ndoc_w_D += Lpointer->GetDOC_d();
+		}
+	}
+
+	ndoc       = ndoc_w + nbodies;   // number of constraints including quaternion constraints.
+	nsysvars   = ncoords   + ndoc;   // total number of variables (coordinates + lagrangian multipliers)
+	nsysvars_w = ncoords_w + ndoc_w; // total number of variables (with 6 dof per body)
+
+	ndof= ncoords - ndoc;            // number of degrees of freedom (approximate - does not consider constr. redundancy, etc)
+}
+
+
 
 
 							// UpdateALL updates the state and time
