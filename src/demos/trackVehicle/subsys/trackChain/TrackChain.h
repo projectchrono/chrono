@@ -152,10 +152,11 @@ private:
   // e.g., vert. distance from COM to surface that collides with rolling elements
   static const double m_shoe_chain_Yoffset; // y - vertical shoe axis
 
-  static const ChVector<> m_tooth_box;  //
+  static const ChVector<> m_tooth_box;
+  static const double m_tooth_COG_offset;
   static const double m_pin_dist;		  // linear distance between a shoe's two pin joint center
   static const double m_pin_radius;
-  
+  static const double m_pin_COG_offset;
 
   static const std::string m_collisionFile;	// collision geometry filename
   static const std::string m_meshFile;  // visual geometry mesh filename

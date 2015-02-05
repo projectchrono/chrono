@@ -46,9 +46,11 @@ const ChVector<> TrackChain::m_inertia(0.22, 0.25,  0.04); // TODO: what is this
 const ChVector<> TrackChain::m_COM = ChVector<>(0., 0., 0.);  // location of COM, relative to REF (e.g, geomtric center)
 const ChVector<> TrackChain::m_shoe_box(0.205, 0.0663, 0.38); // length, height, width
 const double TrackChain::m_pin_width = 0.531; // total width of cylinder pinseach 
-const double TrackChain::m_pin_dist = 0.15162;   // .205; // linear distance between a shoe chain spacing. exact = 0.205
+const double TrackChain::m_pin_dist = 0.15162/2.5;   // .205; // linear distance between a shoe chain spacing. exact = 0.205
 const double TrackChain::m_pin_radius = 0.02317;
+const double TrackChain::m_pin_COG_offset = -0.07581; // local c-sys x-dir offset from body center
 const ChVector<> TrackChain::m_tooth_box(0.08, 0.07967/2.0, 0.08/2.0);  // length, height, width
+const double TrackChain::m_tooth_COG_offset = -0.07313; // local c-sys y-dir offset from body center
  // distance between body center and the vertical offset to the inner-surface of the collision geometry
 //  used for initializing shoes as a chain
 const double TrackChain::m_shoe_chain_Yoffset = 0.04; // .03315 exact
@@ -326,10 +328,9 @@ void TrackChain::AddVisualization(size_t track_idx,
     boxLevel->AddAsset(box);
 
     // add the tooth box
-    double tooth_offset = -0.07313; // vertical offset. -.03315 + -tooth_height/2
     ChSharedPtr<ChBoxShape> tooth_box(new ChBoxShape);
     tooth_box->GetBoxGeometry().SetLengths(ChVector<>(m_tooth_box.x, m_tooth_box.y, m_tooth_box.z) );
-    tooth_box->GetBoxGeometry().Pos =  ChVector<>(0, tooth_offset, 0);
+    tooth_box->GetBoxGeometry().Pos =  ChVector<>(0, m_tooth_COG_offset, 0);
     boxLevel->AddAsset(tooth_box);
 
     // add a color to the shoes
@@ -344,10 +345,9 @@ void TrackChain::AddVisualization(size_t track_idx,
     m_shoes[track_idx]->AddAsset(boxLevel);
     
     // add the pin as a single cylinder
-    double pin_offset = -0.07581;
     ChSharedPtr<ChCylinderShape> pin(new ChCylinderShape);
-    pin->GetCylinderGeometry().p1 = ChVector<>(pin_offset, 0, m_pin_width/2.0);
-    pin->GetCylinderGeometry().p2 = ChVector<>(pin_offset, 0, -m_pin_width/2.0);
+    pin->GetCylinderGeometry().p1 = ChVector<>(m_pin_COG_offset, 0, m_pin_width/2.0);
+    pin->GetCylinderGeometry().p2 = ChVector<>(m_pin_COG_offset, 0, -m_pin_width/2.0);
     pin->GetCylinderGeometry().rad = m_pin_radius;
     pinLevel->AddAsset(pin);
 
@@ -399,10 +399,9 @@ void TrackChain::AddVisualization(size_t track_idx,
     boxLevel->AddAsset(box5);
 
     // add the tooth box
-    double tooth_offset = -0.07313; // vertical offset
     ChSharedPtr<ChBoxShape> tooth_box(new ChBoxShape);
     tooth_box->GetBoxGeometry().SetLengths(ChVector<>(m_tooth_box.x, m_tooth_box.y, m_tooth_box.z) );
-    tooth_box->GetBoxGeometry().Pos =  ChVector<>(0, tooth_offset, 0);
+    tooth_box->GetBoxGeometry().Pos =  ChVector<>(0, m_tooth_COG_offset, 0);
     boxLevel->AddAsset(tooth_box);
 
     // add a color to the shoes
@@ -417,10 +416,9 @@ void TrackChain::AddVisualization(size_t track_idx,
     m_shoes[track_idx]->AddAsset(boxLevel);
 
     // add the pin as a single cylinder
-    double pin_offset = -0.07581;
     ChSharedPtr<ChCylinderShape> pin(new ChCylinderShape);
-    pin->GetCylinderGeometry().p1 = ChVector<>(pin_offset, 0, m_pin_width/2.0);
-    pin->GetCylinderGeometry().p2 = ChVector<>(pin_offset, 0, -m_pin_width/2.0);
+    pin->GetCylinderGeometry().p1 = ChVector<>(m_pin_COG_offset, 0, m_pin_width/2.0);
+    pin->GetCylinderGeometry().p2 = ChVector<>(m_pin_COG_offset, 0, -m_pin_width/2.0);
     pin->GetCylinderGeometry().rad = m_pin_radius;
     pinLevel->AddAsset(pin);
 
@@ -517,16 +515,14 @@ void TrackChain::AddCollisionGeometry(size_t track_idx,
     m_shoes[track_idx]->GetCollisionModel()->AddBox(0.5*m_shoe_box.x, 0.5*m_shoe_box.y, 0.5*m_shoe_box.z);
      
     // add the tooth
-    double tooth_offset = -0.07313; // vertical offset
     m_shoes[track_idx]->GetCollisionModel()->AddBox(0.5*m_tooth_box.x, 0.5*m_tooth_box.y, 0.5*m_tooth_box.z,
-      ChVector<>(0, tooth_offset, 0));
+      ChVector<>(0, m_tooth_COG_offset, 0));
     
     // pin is a single cylinder
-    double pin_offset = -0.07581;
     m_shoes[track_idx]->GetCollisionModel()->AddCylinder(m_pin_radius,
       m_pin_radius,
       m_pin_width/2.0,
-      ChVector<>(pin_offset, 0, 0),
+      ChVector<>(m_pin_COG_offset, 0, 0),
       ChMatrix33<>(Q_from_AngAxis(CH_C_PI_2,VECT_X)) );
     
     break;
@@ -550,16 +546,14 @@ void TrackChain::AddCollisionGeometry(size_t track_idx,
       ChVector<>(0, 0, -2.0*subBox_width));
 
     // add the tooth box
-    double tooth_offset = -0.07313; // vertical offset
     m_shoes[track_idx]->GetCollisionModel()->AddBox(0.5*m_tooth_box.x, 0.5*m_tooth_box.y, 0.5*m_tooth_box.z,
-      ChVector<>(0, tooth_offset, 0));
+      ChVector<>(0, m_tooth_COG_offset, 0));
 
     // add the pin as a single cylinder
-    double pin_offset = -0.07581;
     m_shoes[track_idx]->GetCollisionModel()->AddCylinder(m_pin_radius,
       m_pin_radius,
       m_pin_width/2.0,
-      ChVector<>(pin_offset, 0, 0),
+      ChVector<>(m_pin_COG_offset, 0, 0),
       ChMatrix33<>(Q_from_AngAxis(CH_C_PI_2,VECT_X)) );
     
     break;
@@ -782,6 +776,7 @@ void TrackChain::CreateShoes(ChSharedPtr<ChBody> chassis,
       double pin_len_norm_seg = pin_clearance - m_shoe_chain_Yoffset;
 
       double psi = 0; // find rotation angle of shoe relative to the last one
+      /*
       if( pin_len_norm_seg > m_pin_dist * std::sin(lim_rot_angle) )
       {
         // don't rotate too aggressively
@@ -789,19 +784,25 @@ void TrackChain::CreateShoes(ChSharedPtr<ChBody> chassis,
       }
       else
       {
-        // distance of pins, tangent to the line segment.
-        double len_on_seg = std::sqrt(m_pin_dist*m_pin_dist - pow(pin_len_norm_seg,2) );
-        // know the next pin location
-        nextPin_pos_abs = pin_frame.GetPos() - norm_dir*pin_len_norm_seg + tan_dir*len_on_seg;
-        // direction vector between pins now, normalized.
-        ChVector<> pin_dir_modified = (nextPin_pos_abs - pin_frame.GetPos()).GetNormalized();
+      */
+      // distance of pins, tangent to the line segment.
+      double len_on_seg = std::sqrt(m_pin_dist*m_pin_dist - pow(pin_len_norm_seg,2) );
+      // know the next pin location
+      nextPin_pos_abs = pin_frame.GetPos() - norm_dir*pin_len_norm_seg + tan_dir*len_on_seg;
+      // direction vector between pins now, normalized.
+      ChVector<> pin_dir_modified = (nextPin_pos_abs - pin_frame.GetPos()).GetNormalized();
 
-        // find rotation angles based on cos(psi) = pin_dir_original dot pin_dir_modified
-        psi = std::acos( Vdot(pin_dir_original, pin_dir_modified) );
-        if( psi > lim_rot_angle )
-          GetLog () << " incorrect rotation angle for shoe #: " << int(m_numShoes) << ", psi = " << psi << "\n";
-        int arg = 2;
-      }
+      // find rotation angles based on cos(psi) = pin_dir_original dot pin_dir_modified
+      psi = std::acos( Vdot(pin_dir_original, pin_dir_modified) );
+      if( psi > lim_rot_angle )
+        GetLog () << " incorrect rotation angle for shoe #: " << int(m_numShoes) << ", psi = " << psi << "\n";
+        
+      // make sure psi rotates us in the correct direction
+      ChVector<> mcross = pin_dir_modified % pin_dir_original;
+      if( (pin_dir_modified % pin_dir_original).z * lateral_dir.z < 0 )
+        psi = -psi;
+      // }
+
 
       // rotate the pin frame about z-axis of the pin, at the pin
       ChQuaternion<> rot_frame =  Q_from_AngAxis(-psi, pin_frame.GetRot().GetZaxis() );
@@ -1055,6 +1056,8 @@ void TrackChain::CreateShoes_closeChain(ChSharedPtr<ChBody> chassis,
       double pin_len_norm_seg = pin_clearance - m_shoe_chain_Yoffset;
 
       double psi = 0; // find rotation angle of shoe relative to the last one
+
+      /*
       if( pin_len_norm_seg > m_pin_dist * std::sin(lim_rot_angle) )
       {
         // don't rotate too aggressively
@@ -1062,28 +1065,24 @@ void TrackChain::CreateShoes_closeChain(ChSharedPtr<ChBody> chassis,
       }
       else
       {
-        // distance of pins, tangent to the line segment.
-        double len_on_seg = std::sqrt(m_pin_dist*m_pin_dist - pow(pin_len_norm_seg,2) );
-        // know the next pin location
-        nextPin_pos_abs = pin_frame.GetPos() - norm_dir*pin_len_norm_seg + tan_dir*len_on_seg;
-        // direction vector between pins 1-2, normalized.
-        ChVector<> pin_dir_modified = (nextPin_pos_abs - pin_frame.GetPos()).GetNormalized();
+      */
+      // distance of pins, tangent to the line segment.
+      double len_on_seg = std::sqrt(m_pin_dist*m_pin_dist - pow(pin_len_norm_seg,2) );
+      // know the next pin location
+      nextPin_pos_abs = pin_frame.GetPos() - norm_dir*pin_len_norm_seg + tan_dir*len_on_seg;
+      // direction vector between pins 1-2, normalized.
+      ChVector<> pin_dir_modified = (nextPin_pos_abs - pin_frame.GetPos()).GetNormalized();
 
-        // find rotation angles based on cos(psi) = pin_dir_original dot pin_dir_modified
-        psi = std::acos( Vdot(pin_dir_original, pin_dir_modified) );
-      }
+      // find rotation angles based on cos(psi) = pin_dir_original dot pin_dir_modified
+      psi = std::acos( Vdot(pin_dir_original, pin_dir_modified) );
+      ChVector<> mcross = pin_dir_modified % pin_dir_original;
+      if( (pin_dir_modified % pin_dir_original).z * lateral_dir.z > 0 )
+          psi = -psi;
+        
+        // }
       
       // rotate the pin frame about z-axis of the pin, at the pin
-      // TODO: IS PSI NEGATIVE????
       ChQuaternion<> rot_frame =  Q_from_AngAxis(psi, pin_frame.GetRot().GetZaxis() );
-
-
-
-
-
-
-
-
 
       pin_frame.SetRot(rot_frame * pin_frame.GetRot());
 
