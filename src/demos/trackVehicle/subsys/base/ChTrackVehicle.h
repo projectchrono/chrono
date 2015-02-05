@@ -137,7 +137,7 @@ protected:
   std::string  m_meshFile;  ///< filename of the mesh, if any
   ChVector<> m_chassisBoxSize; // length, height, width of chassis collision box (if collisiontype = PRIMITIVES)
 
-  int m_num_engines;  ///< can support multiple powertrain/drivetrains
+  size_t m_num_engines;  ///< can support multiple powertrain/drivetrains
   std::vector<ChSharedPtr<TrackPowertrain>>  m_ptrains;  ///< powertrain system, one per track system
 
   double                     m_stepsize;   ///< integration step-size for the vehicle system
