@@ -13,51 +13,47 @@
 #ifndef CHSYSTEMDEM_H
 #define CHSYSTEMDEM_H
 
-//////////////////////////////////////////////////
-//
-//   ChSystemDEM.h
-//
-//   Class for a physical system in which contact
-//   is modeled using a Penalty Method (aka DEM)
-//
-//   HEADER file for CHRONO,
-//   Multibody dynamics engine
-//
-// ------------------------------------------------
-//             www.projectchrono.org
-// ------------------------------------------------
-///////////////////////////////////////////////////
-
-#include "ChSystem.h"
+#include "physics/ChSystem.h"
+#include "physics/ChContactDEM.h"
 
 
-namespace chrono
-{
+namespace chrono {
 
 
+/// Class for a physical system in which contact is modeled using a
+/// Penalty Method (aka DEM)
 class ChApi ChSystemDEM : public ChSystem
 {
-
-	CH_RTTI(ChSystemDEM,ChSystem);
+  CH_RTTI(ChSystemDEM, ChSystem);
 
 public:
-			/// Constructor
-			/// Note, in case you will use collision detection, the values of
-			/// 'max_objects' and 'scene_size' can be used to initialize the broadphase
-			/// collision algorithm in an optimal way. Scene size should be approximately 
-			/// the radius of the expected area where colliding objects will move.
-	ChSystemDEM(unsigned int max_objects = 16000, double scene_size = 500);
+  /// Constructor
+  /// Note, in case you will use collision detection, the values of
+  /// 'max_objects' and 'scene_size' can be used to initialize the broadphase
+  /// collision algorithm in an optimal way. Scene size should be approximately 
+  /// the radius of the expected area where colliding objects will move.
+  ChSystemDEM(
+    bool use_material_properties = true,
+    unsigned int max_objects = 16000,
+    double scene_size = 500);
 
-			/// Destructor
-	~ChSystemDEM() {}
+  virtual ~ChSystemDEM() {}
 
-	virtual void SetLcpSolverType(eCh_lcpSolver mval);
-	virtual void ChangeLcpSolverSpeed(ChLcpSolver* newsolver);
-	virtual void ChangeContactContainer(ChContactContainerBase* newcontainer);
+  virtual void SetLcpSolverType(eCh_lcpSolver mval);
+  virtual void ChangeLcpSolverSpeed(ChLcpSolver* newsolver);
+  virtual void ChangeContactContainer(ChContactContainerBase* newcontainer);
+
+  bool UseMaterialProperties() const                               { return m_use_mat_props; }
+  void SetContactForceModel(ChContactDEM::ContactForceModel model) { m_contact_model = model; }
+  ChContactDEM::ContactForceModel GetContactForceModel() const     { return m_contact_model; }
+
+private:
+  bool                            m_use_mat_props;
+  ChContactDEM::ContactForceModel m_contact_model;
 };
 
 
-} // END_OF_NAMESPACE____
+} // end namespace chrono
 
 
 #endif

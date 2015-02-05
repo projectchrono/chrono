@@ -13,20 +13,6 @@
 #ifndef CHCONTACTDEM_H
 #define CHCONTACTDEM_H
 
-///////////////////////////////////////////////////
-//
-//   ChContactDEM.h
-//
-//   Class for DEM-based contact between bodies
-//
-//   HEADER file for CHRONO,
-//   Multibody dynamics engine
-//
-// ------------------------------------------------
-//             www.projectchrono.org
-// ------------------------------------------------
-///////////////////////////////////////////////////
-
 
 #include "core/ChFrame.h"
 #include "core/ChVectorDynamic.h"
@@ -43,15 +29,12 @@ class ChApi ChContactDEM
 {
 public:
 
-	enum NormalForceModel {
-		HuntCrossley
-	};
-
-	enum TangentialForceModel {
-		SimpleCoulombSliding,
-		LinearSpring,
-		LinearDampedSpring
-	};
+  enum ContactForceModel {
+    Hooke,
+    Hertz,
+    Hooke_history,
+    Hertz_history
+  };
 
 	/// Constructors/destructor
 	ChContactDEM() {}
@@ -109,22 +92,11 @@ public:
 	/// Calculate contact force, expressed in absolute coordinates.
 	void CalculateForce();
 
-
 	/// Apply contact forces to bodies.
 	void ConstraintsFbLoadForces(double factor);
 
 	/// Apply contact forces to bodies (new version, for interfacing to ChTimestepper and ChIntegrable)
 	void DemIntLoadResidual_F(ChVectorDynamic<>& R, const double c );
-
-	/// Contact force models
-	static NormalForceModel     m_normalForceModel;
-	static TangentialForceModel m_tangentialForceModel;
-
-	static void                 SetNormalContactModel(NormalForceModel model) {m_normalForceModel = model;}
-	static NormalForceModel     GetNormalContactModel()                       {return m_normalForceModel;}
-
-	static void                 SetTangentialForceModel(TangentialForceModel model) {m_tangentialForceModel = model;}
-	static TangentialForceModel GetTangentialForceModel()                           {return m_tangentialForceModel;}
 
 	/// Slip velocity threshold. No tangential contact forces are generated
 	/// if the magnitude of the tangential relative velocity is below this.
@@ -149,8 +121,7 @@ private:
 };
 
 
-
-} // END_OF_NAMESPACE____
+} // end namespace chrono
 
 
 #endif
