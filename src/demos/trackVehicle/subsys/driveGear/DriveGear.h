@@ -39,6 +39,13 @@ public:
     VisualizationType vis = VisualizationType::PRIMITIVES,
     CollisionType collide = CollisionType::PRIMITIVES);
 
+  /// override static values for mass, inertia
+  DriveGear(const std::string& name,
+    double gear_mass,
+    const ChVector<>& gear_Ixx,
+    VisualizationType vis = VisualizationType::PRIMITIVES,
+    CollisionType collide = CollisionType::PRIMITIVES);
+
   ~DriveGear() {}
 
   /// init the gear with the initial pos. and rot., w.r.t. the chassis c-sys
@@ -59,10 +66,10 @@ private:
   const std::string& getMeshFile() const { return m_meshFile; }
 
   void AddVisualization();
-  void AddCollisionGeometry(double mu = 0.8,
-                            double mu_sliding = 0.7,
-                            double mu_roll = 0.2,
-                            double mu_spin = 0.2);
+  void AddCollisionGeometry(double mu = 0.7,
+                            double mu_sliding = 0.6,
+                            double mu_roll = 0,
+                            double mu_spin = 0);
   
   // private variables
   ChSharedPtr<ChBody> m_gear;

@@ -69,6 +69,38 @@ DriveGear::DriveGear(const std::string& name,
  
 }
 
+
+DriveGear::DriveGear(const std::string& name, 
+                     double gear_mass,
+                    const ChVector<>& gear_Ixx,
+                     VisualizationType vis, 
+                     CollisionType collide)
+  : m_vis(vis), m_collide(collide)
+{
+  // create the body, set the basic info
+  m_gear = ChSharedPtr<ChBody>(new ChBody);
+  m_gear->SetNameString(name+"body");
+
+  // DONT use static values for these!
+  m_gear->SetMass(gear_mass);
+  m_gear->SetInertiaXX(gear_Ixx);
+
+  // create the revolute joint
+  m_revolute = ChSharedPtr<ChLinkLockRevolute>(new ChLinkLockRevolute);
+  m_revolute->SetNameString(name+"_revolute");
+
+  // create the shaft components
+  m_axle = ChSharedPtr<ChShaft>(new ChShaft);
+  m_axle->SetNameString(name + "_axle");
+  m_axle->SetInertia(m_shaft_inertia );
+  // create the shaft to gear connection
+  m_axle_to_gear = ChSharedPtr<ChShaftsBody>(new ChShaftsBody);
+  m_axle_to_gear->SetNameString(name + "_axle_to_gear");
+
+  AddVisualization();
+ 
+}
+
 void DriveGear::Initialize(ChSharedPtr<ChBody> chassis,
                            const ChFrame<>& chassis_REF,
                            const ChCoordsys<>& local_Csys)
