@@ -44,7 +44,6 @@ struct ChCompositeMaterialDEM
 	float G_eff;                ///< Effective shear modulus
 	float mu_eff;               ///< Effective coefficient of friction
 	float cr_eff;               ///< Effective coefficient of restitution
-	float alpha_eff;            ///< Effective dissipation factor (Hunt-Crossley)
 	float cohesion_eff;         ///< Effective cohesion force
 };
 
@@ -63,7 +62,6 @@ public:
 	float sliding_friction;      ///< Kinetic coefficient of friction
 
 	float restitution;           ///< Coefficient of restitution
-	float dissipation_factor;    ///< Dissipation factor (Hunt-Crossley model)
 
 	float cohesion;              ///< Constant cohesion force
 
@@ -76,8 +74,7 @@ public:
 		poisson_ratio(0.3f),
 		static_friction(0.6f),
 		sliding_friction(0.6f),
-		restitution(0.5f),
-		dissipation_factor(0.1f),
+		restitution(0.4f),
 		cohesion(0)
 	{}
 
@@ -89,7 +86,6 @@ public:
 		static_friction = other.static_friction;
 		sliding_friction = other.sliding_friction;
 		restitution = other.restitution;
-		dissipation_factor = other.dissipation_factor;
 		cohesion = other.cohesion;
 	}
 
@@ -121,10 +117,6 @@ public:
 	float GetRestitution() const     {return restitution;}
 	void  SetRestitution(float val)  {restitution = val;}
 
-	/// Dissipation factor (Hunt-Crossley model)
-	float GetDissipationFactor() const     {return dissipation_factor;}
-	void  SetDissipationFactor(float val)  {dissipation_factor = val;}
-	
 	// Constant cohesion force
 	float GetCohesion() const        {return cohesion;}
 	void  SetCohesion(float val)     {cohesion = val;}
@@ -161,7 +153,6 @@ public:
 		mstream << static_friction;
 		mstream << sliding_friction;
 		mstream << restitution;
-		mstream << dissipation_factor;
 		mstream << cohesion;
 	}
 
@@ -181,7 +172,6 @@ public:
 		mstream >> static_friction;
 		mstream >> sliding_friction;
 		mstream >> restitution;
-		mstream >> dissipation_factor;
 		mstream >> cohesion;
 	}
 

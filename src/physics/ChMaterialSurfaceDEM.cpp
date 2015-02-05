@@ -49,7 +49,6 @@ ChMaterialSurfaceDEM::CompositeMaterial(const ChSharedPtr<ChMaterialSurfaceDEM>&
 	mat.mu_eff    = std::min<float>(mat1->static_friction, mat2->static_friction);
 
 	mat.cr_eff    = (mat1->restitution + mat2->restitution) / 2;
-	mat.alpha_eff = (mat1->dissipation_factor + mat2->dissipation_factor) / 2;
 
 	mat.cohesion_eff = std::min<float>(mat1->cohesion, mat2->cohesion);
 
