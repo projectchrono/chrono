@@ -67,16 +67,16 @@ void SupportRoller::Initialize(ChSharedPtr<ChBody> chassis,
   AddCollisionGeometry();
 
   // get the local frame in the absolute ref. frame
-  ChFrame<> gear_to_abs(local_Csys);
-  gear_to_abs.ConcatenatePreTransformation(chassis_REF);
+  ChFrame<> frame_to_abs(local_Csys);
+  frame_to_abs.ConcatenatePreTransformation(chassis_REF);
 
   // transform the drive gear body, add to system
-  m_roller->SetPos(gear_to_abs.GetPos());
-  m_roller->SetRot(gear_to_abs.GetRot());
+  m_roller->SetPos(frame_to_abs.GetPos());
+  m_roller->SetRot(frame_to_abs.GetRot());
   chassis->GetSystem()->Add(m_roller);
 
   // initialize the revolute joint, add to system
-  m_revolute->Initialize(chassis, m_roller, ChCoordsys<>(gear_to_abs.GetPos(), gear_to_abs.GetRot()) );
+  m_revolute->Initialize(chassis, m_roller, ChCoordsys<>(frame_to_abs.GetPos(), frame_to_abs.GetRot()) );
   chassis->GetSystem()->AddLink(m_revolute);
 
 }
