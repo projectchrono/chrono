@@ -1,4 +1,8 @@
 #include <algorithm>
+
+//not used but prevents compilation errors with cuda 7 RC
+#include <thrust/transform.h>
+
 #include "chrono_parallel/collision/ChCAABBGenerator.h"
 using namespace chrono::collision;
 

@@ -25,6 +25,9 @@
 
 #include <algorithm>
 
+//not used but prevents compilation errors with cuda 7 RC
+#include <thrust/transform.h>
+
 #include "collision/ChCCollisionModel.h"
 
 #include "chrono_parallel/math/ChParallelMath.h"
