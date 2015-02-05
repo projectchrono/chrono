@@ -46,8 +46,8 @@ const std::string IdlerSimple::m_meshFile = utils::GetModelDataFile("M113/Idler_
 const double IdlerSimple::m_radius = 0.255;
 const double IdlerSimple::m_width = 0.166;
 const double IdlerSimple::m_widthGap = .08; // 0.092; 
-const double IdlerSimple::m_springK = 100000;
-const double IdlerSimple::m_springC = 1000;
+const double IdlerSimple::m_springK = 200000;
+const double IdlerSimple::m_springC = 10000;
 const double IdlerSimple::m_springRestLength = 1.0;
 
 
@@ -118,6 +118,40 @@ IdlerSimple::IdlerSimple(const std::string& name,
  
 }
 
+// override default mass, inertia values
+IdlerSimple::IdlerSimple(const std::string& name,
+                         double idler_mass,
+                         const ChVector<>& idler_Ixx,
+                         VisualizationType vis,
+                         CollisionType collide,
+                         size_t chain_idx)
+  : m_vis(vis), m_collide(collide)
+//  , m_shockCB(NULL), m_springCB(NULL)
+{
+  // create the body, set the basic info
+  m_idler = ChSharedPtr<ChBody>(new ChBody);
+  m_idler->SetNameString(name + "_body");
+
+  // use the input values rather than statically defined
+  m_idler->SetMass(idler_mass);
+  m_idler->SetInertiaXX(idler_Ixx);
+
+  // create the idler joint
+  m_idler_joint = ChSharedPtr<ChLinkLockRevolutePrismatic>(new ChLinkLockRevolutePrismatic);
+  m_idler_joint->SetNameString(name + "_idler_joint");
+
+  // create the tensioning linear spring-shock
+  m_shock = ChSharedPtr<ChLinkSpring>(new ChLinkSpring);
+  m_shock->SetNameString(name + "_shock");
+  m_shock->Set_SpringK(m_springK);
+  m_shock->Set_SpringR(m_springC);
+  m_shock->Set_SpringRestLength(m_springRestLength);
+
+  AddVisualization(chain_idx);
+ 
+}
+
+
 IdlerSimple::~IdlerSimple()
 {
   // delete m_springCB;
@@ -174,7 +208,7 @@ void IdlerSimple::AddVisualization(size_t chain_idx,
                                    bool custom_texture,
                                    const std::string& tex_name)
 {
-  assert(track_idx < m_numShoes);
+  
   if(m_idler->GetAssets().size() > 0)
     m_idler->GetAssets().clear();
 

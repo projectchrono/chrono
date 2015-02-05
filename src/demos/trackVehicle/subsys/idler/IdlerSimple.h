@@ -43,6 +43,14 @@ public:
     CollisionType collide = CollisionType::PRIMITIVES,
     size_t chain_idx = 0);
 
+  /// constructor to override default mass, inertia
+  IdlerSimple(const std::string& name,
+    double idler_mass,
+    const ChVector<>& idler_Ixx,
+    VisualizationType vis = VisualizationType::PRIMITIVES,
+    CollisionType collide = CollisionType::PRIMITIVES,
+    size_t chain_idx = 0);
+
   ~IdlerSimple();
 
   /// init the idler with the initial pos. and rot., w.r.t. the chassis c-sys
@@ -67,8 +75,8 @@ private:
                         const std::string& tex_name = "none");
   void AddCollisionGeometry(double mu = 0.8,
                             double mu_sliding = 0.7,
-                            double mu_roll = 0.2,
-                            double mu_spin = 0.2);
+                            double mu_roll = 0,
+                            double mu_spin = 0);
 
     // private functions
   const std::string& getMeshName() const { return m_meshName; }
