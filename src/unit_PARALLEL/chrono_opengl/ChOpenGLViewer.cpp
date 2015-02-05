@@ -342,11 +342,9 @@ void ChOpenGLViewer::DrawObject(ChBody* abody) {
     return;
   }
 
-  const Vector pos = abody->GetPos();
-  const Vector vel = abody->GetPos_dt();
-  const Vector acc = abody->GetPos_dtdt();
+  const Vector pos = abody->GetFrame_REF_to_abs().GetPos();
 
-  Quaternion rot = abody->GetRot();
+  Quaternion rot = abody->GetFrame_REF_to_abs().GetRot();
   double angle;
   Vector axis;
   rot.Q_to_AngAxis(angle, axis);
