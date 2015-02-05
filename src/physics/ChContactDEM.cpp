@@ -128,7 +128,10 @@ void ChContactDEM::CalculateForce()
       gn = std::sqrt(4 * m_eff * kn / tmp_g);
       gt = gn / 2;
     } else {
-
+      kn = mat.kn;
+      kt = 0;
+      gn = m_eff * mat.gn;
+      gt = m_eff * mat.gt;
     }
 
     break;
@@ -145,7 +148,12 @@ void ChContactDEM::CalculateForce()
 
       delta_t = relvel_t_mag * dT;
     } else {
+      kn = mat.kn;
+      kt = mat.kt;
+      gn = m_eff * mat.gn;
+      gt = m_eff * mat.gt;
 
+      delta_t = relvel_t_mag * dT;
     }
 
     break;
@@ -163,7 +171,11 @@ void ChContactDEM::CalculateForce()
       gn = -2 * std::sqrt(5.0 / 6) * beta * std::sqrt(Sn * m_eff);
       gt = -2 * std::sqrt(5.0 / 6) * beta * std::sqrt(St * m_eff);
     } else {
-
+      double tmp = R_eff * std::sqrt(m_delta);
+      kn = tmp * mat.kn;
+      kt = 0;
+      gn = tmp * m_eff * mat.gn;
+      gt = tmp * m_eff * mat.gt;
     }
 
     break;
@@ -183,7 +195,13 @@ void ChContactDEM::CalculateForce()
 
       delta_t = relvel_t_mag * dT;
     } else {
+      double tmp = R_eff * std::sqrt(m_delta);
+      kn = tmp * mat.kn;
+      kt = tmp * mat.kt;
+      gn = tmp * m_eff * mat.gn;
+      gt = tmp * m_eff * mat.gt;
 
+      delta_t = relvel_t_mag * dT;
     }
 
     break;
