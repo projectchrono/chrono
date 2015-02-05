@@ -34,13 +34,6 @@ const double TrackSystem::m_idler_preload = 50000;  // [N]
 const ChVector<> TrackSystem::m_gearPos(1.7741, -0.0099, 0.2447);  // relative to local csys
 const ChQuaternion<> TrackSystem::m_gearRot(QUNIT);
 
-// Support rollers
-const int TrackSystem::m_numRollers = 0;
-const double TrackSystem::m_roller_mass = 100.0;
-const ChVector<> TrackSystem::m_roller_inertia(19.82, 19.82, 26.06);  // rotates about z-axis initially
-const double TrackSystem::m_roller_radius = 0.2;  // Unused on M113
-const double TrackSystem::m_roller_width = 0.2;   // Unused on M113
-  
 // suspension
 const int TrackSystem::m_numSuspensions = 5;
 
@@ -82,32 +75,6 @@ void TrackSystem::Create(int track_idx)
   m_gearRadius = d["Drive Gear"]["Radius"].GetDouble();
   m_gearWidth = d["Drive Gear"]["Width"].GetDouble();
 
-  // Read Support Roller info
-  assert(d.HasMember("Support Roller"));
-  assert(d["Support Roller"].IsObject());
-
-  m_rollerMass = d["Support Roller"]["Mass"].GetDouble();
-  m_rollerInertia = loadVector(d["Support Roller"]["Inertia"]);
-  m_rollerRadius = d["Support Roller"]["Radius"].GetDouble();
-  m_rollerWidth = d["Support Roller"]["Width"].GetDouble();
-  
-  assert(d["Support Roller"]["Location"].IsArray());
-  m_NumRollers = d["Support Roller"]["Location"].Size();
-
-  */
-
-  // no support rollers, for this model
-  m_supportRollers.resize(m_numRollers);
-  m_supportRollers_rev.resize(m_numRollers);
-
-  /*
-  
-  m_rollerLocs.resize(m_NumRollers);
-  for(int i = 0; i < m_NumRollers; i++ )
-  {
-	m_rollerLocs[i] = loadVector(d["Support Roller"]["Location"][i]);
-  }
-
   // Read Suspension data
   assert(d.HasMember("Suspension"));
   assert(d["Suspension"].IsObject());
@@ -116,15 +83,9 @@ void TrackSystem::Create(int track_idx)
   m_suspensionFilename = d["Suspension"]["Input File"].GetString();
   m_NumSuspensions = d["Suspension"]["Location"].Size();
 
- 
+ */
 
-  m_suspensions.resize(m_numSuspensions);
-  m_suspensionLocs.resize(m_numSuspensions);
-  for(int j = 0; j < m_numSuspensions; j++)
-  {
-    // m_suspensionLocs[j] = loadVector(d["Suspension"]["Locaiton"][j]);
-  }
-  */
+
 
   m_suspensions.resize(m_numSuspensions);
   m_suspensionLocs.resize(m_numSuspensions);
@@ -138,6 +99,11 @@ void TrackSystem::Create(int track_idx)
   m_suspensionLocs[4] = ChVector<>(-1.3368, 0, 0);
 
   /*
+
+  for(int j = 0; j < m_numSuspensions; j++)
+  {
+    m_suspensionLocs[j] = loadVector(d["Suspension"]["Locaiton"][j]);
+  }
 
   // Read Track Chain data
   assert(d.HasMember("Track Chain"));
@@ -175,15 +141,6 @@ void TrackSystem::BuildSubsystems()
     m_suspensions[i] = ChSharedPtr<TorsionArmSuspension>(new TorsionArmSuspension("suspension "+std::to_string(i) +", chain "+std::to_string(m_track_idx),
       VisualizationType::PRIMITIVES,
       CollisionType::PRIMITIVES) );
-  }
-  
-  // build support rollers manually (if any)
-  for(int j = 0; j < m_numRollers; j++)
-  {
-    m_supportRollers[j] = ChSharedPtr<ChBody>(new ChBody);
-    m_supportRollers[j]->SetNameString("support roller"+std::to_string(j)+", chain "+std::to_string(m_track_idx) );
-    m_supportRollers[j]->SetMass(m_roller_mass);
-    m_supportRollers[j]->SetInertiaXX(m_roller_inertia);
   }
 
 }
@@ -232,19 +189,6 @@ void TrackSystem::Initialize(ChSharedPtr<ChBodyAuxRef> chassis,
     clearance.push_back(m_suspensions[s_idx]->GetWheelRadius() );
     rolling_elem_spin_axis.push_back(m_suspensions[s_idx]->GetWheelBody()->GetRot().GetZaxis() );
   }
-
-  // initialize the support rollers.
-  // NOTE: None for the M113
-  for(int r_idx = 0; r_idx < m_rollerLocs.size(); r_idx++)
-  {
-    initialize_roller(m_supportRollers[r_idx], chassis,
-      m_local_pos + m_rollerLocs[r_idx], QUNIT, r_idx);
-
-    // add to the points passed into the track chain
-    rolling_elem_locs.push_back( m_local_pos + m_rollerLocs[r_idx] );
-    clearance.push_back(m_roller_radius);
-    rolling_elem_spin_axis.push_back(m_supportRollers[r_idx]->GetRot().GetZaxis() );
-  }
   
   // last control point: the idler body
   m_idler->Initialize(chassis, 
@@ -271,36 +215,6 @@ void TrackSystem::Initialize(ChSharedPtr<ChBodyAuxRef> chassis,
     rolling_elem_locs, clearance, rolling_elem_spin_axis,
     start_pos );
 
-}
-
-
-// initialize a roller at the specified location and orientation, w.r.t. TrackSystem c-sys
-void TrackSystem::initialize_roller(ChSharedPtr<ChBody> body, ChSharedPtr<ChBodyAuxRef>  chassis,
-                                    const ChVector<>& loc, const ChQuaternion<>& rot, int idx)
-{
-  // express loc and rot in the global c-sys
-  ChFrame<> frame_to_abs(loc, rot);
-  
-
-  body->SetPos(loc);
-  body->SetRot(rot);
-
-  // transform point to absolute frame and initialize
-
-  // add the revolute joint at the location and w/ orientation specified
-
-
-  // Add a visual asset
-
-  // Add a collision shape
-  body->SetCollide(true);
-  body->GetCollisionModel()->ClearModel();
-  // set collision family, gear is a rolling element like the wheels
-  body->GetCollisionModel()->SetFamily((int)CollisionFam::WHEELS);
-  // don't collide with other rolling elements or ground
-  body->GetCollisionModel()->SetFamilyMaskNoCollisionWithFamily((int)CollisionFam::GROUND);
-
-  body->GetCollisionModel()->BuildModel();
 }
 
 ChVector<> TrackSystem::Get_idler_spring_react() const

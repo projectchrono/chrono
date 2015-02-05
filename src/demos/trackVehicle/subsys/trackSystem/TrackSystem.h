@@ -70,18 +70,12 @@ private:
   // private functions
   void BuildSubsystems();
   
-  // initialize a roller at the specified location and orientation, attach to chassis
-  void initialize_roller(ChSharedPtr<ChBody> body, ChSharedPtr<ChBodyAuxRef> chassis,
-    const ChVector<>& loc, const ChQuaternion<>& rot, int idx);
-
   // private variables
   // subsystems, and other bodies attached to this tracksystem
   ChSharedPtr<DriveGear>    m_driveGear;
   ChSharedPtr<IdlerSimple>	m_idler;
   ChSharedPtr<TrackChain>   m_chain;
   std::vector<ChSharedPtr<TorsionArmSuspension>> m_suspensions;
-  std::vector<ChSharedPtr<ChBody>> m_supportRollers;
-  std::vector<ChSharedPtr<ChLinkLockRevolute>> m_supportRollers_rev;
   
   std::string m_name; ///< name of the track chain system
   ChVector<> m_local_pos; ///< location of ref-frame, w.r.t. chassis c-sys
@@ -101,17 +95,7 @@ private:
   static const ChVector<> m_gearPos;  // relative to Tracksystem _REF c-sys
   static const ChQuaternion<> m_gearRot;
   
-  // Support rollers
-  static const int        m_numRollers;
-  static const double     m_roller_mass;
-  static const ChVector<> m_roller_inertia;
-  static const double     m_roller_radius;
-  static const double     m_roller_width;
-  std::vector<ChVector<> > m_rollerLocs;  ///< relative to the Tracksys _REF c-sys
-  std::vector<ChQuaternion<> > m_rollerRots;
-  
   // suspension
-  // static const std::string m_suspensionFilename;
   std::vector<ChVector<>> m_suspensionLocs;  // relative to local c-sys
   static const int        m_numSuspensions;
   static const ChVector<> m_armWheel;   // relative arm distance to wheel
