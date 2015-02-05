@@ -53,11 +53,10 @@ public:
   /// Update the vehicle with the new settings for throttle and brake
   virtual void Update(double time,
               double throttle,
-			  double braking);
+              double braking);
 
   /// Advance the vehicle (and the ChSystem)
   virtual void Advance(double step);
-
 
   // Accessors
 
@@ -75,7 +74,7 @@ public:
 
 
   /// return the force exerted by the idler subsystem on the idler body
-  double GetIdlerForce(size_t side);
+  double GetIdlerForce() const;
 
   /// just return the COG of the gear
   ChCoordsys<> GetLocalDriverCoordsys() const { return ChCoordsys<>(m_chassis->GetPos(), m_chassis->GetRot()); }

@@ -46,13 +46,17 @@ const ChQuaternion<> DriveChain::m_idlerRot(QUNIT);
 DriveChain::DriveChain(const std::string& name,
                        VisualizationType vis,
                        CollisionType collide)
-  : ChTrackVehicle(),
+  : ChTrackVehicle(1e-3, 1, m_vis, m_collide),
   m_num_rollers(1)
 {
+  // ---------------------------------------------------------------------------
+  // Set the base class variables
+
+
   // Integration and Solver settings set in ChTrackVehicle
-   // Set the base class variables
-  m_vis = vis;
-  m_collide = collide;
+  GetSystem()->SetIterLCPmaxItersStab(75);
+  GetSystem()->SetIterLCPmaxItersSpeed(75);
+
   // doesn't matter for the chassis, since no visuals used
   m_meshName = "na";
   m_meshFile = utils::GetModelDataFile("M113/M113SprocketLeft_XforwardYup.obj");
@@ -73,15 +77,27 @@ DriveChain::DriveChain(const std::string& name,
   m_system->Add(m_chassis);
   
   // build one of each of the following subsystems. 
+  double gear_mass = 100.0; // 436.7
+  ChVector<> gear_Ixx(12.22/4.0, 12.22/4.0, 13.87/4.0);  // 12.22, 12.22, 13.87
   m_gear = ChSharedPtr<DriveGear>(new DriveGear("drive gear",
+    gear_mass,
+    gear_Ixx,
     vis,	//VisualizationType::PRIMITIVES,
     collide));	//CollisionType::PRIMITIVES) );
 
+  double idler_mass = 100.0; // 429.6
+  ChVector<> idler_Ixx(gear_Ixx);    // 12.55, 12.55, 14.7
   m_idler = ChSharedPtr<IdlerSimple>(new IdlerSimple("idler",
+    idler_mass,
+    idler_Ixx,
     vis,	// VisualizationType::PRIMITIVES,
     collide));	// CollisionType::PRIMITIVES) );
 
+  double shoe_mass = 3.0; // 18.03
+  ChVector<> shoe_Ixx(0.22/6.0, 0.25/6.0, 0.04/6.0);  // 0.22, 0.25, 0.04
   m_chain = ChSharedPtr<TrackChain>(new TrackChain("chain",
+    shoe_mass,
+    shoe_Ixx,
     VisualizationType::COMPOUNDPRIMITIVES,
     CollisionType::PRIMITIVES) );
 
@@ -95,7 +111,9 @@ DriveChain::DriveChain(const std::string& name,
   m_rollers.resize(m_num_rollers);
   for(int j = 0; j < m_num_rollers; j++)
   {
-    m_rollers.push_back(ChSharedPtr<SupportRoller>(new SupportRoller("support roller " +std::to_string(j))) );
+    m_rollers[j] = ChSharedPtr<SupportRoller>(new SupportRoller("support roller " +std::to_string(j),
+      vis,
+      collide));
   }
 }
 
@@ -110,7 +128,7 @@ DriveChain::~DriveChain()
 void DriveChain::Initialize(const ChCoordsys<>& gear_Csys)
 {
   // initialize the drive gear, idler and track chain
-  double idler_preload = 40000;
+  double idler_preload = 60000;
   // m_idlerPosRel = m_idlerPos;
   m_idlerPosRel = ChVector<>(-2.5, 0, 0);
   m_chassis->SetFrame_REF_to_abs(ChFrame<>(gear_Csys.pos, gear_Csys.rot));
@@ -139,8 +157,8 @@ void DriveChain::Initialize(const ChCoordsys<>& gear_Csys)
   for(int r_idx = 0; r_idx < m_num_rollers; r_idx++)
   {
     ChVector<> roller_loc = m_chassis->GetPos();
-    roller_loc.y -= 0.5;
-    roller_loc.x += 0.3*(1 + r_idx);
+    roller_loc.y = -0.5;
+    roller_loc.x -= 0.3*(2 + r_idx);
 
     m_rollers[r_idx]->Initialize(m_chassis,
       m_chassis->GetFrame_REF_to_abs(),
@@ -166,13 +184,22 @@ void DriveChain::Initialize(const ChCoordsys<>& gear_Csys)
   // when there's only 2 rolling elements, the above locations will repeat
   // the first rolling element at the front and end of the vector.
   // So, just use the mid-point between the first two rolling elements.
-  ChVector<> start_pos = (rolling_elem_locs[0] + rolling_elem_locs[1])/2.0;
-  start_pos.y += (clearance[0] + clearance[1])/2.0;
+
+  ChVector<> start_pos;
+  if( clearance.size() <3 )
+  {
+    start_pos = (rolling_elem_locs[0] + rolling_elem_locs[1])/2.0;
+    start_pos.y += (clearance[0] + clearance[1])/2.0;
+  }
+  else
+  {
+    start_pos = (rolling_elem_locs.front() + rolling_elem_locs.back())/2.0;
+    start_pos.y += (clearance.front() + clearance.back() )/2.0;
+  }
 
   // NOTE: start_pos needs to somewhere on the top length of chain.
   // Rolling_elem_locs MUST be ordered from front-most to the rear, 
   //  w.r.t. the chassis x-dir, so chain links created in a clockwise direction.
-
   m_chain->Initialize(m_chassis, 
     m_chassis->GetFrame_REF_to_abs(),
     rolling_elem_locs, clearance,
@@ -195,16 +222,22 @@ void DriveChain::Update(double time,
 void DriveChain::Advance(double step)
 {
   double t = 0;
-  double settlePhaseA = 0.001;
-  double settlePhaseB = 0.1;
+  m_system->SetIterLCPmaxItersStab(60);
+  m_system->SetIterLCPmaxItersSpeed(75);
+  double settlePhaseA = 0.3;
+  double settlePhaseB = 1.0;
   while (t < step) {
     double h = std::min<>(m_stepsize, step - t);
     if( m_system->GetChTime() < settlePhaseA )
     {
-      h = 1e-5;
+      h = 5e-4;
+      m_system->SetIterLCPmaxItersStab(100);
+      m_system->SetIterLCPmaxItersSpeed(100);
     } else if ( m_system->GetChTime() < settlePhaseB )
     {
-      h = 1e-4;
+      h = 1e-3;
+      m_system->SetIterLCPmaxItersStab(75);
+      m_system->SetIterLCPmaxItersSpeed(75);
     }
     m_system->DoStepDynamics(h);
     t += h;
@@ -212,9 +245,8 @@ void DriveChain::Advance(double step)
 }
 
 
-double DriveChain::GetIdlerForce(size_t idler_idx)
+double DriveChain::GetIdlerForce() const
 {
-  assert(idler_idx < m_num_idlers);
 
   // only 1 idler, for now
   ChVector<> out_force = m_idler->GetSpringForce();
