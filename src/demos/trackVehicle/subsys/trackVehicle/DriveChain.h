@@ -31,6 +31,7 @@
 #include "subsys/idler/IdlerSimple.h"
 #include "subsys/trackChain/TrackChain.h"
 #include "subsys/powertrain/TrackPowertrain.h"
+#include "subsys/idler/SupportRoller.h"
 
 namespace chrono {
 
@@ -95,8 +96,11 @@ private:
   
   ChSharedPtr<TrackPowertrain>  m_ptrain;  ///< powertrain system
 
-  size_t m_num_idlers;
+  std::vector<ChSharedPtr<SupportRoller>> m_rollers;  ///< passive support rollers
+  size_t m_num_rollers;
 	
+
+
   // static variables. hard-coded for now
   static const ChVector<> m_idlerPos; // relative to chassis frame, which is the same as the gear's (initially)
   static const ChQuaternion<> m_idlerRot; 

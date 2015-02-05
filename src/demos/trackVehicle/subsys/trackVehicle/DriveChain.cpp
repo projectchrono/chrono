@@ -47,7 +47,7 @@ DriveChain::DriveChain(const std::string& name,
                        VisualizationType vis,
                        CollisionType collide)
   : ChTrackVehicle(),
-  m_num_idlers(1)
+  m_num_rollers(1)
 {
   // Integration and Solver settings set in ChTrackVehicle
    // Set the base class variables
@@ -84,12 +84,19 @@ DriveChain::DriveChain(const std::string& name,
   m_chain = ChSharedPtr<TrackChain>(new TrackChain("chain",
     VisualizationType::COMPOUNDPRIMITIVES,
     CollisionType::PRIMITIVES) );
-  
-  m_num_engines = 1;
 
   // create the powertrain, connect transmission shaft directly to gear shaft
+  m_num_engines = 1;
+
   m_ptrain = ChSharedPtr<TrackPowertrain>(new TrackPowertrain("powertrain ") );
 
+  // support rollers, if any
+  m_rollers.clear();
+  m_rollers.resize(m_num_rollers);
+  for(int j = 0; j < m_num_rollers; j++)
+  {
+    m_rollers.push_back(ChSharedPtr<SupportRoller>(new SupportRoller("support roller " +std::to_string(j))) );
+  }
 }
 
 
@@ -103,23 +110,11 @@ DriveChain::~DriveChain()
 void DriveChain::Initialize(const ChCoordsys<>& gear_Csys)
 {
   // initialize the drive gear, idler and track chain
-  double idler_preload = 20000;
+  double idler_preload = 40000;
   // m_idlerPosRel = m_idlerPos;
-  m_idlerPosRel = ChVector<>(-1.5, 0, 0);
+  m_idlerPosRel = ChVector<>(-2.5, 0, 0);
   m_chassis->SetFrame_REF_to_abs(ChFrame<>(gear_Csys.pos, gear_Csys.rot));
   
-  // initialize 1 of each of the following subsystems.
-  // will use the chassis ref frame to do the transforms, since the TrackSystem
-  // local ref. frame has same rot (just difference in position)
-  m_gear->Initialize(m_chassis, 
-    m_chassis->GetFrame_REF_to_abs(),
-    ChCoordsys<>());
-
-  m_idler->Initialize(m_chassis, 
-    m_chassis->GetFrame_REF_to_abs(),
-    ChCoordsys<>(m_idlerPosRel, QUNIT),
-    idler_preload);
-
   // Create list of the center location of the rolling elements and their clearance.
   // Clearance is a sphere shaped envelope at each center location, where it can
   //  be guaranteed that the track chain geometry will not penetrate the sphere.
@@ -127,10 +122,41 @@ void DriveChain::Initialize(const ChCoordsys<>& gear_Csys)
   std::vector<double> clearance;  // 1 per rolling elem  
   std::vector<ChVector<>> rolling_elem_spin_axis; /// w.r.t. abs. frame
   
+
+  // initialize 1 of each of the following subsystems.
+  // will use the chassis ref frame to do the transforms, since the TrackSystem
+  // local ref. frame has same rot (just difference in position)
+  m_gear->Initialize(m_chassis, 
+    m_chassis->GetFrame_REF_to_abs(),
+    ChCoordsys<>());
+
   // drive sprocket is First added to the lists passed into TrackChain Init()
   rolling_elem_locs.push_back(ChVector<>() );
   clearance.push_back(m_gear->GetRadius() );
   rolling_elem_spin_axis.push_back(m_gear->GetBody()->GetRot().GetZaxis() );
+
+  // initialize the support rollers.
+  for(int r_idx = 0; r_idx < m_num_rollers; r_idx++)
+  {
+    ChVector<> roller_loc = m_chassis->GetPos();
+    roller_loc.y -= 0.5;
+    roller_loc.x += 0.3*(1 + r_idx);
+
+    m_rollers[r_idx]->Initialize(m_chassis,
+      m_chassis->GetFrame_REF_to_abs(),
+      ChCoordsys<>(roller_loc, QUNIT) );
+
+    // add to the points passed into the track chain
+    rolling_elem_locs.push_back( roller_loc );
+    clearance.push_back(m_rollers[r_idx]->GetRadius() );
+    rolling_elem_spin_axis.push_back( m_rollers[r_idx]->GetBody()->GetRot().GetZaxis() );
+  }
+
+  // init the idler last
+  m_idler->Initialize(m_chassis, 
+    m_chassis->GetFrame_REF_to_abs(),
+    ChCoordsys<>(m_idlerPosRel, QUNIT),
+    idler_preload);
 
   // add to the lists passed into the track chain Init()
   rolling_elem_locs.push_back(m_idlerPosRel );
@@ -156,7 +182,6 @@ void DriveChain::Initialize(const ChCoordsys<>& gear_Csys)
   // initialize the powertrain, drivelines
   m_ptrain->Initialize(m_chassis, m_gear->GetAxle() );
 }
-
 
 void DriveChain::Update(double time,
                         double throttle,
