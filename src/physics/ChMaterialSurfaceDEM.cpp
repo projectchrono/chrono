@@ -72,6 +72,8 @@ ChMaterialSurfaceDEM::CompositeMaterial(const ChSharedPtr<ChMaterialSurfaceDEM>&
 
   mat.cohesion_eff = std::min<float>(mat1->cohesion, mat2->cohesion);
 
+  mat.poisson_eff = (mat1->poisson_ratio + mat2->poisson_ratio) / 2;
+
   mat.kn = (mat1->kn + mat2->kn) / 2;
   mat.kt = (mat1->kt + mat2->kt) / 2;
   mat.gn = (mat1->gn + mat2->gn) / 2;

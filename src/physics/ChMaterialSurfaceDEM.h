@@ -33,6 +33,8 @@ struct ChCompositeMaterialDEM
   float cr_eff;               ///< Effective coefficient of restitution
   float cohesion_eff;         ///< Effective cohesion force
 
+  float poisson_eff;
+
   float kn;
   float kt;
   float gn;
