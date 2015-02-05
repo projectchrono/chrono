@@ -55,8 +55,8 @@ const double TrackChain::m_shoe_chain_Yoffset = 0.04; // .03315 exact
 
 TrackChain::TrackChain(const std::string& name, 
                        VisualizationType vis, 
-                       CollisionType collide)
-                       : m_vis(vis), m_collide(collide), m_numShoes(0)
+                       CollisionType collide
+                       ): m_vis(vis), m_collide(collide), m_numShoes(0)
 {
   // clear vector holding list of body handles
   m_shoes.clear();
@@ -73,6 +73,31 @@ TrackChain::TrackChain(const std::string& name,
 
   // Attach visualization to the base track shoe
   AddVisualization(0, true, "cubetexture_pinkwhite.png");
+}
+  
+TrackChain::TrackChain(const std::string& name, 
+    double shoe_mass,
+    const ChVector<>& shoe_inertia,
+    VisualizationType vis,
+    CollisionType collide
+    ): m_vis(vis), m_collide(collide), m_numShoes(0)
+{
+    // clear vector holding list of body handles
+  m_shoes.clear();
+  // add first track shoe body
+  m_shoes.push_back(ChSharedPtr<ChBody>(new ChBody));
+  // m_shoes.push_back(ChSharedPtr<ChBodyAuxRef>(new ChBodyAuxRef));
+  // m_shoes[0]->SetFrame_COG_to_REF(ChFrame<>(m_COM,QUNIT));
+
+  m_numShoes++;
+
+  m_shoes.front()->SetNameString("shoe 1, "+name);
+  m_shoes.front()->SetMass(shoe_mass);
+  m_shoes.front()->SetInertiaXX(shoe_inertia);
+
+  // Attach visualization to the base track shoe
+  AddVisualization(0, true, "cubetexture_pinkwhite.png");
+
 }
 
 // figure out the control points, 2 per rolling element to wrap the chain around.
@@ -1047,9 +1072,19 @@ void TrackChain::CreateShoes_closeChain(ChSharedPtr<ChBody> chassis,
         // find rotation angles based on cos(psi) = pin_dir_original dot pin_dir_modified
         psi = std::acos( Vdot(pin_dir_original, pin_dir_modified) );
       }
-
+      
       // rotate the pin frame about z-axis of the pin, at the pin
-      ChQuaternion<> rot_frame =  Q_from_AngAxis(-psi, pin_frame.GetRot().GetZaxis() );
+      // TODO: IS PSI NEGATIVE????
+      ChQuaternion<> rot_frame =  Q_from_AngAxis(psi, pin_frame.GetRot().GetZaxis() );
+
+
+
+
+
+
+
+
+
       pin_frame.SetRot(rot_frame * pin_frame.GetRot());
 
       // can find the shoe COG pos/rot now, from pin orientation, and COG offset from pin pos

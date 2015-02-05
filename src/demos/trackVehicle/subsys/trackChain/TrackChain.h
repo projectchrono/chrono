@@ -39,6 +39,13 @@ public:
     VisualizationType vis = VisualizationType::PRIMITIVES,
     CollisionType collide = CollisionType::PRIMITIVES );
   
+  /// constructor to override static shoe mass/inertia variables.
+  TrackChain(const std::string& name, 
+    double shoe_mass,
+    const ChVector<>& shoe_inertia,
+    VisualizationType vis = VisualizationType::PRIMITIVES,
+    CollisionType collide = CollisionType::PRIMITIVES);
+
   ~TrackChain() {}
 
   /// Use the clearance to define a spherical envelope for each rolling element.
@@ -70,17 +77,17 @@ private:
     const std::string& tex_name = "none");
 
   /// add collision geometry to the last shoe added
-  void AddCollisionGeometry(double mu = 0.8,
-                            double mu_sliding = 0.7,
-                            double mu_roll = 0.2,
-                            double mu_spin = 0.2);
+  void AddCollisionGeometry(double mu = 0.7,
+                            double mu_sliding = 0.6,
+                            double mu_roll = 0,
+                            double mu_spin = 0);
 
   /// add collision geometrey to a certain track shoe
   void AddCollisionGeometry(size_t track_idx,
-                            double mu = 0.8,
-                            double mu_sliding = 0.7,
-                            double mu_roll = 0.2,
-                            double mu_spin = 0.2);
+                            double mu = 0.7,
+                            double mu_sliding = 0.6,
+                            double mu_roll = 0,
+                            double mu_spin = 0);
    
   /// initialize shoe bodies by wrapping the track chain around the rolling elements.
   /// Define a string along which the chain is wrapper, using the input values.
