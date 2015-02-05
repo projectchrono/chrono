@@ -59,7 +59,7 @@ ChVector<> initLoc(0, 1.0, 0);
 ChQuaternion<> initRot(QUNIT);
 
 // Simulation step size
-double step_size = 0.001;
+double step_size = 0.002;
 
 // Time interval between two render frames
 int FPS = 40;
@@ -69,12 +69,12 @@ double output_step_size = 1.0 / 1;    // once a second
 
 // #ifdef USE_IRRLICHT
   // Point on chassis tracked by the camera
-ChVector<> trackPoint(-0.5, 0, 0);
+ChVector<> trackPoint(-1.25, 0, 0);
 // if chase cam enabled:
 double chaseDist = 3.0;
 double chaseHeight = 0.0;
 // set a static camera position
-ChVector<> cameraPos(-0.5, 1.25, 2);
+ChVector<> cameraPos(-1.25, 1.25, 2.5);
 
   /*
 #else
