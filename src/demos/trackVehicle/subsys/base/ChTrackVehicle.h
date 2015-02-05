@@ -44,8 +44,21 @@ public:
   /// Construct with a default ChSystem.
   ChTrackVehicle();
 
+  /// Construct by passing in desired system variables.
+  ChTrackVehicle(double step_size,
+    size_t num_engines,
+    VisualizationType vis,
+    CollisionType collide);
+
   /// Construct using the specified ChSystem.
   ChTrackVehicle(ChSystem* system);
+
+  /// Construct using the specified ChSystem, with the desired vehicle system settings.
+  ChTrackVehicle(ChSystem* system,
+    double step_size,
+    size_t num_engines,
+    VisualizationType vis,
+    CollisionType collide);
 
   /// Destructor.
   virtual ~ChTrackVehicle();

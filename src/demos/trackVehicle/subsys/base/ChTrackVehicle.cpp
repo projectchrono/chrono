@@ -57,6 +57,45 @@ ChTrackVehicle::ChTrackVehicle()
 
 }
 
+ChTrackVehicle::ChTrackVehicle(double step_size,
+                               size_t num_engines,
+                               VisualizationType vis,
+                               CollisionType collide)
+: m_ownsSystem(true),
+  m_stepsize(step_size),
+  m_num_engines(num_engines),
+  m_vis(vis),
+  m_collide(collide)
+{
+  m_system = new ChSystem;
+
+  m_system->Set_G_acc(ChVector<>(0, -9.81, 0));
+
+  // Integration and Solver settings
+  m_system->SetLcpSolverType(ChSystem::LCP_ITERATIVE_SOR);
+  m_system->SetIterLCPmaxItersSpeed(150);
+  m_system->SetIterLCPmaxItersStab(150);
+  m_system->SetMaxPenetrationRecoverySpeed(1.5);
+  m_system->SetMinBounceSpeed(0.5);
+  // m_system->SetIterLCPomega(0.8);
+  // m_system->SetIterLCPsharpnessLambda(0.9);
+
+
+}
+
+ChTrackVehicle::ChTrackVehicle(ChSystem* system,
+                               double step_size,
+                               size_t num_engines,
+                               VisualizationType vis,
+                               CollisionType collide)
+: m_ownsSystem(false),
+m_system(system),
+  m_stepsize(step_size),
+  m_num_engines(num_engines),
+  m_vis(vis),
+  m_collide(collide)
+{
+}
 
 ChTrackVehicle::ChTrackVehicle(ChSystem* system)
 : m_system(system),
