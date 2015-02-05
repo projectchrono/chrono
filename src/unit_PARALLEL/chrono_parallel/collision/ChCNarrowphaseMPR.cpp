@@ -11,7 +11,7 @@
 
 using namespace chrono::collision;
 
-#define MPR_TOLERANCE  0
+#define MPR_TOLERANCE  ZERO_EPSILON
 #define MAX_ITERATIONS  1000
 struct support {
    real3 v, v1, v2;
