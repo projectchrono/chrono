@@ -128,9 +128,9 @@ void ChContactDEM::CalculateForce()
       double v2 = m_characteristicVelocity * m_characteristicVelocity;
       double tmp_g = 1 + std::pow(CH_C_PI / std::log(mat.cr_eff), 2);
       kn = tmp_k * std::pow(m_eff * v2 / tmp_k, 1.0 / 5);
-      kt = 2 * (1 - mat.poisson_eff) / (2 - mat.poisson_eff) * kn;
+      kt = kn;
       gn = std::sqrt(4 * m_eff * kn / tmp_g);
-      gt = gn / 2;
+      gt = gn;
     } else {
       kn = mat.kn;
       kt = mat.kt;
