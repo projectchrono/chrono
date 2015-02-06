@@ -26,6 +26,8 @@ void ChSystemParallelDEM::AddMaterialSurfaceData(ChSharedPtr<ChBody> newbody)
   data_manager->host_data.mu.push_back(0);
   data_manager->host_data.cohesion_data.push_back(0);
 
+  data_manager->host_data.mass_data.push_back(0);
+
   if (data_manager->settings.solver.use_material_properties) {
     data_manager->host_data.elastic_moduli.push_back(R2(0, 0));
     data_manager->host_data.cr.push_back(0);
@@ -36,6 +38,7 @@ void ChSystemParallelDEM::AddMaterialSurfaceData(ChSharedPtr<ChBody> newbody)
 
 void ChSystemParallelDEM::UpdateMaterialSurfaceData(int index, ChBody* body)
 {
+  custom_vector<real>& mass = data_manager->host_data.mass_data;
   custom_vector<real2>& elastic_moduli = data_manager->host_data.elastic_moduli;
   custom_vector<real>& cohesion = data_manager->host_data.cohesion_data;
   custom_vector<real>& mu = data_manager->host_data.mu;
@@ -44,6 +47,7 @@ void ChSystemParallelDEM::UpdateMaterialSurfaceData(int index, ChBody* body)
 
   ChSharedPtr<ChMaterialSurfaceDEM>& mat = ((ChBodyDEM*)body)->GetMaterialSurfaceDEM();
 
+  mass[index] = body->GetMass();
   mu[index] = mat->GetSfriction();
   cohesion[index] = mat->GetCohesion();
 

@@ -44,6 +44,7 @@ function_CalcContactForces(
     real         char_vel,         // characteristic velocity (Hooke)
     real         min_slip_vel,     // threshold tangential velocity
     real         dT,               // integration time step
+    real*        mass,             // body masses
     real3*       pos,              // body positions
     real4*       rot,              // body orientations
     real*        vel,              // body linear velocity (global frame), angular velocity (local frame)
@@ -110,7 +111,7 @@ function_CalcContactForces(
   // Calculate composite material properties
   // ---------------------------------------
 
-  real m_eff = 1;   ////  TODO    <- need body masses!!!
+  real m_eff = mass[body1] * mass[body2] / (mass[body1] + mass[body2]);
 
   real mu_eff = std::min(mu[body1], mu[body2]);
   real cohesion_eff = std::min(cohesion[body1], cohesion[body2]);
@@ -262,6 +263,7 @@ ChLcpSolverParallelDEM::host_CalcContactForces(
       data_container->settings.solver.characteristic_vel,
       data_container->settings.solver.min_slip_vel,
       data_container->settings.step_size,
+      data_container->host_data.mass_data.data(),
       data_container->host_data.pos_data.data(),
       data_container->host_data.rot_data.data(),
       data_container->host_data.v.data(),
