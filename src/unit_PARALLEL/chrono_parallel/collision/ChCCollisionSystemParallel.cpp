@@ -18,6 +18,7 @@ ChCollisionSystemParallel::ChCollisionSystemParallel(ChParallelDataManager* dc)
 {
   broadphase = new ChCBroadphase;
   narrowphase = new ChCNarrowphaseDispatch;
+  narrowphase->data_container = dc;
 }
 
 ChCollisionSystemParallel::~ChCollisionSystemParallel() {
@@ -123,7 +124,7 @@ void ChCollisionSystemParallel::Run() {
   data_container->measures.collision.numAABB = broadphase->numAABB;
 
   data_container->system_timer.start("collision_narrow");
-  narrowphase->Process(data_container);
+  narrowphase->Process();
   data_container->system_timer.stop("collision_narrow");
 }
 
