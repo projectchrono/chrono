@@ -32,6 +32,8 @@
 
 // collision mesh
 #include "geometry/ChCTriangleMeshSoup.h"
+// custom collision detection classes
+#include "subsys/collision/TrackCollisionCallback.h"
 
 namespace chrono {
 
@@ -44,9 +46,9 @@ const ChQuaternion<> DriveChain::m_idlerRot(QUNIT);
 
 /// constructor sets the basic integrator settings for this ChSystem, as well as the usual stuff
 DriveChain::DriveChain(const std::string& name,
-                       VisualizationType vis,
-                       CollisionType collide)
-  : ChTrackVehicle(1e-3, 1, m_vis, m_collide),
+                       VisualizationType gearVis,
+                       CollisionType gearCollide)
+  : ChTrackVehicle(1e-3, 1, gearVis, gearCollide),
   m_num_rollers(1)
 {
   // ---------------------------------------------------------------------------
@@ -82,9 +84,11 @@ DriveChain::DriveChain(const std::string& name,
   m_gear = ChSharedPtr<DriveGear>(new DriveGear("drive gear",
     gear_mass,
     gear_Ixx,
-    //vis,
-    VisualizationType::MESH,
-    collide));	//CollisionType::PRIMITIVES) );
+    m_vis,
+    m_collide));
+
+ //    VisualizationType::MESH,
+ //   collide));	//CollisionType::PRIMITIVES) );
 
   double idler_mass = 100.0; // 429.6
   ChVector<> idler_Ixx(gear_Ixx);    // 12.55, 12.55, 14.7
@@ -93,7 +97,7 @@ DriveChain::DriveChain(const std::string& name,
     idler_Ixx,
     //vis,
     VisualizationType::MESH,
-    collide));	// CollisionType::PRIMITIVES) );
+    CollisionType::PRIMITIVES) );
 
   double shoe_mass = 3.0; // 18.03
   ChVector<> shoe_Ixx(0.22/6.0, 0.25/6.0, 0.04/6.0);  // 0.22, 0.25, 0.04
@@ -114,9 +118,11 @@ DriveChain::DriveChain(const std::string& name,
   for(int j = 0; j < m_num_rollers; j++)
   {
     m_rollers[j] = ChSharedPtr<SupportRoller>(new SupportRoller("support roller " +std::to_string(j),
-      vis,
-      collide));
+      VisualizationType::PRIMITIVES,
+      CollisionType::PRIMITIVES));
   }
+
+
 }
 
 
