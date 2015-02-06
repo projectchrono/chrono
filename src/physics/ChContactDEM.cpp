@@ -176,6 +176,9 @@ void ChContactDEM::CalculateForce()
     forceT = 0;
   }
 
+  // Include cohesion force
+  forceN -= mat.cohesion_eff;
+
   // Coulomb law
   forceT = std::min<double>(forceT, mat.mu_eff * std::abs(forceN));
 
