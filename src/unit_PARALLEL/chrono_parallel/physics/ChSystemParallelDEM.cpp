@@ -4,12 +4,8 @@
 using namespace chrono;
 using namespace chrono::collision;
 
-ChSystemParallelDEM::ChSystemParallelDEM(unsigned int                       max_objects,
-                                         ChContactDEM::NormalForceModel     normal_model,
-                                         ChContactDEM::TangentialForceModel tangential_model)
-: ChSystemParallel(max_objects),
-  normal_force_model(normal_model),
-  tangential_force_model(tangential_model)
+ChSystemParallelDEM::ChSystemParallelDEM(unsigned int                       max_objects)
+: ChSystemParallel(max_objects)
 {
   LCP_solver_speed = new ChLcpSolverParallelDEM(data_manager);
 
@@ -32,12 +28,7 @@ void ChSystemParallelDEM::AddMaterialSurfaceData(ChSharedPtr<ChBody> newbody)
   data_manager->host_data.mu.push_back(0);
   data_manager->host_data.cohesion_data.push_back(0);
   //data_manager->host_data.cr.push_back(0);
-
-  switch (normal_force_model) {
-  case ChContactDEM::HuntCrossley:
-    data_manager->host_data.alpha.push_back(0);
-    break;
-  }
+  data_manager->host_data.alpha.push_back(0);
 }
 
 
@@ -55,12 +46,7 @@ void ChSystemParallelDEM::UpdateMaterialSurfaceData(int index, ChBody* body)
   mu[index] = mat->GetSfriction();
   cohesion[index] = mat->GetCohesion();
   //cr[index] = mat->GetRestitution();
-
-  switch (normal_force_model) {
-  case ChContactDEM::HuntCrossley:
-    alpha[index] = mat->GetDissipationFactor();
-    break;
-  }
+  alpha[index] = mat->GetDissipationFactor();
 }
 
 void ChSystemParallelDEM::ChangeCollisionSystem(COLLISIONSYSTEMTYPE type)
