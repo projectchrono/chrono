@@ -33,7 +33,8 @@ enum struct CollisionType {
   PRIMITIVES,
   MESH,
   CONVEXHULL,
-  COMPOUNDPRIMITIVES
+  COMPOUNDPRIMITIVES,
+  CALLBACKFUNCTION
 };
 
 // Collision family definitions
@@ -45,8 +46,7 @@ enum struct CollisionFam {
   GROUND,
   HULL,
   WHEELS,
-  SHOES,
-  ALL
+  SHOES
 };
 
 
