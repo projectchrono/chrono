@@ -118,9 +118,9 @@ struct host_container {
 
    // Material properties (DEM)
    thrust::host_vector<real2> elastic_moduli;  // Young's modulus and Poisson ratio
-   thrust::host_vector<real> mu;               // Coefficient of friction
-   thrust::host_vector<real> alpha;            // Dissipation factor (Hunt-Crossley)
-   thrust::host_vector<real> cr;               // Coefficient of restitution
+   thrust::host_vector<real>  mu;              // Coefficient of friction
+   thrust::host_vector<real>  cr;              // Coefficient of restitution
+   thrust::host_vector<real4> dem_coeffs;      // Stiffness and damping coefficients
 
    //For the variables below the convention is:
    //_n is normal
