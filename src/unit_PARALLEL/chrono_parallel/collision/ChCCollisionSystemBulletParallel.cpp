@@ -149,10 +149,6 @@ void ChCollisionSystemBulletParallel::ReportContacts(ChContactContainerBase* mco
                icontact.vpA = icontact.vpA - icontact.vN * envelopeA;
                icontact.vpB = icontact.vpB + icontact.vN * envelopeB;
 
-               //Required because parallel code expects the offset to be done before hand, this is for performance reasons later on.
-               icontact.vpA = icontact.vpA - ((ChBody*) (icontact.modelA->GetPhysicsItem()))->GetPos();
-               icontact.vpB = icontact.vpB - ((ChBody*) (icontact.modelB->GetPhysicsItem()))->GetPos();
-
                icontact.distance = ptdist + envelopeA + envelopeB;
 
                icontact.reaction_cache = pt.reactions_cache;
