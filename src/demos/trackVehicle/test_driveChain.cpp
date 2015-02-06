@@ -51,7 +51,7 @@ using namespace chrono;
 // User Settings
 // =============================================================================
 // display the 1) system heirarchy, 2) a set of subsystem hardpoints, 3) constraint violations
-#define DEBUG_LOG 
+//#define DEBUG_LOG 
 
 // Initial vehicle position and heading. Defines the REF frame for the hull body
 ChVector<> initLoc(0, 1.0, 0);
@@ -69,12 +69,12 @@ double output_step_size = 1.0 / 1;    // once a second
 
 // #ifdef USE_IRRLICHT
   // Point on chassis tracked by the camera
-ChVector<> trackPoint(-1.25, 0, 0);
+ChVector<> trackPoint(0, 0, 0);
 // if chase cam enabled:
-double chaseDist = 3.0;
+double chaseDist = 2.0;
 double chaseHeight = 0.0;
 // set a static camera position
-ChVector<> cameraPos(-1.25, 1.25, 2.5);
+ChVector<> cameraPos(-1, 1, 2.0);
 
   /*
 #else
@@ -141,7 +141,7 @@ int main(int argc, char* argv[])
   // the GUI driver
   ChIrrGuiTrack driver(application, chainSystem, trackPoint, chaseDist, chaseHeight);
   // even though using a chase camera, set the initial camera position laterally
-  driver.SetCameraPos(cameraPos);
+//  driver.SetCameraPos(cameraPos);
 
   // Set the time response for steering and throttle keyboard inputs.
   // NOTE: this is not exact, since we do not render quite at the specified FPS.
@@ -221,7 +221,8 @@ int main(int argc, char* argv[])
     // Advance simulation for one timestep for all modules
     // double step = realtime_timer.SuggestSimulationStep(step_size);
 
-    driver.Advance(step_size, cameraPos);
+//    driver.Advance(step_size, cameraPos);
+    driver.Advance(step_size);
 
     // SETTLING FOLLOWED BY NORMAL OPERATION STEP SIZES HARDCODED
     // 1e-5 and 1e-4, respectively
