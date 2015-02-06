@@ -43,11 +43,16 @@ using namespace chrono::collision;
 const char* out_folder = "../BALLS_DEM/POVRAY";
 
 // Tilt angle (about global Y axis) of the container.
-double tilt_angle = 0 * CH_C_PI / 20;
+double tilt_angle = 1 * CH_C_PI / 20;
 
 // Number of balls: (2 * count_X + 1) * (2 * count_Y + 1)
 int count_X = 2;
 int count_Y = 2;
+
+// Material properties (same on bin and balls)
+float Y = 2e6f;
+float mu = 0.4f;
+float cr = 0.4f;
 
 // -----------------------------------------------------------------------------
 // Generate postprocessing output with current system state.
@@ -70,9 +75,9 @@ void AddContainer(ChSystemParallelDEM* sys) {
 
    // Create a common material
    ChSharedPtr<ChMaterialSurfaceDEM> mat(new ChMaterialSurfaceDEM);
-   mat->SetYoungModulus(2e5f);
-   mat->SetFriction(0.4f);
-   mat->SetDissipationFactor(0.6f);
+   mat->SetYoungModulus(Y);
+   mat->SetFriction(mu);
+   mat->SetRestitution(cr);
 
    // Create the containing bin (4 x 4 x 1)
    ChSharedPtr<ChBodyDEM> bin(new ChBodyDEM(new ChCollisionModelParallel));
@@ -104,9 +109,9 @@ void AddContainer(ChSystemParallelDEM* sys) {
 void AddFallingBalls(ChSystemParallel* sys) {
    // Common material
    ChSharedPtr<ChMaterialSurfaceDEM> ballMat(new ChMaterialSurfaceDEM);
-   ballMat->SetYoungModulus(2e5f);
-   ballMat->SetFriction(0.4f);
-   ballMat->SetDissipationFactor(0.6f);
+   ballMat->SetYoungModulus(Y);
+   ballMat->SetFriction(mu);
+   ballMat->SetRestitution(cr);
 
    // Create the falling balls
    int ballId = 0;
@@ -192,6 +197,7 @@ int main(int argc,
    opengl::ChOpenGLWindow &gl_window = opengl::ChOpenGLWindow::getInstance();
    gl_window.Initialize(1280, 720, "ballsDEM", &msystem);
    gl_window.SetCamera(ChVector<>(0, -10, 0), ChVector<>(0, 0, 0), ChVector<>(0, 0, 1));
+   gl_window.SetRenderMode(opengl::WIREFRAME);
 
    // Uncomment the following two lines for the OpenGL manager to automatically
    // run the simulation in an infinite loop.
@@ -202,10 +208,11 @@ int main(int argc,
      if (gl_window.Active()) {
        gl_window.DoStepDynamics(time_step);
        gl_window.Render();
-       ////if (gl_window.Running()) {
-       ////  real3 frc = msystem.GetBodyContactForce(0);
-       ////  std::cout << frc.x << "  " << frc.y << "  " << frc.z << std::endl;
-       ////}
+       if (gl_window.Running()) {
+         // Print cumulative contact force on container bin.
+         real3 frc = msystem.GetBodyContactForce(0);
+         std::cout << frc.x << "  " << frc.y << "  " << frc.z << std::endl;
+       }
      } else {
        break;
      }

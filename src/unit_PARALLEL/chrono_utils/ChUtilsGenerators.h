@@ -104,7 +104,7 @@ public:
   void setDistributionCohesion(float cohesion_mean, float cohesion_stddev, float cohesion_min, float cohesion_max);
   void setDistributionYoung(float young_mean, float young_stddev, float young_min, float young_max);
   void setDistributionPoisson(float poisson_mean, float poisson_stddev, float poisson_min, float poisson_max);
-  void setDistributionDissipation(float dissipation_mean, float dissipation_stddev, float dissipation_min, float dissipation_max);
+  void setDistributionRestitution(float restitution_mean, float restitution_stddev, float restitution_min, float restitution_max);
   void setDistributionDensity(double density_mean, double density_stddev, double density_min, double density_max);
   void setDistributionSize(double size_mean, double size_stddev, const ChVector<>& size_min, const ChVector<>& size_max);
 
@@ -136,12 +136,12 @@ private:
   float                              m_minCohesion, m_maxCohesion;
   float                              m_minYoung, m_maxYoung;
   float                              m_minPoisson, m_maxPoisson;
-  float                              m_minDissipation, m_maxDissipation;
+  float                              m_minRestitution, m_maxRestitution;
   std::normal_distribution<float>*   m_frictionDist;
   std::normal_distribution<float>*   m_cohesionDist;
   std::normal_distribution<float>*   m_youngDist;
   std::normal_distribution<float>*   m_poissonDist;
-  std::normal_distribution<float>*   m_dissipationDist;
+  std::normal_distribution<float>*   m_restitutionDist;
 
   double                             m_defDensity;
   double                             m_minDensity, m_maxDensity;

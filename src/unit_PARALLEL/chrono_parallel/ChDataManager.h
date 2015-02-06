@@ -98,7 +98,7 @@ struct host_container {
    //thrust::host_vector<M33> inr_data;
    thrust::host_vector<bool> active_data;
    thrust::host_vector<bool> collide_data;
-   //thrust::host_vector<real> inv_mass_data;
+   thrust::host_vector<real> mass_data;
 
    // Bilateral constraint type (all supported constraints)
    thrust::host_vector<int> bilateral_type;
@@ -118,9 +118,9 @@ struct host_container {
 
    // Material properties (DEM)
    thrust::host_vector<real2> elastic_moduli;  // Young's modulus and Poisson ratio
-   thrust::host_vector<real> mu;               // Coefficient of friction
-   thrust::host_vector<real> alpha;            // Dissipation factor (Hunt-Crossley)
-   thrust::host_vector<real> cr;               // Coefficient of restitution
+   thrust::host_vector<real>  mu;              // Coefficient of friction
+   thrust::host_vector<real>  cr;              // Coefficient of restitution
+   thrust::host_vector<real4> dem_coeffs;      // Stiffness and damping coefficients
 
    //For the variables below the convention is:
    //_n is normal

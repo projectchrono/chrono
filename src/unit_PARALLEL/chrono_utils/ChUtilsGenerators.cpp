@@ -43,7 +43,7 @@ MixtureIngredient::MixtureIngredient(Generator*  generator,
   m_cohesionDist(NULL),
   m_youngDist(NULL),
   m_poissonDist(NULL),
-  m_dissipationDist(NULL),
+  m_restitutionDist(NULL),
   m_densityDist(NULL),
   m_sizeDist(NULL),
   callback_post_creation(NULL)
@@ -126,11 +126,11 @@ MixtureIngredient::setDistributionPoisson(float poisson_mean, float poisson_stdd
 }
 
 void
-MixtureIngredient::setDistributionDissipation(float dissipation_mean, float dissipation_stddev, float dissipation_min, float dissipation_max)
+MixtureIngredient::setDistributionRestitution(float restitution_mean, float restitution_stddev, float restitution_min, float restitution_max)
 {
-  m_dissipationDist = new std::normal_distribution<float>(dissipation_mean, dissipation_stddev);
-  m_minDissipation = dissipation_min;
-  m_maxDissipation = dissipation_max;
+  m_restitutionDist = new std::normal_distribution<float>(restitution_mean, restitution_stddev);
+  m_minRestitution = restitution_min;
+  m_maxRestitution = restitution_max;
 }
 
 void
@@ -157,7 +157,7 @@ MixtureIngredient::freeMaterialDist()
   delete m_cohesionDist;
   delete m_youngDist;
   delete m_poissonDist;
-  delete m_dissipationDist;
+  delete m_restitutionDist;
 }
 
 // Modify the specified DVI material surface based on attributes of this ingredient.
@@ -194,10 +194,10 @@ MixtureIngredient::setMaterialProperties(ChSharedPtr<ChMaterialSurfaceDEM>& mat)
   else
     mat->SetFriction(m_defMaterialDEM->GetSfriction());
 
-  if (m_dissipationDist)
-    mat->SetDissipationFactor(sampleTruncatedDist<float>(*m_dissipationDist, m_minDissipation, m_maxDissipation));
+  if (m_restitutionDist)
+    mat->SetRestitution(sampleTruncatedDist<float>(*m_restitutionDist, m_minRestitution, m_maxRestitution));
   else
-    mat->SetDissipationFactor(m_defMaterialDEM->GetDissipationFactor());
+    mat->SetRestitution(m_defMaterialDEM->GetRestitution());
 
   if (m_cohesionDist)
     mat->SetCohesion(sampleTruncatedDist<float>(*m_cohesionDist, m_minCohesion, m_maxCohesion));
@@ -618,7 +618,7 @@ Generator::writeObjectInfo(const std::string& filename)
     case PARALLEL_DEM:
       {
         ChSharedPtr<ChMaterialSurfaceDEM> mat = ((ChBodyDEM*) m_bodies[i].m_body.get_ptr())->GetMaterialSurfaceDEM();
-        csv << mat->GetYoungModulus() << mat->GetPoissonRatio() << mat->GetSfriction() << mat->GetDissipationFactor();
+        csv << mat->GetYoungModulus() << mat->GetPoissonRatio() << mat->GetSfriction() << mat->GetRestitution();
       }
       break;
     }

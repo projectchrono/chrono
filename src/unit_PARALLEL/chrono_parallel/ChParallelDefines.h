@@ -185,6 +185,13 @@ enum BILATERALTYPE {
   UNKNOWN
 };
 
+// DEM contact force model
+enum CONTACTFORCEMODEL {
+  HOOKE,
+  HOOKE_HISTORY,
+  HERTZ,
+  HERTZ_HISTORY
+};
 
 #endif
 
