@@ -94,58 +94,6 @@ private:
 };
 
 
-// Differently from friction, that has always a default value that 
-// is computed as the average of two friction values of the two rigid 
-// bodies, the 'cohesion' has no body-specific setting (at least in 
-// this Chrono::Engine release) so it is always zero by default. 
-// Therefore it is up to the user to set it when each contact is created, 
-// by instancing a callback as in the following example:
-
-class MyContactCallback : public ChSystem::ChCustomCollisionPointCallback
-{
-	public:	virtual void ContactCallback(
-							const collision::ChCollisionInfo& mcontactinfo, ///< get info about contact (cannot change it)				
-							ChMaterialCouple&  material,
-							double friction0 = 0.3,
-							double compliance0 = 0.0,
-							double cohesion0 = 0.0,
-							double dampingf0 = 0.1)			  		///< you can modify this!	
-	{
-		// set the ICs
-		this->friction = friction0;
-		this->compliance = compliance0;
-		this->cohesion = cohesion0;
-		this->dampingf = dampingf0;
-		// Set friction according to user setting:
-		material.static_friction = this->friction;
-		// Set compliance (normal and tangential at once)
-		material.compliance  =  (float)this->compliance;
-		material.complianceT =  (float)this->compliance;
-		material.dampingf	 =  (float)this->dampingf;
-
-		// Set cohesion according to user setting:
-		// Note that we must scale the cohesion force value by time step, because 
-		// the material 'cohesion' value has the dimension of an impulse.
-		double my_cohesion_force =  cohesion;
-		material.cohesion = (float)(msystem->GetStep() * my_cohesion_force); //<- all contacts will have this cohesion!
-
-		if (mcontactinfo.distance>0.12)
-			material.cohesion = 0;
-		// Note that here you might decide to modify the cohesion 
-		// depending on object sizes, type, time, position, etc. etc.
-		// For example, after some time disable cohesion at all, just
-		// add here:  
-		//    if (msystem->GetChTime() > 10) material.cohesion = 0;
-	};
-
-	ChSystem* msystem;
-	// this will be modified by the user
-	double friction;
-	double cohesion;
-	double compliance;
-	double dampingf;
-
-};
 
 } // end namespace chrono
 

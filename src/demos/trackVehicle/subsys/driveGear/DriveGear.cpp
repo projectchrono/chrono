@@ -250,6 +250,9 @@ void DriveGear::AddCollisionGeometry(double mu,
   }
   case CollisionType::CALLBACKFUNCTION:
   {
+    // turn off contact with shoes. NOTE: could still use some primitives here to collide
+    //  with shoe geometry
+    m_gear->GetCollisionModel()->SetFamilyMaskNoCollisionWithFamily((int)CollisionFam::SHOES);
 
     break;
   }
