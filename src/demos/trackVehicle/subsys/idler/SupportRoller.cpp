@@ -34,9 +34,9 @@ namespace chrono {
 
 const double SupportRoller::m_mass = 100.0;
 const ChVector<> SupportRoller::m_inertia(3.82, 3.82, 5.06);  // rotates about z-axis
-const double SupportRoller::m_radius = 0.2 ; 
-const double SupportRoller::m_width = 0.2; 
-const double SupportRoller::m_widthGap = 0.06;
+const double SupportRoller::m_radius = 0.2; 
+const double SupportRoller::m_width = 0.35; 
+const double SupportRoller::m_widthGap = 0.1;
 
 
 SupportRoller::SupportRoller(const std::string& name, 
