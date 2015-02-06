@@ -349,10 +349,7 @@ void ChCNarrowphaseDispatch::Dispatch() {
       DispatchR();
       break;
     case NARROWPHASE_HYBRID_MPR:
-#pragma omp parallel for
-      for (int index = 0; index < num_potentialCollisions; index++) {
-        DispatchHybridMPR();
-      }
+      DispatchHybridMPR();
       break;
   }
 }
