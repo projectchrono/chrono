@@ -31,21 +31,20 @@
 namespace chrono {
 
 // static variables
-const std::string DriveGear::m_meshName = "gear_mesh";
-const std::string DriveGear::m_meshFile = utils::GetModelDataFile("M113/M113SprocketLeft_XforwardYup.obj");
-
 const double DriveGear::m_mass = 436.7;
 const ChVector<> DriveGear::m_inertia(12.22, 12.22, 13.87); // z-axis of rotation
 const double DriveGear::m_radius = 0.212; // to collision surface
-const double DriveGear::m_width = 0.259;
-const double DriveGear::m_widthGap = 0.06; // 0.189; // inner distance between cydliners
+const double DriveGear::m_width = 0.34;
+const double DriveGear::m_widthGap = 0.189; // 0.189; // inner distance between cydliners
 const double DriveGear::m_shaft_inertia = 0.4;  // connects to driveline
 
 
 DriveGear::DriveGear(const std::string& name, 
                      VisualizationType vis, 
                      CollisionType collide)
-  : m_vis(vis), m_collide(collide)
+  : m_vis(vis), m_collide(collide),
+  m_meshFile(utils::GetModelDataFile("M113/Sprocket_XforwardYup.obj")),
+  m_meshName("gear_mesh")
 {
   // create the body, set the basic info
   m_gear = ChSharedPtr<ChBody>(new ChBody);
@@ -75,7 +74,9 @@ DriveGear::DriveGear(const std::string& name,
                     const ChVector<>& gear_Ixx,
                      VisualizationType vis, 
                      CollisionType collide)
-  : m_vis(vis), m_collide(collide)
+  : m_vis(vis), m_collide(collide),
+  m_meshFile(utils::GetModelDataFile("M113/Sprocket_XforwardYup.obj")),
+  m_meshName("gear_mesh")
 {
   // create the body, set the basic info
   m_gear = ChSharedPtr<ChBody>(new ChBody);
@@ -157,15 +158,16 @@ void DriveGear::AddVisualization()
   case VisualizationType::MESH:
   {
     geometry::ChTriangleMeshConnected trimesh;
-    trimesh.LoadWavefrontMesh(getMeshFile(), false, false);
+    trimesh.LoadWavefrontMesh(getMeshFile(), true, false);
 
     ChSharedPtr<ChTriangleMeshShape> trimesh_shape(new ChTriangleMeshShape);
     trimesh_shape->SetMesh(trimesh);
     trimesh_shape->SetName(getMeshName());
     m_gear->AddAsset(trimesh_shape);
 
-    ChSharedPtr<ChColorAsset> mcolor(new ChColorAsset(0.3f, 0.3f, 0.3f));
-    m_gear->AddAsset(mcolor);
+    ChSharedPtr<ChTexture> tex(new ChTexture);
+    tex->SetTextureFilename(GetChronoDataFile("bluwhite.png"));
+    m_gear->AddAsset(tex);
 
     break;
   }
@@ -244,6 +246,11 @@ void DriveGear::AddCollisionGeometry(double mu,
     ChMatrix33<> rot_offset(rot);
     ChVector<> disp_offset(0,0,0);  // no displacement offset
     m_gear->GetCollisionModel()->AddConvexHullsFromFile(chull_file, disp_offset, rot_offset);
+    break;
+  }
+  case CollisionType::CALLBACKFUNCTION:
+  {
+
     break;
   }
   default:
