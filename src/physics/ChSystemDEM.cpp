@@ -10,11 +10,6 @@
 // and at http://projectchrono.org/license-chrono.txt.
 //
 
-///////////////////////////////////////////////////
-//
-//   ChSystemDEM.cpp
-//
-///////////////////////////////////////////////////
 
 #include "physics/ChSystemDEM.h"
 #include "physics/ChContactContainerDEM.h"
@@ -25,67 +20,67 @@
 #include "collision/ChCCollisionSystemBullet.h"
 
 
-namespace chrono
-{
-
+namespace chrono {
 
 ChClassRegister<ChSystemDEM> a_registration_ChSystemDEM;
 
 
-ChSystemDEM::ChSystemDEM(unsigned int max_objects, double scene_size)
-:	ChSystem(max_objects, scene_size, false)
+ChSystemDEM::ChSystemDEM(bool use_material_properties, unsigned int max_objects, double scene_size)
+: ChSystem(max_objects, scene_size, false),
+  m_use_mat_props(use_material_properties),
+  m_contact_model(ChContactDEM::Hertz_history)
 {
-	LCP_descriptor = new ChLcpSystemDescriptor;
-	LCP_descriptor->SetNumThreads(parallel_thread_number);
+  LCP_descriptor = new ChLcpSystemDescriptor;
+  LCP_descriptor->SetNumThreads(parallel_thread_number);
 
-	lcp_solver_type = ChSystem::LCP_DEM;
+  lcp_solver_type = ChSystem::LCP_DEM;
 
-	LCP_solver_speed = new ChLcpSolverDEM();
+  LCP_solver_speed = new ChLcpSolverDEM();
 
-	LCP_solver_stab = new ChLcpSolverDEM();
+  LCP_solver_stab = new ChLcpSolverDEM();
 
-	collision_system = new collision::ChCollisionSystemBullet(max_objects, scene_size);
+  collision_system = new collision::ChCollisionSystemBullet(max_objects, scene_size);
 
-	contact_container = new ChContactContainerDEM;
+  contact_container = new ChContactContainerDEM;
 }
 
 
 void ChSystemDEM::SetLcpSolverType(eCh_lcpSolver mval)
 {
-	if (mval != LCP_DEM)
-		return;
+  if (mval != LCP_DEM)
+    return;
 
-	lcp_solver_type = LCP_DEM;
+  lcp_solver_type = LCP_DEM;
 
-	if (LCP_solver_speed)
-		delete LCP_solver_speed;
-	LCP_solver_speed = new ChLcpSolverDEM();
+  if (LCP_solver_speed)
+    delete LCP_solver_speed;
+  LCP_solver_speed = new ChLcpSolverDEM();
 
-	if (LCP_solver_stab)
-		delete LCP_solver_stab;
-	LCP_solver_stab = new ChLcpSolverDEM();
+  if (LCP_solver_stab)
+    delete LCP_solver_stab;
+  LCP_solver_stab = new ChLcpSolverDEM();
 
-	if (LCP_descriptor)
-		delete LCP_descriptor;
-	LCP_descriptor = new ChLcpSystemDescriptor;
-	LCP_descriptor->SetNumThreads(parallel_thread_number);
+  if (LCP_descriptor)
+    delete LCP_descriptor;
+  LCP_descriptor = new ChLcpSystemDescriptor;
+  LCP_descriptor->SetNumThreads(parallel_thread_number);
 
-	if (contact_container)
-		delete contact_container;
-	contact_container = new ChContactContainerDEM;
+  if (contact_container)
+    delete contact_container;
+  contact_container = new ChContactContainerDEM;
 }
 
 void ChSystemDEM::ChangeLcpSolverSpeed(ChLcpSolver* newsolver)
 {
-	if (dynamic_cast<ChLcpSolverDEM*>(newsolver))
-		ChSystem::ChangeLcpSolverSpeed(newsolver);
+  if (dynamic_cast<ChLcpSolverDEM*>(newsolver))
+    ChSystem::ChangeLcpSolverSpeed(newsolver);
 }
 
 void ChSystemDEM::ChangeContactContainer(ChContactContainerBase* newcontainer)
 {
-	if (dynamic_cast<ChContactContainerDEM*>(newcontainer))
-		ChSystem::ChangeContactContainer(newcontainer);
+  if (dynamic_cast<ChContactContainerDEM*>(newcontainer))
+    ChSystem::ChangeContactContainer(newcontainer);
 }
 
 
-}  // END_OF_NAMESPACE____
+}  // end namespace chrono
