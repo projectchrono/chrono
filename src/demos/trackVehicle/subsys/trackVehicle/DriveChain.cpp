@@ -59,7 +59,7 @@ DriveChain::DriveChain(const std::string& name,
 
   // doesn't matter for the chassis, since no visuals used
   m_meshName = "na";
-  m_meshFile = utils::GetModelDataFile("M113/M113SprocketLeft_XforwardYup.obj");
+  m_meshFile = "none";
   m_chassisBoxSize = ChVector<>(2.0, 0.6, 0.75);
 
   // create the chassis body    
@@ -82,7 +82,8 @@ DriveChain::DriveChain(const std::string& name,
   m_gear = ChSharedPtr<DriveGear>(new DriveGear("drive gear",
     gear_mass,
     gear_Ixx,
-    vis,	//VisualizationType::PRIMITIVES,
+    //vis,
+    VisualizationType::MESH,
     collide));	//CollisionType::PRIMITIVES) );
 
   double idler_mass = 100.0; // 429.6
@@ -90,7 +91,8 @@ DriveChain::DriveChain(const std::string& name,
   m_idler = ChSharedPtr<IdlerSimple>(new IdlerSimple("idler",
     idler_mass,
     idler_Ixx,
-    vis,	// VisualizationType::PRIMITIVES,
+    //vis,
+    VisualizationType::MESH,
     collide));	// CollisionType::PRIMITIVES) );
 
   double shoe_mass = 3.0; // 18.03
