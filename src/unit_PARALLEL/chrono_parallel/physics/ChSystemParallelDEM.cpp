@@ -24,10 +24,10 @@ void ChSystemParallelDEM::AddMaterialSurfaceData(ChSharedPtr<ChBody> newbody)
   // Reserve space for material properties for the specified body. Not that the
   // actual data is set in UpdateMaterialProperties().
   data_manager->host_data.mu.push_back(0);
+  data_manager->host_data.cohesion_data.push_back(0);
 
   if (data_manager->settings.solver.use_material_properties) {
     data_manager->host_data.elastic_moduli.push_back(R2(0, 0));
-    data_manager->host_data.cohesion_data.push_back(0);
     data_manager->host_data.cr.push_back(0);
   } else {
     data_manager->host_data.dem_coeffs.push_back(R4(0, 0, 0, 0));
@@ -45,10 +45,10 @@ void ChSystemParallelDEM::UpdateMaterialSurfaceData(int index, ChBody* body)
   ChSharedPtr<ChMaterialSurfaceDEM>& mat = ((ChBodyDEM*)body)->GetMaterialSurfaceDEM();
 
   mu[index] = mat->GetSfriction();
+  cohesion[index] = mat->GetCohesion();
 
   if (data_manager->settings.solver.use_material_properties) {
     elastic_moduli[index] = R2(mat->GetYoungModulus(), mat->GetPoissonRatio());
-    cohesion[index] = mat->GetCohesion();
     cr[index] = mat->GetRestitution();
   } else {
     dem_coeffs[index] = R4(mat->GetKn(), mat->GetKt(), mat->GetGn(), mat->GetGt());
