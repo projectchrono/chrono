@@ -103,7 +103,7 @@ public:
   const ChVector<>& GetDriverPos() const;
 
   /// number of track chain systems attached to the vehicle
-  int GetNum_Engines() const { return m_num_engines; }
+  size_t GetNum_Engines() const { return m_num_engines; }
 
   /// Initialize at the specified global location and orientation.
   virtual void Initialize(
