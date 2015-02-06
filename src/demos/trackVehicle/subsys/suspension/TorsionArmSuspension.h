@@ -87,6 +87,10 @@ private:
                             double mu_roll = 0,
                             double mu_spin = 0);
   
+  // private functions
+  const std::string& getMeshName() const { return m_meshName; }
+  const std::string& getMeshFile() const { return m_meshFile; }
+
   // private variables
   ChSharedPtr<ChBody> m_arm;  ///< arm body
   ChSharedPtr<ChLinkLockRevolute> m_armChassis_rev; ///< arm-chassis revolute joint
@@ -105,6 +109,9 @@ private:
   // visual and collision geometry types
   VisualizationType m_vis;
   CollisionType m_collide;
+
+  const std::string m_meshName; ///< name of the mesh, if any
+  const std::string m_meshFile;  ///< filename of the mesh, if any
 
   // static variables
   static const double m_armMass;
