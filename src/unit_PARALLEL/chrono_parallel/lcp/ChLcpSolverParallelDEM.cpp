@@ -39,14 +39,18 @@ __host__ __device__
 void
 function_CalcContactForces(
     int          index,            // index of this contact pair
+    CONTACTFORCEMODEL force_model, // contact force model
+    bool         use_mat_props,    // flag specifying how coefficients are obtained
+    real         char_vel,         // characteristic velocity (Hooke)
+    real         min_slip_vel,     // threshold tangential velocity
     real         dT,               // integration time step
     real3*       pos,              // body positions
     real4*       rot,              // body orientations
     real*        vel,              // body linear velocity (global frame), angular velocity (local frame)
     real2*       elastic_moduli,   // Young's modulus (per body)
-    real*        mu,               // coefficient of friction (per body)
-    real*        alpha,            // disipation coefficient (per body)
     real*        cr,               // coefficient of restitution (per body)
+    real4*       dem_coeffs,       // stiffness and damping coefficients (per body)
+    real*        mu,               // coefficient of friction (per body)
     real*        cohesion,         // cohesion force (per body)
     int2*        body_id,          // body IDs (per contact)
     real3*       pt1,              // point on shape 1 (per contact)
@@ -83,7 +87,7 @@ function_CalcContactForces(
   real3 pt1_loc = TransformParentToLocal(pos[body1], rot[body1], pt1[index]);
   real3 pt2_loc = TransformParentToLocal(pos[body2], rot[body2], pt2[index]);
 
-  // Calculate relative velocity (in global frame)
+  // Calculate velocities of the contact points (in global frame)
   //   vP = v + omg x s = v + A * (omg' x s')
   real3 v_body1 = real3(vel[body1*6+0], vel[body1*6+1], vel[body1*6+2]);
   real3 v_body2 = real3(vel[body2*6+0], vel[body2*6+1], vel[body2*6+2]);
@@ -93,6 +97,10 @@ function_CalcContactForces(
 
   real3 vel1 = v_body1 + quatRotateMat(cross(o_body1, pt1_loc), rot[body1]);
   real3 vel2 = v_body2 + quatRotateMat(cross(o_body2, pt2_loc), rot[body2]);
+
+  // Calculate relative velocity (in global frame)
+  // Note that relvel_n_mag is a signed quantity, while relvel_t_mag is an
+  // actual magnitude (always positive).
   real3 relvel = vel2 - vel1;
   real  relvel_n_mag = dot(relvel, normal[index]);
   real3 relvel_n = relvel_n_mag * normal[index];
@@ -102,48 +110,122 @@ function_CalcContactForces(
   // Calculate composite material properties
   // ---------------------------------------
 
-  real Y1 = elastic_moduli[body1].x;
-  real Y2 = elastic_moduli[body2].x;
-  real nu1 = elastic_moduli[body1].y;
-  real nu2 = elastic_moduli[body2].y;
-  real inv_E = (1 - nu1 * nu1) / Y1 + (1 - nu2 * nu2) / Y2;
-  real inv_G = 2 * (2 + nu1) * (1 - nu1) / Y1 + 2 * (2 + nu2) * (1 - nu2) / Y2;
-
-  real E_eff = 1 / inv_E;
-  real G_eff = 1 / inv_G;
+  real m_eff = 1;   ////  TODO    <- need body masses!!!
 
   real mu_eff = std::min(mu[body1], mu[body2]);
-  //real cr_eff = (cr[body1] + cr[body2]) / 2;
-  real alpha_eff = (alpha[body1] + alpha[body2]) / 2;
-
   real cohesion_eff = std::min(cohesion[body1], cohesion[body2]);
+
+  real E_eff, G_eff, cr_eff;
+  real user_kn, user_kt, user_gn, user_gt;
+
+  if (use_mat_props) {
+    real Y1 = elastic_moduli[body1].x;
+    real Y2 = elastic_moduli[body2].x;
+    real nu1 = elastic_moduli[body1].y;
+    real nu2 = elastic_moduli[body2].y;
+    real inv_E = (1 - nu1 * nu1) / Y1 + (1 - nu2 * nu2) / Y2;
+    real inv_G = 2 * (2 + nu1) * (1 - nu1) / Y1 + 2 * (2 + nu2) * (1 - nu2) / Y2;
+
+    E_eff = 1 / inv_E;
+    G_eff = 1 / inv_G;
+    cr_eff = (cr[body1] + cr[body2]) / 2;
+  } else {
+    user_kn = (dem_coeffs[body1].w + dem_coeffs[body2].w) / 2;
+    user_kt = (dem_coeffs[body1].x + dem_coeffs[body2].x) / 2;
+    user_gn = (dem_coeffs[body1].y + dem_coeffs[body2].y) / 2;
+    user_gt = (dem_coeffs[body1].z + dem_coeffs[body2].z) / 2;
+  }
 
   // Contact force
   // -------------
 
-  // Normal force: Hunt-Crossley
+  // All models use the following formulas for normal and tangential forces:
+  //     Fn = kn * delta_n - gn * v_n
+  //     Ft = kt * delta_t - gt * v_t
+  // The stiffness and damping coefficients are obtained differently, based
+  // on the force model and on how coefficients are specified.
+  real kn;
+  real kt;
+  real gn;
+  real gt;
+
   real delta = -depth[index];
-  real kn = (4.0 / 3) * E_eff * sqrt(eff_radius[index]);
-  real forceN_elastic = kn * delta * sqrt(delta);
-  real forceN_dissipation = 1.5 * alpha_eff * forceN_elastic * relvel_n_mag;
-  real forceN = forceN_elastic - forceN_dissipation;
+  real delta_t = 0;
+
+  switch (force_model) {
+
+  case HOOKE_HISTORY:
+    delta_t = relvel_t_mag * dT;
+
+  case HOOKE:
+    if (use_mat_props) {
+      double tmp_k = (16.0 / 15) * sqrt(eff_radius[index]) * E_eff;
+      double v2 = char_vel * char_vel;
+      double tmp_g = 1 + pow(CH_C_PI / log(cr_eff), 2);
+      kn = tmp_k * pow(m_eff * v2 / tmp_k, 1.0 / 5);
+      kt = kn;
+      gn = std::sqrt(4 * m_eff * kn / tmp_g);
+      gt = gn;
+    }
+    else {
+      kn = user_kn;
+      kt = user_kt;
+      gn = m_eff * user_gn;
+      gt = m_eff * user_gt;
+    }
+
+    break;
+
+  case HERTZ_HISTORY:
+    delta_t = relvel_t_mag * dT;
+
+  case HERTZ:
+    if (use_mat_props) {
+      double sqrt_Rd = sqrt(eff_radius[index] * delta);
+      double Sn = 2 * E_eff * sqrt_Rd;
+      double St = 8 * G_eff * sqrt_Rd;
+      double loge = log(cr_eff);
+      double beta = loge / sqrt(loge * loge + CH_C_PI * CH_C_PI);
+      kn = (2.0 / 3) * Sn;
+      kt = St;
+      gn = -2 * sqrt(5.0 / 6) * beta * sqrt(Sn * m_eff);
+      gt = -2 * sqrt(5.0 / 6) * beta * sqrt(St * m_eff);
+    }
+    else {
+      double tmp = eff_radius[index] * std::sqrt(delta);
+      kn = tmp * user_kn;
+      kt = tmp * user_kt;
+      gn = tmp * m_eff * user_gn;
+      gt = tmp * m_eff * user_gt;
+    }
+
+    break;
+
+  }
+
+  // Calculate the magnitudes of the normal and tangential contact forces.
+  // Recall that relvel_n_mag is signed, while relvel_t_mag is always positive.
+  real forceN = kn * delta - gn * relvel_n_mag;
+  real forceT = kt * delta_t + gt * relvel_t_mag;
 
   // If the resulting force is negative, the two shapes are moving away from
   // each other so fast that no contact force is generated.
-  if (forceN < 0)
+  if (forceN < 0) {
     forceN = 0;
+    forceT = 0;
+  }
 
-  // Include cohesion force
+  // Include cohesion force.
   forceN -= cohesion_eff;
 
+  // Coulomb law
+  forceT = std::min(forceT, mu_eff * fabsf(forceN));
+
+  // Accumulate normal and tangential forces
   real3 force = forceN * normal[index];
-
-  // Tangential force: Simple Coulomb sliding
-  if (relvel_t_mag > 1e-4) {
-    real forceT = mu_eff * fabs(forceN);
-
+  if (relvel_t_mag >= min_slip_vel)
     force -= (forceT / relvel_t_mag) * relvel_t;
-  }
+
 
   // Body forces (in global frame) & torques (in local frame)
   // --------------------------------------------------------
@@ -175,14 +257,18 @@ ChLcpSolverParallelDEM::host_CalcContactForces(
   for (int index = 0; index < data_container->num_contacts; index++) {
     function_CalcContactForces(
       index,
+      data_container->settings.solver.contact_force_model,
+      data_container->settings.solver.use_material_properties,
+      data_container->settings.solver.characteristic_vel,
+      data_container->settings.solver.min_slip_vel,
       data_container->settings.step_size,
       data_container->host_data.pos_data.data(),
       data_container->host_data.rot_data.data(),
       data_container->host_data.v.data(),
       data_container->host_data.elastic_moduli.data(),
-      data_container->host_data.mu.data(),
-      data_container->host_data.alpha.data(),
       data_container->host_data.cr.data(),
+      data_container->host_data.dem_coeffs.data(),
+      data_container->host_data.mu.data(),
       data_container->host_data.cohesion_data.data(),
       data_container->host_data.bids_rigid_rigid.data(),
       data_container->host_data.cpta_rigid_rigid.data(),
