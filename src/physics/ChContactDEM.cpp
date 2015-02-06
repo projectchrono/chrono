@@ -118,45 +118,30 @@ void ChContactDEM::CalculateForce()
   double delta_t = 0;
 
   switch (force_model) {
+
+  case Hooke_history:
+    delta_t = relvel_t_mag * dT;
+
   case Hooke:
     if (use_mat_props) {
       double tmp_k = (16.0 / 15) * std::sqrt(R_eff) * mat.E_eff;
       double v2 = m_characteristicVelocity * m_characteristicVelocity;
-      double tmp_g = 1 + pow(CH_C_PI / std::log(mat.cr_eff) , 2);
-      kn = tmp_k * std::pow(m_eff * v2 / tmp_k, 1.0 / 5);
-      kt = 0;
-      gn = std::sqrt(4 * m_eff * kn / tmp_g);
-      gt = gn / 2;
-    } else {
-      kn = mat.kn;
-      kt = 0;
-      gn = m_eff * mat.gn;
-      gt = m_eff * mat.gt;
-    }
-
-    break;
-
-  case Hooke_history:
-    if (use_mat_props) {
-      double tmp_k = (16.0 / 15) * std::sqrt(R_eff) * mat.E_eff;
-      double v2 = m_characteristicVelocity * m_characteristicVelocity;
-      double tmp_g = 1 + pow(CH_C_PI / std::log(mat.cr_eff), 2);
+      double tmp_g = 1 + std::pow(CH_C_PI / std::log(mat.cr_eff), 2);
       kn = tmp_k * std::pow(m_eff * v2 / tmp_k, 1.0 / 5);
       kt = 2 * (1 - mat.poisson_eff) / (2 - mat.poisson_eff) * kn;
       gn = std::sqrt(4 * m_eff * kn / tmp_g);
       gt = gn / 2;
-
-      delta_t = relvel_t_mag * dT;
     } else {
       kn = mat.kn;
       kt = mat.kt;
       gn = m_eff * mat.gn;
       gt = m_eff * mat.gt;
-
-      delta_t = relvel_t_mag * dT;
     }
 
     break;
+
+  case Hertz_history:
+    delta_t = relvel_t_mag * dT;
 
   case Hertz:
     if (use_mat_props) {
@@ -165,43 +150,16 @@ void ChContactDEM::CalculateForce()
       double St = 8 * mat.G_eff * sqrt_Rd;
       double loge = std::log(mat.cr_eff);
       double beta = loge / std::sqrt(loge * loge + CH_C_PI * CH_C_PI);
-
-      kn = (2.0 / 3) * Sn;
-      kt = 0;
-      gn = -2 * std::sqrt(5.0 / 6) * beta * std::sqrt(Sn * m_eff);
-      gt = -2 * std::sqrt(5.0 / 6) * beta * std::sqrt(St * m_eff);
-    } else {
-      double tmp = R_eff * std::sqrt(m_delta);
-      kn = tmp * mat.kn;
-      kt = 0;
-      gn = tmp * m_eff * mat.gn;
-      gt = tmp * m_eff * mat.gt;
-    }
-
-    break;
-
-  case Hertz_history:
-    if (use_mat_props) {
-      double sqrt_Rd = std::sqrt(R_eff * m_delta);
-      double Sn = 2 * mat.E_eff * sqrt_Rd;
-      double St = 8 * mat.G_eff * sqrt_Rd;
-      double loge = std::log(mat.cr_eff);
-      double beta = loge / std::sqrt(loge * loge + CH_C_PI * CH_C_PI);
-
       kn = (2.0 / 3) * Sn;
       kt = St;
       gn = -2 * std::sqrt(5.0 / 6) * beta * std::sqrt(Sn * m_eff);
       gt = -2 * std::sqrt(5.0 / 6) * beta * std::sqrt(St * m_eff);
-
-      delta_t = relvel_t_mag * dT;
     } else {
       double tmp = R_eff * std::sqrt(m_delta);
       kn = tmp * mat.kn;
       kt = tmp * mat.kt;
       gn = tmp * m_eff * mat.gn;
       gt = tmp * m_eff * mat.gt;
-
-      delta_t = relvel_t_mag * dT;
     }
 
     break;
