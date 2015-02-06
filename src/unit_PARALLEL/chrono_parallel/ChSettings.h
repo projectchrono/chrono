@@ -107,6 +107,8 @@ struct solver_settings {
 
     contact_force_model = HERTZ_HISTORY;
     use_material_properties = true;
+    characteristic_vel = 1;
+    min_slip_vel = 1e-4;
   }
 
   //The solver type variable defines name of the solver that will be used to
@@ -158,6 +160,10 @@ struct solver_settings {
   //physical material properties. Otherwise, the user specifies the coefficients
   //directly.
   bool use_material_properties;
+  // Characteristic velocity (Hooke contact force model)
+  real characteristic_vel;
+  // Threshold tangential velocity
+  real min_slip_vel;
 
   //Along with setting the solver mode, the total number of iterations for each
   //type of constraints can be performed.
