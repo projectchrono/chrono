@@ -167,7 +167,14 @@ void ChContactDEM::CalculateForce()
 
   // Calculate the magnitudes of the normal and tangential contact forces
   double forceN = kn * m_delta - gn * relvel_n_mag;
-  double forceT = kt * delta_t - gt * relvel_t_mag;
+  double forceT = kt * delta_t + gt * relvel_t_mag;
+
+  // If the resulting force is negative, the two shapes are moving away from
+  // each other so fast that no contact force is generated.
+  if (forceN < 0) {
+    forceN = 0;
+    forceT = 0;
+  }
 
   // Coulomb law
   forceT = std::min<double>(forceT, mat.mu_eff * std::abs(forceN));
@@ -175,7 +182,7 @@ void ChContactDEM::CalculateForce()
   // Accumulate normal and tangential forces
   m_force = forceN * m_normal;
   if (relvel_t_mag >= m_minSlipVelocity)
-    m_force += (forceT / relvel_t_mag) * relvel_t;
+    m_force -= (forceT / relvel_t_mag) * relvel_t;
 }
 
 
