@@ -104,7 +104,11 @@ struct solver_settings {
     solver_type = APGD;
     solver_mode = SLIDING;
     local_solver_mode = NORMAL;
+
+    contact_force_model = HERTZ_HISTORY;
+    use_material_properties = true;
   }
+
   //The solver type variable defines name of the solver that will be used to
   //solve the DVI problem
   SOLVERTYPE solver_type;
@@ -146,6 +150,14 @@ struct solver_settings {
   bool scale_mass_matrix;
   bool verbose;
   bool test_objective;
+
+  //Contact force model for DEM
+  CONTACTFORCEMODEL contact_force_model;
+  //Flag specifying how the stiffness and damping coefficients in the DEM contact
+  //force models are calculated. If true, these coefficients are derived from
+  //physical material properties. Otherwise, the user specifies the coefficients
+  //directly.
+  bool use_material_properties;
 
   //Along with setting the solver mode, the total number of iterations for each
   //type of constraints can be performed.
