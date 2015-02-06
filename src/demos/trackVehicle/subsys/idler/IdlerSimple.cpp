@@ -39,13 +39,10 @@ namespace chrono {
 const double IdlerSimple::m_mass = 429.6;
 const ChVector<> IdlerSimple::m_inertia = ChVector<>(12.55, 12.55, 14.7); // z-axis of rotation
 
-const std::string IdlerSimple::m_meshName = "idler_mesh";
-const std::string IdlerSimple::m_meshFile = utils::GetModelDataFile("M113/Idler_XforwardYup.obj");
-
 // guessing at these values
 const double IdlerSimple::m_radius = 0.255;
-const double IdlerSimple::m_width = 0.166;
-const double IdlerSimple::m_widthGap = .08; // 0.092; 
+const double IdlerSimple::m_width = 0.166*2.4;
+const double IdlerSimple::m_widthGap = .092*1.5; // 0.092; 
 const double IdlerSimple::m_springK = 200000;
 const double IdlerSimple::m_springC = 10000;
 const double IdlerSimple::m_springRestLength = 1.0;
@@ -94,7 +91,9 @@ IdlerSimple::IdlerSimple(const std::string& name,
                          VisualizationType vis,
                          CollisionType collide,
                          size_t chain_idx)
-  : m_vis(vis), m_collide(collide)
+  : m_vis(vis), m_collide(collide),
+  m_meshFile(utils::GetModelDataFile("M113/Idler_XforwardYup.obj")),
+  m_meshName("idler_mesh")
 //  , m_shockCB(NULL), m_springCB(NULL)
 {
   // create the body, set the basic info
@@ -125,7 +124,9 @@ IdlerSimple::IdlerSimple(const std::string& name,
                          VisualizationType vis,
                          CollisionType collide,
                          size_t chain_idx)
-  : m_vis(vis), m_collide(collide)
+  : m_vis(vis), m_collide(collide),
+    m_meshFile(utils::GetModelDataFile("M113/Idler_XforwardYup.obj")),
+    m_meshName("idler_mesh")
 //  , m_shockCB(NULL), m_springCB(NULL)
 {
   // create the body, set the basic info
@@ -244,16 +245,21 @@ void IdlerSimple::AddVisualization(size_t chain_idx,
    case VisualizationType::MESH:
   {
     geometry::ChTriangleMeshConnected trimesh;
-    trimesh.LoadWavefrontMesh(getMeshFile(), false, false);
+    trimesh.LoadWavefrontMesh(getMeshFile(), true, false);
 
     ChSharedPtr<ChTriangleMeshShape> trimesh_shape(new ChTriangleMeshShape);
     trimesh_shape->SetMesh(trimesh);
     trimesh_shape->SetName(getMeshName());
     m_idler->AddAsset(trimesh_shape);
 
-    // add a color asset
-    ChSharedPtr<ChColorAsset> mcolor(new ChColorAsset(0.5f, 0.1f, 0.4f));
-    m_idler->AddAsset(mcolor);
+    ChSharedPtr<ChTexture> cyl_tex(new ChTexture);
+    if(custom_texture)
+      cyl_tex->SetTextureFilename(GetChronoDataFile(tex_name));
+    else
+    {
+      cyl_tex->SetTextureFilename(GetChronoDataFile("greenwhite.png"));
+    }
+    m_idler->AddAsset(cyl_tex);
 
     break;
   }

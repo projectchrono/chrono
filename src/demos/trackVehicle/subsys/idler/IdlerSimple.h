@@ -92,6 +92,9 @@ private:
   VisualizationType m_vis;
   CollisionType m_collide;
 
+  const std::string m_meshName;
+  const std::string m_meshFile;
+
   // static variables
   static const double m_mass;
   static const ChVector<> m_inertia;
@@ -101,9 +104,6 @@ private:
   static const double m_width;
   static const double m_widthGap; // // inner distance between cydliners
   static const double m_radius;
-
-  static const std::string m_meshName;
-  static const std::string m_meshFile;
 
 };
 
