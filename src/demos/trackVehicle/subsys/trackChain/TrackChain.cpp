@@ -44,13 +44,13 @@ const std::string TrackChain::m_meshFile = utils::GetModelDataFile("M113/shoe_vi
 const double TrackChain::m_mass = 18.02;
 const ChVector<> TrackChain::m_inertia(0.22, 0.25,  0.04); // TODO: what is this w/ new single pin configuration???
 const ChVector<> TrackChain::m_COM = ChVector<>(0., 0., 0.);  // location of COM, relative to REF (e.g, geomtric center)
-const ChVector<> TrackChain::m_shoe_box(0.205, 0.0663, 0.38); // length, height, width
+const ChVector<> TrackChain::m_shoe_box(0.205, 0.0663, 0.38); // length, height, width   (0.205, 0.0663, 0.38)
 const double TrackChain::m_pin_width = 0.531; // total width of cylinder pinseach 
-const double TrackChain::m_pin_dist = 0.15162/2.5;   // .205; // linear distance between a shoe chain spacing. exact = 0.205
+const double TrackChain::m_pin_dist = 0.15162;   // .205; // linear distance between a shoe chain spacing. exact = 0.205
 const double TrackChain::m_pin_radius = 0.02317;
 const double TrackChain::m_pin_COG_offset = -0.07581; // local c-sys x-dir offset from body center
-const ChVector<> TrackChain::m_tooth_box(0.08, 0.07967/2.0, 0.08/2.0);  // length, height, width
-const double TrackChain::m_tooth_COG_offset = -0.07313; // local c-sys y-dir offset from body center
+const ChVector<> TrackChain::m_tooth_box(0.08, 0.07967, 0.08);  // length, height, width
+const double TrackChain::m_tooth_COG_offset = -0.07313; // , -0.0731.  local c-sys y-dir offset from body center
  // distance between body center and the vertical offset to the inner-surface of the collision geometry
 //  used for initializing shoes as a chain
 const double TrackChain::m_shoe_chain_Yoffset = 0.04; // .03315 exact
