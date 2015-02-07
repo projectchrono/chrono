@@ -55,7 +55,7 @@ TrackVehicle::TrackVehicle(const std::string& name,
   // Set the base class variables
   m_meshName = "M113_chassis";
   m_meshFile = utils::GetModelDataFile("M113/Chassis_XforwardYup.obj");
-  m_chassisBoxSize = ChVector<>(2.0, 0.6, 0.75);
+  m_chassisBoxSize = ChVector<>(4.0, 1.2, 1.5); // full length, height, width of chassis box
 
   // create the chassis body    
   m_chassis = ChSharedPtr<ChBodyAuxRef>(new ChBodyAuxRef);
