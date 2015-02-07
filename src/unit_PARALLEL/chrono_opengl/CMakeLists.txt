@@ -66,6 +66,7 @@ SET(ChronoEngine_OpenGL_SOURCES
 	shapes/obj/ChOpenGLOBJLoader.cpp
 	shapes/obj/tiny_obj_loader.cc
 	UI/ChOpenGLContacts.cpp
+	UI/ChOpenGLHUD.cpp
 	ChOpenGLViewer.cpp 
 	ChOpenGLCamera.cpp
 	ChOpenGLWindow.cpp
@@ -84,6 +85,7 @@ SET(ChronoEngine_OpenGL_HEADERS
 	shapes/obj/ChOpenGLOBJLoader.h
 	shapes/obj/tiny_obj_loader.h
 	UI/ChOpenGLContacts.h
+	UI/ChOpenGLHUD.h
 	ChOpenGLViewer.h 
 	ChOpenGLCamera.h
 	ChOpenGLWindow.h
