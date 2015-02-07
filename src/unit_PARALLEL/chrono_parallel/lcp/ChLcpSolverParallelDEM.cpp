@@ -31,11 +31,7 @@ using namespace chrono;
 // in the 'extended' output arrays. The calculated force and torque vectors are
 // therefore duplicated in the output arrays, once for each body involved in the
 // contact (with opposite signs for the two bodies).
-//
-// TODO(Radu):
-//   Currently hard-coded for Hunt-Crossley with simple sliding friction.
 // -----------------------------------------------------------------------------
-__host__ __device__
 void
 function_CalcContactForces(
     int          index,            // index of this contact pair
