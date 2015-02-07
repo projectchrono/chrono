@@ -167,7 +167,7 @@ void IdlerSimple::Initialize(ChSharedPtr<ChBody> chassis,
   // add collision geometry
   AddCollisionGeometry();
 
-  // Express the steering reference frame in the absolute coordinate system.
+  // Express the reference frame in the absolute coordinate system.
   ChFrame<> idler_to_abs(local_Csys);
   idler_to_abs.ConcatenatePreTransformation(chassis_REF);
 
@@ -181,24 +181,16 @@ void IdlerSimple::Initialize(ChSharedPtr<ChBody> chassis,
   // TODO: (check) idler joint translates, rotates in correct direction.
   // NOTE: I created the idler to translate x-dir, rotate about z-dir, according
   //      to how the chassis is rotated by default.
-  m_idler_joint->Initialize(m_idler, chassis, m_idler->GetCoord() );
+  m_idler_joint->Initialize(m_idler, chassis, ChCoordsys<>(idler_to_abs.GetPos(), idler_to_abs.GetRot()) );
   chassis->GetSystem()->AddLink(m_idler_joint);
 
   // init shock, add to system
   // put the second marker some length in front of marker1, based on desired preload
-  // double preLoad = 80000; // [N]
-  // chassis spring attachment point is towards the center of the vehicle
-  ChFrame<> pos_on_chassis_abs = ChFrame<>(local_Csys);
-  if(local_Csys.pos.x < 0 ) 
-    pos_on_chassis_abs.GetPos().x += m_springRestLength - (preLoad / m_springK);
-  else
-    pos_on_chassis_abs.GetPos().x -= m_springRestLength - (preLoad / m_springK);
-
-  // transform 2nd attachment point to abs coords
-  pos_on_chassis_abs.ConcatenatePreTransformation(chassis_REF);
+  double init_spring_len = m_springRestLength - preLoad / m_springK;
+  ChVector<> pos_on_chassis_abs = idler_to_abs.GetPos() - idler_to_abs.GetRot().GetXaxis()*(init_spring_len);
 
   // init. points based on desired preload and free lengths
-  m_shock->Initialize(m_idler, chassis, false, m_idler->GetPos(), pos_on_chassis_abs.GetPos() );
+  m_shock->Initialize(m_idler, chassis, false, m_idler->GetPos(), pos_on_chassis_abs );
   // setting rest length should yield desired preload at time = 0
   m_shock->Set_SpringRestLength(m_springRestLength);
 

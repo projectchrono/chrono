@@ -54,6 +54,7 @@ public:
   ~IdlerSimple();
 
   /// init the idler with the initial pos. and rot., w.r.t. the chassis c-sys
+  // x-axis of local_Csys rot should point in translational DOF dir.
   void Initialize(ChSharedPtr<ChBody> chassis,
                   const ChFrame<>& chassis_REF,
                   const ChCoordsys<>& local_Csys,
