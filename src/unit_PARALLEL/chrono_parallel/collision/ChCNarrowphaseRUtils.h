@@ -31,7 +31,6 @@ namespace collision {
 // This utility function returns the normal to the triangular face defined by
 // the vertices A, B, and C. The face is assumed to be non-degenerate.
 // Note that order of vertices is important!
-__host__ __device__
 real3 face_normal(const real3& A, const real3& B, const real3& C)
 {
   real3 v1 = B - A;
@@ -50,7 +49,6 @@ real3 face_normal(const real3& A, const real3& B, const real3& C)
 // result is on an edge of this face and 'false' if the result is inside the
 // triangle.
 // Code from Ericson, "Real-time collision detection", 2005, pp. 141
-__host__ __device__
 bool snap_to_face(const real3& A, const real3& B, const real3& C,
                   const real3& P, real3& res)
 {
@@ -130,7 +128,6 @@ bool snap_to_face(const real3& A, const real3& B, const real3& C,
 //   code = 1 indicates snapping to one of the cylinder caps
 //   code = 2 indicates snapping to the cylinder side
 //   code = 3 indicates snapping to one of the cylinder edges
-__host__ __device__
 uint snap_to_cylinder(const real& rad, const real& hlen, real3& loc)
 {
   uint code = 0;
@@ -168,7 +165,6 @@ uint snap_to_cylinder(const real& rad, const real& hlen, real3& loc)
 //   code = 1 or code = 2 or code = 4  indicates snapping to a face
 //   code = 3 or code = 5 or code = 6  indicates snapping to an edge
 //   code = 7 indicates snapping to a corner
-__host__ __device__
 uint snap_to_box(const real3& hdims, real3& loc)
 {
   uint code = 0;
@@ -194,7 +190,6 @@ uint snap_to_box(const real3& hdims, real3& loc)
 // These utility functions return the corner of a box of given dimensions that
 // if farthest and closest in the direction 'dir', respectively. The direction
 // 'dir' is assumed to be given in the frame of the box.
-__host__ __device__
 real3 box_farthest_corner(const real3& hdims, const real3& dir)
 {
   real3 corner;
@@ -204,7 +199,6 @@ real3 box_farthest_corner(const real3& hdims, const real3& dir)
   return corner;
 }
 
-__host__ __device__
 real3 box_closest_corner(const real3& hdims, const real3& dir)
 {
   real3 corner;
@@ -228,7 +222,6 @@ real3 box_closest_corner(const real3& hdims, const real3& dir)
 //   code = 1 or code = 2 or code = 4  indicates a face
 //   code = 3 or code = 5 or code = 6  indicates an edge
 //   code = 7 indicates a corner
-__host__ __device__
 uint box_closest_feature(const real3& dir)
 {
   const real threshold = 0.01;
@@ -248,7 +241,6 @@ uint box_closest_feature(const real3& dir)
 //
 // This check is performed by testing 15 possible separating planes between the
 // two boxes (Gottschalk, Lin, Manocha - Siggraph96).
-__host__ __device__
 bool box_intersects_box(const real3& hdims1, const real3& hdims2,
                         const real3& pos, const real4& rot,
                         real3& dir)

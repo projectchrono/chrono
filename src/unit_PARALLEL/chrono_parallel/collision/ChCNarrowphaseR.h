@@ -42,91 +42,80 @@ namespace collision {
 static const real edge_radius = 0.1;
 
 // Primitive collision functions
-   __host__ __device__
-  bool sphere_sphere(const real3& pos1, const real& radius1,
-                     const real3& pos2, const real& radius2,
-                     real3& norm, real& depth,
-                     real3& pt1, real3& pt2,
-                     real& eff_radius);
-
-   __host__ __device__
-  bool capsule_sphere(const real3& pos1, const real4& rot1, const real& radius1, const real& hlen1,
-                      const real3& pos2, const real& radius2,
-                      real3& norm, real& depth,
-                      real3& pt1, real3& pt2,
-                      real& eff_radius);
-
-   __host__ __device__
-  bool cylinder_sphere(const real3& pos1, const real4& rot1, const real& radius1, const real& hlen1,
-                       const real3& pos2, const real& radius2,
-                       real3& norm, real& depth,
-                       real3& pt1, real3& pt2,
-                       real& eff_radius);
-
-   __host__ __device__
-  bool roundedcyl_sphere(const real3& pos1, const real4& rot1, const real& radius1, const real& hlen1, const real& srad1,
-                         const real3& pos2, const real& radius2,
-                         real3& norm, real& depth,
-                         real3& pt1, real3& pt2,
-                         real& eff_radius);
-
-   __host__ __device__
-  bool box_sphere(const real3& pos1, const real4& rot1, const real3& hdims1,
-                  const real3& pos2, const real& radius2,
-                  real3& norm, real& depth,
-                  real3& pt1, real3& pt2,
-                  real& eff_radius);
-
-   __host__ __device__
-  bool roundedbox_sphere(const real3& pos1, const real4& rot1, const real3& hdims1, const real& srad1,
-                         const real3& pos2, const real& radius2,
-                         real3& norm, real& depth,
-                         real3& pt1, real3& pt2,
-                         real& eff_radius);
-
-   __host__ __device__
-  bool face_sphere(const real3& A1, const real3& B1, const real3& C1,
+bool sphere_sphere(const real3& pos1, const real& radius1,
                    const real3& pos2, const real& radius2,
                    real3& norm, real& depth,
                    real3& pt1, real3& pt2,
                    real& eff_radius);
 
-   __host__ __device__
-  int capsule_capsule(const real3& pos1, const real4& rot1, const real& radius1, const real& hlen1,
-                      const real3& pos2, const real4& rot2, const real& radius2, const real& hlen2,
-                      real3* norm, real* depth,
-                      real3* pt1, real3* pt2,
-                      real* eff_radius);
+bool capsule_sphere(const real3& pos1, const real4& rot1, const real& radius1, const real& hlen1,
+                    const real3& pos2, const real& radius2,
+                    real3& norm, real& depth,
+                    real3& pt1, real3& pt2,
+                    real& eff_radius);
 
-   __host__ __device__
-  int box_capsule(const real3& pos1, const real4& rot1, const real3& hdims1,
-                  const real3& pos2, const real4& rot2, const real& radius2, const real& hlen2,
-                  real3* norm, real* depth,
-                  real3* pt1, real3* pt2,
-                  real* eff_radius);
+bool cylinder_sphere(const real3& pos1, const real4& rot1, const real& radius1, const real& hlen1,
+                     const real3& pos2, const real& radius2,
+                     real3& norm, real& depth,
+                     real3& pt1, real3& pt2,
+                     real& eff_radius);
 
-   __host__ __device__
-  int box_box(const real3& pos1, const real4& rot1, const real3& hdims1,
-              const real3& pos2, const real4& rot2, const real3& hdims2,
-              real3* norm, real* depth,
-              real3* pt1, real3* pt2,
-              real* eff_radius);
+bool roundedcyl_sphere(const real3& pos1, const real4& rot1, const real& radius1, const real& hlen1, const real& srad1,
+                       const real3& pos2, const real& radius2,
+                       real3& norm, real& depth,
+                       real3& pt1, real3& pt2,
+                       real& eff_radius);
 
+bool box_sphere(const real3& pos1, const real4& rot1, const real3& hdims1,
+                const real3& pos2, const real& radius2,
+                real3& norm, real& depth,
+                real3& pt1, real3& pt2,
+                real& eff_radius);
 
-  CH_PARALLEL_API
-  bool RCollision(uint icoll,
-                  const ConvexShape &shapeA,
-                  const ConvexShape &shapeB,
-                  int body1,
-                  int body2,
-                  uint* ct_flag,
-                  real3* ct_norm,
-                  real3* ct_pt1,
-                  real3* ct_pt2,
-                  real* ct_depth,
-                  real* ct_eff_rad,
-                  int2* ct_body_ids,
-                  int& nC);
+bool roundedbox_sphere(const real3& pos1, const real4& rot1, const real3& hdims1, const real& srad1,
+                       const real3& pos2, const real& radius2,
+                       real3& norm, real& depth,
+                       real3& pt1, real3& pt2,
+                       real& eff_radius);
+
+bool face_sphere(const real3& A1, const real3& B1, const real3& C1,
+                 const real3& pos2, const real& radius2,
+                 real3& norm, real& depth,
+                 real3& pt1, real3& pt2,
+                 real& eff_radius);
+
+int capsule_capsule(const real3& pos1, const real4& rot1, const real& radius1, const real& hlen1,
+                    const real3& pos2, const real4& rot2, const real& radius2, const real& hlen2,
+                    real3* norm, real* depth,
+                    real3* pt1, real3* pt2,
+                    real* eff_radius);
+
+int box_capsule(const real3& pos1, const real4& rot1, const real3& hdims1,
+                const real3& pos2, const real4& rot2, const real& radius2, const real& hlen2,
+                real3* norm, real* depth,
+                real3* pt1, real3* pt2,
+                real* eff_radius);
+
+int box_box(const real3& pos1, const real4& rot1, const real3& hdims1,
+            const real3& pos2, const real4& rot2, const real3& hdims2,
+            real3* norm, real* depth,
+            real3* pt1, real3* pt2,
+            real* eff_radius);
+
+CH_PARALLEL_API
+bool RCollision(uint icoll,
+                const ConvexShape &shapeA,
+                const ConvexShape &shapeB,
+                int body1,
+                int body2,
+                uint* ct_flag,
+                real3* ct_norm,
+                real3* ct_pt1,
+                real3* ct_pt2,
+                real* ct_depth,
+                real* ct_eff_rad,
+                int2* ct_body_ids,
+                int& nC);
 
 
 } // end namespace collision
