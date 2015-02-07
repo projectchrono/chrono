@@ -102,52 +102,41 @@ void ChCNarrowphaseDispatch::Process() {
   // std::cout << num_potentialContacts << " " << number_of_contacts << std::endl;
 }
 
-void ChCNarrowphaseDispatch::PreprocessCount() {
+void ChCNarrowphaseDispatch::PreprocessCount()
+{
+  // MPR and GJK always report at most one contact per pair.
+  if (narrowphase_algorithm == NARROWPHASE_MPR /*|| narrowphase_algorithm == NARROWPHASE_GJK*/) {
+    thrust::fill(contact_index.begin(), contact_index.end(), 1);
+    return;
+  }
+
+  // NarrowphaseR (and hence the hybrid algorithms) may produce different number
+  // of contacts per pair, depending on the interacting shapes:
+  //   - an interaction involving a sphere can produce at most one contact
+  //   - an interaction involving a capsule can produce up to two contacts
+  //   - a box-box interaction can produce up to 8 contacts
 
   // shape type (per shape)
   const shape_type* obj_data_T = data_container->host_data.typ_rigid.data();
   // encoded shape IDs (per collision pair)
   const long long* collision_pair = data_container->host_data.pair_rigid_rigid.data();
-  uint* max_contacts = contact_index.data();
 
 #pragma omp parallel for
   for (int index = 0; index < num_potentialCollisions; index++) {
-
     // Identify the two candidate shapes and get their types.
     int2 pair = I2(int(collision_pair[index] >> 32), int(collision_pair[index] & 0xffffffff));
     shape_type type1 = obj_data_T[pair.x];
     shape_type type2 = obj_data_T[pair.y];
 
-    if (narrowphase_algorithm == NARROWPHASE_MPR) {
-      max_contacts[index] = 1;
-      continue;
-      //} else if (narrowphase_algorithm == NARROWPHASE_GJK) {
-      //   max_contacts[index] = 1;
-      //   return;
-    } else if (narrowphase_algorithm == NARROWPHASE_HYBRID_MPR) {
-      max_contacts[index] = 1;
-      if (type1 == SPHERE || type2 == SPHERE) {
-        max_contacts[index] = 1;
-      } else if (type1 == CAPSULE || type2 == CAPSULE) {
-        max_contacts[index] = 2;
-      }
-      continue;
-      //} else if (narrowphase_algorithm == NARROWPHASE_HYBRID_GJK) {
-      //   max_contacts[index] = 1;
-      //   if (type1 == SPHERE || type2 == SPHERE) {
-      //      max_contacts[index] = 1;
-      //   } else if (type1 == CAPSULE || type2 == CAPSULE) {
-      //      max_contacts[index] = 2;
-      //   }
-    }
-
     // Set the maximum number of possible contacts for this particular pair
     if (type1 == SPHERE || type2 == SPHERE) {
-      max_contacts[index] = 1;
+      contact_index[index] = 1;
     } else if (type1 == CAPSULE || type2 == CAPSULE) {
-      max_contacts[index] = 2;
+      contact_index[index] = 2;
+    ////} else if (type1 == BOX && type2 == BOX) {
+    ////  contact_index[index] = 8;
     } else {
-      max_contacts[index] = 4;
+      contact_index[index] = 1;
     }
   }
 }
