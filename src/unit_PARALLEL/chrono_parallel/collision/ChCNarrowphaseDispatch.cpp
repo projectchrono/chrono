@@ -268,7 +268,7 @@ void ChCNarrowphaseDispatch::DispatchR() {
 
     Dispatch_Init(index, icoll, ID_A, ID_B, shapeA, shapeB);
 
-    if (RCollision(shapeA, shapeB, &norm[icoll], &ptA[icoll], &ptB[icoll], &contactDepth[icoll], &effective_radius[icoll], nC)) {
+    if (RCollision(shapeA, shapeB, 2 * collision_envelope, &norm[icoll], &ptA[icoll], &ptB[icoll], &contactDepth[icoll], &effective_radius[icoll], nC)) {
       Dispatch_Finalize(icoll, ID_A, ID_B, nC);
     }
   }
@@ -290,7 +290,7 @@ void ChCNarrowphaseDispatch::DispatchHybridMPR() {
 
     Dispatch_Init(index, icoll, ID_A, ID_B, shapeA, shapeB);
 
-    if (RCollision(shapeA, shapeB, &norm[icoll], &ptA[icoll], &ptB[icoll], &contactDepth[icoll], &effective_radius[icoll], nC)) {
+    if (RCollision(shapeA, shapeB, 2 * collision_envelope, &norm[icoll], &ptA[icoll], &ptB[icoll], &contactDepth[icoll], &effective_radius[icoll], nC)) {
       Dispatch_Finalize(icoll, ID_A, ID_B, nC);
     } else if (MPRCollision(shapeA, shapeB, collision_envelope, norm[icoll], ptA[icoll], ptB[icoll], contactDepth[icoll])) {
       effective_radius[icoll] = edge_radius;

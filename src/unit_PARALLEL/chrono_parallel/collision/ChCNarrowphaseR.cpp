@@ -38,11 +38,15 @@ namespace collision {
 //   - ct_depth:    penetration distance (negative if overlap exists)
 //   - ct_norm:     contact normal, from ct_pt2 to ct_pt1 (in global frame)
 //   - ct_eff_rad:  effective contact radius
+// Note that we also report collisions for which the distance between the two
+// shapes is at most 'separation' (typically twice the collision envelope).
+// In these cases, the corresponding ct_depth is a positive value.
 // This function returns true if it was able to determine the collision state
 // for the given pair of shapes and false if the shape types are not supported.
 
 bool RCollision(const ConvexShape &shapeA, // first candidate shape
                 const ConvexShape &shapeB, // second candidate shape
+                real separation,           // maximum separation
                 real3* ct_norm,            // [output] contact normal (per contact pair)
                 real3* ct_pt1,             // [output] point on shape1 (per contact pair)
                 real3* ct_pt2,             // [output] point on shape2 (per contact pair)

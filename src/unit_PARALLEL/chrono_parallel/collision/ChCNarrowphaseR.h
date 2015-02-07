@@ -105,6 +105,7 @@ int box_box(const real3& pos1, const real4& rot1, const real3& hdims1,
 CH_PARALLEL_API
 bool RCollision(const ConvexShape &shapeA,  ///< first candidate shape
                 const ConvexShape &shapeB,  ///< second candidate shape
+                real separation,            ///< maximum separation
                 real3* ct_norm,             ///< [output] contact normal (per contact pair)
                 real3* ct_pt1,              ///< [output] point on shape1 (per contact pair)
                 real3* ct_pt2,              ///< [output] point on shape2 (per contact pair)
