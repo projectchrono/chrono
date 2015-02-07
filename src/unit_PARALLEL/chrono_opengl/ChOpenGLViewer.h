@@ -25,6 +25,7 @@
 #include "chrono_opengl/shapes/ChOpenGLText.h"
 #include "chrono_opengl/shapes/ChOpenGLOBJ.h"
 #include "chrono_opengl/UI/ChOpenGLContacts.h"
+#include "chrono_opengl/UI/ChOpenGLHUD.h"
 
 #include "physics/ChSystem.h"
 #include "core/ChTimer.h"
@@ -36,13 +37,11 @@ namespace chrono {
 namespace opengl {
 
 enum RenderMode {
-  POINTS,
-  WIREFRAME,
-  SOLID
+  POINTS, WIREFRAME, SOLID
 };
 
-class CH_OPENGL_API ChOpenGLViewer : public ChOpenGLBase {
- public:
+class CH_OPENGL_API ChOpenGLViewer: public ChOpenGLBase {
+public:
   ChOpenGLViewer(ChSystem* system);
   ~ChOpenGLViewer();
   void TakeDown();
@@ -60,7 +59,7 @@ class CH_OPENGL_API ChOpenGLViewer : public ChOpenGLBase {
   glm::ivec2 window_size;
   glm::ivec2 window_position;
   glm::ivec2 window_physical_size;
-  double     dpi;
+  double dpi;
   float window_aspect;
   int interval;
 
@@ -71,7 +70,6 @@ class CH_OPENGL_API ChOpenGLViewer : public ChOpenGLBase {
   ChOpenGLShader cloud_shader;
   ChOpenGLShader dot_shader;
   ChOpenGLShader sphere_shader;
-  ChOpenGLShader font_shader;
 
   ChOpenGLOBJ sphere;
   ChOpenGLOBJ box;
@@ -80,9 +78,9 @@ class CH_OPENGL_API ChOpenGLViewer : public ChOpenGLBase {
 
   ChOpenGLCloud cloud;
   ChOpenGLWires grid, plots;
-  ChOpenGLText text;
 
   ChOpenGLContacts contact_renderer;
+  ChOpenGLHUD HUD_renderer;
 
   std::vector<glm::vec3> cloud_data;
   std::vector<glm::vec3> grid_data, plot_data;

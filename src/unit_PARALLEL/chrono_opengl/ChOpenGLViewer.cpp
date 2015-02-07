@@ -30,8 +30,6 @@
 #include "lcp/ChLcpIterativeSolver.h"
 
 // Includes are generated at compile time!
-#include "resources/text_frag.h"
-#include "resources/text_vert.h"
 #include "resources/phong_frag.h"
 #include "resources/phong_vert.h"
 #include "resources/cloud_frag.h"
@@ -80,7 +78,7 @@ ChOpenGLViewer::~ChOpenGLViewer() {}
 void ChOpenGLViewer::TakeDown() {
   render_camera.TakeDown();
   main_shader.TakeDown();
-  font_shader.TakeDown();
+
   cloud_shader.TakeDown();
   dot_shader.TakeDown();
   sphere_shader.TakeDown();
@@ -91,16 +89,15 @@ void ChOpenGLViewer::TakeDown() {
   cloud.TakeDown();
   grid.TakeDown();
   plots.TakeDown();
-  text.TakeDown();
   contact_renderer.TakeDown();
-
+  HUD_renderer.TakeDown();
   for (std::map<std::string, ChOpenGLMesh>::iterator iter = obj_files.begin(); iter != obj_files.end(); iter++) {
     (*iter).second.TakeDown();
   }
 }
 
 bool ChOpenGLViewer::Initialize() {
-// Initialize all of the shaders and compile them
+  // Initialize all of the shaders and compile them
   if (!main_shader.InitializeStrings("phong", phong_vert, phong_frag)) {
     return 0;
   }
@@ -113,19 +110,14 @@ bool ChOpenGLViewer::Initialize() {
   if (!sphere_shader.InitializeStrings("sphere", sphere_vert, sphere_frag)) {
     return 0;
   }
-  if (!font_shader.InitializeStrings("text", text_vert, text_frag)) {
-    return 0;
-  }
 
-  //Setup the generic shapes and load them from file
+  // Setup the generic shapes and load them from file
   sphere.Initialize("../resources/sphere.obj", slate, &main_shader);
   box.Initialize("../resources/box.obj", t3, &main_shader);
   cylinder.Initialize("../resources/cylinder.obj", apple, &main_shader);
   cone.Initialize("../resources/cone.obj", white, &main_shader);
 
-
-  text.Initialize(text_mat, &font_shader);
-
+  HUD_renderer.Initialize();
 
   cloud_data.push_back(glm::vec3(0, 0, 0));
   grid_data.push_back(glm::vec3(0, 0, 0));
@@ -133,7 +125,6 @@ bool ChOpenGLViewer::Initialize() {
   cloud.Initialize(cloud_data, white, &cloud_shader);
   grid.Initialize(grid_data, darkriver, &cloud_shader);
   plots.Initialize(grid_data, brightriver, &cloud_shader);
-
 
   contact_renderer.Initialize(darkred, &cloud_shader);
 
@@ -396,201 +387,14 @@ void ChOpenGLViewer::DrawObject(ChBody* abody) {
 
 void ChOpenGLViewer::DisplayHUD() {
   GLReturnedError("Start text");
-  float sx = (2 * dpi / 147.782) / window_size.x;
-  float sy = (2 * dpi / 147.782) / window_size.y;
-  text.Update();
-  real spacing = 0.055;
-
-  char buffer[50];
+  HUD_renderer.Update(window_size, dpi);
   if (view_help) {
-    text.Render("Press h to exit help", -.95, 0.925 - spacing * 0, sx, sy);
-    text.Render("W: Forward", -.95, 0.925 - spacing * 1, sx, sy);
-    text.Render("A: Strafe Left", -.95, 0.925 - spacing * 2, sx, sy);
-    text.Render("S: Back", -.95, 0.925 - spacing * 3, sx, sy);
-    text.Render("D: Strafe Right", -.95, 0.925 - spacing * 4, sx, sy);
-    text.Render("Q: Down", -.95, 0.925 - spacing * 5, sx, sy);
-    text.Render("E: Up", -.95, 0.925 - spacing * 6, sx, sy);
 
-    text.Render("Mouse Look (Click and hold left mouse button)", -.95, 0.925 - spacing * 7, sx, sy);
-
-    text.Render("1: Point Cloud (default)", -.95, 0.925 - spacing * 9, sx, sy);
-    text.Render("2: Wireframe (slow)", -.95, 0.925 - spacing * 10, sx, sy);
-    text.Render("3: Solid", -.95, 0.925 - spacing * 11, sx, sy);
-
-    text.Render("C: Show/Hide Contacts (DVI only)", -.95, 0.925 - spacing * 13, sx, sy);
-
-    text.Render("Space: Pause Simulation (not rendering)", -.95, 0.925 - spacing * 15, sx, sy);
-    text.Render("P: Pause Rendering (not simulating)", -.95, 0.925 - spacing * 16, sx, sy);
-    text.Render(".: Single Step ", -.95, 0.925 - spacing * 18, sx, sy);
-    text.Render("B: Enable/Disable AABB ", -.95, 0.925 - spacing * 20, sx, sy);
-
-    text.Render("Escape: Exit ", -.95, 0.925 - spacing * 30, sx, sy);
-
+    HUD_renderer.DrawHelp();
   } else {
-    sprintf(buffer, "Press h for help");
-    text.Render(buffer, 0, 0.925, sx, sy);
-
-    sprintf(buffer, "TIME:  %04f  | %04f", physics_system->GetChTime(), simulation_h);
-    text.Render(buffer, -.95, 0.925, sx, sy);
-    sprintf(buffer, "Camera Pos :  [%04f, %04f, %04f]", render_camera.camera_position.x, render_camera.camera_position.y, render_camera.camera_position.z);
-    text.Render(buffer, -.95, 0.925 - spacing * 1, sx, sy);
-    sprintf(buffer, "Camera Look:  [%04f, %04f, %04f]", render_camera.camera_look_at.x, render_camera.camera_look_at.y, render_camera.camera_look_at.z);
-    text.Render(buffer, -.95, 0.925 - spacing * 2, sx, sy);
-    sprintf(buffer, "Camera Up  :  [%04f, %04f, %04f]", render_camera.camera_up.x, render_camera.camera_up.y, render_camera.camera_up.z);
-    text.Render(buffer, -.95, 0.925 - spacing * 3, sx, sy);
-
-    sprintf(buffer, "SOLVER INFO");
-    text.Render(buffer, .6, 0.925 - spacing * 6, sx, sy);
-
-    double iters = ((ChLcpIterativeSolver*)(physics_system->GetLcpSolverSpeed()))->GetTotalIterations();
-    if (iters > 0) {
-      double residual = ((ChLcpIterativeSolver*)(physics_system->GetLcpSolverSpeed()))->GetViolationHistory().back();
-      double dlambda = ((ChLcpIterativeSolver*)(physics_system->GetLcpSolverSpeed()))->GetDeltalambdaHistory().back();
-
-      sprintf(buffer, "ITERS    %04d", int(iters));
-      text.Render(buffer, .6, 0.925 - spacing * 7, sx, sy);
-      sprintf(buffer, "RESIDUAL %04f", residual);
-      text.Render(buffer, .6, 0.925 - spacing * 8, sx, sy);
-      sprintf(buffer, "CORRECT  %04f", dlambda);
-      text.Render(buffer, .6, 0.925 - spacing * 9, sx, sy);
-    } else {
-      sprintf(buffer, "ITERS    %04d", 0);
-      text.Render(buffer, .6, 0.925 - spacing * 7, sx, sy);
-      sprintf(buffer, "RESIDUAL %04f", 0);
-      text.Render(buffer, .6, 0.925 - spacing * 8, sx, sy);
-      sprintf(buffer, "CORRECT  %04f", 0);
-      text.Render(buffer, .6, 0.925 - spacing * 9, sx, sy);
-    }
-
-    int num_bodies = (physics_system->GetNbodiesTotal() + physics_system->GetNphysicsItems());
-    int num_contacts = ((ChSystemParallel*)physics_system)->GetNcontacts();
-    int average_contacts_per_body = 0;
-    if (num_bodies > 0) {
-      average_contacts_per_body = num_contacts / num_bodies;
-    }
-    sprintf(buffer, "MODEL INFO");
-    text.Render(buffer, .6, 0.925 - spacing * 0, sx, sy);
-    sprintf(buffer, "BODIES     %04d", num_bodies);
-    text.Render(buffer, .6, 0.925 - spacing * 1, sx, sy);
-    if (ChSystemParallelDVI* parallel_sys = dynamic_cast<ChSystemParallelDVI*>(physics_system)) {
-      sprintf(buffer, "AABB       %04d", parallel_sys->data_manager->host_data.aabb_rigid.size() / 2);
-      text.Render(buffer, .6, 0.925 - spacing * 2, sx, sy);
-    }
-    sprintf(buffer, "CONTACTS   %04d", num_contacts);
-    text.Render(buffer, .6, 0.925 - spacing * 3, sx, sy);
-    sprintf(buffer, "AVGCONPB   %04d", average_contacts_per_body);
-    text.Render(buffer, .6, 0.925 - spacing * 4, sx, sy);
-
-    sprintf(buffer, "TIMING INFO");
-    text.Render(buffer, .6, -0.925 + spacing * 11, sx, sy);
-    sprintf(buffer, "STEP     %04f", physics_system->GetTimerStep());
-    text.Render(buffer, .6, -0.925 + spacing * 10, sx, sy);
-    sprintf(buffer, "BROAD    %04f", physics_system->GetTimerCollisionBroad());
-    text.Render(buffer, .6, -0.925 + spacing * 9, sx, sy);
-    sprintf(buffer, "NARROW   %04f", physics_system->GetTimerCollisionNarrow());
-    text.Render(buffer, .6, -0.925 + spacing * 8, sx, sy);
-    sprintf(buffer, "SOLVE    %04f", physics_system->GetTimerLcp());
-    text.Render(buffer, .6, -0.925 + spacing * 7, sx, sy);
-    sprintf(buffer, "UPDATE   %04f", physics_system->GetTimerUpdate());
-    text.Render(buffer, .6, -0.925 + spacing * 6, sx, sy);
-
-    if (ChSystemParallelDVI* parallel_sys = dynamic_cast<ChSystemParallelDVI*>(physics_system)) {
-      int3 grid_size = parallel_sys->data_manager->measures.collision.grid_size;
-      real3 bin_size_vec = 1.0 / parallel_sys->data_manager->measures.collision.bin_size_vec;
-      real3 min_pt = parallel_sys->data_manager->measures.collision.min_bounding_point;
-      real3 max_pt = parallel_sys->data_manager->measures.collision.max_bounding_point;
-      real3 center = (min_pt + max_pt) * .5;
-      int max_aabb_per_bin = parallel_sys->data_manager->measures.collision.max_aabb_per_bin;
-      sprintf(buffer, "COLLISION INFO");
-      text.Render(buffer, .6, 0.925 - spacing * 11, sx, sy);
-      sprintf(buffer, "DIMS  [%d,%d,%d]", grid_size.x, grid_size.y, grid_size.z);
-      text.Render(buffer, .6, 0.925 - spacing * 12, sx, sy);
-      sprintf(buffer, "MAX   %d", max_aabb_per_bin);
-      text.Render(buffer, .6, 0.925 - spacing * 13, sx, sy);
-      sprintf(buffer, "SX    %f", bin_size_vec.x);
-      text.Render(buffer, .6, 0.925 - spacing * 14, sx, sy);
-      sprintf(buffer, "SY    %f", bin_size_vec.y);
-      text.Render(buffer, .6, 0.925 - spacing * 15, sx, sy);
-      sprintf(buffer, "SZ    %f", bin_size_vec.z);
-      text.Render(buffer, .6, 0.925 - spacing * 16, sx, sy);
-      sprintf(buffer, "RIGID %d", parallel_sys->data_manager->num_contacts);
-      text.Render(buffer, .6, 0.925 - spacing * 17, sx, sy);
-      //      sprintf(buffer, "BOUND %d", parallel_sys->data_manager->num_boundary_contacts);
-      //      text.Render(buffer, .6, 0.925 - spacing * 18, sx, sy);
-      //      sprintf(buffer, "FLUID %d", parallel_sys->data_manager->num_fluid_contacts);
-      //      text.Render(buffer, .6, 0.925 - spacing * 19, sx, sy);
-    }
-
-    sprintf(buffer, "RENDER INFO");
-    text.Render(buffer, .6, -0.925 + spacing * 4, sx, sy);
-    sprintf(buffer, "GEOMETRY %04f", time_geometry);
-    text.Render(buffer, .6, -0.925 + spacing * 3, sx, sy);
-    sprintf(buffer, "TEXT     %04f", time_text);
-    text.Render(buffer, .6, -0.925 + spacing * 2, sx, sy);
-    sprintf(buffer, "TOTAL    %04f", time_total);
-    text.Render(buffer, .6, -0.925 + spacing * 1, sx, sy);
-    sprintf(buffer, "FPS      %04d", int(fps));
-    text.Render(buffer, .6, -0.925 + spacing * 0, sx, sy);
-
-    if (ChSystemParallelDVI* parallel_sys = dynamic_cast<ChSystemParallelDVI*>(physics_system)) {
-      sprintf(buffer, "TimerA:  %04f", parallel_sys->data_manager->system_timer.GetTime("ChSolverParallel_solverA"));
-      text.Render(buffer, -.95, -0.925 + spacing * 9, sx, sy);
-      sprintf(buffer, "TimerB:  %04f", parallel_sys->data_manager->system_timer.GetTime("ChSolverParallel_solverB"));
-      text.Render(buffer, -.95, -0.925 + spacing * 8, sx, sy);
-      sprintf(buffer, "TimerC:  %04f", parallel_sys->data_manager->system_timer.GetTime("ChSolverParallel_solverC"));
-      text.Render(buffer, -.95, -0.925 + spacing * 7, sx, sy);
-      sprintf(buffer, "TimerD:  %04f", parallel_sys->data_manager->system_timer.GetTime("ChSolverParallel_solverD"));
-      text.Render(buffer, -.95, -0.925 + spacing * 6, sx, sy);
-      sprintf(buffer, "TimerE:  %04f", parallel_sys->data_manager->system_timer.GetTime("ChSolverParallel_solverE"));
-      text.Render(buffer, -.95, -0.925 + spacing * 5, sx, sy);
-      sprintf(buffer, "TimerF:  %04f", parallel_sys->data_manager->system_timer.GetTime("ChSolverParallel_solverF"));
-      text.Render(buffer, -.95, -0.925 + spacing * 4, sx, sy);
-      sprintf(buffer, "TimerG:  %04f", parallel_sys->data_manager->system_timer.GetTime("ChSolverParallel_solverG"));
-      text.Render(buffer, -.95, -0.925 + spacing * 3, sx, sy);
-      sprintf(buffer, "Shur A:  %04f", parallel_sys->data_manager->system_timer.GetTime("ChSolverParallel_shurA"));
-      text.Render(buffer, -.95, -0.925 + spacing * 2, sx, sy);
-      sprintf(buffer, "Shur B:  %04f", parallel_sys->data_manager->system_timer.GetTime("ChSolverParallel_shurB"));
-      text.Render(buffer, -.95, -0.925 + spacing * 1, sx, sy);
-      sprintf(buffer, "Proj  :  %04f", parallel_sys->data_manager->system_timer.GetTime("ChSolverParallel_Project"));
-      text.Render(buffer, -.95, -0.925 + spacing * 0, sx, sy);
-      float posx = -.6;
-      sprintf(buffer, "B_Initial : %04f", parallel_sys->data_manager->system_timer.GetTime("Broadphase_Init"));
-      text.Render(buffer, posx, -0.925 + spacing * 9, sx, sy);
-      sprintf(buffer, "B_AABBBINC: %04f", parallel_sys->data_manager->system_timer.GetTime("Broadphase_AABB_BIN_Count"));
-      text.Render(buffer, posx, -0.925 + spacing * 8, sx, sy);
-      sprintf(buffer, "B_AABBBINS: %04f", parallel_sys->data_manager->system_timer.GetTime("Broadphase_AABB_BIN_Store"));
-      text.Render(buffer, posx, -0.925 + spacing * 7, sx, sy);
-      sprintf(buffer, "B_SORT_RED: %04f", parallel_sys->data_manager->system_timer.GetTime("Broadphase_SortReduce"));
-      text.Render(buffer, posx, -0.925 + spacing * 6, sx, sy);
-      sprintf(buffer, "BAABBAABBC: %04f", parallel_sys->data_manager->system_timer.GetTime("Broadphase_AABB_AABB_Count"));
-      text.Render(buffer, posx, -0.925 + spacing * 5, sx, sy);
-      sprintf(buffer, "BAABBAABBS: %04f", parallel_sys->data_manager->system_timer.GetTime("Broadphase_AABB_AABB_Store"));
-      text.Render(buffer, posx, -0.925 + spacing * 4, sx, sy);
-      sprintf(buffer, "B_POST    : %04f", parallel_sys->data_manager->system_timer.GetTime("Broadphase_Post"));
-      text.Render(buffer, posx, -0.925 + spacing * 3, sx, sy);
-      sprintf(buffer, "BROADPHASE: %04f", parallel_sys->data_manager->system_timer.GetTime("Broadphase"));
-      text.Render(buffer, posx, -0.925 + spacing * 2, sx, sy);
-
-      posx = -.6 + .45;
-      sprintf(buffer, "BuildD : %04f", parallel_sys->data_manager->system_timer.GetTime("BuildD"));
-      text.Render(buffer, posx, -0.925 + spacing * 9, sx, sy);
-      sprintf(buffer, "BuildDA: %04f", parallel_sys->data_manager->system_timer.GetTime("BuildDAllocate"));
-      text.Render(buffer, posx, -0.925 + spacing * 8, sx, sy);
-      sprintf(buffer, "BuildDC: %04f", parallel_sys->data_manager->system_timer.GetTime("BuildDCompute"));
-      text.Render(buffer, posx, -0.925 + spacing * 7, sx, sy);
-      sprintf(buffer, "BuildE : %04f", parallel_sys->data_manager->system_timer.GetTime("BuildE"));
-      text.Render(buffer, posx, -0.925 + spacing * 6, sx, sy);
-      sprintf(buffer, "BuildN : %04f", parallel_sys->data_manager->system_timer.GetTime("BuildN"));
-      text.Render(buffer, posx, -0.925 + spacing * 5, sx, sy);
-      sprintf(buffer, "BuildM : %04f", parallel_sys->data_manager->system_timer.GetTime("BuildM"));
-      text.Render(buffer, posx, -0.925 + spacing * 4, sx, sy);
-      sprintf(buffer, "Buildb : %04f", parallel_sys->data_manager->system_timer.GetTime("Buildb"));
-      text.Render(buffer, posx, -0.925 + spacing * 3, sx, sy);
-      sprintf(buffer, "SchurP : %04f", parallel_sys->data_manager->system_timer.GetTime("ShurProduct"));
-      text.Render(buffer, posx, -0.925 + spacing * 2, sx, sy);
-    }
+    HUD_renderer.DrawStats();
   }
-  text.Draw(projection, view);
+  //  text.Draw(projection, view);
 }
 
 void ChOpenGLViewer::RenderContacts() {
