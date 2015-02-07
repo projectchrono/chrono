@@ -33,10 +33,11 @@ namespace chrono {
 // static variables
 const double DriveGear::m_mass = 436.7;
 const ChVector<> DriveGear::m_inertia(12.22, 12.22, 13.87); // z-axis of rotation
+const double DriveGear::m_shaft_inertia = 0.4;  // connects to driveline
+// for primitive collision/visualization
 const double DriveGear::m_radius = 0.212; // to collision surface
 const double DriveGear::m_width = 0.34;
 const double DriveGear::m_widthGap = 0.189; // 0.189; // inner distance between cydliners
-const double DriveGear::m_shaft_inertia = 0.4;  // connects to driveline
 
 
 DriveGear::DriveGear(const std::string& name, 
@@ -65,12 +66,7 @@ DriveGear::DriveGear(const std::string& name,
   m_axle_to_gear->SetNameString(name + "_axle_to_gear");
 
   AddVisualization();
- 
-  if(collide == CollisionType::CALLBACKFUNCTION)
-  {
-    // default constructor should set correct values for M113 gear and pin
-    m_geom = ChSharedPtr<GearPinGeometry>(new GearPinGeometry() );
-  }
+
 }
 
 
@@ -212,15 +208,15 @@ void DriveGear::AddCollisionGeometry(double mu,
   switch (m_collide) {
   case CollisionType::PRIMITIVES:
   {
-    double half_cyl_width =  (m_width - m_widthGap)/2.0;
-    ChVector<> shape_offset =  ChVector<>(0, 0, half_cyl_width + m_widthGap/2.0);
+    double cyl_width =  (m_width - m_widthGap)/2.0;
+    ChVector<> shape_offset =  ChVector<>(0, 0, cyl_width + m_widthGap/2.0);
      // use two simple cylinders. 
-    m_gear->GetCollisionModel()->AddCylinder(m_radius, m_radius, half_cyl_width,
+    m_gear->GetCollisionModel()->AddCylinder(m_radius, m_radius, cyl_width,
       shape_offset, Q_from_AngAxis(CH_C_PI_2,VECT_X));
     
     // mirror first cylinder about the x-y plane
     shape_offset.z *= -1;
-    m_gear->GetCollisionModel()->AddCylinder(m_radius, m_radius, half_cyl_width,
+    m_gear->GetCollisionModel()->AddCylinder(m_radius, m_radius, cyl_width,
       shape_offset, Q_from_AngAxis(CH_C_PI_2,VECT_X));
 
     break;
@@ -255,9 +251,49 @@ void DriveGear::AddCollisionGeometry(double mu,
   }
   case CollisionType::CALLBACKFUNCTION:
   {
-    // turn off contact with shoes. NOTE: could still use some primitives here to collide
-    //  with shoe geometry
-    m_gear->GetCollisionModel()->SetFamilyMaskNoCollisionWithFamily((int)CollisionFam::SHOES);
+
+    // default constructor should set correct values for M113 gear and pin
+    m_geom = ChSharedPtr<GearPinGeometry>(new GearPinGeometry() );
+
+    // a set of boxes to represent the top-most flat face of the gear tooth
+    // as the gear should be oriented initially with the tooth base directly
+    // above the COG, each tooth box is rotated from the initial half rotation angle
+    double init_rot = std::atan(0.07334/0.24929); // from sprocket geometry blender file
+    for(size_t b_idx = 0; b_idx < m_geom->m_num_teeth; b_idx++)
+    {
+      // this is the angle from the vertical (y-axis local y c-sys).
+      double rot_ang = init_rot + 2.0*init_rot*b_idx;
+      // box center is found by manually rotating 
+      ChVector<> box_center(0.5*m_geom->m_tooth_mid_bar.Length()*std::sin(rot_ang),
+        0.5*m_geom->m_tooth_mid_bar.Length()*std::cos(rot_ang),
+        0);
+      
+      // z-axis is out of the page, to rotate clockwise negate the rotation angle.
+      ChMatrix33<> box_rot_mat(Q_from_AngAxis(-rot_ang, VECT_Z));
+
+      m_gear->GetCollisionModel()->AddBox(0.5*m_geom->m_tooth_len,
+        0.5*m_geom->m_tooth_mid_bar.Length(),
+        0.5*m_geom->m_tooth_width,
+        box_center,
+        box_rot_mat); // does this rotation occur about gear c-sys or center of box ????
+    }
+
+    // until the custom callback works, two cylinders (e.g., PRIMITIVES)
+    //  with radius of the gear base circle, width of the gear seat
+    ChVector<> shape_offset =  ChVector<>(0, 0, (m_geom->m_tooth_width + m_geom->m_gear_seat_width_min)/2.0);
+     // use two simple cylinders. 
+    m_gear->GetCollisionModel()->AddCylinder(m_geom->m_gear_base_radius,
+      m_geom->m_gear_base_radius,
+      m_geom->m_tooth_width,
+      shape_offset, Q_from_AngAxis(CH_C_PI_2,VECT_X));
+    
+    // mirror first cylinder about the x-y plane
+    shape_offset.z *= -1;
+    m_gear->GetCollisionModel()->AddCylinder(m_geom->m_gear_base_radius,
+      m_geom->m_gear_base_radius,
+       m_geom->m_tooth_width,
+      shape_offset, Q_from_AngAxis(CH_C_PI_2,VECT_X));
+    // a custom callback function to find the pin-gear seat colision
 
     break;
   }
