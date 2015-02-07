@@ -34,19 +34,25 @@ public:
     double gear_circle_angle = 0.3,   ///< angle from the axis of symmetric the gear base circle is swept
     double gear_seat_width_max = 0.626, ///< max width of the gear seat, w.r.t. gear c-sys
     double gear_seat_width_min = 0.458, ///< min width of the gear seat, w.r.t. gear c-sys 
-    size_t num_teeth = 10.0,          ///< number of gear teeth
-    double key_angle = 0.0,           ///< if the bottom of the tooth profile is not directly above the COG of the gear, rotation angle in rads
-    double pin_radius = 0.0232,       ///< shoe pin radius
-    double pin_width_max = 0.531,     ///< max total pin width
-    double pin_width_min = 0.38,      ///< min total pin width
-    double pin_x_offset = -0.07581,   ///< x-offset of pin from center of shoe c-sys, in shoe c-sys
-    double pin_y_offset = 0          ///< y-offset of pin from center of shoe c-sys
+    ChVector<> tooth_mid_bar = ChVector<>(0.079815, 0.24719, 0.2712), ///< assume first seat bottom is directly above COG, then center of top of gear tooth is relative to local c-sys
+    double tooth_len = 0.013119,  ///< length of top of gear tooth, in local XY plane
+    double tooth_width = 0.0840,  ///< width of top of gear tooth, in local Z plane
+    size_t num_teeth = 10.0,      ///< number of gear teeth
+    double key_angle = 0.0,       ///< if the bottom of the tooth profile is not directly above the COG of the gear, rotation angle in rads
+    double pin_radius = 0.0232,   ///< shoe pin radius
+    double pin_width_max = 0.531,  ///< max total pin width
+    double pin_width_min = 0.38,  ///< min total pin width
+    double pin_x_offset = -0.07581, ///< x-offset of pin from center of shoe c-sys, in shoe c-sys
+    double pin_y_offset = 0        ///< y-offset of pin from center of shoe c-sys
     ): m_gear_base_radius(gear_base_radius),
     m_gear_pitch_radius(gear_pitch_radius),
     m_gear_tooth_radius(gear_pitch_radius-gear_base_radius),
     m_gear_circle_angle(gear_circle_angle),
     m_gear_seat_width_max(gear_seat_width_max),
     m_gear_seat_width_min(gear_seat_width_min),
+    m_tooth_mid_bar(tooth_mid_bar),
+    m_tooth_len(tooth_len),
+    m_tooth_width(tooth_width),
     m_num_teeth( num_teeth),
     m_key_angle(key_angle),
     m_pin_radius(pin_radius),
@@ -70,6 +76,11 @@ public:
   const double m_gear_seat_width_min;
   const size_t m_num_teeth;
   const double m_key_angle;
+
+  // gear tooth geometry
+  const ChVector<> m_tooth_mid_bar;
+  const double m_tooth_len;
+  const double m_tooth_width;
 
   // shoe pin geometry
   const double m_pin_radius;
