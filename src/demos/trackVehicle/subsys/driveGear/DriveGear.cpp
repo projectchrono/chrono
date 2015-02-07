@@ -22,6 +22,7 @@
 #include "assets/ChTriangleMeshShape.h"
 #include "assets/ChTexture.h"
 #include "assets/ChColorAsset.h"
+#include "assets/ChAssetLevel.h"
 // collision mesh
 #include "geometry/ChCTriangleMeshSoup.h"
 
@@ -45,7 +46,8 @@ DriveGear::DriveGear(const std::string& name,
                      CollisionType collide)
   : m_vis(vis), m_collide(collide),
   m_meshFile(utils::GetModelDataFile("M113/Sprocket_XforwardYup.obj")),
-  m_meshName("gear_mesh")
+  m_meshName("gear_mesh"),
+  m_geom(ChSharedPtr<GearPinGeometry>(new GearPinGeometry() ))
 {
   // create the body, set the basic info
   m_gear = ChSharedPtr<ChBody>(new ChBody);
@@ -65,6 +67,7 @@ DriveGear::DriveGear(const std::string& name,
   m_axle_to_gear = ChSharedPtr<ChShaftsBody>(new ChShaftsBody);
   m_axle_to_gear->SetNameString(name + "_axle_to_gear");
 
+  // create the visuals
   AddVisualization();
 
 }
@@ -77,7 +80,8 @@ DriveGear::DriveGear(const std::string& name,
                      CollisionType collide)
   : m_vis(vis), m_collide(collide),
   m_meshFile(utils::GetModelDataFile("M113/Sprocket_XforwardYup.obj")),
-  m_meshName("gear_mesh")
+  m_meshName("gear_mesh"),
+  m_geom(ChSharedPtr<GearPinGeometry>(new GearPinGeometry() ))
 {
   // create the body, set the basic info
   m_gear = ChSharedPtr<ChBody>(new ChBody);
@@ -99,6 +103,7 @@ DriveGear::DriveGear(const std::string& name,
   m_axle_to_gear = ChSharedPtr<ChShaftsBody>(new ChShaftsBody);
   m_axle_to_gear->SetNameString(name + "_axle_to_gear");
 
+  // create the visuals
   AddVisualization();
  
 }
@@ -169,6 +174,72 @@ void DriveGear::AddVisualization()
     ChSharedPtr<ChTexture> tex(new ChTexture);
     tex->SetTextureFilename(GetChronoDataFile("bluwhite.png"));
     m_gear->AddAsset(tex);
+
+    break;
+  }
+  case VisualizationType::COMPOUNDPRIMITIVES:
+  {
+    
+    // matches the primitive found in collisionType collisionCallback
+    // cylinder and a bunch of boxes
+    ChSharedPtr<ChAssetLevel> boxLevel(new ChAssetLevel);
+    ChSharedPtr<ChAssetLevel> cylLevel(new ChAssetLevel);
+   
+    // two cylinders for the base circle of the gear
+    ChSharedPtr<ChCylinderShape> cyl(new ChCylinderShape);
+    cyl->GetCylinderGeometry().rad = m_geom->m_gear_base_radius;
+    cyl->GetCylinderGeometry().p1 = ChVector<>(0, 0, m_geom->m_gear_seat_width_min/2.0);
+    cyl->GetCylinderGeometry().p2 = ChVector<>(0, 0, m_geom->m_gear_seat_width_max/2.0);
+    cylLevel->AddAsset(cyl);
+
+    // second cylinder is a mirror of the first, about x-y plane
+    ChSharedPtr<ChCylinderShape> cylB(new ChCylinderShape(*cyl.get_ptr()));
+    cylB->GetCylinderGeometry().p1.z *= -1;
+    cylB->GetCylinderGeometry().p2.z *= -1;
+    cylLevel->AddAsset(cylB);
+
+    ChSharedPtr<ChTexture> tex(new ChTexture);
+    tex->SetTextureFilename(GetChronoDataFile("bluwhite.png"));
+    cylLevel->AddAsset(tex);
+
+    // all assets for the cylinder level are set by now
+//    m_gear->AddAsset(cylLevel);
+    
+    double init_rot = CH_C_PI / m_geom->m_num_teeth; // std::atan(0.079815/0.24719); // from sprocket geometry blender file
+    for(size_t b_idx = 0; b_idx < m_geom->m_num_teeth; b_idx++)
+    {
+      // this is the angle from the vertical (y-axis local y c-sys).
+      double rot_ang = init_rot + 2.0*init_rot*b_idx;
+      // distance center of tooth is from the gear spin axis
+      double len_from_rotaxis = ChVector<>(m_geom->m_tooth_mid_bar.x, m_geom->m_tooth_mid_bar.y, 0).Length();
+      // shift the box vertically, midpoint of base should be at center of gear
+      // if the rotation is relative to sprocket COG, then this will end up in the right place
+      ChVector<> box_center(0.5*len_from_rotaxis*std::sin(rot_ang),
+        0.5*len_from_rotaxis*std::cos(rot_ang),
+        m_geom->m_tooth_mid_bar.z);
+      
+      // z-axis is out of the page, to rotate clockwise negate the rotation angle.
+      ChMatrix33<> box_rot_mat(Q_from_AngAxis(-rot_ang, VECT_Z));
+
+      // create the box asset with the pos/rot specified
+      ChSharedPtr<ChBoxShape> box(new ChBoxShape);
+      box->GetBoxGeometry().SetLengths(ChVector<>(m_geom->m_tooth_len, len_from_rotaxis, m_geom->m_tooth_width) );
+      box->GetBoxGeometry().Pos = box_center;
+      box->GetBoxGeometry().Rot = box_rot_mat;  // assume the box is rotated about the parent body (gear) c-sys AFTER the position change is made
+      boxLevel->AddAsset(box);
+
+      // symmetric about XY
+      ChSharedPtr<ChBoxShape> boxSym(new ChBoxShape(*box.get_ptr()));
+      boxSym->GetBoxGeometry().Pos.z *= -1;
+      boxLevel->AddAsset(boxSym);
+    }
+
+    // make the teeth red
+    ChSharedPtr<ChColorAsset> red(new ChColorAsset(0.8f, 0.2f, 0.1f, 0.5f));
+    boxLevel->AddAsset(red);
+
+    // all assets on box level are added by now
+    m_gear->AddAsset(boxLevel);
 
     break;
   }
@@ -251,28 +322,35 @@ void DriveGear::AddCollisionGeometry(double mu,
   }
   case CollisionType::CALLBACKFUNCTION:
   {
-
-    // default constructor should set correct values for M113 gear and pin
-    m_geom = ChSharedPtr<GearPinGeometry>(new GearPinGeometry() );
-
     // a set of boxes to represent the top-most flat face of the gear tooth
     // as the gear should be oriented initially with the tooth base directly
     // above the COG, each tooth box is rotated from the initial half rotation angle
-    double init_rot = std::atan(0.07334/0.24929); // from sprocket geometry blender file
+    double init_rot =  CH_C_PI / m_geom->m_num_teeth; // std::atan(0.07334/0.24929); // from sprocket geometry blender file
     for(size_t b_idx = 0; b_idx < m_geom->m_num_teeth; b_idx++)
     {
       // this is the angle from the vertical (y-axis local y c-sys).
       double rot_ang = init_rot + 2.0*init_rot*b_idx;
-      // box center is found by manually rotating 
-      ChVector<> box_center(0.5*m_geom->m_tooth_mid_bar.Length()*std::sin(rot_ang),
-        0.5*m_geom->m_tooth_mid_bar.Length()*std::cos(rot_ang),
-        0);
+      // distance center of tooth is from the gear spin axis
+      double len_from_rotaxis = ChVector<>(m_geom->m_tooth_mid_bar.x, m_geom->m_tooth_mid_bar.y, 0).Length();
+      // shift the box vertically, midpoint of base should be at center of gear
+      // if the rotation is relative to sprocket COG, then this will end up in the right place
+      ChVector<> box_center(0.5*len_from_rotaxis*std::sin(rot_ang), // 0
+        0.5*len_from_rotaxis*std::cos(rot_ang), //  0.5*len_from_rotaxis
+        m_geom->m_tooth_mid_bar.z);
       
       // z-axis is out of the page, to rotate clockwise negate the rotation angle.
       ChMatrix33<> box_rot_mat(Q_from_AngAxis(-rot_ang, VECT_Z));
 
       m_gear->GetCollisionModel()->AddBox(0.5*m_geom->m_tooth_len,
-        0.5*m_geom->m_tooth_mid_bar.Length(),
+        0.5*len_from_rotaxis,
+        0.5*m_geom->m_tooth_width,
+        box_center,
+        box_rot_mat); // does this rotation occur about gear c-sys or center of box ????
+
+      // the gear teeth are symmetric about XY plane
+      box_center.z *= -1;
+      m_gear->GetCollisionModel()->AddBox(0.5*m_geom->m_tooth_len,
+        0.5*len_from_rotaxis,
         0.5*m_geom->m_tooth_width,
         box_center,
         box_rot_mat); // does this rotation occur about gear c-sys or center of box ????
