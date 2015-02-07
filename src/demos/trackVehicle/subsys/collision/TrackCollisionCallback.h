@@ -25,6 +25,60 @@
 
 namespace chrono {
 
+/// data container for the M113 gear/pin geometry.
+class GearPinGeometry : public ChShared
+{
+public:
+  GearPinGeometry(double gear_base_radius = 0.211,  ///< gear base circle radius
+    double gear_pitch_radius = 0.267, ///< center of the circle that uses gear_tooth_radius to define gear tooth surface
+    double gear_circle_angle = 0.3,   ///< angle from the axis of symmetric the gear base circle is swept
+    double gear_seat_width_max = 0.626, ///< max width of the gear seat, w.r.t. gear c-sys
+    double gear_seat_width_min = 0.458, ///< min width of the gear seat, w.r.t. gear c-sys 
+    size_t num_teeth = 10.0,          ///< number of gear teeth
+    double key_angle = 0.0,           ///< if the bottom of the tooth profile is not directly above the COG of the gear, rotation angle in rads
+    double pin_radius = 0.0232,       ///< shoe pin radius
+    double pin_width_max = 0.531,     ///< max total pin width
+    double pin_width_min = 0.38,      ///< min total pin width
+    double pin_x_offset = -0.07581,   ///< x-offset of pin from center of shoe c-sys, in shoe c-sys
+    double pin_y_offset = 0          ///< y-offset of pin from center of shoe c-sys
+    ): m_gear_base_radius(gear_base_radius),
+    m_gear_pitch_radius(gear_pitch_radius),
+    m_gear_tooth_radius(gear_pitch_radius-gear_base_radius),
+    m_gear_circle_angle(gear_circle_angle),
+    m_gear_seat_width_max(gear_seat_width_max),
+    m_gear_seat_width_min(gear_seat_width_min),
+    m_num_teeth( num_teeth),
+    m_key_angle(key_angle),
+    m_pin_radius(pin_radius),
+    m_pin_width_max(pin_width_max),
+    m_pin_width_min(pin_width_min),
+    m_pin_x_offset(pin_x_offset),
+    m_pin_y_offset(pin_y_offset)
+  {
+    // make sure the geometric dimensons are valid
+    assert(m_gear_seat_width_max - m_gear_seat_width_min > 0);
+    assert(m_pin_width_max - m_pin_width_min > 0);
+    assert(m_gear_pitch_radius - m_gear_base_radius > 0);
+  }
+
+  // gear geometry
+  const double m_gear_base_radius; 
+  const double m_gear_pitch_radius; 
+  const double m_gear_tooth_radius;
+  const double m_gear_circle_angle;
+  const double m_gear_seat_width_max;
+  const double m_gear_seat_width_min;
+  const size_t m_num_teeth;
+  const double m_key_angle;
+
+  // shoe pin geometry
+  const double m_pin_radius;
+  const double m_pin_width_max;
+  const double m_pin_width_min;
+  const double m_pin_x_offset;
+  const double m_pin_y_offset;
+};
+
 // Concave geometry (gear tooth seat) cannot be exactly represented by default collision primitives,
 //  nor can it be accurately modeled with a mesh or convex hull.
 // This custom collision checks the gear with all the track shoes
@@ -34,57 +88,39 @@ class GearPinCollisionCallback : public ChSystem::ChCustomComputeCollisionCallba
   /// all length units in meters
 	GearPinCollisionCallback(std::vector<ChSharedPtr<ChBody>>& shoes,
     ChSharedPtr<ChBody>& gear_body,
-    double gear_base_radius = 0.211,  ///< gear base circle radius
-    double gear_pitch_radius = 0.267, ///< center of the circle that uses gear_tooth_radius to define gear tooth surface
-    double gear_seat_width_max = 0.626, ///< max width of the gear seat, w.r.t. gear c-sys
-    double gear_seat_width_min = 0.458, ///< min width of the gear seat, w.r.t. gear c-sys 
-    size_t num_teeth = 10.0,          ///< number of gear teeth
-    double key_angle = 0.0,           ///< if the bottom of the tooth profile is not directly above the COG of the gear, rotation angle in rads
-    double pin_radius = 0.0232,       ///< shoe pin radius
-    double pin_width_max = 0.531,     ///< max total pin width
-    double pin_width_min = 0.38,      ///< min total pin width
-    double pin_x_offset = -0.07581,   ///< x-offset of pin from center of shoe c-sys, in shoe c-sys
-    double pin_y_offset = 0,          ///< y-offset of pin from center of shoe c-sys
+    ChSharedPtr<GearPinGeometry> geom,
     int persistent_hashtable_dim = 1000
 	) : m_shoes(shoes),
   m_gear(gear_body),
-  m_gear_base_radius(gear_base_radius),
-  m_gear_pitch_radius(gear_pitch_radius),
-  m_gear_tooth_radius(gear_pitch_radius-gear_base_radius),
-  m_gear_seat_width_max(gear_seat_width_max),
-  m_gear_seat_width_min(gear_seat_width_min),
-  m_num_teeth( num_teeth),
-  m_key_angle(key_angle),
-  m_pin_radius(pin_radius),
-  m_pin_width_max(pin_width_max),
-  m_pin_width_min(pin_width_min),
-  m_pin_x_offset(pin_x_offset),
-  m_pin_y_offset(pin_y_offset),
+  m_geom(geom),
   m_persistent_hashtable_dim(persistent_hashtable_dim)
 	{
-    // make sure the geometric dimensons are valid
-    assert(gear_seat_width_max - gear_seat_width_min > 0);
-    assert(pin_width_max - pin_width_min > 0);
-    assert(gear_pitch_radius - gear_base_radius > 0);
-    assert(gear_pitch_radius - gear_base_radius < gear_tooth_radius);
 
     // two endpoints of cylinder pin, w.r.t. shoe c-sys. 
     // SYMMETRIC ABOUT XY PLANE (e.g., check for contact for -z)
     // point 1 = inner, 2 = outer
-		m_p1_bar = ChVector<>(m_pin_x_offset, m_pin_y_offset, m_pin_width_min/2.0);
-    m_p2_bar = ChVector<>(m_pin_x_offset, m_pin_y_offset, m_pin_width_max/2.0);
+		m_p1_bar = ChVector<>(m_geom->m_pin_x_offset,
+      m_geom->m_pin_y_offset,
+      m_geom->m_pin_width_min/2.0);
+    m_p2_bar = ChVector<>(m_geom->m_pin_x_offset,
+      m_geom->m_pin_y_offset,
+      m_geom->m_pin_width_max/2.0);
 
     // two endpoints of  the seat cylinder (there are as many as gear teeth
     // SYMMETRIC ABOUT XY PLANE (e.g., check for contact for -z)
     // point 1 = inner, 2 = outer
     m_seat1_bar.clear();
     m_seat2_bar.clear();
-    m_seat1_bar.resize(m_num_teeth);
-    m_seat2_bar.resize(m_num_teeth);
-    for(int t_idx = 0; t_idx < m_num_teeth; t_idx++)
+    m_seat1_bar.resize(m_geom->m_num_teeth);
+    m_seat2_bar.resize(m_geom->m_num_teeth);
+    for(int t_idx = 0; t_idx < m_geom->m_num_teeth; t_idx++)
     {
-      m_seat1_bar[t_idx] = ChVector<>(m_gear_base_radius*sin(m_key_angle), m_gear_base_radius*cos(m_key_angle), m_gear_seat_width_min/2.0);
-      m_seat2_bar[t_idx] = ChVector<>(m_gear_base_radius*sin(m_key_angle), m_gear_base_radius*cos(m_key_angle), m_gear_seat_width_max/2.0);
+      m_seat1_bar[t_idx] = ChVector<>(m_geom->m_gear_base_radius*sin(m_geom->m_key_angle),
+        m_geom->m_gear_base_radius*cos(m_geom->m_key_angle),
+        m_geom->m_gear_seat_width_min/2.0);
+      m_seat2_bar[t_idx] = ChVector<>(m_geom->m_gear_base_radius*sin(m_geom->m_key_angle),
+        m_geom->m_gear_base_radius*cos(m_geom->m_key_angle),
+        m_geom->m_gear_seat_width_max/2.0);
     }
 
 		// alloc the hash table for persistent manifold of gear-cylinder contacts
@@ -154,7 +190,9 @@ class GearPinCollisionCallback : public ChSystem::ChCustomComputeCollisionCallba
       ChVector<> gear_pos = m_gear->GetPos();
 
       // broad-phase, is the distance between centers > sum of bounding sphere?
-      if( (gear_pos - shoe_pos).Length() <= (m_gear_pitch_radius + ChVector<>(m_pin_x_offset + m_pin_radius, m_pin_y_offset, m_pin_width_max/2.0).Length()) )
+      if( (gear_pos - shoe_pos).Length() <= (m_geom->m_gear_pitch_radius + ChVector<>(m_geom->m_pin_x_offset + m_geom->m_pin_radius,
+        m_geom->m_pin_y_offset, 
+        m_geom->m_pin_width_max/2.0).Length()) )
       {
 
         // do narrow phase between this shoe and gear
@@ -205,21 +243,8 @@ private:
   // handles to bodies to check
   std::vector<ChSharedPtr<ChBody>>& m_shoes;
   ChSharedPtr<ChBody>& m_gear;
+  ChSharedPtr<GearPinGeometry>& m_geom;
 
-  // gear geometry
-  double m_gear_base_radius; 
-  double m_gear_pitch_radius; 
-  double m_gear_tooth_radius;
-  double m_gear_seat_width_max;
-  double m_gear_seat_width_min;
-  size_t m_num_teeth;
-  double m_key_angle;
-  // shoe pin geometry
-  double m_pin_radius;
-  double m_pin_width_max;
-  double m_pin_width_min;
-  double m_pin_x_offset;
-  double m_pin_y_offset;
   // hashtable
   size_t m_persistent_hashtable_dim;
 
