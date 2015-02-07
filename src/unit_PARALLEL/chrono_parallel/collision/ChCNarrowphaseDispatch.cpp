@@ -220,29 +220,12 @@ void ChCNarrowphaseDispatch::Dispatch_Init(uint index, uint& icoll, uint& ID_A, 
 
 void ChCNarrowphaseDispatch::Dispatch_Finalize(uint icoll, uint ID_A, uint ID_B, int nC) {
 
-  custom_vector<real3>& norm = data_container->host_data.norm_rigid_rigid;
-  custom_vector<real3>& ptA = data_container->host_data.cpta_rigid_rigid;
-  custom_vector<real3>& ptB = data_container->host_data.cptb_rigid_rigid;
-  custom_vector<real>& contactDepth = data_container->host_data.dpth_rigid_rigid;
   custom_vector<int2>& body_ids = data_container->host_data.bids_rigid_rigid;
 
   // Mark the active contacts and set their body IDs
   for (int i = 0; i < nC; i++) {
     contact_active[icoll + i] = 0;
     body_ids[icoll + i] = I2(ID_A, ID_B);
-  }
-
-  real envelope = 0;
-  if (narrowphase_algorithm == NARROWPHASE_MPR) {
-    envelope = collision_envelope;
-  }
-
-  if (system_type == SYSTEM_DVI) {
-    for (int i = 0; i < nC; i++) {
-      ptA[icoll + i] = ptA[icoll + i] - (norm[icoll + i]) * envelope;
-      ptB[icoll + i] = ptB[icoll + i] + (norm[icoll + i]) * envelope;
-      contactDepth[icoll + i] += envelope * 2;
-    }
   }
 }
 
