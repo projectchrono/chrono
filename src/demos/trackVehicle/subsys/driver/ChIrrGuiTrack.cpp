@@ -233,7 +233,7 @@ void ChIrrGuiTrack::SetCameraPos(const ChVector<>& pos)
 // -----------------------------------------------------------------------------
 void ChIrrGuiTrack::DrawAll()
 {
-  // renderGrid();
+  renderGrid();
 
   m_app.DrawAll();
 
@@ -282,14 +282,13 @@ void ChIrrGuiTrack::renderLinks()
 
 void ChIrrGuiTrack::renderGrid()
 {
-  ChCoordsys<> gridCsys(ChVector<>(0, 0, m_terrainHeight + 0.02),
-                        chrono::Q_from_AngAxis(-CH_C_PI_2, VECT_Z));
+  ChCoordsys<> gridCsys(m_vehicle.GetChassisPos());
+                       // ,chrono::Q_from_AngAxis(-CH_C_PI_2, VECT_Z));
 
   ChIrrTools::drawGrid(m_app.GetVideoDriver(),
-                       0.5, 0.5, 100, 100,
+                       0.1, 0.1, 30, 30,
                        gridCsys,
-                       video::SColor(255, 80, 130, 255),
-                       true);
+                       video::SColor(70, 125, 125, 125), true);
 }
 
 void ChIrrGuiTrack::renderLinGauge(const std::string& msg,
