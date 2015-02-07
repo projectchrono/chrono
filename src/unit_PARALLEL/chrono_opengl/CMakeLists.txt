@@ -85,6 +85,7 @@ SET(ChronoEngine_OpenGL_HEADERS
 	ChOpenGLViewer.h 
 	ChOpenGLCamera.h
 	ChOpenGLWindow.h
+	ChOpenGLMaterials.h
 	${CMAKE_BINARY_DIR}/resources/text_frag.h
 	${CMAKE_BINARY_DIR}/resources/text_vert.h
 	${CMAKE_BINARY_DIR}/resources/phong_frag.h
