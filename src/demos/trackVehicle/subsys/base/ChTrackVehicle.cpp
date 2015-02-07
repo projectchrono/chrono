@@ -168,6 +168,7 @@ void ChTrackVehicle::AddVisualization()
   case VisualizationType::PRIMITIVES:
   {
     ChSharedPtr<ChBoxShape> box(new ChBoxShape);
+    // uses full lengths as input
     box->GetBoxGeometry().SetLengths(m_chassisBoxSize );
     m_chassis->AddAsset(box);
     break;
@@ -215,8 +216,10 @@ void ChTrackVehicle::AddCollisionGeometry(double mu,
   switch (m_collide) {
   case CollisionType::PRIMITIVES:
   {
-    // use a simple box
-    m_chassis->GetCollisionModel()->AddBox(m_chassisBoxSize.x, m_chassisBoxSize.y, m_chassisBoxSize.z);
+    // use a simple box, half dimensions as input
+    m_chassis->GetCollisionModel()->AddBox(0.5*m_chassisBoxSize.x, 
+      0.5*m_chassisBoxSize.y,
+      0.5*m_chassisBoxSize.z);
 
     break;
   }
