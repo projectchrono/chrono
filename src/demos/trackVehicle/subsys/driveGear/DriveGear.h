@@ -69,8 +69,8 @@ private:
   const std::string& getMeshFile() const { return m_meshFile; }
 
   void AddVisualization();
-  void AddCollisionGeometry(double mu = 0.7,
-                            double mu_sliding = 0.6,
+  void AddCollisionGeometry(double mu = 0.0,
+                            double mu_sliding = 0.0,
                             double mu_roll = 0,
                             double mu_spin = 0);
   
@@ -87,7 +87,7 @@ private:
   const std::string m_meshFile;
 
   // data container for callback collision function
-  ChSharedPtr<GearPinGeometry> m_geom;
+  const ChSharedPtr<GearPinGeometry> m_geom;
 
   // static variables
   static const ChVector<> m_inertia;

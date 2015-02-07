@@ -77,15 +77,15 @@ private:
     const std::string& tex_name = "none");
 
   /// add collision geometry to the last shoe added
-  void AddCollisionGeometry(double mu = 0.7,
-                            double mu_sliding = 0.6,
+  void AddCollisionGeometry(double mu = 0.0,
+                            double mu_sliding = 0.0,
                             double mu_roll = 0,
                             double mu_spin = 0);
 
   /// add collision geometrey to a certain track shoe
   void AddCollisionGeometry(size_t track_idx,
-                            double mu = 0.7,
-                            double mu_sliding = 0.6,
+                            double mu = 0.0,
+                            double mu_sliding = 0.0,
                             double mu_roll = 0,
                             double mu_spin = 0);
    

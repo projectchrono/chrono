@@ -74,9 +74,10 @@ double output_step_size = 1.0 / 1;    // once a second
 ChVector<> trackPoint(0, 0, 0);
 // if chase cam enabled:
 double chaseDist = 2.0;
-double chaseHeight = 0.5;
+double chaseHeight = 1.0;
 // set a static camera position
-ChVector<> cameraPos(0., 1.0, 1.5);
+ChVector<> cameraPos(0.0, 1.3, 1.5);
+bool use_fixed_camera = true;
 bool do_shadows = false; // shadow map is experimental
 
   /*
@@ -100,6 +101,7 @@ int main(int argc, char* argv[])
   // collision type used by the gear here.
   DriveChain chainSystem("Justins driveChain system", 
     VisualizationType::MESH,
+    // VisualizationType::COMPOUNDPRIMITIVES,
     CollisionType::CALLBACKFUNCTION,
     num_idlers);
   
@@ -135,8 +137,8 @@ int main(int argc, char* argv[])
   else
   {
     application.AddTypicalLights(
-      irr::core::vector3df(50.f, 75.f, 30.f),
-      irr::core::vector3df(-30.f, 100.f, -50.f),
+      irr::core::vector3df(50.f, -25.f, 30.f),
+      irr::core::vector3df(-30.f, 80.f, -50.f),
       150, 125);
   }
 
@@ -145,7 +147,8 @@ int main(int argc, char* argv[])
   // the GUI driver
   ChIrrGuiTrack driver(application, chainSystem, trackPoint, chaseDist, chaseHeight);
   // even though using a chase camera, set the initial camera position laterally
-  driver.SetCameraPos(cameraPos);
+  if(use_fixed_camera)
+    driver.SetCameraPos(cameraPos);
 
   // Set the time response for steering and throttle keyboard inputs.
   // NOTE: this is not exact, since we do not render quite at the specified FPS.
@@ -221,10 +224,8 @@ int main(int argc, char* argv[])
     chainSystem.Update(time, throttle_input[0], braking_input[0]);
 
     // Advance simulation for one timestep for all modules
-    // double step = realtime_timer.SuggestSimulationStep(step_size);
-
-    driver.Advance(step_size, cameraPos); // use the fixed camera
-//    driver.Advance(step_size);  // use the chase camera
+    // step_size = realtime_timer.SuggestSimulationStep(step_size);
+    use_fixed_camera ? driver.Advance(step_size, cameraPos): driver.Advance(step_size); 
 
     // SETTLING FOLLOWED BY NORMAL OPERATION STEP SIZES HARDCODED
     // 1e-5 and 1e-4, respectively
@@ -234,7 +235,6 @@ int main(int argc, char* argv[])
 
     step_number++;
 
-    
   }
 
   application.GetDevice()->drop();
