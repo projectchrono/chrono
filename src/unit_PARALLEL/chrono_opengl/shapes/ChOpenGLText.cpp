@@ -20,7 +20,15 @@
 using namespace glm;
 using namespace chrono::opengl;
 
-ChOpenGLText::ChOpenGLText() : ChOpenGLObject() {}
+ChOpenGLText::ChOpenGLText() : ChOpenGLObject() {
+
+  texture = BAD_GL_VALUE;
+  sampler = BAD_GL_VALUE;
+  vao = BAD_GL_VALUE;
+  vbo = BAD_GL_VALUE;
+  texture_handle = BAD_GL_VALUE;
+  color_handle = BAD_GL_VALUE;
+}
 
 bool ChOpenGLText::Initialize(ChOpenGLMaterial mat, ChOpenGLShader* _shader) {
   if (this->GLReturnedError("Background::Initialize - on entry"))
@@ -109,7 +117,6 @@ void ChOpenGLText::TakeDown() { super::TakeDown(); }
 void ChOpenGLText::Draw(const mat4& projection, const mat4& view) {
   if (this->GLReturnedError("ChOpenGLText::Draw - on entry"))
     return;
-  glEnable(GL_DEPTH_TEST);
 
   glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 
