@@ -26,7 +26,7 @@ class CH_OPENGL_API ChOpenGLText : public ChOpenGLObject {
  public:
   ChOpenGLText();
   virtual bool Initialize(ChOpenGLMaterial mat, ChOpenGLShader* shader);
-  virtual void Draw(const glm::mat4& projection, const glm::mat4& view);
+  virtual void Draw(const glm::mat4& projection = glm::mat4(1), const glm::mat4& view = glm::mat4(1));
   void TakeDown();
   void Update();
   void GenerateFontIndex();
