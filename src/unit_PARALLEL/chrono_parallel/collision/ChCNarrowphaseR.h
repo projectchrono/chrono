@@ -103,15 +103,14 @@ int box_box(const real3& pos1, const real4& rot1, const real3& hdims1,
             real* eff_radius);
 
 CH_PARALLEL_API
-bool RCollision(uint icoll,
-                const ConvexShape &shapeA,
-                const ConvexShape &shapeB,
-                real3* ct_norm,
-                real3* ct_pt1,
-                real3* ct_pt2,
-                real* ct_depth,
-                real* ct_eff_rad,
-                int& nC);
+bool RCollision(const ConvexShape &shapeA,  ///< first candidate shape
+                const ConvexShape &shapeB,  ///< second candidate shape
+                real3* ct_norm,             ///< [output] contact normal (per contact pair)
+                real3* ct_pt1,              ///< [output] point on shape1 (per contact pair)
+                real3* ct_pt2,              ///< [output] point on shape2 (per contact pair)
+                real* ct_depth,             ///< [output] penetration depth (per contact pair)
+                real* ct_eff_rad,           ///< [output] effective contact radius (per contact pair)
+                int& nC);                   ///< [output] number of contacts found
 
 
 } // end namespace collision

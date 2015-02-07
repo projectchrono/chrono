@@ -31,16 +31,17 @@ namespace collision {
 // This is the main worker function for narrow phase check of the collision
 // between two candidate shapes.  Each candidate pair of shapes can result in
 // 0, 1, or more contacts.  For each actual contact, we calculate various
-// geometrical quantities and load them in the output arrays beginning at the
-// 'icoll' index for the processed collision pair:
+// geometrical quantities and load them in the output arguments (starting from
+// the given addresses)
 //   - ct_pt1:      contact point on first shape (in global frame)
 //   - ct_pt2:      contact point on second shape (in global frame)
 //   - ct_depth:    penetration distance (negative if overlap exists)
 //   - ct_norm:     contact normal, from ct_pt2 to ct_pt1 (in global frame)
 //   - ct_eff_rad:  effective contact radius
+// This function returns true if it was able to determine the collision state
+// for the given pair of shapes and false if the shape types are not supported.
 
-bool RCollision(uint icoll,                // start index of this contact pair candidate
-                const ConvexShape &shapeA, // first candidate shape
+bool RCollision(const ConvexShape &shapeA, // first candidate shape
                 const ConvexShape &shapeB, // second candidate shape
                 real3* ct_norm,            // [output] contact normal (per contact pair)
                 real3* ct_pt1,             // [output] point on shape1 (per contact pair)
@@ -55,127 +56,122 @@ bool RCollision(uint icoll,                // start index of this contact pair c
   nC = 0;
 
   if (shapeA.type == SPHERE && shapeB.type == SPHERE) {
-    if (sphere_sphere(shapeA.A, shapeA.B.x, shapeB.A, shapeB.B.x, ct_norm[icoll], ct_depth[icoll], ct_pt1[icoll], ct_pt2[icoll], ct_eff_rad[icoll])) {
+    if (sphere_sphere(shapeA.A, shapeA.B.x, shapeB.A, shapeB.B.x, *ct_norm, *ct_depth, *ct_pt1, *ct_pt2, *ct_eff_rad)) {
       nC = 1;
     }
     return true;
   }
 
   if (shapeA.type == CAPSULE && shapeB.type == SPHERE) {
-    if (capsule_sphere(shapeA.A, shapeA.R, shapeA.B.x, shapeA.B.y, shapeB.A, shapeB.B.x, ct_norm[icoll], ct_depth[icoll], ct_pt1[icoll], ct_pt2[icoll], ct_eff_rad[icoll])) {
+    if (capsule_sphere(shapeA.A, shapeA.R, shapeA.B.x, shapeA.B.y, shapeB.A, shapeB.B.x, *ct_norm, *ct_depth, *ct_pt1, *ct_pt2, *ct_eff_rad)) {
       nC = 1;
     }
     return true;
   }
 
   if (shapeA.type == SPHERE && shapeB.type == CAPSULE) {
-    if (capsule_sphere(shapeB.A, shapeB.R, shapeB.B.x, shapeB.B.y, shapeA.A, shapeA.B.x, ct_norm[icoll], ct_depth[icoll], ct_pt2[icoll], ct_pt1[icoll], ct_eff_rad[icoll])) {
-      ct_norm[icoll] = -ct_norm[icoll];
+    if (capsule_sphere(shapeB.A, shapeB.R, shapeB.B.x, shapeB.B.y, shapeA.A, shapeA.B.x, *ct_norm, *ct_depth, *ct_pt2, *ct_pt1, *ct_eff_rad)) {
+      *ct_norm = -(*ct_norm);
       nC = 1;
     }
     return true;
   }
 
   if (shapeA.type == CYLINDER && shapeB.type == SPHERE) {
-    if (cylinder_sphere(shapeA.A, shapeA.R, shapeA.B.x, shapeA.B.y, shapeB.A, shapeB.B.x, ct_norm[icoll], ct_depth[icoll], ct_pt1[icoll], ct_pt2[icoll], ct_eff_rad[icoll])) {
+    if (cylinder_sphere(shapeA.A, shapeA.R, shapeA.B.x, shapeA.B.y, shapeB.A, shapeB.B.x, *ct_norm, *ct_depth, *ct_pt1, *ct_pt2, *ct_eff_rad)) {
       nC = 1;
     }
     return true;
   }
 
   if (shapeA.type == SPHERE && shapeB.type == CYLINDER) {
-    if (cylinder_sphere(shapeB.A, shapeB.R, shapeB.B.x, shapeB.B.y, shapeA.A, shapeA.B.x, ct_norm[icoll], ct_depth[icoll], ct_pt2[icoll], ct_pt1[icoll], ct_eff_rad[icoll])) {
-      ct_norm[icoll] = -ct_norm[icoll];
+    if (cylinder_sphere(shapeB.A, shapeB.R, shapeB.B.x, shapeB.B.y, shapeA.A, shapeA.B.x, *ct_norm, *ct_depth, *ct_pt2, *ct_pt1, *ct_eff_rad)) {
+      *ct_norm = -(*ct_norm);
       nC = 1;
     }
     return true;
   }
 
   if (shapeA.type == ROUNDEDCYL && shapeB.type == SPHERE) {
-    if (roundedcyl_sphere(shapeA.A, shapeA.R, shapeA.B.x, shapeA.B.y, shapeA.C.x, shapeB.A, shapeB.B.x, ct_norm[icoll], ct_depth[icoll], ct_pt1[icoll], ct_pt2[icoll],
-      ct_eff_rad[icoll])) {
+    if (roundedcyl_sphere(shapeA.A, shapeA.R, shapeA.B.x, shapeA.B.y, shapeA.C.x, shapeB.A, shapeB.B.x, *ct_norm, *ct_depth, *ct_pt1, *ct_pt2, *ct_eff_rad)) {
       nC = 1;
     }
     return true;
   }
 
   if (shapeA.type == SPHERE && shapeB.type == ROUNDEDCYL) {
-    if (roundedcyl_sphere(shapeB.A, shapeB.R, shapeB.B.x, shapeB.B.y, shapeB.C.x, shapeA.A, shapeA.B.x, ct_norm[icoll], ct_depth[icoll], ct_pt2[icoll], ct_pt1[icoll],
-      ct_eff_rad[icoll])) {
-      ct_norm[icoll] = -ct_norm[icoll];
+    if (roundedcyl_sphere(shapeB.A, shapeB.R, shapeB.B.x, shapeB.B.y, shapeB.C.x, shapeA.A, shapeA.B.x, *ct_norm, *ct_depth, *ct_pt2, *ct_pt1, *ct_eff_rad)) {
+      *ct_norm = -(*ct_norm);
       nC = 1;
     }
     return true;
   }
 
   if (shapeA.type == BOX && shapeB.type == SPHERE) {
-    if (box_sphere(shapeA.A, shapeA.R, shapeA.B, shapeB.A, shapeB.B.x, ct_norm[icoll], ct_depth[icoll], ct_pt1[icoll], ct_pt2[icoll], ct_eff_rad[icoll])) {
+    if (box_sphere(shapeA.A, shapeA.R, shapeA.B, shapeB.A, shapeB.B.x, *ct_norm, *ct_depth, *ct_pt1, *ct_pt2, *ct_eff_rad)) {
       nC = 1;
     }
     return true;
   }
 
   if (shapeA.type == SPHERE && shapeB.type == BOX) {
-    if (box_sphere(shapeB.A, shapeB.R, shapeB.B, shapeA.A, shapeA.B.x, ct_norm[icoll], ct_depth[icoll], ct_pt2[icoll], ct_pt1[icoll], ct_eff_rad[icoll])) {
-      ct_norm[icoll] = -ct_norm[icoll];
+    if (box_sphere(shapeB.A, shapeB.R, shapeB.B, shapeA.A, shapeA.B.x, *ct_norm, *ct_depth, *ct_pt2, *ct_pt1, *ct_eff_rad)) {
+      *ct_norm = -(*ct_norm);
       nC = 1;
     }
     return true;
   }
 
   if (shapeA.type == ROUNDEDBOX && shapeB.type == SPHERE) {
-    if (roundedbox_sphere(shapeA.A, shapeA.R, shapeA.B, shapeA.C.x, shapeB.A, shapeB.B.x, ct_norm[icoll], ct_depth[icoll], ct_pt1[icoll], ct_pt2[icoll], ct_eff_rad[icoll])) {
+    if (roundedbox_sphere(shapeA.A, shapeA.R, shapeA.B, shapeA.C.x, shapeB.A, shapeB.B.x, *ct_norm, *ct_depth, *ct_pt1, *ct_pt2, *ct_eff_rad)) {
       nC = 1;
     }
     return true;
   }
 
   if (shapeA.type == SPHERE && shapeB.type == ROUNDEDBOX) {
-    if (roundedbox_sphere(shapeB.A, shapeB.R, shapeB.B, shapeB.C.x, shapeA.A, shapeA.B.x, ct_norm[icoll], ct_depth[icoll], ct_pt1[icoll], ct_pt2[icoll], ct_eff_rad[icoll])) {
-      ct_norm[icoll] = -ct_norm[icoll];
+    if (roundedbox_sphere(shapeB.A, shapeB.R, shapeB.B, shapeB.C.x, shapeA.A, shapeA.B.x, *ct_norm, *ct_depth, *ct_pt2, *ct_pt1, *ct_eff_rad)) {
+      *ct_norm = -(*ct_norm);
       nC = 1;
     }
     return true;
   }
 
   if (shapeA.type == TRIANGLEMESH && shapeB.type == SPHERE) {
-    if (face_sphere(shapeA.A, shapeA.B, shapeA.C, shapeB.A, shapeB.B.x, ct_norm[icoll], ct_depth[icoll], ct_pt1[icoll], ct_pt2[icoll], ct_eff_rad[icoll])) {
+    if (face_sphere(shapeA.A, shapeA.B, shapeA.C, shapeB.A, shapeB.B.x, *ct_norm, *ct_depth, *ct_pt1, *ct_pt2, *ct_eff_rad)) {
       nC = 1;
     }
     return true;
   }
 
   if (shapeA.type == SPHERE && shapeB.type == TRIANGLEMESH) {
-    if (face_sphere(shapeB.A, shapeB.B, shapeB.C, shapeA.A, shapeA.B.x, ct_norm[icoll], ct_depth[icoll], ct_pt2[icoll], ct_pt1[icoll], ct_eff_rad[icoll])) {
-      ct_norm[icoll] = -ct_norm[icoll];
+    if (face_sphere(shapeB.A, shapeB.B, shapeB.C, shapeA.A, shapeA.B.x, *ct_norm, *ct_depth, *ct_pt2, *ct_pt1, *ct_eff_rad)) {
+      *ct_norm = -(*ct_norm);
       nC = 1;
     }
     return true;
   }
 
   if (shapeA.type == CAPSULE && shapeB.type == CAPSULE) {
-    nC = capsule_capsule(shapeA.A, shapeA.R, shapeA.B.x, shapeA.B.y, shapeB.A, shapeB.R, shapeB.B.x, shapeB.B.y, &ct_norm[icoll], &ct_depth[icoll], &ct_pt1[icoll],
-      &ct_pt2[icoll], &ct_eff_rad[icoll]);
+    nC = capsule_capsule(shapeA.A, shapeA.R, shapeA.B.x, shapeA.B.y, shapeB.A, shapeB.R, shapeB.B.x, shapeB.B.y, ct_norm, ct_depth, ct_pt1, ct_pt2, ct_eff_rad);
     return true;
   }
 
   if (shapeA.type == BOX && shapeB.type == CAPSULE) {
-    nC = box_capsule(shapeA.A, shapeA.R, shapeA.B, shapeB.A, shapeB.R, shapeB.B.x, shapeB.B.y, &ct_norm[icoll], &ct_depth[icoll], &ct_pt1[icoll], &ct_pt2[icoll],
-      &ct_eff_rad[icoll]);
+    nC = box_capsule(shapeA.A, shapeA.R, shapeA.B, shapeB.A, shapeB.R, shapeB.B.x, shapeB.B.y, ct_norm, ct_depth, ct_pt1, ct_pt2, ct_eff_rad);
     return true;
   }
 
   if (shapeA.type == CAPSULE && shapeB.type == BOX) {
-    nC = box_capsule(shapeB.A, shapeB.R, shapeB.B, shapeA.A, shapeA.R, shapeA.B.x, shapeA.B.y, &ct_norm[icoll], &ct_depth[icoll], &ct_pt2[icoll], &ct_pt1[icoll],
-      &ct_eff_rad[icoll]);
+    nC = box_capsule(shapeB.A, shapeB.R, shapeB.B, shapeA.A, shapeA.R, shapeA.B.x, shapeA.B.y, ct_norm, ct_depth, ct_pt2, ct_pt1, ct_eff_rad);
     for (int i = 0; i < nC; i++) {
-      ct_norm[icoll + i] = -ct_norm[icoll + i];
+      *(ct_norm + i) = -(*(ct_norm + i));
     }
     return true;
   }
 
   if (shapeA.type == BOX && shapeB.type == BOX) {
-    nC = box_box(shapeA.A, shapeA.R, shapeA.B, shapeB.A, shapeB.R, shapeB.B, &ct_norm[icoll], &ct_depth[icoll], &ct_pt1[icoll], &ct_pt2[icoll], &ct_eff_rad[icoll]);
+    nC = box_box(shapeA.A, shapeA.R, shapeA.B, shapeB.A, shapeB.R, shapeB.B, ct_norm, ct_depth, ct_pt1, ct_pt2, ct_eff_rad);
     //TODO: Change to true when this is implemented
     return false;
   }
