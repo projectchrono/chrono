@@ -47,13 +47,16 @@ const ChQuaternion<> DriveChain::m_idlerRot(QUNIT);
 /// constructor sets the basic integrator settings for this ChSystem, as well as the usual stuff
 DriveChain::DriveChain(const std::string& name,
                        VisualizationType gearVis,
-                       CollisionType gearCollide)
+                       CollisionType gearCollide,
+                       size_t num_idlers,
+                       size_t num_rollers)
   : ChTrackVehicle(1e-3, 1, gearVis, gearCollide),
-  m_num_rollers(1)
+  m_num_rollers(num_rollers),
+  m_num_idlers(num_idlers)
 {
   // ---------------------------------------------------------------------------
   // Set the base class variables
-
+  m_num_engines = 1;
 
   // Integration and Solver settings set in ChTrackVehicle
   GetSystem()->SetIterLCPmaxItersStab(75);
@@ -78,7 +81,9 @@ DriveChain::DriveChain(const std::string& name,
   // add the chassis body to the system
   m_system->Add(m_chassis);
   
-  // build one of each of the following subsystems. 
+  // --------------------------------------------------------------------------
+  // BUILD THE SUBSYSTEMS
+  // drive gear, inherits drivechain's visual and collision types
   double gear_mass = 100.0; // 436.7
   ChVector<> gear_Ixx(12.22/4.0, 12.22/4.0, 13.87/4.0);  // 12.22, 12.22, 13.87
   m_gear = ChSharedPtr<DriveGear>(new DriveGear("drive gear",
@@ -87,18 +92,19 @@ DriveChain::DriveChain(const std::string& name,
     m_vis,
     m_collide));
 
- //    VisualizationType::MESH,
- //   collide));	//CollisionType::PRIMITIVES) );
-
+ // idlers, if m ore than 1
+  m_idlers.clear();
+  m_idlers.resize(m_num_idlers);
   double idler_mass = 100.0; // 429.6
   ChVector<> idler_Ixx(gear_Ixx);    // 12.55, 12.55, 14.7
-  m_idler = ChSharedPtr<IdlerSimple>(new IdlerSimple("idler",
+  m_idlers[0] = ChSharedPtr<IdlerSimple>(new IdlerSimple("idler",
     idler_mass,
     idler_Ixx,
     //vis,
     VisualizationType::MESH,
     CollisionType::PRIMITIVES) );
 
+  // track chain system
   double shoe_mass = 3.0; // 18.03
   ChVector<> shoe_Ixx(0.22/6.0, 0.25/6.0, 0.04/6.0);  // 0.22, 0.25, 0.04
   m_chain = ChSharedPtr<TrackChain>(new TrackChain("chain",
@@ -108,8 +114,6 @@ DriveChain::DriveChain(const std::string& name,
     CollisionType::PRIMITIVES) );
 
   // create the powertrain, connect transmission shaft directly to gear shaft
-  m_num_engines = 1;
-
   m_ptrain = ChSharedPtr<TrackPowertrain>(new TrackPowertrain("powertrain ") );
 
   // support rollers, if any
@@ -122,7 +126,15 @@ DriveChain::DriveChain(const std::string& name,
       CollisionType::PRIMITIVES));
   }
 
-
+  if(m_num_idlers > 1)
+  {
+    // for now, just create 1 more idler
+    m_idlers[1] = ChSharedPtr<IdlerSimple>(new IdlerSimple("idler 2",
+    idler_mass,
+    idler_Ixx,
+    VisualizationType::MESH,
+    CollisionType::PRIMITIVES) );
+  }
 }
 
 
@@ -165,8 +177,8 @@ void DriveChain::Initialize(const ChCoordsys<>& gear_Csys)
   for(int r_idx = 0; r_idx < m_num_rollers; r_idx++)
   {
     ChVector<> roller_loc = m_chassis->GetPos();
-    roller_loc.y = -0.5;
-    roller_loc.x -= 0.3*(2 + r_idx);
+    roller_loc.y = -1.0;
+    roller_loc.x -= 0.3*(0 + r_idx);
 
     m_rollers[r_idx]->Initialize(m_chassis,
       m_chassis->GetFrame_REF_to_abs(),
@@ -179,15 +191,15 @@ void DriveChain::Initialize(const ChCoordsys<>& gear_Csys)
   }
 
   // init the idler last
-  m_idler->Initialize(m_chassis, 
+  m_idlers[0]->Initialize(m_chassis, 
     m_chassis->GetFrame_REF_to_abs(),
-    ChCoordsys<>(m_idlerPosRel, QUNIT),
+    ChCoordsys<>(m_idlerPosRel, Q_from_AngAxis(CH_C_PI, VECT_Z) ),
     idler_preload);
 
   // add to the lists passed into the track chain Init()
   rolling_elem_locs.push_back(m_idlerPosRel );
-  clearance.push_back(m_idler->GetRadius() );
-  rolling_elem_spin_axis.push_back(m_idler->GetBody()->GetRot().GetZaxis() );
+  clearance.push_back(m_idlers[0]->GetRadius() );
+  rolling_elem_spin_axis.push_back(m_idlers[0]->GetBody()->GetRot().GetZaxis() );
 
   // when there's only 2 rolling elements, the above locations will repeat
   // the first rolling element at the front and end of the vector.
@@ -216,6 +228,31 @@ void DriveChain::Initialize(const ChCoordsys<>& gear_Csys)
   
   // initialize the powertrain, drivelines
   m_ptrain->Initialize(m_chassis, m_gear->GetAxle() );
+
+  // extra idlers?
+  if(m_num_idlers > 1)
+  {
+    // init this idler, and position it so
+    // it snaps into place
+    double preload_2 = 120000;
+    double idler2_xoff = -1.5;
+    double idler2_yoff = -2.1;
+    double rotation_ang = CH_C_PI_4;
+
+    // get the absolute c-sys of the gear, and set position relative to that point.
+    ChCoordsys<> idler2_csys(m_gear->GetBody()->GetPos(), m_gear->GetBody()->GetRot());
+    idler2_csys.pos.x += idler2_xoff;
+    idler2_csys.pos.y += idler2_yoff;
+    // rotation should set the -x dir 
+    idler2_csys.rot = Q_from_AngAxis(rotation_ang, VECT_Z);
+
+    // set the idler relative to the chassis/gear origin
+    m_idlers[1]->Initialize(m_chassis, 
+      m_chassis->GetFrame_REF_to_abs(),
+      idler2_csys,
+      preload_2);
+
+  }
 }
 
 void DriveChain::Update(double time,
@@ -257,7 +294,7 @@ double DriveChain::GetIdlerForce() const
 {
 
   // only 1 idler, for now
-  ChVector<> out_force = m_idler->GetSpringForce();
+  ChVector<> out_force = m_idlers[0]->GetSpringForce();
 
   return out_force.Length();
 }

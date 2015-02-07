@@ -43,7 +43,9 @@ public:
 
   DriveChain(const std::string& name,
     VisualizationType chassisVis = VisualizationType::PRIMITIVES,
-    CollisionType chassisCollide = CollisionType::PRIMITIVES);
+    CollisionType chassisCollide = CollisionType::PRIMITIVES,
+    size_t num_idlers = 1,
+    size_t num_rollers = 1);
 
   ~DriveChain();
   
@@ -88,7 +90,8 @@ private:
   // private variables
   // <ChBodyAuxRef> m_chassis   in base class
   ChSharedPtr<DriveGear> m_gear;  		///< drive gear
-  ChSharedPtr<IdlerSimple>	m_idler;	///< idler wheel
+  std::vector<ChSharedPtr<IdlerSimple>>	m_idlers;	///< idler wheel
+  size_t m_num_idlers;  ///< number of idlers to create
   ChSharedPtr<TrackChain> m_chain;    ///< chain
 
   ChVector<> m_idlerPosRel;	///< position of idler COG relative to local c-sys
@@ -103,6 +106,9 @@ private:
   // static variables. hard-coded for now
   static const ChVector<> m_idlerPos; // relative to chassis frame, which is the same as the gear's (initially)
   static const ChQuaternion<> m_idlerRot; 
+
+
+  ChSharedPtr<IdlerSimple> m_idler2;
 
 };
 
