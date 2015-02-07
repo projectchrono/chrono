@@ -69,7 +69,6 @@ ChOpenGLViewer::ChOpenGLViewer(ChSystem* system) {
   use_vsync = 0;
   render_mode = POINTS;
   old_time = current_time = 0;
-  time_total = time_text = time_geometry = 0;
   fps = 0;
 }
 
@@ -117,7 +116,7 @@ bool ChOpenGLViewer::Initialize() {
   cylinder.Initialize("../resources/cylinder.obj", apple, &main_shader);
   cone.Initialize("../resources/cone.obj", white, &main_shader);
 
-  HUD_renderer.Initialize(&render_camera);
+  HUD_renderer.Initialize(&render_camera, &timer);
 
   cloud_data.push_back(glm::vec3(0, 0, 0));
   grid_data.push_back(glm::vec3(0, 0, 0));
@@ -227,18 +226,17 @@ void ChOpenGLViewer::Render() {
     RenderContacts();
 
     timer.stop("geometry");
-    time_geometry = .5 * timer.GetTime("geometry") + .5 * time_geometry;
     timer.start("text");
     DisplayHUD();
     timer.stop("text");
-    time_text = .5 * timer.GetTime("text") + .5 * time_text;
   }
   timer.stop("render");
-  time_total = .5 * timer.GetTime("render") + .5 * time_total;
+  float time_total = .5 * timer.GetTime("render") + .5 * time_total;
   current_time = time_total;
   current_time = current_time * 0.5 + old_time * 0.5;
   old_time = current_time;
   fps = 1.0 / current_time;
+
 }
 
 void ChOpenGLViewer::DrawObject(ChBody* abody) {
@@ -393,7 +391,7 @@ void ChOpenGLViewer::DrawObject(ChBody* abody) {
 
 void ChOpenGLViewer::DisplayHUD() {
   GLReturnedError("Start text");
-  HUD_renderer.Update(window_size, dpi);
+  HUD_renderer.Update(window_size, dpi, fps);
   if (view_help) {
     HUD_renderer.GenerateHelp();
   } else {

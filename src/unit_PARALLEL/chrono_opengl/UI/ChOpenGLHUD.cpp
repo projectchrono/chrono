@@ -18,16 +18,23 @@
 #include "chrono_opengl/ChOpenGLMaterials.h"
 #include <glm/gtc/type_ptr.hpp>
 
+#include "collision/ChCCollisionSystemBullet.h"
+
 // Includes that are generated at compile time
 #include "resources/text_frag.h"
 #include "resources/text_vert.h"
 
 using namespace glm;
 using namespace chrono::opengl;
+using namespace chrono::collision;
 
-ChOpenGLHUD::ChOpenGLHUD() : ChOpenGLBase() { spacing = 0.055; }
+ChOpenGLHUD::ChOpenGLHUD() : ChOpenGLBase() {
+  spacing = 0.055;
+  time_total = time_text = time_geometry = 0;
+  fps = 0;
+}
 
-bool ChOpenGLHUD::Initialize(ChOpenGLCamera* camera) {
+bool ChOpenGLHUD::Initialize(ChOpenGLCamera* camera, ChTimerParallel* viewer_timer) {
   if (this->GLReturnedError("ChOpenGLHUD::Initialize - on entry"))
     return false;
 
@@ -37,15 +44,21 @@ bool ChOpenGLHUD::Initialize(ChOpenGLCamera* camera) {
 
   text.Initialize(text_mat, &font_shader);
   render_camera = camera;
+  timer = viewer_timer;
   return true;
 }
 
-void ChOpenGLHUD::Update(const glm::ivec2& window_size, const float& dpi) {
+void ChOpenGLHUD::Update(const glm::ivec2& window_size, const float& dpi, const float & frame_per_sec) {
 
   sx = (2 * dpi / 147.782) / window_size.x;
   sy = (2 * dpi / 147.782) / window_size.y;
 
   text.Update();
+
+  time_text = .5 * timer->GetTime("text") + .5 * time_text;
+  time_geometry = .5 * timer->GetTime("geometry") + .5 * time_geometry;
+  time_total = .5 * timer->GetTime("render") + .5 * time_total;
+  fps = frame_per_sec;
 }
 
 void ChOpenGLHUD::TakeDown() {
@@ -99,12 +112,17 @@ void ChOpenGLHUD::GenerateSystem(ChSystem* physics_system) {
   text.Render(buffer, .6, 0.925 - spacing * 0, sx, sy);
   sprintf(buffer, "BODIES     %04d", num_bodies);
   text.Render(buffer, .6, 0.925 - spacing * 1, sx, sy);
+  int num_shapes = 0;
   if (ChSystemParallelDVI* parallel_system = dynamic_cast<ChSystemParallelDVI*>(physics_system)) {
-    sprintf(buffer, "AABB       %04d", parallel_system->data_manager->num_shapes);
-    text.Render(buffer, .6, 0.925 - spacing * 2, sx, sy);
+    num_shapes = parallel_system->data_manager->num_shapes;
   } else {
-    // ADD INFO FROM BULLET HERE
+    ChCollisionSystemBullet* collision_system = (ChCollisionSystemBullet*)physics_system->GetCollisionSystem();
+    num_shapes = collision_system->GetBulletCollisionWorld()->getNumCollisionObjects();
   }
+
+  sprintf(buffer, "AABB       %04d", num_shapes);
+  text.Render(buffer, .6, 0.925 - spacing * 2, sx, sy);
+
   sprintf(buffer, "CONTACTS   %04d", num_contacts);
   text.Render(buffer, .6, 0.925 - spacing * 3, sx, sy);
   sprintf(buffer, "AVGCONPB   %04d", average_contacts_per_body);
@@ -174,22 +192,23 @@ void ChOpenGLHUD::GenerateCD(ChSystem* physics_system) {
     sprintf(buffer, "RIGID %d", parallel_sys->data_manager->num_contacts);
     text.Render(buffer, .6, 0.925 - spacing * 17, sx, sy);
   } else {
-    // PRINT BULLET INFO HERE
+    // ChCollisionSystemBullet* collision_system = (ChCollisionSystemBullet*)physics_system->GetCollisionSystem();
+    // btDbvtBroadphase * broadphase = (btDbvtBroadphase* ) collision_system->GetBulletCollisionWorld()->getBroadphase();
   }
 }
 
 void ChOpenGLHUD::GenerateRenderer() {
 
-//    sprintf(buffer, "RENDER INFO");
-//    text.Render(buffer, .6, -0.925 + spacing * 4, sx, sy);
-//    sprintf(buffer, "GEOMETRY %04f", time_geometry);
-//    text.Render(buffer, .6, -0.925 + spacing * 3, sx, sy);
-//    sprintf(buffer, "TEXT     %04f", time_text);
-//    text.Render(buffer, .6, -0.925 + spacing * 2, sx, sy);
-//    sprintf(buffer, "TOTAL    %04f", time_total);
-//    text.Render(buffer, .6, -0.925 + spacing * 1, sx, sy);
-//    sprintf(buffer, "FPS      %04d", int(fps));
-//    text.Render(buffer, .6, -0.925 + spacing * 0, sx, sy);
+      sprintf(buffer, "RENDER INFO");
+      text.Render(buffer, .6, -0.925 + spacing * 4, sx, sy);
+      sprintf(buffer, "GEOMETRY %04f", time_geometry);
+      text.Render(buffer, .6, -0.925 + spacing * 3, sx, sy);
+      sprintf(buffer, "TEXT     %04f", time_text);
+      text.Render(buffer, .6, -0.925 + spacing * 2, sx, sy);
+      sprintf(buffer, "TOTAL    %04f", time_total);
+      text.Render(buffer, .6, -0.925 + spacing * 1, sx, sy);
+      sprintf(buffer, "FPS      %04d", int(fps));
+      text.Render(buffer, .6, -0.925 + spacing * 0, sx, sy);
 }
 
 void ChOpenGLHUD::GenerateStats(ChSystem* physics_system) {
@@ -201,6 +220,8 @@ void ChOpenGLHUD::GenerateStats(ChSystem* physics_system) {
   text.Render(buffer, -.95, 0.925, sx, sy);
   GenerateCamera();
   GenerateSystem(physics_system);
+  GenerateCD(physics_system);
+  GenerateRenderer();
 
   //  if (ChSystemParallelDVI* parallel_sys = dynamic_cast<ChSystemParallelDVI*>(physics_system)) {
   //    sprintf(buffer, "TimerA:  %04f", parallel_sys->data_manager->system_timer.GetTime("ChSolverParallel_solverA"));
