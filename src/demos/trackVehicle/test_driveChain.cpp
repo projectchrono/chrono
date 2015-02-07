@@ -59,7 +59,9 @@ ChVector<> initLoc(0, 1.0, 0);
 ChQuaternion<> initRot(QUNIT);
 
 // Simulation step size
-double step_size = 0.002;
+double step_size = 0.001;
+
+size_t num_idlers = 2;
 
 // Time interval between two render frames
 int FPS = 40;
@@ -74,7 +76,7 @@ ChVector<> trackPoint(-1, 0, 0);
 double chaseDist = 2.0;
 double chaseHeight = 0.0;
 // set a static camera position
-ChVector<> cameraPos(-1, 1, 2.5);
+ChVector<> cameraPos(-1, 0.5, 2.3);
 
   /*
 #else
@@ -95,8 +97,9 @@ int main(int argc, char* argv[])
 
   // The drive chain inherits ChSystem.
   DriveChain chainSystem("Justins driveChain system", 
-    VisualizationType::PRIMITIVES,
-    CollisionType::PRIMITIVES);
+    VisualizationType::MESH,
+    CollisionType::PRIMITIVES,
+    num_idlers);
   
   // set the chassis REF at the specified initial config.
   chainSystem.Initialize(ChCoordsys<>(initLoc, initRot));
@@ -109,11 +112,11 @@ int main(int argc, char* argv[])
   // Setup the Irrlicht GUI
 
   // Create the Irrlicht visualization applicaiton
-  bool do_shadows = false; // shadow map is experimental
+  bool do_shadows = true; // shadow map is experimental
 
   ChIrrApp application(chainSystem.GetSystem(),
                       L"test driveChain demo",
-                      dimension2d<u32>(1000, 800),
+                      dimension2d<u32>(1200, 800),
                       false,
                       do_shadows);
   // assumes Y-up
