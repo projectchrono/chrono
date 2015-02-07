@@ -32,10 +32,10 @@ class CH_OPENGL_API ChOpenGLHUD : public ChOpenGLBase {
   void Update(const glm::ivec2& window_size, const float & dpi);
 
  private:
-  ChOpenGLText help_text;
+  ChOpenGLText text;
   ChOpenGLShader font_shader;
   float sx, sy, spacing;
-
+  char buffer[50];
 };
 }
 }
