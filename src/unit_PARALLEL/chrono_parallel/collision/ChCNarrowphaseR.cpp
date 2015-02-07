@@ -67,14 +67,14 @@ bool RCollision(const ConvexShape &shapeA, // first candidate shape
   }
 
   if (shapeA.type == CAPSULE && shapeB.type == SPHERE) {
-    if (capsule_sphere(shapeA.A, shapeA.R, shapeA.B.x, shapeA.B.y, shapeB.A, shapeB.B.x, *ct_norm, *ct_depth, *ct_pt1, *ct_pt2, *ct_eff_rad)) {
+    if (capsule_sphere(shapeA.A, shapeA.R, shapeA.B.x, shapeA.B.y, shapeB.A, shapeB.B.x, separation, *ct_norm, *ct_depth, *ct_pt1, *ct_pt2, *ct_eff_rad)) {
       nC = 1;
     }
     return true;
   }
 
   if (shapeA.type == SPHERE && shapeB.type == CAPSULE) {
-    if (capsule_sphere(shapeB.A, shapeB.R, shapeB.B.x, shapeB.B.y, shapeA.A, shapeA.B.x, *ct_norm, *ct_depth, *ct_pt2, *ct_pt1, *ct_eff_rad)) {
+    if (capsule_sphere(shapeB.A, shapeB.R, shapeB.B.x, shapeB.B.y, shapeA.A, shapeA.B.x, separation, *ct_norm, *ct_depth, *ct_pt2, *ct_pt1, *ct_eff_rad)) {
       *ct_norm = -(*ct_norm);
       nC = 1;
     }
@@ -82,14 +82,14 @@ bool RCollision(const ConvexShape &shapeA, // first candidate shape
   }
 
   if (shapeA.type == CYLINDER && shapeB.type == SPHERE) {
-    if (cylinder_sphere(shapeA.A, shapeA.R, shapeA.B.x, shapeA.B.y, shapeB.A, shapeB.B.x, *ct_norm, *ct_depth, *ct_pt1, *ct_pt2, *ct_eff_rad)) {
+    if (cylinder_sphere(shapeA.A, shapeA.R, shapeA.B.x, shapeA.B.y, shapeB.A, shapeB.B.x, separation, *ct_norm, *ct_depth, *ct_pt1, *ct_pt2, *ct_eff_rad)) {
       nC = 1;
     }
     return true;
   }
 
   if (shapeA.type == SPHERE && shapeB.type == CYLINDER) {
-    if (cylinder_sphere(shapeB.A, shapeB.R, shapeB.B.x, shapeB.B.y, shapeA.A, shapeA.B.x, *ct_norm, *ct_depth, *ct_pt2, *ct_pt1, *ct_eff_rad)) {
+    if (cylinder_sphere(shapeB.A, shapeB.R, shapeB.B.x, shapeB.B.y, shapeA.A, shapeA.B.x, separation, *ct_norm, *ct_depth, *ct_pt2, *ct_pt1, *ct_eff_rad)) {
       *ct_norm = -(*ct_norm);
       nC = 1;
     }
@@ -239,6 +239,7 @@ bool capsule_sphere(const real3& pos1,
                     const real& hlen1,
                     const real3& pos2,
                     const real& radius2,
+                    const real& separation,
                     real3& norm,
                     real& depth,
                     real3& pt1,
@@ -255,14 +256,16 @@ bool capsule_sphere(const real3& pos1,
   real3 loc = pos1 + alpha * V;
 
   // Treat the capsule as a sphere centered at the above location. If the
-  // sphere center is farther away than the sum of radii, there is no
-  // contact. Also, ignore contact if the two centers almost coincide,
-  // in which case we couldn't decide on the proper contact direction.
+  // sphere center is farther away than the sum of radii plus the separation
+  // value, there is no contact. Also, ignore contact if the two centers
+  // almost coincide, in which case we couldn't decide on the proper contact
+  // direction.
   real radSum = radius1 + radius2;
+  real radSum_s = radSum + separation;
   real3 delta = pos2 - loc;
   real dist2 = dot(delta, delta);
 
-  if (dist2 >= radSum * radSum || dist2 <= 1e-12f)
+  if (dist2 >= radSum_s * radSum_s || dist2 <= 1e-12f)
     return false;
 
   // Generate contact information.
@@ -290,6 +293,7 @@ bool cylinder_sphere(const real3& pos1,
                      const real& hlen1,
                      const real3& pos2,
                      const real& radius2,
+                     const real& separation,
                      real3& norm,
                      real& depth,
                      real3& pt1,
@@ -307,14 +311,16 @@ bool cylinder_sphere(const real3& pos1,
   if (code == 0)
     return false;
 
-  // If the sphere doesn't touch the closest point then there is no contact.
+  // If the distance from the sphere center to the closest point is larger
+  // than the sphere radius plus the separation value, there is no contact.
   // Also, ignore contact if the sphere center (almost) coincides with the
   // closest point, in which case we couldn't decide on the proper contact
   // direction.
   real3 delta = spherePos - cylPos;
   real dist2 = dot(delta, delta);
+  real radius2_s = radius2 + separation;
 
-  if (dist2 >= radius2 * radius2 || dist2 <= 1e-12f)
+  if (dist2 >= radius2_s * radius2_s || dist2 <= 1e-12f)
     return false;
 
   // Generate contact information
@@ -434,8 +440,8 @@ bool box_sphere(const real3& pos1,
   real3 boxPos = spherePos;
   uint code = snap_to_box(hdims1, boxPos);
 
-  // If the distance from the sphere center to the closest point is larger than
-  // the sphere radius plust the sepration value, then there is no contact.
+  // If the distance from the sphere center to the closest point is larger
+  // than the sphere radius plus the separation value, there is no contact.
   // Also, ignore contact if the sphere center (almost) coincides with the
   // closest point, in which case we couldn't decide on the proper contact
   // direction.

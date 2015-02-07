@@ -51,12 +51,14 @@ bool sphere_sphere(const real3& pos1, const real& radius1,
 
 bool capsule_sphere(const real3& pos1, const real4& rot1, const real& radius1, const real& hlen1,
                     const real3& pos2, const real& radius2,
+                    const real& separation,
                     real3& norm, real& depth,
                     real3& pt1, real3& pt2,
                     real& eff_radius);
 
 bool cylinder_sphere(const real3& pos1, const real4& rot1, const real& radius1, const real& hlen1,
                      const real3& pos2, const real& radius2,
+                     const real& separation,
                      real3& norm, real& depth,
                      real3& pt1, real3& pt2,
                      real& eff_radius);
