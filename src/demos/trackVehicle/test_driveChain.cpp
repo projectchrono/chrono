@@ -61,7 +61,7 @@ ChQuaternion<> initRot(QUNIT);
 // Simulation step size
 double step_size = 0.001;
 
-size_t num_idlers = 2;
+size_t num_idlers = 1;
 
 // Time interval between two render frames
 int FPS = 40;
@@ -71,12 +71,13 @@ double output_step_size = 1.0 / 1;    // once a second
 
 // #ifdef USE_IRRLICHT
   // Point on chassis tracked by the camera
-ChVector<> trackPoint(-1, 0, 0);
+ChVector<> trackPoint(0, 0, 0);
 // if chase cam enabled:
 double chaseDist = 2.0;
-double chaseHeight = 0.0;
+double chaseHeight = 0.5;
 // set a static camera position
-ChVector<> cameraPos(-1, 0.5, 2.3);
+ChVector<> cameraPos(0., 1.0, 1.5);
+bool do_shadows = false; // shadow map is experimental
 
   /*
 #else
@@ -95,10 +96,11 @@ int main(int argc, char* argv[])
   // --------------------------
   // Create the Chain system (drive gear, idler, chain)
 
-  // The drive chain inherits ChSystem.
+  // The drive chain inherits ChSystem. Specify the 
+  // collision type used by the gear here.
   DriveChain chainSystem("Justins driveChain system", 
     VisualizationType::MESH,
-    CollisionType::PRIMITIVES,
+    CollisionType::CALLBACKFUNCTION,
     num_idlers);
   
   // set the chassis REF at the specified initial config.
@@ -112,7 +114,6 @@ int main(int argc, char* argv[])
   // Setup the Irrlicht GUI
 
   // Create the Irrlicht visualization applicaiton
-  bool do_shadows = true; // shadow map is experimental
 
   ChIrrApp application(chainSystem.GetSystem(),
                       L"test driveChain demo",
@@ -134,9 +135,9 @@ int main(int argc, char* argv[])
   else
   {
     application.AddTypicalLights(
-      irr::core::vector3df(30.f, 100.f, 30.f),
-      irr::core::vector3df(30.f, 100.f, 50.f),
-      250, 130);
+      irr::core::vector3df(50.f, 75.f, 30.f),
+      irr::core::vector3df(-30.f, 100.f, -50.f),
+      150, 125);
   }
 
   application.SetTimestep(step_size);
