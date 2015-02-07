@@ -31,17 +31,16 @@
 #include "core/ChTimer.h"
 
 #include "chrono_parallel/physics/ChSystemParallel.h"
+#include "chrono_parallel/ChTimerParallel.h"
 #include <glfw3.h>
 
 namespace chrono {
 namespace opengl {
 
-enum RenderMode {
-  POINTS, WIREFRAME, SOLID
-};
+enum RenderMode { POINTS, WIREFRAME, SOLID };
 
-class CH_OPENGL_API ChOpenGLViewer: public ChOpenGLBase {
-public:
+class CH_OPENGL_API ChOpenGLViewer : public ChOpenGLBase {
+ public:
   ChOpenGLViewer(ChSystem* system);
   ~ChOpenGLViewer();
   void TakeDown();
@@ -94,9 +93,10 @@ public:
   bool use_vsync;
   RenderMode render_mode;
 
+  ChTimerParallel timer;
+
   glm::mat4 model, view, projection, modelview;
 
-  ChTimer<double> render_timer, text_timer, geometry_timer;
   float old_time, current_time;
   float time_geometry, time_text, time_total, fps;
 

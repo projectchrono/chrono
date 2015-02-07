@@ -128,6 +128,10 @@ bool ChOpenGLViewer::Initialize() {
 
   contact_renderer.Initialize(darkred, &cloud_shader);
 
+  timer.AddTimer("render");
+  timer.AddTimer("text");
+  timer.AddTimer("geometry");
+
   // glEnable(GL_MULTISAMPLE);
   glEnable(GL_POINT_SPRITE);
   glEnable(GL_PROGRAM_POINT_SIZE);
@@ -147,9 +151,11 @@ bool ChOpenGLViewer::Update(double time_step) {
   return true;
 }
 void ChOpenGLViewer::Render() {
-  render_timer.start();
+  timer.Reset();
+
+  timer.start("render");
   if (pause_vis == false) {
-    geometry_timer.start();
+    timer.start("geometry");
     render_camera.aspect = window_aspect;
     render_camera.window_width = window_size.x;
     render_camera.window_height = window_size.y;
@@ -220,15 +226,15 @@ void ChOpenGLViewer::Render() {
     RenderPlots();
     RenderContacts();
 
-    geometry_timer.stop();
-    time_geometry = .5 * geometry_timer() + .5 * time_geometry;
-    text_timer.start();
+    timer.stop("geometry");
+    time_geometry = .5 * timer.GetTime("geometry") + .5 * time_geometry;
+    timer.start("text");
     DisplayHUD();
-    text_timer.stop();
-    time_text = .5 * text_timer() + .5 * time_text;
+    timer.stop("text");
+    time_text = .5 * timer.GetTime("text") + .5 * time_text;
   }
-  render_timer.stop();
-  time_total = .5 * render_timer() + .5 * time_total;
+  timer.stop("render");
+  time_total = .5 * timer.GetTime("render") + .5 * time_total;
   current_time = time_total;
   current_time = current_time * 0.5 + old_time * 0.5;
   old_time = current_time;
