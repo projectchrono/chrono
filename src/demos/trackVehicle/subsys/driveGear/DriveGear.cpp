@@ -203,7 +203,7 @@ void DriveGear::AddVisualization()
     cylLevel->AddAsset(tex);
 
     // all assets for the cylinder level are set by now
-//    m_gear->AddAsset(cylLevel);
+    m_gear->AddAsset(cylLevel);
     
     double init_rot = CH_C_PI / m_geom->m_num_teeth; // std::atan(0.079815/0.24719); // from sprocket geometry blender file
     for(size_t b_idx = 0; b_idx < m_geom->m_num_teeth; b_idx++)
@@ -354,22 +354,23 @@ void DriveGear::AddCollisionGeometry(double mu,
         0.5*m_geom->m_tooth_width,
         box_center,
         box_rot_mat); // does this rotation occur about gear c-sys or center of box ????
+
     }
 
     // until the custom callback works, two cylinders (e.g., PRIMITIVES)
     //  with radius of the gear base circle, width of the gear seat
-    ChVector<> shape_offset =  ChVector<>(0, 0, (m_geom->m_tooth_width + m_geom->m_gear_seat_width_min)/2.0);
+    ChVector<> shape_offset =  ChVector<>(0, 0, 0.5*(m_geom->m_tooth_width + m_geom->m_gear_seat_width_min));
      // use two simple cylinders. 
     m_gear->GetCollisionModel()->AddCylinder(m_geom->m_gear_base_radius,
       m_geom->m_gear_base_radius,
-      m_geom->m_tooth_width,
+      0.5*m_geom->m_tooth_width,
       shape_offset, Q_from_AngAxis(CH_C_PI_2,VECT_X));
     
     // mirror first cylinder about the x-y plane
     shape_offset.z *= -1;
     m_gear->GetCollisionModel()->AddCylinder(m_geom->m_gear_base_radius,
       m_geom->m_gear_base_radius,
-       m_geom->m_tooth_width,
+      0.5*m_geom->m_tooth_width,
       shape_offset, Q_from_AngAxis(CH_C_PI_2,VECT_X));
     // a custom callback function to find the pin-gear seat colision
 

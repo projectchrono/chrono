@@ -369,8 +369,9 @@ void TrackChain::AddVisualization(size_t track_idx,
   case VisualizationType::COMPOUNDPRIMITIVES:
   {
     // use same set of primitives as was used for the corresponding collsion shape
-    // shoe geometry provided can be exactly represented by 6 smaller boxes, 2 cylinders.
-    double subBox_width = 0.082;
+    // shoe geometry provided can be exactly represented by 5 smaller boxes, 2 cylinders.
+    // tooth is also a box
+    double subBox_width = m_shoe_box.z/5.0;
     double stagger_offset = 0.03;
 
     // color the boxes and cylinders differently

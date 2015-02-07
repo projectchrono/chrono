@@ -159,15 +159,15 @@ void SupportRoller::AddCollisionGeometry(double mu,
   switch (m_collide) {
   case CollisionType::PRIMITIVES:
   {
-    double half_cyl_width =  (m_width - m_widthGap)/2.0;
-    ChVector<> shape_offset =  ChVector<>(0, 0, half_cyl_width + m_widthGap/2.0);
+    double cyl_width =  0.5*(m_width - m_widthGap);
+    ChVector<> shape_offset =  ChVector<>(0, 0, 0.5*(cyl_width + m_widthGap) );
      // use two simple cylinders. 
-    m_roller->GetCollisionModel()->AddCylinder(m_radius, m_radius, half_cyl_width,
+    m_roller->GetCollisionModel()->AddCylinder(m_radius, m_radius, 0.5*cyl_width,
       shape_offset, Q_from_AngAxis(CH_C_PI_2,VECT_X));
     
     // mirror first cylinder about the x-y plane
     shape_offset.z *= -1;
-    m_roller->GetCollisionModel()->AddCylinder(m_radius, m_radius, half_cyl_width,
+    m_roller->GetCollisionModel()->AddCylinder(m_radius, m_radius, 0.5*cyl_width,
       shape_offset, Q_from_AngAxis(CH_C_PI_2,VECT_X));
 
     break;

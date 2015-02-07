@@ -216,7 +216,7 @@ void DriveChain::Initialize(const ChCoordsys<>& gear_Csys)
     start_pos = (rolling_elem_locs.front() + rolling_elem_locs.back())/2.0;
     start_pos.y += (clearance.front() + clearance.back() )/2.0;
   }
-
+  start_pos.x += 0.04;
   // NOTE: start_pos needs to somewhere on the top length of chain.
   // Rolling_elem_locs MUST be ordered from front-most to the rear, 
   //  w.r.t. the chassis x-dir, so chain links created in a clockwise direction.

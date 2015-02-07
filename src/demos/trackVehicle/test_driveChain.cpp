@@ -71,13 +71,13 @@ double output_step_size = 1.0 / 1;    // once a second
 
 // #ifdef USE_IRRLICHT
   // Point on chassis tracked by the camera
-ChVector<> trackPoint(0, 0, 0);
+ChVector<> trackPoint(0, 0.2, 0.3);
 // if chase cam enabled:
-double chaseDist = 2.0;
-double chaseHeight = 1.0;
+double chaseDist = 1.5;
+double chaseHeight = 0.0;
 // set a static camera position
-ChVector<> cameraPos(0.0, 1.3, 1.5);
-bool use_fixed_camera = true;
+ChVector<> cameraPos(0.0, 1.2, 1.4);
+bool use_fixed_camera = false;
 bool do_shadows = false; // shadow map is experimental
 
   /*
@@ -100,8 +100,8 @@ int main(int argc, char* argv[])
   // The drive chain inherits ChSystem. Specify the 
   // collision type used by the gear here.
   DriveChain chainSystem("Justins driveChain system", 
-    VisualizationType::MESH,
-    // VisualizationType::COMPOUNDPRIMITIVES,
+    // VisualizationType::MESH,
+    VisualizationType::COMPOUNDPRIMITIVES,
     CollisionType::CALLBACKFUNCTION,
     num_idlers);
   

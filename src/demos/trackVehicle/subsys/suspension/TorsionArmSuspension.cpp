@@ -291,15 +291,15 @@ void TorsionArmSuspension::AddCollisionGeometry(double mu,
   switch (m_collide) {
   case CollisionType::PRIMITIVES:
   {
-    double half_cyl_width =  (m_wheelWidth - m_wheelWidthGap)/2.0;
-    ChVector<> shape_offset =  ChVector<>(0, 0, half_cyl_width + m_wheelWidthGap/2.0);
+    double cyl_width =  0.5*(m_wheelWidth - m_wheelWidthGap);
+    ChVector<> shape_offset =  ChVector<>(0, 0, 0.5*(cyl_width + m_wheelWidthGap));
     // use two simple cylinders. Default is along the y-axis, here we have z-axis relative to chassis.
-    m_wheel->GetCollisionModel()->AddCylinder(m_wheelRadius, m_wheelRadius, half_cyl_width,
+    m_wheel->GetCollisionModel()->AddCylinder(m_wheelRadius, m_wheelRadius, 0.5*cyl_width,
       shape_offset, Q_from_AngAxis(CH_C_PI_2,VECT_X) );
 
     // mirror first cylinder about the x-y plane
     shape_offset.z *= -1;
-    m_wheel->GetCollisionModel()->AddCylinder(m_wheelRadius, m_wheelRadius, half_cyl_width,
+    m_wheel->GetCollisionModel()->AddCylinder(m_wheelRadius, m_wheelRadius, 0.5*cyl_width,
       shape_offset,Q_from_AngAxis(CH_C_PI_2,VECT_X));
   }
   case CollisionType::MESH:
