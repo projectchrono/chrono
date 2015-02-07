@@ -19,7 +19,7 @@
 #define CHOPENGLMATERIAL_H
 
 #include "chrono_opengl/core/ChOpenGLBase.h"
-
+#include <glm/glm.hpp>
 namespace chrono {
 namespace opengl {
 
