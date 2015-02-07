@@ -139,13 +139,11 @@ void test_sphere_sphere()
   shapeS2.R = real4(1, 0, 0, 0);
 
   // Output quantities.
-  uint  flag;
   real3 norm;
   real3 pt1;
   real3 pt2;
   real  depth;
   real  eff_rad;
-  int2  body_ids;
   int   nC;
 
     {
@@ -157,7 +155,7 @@ void test_sphere_sphere()
     shapeS2.A = real3(2, 0, 0);
     shapeS2.B = real3(0.5, 0, 0);
 
-    bool res = RCollision(0, shapeS1, shapeS2, 0, 1, &flag, &norm, &pt1, &pt2, &depth, &eff_rad, &body_ids, nC);
+    bool res = RCollision(0, shapeS1, shapeS2, &norm, &pt1, &pt2, &depth, &eff_rad, nC);
     if (!res || nC != 0) {
       cout << "    test failed" << endl;
       exit(1);
@@ -173,7 +171,7 @@ void test_sphere_sphere()
     shapeS2.A = real3(2, 0, 0);
     shapeS2.B = real3(1, 0, 0);
 
-    bool res = RCollision(0, shapeS1, shapeS2, 0, 1, &flag, &norm, &pt1, &pt2, &depth, &eff_rad, &body_ids, nC);
+    bool res = RCollision(0, shapeS1, shapeS2, &norm, &pt1, &pt2, &depth, &eff_rad, nC);
     if (!res || nC != 0) {
       cout << "    test failed" << endl;
       exit(1);
@@ -189,7 +187,7 @@ void test_sphere_sphere()
     shapeS2.A = real3(2.5, 1, 0);
     shapeS2.B = real3(1, 0, 0);
 
-    bool res = RCollision(0, shapeS1, shapeS2, 0, 1, &flag, &norm, &pt1, &pt2, &depth, &eff_rad, &body_ids, nC);
+    bool res = RCollision(0, shapeS1, shapeS2, &norm, &pt1, &pt2, &depth, &eff_rad, nC);
     if (!res) {
       cout << "    test failed" << endl;
       exit(1);
@@ -232,13 +230,11 @@ void test_box_sphere()
   shapeS.R = real4(1, 0, 0, 0);
 
   // Output quantities.
-  uint  flag;
   real3 norm;
   real3 pt1;
   real3 pt2;
   real  depth;
   real  eff_rad;
-  int2  body_ids;
   int   nC;
 
   real oosqrt2 = sqrt(0.5);   // 1/sqrt(2)
@@ -246,7 +242,7 @@ void test_box_sphere()
   {
     cout << "  sphere center inside box" << endl;
     shapeS.A = real3(0.5, 0.5, 1.0);
-    bool res = RCollision(0, shapeB, shapeS, 0, 1, &flag, &norm, &pt1, &pt2, &depth, &eff_rad, &body_ids, nC);
+    bool res = RCollision(0, shapeB, shapeS, &norm, &pt1, &pt2, &depth, &eff_rad, nC);
     if (!res || nC != 0) {
       cout << "    test failed" << endl;
       exit(1);
@@ -256,7 +252,7 @@ void test_box_sphere()
   {
     cout << "  face interaction (separated)" << endl;
     shapeS.A = real3(3.0, 2.0, 1.0);
-    bool res = RCollision(0, shapeB, shapeS, 0, 1, &flag, &norm, &pt1, &pt2, &depth, &eff_rad, &body_ids, nC);
+    bool res = RCollision(0, shapeB, shapeS, &norm, &pt1, &pt2, &depth, &eff_rad, nC);
     if (!res || nC != 0) {
       cout << "    test failed" << endl;
       exit(1);
@@ -266,7 +262,7 @@ void test_box_sphere()
   {
     cout << "  face interaction (separated)" << endl;
     shapeS.A = real3(4 * oosqrt2, 2.0 * oosqrt2, 1.0);
-    bool res = RCollision(0, shapeB, shapeS, 0, 1, &flag, &norm, &pt1, &pt2, &depth, &eff_rad, &body_ids, nC);
+    bool res = RCollision(0, shapeB, shapeS, &norm, &pt1, &pt2, &depth, &eff_rad, nC);
     if (!res) {
       cout << "    test failed" << endl;
       exit(1);
@@ -282,7 +278,7 @@ void test_box_sphere()
   {
     cout << "  edge interaction (separated)" << endl;
     shapeS.A = real3(oosqrt2, 4.0, 1.0);
-    bool res = RCollision(0, shapeB, shapeS, 0, 1, &flag, &norm, &pt1, &pt2, &depth, &eff_rad, &body_ids, nC);
+    bool res = RCollision(0, shapeB, shapeS, &norm, &pt1, &pt2, &depth, &eff_rad, nC);
     if (!res || nC != 0) {
       cout << "    test failed" << endl;
       exit(1);
@@ -292,7 +288,7 @@ void test_box_sphere()
   {
     cout << "  edge interaction (penetrated)" << endl;
     shapeS.A = real3(oosqrt2, 3.0 * oosqrt2 + 1.0, 1.0);
-    bool res = RCollision(0, shapeB, shapeS, 0, 1, &flag, &norm, &pt1, &pt2, &depth, &eff_rad, &body_ids, nC);
+    bool res = RCollision(0, shapeB, shapeS, &norm, &pt1, &pt2, &depth, &eff_rad, nC);
     if (!res) {
       cout << "    test failed" << endl;
       exit(1);
@@ -308,7 +304,7 @@ void test_box_sphere()
   {
     cout << "  corner interaction (separated)" << endl;
     shapeS.A = real3(oosqrt2, 4.0, 4.0);
-    bool res = RCollision(0, shapeB, shapeS, 0, 1, &flag, &norm, &pt1, &pt2, &depth, &eff_rad, &body_ids, nC);
+    bool res = RCollision(0, shapeB, shapeS, &norm, &pt1, &pt2, &depth, &eff_rad, nC);
     if (!res || nC != 0) {
       cout << "    test failed" << endl;
       exit(1);
@@ -319,7 +315,7 @@ void test_box_sphere()
     cout << "  corner interaction (penetrated)" << endl;
     real3 s_pos(oosqrt2, 4.0 * oosqrt2, 3.0 + oosqrt2);
     shapeS.A = s_pos;
-    bool res = RCollision(0, shapeB, shapeS, 0, 1, &flag, &norm, &pt1, &pt2, &depth, &eff_rad, &body_ids, nC);
+    bool res = RCollision(0, shapeB, shapeS, &norm, &pt1, &pt2, &depth, &eff_rad, nC);
     if (!res) {
       cout << "    test failed" << endl;
       exit(1);
@@ -363,13 +359,11 @@ void test_capsule_sphere()
   shapeS.R = real4(1, 0, 0, 0);
 
   // Output quantities.
-  uint  flag;
   real3 norm;
   real3 pt1;
   real3 pt2;
   real  depth;
   real  eff_rad;
-  int2  body_ids;
   int   nC;
 
   real oosqrt2 = sqrt(0.5);   // 1/sqrt(2)
@@ -377,7 +371,7 @@ void test_capsule_sphere()
   {
     cout << "  sphere center on capsule axis" << endl;
     shapeS.A = real3(3.0, 0.0, 0.0);
-    bool res = RCollision(0, shapeC, shapeS, 0, 1, &flag, &norm, &pt1, &pt2, &depth, &eff_rad, &body_ids, nC);
+    bool res = RCollision(0, shapeC, shapeS, &norm, &pt1, &pt2, &depth, &eff_rad, nC);
     if (!res || nC != 0) {
       cout << "    test failed" << endl;
       exit(1);
@@ -387,7 +381,7 @@ void test_capsule_sphere()
   {
     cout << "  cap interaction (separated)" << endl;
     shapeS.A = real3(5.0, 1.5, 0.0);
-    bool res = RCollision(0, shapeC, shapeS, 0, 1, &flag, &norm, &pt1, &pt2, &depth, &eff_rad, &body_ids, nC);
+    bool res = RCollision(0, shapeC, shapeS, &norm, &pt1, &pt2, &depth, &eff_rad, nC);
     if (!res || nC != 0) {
       cout << "    test failed" << endl;
       exit(1);
@@ -397,7 +391,7 @@ void test_capsule_sphere()
   {
     cout << "  cap interaction (penetrated)" << endl;
     shapeS.A = real3(5.0, 1.0, 0.0);
-    bool res = RCollision(0, shapeC, shapeS, 0, 1, &flag, &norm, &pt1, &pt2, &depth, &eff_rad, &body_ids, nC);
+    bool res = RCollision(0, shapeC, shapeS, &norm, &pt1, &pt2, &depth, &eff_rad, nC);
     if (!res) {
       cout << "    test failed" << endl;
       exit(1);
@@ -413,7 +407,7 @@ void test_capsule_sphere()
   {
     cout << "  side interaction (separated)" << endl;
     shapeS.A = real3(2.5, 2.0, 0);
-    bool res = RCollision(0, shapeC, shapeS, 0, 1, &flag, &norm, &pt1, &pt2, &depth, &eff_rad, &body_ids, nC);
+    bool res = RCollision(0, shapeC, shapeS, &norm, &pt1, &pt2, &depth, &eff_rad, nC);
     if (!res || nC != 0) {
       cout << "    test failed" << endl;
       exit(1);
@@ -423,7 +417,7 @@ void test_capsule_sphere()
   {
     cout << "  side interaction (penetrated)" << endl;
     shapeS.A = real3(2.5, 1.25, 0);
-    bool res = RCollision(0, shapeC, shapeS, 0, 1, &flag, &norm, &pt1, &pt2, &depth, &eff_rad, &body_ids, nC);
+    bool res = RCollision(0, shapeC, shapeS, &norm, &pt1, &pt2, &depth, &eff_rad, nC);
     if (!res) {
       cout << "    test failed" << endl;
       exit(1);
@@ -467,13 +461,11 @@ void test_cylinder_sphere()
   shapeS.R = real4(1, 0, 0, 0);
 
   // Output quantities.
-  uint  flag;
   real3 norm;
   real3 pt1;
   real3 pt2;
   real  depth;
   real  eff_rad;
-  int2  body_ids;
   int   nC;
 
   real oosqrt2 = sqrt(0.5);   // 1/sqrt(2)
@@ -481,7 +473,7 @@ void test_cylinder_sphere()
   {
     cout << "  sphere center inside cylinder" << endl;
     shapeS.A = real3(2.5, 1.5, 0);
-    bool res = RCollision(0, shapeC, shapeS, 0, 1, &flag, &norm, &pt1, &pt2, &depth, &eff_rad, &body_ids, nC);
+    bool res = RCollision(0, shapeC, shapeS, &norm, &pt1, &pt2, &depth, &eff_rad, nC);
     if (!res || nC != 0) {
       cout << "    test failed" << endl;
       exit(1);
@@ -491,7 +483,7 @@ void test_cylinder_sphere()
   {
     cout << "  cap interaction (separated)" << endl;
     shapeS.A = real3(4.5, 1.5, 0);
-    bool res = RCollision(0, shapeC, shapeS, 0, 1, &flag, &norm, &pt1, &pt2, &depth, &eff_rad, &body_ids, nC);
+    bool res = RCollision(0, shapeC, shapeS, &norm, &pt1, &pt2, &depth, &eff_rad, nC);
     if (!res || nC != 0) {
       cout << "    test failed" << endl;
       exit(1);
@@ -501,7 +493,7 @@ void test_cylinder_sphere()
   {
     cout << "  cap interaction (penetrated)" << endl;
     shapeS.A = real3(3.75, 1.5, 0);
-    bool res = RCollision(0, shapeC, shapeS, 0, 1, &flag, &norm, &pt1, &pt2, &depth, &eff_rad, &body_ids, nC);
+    bool res = RCollision(0, shapeC, shapeS, &norm, &pt1, &pt2, &depth, &eff_rad, nC);
     if (!res) {
       cout << "    test failed" << endl;
       exit(1);
@@ -517,7 +509,7 @@ void test_cylinder_sphere()
   {
     cout << "  side interaction (separated)" << endl;
     shapeS.A = real3(2.5, 3.5, 0);
-    bool res = RCollision(0, shapeC, shapeS, 0, 1, &flag, &norm, &pt1, &pt2, &depth, &eff_rad, &body_ids, nC);
+    bool res = RCollision(0, shapeC, shapeS, &norm, &pt1, &pt2, &depth, &eff_rad, nC);
     if (!res || nC != 0) {
       cout << "    test failed" << endl;
       exit(1);
@@ -527,7 +519,7 @@ void test_cylinder_sphere()
   {
     cout << "  side interaction (penetrated)" << endl;
     shapeS.A = real3(2.5, 2.5, 0);
-    bool res = RCollision(0, shapeC, shapeS, 0, 1, &flag, &norm, &pt1, &pt2, &depth, &eff_rad, &body_ids, nC);
+    bool res = RCollision(0, shapeC, shapeS, &norm, &pt1, &pt2, &depth, &eff_rad, nC);
     if (!res) {
       cout << "    test failed" << endl;
       exit(1);
@@ -543,7 +535,7 @@ void test_cylinder_sphere()
   {
     cout << "  edge interaction (separated)" << endl;
     shapeS.A = real3(4, 3, 0);
-    bool res = RCollision(0, shapeC, shapeS, 0, 1, &flag, &norm, &pt1, &pt2, &depth, &eff_rad, &body_ids, nC);
+    bool res = RCollision(0, shapeC, shapeS, &norm, &pt1, &pt2, &depth, &eff_rad, nC);
     if (!res || nC != 0) {
       cout << "    test failed" << endl;
       exit(1);
@@ -553,7 +545,7 @@ void test_cylinder_sphere()
   {
     cout << "  edge interaction (penetrated)" << endl;
     shapeS.A = real3(3.5, 2.5, 0);
-    bool res = RCollision(0, shapeC, shapeS, 0, 1, &flag, &norm, &pt1, &pt2, &depth, &eff_rad, &body_ids, nC);
+    bool res = RCollision(0, shapeC, shapeS, &norm, &pt1, &pt2, &depth, &eff_rad, nC);
     if (!res) {
       cout << "    test failed" << endl;
       exit(1);
@@ -598,13 +590,11 @@ void test_roundedcyl_sphere()
   shapeS.R = real4(1, 0, 0, 0);
 
   // Output quantities.
-  uint  flag;
   real3 norm;
   real3 pt1;
   real3 pt2;
   real  depth;
   real  eff_rad;
-  int2  body_ids;
   int   nC;
 
   real oosqrt2 = sqrt(0.5);   // 1/sqrt(2)
@@ -612,7 +602,7 @@ void test_roundedcyl_sphere()
   {
     cout << "  sphere center inside cylinder" << endl;
     shapeS.A = real3(2.5, 1.5, 0);
-    bool res = RCollision(0, shapeC, shapeS, 0, 1, &flag, &norm, &pt1, &pt2, &depth, &eff_rad, &body_ids, nC);
+    bool res = RCollision(0, shapeC, shapeS, &norm, &pt1, &pt2, &depth, &eff_rad, nC);
     if (!res || nC != 0) {
       cout << "    test failed" << endl;
       exit(1);
@@ -622,7 +612,7 @@ void test_roundedcyl_sphere()
   {
     cout << "  cap interaction (separated)" << endl;
     shapeS.A = real3(4.5, 1.5, 0);
-    bool res = RCollision(0, shapeC, shapeS, 0, 1, &flag, &norm, &pt1, &pt2, &depth, &eff_rad, &body_ids, nC);
+    bool res = RCollision(0, shapeC, shapeS, &norm, &pt1, &pt2, &depth, &eff_rad, nC);
     if (!res || nC != 0) {
       cout << "    test failed" << endl;
       exit(1);
@@ -632,7 +622,7 @@ void test_roundedcyl_sphere()
   {
     cout << "  cap interaction (penetrated)" << endl;
     shapeS.A = real3(3.75, 1.5, 0);
-    bool res = RCollision(0, shapeC, shapeS, 0, 1, &flag, &norm, &pt1, &pt2, &depth, &eff_rad, &body_ids, nC);
+    bool res = RCollision(0, shapeC, shapeS, &norm, &pt1, &pt2, &depth, &eff_rad, nC);
     if (!res) {
       cout << "    test failed" << endl;
       exit(1);
@@ -648,7 +638,7 @@ void test_roundedcyl_sphere()
   {
     cout << "  side interaction (separated)" << endl;
     shapeS.A = real3(2.5, 3.5, 0);
-    bool res = RCollision(0, shapeC, shapeS, 0, 1, &flag, &norm, &pt1, &pt2, &depth, &eff_rad, &body_ids, nC);
+    bool res = RCollision(0, shapeC, shapeS, &norm, &pt1, &pt2, &depth, &eff_rad, nC);
     if (!res || nC != 0) {
       cout << "    test failed" << endl;
       exit(1);
@@ -658,7 +648,7 @@ void test_roundedcyl_sphere()
   {
     cout << "  side interaction (penetrated)" << endl;
     shapeS.A = real3(2.5, 2.5, 0);
-    bool res = RCollision(0, shapeC, shapeS, 0, 1, &flag, &norm, &pt1, &pt2, &depth, &eff_rad, &body_ids, nC);
+    bool res = RCollision(0, shapeC, shapeS, &norm, &pt1, &pt2, &depth, &eff_rad, nC);
     if (!res) {
       cout << "    test failed" << endl;
       exit(1);
@@ -674,7 +664,7 @@ void test_roundedcyl_sphere()
   {
     cout << "  edge interaction (separated)" << endl;
     shapeS.A = real3(4, 3, 0);
-    bool res = RCollision(0, shapeC, shapeS, 0, 1, &flag, &norm, &pt1, &pt2, &depth, &eff_rad, &body_ids, nC);
+    bool res = RCollision(0, shapeC, shapeS, &norm, &pt1, &pt2, &depth, &eff_rad, nC);
     if (!res || nC != 0) {
       cout << "    test failed" << endl;
       exit(1);
@@ -684,7 +674,7 @@ void test_roundedcyl_sphere()
   {
     cout << "  edge interaction (penetrated)" << endl;
     shapeS.A = real3(3.5, 2.5, 0);
-    bool res = RCollision(0, shapeC, shapeS, 0, 1, &flag, &norm, &pt1, &pt2, &depth, &eff_rad, &body_ids, nC);
+    bool res = RCollision(0, shapeC, shapeS, &norm, &pt1, &pt2, &depth, &eff_rad, nC);
     if (!res) {
       cout << "    test failed" << endl;
       exit(1);

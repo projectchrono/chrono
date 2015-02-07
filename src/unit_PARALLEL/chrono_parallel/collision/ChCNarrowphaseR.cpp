@@ -33,26 +33,20 @@ namespace collision {
 // 0, 1, or more contacts.  For each actual contact, we calculate various
 // geometrical quantities and load them in the output arrays beginning at the
 // 'icoll' index for the processed collision pair:
-//   - ct_flag:     if contact actually occurs, set to 0
 //   - ct_pt1:      contact point on first shape (in global frame)
 //   - ct_pt2:      contact point on second shape (in global frame)
 //   - ct_depth:    penetration distance (negative if overlap exists)
 //   - ct_norm:     contact normal, from ct_pt2 to ct_pt1 (in global frame)
 //   - ct_eff_rad:  effective contact radius
-//   - ct_body_ids: IDs of the bodies for the two contact shapes
 
 bool RCollision(uint icoll,                // start index of this contact pair candidate
                 const ConvexShape &shapeA, // first candidate shape
                 const ConvexShape &shapeB, // second candidate shape
-                int body1,                 // body ID for first shape
-                int body2,                 // body ID for second shape
-                uint* ct_flag,             // [output] flag for actual contact (per contact pair)
                 real3* ct_norm,            // [output] contact normal (per contact pair)
                 real3* ct_pt1,             // [output] point on shape1 (per contact pair)
                 real3* ct_pt2,             // [output] point on shape2 (per contact pair)
                 real* ct_depth,            // [output] penetration depth (per contact pair)
                 real* ct_eff_rad,          // [output] effective contact radius (per contact pair)
-                int2* ct_body_ids,         // [output] body IDs (per contact pair)
                 int& nC)                   // [output] number of contacts found
 {
   // Special-case the collision detection based on the types of the
@@ -62,8 +56,6 @@ bool RCollision(uint icoll,                // start index of this contact pair c
 
   if (shapeA.type == SPHERE && shapeB.type == SPHERE) {
     if (sphere_sphere(shapeA.A, shapeA.B.x, shapeB.A, shapeB.B.x, ct_norm[icoll], ct_depth[icoll], ct_pt1[icoll], ct_pt2[icoll], ct_eff_rad[icoll])) {
-      ct_flag[icoll] = 0;
-      ct_body_ids[icoll] = I2(body1, body2);
       nC = 1;
     }
     return true;
@@ -71,8 +63,6 @@ bool RCollision(uint icoll,                // start index of this contact pair c
 
   if (shapeA.type == CAPSULE && shapeB.type == SPHERE) {
     if (capsule_sphere(shapeA.A, shapeA.R, shapeA.B.x, shapeA.B.y, shapeB.A, shapeB.B.x, ct_norm[icoll], ct_depth[icoll], ct_pt1[icoll], ct_pt2[icoll], ct_eff_rad[icoll])) {
-      ct_flag[icoll] = 0;
-      ct_body_ids[icoll] = I2(body1, body2);
       nC = 1;
     }
     return true;
@@ -81,8 +71,6 @@ bool RCollision(uint icoll,                // start index of this contact pair c
   if (shapeA.type == SPHERE && shapeB.type == CAPSULE) {
     if (capsule_sphere(shapeB.A, shapeB.R, shapeB.B.x, shapeB.B.y, shapeA.A, shapeA.B.x, ct_norm[icoll], ct_depth[icoll], ct_pt2[icoll], ct_pt1[icoll], ct_eff_rad[icoll])) {
       ct_norm[icoll] = -ct_norm[icoll];
-      ct_flag[icoll] = 0;
-      ct_body_ids[icoll] = I2(body1, body2);
       nC = 1;
     }
     return true;
@@ -90,8 +78,6 @@ bool RCollision(uint icoll,                // start index of this contact pair c
 
   if (shapeA.type == CYLINDER && shapeB.type == SPHERE) {
     if (cylinder_sphere(shapeA.A, shapeA.R, shapeA.B.x, shapeA.B.y, shapeB.A, shapeB.B.x, ct_norm[icoll], ct_depth[icoll], ct_pt1[icoll], ct_pt2[icoll], ct_eff_rad[icoll])) {
-      ct_flag[icoll] = 0;
-      ct_body_ids[icoll] = I2(body1, body2);
       nC = 1;
     }
     return true;
@@ -100,8 +86,6 @@ bool RCollision(uint icoll,                // start index of this contact pair c
   if (shapeA.type == SPHERE && shapeB.type == CYLINDER) {
     if (cylinder_sphere(shapeB.A, shapeB.R, shapeB.B.x, shapeB.B.y, shapeA.A, shapeA.B.x, ct_norm[icoll], ct_depth[icoll], ct_pt2[icoll], ct_pt1[icoll], ct_eff_rad[icoll])) {
       ct_norm[icoll] = -ct_norm[icoll];
-      ct_flag[icoll] = 0;
-      ct_body_ids[icoll] = I2(body1, body2);
       nC = 1;
     }
     return true;
@@ -110,8 +94,6 @@ bool RCollision(uint icoll,                // start index of this contact pair c
   if (shapeA.type == ROUNDEDCYL && shapeB.type == SPHERE) {
     if (roundedcyl_sphere(shapeA.A, shapeA.R, shapeA.B.x, shapeA.B.y, shapeA.C.x, shapeB.A, shapeB.B.x, ct_norm[icoll], ct_depth[icoll], ct_pt1[icoll], ct_pt2[icoll],
       ct_eff_rad[icoll])) {
-      ct_flag[icoll] = 0;
-      ct_body_ids[icoll] = I2(body1, body2);
       nC = 1;
     }
     return true;
@@ -121,8 +103,6 @@ bool RCollision(uint icoll,                // start index of this contact pair c
     if (roundedcyl_sphere(shapeB.A, shapeB.R, shapeB.B.x, shapeB.B.y, shapeB.C.x, shapeA.A, shapeA.B.x, ct_norm[icoll], ct_depth[icoll], ct_pt2[icoll], ct_pt1[icoll],
       ct_eff_rad[icoll])) {
       ct_norm[icoll] = -ct_norm[icoll];
-      ct_flag[icoll] = 0;
-      ct_body_ids[icoll] = I2(body1, body2);
       nC = 1;
     }
     return true;
@@ -130,8 +110,6 @@ bool RCollision(uint icoll,                // start index of this contact pair c
 
   if (shapeA.type == BOX && shapeB.type == SPHERE) {
     if (box_sphere(shapeA.A, shapeA.R, shapeA.B, shapeB.A, shapeB.B.x, ct_norm[icoll], ct_depth[icoll], ct_pt1[icoll], ct_pt2[icoll], ct_eff_rad[icoll])) {
-      ct_flag[icoll] = 0;
-      ct_body_ids[icoll] = I2(body1, body2);
       nC = 1;
     }
     return true;
@@ -140,8 +118,6 @@ bool RCollision(uint icoll,                // start index of this contact pair c
   if (shapeA.type == SPHERE && shapeB.type == BOX) {
     if (box_sphere(shapeB.A, shapeB.R, shapeB.B, shapeA.A, shapeA.B.x, ct_norm[icoll], ct_depth[icoll], ct_pt2[icoll], ct_pt1[icoll], ct_eff_rad[icoll])) {
       ct_norm[icoll] = -ct_norm[icoll];
-      ct_flag[icoll] = 0;
-      ct_body_ids[icoll] = I2(body1, body2);
       nC = 1;
     }
     return true;
@@ -149,8 +125,6 @@ bool RCollision(uint icoll,                // start index of this contact pair c
 
   if (shapeA.type == ROUNDEDBOX && shapeB.type == SPHERE) {
     if (roundedbox_sphere(shapeA.A, shapeA.R, shapeA.B, shapeA.C.x, shapeB.A, shapeB.B.x, ct_norm[icoll], ct_depth[icoll], ct_pt1[icoll], ct_pt2[icoll], ct_eff_rad[icoll])) {
-      ct_flag[icoll] = 0;
-      ct_body_ids[icoll] = I2(body1, body2);
       nC = 1;
     }
     return true;
@@ -159,8 +133,6 @@ bool RCollision(uint icoll,                // start index of this contact pair c
   if (shapeA.type == SPHERE && shapeB.type == ROUNDEDBOX) {
     if (roundedbox_sphere(shapeB.A, shapeB.R, shapeB.B, shapeB.C.x, shapeA.A, shapeA.B.x, ct_norm[icoll], ct_depth[icoll], ct_pt1[icoll], ct_pt2[icoll], ct_eff_rad[icoll])) {
       ct_norm[icoll] = -ct_norm[icoll];
-      ct_flag[icoll] = 0;
-      ct_body_ids[icoll] = I2(body1, body2);
       nC = 1;
     }
     return true;
@@ -168,8 +140,6 @@ bool RCollision(uint icoll,                // start index of this contact pair c
 
   if (shapeA.type == TRIANGLEMESH && shapeB.type == SPHERE) {
     if (face_sphere(shapeA.A, shapeA.B, shapeA.C, shapeB.A, shapeB.B.x, ct_norm[icoll], ct_depth[icoll], ct_pt1[icoll], ct_pt2[icoll], ct_eff_rad[icoll])) {
-      ct_flag[icoll] = 0;
-      ct_body_ids[icoll] = I2(body1, body2);
       nC = 1;
     }
     return true;
@@ -178,8 +148,6 @@ bool RCollision(uint icoll,                // start index of this contact pair c
   if (shapeA.type == SPHERE && shapeB.type == TRIANGLEMESH) {
     if (face_sphere(shapeB.A, shapeB.B, shapeB.C, shapeA.A, shapeA.B.x, ct_norm[icoll], ct_depth[icoll], ct_pt2[icoll], ct_pt1[icoll], ct_eff_rad[icoll])) {
       ct_norm[icoll] = -ct_norm[icoll];
-      ct_flag[icoll] = 0;
-      ct_body_ids[icoll] = I2(body1, body2);
       nC = 1;
     }
     return true;
@@ -188,20 +156,12 @@ bool RCollision(uint icoll,                // start index of this contact pair c
   if (shapeA.type == CAPSULE && shapeB.type == CAPSULE) {
     nC = capsule_capsule(shapeA.A, shapeA.R, shapeA.B.x, shapeA.B.y, shapeB.A, shapeB.R, shapeB.B.x, shapeB.B.y, &ct_norm[icoll], &ct_depth[icoll], &ct_pt1[icoll],
       &ct_pt2[icoll], &ct_eff_rad[icoll]);
-    for (int i = 0; i < nC; i++) {
-      ct_flag[icoll + i] = 0;
-      ct_body_ids[icoll + i] = I2(body1, body2);
-    }
     return true;
   }
 
   if (shapeA.type == BOX && shapeB.type == CAPSULE) {
     nC = box_capsule(shapeA.A, shapeA.R, shapeA.B, shapeB.A, shapeB.R, shapeB.B.x, shapeB.B.y, &ct_norm[icoll], &ct_depth[icoll], &ct_pt1[icoll], &ct_pt2[icoll],
       &ct_eff_rad[icoll]);
-    for (int i = 0; i < nC; i++) {
-      ct_flag[icoll + i] = 0;
-      ct_body_ids[icoll + i] = I2(body1, body2);
-    }
     return true;
   }
 
@@ -210,18 +170,12 @@ bool RCollision(uint icoll,                // start index of this contact pair c
       &ct_eff_rad[icoll]);
     for (int i = 0; i < nC; i++) {
       ct_norm[icoll + i] = -ct_norm[icoll + i];
-      ct_flag[icoll + i] = 0;
-      ct_body_ids[icoll + i] = I2(body1, body2);
     }
     return true;
   }
 
   if (shapeA.type == BOX && shapeB.type == BOX) {
     nC = box_box(shapeA.A, shapeA.R, shapeA.B, shapeB.A, shapeB.R, shapeB.B, &ct_norm[icoll], &ct_depth[icoll], &ct_pt1[icoll], &ct_pt2[icoll], &ct_eff_rad[icoll]);
-    for (int i = 0; i < nC; i++) {
-      ct_flag[icoll + i] = 0;
-      ct_body_ids[icoll + i] = I2(body1, body2);
-    }
     //TODO: Change to true when this is implemented
     return false;
   }

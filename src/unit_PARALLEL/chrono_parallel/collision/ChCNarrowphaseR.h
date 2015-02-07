@@ -106,15 +106,11 @@ CH_PARALLEL_API
 bool RCollision(uint icoll,
                 const ConvexShape &shapeA,
                 const ConvexShape &shapeB,
-                int body1,
-                int body2,
-                uint* ct_flag,
                 real3* ct_norm,
                 real3* ct_pt1,
                 real3* ct_pt2,
                 real* ct_depth,
                 real* ct_eff_rad,
-                int2* ct_body_ids,
                 int& nC);
 
 
