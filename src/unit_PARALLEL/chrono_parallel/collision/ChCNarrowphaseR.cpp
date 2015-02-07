@@ -157,17 +157,17 @@ bool RCollision(const ConvexShape &shapeA, // first candidate shape
   }
 
   if (shapeA.type == CAPSULE && shapeB.type == CAPSULE) {
-    nC = capsule_capsule(shapeA.A, shapeA.R, shapeA.B.x, shapeA.B.y, shapeB.A, shapeB.R, shapeB.B.x, shapeB.B.y, ct_norm, ct_depth, ct_pt1, ct_pt2, ct_eff_rad);
+    nC = capsule_capsule(shapeA.A, shapeA.R, shapeA.B.x, shapeA.B.y, shapeB.A, shapeB.R, shapeB.B.x, shapeB.B.y, separation, ct_norm, ct_depth, ct_pt1, ct_pt2, ct_eff_rad);
     return true;
   }
 
   if (shapeA.type == BOX && shapeB.type == CAPSULE) {
-    nC = box_capsule(shapeA.A, shapeA.R, shapeA.B, shapeB.A, shapeB.R, shapeB.B.x, shapeB.B.y, ct_norm, ct_depth, ct_pt1, ct_pt2, ct_eff_rad);
+    nC = box_capsule(shapeA.A, shapeA.R, shapeA.B, shapeB.A, shapeB.R, shapeB.B.x, shapeB.B.y, separation, ct_norm, ct_depth, ct_pt1, ct_pt2, ct_eff_rad);
     return true;
   }
 
   if (shapeA.type == CAPSULE && shapeB.type == BOX) {
-    nC = box_capsule(shapeB.A, shapeB.R, shapeB.B, shapeA.A, shapeA.R, shapeA.B.x, shapeA.B.y, ct_norm, ct_depth, ct_pt2, ct_pt1, ct_eff_rad);
+    nC = box_capsule(shapeB.A, shapeB.R, shapeB.B, shapeA.A, shapeA.R, shapeA.B.x, shapeA.B.y, separation, ct_norm, ct_depth, ct_pt2, ct_pt1, ct_eff_rad);
     for (int i = 0; i < nC; i++) {
       *(ct_norm + i) = -(*(ct_norm + i));
     }
@@ -612,6 +612,7 @@ int capsule_capsule(const real3& pos1,
                     const real4& rot2,
                     const real& radius2,
                     const real& hlen2,
+                    const real& separation,
                     real3* norm,
                     real* depth,
                     real3* pt1,
@@ -629,7 +630,9 @@ int capsule_capsule(const real3& pos1,
 
   // Sum of radii
   real radSum = radius1 + radius2;
+  real radSum_s = radSum + separation;
   real radSum2 = radSum * radSum;
+  real radSum_s2 = radSum_s * radSum_s;
 
   // If the two capsules intersect, there may be 1 or 2 contacts. Note that 2
   // contacts are possible only if the two capsules are parallel. Calculate
@@ -641,8 +644,8 @@ int capsule_capsule(const real3& pos1,
 
   if (denom < 1e-4f) {
     // The two capsules are parallel. If the distance between their axes is
-    // more than the sum of radii, there is no contact.
-    if (pos.x * pos.x + pos.z * pos.z >= radSum2)
+    // more than the sum of radii plus the separation value, there is no contact.
+    if (pos.x * pos.x + pos.z * pos.z >= radSum_s2)
       return 0;
 
     // Find overlap of the two axes (as signed distances along the axis of
@@ -702,9 +705,10 @@ int capsule_capsule(const real3& pos1,
     real dist2 = dot(delta, delta);
 
     // If the two sphere centers are separated by more than the sum of their
-    // radii, there is no contact. Also ignore contact if the two centers
-    // almost coincide, in which case we cannot decide on the direction.
-    if (dist2 >= radSum2 || dist2 < 1e-12)
+    // radii plus the separation value, there is no contact. Also ignore
+    // contact if the two centers almost coincide, in which case we cannot
+    // decide on the direction.
+    if (dist2 >= radSum_s2 || dist2 < 1e-12)
       continue;
 
     // Generate contact information.
@@ -738,23 +742,26 @@ int box_capsule(const real3& pos1,
                 const real4& rot2,
                 const real& radius2,
                 const real& hlen2,
+                const real& separation,
                 real3* norm,
                 real* depth,
                 real3* pt1,
                 real3* pt2,
                 real* eff_radius)
 {
+  real radius2_s = radius2 + separation;
+
   // Express the capsule in the frame of the box.
   // (this is a bit cryptic with the functions we have available)
   real3 pos = quatRotateMatT(pos2 - pos1, rot1);
   real4 rot = mult(inv(rot1), rot2);
   real3 V = AMatV(rot);
 
-  // Inflate the box by the radius of the capsule and check if the capsule
-  // centerline intersects the expanded box. We do this by clamping the
-  // capsule axis to the volume between two parallel faces of the box,
-  // considering in turn the x, y, and z faces
-  real3 hdims1_exp = radius2 + hdims1;
+  // Inflate the box by the radius of the capsule plus the separation value
+  // and check if the capsule centerline intersects the expanded box. We do
+  // this by clamping the capsule axis to the volume between two parallel
+  // faces of the box, considering in turn the x, y, and z faces.
+  real3 hdims1_exp = radius2_s + hdims1;
   real tMin = -FLT_MAX;  //// TODO: should define a REAL_MAX to be used here
   real tMax = FLT_MAX;
 
@@ -832,14 +839,15 @@ int box_capsule(const real3& pos1,
     real3 boxPos = spherePos;
     uint code = snap_to_box(hdims1, boxPos);
 
-    // If the sphere doesn't touch the closest point then there is no contact.
+    // If the distance from the sphere center to the closest point is larger
+    // than the radius plus the separation value, then there is no contact.
     // Also, ignore contact if the sphere center (almost) coincides with the
     // closest point, in which case we couldn't decide on the proper contact
     // direction.
     real3 delta = spherePos - boxPos;
     real dist2 = dot(delta, delta);
 
-    if (dist2 >= radius2 * radius2 || dist2 <= 1e-12)
+    if (dist2 >= radius2_s * radius2_s || dist2 <= 1e-12)
       continue;
 
     // Generate contact information.
