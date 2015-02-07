@@ -24,6 +24,8 @@
 #include "chrono_opengl/shapes/ChOpenGLWires.h"
 #include "chrono_opengl/shapes/ChOpenGLText.h"
 #include "chrono_opengl/shapes/ChOpenGLOBJ.h"
+#include "chrono_opengl/UI/ChOpenGLContacts.h"
+
 #include "physics/ChSystem.h"
 #include "core/ChTimer.h"
 
@@ -76,11 +78,14 @@ class CH_OPENGL_API ChOpenGLViewer : public ChOpenGLBase {
   ChOpenGLOBJ cylinder;
   ChOpenGLOBJ cone;
 
-  ChOpenGLCloud cloud, contacts;
+  ChOpenGLCloud cloud;
   ChOpenGLWires grid, plots;
   ChOpenGLText text;
+
+  ChOpenGLContacts contact_renderer;
+
   std::vector<glm::vec3> cloud_data;
-  std::vector<glm::vec3> contact_data, grid_data, plot_data;
+  std::vector<glm::vec3> grid_data, plot_data;
   int simulation_frame;     // The current frame number
   float simulation_h;       // The simulation step size
   float simulation_time;    // The current simulation time

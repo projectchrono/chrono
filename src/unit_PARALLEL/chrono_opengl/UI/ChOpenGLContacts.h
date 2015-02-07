@@ -15,19 +15,23 @@
 
 #ifndef CHOPENGLCONTACTS_H
 #define CHOPENGLCONTACTS_H
-
+#include "chrono_opengl/core/ChOpenGLBase.h"
 #include "chrono_opengl/shapes/ChOpenGLCloud.h"
-
+#include "chrono_parallel/physics/ChSystemParallel.h"
 namespace chrono {
 namespace opengl {
-class CH_OPENGL_API ChOpenGLContacts {
+class CH_OPENGL_API ChOpenGLContacts : public ChOpenGLBase {
  public:
   ChOpenGLContacts();
+  bool Initialize(ChOpenGLMaterial mat, ChOpenGLShader* shader);
   void Draw(const glm::mat4& projection, const glm::mat4& view);
   void TakeDown();
-  void Update();
+  void Update(ChSystem* physics_system);
 
  private:
+  void UpdateChrono(ChSystem* physics_system);
+  void UpdateChronoParallel(ChSystemParallel* system);
+
   ChOpenGLCloud contacts;
   std::vector<glm::vec3> contact_data;
 };

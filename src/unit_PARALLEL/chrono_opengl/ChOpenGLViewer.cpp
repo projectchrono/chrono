@@ -89,10 +89,11 @@ void ChOpenGLViewer::TakeDown() {
   cylinder.TakeDown();
   cone.TakeDown();
   cloud.TakeDown();
-  contacts.TakeDown();
   grid.TakeDown();
   plots.TakeDown();
   text.TakeDown();
+  contact_renderer.TakeDown();
+
   for (std::map<std::string, ChOpenGLMesh>::iterator iter = obj_files.begin(); iter != obj_files.end(); iter++) {
     (*iter).second.TakeDown();
   }
@@ -130,12 +131,11 @@ bool ChOpenGLViewer::Initialize() {
   grid_data.push_back(glm::vec3(0, 0, 0));
 
   cloud.Initialize(cloud_data, white, &cloud_shader);
-  contacts.Initialize(cloud_data, darkred, &cloud_shader);
   grid.Initialize(grid_data, darkriver, &cloud_shader);
   plots.Initialize(grid_data, brightriver, &cloud_shader);
 
 
-  contacts.SetPointSize(0.01);
+  contact_renderer.Initialize(darkred, &cloud_shader);
 
   // glEnable(GL_MULTISAMPLE);
   glEnable(GL_POINT_SPRITE);
@@ -598,31 +598,8 @@ void ChOpenGLViewer::RenderContacts() {
     return;
   }
 
-  if (ChSystemParallel* system = dynamic_cast<ChSystemParallel*>(physics_system)) {
-    ChParallelDataManager* data_manager = system->data_manager;
-    int num_contacts = data_manager->num_contacts;
-    if (num_contacts == 0) {
-      return;
-    }
-
-    contact_data.clear();
-    contact_data.resize(num_contacts * 2);
-#pragma omp parallel for
-    for (int i = 0; i < data_manager->num_contacts; i++) {
-
-      real3 cpta = data_manager->host_data.cpta_rigid_rigid[i];
-      real3 cptb = data_manager->host_data.cptb_rigid_rigid[i];
-
-      contact_data[i] = glm::vec3(cpta.x, cpta.y, cpta.z);
-      contact_data[i + data_manager->num_contacts] = glm::vec3(cptb.x, cptb.y, cptb.z);
-    }
-
-    contacts.Update(contact_data);
-    glm::mat4 model(1);
-    contacts.Draw(projection, view * model);
-  } else {
-    return;
-  }
+  contact_renderer.Update(physics_system);
+  contact_renderer.Draw(projection, view);
 }
 void ChOpenGLViewer::RenderAABB() {
   if (view_aabb == false || view_info) {
