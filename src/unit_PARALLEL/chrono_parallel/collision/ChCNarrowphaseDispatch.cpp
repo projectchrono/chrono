@@ -102,52 +102,41 @@ void ChCNarrowphaseDispatch::Process() {
   // std::cout << num_potentialContacts << " " << number_of_contacts << std::endl;
 }
 
-void ChCNarrowphaseDispatch::PreprocessCount() {
+void ChCNarrowphaseDispatch::PreprocessCount()
+{
+  // MPR and GJK always report at most one contact per pair.
+  if (narrowphase_algorithm == NARROWPHASE_MPR /*|| narrowphase_algorithm == NARROWPHASE_GJK*/) {
+    thrust::fill(contact_index.begin(), contact_index.end(), 1);
+    return;
+  }
+
+  // NarrowphaseR (and hence the hybrid algorithms) may produce different number
+  // of contacts per pair, depending on the interacting shapes:
+  //   - an interaction involving a sphere can produce at most one contact
+  //   - an interaction involving a capsule can produce up to two contacts
+  //   - a box-box interaction can produce up to 8 contacts
 
   // shape type (per shape)
   const shape_type* obj_data_T = data_container->host_data.typ_rigid.data();
   // encoded shape IDs (per collision pair)
   const long long* collision_pair = data_container->host_data.pair_rigid_rigid.data();
-  uint* max_contacts = contact_index.data();
 
 #pragma omp parallel for
   for (int index = 0; index < num_potentialCollisions; index++) {
-
     // Identify the two candidate shapes and get their types.
     int2 pair = I2(int(collision_pair[index] >> 32), int(collision_pair[index] & 0xffffffff));
     shape_type type1 = obj_data_T[pair.x];
     shape_type type2 = obj_data_T[pair.y];
 
-    if (narrowphase_algorithm == NARROWPHASE_MPR) {
-      max_contacts[index] = 1;
-      continue;
-      //} else if (narrowphase_algorithm == NARROWPHASE_GJK) {
-      //   max_contacts[index] = 1;
-      //   return;
-    } else if (narrowphase_algorithm == NARROWPHASE_HYBRID_MPR) {
-      max_contacts[index] = 1;
-      if (type1 == SPHERE || type2 == SPHERE) {
-        max_contacts[index] = 1;
-      } else if (type1 == CAPSULE || type2 == CAPSULE) {
-        max_contacts[index] = 2;
-      }
-      continue;
-      //} else if (narrowphase_algorithm == NARROWPHASE_HYBRID_GJK) {
-      //   max_contacts[index] = 1;
-      //   if (type1 == SPHERE || type2 == SPHERE) {
-      //      max_contacts[index] = 1;
-      //   } else if (type1 == CAPSULE || type2 == CAPSULE) {
-      //      max_contacts[index] = 2;
-      //   }
-    }
-
     // Set the maximum number of possible contacts for this particular pair
     if (type1 == SPHERE || type2 == SPHERE) {
-      max_contacts[index] = 1;
+      contact_index[index] = 1;
     } else if (type1 == CAPSULE || type2 == CAPSULE) {
-      max_contacts[index] = 2;
+      contact_index[index] = 2;
+    ////} else if (type1 == BOX && type2 == BOX) {
+    ////  contact_index[index] = 8;
     } else {
-      max_contacts[index] = 4;
+      contact_index[index] = 1;
     }
   }
 }
@@ -220,32 +209,22 @@ void ChCNarrowphaseDispatch::Dispatch_Init(uint index, uint& icoll, uint& ID_A, 
 
 void ChCNarrowphaseDispatch::Dispatch_Finalize(uint icoll, uint ID_A, uint ID_B, int nC) {
 
-  custom_vector<real3>& norm = data_container->host_data.norm_rigid_rigid;
-  custom_vector<real3>& ptA = data_container->host_data.cpta_rigid_rigid;
-  custom_vector<real3>& ptB = data_container->host_data.cptb_rigid_rigid;
-  custom_vector<real>& contactDepth = data_container->host_data.dpth_rigid_rigid;
+  custom_vector<int2>& body_ids = data_container->host_data.bids_rigid_rigid;
 
-  real envelope = 0;
-  if (narrowphase_algorithm == NARROWPHASE_MPR) {
-    envelope = collision_envelope;
-  }
-
-  if (system_type == SYSTEM_DVI) {
-    for (int i = 0; i < nC; i++) {
-      ptA[icoll + i] = ptA[icoll + i] - (norm[icoll + i]) * envelope;
-      ptB[icoll + i] = ptB[icoll + i] + (norm[icoll + i]) * envelope;
-      contactDepth[icoll + i] += envelope * 2;
-    }
+  // Mark the active contacts and set their body IDs
+  for (int i = 0; i < nC; i++) {
+    contact_active[icoll + i] = 0;
+    body_ids[icoll + i] = I2(ID_A, ID_B);
   }
 }
 
 void ChCNarrowphaseDispatch::DispatchMPR() {
+
   custom_vector<real3>& norm = data_container->host_data.norm_rigid_rigid;
   custom_vector<real3>& ptA = data_container->host_data.cpta_rigid_rigid;
   custom_vector<real3>& ptB = data_container->host_data.cptb_rigid_rigid;
   custom_vector<real>& contactDepth = data_container->host_data.dpth_rigid_rigid;
   custom_vector<real>& effective_radius = data_container->host_data.erad_rigid_rigid;
-  custom_vector<int2>& body_ids = data_container->host_data.bids_rigid_rigid;
 
 #pragma omp parallel for
   for (int index = 0; index < num_potentialCollisions; index++) {
@@ -253,16 +232,15 @@ void ChCNarrowphaseDispatch::DispatchMPR() {
     ConvexShape shapeA, shapeB;
 
     Dispatch_Init(index, icoll, ID_A, ID_B, shapeA, shapeB);
-    if (!MPRCollision(shapeA, shapeB, collision_envelope, norm[icoll], ptA[icoll], ptB[icoll], contactDepth[icoll])) {
-      continue;
+
+    if (MPRCollision(shapeA, shapeB, collision_envelope, norm[icoll], ptA[icoll], ptB[icoll], contactDepth[icoll])) {
+      effective_radius[icoll] = edge_radius;
+      // The number of contacts reported by MPR is always 1.
+      Dispatch_Finalize(icoll, ID_A, ID_B, 1);
     }
-    effective_radius[icoll] = edge_radius;
-    body_ids[icoll] = I2(ID_A, ID_B);
-    contact_active[icoll] = 0;
-    // The number of contacts reported by MPR is always 1.
-    Dispatch_Finalize(icoll, ID_A, ID_B, 1);
   }
 }
+
 void ChCNarrowphaseDispatch::DispatchR() {
 
   real3* norm = data_container->host_data.norm_rigid_rigid.data();
@@ -270,72 +248,43 @@ void ChCNarrowphaseDispatch::DispatchR() {
   real3* ptB = data_container->host_data.cptb_rigid_rigid.data();
   real* contactDepth = data_container->host_data.dpth_rigid_rigid.data();
   real* effective_radius = data_container->host_data.erad_rigid_rigid.data();
-  int2* body_ids = data_container->host_data.bids_rigid_rigid.data();
 
 #pragma omp parallel for
   for (int index = 0; index < num_potentialCollisions; index++) {
     uint ID_A, ID_B, icoll;
     ConvexShape shapeA, shapeB;
+    int nC;
+
     Dispatch_Init(index, icoll, ID_A, ID_B, shapeA, shapeB);
-    int nC = 0;
-    if (!RCollision(icoll, shapeA, shapeB, ID_A, ID_B, contact_active.data(), norm, ptA, ptB, contactDepth, effective_radius, body_ids, nC)) {
-      continue;
+
+    if (RCollision(shapeA, shapeB, 2 * collision_envelope, &norm[icoll], &ptA[icoll], &ptB[icoll], &contactDepth[icoll], &effective_radius[icoll], nC)) {
+      Dispatch_Finalize(icoll, ID_A, ID_B, nC);
     }
-    // There is no envelope applied when using the R narrowphase, set it to zero and finalize
-    Dispatch_Finalize(icoll, ID_A, ID_B, nC);
   }
 }
 
 void ChCNarrowphaseDispatch::DispatchHybridMPR() {
-
-  custom_vector<real3>& obj_data_A = obj_data_A_global;
-  custom_vector<real3>& obj_data_B = obj_data_B_global;
-  custom_vector<real3>& obj_data_C = obj_data_C_global;
-  custom_vector<real4>& obj_data_R = obj_data_R_global;
-  custom_vector<int>& obj_data_T = data_container->host_data.typ_rigid;
-  custom_vector<uint>& obj_data_ID = data_container->host_data.id_rigid;
-
-  custom_vector<real3>& convex_data = data_container->host_data.convex_data;
-
-  custom_vector<real3>& body_pos = data_container->host_data.pos_data;
-  custom_vector<real4>& body_rot = data_container->host_data.rot_data;
-
-  custom_vector<long long>& contact_pair = data_container->host_data.pair_rigid_rigid;
 
   real3* norm = data_container->host_data.norm_rigid_rigid.data();
   real3* ptA = data_container->host_data.cpta_rigid_rigid.data();
   real3* ptB = data_container->host_data.cptb_rigid_rigid.data();
   real* contactDepth = data_container->host_data.dpth_rigid_rigid.data();
   real* effective_radius = data_container->host_data.erad_rigid_rigid.data();
-  int2* body_ids = data_container->host_data.bids_rigid_rigid.data();
 
 #pragma omp parallel for
   for (int index = 0; index < num_potentialCollisions; index++) {
     uint ID_A, ID_B, icoll;
     ConvexShape shapeA, shapeB;
-    // The envelope is set to zero if the R narrowphase found the contact.
-    real envelope = collision_envelope;
+    int nC;
 
     Dispatch_Init(index, icoll, ID_A, ID_B, shapeA, shapeB);
-    int nC = 0;
 
-    if (RCollision(icoll, shapeA, shapeB, ID_A, ID_B, contact_active.data(), norm, ptA, ptB, contactDepth, effective_radius, body_ids, nC)) {
-      // this is needed for DVI
-      envelope = 0;
-    } else {
-
-      if (!MPRCollision(shapeA, shapeB, collision_envelope, norm[icoll], ptA[icoll], ptB[icoll], contactDepth[icoll])) {
-        continue;
-      }
-
+    if (RCollision(shapeA, shapeB, 2 * collision_envelope, &norm[icoll], &ptA[icoll], &ptB[icoll], &contactDepth[icoll], &effective_radius[icoll], nC)) {
+      Dispatch_Finalize(icoll, ID_A, ID_B, nC);
+    } else if (MPRCollision(shapeA, shapeB, collision_envelope, norm[icoll], ptA[icoll], ptB[icoll], contactDepth[icoll])) {
       effective_radius[icoll] = edge_radius;
-      body_ids[icoll] = I2(ID_A, ID_B);
-      contact_active[icoll] = 0;
-
-      nC = 1;
+      Dispatch_Finalize(icoll, ID_A, ID_B, 1);
     }
-
-    Dispatch_Finalize(icoll, ID_A, ID_B, nC);
   }
 }
 
@@ -353,5 +302,6 @@ void ChCNarrowphaseDispatch::Dispatch() {
       break;
   }
 }
-}
-}
+
+} // end namespace collision
+} // end namespace chrono

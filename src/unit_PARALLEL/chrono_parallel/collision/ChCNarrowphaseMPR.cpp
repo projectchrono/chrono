@@ -685,12 +685,14 @@ bool chrono::collision::MPRCollision(const ConvexShape & shapeA,
                                      real3 &pointB,
                                      real &depth) {
    real3 point;
-   if (!MPRContact(shapeA, shapeB,envelope, normal, point, depth)) {
+   if (!MPRContact(shapeA, shapeB, envelope, normal, point, depth)) {
       return false;
    }
 
-   MPRGetPoints(shapeA, shapeB,envelope, normal, point, pointA, pointB);
+   MPRGetPoints(shapeA, shapeB, envelope, normal, point, pointA, pointB);
 
+   pointA = pointA - normal * envelope;
+   pointB = pointB + normal * envelope;
    depth = dot(normal, pointB - pointA);
 
    return true;
