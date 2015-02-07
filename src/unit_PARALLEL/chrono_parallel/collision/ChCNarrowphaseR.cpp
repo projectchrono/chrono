@@ -146,6 +146,25 @@ bool chrono::collision::RCollision(uint icoll,                // index of this c
       return true;
    }
 
+   if (shapeA.type == ROUNDEDBOX && shapeB.type == SPHERE) {
+      if (roundedbox_sphere(shapeA.A, shapeA.R, shapeA.B, shapeA.C.x, shapeB.A, shapeB.B.x, ct_norm[icoll], ct_depth[icoll], ct_pt1[icoll], ct_pt2[icoll], ct_eff_rad[icoll])) {
+         ct_flag[icoll] = 0;
+         ct_body_ids[icoll] = I2(body1, body2);
+         nC = 1;
+      }
+      return true;
+   }
+
+   if (shapeA.type == SPHERE && shapeB.type == ROUNDEDBOX) {
+      if (roundedbox_sphere(shapeB.A, shapeB.R, shapeB.B, shapeB.C.x, shapeA.A, shapeA.B.x, ct_norm[icoll], ct_depth[icoll], ct_pt1[icoll], ct_pt2[icoll], ct_eff_rad[icoll])) {
+         ct_norm[icoll] = -ct_norm[icoll];
+         ct_flag[icoll] = 0;
+         ct_body_ids[icoll] = I2(body1, body2);
+         nC = 1;
+      }
+      return true;
+   }
+
    if (shapeA.type == TRIANGLEMESH && shapeB.type == SPHERE) {
       if (face_sphere(shapeA.A, shapeA.B, shapeA.C, shapeB.A, shapeB.B.x, ct_norm[icoll], ct_depth[icoll], ct_pt1[icoll], ct_pt2[icoll], ct_eff_rad[icoll])) {
          ct_flag[icoll] = 0;
@@ -205,7 +224,8 @@ bool chrono::collision::RCollision(uint icoll,                // index of this c
       //TODO: Change to true when this is implemented
       return false;
    }
-   //Contact could not checked using this CD algorithm
+
+   //Contact could not be checked using this CD algorithm
    return false;
 }
 
@@ -473,6 +493,61 @@ bool chrono::collision::box_sphere(const real3& pos1,
       eff_radius = radius2;
 
    return true;
+}
+
+// =============================================================================
+//              ROUNDEDBOX - SPHERE
+
+// RoundedBox-sphere narrow phase collision detection.
+// In:  roundedbox at position pos1, with orientation rot1
+//              roundedbox has half-dimensions hdims1
+//              radius of the sweeping sphere is srad1
+//      sphere centered at pos2 and with radius2
+__host__ __device__
+bool chrono::collision::roundedbox_sphere(const real3& pos1,
+                                          const real4& rot1,
+                                          const real3& hdims1,
+                                          const real& srad1,
+                                          const real3& pos2,
+                                          const real& radius2,
+                                          real3& norm,
+                                          real& depth,
+                                          real3& pt1,
+                                          real3& pt2,
+                                          real& eff_radius) {
+  // Express the sphere position in the frame of the rounded box.
+  real3 spherePos = TransformParentToLocal(pos1, rot1, pos2);
+
+  // Snap the sphere position to the surface of the skeleton box.
+  real3 boxPos = spherePos;
+  uint code = snap_to_box(hdims1, boxPos);
+
+  // Reduce the problem to the interaction between two spheres:
+  //    (a) a sphere with radius srad1, centered at boxPos
+  //    (b) a sphere with radius radius2, centered at spherePos
+  // If the two sphere centers are farther away that the radii sum, there is
+  // no contact. Also, ignore contact if the two centers almost coincide, in
+  // which case we couldn't decide on the proper contact direction.
+  real radSum = srad1 + radius2;
+  real3 delta = spherePos - boxPos;
+  real dist2 = dot(delta, delta);
+
+  if (dist2 >= radSum * radSum || dist2 <= 1e-12f)
+    return false;
+
+  // Generate contact information.
+  real dist = sqrt(dist2);
+  depth = dist - radSum;
+  norm = quatRotateMat(delta / dist, rot1);
+  pt2 = pos2 - norm * radius2;
+  pt1 = pt2 - depth * norm;
+
+  if ((code != 1) & (code != 2) & (code != 4))
+    eff_radius = radius2 * srad1 / (radius2 + srad1);
+  else
+    eff_radius = radius2;
+
+  return true;
 }
 
 // =============================================================================
