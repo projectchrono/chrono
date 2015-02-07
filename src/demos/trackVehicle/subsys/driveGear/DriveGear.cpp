@@ -66,6 +66,11 @@ DriveGear::DriveGear(const std::string& name,
 
   AddVisualization();
  
+  if(collide == CollisionType::CALLBACKFUNCTION)
+  {
+    // default constructor should set correct values for M113 gear and pin
+    m_geom = ChSharedPtr<GearPinGeometry>(new GearPinGeometry() );
+  }
 }
 
 

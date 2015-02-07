@@ -26,6 +26,9 @@
 #include "physics/ChShaftsBody.h"
 #include "ModelDefs.h"
 
+// collision callback function
+#include "subsys/collision/TrackCollisionCallback.h"
+
 namespace chrono {
 
 
@@ -82,6 +85,9 @@ private:
 
   const std::string m_meshName;
   const std::string m_meshFile;
+
+  // data container for callback collision function
+  ChSharedPtr<GearPinGeometry> m_geom;
 
   // static variables
   static const ChVector<> m_inertia;
