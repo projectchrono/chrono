@@ -76,10 +76,10 @@ class CH_OPENGL_API ChOpenGLViewer : public ChOpenGLBase {
   ChOpenGLOBJ cylinder;
   ChOpenGLOBJ cone;
 
-  ChOpenGLCloud cloud, contacts, fluid;
+  ChOpenGLCloud cloud, contacts;
   ChOpenGLWires grid, plots;
   ChOpenGLText text;
-  std::vector<glm::vec3> cloud_data, fluid_data;
+  std::vector<glm::vec3> cloud_data;
   std::vector<glm::vec3> contact_data, grid_data, plot_data;
   int simulation_frame;     // The current frame number
   float simulation_h;       // The simulation step size

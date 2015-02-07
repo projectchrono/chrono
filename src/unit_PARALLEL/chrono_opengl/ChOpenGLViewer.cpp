@@ -89,7 +89,6 @@ void ChOpenGLViewer::TakeDown() {
   cone.TakeDown();
   cloud.TakeDown();
   contacts.TakeDown();
-  fluid.TakeDown();
   grid.TakeDown();
   plots.TakeDown();
   for (std::map<std::string, ChOpenGLMesh>::iterator iter = obj_files.begin(); iter != obj_files.end(); iter++) {
@@ -147,37 +146,18 @@ bool ChOpenGLViewer::Initialize() {
   cylinder.Initialize("../resources/cylinder.obj", apple, &main_shader);
   cone.Initialize("../resources/cone.obj", white, &main_shader);
 
-  text.Initialize(text_mat, &font_shader);
 
-  // Point cloud mode will draw the rigid bodies and any other physics items.
-  // Currently only fluid is supported
-  cloud_data.resize(physics_system->Get_bodylist()->size());
-  fluid_data.resize(physics_system->Get_otherphysicslist()->size());
-#pragma omp parallel for
-  for (int i = 0; i < physics_system->Get_bodylist()->size(); i++) {
-    ChBody* abody = (ChBody*)physics_system->Get_bodylist()->at(i);
 
-    ChVector<> pos = abody->GetPos();
-    cloud_data[i] = glm::vec3(pos.x, pos.y, pos.z);
-  }
-
-  // Get the fluid point data
-  for (int i = 0; i < physics_system->Get_otherphysicslist()->size(); i++) {
-    if (ChNodeFluid* node = dynamic_cast<ChNodeFluid*>(physics_system->Get_otherphysicslist()->at(i))) {
-      ChVector<> pos = node->GetPos();
-      fluid_data[i] = glm::vec3(pos.x, pos.y, pos.z);
-    }
-  }
 
   cloud_data.push_back(glm::vec3(0, 0, 0));
   grid_data.push_back(glm::vec3(0, 0, 0));
-  fluid_data.push_back(glm::vec3(0, 0, 0));
 
   cloud.Initialize(cloud_data, white, &cloud_shader);
-  fluid.Initialize(fluid_data, river, &dot_shader);
   contacts.Initialize(cloud_data, darkred, &cloud_shader);
   grid.Initialize(grid_data, darkriver, &cloud_shader);
   plots.Initialize(grid_data, brightriver, &cloud_shader);
+
+
   contacts.SetPointSize(0.01);
 
   // glEnable(GL_MULTISAMPLE);
@@ -252,23 +232,6 @@ void ChOpenGLViewer::Render() {
           (*iter).second.Draw(projection, view);
         }
       }
-      // Get the fluid point data
-      //      fluid_data.resize(physics_system->Get_otherphysicslist()->size());
-      //#pragma omp parallel for
-      //      for (int i = 0; i < physics_system->Get_otherphysicslist()->size(); i++) {
-      //        if (ChNodeFluid* node = dynamic_cast<ChNodeFluid*>(physics_system->Get_otherphysicslist()->at(i))) {
-      //          ChVector<> pos = node->GetPos();
-      //          fluid_data[i] = glm::vec3(pos.x, pos.y, pos.z);
-      //        }
-      //      }
-      //      fluid.AttachShader(&dot_shader);
-      //      if (ChSystemParallelDVI* parallel_sys = dynamic_cast<ChSystemParallelDVI*>(physics_system)) {
-      //        if (parallel_sys->data_manager->settings.fluid.fluid_is_rigid) {
-      //          fluid.SetPointSize(parallel_sys->data_manager->settings.fluid.kernel_radius * 2);
-      //        } else {
-      //          fluid.SetPointSize(parallel_sys->data_manager->settings.fluid.kernel_radius * 2 * .51);
-      //        }
-      //      }
     } else {
       cloud_data.resize(physics_system->Get_bodylist()->size());
 #pragma omp parallel for
@@ -277,24 +240,8 @@ void ChOpenGLViewer::Render() {
         ChVector<> pos = abody->GetPos();
         cloud_data[i] = glm::vec3(pos.x, pos.y, pos.z);
       }
+    }
 
-      fluid_data.resize(physics_system->Get_otherphysicslist()->size());
-// Get the fluid point data
-#pragma omp parallel for
-      for (int i = 0; i < physics_system->Get_otherphysicslist()->size(); i++) {
-        if (ChNodeFluid* node = dynamic_cast<ChNodeFluid*>(physics_system->Get_otherphysicslist()->at(i))) {
-          ChVector<> pos = node->GetPos();
-          fluid_data[i] = glm::vec3(pos.x, pos.y, pos.z);
-        }
-      }
-      fluid.AttachShader(&cloud_shader);
-      fluid.SetPointSize(0.005);
-    }
-    if (physics_system->Get_otherphysicslist()->size() > 0) {
-      fluid.Update(fluid_data);
-      glm::mat4 model(1);
-      fluid.Draw(projection, view * model);
-    }
     if (render_mode == POINTS) {
       cloud.Update(cloud_data);
       glm::mat4 model(1);
