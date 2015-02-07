@@ -19,23 +19,33 @@
 #include "chrono_opengl/core/ChOpenGLBase.h"
 #include "chrono_opengl/core/ChOpenGLMaterial.h"
 #include "chrono_opengl/shapes/ChOpenGLText.h"
+#include "chrono_opengl/ChOpenGLCamera.h"
+
+#include "chrono_parallel/physics/ChSystemParallel.h"
 
 namespace chrono {
 namespace opengl {
 class CH_OPENGL_API ChOpenGLHUD : public ChOpenGLBase {
  public:
   ChOpenGLHUD();
-  bool Initialize();
-  void DrawHelp();
-  void DrawStats();
+  bool Initialize(ChOpenGLCamera* camera);
+  void GenerateHelp();
+  void GenerateCamera();
+  void GenerateSystem(ChSystem* physics_system);
+  void GenerateSolver(ChSystem* physics_system);
+  void GenerateCD(ChSystem* physics_system);
+  void GenerateRenderer();
+  void GenerateStats(ChSystem* physics_system);
   void TakeDown();
-  void Update(const glm::ivec2& window_size, const float & dpi);
+  void Update(const glm::ivec2& window_size, const float& dpi);
+  void Draw();
 
  private:
   ChOpenGLText text;
   ChOpenGLShader font_shader;
   float sx, sy, spacing;
   char buffer[50];
+  ChOpenGLCamera* render_camera;
 };
 }
 }

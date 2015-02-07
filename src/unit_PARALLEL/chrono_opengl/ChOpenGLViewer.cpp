@@ -117,7 +117,7 @@ bool ChOpenGLViewer::Initialize() {
   cylinder.Initialize("../resources/cylinder.obj", apple, &main_shader);
   cone.Initialize("../resources/cone.obj", white, &main_shader);
 
-  HUD_renderer.Initialize();
+  HUD_renderer.Initialize(&render_camera);
 
   cloud_data.push_back(glm::vec3(0, 0, 0));
   grid_data.push_back(glm::vec3(0, 0, 0));
@@ -389,12 +389,11 @@ void ChOpenGLViewer::DisplayHUD() {
   GLReturnedError("Start text");
   HUD_renderer.Update(window_size, dpi);
   if (view_help) {
-
-    HUD_renderer.DrawHelp();
+    HUD_renderer.GenerateHelp();
   } else {
-    HUD_renderer.DrawStats();
+    HUD_renderer.GenerateStats(physics_system);
   }
-  //  text.Draw(projection, view);
+  HUD_renderer.Draw();
 }
 
 void ChOpenGLViewer::RenderContacts() {
