@@ -22,6 +22,7 @@
 #include "chrono_opengl/core/ChOpenGLShader.h"
 #include "chrono_opengl/shapes/ChOpenGLCloud.h"
 #include "chrono_opengl/shapes/ChOpenGLWires.h"
+#include "chrono_opengl/shapes/ChOpenGLText.h"
 #include "chrono_opengl/shapes/ChOpenGLOBJ.h"
 #include "physics/ChSystem.h"
 #include "core/ChTimer.h"
@@ -47,8 +48,6 @@ class CH_OPENGL_API ChOpenGLViewer : public ChOpenGLBase {
   bool Update(double time_step);
   void Render();
   void DrawObject(ChBody* abody);
-  void GenerateFontIndex();
-  void RenderText(const std::string& str, float x, float y, float sx, float sy);
   void DisplayHUD();
   void RenderContacts();
   void RenderAABB();
@@ -72,8 +71,6 @@ class CH_OPENGL_API ChOpenGLViewer : public ChOpenGLBase {
   ChOpenGLShader sphere_shader;
   ChOpenGLShader font_shader;
 
-  std::map<char, int> char_index;
-
   ChOpenGLOBJ sphere;
   ChOpenGLOBJ box;
   ChOpenGLOBJ cylinder;
@@ -81,6 +78,7 @@ class CH_OPENGL_API ChOpenGLViewer : public ChOpenGLBase {
 
   ChOpenGLCloud cloud, contacts, fluid;
   ChOpenGLWires grid, plots;
+  ChOpenGLText text;
   std::vector<glm::vec3> cloud_data, fluid_data;
   std::vector<glm::vec3> contact_data, grid_data, plot_data;
   int simulation_frame;     // The current frame number
@@ -95,9 +93,6 @@ class CH_OPENGL_API ChOpenGLViewer : public ChOpenGLBase {
 
   glm::mat4 model, view, projection, modelview;
 
-  GLuint vbo, vao;
-  GLuint text_texture_handle, text_color_handle;
-  GLuint texture, sampler;
   ChTimer<double> render_timer, text_timer, geometry_timer;
   float old_time, current_time;
   float time_geometry, time_text, time_total, fps;
@@ -106,7 +101,6 @@ class CH_OPENGL_API ChOpenGLViewer : public ChOpenGLBase {
   std::vector<glm::mat4> model_sphere;
   std::vector<glm::mat4> model_cylinder;
   std::vector<glm::mat4> model_cone;
-  std::vector<glm::vec4> text_data;
   std::map<std::string, ChOpenGLMesh> obj_files;
   std::map<std::string, std::vector<glm::mat4> > model_obj;
 };
