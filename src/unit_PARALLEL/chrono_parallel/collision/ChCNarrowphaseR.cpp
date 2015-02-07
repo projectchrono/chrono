@@ -97,14 +97,14 @@ bool RCollision(const ConvexShape &shapeA, // first candidate shape
   }
 
   if (shapeA.type == ROUNDEDCYL && shapeB.type == SPHERE) {
-    if (roundedcyl_sphere(shapeA.A, shapeA.R, shapeA.B.x, shapeA.B.y, shapeA.C.x, shapeB.A, shapeB.B.x, *ct_norm, *ct_depth, *ct_pt1, *ct_pt2, *ct_eff_rad)) {
+    if (roundedcyl_sphere(shapeA.A, shapeA.R, shapeA.B.x, shapeA.B.y, shapeA.C.x, shapeB.A, shapeB.B.x, separation, *ct_norm, *ct_depth, *ct_pt1, *ct_pt2, *ct_eff_rad)) {
       nC = 1;
     }
     return true;
   }
 
   if (shapeA.type == SPHERE && shapeB.type == ROUNDEDCYL) {
-    if (roundedcyl_sphere(shapeB.A, shapeB.R, shapeB.B.x, shapeB.B.y, shapeB.C.x, shapeA.A, shapeA.B.x, *ct_norm, *ct_depth, *ct_pt2, *ct_pt1, *ct_eff_rad)) {
+    if (roundedcyl_sphere(shapeB.A, shapeB.R, shapeB.B.x, shapeB.B.y, shapeB.C.x, shapeA.A, shapeA.B.x, separation, *ct_norm, *ct_depth, *ct_pt2, *ct_pt1, *ct_eff_rad)) {
       *ct_norm = -(*ct_norm);
       nC = 1;
     }
@@ -127,14 +127,14 @@ bool RCollision(const ConvexShape &shapeA, // first candidate shape
   }
 
   if (shapeA.type == ROUNDEDBOX && shapeB.type == SPHERE) {
-    if (roundedbox_sphere(shapeA.A, shapeA.R, shapeA.B, shapeA.C.x, shapeB.A, shapeB.B.x, *ct_norm, *ct_depth, *ct_pt1, *ct_pt2, *ct_eff_rad)) {
+    if (roundedbox_sphere(shapeA.A, shapeA.R, shapeA.B, shapeA.C.x, shapeB.A, shapeB.B.x, separation, *ct_norm, *ct_depth, *ct_pt1, *ct_pt2, *ct_eff_rad)) {
       nC = 1;
     }
     return true;
   }
 
   if (shapeA.type == SPHERE && shapeB.type == ROUNDEDBOX) {
-    if (roundedbox_sphere(shapeB.A, shapeB.R, shapeB.B, shapeB.C.x, shapeA.A, shapeA.B.x, *ct_norm, *ct_depth, *ct_pt2, *ct_pt1, *ct_eff_rad)) {
+    if (roundedbox_sphere(shapeB.A, shapeB.R, shapeB.B, shapeB.C.x, shapeA.A, shapeA.B.x, separation, *ct_norm, *ct_depth, *ct_pt2, *ct_pt1, *ct_eff_rad)) {
       *ct_norm = -(*ct_norm);
       nC = 1;
     }
@@ -142,14 +142,14 @@ bool RCollision(const ConvexShape &shapeA, // first candidate shape
   }
 
   if (shapeA.type == TRIANGLEMESH && shapeB.type == SPHERE) {
-    if (face_sphere(shapeA.A, shapeA.B, shapeA.C, shapeB.A, shapeB.B.x, *ct_norm, *ct_depth, *ct_pt1, *ct_pt2, *ct_eff_rad)) {
+    if (face_sphere(shapeA.A, shapeA.B, shapeA.C, shapeB.A, shapeB.B.x, separation, *ct_norm, *ct_depth, *ct_pt1, *ct_pt2, *ct_eff_rad)) {
       nC = 1;
     }
     return true;
   }
 
   if (shapeA.type == SPHERE && shapeB.type == TRIANGLEMESH) {
-    if (face_sphere(shapeB.A, shapeB.B, shapeB.C, shapeA.A, shapeA.B.x, *ct_norm, *ct_depth, *ct_pt2, *ct_pt1, *ct_eff_rad)) {
+    if (face_sphere(shapeB.A, shapeB.B, shapeB.C, shapeA.A, shapeA.B.x, separation, *ct_norm, *ct_depth, *ct_pt2, *ct_pt1, *ct_eff_rad)) {
       *ct_norm = -(*ct_norm);
       nC = 1;
     }
@@ -361,6 +361,7 @@ bool roundedcyl_sphere(const real3& pos1,
                        const real& srad1,
                        const real3& pos2,
                        const real& radius2,
+                       const real& separation,
                        real3& norm,
                        real& depth,
                        real3& pt1,
@@ -382,14 +383,16 @@ bool roundedcyl_sphere(const real3& pos1,
   // Reduce the problem to the interaction between two spheres:
   //    (a) a sphere with radius srad1, centered at cylPos
   //    (b) a sphere with radius radius2, centered at spherePos
-  // If the two sphere centers are farther away that the radii sum, there is
-  // no contact. Also, ignore contact if the two centers almost coincide, in
-  // which case we couldn't decide on the proper contact direction.
+  // If the two sphere centers are farther away that the radii sum plus the
+  // separation distance, there is no contact. Also, ignore contact if the
+  // two centers almost coincide, in which case we couldn't decide on the
+  // proper contact direction.
   real radSum = srad1 + radius2;
+  real radSum_s = radSum + separation;
   real3 delta = spherePos - cylPos;
   real dist2 = dot(delta, delta);
 
-  if (dist2 >= radSum * radSum || dist2 <= 1e-12f)
+  if (dist2 >= radSum_s * radSum_s || dist2 <= 1e-12f)
     return false;
 
   // Generate contact information.
@@ -482,6 +485,7 @@ bool roundedbox_sphere(const real3& pos1,
                        const real& srad1,
                        const real3& pos2,
                        const real& radius2,
+                       const real& separation,
                        real3& norm,
                        real& depth,
                        real3& pt1,
@@ -498,14 +502,16 @@ bool roundedbox_sphere(const real3& pos1,
   // Reduce the problem to the interaction between two spheres:
   //    (a) a sphere with radius srad1, centered at boxPos
   //    (b) a sphere with radius radius2, centered at spherePos
-  // If the two sphere centers are farther away that the radii sum, there is
-  // no contact. Also, ignore contact if the two centers almost coincide, in
-  // which case we couldn't decide on the proper contact direction.
+  // If the two sphere centers are farther away that the radii sum plus the
+  // separation value, there is no contact. Also, ignore contact if the two
+  // centers almost coincide, in which case we couldn't decide on the proper
+  // contact direction.
   real radSum = srad1 + radius2;
+  real radSum_s = radSum + separation;
   real3 delta = spherePos - boxPos;
   real dist2 = dot(delta, delta);
 
-  if (dist2 >= radSum * radSum || dist2 <= 1e-12f)
+  if (dist2 >= radSum_s * radSum_s || dist2 <= 1e-12f)
     return false;
 
   // Generate contact information.
@@ -535,21 +541,24 @@ bool face_sphere(const real3& A1,
                  const real3& C1,
                  const real3& pos2,
                  const real& radius2,
+                 const real& separation,
                  real3& norm,
                  real& depth,
                  real3& pt1,
                  real3& pt2,
                  real& eff_radius)
 {
+  real radius2_s = radius2 + separation;
+
   // Calculate face normal.
   real3 nrm1 = face_normal(A1, B1, C1);
 
   // Calculate signed height of sphere center above face plane. If the
-  // height is larger than the sphere radius or if the sphere center is
-  // below the plane, there is no contact.
+  // height is larger than the sphere radius plus the separation value
+  // or if the sphere center is below the plane, there is no contact.
   real h = dot(pos2 - A1, nrm1);
 
-  if (h >= radius2 || h <= 0)
+  if (h >= radius2_s || h <= 0)
     return false;
 
   // Find the closest point on the face to the sphere center and determine
@@ -557,14 +566,15 @@ bool face_sphere(const real3& A1,
   real3 faceLoc;
 
   if (snap_to_face(A1, B1, C1, pos2, faceLoc)) {
-    // Closest face feature is an edge. If the sphere doesn't touch the
-    // closest point then there is no contact. Also, ignore contact if
+    // Closest face feature is an edge. If the distance between the sphere
+    // center and the closest point is more than the radius plus the
+    // separation value, then there is no contact. Also, ignore contact if
     // the sphere center (almost) coincides with the closest point, in
     // which case we couldn't decide on the proper contact direction.
     real3 delta = pos2 - faceLoc;
     real dist2 = dot(delta, delta);
 
-    if (dist2 >= radius2 * radius2 || dist2 <= 1e-12f)
+    if (dist2 >= radius2_s * radius2_s || dist2 <= 1e-12f)
       return false;
 
     real dist = sqrt(dist2);
