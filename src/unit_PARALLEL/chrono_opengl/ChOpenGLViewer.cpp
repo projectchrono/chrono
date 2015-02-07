@@ -92,6 +92,7 @@ void ChOpenGLViewer::TakeDown() {
   contacts.TakeDown();
   grid.TakeDown();
   plots.TakeDown();
+  text.TakeDown();
   for (std::map<std::string, ChOpenGLMesh>::iterator iter = obj_files.begin(); iter != obj_files.end(); iter++) {
     (*iter).second.TakeDown();
   }
@@ -122,6 +123,7 @@ bool ChOpenGLViewer::Initialize() {
   cone.Initialize("../resources/cone.obj", white, &main_shader);
 
 
+  text.Initialize(text_mat, &font_shader);
 
 
   cloud_data.push_back(glm::vec3(0, 0, 0));
