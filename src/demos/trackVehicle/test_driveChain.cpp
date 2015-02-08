@@ -59,7 +59,7 @@ ChVector<> initLoc(0, 1.0, 0);
 ChQuaternion<> initRot(QUNIT);
 
 // Simulation step size
-double step_size = 0.001;
+double step_size = 0.002;
 
 size_t num_idlers = 1;
 
@@ -71,12 +71,12 @@ double output_step_size = 1.0 / 1;    // once a second
 
 // #ifdef USE_IRRLICHT
   // Point on chassis tracked by the camera, chassis c-sys
-ChVector<> trackPoint(0, 0.2, 0);
+ChVector<> trackPoint(-1, 0, 0);
 // if chase cam enabled:
 double chaseDist = 1.8;
 double chaseHeight = 0.0;
 // set a static camera position, global c-sys
-ChVector<> cameraPos(0.3, 1.6, 1.5);
+ChVector<> cameraPos(-1, 1.5, 2.5);
 bool use_fixed_camera = true;
 bool do_shadows = false; // shadow map is experimental
 
@@ -94,6 +94,7 @@ int main(int argc, char* argv[])
 {
   // NOTE: utils library built with this sets this statically
   // SetChronoDataPath(CHRONO_DATA_DIR);
+
   // --------------------------
   // Create the Chain system (drive gear, idler, chain)
 
@@ -116,7 +117,6 @@ int main(int argc, char* argv[])
   // Setup the Irrlicht GUI
 
   // Create the Irrlicht visualization applicaiton
-
   ChIrrApp application(chainSystem.GetSystem(),
                       L"test driveChain demo",
                       dimension2d<u32>(1200, 800),
@@ -152,11 +152,12 @@ int main(int argc, char* argv[])
 
   // Set the time response for steering and throttle keyboard inputs.
   // NOTE: this is not exact, since we do not render quite at the specified FPS.
-  double throttle_time = 1.0;  // time to go from 0 to +1
-  double braking_time = 0.3;	// time to go from 0 to +1
+  double throttle_time = 2.0;  // time to go from 0 to +1
+  double braking_time = 0.5;	// time to go from 0 to +1
   // driver.SetSteeringDelta(render_step_size / 1);
   driver.SetThrottleDelta(render_step_size / throttle_time);
   driver.SetBrakingDelta(render_step_size / braking_time);
+  driver.SetDampingDelta(render_step_size / 3.0);
 
   // Set up the assets for rendering
   application.AssetBindAll();
