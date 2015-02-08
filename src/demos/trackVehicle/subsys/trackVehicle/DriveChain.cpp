@@ -227,7 +227,7 @@ void DriveChain::Initialize(const ChCoordsys<>& gear_Csys)
     start_pos );
   
   // can set pin friction between adjoining shoes by activing damping on the DOF
-  m_chain->Set_pin_friction(2.0); // [N-m-sec] ???
+  // m_chain->Set_pin_friction(2.0); // [N-m-sec] ???
 
   // initialize the powertrain, drivelines
   m_ptrain->Initialize(m_chassis, m_gear->GetAxle() );
@@ -270,8 +270,8 @@ void DriveChain::Update(double time,
 void DriveChain::Advance(double step)
 {
   double t = 0;
-  m_system->SetIterLCPmaxItersStab(60);
-  m_system->SetIterLCPmaxItersSpeed(75);
+  m_system->SetIterLCPmaxItersStab(80);
+  m_system->SetIterLCPmaxItersSpeed(95);
   double settlePhaseA = 0.3;
   double settlePhaseB = 1.0;
   while (t < step) {
@@ -285,7 +285,7 @@ void DriveChain::Advance(double step)
     {
       h = 1e-3;
       m_system->SetIterLCPmaxItersStab(75);
-      m_system->SetIterLCPmaxItersSpeed(75);
+      m_system->SetIterLCPmaxItersSpeed(150);
     }
     m_system->DoStepDynamics(h);
     t += h;
@@ -300,6 +300,12 @@ double DriveChain::GetIdlerForce() const
   ChVector<> out_force = m_idlers[0]->GetSpringForce();
 
   return out_force.Length();
+}
+
+// call the chain function to update the constant damping coef.
+void DriveChain::SetShoePinDamping(double damping)
+{
+  m_chain->Set_pin_friction(damping);
 }
 
 

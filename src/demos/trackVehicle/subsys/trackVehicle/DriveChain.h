@@ -60,7 +60,11 @@ public:
   /// Advance the vehicle (and the ChSystem)
   virtual void Advance(double step);
 
+  /// set the pin friction as a damping value
+  virtual void SetShoePinDamping(double damping);
+
   // Accessors
+  virtual double GetShoePinDamping() {return m_chain->Get_pin_damping(); }
 
   /// Get the angular speed of the driveshaft.
   virtual double GetDriveshaftSpeed(size_t idx) const { return m_gear->GetAxle()->GetPos_dt(); }
