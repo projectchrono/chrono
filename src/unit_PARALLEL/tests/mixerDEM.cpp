@@ -179,7 +179,7 @@ int main(int argc,
    // ---------------------
 
    double gravity = 9.81;
-   double time_step = 1e-5;
+   double time_step = 1e-4;
    double time_end = 1;
 
    double out_fps = 50;
