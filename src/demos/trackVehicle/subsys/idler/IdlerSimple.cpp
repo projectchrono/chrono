@@ -44,7 +44,7 @@ const double IdlerSimple::m_radius = 0.255;
 const double IdlerSimple::m_width = 0.166*2.4;
 const double IdlerSimple::m_widthGap = .092*1.5; // 0.092; 
 const double IdlerSimple::m_springK = 200000;
-const double IdlerSimple::m_springC = 10000;
+const double IdlerSimple::m_springC = 5000;
 const double IdlerSimple::m_springRestLength = 1.0;
 
 
