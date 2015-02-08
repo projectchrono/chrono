@@ -53,6 +53,8 @@ ChIrrGuiTrack::ChIrrGuiTrack(ChIrrApp&          app,
   m_throttleDelta(1.0/50),
   m_steeringDelta(1.0/50),
   m_brakingDelta(1.0/50),
+  m_dampingDelta(0),
+  m_dampingVal(vehicle.GetShoePinDamping()),
   m_camera(vehicle.GetChassis()),
   m_stepsize(1e-3),
   ChDriverTrack(2)
@@ -73,6 +75,22 @@ ChIrrGuiTrack::ChIrrGuiTrack(ChIrrApp&          app,
   camera->setPosition(core::vector3df((f32)cam_pos.x, (f32)cam_pos.y, (f32)cam_pos.z));
   camera->setTarget(core::vector3df((f32)cam_target.x, (f32)cam_target.y, (f32)cam_target.z));
 
+}
+
+
+// set a damping value, clamped between 
+void ChIrrGuiTrack::SetDamping(double delta, double min_val, double max_val)
+{
+  double val = m_dampingVal + delta;
+  if (val <= min_val)
+    val = min_val;
+  if (val >= max_val)
+    val = max_val;
+
+  // update the Irr driver value for pin friction damping
+  m_dampingVal = val;
+  // update the chain system with the val
+  m_vehicle.SetShoePinDamping(m_dampingVal);
 }
 
 
@@ -104,6 +122,15 @@ bool ChIrrGuiTrack::OnEvent(const SEvent& event)
     case KEY_KEY_S:
       // both throttles decrease
       SetThrottle(-m_throttleDelta);
+      return true;
+
+    case KEY_KEY_E:
+      // increase damping
+      SetDamping(m_dampingDelta);
+      return true;
+    case KEY_KEY_Q:
+      // reduce damping
+      SetDamping(-m_dampingDelta);
       return true;
 
     // control each track throttle/brake individually
@@ -408,20 +435,15 @@ void ChIrrGuiTrack::renderStats()
     }
     renderLinGauge(std::string(msg), (double)ngear / 4.0, false, m_HUD_x, y_pos += 20, 120, 15);
 
-    // driveline data
-    double torque;
-    int axle = 0;
+
   }
-  /*
-  torque = driveline->GetWheelTorque(ChWheelID(axle, LEFT));
-  sprintf(msg, "Torque wheel L: %+.2f", torque);
-  renderLinGauge(std::string(msg), torque / 5000, false, m_HUD_x, m_HUD_y + 260, 120, 15);
 
-  torque = driveline->GetWheelTorque(ChWheelID(axle, RIGHT));
-  sprintf(msg, "Torque wheel R: %+.2f", torque);
-  renderLinGauge(std::string(msg), torque / 5000, false, m_HUD_x, m_HUD_y + 280, 120, 15);
- */
+  double torque = m_powertrain->GetOutputTorque();
+  sprintf(msg, "Powertrain torque: %+.2f", torque);
+  renderLinGauge(std::string(msg), torque / 5000., false, m_HUD_x, y_pos += 20, 120, 15);
 
+  sprintf(msg, "Damping coef: %+.2f", m_dampingVal);
+  renderLinGauge(std::string(msg), m_dampingVal/2.0, false, m_HUD_x, y_pos += 20, 120, 15);
 }
 
 } // end namespace chrono

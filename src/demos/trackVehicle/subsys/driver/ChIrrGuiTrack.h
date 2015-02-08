@@ -73,6 +73,7 @@ public:
   void SetThrottleDelta(double delta)  { m_throttleDelta = delta; }
   void SetSteeringDelta(double delta)  { m_steeringDelta = delta; }
   void SetBrakingDelta (double delta)  { m_brakingDelta = delta; }
+  void SetDampingDelta (double delta)  { m_dampingDelta = delta; }
 
   void SetStepsize(double val) { m_stepsize = val; }
 
@@ -83,6 +84,7 @@ public:
   double GetStepsize() const { return m_stepsize; }
 
 private:
+  void ChIrrGuiTrack::SetDamping(double delta_val, double min_val = 0, double max_val = 1);
 
   void renderSprings();
   void renderLinks();
@@ -108,6 +110,10 @@ private:
   double m_throttleDelta;
   double m_steeringDelta;
   double m_brakingDelta;
+  
+  // testing
+  double m_dampingDelta;
+  double m_dampingVal;  ///< current value of pin friction damping coef
 
   int  m_HUD_x;
   int  m_HUD_y;
