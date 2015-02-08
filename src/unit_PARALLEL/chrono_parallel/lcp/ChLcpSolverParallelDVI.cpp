@@ -80,7 +80,7 @@ void ChLcpSolverParallelDVI::RunTimeStep(real step)
       solver->Solve();
     }
   }
-  if (data_container->settings.solver.solver_mode != NORMAL) {
+  if (data_container->settings.solver.solver_mode == SLIDING || data_container->settings.solver.solver_mode == SPINNING) {
     if (data_container->settings.solver.max_iteration_sliding > 0) {
       solver->SetMaxIterations(data_container->settings.solver.max_iteration_sliding);
       data_container->settings.solver.local_solver_mode = SLIDING;
@@ -305,30 +305,32 @@ void ChLcpSolverParallelDVI::SetR() {
   uint num_contacts = data_container->num_contacts;
   uint num_unilaterals = data_container->num_unilaterals;
   uint num_bilaterals = data_container->num_bilaterals;
-  R = 0;
+  R.resize(data_container->num_constraints);
+  reset(R);
   switch (data_container->settings.solver.local_solver_mode) {
     case BILATERAL:{
       blaze::subvector(R, num_unilaterals, num_bilaterals) = blaze::subvector(R_full, num_unilaterals, num_bilaterals);
     } break;
 
     case NORMAL: {
+      blaze::subvector(R, num_unilaterals, num_bilaterals) = blaze::subvector(R_full, num_unilaterals, num_bilaterals);
       blaze::subvector(R, 0, num_contacts) = blaze::subvector(R_full, 0, num_contacts);
     } break;
+
     case SLIDING: {
+      blaze::subvector(R, num_unilaterals, num_bilaterals) = blaze::subvector(R_full, num_unilaterals, num_bilaterals);
       blaze::subvector(R, 0, num_contacts) = blaze::subvector(R_full, 0, num_contacts);
       blaze::subvector(R, num_contacts, num_contacts * 2) = blaze::subvector(R_full, num_contacts, num_contacts * 2);
     } break;
 
     case SPINNING: {
+      blaze::subvector(R, num_unilaterals, num_bilaterals) = blaze::subvector(R_full, num_unilaterals, num_bilaterals);
       blaze::subvector(R, 0, num_contacts) = blaze::subvector(R_full, 0, num_contacts);
       blaze::subvector(R, num_contacts, num_contacts * 2) = blaze::subvector(R_full, num_contacts, num_contacts * 2);
       blaze::subvector(R, num_contacts * 3, num_contacts * 3) = blaze::subvector(R_full, num_contacts * 3, num_contacts * 3);
     } break;
   }
 }
-
-
-
 
 void ChLcpSolverParallelDVI::ComputeImpulses() {
 
@@ -347,9 +349,6 @@ void ChLcpSolverParallelDVI::ComputeImpulses() {
   uint num_bilaterals = data_container->num_bilaterals;
 
   if (data_container->num_constraints > 0) {
-
-
-
 
     blaze::DenseSubvector<const DynamicVector<real> > gamma_b = blaze::subvector(gamma, num_unilaterals, num_bilaterals);
     blaze::DenseSubvector<const DynamicVector<real> > gamma_n = blaze::subvector(gamma, 0, num_contacts);
