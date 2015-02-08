@@ -1227,6 +1227,9 @@ void TrackChain::Set_pin_friction(double damping_C,
                                   bool use_custom_damper,
                                   double damping_C_nonlin)
 {
+  // make sure track shoes and connecting pins have already been created
+  assert( m_pins.size() > 0);
+
   // if we already called this function, there will be existing ChLinkForce in the m_pin_friction array,
   if( !m_pin_friction.empty() )
   {
