@@ -57,8 +57,11 @@ const double TrackChain::m_shoe_chain_Yoffset = 0.04; // .03315 exact
 
 TrackChain::TrackChain(const std::string& name, 
                        VisualizationType vis, 
-                       CollisionType collide
-                       ): m_vis(vis), m_collide(collide), m_numShoes(0)
+                       CollisionType collide)
+  : m_vis(vis),
+  m_collide(collide),
+  m_numShoes(0),
+  m_use_custom_damper(false)
 {
   // clear vector holding list of body handles
   m_shoes.clear();
@@ -78,11 +81,14 @@ TrackChain::TrackChain(const std::string& name,
 }
   
 TrackChain::TrackChain(const std::string& name, 
-    double shoe_mass,
-    const ChVector<>& shoe_inertia,
-    VisualizationType vis,
-    CollisionType collide
-    ): m_vis(vis), m_collide(collide), m_numShoes(0)
+                       double shoe_mass,
+                       const ChVector<>& shoe_inertia,
+                       VisualizationType vis,
+                       CollisionType collide)
+  : m_vis(vis),
+    m_collide(collide),
+    m_numShoes(0),
+    m_use_custom_damper(false)
 {
     // clear vector holding list of body handles
   m_shoes.clear();
@@ -1217,15 +1223,55 @@ ChSharedPtr<ChBody> TrackChain::GetShoeBody(size_t track_idx)
   return (track_idx > m_numShoes-1) ? m_shoes[track_idx] : m_shoes[0] ;
 }
 
-void TrackChain::Set_pin_friction(double mu)
+void TrackChain::Set_pin_friction(double damping_C,
+                                  bool use_custom_damper,
+                                  double damping_C_nonlin)
 {
+  // if we already called this function, there will be existing ChLinkForce in the m_pin_friction array,
+  if( !m_pin_friction.empty() )
+  {
+    for(std::vector<ChLinkForce*>::iterator itr = m_pin_friction.begin(); itr != m_pin_friction.end(); itr++)
+    {
+      delete (*itr);
+    }
+    // objects are deleted, clear the pointer array
+    m_pin_friction.clear();
+    // shared ptrs, can just clear the array and memory takes care of itself.
+    m_custom_dampers.clear();
+  }
+  
   // iterate thru the pin revolute joints, adding a friction force on the DOF for each
   for(std::vector<ChSharedPtr<ChLinkLockRevolute>>::iterator itr = m_pins.begin(); itr != m_pins.end(); itr++)
   {
-    // probably just use a shared ptr to the force?
+    // just use a shared ptr to the force, keep it in an array
+    ChLinkForce* pin_friction = new ChLinkForce;
+    pin_friction->Set_active(1);
+    pin_friction->Set_K(0);
+    pin_friction->Set_R(damping_C);
 
-    // (*itr)->SetForce_Rz( );
+    // if we're using a custom spring...
+    if(m_use_custom_damper)
+    {
+      ChSharedPtr<ChFunction_CustomDamper> custom_damper(new ChFunction_CustomDamper(damping_C,damping_C_nonlin));
+      pin_friction->Set_R(1);
+      // add the custom damper modulus function to the pin friction force
+      pin_friction->Set_modul_K(custom_damper.get_ptr());
+      // add handle to shared ptr to an array
+      m_custom_dampers.push_back(custom_damper);
+    }
+
+    // link force should be completely set at this point
+    // use the pointer to set the spring function in the pin revolute constraint
+    (*itr)->SetForce_Rz(pin_friction);
+
+    // add the pointer to the array
+    m_pin_friction.push_back(pin_friction);
+    
+
   }
+
+  // now that custom dampers have been created, we can use them.
+  m_use_custom_damper = use_custom_damper;
 
 }
 
