@@ -125,6 +125,12 @@ public:
   /// Get the current value of the integration step size
   double GetStepsize() const { return m_stepsize; }
 
+  /// can set the pin friction as a damping value
+  virtual void SetShoePinDamping(double damping) {}
+
+  /// return the contant part of the damping (if any)
+  virtual double GetShoePinDamping() {return 0;}
+  
   /// TODO: Log current constraint violations.
   // void LogConstraintViolations();
 
