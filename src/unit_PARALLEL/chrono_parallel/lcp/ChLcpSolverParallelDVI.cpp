@@ -300,27 +300,24 @@ void ChLcpSolverParallelDVI::SetR() {
   uint num_contacts = data_container->num_contacts;
   uint num_unilaterals = data_container->num_unilaterals;
   uint num_bilaterals = data_container->num_bilaterals;
-
-  R = R_full;
-
+  R = 0;
   switch (data_container->settings.solver.local_solver_mode) {
+    case BILATERAL:{
+      blaze::subvector(R, num_unilaterals, num_bilaterals) = blaze::subvector(R_full, num_unilaterals, num_bilaterals);
+    } break;
+
     case NORMAL: {
-      if (data_container->settings.solver.solver_mode == SLIDING) {
-       blaze::subvector(R, num_contacts, num_contacts * 2) = 0;
-      }
-      if (data_container->settings.solver.solver_mode == SPINNING) {
-        blaze::subvector(R, num_contacts, num_contacts * 2) = 0;
-        blaze::subvector(R, num_contacts * 3, num_contacts * 3) = 0;
-      }
+      blaze::subvector(R, 0, num_contacts) = blaze::subvector(R_full, 0, num_contacts);
     } break;
     case SLIDING: {
-      if (data_container->settings.solver.solver_mode == SPINNING) {
-        blaze::subvector(R, num_contacts * 3, num_contacts * 3) = 0;
-      }
-
+      blaze::subvector(R, 0, num_contacts) = blaze::subvector(R_full, 0, num_contacts);
+      blaze::subvector(R, num_contacts, num_contacts * 2) = blaze::subvector(R_full, num_contacts, num_contacts * 2);
     } break;
 
     case SPINNING: {
+      blaze::subvector(R, 0, num_contacts) = blaze::subvector(R_full, 0, num_contacts);
+      blaze::subvector(R, num_contacts, num_contacts * 2) = blaze::subvector(R_full, num_contacts, num_contacts * 2);
+      blaze::subvector(R, num_contacts * 3, num_contacts * 3) = blaze::subvector(R_full, num_contacts * 3, num_contacts * 3);
     } break;
   }
 }
