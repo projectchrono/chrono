@@ -19,8 +19,7 @@
 using namespace glm;
 using namespace chrono::opengl;
 
-ChOpenGLContacts::ChOpenGLContacts() {
-}
+ChOpenGLContacts::ChOpenGLContacts() {}
 
 bool ChOpenGLContacts::Initialize(ChOpenGLMaterial mat, ChOpenGLShader* shader) {
   if (this->GLReturnedError("Contacts::Initialize - on entry"))
@@ -31,6 +30,8 @@ bool ChOpenGLContacts::Initialize(ChOpenGLMaterial mat, ChOpenGLShader* shader) 
 }
 
 void ChOpenGLContacts::UpdateChrono(ChSystem* system) {
+
+
 
 
 

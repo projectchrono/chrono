@@ -13,10 +13,8 @@
 // Authors: Hammad Mazhar
 // =============================================================================
 
-#include <iostream>
 #include "chrono_opengl/UI/ChOpenGLHUD.h"
 #include "chrono_opengl/ChOpenGLMaterials.h"
-#include <glm/gtc/type_ptr.hpp>
 
 #include "collision/ChCCollisionSystemBullet.h"
 
@@ -220,6 +218,7 @@ void ChOpenGLHUD::GenerateStats(ChSystem* physics_system) {
   text.Render(buffer, -.95, 0.925, sx, sy);
   GenerateCamera();
   GenerateSystem(physics_system);
+  GenerateSolver(physics_system);
   GenerateCD(physics_system);
   GenerateRenderer();
 
