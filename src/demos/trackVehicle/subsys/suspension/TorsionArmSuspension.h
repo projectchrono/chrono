@@ -29,20 +29,20 @@
 
 namespace chrono {
 
-// Functor class for a custom rotaional spring constant modifier (function of position only)
-  class ChFunction_CustomSpring : public ChFunction
+/// Functor class for a custom rotaional spring constant modifier
+class ChFunction_CustomSpring : public ChFunction
+{
+public:
+  ChFunction* new_Duplicate() {return new ChFunction_CustomSpring;} 
+
+  double Get_y(double x)
   {
-  public:
-    ChFunction* new_Duplicate() {return new ChFunction_CustomSpring;} 
+    double spring_coef = 50;
+    double spring_nonlin_coef = 10;
 
-    double Get_y(double x)
-    {
-      double spring_coef = 50;
-      double spring_nonlin_coef = 10;
-
-      return spring_coef + spring_nonlin_coef * fabs(x);
-    }
-  };
+    return spring_coef + spring_nonlin_coef * fabs(x);
+  }
+};
 
 
 /// Consists of two bodies, the torsion arm link and the road-wheel.
@@ -82,8 +82,8 @@ private:
   // private functions
   void Create(const std::string& name);
   void AddVisualization();
-  void AddCollisionGeometry(double mu = 0.7,
-                            double mu_sliding = 0.6,
+  void AddCollisionGeometry(double mu = 0.6,
+                            double mu_sliding = 0.5,
                             double mu_roll = 0,
                             double mu_spin = 0);
   

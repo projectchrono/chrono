@@ -54,8 +54,8 @@ private:
 
   // private functions
   void AddVisualization();
-  void AddCollisionGeometry(double mu = 0.7,
-                            double mu_sliding = 0.6,
+  void AddCollisionGeometry(double mu = 0.6,
+                            double mu_sliding = 0.5,
                             double mu_roll = 0.0,
                             double mu_spin = 0.0);
   

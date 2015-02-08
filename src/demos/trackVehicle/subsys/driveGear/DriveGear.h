@@ -31,6 +31,25 @@
 
 namespace chrono {
 
+// Functor class for a custom rotaional damper, to tweak the damping coef. as necessary.
+class ChFunction_PinDampCoef : public ChFunction
+{
+public:
+  // constructor for default values
+  ChFunction_PinDampCoef(double damping = 0.0): m_damping(damping) {}
+
+  // pure virtuals functions
+  ChFunction* new_Duplicate() {return new ChFunction_PinDampCoef();} 
+
+  double Get_y(double x)
+  {
+
+    return m_damping * x;
+  }
+
+private:
+  double m_damping;
+};
 
 /// Drive gear class, a single rigid body. Attached to the chassis via revolute joint.
 /// Torque applied by the driveline.
@@ -69,8 +88,8 @@ private:
   const std::string& getMeshFile() const { return m_meshFile; }
 
   void AddVisualization();
-  void AddCollisionGeometry(double mu = 0.0,
-                            double mu_sliding = 0.0,
+  void AddCollisionGeometry(double mu = 0.6,
+                            double mu_sliding = 0.5,
                             double mu_roll = 0,
                             double mu_spin = 0);
   

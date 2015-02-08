@@ -74,8 +74,8 @@ private:
   void AddVisualization(size_t chain_idx,
                         bool custom_texture = false,
                         const std::string& tex_name = "none");
-  void AddCollisionGeometry(double mu = 0.8,
-                            double mu_sliding = 0.7,
+  void AddCollisionGeometry(double mu = 0.6,
+                            double mu_sliding = 0.5,
                             double mu_roll = 0,
                             double mu_spin = 0);
 

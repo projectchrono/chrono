@@ -44,7 +44,7 @@ const std::string TrackChain::m_meshFile = utils::GetModelDataFile("M113/shoe_vi
 const double TrackChain::m_mass = 18.02;
 const ChVector<> TrackChain::m_inertia(0.22, 0.25,  0.04); // TODO: what is this w/ new single pin configuration???
 const ChVector<> TrackChain::m_COM = ChVector<>(0., 0., 0.);  // location of COM, relative to REF (e.g, geomtric center)
-const ChVector<> TrackChain::m_shoe_box(0.205, 0.0663, 0.38); // length, height, width   (0.205, 0.0663, 0.38)
+const ChVector<> TrackChain::m_shoe_box(0.152, 0.0663, 0.38); // length, height, width   (0.205, 0.0663, 0.38)
 const double TrackChain::m_pin_width = 0.531; // total width of cylinder pinseach 
 const double TrackChain::m_pin_dist = 0.15162;   // .205; // linear distance between a shoe chain spacing. exact = 0.205
 const double TrackChain::m_pin_radius = 0.02317;
@@ -1215,6 +1215,18 @@ ChSharedPtr<ChBody> TrackChain::GetShoeBody(size_t track_idx)
 {
   assert( track_idx < m_numShoes);
   return (track_idx > m_numShoes-1) ? m_shoes[track_idx] : m_shoes[0] ;
+}
+
+void TrackChain::Set_pin_friction(double mu)
+{
+  // iterate thru the pin revolute joints, adding a friction force on the DOF for each
+  for(std::vector<ChSharedPtr<ChLinkLockRevolute>>::iterator itr = m_pins.begin(); itr != m_pins.end(); itr++)
+  {
+    // probably just use a shared ptr to the force?
+
+    // (*itr)->SetForce_Rz( );
+  }
+
 }
 
 } // end namespace chrono

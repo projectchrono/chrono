@@ -171,9 +171,13 @@ void DriveGear::AddVisualization()
     trimesh_shape->SetName(getMeshName());
     m_gear->AddAsset(trimesh_shape);
 
+    
     ChSharedPtr<ChTexture> tex(new ChTexture);
-    tex->SetTextureFilename(GetChronoDataFile("bluwhite.png"));
+    tex->SetTextureFilename(GetChronoDataFile("redwhite.png"));
     m_gear->AddAsset(tex);
+    
+
+
 
     break;
   }

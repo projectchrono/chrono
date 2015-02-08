@@ -37,7 +37,7 @@ public:
 
   TrackChain(const std::string& name, 
     VisualizationType vis = VisualizationType::PRIMITIVES,
-    CollisionType collide = CollisionType::PRIMITIVES );
+    CollisionType collide = CollisionType::PRIMITIVES);
   
   /// constructor to override static shoe mass/inertia variables.
   TrackChain(const std::string& name, 
@@ -64,6 +64,9 @@ public:
   ChSharedPtr<ChBody> GetShoeBody(size_t track_idx); 
   // ChSharedPtr<ChBodyAuxRef> GetShoeBody(size_t track_idx); 
 
+  /// turn on damping friction in the shoe pins
+  void Set_pin_friction(double mu);
+
 private:
 
   // private functions
@@ -77,15 +80,15 @@ private:
     const std::string& tex_name = "none");
 
   /// add collision geometry to the last shoe added
-  void AddCollisionGeometry(double mu = 0.0,
-                            double mu_sliding = 0.0,
+  void AddCollisionGeometry(double mu = 0.6,
+                            double mu_sliding = 0.5,
                             double mu_roll = 0,
                             double mu_spin = 0);
 
   /// add collision geometrey to a certain track shoe
   void AddCollisionGeometry(size_t track_idx,
-                            double mu = 0.0,
-                            double mu_sliding = 0.0,
+                            double mu = 0.6,
+                            double mu_sliding = 0.5,
                             double mu_roll = 0,
                             double mu_spin = 0);
    
