@@ -30,7 +30,8 @@ void ChElementGeneric::EleIntLoadResidual_F(ChVectorDynamic<>& R, const double c
 	{
 		int nodedofs = GetNodeN(in)->Get_ndof_w();
 		//GetLog() << "  in=" << in << "  stride=" << stride << "  nodedofs=" << nodedofs << " offset=" <<  GetNodeN(in)->NodeGetOffset_w() << "\n";
-		R.PasteSumClippedMatrix(&mFi, stride, 0, nodedofs,1, GetNodeN(in)->NodeGetOffset_w(), 0);
+		if (!GetNodeN(in)->GetFixed())
+			R.PasteSumClippedMatrix(&mFi, stride, 0, nodedofs,1, GetNodeN(in)->NodeGetOffset_w(), 0);
 		stride += nodedofs;
 	}
 	//GetLog() << "EleIntLoadResidual_F , R=" << R << "\n";
@@ -49,7 +50,8 @@ void ChElementGeneric::EleIntLoadResidual_Mv(ChVectorDynamic<>& R, const ChVecto
 	for (int in=0; in < this->GetNnodes(); in++)
 	{
 		int nodedofs = GetNodeN(in)->Get_ndof_w();
-		mqi.PasteClippedMatrix(&w, GetNodeN(in)->NodeGetOffset_w(), 0, nodedofs, 1, stride,0);
+		if (!GetNodeN(in)->GetFixed())
+			mqi.PasteClippedMatrix(&w, GetNodeN(in)->NodeGetOffset_w(), 0, nodedofs, 1, stride,0);
 		stride += nodedofs;
 	}
 
@@ -61,7 +63,8 @@ void ChElementGeneric::EleIntLoadResidual_Mv(ChVectorDynamic<>& R, const ChVecto
 	for (int in=0; in < this->GetNnodes(); in++)
 	{
 		int nodedofs = GetNodeN(in)->Get_ndof_w();
-		R.PasteSumClippedMatrix(&mFi, stride,0, nodedofs,1, GetNodeN(in)->NodeGetOffset_w(),0);
+		if (!GetNodeN(in)->GetFixed())
+			R.PasteSumClippedMatrix(&mFi, stride,0, nodedofs,1, GetNodeN(in)->NodeGetOffset_w(),0);
 		stride += nodedofs;
 	}
 }
