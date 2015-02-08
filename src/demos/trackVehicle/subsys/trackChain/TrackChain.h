@@ -29,6 +29,25 @@
 
 namespace chrono {
 
+/// Functor class for a custom rotaional damper value
+class ChFunction_CustomDamper : public ChFunction
+{
+public:
+  ChFunction_CustomDamper(double R_const=1.0, double R_nonlin=0.5): m_R(R_const), m_R_nonlin(R_nonlin) {}
+  ChFunction* new_Duplicate() {return new ChFunction_CustomDamper;} 
+
+  double Get_y(double x)
+  {
+    // scale the nonlinear damping coefficient
+    return m_R + m_R_nonlin * x;
+  }
+
+private:
+  double m_R;   ///< constant damping coefficient
+  double m_R_nonlin;  ///< nonlinear dapming coefficient
+};
+
+
 /// Generates and manages the track chain system, which is typically generated
 /// with a single track shoe/pin geometry set.
 class CH_SUBSYS_API TrackChain : public ChShared
