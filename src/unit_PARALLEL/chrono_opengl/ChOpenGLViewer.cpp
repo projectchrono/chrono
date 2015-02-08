@@ -87,9 +87,9 @@ void ChOpenGLViewer::TakeDown() {
   cone.TakeDown();
   cloud.TakeDown();
   grid.TakeDown();
-  plots.TakeDown();
   contact_renderer.TakeDown();
   HUD_renderer.TakeDown();
+  graph_renderer.TakeDown();
   for (std::map<std::string, ChOpenGLMesh>::iterator iter = obj_files.begin(); iter != obj_files.end(); iter++) {
     (*iter).second.TakeDown();
   }
@@ -123,9 +123,9 @@ bool ChOpenGLViewer::Initialize() {
 
   cloud.Initialize(cloud_data, white, &cloud_shader);
   grid.Initialize(grid_data, darkriver, &cloud_shader);
-  plots.Initialize(grid_data, brightriver, &cloud_shader);
 
   contact_renderer.Initialize(darkred, &cloud_shader);
+  graph_renderer.Initialize(darkriver, &cloud_shader);
 
   timer.AddTimer("render");
   timer.AddTimer("text");
@@ -236,7 +236,6 @@ void ChOpenGLViewer::Render() {
   current_time = current_time * 0.5 + old_time * 0.5;
   old_time = current_time;
   fps = 1.0 / current_time;
-
 }
 
 void ChOpenGLViewer::DrawObject(ChBody* abody) {
@@ -487,41 +486,11 @@ void ChOpenGLViewer::RenderPlots() {
   if (view_info == false || view_help) {
     return;
   }
-  plot_data.clear();
-
-  plot_data.push_back(glm::vec3(window_size.y * .1, window_size.y - window_size.y * .4, 0));
-  plot_data.push_back(glm::vec3(window_size.y * .1, window_size.y - window_size.y * .1, 0));
-
-  plot_data.push_back(glm::vec3(window_size.y * .1, window_size.y - window_size.y * .4, 0));
-  plot_data.push_back(glm::vec3(window_size.y * .6, window_size.y - window_size.y * .4, 0));
-
-  std::vector<double> history = ((ChLcpIterativeSolver*)(physics_system->GetLcpSolverSpeed()))->GetViolationHistory();
-  std::vector<double> dlambda = ((ChLcpIterativeSolver*)(physics_system->GetLcpSolverSpeed()))->GetDeltalambdaHistory();
-
-  real plot_h = (window_size.y * .4 - window_size.y * .1);
-  if (history.size() > 1) {
-    real max_res = *std::max_element(history.begin(), history.end());
-    real min_res = *std::min_element(history.begin(), history.end());
-    max_res = max_res + min_res;
-
-    for (int i = 0; i < history.size() - 1; i++) {
-      real value = (history[i] + min_res) / max_res * plot_h;
-      real value_next = (history[i + 1] + min_res) / max_res * plot_h;
-
-      real size_seg = (window_size.y * .6 - window_size.y * .1) / history.size();
-
-      plot_data.push_back(glm::vec3(window_size.y * .1 + size_seg * i, window_size.y - window_size.y * .4 + value, 0));
-      plot_data.push_back(glm::vec3(window_size.y * .1 + size_seg * (i + 1), window_size.y - window_size.y * .4 + value_next, 0));
-    }
-  }
+  graph_renderer.Update(physics_system, window_size);
 
   projection = glm::ortho(0.0f, float(window_size.x), 0.0f, float(window_size.y), -2.0f, 2.0f);
   modelview = glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, 0.0f, -1));
-
-  glm::mat4 mvp = projection * modelview;
-
-  plots.Update(plot_data);
-  plots.Draw(projection, modelview);
+  graph_renderer.Draw(projection, modelview);
 }
 
 void ChOpenGLViewer::HandleInput(unsigned char key, int x, int y) {
