@@ -76,7 +76,7 @@ class CH_PARALLEL_API ChSolverParallel {
   // Perform velocity stabilization on bilateral constraints
   uint SolveStab(const uint max_iter,                                     // Maximum number of iterations
                  const uint size,                                         // Number of unknowns
-                 const blaze::DenseSubvector<DynamicVector<real> >& b,    // Rhs vector
+                 const blaze::DenseSubvector<const DynamicVector<real> >& b,    // Rhs vector
                  blaze::DenseSubvector<DynamicVector<real> >& x);         // The vector of unknowns
 
   real GetObjective(const blaze::DynamicVector<real>& x, const blaze::DynamicVector<real>& b) {

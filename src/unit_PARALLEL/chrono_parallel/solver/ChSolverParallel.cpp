@@ -159,7 +159,7 @@ void ChSolverParallel::UpdateContacts()
 
 uint ChSolverParallel::SolveStab(const uint max_iter,
                                  const uint size,
-                                 const blaze::DenseSubvector<DynamicVector<real> >& mb,
+                                 const blaze::DenseSubvector<const DynamicVector<real> >& mb,
                                  blaze::DenseSubvector<DynamicVector<real> >& x)
 {
   real& residual = data_container->measures.solver.residual;

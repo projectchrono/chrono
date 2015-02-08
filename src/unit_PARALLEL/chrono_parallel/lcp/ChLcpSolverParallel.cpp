@@ -144,37 +144,19 @@ void ChLcpSolverParallel::ComputeMassMatrix()
 }
 
 void ChLcpSolverParallel::PerformStabilization() {
-  DynamicVector<real>& R = data_container->host_data.R;
   const DynamicVector<real>& R_full = data_container->host_data.R_full;
   DynamicVector<real>& gamma = data_container->host_data.gamma;
-  uint& num_unilaterals = data_container->num_unilaterals;
-  uint& num_bilaterals = data_container->num_bilaterals;
-  uint num_contacts = data_container->num_contacts;
+  uint num_unilaterals = data_container->num_unilaterals;
+  uint num_bilaterals = data_container->num_bilaterals;
 
-  if (data_container->settings.solver.max_iteration_bilateral <= 0 || data_container->num_bilaterals <= 0) {
+  if (data_container->settings.solver.max_iteration_bilateral <= 0 || num_bilaterals <= 0) {
     return;
   }
 
-  R = R_full;
-  switch (data_container->settings.solver.local_solver_mode) {
-    case NORMAL: {
-      blaze::subvector(R, 0, num_contacts) = 0;
-    } break;
-    case SLIDING: {
-      blaze::subvector(R, 0, num_contacts) = 0;
-      blaze::subvector(R, num_contacts, num_contacts * 2) = 0;
-    } break;
-    case SPINNING: {
-      blaze::subvector(R, 0, num_contacts) = 0;
-      blaze::subvector(R, num_contacts, num_contacts * 2) = 0;
-      blaze::subvector(R, num_contacts * 3, num_contacts * 3) = 0;
-    } break;
-  }
-
-  blaze::DenseSubvector<DynamicVector<real> > bilateral_rhs = blaze::subvector(R, num_unilaterals, num_bilaterals);
-  blaze::DenseSubvector<DynamicVector<real> > bilateral_gamma = blaze::subvector(gamma, num_unilaterals, num_bilaterals);
+  blaze::DenseSubvector<const DynamicVector<real> > R_b = blaze::subvector(R_full, num_unilaterals, num_bilaterals);
+  blaze::DenseSubvector<DynamicVector<real> > gamma_b = blaze::subvector(gamma, num_unilaterals, num_bilaterals);
 
   data_container->system_timer.start("ChLcpSolverParallel_Stab");
-  solver->SolveStab(data_container->settings.solver.max_iteration_bilateral, num_bilaterals, bilateral_rhs, bilateral_gamma);
+  solver->SolveStab(data_container->settings.solver.max_iteration_bilateral, num_bilaterals, R_b, gamma_b);
   data_container->system_timer.stop("ChLcpSolverParallel_Stab");
 }
