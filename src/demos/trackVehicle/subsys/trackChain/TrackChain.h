@@ -167,8 +167,6 @@ private:
 
   VisualizationType m_vis;    // visual asset geometry type
   CollisionType m_collide;    // collision geometry type
-
-//  ChSharedPtr<ChTriangleMeshShape> m_geom_visual;
   
   //static values 
   static const double m_mass;         // mass per shoe
