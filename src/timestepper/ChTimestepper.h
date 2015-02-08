@@ -546,7 +546,7 @@ public:
 			mintegrable->LoadResidual_Mv (R, (V-Vnew), 1.0);
 			mintegrable->LoadResidual_CqL(R, L, dt);
 			mintegrable->LoadConstraint_C(Qc, 1.0/dt);
-//	GetLog()<< "Euler iteration=" << i << "  |R|=" << R.NormInf() << "  |Qc|=" << Qc.NormInf() << "\n";						
+GetLog()<< "Euler iteration=" << i << "  |R|=" << R.NormInf() << "  |Qc|=" << Qc.NormInf() << "\n";						
 			if ((R.NormInf()  < this->GetTolerance()) &&
 				(Qc.NormInf() < this->GetTolerance()))
 				break;
@@ -707,6 +707,7 @@ public:
 
 
 		mintegrable->StateGather(X, V, T);	// state <- system
+GetLog()<< "\n\n Trapezoidal \n";
 //GetLog()<< "trapezoidal T=" << T<< " , X=" << X <<"\n";
 //GetLog()<< "trapezoidal T=" << T<< " , V=" << V <<"\n";
 		// extrapolate a prediction as a warm start
@@ -732,9 +733,9 @@ public:
 			mintegrable->LoadResidual_Mv(R, Vnew, -1.0); // - M*v_new
 			mintegrable->LoadResidual_CqL(R, L, dt*0.5); // + dt/2*Cq*l_new
 			mintegrable->LoadConstraint_C(Qc, 1.0 / dt); // C/dt
-//GetLog()<< "trapezoidal iter="<<i<<" R =" << R <<"\n";
-//GetLog()<< "trapezoidal iter="<<i<<" Qc =" << Qc <<"\n";
-//GetLog()<< "trapezoidal iteration=" << i << "  |R|=" << R.NormInf() << "  |Qc|=" << Qc.NormInf() << "\n";
+	//GetLog()<< "trapezoidal iter="<<i<<" R =" << R <<"\n";
+	//GetLog()<< "trapezoidal iter="<<i<<" Qc =" << Qc <<"\n";
+	GetLog()<< "trapezoidal iteration=" << i << "  |R|=" << R.NormTwo() << "  |Qc|=" << Qc.NormTwo() << "\n";
 			if ((R.NormInf()  < this->GetTolerance()) &&
 				(Qc.NormInf() < this->GetTolerance()))
 				break;
@@ -750,14 +751,13 @@ public:
 				Xnew, Vnew, T + dt,
 				false  // do not StateScatter update to Xnew Vnew T+dt before computing correction
 				);
-//GetLog()<< "trapezoidal iter="<<i<<" Dv =" << Dv <<"\n";
+
 			Dl *= (2.0 / dt);  // Note it is not -(2.0/dt) because we assume StateSolveCorrection already flips sign of Dl
 			L += Dl;
 
 			Vnew += Dv;
-//GetLog()<< "trapezoidal iter="<<i<<" Vnew =" << Vnew <<"\n";
+
 			Xnew = X + ((Vnew + V)*(dt*0.5));  // Xnew = Xold + h/2(Vnew+Vold)
-//GetLog()<< "trapezoidal iter="<<i<<" Xnew =" << Xnew <<"\n";
 		}
 
 		X = Xnew;
