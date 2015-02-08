@@ -89,7 +89,7 @@ public:
   /// interface between the powertrain and vehcicle cosimulation modules.
   /// Since a ShaftsPowertrain is directly connected to the vehicle's driveline,
   /// this function returns 0.
-  double GetOutputTorque() const { return 0; }
+  double GetOutputTorque() const { return m_gears->GetTorqueReactionOn2(); }
 
   // Accessors, from concrete class
   double GetMotorBlockInertia() const      { return m_motorblock_inertia; }
