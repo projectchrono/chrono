@@ -42,9 +42,12 @@ void ChMesh::SetupInitial()
 
 	for (unsigned int i=0; i< vnodes.size(); i++)
 	{
-			//    - count the degrees of freedom 
-		n_dofs += vnodes[i]->Get_ndof_x();
-		n_dofs_w += vnodes[i]->Get_ndof_w();
+		if (!vnodes[i]->GetFixed())
+		{
+				//    - count the degrees of freedom 
+			n_dofs += vnodes[i]->Get_ndof_x();
+			n_dofs_w += vnodes[i]->Get_ndof_w();
+		}
 	}
 
 	for (unsigned int i=0; i< velements.size(); i++)
@@ -107,12 +110,15 @@ void ChMesh::Setup()
 
 	for (unsigned int i=0; i< vnodes.size(); i++)
 	{
-		vnodes[i]->NodeSetOffset_x(this->GetOffset_x() + n_dofs);
-		vnodes[i]->NodeSetOffset_w(this->GetOffset_w() + n_dofs_w);
+		if (!vnodes[i]->GetFixed())
+		{
+			vnodes[i]->NodeSetOffset_x(this->GetOffset_x() + n_dofs);
+			vnodes[i]->NodeSetOffset_w(this->GetOffset_w() + n_dofs_w);
 
-			//    - count the degrees of freedom 
-		n_dofs += vnodes[i]->Get_ndof_x();
-		n_dofs_w += vnodes[i]->Get_ndof_w();
+				//    - count the degrees of freedom 
+			n_dofs += vnodes[i]->Get_ndof_x();
+			n_dofs_w += vnodes[i]->Get_ndof_w();
+		}
 	}
 }
 
@@ -526,13 +532,16 @@ void ChMesh::IntStateGather(
 	unsigned int local_off_v=0;
 	for (unsigned int j = 0; j < vnodes.size(); j++)
 	{
-		vnodes[j]->NodeIntStateGather(	off_x+local_off_x, 
-										x, 
-										off_v+local_off_v, 
-										v, 
-										T);
-		local_off_x += vnodes[j]->Get_ndof_x();
-		local_off_v += vnodes[j]->Get_ndof_w();
+		if (!vnodes[j]->GetFixed())
+		{
+			vnodes[j]->NodeIntStateGather(	off_x+local_off_x, 
+											x, 
+											off_v+local_off_v, 
+											v, 
+											T);
+			local_off_x += vnodes[j]->Get_ndof_x();
+			local_off_v += vnodes[j]->Get_ndof_w();
+		}
 	}
 
 	T = this->GetChTime();
@@ -549,13 +558,16 @@ void ChMesh::IntStateScatter(
 	unsigned int local_off_v=0;
 	for (unsigned int j = 0; j < vnodes.size(); j++)
 	{
-		vnodes[j]->NodeIntStateScatter(	off_x+local_off_x, 
-										x, 
-										off_v+local_off_v, 
-										v, 
-										T);
-		local_off_x += vnodes[j]->Get_ndof_x();
-		local_off_v += vnodes[j]->Get_ndof_w();
+		if (!vnodes[j]->GetFixed())
+		{
+			vnodes[j]->NodeIntStateScatter(	off_x+local_off_x, 
+											x, 
+											off_v+local_off_v, 
+											v, 
+											T);
+			local_off_x += vnodes[j]->Get_ndof_x();
+			local_off_v += vnodes[j]->Get_ndof_w();
+		}
 	}
 
 	this->Update(T);
@@ -572,13 +584,16 @@ void ChMesh::IntStateIncrement(
 	unsigned int local_off_v=0;
 	for (unsigned int j = 0; j < vnodes.size(); j++)
 	{
-		vnodes[j]->NodeIntStateIncrement(	off_x+local_off_x, 
-											x_new, 
-											x, 
-											off_v+local_off_v, 
-											Dv);
-		local_off_x += vnodes[j]->Get_ndof_x();
-		local_off_v += vnodes[j]->Get_ndof_w();
+		if (!vnodes[j]->GetFixed())
+		{
+			vnodes[j]->NodeIntStateIncrement(	off_x+local_off_x, 
+												x_new, 
+												x, 
+												off_v+local_off_v, 
+												Dv);
+			local_off_x += vnodes[j]->Get_ndof_x();
+			local_off_v += vnodes[j]->Get_ndof_w();
+		}
 	}
 }
 
@@ -592,10 +607,13 @@ void ChMesh::IntLoadResidual_F(
 	unsigned int local_off_v=0;
 	for (unsigned int j = 0; j < vnodes.size(); j++)
 	{
-		this->vnodes[j]->NodeIntLoadResidual_F(	off+local_off_v, 
-												R, 
-												c);
-		local_off_v += vnodes[j]->Get_ndof_w();
+		if (!vnodes[j]->GetFixed())
+		{
+			this->vnodes[j]->NodeIntLoadResidual_F(	off+local_off_v, 
+													R, 
+													c);
+			local_off_v += vnodes[j]->Get_ndof_w();
+		}
 	}
 
 	// internal forces
@@ -617,8 +635,11 @@ void ChMesh::IntLoadResidual_Mv(
 	unsigned int local_off_v=0;
 	for (unsigned int j = 0; j < vnodes.size(); j++)
 	{
-		vnodes[j]->NodeIntLoadResidual_Mv(	off+local_off_v,  R, w, c);
-		local_off_v += vnodes[j]->Get_ndof_w();
+		if (!vnodes[j]->GetFixed())
+		{
+			vnodes[j]->NodeIntLoadResidual_Mv(	off+local_off_v,  R, w, c);
+			local_off_v += vnodes[j]->Get_ndof_w();
+		}
 	}
 
 	// internal masses
@@ -640,8 +661,11 @@ void ChMesh::IntToLCP(
 	unsigned int local_off_v=0;
 	for (unsigned int j = 0; j < vnodes.size(); j++)
 	{
-		vnodes[j]->NodeIntToLCP(off_v + local_off_v,  v, R);
-		local_off_v += vnodes[j]->Get_ndof_w();
+		if (!vnodes[j]->GetFixed())
+		{
+			vnodes[j]->NodeIntToLCP(off_v + local_off_v,  v, R);
+			local_off_v += vnodes[j]->Get_ndof_w();
+		}
 	}
 }
 
@@ -655,8 +679,11 @@ void ChMesh::IntFromLCP(
 	unsigned int local_off_v=0;
 	for (unsigned int j = 0; j < vnodes.size(); j++)
 	{
-		vnodes[j]->NodeIntFromLCP(off_v + local_off_v,  v);
-		local_off_v += vnodes[j]->Get_ndof_w();
+		if (!vnodes[j]->GetFixed())
+		{
+			vnodes[j]->NodeIntFromLCP(off_v + local_off_v,  v);
+			local_off_v += vnodes[j]->Get_ndof_w();
+		}
 	}
 }
 
