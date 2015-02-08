@@ -207,8 +207,6 @@ public:
 
 		// Set speed to zero
 		V.FillElem(0);
-		mintegrable->StateScatter(X, V, T);	// state -> system
-
 
 		// Extrapolate a prediction as warm start
 		Xnew = X;		 
