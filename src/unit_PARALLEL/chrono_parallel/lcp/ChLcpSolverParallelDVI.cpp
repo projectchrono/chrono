@@ -65,7 +65,12 @@ void ChLcpSolverParallelDVI::RunTimeStep(real step)
 
   data_container->system_timer.start("ChLcpSolverParallel_Solve");
 
-  PerformStabilization();
+  if (data_container->settings.solver.max_iteration_bilateral > 0) {
+    solver->SetMaxIterations(data_container->settings.solver.max_iteration_bilateral);
+    data_container->settings.solver.local_solver_mode = BILATERAL;
+    SetR();
+    solver->Solve();
+  }
 
   if (data_container->settings.solver.solver_mode == NORMAL || data_container->settings.solver.solver_mode == SLIDING || data_container->settings.solver.solver_mode == SPINNING) {
     if (data_container->settings.solver.max_iteration_normal > 0) {
