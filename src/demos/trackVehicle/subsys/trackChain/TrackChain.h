@@ -84,7 +84,9 @@ public:
   // ChSharedPtr<ChBodyAuxRef> GetShoeBody(size_t track_idx); 
 
   /// turn on damping friction in the shoe pins
-  void Set_pin_friction(double mu);
+  void Set_pin_friction(double damping_C, ///< damping coefficient for the rotational damper [N-m-s]
+    bool use_custom_damper= false,  ///< use a non-constant damper modulus
+    double damping_C_nonlin = 0);   ///< nonlinear portion of damper, used if use_custom_damper = true
 
 private:
 
@@ -154,6 +156,11 @@ private:
   std::vector<ChSharedPtr<ChBody>> m_shoes;  ///< handle to track shoes
   // std::vector<ChSharedPtr<ChBodyAuxRef>> m_shoes;  ///< handle to track shoes
   std::vector<ChSharedPtr<ChLinkLockRevolute>> m_pins; ///< handles to pin joints
+
+  std::vector<ChLinkForce*> m_pin_friction; ///< functions to apply pin friction
+  bool m_use_custom_damper;  ///< use a nonlinear damping coefficient function?
+  std::vector<ChSharedPtr<ChFunction_CustomDamper>> m_custom_dampers;
+ 
   size_t m_numShoes;      ///< number of track shoe bodies added to m_shoes;
   bool m_aligned_with_seg;  ///< when building track chain, was last shoe created exactly aligned with the envelope?
 
