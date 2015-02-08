@@ -61,7 +61,8 @@ TrackChain::TrackChain(const std::string& name,
   : m_vis(vis),
   m_collide(collide),
   m_numShoes(0),
-  m_use_custom_damper(false)
+  m_use_custom_damper(false),
+  m_damping_C(0)
 {
   // clear vector holding list of body handles
   m_shoes.clear();
@@ -88,7 +89,8 @@ TrackChain::TrackChain(const std::string& name,
   : m_vis(vis),
     m_collide(collide),
     m_numShoes(0),
-    m_use_custom_damper(false)
+    m_use_custom_damper(false),
+    m_damping_C(0)
 {
     // clear vector holding list of body handles
   m_shoes.clear();
@@ -1233,10 +1235,6 @@ void TrackChain::Set_pin_friction(double damping_C,
   // if we already called this function, there will be existing ChLinkForce in the m_pin_friction array,
   if( !m_pin_friction.empty() )
   {
-    for(std::vector<ChLinkForce*>::iterator itr = m_pin_friction.begin(); itr != m_pin_friction.end(); itr++)
-    {
-      delete (*itr);
-    }
     // objects are deleted, clear the pointer array
     m_pin_friction.clear();
     // shared ptrs, can just clear the array and memory takes care of itself.
@@ -1257,8 +1255,9 @@ void TrackChain::Set_pin_friction(double damping_C,
     {
       ChSharedPtr<ChFunction_CustomDamper> custom_damper(new ChFunction_CustomDamper(damping_C,damping_C_nonlin));
       pin_friction->Set_R(1);
-      // add the custom damper modulus function to the pin friction force
-      pin_friction->Set_modul_K(custom_damper.get_ptr());
+      // add the custom damper modulus function to the pin friction damping val
+      pin_friction->Set_modul_R(custom_damper.get_ptr());
+
       // add handle to shared ptr to an array
       m_custom_dampers.push_back(custom_damper);
     }

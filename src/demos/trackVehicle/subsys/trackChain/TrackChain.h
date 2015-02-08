@@ -88,6 +88,8 @@ public:
     bool use_custom_damper= false,  ///< use a non-constant damper modulus
     double damping_C_nonlin = 0);   ///< nonlinear portion of damper, used if use_custom_damper = true
 
+  double Get_pin_damping() { return m_damping_C;}
+
 private:
 
   // private functions
@@ -158,6 +160,7 @@ private:
   std::vector<ChSharedPtr<ChLinkLockRevolute>> m_pins; ///< handles to pin joints
 
   std::vector<ChLinkForce*> m_pin_friction; ///< functions to apply pin friction
+  double m_damping_C;
   bool m_use_custom_damper;  ///< use a nonlinear damping coefficient function?
   std::vector<ChSharedPtr<ChFunction_CustomDamper>> m_custom_dampers;
  
