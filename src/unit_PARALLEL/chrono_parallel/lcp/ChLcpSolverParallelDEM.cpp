@@ -437,7 +437,7 @@ void ChLcpSolverParallelDEM::ComputeR()
   reset(data_container->host_data.b);
   bilateral.Build_b();
 
-  data_container->host_data.R = -data_container->host_data.b - data_container->host_data.D_b_T * data_container->host_data.M_invk;
+  data_container->host_data.R_full = -data_container->host_data.b - data_container->host_data.D_b_T * data_container->host_data.M_invk;
 }
 
 
