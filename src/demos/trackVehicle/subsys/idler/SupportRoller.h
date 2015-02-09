@@ -45,6 +45,9 @@ public:
     const ChFrame<>& chassis_REF,
     const ChCoordsys<>& local_Csys);
 
+  // log constraint violations of any bilateral constraints
+  void LogConstraintViolations();
+
   // accessors
   ChSharedPtr<ChBody> GetBody() const { return m_roller; }
 

@@ -82,6 +82,9 @@ public:
 
   double GetRadius() { return m_radius; }
 
+  // log constraint violations
+  void LogConstraintViolations();
+
 private:
   // private functions
   const std::string& getMeshName() const { return m_meshName; }

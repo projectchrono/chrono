@@ -60,7 +60,11 @@ public:
                   const ChCoordsys<>& local_Csys,
                   double preLoad = 0);
   
-  
+
+  // log constraint violations of any bilateral constraints
+  void LogConstraintViolations();
+
+  // Accessors
   double getSpringCoefficient() const { return m_springK; }
   double getDampingCoefficient() const { return m_springC; }
   double getSpringRestLength() const { return m_springRestLength; }

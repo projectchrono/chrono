@@ -358,4 +358,18 @@ void IdlerSimple::AddCollisionGeometry(double mu,
   m_idler->GetCollisionModel()->BuildModel();
 }
 
+
+void IdlerSimple::LogConstraintViolations()
+{
+  // idler joint has 2 pos and 1 rot
+  ChMatrix<>* C = m_idler_joint->GetC();
+  GetLog() << " joint name: " << m_idler_joint->GetName();
+  for(int row = 0; row < C->GetRows(); row ++ )
+  {
+    GetLog() << "  " << C->GetElement(row, 0) << "  ";
+  }
+
+  GetLog() << "\n";
+}
+
 } // end namespace chrono

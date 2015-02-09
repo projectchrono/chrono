@@ -221,4 +221,17 @@ void SupportRoller::AddCollisionGeometry(double mu,
 
 }
 
+void SupportRoller::LogConstraintViolations()
+{
+  // revolute joint, 5 constrained DOFs
+  ChMatrix<>* C = m_revolute->GetC();
+  GetLog() << " rev joint name: " << m_revolute->GetName();
+  for(int row = 0; row < C->GetRows(); row ++ )
+  {
+    GetLog() << "  " << C->GetElement(row, 0) << "  ";
+  }
+
+  GetLog() << "\n";
+}
+
 } // end namespace chrono
