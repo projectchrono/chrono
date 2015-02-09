@@ -9,8 +9,24 @@
 //
 ///////////////////////////////////////////////////
 //
-//   test the drive chain system.
+//  Summary: Test the DriveChain system.
+//  Components: Gear, Powertrain, tensioned and passive Idler(s),
+//              
+//  Throttle, gear, pin damping coef., etc. driven by the user with an Irrlicht GUI.
+//  Alternatively, scripted driven simulations supported thru Track_FuncDriver.
 //
+//  Output I care about:
+//    The reaction forces in the pins adjoining 5 or so track shoes.
+//    I'm going to analyze the time history of pin tension forces, and also the 
+//    cumulative contact normal and friction forces between the pins and gear surface.
+//    Changing Gear CollisionType from PRIMITIVES to CALLBACKFUNCTION with and without pin/gear
+//    callback function enabled. So the gear collision shapes will be 
+//      a) two concentric cylinders, contact w/ flat shoe surface
+//      b) two concentric cylinders, further laterally outwards. 10 boxes for the top gear tooth surface.
+//      c) same as b), but add the collision callback function, which looks for contact between shoe pins and 
+//         concave gear tooth base surface.
+//
+//    Output to text files for Python plots, by uncommenting #define WRITE_OUTPUT
 //	 Author: Justin Madsen, 2015
 ///////////////////////////////////////////////////
   
@@ -52,6 +68,7 @@ using namespace chrono;
 // =============================================================================
 // display the 1) system heirarchy, 2) a set of subsystem hardpoints, 3) constraint violations
 //#define DEBUG_LOG 
+#define WRITE_OUTPUT
 
 // Initial vehicle position and heading. Defines the REF frame for the hull body
 ChVector<> initLoc(0, 1.0, 0);
