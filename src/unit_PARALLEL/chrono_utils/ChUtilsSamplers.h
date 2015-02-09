@@ -134,7 +134,7 @@ protected:
   bool accept(VolumeType t, const ChVector<T>& p)
   {
     ChVector<T> vec = p - m_center;
-    T fuzz = 1e-6 * m_size.x; //small fraction of length scale
+    T fuzz = (m_size.x < 1) ?  1e-6 * m_size.x : 1e-6;
 
     switch (t) {
     case BOX:
