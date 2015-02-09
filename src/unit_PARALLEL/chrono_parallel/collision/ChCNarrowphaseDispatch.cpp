@@ -48,10 +48,6 @@ void ChCNarrowphaseDispatch::Process() {
     return;
   }
 
-  obj_data_A_global = data_container->host_data.ObA_rigid;
-  obj_data_B_global = data_container->host_data.ObB_rigid;
-  obj_data_C_global = data_container->host_data.ObC_rigid;
-  obj_data_R_global = data_container->host_data.ObR_rigid;
   // Transform to global coordinate system
   PreprocessLocalToParent();
 
@@ -143,17 +139,22 @@ void ChCNarrowphaseDispatch::PreprocessCount()
 
 void ChCNarrowphaseDispatch::PreprocessLocalToParent() {
 
-  const uint& num_shapes = data_container->num_shapes;
-  const shape_type* obj_data_T = data_container->host_data.typ_rigid.data();
+  uint num_shapes = data_container->num_shapes;
 
-  custom_vector<real3>& obj_data_A = data_container->host_data.ObA_rigid;
-  custom_vector<real3>& obj_data_B = data_container->host_data.ObB_rigid;
-  custom_vector<real3>& obj_data_C = data_container->host_data.ObC_rigid;
-  custom_vector<real4>& obj_data_R = data_container->host_data.ObR_rigid;
-  custom_vector<uint>& obj_data_ID = data_container->host_data.id_rigid;
+  const custom_vector<int>& obj_data_T = data_container->host_data.typ_rigid;
+  const custom_vector<real3>& obj_data_A = data_container->host_data.ObA_rigid;
+  const custom_vector<real3>& obj_data_B = data_container->host_data.ObB_rigid;
+  const custom_vector<real3>& obj_data_C = data_container->host_data.ObC_rigid;
+  const custom_vector<real4>& obj_data_R = data_container->host_data.ObR_rigid;
+  const custom_vector<uint>& obj_data_ID = data_container->host_data.id_rigid;
 
-  custom_vector<real3>& body_pos = data_container->host_data.pos_data;
-  custom_vector<real4>& body_rot = data_container->host_data.rot_data;
+  const custom_vector<real3>& body_pos = data_container->host_data.pos_data;
+  const custom_vector<real4>& body_rot = data_container->host_data.rot_data;
+
+  obj_data_A_global.resize(num_shapes);
+  obj_data_B_global.resize(num_shapes);
+  obj_data_C_global.resize(num_shapes);
+  obj_data_R_global.resize(num_shapes);
 
 #pragma omp parallel for
   for (int index = 0; index < num_shapes; index++) {
