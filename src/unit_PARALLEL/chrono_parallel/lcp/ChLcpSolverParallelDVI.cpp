@@ -65,12 +65,14 @@ void ChLcpSolverParallelDVI::RunTimeStep(real step)
 
   data_container->system_timer.start("ChLcpSolverParallel_Solve");
 
-  if (data_container->settings.solver.max_iteration_bilateral > 0) {
-    solver->SetMaxIterations(data_container->settings.solver.max_iteration_bilateral);
-    data_container->settings.solver.local_solver_mode = BILATERAL;
-    SetR();
-    solver->Solve();
-  }
+//  if (data_container->settings.solver.max_iteration_bilateral > 0) {
+//    solver->SetMaxIterations(data_container->settings.solver.max_iteration_bilateral);
+//    data_container->settings.solver.local_solver_mode = BILATERAL;
+//    SetR();
+//    solver->Solve();
+//  }
+
+  PerformStabilization();
 
   if (data_container->settings.solver.solver_mode == NORMAL || data_container->settings.solver.solver_mode == SLIDING || data_container->settings.solver.solver_mode == SPINNING) {
     if (data_container->settings.solver.max_iteration_normal > 0) {
@@ -80,7 +82,7 @@ void ChLcpSolverParallelDVI::RunTimeStep(real step)
       solver->Solve();
     }
   }
-  if (data_container->settings.solver.solver_mode != NORMAL) {
+  if (data_container->settings.solver.solver_mode == SLIDING || data_container->settings.solver.solver_mode == SPINNING) {
     if (data_container->settings.solver.max_iteration_sliding > 0) {
       solver->SetMaxIterations(data_container->settings.solver.max_iteration_sliding);
       data_container->settings.solver.local_solver_mode = SLIDING;
@@ -305,21 +307,26 @@ void ChLcpSolverParallelDVI::SetR() {
   uint num_contacts = data_container->num_contacts;
   uint num_unilaterals = data_container->num_unilaterals;
   uint num_bilaterals = data_container->num_bilaterals;
-  R = 0;
+  R.resize(data_container->num_constraints);
+  reset(R);
+
   switch (data_container->settings.solver.local_solver_mode) {
     case BILATERAL:{
       blaze::subvector(R, num_unilaterals, num_bilaterals) = blaze::subvector(R_full, num_unilaterals, num_bilaterals);
     } break;
 
     case NORMAL: {
+      blaze::subvector(R, num_unilaterals, num_bilaterals) = blaze::subvector(R_full, num_unilaterals, num_bilaterals);
       blaze::subvector(R, 0, num_contacts) = blaze::subvector(R_full, 0, num_contacts);
     } break;
     case SLIDING: {
+      blaze::subvector(R, num_unilaterals, num_bilaterals) = blaze::subvector(R_full, num_unilaterals, num_bilaterals);
       blaze::subvector(R, 0, num_contacts) = blaze::subvector(R_full, 0, num_contacts);
       blaze::subvector(R, num_contacts, num_contacts * 2) = blaze::subvector(R_full, num_contacts, num_contacts * 2);
     } break;
 
     case SPINNING: {
+      blaze::subvector(R, num_unilaterals, num_bilaterals) = blaze::subvector(R_full, num_unilaterals, num_bilaterals);
       blaze::subvector(R, 0, num_contacts) = blaze::subvector(R_full, 0, num_contacts);
       blaze::subvector(R, num_contacts, num_contacts * 2) = blaze::subvector(R_full, num_contacts, num_contacts * 2);
       blaze::subvector(R, num_contacts * 3, num_contacts * 3) = blaze::subvector(R_full, num_contacts * 3, num_contacts * 3);
