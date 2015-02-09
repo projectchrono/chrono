@@ -16,10 +16,10 @@
 #include <iostream>
 #include "chrono_opengl/UI/ChOpenGLContacts.h"
 #include "chrono_opengl/ChOpenGLMaterials.h"
-using namespace glm;
 namespace chrono {
 using namespace collision;
 namespace opengl {
+using namespace glm;
 
 ChOpenGLContacts::ChOpenGLContacts() {}
 
@@ -75,4 +75,4 @@ void ChOpenGLContacts::Draw(const mat4& projection, const mat4& view) {
   contacts.Draw(projection, view * model);
 }
 }
-}
+}

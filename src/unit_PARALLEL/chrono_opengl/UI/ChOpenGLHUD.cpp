@@ -22,10 +22,10 @@
 #include "resources/text_frag.h"
 #include "resources/text_vert.h"
 
-using namespace glm;
 namespace chrono {
 using namespace collision;
 namespace opengl {
+using namespace glm;
 
 ChOpenGLHUD::ChOpenGLHUD() : ChOpenGLBase() {
   spacing = 0.055;
