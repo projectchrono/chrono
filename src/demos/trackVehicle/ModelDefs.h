@@ -55,6 +55,15 @@ enum struct VehicleSide {
   LEFT = 1     ///< x-forward leads to right side being position z-dir
 };
 
+
+enum DebugInformation {
+  DBG_FIRSTSHOE   = 1 << 0,
+  DBG_GEAR        = 1 << 1,
+  DBG_IDLER       = 1 << 2,
+  DBG_PTRAIN      = 1 << 3,
+  DBG_CONSTRAINTS = 1 << 4 
+};
+
 } // end namespace chrono
 
 #endif
