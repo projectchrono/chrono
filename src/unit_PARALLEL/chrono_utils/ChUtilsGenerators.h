@@ -57,7 +57,9 @@ enum MixtureType {
   ELLIPSOID,
   BOX,
   CYLINDER,
-  CONE
+  CONE,
+  CAPSULE,
+  ROUNDEDCYLINDER
 };
 
 

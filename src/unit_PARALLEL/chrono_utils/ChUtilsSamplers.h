@@ -134,7 +134,7 @@ protected:
   bool accept(VolumeType t, const ChVector<T>& p)
   {
     ChVector<T> vec = p - m_center;
-    T fuzz = 1e-6;
+    T fuzz = (m_size.x < 1) ?  1e-6 * m_size.x : 1e-6;
 
     switch (t) {
     case BOX:
@@ -522,7 +522,7 @@ private:
     ChVector<T> bl = this->m_center - this->m_size;
 
     T m_cos30 = 0.5 * sqrt(3.0);
-	int nx = (int) (2 * this->m_size.x / (m_spacing)) 			+ 1;  //Arman We don't probably need the +1
+	int nx = (int) (2 * this->m_size.x / (m_spacing)) 			+ 1;
 	int ny = (int) (2 * this->m_size.y / (m_cos30 * m_spacing)) + 1;
 	int nz = (int) (2 * this->m_size.z / (m_cos30 * m_spacing)) + 1;
     double offset_x = 0, offset_z = 0;
