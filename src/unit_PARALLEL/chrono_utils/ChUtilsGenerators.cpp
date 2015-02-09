@@ -253,6 +253,14 @@ MixtureIngredient::calcGeometricProps(const ChVector<>& size, double& volume, Ch
     volume = CalcConeVolume(size.x,size.y);
     gyration = CalcConeGyration(size.x,size.y).Get_Diag();
     break;
+  case CAPSULE:
+    volume = CalcCapsuleVolume(size.x,size.y);
+    gyration = CalcCapsuleGyration(size.x,size.y).Get_Diag();
+    break;
+  case ROUNDEDCYLINDER:
+    volume = CalcRoundedCylinderVolume(size.x,size.y, size.z);
+    gyration = CalcRoundedCylinderGyration(size.x,size.y,size.z).Get_Diag();
+    break;
   }
 }
 
@@ -574,6 +582,12 @@ void Generator::createObjects(const PointVector& points,
       break;
     case CONE:
       AddConeGeometry(body, size.x, size.y);
+      break;
+    case CAPSULE:
+      AddCapsuleGeometry(body, size.x, size.y);
+      break;
+	case ROUNDEDCYLINDER:
+      AddRoundedCylinderGeometry(body, size.x, size.y, size.z);
       break;
     }
 
