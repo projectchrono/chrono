@@ -268,4 +268,5 @@ void ChTrackVehicle::AddCollisionGeometry(double mu,
 }
 
 
+
 }  // end namespace chrono

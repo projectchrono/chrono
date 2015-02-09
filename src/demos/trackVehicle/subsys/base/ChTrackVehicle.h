@@ -134,14 +134,32 @@ public:
   /// TODO: Log current constraint violations.
   // void LogConstraintViolations();
 
+  // wrap above into output writing funciton
+  /// Log info to console
+  virtual void DebugLog(int console_what);
+
+  /// Log info to data file. data types to be saved should already set in Save_DebugLog() 
+  virtual void SaveLog();
+
+  /// setup class to save the log to a file for python postprocessing.
+  /// Usage: call after construction & Initialize(), else no data is saved.
+  virtual void Save_DebugLog(int what,
+                     const std::string& out_filename);
+
+  /// Log current constraint violations of each subsystem.
+  virtual void LogConstraintViolations(bool include_chain);
+
 protected:
+
+  // helper functions for output/Log
+  virtual void create_fileHeader(int what);
 
   // private functions
   virtual void AddVisualization();
-  virtual void AddCollisionGeometry(double mu = 0.8,
-                                    double mu_sliding = 0.7,
-                                    double mu_roll = 0.2,
-                                    double mu_spin = 0.2);
+  virtual void AddCollisionGeometry(double mu = 0.7,
+                                    double mu_sliding = 0.6,
+                                    double mu_roll = 0.0,
+                                    double mu_spin = 0.0);
 
   const std::string& getMeshName() const { return m_meshName; }
   const std::string& getMeshFile() const { return m_meshFile; }
@@ -160,6 +178,14 @@ protected:
   std::vector<ChSharedPtr<TrackPowertrain>>  m_ptrains;  ///< powertrain system, one per track system
 
   double                     m_stepsize;   ///< integration step-size for the vehicle system
+
+  // output/Log variables
+  bool m_save_log_to_file;                    // save the DebugLog() info to file? default false
+  bool m_log_file_exists;                     // written the headers for log file yet?
+  std::string m_log_file_name;
+  int m_log_what;
+
+
 };
 
 
