@@ -64,10 +64,20 @@ class CH_PARALLEL_API ChSolverParallel {
 
   // Compute the full shur matrix vector product (N*x) where N=D^T*M^-1*D
   void ShurProduct(const blaze::DynamicVector<real>& x,    // Vector that will be multiplied by N
-                   blaze::DynamicVector<real>& AX);        // Output Result
+                   blaze::DynamicVector<real>& AX);          // Output Result
+
+  // Compute the shur matrix vector product only for the bilaterals (N*x)
+  // where N=D^T*M^-1*D
+  void ShurBilaterals(const blaze::DynamicVector<real>& x, blaze::DynamicVector<real>& output);
 
   // Call this function with an associated solver type to solve the system
   virtual void Solve() = 0;
+
+  // Perform velocity stabilization on bilateral constraints
+  uint SolveStab(const uint max_iter,                                     // Maximum number of iterations
+                 const uint size,                                         // Number of unknowns
+                 const blaze::DenseSubvector<const DynamicVector<real> >& b,    // Rhs vector
+                 blaze::DenseSubvector<DynamicVector<real> >& x);         // The vector of unknowns
 
   real GetObjective(const blaze::DynamicVector<real>& x, const blaze::DynamicVector<real>& b) {
     blaze::DynamicVector<real> Nl(x.size());
