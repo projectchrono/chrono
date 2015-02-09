@@ -50,7 +50,7 @@ public:
   ~DriveChain();
   
   /// Initialize the drive chain system
-  void Initialize(const ChCoordsys<>& gear_Csys);  ///< [in] initial config of gear
+  virtual void Initialize(const ChCoordsys<>& gear_Csys);  ///< [in] initial config of gear
   
   /// Update the vehicle with the new settings for throttle and brake
   virtual void Update(double time,
@@ -63,6 +63,23 @@ public:
   /// set the pin friction as a damping value
   virtual void SetShoePinDamping(double damping);
 
+  // log the constraint violations, w/ and w/o chain body
+  virtual void LogConstraintViolations(bool include_chain);
+
+  virtual void DebugLog(int console_what);
+
+  /// Log info to data file. data types to be saved should already set in Save_DebugLog() 
+  virtual void SaveLog();
+
+  /// setup class to save the log to a file for python postprocessing.
+  /// Usage: call after construction & Initialize(), else no data is saved.
+  virtual void Save_DebugLog(int what,
+                     const std::string& out_filename);
+
+  /// Log current constraint violations of each subsystem.
+  virtual void LogConstraintViolations(bool include_chain);
+
+  // ---------------------------------------------------------------------------
   // Accessors
   virtual double GetShoePinDamping() {return m_chain->Get_pin_damping(); }
 
@@ -78,10 +95,6 @@ public:
   /// current value of the integration step size for the vehicle system.
   double GetStepsize() const { return m_stepsize; }
 
-
-  /// return the force exerted by the idler subsystem on the idler body
-  double GetIdlerForce() const;
-
   /// just return the COG of the gear
   ChCoordsys<> GetLocalDriverCoordsys() const { return ChCoordsys<>(m_chassis->GetPos(), m_chassis->GetRot()); }
 
@@ -89,7 +102,10 @@ public:
   double GetVehicleSpeed() const { return 0; }
   int GetNum_Engines() const { return 1;}
 
-private:
+protected:
+
+  // helper functions for output/Log
+  virtual void create_fileHeader(int what);
 
   // private variables
   // <ChBodyAuxRef> m_chassis   in base class

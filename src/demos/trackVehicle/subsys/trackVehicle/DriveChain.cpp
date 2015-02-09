@@ -293,20 +293,249 @@ void DriveChain::Advance(double step)
 }
 
 
-double DriveChain::GetIdlerForce() const
-{
-
-  // only 1 idler, for now
-  ChVector<> out_force = m_idlers[0]->GetSpringForce();
-
-  return out_force.Length();
-}
-
 // call the chain function to update the constant damping coef.
 void DriveChain::SetShoePinDamping(double damping)
 {
   m_chain->Set_pin_friction(damping);
 }
+
+// Log constraint violations
+// -----------------------------------------------------------------------------
+void DriveChain::LogConstraintViolations(bool include_chain)
+{
+  GetLog().SetNumFormat("%16.4e");
+
+  // Report constraint violations for the gear revolute joint
+  GetLog() << "\n---- Gear constraint violations\n\n";
+  m_gear->LogConstraintViolations();
+
+  // report violations for idler constraints
+  for(int id = 0; id < m_num_idlers; id++)
+  {
+    GetLog() << "\n---- idler # " << id << " constraint violations\n\n";
+    m_idlers[id]->LogConstraintViolations();
+  }
+
+  // violations of the roller revolute joints
+  for(int roller = 0; roller < m_num_rollers; roller++)
+  {
+    GetLog() << "\n---- Roller # " << roller << " constrain violations\n\n";
+    m_rollers[roller]->LogConstraintViolations();
+  }
+
+  GetLog().SetNumFormat("%g");
+}
+
+
+
+
+// write output
+
+
+// set what to save to file each time .DebugLog() is called during the simulation loop
+// creates a new file (or overwrites old existing one), and sets the first row w/ headers
+// for easy postprocessing with python pandas scripts
+void DriveChain::Save_DebugLog(int what,
+                                   const std::string& filename)
+{
+  m_log_file_name = filename;
+  m_save_log_to_file = true;
+  m_log_what = what;
+  
+  create_fileHeader(what);
+  m_log_file_exists = true;
+
+  // initialize the rig input values to zero
+}
+
+
+void DriveChain::DebugLog(int console_what)
+{
+  GetLog().SetNumFormat("%10.2f");
+
+  if (console_what & DBG_FIRSTSHOE)
+  {
+
+
+
+
+    GetLog() << "\n---- Spring (left, right)\n";
+    GetLog() << "Length [inch]       "
+      << GetSpringLength(FRONT_LEFT) / in2m << "  "
+      << GetSpringLength(FRONT_RIGHT) / in2m << "\n";
+    GetLog() << "Deformation [inch]  "
+      << GetSpringDeformation(FRONT_LEFT) / in2m << "  "
+      << GetSpringDeformation(FRONT_RIGHT) / in2m << "\n";
+    GetLog() << "Force [lbf]         "
+      << GetSpringForce(FRONT_LEFT) / lbf2N << "  "
+      << GetSpringForce(FRONT_RIGHT) / lbf2N << "\n";
+  }
+
+  if (console_what & DBG_GEAR)
+  {
+    GetLog() << "\n---- Shock (left, right,)\n";
+    GetLog() << "Length [inch]       "
+      << GetShockLength(FRONT_LEFT) / in2m << "  "
+      << GetShockLength(FRONT_RIGHT) / in2m << "\n";
+    GetLog() << "Velocity [inch/s]   "
+      << GetShockVelocity(FRONT_LEFT) / in2m << "  "
+      << GetShockVelocity(FRONT_RIGHT) / in2m << "\n";
+    GetLog() << "Force [lbf]         "
+      << GetShockForce(FRONT_LEFT) / lbf2N << "  "
+      << GetShockForce(FRONT_RIGHT) / lbf2N << "\n";
+  }
+
+  if (console_what & DBG_CONSTRAINTS)
+  {
+    // Report constraint violations for all joints
+    LogConstraintViolations();
+  }
+
+  if (console_what & DBG_PTRAIN)
+  {
+    GetLog() << "\n---- suspension test (left, right)\n";
+    /*
+    GetLog() << "Actuator Displacement [in] "
+      << GetActuatorDisp(FRONT_LEFT) / in2m << "  "
+      << GetActuatorDisp(FRONT_RIGHT) / in2m << "\n";
+    GetLog() << "Actuator Force [N] "
+      << GetActuatorForce(FRONT_LEFT) / in2m << "  "
+      << GetActuatorForce(FRONT_RIGHT) / in2m << "\n";
+    GetLog() << "Actuator marker dist [in] "
+      << GetActuatorMarkerDist(FRONT_LEFT) / in2m << "  "
+      << GetActuatorMarkerDist(FRONT_RIGHT) / in2m << "\n";
+    
+  
+    
+    GetLog() << "Kingpin angle [deg] "
+      << Get_KingpinAng(LEFT) * rad2deg << "  "
+      << Get_KingpinAng(RIGHT) * rad2deg << "\n";
+    GetLog() << "Kingpin offset [in] "
+      << Get_KingpinOffset(LEFT) / in2m << "  "
+      << Get_KingpinOffset(RIGHT) / in2m << "\n";
+    GetLog() << "Caster angle [deg] "
+      << Get_CasterAng(LEFT) * rad2deg << "  "
+      << Get_CasterAng(RIGHT) * rad2deg << "\n";
+    GetLog() << "Caster offset [in] "
+      << Get_CasterOffset(LEFT) / in2m << "  "
+      << Get_CasterOffset(RIGHT) / in2m << "\n";
+    GetLog() << "Toe angle [deg] "
+      << Get_ToeAng(LEFT) * rad2deg << "  "
+      << Get_ToeAng(RIGHT) * rad2deg << "\n";
+    GetLog() << "suspension roll angle [deg] "
+      << Get_LCArollAng() << "\n";
+
+      */
+  }
+
+  GetLog().SetNumFormat("%g");
+
+}
+
+
+
+
+void DriveChain::SaveLog()
+{
+  // told to save the data?
+  if( m_save_log_to_file )
+  {
+    if( !m_log_file_exists ) 
+    {
+      std::cerr << "Must call Save_DebugLog() before trying to save the log data to file!!! \n\n\n";
+    }
+    // open the file to append
+    // open the data file for writing the header
+  ChStreamOutAsciiFile ofile(m_log_file_name.c_str(), std::ios::app);
+
+    // write the simulation time first, and rig inputs
+    std::stringstream ss;
+    ss << GetChTime() <<","<< m_steer <<","<< m_postDisp[LEFT] /in2m <<","<< m_postDisp[RIGHT] / in2m;
+
+    // python pandas expects csv w/ no whitespace
+    if( m_log_what & DBG_SPRINGS )
+    {
+      ss << "," << GetSpringLength(FRONT_LEFT) / in2m << ","
+        << GetSpringLength(FRONT_RIGHT) / in2m << ","
+        << GetSpringDeformation(FRONT_LEFT) / in2m << ","
+        << GetSpringDeformation(FRONT_RIGHT) / in2m << ","
+        << GetSpringForce(FRONT_LEFT) / lbf2N << ","
+        << GetSpringForce(FRONT_RIGHT) / lbf2N;
+  
+    }
+    if (m_log_what & DBG_SHOCKS)
+    {
+      ss << "," << GetShockLength(FRONT_LEFT) / in2m << ","
+        << GetShockLength(FRONT_RIGHT) / in2m << ","
+        << GetShockVelocity(FRONT_LEFT) / in2m << ","
+        << GetShockVelocity(FRONT_RIGHT) / in2m << ","
+        << GetShockForce(FRONT_LEFT) / lbf2N << ","
+        << GetShockForce(FRONT_RIGHT) / lbf2N;
+    }
+
+    if (m_log_what & DBG_CONSTRAINTS)
+    {
+      // Report constraint violations for all joints
+      LogConstraintViolations();
+    }
+    
+    // ",KA_L,KA_R,Koff_L,Koff_R,CA_L,CA_R,Coff_L,Coff_R,TA_L,TA_R,LCA_roll";
+    if (m_log_what & DBG_SUSPENSIONTEST)
+    {
+      ss <<","<< Get_KingpinAng(LEFT)*rad2deg <<","<< Get_KingpinAng(RIGHT)*rad2deg 
+        <<","<< Get_KingpinOffset(LEFT)/in2m <<","<< Get_KingpinOffset(RIGHT)/in2m
+        <<","<< Get_CasterAng(LEFT)*rad2deg <<","<< Get_CasterAng(RIGHT)*rad2deg 
+        <<","<< Get_CasterOffset(LEFT)/in2m <<","<< Get_CasterOffset(RIGHT)/in2m
+        <<","<< Get_ToeAng(LEFT)*rad2deg <<","<< Get_ToeAng(RIGHT)*rad2deg
+        <<","<< Get_LCArollAng();
+      /*
+      ss << "," << GetActuatorDisp(FRONT_LEFT) / in2m << ","
+        << GetActuatorDisp(FRONT_RIGHT) / in2m << ","
+        << GetActuatorForce(FRONT_LEFT) / in2m << ","
+        << GetActuatorForce(FRONT_RIGHT) / in2m << ","
+        << GetActuatorMarkerDist(FRONT_LEFT) / in2m << ","
+        << GetActuatorMarkerDist(FRONT_RIGHT) / in2m;
+       */
+    }
+    // next line last, then write to file
+    ss << "\n";
+    ofile << ss.str().c_str();
+  }
+}
+
+
+
+void DriveChain::create_fileHeader(int what)
+{
+  // open the data file for writing the header
+  ChStreamOutAsciiFile ofile(m_log_file_name.c_str());
+  // write the headers, output types specified by "what"
+  std::stringstream ss;
+  ss << "time,steer,postDisp_L,postDisp_R";
+  if(what & DBG_SPRINGS)
+  {
+    // L/R spring length, delta x, force
+    ss << ",k_len_L,k_len_R,k_dx_L,k_dx_R,k_F_L,k_F_R";
+  }
+  if(what & DBG_SHOCKS)
+  {
+    ss << ",d_len_L,d_len_R,d_vel_L,d_vel_R,d_F_L,d_F_R";
+  }
+  if(what & DBG_CONSTRAINTS)
+  {
+    // TODO:
+  }
+  if(what & DBG_SUSPENSIONTEST)
+  {
+    ss << ",KA_L,KA_R,Koff_L,Koff_R,CA_L,CA_R,Coff_L,Coff_R,TA_L,TA_R,LCA_roll";
+  }
+
+  // write to file, go to next line in file in prep. for next step.
+  ofile << ss.str().c_str();
+  ofile << "\n";
+}
+
+
 
 
 } // end namespace chrono
