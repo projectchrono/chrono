@@ -38,7 +38,7 @@ class CH_PARALLEL_API ChLcpSolverParallel : public ChLcpIterativeSolver {
    //Each child class must define its own solve method
    virtual double Solve(ChLcpSystemDescriptor &sysd) {return 0;}
    //Similarly, the run timestep function needs to be defined
-   virtual void RunTimeStep(real step) = 0;
+   virtual void RunTimeStep() = 0;
    //This function computes the new velocities based on the lagrange multipliers
    virtual void ComputeImpulses() = 0;
 
@@ -62,9 +62,8 @@ class CH_PARALLEL_API ChLcpSolverParallelDVI : public ChLcpSolverParallel {
  public:
    ChLcpSolverParallelDVI(ChParallelDataManager* dc) : ChLcpSolverParallel(dc) {}
 
-   virtual void RunTimeStep(real step);
-
-   void ComputeImpulses();
+   virtual void RunTimeStep();
+   virtual void ComputeImpulses();
 
    // Compute the constraint Jacobian matrix.
    void ComputeD();
@@ -87,9 +86,8 @@ class CH_PARALLEL_API ChLcpSolverParallelDEM : public ChLcpSolverParallel {
  public:
   ChLcpSolverParallelDEM(ChParallelDataManager* dc) : ChLcpSolverParallel(dc) {}
 
-  virtual void RunTimeStep(real step);
-
-  void ComputeImpulses();
+  virtual void RunTimeStep();
+  virtual void ComputeImpulses();
 
   // Compute the constraint Jacobian matrix.
   void ComputeD();

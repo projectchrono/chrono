@@ -70,7 +70,7 @@ CH_RTTI(ChSystemParallel, ChSystem);
 
    virtual void AddMaterialSurfaceData(ChSharedPtr<ChBody> newbody) = 0;
    virtual void UpdateMaterialSurfaceData(int index, ChBody* body) = 0;
-
+   virtual void Prepare();
    virtual void ChangeCollisionSystem(COLLISIONSYSTEMTYPE type);
 
    virtual void PrintStepStats() {
@@ -152,6 +152,7 @@ CH_RTTI(ChSystemParallelDEM, ChSystemParallel);
 
    virtual void AddMaterialSurfaceData(ChSharedPtr<ChBody> newbody);
    virtual void UpdateMaterialSurfaceData(int index, ChBody* body);
+   virtual void Prepare();
    virtual void ChangeCollisionSystem(COLLISIONSYSTEMTYPE type);
 
    virtual real3 GetBodyContactForce(uint body_id) const;

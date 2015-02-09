@@ -15,12 +15,8 @@
 #include "chrono_parallel/solver/ChSolverPDIP.h"
 using namespace chrono;
 
-void ChLcpSolverParallelDVI::RunTimeStep(real step)
+void ChLcpSolverParallelDVI::RunTimeStep()
 {
-  // Setup constants and other values for system
-  data_container->settings.step_size = step;
-  data_container->settings.solver.tol_speed = step * data_container->settings.solver.tolerance;
-
   // Compute the offsets and number of constrains depending on the solver mode
   if (data_container->settings.solver.solver_mode == NORMAL) {
     rigid_rigid.offset = 1;
@@ -34,8 +30,6 @@ void ChLcpSolverParallelDVI::RunTimeStep(real step)
   }
   // This is the total number of constraints
   data_container->num_constraints = data_container->num_unilaterals + data_container->num_bilaterals;
-  // This is the total number of degrees of freedom in the system
-  data_container->num_dof = data_container->num_bodies * 6 + data_container->num_shafts;
 
   // Generate the mass matrix and compute M_inv_k
   ComputeMassMatrix();

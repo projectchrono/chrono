@@ -63,13 +63,15 @@ int ChSystemParallel::Integrate_Y() {
    Update();
    data_manager->system_timer.stop("update");
 
+   Prepare();
+
    data_manager->system_timer.start("collision");
    collision_system->Run();
    collision_system->ReportContacts(this->contact_container);
    data_manager->system_timer.stop("collision");
 
    data_manager->system_timer.start("lcp");
-   ((ChLcpSolverParallel *) (LCP_solver_speed))->RunTimeStep(GetStep());
+   ((ChLcpSolverParallel *) (LCP_solver_speed))->RunTimeStep();
    data_manager->system_timer.stop("lcp");
 
    data_manager->system_timer.start("update");
@@ -490,6 +492,23 @@ void ChSystemParallel::UpdateBilaterals()
   // Set the number of currently active bilateral constraints.
   data_manager->num_bilaterals = data_manager->host_data.bilateral_mapping.size();
 }
+
+//
+// Prepare simulation of the next step.  This function is called after
+// the system update and before collision detection. A derived class can
+// override this function, but it should invoke this default implementation.
+//
+void ChSystemParallel::Prepare()
+{
+  // Cache the integration step size and calculate the tolerance at impulse level.
+  data_manager->settings.step_size = step;
+  data_manager->settings.solver.tol_speed = step * data_manager->settings.solver.tolerance;
+
+  // Calculate the total number of degrees of freedom (6 per rigid body and 1
+  // for each shaft element).
+  data_manager->num_dof = data_manager->num_bodies * 6 + data_manager->num_shafts;
+}
+
 
 void ChSystemParallel::RecomputeThreads() {
    timer_accumulator.insert(timer_accumulator.begin(), timer_step);

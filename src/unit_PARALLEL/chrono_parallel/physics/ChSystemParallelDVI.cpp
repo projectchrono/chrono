@@ -119,15 +119,15 @@ void ChSystemParallelDVI::SolveSystem() {
    data_manager->system_timer.Reset();
    data_manager->system_timer.start("step");
    data_manager->system_timer.start("update");
-   Setup();
    Update();
    data_manager->system_timer.stop("update");
+   Prepare();
    data_manager->system_timer.start("collision");
    collision_system->Run();
    collision_system->ReportContacts(this->contact_container);
    data_manager->system_timer.stop("collision");
    data_manager->system_timer.start("lcp");
-   ((ChLcpSolverParallel *) (LCP_solver_speed))->RunTimeStep(GetStep());
+   ((ChLcpSolverParallel *) (LCP_solver_speed))->RunTimeStep();
    data_manager->system_timer.stop("lcp");
    data_manager->system_timer.stop("step");
    timer_update = data_manager->system_timer.GetTime("update");

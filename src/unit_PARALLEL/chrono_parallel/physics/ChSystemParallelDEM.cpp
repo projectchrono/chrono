@@ -59,6 +59,15 @@ void ChSystemParallelDEM::UpdateMaterialSurfaceData(int index, ChBody* body)
   }
 }
 
+void ChSystemParallelDEM::Prepare()
+{
+  // First, invoke the base class method
+  ChSystemParallel::Prepare();
+
+  // Ensure that the collision envelope is zero.
+  data_manager->settings.collision.collision_envelope = 0;
+}
+
 void ChSystemParallelDEM::ChangeCollisionSystem(COLLISIONSYSTEMTYPE type)
 {
   ChSystemParallel::ChangeCollisionSystem(type);

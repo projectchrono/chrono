@@ -448,19 +448,11 @@ void ChLcpSolverParallelDEM::ComputeR()
 // generalized velocities, then enforces the velocity-level constraints for any
 // bilateral (joint) constraints present in the system.
 // -----------------------------------------------------------------------------
-void
-ChLcpSolverParallelDEM::RunTimeStep(real step)
+void ChLcpSolverParallelDEM::RunTimeStep()
 {
-  // Setup constants and other values for system
-  data_container->settings.step_size = step;
-  data_container->settings.solver.tol_speed = step * data_container->settings.solver.tolerance;
-
   // This is the total number of constraints, note that there are no contacts
   data_container->num_constraints = data_container->num_bilaterals;
   data_container->num_unilaterals = 0;
-
-  // This is the total number of degrees of freedom in the system
-  data_container->num_dof = data_container->num_bodies  * 6 + data_container->num_shafts;
 
   // Calculate contact forces (impulses) and append them to the body forces
   data_container->host_data.ct_body_map.resize(data_container->num_bodies);
