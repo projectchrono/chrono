@@ -18,7 +18,8 @@
 #include <glm/gtc/type_ptr.hpp>
 #include "chrono_opengl/FontData.h"
 using namespace glm;
-using namespace chrono::opengl;
+namespace chrono {
+namespace opengl {
 
 ChOpenGLText::ChOpenGLText() : ChOpenGLObject() {
 
@@ -141,4 +142,5 @@ void ChOpenGLText::Draw(const mat4& projection, const mat4& view) {
 
   if (this->GLReturnedError("ChOpenGLText::Draw - on exit"))
     return;
-}
+}}
+}

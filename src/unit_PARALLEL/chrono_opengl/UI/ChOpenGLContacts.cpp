@@ -17,7 +17,9 @@
 #include "chrono_opengl/UI/ChOpenGLContacts.h"
 #include "chrono_opengl/ChOpenGLMaterials.h"
 using namespace glm;
-using namespace chrono::opengl;
+namespace chrono {
+using namespace collision;
+namespace opengl {
 
 ChOpenGLContacts::ChOpenGLContacts() {}
 
@@ -29,13 +31,7 @@ bool ChOpenGLContacts::Initialize(ChOpenGLMaterial mat, ChOpenGLShader* shader) 
   contacts.SetPointSize(0.01);
 }
 
-void ChOpenGLContacts::UpdateChrono(ChSystem* system) {
-
-
-
-
-
-}
+void ChOpenGLContacts::UpdateChrono(ChSystem* system) {}
 void ChOpenGLContacts::UpdateChronoParallel(ChSystemParallel* system) {
 
   ChParallelDataManager* data_manager = system->data_manager;
@@ -77,4 +73,6 @@ void ChOpenGLContacts::Draw(const mat4& projection, const mat4& view) {
 
   glm::mat4 model(1);
   contacts.Draw(projection, view * model);
+}
+}
 }

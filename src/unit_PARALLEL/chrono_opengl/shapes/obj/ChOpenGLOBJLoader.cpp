@@ -19,7 +19,8 @@
 #include <string>
 
 using namespace glm;
-using namespace chrono::opengl;
+namespace chrono {
+namespace opengl {
 ChOpenGLOBJLoader::ChOpenGLOBJLoader() {}
 
 // load an obj mesh. Each mesh can have multiple sub meshes
@@ -64,4 +65,6 @@ void ChOpenGLOBJLoader::LoadObject(std::string fname,
       indices[i][f] = shapes[i].mesh.indices[f];
     }
   }
+}
+}
 }

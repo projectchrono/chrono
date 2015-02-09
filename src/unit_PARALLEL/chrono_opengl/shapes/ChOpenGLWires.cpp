@@ -18,7 +18,8 @@
 #include <glm/gtc/type_ptr.hpp>
 
 using namespace glm;
-using namespace chrono::opengl;
+namespace chrono {
+namespace opengl {
 
 ChOpenGLWires::ChOpenGLWires() : ChOpenGLObject() {
   point_size = .04;
@@ -108,3 +109,5 @@ void ChOpenGLWires::Draw(const mat4& projection, const mat4& view) {
 }
 
 void ChOpenGLWires::SetPointSize(const float& pointsize) { point_size = pointsize; }
+}
+}

@@ -23,8 +23,9 @@
 #include "resources/text_vert.h"
 
 using namespace glm;
-using namespace chrono::opengl;
-using namespace chrono::collision;
+namespace chrono {
+using namespace collision;
+namespace opengl {
 
 ChOpenGLHUD::ChOpenGLHUD() : ChOpenGLBase() {
   spacing = 0.055;
@@ -46,7 +47,7 @@ bool ChOpenGLHUD::Initialize(ChOpenGLCamera* camera, ChTimerParallel* viewer_tim
   return true;
 }
 
-void ChOpenGLHUD::Update(const glm::ivec2& window_size, const float& dpi, const float & frame_per_sec) {
+void ChOpenGLHUD::Update(const glm::ivec2& window_size, const float& dpi, const float& frame_per_sec) {
 
   sx = (2 * dpi / 147.782) / window_size.x;
   sy = (2 * dpi / 147.782) / window_size.y;
@@ -197,16 +198,16 @@ void ChOpenGLHUD::GenerateCD(ChSystem* physics_system) {
 
 void ChOpenGLHUD::GenerateRenderer() {
 
-      sprintf(buffer, "RENDER INFO");
-      text.Render(buffer, .6, -0.925 + spacing * 4, sx, sy);
-      sprintf(buffer, "GEOMETRY %04f", time_geometry);
-      text.Render(buffer, .6, -0.925 + spacing * 3, sx, sy);
-      sprintf(buffer, "TEXT     %04f", time_text);
-      text.Render(buffer, .6, -0.925 + spacing * 2, sx, sy);
-      sprintf(buffer, "TOTAL    %04f", time_total);
-      text.Render(buffer, .6, -0.925 + spacing * 1, sx, sy);
-      sprintf(buffer, "FPS      %04d", int(fps));
-      text.Render(buffer, .6, -0.925 + spacing * 0, sx, sy);
+  sprintf(buffer, "RENDER INFO");
+  text.Render(buffer, .6, -0.925 + spacing * 4, sx, sy);
+  sprintf(buffer, "GEOMETRY %04f", time_geometry);
+  text.Render(buffer, .6, -0.925 + spacing * 3, sx, sy);
+  sprintf(buffer, "TEXT     %04f", time_text);
+  text.Render(buffer, .6, -0.925 + spacing * 2, sx, sy);
+  sprintf(buffer, "TOTAL    %04f", time_total);
+  text.Render(buffer, .6, -0.925 + spacing * 1, sx, sy);
+  sprintf(buffer, "FPS      %04d", int(fps));
+  text.Render(buffer, .6, -0.925 + spacing * 0, sx, sy);
 }
 
 void ChOpenGLHUD::GenerateStats(ChSystem* physics_system) {
@@ -280,4 +281,6 @@ void ChOpenGLHUD::GenerateStats(ChSystem* physics_system) {
   //    text.Render(buffer, posx, -0.925 + spacing * 2, sx, sy);
   //  }
 }
-void ChOpenGLHUD::Draw() { text.Draw(); }
+void ChOpenGLHUD::Draw() { text.Draw(); }
+}
+}

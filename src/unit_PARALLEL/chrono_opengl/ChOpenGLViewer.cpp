@@ -43,8 +43,8 @@
 #include <glm/gtx/rotate_vector.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 
-using namespace chrono;
-using namespace chrono::opengl;
+namespace chrono {
+namespace opengl {
 
 ChOpenGLViewer::ChOpenGLViewer(ChSystem* system) {
   physics_system = system;
@@ -559,4 +559,6 @@ void ChOpenGLViewer::HandleInput(unsigned char key, int x, int y) {
     default:
       break;
   }
+}
+}
 }

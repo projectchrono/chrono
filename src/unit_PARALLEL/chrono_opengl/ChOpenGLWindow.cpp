@@ -15,9 +15,8 @@
 
 #include "chrono_opengl/ChOpenGLWindow.h"
 
-// using namespace glm;
-using namespace chrono;
-using namespace chrono::opengl;
+namespace chrono {
+namespace opengl {
 
 void ChOpenGLWindow::Initialize(int size_x, int size_y, const char* title, ChSystem* msystem) {
   if (!glfwInit()) {
@@ -179,7 +178,6 @@ void ChOpenGLWindow::CallbackReshape(GLFWwindow* window, int w, int h) {
   glfwGetMonitorPos(primary, &pointer->window_position.x, &pointer->window_position.y);
   const GLFWvidmode* mode = glfwGetVideoMode(primary);
   pointer->dpi = mode->width / (pointer->window_physical_size.x / 25.4);
-
 }
 
 void ChOpenGLWindow::CallbackKeyboard(GLFWwindow* window, int key, int scancode, int action, int mode) {
@@ -205,4 +203,6 @@ void ChOpenGLWindow::CallbackMousePos(GLFWwindow* window, double x, double y) {
   ChOpenGLViewer* pointer = ((ChOpenGLViewer*)(glfwGetWindowUserPointer(window)));
 
   pointer->render_camera.Move2D(x, y);
+}
+}
 }

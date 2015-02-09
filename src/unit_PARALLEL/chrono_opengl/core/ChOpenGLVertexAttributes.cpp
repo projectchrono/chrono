@@ -26,7 +26,8 @@
 #include "chrono_opengl/core/ChOpenGLVertexAttributes.h"
 
 using namespace glm;
-using namespace chrono::opengl;
+namespace chrono {
+namespace opengl {
 
 ChOpenGLVertexAttributesPADSNT::ChOpenGLVertexAttributesPADSNT() {
   this->position = vec3(0.0f);
@@ -133,4 +134,6 @@ ChOpenGLVertexAttributesPCN::ChOpenGLVertexAttributesPCN(const ChOpenGLVertexAtt
   this->position = other.position;
   this->color = other.color;
   this->normal = other.normal;
+}
+}
 }

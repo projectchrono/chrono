@@ -18,9 +18,10 @@
 #include "chrono_opengl/core/ChOpenGLObject.h"
 
 using namespace glm;
-using namespace chrono::opengl;
+namespace chrono {
+namespace opengl {
 
-/*	Notice the destructor in this case asserts that all resources
+/*  Notice the destructor in this case asserts that all resources
  that don't go away by themselves have ALREADY been released. This
  is because the destructor might be called after a GL context has
  been destroyed, so I force the user of this class to call the
@@ -107,4 +108,6 @@ void ChOpenGLObject::InternalInitialize() {
   this->vertex_diffuse_handle = GLuint(-1);
   this->vertex_specular_handle = GLuint(-1);
   this->vertex_model_handle = GLuint(-1);
+}
+}
 }

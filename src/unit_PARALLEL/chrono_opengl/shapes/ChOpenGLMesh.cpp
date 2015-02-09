@@ -18,8 +18,8 @@
 #include <glm/gtc/type_ptr.hpp>
 
 using namespace glm;
-using namespace chrono::opengl;
-
+namespace chrono {
+namespace opengl {
 ChOpenGLMesh::ChOpenGLMesh() : ChOpenGLObject() {}
 
 bool ChOpenGLMesh::Initialize(std::vector<glm::vec3>& vertices, std::vector<glm::vec3>& normals, std::vector<glm::vec2>& texcoords, std::vector<GLuint>& indices, ChOpenGLMaterial mat) {
@@ -155,8 +155,7 @@ bool ChOpenGLMesh::PostInitialize() {
   for (int i = 0; i < 4; i++) {
     // Set up the vertex attribute
     glVertexAttribPointer(model_loc + i,    // Location
-                          4,
-                          GL_FLOAT,
+                          4, GL_FLOAT,
                           GL_FALSE,                      // vec4
                           sizeof(mat4),                  // Stride
                           (void*)(sizeof(vec4) * i));    // Start offset
@@ -236,4 +235,6 @@ void ChOpenGLMesh::Draw(const mat4& projection, const mat4& view) {
 
   if (this->GLReturnedError("ChOpenGLMesh::Draw - on exit"))
     return;
+}
+}
 }

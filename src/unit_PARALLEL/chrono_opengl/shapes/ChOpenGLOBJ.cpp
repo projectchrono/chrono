@@ -18,7 +18,8 @@
 #include "chrono_opengl/shapes/ChOpenGLOBJ.h"
 
 using namespace glm;
-using namespace chrono::opengl;
+namespace chrono {
+namespace opengl {
 
 ChOpenGLOBJ::ChOpenGLOBJ() {}
 ChOpenGLOBJ::~ChOpenGLOBJ() {}
@@ -68,4 +69,6 @@ void ChOpenGLOBJ::Draw(const mat4& projection, const mat4& view) {
 
   if (this->GLReturnedError("ChOpenGLOBJ::Draw - on exit"))
     return;
+}
+}
 }

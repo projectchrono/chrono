@@ -18,8 +18,8 @@
 #include <glm/gtx/rotate_vector.hpp>
 #include <glm/gtx/quaternion.hpp>
 
-using namespace chrono;
-using namespace chrono::opengl;
+namespace chrono {
+namespace opengl {
 
 ChOpenGLCamera::ChOpenGLCamera() {
   camera_mode = FREE;
@@ -211,4 +211,6 @@ void ChOpenGLCamera::GetMatricies(glm::mat4& P, glm::mat4& V, glm::mat4& M) {
   P = projection;
   V = view;
   M = model;
+}
+}
 }

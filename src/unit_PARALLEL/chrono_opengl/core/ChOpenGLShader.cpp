@@ -22,7 +22,8 @@
 #include <glm/gtc/type_ptr.hpp>
 #include <sstream>
 using namespace glm;
-using namespace chrono::opengl;
+namespace chrono {
+namespace opengl {
 
 ChOpenGLShader::ChOpenGLShader() {
   this->vertex_shader_id = BAD_GL_VALUE;
@@ -36,7 +37,7 @@ ChOpenGLShader::ChOpenGLShader() {
   time = 0;
 }
 
-/*	This Shader() class implements or assumes a basic set of uniforms will
+/*  This Shader() class implements or assumes a basic set of uniforms will
  be
  provided to all shaders derived from it. These are listed below.
  ChOpenGLShader::CommonSetup() can be used by call derived classes to send the
@@ -201,7 +202,7 @@ void ChOpenGLShader::TakeDown() {
   GLint temp;
   GLsizei size;
   // If already taken down, do not do again
-  if (this->program_id == (GLuint) - 1)
+  if (this->program_id == (GLuint)-1)
     return;
   // Get the shader program
   glGetProgramiv(this->program_id, GL_ATTACHED_SHADERS, &temp);
@@ -219,7 +220,7 @@ void ChOpenGLShader::TakeDown() {
   }
   // finally delete the shader program and then finish
   glDeleteProgram(this->program_id);
-  this->program_id = (GLuint) - 1;
+  this->program_id = (GLuint)-1;
 }
 
 // This function is adapted from OpenGL 4.0 Shading Language Cookbook by David
@@ -299,3 +300,5 @@ void ChOpenGLShader::CheckGlProgram(GLuint prog) {
 }
 
 GLuint ChOpenGLShader::GetUniformLocation(std::string name) { return glGetUniformLocation(program_id, (const GLchar*)name.c_str()); }
+}
+}

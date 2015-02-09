@@ -15,7 +15,8 @@
 
 #include "chrono_opengl/UI/ChOpenGLGraphs.h"
 using namespace glm;
-using namespace chrono::opengl;
+namespace chrono {
+namespace opengl {
 
 ChOpenGLGraphs::ChOpenGLGraphs() {}
 
@@ -59,7 +60,6 @@ void ChOpenGLGraphs::Update(ChSystem* physics_system, const ivec2& window_size) 
 
 void ChOpenGLGraphs::TakeDown() { plots.TakeDown(); }
 
-void ChOpenGLGraphs::Draw(const mat4& projection, const mat4& modelview) {
-
-  plots.Draw(projection, modelview);
+void ChOpenGLGraphs::Draw(const mat4& projection, const mat4& modelview) { plots.Draw(projection, modelview); }
+}
 }
