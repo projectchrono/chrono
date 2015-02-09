@@ -37,7 +37,7 @@
 
 #include "subsys/base/ChTrackVehicle.h"
 #include "subsys/ChApiSubsys.h"
-#include "subsys/driver/ChDriverTrack.h"
+#include "subsys/base/ChDriverTrack.h"
 #include "subsys/powertrain/TrackPowertrain.h"
 
 

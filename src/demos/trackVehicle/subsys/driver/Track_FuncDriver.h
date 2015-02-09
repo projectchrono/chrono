@@ -15,7 +15,7 @@
 #ifndef TRACK_FUNCDRIVER_H
 #define TRACK_FUNCDRIVER_H
 
-#include "ChDriverTrack.h"
+#include "subsys/base/ChDriverTrack.h"
 
 namespace chrono {
 

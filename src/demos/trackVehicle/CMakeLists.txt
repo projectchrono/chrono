@@ -23,58 +23,98 @@ ADD_SUBDIRECTORY(utils)
 
 cmake_minimum_required(VERSION 2.8)
 
-SET(ChronoEngine_unit_TrackVehicle_SOURCES
-	subsys/base/ChTrackVehicle.cpp
-	subsys/driveGear/DriveGear.cpp
-	subsys/driveline/TrackDriveline.cpp
-	subsys/driveline/TrackDriveline_1WD.cpp
-	subsys/driver/ChDriverTrack.cpp
-	subsys/driver/ChIrrGuiTrack.cpp
-	subsys/driver/Track_FuncDriver.cpp
-	subsys/idler/IdlerSimple.cpp
-	subsys/idler/SupportRoller.cpp
-	subsys/powertrain/TrackPowerTrain.cpp
-	subsys/suspension/TorsionArmSuspension.cpp
-	subsys/trackChain/TrackChain.cpp
-	subsys/trackSystem/TrackSystem.cpp
-	subsys/trackVehicle/TrackVehicle.cpp
-	subsys/trackVehicle/DriveChain.cpp
+SET(CT_BASE_FILES
+subsys/ChApiSubsys.h
+subsys/base/ChTrackVehicle.h
+subsys/base/ChTrackVehicle.cpp
+subsys/base/ChDriverTrack.h
+subsys/base/ChDriverTrack.cpp
 )
 
-SET(ChronoEngine_unit_TrackVehicle_HEADERS
-	subsys/ChApiSubsys.h
-	subsys/base/ChTrackVehicle.h
-	subsys/driveGear/DriveGear.h
-	subsys/driveline/TrackDriveline.h
-	subsys/driveline/TrackDriveline_1WD.h
-	subsys/driver/ChDriverTrack.h
-	subsys/driver/ChIrrGuiTrack.h
-	subsys/driver/Track_FuncDriver.h
-	subsys/idler/IdlerSimple.h
-	subsys/idler/SupportRoller.h
-	subsys/powertrain/TrackPowerTrain.h
-	subsys/suspension/TorsionArmSuspension.h
-	subsys/trackChain/TrackChain.h
-	subsys/trackSystem/TrackSystem.h
-	subsys/trackVehicle/TrackVehicle.h
-	subsys/trackVehicle/DriveChain.h
+SET(CT_VEHICLE_FILES
+subsys/trackVehicle/TrackVehicle.h
+subsys/trackVehicle/TrackVehicle.cpp
+subsys/trackVehicle/DriveChain.h
+subsys/trackVehicle/DriveChain.cpp
+)
+
+SET(CT_SUSPENSION_FILES
+subsys/suspension/TorsionArmSuspension.h
+subsys/suspension/TorsionArmSuspension.cpp
+)
+
+SET(CT_IDLER_FILES
+subsys/idler/IdlerSimple.h
+subsys/idler/IdlerSimple.cpp
+subsys/idler/SupportRoller.h
+subsys/idler/SupportRoller.cpp
+)
+
+SET(CT_DRIVER_FILES
+subsys/driver/ChIrrGuiTrack.h
+subsys/driver/ChIrrGuiTrack.cpp
+subsys/driver/Track_FuncDriver.h
+subsys/driver/Track_FuncDriver.cpp
+)
+
+SET(CT_DRIVEGEAR_FILES
+subsys/driveGear/DriveGear.h
+subsys/driveGear/DriveGear.cpp
+)
+
+SET(CT_CHAIN_FILES
+subsys/trackChain/TrackChain.h
+subsys/trackChain/TrackChain.cpp
+)
+
+SET(CT_TRACKSYSTEM_FILES
+subsys/trackSystem/TrackSystem.h
+subsys/trackSystem/TrackSystem.cpp
+)
+
+SET(CH_POWERTRAIN_FILES
+subsys/powertrain/TrackPowerTrain.h
+subsys/powertrain/TrackPowerTrain.cpp
+)
+
+SET(CH_DRIVELINE_FILES
+subsys/driveline/TrackDriveline.h
+subsys/driveline/TrackDriveline.cpp
+subsys/driveline/TrackDriveline_1WD.h
+subsys/driveline/TrackDriveline_1WD.cpp
 )
 
 
-SOURCE_GROUP(trackVehicle FILES
-	${ChronoEngine_unit_TrackVehicle_SOURCES}
-	${ChronoEngine_unit_TrackVehicle_HEADERS})
-	
-	
-# build the library, with custom properties
+SOURCE_GROUP("base" FILES ${CT_BASE_FILES})
+SOURCE_GROUP("vehicle" FILES ${CT_VEHICLE_FILES})
+SOURCE_GROUP("suspension" FILES ${CT_SUSPENSION_FILES})
+SOURCE_GROUP("idler" FILES ${CT_IDLER_FILES})
+SOURCE_GROUP("driver" FILES ${CT_DRIVER_FILES})
+SOURCE_GROUP("driveGear" FILES ${CT_DRIVEGEAR_FILES})
+SOURCE_GROUP("chain" FILES ${CT_CHAIN_FILES})
+SOURCE_GROUP("trackSystem" FILES ${CT_TRACKSYSTEM_FILES})
+SOURCE_GROUP("powertrain" FILES ${CH_POWERTRAIN_FILES})
+SOURCE_GROUP("driveline" FILES ${CH_DRIVELINE_FILES})
+
+# ------------------------------------------------------------------------------
+# Add the ChronoTrackVehicle library
 ADD_LIBRARY(TrackVehicle SHARED 
-			${ChronoEngine_unit_TrackVehicle_SOURCES}
-			${ChronoEngine_unit_TrackVehicle_HEADERS})
-
+			${CT_BASE_FILES}
+			${CT_VEHICLE_FILES}
+			${CT_SUSPENSION_FILES}
+			${CT_IDLER_FILES}
+			${CT_DRIVER_FILES}
+			${CT_DRIVEGEAR_FILES}
+			${CT_CHAIN_FILES}
+			${CT_TRACKSYSTEM_FILES}
+			${CH_POWERTRAIN_FILES}
+			${CH_DRIVELINE_FILES}
+			)
+			
 SET_TARGET_PROPERTIES(TrackVehicle PROPERTIES
-						COMPILE_FLAGS "${CH_BUILDFLAGS}"
-						LINK_FLAGS "${CH_LINKERFLAG_SHARED}" 
-						COMPILE_DEFINITIONS "CH_API_COMPILE_UNIT_TRACKS")
+	COMPILE_FLAGS "${CH_BUILDFLAGS}"
+	LINK_FLAGS "${CH_LINKERFLAG_SHARED}" 
+	COMPILE_DEFINITIONS "CH_API_COMPILE_UNIT_TRACKS")
                           
 TARGET_LINK_LIBRARIES(TrackVehicle 
 	Chrono_Utils
@@ -83,7 +123,7 @@ TARGET_LINK_LIBRARIES(TrackVehicle
     ${CH_IRRLICHTLIB}
 )
 	
-ADD_DEPENDENCIES (TrackVehicle ChronoEngine Chrono_Utils ChronoEngine_IRRLICHT)  #  not automatic
+# ADD_DEPENDENCIES (TrackVehicle ChronoEngine Chrono_Utils ChronoEngine_IRRLICHT)  #  not automatic
 		
 INCLUDE_DIRECTORIES(${CMAKE_SOURCE_DIR}/demos/trackVehicle/
 					${CH_IRRLICHTINC} )
@@ -94,7 +134,7 @@ INSTALL(TARGETS TrackVehicle
 	ARCHIVE DESTINATION lib
 )
 
-INSTALL(FILES ${ChronoEngine_unit_TrackVehicle_HEADERS} DESTINATION include/demos/trackVehicle)
+# INSTALL(FILES ${} DESTINATION include/demos/trackVehicle)
 	
 	
 # ------------------------------------------------------------------------------
