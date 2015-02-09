@@ -68,7 +68,7 @@ ChOpenGLViewer::ChOpenGLViewer(ChSystem* system) {
   view_info = 0;
   use_vsync = 0;
   render_mode = POINTS;
-  old_time = current_time = 0;
+  time_total = old_time = current_time = 0;
   fps = 0;
 }
 
@@ -231,7 +231,7 @@ void ChOpenGLViewer::Render() {
     timer.stop("text");
   }
   timer.stop("render");
-  float time_total = .5 * timer.GetTime("render") + .5 * time_total;
+  time_total = .5 * timer.GetTime("render") + .5 * time_total;
   current_time = time_total;
   current_time = current_time * 0.5 + old_time * 0.5;
   old_time = current_time;

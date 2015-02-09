@@ -98,7 +98,7 @@ class CH_OPENGL_API ChOpenGLViewer : public ChOpenGLBase {
 
   glm::mat4 model, view, projection, modelview;
 
-  float old_time, current_time;
+  float old_time, current_time, time_total;
   float fps;
 
   std::vector<glm::mat4> model_box;
