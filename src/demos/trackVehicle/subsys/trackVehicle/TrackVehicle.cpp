@@ -171,15 +171,6 @@ void TrackVehicle::Advance(double step)
 }
 
 
-double TrackVehicle::GetIdlerForce(size_t side) const
-{
-  assert(side < m_num_tracks);
-  ChVector<> out_force = m_TrackSystems[side]->Get_idler_spring_react();
-
-  return out_force.Length();
-}
-
-
 double TrackVehicle::GetDriveshaftSpeed(size_t idx) const
 {
   assert(idx < m_drivelines.size() );
@@ -192,6 +183,5 @@ const ChSharedPtr<TrackPowertrain> TrackVehicle::GetPowertrain(size_t idx) const
   assert( idx < m_num_engines );
   return  m_ptrains[idx];
 }
-
 
 } // end namespace chrono

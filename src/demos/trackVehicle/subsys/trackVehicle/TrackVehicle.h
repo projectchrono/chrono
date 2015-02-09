@@ -93,9 +93,6 @@ public:
   /// number of track chain systems attached to the vehicle
   int GetNum_TrackSystems() const { return m_num_tracks; }
 
-  /// return the force exerted by the idler subsystem on the idler body
-  double GetIdlerForce(size_t side) const;
-
   // not really relevant, since it's a static system
   // ChCoordsys<> GetLocalDriverCoordsys() const { return m_driverCsys; }
 
