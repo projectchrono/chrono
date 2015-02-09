@@ -37,4 +37,4 @@ class CH_OPENGL_API ChOpenGLContacts : public ChOpenGLBase {
 };
 }
 }
-#endif    // END of CHOPENGLCONTACTS_H
+#endif    // END of CHOPENGLCONTACTS_H

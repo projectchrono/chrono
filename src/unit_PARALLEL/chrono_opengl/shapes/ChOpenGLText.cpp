@@ -142,5 +142,6 @@ void ChOpenGLText::Draw(const mat4& projection, const mat4& view) {
 
   if (this->GLReturnedError("ChOpenGLText::Draw - on exit"))
     return;
-}}
+}
+}
 }

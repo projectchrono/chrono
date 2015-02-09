@@ -110,4 +110,4 @@ void ChOpenGLWires::Draw(const mat4& projection, const mat4& view) {
 
 void ChOpenGLWires::SetPointSize(const float& pointsize) { point_size = pointsize; }
 }
-}
+}

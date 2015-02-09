@@ -110,4 +110,4 @@ void ChOpenGLCloud::Draw(const mat4& projection, const mat4& view) {
 
 void ChOpenGLCloud::SetPointSize(const float& pointsize) { point_size = pointsize; }
 }
-}
+}
