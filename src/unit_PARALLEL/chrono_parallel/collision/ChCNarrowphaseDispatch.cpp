@@ -171,6 +171,9 @@ void ChCNarrowphaseDispatch::PreprocessLocalToParent() {
     if (T == TRIANGLEMESH) {
       obj_data_B_global[index] = TransformLocalToParent(pos, rot, obj_data_B[index]);
       obj_data_C_global[index] = TransformLocalToParent(pos, rot, obj_data_C[index]);
+    } else {
+      obj_data_B_global[index] = obj_data_B[index];
+      obj_data_C_global[index] = obj_data_C[index];
     }
     obj_data_R_global[index] = mult(rot, obj_data_R[index]);
   }
