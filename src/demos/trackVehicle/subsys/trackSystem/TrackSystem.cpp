@@ -28,7 +28,7 @@ namespace chrono {
 // idler, right side
 const ChVector<> TrackSystem::m_idlerPos(-2.1904, -0.1443, 0.2447); // relative to local csys
 const ChQuaternion<> TrackSystem::m_idlerRot(QUNIT);
-const double TrackSystem::m_idler_preload = 50000;  // [N]
+const double TrackSystem::m_idler_preload = 250000;  // [N]
   
 // drive gear, right side
 const ChVector<> TrackSystem::m_gearPos(1.7741, -0.0099, 0.2447);  // relative to local csys
@@ -122,8 +122,10 @@ void TrackSystem::BuildSubsystems()
 {
   // build one of each of the following subsystems. VisualizationType and CollisionType defaults are PRIMITIVES
   m_driveGear = ChSharedPtr<DriveGear>(new DriveGear("drive gear "+std::to_string(m_track_idx),
-    VisualizationType::PRIMITIVES,
-    CollisionType::PRIMITIVES) );
+    // VisualizationType::PRIMITIVES,
+   //  CollisionType::PRIMITIVES) );
+    VisualizationType::COMPOUNDPRIMITIVES,
+    CollisionType::CALLBACKFUNCTION));
 
   m_idler = ChSharedPtr<IdlerSimple>(new IdlerSimple("idler "+std::to_string(m_track_idx),
     VisualizationType::PRIMITIVES,
@@ -193,7 +195,7 @@ void TrackSystem::Initialize(ChSharedPtr<ChBodyAuxRef> chassis,
   // last control point: the idler body
   m_idler->Initialize(chassis, 
     chassis->GetFrame_REF_to_abs(),
-    ChCoordsys<>(m_local_pos + Get_idlerPosRel(), QUNIT),
+    ChCoordsys<>(m_local_pos + Get_idlerPosRel(), Q_from_AngAxis(CH_C_PI, VECT_Z)),
     m_idler_preload);
 
   // add to the lists passed into the track chain Init()

@@ -105,8 +105,8 @@ DriveChain::DriveChain(const std::string& name,
     CollisionType::PRIMITIVES) );
 
   // track chain system
-  double shoe_mass = 3.0; // 18.03
-  ChVector<> shoe_Ixx(0.22/6.0, 0.25/6.0, 0.04/6.0);  // 0.22, 0.25, 0.04
+  double shoe_mass = 18.03/4.0; // 18.03
+  ChVector<> shoe_Ixx(0.22/4.0, 0.25/4.0, 0.04/4.0);  // 0.22, 0.25, 0.04
   m_chain = ChSharedPtr<TrackChain>(new TrackChain("chain",
     shoe_mass,
     shoe_Ixx,

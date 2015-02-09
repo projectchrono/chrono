@@ -78,8 +78,8 @@ double output_step_size = 1.0 / 1;    // once a second
 // #ifdef USE_IRRLICHT
   // Point on chassis tracked by the camera
 double chaseDist = 4.0;
-double chaseHeight = 0.0;
-ChVector<> trackPoint(0, 0, 0);
+double chaseHeight = 0;
+ChVector<> trackPoint(0.0, -0.5, 0);
   /*
 #else
   double tend = 20.0;

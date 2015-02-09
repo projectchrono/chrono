@@ -61,7 +61,7 @@ ChQuaternion<> initRot(QUNIT);
 // Simulation step size
 double step_size = 0.002;
 
-size_t num_idlers = 1;
+size_t num_idlers = 2;
 
 // Time interval between two render frames
 int FPS = 40;
@@ -101,8 +101,8 @@ int main(int argc, char* argv[])
   // The drive chain inherits ChSystem. Specify the 
   // collision type used by the gear here.
   DriveChain chainSystem("Justins driveChain system", 
-    VisualizationType::MESH,
-    // VisualizationType::COMPOUNDPRIMITIVES,
+    // VisualizationType::MESH,
+    VisualizationType::COMPOUNDPRIMITIVES,
     CollisionType::CALLBACKFUNCTION,
     num_idlers);
   

@@ -44,8 +44,7 @@ const double IdlerSimple::m_radius = 0.255;
 const double IdlerSimple::m_width = 0.166*2.4;
 const double IdlerSimple::m_widthGap = .092*1.5; // 0.092; 
 const double IdlerSimple::m_springK = 200000;
-const double IdlerSimple::m_springC = 5000;
-const double IdlerSimple::m_springRestLength = 1.0;
+const double IdlerSimple::m_springC = 10000;
 
 
 /*
@@ -93,7 +92,8 @@ IdlerSimple::IdlerSimple(const std::string& name,
                          size_t chain_idx)
   : m_vis(vis), m_collide(collide),
   m_meshFile(utils::GetModelDataFile("M113/Idler_XforwardYup.obj")),
-  m_meshName("idler_mesh")
+  m_meshName("idler_mesh"),
+  m_springRestLength(1)
 //  , m_shockCB(NULL), m_springCB(NULL)
 {
   // create the body, set the basic info
@@ -126,7 +126,8 @@ IdlerSimple::IdlerSimple(const std::string& name,
                          size_t chain_idx)
   : m_vis(vis), m_collide(collide),
     m_meshFile(utils::GetModelDataFile("M113/Idler_XforwardYup.obj")),
-    m_meshName("idler_mesh")
+    m_meshName("idler_mesh"),
+    m_springRestLength(1)
 //  , m_shockCB(NULL), m_springCB(NULL)
 {
   // create the body, set the basic info
@@ -187,6 +188,13 @@ void IdlerSimple::Initialize(ChSharedPtr<ChBody> chassis,
   // init shock, add to system
   // put the second marker some length in front of marker1, based on desired preload
   double init_spring_len = m_springRestLength - preLoad / m_springK;
+  double min_init_spring_len = 0.1;
+  if(init_spring_len < min_init_spring_len)
+  {
+    // must increase restLength. Set init_spring_len to a constant 10 cm
+    m_springRestLength += abs(init_spring_len) + 0.1;
+    init_spring_len = min_init_spring_len;
+  }
   ChVector<> pos_on_chassis_abs = idler_to_abs.GetPos() - idler_to_abs.GetRot().GetXaxis()*(init_spring_len);
 
   // init. points based on desired preload and free lengths

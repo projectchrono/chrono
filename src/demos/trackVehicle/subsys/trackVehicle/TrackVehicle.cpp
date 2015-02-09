@@ -38,7 +38,7 @@ namespace chrono {
 const ChVector<> TrackVehicle::m_trackPos_Right(0.23644, -0.4780, 0.83475); // relative to chassis COG
 const ChVector<> TrackVehicle::m_trackPos_Left(0.23644, -0.4780, -0.83475); // relative to chassis COG
 
-const double     TrackVehicle::m_mass = 5489.2;   // chassis sprung mass
+const double     TrackVehicle::m_mass = 1000; // 5489.2;   // chassis sprung mass
 const ChVector<> TrackVehicle::m_COM = ChVector<>(0., 0.0, 0.);  // COM location, relative to body Csys REF frame
 const ChVector<> TrackVehicle::m_inertia(1786.9, 10449.7, 10721.2);  // chassis inertia (roll,yaw,pitch)
 

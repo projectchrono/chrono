@@ -74,8 +74,8 @@ private:
   void AddVisualization(size_t chain_idx,
                         bool custom_texture = false,
                         const std::string& tex_name = "none");
-  void AddCollisionGeometry(double mu = 0.6,
-                            double mu_sliding = 0.5,
+  void AddCollisionGeometry(double mu = 0.4,
+                            double mu_sliding = 0.3,
                             double mu_roll = 0,
                             double mu_spin = 0);
 
@@ -89,6 +89,7 @@ private:
   ChSharedPtr<ChLinkSpring> m_shock;  ///< handle to spring-damper;
   // ChSpringForceCallback* m_shockCB;   ///< shock callback function
   // ChSpringForceCallback* m_springCB;  ///< spring callback function
+  double m_springRestLength; ///< shock rest length
 
   VisualizationType m_vis;
   CollisionType m_collide;
@@ -101,7 +102,6 @@ private:
   static const ChVector<> m_inertia;
   static const double m_springK;  ///< shock linear spring coefficient
   static const double m_springC;  ///< shock linear damping coefficient
-  static const double m_springRestLength; ///< shock rest length
   static const double m_width;
   static const double m_widthGap; // // inner distance between cydliners
   static const double m_radius;

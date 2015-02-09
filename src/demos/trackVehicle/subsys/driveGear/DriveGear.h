@@ -88,8 +88,8 @@ private:
   const std::string& getMeshFile() const { return m_meshFile; }
 
   void AddVisualization();
-  void AddCollisionGeometry(double mu = 0.6,
-                            double mu_sliding = 0.5,
+  void AddCollisionGeometry(double mu = 0.0,
+                            double mu_sliding = 0.0,
                             double mu_roll = 0,
                             double mu_spin = 0);
   
