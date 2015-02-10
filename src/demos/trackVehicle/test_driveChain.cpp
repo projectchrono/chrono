@@ -66,9 +66,10 @@ using namespace chrono;
 // =============================================================================
 // User Settings
 // =============================================================================
-// display the 1) system heirarchy, 2) a set of subsystem hardpoints, 3) constraint violations
+// display the  system heirarchy, write output data, log constraint violations to console
 //#define DEBUG_LOG 
 #define WRITE_OUTPUT
+#define CONSOLE_CONSTRAINT_INFO
 
 // Initial vehicle position and heading. Defines the REF frame for the hull body
 ChVector<> initLoc(0, 1.0, 0);
@@ -125,6 +126,12 @@ int main(int argc, char* argv[])
   
   // set the chassis REF at the specified initial config.
   chainSystem.Initialize(ChCoordsys<>(initLoc, initRot));
+
+  // if writing an output file, setup what debugInformation we want added each step data is saved.
+#ifdef WRITE_OUTPUT
+  chainSystem.Save_DebugLog(DBG_FIRSTSHOE || DBG_GEAR || DBG_IDLER || DBG_PTRAIN || DBG_CONSTRAINTS,
+    "test_driveChain_all.csv");
+#endif
 
 /*
 #ifdef USE_IRRLICHT
@@ -245,11 +252,20 @@ int main(int argc, char* argv[])
     // step_size = realtime_timer.SuggestSimulationStep(step_size);
     use_fixed_camera ? driver.Advance(step_size, cameraPos): driver.Advance(step_size); 
 
-    // SETTLING FOLLOWED BY NORMAL OPERATION STEP SIZES HARDCODED
-    // 1e-5 and 1e-4, respectively
+    // Settlings phase has hardcoded solver settings, for the first few timesteps
     // application.SetPaused(true);
     if( !application.GetPaused() )
       chainSystem.Advance(step_size);
+
+    // log desired output to console?
+#ifdef CONSOLE_CONSTRAINT_INFO
+    chainSystem.LogConstraintViolations();
+#endif
+
+    // write data to file?
+#ifdef WRITE_OUTPUT
+    chainSystem.SaveLog();  // needs to already be setup before sim loop calls it
+#endif
 
     step_number++;
 
