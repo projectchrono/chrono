@@ -353,4 +353,37 @@ void TorsionArmSuspension::AddCollisionGeometry(double mu,
   m_wheel->GetCollisionModel()->BuildModel();
 }
 
+
+void TorsionArmSuspension::LogConstraintViolations()
+{
+  // TODO
+  /*
+  // idler joint has 2 pos and 1 rot
+  ChMatrix<>* C = m_idler_joint->GetC();
+  GetLog() << " joint name: " << m_idler_joint->GetName();
+  for(int row = 0; row < C->GetRows(); row ++ )
+  {
+    GetLog() << "  " << C->GetElement(row, 0) << "  ";
+  }
+
+  GetLog() << "\n";
+  */
+}
+
+
+void TorsionArmSuspension::SaveConstraintViolations(std::stringstream& ss)
+{
+  // TODO:
+  /*
+  // idler joint has 2 pos and 1 rot
+  ChMatrix<>* C = m_idler_joint->GetC();
+  for(int row = 0; row < C->GetRows(); row ++ )
+  {
+    ss << "," << C->GetElement(row, 0);
+  }
+
+  */
+
+}
+
 } // end namespace chrono

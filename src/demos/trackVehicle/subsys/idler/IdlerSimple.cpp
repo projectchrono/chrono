@@ -372,4 +372,16 @@ void IdlerSimple::LogConstraintViolations()
   GetLog() << "\n";
 }
 
+
+void IdlerSimple::SaveConstraintViolations(std::stringstream& ss)
+{
+  // idler joint has 2 pos and 1 rot
+  ChMatrix<>* C = m_idler_joint->GetC();
+  for(int row = 0; row < C->GetRows(); row ++ )
+  {
+    ss << "," << C->GetElement(row, 0);
+  }
+
+}
+
 } // end namespace chrono

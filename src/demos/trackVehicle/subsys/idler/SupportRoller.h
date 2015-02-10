@@ -48,6 +48,9 @@ public:
   // log constraint violations of any bilateral constraints
   void LogConstraintViolations();
 
+  /// write constraint violations to ostream, which will be written to the output file
+  void SaveConstraintViolations(std::stringstream& ss);
+
   // accessors
   ChSharedPtr<ChBody> GetBody() const { return m_roller; }
 

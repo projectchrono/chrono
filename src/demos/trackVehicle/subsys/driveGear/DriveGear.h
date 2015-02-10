@@ -62,8 +62,11 @@ public:
 
   double GetRadius() { return m_radius; }
 
-  // log constraint violations
+  // log constraint violations to console
   void LogConstraintViolations();
+
+  /// write constraint violations to ostream, which will be written to the output file
+  void SaveConstraintViolations(std::stringstream& ss);
 
 private:
   // private functions

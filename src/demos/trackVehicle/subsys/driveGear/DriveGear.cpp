@@ -407,4 +407,16 @@ void DriveGear::LogConstraintViolations()
   GetLog() << "  " << C->GetElement(4, 0) << "\n";
 }
 
+
+void DriveGear::SaveConstraintViolations(std::stringstream& ss)
+{
+    // single revolute joint
+  ChMatrix<>* C = m_revolute->GetC();
+  ss << "," << C->GetElement(0, 0) 
+    << "," << C->GetElement(1, 0)
+    << "," << C->GetElement(2, 0) 
+    << "," << C->GetElement(3, 0)
+    << "," << C->GetElement(4, 0);
+
+}
 } // end namespace chrono

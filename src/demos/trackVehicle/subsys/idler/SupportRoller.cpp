@@ -234,4 +234,16 @@ void SupportRoller::LogConstraintViolations()
   GetLog() << "\n";
 }
 
+
+void SupportRoller::SaveConstraintViolations(std::stringstream& out)
+{
+  // revolute joint, 5 constrained DOFs
+  ChMatrix<>* C = m_revolute->GetC();
+  for(int row = 0; row < C->GetRows(); row ++ )
+  {
+    out << "," << C->GetElement(row, 0);
+  }
+
+}
+
 } // end namespace chrono
