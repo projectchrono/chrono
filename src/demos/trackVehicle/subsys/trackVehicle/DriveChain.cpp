@@ -103,8 +103,8 @@ DriveChain::DriveChain(const std::string& name,
   m_idlers[0] = ChSharedPtr<IdlerSimple>(new IdlerSimple("idler",
     idler_mass,
     idler_Ixx,
-    //vis,
     VisualizationType::MESH,
+    // VisualizationType::PRIMITIVES,
     CollisionType::PRIMITIVES) );
 
   // track chain system
@@ -136,6 +136,7 @@ DriveChain::DriveChain(const std::string& name,
     idler_mass,
     idler_Ixx,
     VisualizationType::MESH,
+    // VisualizationType::PRIMITIVES,
     CollisionType::PRIMITIVES) );
   }
 }
@@ -329,6 +330,33 @@ void DriveChain::LogConstraintViolations(bool include_chain)
   GetLog().SetNumFormat("%g");
 }
 
+// Write constraint violations of subsystems, in order, to the ostraem
+// -----------------------------------------------------------------------------
+void DriveChain::SaveConstraintViolations(std::stringstream& ss,
+                                         bool include_chain)
+{
+  if( !m_log_file_exists ) 
+  {
+    std::cerr << "Must call Save_DebugLog() before trying to save the log data to file!!! \n\n\n";
+  }
+  // call the subsystems in the same order as the headers are set up
+  m_gear->SaveConstraintViolations(ss);
+
+  // report violations for idler constraints
+  for(int id = 0; id < m_num_idlers; id++)
+  {
+    m_idlers[id]->SaveConstraintViolations(ss);
+  }
+
+  // violations of the roller revolute joints
+  for(int roller = 0; roller < m_num_rollers; roller++)
+  {
+    m_rollers[roller]->SaveConstraintViolations(ss);
+  }
+
+  GetLog().SetNumFormat("%g");
+}
+
 
 
 
@@ -426,18 +454,25 @@ void DriveChain::SaveLog()
     // python pandas expects csv w/ no whitespace
     if( m_log_what & DBG_FIRSTSHOE )
     {
-//      ss << "," << m_chain->GetShoeBody(0)->GetPos() << ",";
+      ss << "," << m_chain->GetShoeBody(0)->GetPos() 
+        << "," <<  m_chain->GetShoeBody(0)->GetPos_dt() 
+        << "," <<  m_chain->GetShoeBody(0)->GetPos_dtdt()
+        << "," <<  m_chain->GetShoeBody(0)->GetRot_dt().Q_to_NasaAngles()
+        << "," <<  m_chain->GetPinReactForce(0);
+        // << "," <<  m_chain->GetPinReactTorque(0);
   
     }
     if (m_log_what & DBG_GEAR)
     {
-//      ss << "," <<  m_gear->GetBody()->GetPos() << ",";
+      ss << "," << m_gear->GetBody()->GetPos() 
+        << "," << m_gear->GetBody()->GetPos_dt() 
+        << "," << m_gear->GetBody()->GetRot_dt().Q_to_NasaAngles();
     }
 
     if (m_log_what & DBG_CONSTRAINTS)
     {
       // Report constraint violations for all joints
-      LogConstraintViolations();
+      SaveConstraintViolations(ss);
     }
     
     if (m_log_what & DBG_PTRAIN)
@@ -458,15 +493,15 @@ void DriveChain::create_fileHeader(int what)
   ChStreamOutAsciiFile ofile(m_log_file_name.c_str());
   // write the headers, output types specified by "what"
   std::stringstream ss;
-  ss << "time,steer,postDisp_L,postDisp_R";
+  ss << "time,";
   if(what & DBG_FIRSTSHOE)
   {
-    // L/R spring length, delta x, force
-    ss << ",k_len_L,k_len_R,k_dx_L,k_dx_R,k_F_L,k_F_R";
+    // Shoe 0 : S0, Pin0: P0
+    ss << ",S0x,S0y,S0z,S0vx,S0vy,S0vz,S0ax,S0ay,S0az,S0wx,S0wy,S0wz,P0fx,P0fy,P0fz";
   }
   if(what & DBG_GEAR)
   {
-    ss << ",d_len_L,d_len_R,d_vel_L,d_vel_R,d_F_L,d_F_R";
+    ss << ",Gx,Gy,Gz,Gvx,Gvy,Gvz,Gwx,Gwy,Gwz";
   }
   if(what & DBG_CONSTRAINTS)
   {

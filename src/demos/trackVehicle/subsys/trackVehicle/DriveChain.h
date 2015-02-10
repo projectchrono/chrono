@@ -24,7 +24,7 @@
 
 #include "core/ChCoordsys.h"
 // #include "physics/ChSystem.h"
-#include "ModelDefs.h"
+// #include "ModelDefs.h"
 
 #include "subsys/base/ChTrackVehicle.h"
 #include "subsys/driveGear/DriveGear.h"
@@ -63,8 +63,11 @@ public:
   /// set the pin friction as a damping value
   virtual void SetShoePinDamping(double damping);
 
-  // log the constraint violations, w/ and w/o chain body
+  /// log the constraint violations, w/ and w/o chain body, to either the console or a file
   virtual void LogConstraintViolations(bool include_chain = false);
+
+  /// save the constraint violations, w/ and w/o chain body, to the 
+  virtual void SaveConstraintViolations(std::stringstream& ss, bool include_chain = false);
 
   virtual void DebugLog(int console_what);
 

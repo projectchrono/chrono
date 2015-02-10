@@ -69,7 +69,7 @@ using namespace chrono;
 // display the  system heirarchy, write output data, log constraint violations to console
 //#define CONSOLE_SYSTEM_INFO 
 #define WRITE_OUTPUT
-#define CONSOLE_CONSTRAINT_INFO
+// #define CONSOLE_CONSTRAINT_INFO
 
 // Initial vehicle position and heading. Defines the REF frame for the hull body
 ChVector<> initLoc(0, 1.0, 0);
@@ -119,8 +119,8 @@ int main(int argc, char* argv[])
   // The drive chain inherits ChSystem. Specify the 
   // collision type used by the gear here.
   DriveChain chainSystem("Justins driveChain system", 
-    // VisualizationType::MESH,
-    VisualizationType::COMPOUNDPRIMITIVES,
+    VisualizationType::MESH,
+    // VisualizationType::COMPOUNDPRIMITIVES,
     CollisionType::CALLBACKFUNCTION,
     num_idlers);
   
@@ -257,15 +257,18 @@ int main(int argc, char* argv[])
     if( !application.GetPaused() )
       chainSystem.Advance(step_size);
 
+    if (step_number % output_steps == 0) 
+    {
     // log desired output to console?
 #ifdef CONSOLE_CONSTRAINT_INFO
-    chainSystem.LogConstraintViolations();
+      chainSystem.LogConstraintViolations();
 #endif
 
     // write data to file?
 #ifdef WRITE_OUTPUT
-    chainSystem.SaveLog();  // needs to already be setup before sim loop calls it
+      chainSystem.SaveLog();  // needs to already be setup before sim loop calls it
 #endif
+    }
 
     step_number++;
 
