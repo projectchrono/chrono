@@ -78,8 +78,10 @@ double output_step_size = 1.0 / 1;    // once a second
 // #ifdef USE_IRRLICHT
   // Point on chassis tracked by the camera
 double chaseDist = 4.0;
-double chaseHeight = 0;
+double chaseHeight = 1;
 ChVector<> trackPoint(0.0, -0.5, 0);
+
+bool do_shadows = false; // shadow map is experimental
   /*
 #else
   double tend = 20.0;
@@ -128,7 +130,7 @@ int main(int argc, char* argv[])
   // The vehicle inherits ChSystem. Input chassis visual and collision type
 	TrackVehicle vehicle("Justins M113 model", 
     VisualizationType::NONE,
-    CollisionType::PRIMITIVES);
+    CollisionType::NONE);
   
   // set the chassis REF at the specified initial config.
   vehicle.Initialize(ChCoordsys<>(initLoc, initRot));
@@ -144,7 +146,6 @@ int main(int argc, char* argv[])
 #ifdef USE_IRRLICHT
 */
 	// Create the Irrlicht visualization applicaiton
-  bool do_shadows = false; // shadow map is experimental
 
   ChIrrApp application(vehicle.GetSystem(),
                       L"M113 tracked vehicle demo",

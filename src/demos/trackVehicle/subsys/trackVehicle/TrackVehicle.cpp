@@ -154,15 +154,21 @@ void TrackVehicle::Update(double	time,
 void TrackVehicle::Advance(double step)
 {
   double t = 0;
-  double settlePhaseA = 0.5;
+  double settlePhaseA = 0.3;
   double settlePhaseB = 0.8;
+  m_system->SetIterLCPmaxItersStab(80);
+  m_system->SetIterLCPmaxItersSpeed(100);
   while (t < step) {
     double h = std::min<>(m_stepsize, step - t);
     if( m_system->GetChTime() < settlePhaseA )
     {
       h = 4e-4;
+      m_system->SetIterLCPmaxItersStab(120);
+      m_system->SetIterLCPmaxItersSpeed(150);
     } else if ( m_system->GetChTime() < settlePhaseB )
     {
+      m_system->SetIterLCPmaxItersStab(100);
+      m_system->SetIterLCPmaxItersSpeed(150);
       h = 6e-4;
     }
     m_system->DoStepDynamics(h);

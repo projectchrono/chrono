@@ -260,7 +260,7 @@ void ChIrrGuiTrack::SetCameraPos(const ChVector<>& pos)
 // -----------------------------------------------------------------------------
 void ChIrrGuiTrack::DrawAll()
 {
-  renderGrid();
+  // renderGrid();
 
   m_app.DrawAll();
 
