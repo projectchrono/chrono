@@ -477,7 +477,10 @@ void DriveChain::SaveLog()
     
     if (m_log_what & DBG_PTRAIN)
     {
-
+      // motor speed, mot torque, out torque
+      ss << "," << m_ptrain->GetMotorSpeed()
+        << "," << m_ptrain->GetMotorTorque()
+        << "," << m_ptrain->GetOutputTorque();
     }
     // next line last, then write to file
     ss << "\n";
@@ -493,7 +496,7 @@ void DriveChain::create_fileHeader(int what)
   ChStreamOutAsciiFile ofile(m_log_file_name.c_str());
   // write the headers, output types specified by "what"
   std::stringstream ss;
-  ss << "time,";
+  ss << "time";
   if(what & DBG_FIRSTSHOE)
   {
     // Shoe 0 : S0, Pin0: P0
@@ -505,11 +508,23 @@ void DriveChain::create_fileHeader(int what)
   }
   if(what & DBG_CONSTRAINTS)
   {
-    // TODO:
+      // in the same order as listed in the header
+    ss << m_gear->getFileHeader_ConstraintViolations();
+
+    for(int id = 0; id < m_num_idlers; id++)
+    {
+      ss << m_idlers[id]->getFileHeader_ConstraintViolations(id);
+    }
+
+    // violations of the roller revolute joints
+    for(int roller = 0; roller < m_num_rollers; roller++)
+    {
+      ss << m_rollers[roller]->getFileHeader_ConstraintViolations(roller);
+    }
   }
   if(what & DBG_PTRAIN)
   {
-    ss << ",KA_L,KA_R,Koff_L,Koff_R,CA_L,CA_R,Coff_L,Coff_R,TA_L,TA_R,LCA_roll";
+    ss << ",motSpeed,motT,outT";
   }
 
   // write to file, go to next line in file in prep. for next step.

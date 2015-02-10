@@ -375,13 +375,22 @@ void IdlerSimple::LogConstraintViolations()
 
 void IdlerSimple::SaveConstraintViolations(std::stringstream& ss)
 {
-  // idler joint has 2 pos and 1 rot
+  // idler joint will have y and z rxn forces, x and y rxn torques
   ChMatrix<>* C = m_idler_joint->GetC();
   for(int row = 0; row < C->GetRows(); row ++ )
   {
     ss << "," << C->GetElement(row, 0);
   }
 
+}
+
+const std::string& IdlerSimple::getFileHeader_ConstraintViolations(size_t idx)
+{
+  // idler has x-translational and z-rot DOFs
+  // y, z reaction Forces, x,y reaction torques
+  std::stringstream ss;
+  ss << ",I" <<idx<< "CVy,I" <<idx<< "CVz,I" <<idx<< "CVrx,I" <<idx<< "CVry";
+  return ss.str();
 }
 
 } // end namespace chrono

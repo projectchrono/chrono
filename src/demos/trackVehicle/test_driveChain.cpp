@@ -79,7 +79,7 @@ ChQuaternion<> initRot(QUNIT);
 // Simulation step size
 double step_size = 0.002;
 
-size_t num_idlers = 2;
+size_t num_idlers = 1;
 
 // Time interval between two render frames
 int FPS = 40;
@@ -222,7 +222,10 @@ int main(int argc, char* argv[])
 /*
 #ifdef USE_IRRLICHT
 */
-
+// write data to file?
+#ifdef WRITE_OUTPUT
+      chainSystem.SaveLog();  // needs to already be setup before sim loop calls it
+#endif
   ChRealtimeStepTimer realtime_timer;
   while (application.GetDevice()->run())
 	{ 

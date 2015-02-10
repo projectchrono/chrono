@@ -246,4 +246,12 @@ void SupportRoller::SaveConstraintViolations(std::stringstream& out)
 
 }
 
+const std::string& SupportRoller::getFileHeader_ConstraintViolations(size_t idx)
+{
+  // passive rollers have 1 DOF, 5 reactions
+  std::stringstream ss;
+  ss << ",R" <<idx<< "CVx,R" <<idx<< "CVy,R" <<idx<< "CVz,R" <<idx<< "CVrx,R" <<idx<< "CVry";
+  return ss.str();
+}
+
 } // end namespace chrono

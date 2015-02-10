@@ -67,6 +67,10 @@ public:
   /// write constraint violations to ostream, which will be written to the output file
   void SaveConstraintViolations(std::stringstream& ss);
 
+  /// write headers for the output data file to the input ostream
+  const std::string& getFileHeader_ConstraintViolations(size_t idx);
+
+
   // Accessors
   double getSpringCoefficient() const { return m_springK; }
   double getDampingCoefficient() const { return m_springC; }

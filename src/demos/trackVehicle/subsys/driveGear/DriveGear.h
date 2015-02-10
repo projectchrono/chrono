@@ -67,6 +67,9 @@ public:
 
   /// write constraint violations to ostream, which will be written to the output file
   void SaveConstraintViolations(std::stringstream& ss);
+  
+  /// write headers for the output data file to the input ostream
+  const std::string& getFileHeader_ConstraintViolations() {return ",GCVx,GCVy,GCVz,GCVrx,GCVry";}
 
 private:
   // private functions
