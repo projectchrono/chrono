@@ -38,18 +38,6 @@
 
 // to help write vectors and quats to file by overloading stringstream
 
-std::ostream& operator<< (std::ostream &out, const chrono::ChVector<double>& vect)
-{
-  out << vect.x <<","<< vect.y <<","<< vect.z;
-  return out;
-}
-
-std::ostream& operator<< (std::ostream &out, const chrono::ChQuaternion<double>& q)
-{
-  out << q.e0 <<","<< q.e1 <<","<< q.e2 <<","<< q.e3;
-  return out;
-}
-
 namespace chrono {
 
 // -----------------------------------------------------------------------------
