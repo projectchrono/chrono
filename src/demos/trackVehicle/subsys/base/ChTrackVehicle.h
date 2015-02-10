@@ -134,25 +134,9 @@ public:
   /// TODO: Log current constraint violations.
   // void LogConstraintViolations();
 
-  // wrap above into output writing funciton
-  /// Log info to console
-  virtual void DebugLog(int console_what);
-
-  /// Log info to data file. data types to be saved should already set in Save_DebugLog() 
-  virtual void SaveLog();
-
-  /// setup class to save the log to a file for python postprocessing.
-  /// Usage: call after construction & Initialize(), else no data is saved.
-  virtual void Save_DebugLog(int what,
-                     const std::string& out_filename);
-
-  /// Log current constraint violations of each subsystem.
-  virtual void LogConstraintViolations(bool include_chain);
+  
 
 protected:
-
-  // helper functions for output/Log
-  virtual void create_fileHeader(int what);
 
   // private functions
   virtual void AddVisualization();

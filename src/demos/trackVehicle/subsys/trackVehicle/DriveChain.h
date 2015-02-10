@@ -64,7 +64,7 @@ public:
   virtual void SetShoePinDamping(double damping);
 
   // log the constraint violations, w/ and w/o chain body
-  virtual void LogConstraintViolations(bool include_chain);
+  virtual void LogConstraintViolations(bool include_chain = false);
 
   virtual void DebugLog(int console_what);
 
@@ -75,9 +75,6 @@ public:
   /// Usage: call after construction & Initialize(), else no data is saved.
   virtual void Save_DebugLog(int what,
                      const std::string& out_filename);
-
-  /// Log current constraint violations of each subsystem.
-  virtual void LogConstraintViolations(bool include_chain);
 
   // ---------------------------------------------------------------------------
   // Accessors
@@ -130,6 +127,9 @@ protected:
 
   ChSharedPtr<IdlerSimple> m_idler2;
 
+
+  friend std::ostream & operator<< (std::ostream &out, const ChVector<double>& vect);
+  friend std::ostream & operator << (std::ostream &out, const ChQuaternion<double>& q);
 };
 
 

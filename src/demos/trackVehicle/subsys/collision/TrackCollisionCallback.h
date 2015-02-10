@@ -136,6 +136,10 @@ class GearPinCollisionCallback : public ChSystem::ChCustomComputeCollisionCallba
 
 		// alloc the hash table for persistent manifold of gear-cylinder contacts
 		hashed_contacts = new ChHashTable<int, ReactCachedContact >(persistent_hashtable_dim);
+
+    // keep track of some persistence of contact info
+    m_persistentContactSteps.resize(m_shoes.size(), 0);
+    m_contactPrevStep.resize(m_shoes.size(), false);
 	}
 
 	~GearPinCollisionCallback()
@@ -243,6 +247,8 @@ class GearPinCollisionCallback : public ChSystem::ChCustomComputeCollisionCallba
     }
   }
 
+  bool Get_contactPrevStep(size_t idx) const { assert(idx<m_shoes.size()); return m_contactPrevStep[idx]; }
+
 
 private:
 
@@ -255,6 +261,11 @@ private:
   std::vector<ChSharedPtr<ChBody>>& m_shoes;
   ChSharedPtr<ChBody>& m_gear;
   ChSharedPtr<GearPinGeometry>& m_geom;
+
+  // following are used for determining if contacts are "persistent"
+  // i.e., no liftoff once they are engaged with the sprocket!!
+  std::vector<bool> m_contactPrevStep;  ///<  was the shoe body in contact with the gear last step? i.e., passed narrow phase last step?
+  std::vector<size_t> m_persistentContactSteps;   ///< how many steps in a row was the pin in contact with the gear?
 
   // hashtable
   size_t m_persistent_hashtable_dim;

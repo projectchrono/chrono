@@ -35,6 +35,21 @@
 // custom collision detection classes
 #include "subsys/collision/TrackCollisionCallback.h"
 
+
+// to help write vectors and quats to file by overloading stringstream
+
+std::ostream& operator<< (std::ostream &out, const chrono::ChVector<double>& vect)
+{
+  out << vect.x <<","<< vect.y <<","<< vect.z;
+  return out;
+}
+
+std::ostream& operator<< (std::ostream &out, const chrono::ChQuaternion<double>& q)
+{
+  out << q.e0 <<","<< q.e1 <<","<< q.e2 <<","<< q.e3;
+  return out;
+}
+
 namespace chrono {
 
 // -----------------------------------------------------------------------------
@@ -355,86 +370,54 @@ void DriveChain::DebugLog(int console_what)
 
   if (console_what & DBG_FIRSTSHOE)
   {
+    GetLog() << "\n-- shoe 0 : " << m_chain->GetShoeBody(0)->GetName() << "\n";
+    // COG state data
 
+    GetLog() << "COG Pos [m] : "  <<  m_chain->GetShoeBody(0)->GetPos() << "\n";
+    GetLog() << "COG Vel [m/s] : "  <<  m_chain->GetShoeBody(0)->GetPos_dt() << "\n";
+    GetLog() << "COG Acc [m/s2] : "  <<  m_chain->GetShoeBody(0)->GetPos_dtdt() << "\n";
+    GetLog() << "COG omega [rad/s] : "  <<  m_chain->GetShoeBody(0)->GetRot_dt() << "\n";
 
-
-
-    GetLog() << "\n---- Spring (left, right)\n";
-    GetLog() << "Length [inch]       "
-      << GetSpringLength(FRONT_LEFT) / in2m << "  "
-      << GetSpringLength(FRONT_RIGHT) / in2m << "\n";
-    GetLog() << "Deformation [inch]  "
-      << GetSpringDeformation(FRONT_LEFT) / in2m << "  "
-      << GetSpringDeformation(FRONT_RIGHT) / in2m << "\n";
-    GetLog() << "Force [lbf]         "
-      << GetSpringForce(FRONT_LEFT) / lbf2N << "  "
-      << GetSpringForce(FRONT_RIGHT) / lbf2N << "\n";
+    // shoe pin tension
+    GetLog() << "pin 0 reaction force [N] : "  <<  m_chain->GetPinReactForce(0) << "\n";
+    GetLog() << "pin 0 reaction torque [N-m] : "  <<  m_chain->GetPinReactForce(0) << "\n";
   }
 
   if (console_what & DBG_GEAR)
   {
-    GetLog() << "\n---- Shock (left, right,)\n";
-    GetLog() << "Length [inch]       "
-      << GetShockLength(FRONT_LEFT) / in2m << "  "
-      << GetShockLength(FRONT_RIGHT) / in2m << "\n";
-    GetLog() << "Velocity [inch/s]   "
-      << GetShockVelocity(FRONT_LEFT) / in2m << "  "
-      << GetShockVelocity(FRONT_RIGHT) / in2m << "\n";
-    GetLog() << "Force [lbf]         "
-      << GetShockForce(FRONT_LEFT) / lbf2N << "  "
-      << GetShockForce(FRONT_RIGHT) / lbf2N << "\n";
+    GetLog() << "\n---- Gear " << m_gear->GetBody()->GetName() << "\n";
+    // COG state data
+    GetLog() << "COG Pos [m] : " << m_gear->GetBody()->GetPos() << "\n";
+    GetLog() << "COG Vel [m/s] : " << m_gear->GetBody()->GetPos_dt() << "\n";
+    GetLog() << "COG omega [rad/s] : " << m_gear->GetBody()->GetRot_dt() << "\n";
+
+    /*
+    // # of shoe pins in contact?
+    GetLog() << "# of shoes in contact ? : " << m_gear->GetBody()->GetCollisionModel()->Get << "\n";
+
+    
+    // # of non-intermittant contact steps
+    GetLog() << "cumulative contact steps : " <<  << "\n";
+    */
   }
 
   if (console_what & DBG_CONSTRAINTS)
   {
     // Report constraint violations for all joints
-    LogConstraintViolations();
+    LogConstraintViolations(false);
   }
 
   if (console_what & DBG_PTRAIN)
   {
-    GetLog() << "\n---- suspension test (left, right)\n";
-    /*
-    GetLog() << "Actuator Displacement [in] "
-      << GetActuatorDisp(FRONT_LEFT) / in2m << "  "
-      << GetActuatorDisp(FRONT_RIGHT) / in2m << "\n";
-    GetLog() << "Actuator Force [N] "
-      << GetActuatorForce(FRONT_LEFT) / in2m << "  "
-      << GetActuatorForce(FRONT_RIGHT) / in2m << "\n";
-    GetLog() << "Actuator marker dist [in] "
-      << GetActuatorMarkerDist(FRONT_LEFT) / in2m << "  "
-      << GetActuatorMarkerDist(FRONT_RIGHT) / in2m << "\n";
-    
+    GetLog() << "\n---- powertrain \n";
   
-    
-    GetLog() << "Kingpin angle [deg] "
-      << Get_KingpinAng(LEFT) * rad2deg << "  "
-      << Get_KingpinAng(RIGHT) * rad2deg << "\n";
-    GetLog() << "Kingpin offset [in] "
-      << Get_KingpinOffset(LEFT) / in2m << "  "
-      << Get_KingpinOffset(RIGHT) / in2m << "\n";
-    GetLog() << "Caster angle [deg] "
-      << Get_CasterAng(LEFT) * rad2deg << "  "
-      << Get_CasterAng(RIGHT) * rad2deg << "\n";
-    GetLog() << "Caster offset [in] "
-      << Get_CasterOffset(LEFT) / in2m << "  "
-      << Get_CasterOffset(RIGHT) / in2m << "\n";
-    GetLog() << "Toe angle [deg] "
-      << Get_ToeAng(LEFT) * rad2deg << "  "
-      << Get_ToeAng(RIGHT) * rad2deg << "\n";
-    GetLog() << "suspension roll angle [deg] "
-      << Get_LCArollAng() << "\n";
-
-      */
   }
 
   GetLog().SetNumFormat("%g");
 
 }
 
-
-
-
+// save info to file
 void DriveChain::SaveLog()
 {
   // told to save the data?
@@ -446,31 +429,21 @@ void DriveChain::SaveLog()
     }
     // open the file to append
     // open the data file for writing the header
-  ChStreamOutAsciiFile ofile(m_log_file_name.c_str(), std::ios::app);
+    ChStreamOutAsciiFile ofile(m_log_file_name.c_str(), std::ios::app);
 
-    // write the simulation time first, and rig inputs
+    // write the simulation time
     std::stringstream ss;
-    ss << GetChTime() <<","<< m_steer <<","<< m_postDisp[LEFT] /in2m <<","<< m_postDisp[RIGHT] / in2m;
+    ss << m_system->GetChTime();
 
     // python pandas expects csv w/ no whitespace
-    if( m_log_what & DBG_SPRINGS )
+    if( m_log_what & DBG_FIRSTSHOE )
     {
-      ss << "," << GetSpringLength(FRONT_LEFT) / in2m << ","
-        << GetSpringLength(FRONT_RIGHT) / in2m << ","
-        << GetSpringDeformation(FRONT_LEFT) / in2m << ","
-        << GetSpringDeformation(FRONT_RIGHT) / in2m << ","
-        << GetSpringForce(FRONT_LEFT) / lbf2N << ","
-        << GetSpringForce(FRONT_RIGHT) / lbf2N;
+//      ss << "," << m_chain->GetShoeBody(0)->GetPos() << ",";
   
     }
-    if (m_log_what & DBG_SHOCKS)
+    if (m_log_what & DBG_GEAR)
     {
-      ss << "," << GetShockLength(FRONT_LEFT) / in2m << ","
-        << GetShockLength(FRONT_RIGHT) / in2m << ","
-        << GetShockVelocity(FRONT_LEFT) / in2m << ","
-        << GetShockVelocity(FRONT_RIGHT) / in2m << ","
-        << GetShockForce(FRONT_LEFT) / lbf2N << ","
-        << GetShockForce(FRONT_RIGHT) / lbf2N;
+//      ss << "," <<  m_gear->GetBody()->GetPos() << ",";
     }
 
     if (m_log_what & DBG_CONSTRAINTS)
@@ -479,23 +452,9 @@ void DriveChain::SaveLog()
       LogConstraintViolations();
     }
     
-    // ",KA_L,KA_R,Koff_L,Koff_R,CA_L,CA_R,Coff_L,Coff_R,TA_L,TA_R,LCA_roll";
-    if (m_log_what & DBG_SUSPENSIONTEST)
+    if (m_log_what & DBG_PTRAIN)
     {
-      ss <<","<< Get_KingpinAng(LEFT)*rad2deg <<","<< Get_KingpinAng(RIGHT)*rad2deg 
-        <<","<< Get_KingpinOffset(LEFT)/in2m <<","<< Get_KingpinOffset(RIGHT)/in2m
-        <<","<< Get_CasterAng(LEFT)*rad2deg <<","<< Get_CasterAng(RIGHT)*rad2deg 
-        <<","<< Get_CasterOffset(LEFT)/in2m <<","<< Get_CasterOffset(RIGHT)/in2m
-        <<","<< Get_ToeAng(LEFT)*rad2deg <<","<< Get_ToeAng(RIGHT)*rad2deg
-        <<","<< Get_LCArollAng();
-      /*
-      ss << "," << GetActuatorDisp(FRONT_LEFT) / in2m << ","
-        << GetActuatorDisp(FRONT_RIGHT) / in2m << ","
-        << GetActuatorForce(FRONT_LEFT) / in2m << ","
-        << GetActuatorForce(FRONT_RIGHT) / in2m << ","
-        << GetActuatorMarkerDist(FRONT_LEFT) / in2m << ","
-        << GetActuatorMarkerDist(FRONT_RIGHT) / in2m;
-       */
+
     }
     // next line last, then write to file
     ss << "\n";
@@ -512,12 +471,12 @@ void DriveChain::create_fileHeader(int what)
   // write the headers, output types specified by "what"
   std::stringstream ss;
   ss << "time,steer,postDisp_L,postDisp_R";
-  if(what & DBG_SPRINGS)
+  if(what & DBG_FIRSTSHOE)
   {
     // L/R spring length, delta x, force
     ss << ",k_len_L,k_len_R,k_dx_L,k_dx_R,k_F_L,k_F_R";
   }
-  if(what & DBG_SHOCKS)
+  if(what & DBG_GEAR)
   {
     ss << ",d_len_L,d_len_R,d_vel_L,d_vel_R,d_F_L,d_F_R";
   }
@@ -525,7 +484,7 @@ void DriveChain::create_fileHeader(int what)
   {
     // TODO:
   }
-  if(what & DBG_SUSPENSIONTEST)
+  if(what & DBG_PTRAIN)
   {
     ss << ",KA_L,KA_R,Koff_L,Koff_R,CA_L,CA_R,Coff_L,Coff_R,TA_L,TA_R,LCA_roll";
   }
