@@ -67,7 +67,7 @@ using namespace chrono;
 // User Settings
 // =============================================================================
 // display the  system heirarchy, write output data, log constraint violations to console
-//#define DEBUG_LOG 
+//#define CONSOLE_SYSTEM_INFO 
 #define WRITE_OUTPUT
 #define CONSOLE_CONSTRAINT_INFO
 
@@ -211,7 +211,7 @@ int main(int argc, char* argv[])
 
   // ---------------------
   // Simulation loop
-#ifdef DEBUG_LOG
+#ifdef CONSOLE_SYSTEM_INFO
   GetLog() << "\n\n============ System Configuration ============\n";
   chainSystem.GetSystem()->ShowHierarchy(GetLog() );
 #endif
