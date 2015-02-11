@@ -96,6 +96,8 @@ public:
 
 
   // accessors
+  /// number of track shoes created/initialized
+  double Get_numShoes() { return m_numShoes; }
 
   /// damping coef. in the pin revolute constraint
   double Get_pin_damping() { return m_damping_C;}

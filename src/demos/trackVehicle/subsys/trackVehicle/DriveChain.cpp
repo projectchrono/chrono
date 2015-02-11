@@ -366,21 +366,38 @@ void DriveChain::SaveConstraintViolations(std::stringstream& ss,
 // set what to save to file each time .DebugLog() is called during the simulation loop
 // creates a new file (or overwrites old existing one), and sets the first row w/ headers
 // for easy postprocessing with python pandas scripts
-void DriveChain::Save_DebugLog(int what,
-                                   const std::string& filename)
+void DriveChain::Setup_log_to_file(int what,
+                               const std::string& filename)
 {
+  m_save_log_to_file = false;
   m_log_file_name = filename;
-  m_save_log_to_file = true;
-  m_log_what = what;
-  
-  create_fileHeader(what);
-  m_log_file_exists = true;
+  m_log_what_to_file = what;
+  // has the chain been created?
+  if(m_chain)
+  {
+    // have the chain, the last subsystem created, been initialized?
+    if(m_chain->Get_numShoes() )
+    {
+      m_save_log_to_file = true;
+      GetLog() << " SAVING OUTPUT DATA TO FILE: \n " << filename.c_str() << "\n";
+      create_fileHeader(what);
+      m_log_file_exists = true;
+    }
+    else
+    {
+      GetLog() << " no shoes were initialized, not saving data ";
+    }
+  }
+  else
+  {
+    GetLog() << " chain subsystem not created yet, not saving data";
+  }
 
   // initialize the rig input values to zero
 }
 
 
-void DriveChain::DebugLog(int console_what)
+void DriveChain::Log_to_console(int console_what)
 {
   GetLog().SetNumFormat("%10.2f");
 
@@ -433,8 +450,8 @@ void DriveChain::DebugLog(int console_what)
 
 }
 
-// save info to file
-void DriveChain::SaveLog()
+// save info to file. Must have already called Setup_log_to_file  once before entering time stepping loop
+void DriveChain::Log_to_file()
 {
   // told to save the data?
   if( m_save_log_to_file )
@@ -452,7 +469,7 @@ void DriveChain::SaveLog()
     ss << m_system->GetChTime();
 
     // python pandas expects csv w/ no whitespace
-    if( m_log_what & DBG_FIRSTSHOE )
+    if( m_log_what_to_file & DBG_FIRSTSHOE )
     {
       ss << "," << m_chain->GetShoeBody(0)->GetPos() 
         << "," <<  m_chain->GetShoeBody(0)->GetPos_dt() 
@@ -462,20 +479,20 @@ void DriveChain::SaveLog()
         // << "," <<  m_chain->GetPinReactTorque(0);
   
     }
-    if (m_log_what & DBG_GEAR)
+    if (m_log_what_to_file & DBG_GEAR)
     {
       ss << "," << m_gear->GetBody()->GetPos() 
         << "," << m_gear->GetBody()->GetPos_dt() 
         << "," << m_gear->GetBody()->GetRot_dt().Q_to_NasaAngles();
     }
 
-    if (m_log_what & DBG_CONSTRAINTS)
+    if (m_log_what_to_file & DBG_CONSTRAINTS)
     {
       // Report constraint violations for all joints
       SaveConstraintViolations(ss);
     }
     
-    if (m_log_what & DBG_PTRAIN)
+    if (m_log_what_to_file & DBG_PTRAIN)
     {
       // motor speed, mot torque, out torque
       ss << "," << m_ptrain->GetMotorSpeed()

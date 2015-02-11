@@ -39,7 +39,11 @@ ChTrackVehicle::ChTrackVehicle()
   m_stepsize(1e-3),
   m_num_engines(0),
   m_vis(VisualizationType::NONE),
-  m_collide(CollisionType::NONE)
+  m_collide(CollisionType::NONE),
+  m_save_log_to_file(false), // save the DebugLog() info to file? default false
+  m_log_what_to_file(0),     // set this in Setup_log_to_file(), if writing to file
+  m_log_file_exists(false), // written the headers for log file yet?
+  m_log_what_to_console(0)  // pre-set what to write to console when calling 
 {
   m_system = new ChSystem;
 
@@ -65,7 +69,11 @@ ChTrackVehicle::ChTrackVehicle(double step_size,
   m_stepsize(step_size),
   m_num_engines(num_engines),
   m_vis(vis),
-  m_collide(collide)
+  m_collide(collide),
+  m_save_log_to_file(false), // save the DebugLog() info to file? default false
+  m_log_what_to_file(0),     // set this in Setup_log_to_file(), if writing to file
+  m_log_file_exists(false), // written the headers for log file yet?
+  m_log_what_to_console(0)  // pre-set what to write to console when calling 
 {
   m_system = new ChSystem;
 
@@ -83,25 +91,37 @@ ChTrackVehicle::ChTrackVehicle(double step_size,
 
 }
 
+// system already exists, create vehicle with specified input
 ChTrackVehicle::ChTrackVehicle(ChSystem* system,
                                double step_size,
                                size_t num_engines,
                                VisualizationType vis,
                                CollisionType collide)
 : m_ownsSystem(false),
-m_system(system),
+  m_system(system),
   m_stepsize(step_size),
   m_num_engines(num_engines),
   m_vis(vis),
-  m_collide(collide)
+  m_collide(collide),
+  m_save_log_to_file(false), // save the DebugLog() info to file? default false
+  m_log_what_to_file(0),     // set this in Setup_log_to_file(), if writing to file
+  m_log_file_exists(false), // written the headers for log file yet?
+  m_log_what_to_console(0)  // pre-set what to write to console when calling 
 {
 }
 
+// system already exists, create default vehicle
 ChTrackVehicle::ChTrackVehicle(ChSystem* system)
 : m_system(system),
   m_ownsSystem(false),
   m_stepsize(1e-3),
-  m_num_engines(0)
+  m_num_engines(0),
+  m_vis(VisualizationType::NONE),
+  m_collide(CollisionType::NONE),
+  m_save_log_to_file(false), // save the DebugLog() info to file? default false
+  m_log_what_to_file(0),     // set this in Setup_log_to_file(), if writing to file
+  m_log_file_exists(false), // written the headers for log file yet?
+  m_log_what_to_console(0)  // pre-set what to write to console when calling 
 {
 }
 

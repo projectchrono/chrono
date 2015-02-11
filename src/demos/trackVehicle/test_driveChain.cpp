@@ -66,10 +66,11 @@ using namespace chrono;
 // =============================================================================
 // User Settings
 // =============================================================================
-// display the  system heirarchy, write output data, log constraint violations to console
+// display the  system heirarchy, write output data, log constraint violations to console, render and total runtimes
 //#define CONSOLE_SYSTEM_INFO 
-#define WRITE_OUTPUT
+// #define WRITE_OUTPUT
 // #define CONSOLE_CONSTRAINT_INFO
+#define CONSOLE_TIMING
 
 // Initial vehicle position and heading. Defines the REF frame for the hull body
 ChVector<> initLoc(0, 1.0, 0);
@@ -79,7 +80,7 @@ ChQuaternion<> initRot(QUNIT);
 // Simulation step size
 double step_size = 0.002;
 
-size_t num_idlers = 1;
+size_t num_idlers = 2;
 
 // Time interval between two render frames
 int FPS = 40;
@@ -89,14 +90,14 @@ double output_step_size = 1.0 / 1;    // once a second
 
 // #ifdef USE_IRRLICHT
   // Point on chassis tracked by the camera, chassis c-sys
-ChVector<> trackPoint(-1, 0, 0);
+ChVector<> trackPoint(-1.1, -1, 0);
 // if chase cam enabled:
-double chaseDist = 1.8;
-double chaseHeight = 0.0;
+double chaseDist = 2.5;
+double chaseHeight = 0.5;
 // set a static camera position, global c-sys
-ChVector<> cameraPos(-1, 1.5, 2.5);
+ChVector<> cameraPos(-1.2, 0, 2.6);
 bool use_fixed_camera = true;
-bool do_shadows = false; // shadow map is experimental
+bool do_shadows = true; // shadow map is experimental
 
   /*
 #else
@@ -129,21 +130,22 @@ int main(int argc, char* argv[])
 
   // if writing an output file, setup what debugInformation we want added each step data is saved.
 #ifdef WRITE_OUTPUT
-  chainSystem.Save_DebugLog(DBG_FIRSTSHOE || DBG_GEAR || DBG_IDLER || DBG_PTRAIN || DBG_CONSTRAINTS,
+  chainSystem.Setup_log_to_file(DBG_FIRSTSHOE || DBG_GEAR || DBG_IDLER || DBG_PTRAIN || DBG_CONSTRAINTS,
     "test_driveChain_all.csv");
 #endif
 
 /*
 #ifdef USE_IRRLICHT
 */
-
+  size_t window_x_len = 1200;
+  size_t window_y_len = 800;
   // --------------------------
   // Setup the Irrlicht GUI
 
   // Create the Irrlicht visualization applicaiton
   ChIrrApp application(chainSystem.GetSystem(),
                       L"test driveChain demo",
-                      dimension2d<u32>(1200, 800),
+                      dimension2d<u32>(window_x_len, window_y_len),
                       false,
                       do_shadows);
   // assumes Y-up
@@ -154,8 +156,8 @@ int main(int argc, char* argv[])
   if (do_shadows)
   {
     mlight = application.AddLightWithShadow(
-      irr::core::vector3df(10.f, 60.f, 30.f),
-      irr::core::vector3df(0.f, 0.f, 0.f),
+      irr::core::vector3df(-50.f, -20.f, 80.f),
+      irr::core::vector3df(-30.f, 80.f, -50.f),
       150, 60, 80, 15, 512, irr::video::SColorf(1, 1, 1), false, false);
   }
   else
@@ -169,7 +171,7 @@ int main(int argc, char* argv[])
   application.SetTimestep(step_size);
 
   // the GUI driver
-  ChIrrGuiTrack driver(application, chainSystem, trackPoint, chaseDist, chaseHeight);
+  ChIrrGuiTrack driver(application, chainSystem, trackPoint, chaseDist, chaseHeight,window_x_len-150);
   // even though using a chase camera, set the initial camera position laterally
   if(use_fixed_camera)
     driver.SetCameraPos(cameraPos);
@@ -219,25 +221,38 @@ int main(int argc, char* argv[])
   // Initialize simulation frame counter and simulation time
   int step_number = 0;
   double time = 0;
+
+  // create some timers, for the render and total time
+  ChTimer<double> step_timer;
+  double total_step_time = 0;
+  double time_since_last_output = 0;
+//  #ifdef USE_IRRLICHT
+  // using Irrlicht? time that too.
+  ChTimer<double> render_timer;
+  double total_render_time = 0;
+//  #endif
 /*
 #ifdef USE_IRRLICHT
 */
 // write data to file?
 #ifdef WRITE_OUTPUT
-      chainSystem.SaveLog();  // needs to already be setup before sim loop calls it
+      chainSystem.Log_to_file();  // needs to already be setup before sim loop calls it
 #endif
   ChRealtimeStepTimer realtime_timer;
   while (application.GetDevice()->run())
 	{ 
 		// keep track of the time spent calculating each sim step
-    ChTimer<double> step_time;
-    step_time.start();
+    step_timer.start();
 		
     // Render scene
     if (step_number % render_steps == 0) {
+      render_timer.start(); // start the time it takes to render the scene
       application.GetVideoDriver()->beginScene(true, true,irr::video::SColor(255, 140, 161, 192));
       driver.DrawAll();
       application.GetVideoDriver()->endScene();
+
+      render_timer.stop();  // stop the scene timer
+      total_render_time += render_timer();  // increment the time it took to render this step
     }
 
     // Collect output data from modules (for inter-module communication)
@@ -260,16 +275,29 @@ int main(int argc, char* argv[])
     if( !application.GetPaused() )
       chainSystem.Advance(step_size);
 
+    // stop and increment the step timer
+    step_timer.stop();
+    total_step_time += step_timer();
+    time_since_last_output += step_timer();
+
     if (step_number % output_steps == 0) 
     {
-    // log desired output to console?
+     // log desired output to console?
 #ifdef CONSOLE_CONSTRAINT_INFO
-      chainSystem.LogConstraintViolations();
+      chainSystem.Log_to_console();
 #endif
 
-    // write data to file?
+      // write data to file?
 #ifdef WRITE_OUTPUT
-      chainSystem.SaveLog();  // needs to already be setup before sim loop calls it
+      chainSystem.Log_to_file();  // needs to already be setup before sim loop calls it
+#endif
+
+      // write timer info to console?
+#ifdef CONSOLE_TIMING
+      GetLog() << "\n --------- TIMING -------------\n" << "time: " << chainSystem.GetSystem()->GetChTime();
+      GetLog() << "\n total render time: " << total_render_time << ",  % of total: " << 100.*total_render_time / total_step_time;
+      GetLog() << "\n total compute time: " << total_step_time << ", Avg. time per step " << time_since_last_output * chainSystem.GetSystem()->GetStep() / output_step_size;
+      time_since_last_output = 0;
 #endif
     }
 

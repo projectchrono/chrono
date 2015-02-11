@@ -69,14 +69,15 @@ public:
   /// save the constraint violations, w/ and w/o chain body, to the 
   virtual void SaveConstraintViolations(std::stringstream& ss, bool include_chain = false);
 
-  virtual void DebugLog(int console_what);
+  virtual void Log_to_console(int console_what);
 
-  /// Log info to data file. data types to be saved should already set in Save_DebugLog() 
-  virtual void SaveLog();
+  /// Log data to file.
+  /// Data types AND filename to be saved should already set in Setup_log_to_file() 
+  virtual void Log_to_file();
 
   /// setup class to save the log to a file for python postprocessing.
   /// Usage: call after construction & Initialize(), else no data is saved.
-  virtual void Save_DebugLog(int what,
+  virtual void Setup_log_to_file(int what,
                      const std::string& out_filename);
 
   // ---------------------------------------------------------------------------

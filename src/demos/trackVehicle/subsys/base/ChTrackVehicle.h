@@ -131,9 +131,24 @@ public:
   /// return the contant part of the damping (if any)
   virtual double GetShoePinDamping() {return 0;}
   
-  /// TODO: Log current constraint violations.
-  // void LogConstraintViolations();
+  // Log data, constraint violations, etc. to console (ChLog), or a file (
 
+  /// log the constraint violations of this and all child subsystems to console
+  virtual void LogConstraintViolations(bool include_chain = false){}
+
+  /// save the constraint violations, w/ and w/o chain body, to the 
+  virtual void SaveConstraintViolations(std::stringstream& ss, bool include_chain = false){}
+
+  virtual void Log_to_console(int console_what) {}
+
+  /// Log data to file.
+  /// Data types AND filename to be saved should already set in Setup_log_to_file() 
+  virtual void Log_to_file() {}
+
+  /// setup class to save the log to a file for python postprocessing.
+  /// Usage: call after construction & Initialize(), else no data is saved.
+  virtual void Setup_log_to_file(int what,
+    const std::string& out_filename) {}
   
 
 protected:
@@ -152,11 +167,11 @@ protected:
   bool                       m_ownsSystem;   ///< true if system created at construction
 
   ChSharedPtr<ChBodyAuxRef>  m_chassis;      ///< handle to the chassis body
-  VisualizationType m_vis;  // how to visualize chassis geometry
-  CollisionType m_collide;  // how to handle chassis collision geometry
-  std::string m_meshName; ///< name of the mesh, if any
-  std::string  m_meshFile;  ///< filename of the mesh, if any
-  ChVector<> m_chassisBoxSize; // length, height, width of chassis collision box (if collisiontype = PRIMITIVES)
+  VisualizationType m_vis;    ///< visualize  geometry
+  CollisionType m_collide;    ///< collision geometry
+  std::string m_meshName;     ///< name of the mesh, if any
+  std::string  m_meshFile;    ///< filename of the mesh, if any
+  ChVector<> m_chassisBoxSize;///< size of chassis box, used for any PRIMITIVES type
 
   size_t m_num_engines;  ///< can support multiple powertrain/drivetrains
   std::vector<ChSharedPtr<TrackPowertrain>>  m_ptrains;  ///< powertrain system, one per track system
@@ -164,10 +179,11 @@ protected:
   double                     m_stepsize;   ///< integration step-size for the vehicle system
 
   // output/Log variables
-  bool m_save_log_to_file;                    // save the DebugLog() info to file? default false
-  bool m_log_file_exists;                     // written the headers for log file yet?
+  bool m_save_log_to_file;    // save the DebugLog() info to file? default false
+  int m_log_what_to_file;     // set this in Setup_log_to_file(), if writing to file
+  bool m_log_file_exists;     // written the headers for log file yet?
+  int m_log_what_to_console;  ///< pre-set what to write to console when calling 
   std::string m_log_file_name;
-  int m_log_what;
 
 
 };
