@@ -233,11 +233,11 @@ real4 collideCell(
 //					if ( rhoPresMuB.w == 0) { //**one of them is boundary, the other one is fluid
 					if ( rhoPresMuA.w >= 0 ) { //**one of them is boundary, the other one is fluid
 						multViscosit = paramsD.multViscosity_FSI;
-						rhoPresMuA.y = rhoPresMuB.y;
+//						rhoPresMuA.y = rhoPresMuB.y;
 					}
 					if ( rhoPresMuB.w >= 0) { //**one of them is boundary, the other one is fluid
 						multViscosit = paramsD.multViscosity_FSI;
-						rhoPresMuB.y = rhoPresMuA.y;
+//						rhoPresMuB.y = rhoPresMuA.y;
 					}
 					//*** modify the pressure at the periodic boundary
 //					if (length(posRadA - posRadB) > (RESOLUTION_LENGTH_MULT + 1) * paramsD.HSML) { //i.e. at periodic BC. project pressure up the periodic boundary

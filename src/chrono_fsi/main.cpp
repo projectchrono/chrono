@@ -69,6 +69,7 @@ real_ IsInsideStraightChannel(real3 posRad) {
 	const real_ sphR = paramsH.HSML;
 	real_ penDist1 = 0;
 	real_ penDist2 = 0;
+	real_ penDist3 = 0;
 	real_ largePenet = -5 * sphR; //like a large number. Should be negative (assume large initial penetration)
 
 	if (posRad.z > paramsH.straightChannelBoundaryMax.z) {
@@ -84,7 +85,15 @@ real_ IsInsideStraightChannel(real3 posRad) {
 	if (posRad.y > paramsH.straightChannelBoundaryMax.y) {
 		penDist2 = paramsH.straightChannelBoundaryMax.y - posRad.y;
 	}
-	if (penDist1 < 0 && penDist2 < 0) {
+
+	if (posRad.x < paramsH.straightChannelBoundaryMin.x) {
+		penDist3 = posRad.x - paramsH.straightChannelBoundaryMin.x;
+	}
+	if (posRad.x > paramsH.straightChannelBoundaryMax.x) {
+		penDist3 = paramsH.straightChannelBoundaryMax.x - posRad.x;
+	}
+
+	if (penDist1 < 0 && penDist2 < 0 && penDist2 < 0) {
 		return Min(penDist1, penDist2);
 	}
 	if (penDist1 < 0)
@@ -133,36 +142,22 @@ int2 CreateFluidMarkers(thrust::host_vector<real3> & mPosRad,
 						paramsH.cMin
 								+ R3(i * initSpaceX, j * initSpaceY, k * initSpaceZ)
 								+ R3(.5 * initSpace0)/* + R3(sphR) + initSpace * .05 * (real_(rand()) / RAND_MAX)*/;
-				real_ penDist = 0;
-				penDist = IsInsideStraightChannel(posRad);
-				if (penDist > 0) {
-					if (k < nFZ) {
+				if ( 	(posRad.x >  paramsH.straightChannelBoundaryMin.x && posRad.x <  paramsH.straightChannelBoundaryMax.x ) &&
+						(posRad.y >  paramsH.straightChannelBoundaryMin.y && posRad.y <  paramsH.straightChannelBoundaryMax.y ) &&
+						(posRad.z >  paramsH.straightChannelBoundaryMin.z && posRad.z <  paramsH.straightChannelBoundaryMax.z ) )
+				{
+					if (i < 0.5 * nFX) {
 						num_FluidMarkers++;
 						mPosRad.push_back(posRad);
 						real3 v3 = R3(0);
 						mVelMas.push_back(R4(v3, sphMarkerMass));
-						mRhoPresMu.push_back(
-								R4(paramsH.rho0, paramsH.BASEPRES,
-										paramsH.mu0, -1)); //rho, pressure, viscosity for water at standard condition, last component is the particle type: -1: fluid, 0: boundary, 1, 2, 3, .... rigid bodies.
-						//just note that the type, i.e. mRhoPresMu.w is real_.
-						//viscosity of the water is .0018
-
+						mRhoPresMu.push_back(R4(paramsH.rho0, paramsH.BASEPRES, paramsH.mu0, -1));
 					}
 				} else {
 					num_BoundaryMarkers++;
 					mPosRadBoundary.push_back(posRad);
 					mVelMasBoundary.push_back(R4(0, 0, 0, sphMarkerMass));
-					if (-penDist / (paramsH.MULT_INITSPACE * paramsH.HSML) <= 2 ) {
-						mRhoPresMuBoundary.push_back(
-								R4(paramsH.rho0, paramsH.BASEPRES, paramsH.mu0,
-										0)); //rho, pressure, viscosity for water at standard condition, last component is the particle type: -1: fluid, 0: boundary, 1, 2, 3, .... rigid bodies.
-						//just note that the type, i.e. mRhoPresMu.w is real_.
-						//viscosity of the water is .0018
-					} else {
-						mRhoPresMuBoundary.push_back(
-								R4(paramsH.rho0, paramsH.LARGE_PRES, paramsH.mu0,
-																	0));
-					}
+					mRhoPresMuBoundary.push_back(R4(paramsH.rho0, paramsH.LARGE_PRES, paramsH.mu0, 0));
 				}
 			}
 		}
@@ -193,23 +188,23 @@ int main() {
 	int numAllMarkers = 0;
 
 		paramsH.sizeScale = 1; //don't change it.
-		paramsH.HSML = 0.0001;
+		paramsH.HSML = 0.2;
 		paramsH.MULT_INITSPACE = 1.0;
 			paramsH.NUM_BOUNDARY_LAYERS = 3;
 			paramsH.toleranceZone = paramsH.NUM_BOUNDARY_LAYERS * (paramsH.HSML * paramsH.MULT_INITSPACE);
 		paramsH.BASEPRES = 0;//10;
-			paramsH.LARGE_PRES = paramsH.BASEPRES;//10000;
+			paramsH.LARGE_PRES = 10000;//paramsH.BASEPRES;//10000;
 			paramsH.deltaPress; //** modified below
 			paramsH.multViscosity_FSI = 5.0;
-		paramsH.gravity = R3(0, 0, 0);//R3(0);//R3(0, -9.81, 0);
-		paramsH.bodyForce3 = R3(0.08,0,0);//R4(3.2e-3,0,0,0);// R4(0);;// /*Re = 100 */ //R4(3.2e-4, 0, 0, 0);/*Re = 100 */
+		paramsH.gravity = R3(0, -9.81, 0);//R3(0);//R3(0, -9.81, 0);
+		paramsH.bodyForce3 = R3(0,0,0);//R4(3.2e-3,0,0,0);// R4(0);;// /*Re = 100 */ //R4(3.2e-4, 0, 0, 0);/*Re = 100 */
 			paramsH.rho0 = 1000;
 			paramsH.mu0 = .001;
-		paramsH.v_Max = 50e-3;//18e-3;//1.5;//2e-1; /*0.2 for Re = 100 */ //2e-3;
+		paramsH.v_Max = 10;//50e-3;//18e-3;//1.5;//2e-1; /*0.2 for Re = 100 */ //2e-3;
 			paramsH.EPS_XSPH = .5f;
-		paramsH.dT = 1e-4;//.001; //sph alone: .01 for Re 10;
-			paramsH.tFinal = 10;//20 * paramsH.dT; //400
-			paramsH.timePause = .001 * paramsH.tFinal;//.0001 * paramsH.tFinal; 	// time before applying any bodyforce. Particles move only due to initialization. keep it as small as possible. the time step will be 1/10 * dT.
+		paramsH.dT = 0.0001;//0.1;//.001; //sph alone: .01 for Re 10;
+			paramsH.tFinal = 1000;//20 * paramsH.dT; //400
+			paramsH.timePause = 0;//.0001 * paramsH.tFinal;//.0001 * paramsH.tFinal; 	// time before applying any bodyforce. Particles move only due to initialization. keep it as small as possible. the time step will be 1/10 * dT.
 			paramsH.kdT = 5; // I don't know what is kdT
 			paramsH.gammaBB = 0.5;
 
@@ -221,11 +216,11 @@ int main() {
 		//****************************************************************************************
 		//*** initialize straight channel
 		paramsH.straightChannelBoundaryMin = R3(0, 0, 0); //3D channel
-		paramsH.straightChannelBoundaryMax = R3(3 * mm, 2 * mm, 3 * mm) * paramsH.sizeScale;
+		paramsH.straightChannelBoundaryMax = R3(3, 2, 3) * paramsH.sizeScale;
 		//********************************************************************************************************
 		//**  reminiscent of the past******************************************************************************
-		paramsH.cMin = R3(0, -2 * paramsH.toleranceZone, -2 * paramsH.toleranceZone);						// 3D channel
-		paramsH.cMax = R3( 3 * mm, 2 * mm + 2 * paramsH.toleranceZone,  3 * mm + 2 * paramsH.toleranceZone);
+		paramsH.cMin = R3(-paramsH.toleranceZone, -paramsH.toleranceZone, -paramsH.toleranceZone);						// 3D channel
+		paramsH.cMax = R3( 3  + paramsH.toleranceZone, 2 + paramsH.toleranceZone,  3 + paramsH.toleranceZone);
 
 		//****************************************************************************************
 		//printf("a1  paramsH.cMax.x, y, z %f %f %f,  binSize %f\n", paramsH.cMax.x, paramsH.cMax.y, paramsH.cMax.z, 2 * paramsH.HSML);
