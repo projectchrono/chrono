@@ -22,6 +22,8 @@ IF(APPLE)
   set(CMAKE_MACOSX_RPATH OFF)
 ENDIF()
 
+set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
+
 # Enable CTest
 enable_testing()
 include(CTest)
