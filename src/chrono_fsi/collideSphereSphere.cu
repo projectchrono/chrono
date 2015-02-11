@@ -1,5 +1,4 @@
 #include "custom_cutil_math.h"
-#include "contactForces.cuh"
 #include "SPHCudaUtils.h"
 #include <thrust/sort.h>
 #include <thrust/scan.h>
@@ -9,7 +8,6 @@
 #include <thrust/device_vector.h>
 #include "SDKCollisionSystem.cuh"
 #include "collideSphereSphere.cuh"
-#include "FlexibleBodies.cuh"
 #include "printToFile.cuh"
 #include <string.h>
 #include <stdio.h>
@@ -288,7 +286,6 @@ void cudaCollisions(
 	printf("boxDims: %f, %f, %f\n", paramsH.boxDims.x, paramsH.boxDims.y, paramsH.boxDims.z);
 
 	setParameters(&paramsH, &numObjects);// sets paramsD in SDKCollisionSystem
-	setParameters2(&paramsH, &numObjects);// sets paramsD in contactForces
 	cutilSafeCall( cudaMemcpyToSymbolAsync(paramsD, &paramsH, sizeof(SimParams))); 	//sets paramsD for this file
 	cutilSafeCall( cudaMemcpyToSymbolAsync(numObjectsD, &numObjects, sizeof(NumberOfObjects)));
 	//*************************************************************************************************************
@@ -311,8 +308,6 @@ void cudaCollisions(
 	//******************************************************************************
 	int stepEnd = int(paramsH.tFinal/paramsH.dT);//1.0e6;//2.4e6;//600000;//2.4e6 * (.02 * paramsH.sizeScale) / currentParamsH.dT ; //1.4e6 * (.02 * paramsH.sizeScale) / currentParamsH.dT ;//0.7e6 * (.02 * paramsH.sizeScale) / currentParamsH.dT ;//0.7e6;//2.5e6; //200000;//10000;//50000;//100000;
 	printf("stepEnd %d\n", stepEnd);
-
-	real_ delTOrig = paramsH.dT;
 	real_ realTime = 0;
 
 	SimParams paramsH_B = paramsH;
@@ -326,7 +321,7 @@ void cudaCollisions(
 	SimParams currentParamsH = paramsH;
 	for (int tStep = 0; tStep < stepEnd + 1; tStep++) {
 		//************************************************
-		PrintToFile(posRadD, velMasD, rhoPresMuD, referenceArray, currentParamsH, tStep);
+		PrintToFile(posRadD, velMasD, rhoPresMuD, referenceArray, currentParamsH, realTime, tStep);
 		//************
 
 		GpuTimer myGpuTimer;
@@ -345,7 +340,6 @@ void cudaCollisions(
 		//***********
 
 		setParameters(&currentParamsH, &numObjects);// sets paramsD in SDKCollisionSystem
-		setParameters2(&currentParamsH, &numObjects);// sets paramsD in contactForces
 		cutilSafeCall( cudaMemcpyToSymbolAsync(paramsD, &currentParamsH, sizeof(SimParams))); 	//sets paramsD for this file
 
 		//computations

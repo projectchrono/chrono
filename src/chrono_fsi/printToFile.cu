@@ -149,7 +149,6 @@ void PrintToFile_SPH(
 	ofstream fileNameFluidParticles;
 	ofstream fileNameBoundaries;
 	ofstream fileNameFluidBoundaries;
-	ofstream fileNameRigidFlexBCE;
 
 	int tStepsPovFiles = 100;//2000;
 	if (tStep % tStepsPovFiles == 0) {
@@ -177,10 +176,6 @@ void PrintToFile_SPH(
 		sprintf(nameFluidBoundaries, "povFiles/fluid_boundary");
 		strcat(nameFluidBoundaries, fileCounter);
 		strcat(nameFluidBoundaries, ".csv");
-		char nameRigidFlexBCE[255];
-		sprintf(nameRigidFlexBCE, "povFiles/rigid_flex_BCE");
-		strcat(nameRigidFlexBCE, fileCounter);
-		strcat(nameRigidFlexBCE, ".csv");
 	//*****************************************************
 		fileNameFluidParticles.open(nameFluid);
 		stringstream ssFluidParticles;
@@ -220,20 +215,6 @@ void PrintToFile_SPH(
 		fileNameFluidBoundaries<<ssFluidBoundaryParticles.str();
 		fileNameFluidBoundaries.close();
 	//*****************************************************
-		fileNameRigidFlexBCE.open(nameRigidFlexBCE);
-		stringstream ssRigidFlexBCE;
-		if (referenceArray.size() > 2) {
-			for (int i = referenceArray[2].x; i < referenceArray[referenceArray.size() - 1].y; i++) {
-				real3 pos = posRadH[i];
-				real3 vel = R3(velMasH[i]);
-				real4 rP = rhoPresMuH[i];
-				real_ velMag = length(vel);
-				ssRigidFlexBCE<< pos.x<<", "<< pos.y<<", "<< pos.z<<", "<< vel.x<<", "<< vel.y<<", "<< vel.z<<", "<< velMag<<", "<< rP.x<<", "<< rP.y<<", "<< rP.z<<", "<< rP.w<<", "<<endl;
-			}
-		}
-		fileNameRigidFlexBCE<<ssRigidFlexBCE.str();
-		fileNameRigidFlexBCE.close();
-	//*****************************************************
 	}
 	posRadH.clear();
 	velMasH.clear();
@@ -248,6 +229,7 @@ void PrintToFile(
 		const thrust::device_vector<real4> & rhoPresMuD,
 		const thrust::host_vector<int3> & referenceArray,
 		const SimParams paramsH,
+		real_ realTime,
 		int tStep) {
 	// print fluid stuff
 	PrintToFile_SPH(posRadD, velMasD, rhoPresMuD, referenceArray, paramsH, realTime, tStep);
