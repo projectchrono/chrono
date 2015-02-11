@@ -18,6 +18,7 @@
 
 #include <ostream>
 #include <fstream>
+#include <omp.h>
 
 #include "core/ChFileutils.h"
 

@@ -34,10 +34,6 @@
 #include "chrono_parallel/ChApiParallel.h"
 #include "chrono_parallel/ChConfigParallel.h"
 
-#ifdef CHRONO_PARALLEL_OMP_FOUND
-#include <omp.h>
-#endif
-
 #ifdef _MSC_VER
 #define thrust_parallel thrust::cpp::par
 #else

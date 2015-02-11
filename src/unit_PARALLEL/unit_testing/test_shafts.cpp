@@ -16,6 +16,8 @@
 //
 // =============================================================================
 
+#include <omp.h>
+
 #include "physics/ChShaftsGear.h"
 #include "physics/ChShaftsTorsionSpring.h"
 #include "physics/ChShaftsBody.h"
