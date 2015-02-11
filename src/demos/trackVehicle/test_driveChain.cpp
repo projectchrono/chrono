@@ -66,38 +66,38 @@ using namespace chrono;
 // =============================================================================
 // User Settings
 // =============================================================================
-// display the  system heirarchy, write output data, log constraint violations to console, render and total runtimes
-//#define CONSOLE_SYSTEM_INFO 
-// #define WRITE_OUTPUT
-// #define CONSOLE_CONSTRAINT_INFO
-#define CONSOLE_TIMING
+//  render and total runtimes
+#define WRITE_OUTPUT            // write output data to file
+// #define CONSOLE_SYSTEM_INFO  // display the system heirarchy in the console
+#define CONSOLE_DEBUG_INFO      // log constraint violations to console,
+// #define CONSOLE_TIMING       // time each render and simulation step, log info to console
+
+int what_to_save = DBG_FIRSTSHOE | DBG_GEAR | DBG_IDLER | DBG_PTRAIN | DBG_CONSTRAINTS;
+int what_to_console = DBG_FIRSTSHOE | DBG_GEAR | DBG_IDLER | DBG_PTRAIN | DBG_CONSTRAINTS;
 
 // Initial vehicle position and heading. Defines the REF frame for the hull body
 ChVector<> initLoc(0, 1.0, 0);
 //ChQuaternion<> initRot = Q_from_AngAxis(CH_C_PI_4, VECT_Y);
 ChQuaternion<> initRot(QUNIT);
 
+size_t num_idlers = 2;
 // Simulation step size
 double step_size = 0.002;
 
-size_t num_idlers = 2;
-
-// Time interval between two render frames
-int FPS = 40;
-double render_step_size = 1.0 / FPS;   // FPS = 50
-// Time interval between two output frames
-double output_step_size = 1.0 / 1;    // once a second
-
 // #ifdef USE_IRRLICHT
-  // Point on chassis tracked by the camera, chassis c-sys
-ChVector<> trackPoint(-1.1, -1, 0);
+int FPS = 40; // render frame rate
+double render_step_size = 1.0 / FPS;  // Time increment between two rendered frames
+double output_step_size = 1.0 / 1;    // Time interval between two output frames
+
+ChVector<> trackPoint(0, 0, 0.2);   // Point on chassis tracked by the camera, chassis c-sys
+
+bool use_fixed_camera = true;
+ChVector<> cameraPos(0.5, 1.50, 2.6); // static camera position, global c-sys
 // if chase cam enabled:
 double chaseDist = 2.5;
 double chaseHeight = 0.5;
-// set a static camera position, global c-sys
-ChVector<> cameraPos(-1.2, 0, 2.6);
-bool use_fixed_camera = true;
-bool do_shadows = true; // shadow map is experimental
+
+bool do_shadows = false; // shadow map is experimental
 
   /*
 #else
@@ -109,6 +109,8 @@ bool do_shadows = true; // shadow map is experimental
   */
 
 
+// =============================================================================
+// =============================================================================
 int main(int argc, char* argv[])
 {
   // NOTE: utils library built with this sets this statically
@@ -130,7 +132,7 @@ int main(int argc, char* argv[])
 
   // if writing an output file, setup what debugInformation we want added each step data is saved.
 #ifdef WRITE_OUTPUT
-  chainSystem.Setup_log_to_file(DBG_FIRSTSHOE || DBG_GEAR || DBG_IDLER || DBG_PTRAIN || DBG_CONSTRAINTS,
+  chainSystem.Setup_log_to_file(what_to_save,
     "test_driveChain_all.csv");
 #endif
 
@@ -283,8 +285,8 @@ int main(int argc, char* argv[])
     if (step_number % output_steps == 0) 
     {
      // log desired output to console?
-#ifdef CONSOLE_CONSTRAINT_INFO
-      chainSystem.Log_to_console();
+#ifdef CONSOLE_DEBUG_INFO
+      chainSystem.Log_to_console(what_to_console);
 #endif
 
       // write data to file?

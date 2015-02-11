@@ -413,7 +413,7 @@ void DriveChain::Log_to_console(int console_what)
 
     // shoe pin tension
     GetLog() << "pin 0 reaction force [N] : "  <<  m_chain->GetPinReactForce(0) << "\n";
-    GetLog() << "pin 0 reaction torque [N-m] : "  <<  m_chain->GetPinReactForce(0) << "\n";
+    // GetLog() << "pin 0 reaction torque [N-m] : "  <<  m_chain->GetPinReactTorque(0) << "\n";
   }
 
   if (console_what & DBG_GEAR)
