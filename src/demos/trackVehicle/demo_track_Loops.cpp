@@ -9,24 +9,9 @@
 //
 ///////////////////////////////////////////////////
 //
-//  Summary: Test the DriveChain system.
-//  Components: Gear, Powertrain, tensioned and passive Idler(s),
-//              
-//  Throttle, gear, pin damping coef., etc. driven by the user with an Irrlicht GUI.
-//  Alternatively, scripted driven simulations supported thru Track_FuncDriver.
-//
-//  Output I care about:
-//    The reaction forces in the pins adjoining 5 or so track shoes.
-//    I'm going to analyze the time history of pin tension forces, and also the 
-//    cumulative contact normal and friction forces between the pins and gear surface.
-//    Changing Gear CollisionType from PRIMITIVES to CALLBACKFUNCTION with and without pin/gear
-//    callback function enabled. So the gear collision shapes will be 
-//      a) two concentric cylinders, contact w/ flat shoe surface
-//      b) two concentric cylinders, further laterally outwards. 10 boxes for the top gear tooth surface.
-//      c) same as b), but add the collision callback function, which looks for contact between shoe pins and 
-//         concave gear tooth base surface.
-//
-//    Output to text files for Python plots, by uncommenting #define WRITE_OUTPUT
+//  Summary: A LoopChain derived system, with lots of extra 
+//            idlers and rolling elements
+//        
 //	 Author: Justin Madsen, 2015
 ///////////////////////////////////////////////////
   
@@ -58,7 +43,7 @@ using namespace core;
 #endif
  */
  
-#include "subsys/trackVehicle/DriveChain.h"
+#include "subsys/trackVehicle/LoopChain.h"
 #include "ModelDefs.h"
 // Use the main namespace of Chrono
 using namespace chrono;
@@ -80,7 +65,8 @@ ChVector<> initLoc(0, 1.0, 0);
 //ChQuaternion<> initRot = Q_from_AngAxis(CH_C_PI_4, VECT_Y);
 ChQuaternion<> initRot(QUNIT);
 
-size_t num_idlers = 1;
+size_t num_idlers = 2;
+size_t num_rollers = 2;
 // Simulation step size
 double step_size = 0.002;
 
@@ -103,7 +89,7 @@ bool do_shadows = false; // shadow map is experimental
 #else
   double tend = 20.0;
 
-  const std::string out_dir = "../test_driveChain";
+  const std::string out_dir = "../test_LoopChain";
   const std::string pov_dir = out_dir + "/POVRAY";
 #endif
   */
@@ -117,23 +103,23 @@ int main(int argc, char* argv[])
   // SetChronoDataPath(CHRONO_DATA_DIR);
 
   // --------------------------
-  // Create the Chain system (drive gear, idler, chain)
-
-  // The drive chain inherits ChSystem. Specify the 
-  // collision type used by the gear here.
-  DriveChain chainSystem("Justins driveChain system", 
+  // Create Chain system (drive gear, idler, chain)
+  // Inherits ChSystem.
+  // Specify the visualization and collision type .
+  LoopChain chainLoopSystem("Justins LoopChain system", 
     VisualizationType::MESH,
     // VisualizationType::COMPOUNDPRIMITIVES,
     CollisionType::CALLBACKFUNCTION,
-    num_idlers);
+    num_idlers,
+    num_rollers);
   
   // set the chassis REF at the specified initial config.
-  chainSystem.Initialize(ChCoordsys<>(initLoc, initRot));
+  chainLoopSystem.Initialize(ChCoordsys<>(initLoc, initRot));
 
   // if writing an output file, setup what debugInformation we want added each step data is saved.
 #ifdef WRITE_OUTPUT
-  chainSystem.Setup_log_to_file(what_to_save,
-    "test_driveChain_all.csv");
+  chainLoopSystem.Setup_log_to_file(what_to_save,
+    "test_LoopChain_all.csv");
 #endif
 
 /*
@@ -145,8 +131,8 @@ int main(int argc, char* argv[])
   // Setup the Irrlicht GUI
 
   // Create the Irrlicht visualization applicaiton
-  ChIrrApp application(chainSystem.GetSystem(),
-                      L"test driveChain demo",
+  ChIrrApp application(chainLoopSystem.GetSystem(),
+                      L"test LoopChain demo",
                       dimension2d<u32>(window_x_len, window_y_len),
                       false,
                       do_shadows);
@@ -173,7 +159,7 @@ int main(int argc, char* argv[])
   application.SetTimestep(step_size);
 
   // the GUI driver
-  ChIrrGuiTrack driver(application, chainSystem, trackPoint, chaseDist, chaseHeight,window_x_len-150);
+  ChIrrGuiTrack driver(application, chainLoopSystem, trackPoint, chaseDist, chaseHeight,window_x_len-150);
   // even though using a chase camera, set the initial camera position laterally
   if(use_fixed_camera)
     driver.SetCameraPos(cameraPos);
@@ -217,7 +203,7 @@ int main(int argc, char* argv[])
   // Simulation loop
 #ifdef CONSOLE_SYSTEM_INFO
   GetLog() << "\n\n============ System Configuration ============\n";
-  chainSystem.GetSystem()->ShowHierarchy(GetLog() );
+  chainLoopSystem.GetSystem()->ShowHierarchy(GetLog() );
 #endif
 
   // Initialize simulation frame counter and simulation time
@@ -238,7 +224,7 @@ int main(int argc, char* argv[])
 */
 // write data to file?
 #ifdef WRITE_OUTPUT
-      chainSystem.Log_to_file();  // needs to already be setup before sim loop calls it
+      chainLoopSystem.Log_to_file();  // needs to already be setup before sim loop calls it
 #endif
   ChRealtimeStepTimer realtime_timer;
   while (application.GetDevice()->run())
@@ -262,11 +248,11 @@ int main(int argc, char* argv[])
     braking_input = driver.GetBraking();
 
     // Update
-    time = chainSystem.GetSystem()->GetChTime();
+    time = chainLoopSystem.GetSystem()->GetChTime();
 
     driver.Update(time);
 
-    chainSystem.Update(time, throttle_input[0], braking_input[0]);
+    chainLoopSystem.Update(time, throttle_input[0], braking_input[0]);
 
     // Advance simulation for one timestep for all modules
     // step_size = realtime_timer.SuggestSimulationStep(step_size);
@@ -275,7 +261,7 @@ int main(int argc, char* argv[])
     // Settlings phase has hardcoded solver settings, for the first few timesteps
     // application.SetPaused(true);
     if( !application.GetPaused() )
-      chainSystem.Advance(step_size);
+      chainLoopSystem.Advance(step_size);
 
     // stop and increment the step timer
     step_timer.stop();
@@ -286,19 +272,19 @@ int main(int argc, char* argv[])
     {
      // log desired output to console?
 #ifdef CONSOLE_DEBUG_INFO
-      chainSystem.Log_to_console(what_to_console);
+      chainLoopSystem.Log_to_console(what_to_console);
 #endif
 
       // write data to file?
 #ifdef WRITE_OUTPUT
-      chainSystem.Log_to_file();  // needs to already be setup before sim loop calls it
+      chainLoopSystem.Log_to_file();  // needs to already be setup before sim loop calls it
 #endif
 
       // write timer info to console?
 #ifdef CONSOLE_TIMING
-      GetLog() << "\n --------- TIMING -------------\n" << "time: " << chainSystem.GetSystem()->GetChTime();
+      GetLog() << "\n --------- TIMING -------------\n" << "time: " << chainLoopSystem.GetSystem()->GetChTime();
       GetLog() << "\n total render time: " << total_render_time << ",  % of total: " << 100.*total_render_time / total_step_time;
-      GetLog() << "\n total compute time: " << total_step_time << ", Avg. time per step " << time_since_last_output * chainSystem.GetSystem()->GetStep() / output_step_size;
+      GetLog() << "\n total compute time: " << total_step_time << ", Avg. time per step " << time_since_last_output * chainLoopSystem.GetSystem()->GetStep() / output_step_size;
       time_since_last_output = 0;
 #endif
     }
@@ -323,7 +309,7 @@ int main(int argc, char* argv[])
     return 1;
   }
 
-  chainSystem.ExportMeshPovray(out_dir);
+  chainLoopSystem.ExportMeshPovray(out_dir);
 
   char filename[100];
 
@@ -332,7 +318,7 @@ int main(int argc, char* argv[])
     if (step_number % render_steps == 0) {
       // Output render data
       sprintf(filename, "%s/data_%03d.dat", pov_dir.c_str(), render_frame + 1);
-      utils::WriteShapesPovray(chainSystem.GetSystem(), filename);
+      utils::WriteShapesPovray(chainLoopSystem.GetSystem(), filename);
       std::cout << "Output frame:   " << render_frame << std::endl;
       std::cout << "Sim frame:      " << step_number << std::endl;
       std::cout << "Time:           " << time << std::endl;
@@ -346,16 +332,16 @@ int main(int argc, char* argv[])
     braking_input = driver.GetBraking();
 
     // Update modules (process inputs from other modules)
-    time = chainSystem.GetSystem()->GetChTime();
+    time = chainLoopSystem.GetSystem()->GetChTime();
 
     driver.Update(time);
 
-    chainSystem.Update(time, throttle_input, braking_input);
+    chainLoopSystem.Update(time, throttle_input, braking_input);
 
     // Advance simulation for one timestep for all modules
     driver.Advance(step_size);
 
-    chainSystem.Advance(step_size);
+    chainLoopSystem.Advance(step_size);
 
     // Increment frame number
     step_number++;

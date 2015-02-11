@@ -36,6 +36,10 @@ subsys/trackVehicle/TrackVehicle.h
 subsys/trackVehicle/TrackVehicle.cpp
 subsys/trackVehicle/DriveChain.h
 subsys/trackVehicle/DriveChain.cpp
+subsys/trackVehicle/LoopChain.h
+subsys/trackVehicle/LoopChain.cpp
+subsys/trackVehicle/TrackSoilBin.h
+subsys/trackVehicle/TrackSoilBin.cpp
 )
 
 SET(CT_SUSPENSION_FILES
@@ -223,3 +227,56 @@ TARGET_LINK_LIBRARIES(test_driveChain
 
 INSTALL(TARGETS test_driveChain DESTINATION bin)
 MESSAGE("Added DEMO 3: test a driveChain system. Power to a gear is transferred to an idler wheel via rigid-body chain")
+
+
+# ---------------------------------------------
+# DEMO 4: loops, a chain going around a lot of rolling elements.
+ADD_EXECUTABLE(demo_track_Loops  demo_track_Loops.cpp)
+
+SOURCE_GROUP(""  FILES  demo_track_Loops.cpp)
+
+SET_TARGET_PROPERTIES(demo_track_Loops  PROPERTIES
+    FOLDER demos
+    COMPILE_FLAGS "${CH_BUILDFLAGS_IRR}"
+    LINK_FLAGS "${CH_LINKERFLAG_EXE}"
+)
+
+TARGET_LINK_LIBRARIES(demo_track_Loops
+	ChronoEngine
+	ChronoEngine_IRRLICHT
+	TrackVehicle
+	Chrono_Utils
+    ${CH_IRRLICHTLIB}
+)
+
+# ADD_DEPENDENCIES (demo_track_Loops ChronoEngine ChronoEngine_IRRLICHT TrackVehicle)
+
+INSTALL(TARGETS demo_track_Loops DESTINATION bin)
+MESSAGE("Added DEMO 4: loops, a chain going around a lot of rolling elements.")
+
+
+
+# ---------------------------------------------
+# DEMO 5: trackSoilBin, where the vehicle system can move in-plane only.
+ADD_EXECUTABLE(demo_track_SoilBin  demo_track_SoilBin.cpp)
+
+SOURCE_GROUP(""  FILES  demo_track_SoilBin.cpp)
+
+SET_TARGET_PROPERTIES(demo_track_SoilBin  PROPERTIES
+    FOLDER demos
+    COMPILE_FLAGS "${CH_BUILDFLAGS_IRR}"
+    LINK_FLAGS "${CH_LINKERFLAG_EXE}"
+)
+
+TARGET_LINK_LIBRARIES(demo_track_SoilBin
+	ChronoEngine
+	ChronoEngine_IRRLICHT
+	TrackVehicle
+	Chrono_Utils
+    ${CH_IRRLICHTLIB}
+)
+
+# ADD_DEPENDENCIES (demo_track_SoilBin ChronoEngine ChronoEngine_IRRLICHT TrackVehicle)
+
+INSTALL(TARGETS demo_track_SoilBin DESTINATION bin)
+MESSAGE("Added DEMO 5: trackSoilBin, where the vehicle system can move in-plane only")
