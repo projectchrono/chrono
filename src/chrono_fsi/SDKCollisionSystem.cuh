@@ -293,8 +293,6 @@ void collide(
 		thrust::device_vector<real4> & sortedVelMas,
 		thrust::device_vector<real3> & vel_XSPH_Sorted_D,
 		thrust::device_vector<real4> & sortedRhoPreMu,
-		const thrust::device_vector<real3> & posRigidD,
-		const thrust::device_vector<int>   & rigidIdentifierD,
 		thrust::device_vector<uint>  & gridMarkerIndex,
 		thrust::device_vector<uint>  & cellStart,
 		thrust::device_vector<uint>  & cellEnd,

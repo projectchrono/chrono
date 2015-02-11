@@ -199,9 +199,6 @@ real4 collideCell(
 		real3* vel_XSPH_Sorted_D,
 		real4* sortedRhoPreMu,
 
-		real3* posRigidD,
-		int* rigidIdentifierD,
-
 		uint* cellStart,
 		uint* cellEnd,
 		uint* gridMarkerIndex) {
@@ -258,17 +255,6 @@ real4 collideCell(
 					derivRho += derivVelRho.w;
 				}
 				else if (fabs(rhoPresMuA.w - rhoPresMuB.w) > 0) { //implies: one of them is solid/boundary, ther other one is solid/boundary of different type or different solid
-////					real3 dV = DifVelocity_SSI_DEM(dist3, d, velMasA, velMasB);
-//					real3 dV = DifVelocity_SSI_Lubrication(dist3, d, velMasA, velMasB);
-//
-//					if (rhoPresMuA.w > 0 && rhoPresMuA.w <= numObjectsD.numRigidBodies) { //i.e. rigid
-//						uint originalIndex = gridMarkerIndex[index];
-//						uint BCE_Index = originalIndex - numObjectsD.startRigidMarkers;
-//						real3 s3 = Distance(posRadA, posRigidD[rigidIdentifierD[BCE_Index]]);  //assume convex.
-//						derivV += (dot(dV, s3) > 0) ? (-dV) : (dV); //fancy check: if a go within b, dV becomes attractive force, so it should change sign to become repulsive.
-//					} else { // flex or boundary. boundary is not important. but flex is not supported yet
-//						derivV += dV; //flex doesn't support fancy check as rigid
-//					}
 				}
 			}
 		}
@@ -588,9 +574,6 @@ void collideD(real4* derivVelRhoD, // output: new velocity
 		real3* vel_XSPH_Sorted_D,
 		real4* sortedRhoPreMu,
 
-		real3* posRigidD,
-		int* rigidIdentifierD,
-
 		uint* gridMarkerIndex, // input: sorted particle indices
 		uint* cellStart,
 		uint* cellEnd,
@@ -616,7 +599,7 @@ void collideD(real4* derivVelRhoD, // output: new velocity
 		for (int y = -1; y <= 1; y++) {
 			for (int z = -1; z <= 1; z++) {
 				derivVelRho += collideCell(gridPos + I3(x, y, z), index, posRadA, velMasA, vel_XSPH_A, rhoPreMuA, sortedPosRad, sortedVelMas, vel_XSPH_Sorted_D,
-								sortedRhoPreMu, posRigidD, rigidIdentifierD, cellStart, cellEnd, gridMarkerIndex);
+								sortedRhoPreMu, cellStart, cellEnd, gridMarkerIndex);
 			}
 		}
 	}
@@ -1189,8 +1172,7 @@ void collide(
 		thrust::device_vector<real4> & sortedVelMas,
 		thrust::device_vector<real3> & vel_XSPH_Sorted_D,
 		thrust::device_vector<real4> & sortedRhoPreMu,
-		const thrust::device_vector<real3> & posRigidD,
-		const thrust::device_vector<int>   & rigidIdentifierD,
+
 		thrust::device_vector<uint>  & gridMarkerIndex,
 		thrust::device_vector<uint>  & cellStart,
 		thrust::device_vector<uint>  & cellEnd,
@@ -1217,8 +1199,6 @@ void collide(
 			R4CAST(sortedVelMas),
 			R3CAST(vel_XSPH_Sorted_D),
 			R4CAST(sortedRhoPreMu),
-			R3CAST(posRigidD),
-			I1CAST(rigidIdentifierD),
 			U1CAST(gridMarkerIndex),
 			U1CAST(cellStart),
 			U1CAST(cellEnd),
