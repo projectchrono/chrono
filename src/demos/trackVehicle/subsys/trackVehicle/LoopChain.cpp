@@ -62,13 +62,13 @@ LoopChain::LoopChain(const std::string& name,
   m_num_engines = 1;
 
   // Integration and Solver settings set in ChTrackVehicle
-  GetSystem()->SetIterLCPmaxItersStab(75);
+  GetSystem()->SetIterLCPmaxItersStab(50);
   GetSystem()->SetIterLCPmaxItersSpeed(75);
 
   // doesn't matter for the chassis, since no visuals used
   m_meshName = "na";
   m_meshFile = "none";
-  m_chassisBoxSize = ChVector<>(2.0, 0.6, 0.75);
+  // m_chassisBoxSize = ChVector<>(2.0, 0.6, 0.75);
 
   // create the chassis body    
   m_chassis = ChSharedPtr<ChBodyAuxRef>(new ChBodyAuxRef);
@@ -87,29 +87,33 @@ LoopChain::LoopChain(const std::string& name,
   // --------------------------------------------------------------------------
   // BUILD THE SUBSYSTEMS
   // drive gear, inherits drivechain's visual and collision types
-  double gear_mass = 100.0; // 436.7
-  ChVector<> gear_Ixx(12.22/4.0, 12.22/4.0, 13.87/4.0);  // 12.22, 12.22, 13.87
+  double gear_mass = 43.67; // 436.7
+  ChVector<> gear_Ixx(12.22/10.0, 12.22/10.0, 13.87/10.0);  // 12.22, 12.22, 13.87
   m_gear = ChSharedPtr<DriveGear>(new DriveGear("drive gear",
-    gear_mass,
-    gear_Ixx,
     m_vis,
-    m_collide));
+    m_collide,
+    gear_mass,
+    gear_Ixx));
 
- // idlers, if m ore than 1
+ // idlers, if more than 1
+  double tensioner_K = 2e4;
+  double tensioner_C = 0.05 * tensioner_K;
   m_idlers.clear();
   m_idlers.resize(m_num_idlers);
-  double idler_mass = 100.0; // 429.6
+  double idler_mass = 42.96; // 429.6
   ChVector<> idler_Ixx(gear_Ixx);    // 12.55, 12.55, 14.7
   m_idlers[0] = ChSharedPtr<IdlerSimple>(new IdlerSimple("idler",
     idler_mass,
     idler_Ixx,
     VisualizationType::MESH,
     // VisualizationType::PRIMITIVES,
-    CollisionType::PRIMITIVES) );
+    CollisionType::PRIMITIVES,
+    tensioner_K,
+    tensioner_C));
 
   // track chain system
-  double shoe_mass = 18.03/4.0; // 18.03
-  ChVector<> shoe_Ixx(0.22/4.0, 0.25/4.0, 0.04/4.0);  // 0.22, 0.25, 0.04
+  double shoe_mass = 18.03/10.0; // 18.03
+  ChVector<> shoe_Ixx(0.22/10.0, 0.25/10.0, 0.04/10.0);  // 0.22, 0.25, 0.04
   m_chain = ChSharedPtr<TrackChain>(new TrackChain("chain",
     shoe_mass,
     shoe_Ixx,
@@ -137,7 +141,9 @@ LoopChain::LoopChain(const std::string& name,
     idler_Ixx,
     VisualizationType::MESH,
     // VisualizationType::PRIMITIVES,
-    CollisionType::PRIMITIVES) );
+    CollisionType::PRIMITIVES,
+    tensioner_K,
+    tensioner_C) );
   }
 
 }
@@ -153,9 +159,9 @@ LoopChain::~LoopChain()
 void LoopChain::Initialize(const ChCoordsys<>& gear_Csys)
 {
   // initialize the drive gear, idler and track chain
-  double idler_preload = 60000;
+  double idler_preload = 15000;
   // m_idlerPosRel = m_idlerPos;
-  m_idlerPosRel = ChVector<>(-4, 0, 0);
+  m_idlerPosRel = ChVector<>(-1., -0.8, 0);
   m_chassis->SetFrame_REF_to_abs(ChFrame<>(gear_Csys.pos, gear_Csys.rot));
   
   // Create list of the center location of the rolling elements and their clearance.
@@ -182,8 +188,8 @@ void LoopChain::Initialize(const ChCoordsys<>& gear_Csys)
   for(int r_idx = 0; r_idx < 1; r_idx++)
   {
     ChVector<> roller_loc = m_chassis->GetPos();
+    roller_loc.x = -1.0;
     roller_loc.y = -2.0;
-    roller_loc.x -= 0.3*(1 + 2*r_idx);
 
     m_rollers[r_idx]->Initialize(m_chassis,
       m_chassis->GetFrame_REF_to_abs(),
@@ -195,19 +201,12 @@ void LoopChain::Initialize(const ChCoordsys<>& gear_Csys)
     rolling_elem_spin_axis.push_back( m_rollers[r_idx]->GetBody()->GetRot().GetZaxis() );
   }
 
-  // init the idler last
-  m_idlers[0]->Initialize(m_chassis, 
-    m_chassis->GetFrame_REF_to_abs(),
-    ChCoordsys<>(m_idlerPosRel, Q_from_AngAxis(CH_C_PI, VECT_Z) ),
-    idler_preload);
-
-
   // initialize the rest of the support rollers.
-  for(int r_idx = 1; r_idx < 2; r_idx++)
+  for(int r_idx = 1; r_idx < 3; r_idx++)
   {
     ChVector<> roller_loc = m_chassis->GetPos();
-    roller_loc.y = -0.5;
-    roller_loc.x -= 0.3*(1 + 4*r_idx);
+    roller_loc.x = -3.0 + 0.5*r_idx;
+    roller_loc.y = -2.0 + 2.5*r_idx;
 
     m_rollers[r_idx]->Initialize(m_chassis,
       m_chassis->GetFrame_REF_to_abs(),
@@ -224,7 +223,36 @@ void LoopChain::Initialize(const ChCoordsys<>& gear_Csys)
   clearance.push_back(m_idlers[0]->GetRadius() );
   rolling_elem_spin_axis.push_back(m_idlers[0]->GetBody()->GetRot().GetZaxis() );
 
+  // init the idler last
+  m_idlers[0]->Initialize(m_chassis, 
+    m_chassis->GetFrame_REF_to_abs(),
+    ChCoordsys<>(m_idlerPosRel, Q_from_AngAxis(CH_C_PI, VECT_Z) ),
+    idler_preload);
 
+  rolling_elem_locs.push_back( m_idlerPosRel );
+  clearance.push_back( m_idlers[0]->GetRadius() );
+  rolling_elem_spin_axis.push_back( m_rollers[3]->GetBody()->GetRot().GetZaxis() );
+
+  // ---------------------------
+  // add the last pasive roller manually
+  ChVector<> roller_loc = m_idlerPosRel;
+  roller_loc.x += -1.0;
+  roller_loc.y += -1.0;
+
+  m_rollers[3]->Initialize(m_chassis,
+      m_chassis->GetFrame_REF_to_abs(),
+      ChCoordsys<>(roller_loc, QUNIT) );
+
+  // add to the points passed into the track chain
+  rolling_elem_locs.push_back( roller_loc );
+  clearance.push_back(m_rollers[3]->GetRadius() );
+  rolling_elem_spin_axis.push_back( m_rollers[3]->GetBody()->GetRot().GetZaxis() );
+
+
+  // ---------------------------
+
+
+  // start between the first (gear) and last (idler) elements
   ChVector<> start_pos;
   if( clearance.size() <3 )
   {
@@ -257,9 +285,9 @@ void LoopChain::Initialize(const ChCoordsys<>& gear_Csys)
   {
     // init this idler, and position it so
     // it snaps into place
-    double preload_2 = 120000;
+    double preload_2 = 10000;
     double idler2_xoff = -1.4;
-    double idler2_yoff = -2.4;
+    double idler2_yoff = -2.6;
     double rotation_ang = CH_C_PI_4;
 
     // get the absolute c-sys of the gear, and set position relative to that point.
@@ -268,12 +296,13 @@ void LoopChain::Initialize(const ChCoordsys<>& gear_Csys)
     idler2_csys.pos.y += idler2_yoff;
     // rotation should set the -x dir 
     idler2_csys.rot = Q_from_AngAxis(rotation_ang, VECT_Z);
-
+/*
     // set the idler relative to the chassis/gear origin
     m_idlers[1]->Initialize(m_chassis, 
       m_chassis->GetFrame_REF_to_abs(),
       idler2_csys,
       preload_2);
+      */
 
   }
 }
@@ -290,8 +319,8 @@ void LoopChain::Update(double time,
 void LoopChain::Advance(double step)
 {
   double t = 0;
-  m_system->SetIterLCPmaxItersStab(80);
-  m_system->SetIterLCPmaxItersSpeed(95);
+  m_system->SetIterLCPmaxItersStab(50);
+  m_system->SetIterLCPmaxItersSpeed(75);
   double settlePhaseA = 0.3;
   double settlePhaseB = 1.0;
   while (t < step) {

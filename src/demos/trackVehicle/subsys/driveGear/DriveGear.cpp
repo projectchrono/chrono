@@ -32,8 +32,6 @@
 namespace chrono {
 
 // static variables
-const double DriveGear::m_mass = 436.7;
-const ChVector<> DriveGear::m_inertia(12.22, 12.22, 13.87); // z-axis of rotation
 const double DriveGear::m_shaft_inertia = 0.4;  // connects to driveline
 // for primitive collision/visualization
 const double DriveGear::m_radius = 0.212; // to collision surface
@@ -42,12 +40,17 @@ const double DriveGear::m_widthGap = 0.189; // 0.189; // inner distance between 
 
 
 DriveGear::DriveGear(const std::string& name, 
-                     VisualizationType vis, 
-                     CollisionType collide)
-  : m_vis(vis), m_collide(collide),
-  m_meshFile(utils::GetModelDataFile("M113/Sprocket_XforwardYup.obj")),
-  m_meshName("gear_mesh"),
-  m_geom(ChSharedPtr<GearPinGeometry>(new GearPinGeometry() ))
+  VisualizationType vis, 
+  CollisionType collide,
+  double mass,
+  const ChVector<>& gear_Ixx
+  ): m_vis(vis),
+    m_collide(collide),
+    m_meshFile(utils::GetModelDataFile("M113/Sprocket_XforwardYup.obj")),
+    m_mass(mass),
+    m_inertia(gear_Ixx),
+    m_meshName("gear_mesh"),
+    m_geom(ChSharedPtr<GearPinGeometry>(new GearPinGeometry() ))
 {
   // create the body, set the basic info
   m_gear = ChSharedPtr<ChBody>(new ChBody);
@@ -72,41 +75,6 @@ DriveGear::DriveGear(const std::string& name,
 
 }
 
-
-DriveGear::DriveGear(const std::string& name, 
-                     double gear_mass,
-                    const ChVector<>& gear_Ixx,
-                     VisualizationType vis, 
-                     CollisionType collide)
-  : m_vis(vis), m_collide(collide),
-  m_meshFile(utils::GetModelDataFile("M113/Sprocket_XforwardYup.obj")),
-  m_meshName("gear_mesh"),
-  m_geom(ChSharedPtr<GearPinGeometry>(new GearPinGeometry() ))
-{
-  // create the body, set the basic info
-  m_gear = ChSharedPtr<ChBody>(new ChBody);
-  m_gear->SetNameString(name+"body");
-
-  // DONT use static values for these!
-  m_gear->SetMass(gear_mass);
-  m_gear->SetInertiaXX(gear_Ixx);
-
-  // create the revolute joint
-  m_revolute = ChSharedPtr<ChLinkLockRevolute>(new ChLinkLockRevolute);
-  m_revolute->SetNameString(name+"_revolute");
-
-  // create the shaft components
-  m_axle = ChSharedPtr<ChShaft>(new ChShaft);
-  m_axle->SetNameString(name + "_axle");
-  m_axle->SetInertia(m_shaft_inertia );
-  // create the shaft to gear connection
-  m_axle_to_gear = ChSharedPtr<ChShaftsBody>(new ChShaftsBody);
-  m_axle_to_gear->SetNameString(name + "_axle_to_gear");
-
-  // create the visuals
-  AddVisualization();
- 
-}
 
 void DriveGear::Initialize(ChSharedPtr<ChBody> chassis,
                            const ChFrame<>& chassis_REF,

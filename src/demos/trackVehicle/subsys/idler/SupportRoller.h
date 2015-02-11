@@ -36,7 +36,9 @@ public:
 
   SupportRoller(const std::string& name,
     VisualizationType vis = VisualizationType::PRIMITIVES,
-    CollisionType collide = CollisionType::PRIMITIVES);
+    CollisionType collide = CollisionType::PRIMITIVES,
+    double mass = 100.0,
+    const ChVector<>& Ixx = ChVector<>(3.82, 3.82, 5.06) );
 
   ~SupportRoller() {}
 
@@ -59,6 +61,8 @@ public:
 
   double GetRadius() { return m_radius; }
 
+  double GetWidth() { return m_width; }
+
 private:
 
   // private functions
@@ -75,9 +79,10 @@ private:
   VisualizationType m_vis;    // visual asset geometry type
   CollisionType m_collide;    // collision geometry type
 
+  const double     m_mass;
+  const ChVector<> m_inertia;
+
   // static variables
-  static const double     m_mass;
-  static const ChVector<> m_inertia;
   static const double     m_radius;
   static const double     m_width;
   static const double     m_widthGap;

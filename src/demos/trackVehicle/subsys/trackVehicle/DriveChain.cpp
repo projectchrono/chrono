@@ -90,22 +90,26 @@ DriveChain::DriveChain(const std::string& name,
   double gear_mass = 100.0; // 436.7
   ChVector<> gear_Ixx(12.22/4.0, 12.22/4.0, 13.87/4.0);  // 12.22, 12.22, 13.87
   m_gear = ChSharedPtr<DriveGear>(new DriveGear("drive gear",
-    gear_mass,
-    gear_Ixx,
     m_vis,
-    m_collide));
+    m_collide,
+    gear_mass,
+    gear_Ixx) );
 
  // idlers, if m ore than 1
   m_idlers.clear();
   m_idlers.resize(m_num_idlers);
   double idler_mass = 100.0; // 429.6
   ChVector<> idler_Ixx(gear_Ixx);    // 12.55, 12.55, 14.7
+  double tensioner_K = 50e3;
+  double tensioner_C = tensioner_K * 0.08;
   m_idlers[0] = ChSharedPtr<IdlerSimple>(new IdlerSimple("idler",
     idler_mass,
     idler_Ixx,
     VisualizationType::MESH,
     // VisualizationType::PRIMITIVES,
-    CollisionType::PRIMITIVES) );
+    CollisionType::PRIMITIVES,
+    tensioner_K,
+    tensioner_C) );
 
   // track chain system
   double shoe_mass = 18.03/4.0; // 18.03
@@ -122,11 +126,21 @@ DriveChain::DriveChain(const std::string& name,
   // support rollers, if any
   m_rollers.clear();
   m_rollers.resize(m_num_rollers);
+  double roller_mass = 50.0;
+
   for(int j = 0; j < m_num_rollers; j++)
   {
+    double roller_r = m_rollers[j]->GetRadius();
+    double roller_w = m_rollers[j]->GetWidth();
+    // assume constant density
+    ChVector<> roller_Ixx = roller_mass * ChVector<>((3.0*roller_r*roller_r + roller_w*roller_w)/12.0,
+      (3.0*roller_r*roller_r + roller_w*roller_w)/12.0,
+      roller_r*roller_r/2.0);
     m_rollers[j] = ChSharedPtr<SupportRoller>(new SupportRoller("support roller " +std::to_string(j),
       VisualizationType::PRIMITIVES,
-      CollisionType::PRIMITIVES));
+      CollisionType::PRIMITIVES,
+      roller_mass,
+      roller_Ixx) );
   }
 
   if(m_num_idlers > 1)
@@ -274,7 +288,7 @@ void DriveChain::Update(double time,
 void DriveChain::Advance(double step)
 {
   double t = 0;
-  m_system->SetIterLCPmaxItersStab(80);
+  m_system->SetIterLCPmaxItersStab(60);
   m_system->SetIterLCPmaxItersSpeed(95);
   double settlePhaseA = 0.3;
   double settlePhaseB = 1.0;

@@ -125,10 +125,6 @@ protected:
   static const ChVector<> m_idlerPos; // relative to chassis frame, which is the same as the gear's (initially)
   static const ChQuaternion<> m_idlerRot; 
 
-
-  ChSharedPtr<IdlerSimple> m_idler2;
-
-
   friend std::ostream & operator<< (std::ostream &out, const ChVector<double>& vect);
   friend std::ostream & operator << (std::ostream &out, const ChQuaternion<double>& q);
 };

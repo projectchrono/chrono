@@ -37,16 +37,12 @@ class CH_SUBSYS_API DriveGear : public ChShared
 {
 public:
 
-  DriveGear(const std::string& name,
-    VisualizationType vis = VisualizationType::PRIMITIVES,
-    CollisionType collide = CollisionType::PRIMITIVES);
-
   /// override static values for mass, inertia
   DriveGear(const std::string& name,
-    double gear_mass,
-    const ChVector<>& gear_Ixx,
     VisualizationType vis = VisualizationType::PRIMITIVES,
-    CollisionType collide = CollisionType::PRIMITIVES);
+    CollisionType collide = CollisionType::PRIMITIVES,
+    double gear_mass = 436.7,
+    const ChVector<>& gear_Ixx = ChVector<>(12.22, 12.22, 13.87) );
 
   ~DriveGear() {}
 
@@ -91,6 +87,9 @@ private:
   VisualizationType m_vis;    // visual asset geometry type
   CollisionType m_collide;    // collision geometry type
 
+  const ChVector<> m_inertia;
+  const double m_mass;
+
   const std::string m_meshName;
   const std::string m_meshFile;
 
@@ -98,8 +97,6 @@ private:
   const ChSharedPtr<GearPinGeometry> m_geom;
 
   // static variables
-  static const ChVector<> m_inertia;
-  static const double m_mass;
   static const double m_radius;
   static const double m_width;
   static const double m_widthGap; // inner distance between cydliners

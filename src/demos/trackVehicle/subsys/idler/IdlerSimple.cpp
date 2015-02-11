@@ -43,9 +43,6 @@ const ChVector<> IdlerSimple::m_inertia = ChVector<>(12.55, 12.55, 14.7); // z-a
 const double IdlerSimple::m_radius = 0.255;
 const double IdlerSimple::m_width = 0.166*2.4;
 const double IdlerSimple::m_widthGap = .092*1.5; // 0.092; 
-const double IdlerSimple::m_springK = 200000;
-const double IdlerSimple::m_springC = 10000;
-
 
 /*
 // -----------------------------------------------------------------------------
@@ -89,11 +86,15 @@ private:
 IdlerSimple::IdlerSimple(const std::string& name,
                          VisualizationType vis,
                          CollisionType collide,
-                         size_t chain_idx)
+                         size_t chain_idx,
+                         double springK,
+                         double springC)
   : m_vis(vis), m_collide(collide),
   m_meshFile(utils::GetModelDataFile("M113/Idler_XforwardYup.obj")),
   m_meshName("idler_mesh"),
-  m_springRestLength(1)
+  m_springRestLength(1),
+  m_springK(springK),
+  m_springC(springC)
 //  , m_shockCB(NULL), m_springCB(NULL)
 {
   // create the body, set the basic info
@@ -123,11 +124,15 @@ IdlerSimple::IdlerSimple(const std::string& name,
                          const ChVector<>& idler_Ixx,
                          VisualizationType vis,
                          CollisionType collide,
-                         size_t chain_idx)
+                         size_t chain_idx,
+                         double springK,
+                         double springC)
   : m_vis(vis), m_collide(collide),
     m_meshFile(utils::GetModelDataFile("M113/Idler_XforwardYup.obj")),
     m_meshName("idler_mesh"),
-    m_springRestLength(1)
+    m_springRestLength(1),
+    m_springK(springK),
+    m_springC(springC)
 //  , m_shockCB(NULL), m_springCB(NULL)
 {
   // create the body, set the basic info

@@ -91,10 +91,10 @@ TrackSoilBin::TrackSoilBin(const std::string& name,
   double gear_mass = 100.0; // 436.7
   ChVector<> gear_Ixx(12.22/4.0, 12.22/4.0, 13.87/4.0);  // 12.22, 12.22, 13.87
   m_gear = ChSharedPtr<DriveGear>(new DriveGear("drive gear",
-    gear_mass,
-    gear_Ixx,
     m_vis,
-    m_collide));
+    m_collide,
+    gear_mass,
+    gear_Ixx) );
 
  // idlers, if m ore than 1
   m_idlers.clear();

@@ -31,9 +31,6 @@
 namespace chrono {
 
 // static variables
-
-const double SupportRoller::m_mass = 100.0;
-const ChVector<> SupportRoller::m_inertia(3.82, 3.82, 5.06);  // rotates about z-axis
 const double SupportRoller::m_radius = 0.2; 
 const double SupportRoller::m_width = 0.35; 
 const double SupportRoller::m_widthGap = 0.1;
@@ -41,8 +38,13 @@ const double SupportRoller::m_widthGap = 0.1;
 
 SupportRoller::SupportRoller(const std::string& name, 
                      VisualizationType vis, 
-                     CollisionType collide)
-  : m_vis(vis), m_collide(collide)
+                     CollisionType collide,
+                     double mass,
+                     const ChVector<>& Ixx
+  ): m_vis(vis),
+    m_collide(collide),
+    m_mass( mass ),
+    m_inertia(Ixx)
 {
   // create the body, set the basic info
   m_roller = ChSharedPtr<ChBody>(new ChBody);

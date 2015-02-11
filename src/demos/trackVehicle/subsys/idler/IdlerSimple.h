@@ -41,7 +41,9 @@ public:
   IdlerSimple(const std::string& name,
     VisualizationType vis = VisualizationType::PRIMITIVES,
     CollisionType collide = CollisionType::PRIMITIVES,
-    size_t chain_idx = 0);
+    size_t chain_idx = 0,
+    double springK = 200000,
+    double springC = 10000);
 
   /// constructor to override default mass, inertia
   IdlerSimple(const std::string& name,
@@ -49,7 +51,9 @@ public:
     const ChVector<>& idler_Ixx,
     VisualizationType vis = VisualizationType::PRIMITIVES,
     CollisionType collide = CollisionType::PRIMITIVES,
-    size_t chain_idx = 0);
+    size_t chain_idx = 0,
+    double springK = 200000,
+    double springC = 10000);
 
   ~IdlerSimple();
 
@@ -98,6 +102,8 @@ private:
   ChSharedPtr<ChBody> m_idler;  ///< handle to idler body
   ChSharedPtr<ChLinkLockRevolutePrismatic> m_idler_joint; ///< connetion to chassis
   ChSharedPtr<ChLinkSpring> m_shock;  ///< handle to spring-damper;
+  const double m_springK;  ///< shock linear spring coefficient
+  const double m_springC;  ///< shock linear damping coefficient
   // ChSpringForceCallback* m_shockCB;   ///< shock callback function
   // ChSpringForceCallback* m_springCB;  ///< spring callback function
   double m_springRestLength; ///< shock rest length
@@ -111,8 +117,6 @@ private:
   // static variables
   static const double m_mass;
   static const ChVector<> m_inertia;
-  static const double m_springK;  ///< shock linear spring coefficient
-  static const double m_springC;  ///< shock linear damping coefficient
   static const double m_width;
   static const double m_widthGap; // // inner distance between cydliners
   static const double m_radius;

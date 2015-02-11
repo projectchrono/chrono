@@ -66,7 +66,7 @@ ChVector<> initLoc(0, 1.0, 0);
 ChQuaternion<> initRot(QUNIT);
 
 size_t num_idlers = 2;
-size_t num_rollers = 2;
+size_t num_rollers = 4;
 // Simulation step size
 double step_size = 0.002;
 
@@ -75,10 +75,10 @@ int FPS = 40; // render frame rate
 double render_step_size = 1.0 / FPS;  // Time increment between two rendered frames
 double output_step_size = 1.0 / 1;    // Time interval between two output frames
 
-ChVector<> trackPoint(-1, 0, 0.2);   // Point on chassis tracked by the camera, chassis c-sys
+ChVector<> trackPoint(-1, 0, 0);   // Point on chassis tracked by the camera, chassis c-sys
 
 bool use_fixed_camera = true;
-ChVector<> cameraPos(-0.5, 1, 2.6); // static camera position, global c-sys
+ChVector<> cameraPos(-0.5, 1, 3); // static camera position, global c-sys
 // if chase cam enabled:
 double chaseDist = 2.5;
 double chaseHeight = 0.5;
