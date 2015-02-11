@@ -371,7 +371,7 @@ void ChConstraintRigidRigid::Build_D()
   real3* ptB = data_container->host_data.cptb_rigid_rigid.data();
   real3* pos_data = data_container->host_data.pos_data.data();
   int2* ids = data_container->host_data.bids_rigid_rigid.data();
-  real4* rot = contact_rotation.data();
+  real4* rot = data_container->host_data.rot_data.data();
 
   CompressedMatrix<real>& D_n_T = data_container->host_data.D_n_T;
   CompressedMatrix<real>& D_t_T = data_container->host_data.D_t_T;
@@ -392,8 +392,8 @@ void ChConstraintRigidRigid::Build_D()
 
     int row = index;
     // The position is subtracted here now instead of performing it in the narrowphase
-    Compute_Jacobian(rot[index], U, V, W, ptA[index] - pos_data[body_id.x], T3, T4, T5);
-    Compute_Jacobian(rot[index + data_container->num_contacts], U, V, W, ptB[index] - pos_data[body_id.y], T6, T7, T8);
+    Compute_Jacobian(rot[body_id.x], U, V, W, ptA[index] - pos_data[body_id.x], T3, T4, T5);
+    Compute_Jacobian(rot[body_id.y], U, V, W, ptB[index] - pos_data[body_id.y], T6, T7, T8);
 
     D_n_T(row * 1 + 0, body_id.x * 6 + 0) = -U.x;
     D_n_T(row * 1 + 0, body_id.x * 6 + 1) = -U.y;

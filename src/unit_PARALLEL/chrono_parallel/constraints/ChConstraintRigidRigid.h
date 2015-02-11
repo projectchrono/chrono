@@ -35,7 +35,6 @@ class CH_PARALLEL_API ChConstraintRigidRigid {
 
     if (num_contacts > 0) {
       contact_active_pairs.resize(int(num_contacts));
-      contact_rotation.resize(int(num_contacts * 2));
       data_container->host_data.coh_rigid_rigid.resize(num_contacts);
       data_container->host_data.fric_rigid_rigid.resize(num_contacts);
 
@@ -47,8 +46,6 @@ class CH_PARALLEL_API ChConstraintRigidRigid {
 
         contact_active_pairs[i] = bool2(data_container->host_data.active_data[b1], data_container->host_data.active_data[b2]);
 
-        contact_rotation[i] = data_container->host_data.rot_data[b1];
-        contact_rotation[i + num_contacts] = data_container->host_data.rot_data[b2];
 
         real coh = std::max((data_container->host_data.cohesion_data[b1] + data_container->host_data.cohesion_data[b2]) * .5, 0.0);
         data_container->host_data.coh_rigid_rigid[i] = coh;
@@ -97,7 +94,6 @@ class CH_PARALLEL_API ChConstraintRigidRigid {
 
  protected:
   custom_vector<bool2> contact_active_pairs;
-  custom_vector<real4> contact_rotation;
 
   real inv_h;
   real inv_hpa;
