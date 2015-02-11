@@ -390,7 +390,7 @@ void CreateRigidBodiesFromFile(thrust::host_vector<real3> & rigidPos,
 		//real_ r = rRigidBody * (.75 + .75 * real_(rand())/RAND_MAX);
 
 		real3 pos = R3(x, y, z);
-		real4 q = R4(1, 0, 0, 0);
+		real4 q = R4(.5, .2, .2, .8185); // just changed it from R4(1,0,0,0)
 		real3 referenceR = 	R3(dumRRigidBody1, dumRRigidBody2, dumRRigidBody3);
 
 		Add_Ellipsoid_To_Data(rigidPos, mQuatRot, velMassRigidH, rigidBodyOmega,
@@ -1547,10 +1547,10 @@ int2 CreateFluidMarkers(thrust::host_vector<real3> & mPosRad,
 				real_ penDist = 0;
 				bool flag = true;
 				///penDist = IsInsideCurveOfSerpentineBeta(posRad);
-				penDist = IsInsideSerpentine(posRad);
+				///penDist = IsInsideSerpentine(posRad);
 				//*** paramsH.straightChannelBoundaryMin   should be taken care of
 				//*** paramsH.straightChannelBoundaryMax   should be taken care of
-				///penDist = IsInsideStraightChannel(posRad);
+				penDist = IsInsideStraightChannel(posRad);
 				///penDist = IsInsideStraightChannel_XZ(posRad);
 				///penDist = IsInsideTube(posRad);
 				///penDist = IsInsideStepTube(posRad);
@@ -1969,10 +1969,10 @@ int main() {
 	//*** Arrays definition
 	thrust::host_vector<int3> referenceArray;
 //	thrust::host_vector<int3> referenceArray_Types; //this is not written to checkPoint
-	thrust::host_vector<real3> mPosRad; //do not set the size here since you are using push back later
-	thrust::host_vector<real4> mVelMas;
-	thrust::host_vector<real4> mRhoPresMu;
-	thrust::host_vector<uint> bodyIndex;
+							thrust::host_vector<real3> mPosRad; //do not set the size here since you are using push back later
+							thrust::host_vector<real4> mVelMas;
+							thrust::host_vector<real4> mRhoPresMu;
+							thrust::host_vector<uint> bodyIndex;
 
 	//*** rigid bodies
 	//thrust::host_vector<real4> spheresPosRad;
@@ -2033,9 +2033,9 @@ int main() {
 			paramsH.EPS_XSPH = .5f;
 			paramsH.multViscosity_FSI = 5; //or 5
 		paramsH.dT = 1e-4;//.001; //sph alone: .01 for Re 10;
-			paramsH.tFinal = 250;//20 * paramsH.dT; //400
-			paramsH.timePause = .0005 * paramsH.tFinal;//.0001 * paramsH.tFinal; // keep it as small as possible. the time step will be 1/10 * dT
-			paramsH.timePauseRigidFlex = .05 * paramsH.tFinal;
+			paramsH.tFinal = 10;//20 * paramsH.dT; //400
+			paramsH.timePause = .001 * paramsH.tFinal;//.0001 * paramsH.tFinal; 	// time before applying any bodyforce. Particles move only due to initialization. keep it as small as possible. the time step will be 1/10 * dT.
+			paramsH.timePauseRigidFlex = 0;// .01 * paramsH.tFinal;				// time to prevent rigid and flexible update, which is added to the timePause
 			paramsH.kdT = 5;
 			paramsH.gammaBB = 0.5;
 		// *** cMax cMin, see below
@@ -2045,7 +2045,7 @@ int main() {
 			paramsH.binSize0; // will be changed
 			paramsH.rigidRadius; //will be changed
 		paramsH.densityReinit = 0; //0: no re-initialization, 1: with initialization
-		paramsH.contactBoundary = 1; // 0: straight channel, 1: serpentine
+		paramsH.contactBoundary = 0; // 0: straight channel, 1: serpentine
 
 		flexParams.E = 2.0e5;
 		flexParams.r = paramsH.HSML * paramsH.MULT_INITSPACE * (paramsH.NUM_BCE_LAYERS - 1);
@@ -2073,19 +2073,19 @@ int main() {
 //		paramsH.straightChannelBoundaryMin = R3(0, 0, 0); //2D channel
 //		paramsH.straightChannelBoundaryMax = R3(0.25 * mm, .05 * mm, 1 * mm) * paramsH.sizeScale;
 		paramsH.straightChannelBoundaryMin = R3(0, 0, 0); //3D channel
-		paramsH.straightChannelBoundaryMax = R3(2 * mm, 1 * mm, 3 * mm) * paramsH.sizeScale;
+		paramsH.straightChannelBoundaryMax = R3(3 * mm, 2 * mm, 3 * mm) * paramsH.sizeScale;
 		//********************************************************************************************************
 		//**  reminiscent of the past******************************************************************************
 		//paramsH.cMax = R3( paramsH.nPeriod * 4.6 + 0, 1.5,  4.0) * paramsH.sizeScale;  //for only CurvedSerpentine (w/out straight part)
 		//**  end of reminiscent of the past   ******************************************************************
-		paramsH.cMin = R3(0, -2 * paramsH.toleranceZone, -4.5 * mm); 							//for serpentine
-		paramsH.cMax = R3( paramsH.nPeriod * sPeriod + r3_2.x + 2 * r4_2.x + r6_2.x + x_FirstChannel + 2 * x_SecondChannel, 1.5 * mm,  r6_2.y + 2 * paramsH.toleranceZone);  //for serpentine
+//		paramsH.cMin = R3(0, -2 * paramsH.toleranceZone, -4.5 * mm); 							//for serpentine
+//		paramsH.cMax = R3( paramsH.nPeriod * sPeriod + r3_2.x + 2 * r4_2.x + r6_2.x + x_FirstChannel + 2 * x_SecondChannel, 1.5 * mm,  r6_2.y + 2 * paramsH.toleranceZone);  //for serpentine
 
 //		paramsH.cMin = R3(0, 0, -2 * paramsH.toleranceZone);						// 2D channel
 //		paramsH.cMax = R3( 0.25 * mm, 0.05 * mm,  1 * mm + 1 * paramsH.toleranceZone);
 
-//		paramsH.cMin = R3(0, -2 * paramsH.toleranceZone, -2 * paramsH.toleranceZone);						// 3D channel
-//		paramsH.cMax = R3( 2 * mm, 1 * mm + 2 * paramsH.toleranceZone,  3 * mm + 2 * paramsH.toleranceZone);
+		paramsH.cMin = R3(0, -2 * paramsH.toleranceZone, -2 * paramsH.toleranceZone);						// 3D channel
+		paramsH.cMax = R3( 3 * mm, 2 * mm + 2 * paramsH.toleranceZone,  3 * mm + 2 * paramsH.toleranceZone);
 
 		//	paramsH.cMax = R3(paramsH.nPeriod * 1.0 + 0, .5,  3.5) * paramsH.sizeScale;  //for straight channel, sphere
 		//	paramsH.cMin = R3(0, -0.1, 0.5) * paramsH.sizeScale;
@@ -2364,11 +2364,15 @@ int main() {
 	printf("********************\n");
 
 	if (numObjects.numAllMarkers != 0) {
-		cudaCollisions(mPosRad, mVelMas, mRhoPresMu, bodyIndex, referenceArray,
+		cudaCollisions(mPosRad, mVelMas, mRhoPresMu, bodyIndex,
+				referenceArray,
 				rigidPos, mQuatRot, velMassRigidH, rigidBodyOmega, rigidBody_J1, rigidBody_J2, rigidBody_InvJ1, rigidBody_InvJ2,
 				ANCF_Nodes, ANCF_Slopes, ANCF_NodesVel, ANCF_SlopesVel, ANCF_Beam_Length, ANCF_IsCantilever,
 				ANCF_ReferenceArrayNodesOnBeams, flexParametricDist,
-				channelRadius, channelCenterYZ, paramsH, flexParams, numObjects);
+				channelRadius, channelCenterYZ,
+				paramsH,
+				flexParams,
+				numObjects);
 	}
 	mPosRad.clear();
 	mVelMas.clear();
