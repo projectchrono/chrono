@@ -531,56 +531,42 @@ void DriveChain::create_fileHeader(int what)
   // write the headers, output types specified by "what"
   std::stringstream ss;
   ss << "time";
-  ofile << ss.str().c_str();
-  ss.clear();
+
   if(what & DBG_FIRSTSHOE)
   {
     // Shoe 0 : S0, Pin0: P0
     ss << ",S0x,S0y,S0z,S0vx,S0vy,S0vz,S0ax,S0ay,S0az,S0wx,S0wy,S0wz,P0fx,P0fy,P0fz";
-    ofile << ss.str().c_str();
-    ss.clear();
   }
   if(what & DBG_GEAR)
   {
     ss << ",Gx,Gy,Gz,Gvx,Gvy,Gvz,Gwx,Gwy,Gwz";
-    ofile << ss.str().c_str();
-    ss.clear();
   }
   if(what & DBG_CONSTRAINTS)
   {
     // in the same order as listed in the header
     ss << m_gear->getFileHeader_ConstraintViolations(0);
-    ofile << ss.str().c_str();
-    ss.clear();
 
     for(int id = 0; id < m_num_idlers; id++)
     {
       ss << m_idlers[id]->getFileHeader_ConstraintViolations(id);
-      ofile << ss.str().c_str();
-      ss.clear();
     }
 
     // violations of the roller revolute joints
     for(int roller = 0; roller < m_num_rollers; roller++)
     {
       ss << m_rollers[roller]->getFileHeader_ConstraintViolations(roller);
-      ofile << ss.str().c_str();
-      ss.clear();
     }
   }
 
   if(what & DBG_PTRAIN)
   {
     ss << ",motSpeed,motT,outT";
-    ofile << ss.str().c_str();
-    ss.clear();
   }
 
   // write to file, go to next line in file in prep. for next step.
-  ofile << "\n";
+  GetLog() << " wrote headers to file: \n" << ss.str().c_str() << "\n";
+  ofile << ss.str().c_str() << "\n";
 }
-
-
 
 
 } // end namespace chrono
