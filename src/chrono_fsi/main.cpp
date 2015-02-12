@@ -28,6 +28,7 @@
 #include "custom_cutil_math.h"
 #include "SPHCudaUtils.h"
 #include <thrust/host_vector.h>
+#include <thrust/device_vector.h>
 #include <thrust/scan.h>
 #include "SDKCollisionSystem.cuh" //just for SimParams
 #include "collideSphereSphere.cuh"
@@ -346,6 +347,11 @@ int main() {
 
 	DOUBLEPRECISION ? printf("Double Precision\n") : printf("Single Precision\n");
 	printf("********************\n");
+
+
+	thrust::device_vector<real3> posRadD	;
+	thrust::device_vector<real4> velMasD	;
+	thrust::device_vector<real4> rhoPresMuD	;
 //*********************************************** End of Initialization ****************************************
 	int stepEnd = int(paramsH.tFinal/paramsH.dT);//1.0e6;//2.4e6;//600000;//2.4e6 * (.02 * paramsH.sizeScale) / currentParamsH.dT ; //1.4e6 * (.02 * paramsH.sizeScale) / currentParamsH.dT ;//0.7e6 * (.02 * paramsH.sizeScale) / currentParamsH.dT ;//0.7e6;//2.5e6; //200000;//10000;//50000;//100000;
 	printf("stepEnd %d\n", stepEnd);
