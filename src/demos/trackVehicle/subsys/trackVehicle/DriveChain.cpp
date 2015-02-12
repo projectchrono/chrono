@@ -27,6 +27,7 @@
 
 #include "DriveChain.h"
 
+#include "core/ChFileutils.h"
 #include "utils/ChUtilsInputOutput.h"
 #include "utils/ChUtilsData.h"
 
@@ -392,11 +393,18 @@ void DriveChain::SaveConstraintViolations(bool include_chain)
 // creates a new file (or overwrites old existing one), and sets the first row w/ headers
 // for easy postprocessing with python pandas scripts
 void DriveChain::Setup_log_to_file(int what,
-                               const std::string& filename)
+                               const std::string& filename,
+                               const std::string& data_dirname)
 {
   m_save_log_to_file = false;
-  m_log_file_name = filename;
   m_log_what_to_file = what;
+
+  // create the directory for the data files
+  if(ChFileutils::MakeDirectory(data_dirname.c_str()) < 0) {
+    std::cout << "Error creating directory " << data_dirname << std::endl;
+  }
+  m_log_file_name = data_dirname + "/" + filename;
+
   // has the chain been created?
   if(m_chain)
   {

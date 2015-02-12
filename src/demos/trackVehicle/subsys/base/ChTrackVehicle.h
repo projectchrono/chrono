@@ -145,7 +145,8 @@ public:
   /// setup class to save the log to a file for python postprocessing.
   /// Usage: call after construction & Initialize(), else no data is saved.
   virtual void Setup_log_to_file(int what,
-    const std::string& out_filename) {}
+    const std::string& out_filename,
+    const std::string& data_dirname = "data_test") {}
   
 
 protected:
