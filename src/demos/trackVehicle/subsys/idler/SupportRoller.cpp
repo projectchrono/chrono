@@ -250,7 +250,7 @@ void SupportRoller::SaveConstraintViolations(std::stringstream& out)
 
 }
 
-const std::string& SupportRoller::getFileHeader_ConstraintViolations(size_t idx)
+const std::string SupportRoller::getFileHeader_ConstraintViolations(size_t idx)
 {
   // passive rollers have 1 DOF, 5 reactions
   std::stringstream ss;
