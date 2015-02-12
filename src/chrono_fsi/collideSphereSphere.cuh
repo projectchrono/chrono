@@ -3,6 +3,10 @@
 
 #include "SDKCollisionSystem.cuh" //just for SimParams
 
+void InitSystem(
+		SimParams paramsH,
+		NumberOfObjects numObjects);
+
 void cudaCollisions(
 		thrust::host_vector<real3> & mPosRad,
 		thrust::host_vector<real4> & mVelMas,

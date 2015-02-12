@@ -261,29 +261,14 @@ void DensityReinitialization(
 	m_dCellEnd.clear();
 }
 ////##############################################################################################################################################
-//void InitSystem(
-//		SimParams paramsH,
-//		NumberOfObjects numObjects) {
-//	//****************************** bin size adjustement and contact detection stuff *****************************
-//	int3 SIDE = I3(int((paramsH.cMax.x - paramsH.cMin.x) / paramsH.binSize0 + .1), int((paramsH.cMax.y - paramsH.cMin.y) / paramsH.binSize0 + .1),
-//			int((paramsH.cMax.z - paramsH.cMin.z) / paramsH.binSize0 + .1));
-//	real_ mBinSize = paramsH.binSize0; //Best solution in that case may be to change cMax or cMin such that periodic sides be a multiple of binSize
-//
-//	printf("SIDE: %d, %d, %d\n", SIDE.x, SIDE.y, SIDE.z);
-//	//**********************************************************************************************************
-//	paramsH.gridSize = SIDE;
-//	//paramsH.numCells = SIDE.x * SIDE.y * SIDE.z;
-//	paramsH.worldOrigin = paramsH.cMin;
-//	paramsH.cellSize = R3(mBinSize, mBinSize, mBinSize);
-//	printf("boxDims: %f, %f, %f\n", paramsH.boxDims.x, paramsH.boxDims.y, paramsH.boxDims.z);
-//
-//	setParameters(&paramsH, &numObjects);// sets paramsD in SDKCollisionSystem
-//	cutilSafeCall( cudaMemcpyToSymbolAsync(paramsD, &paramsH, sizeof(SimParams))); 	//sets paramsD for this file
-//	cutilSafeCall( cudaMemcpyToSymbolAsync(numObjectsD, &numObjects, sizeof(NumberOfObjects)));
-//
-//
-//
-//}
+void InitSystem(
+		SimParams paramsH,
+		NumberOfObjects numObjects) {
+
+	setParameters(&paramsH, &numObjects);// sets paramsD in SDKCollisionSystem
+	cutilSafeCall( cudaMemcpyToSymbolAsync(paramsD, &paramsH, sizeof(SimParams))); 	//sets paramsD for this file
+	cutilSafeCall( cudaMemcpyToSymbolAsync(numObjectsD, &numObjects, sizeof(NumberOfObjects)));
+}
 
 //##############################################################################################################################################
 // the main function, which updates the particles and implements BC
@@ -296,23 +281,7 @@ void cudaCollisions(
 
 		SimParams paramsH,
 		NumberOfObjects numObjects) {
-	//****************************** bin size adjustement and contact detection stuff *****************************
-	int3 SIDE = I3(int((paramsH.cMax.x - paramsH.cMin.x) / paramsH.binSize0 + .1), int((paramsH.cMax.y - paramsH.cMin.y) / paramsH.binSize0 + .1),
-			int((paramsH.cMax.z - paramsH.cMin.z) / paramsH.binSize0 + .1));
-	real_ mBinSize = paramsH.binSize0; //Best solution in that case may be to change cMax or cMin such that periodic sides be a multiple of binSize
 
-	printf("SIDE: %d, %d, %d\n", SIDE.x, SIDE.y, SIDE.z);
-	//**********************************************************************************************************
-	paramsH.gridSize = SIDE;
-	//paramsH.numCells = SIDE.x * SIDE.y * SIDE.z;
-	paramsH.worldOrigin = paramsH.cMin;
-	paramsH.cellSize = R3(mBinSize, mBinSize, mBinSize);
-	printf("boxDims: %f, %f, %f\n", paramsH.boxDims.x, paramsH.boxDims.y, paramsH.boxDims.z);
-
-	setParameters(&paramsH, &numObjects);// sets paramsD in SDKCollisionSystem
-	cutilSafeCall( cudaMemcpyToSymbolAsync(paramsD, &paramsH, sizeof(SimParams))); 	//sets paramsD for this file
-	cutilSafeCall( cudaMemcpyToSymbolAsync(numObjectsD, &numObjects, sizeof(NumberOfObjects)));
-	//*************************************************************************************************************
 	//--------- initialization ---------------
 	//cudaError_t dumDevErr = cudaSetDevice(2);
 	GpuTimer myTotalTime;
@@ -330,19 +299,7 @@ void cudaCollisions(
 
 
 	//******************************************************************************
-	int stepEnd = int(paramsH.tFinal/paramsH.dT);//1.0e6;//2.4e6;//600000;//2.4e6 * (.02 * paramsH.sizeScale) / currentParamsH.dT ; //1.4e6 * (.02 * paramsH.sizeScale) / currentParamsH.dT ;//0.7e6 * (.02 * paramsH.sizeScale) / currentParamsH.dT ;//0.7e6;//2.5e6; //200000;//10000;//50000;//100000;
-	printf("stepEnd %d\n", stepEnd);
-	real_ realTime = 0;
 
-	SimParams paramsH_B = paramsH;
-	paramsH_B.bodyForce3 = R3(0);
-	paramsH_B.gravity = R3(0);
-	paramsH_B.dT = .1 * paramsH.dT;
-
-	printf("\ntimePause %f, numPause %d\n", paramsH.timePause, int(paramsH.timePause/paramsH_B.dT));
-	printf("paramsH.timePauseRigidFlex %f, numPauseRigidFlex %d\n\n", paramsH.timePauseRigidFlex, int((paramsH.timePauseRigidFlex-paramsH.timePause)/paramsH.dT + paramsH.timePause/paramsH_B.dT));
-
-	SimParams currentParamsH = paramsH;
 	for (int tStep = 0; tStep < stepEnd + 1; tStep++) {
 		//************************************************
 		PrintToFile(posRadD, velMasD, rhoPresMuD, referenceArray, currentParamsH, realTime, tStep);
@@ -392,7 +349,7 @@ void cudaCollisions(
 
 		//density re-initialization
 //		if ((tStep % 10 == 0) && (paramsH.densityReinit != 0)) {
-//			DensityReinitialization(posRadD, velMasD, rhoPresMuD, numObjects.numAllMarkers, SIDE); //does not work for analytical boundaries (non-meshed) and free surfaces
+//			DensityReinitialization(posRadD, velMasD, rhoPresMuD, numObjects.numAllMarkers, paramsH.gridSize); //does not work for analytical boundaries (non-meshed) and free surfaces
 //		}
 
 		myGpuTimer.Stop();

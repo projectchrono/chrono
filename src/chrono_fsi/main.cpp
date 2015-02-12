@@ -217,6 +217,16 @@ void SetupParamsH(SimParams & paramsH) {
 //		paramsH.deltaPress = paramsH.rho0 * paramsH.boxDims * paramsH.bodyForce3;  //did not work as I expected
 	paramsH.deltaPress = 0.9 * paramsH.boxDims * paramsH.bodyForce3;
 
+	// modify bin size stuff
+	//****************************** bin size adjustement and contact detection stuff *****************************
+	int3 SIDE = I3(int((paramsH.cMax.x - paramsH.cMin.x) / paramsH.binSize0 + .1), int((paramsH.cMax.y - paramsH.cMin.y) / paramsH.binSize0 + .1),
+			int((paramsH.cMax.z - paramsH.cMin.z) / paramsH.binSize0 + .1));
+	real_ mBinSize = paramsH.binSize0; //Best solution in that case may be to change cMax or cMin such that periodic sides be a multiple of binSize
+	//**********************************************************************************************************
+	paramsH.gridSize = SIDE;
+	//paramsH.numCells = SIDE.x * SIDE.y * SIDE.z;
+	paramsH.worldOrigin = paramsH.cMin;
+	paramsH.cellSize = R3(mBinSize, mBinSize, mBinSize);
 
 	//***** print numbers
 	printf("********************\n paramsH.sizeScale: %f\n paramsH.HSML: %f\n paramsH.bodyForce3: %f %f %f\n paramsH.gravity: %f %f %f\n paramsH.rho0: %e\n paramsH.mu0: %f\n paramsH.v_Max: %f\n paramsH.dT: %e\n paramsH.tFinal: %f\n  paramsH.timePause: %f\n  paramsH.timePauseRigidFlex: %f\n paramsH.densityReinit: %d\n",
@@ -229,6 +239,8 @@ void SetupParamsH(SimParams & paramsH) {
 	printf(" paramsH.NUM_BOUNDARY_LAYERS: %d\n paramsH.toleranceZone: %f\n paramsH.NUM_BCE_LAYERS: %d\n paramsH.solidSurfaceAdjust: %f\n", paramsH.NUM_BOUNDARY_LAYERS, paramsH.toleranceZone, paramsH.NUM_BCE_LAYERS, paramsH.solidSurfaceAdjust);
 	printf(" paramsH.BASEPRES: %f\n paramsH.LARGE_PRES: %f\n paramsH.deltaPress: %f %f %f\n", paramsH.BASEPRES, paramsH.LARGE_PRES, paramsH.deltaPress.x, paramsH.deltaPress.y, paramsH.deltaPress.z);
 	printf(" paramsH.nPeriod: %d\n paramsH.EPS_XSPH: %f\n paramsH.multViscosity_FSI: %f\n paramsH.rigidRadius: %f\n", paramsH.nPeriod, paramsH.EPS_XSPH, paramsH.multViscosity_FSI, paramsH.rigidRadius);
+	printf("boxDims: %f, %f, %f\n", paramsH.boxDims.x, paramsH.boxDims.y, paramsH.boxDims.z);
+	printf("SIDE: %d, %d, %d\n", paramsH.gridSize.x, paramsH.gridSize.y, paramsH.gridSize.z);
 }
 //@@@@@@@@@@@@@@@@@@@@@@@@@ set number of objects once for all @@@@@@@@@@@@@@@@@@@@@@22
 void SetNumObjects(NumberOfObjects & numObjects, const thrust::host_vector<int3> & referenceArray, int numAllMarkers) {
@@ -244,6 +256,20 @@ void SetNumObjects(NumberOfObjects & numObjects, const thrust::host_vector<int3>
 			numObjects.numFlexBodies, numObjects.numRigidBodies, numObjects.numFluidMarkers, numObjects.numBoundaryMarkers,
 			numObjects.numRigid_SphMarkers, numObjects.numFlex_SphMarkers, numObjects.numAllMarkers);
 	printf("********************\n");
+}
+
+void ClearArrays(
+	const thrust::host_vector<real3> & mPosRad, //do not set the size here since you are using push back later
+	const thrust::host_vector<real4> & mVelMas,
+	const thrust::host_vector<real4> & mRhoPresMu,
+	const thrust::host_vector<uint> & bodyIndex,
+	const thrust::host_vector<int3> & referenceArray) {
+
+	mPosRad.clear();
+	mVelMas.clear();
+	mRhoPresMu.clear();
+	bodyIndex.clear();
+	referenceArray.clear()
 }
 
 //&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
@@ -275,59 +301,83 @@ int main() {
 	//** default num markers
 	int numAllMarkers = 0;
 
+//**********************************************************************
+	// initialize fluid particles
+	real_ sphMarkerMass; // To be initialized in CreateFluidMarkers, and used in other places
+	int2 num_fluidOrBoundaryMarkers = CreateFluidMarkers(mPosRad, mVelMas,
+			mRhoPresMu, mPosRadBoundary, mVelMasBoundary,
+			mRhoPresMuBoundary, sphMarkerMass);
+	referenceArray.push_back(I3(0, num_fluidOrBoundaryMarkers.x, -1)); //map fluid -1
+	numAllMarkers += num_fluidOrBoundaryMarkers.x;
 
+	mPosRad.resize(
+			num_fluidOrBoundaryMarkers.x + num_fluidOrBoundaryMarkers.y);
+	mVelMas.resize(
+			num_fluidOrBoundaryMarkers.x + num_fluidOrBoundaryMarkers.y);
+	mRhoPresMu.resize(
+			num_fluidOrBoundaryMarkers.x + num_fluidOrBoundaryMarkers.y);
+	////boundary: type = 0
+	//printf("size1 %d, %d , numpart %d, numFluid %d \n", mPosRadBoundary.end() - mPosRadBoundary.begin(), mPosRadBoundary.size(), num_fluidOrBoundaryMarkers.y, num_fluidOrBoundaryMarkers.x);
+	thrust::copy(mPosRadBoundary.begin(), mPosRadBoundary.end(),
+			mPosRad.begin() + num_fluidOrBoundaryMarkers.x);
+	thrust::copy(mVelMasBoundary.begin(), mVelMasBoundary.end(),
+			mVelMas.begin() + num_fluidOrBoundaryMarkers.x);
+	thrust::copy(mRhoPresMuBoundary.begin(), mRhoPresMuBoundary.end(),
+			mRhoPresMu.begin() + num_fluidOrBoundaryMarkers.x);
+	mPosRadBoundary.clear();
+	mVelMasBoundary.clear();
+	mRhoPresMuBoundary.clear();
 
+	bodyIndex.resize(numAllMarkers);
+	thrust::fill(bodyIndex.begin(), bodyIndex.end(), 1);
+	thrust::exclusive_scan(bodyIndex.begin(), bodyIndex.end(),
+			bodyIndex.begin());
 
+	referenceArray.push_back(
+			I3(numAllMarkers, numAllMarkers + num_fluidOrBoundaryMarkers.y,	0));
+	numAllMarkers += num_fluidOrBoundaryMarkers.y;
 
-		//**********************************************************************
-		// initialize fluid particles
-		real_ sphMarkerMass; // To be initialized in CreateFluidMarkers, and used in other places
-		int2 num_fluidOrBoundaryMarkers = CreateFluidMarkers(mPosRad, mVelMas,
-				mRhoPresMu, mPosRadBoundary, mVelMasBoundary,
-				mRhoPresMuBoundary, sphMarkerMass);
-		referenceArray.push_back(I3(0, num_fluidOrBoundaryMarkers.x, -1)); //map fluid -1
-		numAllMarkers += num_fluidOrBoundaryMarkers.x;
-
-		mPosRad.resize(
-				num_fluidOrBoundaryMarkers.x + num_fluidOrBoundaryMarkers.y);
-		mVelMas.resize(
-				num_fluidOrBoundaryMarkers.x + num_fluidOrBoundaryMarkers.y);
-		mRhoPresMu.resize(
-				num_fluidOrBoundaryMarkers.x + num_fluidOrBoundaryMarkers.y);
-		////boundary: type = 0
-		//printf("size1 %d, %d , numpart %d, numFluid %d \n", mPosRadBoundary.end() - mPosRadBoundary.begin(), mPosRadBoundary.size(), num_fluidOrBoundaryMarkers.y, num_fluidOrBoundaryMarkers.x);
-		thrust::copy(mPosRadBoundary.begin(), mPosRadBoundary.end(),
-				mPosRad.begin() + num_fluidOrBoundaryMarkers.x);
-		thrust::copy(mVelMasBoundary.begin(), mVelMasBoundary.end(),
-				mVelMas.begin() + num_fluidOrBoundaryMarkers.x);
-		thrust::copy(mRhoPresMuBoundary.begin(), mRhoPresMuBoundary.end(),
-				mRhoPresMu.begin() + num_fluidOrBoundaryMarkers.x);
-		mPosRadBoundary.clear();
-		mVelMasBoundary.clear();
-		mRhoPresMuBoundary.clear();
-
-		bodyIndex.resize(numAllMarkers);
-		thrust::fill(bodyIndex.begin(), bodyIndex.end(), 1);
-		thrust::exclusive_scan(bodyIndex.begin(), bodyIndex.end(),
-				bodyIndex.begin());
-
-		referenceArray.push_back(
-				I3(numAllMarkers, numAllMarkers + num_fluidOrBoundaryMarkers.y,	0));
-		numAllMarkers += num_fluidOrBoundaryMarkers.y;
-
-		// set num objects
-		SetNumObjects(numObjects, referenceArray, numAllMarkers);
+	// set num objects
+	SetNumObjects(numObjects, referenceArray, numAllMarkers);
+	if (numObjects.numAllMarkers == 0) {
+		ClearArrays(mPosRad, mVelMas, mRhoPresMu, bodyIndex, referenceArray);
+		return 0;
+	}
 
 	DOUBLEPRECISION ? printf("Double Precision\n") : printf("Single Precision\n");
 	printf("********************\n");
+//*********************************************** End of Initialization ****************************************
+	int stepEnd = int(paramsH.tFinal/paramsH.dT);//1.0e6;//2.4e6;//600000;//2.4e6 * (.02 * paramsH.sizeScale) / currentParamsH.dT ; //1.4e6 * (.02 * paramsH.sizeScale) / currentParamsH.dT ;//0.7e6 * (.02 * paramsH.sizeScale) / currentParamsH.dT ;//0.7e6;//2.5e6; //200000;//10000;//50000;//100000;
+	printf("stepEnd %d\n", stepEnd);
+	real_ realTime = 0;
+
+	SimParams paramsH_B = paramsH;
+	paramsH_B.bodyForce3 = R3(0);
+	paramsH_B.gravity = R3(0);
+	paramsH_B.dT = .1 * paramsH.dT;
+
+	printf("\ntimePause %f, numPause %d\n", paramsH.timePause, int(paramsH.timePause/paramsH_B.dT));
+	printf("paramsH.timePauseRigidFlex %f, numPauseRigidFlex %d\n\n", paramsH.timePauseRigidFlex, int((paramsH.timePauseRigidFlex-paramsH.timePause)/paramsH.dT + paramsH.timePause/paramsH_B.dT));
+	InitSystem(paramsH, numObjects);
+	SimParams currentParamsH = paramsH;
+	for (int tStep = 0; tStep < stepEnd + 1; tStep++) {
+
+
+		mCpuTimer.Stop();
+		if (tStep % 50 == 0) {
+			printf("step: %d, realTime: %f, step Time (CUDA): %f, step Time (CPU): %f\n ", tStep, realTime, time2, 1000 * mCpuTimer.Elapsed());
+		}
+		fflush(stdout);
+		realTime += currentParamsH.dT;
+	}
+
+
+
+
 
 	if (numObjects.numAllMarkers != 0) {
 		cudaCollisions(mPosRad, mVelMas, mRhoPresMu, bodyIndex, referenceArray,	paramsH, numObjects);
 	}
-	mPosRad.clear();
-	mVelMas.clear();
-	mRhoPresMu.clear();
-	bodyIndex.clear();
-	referenceArray.clear();
+	ClearArrays(mPosRad, mVelMas, mRhoPresMu, bodyIndex, referenceArray);
 	return 0;
 }
