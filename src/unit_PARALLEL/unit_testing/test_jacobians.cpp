@@ -217,9 +217,9 @@ bool CompareContacts(ChSystemParallel* msystem) {
   ((ChLcpSolverParallelDVI *)msystem->GetLcpSolverSpeed())->ComputeD();
 
 
-  SparseMatrix& D_n_T = msystem->data_manager->host_data.D_n_T;
-  SparseMatrix& D_t_T = msystem->data_manager->host_data.D_t_T;
-  SparseMatrix& D_s_T = msystem->data_manager->host_data.D_s_T;
+  CompressedMatrix<real>& D_n_T = msystem->data_manager->host_data.D_n_T;
+  CompressedMatrix<real>& D_t_T = msystem->data_manager->host_data.D_t_T;
+  CompressedMatrix<real>& D_s_T = msystem->data_manager->host_data.D_s_T;
 
   int nnz_normal = 6 * 2 * msystem->data_manager->num_contacts;
   int nnz_tangential = 6 * 4 * msystem->data_manager->num_contacts;
