@@ -110,6 +110,10 @@ int ChParallelDataManager::ExportCurrentSystem(std::string output_dir) {
       nnz_total += nnz_normal + num_tangential;
       D_T.reserve(nnz_total);
       D_T.resize(num_constraints, num_dof, false);
+
+      blaze::SparseSubmatrix<CompressedMatrix<real> > D_n_T_sub = blaze::submatrix(D_T, 0, 0, num_contacts, num_dof);
+      D_n_T_sub = host_data.D_n_T;
+
       blaze::SparseSubmatrix<CompressedMatrix<real> > D_t_T_sub = blaze::submatrix(D_T, num_contacts, 0, 2 * num_contacts, num_dof);
       D_t_T_sub = host_data.D_t_T;
     } break;
@@ -117,6 +121,9 @@ int ChParallelDataManager::ExportCurrentSystem(std::string output_dir) {
       nnz_total += nnz_normal + num_tangential + num_spinning;
       D_T.reserve(nnz_total);
       D_T.resize(num_constraints, num_dof, false);
+
+      blaze::SparseSubmatrix<CompressedMatrix<real> > D_n_T_sub = blaze::submatrix(D_T, 0, 0, num_contacts, num_dof);
+      D_n_T_sub = host_data.D_n_T;
 
       blaze::SparseSubmatrix<CompressedMatrix<real> > D_t_T_sub = blaze::submatrix(D_T, num_contacts, 0, 2 * num_contacts, num_dof);
       D_t_T_sub = host_data.D_t_T;

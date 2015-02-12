@@ -20,6 +20,7 @@
 #include <stdio.h>
 #include <vector>
 #include <cmath>
+#include <omp.h>
 #include "unit_testing.h"
 #include "chrono_parallel/constraints/ChConstraintRigidRigid.h"
 #include "collision/ChCCollisionModel.h"

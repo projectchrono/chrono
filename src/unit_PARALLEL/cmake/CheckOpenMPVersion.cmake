@@ -17,7 +17,6 @@ SET(OMP_40 0)
 
 # Check for OpenMP 3.0 support.
 check_cxx_source_compiles("
-#include <omp.h>
 int main() {
 #pragma omp parallel for
 for (unsigned int i=0; i<10; i++) ;
@@ -29,7 +28,6 @@ ENDIF()
 
 # Check for OpenMP 4.0 support.
 check_cxx_source_compiles("
-#include <omp.h>
 int main() {
 #pragma omp parallel for simd safelen(4)
 for (int i=0; i<10; i++) ;

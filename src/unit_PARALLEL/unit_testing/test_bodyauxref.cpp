@@ -32,6 +32,7 @@
 //
 // =============================================================================
 
+#include <omp.h>
 #include "chrono_parallel/physics/ChSystemParallel.h"
 
 #include "chrono_utils/ChUtilsCreators.h"

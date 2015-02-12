@@ -18,6 +18,7 @@
 #include <stdio.h>
 #include <vector>
 #include <cmath>
+#include <omp.h>
 #include "unit_testing.h"
 #include "chrono_parallel/collision/ChCNarrowphaseMPR.h"
 #include "chrono_parallel/collision/ChCNarrowphaseMPRUtils.h"
