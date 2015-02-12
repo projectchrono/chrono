@@ -52,15 +52,14 @@ DriveChain::DriveChain(const std::string& name,
                        VisualizationType gearVis,
                        CollisionType gearCollide,
                        size_t num_idlers,
-                       size_t num_rollers)
-  : ChTrackVehicle(1e-3, 1, gearVis, gearCollide),
+                       size_t num_rollers,
+                       double gear_mass,
+                       const ChVector<>& gear_inertia
+): ChTrackVehicle(gearVis, gearCollide, gear_mass, gear_inertia, 1),
   m_num_rollers(num_rollers),
   m_num_idlers(num_idlers)
 {
   // ---------------------------------------------------------------------------
-  // Set the base class variables
-  m_num_engines = 1;
-
   // Integration and Solver settings set in ChTrackVehicle
   GetSystem()->SetIterLCPmaxItersStab(75);
   GetSystem()->SetIterLCPmaxItersSpeed(75);
@@ -87,27 +86,27 @@ DriveChain::DriveChain(const std::string& name,
   // --------------------------------------------------------------------------
   // BUILD THE SUBSYSTEMS
   // drive gear, inherits drivechain's visual and collision types
-  double gear_mass = 100.0; // 436.7
-  ChVector<> gear_Ixx(12.22/4.0, 12.22/4.0, 13.87/4.0);  // 12.22, 12.22, 13.87
   m_gear = ChSharedPtr<DriveGear>(new DriveGear("drive gear",
     m_vis,
     m_collide,
-    gear_mass,
-    gear_Ixx) );
+    0,
+    m_mass,
+    m_inertia) );
 
  // idlers, if m ore than 1
   m_idlers.clear();
   m_idlers.resize(m_num_idlers);
   double idler_mass = 100.0; // 429.6
-  ChVector<> idler_Ixx(gear_Ixx);    // 12.55, 12.55, 14.7
+  ChVector<> idler_Ixx(m_inertia);    // 12.55, 12.55, 14.7
   double tensioner_K = 80e3;
   double tensioner_C = tensioner_K * 0.08;
   m_idlers[0] = ChSharedPtr<IdlerSimple>(new IdlerSimple("idler",
-    idler_mass,
-    idler_Ixx,
     VisualizationType::MESH,
     // VisualizationType::PRIMITIVES,
     CollisionType::PRIMITIVES,
+    0,
+    idler_mass,
+    idler_Ixx,
     tensioner_K,
     tensioner_C) );
 
@@ -115,10 +114,11 @@ DriveChain::DriveChain(const std::string& name,
   double shoe_mass = 18.03/4.0; // 18.03
   ChVector<> shoe_Ixx(0.22/4.0, 0.25/4.0, 0.04/4.0);  // 0.22, 0.25, 0.04
   m_chain = ChSharedPtr<TrackChain>(new TrackChain("chain",
-    shoe_mass,
-    shoe_Ixx,
     VisualizationType::COMPOUNDPRIMITIVES,
-    CollisionType::PRIMITIVES) );
+    CollisionType::PRIMITIVES,
+    0,
+    shoe_mass,
+    shoe_Ixx) );
 
   // create the powertrain, connect transmission shaft directly to gear shaft
   m_ptrain = ChSharedPtr<TrackPowertrain>(new TrackPowertrain("powertrain ") );
@@ -139,6 +139,7 @@ DriveChain::DriveChain(const std::string& name,
     m_rollers[j] = ChSharedPtr<SupportRoller>(new SupportRoller("support roller " +std::to_string(j),
       VisualizationType::PRIMITIVES,
       CollisionType::PRIMITIVES,
+      0,
       roller_mass,
       roller_Ixx) );
   }
@@ -147,11 +148,12 @@ DriveChain::DriveChain(const std::string& name,
   {
     // for now, just create 1 more idler
     m_idlers[1] = ChSharedPtr<IdlerSimple>(new IdlerSimple("idler 2",
-    idler_mass,
-    idler_Ixx,
     VisualizationType::MESH,
     // VisualizationType::PRIMITIVES,
-    CollisionType::PRIMITIVES) );
+    CollisionType::PRIMITIVES,
+    0,
+    idler_mass,
+    idler_Ixx) );
   }
 }
 
@@ -540,7 +542,8 @@ void DriveChain::create_fileHeader(int what)
   if(what & DBG_CONSTRAINTS)
   {
       // in the same order as listed in the header
-    ss << m_gear->getFileHeader_ConstraintViolations();
+    std::string out = m_gear->getFileHeader_ConstraintViolations();
+    ss << out;
 
     for(int id = 0; id < m_num_idlers; id++)
     {

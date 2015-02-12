@@ -41,28 +41,25 @@ class CH_SUBSYS_API ChTrackVehicle : public ChShared
 {
 public:
 
-  /// Construct with a default ChSystem.
-  ChTrackVehicle();
-
   /// Construct by passing in desired system variables.
-  ChTrackVehicle(double step_size,
-    size_t num_engines,
-    VisualizationType vis,
-    CollisionType collide);
-
-  /// Construct using the specified ChSystem.
-  ChTrackVehicle(ChSystem* system);
+  /// Default values are for M113 APC vehicle
+  ChTrackVehicle(VisualizationType vis = VisualizationType::NONE,
+    CollisionType collide = CollisionType::NONE,
+    double mass = 5489.2,
+    const ChVector<>& Ixx = ChVector<>(1786.9, 10449.7, 10721.2),
+    size_t num_engines = 0,
+    double step_size = 1e-3);
 
   /// Construct using the specified ChSystem, with the desired vehicle system settings.
   ChTrackVehicle(ChSystem* system,
-    double step_size,
-    size_t num_engines,
-    VisualizationType vis,
-    CollisionType collide);
+    VisualizationType vis = VisualizationType::NONE,
+    CollisionType collide = CollisionType::NONE,
+    double mass = 5489.2,
+    const ChVector<>& Ixx = ChVector<>(1786.9, 10449.7, 10721.2),
+    size_t num_engines = 0);
 
   /// Destructor.
   virtual ~ChTrackVehicle();
-
 
   // pure virtuals
   /// Get the angular speed of the driveshaft.
@@ -163,26 +160,30 @@ protected:
   const std::string& getMeshName() const { return m_meshName; }
   const std::string& getMeshFile() const { return m_meshFile; }
 
-  ChSystem*                  m_system;       ///< pointer to the Chrono system
-  bool                       m_ownsSystem;   ///< true if system created at construction
+  ChSystem*   m_system;       ///< pointer to the Chrono system
+  const bool  m_ownsSystem;   ///< true if system created at construction
 
-  ChSharedPtr<ChBodyAuxRef>  m_chassis;      ///< handle to the chassis body
+  ChSharedPtr<ChBodyAuxRef>  m_chassis; ///< handle to the chassis body
+  double m_mass;
+  ChVector<> m_inertia;
+
   VisualizationType m_vis;    ///< visualize  geometry
   CollisionType m_collide;    ///< collision geometry
-  std::string m_meshName;     ///< name of the mesh, if any
-  std::string  m_meshFile;    ///< filename of the mesh, if any
-  ChVector<> m_chassisBoxSize;///< size of chassis box, used for any PRIMITIVES type
 
-  size_t m_num_engines;  ///< can support multiple powertrain/drivetrains
+  std::string m_meshName;       ///< name of the mesh, if any
+  std::string m_meshFile;       ///< filename of the mesh, if any
+  ChVector<>  m_chassisBoxSize; ///< size of chassis box, used for any PRIMITIVES type
+
+  const size_t m_num_engines;  ///< can support multiple powertrain/drivetrains
   std::vector<ChSharedPtr<TrackPowertrain>>  m_ptrains;  ///< powertrain system, one per track system
 
-  double                     m_stepsize;   ///< integration step-size for the vehicle system
+  double  m_stepsize;   ///< integration step-size for the vehicle system
 
   // output/Log variables
-  bool m_save_log_to_file;    // save the DebugLog() info to file? default false
-  int m_log_what_to_file;     // set this in Setup_log_to_file(), if writing to file
-  bool m_log_file_exists;     // written the headers for log file yet?
-  int m_log_what_to_console;  ///< pre-set what to write to console when calling 
+  bool  m_save_log_to_file;    ///< save the DebugLog() info to file? default false
+  int   m_log_what_to_file;    ///< set this in Setup_log_to_file(), if writing to file
+  bool  m_log_file_exists;     ///< written the headers for log file yet?
+  int   m_log_what_to_console; ///< pre-set what to write to console when calling 
   std::string m_log_file_name;
 
 

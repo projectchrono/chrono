@@ -39,12 +39,14 @@ const double SupportRoller::m_widthGap = 0.1;
 SupportRoller::SupportRoller(const std::string& name, 
                      VisualizationType vis, 
                      CollisionType collide,
+                     size_t chainSys_idx,
                      double mass,
                      const ChVector<>& Ixx
-  ): m_vis(vis),
-    m_collide(collide),
-    m_mass( mass ),
-    m_inertia(Ixx)
+): m_vis(vis),
+  m_collide(collide),
+  m_chainSys_idx(chainSys_idx),
+  m_mass(mass),
+  m_inertia(Ixx)
 {
   // create the body, set the basic info
   m_roller = ChSharedPtr<ChBody>(new ChBody);

@@ -41,6 +41,8 @@ public:
   LoopChain(const std::string& name,
     VisualizationType chassisVis = VisualizationType::PRIMITIVES,
     CollisionType chassisCollide = CollisionType::PRIMITIVES,
+    double gearMass = 100.0,
+    const ChVector<>& gearIxx = ChVector<>(10,10,10) ,
     size_t num_idlers = 2,
     size_t num_rollers = 3);
 

@@ -35,10 +35,6 @@
 
 namespace chrono {
 
-// Static variables
-const double IdlerSimple::m_mass = 429.6;
-const ChVector<> IdlerSimple::m_inertia = ChVector<>(12.55, 12.55, 14.7); // z-axis of rotation
-
 // guessing at these values
 const double IdlerSimple::m_radius = 0.255;
 const double IdlerSimple::m_width = 0.166*2.4;
@@ -83,23 +79,34 @@ private:
 };
 */
 
+
 IdlerSimple::IdlerSimple(const std::string& name,
                          VisualizationType vis,
                          CollisionType collide,
-                         size_t chain_idx,
-                         double springK,
-                         double springC)
-  : m_vis(vis), m_collide(collide),
+                         size_t chainSys_idx,
+                         double mass,
+                         const ChVector<>& Ixx,
+                         double tensionerK,
+                         double tensionerC,
+                         double springFreeLen
+): m_vis(vis),
+  m_collide(collide),
+  m_chainSys_idx(chainSys_idx),
+  m_mass(mass), 
+  m_inertia(Ixx),
+  m_tensionerK(tensionerK),
+  m_tensionerC(tensionerC),
   m_meshFile(utils::GetModelDataFile("M113/Idler_XforwardYup.obj")),
   m_meshName("idler_mesh"),
-  m_springRestLength(1.5),
-  m_springK(springK),
-  m_springC(springC)
+  m_springRestLength(springFreeLen)
+
 //  , m_shockCB(NULL), m_springCB(NULL)
 {
   // create the body, set the basic info
   m_idler = ChSharedPtr<ChBody>(new ChBody);
   m_idler->SetNameString(name + "_body");
+
+  // use the input values rather than statically defined
   m_idler->SetMass(m_mass);
   m_idler->SetInertiaXX(m_inertia);
 
@@ -110,51 +117,11 @@ IdlerSimple::IdlerSimple(const std::string& name,
   // create the tensioning linear spring-shock
   m_shock = ChSharedPtr<ChLinkSpring>(new ChLinkSpring);
   m_shock->SetNameString(name + "_shock");
-  m_shock->Set_SpringK(m_springK);
-  m_shock->Set_SpringR(m_springC);
+  m_shock->Set_SpringK(m_tensionerK);
+  m_shock->Set_SpringR(m_tensionerC);
   m_shock->Set_SpringRestLength(m_springRestLength);
 
-  AddVisualization(chain_idx);
- 
-}
-
-// override default mass, inertia values
-IdlerSimple::IdlerSimple(const std::string& name,
-                         double idler_mass,
-                         const ChVector<>& idler_Ixx,
-                         VisualizationType vis,
-                         CollisionType collide,
-                         size_t chain_idx,
-                         double springK,
-                         double springC)
-  : m_vis(vis), m_collide(collide),
-    m_meshFile(utils::GetModelDataFile("M113/Idler_XforwardYup.obj")),
-    m_meshName("idler_mesh"),
-    m_springRestLength(1),
-    m_springK(springK),
-    m_springC(springC)
-//  , m_shockCB(NULL), m_springCB(NULL)
-{
-  // create the body, set the basic info
-  m_idler = ChSharedPtr<ChBody>(new ChBody);
-  m_idler->SetNameString(name + "_body");
-
-  // use the input values rather than statically defined
-  m_idler->SetMass(idler_mass);
-  m_idler->SetInertiaXX(idler_Ixx);
-
-  // create the idler joint
-  m_idler_joint = ChSharedPtr<ChLinkLockRevolutePrismatic>(new ChLinkLockRevolutePrismatic);
-  m_idler_joint->SetNameString(name + "_idler_joint");
-
-  // create the tensioning linear spring-shock
-  m_shock = ChSharedPtr<ChLinkSpring>(new ChLinkSpring);
-  m_shock->SetNameString(name + "_shock");
-  m_shock->Set_SpringK(m_springK);
-  m_shock->Set_SpringR(m_springC);
-  m_shock->Set_SpringRestLength(m_springRestLength);
-
-  AddVisualization(chain_idx);
+  AddVisualization(m_chainSys_idx);
  
 }
 
@@ -192,7 +159,7 @@ void IdlerSimple::Initialize(ChSharedPtr<ChBody> chassis,
 
   // init shock, add to system
   // put the second marker some length in front of marker1, based on desired preload
-  double init_spring_len = m_springRestLength - preLoad / m_springK;
+  double init_spring_len = m_springRestLength - preLoad / m_tensionerK;
   double min_init_spring_len = 0.1;
   if(init_spring_len < min_init_spring_len)
   {
@@ -389,7 +356,7 @@ void IdlerSimple::SaveConstraintViolations(std::stringstream& ss)
 
 }
 
-const std::string& IdlerSimple::getFileHeader_ConstraintViolations(size_t idx)
+const std::string IdlerSimple::getFileHeader_ConstraintViolations(size_t idx)
 {
   // idler has x-translational and z-rot DOFs
   // y, z reaction Forces, x,y reaction torques

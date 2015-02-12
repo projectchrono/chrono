@@ -42,11 +42,13 @@ const double DriveGear::m_widthGap = 0.189; // 0.189; // inner distance between 
 DriveGear::DriveGear(const std::string& name, 
   VisualizationType vis, 
   CollisionType collide,
+  size_t chainSys_idx,
   double mass,
   const ChVector<>& gear_Ixx
   ): m_vis(vis),
     m_collide(collide),
     m_meshFile(utils::GetModelDataFile("M113/Sprocket_XforwardYup.obj")),
+    m_chainSys_idx(chainSys_idx),
     m_mass(mass),
     m_inertia(gear_Ixx),
     m_meshName("gear_mesh"),

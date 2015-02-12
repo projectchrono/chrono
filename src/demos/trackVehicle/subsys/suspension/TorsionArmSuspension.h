@@ -55,7 +55,16 @@ public:
   TorsionArmSuspension(const std::string& name,
     VisualizationType vis = VisualizationType::PRIMITIVES,
     CollisionType collide = CollisionType::PRIMITIVES,
-    bool use_custom_spring = false);
+    size_t chainSys_idx = 0,  ///< what chain system is the road wheel assoc. with?
+    double wheel_mass = 561.1 , ///< [kg]
+    const ChVector<>& wheelIxx = ChVector<>(19.82, 19.82, 26.06), // [kg-m2], z-axis of rotation,
+    double arm_mass = 75.26,  ///< [kg]
+    const ChVector<>& armIxx = ChVector<>(0.77, 0.37, 0.77),  ///< [kg-m2]
+    double springK = 25000,	///< torsional spring constant [N-m/rad]
+    double springC = 250,	///< torsional damping constant [N-m-s/rad]
+    double springPreload = 1500.0,  ///< torque preload [N-m]
+    bool use_custom_spring = false  ///< use ChFunction_CustomSpring rather than default: a pre-loaded linear Rotational spring-damper?
+    );
 
   ~TorsionArmSuspension() {delete m_rot_spring;}
 
@@ -101,39 +110,40 @@ private:
   ChSharedPtr<ChBody> m_arm;  ///< arm body
   ChSharedPtr<ChLinkLockRevolute> m_armChassis_rev; ///< arm-chassis revolute joint
 
-  // shock absorber, a torsional spring connected to two 1-D shafts
-  ChLinkForce* m_rot_spring; ///< torsional spring, attached to the armChassis rev joint
-  bool m_use_custom_spring; ///< use a custom spring or a linear spring-damper?
-  ChSharedPtr<ChFunction_CustomSpring> m_custom_spring; ///< a custom spring element
+  // shock absorber is a pre-loaded linear spring-damper
+  ChLinkForce* m_rot_spring;  ///< torsional spring, attached to the armChassis rev joint
+  double m_springK;	          ///< torsional spring constant
+  double m_springC;	          ///< torsional damping constant
+  double m_TorquePreload;	    ///< preload torque, on the spring/damper DOF
+  // ... OR, use a custom shock absorber
+  const bool m_use_custom_spring; ///< use a custom spring or a linear spring-damper?
+  ChSharedPtr<ChFunction_CustomSpring> m_custom_spring; ///< custom spring element
 
   ChSharedPtr<ChBody> m_wheel;  ///< wheel body
   ChSharedPtr<ChLinkLockRevolute> m_armWheel_rev; ///< arm-wheel revolute joint
   ChVector<> m_wheel_PosRel;  ///< position of wheel center w.r.t. arm pin to chassis, corrected for left/right side.
 
-  ChFrame<> m_Loc; // location of subsystem, relative to trackSystem ref c-sys
+  // body variables
+  double m_armMass;
+  ChVector<> m_armInertia;
+  double m_wheelMass;
+  ChVector<> m_wheelInertia;
 
   // visual and collision geometry types
   VisualizationType m_vis;
   CollisionType m_collide;
+  const size_t m_chainSys_idx; ///< if there are multiple chain systems 
+  // (e.g., on the M113, the subsystem knows which it is a part of for collision family purposes)
 
   const std::string m_meshName; ///< name of the mesh, if any
   const std::string m_meshFile;  ///< filename of the mesh, if any
 
   // static variables
-  static const double m_armMass;
-  static const ChVector<> m_armInertia;
   static const double m_armRadius;
-
-  static const double m_wheelMass;
-  static const ChVector<> m_wheelInertia;
   static const double m_wheelWidth;
   static const double m_wheelWidthGap;
   static const double m_wheelRadius;
   static const ChVector<> m_wheel_Pos;
-
-  static const double m_springK;	// torsional spring constant
-  static const double m_springC;	// torsional damping constant
-  static const double m_TorquePreload;	// preload torque, on the spring/damper DOF
   
   static const double m_shaft_inertia;
 };

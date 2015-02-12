@@ -41,11 +41,14 @@ class CH_SUBSYS_API DriveChain : public ChTrackVehicle
 {
 public:
 
+  /// chassis is static, so use idler info to create the gear body, instead.
   DriveChain(const std::string& name,
     VisualizationType chassisVis = VisualizationType::PRIMITIVES,
     CollisionType chassisCollide = CollisionType::PRIMITIVES,
     size_t num_idlers = 1,
-    size_t num_rollers = 1);
+    size_t num_rollers = 1,
+    double gear_mass = 100.0,
+    const ChVector<>& gear_inertia = ChVector<>(12.22/4.0, 12.22/4.0, 13.87/4.0) );
 
   ~DriveChain();
   

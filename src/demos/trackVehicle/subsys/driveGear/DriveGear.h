@@ -41,6 +41,7 @@ public:
   DriveGear(const std::string& name,
     VisualizationType vis = VisualizationType::PRIMITIVES,
     CollisionType collide = CollisionType::PRIMITIVES,
+    size_t chainSys_idx = 0, ///< what chain system is this gear associated with?
     double gear_mass = 436.7,
     const ChVector<>& gear_Ixx = ChVector<>(12.22, 12.22, 13.87) );
 
@@ -65,7 +66,8 @@ public:
   void SaveConstraintViolations(std::stringstream& ss);
   
   /// write headers for the output data file to the input ostream
-  const std::string& getFileHeader_ConstraintViolations() {return ",GCVx,GCVy,GCVz,GCVrx,GCVry";}
+  //  Gear Constraint Violation, (x,y,z,rx,ry)
+  const std::string getFileHeader_ConstraintViolations() {return ",GCVx,GCVy,GCVz,GCVrx,GCVry";}
 
 private:
   // private functions
@@ -86,9 +88,11 @@ private:
 
   VisualizationType m_vis;    // visual asset geometry type
   CollisionType m_collide;    // collision geometry type
+  const size_t m_chainSys_idx; ///< if there are multiple chain systems 
+  // (e.g., on the M113, the subsystem knows which it is a part of for collision family purposes)
 
-  const ChVector<> m_inertia;
-  const double m_mass;
+  ChVector<> m_inertia;
+  double m_mass;
 
   const std::string m_meshName;
   const std::string m_meshFile;

@@ -37,12 +37,6 @@
 namespace chrono {
 
 // static variables
-const std::string TrackChain::m_collisionFile = utils::GetModelDataFile("M113/shoe_collision.obj");
-const std::string TrackChain::m_meshName = "M113 shoe"; 
-const std::string TrackChain::m_meshFile = utils::GetModelDataFile("M113/shoe_view.obj");
-
-const double TrackChain::m_mass = 18.02;
-const ChVector<> TrackChain::m_inertia(0.22, 0.25,  0.04); // TODO: what is this w/ new single pin configuration???
 const ChVector<> TrackChain::m_COM = ChVector<>(0., 0., 0.);  // location of COM, relative to REF (e.g, geomtric center)
 const ChVector<> TrackChain::m_shoe_box(0.152, 0.0663, 0.38); // length, height, width   (0.205, 0.0663, 0.38)
 const double TrackChain::m_pin_width = 0.531; // total width of cylinder pinseach 
@@ -54,43 +48,23 @@ const double TrackChain::m_tooth_COG_offset = -0.07313; // , -0.0731.  local c-s
  // distance between body center and the vertical offset to the inner-surface of the collision geometry
 //  used for initializing shoes as a chain
 const double TrackChain::m_shoe_chain_Yoffset = 0.04; // .03315 exact
-
-TrackChain::TrackChain(const std::string& name, 
-                       VisualizationType vis, 
-                       CollisionType collide)
-  : m_vis(vis),
-  m_collide(collide),
-  m_numShoes(0),
-  m_use_custom_damper(false),
-  m_damping_C(0)
-{
-  // clear vector holding list of body handles
-  m_shoes.clear();
-  // add first track shoe body
-  m_shoes.push_back(ChSharedPtr<ChBody>(new ChBody));
-  // m_shoes.push_back(ChSharedPtr<ChBodyAuxRef>(new ChBodyAuxRef));
-  // m_shoes[0]->SetFrame_COG_to_REF(ChFrame<>(m_COM,QUNIT));
-
-  m_numShoes++;
-
-  m_shoes.front()->SetNameString("shoe 1, "+name);
-  m_shoes.front()->SetMass(m_mass);
-  m_shoes.front()->SetInertiaXX(m_inertia);
-
-  // Attach visualization to the base track shoe
-  AddVisualization(0, true, "cubetexture_pinkwhite.png");
-}
   
 TrackChain::TrackChain(const std::string& name, 
-                       double shoe_mass,
-                       const ChVector<>& shoe_inertia,
                        VisualizationType vis,
-                       CollisionType collide)
-  : m_vis(vis),
-    m_collide(collide),
-    m_numShoes(0),
-    m_use_custom_damper(false),
-    m_damping_C(0)
+                       CollisionType collide,
+                       size_t chainSys_idx,
+                       double shoe_mass,
+                       const ChVector<>& shoeIxx
+): m_vis(vis), m_collide(collide),
+m_chainSys_idx(chainSys_idx),
+m_mass(shoe_mass),
+m_inertia(shoeIxx),
+m_collisionFile(utils::GetModelDataFile("M113/shoe_collision.obj")),
+m_meshFile(utils::GetModelDataFile("M113/shoe_view.obj")),
+m_meshName("M113 shoe"),
+m_numShoes(0),
+m_use_custom_damper(false),
+m_damping_C(0)
 {
     // clear vector holding list of body handles
   m_shoes.clear();
@@ -102,8 +76,8 @@ TrackChain::TrackChain(const std::string& name,
   m_numShoes++;
 
   m_shoes.front()->SetNameString("shoe 1, "+name);
-  m_shoes.front()->SetMass(shoe_mass);
-  m_shoes.front()->SetInertiaXX(shoe_inertia);
+  m_shoes.front()->SetMass(m_mass);
+  m_shoes.front()->SetInertiaXX(m_inertia);
 
   // Attach visualization to the base track shoe
   AddVisualization(0, true, "cubetexture_pinkwhite.png");

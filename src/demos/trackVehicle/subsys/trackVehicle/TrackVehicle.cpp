@@ -35,24 +35,27 @@ namespace chrono {
 
 // -----------------------------------------------------------------------------
 // Static variables
-const ChVector<> TrackVehicle::m_trackPos_Right(0.23644, -0.4780, 0.83475); // relative to chassis COG
-const ChVector<> TrackVehicle::m_trackPos_Left(0.23644, -0.4780, -0.83475); // relative to chassis COG
-
-const double     TrackVehicle::m_mass = 1000; // 5489.2;   // chassis sprung mass
-const ChVector<> TrackVehicle::m_COM = ChVector<>(0., 0.0, 0.);  // COM location, relative to body Csys REF frame
-const ChVector<> TrackVehicle::m_inertia(1786.9, 10449.7, 10721.2);  // chassis inertia (roll,yaw,pitch)
+const double     TrackVehicle::mass_override = 5489.2 / 5.0; // chassis sprung mass override
+const ChVector<> TrackVehicle::COM_override = ChVector<>(0., 0.0, 0.);  // COM location, relative to body Csys REF frame
+const ChVector<> TrackVehicle::inertia_override(1786.9/5.0, 10449.7/5.0, 10721.2/5.0);  // chassis inertia (roll,yaw,pitch)
 
 const ChCoordsys<> TrackVehicle::m_driverCsys(ChVector<>(0.0, 0.5, 1.2), ChQuaternion<>(1, 0, 0, 0));
 
 /// constructor sets the basic integrator settings for this ChSystem, as well as the usual stuff
 TrackVehicle::TrackVehicle(const std::string& name,
                            VisualizationType chassisVis,
-                           CollisionType chassisCollide)
-  :ChTrackVehicle(1e-3, 1, chassisVis, chassisCollide),
-  m_num_tracks(2)
+                           CollisionType chassisCollide,
+                           double mass,
+                           const ChVector<>& Ixx,
+                           const ChVector<>& left_pos_rel,
+                           const ChVector<>& right_pos_rel
+):ChTrackVehicle(chassisVis, chassisCollide, mass, Ixx, 1),
+  m_num_tracks(2),
+  m_trackSys_L(left_pos_rel),
+  m_trackSys_R(right_pos_rel)
 {
   // ---------------------------------------------------------------------------
-  // Set the base class variables
+  // Set the base class variables not created by constructor, if we plan to use them.
   m_meshName = "M113_chassis";
   m_meshFile = utils::GetModelDataFile("M113/Chassis_XforwardYup.obj");
   m_chassisBoxSize = ChVector<>(4.0, 1.2, 1.5); // full length, height, width of chassis box
@@ -61,7 +64,7 @@ TrackVehicle::TrackVehicle(const std::string& name,
   m_chassis = ChSharedPtr<ChBodyAuxRef>(new ChBodyAuxRef);
   m_chassis->SetIdentifier(0);
   m_chassis->SetNameString(name);
-  m_chassis->SetFrame_COG_to_REF(ChFrame<>(m_COM, ChQuaternion<>(1, 0, 0, 0)));
+  m_chassis->SetFrame_COG_to_REF(ChFrame<>(COM_override, ChQuaternion<>(1, 0, 0, 0)));
   // basic body info
   m_chassis->SetMass(m_mass);
   m_chassis->SetInertiaXX(m_inertia);
@@ -77,11 +80,10 @@ TrackVehicle::TrackVehicle(const std::string& name,
   m_TrackSystems.resize(m_num_tracks);
   m_TrackSystem_locs.resize(m_num_tracks);
   // Right and Left track System relative locations, respectively
-  m_TrackSystem_locs[0] = m_trackPos_Right;
-  m_TrackSystem_locs[1] = m_trackPos_Left;
+  m_TrackSystem_locs[0] = m_trackSys_L;
+  m_TrackSystem_locs[1] = m_trackSys_R;
 
   // two drive Gears, like a 2WD driven vehicle.
-  m_num_engines = 1;
   m_drivelines.resize(m_num_engines);
   m_ptrains.resize(m_num_engines);
 

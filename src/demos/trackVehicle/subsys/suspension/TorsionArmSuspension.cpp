@@ -33,26 +33,38 @@
 namespace chrono {
 
 // static variables
-const double TorsionArmSuspension::m_armMass = 75.26; // [kg]
-const ChVector<> TorsionArmSuspension::m_armInertia(0.77, 0.37, 0.77);  // [kg-m2]
-const double TorsionArmSuspension::m_armRadius = 0.05; // [m]
-
-const double TorsionArmSuspension::m_wheelMass = 561.1; // [kg]
-const ChVector<> TorsionArmSuspension::m_wheelInertia(19.82, 19.82, 26.06); // [kg-m2], z-axis of rotation
 const double TorsionArmSuspension::m_wheelWidth = 0.16*2.4;  // [m]
 const double TorsionArmSuspension::m_wheelWidthGap = 0.038*2.4;  // inner gap between outer cylinders .038?
 const double TorsionArmSuspension::m_wheelRadius = 0.305; // [m]
 const ChVector<> TorsionArmSuspension::m_wheel_Pos(-0.2034, -0.2271, 0.24475); // loc of right wheel COG in the local c-sys
-const double TorsionArmSuspension::m_springK = 25000;	// torsional spring constant [N-m/rad]
-const double TorsionArmSuspension::m_springC = 250;	// torsional damping constant [N-m-s/rad]
-const double TorsionArmSuspension::m_TorquePreload = 1500.0;  // torque preload [N-m]
+const double TorsionArmSuspension::m_armRadius = 0.05; // [m]
+
 
 TorsionArmSuspension::TorsionArmSuspension(const std::string& name,
                                            VisualizationType vis,
                                            CollisionType collide,
-                                           bool use_custom_spring)
-: m_vis(vis), m_collide(collide), m_use_custom_spring(use_custom_spring),
-m_meshFile(utils::GetModelDataFile("M113/Roller_XforwardYup.obj")), m_meshName("Road wheel")
+                                           size_t chainSys_idx,
+                                           double wheelMass,
+                                           const ChVector<>& wheelIxx,
+                                           double armMass,
+                                           const ChVector<>& armIxx,
+                                           double springK,
+                                           double springC,
+                                           double springPreload,
+                                           bool use_custom_spring
+): m_vis(vis),
+  m_collide(collide),
+  m_chainSys_idx(chainSys_idx),
+  m_wheelMass(wheelMass),
+  m_wheelInertia(wheelIxx),
+  m_armMass(armMass),
+  m_armInertia(armIxx),
+  m_springK(springK),
+  m_springC(springC),
+  m_TorquePreload(springPreload),
+  m_use_custom_spring(use_custom_spring),
+  m_meshFile(utils::GetModelDataFile("M113/Roller_XforwardYup.obj")),
+  m_meshName("Road wheel")
 {
   // FILE* fp = fopen(filename.c_str(), "r");
   // char readBuffer[65536];

@@ -50,26 +50,26 @@ const ChQuaternion<> TrackSoilBin::m_idlerRot(QUNIT);
 
 /// constructor sets the basic integrator settings for this ChSystem, as well as the usual stuff
 TrackSoilBin::TrackSoilBin(const std::string& name,
-                       VisualizationType gearVis,
-                       CollisionType gearCollide,
+                       VisualizationType chassisVis,
+                       CollisionType chassisCollide,
+                       double mass,
+                       const ChVector<>& inertia,
                        size_t num_idlers,
                        size_t num_rollers)
-  : ChTrackVehicle(1e-3, 1, gearVis, gearCollide),
+  : ChTrackVehicle(chassisVis, chassisCollide, mass, inertia, 1), 
   m_num_rollers(num_rollers),
   m_num_idlers(num_idlers)
 {
   // ---------------------------------------------------------------------------
   // Set the base class variables
-  m_num_engines = 1;
+  // no mesh, yet
+  m_meshName = "na";
+  m_meshFile = "none";
+  m_chassisBoxSize = ChVector<>(2.0, 0.6, 0.75);
 
   // Integration and Solver settings set in ChTrackVehicle
   GetSystem()->SetIterLCPmaxItersStab(75);
   GetSystem()->SetIterLCPmaxItersSpeed(75);
-
-  // doesn't matter for the chassis, since no visuals used
-  m_meshName = "na";
-  m_meshFile = "none";
-  m_chassisBoxSize = ChVector<>(2.0, 0.6, 0.75);
 
   // create the chassis body    
   m_chassis = ChSharedPtr<ChBodyAuxRef>(new ChBodyAuxRef);
@@ -77,8 +77,8 @@ TrackSoilBin::TrackSoilBin(const std::string& name,
   m_chassis->SetNameString(name);
   // basic body info. Not relevant since it's fixed.
   m_chassis->SetFrame_COG_to_REF(ChFrame<>() );
-  m_chassis->SetMass(100);
-  m_chassis->SetInertiaXX(ChVector<>(10,10,10) );
+  m_chassis->SetMass(m_mass);
+  m_chassis->SetInertiaXX(m_inertia);
   // chassis is fixed to ground
   m_chassis->SetBodyFixed(true);
     
@@ -93,6 +93,7 @@ TrackSoilBin::TrackSoilBin(const std::string& name,
   m_gear = ChSharedPtr<DriveGear>(new DriveGear("drive gear",
     m_vis,
     m_collide,
+    0,
     gear_mass,
     gear_Ixx) );
 
@@ -102,20 +103,22 @@ TrackSoilBin::TrackSoilBin(const std::string& name,
   double idler_mass = 100.0; // 429.6
   ChVector<> idler_Ixx(gear_Ixx);    // 12.55, 12.55, 14.7
   m_idlers[0] = ChSharedPtr<IdlerSimple>(new IdlerSimple("idler",
-    idler_mass,
-    idler_Ixx,
     VisualizationType::MESH,
     // VisualizationType::PRIMITIVES,
-    CollisionType::PRIMITIVES) );
+    CollisionType::PRIMITIVES,
+    0,
+    idler_mass,
+    idler_Ixx) );
 
   // track chain system
   double shoe_mass = 18.03/4.0; // 18.03
   ChVector<> shoe_Ixx(0.22/4.0, 0.25/4.0, 0.04/4.0);  // 0.22, 0.25, 0.04
   m_chain = ChSharedPtr<TrackChain>(new TrackChain("chain",
-    shoe_mass,
-    shoe_Ixx,
     VisualizationType::COMPOUNDPRIMITIVES,
-    CollisionType::PRIMITIVES) );
+    CollisionType::PRIMITIVES,
+    0,
+    shoe_mass,
+    shoe_Ixx) );
 
   // create the powertrain, connect transmission shaft directly to gear shaft
   m_ptrain = ChSharedPtr<TrackPowertrain>(new TrackPowertrain("powertrain ") );
@@ -134,11 +137,12 @@ TrackSoilBin::TrackSoilBin(const std::string& name,
   {
     // for now, just create 1 more idler
     m_idlers[1] = ChSharedPtr<IdlerSimple>(new IdlerSimple("idler 2",
-    idler_mass,
-    idler_Ixx,
     VisualizationType::MESH,
     // VisualizationType::PRIMITIVES,
-    CollisionType::PRIMITIVES) );
+    CollisionType::PRIMITIVES,
+    0,
+    idler_mass,
+    idler_Ixx) );
   }
 }
 

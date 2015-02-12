@@ -37,23 +37,18 @@ class CH_SUBSYS_API IdlerSimple : public ChShared
 friend class TrackSystem;
 public:
 
-  /// chain_idx allows the right idler to be colored green
+  /// constructor, where only the body name must be specified.
+  //  default mass, inertia, tensioner spring/damping constants for M113 APC
   IdlerSimple(const std::string& name,
     VisualizationType vis = VisualizationType::PRIMITIVES,
     CollisionType collide = CollisionType::PRIMITIVES,
-    size_t chain_idx = 0,
-    double springK = 200000,
-    double springC = 10000);
-
-  /// constructor to override default mass, inertia
-  IdlerSimple(const std::string& name,
-    double idler_mass,
-    const ChVector<>& idler_Ixx,
-    VisualizationType vis = VisualizationType::PRIMITIVES,
-    CollisionType collide = CollisionType::PRIMITIVES,
-    size_t chain_idx = 0,
-    double springK = 200000,
-    double springC = 10000);
+    size_t chainSys_idx = 0,  ///< what chain system is this idler associated with?
+    double mass = 429.6,
+    const ChVector<>& Ixx = ChVector<>(12.55, 12.55, 14.7),
+    double tensionerK = 200000, ///< idler tensioner spring coef. [N/m]
+    double tensionerC = 10000,  ///< idler tensioner damper coef. [N-s/m]
+    double springFreeLen = 1.0  ///< idler tensioner spring free length [m]
+    );
 
   ~IdlerSimple();
 
@@ -72,12 +67,12 @@ public:
   void SaveConstraintViolations(std::stringstream& ss);
 
   /// write headers for the output data file to the input ostream
-  const std::string& getFileHeader_ConstraintViolations(size_t idx);
+  const std::string getFileHeader_ConstraintViolations(size_t idx);
 
 
   // Accessors
-  double getSpringCoefficient() const { return m_springK; }
-  double getDampingCoefficient() const { return m_springC; }
+  double getSpringCoefficient() const { return m_tensionerK; }
+  double getDampingCoefficient() const { return m_tensionerC; }
   double getSpringRestLength() const { return m_springRestLength; }
   ChSharedPtr<ChBody> GetBody() { return m_idler; }
   double GetRadius() { return m_radius; }
@@ -94,7 +89,7 @@ private:
                             double mu_roll = 0,
                             double mu_spin = 0);
 
-    // private functions
+  // private functions
   const std::string& getMeshName() const { return m_meshName; }
   const std::string& getMeshFile() const { return m_meshFile; }
   
@@ -102,21 +97,24 @@ private:
   ChSharedPtr<ChBody> m_idler;  ///< handle to idler body
   ChSharedPtr<ChLinkLockRevolutePrismatic> m_idler_joint; ///< connetion to chassis
   ChSharedPtr<ChLinkSpring> m_shock;  ///< handle to spring-damper;
-  const double m_springK;  ///< shock linear spring coefficient
-  const double m_springC;  ///< shock linear damping coefficient
+  double m_tensionerK;  ///< shock linear spring coefficient
+  double m_tensionerC;  ///< shock linear damping coefficient
   // ChSpringForceCallback* m_shockCB;   ///< shock callback function
   // ChSpringForceCallback* m_springCB;  ///< spring callback function
   double m_springRestLength; ///< shock rest length
 
   VisualizationType m_vis;
   CollisionType m_collide;
+  const size_t m_chainSys_idx; ///< if there are multiple chain systems 
+  // (e.g., on the M113, the subsystem knows which it is a part of for collision family purposes)
+  
+  double m_mass; 
+  ChVector<> m_inertia; ///< z-axis of rotation
 
   const std::string m_meshName;
   const std::string m_meshFile;
 
   // static variables
-  static const double m_mass;
-  static const ChVector<> m_inertia;
   static const double m_width;
   static const double m_widthGap; // // inner distance between cydliners
   static const double m_radius;

@@ -28,48 +28,28 @@
 #include "assets/ChTriangleMeshShape.h"
 #include "assets/ChTexture.h"
 
+#include "utils/ChUtilsInputOutput.h"
+#include "utils/ChUtilsData.h"
+
 // collision mesh
 #include "geometry/ChCTriangleMeshSoup.h"
 
 namespace chrono {
 
 
-ChTrackVehicle::ChTrackVehicle()
-: m_ownsSystem(true),
-  m_stepsize(1e-3),
-  m_num_engines(0),
-  m_vis(VisualizationType::NONE),
-  m_collide(CollisionType::NONE),
-  m_save_log_to_file(false), // save the DebugLog() info to file? default false
-  m_log_what_to_file(0),     // set this in Setup_log_to_file(), if writing to file
-  m_log_file_exists(false), // written the headers for log file yet?
-  m_log_what_to_console(0)  // pre-set what to write to console when calling 
-{
-  m_system = new ChSystem;
-
-  m_system->Set_G_acc(ChVector<>(0, -9.81, 0));
-
-  // Integration and Solver settings
-  m_system->SetLcpSolverType(ChSystem::LCP_ITERATIVE_SOR);
-  m_system->SetIterLCPmaxItersSpeed(150);
-  m_system->SetIterLCPmaxItersStab(150);
-  m_system->SetMaxPenetrationRecoverySpeed(1.5);
-  m_system->SetMinBounceSpeed(0.5);
-  // m_system->SetIterLCPomega(0.8);
-  // m_system->SetIterLCPsharpnessLambda(0.9);
-
-
-}
-
-ChTrackVehicle::ChTrackVehicle(double step_size,
+ChTrackVehicle::ChTrackVehicle(VisualizationType vis,
+                               CollisionType collide,
+                               double mass,
+                               const ChVector<>& Ixx,
                                size_t num_engines,
-                               VisualizationType vis,
-                               CollisionType collide)
+                               double step_size)
 : m_ownsSystem(true),
-  m_stepsize(step_size),
-  m_num_engines(num_engines),
   m_vis(vis),
   m_collide(collide),
+  m_mass(mass),
+  m_inertia(Ixx),
+  m_num_engines(num_engines),
+  m_stepsize(step_size),
   m_save_log_to_file(false), // save the DebugLog() info to file? default false
   m_log_what_to_file(0),     // set this in Setup_log_to_file(), if writing to file
   m_log_file_exists(false), // written the headers for log file yet?
@@ -84,45 +64,43 @@ ChTrackVehicle::ChTrackVehicle(double step_size,
   m_system->SetIterLCPmaxItersSpeed(150);
   m_system->SetIterLCPmaxItersStab(150);
   m_system->SetMaxPenetrationRecoverySpeed(1.5);
-  m_system->SetMinBounceSpeed(0.5);
+  m_system->SetMinBounceSpeed(1);
   // m_system->SetIterLCPomega(0.8);
   // m_system->SetIterLCPsharpnessLambda(0.9);
 
+  // init. any other variables with a default value
+  m_meshName = "meshName";
+  m_meshFile = utils::GetModelDataFile("M113/Chassis_XforwardYup.obj");
+  m_chassisBoxSize = ChVector<>(4.0, 1.2, 1.5); // full length, height, width of chassis box
 
 }
 
 // system already exists, create vehicle with specified input
 ChTrackVehicle::ChTrackVehicle(ChSystem* system,
-                               double step_size,
-                               size_t num_engines,
                                VisualizationType vis,
-                               CollisionType collide)
-: m_ownsSystem(false),
+                               CollisionType collide,
+                               double mass,
+                               const ChVector<>& Ixx,
+                               size_t num_engines
+): m_ownsSystem(false),
   m_system(system),
-  m_stepsize(step_size),
-  m_num_engines(num_engines),
   m_vis(vis),
   m_collide(collide),
+  m_mass(mass),
+  m_inertia(Ixx),
+  m_num_engines(num_engines),
+  m_stepsize(system->GetStep()),
   m_save_log_to_file(false), // save the DebugLog() info to file? default false
   m_log_what_to_file(0),     // set this in Setup_log_to_file(), if writing to file
   m_log_file_exists(false), // written the headers for log file yet?
   m_log_what_to_console(0)  // pre-set what to write to console when calling 
 {
-}
+  // don't worry about solver settings, other system will already handle that.
 
-// system already exists, create default vehicle
-ChTrackVehicle::ChTrackVehicle(ChSystem* system)
-: m_system(system),
-  m_ownsSystem(false),
-  m_stepsize(1e-3),
-  m_num_engines(0),
-  m_vis(VisualizationType::NONE),
-  m_collide(CollisionType::NONE),
-  m_save_log_to_file(false), // save the DebugLog() info to file? default false
-  m_log_what_to_file(0),     // set this in Setup_log_to_file(), if writing to file
-  m_log_file_exists(false), // written the headers for log file yet?
-  m_log_what_to_console(0)  // pre-set what to write to console when calling 
-{
+  // init. any other variables with a default value
+  m_meshName = "meshName";
+  m_meshFile = utils::GetModelDataFile("M113/Chassis_XforwardYup.obj");
+  m_chassisBoxSize = ChVector<>(4.0, 1.2, 1.5); // full length, height, width of chassis box
 }
 
 

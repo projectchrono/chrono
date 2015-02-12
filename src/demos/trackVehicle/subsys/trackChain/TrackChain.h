@@ -53,17 +53,14 @@ private:
 class CH_SUBSYS_API TrackChain : public ChShared
 {
 public:
-
-  TrackChain(const std::string& name, 
-    VisualizationType vis = VisualizationType::PRIMITIVES,
-    CollisionType collide = CollisionType::PRIMITIVES);
   
-  /// constructor to override static shoe mass/inertia variables.
+  /// constructor, default values are  for an M113 model
   TrackChain(const std::string& name, 
-    double shoe_mass,
-    const ChVector<>& shoe_inertia,
     VisualizationType vis = VisualizationType::PRIMITIVES,
-    CollisionType collide = CollisionType::PRIMITIVES);
+    CollisionType collide = CollisionType::PRIMITIVES,
+    size_t chainSys_idx = 0,
+    double shoe_mass = 18.02,
+    const ChVector<>& shoeIxx = ChVector<>(0.22, 0.25, 0.04) );
 
   ~TrackChain() {}
 
@@ -169,22 +166,31 @@ private:
   // private variables
   std::vector<ChSharedPtr<ChBody>> m_shoes;  ///< handle to track shoes
   // std::vector<ChSharedPtr<ChBodyAuxRef>> m_shoes;  ///< handle to track shoes
+  size_t m_numShoes;      ///< number of track shoe bodies added to m_shoes;
+
   std::vector<ChSharedPtr<ChLinkLockRevolute>> m_pins; ///< handles to inter-shoe pin joints
   std::vector<ChLinkForce*> m_pin_friction; ///< functions to apply inter-shoe pin friction
   double m_damping_C;        ///< shoe pin damping coef.
   bool m_use_custom_damper;  ///< use a nonlinear damping coefficient function?
   std::vector<ChSharedPtr<ChFunction_CustomDamper>> m_custom_dampers;
  
-  size_t m_numShoes;      ///< number of track shoe bodies added to m_shoes;
-  bool m_aligned_with_seg;  ///< when building track chain, was last shoe created exactly aligned with the envelope?
-
+  double m_mass;         // mass per shoe
+  ChVector<> m_inertia;  // inertia of a shoe
 
   VisualizationType m_vis;    // visual asset geometry type
   CollisionType m_collide;    // collision geometry type
+  const size_t m_chainSys_idx; ///< if there are multiple chain systems 
+  // (e.g., on the M113, the subsystem knows which it is a part of for collision family purposes)
   
+
+  const std::string m_collisionFile;	// collision geometry filename
+  const std::string m_meshFile;  // visual geometry mesh filename
+  const std::string m_meshName;  // name of the mesh
+  
+  // helper variable
+  bool m_aligned_with_seg;  ///< when building track chain, was last shoe created exactly aligned with the envelope?
+
   //static values 
-  static const double m_mass;         // mass per shoe
-  static const ChVector<> m_inertia;  // inertia of a shoe
   static const ChVector<> m_COM;      // location of COM, relative to REF (e.g, geomtric center)
 
   static const ChVector<> m_shoe_box;
@@ -198,10 +204,6 @@ private:
   static const double m_pin_dist;		  // linear distance between a shoe's two pin joint center
   static const double m_pin_radius;
   static const double m_pin_COG_offset;
-
-  static const std::string m_collisionFile;	// collision geometry filename
-  static const std::string m_meshFile;  // visual geometry mesh filename
-  static const std::string m_meshName;  // name of the mesh
 
 };
 
