@@ -85,7 +85,7 @@ DriveChain::DriveChain(const std::string& name,
   
   // --------------------------------------------------------------------------
   // BUILD THE SUBSYSTEMS
-  // drive gear, inherits drivechain's visual and collision types
+  // drive gear, inherits drivechain's visual and collision types, mass, inertia, etc.
   m_gear = ChSharedPtr<DriveGear>(new DriveGear("drive gear",
     m_vis,
     m_collide,
@@ -93,7 +93,7 @@ DriveChain::DriveChain(const std::string& name,
     m_mass,
     m_inertia) );
 
- // idlers, if m ore than 1
+ // idlers
   m_idlers.clear();
   m_idlers.resize(m_num_idlers);
   double idler_mass = 100.0; // 429.6
@@ -132,10 +132,11 @@ DriveChain::DriveChain(const std::string& name,
   {
     double roller_r = m_rollers[j]->GetRadius();
     double roller_w = m_rollers[j]->GetWidth();
-    // assume constant density
+    // assume constant density cylinder
     ChVector<> roller_Ixx = roller_mass * ChVector<>((3.0*roller_r*roller_r + roller_w*roller_w)/12.0,
       (3.0*roller_r*roller_r + roller_w*roller_w)/12.0,
       roller_r*roller_r/2.0);
+    GetLog() << " I just manually calculated inertia, uh-oh \n\n Ixx = " << roller_Ixx << "\n";
     m_rollers[j] = ChSharedPtr<SupportRoller>(new SupportRoller("support roller " +std::to_string(j),
       VisualizationType::PRIMITIVES,
       CollisionType::PRIMITIVES,
@@ -542,7 +543,7 @@ void DriveChain::create_fileHeader(int what)
   if(what & DBG_CONSTRAINTS)
   {
       // in the same order as listed in the header
-    std::string out = m_gear->getFileHeader_ConstraintViolations();
+    std::string out = m_gear->getFileHeader_ConstraintViolations(0);
     ss << out;
 
     for(int id = 0; id < m_num_idlers; id++)
@@ -563,6 +564,7 @@ void DriveChain::create_fileHeader(int what)
 
   // write to file, go to next line in file in prep. for next step.
   ofile << ss.str().c_str();
+  GetLog() << "wrote headers: \n" << ss.str().c_str() << "\n\n";
   ofile << "\n";
 }
 

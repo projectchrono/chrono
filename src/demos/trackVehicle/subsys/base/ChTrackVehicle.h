@@ -73,7 +73,7 @@ public:
 
   // accessors
   /// Get a pointer to the Chrono ChSystem.
-  ChSystem* GetSystem() { return m_system; }
+  ChSystem* GetSystem() const { return m_system; }
 
   /// Get a handle to the chassis body.
   ChSharedPtr<ChBodyAuxRef> GetChassis() const { return m_chassis; }
@@ -126,7 +126,7 @@ public:
   virtual void SetShoePinDamping(double damping) {}
 
   /// return the contant part of the damping (if any)
-  virtual double GetShoePinDamping() {return 0;}
+  virtual double GetShoePinDamping() const {return 0;}
   
   // Log data, constraint violations, etc. to console (ChLog), or a file (
 

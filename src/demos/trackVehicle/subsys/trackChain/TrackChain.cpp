@@ -1192,7 +1192,7 @@ bool TrackChain::check_shoe_aligned(const ChVector<>& pin2_pos_abs,
   return out;
 }
 
-ChSharedPtr<ChBody> TrackChain::GetShoeBody(size_t track_idx)
+ChSharedPtr<ChBody> TrackChain::GetShoeBody(size_t track_idx) const
 // ChSharedPtr<ChBodyAuxRef> TrackChain::GetShoeBody(size_t track_idx)
 {
   assert( track_idx < m_numShoes);
@@ -1200,14 +1200,14 @@ ChSharedPtr<ChBody> TrackChain::GetShoeBody(size_t track_idx)
 }
 
 
-const ChVector<>& TrackChain::GetPinReactForce(size_t pin_idx)
+const ChVector<>& TrackChain::GetPinReactForce(size_t pin_idx) const
 {
   assert( pin_idx < m_pins.size() );
   ChVector<> tension( m_pins[pin_idx]->Get_react_force() );
   return tension;
 }
 
-const ChVector<>& TrackChain::GetPinReactTorque(size_t pin_idx)
+const ChVector<>& TrackChain::GetPinReactTorque(size_t pin_idx) const
 {
   assert( pin_idx < m_pins.size() );
   ChVector<> tension( m_pins[pin_idx]->Get_react_torque() );

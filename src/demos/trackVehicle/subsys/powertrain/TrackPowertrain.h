@@ -64,7 +64,7 @@ public:
 				  
   // ------- Accessors
   /// return current drive mode.
-  DriveMode GetDriveMode() { return m_drive_mode; }
+  DriveMode GetDriveMode() const { return m_drive_mode; }
 				  
   /// Return the current engine speed.
   double GetMotorSpeed() const { return  m_crankshaft->GetPos_dt(); }
@@ -108,7 +108,7 @@ public:
   void SetGearShiftLatency(double ml) {m_gear_shift_latency= ml;}
 
   /// Use this to get the gear shift latency, in seconds.
-  double GetGearShiftLatency(double ml) {return m_gear_shift_latency;}
+  double GetGearShiftLatency(double ml) const {return m_gear_shift_latency;}
 
   /// Update the state of this powertrain system at the current time.
   /// The powertrain system is provided the current driver throttle input, a

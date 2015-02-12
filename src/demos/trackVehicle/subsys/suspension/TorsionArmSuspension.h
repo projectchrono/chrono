@@ -78,13 +78,13 @@ public:
   double getSpringCoefficient() const { return m_springK; }
   double getDampingCoefficient() const { return m_springC; }
 
-  ChSharedPtr<ChBody> GetArmBody() { return m_arm; }
-  ChSharedPtr<ChBody> GetWheelBody() { return m_wheel; }
+  ChSharedPtr<ChBody> GetArmBody() const { return m_arm; }
+  ChSharedPtr<ChBody> GetWheelBody() const { return m_wheel; }
 
   /// return the distance to the wheel, in the suspension local coords
-  const ChVector<> GetWheelPosRel() { return m_wheel_PosRel; }
+  const ChVector<> GetWheelPosRel() const { return m_wheel_PosRel; }
 
-  double GetWheelRadius() { return m_wheelRadius; }
+  double GetWheelRadius() const { return m_wheelRadius; }
 
   // log constraint violations of any bilateral constraints
   void LogConstraintViolations();

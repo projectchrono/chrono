@@ -57,7 +57,7 @@ public:
 
   ChSharedPtr<ChShaft> GetAxle() const { return m_axle; }
 
-  double GetRadius() { return m_radius; }
+  double GetRadius() const { return m_radius; }
 
   // log constraint violations to console
   void LogConstraintViolations();
@@ -67,7 +67,7 @@ public:
   
   /// write headers for the output data file to the input ostream
   //  Gear Constraint Violation, (x,y,z,rx,ry)
-  const std::string getFileHeader_ConstraintViolations() {return ",GCVx,GCVy,GCVz,GCVrx,GCVry";}
+  const std::string getFileHeader_ConstraintViolations(size_t idx) const;
 
 private:
   // private functions

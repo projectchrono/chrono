@@ -83,7 +83,7 @@ public:
 
   // ---------------------------------------------------------------------------
   // Accessors
-  virtual double GetShoePinDamping() {return m_chain->Get_pin_damping(); }
+  virtual double GetShoePinDamping() const {return m_chain->Get_pin_damping(); }
 
   /// Get the angular speed of the driveshaft.
   virtual double GetDriveshaftSpeed(size_t idx) const { return m_gear->GetAxle()->GetPos_dt(); }

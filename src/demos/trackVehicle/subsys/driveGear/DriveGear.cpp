@@ -390,5 +390,12 @@ void DriveGear::SaveConstraintViolations(std::stringstream& ss)
 
 }
 
+const std::string DriveGear::getFileHeader_ConstraintViolations(size_t idx) const
+{
+  // gear is a revolute joint, z-rot DOF only
+  std::stringstream ss;
+  ss << ",G" <<idx<< "CVx,G" <<idx<< "CVy,G" <<idx<< "CVz,G" <<idx<< "CVrx,G" <<idx<< "CVry";
+  return ss.str();
+}
 
 } // end namespace chrono

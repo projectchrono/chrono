@@ -576,7 +576,7 @@ void LoopChain::create_fileHeader(int what)
   if(what & DBG_CONSTRAINTS)
   {
       // in the same order as listed in the header
-    ss << m_gear->getFileHeader_ConstraintViolations();
+    ss << m_gear->getFileHeader_ConstraintViolations(0);
 
     for(int id = 0; id < m_num_idlers; id++)
     {

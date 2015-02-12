@@ -67,15 +67,15 @@ public:
   void SaveConstraintViolations(std::stringstream& ss);
 
   /// write headers for the output data file to the input ostream
-  const std::string getFileHeader_ConstraintViolations(size_t idx);
+  const std::string getFileHeader_ConstraintViolations(size_t idx) const;
 
 
   // Accessors
   double getSpringCoefficient() const { return m_tensionerK; }
   double getDampingCoefficient() const { return m_tensionerC; }
   double getSpringRestLength() const { return m_springRestLength; }
-  ChSharedPtr<ChBody> GetBody() { return m_idler; }
-  double GetRadius() { return m_radius; }
+  ChSharedPtr<ChBody> GetBody() const { return m_idler; }
+  double GetRadius() const { return m_radius; }
 
   double GetSpringForce() const { return m_shock->Get_SpringReact();}
 

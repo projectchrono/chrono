@@ -77,27 +77,26 @@ public:
     );
   
   /// handle to the shoe body
-  ChSharedPtr<ChBody> GetShoeBody(size_t track_idx); 
+  ChSharedPtr<ChBody> GetShoeBody(size_t track_idx) const; 
   // ChSharedPtr<ChBodyAuxRef> GetShoeBody(size_t track_idx); 
 
   /// reaction force on pin constraint
-  const ChVector<>& GetPinReactForce(size_t pin_idx);
+  const ChVector<>& GetPinReactForce(size_t pin_idx) const;
 
   /// reaction torque on pin constraint
-  const ChVector<>& TrackChain::GetPinReactTorque(size_t pin_idx);
+  const ChVector<>& TrackChain::GetPinReactTorque(size_t pin_idx) const;
 
   /// turn on damping friction in the shoe pins
   void Set_pin_friction(double damping_C, ///< damping coefficient for the rotational damper [N-m-s]
     bool use_custom_damper= false,  ///< use a non-constant damper modulus
     double damping_C_nonlin = 0);   ///< nonlinear portion of damper, used if use_custom_damper = true
 
-
   // accessors
   /// number of track shoes created/initialized
-  double Get_numShoes() { return m_numShoes; }
+  double Get_numShoes() const { return m_numShoes; }
 
   /// damping coef. in the pin revolute constraint
-  double Get_pin_damping() { return m_damping_C;}
+  double Get_pin_damping() const { return m_damping_C;}
 
 private:
 
