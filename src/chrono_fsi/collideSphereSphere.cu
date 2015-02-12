@@ -260,6 +260,30 @@ void DensityReinitialization(
 	m_dCellStart.clear();
 	m_dCellEnd.clear();
 }
+////##############################################################################################################################################
+//void InitSystem(
+//		SimParams paramsH,
+//		NumberOfObjects numObjects) {
+//	//****************************** bin size adjustement and contact detection stuff *****************************
+//	int3 SIDE = I3(int((paramsH.cMax.x - paramsH.cMin.x) / paramsH.binSize0 + .1), int((paramsH.cMax.y - paramsH.cMin.y) / paramsH.binSize0 + .1),
+//			int((paramsH.cMax.z - paramsH.cMin.z) / paramsH.binSize0 + .1));
+//	real_ mBinSize = paramsH.binSize0; //Best solution in that case may be to change cMax or cMin such that periodic sides be a multiple of binSize
+//
+//	printf("SIDE: %d, %d, %d\n", SIDE.x, SIDE.y, SIDE.z);
+//	//**********************************************************************************************************
+//	paramsH.gridSize = SIDE;
+//	//paramsH.numCells = SIDE.x * SIDE.y * SIDE.z;
+//	paramsH.worldOrigin = paramsH.cMin;
+//	paramsH.cellSize = R3(mBinSize, mBinSize, mBinSize);
+//	printf("boxDims: %f, %f, %f\n", paramsH.boxDims.x, paramsH.boxDims.y, paramsH.boxDims.z);
+//
+//	setParameters(&paramsH, &numObjects);// sets paramsD in SDKCollisionSystem
+//	cutilSafeCall( cudaMemcpyToSymbolAsync(paramsD, &paramsH, sizeof(SimParams))); 	//sets paramsD for this file
+//	cutilSafeCall( cudaMemcpyToSymbolAsync(numObjectsD, &numObjects, sizeof(NumberOfObjects)));
+//
+//
+//
+//}
 
 //##############################################################################################################################################
 // the main function, which updates the particles and implements BC
@@ -271,7 +295,7 @@ void cudaCollisions(
 		const thrust::host_vector<int3> & referenceArray,
 
 		SimParams paramsH,
-		NumberOfObjects & numObjects) {
+		NumberOfObjects numObjects) {
 	//****************************** bin size adjustement and contact detection stuff *****************************
 	int3 SIDE = I3(int((paramsH.cMax.x - paramsH.cMin.x) / paramsH.binSize0 + .1), int((paramsH.cMax.y - paramsH.cMin.y) / paramsH.binSize0 + .1),
 			int((paramsH.cMax.z - paramsH.cMin.z) / paramsH.binSize0 + .1));

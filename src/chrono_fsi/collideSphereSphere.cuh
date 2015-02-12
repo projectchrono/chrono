@@ -11,6 +11,6 @@ void cudaCollisions(
 		const thrust::host_vector<int3> & referenceArray,
 
 		SimParams paramsH,
-		NumberOfObjects & numObjects);
+		NumberOfObjects numObjects);
 
 #endif

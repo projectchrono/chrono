@@ -165,6 +165,88 @@ int2 CreateFluidMarkers(thrust::host_vector<real3> & mPosRad,
 	return I2(num_FluidMarkers, num_BoundaryMarkers);
 }
 //&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
+
+void SetupParamsH(SimParams & paramsH) {
+	paramsH.sizeScale = 1; //don't change it.
+	paramsH.HSML = 0.2;
+	paramsH.MULT_INITSPACE = 1.0;
+		paramsH.NUM_BOUNDARY_LAYERS = 3;
+		paramsH.toleranceZone = paramsH.NUM_BOUNDARY_LAYERS * (paramsH.HSML * paramsH.MULT_INITSPACE);
+	paramsH.BASEPRES = 0;//10;
+		paramsH.LARGE_PRES = 10000;//paramsH.BASEPRES;//10000;
+		paramsH.deltaPress; //** modified below
+		paramsH.multViscosity_FSI = 5.0;
+	paramsH.gravity = R3(0, -9.81, 0);//R3(0);//R3(0, -9.81, 0);
+	paramsH.bodyForce3 = R3(0,0,0);//R4(3.2e-3,0,0,0);// R4(0);;// /*Re = 100 */ //R4(3.2e-4, 0, 0, 0);/*Re = 100 */
+		paramsH.rho0 = 1000;
+		paramsH.mu0 = .001;
+	paramsH.v_Max = 10;//50e-3;//18e-3;//1.5;//2e-1; /*0.2 for Re = 100 */ //2e-3;
+		paramsH.EPS_XSPH = .5f;
+	paramsH.dT = 0.0001;//0.1;//.001; //sph alone: .01 for Re 10;
+		paramsH.tFinal = 1000;//20 * paramsH.dT; //400
+		paramsH.timePause = 0;//.0001 * paramsH.tFinal;//.0001 * paramsH.tFinal; 	// time before applying any bodyforce. Particles move only due to initialization. keep it as small as possible. the time step will be 1/10 * dT.
+		paramsH.kdT = 5; // I don't know what is kdT
+		paramsH.gammaBB = 0.5;
+	// ************
+		paramsH.binSize0; // will be changed
+		paramsH.rigidRadius; //will be changed
+	paramsH.densityReinit = 0; //0: no re-initialization, 1: with initialization
+	//****************************************************************************************
+	//*** initialize straight channel
+	paramsH.straightChannelBoundaryMin = R3(0, 0, 0); //3D channel
+	paramsH.straightChannelBoundaryMax = R3(3, 2, 3) * paramsH.sizeScale;
+	//********************************************************************************************************
+	//**  reminiscent of the past******************************************************************************
+	paramsH.cMin = R3(-paramsH.toleranceZone, -paramsH.toleranceZone, -paramsH.toleranceZone);						// 3D channel
+	paramsH.cMax = R3( 3  + paramsH.toleranceZone, 2 + paramsH.toleranceZone,  3 + paramsH.toleranceZone);
+	//****************************************************************************************
+	//printf("a1  paramsH.cMax.x, y, z %f %f %f,  binSize %f\n", paramsH.cMax.x, paramsH.cMax.y, paramsH.cMax.z, 2 * paramsH.HSML);
+	int3 side0 = I3(
+			floor((paramsH.cMax.x - paramsH.cMin.x) / (2 * paramsH.HSML)),
+			floor((paramsH.cMax.y - paramsH.cMin.y) / (2 * paramsH.HSML)),
+			floor((paramsH.cMax.z - paramsH.cMin.z) / (2 * paramsH.HSML)));
+	real3 binSize3 = R3((paramsH.cMax.x - paramsH.cMin.x) / side0.x,
+			(paramsH.cMax.y - paramsH.cMin.y) / side0.y,
+			(paramsH.cMax.z - paramsH.cMin.z) / side0.z);
+	paramsH.binSize0 = (binSize3.x > binSize3.y) ? binSize3.x : binSize3.y;
+//	paramsH.binSize0 = (paramsH.binSize0 > binSize3.z) ? paramsH.binSize0 : binSize3.z;
+	paramsH.binSize0 = binSize3.x; //for effect of distance. Periodic BC in x direction. we do not care about paramsH.cMax y and z.
+	paramsH.cMax = paramsH.cMin + paramsH.binSize0 * R3(side0);
+	paramsH.boxDims = paramsH.cMax - paramsH.cMin;
+	//************************** modify pressure ***************************
+//		paramsH.deltaPress = paramsH.rho0 * paramsH.boxDims * paramsH.bodyForce3;  //did not work as I expected
+	paramsH.deltaPress = 0.9 * paramsH.boxDims * paramsH.bodyForce3;
+
+
+	//***** print numbers
+	printf("********************\n paramsH.sizeScale: %f\n paramsH.HSML: %f\n paramsH.bodyForce3: %f %f %f\n paramsH.gravity: %f %f %f\n paramsH.rho0: %e\n paramsH.mu0: %f\n paramsH.v_Max: %f\n paramsH.dT: %e\n paramsH.tFinal: %f\n  paramsH.timePause: %f\n  paramsH.timePauseRigidFlex: %f\n paramsH.densityReinit: %d\n",
+			paramsH.sizeScale, paramsH.HSML, paramsH.bodyForce3.x, paramsH.bodyForce3.y, paramsH.bodyForce3.z, paramsH.gravity.x, paramsH.gravity.y, paramsH.gravity.z,
+			paramsH.rho0, paramsH.mu0, paramsH.v_Max, paramsH.dT, paramsH.tFinal, paramsH.timePause, paramsH.timePauseRigidFlex, paramsH.densityReinit);
+	printf(" paramsH.cMin: %f %f %f, paramsH.cMax: %f %f %f\n binSize: %f\n",
+			paramsH.cMin.x, paramsH.cMin.y, paramsH.cMin.z, paramsH.cMax.x,
+			paramsH.cMax.y, paramsH.cMax.z, paramsH.binSize0);
+	printf(" paramsH.MULT_INITSPACE: %f\n", paramsH.MULT_INITSPACE);
+	printf(" paramsH.NUM_BOUNDARY_LAYERS: %d\n paramsH.toleranceZone: %f\n paramsH.NUM_BCE_LAYERS: %d\n paramsH.solidSurfaceAdjust: %f\n", paramsH.NUM_BOUNDARY_LAYERS, paramsH.toleranceZone, paramsH.NUM_BCE_LAYERS, paramsH.solidSurfaceAdjust);
+	printf(" paramsH.BASEPRES: %f\n paramsH.LARGE_PRES: %f\n paramsH.deltaPress: %f %f %f\n", paramsH.BASEPRES, paramsH.LARGE_PRES, paramsH.deltaPress.x, paramsH.deltaPress.y, paramsH.deltaPress.z);
+	printf(" paramsH.nPeriod: %d\n paramsH.EPS_XSPH: %f\n paramsH.multViscosity_FSI: %f\n paramsH.rigidRadius: %f\n", paramsH.nPeriod, paramsH.EPS_XSPH, paramsH.multViscosity_FSI, paramsH.rigidRadius);
+}
+//@@@@@@@@@@@@@@@@@@@@@@@@@ set number of objects once for all @@@@@@@@@@@@@@@@@@@@@@22
+void SetNumObjects(NumberOfObjects & numObjects, const thrust::host_vector<int3> & referenceArray, int numAllMarkers) {
+	numObjects.numFluidMarkers = (referenceArray[0]).y - (referenceArray[0]).x;
+	numObjects.numBoundaryMarkers = (referenceArray[1]).y - (referenceArray[1]).x;
+	numObjects.numAllMarkers = numAllMarkers;
+
+	numObjects.numRigidBodies = 0;
+	numObjects.numRigid_SphMarkers = 0;
+	numObjects.numFlex_SphMarkers = 0;
+	printf("********************\n numFlexBodies: %d\n numRigidBodies: %d\n numFluidMarkers: %d\n "
+			"numBoundaryMarkers: %d\n numRigid_SphMarkers: %d\n numFlex_SphMarkers: %d\n numAllMarkers: %d\n",
+			numObjects.numFlexBodies, numObjects.numRigidBodies, numObjects.numFluidMarkers, numObjects.numBoundaryMarkers,
+			numObjects.numRigid_SphMarkers, numObjects.numFlex_SphMarkers, numObjects.numAllMarkers);
+	printf("********************\n");
+}
+
+//&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
 int main() {
 	//****************************************************************************************
 	time_t rawtime;
@@ -183,82 +265,27 @@ int main() {
 	thrust::host_vector<real4> mRhoPresMu;
 	thrust::host_vector<uint> bodyIndex;
 
+	thrust::host_vector<real3> mPosRadBoundary; //do not set the size here since you are using push back later
+	thrust::host_vector<real4> mVelMasBoundary;
+	thrust::host_vector<real4> mRhoPresMuBoundary;
+
+	SetupParamsH(paramsH);
+
 	NumberOfObjects numObjects;
 	//** default num markers
 	int numAllMarkers = 0;
 
-		paramsH.sizeScale = 1; //don't change it.
-		paramsH.HSML = 0.2;
-		paramsH.MULT_INITSPACE = 1.0;
-			paramsH.NUM_BOUNDARY_LAYERS = 3;
-			paramsH.toleranceZone = paramsH.NUM_BOUNDARY_LAYERS * (paramsH.HSML * paramsH.MULT_INITSPACE);
-		paramsH.BASEPRES = 0;//10;
-			paramsH.LARGE_PRES = 10000;//paramsH.BASEPRES;//10000;
-			paramsH.deltaPress; //** modified below
-			paramsH.multViscosity_FSI = 5.0;
-		paramsH.gravity = R3(0, -9.81, 0);//R3(0);//R3(0, -9.81, 0);
-		paramsH.bodyForce3 = R3(0,0,0);//R4(3.2e-3,0,0,0);// R4(0);;// /*Re = 100 */ //R4(3.2e-4, 0, 0, 0);/*Re = 100 */
-			paramsH.rho0 = 1000;
-			paramsH.mu0 = .001;
-		paramsH.v_Max = 10;//50e-3;//18e-3;//1.5;//2e-1; /*0.2 for Re = 100 */ //2e-3;
-			paramsH.EPS_XSPH = .5f;
-		paramsH.dT = 0.0001;//0.1;//.001; //sph alone: .01 for Re 10;
-			paramsH.tFinal = 1000;//20 * paramsH.dT; //400
-			paramsH.timePause = 0;//.0001 * paramsH.tFinal;//.0001 * paramsH.tFinal; 	// time before applying any bodyforce. Particles move only due to initialization. keep it as small as possible. the time step will be 1/10 * dT.
-			paramsH.kdT = 5; // I don't know what is kdT
-			paramsH.gammaBB = 0.5;
 
-		// ************
-			paramsH.binSize0; // will be changed
-			paramsH.rigidRadius; //will be changed
-		paramsH.densityReinit = 0; //0: no re-initialization, 1: with initialization
-
-		//****************************************************************************************
-		//*** initialize straight channel
-		paramsH.straightChannelBoundaryMin = R3(0, 0, 0); //3D channel
-		paramsH.straightChannelBoundaryMax = R3(3, 2, 3) * paramsH.sizeScale;
-		//********************************************************************************************************
-		//**  reminiscent of the past******************************************************************************
-		paramsH.cMin = R3(-paramsH.toleranceZone, -paramsH.toleranceZone, -paramsH.toleranceZone);						// 3D channel
-		paramsH.cMax = R3( 3  + paramsH.toleranceZone, 2 + paramsH.toleranceZone,  3 + paramsH.toleranceZone);
-
-		//****************************************************************************************
-		//printf("a1  paramsH.cMax.x, y, z %f %f %f,  binSize %f\n", paramsH.cMax.x, paramsH.cMax.y, paramsH.cMax.z, 2 * paramsH.HSML);
-		int3 side0 = I3(
-				floor((paramsH.cMax.x - paramsH.cMin.x) / (2 * paramsH.HSML)),
-				floor((paramsH.cMax.y - paramsH.cMin.y) / (2 * paramsH.HSML)),
-				floor((paramsH.cMax.z - paramsH.cMin.z) / (2 * paramsH.HSML)));
-		real3 binSize3 = R3((paramsH.cMax.x - paramsH.cMin.x) / side0.x,
-				(paramsH.cMax.y - paramsH.cMin.y) / side0.y,
-				(paramsH.cMax.z - paramsH.cMin.z) / side0.z);
-		paramsH.binSize0 = (binSize3.x > binSize3.y) ? binSize3.x : binSize3.y;
-	//	paramsH.binSize0 = (paramsH.binSize0 > binSize3.z) ? paramsH.binSize0 : binSize3.z;
-		paramsH.binSize0 = binSize3.x; //for effect of distance. Periodic BC in x direction. we do not care about paramsH.cMax y and z.
-		paramsH.cMax = paramsH.cMin + paramsH.binSize0 * R3(side0);
-		paramsH.boxDims = paramsH.cMax - paramsH.cMin;
-		//************************** modify pressure ***************************
-//		paramsH.deltaPress = paramsH.rho0 * paramsH.boxDims * paramsH.bodyForce3;  //did not work as I expected
-		paramsH.deltaPress = 0.9 * paramsH.boxDims * paramsH.bodyForce3;
-
-
-		printf("***** deltaP %f %f %f\n", paramsH.deltaPress.x, paramsH.deltaPress.y, paramsH.deltaPress.z);
 
 
 
 		//**********************************************************************
 		// initialize fluid particles
-
-		thrust::host_vector<real3> mPosRadBoundary; //do not set the size here since you are using push back later
-		thrust::host_vector<real4> mVelMasBoundary;
-		thrust::host_vector<real4> mRhoPresMuBoundary;
 		real_ sphMarkerMass; // To be initialized in CreateFluidMarkers, and used in other places
-
 		int2 num_fluidOrBoundaryMarkers = CreateFluidMarkers(mPosRad, mVelMas,
 				mRhoPresMu, mPosRadBoundary, mVelMasBoundary,
 				mRhoPresMuBoundary, sphMarkerMass);
-
 		referenceArray.push_back(I3(0, num_fluidOrBoundaryMarkers.x, -1)); //map fluid -1
-
 		numAllMarkers += num_fluidOrBoundaryMarkers.x;
 
 		mPosRad.resize(
@@ -268,7 +295,6 @@ int main() {
 		mRhoPresMu.resize(
 				num_fluidOrBoundaryMarkers.x + num_fluidOrBoundaryMarkers.y);
 		////boundary: type = 0
-		int num_BoundaryMarkers = 0;
 		//printf("size1 %d, %d , numpart %d, numFluid %d \n", mPosRadBoundary.end() - mPosRadBoundary.begin(), mPosRadBoundary.size(), num_fluidOrBoundaryMarkers.y, num_fluidOrBoundaryMarkers.x);
 		thrust::copy(mPosRadBoundary.begin(), mPosRadBoundary.end(),
 				mPosRad.begin() + num_fluidOrBoundaryMarkers.x);
@@ -280,46 +306,22 @@ int main() {
 		mVelMasBoundary.clear();
 		mRhoPresMuBoundary.clear();
 
-		referenceArray.push_back(
-				I3(numAllMarkers, numAllMarkers + num_fluidOrBoundaryMarkers.y,
-						0));
-		numAllMarkers += num_fluidOrBoundaryMarkers.y;
-
-		//@@@@@@@@@@@@@@@@@@@@@@@@@ set number of objects once for all @@@@@@@@@@@@@@@@@@@@@@22
-		numObjects.numFluidMarkers = (referenceArray[0]).y - (referenceArray[0]).x;
-		numObjects.numBoundaryMarkers = (referenceArray[1]).y - (referenceArray[1]).x;
-		numObjects.numAllMarkers = numAllMarkers;
-
 		bodyIndex.resize(numAllMarkers);
 		thrust::fill(bodyIndex.begin(), bodyIndex.end(), 1);
 		thrust::exclusive_scan(bodyIndex.begin(), bodyIndex.end(),
 				bodyIndex.begin());
 
-	//***** print numbers
-	printf("********************\n paramsH.sizeScale: %f\n paramsH.HSML: %f\n paramsH.bodyForce3: %f %f %f\n paramsH.gravity: %f %f %f\n paramsH.rho0: %e\n paramsH.mu0: %f\n paramsH.v_Max: %f\n paramsH.dT: %e\n paramsH.tFinal: %f\n  paramsH.timePause: %f\n  paramsH.timePauseRigidFlex: %f\n paramsH.densityReinit: %d\n",
-			paramsH.sizeScale, paramsH.HSML, paramsH.bodyForce3.x, paramsH.bodyForce3.y, paramsH.bodyForce3.z, paramsH.gravity.x, paramsH.gravity.y, paramsH.gravity.z,
-			paramsH.rho0, paramsH.mu0, paramsH.v_Max, paramsH.dT, paramsH.tFinal, paramsH.timePause, paramsH.timePauseRigidFlex, paramsH.densityReinit);
-	printf(" paramsH.cMin: %f %f %f, paramsH.cMax: %f %f %f\n binSize: %f\n",
-			paramsH.cMin.x, paramsH.cMin.y, paramsH.cMin.z, paramsH.cMax.x,
-			paramsH.cMax.y, paramsH.cMax.z, paramsH.binSize0);
-	printf(" paramsH.MULT_INITSPACE: %f\n", paramsH.MULT_INITSPACE);
+		referenceArray.push_back(
+				I3(numAllMarkers, numAllMarkers + num_fluidOrBoundaryMarkers.y,	0));
+		numAllMarkers += num_fluidOrBoundaryMarkers.y;
 
+		// set num objects
+		SetNumObjects(numObjects, referenceArray, numAllMarkers);
 
-
-	printf(" paramsH.NUM_BOUNDARY_LAYERS: %d\n paramsH.toleranceZone: %f\n paramsH.NUM_BCE_LAYERS: %d\n paramsH.solidSurfaceAdjust: %f\n", paramsH.NUM_BOUNDARY_LAYERS, paramsH.toleranceZone, paramsH.NUM_BCE_LAYERS, paramsH.solidSurfaceAdjust);
-	printf(" paramsH.BASEPRES: %f\n paramsH.LARGE_PRES: %f\n paramsH.deltaPress: %f %f %f\n", paramsH.BASEPRES, paramsH.LARGE_PRES, paramsH.deltaPress.x, paramsH.deltaPress.y, paramsH.deltaPress.z);
-	printf(" paramsH.nPeriod: %d\n paramsH.EPS_XSPH: %f\n paramsH.multViscosity_FSI: %f\n paramsH.rigidRadius: %f\n", paramsH.nPeriod, paramsH.EPS_XSPH, paramsH.multViscosity_FSI, paramsH.rigidRadius);
-
-	printf("********************\n numFlexBodies: %d\n numRigidBodies: %d\n numFluidMarkers: %d\n "
-			"numBoundaryMarkers: %d\n numRigid_SphMarkers: %d\n numFlex_SphMarkers: %d\n numAllMarkers: %d\n",
-			numObjects.numFlexBodies, numObjects.numRigidBodies, numObjects.numFluidMarkers, numObjects.numBoundaryMarkers,
-			numObjects.numRigid_SphMarkers, numObjects.numFlex_SphMarkers, numObjects.numAllMarkers);
-	printf("********************\n");
 	DOUBLEPRECISION ? printf("Double Precision\n") : printf("Single Precision\n");
 	printf("********************\n");
 
 	if (numObjects.numAllMarkers != 0) {
-
 		cudaCollisions(mPosRad, mVelMas, mRhoPresMu, bodyIndex, referenceArray,	paramsH, numObjects);
 	}
 	mPosRad.clear();
