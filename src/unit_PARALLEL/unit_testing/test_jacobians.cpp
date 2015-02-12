@@ -9,182 +9,357 @@
 // http://projectchrono.org/license-chrono.txt.
 //
 // =============================================================================
-// Authors: Hammad Mazhar
+// Author: Hammad Mazhar
 // =============================================================================
 //
-// ChronoParallel unit test for MPR collision detection
+// ChronoParallel unit test to compare solutions from different narrowphase
+// algorithms
+// The global reference frame has Z up.
+// All units SI (CGS, i.e., centimeter - gram - second)
+//
 // =============================================================================
-//not used but prevents compilation errors with cuda 7 RC
-#include <thrust/transform.h>
 
-#include <stdio.h>
-#include <vector>
-#include <cmath>
-#include "unit_testing.h"
-#include "chrono_parallel/constraints/ChConstraintRigidRigid.h"
-#include "collision/ChCCollisionModel.h"
-#include "core/ChMathematics.h"
+#include "chrono_parallel/physics/ChSystemParallel.h"
+#include "chrono_parallel/lcp/ChLcpSystemDescriptorParallel.h"
 
 #include "chrono_utils/ChUtilsCreators.h"
+#include "chrono_utils/ChUtilsGenerators.h"
 #include "chrono_utils/ChUtilsInputOutput.h"
 
+#include "unit_testing.h"
+
+// Comment the following line to use parallel collision detection
+//#define BULLET
+
+// Control use of OpenGL run-time rendering
+//#undef CHRONO_PARALLEL_HAS_OPENGL
+
+#ifdef CHRONO_PARALLEL_HAS_OPENGL
+#include "chrono_opengl/ChOpenGLWindow.h"
+#endif
 
 using namespace chrono;
 using namespace chrono::collision;
-using namespace chrono::utils;
-int main(int argc,
-         char* argv[]) {
-   ChSystemParallelDVI * system_gpu = new ChSystemParallelDVI;
-   system_gpu->SetIntegrationType(ChSystem::INT_ANITESCU);
-   std::stringstream ss;
-   ss << "Jacobian_checkpoint_1.txt";
 
-   system_gpu->ChangeCollisionSystem(COLLSYS_BULLET_PARALLEL);
+using std::cout;
+using std::flush;
+using std::endl;
 
-   utils::ReadCheckpoint(system_gpu, ss.str());
+// -----------------------------------------------------------------------------
+// Global problem definitions
+// -----------------------------------------------------------------------------
+// Tolerance for test
+double test_tolerance = 1e-8;
 
-   system_gpu->AssembleSystem();
+// Save PovRay post-processing data?
+bool write_povray_data = true;
 
-   ChContactContainer* container = (ChContactContainer *) system_gpu->GetContactContainer();
+// Load the bodies from a checkpoint file?
+bool loadCheckPointFile = false;
 
-   std::vector<ChLcpConstraint*>& mconstraints = system_gpu->GetLcpSystemDescriptor()->GetConstraintsList();
-   std::vector<real> J_a(mconstraints.size() * 6);
-   std::vector<real> J_b(mconstraints.size() * 6);
-   ChMatrixDynamic<> mb(mconstraints.size(), 1);
-   for (unsigned int ic = 0; ic < mconstraints.size(); ic++) {
-      J_a[ic * 6 + 0] = ((ChLcpConstraintTwoBodies*) mconstraints[ic])->Get_Cq_a()->ElementN(0);
-      J_a[ic * 6 + 1] = ((ChLcpConstraintTwoBodies*) mconstraints[ic])->Get_Cq_a()->ElementN(1);
-      J_a[ic * 6 + 2] = ((ChLcpConstraintTwoBodies*) mconstraints[ic])->Get_Cq_a()->ElementN(2);
-      J_a[ic * 6 + 3] = ((ChLcpConstraintTwoBodies*) mconstraints[ic])->Get_Cq_a()->ElementN(3);
-      J_a[ic * 6 + 4] = ((ChLcpConstraintTwoBodies*) mconstraints[ic])->Get_Cq_a()->ElementN(4);
-      J_a[ic * 6 + 5] = ((ChLcpConstraintTwoBodies*) mconstraints[ic])->Get_Cq_a()->ElementN(5);
+// Simulation times
+double time_settling_min = 0.1;
+double time_settling_max = 1.0;
 
-      J_b[ic * 6 + 0] = ((ChLcpConstraintTwoBodies*) mconstraints[ic])->Get_Cq_b()->ElementN(0);
-      J_b[ic * 6 + 1] = ((ChLcpConstraintTwoBodies*) mconstraints[ic])->Get_Cq_b()->ElementN(1);
-      J_b[ic * 6 + 2] = ((ChLcpConstraintTwoBodies*) mconstraints[ic])->Get_Cq_b()->ElementN(2);
-      J_b[ic * 6 + 3] = ((ChLcpConstraintTwoBodies*) mconstraints[ic])->Get_Cq_b()->ElementN(3);
-      J_b[ic * 6 + 4] = ((ChLcpConstraintTwoBodies*) mconstraints[ic])->Get_Cq_b()->ElementN(4);
-      J_b[ic * 6 + 5] = ((ChLcpConstraintTwoBodies*) mconstraints[ic])->Get_Cq_b()->ElementN(5);
-   }
+// Stopping criteria for settling (fraction of particle radius)
+double settling_tol = 0.2;
 
-   std::cout << container->GetNcontacts() << " " << mconstraints.size() << std::endl;
+// Solver settings
+double time_step = 1e-3;
+int max_iteration_normal = 0;
+int max_iteration_sliding = 1000;
+int max_iteration_spinning = 0;
+float contact_recovery_speed = 10e30;
+double tolerance = 1e-2;
 
-   int counter = 0;
-   std::list<ChContact*> m_list = container->GetContactList();
-   for (std::list<ChContact *>::iterator it = m_list.begin(); it != m_list.end(); ++it) {
-      ChModelBulletBody * model_A = (ChModelBulletBody *) (*it)->GetModelA();
-      ChModelBulletBody * model_B = (ChModelBulletBody *) (*it)->GetModelB();
+// Simulation frame at which detailed timing information is printed
+int timing_frame = -1;
 
-      ChBody * body_A = model_A->GetBody();
-      ChBody * body_B = model_B->GetBody();
+// Gravitational acceleration [m/s^2]
+double gravity = 9.81;
 
-      ChVector<real> point_on_A = (*it)->GetContactP1();
-      ChVector<real> point_on_B = (*it)->GetContactP2();
+// Parameters for the mechanism
+int Id_container = 0;    // body ID for the containing bin
+int Id_ground = 1;       // body ID for the ground
 
-      ChVector<real> Normal = (*it)->GetContactNormal();
-      real Depth = (*it)->GetContactDistance();
+double hdimX = 2.0 / 2;     // [m] bin half-length in x direction
+double hdimY = 2.0 / 2;     // [m] bin half-depth in y direction
+double hdimZ = 2.0 / 2;     // [m] bin half-height in z direction
+double hthick = 0.1 / 2;    // [m] bin half-thickness of the walls
+float mu_walls = 0.3f;
 
-      real3 n = ToReal3(Normal), v, w;
-      real3 p1 = ToReal3(point_on_A);
-      real3 p2 = ToReal3(point_on_B);
+// Parameters for the granular material
+int Id_g = 2;           // start body ID for particles
+double r_g = 0.1;       // [m] radius of granular sphers
+double rho_g = 1000;    // [kg/m^3] density of granules
+float mu_g = 0.5f;
 
-      if (n == R3(0)) {
-         n = R3(0, 1, 0);
-      } else {
-         n = normalize(n);
-      }
+void CreateMechanismBodies(ChSystemParallel* system) {
 
-      Orthogonalize(n, v, w);
+  ChSharedPtr<ChMaterialSurface> mat_walls(new ChMaterialSurface);
+  mat_walls->SetFriction(mu_walls);
 
-      ChVector<real> Vx, Vy, Vz;
-      ChVector<real> VN = Normal;
-      VN.DirToDxDyDz(Vx, Vy, Vz);
+  ChSharedPtr<ChBody> container(new ChBody(
+#ifndef BULLET
+      new ChCollisionModelParallel
+#endif
+      ));
+  container->SetMaterialSurface(mat_walls);
+  container->SetIdentifier(Id_container);
+  container->SetBodyFixed(true);
+  container->SetCollide(true);
+  container->SetMass(10000.0);
 
-      //std::cout << n << v << w;
-      //std::cout << ToReal3(Vx) << ToReal3(Vy) << ToReal3(Vz);
-      WeakEqual(n, ToReal3(Vx));
-      WeakEqual(v, ToReal3(Vy));
-      WeakEqual(w, ToReal3(Vz));
+  // Attach geometry of the containing bin
+  container->GetCollisionModel()->ClearModel();
+  utils::AddBoxGeometry(container.get_ptr(), ChVector<>(hdimX, hdimY, hthick), ChVector<>(0, 0, -hthick));
+  utils::AddBoxGeometry(container.get_ptr(), ChVector<>(hthick, hdimY, hdimZ), ChVector<>(-hdimX - hthick, 0, hdimZ));
+  utils::AddBoxGeometry(container.get_ptr(), ChVector<>(hthick, hdimY, hdimZ), ChVector<>(hdimX + hthick, 0, hdimZ));
+  utils::AddBoxGeometry(container.get_ptr(), ChVector<>(hdimX, hthick, hdimZ), ChVector<>(0, -hdimY - hthick, hdimZ));
+  utils::AddBoxGeometry(container.get_ptr(), ChVector<>(hdimX, hthick, hdimZ), ChVector<>(0, hdimY + hthick, hdimZ));
+  container->GetCollisionModel()->BuildModel();
 
-      real4 A_R = ToReal4(body_A->GetRot());
-      real4 B_R = ToReal4(body_B->GetRot());
+  system->AddBody(container);
 
-      std::cout << std::endl;
-      real3 T3, T4, T5;
-      Compute_Jacobian(A_R, n, v, w, p1, T3, T4, T5);
+  ChSharedPtr<ChBody> ground(new ChBody(
+#ifndef BULLET
+      new ChCollisionModelParallel
+#endif
+      ));
+  ground->SetMaterialSurface(mat_walls);
+  ground->SetIdentifier(Id_ground);
+  ground->SetBodyFixed(true);
+  ground->SetCollide(true);
+  ground->SetMass(1.0);
 
-      real3 T6, T7, T8;
-      Compute_Jacobian(B_R, n, v, w, p2, T6, T7, T8);
-
-      ChMatrix33<real> Jx1, Jx2, Jr1, Jr2;
-      ChMatrix33<real> Ps1, Ps2, Jtemp;
-      ChMatrix33<real> A1 = ChMatrix33<real>(ToChQuaternion(A_R));
-      ChMatrix33<real> A2 = ChMatrix33<real>(ToChQuaternion(B_R));
-
-      ChVector<real> Pl1 = ChTransform<real>::TransformParentToLocal(ToChVector(p1), ChVector<real>(0, 0, 0), A1);
-      ChVector<real> Pl2 = ChTransform<real>::TransformParentToLocal(ToChVector(p2), ChVector<real>(0, 0, 0), A2);
-
-      Ps1.Set_X_matrix(Pl1);
-      Ps2.Set_X_matrix(Pl2);
-
-      ChMatrix33<real> contact_plane;
-      contact_plane.Set_A_axis(Vx, Vy, Vz);
-
-      Jx1.CopyFromMatrixT(contact_plane);
-      Jx2.CopyFromMatrixT(contact_plane);
-      Jx1.MatrNeg();
-
-      Jtemp.MatrMultiply(A1, Ps1);
-      Jr1.MatrTMultiply(contact_plane, Jtemp);
-
-      Jtemp.MatrMultiply(A2, Ps2);
-
-      Jr2.MatrTMultiply(contact_plane, Jtemp);
-      Jr2.MatrNeg();
-
-      Jx1.MatrTranspose();
-      Jx2.MatrTranspose();
-      Jr1.MatrTranspose();
-      Jr2.MatrTranspose();
-
-      std::cout << J_a[(counter+0) * 6 + 3] << " " << J_a[(counter+0) * 6 + 4] << " " << J_a[(counter+0) * 6 + 5] << " " << std::endl;
-      std::cout << -T3 << std::endl;
-
-      std::cout << J_a[(counter+1) * 6 + 3] << " " << J_a[(counter+1) * 6 + 4] << " " << J_a[(counter+1) * 6 + 5] << " " << std::endl;
-      std::cout << -T4 << std::endl;
-
-      std::cout << J_a[(counter+2) * 6 + 3] << " " << J_a[(counter+2) * 6 + 4] << " " << J_a[(counter+2) * 6 + 5] << " " << std::endl;
-      std::cout << -T5 << std::endl;
-
-      //std::cout << J_a[(counter+0) * 6 + 3] << " " << J_a[(counter+0) * 6 + 4] << " " << J_a[(counter+0) * 6 + 5] << " " << endl;
-      //std::cout<<J_a[counter*9 +3]<<" "<<J_a[counter*9 +4]<<" "<<J_a[counter*9 +5]<<" "<<endl;
-      //std::cout<<J_a[counter*9 +6]<<" "<<J_a[counter*9 +7]<<" "<<J_a[counter*9 +8]<<" "<<endl;
-
-      //std::cout<<J_b[counter +0]<<" "<<J_a[counter +1]<<" "<<J_a[counter +2]<<" "<<endl;
-
-      //std::cout << T3 << endl;
-
-      //std::cout << n << v << w;
-      //std::cout << ToReal3(Jx1.ClipVector(0, 0)) << ToReal3(Jx1.ClipVector(0, 1)) << ToReal3(Jx1.ClipVector(0, 2));
-      //std::cout<<ToReal3(contact_plane.ClipVector(0,0))<<ToReal3(contact_plane.ClipVector(0,1))<<ToReal3(contact_plane.ClipVector(0,2));
-      WeakEqual(-n, ToReal3(Jx1.ClipVector(0, 0)));
-      WeakEqual(-v, ToReal3(Jx1.ClipVector(0, 1)));
-      WeakEqual(-w, ToReal3(Jx1.ClipVector(0, 2)));
-
-      WeakEqual(n, ToReal3(Jx2.ClipVector(0, 0)));
-      WeakEqual(v, ToReal3(Jx2.ClipVector(0, 1)));
-      WeakEqual(w, ToReal3(Jx2.ClipVector(0, 2)));
-
-      WeakEqual(T3, ToReal3(Jr1.ClipVector(0, 0)));
-      WeakEqual(T4, ToReal3(Jr1.ClipVector(0, 1)));
-      WeakEqual(T5, ToReal3(Jr1.ClipVector(0, 2)));
-
-      WeakEqual(-T6, ToReal3(Jr2.ClipVector(0, 0)));
-      WeakEqual(-T7, ToReal3(Jr2.ClipVector(0, 1)));
-      WeakEqual(-T8, ToReal3(Jr2.ClipVector(0, 2)));
-      counter += 3;
-   }
-   return 0;
-
+  system->AddBody(ground);
 }
 
+void CreateGranularMaterial(ChSystemParallel* sys) {
+  // Common material
+  ChSharedPtr<ChMaterialSurface> ballMat(new ChMaterialSurface);
+  ballMat->SetFriction(.5);
+
+  // Create the falling balls
+  int ballId = 0;
+  double mass = 1;
+  double radius = 0.15;
+  ChVector<> inertia = (2.0 / 5.0) * mass * radius * radius * ChVector<>(1, 1, 1);
+  srand(1);
+
+  for (int ix = -2; ix < 3; ix++) {
+    for (int iy = -2; iy < 3; iy++) {
+      for (int iz = -2; iz < 3; iz++) {
+        ChVector<> rnd(rand() % 1000 / 100000.0, rand() % 1000 / 100000.0, rand() % 1000 / 100000.0);
+        ChVector<> pos(0.4 * ix, 0.4 * iy, 0.4 * iz + 1);
+
+        ChSharedBodyPtr ball(new ChBody(new ChCollisionModelParallel));
+        ball->SetMaterialSurface(ballMat);
+
+        ball->SetIdentifier(ballId++);
+        ball->SetMass(mass);
+        ball->SetInertiaXX(inertia);
+        ball->SetPos(pos + rnd);
+        ball->SetRot(ChQuaternion<>(1, 0, 0, 0));
+        ball->SetBodyFixed(false);
+        ball->SetCollide(true);
+
+        ball->GetCollisionModel()->ClearModel();
+        utils::AddSphereGeometry(ball.get_ptr(), radius);
+        ball->GetCollisionModel()->BuildModel();
+
+        sys->AddBody(ball);
+      }
+    }
+  }
+}
+// =============================================================================
+
+void SetupSystem(ChSystemParallelDVI* msystem) {
+  msystem->Set_G_acc(ChVector<>(0, 0, -gravity));
+
+  msystem->GetSettings()->solver.tolerance = tolerance;
+  msystem->GetSettings()->solver.solver_mode = SLIDING;
+  msystem->GetSettings()->solver.max_iteration_normal = max_iteration_normal;
+  msystem->GetSettings()->solver.max_iteration_sliding = max_iteration_sliding;
+  msystem->GetSettings()->solver.max_iteration_spinning = max_iteration_spinning;
+  msystem->GetSettings()->solver.alpha = 0;
+  msystem->GetSettings()->solver.contact_recovery_speed = contact_recovery_speed;
+  msystem->SetMaxPenetrationRecoverySpeed(contact_recovery_speed);
+  msystem->ChangeSolverType(JACOBI);
+  msystem->GetSettings()->collision.collision_envelope = 0.01;
+  msystem->GetSettings()->collision.bins_per_axis = I3(10, 10, 10);
+
+  // Create the mechanism bodies (all fixed).
+  CreateMechanismBodies(msystem);
+
+  // Create granular material.
+  CreateGranularMaterial(msystem);
+}
+// Sync the positions and velocities of the rigid bodies
+void Sync(ChSystemParallel* msystem_A, ChSystemParallel* msystem_B) {
+  for (int i = 0; i < msystem_A->Get_bodylist()->size(); i++) {
+    ChVector<> pos = msystem_B->Get_bodylist()->at(i)->GetPos();
+    ChVector<> pos_dt = msystem_B->Get_bodylist()->at(i)->GetPos_dt();
+    msystem_A->Get_bodylist()->at(i)->SetPos(pos);
+    msystem_A->Get_bodylist()->at(i)->SetPos_dt(pos_dt);
+  }
+}
+bool CompareContacts(ChSystemParallel* msystem) {
+  real3* norm = msystem->data_manager->host_data.norm_rigid_rigid.data();
+  real3* ptA = msystem->data_manager->host_data.cpta_rigid_rigid.data();
+  real3* ptB = msystem->data_manager->host_data.cptb_rigid_rigid.data();
+  real3* pos_data = msystem->data_manager->host_data.pos_data.data();
+  int2* ids = msystem->data_manager->host_data.bids_rigid_rigid.data();
+  real4* rot = msystem->data_manager->host_data.rot_data.data();
+
+
+  ((ChLcpSolverParallelDVI *)msystem->GetLcpSolverSpeed())->ComputeD();
+
+
+  SparseMatrix& D_n_T = msystem->data_manager->host_data.D_n_T;
+  SparseMatrix& D_t_T = msystem->data_manager->host_data.D_t_T;
+  SparseMatrix& D_s_T = msystem->data_manager->host_data.D_s_T;
+
+  int nnz_normal = 6 * 2 * msystem->data_manager->num_contacts;
+  int nnz_tangential = 6 * 4 * msystem->data_manager->num_contacts;
+  int nnz_spinning = 6 * 3 * msystem->data_manager->num_contacts;
+
+//  StrictEqual(D_n_T.nonZeros(), nnz_normal);
+//  StrictEqual(D_t_T.nonZeros(), nnz_tangential);
+//  StrictEqual(D_s_T.nonZeros(), nnz_spinning);
+
+  cout<<D_n_T.nonZeros()<<" "<<nnz_normal<<endl;
+  cout<<D_t_T.nonZeros()<<" "<<nnz_tangential<<endl;
+  cout<<D_s_T.nonZeros()<<" "<<nnz_spinning<<endl;
+
+
+
+
+//#pragma omp parallel for
+  for (int index = 0; index < msystem->data_manager->num_contacts; index++) {
+
+    real3 U = norm[index], V, W;
+    real3 T3, T4, T5, T6, T7, T8;
+    real3 TA, TB, TC;
+    real3 TD, TE, TF;
+
+    Orthogonalize(U, V, W);
+
+    int2 body_id = ids[index];
+
+    int row = index;
+
+    // The position is subtracted here now instead of performing it in the narrowphase
+    Compute_Jacobian(rot[body_id.x], U, V, W, ptA[index] - pos_data[body_id.x], T3, T4, T5);
+    Compute_Jacobian(rot[body_id.y], U, V, W, ptB[index] - pos_data[body_id.y], T6, T7, T8);
+
+    StrictEqual(D_n_T(row * 1 + 0, body_id.x * 6 + 0), -U.x);
+    StrictEqual(D_n_T(row * 1 + 0, body_id.x * 6 + 1), -U.y);
+    StrictEqual(D_n_T(row * 1 + 0, body_id.x * 6 + 2), -U.z);
+
+    StrictEqual(D_n_T(row * 1 + 0, body_id.x * 6 + 3), T3.x);
+    StrictEqual(D_n_T(row * 1 + 0, body_id.x * 6 + 4), T3.y);
+    StrictEqual(D_n_T(row * 1 + 0, body_id.x * 6 + 5), T3.z);
+
+    StrictEqual(D_n_T(row * 1 + 0, body_id.y * 6 + 0), U.x);
+    StrictEqual(D_n_T(row * 1 + 0, body_id.y * 6 + 1), U.y);
+    StrictEqual(D_n_T(row * 1 + 0, body_id.y * 6 + 2), U.z);
+
+    StrictEqual(D_n_T(row * 1 + 0, body_id.y * 6 + 3), -T6.x);
+    StrictEqual(D_n_T(row * 1 + 0, body_id.y * 6 + 4), -T6.y);
+    StrictEqual(D_n_T(row * 1 + 0, body_id.y * 6 + 5), -T6.z);
+
+    StrictEqual(D_t_T(row * 2 + 0, body_id.x * 6 + 0), -V.x);
+    StrictEqual(D_t_T(row * 2 + 0, body_id.x * 6 + 1), -V.y);
+    StrictEqual(D_t_T(row * 2 + 0, body_id.x * 6 + 2), -V.z);
+
+    StrictEqual(D_t_T(row * 2 + 0, body_id.x * 6 + 3), T4.x);
+    StrictEqual(D_t_T(row * 2 + 0, body_id.x * 6 + 4), T4.y);
+    StrictEqual(D_t_T(row * 2 + 0, body_id.x * 6 + 5), T4.z);
+
+    StrictEqual(D_t_T(row * 2 + 1, body_id.x * 6 + 0), -W.x);
+    StrictEqual(D_t_T(row * 2 + 1, body_id.x * 6 + 1), -W.y);
+    StrictEqual(D_t_T(row * 2 + 1, body_id.x * 6 + 2), -W.z);
+
+    StrictEqual(D_t_T(row * 2 + 1, body_id.x * 6 + 3), T5.x);
+    StrictEqual(D_t_T(row * 2 + 1, body_id.x * 6 + 4), T5.y);
+    StrictEqual(D_t_T(row * 2 + 1, body_id.x * 6 + 5), T5.z);
+
+    StrictEqual(D_t_T(row * 2 + 0, body_id.y * 6 + 0), V.x);
+    StrictEqual(D_t_T(row * 2 + 0, body_id.y * 6 + 1), V.y);
+    StrictEqual(D_t_T(row * 2 + 0, body_id.y * 6 + 2), V.z);
+
+    StrictEqual(D_t_T(row * 2 + 0, body_id.y * 6 + 3), -T7.x);
+    StrictEqual(D_t_T(row * 2 + 0, body_id.y * 6 + 4), -T7.y);
+    StrictEqual(D_t_T(row * 2 + 0, body_id.y * 6 + 5), -T7.z);
+
+    StrictEqual(D_t_T(row * 2 + 1, body_id.y * 6 + 0), W.x);
+    StrictEqual(D_t_T(row * 2 + 1, body_id.y * 6 + 1), W.y);
+    StrictEqual(D_t_T(row * 2 + 1, body_id.y * 6 + 2), W.z);
+
+    StrictEqual(D_t_T(row * 2 + 1, body_id.y * 6 + 3), -T8.x);
+    StrictEqual(D_t_T(row * 2 + 1, body_id.y * 6 + 4), -T8.y);
+    StrictEqual(D_t_T(row * 2 + 1, body_id.y * 6 + 5), -T8.z);
+  }
+
+  return true;
+}
+
+int main(int argc, char* argv[]) {
+omp_set_num_threads(1);
+
+  // No animation by default (i.e. when no program arguments)
+  bool animate = (argc > 1);
+
+  ChSystemParallelDVI* msystem = new ChSystemParallelDVI();
+
+  SetupSystem(msystem);
+
+#ifdef BULLET
+  msystem->ChangeCollisionSystem(COLLSYS_BULLET_PARALLEL);
+#else
+  msystem->GetSettings()->collision.narrowphase_algorithm = NARROWPHASE_MPR;
+#endif
+
+  // Initialize counters
+  double time = 0;
+  int sim_frame = 0;
+  double exec_time = 0;
+  int num_contacts = 0;
+  double time_end = time_settling_max;
+
+  if (animate) {
+#ifdef CHRONO_PARALLEL_HAS_OPENGL
+    opengl::ChOpenGLWindow& gl_window = opengl::ChOpenGLWindow::getInstance();
+    gl_window.Initialize(1280, 720, "Narrowphase", msystem);
+    gl_window.SetCamera(ChVector<>(6, -6, 1), ChVector<>(0, 0, 0), ChVector<>(0, 0, 1));
+    gl_window.SetRenderMode(opengl::WIREFRAME);
+
+    // Loop until reaching the end time...
+    while (time < time_end) {
+      if (gl_window.Active()) {
+        // gl_window.DoStepDynamics(time_step);
+        gl_window.Render();
+      }
+      msystem->DoStepDynamics(time_step);
+      CompareContacts(msystem);
+      cout << "Time: " << time << endl;
+      time += time_step;
+    }
+
+#else
+    std::cout << "OpenGL support not available.  Cannot animate mechanism." << std::endl;
+    return false;
+#endif
+  } else {
+    while (time < time_end) {
+      msystem->DoStepDynamics(time_step);
+
+      cout << "Time: " << time << endl;
+      time += time_step;
+    }
+  }
+
+  return 0;
+}

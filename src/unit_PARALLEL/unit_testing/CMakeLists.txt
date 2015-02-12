@@ -51,7 +51,6 @@ SET(TESTS
     test_real4
     test_mat33
     test_gravity
-    test_jacobians
     test_rhs
     test_r
     test_apgd
@@ -167,6 +166,8 @@ SET(TESTS_G
     test_bodyauxref
     test_joints_dvi
     test_narrowphase
+    test_jacobians
+    
 )
 
 FOREACH(PROGRAM ${TESTS_G})
