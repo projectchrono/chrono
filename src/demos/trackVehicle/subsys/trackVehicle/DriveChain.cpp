@@ -100,7 +100,7 @@ DriveChain::DriveChain(const std::string& name,
   m_idlers.resize(m_num_idlers);
   double idler_mass = 100.0; // 429.6
   ChVector<> idler_Ixx(gear_Ixx);    // 12.55, 12.55, 14.7
-  double tensioner_K = 50e3;
+  double tensioner_K = 80e3;
   double tensioner_C = tensioner_K * 0.08;
   m_idlers[0] = ChSharedPtr<IdlerSimple>(new IdlerSimple("idler",
     idler_mass,
@@ -166,7 +166,7 @@ DriveChain::~DriveChain()
 void DriveChain::Initialize(const ChCoordsys<>& gear_Csys)
 {
   // initialize the drive gear, idler and track chain
-  double idler_preload = 60000;
+  double idler_preload = 20000;
   // m_idlerPosRel = m_idlerPos;
   m_idlerPosRel = ChVector<>(-2.5, 0, 0);
   m_chassis->SetFrame_REF_to_abs(ChFrame<>(gear_Csys.pos, gear_Csys.rot));
@@ -255,7 +255,7 @@ void DriveChain::Initialize(const ChCoordsys<>& gear_Csys)
   {
     // init this idler, and position it so
     // it snaps into place
-    double preload_2 = 120000;
+    double preload_2 = 60000;
     double idler2_xoff = -1.5;
     double idler2_yoff = -2.1;
     double rotation_ang = CH_C_PI_4;
@@ -289,7 +289,7 @@ void DriveChain::Advance(double step)
 {
   double t = 0;
   m_system->SetIterLCPmaxItersStab(60);
-  m_system->SetIterLCPmaxItersSpeed(95);
+  m_system->SetIterLCPmaxItersSpeed(75);
   double settlePhaseA = 0.3;
   double settlePhaseB = 1.0;
   while (t < step) {
@@ -417,26 +417,26 @@ void DriveChain::Log_to_console(int console_what)
 
   if (console_what & DBG_FIRSTSHOE)
   {
-    GetLog() << "\n-- shoe 0 : " << m_chain->GetShoeBody(0)->GetName() << "\n";
+    GetLog() << "\n---- shoe 0 : " << m_chain->GetShoeBody(0)->GetName() << "\n";
     // COG state data
 
-    GetLog() << "COG Pos [m] : "  <<  m_chain->GetShoeBody(0)->GetPos() << "\n";
-    GetLog() << "COG Vel [m/s] : "  <<  m_chain->GetShoeBody(0)->GetPos_dt() << "\n";
-    GetLog() << "COG Acc [m/s2] : "  <<  m_chain->GetShoeBody(0)->GetPos_dtdt() << "\n";
-    GetLog() << "COG omega [rad/s] : "  <<  m_chain->GetShoeBody(0)->GetRot_dt() << "\n";
+    GetLog() << " COG Pos [m] : "  <<  m_chain->GetShoeBody(0)->GetPos() << "\n";
+    GetLog() << " COG Vel [m/s] : "  <<  m_chain->GetShoeBody(0)->GetPos_dt() << "\n";
+    GetLog() << " COG Acc [m/s2] : "  <<  m_chain->GetShoeBody(0)->GetPos_dtdt() << "\n";
+    GetLog() << " COG omega [rad/s] : "  <<  m_chain->GetShoeBody(0)->GetRot_dt() << "\n";
 
     // shoe pin tension
-    GetLog() << "pin 0 reaction force [N] : "  <<  m_chain->GetPinReactForce(0) << "\n";
+    GetLog() << " pin 0 reaction force [N] : "  <<  m_chain->GetPinReactForce(0) << "\n";
     // GetLog() << "pin 0 reaction torque [N-m] : "  <<  m_chain->GetPinReactTorque(0) << "\n";
   }
 
   if (console_what & DBG_GEAR)
   {
-    GetLog() << "\n---- Gear " << m_gear->GetBody()->GetName() << "\n";
+    GetLog() << "\n---- Gear : " << m_gear->GetBody()->GetName() << "\n";
     // COG state data
-    GetLog() << "COG Pos [m] : " << m_gear->GetBody()->GetPos() << "\n";
-    GetLog() << "COG Vel [m/s] : " << m_gear->GetBody()->GetPos_dt() << "\n";
-    GetLog() << "COG omega [rad/s] : " << m_gear->GetBody()->GetRot_dt() << "\n";
+    GetLog() << " COG Pos [m] : " << m_gear->GetBody()->GetPos() << "\n";
+    GetLog() << " COG Vel [m/s] : " << m_gear->GetBody()->GetPos_dt() << "\n";
+    GetLog() << " COG omega [rad/s] : " << m_gear->GetBody()->GetRot_dt() << "\n";
 
     /*
     // # of shoe pins in contact?
@@ -456,7 +456,7 @@ void DriveChain::Log_to_console(int console_what)
 
   if (console_what & DBG_PTRAIN)
   {
-    GetLog() << "\n---- powertrain \n";
+    GetLog() << "\n ---- powertrain : \n";
   
   }
 

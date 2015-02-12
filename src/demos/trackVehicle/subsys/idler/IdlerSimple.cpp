@@ -92,7 +92,7 @@ IdlerSimple::IdlerSimple(const std::string& name,
   : m_vis(vis), m_collide(collide),
   m_meshFile(utils::GetModelDataFile("M113/Idler_XforwardYup.obj")),
   m_meshName("idler_mesh"),
-  m_springRestLength(1),
+  m_springRestLength(1.5),
   m_springK(springK),
   m_springC(springC)
 //  , m_shockCB(NULL), m_springCB(NULL)
@@ -368,7 +368,7 @@ void IdlerSimple::LogConstraintViolations()
 {
   // idler joint has 2 pos and 1 rot
   ChMatrix<>* C = m_idler_joint->GetC();
-  GetLog() << " joint name: " << m_idler_joint->GetName();
+  GetLog() << " -- joint name: " << m_idler_joint->GetName();
   for(int row = 0; row < C->GetRows(); row ++ )
   {
     GetLog() << "  " << C->GetElement(row, 0) << "  ";

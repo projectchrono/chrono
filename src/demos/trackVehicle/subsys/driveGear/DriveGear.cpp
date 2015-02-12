@@ -367,7 +367,7 @@ void DriveGear::LogConstraintViolations()
 {
   // single revolute joint
   ChMatrix<>* C = m_revolute->GetC();
-  GetLog() << " joint name: " << m_revolute->GetName();
+  GetLog() << " -- joint name: " << m_revolute->GetName();
   GetLog() << "  " << C->GetElement(0, 0) << "  ";
   GetLog() << "  " << C->GetElement(1, 0) << "  ";
   GetLog() << "  " << C->GetElement(2, 0) << "  ";
