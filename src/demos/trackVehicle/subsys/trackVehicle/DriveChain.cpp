@@ -349,29 +349,37 @@ void DriveChain::LogConstraintViolations(bool include_chain)
 
 // Write constraint violations of subsystems, in order, to the ostraem
 // -----------------------------------------------------------------------------
-void DriveChain::SaveConstraintViolations(std::stringstream& ss,
-                                         bool include_chain)
+void DriveChain::SaveConstraintViolations(bool include_chain)
 {
   if( !m_log_file_exists ) 
   {
     std::cerr << "Must call Save_DebugLog() before trying to save the log data to file!!! \n\n\n";
   }
+
   // call the subsystems in the same order as the headers are set up
-  m_gear->SaveConstraintViolations(ss);
+  std::stringstream ss_g;
+  m_gear->SaveConstraintViolations(ss_g);
+  ChStreamOutAsciiFile ofileGCV(m_filename_GCV.c_str(), std::ios::app);
+  ofileGCV << ss_g.str().c_str();
 
   // report violations for idler constraints
   for(int id = 0; id < m_num_idlers; id++)
   {
-    m_idlers[id]->SaveConstraintViolations(ss);
+    std::stringstream ss_id;
+    m_idlers[id]->SaveConstraintViolations(ss_id);
+    ChStreamOutAsciiFile ofileICV(m_filename_ICV[id].c_str(), std::ios::app);
+    ofileICV << ss_id.str().c_str();
   }
 
   // violations of the roller revolute joints
   for(int roller = 0; roller < m_num_rollers; roller++)
   {
-    m_rollers[roller]->SaveConstraintViolations(ss);
+    std::stringstream ss_r;
+    m_rollers[roller]->SaveConstraintViolations(ss_r);
+    ChStreamOutAsciiFile ofileRCV(m_filename_RCV[roller].c_str(), std::ios::app);
+    ofileRCV << ss_r.str().c_str();
   }
 
-  GetLog().SetNumFormat("%g");
 }
 
 
@@ -479,46 +487,51 @@ void DriveChain::Log_to_file()
     }
     // open the file to append
     // open the data file for writing the header
-    ChStreamOutAsciiFile ofile(m_log_file_name.c_str(), std::ios::app);
 
     // write the simulation time
-    std::stringstream ss;
-    ss << m_system->GetChTime();
+    double t = m_system->GetChTime();
 
     // python pandas expects csv w/ no whitespace
     if( m_log_what_to_file & DBG_FIRSTSHOE )
     {
-      ss << "," << m_chain->GetShoeBody(0)->GetPos() 
-        << "," <<  m_chain->GetShoeBody(0)->GetPos_dt() 
-        << "," <<  m_chain->GetShoeBody(0)->GetPos_dtdt()
-        << "," <<  m_chain->GetShoeBody(0)->GetRot_dt().Q_to_NasaAngles()
-        << "," <<  m_chain->GetPinReactForce(0);
-        // << "," <<  m_chain->GetPinReactTorque(0);
+      std::stringstream ss;
+      ss << t <<","<< m_chain->GetShoeBody(0)->GetPos() 
+        <<","<<  m_chain->GetShoeBody(0)->GetPos_dt() 
+        <<","<<  m_chain->GetShoeBody(0)->GetPos_dtdt()
+        <<","<<  m_chain->GetShoeBody(0)->GetRot_dt().Q_to_NasaAngles()
+        <<","<<  m_chain->GetPinReactForce(0);
+        // <<","<<  m_chain->GetPinReactTorque(0);
+      ChStreamOutAsciiFile ofile(m_filename_DBG_FIRSTSHOE.c_str(), std::ios::app);
+      ofile << ss.str().c_str();
   
     }
     if (m_log_what_to_file & DBG_GEAR)
     {
-      ss << "," << m_gear->GetBody()->GetPos() 
-        << "," << m_gear->GetBody()->GetPos_dt() 
-        << "," << m_gear->GetBody()->GetRot_dt().Q_to_NasaAngles();
+      std::stringstream ss_g;
+      ss_g << t <<","<< m_gear->GetBody()->GetPos() 
+        <<","<< m_gear->GetBody()->GetPos_dt() 
+        <<","<< m_gear->GetBody()->GetRot_dt().Q_to_NasaAngles();
+      ChStreamOutAsciiFile ofileDBG_GEAR(m_filename_DBG_GEAR.c_str(), std::ios::app);
+      ofileDBG_GEAR << ss_g.str().c_str();
     }
 
     if (m_log_what_to_file & DBG_CONSTRAINTS)
     {
       // Report constraint violations for all joints
-      SaveConstraintViolations(ss);
+      SaveConstraintViolations();
     }
     
     if (m_log_what_to_file & DBG_PTRAIN)
     {
+      std::stringstream ss_pt;
       // motor speed, mot torque, out torque
-      ss << "," << m_ptrain->GetMotorSpeed()
+      ss_pt << "," << m_ptrain->GetMotorSpeed()
         << "," << m_ptrain->GetMotorTorque()
         << "," << m_ptrain->GetOutputTorque();
+      ChStreamOutAsciiFile ofilePT(m_filename_DBG_PTRAIN.c_str(), std::ios::app);
+      ofilePT << ss_pt.str().c_str();
     }
-    // next line last, then write to file
-    ss << "\n";
-    ofile << ss.str().c_str();
+
   }
 }
 
@@ -526,46 +539,62 @@ void DriveChain::Log_to_file()
 
 void DriveChain::create_fileHeader(int what)
 {
-  // open the data file for writing the header
-  ChStreamOutAsciiFile ofile(m_log_file_name.c_str());
-  // write the headers, output types specified by "what"
-  std::stringstream ss;
-  ss << "time";
-
   if(what & DBG_FIRSTSHOE)
   {
     // Shoe 0 : S0, Pin0: P0
-    ss << ",S0x,S0y,S0z,S0vx,S0vy,S0vz,S0ax,S0ay,S0az,S0wx,S0wy,S0wz,P0fx,P0fy,P0fz";
+    m_filename_DBG_FIRSTSHOE = m_log_file_name+"_shoe0.csv";
+    ChStreamOutAsciiFile ofileDBG_FIRSTSHOE(m_filename_DBG_FIRSTSHOE.c_str());
+    std::stringstream ss;
+    ss << "time,S0x,S0y,S0z,S0vx,S0vy,S0vz,S0ax,S0ay,S0az,S0wx,S0wy,S0wz,P0fx,P0fy,P0fz";
+    ofileDBG_FIRSTSHOE << ss.str().c_str();
   }
   if(what & DBG_GEAR)
   {
-    ss << ",Gx,Gy,Gz,Gvx,Gvy,Gvz,Gwx,Gwy,Gwz";
+    m_filename_DBG_GEAR = m_log_file_name+"_gear.csv";
+    ChStreamOutAsciiFile ofileDBG_GEAR(m_filename_DBG_GEAR.c_str());
+    std::stringstream ss;
+    ss << "time,Gx,Gy,Gz,Gvx,Gvy,Gvz,Gwx,Gwy,Gwz";
+    ofileDBG_GEAR << ss.str().c_str();
   }
   if(what & DBG_CONSTRAINTS)
   {
     // in the same order as listed in the header
+    m_filename_GCV = m_log_file_name+"_gear.csv";
+    ChStreamOutAsciiFile ofileGCV(m_filename_GCV.c_str());
+    std::stringstream ss;
     ss << m_gear->getFileHeader_ConstraintViolations(0);
+    ofileGCV << ss.str().c_str();
 
     for(int id = 0; id < m_num_idlers; id++)
     {
-      ss << m_idlers[id]->getFileHeader_ConstraintViolations(id);
+      m_filename_ICV.push_back(m_log_file_name+"_idler"+std::to_string(id)+".csv");
+      ChStreamOutAsciiFile ofileICV(m_filename_ICV.back().c_str());
+      std::stringstream ss_id;
+      ss_id << m_idlers[id]->getFileHeader_ConstraintViolations(id);
+      ofileICV << ss_id.str().c_str();
     }
 
     // violations of the roller revolute joints
     for(int roller = 0; roller < m_num_rollers; roller++)
     {
-      ss << m_rollers[roller]->getFileHeader_ConstraintViolations(roller);
+      m_filename_RCV.push_back(m_log_file_name+"_roller"+std::to_string(roller)+".csv");
+      ChStreamOutAsciiFile ofileRCV(m_filename_ICV.back().c_str());
+      std::stringstream ss_r;
+      ss_r << m_rollers[roller]->getFileHeader_ConstraintViolations(roller);
+      ofileRCV << ss_r.str().c_str();
     }
   }
 
   if(what & DBG_PTRAIN)
   {
-    ss << ",motSpeed,motT,outT";
+    m_filename_DBG_PTRAIN = m_log_file_name+"_ptrain.csv";
+    ChStreamOutAsciiFile ofileDBG_PTRAIN(m_filename_DBG_PTRAIN.c_str());
+    std::stringstream ss_pt;
+    ss_pt << ",motSpeed,motT,outT";
+    ofileDBG_PTRAIN << ss_pt.str().c_str();
   }
 
-  // write to file, go to next line in file in prep. for next step.
-  GetLog() << " wrote headers to file: \n" << ss.str().c_str() << "\n";
-  ofile << ss.str().c_str() << "\n";
+
 }
 
 

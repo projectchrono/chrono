@@ -70,7 +70,7 @@ public:
   virtual void LogConstraintViolations(bool include_chain = false);
 
   /// save the constraint violations, w/ and w/o chain body, to the 
-  virtual void SaveConstraintViolations(std::stringstream& ss, bool include_chain = false);
+  virtual void SaveConstraintViolations(bool include_chain = false);
 
   virtual void Log_to_console(int console_what);
 
@@ -125,7 +125,13 @@ protected:
   std::vector<ChSharedPtr<SupportRoller>> m_rollers;  ///< passive support rollers
   size_t m_num_rollers;
 	
-
+  // I/O stuff
+  std::string m_filename_DBG_FIRSTSHOE;     // write to this file, first shoe/pin info
+  std::string m_filename_DBG_GEAR;          // write to this file, gear body constraint violation
+  std::string m_filename_GCV;               // write to this file, gear constraint violation
+  std::vector<std::string> m_filename_ICV;  // write to this file, idler constraint violation
+  std::vector<std::string> m_filename_RCV;  // write to this file, roller constraint violation
+  std::string m_filename_DBG_PTRAIN;        // write to this file, ptrain info
 
   // static variables. hard-coded for now
   static const ChVector<> m_idlerPos; // relative to chassis frame, which is the same as the gear's (initially)

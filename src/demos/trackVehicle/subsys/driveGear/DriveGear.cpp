@@ -387,7 +387,6 @@ void DriveGear::SaveConstraintViolations(std::stringstream& ss)
     << "," << C->GetElement(2, 0) 
     << "," << C->GetElement(3, 0)
     << "," << C->GetElement(4, 0);
-
 }
 
 const std::string DriveGear::getFileHeader_ConstraintViolations(size_t idx) const

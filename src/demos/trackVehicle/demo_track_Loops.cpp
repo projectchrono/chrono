@@ -119,7 +119,7 @@ int main(int argc, char* argv[])
   // if writing an output file, setup what debugInformation we want added each step data is saved.
 #ifdef WRITE_OUTPUT
   chainLoopSystem.Setup_log_to_file(what_to_save,
-    "test_LoopChain_all.csv");
+    "test_LoopChain");
 #endif
 
 /*

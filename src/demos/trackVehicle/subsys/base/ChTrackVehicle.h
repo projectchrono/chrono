@@ -134,7 +134,7 @@ public:
   virtual void LogConstraintViolations(bool include_chain = false){}
 
   /// save the constraint violations, w/ and w/o chain body, to the 
-  virtual void SaveConstraintViolations(std::stringstream& ss, bool include_chain = false){}
+  virtual void SaveConstraintViolations(bool include_chain = false){}
 
   virtual void Log_to_console(int console_what) {}
 
