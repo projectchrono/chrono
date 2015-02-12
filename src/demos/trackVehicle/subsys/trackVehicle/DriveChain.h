@@ -128,7 +128,8 @@ protected:
 	
   // I/O stuff
   std::string m_filename_DBG_FIRSTSHOE;     // write to this file, first shoe/pin info
-  std::string m_filename_DBG_GEAR;          // write to this file, gear body constraint violation
+  std::string m_filename_DBG_GEAR;          // write to this file, gear body
+  std::string m_filename_DBG_IDLER;         // to to this file, idler body
   std::string m_filename_GCV;               // write to this file, gear constraint violation
   std::vector<std::string> m_filename_ICV;  // write to this file, idler constraint violation
   std::vector<std::string> m_filename_RCV;  // write to this file, roller constraint violation

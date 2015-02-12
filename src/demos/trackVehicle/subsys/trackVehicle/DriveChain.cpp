@@ -356,9 +356,10 @@ void DriveChain::SaveConstraintViolations(bool include_chain)
   {
     std::cerr << "Must call Save_DebugLog() before trying to save the log data to file!!! \n\n\n";
   }
-
+  double t = m_system->GetChTime();
   // call the subsystems in the same order as the headers are set up
   std::stringstream ss_g;
+  ss_g << t;
   m_gear->SaveConstraintViolations(ss_g);
   ChStreamOutAsciiFile ofileGCV(m_filename_GCV.c_str(), std::ios::app);
   ofileGCV << ss_g.str().c_str();
@@ -367,6 +368,7 @@ void DriveChain::SaveConstraintViolations(bool include_chain)
   for(int id = 0; id < m_num_idlers; id++)
   {
     std::stringstream ss_id;
+    ss_id << t;
     m_idlers[id]->SaveConstraintViolations(ss_id);
     ChStreamOutAsciiFile ofileICV(m_filename_ICV[id].c_str(), std::ios::app);
     ofileICV << ss_id.str().c_str();
@@ -376,6 +378,7 @@ void DriveChain::SaveConstraintViolations(bool include_chain)
   for(int roller = 0; roller < m_num_rollers; roller++)
   {
     std::stringstream ss_r;
+    ss_r << t;
     m_rollers[roller]->SaveConstraintViolations(ss_r);
     ChStreamOutAsciiFile ofileRCV(m_filename_RCV[roller].c_str(), std::ios::app);
     ofileRCV << ss_r.str().c_str();
@@ -433,13 +436,13 @@ void DriveChain::Log_to_console(int console_what)
 
   if (console_what & DBG_FIRSTSHOE)
   {
-    GetLog() << "\n---- shoe 0 : " << m_chain->GetShoeBody(0)->GetName() << "\n";
-    // COG state data
-
-    GetLog() << " COG Pos [m] : "  <<  m_chain->GetShoeBody(0)->GetPos() << "\n";
-    GetLog() << " COG Vel [m/s] : "  <<  m_chain->GetShoeBody(0)->GetPos_dt() << "\n";
-    GetLog() << " COG Acc [m/s2] : "  <<  m_chain->GetShoeBody(0)->GetPos_dtdt() << "\n";
-    GetLog() << " COG omega [rad/s] : "  <<  m_chain->GetShoeBody(0)->GetRot_dt() << "\n";
+    // first shoe COG state data, and first pin force/torque
+    GetLog() << "\n---- shoe 0 : " << m_chain->GetShoeBody(0)->GetName() 
+      << "\n COG Pos [m] : "  <<  m_chain->GetShoeBody(0)->GetPos() 
+      << "\n COG Vel [m/s] : "  <<  m_chain->GetShoeBody(0)->GetPos_dt() 
+      << "\n COG Acc [m/s2] : "  <<  m_chain->GetShoeBody(0)->GetPos_dtdt()
+      << "\n COG omega [rad/s] : "  <<  m_chain->GetShoeBody(0)->GetRot_dt() 
+      << "\n";
 
     // shoe pin tension
     GetLog() << " pin 0 reaction force [N] : "  <<  m_chain->GetPinReactForce(0) << "\n";
@@ -448,11 +451,12 @@ void DriveChain::Log_to_console(int console_what)
 
   if (console_what & DBG_GEAR)
   {
-    GetLog() << "\n---- Gear : " << m_gear->GetBody()->GetName() << "\n";
-    // COG state data
-    GetLog() << " COG Pos [m] : " << m_gear->GetBody()->GetPos() << "\n";
-    GetLog() << " COG Vel [m/s] : " << m_gear->GetBody()->GetPos_dt() << "\n";
-    GetLog() << " COG omega [rad/s] : " << m_gear->GetBody()->GetRot_dt() << "\n";
+    // gear state data, contact info
+    GetLog() << "\n---- Gear : " << m_gear->GetBody()->GetName() 
+      << "\n COG Pos [m] : " << m_gear->GetBody()->GetPos() 
+      << "\n COG Vel [m/s] : " << m_gear->GetBody()->GetPos_dt() 
+      << "\n COG omega [rad/s] : " << m_gear->GetBody()->GetRot_dt().Q_to_NasaAngles()
+      << "\n";
 
     /*
     // # of shoe pins in contact?
@@ -462,6 +466,15 @@ void DriveChain::Log_to_console(int console_what)
     // # of non-intermittant contact steps
     GetLog() << "cumulative contact steps : " <<  << "\n";
     */
+  }
+
+  if (console_what & DBG_IDLER)
+  {
+    GetLog() << "\n---- Idler : " << m_idlers[0]->GetBody()->GetName() 
+      <<"\n COG Pos [m] : " << m_idlers[0]->GetBody()->GetPos() 
+      <<"\n COG Vel [m/s] : " << m_idlers[0]->GetBody()->GetPos_dt()
+      <<"\n COG omega [rad/s] : " << m_idlers[0]->GetBody()->GetRot_dt().Q_to_NasaAngles()
+      <<"\n spring react F [N] : " << m_idlers[0]->GetSpringForce();
   }
 
   if (console_what & DBG_CONSTRAINTS)
@@ -500,11 +513,13 @@ void DriveChain::Log_to_file()
     if( m_log_what_to_file & DBG_FIRSTSHOE )
     {
       std::stringstream ss;
+      // time,S0x,S0y,S0z,S0vx,S0vy,S0vz,S0ax,S0ay,S0az,S0wx,S0wy,S0wz,P0fx,P0fy,P0fz
       ss << t <<","<< m_chain->GetShoeBody(0)->GetPos() 
         <<","<<  m_chain->GetShoeBody(0)->GetPos_dt() 
         <<","<<  m_chain->GetShoeBody(0)->GetPos_dtdt()
         <<","<<  m_chain->GetShoeBody(0)->GetRot_dt().Q_to_NasaAngles()
-        <<","<<  m_chain->GetPinReactForce(0);
+        <<","<<  m_chain->GetPinReactForce(0)
+        <<"\n";
         // <<","<<  m_chain->GetPinReactTorque(0);
       ChStreamOutAsciiFile ofile(m_filename_DBG_FIRSTSHOE.c_str(), std::ios::app);
       ofile << ss.str().c_str();
@@ -513,11 +528,25 @@ void DriveChain::Log_to_file()
     if (m_log_what_to_file & DBG_GEAR)
     {
       std::stringstream ss_g;
+      // time,Gx,Gy,Gz,Gvx,Gvy,Gvz,Gwx,Gwy,Gwz
       ss_g << t <<","<< m_gear->GetBody()->GetPos() 
         <<","<< m_gear->GetBody()->GetPos_dt() 
-        <<","<< m_gear->GetBody()->GetRot_dt().Q_to_NasaAngles();
+        <<","<< m_gear->GetBody()->GetRot_dt().Q_to_NasaAngles()
+        <<"\n";
       ChStreamOutAsciiFile ofileDBG_GEAR(m_filename_DBG_GEAR.c_str(), std::ios::app);
       ofileDBG_GEAR << ss_g.str().c_str();
+    }
+
+    if (m_log_what_to_file & DBG_IDLER)
+    {
+      std::stringstream ss_id;
+      // time,Ix,Iy,Iz,Ivx,Ivy,Ivz,Iwx,Iwy,Iwz,F_tensioner
+      ss_id << t <<","<< m_idlers[0]->GetBody()->GetPos()
+        <<","<< m_idlers[0]->GetBody()->GetPos_dt()
+        <<","<< m_idlers[0]->GetBody()->GetRot_dt().Q_to_NasaAngles()
+        <<","<< m_idlers[0]->GetSpringForce()
+        <<"\n";
+
     }
 
     if (m_log_what_to_file & DBG_CONSTRAINTS)
@@ -530,9 +559,10 @@ void DriveChain::Log_to_file()
     {
       std::stringstream ss_pt;
       // motor speed, mot torque, out torque
-      ss_pt << "," << m_ptrain->GetMotorSpeed()
-        << "," << m_ptrain->GetMotorTorque()
-        << "," << m_ptrain->GetOutputTorque();
+      ss_pt << t <<","<< m_ptrain->GetMotorSpeed()
+        <<","<< m_ptrain->GetMotorTorque()
+        <<","<< m_ptrain->GetOutputTorque()
+        <<"\n";
       ChStreamOutAsciiFile ofilePT(m_filename_DBG_PTRAIN.c_str(), std::ios::app);
       ofilePT << ss_pt.str().c_str();
     }
@@ -550,7 +580,7 @@ void DriveChain::create_fileHeader(int what)
     m_filename_DBG_FIRSTSHOE = m_log_file_name+"_shoe0.csv";
     ChStreamOutAsciiFile ofileDBG_FIRSTSHOE(m_filename_DBG_FIRSTSHOE.c_str());
     std::stringstream ss;
-    ss << "time,S0x,S0y,S0z,S0vx,S0vy,S0vz,S0ax,S0ay,S0az,S0wx,S0wy,S0wz,P0fx,P0fy,P0fz";
+    ss << "time,S0x,S0y,S0z,S0vx,S0vy,S0vz,S0ax,S0ay,S0az,S0wx,S0wy,S0wz,P0fx,P0fy,P0fz\n";
     ofileDBG_FIRSTSHOE << ss.str().c_str();
   }
 
@@ -559,8 +589,17 @@ void DriveChain::create_fileHeader(int what)
     m_filename_DBG_GEAR = m_log_file_name+"_gear.csv";
     ChStreamOutAsciiFile ofileDBG_GEAR(m_filename_DBG_GEAR.c_str());
     std::stringstream ss;
-    ss << "time,Gx,Gy,Gz,Gvx,Gvy,Gvz,Gwx,Gwy,Gwz";
+    ss << "time,Gx,Gy,Gz,Gvx,Gvy,Gvz,Gwx,Gwy,Gwz\n";
     ofileDBG_GEAR << ss.str().c_str();
+  }
+
+  if(what & DBG_IDLER)
+  {
+    m_filename_DBG_IDLER = m_log_file_name+"_idler.csv";
+    ChStreamOutAsciiFile ofileDBG_IDLER(m_filename_DBG_GEAR.c_str());
+    std::stringstream ss_id;
+    ss_id << "time,Ix,Iy,Iz,Ivx,Ivy,Ivz,Iwx,Iwy,Iwz,F_tensioner\n";
+    ofileDBG_IDLER << ss_id.str().c_str();
   }
 
   // write the data for each subsystem's constraint violation
@@ -569,9 +608,9 @@ void DriveChain::create_fileHeader(int what)
     // in the same order as listed in the header
     m_filename_GCV = m_log_file_name+"_GearCV.csv";
     ChStreamOutAsciiFile ofileGCV(m_filename_GCV.c_str());
-    std::stringstream ss;
-    ss << m_gear->getFileHeader_ConstraintViolations(0);
-    ofileGCV << ss.str().c_str();
+    std::stringstream ss_g;
+    ss_g << m_gear->getFileHeader_ConstraintViolations(0);
+    ofileGCV << ss_g.str().c_str();
 
     for(int id = 0; id < m_num_idlers; id++)
     {
@@ -586,7 +625,7 @@ void DriveChain::create_fileHeader(int what)
     for(int roller = 0; roller < m_num_rollers; roller++)
     {
       m_filename_RCV.push_back(m_log_file_name+"_rollerCV"+std::to_string(roller)+".csv");
-      ChStreamOutAsciiFile ofileRCV(m_filename_ICV.back().c_str());
+      ChStreamOutAsciiFile ofileRCV(m_filename_RCV.back().c_str());
       std::stringstream ss_r;
       ss_r << m_rollers[roller]->getFileHeader_ConstraintViolations(roller);
       ofileRCV << ss_r.str().c_str();
@@ -599,7 +638,7 @@ void DriveChain::create_fileHeader(int what)
     m_filename_DBG_PTRAIN = m_log_file_name+"_ptrain.csv";
     ChStreamOutAsciiFile ofileDBG_PTRAIN(m_filename_DBG_PTRAIN.c_str());
     std::stringstream ss_pt;
-    ss_pt << ",motSpeed,motT,outT";
+    ss_pt << "time,motSpeed,motT,outT\n";
     ofileDBG_PTRAIN << ss_pt.str().c_str();
   }
 

@@ -247,14 +247,14 @@ void SupportRoller::SaveConstraintViolations(std::stringstream& out)
   {
     out << "," << C->GetElement(row, 0);
   }
-
+  out <<"\n";
 }
 
 const std::string SupportRoller::getFileHeader_ConstraintViolations(size_t idx)
 {
   // passive rollers have 1 DOF, 5 reactions
   std::stringstream ss;
-  ss << "time,R" <<idx<< "CVx,R" <<idx<< "CVy,R" <<idx<< "CVz,R" <<idx<< "CVrx,R" <<idx<< "CVry";
+  ss << "time,R" <<idx<< "CVx,R" <<idx<< "CVy,R" <<idx<< "CVz,R" <<idx<< "CVrx,R" <<idx<< "CVry\n";
   return ss.str();
 }
 

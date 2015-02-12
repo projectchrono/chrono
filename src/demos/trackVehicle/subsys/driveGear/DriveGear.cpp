@@ -386,14 +386,15 @@ void DriveGear::SaveConstraintViolations(std::stringstream& ss)
     << "," << C->GetElement(1, 0)
     << "," << C->GetElement(2, 0) 
     << "," << C->GetElement(3, 0)
-    << "," << C->GetElement(4, 0);
+    << "," << C->GetElement(4, 0)
+    <<"\n";
 }
 
 const std::string DriveGear::getFileHeader_ConstraintViolations(size_t idx) const
 {
   // gear is a revolute joint, z-rot DOF only
   std::stringstream ss;
-  ss << "time,G" <<idx<< "CVx,G" <<idx<< "CVy,G" <<idx<< "CVz,G" <<idx<< "CVrx,G" <<idx<< "CVry";
+  ss << "time,G" <<idx<< "CVx,G" <<idx<< "CVy,G" <<idx<< "CVz,G" <<idx<< "CVrx,G" <<idx<< "CVry\n";
   return ss.str();
 }
 
