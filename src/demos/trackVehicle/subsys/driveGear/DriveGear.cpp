@@ -393,7 +393,7 @@ const std::string DriveGear::getFileHeader_ConstraintViolations(size_t idx) cons
 {
   // gear is a revolute joint, z-rot DOF only
   std::stringstream ss;
-  ss << ",G" <<idx<< "CVx,G" <<idx<< "CVy,G" <<idx<< "CVz,G" <<idx<< "CVrx,G" <<idx<< "CVry";
+  ss << "time,G" <<idx<< "CVx,G" <<idx<< "CVy,G" <<idx<< "CVz,G" <<idx<< "CVrx,G" <<idx<< "CVry";
   return ss.str();
 }
 

@@ -383,9 +383,6 @@ void DriveChain::SaveConstraintViolations(bool include_chain)
 
 }
 
-
-
-
 // write output
 
 
@@ -556,6 +553,7 @@ void DriveChain::create_fileHeader(int what)
     ss << "time,S0x,S0y,S0z,S0vx,S0vy,S0vz,S0ax,S0ay,S0az,S0wx,S0wy,S0wz,P0fx,P0fy,P0fz";
     ofileDBG_FIRSTSHOE << ss.str().c_str();
   }
+
   if(what & DBG_GEAR)
   {
     m_filename_DBG_GEAR = m_log_file_name+"_gear.csv";
@@ -564,10 +562,12 @@ void DriveChain::create_fileHeader(int what)
     ss << "time,Gx,Gy,Gz,Gvx,Gvy,Gvz,Gwx,Gwy,Gwz";
     ofileDBG_GEAR << ss.str().c_str();
   }
+
+  // write the data for each subsystem's constraint violation
   if(what & DBG_CONSTRAINTS)
   {
     // in the same order as listed in the header
-    m_filename_GCV = m_log_file_name+"_gear.csv";
+    m_filename_GCV = m_log_file_name+"_GearCV.csv";
     ChStreamOutAsciiFile ofileGCV(m_filename_GCV.c_str());
     std::stringstream ss;
     ss << m_gear->getFileHeader_ConstraintViolations(0);
@@ -575,7 +575,7 @@ void DriveChain::create_fileHeader(int what)
 
     for(int id = 0; id < m_num_idlers; id++)
     {
-      m_filename_ICV.push_back(m_log_file_name+"_idler"+std::to_string(id)+".csv");
+      m_filename_ICV.push_back(m_log_file_name+"_idlerCV"+std::to_string(id)+".csv");
       ChStreamOutAsciiFile ofileICV(m_filename_ICV.back().c_str());
       std::stringstream ss_id;
       ss_id << m_idlers[id]->getFileHeader_ConstraintViolations(id);
@@ -585,7 +585,7 @@ void DriveChain::create_fileHeader(int what)
     // violations of the roller revolute joints
     for(int roller = 0; roller < m_num_rollers; roller++)
     {
-      m_filename_RCV.push_back(m_log_file_name+"_roller"+std::to_string(roller)+".csv");
+      m_filename_RCV.push_back(m_log_file_name+"_rollerCV"+std::to_string(roller)+".csv");
       ChStreamOutAsciiFile ofileRCV(m_filename_ICV.back().c_str());
       std::stringstream ss_r;
       ss_r << m_rollers[roller]->getFileHeader_ConstraintViolations(roller);
@@ -593,6 +593,7 @@ void DriveChain::create_fileHeader(int what)
     }
   }
 
+  // write powertrian data
   if(what & DBG_PTRAIN)
   {
     m_filename_DBG_PTRAIN = m_log_file_name+"_ptrain.csv";

@@ -361,7 +361,7 @@ const std::string IdlerSimple::getFileHeader_ConstraintViolations(size_t idx) co
   // idler has x-translational and z-rot DOFs
   // y, z reaction Forces, x,y reaction torques
   std::stringstream ss;
-  ss << ",I" <<idx<< "CVy,I" <<idx<< "CVz,I" <<idx<< "CVrx,I" <<idx<< "CVry";
+  ss << "time,I" <<idx<< "CVy,I" <<idx<< "CVz,I" <<idx<< "CVrx,I" <<idx<< "CVry";
   return ss.str();
 }
 
