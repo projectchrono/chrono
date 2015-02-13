@@ -307,7 +307,7 @@ void test_box_sphere(bool sep)
 
   {
     cout << "  face interaction (separated near)" << endl;
-    shapeS.A = real3(3.0, 2.0, 1.0);
+    shapeS.A = real3(4.6 * oosqrt2, 2.6 * oosqrt2, 1.0);
     bool res = RCollision(shapeB, shapeS, separation, &norm, &pt1, &pt2, &depth, &eff_rad, nC);
     if (sep) {
       if (!res) {
@@ -315,7 +315,10 @@ void test_box_sphere(bool sep)
         exit(1);
       }
       StrictEqual(nC, 1);
-      //// TODO: more here...
+      WeakEqual(norm, real3(oosqrt2, oosqrt2, 0.0), precision);
+      WeakEqual(depth, 0.1, precision);
+      WeakEqual(pt1, real3(3.0 * oosqrt2, oosqrt2, 1.0), precision);
+      WeakEqual(pt2, real3(3.1 * oosqrt2, 1.1 * oosqrt2, 1.0), precision);
     } else {
       if (!res || nC != 0) {
         cout << "    test failed" << endl;
@@ -351,8 +354,26 @@ void test_box_sphere(bool sep)
   }
 
   {
-    cout << "  edge interaction (separated near)    TODO" << endl;
-    //// TODO
+    cout << "  edge interaction (separated near)" << endl;
+    shapeS.A = real3(oosqrt2, 3.0 * oosqrt2 + 1.55, 1.0);
+    bool res = RCollision(shapeB, shapeS, separation, &norm, &pt1, &pt2, &depth, &eff_rad, nC);
+    if (sep) {
+      if (!res) {
+        cout << "    test failed" << endl;
+        exit(1);
+      }
+      StrictEqual(nC, 1);
+      WeakEqual(norm, real3(0.0, 1.0, 0.0), precision);
+      WeakEqual(depth, 0.05, precision);
+      WeakEqual(pt1, real3(oosqrt2, 3.0 * oosqrt2, 1.0), precision);
+      WeakEqual(pt2, real3(oosqrt2, 3.0 * oosqrt2 + 0.05, 1.0), precision);
+    }
+    else {
+      if (!res || nC != 0) {
+        cout << "    test failed" << endl;
+        exit(1);
+      }
+    }
   }
 
   {
@@ -382,8 +403,27 @@ void test_box_sphere(bool sep)
   }
 
   {
-    cout << "  corner interaction (separated near)    TODO" << endl;
-    //// TODO
+    cout << "  corner interaction (separated near)" << endl;
+    real3 s_pos(oosqrt2, 4.55 * oosqrt2, 3.0 + 1.55 * oosqrt2);
+    shapeS.A = s_pos;
+    bool res = RCollision(shapeB, shapeS, separation, &norm, &pt1, &pt2, &depth, &eff_rad, nC);
+    if (sep) {
+      if (!res) {
+        cout << "    test failed" << endl;
+        exit(1);
+      }
+      StrictEqual(nC, 1);
+      WeakEqual(norm, real3(0.0, oosqrt2, oosqrt2), precision);
+      WeakEqual(depth, 0.05, precision);
+      WeakEqual(pt1, real3(oosqrt2, 3.0 * oosqrt2, 3.0), precision);
+      WeakEqual(pt2, s_pos - s_rad * norm, precision);
+    }
+    else {
+      if (!res || nC != 0) {
+        cout << "    test failed" << endl;
+        exit(1);
+      }
+    }
   }
 
   {
