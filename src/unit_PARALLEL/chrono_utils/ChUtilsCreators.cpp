@@ -288,16 +288,17 @@ void CreateBoxContainerDEM(ChSystem*                           system,
   system->AddBody(ChSharedPtr<ChBodyDEM>(body));
 }
 
-void CreateBoxContainerDVI(ChSystem*                        system,
-                           int                              id,
-                           ChSharedPtr<ChMaterialSurface>&  mat,
-                           const ChVector<>&                hdim,
-                           double                           hthick,
-                           const ChVector<>&                pos,
-                           const ChQuaternion<>&            rot,
-                           bool                             collide,
-                           bool                             y_up)
-{
+void CreateBoxContainerDVI(ChSystem* system,
+                           int id,
+                           ChSharedPtr<ChMaterialSurface>& mat,
+                           const ChVector<>& hdim,
+                           double hthick,
+                           const ChVector<>& pos,
+                           const ChQuaternion<>& rot,
+                           bool collide,
+                           bool y_up,
+                           bool overlap,
+                           bool closed) {
   // Infer system type and collision type.
   SystemType sysType = GetSystemType(system);
   CollisionType cdType = GetCollisionType(system);
@@ -306,7 +307,7 @@ void CreateBoxContainerDVI(ChSystem*                        system,
   // Create the body and set material
   ChBody* body;
 
-  if (sysType == SEQUENTIAL_DVI|| cdType==BULLET_CD)
+  if (sysType == SEQUENTIAL_DVI || cdType == BULLET_CD)
     body = new ChBody();
   else
     body = new ChBody(new collision::ChCollisionModelParallel);
@@ -320,21 +321,30 @@ void CreateBoxContainerDVI(ChSystem*                        system,
   body->SetRot(rot);
   body->SetCollide(collide);
   body->SetBodyFixed(true);
-
+  double o_lap = 0;
+  if (overlap) {
+    o_lap = hthick * 2;
+  }
   body->GetCollisionModel()->ClearModel();
-if(y_up){
-   AddBoxGeometry(body,  ChVector<>(hdim.x,  hthick,hdim.y),ChVector<>(0             , -hthick,0             ));
-   AddBoxGeometry(body,  ChVector<>(hthick,  hdim.z,hdim.y),ChVector<>(-hdim.x-hthick, hdim.z ,0             ));
-   AddBoxGeometry(body,  ChVector<>(hthick,  hdim.z,hdim.y),ChVector<>( hdim.x+hthick, hdim.z ,0             ));
-   AddBoxGeometry(body,  ChVector<>(hdim.x,  hdim.z,hthick),ChVector<>(0             , hdim.z ,-hdim.y-hthick));
-   AddBoxGeometry(body,  ChVector<>(hdim.x,  hdim.z,hthick),ChVector<>(0             , hdim.z , hdim.y+hthick));
-}else{
-   AddBoxGeometry(body,  ChVector<>(hdim.x, hdim.y, hthick),ChVector<>(0             , 0             , -hthick));
-   AddBoxGeometry(body,  ChVector<>(hthick, hdim.y, hdim.z),ChVector<>(-hdim.x-hthick, 0             , hdim.z));
-   AddBoxGeometry(body,  ChVector<>(hthick, hdim.y, hdim.z),ChVector<>( hdim.x+hthick, 0             , hdim.z));
-   AddBoxGeometry(body,  ChVector<>(hdim.x, hthick, hdim.z),ChVector<>(0             , -hdim.y-hthick, hdim.z));
-   AddBoxGeometry(body,  ChVector<>(hdim.x, hthick, hdim.z),ChVector<>(0             ,  hdim.y+hthick, hdim.z));
-}
+  if (y_up) {
+    AddBoxGeometry(body, ChVector<>(hdim.x + o_lap, hthick, hdim.y + o_lap), ChVector<>(0, -hthick, 0));
+    AddBoxGeometry(body, ChVector<>(hthick, hdim.z + o_lap, hdim.y + o_lap), ChVector<>(-hdim.x - hthick, hdim.z, 0));
+    AddBoxGeometry(body, ChVector<>(hthick, hdim.z + o_lap, hdim.y + o_lap), ChVector<>(hdim.x + hthick, hdim.z, 0));
+    AddBoxGeometry(body, ChVector<>(hdim.x + o_lap, hdim.z + o_lap, hthick), ChVector<>(0, hdim.z, -hdim.y - hthick));
+    AddBoxGeometry(body, ChVector<>(hdim.x + o_lap, hdim.z + o_lap, hthick), ChVector<>(0, hdim.z, hdim.y + hthick));
+    if (closed) {
+      AddBoxGeometry(body, ChVector<>(hdim.x + o_lap, hthick, hdim.y + o_lap), ChVector<>(0, hdim.z * 2 + hthick, 0));
+    }
+  } else {
+    AddBoxGeometry(body, ChVector<>(hdim.x + o_lap, hdim.y + o_lap, hthick), ChVector<>(0, 0, -hthick));
+    AddBoxGeometry(body, ChVector<>(hthick, hdim.y + o_lap, hdim.z + o_lap), ChVector<>(-hdim.x - hthick, 0, hdim.z));
+    AddBoxGeometry(body, ChVector<>(hthick, hdim.y + o_lap, hdim.z + o_lap), ChVector<>(hdim.x + hthick, 0, hdim.z));
+    AddBoxGeometry(body, ChVector<>(hdim.x + o_lap, hthick, hdim.z + o_lap), ChVector<>(0, -hdim.y - hthick, hdim.z));
+    AddBoxGeometry(body, ChVector<>(hdim.x + o_lap, hthick, hdim.z + o_lap), ChVector<>(0, hdim.y + hthick, hdim.z));
+    if (closed) {
+      AddBoxGeometry(body, ChVector<>(hdim.x + o_lap, hdim.y + o_lap, hthick), ChVector<>(0, 0, hdim.z * 2 + hthick));
+    }
+  }
   body->GetCollisionModel()->BuildModel();
 
   // Attach the body to the system.
