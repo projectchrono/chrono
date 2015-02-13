@@ -259,18 +259,18 @@ void SetNumObjects(NumberOfObjects & numObjects, const thrust::host_vector<int3>
 	printf("********************\n");
 }
 
-void ClearArrays(
-	const thrust::host_vector<real3> & mPosRad, //do not set the size here since you are using push back later
-	const thrust::host_vector<real4> & mVelMas,
-	const thrust::host_vector<real4> & mRhoPresMu,
-	const thrust::host_vector<uint> & bodyIndex,
-	const thrust::host_vector<int3> & referenceArray) {
+void ClearArraysH(
+	thrust::host_vector<real3> & mPosRad, //do not set the size here since you are using push back later
+	thrust::host_vector<real4> & mVelMas,
+	thrust::host_vector<real4> & mRhoPresMu,
+	thrust::host_vector<uint> & bodyIndex,
+	thrust::host_vector<int3> & referenceArray) {
 
 	mPosRad.clear();
 	mVelMas.clear();
 	mRhoPresMu.clear();
 	bodyIndex.clear();
-	referenceArray.clear()
+	referenceArray.clear();
 }
 
 //&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
@@ -341,7 +341,7 @@ int main() {
 	// set num objects
 	SetNumObjects(numObjects, referenceArray, numAllMarkers);
 	if (numObjects.numAllMarkers == 0) {
-		ClearArrays(mPosRad, mVelMas, mRhoPresMu, bodyIndex, referenceArray);
+		ClearArraysH(mPosRad, mVelMas, mRhoPresMu, bodyIndex, referenceArray);
 		return 0;
 	}
 
@@ -349,9 +349,12 @@ int main() {
 	printf("********************\n");
 
 
-	thrust::device_vector<real3> posRadD	;
-	thrust::device_vector<real4> velMasD	;
-	thrust::device_vector<real4> rhoPresMuD	;
+	thrust::device_vector<real3> posRadD = mPosRad;
+	thrust::device_vector<real4> velMasD = mVelMas;
+	thrust::device_vector<real4> rhoPresMuD = mRhoPresMu;
+	thrust::device_vector<uint> bodyIndexD = bodyIndex;
+	thrust::device_vector<real4> derivVelRhoD;
+	ResizeMyThrust<real4>(derivVelRhoD, numObjects.numAllMarkers);
 //*********************************************** End of Initialization ****************************************
 	int stepEnd = int(paramsH.tFinal/paramsH.dT);//1.0e6;//2.4e6;//600000;//2.4e6 * (.02 * paramsH.sizeScale) / currentParamsH.dT ; //1.4e6 * (.02 * paramsH.sizeScale) / currentParamsH.dT ;//0.7e6 * (.02 * paramsH.sizeScale) / currentParamsH.dT ;//0.7e6;//2.5e6; //200000;//10000;//50000;//100000;
 	printf("stepEnd %d\n", stepEnd);
@@ -367,13 +370,36 @@ int main() {
 	InitSystem(paramsH, numObjects);
 	SimParams currentParamsH = paramsH;
 	for (int tStep = 0; tStep < stepEnd + 1; tStep++) {
-
-
-		mCpuTimer.Stop();
-		if (tStep % 50 == 0) {
-			printf("step: %d, realTime: %f, step Time (CUDA): %f, step Time (CPU): %f\n ", tStep, realTime, time2, 1000 * mCpuTimer.Elapsed());
+		if (realTime <= paramsH.timePause) 	{
+			currentParamsH = paramsH_B;
+		} else {
+			currentParamsH = paramsH;
 		}
-		fflush(stdout);
+		InitSystem(currentParamsH, numObjects);
+
+		thrust::device_vector<real3> posRadD2 = posRadD;
+		thrust::device_vector<real4> velMasD2 = velMasD;
+		thrust::device_vector<real4> rhoPresMuD2 = rhoPresMuD;
+		thrust::device_vector<real3> vel_XSPH_D;
+		ResizeMyThrust<real3>(vel_XSPH_D, numObjects.numAllMarkers);
+
+		//thrust::fill(derivVelRhoD.begin(), derivVelRhoD.end(), R3(0));
+		FillMyThrust<real4>(derivVelRhoD, R4(0));
+
+		IntegrateSPH(posRadD2, velMasD2, rhoPresMuD2, posRadD, velMasD, vel_XSPH_D, rhoPresMuD, bodyIndexD, derivVelRhoD, referenceArray, numObjects, currentParamsH, 0.5 * currentParamsH.dT);
+		IntegrateSPH(posRadD, velMasD, rhoPresMuD, posRadD2, velMasD2, vel_XSPH_D, rhoPresMuD2, bodyIndexD, derivVelRhoD, referenceArray, numObjects, currentParamsH, currentParamsH.dT);
+
+		ClearMyThrust<real3>(posRadD2);
+		ClearMyThrust<real4>(velMasD2);
+		ClearMyThrust<real4>(rhoPresMuD2);
+		ClearMyThrust<real3>(vel_XSPH_D);
+
+
+//		mCpuTimer.Stop();
+//		if (tStep % 50 == 0) {
+//			printf("step: %d, realTime: %f, step Time (CUDA): %f, step Time (CPU): %f\n ", tStep, realTime, time2, 1000 * mCpuTimer.Elapsed());
+//		}
+//		fflush(stdout);
 		realTime += currentParamsH.dT;
 	}
 
@@ -384,6 +410,10 @@ int main() {
 	if (numObjects.numAllMarkers != 0) {
 		cudaCollisions(mPosRad, mVelMas, mRhoPresMu, bodyIndex, referenceArray,	paramsH, numObjects);
 	}
-	ClearArrays(mPosRad, mVelMas, mRhoPresMu, bodyIndex, referenceArray);
+	ClearArraysH(mPosRad, mVelMas, mRhoPresMu, bodyIndex, referenceArray);
+	ClearMyThrust<real3>(posRadD);
+	ClearMyThrust<real4>(velMasD);
+	ClearMyThrust<real4>(rhoPresMuD);
+	ClearMyThrust<uint>(bodyIndexD);
 	return 0;
 }

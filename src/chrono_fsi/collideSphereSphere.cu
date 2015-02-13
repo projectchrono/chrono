@@ -270,125 +270,158 @@ void InitSystem(
 	cutilSafeCall( cudaMemcpyToSymbolAsync(numObjectsD, &numObjects, sizeof(NumberOfObjects)));
 }
 
-//##############################################################################################################################################
-// the main function, which updates the particles and implements BC
-void cudaCollisions(
-		thrust::host_vector<real3> & mPosRad,
-		thrust::host_vector<real4> & mVelMas,
-		thrust::host_vector<real4> & mRhoPresMu,
-		const thrust::host_vector<uint> & bodyIndex,
-		const thrust::host_vector<int3> & referenceArray,
-
-		SimParams paramsH,
-		NumberOfObjects numObjects) {
-
-	//--------- initialization ---------------
-	//cudaError_t dumDevErr = cudaSetDevice(2);
-	GpuTimer myTotalTime;
-	myTotalTime.Start();
-	//printf("cMin.x, y, z, CMAx.x, y, z, binSize %f %f %f , %f %f %f, %f\n", paramsH.cMin.x, paramsH.cMin.y, paramsH.cMin.z, paramsH.cMax.x, paramsH.cMax.y, paramsH.cMax.z, paramsH.binSize0);
-	cudaDeviceSetCacheConfig(cudaFuncCachePreferL1);
-
-	thrust::device_vector<real3> posRadD=mPosRad;
-	thrust::device_vector<real4> velMasD=mVelMas;
-	thrust::device_vector<real4> rhoPresMuD=mRhoPresMu;
-
-	thrust::device_vector<uint> bodyIndexD=bodyIndex;
-	thrust::device_vector<real4> derivVelRhoD(numObjects.numAllMarkers);
-
-
-
-	//******************************************************************************
-
-	for (int tStep = 0; tStep < stepEnd + 1; tStep++) {
-		//************************************************
-		PrintToFile(posRadD, velMasD, rhoPresMuD, referenceArray, currentParamsH, realTime, tStep);
-		//************
-
-		GpuTimer myGpuTimer;
-		myGpuTimer.Start();
-
-		// Arman timer Added
-		CpuTimer mCpuTimer;
-		mCpuTimer.Start();
-
-		//***********
-		if (realTime <= paramsH.timePause) 	{
-			currentParamsH = paramsH_B;
-		} else {
-			currentParamsH = paramsH;
-		}
-		//***********
-
-		setParameters(&currentParamsH, &numObjects);// sets paramsD in SDKCollisionSystem
-		cutilSafeCall( cudaMemcpyToSymbolAsync(paramsD, &currentParamsH, sizeof(SimParams))); 	//sets paramsD for this file
-
-		//computations
-				//markers
-		thrust::device_vector<real3> posRadD2 = posRadD;
-		thrust::device_vector<real4> velMasD2 = velMasD;
-		thrust::device_vector<real4> rhoPresMuD2 = rhoPresMuD;
-		thrust::device_vector<real3> vel_XSPH_D(numObjects.numAllMarkers);
-
-
-		//******** RK2
-		ForceSPH(posRadD, velMasD, vel_XSPH_D, rhoPresMuD, bodyIndexD, derivVelRhoD, referenceArray, numObjects, currentParamsH, 0.5 * currentParamsH.dT); //?$ right now, it does not consider paramsH.gravity or other stuff on rigid bodies. they should be applied at rigid body solver
-		UpdateFluid(posRadD2, velMasD2, vel_XSPH_D, rhoPresMuD2, derivVelRhoD, referenceArray, 0.5 * currentParamsH.dT); //assumes ...D2 is a copy of ...D
-			//UpdateBoundary(posRadD2, velMasD2, rhoPresMuD2, derivVelRhoD, referenceArray, 0.5 * currentParamsH.dT);		//assumes ...D2 is a copy of ...D
-		ApplyBoundarySPH_Markers(posRadD2, rhoPresMuD2, numObjects.numAllMarkers);
-		//*****
-		ForceSPH(posRadD2, velMasD2, vel_XSPH_D, rhoPresMuD2, bodyIndexD, derivVelRhoD, referenceArray, numObjects, currentParamsH, currentParamsH.dT);
-		UpdateFluid(posRadD, velMasD, vel_XSPH_D, rhoPresMuD, derivVelRhoD, referenceArray, currentParamsH.dT);
-			//UpdateBoundary(posRadD, velMasD, rhoPresMuD, derivVelRhoD, referenceArray, currentParamsH.dT);
-		ApplyBoundarySPH_Markers(posRadD, rhoPresMuD, numObjects.numAllMarkers);
-		//************
-		posRadD2.clear();
-		velMasD2.clear();
-		rhoPresMuD2.clear();
-		vel_XSPH_D.clear();
-
-		//density re-initialization
-//		if ((tStep % 10 == 0) && (paramsH.densityReinit != 0)) {
-//			DensityReinitialization(posRadD, velMasD, rhoPresMuD, numObjects.numAllMarkers, paramsH.gridSize); //does not work for analytical boundaries (non-meshed) and free surfaces
-//		}
-
-		myGpuTimer.Stop();
-		real_ time2 = (real_)myGpuTimer.Elapsed();
-
-		//cudaDeviceSynchronize();
-
-		//Arman timer Added
-		mCpuTimer.Stop();
-
-		if (tStep % 50 == 0) {
-			printf("step: %d, realTime: %f, step Time (CUDA): %f, step Time (CPU): %f\n ", tStep, realTime, time2, 1000 * mCpuTimer.Elapsed());
-
-//			// ************ calc and print cartesian data ************************************
-//			int3 cartesianGridDims;
-//			thrust::host_vector<real4> rho_Pres_CartH(1);
-//			thrust::host_vector<real4> vel_VelMag_CartH(1);
-//			MapSPH_ToGrid(2 * paramsH.HSML, cartesianGridDims, rho_Pres_CartH, vel_VelMag_CartH,
-//					posRadD, velMasD, rhoPresMuD, numObjects.numAllMarkers, paramsH);
-//			PrintCartesianData_MidLine(rho_Pres_CartH, vel_VelMag_CartH, cartesianGridDims, paramsH);
-//			// *******************************************************************************
-		}
-		fflush(stdout);
-
-		realTime += currentParamsH.dT;
-
-		//_CrtDumpMemoryLeaks(); //for memory leak detection (msdn suggestion for VS) apparently does not work in conjunction with cuda
-
-	}
-
-	//you may copy back to host
-	posRadD.clear();
-	velMasD.clear();
-	rhoPresMuD.clear();
-
-	bodyIndexD.clear();
-	derivVelRhoD.clear();
-
-	myTotalTime.Stop();
-	real_ time = (real_)myTotalTime.Elapsed();
-	printf("total Time: %f\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n ", time);
+template<typename T>
+void ResizeMyThrust(thrust::device_vector<T> & mThrustVec, int mSize) {
+	mThrustVec.resize(mSize);
 }
+
+template<typename T>
+void FillMyThrust(thrust::device_vector<T> & mThrustVec, T v) {
+	thrust::fill(mThrustVec.begin(), mThrustVec.end(), v);
+}
+
+template<typename T>
+void ClearMyThrust(thrust::device_vector<T> & mThrustVec) {
+	mThrustVec.clear();
+}
+
+void IntegrateSPH(
+		thrust::device_vector<real3> & posRadD2,
+		thrust::device_vector<real4> & velMasD2,
+		thrust::device_vector<real4> & rhoPresMuD2,
+
+		thrust::device_vector<real3> & posRadD,
+		thrust::device_vector<real4> & velMasD,
+		thrust::device_vector<real3> & vel_XSPH_D,
+		thrust::device_vector<real4> & rhoPresMuD,
+
+		thrust::device_vector<uint> & bodyIndexD,
+		thrust::device_vector<real4> & derivVelRhoD,
+		const thrust::host_vector<int3> & referenceArray,
+		const NumberOfObjects & numObjects,
+		SimParams currentParamsH,
+		real_ dT) {
+
+
+	ForceSPH(posRadD, velMasD, vel_XSPH_D, rhoPresMuD, bodyIndexD, derivVelRhoD, referenceArray, numObjects, currentParamsH, dT); //?$ right now, it does not consider paramsH.gravity or other stuff on rigid bodies. they should be applied at rigid body solver
+	UpdateFluid(posRadD2, velMasD2, vel_XSPH_D, rhoPresMuD2, derivVelRhoD, referenceArray, dT); //assumes ...D2 is a copy of ...D
+		//UpdateBoundary(posRadD2, velMasD2, rhoPresMuD2, derivVelRhoD, referenceArray, 0.5 * currentParamsH.dT);		//assumes ...D2 is a copy of ...D
+	ApplyBoundarySPH_Markers(posRadD2, rhoPresMuD2, numObjects.numAllMarkers);
+}
+////##############################################################################################################################################
+//// the main function, which updates the particles and implements BC
+//void cudaCollisions(
+//		thrust::host_vector<real3> & mPosRad,
+//		thrust::host_vector<real4> & mVelMas,
+//		thrust::host_vector<real4> & mRhoPresMu,
+//		const thrust::host_vector<uint> & bodyIndex,
+//		const thrust::host_vector<int3> & referenceArray,
+//
+//		SimParams paramsH,
+//		NumberOfObjects numObjects) {
+//
+//	//--------- initialization ---------------
+//	//cudaError_t dumDevErr = cudaSetDevice(2);
+//	GpuTimer myTotalTime;
+//	myTotalTime.Start();
+//	//printf("cMin.x, y, z, CMAx.x, y, z, binSize %f %f %f , %f %f %f, %f\n", paramsH.cMin.x, paramsH.cMin.y, paramsH.cMin.z, paramsH.cMax.x, paramsH.cMax.y, paramsH.cMax.z, paramsH.binSize0);
+//	cudaDeviceSetCacheConfig(cudaFuncCachePreferL1);
+//
+//	thrust::device_vector<real3> posRadD=mPosRad;
+//	thrust::device_vector<real4> velMasD=mVelMas;
+//	thrust::device_vector<real4> rhoPresMuD=mRhoPresMu;
+//
+//	thrust::device_vector<uint> bodyIndexD=bodyIndex;
+//	thrust::device_vector<real4> derivVelRhoD(numObjects.numAllMarkers);
+//
+//
+//
+//	//******************************************************************************
+//
+//	for (int tStep = 0; tStep < stepEnd + 1; tStep++) {
+//		//************************************************
+//		PrintToFile(posRadD, velMasD, rhoPresMuD, referenceArray, currentParamsH, realTime, tStep);
+//		//************
+//
+//		GpuTimer myGpuTimer;
+//		myGpuTimer.Start();
+//
+//		// Arman timer Added
+//		CpuTimer mCpuTimer;
+//		mCpuTimer.Start();
+//
+//		//***********
+//		if (realTime <= paramsH.timePause) 	{
+//			currentParamsH = paramsH_B;
+//		} else {
+//			currentParamsH = paramsH;
+//		}
+//		//***********
+//
+//		setParameters(&currentParamsH, &numObjects);// sets paramsD in SDKCollisionSystem
+//		cutilSafeCall( cudaMemcpyToSymbolAsync(paramsD, &currentParamsH, sizeof(SimParams))); 	//sets paramsD for this file
+//
+//		//computations
+//				//markers
+//		thrust::device_vector<real3> posRadD2 = posRadD;
+//		thrust::device_vector<real4> velMasD2 = velMasD;
+//		thrust::device_vector<real4> rhoPresMuD2 = rhoPresMuD;
+//		thrust::device_vector<real3> vel_XSPH_D(numObjects.numAllMarkers);
+//
+//
+//		//******** RK2
+//		IntegrateSPH(posRadD2, velMasD2, rhoPresMuD2, posRadD, velMasD, vel_XSPH_D, rhoPresMuD, bodyIndexD, derivVelRhoD, referenceArray, numObjects, currentParamsH, 0.5 * currentParamsH.dT);
+//		IntegrateSPH(posRadD, velMasD, rhoPresMuD, posRadD2, velMasD2, vel_XSPH_D, rhoPresMuD2, bodyIndexD, derivVelRhoD, referenceArray, numObjects, currentParamsH, currentParamsH.dT);
+//
+//
+//		//************
+//		posRadD2.clear();
+//		velMasD2.clear();
+//		rhoPresMuD2.clear();
+//		vel_XSPH_D.clear();
+//
+//		//density re-initialization
+////		if ((tStep % 10 == 0) && (paramsH.densityReinit != 0)) {
+////			DensityReinitialization(posRadD, velMasD, rhoPresMuD, numObjects.numAllMarkers, paramsH.gridSize); //does not work for analytical boundaries (non-meshed) and free surfaces
+////		}
+//
+//		myGpuTimer.Stop();
+//		real_ time2 = (real_)myGpuTimer.Elapsed();
+//
+//		//cudaDeviceSynchronize();
+//
+//		//Arman timer Added
+//		mCpuTimer.Stop();
+//
+//		if (tStep % 50 == 0) {
+//			printf("step: %d, realTime: %f, step Time (CUDA): %f, step Time (CPU): %f\n ", tStep, realTime, time2, 1000 * mCpuTimer.Elapsed());
+//
+////			// ************ calc and print cartesian data ************************************
+////			int3 cartesianGridDims;
+////			thrust::host_vector<real4> rho_Pres_CartH(1);
+////			thrust::host_vector<real4> vel_VelMag_CartH(1);
+////			MapSPH_ToGrid(2 * paramsH.HSML, cartesianGridDims, rho_Pres_CartH, vel_VelMag_CartH,
+////					posRadD, velMasD, rhoPresMuD, numObjects.numAllMarkers, paramsH);
+////			PrintCartesianData_MidLine(rho_Pres_CartH, vel_VelMag_CartH, cartesianGridDims, paramsH);
+////			// *******************************************************************************
+//		}
+//		fflush(stdout);
+//
+//		realTime += currentParamsH.dT;
+//
+//		//_CrtDumpMemoryLeaks(); //for memory leak detection (msdn suggestion for VS) apparently does not work in conjunction with cuda
+//
+//	}
+//
+//	//you may copy back to host
+//	posRadD.clear();
+//	velMasD.clear();
+//	rhoPresMuD.clear();
+//
+//	bodyIndexD.clear();
+//	derivVelRhoD.clear();
+//
+//	myTotalTime.Stop();
+//	real_ time = (real_)myTotalTime.Elapsed();
+//	printf("total Time: %f\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n ", time);
+//}

@@ -7,6 +7,45 @@ void InitSystem(
 		SimParams paramsH,
 		NumberOfObjects numObjects);
 
+template<typename T>
+void ResizeMyThrust(thrust::device_vector<T> & mThrustVec, int mSize);
+
+template<typename T>
+void FillMyThrust(thrust::device_vector<T> & mThrustVec, T v);
+
+template<typename T>
+void ClearMyThrust(thrust::device_vector<T> & mThrustVec);
+
+void ForceSPH(
+		thrust::device_vector<real3> & posRadD,
+		thrust::device_vector<real4> & velMasD,
+		thrust::device_vector<real3> & vel_XSPH_D,
+		thrust::device_vector<real4> & rhoPresMuD,
+
+		thrust::device_vector<uint> & bodyIndexD,
+		thrust::device_vector<real4> & derivVelRhoD,
+		const thrust::host_vector<int3> & referenceArray,
+		const NumberOfObjects & numObjects,
+		SimParams paramsH,
+		real_ dT);
+
+void IntegrateSPH(
+		thrust::device_vector<real3> & posRadD2,
+		thrust::device_vector<real4> & velMasD2,
+		thrust::device_vector<real4> & rhoPresMuD2,
+
+		thrust::device_vector<real3> & posRadD,
+		thrust::device_vector<real4> & velMasD,
+		thrust::device_vector<real3> & vel_XSPH_D,
+		thrust::device_vector<real4> & rhoPresMuD,
+
+		thrust::device_vector<uint> & bodyIndexD,
+		thrust::device_vector<real4> & derivVelRhoD,
+		const thrust::host_vector<int3> & referenceArray,
+		const NumberOfObjects & numObjects,
+		SimParams currentParamsH,
+		real_ dT);
+
 void cudaCollisions(
 		thrust::host_vector<real3> & mPosRad,
 		thrust::host_vector<real4> & mVelMas,
