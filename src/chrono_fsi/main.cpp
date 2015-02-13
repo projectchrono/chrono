@@ -32,6 +32,7 @@
 #include <thrust/scan.h>
 #include "SDKCollisionSystem.cuh" //just for SimParams
 #include "collideSphereSphere.cuh"
+#include "printToFile.cuh"
 #include <algorithm>
 
 
@@ -354,7 +355,8 @@ int main() {
 	thrust::device_vector<real4> rhoPresMuD = mRhoPresMu;
 	thrust::device_vector<uint> bodyIndexD = bodyIndex;
 	thrust::device_vector<real4> derivVelRhoD;
-	ResizeMyThrust<real4>(derivVelRhoD, numObjects.numAllMarkers);
+//	ResizeMyThrust<real4>(derivVelRhoD, numObjects.numAllMarkers);
+	ResizeMyThrust4(derivVelRhoD, numObjects.numAllMarkers);
 //*********************************************** End of Initialization ****************************************
 	int stepEnd = int(paramsH.tFinal/paramsH.dT);//1.0e6;//2.4e6;//600000;//2.4e6 * (.02 * paramsH.sizeScale) / currentParamsH.dT ; //1.4e6 * (.02 * paramsH.sizeScale) / currentParamsH.dT ;//0.7e6 * (.02 * paramsH.sizeScale) / currentParamsH.dT ;//0.7e6;//2.5e6; //200000;//10000;//50000;//100000;
 	printf("stepEnd %d\n", stepEnd);
@@ -370,6 +372,7 @@ int main() {
 	InitSystem(paramsH, numObjects);
 	SimParams currentParamsH = paramsH;
 	for (int tStep = 0; tStep < stepEnd + 1; tStep++) {
+		PrintToFile(posRadD, velMasD, rhoPresMuD, referenceArray, currentParamsH, realTime, tStep);
 		if (realTime <= paramsH.timePause) 	{
 			currentParamsH = paramsH_B;
 		} else {
@@ -381,39 +384,42 @@ int main() {
 		thrust::device_vector<real4> velMasD2 = velMasD;
 		thrust::device_vector<real4> rhoPresMuD2 = rhoPresMuD;
 		thrust::device_vector<real3> vel_XSPH_D;
-		ResizeMyThrust<real3>(vel_XSPH_D, numObjects.numAllMarkers);
+//		ResizeMyThrust<real3>(vel_XSPH_D, numObjects.numAllMarkers);
+		ResizeMyThrust3(vel_XSPH_D, numObjects.numAllMarkers);
 
 		//thrust::fill(derivVelRhoD.begin(), derivVelRhoD.end(), R3(0));
-		FillMyThrust<real4>(derivVelRhoD, R4(0));
+//		FillMyThrust<real4>(derivVelRhoD, R4(0));
+		FillMyThrust4(derivVelRhoD, R4(0));
 
 		IntegrateSPH(posRadD2, velMasD2, rhoPresMuD2, posRadD, velMasD, vel_XSPH_D, rhoPresMuD, bodyIndexD, derivVelRhoD, referenceArray, numObjects, currentParamsH, 0.5 * currentParamsH.dT);
 		IntegrateSPH(posRadD, velMasD, rhoPresMuD, posRadD2, velMasD2, vel_XSPH_D, rhoPresMuD2, bodyIndexD, derivVelRhoD, referenceArray, numObjects, currentParamsH, currentParamsH.dT);
 
-		ClearMyThrust<real3>(posRadD2);
-		ClearMyThrust<real4>(velMasD2);
-		ClearMyThrust<real4>(rhoPresMuD2);
-		ClearMyThrust<real3>(vel_XSPH_D);
+//		ClearMyThrust<real3>(posRadD2);
+//		ClearMyThrust<real4>(velMasD2);
+//		ClearMyThrust<real4>(rhoPresMuD2);
+//		ClearMyThrust<real3>(vel_XSPH_D);
+		ClearMyThrust3(posRadD2);
+		ClearMyThrust4(velMasD2);
+		ClearMyThrust4(rhoPresMuD2);
+		ClearMyThrust3(vel_XSPH_D);
 
 
 //		mCpuTimer.Stop();
-//		if (tStep % 50 == 0) {
-//			printf("step: %d, realTime: %f, step Time (CUDA): %f, step Time (CPU): %f\n ", tStep, realTime, time2, 1000 * mCpuTimer.Elapsed());
-//		}
+		if (tStep % 50 == 0) {
+			printf("step: %d\n ", tStep);
+		}
 //		fflush(stdout);
 		realTime += currentParamsH.dT;
 	}
 
-
-
-
-
-	if (numObjects.numAllMarkers != 0) {
-		cudaCollisions(mPosRad, mVelMas, mRhoPresMu, bodyIndex, referenceArray,	paramsH, numObjects);
-	}
 	ClearArraysH(mPosRad, mVelMas, mRhoPresMu, bodyIndex, referenceArray);
-	ClearMyThrust<real3>(posRadD);
-	ClearMyThrust<real4>(velMasD);
-	ClearMyThrust<real4>(rhoPresMuD);
-	ClearMyThrust<uint>(bodyIndexD);
+//	ClearMyThrust<real3>(posRadD);
+//	ClearMyThrust<real4>(velMasD);
+//	ClearMyThrust<real4>(rhoPresMuD);
+//	ClearMyThrust<uint>(bodyIndexD);
+	ClearMyThrust3(posRadD);
+	ClearMyThrust4(velMasD);
+	ClearMyThrust4(rhoPresMuD);
+	ClearMyThrustU(bodyIndexD);
 	return 0;
 }

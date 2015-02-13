@@ -269,21 +269,33 @@ void InitSystem(
 	cutilSafeCall( cudaMemcpyToSymbolAsync(paramsD, &paramsH, sizeof(SimParams))); 	//sets paramsD for this file
 	cutilSafeCall( cudaMemcpyToSymbolAsync(numObjectsD, &numObjects, sizeof(NumberOfObjects)));
 }
-
+//******
 template<typename T>
 void ResizeMyThrust(thrust::device_vector<T> & mThrustVec, int mSize) {
 	mThrustVec.resize(mSize);
 }
-
+void ResizeMyThrust3(thrust::device_vector<real3> & mThrustVec, int mSize) {mThrustVec.resize(mSize);}
+void ResizeMyThrust4(thrust::device_vector<real4> & mThrustVec, int mSize) {mThrustVec.resize(mSize);}
+//******
 template<typename T>
 void FillMyThrust(thrust::device_vector<T> & mThrustVec, T v) {
 	thrust::fill(mThrustVec.begin(), mThrustVec.end(), v);
 }
+void FillMyThrust4(thrust::device_vector<real4> & mThrustVec, real4 v) {
+	thrust::fill(mThrustVec.begin(), mThrustVec.end(), v);
+}
+//******
 
 template<typename T>
 void ClearMyThrust(thrust::device_vector<T> & mThrustVec) {
 	mThrustVec.clear();
 }
+
+void ClearMyThrust3(thrust::device_vector<real3> & mThrustVec) {mThrustVec.clear();}
+void ClearMyThrust4(thrust::device_vector<real4> & mThrustVec) {mThrustVec.clear();}
+void ClearMyThrustU(thrust::device_vector<uint> & mThrustVec) {mThrustVec.clear();}
+
+
 
 void IntegrateSPH(
 		thrust::device_vector<real3> & posRadD2,
