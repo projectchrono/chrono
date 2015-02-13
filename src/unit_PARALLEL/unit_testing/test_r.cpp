@@ -307,7 +307,7 @@ void test_box_sphere(bool sep)
 
   {
     cout << "  face interaction (separated near)" << endl;
-    shapeS.A = real3(4.6 * oosqrt2, 2.6 * oosqrt2, 1.0);
+    shapeS.A = real3(4.55 * oosqrt2, 2.55 * oosqrt2, 1.0);
     bool res = RCollision(shapeB, shapeS, separation, &norm, &pt1, &pt2, &depth, &eff_rad, nC);
     if (sep) {
       if (!res) {
@@ -316,9 +316,9 @@ void test_box_sphere(bool sep)
       }
       StrictEqual(nC, 1);
       WeakEqual(norm, real3(oosqrt2, oosqrt2, 0.0), precision);
-      WeakEqual(depth, 0.1, precision);
+      WeakEqual(depth, 0.05, precision);
       WeakEqual(pt1, real3(3.0 * oosqrt2, oosqrt2, 1.0), precision);
-      WeakEqual(pt2, real3(3.1 * oosqrt2, 1.1 * oosqrt2, 1.0), precision);
+      WeakEqual(pt2, real3(3.05 * oosqrt2, 1.05 * oosqrt2, 1.0), precision);
     } else {
       if (!res || nC != 0) {
         cout << "    test failed" << endl;
