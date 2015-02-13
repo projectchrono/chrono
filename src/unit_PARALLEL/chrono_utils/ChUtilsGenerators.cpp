@@ -316,7 +316,7 @@ Generator::AddMixtureIngredient(MixtureType type,
 // The types of objects created are selected randomly with probability
 // proportional to the ratio of that ingredient in the mixture.
 void Generator::createObjectsBox(SamplingType      sType,
-								 const ChVector<>& distv,
+                                 double            dist,
                                  const ChVector<>& pos,
                                  const ChVector<>& hdims,
                                  const ChVector<>& vel)
@@ -324,17 +324,15 @@ void Generator::createObjectsBox(SamplingType      sType,
   // Normalize the mixture ratios
   normalizeMixture();
 
-  double dist;
-
   // Generate the object locations
   if (m_sysType == SEQUENTIAL_DEM || m_sysType == PARALLEL_DEM)
-    dist = calcMinSeparation(std::max(distv.x, std::max(distv.y, distv.z)));
+    dist = calcMinSeparation(dist);
 
   PointVector points;
   switch (sType) {
   case REGULAR_GRID:
     {
-    GridSampler<> sampler(distv);
+    GridSampler<> sampler(dist);
     points = sampler.SampleBox(pos, hdims);
     }
     break;
@@ -345,27 +343,41 @@ void Generator::createObjectsBox(SamplingType      sType,
     }
     break;
   case HCP_PACK:
-	{
-	HCPSampler<> sampler(dist);
-	points = sampler.SampleBox(pos, hdims);
-	}
-	break;
+    {
+    HCPSampler<> sampler(dist);
+    points = sampler.SampleBox(pos, hdims);
+    }
+    break;
   }
 
   createObjects(points, vel);
 }
 
-// Create objects in a box domain using the specified type of point
-// sampler and separation distance and the current mixture settings.
+// Create objects in a box domain sampled on a regular grid with
+// specified separation distances and using the current mixture settings.
 // The types of objects created are selected randomly with probability
 // proportional to the ratio of that ingredient in the mixture.
-void Generator::createObjectsBox(SamplingType      sType,
-                                 double            dist,
+void Generator::createObjectsBox(const ChVector<>& dist,
                                  const ChVector<>& pos,
                                  const ChVector<>& hdims,
                                  const ChVector<>& vel)
 {
-	createObjectsBox(sType, ChVector<>(dist), pos, hdims, vel);
+  // Normalize the mixture ratios
+  normalizeMixture();
+
+  // When using DEM, make sure there is no shape overlap.
+  ChVector<> distv;
+  if (m_sysType == SEQUENTIAL_DEM || m_sysType == PARALLEL_DEM)
+    distv = calcMinSeparation(dist);
+  else
+    distv = dist;
+
+  // Generate the object locations
+  GridSampler<> sampler(distv);
+  PointVector points;
+  points = sampler.SampleBox(pos, hdims);
+
+  createObjects(points, vel);
 }
 
 // Create objects in a cylindrical domain using the specified type of point
@@ -507,6 +519,20 @@ double Generator::calcMinSeparation(double sep)
     sep = std::max(sep, m_mixture[i]->calcMinSeparation());
 
   return sep;
+}
+
+ChVector<> Generator::calcMinSeparation(const ChVector<>& sep)
+{
+  ChVector<> res;
+
+  for (int i = 0; i < m_mixture.size(); i++) {
+    double mix_sep = m_mixture[i]->calcMinSeparation();
+    res.x = std::max(sep.x, mix_sep);
+    res.y = std::max(sep.y, mix_sep);
+    res.z = std::max(sep.z, mix_sep);
+  }
+
+  return res;
 }
 
 // Create objects at the specified locations using the current mixture settings.
