@@ -355,7 +355,6 @@ int main() {
 	thrust::device_vector<real4> rhoPresMuD = mRhoPresMu;
 	thrust::device_vector<uint> bodyIndexD = bodyIndex;
 	thrust::device_vector<real4> derivVelRhoD;
-//	ResizeMyThrust<real4>(derivVelRhoD, numObjects.numAllMarkers);
 	ResizeMyThrust4(derivVelRhoD, numObjects.numAllMarkers);
 //*********************************************** End of Initialization ****************************************
 	int stepEnd = int(paramsH.tFinal/paramsH.dT);//1.0e6;//2.4e6;//600000;//2.4e6 * (.02 * paramsH.sizeScale) / currentParamsH.dT ; //1.4e6 * (.02 * paramsH.sizeScale) / currentParamsH.dT ;//0.7e6 * (.02 * paramsH.sizeScale) / currentParamsH.dT ;//0.7e6;//2.5e6; //200000;//10000;//50000;//100000;
@@ -384,24 +383,17 @@ int main() {
 		thrust::device_vector<real4> velMasD2 = velMasD;
 		thrust::device_vector<real4> rhoPresMuD2 = rhoPresMuD;
 		thrust::device_vector<real3> vel_XSPH_D;
-//		ResizeMyThrust<real3>(vel_XSPH_D, numObjects.numAllMarkers);
 		ResizeMyThrust3(vel_XSPH_D, numObjects.numAllMarkers);
 
-		//thrust::fill(derivVelRhoD.begin(), derivVelRhoD.end(), R3(0));
-//		FillMyThrust<real4>(derivVelRhoD, R4(0));
 		FillMyThrust4(derivVelRhoD, R4(0));
 
 		IntegrateSPH(posRadD2, velMasD2, rhoPresMuD2, posRadD, velMasD, vel_XSPH_D, rhoPresMuD, bodyIndexD, derivVelRhoD, referenceArray, numObjects, currentParamsH, 0.5 * currentParamsH.dT);
 		IntegrateSPH(posRadD, velMasD, rhoPresMuD, posRadD2, velMasD2, vel_XSPH_D, rhoPresMuD2, bodyIndexD, derivVelRhoD, referenceArray, numObjects, currentParamsH, currentParamsH.dT);
 
-//		ClearMyThrust<real3>(posRadD2);
-//		ClearMyThrust<real4>(velMasD2);
-//		ClearMyThrust<real4>(rhoPresMuD2);
-//		ClearMyThrust<real3>(vel_XSPH_D);
-		ClearMyThrust3(posRadD2);
-		ClearMyThrust4(velMasD2);
-		ClearMyThrust4(rhoPresMuD2);
-		ClearMyThrust3(vel_XSPH_D);
+		ClearMyThrustR3(posRadD2);
+		ClearMyThrustR4(velMasD2);
+		ClearMyThrustR4(rhoPresMuD2);
+		ClearMyThrustR3(vel_XSPH_D);
 
 
 //		mCpuTimer.Stop();
@@ -413,13 +405,9 @@ int main() {
 	}
 
 	ClearArraysH(mPosRad, mVelMas, mRhoPresMu, bodyIndex, referenceArray);
-//	ClearMyThrust<real3>(posRadD);
-//	ClearMyThrust<real4>(velMasD);
-//	ClearMyThrust<real4>(rhoPresMuD);
-//	ClearMyThrust<uint>(bodyIndexD);
-	ClearMyThrust3(posRadD);
-	ClearMyThrust4(velMasD);
-	ClearMyThrust4(rhoPresMuD);
-	ClearMyThrustU(bodyIndexD);
+	ClearMyThrustR3(posRadD);
+	ClearMyThrustR4(velMasD);
+	ClearMyThrustR4(rhoPresMuD);
+	ClearMyThrustU1(bodyIndexD);
 	return 0;
 }
