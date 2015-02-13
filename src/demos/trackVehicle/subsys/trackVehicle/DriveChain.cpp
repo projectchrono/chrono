@@ -300,12 +300,10 @@ void DriveChain::Advance(double step)
     double h = std::min<>(m_stepsize, step - t);
     if( m_system->GetChTime() < settlePhaseA )
     {
-      h = 5e-4;
       m_system->SetIterLCPmaxItersStab(100);
       m_system->SetIterLCPmaxItersSpeed(100);
     } else if ( m_system->GetChTime() < settlePhaseB )
     {
-      h = 1e-3;
       m_system->SetIterLCPmaxItersStab(75);
       m_system->SetIterLCPmaxItersSpeed(150);
     }
@@ -474,7 +472,9 @@ void DriveChain::Log_to_console(int console_what)
       <<"\n COG Pos [m] : " << m_idlers[0]->GetBody()->GetPos() 
       <<"\n COG Vel [m/s] : " << m_idlers[0]->GetBody()->GetPos_dt()
       <<"\n COG omega [rad/s] : " << m_idlers[0]->GetBody()->GetRot_dt().Q_to_NasaAngles()
-      <<"\n spring react F [N] : " << m_idlers[0]->GetSpringForce();
+      <<"\n spring react F [N] : " << m_idlers[0]->GetSpringForce()
+      <<"\n react from K [N] : " << m_idlers[0]->getShock()->Get_deformReact()
+      <<"\n react from C [N] : " << m_idlers[0]->getShock()->Get_dist_dtReact();
   }
 
   if (console_what & DBG_CONSTRAINTS)
@@ -517,8 +517,9 @@ void DriveChain::Log_to_file()
       ss << t <<","<< m_chain->GetShoeBody(0)->GetPos() 
         <<","<<  m_chain->GetShoeBody(0)->GetPos_dt() 
         <<","<<  m_chain->GetShoeBody(0)->GetPos_dtdt()
-        <<","<<  m_chain->GetShoeBody(0)->GetRot_dt().Q_to_NasaAngles()
+        <<","<<  m_chain->GetShoeBody(0)->GetWvel_loc()
         <<","<<  m_chain->GetPinReactForce(0)
+        <<","<< m_chain->GetPinReactTorque(0)
         <<"\n";
         // <<","<<  m_chain->GetPinReactTorque(0);
       ChStreamOutAsciiFile ofile(m_filename_DBG_FIRSTSHOE.c_str(), std::ios::app);
@@ -528,12 +529,9 @@ void DriveChain::Log_to_file()
     {
       std::stringstream ss_g;
       // time,Gx,Gy,Gz,Gvx,Gvy,Gvz,Gwx,Gwy,Gwz
-      ChVector<> tmp_pos =  m_gear->GetBody()->GetPos();
-      ChVector<> tmp_vel = m_gear->GetBody()->GetPos_dt();
-      ChVector<> tmp_rotdt = m_gear->GetBody()->GetRot_dt().Q_to_NasaAngles();
       ss_g << t <<","<< m_gear->GetBody()->GetPos() 
         <<","<< m_gear->GetBody()->GetPos_dt() 
-        <<","<< m_gear->GetBody()->GetRot_dt().Q_to_NasaAngles()
+        <<","<< m_gear->GetBody()->GetWvel_loc()
         <<"\n";
       ChStreamOutAsciiFile ofileDBG_GEAR(m_filename_DBG_GEAR.c_str(), std::ios::app);
       ofileDBG_GEAR << ss_g.str().c_str();
@@ -545,8 +543,10 @@ void DriveChain::Log_to_file()
       // time,Ix,Iy,Iz,Ivx,Ivy,Ivz,Iwx,Iwy,Iwz,F_tensioner
       ss_id << t <<","<< m_idlers[0]->GetBody()->GetPos()
         <<","<< m_idlers[0]->GetBody()->GetPos_dt()
-        <<","<< m_idlers[0]->GetBody()->GetRot_dt().Q_to_NasaAngles()
+        <<","<< m_idlers[0]->GetBody()->GetWvel_loc()
         <<","<< m_idlers[0]->GetSpringForce()
+        <<","<< m_idlers[0]->getShock()->Get_deformReact()
+        <<","<< m_idlers[0]->getShock()->Get_dist_dtReact()
         <<"\n";
       ChStreamOutAsciiFile ofileDBG_IDLER(m_filename_DBG_IDLER.c_str(), std::ios::app);
       ofileDBG_IDLER << ss_id.str().c_str();
@@ -585,7 +585,7 @@ void DriveChain::create_fileHeaders(int what)
     m_filename_DBG_FIRSTSHOE = m_log_file_name+"_shoe0.csv";
     ChStreamOutAsciiFile ofileDBG_FIRSTSHOE(m_filename_DBG_FIRSTSHOE.c_str());
     std::stringstream ss;
-    ss << "time,S0x,S0y,S0z,S0vx,S0vy,S0vz,S0ax,S0ay,S0az,S0wx,S0wy,S0wz,P0fx,P0fy,P0fz\n";
+    ss << "time,x,y,z,Vx,Vy,Vz,Ax,Ay,Az,Wx,Wy,Wz,Fx,Fy,Fz,Tx,Ty,Tz\n";
     ofileDBG_FIRSTSHOE << ss.str().c_str();
     GetLog() << " writing to file: " << m_filename_DBG_FIRSTSHOE << "\n         data: " << ss.str().c_str() <<"\n";
   }
@@ -595,7 +595,7 @@ void DriveChain::create_fileHeaders(int what)
     m_filename_DBG_GEAR = m_log_file_name+"_gear.csv";
     ChStreamOutAsciiFile ofileDBG_GEAR(m_filename_DBG_GEAR.c_str());
     std::stringstream ss_g;
-    ss_g << "time,Gx,Gy,Gz,Gvx,Gvy,Gvz,Gwx,Gwy,Gwz\n";
+    ss_g << "time,x,y,z,Vx,Vy,Vz,Wx,Wy,Wz\n";
     ofileDBG_GEAR << ss_g.str().c_str();
     GetLog() << " writing to file: " << m_filename_DBG_GEAR << "\n          data: " << ss_g.str().c_str() <<"\n";
   }
@@ -605,7 +605,7 @@ void DriveChain::create_fileHeaders(int what)
     m_filename_DBG_IDLER = m_log_file_name+"_idler.csv";
     ChStreamOutAsciiFile ofileDBG_IDLER(m_filename_DBG_IDLER.c_str());
     std::stringstream ss_id;
-    ss_id << "time,Ix,Iy,Iz,Ivx,Ivy,Ivz,Iwx,Iwy,Iwz,F_tensioner\n";
+    ss_id << "time,x,y,z,Vx,Vy,Vz,Wx,Wy,Wz,F_tensioner,F_k,F_c\n";
     ofileDBG_IDLER << ss_id.str().c_str();
     GetLog() << " writing to file: " << m_filename_DBG_IDLER << "\n          data:" << ss_id.str().c_str() <<"\n";
   }

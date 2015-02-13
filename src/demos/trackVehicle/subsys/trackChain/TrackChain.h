@@ -80,11 +80,9 @@ public:
   ChSharedPtr<ChBody> GetShoeBody(size_t track_idx) const; 
   // ChSharedPtr<ChBodyAuxRef> GetShoeBody(size_t track_idx); 
 
-  /// reaction force on pin constraint
-  const ChVector<>& GetPinReactForce(size_t pin_idx) const;
-
-  /// reaction torque on pin constraint
-  const ChVector<>& TrackChain::GetPinReactTorque(size_t pin_idx) const;
+  /// reaction force on pin constraint, relative coords
+  const ChVector<> GetPinReactForce(size_t pin_idx) const;
+  const ChVector<> GetPinReactTorque(size_t pin_idx) const;
 
   /// turn on damping friction in the shoe pins
   void Set_pin_friction(double damping_C, ///< damping coefficient for the rotational damper [N-m-s]

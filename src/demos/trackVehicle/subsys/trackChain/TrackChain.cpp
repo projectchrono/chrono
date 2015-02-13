@@ -1200,18 +1200,17 @@ ChSharedPtr<ChBody> TrackChain::GetShoeBody(size_t track_idx) const
 }
 
 
-const ChVector<>& TrackChain::GetPinReactForce(size_t pin_idx) const
+const ChVector<> TrackChain::GetPinReactForce(size_t pin_idx) const
 {
   assert( pin_idx < m_pins.size() );
-  ChVector<> tension( m_pins[pin_idx]->Get_react_force() );
-  return tension;
+  return m_pins[pin_idx]->Get_react_force();
+
 }
 
-const ChVector<>& TrackChain::GetPinReactTorque(size_t pin_idx) const
+const ChVector<> TrackChain::GetPinReactTorque(size_t pin_idx) const
 {
   assert( pin_idx < m_pins.size() );
-  ChVector<> tension( m_pins[pin_idx]->Get_react_torque() );
-  return tension;
+  return m_pins[pin_idx]->Get_react_torque();
 }
 
 void TrackChain::Set_pin_friction(double damping_C,

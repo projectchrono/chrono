@@ -368,34 +368,51 @@ void TorsionArmSuspension::AddCollisionGeometry(double mu,
 
 void TorsionArmSuspension::LogConstraintViolations()
 {
-  // TODO
-  /*
-  // idler joint has 2 pos and 1 rot
-  ChMatrix<>* C = m_idler_joint->GetC();
-  GetLog() << " joint name: " << m_idler_joint->GetName();
+  // 2 revolute joints
+  ChMatrix<>* C = m_armChassis_rev->GetC();
+  GetLog() << " joint name: " << m_armChassis_rev->GetName();
   for(int row = 0; row < C->GetRows(); row ++ )
   {
     GetLog() << "  " << C->GetElement(row, 0) << "  ";
   }
 
+  ChMatrix<>* C2 = m_armWheel_rev->GetC();
+  GetLog() << " joint name " << m_armWheel_rev->GetName();
+  for(int j = 0; j < C2->GetRows(); j++ )
+  {
+    GetLog() << "  " << C2->GetElement(j, 0) << "  ";
+  }
+
   GetLog() << "\n";
-  */
+  
 }
 
 
 void TorsionArmSuspension::SaveConstraintViolations(std::stringstream& ss)
 {
-  // TODO:
-  /*
-  // idler joint has 2 pos and 1 rot
-  ChMatrix<>* C = m_idler_joint->GetC();
+  // 2 revolute joints
+  ChMatrix<>* C = m_armChassis_rev->GetC();
   for(int row = 0; row < C->GetRows(); row ++ )
   {
     ss << "," << C->GetElement(row, 0);
   }
 
-  */
+  ChMatrix<>* C2 = m_armWheel_rev->GetC();
+  for(int j = 0; j < C2->GetRows(); j++ )
+  {
+    ss << "," << C2->GetElement(j, 0);
+  }
+  ss <<"\n";
 
+}
+
+const std::string TorsionArmSuspension::getFileHeader_ConstraintViolations(size_t idx) const
+{
+  // two revolute joints
+  std::stringstream ss;
+  ss << "time,x1,y1,z1,rx1,ry1,x2,y2,z2,rx2,ry2\n";
+  return ss.str();
+  
 }
 
 } // end namespace chrono

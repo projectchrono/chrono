@@ -71,6 +71,8 @@ public:
 
 
   // Accessors
+  ChSharedPtr<ChLinkSpring> getShock() const { return m_shock; }
+
   double getSpringCoefficient() const { return m_tensionerK; }
   double getDampingCoefficient() const { return m_tensionerC; }
   double getSpringRestLength() const { return m_springRestLength; }

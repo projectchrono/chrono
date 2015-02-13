@@ -444,7 +444,7 @@ void ChIrrGuiTrack::renderStats()
 
   double gearSpeed = m_vehicle.GetDriveshaftSpeed(0)*(60.0/CH_C_2PI);
   sprintf(msg, "Gear rot. vel, RPM: %+.2f", gearSpeed);
-  renderLinGauge(std::string(msg), gearSpeed/7000, false, m_HUD_x, y_pos += 20, 120, 15);
+  renderLinGauge(std::string(msg), gearSpeed/1000, false, m_HUD_x, y_pos += 20, 120, 15);
 
   sprintf(msg, "Damping coef: %+.2f", m_dampingVal);
   renderLinGauge(std::string(msg), m_dampingVal/2.0, false, m_HUD_x, y_pos += 20, 120, 15);

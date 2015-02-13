@@ -16,172 +16,272 @@ class DriveChain_panda:
     @class: loads, manages and plots output from any number of output files from 
             Chrono Track Vehicle Toolkit
     '''
-    def __init__(self,filename_list, leg_list):
+    def __init__(self,filename_list, handle_list):
         '''
         Input:
             filename_list:  .csv path + filename list of all the file names
-            leg_list:       legend identifiers for each file
+            handle_list:    handle identifiers for each file, for legend and getting a handle to different dataframes
         Appends:
-            _filename_list  Reads .csv for each file, appends the DF.
-            _DF_list
-            _leg_list
+            _filename_list  full name of csv output files to read from
+            _DF_list        contains data frames for each loaded output data file
+            _handle_list    string, to access a DF handle
         '''
         # first file is the steady state magic formula output
-        if( len(filename_list) != len(leg_list)):
+        if( len(filename_list) != len(handle_list)):
             print 'must have same length input arrays'
             return
         
-        self._filename_list = []
-        self._DF_list = []
-        self._leg_list = []
+        self._filename_list = []   
+        self._DF_list = []      
+        self._handle_list = []
+        self._dict = {} # for associating the string handle to the DF
         self._nFiles = len(filename_list)
         
+        # append members with input lists, create the dict for lookup
         for i in range(0, self._nFiles):
             self._filename_list.append(filename_list[i])
             DF_curr = pd.read_csv(filename_list[i], header=0, sep=',')   # index_col=0,
             self._DF_list.append(DF_curr)
-            self._leg_list.append(leg_list[i])
+            self._handle_list.append(handle_list[i])
+            # associate the handle string with the index of the DF in the list
+            self._dict[handle_list[i]] = i
     
+    
+    # to manage lots of different input files and their associated data frames, 
+    #   Access handles to the _DF_list members by specifying the corresponding 
+    #   as a dictionary
+    def _getDFhandle(self, str_handle):
+        return self._DF_list[self._dict[str_handle]]
     
     # plot gear body info    
-    def plot_gear(self):
-        arg = 2
+    def plot_gear(self,tmin=-1,tmax=-1):
+        # plot pos, vel, omega (pitch,yaw,roll)
+        fig, axarr = plt.subplots(3,sharex=True)
+        
+        # pull the data from the DF for the gear
+        inDat = ['time','x','y','z','Vx','Vy','Vz','Wx','Wy','Wz']
+        # create a dataframe for the desired data, by getting ahandle to the loaded DF for the gear
+        DF = pd.DataFrame(self._getDFhandle('Gear'), columns = inDat)
+        
+        # create the 3 subplots
+        DF.plot(ax = axarr[0], linewidth=1.5, x='time', y=['x','y','z'])
+        DF.plot(ax = axarr[1], linewidth=1.5, x='time', y=['Vx','Vy','Vz'])
+        DF.plot(ax = axarr[2], linewidth=1.5, x='time', y=['Wx','Wy','Wz'])
+        
+        # label axes
+        if(tmin>0):
+            # make sure tmax is larger than tmin
+            if(tmax>tmin):
+                axarr[0].set_xlim([tmin,tmax])
+            else:
+                # tmin still used, through tend
+                axarr[0].set_xlim([tmin,DF['time'][-1]])
+        axarr[0].set_xlabel('time [s]')
+        axarr[0].set_ylabel('position [m]')
+        axarr[1].set_ylabel('velocity [m/s]')
+        axarr[2].set_ylabel('rot. vel. [rad/sec]')
+        
+        # set the legend
+        axarr[0].legend()
+        axarr[1].legend(loc='best')
+        axarr[2].legend(loc='best')
+        axarr[0].set_title('Gear body')
+        
         
     # plot idler body info, tensioner force
     def plot_idler(self):
-        arg = 3
+        # plot pos, vel, omega
+        figA, axarrA = plt.subplots(3,sharex=True)
+        
+        #and F_tensioner
+        FigB, axarrB = plt.subplots(1)
+        
+        # data headers to pull from
+        inDat = ['time','x','y','z','Vx','Vy','Vz','Wx','Wy','Wz','F_tensioner','F_k','F_c']      
+        
+        # data frame from the headers
+        DFid = pd.DataFrame(self._getDFhandle('idler'), columns = inDat)
+        
+        # crate 3 subplots for the body data
+        DFid.plot(ax = axarrA[0], linewidth=1.5, x='time', y=['x','y','z'])
+        DFid.plot(ax = axarrA[1], linewidth=1.5, x='time', y=['Vx','Vy','Vz'])
+        DFid.plot(ax = axarrA[2], linewidth=1.5, x='time', y=['Wx','Wy','Wz'])
+        
+        # first plot label axes 
+        axarrA[0].set_xlabel('time [s]')
+        axarrA[0].set_ylabel('position [m]')
+        axarrA[1].set_ylabel('velocity [m/s]')
+        axarrA[2].set_ylabel('rot vel [rad/sec]')
+        # first plot, legend
+        axarrA[0].legend()
+        axarrA[1].legend()
+        axarrA[2].legend()
+        axarrA[0].set_title('idler body')
+        
+        # create the tensioner force plot       
+        DFid.plot(ax = axarrB, linewidth=1.5, x='time', y=['F_tensioner','F_k','F_c'])
+        
+        # second plot label axes
+        axarrB.set_xlabel('time [s]')
+        axarrB.set_ylabel('tensioner Force [N]')
+        # second plot legend
+        axarrB.legend()
+        axarrB.set_title('tensioner')
         
     # plot powertrain info
     def plot_ptrain(self):
-        arg = 4
+        # plot mot speed, mot torque, and output shaft torque
+        fig, axarr = plt.subplots(2,sharex=True)
+        
+        #data headers
+        inDat = ['time','motSpeed','motT','outT']
+        # data frame from headers
+        DFpt = pd.DataFrame(self._getDFhandle('ptrain'), columns = inDat)
+        
+        # create a subplot for speed, and torues
+        DFpt.plot(ax = axarr[0], linewidth=1.5, x='time', y=['motSpeed'])
+        DFpt.plot(ax = axarr[1], linewidth=1.5, x='time', y=['motT','outT'])
+        
+        # labels, legend
+        axarr[0].set_xlabel('time [s]')
+        axarr[0].set_ylabel('rot vel [rad/s]')
+        axarr[1].set_ylabel('torque [N-m]')
+        axarr[0].legend()
+        axarr[1].legend()
         
     # plot shoe 0 body info, and pin 0 force/torque
-    def plot_shoe(self):
-        arg =  5
+    def plot_shoe(self, shoe_idx):
+        # a plot for the shoe body,
+        figA, axarrA = plt.subplots(4,sharex=True)
+        #  pin rxn forces
+        figB, axarrB = plt.subplots(3,sharex=True)
+        # pin rxn torques
+        figC, axarrC = plt.subplots(3,sharex=True)
+        
+        # data headers
+        inDat = ['time','x','y','z','Vx','Vy','Vz','Ax','Ay','Az','Wx','Wy','Wz','Fx','Fy','Fz','Tx','Ty','Tz']
+        # get the data frame from the shoe
+        DFs = pd.DataFrame(self._getDFhandle('shoe0'), columns=inDat)
+        
+        # create 4 subplots for the shoe body
+        DFs.plot(ax = axarrA[0], linewidth=1.5, x='time', y=['x','y','z'])
+        DFs.plot(ax = axarrA[1], linewidth=1.5, x='time', y=['Vx','Vy','Vz'])
+        DFs.plot(ax = axarrA[2], linewidth=1.5, x='time', y=['Ww','Wy','Wz'])
+        DFs.plot(ax = axarrA[3], linewidth=1.5, x='time', y=['Ax','Ay','Az'])
+        
+        # first plot label axes 
+        axarrA[0].set_xlabel('time [s]')
+        axarrA[0].set_ylabel('position [m]')
+        axarrA[1].set_ylabel('velocity [m/s]')
+        axarrA[2].set_ylabel('rot vel [rad/sec]')
+        axarrA[3].set_ylabel('accel [m/s2]')
+        # first plot, legend
+        axarrA[0].legend()
+        axarrA[1].legend()
+        axarrA[2].legend()
+        axarrA[3].legend()
+        axarrA[0].set_title('shoe 0 body')
+        
+        # create the second plot, pin reaction forces
+        DFs.plot(ax = axarrB[0], linewidth=1.5, x='time', y=['Fx'])
+        DFs.plot(ax = axarrB[1], linewidth=1.5, x='time', y=['Fy'])
+        DFs.plot(ax = axarrB[2], linewidth=1.5, x='time', y=['Fz'])
+        
+        # second plot label axes, legend
+        axarrB[0].set_xlabel('time [s]')
+        axarrB[0].set_ylabel('Fx [N]')
+        axarrB[1].set_ylabel('Fy [N]')
+        axarrB[2].set_ylabel('Fz [N]')
+        # first plot, legend
+        axarrB[0].legend()
+        axarrB[1].legend()
+        axarrB[2].legend()
+        axarrB[0].set_title('inter-shoe# ' + str(shoe_idx) + ' revolute reaction forces')
+        
+        # create third plot, pin reaction torques
+        DFs.plot(ax = axarrC[0], linewidth=1.5, x='time', y=['Tx'])
+        DFs.plot(ax = axarrC[1], linewidth=1.5, x='time', y=['Ty'])
+        DFs.plot(ax = axarrC[2], linewidth=1.5, x='time', y=['Tz'])
+        
+        # second plot label axes, legend
+        axarrC[0].set_xlabel('time [s]')
+        axarrC[0].set_ylabel('Tx [N-m]')
+        axarrC[1].set_ylabel('Ty [N-m]')
+        axarrC[2].set_ylabel('Tz [N-m]')
+        # first plot, legend
+        axarrC[0].legend()
+        axarrC[1].legend()
+        axarrC[2].legend()
+        axarrC[0].set_title('inter-shoe# ' + str(shoe_idx) + ' revolute reaction torques')
     
     # plot gear Constraint Violations
     def plot_gearCV(self):
-        arg = 6
+        # plot gear revolute constraint violations
+        fig, axarr = plt.subplots(2,sharex=True)
+        
+        #data headers
+        inDat = ['time','x','y','z','rx','ry']
+        # data frame from headers
+        DFpt = pd.DataFrame(self._getDFhandle('gearCV'), columns = inDat)
+        
+        # create a subplot for speed, and torues
+        DFpt.plot(ax = axarr[0], linewidth=1.5, x='time', y=['x','y','z'])
+        DFpt.plot(ax = axarr[1], linewidth=1.5, x='time', y=['rx','ry'])
+        
+        # labels, legend
+        axarr[0].set_xlabel('time [s]')
+        axarr[0].set_ylabel('pos. coord violation ')
+        axarr[1].set_ylabel('rot. coord violation ')
+        axarr[0].legend()
+        axarr[1].legend()
+        axarr[0].set_title('Gear rev. Constraint Violtion')
         
     # plot idler Constraint Violations  
     def plot_idlerCV(self, idler_idx):
-        arg = 7
+        # plot two pos. and two rot. CVs
+        fig, axarr = plt.subplots(2,sharex=True)
+        
+        #data headers
+        inDat = ['time','y','z','rx','ry']
+        # data frame from headers
+        DFpt = pd.DataFrame(self._getDFhandle('idlerCV'), columns = inDat)
+        
+        # create a subplot for speed, and torues
+        DFpt.plot(ax = axarr[0], linewidth=1.5, x='time', y=['y','z'])
+        DFpt.plot(ax = axarr[1], linewidth=1.5, x='time', y=['rx','ry'])
+        
+        # labels, legend
+        axarr[0].set_xlabel('time [s]')
+        axarr[0].set_ylabel('pos. coord violation ')
+        axarr[1].set_ylabel('rot. coord violation ')
+        axarr[0].legend()
+        axarr[1].legend()
+        axarr[0].set_title('Idler Constraint Violtion')
         
     # plot roller Constraint Violations
     def plot_rollerCV(self, roller_idx):
-        arg = 8
-    
-    
-    
-    
-    # @brief put the input values on the RHS y-axis
-    # returns the secondary y-axis
-    def _plot_inputs_twinx(self, ax, DF):
-        # create a 2nd axis for the steer and shaker inputs
-        ax_RHS = ax.twinx()
-        ax_RHS.plot(DF['time'], DF['steer'], 'r--',linewidth = 1.5, label = 'steer')
-        ax_RHS.plot(DF['time'], DF['postDisp_L'], 'g--',linewidth = 1.5, label = 'postDisp_L')
-        ax_RHS.plot(DF['time'], DF['postDisp_R'], 'b--',linewidth = 1.5, label = 'postDisp_R')
-        return ax_RHS
-    
-    # @brief plot the inputs to the suspension test rig (steer and post displacement)       
-    def plot_input(self):
-        # figF = plt.figure()
-        
-        df_in_list = []
-        inDat = ['time','steer','postDisp_L','postDisp_R']
-        cols = ['steer','postDisp_L','postDisp_R']
-        # add files to the DF list
-        for i in range(0,self._nFiles):
-            df_temp = pd.DataFrame(self._DF_list[i], columns= inDat)
-            df_in_list.append(df_temp)
-            
-
-        # plot first file normally
-        ax = df_in_list[0].plot(linewidth=1.5,x='time',y=cols)  
-        # overlay files 2 to nFiles
-        for p in range(1,self._nFiles):
-             ax.plot(df_in_list[p]['time'], df_in_list[p]['steer'], linewidth = 1.5, label = 'steer')
-             ax.plot(df_in_list[p]['time'], df_in_list[p]['postDisp_L'], linewidth = 1.5, label = 'PostDisp_L')
-             ax.plot(df_in_list[p]['time'], df_in_list[p]['postDisp_R'], linewidth = 1.5, label = 'PostDisp_R')
-        
-        ax.set_xlabel('time [s]')
-        ax.set_ylabel('steer [-], displacement [in]')
-        ax.legend(loc='upper right')
-        ax.set_title('test rig inputs')  
-        
-    # @brief plot the kingpin angle and offset, with the inputs overlayed on each
-    def plot_kingpin(self,file_number=0):
+        # plot roller revolute constraint violations
         fig, axarr = plt.subplots(2,sharex=True)
         
-        inDat = ['time','steer','postDisp_L','postDisp_R','KA_L','KA_R','Koff_L','Koff_R']
-        # add files to the DF list
-        DF = pd.DataFrame(self._DF_list[file_number], columns= inDat)
-            
-        DF.plot(ax = axarr[0], linewidth=1.5,x='time',y=['KA_L','KA_R'])
-        ax_rhs_top = self._plot_inputs_twinx(axarr[0],DF)
-        DF.plot(ax = axarr[1], linewidth=1.5,x='time',y=['Koff_L','Koff_R'])
-        ax_rhs_bot = self._plot_inputs_twinx(axarr[1],DF)
-    
-        # label axes, legends
+        #data headers
+        inDat = ['time','x','y','z','rx','ry']
+        # data frame from headers
+        DFpt = pd.DataFrame(self._getDFhandle('rollerCV'), columns = inDat)
+        
+        # create a subplot for speed, and torues
+        DFpt.plot(ax = axarr[0], linewidth=1.5, x='time', y=['x','y','z'])
+        DFpt.plot(ax = axarr[1], linewidth=1.5, x='time', y=['rx','ry'])
+        
+        # labels, legend
         axarr[0].set_xlabel('time [s]')
-        axarr[0].set_ylabel('Kingpin angle [deg]')
-        axarr[1].set_ylabel('offset [inches]')
-        ax_rhs_top.set_ylabel('steer [-], displacement [in]')
-        ax_rhs_bot.set_ylabel('steer [-], displacement [in]')
-        
-        axarr[0].legend(loc='upper left')
-        axarr[1].legend(loc='lower left')
-        # ax_rhs_top.legend(loc='lower right')
-        ax_rhs_bot.legend(loc='upper right')
-        axarr[0].set_title('Kingpin angle and offset')  
-        
-         
-    # @brief plot the caster angle and offset
-    def plot_caster(self,file_number=0):
-        fig, axarr = plt.subplots(2,sharex=True)
-        
-        inDat = ['time','steer','postDisp_L','postDisp_R','CA_L','CA_R','Coff_L','Coff_R']
-        # add files to the DF list
-        DF = pd.DataFrame(self._DF_list[file_number], columns= inDat)
-            
-        DF.plot(ax = axarr[0], linewidth=1.5,x='time',y=['CA_L','CA_R'])
-        ax_rhs_top = self._plot_inputs_twinx(axarr[0],DF)
-        DF.plot(ax = axarr[1], linewidth=1.5,x='time',y=['Coff_L','Coff_R'])
-        ax_rhs_bot = self._plot_inputs_twinx(axarr[1],DF)
+        axarr[0].set_ylabel('pos. coord violation ')
+        axarr[1].set_ylabel('rot. coord violation ')
+        axarr[0].legend()
+        axarr[1].legend()
+        axarr[0].set_title('Roller rev. Constraint Violtion')
     
-        # label axes, legends
-        axarr[0].set_xlabel('time [s]')
-        axarr[0].set_ylabel('Caster angle [deg]')
-        axarr[1].set_ylabel('offset [inches]')
-        ax_rhs_top.set_ylabel('steer [-], displacement [in]')
-        ax_rhs_bot.set_ylabel('steer [-], displacement [in]')
-        
-        axarr[0].legend(loc='upper left')
-        axarr[1].legend(loc='lower left')
-        # ax_rhs_top.legend(loc='lower right')
-        ax_rhs_bot.legend(loc='center right')
-        axarr[0].set_title('Caster angle and offset')  
-        
-    # @brief plot the toe angle
-    def plot_toe(self,file_number=0):
-        # fig = plt.figure()
-        
-        inDat = ['time','steer','postDisp_L','postDisp_R','TA_L','TA_R']
-        # add files to the DF list
-        DF = pd.DataFrame(self._DF_list[file_number], columns= inDat)
-            
-        axis = DF.plot(linewidth=1.5,x='time',y=['TA_L','TA_R'])
-        ax_rhs = self._plot_inputs_twinx(axis,DF)
     
-        # label axes, legends
-        axis.set_xlabel('time [s]')
-        axis.set_ylabel('Toe angle [deg]')
-
-        axis.set_title('Toe angle')
-        ax_rhs.set_ylabel('steer [-], displacement [in]')        
-        axis.legend(loc='upper left')
-        ax_rhs.legend(loc='center right')
+    
 
       
 if __name__ == '__main__':
@@ -206,30 +306,36 @@ if __name__ == '__main__':
     ptrainSubsys = 'test_driveChain_ptrain.csv'
     shoe0 = 'test_driveChain_shoe0.csv'
     gearCV = 'test_driveChain_GearCV.csv'
-    idlerCV = 'test_driveChain_idlerCV0.csv'
-    rollerCV = 'test_rollerCV0.csv'
+    idlerCV = 'test_driveChain_idler0CV.csv'
+    rollerCV = 'test_driveChain_roller0CV.csv'
     
     data_files = [data_dir + gearSubsys, data_dir + idlerSubsys, data_dir + ptrainSubsys, data_dir + shoe0, data_dir + gearCV, data_dir + idlerCV, data_dir + rollerCV]
-    leg_list = ['Gear','idler','ptrain','shoe0','gearCV','idlerCV','rollerCV']
+    handle_list = ['Gear','idler','ptrain','shoe0','gearCV','idlerCV','rollerCV']
     
  
     # construct with file list and list of legend
-    Chain = DriveChain_panda(data_files,leg_list)
+    Chain = DriveChain_panda(data_files,handle_list)
     
-    # plot the gear body info
+    # 1) plot the gear body info
     Chain.plot_gear()
-    # plot idler body info, tensioner force
+    
+    # 2) plot idler body info, tensioner force
     Chain.plot_idler()
-    # plot powertrain info
-    Chain.plot_ptrain()
-    # plot shoe 0 body info, and pin 0 force/torque
+
+    # 3) plot powertrain info
+    Chain.plot_ptrain()    
+    
+    # 4) plot shoe 0 body info, and pin 0 force/torque
     Chain.plot_shoe(0)
     
-    # plot Constraint Violations
+    # 5) plot gear Constraint Violations
     Chain.plot_gearCV()
+    
+    # 6) plot idler Constraint Violations
     Chain.plot_idlerCV(0)
+    
+    # 7) plot roller Constraint Violations
     Chain.plot_rollerCV(0)
     
-
 
 py.show()
