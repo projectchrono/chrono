@@ -128,6 +128,31 @@ void AddTriangleMeshGeometry(
       const ChVector<>&     pos = ChVector<>(0, 0, 0),
       const ChQuaternion<>& rot = ChQuaternion<>(1, 0, 0, 0)
       );
+CH_UTILS_API
+void AddTriangleMeshConvexDecomposition(ChBody* body,
+      const std::string& obj_filename,
+      const std::string& name,
+      const ChVector<>& pos = ChVector<>(0, 0, 0),
+      const ChQuaternion<>& rot = ChQuaternion<>(1, 0, 0, 0),
+      const double skin_thickness = 0,
+      const bool& use_original_asset = true);
+
+CH_UTILS_API
+void AddTriangleMeshConvexDecompositionV2(ChBody* body,
+      const std::string& obj_filename,
+      const std::string& name,
+      const ChVector<>& pos = ChVector<>(0, 0, 0),
+      const ChQuaternion<>& rot = ChQuaternion<>(1, 0, 0, 0),
+      const bool& use_original_asset = true);
+
+CH_UTILS_API
+void AddTriangleMeshConvexDecompositionSplit(ChSystemParallel* system,
+      const std::string& obj_filename,
+      const std::string& name,
+      const ChVector<>& pos,
+      const ChQuaternion<>& rot,
+      ChSharedPtr<ChMaterialSurface>& material,
+      double total_mass);
 
 CH_UTILS_API
 void AddRoundedBoxGeometry(
