@@ -109,8 +109,9 @@ public:
 
 protected:
 
-  // helper functions for output/Log
-  virtual void create_fileHeader(int what);
+  /// create files with headers for all specified output data types.
+  /// File format is .csv, for easy reading into python pandas scripts for data analysis
+  void create_fileHeaders(int what);
 
   // private variables
   // <ChBodyAuxRef> m_chassis   in base class

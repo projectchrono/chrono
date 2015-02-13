@@ -69,7 +69,7 @@ using namespace chrono;
 //  render and total runtimes
 #define WRITE_OUTPUT            // write output data to file
 // #define CONSOLE_SYSTEM_INFO  // display the system heirarchy in the console
-#define CONSOLE_DEBUG_INFO      // log constraint violations to console,
+// #define CONSOLE_DEBUG_INFO      // log constraint violations to console,
 #define CONSOLE_TIMING       // time each render and simulation step, log to console
 
 int what_to_save = DBG_FIRSTSHOE | DBG_GEAR | DBG_IDLER | DBG_PTRAIN | DBG_CONSTRAINTS;
@@ -87,7 +87,7 @@ double step_size = 0.002;
 // #ifdef USE_IRRLICHT
 int FPS = 40; // render frame rate
 double render_step_size = 1.0 / FPS;  // Time increment between two rendered frames
-double output_step_size = 1.0 / 1;    // Time interval between two output frames
+double output_step_size = 1.0 / 50;    // Time interval between two output frames
 
 ChVector<> trackPoint(-1, 0, 0.2);   // Point on chassis tracked by the camera, chassis c-sys
 

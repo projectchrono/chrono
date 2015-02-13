@@ -413,7 +413,7 @@ void DriveChain::Setup_log_to_file(int what,
     {
       m_save_log_to_file = true;
       GetLog() << " SAVING OUTPUT DATA TO FILE: \n " << filename.c_str() << "\n";
-      create_fileHeader(what);
+      create_fileHeaders(what);
       m_log_file_exists = true;
     }
     else
@@ -523,12 +523,14 @@ void DriveChain::Log_to_file()
         // <<","<<  m_chain->GetPinReactTorque(0);
       ChStreamOutAsciiFile ofile(m_filename_DBG_FIRSTSHOE.c_str(), std::ios::app);
       ofile << ss.str().c_str();
-  
     }
     if (m_log_what_to_file & DBG_GEAR)
     {
       std::stringstream ss_g;
       // time,Gx,Gy,Gz,Gvx,Gvy,Gvz,Gwx,Gwy,Gwz
+      ChVector<> tmp_pos =  m_gear->GetBody()->GetPos();
+      ChVector<> tmp_vel = m_gear->GetBody()->GetPos_dt();
+      ChVector<> tmp_rotdt = m_gear->GetBody()->GetRot_dt().Q_to_NasaAngles();
       ss_g << t <<","<< m_gear->GetBody()->GetPos() 
         <<","<< m_gear->GetBody()->GetPos_dt() 
         <<","<< m_gear->GetBody()->GetRot_dt().Q_to_NasaAngles()
@@ -546,7 +548,8 @@ void DriveChain::Log_to_file()
         <<","<< m_idlers[0]->GetBody()->GetRot_dt().Q_to_NasaAngles()
         <<","<< m_idlers[0]->GetSpringForce()
         <<"\n";
-
+      ChStreamOutAsciiFile ofileDBG_IDLER(m_filename_DBG_IDLER.c_str(), std::ios::app);
+      ofileDBG_IDLER << ss_id.str().c_str();
     }
 
     if (m_log_what_to_file & DBG_CONSTRAINTS)
@@ -572,8 +575,10 @@ void DriveChain::Log_to_file()
 
 
 
-void DriveChain::create_fileHeader(int what)
+void DriveChain::create_fileHeaders(int what)
 {
+  GetLog() << " ------ Output Data ------------ \n\n";
+
   if(what & DBG_FIRSTSHOE)
   {
     // Shoe 0 : S0, Pin0: P0
@@ -582,24 +587,27 @@ void DriveChain::create_fileHeader(int what)
     std::stringstream ss;
     ss << "time,S0x,S0y,S0z,S0vx,S0vy,S0vz,S0ax,S0ay,S0az,S0wx,S0wy,S0wz,P0fx,P0fy,P0fz\n";
     ofileDBG_FIRSTSHOE << ss.str().c_str();
+    GetLog() << " writing to file: " << m_filename_DBG_FIRSTSHOE << "\n         data: " << ss.str().c_str() <<"\n";
   }
 
   if(what & DBG_GEAR)
   {
     m_filename_DBG_GEAR = m_log_file_name+"_gear.csv";
     ChStreamOutAsciiFile ofileDBG_GEAR(m_filename_DBG_GEAR.c_str());
-    std::stringstream ss;
-    ss << "time,Gx,Gy,Gz,Gvx,Gvy,Gvz,Gwx,Gwy,Gwz\n";
-    ofileDBG_GEAR << ss.str().c_str();
+    std::stringstream ss_g;
+    ss_g << "time,Gx,Gy,Gz,Gvx,Gvy,Gvz,Gwx,Gwy,Gwz\n";
+    ofileDBG_GEAR << ss_g.str().c_str();
+    GetLog() << " writing to file: " << m_filename_DBG_GEAR << "\n          data: " << ss_g.str().c_str() <<"\n";
   }
 
   if(what & DBG_IDLER)
   {
     m_filename_DBG_IDLER = m_log_file_name+"_idler.csv";
-    ChStreamOutAsciiFile ofileDBG_IDLER(m_filename_DBG_GEAR.c_str());
+    ChStreamOutAsciiFile ofileDBG_IDLER(m_filename_DBG_IDLER.c_str());
     std::stringstream ss_id;
     ss_id << "time,Ix,Iy,Iz,Ivx,Ivy,Ivz,Iwx,Iwy,Iwz,F_tensioner\n";
     ofileDBG_IDLER << ss_id.str().c_str();
+    GetLog() << " writing to file: " << m_filename_DBG_IDLER << "\n          data:" << ss_id.str().c_str() <<"\n";
   }
 
   // write the data for each subsystem's constraint violation
@@ -608,27 +616,30 @@ void DriveChain::create_fileHeader(int what)
     // in the same order as listed in the header
     m_filename_GCV = m_log_file_name+"_GearCV.csv";
     ChStreamOutAsciiFile ofileGCV(m_filename_GCV.c_str());
-    std::stringstream ss_g;
-    ss_g << m_gear->getFileHeader_ConstraintViolations(0);
-    ofileGCV << ss_g.str().c_str();
+    std::stringstream ss_gCV;
+    ss_gCV << m_gear->getFileHeader_ConstraintViolations(0);
+    ofileGCV << ss_gCV.str().c_str();
+    GetLog() << " writing to file: " << m_filename_GCV << "\n          data: " << ss_gCV.str().c_str() <<"\n";
 
     for(int id = 0; id < m_num_idlers; id++)
     {
-      m_filename_ICV.push_back(m_log_file_name+"_idlerCV"+std::to_string(id)+".csv");
+      m_filename_ICV.push_back(m_log_file_name+"_idler"+std::to_string(id)+"CV.csv");
       ChStreamOutAsciiFile ofileICV(m_filename_ICV.back().c_str());
-      std::stringstream ss_id;
-      ss_id << m_idlers[id]->getFileHeader_ConstraintViolations(id);
-      ofileICV << ss_id.str().c_str();
+      std::stringstream ss_idCV;
+      ss_idCV << m_idlers[id]->getFileHeader_ConstraintViolations(id);
+      ofileICV << ss_idCV.str().c_str();
+      GetLog() << " writing to file: " << m_filename_ICV[id] << "\n          data: " << ss_idCV.str().c_str() <<"\n";
     }
 
     // violations of the roller revolute joints
     for(int roller = 0; roller < m_num_rollers; roller++)
     {
-      m_filename_RCV.push_back(m_log_file_name+"_rollerCV"+std::to_string(roller)+".csv");
+      m_filename_RCV.push_back(m_log_file_name+"_roller"+std::to_string(roller)+"CV.csv");
       ChStreamOutAsciiFile ofileRCV(m_filename_RCV.back().c_str());
-      std::stringstream ss_r;
-      ss_r << m_rollers[roller]->getFileHeader_ConstraintViolations(roller);
-      ofileRCV << ss_r.str().c_str();
+      std::stringstream ss_rCV;
+      ss_rCV << m_rollers[roller]->getFileHeader_ConstraintViolations(roller);
+      ofileRCV << ss_rCV.str().c_str();
+      GetLog() << " writing to file: " << m_filename_RCV[roller] << "\n         data: " << ss_rCV.str().c_str() <<"\n";
     }
   }
 
@@ -640,6 +651,7 @@ void DriveChain::create_fileHeader(int what)
     std::stringstream ss_pt;
     ss_pt << "time,motSpeed,motT,outT\n";
     ofileDBG_PTRAIN << ss_pt.str().c_str();
+    GetLog() << " writing to file: " << m_filename_DBG_PTRAIN << "\n          data: " << ss_pt.str().c_str() <<"\n";
   }
 
 

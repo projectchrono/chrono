@@ -43,8 +43,33 @@ class DriveChain_panda:
             self._leg_list.append(leg_list[i])
     
     
+    # plot gear body info    
+    def plot_gear(self):
+        arg = 2
+        
+    # plot idler body info, tensioner force
+    def plot_idler(self):
+        arg = 3
+        
+    # plot powertrain info
+    def plot_ptrain(self):
+        arg = 4
+        
+    # plot shoe 0 body info, and pin 0 force/torque
+    def plot_shoe(self):
+        arg =  5
     
-    
+    # plot gear Constraint Violations
+    def plot_gearCV(self):
+        arg = 6
+        
+    # plot idler Constraint Violations  
+    def plot_idlerCV(self, idler_idx):
+        arg = 7
+        
+    # plot roller Constraint Violations
+    def plot_rollerCV(self, roller_idx):
+        arg = 8
     
     
     
