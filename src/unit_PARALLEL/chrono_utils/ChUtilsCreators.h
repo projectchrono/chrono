@@ -181,22 +181,24 @@ void CreateBoxContainerDEM(
       const ChVector<>&                   pos = ChVector<>(0,0,0),
       const ChQuaternion<>&               rot = ChQuaternion<>(1,0,0,0),
       bool                                collide = true,
-      bool                                y_up = false
+      bool                                y_up = false,
+      bool overlap = false,
+      bool closed = false
       );
 
 
 CH_UTILS_API
 void CreateBoxContainerDVI(ChSystem* system,
-                           int id,
-                           ChSharedPtr<ChMaterialSurface>& mat,
-                           const ChVector<>& hdim,
-                           double hthick,
-                           const ChVector<>& pos = ChVector<>(0, 0, 0),
-                           const ChQuaternion<>& rot = ChQuaternion<>(1, 0, 0, 0),
-                           bool collide = true,
-                           bool y_up = false,
-                           bool overlap = false,
-                           bool closed = false);
+      int id,
+      ChSharedPtr<ChMaterialSurface>& mat,
+      const ChVector<>& hdim,
+      double hthick,
+      const ChVector<>& pos = ChVector<>(0, 0, 0),
+      const ChQuaternion<>& rot = ChQuaternion<>(1, 0, 0, 0),
+      bool collide = true,
+      bool y_up = false,
+      bool overlap = false,
+      bool closed = false);
 
 CH_UTILS_API
 void InitializeObject(
