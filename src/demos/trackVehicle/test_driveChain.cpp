@@ -81,6 +81,7 @@ ChVector<> initLoc(0, 1.0, 0);
 ChQuaternion<> initRot(QUNIT);
 
 size_t num_idlers = 1;
+size_t num_rollers = 2;
 // Simulation step size
 double step_size = 0.002;
 
@@ -125,7 +126,8 @@ int main(int argc, char* argv[])
     VisualizationType::MESH,
     // VisualizationType::COMPOUNDPRIMITIVES,
     CollisionType::CALLBACKFUNCTION,
-    num_idlers);
+    num_idlers,
+    num_rollers);
   
   // set the chassis REF at the specified initial config.
   chainSystem.Initialize(ChCoordsys<>(initLoc, initRot));

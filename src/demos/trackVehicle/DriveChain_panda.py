@@ -53,8 +53,24 @@ class DriveChain_panda:
     def _getDFhandle(self, str_handle):
         return self._DF_list[self._dict[str_handle]]
     
-    # plot gear body info    
-    def plot_gear(self,tmin=-1,tmax=-1):
+    # want to use the specified tmin, tmax time bounds to set the x axis
+    # can do lots of silly things to mess this up
+    # return a valid list [xmin,xmax] for use in plot.set_xlim()
+    # assume tmin > 0, tmax > tmin, and both are < t_end; else return [0,t_end]
+    def _get_timeMinMax(self, t_end_data, tmin = -1, tmax = -1):
+        # t_end = DF['time'][-1]  # last timestep in the output file
+        out_minmax = [0, t_end_data] # return this if both tmin and tmax are invalid
+        
+        # default value for tmin is -1, so check to see if it was even given as input
+        if(tmin > 0 and tmax > tmin and tmin < t_end_data and tmax < t_end_data):
+            out_minmax = [tmin,tmax]
+        # else:
+            # lg.WARN("invalid tmin or tmax passed to _get_timeMinMax() ")
+                    
+        return out_minmax
+    
+    # plot gear body info, with an optional time interval
+    def plot_gear(self, tmin = -1 , tmax = -1):
         # plot pos, vel, omega (pitch,yaw,roll)
         fig, axarr = plt.subplots(3,sharex=True)
         
@@ -68,30 +84,28 @@ class DriveChain_panda:
         DF.plot(ax = axarr[1], linewidth=1.5, x='time', y=['Vx','Vy','Vz'])
         DF.plot(ax = axarr[2], linewidth=1.5, x='time', y=['Wx','Wy','Wz'])
         
+        # if specified, set the xlim of the plot
+        if(tmin > 0):
+            xminmax = self._get_timeMinMax(DF['time'].iget(-1), tmin, tmax)
+            axarr[0].set_xlim(xminmax[0],xminmax[1])
+
         # label axes
-        if(tmin>0):
-            # make sure tmax is larger than tmin
-            if(tmax>tmin):
-                axarr[0].set_xlim([tmin,tmax])
-            else:
-                # tmin still used, through tend
-                axarr[0].set_xlim([tmin,DF['time'][-1]])
         axarr[0].set_xlabel('time [s]')
         axarr[0].set_ylabel('position [m]')
         axarr[1].set_ylabel('velocity [m/s]')
         axarr[2].set_ylabel('rot. vel. [rad/sec]')
         
         # set the legend
-        axarr[0].legend()
-        axarr[1].legend(loc='best')
-        axarr[2].legend(loc='best')
+        axarr[0].legend(loc='upper right')
+        axarr[1].legend(loc='upper right')
+        axarr[2].legend(loc='upper right')
         axarr[0].set_title('Gear body')
         
         
-    # plot idler body info, tensioner force
-    def plot_idler(self):
+    # plot idler body info, tensioner force,  with a optional time interval
+    def plot_idler(self, tmin = -1, tmax = -1):
         # plot pos, vel, omega
-        figA, axarrA = plt.subplots(3,sharex=True)
+        figA, axarrA = plt.subplots(3, sharex=True)
         
         #and F_tensioner
         FigB, axarrB = plt.subplots(1)
@@ -107,6 +121,12 @@ class DriveChain_panda:
         DFid.plot(ax = axarrA[1], linewidth=1.5, x='time', y=['Vx','Vy','Vz'])
         DFid.plot(ax = axarrA[2], linewidth=1.5, x='time', y=['Wx','Wy','Wz'])
         
+        #if specified, set the xlim of the two plots
+        if(tmin > 0):
+            xminmax = self._get_timeMinMax(DFid['time'].iget(-1), tmin, tmax)
+            axarrA[0].set_xlim(xminmax[0], xminmax[1])
+            axarrB.set_xlim(xminmax[0], xminmax[1])
+            
         # first plot label axes 
         axarrA[0].set_xlabel('time [s]')
         axarrA[0].set_ylabel('position [m]')
@@ -128,10 +148,10 @@ class DriveChain_panda:
         axarrB.legend()
         axarrB.set_title('tensioner')
         
-    # plot powertrain info
-    def plot_ptrain(self):
+    # plot powertrain info, with a optional time interval
+    def plot_ptrain(self, tmin = -1, tmax = -1):
         # plot mot speed, mot torque, and output shaft torque
-        fig, axarr = plt.subplots(2,sharex=True)
+        fig, axarr = plt.subplots(2, sharex=True)
         
         #data headers
         inDat = ['time','motSpeed','motT','outT']
@@ -142,6 +162,11 @@ class DriveChain_panda:
         DFpt.plot(ax = axarr[0], linewidth=1.5, x='time', y=['motSpeed'])
         DFpt.plot(ax = axarr[1], linewidth=1.5, x='time', y=['motT','outT'])
         
+        #if specified, set the xlim of the two plots
+        if(tmin > 0):
+            xminmax = self._get_timeMinMax(DFpt['time'].iget(-1), tmin, tmax)
+            axarr[0].set_xlim(xminmax[0], xminmax[1])
+        
         # labels, legend
         axarr[0].set_xlabel('time [s]')
         axarr[0].set_ylabel('rot vel [rad/s]')
@@ -149,8 +174,8 @@ class DriveChain_panda:
         axarr[0].legend()
         axarr[1].legend()
         
-    # plot shoe 0 body info, and pin 0 force/torque
-    def plot_shoe(self, shoe_idx):
+    # plot shoe 0 body info, and pin 0 force/torque, with an optional time interval
+    def plot_shoe(self, shoe_idx, tmin = -1, tmax = -1):
         # a plot for the shoe body,
         figA, axarrA = plt.subplots(4,sharex=True)
         #  pin rxn forces
@@ -166,8 +191,15 @@ class DriveChain_panda:
         # create 4 subplots for the shoe body
         DFs.plot(ax = axarrA[0], linewidth=1.5, x='time', y=['x','y','z'])
         DFs.plot(ax = axarrA[1], linewidth=1.5, x='time', y=['Vx','Vy','Vz'])
-        DFs.plot(ax = axarrA[2], linewidth=1.5, x='time', y=['Ww','Wy','Wz'])
+        DFs.plot(ax = axarrA[2], linewidth=1.5, x='time', y=['Wx','Wy','Wz'])
         DFs.plot(ax = axarrA[3], linewidth=1.5, x='time', y=['Ax','Ay','Az'])
+        
+        #if specified, set the xlim of the two plots
+        if(tmin > 0):
+            xminmax = self._get_timeMinMax(DFs['time'].iget(-1), tmin, tmax)
+            axarrA[0].set_xlim(xminmax[0], xminmax[1])
+            axarrB[0].set_xlim(xminmax[0], xminmax[1])
+            axarrC[0].set_xlim(xminmax[0], xminmax[1])
         
         # first plot label axes 
         axarrA[0].set_xlabel('time [s]')
@@ -214,20 +246,25 @@ class DriveChain_panda:
         axarrC[2].legend()
         axarrC[0].set_title('inter-shoe# ' + str(shoe_idx) + ' revolute reaction torques')
     
-    # plot gear Constraint Violations
-    def plot_gearCV(self):
+    # plot gear Constraint Violations, with optional time interval
+    def plot_gearCV(self, tmin = -1, tmax = -1):
         # plot gear revolute constraint violations
         fig, axarr = plt.subplots(2,sharex=True)
         
         #data headers
         inDat = ['time','x','y','z','rx','ry']
         # data frame from headers
-        DFpt = pd.DataFrame(self._getDFhandle('gearCV'), columns = inDat)
+        DFgCV = pd.DataFrame(self._getDFhandle('gearCV'), columns = inDat)
         
         # create a subplot for speed, and torues
-        DFpt.plot(ax = axarr[0], linewidth=1.5, x='time', y=['x','y','z'])
-        DFpt.plot(ax = axarr[1], linewidth=1.5, x='time', y=['rx','ry'])
+        DFgCV.plot(ax = axarr[0], linewidth=1.5, x='time', y=['x','y','z'])
+        DFgCV.plot(ax = axarr[1], linewidth=1.5, x='time', y=['rx','ry'])
         
+        #if specified, set the xlim of the two plots
+        if(tmin > 0):
+            xminmax = self._get_timeMinMax(DFgCV['time'].iget(-1), tmin, tmax)
+            axarr[0].set_xlim(xminmax[0], xminmax[1])
+            
         # labels, legend
         axarr[0].set_xlabel('time [s]')
         axarr[0].set_ylabel('pos. coord violation ')
@@ -236,19 +273,24 @@ class DriveChain_panda:
         axarr[1].legend()
         axarr[0].set_title('Gear rev. Constraint Violtion')
         
-    # plot idler Constraint Violations  
-    def plot_idlerCV(self, idler_idx):
+    # plot idler Constraint Violations , with the specified time interval 
+    def plot_idlerCV(self, idler_idx, tmin = -1, tmax = -1):
         # plot two pos. and two rot. CVs
         fig, axarr = plt.subplots(2,sharex=True)
         
         #data headers
         inDat = ['time','y','z','rx','ry']
         # data frame from headers
-        DFpt = pd.DataFrame(self._getDFhandle('idlerCV'), columns = inDat)
+        DFidCV = pd.DataFrame(self._getDFhandle('idlerCV'), columns = inDat)
         
         # create a subplot for speed, and torues
-        DFpt.plot(ax = axarr[0], linewidth=1.5, x='time', y=['y','z'])
-        DFpt.plot(ax = axarr[1], linewidth=1.5, x='time', y=['rx','ry'])
+        DFidCV.plot(ax = axarr[0], linewidth=1.5, x='time', y=['y','z'])
+        DFidCV.plot(ax = axarr[1], linewidth=1.5, x='time', y=['rx','ry'])
+        
+        #if specified, set the xlim of the two plots
+        if(tmin > 0):
+            xminmax = self._get_timeMinMax(DFidCV['time'].iget(-1), tmin, tmax)
+            axarr[0].set_xlim(xminmax[0], xminmax[1])
         
         # labels, legend
         axarr[0].set_xlabel('time [s]')
@@ -259,18 +301,23 @@ class DriveChain_panda:
         axarr[0].set_title('Idler Constraint Violtion')
         
     # plot roller Constraint Violations
-    def plot_rollerCV(self, roller_idx):
+    def plot_rollerCV(self, roller_idx, tmin = -1, tmax = -1):
         # plot roller revolute constraint violations
         fig, axarr = plt.subplots(2,sharex=True)
         
         #data headers
         inDat = ['time','x','y','z','rx','ry']
         # data frame from headers
-        DFpt = pd.DataFrame(self._getDFhandle('rollerCV'), columns = inDat)
+        DFrCV = pd.DataFrame(self._getDFhandle('rollerCV'), columns = inDat)
         
         # create a subplot for speed, and torues
-        DFpt.plot(ax = axarr[0], linewidth=1.5, x='time', y=['x','y','z'])
-        DFpt.plot(ax = axarr[1], linewidth=1.5, x='time', y=['rx','ry'])
+        DFrCV.plot(ax = axarr[0], linewidth=1.5, x='time', y=['x','y','z'])
+        DFrCV.plot(ax = axarr[1], linewidth=1.5, x='time', y=['rx','ry'])
+        
+        #if specified, set the xlim of the two plots
+        if(tmin > 0):
+            xminmax = self._get_timeMinMax(DFrCV['time'].iget(-1), tmin, tmax)
+            axarr[0].set_xlim(xminmax[0], xminmax[1])        
         
         # labels, legend
         axarr[0].set_xlabel('time [s]')
@@ -281,8 +328,6 @@ class DriveChain_panda:
         axarr[0].set_title('Roller rev. Constraint Violtion')
     
     
-    
-
       
 if __name__ == '__main__':
     
@@ -316,26 +361,28 @@ if __name__ == '__main__':
     # construct with file list and list of legend
     Chain = DriveChain_panda(data_files,handle_list)
     
+    tmin = 7
+    tmax = 8
     # 1) plot the gear body info
-    Chain.plot_gear()
+    Chain.plot_gear(9,11)
     
     # 2) plot idler body info, tensioner force
-    Chain.plot_idler()
+    Chain.plot_idler(6,10)
 
     # 3) plot powertrain info
-    Chain.plot_ptrain()    
+    Chain.plot_ptrain(6,10)    
     
     # 4) plot shoe 0 body info, and pin 0 force/torque
-    Chain.plot_shoe(0)
+    Chain.plot_shoe(0,tmin,tmax)
     
     # 5) plot gear Constraint Violations
-    Chain.plot_gearCV()
+    Chain.plot_gearCV(tmin,tmax)
     
     # 6) plot idler Constraint Violations
-    Chain.plot_idlerCV(0)
+    Chain.plot_idlerCV(0,tmin,tmax)
     
     # 7) plot roller Constraint Violations
-    Chain.plot_rollerCV(0)
+    Chain.plot_rollerCV(0,tmin,tmax)
     
 
 py.show()

@@ -23,11 +23,13 @@
 #include "assets/ChTexture.h"
 #include "assets/ChColorAsset.h"
 #include "assets/ChAssetLevel.h"
+
+#include "core/ChFileutils.h"
 #include "physics/ChGlobal.h"
+#include "physics/ChContactContainer.h"
 
 #include "DriveChain.h"
 
-#include "core/ChFileutils.h"
 #include "utils/ChUtilsInputOutput.h"
 #include "utils/ChUtilsData.h"
 
@@ -99,7 +101,7 @@ DriveChain::DriveChain(const std::string& name,
   m_idlers.resize(m_num_idlers);
   double idler_mass = 100.0; // 429.6
   ChVector<> idler_Ixx(m_inertia);    // 12.55, 12.55, 14.7
-  double tensioner_K = 80e3;
+  double tensioner_K = 40e3;
   double tensioner_C = tensioner_K * 0.08;
   m_idlers[0] = ChSharedPtr<IdlerSimple>(new IdlerSimple("idler",
     VisualizationType::MESH,
@@ -172,7 +174,7 @@ void DriveChain::Initialize(const ChCoordsys<>& gear_Csys)
   // initialize the drive gear, idler and track chain
   double idler_preload = 20000;
   // m_idlerPosRel = m_idlerPos;
-  m_idlerPosRel = ChVector<>(-2.5, 0, 0);
+  m_idlerPosRel = ChVector<>(-3, -0.10, 0);
   m_chassis->SetFrame_REF_to_abs(ChFrame<>(gear_Csys.pos, gear_Csys.rot));
   
   // Create list of the center location of the rolling elements and their clearance.
@@ -196,11 +198,13 @@ void DriveChain::Initialize(const ChCoordsys<>& gear_Csys)
   rolling_elem_spin_axis.push_back(m_gear->GetBody()->GetRot().GetZaxis() );
 
   // initialize the support rollers.
+  // Usually use 2, so spacing is based on that
+  double spacing = m_idlerPosRel.Length();
   for(int r_idx = 0; r_idx < m_num_rollers; r_idx++)
   {
     ChVector<> roller_loc = m_chassis->GetPos();
-    roller_loc.y = -1.0;
-    roller_loc.x -= 0.3*(0 + r_idx);
+    roller_loc.y = -0.8;
+    roller_loc.x = gear_Csys.pos.x - 0.5 - r_idx*spacing/2.0;
 
     m_rollers[r_idx]->Initialize(m_chassis,
       m_chassis->GetFrame_REF_to_abs(),
@@ -318,6 +322,55 @@ void DriveChain::SetShoePinDamping(double damping)
 {
   m_chain->Set_pin_friction(damping);
 }
+
+
+
+// get some data about the gear and its collisions
+size_t DriveChain::reportGearContact()
+{
+
+  // scans the contacts, reports the desired info about the gear
+  class _gear_report_contact : public ChReportContactCallback
+  {
+  public:
+
+    virtual bool ReportContactCallback(const ChVector<>& pA,
+                                       const ChVector<>& pB,
+                                       const ChMatrix33<>& plane_coord,
+                                       const double& distance,
+                                       const float& mfriction,
+                                       const ChVector<>& react_forces,
+                                       const ChVector<>& react_torques,
+                                       collision::ChCollisionModel* modA,
+                                       collision::ChCollisionModel* modB)
+    {
+      ChMatrix33<>& mplanecoord = const_cast<ChMatrix33<>&>(plane_coord);
+      ChVector<> v1=pA;
+      ChVector<> v2;
+      ChVector<> vn = mplanecoord.Get_A_Xaxis();
+
+      return true; // to continue scanning contacts
+    }
+
+    // relevant gear info
+    size_t num_gear_contacts;
+
+  };
+
+  // setup the reporter, init any variables
+  _gear_report_contact reporter;
+  reporter.num_gear_contacts = 0;
+
+  // pass the reporter callback to the system
+  m_system->GetContactContainer()->ReportAllContacts(&reporter);
+
+  // set any data here from the reporter, and return # of bodies in contact with the gear
+
+  return reporter.num_gear_contacts;
+}
+
+
+
 
 // Log constraint violations
 // -----------------------------------------------------------------------------
@@ -528,10 +581,14 @@ void DriveChain::Log_to_file()
     if (m_log_what_to_file & DBG_GEAR)
     {
       std::stringstream ss_g;
+      // find what's in contact with the gear by processing all collisions with a special callback function
+      size_t num_gear_contacts = reportGearContact();
+      m_system->GetContactContainer();
       // time,Gx,Gy,Gz,Gvx,Gvy,Gvz,Gwx,Gwy,Gwz
       ss_g << t <<","<< m_gear->GetBody()->GetPos() 
         <<","<< m_gear->GetBody()->GetPos_dt() 
         <<","<< m_gear->GetBody()->GetWvel_loc()
+        <<","<< num_gear_contacts
         <<"\n";
       ChStreamOutAsciiFile ofileDBG_GEAR(m_filename_DBG_GEAR.c_str(), std::ios::app);
       ofileDBG_GEAR << ss_g.str().c_str();
@@ -595,7 +652,7 @@ void DriveChain::create_fileHeaders(int what)
     m_filename_DBG_GEAR = m_log_file_name+"_gear.csv";
     ChStreamOutAsciiFile ofileDBG_GEAR(m_filename_DBG_GEAR.c_str());
     std::stringstream ss_g;
-    ss_g << "time,x,y,z,Vx,Vy,Vz,Wx,Wy,Wz\n";
+    ss_g << "time,x,y,z,Vx,Vy,Vz,Wx,Wy,Wz,Ncontacts\n";
     ofileDBG_GEAR << ss_g.str().c_str();
     GetLog() << " writing to file: " << m_filename_DBG_GEAR << "\n          data: " << ss_g.str().c_str() <<"\n";
   }

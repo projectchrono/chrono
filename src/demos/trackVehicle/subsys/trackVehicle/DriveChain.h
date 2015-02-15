@@ -113,6 +113,9 @@ protected:
   /// File format is .csv, for easy reading into python pandas scripts for data analysis
   void create_fileHeaders(int what);
 
+  ///
+  size_t reportGearContact();
+
   // private variables
   // <ChBodyAuxRef> m_chassis   in base class
   ChSharedPtr<DriveGear> m_gear;  		///< drive gear
