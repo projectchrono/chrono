@@ -32,6 +32,7 @@ ChDriverTrack::ChDriverTrack(int num_tracks)
 : m_log_filename("")
 {
   m_throttle.resize(num_tracks, 0);
+  m_steering = 0;
   m_braking.resize(num_tracks, 0);
 }
 

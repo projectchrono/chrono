@@ -232,7 +232,7 @@ void DriveChain::Initialize(const ChCoordsys<>& gear_Csys)
   // So, just use the mid-point between the first two rolling elements.
 
   ChVector<> start_pos;
-  if( clearance.size() <3 )
+  if( clearance.size() < 3 )
   {
     start_pos = (rolling_elem_locs[0] + rolling_elem_locs[1])/2.0;
     start_pos.y += (clearance[0] + clearance[1])/2.0;
@@ -326,10 +326,11 @@ void DriveChain::SetShoePinDamping(double damping)
 
 
 // get some data about the gear and its collisions
-size_t DriveChain::reportGearContact()
+size_t DriveChain::reportGearContact(ChVector<>& Fn_info, ChVector<>& Ft_info)
 {
 
-  // scans the contacts, reports the desired info about the gear
+  // scans the contacts, reports the desired info about the gear, including:
+  //  1) 
   class _gear_report_contact : public ChReportContactCallback
   {
   public:
@@ -344,29 +345,89 @@ size_t DriveChain::reportGearContact()
                                        collision::ChCollisionModel* modA,
                                        collision::ChCollisionModel* modB)
     {
-      ChMatrix33<>& mplanecoord = const_cast<ChMatrix33<>&>(plane_coord);
-      ChVector<> v1=pA;
-      ChVector<> v2;
-      ChVector<> vn = mplanecoord.Get_A_Xaxis();
+      // does this collision include the gear?
+      if( modA->GetFamily() == (int)CollisionFam::GEAR || modB->GetFamily() == (int)CollisionFam::GEAR)
+      {
+        // average value of norm, friction forces from last time scanned contact
+        double Fn_bar_n1 = 0;
+        double Ft_bar_n1 = 0;
+        if(m_num_gear_contacts > 0)
+        {
+          Fn_bar_n1 = m_Fn_sum / m_num_gear_contacts;
+          Ft_bar_n1 = m_Ft_sum / m_num_gear_contacts;
+      }
+        // increment the data for this contact
+        m_num_gear_contacts++;
+        // incrase normal force
+        m_Fn_sum += react_forces.x;
+        // current friction magnitude in local c-syss
+        double Ft = ChVector<>(0, react_forces.y, react_forces.z).Length();
+        m_Ft_sum += Ft; 
+        
+        // update max normal and force magnitude
+        if( react_forces.x > m_Fn_max )
+          m_Fn_max = react_forces.x;
+        if(Ft > m_Ft_max)
+          m_Ft_max = Ft;
+
+        // compute some statistics. 
+        // update normal force avg, variance
+        double Fn_bar = Fn_bar_n1 + (react_forces.x - Fn_bar_n1)/m_num_gear_contacts;
+        // Fn_var is from last step, e.g. Fn_var_n1
+        double Fn_sig2 = (m_Fn_var*(m_num_gear_contacts-1) + (react_forces.x - Fn_bar_n1)*(react_forces.x - Fn_bar)) /m_num_gear_contacts;
+        // with updated average and variance, update the data
+        m_Fn_var = Fn_sig2;
+
+        // similarly for the friction forces
+        double Ft_bar = Ft_bar_n1 + (Ft - Ft_bar_n1)/m_num_gear_contacts;
+        // like the normal force, the Ft_var has not been updated this step, so it is actually Ft_var_n1
+        double Ft_sig2 = ((m_num_gear_contacts-1)*m_Ft_var + (Ft - Ft_bar_n1)*(Ft - Ft_bar)) / m_num_gear_contacts;
+        // with  updated variance, update the data
+        m_Ft_var = Ft_sig2;
+      }
 
       return true; // to continue scanning contacts
     }
 
+    // NOTE: must initialize 
     // relevant gear info
-    size_t num_gear_contacts;
+    int m_num_gear_contacts;
+    double m_Fn_max;    // max normal force
+    double m_Fn_sum;    // reaction normal force sum
+    double m_Fn_var;    // reaction normal force population variance, sigma_n^2
+
+    double m_Ft_max;  // tangent/friction force max
+    double m_Ft_sum;  // friction force sum
+    double m_Ft_var;  // friction force variance, sigma_t^2
+
 
   };
 
   // setup the reporter, init any variables
   _gear_report_contact reporter;
-  reporter.num_gear_contacts = 0;
+  reporter.m_num_gear_contacts = 0;
+  reporter.m_Fn_max = 0;
+  reporter.m_Fn_sum = 0;
+  reporter.m_Fn_var = 0;
+  reporter.m_Ft_max = 0;
+  reporter.m_Ft_sum = 0;
+  reporter.m_Ft_var = 0;
 
   // pass the reporter callback to the system
   m_system->GetContactContainer()->ReportAllContacts(&reporter);
 
   // set any data here from the reporter, and return # of bodies in contact with the gear
+  double Fn_avg = (reporter.m_num_gear_contacts > 0) ? reporter.m_Fn_sum/reporter.m_num_gear_contacts: 0;
+  Fn_info = ChVector<>(reporter.m_Fn_max,
+    Fn_avg,
+    reporter.m_Fn_var);
 
-  return reporter.num_gear_contacts;
+  double Ft_avg = (reporter.m_num_gear_contacts > 0) ? reporter.m_Ft_sum/reporter.m_num_gear_contacts: 0;
+  Ft_info = ChVector<>(reporter.m_Ft_max,
+    Ft_avg,
+    reporter.m_Ft_var);
+
+  return reporter.m_num_gear_contacts;
 }
 
 
@@ -497,7 +558,7 @@ void DriveChain::Log_to_console(int console_what)
 
     // shoe pin tension
     GetLog() << " pin 0 reaction force [N] : "  <<  m_chain->GetPinReactForce(0) << "\n";
-    // GetLog() << "pin 0 reaction torque [N-m] : "  <<  m_chain->GetPinReactTorque(0) << "\n";
+    GetLog() << "pin 0 reaction torque [N-m] : "  <<  m_chain->GetPinReactTorque(0) << "\n";
   }
 
   if (console_what & DBG_GEAR)
@@ -509,14 +570,18 @@ void DriveChain::Log_to_console(int console_what)
       << "\n COG omega [rad/s] : " << m_gear->GetBody()->GetRot_dt().Q_to_NasaAngles()
       << "\n";
 
-    /*
-    // # of shoe pins in contact?
-    GetLog() << "# of shoes in contact ? : " << m_gear->GetBody()->GetCollisionModel()->Get << "\n";
+     // find what's in contact with the gear by processing all collisions with a special callback function
+    ChVector<> Fn_info = ChVector<>();
+    ChVector<> Ft_info = ChVector<>();
+    // info is: (max, avg., variance)
+    int num_gear_contacts = reportGearContact(Fn_info, Ft_info);
 
-    
-    // # of non-intermittant contact steps
-    GetLog() << "cumulative contact steps : " <<  << "\n";
-    */
+    GetLog() << "\n     Gear Contact info"
+      << "\n # of contacts : " << num_gear_contacts
+      << "\n normal (max, avg, variance) : " << Fn_info
+      << "\n tangent (max, avg, variance) : " << Ft_info
+      <<"\n";
+
   }
 
   if (console_what & DBG_IDLER)
@@ -566,7 +631,7 @@ void DriveChain::Log_to_file()
     if( m_log_what_to_file & DBG_FIRSTSHOE )
     {
       std::stringstream ss;
-      // time,S0x,S0y,S0z,S0vx,S0vy,S0vz,S0ax,S0ay,S0az,S0wx,S0wy,S0wz,P0fx,P0fy,P0fz
+      // time,x,y,z,vx,vy,vz,ax,ay,az,wx,wy,wz,fx,fy,fz
       ss << t <<","<< m_chain->GetShoeBody(0)->GetPos() 
         <<","<<  m_chain->GetShoeBody(0)->GetPos_dt() 
         <<","<<  m_chain->GetShoeBody(0)->GetPos_dtdt()
@@ -574,30 +639,42 @@ void DriveChain::Log_to_file()
         <<","<<  m_chain->GetPinReactForce(0)
         <<","<< m_chain->GetPinReactTorque(0)
         <<"\n";
-        // <<","<<  m_chain->GetPinReactTorque(0);
+      // open the file for appending, write the data.
       ChStreamOutAsciiFile ofile(m_filename_DBG_FIRSTSHOE.c_str(), std::ios::app);
       ofile << ss.str().c_str();
     }
     if (m_log_what_to_file & DBG_GEAR)
     {
       std::stringstream ss_g;
-      // find what's in contact with the gear by processing all collisions with a special callback function
-      size_t num_gear_contacts = reportGearContact();
-      m_system->GetContactContainer();
-      // time,Gx,Gy,Gz,Gvx,Gvy,Gvz,Gwx,Gwy,Gwz
+      // time,x,y,z,Vx,Vy,Vz,Wx,Wy,Wz
       ss_g << t <<","<< m_gear->GetBody()->GetPos() 
         <<","<< m_gear->GetBody()->GetPos_dt() 
         <<","<< m_gear->GetBody()->GetWvel_loc()
-        <<","<< num_gear_contacts
         <<"\n";
       ChStreamOutAsciiFile ofileDBG_GEAR(m_filename_DBG_GEAR.c_str(), std::ios::app);
       ofileDBG_GEAR << ss_g.str().c_str();
+
+      // second file, for the specific contact info
+      std::stringstream ss_gc;
+
+      // find what's in contact with the gear by processing all collisions with a special callback function
+      ChVector<> Fn_info = ChVector<>();
+      ChVector<> Ft_info = ChVector<>();
+      // info is: (max, avg., variance)
+      int num_gear_contacts = reportGearContact(Fn_info, Ft_info);
+      // time,Ncontacts,FnMax,FnAvg,FnVar,FtMax,FtAvg,FtVar
+      ss_gc << t <<","<< num_gear_contacts
+        <<","<< Fn_info
+        <<","<< Ft_info
+        <<"\n";
+      ChStreamOutAsciiFile ofileDBG_GEAR_CONTACT(m_filename_DBG_GEAR_CONTACT.c_str(), std::ios::app);
+      ofileDBG_GEAR_CONTACT << ss_gc.str().c_str();
     }
 
     if (m_log_what_to_file & DBG_IDLER)
     {
       std::stringstream ss_id;
-      // time,Ix,Iy,Iz,Ivx,Ivy,Ivz,Iwx,Iwy,Iwz,F_tensioner
+      // time,x,y,z,Vx,Vy,Vz,Wx,Wy,Wz,F_tensioner,F_k,F_c
       ss_id << t <<","<< m_idlers[0]->GetBody()->GetPos()
         <<","<< m_idlers[0]->GetBody()->GetPos_dt()
         <<","<< m_idlers[0]->GetBody()->GetWvel_loc()
@@ -652,9 +729,17 @@ void DriveChain::create_fileHeaders(int what)
     m_filename_DBG_GEAR = m_log_file_name+"_gear.csv";
     ChStreamOutAsciiFile ofileDBG_GEAR(m_filename_DBG_GEAR.c_str());
     std::stringstream ss_g;
-    ss_g << "time,x,y,z,Vx,Vy,Vz,Wx,Wy,Wz,Ncontacts\n";
+    ss_g << "time,x,y,z,Vx,Vy,Vz,Wx,Wy,Wz\n";
     ofileDBG_GEAR << ss_g.str().c_str();
     GetLog() << " writing to file: " << m_filename_DBG_GEAR << "\n          data: " << ss_g.str().c_str() <<"\n";
+
+    // report on some specific collision info in a separate file
+    m_filename_DBG_GEAR_CONTACT = m_log_file_name+"_gearContact.csv";
+    ChStreamOutAsciiFile ofileDBG_GEAR_CONTACT(m_filename_DBG_GEAR_CONTACT.c_str());
+    std::stringstream ss_gc;
+    ss_gc << "time,Ncontacts,FnMax,FnAvg,FnVar,FtMax,FtAvg,FtVar\n";
+    ofileDBG_GEAR_CONTACT << ss_gc.str().c_str();
+    GetLog() << " writing to file : " << m_filename_DBG_GEAR_CONTACT << "\n          data: "<<ss_gc.str().c_str() <<"\n";
   }
 
   if(what & DBG_IDLER)

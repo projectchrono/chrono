@@ -46,7 +46,8 @@ enum struct CollisionFam {
   GROUND,
   HULL,
   WHEELS,
-  SHOES
+  SHOES,
+  GEAR
 };
 
 

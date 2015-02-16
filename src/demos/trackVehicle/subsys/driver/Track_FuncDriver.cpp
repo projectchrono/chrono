@@ -14,22 +14,7 @@
 
 #include "Track_FuncDriver.h"
 
-using namespace chrono;
-
 namespace chrono {
-
-// -----------------------------------------------------------------------------
-// -----------------------------------------------------------------------------
-void Track_FuncDriver::Update(double time)
-{
-  if (time < 1.0)
-    m_throttle[0] = 0;
-  else if (time < 3.0)
-    m_throttle[0] = 0.4 * (time - 1.0);
-  else
-    m_throttle[0] = 0.9;
-
-}
 
 
 } // end namespace chrono

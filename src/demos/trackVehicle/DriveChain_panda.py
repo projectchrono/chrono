@@ -384,5 +384,8 @@ if __name__ == '__main__':
     # 7) plot roller Constraint Violations
     Chain.plot_rollerCV(0,tmin,tmax)
     
+    # 8) from the contact report callback function, gear contact info
+    Chain.plot_gearContactInfo()
+    
 
 py.show()

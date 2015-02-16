@@ -45,6 +45,7 @@
 #include "utils/ChUtilsData.h"
 #include "assets/ChTexture.h"
 #include "assets/ChColorAsset.h"
+
 /*
 #if IRRLICHT_ENABLED
 */
@@ -59,6 +60,7 @@ using namespace core;
  */
  
 #include "subsys/trackVehicle/DriveChain.h"
+#include "subsys/driver/Track_FuncDriver.h"
 #include "ModelDefs.h"
 // Use the main namespace of Chrono
 using namespace chrono;
@@ -99,6 +101,8 @@ double chaseDist = 2.5;
 double chaseHeight = 0.5;
 
 bool do_shadows = false; // shadow map is experimental
+
+bool autopilot = true;
 
   /*
 #else
@@ -199,9 +203,11 @@ int main(int argc, char* argv[])
   }
 /*
 #else
-  Track_FuncDriver driver;
+  
 #endif
 */
+  Track_FuncDriver function_driver(1);
+
 
   // ---------------------
   // GUI and render settings
@@ -259,15 +265,27 @@ int main(int argc, char* argv[])
       render_timer.stop();  // stop the scene timer
       total_render_time += render_timer();  // increment the time it took to render this step
     }
+    //  input is specified by the user, or by a function (autopilot)
+    if(autopilot)
+    {
+      throttle_input = function_driver.GetThrottle();
+      braking_input = function_driver.GetBraking();
+    }
 
-    // Collect output data from modules (for inter-module communication)
-    throttle_input = driver.GetThrottle();
-    braking_input = driver.GetBraking();
+    else
+    {
+      // Collect output data from modules (for inter-module communication)
+      throttle_input = driver.GetThrottle();
+      braking_input = driver.GetBraking();
+    }
 
     // Update
     time = chainSystem.GetSystem()->GetChTime();
 
     driver.Update(time);
+
+    if(autopilot)
+      function_driver.Update(time);
 
     chainSystem.Update(time, throttle_input[0], braking_input[0]);
 

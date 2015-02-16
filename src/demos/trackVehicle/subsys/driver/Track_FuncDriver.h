@@ -16,6 +16,7 @@
 #define TRACK_FUNCDRIVER_H
 
 #include "subsys/base/ChDriverTrack.h"
+#include "motion_functions/ChFunction_Sine.h"
 
 namespace chrono {
 
@@ -23,13 +24,32 @@ class Track_FuncDriver : public ChDriverTrack
 {
 public:
 
-  Track_FuncDriver(int num_tracks):
-  ChDriverTrack(num_tracks) {}
+  /// constructor generates a sine wave for the throttle (0 to 1) and applies it after a settling time.
+  Track_FuncDriver(int num_tracks,
+    double func_freq = 0.2,
+    double func_amp = 1.0,
+    double time_start = 1.0
+  ): ChDriverTrack(num_tracks),
+  m_throttle_func( ChSharedPtr<ChFunction_Sine>(new ChFunction_Sine(0, func_freq,func_amp)) ),
+  m_t_begin(time_start)
+  { assert(func_amp <= 1.0); }
+  
   ~Track_FuncDriver() {}
 
-  virtual void Update(double time);
+  virtual void Update(double time)
+  {
+    if(time > m_t_begin)
+    {
+      m_throttle[0] = m_throttle_func->Get_y(time - m_t_begin);
+
+    }
+
+  }
 
 private:
+
+  ChSharedPtr<ChFunction_Sine> m_throttle_func;
+  double m_t_begin;
 
 };
 

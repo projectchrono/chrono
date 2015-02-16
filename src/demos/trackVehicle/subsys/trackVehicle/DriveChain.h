@@ -113,8 +113,10 @@ protected:
   /// File format is .csv, for easy reading into python pandas scripts for data analysis
   void create_fileHeaders(int what);
 
-  ///
-  size_t reportGearContact();
+  /// info set is: (max, avg, var = sigma ^2) for x,y,z vector data.
+  /// returns total number of contacts with the gear this step.
+  size_t reportGearContact(ChVector<>& Fn_info,
+    ChVector<>& Ft_info);
 
   // private variables
   // <ChBodyAuxRef> m_chassis   in base class
@@ -133,6 +135,7 @@ protected:
   // I/O stuff
   std::string m_filename_DBG_FIRSTSHOE;     // write to this file, first shoe/pin info
   std::string m_filename_DBG_GEAR;          // write to this file, gear body
+  std::string m_filename_DBG_GEAR_CONTACT;  // specific info about collisions with gear
   std::string m_filename_DBG_IDLER;         // to to this file, idler body
   std::string m_filename_GCV;               // write to this file, gear constraint violation
   std::vector<std::string> m_filename_ICV;  // write to this file, idler constraint violation

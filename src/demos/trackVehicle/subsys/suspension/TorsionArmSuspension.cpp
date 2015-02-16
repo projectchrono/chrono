@@ -360,6 +360,7 @@ void TorsionArmSuspension::AddCollisionGeometry(double mu,
   // don't collide with the other rolling elements
   m_wheel->GetCollisionModel()->SetFamilyMaskNoCollisionWithFamily((int)CollisionFam::WHEELS);
   m_wheel->GetCollisionModel()->SetFamilyMaskNoCollisionWithFamily((int)CollisionFam::HULL);
+  m_wheel->GetCollisionModel()->SetFamilyMaskNoCollisionWithFamily((int)CollisionFam::GEAR);
   m_wheel->GetCollisionModel()->SetFamilyMaskNoCollisionWithFamily((int)CollisionFam::GROUND);
 
   m_wheel->GetCollisionModel()->BuildModel();
