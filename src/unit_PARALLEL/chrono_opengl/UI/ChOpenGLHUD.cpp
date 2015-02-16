@@ -141,17 +141,19 @@ void ChOpenGLHUD::GenerateSystem(ChSystem* physics_system) {
   int num_contacts = ((ChSystemParallel*)physics_system)->GetNcontacts();
   int average_contacts_per_body = num_bodies > 0 ? num_contacts / num_bodies : 0;
 
-  sprintf(buffer, "MODEL INFO");
-  text.Render(buffer, RIGHT, TOP - SPACING * 0, sx, sy);
-  sprintf(buffer, "BODIES     %04d", num_bodies);
-  text.Render(buffer, RIGHT, TOP - SPACING * 1, sx, sy);
   int num_shapes = 0;
   if (ChSystemParallelDVI* parallel_system = dynamic_cast<ChSystemParallelDVI*>(physics_system)) {
     num_shapes = parallel_system->data_manager->num_shapes;
+    num_bodies = (parallel_system->data_manager->num_bodies + parallel_system->GetNphysicsItems());
   } else {
     ChCollisionSystemBullet* collision_system = (ChCollisionSystemBullet*)physics_system->GetCollisionSystem();
     num_shapes = collision_system->GetBulletCollisionWorld()->getNumCollisionObjects();
   }
+
+  sprintf(buffer, "MODEL INFO");
+  text.Render(buffer, RIGHT, TOP - SPACING * 0, sx, sy);
+  sprintf(buffer, "BODIES     %04d", num_bodies);
+  text.Render(buffer, RIGHT, TOP - SPACING * 1, sx, sy);
 
   sprintf(buffer, "AABB       %04d", num_shapes);
   text.Render(buffer, RIGHT, TOP - SPACING * 2, sx, sy);
