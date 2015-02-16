@@ -15,6 +15,10 @@
 #include <device_launch_parameters.h>
 #include "custom_cutil_math.h"
 
+
+#include <stdio.h>
+
+
 // ----------------------------------------------------------------------------
 // Short-hand notation
 // ----------------------------------------------------------------------------
@@ -140,20 +144,22 @@ public:
 	// wall time
 	void Start() { m_start = get_wall_time(); }
 	void Stop()  { m_stop = get_wall_time(); }
-	float Elapsed() {
+	double Elapsed() {
+		printf("wall star and stop time %f %f \n", m_stop, m_start);
 		return (m_stop - m_start);
 	}
 
 	// cpu time
 	void Start_cputimer() { m_start_cpu = get_cpu_time(); }
 	void Stop_cputimer()  { m_stop_cpu = get_cpu_time(); }
-	float Elapsed_cputimer() {
+	double Elapsed_cputimer() {
+		printf("cpu star and stop time %f %f \n", m_stop_cpu, m_start_cpu);
 		return (m_stop_cpu - m_start_cpu);
 	}
 
 private:
 #ifdef _WIN32
-	float get_wall_time(){
+	double get_wall_time(){
 		LARGE_INTEGER time, freq;
 		if (!QueryPerformanceFrequency(&freq)){
 			//  Handle error
@@ -163,16 +169,16 @@ private:
 			//  Handle error
 			return 0;
 		}
-		return (float)time.QuadPart / freq.QuadPart;
+		return (double)time.QuadPart / freq.QuadPart;
 	}
 
-	float get_cpu_time(){
+	double get_cpu_time(){
 		FILETIME a, b, c, d;
 		if (GetProcessTimes(GetCurrentProcess(), &a, &b, &c, &d) != 0){
 			//  Returns total user time.
 			//  Can be tweaked to include kernel times as well.
 			return
-				(float)(d.dwLowDateTime |
+				(double)(d.dwLowDateTime |
 				((unsigned long long)d.dwHighDateTime << 32)) * 0.0000001;
 		}
 		else{
@@ -181,27 +187,27 @@ private:
 		}
 	}
 #else
-	float get_wall_time(){
+	double get_wall_time(){
 		struct timeval time;
 		if (gettimeofday(&time, NULL)){
 			//  Handle error
 			return 0;
 		}
-		return (float)time.tv_sec + (float)time.tv_usec * .000001;
+		return (double)time.tv_sec + (double)time.tv_usec * .000001;
 	}
 
-	float get_cpu_time(){
-		return (double)clock() / CLOCKS_PER_SEC;
+	double get_cpu_time(){
+		return ((double)clock()) / CLOCKS_PER_SEC;
 	}
 #endif
 private:
 	// wall time
-	float m_start;
-	float m_stop;
+	double m_start;
+	double m_stop;
 
 	// cpu time
-	float m_start_cpu;
-	float m_stop_cpu;
+	double m_start_cpu;
+	double m_stop_cpu;
 };
 
 

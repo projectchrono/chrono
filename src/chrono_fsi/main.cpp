@@ -19,6 +19,7 @@
 #include <vector>
 #include <cstdlib> //for RAND_MAX
 #include <ctime>
+#include <assert.h>
 
 //for memory leak detection, apparently does not work in conjunction with cuda
 //#define _CRTDBG_MAP_ALLOC
@@ -106,9 +107,9 @@ real_ IsInsideStraightChannel(real3 posRad) {
 }
 
 //&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
-int2 CreateFluidMarkers(thrust::host_vector<real3> & mPosRad,
-		thrust::host_vector<real4> & mVelMas,
-		thrust::host_vector<real4> & mRhoPresMu,
+int2 CreateFluidMarkers(thrust::host_vector<real3> & posRadH,
+		thrust::host_vector<real4> & velMasH,
+		thrust::host_vector<real4> & rhoPresMuH,
 		thrust::host_vector<real3> & mPosRadBoundary,
 		thrust::host_vector<real4> & mVelMasBoundary,
 		thrust::host_vector<real4> & mRhoPresMuBoundary,
@@ -150,10 +151,10 @@ int2 CreateFluidMarkers(thrust::host_vector<real3> & mPosRad,
 				{
 					if (i < 0.5 * nFX) {
 						num_FluidMarkers++;
-						mPosRad.push_back(posRad);
+						posRadH.push_back(posRad);
 						real3 v3 = R3(0);
-						mVelMas.push_back(R4(v3, sphMarkerMass));
-						mRhoPresMu.push_back(R4(paramsH.rho0, paramsH.BASEPRES, paramsH.mu0, -1));
+						velMasH.push_back(R4(v3, sphMarkerMass));
+						rhoPresMuH.push_back(R4(paramsH.rho0, paramsH.BASEPRES, paramsH.mu0, -1));
 					}
 				} else {
 					num_BoundaryMarkers++;
@@ -261,18 +262,50 @@ void SetNumObjects(NumberOfObjects & numObjects, const thrust::host_vector<int3>
 }
 
 void ClearArraysH(
-	thrust::host_vector<real3> & mPosRad, //do not set the size here since you are using push back later
-	thrust::host_vector<real4> & mVelMas,
-	thrust::host_vector<real4> & mRhoPresMu,
+	thrust::host_vector<real3> & posRadH, //do not set the size here since you are using push back later
+	thrust::host_vector<real4> & velMasH,
+	thrust::host_vector<real4> & rhoPresMuH) {
+
+	posRadH.clear();
+	velMasH.clear();
+	rhoPresMuH.clear();
+}
+void ClearArraysH(
+	thrust::host_vector<real3> & posRadH, //do not set the size here since you are using push back later
+	thrust::host_vector<real4> & velMasH,
+	thrust::host_vector<real4> & rhoPresMuH,
 	thrust::host_vector<uint> & bodyIndex,
 	thrust::host_vector<int3> & referenceArray) {
 
-	mPosRad.clear();
-	mVelMas.clear();
-	mRhoPresMu.clear();
+	ClearArraysH(posRadH, velMasH, rhoPresMuH);
 	bodyIndex.clear();
 	referenceArray.clear();
 }
+
+void CopyD2H(
+	thrust::host_vector<real3> & posRadH, //do not set the size here since you are using push back later
+	thrust::host_vector<real4> & velMasH,
+	thrust::host_vector<real4> & rhoPresMuH,
+	const thrust::device_vector<real3> & posRadD,
+	const thrust::device_vector<real4> & velMasD,
+	const thrust::device_vector<real4> & rhoPresMuD) {
+	assert(posRadH.size() == posRadD.size() && "Error! size mismatch host and device" );
+	thrust::copy(posRadD.begin(), posRadD.end(), posRadH.begin());
+	thrust::copy(velMasD.begin(), velMasD.end(), velMasH.begin());
+	thrust::copy(rhoPresMuD.begin(), rhoPresMuD.end(), rhoPresMuH.begin());
+}
+
+//void CopyD2D(
+//	thrust::host_vector<real3> & posRadD2, //do not set the size here since you are using push back later
+//	thrust::host_vector<real4> & velMasD2,
+//	thrust::host_vector<real4> & rhoPresMuD2,
+//	const thrust::device_vector<real3> & posRadD,
+//	const thrust::device_vector<real4> & velMasD,
+//	const thrust::device_vector<real4> & rhoPresMuD) {
+//	thrust::copy(posRadD.begin(), posRadD.end(), posRadD2.begin());
+//	thrust::copy(velMasD.begin(), velMasD.end(), velMasD2.begin());
+//	thrust::copy(rhoPresMuD.begin(), rhoPresMuD.end(), rhoPresMuD2.begin());
+//}
 
 //&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
 int main() {
@@ -288,9 +321,9 @@ int main() {
 
 	//*** Arrays definition
 	thrust::host_vector<int3> referenceArray;
-	thrust::host_vector<real3> mPosRad; //do not set the size here since you are using push back later
-	thrust::host_vector<real4> mVelMas;
-	thrust::host_vector<real4> mRhoPresMu;
+	thrust::host_vector<real3> posRadH; //do not set the size here since you are using push back later
+	thrust::host_vector<real4> velMasH;
+	thrust::host_vector<real4> rhoPresMuH;
 	thrust::host_vector<uint> bodyIndex;
 
 	thrust::host_vector<real3> mPosRadBoundary; //do not set the size here since you are using push back later
@@ -306,26 +339,26 @@ int main() {
 //**********************************************************************
 	// initialize fluid particles
 	real_ sphMarkerMass; // To be initialized in CreateFluidMarkers, and used in other places
-	int2 num_fluidOrBoundaryMarkers = CreateFluidMarkers(mPosRad, mVelMas,
-			mRhoPresMu, mPosRadBoundary, mVelMasBoundary,
+	int2 num_fluidOrBoundaryMarkers = CreateFluidMarkers(posRadH, velMasH,
+			rhoPresMuH, mPosRadBoundary, mVelMasBoundary,
 			mRhoPresMuBoundary, sphMarkerMass);
 	referenceArray.push_back(I3(0, num_fluidOrBoundaryMarkers.x, -1)); //map fluid -1
 	numAllMarkers += num_fluidOrBoundaryMarkers.x;
 
-	mPosRad.resize(
+	posRadH.resize(
 			num_fluidOrBoundaryMarkers.x + num_fluidOrBoundaryMarkers.y);
-	mVelMas.resize(
+	velMasH.resize(
 			num_fluidOrBoundaryMarkers.x + num_fluidOrBoundaryMarkers.y);
-	mRhoPresMu.resize(
+	rhoPresMuH.resize(
 			num_fluidOrBoundaryMarkers.x + num_fluidOrBoundaryMarkers.y);
 	////boundary: type = 0
 	//printf("size1 %d, %d , numpart %d, numFluid %d \n", mPosRadBoundary.end() - mPosRadBoundary.begin(), mPosRadBoundary.size(), num_fluidOrBoundaryMarkers.y, num_fluidOrBoundaryMarkers.x);
 	thrust::copy(mPosRadBoundary.begin(), mPosRadBoundary.end(),
-			mPosRad.begin() + num_fluidOrBoundaryMarkers.x);
+			posRadH.begin() + num_fluidOrBoundaryMarkers.x);
 	thrust::copy(mVelMasBoundary.begin(), mVelMasBoundary.end(),
-			mVelMas.begin() + num_fluidOrBoundaryMarkers.x);
+			velMasH.begin() + num_fluidOrBoundaryMarkers.x);
 	thrust::copy(mRhoPresMuBoundary.begin(), mRhoPresMuBoundary.end(),
-			mRhoPresMu.begin() + num_fluidOrBoundaryMarkers.x);
+			rhoPresMuH.begin() + num_fluidOrBoundaryMarkers.x);
 	mPosRadBoundary.clear();
 	mVelMasBoundary.clear();
 	mRhoPresMuBoundary.clear();
@@ -342,7 +375,7 @@ int main() {
 	// set num objects
 	SetNumObjects(numObjects, referenceArray, numAllMarkers);
 	if (numObjects.numAllMarkers == 0) {
-		ClearArraysH(mPosRad, mVelMas, mRhoPresMu, bodyIndex, referenceArray);
+		ClearArraysH(posRadH, velMasH, rhoPresMuH, bodyIndex, referenceArray);
 		return 0;
 	}
 
@@ -350,9 +383,9 @@ int main() {
 	printf("********************\n");
 
 
-	thrust::device_vector<real3> posRadD = mPosRad;
-	thrust::device_vector<real4> velMasD = mVelMas;
-	thrust::device_vector<real4> rhoPresMuD = mRhoPresMu;
+	thrust::device_vector<real3> posRadD = posRadH;
+	thrust::device_vector<real4> velMasD = velMasH;
+	thrust::device_vector<real4> rhoPresMuD = rhoPresMuH;
 	thrust::device_vector<uint> bodyIndexD = bodyIndex;
 	thrust::device_vector<real4> derivVelRhoD;
 	ResizeMyThrust4(derivVelRhoD, numObjects.numAllMarkers);
@@ -371,6 +404,11 @@ int main() {
 	InitSystem(paramsH, numObjects);
 	SimParams currentParamsH = paramsH;
 	for (int tStep = 0; tStep < stepEnd + 1; tStep++) {
+		CpuTimer mCpuTimer;
+		mCpuTimer.Start();
+		GpuTimer myGpuTimer;
+		myGpuTimer.Start();
+
 		PrintToFile(posRadD, velMasD, rhoPresMuD, referenceArray, currentParamsH, realTime, tStep);
 		if (realTime <= paramsH.timePause) 	{
 			currentParamsH = paramsH_B;
@@ -379,32 +417,43 @@ int main() {
 		}
 		InitSystem(currentParamsH, numObjects);
 
+		// ** initialize host mid step data
+		thrust::host_vector<real3> posRadH2 = posRadH;
+		thrust::host_vector<real4> velMasH2 = velMasH;
+		thrust::host_vector<real4> rhoPresMuH2 = rhoPresMuH;
+		// ** initialize device mid step data
 		thrust::device_vector<real3> posRadD2 = posRadD;
 		thrust::device_vector<real4> velMasD2 = velMasD;
 		thrust::device_vector<real4> rhoPresMuD2 = rhoPresMuD;
+		// **
 		thrust::device_vector<real3> vel_XSPH_D;
 		ResizeMyThrust3(vel_XSPH_D, numObjects.numAllMarkers);
 
 		FillMyThrust4(derivVelRhoD, R4(0));
 
 		IntegrateSPH(posRadD2, velMasD2, rhoPresMuD2, posRadD, velMasD, vel_XSPH_D, rhoPresMuD, bodyIndexD, derivVelRhoD, referenceArray, numObjects, currentParamsH, 0.5 * currentParamsH.dT);
+		CopyD2H(posRadH2, velMasH2, rhoPresMuH2, posRadD2, velMasD2, rhoPresMuD2);
 		IntegrateSPH(posRadD, velMasD, rhoPresMuD, posRadD2, velMasD2, vel_XSPH_D, rhoPresMuD2, bodyIndexD, derivVelRhoD, referenceArray, numObjects, currentParamsH, currentParamsH.dT);
+		CopyD2H(posRadH, velMasH, rhoPresMuH, posRadD, velMasD, rhoPresMuD);
 
+
+		ClearArraysH(posRadH2, velMasH2, rhoPresMuH2);
 		ClearMyThrustR3(posRadD2);
 		ClearMyThrustR4(velMasD2);
 		ClearMyThrustR4(rhoPresMuD2);
 		ClearMyThrustR3(vel_XSPH_D);
 
 
-//		mCpuTimer.Stop();
+		mCpuTimer.Stop();
+		myGpuTimer.Stop();
 		if (tStep % 50 == 0) {
-			printf("step: %d\n ", tStep);
+			printf("step: %d, realTime: %f, step Time (CUDA): %f, step Time (CPU): %f\n ", tStep, realTime, (real_)myGpuTimer.Elapsed(), 1000 * mCpuTimer.Elapsed());
 		}
-//		fflush(stdout);
+		fflush(stdout);
 		realTime += currentParamsH.dT;
 	}
 
-	ClearArraysH(mPosRad, mVelMas, mRhoPresMu, bodyIndex, referenceArray);
+	ClearArraysH(posRadH, velMasH, rhoPresMuH, bodyIndex, referenceArray);
 	ClearMyThrustR3(posRadD);
 	ClearMyThrustR4(velMasD);
 	ClearMyThrustR4(rhoPresMuD);
