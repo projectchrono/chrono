@@ -206,7 +206,7 @@ int main(int argc, char* argv[])
   
 #endif
 */
-  Track_FuncDriver function_driver(1);
+  Track_FuncDriver function_driver(1, 0.1,0.4,0.1);
 
 
   // ---------------------
@@ -270,6 +270,9 @@ int main(int argc, char* argv[])
     {
       throttle_input = function_driver.GetThrottle();
       braking_input = function_driver.GetBraking();
+      // set the GUI info
+      driver.SetThrottleFunc(throttle_input[0]);
+      // driver.SetBrakingFunc(braking_input);
     }
 
     else

@@ -66,6 +66,9 @@ public:
   /// Record the current driver inputs to the log file.
   bool Log(double time);
 
+  /// when you set the throttle from a function, update the GUI
+  void SetThrottleFunc(double val) { SetThrottle(val, 0); }
+
 protected:
   /// clamp to interval
   double clamp(double val, double min_val, double max_val);
