@@ -43,7 +43,8 @@ class CH_OPENGL_API ChOpenGLHUD : public ChOpenGLBase {
  private:
   ChOpenGLText text;
   ChOpenGLShader font_shader;
-  float sx, sy, spacing;
+  float sx, sy;
+  float aspect, z_x, z_y;
   char buffer[50];
   ChOpenGLCamera* render_camera;
 
