@@ -53,7 +53,7 @@ bool ChOpenGLHUD::Initialize(ChOpenGLCamera* camera, ChTimerParallel* viewer_tim
   return true;
 }
 
-void ChOpenGLHUD::Update(const glm::ivec2& window_size, const float& dpi, const float& frame_per_sec) {
+void ChOpenGLHUD::Update(const glm::ivec2& window_size, const float& dpi, const float& frame_per_sec, const float& t_geometry, const float& t_text, const float& t_total) {
   int screen_width = window_size.x;
   int screen_height = window_size.y;
 
@@ -88,9 +88,9 @@ void ChOpenGLHUD::Update(const glm::ivec2& window_size, const float& dpi, const 
 
   text.Update();
 
-  time_text = .5 * timer->GetTime("text") + .5 * time_text;
-  time_geometry = .5 * timer->GetTime("geometry") + .5 * time_geometry;
-  time_total = .5 * timer->GetTime("render") + .5 * time_total;
+  time_geometry = t_geometry;
+  time_text = t_text;
+  time_total = t_total;
   fps = frame_per_sec;
 }
 
@@ -104,7 +104,7 @@ void ChOpenGLHUD::GenerateHelp() {
 
   text.Render("Press h to exit help", LEFT, TOP - SPACING * 0, sx, sy);
   text.Render("W: Forward", LEFT, TOP - SPACING * 1, sx, sy);
-  text.Render("A: Strafe Left", LEFT, 0.925 - SPACING * 2, sx, sy);
+  text.Render("A: Strafe Left", LEFT, TOP - SPACING * 2, sx, sy);
   text.Render("S: Back", LEFT, TOP - SPACING * 3, sx, sy);
   text.Render("D: Strafe Right", LEFT, TOP - SPACING * 4, sx, sy);
   text.Render("Q: Down", LEFT, TOP - SPACING * 5, sx, sy);

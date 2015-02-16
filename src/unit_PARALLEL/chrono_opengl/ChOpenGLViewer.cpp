@@ -69,6 +69,7 @@ ChOpenGLViewer::ChOpenGLViewer(ChSystem* system) {
   use_vsync = 0;
   render_mode = POINTS;
   time_total = old_time = current_time = 0;
+  time_text = time_geometry = 0;
   fps = 0;
 }
 
@@ -226,9 +227,13 @@ void ChOpenGLViewer::Render() {
     RenderContacts();
 
     timer.stop("geometry");
+    time_geometry = .5 * timer.GetTime("geometry") + .5 * time_geometry;
+
     timer.start("text");
     DisplayHUD();
     timer.stop("text");
+    time_text = .5 * timer.GetTime("text") + .5 * time_text;
+
   }
   timer.stop("render");
   time_total = .5 * timer.GetTime("render") + .5 * time_total;
@@ -390,7 +395,7 @@ void ChOpenGLViewer::DrawObject(ChBody* abody) {
 
 void ChOpenGLViewer::DisplayHUD() {
   GLReturnedError("Start text");
-  HUD_renderer.Update(window_size, dpi, fps);
+  HUD_renderer.Update(window_size, dpi, fps, time_geometry, time_text, time_total);
   if (view_help) {
     HUD_renderer.GenerateHelp();
   } else {
