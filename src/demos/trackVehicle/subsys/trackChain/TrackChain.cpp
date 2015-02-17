@@ -75,7 +75,7 @@ m_damping_C(0)
 
   m_numShoes++;
 
-  m_shoes.front()->SetNameString("shoe 1, "+name);
+  m_shoes.front()->SetNameString("shoe"+std::to_string(m_numShoes));
   m_shoes.front()->SetMass(m_mass);
   m_shoes.front()->SetInertiaXX(m_inertia);
 
@@ -696,7 +696,7 @@ void TrackChain::CreateShoes(ChSharedPtr<ChBody> chassis,
     (m_numShoes % 2 == 0) ? AddVisualization(m_numShoes -1, true, "spheretexture.png") : AddVisualization();
     
     AddCollisionGeometry();
-    m_shoes.back()->SetNameString( "shoe " + std::to_string(m_numShoes) );
+    m_shoes.back()->SetNameString( "shoe" + std::to_string(m_numShoes) );
 
     // Find where the pin to the previous shoe should be positioned.
     // From there, calculate what the body pos/rot should be.
@@ -811,7 +811,7 @@ void TrackChain::CreateShoes(ChSharedPtr<ChBody> chassis,
 
     // create and init. the pin between the last shoe and this one, add to system.
     m_pins.push_back(ChSharedPtr<ChLinkLockRevolute>(new ChLinkLockRevolute));
-    m_pins.back()->SetNameString(" pin " + std::to_string(m_pins.size()) );
+    m_pins.back()->SetNameString("pin" + std::to_string(m_pins.size()) );
     // pin frame picked up from COG_frame, where z-axis should be in the lateral direction.
     m_pins.back()->Initialize(m_shoes.back(), m_shoes.end()[-2], ChCoordsys<>(pin_frame.GetPos(), pin_frame.GetRot() ) );
     chassis->GetSystem()->AddLink(m_pins.back());
@@ -877,7 +877,7 @@ void TrackChain::CreateShoes(ChSharedPtr<ChBody> chassis,
      // even shoes can be a different texture
     (m_numShoes % 2 == 0) ? AddVisualization(m_numShoes -1, true, "spheretexture.png") : AddVisualization();
     AddCollisionGeometry();
-    m_shoes.back()->SetNameString( "shoe " + std::to_string(m_numShoes) );
+    m_shoes.back()->SetNameString( "shoe" + std::to_string(m_numShoes) );
 
     // pin between shoes position is know, orient the same as the previous shoe.
     pin_frame = ChFrame<>(COG_frame*COG_to_pin_rel, COG_frame.GetRot() );
@@ -912,7 +912,7 @@ void TrackChain::CreateShoes(ChSharedPtr<ChBody> chassis,
 
     // create and init. the pin between the last shoe and this one, add to system.
     m_pins.push_back(ChSharedPtr<ChLinkLockRevolute>(new ChLinkLockRevolute));
-    m_pins.back()->SetNameString(" pin " + std::to_string(m_pins.size()) );
+    m_pins.back()->SetNameString("pin " + std::to_string(m_pins.size()) );
     // pin frame picked up from COG_frame, where z-axis should be in the lateral direction.
     m_pins.back()->Initialize(m_shoes.back(), m_shoes.end()[-2], ChCoordsys<>(pin_frame.GetPos(), pin_frame.GetRot() ) );
     chassis->GetSystem()->AddLink(m_pins.back());
@@ -980,7 +980,7 @@ void TrackChain::CreateShoes_closeChain(ChSharedPtr<ChBody> chassis,
      // even shoes can be a different texture
     (m_numShoes % 2 == 0) ? AddVisualization(m_numShoes -1, true, "spheretexture.png") : AddVisualization();
     AddCollisionGeometry();
-    m_shoes.back()->SetNameString( "shoe " + std::to_string(m_numShoes) );
+    m_shoes.back()->SetNameString( "shoe" + std::to_string(m_numShoes) );
 
     // Find where the pin to the previous shoe should be positioned.
     // From there, calculate what the body pos/rot should be.
@@ -1089,7 +1089,7 @@ void TrackChain::CreateShoes_closeChain(ChSharedPtr<ChBody> chassis,
 
     // create and init. the pin between the last shoe and this one, add to system.
     m_pins.push_back(ChSharedPtr<ChLinkLockRevolute>(new ChLinkLockRevolute));
-    m_pins.back()->SetNameString(" pin " + std::to_string(m_pins.size()) );
+    m_pins.back()->SetNameString("pin" + std::to_string(m_pins.size()) );
     // pin frame picked up from COG_frame, where z-axis should be in the lateral direction.
     m_pins.back()->Initialize(m_shoes.back(), m_shoes.end()[-2], ChCoordsys<>(pin_frame.GetPos(), pin_frame.GetRot() ) );
     chassis->GetSystem()->AddLink(m_pins.back());
@@ -1165,7 +1165,7 @@ void TrackChain::CreateShoes_closeChain(ChSharedPtr<ChBody> chassis,
   } 
   // create and init. the pin between the last shoe and first, add to system.
   m_pins.push_back(ChSharedPtr<ChLinkLockRevolute>(new ChLinkLockRevolute));
-  m_pins.back()->SetNameString(" pin " + std::to_string(m_pins.size()) );
+  m_pins.back()->SetNameString("pin" + std::to_string(m_pins.size()) );
   // use the orientation of the last shoe added
   m_pins.back()->Initialize(m_shoes.front(), m_shoes.back(), ChCoordsys<>(pin_pos_abs, m_shoes.back()->GetRot() ) );
   chassis->GetSystem()->AddLink(m_pins.back());

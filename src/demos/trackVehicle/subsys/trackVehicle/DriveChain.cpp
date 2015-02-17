@@ -455,7 +455,14 @@ int DriveChain::reportShoeGearContact(const std::string& shoe_name,
                                        collision::ChCollisionModel* modA,
                                        collision::ChCollisionModel* modB)
     {
-      // does this collision include the gear and the shoe, whose string name is set?
+      /*
+      if( (modA->GetFamily() == (int)CollisionFam::GEAR) || (modB->GetFamily() == (int)CollisionFam::GEAR) )
+      {
+        // does this collision include the gear and the shoe, whose string name is set?
+        std::string piA = modA->GetPhysicsItem()->GetNameString();
+        std::string piB = modB->GetPhysicsItem()->GetNameString();
+      }
+      */
       if( (modA->GetFamily() == (int)CollisionFam::GEAR && modB->GetPhysicsItem()->GetNameString() == m_shoe_name )
         || (modB->GetFamily() == (int)CollisionFam::GEAR && modB->GetPhysicsItem()->GetNameString() == m_shoe_name ) )
       {
@@ -683,6 +690,28 @@ void DriveChain::Log_to_console(int console_what)
     // shoe pin tension
     GetLog() << " pin 0 reaction force [N] : "  <<  m_chain->GetPinReactForce(0) << "\n";
     GetLog() << "pin 0 reaction torque [N-m] : "  <<  m_chain->GetPinReactTorque(0) << "\n";
+
+    // shoe - gear contact details
+    if(1)
+    {
+      //  specify some collision info with the gear
+      ChVector<> sg_info = ChVector<>();  // output data set
+      ChVector<> Fn_info = ChVector<>();  // per step normal contact force statistics
+      ChVector<> Ft_info = ChVector<>();  // per step friction contact force statistics
+      // sg_info = (Num_contacts, t_persist, t_persist_max)
+      reportShoeGearContact(m_chain->GetShoeBody(0)->GetNameString(),
+        sg_info,
+        Fn_info,
+        Ft_info);
+
+      // "time,Ncontacts,t_persist,t_persist_max,FnMax,FnAvg,FnSig,FtMax,FtAvg,FtSig";
+      std::stringstream ss_sg;
+      GetLog() << "\n ---- Shoe - gear contact info:"
+        <<"\n (# contacts, time_persist, t_persist_max) : " << sg_info
+        <<"\n (FnMax, FnAvg, FnVar) : " << Fn_info
+        <<"\n (FtMax, FtAvg, FtVar) : " << Ft_info
+        <<"\n";
+    }
   }
 
   if (console_what & DBG_GEAR)

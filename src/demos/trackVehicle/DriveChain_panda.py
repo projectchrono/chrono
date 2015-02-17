@@ -502,7 +502,7 @@ if __name__ == '__main__':
     Chain.plot_rollerCV(0,tmin,tmax)
     
     # 8) from the contact report callback function, gear contact info
-    Chain.plot_gearContactInfo(1,4)
+    Chain.plot_gearContactInfo(1,3)
     
 
 py.show()
