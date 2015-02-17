@@ -349,44 +349,47 @@ int DriveChain::reportGearContact(ChVector<>& Fn_info, ChVector<>& Ft_info)
       // does this collision include the gear?
       if( modA->GetFamily() == (int)CollisionFam::GEAR || modB->GetFamily() == (int)CollisionFam::GEAR)
       {
-        // average value of norm, friction forces from last time scanned contact
-        double Fn_bar_n1 = 0;
-        double Ft_bar_n1 = 0;
-        if(m_num_gear_contacts > 0)
+        // don't count collisions w/ 0 normal force
+        if( react_forces.x > 0 )
         {
-          Fn_bar_n1 = m_Fn_sum / m_num_gear_contacts;
-          Ft_bar_n1 = m_Ft_sum / m_num_gear_contacts;
-      }
-        // increment the data for this contact
-        m_num_gear_contacts++;
-        // incrase normal force
-        m_Fn_sum += react_forces.x;
-        // current friction magnitude in local c-syss
-        double Ft = ChVector<>(0, react_forces.y, react_forces.z).Length();
-        m_Ft_sum += Ft; 
+          // average value of norm, friction forces from last time scanned contact
+          double Fn_bar_n1 = 0;
+          double Ft_bar_n1 = 0;
+          if(m_num_gear_contacts > 0)
+          {
+            Fn_bar_n1 = m_Fn_sum / m_num_gear_contacts;
+            Ft_bar_n1 = m_Ft_sum / m_num_gear_contacts;
+          }
+          // increment the data for this contact
+          m_num_gear_contacts++;
+          // incrase normal force
+          m_Fn_sum += react_forces.x;
+          // current friction magnitude in local c-syss
+          double Ft = ChVector<>(0, react_forces.y, react_forces.z).Length();
+          m_Ft_sum += Ft; 
         
-        // update max normal and force magnitude
-        if( react_forces.x > m_Fn_max )
-          m_Fn_max = react_forces.x;
-        if(Ft > m_Ft_max)
-          m_Ft_max = Ft;
+          // update max normal and force magnitude
+          if( react_forces.x > m_Fn_max )
+            m_Fn_max = react_forces.x;
+          if(Ft > m_Ft_max)
+            m_Ft_max = Ft;
 
-        // compute some statistics. 
-        // update normal force avg, variance
-        double Fn_bar = Fn_bar_n1 + (react_forces.x - Fn_bar_n1)/m_num_gear_contacts;
-        // Fn_var is from last step, e.g. Fn_var_n1
-        double Fn_sig2 = (m_Fn_var*(m_num_gear_contacts-1) + (react_forces.x - Fn_bar_n1)*(react_forces.x - Fn_bar)) /m_num_gear_contacts;
-        // with updated average and variance, update the data
-        m_Fn_var = Fn_sig2;
+          // compute some statistics. 
+          // update normal force avg, variance
+          double Fn_bar = Fn_bar_n1 + (react_forces.x - Fn_bar_n1)/m_num_gear_contacts;
+          // Fn_var is from last step, e.g. Fn_var_n1
+          double Fn_sig2 = (m_Fn_var*(m_num_gear_contacts-1) + (react_forces.x - Fn_bar_n1)*(react_forces.x - Fn_bar)) /m_num_gear_contacts;
+          // with updated average and variance, update the data
+          m_Fn_var = Fn_sig2;
 
-        // similarly for the friction forces
-        double Ft_bar = Ft_bar_n1 + (Ft - Ft_bar_n1)/m_num_gear_contacts;
-        // like the normal force, the Ft_var has not been updated this step, so it is actually Ft_var_n1
-        double Ft_sig2 = ((m_num_gear_contacts-1)*m_Ft_var + (Ft - Ft_bar_n1)*(Ft - Ft_bar)) / m_num_gear_contacts;
-        // with  updated variance, update the data
-        m_Ft_var = Ft_sig2;
+          // similarly for the friction forces
+          double Ft_bar = Ft_bar_n1 + (Ft - Ft_bar_n1)/m_num_gear_contacts;
+          // like the normal force, the Ft_var has not been updated this step, so it is actually Ft_var_n1
+          double Ft_sig2 = ((m_num_gear_contacts-1)*m_Ft_var + (Ft - Ft_bar_n1)*(Ft - Ft_bar)) / m_num_gear_contacts;
+          // with  updated variance, update the data
+          m_Ft_var = Ft_sig2;
+        }
       }
-
       return true; // to continue scanning contacts
     }
 
@@ -460,50 +463,54 @@ int DriveChain::reportShoeGearContact(const std::string& shoe_name,
       if( (modA->GetFamily() == (int)CollisionFam::GEAR && modB->GetPhysicsItem()->GetNameString() == m_shoe_name )
         || (modB->GetFamily() == (int)CollisionFam::GEAR && modA->GetPhysicsItem()->GetNameString() == m_shoe_name ) )
       {
-        // average value of norm, friction forces from last time scanned contact
-        double Fn_bar_n1 = 0;
-        double Ft_bar_n1 = 0;
-        if(m_num_shoeGear_contacts > 0)
+        // don't count collisions w/ normal force = 0
+        if( react_forces.x > 0 )
         {
-          Fn_bar_n1 = m_Fn_sum / m_num_shoeGear_contacts;
-          Ft_bar_n1 = m_Ft_sum / m_num_shoeGear_contacts;
-      }
-        // increment the counter, timer and force data for this contact
-        m_num_shoeGear_contacts++;
-        if( ! m_incremented_this_step )
-        {
-            m_t_persist += modA->GetPhysicsItem()->GetSystem()->GetStep();
-            // see if the time is larger than the last max
-            if( m_t_persist > m_t_persist_max)
-              m_t_persist_max = m_t_persist;
-            m_incremented_this_step = true;
-        }
-        // incrase normal force
-        m_Fn_sum += react_forces.x;
-        // current friction magnitude in local c-syss
-        double Ft = ChVector<>(0, react_forces.y, react_forces.z).Length();
-        m_Ft_sum += Ft; 
+          // average value of norm, friction forces from last time scanned contact
+          double Fn_bar_n1 = 0;
+          double Ft_bar_n1 = 0;
+          if(m_num_shoeGear_contacts > 0)
+          {
+            Fn_bar_n1 = m_Fn_sum / m_num_shoeGear_contacts;
+            Ft_bar_n1 = m_Ft_sum / m_num_shoeGear_contacts;
+          }
+          // increment the counter, timer and force data for this contact
+          m_num_shoeGear_contacts++;
+          if( !m_incremented_this_step )
+          {
+              m_t_persist += modA->GetPhysicsItem()->GetSystem()->GetStep();
+              // see if the time is larger than the last max
+              if( m_t_persist > m_t_persist_max)
+                m_t_persist_max = m_t_persist;
+              m_incremented_this_step = true;
+          }
+          // increment normal force
+          m_Fn_sum += react_forces.x;
+          // increment friction magnitude in local c-sys
+          double Ft = ChVector<>(0, react_forces.y, react_forces.z).Length();
+          m_Ft_sum += Ft; 
         
-        // update max normal and friction force
-        if( react_forces.x > m_Fn_max )
-          m_Fn_max = react_forces.x;
-        if(Ft > m_Ft_max)
-          m_Ft_max = Ft;
+          // update max normal and friction force
+          if( react_forces.x > m_Fn_max )
+            m_Fn_max = react_forces.x;
+          if(Ft > m_Ft_max)
+            m_Ft_max = Ft;
 
-        // compute some statistics. 
-        // update normal force avg, variance
-        double Fn_bar = Fn_bar_n1 + (react_forces.x - Fn_bar_n1)/m_num_shoeGear_contacts;
-        // Fn_var is from last step, e.g. Fn_var_n1
-        double Fn_sig2 = (m_Fn_var*(m_num_shoeGear_contacts-1) + (react_forces.x - Fn_bar_n1)*(react_forces.x - Fn_bar)) /m_num_shoeGear_contacts;
-        // with updated average and variance, update the data
-        m_Fn_var = Fn_sig2;
+          // compute some statistics. 
+          // update normal force avg, variance
+          double Fn_bar = Fn_bar_n1 + (react_forces.x - Fn_bar_n1)/m_num_shoeGear_contacts;
+          // Fn_var is from last step, e.g. Fn_var_n1
+          double Fn_sig2 = (m_Fn_var*(m_num_shoeGear_contacts-1) + (react_forces.x - Fn_bar_n1)*(react_forces.x - Fn_bar)) /m_num_shoeGear_contacts;
+          // with updated average and variance, update the data
+          m_Fn_var = Fn_sig2;
 
-        // similarly for the friction forces
-        double Ft_bar = Ft_bar_n1 + (Ft - Ft_bar_n1)/m_num_shoeGear_contacts;
-        // like the normal force, the Ft_var has not been updated this step, so it is actually Ft_var_n1
-        double Ft_sig2 = ((m_num_shoeGear_contacts-1)*m_Ft_var + (Ft - Ft_bar_n1)*(Ft - Ft_bar)) / m_num_shoeGear_contacts;
-        // with  updated variance, update the data
-        m_Ft_var = Ft_sig2;
+          // similarly for the friction forces
+          double Ft_bar = Ft_bar_n1 + (Ft - Ft_bar_n1)/m_num_shoeGear_contacts;
+          // like the normal force, the Ft_var has not been updated this step, so it is actually Ft_var_n1
+          double Ft_sig2 = ((m_num_shoeGear_contacts-1)*m_Ft_var + (Ft - Ft_bar_n1)*(Ft - Ft_bar)) / m_num_shoeGear_contacts;
+          // with  updated variance, update the data
+          m_Ft_var = Ft_sig2;
+        }
       }
 
       return true; // to continue scanning contacts
@@ -547,6 +554,13 @@ int DriveChain::reportShoeGearContact(const std::string& shoe_name,
 
   // pass the reporter callback to the system
   m_system->GetContactContainer()->ReportAllContacts(&reporter);
+
+  // process any history dependent values
+  // reset persistent time counter when no contacts
+  if(reporter.m_num_shoeGear_contacts == 0)
+  {
+    reporter.m_t_persist = 0;
+  }
 
   // set any data here from the reporter,
   SG_info = ChVector<>(reporter.m_num_shoeGear_contacts,
