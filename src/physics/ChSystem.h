@@ -630,7 +630,7 @@ public:
 
 				/// Counts the number of bodies and links. 
 				/// Computes the offsets of object states in the global state.
-	void Setup();
+	void virtual Setup();
 
 				/// Updates all the auxiliary data and children of
 				/// bodies, forces, links, given their current state.
