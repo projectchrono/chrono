@@ -172,9 +172,9 @@ DriveChain::~DriveChain()
 void DriveChain::Initialize(const ChCoordsys<>& gear_Csys)
 {
   // initialize the drive gear, idler and track chain
-  double idler_preload = 20000;
+  double idler_preload = 10000;
   // m_idlerPosRel = m_idlerPos;
-  m_idlerPosRel = ChVector<>(-3, -0.10, 0);
+  m_idlerPosRel = ChVector<>(-2, -0.10, 0);
   m_chassis->SetFrame_REF_to_abs(ChFrame<>(gear_Csys.pos, gear_Csys.rot));
   
   // Create list of the center location of the rolling elements and their clearance.
@@ -455,16 +455,17 @@ int DriveChain::reportShoeGearContact(const std::string& shoe_name,
                                        collision::ChCollisionModel* modA,
                                        collision::ChCollisionModel* modB)
     {
-      /*
+      
       if( (modA->GetFamily() == (int)CollisionFam::GEAR) || (modB->GetFamily() == (int)CollisionFam::GEAR) )
       {
         // does this collision include the gear and the shoe, whose string name is set?
         std::string piA = modA->GetPhysicsItem()->GetNameString();
         std::string piB = modB->GetPhysicsItem()->GetNameString();
       }
-      */
+      
+      // if in contact with the gear, and the other body is the specified shoe
       if( (modA->GetFamily() == (int)CollisionFam::GEAR && modB->GetPhysicsItem()->GetNameString() == m_shoe_name )
-        || (modB->GetFamily() == (int)CollisionFam::GEAR && modB->GetPhysicsItem()->GetNameString() == m_shoe_name ) )
+        || (modB->GetFamily() == (int)CollisionFam::GEAR && modA->GetPhysicsItem()->GetNameString() == m_shoe_name ) )
       {
 
         // average value of norm, friction forces from last time scanned contact
