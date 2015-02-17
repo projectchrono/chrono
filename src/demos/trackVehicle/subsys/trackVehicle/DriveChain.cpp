@@ -326,7 +326,7 @@ void DriveChain::SetShoePinDamping(double damping)
 
 
 // get some data about the gear and its normal and friction contact forces each timestep.
-// info = (max, avg, var = sigma ^2)
+// info = (max, avg, stdev = sigma)
 // return number of contacts for the gear body.
 int DriveChain::reportGearContact(ChVector<>& Fn_info, ChVector<>& Ft_info)
 {
@@ -422,18 +422,19 @@ int DriveChain::reportGearContact(ChVector<>& Fn_info, ChVector<>& Ft_info)
   double Fn_avg = (reporter.m_num_gear_contacts > 0) ? reporter.m_Fn_sum/reporter.m_num_gear_contacts: 0;
   Fn_info = ChVector<>(reporter.m_Fn_max,
     Fn_avg,
-    reporter.m_Fn_var);
+    std::sqrt( reporter.m_Fn_var) );
 
   double Ft_avg = (reporter.m_num_gear_contacts > 0) ? reporter.m_Ft_sum/reporter.m_num_gear_contacts: 0;
   Ft_info = ChVector<>(reporter.m_Ft_max,
     Ft_avg,
-    reporter.m_Ft_var);
+    std::sqrt(reporter.m_Ft_var) );
 
   return reporter.m_num_gear_contacts;
 }
 
-/// returns num_contacts between shoe0 and info about the desired shoe and Gear contacts:
-/// SG_info = (Num_contacts, t_persist, t_persist_max)
+// returns num_contacts between shoe0 and info about the desired shoe and Gear contacts:
+// SG_info = (Num_contacts, t_persist, t_persist_max)
+// Fn, Ft_info = (max, avg, stdev)
 int DriveChain::reportShoeGearContact(const std::string& shoe_name,
                                       ChVector<>& SG_info,
                                       ChVector<>& Fn_info,
@@ -476,8 +477,12 @@ int DriveChain::reportShoeGearContact(const std::string& shoe_name,
           Fn_bar_n1 = m_Fn_sum / m_num_shoeGear_contacts;
           Ft_bar_n1 = m_Ft_sum / m_num_shoeGear_contacts;
       }
-        // increment the data for this contact
+        // increment the counter, timer and force data for this contact
         m_num_shoeGear_contacts++;
+        m_t_persist += modA->GetPhysicsItem()->GetSystem()->GetChTime();
+        if( m_t_persist > m_t_persist_max)
+          m_t_persist_max = m_t_persist;
+
         // incrase normal force
         m_Fn_sum += react_forces.x;
         // current friction magnitude in local c-syss
@@ -552,12 +557,12 @@ int DriveChain::reportShoeGearContact(const std::string& shoe_name,
   double Fn_avg = (reporter.m_num_shoeGear_contacts > 0) ? reporter.m_Fn_sum/reporter.m_num_shoeGear_contacts: 0;
   Fn_info = ChVector<>(reporter.m_Fn_max,
     Fn_avg,
-    reporter.m_Fn_var);
+    std::sqrt(reporter.m_Fn_var) );
 
   double Ft_avg = (reporter.m_num_shoeGear_contacts > 0) ? reporter.m_Ft_sum/reporter.m_num_shoeGear_contacts: 0;
   Ft_info = ChVector<>(reporter.m_Ft_max,
     Ft_avg,
-    reporter.m_Ft_var);
+    std::sqrt(reporter.m_Ft_var) );
 
   return reporter.m_num_shoeGear_contacts;
 

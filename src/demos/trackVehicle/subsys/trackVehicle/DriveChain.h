@@ -113,14 +113,14 @@ protected:
   /// File format is .csv, for easy reading into python pandas scripts for data analysis
   void create_fileHeaders(int what);
 
-  /// info set is: (max, avg, var = sigma ^2) for x,y,z vector data.
+  /// info set is: (max, avg, stdev = sigma) for x,y,z vector data.
   /// returns total number of contacts with the gear this step.
   int reportGearContact(ChVector<>& Fn_info,
     ChVector<>& Ft_info);
 
   /// for a given shoe body name, scan all collisions and report collision time data.
   /// SG_info = (num_contacts, t_persist, t_persist_max)
-  //  Fn_info, Ft_info = (max, avg, var = sigma^2)
+  //  Fn_info, Ft_info = (max, avg, stdev = sigma)
   /// returns # of contacts between the gear and shoe body
   int reportShoeGearContact(const std::string& shoe_name,
     ChVector<>& SG_info,
