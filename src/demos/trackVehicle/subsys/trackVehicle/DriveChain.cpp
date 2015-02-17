@@ -325,12 +325,14 @@ void DriveChain::SetShoePinDamping(double damping)
 
 
 
-// get some data about the gear and its collisions
-size_t DriveChain::reportGearContact(ChVector<>& Fn_info, ChVector<>& Ft_info)
+// get some data about the gear and its normal and friction contact forces each timestep.
+// info = (max, avg, var = sigma ^2)
+// return number of contacts for the gear body.
+int DriveChain::reportGearContact(ChVector<>& Fn_info, ChVector<>& Ft_info)
 {
 
   // scans the contacts, reports the desired info about the gear, including:
-  //  1) 
+  //  max, sum and variance of both normal and friction forces
   class _gear_report_contact : public ChReportContactCallback
   {
   public:
@@ -430,6 +432,128 @@ size_t DriveChain::reportGearContact(ChVector<>& Fn_info, ChVector<>& Ft_info)
   return reporter.m_num_gear_contacts;
 }
 
+/// returns num_contacts between shoe0 and info about the desired shoe and Gear contacts:
+/// SG_info = (Num_contacts, t_persist, t_persist_max)
+int DriveChain::reportShoeGearContact(const std::string& shoe_name,
+                                      ChVector<>& SG_info,
+                                      ChVector<>& Fn_info,
+                                      ChVector<>& Ft_info)
+{
+  
+  // scans the contacts, reports the desired info about any shoe 0 and gear collision pairs
+  class _shoeGear_report_contact : public ChReportContactCallback
+  {
+  public:
+
+    virtual bool ReportContactCallback(const ChVector<>& pA,
+                                       const ChVector<>& pB,
+                                       const ChMatrix33<>& plane_coord,
+                                       const double& distance,
+                                       const float& mfriction,
+                                       const ChVector<>& react_forces,
+                                       const ChVector<>& react_torques,
+                                       collision::ChCollisionModel* modA,
+                                       collision::ChCollisionModel* modB)
+    {
+      // does this collision include the gear and the shoe, whose string name is set?
+      if( (modA->GetFamily() == (int)CollisionFam::GEAR && modB->GetPhysicsItem()->GetNameString() == m_shoe_name )
+        || (modB->GetFamily() == (int)CollisionFam::GEAR && modB->GetPhysicsItem()->GetNameString() == m_shoe_name ) )
+      {
+
+        // average value of norm, friction forces from last time scanned contact
+        double Fn_bar_n1 = 0;
+        double Ft_bar_n1 = 0;
+        if(m_num_shoeGear_contacts > 0)
+        {
+          Fn_bar_n1 = m_Fn_sum / m_num_shoeGear_contacts;
+          Ft_bar_n1 = m_Ft_sum / m_num_shoeGear_contacts;
+      }
+        // increment the data for this contact
+        m_num_shoeGear_contacts++;
+        // incrase normal force
+        m_Fn_sum += react_forces.x;
+        // current friction magnitude in local c-syss
+        double Ft = ChVector<>(0, react_forces.y, react_forces.z).Length();
+        m_Ft_sum += Ft; 
+        
+        // update max normal and friction force
+        if( react_forces.x > m_Fn_max )
+          m_Fn_max = react_forces.x;
+        if(Ft > m_Ft_max)
+          m_Ft_max = Ft;
+
+        // compute some statistics. 
+        // update normal force avg, variance
+        double Fn_bar = Fn_bar_n1 + (react_forces.x - Fn_bar_n1)/m_num_shoeGear_contacts;
+        // Fn_var is from last step, e.g. Fn_var_n1
+        double Fn_sig2 = (m_Fn_var*(m_num_shoeGear_contacts-1) + (react_forces.x - Fn_bar_n1)*(react_forces.x - Fn_bar)) /m_num_shoeGear_contacts;
+        // with updated average and variance, update the data
+        m_Fn_var = Fn_sig2;
+
+        // similarly for the friction forces
+        double Ft_bar = Ft_bar_n1 + (Ft - Ft_bar_n1)/m_num_shoeGear_contacts;
+        // like the normal force, the Ft_var has not been updated this step, so it is actually Ft_var_n1
+        double Ft_sig2 = ((m_num_shoeGear_contacts-1)*m_Ft_var + (Ft - Ft_bar_n1)*(Ft - Ft_bar)) / m_num_shoeGear_contacts;
+        // with  updated variance, update the data
+        m_Ft_var = Ft_sig2;
+      }
+
+      return true; // to continue scanning contacts
+    }
+
+    // NOTE: must initialize 
+    // relevant gear info
+    std::string m_shoe_name;  // string name for the shoe to check for collision with 
+    int m_num_shoeGear_contacts; 
+    double m_t_persist; // time the contacts have been in persistent contact
+    double m_t_persist_max; // max time the shoe stayed in contact with the gear
+
+    double m_Fn_max;  // max normal force this step
+    double m_Fn_sum;  // reaction normal force sum this step
+    double m_Fn_var;  // normal force variance this step
+    double m_Ft_max;  // max friction force
+    double m_Ft_sum;  // friction force sum
+    double m_Ft_var;  // variance
+
+  };
+
+  // setup the reporter, init any variables
+  _shoeGear_report_contact reporter;
+  reporter.m_shoe_name = shoe_name;
+  reporter.m_num_shoeGear_contacts = 0;
+  reporter.m_t_persist = 0;
+  reporter.m_t_persist_max = 0;
+
+  // normal, friction force statistics
+  reporter.m_Fn_max = 0;  // max normal reaction force
+  reporter.m_Fn_sum = 0;  // sum this step
+  reporter.m_Fn_var = 0;  // variance this step
+  reporter.m_Ft_max = 0;  // max friction reaction force
+  reporter.m_Ft_sum = 0;
+  reporter.m_Ft_var = 0;
+
+
+  // pass the reporter callback to the system
+  m_system->GetContactContainer()->ReportAllContacts(&reporter);
+
+  // set any data here from the reporter, and return # of bodies in contact with the gear
+  SG_info = ChVector<>(reporter.m_num_shoeGear_contacts,
+    reporter.m_t_persist,
+    reporter.m_t_persist_max);
+
+  double Fn_avg = (reporter.m_num_shoeGear_contacts > 0) ? reporter.m_Fn_sum/reporter.m_num_shoeGear_contacts: 0;
+  Fn_info = ChVector<>(reporter.m_Fn_max,
+    Fn_avg,
+    reporter.m_Fn_var);
+
+  double Ft_avg = (reporter.m_num_shoeGear_contacts > 0) ? reporter.m_Ft_sum/reporter.m_num_shoeGear_contacts: 0;
+  Ft_info = ChVector<>(reporter.m_Ft_max,
+    Ft_avg,
+    reporter.m_Ft_var);
+
+  return reporter.m_num_shoeGear_contacts;
+
+}
 
 
 
@@ -642,6 +766,25 @@ void DriveChain::Log_to_file()
       // open the file for appending, write the data.
       ChStreamOutAsciiFile ofile(m_filename_DBG_FIRSTSHOE.c_str(), std::ios::app);
       ofile << ss.str().c_str();
+
+      // second file, to specify some collision info with the gear
+      ChVector<> sg_info = ChVector<>();  // output data set
+      ChVector<> Fn_info = ChVector<>();  // per step normal contact force statistics
+      ChVector<> Ft_info = ChVector<>();  // per step friction contact force statistics
+      // sg_info = (Num_contacts, t_persist, t_persist_max)
+      reportShoeGearContact(m_chain->GetShoeBody(0)->GetNameString(),
+        sg_info,
+        Fn_info,
+        Ft_info);
+
+      // "time,Ncontacts,t_persist,t_persist_max,FnMax,FnAvg,FnSig,FtMax,FtAvg,FtSig";
+      std::stringstream ss_sg;
+      ss_sg << t <<"," << sg_info
+        <<","<< Fn_info
+        <<","<< Ft_info
+        <<"\n";
+      ChStreamOutAsciiFile ofile_shoeGear(m_filename_DBG_shoeGear.c_str(), std::ios::app);
+      ofile_shoeGear << ss_sg.str().c_str();
     }
     if (m_log_what_to_file & DBG_GEAR)
     {
@@ -665,7 +808,9 @@ void DriveChain::Log_to_file()
       // time,Ncontacts,FnMax,FnAvg,FnVar,FtMax,FtAvg,FtVar
       ss_gc << t <<","<< num_gear_contacts
         <<","<< Fn_info
+        <<","<< std::sqrt(Fn_info.z)
         <<","<< Ft_info
+        <<","<< std::sqrt(Ft_info.z)
         <<"\n";
       ChStreamOutAsciiFile ofileDBG_GEAR_CONTACT(m_filename_DBG_GEAR_CONTACT.c_str(), std::ios::app);
       ofileDBG_GEAR_CONTACT << ss_gc.str().c_str();
@@ -722,6 +867,13 @@ void DriveChain::create_fileHeaders(int what)
     ss << "time,x,y,z,Vx,Vy,Vz,Ax,Ay,Az,Wx,Wy,Wz,Fx,Fy,Fz,Tx,Ty,Tz\n";
     ofileDBG_FIRSTSHOE << ss.str().c_str();
     GetLog() << " writing to file: " << m_filename_DBG_FIRSTSHOE << "\n         data: " << ss.str().c_str() <<"\n";
+
+    // report the contact with the gear in a second file
+    m_filename_DBG_shoeGear = m_log_file_name+"_shoe0GearContact.csv";
+    ChStreamOutAsciiFile ofileDBG_shoeGear(m_filename_DBG_shoeGear.c_str());
+    std::stringstream ss_sg;
+    ss_sg << "time,Ncontacts,t_persist,t_persist_max,FnMax,FnAvg,FnSig,FtMax,FtAvg,FtSig\n";
+    ofileDBG_shoeGear << ss_sg.str().c_str();
   }
 
   if(what & DBG_GEAR)
@@ -737,7 +889,7 @@ void DriveChain::create_fileHeaders(int what)
     m_filename_DBG_GEAR_CONTACT = m_log_file_name+"_gearContact.csv";
     ChStreamOutAsciiFile ofileDBG_GEAR_CONTACT(m_filename_DBG_GEAR_CONTACT.c_str());
     std::stringstream ss_gc;
-    ss_gc << "time,Ncontacts,FnMax,FnAvg,FnVar,FtMax,FtAvg,FtVar\n";
+    ss_gc << "time,Ncontacts,FnMax,FnAvg,FnVar,FnSig,FtMax,FtAvg,FtVar,FtSig\n";
     ofileDBG_GEAR_CONTACT << ss_gc.str().c_str();
     GetLog() << " writing to file : " << m_filename_DBG_GEAR_CONTACT << "\n          data: "<<ss_gc.str().c_str() <<"\n";
   }

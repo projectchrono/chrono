@@ -115,7 +115,16 @@ protected:
 
   /// info set is: (max, avg, var = sigma ^2) for x,y,z vector data.
   /// returns total number of contacts with the gear this step.
-  size_t reportGearContact(ChVector<>& Fn_info,
+  int reportGearContact(ChVector<>& Fn_info,
+    ChVector<>& Ft_info);
+
+  /// for a given shoe body name, scan all collisions and report collision time data.
+  /// SG_info = (num_contacts, t_persist, t_persist_max)
+  //  Fn_info, Ft_info = (max, avg, var = sigma^2)
+  /// returns # of contacts between the gear and shoe body
+  int reportShoeGearContact(const std::string& shoe_name,
+    ChVector<>& SG_info,
+    ChVector<>& Fn_info,
     ChVector<>& Ft_info);
 
   // private variables
@@ -134,6 +143,7 @@ protected:
 	
   // I/O stuff
   std::string m_filename_DBG_FIRSTSHOE;     // write to this file, first shoe/pin info
+  std::string m_filename_DBG_shoeGear;      // info about gear/shoe contact
   std::string m_filename_DBG_GEAR;          // write to this file, gear body
   std::string m_filename_DBG_GEAR_CONTACT;  // specific info about collisions with gear
   std::string m_filename_DBG_IDLER;         // to to this file, idler body

@@ -102,7 +102,7 @@ double chaseHeight = 0.5;
 
 bool do_shadows = false; // shadow map is experimental
 
-bool autopilot = true;
+bool autopilot = false;
 
   /*
 #else
