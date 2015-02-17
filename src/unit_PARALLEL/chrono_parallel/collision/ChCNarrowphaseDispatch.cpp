@@ -93,7 +93,6 @@ void ChCNarrowphaseDispatch::Process() {
   dpth_data.resize(number_of_contacts);
   erad_data.resize(number_of_contacts);
   bids_data.resize(number_of_contacts);
-  data_container->erad_is_set = true;
 
   // std::cout << num_potentialContacts << " " << number_of_contacts << std::endl;
 }

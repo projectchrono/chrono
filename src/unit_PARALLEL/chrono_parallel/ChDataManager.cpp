@@ -10,8 +10,7 @@ ChParallelDataManager::ChParallelDataManager() :
 		num_unilaterals(0),
 		num_bilaterals(0),
 		num_constraints(0),
-		num_shafts(0),
-		erad_is_set(false) {}
+		num_shafts(0) {}
 
 ChParallelDataManager::~ChParallelDataManager() {}
 

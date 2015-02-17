@@ -330,11 +330,6 @@ ChLcpSolverParallelDEM::host_SetContactForcesMap(
 // -----------------------------------------------------------------------------
 void ChLcpSolverParallelDEM::ProcessContacts()
 {
-  // 0. If the narrowphase collision detection does not set the effective
-  //    contact radius, fill it with the value 1.
-  if (!data_container->erad_is_set)
-    data_container->host_data.erad_rigid_rigid.resize(data_container->num_contacts, 1.0);
-
   // 1. Calculate contact forces and torques - per contact basis
   //    For each pair of contact shapes that overlap, we calculate and store the
   //    IDs of the two corresponding bodies and the resulting contact forces and

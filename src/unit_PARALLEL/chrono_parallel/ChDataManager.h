@@ -201,8 +201,6 @@ class CH_PARALLEL_API ChParallelDataManager {
 
    // Flag indicating whether or not the contact forces are current (DVI only).
    bool Fc_current;
-   // Flag indicating whether or not effective contact radius is calculated
-   bool erad_is_set;
    //This object hold all of the timers for the system
    ChTimerParallel system_timer;
    //Structure that contains all settings for the system, collision detection
