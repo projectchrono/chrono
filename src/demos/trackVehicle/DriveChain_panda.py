@@ -653,9 +653,9 @@ if __name__ == '__main__':
     '''
     
     # 8) from the contact report callback function, gear contact info
-    Chain.plot_gearContactInfo(1,3)
+    Chain.plot_gearContactInfo()
     
     # 9)  from shoe-gear report callback function, contact info
-    Chain.plot_shoeGearContactInfo(1,1.5)
+    Chain.plot_shoeGearContactInfo()
 
 py.show()

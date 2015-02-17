@@ -128,7 +128,8 @@ protected:
   int reportShoeGearContact(const std::string& shoe_name,
     ChVector<>& SG_info,
     ChVector<>& Fn_info,
-    ChVector<>& Ft_info);
+    ChVector<>& Ft_info,
+    ChVector<>& VcRel_info);
 
   // used for debugging step to step persistent contact data
   ChVector<> m_SG_info;
