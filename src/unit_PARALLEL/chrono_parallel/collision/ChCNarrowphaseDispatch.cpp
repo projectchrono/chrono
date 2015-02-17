@@ -51,20 +51,22 @@ void ChCNarrowphaseDispatch::Process() {
   // Transform to global coordinate system
   PreprocessLocalToParent();
 
+  // Set maximum possible number of contacts for each potential collision
+  // (depending on the narrowphase algorithm and on the types of shapes in
+  // potential collision)
   contact_index.resize(num_potentialCollisions);
-
-  // Count Number of Contacts
   PreprocessCount();
-  // scan to find starting index
+
+  // Scan to find total number of potential contacts
   int num_potentialContacts = contact_index.back();
   thrust::exclusive_scan(thrust_parallel, contact_index.begin(), contact_index.end(), contact_index.begin());
   num_potentialContacts += contact_index.back();
 
-  // This counter will keep track of which pairs are actually in contact
+  // These flags will keep track of which collision pairs are actually active
+  // (as decided by the narrowphase algorithm).
   contact_active.resize(num_potentialContacts);
-  // Fill the counter with 1, if the contact is active set the value to zero
-  // POSSIBLE PERF IMPROVEMENT:, use bool for this?
-  thrust::fill(contact_active.begin(), contact_active.end(), 1);
+  thrust::fill(contact_active.begin(), contact_active.end(), false);
+
   // Create storage to hold maximum number of contacts in worse case
   norm_data.resize(num_potentialContacts);
   cpta_data.resize(num_potentialContacts);
@@ -75,24 +77,38 @@ void ChCNarrowphaseDispatch::Process() {
 
   Dispatch();
 
-  number_of_contacts = num_potentialContacts - thrust::count(contact_active.begin(), contact_active.end(), 1);
+  // Set the number of active contacts.
+  number_of_contacts = thrust::count_if(contact_active.begin(), contact_active.end(), thrust::identity<bool>());
 
-  // remove any entries where the counter is equal to one, these are contacts that do not exist
-  thrust::remove_if(norm_data.begin(), norm_data.end(), contact_active.begin(), thrust::identity<int>());
-  thrust::remove_if(cpta_data.begin(), cpta_data.end(), contact_active.begin(), thrust::identity<int>());
-  thrust::remove_if(cptb_data.begin(), cptb_data.end(), contact_active.begin(), thrust::identity<int>());
-  thrust::remove_if(dpth_data.begin(), dpth_data.end(), contact_active.begin(), thrust::identity<int>());
-  thrust::remove_if(erad_data.begin(), erad_data.end(), contact_active.begin(), thrust::identity<int>());
-  thrust::remove_if(bids_data.begin(), bids_data.end(), contact_active.begin(), thrust::identity<int>());
-  thrust::remove_if(potentialCollisions.begin(), potentialCollisions.end(), contact_active.begin(), thrust::identity<int>());
+  // Remove elements corresponding to inactive contacts. We do this in one step,
+  // using zip iterators and removing all entries for which contact_active is 'false'.
+  thrust::remove_if(
+    thrust::make_zip_iterator(thrust::make_tuple(norm_data.begin(),
+                                                 cpta_data.begin(),
+                                                 cptb_data.begin(),
+                                                 dpth_data.begin(),
+                                                 erad_data.begin(),
+                                                 bids_data.begin(),
+                                                 potentialCollisions.begin())),
+    thrust::make_zip_iterator(thrust::make_tuple(norm_data.end(),
+                                                 cpta_data.end(),
+                                                 cptb_data.end(),
+                                                 dpth_data.end(),
+                                                 erad_data.end(),
+                                                 bids_data.end(),
+                                                 potentialCollisions.end())),
+    contact_active.begin(),
+    thrust::logical_not<bool>()
+    );
+
   // Resize all lists so that we don't access invalid contacts
-  potentialCollisions.resize(number_of_contacts);
   norm_data.resize(number_of_contacts);
   cpta_data.resize(number_of_contacts);
   cptb_data.resize(number_of_contacts);
   dpth_data.resize(number_of_contacts);
   erad_data.resize(number_of_contacts);
   bids_data.resize(number_of_contacts);
+  potentialCollisions.resize(number_of_contacts);
 
   // std::cout << num_potentialContacts << " " << number_of_contacts << std::endl;
 }
@@ -216,7 +232,7 @@ void ChCNarrowphaseDispatch::Dispatch_Finalize(uint icoll, uint ID_A, uint ID_B,
 
   // Mark the active contacts and set their body IDs
   for (int i = 0; i < nC; i++) {
-    contact_active[icoll + i] = 0;
+    contact_active[icoll + i] = true;
     body_ids[icoll + i] = I2(ID_A, ID_B);
   }
 }
