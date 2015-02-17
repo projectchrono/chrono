@@ -5,15 +5,6 @@ using namespace chrono;
 ChSolverAPGD::ChSolverAPGD() : ChSolverParallel(), mg_tmp_norm(0), mb_tmp_norm(0), obj1(0), obj2(0), norm_ms(0), dot_g_temp(0), theta(1), theta_new(0), beta_new(0), t(0), L(0), g_diff(0) {}
 
 void ChSolverAPGD::UpdateR() {
-
-  if (data_container->num_constraints <= 0) {
-    return;
-  }
-
-  if (!data_container->settings.solver.update_rhs) {
-    return;
-  }
-
   const CompressedMatrix<real>& D_n_T = data_container->host_data.D_n_T;
   const DynamicVector<real>& M_invk = data_container->host_data.M_invk;
   const DynamicVector<real>& b = data_container->host_data.b;
@@ -41,7 +32,7 @@ uint ChSolverAPGD::SolveAPGD(const uint max_iter, const uint size, const blaze::
 
   blaze::DynamicVector<real> one(size, 1.0);
   data_container->system_timer.start("ChSolverParallel_Solve");
-
+  gamma_hat.resize(size);
   N_gamma_new.resize(size);
   temp.resize(size);
   g.resize(size);
@@ -65,13 +56,31 @@ uint ChSolverAPGD::SolveAPGD(const uint max_iter, const uint size, const blaze::
   // mg = mg - r;
 
   temp = gamma - one;
-  L = sqrt((real)(temp, temp));
-  ShurProduct(temp, temp);
-  L = L == 0 ? 1 : L;
-  L = sqrt((real)(temp, temp)) / L;
+  real norm_temp = sqrt((real)(temp, temp));
 
-  t = 1.0 / L;
+  //If gamma is one temp should be zero, in that case set L to one
+  //We cannot divide by 0
+  if (norm_temp == 0) {
+    L = 1.0;
+  } else {
+    //If the N matrix is zero for some reason, temp will be zero
+    ShurProduct(temp, temp);
+    // If temp is zero then L will be zero
+    L = sqrt((real)(temp, temp)) / norm_temp;
+  }
+  //When L is zero the step length can't be computed, in this case just return
+  //If the N is indeed zero then solving doesn't make sense
+  if (L == 0) {
+    return 0;
+  } else {
+    //Compute the step size
+    t = 1.0 / L;
+  }
   y = gamma;
+  //If no iterations are performed or the residual is NAN (which is shouldnt be)
+  //make sure that gamma_hat has something inside of it. Otherwise gamma will be
+  //overwritten with a vector of zero size
+  gamma_hat = gamma;
 
   for (current_iteration = 0; current_iteration < max_iter; current_iteration++) {
 
@@ -90,7 +99,6 @@ uint ChSolverAPGD::SolveAPGD(const uint max_iter, const uint size, const blaze::
     temp = gamma_new - y;
     dot_g_temp = (g, temp);
     norm_ms = (temp, temp);
-
     while (obj1 > obj2 + dot_g_temp + 0.5 * L * norm_ms) {
       L = 2.0 * L;
       t = 1.0 / L;
@@ -111,13 +119,16 @@ uint ChSolverAPGD::SolveAPGD(const uint max_iter, const uint size, const blaze::
 
     // Compute the residual
     temp = gamma_new - g_diff * (N_gamma_new - r);
-    Project(temp.data());
+    real temp_dota = (real)(temp, temp);
+    //Project(temp.data());
     temp = (1.0 / g_diff) * (gamma_new - temp);
-    real res = sqrt((real)(temp, temp));
+    real temp_dotb = (real)(temp, temp);
+    real res = sqrt(temp_dotb);
 
     if (res < residual) {
       residual = res;
       gamma_hat = gamma_new;
+
     }
 
     // Compute the objective value
@@ -145,9 +156,10 @@ uint ChSolverAPGD::SolveAPGD(const uint max_iter, const uint size, const blaze::
     t = 1.0 / L;
     theta = theta_new;
 
+    if (data_container->settings.solver.update_rhs) {
     gamma = gamma_new;
-
     UpdateR();
+    }
   }
 
   gamma = gamma_hat;
