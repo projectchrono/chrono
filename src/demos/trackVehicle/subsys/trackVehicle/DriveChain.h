@@ -130,6 +130,9 @@ protected:
     ChVector<>& Fn_info,
     ChVector<>& Ft_info);
 
+  // used for debugging step to step persistent contact data
+  ChVector<> m_SG_info;
+
   // private variables
   // <ChBodyAuxRef> m_chassis   in base class
   ChSharedPtr<DriveGear> m_gear;  		///< drive gear
@@ -138,18 +141,6 @@ protected:
   ChSharedPtr<TrackChain> m_chain;    ///< chain
 
   ChVector<> m_idlerPosRel;	///< position of idler COG relative to local c-sys
-  
-
-
-
-
-  // ChSharedPtr<TrackPowertrain>  m_ptrain;  ///< powertrain system
-
-
-
-
-
-
   std::vector<ChSharedPtr<SupportRoller>> m_rollers;  ///< passive support rollers
   size_t m_num_rollers;
 	
@@ -168,9 +159,7 @@ protected:
   static const ChVector<> m_idlerPos; // relative to chassis frame, which is the same as the gear's (initially)
   static const ChQuaternion<> m_idlerRot; 
 
-
   ChSharedPtr<IdlerSimple> m_idler2;
-
 
   friend std::ostream & operator<< (std::ostream &out, const ChVector<double>& vect);
   friend std::ostream & operator << (std::ostream &out, const ChQuaternion<double>& q);

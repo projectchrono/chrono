@@ -60,7 +60,8 @@ DriveChain::DriveChain(const std::string& name,
                        const ChVector<>& gear_inertia
 ): ChTrackVehicle(gearVis, gearCollide, gear_mass, gear_inertia, 1),
   m_num_rollers(num_rollers),
-  m_num_idlers(num_idlers)
+  m_num_idlers(num_idlers),
+  m_SG_info(ChVector<>())
 {
   // ---------------------------------------------------------------------------
   // Integration and Solver settings set in ChTrackVehicle
@@ -324,13 +325,11 @@ void DriveChain::SetShoePinDamping(double damping)
 }
 
 
-
 // get some data about the gear and its normal and friction contact forces each timestep.
 // info = (max, avg, stdev = sigma)
-// return number of contacts for the gear body.
+// returns: number of contacts for the gear body.
 int DriveChain::reportGearContact(ChVector<>& Fn_info, ChVector<>& Ft_info)
 {
-
   // scans the contacts, reports the desired info about the gear, including:
   //  max, sum and variance of both normal and friction forces
   class _gear_report_contact : public ChReportContactCallback
@@ -391,7 +390,7 @@ int DriveChain::reportGearContact(ChVector<>& Fn_info, ChVector<>& Ft_info)
       return true; // to continue scanning contacts
     }
 
-    // NOTE: must initialize 
+    // NOTE: must initialize these before use!
     // relevant gear info
     int m_num_gear_contacts;
     double m_Fn_max;    // max normal force
@@ -401,7 +400,6 @@ int DriveChain::reportGearContact(ChVector<>& Fn_info, ChVector<>& Ft_info)
     double m_Ft_max;  // tangent/friction force max
     double m_Ft_sum;  // friction force sum
     double m_Ft_var;  // friction force variance, sigma_t^2
-
 
   };
 
@@ -432,7 +430,9 @@ int DriveChain::reportGearContact(ChVector<>& Fn_info, ChVector<>& Ft_info)
   return reporter.m_num_gear_contacts;
 }
 
-// returns num_contacts between shoe0 and info about the desired shoe and Gear contacts:
+// Get some data about the gear and its normal and friction contact forces with the specified shoe each timestep.
+// Returns: number of contacts between the specified shoe body and gear body
+// Sets non-const inputs with contact persistence info, # of contacts, Fn, Ft statistics.
 // SG_info = (Num_contacts, t_persist, t_persist_max)
 // Fn, Ft_info = (max, avg, stdev)
 int DriveChain::reportShoeGearContact(const std::string& shoe_name,
@@ -456,19 +456,10 @@ int DriveChain::reportShoeGearContact(const std::string& shoe_name,
                                        collision::ChCollisionModel* modA,
                                        collision::ChCollisionModel* modB)
     {
-      
-      if( (modA->GetFamily() == (int)CollisionFam::GEAR) || (modB->GetFamily() == (int)CollisionFam::GEAR) )
-      {
-        // does this collision include the gear and the shoe, whose string name is set?
-        std::string piA = modA->GetPhysicsItem()->GetNameString();
-        std::string piB = modB->GetPhysicsItem()->GetNameString();
-      }
-      
       // if in contact with the gear, and the other body is the specified shoe
       if( (modA->GetFamily() == (int)CollisionFam::GEAR && modB->GetPhysicsItem()->GetNameString() == m_shoe_name )
         || (modB->GetFamily() == (int)CollisionFam::GEAR && modA->GetPhysicsItem()->GetNameString() == m_shoe_name ) )
       {
-
         // average value of norm, friction forces from last time scanned contact
         double Fn_bar_n1 = 0;
         double Ft_bar_n1 = 0;
@@ -479,10 +470,14 @@ int DriveChain::reportShoeGearContact(const std::string& shoe_name,
       }
         // increment the counter, timer and force data for this contact
         m_num_shoeGear_contacts++;
-        m_t_persist += modA->GetPhysicsItem()->GetSystem()->GetChTime();
-        if( m_t_persist > m_t_persist_max)
-          m_t_persist_max = m_t_persist;
-
+        if( ! m_incremented_this_step )
+        {
+            m_t_persist += modA->GetPhysicsItem()->GetSystem()->GetStep();
+            // see if the time is larger than the last max
+            if( m_t_persist > m_t_persist_max)
+              m_t_persist_max = m_t_persist;
+            m_incremented_this_step = true;
+        }
         // incrase normal force
         m_Fn_sum += react_forces.x;
         // current friction magnitude in local c-syss
@@ -517,7 +512,8 @@ int DriveChain::reportShoeGearContact(const std::string& shoe_name,
     // NOTE: must initialize 
     // relevant gear info
     std::string m_shoe_name;  // string name for the shoe to check for collision with 
-    int m_num_shoeGear_contacts; 
+    int m_num_shoeGear_contacts;
+    bool m_incremented_this_step; // init to false. If at least 1 contact, switch to true and don't increment values again this time step.
     double m_t_persist; // time the contacts have been in persistent contact
     double m_t_persist_max; // max time the shoe stayed in contact with the gear
 
@@ -534,8 +530,7 @@ int DriveChain::reportShoeGearContact(const std::string& shoe_name,
   _shoeGear_report_contact reporter;
   reporter.m_shoe_name = shoe_name;
   reporter.m_num_shoeGear_contacts = 0;
-  reporter.m_t_persist = 0;
-  reporter.m_t_persist_max = 0;
+  reporter.m_incremented_this_step = false;
 
   // normal, friction force statistics
   reporter.m_Fn_max = 0;  // max normal reaction force
@@ -545,11 +540,15 @@ int DriveChain::reportShoeGearContact(const std::string& shoe_name,
   reporter.m_Ft_sum = 0;
   reporter.m_Ft_var = 0;
 
+  // init variables that are carried over from last time step.
+  // SG_info = (Num_contacts, t_persist, t_persist_max)
+  reporter.m_t_persist = m_SG_info.y;
+  reporter.m_t_persist_max = m_SG_info.z;
 
   // pass the reporter callback to the system
   m_system->GetContactContainer()->ReportAllContacts(&reporter);
 
-  // set any data here from the reporter, and return # of bodies in contact with the gear
+  // set any data here from the reporter,
   SG_info = ChVector<>(reporter.m_num_shoeGear_contacts,
     reporter.m_t_persist,
     reporter.m_t_persist_max);
@@ -564,8 +563,11 @@ int DriveChain::reportShoeGearContact(const std::string& shoe_name,
     Ft_avg,
     std::sqrt(reporter.m_Ft_var) );
 
-  return reporter.m_num_shoeGear_contacts;
+  // finally, any data that should persist to the next time step
+  m_SG_info = SG_info;
 
+  //  # of contacts between specified shoe and gear body
+  return reporter.m_num_shoeGear_contacts;
 }
 
 
