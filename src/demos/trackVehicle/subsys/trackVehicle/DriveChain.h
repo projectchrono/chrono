@@ -92,7 +92,7 @@ public:
   virtual double GetDriveshaftSpeed(size_t idx) const { return m_gear->GetAxle()->GetPos_dt(); }
 
   /// pointer to the powertrain
-  virtual const ChSharedPtr<TrackPowertrain> GetPowertrain(size_t idx) const { return m_ptrain; }
+  virtual const ChSharedPtr<TrackPowertrain> GetPowertrain(size_t idx) const { return m_ptrains[idx]; }
 
   /// vehicle's driveshaft body.
   const ChSharedPtr<ChShaft> GetDriveshaft(size_t idx) const {return m_gear->GetAxle(); }
@@ -101,7 +101,10 @@ public:
   double GetStepsize() const { return m_stepsize; }
 
   /// just return the COG of the gear
-  ChCoordsys<> GetLocalDriverCoordsys() const { return ChCoordsys<>(m_chassis->GetPos(), m_chassis->GetRot()); }
+  const ChCoordsys<> GetLocalDriverCoordsys() const { return ChCoordsys<>(m_chassis->GetPos(), m_chassis->GetRot()); }
+
+  /// set the powertrain drive mode
+  void SetDriveMode(TrackPowertrain::DriveMode mode) { m_ptrains[0]->SetDriveMode(mode); }
 
   /// vehicle speed, doesn't matter
   double GetVehicleSpeed() const { return 0; }
@@ -136,7 +139,16 @@ protected:
 
   ChVector<> m_idlerPosRel;	///< position of idler COG relative to local c-sys
   
-  ChSharedPtr<TrackPowertrain>  m_ptrain;  ///< powertrain system
+
+
+
+
+  // ChSharedPtr<TrackPowertrain>  m_ptrain;  ///< powertrain system
+
+
+
+
+
 
   std::vector<ChSharedPtr<SupportRoller>> m_rollers;  ///< passive support rollers
   size_t m_num_rollers;

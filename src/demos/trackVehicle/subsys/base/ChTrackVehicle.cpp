@@ -73,6 +73,9 @@ ChTrackVehicle::ChTrackVehicle(VisualizationType vis,
   m_meshFile = utils::GetModelDataFile("M113/Chassis_XforwardYup.obj");
   m_chassisBoxSize = ChVector<>(4.0, 1.2, 1.5); // full length, height, width of chassis box
 
+  // set any vector known sizes here
+  m_ptrains.resize(num_engines);
+
 }
 
 // system already exists, create vehicle with specified input

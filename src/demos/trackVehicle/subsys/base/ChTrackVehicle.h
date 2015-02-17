@@ -69,7 +69,7 @@ public:
   virtual const ChSharedPtr<TrackPowertrain> GetPowertrain(size_t idx) const = 0;
 
   /// Get the local driver position and orientation, relative to the chassis reference frame.
-  virtual ChCoordsys<> GetLocalDriverCoordsys() const { return ChCoordsys<>(); }
+  virtual const ChCoordsys<> GetLocalDriverCoordsys() const { return ChCoordsys<>(); }
 
   // accessors
   /// Get a pointer to the Chrono ChSystem.

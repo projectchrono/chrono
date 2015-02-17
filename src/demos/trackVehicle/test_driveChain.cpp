@@ -147,6 +147,8 @@ int main(int argc, char* argv[])
     "../outdata_driveChain");
 #endif
 
+  if(autopilot)
+    chainSystem.SetDriveMode(TrackPowertrain::REVERSE);
 /*
 #ifdef USE_IRRLICHT
 */
@@ -276,6 +278,7 @@ int main(int argc, char* argv[])
       braking_input = function_driver.GetBraking();
       // set the GUI info
       driver.SetThrottleFunc(throttle_input[0]);
+
       // driver.SetBrakingFunc(braking_input);
     }
 

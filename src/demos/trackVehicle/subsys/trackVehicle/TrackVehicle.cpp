@@ -85,7 +85,7 @@ TrackVehicle::TrackVehicle(const std::string& name,
 
   // two drive Gears, like a 2WD driven vehicle.
   m_drivelines.resize(m_num_engines);
-  m_ptrains.resize(m_num_engines);
+  // m_ptrains.resize(m_num_engines); // done by base vehicle class
 
   // create track systems
   for (int i = 0; i < m_num_tracks; i++) {

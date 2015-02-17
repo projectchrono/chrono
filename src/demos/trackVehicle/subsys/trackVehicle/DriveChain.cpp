@@ -124,7 +124,7 @@ DriveChain::DriveChain(const std::string& name,
     shoe_Ixx) );
 
   // create the powertrain, connect transmission shaft directly to gear shaft
-  m_ptrain = ChSharedPtr<TrackPowertrain>(new TrackPowertrain("powertrain ") );
+  m_ptrains[0] = ChSharedPtr<TrackPowertrain>(new TrackPowertrain("powertrain ") );
 
   // support rollers, if any
   m_rollers.clear();
@@ -256,7 +256,7 @@ void DriveChain::Initialize(const ChCoordsys<>& gear_Csys)
   // m_chain->Set_pin_friction(2.0); // [N-m-sec] ???
 
   // initialize the powertrain, drivelines
-  m_ptrain->Initialize(m_chassis, m_gear->GetAxle() );
+  m_ptrains[0]->Initialize(m_chassis, m_gear->GetAxle() );
 
   // extra idlers?
   if(m_num_idlers > 1)
@@ -289,7 +289,7 @@ void DriveChain::Update(double time,
                         double braking)
 {
   // update left and right powertrains, with the new left and right throttle/shaftspeed
-  m_ptrain->Update(time, throttle, GetDriveshaftSpeed(0) );
+  m_ptrains[0]->Update(time, throttle, GetDriveshaftSpeed(0) );
 
 }
 
@@ -876,9 +876,9 @@ void DriveChain::Log_to_file()
     {
       std::stringstream ss_pt;
       // motor speed, mot torque, out torque
-      ss_pt << t <<","<< m_ptrain->GetMotorSpeed()
-        <<","<< m_ptrain->GetMotorTorque()
-        <<","<< m_ptrain->GetOutputTorque()
+      ss_pt << t <<","<< m_ptrains[0]->GetMotorSpeed()
+        <<","<< m_ptrains[0]->GetMotorTorque()
+        <<","<< m_ptrains[0]->GetOutputTorque()
         <<"\n";
       ChStreamOutAsciiFile ofilePT(m_filename_DBG_PTRAIN.c_str(), std::ios::app);
       ofilePT << ss_pt.str().c_str();

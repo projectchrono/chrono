@@ -98,7 +98,7 @@ public:
   double GetStepsize() const { return m_stepsize; }
 
   /// just return the COG of the gear
-  ChCoordsys<> GetLocalDriverCoordsys() const { return ChCoordsys<>(m_chassis->GetPos(), m_chassis->GetRot()); }
+  const ChCoordsys<> GetLocalDriverCoordsys() const { return ChCoordsys<>(m_chassis->GetPos(), m_chassis->GetRot()); }
 
   /// vehicle speed, doesn't matter
   double GetVehicleSpeed() const { return 0; }
