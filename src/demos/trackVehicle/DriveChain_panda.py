@@ -173,9 +173,10 @@ class DriveChain_panda:
         axarr[1].set_ylabel('torque [N-m]')
         axarr[0].legend()
         axarr[1].legend()
+        axarr.set_title('powertrain')
         
     # plot shoe 0 body info, and pin 0 force/torque, with an optional time interval
-    def plot_shoe(self, shoe_idx, tmin = -1, tmax = -1):
+    def plot_shoe(self, tmin = -1, tmax = -1):
         # a plot for the shoe body,
         figA, axarrA = plt.subplots(4,sharex=True)
         #  pin rxn forces
@@ -228,7 +229,7 @@ class DriveChain_panda:
         axarrB[0].legend()
         axarrB[1].legend()
         axarrB[2].legend()
-        axarrB[0].set_title('inter-shoe# ' + str(shoe_idx) + ' revolute reaction forces')
+        axarrB[0].set_title('inter-shoe revolute reaction forces')
         
         # create third plot, pin reaction torques
         DFs.plot(ax = axarrC[0], linewidth=1.5, x='time', y=['Tx'])
@@ -244,7 +245,7 @@ class DriveChain_panda:
         axarrC[0].legend()
         axarrC[1].legend()
         axarrC[2].legend()
-        axarrC[0].set_title('inter-shoe# ' + str(shoe_idx) + ' revolute reaction torques')
+        axarrC[0].set_title('inter-shoe0 revolute reaction torques')
     
     # plot gear Constraint Violations, with optional time interval
     def plot_gearCV(self, tmin = -1, tmax = -1):
@@ -274,7 +275,7 @@ class DriveChain_panda:
         axarr[0].set_title('Gear rev. Constraint Violtion')
         
     # plot idler Constraint Violations , with the specified time interval 
-    def plot_idlerCV(self, idler_idx, tmin = -1, tmax = -1):
+    def plot_idlerCV(self, tmin = -1, tmax = -1):
         # plot two pos. and two rot. CVs
         fig, axarr = plt.subplots(2,sharex=True)
         
@@ -301,7 +302,7 @@ class DriveChain_panda:
         axarr[0].set_title('Idler Constraint Violtion')
         
     # plot roller Constraint Violations
-    def plot_rollerCV(self, roller_idx, tmin = -1, tmax = -1):
+    def plot_rollerCV(self, tmin = -1, tmax = -1):
         # plot roller revolute constraint violations
         fig, axarr = plt.subplots(2,sharex=True)
         
@@ -639,22 +640,22 @@ if __name__ == '__main__':
     Chain.plot_ptrain(6,10)    
     
     # 4) plot shoe 0 body info, and pin 0 force/torque
-    Chain.plot_shoe(0,tmin,tmax)
+    Chain.plot_shoe(tmin,tmax)
     
     # 5) plot gear Constraint Violations
     Chain.plot_gearCV(tmin,tmax)
     
     # 6) plot idler Constraint Violations
-    Chain.plot_idlerCV(0,tmin,tmax)
+    Chain.plot_idlerCV(tmin,tmax)
     
     # 7) plot roller Constraint Violations
-    Chain.plot_rollerCV(0,tmin,tmax)
+    Chain.plot_rollerCV(tmin,tmax)
     '''
     
     # 8) from the contact report callback function, gear contact info
     Chain.plot_gearContactInfo(1,3)
     
     # 9)  from shoe-gear report callback function, contact info
-    Chain.plot_shoeGearContactInfo(1.5,2.5)
+    Chain.plot_shoeGearContactInfo(1,1.5)
 
 py.show()
