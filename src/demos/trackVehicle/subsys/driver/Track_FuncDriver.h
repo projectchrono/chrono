@@ -20,7 +20,7 @@
 
 namespace chrono {
 
-class Track_FuncDriver : public ChDriverTrack
+class CH_SUBSYS_API Track_FuncDriver : public ChDriverTrack
 {
 public:
 

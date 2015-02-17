@@ -90,7 +90,7 @@ double step_size = 0.002;
 // #ifdef USE_IRRLICHT
 int FPS = 40; // render frame rate
 double render_step_size = 1.0 / FPS;  // Time increment between two rendered frames
-double output_step_size = 1.0 / 100;    // Time interval between two output frames
+double output_step_size = step_size;    // Time interval between two output frames
 
 ChVector<> trackPoint(-1, 0, 0.2);   // Point on chassis tracked by the camera, chassis c-sys
 
