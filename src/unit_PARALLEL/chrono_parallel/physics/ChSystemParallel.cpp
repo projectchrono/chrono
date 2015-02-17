@@ -58,11 +58,11 @@ int ChSystemParallel::Integrate_Y() {
    data_manager->system_timer.Reset();
    data_manager->system_timer.start("step");
 
+   Setup();
+
    data_manager->system_timer.start("update");
    Update();
    data_manager->system_timer.stop("update");
-
-   Prepare();
 
    data_manager->system_timer.start("collision");
    collision_system->Run();
@@ -497,7 +497,7 @@ void ChSystemParallel::UpdateBilaterals()
 // the system update and before collision detection. A derived class can
 // override this function, but it should invoke this default implementation.
 //
-void ChSystemParallel::Prepare()
+void ChSystemParallel::Setup()
 {
   // Cache the integration step size and calculate the tolerance at impulse level.
   data_manager->settings.step_size = step;
@@ -506,6 +506,24 @@ void ChSystemParallel::Prepare()
   // Calculate the total number of degrees of freedom (6 per rigid body and 1
   // for each shaft element).
   data_manager->num_dof = data_manager->num_bodies * 6 + data_manager->num_shafts;
+
+  //Set variables that are stored in the ChSystem class
+  nbodies = data_manager->num_bodies;
+  nlinks = -1;
+  nphysicsitems = -1;
+  ncoords = -1;
+  ndoc = -1;
+  nsysvars = -1;
+  ncoords_w = -1;
+  ndoc_w = -1;
+  nsysvars_w = -1;
+  ndof = data_manager->num_dof;
+  ndoc_w_C = -1;
+  ndoc_w_D = -1;
+  ncontacts = data_manager->num_contacts;
+  nbodies_sleep = -1;
+  nbodies_fixed = -1;
+
 }
 
 
