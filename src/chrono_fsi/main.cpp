@@ -67,6 +67,165 @@ real_ Min(real_ a, real_ b) {
 real_ Max(real_ a, real_ b) {
 	return (a < b) ? b : a;
 }
+
+void SetArgumentsForMbdFromInput(int argc, char* argv[], int & threads, uint & max_iteration) {
+	if (argc > 1) {
+		const char* text = argv[1];
+    	threads = atoi(text);
+	}
+	if (argc > 4) {
+		const char* text = argv[4];
+		max_iteration = atoi(text);
+	}
+}
+
+void InitializeMbdPhysicalSystem(ChSystemParallelDVI & mphysicalSystem, int threads, uint max_iteration) {
+	//******************** OMP settings **************
+	// Set number of threads.
+	int max_threads = mphysicalSystem.GetParallelThreadNumber();
+	if (threads > max_threads)
+	  threads = max_threads;
+	mphysicalSystem.SetParallelThreadNumber(threads);
+	omp_set_num_threads(threads);
+	//************************************************
+	double tolerance = 1e-3; // Arman, not used
+	double collisionEnvelop = .04 * paramsH.HSML;
+	mphysicalSystem.Set_G_acc(ChVector<>(paramsH.gravity.x, paramsH.gravity.y, paramsH.gravity.z));
+
+	// Set solver parameters
+	mphysicalSystem.GetSettings()->solver.solver_mode = SLIDING; //NORMAL, SPINNING
+	mphysicalSystem.GetSettings()->solver.max_iteration_normal = max_iteration / 3;
+	mphysicalSystem.GetSettings()->solver.max_iteration_sliding = max_iteration / 3;
+	mphysicalSystem.GetSettings()->solver.max_iteration_spinning = 0;
+	mphysicalSystem.GetSettings()->solver.max_iteration_bilateral = max_iteration / 3;
+	mphysicalSystem.GetSettings()->solver.tolerance = 0;//tolerance;
+	mphysicalSystem.GetSettings()->solver.alpha = 0;  //Arman, find out what is this
+	mphysicalSystem.GetSettings()->solver.contact_recovery_speed = paramsH.v_Max;
+	mphysicalSystem.ChangeSolverType(APGDREF);  //Arman check this APGD APGDBLAZE
+	mphysicalSystem.GetSettings()->collision.narrowphase_algorithm = NARROWPHASE_HYBRID_MPR;
+
+	mphysicalSystem.GetSettings()->collision.collision_envelope = collisionEnvelop;
+	mphysicalSystem.GetSettings()->collision.bins_per_axis = I3(10, 10, 10); //Arman check
+}
+
+void create_system_particles(ChSystemParallelDVI& mphysicalSystem, real_ muFriction)
+{
+	real3 domainCenter = 0.5 * (paramsH.cMin + paramsH.cMax);
+	real3 ellipsoidSize = R3(10 * paramsH.HSML, 5 * paramsH.HSML, 7 * paramsH.HSML);
+	ChVector<> size = ChVector<>(ellipsoidSize.x, ellipsoidSize.y, ellipsoidSize.z);
+
+	real_ density = paramsH.rho0;  // TODO : Arman : Density for now is set to water density
+	real_ volume = utils::CalcEllipsoidVolume(size);
+	real_ gyration = utils::CalcEllipsoidGyration(size).Get_Diag();
+	real_ mass = density * volume;
+
+
+	// Generate ice particels
+	//(void)CreateIceParticles(mphysicalSystem);
+
+
+
+
+	//**************** bin and ship
+	// IDs for the two bodies
+	int bId = -200;
+
+	// Create a common material
+	ChSharedPtr<ChMaterialSurface> mat_g(new ChMaterialSurface);
+	mat_g->SetFriction(muFriction);
+	mat_g->SetCohesion(0);
+	mat_g->SetCompliance(0.0);
+	mat_g->SetComplianceT(0.0);
+	mat_g->SetDampingF(0.2);
+
+	const ChVector<> pos = ChVector<>(domainCenter.x, domainCenter.y, domainCenter.z);
+	const ChQuaternion<> rot = ChQuaternion<>(1, 0, 0, 0);
+
+	ChSharedBodyPtr body;
+	body = ChSharedBodyPtr(new ChBody(new ChCollisionModelParallel));
+	body->SetMaterialSurface(mat_g);
+	body->SetIdentifier(bId);
+	body->SetPos(pos);
+	body->SetRot(rot);
+	body->SetCollide(true);
+	body->SetBodyFixed(false);
+    body->SetMass(mass);
+    body->SetInertiaXX(mass * gyration);
+
+	body->GetCollisionModel()->ClearModel();
+
+	// add collision geometry
+	body->GetCollisionModel()->AddEllipsoid(size.x, size.y, size.z, pos, rot);
+
+	// add asset (for visualization)
+	ChSharedPtr<ChEllipsoidShape> ellipsoid(new ChEllipsoidShape);
+	ellipsoid->GetEllipsoidGeometry().rad = size;
+	ellipsoid->Pos = pos;
+	ellipsoid->Rot = rot;
+
+	body->GetAssets().push_back(ellipsoid);
+
+
+
+
+
+
+	// Create the containing bin (2 x 2 x 1)
+	double hthick = .1;
+	double hole_width = 1.05 * ship_w;
+	double small_wall_Length = 0.5 * (hdim.x - hole_width);
+
+	ChSharedBodyPtr bin;
+	bin = ChSharedBodyPtr(new ChBody(new ChCollisionModelParallel));
+	bin->SetMaterialSurface(mat);
+	bin->SetIdentifier(binId);
+	bin->SetMass(1);
+	bin->SetPos(ChVector<>(center.x, center.y, center.z));
+	bin->SetRot(ChQuaternion<>(1, 0, 0, 0));
+	bin->SetCollide(true);
+	bin->SetBodyFixed(true);
+	bin->GetCollisionModel()->ClearModel();
+
+	utils::AddBoxGeometry(bin.get_ptr(), 0.5 * ChVector<>(hdim.x, hdim.y, hthick), ChVector<>(0, 0, 0.5 * hdim.z + 0.5*hthick));	//end wall
+	utils::AddBoxGeometry(bin.get_ptr(), 0.5 * ChVector<>(hthick, hdim.y, hdim.z + 2 * hthick), ChVector<>(-0.5 * hdim.x - 0.5 * hthick, 0, 0));		//side wall
+	utils::AddBoxGeometry(bin.get_ptr(), 0.5 * ChVector<>(hthick, hdim.y, hdim.z + 2 * hthick), ChVector<>(0.5 * hdim.x + 0.5 * hthick, 0, 0));	//side wall
+	utils::AddBoxGeometry(bin.get_ptr(), 0.5 * ChVector<>(small_wall_Length, hdim.y, hthick), ChVector<>(-0.5 * hdim.x + 0.5*small_wall_Length, 0, -0.5 * hdim.z - 0.5*hthick)); 	//beginning wall 1
+	utils::AddBoxGeometry(bin.get_ptr(), 0.5 * ChVector<>(small_wall_Length, hdim.y, hthick), ChVector<>(0.5 * hdim.x - 0.5*small_wall_Length, 0, -0.5 * hdim.z - 0.5*hthick)); //beginning wall 2
+
+	utils::AddBoxGeometry(bin.get_ptr(), 0.5 * ChVector<>(7 * hdim.x, hthick, 7 * hdim.x), ChVector<>(0,-10,0)); //bottom bed
+	bin->GetCollisionModel()->BuildModel();
+
+	mphysicalSystem.AddBody(bin);
+
+	//**************** create ship
+	double shipMass = rhoPlate * ship_w * ship_y * ship_z;
+	double bI1 = 1.0 / 12 * shipMass * (pow(ship_w, 2) + pow(ship_y, 2));
+	double bI2 = 1.0 / 12 * shipMass * (pow(ship_y, 2) + pow(ship_z, 2));
+	double bI3 = 1.0 / 12 * shipMass * (pow(ship_w, 2) + pow(ship_z, 2));
+	printf("mass %f I1 I2 I3 %f %f %f\n", shipMass, bI1, bI2, bI3);
+
+	shipInitialPosZ = boxMin.z - .5 * ship_z;
+
+	shipPtr = ChSharedBodyPtr(new ChBody(new ChCollisionModelParallel));
+	shipInitialPos = ChVector<>(center.x,  center.y, shipInitialPosZ);
+	shipPtr->SetPos(shipInitialPos);
+	shipPtr->SetRot(ChQuaternion<>(1,0,0,0));
+	shipPtr->SetMaterialSurface(mat);
+	shipPtr->SetPos_dt(ChVector<>(0,0,0));
+	shipPtr->SetMass(shipMass);
+	shipPtr->SetInertiaXX(ChVector<>(bI2, bI3, bI1));
+	shipPtr->SetIdentifier(shipId);
+	shipPtr->SetCollide(true);
+	shipPtr->SetBodyFixed(false);
+
+	shipPtr->GetCollisionModel()->ClearModel();
+//	shipPtr->GetCollisionModel()->SetDefaultSuggestedEnvelope(collisionEnvelop); //envelop is .03 by default
+	utils::AddBoxGeometry(shipPtr.get_ptr(), 0.5 * ChVector<>(ship_w, ship_y, ship_z), ChVector<>(0,0,0)); //beginning wall 2. Need "0.5 *" since chronoparallel is apparently different
+	shipPtr->GetCollisionModel()->BuildModel();
+	mphysicalSystem.Add(shipPtr);
+}
+
+
 //*** paramsH.straightChannelBoundaryMax   should be taken care of
 real_ IsInsideStraightChannel(real3 posRad) {
 	const real_ sphR = paramsH.HSML;
@@ -107,18 +266,17 @@ real_ IsInsideStraightChannel(real3 posRad) {
 }
 
 //&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
-int2 CreateFluidMarkers(thrust::host_vector<real3> & posRadH,
+int2 CreateFluidMarkers(
+		thrust::host_vector<real3> & posRadH,
 		thrust::host_vector<real4> & velMasH,
 		thrust::host_vector<real4> & rhoPresMuH,
-		thrust::host_vector<real3> & mPosRadBoundary,
-		thrust::host_vector<real4> & mVelMasBoundary,
-		thrust::host_vector<real4> & mRhoPresMuBoundary,
+		thrust::host_vector<uint> & bodyIndex,
 		real_ & sphMarkerMass) {
-//	printf("\n\n\nStraightChannelBoundaries: \n   min: %f %f %f\n   max %f %f %f\n\n\n", paramsH.straightChannelBoundaryMin.x, paramsH.straightChannelBoundaryMin.y, paramsH.straightChannelBoundaryMin.z,
-//			paramsH.straightChannelBoundaryMax.x, paramsH.straightChannelBoundaryMax.y, paramsH.straightChannelBoundaryMax.z);
 
-	//real2 rad2 = .5 * R2(paramsH.cMax.y - paramsH.cMin.y, paramsH.cMax.z - paramsH.cMin.z);
-	//channelRadius = (rad2.x < rad2.y) ? rad2.x : rad2.y;
+	thrust::host_vector<real3> mPosRadBoundary; //do not set the size here since you are using push back later
+	thrust::host_vector<real4> mVelMasBoundary;
+	thrust::host_vector<real4> mRhoPresMuBoundary;
+
 	int num_FluidMarkers = 0;
 	int num_BoundaryMarkers = 0;
 	srand(964);
@@ -165,7 +323,33 @@ int2 CreateFluidMarkers(thrust::host_vector<real3> & posRadH,
 			}
 		}
 	}
-	return I2(num_FluidMarkers, num_BoundaryMarkers);
+	int2 num_fluidOrBoundaryMarkers = I2(num_FluidMarkers, num_BoundaryMarkers);
+	// *** copy boundary markers to the end of the markers arrays
+	posRadH.resize(
+			num_fluidOrBoundaryMarkers.x + num_fluidOrBoundaryMarkers.y);
+	velMasH.resize(
+			num_fluidOrBoundaryMarkers.x + num_fluidOrBoundaryMarkers.y);
+	rhoPresMuH.resize(
+			num_fluidOrBoundaryMarkers.x + num_fluidOrBoundaryMarkers.y);
+
+	thrust::copy(mPosRadBoundary.begin(), mPosRadBoundary.end(),
+			posRadH.begin() + num_fluidOrBoundaryMarkers.x);
+	thrust::copy(mVelMasBoundary.begin(), mVelMasBoundary.end(),
+			velMasH.begin() + num_fluidOrBoundaryMarkers.x);
+	thrust::copy(mRhoPresMuBoundary.begin(), mRhoPresMuBoundary.end(),
+			rhoPresMuH.begin() + num_fluidOrBoundaryMarkers.x);
+	// *** end copy
+	mPosRadBoundary.clear();
+	mVelMasBoundary.clear();
+	mRhoPresMuBoundary.clear();
+
+	int numAllMarkers = num_fluidOrBoundaryMarkers.x + num_fluidOrBoundaryMarkers.y;
+	bodyIndex.resize(numAllMarkers);
+	thrust::fill(bodyIndex.begin(), bodyIndex.end(), 1);
+	thrust::exclusive_scan(bodyIndex.begin(), bodyIndex.end(),
+			bodyIndex.begin());
+
+	return num_fluidOrBoundaryMarkers;
 }
 //&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
 
@@ -308,7 +492,7 @@ void CopyD2H(
 //}
 
 //&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
-int main() {
+int main(int argc, char* argv[]) {
 	//****************************************************************************************
 	time_t rawtime;
 	struct tm * timeinfo;
@@ -319,55 +503,24 @@ int main() {
 	timeinfo = localtime(&rawtime);
 	printf("Job was submittet at date/time is: %s\n", asctime(timeinfo));
 
+	// ***************************** Create Fluid ********************************************
 	//*** Arrays definition
 	thrust::host_vector<int3> referenceArray;
 	thrust::host_vector<real3> posRadH; //do not set the size here since you are using push back later
 	thrust::host_vector<real4> velMasH;
 	thrust::host_vector<real4> rhoPresMuH;
 	thrust::host_vector<uint> bodyIndex;
-
-	thrust::host_vector<real3> mPosRadBoundary; //do not set the size here since you are using push back later
-	thrust::host_vector<real4> mVelMasBoundary;
-	thrust::host_vector<real4> mRhoPresMuBoundary;
-
 	SetupParamsH(paramsH);
 
 	NumberOfObjects numObjects;
 	//** default num markers
 	int numAllMarkers = 0;
 
-//**********************************************************************
 	// initialize fluid particles
 	real_ sphMarkerMass; // To be initialized in CreateFluidMarkers, and used in other places
-	int2 num_fluidOrBoundaryMarkers = CreateFluidMarkers(posRadH, velMasH,
-			rhoPresMuH, mPosRadBoundary, mVelMasBoundary,
-			mRhoPresMuBoundary, sphMarkerMass);
+	int2 num_fluidOrBoundaryMarkers = CreateFluidMarkers(posRadH, velMasH, rhoPresMuH, bodyIndex, sphMarkerMass);
 	referenceArray.push_back(I3(0, num_fluidOrBoundaryMarkers.x, -1)); //map fluid -1
 	numAllMarkers += num_fluidOrBoundaryMarkers.x;
-
-	posRadH.resize(
-			num_fluidOrBoundaryMarkers.x + num_fluidOrBoundaryMarkers.y);
-	velMasH.resize(
-			num_fluidOrBoundaryMarkers.x + num_fluidOrBoundaryMarkers.y);
-	rhoPresMuH.resize(
-			num_fluidOrBoundaryMarkers.x + num_fluidOrBoundaryMarkers.y);
-	////boundary: type = 0
-	//printf("size1 %d, %d , numpart %d, numFluid %d \n", mPosRadBoundary.end() - mPosRadBoundary.begin(), mPosRadBoundary.size(), num_fluidOrBoundaryMarkers.y, num_fluidOrBoundaryMarkers.x);
-	thrust::copy(mPosRadBoundary.begin(), mPosRadBoundary.end(),
-			posRadH.begin() + num_fluidOrBoundaryMarkers.x);
-	thrust::copy(mVelMasBoundary.begin(), mVelMasBoundary.end(),
-			velMasH.begin() + num_fluidOrBoundaryMarkers.x);
-	thrust::copy(mRhoPresMuBoundary.begin(), mRhoPresMuBoundary.end(),
-			rhoPresMuH.begin() + num_fluidOrBoundaryMarkers.x);
-	mPosRadBoundary.clear();
-	mVelMasBoundary.clear();
-	mRhoPresMuBoundary.clear();
-
-	bodyIndex.resize(numAllMarkers);
-	thrust::fill(bodyIndex.begin(), bodyIndex.end(), 1);
-	thrust::exclusive_scan(bodyIndex.begin(), bodyIndex.end(),
-			bodyIndex.begin());
-
 	referenceArray.push_back(
 			I3(numAllMarkers, numAllMarkers + num_fluidOrBoundaryMarkers.y,	0));
 	numAllMarkers += num_fluidOrBoundaryMarkers.y;
@@ -378,6 +531,215 @@ int main() {
 		ClearArraysH(posRadH, velMasH, rhoPresMuH, bodyIndex, referenceArray);
 		return 0;
 	}
+	// ***************************** Create Rigid ********************************************
+	ChTimer<double> myTimerTotal;
+	ChTimer<double> myTimerStep;
+	int threads = 2;
+	uint max_iteration = 1000;//10000;
+	MySeed(964);
+
+	// Save PovRay post-processing data?
+	bool write_povray_data = true;
+
+	myTimerTotal.start();
+	outSimulationInfo.open("SimInfo.txt");
+
+	SetArgumentsForMbdFromInput(argc, argv, threads, max_iteration);
+
+
+	// ***** params
+	double muFriction = .1;
+	double dT = paramsH.dT;
+	double out_fps = 50;
+	// ************
+
+
+	// Create a ChronoENGINE physical system
+	ChSystemParallelDVI mphysicalSystem;
+	InitializeMbdPhysicalSystem(mphysicalSystem, threads, max_iteration);
+
+	// Set gravitational acceleration
+
+	//******************* Irrlicht and driver types **************************
+#define irrlichtVisualization false
+	driveType = ACTUATOR;//KINEMATIC : ACTUATOR
+	//************************************************************************
+	outSimulationInfo << "****************************************************************************" << endl;
+	outSimulationInfo 	<< " dT: " << dT  << " max_iteration: " << max_iteration <<" muFriction: " << muFriction << " threads: " << threads << endl;
+	cout				<< " dT: " << dT  << " max_iteration: " << max_iteration <<" muFriction: " << muFriction << " threads: " << threads << endl;
+
+	ofstream outForceData("forceData.txt");
+
+	// Create all the rigid bodies.
+	create_system_particles(mphysicalSystem);
+
+#ifdef CHRONO_PARALLEL_HAS_OPENGL2
+   opengl::ChOpenGLWindow &gl_window = opengl::ChOpenGLWindow::getInstance();
+   gl_window.Initialize(1280, 720, "mixerDVI", &mphysicalSystem);
+   gl_window.SetCamera(ChVector<>(-3,12,-8), ChVector<>(7.2, 6, 8.2), ChVector<>(0, 1, 0)); //camera
+
+   // Uncomment the following two lines for the OpenGL manager to automatically
+   // run the simulation in an infinite loop.
+   //gl_window.StartDrawLoop(time_step);
+   //return 0;
+#endif
+
+#if irrlichtVisualization
+		cout << "@@@@@@@@@@@@@@@@  irrlicht stuff  @@@@@@@@@@@@@@@@" << endl;
+		// Create the Irrlicht visualization (open the Irrlicht device,
+		// bind a simple user interface, etc. etc.)
+		ChIrrApp application(&mphysicalSystem, L"Bricks test",core::dimension2d<u32>(800,600),false, true);
+		// Easy shortcuts to add camera, lights, logo and sky in Irrlicht scene:
+		ChIrrWizard::add_typical_Logo  (application.GetDevice());
+		ChIrrWizard::add_typical_Sky   (application.GetDevice());
+		ChIrrWizard::add_typical_Lights(application.GetDevice(), core::vector3df(14.0f, 44.0f, -18.0f), core::vector3df(-3.0f, 8.0f, 6.0f), 59,  40);
+		ChIrrWizard::add_typical_Camera(application.GetDevice(), core::vector3df(0.5,3,7), core::vector3df(2,1,5)); //   (7.2,30,0) :  (-3,12,-8)
+		// Use this function for adding a ChIrrNodeAsset to all items
+		// If you need a finer control on which item really needs a visualization proxy in
+		// Irrlicht, just use application.AssetBind(myitem); on a per-item basis.
+		application.AssetBindAll();
+		// Use this function for 'converting' into Irrlicht meshes the assets
+		// into Irrlicht-visualizable meshes
+		application.AssetUpdateAll();
+
+		application.SetStepManage(true);
+		application.SetTimestep(dT);  					//Arman modify
+		cout << "@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@" << endl;
+
+#endif
+		outForceData << "[1] time, [2-5] forceContact (x, y, z, magnitude), [6-9] forceActuator (x, y, z, magnitude), [10-13] Ice pressure contact (x, y, z, magnitude), [14-17] Ice pressure actuator (x, y, z, magnitude), [18] shipPos, [19] shipVel, [20] energy, [21] iceThickness, [22] timePerStep, [23] timeElapsed. ## numSpheres" << mphysicalSystem.Get_bodylist()->end() - mphysicalSystem.Get_bodylist()->begin()
+				<< " pauseTime: " << timePause<< " setVelocity: "<< shipVelocity << " ship_w: " << ship_w  << endl;
+		outForceData.close();
+		outSimulationInfo << "Real Time, Compute Time" << endl;
+
+	outSimulationInfo << "***** number of bodies: " << mphysicalSystem.Get_bodylist()->size() << endl;
+	bool moveTime = false;
+	//****************************************** Time Loop *************************************
+	ChSharedPtr<ChFunction_Const> actuator_fun0(new ChFunction_Const(0));
+	ChSharedPtr<ChFunction_Ramp> actuator_fun1(new ChFunction_Ramp(shipVelocity * timePause, -shipVelocity)); // function works with general system timer. since the initial force needs to be zero at t=timePause, 0 = x0 + v*t --> x0 = -v*t
+	if (driveType == ACTUATOR) {
+		Add_Actuator(mphysicalSystem);
+	}
+
+	int counter = -1;
+	while(mphysicalSystem.GetChTime() < timeMove+timePause) //arman modify
+	{
+		myTimerStep.start();
+		counter ++;
+		// ****** include force or motion ********
+		switch (driveType) {
+		case KINEMATIC:
+			(mphysicalSystem.GetChTime() < timePause) ?
+				FixShip_Kinematic() :
+				MoveShip_Kinematic(mphysicalSystem.GetChTime());
+			break;
+		case ACTUATOR:
+			if (mphysicalSystem.GetChTime() < timePause) {
+				MoveShip_Actuator(mphysicalSystem, actuator_fun0.StaticCastTo<ChFunction>(), 0, 0);
+			} else {
+				MoveShip_Actuator(mphysicalSystem, actuator_fun1.StaticCastTo<ChFunction>(), shipVelocity, 1);
+			}
+		}
+		// ****** end of force or motion *********
+#if irrlichtVisualization
+		if ( !(application.GetDevice()->run()) ) break;
+		application.GetVideoDriver()->beginScene(true, true, SColor(255,140,161,192));
+		ChIrrTools::drawGrid(application.GetVideoDriver(), .2,.2, 150,150,
+			ChCoordsys<>(ChVector<>(0.5 * hdim.x, boxMin.y, 0.5 * hdim.z),Q_from_AngAxis(CH_C_PI/2,VECT_X)), video::SColor(50,90,90,150),true);
+		application.DrawAll();
+		application.DoStep();
+		application.GetVideoDriver()->endScene();
+#else
+#ifdef CHRONO_PARALLEL_HAS_OPENGL2
+		if (gl_window.Active()) {
+		 gl_window.DoStepDynamics(dT);
+		 gl_window.Render();
+		}
+#else
+		mphysicalSystem.DoStepDynamics(dT);
+#endif
+#endif
+
+		//******************** ship force*********************
+		ChVector<> mForceActuator = ChVector<>(0,0,0);
+		ChVector<> mTorqueActuator = ChVector<>(0,0,0);
+		ChVector<> icePressureActuator = ChVector<>(0,0,0);
+		ChVector<> mTorqueContact;
+		ChVector<> mForceContact;
+
+
+		if (driveType == ACTUATOR) {
+			ChSharedPtr<ChLinkLinActuator> actuator;
+			actuator = mphysicalSystem.SearchLink("actuator").StaticCastTo<ChLinkLinActuator>();
+			mForceActuator = actuator->Get_react_force();
+			mTorqueActuator = actuator->Get_react_torque();
+			icePressureActuator = mForceActuator / iceThickness / ship_w;
+		}
+		calc_ship_contact_forces(mphysicalSystem, mForceContact, mTorqueContact);
+		ChVector<> icePressureContact = mForceContact / iceThickness / ship_w;
+
+		myTimerStep.stop();
+		myTimerTotal.stop();
+		//****************************************************
+		vector<ChBody*>::iterator ibody = mphysicalSystem.Get_bodylist()->begin();
+		double energy = 0;
+		while (ibody != mphysicalSystem.Get_bodylist()->end()) {
+			create_hydronynamic_force(*ibody, mphysicalSystem, surfaceLoc, false);
+			energy += pow((*ibody)->GetPos_dt().Length() , 2);
+			ibody++;
+		}
+
+		printf("*** total number of contacts %d, num bodies %d\n", mphysicalSystem.GetNcontacts(), mphysicalSystem.Get_bodylist()->size());
+		stringstream outDataSS;
+		outDataSS << mphysicalSystem.GetChTime() << ", " <<
+				mForceContact.x << ", " << mForceContact.y << ", " << mForceContact.z << ", " << mForceContact.Length() << ", " <<
+				mForceActuator.x << ", " << mForceActuator.y << ", " << mForceActuator.z << ", " << mForceActuator.Length() << ", " <<
+				icePressureContact.x << ", " << icePressureContact.y << ", " << icePressureContact.z << ", " << icePressureContact.Length() << ", " <<
+				icePressureActuator.x << ", " << icePressureActuator.y << ", " << icePressureActuator.z << ", " << icePressureActuator.Length() << ", " <<
+				shipPtr->GetPos().z << ", " << shipPtr->GetPos_dt().z << ", " << energy << ", " << iceThickness  << ", " << myTimerStep() << ", " << myTimerTotal() << endl;
+		ofstream outData("forceData.txt", ios::app);
+		outData<<outDataSS.str();
+		outData.close();
+
+		double numIter = ((ChLcpSolverParallelDVI*)mphysicalSystem.GetLcpSolverSpeed())->GetTotalIterations();
+		outSimulationInfo << "Time: " <<  mphysicalSystem.GetChTime() <<
+				" executionTime: " << mphysicalSystem.GetTimerStep() <<
+				" Ship pos: " << shipPtr->GetPos().x << ", " << shipPtr->GetPos().y << ", " <<  shipPtr->GetPos().z <<
+				" Ship vel: " << shipPtr->GetPos_dt().x << ", " << shipPtr->GetPos_dt().y << ", " <<  shipPtr->GetPos_dt().z <<
+				" energy: " << energy <<
+				" time per step: " << myTimerStep() <<
+				" time elapsed: " << myTimerTotal() <<
+				" Ship force: " << mForceContact.x << ", " << mForceContact.y << ", " <<  mForceContact.z <<
+				" ice thickness: " << iceThickness <<
+				" number of Iteration: " << numIter << endl;
+		cout << "Time: " <<  mphysicalSystem.GetChTime() <<
+				" executionTime: " << mphysicalSystem.GetTimerStep() <<
+				" Ship vel: " << shipPtr->GetPos_dt().x << ", " << shipPtr->GetPos_dt().y << ", " <<  shipPtr->GetPos_dt().z <<
+				" energy: " << energy <<
+				" time per step: " << myTimerStep() <<
+				" time elapsed: " << myTimerTotal() <<
+				" Ship force: " << mForceContact.x << ", " << mForceContact.y << ", " <<  mForceContact.z <<
+				" ice thickness: " << iceThickness <<
+				" number of Iteration: " << numIter << endl;
+
+		// Save PovRay post-processing data.
+		const std::string pov_dir = "povray";
+		if (counter == 0) {
+			//linux. In windows, it is System instead of system (to invoke a command in the command line)
+			system("mkdir -p povray");
+			system("rm povray/*.*");
+		}
+		int stepSave = 50;
+		if (write_povray_data && counter % stepSave == 0) {
+			char filename[100];
+			sprintf(filename, "%s/data_%03d.csv", pov_dir.c_str(), counter / stepSave + 1);
+			utils::WriteBodies(&mphysicalSystem, filename);
+		}
+	}
+
+	outForceData.close();
+
+	// ***************************************************************************************
 
 	DOUBLEPRECISION ? printf("Double Precision\n") : printf("Single Precision\n");
 	printf("********************\n");
