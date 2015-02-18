@@ -36,6 +36,54 @@
 #include "printToFile.cuh"
 #include <algorithm>
 
+//*************************************************************
+			//#include "physics/ChBodyEasy.h"
+			#include "physics/ChContactContainer.h"
+			#include "collision/ChCModelBulletBody.h"
+			//#include "core/ChTimer.h"
+			//#include "core/ChRealtimeStep.h"
+			//#include "assets/ChTexture.h"
+			#include "unit_IRRLICHT/ChIrrApp.h"
+			#include <cstring>
+			#include <fstream>
+			#include <sstream>
+			#include <time.h>
+			#include <cstdlib>
+			//#include <map>
+
+			//*************** chrono parallel
+			#include <stdio.h>
+			#include <vector>
+			#include <cmath>
+
+			#include "chrono_parallel/physics/ChSystemParallel.h"
+			#include "chrono_parallel/lcp/ChLcpSystemDescriptorParallel.h"
+
+			#include "chrono_utils/ChUtilsCreators.h"  //Arman: why is this
+			#include "chrono_utils/ChUtilsInputOutput.h" //Arman: Why is this
+			#include "chrono_utils/ChUtilsGenerators.h"
+
+			#ifdef CHRONO_PARALLEL_HAS_OPENGL2
+			#include "chrono_opengl/ChOpenGLWindow.h"
+			#endif
+			//***********************************
+			// Use the namespace of Chrono
+
+			using namespace chrono;
+			using namespace chrono::collision;
+
+			// Use the main namespaces of Irrlicht
+			using namespace irr;
+			using namespace core;
+			using namespace scene;
+			using namespace video;
+			using namespace io;
+			using namespace gui;
+			using namespace std;
+//*************************************************************
+
+
+
 
 using namespace std;
 
@@ -79,7 +127,10 @@ void SetArgumentsForMbdFromInput(int argc, char* argv[], int & threads, uint & m
 	}
 }
 
-void InitializeMbdPhysicalSystem(ChSystemParallelDVI & mphysicalSystem, int threads, uint max_iteration) {
+void InitializeMbdPhysicalSystem(ChSystemParallelDVI & mphysicalSystem, int argc, char* argv[]) {
+	int threads = 2;
+	uint max_iteration = 1000;//10000;
+	SetArgumentsForMbdFromInput(argc, argv, threads, max_iteration);
 	//******************** OMP settings **************
 	// Set number of threads.
 	int max_threads = mphysicalSystem.GetParallelThreadNumber();
@@ -108,13 +159,13 @@ void InitializeMbdPhysicalSystem(ChSystemParallelDVI & mphysicalSystem, int thre
 	mphysicalSystem.GetSettings()->collision.bins_per_axis = I3(10, 10, 10); //Arman check
 }
 
-void create_system_particles(ChSystemParallelDVI& mphysicalSystem, real_ muFriction)
-{
+void create_system_particles(ChSystemParallelDVI& mphysicalSystem) {
 	real3 domainCenter = 0.5 * (paramsH.cMin + paramsH.cMax);
 	real3 ellipsoidSize = R3(10 * paramsH.HSML, 5 * paramsH.HSML, 7 * paramsH.HSML);
 	ChVector<> size = ChVector<>(ellipsoidSize.x, ellipsoidSize.y, ellipsoidSize.z);
 
 	real_ density = paramsH.rho0;  // TODO : Arman : Density for now is set to water density
+	double muFriction = .1;
 	real_ volume = utils::CalcEllipsoidVolume(size);
 	real_ gyration = utils::CalcEllipsoidGyration(size).Get_Diag();
 	real_ mass = density * volume;
@@ -155,74 +206,18 @@ void create_system_particles(ChSystemParallelDVI& mphysicalSystem, real_ muFrict
 	body->GetCollisionModel()->ClearModel();
 
 	// add collision geometry
-	body->GetCollisionModel()->AddEllipsoid(size.x, size.y, size.z, pos, rot);
-
-	// add asset (for visualization)
-	ChSharedPtr<ChEllipsoidShape> ellipsoid(new ChEllipsoidShape);
-	ellipsoid->GetEllipsoidGeometry().rad = size;
-	ellipsoid->Pos = pos;
-	ellipsoid->Rot = rot;
-
-	body->GetAssets().push_back(ellipsoid);
-
-
-
-
-
-
-	// Create the containing bin (2 x 2 x 1)
-	double hthick = .1;
-	double hole_width = 1.05 * ship_w;
-	double small_wall_Length = 0.5 * (hdim.x - hole_width);
-
-	ChSharedBodyPtr bin;
-	bin = ChSharedBodyPtr(new ChBody(new ChCollisionModelParallel));
-	bin->SetMaterialSurface(mat);
-	bin->SetIdentifier(binId);
-	bin->SetMass(1);
-	bin->SetPos(ChVector<>(center.x, center.y, center.z));
-	bin->SetRot(ChQuaternion<>(1, 0, 0, 0));
-	bin->SetCollide(true);
-	bin->SetBodyFixed(true);
-	bin->GetCollisionModel()->ClearModel();
-
-	utils::AddBoxGeometry(bin.get_ptr(), 0.5 * ChVector<>(hdim.x, hdim.y, hthick), ChVector<>(0, 0, 0.5 * hdim.z + 0.5*hthick));	//end wall
-	utils::AddBoxGeometry(bin.get_ptr(), 0.5 * ChVector<>(hthick, hdim.y, hdim.z + 2 * hthick), ChVector<>(-0.5 * hdim.x - 0.5 * hthick, 0, 0));		//side wall
-	utils::AddBoxGeometry(bin.get_ptr(), 0.5 * ChVector<>(hthick, hdim.y, hdim.z + 2 * hthick), ChVector<>(0.5 * hdim.x + 0.5 * hthick, 0, 0));	//side wall
-	utils::AddBoxGeometry(bin.get_ptr(), 0.5 * ChVector<>(small_wall_Length, hdim.y, hthick), ChVector<>(-0.5 * hdim.x + 0.5*small_wall_Length, 0, -0.5 * hdim.z - 0.5*hthick)); 	//beginning wall 1
-	utils::AddBoxGeometry(bin.get_ptr(), 0.5 * ChVector<>(small_wall_Length, hdim.y, hthick), ChVector<>(0.5 * hdim.x - 0.5*small_wall_Length, 0, -0.5 * hdim.z - 0.5*hthick)); //beginning wall 2
-
-	utils::AddBoxGeometry(bin.get_ptr(), 0.5 * ChVector<>(7 * hdim.x, hthick, 7 * hdim.x), ChVector<>(0,-10,0)); //bottom bed
-	bin->GetCollisionModel()->BuildModel();
-
-	mphysicalSystem.AddBody(bin);
-
-	//**************** create ship
-	double shipMass = rhoPlate * ship_w * ship_y * ship_z;
-	double bI1 = 1.0 / 12 * shipMass * (pow(ship_w, 2) + pow(ship_y, 2));
-	double bI2 = 1.0 / 12 * shipMass * (pow(ship_y, 2) + pow(ship_z, 2));
-	double bI3 = 1.0 / 12 * shipMass * (pow(ship_w, 2) + pow(ship_z, 2));
-	printf("mass %f I1 I2 I3 %f %f %f\n", shipMass, bI1, bI2, bI3);
-
-	shipInitialPosZ = boxMin.z - .5 * ship_z;
-
-	shipPtr = ChSharedBodyPtr(new ChBody(new ChCollisionModelParallel));
-	shipInitialPos = ChVector<>(center.x,  center.y, shipInitialPosZ);
-	shipPtr->SetPos(shipInitialPos);
-	shipPtr->SetRot(ChQuaternion<>(1,0,0,0));
-	shipPtr->SetMaterialSurface(mat);
-	shipPtr->SetPos_dt(ChVector<>(0,0,0));
-	shipPtr->SetMass(shipMass);
-	shipPtr->SetInertiaXX(ChVector<>(bI2, bI3, bI1));
-	shipPtr->SetIdentifier(shipId);
-	shipPtr->SetCollide(true);
-	shipPtr->SetBodyFixed(false);
-
-	shipPtr->GetCollisionModel()->ClearModel();
-//	shipPtr->GetCollisionModel()->SetDefaultSuggestedEnvelope(collisionEnvelop); //envelop is .03 by default
-	utils::AddBoxGeometry(shipPtr.get_ptr(), 0.5 * ChVector<>(ship_w, ship_y, ship_z), ChVector<>(0,0,0)); //beginning wall 2. Need "0.5 *" since chronoparallel is apparently different
-	shipPtr->GetCollisionModel()->BuildModel();
-	mphysicalSystem.Add(shipPtr);
+//	body->GetCollisionModel()->AddEllipsoid(size.x, size.y, size.z, pos, rot);
+//
+//	// add asset (for visualization)
+//	ChSharedPtr<ChEllipsoidShape> ellipsoid(new ChEllipsoidShape);
+//	ellipsoid->GetEllipsoidGeometry().rad = size;
+//	ellipsoid->Pos = pos;
+//	ellipsoid->Rot = rot;
+//
+//	body->GetAssets().push_back(ellipsoid);
+	utills::AddEllipsoidGeometry(body.getPtr(), size, pos, rot);
+	body->GetCollisionModel()->BuildModel();
+	mphysicalSystem.AddBody(body);
 }
 
 
@@ -534,8 +529,6 @@ int main(int argc, char* argv[]) {
 	// ***************************** Create Rigid ********************************************
 	ChTimer<double> myTimerTotal;
 	ChTimer<double> myTimerStep;
-	int threads = 2;
-	uint max_iteration = 1000;//10000;
 	MySeed(964);
 
 	// Save PovRay post-processing data?
@@ -544,34 +537,32 @@ int main(int argc, char* argv[]) {
 	myTimerTotal.start();
 	outSimulationInfo.open("SimInfo.txt");
 
-	SetArgumentsForMbdFromInput(argc, argv, threads, max_iteration);
 
 
 	// ***** params
-	double muFriction = .1;
 	double dT = paramsH.dT;
-	double out_fps = 50;
 	// ************
 
 
 	// Create a ChronoENGINE physical system
 	ChSystemParallelDVI mphysicalSystem;
-	InitializeMbdPhysicalSystem(mphysicalSystem, threads, max_iteration);
+	InitializeMbdPhysicalSystem(mphysicalSystem, argc, argv);
+	create_system_particles(mphysicalSystem);
 
 	// Set gravitational acceleration
 
 	//******************* Irrlicht and driver types **************************
 #define irrlichtVisualization false
-	driveType = ACTUATOR;//KINEMATIC : ACTUATOR
-	//************************************************************************
-	outSimulationInfo << "****************************************************************************" << endl;
+	mphysicalSystem.GetSettings()->solver.max_iteration_normal = max_iteration / 3;
+	mphysicalSystem.GetSettings()->solver.max_iteration_sliding = max_iteration / 3;
+	mphysicalSystem.GetSettings()->solver.max_iteration_spinning = 0;
+	mphysicalSystem.GetSettings()->solver.max_iteration_bilateral = max_iteration / 3;
 	outSimulationInfo 	<< " dT: " << dT  << " max_iteration: " << max_iteration <<" muFriction: " << muFriction << " threads: " << threads << endl;
 	cout				<< " dT: " << dT  << " max_iteration: " << max_iteration <<" muFriction: " << muFriction << " threads: " << threads << endl;
 
 	ofstream outForceData("forceData.txt");
 
 	// Create all the rigid bodies.
-	create_system_particles(mphysicalSystem);
 
 #ifdef CHRONO_PARALLEL_HAS_OPENGL2
    opengl::ChOpenGLWindow &gl_window = opengl::ChOpenGLWindow::getInstance();
