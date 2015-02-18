@@ -124,13 +124,13 @@ protected:
   /// for a given shoe body name, scan all collisions and report collision time data.
   /// SG_info = (num_contacts, t_persist, t_persist_max)
   ///  Fn_info, Ft_info = (max, avg, stdev = sigma)
-  /// LocRel, VRel = relative pos, vel of contact point, relative to gear c-sys
+  /// PosRel, VRel = relative pos, vel of contact point, relative to gear c-sys
   /// returns # of contacts between the gear and shoe body
   int reportShoeGearContact(const std::string& shoe_name,
     ChVector<>& SG_info,
     ChVector<>& Fn_info,
     ChVector<>& Ft_info,
-    ChVector<>& LocRel_contact,
+    ChVector<>& PosRel_contact,
     ChVector<>& VRel_contact);
 
   // *********  History dependent Variables
