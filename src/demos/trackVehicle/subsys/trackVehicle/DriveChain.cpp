@@ -471,14 +471,14 @@ int DriveChain::reportShoeGearContact(const std::string& shoe_name,
       if(modA->GetFamily() == (int)fam)
       {
         // A is the gear body
-        pos_abs = pA - ((ChBody*)modA->GetPhysicsItem())->GetPos();
-        body_frame = ((ChBody*)modA->GetPhysicsItem())->GetFrame_COG_to_abs();
+        pos_abs = pA - ((ChBody*)modA->GetPhysicsItem())->GetPos(); // abs dist. of contact point from the gear center
+        body_frame.SetRot( ((ChBody*)modA->GetPhysicsItem())->GetRot() );
       }
       else
       {
         // assume gear is body B
-        pos_abs = pB - ((ChBody*)modB->GetPhysicsItem())->GetPos();
-        body_frame = ((ChBody*)modB->GetPhysicsItem())->GetFrame_COG_to_abs();
+        pos_abs = pB - ((ChBody*)modB->GetPhysicsItem())->GetPos(); // abs dist. of contact point from the gear center
+        body_frame.SetRot( ((ChBody*)modB->GetPhysicsItem())->GetRot() );
       }
 
       // get the distance from gear center to contact point on the gear, in gear c-sys

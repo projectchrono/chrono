@@ -673,6 +673,6 @@ if __name__ == '__main__':
     Chain.plot_gearContactInfo()
     
     # 9)  from shoe-gear report callback function, contact info
-    Chain.plot_shoeGearContactInfo(1,1.5)
+    Chain.plot_shoeGearContactInfo(1.1,1.5)
 
 py.show()
