@@ -644,17 +644,16 @@ if __name__ == '__main__':
     # construct with file list and list of legend
     Chain = DriveChain_panda(data_files,handle_list)
     
-    tmin = 7
-    tmax = 8
+    tmin = 1
+    tmax = 4
     # 1) plot the gear body info
-    Chain.plot_gear(9,11)
+    Chain.plot_gear()
     
-    '''
     # 2) plot idler body info, tensioner force
-    Chain.plot_idler(6,10)
+    Chain.plot_idler()
 
     # 3) plot powertrain info
-    Chain.plot_ptrain(6,10)    
+    Chain.plot_ptrain()    
     
     # 4) plot shoe 0 body info, and pin 0 force/torque
     Chain.plot_shoe(tmin,tmax)
@@ -667,12 +666,11 @@ if __name__ == '__main__':
     
     # 7) plot roller Constraint Violations
     Chain.plot_rollerCV(tmin,tmax)
-    '''
     
     # 8) from the contact report callback function, gear contact info
     Chain.plot_gearContactInfo()
     
     # 9)  from shoe-gear report callback function, contact info
-    Chain.plot_shoeGearContactInfo(1.1,1.5)
+    Chain.plot_shoeGearContactInfo()
 
 py.show()

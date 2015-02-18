@@ -545,7 +545,7 @@ int DriveChain::reportShoeGearContact(const std::string& shoe_name,
           // see if the relative position of the contact point has been set
           if( !m_is_PosRel_set)
           {
-            // when contact turns off, the z coordinate of the contact point is kept.
+            // when tracked contact is disabled, the z coordinate of the contact point is kept.
             // Next time shoe-gear contact is found, but not persistent, check the
             // z-val of newly found relative contact pt, make sure its the same as the old value
             // OR there was no old value, m_PosRel.z = 0, so include 0 in the conditional.
