@@ -133,8 +133,12 @@ protected:
     ChVector<>& LocRel_contact,
     ChVector<>& VRel_contact);
 
-  // used for debugging step to step persistent contact data
+  // *********  History dependent Variables
+  // for debugging step to step persistent contact data
   ChVector<> m_SG_info;
+  bool m_is_SG_PosRel_set;
+  ChVector<> m_SG_PosRel;
+   // ******** 
 
   // private variables
   // <ChBodyAuxRef> m_chassis   in base class
