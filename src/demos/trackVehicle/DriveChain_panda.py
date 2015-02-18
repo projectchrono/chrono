@@ -458,8 +458,11 @@ class DriveChain_panda:
         # plot # of contacts, time in contact, max time in contact
         figC, axarrC = plt.subplots(2,sharex=True)
         
+        # plot # of contacts, time in contact, max time in contact
+        figD, axarrD = plt.subplots(2,sharex=True)        
+        
         # data headers to pull from
-        inDat = ['time','Ncontacts','t_persist','t_persist_max','FnMax','FnAvg','FnSig','FtMax','FtAvg','FtSig']      
+        inDat = ['time','Ncontacts','t_persist','t_persist_max','FnMax','FnAvg','FnSig','FtMax','FtAvg','FtSig','xRel','yRel','zRel','VxRel','VyRel','VzRel']      
         
         # data frame from the headers
         DFsgci = pd.DataFrame(self._getDFhandle('shoeGearContact'), columns = inDat)
@@ -524,6 +527,7 @@ class DriveChain_panda:
             axarrA[0].set_xlim(xminmax[0], xminmax[1])
             axarrB[0].set_xlim(xminmax[0], xminmax[1])
             axarrC[0].set_xlim(xminmax[0], xminmax[1])
+            axarrD[0].set_xlim(xminmax[0], xminmax[1])
             
         # first plot label axes 
         axarrA[0].set_xlabel('time [s]')
@@ -592,6 +596,19 @@ class DriveChain_panda:
         axarrC[0].legend()
         axarrC[1].legend()
         axarrC[0].set_title('shoe0-gear contact persistence')
+        
+         # -----  fourth plot, follow a single gear-shoe contact point, its pos and vel relative to the gear c-sys
+        DFsgci.plot(ax = axarrD[0], linewidth=1.5, x='time', y=['xRel','yRel','zRel'])
+        DFsgci.plot(ax = axarrD[1], linewidth=1.5, x='time', y=['VxRel','VyRel','VzRel'])
+        
+        # plot label axes, legend
+        axarrD[0].set_xlabel('time [s]')
+        axarrD[0].set_ylabel('relative position [m]')
+        axarrD[1].set_ylabel('realtive vel. [m/s]')
+        #  legend
+        axarrD[0].legend()
+        axarrD[1].legend()
+        axarrD[0].set_title('shoe0-gear, track a contact point, position, vel. relative to gear c-sys')
       
 if __name__ == '__main__':
     
@@ -656,6 +673,6 @@ if __name__ == '__main__':
     Chain.plot_gearContactInfo()
     
     # 9)  from shoe-gear report callback function, contact info
-    Chain.plot_shoeGearContactInfo()
+    Chain.plot_shoeGearContactInfo(1,1.5)
 
 py.show()
