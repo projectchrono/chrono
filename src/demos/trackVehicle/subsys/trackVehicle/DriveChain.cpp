@@ -543,20 +543,27 @@ int DriveChain::reportShoeGearContact(const std::string& shoe_name,
             CollisionFam::GEAR);
 
           // see if the relative position of the contact point has been set
-          if( !m_is_PosRel_set )
+          if( !m_is_PosRel_set)
           {
-            m_PosRel = gearpt_PosRel;
-            // use this relative position next time
-            m_is_PosRel_set = true;
-
-            if(1)
+            // when contact turns off, the z coordinate of the contact point is kept.
+            // Next time shoe-gear contact is found, but not persistent, check the
+            // z-val of newly found relative contact pt, make sure its the same as the old value
+            // OR there was no old value, m_PosRel.z = 0, so include 0 in the conditional.
+            if( m_PosRel.z * gearpt_PosRel.z >= 0)
             {
-              GetLog () << " \n\n ***********     setting the gear contact point at time : " << modA->GetPhysicsItem()->GetSystem()->GetChTime()
-                << "\n rel pos : " << m_PosRel 
-                << "\n";
-            }
+              m_PosRel = gearpt_PosRel;
+              // use this relative position next time
+              m_is_PosRel_set = true;
 
-            return false; // stop scanning contacts
+              if(1)
+              {
+                GetLog () << " \n\n ***********     setting the gear contact point at time : " << modA->GetPhysicsItem()->GetSystem()->GetChTime()
+                  << "\n rel pos : " << m_PosRel 
+                  << "\n";
+              }
+
+              return false; // stop scanning contacts
+            }
           }
           else
           {
@@ -663,7 +670,11 @@ int DriveChain::reportShoeGearContact(const std::string& shoe_name,
   if(m_is_SG_PosRel_set)
     reporter.m_PosRel = m_SG_PosRel;
   else
-    reporter.m_PosRel = ChVector<>();
+  {
+    // when not set (between contact events), keep the z-coord (so the contact doesn't swap to the other side)
+    reporter.m_PosRel = ChVector<>(0, 0, m_SG_PosRel.z);
+    // reporter.m_PosRel = ChVector<>();
+  }
 
   // pass the reporter callback to the system
   m_system->GetContactContainer()->ReportAllContacts(&reporter);
@@ -682,7 +693,7 @@ int DriveChain::reportShoeGearContact(const std::string& shoe_name,
   {
     reporter.m_t_persist = 0;
     // allow the relative position of the shoe-gear contact to track to reset
-    reporter.m_PosRel = ChVector<>();
+    // reporter.m_PosRel = ChVector<>();
     reporter.m_is_PosRel_set = false;
   }
 
