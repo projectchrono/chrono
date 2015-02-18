@@ -69,12 +69,12 @@ using namespace chrono;
 // User Settings
 // =============================================================================
 //  render and total runtimes
-// #define WRITE_OUTPUT            // write output data to file
+#define WRITE_OUTPUT            // write output data to file
 // #define CONSOLE_SYSTEM_INFO  // display the system heirarchy in the console
-#define CONSOLE_DEBUG_INFO      // log constraint violations to console,
-#define CONSOLE_TIMING       // time each render and simulation step, log to console
+// #define CONSOLE_DEBUG_INFO      // log constraint violations to console,
+// #define CONSOLE_TIMING       // time each render and simulation step, log to console
 
-int what_to_save = DBG_FIRSTSHOE; // | DBG_GEAR | DBG_IDLER | DBG_PTRAIN | DBG_CONSTRAINTS;
+int what_to_save = DBG_FIRSTSHOE | DBG_GEAR | DBG_IDLER | DBG_PTRAIN | DBG_CONSTRAINTS;
 int what_to_console = DBG_FIRSTSHOE;  //  | DBG_GEAR | DBG_IDLER | DBG_PTRAIN | DBG_CONSTRAINTS;
 
 // Initial vehicle position and heading. Defines the REF frame for the hull body
@@ -95,7 +95,7 @@ double output_step_size = step_size;    // Time interval between two output fram
 ChVector<> trackPoint(-1, 0, 0.2);   // Point on chassis tracked by the camera, chassis c-sys
 
 bool use_fixed_camera = true;
-ChVector<> cameraPos(-0.5, 1, 2.6); // static camera position, global c-sys
+ChVector<> cameraPos(-0.5, 1, 2.4); // static camera position, global c-sys
 // if chase cam enabled:
 double chaseDist = 2.5;
 double chaseHeight = 0.5;
@@ -331,6 +331,7 @@ int main(int argc, char* argv[])
       GetLog() << "\n --------- TIMING -------------\n" << "time: " << chainSystem.GetSystem()->GetChTime();
       GetLog() << "\n total render time: " << total_render_time << ",  % of total: " << 100.*total_render_time / total_step_time;
       GetLog() << "\n total compute time: " << total_step_time << ", Avg. time per step " << time_since_last_output * chainSystem.GetSystem()->GetStep() / output_step_size;
+      GetLog() << "\n overall avg. time/step: " << total_step_time/step_number;
       time_since_last_output = 0;
 #endif
     }
