@@ -437,12 +437,14 @@ int DriveChain::reportGearContact(ChVector<>& Fn_info, ChVector<>& Ft_info)
 // Returns: number of contacts between the specified shoe body and gear body
 // Sets non-const inputs with contact persistence info, # of contacts, Fn, Ft statistics.
 // SG_info = (Num_contacts, t_persist, t_persist_max)
+// LocRel, VRel = relative pos, vel of contact point, relative to gear c-syss
 // Fn, Ft_info = (max, avg, stdev)
 int DriveChain::reportShoeGearContact(const std::string& shoe_name,
                                       ChVector<>& SG_info,
                                       ChVector<>& Fn_info,
                                       ChVector<>& Ft_info,
-                                      ChVector<>& VcRel_info)
+                                      ChVector<>& LocRel_contact,
+                                      ChVector<>& VRel_contact)
 {
   
   // scans the contacts, reports the desired info about any shoe 0 and gear collision pairs
@@ -477,13 +479,65 @@ int DriveChain::reportShoeGearContact(const std::string& shoe_name,
           }
           // increment the counter, timer and force data for this contact
           m_num_shoeGear_contacts++;
-          if( !m_incremented_this_step )
+          if( !m_is_incremented_this_step )
           {
               m_t_persist += modA->GetPhysicsItem()->GetSystem()->GetStep();
               // see if the time is larger than the last max
               if( m_t_persist > m_t_persist_max)
                 m_t_persist_max = m_t_persist;
-              m_incremented_this_step = true;
+              m_is_incremented_this_step = true;
+          }
+          // see if the relative position of the contact point has been set
+          if( !m_is_LocRelSet )
+          {
+            ChVector<> m_LocAbs;
+            ChFrame<> m_frameGear;
+            // set the relative position of the contact point relative to the gear
+            if( modB->GetFamily == (int)CollisionFam::GEAR )
+            {
+              // A is the shoe to use to find the loc, vel rel. B is the gear
+              m_LocAbs = pA - ((ChBody*)modB->GetPhysicsItem())->GetPos();
+              m_frameGear = ((ChBody*)modB->GetPhysicsItem())->GetFrame_COG_to_abs();
+            }
+            else
+            {
+              // B is the shoe, A is the gear
+              m_LocAbs = pB - ((ChBody*)modA->GetPhysicsItem())->GetPos();
+              m_frameGear = ((ChBody*)modA->GetPhysicsItem())->GetFrame_COG_to_abs();
+            }
+            // get the distance from gear center to contact point in gear c-sys
+            m_LocRel = m_frameGear.TransformParentToLocal(m_LocAbs);
+            // use this relative position next time
+            m_is_LocRelSet = true;
+          }
+          else
+          {
+            // relative loc has already been set. 
+            // See if this is that location, if so, set the rel pos. and vel. data
+            ChVector<> m_LocAbs;
+            ChFrame<> m_frameGear;
+            // set the relative position of the contact point relative to the gear
+            if( modB->GetFamily() == (int)CollisionFam::GEAR )
+            {
+               // A is the shoe to use to find the loc, vel rel. B is the gear
+              m_LocAbs = pA - ((ChBody*)modB->GetPhysicsItem())->GetPos();
+              m_frameGear = ((ChBody*)modB->GetPhysicsItem())->GetFrame_COG_to_abs();
+            }
+            else
+            {
+              // B is the shoe, A is the gear
+              m_LocAbs = pB - ((ChBody*)modA->GetPhysicsItem())->GetPos();
+              m_frameGear = ((ChBody*)modA->GetPhysicsItem())->GetFrame_COG_to_abs();
+            }
+            // get the distance from gear center to contact point in gear c-sys
+            ChVector<> curr_locRel = m_frameGear.TransformParentToLocal(m_LocAbs);
+
+            // is this the contact point we are tracking?
+            
+            // if so, record data.... ???
+
+
+
           }
           // increment normal force
           m_Fn_sum += react_forces.x;
@@ -521,13 +575,13 @@ int DriveChain::reportShoeGearContact(const std::string& shoe_name,
     // relevant gear info
     std::string m_shoe_name;  // string name for the shoe to check for collision with 
     int m_num_shoeGear_contacts;
-    bool m_incremented_this_step; // init to false. If at least 1 contact, switch to true and don't increment values again this time step.
+    bool m_is_incremented_this_step; // init to false. If at least 1 contact, switch to true and don't increment values again this time step.
     double m_t_persist; // time the contacts have been in persistent contact
     double m_t_persist_max; // max time the shoe stayed in contact with the gear
 
     ChVector<> m_LocRel;  // position of a contact to follow, relative to gear c-sys
     ChVector<> m_VelRel;  // velocity of contact followed, relative to gear c-sys
-    bool m_LocRelSet;   // has a contact point to follow been chosen? if yes, check to see, else write to above coord
+    bool m_is_LocRelSet;   // has a contact point to follow been chosen? if yes, check to see, else write to above coord
 
     double m_Fn_max;  // max normal force this step
     double m_Fn_sum;  // reaction normal force sum this step
@@ -542,10 +596,10 @@ int DriveChain::reportShoeGearContact(const std::string& shoe_name,
   _shoeGear_report_contact reporter;
   reporter.m_shoe_name = shoe_name;
   reporter.m_num_shoeGear_contacts = 0;
-  reporter.m_incremented_this_step = false;
+  reporter.m_is_incremented_this_step = false;
   reporter.m_LocRel = ChVector<>();
   reporter.m_VelRel = ChVector<>();
-  reporter.m_LocRelSet = false;
+  reporter.m_is_LocRelSet = false;
 
   // normal, friction force statistics
   reporter.m_Fn_max = 0;  // max normal reaction force
@@ -585,7 +639,9 @@ int DriveChain::reportShoeGearContact(const std::string& shoe_name,
     Ft_avg,
     std::sqrt(reporter.m_Ft_var) );
 
-  VcRel_info = reporter.m_VelRel;
+  // set loc, vel of contact point, relative to gear csys
+  LocRel_contact = reporter.m_LocRel;
+  VRel_contact = reporter.m_VelRel;
   // finally, any data that should persist to the next time step
   m_SG_info = SG_info;
 
@@ -729,13 +785,15 @@ void DriveChain::Log_to_console(int console_what)
       ChVector<> sg_info = ChVector<>();  // output data set
       ChVector<> Fn_info = ChVector<>();  // per step normal contact force statistics
       ChVector<> Ft_info = ChVector<>();  // per step friction contact force statistics
-      ChVector<> VcRel_info = ChVector<>(); // velocity of contact point, relative to gear c-sys
+      ChVector<> LocRel_contact = ChVector<>(); // location of contact point, relative to gear c-sysss
+      ChVector<> VRel_contact = ChVector<>(); // velocity of contact point, relative to gear c-sys
       // sg_info = (Num_contacts, t_persist, t_persist_max)
       reportShoeGearContact(m_chain->GetShoeBody(0)->GetNameString(),
         sg_info,
         Fn_info,
         Ft_info,
-        VcRel_info);
+        LocRel_contact,
+        VRel_contact);
 
       // "time,Ncontacts,t_persist,t_persist_max,FnMax,FnAvg,FnSig,FtMax,FtAvg,FtSig";
       std::stringstream ss_sg;
@@ -833,20 +891,23 @@ void DriveChain::Log_to_file()
       ChVector<> sg_info = ChVector<>();  // output data set
       ChVector<> Fn_info = ChVector<>();  // per step normal contact force statistics
       ChVector<> Ft_info = ChVector<>();  // per step friction contact force statistics
-      ChVector<> VcRel_info = ChVector<>();  // follow the vel. of a contact point relative to the gear c-sys
+      ChVector<> LocRel_contact = ChVector<>(); // location of a contact point relative to the gear c-sys
+      ChVector<> VRel_contact = ChVector<>();  // follow the vel. of a contact point relative to the gear c-sys
       // sg_info = (Num_contacts, t_persist, t_persist_max)
       reportShoeGearContact(m_chain->GetShoeBody(0)->GetNameString(),
         sg_info,
         Fn_info,
         Ft_info,
-        VcRel_info);
+        LocRel_contact,
+        VRel_contact);
 
       // "time,Ncontacts,t_persist,t_persist_max,FnMax,FnAvg,FnSig,FtMax,FtAvg,FtSig";
       std::stringstream ss_sg;
       ss_sg << t <<"," << sg_info
         <<","<< Fn_info
         <<","<< Ft_info
-        <<","<< VcRel_info
+        <<","<< LocRel_contact
+        <<","<< VRel_contact
         <<"\n";
       ChStreamOutAsciiFile ofile_shoeGear(m_filename_DBG_shoeGear.c_str(), std::ios::app);
       ofile_shoeGear << ss_sg.str().c_str();
