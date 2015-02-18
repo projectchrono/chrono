@@ -571,7 +571,7 @@ int DriveChain::reportShoeGearContact(const std::string& shoe_name,
               // done using last step relative position of contact pt on gear body, update for current contact
               m_PosRel = gearpt_PosRel;
 
-            if(1)
+            if(0)
             {
               GetLog () << " \n ****   Found persistent contact point at time : " << modA->GetPhysicsItem()->GetSystem()->GetChTime()
                 << "\n rel pos : " << m_PosRel 
@@ -681,6 +681,9 @@ int DriveChain::reportShoeGearContact(const std::string& shoe_name,
   if(reporter.m_num_shoeGear_contacts == 0)
   {
     reporter.m_t_persist = 0;
+    // allow the relative position of the shoe-gear contact to track to reset
+    reporter.m_PosRel = ChVector<>();
+    reporter.m_is_PosRel_set = false;
   }
 
   // set any data here from the reporter,
