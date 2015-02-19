@@ -21,7 +21,6 @@
 #include <omp.h>
 #include "unit_testing.h"
 #include "chrono_parallel/collision/ChCNarrowphaseMPR.h"
-#include "chrono_parallel/collision/ChCNarrowphaseMPRUtils.h"
 #include "chrono_parallel/constraints/ChConstraintRigidRigid.h"
 
 #include "collision/ChCCollisionModel.h"
@@ -30,6 +29,7 @@
 #include "chrono_utils/ChUtilsInputOutput.h"
 #include <blaze/math/CompressedMatrix.h>
 #include <blaze/math/DynamicVector.h>
+#include <chrono_parallel/collision/ChCNarrowphaseUtils.h>
 #include "test_matvec.h"
 
 using blaze::CompressedMatrix;

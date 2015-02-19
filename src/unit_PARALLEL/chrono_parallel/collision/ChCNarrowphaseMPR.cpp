@@ -7,8 +7,7 @@
 
 #include "chrono_parallel/math/ChParallelMath.h"
 #include "chrono_parallel/collision/ChCNarrowphaseMPR.h"
-#include "chrono_parallel/collision/ChCNarrowphaseMPRUtils.h"
-
+#include <chrono_parallel/collision/ChCNarrowphaseUtils.h>
 using namespace chrono::collision;
 
 #define MPR_TOLERANCE ZERO_EPSILON

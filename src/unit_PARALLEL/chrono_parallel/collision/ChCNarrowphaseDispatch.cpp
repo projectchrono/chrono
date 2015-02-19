@@ -6,7 +6,7 @@
 #include "collision/ChCCollisionModel.h"
 #include "chrono_parallel/math/ChParallelMath.h"
 #include "chrono_parallel/collision/ChCNarrowphaseDispatch.h"
-#include "chrono_parallel/collision/ChCNarrowphaseMPRUtils.h"
+#include <chrono_parallel/collision/ChCNarrowphaseUtils.h>
 #include "chrono_parallel/collision/ChCNarrowphaseMPR.h"
 #include "chrono_parallel/collision/ChCNarrowphaseR.h"
 

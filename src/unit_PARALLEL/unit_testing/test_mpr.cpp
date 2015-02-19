@@ -24,8 +24,8 @@
 #include <cmath>
 #include "unit_testing.h"
 #include "chrono_parallel/collision/ChCNarrowphaseMPR.h"
+#include <chrono_parallel/collision/ChCNarrowphaseUtils.h>
 #include "chrono_parallel/collision/ChCNarrowphaseGJK_EPA.h"
-#include "chrono_parallel/collision/ChCNarrowphaseMPRUtils.h"
 #include "collision/ChCCollisionModel.h"
 #include "core/ChMathematics.h"
 //

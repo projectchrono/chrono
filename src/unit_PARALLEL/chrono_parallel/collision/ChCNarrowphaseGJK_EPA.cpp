@@ -33,7 +33,7 @@
 #include "chrono_parallel/math/ChParallelMath.h"
 #include "chrono_parallel/collision/ChCNarrowphaseGJK_EPA.h"
 #include "chrono_parallel/collision/ChCNarrowphaseVoronoiSimplex.h"
-#include "chrono_parallel/collision/ChCNarrowphaseMPRUtils.h"
+#include <chrono_parallel/collision/ChCNarrowphaseUtils.h>
 #include "core/ChMathematics.h"
 namespace chrono {
 namespace collision {
