@@ -36,4 +36,4 @@ class ChOpenGLOBJLoader : public ChOpenGLBase {
 }
 }
 
-#endif    // END of CHOPENGLOBJLOADER_H
+#endif  // END of CHOPENGLOBJLOADER_H

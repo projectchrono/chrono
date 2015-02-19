@@ -108,7 +108,6 @@ struct MinkowskiDiff {
 
   inline real3 Support0(const real3& d) const { return SupportVert(shapeA, d, 0); }
   inline real3 Support1(const real3& d) const {
-
     real3 m_toshape0_v = (shapeB.A - shapeA.A);
     real3 m_toshape0_translate = quatRotateT(m_toshape0_v, shapeA.R);
 
@@ -118,7 +117,7 @@ struct MinkowskiDiff {
     real3 sv = SupportVert(shapeB, quatRotate(d, m_toshape1), 0);
     real3 result = TransformLocalToParent(m_toshape0_translate, m_toshape0, sv);
 
-    return result;    // SupportVert(shapeB, d, 0) + shapeB.margin * d;
+    return result;  // SupportVert(shapeB, d, 0) + shapeB.margin * d;
   }
   inline real3 Support(const real3& d) const { return (Support0(d) - Support1(-d)); }
   real3 Support(const real3& d, U index) const {
@@ -320,7 +319,9 @@ struct GJK {
         }
       } break;
       case 4: {
-        if (fabs(det(m_simplex->c[0]->w - m_simplex->c[3]->w, m_simplex->c[1]->w - m_simplex->c[3]->w, m_simplex->c[2]->w - m_simplex->c[3]->w)) > 0)
+        if (fabs(det(m_simplex->c[0]->w - m_simplex->c[3]->w,
+                     m_simplex->c[1]->w - m_simplex->c[3]->w,
+                     m_simplex->c[2]->w - m_simplex->c[3]->w)) > 0)
           return (true);
       } break;
     }
@@ -337,7 +338,9 @@ struct GJK {
     simplex.c[simplex.rank] = m_free[--m_nfree];
     getsupport(v, *simplex.c[simplex.rank++]);
   }
-  static real det(const real3& a, const real3& b, const real3& c) { return (a.y * b.z * c.x + a.z * b.x * c.y - a.x * b.z * c.y - a.y * b.x * c.z + a.x * b.y * c.z - a.z * b.y * c.x); }
+  static real det(const real3& a, const real3& b, const real3& c) {
+    return (a.y * b.z * c.x + a.z * b.x * c.y - a.x * b.z * c.y - a.y * b.x * c.z + a.x * b.y * c.z - a.z * b.y * c.x);
+  }
   static real projectorigin(const real3& a, const real3& b, real* w, U& m) {
     const real3 d = b - a;
     const real l = d.length2();
@@ -462,7 +465,18 @@ struct EPA {
     sHorizon() : cf(0), ff(0), nf(0) {}
   };
   struct eStatus {
-    enum _ { Valid, Touching, Degenerated, NonConvex, InvalidHull, OutOfFaces, OutOfVertices, AccuraryReached, FallBack, Failed };
+    enum _ {
+      Valid,
+      Touching,
+      Degenerated,
+      NonConvex,
+      InvalidHull,
+      OutOfFaces,
+      OutOfVertices,
+      AccuraryReached,
+      FallBack,
+      Failed
+    };
   };
   /* Fields      */
   eStatus::_ m_status;
@@ -513,7 +527,6 @@ struct EPA {
   eStatus::_ Evaluate(GJK& gjk, const real3& guess) {
     GJK::sSimplex& simplex = *gjk.m_simplex;
     if ((simplex.rank > 1) && gjk.EncloseOrigin()) {
-
       /* Clean up          */
       while (m_hull.root) {
         sFace* f = m_hull.root;
@@ -523,7 +536,9 @@ struct EPA {
       m_status = eStatus::Valid;
       m_nextsv = 0;
       /* Orient simplex    */
-      if (gjk.det(simplex.c[0]->w - simplex.c[3]->w, simplex.c[1]->w - simplex.c[3]->w, simplex.c[2]->w - simplex.c[3]->w) < 0) {
+      if (gjk.det(simplex.c[0]->w - simplex.c[3]->w,
+                  simplex.c[1]->w - simplex.c[3]->w,
+                  simplex.c[2]->w - simplex.c[3]->w) < 0) {
         Swap(simplex.c[0], simplex.c[1]);
         Swap(simplex.p[0], simplex.p[1]);
       }
@@ -608,8 +623,9 @@ struct EPA {
   }
   bool getedgedist(sFace* face, sSV* a, sSV* b, real& dist) {
     const real3 ba = b->w - a->w;
-    const real3 n_ab = cross(ba, face->n);     // Outward facing edge normal direction, on triangle plane
-    const real a_dot_nab = dot(a->w, n_ab);    // Only care about the sign to determine inside/outside, so not normalization required
+    const real3 n_ab = cross(ba, face->n);  // Outward facing edge normal direction, on triangle plane
+    const real a_dot_nab =
+        dot(a->w, n_ab);  // Only care about the sign to determine inside/outside, so not normalization required
 
     if (a_dot_nab < 0) {
       // Outside of edge a->b
@@ -649,7 +665,8 @@ struct EPA {
       const bool v = l > EPA_ACCURACY;
 
       if (v) {
-        if (!(getedgedist(face, a, b, face->d) || getedgedist(face, b, c, face->d) || getedgedist(face, c, a, face->d))) {
+        if (!(getedgedist(face, a, b, face->d) || getedgedist(face, b, c, face->d) ||
+              getedgedist(face, c, a, face->d))) {
           // Origin projects to the interior of the triangle
           // Use distance to triangle plane
           face->d = dot(a->w, face->n) / l;
@@ -723,7 +740,6 @@ static void Initialize(const ConvexShape& shape0, const ConvexShape& shape1, sRe
 }
 
 bool GJKDistance(const ConvexShape& shape0, const ConvexShape& shape1, const real3& guess, sResults& results) {
-
   tShape shape;
   Initialize(shape0, shape1, results, shape);
   GJK gjk;
@@ -749,7 +765,6 @@ bool GJKDistance(const ConvexShape& shape0, const ConvexShape& shape1, const rea
 }
 
 bool GJKPenetration(const ConvexShape& shape0, const ConvexShape& shape1, const real3& guess, sResults& results) {
-
   tShape shape;
   Initialize(shape0, shape1, results, shape);
   GJK gjk;
@@ -785,7 +800,6 @@ bool GJKFindPenetration(const ConvexShape& shape0, const ConvexShape& shape1, sR
   if (GJKPenetration(shape0, shape1, guess, results)) {
     return true;
   } else {
-
     if (GJKDistance(shape0, shape1, guess, results)) {
       return false;
     }
@@ -795,7 +809,10 @@ bool GJKFindPenetration(const ConvexShape& shape0, const ConvexShape& shape1, sR
 // must be above the machine epsilon
 #define REL_ERROR2 real(1.0e-6)
 
-bool GJKCollide(const ConvexShape& shape0, const ConvexShape& shape1, ContactManifold& manifold, real3& m_cachedSeparatingAxis) {
+bool GJKCollide(const ConvexShape& shape0,
+                const ConvexShape& shape1,
+                ContactManifold& manifold,
+                real3& m_cachedSeparatingAxis) {
   sResults results;
   real m_cachedSeparatingDistance;
   int gNumDeepPenetrationChecks = 0;
@@ -848,10 +865,12 @@ bool GJKCollide(const ConvexShape& shape0, const ConvexShape& shape1, ContactMan
       real3 pWorld = TransformLocalToParent(shapeA.A, shapeA.R, pInA);
       real3 qWorld = TransformLocalToParent(shapeB.A, shapeB.R, qInB);
 
-      //      printf("seperatingAxisInA: [%f %f %f], seperatingAxisInB:  [%f %f %f]\n", seperatingAxisInA.x, seperatingAxisInA.y, seperatingAxisInA.z, seperatingAxisInB.x, seperatingAxisInB.y,
+      //      printf("seperatingAxisInA: [%f %f %f], seperatingAxisInB:  [%f %f %f]\n", seperatingAxisInA.x,
+      //      seperatingAxisInA.y, seperatingAxisInA.z, seperatingAxisInB.x, seperatingAxisInB.y,
       //             seperatingAxisInB.z);
       //      printf("pInA: [%f %f %f], qInB:  [%f %f %f]\n", pInA.x, pInA.y, pInA.z, qInB.x, qInB.y, qInB.z);
-      //      printf("pWorld: [%f %f %f], qWorld:  [%f %f %f]\n", pWorld.x, pWorld.y, pWorld.z, qWorld.x, qWorld.y, qWorld.z);
+      //      printf("pWorld: [%f %f %f], qWorld:  [%f %f %f]\n", pWorld.x, pWorld.y, pWorld.z, qWorld.x, qWorld.y,
+      //      qWorld.z);
 
       real3 w = pWorld - qWorld;
       delta = m_cachedSeparatingAxis.dot(w);
@@ -942,7 +961,7 @@ bool GJKCollide(const ConvexShape& shape0, const ConvexShape& shape1, ContactMan
       }
       if (lenSqr > ZERO_EPSILON * ZERO_EPSILON) {
         real rlen = real(1.) / sqrt(lenSqr);
-        normalInB *= rlen;    // normalize
+        normalInB *= rlen;  // normalize
         real s = sqrt(squaredDistance);
 
         pointOnA -= m_cachedSeparatingAxis * (marginA / s);
@@ -1036,11 +1055,13 @@ bool GJKCollide(const ConvexShape& shape0, const ConvexShape& shape1, ContactMan
   }
 }
 
-void GJKPerturbedCollide(const ConvexShape& shapeA, const ConvexShape& shapeB, ContactManifold& manifold, real3 m_cachedSeparatingAxis) {
+void GJKPerturbedCollide(const ConvexShape& shapeA,
+                         const ConvexShape& shapeB,
+                         ContactManifold& manifold,
+                         real3 m_cachedSeparatingAxis) {
   int m_numPerturbationIterations = 4;
 
   if (m_numPerturbationIterations && manifold.num_contact_points < 4) {
-
     int i;
     real3 v0, v1;
     real3 sepNormalWorldSpace;
@@ -1080,7 +1101,6 @@ void GJKPerturbedCollide(const ConvexShape& shapeA, const ConvexShape& shapeB, C
         real4 rotq = Q_from_AngAxis(iterationAngle, sepNormalWorldSpace);
 
         if (perturbeA) {
-
           pShapeA.R = ((~rotq) % perturbeRot % rotq) % shapeA.R;
           pShapeB.R = shapeB.R;
 
@@ -1094,7 +1114,8 @@ void GJKPerturbedCollide(const ConvexShape& shapeA, const ConvexShape& shapeB, C
         GJKCollide(pShapeA, pShapeB, perturbed_manifold, sep_axis);
 
         for (int i = 0; i < perturbed_manifold.num_contact_points; i++) {
-          std::cout << perturbed_manifold.points[i].normal << perturbed_manifold.points[i].pointA << perturbed_manifold.points[i].pointB << perturbed_manifold.points[i].depth << std::endl;
+          std::cout << perturbed_manifold.points[i].normal << perturbed_manifold.points[i].pointA
+                    << perturbed_manifold.points[i].pointB << perturbed_manifold.points[i].depth << std::endl;
         }
       }
     }

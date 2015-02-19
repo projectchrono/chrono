@@ -19,7 +19,7 @@
 //
 // The global reference frame has Z up.
 //
-// If available, OpenGL is used for run-time rendering. Otherwise, the 
+// If available, OpenGL is used for run-time rendering. Otherwise, the
 // simulation is carried out for a pre-defined duration and output files are
 // generated for post-processing with POV-Ray.
 // =============================================================================
@@ -52,185 +52,181 @@ int count_Y = 2;
 // -----------------------------------------------------------------------------
 // Generate postprocessing output with current system state.
 // -----------------------------------------------------------------------------
-void OutputData(ChSystemParallel* sys,
-                int out_frame,
-                double time) {
-   char filename[100];
-   sprintf(filename, "%s/data_%03d.dat", out_folder, out_frame);
-   utils::WriteShapesPovray(sys, filename);
-   std::cout << "time = " << time << std::flush << std::endl;
+void OutputData(ChSystemParallel* sys, int out_frame, double time) {
+  char filename[100];
+  sprintf(filename, "%s/data_%03d.dat", out_folder, out_frame);
+  utils::WriteShapesPovray(sys, filename);
+  std::cout << "time = " << time << std::flush << std::endl;
 }
 
 // -----------------------------------------------------------------------------
 // Create a bin consisting of five boxes attached to the ground.
 // -----------------------------------------------------------------------------
 void AddContainer(ChSystemParallelDVI* sys) {
-   // IDs for the two bodies
-   int binId = -200;
+  // IDs for the two bodies
+  int binId = -200;
 
-   // Create a common material
-   ChSharedPtr<ChMaterialSurface> mat(new ChMaterialSurface);
-   mat->SetFriction(0.4f);
+  // Create a common material
+  ChSharedPtr<ChMaterialSurface> mat(new ChMaterialSurface);
+  mat->SetFriction(0.4f);
 
-   // Create the containing bin (4 x 4 x 1)
-   ChSharedBodyPtr bin(new ChBody(new ChCollisionModelParallel));
-   bin->SetMaterialSurface(mat);
-   bin->SetIdentifier(binId);
-   bin->SetMass(1);
-   bin->SetPos(ChVector<>(0, 0, 0));
-   bin->SetRot(Q_from_AngY(tilt_angle));
-   bin->SetCollide(true);
-   bin->SetBodyFixed(true);
+  // Create the containing bin (4 x 4 x 1)
+  ChSharedBodyPtr bin(new ChBody(new ChCollisionModelParallel));
+  bin->SetMaterialSurface(mat);
+  bin->SetIdentifier(binId);
+  bin->SetMass(1);
+  bin->SetPos(ChVector<>(0, 0, 0));
+  bin->SetRot(Q_from_AngY(tilt_angle));
+  bin->SetCollide(true);
+  bin->SetBodyFixed(true);
 
-   ChVector<> hdim(2, 2, 0.5);
-   double hthick = 0.1;
+  ChVector<> hdim(2, 2, 0.5);
+  double hthick = 0.1;
 
-   bin->GetCollisionModel()->ClearModel();
-   utils::AddBoxGeometry(bin.get_ptr(), ChVector<>(hdim.x, hdim.y, hthick), ChVector<>(0, 0, -hthick));
-   utils::AddBoxGeometry(bin.get_ptr(), ChVector<>(hthick, hdim.y, hdim.z), ChVector<>(-hdim.x - hthick, 0, hdim.z));
-   utils::AddBoxGeometry(bin.get_ptr(), ChVector<>(hthick, hdim.y, hdim.z), ChVector<>(hdim.x + hthick, 0, hdim.z));
-   utils::AddBoxGeometry(bin.get_ptr(), ChVector<>(hdim.x, hthick, hdim.z), ChVector<>(0, -hdim.y - hthick, hdim.z));
-   utils::AddBoxGeometry(bin.get_ptr(), ChVector<>(hdim.x, hthick, hdim.z), ChVector<>(0, hdim.y + hthick, hdim.z));
-   bin->GetCollisionModel()->BuildModel();
+  bin->GetCollisionModel()->ClearModel();
+  utils::AddBoxGeometry(bin.get_ptr(), ChVector<>(hdim.x, hdim.y, hthick), ChVector<>(0, 0, -hthick));
+  utils::AddBoxGeometry(bin.get_ptr(), ChVector<>(hthick, hdim.y, hdim.z), ChVector<>(-hdim.x - hthick, 0, hdim.z));
+  utils::AddBoxGeometry(bin.get_ptr(), ChVector<>(hthick, hdim.y, hdim.z), ChVector<>(hdim.x + hthick, 0, hdim.z));
+  utils::AddBoxGeometry(bin.get_ptr(), ChVector<>(hdim.x, hthick, hdim.z), ChVector<>(0, -hdim.y - hthick, hdim.z));
+  utils::AddBoxGeometry(bin.get_ptr(), ChVector<>(hdim.x, hthick, hdim.z), ChVector<>(0, hdim.y + hthick, hdim.z));
+  bin->GetCollisionModel()->BuildModel();
 
-   sys->AddBody(bin);
+  sys->AddBody(bin);
 }
 
 // -----------------------------------------------------------------------------
 // Create the falling spherical objects in a uniform rectangular grid.
 // -----------------------------------------------------------------------------
 void AddFallingBalls(ChSystemParallel* sys) {
-   // Common material
-   ChSharedPtr<ChMaterialSurface> ballMat(new ChMaterialSurface);
-   ballMat->SetFriction(0.4f);
+  // Common material
+  ChSharedPtr<ChMaterialSurface> ballMat(new ChMaterialSurface);
+  ballMat->SetFriction(0.4f);
 
-   // Create the falling balls
-   int ballId = 0;
-   double mass = 1;
-   double radius = 0.15;
-   ChVector<> inertia = (2.0 / 5.0) * mass * radius * radius * ChVector<>(1, 1, 1);
+  // Create the falling balls
+  int ballId = 0;
+  double mass = 1;
+  double radius = 0.15;
+  ChVector<> inertia = (2.0 / 5.0) * mass * radius * radius * ChVector<>(1, 1, 1);
 
-   for (int ix = -count_X; ix <= count_X; ix++) {
-      for (int iy = -count_Y; iy <= count_Y; iy++) {
-         ChVector<> pos(0.4 * ix, 0.4 * iy, 1);
+  for (int ix = -count_X; ix <= count_X; ix++) {
+    for (int iy = -count_Y; iy <= count_Y; iy++) {
+      ChVector<> pos(0.4 * ix, 0.4 * iy, 1);
 
-         ChSharedBodyPtr ball(new ChBody(new ChCollisionModelParallel));
-         ball->SetMaterialSurface(ballMat);
+      ChSharedBodyPtr ball(new ChBody(new ChCollisionModelParallel));
+      ball->SetMaterialSurface(ballMat);
 
-         ball->SetIdentifier(ballId++);
-         ball->SetMass(mass);
-         ball->SetInertiaXX(inertia);
-         ball->SetPos(pos);
-         ball->SetRot(ChQuaternion<>(1, 0, 0, 0));
-         ball->SetBodyFixed(false);
-         ball->SetCollide(true);
+      ball->SetIdentifier(ballId++);
+      ball->SetMass(mass);
+      ball->SetInertiaXX(inertia);
+      ball->SetPos(pos);
+      ball->SetRot(ChQuaternion<>(1, 0, 0, 0));
+      ball->SetBodyFixed(false);
+      ball->SetCollide(true);
 
-         ball->GetCollisionModel()->ClearModel();
-         utils::AddSphereGeometry(ball.get_ptr(), radius);
-         ball->GetCollisionModel()->BuildModel();
+      ball->GetCollisionModel()->ClearModel();
+      utils::AddSphereGeometry(ball.get_ptr(), radius);
+      ball->GetCollisionModel()->BuildModel();
 
-         sys->AddBody(ball);
-      }
-   }
+      sys->AddBody(ball);
+    }
+  }
 }
 
 // -----------------------------------------------------------------------------
 // Create the system, specify simulation parameters, and run simulation loop.
 // -----------------------------------------------------------------------------
-int main(int argc,
-         char* argv[]) {
-   int threads = 8;
+int main(int argc, char* argv[]) {
+  int threads = 8;
 
-   // Simulation parameters
-   // ---------------------
+  // Simulation parameters
+  // ---------------------
 
-   double gravity = 9.81;
-   double time_step = 1e-3;
-   double time_end = 2;
+  double gravity = 9.81;
+  double time_step = 1e-3;
+  double time_end = 2;
 
-   double out_fps = 50;
+  double out_fps = 50;
 
-   uint max_iteration = 300;
-   real tolerance = 1e-3;
+  uint max_iteration = 300;
+  real tolerance = 1e-3;
 
-   // Create system
-   // -------------
+  // Create system
+  // -------------
 
-   ChSystemParallelDVI msystem;
+  ChSystemParallelDVI msystem;
 
-   // Set number of threads.
-   int max_threads = msystem.GetParallelThreadNumber();
-   if (threads > max_threads)
-      threads = max_threads;
-   msystem.SetParallelThreadNumber(threads);
-   omp_set_num_threads(threads);
+  // Set number of threads.
+  int max_threads = msystem.GetParallelThreadNumber();
+  if (threads > max_threads)
+    threads = max_threads;
+  msystem.SetParallelThreadNumber(threads);
+  omp_set_num_threads(threads);
 
-   // Set gravitational acceleration
-   msystem.Set_G_acc(ChVector<>(0, 0, -gravity));
+  // Set gravitational acceleration
+  msystem.Set_G_acc(ChVector<>(0, 0, -gravity));
 
-   // Set solver parameters
-   msystem.GetSettings()->solver.solver_mode = SLIDING;
-   msystem.GetSettings()->solver.max_iteration_normal = max_iteration / 3;
-   msystem.GetSettings()->solver.max_iteration_sliding = max_iteration / 3;
-   msystem.GetSettings()->solver.max_iteration_spinning = 0;
-   msystem.GetSettings()->solver.max_iteration_bilateral = max_iteration / 3;
-   msystem.GetSettings()->solver.tolerance = tolerance;
-   msystem.GetSettings()->solver.alpha = 0;
-   msystem.GetSettings()->solver.contact_recovery_speed = 10000;
-   msystem.ChangeSolverType(APGDREF);
-   msystem.GetSettings()->collision.narrowphase_algorithm = NARROWPHASE_HYBRID_MPR;
+  // Set solver parameters
+  msystem.GetSettings()->solver.solver_mode = SLIDING;
+  msystem.GetSettings()->solver.max_iteration_normal = max_iteration / 3;
+  msystem.GetSettings()->solver.max_iteration_sliding = max_iteration / 3;
+  msystem.GetSettings()->solver.max_iteration_spinning = 0;
+  msystem.GetSettings()->solver.max_iteration_bilateral = max_iteration / 3;
+  msystem.GetSettings()->solver.tolerance = tolerance;
+  msystem.GetSettings()->solver.alpha = 0;
+  msystem.GetSettings()->solver.contact_recovery_speed = 10000;
+  msystem.ChangeSolverType(APGDREF);
+  msystem.GetSettings()->collision.narrowphase_algorithm = NARROWPHASE_HYBRID_MPR;
 
-   msystem.GetSettings()->collision.collision_envelope = 0.01;
-   msystem.GetSettings()->collision.bins_per_axis = I3(10, 10, 10);
+  msystem.GetSettings()->collision.collision_envelope = 0.01;
+  msystem.GetSettings()->collision.bins_per_axis = I3(10, 10, 10);
 
-   // Create the fixed and moving bodies
-   // ----------------------------------
+  // Create the fixed and moving bodies
+  // ----------------------------------
 
-   AddContainer(&msystem);
-   AddFallingBalls(&msystem);
+  AddContainer(&msystem);
+  AddFallingBalls(&msystem);
 
-   // Perform the simulation
-   // ----------------------
+// Perform the simulation
+// ----------------------
 
 #ifdef CHRONO_PARALLEL_HAS_OPENGL
-   opengl::ChOpenGLWindow &gl_window = opengl::ChOpenGLWindow::getInstance();
-   gl_window.Initialize(1280, 720, "ballsDVI", &msystem);
-   gl_window.SetCamera(ChVector<>(0, -10, 0), ChVector<>(0, 0, 0), ChVector<>(0, 0, 1));
+  opengl::ChOpenGLWindow& gl_window = opengl::ChOpenGLWindow::getInstance();
+  gl_window.Initialize(1280, 720, "ballsDVI", &msystem);
+  gl_window.SetCamera(ChVector<>(0, -10, 0), ChVector<>(0, 0, 0), ChVector<>(0, 0, 1));
 
-   // Uncomment the following two lines for the OpenGL manager to automatically
-   // run the simulation in an infinite loop.
-   //gl_window.StartDrawLoop(time_step);
-   //return 0;
+  // Uncomment the following two lines for the OpenGL manager to automatically
+  // run the simulation in an infinite loop.
+  // gl_window.StartDrawLoop(time_step);
+  // return 0;
 
-   while (true) {
-     if (gl_window.Active()) {
-       gl_window.DoStepDynamics(time_step);
-       gl_window.Render();
-       ////if (gl_window.Running()) {
-       ////  msystem.CalculateContactForces();
-       ////  real3 frc = msystem.GetBodyContactForce(0);
-       ////  std::cout << frc.x << "  " << frc.y << "  " << frc.z << std::endl;
-       ////}
-     } else {
-       break;
-     }
-   }
+  while (true) {
+    if (gl_window.Active()) {
+      gl_window.DoStepDynamics(time_step);
+      gl_window.Render();
+      ////if (gl_window.Running()) {
+      ////  msystem.CalculateContactForces();
+      ////  real3 frc = msystem.GetBodyContactForce(0);
+      ////  std::cout << frc.x << "  " << frc.y << "  " << frc.z << std::endl;
+      ////}
+    } else {
+      break;
+    }
+  }
 #else
-   // Run simulation for specified time
-   int num_steps = std::ceil(time_end / time_step);
-   int out_steps = std::ceil((1 / time_step) / out_fps);
-   int out_frame = 0;
+  // Run simulation for specified time
+  int num_steps = std::ceil(time_end / time_step);
+  int out_steps = std::ceil((1 / time_step) / out_fps);
+  int out_frame = 0;
 
-   for (int i = 0; i < num_steps; i++) {
-      if (i % out_steps == 0) {
-         OutputData(&msystem, out_frame, time);
-         out_frame++;
-      }
-      msystem.DoStepDynamics(time_step);
-      time += time_step;
-   }
+  for (int i = 0; i < num_steps; i++) {
+    if (i % out_steps == 0) {
+      OutputData(&msystem, out_frame, time);
+      out_frame++;
+    }
+    msystem.DoStepDynamics(time_step);
+    time += time_step;
+  }
 #endif
 
-   return 0;
+  return 0;
 }
-

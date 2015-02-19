@@ -52,102 +52,96 @@ unsigned int max_objects = 16000;
 double envelope = 0.1;
 
 real3 ToReal3(const btVector3& v) {
-   return real3(v.x(), v.y(), v.z());
+  return real3(v.x(), v.y(), v.z());
 }
 
 btVector3 ToBtVec(const real3& v) {
-   return btVector3(v.x, v.y, v.z);
+  return btVector3(v.x, v.y, v.z);
 }
 void InitBulletCollision() {
+  bt_collision_configuration = new btDefaultCollisionConfiguration();
+  bt_dispatcher = new btCollisionDispatcher(bt_collision_configuration);
 
-   bt_collision_configuration = new btDefaultCollisionConfiguration();
-   bt_dispatcher = new btCollisionDispatcher(bt_collision_configuration);
+  btScalar sscene_size = (btScalar)scene_size;
+  btVector3 worldAabbMin(-sscene_size, -sscene_size, -sscene_size);
+  btVector3 worldAabbMax(sscene_size, sscene_size, sscene_size);
+  bt_broadphase = new bt32BitAxisSweep3(
+      worldAabbMin, worldAabbMax, max_objects, 0, true);  // true for disabling raycast accelerator
 
-   btScalar sscene_size = (btScalar) scene_size;
-   btVector3 worldAabbMin(-sscene_size, -sscene_size, -sscene_size);
-   btVector3 worldAabbMax(sscene_size, sscene_size, sscene_size);
-   bt_broadphase = new bt32BitAxisSweep3(worldAabbMin, worldAabbMax, max_objects, 0, true);  // true for disabling raycast accelerator
-
-   bt_collision_world = new btCollisionWorld(bt_dispatcher, bt_broadphase, bt_collision_configuration);
-
+  bt_collision_world = new btCollisionWorld(bt_dispatcher, bt_broadphase, bt_collision_configuration);
 }
 
 void GetContacts() {
-   ChCollisionInfo icontact;
+  ChCollisionInfo icontact;
 
-   int numManifolds = bt_collision_world->getDispatcher()->getNumManifolds();
+  int numManifolds = bt_collision_world->getDispatcher()->getNumManifolds();
 
-   for (int i = 0; i < numManifolds; i++) {
+  for (int i = 0; i < numManifolds; i++) {
+    btPersistentManifold* contactManifold = bt_collision_world->getDispatcher()->getManifoldByIndexInternal(i);
 
-      btPersistentManifold* contactManifold = bt_collision_world->getDispatcher()->getManifoldByIndexInternal(i);
+    btCollisionObject* obA = static_cast<btCollisionObject*>(contactManifold->getBody0());
+    btCollisionObject* obB = static_cast<btCollisionObject*>(contactManifold->getBody1());
+    contactManifold->refreshContactPoints(obA->getWorldTransform(), obB->getWorldTransform());
 
-      btCollisionObject* obA = static_cast<btCollisionObject*>(contactManifold->getBody0());
-      btCollisionObject* obB = static_cast<btCollisionObject*>(contactManifold->getBody1());
-      contactManifold->refreshContactPoints(obA->getWorldTransform(), obB->getWorldTransform());
+    // Execute custom broadphase callback, if any
+    bool do_narrow_contactgeneration = true;
 
-      // Execute custom broadphase callback, if any
-      bool do_narrow_contactgeneration = true;
+    if (do_narrow_contactgeneration) {
+      int numContacts = contactManifold->getNumContacts();
 
-      if (do_narrow_contactgeneration) {
-         int numContacts = contactManifold->getNumContacts();
+      for (int j = 0; j < numContacts; j++) {
+        btManifoldPoint& pt = contactManifold->getContactPoint(j);
 
-         for (int j = 0; j < numContacts; j++) {
-            btManifoldPoint& pt = contactManifold->getContactPoint(j);
+        btVector3 ptA = pt.getPositionWorldOnA();
+        btVector3 ptB = pt.getPositionWorldOnB();
 
-            btVector3 ptA = pt.getPositionWorldOnA();
-            btVector3 ptB = pt.getPositionWorldOnB();
+        icontact.vpA.Set(ptA.getX(), ptA.getY(), ptA.getZ());
+        icontact.vpB.Set(ptB.getX(), ptB.getY(), ptB.getZ());
 
-            icontact.vpA.Set(ptA.getX(), ptA.getY(), ptA.getZ());
-            icontact.vpB.Set(ptB.getX(), ptB.getY(), ptB.getZ());
+        icontact.vN.Set(-pt.m_normalWorldOnB.getX(), -pt.m_normalWorldOnB.getY(), -pt.m_normalWorldOnB.getZ());
+        icontact.vN.Normalize();
 
-            icontact.vN.Set(-pt.m_normalWorldOnB.getX(), -pt.m_normalWorldOnB.getY(), -pt.m_normalWorldOnB.getZ());
-            icontact.vN.Normalize();
+        double ptdist = pt.getDistance();
 
-            double ptdist = pt.getDistance();
+        icontact.vpA = icontact.vpA - icontact.vN * envelope;
+        icontact.vpB = icontact.vpB + icontact.vN * envelope;
 
-            icontact.vpA = icontact.vpA - icontact.vN * envelope;
-            icontact.vpB = icontact.vpB + icontact.vN * envelope;
+        icontact.distance = ptdist + envelope + envelope;
 
-            icontact.distance = ptdist + envelope + envelope;
+        icontact.reaction_cache = pt.reactions_cache;
 
-            icontact.reaction_cache = pt.reactions_cache;
+        cout << icontact.distance << endl;
+        // Execute some user custom callback, if any
 
-            cout << icontact.distance << endl;
-            // Execute some user custom callback, if any
-
-            // Add to contact container
-            //mcontactcontainer->AddContact(icontact);
-
-         }
-
+        // Add to contact container
+        // mcontactcontainer->AddContact(icontact);
       }
-      //you can un-comment out this line, and then all points are removed
-      //contactManifold->clearManifold();
-   }
+    }
+    // you can un-comment out this line, and then all points are removed
+    // contactManifold->clearManifold();
+  }
 }
 
-int main(int argc,
-         char* argv[]) {
-   InitBulletCollision();
+int main(int argc, char* argv[]) {
+  InitBulletCollision();
 
-   btCollisionObject* sphere_A = new btCollisionObject();
-   btCollisionObject* sphere_B = new btCollisionObject();
+  btCollisionObject* sphere_A = new btCollisionObject();
+  btCollisionObject* sphere_B = new btCollisionObject();
 
-   sphere_A->getWorldTransform().setOrigin(btVector3((btScalar) 2, (btScalar) 2.05, (btScalar) 0));
-   sphere_B->getWorldTransform().setOrigin(btVector3((btScalar) 2, (btScalar) 0, (btScalar) 0));
+  sphere_A->getWorldTransform().setOrigin(btVector3((btScalar)2, (btScalar)2.05, (btScalar)0));
+  sphere_B->getWorldTransform().setOrigin(btVector3((btScalar)2, (btScalar)0, (btScalar)0));
 
-   btSphereShape sphere_shape(1+envelope);
-   sphere_shape.setMargin(envelope);
+  btSphereShape sphere_shape(1 + envelope);
+  sphere_shape.setMargin(envelope);
 
-   sphere_A->setCollisionShape(&sphere_shape);
-   sphere_B->setCollisionShape(&sphere_shape);
-   bt_collision_world->addCollisionObject(sphere_A);
-   bt_collision_world->addCollisionObject(sphere_B);
-   bt_collision_world->performDiscreteCollisionDetection();
-   cout << bt_collision_world->getNumCollisionObjects() << endl;
+  sphere_A->setCollisionShape(&sphere_shape);
+  sphere_B->setCollisionShape(&sphere_shape);
+  bt_collision_world->addCollisionObject(sphere_A);
+  bt_collision_world->addCollisionObject(sphere_B);
+  bt_collision_world->performDiscreteCollisionDetection();
+  cout << bt_collision_world->getNumCollisionObjects() << endl;
 
-   GetContacts();
+  GetContacts();
 
-   return 0;
+  return 0;
 }
-

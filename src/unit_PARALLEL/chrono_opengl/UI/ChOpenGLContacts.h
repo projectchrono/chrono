@@ -27,7 +27,8 @@ class CH_OPENGL_API ChOpenGLContacts : public ChOpenGLBase {
   void Draw(const glm::mat4& projection, const glm::mat4& view);
   void TakeDown();
   void Update(ChSystem* physics_system);
-  void SetPointSize(const float& pointsize){contacts.SetPointSize(pointsize);}
+  void SetPointSize(const float& pointsize) { contacts.SetPointSize(pointsize); }
+
  private:
   void UpdateChrono(ChSystem* physics_system);
   void UpdateChronoParallel(ChSystemParallel* system);
@@ -37,4 +38,4 @@ class CH_OPENGL_API ChOpenGLContacts : public ChOpenGLBase {
 };
 }
 }
-#endif    // END of CHOPENGLCONTACTS_H
+#endif  // END of CHOPENGLCONTACTS_H

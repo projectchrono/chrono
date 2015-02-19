@@ -21,8 +21,7 @@ namespace chrono {
 class CH_PARALLEL_API ChContactContainerParallel : public ChContactContainer {
   CH_RTTI(ChContactContainerParallel, ChContactContainer);
 
-public:
-
+ public:
   ChContactContainerParallel(ChParallelDataManager* dc);
 
   virtual ~ChContactContainerParallel();
@@ -30,9 +29,6 @@ public:
 
   ChParallelDataManager* data_container;
 };
-
-
 }
 
 #endif
-

@@ -20,7 +20,7 @@
 
 #ifdef __APPLE__
 #define GLFW_INCLUDE_GLCOREARB
-#define GL_DO_NOT_WARN_IF_MULTI_GL_VERSION_HEADERS_INCLUDED    // fixes warnings
+#define GL_DO_NOT_WARN_IF_MULTI_GL_VERSION_HEADERS_INCLUDED  // fixes warnings
 #endif
 
 #define GLM_FORCE_RADIANS
@@ -72,4 +72,4 @@ class CH_OPENGL_API ChOpenGLBase {
 }
 #pragma GCC diagnostic pop
 
-#endif    // END of CHOPENGLBASE_H
+#endif  // END of CHOPENGLBASE_H

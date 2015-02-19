@@ -12,7 +12,7 @@
 // Authors: Hammad Mazhar
 // =============================================================================
 //
-// Description: This file defines a fluid node, it is based on a 3DOF NodeXYZ 
+// Description: This file defines a fluid node, it is based on a 3DOF NodeXYZ
 // element. This class is similar to ChMatterSPH but is meant to be a bit more
 // general.
 // =============================================================================
@@ -39,58 +39,47 @@ class ChSystem;
 
 class CH_PARALLEL_API ChNodeFluid : public ChNodeXYZ {
  public:
-   ChNodeFluid();
-   ~ChNodeFluid();
+  ChNodeFluid();
+  ~ChNodeFluid();
 
-   ChNodeFluid(const ChNodeFluid& other);  // Copy constructor
-   ChNodeFluid& operator=(const ChNodeFluid& other);  //Assignment operator
+  ChNodeFluid(const ChNodeFluid& other);  // Copy constructor
+  ChNodeFluid& operator=(const ChNodeFluid& other);  // Assignment operator
 
-   //
-   // FUNCTIONS
-   //
+  //
+  // FUNCTIONS
+  //
 
-   // Get the kernel radius (max. radius while checking surrounding particles)
-   real GetKernelRadius() {
-      return h_rad;
-   }
-   void SetKernelRadius(real mr);
+  // Get the kernel radius (max. radius while checking surrounding particles)
+  real GetKernelRadius() { return h_rad; }
+  void SetKernelRadius(real mr);
 
-   // Set collision radius (for colliding with bodies, boundaries, etc.)
-   real GetCollisionRadius() {
-      return coll_rad;
-   }
-   void SetCollisionRadius(real mr);
+  // Set collision radius (for colliding with bodies, boundaries, etc.)
+  real GetCollisionRadius() { return coll_rad; }
+  void SetCollisionRadius(real mr);
 
-   // Set the mass of the node
-   void SetMass(double mmass) {
-      this->variables.SetNodeMass(mmass);
-   }
-   // Get the mass of the node
-   double GetMass() const {
-      return variables.GetNodeMass();
-   }
+  // Set the mass of the node
+  void SetMass(double mmass) { this->variables.SetNodeMass(mmass); }
+  // Get the mass of the node
+  double GetMass() const { return variables.GetNodeMass(); }
 
-   // Access the 'LCP variables' of the node
-   ChLcpVariables& Variables() {
-      return variables;
-   }
+  // Access the 'LCP variables' of the node
+  ChLcpVariables& Variables() { return variables; }
 
-   //
-   // DATA
-   //
+  //
+  // DATA
+  //
 
-   ChLcpVariablesNode variables;
+  ChLcpVariablesNode variables;
 
-   collision::ChCollisionModel* collision_model;
+  collision::ChCollisionModel* collision_model;
 
-   ChVector<> UserForce;
+  ChVector<> UserForce;
 
-   real volume;  //volume of the node
-   real density;  //density of the node
-   real h_rad;   //kernel radius of the node
-   real coll_rad;   //collision radius (for collision model)
-   real pressure;   //pressure at node
+  real volume;  // volume of the node
+  real density;  // density of the node
+  real h_rad;  // kernel radius of the node
+  real coll_rad;  // collision radius (for collision model)
+  real pressure;  // pressure at node
 };
-
 }
 #endif

@@ -73,7 +73,8 @@ ChOpenGLViewer::ChOpenGLViewer(ChSystem* system) {
   fps = 0;
 }
 
-ChOpenGLViewer::~ChOpenGLViewer() {}
+ChOpenGLViewer::~ChOpenGLViewer() {
+}
 
 void ChOpenGLViewer::TakeDown() {
   render_camera.TakeDown();
@@ -233,7 +234,6 @@ void ChOpenGLViewer::Render() {
     DisplayHUD();
     timer.stop("text");
     time_text = .5 * timer.GetTime("text") + .5 * time_text;
-
   }
   timer.stop("render");
   time_total = .5 * timer.GetTime("render") + .5 * time_total;
@@ -335,42 +335,50 @@ void ChOpenGLViewer::DrawObject(ChBody* abody) {
       model_box.push_back(model);
 
       glm::vec3 local = glm::rotate(glm::vec3(rad.x, rad.y, rad.z), float(angle), glm::vec3(axis.x, axis.y, axis.z));
-      model = glm::translate(glm::mat4(1), glm::vec3(pos_final.x + local.x, pos_final.y + local.y, pos_final.z + local.z));
+      model =
+          glm::translate(glm::mat4(1), glm::vec3(pos_final.x + local.x, pos_final.y + local.y, pos_final.z + local.z));
       model = glm::scale(model, glm::vec3(radsphere));
       model_sphere.push_back(model);
 
       local = glm::rotate(glm::vec3(rad.x, rad.y, -rad.z), float(angle), glm::vec3(axis.x, axis.y, axis.z));
-      model = glm::translate(glm::mat4(1), glm::vec3(pos_final.x + local.x, pos_final.y + local.y, pos_final.z + local.z));
+      model =
+          glm::translate(glm::mat4(1), glm::vec3(pos_final.x + local.x, pos_final.y + local.y, pos_final.z + local.z));
       model = glm::scale(model, glm::vec3(radsphere));
       model_sphere.push_back(model);
 
       local = glm::rotate(glm::vec3(-rad.x, rad.y, rad.z), float(angle), glm::vec3(axis.x, axis.y, axis.z));
-      model = glm::translate(glm::mat4(1), glm::vec3(pos_final.x + local.x, pos_final.y + local.y, pos_final.z + local.z));
+      model =
+          glm::translate(glm::mat4(1), glm::vec3(pos_final.x + local.x, pos_final.y + local.y, pos_final.z + local.z));
       model = glm::scale(model, glm::vec3(radsphere));
       model_sphere.push_back(model);
 
       local = glm::rotate(glm::vec3(-rad.x, rad.y, -rad.z), float(angle), glm::vec3(axis.x, axis.y, axis.z));
-      model = glm::translate(glm::mat4(1), glm::vec3(pos_final.x + local.x, pos_final.y + local.y, pos_final.z + local.z));
+      model =
+          glm::translate(glm::mat4(1), glm::vec3(pos_final.x + local.x, pos_final.y + local.y, pos_final.z + local.z));
       model = glm::scale(model, glm::vec3(radsphere));
       model_sphere.push_back(model);
 
       local = glm::rotate(glm::vec3(rad.x, -rad.y, rad.z), float(angle), glm::vec3(axis.x, axis.y, axis.z));
-      model = glm::translate(glm::mat4(1), glm::vec3(pos_final.x + local.x, pos_final.y + local.y, pos_final.z + local.z));
+      model =
+          glm::translate(glm::mat4(1), glm::vec3(pos_final.x + local.x, pos_final.y + local.y, pos_final.z + local.z));
       model = glm::scale(model, glm::vec3(radsphere));
       model_sphere.push_back(model);
 
       local = glm::rotate(glm::vec3(rad.x, -rad.y, -rad.z), float(angle), glm::vec3(axis.x, axis.y, axis.z));
-      model = glm::translate(glm::mat4(1), glm::vec3(pos_final.x + local.x, pos_final.y + local.y, pos_final.z + local.z));
+      model =
+          glm::translate(glm::mat4(1), glm::vec3(pos_final.x + local.x, pos_final.y + local.y, pos_final.z + local.z));
       model = glm::scale(model, glm::vec3(radsphere));
       model_sphere.push_back(model);
 
       local = glm::rotate(glm::vec3(-rad.x, -rad.y, rad.z), float(angle), glm::vec3(axis.x, axis.y, axis.z));
-      model = glm::translate(glm::mat4(1), glm::vec3(pos_final.x + local.x, pos_final.y + local.y, pos_final.z + local.z));
+      model =
+          glm::translate(glm::mat4(1), glm::vec3(pos_final.x + local.x, pos_final.y + local.y, pos_final.z + local.z));
       model = glm::scale(model, glm::vec3(radsphere));
       model_sphere.push_back(model);
 
       local = glm::rotate(glm::vec3(-rad.x, -rad.y, -rad.z), float(angle), glm::vec3(axis.x, axis.y, axis.z));
-      model = glm::translate(glm::mat4(1), glm::vec3(pos_final.x + local.x, pos_final.y + local.y, pos_final.z + local.z));
+      model =
+          glm::translate(glm::mat4(1), glm::vec3(pos_final.x + local.x, pos_final.y + local.y, pos_final.z + local.z));
       model = glm::scale(model, glm::vec3(radsphere));
       model_sphere.push_back(model);
 
@@ -381,7 +389,9 @@ void ChOpenGLViewer::DrawObject(ChBody* abody) {
       model = glm::rotate(model, float(angle), glm::vec3(axis.x, axis.y, axis.z));
 
       if (obj_files.find(trimesh_shape->GetName()) == obj_files.end()) {
-        ChOpenGLMaterial pillow(glm::vec3(196.0f, 77.0f, 88.0f) / 255.0f * .5f, glm::vec3(196.0f, 77.0f, 88.0f) / 255.0f, glm::vec3(1, 1, 1));
+        ChOpenGLMaterial pillow(glm::vec3(196.0f, 77.0f, 88.0f) / 255.0f * .5f,
+                                glm::vec3(196.0f, 77.0f, 88.0f) / 255.0f,
+                                glm::vec3(1, 1, 1));
         std::cout << trimesh_shape->GetName() << std::endl;
         obj_files[trimesh_shape->GetName()].Initialize(trimesh_shape, pillow);
         obj_files[trimesh_shape->GetName()].AttachShader(&main_shader);
@@ -425,7 +435,8 @@ void ChOpenGLViewer::RenderAABB() {
     for (int i = 0; i < data_manager->host_data.aabb_rigid.size() / 2; i++) {
       real3 min_p, max_p;
       min_p = data_manager->host_data.aabb_rigid[i] + data_manager->measures.collision.global_origin;
-      max_p = data_manager->host_data.aabb_rigid[i + data_manager->host_data.aabb_rigid.size() / 2] + data_manager->measures.collision.global_origin;
+      max_p = data_manager->host_data.aabb_rigid[i + data_manager->host_data.aabb_rigid.size() / 2] +
+              data_manager->measures.collision.global_origin;
 
       real3 radius = (max_p - min_p) * .5;
       real3 center = (min_p + max_p) * .5;

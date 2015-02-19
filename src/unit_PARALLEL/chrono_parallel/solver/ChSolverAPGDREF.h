@@ -22,8 +22,8 @@
 
 namespace chrono {
 
-class CH_PARALLEL_API ChSolverAPGDREF: public ChSolverParallel {
-public:
+class CH_PARALLEL_API ChSolverAPGDREF : public ChSolverParallel {
+ public:
   ChSolverAPGDREF() : ChSolverParallel() {}
   ~ChSolverAPGDREF() {}
 
@@ -32,31 +32,25 @@ public:
       return;
     }
     data_container->system_timer.start("ChSolverParallel_Solve");
-    data_container->measures.solver.total_iteration +=
-      SolveAPGDREF(max_iteration,
-                   data_container->num_constraints,
-                   data_container->host_data.R,
-                   data_container->host_data.gamma);
+    data_container->measures.solver.total_iteration += SolveAPGDREF(
+        max_iteration, data_container->num_constraints, data_container->host_data.R, data_container->host_data.gamma);
     data_container->system_timer.stop("ChSolverParallel_Solve");
   }
 
   // Solve using the APGD method
-  uint SolveAPGDREF(const uint max_iter,                    // Maximum number of iterations
-                    const uint size,                        // Number of unknowns
-                    const blaze::DynamicVector<real>& r,    // Rhs vector
-                    blaze::DynamicVector<real>& gamma       // The vector of unknowns
+  uint SolveAPGDREF(const uint max_iter,                  // Maximum number of iterations
+                    const uint size,                      // Number of unknowns
+                    const blaze::DynamicVector<real>& r,  // Rhs vector
+                    blaze::DynamicVector<real>& gamma     // The vector of unknowns
                     );
 
   // Compute the residual for the solver
-  real Res4(blaze::DynamicVector<real>& gamma,
-            const blaze::DynamicVector<real>& r,
-            blaze::DynamicVector<real>& tmp);
+  real Res4(blaze::DynamicVector<real>& gamma, const blaze::DynamicVector<real>& r, blaze::DynamicVector<real>& tmp);
 
   // APGD specific vectors
   blaze::DynamicVector<real> gamma_hat;
   blaze::DynamicVector<real> gammaNew, g, y, yNew, tmp;
 };
-
 }
 
 #endif

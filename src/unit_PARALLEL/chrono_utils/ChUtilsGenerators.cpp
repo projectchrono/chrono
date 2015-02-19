@@ -19,7 +19,6 @@
 namespace chrono {
 namespace utils {
 
-
 // =============================================================================
 // Implementation of MixtureIngredient class
 // =============================================================================
@@ -28,31 +27,27 @@ namespace utils {
 // a given type and with a specified ratio in the final mixture.
 // This constructor is private as a new mixture ingredient can only be created
 // through a generator.
-MixtureIngredient::MixtureIngredient(Generator*  generator,
-                                     MixtureType type,
-                                     double      ratio)
-: m_generator(generator),
-  m_type(type),
-  m_ratio(ratio),
-  m_cumRatio(0),
-  m_defMaterialDVI(new ChMaterialSurface),
-  m_defMaterialDEM(new ChMaterialSurfaceDEM),
-  m_defDensity(1),
-  m_defSize(ChVector<>(1, 1, 1)),
-  m_frictionDist(NULL),
-  m_cohesionDist(NULL),
-  m_youngDist(NULL),
-  m_poissonDist(NULL),
-  m_restitutionDist(NULL),
-  m_densityDist(NULL),
-  m_sizeDist(NULL),
-  callback_post_creation(NULL)
-{
+MixtureIngredient::MixtureIngredient(Generator* generator, MixtureType type, double ratio)
+    : m_generator(generator),
+      m_type(type),
+      m_ratio(ratio),
+      m_cumRatio(0),
+      m_defMaterialDVI(new ChMaterialSurface),
+      m_defMaterialDEM(new ChMaterialSurfaceDEM),
+      m_defDensity(1),
+      m_defSize(ChVector<>(1, 1, 1)),
+      m_frictionDist(NULL),
+      m_cohesionDist(NULL),
+      m_youngDist(NULL),
+      m_poissonDist(NULL),
+      m_restitutionDist(NULL),
+      m_densityDist(NULL),
+      m_sizeDist(NULL),
+      callback_post_creation(NULL) {
 }
 
 // Destructor:: free the various distribution associated with this ingredient
-MixtureIngredient::~MixtureIngredient()
-{
+MixtureIngredient::~MixtureIngredient() {
   freeMaterialDist();
   delete m_densityDist;
   delete m_sizeDist;
@@ -60,99 +55,93 @@ MixtureIngredient::~MixtureIngredient()
 
 // Functions to set constant properties for all objects created based on this
 // ingredient.
-void
-MixtureIngredient::setDefaultMaterialDVI(const ChSharedPtr<ChMaterialSurface>& mat)
-{
+void MixtureIngredient::setDefaultMaterialDVI(const ChSharedPtr<ChMaterialSurface>& mat) {
   m_defMaterialDVI = mat;
   freeMaterialDist();
 }
 
-void
-MixtureIngredient::setDefaultMaterialDEM(const ChSharedPtr<ChMaterialSurfaceDEM>& mat)
-{
+void MixtureIngredient::setDefaultMaterialDEM(const ChSharedPtr<ChMaterialSurfaceDEM>& mat) {
   m_defMaterialDEM = mat;
   freeMaterialDist();
 }
 
-void
-MixtureIngredient::setDefaultDensity(double density)
-{
+void MixtureIngredient::setDefaultDensity(double density) {
   m_defDensity = density;
   delete m_densityDist;
 }
 
-void
-MixtureIngredient::setDefaultSize(const ChVector<>& size)
-{
+void MixtureIngredient::setDefaultSize(const ChVector<>& size) {
   m_defSize = size;
   delete m_sizeDist;
 }
 
 // Functions to set parameters of truncated normal distributions for the various
-// attributes of an ingredient.  Properties of objects created based on this 
+// attributes of an ingredient.  Properties of objects created based on this
 // ingredient will be obtained by drawing from the corresponding distribution.
 // If no distribution is specified for a particular property, the default
 // constant value is used.
-void
-MixtureIngredient::setDistributionFriction(float friction_mean, float friction_stddev, float friction_min, float friction_max)
-{
+void MixtureIngredient::setDistributionFriction(float friction_mean,
+                                                float friction_stddev,
+                                                float friction_min,
+                                                float friction_max) {
   m_frictionDist = new std::normal_distribution<float>(friction_mean, friction_stddev);
   m_minFriction = friction_min;
   m_maxFriction = friction_max;
 }
 
-void
-MixtureIngredient::setDistributionCohesion(float cohesion_mean, float cohesion_stddev, float cohesion_min, float cohesion_max)
-{
+void MixtureIngredient::setDistributionCohesion(float cohesion_mean,
+                                                float cohesion_stddev,
+                                                float cohesion_min,
+                                                float cohesion_max) {
   m_cohesionDist = new std::normal_distribution<float>(cohesion_mean, cohesion_stddev);
   m_minCohesion = cohesion_min;
   m_maxCohesion = cohesion_max;
 }
 
-void
-MixtureIngredient::setDistributionYoung(float young_mean, float young_stddev, float young_min, float young_max)
-{
+void MixtureIngredient::setDistributionYoung(float young_mean, float young_stddev, float young_min, float young_max) {
   m_youngDist = new std::normal_distribution<float>(young_mean, young_stddev);
   m_minYoung = young_min;
   m_maxYoung = young_max;
 }
 
-void
-MixtureIngredient::setDistributionPoisson(float poisson_mean, float poisson_stddev, float poisson_min, float poisson_max)
-{
+void MixtureIngredient::setDistributionPoisson(float poisson_mean,
+                                               float poisson_stddev,
+                                               float poisson_min,
+                                               float poisson_max) {
   m_poissonDist = new std::normal_distribution<float>(poisson_mean, poisson_stddev);
   m_minPoisson = poisson_min;
   m_maxPoisson = poisson_max;
 }
 
-void
-MixtureIngredient::setDistributionRestitution(float restitution_mean, float restitution_stddev, float restitution_min, float restitution_max)
-{
+void MixtureIngredient::setDistributionRestitution(float restitution_mean,
+                                                   float restitution_stddev,
+                                                   float restitution_min,
+                                                   float restitution_max) {
   m_restitutionDist = new std::normal_distribution<float>(restitution_mean, restitution_stddev);
   m_minRestitution = restitution_min;
   m_maxRestitution = restitution_max;
 }
 
-void
-MixtureIngredient::setDistributionDensity(double density_mean, double density_stddev, double density_min, double density_max)
-{
+void MixtureIngredient::setDistributionDensity(double density_mean,
+                                               double density_stddev,
+                                               double density_min,
+                                               double density_max) {
   m_densityDist = new std::normal_distribution<double>(density_mean, density_stddev);
   m_minDensity = density_min;
   m_maxDensity = density_max;
 }
 
-void
-MixtureIngredient::setDistributionSize(double size_mean, double size_stddev, const ChVector<>& size_min, const ChVector<>& size_max)
-{
+void MixtureIngredient::setDistributionSize(double size_mean,
+                                            double size_stddev,
+                                            const ChVector<>& size_min,
+                                            const ChVector<>& size_max) {
   m_sizeDist = new std::normal_distribution<double>(size_mean, size_stddev);
   m_minSize = size_min;
   m_maxSize = size_max;
 }
 
 // Utility function to delete all distributions associated with this ingredient.
-void
-MixtureIngredient::freeMaterialDist()
-{
+void MixtureIngredient::freeMaterialDist() {
   delete m_frictionDist;
   delete m_cohesionDist;
   delete m_youngDist;
@@ -161,9 +150,7 @@ MixtureIngredient::freeMaterialDist()
 }
 
 // Modify the specified DVI material surface based on attributes of this ingredient.
-void
-MixtureIngredient::setMaterialProperties(ChSharedPtr<ChMaterialSurface>& mat)
-{
+void MixtureIngredient::setMaterialProperties(ChSharedPtr<ChMaterialSurface>& mat) {
   if (m_frictionDist)
     mat->SetFriction(sampleTruncatedDist<float>(*m_frictionDist, m_minFriction, m_maxFriction));
   else
@@ -176,9 +163,7 @@ MixtureIngredient::setMaterialProperties(ChSharedPtr<ChMaterialSurface>& mat)
 }
 
 // Modify the specified DEM material surface based on attributes of this ingredient.
-void
-MixtureIngredient::setMaterialProperties(ChSharedPtr<ChMaterialSurfaceDEM>& mat)
-{
+void MixtureIngredient::setMaterialProperties(ChSharedPtr<ChMaterialSurfaceDEM>& mat) {
   if (m_youngDist)
     mat->SetYoungModulus(sampleTruncatedDist<float>(*m_youngDist, m_minYoung, m_maxYoung));
   else
@@ -206,9 +191,7 @@ MixtureIngredient::setMaterialProperties(ChSharedPtr<ChMaterialSurfaceDEM>& mat)
 }
 
 // Return a size for an object created based on attributes of this ingredient.
-ChVector<>
-MixtureIngredient::getSize()
-{
+ChVector<> MixtureIngredient::getSize() {
   if (m_sizeDist)
     return ChVector<>(sampleTruncatedDist<double>(*m_sizeDist, m_minSize.x, m_maxSize.x),
                       sampleTruncatedDist<double>(*m_sizeDist, m_minSize.y, m_maxSize.y),
@@ -218,9 +201,7 @@ MixtureIngredient::getSize()
 }
 
 // Return a density for an object created based on attributes of this ingredient.
-double
-MixtureIngredient::getDensity()
-{
+double MixtureIngredient::getDensity() {
   if (m_densityDist)
     return sampleTruncatedDist<double>(*m_densityDist, m_minDensity, m_maxDensity);
 
@@ -229,52 +210,47 @@ MixtureIngredient::getDensity()
 
 // Calculate the volume and gyration tensor of an object of given size created
 // from this ingredient type.
-void
-MixtureIngredient::calcGeometricProps(const ChVector<>& size, double& volume, ChVector<>& gyration)
-{
+void MixtureIngredient::calcGeometricProps(const ChVector<>& size, double& volume, ChVector<>& gyration) {
   switch (m_type) {
-  case SPHERE:
-    volume = CalcSphereVolume(size.x);
-    gyration = CalcSphereGyration(size.x).Get_Diag();
-    break;
-  case ELLIPSOID:
-    volume = CalcEllipsoidVolume(size.x);
-    gyration = CalcEllipsoidGyration(size).Get_Diag();
-    break;
-  case BOX:
-    volume = CalcBoxVolume(size);
-    gyration = CalcBoxGyration(size).Get_Diag();
-    break;
-  case CYLINDER:
-    volume = CalcCylinderVolume(size.x,size.y);
-    gyration = CalcCylinderGyration(size.x,size.y).Get_Diag();
-    break;
-  case CONE:
-    volume = CalcConeVolume(size.x,size.y);
-    gyration = CalcConeGyration(size.x,size.y).Get_Diag();
-    break;
-  case CAPSULE:
-    volume = CalcCapsuleVolume(size.x,size.y);
-    gyration = CalcCapsuleGyration(size.x,size.y).Get_Diag();
-    break;
-  case ROUNDEDCYLINDER:
-    volume = CalcRoundedCylinderVolume(size.x,size.y, size.z);
-    gyration = CalcRoundedCylinderGyration(size.x,size.y,size.z).Get_Diag();
-    break;
+    case SPHERE:
+      volume = CalcSphereVolume(size.x);
+      gyration = CalcSphereGyration(size.x).Get_Diag();
+      break;
+    case ELLIPSOID:
+      volume = CalcEllipsoidVolume(size.x);
+      gyration = CalcEllipsoidGyration(size).Get_Diag();
+      break;
+    case BOX:
+      volume = CalcBoxVolume(size);
+      gyration = CalcBoxGyration(size).Get_Diag();
+      break;
+    case CYLINDER:
+      volume = CalcCylinderVolume(size.x, size.y);
+      gyration = CalcCylinderGyration(size.x, size.y).Get_Diag();
+      break;
+    case CONE:
+      volume = CalcConeVolume(size.x, size.y);
+      gyration = CalcConeGyration(size.x, size.y).Get_Diag();
+      break;
+    case CAPSULE:
+      volume = CalcCapsuleVolume(size.x, size.y);
+      gyration = CalcCapsuleGyration(size.x, size.y).Get_Diag();
+      break;
+    case ROUNDEDCYLINDER:
+      volume = CalcRoundedCylinderVolume(size.x, size.y, size.z);
+      gyration = CalcRoundedCylinderGyration(size.x, size.y, size.z).Get_Diag();
+      break;
   }
 }
 
 // Calculate a necessary minimum separation based on the largest possible
 // dimension of an object created based on attributes of this ingredient.
-double
-MixtureIngredient::calcMinSeparation()
-{
+double MixtureIngredient::calcMinSeparation() {
   if (m_sizeDist)
     return std::max(m_maxSize.x, std::max(m_maxSize.y, m_maxSize.z));
 
   return std::max(m_defSize.x, std::max(m_defSize.y, m_defSize.z));
 }
-
 
 // =============================================================================
 // Implementation of Generator class
@@ -282,32 +258,22 @@ MixtureIngredient::calcMinSeparation()
 
 // Constructor: create a generator for the specified system.
 Generator::Generator(ChSystem* system)
-: m_system(system),
-  m_mixDist(0,1),
-  m_crtBodyId(0),
-  m_totalNumBodies(0),
-  m_totalMass(0),
-  m_totalVolume(0)
-{
+    : m_system(system), m_mixDist(0, 1), m_crtBodyId(0), m_totalNumBodies(0), m_totalMass(0), m_totalVolume(0) {
   m_sysType = GetSystemType(system);
   m_collisionType = GetCollisionType(system);
 }
 
 // Destructor
-Generator::~Generator()
-{
+Generator::~Generator() {
 }
 
 // Add a new ingredient to the current mixture by specifying its type
 // and the ratio in the final mixture. A smart pointer to the new
 // mixture ingredient is returned to allow modifying its properties.
-MixtureIngredientPtr&
-Generator::AddMixtureIngredient(MixtureType type,
-                                double      ratio)
-{
+MixtureIngredientPtr& Generator::AddMixtureIngredient(MixtureType type, double ratio) {
   MixtureIngredientPtr ingredient(new MixtureIngredient(this, type, ratio));
   m_mixture.push_back(ingredient);
-  
+
   return m_mixture.back();
 }
 
@@ -315,12 +281,11 @@ Generator::AddMixtureIngredient(MixtureType type,
 // sampler and separation distance and the current mixture settings.
 // The types of objects created are selected randomly with probability
 // proportional to the ratio of that ingredient in the mixture.
-void Generator::createObjectsBox(SamplingType      sType,
-                                 double            dist,
+void Generator::createObjectsBox(SamplingType sType,
+                                 double dist,
                                  const ChVector<>& pos,
                                  const ChVector<>& hdims,
-                                 const ChVector<>& vel)
-{
+                                 const ChVector<>& vel) {
   // Normalize the mixture ratios
   normalizeMixture();
 
@@ -330,24 +295,18 @@ void Generator::createObjectsBox(SamplingType      sType,
 
   PointVector points;
   switch (sType) {
-  case REGULAR_GRID:
-    {
-    GridSampler<> sampler(dist);
-    points = sampler.SampleBox(pos, hdims);
-    }
-    break;
-  case POISSON_DISK:
-    {
-    PDSampler<> sampler(dist);
-    points = sampler.SampleBox(pos, hdims);
-    }
-    break;
-  case HCP_PACK:
-    {
-    HCPSampler<> sampler(dist);
-    points = sampler.SampleBox(pos, hdims);
-    }
-    break;
+    case REGULAR_GRID: {
+      GridSampler<> sampler(dist);
+      points = sampler.SampleBox(pos, hdims);
+    } break;
+    case POISSON_DISK: {
+      PDSampler<> sampler(dist);
+      points = sampler.SampleBox(pos, hdims);
+    } break;
+    case HCP_PACK: {
+      HCPSampler<> sampler(dist);
+      points = sampler.SampleBox(pos, hdims);
+    } break;
   }
 
   createObjects(points, vel);
@@ -360,8 +319,7 @@ void Generator::createObjectsBox(SamplingType      sType,
 void Generator::createObjectsBox(const ChVector<>& dist,
                                  const ChVector<>& pos,
                                  const ChVector<>& hdims,
-                                 const ChVector<>& vel)
-{
+                                 const ChVector<>& vel) {
   // Normalize the mixture ratios
   normalizeMixture();
 
@@ -384,10 +342,12 @@ void Generator::createObjectsBox(const ChVector<>& dist,
 // sampler and separation distance and the current mixture settings.
 // The types of objects created are selected randomly with probability
 // proportional to the ratio of that ingredient in the mixture.
-void Generator::createObjectsCylinderX(SamplingType sType, double dist,
-                                       const ChVector<>& pos, float radius, float halfHeight,
-                                       const ChVector<>& vel)
-{
+void Generator::createObjectsCylinderX(SamplingType sType,
+                                       double dist,
+                                       const ChVector<>& pos,
+                                       float radius,
+                                       float halfHeight,
+                                       const ChVector<>& vel) {
   // Normalize the mixture ratios
   normalizeMixture();
 
@@ -397,27 +357,25 @@ void Generator::createObjectsCylinderX(SamplingType sType, double dist,
 
   PointVector points;
   switch (sType) {
-  case REGULAR_GRID:
-    {
-    GridSampler<> sampler(dist);
-    points = sampler.SampleCylinderX(pos, radius, halfHeight);
-    }
-    break;
-  case POISSON_DISK:
-    {
-    PDSampler<> sampler(dist);
-    points = sampler.SampleCylinderX(pos, radius, halfHeight);
-    }
-    break;
+    case REGULAR_GRID: {
+      GridSampler<> sampler(dist);
+      points = sampler.SampleCylinderX(pos, radius, halfHeight);
+    } break;
+    case POISSON_DISK: {
+      PDSampler<> sampler(dist);
+      points = sampler.SampleCylinderX(pos, radius, halfHeight);
+    } break;
   }
 
   createObjects(points, vel);
 }
 
-void Generator::createObjectsCylinderY(SamplingType sType, double dist,
-                                       const ChVector<>& pos, float radius, float halfHeight,
-                                       const ChVector<>& vel)
-{
+void Generator::createObjectsCylinderY(SamplingType sType,
+                                       double dist,
+                                       const ChVector<>& pos,
+                                       float radius,
+                                       float halfHeight,
+                                       const ChVector<>& vel) {
   // Normalize the mixture ratios
   normalizeMixture();
 
@@ -427,27 +385,25 @@ void Generator::createObjectsCylinderY(SamplingType sType, double dist,
 
   PointVector points;
   switch (sType) {
-  case REGULAR_GRID:
-    {
-    GridSampler<> sampler(dist);
-    points = sampler.SampleCylinderY(pos, radius, halfHeight);
-    }
-    break;
-  case POISSON_DISK:
-    {
-    PDSampler<> sampler(dist);
-    points = sampler.SampleCylinderY(pos, radius, halfHeight);
-    }
-    break;
+    case REGULAR_GRID: {
+      GridSampler<> sampler(dist);
+      points = sampler.SampleCylinderY(pos, radius, halfHeight);
+    } break;
+    case POISSON_DISK: {
+      PDSampler<> sampler(dist);
+      points = sampler.SampleCylinderY(pos, radius, halfHeight);
+    } break;
   }
 
   createObjects(points, vel);
 }
 
-void Generator::createObjectsCylinderZ(SamplingType sType, double dist,
-                                       const ChVector<>& pos, float radius, float halfHeight,
-                                       const ChVector<>& vel)
-{
+void Generator::createObjectsCylinderZ(SamplingType sType,
+                                       double dist,
+                                       const ChVector<>& pos,
+                                       float radius,
+                                       float halfHeight,
+                                       const ChVector<>& vel) {
   // Normalize the mixture ratios
   normalizeMixture();
 
@@ -457,28 +413,22 @@ void Generator::createObjectsCylinderZ(SamplingType sType, double dist,
 
   PointVector points;
   switch (sType) {
-  case REGULAR_GRID:
-    {
-    GridSampler<> sampler(dist);
-    points = sampler.SampleCylinderZ(pos, radius, halfHeight);
-    }
-    break;
-  case POISSON_DISK:
-    {
-    PDSampler<> sampler(dist);
-    points = sampler.SampleCylinderZ(pos, radius, halfHeight);
-    }
-    break;
+    case REGULAR_GRID: {
+      GridSampler<> sampler(dist);
+      points = sampler.SampleCylinderZ(pos, radius, halfHeight);
+    } break;
+    case POISSON_DISK: {
+      PDSampler<> sampler(dist);
+      points = sampler.SampleCylinderZ(pos, radius, halfHeight);
+    } break;
   }
 
   createObjects(points, vel);
 }
-
 
 // Normalize the mixture ratios (so that their sum is 1) and calculate
 // the exclusive scan of these ratios.
-void Generator::normalizeMixture()
-{
+void Generator::normalizeMixture() {
   if (m_mixture.empty()) {
     AddMixtureIngredient(SPHERE, 1);
     return;
@@ -494,14 +444,13 @@ void Generator::normalizeMixture()
     if (i == 0)
       m_mixture[i]->m_cumRatio = 0;
     else
-      m_mixture[i]->m_cumRatio = m_mixture[i-1]->m_cumRatio + m_mixture[i-1]->m_ratio;
+      m_mixture[i]->m_cumRatio = m_mixture[i - 1]->m_cumRatio + m_mixture[i - 1]->m_ratio;
   }
 }
 
 // Select one of the mixture types with probability proportional to that
 // type's ratio in the mixture.
-int Generator::selectIngredient()
-{
+int Generator::selectIngredient() {
   double val = m_mixDist(rengine());
 
   for (int i = m_mixture.size() - 1; i >= 0; i--) {
@@ -513,16 +462,14 @@ int Generator::selectIngredient()
 }
 
 // Calculate the minimum distance to ensure contact shapes never overlap.
-double Generator::calcMinSeparation(double sep)
-{
+double Generator::calcMinSeparation(double sep) {
   for (int i = 0; i < m_mixture.size(); i++)
     sep = std::max(sep, m_mixture[i]->calcMinSeparation());
 
   return sep;
 }
 
-ChVector<> Generator::calcMinSeparation(const ChVector<>& sep)
-{
+ChVector<> Generator::calcMinSeparation(const ChVector<>& sep) {
   ChVector<> res;
 
   for (int i = 0; i < m_mixture.size(); i++) {
@@ -536,11 +483,8 @@ ChVector<> Generator::calcMinSeparation(const ChVector<>& sep)
 }
 
 // Create objects at the specified locations using the current mixture settings.
-void Generator::createObjects(const PointVector& points,
-                              const ChVector<>&  vel)
-{
+void Generator::createObjects(const PointVector& points, const ChVector<>& vel) {
   for (int i = 0; i < points.size(); i++) {
-
     // Select the type of object to be created.
     int index = selectIngredient();
 
@@ -548,36 +492,36 @@ void Generator::createObjects(const PointVector& points,
     ChBody* body;
 
     switch (m_sysType) {
-    case SEQUENTIAL_DVI:
-      body = new ChBody();
-      m_mixture[index]->setMaterialProperties(body->GetMaterialSurface());
-      break;
-    case SEQUENTIAL_DEM:
-      body = new ChBodyDEM();
-      m_mixture[index]->setMaterialProperties(((ChBodyDEM*) body)->GetMaterialSurfaceDEM());
-      break;
-    case PARALLEL_DVI:
-      switch (m_collisionType) {
-      case BULLET_CD:
+      case SEQUENTIAL_DVI:
         body = new ChBody();
+        m_mixture[index]->setMaterialProperties(body->GetMaterialSurface());
         break;
-      case PARALLEL_CD:
-        body = new ChBody(new collision::ChCollisionModelParallel);
-        break;
-      }
-      m_mixture[index]->setMaterialProperties(body->GetMaterialSurface());
-      break;
-    case PARALLEL_DEM:
-      switch (m_collisionType) {
-      case BULLET_CD:
+      case SEQUENTIAL_DEM:
         body = new ChBodyDEM();
+        m_mixture[index]->setMaterialProperties(((ChBodyDEM*)body)->GetMaterialSurfaceDEM());
         break;
-      case PARALLEL_CD:
-        body = new ChBodyDEM(new collision::ChCollisionModelParallel);
+      case PARALLEL_DVI:
+        switch (m_collisionType) {
+          case BULLET_CD:
+            body = new ChBody();
+            break;
+          case PARALLEL_CD:
+            body = new ChBody(new collision::ChCollisionModelParallel);
+            break;
+        }
+        m_mixture[index]->setMaterialProperties(body->GetMaterialSurface());
         break;
-      }
-      m_mixture[index]->setMaterialProperties(((ChBodyDEM*) body)->GetMaterialSurfaceDEM());
-      break;
+      case PARALLEL_DEM:
+        switch (m_collisionType) {
+          case BULLET_CD:
+            body = new ChBodyDEM();
+            break;
+          case PARALLEL_CD:
+            body = new ChBodyDEM(new collision::ChCollisionModelParallel);
+            break;
+        }
+        m_mixture[index]->setMaterialProperties(((ChBodyDEM*)body)->GetMaterialSurfaceDEM());
+        break;
     }
 
     // Set identifier
@@ -592,11 +536,11 @@ void Generator::createObjects(const PointVector& points,
 
     // Get size and density; calculate geometric properties
     ChVector<> size = m_mixture[index]->getSize();
-    double     density = m_mixture[index]->getDensity();
-    double     volume;
+    double density = m_mixture[index]->getDensity();
+    double volume;
     ChVector<> gyration;
     m_mixture[index]->calcGeometricProps(size, volume, gyration);
-    double     mass = density * volume;
+    double mass = density * volume;
 
     // Set mass properties
     body->SetMass(mass);
@@ -608,33 +552,33 @@ void Generator::createObjects(const PointVector& points,
     body->GetCollisionModel()->ClearModel();
 
     switch (m_mixture[index]->m_type) {
-    case SPHERE:
-      AddSphereGeometry(body, size.x);
-      break;
-    case ELLIPSOID:
-      AddEllipsoidGeometry(body, size);
-      break;
-    case BOX:
-      AddBoxGeometry(body, size);
-      break;
-    case CYLINDER:
-      AddCylinderGeometry(body, size.x, size.y);
-      break;
-    case CONE:
-      AddConeGeometry(body, size.x, size.y);
-      break;
-    case CAPSULE:
-      AddCapsuleGeometry(body, size.x, size.y);
-      break;
-	case ROUNDEDCYLINDER:
-      AddRoundedCylinderGeometry(body, size.x, size.y, size.z);
-      break;
+      case SPHERE:
+        AddSphereGeometry(body, size.x);
+        break;
+      case ELLIPSOID:
+        AddEllipsoidGeometry(body, size);
+        break;
+      case BOX:
+        AddBoxGeometry(body, size);
+        break;
+      case CYLINDER:
+        AddCylinderGeometry(body, size.x, size.y);
+        break;
+      case CONE:
+        AddConeGeometry(body, size.x, size.y);
+        break;
+      case CAPSULE:
+        AddCapsuleGeometry(body, size.x, size.y);
+        break;
+      case ROUNDEDCYLINDER:
+        AddRoundedCylinderGeometry(body, size.x, size.y, size.z);
+        break;
     }
 
     body->GetCollisionModel()->BuildModel();
 
     // Attach the body to the system and append to list of generated bodies.
-    ChSharedPtr<ChBody>  bodyPtr(body);
+    ChSharedPtr<ChBody> bodyPtr(body);
 
     m_system->AddBody(bodyPtr);
 
@@ -650,9 +594,7 @@ void Generator::createObjects(const PointVector& points,
 }
 
 // Write body information to a CSV file
-void
-Generator::writeObjectInfo(const std::string& filename)
-{
+void Generator::writeObjectInfo(const std::string& filename) {
   CSV_writer csv;
 
   for (int i = 0; i < m_bodies.size(); i++) {
@@ -661,20 +603,16 @@ Generator::writeObjectInfo(const std::string& filename)
     csv << m_bodies[i].m_density << m_bodies[i].m_body->GetMass();
 
     switch (m_sysType) {
-    case SEQUENTIAL_DVI:
-    case PARALLEL_DVI:
-      {
+      case SEQUENTIAL_DVI:
+      case PARALLEL_DVI: {
         ChSharedPtr<ChMaterialSurface> mat = m_bodies[i].m_body->GetMaterialSurface();
         csv << mat->GetSfriction() << mat->GetCohesion();
-      }
-      break;
-    case SEQUENTIAL_DEM:
-    case PARALLEL_DEM:
-      {
-        ChSharedPtr<ChMaterialSurfaceDEM> mat = ((ChBodyDEM*) m_bodies[i].m_body.get_ptr())->GetMaterialSurfaceDEM();
+      } break;
+      case SEQUENTIAL_DEM:
+      case PARALLEL_DEM: {
+        ChSharedPtr<ChMaterialSurfaceDEM> mat = ((ChBodyDEM*)m_bodies[i].m_body.get_ptr())->GetMaterialSurfaceDEM();
         csv << mat->GetYoungModulus() << mat->GetPoissonRatio() << mat->GetSfriction() << mat->GetRestitution();
-      }
-      break;
+      } break;
     }
 
     csv << std::endl;
@@ -682,7 +620,6 @@ Generator::writeObjectInfo(const std::string& filename)
 
   csv.write_to_file(filename);
 }
-
 
 }  // namespace utils
 }  // namespace chrono

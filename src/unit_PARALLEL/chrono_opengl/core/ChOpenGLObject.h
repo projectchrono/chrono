@@ -51,4 +51,4 @@ class CH_OPENGL_API ChOpenGLObject : public ChOpenGLBase {
 }
 }
 
-#endif    // END of CHOPENGLOBJECT_H
+#endif  // END of CHOPENGLOBJECT_H

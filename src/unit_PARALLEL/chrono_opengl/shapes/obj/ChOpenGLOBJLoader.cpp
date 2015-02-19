@@ -21,7 +21,8 @@
 using namespace glm;
 namespace chrono {
 namespace opengl {
-ChOpenGLOBJLoader::ChOpenGLOBJLoader() {}
+ChOpenGLOBJLoader::ChOpenGLOBJLoader() {
+}
 
 // load an obj mesh. Each mesh can have multiple sub meshes
 void ChOpenGLOBJLoader::LoadObject(std::string fname,
@@ -50,13 +51,17 @@ void ChOpenGLOBJLoader::LoadObject(std::string fname,
     indices[i].resize(shapes[i].mesh.indices.size());
     names[i] = shapes[i].name;
 
-    std::cout << shapes[i].mesh.positions.size() / 3 << " " << shapes[i].mesh.normals.size() / 3 << " " << shapes[i].mesh.texcoords.size() / 2 << " " << shapes[i].mesh.indices.size() << std::endl;
+    std::cout << shapes[i].mesh.positions.size() / 3 << " " << shapes[i].mesh.normals.size() / 3 << " "
+              << shapes[i].mesh.texcoords.size() / 2 << " " << shapes[i].mesh.indices.size() << std::endl;
 
     for (size_t v = 0; v < shapes[i].mesh.positions.size() / 3; v++) {
-      vertices[i][v] = vec3(shapes[i].mesh.positions[3 * v + 0], shapes[i].mesh.positions[3 * v + 1], shapes[i].mesh.positions[3 * v + 2]);
+      vertices[i][v] = vec3(shapes[i].mesh.positions[3 * v + 0],
+                            shapes[i].mesh.positions[3 * v + 1],
+                            shapes[i].mesh.positions[3 * v + 2]);
     }
     for (size_t n = 0; n < shapes[i].mesh.normals.size() / 3; n++) {
-      normals[i][n] = vec3(shapes[i].mesh.normals[3 * n + 0], shapes[i].mesh.normals[3 * n + 1], shapes[i].mesh.normals[3 * n + 2]);
+      normals[i][n] =
+          vec3(shapes[i].mesh.normals[3 * n + 0], shapes[i].mesh.normals[3 * n + 1], shapes[i].mesh.normals[3 * n + 2]);
     }
     for (size_t t = 0; t < shapes[i].mesh.texcoords.size() / 2; t++) {
       texcoords[i][t] = vec2(shapes[i].mesh.texcoords[2 * t + 0], shapes[i].mesh.texcoords[2 * t + 1] * -1);

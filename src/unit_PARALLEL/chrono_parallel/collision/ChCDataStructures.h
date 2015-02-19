@@ -7,20 +7,19 @@ namespace chrono {
 namespace collision {
 
 struct ConvexShape {
-   shape_type type;  //type of shape
-   real3 A;  //location
-   real3 B;  //dimensions
-   real3 C;  //extra
-   quaternion R;  //rotation
-   real3* convex;      // pointer to convex data;
-   real margin;
+  shape_type type;  // type of shape
+  real3 A;  // location
+  real3 B;  // dimensions
+  real3 C;  // extra
+  quaternion R;  // rotation
+  real3* convex;  // pointer to convex data;
+  real margin;
 };
-
 
 struct ContactPoint {
   real3 pointA, pointB, normal;
   real depth;
-  ContactPoint(){}
+  ContactPoint() {}
   ContactPoint(real3 pa, real3 pb, real3 norm, real d) {
     pointA = pa;
     pointB = pb;
@@ -38,8 +37,7 @@ struct ContactManifold {
   ContactManifold() { num_contact_points = 0; }
 
   int getCacheEntry(ContactPoint& newPoint) {
-
-    real shortestDist = ZERO_EPSILON * 2;    // TODO: SHOULD THIS BE SOMETHIGN ELSE
+    real shortestDist = ZERO_EPSILON * 2;  // TODO: SHOULD THIS BE SOMETHIGN ELSE
     int size = num_contact_points;
     int nearestPoint = -1;
     for (int i = 0; i < size; i++) {
@@ -57,7 +55,6 @@ struct ContactManifold {
 
   void replaceContactPoint(ContactPoint& newPt, int& insertIndex) { points[insertIndex] = newPt; }
   int addManifoldPoint(ContactPoint& newPt) {
-
     if (num_contact_points == MANIFOLD_SIZE) {
       points[0] = newPt;
       return 0;
@@ -68,8 +65,11 @@ struct ContactManifold {
     }
   }
 
-  void addContactPoint(const ConvexShape& shapeA, const ConvexShape& shapeB, const real3& normalOnBInWorld, const real3& pointInWorld, const real& depth) {
-
+  void addContactPoint(const ConvexShape& shapeA,
+                       const ConvexShape& shapeB,
+                       const real3& normalOnBInWorld,
+                       const real3& pointInWorld,
+                       const real& depth) {
     real3 pointA = pointInWorld + normalOnBInWorld * depth;
     real3 localA = TransformParentToLocal(shapeA.A, shapeA.R, pointA);
     real3 localB = TransformParentToLocal(shapeB.A, shapeB.R, pointInWorld);
@@ -86,9 +86,7 @@ struct ContactManifold {
   }
 };
 
-
 }  // end namespace collision
 }  // end namespace chrono
 
 #endif
-

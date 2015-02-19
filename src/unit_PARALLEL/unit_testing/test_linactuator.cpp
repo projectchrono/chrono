@@ -34,7 +34,6 @@
 using namespace chrono;
 using namespace chrono::collision;
 
-
 // -----------------------------------------------------------------------------
 // Problem definition
 // -----------------------------------------------------------------------------
@@ -45,13 +44,12 @@ ChVector<> gravity(0, 0, -9.80665);
 // -----------------------------------------------------------------------------
 // Verify simulation results against analytical solution at the specified time.
 // -----------------------------------------------------------------------------
-bool VerifySolution(
-  double                           time,      // current time
-  const ChQuaternion<>&            rot,       // translation along Z axis
-  double                           speed,     // imposed translation speed
-  ChSharedPtr<ChBody>              plate,     // handle to plate body
-  ChSharedPtr<ChLinkLockPrismatic> prismatic, // handle to prismatic joint
-  ChSharedPtr<ChLinkLinActuator>   actuator)  // handle to linear actuator
+bool VerifySolution(double time,                                 // current time
+                    const ChQuaternion<>& rot,                   // translation along Z axis
+                    double speed,                                // imposed translation speed
+                    ChSharedPtr<ChBody> plate,                   // handle to plate body
+                    ChSharedPtr<ChLinkLockPrismatic> prismatic,  // handle to prismatic joint
+                    ChSharedPtr<ChLinkLinActuator> actuator)     // handle to linear actuator
 {
   // Tolerances
   double pos_tol = 1e-6;
@@ -84,28 +82,22 @@ bool VerifySolution(
 
   ChVector<> pos_delta = pos - pos_an;
   if (pos_delta.Length() > pos_tol) {
-    std::cout << "   at t = " << time
-              << "   pos - pos_an = "
-              << pos_delta.x << "  " << pos_delta.y << "  " << pos_delta.z
-              << std::endl;
+    std::cout << "   at t = " << time << "   pos - pos_an = " << pos_delta.x << "  " << pos_delta.y << "  "
+              << pos_delta.z << std::endl;
     return false;
   }
 
   ChVector<> vel_delta = vel - vel_an;
   if (vel_delta.Length() > vel_tol) {
-    std::cout << "   at t = " << time
-              << "   vel - vel_an = "
-              << vel_delta.x << "  " << vel_delta.y << "  " << vel_delta.z
-              << std::endl;
+    std::cout << "   at t = " << time << "   vel - vel_an = " << vel_delta.x << "  " << vel_delta.y << "  "
+              << vel_delta.z << std::endl;
     return false;
   }
 
   ChVector<> acc_delta = acc - acc_an;
   if (acc_delta.Length() > acc_tol) {
-    std::cout << "   at t = " << time
-              << "   acc - acc_an = "
-              << acc_delta.x << "  " << acc_delta.y << "  " << acc_delta.z
-              << std::endl;
+    std::cout << "   at t = " << time << "   acc - acc_an = " << acc_delta.x << "  " << acc_delta.y << "  "
+              << acc_delta.z << std::endl;
     return false;
   }
 
@@ -123,31 +115,24 @@ bool VerifySolution(
 
   ChQuaternion<> quat_delta = quat - quat_an;
   if (quat_delta.Length() > quat_tol) {
-    std::cout << "   at t = " << time
-      << "   quat - quat_an = "
-      << quat_delta.e0 << "  " << quat_delta.e1 << "  " << quat_delta.e2 << "  " << quat_delta.e3
-      << std::endl;
+    std::cout << "   at t = " << time << "   quat - quat_an = " << quat_delta.e0 << "  " << quat_delta.e1 << "  "
+              << quat_delta.e2 << "  " << quat_delta.e3 << std::endl;
     return false;
   }
 
   ChVector<> avel_delta = avel - avel_an;
   if (avel_delta.Length() > avel_tol) {
-    std::cout << "   at t = " << time
-      << "   avel - avel_an = "
-      << avel_delta.x << "  " << avel_delta.y << "  " << avel_delta.z
-      << std::endl;
+    std::cout << "   at t = " << time << "   avel - avel_an = " << avel_delta.x << "  " << avel_delta.y << "  "
+              << avel_delta.z << std::endl;
     return false;
   }
 
   ChVector<> aacc_delta = aacc - aacc_an;
   if (aacc_delta.Length() > aacc_tol) {
-    std::cout << "   at t = " << time
-      << "   aacc - aacc_an = "
-      << aacc_delta.x << "  " << aacc_delta.y << "  " << aacc_delta.z
-      << std::endl;
+    std::cout << "   at t = " << time << "   aacc - aacc_an = " << aacc_delta.x << "  " << aacc_delta.y << "  "
+              << aacc_delta.z << std::endl;
     return false;
   }
-
 
   // Reaction force and torque in prismatic joint
   // --------------------------------------------
@@ -166,23 +151,18 @@ bool VerifySolution(
   ChVector<> rforceP_an = gravity - Vdot(gravity, axis) * axis;
   ChVector<> rforceP_delta = rforceP_ground - rforceP_an;
   if (rforceP_delta.Length() > rforce_tol) {
-    std::cout << "   at t = " << time
-      << "   rforceP - rforceP_an = "
-      << rforceP_delta.x << "  " << rforceP_delta.y << "  " << rforceP_delta.z
-      << std::endl;
+    std::cout << "   at t = " << time << "   rforceP - rforceP_an = " << rforceP_delta.x << "  " << rforceP_delta.y
+              << "  " << rforceP_delta.z << std::endl;
     return false;
   }
 
   ChVector<> rtorqueP_an = ChVector<>(0, 0, 0);
   ChVector<> rtorqueP_delta = rtorqueP - rtorqueP_an;
   if (rtorqueP_delta.Length() > rtorque_tol) {
-    std::cout << "   at t = " << time
-              << "   rtorqueP - rtorqueP_an = "
-              << rtorqueP_delta.x << "  " << rtorqueP_delta.y << "  " << rtorqueP_delta.z
-              << std::endl;
+    std::cout << "   at t = " << time << "   rtorqueP - rtorqueP_an = " << rtorqueP_delta.x << "  " << rtorqueP_delta.y
+              << "  " << rtorqueP_delta.z << std::endl;
     return false;
   }
-
 
   // Reaction force and torque in linear actuator
   // --------------------------------------------
@@ -199,24 +179,19 @@ bool VerifySolution(
   double rforceA_an = mass * Vdot(acc_an - gravity, axis);
   double rforceA_delta = (-rforceA.x) - rforceA_an;
   if (std::abs(rforceA_delta) > rforce_tol) {
-    std::cout << "   at t = " << time
-              << "   rforceA = " << -rforceA.x << "  "
+    std::cout << "   at t = " << time << "   rforceA = " << -rforceA.x << "  "
               << "   rforceA_an = " << rforceA_an << "  "
-              << "   rforceA - rforceA_an = " << rforceA_delta
-              << std::endl;
+              << "   rforceA - rforceA_an = " << rforceA_delta << std::endl;
     return false;
   }
 
   ChVector<> rtorqueA_an = ChVector<>(0, 0, 0);
   ChVector<> rtorqueA_delta = rtorqueA - rtorqueA_an;
   if (rtorqueA_delta.Length() > rtorque_tol) {
-    std::cout << "   at t = " << time
-              << "   rtorqueA - rtorqueA_an = "
-              << rtorqueA_delta.x << "  " << rtorqueA_delta.y << "  " << rtorqueA_delta.z
-              << std::endl;
+    std::cout << "   at t = " << time << "   rtorqueA - rtorqueA_an = " << rtorqueA_delta.x << "  " << rtorqueA_delta.y
+              << "  " << rtorqueA_delta.z << std::endl;
     return false;
   }
-
 
   // Constraint violations in prismatic joint
   // ----------------------------------------
@@ -224,11 +199,11 @@ bool VerifySolution(
   ChMatrix<>* CP = prismatic->GetC();
   for (int i = 0; i < 5; i++) {
     if (std::abs(CP->GetElement(i, 0)) > cnstr_tol) {
-      std::cout << "   at t = " << time << "  constraint violation (prismatic " << i << ") = " << CP->GetElement(i, 0) << std::endl;
+      std::cout << "   at t = " << time << "  constraint violation (prismatic " << i << ") = " << CP->GetElement(i, 0)
+                << std::endl;
       return false;
     }
   }
-
 
   // Constraint violations in linear actuator
   // ----------------------------------------
@@ -242,16 +217,14 @@ bool VerifySolution(
   return true;
 }
 
-
 // -----------------------------------------------------------------------------
 // Worker function for performing the simulation with specified parameters.
 // -----------------------------------------------------------------------------
-bool TestLinActuator(
-  utils::SystemType     sys_type,   // type of system (PARALLEL_DEM or PARALLEL_DVI)
-  const char*           test_name,  // name of this test
-  const ChQuaternion<>& rot,        // translation along Z axis
-  double                speed,      // imposed translation speed
-  bool                  animate)    // if true, animate with OpenGL
+bool TestLinActuator(utils::SystemType sys_type,  // type of system (PARALLEL_DEM or PARALLEL_DVI)
+                     const char* test_name,       // name of this test
+                     const ChQuaternion<>& rot,   // translation along Z axis
+                     double speed,                // imposed translation speed
+                     bool animate)                // if true, animate with OpenGL
 {
   std::cout << test_name << std::endl;
 
@@ -279,21 +252,25 @@ bool TestLinActuator(
 
   double contact_recovery_speed = 1;
 
-
   // Create the mechanical system
   // ----------------------------
 
   ChSystemParallel* msystem;
 
   switch (sys_type) {
-  case utils::PARALLEL_DEM: msystem = new ChSystemParallelDEM(); break;
-  case utils::PARALLEL_DVI: msystem = new ChSystemParallelDVI(); break;
+    case utils::PARALLEL_DEM:
+      msystem = new ChSystemParallelDEM();
+      break;
+    case utils::PARALLEL_DVI:
+      msystem = new ChSystemParallelDVI();
+      break;
   }
   msystem->Set_G_acc(gravity);
 
   // Set number of threads.
   int max_threads = msystem->GetParallelThreadNumber();
-  if (threads > max_threads) threads = max_threads;
+  if (threads > max_threads)
+    threads = max_threads;
   msystem->SetParallelThreadNumber(threads);
   omp_set_num_threads(threads);
 
@@ -319,8 +296,12 @@ bool TestLinActuator(
 
   ChBody* ground_ptr;
   switch (sys_type) {
-  case utils::PARALLEL_DEM: ground_ptr = new ChBodyDEM(new ChCollisionModelParallel); break;
-  case utils::PARALLEL_DVI: ground_ptr = new ChBody(new ChCollisionModelParallel); break;
+    case utils::PARALLEL_DEM:
+      ground_ptr = new ChBodyDEM(new ChCollisionModelParallel);
+      break;
+    case utils::PARALLEL_DVI:
+      ground_ptr = new ChBody(new ChCollisionModelParallel);
+      break;
   }
   ChSharedPtr<ChBody> ground(ground_ptr);
   ground_ptr->AddRef();
@@ -338,8 +319,12 @@ bool TestLinActuator(
 
   ChBody* plate_ptr;
   switch (sys_type) {
-  case utils::PARALLEL_DEM: plate_ptr = new ChBodyDEM(new ChCollisionModelParallel); break;
-  case utils::PARALLEL_DVI: plate_ptr = new ChBody(new ChCollisionModelParallel); break;
+    case utils::PARALLEL_DEM:
+      plate_ptr = new ChBodyDEM(new ChCollisionModelParallel);
+      break;
+    case utils::PARALLEL_DVI:
+      plate_ptr = new ChBody(new ChCollisionModelParallel);
+      break;
   }
   ChSharedPtr<ChBody> plate(plate_ptr);
   plate_ptr->AddRef();
@@ -388,16 +373,14 @@ bool TestLinActuator(
   bool passed = true;
   double time = 0;
 
-  if (animate)
-  {
-#   ifdef CHRONO_PARALLEL_HAS_OPENGL
-    opengl::ChOpenGLWindow &gl_window = opengl::ChOpenGLWindow::getInstance();
+  if (animate) {
+#ifdef CHRONO_PARALLEL_HAS_OPENGL
+    opengl::ChOpenGLWindow& gl_window = opengl::ChOpenGLWindow::getInstance();
     gl_window.Initialize(1280, 720, test_name, msystem);
     gl_window.SetCamera(ChVector<>(0, -10, 0), ChVector<>(0, 0, 0), ChVector<>(0, 0, 1));
     gl_window.SetRenderMode(opengl::WIREFRAME);
 
-    while (time < time_end)
-    {
+    while (time < time_end) {
       // Advance simulation by one step.
       gl_window.DoStepDynamics(time_step);
       gl_window.Render();
@@ -405,15 +388,12 @@ bool TestLinActuator(
       if (!VerifySolution(time, rot, speed, plate, prismatic, actuator))
         passed = false;
     }
-#   else
+#else
     std::cout << "OpenGL support not available.  Cannot animate mechanism." << std::endl;
     return false;
-#   endif
-  }
-  else
-  {
-    while (time < time_end)
-    {
+#endif
+  } else {
+    while (time < time_end) {
       msystem->DoStepDynamics(time_step);
       time += time_step;
       if (!VerifySolution(time, rot, speed, plate, prismatic, actuator))
@@ -426,12 +406,10 @@ bool TestLinActuator(
   return passed;
 }
 
-
 // -----------------------------------------------------------------------------
 // Main driver function for running the simulation and validating the results.
 // -----------------------------------------------------------------------------
-int main(int argc, char* argv[])
-{
+int main(int argc, char* argv[]) {
   // No animation by default (i.e. when no program arguments)
   bool animate = (argc > 1);
 
@@ -448,4 +426,3 @@ int main(int argc, char* argv[])
   // Return 0 if all tests passed and 1 otherwise
   return !test_passed;
 }
-

@@ -84,9 +84,9 @@ class CH_OPENGL_API ChOpenGLViewer : public ChOpenGLBase {
 
   std::vector<glm::vec3> cloud_data;
   std::vector<glm::vec3> grid_data;
-  int simulation_frame;     // The current frame number
-  float simulation_h;       // The simulation step size
-  float simulation_time;    // The current simulation time
+  int simulation_frame;   // The current frame number
+  float simulation_h;     // The simulation step size
+  float simulation_time;  // The current simulation time
   bool pause_sim;
   bool pause_vis;
   bool single_step;
@@ -111,4 +111,4 @@ class CH_OPENGL_API ChOpenGLViewer : public ChOpenGLBase {
 }
 }
 
-#endif    // END of CHOPENGLVIEWER_H
+#endif  // END of CHOPENGLVIEWER_H

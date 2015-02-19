@@ -41,9 +41,12 @@ ChOpenGLCamera::ChOpenGLCamera() {
   viewport_x = 0;
   viewport_y = 0;
 }
-ChOpenGLCamera::~ChOpenGLCamera() {}
+ChOpenGLCamera::~ChOpenGLCamera() {
+}
 
-void ChOpenGLCamera::Reset() { camera_up = glm::vec3(0, 1, 0); }
+void ChOpenGLCamera::Reset() {
+  camera_up = glm::vec3(0, 1, 0);
+}
 
 void ChOpenGLCamera::Update() {
   camera_direction = glm::normalize(camera_look_at - camera_position);
@@ -92,10 +95,16 @@ void ChOpenGLCamera::SetMode(CameraType cam_mode) {
   rotation_quaternion = glm::quat(1, 0, 0, 0);
 }
 
-void ChOpenGLCamera::SetPosition(glm::vec3 pos) { camera_position = pos; }
+void ChOpenGLCamera::SetPosition(glm::vec3 pos) {
+  camera_position = pos;
+}
 
-void ChOpenGLCamera::SetLookAt(glm::vec3 pos) { camera_look_at = pos; }
-void ChOpenGLCamera::SetFOV(double fov) { field_of_view = fov; }
+void ChOpenGLCamera::SetLookAt(glm::vec3 pos) {
+  camera_look_at = pos;
+}
+void ChOpenGLCamera::SetFOV(double fov) {
+  field_of_view = fov;
+}
 void ChOpenGLCamera::SetViewport(int loc_x, int loc_y, int width, int height) {
   viewport_x = loc_x;
   viewport_y = loc_y;
@@ -198,7 +207,9 @@ void ChOpenGLCamera::SetPos(int button, int state, int x, int y) {
   mouse_position = glm::vec3(x, y, 0);
 }
 
-CameraType ChOpenGLCamera::GetMode() { return camera_mode; }
+CameraType ChOpenGLCamera::GetMode() {
+  return camera_mode;
+}
 
 void ChOpenGLCamera::GetViewport(int& loc_x, int& loc_y, int& width, int& height) {
   loc_x = viewport_x;

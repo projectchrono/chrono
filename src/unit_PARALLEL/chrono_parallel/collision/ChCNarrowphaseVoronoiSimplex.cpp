@@ -8,9 +8,11 @@ Permission is granted to anyone to use this software for any purpose,
 including commercial applications, and to alter it and redistribute it freely,
 subject to the following restrictions:
 
-1. The origin of this software must not be misrepresented; you must not claim that you wrote the original software. If you use this software in a product, an acknowledgment in the product
+1. The origin of this software must not be misrepresented; you must not claim that you wrote the original software. If
+you use this software in a product, an acknowledgment in the product
 documentation would be appreciated but is not required.
-2. Altered source versions must be plainly marked as such, and must not be misrepresented as being the original software.
+2. Altered source versions must be plainly marked as such, and must not be misrepresented as being the original
+software.
 3. This notice may not be removed or altered from any source distribution.
 
    Elsevier CDROM license agreements grants nonexclusive license to use the software
@@ -39,7 +41,6 @@ using namespace chrono::collision;
 
 #define CATCH_DEGENERATE_TETRAHEDRON 1
 void ChCNarrowphaseVoronoiSimplex::removeVertex(int index) {
-
   m_numVertices--;
   m_simplexVectorW[index] = m_simplexVectorW[m_numVertices];
   m_simplexPointsP[index] = m_simplexPointsP[m_numVertices];
@@ -82,7 +83,6 @@ void ChCNarrowphaseVoronoiSimplex::addVertex(const real3& w, const real3& p, con
 }
 
 bool ChCNarrowphaseVoronoiSimplex::updateClosestVectorAndPoints() {
-
   if (m_needsUpdate) {
     m_cachedBC.reset();
 
@@ -95,7 +95,7 @@ bool ChCNarrowphaseVoronoiSimplex::updateClosestVectorAndPoints() {
       case 1: {
         m_cachedP1 = m_simplexPointsP[0];
         m_cachedP2 = m_simplexPointsQ[0];
-        m_cachedV = m_cachedP1 - m_cachedP2;    //== m_simplexVectorW[0]
+        m_cachedV = m_cachedP1 - m_cachedP2;  //== m_simplexVectorW[0]
         m_cachedBC.reset();
         m_cachedBC.setBarycentricCoordinates(real(1.), real(0.), real(0.), real(0.));
         m_cachedValidClosest = m_cachedBC.isValid();
@@ -152,9 +152,13 @@ bool ChCNarrowphaseVoronoiSimplex::updateClosestVectorAndPoints() {
         const real3& c = m_simplexVectorW[2];
 
         closestPtPointTriangle(p, a, b, c, m_cachedBC);
-        m_cachedP1 = m_simplexPointsP[0] * m_cachedBC.m_barycentricCoords[0] + m_simplexPointsP[1] * m_cachedBC.m_barycentricCoords[1] + m_simplexPointsP[2] * m_cachedBC.m_barycentricCoords[2];
+        m_cachedP1 = m_simplexPointsP[0] * m_cachedBC.m_barycentricCoords[0] +
+                     m_simplexPointsP[1] * m_cachedBC.m_barycentricCoords[1] +
+                     m_simplexPointsP[2] * m_cachedBC.m_barycentricCoords[2];
 
-        m_cachedP2 = m_simplexPointsQ[0] * m_cachedBC.m_barycentricCoords[0] + m_simplexPointsQ[1] * m_cachedBC.m_barycentricCoords[1] + m_simplexPointsQ[2] * m_cachedBC.m_barycentricCoords[2];
+        m_cachedP2 = m_simplexPointsQ[0] * m_cachedBC.m_barycentricCoords[0] +
+                     m_simplexPointsQ[1] * m_cachedBC.m_barycentricCoords[1] +
+                     m_simplexPointsQ[2] * m_cachedBC.m_barycentricCoords[2];
 
         m_cachedV = m_cachedP1 - m_cachedP2;
 
@@ -164,7 +168,6 @@ bool ChCNarrowphaseVoronoiSimplex::updateClosestVectorAndPoints() {
         break;
       }
       case 4: {
-
         real3 p(real(0.), real(0.), real(0.));
 
         const real3& a = m_simplexVectorW[0];
@@ -175,11 +178,14 @@ bool ChCNarrowphaseVoronoiSimplex::updateClosestVectorAndPoints() {
         bool hasSeperation = closestPtPointTetrahedron(p, a, b, c, d, m_cachedBC);
 
         if (hasSeperation) {
-
-          m_cachedP1 = m_simplexPointsP[0] * m_cachedBC.m_barycentricCoords[0] + m_simplexPointsP[1] * m_cachedBC.m_barycentricCoords[1] + m_simplexPointsP[2] * m_cachedBC.m_barycentricCoords[2] +
+          m_cachedP1 = m_simplexPointsP[0] * m_cachedBC.m_barycentricCoords[0] +
+                       m_simplexPointsP[1] * m_cachedBC.m_barycentricCoords[1] +
+                       m_simplexPointsP[2] * m_cachedBC.m_barycentricCoords[2] +
                        m_simplexPointsP[3] * m_cachedBC.m_barycentricCoords[3];
 
-          m_cachedP2 = m_simplexPointsQ[0] * m_cachedBC.m_barycentricCoords[0] + m_simplexPointsQ[1] * m_cachedBC.m_barycentricCoords[1] + m_simplexPointsQ[2] * m_cachedBC.m_barycentricCoords[2] +
+          m_cachedP2 = m_simplexPointsQ[0] * m_cachedBC.m_barycentricCoords[0] +
+                       m_simplexPointsQ[1] * m_cachedBC.m_barycentricCoords[1] +
+                       m_simplexPointsQ[2] * m_cachedBC.m_barycentricCoords[2] +
                        m_simplexPointsQ[3] * m_cachedBC.m_barycentricCoords[3];
 
           m_cachedV = m_cachedP1 - m_cachedP2;
@@ -260,9 +266,13 @@ bool ChCNarrowphaseVoronoiSimplex::inSimplex(const real3& w) {
   return found;
 }
 
-void ChCNarrowphaseVoronoiSimplex::backup_closest(real3& v) { v = m_cachedV; }
+void ChCNarrowphaseVoronoiSimplex::backup_closest(real3& v) {
+  v = m_cachedV;
+}
 
-bool ChCNarrowphaseVoronoiSimplex::emptySimplex() const { return (numVertices() == 0); }
+bool ChCNarrowphaseVoronoiSimplex::emptySimplex() const {
+  return (numVertices() == 0);
+}
 
 void ChCNarrowphaseVoronoiSimplex::compute_points(real3& p1, real3& p2) {
   updateClosestVectorAndPoints();
@@ -270,7 +280,11 @@ void ChCNarrowphaseVoronoiSimplex::compute_points(real3& p1, real3& p2) {
   p2 = m_cachedP2;
 }
 
-bool ChCNarrowphaseVoronoiSimplex::closestPtPointTriangle(const real3& p, const real3& a, const real3& b, const real3& c, btSubSimplexClosestResult& result) {
+bool ChCNarrowphaseVoronoiSimplex::closestPtPointTriangle(const real3& p,
+                                                          const real3& a,
+                                                          const real3& b,
+                                                          const real3& c,
+                                                          btSubSimplexClosestResult& result) {
   result.m_usedVertices.reset();
 
   // Check if P in vertex region outside A
@@ -283,7 +297,7 @@ bool ChCNarrowphaseVoronoiSimplex::closestPtPointTriangle(const real3& p, const 
     result.m_closestPointOnSimplex = a;
     result.m_usedVertices.usedVertexA = true;
     result.setBarycentricCoordinates(1, 0, 0);
-    return true;    // a; // barycentric coordinates (1,0,0)
+    return true;  // a; // barycentric coordinates (1,0,0)
   }
 
   // Check if P in vertex region outside B
@@ -295,7 +309,7 @@ bool ChCNarrowphaseVoronoiSimplex::closestPtPointTriangle(const real3& p, const 
     result.m_usedVertices.usedVertexB = true;
     result.setBarycentricCoordinates(0, 1, 0);
 
-    return true;    // b; // barycentric coordinates (0,1,0)
+    return true;  // b; // barycentric coordinates (0,1,0)
   }
   // Check if P in edge region of AB, if so return projection of P onto AB
   real vc = d1 * d4 - d3 * d2;
@@ -317,7 +331,7 @@ bool ChCNarrowphaseVoronoiSimplex::closestPtPointTriangle(const real3& p, const 
     result.m_closestPointOnSimplex = c;
     result.m_usedVertices.usedVertexC = true;
     result.setBarycentricCoordinates(0, 0, 1);
-    return true;    // c; // barycentric coordinates (0,0,1)
+    return true;  // c; // barycentric coordinates (0,0,1)
   }
 
   // Check if P in edge region of AC, if so return projection of P onto AC
@@ -361,11 +375,15 @@ bool ChCNarrowphaseVoronoiSimplex::closestPtPointTriangle(const real3& p, const 
 }
 
 /// Test if point p and d lie on opposite sides of plane through abc
-int ChCNarrowphaseVoronoiSimplex::pointOutsideOfPlane(const real3& p, const real3& a, const real3& b, const real3& c, const real3& d) {
+int ChCNarrowphaseVoronoiSimplex::pointOutsideOfPlane(const real3& p,
+                                                      const real3& a,
+                                                      const real3& b,
+                                                      const real3& c,
+                                                      const real3& d) {
   real3 normal = (b - a).cross(c - a);
 
-  real signp = (p - a).dot(normal);    // [AP AB AC]
-  real signd = (d - a).dot(normal);    // [AD AB AC]
+  real signp = (p - a).dot(normal);  // [AP AB AC]
+  real signd = (d - a).dot(normal);  // [AD AB AC]
 
 #ifdef CATCH_DEGENERATE_TETRAHEDRON
 #ifdef BT_USE_DOUBLE_PRECISION
@@ -384,7 +402,12 @@ int ChCNarrowphaseVoronoiSimplex::pointOutsideOfPlane(const real3& p, const real
   return signp * signd < real(0.);
 }
 
-bool ChCNarrowphaseVoronoiSimplex::closestPtPointTetrahedron(const real3& p, const real3& a, const real3& b, const real3& c, const real3& d, btSubSimplexClosestResult& finalResult) {
+bool ChCNarrowphaseVoronoiSimplex::closestPtPointTetrahedron(const real3& p,
+                                                             const real3& a,
+                                                             const real3& b,
+                                                             const real3& c,
+                                                             const real3& d,
+                                                             btSubSimplexClosestResult& finalResult) {
   btSubSimplexClosestResult tempResult;
 
   // Start out assuming point inside all halfspaces, so closest to itself
@@ -425,7 +448,10 @@ bool ChCNarrowphaseVoronoiSimplex::closestPtPointTetrahedron(const real3& p, con
       finalResult.m_usedVertices.usedVertexA = tempResult.m_usedVertices.usedVertexA;
       finalResult.m_usedVertices.usedVertexB = tempResult.m_usedVertices.usedVertexB;
       finalResult.m_usedVertices.usedVertexC = tempResult.m_usedVertices.usedVertexC;
-      finalResult.setBarycentricCoordinates(tempResult.m_barycentricCoords[VERTA], tempResult.m_barycentricCoords[VERTB], tempResult.m_barycentricCoords[VERTC], 0);
+      finalResult.setBarycentricCoordinates(tempResult.m_barycentricCoords[VERTA],
+                                            tempResult.m_barycentricCoords[VERTB],
+                                            tempResult.m_barycentricCoords[VERTC],
+                                            0);
     }
   }
 
@@ -444,7 +470,10 @@ bool ChCNarrowphaseVoronoiSimplex::closestPtPointTetrahedron(const real3& p, con
 
       finalResult.m_usedVertices.usedVertexC = tempResult.m_usedVertices.usedVertexB;
       finalResult.m_usedVertices.usedVertexD = tempResult.m_usedVertices.usedVertexC;
-      finalResult.setBarycentricCoordinates(tempResult.m_barycentricCoords[VERTA], 0, tempResult.m_barycentricCoords[VERTB], tempResult.m_barycentricCoords[VERTC]);
+      finalResult.setBarycentricCoordinates(tempResult.m_barycentricCoords[VERTA],
+                                            0,
+                                            tempResult.m_barycentricCoords[VERTB],
+                                            tempResult.m_barycentricCoords[VERTC]);
     }
   }
   // Repeat test for face adb
@@ -463,7 +492,10 @@ bool ChCNarrowphaseVoronoiSimplex::closestPtPointTetrahedron(const real3& p, con
       finalResult.m_usedVertices.usedVertexB = tempResult.m_usedVertices.usedVertexC;
 
       finalResult.m_usedVertices.usedVertexD = tempResult.m_usedVertices.usedVertexB;
-      finalResult.setBarycentricCoordinates(tempResult.m_barycentricCoords[VERTA], tempResult.m_barycentricCoords[VERTC], 0, tempResult.m_barycentricCoords[VERTB]);
+      finalResult.setBarycentricCoordinates(tempResult.m_barycentricCoords[VERTA],
+                                            tempResult.m_barycentricCoords[VERTC],
+                                            0,
+                                            tempResult.m_barycentricCoords[VERTB]);
     }
   }
   // Repeat test for face bdc
@@ -482,13 +514,17 @@ bool ChCNarrowphaseVoronoiSimplex::closestPtPointTetrahedron(const real3& p, con
       finalResult.m_usedVertices.usedVertexC = tempResult.m_usedVertices.usedVertexC;
       finalResult.m_usedVertices.usedVertexD = tempResult.m_usedVertices.usedVertexB;
 
-      finalResult.setBarycentricCoordinates(0, tempResult.m_barycentricCoords[VERTA], tempResult.m_barycentricCoords[VERTC], tempResult.m_barycentricCoords[VERTB]);
+      finalResult.setBarycentricCoordinates(0,
+                                            tempResult.m_barycentricCoords[VERTA],
+                                            tempResult.m_barycentricCoords[VERTC],
+                                            tempResult.m_barycentricCoords[VERTB]);
     }
   }
 
   // help! we ended up full !
 
-  if (finalResult.m_usedVertices.usedVertexA && finalResult.m_usedVertices.usedVertexB && finalResult.m_usedVertices.usedVertexC && finalResult.m_usedVertices.usedVertexD) {
+  if (finalResult.m_usedVertices.usedVertexA && finalResult.m_usedVertices.usedVertexB &&
+      finalResult.m_usedVertices.usedVertexC && finalResult.m_usedVertices.usedVertexD) {
     return true;
   }
 

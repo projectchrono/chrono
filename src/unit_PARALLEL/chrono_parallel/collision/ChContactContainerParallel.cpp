@@ -7,16 +7,14 @@
 #include "collision/ChCModelBulletBody.h"
 #include "collision/ChCModelBulletParticle.h"
 
-#include "core/ChMemory.h" // must be last include (memory leak debugger). In .cpp only.
+#include "core/ChMemory.h"  // must be last include (memory leak debugger). In .cpp only.
 
 namespace chrono {
 
 using namespace collision;
 using namespace geometry;
 
-ChContactContainerParallel::ChContactContainerParallel(ChParallelDataManager* dc)
-: data_container(dc)
-{
+ChContactContainerParallel::ChContactContainerParallel(ChParallelDataManager* dc) : data_container(dc) {
   n_added = 0;
 }
 
@@ -24,5 +22,4 @@ ChContactContainerParallel::~ChContactContainerParallel() {
   n_added = 0;
 }
 
-} // END_OF_NAMESPACE____
-
+}  // END_OF_NAMESPACE____

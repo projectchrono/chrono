@@ -79,23 +79,22 @@ int timing_frame = -1;
 double gravity = 9.81;
 
 // Parameters for the mechanism
-int Id_container = 0;    // body ID for the containing bin
-int Id_ground = 1;       // body ID for the ground
+int Id_container = 0;  // body ID for the containing bin
+int Id_ground = 1;     // body ID for the ground
 
-double hdimX = 2.0 / 2;     // [m] bin half-length in x direction
-double hdimY = 2.0 / 2;     // [m] bin half-depth in y direction
-double hdimZ = 2.0 / 2;     // [m] bin half-height in z direction
-double hthick = 0.1 / 2;    // [m] bin half-thickness of the walls
+double hdimX = 2.0 / 2;   // [m] bin half-length in x direction
+double hdimY = 2.0 / 2;   // [m] bin half-depth in y direction
+double hdimZ = 2.0 / 2;   // [m] bin half-height in z direction
+double hthick = 0.1 / 2;  // [m] bin half-thickness of the walls
 float mu_walls = 0.3f;
 
 // Parameters for the granular material
-int Id_g = 2;           // start body ID for particles
-double r_g = 0.1;       // [m] radius of granular sphers
-double rho_g = 1000;    // [kg/m^3] density of granules
+int Id_g = 2;         // start body ID for particles
+double r_g = 0.1;     // [m] radius of granular sphers
+double rho_g = 1000;  // [kg/m^3] density of granules
 float mu_g = 0.5f;
 
 void CreateMechanismBodies(ChSystemParallel* system) {
-
   ChSharedPtr<ChMaterialSurface> mat_walls(new ChMaterialSurface);
   mat_walls->SetFriction(mu_walls);
 
@@ -213,9 +212,7 @@ bool CompareContacts(ChSystemParallel* msystem) {
   int2* ids = msystem->data_manager->host_data.bids_rigid_rigid.data();
   real4* rot = msystem->data_manager->host_data.rot_data.data();
 
-
-  ((ChLcpSolverParallelDVI *)msystem->GetLcpSolverSpeed())->ComputeD();
-
+  ((ChLcpSolverParallelDVI*)msystem->GetLcpSolverSpeed())->ComputeD();
 
   CompressedMatrix<real>& D_n_T = msystem->data_manager->host_data.D_n_T;
   CompressedMatrix<real>& D_t_T = msystem->data_manager->host_data.D_t_T;
@@ -225,20 +222,16 @@ bool CompareContacts(ChSystemParallel* msystem) {
   int nnz_tangential = 6 * 4 * msystem->data_manager->num_contacts;
   int nnz_spinning = 6 * 3 * msystem->data_manager->num_contacts;
 
-//  StrictEqual(D_n_T.nonZeros(), nnz_normal);
-//  StrictEqual(D_t_T.nonZeros(), nnz_tangential);
-//  StrictEqual(D_s_T.nonZeros(), nnz_spinning);
+  //  StrictEqual(D_n_T.nonZeros(), nnz_normal);
+  //  StrictEqual(D_t_T.nonZeros(), nnz_tangential);
+  //  StrictEqual(D_s_T.nonZeros(), nnz_spinning);
 
-  cout<<D_n_T.nonZeros()<<" "<<nnz_normal<<endl;
-  cout<<D_t_T.nonZeros()<<" "<<nnz_tangential<<endl;
-  cout<<D_s_T.nonZeros()<<" "<<nnz_spinning<<endl;
+  cout << D_n_T.nonZeros() << " " << nnz_normal << endl;
+  cout << D_t_T.nonZeros() << " " << nnz_tangential << endl;
+  cout << D_s_T.nonZeros() << " " << nnz_spinning << endl;
 
-
-
-
-//#pragma omp parallel for
+  //#pragma omp parallel for
   for (int index = 0; index < msystem->data_manager->num_contacts; index++) {
-
     real3 U = norm[index], V, W;
     real3 T3, T4, T5, T6, T7, T8;
     real3 TA, TB, TC;
@@ -307,7 +300,7 @@ bool CompareContacts(ChSystemParallel* msystem) {
 }
 
 int main(int argc, char* argv[]) {
-omp_set_num_threads(1);
+  omp_set_num_threads(1);
 
   // No animation by default (i.e. when no program arguments)
   bool animate = (argc > 1);

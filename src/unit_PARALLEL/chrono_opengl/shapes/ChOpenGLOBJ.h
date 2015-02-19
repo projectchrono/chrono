@@ -45,4 +45,4 @@ class CH_OPENGL_API ChOpenGLOBJ : public ChOpenGLBase {
 }
 }
 
-#endif    // END of CHOPENGLOBJ_H
+#endif  // END of CHOPENGLOBJ_H

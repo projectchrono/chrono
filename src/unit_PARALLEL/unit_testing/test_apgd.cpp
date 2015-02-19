@@ -15,4 +15,6 @@
 // ChronoParallel unit test APGD (Not implemented yet)
 // =============================================================================
 
-int main() { return 0; }
+int main() {
+  return 0;
+}

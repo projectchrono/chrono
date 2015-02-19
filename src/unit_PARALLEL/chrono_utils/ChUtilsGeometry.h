@@ -31,131 +31,91 @@
 #include "chrono_utils/ChApiUtils.h"
 #include "chrono_utils/ChUtilsCommon.h"
 
-
 namespace chrono {
 namespace utils {
-
 
 // -----------------------------------------------------------------------------
 // These utility functions return the bounding radius of the corresponding
 // shape. A sphere with this radius and centered at the origin of the frame
 // defining the shape is a bounding sphere for that shape.
 // -----------------------------------------------------------------------------
-inline
-double CalcSphereBradius(double radius)
-{
+inline double CalcSphereBradius(double radius) {
   return radius;
 }
 
-inline
-double CalcEllipsoidBradius(const ChVector<>& hdims)
-{
+inline double CalcEllipsoidBradius(const ChVector<>& hdims) {
   return hdims.LengthInf();
 }
 
-inline
-double CalcBoxBradius(const ChVector<>& hdims)
-{
+inline double CalcBoxBradius(const ChVector<>& hdims) {
   return hdims.Length();
 }
 
-inline
-double CalcCapsuleBradius(double radius, double hlen)
-{
+inline double CalcCapsuleBradius(double radius, double hlen) {
   return hlen + radius;
 }
 
-inline
-double CalcCylinderBradius(double radius, double hlen)
-{
+inline double CalcCylinderBradius(double radius, double hlen) {
   return sqrt(hlen * hlen + radius * radius);
 }
 
-inline
-double CalcConeBradius(double radius, double hlen)
-{
+inline double CalcConeBradius(double radius, double hlen) {
   return sqrt(hlen * hlen + radius * radius);
 }
 
-inline
-double CalcRoundedCylinderBradius(double radius, double hlen, double srad)
-{
+inline double CalcRoundedCylinderBradius(double radius, double hlen, double srad) {
   return sqrt(hlen * hlen + radius * radius) + srad;
 }
 
-inline
-double CalcRoundedBoxBradius(const ChVector<>& hdims, double srad)
-{
+inline double CalcRoundedBoxBradius(const ChVector<>& hdims, double srad) {
   return hdims.Length() + srad;
 }
 
-inline
-double CalcTorusBradius(double radius, double thickness)
-{
+inline double CalcTorusBradius(double radius, double thickness) {
   return radius + thickness;
 }
 
 // -----------------------------------------------------------------------------
 // These utility functions calculate the volume of the corresponding shape.
 // -----------------------------------------------------------------------------
-inline
-double CalcSphereVolume(double radius)
-{
-  return (4.0/3.0) * CH_C_PI * radius * radius * radius;
+inline double CalcSphereVolume(double radius) {
+  return (4.0 / 3.0) * CH_C_PI * radius * radius * radius;
 }
 
-inline
-double CalcEllipsoidVolume(const ChVector<>& hdims)
-{
-  return (4.0/3.0) * CH_C_PI * hdims.x * hdims.y * hdims.z;
+inline double CalcEllipsoidVolume(const ChVector<>& hdims) {
+  return (4.0 / 3.0) * CH_C_PI * hdims.x * hdims.y * hdims.z;
 }
 
-inline
-double CalcBoxVolume(const ChVector<>& hdims)
-{
+inline double CalcBoxVolume(const ChVector<>& hdims) {
   return 8.0 * hdims.x * hdims.y * hdims.z;
 }
 
-inline
-double CalcCapsuleVolume(double radius, double hlen)
-{
-  double tmp = radius * radius * hlen + (2.0/3.0) * radius * radius * radius;
+inline double CalcCapsuleVolume(double radius, double hlen) {
+  double tmp = radius * radius * hlen + (2.0 / 3.0) * radius * radius * radius;
   return 2.0 * CH_C_PI * tmp;
 }
 
-inline
-double CalcCylinderVolume(double radius, double hlen)
-{
+inline double CalcCylinderVolume(double radius, double hlen) {
   return 2.0 * CH_C_PI * radius * radius * hlen;
 }
 
-inline
-double CalcConeVolume(double radius, double hlen)
-{
+inline double CalcConeVolume(double radius, double hlen) {
   return CH_C_PI * radius * radius * hlen / 3.0;
 }
 
-inline
-double CalcRoundedCylinderVolume(double radius, double hlen, double srad)
-{
-  double tmp = (radius + srad) * (radius + srad) * hlen +
-         srad * (radius * radius + (2.0/3.0) * srad * srad) +
-         (CH_C_PI/2.0 - 1.0) * radius * srad * srad;
+inline double CalcRoundedCylinderVolume(double radius, double hlen, double srad) {
+  double tmp = (radius + srad) * (radius + srad) * hlen + srad * (radius * radius + (2.0 / 3.0) * srad * srad) +
+               (CH_C_PI / 2.0 - 1.0) * radius * srad * srad;
   return 2.0 * CH_C_PI * tmp;
 }
 
-inline
-double CalcRoundedBoxVolume(const ChVector<>& hdims, double srad)
-{
-  return  8 * hdims.x * hdims.y * hdims.z +
-          2 * srad * (hdims.x * hdims.y + hdims.y * hdims.z + hdims.z * hdims.x) +
-          (4.0 * CH_C_PI / 3.0) * srad * srad * srad;
+inline double CalcRoundedBoxVolume(const ChVector<>& hdims, double srad) {
+  return 8 * hdims.x * hdims.y * hdims.z + 2 * srad * (hdims.x * hdims.y + hdims.y * hdims.z + hdims.z * hdims.x) +
+         (4.0 * CH_C_PI / 3.0) * srad * srad * srad;
 }
 
-inline
-double CalcTorusVolume( double radius, double thickness)
-{
-  return  2 * CH_C_PI * CH_C_PI * thickness * thickness * radius;
+inline double CalcTorusVolume(double radius, double thickness) {
+  return 2 * CH_C_PI * CH_C_PI * thickness * thickness * radius;
 }
 
 // -----------------------------------------------------------------------------
@@ -163,11 +123,7 @@ double CalcTorusVolume( double radius, double thickness)
 // be specified in a centroidal reference frame, to the 'parent' frame defined
 // by the translation vector 'pos' and orientation 'rot' of the local frame.
 // -----------------------------------------------------------------------------
-inline
-void TransformGyration(ChMatrix33<>&         J,
-                       const ChVector<>&     pos,
-                       const ChQuaternion<>& rot)
-{
+inline void TransformGyration(ChMatrix33<>& J, const ChVector<>& pos, const ChQuaternion<>& rot) {
   ////
   ////  TODO
   ////
@@ -177,14 +133,11 @@ void TransformGyration(ChMatrix33<>&         J,
 // These utility functions calculate the gyration tensor of the corresponding
 // shape, given its position and orientation.
 // -----------------------------------------------------------------------------
-inline
-ChMatrix33<> CalcSphereGyration(
-                 double                radius,
-                 const ChVector<>&     pos = ChVector<>(0,0,0),
-                 const ChQuaternion<>& rot = ChQuaternion<>(1,0,0,0))
-{
+inline ChMatrix33<> CalcSphereGyration(double radius,
+                                       const ChVector<>& pos = ChVector<>(0, 0, 0),
+                                       const ChQuaternion<>& rot = ChQuaternion<>(1, 0, 0, 0)) {
   ChMatrix33<> J;
-  double       Jxx = (2.0/5.0) * radius * radius;
+  double Jxx = (2.0 / 5.0) * radius * radius;
 
   J.SetElement(0, 0, Jxx);
   J.SetElement(1, 1, Jxx);
@@ -195,158 +148,131 @@ ChMatrix33<> CalcSphereGyration(
   return J;
 }
 
-inline
-ChMatrix33<> CalcEllipsoidGyration(
-                 const ChVector<>&     hdims,
-                 const ChVector<>&     pos = ChVector<>(0,0,0),
-                 const ChQuaternion<>& rot = ChQuaternion<>(1,0,0,0))
-{
+inline ChMatrix33<> CalcEllipsoidGyration(const ChVector<>& hdims,
+                                          const ChVector<>& pos = ChVector<>(0, 0, 0),
+                                          const ChQuaternion<>& rot = ChQuaternion<>(1, 0, 0, 0)) {
   ChMatrix33<> J;
 
-  J.SetElement(0, 0, (1.0/5.0) * (hdims.y * hdims.y + hdims.z * hdims.z));
-  J.SetElement(1, 1, (1.0/5.0) * (hdims.z * hdims.z + hdims.x * hdims.x));
-  J.SetElement(2, 2, (1.0/5.0) * (hdims.x * hdims.x + hdims.y * hdims.y));
+  J.SetElement(0, 0, (1.0 / 5.0) * (hdims.y * hdims.y + hdims.z * hdims.z));
+  J.SetElement(1, 1, (1.0 / 5.0) * (hdims.z * hdims.z + hdims.x * hdims.x));
+  J.SetElement(2, 2, (1.0 / 5.0) * (hdims.x * hdims.x + hdims.y * hdims.y));
 
   TransformGyration(J, pos, rot);
 
   return J;
 }
 
-inline
-ChMatrix33<> CalcBoxGyration(
-                 const ChVector<>&     hdims,
-                 const ChVector<>&     pos = ChVector<>(0,0,0),
-                 const ChQuaternion<>& rot = ChQuaternion<>(1,0,0,0))
-{
+inline ChMatrix33<> CalcBoxGyration(const ChVector<>& hdims,
+                                    const ChVector<>& pos = ChVector<>(0, 0, 0),
+                                    const ChQuaternion<>& rot = ChQuaternion<>(1, 0, 0, 0)) {
   ChMatrix33<> J;
 
-  J.SetElement(0, 0, (1.0/12.0) * (hdims.y * hdims.y + hdims.z * hdims.z));
-  J.SetElement(1, 1, (1.0/12.0) * (hdims.z * hdims.z + hdims.x * hdims.x));
-  J.SetElement(2, 2, (1.0/12.0) * (hdims.x * hdims.x + hdims.y * hdims.y));
+  J.SetElement(0, 0, (1.0 / 12.0) * (hdims.y * hdims.y + hdims.z * hdims.z));
+  J.SetElement(1, 1, (1.0 / 12.0) * (hdims.z * hdims.z + hdims.x * hdims.x));
+  J.SetElement(2, 2, (1.0 / 12.0) * (hdims.x * hdims.x + hdims.y * hdims.y));
 
   TransformGyration(J, pos, rot);
 
   return J;
 }
 
-inline
-ChMatrix33<> CalcCapsuleGyration(
-                 double                radius,
-                 double                hlen,
-                 const ChVector<>&     pos = ChVector<>(0,0,0),
-                 const ChQuaternion<>& rot = ChQuaternion<>(1,0,0,0))
-{
+inline ChMatrix33<> CalcCapsuleGyration(double radius,
+                                        double hlen,
+                                        const ChVector<>& pos = ChVector<>(0, 0, 0),
+                                        const ChQuaternion<>& rot = ChQuaternion<>(1, 0, 0, 0)) {
   ChMatrix33<> J;
 
   //// TODO: for now, use the gyration of the circumscibed cylinder
   double hlen1 = hlen + radius;
 
-  J.SetElement(0, 0, (1.0/12.0) * (3 * radius * radius + hlen1 * hlen1));
-  J.SetElement(1, 1, (1.0/12.0) * (radius * radius));
-  J.SetElement(2, 2, (1.0/12.0) * (3 * radius * radius + hlen1 * hlen1));
+  J.SetElement(0, 0, (1.0 / 12.0) * (3 * radius * radius + hlen1 * hlen1));
+  J.SetElement(1, 1, (1.0 / 12.0) * (radius * radius));
+  J.SetElement(2, 2, (1.0 / 12.0) * (3 * radius * radius + hlen1 * hlen1));
 
   TransformGyration(J, pos, rot);
 
   return J;
 }
 
-inline
-ChMatrix33<> CalcCylinderGyration(
-                 double                radius,
-                 double                hlen,
-                 const ChVector<>&     pos = ChVector<>(0,0,0),
-                 const ChQuaternion<>& rot = ChQuaternion<>(1,0,0,0))
-{
+inline ChMatrix33<> CalcCylinderGyration(double radius,
+                                         double hlen,
+                                         const ChVector<>& pos = ChVector<>(0, 0, 0),
+                                         const ChQuaternion<>& rot = ChQuaternion<>(1, 0, 0, 0)) {
   ChMatrix33<> J;
 
-  J.SetElement(0, 0, (1.0/12.0) * (3 * radius * radius + hlen * hlen));
-  J.SetElement(1, 1, (1.0/12.0) * (radius * radius));
-  J.SetElement(2, 2, (1.0/12.0) * (3 * radius * radius + hlen * hlen));
+  J.SetElement(0, 0, (1.0 / 12.0) * (3 * radius * radius + hlen * hlen));
+  J.SetElement(1, 1, (1.0 / 12.0) * (radius * radius));
+  J.SetElement(2, 2, (1.0 / 12.0) * (3 * radius * radius + hlen * hlen));
 
   TransformGyration(J, pos, rot);
 
   return J;
 }
 
-inline
-ChMatrix33<> CalcConeGyration(
-                 double                radius,
-                 double                hlen,
-                 const ChVector<>&     pos = ChVector<>(0,0,0),
-                 const ChQuaternion<>& rot = ChQuaternion<>(1,0,0,0))
-{
+inline ChMatrix33<> CalcConeGyration(double radius,
+                                     double hlen,
+                                     const ChVector<>& pos = ChVector<>(0, 0, 0),
+                                     const ChQuaternion<>& rot = ChQuaternion<>(1, 0, 0, 0)) {
   ChMatrix33<> J;
 
-  J.SetElement(0, 0, (3.0/5.0) * (hlen * hlen) + (3.0/20.0) * (radius * radius));
-  J.SetElement(1, 1, (3.0/10.0) * (radius * radius));
-  J.SetElement(2, 2, (3.0/5.0) * (hlen * hlen) + (3.0/20.0) * (radius * radius));
+  J.SetElement(0, 0, (3.0 / 5.0) * (hlen * hlen) + (3.0 / 20.0) * (radius * radius));
+  J.SetElement(1, 1, (3.0 / 10.0) * (radius * radius));
+  J.SetElement(2, 2, (3.0 / 5.0) * (hlen * hlen) + (3.0 / 20.0) * (radius * radius));
 
   TransformGyration(J, pos, rot);
 
   return J;
 }
 
-
-inline
-ChMatrix33<> CalcRoundedCylinderGyration(
-                 double                radius,
-                 double                hlen,
-                 double                srad,
-                 const ChVector<>&     pos = ChVector<>(0,0,0),
-                 const ChQuaternion<>& rot = ChQuaternion<>(1,0,0,0))
-{
+inline ChMatrix33<> CalcRoundedCylinderGyration(double radius,
+                                                double hlen,
+                                                double srad,
+                                                const ChVector<>& pos = ChVector<>(0, 0, 0),
+                                                const ChQuaternion<>& rot = ChQuaternion<>(1, 0, 0, 0)) {
   ChMatrix33<> J;
 
   //// TODO: for now, use the gyration of the skeleton cylinder
-  J.SetElement(0, 0, (1.0/12.0) * (3 * radius * radius + hlen * hlen));
-  J.SetElement(1, 1, (1.0/12.0) * (radius * radius));
-  J.SetElement(2, 2, (1.0/12.0) * (3 * radius * radius + hlen * hlen));
+  J.SetElement(0, 0, (1.0 / 12.0) * (3 * radius * radius + hlen * hlen));
+  J.SetElement(1, 1, (1.0 / 12.0) * (radius * radius));
+  J.SetElement(2, 2, (1.0 / 12.0) * (3 * radius * radius + hlen * hlen));
 
   TransformGyration(J, pos, rot);
 
   return J;
 }
 
-inline
-ChMatrix33<> CalcRoundedBoxGyration(
-                 const ChVector<>&     hdims,
-                 double                srad,
-                 const ChVector<>&     pos = ChVector<>(0,0,0),
-                 const ChQuaternion<>& rot = ChQuaternion<>(1,0,0,0))
-{
+inline ChMatrix33<> CalcRoundedBoxGyration(const ChVector<>& hdims,
+                                           double srad,
+                                           const ChVector<>& pos = ChVector<>(0, 0, 0),
+                                           const ChQuaternion<>& rot = ChQuaternion<>(1, 0, 0, 0)) {
   ChMatrix33<> J;
 
   //// TODO: for now, use the gyration of the skeleton box
-  J.SetElement(0, 0, (1.0/12.0) * (hdims.y * hdims.y + hdims.z * hdims.z));
-  J.SetElement(1, 1, (1.0/12.0) * (hdims.z * hdims.z + hdims.x * hdims.x));
-  J.SetElement(2, 2, (1.0/12.0) * (hdims.x * hdims.x + hdims.y * hdims.y));
+  J.SetElement(0, 0, (1.0 / 12.0) * (hdims.y * hdims.y + hdims.z * hdims.z));
+  J.SetElement(1, 1, (1.0 / 12.0) * (hdims.z * hdims.z + hdims.x * hdims.x));
+  J.SetElement(2, 2, (1.0 / 12.0) * (hdims.x * hdims.x + hdims.y * hdims.y));
 
   TransformGyration(J, pos, rot);
 
   return J;
 }
 
-inline
-ChMatrix33<> CalcTorusGyration(
-                 double                radius,
-                 double                thickness,
-                 const ChVector<>&     pos = ChVector<>(0,0,0),
-                 const ChQuaternion<>& rot = ChQuaternion<>(1,0,0,0))
-{
+inline ChMatrix33<> CalcTorusGyration(double radius,
+                                      double thickness,
+                                      const ChVector<>& pos = ChVector<>(0, 0, 0),
+                                      const ChQuaternion<>& rot = ChQuaternion<>(1, 0, 0, 0)) {
   ChMatrix33<> J;
 
-  J.SetElement(0, 0, (5.0/8.0) * (thickness * thickness)  + (1.0/2.0) * (radius * radius));
-  J.SetElement(1, 1, (3.0/4.0) * (thickness * thickness)  + (radius * radius));
-  J.SetElement(2, 2, (5.0/8.0) * (thickness * thickness)  + (1.0/2.0) * (radius * radius));
+  J.SetElement(0, 0, (5.0 / 8.0) * (thickness * thickness) + (1.0 / 2.0) * (radius * radius));
+  J.SetElement(1, 1, (3.0 / 4.0) * (thickness * thickness) + (radius * radius));
+  J.SetElement(2, 2, (5.0 / 8.0) * (thickness * thickness) + (1.0 / 2.0) * (radius * radius));
 
   TransformGyration(J, pos, rot);
 
   return J;
 }
 
-
-} // end namespace utils
-} // end namespace chrono
-
+}  // end namespace utils
+}  // end namespace chrono
 
 #endif

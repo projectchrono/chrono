@@ -31,10 +31,9 @@
 using namespace chrono;
 using namespace chrono::collision;
 
-
 struct Options {
-  SOLVERMODE   mode;
-  SOLVERTYPE   type;
+  SOLVERMODE mode;
+  SOLVERTYPE type;
 
   uint max_iter_bilateral;
   uint max_iter_normal;
@@ -44,14 +43,11 @@ struct Options {
 // -----------------------------------------------------------------------------
 // Create and simulate the mechanism
 // -----------------------------------------------------------------------------
-bool TestMechanism(Options opts, bool animate)
-{
-  std::cout << "Solver type:  " << opts.type << "  mode:  " << opts.mode
-    << std::endl
-    << "     max_iter_bilateral: " << opts.max_iter_bilateral
-    << "     max_iter_normal: " << opts.max_iter_normal
-    << "     max_iter_sliding: " << opts.max_iter_sliding
-    << std::endl;
+bool TestMechanism(Options opts, bool animate) {
+  std::cout << "Solver type:  " << opts.type << "  mode:  " << opts.mode << std::endl
+            << "     max_iter_bilateral: " << opts.max_iter_bilateral
+            << "     max_iter_normal: " << opts.max_iter_normal << "     max_iter_sliding: " << opts.max_iter_sliding
+            << std::endl;
 
   // Additional solver settings
   //---------------------------
@@ -84,7 +80,8 @@ bool TestMechanism(Options opts, bool animate)
 
   // Set number of threads.
   int max_threads = system->GetParallelThreadNumber();
-  if (threads > max_threads) threads = max_threads;
+  if (threads > max_threads)
+    threads = max_threads;
   system->SetParallelThreadNumber(threads);
   omp_set_num_threads(threads);
 
@@ -169,8 +166,7 @@ bool TestMechanism(Options opts, bool animate)
   bool passed = true;
 
   if (animate) {
-
-    opengl::ChOpenGLWindow &gl_window = opengl::ChOpenGLWindow::getInstance();
+    opengl::ChOpenGLWindow& gl_window = opengl::ChOpenGLWindow::getInstance();
     gl_window.Initialize(1280, 720, "Pressure Sinkage Test", system);
     gl_window.SetCamera(ChVector<>(0, -8, 0), ChVector<>(0, 0, 0), ChVector<>(0, 0, 1));
     gl_window.SetRenderMode(opengl::WIREFRAME);
@@ -184,7 +180,6 @@ bool TestMechanism(Options opts, bool animate)
     }
 
   } else {
-
     ChTimerParallel timer;
     timer.AddTimer("simulation_time");
     timer.Reset();
@@ -215,10 +210,8 @@ bool TestMechanism(Options opts, bool animate)
     }
 
     timer.stop("simulation_time");
-    std::cout << (passed ? "PASSED" : "FAILED")
-      << "  sim. time: " << timer.GetTime("simulation_time")
-      << std::endl << std::endl;
-
+    std::cout << (passed ? "PASSED" : "FAILED") << "  sim. time: " << timer.GetTime("simulation_time") << std::endl
+              << std::endl;
   }
 
   return passed;
@@ -227,8 +220,7 @@ bool TestMechanism(Options opts, bool animate)
 // -----------------------------------------------------------------------------
 // Main driver function.
 // -----------------------------------------------------------------------------
-int main(int argc, char* argv[])
-{
+int main(int argc, char* argv[]) {
   // No animation by default (i.e. when no program arguments)
   bool animate = (argc > 1);
 
@@ -298,4 +290,3 @@ int main(int argc, char* argv[])
   // Return 0 if all tests passed and 1 otherwise
   return !test_passed;
 }
-

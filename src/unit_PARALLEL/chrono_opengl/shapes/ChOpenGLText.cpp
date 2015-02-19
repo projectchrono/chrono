@@ -22,7 +22,6 @@ namespace chrono {
 namespace opengl {
 
 ChOpenGLText::ChOpenGLText() : ChOpenGLObject() {
-
   texture = BAD_GL_VALUE;
   sampler = BAD_GL_VALUE;
   vao = BAD_GL_VALUE;
@@ -52,7 +51,15 @@ bool ChOpenGLText::Initialize(ChOpenGLMaterial mat, ChOpenGLShader* _shader) {
 
   glActiveTexture(GL_TEXTURE0);
   glBindTexture(GL_TEXTURE_2D, texture);
-  glTexImage2D(GL_TEXTURE_2D, 0, GL_R8, font_data.tex_width, font_data.tex_height, 0, GL_RED, GL_UNSIGNED_BYTE, font_data.tex_data);
+  glTexImage2D(GL_TEXTURE_2D,
+               0,
+               GL_R8,
+               font_data.tex_width,
+               font_data.tex_height,
+               0,
+               GL_RED,
+               GL_UNSIGNED_BYTE,
+               font_data.tex_data);
   glBindTexture(GL_TEXTURE_2D, 0);
 
   this->AttachShader(_shader);
@@ -65,7 +72,9 @@ bool ChOpenGLText::Initialize(ChOpenGLMaterial mat, ChOpenGLShader* _shader) {
 
   return true;
 }
-void ChOpenGLText::Update() { text_data.clear(); }
+void ChOpenGLText::Update() {
+  text_data.clear();
+}
 
 void ChOpenGLText::GenerateFontIndex() {
   std::string chars =
@@ -113,7 +122,9 @@ void ChOpenGLText::Render(const std::string& str, float x, float y, float sx, fl
   }
 }
 
-void ChOpenGLText::TakeDown() { super::TakeDown(); }
+void ChOpenGLText::TakeDown() {
+  super::TakeDown();
+}
 
 void ChOpenGLText::Draw(const mat4& projection, const mat4& view) {
   if (this->GLReturnedError("ChOpenGLText::Draw - on entry"))

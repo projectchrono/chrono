@@ -10,11 +10,9 @@ using namespace chrono;
 
 unsigned int offset = 3;
 
-#define _index_ i*offset
+#define _index_ i* offset
 
-real ChSolverPDIP::Res4(blaze::DynamicVector<real> & gamma,
-                        blaze::DynamicVector<real> & tmp)
-{
+real ChSolverPDIP::Res4(blaze::DynamicVector<real>& gamma, blaze::DynamicVector<real>& tmp) {
   real gdiff = 1e-6;
   SchurComplementProduct(gamma, tmp);
   tmp = tmp + r;
@@ -22,28 +20,25 @@ real ChSolverPDIP::Res4(blaze::DynamicVector<real> & gamma,
   Project(tmp.data());
   tmp = (1.0 / gdiff) * (gamma - tmp);
 
-  return sqrt((double) (tmp, tmp));
+  return sqrt((double)(tmp, tmp));
 }
 
-void ChSolverPDIP::SchurComplementProduct(blaze::DynamicVector<real> & src,
-                                          blaze::DynamicVector<real> & dst)
-{
+void ChSolverPDIP::SchurComplementProduct(blaze::DynamicVector<real>& src, blaze::DynamicVector<real>& dst) {
   dst = D_T * (M_invD * src);
 }
 
-void ChSolverPDIP::getConstraintVector(blaze::DynamicVector<real> & src,
-                                       blaze::DynamicVector<real> & dst, const uint size)
-{
+void ChSolverPDIP::getConstraintVector(blaze::DynamicVector<real>& src,
+                                       blaze::DynamicVector<real>& dst,
+                                       const uint size) {
 #pragma omp parallel for
   for (int i = 0; i < data_container->num_contacts; i++) {
-  dst[i] = 0.5 * (pow(src[_index_ + 1], 2) + pow(src[_index_ + 2], 2) - pow(data_container->host_data.fric_rigid_rigid[i].x, 2) * pow(src[_index_], 2));
-  dst[i + data_container->num_contacts] = -src[_index_];
-}
+    dst[i] = 0.5 * (pow(src[_index_ + 1], 2) + pow(src[_index_ + 2], 2) -
+                    pow(data_container->host_data.fric_rigid_rigid[i].x, 2) * pow(src[_index_], 2));
+    dst[i + data_container->num_contacts] = -src[_index_];
+  }
 }
 
-void ChSolverPDIP::initializeConstraintGradient(blaze::DynamicVector<real> & src,
-                                                const uint size)
-{
+void ChSolverPDIP::initializeConstraintGradient(blaze::DynamicVector<real>& src, const uint size) {
   //#pragma omp parallel for
   for (int i = 0; i < data_container->num_contacts; i++) {
     grad_f.append(i, _index_ + 0, -pow(data_container->host_data.fric_rigid_rigid[i].x, 2) * src[_index_ + 0]);
@@ -57,26 +52,23 @@ void ChSolverPDIP::initializeConstraintGradient(blaze::DynamicVector<real> & src
   }
 }
 
-void ChSolverPDIP::updateConstraintGradient(blaze::DynamicVector<real> & src,
-                                            const uint size)
-{
+void ChSolverPDIP::updateConstraintGradient(blaze::DynamicVector<real>& src, const uint size) {
 #pragma omp parallel for
   for (int i = 0; i < data_container->num_contacts; i++) {
-  grad_f(i, _index_ + 0) = -pow(data_container->host_data.fric_rigid_rigid[i].x, 2) * src[_index_ + 0];
-  grad_f(i, _index_ + 1) = src[_index_ + 1];
-  grad_f(i, _index_ + 2) = src[_index_ + 2];
-}
+    grad_f(i, _index_ + 0) = -pow(data_container->host_data.fric_rigid_rigid[i].x, 2) * src[_index_ + 0];
+    grad_f(i, _index_ + 1) = src[_index_ + 1];
+    grad_f(i, _index_ + 2) = src[_index_ + 2];
+  }
 #pragma omp parallel for
   for (int i = 0; i < data_container->num_contacts; i++) {
     grad_f(i + data_container->num_contacts, _index_) = -1;
-}
+  }
 }
 
-void ChSolverPDIP::initializeNewtonStepMatrix(blaze::DynamicVector<real> & gamma,
-                                              blaze::DynamicVector<real> & lambda,
-                                              blaze::DynamicVector<real> & f,
-                                              const uint size)
-{
+void ChSolverPDIP::initializeNewtonStepMatrix(blaze::DynamicVector<real>& gamma,
+                                              blaze::DynamicVector<real>& lambda,
+                                              blaze::DynamicVector<real>& f,
+                                              const uint size) {
   for (int i = 0; i < data_container->num_contacts; i++) {
     M_hat.append(_index_ + 0, _index_ + 0, -pow(data_container->host_data.fric_rigid_rigid[i].x, 2) * lambda[i]);
     M_hat.finalize(_index_ + 0);
@@ -97,11 +89,10 @@ void ChSolverPDIP::initializeNewtonStepMatrix(blaze::DynamicVector<real> & gamma
   }
 }
 
-void ChSolverPDIP::updateNewtonStepMatrix(blaze::DynamicVector<real> & gamma,
-                                          blaze::DynamicVector<real> & lambda,
-                                          blaze::DynamicVector<real> & f,
-                                          const uint size)
-{
+void ChSolverPDIP::updateNewtonStepMatrix(blaze::DynamicVector<real>& gamma,
+                                          blaze::DynamicVector<real>& lambda,
+                                          blaze::DynamicVector<real>& f,
+                                          const uint size) {
 #pragma omp parallel for
   for (int i = 0; i < data_container->num_contacts; i++) {
     M_hat(_index_ + 0, _index_ + 0) = -pow(data_container->host_data.fric_rigid_rigid[i].x, 2) * lambda[i];
@@ -119,30 +110,27 @@ void ChSolverPDIP::updateNewtonStepMatrix(blaze::DynamicVector<real> & gamma,
   }
 }
 
-void ChSolverPDIP::MultiplyByDiagMatrix(blaze::DynamicVector<real> & diagVec,
-                                        blaze::DynamicVector<real> & src,
-                                        blaze::DynamicVector<real> & dst)
-{
+void ChSolverPDIP::MultiplyByDiagMatrix(blaze::DynamicVector<real>& diagVec,
+                                        blaze::DynamicVector<real>& src,
+                                        blaze::DynamicVector<real>& dst) {
 #pragma omp parallel for
   for (int i = 0; i < 2 * data_container->num_contacts; i++) {
     dst[i] = diagVec[i] * src[i];
   }
 }
 
-void ChSolverPDIP::updateNewtonStepVector(blaze::DynamicVector<real> & gamma,
-                                          blaze::DynamicVector<real> & lambda,
-                                          blaze::DynamicVector<real> & f,
+void ChSolverPDIP::updateNewtonStepVector(blaze::DynamicVector<real>& gamma,
+                                          blaze::DynamicVector<real>& lambda,
+                                          blaze::DynamicVector<real>& f,
                                           real t,
-                                          const uint size)
-{
+                                          const uint size) {
   updateConstraintGradient(gamma, size);
   r_d = D_T * (M_invD * gamma) + r + trans(grad_f) * lambda;
   MultiplyByDiagMatrix(lambda, f, r_g);
-  r_g = - (1 / t) * ones - r_g;
+  r_g = -(1 / t) * ones - r_g;
 }
 
-void ChSolverPDIP::conjugateGradient(blaze::DynamicVector<real> & x)
-{
+void ChSolverPDIP::conjugateGradient(blaze::DynamicVector<real>& x) {
   real rsold_cg = 0;
   real rsnew_cg = 0;
   real alpha_cg = 0;
@@ -150,7 +138,7 @@ void ChSolverPDIP::conjugateGradient(blaze::DynamicVector<real> & x)
   p_cg = r_cg;
   rsold_cg = (r_cg, r_cg);
 
-  for (int i = 0; i < 10*gamma.size(); i++) {
+  for (int i = 0; i < 10 * gamma.size(); i++) {
     Ap_cg = (D_T * M_invD + M_hat + B * Dinv * diaglambda * grad_f) * p_cg;
     alpha_cg = rsold_cg / (p_cg, Ap_cg);
     x = x + alpha_cg * p_cg;
@@ -164,47 +152,40 @@ void ChSolverPDIP::conjugateGradient(blaze::DynamicVector<real> & x)
   }
 }
 
-void ChSolverPDIP::buildPreconditioner(const uint size)
-{
+void ChSolverPDIP::buildPreconditioner(const uint size) {
   prec_cg.resize(size);
   blaze::CompressedMatrix<real> A = D_T * M_invD + M_hat + B * Dinv * diaglambda * grad_f;
 #pragma omp parallel for
-  for(int i=0; i<prec_cg.size(); i++)
-  {
-    prec_cg[i] = A(i,i);
+  for (int i = 0; i < prec_cg.size(); i++) {
+    prec_cg[i] = A(i, i);
   }
 }
 
-void ChSolverPDIP::applyPreconditioning(blaze::DynamicVector<real> & src,
-                                        blaze::DynamicVector<real> & dst)
-{
+void ChSolverPDIP::applyPreconditioning(blaze::DynamicVector<real>& src, blaze::DynamicVector<real>& dst) {
 #pragma omp parallel for
-  for(int i=0; i<prec_cg.size(); i++)
-  {
-    dst[i] = src[i]/prec_cg[i];
+  for (int i = 0; i < prec_cg.size(); i++) {
+    dst[i] = src[i] / prec_cg[i];
   }
 }
 
-int ChSolverPDIP::preconditionedConjugateGradient(blaze::DynamicVector<real> & x,
-                                                  const uint size)
-{
+int ChSolverPDIP::preconditionedConjugateGradient(blaze::DynamicVector<real>& x, const uint size) {
   buildPreconditioner(size);
   int iter = 0;
   real rsold_cg = 0;
   real rsnew_cg = 0;
   real alpha_cg = 0;
   r_cg = (B * (Dinv * r_g) - r_d) - (D_T * M_invD + M_hat + B * Dinv * diaglambda * grad_f) * x;
-  applyPreconditioning(r_cg,z_cg);
+  applyPreconditioning(r_cg, z_cg);
   p_cg = z_cg;
   rsold_cg = (r_cg, z_cg);
 
-  for (int i = 0; i < 1000*gamma.size(); i++) {
+  for (int i = 0; i < 1000 * gamma.size(); i++) {
     iter++;
     Ap_cg = (D_T * M_invD + M_hat + B * Dinv * diaglambda * grad_f) * p_cg;
     alpha_cg = rsold_cg / (p_cg, Ap_cg);
     x = x + alpha_cg * p_cg;
     r_cg = r_cg - alpha_cg * Ap_cg;
-    applyPreconditioning(r_cg,z_cg);
+    applyPreconditioning(r_cg, z_cg);
     rsnew_cg = (z_cg, r_cg);
     if (sqrt(rsnew_cg) < data_container->settings.solver.tol_speed / 100.0) {
       return iter;
@@ -219,10 +200,11 @@ int ChSolverPDIP::preconditionedConjugateGradient(blaze::DynamicVector<real> & x
 uint ChSolverPDIP::SolvePDIP(const uint max_iter,
                              const uint size,
                              const blaze::DynamicVector<real>& b,
-                             blaze::DynamicVector<real>& x)
-{
+                             blaze::DynamicVector<real>& x) {
   bool verbose = false;
-  if(verbose) std::cout << "Number of constraints: " << size << "\nNumber of variables  : " << data_container->num_bodies << std::endl;
+  if (verbose)
+    std::cout << "Number of constraints: " << size << "\nNumber of variables  : " << data_container->num_bodies
+              << std::endl;
 
   real& residual = data_container->measures.solver.residual;
   real& objective_value = data_container->measures.solver.objective_value;
@@ -236,7 +218,7 @@ uint ChSolverPDIP::SolvePDIP(const uint max_iter,
   // Initialize scalars
   real mu = 10;
   real alpha = 0.001;  // should be [0.01, 0.1]
-  real beta = 0.8;  // should be [0.3, 0.8]
+  real beta = 0.8;     // should be [0.3, 0.8]
   real eta_hat = 0;
   real obj = 0;
   real newobj = 0;
@@ -293,13 +275,13 @@ uint ChSolverPDIP::SolvePDIP(const uint max_iter,
 
 #pragma omp parallel for
   for (int i = 0; i < num_contacts; i++) {
-    gamma[3*i] = 1.0;  // provide an initial guess!
+    gamma[3 * i] = 1.0;  // provide an initial guess!
   }
 
   // (1) f = f(gamma_0)
   getConstraintVector(gamma, f, size);
 
-  // (2) lambda_0 = -1/f
+// (2) lambda_0 = -1/f
 #pragma omp parallel for
   for (int i = 0; i < f.size(); i++) {
     ones[i] = 1.0;
@@ -310,7 +292,6 @@ uint ChSolverPDIP::SolvePDIP(const uint max_iter,
 
   // (3) for k := 0 to N_max
   for (current_iteration = 0; current_iteration < max_iter; current_iteration++) {
-
     // (4) f = f(gamma_k)
     getConstraintVector(gamma, f, size);
 
@@ -328,11 +309,11 @@ uint ChSolverPDIP::SolvePDIP(const uint max_iter,
     updateNewtonStepVector(gamma, lambda, f, t, size);
 
     // (9) Solve the linear system A * y = -r_t
-    int krylovIter = preconditionedConjugateGradient(delta_gamma,size);
+    int krylovIter = preconditionedConjugateGradient(delta_gamma, size);
     totalKrylovIterations += krylovIter;
     delta_lambda = Dinv * (diaglambda * (grad_f * delta_gamma) - r_g);
 
-    // (10) s_max = sup{s in [0,1]|lambda+s*delta_lambda>=0} = min{1,min{-lambda_i/delta_lambda_i|delta_lambda_i < 0 }}
+// (10) s_max = sup{s in [0,1]|lambda+s*delta_lambda>=0} = min{1,min{-lambda_i/delta_lambda_i|delta_lambda_i < 0 }}
 #pragma omp parallel for
     for (int i = 0; i < lambda.size(); i++) {
       lambda_tmp[i] = -lambda[i] / delta_lambda[i];
@@ -379,11 +360,13 @@ uint ChSolverPDIP::SolvePDIP(const uint max_iter,
     lambda = lambda + s * delta_lambda;
 
     // (20) r = r(gamma_(k+1))
-    residual = sqrt((r_g, r_g));//Res4(gamma, gamma_tmp);
+    residual = sqrt((r_g, r_g));  // Res4(gamma, gamma_tmp);
 
     // (21) if r < tau
     AtIterationEnd(residual, objective_value);
-    if(verbose) std::cout << "Residual: " << residual << ", Iter: " << current_iteration << ", Krylov Iter: " << totalKrylovIterations << std::endl;
+    if (verbose)
+      std::cout << "Residual: " << residual << ", Iter: " << current_iteration
+                << ", Krylov Iter: " << totalKrylovIterations << std::endl;
 
     if (residual < data_container->settings.solver.tol_speed) {
       // (22) break
@@ -395,7 +378,7 @@ uint ChSolverPDIP::SolvePDIP(const uint max_iter,
     // (24) endfor
   }
 
-  // (25) return Value at time step t_(l+1), gamma_(l+1) := gamma_(k+1)
+// (25) return Value at time step t_(l+1), gamma_(l+1) := gamma_(k+1)
 #pragma omp parallel for
   for (int i = 0; i < size; i++) {
     x[i] = gamma[i];

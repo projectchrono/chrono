@@ -3,19 +3,20 @@
 #include "core/ChStream.h"
 using namespace chrono;
 
-ChParallelDataManager::ChParallelDataManager() :
-		num_contacts(0),
-		num_shapes(0),
-		num_bodies(0),
-		num_unilaterals(0),
-		num_bilaterals(0),
-		num_constraints(0),
-		num_shafts(0) {}
+ChParallelDataManager::ChParallelDataManager()
+    : num_contacts(0),
+      num_shapes(0),
+      num_bodies(0),
+      num_unilaterals(0),
+      num_bilaterals(0),
+      num_constraints(0),
+      num_shafts(0) {
+}
 
-ChParallelDataManager::~ChParallelDataManager() {}
+ChParallelDataManager::~ChParallelDataManager() {
+}
 
 int ChParallelDataManager::OutputBlazeVector(blaze::DynamicVector<real> src, std::string filename) {
-
   const char* numformat = "%.16g";
   ChStreamOutAsciiFile stream(filename.c_str());
   stream.SetNumFormat(numformat);
@@ -27,7 +28,6 @@ int ChParallelDataManager::OutputBlazeVector(blaze::DynamicVector<real> src, std
 }
 
 int ChParallelDataManager::OutputBlazeMatrix(blaze::CompressedMatrix<real> src, std::string filename) {
-
   const char* numformat = "%.16g";
   ChStreamOutAsciiFile stream(filename.c_str());
   stream.SetNumFormat(numformat);
@@ -51,7 +51,6 @@ int ChParallelDataManager::ExportCurrentSystem(std::string output_dir) {
   } else if (settings.solver.solver_mode == SPINNING) {
     offset = 6 * num_contacts;
   }
-
 
   // fill in the information for constraints and friction
   blaze::DynamicVector<real> fric(num_constraints, -2.0);
@@ -113,7 +112,8 @@ int ChParallelDataManager::ExportCurrentSystem(std::string output_dir) {
       blaze::SparseSubmatrix<CompressedMatrix<real> > D_n_T_sub = blaze::submatrix(D_T, 0, 0, num_contacts, num_dof);
       D_n_T_sub = host_data.D_n_T;
 
-      blaze::SparseSubmatrix<CompressedMatrix<real> > D_t_T_sub = blaze::submatrix(D_T, num_contacts, 0, 2 * num_contacts, num_dof);
+      blaze::SparseSubmatrix<CompressedMatrix<real> > D_t_T_sub =
+          blaze::submatrix(D_T, num_contacts, 0, 2 * num_contacts, num_dof);
       D_t_T_sub = host_data.D_t_T;
     } break;
     case SPINNING: {
@@ -124,15 +124,18 @@ int ChParallelDataManager::ExportCurrentSystem(std::string output_dir) {
       blaze::SparseSubmatrix<CompressedMatrix<real> > D_n_T_sub = blaze::submatrix(D_T, 0, 0, num_contacts, num_dof);
       D_n_T_sub = host_data.D_n_T;
 
-      blaze::SparseSubmatrix<CompressedMatrix<real> > D_t_T_sub = blaze::submatrix(D_T, num_contacts, 0, 2 * num_contacts, num_dof);
+      blaze::SparseSubmatrix<CompressedMatrix<real> > D_t_T_sub =
+          blaze::submatrix(D_T, num_contacts, 0, 2 * num_contacts, num_dof);
       D_t_T_sub = host_data.D_t_T;
 
-      blaze::SparseSubmatrix<CompressedMatrix<real> > D_s_T_sub = blaze::submatrix(D_T, 3 * num_contacts, 0, 3 * num_contacts, num_dof);
+      blaze::SparseSubmatrix<CompressedMatrix<real> > D_s_T_sub =
+          blaze::submatrix(D_T, 3 * num_contacts, 0, 3 * num_contacts, num_dof);
       D_s_T_sub = host_data.D_t_T;
     } break;
   }
 
-  blaze::SparseSubmatrix<CompressedMatrix<real> > D_b_T = blaze::submatrix(D_T, num_unilaterals, 0, num_bilaterals, num_dof);
+  blaze::SparseSubmatrix<CompressedMatrix<real> > D_b_T =
+      blaze::submatrix(D_T, num_unilaterals, 0, num_bilaterals, num_dof);
   D_b_T = host_data.D_b_T;
 
   filename = output_dir + "dump_D.dat";

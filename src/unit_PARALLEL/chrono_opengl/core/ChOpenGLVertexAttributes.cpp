@@ -37,7 +37,12 @@ ChOpenGLVertexAttributesPADSNT::ChOpenGLVertexAttributesPADSNT() {
   this->normal = vec3(0.0f);
   this->texture_coordinate = vec2(0.0f);
 }
-ChOpenGLVertexAttributesPADSNT::ChOpenGLVertexAttributesPADSNT(const glm::vec3& p, const glm::vec3& c_a, const glm::vec3& c_d, const glm::vec3& c_s, const glm::vec3& n, const glm::vec2& t) {
+ChOpenGLVertexAttributesPADSNT::ChOpenGLVertexAttributesPADSNT(const glm::vec3& p,
+                                                               const glm::vec3& c_a,
+                                                               const glm::vec3& c_d,
+                                                               const glm::vec3& c_s,
+                                                               const glm::vec3& n,
+                                                               const glm::vec2& t) {
   this->position = p;
   this->color_ambient = c_a;
   this->color_diffuse = c_d;
@@ -61,7 +66,11 @@ ChOpenGLVertexAttributesPADSN::ChOpenGLVertexAttributesPADSN() {
   this->color_specular = vec3(0.0f);
   this->normal = vec3(0.0f);
 }
-ChOpenGLVertexAttributesPADSN::ChOpenGLVertexAttributesPADSN(const glm::vec3& p, const glm::vec3& c_a, const glm::vec3& c_d, const glm::vec3& c_s, const glm::vec3& n) {
+ChOpenGLVertexAttributesPADSN::ChOpenGLVertexAttributesPADSN(const glm::vec3& p,
+                                                             const glm::vec3& c_a,
+                                                             const glm::vec3& c_d,
+                                                             const glm::vec3& c_s,
+                                                             const glm::vec3& n) {
   this->position = p;
   this->color_ambient = c_a;
   this->color_diffuse = c_d;
@@ -97,11 +106,17 @@ ChOpenGLVertexAttributesPCNT::ChOpenGLVertexAttributesPCNT(const ChOpenGLVertexA
   this->texture_coordinate = other.texture_coordinate;
 }
 
-ChOpenGLVertexAttributesP::ChOpenGLVertexAttributesP(const vec3& p) { this->position = p; }
+ChOpenGLVertexAttributesP::ChOpenGLVertexAttributesP(const vec3& p) {
+  this->position = p;
+}
 
-ChOpenGLVertexAttributesP::ChOpenGLVertexAttributesP(const ChOpenGLVertexAttributesP& other) { this->position = other.position; }
+ChOpenGLVertexAttributesP::ChOpenGLVertexAttributesP(const ChOpenGLVertexAttributesP& other) {
+  this->position = other.position;
+}
 
-ChOpenGLVertexAttributesP::ChOpenGLVertexAttributesP() { this->position = vec3(0.0f); }
+ChOpenGLVertexAttributesP::ChOpenGLVertexAttributesP() {
+  this->position = vec3(0.0f);
+}
 
 ChOpenGLVertexAttributesPN::ChOpenGLVertexAttributesPN(const vec3& p, const vec3& n) {
   this->position = p;

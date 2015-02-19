@@ -44,15 +44,15 @@ namespace collision {
 // This function returns true if it was able to determine the collision state
 // for the given pair of shapes and false if the shape types are not supported.
 
-bool RCollision(const ConvexShape &shapeA, // first candidate shape
-                const ConvexShape &shapeB, // second candidate shape
-                real separation,           // maximum separation
-                real3* ct_norm,            // [output] contact normal (per contact pair)
-                real3* ct_pt1,             // [output] point on shape1 (per contact pair)
-                real3* ct_pt2,             // [output] point on shape2 (per contact pair)
-                real* ct_depth,            // [output] penetration depth (per contact pair)
-                real* ct_eff_rad,          // [output] effective contact radius (per contact pair)
-                int& nC)                   // [output] number of contacts found
+bool RCollision(const ConvexShape& shapeA,  // first candidate shape
+                const ConvexShape& shapeB,  // second candidate shape
+                real separation,            // maximum separation
+                real3* ct_norm,             // [output] contact normal (per contact pair)
+                real3* ct_pt1,              // [output] point on shape1 (per contact pair)
+                real3* ct_pt2,              // [output] point on shape2 (per contact pair)
+                real* ct_depth,             // [output] penetration depth (per contact pair)
+                real* ct_eff_rad,           // [output] effective contact radius (per contact pair)
+                int& nC)                    // [output] number of contacts found
 {
   // Special-case the collision detection based on the types of the
   // two potentially colliding shapes.
@@ -60,21 +60,52 @@ bool RCollision(const ConvexShape &shapeA, // first candidate shape
   nC = 0;
 
   if (shapeA.type == SPHERE && shapeB.type == SPHERE) {
-    if (sphere_sphere(shapeA.A, shapeA.B.x, shapeB.A, shapeB.B.x, separation, *ct_norm, *ct_depth, *ct_pt1, *ct_pt2, *ct_eff_rad)) {
+    if (sphere_sphere(shapeA.A,
+                      shapeA.B.x,
+                      shapeB.A,
+                      shapeB.B.x,
+                      separation,
+                      *ct_norm,
+                      *ct_depth,
+                      *ct_pt1,
+                      *ct_pt2,
+                      *ct_eff_rad)) {
       nC = 1;
     }
     return true;
   }
 
   if (shapeA.type == CAPSULE && shapeB.type == SPHERE) {
-    if (capsule_sphere(shapeA.A, shapeA.R, shapeA.B.x, shapeA.B.y, shapeB.A, shapeB.B.x, separation, *ct_norm, *ct_depth, *ct_pt1, *ct_pt2, *ct_eff_rad)) {
+    if (capsule_sphere(shapeA.A,
+                       shapeA.R,
+                       shapeA.B.x,
+                       shapeA.B.y,
+                       shapeB.A,
+                       shapeB.B.x,
+                       separation,
+                       *ct_norm,
+                       *ct_depth,
+                       *ct_pt1,
+                       *ct_pt2,
+                       *ct_eff_rad)) {
       nC = 1;
     }
     return true;
   }
 
   if (shapeA.type == SPHERE && shapeB.type == CAPSULE) {
-    if (capsule_sphere(shapeB.A, shapeB.R, shapeB.B.x, shapeB.B.y, shapeA.A, shapeA.B.x, separation, *ct_norm, *ct_depth, *ct_pt2, *ct_pt1, *ct_eff_rad)) {
+    if (capsule_sphere(shapeB.A,
+                       shapeB.R,
+                       shapeB.B.x,
+                       shapeB.B.y,
+                       shapeA.A,
+                       shapeA.B.x,
+                       separation,
+                       *ct_norm,
+                       *ct_depth,
+                       *ct_pt2,
+                       *ct_pt1,
+                       *ct_eff_rad)) {
       *ct_norm = -(*ct_norm);
       nC = 1;
     }
@@ -82,14 +113,36 @@ bool RCollision(const ConvexShape &shapeA, // first candidate shape
   }
 
   if (shapeA.type == CYLINDER && shapeB.type == SPHERE) {
-    if (cylinder_sphere(shapeA.A, shapeA.R, shapeA.B.x, shapeA.B.y, shapeB.A, shapeB.B.x, separation, *ct_norm, *ct_depth, *ct_pt1, *ct_pt2, *ct_eff_rad)) {
+    if (cylinder_sphere(shapeA.A,
+                        shapeA.R,
+                        shapeA.B.x,
+                        shapeA.B.y,
+                        shapeB.A,
+                        shapeB.B.x,
+                        separation,
+                        *ct_norm,
+                        *ct_depth,
+                        *ct_pt1,
+                        *ct_pt2,
+                        *ct_eff_rad)) {
       nC = 1;
     }
     return true;
   }
 
   if (shapeA.type == SPHERE && shapeB.type == CYLINDER) {
-    if (cylinder_sphere(shapeB.A, shapeB.R, shapeB.B.x, shapeB.B.y, shapeA.A, shapeA.B.x, separation, *ct_norm, *ct_depth, *ct_pt2, *ct_pt1, *ct_eff_rad)) {
+    if (cylinder_sphere(shapeB.A,
+                        shapeB.R,
+                        shapeB.B.x,
+                        shapeB.B.y,
+                        shapeA.A,
+                        shapeA.B.x,
+                        separation,
+                        *ct_norm,
+                        *ct_depth,
+                        *ct_pt2,
+                        *ct_pt1,
+                        *ct_eff_rad)) {
       *ct_norm = -(*ct_norm);
       nC = 1;
     }
@@ -97,14 +150,38 @@ bool RCollision(const ConvexShape &shapeA, // first candidate shape
   }
 
   if (shapeA.type == ROUNDEDCYL && shapeB.type == SPHERE) {
-    if (roundedcyl_sphere(shapeA.A, shapeA.R, shapeA.B.x, shapeA.B.y, shapeA.C.x, shapeB.A, shapeB.B.x, separation, *ct_norm, *ct_depth, *ct_pt1, *ct_pt2, *ct_eff_rad)) {
+    if (roundedcyl_sphere(shapeA.A,
+                          shapeA.R,
+                          shapeA.B.x,
+                          shapeA.B.y,
+                          shapeA.C.x,
+                          shapeB.A,
+                          shapeB.B.x,
+                          separation,
+                          *ct_norm,
+                          *ct_depth,
+                          *ct_pt1,
+                          *ct_pt2,
+                          *ct_eff_rad)) {
       nC = 1;
     }
     return true;
   }
 
   if (shapeA.type == SPHERE && shapeB.type == ROUNDEDCYL) {
-    if (roundedcyl_sphere(shapeB.A, shapeB.R, shapeB.B.x, shapeB.B.y, shapeB.C.x, shapeA.A, shapeA.B.x, separation, *ct_norm, *ct_depth, *ct_pt2, *ct_pt1, *ct_eff_rad)) {
+    if (roundedcyl_sphere(shapeB.A,
+                          shapeB.R,
+                          shapeB.B.x,
+                          shapeB.B.y,
+                          shapeB.C.x,
+                          shapeA.A,
+                          shapeA.B.x,
+                          separation,
+                          *ct_norm,
+                          *ct_depth,
+                          *ct_pt2,
+                          *ct_pt1,
+                          *ct_eff_rad)) {
       *ct_norm = -(*ct_norm);
       nC = 1;
     }
@@ -112,14 +189,34 @@ bool RCollision(const ConvexShape &shapeA, // first candidate shape
   }
 
   if (shapeA.type == BOX && shapeB.type == SPHERE) {
-    if (box_sphere(shapeA.A, shapeA.R, shapeA.B, shapeB.A, shapeB.B.x, separation, *ct_norm, *ct_depth, *ct_pt1, *ct_pt2, *ct_eff_rad)) {
+    if (box_sphere(shapeA.A,
+                   shapeA.R,
+                   shapeA.B,
+                   shapeB.A,
+                   shapeB.B.x,
+                   separation,
+                   *ct_norm,
+                   *ct_depth,
+                   *ct_pt1,
+                   *ct_pt2,
+                   *ct_eff_rad)) {
       nC = 1;
     }
     return true;
   }
 
   if (shapeA.type == SPHERE && shapeB.type == BOX) {
-    if (box_sphere(shapeB.A, shapeB.R, shapeB.B, shapeA.A, shapeA.B.x, separation, *ct_norm, *ct_depth, *ct_pt2, *ct_pt1, *ct_eff_rad)) {
+    if (box_sphere(shapeB.A,
+                   shapeB.R,
+                   shapeB.B,
+                   shapeA.A,
+                   shapeA.B.x,
+                   separation,
+                   *ct_norm,
+                   *ct_depth,
+                   *ct_pt2,
+                   *ct_pt1,
+                   *ct_eff_rad)) {
       *ct_norm = -(*ct_norm);
       nC = 1;
     }
@@ -127,14 +224,36 @@ bool RCollision(const ConvexShape &shapeA, // first candidate shape
   }
 
   if (shapeA.type == ROUNDEDBOX && shapeB.type == SPHERE) {
-    if (roundedbox_sphere(shapeA.A, shapeA.R, shapeA.B, shapeA.C.x, shapeB.A, shapeB.B.x, separation, *ct_norm, *ct_depth, *ct_pt1, *ct_pt2, *ct_eff_rad)) {
+    if (roundedbox_sphere(shapeA.A,
+                          shapeA.R,
+                          shapeA.B,
+                          shapeA.C.x,
+                          shapeB.A,
+                          shapeB.B.x,
+                          separation,
+                          *ct_norm,
+                          *ct_depth,
+                          *ct_pt1,
+                          *ct_pt2,
+                          *ct_eff_rad)) {
       nC = 1;
     }
     return true;
   }
 
   if (shapeA.type == SPHERE && shapeB.type == ROUNDEDBOX) {
-    if (roundedbox_sphere(shapeB.A, shapeB.R, shapeB.B, shapeB.C.x, shapeA.A, shapeA.B.x, separation, *ct_norm, *ct_depth, *ct_pt2, *ct_pt1, *ct_eff_rad)) {
+    if (roundedbox_sphere(shapeB.A,
+                          shapeB.R,
+                          shapeB.B,
+                          shapeB.C.x,
+                          shapeA.A,
+                          shapeA.B.x,
+                          separation,
+                          *ct_norm,
+                          *ct_depth,
+                          *ct_pt2,
+                          *ct_pt1,
+                          *ct_eff_rad)) {
       *ct_norm = -(*ct_norm);
       nC = 1;
     }
@@ -142,14 +261,34 @@ bool RCollision(const ConvexShape &shapeA, // first candidate shape
   }
 
   if (shapeA.type == TRIANGLEMESH && shapeB.type == SPHERE) {
-    if (face_sphere(shapeA.A, shapeA.B, shapeA.C, shapeB.A, shapeB.B.x, separation, *ct_norm, *ct_depth, *ct_pt1, *ct_pt2, *ct_eff_rad)) {
+    if (face_sphere(shapeA.A,
+                    shapeA.B,
+                    shapeA.C,
+                    shapeB.A,
+                    shapeB.B.x,
+                    separation,
+                    *ct_norm,
+                    *ct_depth,
+                    *ct_pt1,
+                    *ct_pt2,
+                    *ct_eff_rad)) {
       nC = 1;
     }
     return true;
   }
 
   if (shapeA.type == SPHERE && shapeB.type == TRIANGLEMESH) {
-    if (face_sphere(shapeB.A, shapeB.B, shapeB.C, shapeA.A, shapeA.B.x, separation, *ct_norm, *ct_depth, *ct_pt2, *ct_pt1, *ct_eff_rad)) {
+    if (face_sphere(shapeB.A,
+                    shapeB.B,
+                    shapeB.C,
+                    shapeA.A,
+                    shapeA.B.x,
+                    separation,
+                    *ct_norm,
+                    *ct_depth,
+                    *ct_pt2,
+                    *ct_pt1,
+                    *ct_eff_rad)) {
       *ct_norm = -(*ct_norm);
       nC = 1;
     }
@@ -157,17 +296,54 @@ bool RCollision(const ConvexShape &shapeA, // first candidate shape
   }
 
   if (shapeA.type == CAPSULE && shapeB.type == CAPSULE) {
-    nC = capsule_capsule(shapeA.A, shapeA.R, shapeA.B.x, shapeA.B.y, shapeB.A, shapeB.R, shapeB.B.x, shapeB.B.y, separation, ct_norm, ct_depth, ct_pt1, ct_pt2, ct_eff_rad);
+    nC = capsule_capsule(shapeA.A,
+                         shapeA.R,
+                         shapeA.B.x,
+                         shapeA.B.y,
+                         shapeB.A,
+                         shapeB.R,
+                         shapeB.B.x,
+                         shapeB.B.y,
+                         separation,
+                         ct_norm,
+                         ct_depth,
+                         ct_pt1,
+                         ct_pt2,
+                         ct_eff_rad);
     return true;
   }
 
   if (shapeA.type == BOX && shapeB.type == CAPSULE) {
-    nC = box_capsule(shapeA.A, shapeA.R, shapeA.B, shapeB.A, shapeB.R, shapeB.B.x, shapeB.B.y, separation, ct_norm, ct_depth, ct_pt1, ct_pt2, ct_eff_rad);
+    nC = box_capsule(shapeA.A,
+                     shapeA.R,
+                     shapeA.B,
+                     shapeB.A,
+                     shapeB.R,
+                     shapeB.B.x,
+                     shapeB.B.y,
+                     separation,
+                     ct_norm,
+                     ct_depth,
+                     ct_pt1,
+                     ct_pt2,
+                     ct_eff_rad);
     return true;
   }
 
   if (shapeA.type == CAPSULE && shapeB.type == BOX) {
-    nC = box_capsule(shapeB.A, shapeB.R, shapeB.B, shapeA.A, shapeA.R, shapeA.B.x, shapeA.B.y, separation, ct_norm, ct_depth, ct_pt2, ct_pt1, ct_eff_rad);
+    nC = box_capsule(shapeB.A,
+                     shapeB.R,
+                     shapeB.B,
+                     shapeA.A,
+                     shapeA.R,
+                     shapeA.B.x,
+                     shapeA.B.y,
+                     separation,
+                     ct_norm,
+                     ct_depth,
+                     ct_pt2,
+                     ct_pt1,
+                     ct_eff_rad);
     for (int i = 0; i < nC; i++) {
       *(ct_norm + i) = -(*(ct_norm + i));
     }
@@ -175,12 +351,13 @@ bool RCollision(const ConvexShape &shapeA, // first candidate shape
   }
 
   if (shapeA.type == BOX && shapeB.type == BOX) {
-    nC = box_box(shapeA.A, shapeA.R, shapeA.B, shapeB.A, shapeB.R, shapeB.B, ct_norm, ct_depth, ct_pt1, ct_pt2, ct_eff_rad);
-    //TODO: Change to true when this is implemented
+    nC = box_box(
+        shapeA.A, shapeA.R, shapeA.B, shapeB.A, shapeB.R, shapeB.B, ct_norm, ct_depth, ct_pt1, ct_pt2, ct_eff_rad);
+    // TODO: Change to true when this is implemented
     return false;
   }
 
-  //Contact could not be checked using this CD algorithm
+  // Contact could not be checked using this CD algorithm
   return false;
 }
 
@@ -200,8 +377,7 @@ bool sphere_sphere(const real3& pos1,
                    real& depth,
                    real3& pt1,
                    real3& pt2,
-                   real& eff_radius)
-{
+                   real& eff_radius) {
   real3 delta = pos2 - pos1;
   real dist2 = dot(delta, delta);
   real radSum = radius1 + radius2;
@@ -244,8 +420,7 @@ bool capsule_sphere(const real3& pos1,
                     real& depth,
                     real3& pt1,
                     real3& pt2,
-                    real& eff_radius)
-{
+                    real& eff_radius) {
   // Working in the global frame, project the sphere center onto the
   // capsule's centerline and clamp the resulting location to the extent
   // of the capsule length.
@@ -298,8 +473,7 @@ bool cylinder_sphere(const real3& pos1,
                      real& depth,
                      real3& pt1,
                      real3& pt2,
-                     real& eff_radius)
-{
+                     real& eff_radius) {
   // Express the sphere position in the frame of the cylinder.
   real3 spherePos = TransformParentToLocal(pos1, rot1, pos2);
 
@@ -331,15 +505,15 @@ bool cylinder_sphere(const real3& pos1,
   pt2 = pos2 - norm * radius2;
 
   switch (code) {
-  case 1:
-    eff_radius = radius2;
-    break;
-  case 2:
-    eff_radius = radius1 * radius2 / (radius1 + radius2);
-    break;
-  case 3:
-    eff_radius = radius2 * edge_radius / (radius2 + edge_radius);
-    break;
+    case 1:
+      eff_radius = radius2;
+      break;
+    case 2:
+      eff_radius = radius1 * radius2 / (radius1 + radius2);
+      break;
+    case 3:
+      eff_radius = radius2 * edge_radius / (radius2 + edge_radius);
+      break;
   }
 
   return true;
@@ -366,8 +540,7 @@ bool roundedcyl_sphere(const real3& pos1,
                        real& depth,
                        real3& pt1,
                        real3& pt2,
-                       real& eff_radius)
-{
+                       real& eff_radius) {
   // Express the sphere position in the frame of the rounded cylinder.
   real3 spherePos = TransformParentToLocal(pos1, rot1, pos2);
 
@@ -403,15 +576,15 @@ bool roundedcyl_sphere(const real3& pos1,
   pt1 = pt2 - depth * norm;
 
   switch (code) {
-  case 1:
-    eff_radius = radius2;
-    break;
-  case 2:
-    eff_radius = radius1 * radius2 / (radius1 + radius2);
-    break;
-  case 3:
-    eff_radius = srad1 * radius2 / (srad1 + radius2);
-    break;
+    case 1:
+      eff_radius = radius2;
+      break;
+    case 2:
+      eff_radius = radius1 * radius2 / (radius1 + radius2);
+      break;
+    case 3:
+      eff_radius = srad1 * radius2 / (srad1 + radius2);
+      break;
   }
 
   return true;
@@ -434,8 +607,7 @@ bool box_sphere(const real3& pos1,
                 real& depth,
                 real3& pt1,
                 real3& pt2,
-                real& eff_radius)
-{
+                real& eff_radius) {
   // Express the sphere position in the frame of the box.
   real3 spherePos = TransformParentToLocal(pos1, rot1, pos2);
 
@@ -490,8 +662,7 @@ bool roundedbox_sphere(const real3& pos1,
                        real& depth,
                        real3& pt1,
                        real3& pt2,
-                       real& eff_radius)
-{
+                       real& eff_radius) {
   // Express the sphere position in the frame of the rounded box.
   real3 spherePos = TransformParentToLocal(pos1, rot1, pos2);
 
@@ -546,8 +717,7 @@ bool face_sphere(const real3& A1,
                  real& depth,
                  real3& pt1,
                  real3& pt2,
-                 real& eff_radius)
-{
+                 real& eff_radius) {
   real radius2_s = radius2 + separation;
 
   // Calculate face normal.
@@ -617,15 +787,14 @@ int capsule_capsule(const real3& pos1,
                     real* depth,
                     real3* pt1,
                     real3* pt2,
-                    real* eff_radius)
-{
+                    real* eff_radius) {
   // Express the second capule in the frame of the first one.
   real3 pos = quatRotateMatT(pos2 - pos1, rot1);
   real4 rot = mult(inv(rot1), rot2);
 
   // Unit vectors along capsule axes.
-  real3 V1 = AMatV(rot1);   // capsule1 in the global frame
-  real3 V2 = AMatV(rot2);   // capsule2 in the global frame
+  real3 V1 = AMatV(rot1);  // capsule1 in the global frame
+  real3 V2 = AMatV(rot2);  // capsule2 in the global frame
   real3 V = AMatV(rot);    // capsule2 in the frame of capsule1
 
   // Sum of radii
@@ -650,7 +819,7 @@ int capsule_capsule(const real3& pos1,
 
     // Find overlap of the two axes (as signed distances along the axis of
     // the first capsule).
-    real locs[2] = { std::min(hlen1, pos.y + hlen2), std::max(-hlen1, pos.y - hlen2) };
+    real locs[2] = {std::min(hlen1, pos.y + hlen2), std::max(-hlen1, pos.y - hlen2)};
 
     if (locs[0] > locs[1]) {
       // The two axes overlap. Both ends of the overlapping segment represent
@@ -747,8 +916,7 @@ int box_capsule(const real3& pos1,
                 real* depth,
                 real3* pt1,
                 real3* pt2,
-                real* eff_radius)
-{
+                real* eff_radius) {
   real radius2_s = radius2 + separation;
 
   // Express the capsule in the frame of the box.
@@ -815,7 +983,7 @@ int box_capsule(const real3& pos1,
   // locations onto the original box, then snap back onto the capsule
   // axis. This reduces the collision problem to 1 or 2 box-sphere
   // collisions.
-  real3 locs[2] = { pos + tMin * V, pos + tMax * V };
+  real3 locs[2] = {pos + tMin * V, pos + tMax * V};
   real t[2];
 
   for (int i = 0; i < 2; i++) {
@@ -887,8 +1055,7 @@ int box_box(const real3& pos1,
             real* depth,
             real3* pt1,
             real3* pt2,
-            real* eff_radius)
-{
+            real* eff_radius) {
   // Express the second box into the frame of the first box.
   // (this is a bit cryptic with the functions we have available)
   real3 pos = quatRotateMatT(pos2 - pos1, rot1);
@@ -918,6 +1085,5 @@ int box_box(const real3& pos1,
   return 0;
 }
 
-
-} // end namespace collision
-} // end namespace chrono
+}  // end namespace collision
+}  // end namespace chrono

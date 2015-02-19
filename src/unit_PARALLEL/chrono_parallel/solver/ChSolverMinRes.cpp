@@ -2,12 +2,15 @@
 
 using namespace chrono;
 
-uint ChSolverMinRes::SolveMinRes(const uint max_iter, const uint size, blaze::DynamicVector<real>& mb, blaze::DynamicVector<real>& ml) {
+uint ChSolverMinRes::SolveMinRes(const uint max_iter,
+                                 const uint size,
+                                 blaze::DynamicVector<real>& mb,
+                                 blaze::DynamicVector<real>& ml) {
   real& residual = data_container->measures.solver.residual;
   real& objective_value = data_container->measures.solver.objective_value;
   custom_vector<real>& iter_hist = data_container->measures.solver.iter_hist;
 
-	mr.resize(size, 0);
+  mr.resize(size, 0);
   mp.resize(size, 0);
   mz.resize(size, 0);
   mNMr.resize(size, 0);
@@ -26,8 +29,8 @@ uint ChSolverMinRes::SolveMinRes(const uint max_iter, const uint size, blaze::Dy
   double rel_tol_b = max_element * rel_tol;
   // ml = x;
 
-  ShurProduct(ml, mr);    // mr = data_container->host_data.D_T *
-                          // (data_container->host_data.M_invD * ml);
+  ShurProduct(ml, mr);  // mr = data_container->host_data.D_T *
+                        // (data_container->host_data.M_invD * ml);
 
   mr = mb - mr;
 
@@ -40,10 +43,10 @@ uint ChSolverMinRes::SolveMinRes(const uint max_iter, const uint size, blaze::Dy
   mp = mr;
   mz = mp;
 
-  ShurProduct(mz, mNMr);    // mNMr = data_container->host_data.D_T *
-                            // (data_container->host_data.M_invD * mz);
-  ShurProduct(mp, mNp);     // mNp = data_container->host_data.D_T *
-                            // (data_container->host_data.M_invD * mp);
+  ShurProduct(mz, mNMr);  // mNMr = data_container->host_data.D_T *
+                          // (data_container->host_data.M_invD * mz);
+  ShurProduct(mp, mNp);   // mNp = data_container->host_data.D_T *
+                          // (data_container->host_data.M_invD * mp);
 
   for (current_iteration = 0; current_iteration < max_iter; current_iteration++) {
     mMNp = mNp;
@@ -52,7 +55,8 @@ uint ChSolverMinRes::SolveMinRes(const uint max_iter, const uint size, blaze::Dy
     double MNpNp = (mMNp, mNp);
     if (std::abs(MNpNp) < 10e-30) {
       if (data_container->settings.solver.verbose) {
-        std::cout << "Iter=" << current_iteration << " Rayleygh quotient alpha breakdown: " << zNMr << " / " << MNpNp << "\n";
+        std::cout << "Iter=" << current_iteration << " Rayleygh quotient alpha breakdown: " << zNMr << " / " << MNpNp
+                  << "\n";
       }
       MNpNp = 10e-12;
     }
@@ -61,8 +65,8 @@ uint ChSolverMinRes::SolveMinRes(const uint max_iter, const uint size, blaze::Dy
     ml = ml + mtmp;
 
     Project(ml.data());
-    ShurProduct(ml, mr);    // mr = data_container->host_data.D_T *
-                            // (data_container->host_data.M_invD * ml);
+    ShurProduct(ml, mr);  // mr = data_container->host_data.D_T *
+                          // (data_container->host_data.M_invD * ml);
     mr = mb - mr;
     mr = mr * grad_diffstep + ml;
     Project(mr.data());
@@ -80,8 +84,8 @@ uint ChSolverMinRes::SolveMinRes(const uint max_iter, const uint size, blaze::Dy
     mz = mr;
     mNMr_old = mNMr;
 
-    ShurProduct(mz, mNMr);    // mNMr = data_container->host_data.D_T *
-                              // (data_container->host_data.M_invD * mz);
+    ShurProduct(mz, mNMr);  // mNMr = data_container->host_data.D_T *
+                            // (data_container->host_data.M_invD * mz);
 
     double numerator = (mz, mNMr - mNMr_old);
     double denominator = (mz_old, mNMr_old);
@@ -89,7 +93,8 @@ uint ChSolverMinRes::SolveMinRes(const uint max_iter, const uint size, blaze::Dy
 
     if (std::abs(denominator) < 10e-30 || std::abs(numerator) < 10e-30) {
       if (data_container->settings.solver.verbose) {
-        std::cout << "Iter=" << current_iteration << " Ribiere quotient beta restart: " << numerator << " / " << denominator << "\n";
+        std::cout << "Iter=" << current_iteration << " Ribiere quotient beta restart: " << numerator << " / "
+                  << denominator << "\n";
       }
       beta = 0;
     }

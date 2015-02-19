@@ -32,7 +32,11 @@ namespace opengl {
 class CH_OPENGL_API ChOpenGLMesh : public ChOpenGLObject {
  public:
   ChOpenGLMesh();
-  bool Initialize(std::vector<glm::vec3>& vertices, std::vector<glm::vec3>& normals, std::vector<glm::vec2>& texcoords, std::vector<GLuint>& indices, ChOpenGLMaterial mat);
+  bool Initialize(std::vector<glm::vec3>& vertices,
+                  std::vector<glm::vec3>& normals,
+                  std::vector<glm::vec2>& texcoords,
+                  std::vector<GLuint>& indices,
+                  ChOpenGLMaterial mat);
   bool Initialize(chrono::ChTriangleMeshShape* tri_mesh, ChOpenGLMaterial mat);
   bool PostInitialize();
   void Update(std::vector<glm::mat4>& model);
@@ -52,4 +56,4 @@ class CH_OPENGL_API ChOpenGLMesh : public ChOpenGLObject {
 }
 }
 
-#endif    // END of CHOPENGLMESH_H
+#endif  // END of CHOPENGLMESH_H

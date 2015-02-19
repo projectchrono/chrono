@@ -23,7 +23,7 @@
 namespace chrono {
 
 class CH_PARALLEL_API ChSolverCG : public ChSolverParallel {
-public:
+ public:
   ChSolverCG() : ChSolverParallel() {}
   ~ChSolverCG() {}
 
@@ -32,24 +32,20 @@ public:
       return;
     }
     data_container->system_timer.start("ChSolverParallel_Solve");
-    data_container->measures.solver.total_iteration +=
-      SolveCG(max_iteration,
-              data_container->num_constraints,
-              data_container->host_data.R,
-              data_container->host_data.gamma);
+    data_container->measures.solver.total_iteration += SolveCG(
+        max_iteration, data_container->num_constraints, data_container->host_data.R, data_container->host_data.gamma);
     data_container->system_timer.stop("ChSolverParallel_Solve");
   }
 
   // Solve using the conjugate gradient method
-  uint SolveCG(const uint max_iter,              // Maximum number of iterations
-               const uint size,                  // Number of unknowns
-               blaze::DynamicVector<real>& b,    // Rhs vector
-               blaze::DynamicVector<real>& x     // The vector of unknowns
+  uint SolveCG(const uint max_iter,            // Maximum number of iterations
+               const uint size,                // Number of unknowns
+               blaze::DynamicVector<real>& b,  // Rhs vector
+               blaze::DynamicVector<real>& x   // The vector of unknowns
                );
 
   blaze::DynamicVector<real> r, p, Ap;
 };
-
 }
 
 #endif

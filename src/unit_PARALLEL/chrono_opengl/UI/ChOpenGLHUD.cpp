@@ -53,7 +53,12 @@ bool ChOpenGLHUD::Initialize(ChOpenGLCamera* camera, ChTimerParallel* viewer_tim
   return true;
 }
 
-void ChOpenGLHUD::Update(const glm::ivec2& window_size, const float& dpi, const float& frame_per_sec, const float& t_geometry, const float& t_text, const float& t_total) {
+void ChOpenGLHUD::Update(const glm::ivec2& window_size,
+                         const float& dpi,
+                         const float& frame_per_sec,
+                         const float& t_geometry,
+                         const float& t_text,
+                         const float& t_total) {
   int screen_width = window_size.x;
   int screen_height = window_size.y;
 
@@ -77,14 +82,15 @@ void ChOpenGLHUD::Update(const glm::ivec2& window_size, const float& dpi, const 
   //  int vp_y = (screen_height / 2) - (height/ 2);
 
   aspect = float(width) / float(height);
-  sx = SCALE;             // * (float)((float)(screen_width) / (float)virtual_width);
-  sy = SCALE * aspect;    //(float)((float)(screen_height) / (float)virtual_height) ;
+  sx = SCALE;           // * (float)((float)(screen_width) / (float)virtual_width);
+  sy = SCALE * aspect;  //(float)((float)(screen_height) / (float)virtual_height) ;
 
   //  z_x = vp_x/float(width)-1;
   //  z_y = vp_y/float(height)-1;
   //
   //
-  //  std::cout<<window_size.x<<" "<<window_size.y<<" "<<vp_x<<" "<<vp_y<<" "<<z_x<<" "<<z_y<<" "<<height<<" "<<width<<std::endl;
+  //  std::cout<<window_size.x<<" "<<window_size.y<<" "<<vp_x<<" "<<vp_y<<" "<<z_x<<" "<<z_y<<" "<<height<<"
+  //  "<<width<<std::endl;
 
   text.Update();
 
@@ -95,13 +101,11 @@ void ChOpenGLHUD::Update(const glm::ivec2& window_size, const float& dpi, const 
 }
 
 void ChOpenGLHUD::TakeDown() {
-
   font_shader.TakeDown();
   text.TakeDown();
 }
 
 void ChOpenGLHUD::GenerateHelp() {
-
   text.Render("Press h to exit help", LEFT, TOP - SPACING * 0, sx, sy);
   text.Render("W: Forward", LEFT, TOP - SPACING * 1, sx, sy);
   text.Render("A: Strafe Left", LEFT, TOP - SPACING * 2, sx, sy);
@@ -127,12 +131,23 @@ void ChOpenGLHUD::GenerateHelp() {
 }
 
 void ChOpenGLHUD::GenerateCamera() {
-
-  sprintf(buffer, "Camera Pos :  [%04f, %04f, %04f]", render_camera->camera_position.x, render_camera->camera_position.y, render_camera->camera_position.z);
+  sprintf(buffer,
+          "Camera Pos :  [%04f, %04f, %04f]",
+          render_camera->camera_position.x,
+          render_camera->camera_position.y,
+          render_camera->camera_position.z);
   text.Render(buffer, LEFT, TOP - SPACING * 1, sx, sy);
-  sprintf(buffer, "Camera Look:  [%04f, %04f, %04f]", render_camera->camera_look_at.x, render_camera->camera_look_at.y, render_camera->camera_look_at.z);
+  sprintf(buffer,
+          "Camera Look:  [%04f, %04f, %04f]",
+          render_camera->camera_look_at.x,
+          render_camera->camera_look_at.y,
+          render_camera->camera_look_at.z);
   text.Render(buffer, LEFT, TOP - SPACING * 2, sx, sy);
-  sprintf(buffer, "Camera Up  :  [%04f, %04f, %04f]", render_camera->camera_up.x, render_camera->camera_up.y, render_camera->camera_up.z);
+  sprintf(buffer,
+          "Camera Up  :  [%04f, %04f, %04f]",
+          render_camera->camera_up.x,
+          render_camera->camera_up.y,
+          render_camera->camera_up.z);
   text.Render(buffer, LEFT, TOP - SPACING * 3, sx, sy);
 }
 
@@ -178,7 +193,6 @@ void ChOpenGLHUD::GenerateSystem(ChSystem* physics_system) {
 }
 
 void ChOpenGLHUD::GenerateSolver(ChSystem* physics_system) {
-
   sprintf(buffer, "SOLVER INFO");
   text.Render(buffer, RIGHT, TOP - SPACING * 6, sx, sy);
 
@@ -204,7 +218,6 @@ void ChOpenGLHUD::GenerateSolver(ChSystem* physics_system) {
 }
 
 void ChOpenGLHUD::GenerateCD(ChSystem* physics_system) {
-
   if (ChSystemParallelDVI* parallel_sys = dynamic_cast<ChSystemParallelDVI*>(physics_system)) {
     int3 grid_size = parallel_sys->data_manager->measures.collision.grid_size;
     real3 bin_size_vec = 1.0 / parallel_sys->data_manager->measures.collision.bin_size_vec;
@@ -228,12 +241,12 @@ void ChOpenGLHUD::GenerateCD(ChSystem* physics_system) {
     text.Render(buffer, RIGHT, TOP - SPACING * 17, sx, sy);
   } else {
     // ChCollisionSystemBullet* collision_system = (ChCollisionSystemBullet*)physics_system->GetCollisionSystem();
-    // btDbvtBroadphase * broadphase = (btDbvtBroadphase* ) collision_system->GetBulletCollisionWorld()->getBroadphase();
+    // btDbvtBroadphase * broadphase = (btDbvtBroadphase* )
+    // collision_system->GetBulletCollisionWorld()->getBroadphase();
   }
 }
 
 void ChOpenGLHUD::GenerateRenderer() {
-
   sprintf(buffer, "RENDER INFO");
   text.Render(buffer, RIGHT, BOTTOM + SPACING * 4, sx, sy);
   sprintf(buffer, "GEOMETRY %04f", time_geometry);
@@ -247,7 +260,6 @@ void ChOpenGLHUD::GenerateRenderer() {
 }
 
 void ChOpenGLHUD::GenerateStats(ChSystem* physics_system) {
-
   sprintf(buffer, "Press h for help");
   text.Render(buffer, CENTER, TOP, sx, sy);
 
@@ -284,15 +296,19 @@ void ChOpenGLHUD::GenerateStats(ChSystem* physics_system) {
   //    float posx = -.6;
   //    sprintf(buffer, "B_Initial : %04f", parallel_sys->data_manager->system_timer.GetTime("Broadphase_Init"));
   //    text.Render(buffer, posx, -0.925 + SPACING * 9, sx, sy);
-  //    sprintf(buffer, "B_AABBBINC: %04f", parallel_sys->data_manager->system_timer.GetTime("Broadphase_AABB_BIN_Count"));
+  //    sprintf(buffer, "B_AABBBINC: %04f",
+  //    parallel_sys->data_manager->system_timer.GetTime("Broadphase_AABB_BIN_Count"));
   //    text.Render(buffer, posx, -0.925 + SPACING * 8, sx, sy);
-  //    sprintf(buffer, "B_AABBBINS: %04f", parallel_sys->data_manager->system_timer.GetTime("Broadphase_AABB_BIN_Store"));
+  //    sprintf(buffer, "B_AABBBINS: %04f",
+  //    parallel_sys->data_manager->system_timer.GetTime("Broadphase_AABB_BIN_Store"));
   //    text.Render(buffer, posx, -0.925 + SPACING * 7, sx, sy);
   //    sprintf(buffer, "B_SORT_RED: %04f", parallel_sys->data_manager->system_timer.GetTime("Broadphase_SortReduce"));
   //    text.Render(buffer, posx, -0.925 + SPACING * 6, sx, sy);
-  //    sprintf(buffer, "BAABBAABBC: %04f", parallel_sys->data_manager->system_timer.GetTime("Broadphase_AABB_AABB_Count"));
+  //    sprintf(buffer, "BAABBAABBC: %04f",
+  //    parallel_sys->data_manager->system_timer.GetTime("Broadphase_AABB_AABB_Count"));
   //    text.Render(buffer, posx, -0.925 + SPACING * 5, sx, sy);
-  //    sprintf(buffer, "BAABBAABBS: %04f", parallel_sys->data_manager->system_timer.GetTime("Broadphase_AABB_AABB_Store"));
+  //    sprintf(buffer, "BAABBAABBS: %04f",
+  //    parallel_sys->data_manager->system_timer.GetTime("Broadphase_AABB_AABB_Store"));
   //    text.Render(buffer, posx, -0.925 + SPACING * 4, sx, sy);
   //    sprintf(buffer, "B_POST    : %04f", parallel_sys->data_manager->system_timer.GetTime("Broadphase_Post"));
   //    text.Render(buffer, posx, -0.925 + SPACING * 3, sx, sy);
@@ -318,6 +334,8 @@ void ChOpenGLHUD::GenerateStats(ChSystem* physics_system) {
   //    text.Render(buffer, posx, -0.925 + SPACING * 2, sx, sy);
   //  }
 }
-void ChOpenGLHUD::Draw() { text.Draw(); }
+void ChOpenGLHUD::Draw() {
+  text.Draw();
 }
-}
+}
+}

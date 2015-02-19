@@ -37,7 +37,9 @@ class CH_OPENGL_API ChOpenGLShader : public ChOpenGLBase {
   void CompleteInit();
 
   virtual bool InitializeFiles(std::string vertex_shader_file, std::string fragment_shader_file);
-  virtual bool InitializeStrings(std::string shader_name, const char* vertex_shader_file, const char* fragment_shader_file);
+  virtual bool InitializeStrings(std::string shader_name,
+                                 const char* vertex_shader_file,
+                                 const char* fragment_shader_file);
   virtual void CustomSetup();
   void CommonSetup(const GLfloat* projection, const GLfloat* view);
   void SetTime(const float& _time);
@@ -60,4 +62,4 @@ class CH_OPENGL_API ChOpenGLShader : public ChOpenGLBase {
 };
 }
 }
-#endif    // END of CHOPENGLSHADER_H
+#endif  // END of CHOPENGLSHADER_H

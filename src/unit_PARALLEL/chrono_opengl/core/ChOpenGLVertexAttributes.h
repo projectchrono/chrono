@@ -35,7 +35,12 @@ namespace opengl {
 class CH_OPENGL_API ChOpenGLVertexAttributesPADSNT {
  public:
   ChOpenGLVertexAttributesPADSNT();
-  ChOpenGLVertexAttributesPADSNT(const glm::vec3& p, const glm::vec3& c_a, const glm::vec3& c_d, const glm::vec3& c_s, const glm::vec3& n, const glm::vec2& t);
+  ChOpenGLVertexAttributesPADSNT(const glm::vec3& p,
+                                 const glm::vec3& c_a,
+                                 const glm::vec3& c_d,
+                                 const glm::vec3& c_s,
+                                 const glm::vec3& n,
+                                 const glm::vec2& t);
   ChOpenGLVertexAttributesPADSNT(const ChOpenGLVertexAttributesPADSNT& other);
   glm::vec3 position;
   glm::vec3 normal;
@@ -48,7 +53,11 @@ class CH_OPENGL_API ChOpenGLVertexAttributesPADSNT {
 class CH_OPENGL_API ChOpenGLVertexAttributesPADSN {
  public:
   ChOpenGLVertexAttributesPADSN();
-  ChOpenGLVertexAttributesPADSN(const glm::vec3& p, const glm::vec3& c_a, const glm::vec3& c_d, const glm::vec3& c_s, const glm::vec3& n);
+  ChOpenGLVertexAttributesPADSN(const glm::vec3& p,
+                                const glm::vec3& c_a,
+                                const glm::vec3& c_d,
+                                const glm::vec3& c_s,
+                                const glm::vec3& n);
   ChOpenGLVertexAttributesPADSN(const ChOpenGLVertexAttributesPADSN& other);
   glm::vec3 position;
   glm::vec3 normal;
@@ -96,4 +105,4 @@ class CH_OPENGL_API ChOpenGLVertexAttributesP {
 };
 }
 }
-#endif    // END of CHOPENGLVERTEXATTRIBUTE_H
+#endif  // END of CHOPENGLVERTEXATTRIBUTE_H

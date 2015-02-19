@@ -20,7 +20,7 @@
 //  - supported domains: box, rectangle, cylinder, disk, sphere
 //
 // PDSampler
-//  - implements Poisson Disk sampler - uniform random distribution with 
+//  - implements Poisson Disk sampler - uniform random distribution with
 //    guaranteed minimum distance between any two sample points.
 //
 // GridSampler
@@ -42,19 +42,12 @@
 #include "chrono_utils/ChApiUtils.h"
 #include "chrono_utils/ChUtilsCommon.h"
 
-
 namespace chrono {
 namespace utils {
 
-
 const double Pi = 3.1415926535897932384626433832795;
 
-enum SamplingType {
-  REGULAR_GRID,
-  POISSON_DISK,
-  HCP_PACK
-};
-
+enum SamplingType { REGULAR_GRID, POISSON_DISK, HCP_PACK };
 
 // -----------------------------------------------------------------------------
 // Type definitions
@@ -64,14 +57,13 @@ enum SamplingType {
 // "share" a typedef across different template classes, we use this structure.
 template <typename T>
 struct Types {
-  typedef std::vector<ChVector<T> >  PointVector;
-  typedef std::list<ChVector<T> >    PointList;
+  typedef std::vector<ChVector<T> > PointVector;
+  typedef std::list<ChVector<T> > PointList;
 };
 
 // Convenience shrotcuts
-typedef Types<double>::PointVector  PointVectorD;
-typedef Types<float>::PointVector   PointVectorF;
-
+typedef Types<double>::PointVector PointVectorD;
+typedef Types<float>::PointVector PointVectorF;
 
 // -----------------------------------------------------------------------------
 // Sampler
@@ -81,86 +73,69 @@ typedef Types<float>::PointVector   PointVectorF;
 
 template <typename T>
 class Sampler {
-public:
+ public:
   typedef typename Types<T>::PointVector PointVector;
 
-  PointVector SampleBox(const ChVector<T>& center, const ChVector<T>& halfDim)
-  {
+  PointVector SampleBox(const ChVector<T>& center, const ChVector<T>& halfDim) {
     m_center = center;
     m_size = halfDim;
     return Sample(BOX);
   }
 
-  PointVector SampleSphere(const ChVector<T>& center, T radius)
-  {
+  PointVector SampleSphere(const ChVector<T>& center, T radius) {
     m_center = center;
     m_size = ChVector<T>(radius, radius, radius);
     return Sample(SPHERE);
   }
 
-  PointVector SampleCylinderX(const ChVector<T>& center, T radius, T halfHeight)
-  {
+  PointVector SampleCylinderX(const ChVector<T>& center, T radius, T halfHeight) {
     m_center = center;
     m_size = ChVector<T>(halfHeight, radius, radius);
     return Sample(CYLINDER_X);
   }
 
-  PointVector SampleCylinderY(const ChVector<T>& center, T radius, T halfHeight)
-  {
+  PointVector SampleCylinderY(const ChVector<T>& center, T radius, T halfHeight) {
     m_center = center;
     m_size = ChVector<T>(radius, halfHeight, radius);
     return Sample(CYLINDER_Y);
   }
 
-  PointVector SampleCylinderZ(const ChVector<T>& center, T radius, T halfHeight)
-  {
+  PointVector SampleCylinderZ(const ChVector<T>& center, T radius, T halfHeight) {
     m_center = center;
     m_size = ChVector<T>(radius, radius, halfHeight);
     return Sample(CYLINDER_Z);
   }
 
-protected:
-  enum VolumeType {
-    BOX,
-    SPHERE,
-    CYLINDER_X,
-    CYLINDER_Y,
-    CYLINDER_Z
-  };
+ protected:
+  enum VolumeType { BOX, SPHERE, CYLINDER_X, CYLINDER_Y, CYLINDER_Z };
 
   virtual PointVector Sample(VolumeType t) = 0;
 
   // Utility function to check if a point is inside the sampling volume
-  bool accept(VolumeType t, const ChVector<T>& p)
-  {
+  bool accept(VolumeType t, const ChVector<T>& p) {
     ChVector<T> vec = p - m_center;
-    T fuzz = (m_size.x < 1) ?  1e-6 * m_size.x : 1e-6;
+    T fuzz = (m_size.x < 1) ? 1e-6 * m_size.x : 1e-6;
 
     switch (t) {
-    case BOX:
-      return (std::abs(vec.x) <= m_size.x + fuzz) &&
-             (std::abs(vec.y) <= m_size.y + fuzz) &&
-             (std::abs(vec.z) <= m_size.z + fuzz);
-    case SPHERE:
-      return (vec.Length2() <= m_size.x * m_size.x);
-    case CYLINDER_X:
-      return (vec.y * vec.y + vec.z * vec.z <= m_size.y * m_size.y) &&
-             (std::abs(vec.x) <= m_size.x + fuzz);
-    case CYLINDER_Y:
-      return (vec.z * vec.z + vec.x * vec.x <= m_size.z * m_size.z) &&
-             (std::abs(vec.y) <= m_size.y + fuzz);
-    case CYLINDER_Z:
-      return (vec.x * vec.x + vec.y * vec.y <= m_size.x * m_size.x) &&
-             (std::abs(vec.z) <= m_size.z + fuzz);
-    default:
-      return false;
+      case BOX:
+        return (std::abs(vec.x) <= m_size.x + fuzz) && (std::abs(vec.y) <= m_size.y + fuzz) &&
+               (std::abs(vec.z) <= m_size.z + fuzz);
+      case SPHERE:
+        return (vec.Length2() <= m_size.x * m_size.x);
+      case CYLINDER_X:
+        return (vec.y * vec.y + vec.z * vec.z <= m_size.y * m_size.y) && (std::abs(vec.x) <= m_size.x + fuzz);
+      case CYLINDER_Y:
+        return (vec.z * vec.z + vec.x * vec.x <= m_size.z * m_size.z) && (std::abs(vec.y) <= m_size.y + fuzz);
+      case CYLINDER_Z:
+        return (vec.x * vec.x + vec.y * vec.y <= m_size.x * m_size.x) && (std::abs(vec.z) <= m_size.z + fuzz);
+      default:
+        return false;
     }
   }
 
-  ChVector<T> m_center;     ///< center of the sampling volume
-  ChVector<T> m_size;       ///< half dimensions of the bounding box of the sampling volume
+  ChVector<T> m_center;  ///< center of the sampling volume
+  ChVector<T> m_size;    ///< half dimensions of the bounding box of the sampling volume
 };
-
 
 // -----------------------------------------------------------------------------
 // PDGrid
@@ -170,20 +145,20 @@ protected:
 
 template <typename Point = ChVector<double> >
 class PDGrid {
-public:
+ public:
   typedef std::pair<Point, bool> Content;
 
   PDGrid() {}
 
-  int GetDimX() const {return m_dimX;}
-  int GetDimY() const {return m_dimY;}
-  int GetDimZ() const {return m_dimZ;}
+  int GetDimX() const { return m_dimX; }
+  int GetDimY() const { return m_dimY; }
+  int GetDimZ() const { return m_dimZ; }
 
   void Resize(int dimX, int dimY, int dimZ) {
     m_dimX = dimX;
     m_dimY = dimY;
     m_dimZ = dimZ;
-    m_data.resize(dimX * dimY * dimZ, Content(Point(0,0,0), true));
+    m_data.resize(dimX * dimY * dimZ, Content(Point(0, 0, 0), true));
   }
 
   void SetCellPoint(int i, int j, int k, const Point& p) {
@@ -192,31 +167,26 @@ public:
     m_data[ii].second = false;
   }
 
-  const Point& GetCellPoint(int i, int j, int k) const
-  {
-    return m_data[index(i,j,k)].first;
-  }
+  const Point& GetCellPoint(int i, int j, int k) const { return m_data[index(i, j, k)].first; }
 
-  bool IsCellEmpty(int i, int j, int k) const
-  {
+  bool IsCellEmpty(int i, int j, int k) const {
     if (i < 0 || i >= m_dimX || j < 0 || j >= m_dimY || k < 0 || k >= m_dimZ)
       return true;
 
-    return m_data[index(i,j,k)].second;
+    return m_data[index(i, j, k)].second;
   }
 
-  Content&       operator()(int i, int j, int k)        {return m_data[index(i,j,k)];}
-  const Content& operator()(int i, int j, int k) const  {return m_data[index(i,j,k)];}
+  Content& operator()(int i, int j, int k) { return m_data[index(i, j, k)]; }
+  const Content& operator()(int i, int j, int k) const { return m_data[index(i, j, k)]; }
 
-private:
-  int  index(int i, int j, int k) const  {return i * m_dimY * m_dimZ + j * m_dimZ + k;}
+ private:
+  int index(int i, int j, int k) const { return i * m_dimY * m_dimZ + j * m_dimZ + k; }
 
-  int                  m_dimX;
-  int                  m_dimY;
-  int                  m_dimZ;
+  int m_dimX;
+  int m_dimY;
+  int m_dimZ;
   std::vector<Content> m_data;
 };
-
 
 // -----------------------------------------------------------------------------
 // PDSampler
@@ -234,31 +204,21 @@ private:
 
 template <typename T = double>
 class PDSampler : public Sampler<T> {
-public:
-  typedef typename Types<T>::PointVector  PointVector;
-  typedef typename Types<T>::PointList    PointList;
+ public:
+  typedef typename Types<T>::PointVector PointVector;
+  typedef typename Types<T>::PointList PointList;
   typedef typename Sampler<T>::VolumeType VolumeType;
 
-  PDSampler(T   minDist,
-            int pointsPerIteration = m_ppi_default)
-  : m_minDist(minDist),
-    m_ppi(pointsPerIteration),
-    m_realDist(0.0, 1.0)
-  {
+  PDSampler(T minDist, int pointsPerIteration = m_ppi_default)
+      : m_minDist(minDist), m_ppi(pointsPerIteration), m_realDist(0.0, 1.0) {
     m_gridLoc.resize(3);
   }
 
-private:
-  enum Direction2D {
-    NONE,
-    X_DIR,
-    Y_DIR,
-    Z_DIR
-  };
+ private:
+  enum Direction2D { NONE, X_DIR, Y_DIR, Z_DIR };
 
   // This is the worker function for sampling the given domain.
-  virtual PointVector Sample(VolumeType t)
-  {
+  virtual PointVector Sample(VolumeType t) {
     PointVector out_points;
 
     // Check 2D/3D. If the size in one direction (e.g. z) is less than the
@@ -290,9 +250,9 @@ private:
     m_bl = this->m_center - this->m_size;
     m_tr = this->m_center + this->m_size;
 
-    m_grid.Resize((int) (2 * this->m_size.x / m_cellSize) + 1,
-                  (int) (2 * this->m_size.y / m_cellSize) + 1,
-                  (int) (2 * this->m_size.z / m_cellSize) + 1);
+    m_grid.Resize((int)(2 * this->m_size.x / m_cellSize) + 1,
+                  (int)(2 * this->m_size.y / m_cellSize) + 1,
+                  (int)(2 * this->m_size.z / m_cellSize) + 1);
 
     // Add the first output point (and initialize active list)
     AddFirstPoint(t, out_points);
@@ -300,7 +260,7 @@ private:
     // As long as there are active points...
     while (m_active.size() != 0) {
       // ... select one of them at random
-      std::uniform_int_distribution<int> intDist(0, m_active.size()-1);
+      std::uniform_int_distribution<int> intDist(0, m_active.size() - 1);
 
       typename PointList::iterator point = m_active.begin();
       std::advance(point, intDist(rengine()));
@@ -320,8 +280,7 @@ private:
   }
 
   // This function adds the first point in the volume (randomly)
-  void AddFirstPoint(VolumeType t, PointVector& out_points)
-  {
+  void AddFirstPoint(VolumeType t, PointVector& out_points) {
     ChVector<T> p;
 
     // Generate a random point in the domain
@@ -341,8 +300,7 @@ private:
   }
 
   // Attempt to add a new point close to the specified one.
-  bool AddNextPoint(VolumeType t, const ChVector<T>& point, PointVector& out_points)
-  {
+  bool AddNextPoint(VolumeType t, const ChVector<T>& point, PointVector& out_points) {
     // Generate a random candidate point in the neighborhood of the
     // specified point.
     ChVector<T> q = GenerateRandomNeighbor(point);
@@ -378,80 +336,68 @@ private:
 
   // Return random point in spherical anulus between minDist and 2*minDist
   // centered at given point
-  ChVector<T> GenerateRandomNeighbor(const ChVector<T>& point)
-  {
+  ChVector<T> GenerateRandomNeighbor(const ChVector<T>& point) {
     T x, y, z;
 
     switch (m_2D) {
-    case Z_DIR:
-      {
+      case Z_DIR: {
         T radius = m_minDist * (1 + m_realDist(rengine()));
         T angle = 2 * Pi * m_realDist(rengine());
         x = point.x + radius * std::cos(angle);
         y = point.y + radius * std::sin(angle);
         z = this->m_center.z;
-      }
-      break;
-    case Y_DIR:
-      {
+      } break;
+      case Y_DIR: {
         T radius = m_minDist * (1 + m_realDist(rengine()));
         T angle = 2 * Pi * m_realDist(rengine());
         x = point.x + radius * std::cos(angle);
         y = this->m_center.y;
         z = point.z + radius * std::sin(angle);
-      }
-      break;
-    case X_DIR:
-      {
+      } break;
+      case X_DIR: {
         T radius = m_minDist * (1 + m_realDist(rengine()));
         T angle = 2 * Pi * m_realDist(rengine());
         x = this->m_center.x;
         y = point.y + radius * std::cos(angle);
         z = point.z + radius * std::sin(angle);
-      }
-      break;
-    case NONE:
-      {
+      } break;
+      case NONE: {
         T radius = m_minDist * (1 + m_realDist(rengine()));
         T angle1 = 2 * Pi * m_realDist(rengine());
         T angle2 = 2 * Pi * m_realDist(rengine());
         x = point.x + radius * std::cos(angle1) * std::sin(angle2);
         y = point.y + radius * std::sin(angle1) * std::sin(angle2);
         z = point.z + radius * std::cos(angle2);
-      }
-      break;
+      } break;
     }
 
     return ChVector<T>(x, y, z);
   }
 
   // Map point location to a 3D grid location
-  void MapToGrid(ChVector<T> point)
-  {
-    m_gridLoc[0] = (int) ((point.x - m_bl.x) / m_cellSize);
-    m_gridLoc[1] = (int) ((point.y - m_bl.y) / m_cellSize);
-    m_gridLoc[2] = (int) ((point.z - m_bl.z) / m_cellSize);
+  void MapToGrid(ChVector<T> point) {
+    m_gridLoc[0] = (int)((point.x - m_bl.x) / m_cellSize);
+    m_gridLoc[1] = (int)((point.y - m_bl.y) / m_cellSize);
+    m_gridLoc[2] = (int)((point.z - m_bl.z) / m_cellSize);
   }
 
+  PDGrid<ChVector<T> > m_grid;
+  PointList m_active;
 
-  PDGrid<ChVector<T> >  m_grid;
-  PointList             m_active;
-
-  Direction2D m_2D;          ///< 2D or 3D sampling
-  ChVector<T> m_bl;          ///< bottom-left corner of sampling domain
-  ChVector<T> m_tr;          ///< top-right corner of sampling domain      REMOVE?
-  T           m_cellSize;    ///< grid cell size
-  T           m_minDist;     ///< minimum distance between generated points
+  Direction2D m_2D;  ///< 2D or 3D sampling
+  ChVector<T> m_bl;  ///< bottom-left corner of sampling domain
+  ChVector<T> m_tr;  ///< top-right corner of sampling domain      REMOVE?
+  T m_cellSize;      ///< grid cell size
+  T m_minDist;       ///< minimum distance between generated points
 
   std::vector<int> m_gridLoc;
-  int m_ppi;                 ///< maximum points per iteration
+  int m_ppi;  ///< maximum points per iteration
 
   /// Generate real numbers uniformly distributed in (0,1)
-  std::uniform_real_distribution<T>  m_realDist;
+  std::uniform_real_distribution<T> m_realDist;
 
   static const int m_ppi_default = 30;
 };
-
 
 // -----------------------------------------------------------------------------
 // GridSampler
@@ -462,32 +408,28 @@ private:
 
 template <typename T = double>
 class GridSampler : public Sampler<T> {
-public:
-  typedef typename Types<T>::PointVector  PointVector;
+ public:
+  typedef typename Types<T>::PointVector PointVector;
   typedef typename Sampler<T>::VolumeType VolumeType;
 
   GridSampler(T spacing) : m_spacing(spacing, spacing, spacing) {}
   GridSampler(const ChVector<T>& spacing) : m_spacing(spacing) {}
 
-private:
-  virtual PointVector Sample(VolumeType t)
-  {
+ private:
+  virtual PointVector Sample(VolumeType t) {
     PointVector out_points;
 
     ChVector<T> bl = this->m_center - this->m_size;
 
-
-
-
-    int nx = (int) (2 * this->m_size.x / m_spacing.x) + 1;
-    int ny = (int) (2 * this->m_size.y / m_spacing.y) + 1;
-    int nz = (int) (2 * this->m_size.z / m_spacing.z) + 1;
+    int nx = (int)(2 * this->m_size.x / m_spacing.x) + 1;
+    int ny = (int)(2 * this->m_size.y / m_spacing.y) + 1;
+    int nz = (int)(2 * this->m_size.z / m_spacing.z) + 1;
 
     for (int i = 0; i < nx; i++) {
       for (int j = 0; j < ny; j++) {
         for (int k = 0; k < nz; k++) {
-          ChVector<T> p = bl + ChVector<T>(i*m_spacing.x, j*m_spacing.y, k*m_spacing.z);
-          if (this->accept(t, p)) 
+          ChVector<T> p = bl + ChVector<T>(i * m_spacing.x, j * m_spacing.y, k * m_spacing.z);
+          if (this->accept(t, p))
             out_points.push_back(p);
         }
       }
@@ -499,7 +441,6 @@ private:
   ChVector<T> m_spacing;
 };
 
-
 // -----------------------------------------------------------------------------
 // HCPSampler
 //
@@ -508,38 +449,36 @@ private:
 
 template <typename T = double>
 class HCPSampler : public Sampler<T> {
-public:
-  typedef typename Types<T>::PointVector  PointVector;
+ public:
+  typedef typename Types<T>::PointVector PointVector;
   typedef typename Sampler<T>::VolumeType VolumeType;
 
   HCPSampler(T spacing) : m_spacing(spacing) {}
 
-private:
-  virtual PointVector Sample(VolumeType t)
-  {
+ private:
+  virtual PointVector Sample(VolumeType t) {
     PointVector out_points;
 
     ChVector<T> bl = this->m_center - this->m_size;
 
     T m_cos30 = 0.5 * sqrt(3.0);
-	int nx = (int) (2 * this->m_size.x / (m_spacing)) 			+ 1;
-	int ny = (int) (2 * this->m_size.y / (m_cos30 * m_spacing)) + 1;
-	int nz = (int) (2 * this->m_size.z / (m_cos30 * m_spacing)) + 1;
+    int nx = (int)(2 * this->m_size.x / (m_spacing)) + 1;
+    int ny = (int)(2 * this->m_size.y / (m_cos30 * m_spacing)) + 1;
+    int nz = (int)(2 * this->m_size.z / (m_cos30 * m_spacing)) + 1;
     double offset_x = 0, offset_z = 0;
     for (int j = 0; j < ny; j++) {
-    	offset_x = offset_z = (j % 2 != 0) ? 0.5 * m_spacing : 0;
-    	for (int i = 0; i < nx; i++) {
-    	      for (int k = 0; k < nz; k++) {
-				  //need to offset alternate rows by radius
-				  T offset = (k % 2 != 0) ? 0.5 * m_spacing : 0;
-				  ChVector<T> p = bl + ChVector<T>(
-						  i * m_spacing + offset + offset_x ,
-						  j * (m_cos30 * m_spacing) ,
-						  k * (m_cos30 * m_spacing) + offset_z );
-				  if (this->accept(t, p))
-					  out_points.push_back(p);
-    	      }
-    	}
+      offset_x = offset_z = (j % 2 != 0) ? 0.5 * m_spacing : 0;
+      for (int i = 0; i < nx; i++) {
+        for (int k = 0; k < nz; k++) {
+          // need to offset alternate rows by radius
+          T offset = (k % 2 != 0) ? 0.5 * m_spacing : 0;
+          ChVector<T> p = bl + ChVector<T>(i * m_spacing + offset + offset_x,
+                                           j * (m_cos30 * m_spacing),
+                                           k * (m_cos30 * m_spacing) + offset_z);
+          if (this->accept(t, p))
+            out_points.push_back(p);
+        }
+      }
     }
     return out_points;
   }
@@ -547,9 +486,7 @@ private:
   T m_spacing;
 };
 
-
-} // end namespace utils
-} // end namespace chrono
-
+}  // end namespace utils
+}  // end namespace chrono
 
 #endif

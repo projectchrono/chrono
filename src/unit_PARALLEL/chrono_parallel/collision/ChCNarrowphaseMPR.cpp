@@ -20,7 +20,12 @@ struct simplex {
   support s0, s1, s2, s3, s4;
 };
 
-bool chrono::collision::MPRSphereSphere(const ConvexShape& ShapeA, const ConvexShape& ShapeB, real3& N, real& depth, real3& p1, real3& p2) {
+bool chrono::collision::MPRSphereSphere(const ConvexShape& ShapeA,
+                                        const ConvexShape& ShapeB,
+                                        real3& N,
+                                        real& depth,
+                                        real3& p1,
+                                        real3& p2) {
   real3 relpos = ShapeB.A - ShapeA.A;
   real d2 = dot(relpos, relpos);
   real collide_dist = ShapeA.B.x + ShapeB.B.x;
@@ -37,48 +42,51 @@ bool chrono::collision::MPRSphereSphere(const ConvexShape& ShapeA, const ConvexS
 
 real3 GetCenter(const ConvexShape& Shape) {
   if (Shape.type == TRIANGLEMESH) {
-    return GetCenter_Triangle(Shape.A, Shape.B, Shape.C);    // triangle center
+    return GetCenter_Triangle(Shape.A, Shape.B, Shape.C);  // triangle center
   } else {
-    return R3(0, 0, 0) + Shape.A;    // All other shapes assumed to be locally centered
+    return R3(0, 0, 0) + Shape.A;  // All other shapes assumed to be locally centered
   }
 }
 
 void FindCenter(const ConvexShape& shapeA, const ConvexShape& shapeB, simplex& portal) {
-
   // v0 = center of Minkowski sum
   portal.s0.v1 = GetCenter(shapeA);
   portal.s0.v2 = GetCenter(shapeB);
   portal.s0.v = portal.s0.v2 - portal.s0.v1;
 }
 
-void MPRSupport(const ConvexShape& shapeA, const ConvexShape& shapeB, const real3& n, const real& envelope, support& s) {
-
+void MPRSupport(const ConvexShape& shapeA,
+                const ConvexShape& shapeB,
+                const real3& n,
+                const real& envelope,
+                support& s) {
   s.v1 = TransformSupportVert(shapeA, -n, envelope);
   s.v2 = TransformSupportVert(shapeB, n, envelope);
   s.v = s.v2 - s.v1;
 }
 
 void ExpandPortal(simplex& portal) {
-
   // Compute the tetrahedron dividing face (v4,v0,v1)
   if (dot(cross(portal.s4.v, portal.s1.v), portal.s0.v) < 0) {
     // Compute the tetrahedron dividing face (v4,v0,v2)
     if (dot(cross(portal.s4.v, portal.s2.v), portal.s0.v) < 0) {
-      portal.s1 = portal.s4;    // Inside d1 & inside d2 ==> eliminate v1
+      portal.s1 = portal.s4;  // Inside d1 & inside d2 ==> eliminate v1
     } else {
-      portal.s3 = portal.s4;    // Inside d1 & outside d2 ==> eliminate v3
+      portal.s3 = portal.s4;  // Inside d1 & outside d2 ==> eliminate v3
     }
   } else {
     // Compute the tetrahedron dividing face (v4,v0,v3)
     if (dot(cross(portal.s4.v, portal.s3.v), portal.s0.v) < 0) {
-      portal.s2 = portal.s4;    // Outside d1 & inside d3 ==> eliminate v2
+      portal.s2 = portal.s4;  // Outside d1 & inside d3 ==> eliminate v2
     } else {
-      portal.s1 = portal.s4;    // Outside d1 & outside d3 ==> eliminate v1
+      portal.s1 = portal.s4;  // Outside d1 & outside d3 ==> eliminate v1
     }
   }
 }
 
-real3 PortalDir(const simplex& portal) { return normalize(cross((portal.s2.v - portal.s1.v), (portal.s3.v - portal.s1.v))); }
+real3 PortalDir(const simplex& portal) {
+  return normalize(cross((portal.s2.v - portal.s1.v), (portal.s3.v - portal.s1.v)));
+}
 
 void FindPos(const simplex& portal, real3& point) {
   real3 n = PortalDir(portal);
@@ -103,12 +111,15 @@ void FindPos(const simplex& portal, real3& point) {
   point = (p1 + p2) * 0.5f;
 }
 
-int portalEncapsulesOrigin(const simplex& portal, const real3& n) { return dot(n, portal.s1.v) >= 0.0; }
+int portalEncapsulesOrigin(const simplex& portal, const real3& n) {
+  return dot(n, portal.s1.v) >= 0.0;
+}
 
-int portalCanEncapsuleOrigin(const simplex& portal, const real3& n) { return dot(portal.s4.v, n) >= 0.0; }
+int portalCanEncapsuleOrigin(const simplex& portal, const real3& n) {
+  return dot(portal.s4.v, n) >= 0.0;
+}
 
 int portalReachTolerance(const simplex& portal, const real3& n) {
-
   real dv1 = dot(portal.s1.v, n);
   real dv2 = dot(portal.s2.v, n);
   real dv3 = dot(portal.s3.v, n);
@@ -130,8 +141,8 @@ real Vec3Dist2(const real3 a, const real3 b) {
 real Vec3PointSegmentDist2(const real3& P, const real3& x0, const real3& b, real3& witness) {
   real dist, t;
   real3 d, a;
-  d = b - x0;    // direction of segment
-  a = x0 - P;    // precompute vector from P to x0
+  d = b - x0;  // direction of segment
+  a = x0 - P;  // precompute vector from P to x0
   t = -(1.f) * dot(a, d);
   t = t / dot(d, d);
 
@@ -154,8 +165,8 @@ real Vec3PointSegmentDist2(const real3& P, const real3& x0, const real3& b, real
 real Vec3PointSegmentDist2(const real3& P, const real3& x0, const real3& b) {
   real dist, t;
   real3 d, a;
-  d = b - x0;    // direction of segment
-  a = x0 - P;    // precompute vector from P to x0
+  d = b - x0;  // direction of segment
+  a = x0 - P;  // precompute vector from P to x0
   t = -(1.f) * dot(a, d);
   t = t / dot(d, d);
 
@@ -194,7 +205,8 @@ real Vec3PointTriDist2(const real3& P, const real3& x0, const real3& B, const re
   s = (q * r - w * p) / (w * v - r * r);
   t = (-s * r - q) / w;
 
-  if ((IsZero(s) || s > 0.0f) && (isEqual(s, 1.0f) || s < 1.0f) && (IsZero(t) || t > 0.0f) && (isEqual(t, 1.0f) || t < 1.0f) && (isEqual(t + s, 1.0f) || t + s < 1.0f)) {
+  if ((IsZero(s) || s > 0.0f) && (isEqual(s, 1.0f) || s < 1.0f) && (IsZero(t) || t > 0.0f) &&
+      (isEqual(t, 1.0f) || t < 1.0f) && (isEqual(t + s, 1.0f) || t + s < 1.0f)) {
     d1 *= s;
     d2 *= t;
     witness = x0;
@@ -219,7 +231,6 @@ real Vec3PointTriDist2(const real3& P, const real3& x0, const real3& B, const re
 }
 
 real Vec3PointTriDist2(const real3& P, const real3& V0, const real3& V1, const real3& V2) {
-
   real3 diff = V0 - P;
   real3 edge0 = V1 - V0;
   real3 edge1 = V2 - V0;
@@ -236,7 +247,7 @@ real Vec3PointTriDist2(const real3& P, const real3& V0, const real3& V1, const r
 
   if (s + t <= det) {
     if (s < (real)0) {
-      if (t < (real)0)    // region 4
+      if (t < (real)0)  // region 4
       {
         if (b0 < (real)0) {
           t = (real)0;
@@ -260,7 +271,7 @@ real Vec3PointTriDist2(const real3& P, const real3& V0, const real3& V1, const r
             sqrDistance = b1 * t + c;
           }
         }
-      } else    // region 3
+      } else  // region 3
       {
         s = (real)0;
         if (b1 >= (real)0) {
@@ -274,7 +285,7 @@ real Vec3PointTriDist2(const real3& P, const real3& V0, const real3& V1, const r
           sqrDistance = b1 * t + c;
         }
       }
-    } else if (t < (real)0)    // region 5
+    } else if (t < (real)0)  // region 5
     {
       t = (real)0;
       if (b0 >= (real)0) {
@@ -287,7 +298,7 @@ real Vec3PointTriDist2(const real3& P, const real3& V0, const real3& V1, const r
         s = -b0 / a00;
         sqrDistance = b0 * s + c;
       }
-    } else    // region 0
+    } else  // region 0
     {
       // minimum at interior point
       real invDet = ((real)1) / det;
@@ -298,7 +309,7 @@ real Vec3PointTriDist2(const real3& P, const real3& V0, const real3& V1, const r
   } else {
     real tmp0, tmp1, numer, denom;
 
-    if (s < (real)0)    // region 2
+    if (s < (real)0)  // region 2
     {
       tmp0 = a01 + b0;
       tmp1 = a11 + b1;
@@ -327,7 +338,7 @@ real Vec3PointTriDist2(const real3& P, const real3& V0, const real3& V1, const r
           sqrDistance = b1 * t + c;
         }
       }
-    } else if (t < (real)0)    // region 6
+    } else if (t < (real)0)  // region 6
     {
       tmp0 = a01 + b1;
       tmp1 = a00 + b0;
@@ -356,7 +367,7 @@ real Vec3PointTriDist2(const real3& P, const real3& V0, const real3& V1, const r
           sqrDistance = b0 * s + c;
         }
       }
-    } else    // region 1
+    } else  // region 1
     {
       numer = a11 + b1 - a01 - b0;
       if (numer <= (real)0) {
@@ -391,7 +402,13 @@ real Vec3PointTriDist2(const real3& P, const real3& V0, const real3& V1, const r
   return sqrDistance;
 }
 
-void FindPenetration(const ConvexShape& shapeA, const ConvexShape& shapeB, const real& envelope, simplex& portal, real& depth, real3& n, real3& point) {
+void FindPenetration(const ConvexShape& shapeA,
+                     const ConvexShape& shapeB,
+                     const real& envelope,
+                     simplex& portal,
+                     real& depth,
+                     real3& n,
+                     real3& point) {
   real3 zero = real3(0);
   real3 dir;
 
@@ -416,13 +433,23 @@ void FindPenetration(const ConvexShape& shapeA, const ConvexShape& shapeB, const
   }
 }
 
-void FindPenetrationTouch(const ConvexShape& shapeA, const ConvexShape& shapeB, simplex& portal, real& depth, real3& n, real3& point) {
+void FindPenetrationTouch(const ConvexShape& shapeA,
+                          const ConvexShape& shapeB,
+                          simplex& portal,
+                          real& depth,
+                          real3& n,
+                          real3& point) {
   depth = 0;
   n = normalize(portal.s1.v - portal.s0.v);
   point = (portal.s1.v1 + portal.s1.v2) * .5;
 }
 
-void FindPenetrationSegment(const ConvexShape& shapeA, const ConvexShape& shapeB, simplex& portal, real& depth, real3& n, real3& point) {
+void FindPenetrationSegment(const ConvexShape& shapeA,
+                            const ConvexShape& shapeB,
+                            simplex& portal,
+                            real& depth,
+                            real3& n,
+                            real3& point) {
   point = (portal.s1.v1 + portal.s1.v2) * .5;
   n = portal.s1.v;
   depth = -length(n);
@@ -430,10 +457,8 @@ void FindPenetrationSegment(const ConvexShape& shapeA, const ConvexShape& shapeB
 }
 
 bool FindPortal(const ConvexShape& shapeA, const ConvexShape& shapeB, const real& envelope, simplex& portal, real3& n) {
-
   // Phase One: Identify a portal
   while (true) {
-
     // Obtain the support point in a direction perpendicular to the existing plane
     // Note: This point is guaranteed to lie off the plane
     MPRSupport(shapeA, shapeB, n, envelope, portal.s3);
@@ -460,7 +485,6 @@ bool FindPortal(const ConvexShape& shapeA, const ConvexShape& shapeB, const real
 }
 
 int DiscoverPortal(const ConvexShape& shapeA, const ConvexShape& shapeB, const real& envelope, simplex& portal) {
-
   real3 n, va, vb;
   // vertex 0 is center of portal
   FindCenter(shapeA, shapeB, portal);
@@ -506,7 +530,6 @@ int DiscoverPortal(const ConvexShape& shapeA, const ConvexShape& shapeB, const r
   int cont;
   // FindPortal code
   while (true) {
-
     // Obtain the support point in a direction perpendicular to the existing plane
     // Note: This point is guaranteed to lie off the plane
     MPRSupport(shapeA, shapeB, n, envelope, portal.s3);
@@ -543,7 +566,8 @@ int RefinePortal(const ConvexShape& shapeA, const ConvexShape& shapeB, const rea
     // Find the support point in the direction of the wedge face
     MPRSupport(shapeA, shapeB, n, envelope, portal.s4);
 
-    // If the boundary is thin enough or the origin is outside the support plane for the newly discovered vertex, then we can terminate
+    // If the boundary is thin enough or the origin is outside the support plane for the newly discovered vertex, then
+    // we can terminate
     if (portalReachTolerance(portal, n) || !portalCanEncapsuleOrigin(portal, n)) {
       if (portalEncapsulesOrigin(portal, n)) {
         return 0;
@@ -555,8 +579,12 @@ int RefinePortal(const ConvexShape& shapeA, const ConvexShape& shapeB, const rea
   return -1;
 }
 // Code for Convex-Convex Collision detection, adopted from xeno-collide
-bool chrono::collision::MPRContact(const ConvexShape& shapeA, const ConvexShape& shapeB, const real& envelope, real3& returnNormal, real3& point, real& depth) {
-
+bool chrono::collision::MPRContact(const ConvexShape& shapeA,
+                                   const ConvexShape& shapeB,
+                                   const real& envelope,
+                                   real3& returnNormal,
+                                   real3& point,
+                                   real& depth) {
   simplex portal;
 
   int result = DiscoverPortal(shapeA, shapeB, envelope, portal);
@@ -580,15 +608,26 @@ bool chrono::collision::MPRContact(const ConvexShape& shapeA, const ConvexShape&
   return 1;
 }
 
-void chrono::collision::MPRGetPoints(const ConvexShape& shapeA, const ConvexShape& shapeB, const real& envelope, real3& N, real3 p0, real3& p1, real3& p2) {
-
+void chrono::collision::MPRGetPoints(const ConvexShape& shapeA,
+                                     const ConvexShape& shapeB,
+                                     const real& envelope,
+                                     real3& N,
+                                     real3 p0,
+                                     real3& p1,
+                                     real3& p2) {
   p1 = dot((TransformSupportVert(shapeA, -N, envelope) - p0), N) * N + p0;
   p2 = dot((TransformSupportVert(shapeB, N, envelope) - p0), N) * N + p0;
   N = -N;
 }
 
 // Code for Convex-Convex Collision detection, adopted from xeno-collide
-bool chrono::collision::MPRCollision(const ConvexShape& shapeA, const ConvexShape& shapeB, real envelope, real3& normal, real3& pointA, real3& pointB, real& depth) {
+bool chrono::collision::MPRCollision(const ConvexShape& shapeA,
+                                     const ConvexShape& shapeB,
+                                     real envelope,
+                                     real3& normal,
+                                     real3& pointA,
+                                     real3& pointB,
+                                     real& depth) {
   real3 point;
   if (!MPRContact(shapeA, shapeB, envelope, normal, point, depth)) {
     return false;
@@ -601,5 +640,3 @@ bool chrono::collision::MPRCollision(const ConvexShape& shapeA, const ConvexShap
   depth = dot(normal, pointB - pointA);
   return true;
 }
-
-

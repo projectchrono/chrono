@@ -114,7 +114,9 @@ void ChOpenGLWindow::Render() {
   glfwPollEvents();
 }
 
-bool ChOpenGLWindow::Active() { return !glfwWindowShouldClose(window); }
+bool ChOpenGLWindow::Active() {
+  return !glfwWindowShouldClose(window);
+}
 
 bool ChOpenGLWindow::Running() {
   ChOpenGLViewer* pointer = ((ChOpenGLViewer*)(glfwGetWindowUserPointer(window)));

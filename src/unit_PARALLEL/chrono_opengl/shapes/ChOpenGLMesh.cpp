@@ -20,9 +20,14 @@
 using namespace glm;
 namespace chrono {
 namespace opengl {
-ChOpenGLMesh::ChOpenGLMesh() : ChOpenGLObject() {}
+ChOpenGLMesh::ChOpenGLMesh() : ChOpenGLObject() {
+}
 
-bool ChOpenGLMesh::Initialize(std::vector<glm::vec3>& vertices, std::vector<glm::vec3>& normals, std::vector<glm::vec2>& texcoords, std::vector<GLuint>& indices, ChOpenGLMaterial mat) {
+bool ChOpenGLMesh::Initialize(std::vector<glm::vec3>& vertices,
+                              std::vector<glm::vec3>& normals,
+                              std::vector<glm::vec2>& texcoords,
+                              std::vector<GLuint>& indices,
+                              ChOpenGLMaterial mat) {
   if (this->GLReturnedError("Mesh::Initialize - on entry")) {
     return false;
   }
@@ -132,8 +137,10 @@ bool ChOpenGLMesh::PostInitialize() {
   glEnableVertexAttribArray(2);
   glEnableVertexAttribArray(3);
 
-  glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(ChOpenGLVertexAttributesPN), (GLvoid*)(sizeof(vec3) * 0));    // Position
-  glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof(ChOpenGLVertexAttributesPN), (GLvoid*)(sizeof(vec3) * 1));    // Normal
+  glVertexAttribPointer(
+      0, 3, GL_FLOAT, GL_FALSE, sizeof(ChOpenGLVertexAttributesPN), (GLvoid*)(sizeof(vec3) * 0));  // Position
+  glVertexAttribPointer(
+      1, 3, GL_FLOAT, GL_FALSE, sizeof(ChOpenGLVertexAttributesPN), (GLvoid*)(sizeof(vec3) * 1));  // Normal
 
   glGenBuffers(1, &vertex_ambient_handle);
   glBindBuffer(GL_ARRAY_BUFFER, vertex_ambient_handle);
@@ -154,11 +161,12 @@ bool ChOpenGLMesh::PostInitialize() {
   glBindBuffer(GL_ARRAY_BUFFER, vertex_model_handle);
   for (int i = 0; i < 4; i++) {
     // Set up the vertex attribute
-    glVertexAttribPointer(model_loc + i,    // Location
-                          4, GL_FLOAT,
-                          GL_FALSE,                      // vec4
-                          sizeof(mat4),                  // Stride
-                          (void*)(sizeof(vec4) * i));    // Start offset
+    glVertexAttribPointer(model_loc + i,  // Location
+                          4,
+                          GL_FLOAT,
+                          GL_FALSE,                    // vec4
+                          sizeof(mat4),                // Stride
+                          (void*)(sizeof(vec4) * i));  // Start offset
     // Enable it
     glEnableVertexAttribArray(model_loc + i);
     // Make it instanced

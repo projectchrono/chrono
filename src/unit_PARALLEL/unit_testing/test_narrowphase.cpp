@@ -79,23 +79,22 @@ int timing_frame = -1;
 double gravity = 9.81;
 
 // Parameters for the mechanism
-int Id_container = 0;    // body ID for the containing bin
-int Id_ground = 1;       // body ID for the ground
+int Id_container = 0;  // body ID for the containing bin
+int Id_ground = 1;     // body ID for the ground
 
-double hdimX = 2.0 / 2;     // [m] bin half-length in x direction
-double hdimY = 2.0 / 2;     // [m] bin half-depth in y direction
-double hdimZ = 2.0 / 2;     // [m] bin half-height in z direction
-double hthick = 0.1 / 2;    // [m] bin half-thickness of the walls
+double hdimX = 2.0 / 2;   // [m] bin half-length in x direction
+double hdimY = 2.0 / 2;   // [m] bin half-depth in y direction
+double hdimZ = 2.0 / 2;   // [m] bin half-height in z direction
+double hthick = 0.1 / 2;  // [m] bin half-thickness of the walls
 float mu_walls = 0.3f;
 
 // Parameters for the granular material
-int Id_g = 2;           // start body ID for particles
-double r_g = 0.1;       // [m] radius of granular sphers
-double rho_g = 1000;    // [kg/m^3] density of granules
+int Id_g = 2;         // start body ID for particles
+double r_g = 0.1;     // [m] radius of granular sphers
+double rho_g = 1000;  // [kg/m^3] density of granules
 float mu_g = 0.5f;
 
 void CreateMechanismBodies(ChSystemParallel* system) {
-
   ChSharedPtr<ChMaterialSurface> mat_walls(new ChMaterialSurface);
   mat_walls->SetFriction(mu_walls);
 
@@ -255,40 +254,39 @@ bool CompareContacts(ChSystemParallel* msystem_A, ChSystemParallel* msystem_B) {
       }
     }
   }
-//  if (passing) {
-//    cout << "Compare Contact Points" << endl;
-//    for (int i = 0; i < num_contacts_A; i++) {
-//      real3 pta_A = msystem_A->data_manager->host_data.cpta_rigid_rigid[i];
-//      real3 pta_B = msystem_B->data_manager->host_data.cpta_rigid_rigid[i];
-//      WeakEqual(pta_A, pta_B, test_tolerance);
-//      real3 ptb_A = msystem_A->data_manager->host_data.cptb_rigid_rigid[i];
-//      real3 ptb_B = msystem_B->data_manager->host_data.cptb_rigid_rigid[i];
-//      WeakEqual(ptb_A, ptb_B, test_tolerance);
-//    }
-//  }
-//  if (!passing) {
-//
-//    cout << "MPR:" << endl;
-//    for (int i = 0; i < num_contacts_A; i++) {
-//      int2 id = msystem_A->data_manager->host_data.bids_rigid_rigid[i];
-//      real depth = msystem_A->data_manager->host_data.dpth_rigid_rigid[i];
-//      cout << id.x << " " << id.y << " " << depth << endl;
-//    }
-//    cout << "R:" << endl;
-//    for (int i = 0; i < num_contacts_B; i++) {
-//      int2 id = msystem_B->data_manager->host_data.bids_rigid_rigid[i];
-//      real depth = msystem_B->data_manager->host_data.dpth_rigid_rigid[i];
-//      cout << id.x << " " << id.y << " " << depth << endl;
-//    }
-//
-//    // exit(1);
-//  }
+  //  if (passing) {
+  //    cout << "Compare Contact Points" << endl;
+  //    for (int i = 0; i < num_contacts_A; i++) {
+  //      real3 pta_A = msystem_A->data_manager->host_data.cpta_rigid_rigid[i];
+  //      real3 pta_B = msystem_B->data_manager->host_data.cpta_rigid_rigid[i];
+  //      WeakEqual(pta_A, pta_B, test_tolerance);
+  //      real3 ptb_A = msystem_A->data_manager->host_data.cptb_rigid_rigid[i];
+  //      real3 ptb_B = msystem_B->data_manager->host_data.cptb_rigid_rigid[i];
+  //      WeakEqual(ptb_A, ptb_B, test_tolerance);
+  //    }
+  //  }
+  //  if (!passing) {
+  //
+  //    cout << "MPR:" << endl;
+  //    for (int i = 0; i < num_contacts_A; i++) {
+  //      int2 id = msystem_A->data_manager->host_data.bids_rigid_rigid[i];
+  //      real depth = msystem_A->data_manager->host_data.dpth_rigid_rigid[i];
+  //      cout << id.x << " " << id.y << " " << depth << endl;
+  //    }
+  //    cout << "R:" << endl;
+  //    for (int i = 0; i < num_contacts_B; i++) {
+  //      int2 id = msystem_B->data_manager->host_data.bids_rigid_rigid[i];
+  //      real depth = msystem_B->data_manager->host_data.dpth_rigid_rigid[i];
+  //      cout << id.x << " " << id.y << " " << depth << endl;
+  //    }
+  //
+  //    // exit(1);
+  //  }
 
   return true;
 }
 
 int main(int argc, char* argv[]) {
-
   // No animation by default (i.e. when no program arguments)
   bool animate = (argc > 1);
 

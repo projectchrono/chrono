@@ -9,7 +9,8 @@ namespace collision {
 /*
  * Narrowphase dispatch will handle the outer loop for the collision detection code
  * For each contact pair it will decide what algorithm to use
- * The user can specify if they want to use only MPR, GJK etc or a hybrid approach with custom functions for certain pair types
+ * The user can specify if they want to use only MPR, GJK etc or a hybrid approach with custom functions for certain
+ *pair types
  *
  *
  *
@@ -41,7 +42,7 @@ class CH_PARALLEL_API ChCNarrowphaseDispatch {
   ChParallelDataManager* data_container;
 
  private:
-  custom_vector<real3> obj_data_A_global, obj_data_B_global, obj_data_C_global;    //
+  custom_vector<real3> obj_data_A_global, obj_data_B_global, obj_data_C_global;  //
   custom_vector<real4> obj_data_R_global;
   custom_vector<bool> contact_active;
   custom_vector<uint> contact_index;
@@ -50,7 +51,7 @@ class CH_PARALLEL_API ChCNarrowphaseDispatch {
   NARROWPHASETYPE narrowphase_algorithm;
   SYSTEMTYPE system_type;
 };
-}    // end namespace collision
-}    // end namespace chrono
+}  // end namespace collision
+}  // end namespace chrono
 
 #endif

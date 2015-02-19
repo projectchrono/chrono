@@ -13,9 +13,7 @@
 namespace chrono {
 namespace collision {
 
-ChCollisionSystemParallel::ChCollisionSystemParallel(ChParallelDataManager* dc)
-: data_container(dc)
-{
+ChCollisionSystemParallel::ChCollisionSystemParallel(ChParallelDataManager* dc) : data_container(dc) {
   broadphase = new ChCBroadphase;
   narrowphase = new ChCNarrowphaseDispatch;
   narrowphase->data_container = dc;
@@ -36,12 +34,14 @@ void ChCollisionSystemParallel::Add(ChCollisionModel* model) {
       real3 obB = pmodel->mData[j].B;
 
       int convex_data_offset = data_container->host_data.convex_data.size();
-      data_container->host_data.convex_data.insert(data_container->host_data.convex_data.end(), pmodel->local_convex_data.begin(), pmodel->local_convex_data.end());
+      data_container->host_data.convex_data.insert(data_container->host_data.convex_data.end(),
+                                                   pmodel->local_convex_data.begin(),
+                                                   pmodel->local_convex_data.end());
 
       // Compute the global offset of the convex data structure based on the number of points
       // already present
       if (pmodel->mData[j].type == CONVEX) {
-        obB.y += convex_data_offset;    // update to get the global offset
+        obB.y += convex_data_offset;  // update to get the global offset
       }
 
       data_container->host_data.ObA_rigid.push_back(pmodel->mData[j].A);
@@ -79,10 +79,10 @@ void ChCollisionSystemParallel::Remove(ChCollisionModel* model) {
 }
 
 void ChCollisionSystemParallel::Run() {
-
   if (data_container->settings.collision.use_aabb_active) {
     custom_vector<bool> body_active(data_container->num_bodies, false);
-    GetOverlappingAABB(body_active, data_container->settings.collision.aabb_min, data_container->settings.collision.aabb_max);
+    GetOverlappingAABB(
+        body_active, data_container->settings.collision.aabb_min, data_container->settings.collision.aabb_max);
     for (int i = 0; i < data_container->host_data.active_data.size(); i++) {
       if (data_container->host_data.active_data[i] == true && data_container->host_data.collide_data[i] == true) {
         data_container->host_data.active_data[i] = body_active[i];
@@ -109,7 +109,8 @@ void ChCollisionSystemParallel::Run() {
                               data_container->settings.collision.collision_envelope,
                               data_container->host_data.aabb_rigid);
 
-  // aabb_generator.GenerateAABBFluid(data_container->host_data.fluid_pos, data_container->fluid_rad, data_container->host_data.aabb_fluid);
+  // aabb_generator.GenerateAABBFluid(data_container->host_data.fluid_pos, data_container->fluid_rad,
+  // data_container->host_data.aabb_fluid);
   broadphase->setBinsPerAxis(data_container->settings.collision.bins_per_axis);
   broadphase->detectPossibleCollisions(data_container);
   data_container->system_timer.stop("collision_broad");
@@ -146,7 +147,8 @@ void ChCollisionSystemParallel::GetOverlappingAABB(custom_vector<bool>& active_i
     real3 Bmin = data_container->host_data.aabb_rigid[i];
     real3 Bmax = data_container->host_data.aabb_rigid[i + data_container->host_data.typ_rigid.size()];
 
-    bool inContact = (Amin.x <= Bmax.x && Bmin.x <= Amax.x) && (Amin.y <= Bmax.y && Bmin.y <= Amax.y) && (Amin.z <= Bmax.z && Bmin.z <= Amax.z);
+    bool inContact = (Amin.x <= Bmax.x && Bmin.x <= Amax.x) && (Amin.y <= Bmax.y && Bmin.y <= Amax.y) &&
+                     (Amin.z <= Bmax.z && Bmin.z <= Amax.z);
     if (inContact) {
       active_id[data_container->host_data.id_rigid[i]] = true;
     }
@@ -157,11 +159,12 @@ std::vector<int2> ChCollisionSystemParallel::GetOverlappingPairs() {
   std::vector<int2> pairs;
   pairs.resize(data_container->host_data.pair_rigid_rigid.size());
   for (int i = 0; i < data_container->host_data.pair_rigid_rigid.size(); i++) {
-    int2 pair = I2(int(data_container->host_data.pair_rigid_rigid[i] >> 32), int(data_container->host_data.pair_rigid_rigid[i] & 0xffffffff));
+    int2 pair = I2(int(data_container->host_data.pair_rigid_rigid[i] >> 32),
+                   int(data_container->host_data.pair_rigid_rigid[i] & 0xffffffff));
     pairs[i] = pair;
   }
   return pairs;
 }
 
-}    // END_OF_NAMESPACE____
-}    // END_OF_NAMESPACE____
+}  // END_OF_NAMESPACE____
+}  // END_OF_NAMESPACE____

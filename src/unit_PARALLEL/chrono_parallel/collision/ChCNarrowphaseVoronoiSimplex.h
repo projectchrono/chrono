@@ -8,9 +8,11 @@ Permission is granted to anyone to use this software for any purpose,
 including commercial applications, and to alter it and redistribute it freely,
 subject to the following restrictions:
 
-1. The origin of this software must not be misrepresented; you must not claim that you wrote the original software. If you use this software in a product, an acknowledgment in the product
+1. The origin of this software must not be misrepresented; you must not claim that you wrote the original software. If
+you use this software in a product, an acknowledgment in the product
 documentation would be appreciated but is not required.
-2. Altered source versions must be plainly marked as such, and must not be misrepresented as being the original software.
+2. Altered source versions must be plainly marked as such, and must not be misrepresented as being the original
+software.
 3. This notice may not be removed or altered from any source distribution.
 */
 
@@ -22,7 +24,8 @@ namespace collision {
 
 #define VORONOI_SIMPLEX_MAX_VERTS 5
 
-/// disable next define, or use defaultCollisionConfiguration->getSimplexSolver()->setEqualVertexThreshold(0.f) to disable/configure
+/// disable next define, or use defaultCollisionConfiguration->getSimplexSolver()->setEqualVertexThreshold(0.f) to
+/// disable/configure
 #define BT_USE_EQUAL_VERTEX_THRESHOLD
 #define VORONOI_DEFAULT_EQUAL_VERTEX_THRESHOLD 0.0001f
 
@@ -60,7 +63,8 @@ struct btSubSimplexClosestResult {
     m_usedVertices.reset();
   }
   bool isValid() {
-    bool valid = (m_barycentricCoords[0] >= real(0.)) && (m_barycentricCoords[1] >= real(0.)) && (m_barycentricCoords[2] >= real(0.)) && (m_barycentricCoords[3] >= real(0.));
+    bool valid = (m_barycentricCoords[0] >= real(0.)) && (m_barycentricCoords[1] >= real(0.)) &&
+                 (m_barycentricCoords[2] >= real(0.)) && (m_barycentricCoords[3] >= real(0.));
 
     return valid;
   }
@@ -97,9 +101,18 @@ class CH_PARALLEL_API ChCNarrowphaseVoronoiSimplex {
   void reduceVertices(const btUsageBitfield& usedVerts);
   bool updateClosestVectorAndPoints();
 
-  bool closestPtPointTetrahedron(const real3& p, const real3& a, const real3& b, const real3& c, const real3& d, btSubSimplexClosestResult& finalResult);
+  bool closestPtPointTetrahedron(const real3& p,
+                                 const real3& a,
+                                 const real3& b,
+                                 const real3& c,
+                                 const real3& d,
+                                 btSubSimplexClosestResult& finalResult);
   int pointOutsideOfPlane(const real3& p, const real3& a, const real3& b, const real3& c, const real3& d);
-  bool closestPtPointTriangle(const real3& p, const real3& a, const real3& b, const real3& c, btSubSimplexClosestResult& result);
+  bool closestPtPointTriangle(const real3& p,
+                              const real3& a,
+                              const real3& b,
+                              const real3& c,
+                              btSubSimplexClosestResult& result);
 
  public:
   ChCNarrowphaseVoronoiSimplex() : m_equalVertexThreshold(VORONOI_DEFAULT_EQUAL_VERTEX_THRESHOLD) {}
@@ -131,6 +144,6 @@ class CH_PARALLEL_API ChCNarrowphaseVoronoiSimplex {
 };
 }
 // end namespace collision
-}    // end namespace chrono
+}  // end namespace chrono
 
 #endif

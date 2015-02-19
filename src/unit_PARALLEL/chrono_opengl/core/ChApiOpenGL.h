@@ -29,4 +29,4 @@
 #define CH_OPENGL_API ChApiIMPORT
 #endif
 
-#endif    // END of header
+#endif  // END of header

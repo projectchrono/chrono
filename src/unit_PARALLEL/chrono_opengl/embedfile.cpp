@@ -28,7 +28,9 @@ void write_file_header() {
   out("#ifndef  TXT_HEADER_%s\n", array_name.c_str());
   out("#define  TXT_HEADER_%s\n", array_name.c_str());
 }
-void write_file_footer() { out("#endif  // #ifdef TXT_HEADER_%s\n", array_name.c_str()); }
+void write_file_footer() {
+  out("#endif  // #ifdef TXT_HEADER_%s\n", array_name.c_str());
+}
 void make_c_string(string& in) {
   string out;
   for (size_t i = 0; i < in.size(); ++i) {
@@ -43,9 +45,15 @@ void make_c_string(string& in) {
   in = out;
 }
 
-void write_array_header() { out("const char %s [] =\n", array_name.c_str()); }
-void write_array_footer() { out(";\n"); }
-void write_line(const string& line) { out("\"%s\\n\"\n", line.c_str()); }
+void write_array_header() {
+  out("const char %s [] =\n", array_name.c_str());
+}
+void write_array_footer() {
+  out(";\n");
+}
+void write_line(const string& line) {
+  out("\"%s\\n\"\n", line.c_str());
+}
 
 int main(int argc, char** args) {
   if (argc != 4) {

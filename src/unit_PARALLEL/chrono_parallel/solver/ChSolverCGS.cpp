@@ -2,19 +2,21 @@
 
 using namespace chrono;
 
-uint ChSolverCGS::SolveCGS(const uint max_iter, const uint size, blaze::DynamicVector<real>& mb, blaze::DynamicVector<real>& ml) {
+uint ChSolverCGS::SolveCGS(const uint max_iter,
+                           const uint size,
+                           blaze::DynamicVector<real>& mb,
+                           blaze::DynamicVector<real>& ml) {
   real& residual = data_container->measures.solver.residual;
   real& objective_value = data_container->measures.solver.objective_value;
   custom_vector<real>& iter_hist = data_container->measures.solver.iter_hist;
-
 
   r.resize(size);
   qhat.resize(size);
   vhat.resize(size);
   uhat.resize(size);
 
-  ShurProduct(ml, r);    // r = data_container->host_data.D_T *
-                         // (data_container->host_data.M_invD * ml);
+  ShurProduct(ml, r);  // r = data_container->host_data.D_T *
+                       // (data_container->host_data.M_invD * ml);
   r = mb - r;
   p = r;
   q = r;
@@ -47,14 +49,14 @@ uint ChSolverCGS::SolveCGS(const uint max_iter, const uint size, blaze::DynamicV
     }
 
     phat = p;
-    ShurProduct(phat, vhat);    // vhat = data_container->host_data.D_T *
-                                // (data_container->host_data.M_invD * phat);
+    ShurProduct(phat, vhat);  // vhat = data_container->host_data.D_T *
+                              // (data_container->host_data.M_invD * phat);
     alpha = rho_1 / (rtilde, vhat);
     q = u - alpha * vhat;
     uhat = (u + q);
     ml = ml + alpha * uhat;
-    ShurProduct(uhat, qhat);    // qhat = data_container->host_data.D_T *
-                                // (data_container->host_data.M_invD * uhat);
+    ShurProduct(uhat, qhat);  // qhat = data_container->host_data.D_T *
+                              // (data_container->host_data.M_invD * uhat);
     r = r - alpha * qhat;
     rho_2 = rho_1;
     residual = (sqrt((r, r)) / normb);

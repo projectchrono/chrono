@@ -30,19 +30,19 @@ class CH_OPENGL_API ChOpenGLWindow {
   }
 
   // Initialize the window and set up the opengl viewer class
-  void Initialize(int size_x,           // Width of window in pixels
-                  int size_y,           // Height of window in pixels
-                  const char* title,    // Window title string
-                  ChSystem* msystem     // The ChSystem that is attached to this window
+  void Initialize(int size_x,         // Width of window in pixels
+                  int size_y,         // Height of window in pixels
+                  const char* title,  // Window title string
+                  ChSystem* msystem   // The ChSystem that is attached to this window
                   );
   // This starts the drawing loop and takes control away from the main program
   // This function is the easiest way to start rendering
-  void StartDrawLoop(double time_step    // integration step size
+  void StartDrawLoop(double time_step  // integration step size
                      );
 
   // Perform a dynamics step, the user needs to use this so that pausing the
   // simulation works correctly
-  bool DoStepDynamics(double time_step    // integration step size
+  bool DoStepDynamics(double time_step  // integration step size
                       );
 
   // Render the ChSystem and the HUD
@@ -58,9 +58,9 @@ class CH_OPENGL_API ChOpenGLWindow {
   void Pause();
 
   // Set the camera position, look at and up vectors
-  void SetCamera(ChVector<> pos,     // The position of the camera
-                 ChVector<> look,    // The point that the camera is looking at
-                 ChVector<> up,      // The up vector associated with the camera
+  void SetCamera(ChVector<> pos,   // The position of the camera
+                 ChVector<> look,  // The point that the camera is looking at
+                 ChVector<> up,    // The up vector associated with the camera
                  float scale = 0.5f,
                  float near_clip_dist = 0.1f,
                  float far_clip_dist = 1000.0f) {
@@ -74,10 +74,10 @@ class CH_OPENGL_API ChOpenGLWindow {
   void SetRenderMode(RenderMode mode) { viewer->render_mode = mode; }
 
   // Checks if there are any errors in the opengl context
-  static bool GLUGetError(std::string err = ""    // User specified string, prints before gl error
+  static bool GLUGetError(std::string err = ""  // User specified string, prints before gl error
                           );
   // Provides the version of the opengl context along with driver information
-  static void GLFWGetVersion(GLFWwindow* main_window    // A pointer to the window/context
+  static void GLFWGetVersion(GLFWwindow* main_window  // A pointer to the window/context
                              );
 
   // Pointer to the opengl viewer that handles rendering, text and user
@@ -90,8 +90,8 @@ class CH_OPENGL_API ChOpenGLWindow {
   // Singleton destructor should be private so that a user cannot call it
   ~ChOpenGLWindow() {}
 
-  ChOpenGLWindow(ChOpenGLWindow const&);    // Don't Implement.
-  void operator=(ChOpenGLWindow const&);    // Don't implement
+  ChOpenGLWindow(ChOpenGLWindow const&);  // Don't Implement.
+  void operator=(ChOpenGLWindow const&);  // Don't implement
 
   // GLFW error callback, returns error string
   static void CallbackError(int error, const char* description);
@@ -118,4 +118,4 @@ class CH_OPENGL_API ChOpenGLWindow {
 };
 }
 }
-#endif    // END of CHOPENGLWINDOW_H
+#endif  // END of CHOPENGLWINDOW_H

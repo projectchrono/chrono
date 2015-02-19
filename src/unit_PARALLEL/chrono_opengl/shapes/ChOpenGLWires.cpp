@@ -46,7 +46,7 @@ bool ChOpenGLWires::Initialize(const std::vector<glm::vec3>& data, ChOpenGLMater
   }
 
   glEnableVertexAttribArray(0);
-  glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(vec3), 0);    // Position
+  glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(vec3), 0);  // Position
 
   glBindBuffer(GL_ARRAY_BUFFER, 0);
   glBindVertexArray(0);
@@ -108,6 +108,8 @@ void ChOpenGLWires::Draw(const mat4& projection, const mat4& view) {
     return;
 }
 
-void ChOpenGLWires::SetPointSize(const float& pointsize) { point_size = pointsize; }
+void ChOpenGLWires::SetPointSize(const float& pointsize) {
+  point_size = pointsize;
+}
 }
 }

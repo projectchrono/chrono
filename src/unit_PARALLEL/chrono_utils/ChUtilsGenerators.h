@@ -50,32 +50,21 @@
 namespace chrono {
 namespace utils {
 
-
 // Enumeration of various geometric shapes
-enum MixtureType {
-  SPHERE,
-  ELLIPSOID,
-  BOX,
-  CYLINDER,
-  CONE,
-  CAPSULE,
-  ROUNDEDCYLINDER
-};
-
+enum MixtureType { SPHERE, ELLIPSOID, BOX, CYLINDER, CONE, CAPSULE, ROUNDEDCYLINDER };
 
 // Forward declarations
 class Generator;
 class MixtureIngredient;
 
-
 // Shortcut for a smart pointer to MixtureIngredient
-typedef ChSmartPtr<MixtureIngredient>   MixtureIngredientPtr;
+typedef ChSmartPtr<MixtureIngredient> MixtureIngredientPtr;
 
 // -----------------------------------------------------------------------------
 // CallbackGenerator
 //
 // This class can be defined by the user as a callback function for a mixture
-// that is run after a Chbody has been created. Custom modifications can be done 
+// that is run after a Chbody has been created. Custom modifications can be done
 // to the bodies here
 class CH_UTILS_API CallbackGenerator {
  public:
@@ -94,7 +83,7 @@ class CH_UTILS_API CallbackGenerator {
 // in the containing mixture.
 // -----------------------------------------------------------------------------
 class CH_UTILS_API MixtureIngredient {
-public:
+ public:
   ~MixtureIngredient();
 
   void setDefaultMaterialDVI(const ChSharedPtr<ChMaterialSurface>& mat);
@@ -106,58 +95,63 @@ public:
   void setDistributionCohesion(float cohesion_mean, float cohesion_stddev, float cohesion_min, float cohesion_max);
   void setDistributionYoung(float young_mean, float young_stddev, float young_min, float young_max);
   void setDistributionPoisson(float poisson_mean, float poisson_stddev, float poisson_min, float poisson_max);
-  void setDistributionRestitution(float restitution_mean, float restitution_stddev, float restitution_min, float restitution_max);
+  void setDistributionRestitution(float restitution_mean,
+                                  float restitution_stddev,
+                                  float restitution_min,
+                                  float restitution_max);
   void setDistributionDensity(double density_mean, double density_stddev, double density_min, double density_max);
-  void setDistributionSize(double size_mean, double size_stddev, const ChVector<>& size_min, const ChVector<>& size_max);
+  void setDistributionSize(double size_mean,
+                           double size_stddev,
+                           const ChVector<>& size_min,
+                           const ChVector<>& size_max);
 
   // Set the callback function to execute at each particle generation
-  void SetCallbackPostCreation(CallbackGenerator* mc) { callback_post_creation = mc;}
+  void SetCallbackPostCreation(CallbackGenerator* mc) { callback_post_creation = mc; }
 
-private:
+ private:
   MixtureIngredient(Generator* generator, MixtureType type, double ratio);
 
-  void                               freeMaterialDist();
-  ChVector<>                         getSize();
-  double                             getDensity();
-  void                               calcGeometricProps(const ChVector<>& size, double& volume, ChVector<>& gyration);
-  double                             calcMinSeparation();
+  void freeMaterialDist();
+  ChVector<> getSize();
+  double getDensity();
+  void calcGeometricProps(const ChVector<>& size, double& volume, ChVector<>& gyration);
+  double calcMinSeparation();
 
-  void                               setMaterialProperties(ChSharedPtr<ChMaterialSurface>& mat);
-  void                               setMaterialProperties(ChSharedPtr<ChMaterialSurfaceDEM>& mat);
+  void setMaterialProperties(ChSharedPtr<ChMaterialSurface>& mat);
+  void setMaterialProperties(ChSharedPtr<ChMaterialSurfaceDEM>& mat);
 
-  Generator*                         m_generator;
+  Generator* m_generator;
 
-  MixtureType                        m_type;
-  double                             m_ratio;
-  double                             m_cumRatio;
+  MixtureType m_type;
+  double m_ratio;
+  double m_cumRatio;
 
-  ChSharedPtr<ChMaterialSurface>     m_defMaterialDVI;
-  ChSharedPtr<ChMaterialSurfaceDEM>  m_defMaterialDEM;
+  ChSharedPtr<ChMaterialSurface> m_defMaterialDVI;
+  ChSharedPtr<ChMaterialSurfaceDEM> m_defMaterialDEM;
 
-  float                              m_minFriction, m_maxFriction;
-  float                              m_minCohesion, m_maxCohesion;
-  float                              m_minYoung, m_maxYoung;
-  float                              m_minPoisson, m_maxPoisson;
-  float                              m_minRestitution, m_maxRestitution;
-  std::normal_distribution<float>*   m_frictionDist;
-  std::normal_distribution<float>*   m_cohesionDist;
-  std::normal_distribution<float>*   m_youngDist;
-  std::normal_distribution<float>*   m_poissonDist;
-  std::normal_distribution<float>*   m_restitutionDist;
+  float m_minFriction, m_maxFriction;
+  float m_minCohesion, m_maxCohesion;
+  float m_minYoung, m_maxYoung;
+  float m_minPoisson, m_maxPoisson;
+  float m_minRestitution, m_maxRestitution;
+  std::normal_distribution<float>* m_frictionDist;
+  std::normal_distribution<float>* m_cohesionDist;
+  std::normal_distribution<float>* m_youngDist;
+  std::normal_distribution<float>* m_poissonDist;
+  std::normal_distribution<float>* m_restitutionDist;
 
-  double                             m_defDensity;
-  double                             m_minDensity, m_maxDensity;
-  std::normal_distribution<>*        m_densityDist;
+  double m_defDensity;
+  double m_minDensity, m_maxDensity;
+  std::normal_distribution<>* m_densityDist;
 
-  ChVector<>                         m_defSize;
-  ChVector<>                         m_minSize, m_maxSize;
-  std::normal_distribution<>*        m_sizeDist;
+  ChVector<> m_defSize;
+  ChVector<> m_minSize, m_maxSize;
+  std::normal_distribution<>* m_sizeDist;
 
-  CallbackGenerator*                 callback_post_creation;
+  CallbackGenerator* callback_post_creation;
 
-friend class Generator;
+  friend class Generator;
 };
-
 
 // -----------------------------------------------------------------------------
 // Generator
@@ -166,7 +160,7 @@ friend class Generator;
 // positions drawn from a specified sampler and various mixture properties.
 // -----------------------------------------------------------------------------
 class CH_UTILS_API Generator {
-public:
+ public:
   typedef Types<double>::PointVector PointVector;
 
   Generator(ChSystem* system);
@@ -178,15 +172,17 @@ public:
 
   // Get/Set the identifier that will be assigned to the next body.
   // Identifiers are incremented for successively created bodies.
-  int  getBodyIdentifier() const   {return m_crtBodyId;}
-  void setBodyIdentifier(int id)   {m_crtBodyId = id;}
+  int getBodyIdentifier() const { return m_crtBodyId; }
+  void setBodyIdentifier(int id) { m_crtBodyId = id; }
 
   // Create bodies, according to the current mixture setup, with initial
   // positions given by the specified sampler in the box domain specified by
   // 'pos' and 'hdims'. Optionally, a constant inital linear velocity can be set
   // for all created bodies.
-  void createObjectsBox(SamplingType sType, double dist,
-                        const ChVector<>& pos, const ChVector<>& hdims,
+  void createObjectsBox(SamplingType sType,
+                        double dist,
+                        const ChVector<>& pos,
+                        const ChVector<>& hdims,
                         const ChVector<>& vel = ChVector<>(0, 0, 0));
 
   // Create bodies, according to the current mixture setup, with initial
@@ -194,73 +190,75 @@ public:
   // in the box domain specified by 'pos' and 'hdims'. Optionally, a constant
   // inital linear velocity can be set for all created bodies.
   void createObjectsBox(const ChVector<>& dist,
-                        const ChVector<>& pos, const ChVector<>& hdims,
+                        const ChVector<>& pos,
+                        const ChVector<>& hdims,
                         const ChVector<>& vel = ChVector<>(0, 0, 0));
 
   // Create bodies, according to the current mixture setup, with initial
   // positions given by the specified sampler in the cylinder domain specified
   // by 'pos', 'radius' and 'halfHeight'. Optionally, a constant inital linear
   // velocity can be set for all created bodies.
-  void createObjectsCylinderX(SamplingType sType, double dist,
-                              const ChVector<>& pos, float radius, float halfHeight,
+  void createObjectsCylinderX(SamplingType sType,
+                              double dist,
+                              const ChVector<>& pos,
+                              float radius,
+                              float halfHeight,
                               const ChVector<>& vel = ChVector<>(0, 0, 0));
-  void createObjectsCylinderY(SamplingType sType, double dist,
-                              const ChVector<>& pos, float radius, float halfHeight,
+  void createObjectsCylinderY(SamplingType sType,
+                              double dist,
+                              const ChVector<>& pos,
+                              float radius,
+                              float halfHeight,
                               const ChVector<>& vel = ChVector<>(0, 0, 0));
-  void createObjectsCylinderZ(SamplingType sType, double dist,
-                              const ChVector<>& pos, float radius, float halfHeight,
+  void createObjectsCylinderZ(SamplingType sType,
+                              double dist,
+                              const ChVector<>& pos,
+                              float radius,
+                              float halfHeight,
                               const ChVector<>& vel = ChVector<>(0, 0, 0));
-
 
   // Write information about the bodies created so far to the specified file
   // (CSV format)
   void writeObjectInfo(const std::string& filename);
 
-  int    getTotalNumBodies() const {return m_totalNumBodies;}
-  double getTotalMass() const      {return m_totalMass;}
-  double getTotalVolume() const    {return m_totalVolume;}
+  int getTotalNumBodies() const { return m_totalNumBodies; }
+  double getTotalMass() const { return m_totalMass; }
+  double getTotalVolume() const { return m_totalVolume; }
 
-private:
+ private:
   struct BodyInfo {
     BodyInfo(MixtureType t, double density, const ChVector<>& size, const ChSharedPtr<ChBody>& b)
-    : m_type(t),
-      m_density(density),
-      m_size(size),
-      m_body(b)
-    {}
-    MixtureType           m_type;
-    double                m_density;
-    ChVector<>            m_size;
-    ChSharedPtr<ChBody>   m_body;
+        : m_type(t), m_density(density), m_size(size), m_body(b) {}
+    MixtureType m_type;
+    double m_density;
+    ChVector<> m_size;
+    ChSharedPtr<ChBody> m_body;
   };
 
-  void    normalizeMixture();
-  int     selectIngredient();
-  double  calcMinSeparation(double sep);
+  void normalizeMixture();
+  int selectIngredient();
+  double calcMinSeparation(double sep);
   ChVector<> calcMinSeparation(const ChVector<>& sep);
-  void    createObjects(const PointVector& points,
-                        const ChVector<>&  vel);
+  void createObjects(const PointVector& points, const ChVector<>& vel);
 
-  ChSystem*                          m_system;
-  SystemType                         m_sysType;
-  CollisionType                      m_collisionType;
+  ChSystem* m_system;
+  SystemType m_sysType;
+  CollisionType m_collisionType;
 
-  std::uniform_real_distribution<>   m_mixDist;
+  std::uniform_real_distribution<> m_mixDist;
 
-  std::vector<MixtureIngredientPtr>  m_mixture;
-  std::vector<BodyInfo>              m_bodies;
-  int                                m_totalNumBodies;
-  double                             m_totalMass;
-  double                             m_totalVolume;
+  std::vector<MixtureIngredientPtr> m_mixture;
+  std::vector<BodyInfo> m_bodies;
+  int m_totalNumBodies;
+  double m_totalMass;
+  double m_totalVolume;
 
-  int                                m_crtBodyId;
+  int m_crtBodyId;
 
-friend class  MixtureIngredient;
+  friend class MixtureIngredient;
 };
 
-
-} // end namespace utils
-} // end namespace chrono
-
+}  // end namespace utils
+}  // end namespace chrono
 
 #endif

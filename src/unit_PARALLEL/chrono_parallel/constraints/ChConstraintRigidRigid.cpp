@@ -68,7 +68,6 @@ void Cone_single(real& gamma_n, real& gamma_s, const real& mu) {
 }
 
 void ChConstraintRigidRigid::func_Project_normal(int index, const int2* ids, const real* cohesion, real* gamma) {
-
   real gamma_x = gamma[index * 1 + 0];
   int2 body_id = ids[index];
   real coh = cohesion[index];
@@ -87,7 +86,11 @@ void ChConstraintRigidRigid::func_Project_normal(int index, const int2* ids, con
   }
 }
 
-void ChConstraintRigidRigid::func_Project_sliding(int index, const int2* ids, const real3* fric, const real* cohesion, real* gam) {
+void ChConstraintRigidRigid::func_Project_sliding(int index,
+                                                  const int2* ids,
+                                                  const real3* fric,
+                                                  const real* cohesion,
+                                                  real* gam) {
   real3 gamma;
   gamma.x = gam[index * 1 + 0];
   gamma.y = gam[data_container->num_contacts + index * 2 + 0];
@@ -132,7 +135,7 @@ void ChConstraintRigidRigid::func_Project_spinning(int index, const int2* ids, c
   //	}
 
   real gamma_n = fabs(gam[index * 1 + 0]);
-  real gamma_s  = gam[3 * data_container->num_contacts + index * 3 + 0];
+  real gamma_s = gam[3 * data_container->num_contacts + index * 3 + 0];
   real gamma_tu = gam[3 * data_container->num_contacts + index * 3 + 1];
   real gamma_tv = gam[3 * data_container->num_contacts + index * 3 + 2];
 
@@ -178,9 +181,9 @@ void ChConstraintRigidRigid::host_Project_single(int index, int2* ids, real3* fr
 }
 
 void ChConstraintRigidRigid::Project(real* gamma) {
-  const thrust::host_vector<int2> & bids = data_container->host_data.bids_rigid_rigid;
-  const thrust::host_vector<real3> & friction = data_container->host_data.fric_rigid_rigid;
-  const thrust::host_vector<real> & cohesion = data_container->host_data.coh_rigid_rigid;
+  const thrust::host_vector<int2>& bids = data_container->host_data.bids_rigid_rigid;
+  const thrust::host_vector<real3>& friction = data_container->host_data.fric_rigid_rigid;
+  const thrust::host_vector<real>& cohesion = data_container->host_data.coh_rigid_rigid;
 
   switch (data_container->settings.solver.local_solver_mode) {
     case NORMAL: {
@@ -207,7 +210,6 @@ void ChConstraintRigidRigid::Project(real* gamma) {
   }
 }
 void ChConstraintRigidRigid::Project_Single(int index, real* gamma) {
-
   thrust::host_vector<int2>& bids = data_container->host_data.bids_rigid_rigid;
   thrust::host_vector<real3>& friction = data_container->host_data.fric_rigid_rigid;
   thrust::host_vector<real>& cohesion = data_container->host_data.coh_rigid_rigid;
@@ -215,7 +217,14 @@ void ChConstraintRigidRigid::Project_Single(int index, real* gamma) {
   host_Project_single(index, bids.data(), friction.data(), cohesion.data(), gamma);
 }
 
-void chrono::Compute_Jacobian(const real4& quat, const real3& U, const real3& V, const real3& W, const real3& point, real3& T1, real3& T2, real3& T3) {
+void chrono::Compute_Jacobian(const real4& quat,
+                              const real3& U,
+                              const real3& V,
+                              const real3& W,
+                              const real3& point,
+                              real3& T1,
+                              real3& T2,
+                              real3& T3) {
   real4 quaternion_conjugate = ~quat;
   real3 sbar = quatRotate(point, quaternion_conjugate);
 
@@ -223,7 +232,13 @@ void chrono::Compute_Jacobian(const real4& quat, const real3& U, const real3& V,
   T2 = cross(quatRotate(V, quaternion_conjugate), sbar);
   T3 = cross(quatRotate(W, quaternion_conjugate), sbar);
 }
-void chrono::Compute_Jacobian_Rolling(const real4& quat, const real3& U, const real3& V, const real3& W, real3& T1, real3& T2, real3& T3) {
+void chrono::Compute_Jacobian_Rolling(const real4& quat,
+                                      const real3& U,
+                                      const real3& V,
+                                      const real3& W,
+                                      real3& T1,
+                                      real3& T2,
+                                      real3& T3) {
   real4 quaternion_conjugate = ~quat;
 
   T1 = quatRotate(U, quaternion_conjugate);
@@ -231,8 +246,7 @@ void chrono::Compute_Jacobian_Rolling(const real4& quat, const real3& U, const r
   T3 = quatRotate(W, quaternion_conjugate);
 }
 
-void ChConstraintRigidRigid::Build_b()
-{
+void ChConstraintRigidRigid::Build_b() {
   if (data_container->num_contacts <= 0) {
     return;
   }
@@ -249,7 +263,6 @@ void ChConstraintRigidRigid::Build_b()
     } else {
       bi = std::max(inv_h * depth, -data_container->settings.solver.contact_recovery_speed);
     }
-
 
     data_container->host_data.b[index * 1 + 0] = bi;
   }
@@ -277,8 +290,8 @@ void ChConstraintRigidRigid::Build_s() {
   const CompressedMatrix<real>& M_invD_b = data_container->host_data.M_invD_b;
 
   uint num_contacts = data_container->num_contacts;
-    uint num_unilaterals = data_container->num_unilaterals;
-    uint num_bilaterals = data_container->num_bilaterals;
+  uint num_unilaterals = data_container->num_unilaterals;
+  uint num_bilaterals = data_container->num_bilaterals;
 
   blaze::DenseSubvector<const DynamicVector<real> > gamma_b = blaze::subvector(gamma, num_unilaterals, num_bilaterals);
   blaze::DenseSubvector<const DynamicVector<real> > gamma_n = blaze::subvector(gamma, 0, num_contacts);
@@ -290,15 +303,18 @@ void ChConstraintRigidRigid::Build_s() {
     } break;
 
     case SLIDING: {
-      blaze::DenseSubvector<const DynamicVector<real> > gamma_t = blaze::subvector(gamma, num_contacts, num_contacts * 2);
+      blaze::DenseSubvector<const DynamicVector<real> > gamma_t =
+          blaze::subvector(gamma, num_contacts, num_contacts * 2);
 
       v_new = M_invk + M_invD_n * gamma_n + M_invD_t * gamma_t + M_invD_b * gamma_b;
 
     } break;
 
     case SPINNING: {
-      blaze::DenseSubvector<const DynamicVector<real> > gamma_t = blaze::subvector(gamma, num_contacts, num_contacts * 2);
-      blaze::DenseSubvector<const DynamicVector<real> > gamma_s = blaze::subvector(gamma, num_contacts * 3, num_contacts * 3);
+      blaze::DenseSubvector<const DynamicVector<real> > gamma_t =
+          blaze::subvector(gamma, num_contacts, num_contacts * 2);
+      blaze::DenseSubvector<const DynamicVector<real> > gamma_s =
+          blaze::subvector(gamma, num_contacts * 3, num_contacts * 3);
 
       v_new = M_invk + M_invD_n * gamma_n + M_invD_t * gamma_t + M_invD_s * gamma_s + M_invD_b * gamma_b;
 
@@ -310,28 +326,39 @@ void ChConstraintRigidRigid::Build_s() {
     real fric = data_container->host_data.fric_rigid_rigid[index].x;
     int2 body_id = ids[index];
 
-    real s_v = D_t_T(index * 2 + 0, body_id.x * 6 + 0) * +v_new[body_id.x * 6 + 0] + D_t_T(index * 2 + 0, body_id.x * 6 + 1) * +v_new[body_id.x * 6 + 1] +
-               D_t_T(index * 2 + 0, body_id.x * 6 + 2) * +v_new[body_id.x * 6 + 2] + D_t_T(index * 2 + 0, body_id.x * 6 + 3) * +v_new[body_id.x * 6 + 3] +
-               D_t_T(index * 2 + 0, body_id.x * 6 + 4) * +v_new[body_id.x * 6 + 4] + D_t_T(index * 2 + 0, body_id.x * 6 + 5) * +v_new[body_id.x * 6 + 5] +
+    real s_v = D_t_T(index * 2 + 0, body_id.x * 6 + 0) * +v_new[body_id.x * 6 + 0] +
+               D_t_T(index * 2 + 0, body_id.x * 6 + 1) * +v_new[body_id.x * 6 + 1] +
+               D_t_T(index * 2 + 0, body_id.x * 6 + 2) * +v_new[body_id.x * 6 + 2] +
+               D_t_T(index * 2 + 0, body_id.x * 6 + 3) * +v_new[body_id.x * 6 + 3] +
+               D_t_T(index * 2 + 0, body_id.x * 6 + 4) * +v_new[body_id.x * 6 + 4] +
+               D_t_T(index * 2 + 0, body_id.x * 6 + 5) * +v_new[body_id.x * 6 + 5] +
 
-               D_t_T(index * 2 + 0, body_id.y * 6 + 0) * +v_new[body_id.y * 6 + 0] + D_t_T(index * 2 + 0, body_id.y * 6 + 1) * +v_new[body_id.y * 6 + 1] +
-               D_t_T(index * 2 + 0, body_id.y * 6 + 2) * +v_new[body_id.y * 6 + 2] + D_t_T(index * 2 + 0, body_id.y * 6 + 3) * +v_new[body_id.y * 6 + 3] +
-               D_t_T(index * 2 + 0, body_id.y * 6 + 4) * +v_new[body_id.y * 6 + 4] + D_t_T(index * 2 + 0, body_id.y * 6 + 5) * +v_new[body_id.y * 6 + 5];
+               D_t_T(index * 2 + 0, body_id.y * 6 + 0) * +v_new[body_id.y * 6 + 0] +
+               D_t_T(index * 2 + 0, body_id.y * 6 + 1) * +v_new[body_id.y * 6 + 1] +
+               D_t_T(index * 2 + 0, body_id.y * 6 + 2) * +v_new[body_id.y * 6 + 2] +
+               D_t_T(index * 2 + 0, body_id.y * 6 + 3) * +v_new[body_id.y * 6 + 3] +
+               D_t_T(index * 2 + 0, body_id.y * 6 + 4) * +v_new[body_id.y * 6 + 4] +
+               D_t_T(index * 2 + 0, body_id.y * 6 + 5) * +v_new[body_id.y * 6 + 5];
 
-    real s_w = D_t_T(index * 2 + 1, body_id.x * 6 + 0) * +v_new[body_id.x * 6 + 0] + D_t_T(index * 2 + 1, body_id.x * 6 + 1) * +v_new[body_id.x * 6 + 1] +
-               D_t_T(index * 2 + 1, body_id.x * 6 + 2) * +v_new[body_id.x * 6 + 2] + D_t_T(index * 2 + 1, body_id.x * 6 + 3) * +v_new[body_id.x * 6 + 3] +
-               D_t_T(index * 2 + 1, body_id.x * 6 + 4) * +v_new[body_id.x * 6 + 4] + D_t_T(index * 2 + 1, body_id.x * 6 + 5) * +v_new[body_id.x * 6 + 5] +
+    real s_w = D_t_T(index * 2 + 1, body_id.x * 6 + 0) * +v_new[body_id.x * 6 + 0] +
+               D_t_T(index * 2 + 1, body_id.x * 6 + 1) * +v_new[body_id.x * 6 + 1] +
+               D_t_T(index * 2 + 1, body_id.x * 6 + 2) * +v_new[body_id.x * 6 + 2] +
+               D_t_T(index * 2 + 1, body_id.x * 6 + 3) * +v_new[body_id.x * 6 + 3] +
+               D_t_T(index * 2 + 1, body_id.x * 6 + 4) * +v_new[body_id.x * 6 + 4] +
+               D_t_T(index * 2 + 1, body_id.x * 6 + 5) * +v_new[body_id.x * 6 + 5] +
 
-               D_t_T(index * 2 + 1, body_id.y * 6 + 0) * +v_new[body_id.y * 6 + 0] + D_t_T(index * 2 + 1, body_id.y * 6 + 1) * +v_new[body_id.y * 6 + 1] +
-               D_t_T(index * 2 + 1, body_id.y * 6 + 2) * +v_new[body_id.y * 6 + 2] + D_t_T(index * 2 + 1, body_id.y * 6 + 3) * +v_new[body_id.y * 6 + 3] +
-               D_t_T(index * 2 + 1, body_id.y * 6 + 4) * +v_new[body_id.y * 6 + 4] + D_t_T(index * 2 + 1, body_id.y * 6 + 5) * +v_new[body_id.y * 6 + 5];
+               D_t_T(index * 2 + 1, body_id.y * 6 + 0) * +v_new[body_id.y * 6 + 0] +
+               D_t_T(index * 2 + 1, body_id.y * 6 + 1) * +v_new[body_id.y * 6 + 1] +
+               D_t_T(index * 2 + 1, body_id.y * 6 + 2) * +v_new[body_id.y * 6 + 2] +
+               D_t_T(index * 2 + 1, body_id.y * 6 + 3) * +v_new[body_id.y * 6 + 3] +
+               D_t_T(index * 2 + 1, body_id.y * 6 + 4) * +v_new[body_id.y * 6 + 4] +
+               D_t_T(index * 2 + 1, body_id.y * 6 + 5) * +v_new[body_id.y * 6 + 5];
 
     data_container->host_data.s[index * 1 + 0] = sqrt(s_v * s_v + s_w * s_w) * fric;
   }
 }
 
-void ChConstraintRigidRigid::Build_E()
-{
+void ChConstraintRigidRigid::Build_E() {
   if (data_container->num_contacts <= 0) {
     return;
   }
@@ -352,20 +379,19 @@ void ChConstraintRigidRigid::Build_E()
     compliance.z = (cA.z == 0 || cB.z == 0) ? 0 : (cA.z + cB.z) * .5;
     compliance.w = (cA.w == 0 || cB.w == 0) ? 0 : (cA.w + cB.w) * .5;
 
-    E[index * 1 + 0] = compliance.x;    // normal
+    E[index * 1 + 0] = compliance.x;  // normal
     if (solver_mode == SLIDING) {
-      E[num_contacts + index * 2 + 0] = compliance.y;    // sliding
-      E[num_contacts + index * 2 + 1] = compliance.y;    // sliding
+      E[num_contacts + index * 2 + 0] = compliance.y;  // sliding
+      E[num_contacts + index * 2 + 1] = compliance.y;  // sliding
     } else if (solver_mode == SPINNING) {
-      E[3 * num_contacts + index * 3 + 0] = compliance.w;    // sliding
-      E[3 * num_contacts + index * 3 + 1] = compliance.z;    // sliding
-      E[3 * num_contacts + index * 3 + 2] = compliance.z;    // sliding
+      E[3 * num_contacts + index * 3 + 0] = compliance.w;  // sliding
+      E[3 * num_contacts + index * 3 + 1] = compliance.z;  // sliding
+      E[3 * num_contacts + index * 3 + 2] = compliance.z;  // sliding
     }
   }
 }
 
-void ChConstraintRigidRigid::Build_D()
-{
+void ChConstraintRigidRigid::Build_D() {
   real3* norm = data_container->host_data.norm_rigid_rigid.data();
   real3* ptA = data_container->host_data.cpta_rigid_rigid.data();
   real3* ptB = data_container->host_data.cptb_rigid_rigid.data();
@@ -476,8 +502,7 @@ void ChConstraintRigidRigid::Build_D()
   }
 }
 
-void ChConstraintRigidRigid::GenerateSparsity()
-{
+void ChConstraintRigidRigid::GenerateSparsity() {
   SOLVERMODE solver_mode = data_container->settings.solver.solver_mode;
 
   CompressedMatrix<real>& D_n_T = data_container->host_data.D_n_T;
@@ -580,10 +605,9 @@ void ChConstraintRigidRigid::GenerateSparsity()
   }
 }
 
-typedef blaze::CompressedMatrix<real>  SpMat;
+typedef blaze::CompressedMatrix<real> SpMat;
 
 using blaze::SparseSubmatrix;
-
 
 void compute_roots(real* Poly, int& nbRealRacines, real* Racines) {
   real r[3][5];
@@ -633,7 +657,6 @@ void solve2x2(real& a, real& b, real& c, real& a1, real& b1, real& c1, real& x, 
   }
 }
 
-
 void ChConstraintRigidRigid::SolveQuartic() {
   const int2* ids = data_container->host_data.bids_rigid_rigid.data();
   const CompressedMatrix<real>& D_n_T = data_container->host_data.D_n_T;
@@ -646,8 +669,8 @@ void ChConstraintRigidRigid::SolveQuartic() {
 
   for (int index = 0; index < data_container->num_contacts; index++) {
     CompressedMatrix<real> D_T(3, 12), Minv(12, 12), D;
-    DynamicVector<real> R(3);    // rhs
-    DynamicVector<real> g(3);    // lagrange multipliers
+    DynamicVector<real> R(3);  // rhs
+    DynamicVector<real> g(3);  // lagrange multipliers
 
     int2 body_id = ids[index];
     real f_mu = friction[index].x;
@@ -686,28 +709,61 @@ void ChConstraintRigidRigid::SolveQuartic() {
     real lambda12 = N(1, 2) - alpha * beta * invW0;
     real mu = f_mu;
 
-    printf("W0=%e\ninvW0=%e\n,alpha=%e\nbeta=%e\nlambda1=%e\nlambda2=%e\nlambda12=%e\nq=%e\nq1=%e\nq2=%e\nmu=%e", W0, invW0, alpha, beta, lambda1, lambda2, lambda12, q, q1, q2, mu);
+    printf("W0=%e\ninvW0=%e\n,alpha=%e\nbeta=%e\nlambda1=%e\nlambda2=%e\nlambda12=%e\nq=%e\nq1=%e\nq2=%e\nmu=%e",
+           W0,
+           invW0,
+           alpha,
+           beta,
+           lambda1,
+           lambda2,
+           lambda12,
+           q,
+           q1,
+           q2,
+           mu);
 
     cg[0] = -mu * mu * q * q;
     cg[1] = -2 * mu * mu * q * alpha * q1 - 2 * mu * mu * q * beta * q2 - (2 * lambda1 + 2 * lambda2) * mu * mu * q * q;
-    cg[2] = 2 * mu * mu * q * beta * q1 * lambda12 + W0 * W0 * q2 * q2 + 2 * mu * mu * q * q * lambda12 * lambda12 - 2 * mu * mu * beta * alpha * q1 * q2 + 2 * mu * mu * q * alpha * q2 * lambda12 -
-            (lambda1 * lambda1 + 4 * lambda1 * lambda2 + lambda2 * lambda2) * mu * mu * q * q + W0 * W0 * q1 * q1 - beta * beta * mu * mu * q2 * q2 -
-            2 * (lambda1 + 2 * lambda2) * alpha * mu * mu * q * q1 - mu * mu * alpha * alpha * q1 * q1 - 2 * (2 * lambda1 + lambda2) * beta * mu * mu * q * q2;
-    cg[3] = 2 * beta * mu * mu * q * q2 * lambda12 * lambda12 + 2 * (lambda1 + lambda2) * mu * mu * q * q * lambda12 * lambda12 - 4 * W0 * W0 * q1 * q2 * lambda12 -
-            2 * (lambda1 * lambda1 + 2 * lambda1 * lambda2) * beta * mu * mu * q * q2 + 2 * (lambda1 + lambda2) * alpha * mu * mu * q * q2 * lambda12 -
-            (2 * lambda1 * lambda1 * lambda2 + 2 * lambda1 * lambda2 * lambda2) * mu * mu * q * q + 2 * (lambda1 + lambda2) * beta * mu * mu * q * q1 * lambda12 +
-            2 * alpha * beta * mu * mu * q2 * q2 * lambda12 + 2 * lambda1 * W0 * W0 * q2 * q2 + 2 * beta * beta * mu * mu * q1 * q2 * lambda12 - 2 * lambda2 * alpha * alpha * mu * mu * q1 * q1 -
-            2 * (lambda1 + lambda2) * alpha * beta * mu * mu * q1 * q2 - 2 * (2 * lambda1 * lambda2 + lambda2 * lambda2) * alpha * mu * mu * q * q1 + 2 * mu * mu * alpha * alpha * q1 * q2 * lambda12 +
-            2 * mu * mu * beta * alpha * q1 * q1 * lambda12 + 2 * mu * mu * q * alpha * q1 * lambda12 * lambda12 + 2 * lambda2 * W0 * W0 * q1 * q1 - 2 * lambda1 * beta * beta * mu * mu * q2 * q2;
-    cg[4] = -beta * beta * mu * mu * q1 * q1 * lambda12 * lambda12 - alpha * alpha * mu * mu * q2 * q2 * lambda12 * lambda12 - lambda1 * lambda1 * beta * beta * mu * mu * q2 * q2 -
-            lambda1 * lambda1 * lambda2 * lambda2 * mu * mu * q * q - lambda2 * lambda2 * alpha * alpha * mu * mu * q1 * q1 + lambda2 * lambda2 * W0 * W0 * q1 * q1 +
-            lambda1 * lambda1 * W0 * W0 * q2 * q2 + W0 * W0 * q1 * q1 * lambda12 * lambda12 - 2 * beta * mu * mu * q * q1 * pow((real)lambda12, (real)3) -
-            2 * alpha * mu * mu * q * q2 * pow((real)lambda12, (real)3) + 2 * lambda1 * lambda2 * beta * mu * mu * q * q1 * lambda12 + 2 * lambda1 * lambda2 * alpha * mu * mu * q * q2 * lambda12 -
-            2 * lambda1 * lambda2 * alpha * beta * mu * mu * q1 * q2 - 2 * alpha * beta * mu * mu * q1 * q2 * lambda12 * lambda12 + 2 * lambda2 * alpha * beta * mu * mu * q1 * q1 * lambda12 +
-            2 * lambda2 * alpha * alpha * mu * mu * q1 * q2 * lambda12 + 2 * lambda1 * beta * mu * mu * q * q2 * lambda12 * lambda12 + 2 * lambda1 * beta * beta * mu * mu * q1 * q2 * lambda12 +
-            2 * lambda1 * alpha * beta * mu * mu * q2 * q2 * lambda12 - 2 * lambda1 * lambda2 * lambda2 * alpha * mu * mu * q * q1 - 2 * lambda1 * lambda1 * lambda2 * beta * mu * mu * q * q2 +
-            2 * lambda2 * alpha * mu * mu * q * q1 * lambda12 * lambda12 - mu * mu * q * q * pow((real)lambda12, (real)4) + W0 * W0 * q2 * q2 * lambda12 * lambda12 -
-            2 * lambda2 * W0 * W0 * q1 * q2 * lambda12 - 2 * lambda1 * W0 * W0 * q1 * q2 * lambda12 + 2 * lambda1 * lambda2 * mu * mu * q * q * lambda12 * lambda12;
+    cg[2] = 2 * mu * mu * q * beta * q1 * lambda12 + W0 * W0 * q2 * q2 + 2 * mu * mu * q * q * lambda12 * lambda12 -
+            2 * mu * mu * beta * alpha * q1 * q2 + 2 * mu * mu * q * alpha * q2 * lambda12 -
+            (lambda1 * lambda1 + 4 * lambda1 * lambda2 + lambda2 * lambda2) * mu * mu * q * q + W0 * W0 * q1 * q1 -
+            beta * beta * mu * mu * q2 * q2 - 2 * (lambda1 + 2 * lambda2) * alpha * mu * mu * q * q1 -
+            mu * mu * alpha * alpha * q1 * q1 - 2 * (2 * lambda1 + lambda2) * beta * mu * mu * q * q2;
+    cg[3] = 2 * beta * mu * mu * q * q2 * lambda12 * lambda12 +
+            2 * (lambda1 + lambda2) * mu * mu * q * q * lambda12 * lambda12 - 4 * W0 * W0 * q1 * q2 * lambda12 -
+            2 * (lambda1 * lambda1 + 2 * lambda1 * lambda2) * beta * mu * mu * q * q2 +
+            2 * (lambda1 + lambda2) * alpha * mu * mu * q * q2 * lambda12 -
+            (2 * lambda1 * lambda1 * lambda2 + 2 * lambda1 * lambda2 * lambda2) * mu * mu * q * q +
+            2 * (lambda1 + lambda2) * beta * mu * mu * q * q1 * lambda12 +
+            2 * alpha * beta * mu * mu * q2 * q2 * lambda12 + 2 * lambda1 * W0 * W0 * q2 * q2 +
+            2 * beta * beta * mu * mu * q1 * q2 * lambda12 - 2 * lambda2 * alpha * alpha * mu * mu * q1 * q1 -
+            2 * (lambda1 + lambda2) * alpha * beta * mu * mu * q1 * q2 -
+            2 * (2 * lambda1 * lambda2 + lambda2 * lambda2) * alpha * mu * mu * q * q1 +
+            2 * mu * mu * alpha * alpha * q1 * q2 * lambda12 + 2 * mu * mu * beta * alpha * q1 * q1 * lambda12 +
+            2 * mu * mu * q * alpha * q1 * lambda12 * lambda12 + 2 * lambda2 * W0 * W0 * q1 * q1 -
+            2 * lambda1 * beta * beta * mu * mu * q2 * q2;
+    cg[4] =
+        -beta * beta * mu * mu * q1 * q1 * lambda12 * lambda12 -
+        alpha * alpha * mu * mu * q2 * q2 * lambda12 * lambda12 - lambda1 * lambda1 * beta * beta * mu * mu * q2 * q2 -
+        lambda1 * lambda1 * lambda2 * lambda2 * mu * mu * q * q -
+        lambda2 * lambda2 * alpha * alpha * mu * mu * q1 * q1 + lambda2 * lambda2 * W0 * W0 * q1 * q1 +
+        lambda1 * lambda1 * W0 * W0 * q2 * q2 + W0 * W0 * q1 * q1 * lambda12 * lambda12 -
+        2 * beta * mu * mu * q * q1 * pow((real)lambda12, (real)3) -
+        2 * alpha * mu * mu * q * q2 * pow((real)lambda12, (real)3) +
+        2 * lambda1 * lambda2 * beta * mu * mu * q * q1 * lambda12 +
+        2 * lambda1 * lambda2 * alpha * mu * mu * q * q2 * lambda12 -
+        2 * lambda1 * lambda2 * alpha * beta * mu * mu * q1 * q2 -
+        2 * alpha * beta * mu * mu * q1 * q2 * lambda12 * lambda12 +
+        2 * lambda2 * alpha * beta * mu * mu * q1 * q1 * lambda12 +
+        2 * lambda2 * alpha * alpha * mu * mu * q1 * q2 * lambda12 +
+        2 * lambda1 * beta * mu * mu * q * q2 * lambda12 * lambda12 +
+        2 * lambda1 * beta * beta * mu * mu * q1 * q2 * lambda12 +
+        2 * lambda1 * alpha * beta * mu * mu * q2 * q2 * lambda12 -
+        2 * lambda1 * lambda2 * lambda2 * alpha * mu * mu * q * q1 -
+        2 * lambda1 * lambda1 * lambda2 * beta * mu * mu * q * q2 +
+        2 * lambda2 * alpha * mu * mu * q * q1 * lambda12 * lambda12 - mu * mu * q * q * pow((real)lambda12, (real)4) +
+        W0 * W0 * q2 * q2 * lambda12 * lambda12 - 2 * lambda2 * W0 * W0 * q1 * q2 * lambda12 -
+        2 * lambda1 * W0 * W0 * q1 * q2 * lambda12 + 2 * lambda1 * lambda2 * mu * mu * q * q * lambda12 * lambda12;
 
     compute_roots(cg, nbRealRacines, Racines);
     real nu = -1;
@@ -718,7 +774,6 @@ void ChConstraintRigidRigid::SolveQuartic() {
         nu = Racines[i];
     }
     if (nu > 0) {
-
       /*system Mt*Rt=qt*/
       real Mt00 = lambda1 + nu;
       real Mt01 = lambda12;
@@ -729,7 +784,7 @@ void ChConstraintRigidRigid::SolveQuartic() {
       solve2x2(Mt00, Mt01, qt0, Mt10, Mt11, qt1, g[1], g[2]);
       g[0] = sqrt((g[1] * g[1]) + (g[2] * g[2])) / mu;
 
-      printf("gamma: %f %f %f \n", g[0],g[1],g[2]);
+      printf("gamma: %f %f %f \n", g[0], g[1], g[2]);
 
     } else {
       g[0] = 0;
@@ -740,11 +795,10 @@ void ChConstraintRigidRigid::SolveQuartic() {
   }
 }
 
-
-void local_project(DynamicVector<real> & gamma, real coh, real mu) {
+void local_project(DynamicVector<real>& gamma, real coh, real mu) {
   gamma[0] += coh;
   if (mu == 0) {
-    gamma[0] = gamma[0]< 0 ? 0 : gamma[0] - coh;
+    gamma[0] = gamma[0] < 0 ? 0 : gamma[0] - coh;
     gamma[1] = gamma[2] = 0;
     return;
   }
@@ -753,9 +807,7 @@ void local_project(DynamicVector<real> & gamma, real coh, real mu) {
   gamma[0] = gamma[0] - coh;
 }
 
-
 #include <blaze/math/SparseRow.h>
-
 
 void ChConstraintRigidRigid::SolveLocal() {
   const int2* ids = data_container->host_data.bids_rigid_rigid.data();
@@ -768,14 +820,13 @@ void ChConstraintRigidRigid::SolveLocal() {
   DynamicVector<real>& gamma = data_container->host_data.gamma;
   const thrust::host_vector<real3>& friction = data_container->host_data.fric_rigid_rigid;
   const thrust::host_vector<real>& cohesion = data_container->host_data.coh_rigid_rigid;
-//#pragma omp parallel for
+  //#pragma omp parallel for
   for (int index = 0; index < data_container->num_contacts; index++) {
-    //BLAZE_SERIAL_SECTION
+    // BLAZE_SERIAL_SECTION
     {
-
       CompressedMatrix<real> D_T(3, 12), Minv(12, 12), D;
-      DynamicVector<real> mb(3, 0);    // rhs
-      DynamicVector<real> ml(3, 0);    // lagrange multipliers
+      DynamicVector<real> mb(3, 0);  // rhs
+      DynamicVector<real> ml(3, 0);  // lagrange multipliers
       DynamicVector<real> ml_old(3, 0), ml_k(3, 0);
       DynamicVector<real> resid(3, 0);
       int2 body_id = ids[index];
@@ -789,8 +840,10 @@ void ChConstraintRigidRigid::SolveLocal() {
 
       D = blaze::trans(D_T);
 
-      SparseSubmatrix<SpMat>(Minv, 0, 0, 6, 6) = SparseSubmatrix<const SpMat>(M_inv, body_id.x * 6, body_id.x * 6, 6, 6);
-      SparseSubmatrix<SpMat>(Minv, 6, 6, 6, 6) = SparseSubmatrix<const SpMat>(M_inv, body_id.y * 6, body_id.y * 6, 6, 6);
+      SparseSubmatrix<SpMat>(Minv, 0, 0, 6, 6) =
+          SparseSubmatrix<const SpMat>(M_inv, body_id.x * 6, body_id.x * 6, 6, 6);
+      SparseSubmatrix<SpMat>(Minv, 6, 6, 6, 6) =
+          SparseSubmatrix<const SpMat>(M_inv, body_id.y * 6, body_id.y * 6, 6, 6);
 
       CompressedMatrix<real> N = D_T * Minv * D;
 
@@ -802,7 +855,6 @@ void ChConstraintRigidRigid::SolveLocal() {
       real omega = 1.0;
       real lambda = .5;
       for (int i = 0; i < 20; i++) {
-
         ml[0] = ml[0] - omega * Dinv * ((row(N, 0), ml_old) - mb[0]);
         ml_old[0] = ml[0];
 
@@ -847,8 +899,8 @@ void ChConstraintRigidRigid::SolveInverse() {
 
   for (int index = 0; index < data_container->num_contacts; index++) {
     CompressedMatrix<real> D_T(3, 12), Minv(12, 12), D;
-    DynamicVector<real> mb(3);    // rhs
-    DynamicVector<real> ml(3);    // lagrange multipliers
+    DynamicVector<real> mb(3);  // rhs
+    DynamicVector<real> ml(3);  // lagrange multipliers
 
     int2 body_id = ids[index];
     real mu = friction[index].x;
@@ -870,8 +922,8 @@ void ChConstraintRigidRigid::SolveInverse() {
     mb[1] = R_full[data_container->num_contacts + index * 2 + 0];
     mb[2] = R_full[data_container->num_contacts + index * 2 + 1];
 
-
-    real det = N(0, 0) * (N(1, 1) * N(2, 2) - N(2, 1) * N(1, 2)) - N(0, 1) * (N(1, 0) * N(2, 2) - N(1, 2) * N(2, 0)) + N(0, 2) * (N(1, 0) * N(2, 1) - N(1, 1) * N(2, 0));
+    real det = N(0, 0) * (N(1, 1) * N(2, 2) - N(2, 1) * N(1, 2)) - N(0, 1) * (N(1, 0) * N(2, 2) - N(1, 2) * N(2, 0)) +
+               N(0, 2) * (N(1, 0) * N(2, 1) - N(1, 1) * N(2, 0));
     real invdet = 1.0 / det;
     CompressedMatrix<real> minv;
 
@@ -885,12 +937,8 @@ void ChConstraintRigidRigid::SolveInverse() {
     minv(2, 1) = (N(2, 0) * N(0, 1) - N(0, 0) * N(2, 1)) * invdet;
     minv(2, 2) = (N(0, 0) * N(1, 1) - N(1, 0) * N(0, 1)) * invdet;
 
-    ml = minv*mb;
+    ml = minv * mb;
 
-
-    printf("gamma: %f %f %f \n", ml[0],ml[1],ml[2]);
+    printf("gamma: %f %f %f \n", ml[0], ml[1], ml[2]);
   }
 }
-
-
-

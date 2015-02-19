@@ -32,18 +32,18 @@ class CH_PARALLEL_API ChSolverAPGD : public ChSolverParallel {
       return;
     }
 
-    data_container->measures.solver.total_iteration += SolveAPGD(max_iteration, data_container->num_constraints, data_container->host_data.R, data_container->host_data.gamma);
+    data_container->measures.solver.total_iteration += SolveAPGD(
+        max_iteration, data_container->num_constraints, data_container->host_data.R, data_container->host_data.gamma);
   }
 
   // Solve using a more streamlined but harder to read version of the APGD method
-  uint SolveAPGD(const uint max_iter,                    // Maximum number of iterations
-                 const uint size,                        // Number of unknowns
-                 const blaze::DynamicVector<real>& b,    // Rhs vector
-                 blaze::DynamicVector<real>& x           // The vector of unknowns
+  uint SolveAPGD(const uint max_iter,                  // Maximum number of iterations
+                 const uint size,                      // Number of unknowns
+                 const blaze::DynamicVector<real>& b,  // Rhs vector
+                 blaze::DynamicVector<real>& x         // The vector of unknowns
                  );
 
   void UpdateR();
-
 
   // APGD specific vectors
   blaze::DynamicVector<real> obj2_temp, obj1_temp, temp, g, gamma_new, y, gamma_hat, N_gamma_new;

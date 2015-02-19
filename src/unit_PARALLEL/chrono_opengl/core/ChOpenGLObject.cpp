@@ -97,7 +97,9 @@ bool ChOpenGLObject::Initialize() {
 }
 // Attaches a shader to the object. This can be used in the draw call of any
 // inherited classes
-void ChOpenGLObject::AttachShader(ChOpenGLShader* new_shader) { shader = new_shader; }
+void ChOpenGLObject::AttachShader(ChOpenGLShader* new_shader) {
+  shader = new_shader;
+}
 
 void ChOpenGLObject::InternalInitialize() {
   this->vertex_element_handle = GLuint(-1);

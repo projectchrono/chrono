@@ -36,19 +36,17 @@ namespace collision {
 
 class CH_PARALLEL_API ChCollisionModelSphere : public ChCollisionModelParallel {
  public:
+  ChCollisionModelSphere(real rad = 1.0);
+  virtual ~ChCollisionModelSphere();
 
-   ChCollisionModelSphere(real rad = 1.0);
-   virtual ~ChCollisionModelSphere();
+  /// Add a sphere shape to this model, for collision purposes
+  virtual bool AddSphere(real radius, const ChVector<>& pos = ChVector<>());
+  void SetSphereRadius(real sphere_radius);
 
-   /// Add a sphere shape to this model, for collision purposes
-   virtual bool AddSphere(real radius,
-                          const ChVector<> &pos = ChVector<>());
-   void SetSphereRadius(real sphere_radius);
  private:
-   real radius;
+  real radius;
 };
 
 }  // END_OF_NAMESPACE____
 }  // END_OF_NAMESPACE____
 #endif
-

@@ -51,8 +51,7 @@ bool VerifySolution(double time, ChSharedPtr<ChBody> pend_1, ChSharedPtr<ChBodyA
 // -----------------------------------------------------------------------------
 // Main driver function for running the simulation and validating the results.
 // -----------------------------------------------------------------------------
-int main(int argc, char* argv[])
-{
+int main(int argc, char* argv[]) {
   // No animation by default (i.e. when no program arguments)
   bool animate = (argc > 1);
 
@@ -77,7 +76,6 @@ int main(int argc, char* argv[])
 
   double contact_recovery_speed = 1;
 
-
   // Create the mechanical system
   // ----------------------------
 
@@ -87,7 +85,8 @@ int main(int argc, char* argv[])
 
   // Set number of threads.
   int max_threads = system->GetParallelThreadNumber();
-  if (threads > max_threads) threads = max_threads;
+  if (threads > max_threads)
+    threads = max_threads;
   system->SetParallelThreadNumber(threads);
   omp_set_num_threads(threads);
 
@@ -201,30 +200,25 @@ int main(int argc, char* argv[])
   rev_2->Initialize(ground, pend_2, ChCoordsys<>(ChVector<>(0, -1, 0), z2y));
   system->AddLink(rev_2);
 
-
   // Perform the simulation
   // ----------------------
 
   bool passed = true;
   double time = 0;
 
-  if (animate)
-  {
-#   ifdef CHRONO_PARALLEL_HAS_OPENGL
-    opengl::ChOpenGLWindow &gl_window = opengl::ChOpenGLWindow::getInstance();
+  if (animate) {
+#ifdef CHRONO_PARALLEL_HAS_OPENGL
+    opengl::ChOpenGLWindow& gl_window = opengl::ChOpenGLWindow::getInstance();
     gl_window.Initialize(1280, 720, "BodyAuxRef", system);
     gl_window.SetCamera(ChVector<>(6, -6, 1), ChVector<>(0, 0, 0), ChVector<>(0, 0, 1));
     gl_window.SetRenderMode(opengl::WIREFRAME);
     gl_window.StartDrawLoop(time_step);
-#   else
+#else
     std::cout << "OpenGL support not available.  Cannot animate mechanism." << std::endl;
     return false;
-#   endif
-  }
-  else
-  {
-    while (time < time_end)
-    {
+#endif
+  } else {
+    while (time < time_end) {
       system->DoStepDynamics(time_step);
       time += time_step;
       if (!VerifySolution(time, pend_1, pend_2))
@@ -241,10 +235,9 @@ int main(int argc, char* argv[])
 // -----------------------------------------------------------------------------
 // Verify simulation results against analytical solution at the specified time.
 // -----------------------------------------------------------------------------
-bool VerifySolution(
-  double                           time,      // current time
-  ChSharedPtr<ChBody>              pend_1,    // handle to ChBody pendulum
-  ChSharedPtr<ChBodyAuxRef>        pend_2)    // handle to ChBodyAuxRef pendulum
+bool VerifySolution(double time,                       // current time
+                    ChSharedPtr<ChBody> pend_1,        // handle to ChBody pendulum
+                    ChSharedPtr<ChBodyAuxRef> pend_2)  // handle to ChBodyAuxRef pendulum
 {
   // Tolerances
   double pos_tol = 1e-6;
@@ -272,10 +265,8 @@ bool VerifySolution(
 
   ChQuaternion<> quat_delta = quat_1 - quat_2;
   if (quat_delta.Length() > quat_tol) {
-    std::cout << "   at t = " << time
-      << "   quat_1 - quat_2 = "
-      << quat_delta.e0 << "  " << quat_delta.e1 << "  " << quat_delta.e2 << "  " << quat_delta.e3
-      << std::endl;
+    std::cout << "   at t = " << time << "   quat_1 - quat_2 = " << quat_delta.e0 << "  " << quat_delta.e1 << "  "
+              << quat_delta.e2 << "  " << quat_delta.e3 << std::endl;
     return false;
   }
 
@@ -287,19 +278,15 @@ bool VerifySolution(
 
   ChVector<> vel_delta = vel_1 - vel_2;
   if (vel_delta.Length() > vel_tol) {
-    std::cout << "   at t = " << time
-      << "   vel_1 - vel_2 = "
-      << vel_delta.x << "  " << vel_delta.y << "  " << vel_delta.z
-      << std::endl;
+    std::cout << "   at t = " << time << "   vel_1 - vel_2 = " << vel_delta.x << "  " << vel_delta.y << "  "
+              << vel_delta.z << std::endl;
     return false;
   }
 
   ChVector<> avel_delta = avel_1 - avel_2;
   if (avel_delta.Length() > avel_tol) {
-    std::cout << "   at t = " << time
-      << "   avel_1 - avel_2 = "
-      << avel_delta.x << "  " << avel_delta.y << "  " << avel_delta.z
-      << std::endl;
+    std::cout << "   at t = " << time << "   avel_1 - avel_2 = " << avel_delta.x << "  " << avel_delta.y << "  "
+              << avel_delta.z << std::endl;
     return false;
   }
 
@@ -311,19 +298,15 @@ bool VerifySolution(
 
   ChVector<> acc_delta = acc_1 - acc_2;
   if (acc_delta.Length() > acc_tol) {
-    std::cout << "   at t = " << time
-      << "   acc_1 - acc_2 = "
-      << acc_delta.x << "  " << acc_delta.y << "  " << acc_delta.z
-      << std::endl;
+    std::cout << "   at t = " << time << "   acc_1 - acc_2 = " << acc_delta.x << "  " << acc_delta.y << "  "
+              << acc_delta.z << std::endl;
     return false;
   }
 
   ChVector<> aacc_delta = aacc_1 - aacc_2;
   if (aacc_delta.Length() > aacc_tol) {
-    std::cout << "   at t = " << time
-      << "   aacc_1 - aacc_2 = "
-      << aacc_delta.x << "  " << aacc_delta.y << "  " << aacc_delta.z
-      << std::endl;
+    std::cout << "   at t = " << time << "   aacc_1 - aacc_2 = " << aacc_delta.x << "  " << aacc_delta.y << "  "
+              << aacc_delta.z << std::endl;
     return false;
   }
 

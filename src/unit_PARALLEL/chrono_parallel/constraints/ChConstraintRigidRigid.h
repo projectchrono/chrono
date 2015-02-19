@@ -10,10 +10,23 @@ CH_PARALLEL_API
 void Orthogonalize(real3& U, real3& V, real3& W);
 
 CH_PARALLEL_API
-void Compute_Jacobian(const real4& quat, const real3& U, const real3& V, const real3& W, const real3& point, real3& T1, real3& T2, real3& T3);
+void Compute_Jacobian(const real4& quat,
+                      const real3& U,
+                      const real3& V,
+                      const real3& W,
+                      const real3& point,
+                      real3& T1,
+                      real3& T2,
+                      real3& T3);
 
 CH_PARALLEL_API
-void Compute_Jacobian_Rolling(const real4& quat, const real3& U, const real3& V, const real3& W, real3& T1, real3& T2, real3& T3);
+void Compute_Jacobian_Rolling(const real4& quat,
+                              const real3& U,
+                              const real3& V,
+                              const real3& W,
+                              real3& T1,
+                              real3& T2,
+                              real3& T3);
 
 class CH_PARALLEL_API ChConstraintRigidRigid {
  public:
@@ -25,8 +38,7 @@ class CH_PARALLEL_API ChConstraintRigidRigid {
 
   ~ChConstraintRigidRigid() {}
 
-  void Setup(ChParallelDataManager* data_container_)
-  {
+  void Setup(ChParallelDataManager* data_container_) {
     data_container = data_container_;
     uint num_contacts = data_container->num_contacts;
     inv_h = 1 / data_container->settings.step_size;
@@ -44,10 +56,11 @@ class CH_PARALLEL_API ChConstraintRigidRigid {
         uint b1 = body.x;
         uint b2 = body.y;
 
-        contact_active_pairs[i] = bool2(data_container->host_data.active_data[b1], data_container->host_data.active_data[b2]);
+        contact_active_pairs[i] =
+            bool2(data_container->host_data.active_data[b1], data_container->host_data.active_data[b2]);
 
-
-        real coh = std::max((data_container->host_data.cohesion_data[b1] + data_container->host_data.cohesion_data[b2]) * .5, 0.0);
+        real coh = std::max(
+            (data_container->host_data.cohesion_data[b1] + data_container->host_data.cohesion_data[b2]) * .5, 0.0);
         data_container->host_data.coh_rigid_rigid[i] = coh;
 
         real3 f_a = data_container->host_data.fric_data[b1];
@@ -62,7 +75,6 @@ class CH_PARALLEL_API ChConstraintRigidRigid {
       }
     }
   }
-
 
   void Project(real* gamma);
   void Project_Single(int index, real* gamma);
@@ -100,9 +112,8 @@ class CH_PARALLEL_API ChConstraintRigidRigid {
   real inv_hhpa;
 
   // Pointer to the system's data manager
-  ChParallelDataManager *data_container;
+  ChParallelDataManager* data_container;
 };
-
 }
 
 #endif

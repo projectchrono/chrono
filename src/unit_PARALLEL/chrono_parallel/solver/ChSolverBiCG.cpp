@@ -2,16 +2,18 @@
 
 using namespace chrono;
 
-uint ChSolverBiCG::SolveBiCG(const uint max_iter, const uint size, blaze::DynamicVector<real>& mb, blaze::DynamicVector<real>& ml) {
+uint ChSolverBiCG::SolveBiCG(const uint max_iter,
+                             const uint size,
+                             blaze::DynamicVector<real>& mb,
+                             blaze::DynamicVector<real>& ml) {
   real& residual = data_container->measures.solver.residual;
   real& objective_value = data_container->measures.solver.objective_value;
   custom_vector<real>& iter_hist = data_container->measures.solver.iter_hist;
 
-
   q.resize(size), qtilde.resize(size), r.resize(size);
   real normb = std::sqrt((mb, mb));
-  ShurProduct(ml, r);    // r = data_container->host_data.D_T *
-                         // (data_container->host_data.M_invD * ml);
+  ShurProduct(ml, r);  // r = data_container->host_data.D_T *
+                       // (data_container->host_data.M_invD * ml);
   r = mb - r;
 
   rtilde = r;
@@ -42,11 +44,11 @@ uint ChSolverBiCG::SolveBiCG(const uint max_iter, const uint size, blaze::Dynami
       ptilde = ztilde + beta * ptilde;
     }
 
-    ShurProduct(p, q);              // q = data_container->host_data.D_T *
-                                    // (data_container->host_data.M_invD * p);
-    ShurProduct(ptilde, qtilde);    // qtilde = data_container->host_data.D_T *
-                                    // (data_container->host_data.M_invD *
-                                    // ptilde);
+    ShurProduct(p, q);            // q = data_container->host_data.D_T *
+                                  // (data_container->host_data.M_invD * p);
+    ShurProduct(ptilde, qtilde);  // qtilde = data_container->host_data.D_T *
+                                  // (data_container->host_data.M_invD *
+                                  // ptilde);
 
     alpha = rho_1 / (ptilde, q);
     ml = ml + alpha * p;

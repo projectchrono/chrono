@@ -28,7 +28,7 @@ namespace opengl {
 class CH_OPENGL_API ChOpenGLHUD : public ChOpenGLBase {
  public:
   ChOpenGLHUD();
-  bool Initialize(ChOpenGLCamera* camera, ChTimerParallel *viewer_timer);
+  bool Initialize(ChOpenGLCamera* camera, ChTimerParallel* viewer_timer);
   void GenerateHelp();
   void GenerateCamera();
   void GenerateSystem(ChSystem* physics_system);
@@ -37,7 +37,12 @@ class CH_OPENGL_API ChOpenGLHUD : public ChOpenGLBase {
   void GenerateRenderer();
   void GenerateStats(ChSystem* physics_system);
   void TakeDown();
-  void Update(const glm::ivec2& window_size, const float& dpi, const float& frame_per_sec, const float& t_geometry, const float& t_text, const float& t_total);
+  void Update(const glm::ivec2& window_size,
+              const float& dpi,
+              const float& frame_per_sec,
+              const float& t_geometry,
+              const float& t_text,
+              const float& t_total);
   void Draw();
 
  private:
@@ -50,8 +55,8 @@ class CH_OPENGL_API ChOpenGLHUD : public ChOpenGLBase {
 
   float time_geometry, time_text, time_total, fps;
 
-  ChTimerParallel *timer;
+  ChTimerParallel* timer;
 };
 }
 }
-#endif    // END of CHOPENGLHUD_H
+#endif  // END of CHOPENGLHUD_H

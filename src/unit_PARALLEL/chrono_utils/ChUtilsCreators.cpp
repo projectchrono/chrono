@@ -19,14 +19,9 @@
 namespace chrono {
 namespace utils {
 
-
 // -----------------------------------------------------------------------------
 
-void AddSphereGeometry(ChBody*               body,
-                       double                radius,
-                       const ChVector<>&     pos,
-                       const ChQuaternion<>& rot)
-{
+void AddSphereGeometry(ChBody* body, double radius, const ChVector<>& pos, const ChQuaternion<>& rot) {
   body->GetCollisionModel()->AddSphere(radius, pos);
 
   ChSharedPtr<ChSphereShape> sphere(new ChSphereShape);
@@ -39,11 +34,7 @@ void AddSphereGeometry(ChBody*               body,
 
 // -----------------------------------------------------------------------------
 
-void AddEllipsoidGeometry(ChBody*               body,
-                          const ChVector<>&     size,
-                          const ChVector<>&     pos,
-                          const ChQuaternion<>& rot)
-{
+void AddEllipsoidGeometry(ChBody* body, const ChVector<>& size, const ChVector<>& pos, const ChQuaternion<>& rot) {
   body->GetCollisionModel()->AddEllipsoid(size.x, size.y, size.z, pos, rot);
 
   ChSharedPtr<ChEllipsoidShape> ellipsoid(new ChEllipsoidShape);
@@ -56,11 +47,7 @@ void AddEllipsoidGeometry(ChBody*               body,
 
 // -----------------------------------------------------------------------------
 
-void AddBoxGeometry(ChBody*               body,
-                    const ChVector<>&     size,
-                    const ChVector<>&     pos,
-                    const ChQuaternion<>& rot)
-{
+void AddBoxGeometry(ChBody* body, const ChVector<>& size, const ChVector<>& pos, const ChQuaternion<>& rot) {
   body->GetCollisionModel()->AddBox(size.x, size.y, size.z, pos, rot);
 
   ChSharedPtr<ChBoxShape> box(new ChBoxShape);
@@ -73,12 +60,7 @@ void AddBoxGeometry(ChBody*               body,
 
 // -----------------------------------------------------------------------------
 
-void AddCapsuleGeometry(ChBody*               body,
-                        double                radius,
-                        double                hlen,
-                        const ChVector<>&     pos,
-                        const ChQuaternion<>& rot)
-{
+void AddCapsuleGeometry(ChBody* body, double radius, double hlen, const ChVector<>& pos, const ChQuaternion<>& rot) {
   body->GetCollisionModel()->AddCapsule(radius, hlen, pos, rot);
 
   ChSharedPtr<ChCapsuleShape> capsule(new ChCapsuleShape);
@@ -92,12 +74,7 @@ void AddCapsuleGeometry(ChBody*               body,
 
 // -----------------------------------------------------------------------------
 
-void AddCylinderGeometry(ChBody*               body,
-                         double                radius,
-                         double                hlen,
-                         const ChVector<>&     pos,
-                         const ChQuaternion<>& rot)
-{
+void AddCylinderGeometry(ChBody* body, double radius, double hlen, const ChVector<>& pos, const ChQuaternion<>& rot) {
   body->GetCollisionModel()->AddCylinder(radius, radius, hlen, pos, rot);
 
   ChSharedPtr<ChCylinderShape> cylinder(new ChCylinderShape);
@@ -112,12 +89,7 @@ void AddCylinderGeometry(ChBody*               body,
 
 // -----------------------------------------------------------------------------
 
-void AddConeGeometry(ChBody*               body,
-                     double                radius,
-                     double                height,
-                     const ChVector<>&     pos,
-                     const ChQuaternion<>& rot)
-{
+void AddConeGeometry(ChBody* body, double radius, double height, const ChVector<>& pos, const ChQuaternion<>& rot) {
   body->GetCollisionModel()->AddCone(radius, radius, height, pos, rot);
 
   ChSharedPtr<ChConeShape> cone(new ChConeShape);
@@ -130,12 +102,11 @@ void AddConeGeometry(ChBody*               body,
 
 // -----------------------------------------------------------------------------
 
-void AddTriangleMeshGeometry(ChBody*               body,
-                             const std::string&    obj_filename,
-                             const std::string&    name,
-                             const ChVector<>&     pos,
-                             const ChQuaternion<>& rot)
-{
+void AddTriangleMeshGeometry(ChBody* body,
+                             const std::string& obj_filename,
+                             const std::string& name,
+                             const ChVector<>& pos,
+                             const ChQuaternion<>& rot) {
   geometry::ChTriangleMeshConnected trimesh;
   trimesh.LoadWavefrontMesh(obj_filename, false, false);
 
@@ -153,7 +124,6 @@ void AddTriangleMeshGeometry(ChBody*               body,
   body->GetAssets().push_back(trimesh_shape);
 }
 // -----------------------------------------------------------------------------
-
 
 void AddTriangleMeshConvexDecomposition(ChBody* body,
                                         const std::string& obj_filename,
@@ -178,13 +148,13 @@ void AddTriangleMeshConvexDecomposition(ChBody* body,
 
   mydecompositionJR.Reset();
   mydecompositionJR.AddTriangleMesh(trimesh);
-  mydecompositionJR.SetParameters(skin_thickness,       // skin width
-                                  decompdepth,          // decomp.depth
-                                  maxhullvert,          // max hull vertexes
-                                  concavity,            // concavity threshold percent
-                                  merge,                // merge threshold percent
-                                  volumep,              // volume split percent
-                                  useinitialislands,    // initial islands
+  mydecompositionJR.SetParameters(skin_thickness,     // skin width
+                                  decompdepth,        // decomp.depth
+                                  maxhullvert,        // max hull vertexes
+                                  concavity,          // concavity threshold percent
+                                  merge,              // merge threshold percent
+                                  volumep,            // volume split percent
+                                  useinitialislands,  // initial islands
                                   false);
   mydecompositionJR.ComputeConvexDecomposition();
   collision::ChConvexDecomposition* used_decomposition = &mydecompositionJR;
@@ -221,7 +191,12 @@ void AddTriangleMeshConvexDecomposition(ChBody* body,
 }
 // -----------------------------------------------------------------------------
 
-void AddTriangleMeshConvexDecompositionV2(ChBody* body, const std::string& obj_filename, const std::string& name, const ChVector<>& pos, const ChQuaternion<>& rot, const bool& use_original_asset) {
+void AddTriangleMeshConvexDecompositionV2(ChBody* body,
+                                          const std::string& obj_filename,
+                                          const std::string& name,
+                                          const ChVector<>& pos,
+                                          const ChQuaternion<>& rot,
+                                          const bool& use_original_asset) {
   geometry::ChTriangleMeshConnected trimesh;
   trimesh.LoadWavefrontMesh(obj_filename, true, false);
 
@@ -240,7 +215,12 @@ void AddTriangleMeshConvexDecompositionV2(ChBody* body, const std::string& obj_f
   mydecompositionHACDv2.Reset();
   mydecompositionHACDv2.AddTriangleMesh(trimesh);
 
-  mydecompositionHACDv2.SetParameters(hacd_maxhullcount, hacd_maxhullmerge, hacd_maxhullvertexes, (float)hacd_concavity, (float)hacd_smallclusterthreshold, (float)hacd_fusetolerance);
+  mydecompositionHACDv2.SetParameters(hacd_maxhullcount,
+                                      hacd_maxhullmerge,
+                                      hacd_maxhullvertexes,
+                                      (float)hacd_concavity,
+                                      (float)hacd_smallclusterthreshold,
+                                      (float)hacd_fusetolerance);
   mydecompositionHACDv2.ComputeConvexDecomposition();
   collision::ChConvexDecomposition* used_decomposition = &mydecompositionHACDv2;
 
@@ -301,7 +281,12 @@ void AddTriangleMeshConvexDecompositionSplit(ChSystemParallel* system,
   mydecompositionHACDv2.Reset();
   mydecompositionHACDv2.AddTriangleMesh(trimesh);
 
-  mydecompositionHACDv2.SetParameters(hacd_maxhullcount, hacd_maxhullmerge, hacd_maxhullvertexes, (float)hacd_concavity, (float)hacd_smallclusterthreshold, (float)hacd_fusetolerance);
+  mydecompositionHACDv2.SetParameters(hacd_maxhullcount,
+                                      hacd_maxhullmerge,
+                                      hacd_maxhullvertexes,
+                                      (float)hacd_concavity,
+                                      (float)hacd_smallclusterthreshold,
+                                      (float)hacd_fusetolerance);
   mydecompositionHACDv2.ComputeConvexDecomposition();
   collision::ChConvexDecomposition* used_decomposition = &mydecompositionHACDv2;
 
@@ -354,17 +339,18 @@ void AddTriangleMeshConvexDecompositionSplit(ChSystemParallel* system,
     // inertia.GetElement(0, 0) << " " << inertia.GetElement(1, 1) << " " <<
     // inertia.GetElement(2, 2) << std::endl;
     FinalizeObject(body, system);
-    body->SetInertiaXX(ChVector<>(inertia.GetElement(0, 0) * scale * total_mass, inertia.GetElement(1, 1) * scale * total_mass, inertia.GetElement(2, 2) * scale * total_mass));
+    body->SetInertiaXX(ChVector<>(inertia.GetElement(0, 0) * scale * total_mass,
+                                  inertia.GetElement(1, 1) * scale * total_mass,
+                                  inertia.GetElement(2, 2) * scale * total_mass));
   }
 }
 // -----------------------------------------------------------------------------
 
-void AddRoundedBoxGeometry(ChBody*               body,
-                           const ChVector<>&     size,
-                           double                srad,
-                           const ChVector<>&     pos,
-                           const ChQuaternion<>& rot)
-{
+void AddRoundedBoxGeometry(ChBody* body,
+                           const ChVector<>& size,
+                           double srad,
+                           const ChVector<>& pos,
+                           const ChQuaternion<>& rot) {
   body->GetCollisionModel()->AddRoundedBox(size.x, size.y, size.z, srad, pos, rot);
 
   ChSharedPtr<ChRoundedBoxShape> box(new ChRoundedBoxShape);
@@ -377,13 +363,12 @@ void AddRoundedBoxGeometry(ChBody*               body,
 
 // -----------------------------------------------------------------------------
 
-void AddRoundedCylinderGeometry(ChBody*               body,
-                                double                radius,
-                                double                hlen,
-                                double                srad,
-                                const ChVector<>&     pos,
-                                const ChQuaternion<>& rot)
-{
+void AddRoundedCylinderGeometry(ChBody* body,
+                                double radius,
+                                double hlen,
+                                double srad,
+                                const ChVector<>& pos,
+                                const ChQuaternion<>& rot) {
   body->GetCollisionModel()->AddRoundedCylinder(radius, radius, hlen, srad, pos, rot);
 
   ChSharedPtr<ChRoundedCylinderShape> rcyl(new ChRoundedCylinderShape);
@@ -397,22 +382,21 @@ void AddRoundedCylinderGeometry(ChBody*               body,
 
 // -----------------------------------------------------------------------------
 
-void AddTorusGeometry(ChBody*               body,
-                      double                radius,
-                      double                thickness,
-                      int                   segments,
-                      int                   angle,
-                      const ChVector<>&     pos,
-                      const ChQuaternion<>& rot)
-{
+void AddTorusGeometry(ChBody* body,
+                      double radius,
+                      double thickness,
+                      int segments,
+                      int angle,
+                      const ChVector<>& pos,
+                      const ChQuaternion<>& rot) {
   for (int i = 0; i < angle; i += angle / segments) {
     double angle = i * CH_C_PI / 180.0;
     double x = cos(angle) * radius;
     double z = sin(angle) * radius;
     Quaternion q = chrono::Q_from_AngAxis(-angle, VECT_Y) % chrono::Q_from_AngAxis(CH_C_PI / 2.0, VECT_X);
-    double outer_circ = 2 * CH_C_PI*(radius + thickness);
+    double outer_circ = 2 * CH_C_PI * (radius + thickness);
 
-    AddCylinderGeometry(body, thickness, outer_circ / segments*.5, ChVector<>(x, 0, z) + pos, q);
+    AddCylinderGeometry(body, thickness, outer_circ / segments * .5, ChVector<>(x, 0, z) + pos, q);
   }
 }
 
@@ -423,34 +407,30 @@ void AddTorusGeometry(ChBody*               body,
 // Create a fixed body with contact and asset geometry representing a box with 5
 // walls (no top).
 // -----------------------------------------------------------------------------
-void AddWall(ChBody*              body,
-             const ChVector<>&    loc,
-             const ChVector<>&    hdim)
-{
+void AddWall(ChBody* body, const ChVector<>& loc, const ChVector<>& hdim) {
   // Append to collision geometry
   body->GetCollisionModel()->AddBox(hdim.x, hdim.y, hdim.z, loc);
 
   // Append to assets
   ChSharedPtr<ChBoxShape> box_shape(new ChBoxShape);
   box_shape->Pos = loc;
-  box_shape->Rot = ChQuaternion<>(1,0,0,0);
+  box_shape->Rot = ChQuaternion<>(1, 0, 0, 0);
   box_shape->GetBoxGeometry().Size = hdim;
 
   body->GetAssets().push_back(box_shape);
 }
 
-void CreateBoxContainerDEM(ChSystem*                           system,
-                           int                                 id,
-                           ChSharedPtr<ChMaterialSurfaceDEM>&  mat,
-                           const ChVector<>&                   hdim,
-                           double                              hthick,
-                           const ChVector<>&                   pos,
-                           const ChQuaternion<>&               rot,
-                           bool                                collide,
-                           bool                                y_up,
+void CreateBoxContainerDEM(ChSystem* system,
+                           int id,
+                           ChSharedPtr<ChMaterialSurfaceDEM>& mat,
+                           const ChVector<>& hdim,
+                           double hthick,
+                           const ChVector<>& pos,
+                           const ChQuaternion<>& rot,
+                           bool collide,
+                           bool y_up,
                            bool overlap,
-                           bool closed)
-{
+                           bool closed) {
   // Infer system type and collision type.
   SystemType sysType = GetSystemType(system);
   CollisionType collType = GetCollisionType(system);
@@ -566,18 +546,16 @@ void CreateBoxContainerDVI(ChSystem* system,
   system->AddBody(ChSharedPtr<ChBody>(body));
 }
 
-
 // -----------------------------------------------------------------------------
-void InitializeObject(ChSharedBodyPtr                  body,
-                      double                           mass,
-                      ChSharedPtr<ChMaterialSurface>&  mat,
-                      const ChVector<>&                pos,
-                      const ChQuaternion<>&            rot,
-                      bool                             collide,
-                      bool                             fixed,
-                      int                              collision_family,
-                      int                              do_not_collide_with)
-{
+void InitializeObject(ChSharedBodyPtr body,
+                      double mass,
+                      ChSharedPtr<ChMaterialSurface>& mat,
+                      const ChVector<>& pos,
+                      const ChQuaternion<>& rot,
+                      bool collide,
+                      bool fixed,
+                      int collision_family,
+                      int do_not_collide_with) {
   body->SetMass(mass);
   body->SetPos(pos);
   body->SetRot(rot);
@@ -589,13 +567,10 @@ void InitializeObject(ChSharedBodyPtr                  body,
   body->GetCollisionModel()->SetFamilyMaskNoCollisionWithFamily(do_not_collide_with);
 }
 
-void FinalizeObject(ChSharedBodyPtr  body,
-                    ChSystem*        system)
-{
+void FinalizeObject(ChSharedBodyPtr body, ChSystem* system) {
   body->GetCollisionModel()->BuildModel();
   system->AddBody(body);
 }
-
 
 }  // namespace utils
 }  // namespace chrono

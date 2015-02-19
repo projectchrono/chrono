@@ -2,7 +2,11 @@
 
 using namespace chrono;
 
-uint ChSolverMatlab::SolveMatlab(const uint max_iter, const uint size, const custom_vector<real>& b, blaze::DynamicVector<real>& x) {}
+uint ChSolverMatlab::SolveMatlab(const uint max_iter,
+                                 const uint size,
+                                 const custom_vector<real>& b,
+                                 blaze::DynamicVector<real>& x) {
+}
 
 /*
  * //

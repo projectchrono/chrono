@@ -39,4 +39,4 @@ class ChOpenGLMaterial : public ChOpenGLBase {
 };
 }
 }
-#endif    // END of CHOPENGLMATERIAL_H
+#endif  // END of CHOPENGLMATERIAL_H

@@ -44,4 +44,4 @@ class CH_OPENGL_API ChOpenGLText : public ChOpenGLObject {
 };
 }
 }
-#endif    // END of CHOPENGLTEXT_H
+#endif  // END of CHOPENGLTEXT_H

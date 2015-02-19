@@ -3,10 +3,9 @@
 
 using namespace chrono;
 
-real ChSolverAPGDREF::Res4(blaze::DynamicVector<real> & gamma,
-    const blaze::DynamicVector<real> & r,
-    blaze::DynamicVector<real> & tmp) {
-
+real ChSolverAPGDREF::Res4(blaze::DynamicVector<real>& gamma,
+                           const blaze::DynamicVector<real>& r,
+                           blaze::DynamicVector<real>& tmp) {
   real gdiff = 1.0 / pow(data_container->num_constraints, 2.0);
   ShurProduct(gamma, tmp);
   tmp = tmp - r;
@@ -14,20 +13,22 @@ real ChSolverAPGDREF::Res4(blaze::DynamicVector<real> & gamma,
   Project(tmp.data());
   tmp = (1.0 / gdiff) * (gamma - tmp);
 
-  return sqrt((double) (tmp, tmp));
+  return sqrt((double)(tmp, tmp));
 }
 
-uint ChSolverAPGDREF::SolveAPGDREF(const uint max_iter, const uint size,
-    const blaze::DynamicVector<real>& r,
-    blaze::DynamicVector<real>& gamma) {
-
+uint ChSolverAPGDREF::SolveAPGDREF(const uint max_iter,
+                                   const uint size,
+                                   const blaze::DynamicVector<real>& r,
+                                   blaze::DynamicVector<real>& gamma) {
   real& residual = data_container->measures.solver.residual;
   real& objective_value = data_container->measures.solver.objective_value;
   custom_vector<real>& iter_hist = data_container->measures.solver.iter_hist;
 
   bool verbose = false;
   bool useWarmStarting = true;
-  if(verbose) std::cout << "Number of constraints: " << size << "\nNumber of variables  : " << data_container->num_bodies << std::endl;
+  if (verbose)
+    std::cout << "Number of constraints: " << size << "\nNumber of variables  : " << data_container->num_bodies
+              << std::endl;
 
   real L, t;
   real theta;
@@ -45,7 +46,8 @@ uint ChSolverAPGDREF::SolveAPGDREF(const uint max_iter, const uint size,
   residual = 10e30;
 
   // (1) gamma_0 = zeros(nc,1)
-  if(!useWarmStarting) gamma = 0.0;
+  if (!useWarmStarting)
+    gamma = 0.0;
 
   // (2) gamma_hat_0 = ones(nc,1)
   gamma_hat = 1.0;
@@ -62,16 +64,15 @@ uint ChSolverAPGDREF::SolveAPGDREF(const uint max_iter, const uint size,
 
   // (5) L_k = norm(N * (gamma_0 - gamma_hat_0)) / norm(gamma_0 - gamma_hat_0)
   tmp = gamma - gamma_hat;
-  L = sqrt((double) (tmp, tmp));
+  L = sqrt((double)(tmp, tmp));
   ShurProduct(tmp, tmp);
-  L = sqrt((double) (tmp, tmp)) / L;
+  L = sqrt((double)(tmp, tmp)) / L;
 
   // (6) t_k = 1 / L_k
   t = 1.0 / L;
 
   // (7) for k := 0 to N_max
-  for (current_iteration = 0; current_iteration < max_iter;
-      current_iteration++) {
+  for (current_iteration = 0; current_iteration < max_iter; current_iteration++) {
     // (8) g = N * y_k - r
     ShurProduct(y, g);
     g = g - r;
@@ -80,12 +81,13 @@ uint ChSolverAPGDREF::SolveAPGDREF(const uint max_iter, const uint size,
     gammaNew = y - t * g;
     Project(gammaNew.data());
 
-    // (10) while 0.5 * gamma_(k+1)' * N * gamma_(k+1) - gamma_(k+1)' * r >= 0.5 * y_k' * N * y_k - y_k' * r + g' * (gamma_(k+1) - y_k) + 0.5 * L_k * norm(gamma_(k+1) - y_k)^2
-    ShurProduct(gammaNew, tmp); // Here tmp is equal to N*gammaNew;
+    // (10) while 0.5 * gamma_(k+1)' * N * gamma_(k+1) - gamma_(k+1)' * r >= 0.5 * y_k' * N * y_k - y_k' * r + g' *
+    // (gamma_(k+1) - y_k) + 0.5 * L_k * norm(gamma_(k+1) - y_k)^2
+    ShurProduct(gammaNew, tmp);  // Here tmp is equal to N*gammaNew;
     obj1 = 0.5 * (gammaNew, tmp) - (gammaNew, r);
-    ShurProduct(y, tmp); // Here tmp is equal to N*y;
+    ShurProduct(y, tmp);  // Here tmp is equal to N*y;
     obj2 = 0.5 * (y, tmp) - (y, r);
-    tmp = gammaNew - y; // Here tmp is equal to gammaNew - y
+    tmp = gammaNew - y;  // Here tmp is equal to gammaNew - y
     obj2 = obj2 + (g, tmp) + 0.5 * L * (tmp, tmp);
 
     while (obj1 >= obj2) {
@@ -100,11 +102,11 @@ uint ChSolverAPGDREF::SolveAPGDREF(const uint max_iter, const uint size,
       Project(gammaNew.data());
 
       // Update the components of the while condition
-      ShurProduct(gammaNew, tmp); // Here tmp is equal to N*gammaNew;
+      ShurProduct(gammaNew, tmp);  // Here tmp is equal to N*gammaNew;
       obj1 = 0.5 * (gammaNew, tmp) - (gammaNew, r);
-      ShurProduct(y, tmp); // Here tmp is equal to N*y;
+      ShurProduct(y, tmp);  // Here tmp is equal to N*y;
       obj2 = 0.5 * (y, tmp) - (y, r);
-      tmp = gammaNew - y; // Here tmp is equal to gammaNew - y
+      tmp = gammaNew - y;  // Here tmp is equal to gammaNew - y
       obj2 = obj2 + (g, tmp) + 0.5 * L * (tmp, tmp);
 
       // (14) endwhile
@@ -134,7 +136,8 @@ uint ChSolverAPGDREF::SolveAPGDREF(const uint max_iter, const uint size,
     }
 
     // (23) if r < Tau
-    if(verbose) std::cout << "Residual: " << residual << ", Iter: " << current_iteration << std::endl;
+    if (verbose)
+      std::cout << "Residual: " << residual << ", Iter: " << current_iteration << std::endl;
     objective_value = GetObjective(gammaNew, r);
     AtIterationEnd(residual, objective_value);
     if (residual < data_container->settings.solver.tol_speed) {

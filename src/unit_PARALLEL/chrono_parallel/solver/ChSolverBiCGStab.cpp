@@ -2,11 +2,13 @@
 
 using namespace chrono;
 
-uint ChSolverBiCGStab::SolveBiCGStab(const uint max_iter, const uint size, blaze::DynamicVector<real>& mb, blaze::DynamicVector<real>& ml) {
+uint ChSolverBiCGStab::SolveBiCGStab(const uint max_iter,
+                                     const uint size,
+                                     blaze::DynamicVector<real>& mb,
+                                     blaze::DynamicVector<real>& ml) {
   real& residual = data_container->measures.solver.residual;
   real& objective_value = data_container->measures.solver.objective_value;
   custom_vector<real>& iter_hist = data_container->measures.solver.iter_hist;
-
 
   real rho_1, rho_2, alpha = 1, beta, omega = 1;
 
@@ -15,8 +17,8 @@ uint ChSolverBiCGStab::SolveBiCGStab(const uint max_iter, const uint size, blaze
   v.resize(size);
   real normb = sqrt((mb, mb));
 
-  ShurProduct(ml, r);    // r = data_container->host_data.D_T *
-                         // (data_container->host_data.M_invD * ml);
+  ShurProduct(ml, r);  // r = data_container->host_data.D_T *
+                       // (data_container->host_data.M_invD * ml);
   p = r = mb - r;
   rtilde = r;
 
@@ -41,10 +43,10 @@ uint ChSolverBiCGStab::SolveBiCGStab(const uint max_iter, const uint size, blaze
     }
 
     phat = p;
-    ShurProduct(phat, v);    // v = data_container->host_data.D_T *
-                             // (data_container->host_data.M_invD * phat);
+    ShurProduct(phat, v);  // v = data_container->host_data.D_T *
+                           // (data_container->host_data.M_invD * phat);
     alpha = rho_1 / (rtilde, v);
-    s = r - alpha * v;    // SEAXPY(-alpha,v,r,s);//
+    s = r - alpha * v;  // SEAXPY(-alpha,v,r,s);//
     residual = sqrt((s, s)) / normb;
 
     if (residual < data_container->settings.solver.tolerance) {
@@ -53,8 +55,8 @@ uint ChSolverBiCGStab::SolveBiCGStab(const uint max_iter, const uint size, blaze
     }
 
     shat = s;
-    ShurProduct(shat, t);    // t = data_container->host_data.D_T *
-                             // (data_container->host_data.M_invD * shat);
+    ShurProduct(shat, t);  // t = data_container->host_data.D_T *
+                           // (data_container->host_data.M_invD * shat);
     omega = (t, s) / (t, t);
     ml = ml + alpha * phat + omega * shat;
     r = s - omega * t;

@@ -3,21 +3,18 @@
 using namespace chrono;
 using namespace chrono::collision;
 
-ChSystemParallelDEM::ChSystemParallelDEM(unsigned int max_objects)
-: ChSystemParallel(max_objects)
-{
+ChSystemParallelDEM::ChSystemParallelDEM(unsigned int max_objects) : ChSystemParallel(max_objects) {
   LCP_solver_speed = new ChLcpSolverParallelDEM(data_manager);
 
   data_manager->settings.collision.collision_envelope = 0;
 
-  //Set this so that the CD can check what type of system it is (needed for narrowphase)
+  // Set this so that the CD can check what type of system it is (needed for narrowphase)
   data_manager->settings.system_type = SYSTEM_DEM;
 
   data_manager->system_timer.AddTimer("ChLcpSolverParallelDEM_ProcessContact");
 }
 
-void ChSystemParallelDEM::AddMaterialSurfaceData(ChSharedPtr<ChBody> newbody)
-{
+void ChSystemParallelDEM::AddMaterialSurfaceData(ChSharedPtr<ChBody> newbody) {
   assert(typeid(*newbody.get_ptr()) == typeid(ChBodyDEM));
 
   // Reserve space for material properties for the specified body. Not that the
@@ -35,8 +32,7 @@ void ChSystemParallelDEM::AddMaterialSurfaceData(ChSharedPtr<ChBody> newbody)
   }
 }
 
-void ChSystemParallelDEM::UpdateMaterialSurfaceData(int index, ChBody* body)
-{
+void ChSystemParallelDEM::UpdateMaterialSurfaceData(int index, ChBody* body) {
   custom_vector<real>& mass = data_manager->host_data.mass_data;
   custom_vector<real2>& elastic_moduli = data_manager->host_data.elastic_moduli;
   custom_vector<real>& cohesion = data_manager->host_data.cohesion_data;
@@ -58,8 +54,7 @@ void ChSystemParallelDEM::UpdateMaterialSurfaceData(int index, ChBody* body)
   }
 }
 
-void ChSystemParallelDEM::Setup()
-{
+void ChSystemParallelDEM::Setup() {
   // First, invoke the base class method
   ChSystemParallel::Setup();
 
@@ -67,14 +62,12 @@ void ChSystemParallelDEM::Setup()
   data_manager->settings.collision.collision_envelope = 0;
 }
 
-void ChSystemParallelDEM::ChangeCollisionSystem(COLLISIONSYSTEMTYPE type)
-{
+void ChSystemParallelDEM::ChangeCollisionSystem(COLLISIONSYSTEMTYPE type) {
   ChSystemParallel::ChangeCollisionSystem(type);
   data_manager->settings.collision.collision_envelope = 0;
 }
 
-real3 ChSystemParallelDEM::GetBodyContactForce(uint body_id) const
-{
+real3 ChSystemParallelDEM::GetBodyContactForce(uint body_id) const {
   int index = data_manager->host_data.ct_body_map[body_id];
 
   if (index == -1)
@@ -83,8 +76,7 @@ real3 ChSystemParallelDEM::GetBodyContactForce(uint body_id) const
   return data_manager->host_data.ct_body_force[index];
 }
 
-real3 ChSystemParallelDEM::GetBodyContactTorque(uint body_id) const
-{
+real3 ChSystemParallelDEM::GetBodyContactTorque(uint body_id) const {
   int index = data_manager->host_data.ct_body_map[body_id];
 
   if (index == -1)
@@ -93,10 +85,9 @@ real3 ChSystemParallelDEM::GetBodyContactTorque(uint body_id) const
   return data_manager->host_data.ct_body_torque[index];
 }
 
-void ChSystemParallelDEM::PrintStepStats()
-{
+void ChSystemParallelDEM::PrintStepStats() {
   double timer_solver_setup = data_manager->system_timer.GetTime("ChLcpSolverParallel_Setup");
-  double timer_solver_stab  = data_manager->system_timer.GetTime("ChLcpSolverParallel_Stab");
+  double timer_solver_stab = data_manager->system_timer.GetTime("ChLcpSolverParallel_Stab");
 
   std::cout << std::endl;
   std::cout << "System Information" << std::endl;

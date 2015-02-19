@@ -21,7 +21,8 @@ using namespace collision;
 namespace opengl {
 using namespace glm;
 
-ChOpenGLContacts::ChOpenGLContacts() {}
+ChOpenGLContacts::ChOpenGLContacts() {
+}
 
 bool ChOpenGLContacts::Initialize(ChOpenGLMaterial mat, ChOpenGLShader* shader) {
   if (this->GLReturnedError("Contacts::Initialize - on entry"))
@@ -31,9 +32,9 @@ bool ChOpenGLContacts::Initialize(ChOpenGLMaterial mat, ChOpenGLShader* shader) 
   contacts.SetPointSize(0.01);
 }
 
-void ChOpenGLContacts::UpdateChrono(ChSystem* system) {}
+void ChOpenGLContacts::UpdateChrono(ChSystem* system) {
+}
 void ChOpenGLContacts::UpdateChronoParallel(ChSystemParallel* system) {
-
   ChParallelDataManager* data_manager = system->data_manager;
   int num_contacts = data_manager->num_contacts;
   if (num_contacts == 0) {
@@ -44,7 +45,6 @@ void ChOpenGLContacts::UpdateChronoParallel(ChSystemParallel* system) {
 
 #pragma omp parallel for
   for (int i = 0; i < data_manager->num_contacts; i++) {
-
     real3 cpta = data_manager->host_data.cpta_rigid_rigid[i];
     real3 cptb = data_manager->host_data.cptb_rigid_rigid[i];
 
@@ -70,7 +70,6 @@ void ChOpenGLContacts::TakeDown() {
 }
 
 void ChOpenGLContacts::Draw(const mat4& projection, const mat4& view) {
-
   glm::mat4 model(1);
   contacts.Draw(projection, view * model);
 }

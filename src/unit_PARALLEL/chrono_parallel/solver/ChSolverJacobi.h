@@ -23,7 +23,7 @@
 namespace chrono {
 
 class CH_PARALLEL_API ChSolverJacobi : public ChSolverParallel {
-public:
+ public:
   ChSolverJacobi() : ChSolverParallel() {}
   ~ChSolverJacobi() {}
 
@@ -32,25 +32,21 @@ public:
       return;
     }
     data_container->system_timer.start("ChSolverParallel_Solve");
-    data_container->measures.solver.total_iteration +=
-      SolveJacobi(max_iteration,
-                  data_container->num_constraints,
-                  data_container->host_data.R,
-                  data_container->host_data.gamma);
+    data_container->measures.solver.total_iteration += SolveJacobi(
+        max_iteration, data_container->num_constraints, data_container->host_data.R, data_container->host_data.gamma);
     data_container->system_timer.stop("ChSolverParallel_Solve");
   }
 
   // Solve using the Jacobi method
-  uint SolveJacobi(const uint max_iter,              // Maximum number of iterations
-                   const uint size,                  // Number of unknowns
-                   blaze::DynamicVector<real>& b,    // Rhs vector
-                   blaze::DynamicVector<real>& x     // The vector of unknowns
+  uint SolveJacobi(const uint max_iter,            // Maximum number of iterations
+                   const uint size,                // Number of unknowns
+                   blaze::DynamicVector<real>& b,  // Rhs vector
+                   blaze::DynamicVector<real>& x   // The vector of unknowns
                    );
 
   custom_vector<real> r, p, Ap;
   blaze::DynamicVector<real> diagonal, ml_old;
 };
-
 }
 
 #endif

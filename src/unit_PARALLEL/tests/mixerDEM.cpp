@@ -19,7 +19,7 @@
 //
 // The global reference frame has Z up.
 //
-// If available, OpenGL is used for run-time rendering. Otherwise, the 
+// If available, OpenGL is used for run-time rendering. Otherwise, the
 // simulation is carried out for a pre-defined duration and output files are
 // generated for post-processing with POV-Ray.
 // =============================================================================
@@ -45,13 +45,11 @@ const char* out_folder = "../MIXER_DEM/POVRAY";
 // -----------------------------------------------------------------------------
 // Generate postprocessing output with current system state.
 // -----------------------------------------------------------------------------
-void OutputData(ChSystemParallel* sys,
-                int out_frame,
-                double time) {
-   char filename[100];
-   sprintf(filename, "%s/data_%03d.dat", out_folder, out_frame);
-   utils::WriteShapesPovray(sys, filename);
-   std::cout << "time = " << time << std::flush << std::endl;
+void OutputData(ChSystemParallel* sys, int out_frame, double time) {
+  char filename[100];
+  sprintf(filename, "%s/data_%03d.dat", out_folder, out_frame);
+  utils::WriteShapesPovray(sys, filename);
+  std::cout << "time = " << time << std::flush << std::endl;
 }
 
 // -----------------------------------------------------------------------------
@@ -60,201 +58,199 @@ void OutputData(ChSystemParallel* sys,
 // to rotate at constant angular velocity.
 // -----------------------------------------------------------------------------
 void AddContainer(ChSystemParallelDEM* sys) {
-   // IDs for the two bodies
-   int binId = -200;
-   int mixerId = -201;
+  // IDs for the two bodies
+  int binId = -200;
+  int mixerId = -201;
 
-   // Create a common material
-   ChSharedPtr<ChMaterialSurfaceDEM> mat(new ChMaterialSurfaceDEM);
-   mat->SetYoungModulus(2e5f);
-   mat->SetFriction(0.4f);
-   mat->SetRestitution(0.1f);
+  // Create a common material
+  ChSharedPtr<ChMaterialSurfaceDEM> mat(new ChMaterialSurfaceDEM);
+  mat->SetYoungModulus(2e5f);
+  mat->SetFriction(0.4f);
+  mat->SetRestitution(0.1f);
 
-   // Create the containing bin (2 x 2 x 1)
-   ChSharedBodyDEMPtr bin(new ChBodyDEM(new ChCollisionModelParallel));
-   bin->SetMaterialSurfaceDEM(mat);
-   bin->SetIdentifier(binId);
-   bin->SetMass(1);
-   bin->SetPos(ChVector<>(0, 0, 0));
-   bin->SetRot(ChQuaternion<>(1, 0, 0, 0));
-   bin->SetCollide(true);
-   bin->SetBodyFixed(true);
+  // Create the containing bin (2 x 2 x 1)
+  ChSharedBodyDEMPtr bin(new ChBodyDEM(new ChCollisionModelParallel));
+  bin->SetMaterialSurfaceDEM(mat);
+  bin->SetIdentifier(binId);
+  bin->SetMass(1);
+  bin->SetPos(ChVector<>(0, 0, 0));
+  bin->SetRot(ChQuaternion<>(1, 0, 0, 0));
+  bin->SetCollide(true);
+  bin->SetBodyFixed(true);
 
-   ChVector<> hdim(1, 1, 0.5);
-   double hthick = 0.1;
+  ChVector<> hdim(1, 1, 0.5);
+  double hthick = 0.1;
 
-   bin->GetCollisionModel()->ClearModel();
-   utils::AddBoxGeometry(bin.get_ptr(), ChVector<>(hdim.x, hdim.y, hthick), ChVector<>(0, 0, -hthick));
-   utils::AddBoxGeometry(bin.get_ptr(), ChVector<>(hthick, hdim.y, hdim.z), ChVector<>(-hdim.x - hthick, 0, hdim.z));
-   utils::AddBoxGeometry(bin.get_ptr(), ChVector<>(hthick, hdim.y, hdim.z), ChVector<>(hdim.x + hthick, 0, hdim.z));
-   utils::AddBoxGeometry(bin.get_ptr(), ChVector<>(hdim.x, hthick, hdim.z), ChVector<>(0, -hdim.y - hthick, hdim.z));
-   utils::AddBoxGeometry(bin.get_ptr(), ChVector<>(hdim.x, hthick, hdim.z), ChVector<>(0, hdim.y + hthick, hdim.z));
-   bin->GetCollisionModel()->SetFamily(1);
-   bin->GetCollisionModel()->SetFamilyMaskNoCollisionWithFamily(2);
-   bin->GetCollisionModel()->BuildModel();
+  bin->GetCollisionModel()->ClearModel();
+  utils::AddBoxGeometry(bin.get_ptr(), ChVector<>(hdim.x, hdim.y, hthick), ChVector<>(0, 0, -hthick));
+  utils::AddBoxGeometry(bin.get_ptr(), ChVector<>(hthick, hdim.y, hdim.z), ChVector<>(-hdim.x - hthick, 0, hdim.z));
+  utils::AddBoxGeometry(bin.get_ptr(), ChVector<>(hthick, hdim.y, hdim.z), ChVector<>(hdim.x + hthick, 0, hdim.z));
+  utils::AddBoxGeometry(bin.get_ptr(), ChVector<>(hdim.x, hthick, hdim.z), ChVector<>(0, -hdim.y - hthick, hdim.z));
+  utils::AddBoxGeometry(bin.get_ptr(), ChVector<>(hdim.x, hthick, hdim.z), ChVector<>(0, hdim.y + hthick, hdim.z));
+  bin->GetCollisionModel()->SetFamily(1);
+  bin->GetCollisionModel()->SetFamilyMaskNoCollisionWithFamily(2);
+  bin->GetCollisionModel()->BuildModel();
 
-   sys->AddBody(bin);
+  sys->AddBody(bin);
 
-   // The rotating mixer body (1.6 x 0.2 x 0.4)
-   ChSharedBodyDEMPtr mixer(new ChBodyDEM(new ChCollisionModelParallel));
-   mixer->SetMaterialSurfaceDEM(mat);
-   mixer->SetIdentifier(mixerId);
-   mixer->SetMass(10.0);
-   mixer->SetInertiaXX(ChVector<>(50, 50, 50));
-   mixer->SetPos(ChVector<>(0, 0, 0.205));
-   mixer->SetBodyFixed(false);
-   mixer->SetCollide(true);
+  // The rotating mixer body (1.6 x 0.2 x 0.4)
+  ChSharedBodyDEMPtr mixer(new ChBodyDEM(new ChCollisionModelParallel));
+  mixer->SetMaterialSurfaceDEM(mat);
+  mixer->SetIdentifier(mixerId);
+  mixer->SetMass(10.0);
+  mixer->SetInertiaXX(ChVector<>(50, 50, 50));
+  mixer->SetPos(ChVector<>(0, 0, 0.205));
+  mixer->SetBodyFixed(false);
+  mixer->SetCollide(true);
 
-   ChVector<> hsize(0.8, 0.1, 0.2);
+  ChVector<> hsize(0.8, 0.1, 0.2);
 
-   mixer->GetCollisionModel()->ClearModel();
-   utils::AddBoxGeometry(mixer.get_ptr(), hsize);
-   mixer->GetCollisionModel()->SetFamily(2);
-   mixer->GetCollisionModel()->BuildModel();
+  mixer->GetCollisionModel()->ClearModel();
+  utils::AddBoxGeometry(mixer.get_ptr(), hsize);
+  mixer->GetCollisionModel()->SetFamily(2);
+  mixer->GetCollisionModel()->BuildModel();
 
-   sys->AddBody(mixer);
+  sys->AddBody(mixer);
 
-   // Create an engine between the two bodies, constrained to rotate at 90 deg/s
-   ChSharedPtr<ChLinkEngine> motor(new ChLinkEngine);
+  // Create an engine between the two bodies, constrained to rotate at 90 deg/s
+  ChSharedPtr<ChLinkEngine> motor(new ChLinkEngine);
 
-   ChSharedPtr<ChBody> mixer_(mixer);
-   ChSharedPtr<ChBody> bin_(bin);
+  ChSharedPtr<ChBody> mixer_(mixer);
+  ChSharedPtr<ChBody> bin_(bin);
 
-   motor->Initialize(mixer_, bin_, ChCoordsys<>(ChVector<>(0, 0, 0), ChQuaternion<>(1, 0, 0, 0)));
-   motor->Set_eng_mode(ChLinkEngine::ENG_MODE_SPEED);
-   if (ChSharedPtr<ChFunction_Const> mfun = motor->Get_spe_funct().DynamicCastTo<ChFunction_Const>())
-      mfun->Set_yconst(CH_C_PI / 2);
+  motor->Initialize(mixer_, bin_, ChCoordsys<>(ChVector<>(0, 0, 0), ChQuaternion<>(1, 0, 0, 0)));
+  motor->Set_eng_mode(ChLinkEngine::ENG_MODE_SPEED);
+  if (ChSharedPtr<ChFunction_Const> mfun = motor->Get_spe_funct().DynamicCastTo<ChFunction_Const>())
+    mfun->Set_yconst(CH_C_PI / 2);
 
-   sys->AddLink(motor);
+  sys->AddLink(motor);
 }
 
 // -----------------------------------------------------------------------------
 // Create the falling spherical objects in a unfiorm rectangular grid.
 // -----------------------------------------------------------------------------
 void AddFallingBalls(ChSystemParallelDEM* sys) {
-   // Common material
-   ChSharedPtr<ChMaterialSurfaceDEM> ballMat(new ChMaterialSurfaceDEM);
-   ballMat->SetYoungModulus(2e5f);
-   ballMat->SetFriction(0.4f);
-   ballMat->SetRestitution(0.1f);
+  // Common material
+  ChSharedPtr<ChMaterialSurfaceDEM> ballMat(new ChMaterialSurfaceDEM);
+  ballMat->SetYoungModulus(2e5f);
+  ballMat->SetFriction(0.4f);
+  ballMat->SetRestitution(0.1f);
 
-   // Create the falling balls
-   int ballId = 0;
-   double mass = 1;
-   double radius = 0.15;
-   ChVector<> inertia = (2.0 / 5.0) * mass * radius * radius * ChVector<>(1, 1, 1);
+  // Create the falling balls
+  int ballId = 0;
+  double mass = 1;
+  double radius = 0.15;
+  ChVector<> inertia = (2.0 / 5.0) * mass * radius * radius * ChVector<>(1, 1, 1);
 
-   for (int ix = -2; ix < 3; ix++) {
-      for (int iy = -2; iy < 3; iy++) {
-         ChVector<> pos(0.4 * ix, 0.4 * iy, 1);
+  for (int ix = -2; ix < 3; ix++) {
+    for (int iy = -2; iy < 3; iy++) {
+      ChVector<> pos(0.4 * ix, 0.4 * iy, 1);
 
-         ChSharedBodyDEMPtr ball(new ChBodyDEM(new ChCollisionModelParallel));
-         ball->SetMaterialSurfaceDEM(ballMat);
+      ChSharedBodyDEMPtr ball(new ChBodyDEM(new ChCollisionModelParallel));
+      ball->SetMaterialSurfaceDEM(ballMat);
 
-         ball->SetIdentifier(ballId++);
-         ball->SetMass(mass);
-         ball->SetInertiaXX(inertia);
-         ball->SetPos(pos);
-         ball->SetRot(ChQuaternion<>(1, 0, 0, 0));
-         ball->SetBodyFixed(false);
-         ball->SetCollide(true);
+      ball->SetIdentifier(ballId++);
+      ball->SetMass(mass);
+      ball->SetInertiaXX(inertia);
+      ball->SetPos(pos);
+      ball->SetRot(ChQuaternion<>(1, 0, 0, 0));
+      ball->SetBodyFixed(false);
+      ball->SetCollide(true);
 
-         ball->GetCollisionModel()->ClearModel();
-         utils::AddSphereGeometry(ball.get_ptr(), radius);
-         ball->GetCollisionModel()->BuildModel();
+      ball->GetCollisionModel()->ClearModel();
+      utils::AddSphereGeometry(ball.get_ptr(), radius);
+      ball->GetCollisionModel()->BuildModel();
 
-         sys->AddBody(ball);
-      }
-   }
+      sys->AddBody(ball);
+    }
+  }
 }
 
 // -----------------------------------------------------------------------------
 // Create the system, specify simulation parameters, and run simulation loop.
 // -----------------------------------------------------------------------------
-int main(int argc,
-         char* argv[]) {
-   int threads = 8;
+int main(int argc, char* argv[]) {
+  int threads = 8;
 
-   // Simulation parameters
-   // ---------------------
+  // Simulation parameters
+  // ---------------------
 
-   double gravity = 9.81;
-   double time_step = 1e-4;
-   double time_end = 1;
+  double gravity = 9.81;
+  double time_step = 1e-4;
+  double time_end = 1;
 
-   double out_fps = 50;
+  double out_fps = 50;
 
-   uint max_iteration = 50;
-   real tolerance = 1e-3;
+  uint max_iteration = 50;
+  real tolerance = 1e-3;
 
-   // Create system
-   // -------------
+  // Create system
+  // -------------
 
-   ChSystemParallelDEM msystem;
+  ChSystemParallelDEM msystem;
 
-   // Set number of threads.
-   int max_threads = msystem.GetParallelThreadNumber();
-   if (threads > max_threads)
-      threads = max_threads;
-   msystem.SetParallelThreadNumber(threads);
-   omp_set_num_threads(threads);
+  // Set number of threads.
+  int max_threads = msystem.GetParallelThreadNumber();
+  if (threads > max_threads)
+    threads = max_threads;
+  msystem.SetParallelThreadNumber(threads);
+  omp_set_num_threads(threads);
 
-   // Set gravitational acceleration
-   msystem.Set_G_acc(ChVector<>(0, 0, -gravity));
+  // Set gravitational acceleration
+  msystem.Set_G_acc(ChVector<>(0, 0, -gravity));
 
-   // Settings for the broad-phase collision detection
-   msystem.GetSettings()->collision.bins_per_axis = I3(10, 10, 10);
+  // Settings for the broad-phase collision detection
+  msystem.GetSettings()->collision.bins_per_axis = I3(10, 10, 10);
 
-   // Select the narrow phase collision algorithm
-   msystem.GetSettings()->collision.narrowphase_algorithm = NARROWPHASE_R;
+  // Select the narrow phase collision algorithm
+  msystem.GetSettings()->collision.narrowphase_algorithm = NARROWPHASE_R;
 
-   // Set tolerance and maximum number of iterations for bilateral constraint solver
-   msystem.GetSettings()->solver.max_iteration_bilateral = max_iteration;
-   msystem.GetSettings()->solver.tolerance = tolerance;
+  // Set tolerance and maximum number of iterations for bilateral constraint solver
+  msystem.GetSettings()->solver.max_iteration_bilateral = max_iteration;
+  msystem.GetSettings()->solver.tolerance = tolerance;
 
-   // Create the fixed and moving bodies
-   // ----------------------------------
+  // Create the fixed and moving bodies
+  // ----------------------------------
 
-   AddContainer(&msystem);
-   AddFallingBalls(&msystem);
+  AddContainer(&msystem);
+  AddFallingBalls(&msystem);
 
-   // Perform the simulation
-   // ----------------------
+// Perform the simulation
+// ----------------------
 
 #ifdef CHRONO_PARALLEL_HAS_OPENGL
-   opengl::ChOpenGLWindow &gl_window = opengl::ChOpenGLWindow::getInstance();
-   gl_window.Initialize(1280, 720, "mixerDEM", &msystem);
-   gl_window.SetCamera(ChVector<>(0, -10, 0), ChVector<>(0, 0, 0), ChVector<>(0, 0, 1));
+  opengl::ChOpenGLWindow& gl_window = opengl::ChOpenGLWindow::getInstance();
+  gl_window.Initialize(1280, 720, "mixerDEM", &msystem);
+  gl_window.SetCamera(ChVector<>(0, -10, 0), ChVector<>(0, 0, 0), ChVector<>(0, 0, 1));
 
-   // Uncomment the following two lines for the OpenGL manager to automatically
-   // run the simulation in an infinite loop.
-   //gl_window.StartDrawLoop(time_step);
-   //return 0;
+  // Uncomment the following two lines for the OpenGL manager to automatically
+  // run the simulation in an infinite loop.
+  // gl_window.StartDrawLoop(time_step);
+  // return 0;
 
-   while (true) {
-     if (gl_window.Active()) {
-       gl_window.DoStepDynamics(time_step);
-       gl_window.Render();
-     } else {
-       break;
-     }
-   }
+  while (true) {
+    if (gl_window.Active()) {
+      gl_window.DoStepDynamics(time_step);
+      gl_window.Render();
+    } else {
+      break;
+    }
+  }
 #else
-   // Run simulation for specified time
-   int num_steps = std::ceil(time_end / time_step);
-   int out_steps = std::ceil((1 / time_step) / out_fps);
-   int out_frame = 0;
+  // Run simulation for specified time
+  int num_steps = std::ceil(time_end / time_step);
+  int out_steps = std::ceil((1 / time_step) / out_fps);
+  int out_frame = 0;
 
-   for (int i = 0; i < num_steps; i++) {
-      if (i % out_steps == 0) {
-         OutputData(&msystem, out_frame, time);
-         out_frame++;
-      }
-      msystem.DoStepDynamics(time_step);
-      time += time_step;
-   }
+  for (int i = 0; i < num_steps; i++) {
+    if (i % out_steps == 0) {
+      OutputData(&msystem, out_frame, time);
+      out_frame++;
+    }
+    msystem.DoStepDynamics(time_step);
+    time += time_step;
+  }
 #endif
 
-   return 0;
+  return 0;
 }
-

@@ -21,7 +21,7 @@ typedef struct {
   float transmittance[3];
   float emission[3];
   float shininess;
-  float ior;    // index of refraction
+  float ior;  // index of refraction
 
   std::string ambient_texname;
   std::string diffuse_texname;
@@ -48,7 +48,7 @@ typedef struct {
 /// The function returns error string.
 /// Returns empty string when loading .obj success.
 /// 'mtl_basepath' is optional, and used for base path for .mtl file.
-std::string LoadObj(std::vector<shape_t>& shapes,    // [output]
+std::string LoadObj(std::vector<shape_t>& shapes,  // [output]
                     const char* filename,
                     const char* mtl_basepath = NULL);
 
@@ -63,4 +63,4 @@ std::string LoadObj(std::vector<shape_t>& shapes,    // [output]
 //      const char* mtl_basepath = NULL);
 };
 
-#endif    // _TINY_OBJ_LOADER_H
+#endif  // _TINY_OBJ_LOADER_H

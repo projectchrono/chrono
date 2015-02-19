@@ -15,8 +15,7 @@
 #include "chrono_parallel/solver/ChSolverPDIP.h"
 using namespace chrono;
 
-void ChLcpSolverParallelDVI::RunTimeStep()
-{
+void ChLcpSolverParallelDVI::RunTimeStep() {
   // Compute the offsets and number of constrains depending on the solver mode
   if (data_container->settings.solver.solver_mode == NORMAL) {
     rigid_rigid.offset = 1;
@@ -59,16 +58,17 @@ void ChLcpSolverParallelDVI::RunTimeStep()
 
   data_container->system_timer.start("ChLcpSolverParallel_Solve");
 
-//  if (data_container->settings.solver.max_iteration_bilateral > 0) {
-//    solver->SetMaxIterations(data_container->settings.solver.max_iteration_bilateral);
-//    data_container->settings.solver.local_solver_mode = BILATERAL;
-//    SetR();
-//    solver->Solve();
-//  }
+  //  if (data_container->settings.solver.max_iteration_bilateral > 0) {
+  //    solver->SetMaxIterations(data_container->settings.solver.max_iteration_bilateral);
+  //    data_container->settings.solver.local_solver_mode = BILATERAL;
+  //    SetR();
+  //    solver->Solve();
+  //  }
 
   PerformStabilization();
 
-  if (data_container->settings.solver.solver_mode == NORMAL || data_container->settings.solver.solver_mode == SLIDING || data_container->settings.solver.solver_mode == SPINNING) {
+  if (data_container->settings.solver.solver_mode == NORMAL || data_container->settings.solver.solver_mode == SLIDING ||
+      data_container->settings.solver.solver_mode == SPINNING) {
     if (data_container->settings.solver.max_iteration_normal > 0) {
       solver->SetMaxIterations(data_container->settings.solver.max_iteration_normal);
       data_container->settings.solver.local_solver_mode = NORMAL;
@@ -76,7 +76,8 @@ void ChLcpSolverParallelDVI::RunTimeStep()
       solver->Solve();
     }
   }
-  if (data_container->settings.solver.solver_mode == SLIDING || data_container->settings.solver.solver_mode == SPINNING) {
+  if (data_container->settings.solver.solver_mode == SLIDING ||
+      data_container->settings.solver.solver_mode == SPINNING) {
     if (data_container->settings.solver.max_iteration_sliding > 0) {
       solver->SetMaxIterations(data_container->settings.solver.max_iteration_sliding);
       data_container->settings.solver.local_solver_mode = SLIDING;
@@ -95,11 +96,13 @@ void ChLcpSolverParallelDVI::RunTimeStep()
 
   data_container->Fc_current = false;
   data_container->system_timer.stop("ChLcpSolverParallel_Solve");
-  
+
   ComputeImpulses();
 
   for (int i = 0; i < data_container->measures.solver.iter_hist.size(); i++) {
-    AtIterationEnd(data_container->measures.solver.maxd_hist[i], data_container->measures.solver.maxdeltalambda_hist[i], data_container->measures.solver.iter_hist[i]);
+    AtIterationEnd(data_container->measures.solver.maxd_hist[i],
+                   data_container->measures.solver.maxdeltalambda_hist[i],
+                   data_container->measures.solver.iter_hist[i]);
   }
   tot_iterations = data_container->measures.solver.iter_hist.size();
 
@@ -108,8 +111,7 @@ void ChLcpSolverParallelDVI::RunTimeStep()
 #endif
 }
 
-void ChLcpSolverParallelDVI::ComputeD()
-{
+void ChLcpSolverParallelDVI::ComputeD() {
   uint num_constraints = data_container->num_constraints;
   if (num_constraints <= 0) {
     return;
@@ -214,8 +216,7 @@ void ChLcpSolverParallelDVI::ComputeD()
   M_invD_b = M_inv * D_b;
 }
 
-void ChLcpSolverParallelDVI::ComputeE()
-{
+void ChLcpSolverParallelDVI::ComputeE() {
   if (data_container->num_constraints <= 0) {
     return;
   }
@@ -268,24 +269,23 @@ void ChLcpSolverParallelDVI::ComputeR() {
     } break;
 
     case SLIDING: {
-
-      //blaze::DenseSubvector<DynamicVector<real> > b_t = blaze::subvector(b, num_contacts, num_contacts * 2);
+      // blaze::DenseSubvector<DynamicVector<real> > b_t = blaze::subvector(b, num_contacts, num_contacts * 2);
       blaze::DenseSubvector<DynamicVector<real> > R_t = blaze::subvector(R, num_contacts, num_contacts * 2);
 
       R_n = -b_n - D_n_T * M_invk;
-      R_t = - D_t_T * M_invk;
+      R_t = -D_t_T * M_invk;
     } break;
 
     case SPINNING: {
-      //blaze::DenseSubvector<DynamicVector<real> > b_t = blaze::subvector(b, num_contacts, num_contacts * 2);
+      // blaze::DenseSubvector<DynamicVector<real> > b_t = blaze::subvector(b, num_contacts, num_contacts * 2);
       blaze::DenseSubvector<DynamicVector<real> > R_t = blaze::subvector(R, num_contacts, num_contacts * 2);
 
-      //blaze::DenseSubvector<DynamicVector<real> > b_s = blaze::subvector(b, num_contacts * 3, num_contacts * 3);
+      // blaze::DenseSubvector<DynamicVector<real> > b_s = blaze::subvector(b, num_contacts * 3, num_contacts * 3);
       blaze::DenseSubvector<DynamicVector<real> > R_s = blaze::subvector(R, num_contacts * 3, num_contacts * 3);
 
       R_n = -b_n - D_n_T * M_invk;
-      R_t =  - D_t_T * M_invk;
-      R_s =  - D_s_T * M_invk;
+      R_t = -D_t_T * M_invk;
+      R_s = -D_s_T * M_invk;
     } break;
   }
 }
@@ -305,7 +305,7 @@ void ChLcpSolverParallelDVI::SetR() {
   reset(R);
 
   switch (data_container->settings.solver.local_solver_mode) {
-    case BILATERAL:{
+    case BILATERAL: {
       blaze::subvector(R, num_unilaterals, num_bilaterals) = blaze::subvector(R_full, num_unilaterals, num_bilaterals);
     } break;
 
@@ -323,16 +323,13 @@ void ChLcpSolverParallelDVI::SetR() {
       blaze::subvector(R, num_unilaterals, num_bilaterals) = blaze::subvector(R_full, num_unilaterals, num_bilaterals);
       blaze::subvector(R, 0, num_contacts) = blaze::subvector(R_full, 0, num_contacts);
       blaze::subvector(R, num_contacts, num_contacts * 2) = blaze::subvector(R_full, num_contacts, num_contacts * 2);
-      blaze::subvector(R, num_contacts * 3, num_contacts * 3) = blaze::subvector(R_full, num_contacts * 3, num_contacts * 3);
+      blaze::subvector(R, num_contacts * 3, num_contacts * 3) =
+          blaze::subvector(R_full, num_contacts * 3, num_contacts * 3);
     } break;
   }
 }
 
-
-
-
 void ChLcpSolverParallelDVI::ComputeImpulses() {
-
   DynamicVector<real>& v = data_container->host_data.v;
 
   const DynamicVector<real>& M_invk = data_container->host_data.M_invk;
@@ -348,42 +345,42 @@ void ChLcpSolverParallelDVI::ComputeImpulses() {
   uint num_bilaterals = data_container->num_bilaterals;
 
   if (data_container->num_constraints > 0) {
-
-
-
-
-    blaze::DenseSubvector<const DynamicVector<real> > gamma_b = blaze::subvector(gamma, num_unilaterals, num_bilaterals);
+    blaze::DenseSubvector<const DynamicVector<real> > gamma_b =
+        blaze::subvector(gamma, num_unilaterals, num_bilaterals);
     blaze::DenseSubvector<const DynamicVector<real> > gamma_n = blaze::subvector(gamma, 0, num_contacts);
 
-    //Compute new velocity based on the lagrange multipliers
+    // Compute new velocity based on the lagrange multipliers
     switch (data_container->settings.solver.solver_mode) {
       case NORMAL: {
         v = M_invk + M_invD_n * gamma_n + M_invD_b * gamma_b;
       } break;
 
       case SLIDING: {
-         blaze::DenseSubvector<const DynamicVector<real> > gamma_t = blaze::subvector(gamma, num_contacts, num_contacts * 2);
+        blaze::DenseSubvector<const DynamicVector<real> > gamma_t =
+            blaze::subvector(gamma, num_contacts, num_contacts * 2);
 
         v = M_invk + M_invD_n * gamma_n + M_invD_t * gamma_t + M_invD_b * gamma_b;
-        //printf("-gamma: %f %f %f \n", gamma_n[0],gamma_t[0],gamma_t[1]);
+        // printf("-gamma: %f %f %f \n", gamma_n[0],gamma_t[0],gamma_t[1]);
       } break;
 
       case SPINNING: {
-         blaze::DenseSubvector<const DynamicVector<real> > gamma_t = blaze::subvector(gamma, num_contacts, num_contacts * 2);
-         blaze::DenseSubvector<const DynamicVector<real> > gamma_s = blaze::subvector(gamma, num_contacts * 3, num_contacts * 3);
+        blaze::DenseSubvector<const DynamicVector<real> > gamma_t =
+            blaze::subvector(gamma, num_contacts, num_contacts * 2);
+        blaze::DenseSubvector<const DynamicVector<real> > gamma_s =
+            blaze::subvector(gamma, num_contacts * 3, num_contacts * 3);
 
         v = M_invk + M_invD_n * gamma_n + M_invD_t * gamma_t + M_invD_s * gamma_s + M_invD_b * gamma_b;
 
       } break;
     }
   } else {
-    //When there are no constraints we need to still apply gravity and other
-    //body forces!
+    // When there are no constraints we need to still apply gravity and other
+    // body forces!
     v = M_invk;
   }
 }
 
-void ChLcpSolverParallelDVI::PreSolve(){
+void ChLcpSolverParallelDVI::PreSolve() {
   if (data_container->num_contacts <= 0) {
     return;
   }
@@ -392,13 +389,10 @@ void ChLcpSolverParallelDVI::PreSolve(){
     return;
   }
 
-  if(data_container->settings.solver.presolve){
+  if (data_container->settings.solver.presolve) {
     rigid_rigid.SolveLocal();
   }
-
 }
-
-
 
 void ChLcpSolverParallelDVI::ChangeSolverType(SOLVERTYPE type) {
   data_container->settings.solver.solver_type = type;
@@ -447,5 +441,4 @@ void ChLcpSolverParallelDVI::ChangeSolverType(SOLVERTYPE type) {
       solver = new ChSolverPDIP();
       break;
   }
-
 }

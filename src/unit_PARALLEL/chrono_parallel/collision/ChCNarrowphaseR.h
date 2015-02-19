@@ -42,78 +42,138 @@ namespace collision {
 static const real edge_radius = 0.1;
 
 // Primitive collision functions
-bool sphere_sphere(const real3& pos1, const real& radius1,
-                   const real3& pos2, const real& radius2,
+bool sphere_sphere(const real3& pos1,
+                   const real& radius1,
+                   const real3& pos2,
+                   const real& radius2,
                    const real& separation,
-                   real3& norm, real& depth,
-                   real3& pt1, real3& pt2,
+                   real3& norm,
+                   real& depth,
+                   real3& pt1,
+                   real3& pt2,
                    real& eff_radius);
 
-bool capsule_sphere(const real3& pos1, const real4& rot1, const real& radius1, const real& hlen1,
-                    const real3& pos2, const real& radius2,
+bool capsule_sphere(const real3& pos1,
+                    const real4& rot1,
+                    const real& radius1,
+                    const real& hlen1,
+                    const real3& pos2,
+                    const real& radius2,
                     const real& separation,
-                    real3& norm, real& depth,
-                    real3& pt1, real3& pt2,
+                    real3& norm,
+                    real& depth,
+                    real3& pt1,
+                    real3& pt2,
                     real& eff_radius);
 
-bool cylinder_sphere(const real3& pos1, const real4& rot1, const real& radius1, const real& hlen1,
-                     const real3& pos2, const real& radius2,
+bool cylinder_sphere(const real3& pos1,
+                     const real4& rot1,
+                     const real& radius1,
+                     const real& hlen1,
+                     const real3& pos2,
+                     const real& radius2,
                      const real& separation,
-                     real3& norm, real& depth,
-                     real3& pt1, real3& pt2,
+                     real3& norm,
+                     real& depth,
+                     real3& pt1,
+                     real3& pt2,
                      real& eff_radius);
 
-bool roundedcyl_sphere(const real3& pos1, const real4& rot1, const real& radius1, const real& hlen1, const real& srad1,
-                       const real3& pos2, const real& radius2,
+bool roundedcyl_sphere(const real3& pos1,
+                       const real4& rot1,
+                       const real& radius1,
+                       const real& hlen1,
+                       const real& srad1,
+                       const real3& pos2,
+                       const real& radius2,
                        const real& separation,
-                       real3& norm, real& depth,
-                       real3& pt1, real3& pt2,
+                       real3& norm,
+                       real& depth,
+                       real3& pt1,
+                       real3& pt2,
                        real& eff_radius);
 
-bool box_sphere(const real3& pos1, const real4& rot1, const real3& hdims1,
-                const real3& pos2, const real& radius2,
+bool box_sphere(const real3& pos1,
+                const real4& rot1,
+                const real3& hdims1,
+                const real3& pos2,
+                const real& radius2,
                 const real& separation,
-                real3& norm, real& depth,
-                real3& pt1, real3& pt2,
+                real3& norm,
+                real& depth,
+                real3& pt1,
+                real3& pt2,
                 real& eff_radius);
 
-bool roundedbox_sphere(const real3& pos1, const real4& rot1, const real3& hdims1, const real& srad1,
-                       const real3& pos2, const real& radius2,
+bool roundedbox_sphere(const real3& pos1,
+                       const real4& rot1,
+                       const real3& hdims1,
+                       const real& srad1,
+                       const real3& pos2,
+                       const real& radius2,
                        const real& separation,
-                       real3& norm, real& depth,
-                       real3& pt1, real3& pt2,
+                       real3& norm,
+                       real& depth,
+                       real3& pt1,
+                       real3& pt2,
                        real& eff_radius);
 
-bool face_sphere(const real3& A1, const real3& B1, const real3& C1,
-                 const real3& pos2, const real& radius2,
+bool face_sphere(const real3& A1,
+                 const real3& B1,
+                 const real3& C1,
+                 const real3& pos2,
+                 const real& radius2,
                  const real& separation,
-                 real3& norm, real& depth,
-                 real3& pt1, real3& pt2,
+                 real3& norm,
+                 real& depth,
+                 real3& pt1,
+                 real3& pt2,
                  real& eff_radius);
 
-int capsule_capsule(const real3& pos1, const real4& rot1, const real& radius1, const real& hlen1,
-                    const real3& pos2, const real4& rot2, const real& radius2, const real& hlen2,
+int capsule_capsule(const real3& pos1,
+                    const real4& rot1,
+                    const real& radius1,
+                    const real& hlen1,
+                    const real3& pos2,
+                    const real4& rot2,
+                    const real& radius2,
+                    const real& hlen2,
                     const real& separation,
-                    real3* norm, real* depth,
-                    real3* pt1, real3* pt2,
+                    real3* norm,
+                    real* depth,
+                    real3* pt1,
+                    real3* pt2,
                     real* eff_radius);
 
-int box_capsule(const real3& pos1, const real4& rot1, const real3& hdims1,
-                const real3& pos2, const real4& rot2, const real& radius2, const real& hlen2,
+int box_capsule(const real3& pos1,
+                const real4& rot1,
+                const real3& hdims1,
+                const real3& pos2,
+                const real4& rot2,
+                const real& radius2,
+                const real& hlen2,
                 const real& separation,
-                real3* norm, real* depth,
-                real3* pt1, real3* pt2,
+                real3* norm,
+                real* depth,
+                real3* pt1,
+                real3* pt2,
                 real* eff_radius);
 
-int box_box(const real3& pos1, const real4& rot1, const real3& hdims1,
-            const real3& pos2, const real4& rot2, const real3& hdims2,
-            real3* norm, real* depth,
-            real3* pt1, real3* pt2,
+int box_box(const real3& pos1,
+            const real4& rot1,
+            const real3& hdims1,
+            const real3& pos2,
+            const real4& rot2,
+            const real3& hdims2,
+            real3* norm,
+            real* depth,
+            real3* pt1,
+            real3* pt2,
             real* eff_radius);
 
 CH_PARALLEL_API
-bool RCollision(const ConvexShape &shapeA,  ///< first candidate shape
-                const ConvexShape &shapeB,  ///< second candidate shape
+bool RCollision(const ConvexShape& shapeA,  ///< first candidate shape
+                const ConvexShape& shapeB,  ///< second candidate shape
                 real separation,            ///< maximum separation
                 real3* ct_norm,             ///< [output] contact normal (per contact pair)
                 real3* ct_pt1,              ///< [output] point on shape1 (per contact pair)
@@ -122,10 +182,7 @@ bool RCollision(const ConvexShape &shapeA,  ///< first candidate shape
                 real* ct_eff_rad,           ///< [output] effective contact radius (per contact pair)
                 int& nC);                   ///< [output] number of contacts found
 
-
-} // end namespace collision
-} // end namespace chrono
-
+}  // end namespace collision
+}  // end namespace chrono
 
 #endif
-
