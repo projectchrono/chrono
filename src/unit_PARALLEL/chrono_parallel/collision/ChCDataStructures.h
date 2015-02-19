@@ -14,7 +14,6 @@ struct ConvexShape {
    quaternion R;  //rotation
    real3* convex;      // pointer to convex data;
    real margin;
-   ConvexShape():margin(0.04){}
 };
 
 

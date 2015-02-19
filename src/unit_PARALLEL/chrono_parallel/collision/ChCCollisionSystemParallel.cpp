@@ -33,7 +33,6 @@ void ChCollisionSystemParallel::Add(ChCollisionModel* model) {
     short2 fam = S2(pmodel->GetFamilyGroup(), pmodel->GetFamilyMask());
 
     for (int j = 0; j < pmodel->GetNObjects(); j++) {
-      real3 obA = pmodel->mData[j].A;
       real3 obB = pmodel->mData[j].B;
 
       int convex_data_offset = data_container->host_data.convex_data.size();
@@ -44,13 +43,13 @@ void ChCollisionSystemParallel::Add(ChCollisionModel* model) {
       if (pmodel->mData[j].type == CONVEX) {
         obB.y += convex_data_offset;    // update to get the global offset
       }
-      real3 obC = pmodel->mData[j].C;
-      real4 obR = pmodel->mData[j].R;
-      data_container->host_data.ObA_rigid.push_back(obA);
+
+      data_container->host_data.ObA_rigid.push_back(pmodel->mData[j].A);
       data_container->host_data.ObB_rigid.push_back(obB);
-      data_container->host_data.ObC_rigid.push_back(obC);
-      data_container->host_data.ObR_rigid.push_back(obR);
+      data_container->host_data.ObC_rigid.push_back(pmodel->mData[j].C);
+      data_container->host_data.ObR_rigid.push_back(pmodel->mData[j].R);
       data_container->host_data.fam_rigid.push_back(fam);
+      data_container->host_data.margin_rigid.push_back(pmodel->mData[j].margin);
       data_container->host_data.typ_rigid.push_back(pmodel->mData[j].type);
       data_container->host_data.id_rigid.push_back(body_id);
       data_container->num_shapes++;
