@@ -121,11 +121,24 @@ class DriveChain_panda:
         DFid.plot(ax = axarrA[1], linewidth=1.5, x='time', y=['Vx','Vy','Vz'])
         DFid.plot(ax = axarrA[2], linewidth=1.5, x='time', y=['Wx','Wy','Wz'])
         
-        #if specified, set the xlim of the two plots
+        #if specified, set the xlim of the two plots. Set any ylim that change a lot when tspan is not the whole sim time.
+        tminidx = 0
+        tmaxidx = -1
         if(tmin > 0):
             xminmax = self._get_timeMinMax(DFid['time'].iget(-1), tmin, tmax)
             axarrA[0].set_xlim(xminmax[0], xminmax[1])
             axarrB.set_xlim(xminmax[0], xminmax[1])
+            # Gt the DF row index for tmin, tmax
+            # first index in this list is where we start
+            tminidxlist = DFid[ DFid['time'] > tmin].index.tolist()
+            tminidx = tminidxlist[0]
+            # last index in this list is the end point
+            tmaxidxlist = DFid[ DFid['time'] < tmax].index.tolist()
+            tmaxidx = tmaxidxlist[-1]   
+            
+            maxF = DFid['F_tensioner'][tminidx:tmaxidx].max()
+            axarrA[1].set_ylim(DFid['Vx'][tminidx:tmaxidx].min(), DFid['Vx'][tminidx:tmaxidx].max())
+            axarrB.set_ylim(-maxF,maxF)
             
         # first plot label axes 
         axarrA[0].set_xlabel('time [s]')
@@ -161,7 +174,7 @@ class DriveChain_panda:
         # create a subplot for speed, and torues
         DFpt.plot(ax = axarr[0], linewidth=1.5, x='time', y=['motSpeed'])
         axRHS = axarr[0].twinx()
-        axRHS.plot(DFpt['time'], DFpt['throttle'],'r--', linewidth = 1.5) # , label = 'throttle')
+        axRHS.plot(DFpt['time'], DFpt['throttle'],'r--', linewidth = 1.5, label = 'throttle')
         DFpt.plot(ax = axarr[1], linewidth=1.5, x='time', y=['motT'])
         DFpt.plot(ax = axarr[2], linewidth=1.5, x='time', y=['outT'])
         
@@ -177,7 +190,7 @@ class DriveChain_panda:
         axarr[1].set_ylabel('engine torque [N-m]')
         axarr[2].set_ylabel('output torque [N-m]')
         axarr[0].legend()
-        axRHS.legend()
+        axRHS.legend(loc ='lower right')
         axarr[1].legend()
         axarr[0].set_title('powertrain')
         
@@ -199,14 +212,27 @@ class DriveChain_panda:
         DFs.plot(ax = axarrA[0], linewidth=1.5, x='time', y=['x','y','z'])
         DFs.plot(ax = axarrA[1], linewidth=1.5, x='time', y=['Vx','Vy','Vz'])
         DFs.plot(ax = axarrA[2], linewidth=1.5, x='time', y=['Wx','Wy','Wz'])
-        DFs.plot(ax = axarrA[3], linewidth=1.5, x='time', y=['Ax','Ay','Az'])
+        DFs.plot(ax = axarrA[3], linewidth=1.5, x='time', y=['Ax','Ay','Az'])                
         
-        #if specified, set the xlim of the two plots
+        #if specified, set the xlim of the two plots. Set any ylim that change a lot when tspan is not the whole sim time.
+        tminidx = 0
+        tmaxidx = -1
         if(tmin > 0):
             xminmax = self._get_timeMinMax(DFs['time'].iget(-1), tmin, tmax)
             axarrA[0].set_xlim(xminmax[0], xminmax[1])
             axarrB[0].set_xlim(xminmax[0], xminmax[1])
             axarrC[0].set_xlim(xminmax[0], xminmax[1])
+            # Gt the DF row index for tmin, tmax
+             # first index in this list is where we start
+            tminidxlist = DFs[ DFs['time'] > tmin].index.tolist()
+            tminidx = tminidxlist[0]
+            # last index in this list is the end point
+            tmaxidxlist = DFs[ DFs['time'] < tmax].index.tolist()
+            tmaxidx = tmaxidxlist[-1]   
+            
+            # set any limits that are much better when tspan is changed
+            axarrA[2].set_ylim(DFs['Wz'][tminidx:tmaxidx].min(), DFs['Wz'][tminidx:tmaxidx].max() )
+            axarrA[3].set_ylim(DFs['Ay'][tminidx:tmaxidx].min(), DFs['Ay'][tminidx:tmaxidx].max() )
         
         # first plot label axes 
         axarrA[0].set_xlabel('time [s]')
@@ -651,12 +677,12 @@ if __name__ == '__main__':
     Chain = DriveChain_panda(data_files,handle_list)
     
     tmin = 1
-    tmax = 4
+    tmax = 5
     # 1) plot the gear body info
     Chain.plot_gear()
     
     # 2) plot idler body info, tensioner force
-    Chain.plot_idler()
+    Chain.plot_idler(tmin,tmax)
 
     # 3) plot powertrain info
     Chain.plot_ptrain()    

@@ -103,8 +103,8 @@ double chaseHeight = 0.5;
 bool do_shadows = false; // shadow map is experimental
 
 bool autopilot = true;
-double sineAmp = 0.5;
-double sineFreq = 0.2;
+double sineAmp = 0.4;
+double sineFreq = 0.3;
 double tStart = 0.01;
 
 
