@@ -183,7 +183,7 @@ public:
 	ChLinkMask* NewDuplicate();
 
 		/// set all mask data at once
-	void SetLockMask(int x, int y, int z, int e0, int e1, int e2, int e3);
+	void SetLockMask(bool x, bool y, bool z, bool e0, bool e1, bool e2, bool e3);
 
 		/// Obtain the reference to specific scalar constraint data
 		/// in the collection of this link mask.
