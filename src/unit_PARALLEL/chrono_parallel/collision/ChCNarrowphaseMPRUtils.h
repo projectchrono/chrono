@@ -323,4 +323,46 @@ inline real3 TransformSupportVert(const chrono::collision::ConvexShape &Shape,
 }
 
 
+inline void GetBoundingSphere(const chrono::collision::ConvexShape& Shape,  real3& center, real& disc) {
+  center = real3(0);
+  switch (Shape.type) {
+    case chrono::collision::SPHERE:
+      disc = Shape.B.x;
+      break;
+    case chrono::collision::ELLIPSOID:
+      disc = max3(Shape.B);
+      break;
+    case chrono::collision::BOX:
+      disc = length(Shape.B);
+      break;
+    case chrono::collision::CYLINDER:
+      disc = sqrt(Shape.B.x * Shape.B.x + Shape.B.y * Shape.B.y);
+      break;
+    case chrono::collision::CONE:
+      disc = sqrt(Shape.B.x * Shape.B.x + Shape.B.y * Shape.B.y);
+      break;
+    case chrono::collision::CAPSULE:
+      disc = Shape.B.x + Shape.B.y;
+      break;
+    case chrono::collision::ROUNDEDBOX:
+      disc = length(Shape.B) + Shape.C.x;
+      break;
+    case chrono::collision::ROUNDEDCYL:
+      disc = sqrt(Shape.B.x * Shape.B.x + Shape.B.y * Shape.B.y) + Shape.C.x;
+      break;
+    case chrono::collision::ROUNDEDCONE:
+      disc = sqrt(Shape.B.x * Shape.B.x + Shape.B.y * Shape.B.y) + Shape.C.x;
+      break;
+  }
+}
+
+inline real GetAngularMotionDisc(const chrono::collision::ConvexShape& Shape) {
+  real3 center;
+  real disc;
+  GetBoundingSphere(Shape, center, disc);
+  disc += (center).length();
+  return disc;
+}
+
+
 #endif
