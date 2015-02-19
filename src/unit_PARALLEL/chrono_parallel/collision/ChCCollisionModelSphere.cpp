@@ -11,7 +11,7 @@
 #include "chrono_parallel/collision/ChCCollisionModelSphere.h"
 #include "physics/ChBody.h"
 #include "physics/ChSystem.h"
-
+#include "chrono_parallel/collision/ChCDataStructures.h"
 namespace chrono {
 namespace collision {
 

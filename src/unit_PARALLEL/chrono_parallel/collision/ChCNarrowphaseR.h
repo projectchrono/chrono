@@ -34,7 +34,7 @@
 #ifndef CHC_NARROWPHASE_R_H
 #define CHC_NARROWPHASE_R_H
 
-#include "chrono_parallel/collision/ChCNarrowphase.h"
+#include "chrono_parallel/collision/ChCDataStructures.h"
 
 namespace chrono {
 namespace collision {

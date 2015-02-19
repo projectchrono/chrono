@@ -1,8 +1,7 @@
-#ifndef CHC_NARROWPHASE_H
-#define CHC_NARROWPHASE_H
+#ifndef CHC_DATASTRUCTURES_H
+#define CHC_DATASTRUCTURES_H
 
-#include "chrono_parallel/ChParallelDefines.h"
-#include "chrono_parallel/ChDataManager.h"
+#include "chrono_parallel/math/ChParallelMath.h"
 
 namespace chrono {
 namespace collision {

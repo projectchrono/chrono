@@ -23,7 +23,7 @@
 #include "chrono_parallel/ChApiParallel.h"
 #include "chrono_parallel/ChParallelDefines.h"
 #include "chrono_parallel/math/ChParallelMath.h"
-
+#include "chrono_parallel/collision/ChCDataStructures.h"
 namespace chrono {
 // forward references
 class ChBody;

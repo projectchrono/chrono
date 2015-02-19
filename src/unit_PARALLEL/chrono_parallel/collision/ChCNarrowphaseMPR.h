@@ -1,7 +1,7 @@
 #ifndef CHC_NARROWPHASE_MPR_H
 #define CHC_NARROWPHASE_MPR_H
 
-#include "chrono_parallel/collision/ChCNarrowphase.h"
+#include "chrono_parallel/collision/ChCDataStructures.h"
 
 namespace chrono {
 namespace collision {

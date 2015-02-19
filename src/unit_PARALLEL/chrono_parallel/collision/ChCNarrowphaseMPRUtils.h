@@ -1,7 +1,7 @@
 #ifndef CHC_NARROWPHASE_MPR_UTILS_H
 #define CHC_NARROWPHASE_MPR_UTILS_H
 
-#include "chrono_parallel/collision/ChCNarrowphase.h"
+#include "chrono_parallel/collision/ChCDataStructures.h"
 #include "collision/ChCCollisionModel.h"
 
 inline real3 GetSupportPoint_Sphere(const real3 &B,

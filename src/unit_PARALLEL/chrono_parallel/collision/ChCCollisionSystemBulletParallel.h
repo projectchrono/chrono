@@ -20,7 +20,7 @@
 #include "chrono_parallel/collision/ChContactContainerParallel.h"
 #include "chrono_parallel/collision/ChCCollisionModelParallel.h"
 #include "chrono_parallel/collision/ChCAABBGenerator.h"
-#include "chrono_parallel/collision/ChCNarrowphase.h"
+#include "chrono_parallel/collision/ChCDataStructures.h"
 #include "chrono_parallel/collision/ChCBroadphase.h"
 
 

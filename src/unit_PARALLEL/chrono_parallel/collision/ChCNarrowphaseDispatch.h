@@ -3,7 +3,7 @@
 
 #include "chrono_parallel/ChParallelDefines.h"
 #include "chrono_parallel/ChDataManager.h"
-#include "chrono_parallel/collision/ChCNarrowphase.h"
+#include "chrono_parallel/collision/ChCDataStructures.h"
 namespace chrono {
 namespace collision {
 /*

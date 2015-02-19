@@ -27,7 +27,7 @@ GJK-EPA collision solver by Nathanael Presson, 2008
 #ifndef CHC_NARROWPHASE_GJK_EPA_H
 #define CHC_NARROWPHASE_GJK_EPA_H
 
-#include "chrono_parallel/collision/ChCNarrowphase.h"
+#include "chrono_parallel/collision/ChCDataStructures.h"
 
 namespace chrono {
 namespace collision {
