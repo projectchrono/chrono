@@ -1415,7 +1415,7 @@ void ChLinkLock::ConstraintsFetch_react(double factor)
   Chi__q1p_barT(0,0)=  q1p.e0;  Chi__q1p_barT(0,1)=  q1p.e1;  Chi__q1p_barT(0,2)=  q1p.e2;  Chi__q1p_barT(0,3)=  q1p.e3;
   Chi__q1p_barT(1,0)=  q1p.e1;  Chi__q1p_barT(1,1)= -q1p.e0;  Chi__q1p_barT(1,2)=  q1p.e3;  Chi__q1p_barT(1,3)= -q1p.e2;
   Chi__q1p_barT(2,0)=  q1p.e2;  Chi__q1p_barT(2,1)= -q1p.e3;  Chi__q1p_barT(2,2)= -q1p.e0;  Chi__q1p_barT(2,3)=  q1p.e1;
-  Chi__q1p_barT(3,0)=  q1p.e3;  Chi__q1p_barT(3,1)=  q1p.e2;  Chi__q1p_barT(3,2)= -q1p.e1;  Chi__q1p_barT(3,3)=  q1p.e0;
+  Chi__q1p_barT(3,0)=  q1p.e3;  Chi__q1p_barT(3,1)=  q1p.e2;  Chi__q1p_barT(3,2)= -q1p.e1;  Chi__q1p_barT(3,3)= -q1p.e0;
 
   ChMatrixNM<double,4,4> qs_tilde;
   qs_tilde(0,0)=  qs.e0;  qs_tilde(0,1)= -qs.e1;  qs_tilde(0,2)= -qs.e2;  qs_tilde(0,3)= -qs.e3;
