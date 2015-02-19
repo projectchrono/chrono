@@ -209,15 +209,7 @@ class CH_PARALLEL_API ChCollisionModelParallel : public ChCollisionModel {
 
    float getVolume();
 
-   struct bData {
-      real3 A;
-      real3 B;
-      real3 C;
-      real4 R;
-      int type;
-   };
-
-   std::vector<bData> mData;
+   std::vector<ConvexShape> mData;
    std::vector<real3> local_convex_data;
 
  protected:

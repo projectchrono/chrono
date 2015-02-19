@@ -14,7 +14,8 @@
 //
 // Description: class for a parallel collision model
 // =============================================================================
-
+// not used but prevents compilation errors with cuda 7 RC
+#include <thrust/transform.h>
 #include "chrono_parallel/collision/ChCCollisionModelParallel.h"
 #include "physics/ChBody.h"
 #include "physics/ChSystem.h"
@@ -68,7 +69,7 @@ bool ChCollisionModelParallel::AddSphere(double radius,
 
    model_type = SPHERE;
    nObjects++;
-   bData tData;
+   ConvexShape tData;
    tData.A = R3(pos.x, pos.y, pos.z);
    tData.B = R3(radius, 0, 0);
    tData.C = R3(0, 0, 0);
@@ -94,7 +95,7 @@ bool ChCollisionModelParallel::AddEllipsoid(double rx,
 
    model_type = ELLIPSOID;
    nObjects++;
-   bData tData;
+   ConvexShape tData;
    tData.A = R3(pos.x, pos.y, pos.z);
    tData.B = R3(rx, ry, rz);
    tData.C = R3(0, 0, 0);
@@ -120,7 +121,7 @@ bool ChCollisionModelParallel::AddBox(double rx,
 
    model_type = BOX;
    nObjects++;
-   bData tData;
+   ConvexShape tData;
    tData.A = R3(pos.x, pos.y, pos.z);
    tData.B = R3(rx, ry, rz);
    tData.C = R3(0, 0, 0);
@@ -149,7 +150,7 @@ bool ChCollisionModelParallel::AddRoundedBox(double rx,
 
    model_type = ROUNDEDBOX;
    nObjects++;
-   bData tData;
+   ConvexShape tData;
    tData.A = R3(pos.x, pos.y, pos.z);
    tData.B = R3(rx, ry, rz);
    tData.C = R3(sphere_r, 0, 0);
@@ -170,7 +171,7 @@ bool ChCollisionModelParallel::AddTriangle(ChVector<> A,
    double mass = this->GetBody()->GetMass();
    model_type = TRIANGLEMESH;
    nObjects++;
-   bData tData;
+   ConvexShape tData;
    tData.A = R3(A.x + pos.x, A.y + pos.y, A.z + pos.z);
    tData.B = R3(B.x + pos.x, B.y + pos.y, B.z + pos.z);
    tData.C = R3(C.x + pos.x, C.y + pos.y, C.z + pos.z);
@@ -195,7 +196,7 @@ bool ChCollisionModelParallel::AddCylinder(double rx,
    inertia.z += local_inertia.z + mass * (position.Length2() - position.z * position.z);
    model_type = CYLINDER;
    nObjects++;
-   bData tData;
+   ConvexShape tData;
    tData.A = R3(pos.x, pos.y, pos.z);
    tData.B = R3(rx, hy, rz);
    tData.C = R3(0, 0, 0);
@@ -223,7 +224,7 @@ bool ChCollisionModelParallel::AddRoundedCylinder(double rx,
    inertia.z += local_inertia.z + mass * (position.Length2() - position.z * position.z);
    model_type = ROUNDEDCYL;
    nObjects++;
-   bData tData;
+   ConvexShape tData;
    tData.A = R3(pos.x, pos.y, pos.z);
    tData.B = R3(rx, hy, rz);
    tData.C = R3(sphere_r, 0, 0);
@@ -254,7 +255,7 @@ bool ChCollisionModelParallel::AddCone(double rx,
 
    model_type = CONE;
    nObjects++;
-   bData tData;
+   ConvexShape tData;
    tData.A = R3(pos.x, pos.y, pos.z);
    tData.B = R3(rx, height, rz);
    tData.C = R3(0, 0, 0);
@@ -286,7 +287,7 @@ bool ChCollisionModelParallel::AddRoundedCone(double rx,
 
    model_type = ROUNDEDCONE;
    nObjects++;
-   bData tData;
+   ConvexShape tData;
    tData.A = R3(pos.x, pos.y, pos.z);
    tData.B = R3(rx, height, rz);
    tData.C = R3(sphere_r, 0, 0);
@@ -316,7 +317,7 @@ bool ChCollisionModelParallel::AddCapsule(double radius,
    model_type = CAPSULE;
    nObjects++;
 
-   bData tData;
+   ConvexShape tData;
    ChQuaternion<> q = rot.Get_A_quaternion();
 
    tData.A = R3(pos.x, pos.y, pos.z);
@@ -338,7 +339,7 @@ bool ChCollisionModelParallel::AddConvexHull(std::vector<ChVector<double> > &poi
 	  inertia = R3(1);    // so that it gets initialized to something
 	  model_type = CONVEX;
 	  nObjects++;
-	  bData tData;
+	  ConvexShape tData;
 	  tData.A = R3(pos.x, pos.y, pos.z);
 	  tData.B = R3(pointlist.size(), local_convex_data.size(), 0);
 	  tData.C = R3(0, 0, 0);
@@ -374,7 +375,7 @@ bool ChCollisionModelParallel::AddTriangleMesh(const geometry::ChTriangleMesh &t
                                                const ChMatrix33<> &rot) {
    model_type = TRIANGLEMESH;
    nObjects += trimesh.getNumTriangles();
-   bData tData;
+   ConvexShape tData;
    for (int i = 0; i < trimesh.getNumTriangles(); i++) {
       geometry::ChTriangle temptri = trimesh.getTriangle(i);
       tData.A = R3(temptri.p1.x + pos.x, temptri.p1.y + pos.y, temptri.p1.z + pos.z);

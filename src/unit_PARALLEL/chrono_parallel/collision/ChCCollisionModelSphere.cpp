@@ -21,7 +21,7 @@ ChCollisionModelSphere::ChCollisionModelSphere(real rad) {
    model_type = SPHERE;
    nObjects = 1;
    radius = rad;
-   bData tData;
+   ConvexShape tData;
    tData.A = R3(0);
    tData.B = R3(radius, 0, 0);
    tData.C = R3(0, 0, 0);
@@ -40,7 +40,7 @@ bool ChCollisionModelSphere::AddSphere(real radius,
 
    model_type = SPHERE;
    nObjects = 1;
-   bData tData;
+   ConvexShape tData;
    tData.A = R3(0);
    tData.B = R3(radius, 0, 0);
    tData.C = R3(0, 0, 0);
