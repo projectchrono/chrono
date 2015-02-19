@@ -1401,24 +1401,70 @@ void ChLinkLock::ConstraintsFetch_react(double factor)
 	ChLinkMaskLF* mmask = (ChLinkMaskLF*) this->mask;
 	int n_costraint = 0;
 
-	if (mmask->Constr_X().IsActive()) {
-        react_force.x = - react->GetElement(n_costraint, 0);
-        n_costraint++ ; }
-    if (mmask->Constr_Y().IsActive()) {
-        react_force.y = - react->GetElement(n_costraint, 0);
-        n_costraint++ ; }
-    if (mmask->Constr_Z().IsActive()) {
-        react_force.z = - react->GetElement(n_costraint, 0);
-        n_costraint++ ; }
-    if (mmask->Constr_E1().IsActive()) {
-        react_torque.x = - 0.5* (react->GetElement(n_costraint, 0));
-        n_costraint++ ; }
-    if (mmask->Constr_E2().IsActive()) {
-        react_torque.y = - 0.5* (react->GetElement(n_costraint, 0));
-        n_costraint++ ; }
-    if (mmask->Constr_E3().IsActive()) {
-        react_torque.z = - 0.5* (react->GetElement(n_costraint, 0));
-        n_costraint++ ; }
+  ChQuaternion<> qs = this->GetLinkRelativeCoords().rot;
+  ChQuaternion<> q2 = Body2->GetRot();
+  ChQuaternion<> q1p = this->marker1->GetAbsCoord().rot;
+
+  ChMatrix33<> Cs;
+  Cs.Set_A_quaternion(qs);
+
+  ChMatrixNM<double,3,4> Gl_q2;
+  Body1->SetMatrix_Gl(Gl_q2, q2);
+
+  ChMatrixNM<double,4,4> Chi__q1p_barT; //[Chi] * [transpose(bar(q1p))]
+  Chi__q1p_barT(0,0)=  q1p.e0;  Chi__q1p_barT(0,1)=  q1p.e1;  Chi__q1p_barT(0,2)=  q1p.e2;  Chi__q1p_barT(0,3)=  q1p.e3;
+  Chi__q1p_barT(1,0)=  q1p.e1;  Chi__q1p_barT(1,1)= -q1p.e0;  Chi__q1p_barT(1,2)=  q1p.e3;  Chi__q1p_barT(1,3)= -q1p.e2;
+  Chi__q1p_barT(2,0)=  q1p.e2;  Chi__q1p_barT(2,1)= -q1p.e3;  Chi__q1p_barT(2,2)= -q1p.e0;  Chi__q1p_barT(2,3)=  q1p.e1;
+  Chi__q1p_barT(3,0)=  q1p.e3;  Chi__q1p_barT(3,1)=  q1p.e2;  Chi__q1p_barT(3,2)= -q1p.e1;  Chi__q1p_barT(3,3)=  q1p.e0;
+
+  ChMatrixNM<double,4,4> qs_tilde;
+  qs_tilde(0,0)=  qs.e0;  qs_tilde(0,1)= -qs.e1;  qs_tilde(0,2)= -qs.e2;  qs_tilde(0,3)= -qs.e3;
+  qs_tilde(1,0)=  qs.e1;  qs_tilde(1,1)=  qs.e0;  qs_tilde(1,2)= -qs.e3;  qs_tilde(1,3)=  qs.e2;
+  qs_tilde(2,0)=  qs.e2;  qs_tilde(2,1)=  qs.e3;  qs_tilde(2,2)=  qs.e0;  qs_tilde(2,3)= -qs.e1;
+  qs_tilde(3,0)=  qs.e3;  qs_tilde(3,1)= -qs.e2;  qs_tilde(3,2)=  qs.e1;  qs_tilde(3,3)=  qs.e0;
+
+
+  //Ts = 0.5*CsT*G(q2)*Chi*(q1 qp)_barT*qs~*KT*lambda
+  ChMatrixNM<double,3,4> Ts;
+  ChMatrixNM<double,3,4> Temp;  //temp matrix since MatrMultiply overwrites "this" during the calculation.  i.e. Ts.MatrMultiply(Ts,A) ~= Ts=[Ts]*[A]
+
+  Ts.MatrTMultiply(Cs,Gl_q2);
+  Ts.MatrScale(0.25);
+  Temp.MatrMultiply(Ts,Chi__q1p_barT);
+  Ts.MatrMultiply(Temp,qs_tilde);
+
+
+  if (mmask->Constr_X().IsActive()) {
+      react_force.x = - react->GetElement(n_costraint, 0);  //Translational constraint reaction force (no reaction force from rotational constraints)
+      react_torque.y = - relM.pos.z*react->GetElement(n_costraint, 0); //Translational constrain reaction torque = -d~''(t)*lambda_translational
+      react_torque.z =   relM.pos.y*react->GetElement(n_costraint, 0);
+      n_costraint++ ; }
+  if (mmask->Constr_Y().IsActive()) {
+      react_force.y = - react->GetElement(n_costraint, 0);
+      react_torque.x =   relM.pos.z*react->GetElement(n_costraint, 0);
+      react_torque.z += - relM.pos.x*react->GetElement(n_costraint, 0);
+      n_costraint++ ; }
+  if (mmask->Constr_Z().IsActive()) {
+      react_force.z = - react->GetElement(n_costraint, 0);
+      react_torque.x += - relM.pos.y*react->GetElement(n_costraint, 0);
+      react_torque.y +=   relM.pos.x*react->GetElement(n_costraint, 0);
+      n_costraint++ ; }
+
+  if (mmask->Constr_E1().IsActive()) {
+      react_torque.x += Ts(0,1)* (react->GetElement(n_costraint, 0));
+      react_torque.y += Ts(1,1)* (react->GetElement(n_costraint, 0));
+      react_torque.z += Ts(2,1)* (react->GetElement(n_costraint, 0));
+      n_costraint++ ; }
+  if (mmask->Constr_E2().IsActive()) {
+      react_torque.x += Ts(0,2)* (react->GetElement(n_costraint, 0));
+      react_torque.y += Ts(1,2)* (react->GetElement(n_costraint, 0));
+      react_torque.z += Ts(2,2)* (react->GetElement(n_costraint, 0));
+      n_costraint++ ; }
+  if (mmask->Constr_E3().IsActive()) {
+      react_torque.x += Ts(0,3)* (react->GetElement(n_costraint, 0));
+      react_torque.y += Ts(1,3)* (react->GetElement(n_costraint, 0));
+      react_torque.z += Ts(2,3)* (react->GetElement(n_costraint, 0));
+      n_costraint++ ; }
 
     // ***TO DO***?: TRASFORMATION FROM delta COORDS TO LINK COORDS, if non-default delta
     // if delta rotation?
