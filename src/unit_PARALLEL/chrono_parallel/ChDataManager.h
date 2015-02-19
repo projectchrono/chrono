@@ -51,15 +51,16 @@ namespace chrono {
 
 struct host_container {
    // Collision data
-   thrust::host_vector<real3> ObA_rigid;
-   thrust::host_vector<real3> ObB_rigid;
-   thrust::host_vector<real3> ObC_rigid;
-   thrust::host_vector<real4> ObR_rigid;
-   thrust::host_vector<short2> fam_rigid;
-   thrust::host_vector<int> typ_rigid;
-   thrust::host_vector<uint> id_rigid;
-   thrust::host_vector<real3> aabb_rigid;
-   custom_vector<real3> convex_data;
+   thrust::host_vector<real3> ObA_rigid;  //Position of shape
+   thrust::host_vector<real3> ObB_rigid;  //Size of shape (dims or convex data)
+   thrust::host_vector<real3> ObC_rigid;  //Rounded size
+   thrust::host_vector<real4> ObR_rigid;  //Shape rotation
+   thrust::host_vector<short2> fam_rigid; //Family information
+   thrust::host_vector<int> typ_rigid;    //Shape type
+   thrust::host_vector<real> margin_rigid;//Inner collision margins
+   thrust::host_vector<uint> id_rigid;    //Body identifier for each shape
+   thrust::host_vector<real3> aabb_rigid; //List of bounding boxes
+   custom_vector<real3> convex_data;      //list of convex points
 
    // Contact data
    thrust::host_vector<real3> norm_rigid_rigid;
