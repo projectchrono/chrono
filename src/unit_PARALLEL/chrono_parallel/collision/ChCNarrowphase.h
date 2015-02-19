@@ -14,6 +14,8 @@ struct ConvexShape {
    real3 C;  //extra
    quaternion R;  //rotation
    real3* convex;      // pointer to convex data;
+   real margin;
+   ConvexShape():margin(0.04){}
 };
 
 }  // end namespace collision
