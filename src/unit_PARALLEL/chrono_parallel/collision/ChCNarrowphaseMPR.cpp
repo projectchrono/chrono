@@ -587,7 +587,6 @@ void chrono::collision::MPRGetPoints(const ConvexShape& shapeA, const ConvexShap
   p2 = dot((TransformSupportVert(shapeB, N, envelope) - p0), N) * N + p0;
   N = -N;
 }
-void PreSolve(const ConvexShape& shapeA, const ConvexShape& shapeB, real envelope);
 
 // Code for Convex-Convex Collision detection, adopted from xeno-collide
 bool chrono::collision::MPRCollision(const ConvexShape& shapeA, const ConvexShape& shapeB, real envelope, real3& normal, real3& pointA, real3& pointB, real& depth) {
