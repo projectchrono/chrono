@@ -1,11 +1,11 @@
 chrono-parallel
 ==============
 The following libraries are required to compile Chrono::Parallel:
-Chrono https://github.com/projectchrono/chrono
-Blaze https://code.google.com/p/blaze-lib/
-GLM http://glm.g-truc.net/0.9.6/index.html
-GLFW http://www.glfw.org/
-GLEW http://glew.sourceforge.net/
+* Chrono https://github.com/projectchrono/chrono
+* Blaze https://code.google.com/p/blaze-lib/
+* GLM http://glm.g-truc.net/0.9.6/index.html
+* GLFW http://www.glfw.org/
+* GLEW http://glew.sourceforge.net/
 
 ------------
 ## Building on Windows+MSVC
