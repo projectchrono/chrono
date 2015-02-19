@@ -374,42 +374,83 @@ class DriveChain_panda:
         # data frame from the headers
         DFgci = pd.DataFrame(self._getDFhandle('gearContact'), columns = inDat)
         
-        # for all plots: take the per step data and find 1) avg., 2) stdev over the whole sim time
-        #) A ---- # of contacts on the gear body
-        n_contacts_avg = DFgci['Ncontacts'].mean()
-        n_contacts_sig = py.sqrt(DFgci['Ncontacts'].var())
-        # add these two as cosntant columns to the dataframe
-        DFgci['NcontactsAvg'] = n_contacts_avg
-        DFgci['NcontactsSig'] = n_contacts_sig
-        if(tmin > 0):
-            tspan_n_contacts_avg = DFgci['Ncontacts'][tmin:tmax].mean()
-            # tspan_n_contacts_sig = py.sqrt(DFgci['Ncontacts'][tmin:tmax].var() )
-            print ' Avg # of contacts for trange: [' + str(tmin) + ', ' + str(tmax) + '] = ' + str(tspan_n_contacts_avg)
 
-        # --- B) max Normal Force 
-        FnMaxAvg = DFgci['FnMax'].mean()
-        FnMaxSig = py.sqrt(DFgci['FnMax'].var() )
-        # add as constant columns to the DF
-        DFgci['FnMaxAvg'] = FnMaxAvg
-        DFgci['FnMaxSig'] = FnMaxSig
-        
-        # --- C) average normal force
-        FnAvgAvg = DFgci['FnAvg'].mean()
-        FnAvgSig = py.sqrt(DFgci['FnAvg'].var() )
-        # add to DF
-        DFgci['FnAvgAvg'] = FnAvgAvg
-        DFgci['FnAvgSig'] = FnAvgSig  
+        # for all plots: take the per step data and find 1) avg., 2) stdev over the whole sim time
+        #if specified, set the xlim of the two plots. Set any ylim that change a lot when tspan is not the whole sim time.
+        tminidx = 0
+        tmaxidx = -1
         if(tmin > 0):
-            tspan_Fn_avg = DFgci['Ncontacts'][tmin:tmax].mean()
-            # stev
-            print ' Fn Avg. for trange: [' + str(tmin) + ', ' + str(tmax) + '] = ' + str(tspan_Fn_avg)
-        
-        # --- D) stdev normal force
-        FnSigAvg = DFgci['FnSig'].mean()
-        FnSigSig = py.sqrt(DFgci['FnSig'].var() )
-        # add to DF
-        DFgci['FnSigAvg'] = FnSigAvg
-        DFgci['FnSigSig'] = FnSigSig
+            xminmax = self._get_timeMinMax(DFgci['time'].iget(-1), tmin, tmax)
+            axarrA[0].set_xlim(xminmax[0], xminmax[1])
+            axarrB[0].set_xlim(xminmax[0], xminmax[1])
+            # Gt the DF row index for tmin, tmax
+             # first index in this list is where we start
+            tminidxlist = DFgci[ DFgci['time'] > tmin].index.tolist()
+            tminidx = tminidxlist[0]
+            # last index in this list is the end point
+            tmaxidxlist = DFgci[ DFgci['time'] < tmax].index.tolist()
+            tmaxidx = tmaxidxlist[-1]           
+            
+            # change any y_lim that need it
+            axarrA[2].set_ylim(DFgci['FnAvg'][tminidx:tmaxidx].min(), DFgci['FnAvg'][tminidx:tmaxidx].max() )
+            
+            # set the avg. data
+            #) A ---- # of contacts on the gear body
+            n_contacts_avg = DFgci['Ncontacts'][tminidx:tmaxidx].mean()
+            n_contacts_sig = py.sqrt(DFgci['Ncontacts'][tminidx:tmaxidx].var())
+            # add these two as cosntant columns to the dataframe
+            DFgci['NcontactsAvg'] = n_contacts_avg
+            DFgci['NcontactsSig'] = n_contacts_sig
+    
+            # --- B) max Normal Force 
+            FnMaxAvg = DFgci['FnMax'][tminidx:tmaxidx].mean()
+            FnMaxSig = py.sqrt(DFgci['FnMax'][tminidx:tmaxidx].var() )
+            # add as constant columns to the DF
+            DFgci['FnMaxAvg'] = FnMaxAvg
+            DFgci['FnMaxSig'] = FnMaxSig
+            
+            # --- C) average normal force
+            FnAvgAvg = DFgci['FnAvg'][tminidx:tmaxidx].mean()
+            FnAvgSig = py.sqrt(DFgci['FnAvg'][tminidx:tmaxidx].var() )
+            # add to DF
+            DFgci['FnAvgAvg'] = FnAvgAvg
+            DFgci['FnAvgSig'] = FnAvgSig  
+            
+            # --- D) stdev normal force
+            FnSigAvg = DFgci['FnSig'][tminidx:tmaxidx].mean()
+            FnSigSig = py.sqrt(DFgci['FnSig'][tminidx:tmaxidx].var() )
+            # add to DF
+            DFgci['FnSigAvg'] = FnSigAvg
+            DFgci['FnSigSig'] = FnSigSig
+        else:
+            #) A ---- # of contacts on the gear body
+            n_contacts_avg = DFgci['Ncontacts'].mean()
+            n_contacts_sig = py.sqrt(DFgci['Ncontacts'].var())
+            # add these two as cosntant columns to the dataframe
+            DFgci['NcontactsAvg'] = n_contacts_avg
+            DFgci['NcontactsSig'] = n_contacts_sig
+    
+    
+            # --- B) max Normal Force 
+            FnMaxAvg = DFgci['FnMax'].mean()
+            FnMaxSig = py.sqrt(DFgci['FnMax'].var() )
+            # add as constant columns to the DF
+            DFgci['FnMaxAvg'] = FnMaxAvg
+            DFgci['FnMaxSig'] = FnMaxSig
+            
+            # --- C) average normal force
+            FnAvgAvg = DFgci['FnAvg'].mean()
+            FnAvgSig = py.sqrt(DFgci['FnAvg'].var() )
+            # add to DF
+            DFgci['FnAvgAvg'] = FnAvgAvg
+            DFgci['FnAvgSig'] = FnAvgSig  
+            
+            # --- D) stdev normal force
+            FnSigAvg = DFgci['FnSig'].mean()
+            FnSigSig = py.sqrt(DFgci['FnSig'].var() )
+            # add to DF
+            DFgci['FnSigAvg'] = FnSigAvg
+            DFgci['FnSigSig'] = FnSigSig
         
         # crate 4 subplots for the normal force data
         DFgci.plot(ax = axarrA[0], linewidth=1.5, x='time', y=['Ncontacts','NcontactsAvg','NcontactsSig'])
@@ -417,17 +458,12 @@ class DriveChain_panda:
         DFgci.plot(ax = axarrA[2], linewidth=1.5, x='time', y=['FnAvg','FnAvgAvg','FnAvgSig'])
         DFgci.plot(ax = axarrA[3], linewidth=1.5, x='time', y=['FnSig','FnSigAvg','FnSigSig'])
         
-        #if specified, set the xlim of the two plots
-        if(tmin > 0):
-            xminmax = self._get_timeMinMax(DFgci['time'].iget(-1), tmin, tmax)
-            axarrA[0].set_xlim(xminmax[0], xminmax[1])
-            axarrB[0].set_xlim(xminmax[0], xminmax[1])
             
         # first plot label axes 
         axarrA[0].set_xlabel('time [s]')
         axarrA[0].set_ylabel('# contacts')
         axarrA[1].set_ylabel('max Force [N]')
-        axarrA[2].set_ylabel('avg. Force[N}')
+        axarrA[2].set_ylabel('avg. Force[N')
         axarrA[3].set_ylabel('std. dev Force [N]')
         # first plot, legend
         axarrA[0].legend()
@@ -437,26 +473,48 @@ class DriveChain_panda:
         axarrA[0].set_title('Gear body normal contact force')
         
         # for all plots: take the per step data and find 1) avg., 2) stdev over the whole sim time
-        # --- B) max Normal Force 
-        FtMaxAvg = DFgci['FtMax'].mean()
-        FtMaxSig = py.sqrt(DFgci['FtMax'].var() )
-        # add as constant columns to the DF
-        DFgci['FtMaxAvg'] = FtMaxAvg
-        DFgci['FtMaxSig'] = FtMaxSig
-        
-        # --- C) average normal force
-        FtAvgAvg = DFgci['FtAvg'].mean()
-        FtAvgSig = py.sqrt(DFgci['FtAvg'].var() )
-        # add to DF
-        DFgci['FtAvgAvg'] = FtAvgAvg
-        DFgci['FtAvgSig'] = FtAvgSig       
-        
-        # --- D) stdev normal force
-        FtSigAvg = DFgci['FtSig'].mean()
-        FtSigSig = py.sqrt(DFgci['FtSig'].var() )
-        # add to DF
-        DFgci['FtSigAvg'] = FtSigAvg
-        DFgci['FtSigSig'] = FtSigSig        
+        if(tmin > 0):
+            # --- B) max Normal Force 
+            FtMaxAvg = DFgci['FtMax'][tminidx:tmaxidx].mean()
+            FtMaxSig = py.sqrt(DFgci['FtMax'][tminidx:tmaxidx].var() )
+            # add as constant columns to the DF
+            DFgci['FtMaxAvg'] = FtMaxAvg
+            DFgci['FtMaxSig'] = FtMaxSig
+            
+            # --- C) average normal force
+            FtAvgAvg = DFgci['FtAvg'][tminidx:tmaxidx].mean()
+            FtAvgSig = py.sqrt(DFgci['FtAvg'][tminidx:tmaxidx].var() )
+            # add to DF
+            DFgci['FtAvgAvg'] = FtAvgAvg
+            DFgci['FtAvgSig'] = FtAvgSig       
+            
+            # --- D) stdev normal force
+            FtSigAvg = DFgci['FtSig'][tminidx:tmaxidx].mean()
+            FtSigSig = py.sqrt(DFgci['FtSig'][tminidx:tmaxidx].var() )
+            # add to DF
+            DFgci['FtSigAvg'] = FtSigAvg
+            DFgci['FtSigSig'] = FtSigSig    
+        else:
+            # --- B) max Normal Force 
+            FtMaxAvg = DFgci['FtMax'].mean()
+            FtMaxSig = py.sqrt(DFgci['FtMax'].var() )
+            # add as constant columns to the DF
+            DFgci['FtMaxAvg'] = FtMaxAvg
+            DFgci['FtMaxSig'] = FtMaxSig
+            
+            # --- C) average normal force
+            FtAvgAvg = DFgci['FtAvg'].mean()
+            FtAvgSig = py.sqrt(DFgci['FtAvg'].var() )
+            # add to DF
+            DFgci['FtAvgAvg'] = FtAvgAvg
+            DFgci['FtAvgSig'] = FtAvgSig       
+            
+            # --- D) stdev normal force
+            FtSigAvg = DFgci['FtSig'].mean()
+            FtSigSig = py.sqrt(DFgci['FtSig'].var() )
+            # add to DF
+            DFgci['FtSigAvg'] = FtSigAvg
+            DFgci['FtSigSig'] = FtSigSig        
         
         
         # create second plot, 4 subplots for the friction contact force data
@@ -504,7 +562,7 @@ class DriveChain_panda:
         # Useful info for a specified time interval: Avg. # of contacts
         tminidx = 0
         tmaxidx = -1
-        #) A ---- # of contacts on the gear body
+        # find statistics based on a specified (tmin,tmax) time span
         if(tmin > 0):
             # first index in this list is where we start
             tminidxlist = DFsgci[ DFsgci['time'] > tmin].index.tolist()
@@ -512,40 +570,63 @@ class DriveChain_panda:
             # last index in this list is the end point
             tmaxidxlist = DFsgci[ DFsgci['time'] < tmax].index.tolist()
             tmaxidx = tmaxidxlist[-1]
-            tspan_n_contacts_avg = DFsgci['Ncontacts'][tminidx:tmaxidx ].mean()
-            # tspan_n_contacts_sig = py.sqrt(DFgci['Ncontacts'][tmin:tmax].var() )
-            print ' Avg # of contacts for trange: [' + str(tmin) + ', ' + str(tmax) + '] = ' + str(tspan_n_contacts_avg)
-
-        n_contacts_avg = DFsgci['Ncontacts'].mean()
-        n_contacts_sig = py.sqrt(DFsgci['Ncontacts'].var())
-        # add these two as cosntant columns to the dataframe
-        DFsgci['NcontactsAvg'] = n_contacts_avg
-        DFsgci['NcontactsSig'] = n_contacts_sig
-
-        # --- B) max Normal Force 
-        FnMaxAvg = DFsgci['FnMax'].mean()
-        FnMaxSig = py.sqrt(DFsgci['FnMax'].var() )
-        # add as constant columns to the DF
-        DFsgci['FnMaxAvg'] = FnMaxAvg
-        DFsgci['FnMaxSig'] = FnMaxSig
-        
-        # --- C) average normal force
-        FnAvgAvg = DFsgci['FnAvg'].mean()
-        FnAvgSig = py.sqrt(DFsgci['FnAvg'].var() )
-        # add to DF
-        DFsgci['FnAvgAvg'] = FnAvgAvg
-        DFsgci['FnAvgSig'] = FnAvgSig  
-        if(tmin > 0):
-            tspan_Fn_avg = DFsgci['Ncontacts'][tminidx:tmaxidx].mean()
-            # stev
-            print ' Fn Avg. for trange: [' + str(tmin) + ', ' + str(tmax) + '] = ' + str(tspan_Fn_avg)
-        
-        # --- D) stdev normal force
-        FnSigAvg = DFsgci['FnSig'].mean()
-        FnSigSig = py.sqrt(DFsgci['FnSig'].var() )
-        # add to DF
-        DFsgci['FnSigAvg'] = FnSigAvg
-        DFsgci['FnSigSig'] = FnSigSig
+            
+            #) A ---- # of contacts on the gear body
+            n_contacts_avg = DFsgci['Ncontacts'][tminidx:tmaxidx].mean()
+            n_contacts_sig = py.sqrt(DFsgci['Ncontacts'][tminidx:tmaxidx].var())
+            # add these two as cosntant columns to the dataframe
+            DFsgci['NcontactsAvg'] = n_contacts_avg
+            DFsgci['NcontactsSig'] = n_contacts_sig
+    
+            # --- B) max Normal Force 
+            FnMaxAvg = DFsgci['FnMax'][tminidx:tmaxidx].mean()
+            FnMaxSig = py.sqrt(DFsgci['FnMax'][tminidx:tmaxidx].var() )
+            # add as constant columns to the DF
+            DFsgci['FnMaxAvg'] = FnMaxAvg
+            DFsgci['FnMaxSig'] = FnMaxSig
+            
+            # --- C) average normal force
+            FnAvgAvg = DFsgci['FnAvg'][tminidx:tmaxidx].mean()
+            FnAvgSig = py.sqrt(DFsgci['FnAvg'][tminidx:tmaxidx].var() )
+            # add to DF
+            DFsgci['FnAvgAvg'] = FnAvgAvg
+            DFsgci['FnAvgSig'] = FnAvgSig  
+            
+            # --- D) stdev normal force
+            FnSigAvg = DFsgci['FnSig'][tminidx:tmaxidx].mean()
+            FnSigSig = py.sqrt(DFsgci['FnSig'][tminidx:tmaxidx].var() )
+            # add to DF
+            DFsgci['FnSigAvg'] = FnSigAvg
+            DFsgci['FnSigSig'] = FnSigSig
+            
+        else:
+            #) A ---- # of contacts on the gear body
+            n_contacts_avg = DFsgci['Ncontacts'].mean()
+            n_contacts_sig = py.sqrt(DFsgci['Ncontacts'].var())
+            # add these two as cosntant columns to the dataframe
+            DFsgci['NcontactsAvg'] = n_contacts_avg
+            DFsgci['NcontactsSig'] = n_contacts_sig
+    
+            # --- B) max Normal Force 
+            FnMaxAvg = DFsgci['FnMax'].mean()
+            FnMaxSig = py.sqrt(DFsgci['FnMax'].var() )
+            # add as constant columns to the DF
+            DFsgci['FnMaxAvg'] = FnMaxAvg
+            DFsgci['FnMaxSig'] = FnMaxSig
+            
+            # --- C) average normal force
+            FnAvgAvg = DFsgci['FnAvg'].mean()
+            FnAvgSig = py.sqrt(DFsgci['FnAvg'].var() )
+            # add to DF
+            DFsgci['FnAvgAvg'] = FnAvgAvg
+            DFsgci['FnAvgSig'] = FnAvgSig  
+            
+            # --- D) stdev normal force
+            FnSigAvg = DFsgci['FnSig'].mean()
+            FnSigSig = py.sqrt(DFsgci['FnSig'].var() )
+            # add to DF
+            DFsgci['FnSigAvg'] = FnSigAvg
+            DFsgci['FnSigSig'] = FnSigSig
         
         # ---- first plot: 4 subplots for the normal force data
         DFsgci.plot(ax = axarrA[0], linewidth=1.5, x='time', y=['Ncontacts','NcontactsAvg','NcontactsSig'])
@@ -573,28 +654,51 @@ class DriveChain_panda:
         axarrA[2].legend()
         axarrA[3].legend()
         axarrA[0].set_title('shoe0-Gear normal contact force')
-        
-        # for all plots: take the per step data and find 1) avg., 2) stdev over the whole sim time
-        # --- B) max Normal Force 
-        FtMaxAvg = DFsgci['FtMax'].mean()
-        FtMaxSig = py.sqrt(DFsgci['FtMax'].var() )
-        # add as constant columns to the DF
-        DFsgci['FtMaxAvg'] = FtMaxAvg
-        DFsgci['FtMaxSig'] = FtMaxSig
-        
-        # --- C) average normal force
-        FtAvgAvg = DFsgci['FtAvg'].mean()
-        FtAvgSig = py.sqrt(DFsgci['FtAvg'].var() )
-        # add to DF
-        DFsgci['FtAvgAvg'] = FtAvgAvg
-        DFsgci['FtAvgSig'] = FtAvgSig       
-        
-        # --- D) stdev normal force
-        FtSigAvg = DFsgci['FtSig'].mean()
-        FtSigSig = py.sqrt(DFsgci['FtSig'].var() )
-        # add to DF
-        DFsgci['FtSigAvg'] = FtSigAvg
-        DFsgci['FtSigSig'] = FtSigSig        
+
+        # for all plots: take the per step data and find 1) avg., 2) stdev over the input time span     
+        if(tmin > 0):
+            # --- B) max Normal Force 
+            FtMaxAvg = DFsgci['FtMax'][tminidx:tmaxidx].mean()
+            FtMaxSig = py.sqrt(DFsgci['FtMax'][tminidx:tmaxidx].var() )
+            # add as constant columns to the DF
+            DFsgci['FtMaxAvg'] = FtMaxAvg
+            DFsgci['FtMaxSig'] = FtMaxSig
+            
+            # --- C) average normal force
+            FtAvgAvg = DFsgci['FtAvg'][tminidx:tmaxidx].mean()
+            FtAvgSig = py.sqrt(DFsgci['FtAvg'][tminidx:tmaxidx].var() )
+            # add to DF
+            DFsgci['FtAvgAvg'] = FtAvgAvg
+            DFsgci['FtAvgSig'] = FtAvgSig       
+            
+            # --- D) stdev normal force
+            FtSigAvg = DFsgci['FtSig'][tminidx:tmaxidx].mean()
+            FtSigSig = py.sqrt(DFsgci['FtSig'][tminidx:tmaxidx].var() )
+            # add to DF
+            DFsgci['FtSigAvg'] = FtSigAvg
+            DFsgci['FtSigSig'] = FtSigSig        
+        else:
+            # for all plots: take the per step data and find 1) avg., 2) stdev over the whole sim time
+            # --- B) max Normal Force 
+            FtMaxAvg = DFsgci['FtMax'].mean()
+            FtMaxSig = py.sqrt(DFsgci['FtMax'].var() )
+            # add as constant columns to the DF
+            DFsgci['FtMaxAvg'] = FtMaxAvg
+            DFsgci['FtMaxSig'] = FtMaxSig
+            
+            # --- C) average normal force
+            FtAvgAvg = DFsgci['FtAvg'].mean()
+            FtAvgSig = py.sqrt(DFsgci['FtAvg'].var() )
+            # add to DF
+            DFsgci['FtAvgAvg'] = FtAvgAvg
+            DFsgci['FtAvgSig'] = FtAvgSig       
+            
+            # --- D) stdev normal force
+            FtSigAvg = DFsgci['FtSig'].mean()
+            FtSigSig = py.sqrt(DFsgci['FtSig'].var() )
+            # add to DF
+            DFsgci['FtSigAvg'] = FtSigAvg
+            DFsgci['FtSigSig'] = FtSigSig        
         
         
         # -----  create second plot, 4 subplots for the friction contact force data
@@ -676,8 +780,8 @@ if __name__ == '__main__':
     # construct with file list and list of legend
     Chain = DriveChain_panda(data_files,handle_list)
     
-    tmin = 1
-    tmax = 5
+    tmin = 1.8
+    tmax = 2.6
     # 1) plot the gear body info
     Chain.plot_gear()
     
@@ -700,9 +804,9 @@ if __name__ == '__main__':
     Chain.plot_rollerCV(tmin,tmax)
     
     # 8) from the contact report callback function, gear contact info
-    Chain.plot_gearContactInfo()
+    Chain.plot_gearContactInfo(tmin,tmax)
     
     # 9)  from shoe-gear report callback function, contact info
-    Chain.plot_shoeGearContactInfo()
+    Chain.plot_shoeGearContactInfo(tmin,tmax)
 
 py.show()
