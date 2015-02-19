@@ -136,8 +136,9 @@ class DriveChain_panda:
             tmaxidxlist = DFid[ DFid['time'] < tmax].index.tolist()
             tmaxidx = tmaxidxlist[-1]   
             
-            maxF = DFid['F_tensioner'][tminidx:tmaxidx].max()
+            # reset any ylim that look much better when specified time span is plotted
             axarrA[1].set_ylim(DFid['Vx'][tminidx:tmaxidx].min(), DFid['Vx'][tminidx:tmaxidx].max())
+            maxF = DFid['F_tensioner'][tminidx:tmaxidx].max()
             axarrB.set_ylim(-maxF,maxF)
             
         # first plot label axes 
@@ -179,9 +180,23 @@ class DriveChain_panda:
         DFpt.plot(ax = axarr[2], linewidth=1.5, x='time', y=['outT'])
         
         #if specified, set the xlim of the two plots
+        #if specified, set the xlim of the two plots. Set any ylim that change a lot when tspan is not the whole sim time.
+        tminidx = 0
+        tmaxidx = -1
         if(tmin > 0):
             xminmax = self._get_timeMinMax(DFpt['time'].iget(-1), tmin, tmax)
             axarr[0].set_xlim(xminmax[0], xminmax[1])
+            # Gt the DF row index for tmin, tmax
+            # first index in this list is where we start
+            tminidxlist = DFpt[ DFpt['time'] > tmin].index.tolist()
+            tminidx = tminidxlist[0]
+            # last index in this list is the end point
+            tmaxidxlist = DFpt[ DFpt['time'] < tmax].index.tolist()
+            tmaxidx = tmaxidxlist[-1]   
+            
+            axarr[0].set_ylim(DFpt['motSpeed'][tminidx:tmaxidx].min(), DFpt['motSpeed'][tminidx:tmaxidx].max())
+            axarr[1].set_ylim(DFpt['motT'][tminidx:tmaxidx].min(), DFpt['motT'][tminidx:tmaxidx].max())
+            axarr[2].set_ylim(DFpt['outT'][tminidx:tmaxidx].min(), DFpt['outT'][tminidx:tmaxidx].max())
         
         # labels, legend
         axarr[0].set_xlabel('time [s]')
@@ -233,6 +248,10 @@ class DriveChain_panda:
             # set any limits that are much better when tspan is changed
             axarrA[2].set_ylim(DFs['Wz'][tminidx:tmaxidx].min(), DFs['Wz'][tminidx:tmaxidx].max() )
             axarrA[3].set_ylim(DFs['Ay'][tminidx:tmaxidx].min(), DFs['Ay'][tminidx:tmaxidx].max() )
+            axarrB[0].set_ylim(DFs['Fx'][tminidx:tmaxidx].min(), DFs['Fx'][tminidx:tmaxidx].max() )
+            axarrB[1].set_ylim(DFs['Fy'][tminidx:tmaxidx].min(), DFs['Fy'][tminidx:tmaxidx].max() )
+            axarrC[0].set_ylim(DFs['Tx'][tminidx:tmaxidx].min(), DFs['Tx'][tminidx:tmaxidx].max() )
+            axarrC[1].set_ylim(DFs['Ty'][tminidx:tmaxidx].min(), DFs['Ty'][tminidx:tmaxidx].max() )
         
         # first plot label axes 
         axarrA[0].set_xlabel('time [s]')
@@ -548,8 +567,8 @@ class DriveChain_panda:
         # plot # of contacts, time in contact, max time in contact
         figC, axarrC = plt.subplots(2,sharex=True)
         
-        # plot # of contacts, time in contact, max time in contact
-        figD, axarrD = plt.subplots(2,sharex=True)        
+        # plot contact point relative position, velcoity, pitch radius/velocity
+        figD, axarrD = plt.subplots(3,sharex=True)        
         
         # data headers to pull from
         inDat = ['time','Ncontacts','t_persist','t_persist_max','FnMax','FnAvg','FnSig','FtMax','FtAvg','FtSig','xRel','yRel','zRel','VxRel','VyRel','VzRel']      
@@ -640,7 +659,6 @@ class DriveChain_panda:
             axarrA[0].set_xlim(xminmax[0], xminmax[1])
             axarrB[0].set_xlim(xminmax[0], xminmax[1])
             axarrC[0].set_xlim(xminmax[0], xminmax[1])
-            axarrD[0].set_xlim(xminmax[0], xminmax[1])
             
         # first plot label axes 
         axarrA[0].set_xlabel('time [s]')
@@ -733,17 +751,34 @@ class DriveChain_panda:
         axarrC[1].legend()
         axarrC[0].set_title('shoe0-gear contact persistence')
         
+        # the pitch radius of the contact point will be in the x-y dims, w.r.t. gear c-sys
+        pitch_rad = (DFsgci['xRel']**2 + DFsgci['yRel']**2)**0.5
+        pitch_vel = (DFsgci['VxRel']**2 + DFsgci['VyRel']**2)**0.5
+        DFsgci['pitchRad'] = pitch_rad
+        DFsgci['pitchVel'] = pitch_vel
+        
          # -----  fourth plot, follow a single gear-shoe contact point, its pos and vel relative to the gear c-sys
         DFsgci.plot(ax = axarrD[0], linewidth=1.5, x='time', y=['xRel','yRel','zRel'])
         DFsgci.plot(ax = axarrD[1], linewidth=1.5, x='time', y=['VxRel','VyRel','VzRel'])
+        DFsgci.plot(ax = axarrD[2], linewidth=1.5, x='time', y=['pitchRad'])
+        axRHS = axarrD[2].twinx()
+        axRHS.plot(DFsgci['time'], DFsgci['pitchVel'],'r--', linewidth = 1.5, label = 'pitch vel.')
+        
+        #if specified, set the xlim of the 3 plots
+        if(tmin > 0):
+            axarrD[0].set_xlim(xminmax[0], xminmax[1])        
         
         # plot label axes, legend
         axarrD[0].set_xlabel('time [s]')
         axarrD[0].set_ylabel('relative position [m]')
         axarrD[1].set_ylabel('realtive vel. [m/s]')
+        axarrD[2].set_ylabel('relative position [m]')
+        axRHS.set_ylabel('relative vel. [m/s]')
         #  legend
         axarrD[0].legend()
         axarrD[1].legend()
+        axarrD[2].legend()
+        axRHS.legend(loc='center right')
         axarrD[0].set_title('shoe0-gear, track a contact point, position, vel. relative to gear c-sys')
       
 if __name__ == '__main__':
@@ -780,8 +815,9 @@ if __name__ == '__main__':
     # construct with file list and list of legend
     Chain = DriveChain_panda(data_files,handle_list)
     
-    tmin = 1.8
-    tmax = 2.6
+    tmin = 1.96
+    tmax = 2.54
+    '''
     # 1) plot the gear body info
     Chain.plot_gear()
     
@@ -805,7 +841,7 @@ if __name__ == '__main__':
     
     # 8) from the contact report callback function, gear contact info
     Chain.plot_gearContactInfo(tmin,tmax)
-    
+    '''
     # 9)  from shoe-gear report callback function, contact info
     Chain.plot_shoeGearContactInfo(tmin,tmax)
 
