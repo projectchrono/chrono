@@ -151,16 +151,19 @@ class DriveChain_panda:
     # plot powertrain info, with a optional time interval
     def plot_ptrain(self, tmin = -1, tmax = -1):
         # plot mot speed, mot torque, and output shaft torque
-        fig, axarr = plt.subplots(2, sharex=True)
+        fig, axarr = plt.subplots(3, sharex=True)
         
         #data headers
-        inDat = ['time','motSpeed','motT','outT']
+        inDat = ['time','throttle','motSpeed','motT','outT']
         # data frame from headers
         DFpt = pd.DataFrame(self._getDFhandle('ptrain'), columns = inDat)
         
         # create a subplot for speed, and torues
         DFpt.plot(ax = axarr[0], linewidth=1.5, x='time', y=['motSpeed'])
-        DFpt.plot(ax = axarr[1], linewidth=1.5, x='time', y=['motT','outT'])
+        axRHS = axarr[0].twinx()
+        axRHS.plot(DFpt['time'], DFpt['throttle'],'r--', linewidth = 1.5) # , label = 'throttle')
+        DFpt.plot(ax = axarr[1], linewidth=1.5, x='time', y=['motT'])
+        DFpt.plot(ax = axarr[2], linewidth=1.5, x='time', y=['outT'])
         
         #if specified, set the xlim of the two plots
         if(tmin > 0):
@@ -169,11 +172,14 @@ class DriveChain_panda:
         
         # labels, legend
         axarr[0].set_xlabel('time [s]')
-        axarr[0].set_ylabel('rot vel [rad/s]')
-        axarr[1].set_ylabel('torque [N-m]')
+        axarr[0].set_ylabel('motor speed [RPM]')
+        axRHS.set_ylabel('throttle [-]')
+        axarr[1].set_ylabel('engine torque [N-m]')
+        axarr[2].set_ylabel('output torque [N-m]')
         axarr[0].legend()
+        axRHS.legend()
         axarr[1].legend()
-        axarr.set_title('powertrain')
+        axarr[0].set_title('powertrain')
         
     # plot shoe 0 body info, and pin 0 force/torque, with an optional time interval
     def plot_shoe(self, tmin = -1, tmax = -1):

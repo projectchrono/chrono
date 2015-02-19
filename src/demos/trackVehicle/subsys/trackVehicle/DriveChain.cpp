@@ -923,7 +923,11 @@ void DriveChain::Log_to_console(int console_what)
 
   if (console_what & DBG_PTRAIN)
   {
-    GetLog() << "\n ---- powertrain : \n";
+    GetLog() << "\n ---- powertrain \N throttle : " << m_ptrains[0]->GetThrottle()
+      <<"\n motor speed [RPM] : " << m_ptrains[0]->GetMotorSpeed() * 60.0 / (CH_C_2PI)
+      <<"\n motor torque [N-m] : " << m_ptrains[0]->GetMotorTorque()
+      <<"\n output torque [N-m : " << m_ptrains[0]->GetOutputTorque()
+      <<"\n";
   
   }
 
@@ -1043,7 +1047,8 @@ void DriveChain::Log_to_file()
     {
       std::stringstream ss_pt;
       // motor speed, mot torque, out torque
-      ss_pt << t <<","<< m_ptrains[0]->GetMotorSpeed()
+      ss_pt << t <<","<< m_ptrains[0]->GetThrottle()
+        <<","<< m_ptrains[0]->GetMotorSpeed() * 60.0 / (CH_C_2PI) // RPM
         <<","<< m_ptrains[0]->GetMotorTorque()
         <<","<< m_ptrains[0]->GetOutputTorque()
         <<"\n";
@@ -1145,7 +1150,7 @@ void DriveChain::create_fileHeaders(int what)
     m_filename_DBG_PTRAIN = m_log_file_name+"_ptrain.csv";
     ChStreamOutAsciiFile ofileDBG_PTRAIN(m_filename_DBG_PTRAIN.c_str());
     std::stringstream ss_pt;
-    ss_pt << "time,motSpeed,motT,outT\n";
+    ss_pt << "time,throttle,motSpeed,motT,outT\n";
     ofileDBG_PTRAIN << ss_pt.str().c_str();
     GetLog() << " writing to file: " << m_filename_DBG_PTRAIN << "\n          data: " << ss_pt.str().c_str() <<"\n";
   }

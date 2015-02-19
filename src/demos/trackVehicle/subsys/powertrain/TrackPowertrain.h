@@ -91,6 +91,9 @@ public:
   /// this function returns 0.
   double GetOutputTorque() const { return m_gears->GetTorqueReactionOn2(); }
 
+  /// current throttle value
+  double GetThrottle() const { return m_engine->GetThrottle();}
+
   // Accessors, from concrete class
   double GetMotorBlockInertia() const      { return m_motorblock_inertia; }
   double GetCrankshaftInertia() const      { return m_crankshaft_inertia; }

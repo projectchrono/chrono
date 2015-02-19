@@ -75,7 +75,7 @@ using namespace chrono;
 // #define CONSOLE_TIMING       // time each render and simulation step, log to console
 
 int what_to_save = DBG_FIRSTSHOE | DBG_GEAR | DBG_IDLER | DBG_PTRAIN | DBG_CONSTRAINTS;
-int what_to_console = DBG_FIRSTSHOE | DBG_GEAR | DBG_IDLER | DBG_PTRAIN | DBG_CONSTRAINTS;
+int what_to_console = DBG_PTRAIN; // DBG_FIRSTSHOE | DBG_GEAR | DBG_IDLER | DBG_PTRAIN | DBG_CONSTRAINTS;
 
 // Initial vehicle position and heading. Defines the REF frame for the hull body
 ChVector<> initLoc(0, 1.0, 0);
@@ -95,7 +95,7 @@ double output_step_size = step_size;    // Time interval between two output fram
 ChVector<> trackPoint(-1, 0, 0.2);   // Point on chassis tracked by the camera, chassis c-sys
 
 bool use_fixed_camera = true;
-ChVector<> cameraPos(-0.5, 1, 2.4); // static camera position, global c-sys
+ChVector<> fixed_cameraPos(-0.5, 1, 2.4); // static camera position, global c-sys
 // if chase cam enabled:
 double chaseDist = 2.5;
 double chaseHeight = 0.5;
@@ -103,8 +103,8 @@ double chaseHeight = 0.5;
 bool do_shadows = false; // shadow map is experimental
 
 bool autopilot = true;
-double sineAmp = 0.8;
-double sineFreq = 0.5;
+double sineAmp = 0.5;
+double sineFreq = 0.2;
 double tStart = 0.01;
 
 
@@ -189,7 +189,7 @@ int main(int argc, char* argv[])
   ChIrrGuiTrack driver(application, chainSystem, trackPoint, chaseDist, chaseHeight,window_x_len-150);
   // even though using a chase camera, set the initial camera position laterally
   if(use_fixed_camera)
-    driver.SetCameraPos(cameraPos);
+    driver.SetCameraPos(fixed_cameraPos);
 
   // Set the time response for steering and throttle keyboard inputs.
   // NOTE: this is not exact, since we do not render quite at the specified FPS.
@@ -301,7 +301,7 @@ int main(int argc, char* argv[])
 
     // Advance simulation for one timestep for all modules
     // step_size = realtime_timer.SuggestSimulationStep(step_size);
-    use_fixed_camera ? driver.Advance(step_size, cameraPos): driver.Advance(step_size); 
+    use_fixed_camera ? driver.Advance(step_size, fixed_cameraPos): driver.Advance(step_size); 
 
     // Settlings phase has hardcoded solver settings, for the first few timesteps
     // application.SetPaused(true);
