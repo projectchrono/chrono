@@ -101,8 +101,7 @@ ChLinkWheel::ChLinkWheel ()
 
             // Mask: initialize our LinkMaskLF (lock formulation mask)
     ((ChLinkMaskLF*)mask)->SetLockMask(false,false, true,
-                        false,false,false,false,
-                        false, false);
+                        false,false,false,false);
 	((ChLinkMaskLF*)mask)->Constr_Z().SetMode(CONSTRAINT_UNILATERAL);
 
     ChangedLinkMask();

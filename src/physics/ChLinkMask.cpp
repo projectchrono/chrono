@@ -364,7 +364,7 @@ ChClassRegister<ChLinkMaskLF> a_registration_ChLinkMaskLF;
 
 ChLinkMaskLF::ChLinkMaskLF()
 {
-    ResetNconstr(9);    // the LF formulation uses 9 constraint flags
+    ResetNconstr(7);    // the LF formulation uses 7 constraint flags
 }
 
 void ChLinkMaskLF::Copy(ChLinkMaskLF* source)
@@ -406,8 +406,7 @@ int ChLinkMaskLF::Set2Dmode(int mode)
 }
 
 void ChLinkMaskLF::SetLockMask(int x, int y, int z,
-                       int e0, int e1, int e2, int e3,
-                       int p, int d)
+                               int e0, int e1, int e2, int e3)
 {
 	if (x)
 	{
@@ -463,22 +462,6 @@ void ChLinkMaskLF::SetLockMask(int x, int y, int z,
 	}else
 	{
 		this->Constr_E3().SetMode(CONSTRAINT_FREE);
-	}
-
-	if (p)
-	{
-		this->Constr_P().SetMode(CONSTRAINT_LOCK);
-	}else
-	{
-		this->Constr_P().SetMode(CONSTRAINT_FREE);
-	}
-
-	if (d)
-	{
-		this->Constr_D().SetMode(CONSTRAINT_LOCK);
-	}else
-	{
-		this->Constr_D().SetMode(CONSTRAINT_FREE);
 	}
 }
 

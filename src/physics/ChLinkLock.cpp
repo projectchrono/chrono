@@ -168,77 +168,63 @@ void ChLinkLock::BuildLinkType (int link_type)
     ChLinkMaskLF m_mask;
 
     // Note that the SetLockMask() sets the costraints for the
-    // link coordinates: (X,Y,Z, E0, E1,E2,E3, P, D);
+    // link coordinates: (X,Y,Z, E0,E1,E2,E3)
 
     // default.. free
     m_mask.SetLockMask (false,false,false,
-                        false,false,false,false,
-                        false,false);
+                        false,false,false,false);
 
     if (type == LNK_FREE)
         m_mask.SetLockMask (false,false,false,
-                        false,false,false,false,
-                        false,false);
+                        false,false,false,false);
 
     if (type == LNK_LOCK)
         m_mask.SetLockMask (true, true, true,
-                        false,true, true, true,
-                        false,false);
+                        false,true, true, true);
 
     if (type == LNK_SPHERICAL)
         m_mask.SetLockMask (true, true, true,
-                        false,false,false,false,
-                        false,false);
+                        false,false,false,false);
 
     if (type == LNK_POINTPLANE)
         m_mask.SetLockMask (false,false,true,
-                        false,false,false,false,
-                        false,false);
+                        false,false,false,false);
 
     if (type == LNK_POINTLINE)
         m_mask.SetLockMask (false,true, true,
-                        false,false,false,false,
-                        false,false);
+                        false,false,false,false);
 
     if (type == LNK_REVOLUTE)
         m_mask.SetLockMask (true, true, true,
-                        false,true, true,false,
-                        false,false);
+                        false,true, true,false);
 
     if (type == LNK_CYLINDRICAL)
         m_mask.SetLockMask (true, true, false,
-                        false,true, true, false,
-                        false,false);
+                        false,true, true, false);
 
     if (type == LNK_PRISMATIC)
         m_mask.SetLockMask (true, true, false,
-                        false,true, true, true,
-                        false,false);
+                        false,true, true, true);
 
     if (type == LNK_PLANEPLANE)
         m_mask.SetLockMask (false,false,true,
-                        false,true, true, false,
-                        false,false);
+                        false,true, true, false);
 
     if (type == LNK_OLDHAM)
         m_mask.SetLockMask (false,false,true,
-                        false,true, true, true,
-                        false,false);
+                        false,true, true, true);
 
     if (type == LNK_ALIGN)
         m_mask.SetLockMask (false,false,false,
-                        false,true, true, true,
-                        false,false);
+                        false,true, true, true);
 
     if (type == LNK_PARALLEL)
         m_mask.SetLockMask (false,false,false,
-                        false,true, true, false,
-                        false,false);
+                        false,true, true, false);
 
     if (type == LNK_PERPEND)
         m_mask.SetLockMask (false,false,false,
-                        false,true, false,true,
-                        false,false);
+                        false,true, false,true);
 
     BuildLink (&m_mask);    // , TRUE);
 }
@@ -904,7 +890,7 @@ void ChLinkLock::UpdateState ()
 
     ChLinkMaskLF* mmask = (ChLinkMaskLF*) this->mask;
 
-	if (mmask->Constr_X().IsActive()) // for X costraint...
+    if (mmask->Constr_X().IsActive()) // for X costraint...
     {
         Cq1->PasteClippedMatrix (Cq1_temp, 0,0, 1,7, index, 0);
         Cq2->PasteClippedMatrix (Cq2_temp, 0,0, 1,7, index, 0);
@@ -1019,69 +1005,6 @@ void ChLinkLock::UpdateState ()
         C_dtdt->SetElement(index,0, relC_dtdt.rot.e3);
 
         Ct->SetElement(index,0, Ct_temp.rot.e3);
-
-        index ++;
-    }
-
-    if (mmask->Constr_P().IsActive()) // for P (polar, conical rotation) costraint...
-    {
-        Cq1->PasteClippedMatrix (Cq1_temp, 6,3, 1,4, index, 3);
-        Cq2->PasteClippedMatrix (Cq2_temp, 6,3, 1,4, index, 3);
-
-        Qc->SetElement(index,0,
-                      Qc_temp->GetElement (6,0));
-
-        C->SetElement(index,0,      relC.rot.e3);
-        C_dt->SetElement(index,0,   relC_dt.rot.e3);
-        C_dtdt->SetElement(index,0, relC_dtdt.rot.e3);
-
-        Ct->SetElement(index,0, Ct_temp.rot.e3);
-
-        index ++;
-    }
-
-    if (mmask->Constr_D().IsActive()) // for D (distance costraint)
-    {
-        ChMatrixNM<double,3,7> Cq1tmp;
-        ChMatrixNM<double,3,7> Cq2tmp;
-        ChMatrixNM<double,1,7> Cq1d;
-        ChMatrixNM<double,1,7> Cq2d;
-        ChMatrixNM<double,3,1> mfact;
-        double mQd;
-
-        ChVector<> vfact;
-        vfact= Vnorm(relM.pos);
-        mfact.PasteVector(vfact,0,0);
-
-        Cq1tmp.PasteClippedMatrix (Cq1_temp, 0,0, 3,7, 0,0);
-        Cq2tmp.PasteClippedMatrix (Cq2_temp, 0,0, 3,7, 0,0);
-                // Cq= (1/||relM||)*relM'*Cq_lock
-        Cq1d.MatrTMultiply(mfact,Cq1tmp);
-        Cq2d.MatrTMultiply(mfact,Cq2tmp);
-
-        Cq1->PasteClippedMatrix (&Cq1d, 0,0, 1,7, index, 0);
-        Cq2->PasteClippedMatrix (&Cq2d, 0,0, 1,7, index, 0);
-
-        ChVector<> Qvect;
-        Qvect.x = Qc_temp->GetElement(0,0);
-        Qvect.y = Qc_temp->GetElement(1,0);
-        Qvect.z = Qc_temp->GetElement(2,0);
-
-        Qvect = Vsub (Qvect, deltaC_dtdt.pos); // cut away effect of xyz deltas
-        mQd = Vdot (vfact, Qvect);
-        mQd = mQd - (1/Vlength(relM.pos))*Vdot(relM_dt.pos, relM_dt.pos);
-        double sq_q = Vdot(relM_dt.pos, relM.pos); sq_q = sq_q*sq_q;
-        mQd = mQd + (1/Vlength(relM.pos))*Vdot(relM.pos, relM.pos)*sq_q;
-        mQd = mQd + deltaC_dtdt.pos.x;
-
-        Qc->SetElement(index,0, mQd);
-
-        C->SetElement(index,0,      (Vlength(relM.pos)-deltaC.pos.x));
-        C_dt->SetElement(index,0,   ((Vdot(relM_dt.pos,   Vnorm(relM.pos)))-deltaC_dt.pos.x));
-        C_dtdt->SetElement(index,0, ((Vdot(relM_dtdt.pos, Vnorm(relM.pos)))-deltaC_dtdt.pos.x));
-
-        Ct->SetElement(index,0,
-                      Vdot(vfact,Ct_temp.pos));
 
         index ++;
     }
@@ -1495,13 +1418,6 @@ void ChLinkLock::ConstraintsFetch_react(double factor)
         n_costraint++ ; }
     if (mmask->Constr_E3().IsActive()) {
         react_torque.z = - 0.5* (react->GetElement(n_costraint, 0));
-        n_costraint++ ; }
-    if (mmask->Constr_P().IsActive()) {
-        react_torque.z = - 0.5* (react->GetElement(n_costraint, 0));
-        n_costraint++ ; }
-    if (mmask->Constr_D().IsActive()) {
-        react_force  = Vadd (react_force,
-            Vmul (Vnorm(relM.pos),- (react->GetElement(n_costraint, 0))));
         n_costraint++ ; }
 
     // ***TO DO***?: TRASFORMATION FROM delta COORDS TO LINK COORDS, if non-default delta

@@ -63,8 +63,7 @@ ChLinkGear::ChLinkGear ()
             // Mask: initialize our LinkMaskLF (lock formulation mask)
             // to X  only. It was a LinkMaskLF because this class inherited from LinkLock.
     ((ChLinkMaskLF*)mask)->SetLockMask(true, false, false,
-                       false, false, false, false,
-                       false, false);
+                       false, false, false, false);
     ChangedLinkMask();
 }
 

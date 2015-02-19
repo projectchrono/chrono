@@ -174,7 +174,7 @@ class ChApi ChLinkMaskLF : public  ChLinkMask
 
 public:
 
-			/// Create a ChLinkMaskLF which has 9 scalar constraints of
+			/// Create a ChLinkMaskLF which has 7 scalar constraints of
 			/// class ChLcpConstraintTwoBodies(). This is useful in case it must
 			/// be used for the ChLinkLock link.
 	ChLinkMaskLF();
@@ -182,31 +182,23 @@ public:
 	void Copy(ChLinkMaskLF* source);
 	ChLinkMask* NewDuplicate();
 
-
-
 		/// set all mask data at once
-	void SetLockMask(int x, int y, int z, int e0, int e1, int e2, int e3, int p, int d);
-
+	void SetLockMask(int x, int y, int z, int e0, int e1, int e2, int e3);
 
 		/// Obtain the reference to specific scalar constraint data
 		/// in the collection of this link mask.
-	ChLcpConstraintTwoBodies& Constr_X()  {return *constraints[0];};
-	ChLcpConstraintTwoBodies& Constr_Y()  {return *constraints[1];};
-	ChLcpConstraintTwoBodies& Constr_Z()  {return *constraints[2];};
-	ChLcpConstraintTwoBodies& Constr_E0() {return *constraints[3];};
-	ChLcpConstraintTwoBodies& Constr_E1() {return *constraints[4];};
-	ChLcpConstraintTwoBodies& Constr_E2() {return *constraints[5];};
-	ChLcpConstraintTwoBodies& Constr_E3() {return *constraints[6];};
-	ChLcpConstraintTwoBodies& Constr_P()  {return *constraints[7];};
-	ChLcpConstraintTwoBodies& Constr_D()  {return *constraints[8];};
-
-
+	ChLcpConstraintTwoBodies& Constr_X()  {return *constraints[0];}
+	ChLcpConstraintTwoBodies& Constr_Y()  {return *constraints[1];}
+	ChLcpConstraintTwoBodies& Constr_Z()  {return *constraints[2];}
+	ChLcpConstraintTwoBodies& Constr_E0() {return *constraints[3];}
+	ChLcpConstraintTwoBodies& Constr_E1() {return *constraints[4];}
+	ChLcpConstraintTwoBodies& Constr_E2() {return *constraints[5];}
+	ChLcpConstraintTwoBodies& Constr_E3() {return *constraints[6];}
 
 		// If =1, free costraints not used for bidimensional simulation (Z movement and
 	    // Qx,Qy rotations (it is assumed that both markers have Z axis orthogonl to XY abs. plane)
 		// If =0, return to the 3d mode.
 	int Set2Dmode(int mode);
-
 
 			//
 			// STREAMING
