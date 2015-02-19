@@ -1052,7 +1052,10 @@ bool GJKCollide(const ConvexShape& shape0,
     m_cachedSeparatingAxis = normalInB;
     m_cachedSeparatingDistance = distance;
     manifold.addContactPoint(shape0, shape1, normalInB, real3(pointOnB + positionOffset), distance);
+  }else{
+    return false;
   }
+  return true;
 }
 
 void GJKPerturbedCollide(const ConvexShape& shapeA,
