@@ -811,7 +811,7 @@ bool GJKFindPenetration(const ConvexShape& shape0, const ConvexShape& shape1, sR
 
 bool GJKCollide(const ConvexShape& shape0,
                 const ConvexShape& shape1,
-                ContactManifold& manifold,
+                ContactPoint & contact_point,
                 real3& m_cachedSeparatingAxis) {
   sResults results;
   real m_cachedSeparatingDistance;
@@ -1051,7 +1051,12 @@ bool GJKCollide(const ConvexShape& shape0,
   if (isValid && ((distance < 0) || (distance * distance < LARGE_REAL))) {
     m_cachedSeparatingAxis = normalInB;
     m_cachedSeparatingDistance = distance;
-    manifold.addContactPoint(shape0, shape1, normalInB, real3(pointOnB + positionOffset), distance);
+
+    contact_point.depth = distance;
+    contact_point.normal = normalInB;
+    contact_point.pointA = real3(pointOnB + positionOffset) + normalInB * distance;
+    contact_point.pointB = real3(pointOnB + positionOffset);
+//    manifold.addContactPoint(shape0, shape1, normalInB, real3(pointOnB + positionOffset), distance);
   }else{
     return false;
   }
@@ -1114,7 +1119,7 @@ void GJKPerturbedCollide(const ConvexShape& shapeA,
 
         ContactManifold perturbed_manifold;
         real3 sep_axis = real3(0);
-        GJKCollide(pShapeA, pShapeB, perturbed_manifold, sep_axis);
+        //GJKCollide(pShapeA, pShapeB, perturbed_manifold, sep_axis);
 
         for (int i = 0; i < perturbed_manifold.num_contact_points; i++) {
           std::cout << perturbed_manifold.points[i].normal << perturbed_manifold.points[i].pointA

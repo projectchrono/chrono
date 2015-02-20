@@ -9,7 +9,7 @@
 #include <chrono_parallel/collision/ChCNarrowphaseUtils.h>
 #include "chrono_parallel/collision/ChCNarrowphaseMPR.h"
 #include "chrono_parallel/collision/ChCNarrowphaseR.h"
-
+#include "chrono_parallel/collision/ChCNarrowphaseGJK_EPA.h"
 namespace chrono {
 namespace collision {
 
@@ -82,22 +82,13 @@ void ChCNarrowphaseDispatch::Process() {
 
   // Remove elements corresponding to inactive contacts. We do this in one step,
   // using zip iterators and removing all entries for which contact_active is 'false'.
-  thrust::remove_if(thrust::make_zip_iterator(thrust::make_tuple(norm_data.begin(),
-                                                                 cpta_data.begin(),
-                                                                 cptb_data.begin(),
-                                                                 dpth_data.begin(),
-                                                                 erad_data.begin(),
-                                                                 bids_data.begin(),
-                                                                 potentialCollisions.begin())),
-                    thrust::make_zip_iterator(thrust::make_tuple(norm_data.end(),
-                                                                 cpta_data.end(),
-                                                                 cptb_data.end(),
-                                                                 dpth_data.end(),
-                                                                 erad_data.end(),
-                                                                 bids_data.end(),
-                                                                 potentialCollisions.end())),
-                    contact_active.begin(),
-                    thrust::logical_not<bool>());
+  thrust::remove_if(
+      thrust::make_zip_iterator(thrust::make_tuple(norm_data.begin(), cpta_data.begin(), cptb_data.begin(),
+                                                   dpth_data.begin(), erad_data.begin(), bids_data.begin(),
+                                                   potentialCollisions.begin())),
+      thrust::make_zip_iterator(thrust::make_tuple(norm_data.end(), cpta_data.end(), cptb_data.end(), dpth_data.end(),
+                                                   erad_data.end(), bids_data.end(), potentialCollisions.end())),
+      contact_active.begin(), thrust::logical_not<bool>());
 
   // Resize all lists so that we don't access invalid contacts
   norm_data.resize(number_of_contacts);
@@ -260,6 +251,35 @@ void ChCNarrowphaseDispatch::DispatchMPR() {
   }
 }
 
+void ChCNarrowphaseDispatch::DispatchGJK() {
+  custom_vector<real3>& norm = data_container->host_data.norm_rigid_rigid;
+  custom_vector<real3>& ptA = data_container->host_data.cpta_rigid_rigid;
+  custom_vector<real3>& ptB = data_container->host_data.cptb_rigid_rigid;
+  custom_vector<real>& contactDepth = data_container->host_data.dpth_rigid_rigid;
+  custom_vector<real>& effective_radius = data_container->host_data.erad_rigid_rigid;
+
+#pragma omp parallel for
+  for (int index = 0; index < num_potentialCollisions; index++) {
+    uint ID_A, ID_B, icoll;
+    ConvexShape shapeA, shapeB;
+
+    Dispatch_Init(index, icoll, ID_A, ID_B, shapeA, shapeB);
+
+    ContactPoint contact_point;
+    real3 separating_axis;
+    if (GJKCollide(shapeA, shapeB, contact_point, separating_axis)) {
+      norm[icoll] = - contact_point.normal;
+      ptA[icoll] = contact_point.pointA;
+      ptB[icoll] = contact_point.pointB;
+      contactDepth[icoll] =  contact_point.depth;
+
+      effective_radius[icoll] = edge_radius;
+      // The number of contacts reported by MPR is always 1.
+      Dispatch_Finalize(icoll, ID_A, ID_B, 1);
+    }
+  }
+}
+
 void ChCNarrowphaseDispatch::DispatchR() {
   real3* norm = data_container->host_data.norm_rigid_rigid.data();
   real3* ptA = data_container->host_data.cpta_rigid_rigid.data();
@@ -275,15 +295,8 @@ void ChCNarrowphaseDispatch::DispatchR() {
 
     Dispatch_Init(index, icoll, ID_A, ID_B, shapeA, shapeB);
 
-    if (RCollision(shapeA,
-                   shapeB,
-                   2 * collision_envelope,
-                   &norm[icoll],
-                   &ptA[icoll],
-                   &ptB[icoll],
-                   &contactDepth[icoll],
-                   &effective_radius[icoll],
-                   nC)) {
+    if (RCollision(shapeA, shapeB, 2 * collision_envelope, &norm[icoll], &ptA[icoll], &ptB[icoll], &contactDepth[icoll],
+                   &effective_radius[icoll], nC)) {
       Dispatch_Finalize(icoll, ID_A, ID_B, nC);
     }
   }
@@ -304,18 +317,11 @@ void ChCNarrowphaseDispatch::DispatchHybridMPR() {
 
     Dispatch_Init(index, icoll, ID_A, ID_B, shapeA, shapeB);
 
-    if (RCollision(shapeA,
-                   shapeB,
-                   2 * collision_envelope,
-                   &norm[icoll],
-                   &ptA[icoll],
-                   &ptB[icoll],
-                   &contactDepth[icoll],
-                   &effective_radius[icoll],
-                   nC)) {
+    if (RCollision(shapeA, shapeB, 2 * collision_envelope, &norm[icoll], &ptA[icoll], &ptB[icoll], &contactDepth[icoll],
+                   &effective_radius[icoll], nC)) {
       Dispatch_Finalize(icoll, ID_A, ID_B, nC);
-    } else if (MPRCollision(
-                   shapeA, shapeB, collision_envelope, norm[icoll], ptA[icoll], ptB[icoll], contactDepth[icoll])) {
+    } else if (MPRCollision(shapeA, shapeB, collision_envelope, norm[icoll], ptA[icoll], ptB[icoll],
+                            contactDepth[icoll])) {
       effective_radius[icoll] = edge_radius;
       Dispatch_Finalize(icoll, ID_A, ID_B, 1);
     }
@@ -326,6 +332,9 @@ void ChCNarrowphaseDispatch::Dispatch() {
   switch (narrowphase_algorithm) {
     case NARROWPHASE_MPR:
       DispatchMPR();
+      break;
+    case NARROWPHASE_GJK:
+      DispatchGJK();
       break;
     case NARROWPHASE_R:
       DispatchR();

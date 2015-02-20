@@ -51,7 +51,7 @@ bool GJKPenetration(const ConvexShape& shape0, const ConvexShape& shape1, const 
 CH_PARALLEL_API
 bool GJKCollide(const ConvexShape& shape0,
                 const ConvexShape& shape1,
-                ContactManifold& manifold,
+                ContactPoint& point,
                 real3& m_cachedSeparatingAxis);
 
 CH_PARALLEL_API
