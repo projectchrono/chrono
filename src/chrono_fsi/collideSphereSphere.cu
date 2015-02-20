@@ -4,6 +4,7 @@
 #include <thrust/sort.h>
 #include <thrust/scan.h>
 #include <thrust/reduce.h>
+#include <thrust/extrema.h>
 #include <thrust/host_vector.h>
 #include <thrust/device_vector.h>
 #include "SDKCollisionSystem.cuh"
