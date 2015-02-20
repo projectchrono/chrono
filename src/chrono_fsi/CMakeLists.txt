@@ -46,7 +46,7 @@ include_directories(
 # they are good for gcc. Is there anyway to have those options available in cpp file (for instance having openmp in cpp
 # file?
 SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
-
+SET(CUDA_NVCC_FLAGS "${CUDA_NVCC_FLAGS} -std=c++11")
 cuda_add_library(FSI SHARED collideSphereSphere.cu SDKCollisionSystem.cu  printToFile.cu)
 SET(LIBRARIES "${LIBRARIES} FSI")
 
