@@ -3402,26 +3402,25 @@ void ChSystem::StreamOUT(ChStreamOutAscii& mstream)
 
 	// serialize parent class too
 	ChObj::StreamOUT(mstream);
-  std::string head = "tEnd,h,hMin,hMax,tol,normT,maxIter,integrator,Gacc,minBounce,LCPmaxiter,LCPmaxiterStab,maxRecov,LCPSolver\n";
-  mstream << head;
+  
 	// stream out all member data
-	mstream << GetEndTime() 
-    <<","<< GetStep()
-    <<","<< GetStepMin()
-    <<"," << GetStepMax()
-	  <<"," << GetTol()
-	  <<"," << GetNormType()
-	  <<"," << GetMaxiter()
-	  <<"," << (int)GetIntegrationType()
+	mstream << "tEnd      : " << GetEndTime() 
+    <<"\nstepSize   : "<< GetStep()
+    <<"\nstepMin    : "<< GetStepMin()
+    <<"\nstepMax    : " << GetStepMax()
+	  <<"\ntol        : " << GetTol()
+	  <<"\nnormType   : " << GetNormType()
+	  <<"\nMaxIter    : " << GetMaxiter()
+	  <<"\nIntegration: " << (int)GetIntegrationType()
 	
-	  <<"," << G_acc
+	  <<"\ngravity  : " << G_acc
 
-	  <<"," << GetMinBounceSpeed()
+	  <<"\nminBounceSpeed   : " << GetMinBounceSpeed()
 	  // v2
-	  <<"," << iterLCPmaxIters
-	  <<"," << iterLCPmaxItersStab
-    <<"," << max_penetration_recovery_speed
-	  <<"," << (int)GetLcpSolverType();
+	  <<"\nLCPmaxIter       : " << iterLCPmaxIters
+	  <<"\nLCPmaxIterStab   :  " << iterLCPmaxItersStab
+    <<"\nmaxRecovSpeed    : " << max_penetration_recovery_speed
+	  <<"\nLCPSolverType    : " << (int)GetLcpSolverType();
 
 }
 
