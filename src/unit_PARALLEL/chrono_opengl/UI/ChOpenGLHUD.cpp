@@ -152,18 +152,21 @@ void ChOpenGLHUD::GenerateCamera() {
 }
 
 void ChOpenGLHUD::GenerateSystem(ChSystem* physics_system) {
-  int num_bodies = (physics_system->GetNbodiesTotal() + physics_system->GetNphysicsItems());
-  int num_contacts = ((ChSystemParallel*)physics_system)->GetNcontacts();
-  int average_contacts_per_body = num_bodies > 0 ? num_contacts / num_bodies : 0;
-
   int num_shapes = 0;
-  if (ChSystemParallelDVI* parallel_system = dynamic_cast<ChSystemParallelDVI*>(physics_system)) {
+  int num_bodies = 0;
+  int num_contacts = 0;
+  if (ChSystemParallel* parallel_system = dynamic_cast<ChSystemParallel*>(physics_system)) {
     num_shapes = parallel_system->data_manager->num_shapes;
-    num_bodies = (parallel_system->data_manager->num_bodies + parallel_system->GetNphysicsItems());
+    num_bodies = parallel_system->data_manager->num_bodies + parallel_system->GetNphysicsItems();
+    num_contacts = parallel_system->GetNcontacts();
   } else {
     ChCollisionSystemBullet* collision_system = (ChCollisionSystemBullet*)physics_system->GetCollisionSystem();
     num_shapes = collision_system->GetBulletCollisionWorld()->getNumCollisionObjects();
+    num_bodies = physics_system->GetNbodiesTotal() + physics_system->GetNphysicsItems();
+    num_contacts = physics_system->GetContactContainer()->GetNcontacts();
   }
+
+  int average_contacts_per_body = num_bodies > 0 ? num_contacts / num_bodies : 0;
 
   sprintf(buffer, "MODEL INFO");
   text.Render(buffer, RIGHT, TOP - SPACING * 0, sx, sy);
@@ -193,28 +196,20 @@ void ChOpenGLHUD::GenerateSystem(ChSystem* physics_system) {
 }
 
 void ChOpenGLHUD::GenerateSolver(ChSystem* physics_system) {
+  double iters = ((ChLcpIterativeSolver*)(physics_system->GetLcpSolverSpeed()))->GetTotalIterations();
+  const std::vector<double>& vhist = ((ChLcpIterativeSolver*)(physics_system->GetLcpSolverSpeed()))->GetViolationHistory();
+  const std::vector<double>& dhist = ((ChLcpIterativeSolver*)(physics_system->GetLcpSolverSpeed()))->GetDeltalambdaHistory();
+  double residual = vhist.size() > 0 ? vhist.back() : 0.0;
+  double dlambda = dhist.size() > 0 ? dhist.back() : 0.0;
+
   sprintf(buffer, "SOLVER INFO");
   text.Render(buffer, RIGHT, TOP - SPACING * 6, sx, sy);
-
-  double iters = ((ChLcpIterativeSolver*)(physics_system->GetLcpSolverSpeed()))->GetTotalIterations();
-  if (iters > 0) {
-    double residual = ((ChLcpIterativeSolver*)(physics_system->GetLcpSolverSpeed()))->GetViolationHistory().back();
-    double dlambda = ((ChLcpIterativeSolver*)(physics_system->GetLcpSolverSpeed()))->GetDeltalambdaHistory().back();
-
-    sprintf(buffer, "ITERS    %04d", int(iters));
-    text.Render(buffer, RIGHT, TOP - SPACING * 7, sx, sy);
-    sprintf(buffer, "RESIDUAL %04f", residual);
-    text.Render(buffer, RIGHT, TOP - SPACING * 8, sx, sy);
-    sprintf(buffer, "CORRECT  %04f", dlambda);
-    text.Render(buffer, RIGHT, TOP - SPACING * 9, sx, sy);
-  } else {
-    sprintf(buffer, "ITERS    %04d", 0);
-    text.Render(buffer, RIGHT, TOP - SPACING * 7, sx, sy);
-    sprintf(buffer, "RESIDUAL %04f", 0);
-    text.Render(buffer, RIGHT, TOP - SPACING * 8, sx, sy);
-    sprintf(buffer, "CORRECT  %04f", 0);
-    text.Render(buffer, RIGHT, TOP - SPACING * 9, sx, sy);
-  }
+  sprintf(buffer, "ITERS    %04d", int(iters));
+  text.Render(buffer, RIGHT, TOP - SPACING * 7, sx, sy);
+  sprintf(buffer, "RESIDUAL %04f", residual);
+  text.Render(buffer, RIGHT, TOP - SPACING * 8, sx, sy);
+  sprintf(buffer, "CORRECT  %04f", dlambda);
+  text.Render(buffer, RIGHT, TOP - SPACING * 9, sx, sy);
 }
 
 void ChOpenGLHUD::GenerateCD(ChSystem* physics_system) {
