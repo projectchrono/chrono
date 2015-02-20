@@ -715,7 +715,7 @@ int DriveChain::reportShoeGearContact(const std::string& shoe_name,
   m_SG_PosRel = reporter.m_PosRel;
   // useful for plotting the contact point and normal dir.
   m_SG_PosAbs = reporter.m_PosAbs;
-  m_SG_NormDir = reporter.m_NormDirAbs;
+  m_SG_NormF = reporter.m_NormDirAbs * reporter.m_Fn;
 
   //  # of contacts between specified shoe and gear body
   return reporter.m_num_shoeGear_contacts;

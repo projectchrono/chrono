@@ -110,6 +110,11 @@ public:
   double GetVehicleSpeed() const { return 0; }
   int GetNum_Engines() const { return 1;}
 
+  // for debugging variables
+  const ChVector<>& Get_SG_PosAbs() const { return m_SG_PosAbs; }
+
+  const ChVector<>& Get_SG_NormF() const { return m_SG_NormF; }
+
 protected:
 
   /// create files with headers for all specified output data types.
@@ -139,7 +144,7 @@ protected:
   bool m_is_SG_PosRel_set;
   ChVector<> m_SG_PosRel;
   ChVector<> m_SG_PosAbs; // contact point, abs. coords
-  ChVector<> m_SG_NormDir;// contact normal, abs. coords
+  ChVector<> m_SG_NormF;  // contact normal force, abs. coords
    // ******** 
 
   // private variables

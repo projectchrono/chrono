@@ -258,7 +258,7 @@ void ChIrrGuiTrack::SetCameraPos(const ChVector<>& pos)
 
 
 // -----------------------------------------------------------------------------
-void ChIrrGuiTrack::DrawAll()
+void ChIrrGuiTrack::DrawAll(bool draw_normal)
 {
   // renderGrid();
 
@@ -266,7 +266,13 @@ void ChIrrGuiTrack::DrawAll()
 
   renderSprings();
   // renderLinks();
+  if(draw_normal)
+    renderContactShoeGear();
+
+
   renderStats();
+
+
 }
 
 void ChIrrGuiTrack::renderSprings()
@@ -318,6 +324,22 @@ void ChIrrGuiTrack::renderGrid()
                        video::SColor(70, 125, 125, 125), true);
 }
 
+// data gets appended when the specified shoe pin and gear are in contact,
+//  and reportShoeGearContact() was called
+void ChIrrGuiTrack::renderContactShoeGear(double lenScale)
+{
+  if( DriveChain* m_chain = dynamic_cast<DriveChain*>(&m_vehicle) )
+  {
+    // end points of the line
+    ChVector<> v1 = m_chain->Get_SG_PosAbs();
+    ChVector<> v2 = v1 + m_chain->Get_SG_NormF()*lenScale;
+    ChIrrTools::drawSegment(m_app.GetVideoDriver(),
+                            v1,
+                            v2,
+                            video::SColor(200,255,60,60), true);
+  }
+}
+
 void ChIrrGuiTrack::renderLinGauge(const std::string& msg,
                                     double factor, bool sym,
                                     int xpos, int ypos,
@@ -342,6 +364,7 @@ void ChIrrGuiTrack::renderLinGauge(const std::string& msg,
              irr::core::rect<s32>(xpos+3,ypos+3, xpos+length, ypos+height),
              irr::video::SColor(255,20,20,20));
 }
+
 
 void ChIrrGuiTrack::renderTextBox(const std::string& msg,
                                    int xpos, int ypos,

@@ -40,6 +40,7 @@
 #include "subsys/base/ChDriverTrack.h"
 #include "subsys/powertrain/TrackPowertrain.h"
 
+#include "subsys/trackVehicle/DriveChain.h"
 
 namespace chrono {
 class CH_SUBSYS_API ChIrrGuiTrack : public ChDriverTrack, public irr::IEventReceiver
@@ -66,7 +67,7 @@ public:
   void Advance(double step,
     const ChVector<>& cam_pos);
 
-  void DrawAll();
+  void DrawAll(bool draw_normal = false);
 
   void SetTerrainHeight(double height) { m_terrainHeight = height; }
 
@@ -89,6 +90,7 @@ private:
   void renderSprings();
   void renderLinks();
   void renderGrid();
+  void renderContactShoeGear(double lenScale = 1.0);
   void renderStats();
   void renderLinGauge(const std::string& msg,
                       double factor, bool sym,
