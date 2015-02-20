@@ -131,13 +131,16 @@ protected:
     ChVector<>& Fn_info,
     ChVector<>& Ft_info,
     ChVector<>& PosRel_contact,
-    ChVector<>& VRel_contact);
+    ChVector<>& VRel_contact,
+    ChVector<>& NormDirRel_contact);
 
   // *********  History dependent Variables
   // for debugging step to step persistent contact data
   ChVector<> m_SG_info;
   bool m_is_SG_PosRel_set;
   ChVector<> m_SG_PosRel;
+  ChVector<> m_SG_PosAbs; // contact point, abs. coords
+  ChVector<> m_SG_NormDir;// contact normal, abs. coords
    // ******** 
 
   // private variables
