@@ -56,34 +56,19 @@ TrackSoilBin::TrackSoilBin(const std::string& name,
                        const ChVector<>& inertia,
                        size_t num_idlers,
                        size_t num_rollers)
-  : ChTrackVehicle(chassisVis, chassisCollide, mass, inertia, 1), 
+  : ChTrackVehicle(name, chassisVis, chassisCollide, mass, inertia, 1), 
   m_num_rollers(num_rollers),
   m_num_idlers(num_idlers)
 {
-  // ---------------------------------------------------------------------------
-  // Set the base class variables
-  // no mesh, yet
-  m_meshName = "na";
-  m_meshFile = "none";
-  m_chassisBoxSize = ChVector<>(2.0, 0.6, 0.75);
 
-  // Integration and Solver settings set in ChTrackVehicle
-  GetSystem()->SetIterLCPmaxItersStab(75);
-  GetSystem()->SetIterLCPmaxItersSpeed(75);
-
-  // create the chassis body    
-  m_chassis = ChSharedPtr<ChBodyAuxRef>(new ChBodyAuxRef);
+  // setup the chassis body    
   m_chassis->SetIdentifier(0);
-  m_chassis->SetNameString(name);
   // basic body info. Not relevant since it's fixed.
   m_chassis->SetFrame_COG_to_REF(ChFrame<>() );
-  m_chassis->SetMass(m_mass);
-  m_chassis->SetInertiaXX(m_inertia);
   // chassis is fixed to ground
   m_chassis->SetBodyFixed(true);
     
-  // add the chassis body to the system
-  m_system->Add(m_chassis);
+  // Set  base class variables here
   
   // --------------------------------------------------------------------------
   // BUILD THE SUBSYSTEMS

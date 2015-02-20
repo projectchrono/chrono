@@ -85,12 +85,12 @@ ChQuaternion<> initRot(QUNIT);
 size_t num_idlers = 1;
 size_t num_rollers = 2;
 // Simulation step size
-double step_size = 0.002;
+double step_size = 5e-4;
 
 // #ifdef USE_IRRLICHT
 int FPS = 40; // render frame rate
 double render_step_size = 1.0 / FPS;  // Time increment between two rendered frames
-double output_step_size = step_size;    // Time interval between two output frames
+double output_step_size = 4*step_size;    // Time interval between two output frames
 
 ChVector<> trackPoint(-1, 0, 0.2);   // Point on chassis tracked by the camera, chassis c-sys
 
@@ -323,6 +323,15 @@ int main(int argc, char* argv[])
       // write data to file?
 #ifdef WRITE_OUTPUT
       chainSystem.Log_to_file();  // needs to already be setup before sim loop calls it
+
+
+
+
+      // quit early
+      if( time > 3.5 ){
+        application.GetDevice()->drop();
+        return 0;
+      }
 
 #endif
 

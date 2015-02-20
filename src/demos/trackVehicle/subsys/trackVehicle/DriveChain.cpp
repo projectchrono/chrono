@@ -58,39 +58,29 @@ DriveChain::DriveChain(const std::string& name,
                        size_t num_rollers,
                        double gear_mass,
                        const ChVector<>& gear_inertia
-): ChTrackVehicle(gearVis, gearCollide, gear_mass, gear_inertia, 1),
+): ChTrackVehicle(name, gearVis, gearCollide, gear_mass, gear_inertia, 1),
   m_num_rollers(num_rollers),
   m_num_idlers(num_idlers),
   m_SG_info(ChVector<>())
 {
   // ---------------------------------------------------------------------------
-  // Integration and Solver settings set in ChTrackVehicle
-  GetSystem()->SetIterLCPmaxItersStab(75);
-  GetSystem()->SetIterLCPmaxItersSpeed(75);
-
   // Init any debugging, reporter variables
   m_SG_info = ChVector<>();
   m_is_SG_PosRel_set = false;
   m_SG_PosRel = ChVector<>();
 
+  // setup the chassis body    
+  m_chassis->SetIdentifier(0);
+  // basic body info. Not relevant since it's fixed.
+  m_chassis->SetFrame_COG_to_REF(ChFrame<>() );
+  // chassis is fixed to ground
+  m_chassis->SetBodyFixed(true);
+
+  // set any non-initialized base-class variables here
   // doesn't matter for the chassis, since no visuals used
   m_meshName = "na";
   m_meshFile = "none";
   m_chassisBoxSize = ChVector<>(2.0, 0.6, 0.75);
-
-  // create the chassis body    
-  m_chassis = ChSharedPtr<ChBodyAuxRef>(new ChBodyAuxRef);
-  m_chassis->SetIdentifier(0);
-  m_chassis->SetNameString(name);
-  // basic body info. Not relevant since it's fixed.
-  m_chassis->SetFrame_COG_to_REF(ChFrame<>() );
-  m_chassis->SetMass(100);
-  m_chassis->SetInertiaXX(ChVector<>(10,10,10) );
-  // chassis is fixed to ground
-  m_chassis->SetBodyFixed(true);
-    
-  // add the chassis body to the system
-  m_system->Add(m_chassis);
   
   // --------------------------------------------------------------------------
   // BUILD THE SUBSYSTEMS
@@ -99,14 +89,14 @@ DriveChain::DriveChain(const std::string& name,
     m_vis,
     m_collide,
     0,
-    m_mass,
-    m_inertia) );
+    gear_mass,
+    gear_inertia) );
 
  // idlers
   m_idlers.clear();
   m_idlers.resize(m_num_idlers);
   double idler_mass = 100.0; // 429.6
-  ChVector<> idler_Ixx(m_inertia);    // 12.55, 12.55, 14.7
+  ChVector<> idler_Ixx(gear_inertia);    // 12.55, 12.55, 14.7
   double tensioner_K = 40e3;
   double tensioner_C = tensioner_K * 0.08;
   m_idlers[0] = ChSharedPtr<IdlerSimple>(new IdlerSimple("idler",
@@ -302,8 +292,8 @@ void DriveChain::Update(double time,
 void DriveChain::Advance(double step)
 {
   double t = 0;
-  m_system->SetIterLCPmaxItersStab(60);
-  m_system->SetIterLCPmaxItersSpeed(75);
+  m_system->SetIterLCPmaxItersStab(60*3);
+  m_system->SetIterLCPmaxItersSpeed(75*3);
   double settlePhaseA = 0.3;
   double settlePhaseB = 1.0;
   while (t < step) {
@@ -821,6 +811,14 @@ void DriveChain::Setup_log_to_file(int what,
       GetLog() << " SAVING OUTPUT DATA TO FILE: \n " << filename.c_str() << "\n";
       create_fileHeaders(what);
       m_log_file_exists = true;
+
+      // write the system heirarchy and ChSystem data also
+      GetLog() << " SAVING model heirarchy and ChSystem details \n";
+      ChStreamOutAsciiFile ofile_hier( (m_log_file_name +"_Heirarchy.csv").c_str() );
+      m_system->ShowHierarchy(ofile_hier); 
+      ChStreamOutAsciiFile ofile_system( (m_log_file_name +"_ChSystem.csv").c_str() );
+      m_system->StreamOUT( ofile_system );
+
     }
     else
     {
@@ -923,7 +921,7 @@ void DriveChain::Log_to_console(int console_what)
 
   if (console_what & DBG_PTRAIN)
   {
-    GetLog() << "\n ---- powertrain \N throttle : " << m_ptrains[0]->GetThrottle()
+    GetLog() << "\n ---- powertrain \n throttle : " << m_ptrains[0]->GetThrottle()
       <<"\n motor speed [RPM] : " << m_ptrains[0]->GetMotorSpeed() * 60.0 / (CH_C_2PI)
       <<"\n motor torque [N-m] : " << m_ptrains[0]->GetMotorTorque()
       <<"\n output torque [N-m : " << m_ptrains[0]->GetOutputTorque()

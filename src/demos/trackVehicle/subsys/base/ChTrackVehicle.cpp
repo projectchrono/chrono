@@ -37,7 +37,8 @@
 namespace chrono {
 
 
-ChTrackVehicle::ChTrackVehicle(VisualizationType vis,
+ChTrackVehicle::ChTrackVehicle(const std::string& name,
+                               VisualizationType vis,
                                CollisionType collide,
                                double mass,
                                const ChVector<>& Ixx,
@@ -46,8 +47,8 @@ ChTrackVehicle::ChTrackVehicle(VisualizationType vis,
 : m_ownsSystem(true),
   m_vis(vis),
   m_collide(collide),
-  m_mass(mass),
-  m_inertia(Ixx),
+  // m_mass(mass),
+  // m_inertia(Ixx),
   m_num_engines(num_engines),
   m_stepsize(step_size),
   m_save_log_to_file(false), // save the DebugLog() info to file? default false
@@ -55,11 +56,9 @@ ChTrackVehicle::ChTrackVehicle(VisualizationType vis,
   m_log_file_exists(false), // written the headers for log file yet?
   m_log_what_to_console(0)  // pre-set what to write to console when calling 
 {
+  // create a new system, set gravity, default solver settings
   m_system = new ChSystem;
-
   m_system->Set_G_acc(ChVector<>(0, -9.81, 0));
-
-  // Integration and Solver settings
   m_system->SetLcpSolverType(ChSystem::LCP_ITERATIVE_SOR);
   m_system->SetIterLCPmaxItersSpeed(150);
   m_system->SetIterLCPmaxItersStab(150);
@@ -67,6 +66,14 @@ ChTrackVehicle::ChTrackVehicle(VisualizationType vis,
   m_system->SetMinBounceSpeed(1);
   // m_system->SetIterLCPomega(0.8);
   // m_system->SetIterLCPsharpnessLambda(0.9);
+
+  // create the chassis to attach mass, inertia to.
+  m_chassis = ChSharedPtr<ChBodyAuxRef>(new ChBodyAuxRef);
+  m_chassis->SetMass(mass);
+  m_chassis->SetInertiaXX(Ixx);
+  m_chassis->SetNameString(name);
+  // add the chassis body to the system
+  m_system->Add(m_chassis);
 
   // init. any other variables with a default value
   m_meshName = "meshName";
@@ -80,6 +87,7 @@ ChTrackVehicle::ChTrackVehicle(VisualizationType vis,
 
 // system already exists, create vehicle with specified input
 ChTrackVehicle::ChTrackVehicle(ChSystem* system,
+                               const std::string& name,
                                VisualizationType vis,
                                CollisionType collide,
                                double mass,
@@ -89,8 +97,8 @@ ChTrackVehicle::ChTrackVehicle(ChSystem* system,
   m_system(system),
   m_vis(vis),
   m_collide(collide),
-  m_mass(mass),
-  m_inertia(Ixx),
+  // m_mass(mass),
+  // m_inertia(Ixx),
   m_num_engines(num_engines),
   m_stepsize(system->GetStep()),
   m_save_log_to_file(false), // save the DebugLog() info to file? default false
@@ -99,6 +107,14 @@ ChTrackVehicle::ChTrackVehicle(ChSystem* system,
   m_log_what_to_console(0)  // pre-set what to write to console when calling 
 {
   // don't worry about solver settings, other system will already handle that.
+
+  // create the chassis to attach mass, inertia to.
+  m_chassis = ChSharedPtr<ChBodyAuxRef>(new ChBodyAuxRef);
+  m_chassis->SetMass(mass);
+  m_chassis->SetInertiaXX(Ixx);
+  m_chassis->SetNameString(name);
+  // add the chassis body to the system
+  m_system->Add(m_chassis);
 
   // init. any other variables with a default value
   m_meshName = "meshName";

@@ -43,7 +43,8 @@ public:
 
   /// Construct by passing in desired system variables.
   /// Default values are for M113 APC vehicle
-  ChTrackVehicle(VisualizationType vis = VisualizationType::NONE,
+  ChTrackVehicle(const std::string& name,
+    VisualizationType vis = VisualizationType::NONE,
     CollisionType collide = CollisionType::NONE,
     double mass = 5489.2,
     const ChVector<>& Ixx = ChVector<>(1786.9, 10449.7, 10721.2),
@@ -52,6 +53,7 @@ public:
 
   /// Construct using the specified ChSystem, with the desired vehicle system settings.
   ChTrackVehicle(ChSystem* system,
+    const std::string& name,
     VisualizationType vis = VisualizationType::NONE,
     CollisionType collide = CollisionType::NONE,
     double mass = 5489.2,
@@ -165,8 +167,8 @@ protected:
   const bool  m_ownsSystem;   ///< true if system created at construction
 
   ChSharedPtr<ChBodyAuxRef>  m_chassis; ///< handle to the chassis body
-  double m_mass;
-  ChVector<> m_inertia;
+   // double m_mass;
+  // ChVector<> m_inertia;
 
   VisualizationType m_vis;    ///< visualize  geometry
   CollisionType m_collide;    ///< collision geometry

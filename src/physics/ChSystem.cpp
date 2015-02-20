@@ -3399,7 +3399,30 @@ void ChSystem::StreamIN(ChStreamInBinary& mstream)
 
 void ChSystem::StreamOUT(ChStreamOutAscii& mstream)
 {
-	//***TO DO***
+
+	// serialize parent class too
+	ChObj::StreamOUT(mstream);
+  std::string head = "tEnd,h,hMin,hMax,tol,normT,maxIter,integrator,Gacc,minBounce,LCPmaxiter,LCPmaxiterStab,maxRecov,LCPSolver\n";
+  mstream << head;
+	// stream out all member data
+	mstream << GetEndTime() 
+    <<","<< GetStep()
+    <<","<< GetStepMin()
+    <<"," << GetStepMax()
+	  <<"," << GetTol()
+	  <<"," << GetNormType()
+	  <<"," << GetMaxiter()
+	  <<"," << (int)GetIntegrationType()
+	
+	  <<"," << G_acc
+
+	  <<"," << GetMinBounceSpeed()
+	  // v2
+	  <<"," << iterLCPmaxIters
+	  <<"," << iterLCPmaxItersStab
+    <<"," << max_penetration_recovery_speed
+	  <<"," << (int)GetLcpSolverType();
+
 }
 
 #define CH_CHUNK_END   1234

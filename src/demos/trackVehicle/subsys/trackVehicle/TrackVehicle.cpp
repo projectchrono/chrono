@@ -49,7 +49,7 @@ TrackVehicle::TrackVehicle(const std::string& name,
                            const ChVector<>& Ixx,
                            const ChVector<>& left_pos_rel,
                            const ChVector<>& right_pos_rel
-):ChTrackVehicle(chassisVis, chassisCollide, mass, Ixx, 1),
+):ChTrackVehicle(name, chassisVis, chassisCollide, mass, Ixx, 1),
   m_num_tracks(2),
   m_trackSys_L(left_pos_rel),
   m_trackSys_R(right_pos_rel)
@@ -60,21 +60,11 @@ TrackVehicle::TrackVehicle(const std::string& name,
   m_meshFile = utils::GetModelDataFile("M113/Chassis_XforwardYup.obj");
   m_chassisBoxSize = ChVector<>(4.0, 1.2, 1.5); // full length, height, width of chassis box
 
-  // create the chassis body    
-  m_chassis = ChSharedPtr<ChBodyAuxRef>(new ChBodyAuxRef);
+  // setup the chassis body
   m_chassis->SetIdentifier(0);
-  m_chassis->SetNameString(name);
   m_chassis->SetFrame_COG_to_REF(ChFrame<>(COM_override, ChQuaternion<>(1, 0, 0, 0)));
-  // basic body info
-  m_chassis->SetMass(m_mass);
-  m_chassis->SetInertiaXX(m_inertia);
-
   // add visualization assets to the chassis
   AddVisualization();
-
-  // m_chassis->SetBodyFixed(true);
-  // add the chassis body to the system
-  m_system->Add(m_chassis);
 
   // resize all vectors for the number of track systems
   m_TrackSystems.resize(m_num_tracks);

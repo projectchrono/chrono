@@ -55,35 +55,22 @@ LoopChain::LoopChain(const std::string& name,
                        const ChVector<>& gearIxx,
                        size_t num_idlers,
                        size_t num_rollers)
-  : ChTrackVehicle(gearVis, gearCollide, gearMass, gearIxx, 1),
+  : ChTrackVehicle(name, gearVis, gearCollide, gearMass, gearIxx, 1),
   m_num_rollers(num_rollers),
   m_num_idlers(num_idlers)
 {
-  // ---------------------------------------------------------------------------
-  // Set the base class variables
+  // setup the chassis body    
+  m_chassis->SetIdentifier(0);
+  // basic body info. Not relevant since it's fixed.
+  m_chassis->SetFrame_COG_to_REF(ChFrame<>() );
+  // chassis is fixed to ground
+  m_chassis->SetBodyFixed(true);
 
-  // Integration and Solver settings set in ChTrackVehicle
-  GetSystem()->SetIterLCPmaxItersStab(50);
-  GetSystem()->SetIterLCPmaxItersSpeed(75);
-
+  // set any non-initialized base-class variables here
   // doesn't matter for the chassis, since no visuals used
   m_meshName = "na";
   m_meshFile = "none";
   // m_chassisBoxSize = ChVector<>(2.0, 0.6, 0.75);
-
-  // create the chassis body    
-  m_chassis = ChSharedPtr<ChBodyAuxRef>(new ChBodyAuxRef);
-  m_chassis->SetIdentifier(0);
-  m_chassis->SetNameString(name);
-  // basic body info. Not relevant since it's fixed.
-  m_chassis->SetFrame_COG_to_REF(ChFrame<>() );
-  m_chassis->SetMass(100);  // fixed, doesn't matter
-  m_chassis->SetInertiaXX(ChVector<>(10,10,10) ); // fixed, doesn't matter
-  // chassis is fixed to ground
-  m_chassis->SetBodyFixed(true);
-    
-  // add the chassis body to the system
-  m_system->Add(m_chassis);
   
   // --------------------------------------------------------------------------
   // BUILD THE SUBSYSTEMS
@@ -94,8 +81,8 @@ LoopChain::LoopChain(const std::string& name,
     m_vis,        // gear uses chassis info,
     m_collide,    // "
     0,
-    m_mass,       // "
-    m_inertia));  // "
+    gearMass,       // "
+    gearIxx));  // "
 
  // idlers, if more than 1
   double tensioner_K = 2e4;
@@ -103,7 +90,7 @@ LoopChain::LoopChain(const std::string& name,
   m_idlers.clear();
   m_idlers.resize(m_num_idlers);
   double idler_mass = 42.96; // 429.6
-  ChVector<> idler_Ixx(m_inertia);    // 12.55, 12.55, 14.7
+  ChVector<> idler_Ixx(gearIxx);    // 12.55, 12.55, 14.7
   m_idlers[0] = ChSharedPtr<IdlerSimple>(new IdlerSimple("idler",
     VisualizationType::MESH,
     // VisualizationType::PRIMITIVES,

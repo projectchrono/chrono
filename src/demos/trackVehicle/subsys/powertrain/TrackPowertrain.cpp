@@ -53,19 +53,23 @@ TrackPowertrain::TrackPowertrain(const std::string& name,
   // pressing the throttle, like in muscle cars)
   m_motorblock = ChSharedPtr<ChShaft>(new ChShaft);
   m_motorblock->SetInertia(GetMotorBlockInertia());
+  m_motorblock->SetName("motor block");
 
   // connection between the motor block and the 3D rigid body that
   // represents the chassis. This allows to get the effect of the car 'rolling'
   // when the longitudinal engine accelerates suddenly.
   m_motorblock_to_body = ChSharedPtr<ChShaftsBody>(new ChShaftsBody);
+  m_motorblock_to_body->SetName("motor block mount");
 
   // crankshaft plus flywheel.
   m_crankshaft = ChSharedPtr<ChShaft>(new ChShaft);
   m_crankshaft->SetInertia(GetCrankshaftInertia());
+  m_crankshaft->SetName("crankshaft and flywheel");
 
   // thermal engine model beteen motor block and crankshaft (both
   // receive the torque, but with opposite sign).
   m_engine = ChSharedPtr<ChShaftsThermalEngine>(new ChShaftsThermalEngine);
+  m_engine->SetName("thermal engine");
 
   // The thermal engine requires a torque curve: 
   ChSharedPtr<ChFunction_Recorder> mTw(new ChFunction_Recorder);
@@ -76,7 +80,7 @@ TrackPowertrain::TrackPowertrain(const std::string& name,
   // of inner frictions/turbolences/etc. Without this, the engine at 0% throttle
   // in neutral position would rotate forever at contant speed.
   m_engine_losses = ChSharedPtr<ChShaftsThermalEngine>(new ChShaftsThermalEngine);
-
+  m_engine_losses->SetName("thermal engine losses");
   
   // The engine brake model requires a torque curve: 
   ChSharedPtr<ChFunction_Recorder> mTw_losses(new ChFunction_Recorder);
@@ -86,11 +90,13 @@ TrackPowertrain::TrackPowertrain(const std::string& name,
   // This represents the shaft that collects all inertias from torque converter to the gear.
   m_shaft_ingear = ChSharedPtr<ChShaft>(new ChShaft);
   m_shaft_ingear->SetInertia(GetIngearShaftInertia());
+  m_shaft_ingear->SetName("input shaft to torque converter");
 
   // torque converter and connect the shafts: 
   // A (input),B (output), C(truss stator). 
   // The input is the m_crankshaft, output is m_shaft_ingear; for stator, reuse the motor block 1D item.
   m_torqueconverter = ChSharedPtr<ChShaftsTorqueConverter>(new ChShaftsTorqueConverter);
+  m_torqueconverter->SetName("torque converter");
 
    // To complete the setup of the torque converter, a capacity factor curve is needed:
   ChSharedPtr<ChFunction_Recorder> mK(new ChFunction_Recorder);
@@ -107,6 +113,7 @@ TrackPowertrain::TrackPowertrain(const std::string& name,
   // the possibility of transmitting a reaction torque
   m_gears = ChSharedPtr<ChShaftsGearbox>(new ChShaftsGearbox);
   m_gears->SetTransmissionRatio(m_gear_ratios[m_current_gear]);
+  m_gears->SetName("gearbox");
 }
 
 

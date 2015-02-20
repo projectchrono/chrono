@@ -815,9 +815,9 @@ if __name__ == '__main__':
     # construct with file list and list of legend
     Chain = DriveChain_panda(data_files,handle_list)
     
-    tmin = 1.96
+    tmin = -1
     tmax = 2.54
-    '''
+    
     # 1) plot the gear body info
     Chain.plot_gear()
     
@@ -841,7 +841,7 @@ if __name__ == '__main__':
     
     # 8) from the contact report callback function, gear contact info
     Chain.plot_gearContactInfo(tmin,tmax)
-    '''
+    
     # 9)  from shoe-gear report callback function, contact info
     Chain.plot_shoeGearContactInfo(tmin,tmax)
 
