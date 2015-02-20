@@ -141,11 +141,13 @@ protected:
   // *********  History dependent Variables
   // for debugging step to step persistent contact data
   ChVector<> m_SG_info;
-  bool m_is_SG_PosRel_set;
+  bool m_SG_is_persistentContact_set;
   ChVector<> m_SG_PosRel;
   ChVector<> m_SG_PosAbs; // contact point, abs. coords
   ChVector<> m_SG_NormF;  // contact normal force, abs. coords
-   // ******** 
+   // ******** non-history dependent list of contact info
+  std::vector<ChVector<>> m_SG_ContactPos;  // list of position of contact, abs. coords
+  std::vector<ChVector<>> m_SG_ContactFn; // list of contact normal forces, abs. coords
 
   // private variables
   // <ChBodyAuxRef> m_chassis   in base class
