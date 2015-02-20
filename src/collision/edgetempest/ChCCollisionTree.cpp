@@ -137,7 +137,7 @@ void ChCollisionTree::UpdateAbsoluteAABB(double envelope)
 	m_absoluteAABB.init(this);
 
 	static ChMatrix33<> at;
-	at.CopyFromMatrixT(*this->m_body->GetA());
+	at.CopyFromMatrixT(m_body->GetA());
 
 	GetBoundingBox(xmin, xmax, ymin, ymax, zmin, zmax, &at);
 

@@ -578,17 +578,17 @@ void ChLinkLock::UpdateRelMarkerCoords()
     vtemp2=m2_Rel_A_dt.MatrT_x_Vect(vtemp1);
     q_4= Vmul (vtemp2, 2);          // 2[Aq_dt]'[Ao2_dt]'*Qpq,w
 
-    vtemp1=Body2->GetA()->MatrT_x_Vect(PQw_dt);
+    vtemp1=Body2->GetA().MatrT_x_Vect(PQw_dt);
     vtemp2=m2_Rel_A_dt.MatrT_x_Vect(vtemp1);
     vtemp2= Vmul (vtemp2, 2);       // 2[Aq_dt]'[Ao2]'*Qpq,w_dt
     q_4= Vadd (q_4, vtemp2);
 
     vtemp1=Body2->GetA_dt().MatrT_x_Vect(PQw_dt);
-    vtemp2=marker2->GetA()->MatrT_x_Vect(vtemp1);
+    vtemp2=marker2->GetA().MatrT_x_Vect(vtemp1);
     vtemp2= Vmul (vtemp2, 2);       // 2[Aq]'[Ao2_dt]'*Qpq,w_dt
     q_4= Vadd (q_4, vtemp2);
 
-    vtemp1=Body2->GetA()->MatrT_x_Vect(PQw);
+    vtemp1=Body2->GetA().MatrT_x_Vect(PQw);
     vtemp2=m2_Rel_A_dtdt.MatrT_x_Vect(vtemp1);
     q_4= Vadd (q_4, vtemp2);        //  [Aq_dtdt]'[Ao2]'*Qpq,w
 
@@ -598,8 +598,8 @@ void ChLinkLock::UpdateRelMarkerCoords()
 
             // relM.pos
     relM.pos =
-        marker2->GetA()->MatrT_x_Vect(
-        Body2->GetA()->MatrT_x_Vect(PQw));
+        marker2->GetA().MatrT_x_Vect(
+        Body2->GetA().MatrT_x_Vect(PQw));
 
             // relM.rot
     relM.rot =
@@ -617,11 +617,11 @@ void ChLinkLock::UpdateRelMarkerCoords()
         Vadd (
         Vadd (
         m2_Rel_A_dt.MatrT_x_Vect(
-        Body2->GetA()->MatrT_x_Vect(PQw)) ,
-        marker2->GetA()->MatrT_x_Vect(
+        Body2->GetA().MatrT_x_Vect(PQw)) ,
+        marker2->GetA().MatrT_x_Vect(
         Body2->GetA_dt().MatrT_x_Vect(PQw))),
-        marker2->GetA()->MatrT_x_Vect(
-        Body2->GetA()->MatrT_x_Vect(PQw_dt)));
+        marker2->GetA().MatrT_x_Vect(
+        Body2->GetA().MatrT_x_Vect(PQw_dt)));
 
             // relM_dt.rot
     relM_dt.rot =
@@ -631,10 +631,10 @@ void ChLinkLock::UpdateRelMarkerCoords()
     relM_dtdt.pos =
         Vadd (
         Vadd (
-        marker2->GetA()->MatrT_x_Vect(
+        marker2->GetA().MatrT_x_Vect(
          Body2->GetA_dtdt().MatrT_x_Vect(PQw)),
-        marker2->GetA()->MatrT_x_Vect(
-         Body2->GetA()->MatrT_x_Vect(PQw_dtdt))),
+        marker2->GetA().MatrT_x_Vect(
+         Body2->GetA().MatrT_x_Vect(PQw_dtdt))),
         q_4);
 
 
@@ -758,10 +758,10 @@ void ChLinkLock::UpdateState ()
     Ct_temp.pos =
         Vadd (
           m2_Rel_A_dt.MatrT_x_Vect(
-          Body2->GetA()->MatrT_x_Vect(PQw)),
-          marker2->GetA()->MatrT_x_Vect(
-           Vsub(Body2->GetA()->MatrT_x_Vect(
-            Body1->GetA()->Matr_x_Vect(marker1->GetCoord_dt().pos)),
+          Body2->GetA().MatrT_x_Vect(PQw)),
+          marker2->GetA().MatrT_x_Vect(
+           Vsub(Body2->GetA().MatrT_x_Vect(
+            Body1->GetA().Matr_x_Vect(marker1->GetCoord_dt().pos)),
             marker2->GetCoord_dt().pos))
           );
     Ct_temp.pos = Vsub (Ct_temp.pos,  deltaC_dt.pos);   // the deltaC contribute
@@ -779,8 +779,8 @@ void ChLinkLock::UpdateState ()
 
             //  JACOBIANS Cq1_temp, Cq2_temp:
 
-    mtemp1.CopyFromMatrixT(*marker2->GetA());
-    CqxT.MatrMultiplyT(mtemp1,*Body2->GetA());     // [CqxT]=[Aq]'[Ao2]'
+    mtemp1.CopyFromMatrixT(marker2->GetA());
+    CqxT.MatrMultiplyT(mtemp1, Body2->GetA());     // [CqxT]=[Aq]'[Ao2]'
 
     Cq1_temp->PasteMatrix(&CqxT,0,0);       // *- -- Cq1_temp(1-3)  =[Aqo2]
 
@@ -788,22 +788,22 @@ void ChLinkLock::UpdateState ()
     Cq2_temp->PasteMatrix(&CqxT,0,0);       // -- *- Cq2_temp(1-3)  =-[Aqo2]
 
 
-    mtemp1.MatrMultiply(CqxT, *Body1->GetA());
-    mtemp2.MatrMultiply(mtemp1,P1star);
+    mtemp1.MatrMultiply(CqxT, Body1->GetA());
+    mtemp2.MatrMultiply(mtemp1, P1star);
 
     CqxR.MatrMultiply   (mtemp2, body1Gl);
 
-    Cq1_temp->PasteMatrix(&CqxR,0,3);       // -* -- Cq1_temp(4-7)
+    Cq1_temp->PasteMatrix(&CqxR, 0,3);       // -* -- Cq1_temp(4-7)
 
 
     CqxT.MatrNeg();
-    mtemp1.MatrMultiply(CqxT,*Body2->GetA());
+    mtemp1.MatrMultiply(CqxT, Body2->GetA());
     mtemp2.MatrMultiply(mtemp1,Q2star);
     CqxR.MatrMultiply   (mtemp2, body2Gl);
     Cq2_temp->PasteMatrix(&CqxR,0,3);
 
-    mtemp1.CopyFromMatrixT(*marker2->GetA());
-    mtemp2.Set_X_matrix ( Body2->GetA()->MatrT_x_Vect(PQw));
+    mtemp1.CopyFromMatrixT(marker2->GetA());
+    mtemp2.Set_X_matrix ( Body2->GetA().MatrT_x_Vect(PQw));
     mtemp3.MatrMultiply (mtemp1, mtemp2);
     CqxR.MatrMultiply    (mtemp3, body2Gl);
 
@@ -838,22 +838,22 @@ void ChLinkLock::UpdateState ()
     vtemp1= Vcross ( Body1->GetWvel_loc(), Vcross(Body1->GetWvel_loc(), marker1->GetCoord().pos));
     vtemp1= Vadd (vtemp1, marker1->GetCoord_dtdt().pos);
     vtemp1= Vadd (vtemp1, Vmul (Vcross (Body1->GetWvel_loc(), marker1->GetCoord_dt().pos) , 2));
-    vtemp1= Body1->GetA()->Matr_x_Vect(vtemp1);
+    vtemp1= Body1->GetA().Matr_x_Vect(vtemp1);
 
     vtemp2= Vcross ( Body2->GetWvel_loc(), Vcross(Body2->GetWvel_loc(), marker2->GetCoord().pos));
     vtemp2= Vadd (vtemp2, marker2->GetCoord_dtdt().pos);
     vtemp2= Vadd (vtemp2, Vmul (Vcross (Body2->GetWvel_loc(), marker2->GetCoord_dt().pos) , 2));
-    vtemp2= Body2->GetA()->Matr_x_Vect(vtemp2);
+    vtemp2= Body2->GetA().Matr_x_Vect(vtemp2);
 
     vtemp1= Vsub (vtemp1, vtemp2);
     Qcx= CqxT.Matr_x_Vect (vtemp1);
 
     mtemp1.Set_X_matrix ( Body2->GetWvel_loc());
     mtemp2.MatrMultiply (mtemp1, mtemp1);
-    mtemp3.MatrMultiply (*Body2->GetA(), mtemp2);
+    mtemp3.MatrMultiply (Body2->GetA(), mtemp2);
     mtemp3.MatrTranspose();
     vtemp1=mtemp3.Matr_x_Vect(PQw);
-    vtemp2=marker2->GetA()->MatrT_x_Vect(vtemp1);  // [Aq]'[[A2][w2][w2]]'*Qpq,w
+    vtemp2=marker2->GetA().MatrT_x_Vect(vtemp1);  // [Aq]'[[A2][w2][w2]]'*Qpq,w
     Qcx= Vadd (Qcx, vtemp2);
 
     Qcx= Vadd (Qcx, q_4);             // [Adtdt]'[A]'q + 2[Adt]'[Adt]'q + 2[Adt]'[A]'qdt + 2[A]'[Adt]'qdt

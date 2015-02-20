@@ -387,9 +387,9 @@ int ChIrrTools::drawAllLinkframes(chrono::ChSystem&     mphysicalSystem,
       video::SColor mcol;
 
       chrono::ChVector<> p0 = frAabs.GetPos();
-      chrono::ChVector<> px = p0 + frAabs.GetA()->Get_A_Xaxis()*0.7*scale;
-      chrono::ChVector<> py = p0 + frAabs.GetA()->Get_A_Yaxis()*0.7*scale;
-      chrono::ChVector<> pz = p0 + frAabs.GetA()->Get_A_Zaxis()*0.7*scale;
+      chrono::ChVector<> px = p0 + frAabs.GetA().Get_A_Xaxis()*0.7*scale;
+      chrono::ChVector<> py = p0 + frAabs.GetA().Get_A_Yaxis()*0.7*scale;
+      chrono::ChVector<> pz = p0 + frAabs.GetA().Get_A_Zaxis()*0.7*scale;
 
       mcol=video::SColor(70,125,0,0);  // X red
       driver->draw3DLine(core::vector3dfCH(p0), core::vector3dfCH(px), mcol );
@@ -399,9 +399,9 @@ int ChIrrTools::drawAllLinkframes(chrono::ChSystem&     mphysicalSystem,
       driver->draw3DLine(core::vector3dfCH(p0), core::vector3dfCH(pz), mcol );
 
       p0 = frBabs.GetPos();
-      px = p0 + frBabs.GetA()->Get_A_Xaxis()*scale;
-      py = p0 + frBabs.GetA()->Get_A_Yaxis()*scale;
-      pz = p0 + frBabs.GetA()->Get_A_Zaxis()*scale;
+      px = p0 + frBabs.GetA().Get_A_Xaxis()*scale;
+      py = p0 + frBabs.GetA().Get_A_Yaxis()*scale;
+      pz = p0 + frBabs.GetA().Get_A_Zaxis()*scale;
 
       mcol=video::SColor(70,255,0,0);  // X red
       driver->draw3DLine(core::vector3dfCH(p0), core::vector3dfCH(px), mcol );

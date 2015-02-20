@@ -360,11 +360,11 @@ int main(int argc, char* argv[])
 		ChFrame<> roll_twist (ChVector<>(0,-wheel_radius,0), Q_from_AngAxis(-roller_angle, ChVector<>(0,1,0)) );
 
 		ChFrame<> abs_roll_wA = roll_twist >> f2_wA >> ChFrame<>(mTrussPlatform->GetBody()->GetCoord());
-		double wheel_A_rotspeed = (STATIC_rot_speed * platform_radius) + ((abs_roll_wA.GetA()->MatrT_x_Vect(imposed_speed)).x / sin(roller_angle))/wheel_radius;
+		double wheel_A_rotspeed = (STATIC_rot_speed * platform_radius) + ((abs_roll_wA.GetA().MatrT_x_Vect(imposed_speed)).x / sin(roller_angle))/wheel_radius;
 		ChFrame<> abs_roll_wB = roll_twist >> f2_wB >> ChFrame<>(mTrussPlatform->GetBody()->GetCoord());
-		double wheel_B_rotspeed = (STATIC_rot_speed * platform_radius) + ((abs_roll_wB.GetA()->MatrT_x_Vect(imposed_speed)).x / sin(roller_angle))/wheel_radius;
+		double wheel_B_rotspeed = (STATIC_rot_speed * platform_radius) + ((abs_roll_wB.GetA().MatrT_x_Vect(imposed_speed)).x / sin(roller_angle))/wheel_radius;
 		ChFrame<> abs_roll_wC = roll_twist >> f2_wC >> ChFrame<>(mTrussPlatform->GetBody()->GetCoord());
-		double wheel_C_rotspeed = (STATIC_rot_speed * platform_radius) + ((abs_roll_wC.GetA()->MatrT_x_Vect(imposed_speed)).x / sin(roller_angle))/wheel_radius;
+		double wheel_C_rotspeed = (STATIC_rot_speed * platform_radius) + ((abs_roll_wC.GetA().MatrT_x_Vect(imposed_speed)).x / sin(roller_angle))/wheel_radius;
 
         if (ChSharedPtr<ChFunction_Const> mfun = my_link_shaftA->Get_spe_funct().DynamicCastTo<ChFunction_Const>())
 			mfun->Set_yconst(wheel_A_rotspeed);

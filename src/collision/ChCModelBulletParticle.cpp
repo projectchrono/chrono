@@ -64,10 +64,10 @@ void ChModelBulletParticle::SyncPosition()
 								(btScalar)ppointer->GetPos().x,
 								(btScalar)ppointer->GetPos().y,
 								(btScalar)ppointer->GetPos().z));
-	ChMatrix33<>* rA = ppointer->GetA();
-	btMatrix3x3 basisA( (btScalar)(*rA)(0,0), (btScalar)(*rA)(0,1), (btScalar)(*rA)(0,2),
-						(btScalar)(*rA)(1,0), (btScalar)(*rA)(1,1), (btScalar)(*rA)(1,2),
-						(btScalar)(*rA)(2,0), (btScalar)(*rA)(2,1), (btScalar)(*rA)(2,2));
+	const ChMatrix33<>& rA = ppointer->GetA();
+	btMatrix3x3 basisA( (btScalar)rA(0,0), (btScalar)rA(0,1), (btScalar)rA(0,2),
+						(btScalar)rA(1,0), (btScalar)rA(1,1), (btScalar)rA(1,2),
+						(btScalar)rA(2,0), (btScalar)rA(2,1), (btScalar)rA(2,2));
 	bt_collision_object->getWorldTransform().setBasis(basisA);
 }
 
