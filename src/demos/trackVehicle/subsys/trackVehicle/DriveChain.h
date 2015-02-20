@@ -110,10 +110,18 @@ public:
   double GetVehicleSpeed() const { return 0; }
   int GetNum_Engines() const { return 1;}
 
-  // for debugging variables
-  const ChVector<>& Get_SG_PosAbs() const { return m_SG_PosAbs; }
+  // following variables are populated when DriveChain::reportShoeGearContact() is called
+  // absolute pos of the persistent contact point
+  const ChVector<>& Get_SG_Persistent_PosAbs() const { return m_SG_PosAbs; }
 
-  const ChVector<>& Get_SG_NormF() const { return m_SG_NormF; }
+  // normal force abs. vector of the persistent contact point
+  const ChVector<>& Get_SG_Persistent_Fn() const { return m_SG_Fn; }
+
+  // abs. pos. of all shoe-gear contacts found
+  const std::vector<ChVector<>>& Get_SG_PosAbs() const { return m_SG_ContactPos; }
+
+  // abs. normal force of all sh oe-gear contacts
+  const std::vector<ChVector<>>& Get_SG_Fn() const { return m_SG_ContactFn; }
 
 protected:
 
@@ -144,7 +152,7 @@ protected:
   bool m_SG_is_persistentContact_set;
   ChVector<> m_SG_PosRel;
   ChVector<> m_SG_PosAbs; // contact point, abs. coords
-  ChVector<> m_SG_NormF;  // contact normal force, abs. coords
+  ChVector<> m_SG_Fn;  // contact normal force, abs. coords
    // ******** non-history dependent list of contact info
   std::vector<ChVector<>> m_SG_ContactPos;  // list of position of contact, abs. coords
   std::vector<ChVector<>> m_SG_ContactFn; // list of contact normal forces, abs. coords

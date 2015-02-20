@@ -330,13 +330,31 @@ void ChIrrGuiTrack::renderContactShoeGear(double lenScale)
 {
   if( DriveChain* m_chain = dynamic_cast<DriveChain*>(&m_vehicle) )
   {
-    // end points of the line
-    ChVector<> v1 = m_chain->Get_SG_PosAbs();
-    ChVector<> v2 = v1 + m_chain->Get_SG_NormF()*lenScale;
+    if( m_chain->Get_SG_Persistent_Fn().Length() > 0 )
+    {
+
+    // draw persistent contact point red
+    ChVector<> v1 = m_chain->Get_SG_Persistent_PosAbs();
+    ChVector<> v2 = v1 + m_chain->Get_SG_Persistent_Fn()*lenScale;
     ChIrrTools::drawSegment(m_app.GetVideoDriver(),
                             v1,
                             v2,
-                            video::SColor(200,255,60,60), true);
+                            video::SColor(200,255,60,60), true);  // red
+    }
+
+    // all other contact points that aren't the tracked collision are green
+    std::vector<ChVector<>>::const_iterator pos_iter;
+    std::vector<ChVector<>>::const_iterator Fn_iter;
+    for(pos_iter = m_chain->Get_SG_PosAbs().begin(), Fn_iter = m_chain->Get_SG_Fn().begin();
+      pos_iter < m_chain->Get_SG_PosAbs().end() && Fn_iter < m_chain->Get_SG_Fn().end();
+      pos_iter++, Fn_iter++)
+    {
+      ChIrrTools::drawSegment(m_app.GetVideoDriver(),
+        (*pos_iter),
+        (*pos_iter) + (*Fn_iter)*lenScale,
+        video::SColor(200,20,255,20), true);  // green
+    }
+
   }
 }
 
