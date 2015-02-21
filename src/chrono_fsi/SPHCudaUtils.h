@@ -22,18 +22,18 @@
 // ----------------------------------------------------------------------------
 // Short-hand notation
 // ----------------------------------------------------------------------------
-#define F2  make_float2
-#define F3  make_float3
-#define F4  make_float4
-#define R2  make_real2
-#define R3  make_real3
-#define R4  make_real4
+#define mF2  make_float2
+#define mF3  make_float3
+#define mF4  make_float4
+#define mR2  make_Real2
+#define mR3  make_Real3
+#define mR4  make_Real4
 
-#define I2  make_int2
-#define I3  make_int3
-#define I4  int4
+#define mI2  make_int2
+#define mI3  make_int3
+#define mI4  int4
 
-#define U3  make_uint3
+#define mU3  make_uint3
 
 #define F1CAST(x) (float*)thrust::raw_pointer_cast(&x[0])
 #define D1CAST(x) (double*)thrust::raw_pointer_cast(&x[0])
@@ -41,13 +41,13 @@
 
 
 #define I1CAST(x) (int*)thrust::raw_pointer_cast(&x[0])
-#define I2CAST(x) (int2*)thrust::raw_pointer_cast(&x[0])
+#define mI2CAST(x) (int2*)thrust::raw_pointer_cast(&x[0])
 #define U1CAST(x) (uint*)thrust::raw_pointer_cast(&x[0])
-#define R1CAST(x) (real_*)thrust::raw_pointer_cast(&x[0])
-#define R3CAST(x) (real3*)thrust::raw_pointer_cast(&x[0])
-#define R4CAST(x) (real4*)thrust::raw_pointer_cast(&x[0])
+#define R1CAST(x) (Real*)thrust::raw_pointer_cast(&x[0])
+#define mR3CAST(x) (Real3*)thrust::raw_pointer_cast(&x[0])
+#define mR4CAST(x) (Real4*)thrust::raw_pointer_cast(&x[0])
 #define TCAST(x) thrust::raw_pointer_cast(x.data())
-#define R3BY3CAST(x) (real3By3*)thrust::raw_pointer_cast(&x[0])
+#define mR3BY3CAST(x) (Real3By3*)thrust::raw_pointer_cast(&x[0])
 
 // ----------------------------------------------------------------------------
 // Values
@@ -74,7 +74,7 @@
 //#if DOUBLEPRECISION
 //#define FLOAT double
 //#else
-//#define FLOAT real_
+//#define FLOAT Real
 //#endif
 
 // ----------------------------------------------------------------------------

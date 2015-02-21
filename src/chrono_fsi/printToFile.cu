@@ -10,17 +10,17 @@ using namespace std;
 
 //*******************************************************************************************************************************
 void PrintCartesianData_MidLine(
-		const thrust::host_vector<real4> & rho_Pres_CartH,
-		const thrust::host_vector<real4> & vel_VelMag_CartH,
+		const thrust::host_vector<Real4> & rho_Pres_CartH,
+		const thrust::host_vector<Real4> & vel_VelMag_CartH,
 		const int3 & cartesianGridDims,
 		const SimParams & paramsH) {
-	int3 gridCenter = I3(cartesianGridDims.x / 2, cartesianGridDims.y / 2, cartesianGridDims.z / 2);
+	int3 gridCenter = mI3(cartesianGridDims.x / 2, cartesianGridDims.y / 2, cartesianGridDims.z / 2);
 	stringstream midLineProfile;
 	for (int k = 0; k < cartesianGridDims.z; k ++) {
 		//Assuming flow in x Direction, walls on Z direction, periodic on y direction
 		int index = (cartesianGridDims.x * cartesianGridDims.y) * k + cartesianGridDims.x * gridCenter.y + gridCenter.x;
-		real3 v = R3(vel_VelMag_CartH[index]);
-		real3 rp = R3(rho_Pres_CartH[index]);
+		Real3 v = mR3(vel_VelMag_CartH[index]);
+		Real3 rp = mR3(rho_Pres_CartH[index]);
 //		midLineProfile << v.x << ", " << v.y << ", " << v.z << ", " << length(v) << ", " << rp.x << ", " << rp.y << endl;
 		midLineProfile << v.x << ", " ;
 	}
@@ -38,26 +38,26 @@ void PrintCartesianData_MidLine(
 }
 //*******************************************************************************************************************************
 void PrintToFile_SPH(
-		const thrust::device_vector<real3> & posRadD,
-		const thrust::device_vector<real4> & velMasD,
-		const thrust::device_vector<real4> & rhoPresMuD,
+		const thrust::device_vector<Real3> & posRadD,
+		const thrust::device_vector<Real4> & velMasD,
+		const thrust::device_vector<Real4> & rhoPresMuD,
 		const thrust::host_vector<int3> & referenceArray,
 
 		const SimParams paramsH,
-		const real_ realTime,
+		const Real realTime,
 		int tStep) {
 
 
-	thrust::host_vector<real3> posRadH = posRadD;
-	thrust::host_vector<real4> velMasH = velMasD;
-	thrust::host_vector<real4> rhoPresMuH = rhoPresMuD;
+	thrust::host_vector<Real3> posRadH = posRadD;
+	thrust::host_vector<Real4> velMasH = velMasD;
+	thrust::host_vector<Real4> rhoPresMuH = rhoPresMuD;
 
 // ######## the commented sections need to be fixed. you need cartesian data by calling SphSystemGpu.MapSPH_ToGrid
 ////////-+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++//comcom
 //	ofstream fileNameCartesianTotal;
-//	thrust::host_vector<real4> rho_Pres_CartH(1);
-//	thrust::host_vector<real4> vel_VelMag_CartH(1);
-//	real_ resolution = 2 * paramsH.HSML;
+//	thrust::host_vector<Real4> rho_Pres_CartH(1);
+//	thrust::host_vector<Real4> vel_VelMag_CartH(1);
+//	Real resolution = 2 * paramsH.HSML;
 //	int3 cartesianGridDims;
 //	int tStepCartesianTotal = 1000000;
 //	int tStepCartesianSlice = 100000;
@@ -83,7 +83,7 @@ void PrintToFile_SPH(
 //			for (int j = 0; j < cartesianGridDims.y; j++) {
 //				for (int i = 0; i < cartesianGridDims.x; i++) {
 //					int index = i + j * cartesianGridDims.x + k * cartesianGridDims.x * cartesianGridDims.y;
-//					real3 gridNodeLoc = resolution * R3(i, j, k) + paramsH.worldOrigin;
+//					Real3 gridNodeLoc = resolution * mR3(i, j, k) + paramsH.worldOrigin;
 //					ssCartesianTotal<<gridNodeLoc.x<<", "<< gridNodeLoc.y<<", "<< gridNodeLoc.z<<", "<<
 //							vel_VelMag_CartH[index].x<<", "<< vel_VelMag_CartH[index].y<<", "<< vel_VelMag_CartH[index].z<<", "<< vel_VelMag_CartH[index].w<<", "<<
 //							rho_Pres_CartH[index].x<<", "<< rho_Pres_CartH[index].y<<endl;
@@ -108,7 +108,7 @@ void PrintToFile_SPH(
 //		for (int k = 0; k < cartesianGridDims.z; k++) {
 //			for (int i = 0; i < cartesianGridDims.x; i++) {
 //				int index = i + j * cartesianGridDims.x + k * cartesianGridDims.x * cartesianGridDims.y;
-//				real3 gridNodeLoc = resolution * R3(i, j, k) + paramsH.worldOrigin;
+//				Real3 gridNodeLoc = resolution * mR3(i, j, k) + paramsH.worldOrigin;
 //				ssCartesianMidplane<<gridNodeLoc.x<<", "<< gridNodeLoc.z<<", "<< vel_VelMag_CartH[index].x<<", "<<
 //						vel_VelMag_CartH[index].y<<", "<< vel_VelMag_CartH[index].z<<", "<< vel_VelMag_CartH[index].w<<", "<< rho_Pres_CartH[index].x<<", "<<
 //						rho_Pres_CartH[index].y<<endl;
@@ -134,7 +134,7 @@ void PrintToFile_SPH(
 //		int i = cartesianGridDims.x / 2;
 //		for (int k = 0; k < cartesianGridDims.z; k++) {
 //			int index = i + j * cartesianGridDims.x + k * cartesianGridDims.x * cartesianGridDims.y;
-//			real3 gridNodeLoc = resolution * R3(i, j, k) + paramsH.worldOrigin;
+//			Real3 gridNodeLoc = resolution * mR3(i, j, k) + paramsH.worldOrigin;
 //			if (gridNodeLoc.z > 1 * paramsH.sizeScale && gridNodeLoc.z < 2 * paramsH.sizeScale) {
 //				ssVelocityProfPoiseuille<<gridNodeLoc.z<<", "<< vel_VelMag_CartH[index].x<<endl;
 //			}
@@ -180,10 +180,10 @@ void PrintToFile_SPH(
 		fileNameFluidParticles.open(nameFluid);
 		stringstream ssFluidParticles;
 		for (int i = referenceArray[0].x; i < referenceArray[0].y; i++) {
-			real3 pos = posRadH[i];
-			real3 vel = R3(velMasH[i]);
-			real4 rP = rhoPresMuH[i];
-			real_ velMag = length(vel);
+			Real3 pos = posRadH[i];
+			Real3 vel = mR3(velMasH[i]);
+			Real4 rP = rhoPresMuH[i];
+			Real velMag = length(vel);
 			ssFluidParticles<< pos.x<<", "<< pos.y<<", "<< pos.z<<", "<< vel.x<<", "<< vel.y<<", "<< vel.z<<", "<< velMag<<", "<< rP.x<<", "<< rP.y<<", "<< rP.w<<", "<<endl;
 		}
 		fileNameFluidParticles<<ssFluidParticles.str();
@@ -192,10 +192,10 @@ void PrintToFile_SPH(
 //		fileNameBoundaries.open(nameBoundary);
 //		stringstream ssBoundary;
 //		for (int i = referenceArray[1].x; i < referenceArray[1].y; i++) {
-//			real3 pos = posRadH[i];
-//			real3 vel = R3(velMasH[i]);
-//			real4 rP = rhoPresMuH[i];
-//			real_ velMag = length(vel);
+//			Real3 pos = posRadH[i];
+//			Real3 vel = mR3(velMasH[i]);
+//			Real4 rP = rhoPresMuH[i];
+//			Real velMag = length(vel);
 //			ssBoundary<<pos.x<<", "<< pos.y<<", "<< pos.z<<", "<< vel.x<<", "<< vel.y<<", "<< vel.z<<", "<< velMag<<", "<< rP.x<<", "<< rP.y<<", "<< rP.w<<", "<<endl;
 //		}
 //		fileNameBoundaries << ssBoundary.str();
@@ -205,10 +205,10 @@ void PrintToFile_SPH(
 		stringstream ssFluidBoundaryParticles;
 	//		ssFluidBoundaryParticles.precision(20);
 		for (int i = referenceArray[0].x; i < referenceArray[1].y; i++) {
-			real3 pos = posRadH[i];
-			real3 vel = R3(velMasH[i]);
-			real4 rP = rhoPresMuH[i];
-			real_ velMag = length(vel);
+			Real3 pos = posRadH[i];
+			Real3 vel = mR3(velMasH[i]);
+			Real4 rP = rhoPresMuH[i];
+			Real velMag = length(vel);
 			//if (pos.y > .0002 && pos.y < .0008)
 			ssFluidBoundaryParticles<< pos.x<<", "<< pos.y<<", "<< pos.z<<", "<< vel.x<<", "<< vel.y<<", "<< vel.z<<", "<< velMag<<", "<< rP.x<<", "<< rP.y<<", "<< rP.z<<", "<< rP.w<<", "<<endl;
 		}
@@ -224,12 +224,12 @@ void PrintToFile_SPH(
 //*******************************************************************************************************************************
 
 void PrintToFile(
-		const thrust::device_vector<real3> & posRadD,
-		const thrust::device_vector<real4> & velMasD,
-		const thrust::device_vector<real4> & rhoPresMuD,
+		const thrust::device_vector<Real3> & posRadD,
+		const thrust::device_vector<Real4> & velMasD,
+		const thrust::device_vector<Real4> & rhoPresMuD,
 		const thrust::host_vector<int3> & referenceArray,
 		const SimParams paramsH,
-		real_ realTime,
+		Real realTime,
 		int tStep) {
 	// print fluid stuff
 	PrintToFile_SPH(posRadD, velMasD, rhoPresMuD, referenceArray, paramsH, realTime, tStep);
