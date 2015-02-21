@@ -527,192 +527,103 @@ int main(int argc, char* argv[]) {
 		return 0;
 	}
 	// ***************************** Create Rigid ********************************************
-//	ChTimer<double> myTimerTotal;
-//	ChTimer<double> myTimerStep;
-//	MySeed(964);
-//
-//	// Save PovRay post-processing data?
-//	bool write_povray_data = true;
-//
-//	myTimerTotal.start();
-//	outSimulationInfo.open("SimInfo.txt");
-//
-//
-//
-//	// ***** params
-//	double dT = paramsH.dT;
-//	// ************
-//
-//
-//	// Create a ChronoENGINE physical system
-//	ChSystemParallelDVI mphysicalSystem;
-//	InitializeMbdPhysicalSystem(mphysicalSystem, argc, argv);
-//	create_system_particles(mphysicalSystem);
-//
-//	// Set gravitational acceleration
-//
-//	//******************* Irrlicht and driver types **************************
-//#define irrlichtVisualization false
-//	mphysicalSystem.GetSettings()->solver.max_iteration_normal = max_iteration / 3;
-//	mphysicalSystem.GetSettings()->solver.max_iteration_sliding = max_iteration / 3;
-//	mphysicalSystem.GetSettings()->solver.max_iteration_spinning = 0;
-//	mphysicalSystem.GetSettings()->solver.max_iteration_bilateral = max_iteration / 3;
-//	outSimulationInfo 	<< " dT: " << dT  << " max_iteration: " << max_iteration <<" muFriction: " << muFriction << " threads: " << threads << endl;
-//	cout				<< " dT: " << dT  << " max_iteration: " << max_iteration <<" muFriction: " << muFriction << " threads: " << threads << endl;
-//
-//	ofstream outForceData("forceData.txt");
-//
-//	// Create all the rigid bodies.
-//
-//#ifdef CHRONO_PARALLEL_HAS_OPENGL2
-//   opengl::ChOpenGLWindow &gl_window = opengl::ChOpenGLWindow::getInstance();
-//   gl_window.Initialize(1280, 720, "mixerDVI", &mphysicalSystem);
-//   gl_window.SetCamera(ChVector<>(-3,12,-8), ChVector<>(7.2, 6, 8.2), ChVector<>(0, 1, 0)); //camera
-//
-//   // Uncomment the following two lines for the OpenGL manager to automatically
-//   // run the simulation in an infinite loop.
-//   //gl_window.StartDrawLoop(time_step);
-//   //return 0;
-//#endif
-//
-//#if irrlichtVisualization
-//		cout << "@@@@@@@@@@@@@@@@  irrlicht stuff  @@@@@@@@@@@@@@@@" << endl;
-//		// Create the Irrlicht visualization (open the Irrlicht device,
-//		// bind a simple user interface, etc. etc.)
-//		ChIrrApp application(&mphysicalSystem, L"Bricks test",core::dimension2d<u32>(800,600),false, true);
-//		// Easy shortcuts to add camera, lights, logo and sky in Irrlicht scene:
-//		ChIrrWizard::add_typical_Logo  (application.GetDevice());
-//		ChIrrWizard::add_typical_Sky   (application.GetDevice());
-//		ChIrrWizard::add_typical_Lights(application.GetDevice(), core::vector3df(14.0f, 44.0f, -18.0f), core::vector3df(-3.0f, 8.0f, 6.0f), 59,  40);
-//		ChIrrWizard::add_typical_Camera(application.GetDevice(), core::vector3df(0.5,3,7), core::vector3df(2,1,5)); //   (7.2,30,0) :  (-3,12,-8)
-//		// Use this function for adding a ChIrrNodeAsset to all items
-//		// If you need a finer control on which item really needs a visualization proxy in
-//		// Irrlicht, just use application.AssetBind(myitem); on a per-item basis.
-//		application.AssetBindAll();
-//		// Use this function for 'converting' into Irrlicht meshes the assets
-//		// into Irrlicht-visualizable meshes
-//		application.AssetUpdateAll();
-//
-//		application.SetStepManage(true);
-//		application.SetTimestep(dT);  					//Arman modify
-//		cout << "@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@" << endl;
-//
-//#endif
-//		outForceData << "[1] time, [2-5] forceContact (x, y, z, magnitude), [6-9] forceActuator (x, y, z, magnitude), [10-13] Ice pressure contact (x, y, z, magnitude), [14-17] Ice pressure actuator (x, y, z, magnitude), [18] shipPos, [19] shipVel, [20] energy, [21] iceThickness, [22] timePerStep, [23] timeElapsed. ## numSpheres" << mphysicalSystem.Get_bodylist()->end() - mphysicalSystem.Get_bodylist()->begin()
-//				<< " pauseTime: " << timePause<< " setVelocity: "<< shipVelocity << " ship_w: " << ship_w  << endl;
-//		outForceData.close();
-//		outSimulationInfo << "Real Time, Compute Time" << endl;
-//
-//	outSimulationInfo << "***** number of bodies: " << mphysicalSystem.Get_bodylist()->size() << endl;
-//	bool moveTime = false;
-//	//****************************************** Time Loop *************************************
-//	ChSharedPtr<ChFunction_Const> actuator_fun0(new ChFunction_Const(0));
-//	ChSharedPtr<ChFunction_Ramp> actuator_fun1(new ChFunction_Ramp(shipVelocity * timePause, -shipVelocity)); // function works with general system timer. since the initial force needs to be zero at t=timePause, 0 = x0 + v*t --> x0 = -v*t
-//	if (driveType == ACTUATOR) {
-//		Add_Actuator(mphysicalSystem);
-//	}
-//
-//	int counter = -1;
-//	while(mphysicalSystem.GetChTime() < timeMove+timePause) //arman modify
-//	{
-//		myTimerStep.start();
-//		counter ++;
-//		// ****** include force or motion ********
-//		switch (driveType) {
-//		case KINEMATIC:
-//			(mphysicalSystem.GetChTime() < timePause) ?
-//				FixShip_Kinematic() :
-//				MoveShip_Kinematic(mphysicalSystem.GetChTime());
-//			break;
-//		case ACTUATOR:
-//			if (mphysicalSystem.GetChTime() < timePause) {
-//				MoveShip_Actuator(mphysicalSystem, actuator_fun0.StaticCastTo<ChFunction>(), 0, 0);
-//			} else {
-//				MoveShip_Actuator(mphysicalSystem, actuator_fun1.StaticCastTo<ChFunction>(), shipVelocity, 1);
-//			}
-//		}
-//		// ****** end of force or motion *********
-//#if irrlichtVisualization
-//		if ( !(application.GetDevice()->run()) ) break;
-//		application.GetVideoDriver()->beginScene(true, true, SColor(255,140,161,192));
-//		ChIrrTools::drawGrid(application.GetVideoDriver(), .2,.2, 150,150,
-//			ChCoordsys<>(ChVector<>(0.5 * hdim.x, boxMin.y, 0.5 * hdim.z),Q_from_AngAxis(CH_C_PI/2,VECT_X)), video::SColor(50,90,90,150),true);
-//		application.DrawAll();
-//		application.DoStep();
-//		application.GetVideoDriver()->endScene();
-//#else
-//#ifdef CHRONO_PARALLEL_HAS_OPENGL2
-//		if (gl_window.Active()) {
-//		 gl_window.DoStepDynamics(dT);
-//		 gl_window.Render();
-//		}
-//#else
-//		mphysicalSystem.DoStepDynamics(dT);
-//#endif
-//#endif
-//
-//		//******************** ship force*********************
-//		ChVector<> mForceActuator = ChVector<>(0,0,0);
-//		ChVector<> mTorqueActuator = ChVector<>(0,0,0);
-//		ChVector<> icePressureActuator = ChVector<>(0,0,0);
-//		ChVector<> mTorqueContact;
-//		ChVector<> mForceContact;
-//
-//
-//		if (driveType == ACTUATOR) {
-//			ChSharedPtr<ChLinkLinActuator> actuator;
-//			actuator = mphysicalSystem.SearchLink("actuator").StaticCastTo<ChLinkLinActuator>();
-//			mForceActuator = actuator->Get_react_force();
-//			mTorqueActuator = actuator->Get_react_torque();
-//			icePressureActuator = mForceActuator / iceThickness / ship_w;
-//		}
-//		calc_ship_contact_forces(mphysicalSystem, mForceContact, mTorqueContact);
-//		ChVector<> icePressureContact = mForceContact / iceThickness / ship_w;
-//
-//		myTimerStep.stop();
-//		myTimerTotal.stop();
-//		//****************************************************
-//		vector<ChBody*>::iterator ibody = mphysicalSystem.Get_bodylist()->begin();
-//		double energy = 0;
-//		while (ibody != mphysicalSystem.Get_bodylist()->end()) {
-//			create_hydronynamic_force(*ibody, mphysicalSystem, surfaceLoc, false);
-//			energy += pow((*ibody)->GetPos_dt().Length() , 2);
-//			ibody++;
-//		}
-//
-//		printf("*** total number of contacts %d, num bodies %d\n", mphysicalSystem.GetNcontacts(), mphysicalSystem.Get_bodylist()->size());
-//		stringstream outDataSS;
-//		outDataSS << mphysicalSystem.GetChTime() << ", " <<
-//				mForceContact.x << ", " << mForceContact.y << ", " << mForceContact.z << ", " << mForceContact.Length() << ", " <<
-//				mForceActuator.x << ", " << mForceActuator.y << ", " << mForceActuator.z << ", " << mForceActuator.Length() << ", " <<
-//				icePressureContact.x << ", " << icePressureContact.y << ", " << icePressureContact.z << ", " << icePressureContact.Length() << ", " <<
-//				icePressureActuator.x << ", " << icePressureActuator.y << ", " << icePressureActuator.z << ", " << icePressureActuator.Length() << ", " <<
-//				shipPtr->GetPos().z << ", " << shipPtr->GetPos_dt().z << ", " << energy << ", " << iceThickness  << ", " << myTimerStep() << ", " << myTimerTotal() << endl;
-//		ofstream outData("forceData.txt", ios::app);
-//		outData<<outDataSS.str();
-//		outData.close();
-//
-//		double numIter = ((ChLcpSolverParallelDVI*)mphysicalSystem.GetLcpSolverSpeed())->GetTotalIterations();
-//		outSimulationInfo << "Time: " <<  mphysicalSystem.GetChTime() <<
-//				" executionTime: " << mphysicalSystem.GetTimerStep() <<
-//				" Ship pos: " << shipPtr->GetPos().x << ", " << shipPtr->GetPos().y << ", " <<  shipPtr->GetPos().z <<
-//				" Ship vel: " << shipPtr->GetPos_dt().x << ", " << shipPtr->GetPos_dt().y << ", " <<  shipPtr->GetPos_dt().z <<
-//				" energy: " << energy <<
-//				" time per step: " << myTimerStep() <<
-//				" time elapsed: " << myTimerTotal() <<
-//				" Ship force: " << mForceContact.x << ", " << mForceContact.y << ", " <<  mForceContact.z <<
-//				" ice thickness: " << iceThickness <<
-//				" number of Iteration: " << numIter << endl;
-//		cout << "Time: " <<  mphysicalSystem.GetChTime() <<
-//				" executionTime: " << mphysicalSystem.GetTimerStep() <<
-//				" Ship vel: " << shipPtr->GetPos_dt().x << ", " << shipPtr->GetPos_dt().y << ", " <<  shipPtr->GetPos_dt().z <<
-//				" energy: " << energy <<
-//				" time per step: " << myTimerStep() <<
-//				" time elapsed: " << myTimerTotal() <<
-//				" Ship force: " << mForceContact.x << ", " << mForceContact.y << ", " <<  mForceContact.z <<
-//				" ice thickness: " << iceThickness <<
-//				" number of Iteration: " << numIter << endl;
-//
+	ChTimer<double> myTimerTotal;
+	ChTimer<double> myTimerStep;
+	MySeed(964);
+
+	// Save PovRay post-processing data?
+	bool write_povray_data = true;
+
+	myTimerTotal.start();
+	outSimulationInfo.open("SimInfo.txt");
+
+
+
+	// ***** params
+	double dT = paramsH.dT;
+	// ************
+
+
+	// Create a ChronoENGINE physical system
+	ChSystemParallelDVI mphysicalSystem;
+	InitializeMbdPhysicalSystem(mphysicalSystem, argc, argv);
+	create_system_particles(mphysicalSystem);
+
+	// Set gravitational acceleration
+
+	//******************* Irrlicht and driver types **************************
+#define irrlichtVisualization false
+	outSimulationInfo << "****************************************************************************" << endl;
+	outSimulationInfo 	<< " dT: " << dT  << " max_iteration: " << max_iteration <<" muFriction: " << muFriction << " threads: " << threads << " number of bodies: " << mphysicalSystem.Get_bodylist()->size() << endl;
+	cout			 	<< " dT: " << dT  << " max_iteration: " << max_iteration <<" muFriction: " << muFriction << " threads: " << threads << " number of bodies: " << mphysicalSystem.Get_bodylist()->size() << endl;
+
+#ifdef CHRONO_PARALLEL_HAS_OPENGL2
+   opengl::ChOpenGLWindow &gl_window = opengl::ChOpenGLWindow::getInstance();
+   gl_window.Initialize(1280, 720, "mixerDVI", &mphysicalSystem);
+   gl_window.SetCamera(ChVector<>(-3,12,-8), ChVector<>(7.2, 6, 8.2), ChVector<>(0, 1, 0)); //camera
+
+   // Uncomment the following two lines for the OpenGL manager to automatically
+   // run the simulation in an infinite loop.
+   //gl_window.StartDrawLoop(time_step);
+   //return 0;
+#endif
+
+#if irrlichtVisualization
+		cout << "@@@@@@@@@@@@@@@@  irrlicht stuff  @@@@@@@@@@@@@@@@" << endl;
+		// Create the Irrlicht visualization (open the Irrlicht device,
+		// bind a simple user interface, etc. etc.)
+		ChIrrApp application(&mphysicalSystem, L"Bricks test",core::dimension2d<u32>(800,600),false, true);
+		// Easy shortcuts to add camera, lights, logo and sky in Irrlicht scene:
+		ChIrrWizard::add_typical_Logo  (application.GetDevice());
+		ChIrrWizard::add_typical_Sky   (application.GetDevice());
+		ChIrrWizard::add_typical_Lights(application.GetDevice(), core::vector3df(14.0f, 44.0f, -18.0f), core::vector3df(-3.0f, 8.0f, 6.0f), 59,  40);
+		ChIrrWizard::add_typical_Camera(application.GetDevice(), core::vector3df(0.5,3,7), core::vector3df(2,1,5)); //   (7.2,30,0) :  (-3,12,-8)
+		// Use this function for adding a ChIrrNodeAsset to all items
+		// If you need a finer control on which item really needs a visualization proxy in
+		// Irrlicht, just use application.AssetBind(myitem); on a per-item basis.
+		application.AssetBindAll();
+		// Use this function for 'converting' into Irrlicht meshes the assets
+		// into Irrlicht-visualizable meshes
+		application.AssetUpdateAll();
+
+		application.SetStepManage(true);
+		application.SetTimestep(dT);  					//Arman modify
+		cout << "@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@" << endl;
+
+#endif
+	bool moveTime = false;
+	//****************************************** Time Loop *************************************
+
+	int counter = -1;
+	while(mphysicalSystem.GetChTime() < timeMove+timePause) //arman modify
+	{
+		myTimerStep.start();
+		counter ++;
+#if irrlichtVisualization
+		if ( !(application.GetDevice()->run()) ) break;
+		application.GetVideoDriver()->beginScene(true, true, SColor(255,140,161,192));
+		ChIrrTools::drawGrid(application.GetVideoDriver(), .2,.2, 150,150,
+			ChCoordsys<>(ChVector<>(0.5 * hdim.x, boxMin.y, 0.5 * hdim.z),Q_from_AngAxis(CH_C_PI/2,VECT_X)), video::SColor(50,90,90,150),true);
+		application.DrawAll();
+		application.DoStep();
+		application.GetVideoDriver()->endScene();
+#else
+#ifdef CHRONO_PARALLEL_HAS_OPENGL2
+		if (gl_window.Active()) {
+		 gl_window.DoStepDynamics(dT);
+		 gl_window.Render();
+		}
+#else
+		mphysicalSystem.DoStepDynamics(dT);
+#endif
+#endif
+
+		myTimerStep.stop();
+		myTimerTotal.stop();
+		//****************************************************
+
+		printf("*** total number of contacts %d, num bodies %d\n", mphysicalSystem.GetNcontacts(), mphysicalSystem.Get_bodylist()->size());
+
 //		// Save PovRay post-processing data.
 //		const std::string pov_dir = "povray";
 //		if (counter == 0) {
@@ -726,10 +637,7 @@ int main(int argc, char* argv[]) {
 //			sprintf(filename, "%s/data_%03d.csv", pov_dir.c_str(), counter / stepSave + 1);
 //			utils::WriteBodies(&mphysicalSystem, filename);
 //		}
-//	}
-//
-//	outForceData.close();
-
+	}
 	// ***************************************************************************************
 
 	DOUBLEPRECISION ? printf("Double Precision\n") : printf("Single Precision\n");
