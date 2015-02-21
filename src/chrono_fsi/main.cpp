@@ -91,28 +91,28 @@ SimParams paramsH;
 //typedef unsigned int uint;
 
 ////************ note: paramsH is zero here. These expressions are wrong
-const real_ mm = .001;
+const Real mm = .001;
 
 //&&& some other definitions for boundary and such
 
 //&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
 struct CylinderGeometry {
-	real3 pa3;
-	real3 pb3;
-	real3 center;
-	real_ r;
-	real_ h;
+	Real3 pa3;
+	Real3 pb3;
+	Real3 center;
+	Real r;
+	Real h;
 };
 //&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
-real_ myRand() {
-	return real_(rand()) / RAND_MAX;
+Real myRand() {
+	return Real(rand()) / RAND_MAX;
 }
 //&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
-real_ Min(real_ a, real_ b) {
+Real Min(Real a, Real b) {
 	return (a < b) ? a : b;
 }
 //&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
-real_ Max(real_ a, real_ b) {
+Real Max(Real a, Real b) {
 	return (a < b) ? b : a;
 }
 
@@ -156,19 +156,19 @@ void InitializeMbdPhysicalSystem(ChSystemParallelDVI & mphysicalSystem, int argc
 	mphysicalSystem.GetSettings()->collision.narrowphase_algorithm = NARROWPHASE_HYBRID_MPR;
 
 	mphysicalSystem.GetSettings()->collision.collision_envelope = collisionEnvelop;
-	mphysicalSystem.GetSettings()->collision.bins_per_axis = I3(10, 10, 10); //Arman check
+	mphysicalSystem.GetSettings()->collision.bins_per_axis = mI3(10, 10, 10); //Arman check
 }
 
 void create_system_particles(ChSystemParallelDVI& mphysicalSystem) {
-	real3 domainCenter = 0.5 * (paramsH.cMin + paramsH.cMax);
-	real3 ellipsoidSize = R3(10 * paramsH.HSML, 5 * paramsH.HSML, 7 * paramsH.HSML);
+	Real3 domainCenter = 0.5 * (paramsH.cMin + paramsH.cMax);
+	Real3 ellipsoidSize = mR3(10 * paramsH.HSML, 5 * paramsH.HSML, 7 * paramsH.HSML);
 	ChVector<> size = ChVector<>(ellipsoidSize.x, ellipsoidSize.y, ellipsoidSize.z);
 
-	real_ density = paramsH.rho0;  // TODO : Arman : Density for now is set to water density
+	Real density = paramsH.rho0;  // TODO : Arman : Density for now is set to water density
 	double muFriction = .1;
-	real_ volume = utils::CalcEllipsoidVolume(size);
-	real_ gyration = utils::CalcEllipsoidGyration(size).Get_Diag();
-	real_ mass = density * volume;
+	Real volume = utils::CalcEllipsoidVolume(size);
+	Real gyration = utils::CalcEllipsoidGyration(size).Get_Diag();
+	Real mass = density * volume;
 
 
 	// Generate ice particels
@@ -222,12 +222,12 @@ void create_system_particles(ChSystemParallelDVI& mphysicalSystem) {
 
 
 //*** paramsH.straightChannelBoundaryMax   should be taken care of
-real_ IsInsideStraightChannel(real3 posRad) {
-	const real_ sphR = paramsH.HSML;
-	real_ penDist1 = 0;
-	real_ penDist2 = 0;
-	real_ penDist3 = 0;
-	real_ largePenet = -5 * sphR; //like a large number. Should be negative (assume large initial penetration)
+Real IsInsideStraightChannel(Real3 posRad) {
+	const Real sphR = paramsH.HSML;
+	Real penDist1 = 0;
+	Real penDist2 = 0;
+	Real penDist3 = 0;
+	Real largePenet = -5 * sphR; //like a large number. Should be negative (assume large initial penetration)
 
 	if (posRad.z > paramsH.straightChannelBoundaryMax.z) {
 		penDist1 = paramsH.straightChannelBoundaryMax.z - posRad.z;
@@ -262,28 +262,28 @@ real_ IsInsideStraightChannel(real3 posRad) {
 
 //&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
 int2 CreateFluidMarkers(
-		thrust::host_vector<real3> & posRadH,
-		thrust::host_vector<real4> & velMasH,
-		thrust::host_vector<real4> & rhoPresMuH,
+		thrust::host_vector<Real3> & posRadH,
+		thrust::host_vector<Real4> & velMasH,
+		thrust::host_vector<Real4> & rhoPresMuH,
 		thrust::host_vector<uint> & bodyIndex,
-		real_ & sphMarkerMass) {
+		Real & sphMarkerMass) {
 
-	thrust::host_vector<real3> mPosRadBoundary; //do not set the size here since you are using push back later
-	thrust::host_vector<real4> mVelMasBoundary;
-	thrust::host_vector<real4> mRhoPresMuBoundary;
+	thrust::host_vector<Real3> mPosRadBoundary; //do not set the size here since you are using push back later
+	thrust::host_vector<Real4> mVelMasBoundary;
+	thrust::host_vector<Real4> mRhoPresMuBoundary;
 
 	int num_FluidMarkers = 0;
 	int num_BoundaryMarkers = 0;
 	srand(964);
-	real_ multInitSpace = paramsH.MULT_INITSPACE; //0.9;//0.9;
-	real_ initSpace0 = paramsH.MULT_INITSPACE * paramsH.HSML;
+	Real multInitSpace = paramsH.MULT_INITSPACE; //0.9;//0.9;
+	Real initSpace0 = paramsH.MULT_INITSPACE * paramsH.HSML;
 	int nFX = ceil((paramsH.cMax.x - paramsH.cMin.x) / (initSpace0));
-	real_ initSpaceX = (paramsH.cMax.x - paramsH.cMin.x) / nFX;
+	Real initSpaceX = (paramsH.cMax.x - paramsH.cMin.x) / nFX;
 	//printf("orig nFx and nFx %f %f\n", (paramsH.cMax.x - paramsH.cMin.x) / initSpace, ceil ((paramsH.cMax.x - paramsH.cMin.x) / (initSpace)));
 	int nFY = ceil((paramsH.cMax.y - paramsH.cMin.y) / (initSpace0));
-	real_ initSpaceY = (paramsH.cMax.y - paramsH.cMin.y) / nFY;
+	Real initSpaceY = (paramsH.cMax.y - paramsH.cMin.y) / nFY;
 	int nFZ = ceil((paramsH.cMax.z - paramsH.cMin.z) / (initSpace0));
-	real_ initSpaceZ = (paramsH.cMax.z - paramsH.cMin.z) / nFZ;
+	Real initSpaceZ = (paramsH.cMax.z - paramsH.cMin.z) / nFZ;
 	//printf("&&&&& %f   %f %f %f \n", 1.1 * sphR, initSpaceX, initSpaceY, initSpaceZ);
 	printf("nFX Y Z %d %d %d, max distY %f, initSpaceY %f\n", nFX, nFY, nFZ,
 			(nFY - 1) * initSpaceY, initSpaceY);
@@ -292,12 +292,12 @@ int2 CreateFluidMarkers(
 	for (int i = 0; i < nFX; i++) {
 		for (int j = 0; j < nFY; j++) {
 			for (int k = 0; k < nFZ; k++) {
-				real3 posRad;
+				Real3 posRad;
 //					printf("initSpace X, Y, Z %f %f %f \n", initSpaceX, initSpaceY, initSpaceZ);
 				posRad =
 						paramsH.cMin
-								+ R3(i * initSpaceX, j * initSpaceY, k * initSpaceZ)
-								+ R3(.5 * initSpace0)/* + R3(sphR) + initSpace * .05 * (real_(rand()) / RAND_MAX)*/;
+								+ mR3(i * initSpaceX, j * initSpaceY, k * initSpaceZ)
+								+ mR3(.5 * initSpace0)/* + mR3(sphR) + initSpace * .05 * (Real(rand()) / RAND_MAX)*/;
 				if ( 	(posRad.x >  paramsH.straightChannelBoundaryMin.x && posRad.x <  paramsH.straightChannelBoundaryMax.x ) &&
 						(posRad.y >  paramsH.straightChannelBoundaryMin.y && posRad.y <  paramsH.straightChannelBoundaryMax.y ) &&
 						(posRad.z >  paramsH.straightChannelBoundaryMin.z && posRad.z <  paramsH.straightChannelBoundaryMax.z ) )
@@ -305,20 +305,20 @@ int2 CreateFluidMarkers(
 					if (i < 0.5 * nFX) {
 						num_FluidMarkers++;
 						posRadH.push_back(posRad);
-						real3 v3 = R3(0);
-						velMasH.push_back(R4(v3, sphMarkerMass));
-						rhoPresMuH.push_back(R4(paramsH.rho0, paramsH.BASEPRES, paramsH.mu0, -1));
+						Real3 v3 = mR3(0);
+						velMasH.push_back(mR4(v3, sphMarkerMass));
+						rhoPresMuH.push_back(mR4(paramsH.rho0, paramsH.BASEPRES, paramsH.mu0, -1));
 					}
 				} else {
 					num_BoundaryMarkers++;
 					mPosRadBoundary.push_back(posRad);
-					mVelMasBoundary.push_back(R4(0, 0, 0, sphMarkerMass));
-					mRhoPresMuBoundary.push_back(R4(paramsH.rho0, paramsH.LARGE_PRES, paramsH.mu0, 0));
+					mVelMasBoundary.push_back(mR4(0, 0, 0, sphMarkerMass));
+					mRhoPresMuBoundary.push_back(mR4(paramsH.rho0, paramsH.LARGE_PRES, paramsH.mu0, 0));
 				}
 			}
 		}
 	}
-	int2 num_fluidOrBoundaryMarkers = I2(num_FluidMarkers, num_BoundaryMarkers);
+	int2 num_fluidOrBoundaryMarkers = mI2(num_FluidMarkers, num_BoundaryMarkers);
 	// *** copy boundary markers to the end of the markers arrays
 	posRadH.resize(
 			num_fluidOrBoundaryMarkers.x + num_fluidOrBoundaryMarkers.y);
@@ -358,8 +358,8 @@ void SetupParamsH(SimParams & paramsH) {
 		paramsH.LARGE_PRES = 10000;//paramsH.BASEPRES;//10000;
 		paramsH.deltaPress; //** modified below
 		paramsH.multViscosity_FSI = 5.0;
-	paramsH.gravity = R3(0, -9.81, 0);//R3(0);//R3(0, -9.81, 0);
-	paramsH.bodyForce3 = R3(0,0,0);//R4(3.2e-3,0,0,0);// R4(0);;// /*Re = 100 */ //R4(3.2e-4, 0, 0, 0);/*Re = 100 */
+	paramsH.gravity = mR3(0, -9.81, 0);//mR3(0);//mR3(0, -9.81, 0);
+	paramsH.bodyForce3 = mR3(0,0,0);//mR4(3.2e-3,0,0,0);// mR4(0);;// /*Re = 100 */ //mR4(3.2e-4, 0, 0, 0);/*Re = 100 */
 		paramsH.rho0 = 1000;
 		paramsH.mu0 = .001;
 	paramsH.v_Max = 10;//50e-3;//18e-3;//1.5;//2e-1; /*0.2 for Re = 100 */ //2e-3;
@@ -375,25 +375,25 @@ void SetupParamsH(SimParams & paramsH) {
 	paramsH.densityReinit = 0; //0: no re-initialization, 1: with initialization
 	//****************************************************************************************
 	//*** initialize straight channel
-	paramsH.straightChannelBoundaryMin = R3(0, 0, 0); //3D channel
-	paramsH.straightChannelBoundaryMax = R3(3, 2, 3) * paramsH.sizeScale;
+	paramsH.straightChannelBoundaryMin = mR3(0, 0, 0); //3D channel
+	paramsH.straightChannelBoundaryMax = mR3(3, 2, 3) * paramsH.sizeScale;
 	//********************************************************************************************************
 	//**  reminiscent of the past******************************************************************************
-	paramsH.cMin = R3(-paramsH.toleranceZone, -paramsH.toleranceZone, -paramsH.toleranceZone);						// 3D channel
-	paramsH.cMax = R3( 3  + paramsH.toleranceZone, 2 + paramsH.toleranceZone,  3 + paramsH.toleranceZone);
+	paramsH.cMin = mR3(-paramsH.toleranceZone, -paramsH.toleranceZone, -paramsH.toleranceZone);						// 3D channel
+	paramsH.cMax = mR3( 3  + paramsH.toleranceZone, 2 + paramsH.toleranceZone,  3 + paramsH.toleranceZone);
 	//****************************************************************************************
 	//printf("a1  paramsH.cMax.x, y, z %f %f %f,  binSize %f\n", paramsH.cMax.x, paramsH.cMax.y, paramsH.cMax.z, 2 * paramsH.HSML);
-	int3 side0 = I3(
+	int3 side0 = mI3(
 			floor((paramsH.cMax.x - paramsH.cMin.x) / (2 * paramsH.HSML)),
 			floor((paramsH.cMax.y - paramsH.cMin.y) / (2 * paramsH.HSML)),
 			floor((paramsH.cMax.z - paramsH.cMin.z) / (2 * paramsH.HSML)));
-	real3 binSize3 = R3((paramsH.cMax.x - paramsH.cMin.x) / side0.x,
+	Real3 binSize3 = mR3((paramsH.cMax.x - paramsH.cMin.x) / side0.x,
 			(paramsH.cMax.y - paramsH.cMin.y) / side0.y,
 			(paramsH.cMax.z - paramsH.cMin.z) / side0.z);
 	paramsH.binSize0 = (binSize3.x > binSize3.y) ? binSize3.x : binSize3.y;
 //	paramsH.binSize0 = (paramsH.binSize0 > binSize3.z) ? paramsH.binSize0 : binSize3.z;
 	paramsH.binSize0 = binSize3.x; //for effect of distance. Periodic BC in x direction. we do not care about paramsH.cMax y and z.
-	paramsH.cMax = paramsH.cMin + paramsH.binSize0 * R3(side0);
+	paramsH.cMax = paramsH.cMin + paramsH.binSize0 * mR3(side0);
 	paramsH.boxDims = paramsH.cMax - paramsH.cMin;
 	//************************** modify pressure ***************************
 //		paramsH.deltaPress = paramsH.rho0 * paramsH.boxDims * paramsH.bodyForce3;  //did not work as I expected
@@ -401,14 +401,14 @@ void SetupParamsH(SimParams & paramsH) {
 
 	// modify bin size stuff
 	//****************************** bin size adjustement and contact detection stuff *****************************
-	int3 SIDE = I3(int((paramsH.cMax.x - paramsH.cMin.x) / paramsH.binSize0 + .1), int((paramsH.cMax.y - paramsH.cMin.y) / paramsH.binSize0 + .1),
+	int3 SIDE = mI3(int((paramsH.cMax.x - paramsH.cMin.x) / paramsH.binSize0 + .1), int((paramsH.cMax.y - paramsH.cMin.y) / paramsH.binSize0 + .1),
 			int((paramsH.cMax.z - paramsH.cMin.z) / paramsH.binSize0 + .1));
-	real_ mBinSize = paramsH.binSize0; //Best solution in that case may be to change cMax or cMin such that periodic sides be a multiple of binSize
+	Real mBinSize = paramsH.binSize0; //Best solution in that case may be to change cMax or cMin such that periodic sides be a multiple of binSize
 	//**********************************************************************************************************
 	paramsH.gridSize = SIDE;
 	//paramsH.numCells = SIDE.x * SIDE.y * SIDE.z;
 	paramsH.worldOrigin = paramsH.cMin;
-	paramsH.cellSize = R3(mBinSize, mBinSize, mBinSize);
+	paramsH.cellSize = mR3(mBinSize, mBinSize, mBinSize);
 
 	//***** print numbers
 	printf("********************\n paramsH.sizeScale: %f\n paramsH.HSML: %f\n paramsH.bodyForce3: %f %f %f\n paramsH.gravity: %f %f %f\n paramsH.rho0: %e\n paramsH.mu0: %f\n paramsH.v_Max: %f\n paramsH.dT: %e\n paramsH.tFinal: %f\n  paramsH.timePause: %f\n  paramsH.timePauseRigidFlex: %f\n paramsH.densityReinit: %d\n",
@@ -441,18 +441,18 @@ void SetNumObjects(NumberOfObjects & numObjects, const thrust::host_vector<int3>
 }
 
 void ClearArraysH(
-	thrust::host_vector<real3> & posRadH, //do not set the size here since you are using push back later
-	thrust::host_vector<real4> & velMasH,
-	thrust::host_vector<real4> & rhoPresMuH) {
+	thrust::host_vector<Real3> & posRadH, //do not set the size here since you are using push back later
+	thrust::host_vector<Real4> & velMasH,
+	thrust::host_vector<Real4> & rhoPresMuH) {
 
 	posRadH.clear();
 	velMasH.clear();
 	rhoPresMuH.clear();
 }
 void ClearArraysH(
-	thrust::host_vector<real3> & posRadH, //do not set the size here since you are using push back later
-	thrust::host_vector<real4> & velMasH,
-	thrust::host_vector<real4> & rhoPresMuH,
+	thrust::host_vector<Real3> & posRadH, //do not set the size here since you are using push back later
+	thrust::host_vector<Real4> & velMasH,
+	thrust::host_vector<Real4> & rhoPresMuH,
 	thrust::host_vector<uint> & bodyIndex,
 	thrust::host_vector<int3> & referenceArray) {
 
@@ -462,12 +462,12 @@ void ClearArraysH(
 }
 
 void CopyD2H(
-	thrust::host_vector<real3> & posRadH, //do not set the size here since you are using push back later
-	thrust::host_vector<real4> & velMasH,
-	thrust::host_vector<real4> & rhoPresMuH,
-	const thrust::device_vector<real3> & posRadD,
-	const thrust::device_vector<real4> & velMasD,
-	const thrust::device_vector<real4> & rhoPresMuD) {
+	thrust::host_vector<Real3> & posRadH, //do not set the size here since you are using push back later
+	thrust::host_vector<Real4> & velMasH,
+	thrust::host_vector<Real4> & rhoPresMuH,
+	const thrust::device_vector<Real3> & posRadD,
+	const thrust::device_vector<Real4> & velMasD,
+	const thrust::device_vector<Real4> & rhoPresMuD) {
 	assert(posRadH.size() == posRadD.size() && "Error! size mismatch host and device" );
 	thrust::copy(posRadD.begin(), posRadD.end(), posRadH.begin());
 	thrust::copy(velMasD.begin(), velMasD.end(), velMasH.begin());
@@ -475,12 +475,12 @@ void CopyD2H(
 }
 
 //void CopyD2D(
-//	thrust::host_vector<real3> & posRadD2, //do not set the size here since you are using push back later
-//	thrust::host_vector<real4> & velMasD2,
-//	thrust::host_vector<real4> & rhoPresMuD2,
-//	const thrust::device_vector<real3> & posRadD,
-//	const thrust::device_vector<real4> & velMasD,
-//	const thrust::device_vector<real4> & rhoPresMuD) {
+//	thrust::host_vector<Real3> & posRadD2, //do not set the size here since you are using push back later
+//	thrust::host_vector<Real4> & velMasD2,
+//	thrust::host_vector<Real4> & rhoPresMuD2,
+//	const thrust::device_vector<Real3> & posRadD,
+//	const thrust::device_vector<Real4> & velMasD,
+//	const thrust::device_vector<Real4> & rhoPresMuD) {
 //	thrust::copy(posRadD.begin(), posRadD.end(), posRadD2.begin());
 //	thrust::copy(velMasD.begin(), velMasD.end(), velMasD2.begin());
 //	thrust::copy(rhoPresMuD.begin(), rhoPresMuD.end(), rhoPresMuD2.begin());
@@ -501,9 +501,9 @@ int main(int argc, char* argv[]) {
 	// ***************************** Create Fluid ********************************************
 	//*** Arrays definition
 	thrust::host_vector<int3> referenceArray;
-	thrust::host_vector<real3> posRadH; //do not set the size here since you are using push back later
-	thrust::host_vector<real4> velMasH;
-	thrust::host_vector<real4> rhoPresMuH;
+	thrust::host_vector<Real3> posRadH; //do not set the size here since you are using push back later
+	thrust::host_vector<Real4> velMasH;
+	thrust::host_vector<Real4> rhoPresMuH;
 	thrust::host_vector<uint> bodyIndex;
 	SetupParamsH(paramsH);
 
@@ -512,12 +512,12 @@ int main(int argc, char* argv[]) {
 	int numAllMarkers = 0;
 
 	// initialize fluid particles
-	real_ sphMarkerMass; // To be initialized in CreateFluidMarkers, and used in other places
+	Real sphMarkerMass; // To be initialized in CreateFluidMarkers, and used in other places
 	int2 num_fluidOrBoundaryMarkers = CreateFluidMarkers(posRadH, velMasH, rhoPresMuH, bodyIndex, sphMarkerMass);
-	referenceArray.push_back(I3(0, num_fluidOrBoundaryMarkers.x, -1)); //map fluid -1
+	referenceArray.push_back(mI3(0, num_fluidOrBoundaryMarkers.x, -1)); //map fluid -1
 	numAllMarkers += num_fluidOrBoundaryMarkers.x;
 	referenceArray.push_back(
-			I3(numAllMarkers, numAllMarkers + num_fluidOrBoundaryMarkers.y,	0));
+			mI3(numAllMarkers, numAllMarkers + num_fluidOrBoundaryMarkers.y,	0));
 	numAllMarkers += num_fluidOrBoundaryMarkers.y;
 
 	// set num objects
@@ -644,20 +644,20 @@ int main(int argc, char* argv[]) {
 	printf("********************\n");
 
 
-	thrust::device_vector<real3> posRadD = posRadH;
-	thrust::device_vector<real4> velMasD = velMasH;
-	thrust::device_vector<real4> rhoPresMuD = rhoPresMuH;
+	thrust::device_vector<Real3> posRadD = posRadH;
+	thrust::device_vector<Real4> velMasD = velMasH;
+	thrust::device_vector<Real4> rhoPresMuD = rhoPresMuH;
 	thrust::device_vector<uint> bodyIndexD = bodyIndex;
-	thrust::device_vector<real4> derivVelRhoD;
+	thrust::device_vector<Real4> derivVelRhoD;
 	ResizeMyThrust4(derivVelRhoD, numObjects.numAllMarkers);
 //*********************************************** End of Initialization ****************************************
 	int stepEnd = int(paramsH.tFinal/paramsH.dT);//1.0e6;//2.4e6;//600000;//2.4e6 * (.02 * paramsH.sizeScale) / currentParamsH.dT ; //1.4e6 * (.02 * paramsH.sizeScale) / currentParamsH.dT ;//0.7e6 * (.02 * paramsH.sizeScale) / currentParamsH.dT ;//0.7e6;//2.5e6; //200000;//10000;//50000;//100000;
 	printf("stepEnd %d\n", stepEnd);
-	real_ realTime = 0;
+	Real realTime = 0;
 
 	SimParams paramsH_B = paramsH;
-	paramsH_B.bodyForce3 = R3(0);
-	paramsH_B.gravity = R3(0);
+	paramsH_B.bodyForce3 = mR3(0);
+	paramsH_B.gravity = mR3(0);
 	paramsH_B.dT = .1 * paramsH.dT;
 
 	printf("\ntimePause %f, numPause %d\n", paramsH.timePause, int(paramsH.timePause/paramsH_B.dT));
@@ -679,18 +679,18 @@ int main(int argc, char* argv[]) {
 		InitSystem(currentParamsH, numObjects);
 
 		// ** initialize host mid step data
-		thrust::host_vector<real3> posRadH2 = posRadH;
-		thrust::host_vector<real4> velMasH2 = velMasH;
-		thrust::host_vector<real4> rhoPresMuH2 = rhoPresMuH;
+		thrust::host_vector<Real3> posRadH2 = posRadH;
+		thrust::host_vector<Real4> velMasH2 = velMasH;
+		thrust::host_vector<Real4> rhoPresMuH2 = rhoPresMuH;
 		// ** initialize device mid step data
-		thrust::device_vector<real3> posRadD2 = posRadD;
-		thrust::device_vector<real4> velMasD2 = velMasD;
-		thrust::device_vector<real4> rhoPresMuD2 = rhoPresMuD;
+		thrust::device_vector<Real3> posRadD2 = posRadD;
+		thrust::device_vector<Real4> velMasD2 = velMasD;
+		thrust::device_vector<Real4> rhoPresMuD2 = rhoPresMuD;
 		// **
-		thrust::device_vector<real3> vel_XSPH_D;
+		thrust::device_vector<Real3> vel_XSPH_D;
 		ResizeMyThrust3(vel_XSPH_D, numObjects.numAllMarkers);
 
-		FillMyThrust4(derivVelRhoD, R4(0));
+		FillMyThrust4(derivVelRhoD, mR4(0));
 
 		IntegrateSPH(posRadD2, velMasD2, rhoPresMuD2, posRadD, velMasD, vel_XSPH_D, rhoPresMuD, bodyIndexD, derivVelRhoD, referenceArray, numObjects, currentParamsH, 0.5 * currentParamsH.dT);
 		CopyD2H(posRadH2, velMasH2, rhoPresMuH2, posRadD2, velMasD2, rhoPresMuD2);
@@ -708,7 +708,7 @@ int main(int argc, char* argv[]) {
 		mCpuTimer.Stop();
 		myGpuTimer.Stop();
 		if (tStep % 50 == 0) {
-			printf("step: %d, realTime: %f, step Time (CUDA): %f, step Time (CPU): %f\n ", tStep, realTime, (real_)myGpuTimer.Elapsed(), 1000 * mCpuTimer.Elapsed());
+			printf("step: %d, realTime: %f, step Time (CUDA): %f, step Time (CPU): %f\n ", tStep, realTime, (Real)myGpuTimer.Elapsed(), 1000 * mCpuTimer.Elapsed());
 		}
 		fflush(stdout);
 		realTime += currentParamsH.dT;
