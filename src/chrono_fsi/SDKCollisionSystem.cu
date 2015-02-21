@@ -73,7 +73,7 @@ __device__ inline real4 DifVelocityRho(
 	real_ rAB_Dot_GradW = dot(dist3, gradW);
 	real_ rAB_Dot_GradW_OverDist = rAB_Dot_GradW / (d * d + epsilonMutualDistance * paramsD.HSML * paramsD.HSML);
 	real3 derivV = -velMasB.w * (rhoPresMuA.y / (rhoPresMuA.x * rhoPresMuA.x) + rhoPresMuB.y / (rhoPresMuB.x * rhoPresMuB.x)) * gradW
-			+ velMasB.w * (8.0f * multViscosity) * paramsD.mu0 * pow(rhoPresMuA.x + rhoPresMuB.x, -2) * rAB_Dot_GradW_OverDist
+			+ velMasB.w * (8.0f * multViscosity) * paramsD.mu0 * pow(rhoPresMuA.x + rhoPresMuB.x, real_(-2)) * rAB_Dot_GradW_OverDist
 					* R3(velMasA - velMasB);
 	real_ zeta = 0;//.05;//.1;
 	real_ derivRho = rhoPresMuA.x * velMasB.w / rhoPresMuB.x * dot(vel_XSPH_A - vel_XSPH_B, gradW);
@@ -105,7 +105,7 @@ __device__ inline real3 DifVelocity_SSI_DEM(
 	real_ kD = 40;//20;//40.0;//20.0; //420.0;				//damping coef. // 40 is good don't change it.
 	real3 n = dist3 / d; //unit vector B to A
 	real_ m_eff = (velMasA.w * velMasB.w) / (velMasA.w + velMasB.w);
-	real3 force = (/*pow(paramsD.sizeScale, 3) * */kS * l - kD * m_eff * dot(R3(velMasA - velMasB), n)) * n; //relative velocity at contact is simply assumed as the relative vel of the centers. If you are updating the rotation, this should be modified.
+	real3 force = (/*pow(paramsD.sizeScale, real_(3)) * */kS * l - kD * m_eff * dot(R3(velMasA - velMasB), n)) * n; //relative velocity at contact is simply assumed as the relative vel of the centers. If you are updating the rotation, this should be modified.
 	return force / velMasA.w; //return dV/dT same as SPH
 }
 //--------------------------------------------------------------------------------------------------------------------------------
@@ -682,7 +682,7 @@ __global__ void CalcBCE_MainStresses_kernel(
 	real3 volS3 = volStressD[index];
 	real4 mainS3 = R4(0);
 	mainS3.w = sqrt( .5 * (
-			pow(volS3.x-volS3.y, 2) + pow(volS3.x-volS3.z, 2) + pow(volS3.y-volS3.z, 2) + 6 * (devS3.x * devS3.x + devS3.y * devS3.y + devS3.z * devS3.z)
+			pow(volS3.x-volS3.y, real_(2)) + pow(volS3.x-volS3.z, real_(2)) + pow(volS3.y-volS3.z, real_(2)) + 6 * (devS3.x * devS3.x + devS3.y * devS3.y + devS3.z * devS3.z)
 			));
 
 	mainStressD[index] = mainS3;

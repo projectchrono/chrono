@@ -108,10 +108,11 @@ __device__ inline real_ W3_Spline(real_ d) { // d is positive. h is the sph part
 	real_ h = paramsD.HSML;
 	real_ q = fabs(d) / h;
 	if (q < 1) {
-		return (0.25f / (PI * h * h * h) * (pow(2 - q, 3) - 4 * pow(1 - q, 3)));
+		return (0.25f / (PI * h * h * h) * (pow(2 - q, real_(3)) - 4 * pow(1 - q, real_(3))));
+
 	}
 	if (q < 2) {
-		return (0.25f / (PI * h * h * h) * pow(2 - q, 3));
+		return (0.25f / (PI * h * h * h) * pow(2 - q, real_(3)));
 	}
 	return 0;
 }
@@ -121,10 +122,10 @@ __device__ inline real_ W3_Spline(real_ d) { // d is positive. h is the sph part
 //	real_ h = paramsD.HSML;
 //	real_ q = fabs(d) / h;
 //	if (q < 1) {
-//		return (5 / (14 * PI * h * h) * (pow(2 - q, 3) - 4 * pow(1 - q, 3)));
+//		return (5 / (14 * PI * h * h) * (pow(2 - q, real_(3)) - 4 * pow(1 - q, real_(3))));
 //	}
 //	if (q < 2) {
-//		return (5 / (14 * PI * h * h) * pow(2 - q, 3));
+//		return (5 / (14 * PI * h * h) * pow(2 - q, real_(3)));
 //	}
 //	return 0;
 //}
@@ -133,7 +134,7 @@ __device__ inline real_ W3_Spline(real_ d) { // d is positive. h is the sph part
 //__device__ inline real_ W3_Quadratic(real_ d, real_ h) { // d is positive. h is the sph particle radius (i.e. h in the document) d is the distance of 2 particles
 //	real_ q = fabs(d) / h;
 //	if (q < 2) {
-//		return (1.25f / (PI * h * h * h) * .75f * (pow(.5f * q, 2) - q + 1));
+//		return (1.25f / (PI * h * h * h) * .75f * (pow(.5f * q, real_(2)) - q + 1));
 //	}
 //	return 0;
 //}
@@ -142,7 +143,7 @@ __device__ inline real_ W3_Spline(real_ d) { // d is positive. h is the sph part
 //__device__ inline real_ W2_Quadratic(real_ d, real_ h) { // d is positive. h is the sph particle radius (i.e. h in the document) d is the distance of 2 particles
 //	real_ q = fabs(d) / h;
 //	if (q < 2) {
-//		return (2.0f / (PI * h * h) * .75f * (pow(.5f * q, 2) - q + 1));
+//		return (2.0f / (PI * h * h) * .75f * (pow(.5f * q, real_(2)) - q + 1));
 //	}
 //	return 0;
 //}
@@ -155,12 +156,12 @@ __device__ inline real3 GradW_Spline(real3 d) { // d is positive. r is the sph p
 	real_ q = length(d) / h;
 	bool less1 = (q < 1);
 	bool less2 = (q < 2);
-	return (less1 * (3 * q - 4) + less2 * (!less1) * (-q + 4.0f - 4.0f / q)) * .75f * (INVPI) *powf(h, -5) * d;
+	return (less1 * (3 * q - 4) + less2 * (!less1) * (-q + 4.0f - 4.0f / q)) * .75f * (INVPI) *pow(h, real_(-5)) * d;
 //	if (q < 1) {
-//		return .75f * (INVPI) *powf(h, -5)* (3 * q - 4) * d;
+//		return .75f * (INVPI) *pow(h, real_(-5))* (3 * q - 4) * d;
 //	}
 //	if (q < 2) {
-//		return .75f * (INVPI) *powf(h, -5)* (-q + 4.0f - 4.0f / q) * d;
+//		return .75f * (INVPI) *pow(h, real_(-5))* (-q + 4.0f - 4.0f / q) * d;
 //	}
 //	return R3(0);
 }
@@ -171,7 +172,7 @@ __device__ inline real3 GradW_Spline(real3 d) { // d is positive. r is the sph p
 //__device__ inline real3 GradW_Quadratic(real3 d, real_ h) { // d is positive. r is the sph particle radius (i.e. h in the document) d is the distance of 2 particles
 //	real_ q = length(d) / h;
 //	if (q < 2) {
-//		return 1.25f / (PI * powf(h, 5)) * .75f * (.5f - 1.0f / q) * d;
+//		return 1.25f / (PI * pow(h, real_(5))) * .75f * (.5f - 1.0f / q) * d;
 //	}
 //	return R3(0);
 //}
@@ -184,7 +185,7 @@ __device__ inline real3 GradW_Spline(real3 d) { // d is positive. r is the sph p
 //fluid equation of state
 __device__ inline real_ Eos(real_ rho, real_ type) {
 	////******************************
-	//int gama = 1;
+	//real_ gama = 1;
 	//if (type < -.1) {
 	//	return 1 * (100000 * (pow(rho / paramsD.rho0, gama) - 1) + paramsD.BASEPRES);
 	//	//return 100 * rho;
@@ -194,7 +195,7 @@ __device__ inline real_ Eos(real_ rho, real_ type) {
 	//////}
 
 	//******************************	
-	int gama = 7;
+	real_ gama = 7;
 	real_ B = 100 * paramsD.rho0 * paramsD.v_Max * paramsD.v_Max / gama; //200;//314e6; //c^2 * paramsD.rho0 / gama where c = 1484 m/s for water
 	if (type < +.1f) {
 		return B * (pow(rho / paramsD.rho0, gama) - 1)+ paramsD.BASEPRES; //1 * (B * (pow(rho / paramsD.rho0, gama) - 1) + paramsD.BASEPRES);
