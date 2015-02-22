@@ -74,7 +74,7 @@ using namespace chrono;
 // #define CONSOLE_DEBUG_INFO      // log constraint violations to console,
 #define CONSOLE_TIMING       // time each render and simulation step, log to console
 
-int what_to_save = DBG_FIRSTSHOE | DBG_GEAR | DBG_IDLER | DBG_PTRAIN | DBG_CONSTRAINTS;
+int what_to_save = DBG_FIRSTSHOE; // | DBG_GEAR | DBG_IDLER | DBG_PTRAIN | DBG_CONSTRAINTS;
 int what_to_console = DBG_PTRAIN; // DBG_FIRSTSHOE | DBG_GEAR | DBG_IDLER | DBG_PTRAIN | DBG_CONSTRAINTS;
 
 // Initial vehicle position and heading. Defines the REF frame for the hull body
@@ -85,17 +85,17 @@ ChQuaternion<> initRot(QUNIT);
 size_t num_idlers = 1;
 size_t num_rollers = 2;
 // Simulation step size
-double step_size = 5e-4;
+double step_size = 2e-3;
 
 // #ifdef USE_IRRLICHT
 int FPS = 40; // render frame rate
 double render_step_size = 1.0 / FPS;  // Time increment between two rendered frames
-double output_step_size = 4*step_size;    // Time interval between two output frames
+double output_step_size = step_size;    // Time interval between two output frames
 
 ChVector<> trackPoint(-1, 0, 0.2);   // Point on chassis tracked by the camera, chassis c-sys
 
 bool use_fixed_camera = true;
-ChVector<> fixed_cameraPos(-0.5, 1, 2.4); // static camera position, global c-sys
+ChVector<> fixed_cameraPos(0.5, 1.5, 2.0); // static camera position, global c-sys
 // if chase cam enabled:
 double chaseDist = 2.5;
 double chaseHeight = 0.5;

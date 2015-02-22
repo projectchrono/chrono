@@ -269,9 +269,7 @@ void ChIrrGuiTrack::DrawAll(bool draw_normal)
   if(draw_normal)
     renderContactShoeGear();
 
-
   renderStats();
-
 
 }
 
@@ -332,14 +330,11 @@ void ChIrrGuiTrack::renderContactShoeGear(double lenScale)
   {
     if( m_chain->Get_SG_Persistent_Fn().Length() > 0 )
     {
-
-    // draw persistent contact point red
-    ChVector<> v1 = m_chain->Get_SG_Persistent_PosAbs();
-    ChVector<> v2 = v1 + m_chain->Get_SG_Persistent_Fn()*lenScale;
-    ChIrrTools::drawSegment(m_app.GetVideoDriver(),
-                            v1,
-                            v2,
-                            video::SColor(200,255,60,60), true);  // red
+      // draw persistent contact point red
+      ChIrrTools::drawSegment(m_app.GetVideoDriver(),
+        m_chain->Get_SG_Persistent_PosAbs(),
+         m_chain->Get_SG_Persistent_PosAbs() + m_chain->Get_SG_Persistent_Fn()*lenScale,
+        video::SColor(200,255,60,60), true);  // red
     }
 
     // all other contact points that aren't the tracked collision are green
