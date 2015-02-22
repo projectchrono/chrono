@@ -25,14 +25,17 @@
 #include "core/ChLog.h"
 #include "core/ChLinearAlgebra.h"
 #include "timestepper/ChTimestepper.h"
+#include "unit_POSTPROCESS/ChGnuPlot.h"
 
 using namespace chrono;
+using namespace postprocess;
            
 		        
 int main(int argc, char* argv[])
 {
 
 	GetLog() << "CHRONO demo about low-level time integration of differential equations: \n\n";   
+
 
 	if (true)
 	{
@@ -706,7 +709,6 @@ int main(int argc, char* argv[])
 		}
 
 	}
-
 
 
 
