@@ -188,11 +188,13 @@ bool ChIrrAppEventReceiver::OnEvent(const SEvent& event)
 		case 2: app->GetSystem()->SetIntegrationType(chrono::ChSystem::INT_EULER_IMPLICIT); break;
 		case 3: app->GetSystem()->SetIntegrationType(chrono::ChSystem::INT_EULER_IMPLICIT_LINEARIZED); break;
 		case 4: app->GetSystem()->SetIntegrationType(chrono::ChSystem::INT_TRAPEZOIDAL); break;
-		case 5: app->GetSystem()->SetIntegrationType(chrono::ChSystem::INT_HHT); break;
-		case 6: app->GetSystem()->SetIntegrationType(chrono::ChSystem::INT_HEUN); break;
-		case 7: app->GetSystem()->SetIntegrationType(chrono::ChSystem::INT_RUNGEKUTTA45); break;
-		case 8: app->GetSystem()->SetIntegrationType(chrono::ChSystem::INT_EULER_EXPLICIT); break;
-		case 9: app->GetSystem()->SetIntegrationType(chrono::ChSystem::INT_LEAPFROG); break;
+		case 5: app->GetSystem()->SetIntegrationType(chrono::ChSystem::INT_TRAPEZOIDAL_LINEARIZED); break;
+		case 6: app->GetSystem()->SetIntegrationType(chrono::ChSystem::INT_HHT); break;
+		case 7: app->GetSystem()->SetIntegrationType(chrono::ChSystem::INT_HEUN); break;
+		case 8: app->GetSystem()->SetIntegrationType(chrono::ChSystem::INT_RUNGEKUTTA45); break;
+		case 9: app->GetSystem()->SetIntegrationType(chrono::ChSystem::INT_EULER_EXPLICIT); break;
+		case 10:app->GetSystem()->SetIntegrationType(chrono::ChSystem::INT_LEAPFROG); break;
+		case 11:app->GetSystem()->SetIntegrationType(chrono::ChSystem::INT_NEWMARK); break;
         }
         break;
       }
@@ -361,11 +363,13 @@ ChIrrAppInterface::ChIrrAppInterface(
   gad_stepper->addItem(L"Euler implicit");
   gad_stepper->addItem(L"Euler semimplicit (linearized)");
   gad_stepper->addItem(L"Trapezoidal");
+  gad_stepper->addItem(L"Trapezoidal (linearized)");
   gad_stepper->addItem(L"HHT");
   gad_stepper->addItem(L"Heun explicit");
   gad_stepper->addItem(L"RungeKutta45 explicit");
   gad_stepper->addItem(L"Euler explicit");
   gad_stepper->addItem(L"Leapfrog");
+  gad_stepper->addItem(L"Newmark");
 
   gad_stepper->setSelected(0);
 
@@ -629,11 +633,13 @@ void ChIrrAppInterface::DrawAll()
 	case chrono::ChSystem::INT_EULER_IMPLICIT: gad_stepper->setSelected(2); break;
 	case chrono::ChSystem::INT_EULER_IMPLICIT_LINEARIZED: gad_stepper->setSelected(3); break;
 	case chrono::ChSystem::INT_TRAPEZOIDAL: gad_stepper->setSelected(4); break;
-	case chrono::ChSystem::INT_HHT:			gad_stepper->setSelected(5); break;
-	case chrono::ChSystem::INT_HEUN:		gad_stepper->setSelected(6); break;
-	case chrono::ChSystem::INT_RUNGEKUTTA45:gad_stepper->setSelected(7); break;
-	case chrono::ChSystem::INT_EULER_EXPLICIT:gad_stepper->setSelected(8); break;
-	case chrono::ChSystem::INT_LEAPFROG:	gad_stepper->setSelected(9); break;
+	case chrono::ChSystem::INT_TRAPEZOIDAL_LINEARIZED: gad_stepper->setSelected(5); break;
+	case chrono::ChSystem::INT_HHT:			gad_stepper->setSelected(6); break;
+	case chrono::ChSystem::INT_HEUN:		gad_stepper->setSelected(7); break;
+	case chrono::ChSystem::INT_RUNGEKUTTA45:gad_stepper->setSelected(8); break;
+	case chrono::ChSystem::INT_EULER_EXPLICIT:gad_stepper->setSelected(9); break;
+	case chrono::ChSystem::INT_LEAPFROG:	gad_stepper->setSelected(10); break;
+	case chrono::ChSystem::INT_NEWMARK:		gad_stepper->setSelected(11); break;
     }
 
     gad_try_realtime->setChecked(GetTryRealtime());

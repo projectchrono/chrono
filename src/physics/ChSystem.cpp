@@ -1274,6 +1274,10 @@ void ChSystem::SetIntegrationType (eCh_integrationType m_integration)
 		this->timestepper= ChSharedPtr<ChTimestepperTrapezoidal> (new ChTimestepperTrapezoidal(*this)); 
 		(this->timestepper.DynamicCastTo<ChTimestepperTrapezoidal>())->SetMaxiters(4);
 		break;
+	case INT_TRAPEZOIDAL_LINEARIZED:
+		this->timestepper= ChSharedPtr<ChTimestepperTrapezoidalLinearized> (new ChTimestepperTrapezoidalLinearized(*this)); 
+		(this->timestepper.DynamicCastTo<ChTimestepperTrapezoidalLinearized>())->SetMaxiters(4);
+		break;
 	case INT_HHT:
 		this->timestepper= ChSharedPtr<ChTimestepperHHT> (new ChTimestepperHHT(*this)); 
 		(this->timestepper.DynamicCastTo<ChTimestepperHHT>())->SetMaxiters(4);
@@ -1289,6 +1293,9 @@ void ChSystem::SetIntegrationType (eCh_integrationType m_integration)
 		break;
 	case INT_LEAPFROG:
 		this->timestepper= ChSharedPtr<ChTimestepperLeapfrog> (new ChTimestepperLeapfrog(*this)); 
+		break;
+	case INT_NEWMARK:
+		this->timestepper= ChSharedPtr<ChTimestepperNewmark> (new ChTimestepperNewmark(*this)); 
 		break;
 	default:
 		throw ChException("SetIntegrationType: timestepper not supported");
