@@ -134,18 +134,18 @@ void ChLinkRevoluteSpherical::Initialize(
   if (local) {
     m_pos1 = pos1;
     m_pos2 = pos2;
-    m_dir1 = dir1;
-    pos1_abs = Body1->TransformPointLocalToParent(pos1);
-    pos2_abs = Body2->TransformPointLocalToParent(pos2);
-    dir1_abs = Body1->TransformDirectionLocalToParent(dir1);
+    m_dir1 = Vnorm(dir1);
+    pos1_abs = Body1->TransformPointLocalToParent(m_pos1);
+    pos2_abs = Body2->TransformPointLocalToParent(m_pos2);
+    dir1_abs = Body1->TransformDirectionLocalToParent(m_dir1);
   }
   else {
-    m_pos1 = Body1->TransformPointParentToLocal(pos1);
-    m_pos2 = Body2->TransformPointParentToLocal(pos2);
-    m_dir1 = Body1->TransformDirectionParentToLocal(dir1);
     pos1_abs = pos1;
     pos2_abs = pos2;
-    dir1_abs = dir1;
+    dir1_abs = Vnorm(dir1);
+    m_pos1 = Body1->TransformPointParentToLocal(pos1_abs);
+    m_pos2 = Body2->TransformPointParentToLocal(pos2_abs);
+    m_dir1 = Body1->TransformDirectionParentToLocal(dir1_abs);
   }
 
   ChVector<> d12_abs = pos2_abs - pos1_abs;
@@ -154,6 +154,23 @@ void ChLinkRevoluteSpherical::Initialize(
   m_dist = auto_distance ? m_cur_dist : distance;
 
   m_cur_dot = Vdot(d12_abs, dir1_abs);
+}
+
+
+// -----------------------------------------------------------------------------
+// Form and return the joint reference frame.
+// -----------------------------------------------------------------------------
+ChCoordsys<> ChLinkRevoluteSpherical::GetLinkRelativeCoords()
+{
+  ChVector<> pos1 = Body2->TransformPointParentToLocal(Body1->TransformPointLocalToParent(m_pos1));
+  ChMatrix33<> A;
+
+  ChVector<> u = (m_pos2 - pos1).GetNormalized();
+  ChVector<> w = Body2->TransformDirectionParentToLocal(Body1->TransformDirectionLocalToParent(m_dir1));
+  ChVector<> v = Vcross(w, u);
+  A.Set_A_axis(u, v, w);
+
+  return ChCoordsys<>(pos1, A.Get_A_quaternion());
 }
 
 
@@ -360,8 +377,81 @@ void ChLinkRevoluteSpherical::ConstraintsLoadJacobians()
 
 void ChLinkRevoluteSpherical::ConstraintsFetch_react(double factor)
 {
-  //// TODO
+  // Extract the Lagrange multipliers for the distance and for
+  // the dot constraint.
+  double     lam_dist = m_cnstr_dist.Get_l_i();  // ||pos2_abs - pos1_abs|| - dist = 0
+  double     lam_dot = m_cnstr_dot.Get_l_i();    // dot(dir1_abs, pos2_abs - pos1_abs) = 0
+
+  // Note that the Lagrange multipliers must be multiplied by 'factor' to
+  // convert from reaction impulses to reaction forces.
+  lam_dist *= factor;
+  lam_dot *= factor;
+
+  // Calculate the reaction torques and forces on Body 2 in the joint frame
+  // (Note: origin of the joint frame is at the center of the revolute joint
+  //  which is defined on body 1, the x-axis is along the vector from the  
+  //  point on body 1 to the point on body 2.  The z axis is along the revolute
+  //  axis defined for the joint)
+  react_force.x = lam_dist;
+  react_force.y = 0;
+  react_force.z = lam_dot;
+
+  react_torque.x = 0;
+  react_torque.y = -m_cur_dist*lam_dot;
+  react_torque.z = 0;
 }
+
+
+// -----------------------------------------------------------------------------
+// Additional reaction force and torque calculations due to the odd definition
+//  of the standard output for this joint style
+// -----------------------------------------------------------------------------
+
+ChVector<> ChLinkRevoluteSpherical::Get_react_force_body1()
+{
+  // Calculate the reaction forces on Body 1 in the joint frame
+  // (Note: origin of the joint frame is at the center of the revolute joint
+  //  which is defined on body 1, the x-axis is along the vector from the  
+  //  point on body 1 to the point on body 2.  The z axis is along the revolute
+  //  axis defined for the joint)
+  //  react_force = (-lam_dist,0,-lam_dot)
+
+  return -react_force;
+}
+
+ChVector<> ChLinkRevoluteSpherical::Get_react_torque_body1()
+{
+  // Calculate the reaction forces on Body 1 in the joint frame
+  // (Note: origin of the joint frame is at the center of the revolute joint
+  //  which is defined on body 1, the x-axis is along the vector from the  
+  //  point on body 1 to the point on body 2.  The z axis is along the revolute
+  //  axis defined for the joint)
+  //  react_torque = (0,m_cur_dist*lam_dot,0)
+
+  return -react_torque;
+}
+
+ChVector<> ChLinkRevoluteSpherical::Get_react_force_body2()
+{
+  // Calculate the reaction torques on Body 2 in the joint frame at the spherical joint
+  // (Note: the joint frame x-axis is along the vector from the  
+  //  point on body 1 to the point on body 2.  The z axis is along the revolute
+  //  axis defined for the joint)
+  //  react_force = (lam_dist,0,lam_dot)
+  return react_force;
+}
+
+ChVector<> ChLinkRevoluteSpherical::Get_react_torque_body2()
+{
+  // Calculate the reaction torques on Body 2 in the joint frame at the spherical joint
+  // (Note: the joint frame x-axis is along the vector from the  
+  //  point on body 1 to the point on body 2.  The z axis is along the revolute
+  //  axis defined for the joint)
+  //  react_torque = (0,0,0)
+  return VNULL;
+}
+
+
 
 
 // -----------------------------------------------------------------------------

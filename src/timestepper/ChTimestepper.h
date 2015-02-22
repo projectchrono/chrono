@@ -546,7 +546,7 @@ public:
 			mintegrable->LoadResidual_Mv (R, (V-Vnew), 1.0);
 			mintegrable->LoadResidual_CqL(R, L, dt);
 			mintegrable->LoadConstraint_C(Qc, 1.0/dt);
-//	GetLog()<< "Euler iteration=" << i << "  |R|=" << R.NormInf() << "  |Qc|=" << Qc.NormInf() << "\n";						
+GetLog()<< "Euler iteration=" << i << "  |R|=" << R.NormInf() << "  |Qc|=" << Qc.NormInf() << "\n";						
 			if ((R.NormInf()  < this->GetTolerance()) &&
 				(Qc.NormInf() < this->GetTolerance()))
 				break;
@@ -707,6 +707,7 @@ public:
 
 
 		mintegrable->StateGather(X, V, T);	// state <- system
+GetLog()<< "\n\n Trapezoidal \n";
 //GetLog()<< "trapezoidal T=" << T<< " , X=" << X <<"\n";
 //GetLog()<< "trapezoidal T=" << T<< " , V=" << V <<"\n";
 		// extrapolate a prediction as a warm start
@@ -732,9 +733,9 @@ public:
 			mintegrable->LoadResidual_Mv(R, Vnew, -1.0); // - M*v_new
 			mintegrable->LoadResidual_CqL(R, L, dt*0.5); // + dt/2*Cq*l_new
 			mintegrable->LoadConstraint_C(Qc, 1.0 / dt); // C/dt
-//GetLog()<< "trapezoidal iter="<<i<<" R =" << R <<"\n";
-//GetLog()<< "trapezoidal iter="<<i<<" Qc =" << Qc <<"\n";
-//GetLog()<< "trapezoidal iteration=" << i << "  |R|=" << R.NormInf() << "  |Qc|=" << Qc.NormInf() << "\n";
+	//GetLog()<< "trapezoidal iter="<<i<<" R =" << R <<"\n";
+	//GetLog()<< "trapezoidal iter="<<i<<" Qc =" << Qc <<"\n";
+	GetLog()<< "trapezoidal iteration=" << i << "  |R|=" << R.NormTwo() << "  |Qc|=" << Qc.NormTwo() << "\n";
 			if ((R.NormInf()  < this->GetTolerance()) &&
 				(Qc.NormInf() < this->GetTolerance()))
 				break;
@@ -750,14 +751,13 @@ public:
 				Xnew, Vnew, T + dt,
 				false  // do not StateScatter update to Xnew Vnew T+dt before computing correction
 				);
-//GetLog()<< "trapezoidal iter="<<i<<" Dv =" << Dv <<"\n";
+
 			Dl *= (2.0 / dt);  // Note it is not -(2.0/dt) because we assume StateSolveCorrection already flips sign of Dl
 			L += Dl;
 
 			Vnew += Dv;
-//GetLog()<< "trapezoidal iter="<<i<<" Vnew =" << Vnew <<"\n";
+
 			Xnew = X + ((Vnew + V)*(dt*0.5));  // Xnew = Xold + h/2(Vnew+Vold)
-//GetLog()<< "trapezoidal iter="<<i<<" Xnew =" << Xnew <<"\n";
 		}
 
 		X = Xnew;
@@ -900,6 +900,145 @@ public:
 		mintegrable->StateScatter(X, V, T);	// state -> system
 	}
 };
+
+
+
+
+/// Performs a step of Newmark constrained implicit for II order DAE systems
+/// See Negrut et al. 2007.
+
+class ChTimestepperNewmark : public ChTimestepperIIorder, public ChImplicitIterativeTimestepper
+{
+private:
+	double gamma;
+	double beta;
+	ChStateDelta		Da;
+	ChVectorDynamic<>   Dl;
+	ChState				Xnew;
+	ChStateDelta		Vnew;
+	ChStateDelta		Anew;
+	ChVectorDynamic<>	R;
+	ChVectorDynamic<>	Rold;
+	ChVectorDynamic<>	Qc;
+
+public:
+	/// Constructors (default empty)
+	ChTimestepperNewmark(ChIntegrableIIorder& mintegrable)
+		: ChTimestepperIIorder(mintegrable),
+		ChImplicitIterativeTimestepper()
+	{
+		SetGammaBeta(0.5,0.25);
+	};
+
+
+		
+	/// Set the numerical damping parameter gamma and the beta parameter. 
+	/// Gamma: in the [1/2, 1] interval. 
+	/// For gamma = 1/2, no numerical damping
+	/// For gamma > 1/2, more damping
+	/// Beta: in the [0, 1] interval. 
+	/// For beta = 1/4, gamma = 1/2 -> constant acceleration method
+	/// For beta = 1/6, gamma = 1/2 -> linear acceleration method
+	/// Method is second order accurate only for gamma = 1/2
+	void SetGammaBeta(double mgamma, double mbeta)
+	{
+		gamma = mgamma;
+		if (gamma <  0.5)
+			gamma = 0.5;
+		if (gamma > 1)
+			gamma = 1;
+		beta = mbeta;
+		if (beta <  0)
+			beta = 0;
+		if (beta > 1)
+			beta = 1;
+	}
+
+	double GetGamma() { return gamma; }
+
+	double GetBeta() { return beta; }
+
+	/// Performs an integration timestep
+	virtual void Advance(
+		const double dt				///< timestep to advance
+		)
+	{
+		// downcast
+		ChIntegrableIIorder* mintegrable = (ChIntegrableIIorder*)this->integrable;
+
+		// setup main vectors
+		mintegrable->StateSetup(X, V, A);
+
+		// setup auxiliary vectors
+		Da.Reset(mintegrable->GetNcoords_a(), GetIntegrable());
+		Dl.Reset(mintegrable->GetNconstr());
+		Xnew.Reset(mintegrable->GetNcoords_x(), mintegrable);
+		Vnew.Reset(mintegrable->GetNcoords_v(), mintegrable);
+		Anew.Reset(mintegrable->GetNcoords_a(), mintegrable);
+		R.Reset(mintegrable->GetNcoords_v());
+		Rold.Reset(mintegrable->GetNcoords_v());
+		Qc.Reset(mintegrable->GetNconstr());
+		L.Reset(mintegrable->GetNconstr());
+
+
+		mintegrable->StateGather(X, V, T);	// state <- system
+
+		// extrapolate a prediction as a warm start
+
+		Vnew = V; 	
+		Xnew = X + Vnew*dt;		 
+
+
+		// use Newton Raphson iteration to solve implicit Euler for a_new
+
+		//
+		// [ M - dt*gamma*dF/dv - dt^2*beta*dF/dx    Cq' ] [ Da   ] = [ -M*(a_new) + f_new + Cq*l_new ]
+		// [ Cq                                      0   ] [ Dl   ] = [ 1/(beta*dt^2)*C               ]                                                                      ]
+
+		for (int i = 0; i < this->GetMaxiters(); ++i)
+		{
+			mintegrable->StateScatter(Xnew, Vnew, T + dt);	// state -> system
+
+			R.Reset(mintegrable->GetNcoords_v());
+			Qc.Reset(mintegrable->GetNconstr());
+			mintegrable->LoadResidual_F  (R,  1.0);         //  f_new
+			mintegrable->LoadResidual_CqL(R, L, 1.0);       //   Cq'*l_new
+			mintegrable->LoadResidual_Mv (R, Anew, -1.0 );	 //  - M*a_new
+			mintegrable->LoadConstraint_C(Qc,  (1.0/(beta*dt*dt)) );  //  1/(beta*dt^2)*C
+
+			if ((R.NormInf()  < this->GetTolerance()) &&
+				(Qc.NormInf() < this->GetTolerance()))
+				break;
+
+			mintegrable->StateSolveCorrection(
+				Da,
+				Dl,
+				R,
+				Qc,
+				1.0,        // factor for  M  
+				-dt*gamma,  // factor for  dF/dv
+				-dt*dt*beta,// factor for  dF/dx
+				Xnew, Vnew, T + dt,
+				false  // do not StateScatter update to Xnew Vnew T+dt before computing correction
+				);
+
+			L    -= Dl;  // Note it is not += Dl because we assume StateSolveCorrection flips sign of Dl
+			Anew += Da;
+
+			Xnew = X + V*dt + A*(dt*dt*(0.5 - beta)) + Anew*(dt*dt*beta);
+
+			Vnew = V + A*(dt*(1.0 - gamma)) + Anew*(dt*gamma);
+		}
+
+		X = Xnew;
+		V = Vnew;
+		A = Anew;
+		T += dt;
+
+		mintegrable->StateScatter(X, V, T);	// state -> system
+	}
+};
+
 
 
 

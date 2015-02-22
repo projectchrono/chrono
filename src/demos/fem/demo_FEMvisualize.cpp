@@ -80,7 +80,7 @@ int main(int argc, char* argv[])
 
 				// Load a .node file and a .ele  file from disk, defining a complicate tetahedron mesh.
 				// This is much easier than creating all nodes and elements via C++ programming.
-				// You can generate these files using the TetGen tool.
+/*				// You can generate these files using the TetGen tool.
 	try 
 	{
     my_mesh->LoadFromTetGenFile(GetChronoDataFile("unit_FEM/beam.node").c_str(),
@@ -95,7 +95,7 @@ int main(int argc, char* argv[])
 				// Apply a force to a node
 	ChSharedPtr<ChNodeFEMxyz> mnodelast = (my_mesh->GetNode(my_mesh->GetNnodes()-1)).DynamicCastTo<ChNodeFEMxyz>();
 	mnodelast->SetForce( ChVector<>(100,0,0));
-
+*/
 
 
 	//
@@ -106,7 +106,7 @@ int main(int argc, char* argv[])
 	double sx = 0.1;
 	double sy = 0.1;
 	double sz = 0.1;
-for (int e = 0; e<8; ++e)
+for (int e = 0; e<1; ++e)
 {
 	double angle = e*(2*CH_C_PI/8.0);
 	hexpos.z = 0.3*cos(angle);
@@ -178,7 +178,7 @@ for (int e = 0; e<8; ++e)
 			ChSharedPtr<ChNodeFEMxyz> mnode ( my_mesh->GetNode(inode).DynamicCastTo<ChNodeFEMxyz>() ); // downcast
 			if (mnode->GetPos().y <0.01)
 			{
-
+				
 				ChSharedPtr<ChLinkPointFrame> constraint(new ChLinkPointFrame);
 				constraint->Initialize(mnode,
 									   truss);
@@ -193,7 +193,7 @@ for (int e = 0; e<8; ++e)
 				// Otherwise there is an easier method: just set the node as fixed (but 
 				// in this way you do not get infos about reaction forces as with a constraint):
 				//
-				//  mnode->SetFixed(true); 
+				//mnode->SetFixed(true); 
 
 			}
 		}

@@ -110,16 +110,39 @@ int main(int argc, char* argv[])
 
 
 				// Apply a force or a torque to a node:
-	hnode3->SetForce( ChVector<>(2,0,0));
+	hnode2->SetForce( ChVector<>(4,2,0));
 	//hnode3->SetTorque( ChVector<>(0, -0.04, 0));
 
 
 				// Fix a node to ground:
-	hnode1->SetFixed(true);
+	//hnode1->SetFixed(true);
+	ChSharedPtr<ChBody> mtruss(new ChBody);
+	mtruss->SetBodyFixed(true);
+	my_system.Add(mtruss);
 
+	ChSharedPtr<ChLinkMateGeneric> constr_bc(new ChLinkMateGeneric);
+	constr_bc->Initialize(  hnode3,
+							mtruss,
+							false, 
+							hnode3->Frame(),
+							hnode3->Frame() 
+							 );
+	my_system.Add(constr_bc);
+	constr_bc->SetConstrainedCoords( true, true, true,	  // x, y, z
+									 true, true, true);   // Rx, Ry, Rz
 
+	ChSharedPtr<ChLinkMateGeneric> constr_d(new ChLinkMateGeneric);
+	constr_d->Initialize(  hnode1,
+							mtruss,
+							false, 
+							hnode1->Frame(),
+							hnode1->Frame() 
+							 );
+	my_system.Add(constr_d);
+	constr_d->SetConstrainedCoords( false, true, true,	  // x, y, z
+									 false, false, false);   // Rx, Ry, Rz
 
-	
+/*	
 	//
 	// Add some EULER-BERNOULLI BEAMS (the fast way!)
 	//
@@ -153,7 +176,7 @@ int main(int argc, char* argv[])
 						ChVector<>(0.2, 0.1, -0.1),	// the 'B' point in space (end of beam)
 						ChVector<>(0,1,0));			// the 'Y' up direction of the section for the beam
 
-
+*/
 
 
 
@@ -249,7 +272,7 @@ GetLog()<< "\n\n\n===========STATICS======== \n\n\n";
 //application.GetSystem()->DoStaticNonlinear(25);
 //application.GetSystem()->DoStaticLinear();
 
-
+/*
 belement1->SetDisableCorotate(true);
 belement2->SetDisableCorotate(true);
 application.GetSystem()->DoStaticLinear();
@@ -279,7 +302,7 @@ GetLog() << "Node 3 coordinate x= " << hnode3->Frame().GetPos().x << "    y=" <<
 
 belement1->SetDisableCorotate(false);
 belement2->SetDisableCorotate(false);
-
+*/
 
 	while(application.GetDevice()->run()) 
 	{

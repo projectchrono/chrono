@@ -13,20 +13,6 @@
 #ifndef CHCONTACTDEM_H
 #define CHCONTACTDEM_H
 
-///////////////////////////////////////////////////
-//
-//   ChContactDEM.h
-//
-//   Class for DEM-based contact between bodies
-//
-//   HEADER file for CHRONO,
-//   Multibody dynamics engine
-//
-// ------------------------------------------------
-//             www.projectchrono.org
-// ------------------------------------------------
-///////////////////////////////////////////////////
-
 
 #include "core/ChFrame.h"
 #include "core/ChVectorDynamic.h"
@@ -43,15 +29,12 @@ class ChApi ChContactDEM
 {
 public:
 
-	enum NormalForceModel {
-		HuntCrossley
-	};
-
-	enum TangentialForceModel {
-		SimpleCoulombSliding,
-		LinearSpring,
-		LinearDampedSpring
-	};
+  enum ContactForceModel {
+    Hooke,
+    Hertz,
+    Hooke_history,
+    Hertz_history
+  };
 
 	/// Constructors/destructor
 	ChContactDEM() {}
@@ -109,48 +92,39 @@ public:
 	/// Calculate contact force, expressed in absolute coordinates.
 	void CalculateForce();
 
-
 	/// Apply contact forces to bodies.
 	void ConstraintsFbLoadForces(double factor);
 
 	/// Apply contact forces to bodies (new version, for interfacing to ChTimestepper and ChIntegrable)
 	void DemIntLoadResidual_F(ChVectorDynamic<>& R, const double c );
 
-	/// Contact force models
-	static NormalForceModel     m_normalForceModel;
-	static TangentialForceModel m_tangentialForceModel;
+  /// Slip velocity threshold. No tangential contact forces are generated
+  /// if the magnitude of the tangential relative velocity is below this.
+  static double m_minSlipVelocity;
+  static void SetSlipVelocitythreshold(double vel) { m_minSlipVelocity = vel; }
 
-	static void                 SetNormalContactModel(NormalForceModel model) {m_normalForceModel = model;}
-	static NormalForceModel     GetNormalContactModel()                       {return m_normalForceModel;}
-
-	static void                 SetTangentialForceModel(TangentialForceModel model) {m_tangentialForceModel = model;}
-	static TangentialForceModel GetTangentialForceModel()                           {return m_tangentialForceModel;}
-
-	/// Slip velocity threshold. No tangential contact forces are generated
-	/// if the magnitude of the tangential relative velocity is below this.
-	static double m_minSlipVelocity;
-
-	static void SetSlipVelocitythreshold(double vel) {m_minSlipVelocity = vel;}
+  /// Characteristic impact velocity (Hooke)
+  static double m_characteristicVelocity;
+  static void SetCharacteristicImpactVelocity(double vel) {m_characteristicVelocity = vel;}
 
 private:
 
-	collision::ChModelBulletBody*  m_mod1;          ///< first contact model
-	collision::ChModelBulletBody*  m_mod2;          ///< second contact model
+  collision::ChModelBulletBody*  m_mod1;          ///< first contact model
+  collision::ChModelBulletBody*  m_mod2;          ///< second contact model
 
-	double                         m_delta;         ///< penetration distance (positive if going inside)
-	ChVector<>                     m_p1;            ///< max penetration point on surf1, in abs frame
-	ChVector<>                     m_p2;            ///< max penetration point on surf2, in abs frame
-	ChVector<>                     m_normal;        ///< normal, on surface of master reference (surf1)
-	ChMatrix33<float>              m_contact_plane; ///< the plane of contact (X is normal direction)
-	ChVector<>                     m_p1_loc;        ///< max. penetration point on surf1, in local frame
-	ChVector<>                     m_p2_loc;        ///< max. penetration point on surf2, in local frame
+  double                         m_delta;         ///< penetration distance (positive if going inside)
+  ChVector<>                     m_p1;            ///< max penetration point on surf1, in abs frame
+  ChVector<>                     m_p2;            ///< max penetration point on surf2, in abs frame
+  ChVector<>                     m_normal;        ///< normal, on surface of master reference (surf1)
+  ChMatrix33<float>              m_contact_plane; ///< the plane of contact (X is normal direction)
+  ChVector<>                     m_p1_loc;        ///< max. penetration point on surf1, in local frame
+  ChVector<>                     m_p2_loc;        ///< max. penetration point on surf2, in local frame
 
-	ChVector<>                     m_force;         ///< contact force on body2
+  ChVector<>                     m_force;         ///< contact force on body2
 };
 
 
-
-} // END_OF_NAMESPACE____
+} // end namespace chrono
 
 
 #endif

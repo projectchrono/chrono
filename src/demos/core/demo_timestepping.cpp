@@ -458,24 +458,37 @@ int main(int argc, char* argv[])
 		MyIntegrable mintegrable3;
 		MyIntegrable mintegrable4;
 		MyIntegrable mintegrable5;
+		MyIntegrable mintegrable6;
+		MyIntegrable mintegrable7;
+		MyIntegrable mintegrable8;
 
 		// Create few time-integrators to be compared:
 		ChTimestepperEulerImplicit		 mystepper1(mintegrable1);
 		ChTimestepperTrapezoidal		 mystepper2(mintegrable2);
 		ChTimestepperEulerExplIIorder    mystepper3(mintegrable3);
 		ChTimestepperHHT				 mystepper4(mintegrable4);
+		mystepper4.SetAlpha(0);				// HHT with no dissipation -> trapezoidal
 		ChTimestepperHHT				 mystepper5(mintegrable5);
-		mystepper4.SetAlpha(0);		// HHT with no dissipation -> trapezoidal
-		mystepper5.SetAlpha(-0.33);  // HHT with max dissipation 
+		mystepper5.SetAlpha(-0.33);			// HHT with max dissipation 
+		ChTimestepperNewmark			 mystepper6(mintegrable6);
+		mystepper6.SetGammaBeta(0.5,0.25); // Newmark as const accel. method
+		ChTimestepperNewmark			 mystepper7(mintegrable7);
+		mystepper7.SetGammaBeta(0.5,1/6);  // Newmark as linear accel. method
+		ChTimestepperNewmark			 mystepper8(mintegrable8);
+		mystepper8.SetGammaBeta(1.0,0.25); // Newmark with max numerical damping
 
 		// Execute the time integration
 		while (mystepper1.GetTime() <4)
 		{
-			mystepper1.Advance(0.05);
-			mystepper2.Advance(0.05);
-			mystepper3.Advance(0.05);
-			mystepper4.Advance(0.05);
-			mystepper5.Advance(0.05);
+			double timestep = 0.05;
+			mystepper1.Advance(timestep);
+			mystepper2.Advance(timestep);
+			mystepper3.Advance(timestep);
+			mystepper4.Advance(timestep);
+			mystepper5.Advance(timestep);
+			mystepper6.Advance(timestep);
+			mystepper7.Advance(timestep);
+			mystepper8.Advance(timestep);
 
 			GetLog() << "T = " << mystepper1.GetTime() << "  x=" << mystepper1.get_X()(0) << "  v=" << mystepper1.get_V()(0) << "\n";
 			log_file4 << mystepper1.GetTime()	<< ", " << mystepper1.get_X()(0) << ", " << mystepper1.get_V()(0)
@@ -483,6 +496,9 @@ int main(int argc, char* argv[])
 												<< ", " << mystepper3.get_X()(0) << ", " << mystepper3.get_V()(0)
 												<< ", " << mystepper4.get_X()(0) << ", " << mystepper4.get_V()(0)
 												<< ", " << mystepper5.get_X()(0) << ", " << mystepper5.get_V()(0)
+												<< ", " << mystepper6.get_X()(0) << ", " << mystepper6.get_V()(0)
+												<< ", " << mystepper7.get_X()(0) << ", " << mystepper7.get_V()(0)
+												<< ", " << mystepper8.get_X()(0) << ", " << mystepper8.get_V()(0)
 												<< "\n";
 		}
 
@@ -556,41 +572,7 @@ int main(int argc, char* argv[])
 				mvy = v(1);
 				mT = T;
 			};
-			/*
-			/// compute  dy/dt=f(y,t) 
-			virtual void StateSolveA(ChStateDelta& dvdt,		///< result: computed accel. a=dv/dt
-				ChVectorDynamic<>& L,	///< result: computed lagrangian multipliers, if any
-				const ChState& x,		///< current state, x
-				const ChStateDelta& v,	///< current state, v
-				const double T,		///< current time T
-				const double dt,	///< timestep (if needed)
-				bool force_state_scatter = true ///< if false, y and T are not scattered to the system, assuming that someone has done StateScatter just before
-				)
-			{
-				if (force_state_scatter)
-					StateScatter(x, v, T);
-
-				ChVector<> dirpend(-mpx, -mpy, 0);
-				dirpend.Normalize();
-				ChVectorDynamic<> b(3);
-				b(0) = (sin(mT * 20) * 0.0002 -K*mpx - R*mvx);
-				b(1) = 0;
-				b(2) = 0;
-				ChMatrixDynamic<> A(3, 3);
-				A(0, 0) = M;
-				A(1, 1) = M;
-				A(0, 2) = dirpend.x;
-				A(1, 2) = dirpend.y;
-				A(2, 0) = dirpend.x;
-				A(2, 1) = dirpend.y;
-				ChVectorDynamic<> w(3);
-				ChLinearAlgebra::Solve_LinSys(A, &b, &w);
-				dvdt(0) = w(0);
-				dvdt(1) = w(1);
-				L(0)    = w(2);
-			}
-			*/
-
+			
 			/// Compute the correction with linear system
 			///  Dv = [ c_a*M + c_v*dF/dv + c_x*dF/dx ]^-1 * R 
 			virtual void StateSolveCorrection(

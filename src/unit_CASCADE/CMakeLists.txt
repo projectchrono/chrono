@@ -62,7 +62,7 @@ ELSEIF(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
 	/opt/oce/include
 	/opt/oce/inc
 	)
-    FILE(GLOB CH_CASCADELIBS "${CH_CASCADEDIR}/lib/*.so" "${CH_CASCADEDIR}/Linux/lib/*.so")
+    FILE(GLOB CH_CASCADELIBS "${CH_CASCADEDIR}/lib/*.so" "${CH_CASCADEDIR}/Linux/lib/*.so" "${CH_CASCADELIBDIR}/*.so")
 ELSEIF(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
 	 FIND_PATH(CH_CASCADEINC Standard_Version.hxx
 	 	PATHS
