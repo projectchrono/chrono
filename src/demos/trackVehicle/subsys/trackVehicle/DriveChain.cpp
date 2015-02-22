@@ -292,19 +292,19 @@ void DriveChain::Update(double time,
 void DriveChain::Advance(double step)
 {
   double t = 0;
-  m_system->SetIterLCPmaxItersStab(60*3);
-  m_system->SetIterLCPmaxItersSpeed(75*3);
-  double settlePhaseA = 0.3;
-  double settlePhaseB = 1.0;
+  m_system->SetIterLCPmaxItersStab(80);
+  m_system->SetIterLCPmaxItersSpeed(100);
+  double settlePhaseA = 0.1;
+  double settlePhaseB = 0.3;
   while (t < step) {
     double h = std::min<>(m_stepsize, step - t);
     if( m_system->GetChTime() < settlePhaseA )
     {
       m_system->SetIterLCPmaxItersStab(100);
-      m_system->SetIterLCPmaxItersSpeed(100);
+      m_system->SetIterLCPmaxItersSpeed(150);
     } else if ( m_system->GetChTime() < settlePhaseB )
     {
-      m_system->SetIterLCPmaxItersStab(75);
+      m_system->SetIterLCPmaxItersStab(80);
       m_system->SetIterLCPmaxItersSpeed(150);
     }
     m_system->DoStepDynamics(h);
@@ -1034,7 +1034,6 @@ void DriveChain::Log_to_file()
       // second file, to specify some collision info with the gear
       ChVector<> sg_info = ChVector<>();  // output data set
       ChVector<> Force_mag_info = ChVector<>();  // per step contact force magnitude, (Fn, Ft, 0)
-      ChVector<> Ft_info = ChVector<>();  // per step friction contact force statistics
       ChVector<> PosRel_contact = ChVector<>(); // location of a contact point relative to the gear c-sys
       ChVector<> VRel_contact = ChVector<>();  // follow the vel. of a contact point relative to the gear c-sys
       ChVector<> NormDirRel_contact = ChVector<>(); // tracked contact normal dir., w.r.t. gear c-sys
@@ -1051,7 +1050,6 @@ void DriveChain::Log_to_file()
       ss_sg << t <<"," << sg_info
         <<","<< Force_mag_info.x
         <<","<< Force_mag_info.y
-        <<","<< Ft_info
         <<","<< PosRel_contact
         <<","<< VRel_contact
         <<","<< NormDirRel_contact
