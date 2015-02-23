@@ -59,6 +59,7 @@ ChTrackVehicle::ChTrackVehicle(const std::string& name,
   // create a new system, set gravity, default solver settings
   m_system = new ChSystem;
   m_system->Set_G_acc(ChVector<>(0, -9.81, 0));
+  m_system->SetStep(m_stepsize),
   m_system->SetLcpSolverType(ChSystem::LCP_ITERATIVE_SOR);
   m_system->SetIterLCPmaxItersSpeed(150);
   m_system->SetIterLCPmaxItersStab(150);

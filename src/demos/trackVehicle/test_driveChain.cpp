@@ -74,7 +74,7 @@ using namespace chrono;
 // #define CONSOLE_DEBUG_INFO      // log constraint violations to console,
 #define CONSOLE_TIMING       // time each render and simulation step, log to console
 
-int what_to_save = DBG_FIRSTSHOE; // | DBG_GEAR | DBG_IDLER | DBG_PTRAIN | DBG_CONSTRAINTS;
+int what_to_save = DBG_FIRSTSHOE | DBG_GEAR | DBG_IDLER | DBG_PTRAIN | DBG_CONSTRAINTS;
 int what_to_console = DBG_PTRAIN; // DBG_FIRSTSHOE | DBG_GEAR | DBG_IDLER | DBG_PTRAIN | DBG_CONSTRAINTS;
 
 // Initial vehicle position and heading. Defines the REF frame for the hull body
@@ -91,6 +91,7 @@ double step_size = 2e-3;
 int FPS = 40; // render frame rate
 double render_step_size = 1.0 / FPS;  // Time increment between two rendered frames
 double output_step_size = step_size;    // Time interval between two output frames
+double console_step_size = 0.5;
 
 ChVector<> trackPoint(-1, 0, 0.2);   // Point on chassis tracked by the camera, chassis c-sys
 
@@ -103,10 +104,12 @@ double chaseHeight = 0.5;
 bool do_shadows = false; // shadow map is experimental
 
 bool autopilot = true;
-double sineAmp = 0.4;
+double sineAmp = 0.6;
 double sineFreq = 0.3;
-double tStart = 0.01;
+double tStart = 0.1;
 
+// stop at a certain time
+double end_time = 4.5;  // 99999
 
   /*
 #else
@@ -228,6 +231,9 @@ int main(int argc, char* argv[])
   // Number of simulation steps between two output frames
   int output_steps = (int)std::ceil(output_step_size / step_size);
 
+  // Number of steps between two log to consoles
+  int console_steps = (int)std::ceil(console_step_size / step_size);
+
   // ---------------------
   // Simulation loop
 #ifdef CONSOLE_SYSTEM_INFO
@@ -256,7 +262,8 @@ int main(int argc, char* argv[])
       chainSystem.Log_to_file();  // needs to already be setup before sim loop calls it
 #endif
   ChRealtimeStepTimer realtime_timer;
-  while (application.GetDevice()->run())
+  bool is_end_time_reached = false;
+  while ( application.GetDevice()->run() && (!is_end_time_reached) )
 	{ 
 		// keep track of the time spent calculating each sim step
     step_timer.start();
@@ -304,52 +311,50 @@ int main(int argc, char* argv[])
     use_fixed_camera ? driver.Advance(step_size, fixed_cameraPos): driver.Advance(step_size); 
 
     // Settlings phase has hardcoded solver settings, for the first few timesteps
-    // application.SetPaused(true);
     if( !application.GetPaused() )
+    {
       chainSystem.Advance(step_size);
+      step_number++;
+    }
 
     // stop and increment the step timer
     step_timer.stop();
     total_step_time += step_timer();
     time_since_last_output += step_timer();
 
+#ifdef WRITE_OUTPUT
     if (step_number % output_steps == 0) 
     {
-     // log desired output to console?
+      // write data to file
+      chainSystem.Log_to_file();  // needs to already be setup before sim loop calls it
+#endif
+    }
+    
+    if(step_number % console_steps == 0)
+    {
+      // log desired output to console
 #ifdef CONSOLE_DEBUG_INFO
       chainSystem.Log_to_console(what_to_console);
 #endif
 
-      // write data to file?
-#ifdef WRITE_OUTPUT
-      chainSystem.Log_to_file();  // needs to already be setup before sim loop calls it
-
-
-
-
-      // quit early
-      if( time > 3.5 ){
-        application.GetDevice()->drop();
-        return 0;
-      }
-
-#endif
-
-      // write timer info to console?
 #ifdef CONSOLE_TIMING
-      GetLog() << "\n --------- TIMING -------------\n" << "time: " << chainSystem.GetSystem()->GetChTime();
-      GetLog() << "\n total render time: " << total_render_time << ",  % of total: " << 100.*total_render_time / total_step_time;
-      GetLog() << "\n total compute time: " << total_step_time << ", Avg. time per step " << time_since_last_output * chainSystem.GetSystem()->GetStep() / output_step_size;
-      GetLog() << "\n overall avg. time/step: " << total_step_time/step_number;
+      GetLog() << "\n --------- TIMING -------- : time: " << chainSystem.GetSystem()->GetChTime()
+       << "\n total render time: " << total_render_time << ",  % of total: " << 100.*total_render_time / total_step_time
+       << "\n total compute time: " << total_step_time 
+       << "\n Avg. time per step " << time_since_last_output * chainSystem.GetSystem()->GetStep() / output_step_size
+       << "\n overall avg. time/step: " << total_step_time/step_number << "    for a stepsize: " << chainSystem.GetSystem()->GetStep()
+       << "\n RTR : " << total_step_time / chainSystem.GetSystem()->GetChTime();
       time_since_last_output = 0;
 #endif
     }
-
-    step_number++;
+   
+    // see if the end time is reached
+    if(time > end_time)
+      is_end_time_reached = true;
 
   }
 
-  application.GetDevice()->drop();
+  // application.GetDevice()->drop();
 
 /*
 #else
