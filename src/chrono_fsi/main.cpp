@@ -63,9 +63,6 @@
 			#include "chrono_utils/ChUtilsInputOutput.h" //Arman: Why is this
 			#include "chrono_utils/ChUtilsGenerators.h"
 
-			#ifdef CHRONO_PARALLEL_HAS_OPENGL2
-			#include "chrono_opengl/ChOpenGLWindow.h"
-			#endif
 			//***********************************
 			// Use the namespace of Chrono
 
@@ -80,6 +77,17 @@
 			using namespace io;
 			using namespace gui;
 			using namespace std;
+
+
+			#define irrlichtVisualization true
+			#if irrlichtVisualization
+			shared_ptr<ChIrrApp> application;
+			#endif
+
+			#ifdef CHRONO_PARALLEL_HAS_OPENGL2
+			#include "chrono_opengl/ChOpenGLWindow.h"
+			opengl::ChOpenGLWindow &gl_window = opengl::ChOpenGLWindow::getInstance();
+			#endif
 //*************************************************************
 
 
@@ -258,7 +266,87 @@ void create_system_particles(ChSystemParallelDVI& mphysicalSystem) {
 	mphysicalSystem.AddBody(bin);
 }
 
+void InitializeChronoGraphics(ChSystemParallelDVI& mphysicalSystem, Real dT) {
+	Real3 domainCenter = 0.5 * (paramsH.cMin + paramsH.cMax);
+	ChVector<> CameraLocation = ChVector<>(2 * paramsH.cMax.x, 2 * paramsH.cMax.y, 2 * paramsH.cMax.z);
+	ChVector<> CameraLookAt = ChVector<>(domainCenter.x, domainCenter.y, domainCenter.z);
 
+#ifdef CHRONO_PARALLEL_HAS_OPENGL2
+//   gl_window = opengl::ChOpenGLWindow::getInstance();
+   gl_window.Initialize(1280, 720, "mixerDVI", &mphysicalSystem);
+   gl_window.SetCamera(CameraLocation, CameraLookAt, ChVector<>(0, 1, 0)); //camera
+
+   // Uncomment the following two lines for the OpenGL manager to automatically
+   // run the simulation in an infinite loop.
+   //gl_window.StartDrawLoop(time_step);
+   //return 0;
+#endif
+
+#if irrlichtVisualization
+	// Create the Irrlicht visualization (open the Irrlicht device,
+	// bind a simple user interface, etc. etc.)
+   application = shared_ptr<ChIrrApp>(new ChIrrApp(&mphysicalSystem, L"Bricks test",core::dimension2d<u32>(800,600),false, true));
+//	ChIrrApp application(&mphysicalSystem, L"Bricks test",core::dimension2d<u32>(800,600),false, true);
+
+
+		// Easy shortcuts to add camera, lights, logo and sky in Irrlicht scene:
+		ChIrrWizard::add_typical_Logo  (application->GetDevice());
+//		ChIrrWizard::add_typical_Sky   (application->GetDevice());
+		ChIrrWizard::add_typical_Lights(application->GetDevice(), core::vector3df(14.0f, 44.0f, -18.0f), core::vector3df(-3.0f, 8.0f, 6.0f), 59,  40);
+		ChIrrWizard::add_typical_Camera(application->GetDevice(),
+				core::vector3df(CameraLocation.x, CameraLocation.y, CameraLocation.z),
+				core::vector3df(CameraLookAt.x, CameraLookAt.y, CameraLookAt.z)); //   (7.2,30,0) :  (-3,12,-8)
+		// Use this function for adding a ChIrrNodeAsset to all items
+		// If you need a finer control on which item really needs a visualization proxy in
+		// Irrlicht, just use application->AssetBind(myitem); on a per-item basis.
+		application->AssetBindAll();
+		// Use this function for 'converting' into Irrlicht meshes the assets
+		// into Irrlicht-visualizable meshes
+		application->AssetUpdateAll();
+
+		application->SetStepManage(true);
+		application->SetTimestep(dT);  					//Arman modify
+#endif
+}
+
+int DoStepChronoSystem(ChSystemParallelDVI& mphysicalSystem, Real dT) {
+	Real3 domainCenter = 0.5 * (paramsH.cMin + paramsH.cMax);
+#if irrlichtVisualization
+		if ( !(application->GetDevice()->run()) ) return 0;
+		application->GetVideoDriver()->beginScene(true, true, SColor(255,140,161,192));
+		ChIrrTools::drawGrid(application->GetVideoDriver(), 2 * paramsH.HSML, 2 * paramsH.HSML, 50, 50,
+			ChCoordsys<>(ChVector<>(domainCenter.x, paramsH.worldOrigin.y, domainCenter.z), Q_from_AngAxis(CH_C_PI/2,VECT_X)), video::SColor(50,90,90,150),true);
+		application->DrawAll();
+		application->DoStep();
+		application->GetVideoDriver()->endScene();
+#else
+#ifdef CHRONO_PARALLEL_HAS_OPENGL2
+		if (gl_window.Active()) {
+		 gl_window.DoStepDynamics(dT);
+		 gl_window.Render();
+		}
+#else
+		mphysicalSystem.DoStepDynamics(dT);
+#endif
+#endif
+		return 1;
+}
+
+void SavePovFilesMBD(ChSystemParallelDVI& mphysicalSystem, int tStep) {
+	// Save PovRay post-processing data.
+	const std::string pov_dir = "povray";
+	if (tStep == 0) {
+		//linux. In windows, it is System instead of system (to invoke a command in the command line)
+		system("mkdir -p povray");
+		system("rm povray/*.*");
+	}
+	int stepSave = 50;
+	if (tStep % stepSave == 0) {
+		char filename[100];
+		sprintf(filename, "%s/data_%03d.csv", pov_dir.c_str(), tStep / stepSave + 1);
+		utils::WriteBodies(&mphysicalSystem, filename);
+	}
+}
 //*** paramsH.straightChannelBoundaryMax   should be taken care of
 Real IsInsideStraightChannel(Real3 posRad) {
 	const Real sphR = paramsH.HSML;
@@ -591,9 +679,6 @@ int main(int argc, char* argv[]) {
 	// Set gravitational acceleration
 
 	//******************* Irrlicht and driver types **************************
-	Real3 domainCenter = 0.5 * (paramsH.cMin + paramsH.cMax);
-
-#define irrlichtVisualization true
 	int numIter = mphysicalSystem.GetSettings()->solver.max_iteration_normal +
 			mphysicalSystem.GetSettings()->solver.max_iteration_sliding +
 			mphysicalSystem.GetSettings()->solver.max_iteration_spinning +
@@ -602,43 +687,7 @@ int main(int argc, char* argv[]) {
 	outSimulationInfo 	<< " dT: " << dT  << " max_iteration: " << numIter <<" muFriction: " << mphysicalSystem.GetParallelThreadNumber() << " number of bodies: " << mphysicalSystem.Get_bodylist()->size() << endl;
 	cout			 	<< " dT: " << dT  << " max_iteration: " << numIter <<" muFriction: " << mphysicalSystem.GetParallelThreadNumber() << " number of bodies: " << mphysicalSystem.Get_bodylist()->size() << endl;
 
-#ifdef CHRONO_PARALLEL_HAS_OPENGL2
-   opengl::ChOpenGLWindow &gl_window = opengl::ChOpenGLWindow::getInstance();
-   gl_window.Initialize(1280, 720, "mixerDVI", &mphysicalSystem);
-   gl_window.SetCamera(ChVector<>(-3,12,-8), ChVector<>(7.2, 6, 8.2), ChVector<>(0, 1, 0)); //camera
-
-   // Uncomment the following two lines for the OpenGL manager to automatically
-   // run the simulation in an infinite loop.
-   //gl_window.StartDrawLoop(time_step);
-   //return 0;
-#endif
-
-#if irrlichtVisualization
-		cout << "@@@@@@@@@@@@@@@@  irrlicht stuff  @@@@@@@@@@@@@@@@" << endl;
-		// Create the Irrlicht visualization (open the Irrlicht device,
-		// bind a simple user interface, etc. etc.)
-		ChIrrApp application(&mphysicalSystem, L"Bricks test",core::dimension2d<u32>(800,600),false, true);
-		// Easy shortcuts to add camera, lights, logo and sky in Irrlicht scene:
-		ChIrrWizard::add_typical_Logo  (application.GetDevice());
-//		ChIrrWizard::add_typical_Sky   (application.GetDevice());
-		ChIrrWizard::add_typical_Lights(application.GetDevice(), core::vector3df(14.0f, 44.0f, -18.0f), core::vector3df(-3.0f, 8.0f, 6.0f), 59,  40);
-		ChIrrWizard::add_typical_Camera(application.GetDevice(),
-				core::vector3df(2 * paramsH.cMax.x, 2 * paramsH.cMax.y, 2 * paramsH.cMax.z),
-				core::vector3df(domainCenter.x, domainCenter.y, domainCenter.z)); //   (7.2,30,0) :  (-3,12,-8)
-		// Use this function for adding a ChIrrNodeAsset to all items
-		// If you need a finer control on which item really needs a visualization proxy in
-		// Irrlicht, just use application.AssetBind(myitem); on a per-item basis.
-		application.AssetBindAll();
-		// Use this function for 'converting' into Irrlicht meshes the assets
-		// into Irrlicht-visualizable meshes
-		application.AssetUpdateAll();
-
-		application.SetStepManage(true);
-		application.SetTimestep(dT);  					//Arman modify
-		cout << "@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@" << endl;
-
-#endif
-	bool moveTime = false;
+	InitializeChronoGraphics(mphysicalSystem, dT);
 	//****************************************** Time Loop *************************************
 
 	int counter = -1;
@@ -647,44 +696,38 @@ int main(int argc, char* argv[]) {
 	{
 		myTimerStep.start();
 		counter ++;
-#if irrlichtVisualization
-		if ( !(application.GetDevice()->run()) ) break;
-		application.GetVideoDriver()->beginScene(true, true, SColor(255,140,161,192));
-		ChIrrTools::drawGrid(application.GetVideoDriver(), 2 * paramsH.HSML, 2 * paramsH.HSML, 50, 50,
-			ChCoordsys<>(ChVector<>(domainCenter.x, paramsH.worldOrigin.y, domainCenter.z), Q_from_AngAxis(CH_C_PI/2,VECT_X)), video::SColor(50,90,90,150),true);
-		application.DrawAll();
-		application.DoStep();
-		application.GetVideoDriver()->endScene();
-#else
-#ifdef CHRONO_PARALLEL_HAS_OPENGL2
-		if (gl_window.Active()) {
-		 gl_window.DoStepDynamics(dT);
-		 gl_window.Render();
-		}
-#else
-		mphysicalSystem.DoStepDynamics(dT);
-#endif
-#endif
+
+
+		int isRunning = DoStepChronoSystem(mphysicalSystem, dT);
+		if (isRunning == 0) break;
+		printf("*** total number of contacts %d, num bodies %d\n", mphysicalSystem.GetNcontacts(), mphysicalSystem.Get_bodylist()->size());
+//		if (write_povray_data) {
+//			SavePovFilesMBD(mphysicalSystem, counter);
+//		}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 		myTimerStep.stop();
 		myTimerTotal.stop();
 		//****************************************************
-
-		printf("*** total number of contacts %d, num bodies %d\n", mphysicalSystem.GetNcontacts(), mphysicalSystem.Get_bodylist()->size());
-
-//		// Save PovRay post-processing data.
-//		const std::string pov_dir = "povray";
-//		if (counter == 0) {
-//			//linux. In windows, it is System instead of system (to invoke a command in the command line)
-//			system("mkdir -p povray");
-//			system("rm povray/*.*");
-//		}
-//		int stepSave = 50;
-//		if (write_povray_data && counter % stepSave == 0) {
-//			char filename[100];
-//			sprintf(filename, "%s/data_%03d.csv", pov_dir.c_str(), counter / stepSave + 1);
-//			utils::WriteBodies(&mphysicalSystem, filename);
-//		}
 	}
 	// ***************************************************************************************
 
