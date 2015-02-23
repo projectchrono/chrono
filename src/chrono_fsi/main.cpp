@@ -165,25 +165,20 @@ void InitializeMbdPhysicalSystem(ChSystemParallelDVI & mphysicalSystem, int argc
 
 void create_system_particles(ChSystemParallelDVI& mphysicalSystem) {
 	Real3 domainCenter = 0.5 * (paramsH.cMin + paramsH.cMax);
-	Real3 ellipsoidSize = 10 * mR3(10 * paramsH.HSML, 5 * paramsH.HSML, 7 * paramsH.HSML);
+	Real3 ellipsoidSize = .3 * mR3(10 * paramsH.HSML, 5 * paramsH.HSML, 7 * paramsH.HSML);
 	ChVector<> size = ChVector<>(ellipsoidSize.x, ellipsoidSize.y, ellipsoidSize.z);
 
 	double density = paramsH.rho0;  // TODO : Arman : Density for now is set to water density
 	double muFriction = .1;
-	double volume = utils::CalcEllipsoidVolume(size);
-	ChVector<> gyration = utils::CalcEllipsoidGyration(size).Get_Diag();
+
+	// NOTE: mass properties and shapes are all for sphere
+	double volume = utils::CalcSphereVolume(size.x);
+	ChVector<> gyration = utils::CalcSphereGyration(size.x).Get_Diag();
 	double mass = density * volume;
 
 
-	// Generate ice particels
-	//(void)CreateIceParticles(mphysicalSystem);
-
-
-
-
 	//**************** bin and ship
-	// IDs for the two bodies
-	int bId = -200;
+	int bId = 1;
 
 	// Create a common material
 	ChSharedPtr<ChMaterialSurface> mat_g(new ChMaterialSurface);
@@ -197,13 +192,13 @@ void create_system_particles(ChSystemParallelDVI& mphysicalSystem) {
 	const ChQuaternion<> rot = ChQuaternion<>(1, 0, 0, 0);
 
 	ChSharedBodyPtr body;
-	body = ChSharedBodyPtr(new ChBody(new ChCollisionModelParallel));
+	body = ChSharedBodyPtr(new  ChBody(new ChCollisionModelParallel));
 	body->SetMaterialSurface(mat_g);
 	body->SetIdentifier(bId);
 	body->SetPos(pos);
 	body->SetRot(rot);
 	body->SetCollide(true);
-	body->SetBodyFixed(true);
+	body->SetBodyFixed(false);
     body->SetMass(mass);
     body->SetInertiaXX(mass * gyration);
 
@@ -219,35 +214,29 @@ void create_system_particles(ChSystemParallelDVI& mphysicalSystem) {
 //	ellipsoid->Rot = rot;
 //
 //	body->GetAssets().push_back(ellipsoid);
-	utils::AddEllipsoidGeometry(body.get_ptr(), size, pos, rot);
+
+//	utils::AddCapsuleGeometry(body.get_ptr(), size.x, size.y);		// X
+//	utils::AddCylinderGeometry(body.get_ptr(), size.x, size.y);		// O
+//	utils::AddConeGeometry(body.get_ptr(), size.x, size.y); 		// X
+//	utils::AddBoxGeometry(body.get_ptr(), size);					// O
+	utils::AddSphereGeometry(body.get_ptr(), size.x);				// O
+//	utils::AddEllipsoidGeometry(body.get_ptr(), size);					// X
+
+
 	body->GetCollisionModel()->BuildModel();
 	mphysicalSystem.AddBody(body);
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-	ChSharedBodyPtr bin;
-	Real3 hdim = paramsH.boxDims;
-	double hthick = 1 * paramsH.HSML;
+	// ****************** create boxes around the fluid domain
 
 	ChSharedPtr<ChMaterialSurface> mat(new ChMaterialSurface);
 	mat->SetFriction(.5);
 	mat->SetDampingF(0.2f);
 	int binId = -200;
 
+	ChSharedBodyPtr bin;
+	Real3 hdim = paramsH.boxDims;
+	double hthick = 1 * paramsH.HSML;
 
 	bin = ChSharedBodyPtr(new ChBody(new ChCollisionModelParallel));
 	bin->SetMaterialSurface(mat);
@@ -259,17 +248,14 @@ void create_system_particles(ChSystemParallelDVI& mphysicalSystem) {
 	bin->SetBodyFixed(true);
 	bin->GetCollisionModel()->ClearModel();
 
+	utils::AddBoxGeometry(bin.get_ptr(), 0.5 * ChVector<>(hdim.x, hdim.y, hthick), ChVector<>(0, 0, -0.5 * hdim.z - 0.5*hthick));	//beginning wall
 	utils::AddBoxGeometry(bin.get_ptr(), 0.5 * ChVector<>(hdim.x, hdim.y, hthick), ChVector<>(0, 0, 0.5 * hdim.z + 0.5*hthick));	//end wall
 	utils::AddBoxGeometry(bin.get_ptr(), 0.5 * ChVector<>(hthick, hdim.y, hdim.z + 2 * hthick), ChVector<>(-0.5 * hdim.x - 0.5 * hthick, 0, 0));		//side wall
 	utils::AddBoxGeometry(bin.get_ptr(), 0.5 * ChVector<>(hthick, hdim.y, hdim.z + 2 * hthick), ChVector<>(0.5 * hdim.x + 0.5 * hthick, 0, 0));	//side wall
-	utils::AddBoxGeometry(bin.get_ptr(), 0.5 * ChVector<>(7 * hdim.x, hthick, 7 * hdim.x), ChVector<>(0,-10,0)); //bottom bed
+	utils::AddBoxGeometry(bin.get_ptr(), 0.5 * ChVector<>(hdim.x + 2 * hthick, hthick, hdim.z + 2 * hthick), ChVector<>(0, -0.5 * hdim.y - 0.5 * hthick, 0));	//bottom wall
 	bin->GetCollisionModel()->BuildModel();
 
 	mphysicalSystem.AddBody(bin);
-
-
-
-
 }
 
 
@@ -593,7 +579,7 @@ int main(int argc, char* argv[]) {
 
 
 	// ***** params
-	double dT = paramsH.dT;
+	double dT = 100 * paramsH.dT;
 	// ************
 
 
