@@ -104,6 +104,10 @@ struct CylinderGeometry {
 	Real h;
 };
 //&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
+void MySeed(double s = time(NULL)) {
+	 srand(s);
+}
+//&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
 Real myRand() {
 	return Real(rand()) / RAND_MAX;
 }
@@ -161,14 +165,14 @@ void InitializeMbdPhysicalSystem(ChSystemParallelDVI & mphysicalSystem, int argc
 
 void create_system_particles(ChSystemParallelDVI& mphysicalSystem) {
 	Real3 domainCenter = 0.5 * (paramsH.cMin + paramsH.cMax);
-	Real3 ellipsoidSize = mR3(10 * paramsH.HSML, 5 * paramsH.HSML, 7 * paramsH.HSML);
+	Real3 ellipsoidSize = 10 * mR3(10 * paramsH.HSML, 5 * paramsH.HSML, 7 * paramsH.HSML);
 	ChVector<> size = ChVector<>(ellipsoidSize.x, ellipsoidSize.y, ellipsoidSize.z);
 
-	Real density = paramsH.rho0;  // TODO : Arman : Density for now is set to water density
+	double density = paramsH.rho0;  // TODO : Arman : Density for now is set to water density
 	double muFriction = .1;
-	Real volume = utils::CalcEllipsoidVolume(size);
-	Real gyration = utils::CalcEllipsoidGyration(size).Get_Diag();
-	Real mass = density * volume;
+	double volume = utils::CalcEllipsoidVolume(size);
+	ChVector<> gyration = utils::CalcEllipsoidGyration(size).Get_Diag();
+	double mass = density * volume;
 
 
 	// Generate ice particels
@@ -199,7 +203,7 @@ void create_system_particles(ChSystemParallelDVI& mphysicalSystem) {
 	body->SetPos(pos);
 	body->SetRot(rot);
 	body->SetCollide(true);
-	body->SetBodyFixed(false);
+	body->SetBodyFixed(true);
     body->SetMass(mass);
     body->SetInertiaXX(mass * gyration);
 
@@ -215,9 +219,57 @@ void create_system_particles(ChSystemParallelDVI& mphysicalSystem) {
 //	ellipsoid->Rot = rot;
 //
 //	body->GetAssets().push_back(ellipsoid);
-	utills::AddEllipsoidGeometry(body.getPtr(), size, pos, rot);
+	utils::AddEllipsoidGeometry(body.get_ptr(), size, pos, rot);
 	body->GetCollisionModel()->BuildModel();
 	mphysicalSystem.AddBody(body);
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+	ChSharedBodyPtr bin;
+	Real3 hdim = paramsH.boxDims;
+	double hthick = 1 * paramsH.HSML;
+
+	ChSharedPtr<ChMaterialSurface> mat(new ChMaterialSurface);
+	mat->SetFriction(.5);
+	mat->SetDampingF(0.2f);
+	int binId = -200;
+
+
+	bin = ChSharedBodyPtr(new ChBody(new ChCollisionModelParallel));
+	bin->SetMaterialSurface(mat);
+	bin->SetIdentifier(binId);
+	bin->SetMass(1);
+	bin->SetPos(ChVector<>(domainCenter.x, domainCenter.y, domainCenter.z));
+	bin->SetRot(ChQuaternion<>(1, 0, 0, 0));
+	bin->SetCollide(true);
+	bin->SetBodyFixed(true);
+	bin->GetCollisionModel()->ClearModel();
+
+	utils::AddBoxGeometry(bin.get_ptr(), 0.5 * ChVector<>(hdim.x, hdim.y, hthick), ChVector<>(0, 0, 0.5 * hdim.z + 0.5*hthick));	//end wall
+	utils::AddBoxGeometry(bin.get_ptr(), 0.5 * ChVector<>(hthick, hdim.y, hdim.z + 2 * hthick), ChVector<>(-0.5 * hdim.x - 0.5 * hthick, 0, 0));		//side wall
+	utils::AddBoxGeometry(bin.get_ptr(), 0.5 * ChVector<>(hthick, hdim.y, hdim.z + 2 * hthick), ChVector<>(0.5 * hdim.x + 0.5 * hthick, 0, 0));	//side wall
+	utils::AddBoxGeometry(bin.get_ptr(), 0.5 * ChVector<>(7 * hdim.x, hthick, 7 * hdim.x), ChVector<>(0,-10,0)); //bottom bed
+	bin->GetCollisionModel()->BuildModel();
+
+	mphysicalSystem.AddBody(bin);
+
+
+
+
 }
 
 
@@ -535,6 +587,7 @@ int main(int argc, char* argv[]) {
 	bool write_povray_data = true;
 
 	myTimerTotal.start();
+	ofstream outSimulationInfo;
 	outSimulationInfo.open("SimInfo.txt");
 
 
@@ -552,10 +605,16 @@ int main(int argc, char* argv[]) {
 	// Set gravitational acceleration
 
 	//******************* Irrlicht and driver types **************************
-#define irrlichtVisualization false
+	Real3 domainCenter = 0.5 * (paramsH.cMin + paramsH.cMax);
+
+#define irrlichtVisualization true
+	int numIter = mphysicalSystem.GetSettings()->solver.max_iteration_normal +
+			mphysicalSystem.GetSettings()->solver.max_iteration_sliding +
+			mphysicalSystem.GetSettings()->solver.max_iteration_spinning +
+			mphysicalSystem.GetSettings()->solver.max_iteration_bilateral;
 	outSimulationInfo << "****************************************************************************" << endl;
-	outSimulationInfo 	<< " dT: " << dT  << " max_iteration: " << max_iteration <<" muFriction: " << muFriction << " threads: " << threads << " number of bodies: " << mphysicalSystem.Get_bodylist()->size() << endl;
-	cout			 	<< " dT: " << dT  << " max_iteration: " << max_iteration <<" muFriction: " << muFriction << " threads: " << threads << " number of bodies: " << mphysicalSystem.Get_bodylist()->size() << endl;
+	outSimulationInfo 	<< " dT: " << dT  << " max_iteration: " << numIter <<" muFriction: " << mphysicalSystem.GetParallelThreadNumber() << " number of bodies: " << mphysicalSystem.Get_bodylist()->size() << endl;
+	cout			 	<< " dT: " << dT  << " max_iteration: " << numIter <<" muFriction: " << mphysicalSystem.GetParallelThreadNumber() << " number of bodies: " << mphysicalSystem.Get_bodylist()->size() << endl;
 
 #ifdef CHRONO_PARALLEL_HAS_OPENGL2
    opengl::ChOpenGLWindow &gl_window = opengl::ChOpenGLWindow::getInstance();
@@ -575,9 +634,11 @@ int main(int argc, char* argv[]) {
 		ChIrrApp application(&mphysicalSystem, L"Bricks test",core::dimension2d<u32>(800,600),false, true);
 		// Easy shortcuts to add camera, lights, logo and sky in Irrlicht scene:
 		ChIrrWizard::add_typical_Logo  (application.GetDevice());
-		ChIrrWizard::add_typical_Sky   (application.GetDevice());
+//		ChIrrWizard::add_typical_Sky   (application.GetDevice());
 		ChIrrWizard::add_typical_Lights(application.GetDevice(), core::vector3df(14.0f, 44.0f, -18.0f), core::vector3df(-3.0f, 8.0f, 6.0f), 59,  40);
-		ChIrrWizard::add_typical_Camera(application.GetDevice(), core::vector3df(0.5,3,7), core::vector3df(2,1,5)); //   (7.2,30,0) :  (-3,12,-8)
+		ChIrrWizard::add_typical_Camera(application.GetDevice(),
+				core::vector3df(2 * paramsH.cMax.x, 2 * paramsH.cMax.y, 2 * paramsH.cMax.z),
+				core::vector3df(domainCenter.x, domainCenter.y, domainCenter.z)); //   (7.2,30,0) :  (-3,12,-8)
 		// Use this function for adding a ChIrrNodeAsset to all items
 		// If you need a finer control on which item really needs a visualization proxy in
 		// Irrlicht, just use application.AssetBind(myitem); on a per-item basis.
@@ -595,15 +656,16 @@ int main(int argc, char* argv[]) {
 	//****************************************** Time Loop *************************************
 
 	int counter = -1;
-	while(mphysicalSystem.GetChTime() < timeMove+timePause) //arman modify
+//	while(mphysicalSystem.GetChTime() < timeMove+timePause) //arman modify
+	while(true) //arman modify
 	{
 		myTimerStep.start();
 		counter ++;
 #if irrlichtVisualization
 		if ( !(application.GetDevice()->run()) ) break;
 		application.GetVideoDriver()->beginScene(true, true, SColor(255,140,161,192));
-		ChIrrTools::drawGrid(application.GetVideoDriver(), .2,.2, 150,150,
-			ChCoordsys<>(ChVector<>(0.5 * hdim.x, boxMin.y, 0.5 * hdim.z),Q_from_AngAxis(CH_C_PI/2,VECT_X)), video::SColor(50,90,90,150),true);
+		ChIrrTools::drawGrid(application.GetVideoDriver(), 2 * paramsH.HSML, 2 * paramsH.HSML, 50, 50,
+			ChCoordsys<>(ChVector<>(domainCenter.x, paramsH.worldOrigin.y, domainCenter.z), Q_from_AngAxis(CH_C_PI/2,VECT_X)), video::SColor(50,90,90,150),true);
 		application.DrawAll();
 		application.DoStep();
 		application.GetVideoDriver()->endScene();
