@@ -90,8 +90,8 @@ double step_size = 2e-3;
 // #ifdef USE_IRRLICHT
 int FPS = 40; // render frame rate
 double render_step_size = 1.0 / FPS;  // Time increment between two rendered frames
-double output_step_size = step_size;    // Time interval between two output frames
-double console_step_size = 0.5;
+double output_step_size = step_size;  // Time interval between two output frames
+double console_step_size = 0.5;       // time interval between logs to console
 
 ChVector<> trackPoint(-1, 0, 0.2);   // Point on chassis tracked by the camera, chassis c-sys
 
@@ -104,12 +104,12 @@ double chaseHeight = 0.5;
 bool do_shadows = false; // shadow map is experimental
 
 bool autopilot = true;
-double sineAmp = 0.6;
-double sineFreq = 0.3;
+double sineAmp = 0.4;
+double sineFreq = 0.2;
 double tStart = 0.1;
 
 // stop at a certain time
-double end_time = 4.5;  // 99999
+double end_time = 3.0;  // 99999
 
   /*
 #else

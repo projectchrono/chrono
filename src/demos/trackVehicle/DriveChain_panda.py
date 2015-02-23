@@ -574,28 +574,31 @@ class DriveChain_panda:
         
            
         # ---- first plot: 3 subplots, force magnitude normal & tangent
-        DFsgci.plot(ax = axarrA[0], linewidth=1.5, x='time', y=['FnMag']) 
-        axRHSFn = axarrA[0].twinx()
-        axRHSFn.plot(DFsgci['time'], DFsgci['Ncontacts'],'r--', linewidth = 1.5, label = 'Ncontacts')
+        # direction components of normal
+        DFsgci.plot(ax = axarrA[0], linewidth=1.5, x='time', y=['normDirRelx','normDirRely','normDirRelz'])     
+        # tangent, # contacts
         DFsgci.plot(ax = axarrA[1], linewidth=1.5, x='time', y=['FtMag'])  
         axRHSFt = axarrA[1].twinx()
         axRHSFt.plot(DFsgci['time'], DFsgci['Ncontacts'],'r--',linewidth=1.5,label='Ncontacts')
-        # direction components of normal
-        DFsgci.plot(ax = axarrA[2], linewidth=1.5, x='time', y=['normDirRelx','normDirRely','normDirRelz'])        
+        # normal, # contacts
+        DFsgci.plot(ax = axarrA[2], linewidth=1.5, x='time', y=['FnMag']) 
+        axRHSFn = axarrA[2].twinx()
+        axRHSFn.plot(DFsgci['time'], DFsgci['Ncontacts'],'r--', linewidth = 1.5, label = 'Ncontacts')
+
         
-        # first plot label axes 
-        axarrA[0].set_xlabel('time [s]')
-        axarrA[0].set_ylabel('Fn Magnitude [N]')
+        # first plot, label axes 
+        axarrA[0].set_ylabel('Fn direction')   
+        axarrA[1].set_xlabel('time [s]')
+        axarrA[2].set_ylabel('Fn Magnitude [N]')
         axRHSFn.set_ylabel('# contacts')
         axarrA[1].set_ylabel('Ft Magnitude [N]')
-        axRHSFt.set_ylabel('# contacts')
-        axarrA[2].set_ylabel('Fn direction')        
+        axRHSFt.set_ylabel('# contacts')     
         # first plot, legend
-        axarrA[0].legend()
-        axarrA[1].legend()
-        axRHSFn.legend(loc='upper left')
         axRHSFt.legend(loc='upper left')
-        axarrA[2].legend(loc='upper left')
+        axarrA[0].legend(loc='upper left')
+        axarrA[1].legend()
+        axarrA[2].legend()
+        axRHSFn.legend(loc='upper left')
         axarrA[0].set_title('shoe0-Gear contact force Magnitude, # contacts')
 
         
@@ -664,9 +667,9 @@ if __name__ == '__main__':
     #  **********************************************************************    
     #  ===============   USER INPUT   =======================================
     # laptop data dir, end w/ '/'
-    data_dir = 'E:/Chrono_github_Build/bin/outdata_driveChain/'
+    # data_dir = 'E:/Chrono_github_Build/bin/outdata_driveChain/'
     # desktop data dir, end w/ '/'
-    # data_dir = 'D:/Chrono_github_Build/bin/outdata_driveChain/'
+    data_dir = 'D:/Chrono_github_Build/bin/outdata_driveChain/'
     
     # list of data files to plot
     gearSubsys = 'test_driveChain_gear.csv'
@@ -687,8 +690,8 @@ if __name__ == '__main__':
     Chain = DriveChain_panda(data_files,handle_list)
     
     # set the time limits. tmin = -1 will plot the entire time range
-    tmin = 3.7
-    tmax = 4
+    tmin = 2.05
+    tmax = 2.40
     
     
     # 1) plot the gear body info
