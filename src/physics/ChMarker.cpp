@@ -199,7 +199,7 @@ void ChMarker::Impose_Abs_Coord (const Coordsys& m_coord)
 	Coordsys csys;
 			// coordsys: transform the representation from the parent reference frame 
             // to the local reference frame.
-	csys.pos= ChTransform<>::TransformParentToLocal (m_coord.pos, my_body->GetCoord().pos, *my_body->GetA());
+	csys.pos= ChTransform<>::TransformParentToLocal (m_coord.pos, my_body->GetCoord().pos, my_body->GetA());
 	csys.rot= Qcross (Qconjugate (my_body->GetCoord().rot), m_coord.rot);
 			// apply the imposition on local  coordinate and resting coordinate:
 	Impose_Rel_Coord (csys);
@@ -223,12 +223,12 @@ Vector ChMarker::Point_Ref2World (Vector* mpoint)
 
 Vector ChMarker::Dir_World2Ref (Vector* mpoint)
 {
-	return abs_frame.GetA()->MatrT_x_Vect (*mpoint);
+	return abs_frame.GetA().MatrT_x_Vect (*mpoint);
 }
 
 Vector ChMarker::Dir_Ref2World (Vector* mpoint)
 {
-	return abs_frame.GetA()->Matr_x_Vect (*mpoint);
+	return abs_frame.GetA().Matr_x_Vect (*mpoint);
 }
 
 

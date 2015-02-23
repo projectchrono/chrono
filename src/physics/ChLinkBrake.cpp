@@ -54,8 +54,7 @@ ChLinkBrake::ChLinkBrake ()
             // Mask: initialize our LinkMaskLF (lock formulation mask)
             // because this class inherited from LinkLock.
     ((ChLinkMaskLF*)mask)->SetLockMask(false, false, false,
-                       false, false, false, false,
-                       false, false);
+                       false, false, false, false);
 
     ChangedLinkMask();
 }

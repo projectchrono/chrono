@@ -114,8 +114,8 @@ void ChContactRolling::Reset(	collision::ChCollisionModel* mmodA,	///< model A
 
 	ChMatrix33<> Jx1, Jx2, Jr1, Jr2;
 
-	Jr1.MatrTMultiply(this->contact_plane, *(const_cast<ChFrame<>*>(frameA)->GetA()));
-	Jr2.MatrTMultiply(this->contact_plane, *(const_cast<ChFrame<>*>(frameB)->GetA()));
+	Jr1.MatrTMultiply(contact_plane, frameA->GetA());
+	Jr2.MatrTMultiply(contact_plane, frameB->GetA());
 	Jr1.MatrNeg();
 
 	Rx.Get_Cq_a()->PasteClippedMatrix(&Jx1, 0,0, 1,3, 0,0);

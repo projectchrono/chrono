@@ -49,8 +49,7 @@ ChLinkPneumaticActuator::ChLinkPneumaticActuator ()
             // Mask: initialize our LinkMaskLF (lock formulation mask)
             // to free. It was a LinkMaskLF because this class inherited from LinkLock.
     ((ChLinkMaskLF*)mask)->SetLockMask(false, false, false,
-                       false, false, false, false,
-                       false, false);
+                       false, false, false, false);
 
             // set upper lower limits, active
     limit_X->Set_active(TRUE);

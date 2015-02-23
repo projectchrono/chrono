@@ -157,7 +157,7 @@ public:
 
 				/// Get the 'resting position' (that is, the position which the
 				/// marker should have when the x,y,z motion laws are at time=0).
-	Coordsys GetRest_Coord() {return rest_coord;}
+	const Coordsys& GetRest_Coord() const {return rest_coord;}
 
 
 			//
@@ -184,38 +184,40 @@ public:
 				/// coordinates. This object (coordinates/speeds/accel. of marker
 				/// expressed in absolute coordinates) is useful for performace
 				/// reasons. Note! it is updated only after each Update() function.
-	ChFrameMoving<double>& GetAbsFrame () { return abs_frame; }
+    const ChFrameMoving<double>& GetAbsFrame() const { return abs_frame; }
 
 				/// Get the translation and rotation (as a ChCoordsys) of the marker
 				/// respect to the absolute coordinates.
-	Coordsys GetAbsCoord () { return abs_frame.GetCoord(); }
+    const Coordsys& GetAbsCoord() const { return abs_frame.GetCoord(); }
+
 				/// Get the speed of translation and rotation (as a derived ChCoordsys)
 				/// of the marker respect to the absolute coordinates.
-	Coordsys GetAbsCoord_dt () { return abs_frame.GetCoord_dt(); }
+    const Coordsys& GetAbsCoord_dt() const { return abs_frame.GetCoord_dt(); }
+
 				/// Get the acceleration of translation and rotation (as a derived ChCoordsys)
 				/// of the marker respect to the absolute coordinates.
-	Coordsys GetAbsCoord_dtdt () { return abs_frame.GetCoord_dtdt(); }
+    const Coordsys& GetAbsCoord_dtdt() const { return abs_frame.GetCoord_dtdt(); }
 
 				/// Set the translation and rotation (as a ChCoordsys) of the marker
 				/// respect to the absolute coordinates.
 				/// NOTE! inner use only, for the moment. Use  Impose_Abs_Coord() if needed.
-	void SetAbsCoord (Coordsys newpos) {abs_frame.SetCoord(newpos);}
+    void SetAbsCoord(const Coordsys& newpos) { abs_frame.SetCoord(newpos); }
 				/// Set the speed of translation and rotation (as a ChCoordsys) of the marker
 				/// respect to the absolute coordinates.
 				/// NOTE! inner use only, for the moment.
-	void SetAbsCoord_dt (Coordsys newpos_dt) {abs_frame.SetCoord(newpos_dt);}
+    void SetAbsCoord_dt(const Coordsys& newpos_dt) { abs_frame.SetCoord(newpos_dt); }
 				/// Set the speed of translation and rotation (as a ChCoordsys) of the marker
 				/// respect to the absolute coordinates.
 				/// NOTE! inner use only, for the moment.
-	void SetAbsCoord_dtdt (Coordsys newpos_dtdt) {abs_frame.SetCoord(newpos_dtdt);}
+    void SetAbsCoord_dtdt(const Coordsys& newpos_dtdt) { abs_frame.SetCoord(newpos_dtdt); }
 
 				/// Get the angular speed respect to absolute coordinates,
 				/// expressed in  absolute coordinates.
-	Vector  GetAbsWvel () {return abs_frame.GetWvel_par();}
+    Vector GetAbsWvel() const { return abs_frame.GetWvel_par(); }
 
 				/// Get the angular acceleration respect to absolute coordinates,
 				/// expressed in  absolute coordinates.
-	Vector  GetAbsWacc () {return abs_frame.GetWacc_par();}
+    Vector GetAbsWacc() const { return abs_frame.GetWacc_par(); }
 
 
 

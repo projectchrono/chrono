@@ -272,7 +272,7 @@ void ChLinkPointFrame::ConstraintsLoadJacobians()
 	ChMatrix33<> atilde;
 	atilde.Set_X_matrix(-this->attach_position);
 	ChMatrix33<> Jrb;
-	Jrb.MatrMultiply(*this->body->GetA(), atilde);
+	Jrb.MatrMultiply(body->GetA(), atilde);
 
 	this->constraint1.Get_Cq_a()->PasteClippedMatrix(&Jxn, 0,0, 1,3, 0,0);
 	this->constraint2.Get_Cq_a()->PasteClippedMatrix(&Jxn, 1,0, 1,3, 0,0);
