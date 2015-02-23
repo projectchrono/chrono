@@ -270,11 +270,11 @@ bool TestUniversal(const ChVector<>&     jointLoc,         // absolute location 
         ChFrame<> fr1 = universalJoint->GetFrame1Abs();
         ChFrame<> fr2 = universalJoint->GetFrame2Abs();
 
-        ChVector<> x1 = fr1.GetA()->Get_A_Xaxis();
-        ChVector<> y1 = fr1.GetA()->Get_A_Yaxis();
+        ChVector<> x1 = fr1.GetA().Get_A_Xaxis();
+        ChVector<> y1 = fr1.GetA().Get_A_Yaxis();
 
-        ChVector<> x2 = fr2.GetA()->Get_A_Xaxis();
-        ChVector<> y2 = fr2.GetA()->Get_A_Yaxis();
+        ChVector<> x2 = fr2.GetA().Get_A_Xaxis();
+        ChVector<> y2 = fr2.GetA().Get_A_Yaxis();
 
         std::cout << Vdot(x1, y2) << "    " << Vdot(x2, y1) << std::endl;
 
