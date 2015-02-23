@@ -172,11 +172,13 @@ public:
 						 INT_EULER_IMPLICIT =7,
 						 INT_EULER_IMPLICIT_LINEARIZED =8,
 						 INT_TRAPEZOIDAL =9,
+						 INT_TRAPEZOIDAL_LINEARIZED =10,
 						 INT_HHT =11,
 						 INT_HEUN =12,
 						 INT_RUNGEKUTTA45 =13,
 						 INT_EULER_EXPLICIT =14,
 						 INT_LEAPFROG =15,
+						 INT_NEWMARK =16,
 					};
 				/// Sets the method for time integration (time stepper).
 				/// Some steppers are faster but can run into some troubles 

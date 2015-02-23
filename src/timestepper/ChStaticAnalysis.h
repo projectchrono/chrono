@@ -163,6 +163,7 @@ class ChStaticNonLinearAnalysis : public ChStaticAnalysis
 protected:
 	int maxiters;
 	double tolerance;
+	int incremental_steps;
 
 public:
 
@@ -170,6 +171,7 @@ public:
 	ChStaticNonLinearAnalysis(ChIntegrableIIorder& mintegrable)
 		: ChStaticAnalysis(mintegrable),
 		maxiters(20),
+		incremental_steps(6),
 		tolerance(1e-10)
 	{
 	};
@@ -224,6 +226,10 @@ public:
 			mintegrable->LoadResidual_F  (R, 1.0);
 			mintegrable->LoadConstraint_C(Qc, 1.0);
 			
+			double cfactor = ChMin( 1.0, ((double)(i+1)/(double)(incremental_steps+1)) );
+			R  *= cfactor;
+			Qc *= cfactor;
+			
 			//	GetLog()<< "Non-linear statics iteration=" << i << "  |R|=" << R.NormInf() << "  |Qc|=" << Qc.NormInf() << "\n";						
 			if ((R.NormInf()  < this->GetTolerance()) &&
 				(Qc.NormInf() < this->GetTolerance()))
@@ -250,10 +256,29 @@ public:
 	}
 
 		/// Set the max number of iterations using the Newton Raphson procedure
-	void   SetMaxiters(int miters) { maxiters = miters; }
+	void   SetMaxiters(int miters) 
+	{ 
+		maxiters = miters;
+		if (incremental_steps > miters)
+			incremental_steps = miters;
+	}
 		/// Get the max number of iterations using the Newton Raphson procedure
 	double GetMaxiters() { return maxiters;}
-	
+
+		/// Set the number of steps that, for the first iterations, make the residual 
+		/// growing linearly. If =0, no incremental application of residual, so it is
+		/// a classic Newton Raphson iteration, otherwise acts as  continuation strategy.
+		/// For values > 0 , it might help convergence. Must be less than maxiters.
+	void   SetIncrementalSteps(int mist) 
+	{ 
+		incremental_steps = mist; 
+		if (maxiters < incremental_steps)
+			maxiters = incremental_steps;
+	}
+		/// Set the number of steps that, for the first iterations, make the residual 
+		/// growing linearly.
+	double GetIncrementalSteps() { return incremental_steps;}
+
 		/// Set the tolerance for terminating the Newton Raphson procedure
 	void   SetTolerance(double mtol) { tolerance = mtol; }
 		/// Get the tolerance for terminating the Newton Raphson procedure

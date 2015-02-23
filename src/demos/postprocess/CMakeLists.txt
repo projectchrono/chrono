@@ -15,11 +15,28 @@ SET_TARGET_PROPERTIES(demo_postprocess PROPERTIES
     COMPILE_FLAGS "${CH_BUILDFLAGS}"
 	LINK_FLAGS "${CH_LINKERFLAG_EXE}"
 	)
-TARGET_LINK_LIBRARIES(demo_postprocess
- 	ChronoEngine
-	ChronoEngine_POSTPROCESS
- 	)
+TARGET_LINK_LIBRARIES(demo_postprocess  ChronoEngine  ChronoEngine_POSTPROCESS)
 ADD_DEPENDENCIES (demo_postprocess ChronoEngine ChronoEngine_POSTPROCESS)
 
+ADD_EXECUTABLE(demo_timestepping	demo_timestepping.cpp)
+SOURCE_GROUP(demos\\postprocess FILES  	demo_timestepping.cpp)
+SET_TARGET_PROPERTIES(demo_timestepping PROPERTIES 
+	FOLDER demos
+	LINK_FLAGS "${CH_LINKERFLAG_EXE}"
+	)
+TARGET_LINK_LIBRARIES(demo_timestepping ChronoEngine)
+ADD_DEPENDENCIES (demo_timestepping ChronoEngine ChronoEngine_POSTPROCESS)
+
+ADD_EXECUTABLE(demo_gnuplot	demo_gnuplot.cpp)
+SOURCE_GROUP(demos\\postprocess FILES  	demo_gnuplot.cpp)
+SET_TARGET_PROPERTIES(demo_gnuplot PROPERTIES 
+	FOLDER demos
+	LINK_FLAGS "${CH_LINKERFLAG_EXE}"
+	)
+TARGET_LINK_LIBRARIES(demo_gnuplot ChronoEngine)
+ADD_DEPENDENCIES (demo_gnuplot ChronoEngine ChronoEngine_POSTPROCESS)
+
+
 install(TARGETS demo_postprocess DESTINATION bin)
+install(TARGETS demo_timestepping DESTINATION bin)
 

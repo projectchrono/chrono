@@ -769,6 +769,183 @@ GetLog()<< "\n\n Trapezoidal \n";
 };
 
 
+/// Performs a step of trapezoidal implicit linearized for II order systems
+
+class ChTimestepperTrapezoidalLinearized : public ChTimestepperIIorder, public ChImplicitIterativeTimestepper
+{
+protected:
+	ChStateDelta		Dv;
+	ChVectorDynamic<>   Dl;
+	ChState				Xnew;
+	ChStateDelta		Vnew;
+	ChVectorDynamic<>	R;
+	ChVectorDynamic<>	Rold;
+	ChVectorDynamic<>	Qc;
+
+public:
+	/// Constructors (default empty)
+	ChTimestepperTrapezoidalLinearized(ChIntegrableIIorder& mintegrable)
+		: ChTimestepperIIorder(mintegrable),
+		ChImplicitIterativeTimestepper()
+	{};
+
+	/// Performs an integration timestep
+	virtual void Advance(
+		const double dt				///< timestep to advance
+		)
+	{
+		// downcast
+		ChIntegrableIIorder* mintegrable = (ChIntegrableIIorder*)this->integrable;
+
+		// setup main vectors
+		mintegrable->StateSetup(X, V, A);
+
+		// setup auxiliary vectors
+		Dv.Reset  (mintegrable->GetNcoords_v(), GetIntegrable());
+		Dl.Reset  (mintegrable->GetNconstr());
+		Xnew.Reset(mintegrable->GetNcoords_x(), mintegrable);
+		Vnew.Reset(mintegrable->GetNcoords_v(), mintegrable);
+		L.Reset   (mintegrable->GetNconstr());
+		R.Reset   (mintegrable->GetNcoords_v());
+		Rold.Reset(mintegrable->GetNcoords_v());
+		Qc.Reset  (mintegrable->GetNconstr());
+
+
+		mintegrable->StateGather(X, V, T);	// state <- system
+
+		// extrapolate a prediction as a warm start
+
+		Xnew = X + V*dt;		
+		Vnew = V;  	
+
+		// use Newton Raphson iteration to solve implicit Euler for v_new
+		//
+		// [ M - dt/2*dF/dv - dt^2/4*dF/dx    Cq' ] [ Dv       ] = [ M*(v_old - v_new) + dt/2(f_old + f_new)]
+		// [ Cq                               0   ] [ -dt/2*Dl ] = [ C/dt                                   ]
+
+		mintegrable->LoadResidual_F(Rold, dt*0.5);    // dt/2*f_old
+		mintegrable->LoadResidual_Mv(Rold, V, 1.0);  // M*v_old
+		//mintegrable->LoadResidual_CqL(Rold, L, dt*0.5); // dt/2*l_old
+	
+		mintegrable->StateScatter(Xnew, Vnew, T + dt);	// state -> system
+		R = Rold;
+		Qc.Reset();
+		mintegrable->LoadResidual_F(R, dt*0.5);    // + dt/2*f_new
+		mintegrable->LoadResidual_Mv(R, Vnew, -1.0); // - M*v_new
+		//mintegrable->LoadResidual_CqL(R, L, dt*0.5); // + dt/2*Cq*l_new
+		mintegrable->LoadConstraint_C(Qc, 1.0 / dt); // C/dt
+
+		mintegrable->StateSolveCorrection(
+			Dv,
+			Dl,
+			R,
+			Qc,
+			1.0,        // factor for  M
+			-dt*0.5,    // factor for  dF/dv
+			-dt*dt*0.25,// factor for  dF/dx
+			Xnew, Vnew, T + dt,
+			false  // do not StateScatter update to Xnew Vnew T+dt before computing correction
+		);
+
+		Dl *= (2.0 / dt);  // Note it is not -(2.0/dt) because we assume StateSolveCorrection already flips sign of Dl
+		L += Dl;
+
+		Vnew += Dv;
+
+		Xnew = X + ((Vnew + V)*(dt*0.5));  // Xnew = Xold + h/2(Vnew+Vold)
+
+		X = Xnew;
+		V = Vnew;
+		T += dt;
+
+		mintegrable->StateScatter(X, V, T);	// state -> system
+	}
+};
+
+
+/// Performs a step of trapezoidal implicit linearized for II order systems
+///*** SIMPLIFIED VERSION -DOES NOT WORK - PREFER ChTimestepperTrapezoidalLinearized
+
+class ChTimestepperTrapezoidalLinearized2 : public ChTimestepperIIorder, public ChImplicitIterativeTimestepper
+{
+protected:
+	ChStateDelta		Dv;
+	ChState				Xnew;
+	ChStateDelta		Vnew;
+	ChVectorDynamic<>	R;
+	ChVectorDynamic<>	Qc;
+
+public:
+	/// Constructors (default empty)
+	ChTimestepperTrapezoidalLinearized2(ChIntegrableIIorder& mintegrable)
+		: ChTimestepperIIorder(mintegrable),
+		ChImplicitIterativeTimestepper()
+	{};
+
+	/// Performs an integration timestep
+	virtual void Advance(
+		const double dt				///< timestep to advance
+		)
+	{
+		// downcast
+		ChIntegrableIIorder* mintegrable = (ChIntegrableIIorder*)this->integrable;
+
+		// setup main vectors
+		mintegrable->StateSetup(X, V, A);
+
+		// setup auxiliary vectors
+		Dv.Reset  (mintegrable->GetNcoords_v(), GetIntegrable());
+		Xnew.Reset(mintegrable->GetNcoords_x(), mintegrable);
+		Vnew.Reset(mintegrable->GetNcoords_v(), mintegrable);
+		L.Reset   (mintegrable->GetNconstr());
+		R.Reset   (mintegrable->GetNcoords_v());
+		Qc.Reset  (mintegrable->GetNconstr());
+
+
+		mintegrable->StateGather(X, V, T);	// state <- system
+
+		// extrapolate a prediction as a warm start
+
+		Xnew = X + V*dt;		
+		Vnew = V;  	
+
+		// use Newton Raphson iteration to solve implicit Euler for v_new
+		//
+		// [ M - dt/2*dF/dv - dt^2/4*dF/dx    Cq' ] [ v_new    ] = [ M*(v_old) + dt/2(f_old + f_new)]
+		// [ Cq                               0   ] [ -dt/2*L ] m= [ C/dt                           ]
+
+		mintegrable->LoadResidual_F(R, dt*0.5);    // dt/2*f_old
+		mintegrable->LoadResidual_Mv(R, V, 1.0);  // M*v_old
+	
+		mintegrable->StateScatter(Xnew, Vnew, T + dt);	// state -> system
+		Qc.Reset();
+		mintegrable->LoadResidual_F(R, dt*0.5);    // + dt/2*f_new
+		mintegrable->LoadConstraint_C(Qc, 1.0 / dt); // C/dt
+
+		mintegrable->StateSolveCorrection(
+			Vnew,
+			L,
+			R,
+			Qc,
+			1.0,        // factor for  M
+			-dt*0.5,    // factor for  dF/dv
+			-dt*dt*0.25,// factor for  dF/dx
+			Xnew, Vnew, T + dt,
+			false  // do not StateScatter update to Xnew Vnew T+dt before computing correction
+		);
+
+		L *= (2.0 / dt);  // Note it is not -(2.0/dt) because we assume StateSolveCorrection already flips sign of Dl
+
+		X += ((Vnew + V)*(dt*0.5));  // Xnew = Xold + h/2(Vnew+Vold)
+
+		V = Vnew;
+
+		T += dt;
+
+		mintegrable->StateScatter(X, V, T);	// state -> system
+	}
+};
+
 
 /// Performs a step of HHT (generalized alpha) implicit for II order systems
 /// See Negrut et al. 2007.
