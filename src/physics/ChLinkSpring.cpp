@@ -124,6 +124,8 @@ void ChLinkSpring::UpdateForces(double mytime)
   C_force = Vadd(C_force, m_force);
 }
 
+
+/*
 double ChLinkSpring::Get_deformReact()
 {
   // force from spring
@@ -142,7 +144,7 @@ double ChLinkSpring::Get_dist_dtReact()
   return spr_react_C;
 }
 
-
+*/
 
 void ChLinkSpring::StreamOUT(ChStreamOutBinary& mstream)
 {

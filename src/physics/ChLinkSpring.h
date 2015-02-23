@@ -63,8 +63,6 @@ public:
   double Get_SpringR()          const { return spr_r; }
   double Get_SpringF()          const { return spr_f; }
   double Get_SpringReact()      const { return spr_react; }
-  double Get_deformReact();     // get the spring force from dx only
-  double Get_dist_dtReact();    // get the spring force from dx/dt only
 
   void Set_SpringRestLength(double m_r) { spr_restlength = m_r; }
   void Set_SpringK(double m_r)          { spr_k = m_r; }

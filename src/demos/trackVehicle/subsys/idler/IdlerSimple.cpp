@@ -332,6 +332,27 @@ void IdlerSimple::AddCollisionGeometry(double mu,
 }
 
 
+double IdlerSimple::Get_SpringReact_Deform() const
+{
+  // force from spring
+  double deform = m_shock->Get_SpringDeform();
+  double deform_dt = m_shock->Get_SpringVelocity();
+  double spring_react_K = -(m_shock->Get_SpringK() * (m_shock->Get_mod_k_d())->Get_y(deform) * (m_shock->Get_mod_k_speed())->Get_y(deform_dt) ) * deform;  
+
+  return spring_react_K;
+}
+
+double IdlerSimple::Get_SpringReact_Deform_dt() const
+{ 
+  // force from damping
+  double deform = m_shock->Get_SpringDeform();
+  double deform_dt = m_shock->Get_SpringVelocity();
+  double spr_react_C = -(m_shock->Get_SpringR() * (m_shock->Get_mod_r_d())->Get_y(deform) * (m_shock->Get_mod_r_speed())->Get_y(deform_dt) ) * deform_dt;
+
+  return spr_react_C;
+}
+
+
 void IdlerSimple::LogConstraintViolations()
 {
   // idler joint has 2 pos and 1 rot

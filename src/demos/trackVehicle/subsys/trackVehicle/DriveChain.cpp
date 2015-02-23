@@ -975,8 +975,8 @@ void DriveChain::Log_to_console(int console_what)
       <<"\n COG Vel [m/s] : " << m_idlers[0]->GetBody()->GetPos_dt()
       <<"\n COG omega [rad/s] : " << m_idlers[0]->GetBody()->GetRot_dt().Q_to_NasaAngles()
       <<"\n spring react F [N] : " << m_idlers[0]->GetSpringForce()
-      <<"\n react from K [N] : " << m_idlers[0]->getShock()->Get_deformReact()
-      <<"\n react from C [N] : " << m_idlers[0]->getShock()->Get_dist_dtReact();
+      <<"\n react from K [N] : " << m_idlers[0]->Get_SpringReact_Deform()
+      <<"\n react from C [N] : " << m_idlers[0]->Get_SpringReact_Deform_dt();
   }
 
   if (console_what & DBG_CONSTRAINTS)
@@ -1095,8 +1095,8 @@ void DriveChain::Log_to_file()
         <<","<< m_idlers[0]->GetBody()->GetPos_dt()
         <<","<< m_idlers[0]->GetBody()->GetWvel_loc()
         <<","<< m_idlers[0]->GetSpringForce()
-        <<","<< m_idlers[0]->getShock()->Get_deformReact()
-        <<","<< m_idlers[0]->getShock()->Get_dist_dtReact()
+        <<","<< m_idlers[0]->Get_SpringReact_Deform()
+        <<","<< m_idlers[0]->Get_SpringReact_Deform_dt()
         <<"\n";
       ChStreamOutAsciiFile ofileDBG_IDLER(m_filename_DBG_IDLER.c_str(), std::ios::app);
       ofileDBG_IDLER << ss_id.str().c_str();

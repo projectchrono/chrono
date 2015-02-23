@@ -81,6 +81,11 @@ public:
 
   double GetSpringForce() const { return m_shock->Get_SpringReact();}
 
+  // get component reactions for the spring
+  double Get_SpringReact_Deform() const;
+
+  double Get_SpringReact_Deform_dt() const;
+
 private:
   // private functions
   void AddVisualization(size_t chain_idx,
