@@ -292,10 +292,10 @@ void DriveChain::Update(double time,
 void DriveChain::Advance(double step)
 {
   double t = 0;
-  m_system->SetIterLCPmaxItersStab(80);
-  m_system->SetIterLCPmaxItersSpeed(100);
-  double settlePhaseA = 0.1;
-  double settlePhaseB = 0.3;
+  // m_system->SetIterLCPmaxItersStab(80);
+  // m_system->SetIterLCPmaxItersSpeed(100);
+  double settlePhaseA = 0.01;
+  double settlePhaseB = 0.03;
   while (t < step) {
     double h = std::min<>(m_stepsize, step - t);
     if( m_system->GetChTime() < settlePhaseA )

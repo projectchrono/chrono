@@ -85,7 +85,7 @@ ChQuaternion<> initRot(QUNIT);
 size_t num_idlers = 1;
 size_t num_rollers = 2;
 // Simulation step size
-double step_size = 2e-3;
+double step_size = 1e-4;
 
 // #ifdef USE_IRRLICHT
 int FPS = 40; // render frame rate
@@ -109,7 +109,7 @@ double sineFreq = 0.2;
 double tStart = 0.1;
 
 // stop at a certain time
-double end_time = 3.0;  // 99999
+double end_time = 2.8;  // 99999
 
   /*
 #else
