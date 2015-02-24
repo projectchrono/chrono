@@ -149,6 +149,7 @@ protected:
   // *********  History dependent Variables
   // for debugging step to step persistent contact data. 
   // Usually need to resize these vectors upon construction, for the # of pts to follow
+  double m_SG_numContacts;
   std::vector<ChVector<>> m_SG_info;
   std::vector<bool> m_SG_is_persistentContact_set;
   std::vector<ChVector<>> m_SG_PosRel;

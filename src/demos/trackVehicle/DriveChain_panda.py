@@ -566,8 +566,9 @@ class DriveChain_panda:
         # plot contact point relative position, velcoity, pitch radius/velocity
         figD, axarrD = plt.subplots(3,sharex=True)        
         
-        # data headers to pull from
-        inDat = ['time','Ncontacts','t_persist','t_persist_max','FnMag','FtMag','xRel','yRel','zRel','VxRel','VyRel','VzRel','normDirRelx','normDirRely','normDirRelz']      
+        # data headers to pull from. Postive and Negative are the P and N suffix
+        inDat = ['time','Ncontacts','NcontactsP','t_persistP','t_persist_maxP','FnMagP','FtMagP','xRelP','yRelP','zRelP','VxRelP','VyRelP','VzRelP','normDirRelxP','normDirRelyP','normDirRelzP'
+                 ,'NcontactsN','t_persistN','t_persist_maxN','FnMagN','FtMagN','xRelN','yRelN','zRelN','VxRelN','VyRelN','VzRelN','normDirRelxN','normDirRelyN','normDirRelzN']      
         
         # data frame from the headers
         DFsgci = pd.DataFrame(self._getDFhandle('shoeGearContact'), columns = inDat)

@@ -295,19 +295,19 @@ void DriveChain::Update(double time,
 void DriveChain::Advance(double step)
 {
   double t = 0;
-  m_system->SetIterLCPmaxItersStab(80);
-  m_system->SetIterLCPmaxItersSpeed(100);
-  double settlePhaseA = 0.1;
-  double settlePhaseB = 0.3;
+  m_system->SetIterLCPmaxItersStab(100);
+  m_system->SetIterLCPmaxItersSpeed(150);
+  double settlePhaseA = 0.05;
+  double settlePhaseB = 0.1;
   while (t < step) {
     double h = std::min<>(m_stepsize, step - t);
     if( m_system->GetChTime() < settlePhaseA )
     {
-      m_system->SetIterLCPmaxItersStab(100);
-      m_system->SetIterLCPmaxItersSpeed(150);
+      m_system->SetIterLCPmaxItersStab(80);
+      m_system->SetIterLCPmaxItersSpeed(100);
     } else if ( m_system->GetChTime() < settlePhaseB )
     {
-      m_system->SetIterLCPmaxItersStab(80);
+      m_system->SetIterLCPmaxItersStab(100);
       m_system->SetIterLCPmaxItersSpeed(150);
     }
     m_system->DoStepDynamics(h);
@@ -601,7 +601,7 @@ int DriveChain::reportShoeGearContact(const std::string& shoe_name,
         if( react_forces.x > 0 )
         {
           // this is a non-zero contact force between the shoe and the gear
-          m_num_shoeGear_contacts++;
+          m_num_contacts++;
 
           // get the relative location of the contact point on the gear body
           ChVector<> gearpt_PosRel = getContactLocRel(pA,pB,modA,modB,
@@ -609,7 +609,8 @@ int DriveChain::reportShoeGearContact(const std::string& shoe_name,
 
           // positive z-relative position will be index 0, else index 1.
           int index = (gearpt_PosRel.z > 0) ? 0 : 1;
-
+          // count the number of contats on each side
+          m_num_contacts_side[index]++;
           // see if the relative position of the contact point has been set on this side of the gear
           if( !m_is_persistentContact_set[index])
           {
@@ -674,7 +675,7 @@ int DriveChain::reportShoeGearContact(const std::string& shoe_name,
     // NOTE: must initialize 
     // relevant gear info
     std::string m_shoe_name;      // string name for the shoe to check for collision with 
-    int m_num_shoeGear_contacts;  // contacts this step
+    int m_num_contacts;  // contacts this step
 
     // NOTE: for this type of gear/shoe pin contact, two pins on each shoe are in contact with
     //      the gear. EXPECT to have symmetric contact behavior, and a single contact point,
@@ -682,7 +683,7 @@ int DriveChain::reportShoeGearContact(const std::string& shoe_name,
     // So, track two contacts for the shoe/gear contact, one w/ positive z "Pz", the other negative z, "Nz"
     std::vector<double> m_t_persist;     // time the contacts have been in persistent contact
     std::vector<double> m_t_persist_max; // max time the shoe stayed in contact with the gear
-
+    std::vector<int> m_num_contacts_side;
     std::vector<ChVector<>> m_PosRel;  // position of a contact to follow, relative to gear c-sys
     std::vector<ChVector<>> m_PosAbs;
     std::vector<ChVector<>> m_VelRel;  // velocity of contact followed, relative to gear c-sys
@@ -704,7 +705,8 @@ int DriveChain::reportShoeGearContact(const std::string& shoe_name,
   // setup the reporter, init any variables that are not history dependent
   _shoeGear_report_contact reporter;
   reporter.m_shoe_name = shoe_name;
-  reporter.m_num_shoeGear_contacts = 0;
+  reporter.m_num_contacts = 0;
+  reporter.m_num_contacts_side.resize(2, 0);
   reporter.m_PosRel.resize(2, ChVector<>());
   reporter.m_PosAbs.resize(2, ChVector<>() );
   reporter.m_VelRel.resize(2, ChVector<>() );
@@ -765,22 +767,22 @@ int DriveChain::reportShoeGearContact(const std::string& shoe_name,
     }
 
     // set any data here from the reporter,
-    SG_info[rc] = ChVector<>(reporter.m_num_shoeGear_contacts,
+    SG_info.push_back( ChVector<>(reporter.m_num_contacts_side[rc],
       reporter.m_t_persist[rc],
-      reporter.m_t_persist_max[rc]);
+      reporter.m_t_persist_max[rc]) );
 
-     Force_mag_info[rc] = ChVector<>(reporter.m_Fn[rc],
+    Force_mag_info.push_back( ChVector<>(reporter.m_Fn[rc],
       reporter.m_Ft[rc],
-      0 );
+      0 ) );
 
     // set loc, vel, norm. force dir. of contact point, relative to gear csys
-    PosRel_contact[rc] = reporter.m_PosRel[rc];
-    VRel_contact[rc] = reporter.m_VelRel[rc];
-    NormDirRel_contact[rc] = reporter.m_NormDirRel[rc];
+    PosRel_contact.push_back( reporter.m_PosRel[rc]);
+    VRel_contact.push_back( reporter.m_VelRel[rc]);
+    NormDirRel_contact.push_back( reporter.m_NormDirRel[rc]);
 
     
     // finally, set any data that should persist to the next time step to the ChainSystem.
-      m_SG_Fn[rc] = reporter.m_NormDirAbs[rc] * reporter.m_Fn[rc];
+    m_SG_Fn.push_back( reporter.m_NormDirAbs[rc] * reporter.m_Fn[rc]);
 
     // all of these should be vector copy/assign, moved outside the for loop
     /*
@@ -798,6 +800,7 @@ int DriveChain::reportShoeGearContact(const std::string& shoe_name,
   }
 
   // finally, set any data that should persist to the next time step to the ChainSystem.
+  m_SG_numContacts = reporter.m_num_contacts;
   m_SG_info = SG_info;
   m_SG_is_persistentContact_set = reporter.m_is_persistentContact_set;
   m_SG_PosRel = reporter.m_PosRel;
@@ -809,7 +812,7 @@ int DriveChain::reportShoeGearContact(const std::string& shoe_name,
   m_SG_ContactFn_all = reporter.m_ContactFn_all;
 
   //  # of contacts between specified shoe and gear body
-  return reporter.m_num_shoeGear_contacts;
+  return reporter.m_num_contacts;
 }
 
 
@@ -1064,13 +1067,14 @@ void DriveChain::Log_to_file()
       ofile << ss.str().c_str();
 
       // second file, to specify some collision info with the gear
+      double num_contacts = 0;
       std::vector<ChVector<>> sg_info;  // output data set
       std::vector<ChVector<>> Force_mag_info;  // per step contact force magnitude, (Fn, Ft, 0)
       std::vector<ChVector<>> PosRel_contact; // location of a contact point relative to the gear c-sys
       std::vector<ChVector<>> VRel_contact;  // follow the vel. of a contact point relative to the gear c-sys
       std::vector<ChVector<>> NormDirRel_contact; // tracked contact normal dir., w.r.t. gear c-sys
       // sg_info = (Num_contacts, t_persist, t_persist_max)
-      reportShoeGearContact(m_chain->GetShoeBody(0)->GetNameString(),
+      num_contacts = reportShoeGearContact(m_chain->GetShoeBody(0)->GetNameString(),
         sg_info,
         Force_mag_info,
         PosRel_contact,
@@ -1081,13 +1085,14 @@ void DriveChain::Log_to_file()
       // "time,Ncontacts,t_persistP,t_persist_maxP,FnMagP,FtMagP,xRelP,yRelP,zRelP,VxRelP,VyRelP,VzRelP,normDirRelxP,normDirRelyP,normDirRelzP
       //  ,t_persistN,t_persist_maxN,FnMagN,FtMagN,xRelN,yRelN,zRelN,VxRelN,VyRelN,VzRelN,normDirRelxN,normDirRelyN,normDirRelzN "
     std::stringstream ss_sg;
-      ss_sg << t <<"," << sg_info[0]
+      ss_sg << t <<"," << num_contacts
+        <<"," << sg_info[0]
         <<","<< Force_mag_info[0].x
         <<","<< Force_mag_info[0].y
         <<","<< PosRel_contact[0]
         <<","<< VRel_contact[0]
         <<","<< NormDirRel_contact[0]
-        <<"," << sg_info[1].y <<","<< sg_info[1].z    // only report # contacts once
+        <<"," << sg_info[1]
         <<","<< Force_mag_info[1].x
         <<","<< Force_mag_info[1].y
         <<","<< PosRel_contact[1]
@@ -1185,8 +1190,8 @@ void DriveChain::create_fileHeaders(int what)
     ChStreamOutAsciiFile ofileDBG_shoeGear(m_filename_DBG_shoeGear.c_str());
     std::stringstream ss_sg;
     // suffix "P" is the z-positive side of the gear, "N" is the z-negative side
-    ss_sg << "time,Ncontacts,t_persistP,t_persist_maxP,FnMagP,FtMagP,xRelP,yRelP,zRelP,VxRelP,VyRelP,VzRelP,normDirRelxP,normDirRelyP,normDirRelzP"
-      << ",t_persistN,t_persist_maxN,FnMagN,FtMagN,xRelN,yRelN,zRelN,VxRelN,VyRelN,VzRelN,normDirRelxN,normDirRelyN,normDirRelzN\n";
+    ss_sg << "time,Ncontacts,NcontactsP,t_persistP,t_persist_maxP,FnMagP,FtMagP,xRelP,yRelP,zRelP,VxRelP,VyRelP,VzRelP,normDirRelxP,normDirRelyP,normDirRelzP"
+      << ",NcontactsN,t_persistN,t_persist_maxN,FnMagN,FtMagN,xRelN,yRelN,zRelN,VxRelN,VyRelN,VzRelN,normDirRelxN,normDirRelyN,normDirRelzN\n";
     ofileDBG_shoeGear << ss_sg.str().c_str();
   }
 

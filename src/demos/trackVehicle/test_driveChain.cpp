@@ -85,7 +85,7 @@ ChQuaternion<> initRot(QUNIT);
 size_t num_idlers = 1;
 size_t num_rollers = 2;
 // Simulation step size
-double step_size = 1e-4;
+double step_size = 1e-3;
 
 // #ifdef USE_IRRLICHT
 int FPS = 40; // render frame rate
@@ -104,12 +104,12 @@ double chaseHeight = 0.5;
 bool do_shadows = false; // shadow map is experimental
 
 bool autopilot = true;
-double sineAmp = 0.4;
-double sineFreq = 0.2;
+double sineAmp = 0.6;
+double sineFreq = 0.3;
 double tStart = 0.1;
 
 // stop at a certain time
-double end_time = 2.8;  // 99999
+double end_time = 2.5;  // 99999
 
   /*
 #else
