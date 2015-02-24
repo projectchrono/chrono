@@ -177,7 +177,13 @@ inline real3 GetCenter_Plane() {
 inline real3 GetCenter_Cone(const real3& B) {
   return ZERO_VECTOR;
 }
-
+inline real3 GetCenter_Convex(const real3& B, const real3* convex_data) {
+    real3 point(0);
+    for (int i = B.y; i < B.y + B.x; i++) {
+      point += convex_data[i];
+    }
+    return point/B.x ;
+}
 inline real3 SupportVertNoMargin(const chrono::collision::ConvexShape& Shape, const real3& nv, const real& envelope) {
   real3 localSupport;
   real3 n = nv.normalize();
@@ -208,6 +214,9 @@ inline real3 SupportVertNoMargin(const chrono::collision::ConvexShape& Shape, co
       break;
     case chrono::collision::ROUNDEDCONE:
       localSupport = GetSupportPoint_RoundedCone(Shape.B, Shape.C, n);
+      break;
+    case chrono::collision::CONVEX:
+      localSupport = GetSupportPoint_Convex(Shape.B, Shape.convex, n);
       break;
   }
   // The collision envelope is applied as a compound support.
@@ -247,6 +256,9 @@ inline real3 SupportVert(const chrono::collision::ConvexShape& Shape, const real
       break;
     case chrono::collision::ROUNDEDCONE:
       localSupport = GetSupportPoint_RoundedCone(Shape.B - Shape.margin, Shape.C, n);
+      break;
+    case chrono::collision::CONVEX:
+      localSupport = GetSupportPoint_Convex(Shape.B, Shape.convex, n) - Shape.margin * n;
       break;
   }
   // The collision envelope is applied as a compound support.

@@ -43,6 +43,8 @@ bool chrono::collision::MPRSphereSphere(const ConvexShape& ShapeA,
 real3 GetCenter(const ConvexShape& Shape) {
   if (Shape.type == TRIANGLEMESH) {
     return GetCenter_Triangle(Shape.A, Shape.B, Shape.C);  // triangle center
+  } else if (Shape.type == CONVEX) {
+    return GetCenter_Convex(Shape.B, Shape.convex) + Shape.A;  // convex center
   } else {
     return R3(0, 0, 0) + Shape.A;  // All other shapes assumed to be locally centered
   }
