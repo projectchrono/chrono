@@ -3406,7 +3406,29 @@ void ChSystem::StreamIN(ChStreamInBinary& mstream)
 
 void ChSystem::StreamOUT(ChStreamOutAscii& mstream)
 {
-	//***TO DO***
+
+	// serialize parent class too
+	ChObj::StreamOUT(mstream);
+  
+	// stream out all member data
+	mstream << "tEnd      : " << GetEndTime() 
+    <<"\nstepSize   : "<< GetStep()
+    <<"\nstepMin    : "<< GetStepMin()
+    <<"\nstepMax    : " << GetStepMax()
+	  <<"\ntol        : " << GetTol()
+	  <<"\nnormType   : " << GetNormType()
+	  <<"\nMaxIter    : " << GetMaxiter()
+	  <<"\nIntegration: " << (int)GetIntegrationType()
+	
+	  <<"\ngravity  : " << G_acc
+
+	  <<"\nminBounceSpeed   : " << GetMinBounceSpeed()
+	  // v2
+	  <<"\nLCPmaxIter       : " << iterLCPmaxIters
+	  <<"\nLCPmaxIterStab   :  " << iterLCPmaxItersStab
+    <<"\nmaxRecovSpeed    : " << max_penetration_recovery_speed
+	  <<"\nLCPSolverType    : " << (int)GetLcpSolverType();
+
 }
 
 #define CH_CHUNK_END   1234
@@ -3541,19 +3563,19 @@ void ChSystem::ShowHierarchy(ChStreamOutAscii& m_file)
 	std::vector<ChBody*>::iterator ibody = Get_bodylist()->begin();
 	while (ibody != Get_bodylist()->end())
 	{
-		GetLog() << "     BODY:       " << (*ibody)->GetName() << "\n";
+		m_file << "     BODY:       " << (*ibody)->GetName() << "\n";
 
 		std::vector<ChMarker*>::const_iterator imarker = (*ibody)->GetMarkerList().begin();
 		while (imarker != (*ibody)->GetMarkerList().end())
 		{
-			GetLog() << "        MARKER:   " << (*imarker)->GetName() << "\n";
+			m_file << "        MARKER:   " << (*imarker)->GetName() << "\n";
 			imarker++;
 		}
 
     std::vector<ChForce*>::const_iterator iforce = (*ibody)->GetForceList().begin();
 		while (iforce != (*ibody)->GetForceList().end())
 		{
-			GetLog() << "        FORCE:   " << (*iforce)->GetName() << "\n";
+			m_file << "        FORCE:   " << (*iforce)->GetName() << "\n";
 			iforce++;
 		}
 
@@ -3566,13 +3588,13 @@ void ChSystem::ShowHierarchy(ChStreamOutAscii& m_file)
 	{
 		ChLink* Lpointer = linklist[ip];
 
-		GetLog() << "     LINK:       " << Lpointer->GetName() << "\n";
+		m_file << "     LINK:       " << Lpointer->GetName() << "\n";
 		if (ChLinkMarkers* malink = ChDynamicCast(ChLinkMarkers,Lpointer))
 		{
 			if(malink->GetMarker1())
-			GetLog() << "        marker1:     " << malink->GetMarker1()->GetName() << "\n";
+			m_file << "        marker1:     " << malink->GetMarker1()->GetName() << "\n";
 			if(malink->GetMarker2())
-			GetLog() << "        marker2:     " << malink->GetMarker2()->GetName() << "\n";
+			m_file << "        marker2:     " << malink->GetMarker2()->GetName() << "\n";
 		}
 	}
 
@@ -3583,7 +3605,7 @@ void ChSystem::ShowHierarchy(ChStreamOutAscii& m_file)
 	{
 		ChPhysicsItem* PHpointer = otherphysicslist[ip];
 
-		GetLog() << "     PHYSIC ITEM :       " << PHpointer->GetName() << "\n";
+		m_file << "     PHYSIC ITEM :       " << PHpointer->GetName() << "\n";
 	}
 
 	m_file << "\n\nFlat ChPhysicalItem list (class name - object name):----- \n\n";
@@ -3591,7 +3613,7 @@ void ChSystem::ShowHierarchy(ChStreamOutAscii& m_file)
 	IteratorAllPhysics mphiter(this);
 	while(mphiter.HasItem())
 	{
-		GetLog() << "  " <<   mphiter->GetRTTI()->GetName() << "  -  " <<   mphiter->GetName() << "\n";
+		m_file << "  " <<   mphiter->GetRTTI()->GetName() << "  -  " <<   mphiter->GetName() << "\n";
 		++mphiter;
 	}
 	m_file << "\n\n";

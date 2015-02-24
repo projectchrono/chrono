@@ -110,9 +110,9 @@ public:
 
 
 				/// To get reaction force, expressed in link coordinate system:
-	ChVector<> Get_react_force() {return react_force;}
+	ChVector<> Get_react_force() const {return react_force;}
 				/// To get reaction torque,  expressed in link coordinate system:
-	ChVector<> Get_react_torque() {return react_torque;}
+	ChVector<> Get_react_torque() const {return react_torque;}
 
 
 				/// If some constraint is redundant, return to normal state  //***OBSOLETE***

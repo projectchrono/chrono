@@ -72,7 +72,7 @@ namespace chrono
 #define LNK_MATEPARALLEL        46
 #define LNK_MATEORTHOGONAL      47
 
-
+#define LNK_REVOLUTEPRISMATIC   48
 ///
 /// Base class for all types of constraints that act like 
 /// mechanical joints ('links').

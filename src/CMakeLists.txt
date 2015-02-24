@@ -1064,8 +1064,8 @@ IF (BUILD_CH_SDK)
 		collision/convexdecomposition/HACDv2/wavefront.cpp
 	)
 	SOURCE_GROUP(collision\\convexdecomp\\HACDv2 FILES  ${ChronoEngine_collision_convexdecompHACDv2_SOURCES})
-			
-			
+		
+					
 	# OK, now chain all the source groups for building the library,
 	# creating a very long list of source files:
 	
@@ -1205,6 +1205,5 @@ ADD_SUBDIRECTORY(unit_PYTHON)
 #
 ADD_SUBDIRECTORY(demos)
 ADD_SUBDIRECTORY(unit_TESTING)
-
 
 INCLUDE(CPack)
