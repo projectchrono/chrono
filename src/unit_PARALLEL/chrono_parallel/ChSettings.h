@@ -103,7 +103,8 @@ struct solver_settings {
     solver_mode = SLIDING;
     local_solver_mode = NORMAL;
 
-    contact_force_model = HERTZ_HISTORY;
+    contact_force_model = HERTZ;
+    use_contact_history = true;
     use_material_properties = true;
     characteristic_vel = 1;
     min_slip_vel = 1e-4;
@@ -153,6 +154,8 @@ struct solver_settings {
 
   // Contact force model for DEM
   CONTACTFORCEMODEL contact_force_model;
+  // Flag indicating whether or not contact history is tracked.
+  bool use_contact_history;
   // Flag specifying how the stiffness and damping coefficients in the DEM contact
   // force models are calculated. If true, these coefficients are derived from
   // physical material properties. Otherwise, the user specifies the coefficients

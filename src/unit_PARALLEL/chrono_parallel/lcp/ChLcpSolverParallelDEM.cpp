@@ -34,6 +34,7 @@ using namespace chrono;
 // -----------------------------------------------------------------------------
 void function_CalcContactForces(int index,                      // index of this contact pair
                                 CONTACTFORCEMODEL force_model,  // contact force model
+                                bool use_contact_history,       // flag indicating whether or not to use history
                                 bool use_mat_props,             // flag specifying how coefficients are obtained
                                 real char_vel,                  // characteristic velocity (Hooke)
                                 real min_slip_vel,              // threshold tangential velocity
@@ -145,12 +146,9 @@ void function_CalcContactForces(int index,                      // index of this
   real gt;
 
   real delta = -depth[index];
-  real delta_t = 0;
+  real delta_t = use_contact_history ? relvel_t_mag * dT : 0;
 
   switch (force_model) {
-    case HOOKE_HISTORY:
-      delta_t = relvel_t_mag * dT;
-
     case HOOKE:
       if (use_mat_props) {
         double tmp_k = (16.0 / 15) * sqrt(eff_radius[index]) * E_eff;
@@ -168,9 +166,6 @@ void function_CalcContactForces(int index,                      // index of this
       }
 
       break;
-
-    case HERTZ_HISTORY:
-      delta_t = relvel_t_mag * dT;
 
     case HERTZ:
       if (use_mat_props) {
@@ -244,6 +239,7 @@ void ChLcpSolverParallelDEM::host_CalcContactForces(custom_vector<int>& ext_body
   for (int index = 0; index < data_container->num_contacts; index++) {
     function_CalcContactForces(index,
                                data_container->settings.solver.contact_force_model,
+                               data_container->settings.solver.use_contact_history,
                                data_container->settings.solver.use_material_properties,
                                data_container->settings.solver.characteristic_vel,
                                data_container->settings.solver.min_slip_vel,
