@@ -29,14 +29,16 @@ void ChCollisionSystemParallel::Add(ChCollisionModel* model) {
     ChCollisionModelParallel* pmodel = static_cast<ChCollisionModelParallel*>(model);
     int body_id = pmodel->GetBody()->GetId();
     short2 fam = S2(pmodel->GetFamilyGroup(), pmodel->GetFamilyMask());
+    // The offset for this shape will the current total number of points in
+    // the convex data list
+    int convex_data_offset = data_container->host_data.convex_data.size();
+    //Insert the points into the global convex list
+    data_container->host_data.convex_data.insert(data_container->host_data.convex_data.end(),
+                                                 pmodel->local_convex_data.begin(),
+                                                 pmodel->local_convex_data.end());
 
     for (int j = 0; j < pmodel->GetNObjects(); j++) {
       real3 obB = pmodel->mData[j].B;
-
-      int convex_data_offset = data_container->host_data.convex_data.size();
-      data_container->host_data.convex_data.insert(data_container->host_data.convex_data.end(),
-                                                   pmodel->local_convex_data.begin(),
-                                                   pmodel->local_convex_data.end());
 
       // Compute the global offset of the convex data structure based on the number of points
       // already present
