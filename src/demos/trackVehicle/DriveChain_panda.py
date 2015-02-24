@@ -567,8 +567,7 @@ class DriveChain_panda:
         figD, axarrD = plt.subplots(3,sharex=True)        
         
         # data headers to pull from. Postive and Negative are the P and N suffix
-        inDat = ['time','Ncontacts','NcontactsP','t_persistP','t_persist_maxP','FnMagP','FtMagP','xRelP','yRelP','zRelP','VxRelP','VyRelP','VzRelP','normDirRelxP','normDirRelyP','normDirRelzP'
-                 ,'NcontactsN','t_persistN','t_persist_maxN','FnMagN','FtMagN','xRelN','yRelN','zRelN','VxRelN','VyRelN','VzRelN','normDirRelxN','normDirRelyN','normDirRelzN']      
+        inDat = ['time','Ncontacts','NcontactsP','t_persistP','t_persist_maxP','FnMagP','FtMagP','xRelP','yRelP','zRelP','VxRelP','VyRelP','VzRelP','normDirRelxP','normDirRelyP','normDirRelzP','NcontactsN','t_persistN','t_persist_maxN','FnMagN','FtMagN','xRelN','yRelN','zRelN','VxRelN','VyRelN','VzRelN','normDirRelxN','normDirRelyN','normDirRelzN']      
         
         # data frame from the headers
         DFsgci = pd.DataFrame(self._getDFhandle('shoeGearContact'), columns = inDat)
@@ -576,16 +575,19 @@ class DriveChain_panda:
            
         # ---- first plot: 3 subplots, force magnitude normal & tangent
         # direction components of normal
-        DFsgci.plot(ax = axarrA[0], linewidth=1.5, x='time', y=['normDirRelx','normDirRely','normDirRelz'])     
+        DFsgci.plot(ax = axarrA[0], linewidth=1.5, x='time', y=['normDirRelxP','normDirRelyP','normDirRelzP','normDirRelxN','normDirRelyN','normDirRelzN'])     
         # tangent, # contacts
-        DFsgci.plot(ax = axarrA[1], linewidth=1.5, x='time', y=['FtMag'])  
+        DFsgci.plot(ax = axarrA[1], linewidth=1.5, x='time', y=['FtMagP','FtMagN'])  
         axRHSFt = axarrA[1].twinx()
-        axRHSFt.plot(DFsgci['time'], DFsgci['Ncontacts'],'r--',linewidth=1.5,label='Ncontacts')
+        axRHSFt.plot(DFsgci['time'], DFsgci['Ncontacts'],'r--',linewidth=1,label='Ncontacts')
+        axRHSFt.plot(DFsgci['time'], DFsgci['NcontactsP'],'b--',linewidth=1,label='NcontactsP')
+        axRHSFt.plot(DFsgci['time'], DFsgci['NcontactsN'],'g--',linewidth=1,label='NcontactsN')
         # normal, # contacts
-        DFsgci.plot(ax = axarrA[2], linewidth=1.5, x='time', y=['FnMag']) 
+        DFsgci.plot(ax = axarrA[2], linewidth=1.5, x='time', y=['FnMagP','FnMagN']) 
         axRHSFn = axarrA[2].twinx()
-        axRHSFn.plot(DFsgci['time'], DFsgci['Ncontacts'],'r--', linewidth = 1.5, label = 'Ncontacts')
-
+        axRHSFn.plot(DFsgci['time'], DFsgci['Ncontacts'],'r--', linewidth = 1, label = 'Ncontacts')
+        axRHSFn.plot(DFsgci['time'], DFsgci['NcontactsP'],'b--', linewidth = 1, label = 'NcontactsP')
+        axRHSFn.plot(DFsgci['time'], DFsgci['NcontactsN'],'g--', linewidth = 1, label = 'NcontactsN')
         
         # first plot, label axes 
         axarrA[0].set_ylabel('Fn direction')   
@@ -597,9 +599,10 @@ class DriveChain_panda:
         # first plot, legend
         axRHSFt.legend(loc='upper left')
         axarrA[0].legend(loc='upper left')
-        axarrA[1].legend()
-        axarrA[2].legend()
-        axRHSFn.legend(loc='upper left')
+        axarrA[1].legend(loc='upper left')
+        axarrA[2].legend(loc='upper left')
+        axRHSFn.legend(loc='upper right')
+        axRHSFt.legend(loc='upper right')
         axarrA[0].set_title('shoe0-Gear contact force Magnitude, # contacts')
 
         
@@ -610,8 +613,8 @@ class DriveChain_panda:
         # 2nd plot, legend
         
         # ----- third plot, # of contacts, time-persist
-        DFsgci.plot(ax = axarrC[0], linewidth=1.5, x='time', y=['Ncontacts'])
-        DFsgci.plot(ax = axarrC[1], linewidth=1.5, x='time', y=['t_persist'])
+        DFsgci.plot(ax = axarrC[0], linewidth=1.5, x='time', y=['Ncontacts','NcontactsP','NcontactsN'])
+        DFsgci.plot(ax = axarrC[1], linewidth=1.5, x='time', y=['t_persistP','t_persistN'])
         
         # plot label axes, legend
         axarrC[0].set_xlabel('time [s]')
@@ -623,17 +626,23 @@ class DriveChain_panda:
         axarrC[0].set_title('shoe0-gear contact persistence')
         
         # the pitch radius of the contact point will be in the x-y dims, w.r.t. gear c-sys
-        pitch_rad = (DFsgci['xRel']**2 + DFsgci['yRel']**2)**0.5
-        pitch_vel = (DFsgci['VxRel']**2 + DFsgci['VyRel']**2)**0.5
-        DFsgci['pitchRad'] = pitch_rad
-        DFsgci['pitchVel'] = pitch_vel
+        pitch_radP = (DFsgci['xRelP']**2 + DFsgci['yRelP']**2)**0.5
+        pitch_velP = (DFsgci['VxRelP']**2 + DFsgci['VyRelP']**2)**0.5
+        DFsgci['pitchRadP'] = pitch_radP
+        DFsgci['pitchVelP'] = pitch_velP
+        
+        pitch_radN = (DFsgci['xRelN']**2 + DFsgci['yRelN']**2)**0.5
+        pitch_velN = (DFsgci['VxRelN']**2 + DFsgci['VyRelN']**2)**0.5
+        DFsgci['pitchRadN'] = pitch_radN
+        DFsgci['pitchVelN'] = pitch_velN        
         
          # -----  fourth plot, follow a single gear-shoe contact point, its pos and vel relative to the gear c-sys
-        DFsgci.plot(ax = axarrD[0], linewidth=1.5, x='time', y=['xRel','yRel','zRel'])
-        DFsgci.plot(ax = axarrD[1], linewidth=1.5, x='time', y=['VxRel','VyRel','VzRel'])
-        DFsgci.plot(ax = axarrD[2], linewidth=1.5, x='time', y=['pitchRad'])
+        DFsgci.plot(ax = axarrD[0], linewidth=1.5, x='time', y=['xRelP','yRelP','zRelP','xRelN','yRelN','zRelN'])
+        DFsgci.plot(ax = axarrD[1], linewidth=1.5, x='time', y=['VxRelP','VyRelP','VzRelP','VxRelN','VyRelN','VzRelN'])
+        DFsgci.plot(ax = axarrD[2], linewidth=1.5, x='time', y=['pitchRadP','pitchRadN'])
         axRHS = axarrD[2].twinx()
-        axRHS.plot(DFsgci['time'], DFsgci['pitchVel'],'r--', linewidth = 1.5, label = 'pitch vel.')
+        axRHS.plot(DFsgci['time'], DFsgci['pitchVelP'],'b--', linewidth = 1.5, label = 'pitch vel.P')
+        axRHS.plot(DFsgci['time'], DFsgci['pitchVelN'],'g--', linewidth = 1.5, label = 'pitch vel.N')
         
         # If the time interval is specified, find the row which corresponds to t_begin and t_end.
         if(tmin > 0):
@@ -668,9 +677,9 @@ if __name__ == '__main__':
     #  **********************************************************************    
     #  ===============   USER INPUT   =======================================
     # laptop data dir, end w/ '/'
-    # data_dir = 'E:/Chrono_github_Build/bin/outdata_driveChain/'
+    data_dir = 'E:/Chrono_github_Build/bin/outdata_driveChain/'
     # desktop data dir, end w/ '/'
-    data_dir = 'D:/Chrono_github_Build/bin/outdata_driveChain/'
+    # data_dir = 'D:/Chrono_github_Build/bin/outdata_driveChain/'
     
     # list of data files to plot
     gearSubsys = 'test_driveChain_gear.csv'
@@ -691,8 +700,8 @@ if __name__ == '__main__':
     Chain = DriveChain_panda(data_files,handle_list)
     
     # set the time limits. tmin = -1 will plot the entire time range
-    tmin = 2.05
-    tmax = 2.40
+    tmin = 1.65
+    tmax = 2.10
     
     
     # 1) plot the gear body info
@@ -704,9 +713,10 @@ if __name__ == '__main__':
     # 3) plot powertrain info
     Chain.plot_ptrain()    
     
+    '''
     # 4) plot shoe 0 body info, and pin 0 force/torque
     Chain.plot_shoe(tmin,tmax)
-    '''
+    
     # 5) plot gear Constraint Violations
     Chain.plot_gearCV(tmin,tmax)
     
