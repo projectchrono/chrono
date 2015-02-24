@@ -97,6 +97,15 @@ int main(int argc, char* argv[])
 			log_file1 << mystepper.GetTime() << ", " << mystepper.get_Y()(0) << ", " << exact_solution << "\n";
 		}
 
+		// Plot results
+		ChGnuPlot mplot("__tmp_timestepping_1.gpl");
+		mplot.SetGrid();
+		mplot.SetTitle("Integrate dx/dt=e^t ");
+		mplot.SetLabelX("t");
+		mplot.SetLabelY("x");
+		mplot.Plot("log_timestepper_1.dat", 1,2, "Euler explicit",   " with lines lt -1 lw 2");
+		mplot.Plot("log_timestepper_1.dat", 1,3, "Exact, analytical", " with lines lt 2 lw 2");
+
 	}
 
 
@@ -203,6 +212,16 @@ int main(int argc, char* argv[])
 												<< ", " << mystepper_rk.get_Y()(0) << ", " << mystepper_rk.get_Y()(1) << "\n";
 		}
 
+		// Plot results
+		ChGnuPlot mplot("__tmp_timestepping_2.gpl");
+		mplot.SetGrid();
+		mplot.SetTitle("Integrate 2nd order oscillator with 1st order timestepper");
+		mplot.SetLabelX("t");
+		mplot.SetLabelY("x, v");
+		mplot.Plot("log_timestepper_2.dat", 1,2, "Euler exp. x",   " with lines");
+		mplot.Plot("log_timestepper_2.dat", 1,3, "Euler exp. v",   " with lines");
+		mplot.Plot("log_timestepper_2.dat", 1,4, "RungeKutta x", " with lines");
+		mplot.Plot("log_timestepper_2.dat", 1,5, "RungeKutta v", " with lines");
 	}
 
 
@@ -311,6 +330,15 @@ int main(int argc, char* argv[])
 												<< "\n";
 		}
 
+		// Plot results
+		ChGnuPlot mplot("log_timestepper_3.gpl");
+		mplot.SetGrid();
+		mplot.SetTitle("Integrate 2nd order oscillator with 2nd order timestepper");
+		mplot.SetLabelX("t");
+		mplot.SetLabelY("x");
+		mplot.Plot("log_timestepper_3.dat", 1,2, "RungeKutta",   " with lines");
+		mplot.Plot("log_timestepper_3.dat", 1,4, "Euler exp. IIorder",   " with lines");
+		mplot.Plot("log_timestepper_3.dat", 1,6, "Euler semi-implicit", " with lines");
 	}
 
 
@@ -505,6 +533,20 @@ int main(int argc, char* argv[])
 												<< "\n";
 		}
 
+		// Plot results
+		ChGnuPlot mplot("log_timestepper_4.gpl");
+		mplot.SetGrid();
+		mplot.SetTitle("Test: oscillator with implicit integrators");
+		mplot.SetLabelX("t");
+		mplot.SetLabelY("x");
+		mplot.Plot("log_timestepper_4.dat", 1,2, "Euler implicit",   " with lines");
+		mplot.Plot("log_timestepper_4.dat", 1,4, "Trapezoidal",   " with lines");
+		mplot.Plot("log_timestepper_4.dat", 1,6, "Euler expl.IIorder", " with lines");
+		mplot.Plot("log_timestepper_4.dat", 1,8, "HHT alpha=0", " with lines");
+		mplot.Plot("log_timestepper_4.dat", 1,10, "HHT alpha=-0.33", " with lines");
+		mplot.Plot("log_timestepper_4.dat", 1,12, "Newmark a=0.5, b=1/4", " with lines");
+		mplot.Plot("log_timestepper_4.dat", 1,14, "Newmark a=0.5, b=1/6", " with lines");
+		mplot.Plot("log_timestepper_4.dat", 1,16, "Newmark a=1.0, b=1/4", " with lines");
 	}
 
 
@@ -708,6 +750,30 @@ int main(int argc, char* argv[])
 				<< "\n";
 		}
 
+		ChGnuPlot mplot("log_timestepper_5.gpl");
+		mplot.OutputWindow(0);
+		mplot.SetGrid();
+		mplot.SetTitle("Test: DAE, constrained pendulum");
+		mplot.SetLabelX("t");
+		mplot.SetLabelY("x");
+		mplot.Plot("log_timestepper_5.dat", 1,2, "Euler impl. lineariz.",   " with lines");
+		mplot.Plot("log_timestepper_5.dat", 1,6, "Euler impl.",   " with lines");
+		mplot.Plot("log_timestepper_5.dat", 1,10, "Trapezoidal", " with lines");
+		mplot.Plot("log_timestepper_5.dat", 1,14, "HHT alpha=0", " with lines");
+		mplot.Plot("log_timestepper_5.dat", 1,18, "HHT alpha=-0.2", " with lines");
+		mplot.OutputWindow(1);
+		mplot.SetGrid();
+		mplot.SetTitle("Test: DAE, constrained pendulum");
+		mplot.SetLabelX("x");
+		mplot.SetLabelY("y");
+		mplot.SetRangeX(-0.15,0.15);
+		mplot.SetRangeY(-1.025,-0.95);
+		mplot.SetCommand("set size ratio 0.5");
+		mplot.Plot("log_timestepper_5.dat", 2,3, "Euler impl. lineariz.",   " pt 0");
+		mplot.Plot("log_timestepper_5.dat", 6,7, "Euler impl.",   " pt 1");
+		mplot.Plot("log_timestepper_5.dat", 10,11, "Trapezoidal", " pt 2");
+		mplot.Plot("log_timestepper_5.dat", 14,15, "HHT alpha=0", " pt 3");
+		mplot.Plot("log_timestepper_5.dat", 18,19, "HHT alpha=-0.2", " pt 4");
 	}
 
 
