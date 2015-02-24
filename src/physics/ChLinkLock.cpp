@@ -228,8 +228,7 @@ void ChLinkLock::BuildLinkType (int link_type)
 
     if (type == LNK_REVOLUTEPRISMATIC)
         m_mask.SetLockMask (false, true, true,
-                        false,true, true,false,
-                        false,false);
+                        false,true, true,false);
 
     BuildLink (&m_mask);    // , TRUE);
 }

@@ -477,7 +477,7 @@ void WriteShapesPovray(ChSystem*          system,
       chrono::ChFrame<> frA_abs = *(link->GetMarker1()) >> *(link->GetBody1());
       chrono::ChFrame<> frB_abs = *(link->GetMarker2()) >> *(link->GetBody2());
 
-      csv << type << frA_abs.GetPos() << frA_abs.GetA()->Get_A_Zaxis() << std::endl;
+      csv << type << frA_abs.GetPos() << frA_abs.GetA().Get_A_Zaxis() << std::endl;
       l_count++;
     }
     else if (ChLinkLockSpherical* link = dynamic_cast<ChLinkLockSpherical*>(*ilink))
@@ -493,7 +493,7 @@ void WriteShapesPovray(ChSystem*          system,
       chrono::ChFrame<> frA_abs = link->GetFrame1Abs();
       chrono::ChFrame<> frB_abs = link->GetFrame2Abs();
 
-      csv << type << frA_abs.GetPos() << frA_abs.GetA()->Get_A_Xaxis() << frB_abs.GetA()->Get_A_Yaxis() << std::endl;
+      csv << type << frA_abs.GetPos() << frA_abs.GetA().Get_A_Xaxis() << frB_abs.GetA().Get_A_Yaxis() << std::endl;
       l_count++;
     }
     else if (ChLinkSpring* link = dynamic_cast<ChLinkSpring*>(*ilink))
@@ -522,7 +522,7 @@ void WriteShapesPovray(ChSystem*          system,
       chrono::ChFrame<> frA_abs = *(link->GetMarker1()) >> *(link->GetBody1());
       chrono::ChFrame<> frB_abs = *(link->GetMarker2()) >> *(link->GetBody2());
 
-      csv << type << frA_abs.GetPos() << frA_abs.GetA()->Get_A_Zaxis() << std::endl;
+      csv << type << frA_abs.GetPos() << frA_abs.GetA().Get_A_Zaxis() << std::endl;
       l_count++;
     }
 

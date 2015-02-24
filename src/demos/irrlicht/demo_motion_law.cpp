@@ -80,8 +80,7 @@ public:
   {
     // set motion in the z direction
     ((ChLinkMaskLF*)mask)->SetLockMask(false, true, false,
-                                       false, false, false, false,
-                                       false, false);
+                                       false, false, false, false);
     ChangedLinkMask();
   };
 
