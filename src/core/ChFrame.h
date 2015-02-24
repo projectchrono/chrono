@@ -258,7 +258,7 @@ public:
 	const ChQuaternion<Real>& GetRot() const { return coord.rot; }
 
 		/// Return the current rotation as a 3x3 matrix
-	ChMatrix33<Real>*       GetA()       { return &Amatrix; }
+	ChMatrix33<Real>&       GetA()       { return Amatrix; }
 	const ChMatrix33<Real>& GetA() const { return Amatrix; }
 
 		/// Get axis of finite rotation, in parent space

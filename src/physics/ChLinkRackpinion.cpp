@@ -77,7 +77,7 @@ ChVector<>  ChLinkRackpinion::GetAbsPinionDir()
 	{
 		ChFrame<double> absframe;
 		((ChFrame<double>*)Body1)->TransformLocalToParent(local_pinion, absframe);
-		return absframe.GetA()->Get_A_Zaxis();
+		return absframe.GetA().Get_A_Zaxis();
 	} else return VECT_Z;
 }
 
@@ -97,7 +97,7 @@ ChVector<> ChLinkRackpinion::GetAbsRackDir()
 	{
 		ChFrame<double> absframe;
 		((ChFrame<double>*)Body2)->TransformLocalToParent(local_rack, absframe);
-		return absframe.GetA()->Get_A_Zaxis();
+		return absframe.GetA().Get_A_Zaxis();
 	} else return VECT_Z;
 }
 
@@ -126,11 +126,11 @@ void ChLinkRackpinion::UpdateTime (double mytime)
 	((ChFrame<double>*)Body2)->TransformLocalToParent(local_rack, abs_rack);
 
 	ChVector<> abs_distpr = abs_pinion.GetPos() - abs_rack.GetPos();
-	ChVector<> abs_Dpin = abs_pinion.GetA()->Get_A_Zaxis();
+	ChVector<> abs_Dpin = abs_pinion.GetA().Get_A_Zaxis();
 	ChVector<> abs_Dx;
 	ChVector<> abs_Dy;
 	ChVector<> abs_Dz; 
-	abs_Dpin.DirToDxDyDz(abs_Dz, abs_Dx, abs_Dy, abs_rack.GetA()->Get_A_Xaxis() ); // with z as pinion shaft and x as suggested rack X dir
+	abs_Dpin.DirToDxDyDz(abs_Dz, abs_Dx, abs_Dy, abs_rack.GetA().Get_A_Xaxis() ); // with z as pinion shaft and x as suggested rack X dir
 
 	/*
 	GetLog() << "abs_distpr " << abs_distpr << "\n";

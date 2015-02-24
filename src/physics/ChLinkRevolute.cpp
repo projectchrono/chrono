@@ -93,9 +93,9 @@ void ChLinkRevolute::Initialize(ChSharedPtr<ChBodyFrame> body1,    // first body
   ((ChFrame<>*)Body1)->TransformParentToLocal(frame, m_frame1);
   ((ChFrame<>*)Body2)->TransformParentToLocal(frame, m_frame2);
 
-  m_u1_tilde.Set_X_matrix(m_frame1.GetA()->Get_A_Xaxis());
-  m_v1_tilde.Set_X_matrix(m_frame1.GetA()->Get_A_Yaxis());
-  m_w2_tilde.Set_X_matrix(m_frame2.GetA()->Get_A_Zaxis());
+  m_u1_tilde.Set_X_matrix(m_frame1.GetA().Get_A_Xaxis());
+  m_v1_tilde.Set_X_matrix(m_frame1.GetA().Get_A_Yaxis());
+  m_w2_tilde.Set_X_matrix(m_frame2.GetA().Get_A_Zaxis());
 
   for (int i = 0; i < 5; i++)
     m_C->SetElement(i, 0, 0.0);
@@ -132,15 +132,15 @@ void ChLinkRevolute::Initialize(ChSharedPtr<ChBodyFrame> body1,    // first body
     frame2_abs = frame2;
   }
 
-  m_u1_tilde.Set_X_matrix(m_frame1.GetA()->Get_A_Xaxis());
-  m_v1_tilde.Set_X_matrix(m_frame1.GetA()->Get_A_Yaxis());
-  m_w2_tilde.Set_X_matrix(m_frame2.GetA()->Get_A_Zaxis());
+  m_u1_tilde.Set_X_matrix(m_frame1.GetA().Get_A_Xaxis());
+  m_v1_tilde.Set_X_matrix(m_frame1.GetA().Get_A_Yaxis());
+  m_w2_tilde.Set_X_matrix(m_frame2.GetA().Get_A_Zaxis());
 
   m_C->SetElement(0, 0, frame2_abs.coord.pos.x - frame1_abs.coord.pos.x);
   m_C->SetElement(1, 0, frame2_abs.coord.pos.y - frame1_abs.coord.pos.y);
   m_C->SetElement(2, 0, frame2_abs.coord.pos.z - frame1_abs.coord.pos.z);
-  m_C->SetElement(3, 0, Vdot(frame1_abs.GetA()->Get_A_Xaxis(), frame2_abs.GetA()->Get_A_Zaxis()));
-  m_C->SetElement(4, 0, Vdot(frame1_abs.GetA()->Get_A_Yaxis(), frame2_abs.GetA()->Get_A_Zaxis()));
+  m_C->SetElement(3, 0, Vdot(frame1_abs.GetA().Get_A_Xaxis(), frame2_abs.GetA().Get_A_Zaxis()));
+  m_C->SetElement(4, 0, Vdot(frame1_abs.GetA().Get_A_Yaxis(), frame2_abs.GetA().Get_A_Zaxis()));
 }
 
 
@@ -167,8 +167,8 @@ void ChLinkRevolute::Update(double time)
     ChMatrix33<> tilde2;
     tilde1.Set_X_matrix(m_frame1.coord.pos);
     tilde2.Set_X_matrix(m_frame2.coord.pos);
-    ChMatrix33<> Phi_pi1 = *(Body1->GetA()) * tilde1;
-    ChMatrix33<> Phi_pi2 = *(Body2->GetA()) * tilde2;
+    ChMatrix33<> Phi_pi1 = Body1->GetA() * tilde1;
+    ChMatrix33<> Phi_pi2 = Body2->GetA() * tilde2;
 
     m_cnstr_x.Get_Cq_a()->ElementN(0) = -1;              m_cnstr_x.Get_Cq_b()->ElementN(0) = +1;
     m_cnstr_x.Get_Cq_a()->ElementN(1) = 0;               m_cnstr_x.Get_Cq_b()->ElementN(1) = 0;
@@ -194,14 +194,14 @@ void ChLinkRevolute::Update(double time)
 
   // Calculate violation and Jacobians of the dot constraint (u1,w2)
   //    dot(u1_abs, w2_abs) = 0
-  ChVector<> u1 = frame1_abs.GetA()->Get_A_Xaxis();
-  ChVector<> w2 = frame2_abs.GetA()->Get_A_Zaxis();
+  ChVector<> u1 = frame1_abs.GetA().Get_A_Xaxis();
+  ChVector<> w2 = frame2_abs.GetA().Get_A_Zaxis();
 
   m_C->SetElement(3, 0, Vdot(u1, w2));
 
   {
-    ChMatrix33<> mat1 = *Body1->GetA() * m_u1_tilde;
-    ChMatrix33<> mat2 = *Body2->GetA() * m_w2_tilde;
+    ChMatrix33<> mat1 = Body1->GetA() * m_u1_tilde;
+    ChMatrix33<> mat2 = Body2->GetA() * m_w2_tilde;
     ChVector<> Phi_pi1 = mat1.MatrT_x_Vect(w2);
     ChVector<> Phi_pi2 = mat2.MatrT_x_Vect(u1);
 
@@ -222,13 +222,13 @@ void ChLinkRevolute::Update(double time)
 
   // Calculate violation and Jacobians of the dot constraint (v1,w2)
   //    dot(v1_abs, w2_abs) = 0
-  ChVector<> v1 = frame1_abs.GetA()->Get_A_Yaxis();
+  ChVector<> v1 = frame1_abs.GetA().Get_A_Yaxis();
 
   m_C->SetElement(4, 0, Vdot(v1, w2));
 
   {
-    ChMatrix33<> mat1 = *Body1->GetA() * m_v1_tilde;
-    ChMatrix33<> mat2 = *Body2->GetA() * m_w2_tilde;
+    ChMatrix33<> mat1 = Body1->GetA() * m_v1_tilde;
+    ChMatrix33<> mat2 = Body2->GetA() * m_w2_tilde;
     ChVector<> Phi_pi1 = mat1.MatrT_x_Vect(w2);
     ChVector<> Phi_pi2 = mat2.MatrT_x_Vect(v1);
 
@@ -427,15 +427,15 @@ void ChLinkRevolute::ConstraintsFetch_react(double factor)
   //     = -C^T * [A_2 * tilde(w2')]^T * (u1 * lam_uw + v1 * lam_vw)
 
   // Reaction force
-  ChVector<> F2 = Body2->GetA()->MatrT_x_Vect(lam_sph);
-  react_force = m_frame2.GetA()->MatrT_x_Vect(F2);
+  ChVector<> F2 = Body2->GetA().MatrT_x_Vect(lam_sph);
+  react_force = m_frame2.GetA().MatrT_x_Vect(F2);
 
   // Reaction torque
-  ChVector<> u1 = Body1->TransformDirectionLocalToParent(m_frame1.GetA()->Get_A_Xaxis());
-  ChVector<> v1 = Body1->TransformDirectionLocalToParent(m_frame1.GetA()->Get_A_Yaxis());
-  ChMatrix33<> mat2 = *(Body2->GetA()) * m_w2_tilde;
+  ChVector<> u1 = Body1->TransformDirectionLocalToParent(m_frame1.GetA().Get_A_Xaxis());
+  ChVector<> v1 = Body1->TransformDirectionLocalToParent(m_frame1.GetA().Get_A_Yaxis());
+  ChMatrix33<> mat2 = Body2->GetA() * m_w2_tilde;
   ChVector<> T2 = mat2.MatrT_x_Vect(lam_uw * u1 + lam_vw * v1);
-  react_torque = -m_frame2.GetA()->MatrT_x_Vect(T2);
+  react_torque = -m_frame2.GetA().MatrT_x_Vect(T2);
 }
 
 

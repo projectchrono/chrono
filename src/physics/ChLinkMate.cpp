@@ -236,25 +236,25 @@ void ChLinkMateGeneric::Update (double mytime)
 		ChMatrix33<> mtempM, mtempQ;
 
 		ChMatrix33<> abs_plane;
-		abs_plane.MatrMultiply(*this->Body2->GetA(), *this->frame2.GetA());
+		abs_plane.MatrMultiply(Body2->GetA(), frame2.GetA());
 
 		Jx1.CopyFromMatrixT(abs_plane);
 		Jx2.CopyFromMatrixT(abs_plane);
 		Jx2.MatrNeg();
 
-		Jw1.MatrTMultiply(abs_plane, *this->Body1->GetA() );
-		Jw2.MatrTMultiply(abs_plane, *this->Body2->GetA() );
+		Jw1.MatrTMultiply(abs_plane, Body1->GetA() );
+		Jw2.MatrTMultiply(abs_plane, Body2->GetA() );
 
-		mtempM.Set_X_matrix(this->frame1.GetPos());
+		mtempM.Set_X_matrix(frame1.GetPos());
 		Jr1.MatrMultiply(Jw1, mtempM);
 		Jr1.MatrNeg();
 
-		mtempM.Set_X_matrix(this->frame2.GetPos());
+		mtempM.Set_X_matrix(frame2.GetPos());
 		Jr2.MatrMultiply(Jw2, mtempM);
 
-		ChVector<> p2p1_base2 = (*this->Body2->GetA()).MatrT_x_Vect( Vsub(p1_abs,p2_abs) );
+		ChVector<> p2p1_base2 = (Body2->GetA()).MatrT_x_Vect( Vsub(p1_abs,p2_abs) );
 		mtempM.Set_X_matrix(p2p1_base2);
-		mtempQ.MatrTMultiply(*this->frame2.GetA() ,mtempM);
+		mtempQ.MatrTMultiply(frame2.GetA() ,mtempM);
 		Jr2.MatrInc(mtempQ); 
 
 		Jw2.MatrNeg();

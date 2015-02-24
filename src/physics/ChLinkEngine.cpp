@@ -64,8 +64,7 @@ ChLinkEngine::ChLinkEngine ()
   // Mask: initialize our LinkMaskLF (lock formulation mask)
   // to E3 only.
   ((ChLinkMaskLF*)mask)->SetLockMask(true, false, false,
-                                     false, false, false, true,
-                                     false, false);
+                                     false, false, false, true);
   ChangedLinkMask();
 
   // Mask: initialize remaining LinkMaskLF (lock formulation mask) for the engine.
@@ -228,29 +227,24 @@ void ChLinkEngine::Set_shaft_mode(int mset)
   {
   case ENG_SHAFT_PRISM:
     ((ChLinkMaskLF*)mask)->SetLockMask(true, true, false,
-                                       false, true, true, true, // <-
-                                       false, false);
+                                       false, true, true, true);
     break;
   case ENG_SHAFT_UNIVERSAL:
     ((ChLinkMaskLF*)mask)->SetLockMask(true, true, true,
-                                       false, false, false, true, // <-
-                                       false, false);
+                                       false, false, false, true);
     break;
   case ENG_SHAFT_CARDANO:
     ((ChLinkMaskLF*)mask)->SetLockMask(false, false, false,
-                                       false, false, false, true, // <-
-                                       false, false);
+                                       false, false, false, true);
     break;
   case ENG_SHAFT_OLDHAM:
     ((ChLinkMaskLF*)mask)->SetLockMask(false, false, false,
-                                       false, true, true, true, // <-
-                                       false, false);
+                                       false, true, true, true);
     break;
   case ENG_SHAFT_LOCK:
   default:
     ((ChLinkMaskLF*)mask)->SetLockMask(true, true, true,
-                                       false, true, true, true, // <-
-                                       false, false);
+                                       false, true, true, true);
     break;
   }
 

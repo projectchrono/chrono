@@ -149,11 +149,11 @@ public:
 					/// body). This represents the 'main' reference of the link: reaction forces 
 					/// and torques are expressed in this coordinate system.
 					/// (It is the coordinate system of the 'master' marker2 relative to Body2)
-	ChCoordsys<> GetLinkRelativeCoords() {return this->marker2->GetCoord();};
+	const ChCoordsys<>& GetLinkRelativeCoords() const {return marker2->GetCoord();};
 
 					/// Get the master coordinate system for the assets (this will return the 
 					/// absolute coordinate system of the 'master' marker2)
-	virtual ChFrame<> GetAssetsFrame(unsigned int nclone=0) { return this->marker2->GetAbsFrame();}
+	virtual ChFrame<> GetAssetsFrame(unsigned int nclone=0) { return marker2->GetAbsFrame();}
 
 
 			//
@@ -216,24 +216,24 @@ public:
 			// 
 
 					/// Relative position of marker 1 respect to marker 2.
-	Coordsys GetRelM () {return relM;}
+	const Coordsys& GetRelM() const {return relM;}
 					/// Relative speed of marker 1 respect to marker 2.
-	Coordsys GetRelM_dt () {return relM_dt;}
+	const Coordsys& GetRelM_dt() const {return relM_dt;}
 					/// Relative acceleration of marker 1 respect to marker 2.
-	Coordsys GetRelM_dtdt () {return relM_dtdt;}
+	const Coordsys& GetRelM_dtdt() const {return relM_dtdt;}
 					/// Relative rotation angle of marker 1 respect to marker 2 (best with revolute joints..).
-	double	 GetRelAngle () {return relAngle;}
+	double GetRelAngle () const {return relAngle;}
 					/// Relative finite rotation axis of marker 1 respect to marker 2.
-	Vector   GetRelAxis	() {return relAxis;}
-	Vector   GetRelRotaxis	() {return relRotaxis;}
+	const Vector& GetRelAxis() const {return relAxis;}
+	const Vector& GetRelRotaxis() const {return relRotaxis;}
 					/// Relative angular speed of marker 1 respect to marker 2.
-	Vector   GetRelWvel () {return relWvel;}
+	const Vector& GetRelWvel() const {return relWvel;}
 					/// Relative angular acceleration of marker 1 respect to marker 2.
-	Vector   GetRelWacc () {return relWacc;}
+	const Vector& GetRelWacc() const {return relWacc;}
 					/// Relative 'polar' distance of marker 1 respect to marker 2.
-	double	 GetDist() {return dist;}
+	double GetDist() const {return dist;}
 					/// Relative speed of marker 1 respect to marker 2, along the polar distance vector.
-	double	 GetDist_dt() {return dist_dt;}
+	double GetDist_dt() const {return dist_dt;}
 
 
 
@@ -248,8 +248,8 @@ public:
 					/// Get the total applied force accumulators (force, momentum) in link coords.
 					/// These forces might be affected by additional springs, dampers, etc. but they do not
 					/// include the reaction forces.
-	Vector GetC_force() {return C_force;}
-	Vector GetC_torque() {return C_torque;}
+	const Vector& GetC_force() const {return C_force;}
+	const Vector& GetC_torque() const {return C_torque;}
 
 
 

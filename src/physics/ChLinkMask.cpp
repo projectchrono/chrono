@@ -364,7 +364,7 @@ ChClassRegister<ChLinkMaskLF> a_registration_ChLinkMaskLF;
 
 ChLinkMaskLF::ChLinkMaskLF()
 {
-    ResetNconstr(9);    // the LF formulation uses 9 constraint flags
+    ResetNconstr(7);    // the LF formulation uses 7 constraint flags
 }
 
 void ChLinkMaskLF::Copy(ChLinkMaskLF* source)
@@ -383,103 +383,51 @@ ChLinkMask* ChLinkMaskLF::NewDuplicate()
         // temporarely set OFF the locked costraints, because of 2D mode, and viceversa
 int ChLinkMaskLF::Set2Dmode(int mode)
 {
-    int cnt;
+  int cnt;
 
-	if (mode == 1) // switching to 2D
-    {
-        cnt = 0;
-        if (Constr_Z().IsDisabled()==false) {Constr_Z().SetDisabled(true); cnt++;}
-		if (Constr_E1().IsDisabled()==false) {Constr_E1().SetDisabled(true); cnt++;}
-		if (Constr_E2().IsDisabled()==false) {Constr_E2().SetDisabled(true); cnt++;}
-        return cnt;
-    }
-    if (mode == 0) // switching back to 3D
-    {
-        cnt = 0;
-        if (Constr_Z().IsDisabled()==true) {Constr_Z().SetDisabled(false); cnt++;}
-		if (Constr_E1().IsDisabled()==true) {Constr_E1().SetDisabled(false); cnt++;}
-		if (Constr_E2().IsDisabled()==true) {Constr_E2().SetDisabled(false); cnt++;}
-        return cnt;
-    }
-    return 0;
+  if (mode == 1) // switching to 2D
+  {
+    cnt = 0;
+    if (Constr_Z().IsDisabled() == false) { Constr_Z().SetDisabled(true); cnt++; }
+    if (Constr_E1().IsDisabled() == false) { Constr_E1().SetDisabled(true); cnt++; }
+    if (Constr_E2().IsDisabled() == false) { Constr_E2().SetDisabled(true); cnt++; }
+    return cnt;
+  }
+  if (mode == 0) // switching back to 3D
+  {
+    cnt = 0;
+    if (Constr_Z().IsDisabled() == true) { Constr_Z().SetDisabled(false); cnt++; }
+    if (Constr_E1().IsDisabled() == true) { Constr_E1().SetDisabled(false); cnt++; }
+    if (Constr_E2().IsDisabled() == true) { Constr_E2().SetDisabled(false); cnt++; }
+    return cnt;
+  }
+  return 0;
 
 }
 
-void ChLinkMaskLF::SetLockMask(int x, int y, int z,
-                       int e0, int e1, int e2, int e3,
-                       int p, int d)
+void ChLinkMaskLF::SetLockMask(bool x, bool y, bool z,
+                               bool e0, bool e1, bool e2, bool e3)
 {
-	if (x)
-	{
-		this->Constr_X().SetMode(CONSTRAINT_LOCK);
-	}else
-	{
-		this->Constr_X().SetMode(CONSTRAINT_FREE);
-	}
+  if (x) Constr_X().SetMode(CONSTRAINT_LOCK);
+  else   Constr_X().SetMode(CONSTRAINT_FREE);
 
-	if (y)
-	{
-		this->Constr_Y().SetMode(CONSTRAINT_LOCK);
-	}else
-	{
-		this->Constr_Y().SetMode(CONSTRAINT_FREE);
-	}
+  if (y) Constr_Y().SetMode(CONSTRAINT_LOCK);
+  else   Constr_Y().SetMode(CONSTRAINT_FREE);
 
-	if (z)
-	{
-		this->Constr_Z().SetMode(CONSTRAINT_LOCK);
-	}else
-	{
-		this->Constr_Z().SetMode(CONSTRAINT_FREE);
-	}
+  if (z) Constr_Z().SetMode(CONSTRAINT_LOCK);
+  else   Constr_Z().SetMode(CONSTRAINT_FREE);
 
-	if (e0)
-	{
-		this->Constr_E0().SetMode(CONSTRAINT_LOCK);
-	}else
-	{
-		this->Constr_E0().SetMode(CONSTRAINT_FREE);
-	}
+  if (e0) Constr_E0().SetMode(CONSTRAINT_LOCK);
+  else    Constr_E0().SetMode(CONSTRAINT_FREE);
 
-	if (e1)
-	{
-		this->Constr_E1().SetMode(CONSTRAINT_LOCK);
-	}else
-	{
-		this->Constr_E1().SetMode(CONSTRAINT_FREE);
-	}
+  if (e1) Constr_E1().SetMode(CONSTRAINT_LOCK);
+  else    Constr_E1().SetMode(CONSTRAINT_FREE);
 
-	if (e2)
-	{
-		this->Constr_E2().SetMode(CONSTRAINT_LOCK);
-	}else
-	{
-		this->Constr_E2().SetMode(CONSTRAINT_FREE);
-	}
+  if (e2) Constr_E2().SetMode(CONSTRAINT_LOCK);
+  else    Constr_E2().SetMode(CONSTRAINT_FREE);
 
-	if (e3)
-	{
-		this->Constr_E3().SetMode(CONSTRAINT_LOCK);
-	}else
-	{
-		this->Constr_E3().SetMode(CONSTRAINT_FREE);
-	}
-
-	if (p)
-	{
-		this->Constr_P().SetMode(CONSTRAINT_LOCK);
-	}else
-	{
-		this->Constr_P().SetMode(CONSTRAINT_FREE);
-	}
-
-	if (d)
-	{
-		this->Constr_D().SetMode(CONSTRAINT_LOCK);
-	}else
-	{
-		this->Constr_D().SetMode(CONSTRAINT_FREE);
-	}
+  if (e3) Constr_E3().SetMode(CONSTRAINT_LOCK);
+  else    Constr_E3().SetMode(CONSTRAINT_FREE);
 }
 
 

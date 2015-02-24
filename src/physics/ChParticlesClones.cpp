@@ -454,7 +454,7 @@ void ChParticlesClones::VariablesQbIncrementPosition(double dt_step)
 		// ADVANCE ROTATION: rot' = [dt*wwel]%rot  (use quaternion for delta rotation)
 		ChQuaternion<> mdeltarot;
 		ChQuaternion<> moldrot = this->particles[j]->GetRot();
-		ChVector<> newwel_abs = (*(this->particles[j]->GetA())) * newwel;
+		ChVector<> newwel_abs = particles[j]->GetA() * newwel;
 		double mangle = newwel_abs.Length() * dt_step;
 		newwel_abs.Normalize();
 		mdeltarot.Q_from_AngAxis(mangle, newwel_abs);

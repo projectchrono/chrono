@@ -60,8 +60,7 @@ ChLinkClearance::ChLinkClearance ()
             // Mask: initialize our LinkMaskLF (lock formulation mask)
             // It was a LinkMaskLF because this class inherited from LinkLock.
     ((ChLinkMaskLF*)mask)->SetLockMask(false, false, false,
-                       false, true, true, false,
-                       false, false);
+                       false, true, true, false);
 
     ChangedLinkMask();
 

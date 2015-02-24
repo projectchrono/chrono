@@ -132,15 +132,15 @@ void ChContact::Reset(	collision::ChCollisionModel* mmodA,	///< model A
 	Ps1.Set_X_matrix(Pl1);
 	Ps2.Set_X_matrix(Pl2);
 
-	Jx1.CopyFromMatrixT(this->contact_plane);
-	Jx2.CopyFromMatrixT(this->contact_plane);
+	Jx1.CopyFromMatrixT(contact_plane);
+	Jx2.CopyFromMatrixT(contact_plane);
 	Jx1.MatrNeg();
 
-	Jtemp.MatrMultiply(*( const_cast<ChFrame<>*>(frameA)->GetA()), Ps1);
-	Jr1.MatrTMultiply(this->contact_plane, Jtemp);
+	Jtemp.MatrMultiply(frameA->GetA(), Ps1);
+	Jr1.MatrTMultiply(contact_plane, Jtemp);
 
-	Jtemp.MatrMultiply(*( const_cast<ChFrame<>*>(frameB)->GetA()), Ps2);
-	Jr2.MatrTMultiply(this->contact_plane, Jtemp);
+	Jtemp.MatrMultiply(frameB->GetA(), Ps2);
+	Jr2.MatrTMultiply(contact_plane, Jtemp);
 	Jr2.MatrNeg();
 
 	Nx.Get_Cq_a()->PasteClippedMatrix(&Jx1, 0,0, 1,3, 0,0);
