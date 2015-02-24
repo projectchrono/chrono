@@ -267,88 +267,102 @@ void create_system_particles(ChSystemParallelDVI& mphysicalSystem) {
 	mphysicalSystem.AddBody(bin);
 }
 
-//void AddSphDataToChSystem(
-//		ChSystemParallelDVI& mphysicalSystem,
-//		const thrust::host_vector<Real3> & posRadH,
-//		const thrust::host_vector<Real4> & velMasH,
-//		const NumberOfObjects & numObjects) {
-//
-//	Real3 domainCenter = 0.5 * (paramsH.cMin + paramsH.cMax);
-//	Real3 ellipsoidSize = .3 * mR3(10 * paramsH.HSML, 5 * paramsH.HSML, 7 * paramsH.HSML);
-//	ChVector<> size = ChVector<>(ellipsoidSize.x, ellipsoidSize.y, ellipsoidSize.z);
-//	Real rad = paramsH.HSML;
-//	// NOTE: mass properties and shapes are all for sphere
-//	double volume = utils::CalcSphereVolume(rad);
-//	ChVector<> gyration = utils::CalcSphereGyration(rad).Get_Diag();
-//	double density = paramsH.rho0;
-//	double mass = density * volume;
-//	double muFriction = 0;
-//
-//	int fId = -1; //fluid id
-//
-//	// Create a common material
-//	ChSharedPtr<ChMaterialSurface> mat_g(new ChMaterialSurface);
-//	mat_g->SetFriction(muFriction);
-//	mat_g->SetCohesion(0);
-//	mat_g->SetCompliance(0.0);
-//	mat_g->SetComplianceT(0.0);
-//	mat_g->SetDampingF(0.2);
-//
-//	const ChQuaternion<> rot = ChQuaternion<>(1, 0, 0, 0);
-//
-//
-//	// use openmp
-//	for (int i = 0; i < numObjects.numAllMarkers; i++) {
-//		Real3 p3 = posRadH[i];
-//		Real4 vM4 = velMasH[i];
-//		ChVector<> pos = ChVector<>(p3.x, p3.y, p3.z);
-//		ChVector<> vel = ChVector<>(vM4.x, vM4.y, vM4.z);
-//
-//
-//
-//
-//
-//
-//		ChSharedBodyPtr body;
-//		body = ChSharedBodyPtr(new  ChBody(new ChCollisionModelParallel));
-//		body->SetMaterialSurface(mat_g);
-//		body->SetIdentifier(bId);
-//		body->SetPos(pos);
-//		body->SetRot(rot);
-//		body->SetCollide(true);
-//		body->SetBodyFixed(false);
-//	    body->SetMass(mass);
-//	    body->SetInertiaXX(mass * gyration);
-//
-//		body->GetCollisionModel()->ClearModel();
-//
-//		// add collision geometry
-//	//	body->GetCollisionModel()->AddEllipsoid(size.x, size.y, size.z, pos, rot);
-//	//
-//	//	// add asset (for visualization)
-//	//	ChSharedPtr<ChEllipsoidShape> ellipsoid(new ChEllipsoidShape);
-//	//	ellipsoid->GetEllipsoidGeometry().rad = size;
-//	//	ellipsoid->Pos = pos;
-//	//	ellipsoid->Rot = rot;
-//	//
-//	//	body->GetAssets().push_back(ellipsoid);
-//
-//	//	utils::AddCapsuleGeometry(body.get_ptr(), size.x, size.y);		// X
-//	//	utils::AddCylinderGeometry(body.get_ptr(), size.x, size.y);		// O
-//	//	utils::AddConeGeometry(body.get_ptr(), size.x, size.y); 		// X
-//	//	utils::AddBoxGeometry(body.get_ptr(), size);					// O
-//		utils::AddSphereGeometry(body.get_ptr(), size.x);				// O
-//	//	utils::AddEllipsoidGeometry(body.get_ptr(), size);					// X
-//
-//
-//		body->GetCollisionModel()->BuildModel();
-//		mphysicalSystem.AddBody(body);
-//
-//
-//
-//	}
-//
-//}
+void AddSphDataToChSystem(
+		ChSystemParallelDVI& mphysicalSystem,
+		int & startIndexSph,
+		const thrust::host_vector<Real3> & posRadH,
+		const thrust::host_vector<Real4> & velMasH,
+		const NumberOfObjects & numObjects) {
+
+	Real3 domainCenter = 0.5 * (paramsH.cMin + paramsH.cMax);
+	Real3 ellipsoidSize = .3 * mR3(10 * paramsH.HSML, 5 * paramsH.HSML, 7 * paramsH.HSML);
+	ChVector<> size = ChVector<>(ellipsoidSize.x, ellipsoidSize.y, ellipsoidSize.z);
+	Real rad = paramsH.HSML;
+	// NOTE: mass properties and shapes are all for sphere
+	double volume = utils::CalcSphereVolume(rad);
+	ChVector<> gyration = utils::CalcSphereGyration(rad).Get_Diag();
+	double density = paramsH.rho0;
+	double mass = density * volume;
+	double muFriction = 0;
+
+	//int fId = 0; //fluid id
+
+	// Create a common material
+	ChSharedPtr<ChMaterialSurface> mat_g(new ChMaterialSurface);
+	mat_g->SetFriction(muFriction);
+	mat_g->SetCohesion(0);
+	mat_g->SetCompliance(0.0);
+	mat_g->SetComplianceT(0.0);
+	mat_g->SetDampingF(0.2);
+
+	const ChQuaternion<> rot = ChQuaternion<>(1, 0, 0, 0);
+
+
+	startIndexSph = mphysicalSystem.GetNbodiesTotal();
+	// use openmp
+	for (int i = 0; i < numObjects.numAllMarkers; i++) {
+		Real3 p3 = posRadH[i];
+		Real4 vM4 = velMasH[i];
+		ChVector<> pos = ChVector<>(p3.x, p3.y, p3.z);
+		ChVector<> vel = ChVector<>(vM4.x, vM4.y, vM4.z);
+
+		ChSharedBodyPtr body;
+		body = ChSharedBodyPtr(new  ChBody(new ChCollisionModelParallel));
+		body->SetMaterialSurface(mat_g);
+		//body->SetIdentifier(fId);
+		body->SetPos(pos);
+		body->SetRot(rot);
+		body->SetCollide(true);
+		body->SetBodyFixed(false);
+	    body->SetMass(mass);
+	    body->SetInertiaXX(mass * gyration);
+
+		body->GetCollisionModel()->ClearModel();
+
+		// add collision geometry
+	//	body->GetCollisionModel()->AddEllipsoid(size.x, size.y, size.z, pos, rot);
+	//
+	//	// add asset (for visualization)
+	//	ChSharedPtr<ChEllipsoidShape> ellipsoid(new ChEllipsoidShape);
+	//	ellipsoid->GetEllipsoidGeometry().rad = size;
+	//	ellipsoid->Pos = pos;
+	//	ellipsoid->Rot = rot;
+	//
+	//	body->GetAssets().push_back(ellipsoid);
+
+	//	utils::AddCapsuleGeometry(body.get_ptr(), size.x, size.y);		// X
+	//	utils::AddCylinderGeometry(body.get_ptr(), size.x, size.y);		// O
+	//	utils::AddConeGeometry(body.get_ptr(), size.x, size.y); 		// X
+	//	utils::AddBoxGeometry(body.get_ptr(), size);					// O
+		utils::AddSphereGeometry(body.get_ptr(), size.x);				// O
+	//	utils::AddEllipsoidGeometry(body.get_ptr(), size);					// X
+
+		body->GetCollisionModel()->SetFamily(100);
+		body->GetCollisionModel()->SetFamilyMaskNoCollisionWithFamily(100);
+
+		body->GetCollisionModel()->BuildModel();
+		mphysicalSystem.AddBody(body);
+	}
+}
+
+void UpdateSphDataInChSystem(
+		ChSystemParallelDVI& mphysicalSystem,
+		const thrust::host_vector<Real3> & posRadH,
+		const thrust::host_vector<Real4> & velMasH,
+		int  startIndexSph) {
+
+	// openmp potential
+	for (int i = 0; i < numObjects.numAllMarkers; i++) {
+		Real3 p3 = posRadH[i];
+		Real4 vM4 = velMasH[i];
+		ChVector<> pos = ChVector<>(p3.x, p3.y, p3.z);
+		ChVector<> vel = ChVector<>(vM4.x, vM4.y, vM4.z);
+
+		vector<ChBody*>::iterator ibody = mphysicalSystem.Get_bodylist()->begin() + i;
+		(*ibody)->SetPos(pos);
+		(*ibody)->SetPos(vel);
+	}
+}
 
 void InitializeChronoGraphics(ChSystemParallelDVI& mphysicalSystem, Real dT) {
 	Real3 domainCenter = 0.5 * (paramsH.cMin + paramsH.cMax);
@@ -761,7 +775,8 @@ int main(int argc, char* argv[]) {
 	create_system_particles(mphysicalSystem);
 
 	// Add sph data to the physics system
-	AddSphDataToChSystem(mphysicalSystem, posRadH, velMasH);
+	int startIndexSph = 0;
+	AddSphDataToChSystem(mphysicalSystem, startIndexSph, posRadH, velMasH, numObjects);
 
 
 	// Set gravitational acceleration
