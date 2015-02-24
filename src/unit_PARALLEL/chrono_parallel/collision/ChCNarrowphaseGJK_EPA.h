@@ -44,18 +44,21 @@ struct sResults {
 };
 
 CH_PARALLEL_API
-bool GJKDistance(const ConvexShape& shape0, const ConvexShape& shape1, const real3& guess, sResults& results);
+bool GJKDistance(const ConvexShape& shape0, const ConvexShape& shape1, const real3& guess, const real & envelope, sResults& results);
+
 CH_PARALLEL_API
-bool GJKPenetration(const ConvexShape& shape0, const ConvexShape& shape1, const real3& guess, sResults& results);
+bool GJKPenetration(const ConvexShape& shape0, const ConvexShape& shape1, const real3& guess, const real & envelope, sResults& results);
 
 CH_PARALLEL_API
 bool GJKCollide(const ConvexShape& shape0,
                 const ConvexShape& shape1,
+                const real & envelope,
                 ContactPoint& point,
                 real3& m_cachedSeparatingAxis);
 
 CH_PARALLEL_API
-bool GJKFindPenetration(const ConvexShape& shape0, const ConvexShape& shape1, sResults& results);
+bool GJKFindPenetration(const ConvexShape& shape0, const ConvexShape& shape1, const real & envelope, sResults& results);
+
 CH_PARALLEL_API
 void GJKPerturbedCollide(const ConvexShape& shapeA,
                          const ConvexShape& shapeB,

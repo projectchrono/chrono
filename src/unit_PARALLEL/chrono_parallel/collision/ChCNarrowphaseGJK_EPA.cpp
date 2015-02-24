@@ -47,9 +47,9 @@ namespace collision {
 
 /* GJK   */
 #define GJK_MAX_ITERATIONS 128
-#define GJK_ACCURARY ((real)0.0001)
-#define GJK_MIN_DISTANCE ((real)0.0001)
-#define GJK_DUPLICATED_EPS ((real)0.0001)
+#define GJK_ACCURARY ((real)0.0000)
+#define GJK_MIN_DISTANCE ((real)0.0000001)
+#define GJK_DUPLICATED_EPS ((real)0.0000001)
 #define GJK_SIMPLEX2_EPS ((real)0.0)
 #define GJK_SIMPLEX3_EPS ((real)0.0)
 #define GJK_SIMPLEX4_EPS ((real)0.0)
@@ -58,10 +58,13 @@ namespace collision {
 #define EPA_MAX_VERTICES 64
 #define EPA_MAX_FACES (EPA_MAX_VERTICES * 2)
 #define EPA_MAX_ITERATIONS 255
-#define EPA_ACCURACY ((real)0.0001)
+#define EPA_ACCURACY ((real)0.0000)
 #define EPA_FALLBACK (10 * EPA_ACCURACY)
-#define EPA_PLANE_EPS ((real)0.00001)
-#define EPA_INSIDE_EPS ((real)0.01)
+#define EPA_PLANE_EPS ((real)0.0000001)
+#define EPA_INSIDE_EPS ((real)0.00001)
+
+// must be above the machine epsilon
+#define REL_ERROR2 real(1.0e-6)
 
 typedef unsigned int U;
 typedef unsigned char U1;
@@ -97,6 +100,7 @@ inline void PlaneSpace1(const T& n, T& p, T& q) {
 struct MinkowskiDiff {
   ConvexShape shapeA;
   ConvexShape shapeB;
+  real envelope;
 
   // const btConvexShape* m_shapes[2];
   // btMatrix3x3 m_toshape1;
@@ -106,7 +110,7 @@ struct MinkowskiDiff {
 
   MinkowskiDiff() {}
 
-  inline real3 Support0(const real3& d) const { return SupportVert(shapeA, d, 0); }
+  inline real3 Support0(const real3& d) const { return SupportVert(shapeA, d, envelope); }
   inline real3 Support1(const real3& d) const {
     real3 m_toshape0_v = (shapeB.A - shapeA.A);
     real3 m_toshape0_translate = quatRotateT(m_toshape0_v, shapeA.R);
@@ -114,7 +118,7 @@ struct MinkowskiDiff {
     real4 m_toshape0 = (~shapeA.R) % shapeB.R;
     real4 m_toshape1 = (~shapeB.R) % shapeA.R;
 
-    real3 sv = SupportVert(shapeB, quatRotate(d, m_toshape1), 0);
+    real3 sv = SupportVert(shapeB, quatRotate(d, m_toshape1), envelope);
     real3 result = TransformLocalToParent(m_toshape0_translate, m_toshape0, sv);
 
     return result;  // SupportVert(shapeB, d, 0) + shapeB.margin * d;
@@ -319,8 +323,7 @@ struct GJK {
         }
       } break;
       case 4: {
-        if (fabs(det(m_simplex->c[0]->w - m_simplex->c[3]->w,
-                     m_simplex->c[1]->w - m_simplex->c[3]->w,
+        if (fabs(det(m_simplex->c[0]->w - m_simplex->c[3]->w, m_simplex->c[1]->w - m_simplex->c[3]->w,
                      m_simplex->c[2]->w - m_simplex->c[3]->w)) > 0)
           return (true);
       } break;
@@ -536,8 +539,7 @@ struct EPA {
       m_status = eStatus::Valid;
       m_nextsv = 0;
       /* Orient simplex    */
-      if (gjk.det(simplex.c[0]->w - simplex.c[3]->w,
-                  simplex.c[1]->w - simplex.c[3]->w,
+      if (gjk.det(simplex.c[0]->w - simplex.c[3]->w, simplex.c[1]->w - simplex.c[3]->w,
                   simplex.c[2]->w - simplex.c[3]->w) < 0) {
         Swap(simplex.c[0], simplex.c[1]);
         Swap(simplex.p[0], simplex.p[1]);
@@ -730,18 +732,19 @@ struct EPA {
   }
 };
 
-static void Initialize(const ConvexShape& shape0, const ConvexShape& shape1, sResults& results, tShape& shape) {
+static void Initialize(const ConvexShape& shape0, const ConvexShape& shape1, const real & envelope, sResults& results, tShape& shape) {
   /* Results     */
   results.witnesses[0] = results.witnesses[1] = real3(0, 0, 0);
   results.status = sResults::Separated;
   /* Shape    */
   shape.shapeA = shape0;
   shape.shapeB = shape1;
+  shape.envelope = envelope;
 }
 
-bool GJKDistance(const ConvexShape& shape0, const ConvexShape& shape1, const real3& guess, sResults& results) {
+bool GJKDistance(const ConvexShape& shape0, const ConvexShape& shape1, const real3& guess, const real & envelope, sResults& results) {
   tShape shape;
-  Initialize(shape0, shape1, results, shape);
+  Initialize(shape0, shape1, envelope, results, shape);
   GJK gjk;
   GJK::eStatus::_ gjk_status = gjk.Evaluate(shape, guess);
   if (gjk_status == GJK::eStatus::Valid) {
@@ -764,9 +767,9 @@ bool GJKDistance(const ConvexShape& shape0, const ConvexShape& shape1, const rea
   }
 }
 
-bool GJKPenetration(const ConvexShape& shape0, const ConvexShape& shape1, const real3& guess, sResults& results) {
+bool GJKPenetration(const ConvexShape& shape0, const ConvexShape& shape1, const real3& guess, const real & envelope, sResults& results) {
   tShape shape;
-  Initialize(shape0, shape1, results, shape);
+  Initialize(shape0, shape1, envelope, results, shape);
   GJK gjk;
   GJK::eStatus::_ gjk_status = gjk.Evaluate(shape, -guess);
   switch (gjk_status) {
@@ -794,24 +797,24 @@ bool GJKPenetration(const ConvexShape& shape0, const ConvexShape& shape1, const 
   }
   return (false);
 }
-bool GJKFindPenetration(const ConvexShape& shape0, const ConvexShape& shape1, sResults& results) {
+bool GJKFindPenetration(const ConvexShape& shape0, const ConvexShape& shape1, const real & envelope,  sResults& results) {
   real3 guess = shape0.A - shape1.A;
 
-  if (GJKPenetration(shape0, shape1, guess, results)) {
+  if (GJKPenetration(shape0, shape1, guess, envelope, results)) {
     return true;
   } else {
-    if (GJKDistance(shape0, shape1, guess, results)) {
+    if (GJKDistance(shape0, shape1, guess, envelope, results)) {
       return false;
     }
   }
   return false;
 }
-// must be above the machine epsilon
-#define REL_ERROR2 real(1.0e-6)
+
 
 bool GJKCollide(const ConvexShape& shape0,
                 const ConvexShape& shape1,
-                ContactPoint & contact_point,
+                const real & envelope,
+                ContactPoint& contact_point,
                 real3& m_cachedSeparatingAxis) {
   sResults results;
   real m_cachedSeparatingDistance;
@@ -988,7 +991,7 @@ bool GJKCollide(const ConvexShape& shape0,
       gNumDeepPenetrationChecks++;
       m_cachedSeparatingAxis = real3(0);
 
-      bool isValid2 = GJKFindPenetration(shapeA, shapeB, results);
+      bool isValid2 = GJKFindPenetration(shapeA, shapeB, envelope, results);
 
       real3 tmpPointOnA = results.witnesses[0];
       real3 tmpPointOnB = results.witnesses[1];
@@ -1048,7 +1051,7 @@ bool GJKCollide(const ConvexShape& shape0,
 
   // printf("last Method: %d", m_lastUsedMethod);
 
-  if (isValid && ((distance < 0) || (distance * distance < LARGE_REAL))) {
+  if (isValid && ((distance < 0) || (distance * distance < LARGE_REAL)) && distance < (marginA + marginB) ) {
     m_cachedSeparatingAxis = normalInB;
     m_cachedSeparatingDistance = distance;
 
@@ -1056,8 +1059,8 @@ bool GJKCollide(const ConvexShape& shape0,
     contact_point.normal = normalInB;
     contact_point.pointA = real3(pointOnB + positionOffset) + normalInB * distance;
     contact_point.pointB = real3(pointOnB + positionOffset);
-//    manifold.addContactPoint(shape0, shape1, normalInB, real3(pointOnB + positionOffset), distance);
-  }else{
+    //    manifold.addContactPoint(shape0, shape1, normalInB, real3(pointOnB + positionOffset), distance);
+  } else {
     return false;
   }
   return true;
@@ -1119,7 +1122,7 @@ void GJKPerturbedCollide(const ConvexShape& shapeA,
 
         ContactManifold perturbed_manifold;
         real3 sep_axis = real3(0);
-        //GJKCollide(pShapeA, pShapeB, perturbed_manifold, sep_axis);
+        // GJKCollide(pShapeA, pShapeB, perturbed_manifold, sep_axis);
 
         for (int i = 0; i < perturbed_manifold.num_contact_points; i++) {
           std::cout << perturbed_manifold.points[i].normal << perturbed_manifold.points[i].pointA

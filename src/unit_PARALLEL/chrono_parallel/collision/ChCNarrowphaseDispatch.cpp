@@ -267,7 +267,7 @@ void ChCNarrowphaseDispatch::DispatchGJK() {
 
     ContactPoint contact_point;
     real3 separating_axis;
-    if (GJKCollide(shapeA, shapeB, contact_point, separating_axis)) {
+    if (GJKCollide(shapeA, shapeB, collision_envelope, contact_point , separating_axis)) {
       norm[icoll] = -contact_point.normal;
       ptA[icoll] = contact_point.pointA;
       ptB[icoll] = contact_point.pointB;
@@ -347,7 +347,7 @@ void ChCNarrowphaseDispatch::DispatchHybridGJK() {
     if (RCollision(shapeA, shapeB, 2 * collision_envelope, &norm[icoll], &ptA[icoll], &ptB[icoll], &contactDepth[icoll],
                    &effective_radius[icoll], nC)) {
       Dispatch_Finalize(icoll, ID_A, ID_B, nC);
-    } else if (GJKCollide(shapeA, shapeB, contact_point,separating_axis )) {
+    } else if (GJKCollide(shapeA, shapeB, collision_envelope, contact_point,separating_axis )) {
       norm[icoll] = -contact_point.normal;
       ptA[icoll] = contact_point.pointA;
       ptB[icoll] = contact_point.pointB;
