@@ -145,7 +145,6 @@ public:
 	void Start() { m_start = get_wall_time(); }
 	void Stop()  { m_stop = get_wall_time(); }
 	double Elapsed() {
-		printf("wall star and stop time %f %f \n", m_stop, m_start);
 		return (m_stop - m_start);
 	}
 
@@ -153,7 +152,6 @@ public:
 	void Start_cputimer() { m_start_cpu = get_cpu_time(); }
 	void Stop_cputimer()  { m_stop_cpu = get_cpu_time(); }
 	double Elapsed_cputimer() {
-		printf("cpu star and stop time %f %f \n", m_stop_cpu, m_start_cpu);
 		return (m_stop_cpu - m_start_cpu);
 	}
 
