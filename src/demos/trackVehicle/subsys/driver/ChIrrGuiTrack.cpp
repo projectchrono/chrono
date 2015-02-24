@@ -328,20 +328,25 @@ void ChIrrGuiTrack::renderContactShoeGear(double lenScale)
 {
   if( DriveChain* m_chain = dynamic_cast<DriveChain*>(&m_vehicle) )
   {
-    if( m_chain->Get_SG_Persistent_Fn().Length() > 0 )
+    // two perisistent contacts for the driveChain system
+    for(int pc = 0; pc < 2; pc++)
     {
-      // draw persistent contact point red
-      ChIrrTools::drawSegment(m_app.GetVideoDriver(),
-        m_chain->Get_SG_Persistent_PosAbs(),
-         m_chain->Get_SG_Persistent_PosAbs() + m_chain->Get_SG_Persistent_Fn()*lenScale,
-        video::SColor(200,255,60,60), true);  // red
+      // only plot if the force magitude is non-zero
+      if( m_chain->Get_SG_Persistent_Fn(pc).Length() > 0 )
+      {
+        // draw persistent contact point red
+        ChIrrTools::drawSegment(m_app.GetVideoDriver(),
+          m_chain->Get_SG_Persistent_PosAbs(pc),
+           m_chain->Get_SG_Persistent_PosAbs(pc) + m_chain->Get_SG_Persistent_Fn(pc)*lenScale,
+          video::SColor(200,255,60,60), true);  // red
+      }
     }
 
     // all other contact points that aren't the tracked collision are green
     std::vector<ChVector<>>::const_iterator pos_iter;
     std::vector<ChVector<>>::const_iterator Fn_iter;
-    for(pos_iter = m_chain->Get_SG_PosAbs().begin(), Fn_iter = m_chain->Get_SG_Fn().begin();
-      pos_iter < m_chain->Get_SG_PosAbs().end() && Fn_iter < m_chain->Get_SG_Fn().end();
+    for(pos_iter = m_chain->Get_SG_PosAbs_all().begin(), Fn_iter = m_chain->Get_SG_Fn_all().begin();
+      pos_iter < m_chain->Get_SG_PosAbs_all().end() && Fn_iter < m_chain->Get_SG_Fn_all().end();
       pos_iter++, Fn_iter++)
     {
       ChIrrTools::drawSegment(m_app.GetVideoDriver(),

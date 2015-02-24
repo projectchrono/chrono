@@ -112,16 +112,16 @@ public:
 
   // following variables are populated when DriveChain::reportShoeGearContact() is called
   // absolute pos of the persistent contact point
-  const ChVector<>& Get_SG_Persistent_PosAbs() const { return m_SG_PosAbs; }
+  const ChVector<>& Get_SG_Persistent_PosAbs(int idx) const { return m_SG_PosAbs[idx]; }
 
   // normal force abs. vector of the persistent contact point
-  const ChVector<>& Get_SG_Persistent_Fn() const { return m_SG_Fn; }
+  const ChVector<>& Get_SG_Persistent_Fn(int idx) const { return m_SG_Fn[idx]; }
 
   // abs. pos. of all shoe-gear contacts found
-  const std::vector<ChVector<>>& Get_SG_PosAbs() const { return m_SG_ContactPos; }
+  const std::vector<ChVector<>>& Get_SG_PosAbs_all() const { return m_SG_ContactPos_all; }
 
   // abs. normal force of all sh oe-gear contacts
-  const std::vector<ChVector<>>& Get_SG_Fn() const { return m_SG_ContactFn; }
+  const std::vector<ChVector<>>& Get_SG_Fn_all() const { return m_SG_ContactFn_all; }
 
 protected:
 
@@ -140,22 +140,25 @@ protected:
   /// PosRel, VRel = relative pos, vel of contact point, relative to gear c-sys
   /// returns # of contacts between the gear and shoe body
   int reportShoeGearContact(const std::string& shoe_name,
-    ChVector<>& SG_info,
-    ChVector<>& Force_mag_info,
-    ChVector<>& PosRel_contact,
-    ChVector<>& VRel_contact,
-    ChVector<>& NormDirRel_contact);
+    std::vector<ChVector<>>& SG_info,
+    std::vector<ChVector<>>& Force_mag_info,
+    std::vector<ChVector<>>& PosRel_contact,
+    std::vector<ChVector<>>& VRel_contact,
+    std::vector<ChVector<>>& NormDirRel_contact);
 
   // *********  History dependent Variables
-  // for debugging step to step persistent contact data
-  ChVector<> m_SG_info;
-  bool m_SG_is_persistentContact_set;
-  ChVector<> m_SG_PosRel;
-  ChVector<> m_SG_PosAbs; // contact point, abs. coords
-  ChVector<> m_SG_Fn;  // contact normal force, abs. coords
+  // for debugging step to step persistent contact data. 
+  // Usually need to resize these vectors upon construction, for the # of pts to follow
+  std::vector<ChVector<>> m_SG_info;
+  std::vector<bool> m_SG_is_persistentContact_set;
+  std::vector<ChVector<>> m_SG_PosRel;
+  std::vector<ChVector<>> m_SG_PosAbs; // contact point, abs. coords
+  std::vector<ChVector<>> m_SG_Fn;  // contact normal force, abs. coords
+
    // ******** non-history dependent list of contact info
-  std::vector<ChVector<>> m_SG_ContactPos;  // list of position of contact, abs. coords
-  std::vector<ChVector<>> m_SG_ContactFn; // list of contact normal forces, abs. coords
+  // DONT need to resize these vectors.
+  std::vector<ChVector<>> m_SG_ContactPos_all;  // list of all position of contact, abs. coords
+  std::vector<ChVector<>> m_SG_ContactFn_all; // list of all contact normal forces, abs. coords
 
   // private variables
   // <ChBodyAuxRef> m_chassis   in base class
