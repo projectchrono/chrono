@@ -124,28 +124,6 @@ void ChLinkSpring::UpdateForces(double mytime)
   C_force = Vadd(C_force, m_force);
 }
 
-
-/*
-double ChLinkSpring::Get_deformReact()
-{
-  // force from spring
-  double deform = Get_SpringDeform();
-  double spring_react_K = -(spr_k * mod_k_d->Get_y(deform) * mod_k_speed->Get_y(dist_dt)) * (deform);  
-
-  return spring_react_K;
-}
-
-double ChLinkSpring::Get_dist_dtReact() 
-{ 
-  // force from damping
-  double deform = Get_SpringDeform();
-  double spr_react_C = -(spr_r * mod_r_d->Get_y(deform) * mod_r_speed->Get_y(dist_dt)) * (dist_dt);
-
-  return spr_react_C;
-}
-
-*/
-
 void ChLinkSpring::StreamOUT(ChStreamOutBinary& mstream)
 {
   // Class version number
