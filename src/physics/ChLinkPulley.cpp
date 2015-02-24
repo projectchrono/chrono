@@ -64,8 +64,7 @@ ChLinkPulley::ChLinkPulley ()
             // Mask: initialize our LinkMaskLF (lock formulation mask)
             // to X  only. It was a LinkMaskLF because this class inherited from LinkLock.
     ((ChLinkMaskLF*)mask)->SetLockMask(true, false, false,
-                       false, false, false, false,
-                       false, false);
+                       false, false, false, false);
     ChangedLinkMask();
 }
 
@@ -110,7 +109,7 @@ Vector  ChLinkPulley::Get_shaft_dir1()
 	{
 		ChFrame<double> absframe;
 		((ChFrame<double>*)Body1)->TransformLocalToParent(local_shaft1, absframe);
-		return absframe.GetA()->Get_A_Zaxis();
+		return absframe.GetA().Get_A_Zaxis();
 	} else return VECT_Z;
 }
 
@@ -120,7 +119,7 @@ Vector  ChLinkPulley::Get_shaft_dir2()
 	{
 		ChFrame<double> absframe;
 		((ChFrame<double>*)Body2)->TransformLocalToParent(local_shaft2, absframe);
-		return absframe.GetA()->Get_A_Zaxis();
+		return absframe.GetA().Get_A_Zaxis();
 	} else return VECT_Z;
 }
 
@@ -162,9 +161,9 @@ void ChLinkPulley::UpdateTime (double mytime)
                             Get_shaft_pos1());
 
 		// compute actual rotation of the two wheels (relative to truss).
-    Vector md1 = abs_shaft1.GetA()->MatrT_x_Vect(dcc_w);
+    Vector md1 = abs_shaft1.GetA().MatrT_x_Vect(dcc_w);
     md1.z = 0;  md1 = Vnorm (md1);
-    Vector md2 = abs_shaft2.GetA()->MatrT_x_Vect(dcc_w);
+    Vector md2 = abs_shaft2.GetA().MatrT_x_Vect(dcc_w);
     md2.z = 0;  md2 = Vnorm (md2);
 
 	double periodic_a1 = ChAtan2(md1.x, md1.y);

@@ -101,8 +101,7 @@ ChLinkWheel::ChLinkWheel ()
 
             // Mask: initialize our LinkMaskLF (lock formulation mask)
     ((ChLinkMaskLF*)mask)->SetLockMask(false,false, true,
-                        false,false,false,false,
-                        false, false);
+                        false,false,false,false);
 	((ChLinkMaskLF*)mask)->Constr_Z().SetMode(CONSTRAINT_UNILATERAL);
 
     ChangedLinkMask();
@@ -262,16 +261,16 @@ void ChLinkWheel::UpdateTime (double mytime)
     // Compute relative speed of reference M1
     // (hypothesis: ground is flat and steady: contact must move with same vel. as wheel spindle)
     Vector vabsradius = Vsub(m1_pos, spindle_pos);
-    m1_relvel = Body1->GetA()->MatrT_x_Vect(
+    m1_relvel = Body1->GetA().MatrT_x_Vect(
         Vcross(vabsradius, Body1->GetWvel_par()) );
     // Compute relative acceleration of reference M1
     // (hypothesis: ground is flat and steady: contact must move with same acc. as wheel spindle)
-    m1_relacc = Body1->GetA()->MatrT_x_Vect(
+    m1_relacc = Body1->GetA().MatrT_x_Vect(
         Vcross(Body1->GetWvel_par() , Vcross(vabsradius, Body1->GetWvel_par()) ) ); // cut centrip
     m1_relacc = Vadd( m1_relacc,
         Vmul (Vcross(Body1->GetWvel_loc(), m1_relvel) , -2.0 ) );   // cut coriolis
     m1_relacc = Vadd( m1_relacc,
-        Body1->GetA()->MatrT_x_Vect(Vcross(vabsradius, Body1->GetWacc_par() ) ) ); // cut tang acc
+        Body1->GetA().MatrT_x_Vect(Vcross(vabsradius, Body1->GetWacc_par() ) ) ); // cut tang acc
 
 
     ///////  CONTACT MODE:

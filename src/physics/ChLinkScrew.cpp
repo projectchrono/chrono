@@ -50,8 +50,7 @@ ChLinkScrew::ChLinkScrew ()
             // to X,Y,Z,Rx Ry, (note: the Z lock is'nt a standard LinkLock z-lock and will
             // be handled as a custom screw constraint z = tau *alpha, later in updating functions).
     ((ChLinkMaskLF*)mask)->SetLockMask(true, true, true,
-                       false, true, true, false,
-                       false, false);
+                       false, true, true, false);
     ChangedLinkMask();
 }
 

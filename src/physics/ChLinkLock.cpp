@@ -168,77 +168,63 @@ void ChLinkLock::BuildLinkType (int link_type)
     ChLinkMaskLF m_mask;
 
     // Note that the SetLockMask() sets the costraints for the
-    // link coordinates: (X,Y,Z, E0, E1,E2,E3, P, D);
+    // link coordinates: (X,Y,Z, E0,E1,E2,E3)
 
     // default.. free
     m_mask.SetLockMask (false,false,false,
-                        false,false,false,false,
-                        false,false);
+                        false,false,false,false);
 
     if (type == LNK_FREE)
         m_mask.SetLockMask (false,false,false,
-                        false,false,false,false,
-                        false,false);
+                        false,false,false,false);
 
     if (type == LNK_LOCK)
         m_mask.SetLockMask (true, true, true,
-                        false,true, true, true,
-                        false,false);
+                        false,true, true, true);
 
     if (type == LNK_SPHERICAL)
         m_mask.SetLockMask (true, true, true,
-                        false,false,false,false,
-                        false,false);
+                        false,false,false,false);
 
     if (type == LNK_POINTPLANE)
         m_mask.SetLockMask (false,false,true,
-                        false,false,false,false,
-                        false,false);
+                        false,false,false,false);
 
     if (type == LNK_POINTLINE)
         m_mask.SetLockMask (false,true, true,
-                        false,false,false,false,
-                        false,false);
+                        false,false,false,false);
 
     if (type == LNK_REVOLUTE)
         m_mask.SetLockMask (true, true, true,
-                        false,true, true,false,
-                        false,false);
+                        false,true, true,false);
 
     if (type == LNK_CYLINDRICAL)
         m_mask.SetLockMask (true, true, false,
-                        false,true, true, false,
-                        false,false);
+                        false,true, true, false);
 
     if (type == LNK_PRISMATIC)
         m_mask.SetLockMask (true, true, false,
-                        false,true, true, true,
-                        false,false);
+                        false,true, true, true);
 
     if (type == LNK_PLANEPLANE)
         m_mask.SetLockMask (false,false,true,
-                        false,true, true, false,
-                        false,false);
+                        false,true, true, false);
 
     if (type == LNK_OLDHAM)
         m_mask.SetLockMask (false,false,true,
-                        false,true, true, true,
-                        false,false);
+                        false,true, true, true);
 
     if (type == LNK_ALIGN)
         m_mask.SetLockMask (false,false,false,
-                        false,true, true, true,
-                        false,false);
+                        false,true, true, true);
 
     if (type == LNK_PARALLEL)
         m_mask.SetLockMask (false,false,false,
-                        false,true, true, false,
-                        false,false);
+                        false,true, true, false);
 
     if (type == LNK_PERPEND)
         m_mask.SetLockMask (false,false,false,
-                        false,true, false,true,
-                        false,false);
+                        false,true, false,true);
 
     if (type == LNK_REVOLUTEPRISMATIC)
         m_mask.SetLockMask (false, true, true,
@@ -597,17 +583,17 @@ void ChLinkLock::UpdateRelMarkerCoords()
     vtemp2=m2_Rel_A_dt.MatrT_x_Vect(vtemp1);
     q_4= Vmul (vtemp2, 2);          // 2[Aq_dt]'[Ao2_dt]'*Qpq,w
 
-    vtemp1=Body2->GetA()->MatrT_x_Vect(PQw_dt);
+    vtemp1=Body2->GetA().MatrT_x_Vect(PQw_dt);
     vtemp2=m2_Rel_A_dt.MatrT_x_Vect(vtemp1);
     vtemp2= Vmul (vtemp2, 2);       // 2[Aq_dt]'[Ao2]'*Qpq,w_dt
     q_4= Vadd (q_4, vtemp2);
 
     vtemp1=Body2->GetA_dt().MatrT_x_Vect(PQw_dt);
-    vtemp2=marker2->GetA()->MatrT_x_Vect(vtemp1);
+    vtemp2=marker2->GetA().MatrT_x_Vect(vtemp1);
     vtemp2= Vmul (vtemp2, 2);       // 2[Aq]'[Ao2_dt]'*Qpq,w_dt
     q_4= Vadd (q_4, vtemp2);
 
-    vtemp1=Body2->GetA()->MatrT_x_Vect(PQw);
+    vtemp1=Body2->GetA().MatrT_x_Vect(PQw);
     vtemp2=m2_Rel_A_dtdt.MatrT_x_Vect(vtemp1);
     q_4= Vadd (q_4, vtemp2);        //  [Aq_dtdt]'[Ao2]'*Qpq,w
 
@@ -617,8 +603,8 @@ void ChLinkLock::UpdateRelMarkerCoords()
 
             // relM.pos
     relM.pos =
-        marker2->GetA()->MatrT_x_Vect(
-        Body2->GetA()->MatrT_x_Vect(PQw));
+        marker2->GetA().MatrT_x_Vect(
+        Body2->GetA().MatrT_x_Vect(PQw));
 
             // relM.rot
     relM.rot =
@@ -636,11 +622,11 @@ void ChLinkLock::UpdateRelMarkerCoords()
         Vadd (
         Vadd (
         m2_Rel_A_dt.MatrT_x_Vect(
-        Body2->GetA()->MatrT_x_Vect(PQw)) ,
-        marker2->GetA()->MatrT_x_Vect(
+        Body2->GetA().MatrT_x_Vect(PQw)) ,
+        marker2->GetA().MatrT_x_Vect(
         Body2->GetA_dt().MatrT_x_Vect(PQw))),
-        marker2->GetA()->MatrT_x_Vect(
-        Body2->GetA()->MatrT_x_Vect(PQw_dt)));
+        marker2->GetA().MatrT_x_Vect(
+        Body2->GetA().MatrT_x_Vect(PQw_dt)));
 
             // relM_dt.rot
     relM_dt.rot =
@@ -650,10 +636,10 @@ void ChLinkLock::UpdateRelMarkerCoords()
     relM_dtdt.pos =
         Vadd (
         Vadd (
-        marker2->GetA()->MatrT_x_Vect(
+        marker2->GetA().MatrT_x_Vect(
          Body2->GetA_dtdt().MatrT_x_Vect(PQw)),
-        marker2->GetA()->MatrT_x_Vect(
-         Body2->GetA()->MatrT_x_Vect(PQw_dtdt))),
+        marker2->GetA().MatrT_x_Vect(
+         Body2->GetA().MatrT_x_Vect(PQw_dtdt))),
         q_4);
 
 
@@ -777,10 +763,10 @@ void ChLinkLock::UpdateState ()
     Ct_temp.pos =
         Vadd (
           m2_Rel_A_dt.MatrT_x_Vect(
-          Body2->GetA()->MatrT_x_Vect(PQw)),
-          marker2->GetA()->MatrT_x_Vect(
-           Vsub(Body2->GetA()->MatrT_x_Vect(
-            Body1->GetA()->Matr_x_Vect(marker1->GetCoord_dt().pos)),
+          Body2->GetA().MatrT_x_Vect(PQw)),
+          marker2->GetA().MatrT_x_Vect(
+           Vsub(Body2->GetA().MatrT_x_Vect(
+            Body1->GetA().Matr_x_Vect(marker1->GetCoord_dt().pos)),
             marker2->GetCoord_dt().pos))
           );
     Ct_temp.pos = Vsub (Ct_temp.pos,  deltaC_dt.pos);   // the deltaC contribute
@@ -798,8 +784,8 @@ void ChLinkLock::UpdateState ()
 
             //  JACOBIANS Cq1_temp, Cq2_temp:
 
-    mtemp1.CopyFromMatrixT(*marker2->GetA());
-    CqxT.MatrMultiplyT(mtemp1,*Body2->GetA());     // [CqxT]=[Aq]'[Ao2]'
+    mtemp1.CopyFromMatrixT(marker2->GetA());
+    CqxT.MatrMultiplyT(mtemp1, Body2->GetA());     // [CqxT]=[Aq]'[Ao2]'
 
     Cq1_temp->PasteMatrix(&CqxT,0,0);       // *- -- Cq1_temp(1-3)  =[Aqo2]
 
@@ -807,22 +793,22 @@ void ChLinkLock::UpdateState ()
     Cq2_temp->PasteMatrix(&CqxT,0,0);       // -- *- Cq2_temp(1-3)  =-[Aqo2]
 
 
-    mtemp1.MatrMultiply(CqxT, *Body1->GetA());
-    mtemp2.MatrMultiply(mtemp1,P1star);
+    mtemp1.MatrMultiply(CqxT, Body1->GetA());
+    mtemp2.MatrMultiply(mtemp1, P1star);
 
     CqxR.MatrMultiply   (mtemp2, body1Gl);
 
-    Cq1_temp->PasteMatrix(&CqxR,0,3);       // -* -- Cq1_temp(4-7)
+    Cq1_temp->PasteMatrix(&CqxR, 0,3);       // -* -- Cq1_temp(4-7)
 
 
     CqxT.MatrNeg();
-    mtemp1.MatrMultiply(CqxT,*Body2->GetA());
+    mtemp1.MatrMultiply(CqxT, Body2->GetA());
     mtemp2.MatrMultiply(mtemp1,Q2star);
     CqxR.MatrMultiply   (mtemp2, body2Gl);
     Cq2_temp->PasteMatrix(&CqxR,0,3);
 
-    mtemp1.CopyFromMatrixT(*marker2->GetA());
-    mtemp2.Set_X_matrix ( Body2->GetA()->MatrT_x_Vect(PQw));
+    mtemp1.CopyFromMatrixT(marker2->GetA());
+    mtemp2.Set_X_matrix ( Body2->GetA().MatrT_x_Vect(PQw));
     mtemp3.MatrMultiply (mtemp1, mtemp2);
     CqxR.MatrMultiply    (mtemp3, body2Gl);
 
@@ -857,22 +843,22 @@ void ChLinkLock::UpdateState ()
     vtemp1= Vcross ( Body1->GetWvel_loc(), Vcross(Body1->GetWvel_loc(), marker1->GetCoord().pos));
     vtemp1= Vadd (vtemp1, marker1->GetCoord_dtdt().pos);
     vtemp1= Vadd (vtemp1, Vmul (Vcross (Body1->GetWvel_loc(), marker1->GetCoord_dt().pos) , 2));
-    vtemp1= Body1->GetA()->Matr_x_Vect(vtemp1);
+    vtemp1= Body1->GetA().Matr_x_Vect(vtemp1);
 
     vtemp2= Vcross ( Body2->GetWvel_loc(), Vcross(Body2->GetWvel_loc(), marker2->GetCoord().pos));
     vtemp2= Vadd (vtemp2, marker2->GetCoord_dtdt().pos);
     vtemp2= Vadd (vtemp2, Vmul (Vcross (Body2->GetWvel_loc(), marker2->GetCoord_dt().pos) , 2));
-    vtemp2= Body2->GetA()->Matr_x_Vect(vtemp2);
+    vtemp2= Body2->GetA().Matr_x_Vect(vtemp2);
 
     vtemp1= Vsub (vtemp1, vtemp2);
     Qcx= CqxT.Matr_x_Vect (vtemp1);
 
     mtemp1.Set_X_matrix ( Body2->GetWvel_loc());
     mtemp2.MatrMultiply (mtemp1, mtemp1);
-    mtemp3.MatrMultiply (*Body2->GetA(), mtemp2);
+    mtemp3.MatrMultiply (Body2->GetA(), mtemp2);
     mtemp3.MatrTranspose();
     vtemp1=mtemp3.Matr_x_Vect(PQw);
-    vtemp2=marker2->GetA()->MatrT_x_Vect(vtemp1);  // [Aq]'[[A2][w2][w2]]'*Qpq,w
+    vtemp2=marker2->GetA().MatrT_x_Vect(vtemp1);  // [Aq]'[[A2][w2][w2]]'*Qpq,w
     Qcx= Vadd (Qcx, vtemp2);
 
     Qcx= Vadd (Qcx, q_4);             // [Adtdt]'[A]'q + 2[Adt]'[Adt]'q + 2[Adt]'[A]'qdt + 2[A]'[Adt]'qdt
@@ -909,7 +895,7 @@ void ChLinkLock::UpdateState ()
 
     ChLinkMaskLF* mmask = (ChLinkMaskLF*) this->mask;
 
-	if (mmask->Constr_X().IsActive()) // for X costraint...
+    if (mmask->Constr_X().IsActive()) // for X costraint...
     {
         Cq1->PasteClippedMatrix (Cq1_temp, 0,0, 1,7, index, 0);
         Cq2->PasteClippedMatrix (Cq2_temp, 0,0, 1,7, index, 0);
@@ -1024,69 +1010,6 @@ void ChLinkLock::UpdateState ()
         C_dtdt->SetElement(index,0, relC_dtdt.rot.e3);
 
         Ct->SetElement(index,0, Ct_temp.rot.e3);
-
-        index ++;
-    }
-
-    if (mmask->Constr_P().IsActive()) // for P (polar, conical rotation) costraint...
-    {
-        Cq1->PasteClippedMatrix (Cq1_temp, 6,3, 1,4, index, 3);
-        Cq2->PasteClippedMatrix (Cq2_temp, 6,3, 1,4, index, 3);
-
-        Qc->SetElement(index,0,
-                      Qc_temp->GetElement (6,0));
-
-        C->SetElement(index,0,      relC.rot.e3);
-        C_dt->SetElement(index,0,   relC_dt.rot.e3);
-        C_dtdt->SetElement(index,0, relC_dtdt.rot.e3);
-
-        Ct->SetElement(index,0, Ct_temp.rot.e3);
-
-        index ++;
-    }
-
-    if (mmask->Constr_D().IsActive()) // for D (distance costraint)
-    {
-        ChMatrixNM<double,3,7> Cq1tmp;
-        ChMatrixNM<double,3,7> Cq2tmp;
-        ChMatrixNM<double,1,7> Cq1d;
-        ChMatrixNM<double,1,7> Cq2d;
-        ChMatrixNM<double,3,1> mfact;
-        double mQd;
-
-        ChVector<> vfact;
-        vfact= Vnorm(relM.pos);
-        mfact.PasteVector(vfact,0,0);
-
-        Cq1tmp.PasteClippedMatrix (Cq1_temp, 0,0, 3,7, 0,0);
-        Cq2tmp.PasteClippedMatrix (Cq2_temp, 0,0, 3,7, 0,0);
-                // Cq= (1/||relM||)*relM'*Cq_lock
-        Cq1d.MatrTMultiply(mfact,Cq1tmp);
-        Cq2d.MatrTMultiply(mfact,Cq2tmp);
-
-        Cq1->PasteClippedMatrix (&Cq1d, 0,0, 1,7, index, 0);
-        Cq2->PasteClippedMatrix (&Cq2d, 0,0, 1,7, index, 0);
-
-        ChVector<> Qvect;
-        Qvect.x = Qc_temp->GetElement(0,0);
-        Qvect.y = Qc_temp->GetElement(1,0);
-        Qvect.z = Qc_temp->GetElement(2,0);
-
-        Qvect = Vsub (Qvect, deltaC_dtdt.pos); // cut away effect of xyz deltas
-        mQd = Vdot (vfact, Qvect);
-        mQd = mQd - (1/Vlength(relM.pos))*Vdot(relM_dt.pos, relM_dt.pos);
-        double sq_q = Vdot(relM_dt.pos, relM.pos); sq_q = sq_q*sq_q;
-        mQd = mQd + (1/Vlength(relM.pos))*Vdot(relM.pos, relM.pos)*sq_q;
-        mQd = mQd + deltaC_dtdt.pos.x;
-
-        Qc->SetElement(index,0, mQd);
-
-        C->SetElement(index,0,      (Vlength(relM.pos)-deltaC.pos.x));
-        C_dt->SetElement(index,0,   ((Vdot(relM_dt.pos,   Vnorm(relM.pos)))-deltaC_dt.pos.x));
-        C_dtdt->SetElement(index,0, ((Vdot(relM_dtdt.pos, Vnorm(relM.pos)))-deltaC_dtdt.pos.x));
-
-        Ct->SetElement(index,0,
-                      Vdot(vfact,Ct_temp.pos));
 
         index ++;
     }
@@ -1476,71 +1399,116 @@ void ChLinkLock::ConstraintsLoadJacobians()
 
 void ChLinkLock::ConstraintsFetch_react(double factor)
 {
-	// parent (from ChConstraint objects to react vector)
-	ChLinkMasked::ConstraintsFetch_react(factor);
+  // parent (from ChConstraint objects to react vector)
+  ChLinkMasked::ConstraintsFetch_react(factor);
 
-	// from react vector to the 'intuitive' react_force and react_torque
-	ChLinkMaskLF* mmask = (ChLinkMaskLF*) this->mask;
-	int n_costraint = 0;
+  // From react vector to the 'intuitive' react_force and react_torque
+  const ChQuaternion<>& q2 = Body2->GetRot();
+  const ChQuaternion<>& q1p = marker1->GetAbsCoord().rot;
+  const ChQuaternion<>& qs = marker2->GetCoord().rot;
+  const ChMatrix33<>& Cs = marker2->GetA();
 
-	if (mmask->Constr_X().IsActive()) {
-        react_force.x = - react->GetElement(n_costraint, 0);
-        n_costraint++ ; }
-    if (mmask->Constr_Y().IsActive()) {
-        react_force.y = - react->GetElement(n_costraint, 0);
-        n_costraint++ ; }
-    if (mmask->Constr_Z().IsActive()) {
-        react_force.z = - react->GetElement(n_costraint, 0);
-        n_costraint++ ; }
-    if (mmask->Constr_E1().IsActive()) {
-        react_torque.x = - 0.5* (react->GetElement(n_costraint, 0));
-        n_costraint++ ; }
-    if (mmask->Constr_E2().IsActive()) {
-        react_torque.y = - 0.5* (react->GetElement(n_costraint, 0));
-        n_costraint++ ; }
-    if (mmask->Constr_E3().IsActive()) {
-        react_torque.z = - 0.5* (react->GetElement(n_costraint, 0));
-        n_costraint++ ; }
-    if (mmask->Constr_P().IsActive()) {
-        react_torque.z = - 0.5* (react->GetElement(n_costraint, 0));
-        n_costraint++ ; }
-    if (mmask->Constr_D().IsActive()) {
-        react_force  = Vadd (react_force,
-            Vmul (Vnorm(relM.pos),- (react->GetElement(n_costraint, 0))));
-        n_costraint++ ; }
+  ChMatrixNM<double,3,4> Gl_q2;
+  Body1->SetMatrix_Gl(Gl_q2, q2);
+
+  ChMatrixNM<double,4,4> Chi__q1p_barT; //[Chi] * [transpose(bar(q1p))]
+  Chi__q1p_barT(0,0)=  q1p.e0;  Chi__q1p_barT(0,1)=  q1p.e1;  Chi__q1p_barT(0,2)=  q1p.e2;  Chi__q1p_barT(0,3)=  q1p.e3;
+  Chi__q1p_barT(1,0)=  q1p.e1;  Chi__q1p_barT(1,1)= -q1p.e0;  Chi__q1p_barT(1,2)=  q1p.e3;  Chi__q1p_barT(1,3)= -q1p.e2;
+  Chi__q1p_barT(2,0)=  q1p.e2;  Chi__q1p_barT(2,1)= -q1p.e3;  Chi__q1p_barT(2,2)= -q1p.e0;  Chi__q1p_barT(2,3)=  q1p.e1;
+  Chi__q1p_barT(3,0)=  q1p.e3;  Chi__q1p_barT(3,1)=  q1p.e2;  Chi__q1p_barT(3,2)= -q1p.e1;  Chi__q1p_barT(3,3)= -q1p.e0;
+
+  ChMatrixNM<double,4,4> qs_tilde;
+  qs_tilde(0,0)=  qs.e0;  qs_tilde(0,1)= -qs.e1;  qs_tilde(0,2)= -qs.e2;  qs_tilde(0,3)= -qs.e3;
+  qs_tilde(1,0)=  qs.e1;  qs_tilde(1,1)=  qs.e0;  qs_tilde(1,2)= -qs.e3;  qs_tilde(1,3)=  qs.e2;
+  qs_tilde(2,0)=  qs.e2;  qs_tilde(2,1)=  qs.e3;  qs_tilde(2,2)=  qs.e0;  qs_tilde(2,3)= -qs.e1;
+  qs_tilde(3,0)=  qs.e3;  qs_tilde(3,1)= -qs.e2;  qs_tilde(3,2)=  qs.e1;  qs_tilde(3,3)=  qs.e0;
+
+  // Ts = 0.5*CsT*G(q2)*Chi*(q1 qp)_barT*qs~*KT*lambda
+  ChMatrixNM<double,3,4> Ts;
+  ChMatrixNM<double,3,4> Temp;  //temp matrix since MatrMultiply overwrites "this" during the calculation.  i.e. Ts.MatrMultiply(Ts,A) ~= Ts=[Ts]*[A]
+
+  Ts.MatrTMultiply(Cs, Gl_q2);
+  Ts.MatrScale(0.25);
+  Temp.MatrMultiply(Ts, Chi__q1p_barT);
+  Ts.MatrMultiply(Temp, qs_tilde);
+
+  // Translational constraint reaction force = -lambda_translational
+  // Translational constraint reaction torque = -d~''(t)*lambda_translational
+  // No reaction force from the rotational constraints
+  ChLinkMaskLF* mmask = static_cast<ChLinkMaskLF*>(mask);
+  int n_constraint = 0;
+
+  if (mmask->Constr_X().IsActive()) {
+    react_force.x = -react->GetElement(n_constraint, 0);
+    react_torque.y = -relM.pos.z * react->GetElement(n_constraint, 0);
+    react_torque.z = relM.pos.y * react->GetElement(n_constraint, 0);
+    n_constraint++;
+  }
+  if (mmask->Constr_Y().IsActive()) {
+    react_force.y = -react->GetElement(n_constraint, 0);
+    react_torque.x = relM.pos.z * react->GetElement(n_constraint, 0);
+    react_torque.z += -relM.pos.x * react->GetElement(n_constraint, 0);
+    n_constraint++;
+  }
+  if (mmask->Constr_Z().IsActive()) {
+    react_force.z = -react->GetElement(n_constraint, 0);
+    react_torque.x += -relM.pos.y * react->GetElement(n_constraint, 0);
+    react_torque.y += relM.pos.x * react->GetElement(n_constraint, 0);
+    n_constraint++;
+  }
+
+  if (mmask->Constr_E1().IsActive()) {
+    react_torque.x += Ts(0, 1) * (react->GetElement(n_constraint, 0));
+    react_torque.y += Ts(1, 1) * (react->GetElement(n_constraint, 0));
+    react_torque.z += Ts(2, 1) * (react->GetElement(n_constraint, 0));
+    n_constraint++;
+  }
+  if (mmask->Constr_E2().IsActive()) {
+    react_torque.x += Ts(0, 2) * (react->GetElement(n_constraint, 0));
+    react_torque.y += Ts(1, 2) * (react->GetElement(n_constraint, 0));
+    react_torque.z += Ts(2, 2) * (react->GetElement(n_constraint, 0));
+    n_constraint++;
+  }
+  if (mmask->Constr_E3().IsActive()) {
+    react_torque.x += Ts(0, 3) * (react->GetElement(n_constraint, 0));
+    react_torque.y += Ts(1, 3) * (react->GetElement(n_constraint, 0));
+    react_torque.z += Ts(2, 3) * (react->GetElement(n_constraint, 0));
+    n_constraint++;
+  }
 
     // ***TO DO***?: TRASFORMATION FROM delta COORDS TO LINK COORDS, if non-default delta
     // if delta rotation?
 
-	// add also the contribute from link limits to the 'intuitive' react_force and 'react_torque'.
-	if (limit_X && limit_X->Get_active()) {
-		react_force.x -= factor*limit_X->constr_lower.Get_l_i();
-		react_force.x += factor*limit_X->constr_upper.Get_l_i();
-		}
-	if (limit_Y && limit_Y->Get_active()) {
-		react_force.y -= factor*limit_Y->constr_lower.Get_l_i();
-		react_force.y += factor*limit_Y->constr_upper.Get_l_i();
-		}
-	if (limit_Z && limit_Z->Get_active()) {
-		react_force.z -= factor*limit_Z->constr_lower.Get_l_i();
-		react_force.z += factor*limit_Z->constr_upper.Get_l_i();
-		}
-	if (limit_Rx && limit_Rx->Get_active()) {
-		react_torque.x -=  0.5*factor*limit_Rx->constr_lower.Get_l_i();
-		react_torque.x +=  0.5*factor*limit_Rx->constr_upper.Get_l_i();
-		}
-	if (limit_Ry && limit_Ry->Get_active()) {
-		react_torque.y -=  0.5*factor*limit_Ry->constr_lower.Get_l_i();
-		react_torque.y +=  0.5*factor*limit_Ry->constr_upper.Get_l_i();
-		}
-	if (limit_Rz && limit_Rz->Get_active()) {
-		react_torque.z -=  0.5*factor*limit_Rz->constr_lower.Get_l_i();
-		react_torque.z +=  0.5*factor*limit_Rz->constr_upper.Get_l_i();
-		}
-    // the internal forces add their contribute to the reactions
-    // NOT NEEDED?, since C_force and react_force must stay separated???
-    //react_force  = Vadd(react_force, C_force);
-    //react_torque = Vadd(react_torque, C_torque);
+  // add also the contribution from link limits to the react_force and react_torque.
+  if (limit_X && limit_X->Get_active()) {
+    react_force.x -= factor * limit_X->constr_lower.Get_l_i();
+    react_force.x += factor * limit_X->constr_upper.Get_l_i();
+  }
+  if (limit_Y && limit_Y->Get_active()) {
+    react_force.y -= factor * limit_Y->constr_lower.Get_l_i();
+    react_force.y += factor * limit_Y->constr_upper.Get_l_i();
+  }
+  if (limit_Z && limit_Z->Get_active()) {
+    react_force.z -= factor * limit_Z->constr_lower.Get_l_i();
+    react_force.z += factor * limit_Z->constr_upper.Get_l_i();
+  }
+  if (limit_Rx && limit_Rx->Get_active()) {
+    react_torque.x -= 0.5 * factor * limit_Rx->constr_lower.Get_l_i();
+    react_torque.x += 0.5 * factor * limit_Rx->constr_upper.Get_l_i();
+  }
+  if (limit_Ry && limit_Ry->Get_active()) {
+    react_torque.y -= 0.5 * factor * limit_Ry->constr_lower.Get_l_i();
+    react_torque.y += 0.5 * factor * limit_Ry->constr_upper.Get_l_i();
+  }
+  if (limit_Rz && limit_Rz->Get_active()) {
+    react_torque.z -= 0.5 * factor * limit_Rz->constr_lower.Get_l_i();
+    react_torque.z += 0.5 * factor * limit_Rz->constr_upper.Get_l_i();
+  }
+
+  // the internal forces add their contribute to the reactions
+  // NOT NEEDED?, since C_force and react_force must stay separated???
+  // react_force  = Vadd(react_force, C_force);
+  // react_torque = Vadd(react_torque, C_torque);
 }
 
 
