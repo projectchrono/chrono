@@ -245,6 +245,14 @@ public:
 		commandfile += "] \n";
 	}
 
+		/// Shortcut to add title
+	void SetTitle(const char* mlabel)
+	{
+		commandfile += "set title \"";
+		commandfile += mlabel;
+		commandfile += "\" \n";
+	}
+
 		/// Shortcut to add a label on axis
 	void SetLabelX(const char* mlabel)
 	{
