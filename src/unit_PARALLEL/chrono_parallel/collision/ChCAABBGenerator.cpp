@@ -191,6 +191,8 @@ __device__ __host__ void function_ComputeAABB(const uint& index,
     ComputeAABBBox(B_, A, position, obj_data_R[index], body_rot[id], temp_min, temp_max);
   } else if (type == CONVEX) {
     ComputeAABBConvex(convex_points, B, A, position, rotation, temp_min, temp_max);
+    temp_min -= collision_envelope;
+    temp_max += collision_envelope;
   } else {
     return;
   }
