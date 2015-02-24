@@ -36,6 +36,7 @@
 #include "printToFile.cuh"
 #include <algorithm>
 
+#include <omp.h>
 //*************************************************************
 			//#include "physics/ChBodyEasy.h"
 			#include "physics/ChContactContainer.h"
@@ -79,7 +80,7 @@
 			using namespace std;
 
 
-			#define irrlichtVisualization true
+			#define irrlichtVisualization false
 			#if irrlichtVisualization
 			shared_ptr<ChIrrApp> application;
 			#endif
@@ -141,7 +142,7 @@ void SetArgumentsForMbdFromInput(int argc, char* argv[], int & threads, uint & m
 
 void InitializeMbdPhysicalSystem(ChSystemParallelDVI & mphysicalSystem, int argc, char* argv[]) {
 	int threads = 2;
-	uint max_iteration = 1000;//10000;
+	uint max_iteration = 20;//10000;
 	SetArgumentsForMbdFromInput(argc, argv, threads, max_iteration);
 	//******************** OMP settings **************
 	// Set number of threads.
@@ -299,7 +300,8 @@ void AddSphDataToChSystem(
 
 
 	startIndexSph = mphysicalSystem.GetNbodiesTotal();
-	// use openmp
+
+	// openmp does not work here
 	for (int i = 0; i < numObjects.numAllMarkers; i++) {
 		Real3 p3 = posRadH[i];
 		Real4 vM4 = velMasH[i];
@@ -349,16 +351,18 @@ void UpdateSphDataInChSystem(
 		ChSystemParallelDVI& mphysicalSystem,
 		const thrust::host_vector<Real3> & posRadH,
 		const thrust::host_vector<Real4> & velMasH,
+		const NumberOfObjects & numObjects,
 		int  startIndexSph) {
 
-	// openmp potential
+	#pragma omp parallel for
 	for (int i = 0; i < numObjects.numAllMarkers; i++) {
 		Real3 p3 = posRadH[i];
 		Real4 vM4 = velMasH[i];
 		ChVector<> pos = ChVector<>(p3.x, p3.y, p3.z);
 		ChVector<> vel = ChVector<>(vM4.x, vM4.y, vM4.z);
 
-		vector<ChBody*>::iterator ibody = mphysicalSystem.Get_bodylist()->begin() + i;
+		int chSystemBodyId = startIndexSph + i;
+		vector<ChBody*>::iterator ibody = mphysicalSystem.Get_bodylist()->begin() + chSystemBodyId;
 		(*ibody)->SetPos(pos);
 		(*ibody)->SetPos(vel);
 	}
@@ -428,6 +432,12 @@ int DoStepChronoSystem(ChSystemParallelDVI& mphysicalSystem, Real dT) {
 #endif
 #endif
 		return 1;
+}
+
+void AddChSystemForcesToSphForces(
+		thrust::device_vector<Real4>  & derivVelRhoD,
+		const ChSystemParallelDVI& mphysicalSystem) {
+
 }
 
 void SavePovFilesMBD(ChSystemParallelDVI& mphysicalSystem, int tStep) {
@@ -746,6 +756,7 @@ int main(int argc, char* argv[]) {
 
 	// set num objects
 	SetNumObjects(numObjects, referenceArray, numAllMarkers);
+	assert(posRadH.size() == numObjects.numAllMarkers && "numObjects is not set correctly");
 	if (numObjects.numAllMarkers == 0) {
 		ClearArraysH(posRadH, velMasH, rhoPresMuH, bodyIndex, referenceArray);
 		return 0;
@@ -795,7 +806,7 @@ int main(int argc, char* argv[]) {
 
 	int counter = -1;
 //	while(mphysicalSystem.GetChTime() < timeMove+timePause) //arman modify
-	while(true) //arman modify
+	while(false) //arman modify
 	{
 		myTimerStep.start();
 		counter ++;
@@ -807,26 +818,6 @@ int main(int argc, char* argv[]) {
 //		if (write_povray_data) {
 //			SavePovFilesMBD(mphysicalSystem, counter);
 //		}
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 		myTimerStep.stop();
 		myTimerTotal.stop();
@@ -874,9 +865,9 @@ int main(int argc, char* argv[]) {
 		InitSystem(currentParamsH, numObjects);
 
 		// ** initialize host mid step data
-		thrust::host_vector<Real3> posRadH2 = posRadH;
-		thrust::host_vector<Real4> velMasH2 = velMasH;
-		thrust::host_vector<Real4> rhoPresMuH2 = rhoPresMuH;
+		thrust::host_vector<Real3> posRadH2(numObjects.numAllMarkers); // Arman: no need for copy
+		thrust::host_vector<Real4> velMasH2(numObjects.numAllMarkers);
+		thrust::host_vector<Real4> rhoPresMuH2(numObjects.numAllMarkers);
 		// ** initialize device mid step data
 		thrust::device_vector<Real3> posRadD2 = posRadD;
 		thrust::device_vector<Real4> velMasD2 = velMasD;
@@ -887,11 +878,29 @@ int main(int argc, char* argv[]) {
 
 		FillMyThrust4(derivVelRhoD, mR4(0));
 
-		IntegrateSPH(posRadD2, velMasD2, rhoPresMuD2, posRadD, velMasD, vel_XSPH_D, rhoPresMuD, bodyIndexD, derivVelRhoD, referenceArray, numObjects, currentParamsH, 0.5 * currentParamsH.dT);
-		CopyD2H(posRadH2, velMasH2, rhoPresMuH2, posRadD2, velMasD2, rhoPresMuD2);
-		IntegrateSPH(posRadD, velMasD, rhoPresMuD, posRadD2, velMasD2, vel_XSPH_D, rhoPresMuD2, bodyIndexD, derivVelRhoD, referenceArray, numObjects, currentParamsH, currentParamsH.dT);
-		CopyD2H(posRadH, velMasH, rhoPresMuH, posRadD, velMasD, rhoPresMuD);
 
+		ForceSPH(posRadD, velMasD, vel_XSPH_D, rhoPresMuD, bodyIndexD, derivVelRhoD, referenceArray, numObjects, currentParamsH, 0.5 * currentParamsH.dT); //?$ right now, it does not consider paramsH.gravity or other stuff on rigid bodies. they should be applied at rigid body solver
+		DoStepChronoSystem(mphysicalSystem, 0.5 * currentParamsH.dT);
+		AddChSystemForcesToSphForces(derivVelRhoD, mphysicalSystem);
+		UpdateFluid(posRadD2, velMasD2, vel_XSPH_D, rhoPresMuD2, derivVelRhoD, referenceArray, 0.5 * currentParamsH.dT); //assumes ...D2 is a copy of ...D
+		ApplyBoundarySPH_Markers(posRadD2, rhoPresMuD2, numObjects.numAllMarkers);
+
+		CopyD2H(posRadH2, velMasH2, rhoPresMuH2, posRadD2, velMasD2, rhoPresMuD2);
+		UpdateSphDataInChSystem(mphysicalSystem, posRadH2, velMasH2, numObjects, startIndexSph);
+
+		ForceSPH(posRadD2, velMasD2, vel_XSPH_D, rhoPresMuD2, bodyIndexD, derivVelRhoD, referenceArray, numObjects, currentParamsH, currentParamsH.dT); //?$ right now, it does not consider paramsH.gravity or other stuff on rigid bodies. they should be applied at rigid body solver
+		DoStepChronoSystem(mphysicalSystem, 0.5 * currentParamsH.dT);
+		AddChSystemForcesToSphForces(derivVelRhoD, mphysicalSystem);
+		UpdateFluid(posRadD, velMasD, vel_XSPH_D, rhoPresMuD, derivVelRhoD, referenceArray, currentParamsH.dT); //assumes ...D2 is a copy of ...D
+		ApplyBoundarySPH_Markers(posRadD, rhoPresMuD, numObjects.numAllMarkers);
+
+		CopyD2H(posRadH, velMasH, rhoPresMuH, posRadD, velMasD, rhoPresMuD);
+		UpdateSphDataInChSystem(mphysicalSystem, posRadH, velMasH, numObjects, startIndexSph);
+
+//		IntegrateSPH(posRadD2, velMasD2, rhoPresMuD2, posRadD, velMasD, vel_XSPH_D, rhoPresMuD, bodyIndexD, derivVelRhoD, referenceArray, numObjects, currentParamsH, 0.5 * currentParamsH.dT);
+//		CopyD2H(posRadH2, velMasH2, rhoPresMuH2, posRadD2, velMasD2, rhoPresMuD2);
+//		IntegrateSPH(posRadD, velMasD, rhoPresMuD, posRadD2, velMasD2, vel_XSPH_D, rhoPresMuD2, bodyIndexD, derivVelRhoD, referenceArray, numObjects, currentParamsH, currentParamsH.dT);
+//		CopyD2H(posRadH, velMasH, rhoPresMuH, posRadD, velMasD, rhoPresMuD);
 
 		ClearArraysH(posRadH2, velMasH2, rhoPresMuH2);
 		ClearMyThrustR3(posRadD2);
@@ -902,9 +911,12 @@ int main(int argc, char* argv[]) {
 
 		mCpuTimer.Stop();
 		myGpuTimer.Stop();
-		if (tStep % 50 == 0) {
+		if (tStep % 2 == 0) {
 			printf("step: %d, realTime: %f, step Time (CUDA): %f, step Time (CPU): %f\n ", tStep, realTime, (Real)myGpuTimer.Elapsed(), 1000 * mCpuTimer.Elapsed());
 		}
+//		if (write_povray_data) {
+//			SavePovFilesMBD(mphysicalSystem, tStep);
+//		}
 		fflush(stdout);
 		realTime += currentParamsH.dT;
 	}
