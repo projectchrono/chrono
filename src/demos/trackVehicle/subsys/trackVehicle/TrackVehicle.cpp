@@ -19,6 +19,7 @@
 // =============================================================================
 
 #include <cstdio>
+#include <algorithm>
 
 #include "physics/ChGlobal.h"
 

@@ -18,6 +18,7 @@
 // =============================================================================
 
 #include <cstdio>
+#include <algorithm>
 
 #include "assets/ChCylinderShape.h"
 #include "assets/ChTriangleMeshShape.h"

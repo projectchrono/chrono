@@ -16,7 +16,7 @@
 //
 // =============================================================================
 
-// #include <algorithm>
+#include <algorithm>
 
 #include "ChTrackVehicle.h"
 
