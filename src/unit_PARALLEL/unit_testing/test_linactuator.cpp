@@ -61,7 +61,7 @@ bool VerifySolution(double time,                                 // current time
   double aacc_tol = 1e-5;
 
   double rforce_tol = 1e-5;
-  double rtorque_tol = 1e-5;
+  double rtorque_tol = 5e-3;
 
   double cnstr_tol = 1e-10;
 
@@ -156,8 +156,10 @@ bool VerifySolution(double time,                                 // current time
     return false;
   }
 
-  ChVector<> rtorqueP_an = ChVector<>(0, 0, 0);
-  ChVector<> rtorqueP_delta = rtorqueP - rtorqueP_an;
+  // The reaction torque at the joint location on ground has a non-zero
+  // component in the y direction only.
+  ChVector<> rtorqueP_an = Vcross(pos_an, rforceP_an);
+  ChVector<> rtorqueP_delta = rtorqueP_ground - rtorqueP_an;
   if (rtorqueP_delta.Length() > rtorque_tol) {
     std::cout << "   at t = " << time << "   rtorqueP - rtorqueP_an = " << rtorqueP_delta.x << "  " << rtorqueP_delta.y
               << "  " << rtorqueP_delta.z << std::endl;
