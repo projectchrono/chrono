@@ -704,6 +704,18 @@ protected:
 				/// From state Y={x,v} to system.
 	virtual void StateScatter(const ChState& x, const ChStateDelta& v, const double T);
 
+				/// From system to state derivative (acceleration), some timesteppers might need last computed accel.  
+	virtual void StateGatherAcceleration(ChStateDelta& a);
+
+				/// From state derivative (acceleration) to system, sometimes might be needed
+	virtual void StateScatterAcceleration(const ChStateDelta& a);
+
+				/// From system to reaction forces (last computed) - some timestepper might need this
+	virtual void StateGatherReactions(ChVectorDynamic<>& L);
+
+				/// From reaction forces to system, ex. store last computed reactions in ChLink objects for plotting etc.
+	virtual void StateScatterReactions(const ChVectorDynamic<>& L);
+
 				/// Perform x_new = x + dx    for x in    Y = {x, dx/dt}
 				/// It takes care of the fact that x has quaternions, dx has angular vel etc.
 				/// NOTE: the system is not updated automatically after the state increment, so one might

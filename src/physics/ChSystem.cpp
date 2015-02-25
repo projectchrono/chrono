@@ -1874,6 +1874,94 @@ void ChSystem::StateScatter(const ChState& x, const ChStateDelta& v, const doubl
 	this->Update(); //***TODO*** optimize because maybe IntStateScatter above might have already called Update?
 }
 
+/// From system to state derivative (acceleration), some timesteppers might need last computed accel.  
+void ChSystem::StateGatherAcceleration(ChStateDelta& a)
+{
+	for (unsigned int ip = 0; ip < bodylist.size(); ++ip)  // ITERATE on bodies
+	{
+		ChBody* Bpointer = bodylist[ip];
+		if(Bpointer->IsActive())
+			Bpointer->IntStateGatherAcceleration(Bpointer->GetOffset_w(), a);
+	}
+	for (unsigned int ip = 0; ip < otherphysicslist.size(); ++ip)  // ITERATE on other physics
+	{
+		ChPhysicsItem* PHpointer = otherphysicslist[ip];
+		PHpointer->IntStateGatherAcceleration(PHpointer->GetOffset_w(), a);
+	}
+	for (unsigned int ip = 0; ip < linklist.size(); ++ip)  // ITERATE on links
+	{
+		ChLink* Lpointer = linklist[ip];
+		if(Lpointer->IsActive())
+			Lpointer->IntStateGatherAcceleration(Lpointer->GetOffset_w(), a);
+	}
+}
+
+/// From state derivative (acceleration) to system, sometimes might be needed
+void ChSystem::StateScatterAcceleration(const ChStateDelta& a)
+{
+	for (unsigned int ip = 0; ip < bodylist.size(); ++ip)  // ITERATE on bodies
+	{
+		ChBody* Bpointer = bodylist[ip];
+		if(Bpointer->IsActive())
+			Bpointer->IntStateScatterAcceleration(Bpointer->GetOffset_w(), a);
+	}
+	for (unsigned int ip = 0; ip < otherphysicslist.size(); ++ip)  // ITERATE on other physics
+	{
+		ChPhysicsItem* PHpointer = otherphysicslist[ip];
+		PHpointer->IntStateScatterAcceleration(PHpointer->GetOffset_w(), a);
+	}
+	for (unsigned int ip = 0; ip < linklist.size(); ++ip)  // ITERATE on links
+	{
+		ChLink* Lpointer = linklist[ip];
+		if(Lpointer->IsActive())
+			Lpointer->IntStateScatterAcceleration(Lpointer->GetOffset_w(), a);
+	}
+}
+
+/// From system to reaction forces (last computed) - some timestepper might need this
+void ChSystem::StateGatherReactions(ChVectorDynamic<>& L)
+{
+	for (unsigned int ip = 0; ip < bodylist.size(); ++ip)  // ITERATE on bodies
+	{
+		ChBody* Bpointer = bodylist[ip];
+		if(Bpointer->IsActive())
+			Bpointer->IntStateGatherReactions(Bpointer->GetOffset_L(), L);
+	}
+	for (unsigned int ip = 0; ip < otherphysicslist.size(); ++ip)  // ITERATE on other physics
+	{
+		ChPhysicsItem* PHpointer = otherphysicslist[ip];
+		PHpointer->IntStateGatherReactions(PHpointer->GetOffset_L(), L);
+	}
+	for (unsigned int ip = 0; ip < linklist.size(); ++ip)  // ITERATE on links
+	{
+		ChLink* Lpointer = linklist[ip];
+		if(Lpointer->IsActive())
+			Lpointer->IntStateGatherReactions(Lpointer->GetOffset_L(), L);
+	}
+}
+
+/// From reaction forces to system, ex. store last computed reactions in ChLink objects for plotting etc.
+void ChSystem::StateScatterReactions(const ChVectorDynamic<>& L)
+{
+	for (unsigned int ip = 0; ip < bodylist.size(); ++ip)  // ITERATE on bodies
+	{
+		ChBody* Bpointer = bodylist[ip];
+		if(Bpointer->IsActive())
+			Bpointer->IntStateScatterReactions(Bpointer->GetOffset_L(), L);
+	}
+	for (unsigned int ip = 0; ip < otherphysicslist.size(); ++ip)  // ITERATE on other physics
+	{
+		ChPhysicsItem* PHpointer = otherphysicslist[ip];
+		PHpointer->IntStateScatterReactions(PHpointer->GetOffset_L(), L);
+	}
+	for (unsigned int ip = 0; ip < linklist.size(); ++ip)  // ITERATE on links
+	{
+		ChLink* Lpointer = linklist[ip];
+		if(Lpointer->IsActive())
+			Lpointer->IntStateScatterReactions(Lpointer->GetOffset_L(), L);
+	}
+}
+
 /// Perform x_new = x + dx    for x in    Y = {x, dx/dt}
 /// It takes care of the fact that x has quaternions, dx has angular vel etc.
 /// NOTE: the system is not updated automatically after the state increment, so one might
