@@ -64,6 +64,21 @@ class  ChApi ChIntegrable
 			/// if so, this function must be overridden. 
 	virtual void StateScatter(const ChState& y, const double T) {};
 
+
+
+			/// Optional: the integrable object might contain last computed state derivative, some integrators might reuse it.
+	virtual void StateGatherDerivative(ChStateDelta& Dydt) {};
+
+			/// Optional: the integrable object might need to store last computed state derivative, ex. for plotting etc.
+	virtual void StateScatterDerivative(const ChStateDelta& Dydt) {};
+
+			/// Optional: the integrable object might contain lagrangian multipliers (reaction in constraints)
+	virtual void StateGatherReactions(ChVectorDynamic<>& L) {};
+
+			/// Optional: the integrable object might contain lagrangian multipliers (reaction in constraints)
+	virtual void StateScatterReactions(const ChVectorDynamic<>& L) {};
+
+
 			/// dy/dt = f(y,t)
 			/// Given current state y , computes the state derivative dy/dt and
 			/// lagrangian multipliers L (if any). 
@@ -251,6 +266,14 @@ public:
 	/// if so, this function must be overridden. 
 	virtual void StateScatter(const ChState& x, const ChStateDelta& v, const double T) {};
 	
+
+
+	/// Optional: the integrable object might contain last computed state derivative, some integrators might use it.
+	virtual void StateGatherAcceleration(ChStateDelta& a) {};
+
+	/// Optional: the integrable object might contain last computed state derivative, some integrators might use it.
+	virtual void StateScatterAcceleration(const ChStateDelta& a) {};
+
 
 	/// a = f(x,v,t)
 	/// Given current state y={x,v} , computes acceleration a in the state derivative dy/dt={v,a} and
@@ -451,6 +474,32 @@ public:
 		mv.PasteClippedMatrix(&y, GetNcoords_x(), 0, GetNcoords_v(), 1, 0, 0);
 		this->StateScatter(mx, mv, T);
 	};
+
+	/// The integrable object might contain last computed state derivative, some integrators might reuse it.
+	/// (overrides base - just a fallback to enable using with plain 1st order timesteppers)
+	/// PERFORMANCE WARNING! temporary vectors allocated on heap. This is only to support 
+	/// compatibility with 1st order integrators.
+	virtual void StateGatherDerivative(ChStateDelta& Dydt) 
+	{
+		ChStateDelta mv(GetNcoords_v(), Dydt.GetIntegrable());
+		ChStateDelta ma(GetNcoords_v(), Dydt.GetIntegrable());
+		this->StateGatherAcceleration(ma);
+		Dydt.PasteMatrix(&mv, 0, 0);
+		Dydt.PasteMatrix(&ma, GetNcoords_v(), 0);
+	};
+
+	/// The integrable object might need to store last computed state derivative, ex. for plotting etc.
+	/// NOTE! the velocity in dsdt={v,a} is not scattered to the II order integrable, only acceleration is scattered!
+	/// (overrides base - just a fallback to enable using with plain 1st order timesteppers)
+	/// PERFORMANCE WARNING! temporary vectors allocated on heap. This is only to support 
+	/// compatibility with 1st order integrators.
+	virtual void StateScatterDerivative(const ChStateDelta& Dydt)
+	{
+		ChStateDelta ma(GetNcoords_v(), Dydt.GetIntegrable());
+		ma.PasteClippedMatrix(&Dydt, GetNcoords_v(), 0, GetNcoords_v(), 1, 0, 0);
+		this->StateScatterAcceleration(ma);
+	}
+
 
 	/// Perform y_new = y + Dy
 	/// This is a base implementation that works in many cases. 
