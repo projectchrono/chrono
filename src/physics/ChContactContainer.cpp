@@ -352,6 +352,45 @@ void ChContactContainer::ReportAllContacts(ChReportContactCallback* mcallback)
 
 ////////// STATE INTERFACE ////
 
+
+void ChContactContainer::IntStateGatherReactions(const unsigned int off_L,	ChVectorDynamic<>& L)
+{
+	int coffset = 0;
+	std::list<ChContact*>::iterator itercontact = contactlist.begin();
+	while(itercontact != contactlist.end())
+	{
+		(*itercontact)->ContIntStateGatherReactions(off_L+coffset, L);
+		coffset +=3;
+		++itercontact;
+	}
+	std::list<ChContactRolling*>::iterator itercontact_roll = contactlist_roll.begin();
+	while(itercontact_roll != contactlist_roll.end())
+	{
+		(*itercontact_roll)->ContIntStateGatherReactions(off_L+coffset, L);
+		coffset +=6;
+		++itercontact_roll;
+	}
+}
+
+void ChContactContainer::IntStateScatterReactions(const unsigned int off_L,	const ChVectorDynamic<>& L)
+{
+	int coffset = 0;
+	std::list<ChContact*>::iterator itercontact = contactlist.begin();
+	while(itercontact != contactlist.end())
+	{
+		(*itercontact)->ContIntStateScatterReactions(off_L+coffset, L);
+		coffset +=3;
+		++itercontact;
+	}
+	std::list<ChContactRolling*>::iterator itercontact_roll = contactlist_roll.begin();
+	while(itercontact_roll != contactlist_roll.end())
+	{
+		(*itercontact_roll)->ContIntStateScatterReactions(off_L+coffset, L);
+		coffset +=6;
+		++itercontact_roll;
+	}
+}
+
 void ChContactContainer::IntLoadResidual_CqL(
 					const unsigned int off_L,	 ///< offset in L multipliers
 					ChVectorDynamic<>& R,		 ///< result: the R residual, R += c*Cq'*L 

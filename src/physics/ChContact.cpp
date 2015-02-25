@@ -174,7 +174,20 @@ ChCoordsys<> ChContact::GetContactCoords()
 }
 
 
- 
+void ChContact::ContIntStateGatherReactions(const unsigned int off_L,	ChVectorDynamic<>& L)
+{
+	L(off_L)   = react_force.x;
+	L(off_L+1) = react_force.y;
+	L(off_L+2) = react_force.z;
+}
+
+void ChContact::ContIntStateScatterReactions(const unsigned int off_L,	const ChVectorDynamic<>& L)
+{
+	react_force.x = L(off_L);
+	react_force.y = L(off_L+1);
+	react_force.z = L(off_L+2);
+}
+
 void ChContact::ContIntLoadResidual_CqL(
 					const unsigned int off_L,	 ///< offset in L multipliers
 					ChVectorDynamic<>& R,		 ///< result: the R residual, R += c*Cq'*L 

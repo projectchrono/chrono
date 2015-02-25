@@ -150,6 +150,16 @@ public:
 		this->SetPos_dt  (v.ClipVector(off_v, 0));
 	}
 
+	virtual void NodeIntStateGatherAcceleration(const unsigned int off_a, ChStateDelta& a)
+	{
+		a.PasteVector  (this->pos_dtdt,   off_a, 0);
+	}
+
+	virtual void NodeIntStateScatterAcceleration(const unsigned int off_a, const ChStateDelta& a)
+	{
+		this->SetPos_dtdt  (a.ClipVector(off_a, 0));
+	}
+
 	virtual void NodeIntStateIncrement(const unsigned int off_x, ChState& x_new, const ChState& x,	const unsigned int off_v, const ChStateDelta& Dv)
 	{ 
 		x_new(off_x)   = x(off_x)   + Dv(off_v);

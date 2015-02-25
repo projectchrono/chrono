@@ -138,6 +138,16 @@ public:
 		this->P_dt = v(off_v);
 	}
 
+	virtual void NodeIntStateGatherAcceleration(const unsigned int off_a, ChStateDelta& a)
+	{
+		//a(off_a) = this->P_dtdt; // NOT NEEDED?
+	}
+
+	virtual void NodeIntStateScatterAcceleration(const unsigned int off_a, const ChStateDelta& a)
+	{
+		//this->P_dtdt = (a(off_a)); // NOT NEEDED?
+	}
+
 	virtual void NodeIntLoadResidual_F(const unsigned int off,	ChVectorDynamic<>& R, const double c )
 	{
 		R(off) += this->F * c;

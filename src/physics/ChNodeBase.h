@@ -76,6 +76,8 @@ public:
 
 	virtual void NodeIntStateGather(const unsigned int off_x,	ChState& x,	const unsigned int off_v, ChStateDelta& v,	double& T) {};	
 	virtual void NodeIntStateScatter(const unsigned int off_x,	const ChState& x, const unsigned int off_v,	const ChStateDelta& v,	const double T) {};
+	virtual void NodeIntStateGatherAcceleration(const unsigned int off_a, ChStateDelta& a) {};	
+	virtual void NodeIntStateScatterAcceleration(const unsigned int off_a, const ChStateDelta& a) {};
 	virtual void NodeIntStateIncrement(const unsigned int off_x, ChState& x_new, const ChState& x,	const unsigned int off_v, const ChStateDelta& Dv)
 		{
 				for (int i = 0; i< this->Get_ndof_x(); ++i)

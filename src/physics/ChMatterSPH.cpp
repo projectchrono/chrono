@@ -342,6 +342,22 @@ void ChMatterSPH::IntStateScatter(
 	this->Update();
 }
 
+void ChMatterSPH::IntStateGatherAcceleration(const unsigned int off_a, ChStateDelta& a)
+{
+	for (unsigned int j = 0; j < nodes.size(); j++)
+	{
+		a.PasteVector  (this->nodes[j]->pos_dtdt,   off_a +3*j, 0);
+	}
+}
+
+void ChMatterSPH::IntStateScatterAcceleration(const unsigned int off_a, const ChStateDelta& a)
+{
+	for (unsigned int j = 0; j < nodes.size(); j++)
+	{
+		this->nodes[j]->pos_dtdt = a.ClipVector(off_a + 3*j, 0);
+	}
+}
+
 void ChMatterSPH::IntLoadResidual_F(
 					const unsigned int off,		 ///< offset in R residual (not used here! use particle's offsets)
 					ChVectorDynamic<>& R,		 ///< result: the R residual, R += c*F 

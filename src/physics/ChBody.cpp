@@ -223,6 +223,18 @@ void ChBody::IntStateScatter(
 	this->Update();
 }
 
+void ChBody::IntStateGatherAcceleration(const unsigned int off_a, ChStateDelta& a)
+{
+	a.PasteVector  (this->coord_dtdt.pos,   off_a, 0);
+	a.PasteVector  (this->GetWacc_loc(),    off_a+3, 0);
+}
+
+void ChBody::IntStateScatterAcceleration(const unsigned int off_a, const ChStateDelta& a)
+{
+	this->SetPos_dtdt  (a.ClipVector(off_a, 0));
+	this->SetWacc_loc  (a.ClipVector(off_a+3, 0));
+}
+
 void ChBody::IntStateIncrement(
 					const unsigned int off_x,		///< offset in x state vector
 					ChState& x_new,					///< state vector, position part, incremented result

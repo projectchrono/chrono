@@ -117,6 +117,29 @@ void ChConveyor::IntStateScatter(
 	this->conveyor_plate->IntStateScatter(off_x+7, x, off_v+6, v, T);
 }
 
+void ChConveyor::IntStateGatherAcceleration(const unsigned int off_a, ChStateDelta& a)
+{
+	ChBody::IntStateGatherAcceleration(off_a,a);
+	this->conveyor_plate->IntStateGatherAcceleration(off_a+6,a);
+}
+
+void ChConveyor::IntStateScatterAcceleration(const unsigned int off_a, const ChStateDelta& a)
+{
+	ChBody::IntStateScatterAcceleration(off_a,a);
+	this->conveyor_plate->IntStateScatterAcceleration(off_a+6,a);
+}
+
+void ChConveyor::IntStateGatherReactions(const unsigned int off_L,	ChVectorDynamic<>& L)
+{
+	this->internal_link->IntStateGatherReactions(off_L, L);
+}
+
+void ChConveyor::IntStateScatterReactions(const unsigned int off_L,	const ChVectorDynamic<>& L)
+{
+	this->internal_link->IntStateScatterReactions(off_L, L);
+}
+
+
 void ChConveyor::IntStateIncrement(
 					const unsigned int off_x,		///< offset in x state vector
 					ChState& x_new,					///< state vector, position part, incremented result

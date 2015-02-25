@@ -119,6 +119,10 @@ public:
 
 	// warning, following are not virtual, for optimization
 
+	void ContIntStateGatherReactions(const unsigned int off_L,	ChVectorDynamic<>& L);	
+
+	void ContIntStateScatterReactions(const unsigned int off_L,	const ChVectorDynamic<>& L);
+
 	void ContIntLoadResidual_CqL(
 					const unsigned int off_L,	 ///< offset in L multipliers
 					ChVectorDynamic<>& R,		 ///< result: the R residual, R += c*Cq'*L 

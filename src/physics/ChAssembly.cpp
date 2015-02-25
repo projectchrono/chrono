@@ -160,6 +160,13 @@ void ChAssembly::RemoveAllLinks()
 
 //// STATE BOOKKEEPING FUNCTIONS
 
+//***TODO****
+// In the following 14 functions, there should be no need to do the 
+// local_off_x += ..pointer->GetDOF(); or local_off_v += ..pointer->GetDOF_w() or local_off_L += ..pointer->GetDOC();
+// because once the  ChAssembly::Setup() has run, all object offsets in global vectors should be already ok, and
+// one could call ..pointer->GetOffset_x()  instead of "...off_x+local_off_x", ..pointer->GetOffset_v() instead of off_v+local_off_v,
+// and ..pointer->GetOffset_L() instead of  off_L+local_off_L. To be checked.
+
 void ChAssembly::IntStateGather(
 					const unsigned int off_x,		///< offset in x state vector
 					ChState& x,						///< state vector, position part
@@ -222,6 +229,102 @@ void ChAssembly::IntStateScatter(
 		}
 	}	
 	this->SetChTime(T);
+}
+
+/// From system to state derivative (acceleration), some timesteppers might need last computed accel.  
+void ChAssembly::IntStateGatherAcceleration(const unsigned int off_a, ChStateDelta& a)
+{
+	unsigned int local_off_a=0;
+	for (unsigned int ip = 0; ip < bodylist.size(); ++ip)  // ITERATE on bodies
+	{
+		ChBody* Bpointer = bodylist[ip];
+		if(Bpointer->IsActive())
+		{
+			Bpointer->IntStateGatherAcceleration(off_a+local_off_a, a);
+			local_off_a += Bpointer->GetDOF_w();
+		}
+	}
+	for (unsigned int ip = 0; ip < linklist.size(); ++ip)  // ITERATE on links
+	{
+		ChLink* Lpointer = linklist[ip];
+		if(Lpointer->IsActive())
+		{
+			Lpointer->IntStateGatherAcceleration(off_a+local_off_a, a);
+			local_off_a += Lpointer->GetDOF_w();
+		}
+	}
+}
+
+/// From state derivative (acceleration) to system, sometimes might be needed
+void ChAssembly::IntStateScatterAcceleration(const unsigned int off_a, const ChStateDelta& a)
+{
+	unsigned int local_off_a=0;
+	for (unsigned int ip = 0; ip < bodylist.size(); ++ip)  // ITERATE on bodies
+	{
+		ChBody* Bpointer = bodylist[ip];
+		if(Bpointer->IsActive())
+		{
+			Bpointer->IntStateScatterAcceleration(off_a+local_off_a, a);
+			local_off_a += Bpointer->GetDOF_w();
+		}
+	}
+	for (unsigned int ip = 0; ip < linklist.size(); ++ip)  // ITERATE on links
+	{
+		ChLink* Lpointer = linklist[ip];
+		if(Lpointer->IsActive())
+		{
+			Lpointer->IntStateScatterAcceleration(off_a+local_off_a, a);
+			local_off_a += Lpointer->GetDOF_w();
+		}
+	}
+}
+
+/// From system to reaction forces (last computed) - some timestepper might need this
+void ChAssembly::IntStateGatherReactions(const unsigned int off_L,	ChVectorDynamic<>& L)
+{
+	unsigned int local_off_L=0;
+	for (unsigned int ip = 0; ip < bodylist.size(); ++ip)  // ITERATE on bodies
+	{
+		ChBody* Bpointer = bodylist[ip];
+		if(Bpointer->IsActive())
+		{
+			Bpointer->IntStateGatherReactions(off_L+local_off_L, L);
+			local_off_L += Bpointer->GetDOC();
+		}
+	}
+	for (unsigned int ip = 0; ip < linklist.size(); ++ip)  // ITERATE on links
+	{
+		ChLink* Lpointer = linklist[ip];
+		if(Lpointer->IsActive())
+		{
+			Lpointer->IntStateGatherReactions(off_L+local_off_L, L);
+			local_off_L += Lpointer->GetDOC();
+		}
+	}
+}
+
+/// From reaction forces to system, ex. store last computed reactions in ChLink objects for plotting etc.
+void ChAssembly::IntStateScatterReactions(const unsigned int off_L,	const ChVectorDynamic<>& L)
+{
+	unsigned int local_off_L=0;
+	for (unsigned int ip = 0; ip < bodylist.size(); ++ip)  // ITERATE on bodies
+	{
+		ChBody* Bpointer = bodylist[ip];
+		if(Bpointer->IsActive())
+		{
+			Bpointer->IntStateScatterReactions(off_L+local_off_L, L);
+			local_off_L += Bpointer->GetDOC();
+		}
+	}
+	for (unsigned int ip = 0; ip < linklist.size(); ++ip)  // ITERATE on links
+	{
+		ChLink* Lpointer = linklist[ip];
+		if(Lpointer->IsActive())
+		{
+			Lpointer->IntStateScatterReactions(off_L+local_off_L, L);
+			local_off_L += Lpointer->GetDOC();
+		}
+	}
 }
 
 void ChAssembly::IntStateIncrement(
