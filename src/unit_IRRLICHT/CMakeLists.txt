@@ -5,7 +5,7 @@
 #===============================================================================
 
 SET(ENABLE_UNIT_IRRLICHT
-  FALSE  CACHE  BOOL
+  TRUE  CACHE  BOOL
   "Turn this ON to generate the Chrono::Engine Irrlicht unit."
 )
 
