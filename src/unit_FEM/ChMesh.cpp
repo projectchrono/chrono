@@ -588,8 +588,7 @@ void ChMesh::IntStateGatherAcceleration(const unsigned int off_a, ChStateDelta& 
 
 void ChMesh::IntStateScatterAcceleration(const unsigned int off_a, const ChStateDelta& a)
 {
-	unsigned int local_off_x=0;
-	unsigned int local_off_v=0;
+	unsigned int local_off_a=0;
 	for (unsigned int j = 0; j < vnodes.size(); j++)
 	{
 		if (!vnodes[j]->GetFixed())
