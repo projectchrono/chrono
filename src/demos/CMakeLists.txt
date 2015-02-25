@@ -36,8 +36,6 @@ IF("${isSystemDir}" STREQUAL "-1")
 ENDIF("${isSystemDir}" STREQUAL "-1")
 
 #--------------------------------------------------------------
-# this contains its own set of demos, for the tracked vehicle subsystems built by Justin
-ADD_SUBDIRECTORY(trackVehicle)
 
 IF(BUILD_DEMOS)
 ADD_SUBDIRECTORY(basics)
@@ -77,5 +75,8 @@ ENDIF()
 IF (ENABLE_UNIT_POSTPROCESS)
 	ADD_SUBDIRECTORY(postprocess)
 ENDIF()
+
+# this contains its own set of demos, for the tracked vehicle subsystems built by Justin
+ADD_SUBDIRECTORY(trackVehicle)
 
 ENDIF()

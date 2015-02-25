@@ -47,7 +47,7 @@ ChChaseCamera::ChChaseCamera(const ChSharedBodyPtr chassis)
   m_minMult(0.5f),
   m_horizGain(4.0f),
   m_vertGain(2.0f),
-  m_state(State::Chase)
+  m_state(Chase)
 {
   Initialize(ChVector<>(0, 0, 0), ChCoordsys<>(), 5, 1);
 }

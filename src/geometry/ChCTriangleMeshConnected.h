@@ -145,6 +145,11 @@ public:
 			/// Compute barycenter, mass, inertia tensor
 	void ComputeMassProperties (bool bodyCoords, double& mass, ChVector<>& center, ChMatrix33<>& inertia);
 
+	    /// Get the filename of the triangle mesh
+	std::string GetFileName()
+	{
+	  return m_filename;
+	}
 
 		//
 		// OVERRIDE BASE CLASS FUNCTIONS

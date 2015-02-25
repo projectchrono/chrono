@@ -63,7 +63,7 @@ public:
   const ChVector<>& Get_idlerPosRel() const { return m_idlerPosRel; }
 
   /// get the reaction force vector from the spring in the idler subsystem
-  ChVector<> Get_idler_spring_react() const;
+  const ChVector<> Get_idler_spring_react();
 
 private:
 

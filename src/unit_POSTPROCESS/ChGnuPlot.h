@@ -245,6 +245,14 @@ public:
 		commandfile += "] \n";
 	}
 
+		/// Shortcut to add title
+	void SetTitle(const char* mlabel)
+	{
+		commandfile += "set title \"";
+		commandfile += mlabel;
+		commandfile += "\" \n";
+	}
+
 		/// Shortcut to add a label on axis
 	void SetLabelX(const char* mlabel)
 	{
@@ -386,7 +394,16 @@ protected:
 		std::string syscmd;
 
 		// Launch the GNUplot from shell:
-		#ifdef UNIX
+		#ifdef _WIN32
+			// ex. of launched sys command: "start gnuplot __tmp_gnuplot.gpl -persist"
+			syscmd += "start gnuplot \"";
+			syscmd += this->gpl_filename;
+			syscmd += "\"";
+			if (persist)
+				syscmd += " -persist";
+			system (syscmd.c_str());
+		#else
+			// Unix like systems:
 			// ex. of launched sys command: "gnuplot __tmp_gnuplot.gpl -persist &"
 			syscmd += "gnuplot \"";
 			syscmd += this->gpl_filename;
@@ -394,14 +411,6 @@ protected:
 			if (persist)
 				syscmd += " -persist";
 			syscmd += " &"; // to launch and forget
-			system (syscmd.c_str());
-		#else
-			// ex. of launched sys command: "start gnuplot __tmp_gnuplot.gpl -persist"
-			syscmd += "start gnuplot \"";
-			syscmd += this->gpl_filename;
-			syscmd += "\"";
-			if (persist)
-				syscmd += " -persist";
 			system (syscmd.c_str());
 		#endif
 	}

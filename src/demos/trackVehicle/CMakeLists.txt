@@ -77,8 +77,8 @@ subsys/trackSystem/TrackSystem.cpp
 )
 
 SET(CH_POWERTRAIN_FILES
-subsys/powertrain/TrackPowerTrain.h
-subsys/powertrain/TrackPowerTrain.cpp
+subsys/powertrain/TrackPowertrain.h
+subsys/powertrain/TrackPowertrain.cpp
 )
 
 SET(CH_DRIVELINE_FILES

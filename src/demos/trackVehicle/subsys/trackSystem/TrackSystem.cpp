@@ -219,7 +219,7 @@ void TrackSystem::Initialize(ChSharedPtr<ChBodyAuxRef> chassis,
 
 }
 
-ChVector<> TrackSystem::Get_idler_spring_react() const
+const ChVector<> TrackSystem::Get_idler_spring_react()
 {
   return m_idler->m_shock->Get_react_force();
 
