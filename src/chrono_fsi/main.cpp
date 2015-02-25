@@ -435,9 +435,20 @@ int DoStepChronoSystem(ChSystemParallelDVI& mphysicalSystem, Real dT) {
 }
 
 void AddChSystemForcesToSphForces(
-		thrust::device_vector<Real4>  & derivVelRhoD,
-		const ChSystemParallelDVI& mphysicalSystem) {
-
+		thrust::host_vector<Real4>  & derivVelRhoChronoH,
+		const thrust::host_vector<Real4> & velMasH2,
+		ChSystemParallelDVI& mphysicalSystem,
+		const NumberOfObjects & numObjects,
+		int startIndexSph,
+		Real dT) {
+	std::vector<ChBody*>::iterator bodyIter = mphysicalSystem.Get_bodylist()->begin() + startIndexSph;
+#pragma omp parallel for
+	for (int i = 0; i < numObjects.numAllMarkers; i++) {
+//		std::vector<ChBody*>::iterator bodyIterB = bodyIter + i;
+		ChVector<> v = ((ChBody*)(*(bodyIter + i)))->GetPos_dt();
+		Real3 a3 = (mR3(v.x, v.y, v.z) - mR3(velMasH2[i])) / dT; // f = m * a
+		derivVelRhoChronoH[i] += mR4(a3,0);
+	}
 }
 
 void SavePovFilesMBD(ChSystemParallelDVI& mphysicalSystem, int tStep) {
@@ -696,6 +707,19 @@ void ClearArraysH(
 }
 
 void CopyD2H(
+	thrust::host_vector<Real4> & derivVelRhoChronoH,
+	const thrust::device_vector<Real4> & derivVelRhoD) {
+	assert(derivVelRhoChronoH.size() == derivVelRhoD.size() && "Error! size mismatch host and device" );
+	thrust::copy(derivVelRhoD.begin(), derivVelRhoD.end(), derivVelRhoChronoH.begin());
+}
+void CopyH2D(
+	thrust::device_vector<Real4> & derivVelRhoD,
+	const thrust::host_vector<Real4> & derivVelRhoChronoH) {
+	assert(derivVelRhoChronoH.size() == derivVelRhoD.size() && "Error! size mismatch host and device" );
+	thrust::copy(derivVelRhoChronoH.begin(), derivVelRhoChronoH.end(), derivVelRhoD.begin());
+}
+
+void CopyD2H(
 	thrust::host_vector<Real3> & posRadH, //do not set the size here since you are using push back later
 	thrust::host_vector<Real4> & velMasH,
 	thrust::host_vector<Real4> & rhoPresMuH,
@@ -866,7 +890,7 @@ int main(int argc, char* argv[]) {
 
 		// ** initialize host mid step data
 		thrust::host_vector<Real3> posRadH2(numObjects.numAllMarkers); // Arman: no need for copy
-		thrust::host_vector<Real4> velMasH2(numObjects.numAllMarkers);
+		thrust::host_vector<Real4> velMasH2 = velMasH;
 		thrust::host_vector<Real4> rhoPresMuH2(numObjects.numAllMarkers);
 		// ** initialize device mid step data
 		thrust::device_vector<Real3> posRadD2 = posRadD;
@@ -877,12 +901,14 @@ int main(int argc, char* argv[]) {
 		ResizeMyThrust3(vel_XSPH_D, numObjects.numAllMarkers);
 
 		FillMyThrust4(derivVelRhoD, mR4(0));
-
+		thrust::host_vector<Real4> derivVelRhoChronoH(numObjects.numAllMarkers);
 
 		ForceSPH(posRadD, velMasD, vel_XSPH_D, rhoPresMuD, bodyIndexD, derivVelRhoD, referenceArray, numObjects, currentParamsH, 0.5 * currentParamsH.dT); //?$ right now, it does not consider paramsH.gravity or other stuff on rigid bodies. they should be applied at rigid body solver
 		DoStepChronoSystem(mphysicalSystem, 0.5 * currentParamsH.dT);
-		AddChSystemForcesToSphForces(derivVelRhoD, mphysicalSystem);
-		UpdateFluid(posRadD2, velMasD2, vel_XSPH_D, rhoPresMuD2, derivVelRhoD, referenceArray, 0.5 * currentParamsH.dT); //assumes ...D2 is a copy of ...D
+		CopyD2H(derivVelRhoChronoH, derivVelRhoD);
+		AddChSystemForcesToSphForces(derivVelRhoChronoH, velMasH2, mphysicalSystem, numObjects, startIndexSph, 0.5 * currentParamsH.dT);// assumes velMasH2 constains a copy of velMas in ChSystem right before DoStepDynamics
+		CopyH2D(derivVelRhoD, derivVelRhoChronoH);
+		UpdateFluid(posRadD2, velMasD2, vel_XSPH_D, rhoPresMuD2, derivVelRhoD, referenceArray, 0.5 * currentParamsH.dT); 	// assumes ...D2 is a copy of ...D
 		ApplyBoundarySPH_Markers(posRadD2, rhoPresMuD2, numObjects.numAllMarkers);
 
 		CopyD2H(posRadH2, velMasH2, rhoPresMuH2, posRadD2, velMasD2, rhoPresMuD2);
@@ -890,8 +916,10 @@ int main(int argc, char* argv[]) {
 
 		ForceSPH(posRadD2, velMasD2, vel_XSPH_D, rhoPresMuD2, bodyIndexD, derivVelRhoD, referenceArray, numObjects, currentParamsH, currentParamsH.dT); //?$ right now, it does not consider paramsH.gravity or other stuff on rigid bodies. they should be applied at rigid body solver
 		DoStepChronoSystem(mphysicalSystem, 0.5 * currentParamsH.dT);
-		AddChSystemForcesToSphForces(derivVelRhoD, mphysicalSystem);
-		UpdateFluid(posRadD, velMasD, vel_XSPH_D, rhoPresMuD, derivVelRhoD, referenceArray, currentParamsH.dT); //assumes ...D2 is a copy of ...D
+		CopyD2H(derivVelRhoChronoH, derivVelRhoD);
+		AddChSystemForcesToSphForces(derivVelRhoChronoH, velMasH2, mphysicalSystem, numObjects, startIndexSph, 0.5 * currentParamsH.dT); // assumes velMasH2 constains a copy of velMas in ChSystem right before DoStepDynamics
+		CopyH2D(derivVelRhoD, derivVelRhoChronoH);
+		UpdateFluid(posRadD, velMasD, vel_XSPH_D, rhoPresMuD, derivVelRhoD, referenceArray, currentParamsH.dT);
 		ApplyBoundarySPH_Markers(posRadD, rhoPresMuD, numObjects.numAllMarkers);
 
 		CopyD2H(posRadH, velMasH, rhoPresMuH, posRadD, velMasD, rhoPresMuD);
