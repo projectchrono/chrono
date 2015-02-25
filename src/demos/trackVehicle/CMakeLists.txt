@@ -2,7 +2,7 @@
 # CMake configuration file for Tracked Vehicle modeling library
 #=============================================================================
 SET(ENABLE_TRACK_VEHICLE
-  TRUE  CACHE  BOOL
+  FALSE  CACHE  BOOL
   "Turn this ON to generate the Tracked Vehicle modeling unit."
 )
 
