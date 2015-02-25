@@ -56,8 +56,8 @@ public:
   
   /// constructor, default values are  for an M113 model
   TrackChain(const std::string& name, 
-    VisualizationType vis = VisualizationType::PRIMITIVES,
-    CollisionType collide = CollisionType::PRIMITIVES,
+    VisualizationType::Enum vis = VisualizationType::Enum::Primitives,
+    CollisionType::Enum collide = CollisionType::Enum::Primitives,
     size_t chainSys_idx = 0,
     double shoe_mass = 18.02,
     const ChVector<>& shoeIxx = ChVector<>(0.22, 0.25, 0.04) );
@@ -174,8 +174,8 @@ private:
   double m_mass;         // mass per shoe
   ChVector<> m_inertia;  // inertia of a shoe
 
-  VisualizationType m_vis;    // visual asset geometry type
-  CollisionType m_collide;    // collision geometry type
+  VisualizationType::Enum m_vis;    // visual asset geometry type
+  CollisionType::Enum m_collide;    // collision geometry type
   const size_t m_chainSys_idx; ///< if there are multiple chain systems 
   // (e.g., on the M113, the subsystem knows which it is a part of for collision family purposes)
   

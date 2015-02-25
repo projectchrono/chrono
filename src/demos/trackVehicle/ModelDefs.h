@@ -21,28 +21,37 @@
 
 namespace chrono {
 
-enum struct VisualizationType {
-  NONE,
-  PRIMITIVES,
-  COMPOUNDPRIMITIVES,
-  MESH
+// descriptive namespace for types
+namespace VisualizationType
+{
+  enum Enum
+  {
+    None,
+    Primitives,
+    CompoundPrimitives,
+    Mesh,
+  };
+
 };
 
-enum struct CollisionType {
-  NONE,
-  PRIMITIVES,
-  MESH,
-  CONVEXHULL,
-  COMPOUNDPRIMITIVES,
-  CALLBACKFUNCTION
-};
+namespace CollisionType
+{
+  enum Enum {
+    None,
+    Primitives,
+    Mesh,
+    ConvexHull,
+    CompoundPrimitives,
+    CallbackFunction,
+  };
+}
 
 // Collision family definitions
 // GROUND can collide with anything
-// GEARS includes the idler, support roller, and other non-moving rolling elements
+// GEAR includes the idler, support roller, and other non-moving rolling elements
 // WHEELS includes the road wheels, which can collide with their neighbors
 // SHOES collide with everything, except for their own family
-enum struct CollisionFam {
+enum CollisionFam {
   GROUND,
   HULL,
   WHEELS,
@@ -51,7 +60,7 @@ enum struct CollisionFam {
 };
 
 
-enum struct VehicleSide {
+enum VehicleSide {
   RIGHT = 0,    
   LEFT = 1     ///< x-forward leads to right side being position z-dir
 };

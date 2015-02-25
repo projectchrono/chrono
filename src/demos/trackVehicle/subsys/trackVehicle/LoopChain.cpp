@@ -50,8 +50,8 @@ const ChQuaternion<> LoopChain::m_idlerRot(QUNIT);
 
 /// constructor sets the basic integrator settings for this ChSystem, as well as the usual stuff
 LoopChain::LoopChain(const std::string& name,
-                       VisualizationType gearVis,
-                       CollisionType gearCollide,
+                       VisualizationType::Enum gearVis,
+                       CollisionType::Enum gearCollide,
                        double gearMass,
                        const ChVector<>& gearIxx,
                        size_t num_idlers,
@@ -93,9 +93,9 @@ LoopChain::LoopChain(const std::string& name,
   double idler_mass = 42.96; // 429.6
   ChVector<> idler_Ixx(gearIxx);    // 12.55, 12.55, 14.7
   m_idlers[0] = ChSharedPtr<IdlerSimple>(new IdlerSimple("idler",
-    VisualizationType::MESH,
-    // VisualizationType::PRIMITIVES,
-    CollisionType::PRIMITIVES,
+    VisualizationType::Enum::Mesh,
+    // VisualizationType::Enum::Primitives,
+    CollisionType::Enum::Primitives,
     0,
     idler_mass,
     idler_Ixx,
@@ -106,8 +106,8 @@ LoopChain::LoopChain(const std::string& name,
   double shoe_mass = 18.03/10.0; // 18.03
   ChVector<> shoe_Ixx(0.22/10.0, 0.25/10.0, 0.04/10.0);  // 0.22, 0.25, 0.04
   m_chain = ChSharedPtr<TrackChain>(new TrackChain("chain",
-    VisualizationType::COMPOUNDPRIMITIVES,
-    CollisionType::PRIMITIVES,
+    VisualizationType::Enum::CompoundPrimitives,
+    CollisionType::Enum::Primitives,
     0,
     shoe_mass,
     shoe_Ixx) );
@@ -121,17 +121,17 @@ LoopChain::LoopChain(const std::string& name,
   for(int j = 0; j < m_num_rollers; j++)
   {
     m_rollers[j] = ChSharedPtr<SupportRoller>(new SupportRoller("support roller " +std::to_string(j),
-      VisualizationType::PRIMITIVES,
-      CollisionType::PRIMITIVES));
+      VisualizationType::Enum::Primitives,
+      CollisionType::Enum::Primitives));
   }
 
   if(m_num_idlers > 1)
   {
     // for now, just create 1 more idler
     m_idlers[1] = ChSharedPtr<IdlerSimple>(new IdlerSimple("idler 2",
-    VisualizationType::MESH,
-    // VisualizationType::PRIMITIVES,
-    CollisionType::PRIMITIVES,
+    VisualizationType::Enum::Mesh,
+    // VisualizationType::Enum::Primitives,
+    CollisionType::Enum::Primitives,
     0,
     idler_mass,
     idler_Ixx,

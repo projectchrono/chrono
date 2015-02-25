@@ -49,8 +49,8 @@ class CH_SUBSYS_API TrackVehicle : public ChTrackVehicle
 public:
 
   TrackVehicle(const std::string& name,
-    VisualizationType vis = VisualizationType::NONE,
-    CollisionType collide = CollisionType::NONE,
+    VisualizationType::Enum vis = VisualizationType::Enum::None,
+    CollisionType::Enum collide = CollisionType::Enum::None,
     double mass = 5489.2, // default for M113 APC
     const ChVector<>& Ixx = ChVector<>(1786.9, 10449.7, 10721.2), // default for M113 APC
     const ChVector<>& left_pos_rel = ChVector<>(0.23644, -0.4780, 0.83475),    // relative to chassis REF c-sys

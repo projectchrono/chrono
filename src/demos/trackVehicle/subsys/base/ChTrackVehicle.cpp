@@ -38,8 +38,8 @@ namespace chrono {
 
 
 ChTrackVehicle::ChTrackVehicle(const std::string& name,
-                               VisualizationType vis,
-                               CollisionType collide,
+                               VisualizationType::Enum vis,
+                               CollisionType::Enum collide,
                                double mass,
                                const ChVector<>& Ixx,
                                size_t num_engines,
@@ -90,8 +90,8 @@ ChTrackVehicle::ChTrackVehicle(const std::string& name,
 // system already exists, create vehicle with specified input
 ChTrackVehicle::ChTrackVehicle(ChSystem* system,
                                const std::string& name,
-                               VisualizationType vis,
-                               CollisionType collide,
+                               VisualizationType::Enum vis,
+                               CollisionType::Enum collide,
                                double mass,
                                const ChVector<>& Ixx,
                                size_t num_engines
@@ -159,7 +159,7 @@ void ChTrackVehicle::AddVisualization()
 {
   // add visual geometry asset to the chassis, if enabled
   switch (m_vis) {
-  case VisualizationType::NONE:
+  case VisualizationType::Enum::None:
   {
     // put a sphere at the chassis COM and at the REF point
     ChSharedPtr<ChSphereShape> COMsphere(new ChSphereShape);
@@ -184,7 +184,7 @@ void ChTrackVehicle::AddVisualization()
 
     break;
   }
-  case VisualizationType::PRIMITIVES:
+  case VisualizationType::Enum::Primitives:
   {
     ChSharedPtr<ChBoxShape> box(new ChBoxShape);
     // uses full lengths as input
@@ -192,7 +192,7 @@ void ChTrackVehicle::AddVisualization()
     m_chassis->AddAsset(box);
     break;
   }
-  case VisualizationType::MESH:
+  case VisualizationType::Enum::Mesh:
   {
     geometry::ChTriangleMeshConnected trimesh;
     trimesh.LoadWavefrontMesh(m_meshFile, true, true);
@@ -215,7 +215,7 @@ void ChTrackVehicle::AddCollisionGeometry(double mu,
                                           double mu_spin)
 {
   // add collision geometrey to the chassis, if enabled
-  if( m_collide == CollisionType::NONE)
+  if( m_collide == CollisionType::Enum::None)
   {
     m_chassis->SetCollide(false);
     return;
@@ -233,7 +233,7 @@ void ChTrackVehicle::AddCollisionGeometry(double mu,
   m_chassis->GetMaterialSurface()->SetSpinningFriction(mu_spin);
 
   switch (m_collide) {
-  case CollisionType::PRIMITIVES:
+  case CollisionType::Enum::Primitives:
   {
     // use a simple box, half dimensions as input
     m_chassis->GetCollisionModel()->AddBox(0.5*m_chassisBoxSize.x, 
@@ -242,7 +242,7 @@ void ChTrackVehicle::AddCollisionGeometry(double mu,
 
     break;
   }
-  case CollisionType::MESH:
+  case CollisionType::Enum::Mesh:
   {
     // use a triangle mesh
    
@@ -257,7 +257,7 @@ void ChTrackVehicle::AddCollisionGeometry(double mu,
 
     break;
   }
-  case CollisionType::CONVEXHULL:
+  case CollisionType::Enum::ConvexHull:
   {
     // use convex hulls, loaded from file
     ChStreamInAsciiFile chull_file(GetChronoDataFile("track_shoe.chulls").c_str());

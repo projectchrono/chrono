@@ -53,8 +53,8 @@ const ChQuaternion<> DriveChain::m_idlerRot(QUNIT);
 
 /// constructor sets the basic integrator settings for this ChSystem, as well as the usual stuff
 DriveChain::DriveChain(const std::string& name,
-                       VisualizationType gearVis,
-                       CollisionType gearCollide,
+                       VisualizationType::Enum gearVis,
+                       CollisionType::Enum gearCollide,
                        size_t num_idlers,
                        size_t num_rollers,
                        double gear_mass,
@@ -104,9 +104,9 @@ DriveChain::DriveChain(const std::string& name,
   double tensioner_K = 40e3;
   double tensioner_C = tensioner_K * 0.08;
   m_idlers[0] = ChSharedPtr<IdlerSimple>(new IdlerSimple("idler",
-    VisualizationType::MESH,
-    // VisualizationType::PRIMITIVES,
-    CollisionType::PRIMITIVES,
+    VisualizationType::Enum::Mesh,
+    // VisualizationType::Enum::Primitives,
+    CollisionType::Enum::Primitives,
     0,
     idler_mass,
     idler_Ixx,
@@ -117,8 +117,8 @@ DriveChain::DriveChain(const std::string& name,
   double shoe_mass = 18.03/4.0; // 18.03
   ChVector<> shoe_Ixx(0.22/4.0, 0.25/4.0, 0.04/4.0);  // 0.22, 0.25, 0.04
   m_chain = ChSharedPtr<TrackChain>(new TrackChain("chain",
-    VisualizationType::COMPOUNDPRIMITIVES,
-    CollisionType::PRIMITIVES,
+    VisualizationType::Enum::CompoundPrimitives,
+    CollisionType::Enum::Primitives,
     0,
     shoe_mass,
     shoe_Ixx) );
@@ -141,8 +141,8 @@ DriveChain::DriveChain(const std::string& name,
       roller_r*roller_r/2.0);
     GetLog() << " I just manually calculated inertia, uh-oh \n\n Ixx = " << roller_Ixx << "\n";
     m_rollers[j] = ChSharedPtr<SupportRoller>(new SupportRoller("support roller " +std::to_string(j),
-      VisualizationType::PRIMITIVES,
-      CollisionType::PRIMITIVES,
+      VisualizationType::Enum::Primitives,
+      CollisionType::Enum::Primitives,
       0,
       roller_mass,
       roller_Ixx) );
@@ -152,9 +152,9 @@ DriveChain::DriveChain(const std::string& name,
   {
     // for now, just create 1 more idler
     m_idlers[1] = ChSharedPtr<IdlerSimple>(new IdlerSimple("idler 2",
-    VisualizationType::MESH,
-    // VisualizationType::PRIMITIVES,
-    CollisionType::PRIMITIVES,
+    VisualizationType::Enum::Mesh,
+    // VisualizationType::Enum::Primitives,
+    CollisionType::Enum::Primitives,
     0,
     idler_mass,
     idler_Ixx) );

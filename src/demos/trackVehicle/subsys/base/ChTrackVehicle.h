@@ -44,8 +44,8 @@ public:
   /// Construct by passing in desired system variables.
   /// Default values are for M113 APC vehicle
   ChTrackVehicle(const std::string& name,
-    VisualizationType vis = VisualizationType::NONE,
-    CollisionType collide = CollisionType::NONE,
+    VisualizationType::Enum vis = VisualizationType::Enum::None,
+    CollisionType::Enum collide = CollisionType::Enum::None,
     double mass = 5489.2,
     const ChVector<>& Ixx = ChVector<>(1786.9, 10449.7, 10721.2),
     size_t num_engines = 0,
@@ -54,8 +54,8 @@ public:
   /// Construct using the specified ChSystem, with the desired vehicle system settings.
   ChTrackVehicle(ChSystem* system,
     const std::string& name,
-    VisualizationType vis = VisualizationType::NONE,
-    CollisionType collide = CollisionType::NONE,
+    VisualizationType::Enum vis = VisualizationType::Enum::None,
+    CollisionType::Enum collide = CollisionType::Enum::None,
     double mass = 5489.2,
     const ChVector<>& Ixx = ChVector<>(1786.9, 10449.7, 10721.2),
     size_t num_engines = 0);
@@ -170,8 +170,8 @@ protected:
    // double m_mass;
   // ChVector<> m_inertia;
 
-  VisualizationType m_vis;    ///< visualize  geometry
-  CollisionType m_collide;    ///< collision geometry
+  VisualizationType::Enum m_vis;    ///< visualize  geometry
+  CollisionType::Enum m_collide;    ///< collision geometry
 
   std::string m_meshName;       ///< name of the mesh, if any
   std::string m_meshFile;       ///< filename of the mesh, if any

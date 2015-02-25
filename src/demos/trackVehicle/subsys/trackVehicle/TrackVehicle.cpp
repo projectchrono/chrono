@@ -44,8 +44,8 @@ const ChCoordsys<> TrackVehicle::m_driverCsys(ChVector<>(0.0, 0.5, 1.2), ChQuate
 
 /// constructor sets the basic integrator settings for this ChSystem, as well as the usual stuff
 TrackVehicle::TrackVehicle(const std::string& name,
-                           VisualizationType chassisVis,
-                           CollisionType chassisCollide,
+                           VisualizationType::Enum chassisVis,
+                           CollisionType::Enum chassisCollide,
                            double mass,
                            const ChVector<>& Ixx,
                            const ChVector<>& left_pos_rel,

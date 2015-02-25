@@ -35,8 +35,8 @@ class CH_SUBSYS_API SupportRoller : public ChShared
 public:
 
   SupportRoller(const std::string& name,
-    VisualizationType vis = VisualizationType::PRIMITIVES,
-    CollisionType collide = CollisionType::PRIMITIVES,
+    VisualizationType::Enum vis = VisualizationType::Enum::Primitives,
+    CollisionType::Enum collide = CollisionType::Enum::Primitives,
     size_t chainSys_idx = 0,  ///< what chain system is this gear associated with?
     double mass = 100.0,
     const ChVector<>& Ixx = ChVector<>(3.82, 3.82, 5.06) );
@@ -77,8 +77,8 @@ private:
   ChSharedPtr<ChBody> m_roller;
   ChSharedPtr<ChLinkLockRevolute>  m_revolute;  ///< handle to revolute joint
 
-  VisualizationType m_vis;    // visual asset geometry type
-  CollisionType m_collide;    // collision geometry type
+  VisualizationType::Enum m_vis;    // visual asset geometry type
+  CollisionType::Enum m_collide;    // collision geometry type
   const size_t m_chainSys_idx; ///< if there are multiple chain systems 
   // (e.g., on the M113, the subsystem knows which it is a part of for collision family purposes)
 
