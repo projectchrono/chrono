@@ -84,8 +84,6 @@ subsys/powertrain/TrackPowertrain.cpp
 SET(CH_DRIVELINE_FILES
 subsys/driveline/TrackDriveline.h
 subsys/driveline/TrackDriveline.cpp
-subsys/driveline/TrackDriveline_1WD.h
-subsys/driveline/TrackDriveline_1WD.cpp
 )
 
 
