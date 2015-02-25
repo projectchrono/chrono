@@ -31,9 +31,7 @@ public:
 
   enum ContactForceModel {
     Hooke,
-    Hertz,
-    Hooke_history,
-    Hertz_history
+    Hertz
   };
 
 	/// Constructors/destructor

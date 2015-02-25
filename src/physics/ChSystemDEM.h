@@ -34,6 +34,7 @@ public:
   /// the radius of the expected area where colliding objects will move.
   ChSystemDEM(
     bool use_material_properties = true,
+    bool use_history = true,
     unsigned int max_objects = 16000,
     double scene_size = 500);
 
@@ -44,11 +45,13 @@ public:
   virtual void ChangeContactContainer(ChContactContainerBase* newcontainer);
 
   bool UseMaterialProperties() const                               { return m_use_mat_props; }
+  bool UseContactHistory() const                                   { return m_use_history; }
   void SetContactForceModel(ChContactDEM::ContactForceModel model) { m_contact_model = model; }
   ChContactDEM::ContactForceModel GetContactForceModel() const     { return m_contact_model; }
 
 private:
   bool                            m_use_mat_props;
+  bool                            m_use_history;
   ChContactDEM::ContactForceModel m_contact_model;
 };
 
