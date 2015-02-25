@@ -1,13 +1,13 @@
 ///////////////////////////////////////////////////
 //
-//   Demo code about  
+//  Demo code about
+//    - Creating a soil bin test rig mechanism
+//    - A particle generating class to control some particle creation properties
+//	  - Torque drives a rigid tire over the material, in-plane
+//    - Irrlicht event receiver, to drive/modify particle properties with the GUI
 //
-//     - Creating a soil bin
-//	   - Driving a kinematic roller/tire over the material
-//     - analyzing the tire/soil interaction, forces on the wheel joint
-//		- Modified demo_tire.cpp, originally by Alessandro Tasora, to use his tire collision geometry
-//		- new version by Justin Madsen, interactive demo of a tire in a soil bin
-//		- 
+//  Author: Justin Madsen, 2013
+//
 ///////////////////////////////////////////////////
  
    
@@ -545,6 +545,7 @@ public:
 
 };
 
+/*
 
 // Differently from friction, that has always a default value that 
 // is computed as the average of two friction values of the two rigid 
@@ -598,7 +599,8 @@ class MyContactCallback : public ChSystem::ChCustomCollisionPointCallback
 	double dampingf;
 
 };
-     
+*/  
+
 class MyEventReceiver : public IEventReceiver
 {
 public:
@@ -1037,7 +1039,6 @@ private:
 	SoilbinWheel* mwheel;
 	TestMech* mtester;
 	ParticleGenerator* mgenerator;
-//	MyContactCallback* mcallback;
 	// for check boxes
 	bool wheelLocked;	// id = 2110
 	bool makeParticles; // 2111
