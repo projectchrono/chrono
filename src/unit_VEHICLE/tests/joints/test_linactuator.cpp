@@ -9,7 +9,7 @@
 // http://projectchrono.org/license-chrono.txt.
 //
 // =============================================================================
-// Authors: Radu Serban
+// Authors: Radu Serban, Mike Taylor
 // =============================================================================
 //
 // Test for linear actuator
@@ -82,38 +82,40 @@ int main(int argc, char* argv[])
   std::string test_name;
   bool test_passed = true;
 
-  // Case 1 - Translation axis vertical, imposed speed 0.1 m/s
+  // Case 1 - Translation axis vertical, imposed speed 1 m/s
 
   test_name = "LinActuator_Case01";
-  TestLinActuator(QUNIT, 0.1, sim_step, out_step, test_name, animate);
+  TestLinActuator(QUNIT, 1, sim_step, out_step, test_name, animate);
   if (!animate) {
-    ////test_passed &= ValidateReference(test_name, "Pos", 2e-3);
-    ////test_passed &= ValidateReference(test_name, "Vel", 1e-3);
-    ////test_passed &= ValidateReference(test_name, "Acc", 2e-2);
-    ////test_passed &= ValidateReference(test_name, "Quat", 1e-3);
-    ////test_passed &= ValidateReference(test_name, "Avel", 2e-2);
-    ////test_passed &= ValidateReference(test_name, "Aacc", 2e-2);
-    ////test_passed &= ValidateReference(test_name, "Rforce", 2e-2);
-    ////test_passed &= ValidateReference(test_name, "Rtorque", 1e-10);
-    ////test_passed &= ValidateReference(test_name, "Energy", 2e-2);
+    test_passed &= ValidateReference(test_name, "Pos", 2e-3);
+    test_passed &= ValidateReference(test_name, "Vel", 1e-3);
+    test_passed &= ValidateReference(test_name, "Acc", 2e-2);
+    test_passed &= ValidateReference(test_name, "Quat", 1e-3);
+    test_passed &= ValidateReference(test_name, "Avel", 2e-2);
+    test_passed &= ValidateReference(test_name, "Aacc", 2e-2);
+    test_passed &= ValidateReference(test_name, "RforceP", 2e-2);
+    test_passed &= ValidateReference(test_name, "RtorqueP", 1e-10);
+    test_passed &= ValidateReference(test_name, "RforceA", 5e-1);
+    test_passed &= ValidateReference(test_name, "RtorqueA", 1e-10);
     test_passed &= ValidateConstraints(test_name, "ConstraintsP", 1e-5);
     test_passed &= ValidateConstraints(test_name, "ConstraintsA", 1e-5);
   }
 
-  // Case 2 - Translation axis along X = Z, imposed speed 0.2 m/s
+  // Case 2 - Translation axis along X = Z, imposed speed 0.5 m/s
 
   test_name = "LinActuator_Case02";
-  TestLinActuator(Q_from_AngY(CH_C_PI / 4), 0.2, sim_step, out_step, test_name, animate);
+  TestLinActuator(Q_from_AngY(CH_C_PI / 4), 0.5, sim_step, out_step, test_name, animate);
   if (!animate) {
-    ////test_passed &= ValidateReference(test_name, "Pos", 2e-3);
-    ////test_passed &= ValidateReference(test_name, "Vel", 1e-3);
-    ////test_passed &= ValidateReference(test_name, "Acc", 2e-2);
-    ////test_passed &= ValidateReference(test_name, "Quat", 1e-3);
-    ////test_passed &= ValidateReference(test_name, "Avel", 2e-2);
-    ////test_passed &= ValidateReference(test_name, "Aacc", 2e-2);
-    ////test_passed &= ValidateReference(test_name, "Rforce", 2e-2);
-    ////test_passed &= ValidateReference(test_name, "Rtorque", 1e-10);
-    ////test_passed &= ValidateReference(test_name, "Energy", 2e-2);
+    test_passed &= ValidateReference(test_name, "Pos", 2e-3);
+    test_passed &= ValidateReference(test_name, "Vel", 1e-3);
+    test_passed &= ValidateReference(test_name, "Acc", 2e-2);
+    test_passed &= ValidateReference(test_name, "Quat", 1e-3);
+    test_passed &= ValidateReference(test_name, "Avel", 2e-2);
+    test_passed &= ValidateReference(test_name, "Aacc", 2e-2);
+    test_passed &= ValidateReference(test_name, "RforceP", 3e-1);
+    test_passed &= ValidateReference(test_name, "RtorqueP", 5e-3);
+    test_passed &= ValidateReference(test_name, "RforceA", 5e-1);
+    test_passed &= ValidateReference(test_name, "RtorqueA", 1e-10);
     test_passed &= ValidateConstraints(test_name, "ConstraintsP", 1e-5);
     test_passed &= ValidateConstraints(test_name, "ConstraintsA", 1e-5);
   }
@@ -158,6 +160,9 @@ bool TestLinActuator(const ChQuaternion<>& rot,              // translation alon
   my_system.SetIterLCPmaxItersSpeed(100);
   my_system.SetIterLCPmaxItersStab(100); //Tasora stepper uses this, Anitescu does not
   my_system.SetLcpSolverType(ChSystem::LCP_ITERATIVE_SOR);
+  my_system.SetTol(1e-6);
+  my_system.SetTolForce(1e-4);
+
 
   // Create the ground body.
 
@@ -335,19 +340,24 @@ bool TestLinActuator(const ChQuaternion<>& rot,              // translation alon
       ChVector<> reactTorqueGlobalP = linkCoordsysP.TransformDirectionLocalToParent(reactTorqueP);
       out_rtrqP << simTime << reactTorqueGlobalP << std::endl;
 
+
       // Reaction force and Torque in linear actuator.
       // These are expressed  in the link coordinate system. We convert them to
       // the coordinate system of Body2 (in our case this is the plate). As such,
       // the reaction force represents the force that needs to be applied to the
-      // plate in order to maintain the prescribed constant velocity.
+      // plate in order to maintain the prescribed constant velocity.  These are
+      // then converted to the global frame for comparison to ADAMS
       ChCoordsys<> linkCoordsysA = actuator->GetLinkRelativeCoords();
       ChVector<> reactForceA = actuator->Get_react_force();
-      ChVector<> reactForceGlobalA = linkCoordsysA.TransformDirectionLocalToParent(reactForceA);
+      reactForceA = linkCoordsysA.TransformDirectionLocalToParent(reactForceA);
+      ChVector<> reactForceGlobalA = plate->TransformDirectionLocalToParent(reactForceA);
       out_rfrcA << simTime << reactForceGlobalA << std::endl;
 
       ChVector<> reactTorqueA = actuator->Get_react_torque();
-      ChVector<> reactTorqueGlobalA = linkCoordsysA.TransformDirectionLocalToParent(reactTorqueA);
+      reactTorqueA = linkCoordsysA.TransformDirectionLocalToParent(reactTorqueA);
+      ChVector<> reactTorqueGlobalA = plate->TransformDirectionLocalToParent(reactTorqueA);
       out_rtrqA << simTime << reactTorqueGlobalA << std::endl;
+
 
       // Constraint violations in prismatic joint
       ChMatrix<>* CP = prismatic->GetC();
