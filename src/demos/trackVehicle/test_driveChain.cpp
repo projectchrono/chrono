@@ -134,9 +134,9 @@ int main(int argc, char* argv[])
   // The drive chain inherits ChSystem. Specify the 
   // collision type used by the gear here.
   DriveChain chainSystem("Justins driveChain system", 
-    VisualizationType::MESH,
-    // VisualizationType::COMPOUNDPRIMITIVES,
-    CollisionType::CALLBACKFUNCTION,
+    VisualizationType::Enum::Mesh,
+    // VisualizationType::Enum::CompoundPrimitives,
+    CollisionType::Enum::CallbackFunction,
     num_idlers,
     num_rollers);
   

@@ -129,8 +129,8 @@ int main(int argc, char* argv[])
 
   // The vehicle inherits ChSystem. Input chassis visual and collision type
 	TrackVehicle vehicle("Justins M113 model", 
-    VisualizationType::NONE,
-    CollisionType::NONE);
+    VisualizationType::Enum::None,
+    CollisionType::Enum::None);
   
   // set the chassis REF at the specified initial config.
   vehicle.Initialize(ChCoordsys<>(initLoc, initRot));

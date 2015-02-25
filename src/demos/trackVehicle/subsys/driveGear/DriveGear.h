@@ -39,8 +39,8 @@ public:
 
   /// override static values for mass, inertia
   DriveGear(const std::string& name,
-    VisualizationType vis = VisualizationType::PRIMITIVES,
-    CollisionType collide = CollisionType::PRIMITIVES,
+    VisualizationType::Enum vis = VisualizationType::Enum::Primitives,
+    CollisionType::Enum collide = CollisionType::Enum::Primitives,
     size_t chainSys_idx = 0, ///< what chain system is this gear associated with?
     double gear_mass = 436.7,
     const ChVector<>& gear_Ixx = ChVector<>(12.22, 12.22, 13.87) );
@@ -86,8 +86,8 @@ private:
   ChSharedPtr<ChShaftsBody>  m_axle_to_gear;    ///< handle to gear-shaft connector
   ChSharedPtr<ChLinkLockRevolute>  m_revolute;  ///< handle to revolute joint
 
-  VisualizationType m_vis;    // visual asset geometry type
-  CollisionType m_collide;    // collision geometry type
+  VisualizationType::Enum m_vis;    // visual asset geometry type
+  CollisionType::Enum m_collide;    // collision geometry type
   const size_t m_chainSys_idx; ///< if there are multiple chain systems 
   // (e.g., on the M113, the subsystem knows which it is a part of for collision family purposes)
 

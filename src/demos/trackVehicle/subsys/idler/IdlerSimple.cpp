@@ -81,8 +81,8 @@ private:
 
 
 IdlerSimple::IdlerSimple(const std::string& name,
-                         VisualizationType vis,
-                         CollisionType collide,
+                         VisualizationType::Enum vis,
+                         CollisionType::Enum collide,
                          size_t chainSys_idx,
                          double mass,
                          const ChVector<>& Ixx,
@@ -187,7 +187,7 @@ void IdlerSimple::AddVisualization(size_t chain_idx,
 
   // add visualization asset
   switch (m_vis) {
-  case VisualizationType::PRIMITIVES:
+  case VisualizationType::Enum::Primitives:
   {
     ChSharedPtr<ChCylinderShape> cylA(new ChCylinderShape);
     // define the shape with two concentric cyclinders, with a gap.
@@ -214,7 +214,7 @@ void IdlerSimple::AddVisualization(size_t chain_idx,
 
     break;
   }
-   case VisualizationType::MESH:
+   case VisualizationType::Enum::Mesh:
   {
     geometry::ChTriangleMeshConnected trimesh;
     trimesh.LoadWavefrontMesh(getMeshFile(), true, false);
@@ -248,7 +248,7 @@ void IdlerSimple::AddCollisionGeometry(double mu,
                                        double mu_spin)
 {
   // add collision geometrey to the chassis, if enabled
-  if(m_collide == CollisionType::NONE)
+  if(m_collide == CollisionType::Enum::None)
   {
       m_idler->SetCollide(false);
       GetLog() << " !!! Idler " << m_idler->GetName() << " collision deactivated !!! \n\n";
@@ -268,7 +268,7 @@ void IdlerSimple::AddCollisionGeometry(double mu,
   m_idler->GetMaterialSurface()->SetSpinningFriction(mu_spin);
 
   switch (m_collide) {
-  case CollisionType::PRIMITIVES:
+  case CollisionType::Enum::Primitives:
   {
     double cyl_width = 0.5*(m_width - m_widthGap);
     ChVector<> shape_offset =  ChVector<>(0, 0, 0.5*(cyl_width + m_widthGap));
@@ -283,7 +283,7 @@ void IdlerSimple::AddCollisionGeometry(double mu,
 
     break;
   }
-  case CollisionType::MESH:
+  case CollisionType::Enum::Mesh:
   {
     // use a triangle mesh
    
@@ -299,7 +299,7 @@ void IdlerSimple::AddCollisionGeometry(double mu,
 
     break;
   }
-  case CollisionType::CONVEXHULL:
+  case CollisionType::Enum::ConvexHull:
   {
     // use convex hulls, loaded from file
     ChStreamInAsciiFile chull_file(GetChronoDataFile("idler.chulls").c_str());

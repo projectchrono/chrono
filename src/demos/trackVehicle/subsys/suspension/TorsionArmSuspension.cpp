@@ -41,8 +41,8 @@ const double TorsionArmSuspension::m_armRadius = 0.05; // [m]
 
 
 TorsionArmSuspension::TorsionArmSuspension(const std::string& name,
-                                           VisualizationType vis,
-                                           CollisionType collide,
+                                           VisualizationType::Enum vis,
+                                           CollisionType::Enum collide,
                                            size_t chainSys_idx,
                                            double wheelMass,
                                            const ChVector<>& wheelIxx,
@@ -220,7 +220,7 @@ void TorsionArmSuspension::AddVisualization()
 {
   // add visualization assets
   switch (m_vis) {
-  case VisualizationType::PRIMITIVES:
+  case VisualizationType::Enum::Primitives:
   {
     // define the wheel as two concentric cylinders with a gap
     ChSharedPtr<ChCylinderShape> cylA(new ChCylinderShape);
@@ -252,7 +252,7 @@ void TorsionArmSuspension::AddVisualization()
     m_arm->AddAsset(arm_cyl);
     break;
   }
-   case VisualizationType::MESH:
+   case VisualizationType::Enum::Mesh:
   {
     geometry::ChTriangleMeshConnected trimesh;
     trimesh.LoadWavefrontMesh(getMeshFile(), false, false);
@@ -281,7 +281,7 @@ void TorsionArmSuspension::AddCollisionGeometry(double mu,
                             double mu_spin)
 {
   // add collision geometrey, if enabled. Warn if not
-  if( m_collide == CollisionType::NONE)
+  if( m_collide == CollisionType::Enum::None)
   {
     m_wheel->SetCollide(false);
     GetLog() << " !!! Road Wheel " << m_wheel->GetName() << " collision deactivated !!! \n\n";
@@ -301,7 +301,7 @@ void TorsionArmSuspension::AddCollisionGeometry(double mu,
   m_wheel->GetMaterialSurface()->SetSpinningFriction(mu_spin);
 
   switch (m_collide) {
-  case CollisionType::PRIMITIVES:
+  case CollisionType::Enum::Primitives:
   {
     double cyl_width =  0.5*(m_wheelWidth - m_wheelWidthGap);
     ChVector<> shape_offset =  ChVector<>(0, 0, 0.5*(cyl_width + m_wheelWidthGap));
@@ -314,7 +314,7 @@ void TorsionArmSuspension::AddCollisionGeometry(double mu,
     m_wheel->GetCollisionModel()->AddCylinder(m_wheelRadius, m_wheelRadius, 0.5*cyl_width,
       shape_offset,Q_from_AngAxis(CH_C_PI_2,VECT_X));
   }
-  case CollisionType::MESH:
+  case CollisionType::Enum::Mesh:
   {
     // use a triangle mesh
     /*
@@ -331,7 +331,7 @@ void TorsionArmSuspension::AddCollisionGeometry(double mu,
 
     break;
   }
-  case CollisionType::CONVEXHULL:
+  case CollisionType::Enum::ConvexHull:
   {
     /*
     // use convex hulls, loaded from file

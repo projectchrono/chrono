@@ -53,8 +53,8 @@ class CH_SUBSYS_API TorsionArmSuspension : public ChShared
 public:
 
   TorsionArmSuspension(const std::string& name,
-    VisualizationType vis = VisualizationType::PRIMITIVES,
-    CollisionType collide = CollisionType::PRIMITIVES,
+    VisualizationType::Enum vis = VisualizationType::Enum::Primitives,
+    CollisionType::Enum collide = CollisionType::Enum::Primitives,
     size_t chainSys_idx = 0,  ///< what chain system is the road wheel assoc. with?
     double wheel_mass = 561.1 , ///< [kg]
     const ChVector<>& wheelIxx = ChVector<>(19.82, 19.82, 26.06), // [kg-m2], z-axis of rotation,
@@ -133,8 +133,8 @@ private:
   ChVector<> m_wheelInertia;
 
   // visual and collision geometry types
-  VisualizationType m_vis;
-  CollisionType m_collide;
+  VisualizationType::Enum m_vis;
+  CollisionType::Enum m_collide;
   const size_t m_chainSys_idx; ///< if there are multiple chain systems 
   // (e.g., on the M113, the subsystem knows which it is a part of for collision family purposes)
 

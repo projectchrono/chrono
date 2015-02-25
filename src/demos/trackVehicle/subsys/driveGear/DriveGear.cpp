@@ -40,8 +40,8 @@ const double DriveGear::m_widthGap = 0.189; // 0.189; // inner distance between 
 
 
 DriveGear::DriveGear(const std::string& name, 
-  VisualizationType vis, 
-  CollisionType collide,
+  VisualizationType::Enum vis, 
+  CollisionType::Enum collide,
   size_t chainSys_idx,
   double mass,
   const ChVector<>& gear_Ixx
@@ -110,7 +110,7 @@ void DriveGear::AddVisualization()
 {
    // Attach visualization asset
   switch (m_vis) {
-  case VisualizationType::PRIMITIVES:
+  case VisualizationType::Enum::Primitives:
   {
     // define the gear as two concentric cylinders with a gap
     ChSharedPtr<ChCylinderShape> cyl(new ChCylinderShape);
@@ -131,7 +131,7 @@ void DriveGear::AddVisualization()
 
     break;
   }
-  case VisualizationType::MESH:
+  case VisualizationType::Enum::Mesh:
   {
     geometry::ChTriangleMeshConnected trimesh;
     trimesh.LoadWavefrontMesh(getMeshFile(), true, false);
@@ -147,7 +147,7 @@ void DriveGear::AddVisualization()
     
     break;
   }
-  case VisualizationType::COMPOUNDPRIMITIVES:
+  case VisualizationType::Enum::CompoundPrimitives:
   {
     // matches the primitive found in collisionType collisionCallback
     // cylinder and a bunch of boxes
@@ -225,7 +225,7 @@ void DriveGear::AddCollisionGeometry(double mu,
                             double mu_spin)
 {
   // add collision geometrey, if enabled. Warn if disabled
-  if( m_collide == CollisionType::NONE)
+  if( m_collide == CollisionType::Enum::None)
   {
       m_gear->SetCollide(false);
       GetLog() << " !!! DriveGear " << m_gear->GetName() << " collision deactivated !!! \n\n";
@@ -246,7 +246,7 @@ void DriveGear::AddCollisionGeometry(double mu,
 
 
   switch (m_collide) {
-  case CollisionType::PRIMITIVES:
+  case CollisionType::Enum::Primitives:
   {
     double cyl_width =  (m_width - m_widthGap)/2.0;
     ChVector<> shape_offset =  ChVector<>(0, 0, cyl_width + m_widthGap/2.0);
@@ -261,7 +261,7 @@ void DriveGear::AddCollisionGeometry(double mu,
 
     break;
   }
-  case CollisionType::MESH:
+  case CollisionType::Enum::Mesh:
   {
     // use a triangle mesh
    
@@ -276,7 +276,7 @@ void DriveGear::AddCollisionGeometry(double mu,
 
     break;
   }
-  case CollisionType::CONVEXHULL:
+  case CollisionType::Enum::ConvexHull:
   {
     // use convex hulls, loaded from file
     ChStreamInAsciiFile chull_file(GetChronoDataFile("drive_gear.chulls").c_str());
@@ -289,7 +289,7 @@ void DriveGear::AddCollisionGeometry(double mu,
     m_gear->GetCollisionModel()->AddConvexHullsFromFile(chull_file, disp_offset, rot_offset);
     break;
   }
-  case CollisionType::CALLBACKFUNCTION:
+  case CollisionType::Enum::CallbackFunction:
   {
     // a set of boxes to represent the top-most flat face of the gear tooth
     // as the gear should be oriented initially with the tooth base directly
