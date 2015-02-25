@@ -87,9 +87,9 @@ m_damping_C(0)
 // figure out the control points, 2 per rolling element to wrap the chain around.
 void TrackChain::Initialize(ChSharedPtr<ChBody> chassis,
                             const ChFrame<>& chassis_REF,
-                            const std::vector<ChVector<>>& rolling_element_loc,
+                            const std::vector<ChVector<> >& rolling_element_loc,
                             const std::vector<double>& clearance,
-                            const std::vector<ChVector<>>& spin_axis,
+                            const std::vector<ChVector<> >& spin_axis,
                             const ChVector<>& start_loc)
 {
   assert(rolling_element_loc.size() == clearance.size() );
@@ -98,8 +98,8 @@ void TrackChain::Initialize(ChSharedPtr<ChBody> chassis,
   start_to_abs.ConcatenatePreTransformation(chassis->GetFrame_REF_to_abs());
 
   // find control points, which lie on the envelope of each rolling element, in abs coords
-  std::vector<ChFrame<>> control_to_abs;
-  std::vector<ChFrame<>> rolling_to_abs;
+  std::vector<ChFrame<> > control_to_abs;
+  std::vector<ChFrame<> > rolling_to_abs;
 
   size_t num_elem = rolling_element_loc.size();  // number of control points
 
@@ -577,11 +577,11 @@ void TrackChain::AddCollisionGeometry(size_t track_idx,
   } // end switch
 
   // set collision family
-  m_shoes[track_idx]->GetCollisionModel()->SetFamily( (int)CollisionFam::SHOES);
+  m_shoes[track_idx]->GetCollisionModel()->SetFamily( (int)CollisionFam::Enum::Shoe);
 
   // don't collide with other shoes, but with everything else
-  m_shoes[track_idx]->GetCollisionModel()->SetFamilyMaskNoCollisionWithFamily( (int)CollisionFam::SHOES );
-  m_shoes[track_idx]->GetCollisionModel()->SetFamilyMaskNoCollisionWithFamily( (int)CollisionFam::HULL );
+  m_shoes[track_idx]->GetCollisionModel()->SetFamilyMaskNoCollisionWithFamily( (int)CollisionFam::Enum::Shoe );
+  m_shoes[track_idx]->GetCollisionModel()->SetFamilyMaskNoCollisionWithFamily( (int)CollisionFam::Enum::Hull );
 
   m_shoes[track_idx]->GetCollisionModel()->BuildModel();
 

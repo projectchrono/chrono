@@ -160,9 +160,9 @@ void LoopChain::Initialize(const ChCoordsys<>& gear_Csys)
   // Create list of the center location of the rolling elements and their clearance.
   // Clearance is a sphere shaped envelope at each center location, where it can
   //  be guaranteed that the track chain geometry will not penetrate the sphere.
-  std::vector<ChVector<>> rolling_elem_locs; // w.r.t. chassis ref. frame
+  std::vector<ChVector<> > rolling_elem_locs; // w.r.t. chassis ref. frame
   std::vector<double> clearance;  // 1 per rolling elem  
-  std::vector<ChVector<>> rolling_elem_spin_axis; /// w.r.t. abs. frame
+  std::vector<ChVector<> > rolling_elem_spin_axis; /// w.r.t. abs. frame
   
 
   // initialize 1 of each of the following subsystems.

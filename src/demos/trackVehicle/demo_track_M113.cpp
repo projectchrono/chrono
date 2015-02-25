@@ -107,7 +107,7 @@ ChSharedPtr<ChBody> Add_FlatGround(TrackVehicle* vehicle,
   ground->SetFriction(friction_mu);
 
   // Don't forget to set this collision family!
-  ground->GetCollisionModel()->SetFamily((int)CollisionFam::GROUND);
+  ground->GetCollisionModel()->SetFamily((int)CollisionFam::Enum::Ground);
   
   // color asset for the ground
   ChSharedPtr<ChColorAsset> groundColor(new ChColorAsset);

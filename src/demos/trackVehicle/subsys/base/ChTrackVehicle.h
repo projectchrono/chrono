@@ -23,13 +23,14 @@
 
 #include <vector>
 
-#include "core/ChVector.h"
-#include "physics/ChSystem.h"
-#include "physics/ChBodyAuxRef.h"
-#include "subsys/powertrain/TrackPowertrain.h"
-
-#include "subsys/ChApiSubsys.h"
 #include "ModelDefs.h"
+
+#include "physics/ChSystem.h"
+#include "core/ChVector.h"
+#include "physics/ChBodyAuxRef.h"
+
+#include "subsys/powertrain/TrackPowertrain.h"
+#include "subsys/ChApiSubsys.h"
 
 namespace chrono {
 
@@ -178,7 +179,7 @@ protected:
   ChVector<>  m_chassisBoxSize; ///< size of chassis box, used for any PRIMITIVES type
 
   const size_t m_num_engines;  ///< can support multiple powertrain/drivetrains
-  std::vector<ChSharedPtr<TrackPowertrain>>  m_ptrains;  ///< powertrain system, one per track system
+  std::vector<ChSharedPtr<TrackPowertrain> >  m_ptrains;  ///< powertrain system, one per track system
 
   double  m_stepsize;   ///< integration step-size for the vehicle system
 

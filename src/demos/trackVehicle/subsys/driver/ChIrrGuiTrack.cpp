@@ -343,8 +343,8 @@ void ChIrrGuiTrack::renderContactShoeGear(double lenScale)
     }
 
     // all other contact points that aren't the tracked collision are green
-    std::vector<ChVector<>>::const_iterator pos_iter;
-    std::vector<ChVector<>>::const_iterator Fn_iter;
+    std::vector<ChVector<> >::const_iterator pos_iter;
+    std::vector<ChVector<> >::const_iterator Fn_iter;
     for(pos_iter = m_chain->Get_SG_PosAbs_all().begin(), Fn_iter = m_chain->Get_SG_Fn_all().begin();
       pos_iter < m_chain->Get_SG_PosAbs_all().end() && Fn_iter < m_chain->Get_SG_Fn_all().end();
       pos_iter++, Fn_iter++)

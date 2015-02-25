@@ -214,12 +214,12 @@ void SupportRoller::AddCollisionGeometry(double mu,
   } // end switch
 
   // set collision family, gear is a rolling element like the wheels
-  m_roller->GetCollisionModel()->SetFamily((int)CollisionFam::WHEELS);
+  m_roller->GetCollisionModel()->SetFamily((int)CollisionFam::Enum::Wheel);
 
   // don't collide with other rolling elements
-  m_roller->GetCollisionModel()->SetFamilyMaskNoCollisionWithFamily((int)CollisionFam::GROUND);
-  m_roller->GetCollisionModel()->SetFamilyMaskNoCollisionWithFamily((int)CollisionFam::WHEELS);
-  m_roller->GetCollisionModel()->SetFamilyMaskNoCollisionWithFamily((int)CollisionFam::HULL);
+  m_roller->GetCollisionModel()->SetFamilyMaskNoCollisionWithFamily((int)CollisionFam::Enum::Ground);
+  m_roller->GetCollisionModel()->SetFamilyMaskNoCollisionWithFamily((int)CollisionFam::Enum::Wheel);
+  m_roller->GetCollisionModel()->SetFamilyMaskNoCollisionWithFamily((int)CollisionFam::Enum::Hull);
 
   m_roller->GetCollisionModel()->BuildModel();
 

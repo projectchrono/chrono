@@ -320,13 +320,13 @@ void IdlerSimple::AddCollisionGeometry(double mu,
   } // end switch
 
   // setup collision family, idler is a rolling element
-  m_idler->GetCollisionModel()->SetFamily( (int)CollisionFam::WHEELS );
+  m_idler->GetCollisionModel()->SetFamily( (int)CollisionFam::Enum::Wheel );
   
   // don't collide with the other wheels, nor ground
-  m_idler->GetCollisionModel()->SetFamilyMaskNoCollisionWithFamily( (int)CollisionFam::WHEELS );
-  m_idler->GetCollisionModel()->SetFamilyMaskNoCollisionWithFamily((int)CollisionFam::HULL);
-  m_idler->GetCollisionModel()->SetFamilyMaskNoCollisionWithFamily((int)CollisionFam::GEAR);
-  m_idler->GetCollisionModel()->SetFamilyMaskNoCollisionWithFamily((int)CollisionFam::GROUND);
+  m_idler->GetCollisionModel()->SetFamilyMaskNoCollisionWithFamily( (int)CollisionFam::Enum::Wheel );
+  m_idler->GetCollisionModel()->SetFamilyMaskNoCollisionWithFamily((int)CollisionFam::Enum::Hull);
+  m_idler->GetCollisionModel()->SetFamilyMaskNoCollisionWithFamily((int)CollisionFam::Enum::Gear);
+  m_idler->GetCollisionModel()->SetFamilyMaskNoCollisionWithFamily((int)CollisionFam::Enum::Ground);
 
   m_idler->GetCollisionModel()->BuildModel();
 }

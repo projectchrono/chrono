@@ -17,7 +17,7 @@
 #ifndef MODEL_DEFS_H
 #define MODEL_DEFS_H
 
-// #include "ChronoT_config.h"
+#include "physics/ChSystem.h"
 
 namespace chrono {
 
@@ -32,7 +32,7 @@ namespace VisualizationType
     Mesh,
   };
 
-};
+}
 
 namespace CollisionType
 {
@@ -51,36 +51,37 @@ namespace CollisionType
 // GEAR includes the idler, support roller, and other non-moving rolling elements
 // WHEELS includes the road wheels, which can collide with their neighbors
 // SHOES collide with everything, except for their own family
-enum CollisionFam {
-  GROUND,
-  HULL,
-  WHEELS,
-  SHOES,
-  GEAR
-};
-
+namespace CollisionFam
+{
+  enum Enum {
+    Ground,
+    Hull,
+    Wheel,
+    Shoe,
+    Gear,
+  };
+}
 
 enum VehicleSide {
-  RIGHT = 0,    
-  LEFT = 1     ///< x-forward leads to right side being position z-dir
+    Right = 0,    
+    Left = 1     ///< x-forward leads to right side being position z-dir
 };
-
 
 enum DebugInformation {
   DBG_FIRSTSHOE   = 1 << 0,
   DBG_GEAR        = 1 << 1,
   DBG_IDLER       = 1 << 2,
   DBG_PTRAIN      = 1 << 3,
-  DBG_CONSTRAINTS = 1 << 4 
+  DBG_CONSTRAINTS = 1 << 4
 };
 
-static std::ostream& operator<< (std::ostream &out, const chrono::ChVector<double>& vect)
+static std::ostream& operator<< (std::ostream &out, const ChVector<double>& vect)
 {
   out << vect.x <<","<< vect.y <<","<< vect.z;
   return out;
 }
 
-static std::ostream& operator<< (std::ostream &out, const chrono::ChQuaternion<double>& q)
+static std::ostream& operator<< (std::ostream &out, const ChQuaternion<double>& q)
 {
   out << q.e0 <<","<< q.e1 <<","<< q.e2 <<","<< q.e3;
   return out;

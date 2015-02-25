@@ -39,7 +39,7 @@ namespace chrono {
 /// values directly.
 ///
 /// Usage: 
-///   >>  TrackVehicle tankA("tank_BravoDelta");
+///   > >  TrackVehicle tankA("tank_BravoDelta");
 ///   >>  tankA.Initialize( ChCoordsys<>(x0,q0));
 ///   >>  while ( simulate )
 ///   >>    tankA.Update( time, throttle, braking);
@@ -103,7 +103,7 @@ private:
   const ChVector<> m_trackSys_R;  ///< where to place right track system origin, relative to chassis REF c-sys
   const size_t m_num_tracks;      ///< how many track systems to build
 
-  std::vector<ChSharedPtr<TrackDriveline>>   m_drivelines;    ///< handle to the driveline subsystem, one for each powertrain/drivegear pair
+  std::vector<ChSharedPtr<TrackDriveline> >   m_drivelines;    ///< handle to the driveline subsystem, one for each powertrain/drivegear pair
 
   // static variables
   static const double     mass_override;     // override chassis mass input
