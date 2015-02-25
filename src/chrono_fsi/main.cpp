@@ -466,44 +466,44 @@ void SavePovFilesMBD(ChSystemParallelDVI& mphysicalSystem, int tStep) {
 		utils::WriteBodies(&mphysicalSystem, filename);
 	}
 }
-//*** paramsH.straightChannelBoundaryMax   should be taken care of
-Real IsInsideStraightChannel(Real3 posRad) {
-	const Real sphR = paramsH.HSML;
-	Real penDist1 = 0;
-	Real penDist2 = 0;
-	Real penDist3 = 0;
-	Real largePenet = -5 * sphR; //like a large number. Should be negative (assume large initial penetration)
-
-	if (posRad.z > paramsH.straightChannelBoundaryMax.z) {
-		penDist1 = paramsH.straightChannelBoundaryMax.z - posRad.z;
-	}
-	if (posRad.z < paramsH.straightChannelBoundaryMin.z) {
-		penDist1 = posRad.z - paramsH.straightChannelBoundaryMin.z;
-	}
-
-	if (posRad.y < paramsH.straightChannelBoundaryMin.y) {
-		penDist2 = posRad.y - paramsH.straightChannelBoundaryMin.y;
-	}
-	if (posRad.y > paramsH.straightChannelBoundaryMax.y) {
-		penDist2 = paramsH.straightChannelBoundaryMax.y - posRad.y;
-	}
-
-	if (posRad.x < paramsH.straightChannelBoundaryMin.x) {
-		penDist3 = posRad.x - paramsH.straightChannelBoundaryMin.x;
-	}
-	if (posRad.x > paramsH.straightChannelBoundaryMax.x) {
-		penDist3 = paramsH.straightChannelBoundaryMax.x - posRad.x;
-	}
-
-	if (penDist1 < 0 && penDist2 < 0 && penDist2 < 0) {
-		return Min(penDist1, penDist2);
-	}
-	if (penDist1 < 0)
-		return penDist1;
-	if (penDist2 < 0)
-		return penDist2;
-	return -largePenet;
-}
+////*** paramsH.straightChannelBoundaryMax   should be taken care of
+//Real IsInsideStraightChannel(Real3 posRad) {
+//	const Real sphR = paramsH.HSML;
+//	Real penDist1 = 0;
+//	Real penDist2 = 0;
+//	Real penDist3 = 0;
+//	Real largePenet = -5 * sphR; //like a large number. Should be negative (assume large initial penetration)
+//
+//	if (posRad.z > paramsH.straightChannelBoundaryMax.z) {
+//		penDist1 = paramsH.straightChannelBoundaryMax.z - posRad.z;
+//	}
+//	if (posRad.z < paramsH.straightChannelBoundaryMin.z) {
+//		penDist1 = posRad.z - paramsH.straightChannelBoundaryMin.z;
+//	}
+//
+//	if (posRad.y < paramsH.straightChannelBoundaryMin.y) {
+//		penDist2 = posRad.y - paramsH.straightChannelBoundaryMin.y;
+//	}
+//	if (posRad.y > paramsH.straightChannelBoundaryMax.y) {
+//		penDist2 = paramsH.straightChannelBoundaryMax.y - posRad.y;
+//	}
+//
+//	if (posRad.x < paramsH.straightChannelBoundaryMin.x) {
+//		penDist3 = posRad.x - paramsH.straightChannelBoundaryMin.x;
+//	}
+//	if (posRad.x > paramsH.straightChannelBoundaryMax.x) {
+//		penDist3 = paramsH.straightChannelBoundaryMax.x - posRad.x;
+//	}
+//
+//	if (penDist1 < 0 && penDist2 < 0 && penDist2 < 0) {
+//		return Min(penDist1, penDist2);
+//	}
+//	if (penDist1 < 0)
+//		return penDist1;
+//	if (penDist2 < 0)
+//		return penDist2;
+//	return -largePenet;
+//}
 
 //&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
 int2 CreateFluidMarkers(
@@ -624,8 +624,10 @@ void SetupParamsH(SimParams & paramsH) {
 	paramsH.straightChannelBoundaryMax = mR3(3, 2, 3) * paramsH.sizeScale;
 	//********************************************************************************************************
 	//**  reminiscent of the past******************************************************************************
-	paramsH.cMin = mR3(-paramsH.toleranceZone, -paramsH.toleranceZone, -paramsH.toleranceZone);						// 3D channel
-	paramsH.cMax = mR3( 3  + paramsH.toleranceZone, 2 + paramsH.toleranceZone,  3 + paramsH.toleranceZone);
+//	paramsH.cMin = mR3(-paramsH.toleranceZone, -paramsH.toleranceZone, -paramsH.toleranceZone);						// 3D channel
+//	paramsH.cMax = mR3( 3  + paramsH.toleranceZone, 2 + paramsH.toleranceZone,  3 + paramsH.toleranceZone);
+	paramsH.cMin = mR3(0, 0, 0);						// 3D channel
+	paramsH.cMax = mR3( 3, 2,  3 );
 	//****************************************************************************************
 	//printf("a1  paramsH.cMax.x, y, z %f %f %f,  binSize %f\n", paramsH.cMax.x, paramsH.cMax.y, paramsH.cMax.z, 2 * paramsH.HSML);
 	int3 side0 = mI3(
