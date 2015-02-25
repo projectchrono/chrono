@@ -729,7 +729,12 @@ int OBJ::ParseLine(int /*lineno*/,int argc,const char **argv)  // return TRUE to
 			{
 				// the index of i-th texel
 				int tindex = atoi( texel+1) - 1;
-				this->mIndexesTexels.push_back(tindex);
+				// If input file only specifies a face w/ verts, normals, this is -1.
+				// Don't push index to array if this happens
+        if(tindex > -1)
+				{
+					mIndexesTexels.push_back(tindex);
+				}
 
 				const char *normal = strstr(texel+1,"/");
 				if ( normal )
