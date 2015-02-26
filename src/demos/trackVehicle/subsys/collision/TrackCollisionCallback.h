@@ -30,13 +30,13 @@ const class GearPinGeometry
 {
 public:
   GearPinGeometry(double gear_base_radius = 0.211,  ///< gear base circle radius
-    double gear_pitch_radius = 0.267, ///< center of the circle that uses gear_tooth_radius to define gear tooth surface
+    double gear_pitch_radius = 0.267, ///< center of the circle to define concave gear tooth base surface
     double gear_seat_width_max = 0.626, ///< max width of the gear seat, w.r.t. gear c-sys
     double gear_seat_width_min = 0.458, ///< min width of the gear seat, w.r.t. gear c-sys 
     ChVector<> tooth_mid_bar = ChVector<>(0.079815, 0.24719, 0.2712), ///< assume first seat bottom is directly above COG, then center of top of gear tooth is relative to gear c-sys
     double tooth_len = 0.013119,  ///< length of top of gear tooth, in local XY plane
     double tooth_width = 0.0840,  ///< width of top of gear tooth, in local Z plane
-    size_t num_teeth = 10.0,      ///< number of gear teeth
+    size_t num_teeth = 10,      ///< number of gear teeth
     double pin_radius = 0.0232,   ///< shoe pin radius
     double pin_width_max = 0.531,  ///< max total pin width
     double pin_width_min = 0.38,  ///< min total pin width
@@ -44,10 +44,10 @@ public:
     double pin_y_offset = 0        ///< y-offset of pin from center of shoe c-sys
     ): gear_base_radius(gear_base_radius),
     gear_pitch_radius(gear_pitch_radius),
-    gear_tooth_radius(gear_pitch_radius-gear_base_radius),
+    gear_concave_radius(gear_pitch_radius-gear_base_radius),
     gear_seat_width_max(gear_seat_width_max),
     gear_seat_width_min(gear_seat_width_min),
-    gear_seat_width( (gear_seat_width_max-gear_seat_width_min)/2.0 ),
+    gear_seat_width( 0.5*(gear_seat_width_max-gear_seat_width_min) ),
     tooth_mid_bar(tooth_mid_bar),
     tooth_len(tooth_len),
     tooth_width(tooth_width),
@@ -55,7 +55,7 @@ public:
     pin_radius(pin_radius),
     pin_width_max(pin_width_max),
     pin_width_min(pin_width_min),
-    pin_width( (pin_width_max-pin_width_min)/2.0 ),
+    pin_width( 0.5*(pin_width_max-pin_width_min) ),
     pin_x_offset(pin_x_offset),
     pin_y_offset(pin_y_offset)
   {
@@ -68,7 +68,7 @@ public:
   // gear geometry
   double gear_base_radius; 
   double gear_pitch_radius; 
-  double gear_tooth_radius;
+  double gear_concave_radius; ///< radius of circle that defines concave gear tooth profile section
   double gear_seat_width_max;
   double gear_seat_width_min;
   double gear_seat_width;
@@ -205,11 +205,47 @@ class GearPinCollisionCallback : public ChSystem::ChCustomComputeCollisionCallba
   }
 
   /// true if in contact in the x-y plane.
-  bool eval2Dcontact(const ChVector<>& pin_cen_bar, const ChVector<>& gear_seat_cen_bar )
+  // fills the contact info and normal on pin, since the direction is defined by the concave section
+  //  all relative to gear c-sys. Contact pts. use z- from pin_cen_bar. Normal is only in XY-bar plane
+  bool eval2Dcontact(const ChVector<>& pin_cen_bar, const ChVector<>& gear_seat_cen_bar,
+    ChVector<>& contact_pos_gear_bar,
+    ChVector<>& contact_pos_pin_bar,
+    ChVector<>& contact_normal_onPin_bar)
   {
+    // find the center of the gear base circle, in XY-gear plane.
+    ChVector<> pitch_circle_cenXY_bar = gear_seat_cen_bar;
+    pitch_circle_cenXY_bar.z = 0;
+    pitch_circle_cenXY_bar *= (m_geom.gear_pitch_radius / m_geom.gear_base_radius);
 
+    // vector from circle center to pin center, XY-gear plane
+    ChVector<> r_pin_circleXY = pin_cen_bar - pitch_circle_cenXY_bar;
+    r_pin_circleXY.z = 0;
 
-    return true;
+    // in the XY gear plane, pin is in contact when dist from pitch_circle_center to pin center + radius > pitch_circle_radius
+    if( r_pin_circleXY.Length() + m_geom.pin_radius > m_geom.gear_concave_radius )
+    {
+      // fill in contact info
+
+      // XY normalized direction between pin center, concave circle center
+      // points towards gear surface
+      ChVector<> r_cpXY_hat = r_pin_circleXY / (r_pin_circleXY.Length() );
+
+      // contact points, XY-bar plane
+      contact_pos_gear_bar = pitch_circle_cenXY_bar + r_cpXY_hat * m_geom.gear_concave_radius;
+      contact_pos_pin_bar = pin_cen_bar + r_cpXY_hat * m_geom.pin_radius;
+      // both contact points use pin z-coord, relative to gear
+      contact_pos_gear_bar.z = pin_cen_bar.z;
+      contact_pos_pin_bar.z = pin_cen_bar.z;
+
+      // normal dir is only in XY-gear plane, gear is way more stiff than pin
+      contact_normal_onPin_bar = -r_cpXY_hat;
+      contact_normal_onPin_bar.z = 0; // to be complete
+      return true;
+    }
+    else
+    {
+      return false;
+    }
   }
 
 
@@ -240,20 +276,24 @@ class GearPinCollisionCallback : public ChSystem::ChCustomComputeCollisionCallba
 
     // get the pin centers in the gear c-sys, drop the out of plane (lateral) part.
     ChVector<> pin_cen_bar_Pz = gear_rot.RotateBack(pin_cen_Pz - gear_pos);
-    pin_cen_bar_Pz.z = 0;
-
     ChVector<> pin_cen_bar_Nz = gear_rot.RotateBack(pin_cen_Nz - gear_pos);
-    pin_cen_bar_Nz.z = 0;
 
-    // do the x-y plane collision detection
-    if( eval2Dcontact(pin_cen_bar_Pz, gear_seat_cen_bar_Pz) )
+    // do the x-y plane collision detection. 
+    // Fill data, w.r.t. gear c-sys
+    ChVector<> p1_bar;
+    ChVector<> p2_bar;
+    ChVector<> norm_onPin_bar;
+
+    if( eval2Dcontact(pin_cen_bar_Pz, gear_seat_cen_bar_Pz,
+      p1_bar, p2_bar, norm_onPin_bar) )
     {
       GetLog() << "\n narrow phase contact, positive z-side \n\n";
 
       m_Ncontacts++;
     }
 
-    if( eval2Dcontact(pin_cen_bar_Nz, gear_seat_cen_bar_Nz) )
+    if( eval2Dcontact(pin_cen_bar_Nz, gear_seat_cen_bar_Nz,
+      p1_bar, p2_bar, norm_onPin_bar) )
     {
       GetLog() << "\n narrow phase contact, negative z-side \n\n";
 
