@@ -162,8 +162,8 @@ void TrackChain::Initialize(ChSharedPtr<ChBody> chassis,
       // rad_dir is now tangent to r_21, so define the new endpoint of this segment
       end_point = rolling_element_loc[i] + rad_dir * clearance[i];
 
-    } else 
-    {
+    } 
+    else  {
       // intermediate points, find start and end from roller elem locations
       // first guess at start/end points: center distance vector
       r_21 = rolling_element_loc[i] - rolling_element_loc[i-1];

@@ -204,33 +204,66 @@ class GearPinCollisionCallback : public ChSystem::ChCustomComputeCollisionCallba
 
   }
 
+  /// true if in contact in the x-y plane.
+  bool eval2Dcontact(const ChVector<>& pin_cen_bar, const ChVector<>& gear_seat_cen_bar )
+  {
+
+
+    return true;
+  }
+
 
   /// return true if there are contacts detected
   // centers w.r.t. global c-sys
   // be sure to pass centers as positive and negative z, w.r.t. gear c-sys
-  bool NarrowPhase(const ChVector<>& gear_cen_Pz,
-    const ChVector<>& gear_cen_Nz,
+  bool NarrowPhase(const ChVector<>& gear_seat_cen_Pz,
+    const ChVector<>& gear_seat_cen_Nz,
     const ChVector<>& pin_cen_Pz,
     const ChVector<>& pin_cen_Nz,
+    const ChVector<>& gear_pos,
     const ChQuaternion<>& gear_rot)
   {
 
     // do narrow phase between this shoe and gear
     // find the closest gear to rotate the relate coordinates by the right angle
-    size_t tooth_idx = Get_GearToothIdx(gear_cen_Pz, pin_cen_Pz, gear_rot);
+    size_t tooth_idx = Get_GearToothIdx(gear_seat_cen_Pz, pin_cen_Pz, gear_rot);
     double rot_ang = CH_C_PI / m_geom.num_teeth + tooth_idx * (CH_C_PI / m_geom.num_teeth);
 
     // rotate the relative pos. things w.r.t gear c-sys
     ChQuaternion<> rot_q = Q_from_AngAxis(rot_ang, VECT_Z);
-    ChQuaternion<> rot_q2 = Q_from_AngAxis(rot_ang + (CH_C_2PI / m_geom.num_teeth), VECT_Z ); // look at the next gear tooth
+    // ChQuaternion<> rot_q2 = Q_from_AngAxis(rot_ang + (CH_C_2PI / m_geom.num_teeth), VECT_Z ); // look at the next gear tooth
     ChFrame<> seat_frame(m_seat_pos_bar, QUNIT);
 
-    ChVector<> m_seat_pos_bar_tooth = (rot_q * seat_frame).GetPos();
-    ChVector<> m_tooth_cen_pos_bar_A = (rot_q * seat_frame).GetPos();
-    ChVector<> m_tooth_cen_pos_bar_B = (rot_q2 * seat_frame).GetPos();
+    // get the gear seat for this tooth seat
+    ChVector<> gear_seat_cen_bar_Pz = (rot_q * seat_frame).GetPos();
+    ChVector<> gear_seat_cen_bar_Nz = -gear_seat_cen_bar_Pz;
+
+    // get the pin centers in the gear c-sys, drop the out of plane (lateral) part.
+    ChVector<> pin_cen_bar_Pz = gear_rot.RotateBack(pin_cen_Pz - gear_pos);
+    pin_cen_bar_Pz.z = 0;
+
+    ChVector<> pin_cen_bar_Nz = gear_rot.RotateBack(pin_cen_Nz - gear_pos);
+    pin_cen_bar_Nz.z = 0;
+
+    // do the x-y plane collision detection
+    if( eval2Dcontact(pin_cen_bar_Pz, gear_seat_cen_bar_Pz) )
+    {
+      GetLog() << "\n narrow phase contact, positive z-side \n\n";
+
+      m_Ncontacts++;
+    }
+
+    if( eval2Dcontact(pin_cen_bar_Nz, gear_seat_cen_bar_Nz) )
+    {
+      GetLog() << "\n narrow phase contact, negative z-side \n\n";
+
+      m_Ncontacts++;
+    }
 
     return true;
   }
+
+
   /// based on the distance between input global centers, find the dist. relative to the gear
   /// c-sys. Return which gear tooth to perform narrow-phase with
   size_t Get_GearToothIdx(const ChVector<>& gear_cen,
@@ -265,9 +298,9 @@ class GearPinCollisionCallback : public ChSystem::ChCustomComputeCollisionCallba
 		{
       // global c-sys
       ChVector<> shoe_pos = m_shoes[idx]->GetPos();
-      ChVector<> gear_pos_Pz = m_gear->GetPos() 
+      ChVector<> gear_seat_pos_Pz = m_gear->GetPos() 
         + gear->GetRot().Rotate( m_seat_pos_bar );
-      ChVector<> gear_pos_Nz = m_gear->GetPos() 
+      ChVector<> gear_seat_pos_Nz = m_gear->GetPos() 
         + gear->GetRot().Rotate( -m_seat_pos_bar );
 
       // put the Shoe bounding sphere at the center of the pin, on the positive and negative z-dir, w.r.t. gear c-sys
@@ -278,10 +311,10 @@ class GearPinCollisionCallback : public ChSystem::ChCustomComputeCollisionCallba
         + shoes[idx]->GetRot().Rotate( -m_pin_pos_bar );
 
       // broad-phase passes?
-      if( BroadphasePassed(gear_pos_Pz, gear_pos_Nz, pin_pos_Pz, pin_pos_Nz) )
+      if( BroadphasePassed(gear_seat_pos_Pz, gear_seat_pos_Nz, pin_pos_Pz, pin_pos_Nz) )
       {
 
-        if( NarrowPhase(gear_pos_Pz, gear_pos_Nz, pin_pos_Pz, pin_pos_Nz, gear->GetRot() ) )
+        if( NarrowPhase(gear_seat_pos_Pz, gear_seat_pos_Nz, pin_pos_Pz, pin_pos_Nz, gear->GetPos(), gear->GetRot() ) )
           GetLog () << " fascinating .... \n\n\n";
 
 
