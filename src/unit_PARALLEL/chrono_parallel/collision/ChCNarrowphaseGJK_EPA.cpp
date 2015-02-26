@@ -1051,14 +1051,14 @@ bool GJKCollide(const ConvexShape& shape0,
 
   // printf("last Method: %d", m_lastUsedMethod);
 
-  if (isValid && ((distance < 0) || (distance * distance < LARGE_REAL)) && distance < (marginA + marginB) ) {
+  if (isValid && ((distance < 0) || (distance * distance < LARGE_REAL)) && distance < (marginA + marginB + envelope) ) {
     m_cachedSeparatingAxis = normalInB;
     m_cachedSeparatingDistance = distance;
 
-    contact_point.depth = distance;
+    contact_point.depth = distance +  envelope *2;
     contact_point.normal = normalInB;
-    contact_point.pointA = real3(pointOnB + positionOffset) + normalInB * distance;
-    contact_point.pointB = real3(pointOnB + positionOffset);
+    contact_point.pointA = real3(pointOnB + positionOffset) + normalInB * (distance +  envelope);
+    contact_point.pointB = real3(pointOnB + positionOffset) -  normalInB * envelope;
     //    manifold.addContactPoint(shape0, shape1, normalInB, real3(pointOnB + positionOffset), distance);
   } else {
     return false;
