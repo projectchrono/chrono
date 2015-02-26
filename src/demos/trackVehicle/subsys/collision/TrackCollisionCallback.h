@@ -37,7 +37,6 @@ public:
     double tooth_len = 0.013119,  ///< length of top of gear tooth, in local XY plane
     double tooth_width = 0.0840,  ///< width of top of gear tooth, in local Z plane
     size_t num_teeth = 10.0,      ///< number of gear teeth
-    double key_angle = 0.0,       ///< if the bottom of the tooth profile is not directly above the COG of the gear, rotation angle in rads
     double pin_radius = 0.0232,   ///< shoe pin radius
     double pin_width_max = 0.531,  ///< max total pin width
     double pin_width_min = 0.38,  ///< min total pin width
@@ -53,7 +52,6 @@ public:
     tooth_len(tooth_len),
     tooth_width(tooth_width),
     num_teeth( num_teeth),
-    key_angle(key_angle),
     pin_radius(pin_radius),
     pin_width_max(pin_width_max),
     pin_width_min(pin_width_min),
@@ -115,30 +113,17 @@ class GearPinCollisionCallback : public ChSystem::ChCustomComputeCollisionCallba
     // two endpoints of cylinder pin, w.r.t. shoe c-sys. 
     // SYMMETRIC ABOUT XY PLANE (e.g., check for contact for -z)
     // point 1 = inner, 2 = outer
-		m_p1_bar = ChVector<>(m_geom.pin_x_offset,
+		m_pin_pos_bar = ChVector<>(m_geom.pin_x_offset,
       m_geom.pin_y_offset,
       m_geom.pin_width_min/2.0);
-    m_p2_bar = ChVector<>(m_geom.pin_x_offset,
-      m_geom.pin_y_offset,
-      m_geom.pin_width_max/2.0);
 
     // two endpoints of  the seat cylinder (there are as many as gear teeth
     // SYMMETRIC ABOUT XY PLANE (e.g., check for contact for -z)
     // point 1 = inner, 2 = outer
-    m_seat1_bar.clear();
-    m_seat2_bar.clear();
-    m_seat1_bar.resize(m_geom.num_teeth);
-    m_seat2_bar.resize(m_geom.num_teeth);
-    for(int t_idx = 0; t_idx < m_geom.num_teeth; t_idx++)
-    {
-      m_seat1_bar[t_idx] = ChVector<>(m_geom.gear_base_radius*sin(m_geom.key_angle),
-        m_geom.gear_base_radius*cos(m_geom.key_angle),
-        m_geom.gear_seat_width_min/2.0);
-      m_seat2_bar[t_idx] = ChVector<>(m_geom.gear_base_radius*sin(m_geom.key_angle),
-        m_geom.gear_base_radius*cos(m_geom.key_angle),
-        m_geom.gear_seat_width_max/2.0);
-    }
-
+    m_seat_pos_bar = ChVector<>(0,
+      m_geom.gear_base_radius,
+      (m_geom.gear_seat_width_min + m_geom.gear_seat_width)/2.0 );
+   
 		// alloc the hash table for persistent manifold of gear-cylinder contacts
 		hashed_contacts = new ChHashTable<int, GearPinCacheContact>(persistent_hashtable_dim);
 
@@ -198,7 +183,7 @@ class GearPinCollisionCallback : public ChSystem::ChCustomComputeCollisionCallba
   /// return true if the bounding spheres of specified centers intersect
   // centers w.r.t. global c-sys
   // be sure to pass in the pin centers as positive and negative z, w.r.t. gear c-sys
-  bool broadphasePassed(const ChVector<>& gear_cen_Pz,
+  bool BroadphasePassed(const ChVector<>& gear_cen_Pz,
     const ChVector<>& gear_cen_Nz,
     const ChVector<>& pin_cen_Pz,
     const ChVector<>& pin_cen_Nz)
@@ -219,15 +204,42 @@ class GearPinCollisionCallback : public ChSystem::ChCustomComputeCollisionCallba
 
   }
 
+
+  /// return true if there are contacts detected
+  // centers w.r.t. global c-sys
+  // be sure to pass centers as positive and negative z, w.r.t. gear c-sys
+  bool NarrowPhase(const ChVector<>& gear_cen_Pz,
+    const ChVector<>& gear_cen_Nz,
+    const ChVector<>& pin_cen_Pz,
+    const ChVector<>& pin_cen_Nz,
+    const ChQuaternion<>& gear_rot)
+  {
+
+    // do narrow phase between this shoe and gear
+    // find the closest gear to rotate the relate coordinates by the right angle
+    size_t tooth_idx = Get_GearToothIdx(gear_cen_Pz, pin_cen_Pz, gear_rot);
+    double rot_ang = CH_C_PI / m_geom.num_teeth + tooth_idx * (CH_C_PI / m_geom.num_teeth);
+
+    // rotate the relative pos. things w.r.t gear c-sys
+    ChQuaternion<> rot_q = Q_from_AngAxis(rot_ang, VECT_Z);
+    ChQuaternion<> rot_q2 = Q_from_AngAxis(rot_ang + (CH_C_2PI / m_geom.num_teeth), VECT_Z ); // look at the next gear tooth
+    ChFrame<> seat_frame(m_seat_pos_bar, QUNIT);
+
+    ChVector<> m_seat_pos_bar_tooth = (rot_q * seat_frame).GetPos();
+    ChVector<> m_tooth_cen_pos_bar_A = (rot_q * seat_frame).GetPos();
+    ChVector<> m_tooth_cen_pos_bar_B = (rot_q2 * seat_frame).GetPos();
+
+    return true;
+  }
   /// based on the distance between input global centers, find the dist. relative to the gear
   /// c-sys. Return which gear tooth to perform narrow-phase with
-  size_t get_GearToothIdx(const ChVector<>& gear_cen,
+  size_t Get_GearToothIdx(const ChVector<>& gear_cen,
     const ChVector<>& pin_cen,
-    const ChSharedPtr<ChBody>& gear)
+    const ChQuaternion<>& gear_rot)
   {
     ChVector<> len = pin_cen - gear_cen;  // global c-sys
     // transform to local coords
-    len = gear->GetRot().RotateBack(len);
+    len = gear_rot.RotateBack(len);
     // in local coords, can find the rotation angle in x-y plane
     double rot_ang = std::atan2(len.y,len.x);
     double incr = chrono::CH_C_2PI / m_geom.num_teeth;
@@ -254,23 +266,24 @@ class GearPinCollisionCallback : public ChSystem::ChCustomComputeCollisionCallba
       // global c-sys
       ChVector<> shoe_pos = m_shoes[idx]->GetPos();
       ChVector<> gear_pos_Pz = m_gear->GetPos() 
-        + gear->GetRot().Rotate(ChVector<>(0, 0, (m_geom.gear_seat_width_min + m_geom.gear_seat_width)/2.0 ) );
+        + gear->GetRot().Rotate( m_seat_pos_bar );
       ChVector<> gear_pos_Nz = m_gear->GetPos() 
-        + gear->GetRot().Rotate(ChVector<>(0, 0, -(m_geom.gear_seat_width_min + m_geom.gear_seat_width)/2.0 ) );
+        + gear->GetRot().Rotate( -m_seat_pos_bar );
 
       // put the Shoe bounding sphere at the center of the pin, on the positive and negative z-dir, w.r.t. gear c-sys
       // TODO: relative to the shoe c-sys, is the pin -x or +x dir ??
       ChVector<> pin_pos_Pz = shoe_pos 
-        + shoes[idx]->GetRot().Rotate(ChVector<>(-m_geom.pin_x_offset, 0, (m_geom.pin_width_min + m_geom.pin_width)/2.0 ) );
+        + shoes[idx]->GetRot().Rotate( m_pin_pos_bar );
       ChVector<> pin_pos_Nz = shoe_pos 
-        + shoes[idx]->GetRot().Rotate(ChVector<>(-m_geom.pin_x_offset, 0, -(m_geom.pin_width_min + m_geom.pin_width)/2.0 ) );
+        + shoes[idx]->GetRot().Rotate( -m_pin_pos_bar );
 
       // broad-phase passes?
-      if( broadphasePassed(gear_pos_Pz, gear_pos_Nz, pin_pos_Pz, pin_pos_Nz) )
+      if( BroadphasePassed(gear_pos_Pz, gear_pos_Nz, pin_pos_Pz, pin_pos_Nz) )
       {
 
-        // do narrow phase between this shoe and gear
-        size_t tooth_idx = get_GearToothIdx(gear_pos_Pz, pin_pos_Pz, gear);
+        if( NarrowPhase(gear_pos_Pz, gear_pos_Nz, pin_pos_Pz, pin_pos_Nz, gear->GetRot() ) )
+          GetLog () << " fascinating .... \n\n\n";
+
 
 
         /*
@@ -309,10 +322,8 @@ class GearPinCollisionCallback : public ChSystem::ChCustomComputeCollisionCallba
 
 private:
 
-  ChVector<> m_p1_bar;  ///< endpoint 1 of pin cylinder, in shoe c-sys
-  ChVector<> m_p2_bar;  ///< endpoint 2
-  std::vector<ChVector<> > m_seat1_bar; ///< endpoint 1 of bottom of gear seats, in shoe c-sys
-  std::vector<ChVector<> > m_seat2_bar; ///< endpoint 2
+  ChVector<> m_pin_pos_bar;  ///< center of pin cylinder on positive z-side, in shoe c-sys
+  ChVector<> m_seat_pos_bar; ///< center of gear seat on pos. z side, in shoe c-sys
 
   // handles to bodies to check
   std::vector<ChSharedPtr<ChBody> >& m_shoes;

@@ -72,7 +72,7 @@ public:
     const ChFrame<>& chassis_REF,
     const std::vector<ChVector<> >& rolling_element_loc, ///< center of rolling element geometry, w.r.t chassis_REF
     const std::vector<double>& clearance,       ///< rolling element geometry clearance from center
-     const std::vector<ChVector<> >& spin_axis,  ///< rolling element revolute joint DOF axis, w.r.t absolute c-ssy
+     const std::vector<ChVector<> >& spin_axis,  ///< rolling element revolute joint DOF axis, w.r.t absolute c-sys
     const ChVector<>& start_loc                 ///< where to place the middle of the first shoe, w.r.t. chassis_REF
     );
   
