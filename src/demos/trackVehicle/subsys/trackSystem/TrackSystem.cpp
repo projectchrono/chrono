@@ -163,16 +163,16 @@ void TrackSystem::Initialize(ChSharedPtr<ChBodyAuxRef> chassis,
   // Create list of the center location of the rolling elements and their clearance.
   // Clearance is a sphere shaped envelope at each center location, where it can
   //  be guaranteed that the track chain geometry will not penetrate the sphere.
-  std::vector<ChVector<>> rolling_elem_locs; // w.r.t. chassis ref. frame
+  std::vector<ChVector<> > rolling_elem_locs; // w.r.t. chassis ref. frame
   std::vector<double> clearance;  // 1 per rolling elem
-  std::vector<ChVector<>> rolling_elem_spin_axis; /// w.r.t. abs. frame
+  std::vector<ChVector<> > rolling_elem_spin_axis; /// w.r.t. abs. frame
 
   // initialize 1 of each of the following subsystems.
   // will use the chassis ref frame to do the transforms, since the TrackSystem
   // local ref. frame has same rot (just difference in position)
-  m_driveGear->Initialize(chassis, 
-    chassis->GetFrame_REF_to_abs(),
-    ChCoordsys<>(m_local_pos + Get_gearPosRel(), QUNIT) );
+  // NOTE: move drive Gear Init() AFTER the chain of shoes is created, since
+  //        need the list of shoes to be passed in to create custom collision w/ gear
+  // HOWEVER, still add the info to the rolling element lists passed into TrackChain Init().  
 
   // drive sprocket is First added to the lists passed into TrackChain Init()
   rolling_elem_locs.push_back(m_local_pos + Get_gearPosRel() );
@@ -216,6 +216,13 @@ void TrackSystem::Initialize(ChSharedPtr<ChBodyAuxRef> chassis,
     chassis->GetFrame_REF_to_abs(),
     rolling_elem_locs, clearance, rolling_elem_spin_axis,
     start_pos );
+
+  // chain of shoes available for gear init
+  m_driveGear->Initialize(chassis, 
+    chassis->GetFrame_REF_to_abs(),
+    ChCoordsys<>(m_local_pos + Get_gearPosRel(), QUNIT),
+    m_chain->GetShoeBody() );
+
 
 }
 
