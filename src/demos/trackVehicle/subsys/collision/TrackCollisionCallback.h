@@ -125,7 +125,7 @@ class GearPinCollisionCallback : public ChSystem::ChCustomComputeCollisionCallba
       (m_geom.gear_seat_width_min + m_geom.gear_seat_width)/2.0 );
    
 		// alloc the hash table for persistent manifold of gear-cylinder contacts
-		hashed_contacts = new ChHashTable<int, GearPinCacheContact>(persistent_hashtable_dim);
+		m_hashed_contacts = new ChHashTable<int, GearPinCacheContact>(persistent_hashtable_dim);
 
     // keep track of some persistence of contact info
     m_persistentContactSteps.resize(m_shoes.size(), 0);
@@ -134,11 +134,11 @@ class GearPinCollisionCallback : public ChSystem::ChCustomComputeCollisionCallba
 
 	~GearPinCollisionCallback()
 	{ 
-		if (hashed_contacts) delete hashed_contacts; hashed_contacts=0;
+		if (m_hashed_contacts) delete m_hashed_contacts; m_hashed_contacts=0;
 
 	}
 
-    
+  
   class GearPinCacheContact{
 	  public:
 		  GearPinCacheContact()
@@ -147,33 +147,34 @@ class GearPinCollisionCallback : public ChSystem::ChCustomComputeCollisionCallba
 		  std::vector<float> reactions_cache; // same structure as in btManifoldPoint for other types of contact
 	}; 
 
-	ChHashTable<int, GearPinCacheContact>* hashed_contacts;
+	ChHashTable<int, GearPinCacheContact>* m_hashed_contacts;
 
+  
   // check the hash table for persistent contact
 	void Found_GearPin_Contact(ChSharedPtr<ChBody>& gear, ChSharedPtr<ChBody> shoe,
     int shoeID, 
-    ChVector<> pa, ChVector<> pb, 
-    ChVector<> vn, 
-    double mdist, 
-    ChHashTable<int, GearPinCacheContact>* mhash)
+    ChVector<> pGear_bar, ChVector<> pPin_bar, 
+    ChVector<> vnGear_bar) 
+    // ChHashTable<int, GearPinCacheContact>* mhash)
 	{
-		std::vector<float> mreaction_cache;
+		std::vector<float> reaction_cache;
 
-		ChHashTable<int, GearPinCacheContact>::iterator mcached = mhash->find(shoeID);
-		if (mcached == mhash->end())
-      mreaction_cache =  (mhash->insert(shoeID))->second.reactions_cache;
+		ChHashTable<int, GearPinCacheContact>::iterator cached = m_hashed_contacts->find(shoeID);
+		if (cached == m_hashed_contacts->end())
+      reaction_cache =  (m_hashed_contacts->insert(shoeID))->second.reactions_cache;
 		else
-			mreaction_cache = mcached->second.reactions_cache;
+			reaction_cache = cached->second.reactions_cache;
 			 
     // fill the contact container with info
 		collision::ChCollisionInfo mcont;
 		mcont.modelA = gear->GetCollisionModel();
 		mcont.modelB = shoe->GetCollisionModel();
-		mcont.vN = vn;
-		mcont.vpA = pa;
-		mcont.vpB = pb;
-    mcont.distance = mdist;
-    mcont.reaction_cache = &(mreaction_cache[0]);
+    // passed in contact points, normal, w.r.t. gear c-sys
+    mcont.vN = gear->GetRot().Rotate(vnGear_bar);
+    mcont.vpA = gear->GetPos() + gear->GetRot().Rotate(pGear_bar);
+    mcont.vpB = gear->GetPos() + gear->GetRot().Rotate(pPin_bar);
+    mcont.distance = (mcont.vpA - mcont.vpB).Length();
+    mcont.reaction_cache = &(reaction_cache[0]);
 
     // increment the counter, add the contact
     m_Ncontacts++;
@@ -207,10 +208,11 @@ class GearPinCollisionCallback : public ChSystem::ChCustomComputeCollisionCallba
   /// true if in contact in the x-y plane.
   // fills the contact info and normal on pin, since the direction is defined by the concave section
   //  all relative to gear c-sys. Contact pts. use z- from pin_cen_bar. Normal is only in XY-bar plane
-  bool eval2Dcontact(const ChVector<>& pin_cen_bar, const ChVector<>& gear_seat_cen_bar,
+  bool eval2Dcontact(const ChVector<>& gear_seat_cen_bar,
+    const ChVector<>& pin_cen_bar, 
     ChVector<>& contact_pos_gear_bar,
     ChVector<>& contact_pos_pin_bar,
-    ChVector<>& contact_normal_onPin_bar)
+    ChVector<>& contact_normal_onGear_bar)
   {
     // find the center of the gear base circle, in XY-gear plane.
     ChVector<> pitch_circle_cenXY_bar = gear_seat_cen_bar;
@@ -238,8 +240,8 @@ class GearPinCollisionCallback : public ChSystem::ChCustomComputeCollisionCallba
       contact_pos_pin_bar.z = pin_cen_bar.z;
 
       // normal dir is only in XY-gear plane, gear is way more stiff than pin
-      contact_normal_onPin_bar = -r_cpXY_hat;
-      contact_normal_onPin_bar.z = 0; // to be complete
+      contact_normal_onGear_bar = r_cpXY_hat;
+      contact_normal_onGear_bar.z = 0; // to be complete
       return true;
     }
     else
@@ -256,13 +258,13 @@ class GearPinCollisionCallback : public ChSystem::ChCustomComputeCollisionCallba
     const ChVector<>& gear_seat_cen_Nz,
     const ChVector<>& pin_cen_Pz,
     const ChVector<>& pin_cen_Nz,
-    const ChVector<>& gear_pos,
-    const ChQuaternion<>& gear_rot)
+    ChSharedPtr<ChBody>& gear,
+    const size_t shoe_idx)
   {
 
     // do narrow phase between this shoe and gear
     // find the closest gear to rotate the relate coordinates by the right angle
-    size_t tooth_idx = Get_GearToothIdx(gear_seat_cen_Pz, pin_cen_Pz, gear_rot);
+    size_t tooth_idx = Get_GearToothIdx(gear_seat_cen_Pz, pin_cen_Pz, gear->GetRot() );
     double rot_ang = CH_C_PI / m_geom.num_teeth + tooth_idx * (CH_C_PI / m_geom.num_teeth);
 
     // rotate the relative pos. things w.r.t gear c-sys
@@ -275,29 +277,33 @@ class GearPinCollisionCallback : public ChSystem::ChCustomComputeCollisionCallba
     ChVector<> gear_seat_cen_bar_Nz = -gear_seat_cen_bar_Pz;
 
     // get the pin centers in the gear c-sys, drop the out of plane (lateral) part.
-    ChVector<> pin_cen_bar_Pz = gear_rot.RotateBack(pin_cen_Pz - gear_pos);
-    ChVector<> pin_cen_bar_Nz = gear_rot.RotateBack(pin_cen_Nz - gear_pos);
+    ChVector<> pin_cen_bar_Pz = gear->GetRot().RotateBack(pin_cen_Pz - gear->GetPos() );
+    ChVector<> pin_cen_bar_Nz = gear->GetRot().RotateBack(pin_cen_Nz - gear->GetPos() );
 
     // do the x-y plane collision detection. 
     // Fill data, w.r.t. gear c-sys
-    ChVector<> p1_bar;
-    ChVector<> p2_bar;
-    ChVector<> norm_onPin_bar;
+    ChVector<> pGear_bar;
+    ChVector<> pPin_bar;
+    ChVector<> norm_onGear_bar;
 
-    if( eval2Dcontact(pin_cen_bar_Pz, gear_seat_cen_bar_Pz,
-      p1_bar, p2_bar, norm_onPin_bar) )
+    if( eval2Dcontact(gear_seat_cen_bar_Pz, pin_cen_bar_Pz,
+      pGear_bar, pPin_bar, norm_onGear_bar) )
     {
       GetLog() << "\n narrow phase contact, positive z-side \n\n";
 
-      m_Ncontacts++;
+
+      Found_GearPin_Contact(gear, m_shoes[shoe_idx], shoe_idx, 
+        pGear_bar, pPin_bar,
+        norm_onGear_bar);
     }
 
-    if( eval2Dcontact(pin_cen_bar_Nz, gear_seat_cen_bar_Nz,
-      p1_bar, p2_bar, norm_onPin_bar) )
+    if( eval2Dcontact(gear_seat_cen_bar_Nz, pin_cen_bar_Nz, 
+      pGear_bar, pPin_bar, norm_onGear_bar) )
     {
       GetLog() << "\n narrow phase contact, negative z-side \n\n";
 
-      m_Ncontacts++;
+      Found_GearPin_Contact(gear, m_shoes[shoe_idx], shoe_idx,
+        pGear_bar, pPin_bar, norm_onGear_bar);
     }
 
     return true;
@@ -323,14 +329,14 @@ class GearPinCollisionCallback : public ChSystem::ChCustomComputeCollisionCallba
   // callback function used each timestep
 	virtual void PerformCustomCollision(ChSystem* msys)
 	{
-		CollisionGearPinFamily(msys, m_gear, m_shoes, this->hashed_contacts);
+		CollisionGearPinFamily(msys, m_gear, m_shoes);
 		
 	}
 
   // function implementation
 	void CollisionGearPinFamily(ChSystem* msys, ChSharedPtr<ChBody> gear,
-    std::vector<ChSharedPtr<ChBody> > shoes,
-    ChHashTable<int, GearPinCacheContact>* mhash)
+    std::vector<ChSharedPtr<ChBody> > shoes)
+    // ChHashTable<int, GearPinCacheContact>* mhash)
 	{
 		//GetLog() << "hash statistics: loading=" << hashed_contacts->loading() << "   size=" << hashed_contacts->size() <<"\n";
 		// look thru the shoe list, see if any pins are in contact with the concave gear seat surface.
@@ -351,36 +357,14 @@ class GearPinCollisionCallback : public ChSystem::ChCustomComputeCollisionCallba
         + shoes[idx]->GetRot().Rotate( -m_pin_pos_bar );
 
       // broad-phase passes?
-      if( BroadphasePassed(gear_seat_pos_Pz, gear_seat_pos_Nz, pin_pos_Pz, pin_pos_Nz) )
+      if( BroadphasePassed(gear_seat_pos_Pz, gear_seat_pos_Nz,
+        pin_pos_Pz, pin_pos_Nz) )
       {
 
-        if( NarrowPhase(gear_seat_pos_Pz, gear_seat_pos_Nz, pin_pos_Pz, pin_pos_Nz, gear->GetPos(), gear->GetRot() ) )
-          GetLog () << " fascinating .... \n\n\n";
-
-
-
-        /*
-			 
-			  // Case 1: is the cylinder pin colliding with the base of the gear profile (concave cylinder)?
-			  if (mpen_cyl<envelope)
-			  {
-				  ChVector<> drad = Vnorm(vrad);
-				  ChVector<> pa(drad*vessell_rad); 
-				  pa.y=vspherepos.y;
-				  ChVector<> pb(drad*(mrad + sphere_rad));
-				  pb.y=vspherepos.y;
-				  ChVector<> vn(-drad);
-				  FoundReactorParticleContact(vessell_body,family, ip,pa,pb,vn,-mpen_cyl,mhash);
-			  }
-			
-        */
-
-
-			}
-		  else
-      {
-        // not within the bounding geometry, so no contact
-
+        bool passed_Narrow = NarrowPhase(gear_seat_pos_Pz, gear_seat_pos_Nz,
+          pin_pos_Pz, pin_pos_Nz,
+          gear, idx);
+  
       }
     }
   }
