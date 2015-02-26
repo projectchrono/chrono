@@ -26,7 +26,7 @@
 namespace chrono {
 
 /// data container for the M113 gear/pin geometry.
-class GearPinGeometry : public ChShared
+const class GearPinGeometry
 {
 public:
   GearPinGeometry(double gear_base_radius = 0.211,  ///< gear base circle radius
@@ -68,74 +68,78 @@ public:
   }
 
   // gear geometry
-  const double m_gear_base_radius; 
-  const double m_gear_pitch_radius; 
-  const double m_gear_tooth_radius;
-  const double m_gear_circle_angle;
-  const double m_gear_seat_width_max;
-  const double m_gear_seat_width_min;
-  const size_t m_num_teeth;
-  const double m_key_angle;
+  double m_gear_base_radius; 
+  double m_gear_pitch_radius; 
+  double m_gear_tooth_radius;
+  double m_gear_circle_angle;
+  double m_gear_seat_width_max;
+  double m_gear_seat_width_min;
+  size_t m_num_teeth;
+  double m_key_angle;
 
   // gear tooth geometry
-  const ChVector<> m_tooth_mid_bar;
-  const double m_tooth_len;
-  const double m_tooth_width;
+  ChVector<> m_tooth_mid_bar;
+  double m_tooth_len;
+  double m_tooth_width;
 
   // shoe pin geometry
-  const double m_pin_radius;
-  const double m_pin_width_max;
-  const double m_pin_width_min;
-  const double m_pin_x_offset;
-  const double m_pin_y_offset;
+  double m_pin_radius;
+  double m_pin_width_max;
+  double m_pin_width_min;
+  double m_pin_x_offset;
+  double m_pin_y_offset;
 };
 
 // Concave geometry (gear tooth seat) cannot be exactly represented by default collision primitives,
 //  nor can it be accurately modeled with a mesh or convex hull.
 // This custom collision checks the gear with all the track shoes
+// I suppose since you can choose between DVI and DEM contact, might as well
+// template this so we can add to either contact container type
+template <class ContactEngine>
 class GearPinCollisionCallback : public ChSystem::ChCustomComputeCollisionCallback
 {
 	public:
   /// all length units in meters
-	GearPinCollisionCallback(std::vector<ChSharedPtr<ChBody>>& shoes,
+	GearPinCollisionCallback(std::vector<ChSharedPtr<ChBody> >& shoes,
     ChSharedPtr<ChBody>& gear_body,
-    ChSharedPtr<GearPinGeometry> geom,
+    const GearPinGeometry& geom,
     int persistent_hashtable_dim = 1000
 	) : m_shoes(shoes),
   m_gear(gear_body),
   m_geom(geom),
-  m_persistent_hashtable_dim(persistent_hashtable_dim)
+  m_persistent_hashtable_dim(persistent_hashtable_dim),
+  m_Ncontacts(0)
 	{
 
     // two endpoints of cylinder pin, w.r.t. shoe c-sys. 
     // SYMMETRIC ABOUT XY PLANE (e.g., check for contact for -z)
     // point 1 = inner, 2 = outer
-		m_p1_bar = ChVector<>(m_geom->m_pin_x_offset,
-      m_geom->m_pin_y_offset,
-      m_geom->m_pin_width_min/2.0);
-    m_p2_bar = ChVector<>(m_geom->m_pin_x_offset,
-      m_geom->m_pin_y_offset,
-      m_geom->m_pin_width_max/2.0);
+		m_p1_bar = ChVector<>(m_geom.m_pin_x_offset,
+      m_geom.m_pin_y_offset,
+      m_geom.m_pin_width_min/2.0);
+    m_p2_bar = ChVector<>(m_geom.m_pin_x_offset,
+      m_geom.m_pin_y_offset,
+      m_geom.m_pin_width_max/2.0);
 
     // two endpoints of  the seat cylinder (there are as many as gear teeth
     // SYMMETRIC ABOUT XY PLANE (e.g., check for contact for -z)
     // point 1 = inner, 2 = outer
     m_seat1_bar.clear();
     m_seat2_bar.clear();
-    m_seat1_bar.resize(m_geom->m_num_teeth);
-    m_seat2_bar.resize(m_geom->m_num_teeth);
-    for(int t_idx = 0; t_idx < m_geom->m_num_teeth; t_idx++)
+    m_seat1_bar.resize(m_geom.m_num_teeth);
+    m_seat2_bar.resize(m_geom.m_num_teeth);
+    for(int t_idx = 0; t_idx < m_geom.m_num_teeth; t_idx++)
     {
-      m_seat1_bar[t_idx] = ChVector<>(m_geom->m_gear_base_radius*sin(m_geom->m_key_angle),
-        m_geom->m_gear_base_radius*cos(m_geom->m_key_angle),
-        m_geom->m_gear_seat_width_min/2.0);
-      m_seat2_bar[t_idx] = ChVector<>(m_geom->m_gear_base_radius*sin(m_geom->m_key_angle),
-        m_geom->m_gear_base_radius*cos(m_geom->m_key_angle),
-        m_geom->m_gear_seat_width_max/2.0);
+      m_seat1_bar[t_idx] = ChVector<>(m_geom.m_gear_base_radius*sin(m_geom.m_key_angle),
+        m_geom.m_gear_base_radius*cos(m_geom.m_key_angle),
+        m_geom.m_gear_seat_width_min/2.0);
+      m_seat2_bar[t_idx] = ChVector<>(m_geom.m_gear_base_radius*sin(m_geom.m_key_angle),
+        m_geom.m_gear_base_radius*cos(m_geom.m_key_angle),
+        m_geom.m_gear_seat_width_max/2.0);
     }
 
 		// alloc the hash table for persistent manifold of gear-cylinder contacts
-		hashed_contacts = new ChHashTable<int, ReactCachedContact >(persistent_hashtable_dim);
+		hashed_contacts = new ChHashTable<int, GearPinCacheContact>(persistent_hashtable_dim);
 
     // keep track of some persistence of contact info
     m_persistentContactSteps.resize(m_shoes.size(), 0);
@@ -149,14 +153,15 @@ class GearPinCollisionCallback : public ChSystem::ChCustomComputeCollisionCallba
 	}
 
     
-  class ReactCachedContact{
+  class GearPinCacheContact{
 	  public:
-		  ReactCachedContact()
-			  {reactions_cache[0]=reactions_cache[1]=reactions_cache[2]=reactions_cache[3]=reactions_cache[4]=reactions_cache[5]=0;}
-		  float reactions_cache[6]; // same structure as in btManifoldPoint for other types of contact
+		  GearPinCacheContact()
+			  {reactions_cache.resize(6,0);}
+
+		  std::vector<float> reactions_cache; // same structure as in btManifoldPoint for other types of contact
 	}; 
 
-	ChHashTable<int, ReactCachedContact>* hashed_contacts;
+	ChHashTable<int, GearPinCacheContact>* hashed_contacts;
 
   // check the hash table for persistent contact
 	void Found_GearPin_Contact(ChSharedPtr<ChBody>& gear, ChSharedPtr<ChBody> shoe,
@@ -164,15 +169,15 @@ class GearPinCollisionCallback : public ChSystem::ChCustomComputeCollisionCallba
     ChVector<> pa, ChVector<> pb, 
     ChVector<> vn, 
     double mdist, 
-    ChHashTable<int, ReactCachedContact>* mhash)
+    ChHashTable<int, GearPinCacheContact>* mhash)
 	{
-		float* mreaction_cache=0;
+		std::vector<float> mreaction_cache;
 
-		ChHashTable<int, ReactCachedContact>::iterator mcached = mhash->find(shoeID);
+		ChHashTable<int, GearPinCacheContact>::iterator mcached = mhash->find(shoeID);
 		if (mcached == mhash->end())
-			mreaction_cache=(mhash->insert(shoeID))->second.reactions_cache;
+      mreaction_cache =  (mhash->insert(shoeID))->second.reactions_cache;
 		else
-			mreaction_cache=mcached->second.reactions_cache;
+			mreaction_cache = mcached->second.reactions_cache;
 			 
     // fill the contact container with info
 		collision::ChCollisionInfo mcont;
@@ -182,20 +187,22 @@ class GearPinCollisionCallback : public ChSystem::ChCustomComputeCollisionCallba
 		mcont.vpA = pa;
 		mcont.vpB = pb;
     mcont.distance = mdist;
-    mcont.reaction_cache = mreaction_cache;
+    mcont.reaction_cache = &(mreaction_cache[0]);
 
-		gear->GetSystem()->GetContactContainer();//->AddContact(mcont);
+    // increment the counter, add the contact
+    m_Ncontacts++;
+		((ContactEngine*)(gear->GetSystem()->GetContactContainer()))->AddContact(mcont);
 	}
 
 	virtual void PerformCustomCollision(ChSystem* msys)
 	{
-		CollisionReactorFamily(msys, m_gear, m_shoes, this->hashed_contacts);
+		CollisionGearPinFamily(msys, m_gear, m_shoes, this->hashed_contacts);
 		
 	}
 
-	virtual void CollisionReactorFamily(ChSystem* msys, ChSharedPtr<ChBody> gear,
-    std::vector<ChSharedPtr<ChBody>> shoes,
-    ChHashTable<int, ReactCachedContact>* mhash)
+	virtual void CollisionGearPinFamily(ChSystem* msys, ChSharedPtr<ChBody> gear,
+    std::vector<ChSharedPtr<ChBody> > shoes,
+    ChHashTable<int, GearPinCacheContact>* mhash)
 	{
 		//GetLog() << "hash statistics: loading=" << hashed_contacts->loading() << "   size=" << hashed_contacts->size() <<"\n";
 		for(int t_idx = 0; t_idx < m_shoes.size(); t_idx++)
@@ -205,9 +212,9 @@ class GearPinCollisionCallback : public ChSystem::ChCustomComputeCollisionCallba
       ChVector<> gear_pos = m_gear->GetPos();
 
       // broad-phase, is the distance between centers > sum of bounding sphere?
-      if( (gear_pos - shoe_pos).Length() <= (m_geom->m_gear_pitch_radius + ChVector<>(m_geom->m_pin_x_offset + m_geom->m_pin_radius,
-        m_geom->m_pin_y_offset, 
-        m_geom->m_pin_width_max/2.0).Length()) )
+      if( (gear_pos - shoe_pos).Length() <= (m_geom.m_gear_pitch_radius + ChVector<>(m_geom.m_pin_x_offset + m_geom.m_pin_radius,
+        m_geom.m_pin_y_offset, 
+        m_geom.m_pin_width_max/2.0).Length()) )
       {
 
         // do narrow phase between this shoe and gear
@@ -249,23 +256,30 @@ class GearPinCollisionCallback : public ChSystem::ChCustomComputeCollisionCallba
 
   bool Get_contactPrevStep(size_t idx) const { assert(idx<m_shoes.size()); return m_contactPrevStep[idx]; }
 
+  // other virtuals
+
+  // number of contacts detected
+  int GetNcontacts_GearPin() { return m_Ncontacts; }
+
 
 private:
 
-  ChVector<> m_p1_bar;
-  ChVector<> m_p2_bar;
-  std::vector<ChVector<>> m_seat1_bar;
-  std::vector<ChVector<>> m_seat2_bar;
+  ChVector<> m_p1_bar;  ///< endpoint 1 of pin cylinder, in shoe c-sys
+  ChVector<> m_p2_bar;  ///< endpoint 2
+  std::vector<ChVector<> > m_seat1_bar; ///< endpoint 1 of bottom of gear seats, in shoe c-sys
+  std::vector<ChVector<> > m_seat2_bar; ///< endpoint 2
 
   // handles to bodies to check
-  std::vector<ChSharedPtr<ChBody>>& m_shoes;
+  std::vector<ChSharedPtr<ChBody> >& m_shoes;
   ChSharedPtr<ChBody>& m_gear;
-  ChSharedPtr<GearPinGeometry>& m_geom;
+  const GearPinGeometry m_geom; ///< gear and pin geometry data
 
   // following are used for determining if contacts are "persistent"
-  // i.e., no liftoff once they are engaged with the sprocket!!
+  // i.e., no liftoff once they are engaged with the sprocket. 1 per shoe
   std::vector<bool> m_contactPrevStep;  ///<  was the shoe body in contact with the gear last step? i.e., passed narrow phase last step?
   std::vector<size_t> m_persistentContactSteps;   ///< how many steps in a row was the pin in contact with the gear?
+
+  int m_Ncontacts;
 
   // hashtable
   size_t m_persistent_hashtable_dim;
