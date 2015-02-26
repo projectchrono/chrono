@@ -197,7 +197,7 @@ void create_system_particles(ChSystemParallelDVI& mphysicalSystem) {
 	mat_g->SetComplianceT(0.0);
 	mat_g->SetDampingF(0.2);
 
-	const ChVector<> pos = ChVector<>(domainCenter.x, domainCenter.y, domainCenter.z);
+	const ChVector<> pos = ChVector<>(domainCenter.x, domainCenter.y + paramsH.cMax.y, domainCenter.z);
 	const ChQuaternion<> rot = ChQuaternion<>(1, 0, 0, 0);
 
 	ChSharedBodyPtr body;
@@ -213,17 +213,6 @@ void create_system_particles(ChSystemParallelDVI& mphysicalSystem) {
 
 	body->GetCollisionModel()->ClearModel();
 
-	// add collision geometry
-//	body->GetCollisionModel()->AddEllipsoid(size.x, size.y, size.z, pos, rot);
-//
-//	// add asset (for visualization)
-//	ChSharedPtr<ChEllipsoidShape> ellipsoid(new ChEllipsoidShape);
-//	ellipsoid->GetEllipsoidGeometry().rad = size;
-//	ellipsoid->Pos = pos;
-//	ellipsoid->Rot = rot;
-//
-//	body->GetAssets().push_back(ellipsoid);
-
 //	utils::AddCapsuleGeometry(body.get_ptr(), size.x, size.y);		// X
 //	utils::AddCylinderGeometry(body.get_ptr(), size.x, size.y);		// O
 //	utils::AddConeGeometry(body.get_ptr(), size.x, size.y); 		// X
@@ -231,14 +220,10 @@ void create_system_particles(ChSystemParallelDVI& mphysicalSystem) {
 	utils::AddSphereGeometry(body.get_ptr(), size.x);				// O
 //	utils::AddEllipsoidGeometry(body.get_ptr(), size);					// X
 
-
 	body->GetCollisionModel()->BuildModel();
 	mphysicalSystem.AddBody(body);
 
-
-
 	// ****************** create boxes around the fluid domain
-
 	ChSharedPtr<ChMaterialSurface> mat(new ChMaterialSurface);
 	mat->SetFriction(.5);
 	mat->SetDampingF(0.2f);
@@ -275,10 +260,7 @@ void AddSphDataToChSystem(
 		const thrust::host_vector<Real4> & velMasH,
 		const NumberOfObjects & numObjects) {
 
-	Real3 domainCenter = 0.5 * (paramsH.cMin + paramsH.cMax);
-	Real3 ellipsoidSize = .3 * mR3(10 * paramsH.HSML, 5 * paramsH.HSML, 7 * paramsH.HSML);
-	ChVector<> size = ChVector<>(ellipsoidSize.x, ellipsoidSize.y, ellipsoidSize.z);
-	Real rad = paramsH.HSML;
+	Real rad = paramsH.MULT_INITSPACE * paramsH.HSML * .5;
 	// NOTE: mass properties and shapes are all for sphere
 	double volume = utils::CalcSphereVolume(rad);
 	ChVector<> gyration = utils::CalcSphereGyration(rad).Get_Diag();
@@ -336,7 +318,7 @@ void AddSphDataToChSystem(
 	//	utils::AddCylinderGeometry(body.get_ptr(), size.x, size.y);		// O
 	//	utils::AddConeGeometry(body.get_ptr(), size.x, size.y); 		// X
 	//	utils::AddBoxGeometry(body.get_ptr(), size);					// O
-		utils::AddSphereGeometry(body.get_ptr(), size.x);				// O
+		utils::AddSphereGeometry(body.get_ptr(), rad);				// O
 	//	utils::AddEllipsoidGeometry(body.get_ptr(), size);					// X
 
 		body->GetCollisionModel()->SetFamily(100);
@@ -466,45 +448,6 @@ void SavePovFilesMBD(ChSystemParallelDVI& mphysicalSystem, int tStep) {
 		utils::WriteBodies(&mphysicalSystem, filename);
 	}
 }
-////*** paramsH.straightChannelBoundaryMax   should be taken care of
-//Real IsInsideStraightChannel(Real3 posRad) {
-//	const Real sphR = paramsH.HSML;
-//	Real penDist1 = 0;
-//	Real penDist2 = 0;
-//	Real penDist3 = 0;
-//	Real largePenet = -5 * sphR; //like a large number. Should be negative (assume large initial penetration)
-//
-//	if (posRad.z > paramsH.straightChannelBoundaryMax.z) {
-//		penDist1 = paramsH.straightChannelBoundaryMax.z - posRad.z;
-//	}
-//	if (posRad.z < paramsH.straightChannelBoundaryMin.z) {
-//		penDist1 = posRad.z - paramsH.straightChannelBoundaryMin.z;
-//	}
-//
-//	if (posRad.y < paramsH.straightChannelBoundaryMin.y) {
-//		penDist2 = posRad.y - paramsH.straightChannelBoundaryMin.y;
-//	}
-//	if (posRad.y > paramsH.straightChannelBoundaryMax.y) {
-//		penDist2 = paramsH.straightChannelBoundaryMax.y - posRad.y;
-//	}
-//
-//	if (posRad.x < paramsH.straightChannelBoundaryMin.x) {
-//		penDist3 = posRad.x - paramsH.straightChannelBoundaryMin.x;
-//	}
-//	if (posRad.x > paramsH.straightChannelBoundaryMax.x) {
-//		penDist3 = paramsH.straightChannelBoundaryMax.x - posRad.x;
-//	}
-//
-//	if (penDist1 < 0 && penDist2 < 0 && penDist2 < 0) {
-//		return Min(penDist1, penDist2);
-//	}
-//	if (penDist1 < 0)
-//		return penDist1;
-//	if (penDist2 < 0)
-//		return penDist2;
-//	return -largePenet;
-//}
-
 //&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
 int2 CreateFluidMarkers(
 		thrust::host_vector<Real3> & posRadH,
@@ -520,16 +463,13 @@ int2 CreateFluidMarkers(
 	int num_FluidMarkers = 0;
 	int num_BoundaryMarkers = 0;
 	srand(964);
-	Real multInitSpace = paramsH.MULT_INITSPACE; //0.9;//0.9;
 	Real initSpace0 = paramsH.MULT_INITSPACE * paramsH.HSML;
 	int nFX = ceil((paramsH.cMax.x - paramsH.cMin.x) / (initSpace0));
 	Real initSpaceX = (paramsH.cMax.x - paramsH.cMin.x) / nFX;
-	//printf("orig nFx and nFx %f %f\n", (paramsH.cMax.x - paramsH.cMin.x) / initSpace, ceil ((paramsH.cMax.x - paramsH.cMin.x) / (initSpace)));
 	int nFY = ceil((paramsH.cMax.y - paramsH.cMin.y) / (initSpace0));
 	Real initSpaceY = (paramsH.cMax.y - paramsH.cMin.y) / nFY;
 	int nFZ = ceil((paramsH.cMax.z - paramsH.cMin.z) / (initSpace0));
 	Real initSpaceZ = (paramsH.cMax.z - paramsH.cMin.z) / nFZ;
-	//printf("&&&&& %f   %f %f %f \n", 1.1 * sphR, initSpaceX, initSpaceY, initSpaceZ);
 	printf("nFX Y Z %d %d %d, max distY %f, initSpaceY %f\n", nFX, nFY, nFZ,
 			(nFY - 1) * initSpaceY, initSpaceY);
 	sphMarkerMass = (initSpaceX * initSpaceY * initSpaceZ) * paramsH.rho0;
@@ -555,10 +495,10 @@ int2 CreateFluidMarkers(
 						rhoPresMuH.push_back(mR4(paramsH.rho0, paramsH.BASEPRES, paramsH.mu0, -1));
 					}
 				} else {
-					num_BoundaryMarkers++;
-					mPosRadBoundary.push_back(posRad);
-					mVelMasBoundary.push_back(mR4(0, 0, 0, sphMarkerMass));
-					mRhoPresMuBoundary.push_back(mR4(paramsH.rho0, paramsH.LARGE_PRES, paramsH.mu0, 0));
+//					num_BoundaryMarkers++;
+//					mPosRadBoundary.push_back(posRad);
+//					mVelMasBoundary.push_back(mR4(0, 0, 0, sphMarkerMass));
+//					mRhoPresMuBoundary.push_back(mR4(paramsH.rho0, paramsH.LARGE_PRES, paramsH.mu0, 0));
 				}
 			}
 		}
@@ -721,6 +661,21 @@ void CopyH2D(
 	thrust::copy(derivVelRhoChronoH.begin(), derivVelRhoChronoH.end(), derivVelRhoD.begin());
 }
 
+void CopySys2D(
+	thrust::device_vector<Real3> & posRadD,
+	ChSystemParallelDVI& mphysicalSystem,
+	const NumberOfObjects & numObjects,
+	int startIndexSph) {
+	thrust::host_vector<Real3> posRadH(numObjects.numAllMarkers);
+	std::vector<ChBody*>::iterator bodyIter = mphysicalSystem.Get_bodylist()->begin() + startIndexSph;
+#pragma omp parallel for
+	for (int i = 0; i < numObjects.numAllMarkers; i++) {
+		ChVector<> p = ((ChBody*)(*(bodyIter + i)))->GetPos();
+		posRadH[i] += mR3(p.x, p.y, p.z);
+	}
+	thrust::copy(posRadH.begin(), posRadH.end(), posRadD.begin());
+}
+
 void CopyD2H(
 	thrust::host_vector<Real3> & posRadH, //do not set the size here since you are using push back later
 	thrust::host_vector<Real4> & velMasH,
@@ -828,28 +783,6 @@ int main(int argc, char* argv[]) {
 	cout			 	<< " dT: " << dT  << " max_iteration: " << numIter <<" muFriction: " << mphysicalSystem.GetParallelThreadNumber() << " number of bodies: " << mphysicalSystem.Get_bodylist()->size() << endl;
 
 	InitializeChronoGraphics(mphysicalSystem, dT);
-	//****************************************** Time Loop *************************************
-
-	int counter = -1;
-//	while(mphysicalSystem.GetChTime() < timeMove+timePause) //arman modify
-	while(false) //arman modify
-	{
-		myTimerStep.start();
-		counter ++;
-
-
-		int isRunning = DoStepChronoSystem(mphysicalSystem, dT);
-		if (isRunning == 0) break;
-		printf("*** total number of contacts %d, num bodies %d\n", mphysicalSystem.GetNcontacts(), mphysicalSystem.Get_bodylist()->size());
-//		if (write_povray_data) {
-//			SavePovFilesMBD(mphysicalSystem, counter);
-//		}
-
-		myTimerStep.stop();
-		myTimerTotal.stop();
-		//****************************************************
-	}
-	// ***************************************************************************************
 
 	DOUBLEPRECISION ? printf("Double Precision\n") : printf("Single Precision\n");
 	printf("********************\n");
@@ -882,6 +815,7 @@ int main(int argc, char* argv[]) {
 		GpuTimer myGpuTimer;
 		myGpuTimer.Start();
 
+//		CopySys2D(posRadD, mphysicalSystem, numObjects, startIndexSph);
 		PrintToFile(posRadD, velMasD, rhoPresMuD, referenceArray, currentParamsH, realTime, tStep);
 		if (realTime <= paramsH.timePause) 	{
 			currentParamsH = paramsH_B;
@@ -908,7 +842,7 @@ int main(int argc, char* argv[]) {
 		ForceSPH(posRadD, velMasD, vel_XSPH_D, rhoPresMuD, bodyIndexD, derivVelRhoD, referenceArray, numObjects, currentParamsH, 0.5 * currentParamsH.dT); //?$ right now, it does not consider paramsH.gravity or other stuff on rigid bodies. they should be applied at rigid body solver
 		DoStepChronoSystem(mphysicalSystem, 0.5 * currentParamsH.dT);
 		CopyD2H(derivVelRhoChronoH, derivVelRhoD);
-		AddChSystemForcesToSphForces(derivVelRhoChronoH, velMasH2, mphysicalSystem, numObjects, startIndexSph, 0.5 * currentParamsH.dT);// assumes velMasH2 constains a copy of velMas in ChSystem right before DoStepDynamics
+//		AddChSystemForcesToSphForces(derivVelRhoChronoH, velMasH2, mphysicalSystem, numObjects, startIndexSph, 0.5 * currentParamsH.dT);// assumes velMasH2 constains a copy of velMas in ChSystem right before DoStepDynamics
 		CopyH2D(derivVelRhoD, derivVelRhoChronoH);
 		UpdateFluid(posRadD2, velMasD2, vel_XSPH_D, rhoPresMuD2, derivVelRhoD, referenceArray, 0.5 * currentParamsH.dT); 	// assumes ...D2 is a copy of ...D
 		ApplyBoundarySPH_Markers(posRadD2, rhoPresMuD2, numObjects.numAllMarkers);
@@ -919,7 +853,7 @@ int main(int argc, char* argv[]) {
 		ForceSPH(posRadD2, velMasD2, vel_XSPH_D, rhoPresMuD2, bodyIndexD, derivVelRhoD, referenceArray, numObjects, currentParamsH, currentParamsH.dT); //?$ right now, it does not consider paramsH.gravity or other stuff on rigid bodies. they should be applied at rigid body solver
 		DoStepChronoSystem(mphysicalSystem, 0.5 * currentParamsH.dT);
 		CopyD2H(derivVelRhoChronoH, derivVelRhoD);
-		AddChSystemForcesToSphForces(derivVelRhoChronoH, velMasH2, mphysicalSystem, numObjects, startIndexSph, 0.5 * currentParamsH.dT); // assumes velMasH2 constains a copy of velMas in ChSystem right before DoStepDynamics
+//		AddChSystemForcesToSphForces(derivVelRhoChronoH, velMasH2, mphysicalSystem, numObjects, startIndexSph, 0.5 * currentParamsH.dT); // assumes velMasH2 constains a copy of velMas in ChSystem right before DoStepDynamics
 		CopyH2D(derivVelRhoD, derivVelRhoChronoH);
 		UpdateFluid(posRadD, velMasD, vel_XSPH_D, rhoPresMuD, derivVelRhoD, referenceArray, currentParamsH.dT);
 		ApplyBoundarySPH_Markers(posRadD, rhoPresMuD, numObjects.numAllMarkers);
@@ -927,10 +861,12 @@ int main(int argc, char* argv[]) {
 		CopyD2H(posRadH, velMasH, rhoPresMuH, posRadD, velMasD, rhoPresMuD);
 		UpdateSphDataInChSystem(mphysicalSystem, posRadH, velMasH, numObjects, startIndexSph);
 
+		// *** delete this piece
 //		IntegrateSPH(posRadD2, velMasD2, rhoPresMuD2, posRadD, velMasD, vel_XSPH_D, rhoPresMuD, bodyIndexD, derivVelRhoD, referenceArray, numObjects, currentParamsH, 0.5 * currentParamsH.dT);
 //		CopyD2H(posRadH2, velMasH2, rhoPresMuH2, posRadD2, velMasD2, rhoPresMuD2);
 //		IntegrateSPH(posRadD, velMasD, rhoPresMuD, posRadD2, velMasD2, vel_XSPH_D, rhoPresMuD2, bodyIndexD, derivVelRhoD, referenceArray, numObjects, currentParamsH, currentParamsH.dT);
 //		CopyD2H(posRadH, velMasH, rhoPresMuH, posRadD, velMasD, rhoPresMuD);
+		// *** end delete this piece
 
 		ClearArraysH(posRadH2, velMasH2, rhoPresMuH2);
 		ClearMyThrustR3(posRadD2);
