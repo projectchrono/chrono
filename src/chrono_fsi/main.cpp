@@ -80,7 +80,7 @@
 			using namespace std;
 
 
-			#define irrlichtVisualization false
+			#define irrlichtVisualization true
 			#if irrlichtVisualization
 			shared_ptr<ChIrrApp> application;
 			#endif
@@ -260,7 +260,7 @@ void AddSphDataToChSystem(
 		const thrust::host_vector<Real4> & velMasH,
 		const NumberOfObjects & numObjects) {
 
-	Real rad = paramsH.MULT_INITSPACE * paramsH.HSML * .5;
+	Real rad = paramsH.MULT_INITSPACE * paramsH.HSML;
 	// NOTE: mass properties and shapes are all for sphere
 	double volume = utils::CalcSphereVolume(rad);
 	ChVector<> gyration = utils::CalcSphereGyration(rad).Get_Diag();
@@ -281,15 +281,13 @@ void AddSphDataToChSystem(
 	const ChQuaternion<> rot = ChQuaternion<>(1, 0, 0, 0);
 
 
-	startIndexSph = mphysicalSystem.GetNbodiesTotal();
-
+	startIndexSph = mphysicalSystem.Get_bodylist()->size();
 	// openmp does not work here
 	for (int i = 0; i < numObjects.numAllMarkers; i++) {
 		Real3 p3 = posRadH[i];
 		Real4 vM4 = velMasH[i];
 		ChVector<> pos = ChVector<>(p3.x, p3.y, p3.z);
 		ChVector<> vel = ChVector<>(vM4.x, vM4.y, vM4.z);
-
 		ChSharedBodyPtr body;
 		body = ChSharedBodyPtr(new  ChBody(new ChCollisionModelParallel));
 		body->SetMaterialSurface(mat_g);
@@ -346,7 +344,7 @@ void UpdateSphDataInChSystem(
 		int chSystemBodyId = startIndexSph + i;
 		vector<ChBody*>::iterator ibody = mphysicalSystem.Get_bodylist()->begin() + chSystemBodyId;
 		(*ibody)->SetPos(pos);
-		(*ibody)->SetPos(vel);
+		(*ibody)->SetPos_dt(vel);
 	}
 }
 
@@ -757,7 +755,7 @@ int main(int argc, char* argv[]) {
 
 
 	// ***** params
-	double dT = 100 * paramsH.dT;
+	double dT = .5 * paramsH.dT;   //Arman: What is this? fix it!
 	// ************
 
 
@@ -768,9 +766,9 @@ int main(int argc, char* argv[]) {
 
 	// Add sph data to the physics system
 	int startIndexSph = 0;
+	printf("(1) num bodies %d \n", mphysicalSystem.Get_bodylist()->size());
 	AddSphDataToChSystem(mphysicalSystem, startIndexSph, posRadH, velMasH, numObjects);
-
-
+	printf("(2) num bodies %d \n", mphysicalSystem.Get_bodylist()->size());
 	// Set gravitational acceleration
 
 	//******************* Irrlicht and driver types **************************
@@ -786,7 +784,6 @@ int main(int argc, char* argv[]) {
 
 	DOUBLEPRECISION ? printf("Double Precision\n") : printf("Single Precision\n");
 	printf("********************\n");
-
 
 	thrust::device_vector<Real3> posRadD = posRadH;
 	thrust::device_vector<Real4> velMasD = velMasH;
@@ -842,7 +839,7 @@ int main(int argc, char* argv[]) {
 		ForceSPH(posRadD, velMasD, vel_XSPH_D, rhoPresMuD, bodyIndexD, derivVelRhoD, referenceArray, numObjects, currentParamsH, 0.5 * currentParamsH.dT); //?$ right now, it does not consider paramsH.gravity or other stuff on rigid bodies. they should be applied at rigid body solver
 		DoStepChronoSystem(mphysicalSystem, 0.5 * currentParamsH.dT);
 		CopyD2H(derivVelRhoChronoH, derivVelRhoD);
-//		AddChSystemForcesToSphForces(derivVelRhoChronoH, velMasH2, mphysicalSystem, numObjects, startIndexSph, 0.5 * currentParamsH.dT);// assumes velMasH2 constains a copy of velMas in ChSystem right before DoStepDynamics
+		AddChSystemForcesToSphForces(derivVelRhoChronoH, velMasH2, mphysicalSystem, numObjects, startIndexSph, 0.5 * currentParamsH.dT);// assumes velMasH2 constains a copy of velMas in ChSystem right before DoStepDynamics
 		CopyH2D(derivVelRhoD, derivVelRhoChronoH);
 		UpdateFluid(posRadD2, velMasD2, vel_XSPH_D, rhoPresMuD2, derivVelRhoD, referenceArray, 0.5 * currentParamsH.dT); 	// assumes ...D2 is a copy of ...D
 		ApplyBoundarySPH_Markers(posRadD2, rhoPresMuD2, numObjects.numAllMarkers);
@@ -853,7 +850,7 @@ int main(int argc, char* argv[]) {
 		ForceSPH(posRadD2, velMasD2, vel_XSPH_D, rhoPresMuD2, bodyIndexD, derivVelRhoD, referenceArray, numObjects, currentParamsH, currentParamsH.dT); //?$ right now, it does not consider paramsH.gravity or other stuff on rigid bodies. they should be applied at rigid body solver
 		DoStepChronoSystem(mphysicalSystem, 0.5 * currentParamsH.dT);
 		CopyD2H(derivVelRhoChronoH, derivVelRhoD);
-//		AddChSystemForcesToSphForces(derivVelRhoChronoH, velMasH2, mphysicalSystem, numObjects, startIndexSph, 0.5 * currentParamsH.dT); // assumes velMasH2 constains a copy of velMas in ChSystem right before DoStepDynamics
+		AddChSystemForcesToSphForces(derivVelRhoChronoH, velMasH2, mphysicalSystem, numObjects, startIndexSph, 0.5 * currentParamsH.dT); // assumes velMasH2 constains a copy of velMas in ChSystem right before DoStepDynamics
 		CopyH2D(derivVelRhoD, derivVelRhoChronoH);
 		UpdateFluid(posRadD, velMasD, vel_XSPH_D, rhoPresMuD, derivVelRhoD, referenceArray, currentParamsH.dT);
 		ApplyBoundarySPH_Markers(posRadD, rhoPresMuD, numObjects.numAllMarkers);
