@@ -110,7 +110,7 @@ protected:
   // private variables
   // <ChBodyAuxRef> m_chassis   in base class
   ChSharedPtr<DriveGear> m_gear;  		///< drive gear
-  std::vector<ChSharedPtr<IdlerSimple>>	m_idlers;	///< idler wheel
+  std::vector<ChSharedPtr<IdlerSimple> >	m_idlers;	///< idler wheel
   size_t m_num_idlers;  ///< number of idlers to create
   ChSharedPtr<TrackChain> m_chain;    ///< chain
 
@@ -118,7 +118,7 @@ protected:
   
   ChSharedPtr<TrackPowertrain>  m_ptrain;  ///< powertrain system
 
-  std::vector<ChSharedPtr<SupportRoller>> m_rollers;  ///< passive support rollers
+  std::vector<ChSharedPtr<SupportRoller> > m_rollers;  ///< passive support rollers
   size_t m_num_rollers;
 	
 

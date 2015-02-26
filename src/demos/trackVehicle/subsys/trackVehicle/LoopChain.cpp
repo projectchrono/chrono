@@ -168,9 +168,7 @@ void LoopChain::Initialize(const ChCoordsys<>& gear_Csys)
   // initialize 1 of each of the following subsystems.
   // will use the chassis ref frame to do the transforms, since the TrackSystem
   // local ref. frame has same rot (just difference in position)
-  m_gear->Initialize(m_chassis, 
-    m_chassis->GetFrame_REF_to_abs(),
-    ChCoordsys<>());
+  // NOTE: moved Gear init() to after TrackChain Init()
 
   // drive sprocket is First added to the lists passed into TrackChain Init()
   rolling_elem_locs.push_back(ChVector<>() );
@@ -269,6 +267,12 @@ void LoopChain::Initialize(const ChCoordsys<>& gear_Csys)
   
   // can set pin friction between adjoining shoes by activing damping on the DOF
   // m_chain->Set_pin_friction(2.0); // [N-m-sec] ???
+
+  // init the gear
+  m_gear->Initialize(m_chassis, 
+    m_chassis->GetFrame_REF_to_abs(),
+    ChCoordsys<>(),
+    m_chain->GetShoeBody() );
 
   // initialize the powertrain, drivelines
   m_ptrain->Initialize(m_chassis, m_gear->GetAxle() );

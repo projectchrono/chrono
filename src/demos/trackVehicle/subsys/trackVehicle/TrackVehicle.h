@@ -39,7 +39,7 @@ namespace chrono {
 /// values directly.
 ///
 /// Usage: 
-///   > >  TrackVehicle tankA("tank_BravoDelta");
+///   >>  TrackVehicle tankA("tank_BravoDelta");
 ///   >>  tankA.Initialize( ChCoordsys<>(x0,q0));
 ///   >>  while ( simulate )
 ///   >>    tankA.Update( time, throttle, braking);
