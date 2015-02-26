@@ -31,10 +31,9 @@ const class GearPinGeometry
 public:
   GearPinGeometry(double gear_base_radius = 0.211,  ///< gear base circle radius
     double gear_pitch_radius = 0.267, ///< center of the circle that uses gear_tooth_radius to define gear tooth surface
-    double gear_circle_angle = 0.3,   ///< angle from the axis of symmetric the gear base circle is swept
     double gear_seat_width_max = 0.626, ///< max width of the gear seat, w.r.t. gear c-sys
     double gear_seat_width_min = 0.458, ///< min width of the gear seat, w.r.t. gear c-sys 
-    ChVector<> tooth_mid_bar = ChVector<>(0.079815, 0.24719, 0.2712), ///< assume first seat bottom is directly above COG, then center of top of gear tooth is relative to local c-sys
+    ChVector<> tooth_mid_bar = ChVector<>(0.079815, 0.24719, 0.2712), ///< assume first seat bottom is directly above COG, then center of top of gear tooth is relative to gear c-sys
     double tooth_len = 0.013119,  ///< length of top of gear tooth, in local XY plane
     double tooth_width = 0.0840,  ///< width of top of gear tooth, in local Z plane
     size_t num_teeth = 10.0,      ///< number of gear teeth
@@ -47,7 +46,6 @@ public:
     ): m_gear_base_radius(gear_base_radius),
     m_gear_pitch_radius(gear_pitch_radius),
     m_gear_tooth_radius(gear_pitch_radius-gear_base_radius),
-    m_gear_circle_angle(gear_circle_angle),
     m_gear_seat_width_max(gear_seat_width_max),
     m_gear_seat_width_min(gear_seat_width_min),
     m_tooth_mid_bar(tooth_mid_bar),
@@ -71,7 +69,6 @@ public:
   double m_gear_base_radius; 
   double m_gear_pitch_radius; 
   double m_gear_tooth_radius;
-  double m_gear_circle_angle;
   double m_gear_seat_width_max;
   double m_gear_seat_width_min;
   size_t m_num_teeth;
@@ -194,32 +191,42 @@ class GearPinCollisionCallback : public ChSystem::ChCustomComputeCollisionCallba
 		((ContactEngine*)(gear->GetSystem()->GetContactContainer()))->AddContact(mcont);
 	}
 
+  // callback function used each timestep
 	virtual void PerformCustomCollision(ChSystem* msys)
 	{
 		CollisionGearPinFamily(msys, m_gear, m_shoes, this->hashed_contacts);
 		
 	}
 
-	virtual void CollisionGearPinFamily(ChSystem* msys, ChSharedPtr<ChBody> gear,
+  // function implementation
+	void CollisionGearPinFamily(ChSystem* msys, ChSharedPtr<ChBody> gear,
     std::vector<ChSharedPtr<ChBody> > shoes,
     ChHashTable<int, GearPinCacheContact>* mhash)
 	{
 		//GetLog() << "hash statistics: loading=" << hashed_contacts->loading() << "   size=" << hashed_contacts->size() <<"\n";
-		for(int t_idx = 0; t_idx < m_shoes.size(); t_idx++)
+		// look thru the shoe list, see if any pins are in contact with the concave gear seat surface.
+    for(size_t idx = 0; idx < m_shoes.size(); idx++)
 		{
-
-      ChVector<> shoe_pos = m_shoes[t_idx]->GetPos();
+      // global c-sys
+      ChVector<> shoe_pos = m_shoes[idx]->GetPos();
       ChVector<> gear_pos = m_gear->GetPos();
 
       // broad-phase, is the distance between centers > sum of bounding sphere?
-      if( (gear_pos - shoe_pos).Length() <= (m_geom.m_gear_pitch_radius + ChVector<>(m_geom.m_pin_x_offset + m_geom.m_pin_radius,
+      // Gear bounding sphere circumscribes tips/edges of the tooth
+      double bound_rad_Gear = std::sqrt( std::pow(m_geom.m_tooth_mid_bar.Length(),2) + std::pow(m_geom.m_tooth_len*0.5,2) );
+      // Shoe bounding sphere circumscribes the outside circumference of the pins
+      double bound_rad_Shoe = ChVector<>(m_geom.m_pin_x_offset + m_geom.m_pin_radius,
         m_geom.m_pin_y_offset, 
-        m_geom.m_pin_width_max/2.0).Length()) )
+        m_geom.m_pin_width_max/2.0).Length();
+
+      // put the Shoe bounding sphere at the center of the pin
+      // TODO: relative to the shoe c-sys, is the pin -x or +x dir ??
+      ChVector<> pin_pos = shoe_pos + shoes[idx]->GetRot().Rotate(ChVector<>(-m_geom.m_pin_x_offset,0,0) );
+      if( (gear_pos - pin_pos).Length() <= ( bound_rad_Gear + bound_rad_Shoe) )
       {
 
         // do narrow phase between this shoe and gear
         
-
 
 
         /*
@@ -237,12 +244,6 @@ class GearPinCollisionCallback : public ChSystem::ChCustomComputeCollisionCallba
 			  }
 			
         */
-
-        // Case 2: is the cylinder pin colliding with the top of the gear tooth plane?
-
-        // Case 3: are the sides of the shoe colliding with the inner plane of the gear?
-
-        // Case 4: do the pin ends collide with anything?
 
 
 			}
