@@ -17,6 +17,7 @@
 // =============================================================================
 
 #include <cstdio>
+#include <sstream>
 
 #include "subsys/trackSystem/TrackSystem.h"
 
@@ -120,18 +121,24 @@ void TrackSystem::Create(int track_idx)
 
 void TrackSystem::BuildSubsystems()
 {
+  std::stringstream gearName;
+  gearName << "drive gear "<< m_track_idx;
   // build one of each of the following subsystems. VisualizationType and CollisionType defaults are PRIMITIVES
-  m_driveGear = ChSharedPtr<DriveGear>(new DriveGear("drive gear "+std::to_string(m_track_idx),
+  m_driveGear = ChSharedPtr<DriveGear>(new DriveGear(gearName.str(),
     VisualizationType::Enum::Mesh,
    //  CollisionType::Enum::Primitives) );
     // VisualizationType::Enum::CompoundPrimitives,
     CollisionType::Enum::CallbackFunction));
 
-  m_idler = ChSharedPtr<IdlerSimple>(new IdlerSimple("idler "+std::to_string(m_track_idx),
+  std::stringstream idlerName;
+  idlerName << "idler " << m_track_idx;
+  m_idler = ChSharedPtr<IdlerSimple>(new IdlerSimple(idlerName.str(),
     VisualizationType::Enum::Mesh,
     CollisionType::Enum::Primitives) );
 
-  m_chain = ChSharedPtr<TrackChain>(new TrackChain("chain "+std::to_string(m_track_idx),
+  std::stringstream chainname;
+  chainname << "chain " << m_track_idx;
+  m_chain = ChSharedPtr<TrackChain>(new TrackChain(chainname.str(),
     // VisualizationType::Enum::Primitives,
     VisualizationType::Enum::CompoundPrimitives,
     CollisionType::Enum::Primitives) );
@@ -140,7 +147,9 @@ void TrackSystem::BuildSubsystems()
   // build suspension/road wheel subsystems
   for(int i = 0; i < m_numSuspensions; i++)
   {
-    m_suspensions[i] = ChSharedPtr<TorsionArmSuspension>(new TorsionArmSuspension("suspension "+std::to_string(i) +", chain "+std::to_string(m_track_idx),
+    std::stringstream susp_name;
+    susp_name << "suspension " << i << ", chain " << m_track_idx;
+    m_suspensions[i] = ChSharedPtr<TorsionArmSuspension>(new TorsionArmSuspension(susp_name.str(),
       VisualizationType::Enum::Primitives,
       CollisionType::Enum::Primitives) );
   }

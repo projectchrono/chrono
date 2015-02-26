@@ -140,7 +140,10 @@ DriveChain::DriveChain(const std::string& name,
       (3.0*roller_r*roller_r + roller_w*roller_w)/12.0,
       roller_r*roller_r/2.0);
     GetLog() << " I just manually calculated inertia, uh-oh \n\n Ixx = " << roller_Ixx << "\n";
-    m_rollers[j] = ChSharedPtr<SupportRoller>(new SupportRoller("support roller " +std::to_string(j),
+
+    std::stringstream sr_s;
+    sr_s << "support roller " << j;
+    m_rollers[j] = ChSharedPtr<SupportRoller>(new SupportRoller(sr_s.str(),
       VisualizationType::Enum::Primitives,
       CollisionType::Enum::Primitives,
       0,
@@ -1241,23 +1244,26 @@ void DriveChain::create_fileHeaders(int what)
 
     for(int id = 0; id < m_num_idlers; id++)
     {
-      m_filename_ICV.push_back(m_log_file_name+"_idler"+std::to_string(id)+"CV.csv");
+      std::stringstream ss_iCV;
+      ss_iCV << m_log_file_name << "_idler" << id << "CV.csv";
+      m_filename_ICV.push_back(ss_iCV.str().c_str());
       ChStreamOutAsciiFile ofileICV(m_filename_ICV.back().c_str());
-      std::stringstream ss_idCV;
-      ss_idCV << m_idlers[id]->getFileHeader_ConstraintViolations(id);
-      ofileICV << ss_idCV.str().c_str();
-      GetLog() << " writing to file: " << m_filename_ICV[id] << "\n          data: " << ss_idCV.str().c_str() <<"\n";
+      std::stringstream ss_header;
+      ss_header << m_idlers[id]->getFileHeader_ConstraintViolations(id);
+      ofileICV << ss_header.str().c_str();
+      GetLog() << " writing to file: " << m_filename_ICV[id] << "\n          data: " << ss_header.str().c_str() <<"\n";
     }
 
     // violations of the roller revolute joints
     for(int roller = 0; roller < m_num_rollers; roller++)
     {
-      m_filename_RCV.push_back(m_log_file_name+"_roller"+std::to_string(roller)+"CV.csv");
-      ChStreamOutAsciiFile ofileRCV(m_filename_RCV.back().c_str());
       std::stringstream ss_rCV;
-      ss_rCV << m_rollers[roller]->getFileHeader_ConstraintViolations(roller);
+      ss_rCV << m_log_file_name << "_roller" << roller << "CV.csv";
+      m_filename_RCV.push_back(ss_rCV.str());
+      ChStreamOutAsciiFile ofileRCV(m_filename_RCV.back().c_str());
+      std::stringstream ss_header;
       ofileRCV << ss_rCV.str().c_str();
-      GetLog() << " writing to file: " << m_filename_RCV[roller] << "\n         data: " << ss_rCV.str().c_str() <<"\n";
+      GetLog() << " writing to file: " << m_filename_RCV[roller] << "\n         data: " << ss_header.str().c_str() <<"\n";
     }
   }
 

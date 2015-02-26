@@ -114,7 +114,9 @@ TrackSoilBin::TrackSoilBin(const std::string& name,
   m_rollers.resize(m_num_rollers);
   for(int j = 0; j < m_num_rollers; j++)
   {
-    m_rollers[j] = ChSharedPtr<SupportRoller>(new SupportRoller("support roller " +std::to_string(j),
+    std::stringstream r_ss;
+    r_ss << "support roller " << j;
+    m_rollers[j] = ChSharedPtr<SupportRoller>(new SupportRoller(r_ss.str(),
       VisualizationType::Enum::Primitives,
       CollisionType::Enum::Primitives));
   }
