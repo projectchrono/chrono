@@ -591,8 +591,8 @@ void TrackChain::AddCollisionGeometry(size_t track_idx,
 // each two control points correspond to a single rolling element & clearance value, in the same order.
 void TrackChain::CreateChain(ChSharedPtr<ChBody> chassis,
                              const ChFrame<>& chassis_REF,
-                             const std::vector<ChFrame<>>& control_points_abs,
-                             const std::vector<ChFrame<>>& rolling_element_abs,
+                             const std::vector<ChFrame<> >& control_points_abs,
+                             const std::vector<ChFrame<> >& rolling_element_abs,
                              const std::vector<double>& clearance,
                              const ChVector<>& start_pos_abs)
 {
@@ -1199,6 +1199,11 @@ ChSharedPtr<ChBody> TrackChain::GetShoeBody(size_t track_idx) const
   return (track_idx > m_numShoes-1) ? m_shoes[track_idx] : m_shoes[0] ;
 }
 
+std::vector<ChSharedPtr<ChBody> > TrackChain::GetShoeBody() const
+{
+  assert( m_shoes.size() > 0 );
+  return m_shoes;
+}
 
 const ChVector<> TrackChain::GetPinReactForce(size_t pin_idx)
 {
@@ -1230,7 +1235,7 @@ void TrackChain::Set_pin_friction(double damping_C,
   }
   
   // iterate thru the pin revolute joints, adding a friction force on the DOF for each
-  for(std::vector<ChSharedPtr<ChLinkLockRevolute>>::iterator itr = m_pins.begin(); itr != m_pins.end(); itr++)
+  for(std::vector<ChSharedPtr<ChLinkLockRevolute> >::iterator itr = m_pins.begin(); itr != m_pins.end(); itr++)
   {
     // just use a shared ptr to the force, keep it in an array
     ChLinkForce* pin_friction = new ChLinkForce;

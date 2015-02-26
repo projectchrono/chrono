@@ -70,15 +70,17 @@ public:
   /// NOTE: control_points begin and end with the idler and driveGear
   void Initialize(ChSharedPtr<ChBody> chassis,
     const ChFrame<>& chassis_REF,
-    const std::vector<ChVector<>>& rolling_element_loc, ///< center of rolling element geometry, w.r.t chassis_REF
+    const std::vector<ChVector<> >& rolling_element_loc, ///< center of rolling element geometry, w.r.t chassis_REF
     const std::vector<double>& clearance,       ///< rolling element geometry clearance from center
-     const std::vector<ChVector<>>& spin_axis,  ///< rolling element revolute joint DOF axis, w.r.t absolute c-ssy
+     const std::vector<ChVector<> >& spin_axis,  ///< rolling element revolute joint DOF axis, w.r.t absolute c-ssy
     const ChVector<>& start_loc                 ///< where to place the middle of the first shoe, w.r.t. chassis_REF
     );
   
   /// handle to the shoe body
   ChSharedPtr<ChBody> GetShoeBody(size_t track_idx) const; 
-  // ChSharedPtr<ChBodyAuxRef> GetShoeBody(size_t track_idx); 
+  
+  // get list to track chain body list
+  std::vector<ChSharedPtr<ChBody> > GetShoeBody() const; 
 
   /// reaction force on pin constraint, relative coords
   const ChVector<> GetPinReactForce(size_t pin_idx);
@@ -126,8 +128,8 @@ private:
   /// Note: start_loc_abs should be between the idler and sprockets
   void CreateChain(ChSharedPtr<ChBody> chassis,
     const ChFrame<>& chassis_REF,
-    const std::vector<ChFrame<>>& control_points_abs,
-    const std::vector<ChFrame<>>& rolling_element_abs,
+    const std::vector<ChFrame<> >& control_points_abs,
+    const std::vector<ChFrame<> >& rolling_element_abs,
     const std::vector<double>& clearance,
     const ChVector<>& start_pos_abs );
 
@@ -161,15 +163,15 @@ private:
   const std::string& getCollisionFilename() const { return m_collisionFile; }
 
   // private variables
-  std::vector<ChSharedPtr<ChBody>> m_shoes;  ///< handle to track shoes
-  // std::vector<ChSharedPtr<ChBodyAuxRef>> m_shoes;  ///< handle to track shoes
+  std::vector<ChSharedPtr<ChBody> > m_shoes;  ///< handle to track shoes
+  // std::vector<ChSharedPtr<ChBodyAuxRef> > m_shoes;  ///< handle to track shoes
   size_t m_numShoes;      ///< number of track shoe bodies added to m_shoes;
 
-  std::vector<ChSharedPtr<ChLinkLockRevolute>> m_pins; ///< handles to inter-shoe pin joints
+  std::vector<ChSharedPtr<ChLinkLockRevolute> > m_pins; ///< handles to inter-shoe pin joints
   std::vector<ChLinkForce*> m_pin_friction; ///< functions to apply inter-shoe pin friction
   double m_damping_C;        ///< shoe pin damping coef.
   bool m_use_custom_damper;  ///< use a nonlinear damping coefficient function?
-  std::vector<ChSharedPtr<ChFunction_CustomDamper>> m_custom_dampers;
+  std::vector<ChSharedPtr<ChFunction_CustomDamper> > m_custom_dampers;
  
   double m_mass;         // mass per shoe
   ChVector<> m_inertia;  // inertia of a shoe
