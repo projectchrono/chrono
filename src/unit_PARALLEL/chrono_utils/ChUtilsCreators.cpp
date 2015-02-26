@@ -9,7 +9,7 @@
 // http://projectchrono.org/license-chrono.txt.
 //
 // =============================================================================
-// Authors: Radu Serban
+// Authors: Radu Serban, Hammad Mazhar
 // =============================================================================
 //
 // =============================================================================
@@ -17,6 +17,8 @@
 #include "chrono_utils/ChUtilsCreators.h"
 #include "collision/ChCConvexDecomposition.h"
 namespace chrono {
+using namespace geometry;
+using namespace collision;
 namespace utils {
 
 // -----------------------------------------------------------------------------
@@ -567,9 +569,77 @@ void InitializeObject(ChSharedBodyPtr body,
   body->GetCollisionModel()->SetFamilyMaskNoCollisionWithFamily(do_not_collide_with);
 }
 
+// -----------------------------------------------------------------------------
+
 void FinalizeObject(ChSharedBodyPtr body, ChSystem* system) {
   body->GetCollisionModel()->BuildModel();
   system->AddBody(body);
+}
+
+// -----------------------------------------------------------------------------
+
+void LoadConvexMesh(const std::string& file_name,
+                ChTriangleMeshConnected& convex_mesh,
+                ChConvexDecompositionHACDv2& convex_shape,
+                int hacd_maxhullcount,
+                int hacd_maxhullmerge,
+                int hacd_maxhullvertexes,
+                double hacd_concavity,
+                double hacd_smallclusterthreshold,
+                double hacd_fusetolerance) {
+  convex_mesh.LoadWavefrontMesh(file_name, true, false);
+  convex_shape.Reset();
+  convex_shape.AddTriangleMesh(convex_mesh);
+  convex_shape.SetParameters(hacd_maxhullcount,
+                       hacd_maxhullmerge,
+                       hacd_maxhullvertexes,
+                       hacd_concavity,
+                       hacd_smallclusterthreshold,
+                       hacd_fusetolerance);
+  convex_shape.ComputeConvexDecomposition();
+}
+
+// -----------------------------------------------------------------------------
+
+void AddConvexCollisionModel(ChSharedPtr<ChBody>& body,
+                             ChTriangleMeshConnected& convex_mesh,
+                             ChConvexDecompositionHACDv2& convex_shape,
+                             const ChVector<>& pos,
+                             const ChQuaternion<>& rot,
+                             bool use_original_asset) {
+  ChConvexDecomposition* used_decomposition = &convex_shape;
+
+  int hull_count = used_decomposition->GetHullCount();
+
+  for (int c = 0; c < hull_count; c++) {
+    std::vector<ChVector<double> > convexhull;
+    used_decomposition->GetConvexHullResult(c, convexhull);
+
+    ((collision::ChCollisionModelParallel*)body->GetCollisionModel())->AddConvexHull(convexhull, pos, rot);
+    // Add each convex chunk as a new asset
+    if (!use_original_asset) {
+      std::stringstream ss;
+      ss << convex_mesh.GetFileName() << "_" << c;
+      geometry::ChTriangleMeshConnected trimesh_convex;
+      used_decomposition->GetConvexHullResult(c, trimesh_convex);
+
+      ChSharedPtr<ChTriangleMeshShape> trimesh_shape(new ChTriangleMeshShape);
+      trimesh_shape->SetMesh(trimesh_convex);
+      trimesh_shape->SetName(ss.str());
+      trimesh_shape->Pos = ChVector<>(0, 0, 0);
+      trimesh_shape->Rot = ChQuaternion<>(1, 0, 0, 0);
+      body->GetAssets().push_back(trimesh_shape);
+    }
+  }
+  // Add the original triangle mesh as asset
+  if (use_original_asset) {
+    ChSharedPtr<ChTriangleMeshShape> trimesh_shape(new ChTriangleMeshShape);
+    trimesh_shape->SetMesh(convex_mesh);
+    trimesh_shape->SetName(convex_mesh.GetFileName());
+    trimesh_shape->Pos = ChVector<>(0, 0, 0);
+    trimesh_shape->Rot = ChQuaternion<>(1, 0, 0, 0);
+    body->GetAssets().push_back(trimesh_shape);
+  }
 }
 
 }  // namespace utils

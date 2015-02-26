@@ -51,6 +51,7 @@
 #include "chrono_utils/ChUtilsCommon.h"
 
 #include "collision/ChCModelBulletBody.h"
+#include "collision/ChCConvexDecomposition.h"
 
 namespace chrono {
 namespace utils {
@@ -169,6 +170,8 @@ void AddTorusGeometry(ChBody* body,
 // CreateBoxContainerDVI
 // InitializeObjectDVI
 // FinalizeObjectDVI
+// LoadConvex
+// AddConvex
 // Utility functions for creating objects
 // -----------------------------------------------------------------------------
 
@@ -213,6 +216,30 @@ void InitializeObject(ChSharedBodyPtr body,
 
 CH_UTILS_API
 void FinalizeObject(ChSharedBodyPtr body, ChSystem* system);
+
+// Given a file containing an obj, this function will load the obj file into a
+// mesh and generate its convex decomposition
+CH_UTILS_API
+void LoadConvexMesh(const std::string& file_name,
+                    geometry::ChTriangleMeshConnected& convex_mesh,
+                    collision::ChConvexDecompositionHACDv2& convex_shape,
+                    int hacd_maxhullcount = 1024,
+                    int hacd_maxhullmerge = 256,
+                    int hacd_maxhullvertexes = 64,
+                    double hacd_concavity = 0.01,
+                    double hacd_smallclusterthreshold = 0.0,
+                    double hacd_fusetolerance = 1e-6);
+
+// Given a convex mesh and it's decomposition add it to a ChBody
+// use_original_asset can be used to specify if the mesh or the convex decomp
+// should be used for visualization
+CH_UTILS_API
+void AddConvexCollisionModel(ChSharedPtr<ChBody>& body,
+                             geometry::ChTriangleMeshConnected& convex_mesh,
+                             collision::ChConvexDecompositionHACDv2& convex_shape,
+                             const ChVector<>& pos = ChVector<>(0, 0, 0),
+                             const ChQuaternion<>& rot = ChQuaternion<>(1, 0, 0, 0),
+                             bool use_original_asset = true);
 
 }  // end namespace utils
 }  // end namespace chrono
