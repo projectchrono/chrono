@@ -50,7 +50,8 @@ public:
   /// init the gear with the initial pos. and rot., w.r.t. the chassis c-sys
   void Initialize(ChSharedPtr<ChBody> chassis,
     const ChFrame<>& chassis_REF,
-    const ChCoordsys<>& local_Csys);
+    const ChCoordsys<>& local_Csys,
+    std::vector<ChSharedPtr<ChBody> >& shoes);
 
   // accessors
   ChSharedPtr<ChBody> GetBody() const { return m_gear; }
@@ -75,7 +76,8 @@ private:
   const std::string& getMeshFile() const { return m_meshFile; }
 
   void AddVisualization();
-  void AddCollisionGeometry(double mu = 0.6,
+  void AddCollisionGeometry(std::vector<ChSharedPtr<ChBody> >& shoes,
+                            double mu = 0.6,
                             double mu_sliding = 0.5,
                             double mu_roll = 0,
                             double mu_spin = 0);
@@ -98,7 +100,7 @@ private:
   const std::string m_meshFile;
 
   // data container for callback collision function
-  const ChSharedPtr<GearPinGeometry> m_geom;
+  GearPinGeometry m_gearPinGeom;
 
   // static variables
   static const double m_radius;

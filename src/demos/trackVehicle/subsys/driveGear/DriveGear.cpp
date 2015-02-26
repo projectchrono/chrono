@@ -25,6 +25,7 @@
 #include "assets/ChAssetLevel.h"
 // collision mesh
 #include "geometry/ChCTriangleMeshSoup.h"
+#include "physics/ChContactContainer.h"
 
 #include "utils/ChUtilsData.h"
 #include "utils/ChUtilsInputOutput.h"
@@ -51,8 +52,7 @@ DriveGear::DriveGear(const std::string& name,
     m_chainSys_idx(chainSys_idx),
     m_mass(mass),
     m_inertia(gear_Ixx),
-    m_meshName("gear_mesh"),
-    m_geom(ChSharedPtr<GearPinGeometry>(new GearPinGeometry() ))
+    m_meshName("gear_mesh") 
 {
   // create the body, set the basic info
   m_gear = ChSharedPtr<ChBody>(new ChBody);
@@ -80,11 +80,12 @@ DriveGear::DriveGear(const std::string& name,
 
 void DriveGear::Initialize(ChSharedPtr<ChBody> chassis,
                            const ChFrame<>& chassis_REF,
-                           const ChCoordsys<>& local_Csys)
+                           const ChCoordsys<>& local_Csys,
+                           std::vector<ChSharedPtr<ChBody> >& shoes)
 {
 
   // add any collision geometry
-  AddCollisionGeometry();
+  AddCollisionGeometry(shoes);
 
   // get the local frame in the absolute ref. frame
   ChFrame<> gear_to_abs(local_Csys);
@@ -156,9 +157,9 @@ void DriveGear::AddVisualization()
    
     // two cylinders for the base circle of the gear
     ChSharedPtr<ChCylinderShape> cyl(new ChCylinderShape);
-    cyl->GetCylinderGeometry().rad = m_geom->m_gear_base_radius;
-    cyl->GetCylinderGeometry().p1 = ChVector<>(0, 0, m_geom->m_gear_seat_width_min/2.0);
-    cyl->GetCylinderGeometry().p2 = ChVector<>(0, 0, m_geom->m_gear_seat_width_max/2.0);
+    cyl->GetCylinderGeometry().rad = m_gearPinGeom.m_gear_base_radius;
+    cyl->GetCylinderGeometry().p1 = ChVector<>(0, 0, m_gearPinGeom.m_gear_seat_width_min/2.0);
+    cyl->GetCylinderGeometry().p2 = ChVector<>(0, 0, m_gearPinGeom.m_gear_seat_width_max/2.0);
     cylLevel->AddAsset(cyl);
 
     // second cylinder is a mirror of the first, about x-y plane
@@ -174,25 +175,29 @@ void DriveGear::AddVisualization()
     // all assets for the cylinder level are set by now
     m_gear->AddAsset(cylLevel);
     
-    double init_rot = CH_C_PI / m_geom->m_num_teeth; // std::atan(0.079815/0.24719); // from sprocket geometry blender file
-    for(size_t b_idx = 0; b_idx < m_geom->m_num_teeth; b_idx++)
+    double init_rot = CH_C_PI / m_gearPinGeom.m_num_teeth; // std::atan(0.079815/0.24719); // from sprocket geometry blender file
+    for(size_t b_idx = 0; b_idx < m_gearPinGeom.m_num_teeth; b_idx++)
     {
       // this is the angle from the vertical (y-axis local y c-sys).
       double rot_ang = init_rot + 2.0*init_rot*b_idx;
       // distance center of tooth is from the gear spin axis
-      double len_from_rotaxis = ChVector<>(m_geom->m_tooth_mid_bar.x, m_geom->m_tooth_mid_bar.y, 0).Length();
+      double len_from_rotaxis = ChVector<>(m_gearPinGeom.m_tooth_mid_bar.x,
+        m_gearPinGeom.m_tooth_mid_bar.y,
+        0).Length();
       // shift the box vertically, midpoint of base should be at center of gear
       // if the rotation is relative to sprocket COG, then this will end up in the right place
       ChVector<> box_center(0.5*len_from_rotaxis*std::sin(rot_ang),
         0.5*len_from_rotaxis*std::cos(rot_ang),
-        m_geom->m_tooth_mid_bar.z);
+        m_gearPinGeom.m_tooth_mid_bar.z);
       
       // z-axis is out of the page, to rotate clockwise negate the rotation angle.
       ChMatrix33<> box_rot_mat(Q_from_AngAxis(-rot_ang, VECT_Z));
 
       // create the box asset with the pos/rot specified
       ChSharedPtr<ChBoxShape> box(new ChBoxShape);
-      box->GetBoxGeometry().SetLengths(ChVector<>(m_geom->m_tooth_len, len_from_rotaxis, m_geom->m_tooth_width) );
+      box->GetBoxGeometry().SetLengths(ChVector<>(m_gearPinGeom.m_tooth_len,
+        len_from_rotaxis,
+        m_gearPinGeom.m_tooth_width) );
       box->GetBoxGeometry().Pos = box_center;
       box->GetBoxGeometry().Rot = box_rot_mat;  // assume the box is rotated about the parent body (gear) c-sys AFTER the position change is made
       boxLevel->AddAsset(box);
@@ -219,10 +224,11 @@ void DriveGear::AddVisualization()
   }
 }
 
-void DriveGear::AddCollisionGeometry(double mu,
-                            double mu_sliding,
-                            double mu_roll,
-                            double mu_spin)
+void DriveGear::AddCollisionGeometry(std::vector<ChSharedPtr<ChBody> >& shoes,
+                                     double mu,
+                                     double mu_sliding,
+                                     double mu_roll,
+                                     double mu_spin)
 {
   // add collision geometrey, if enabled. Warn if disabled
   if( m_collide == CollisionType::Enum::None)
@@ -236,7 +242,7 @@ void DriveGear::AddCollisionGeometry(double mu,
   m_gear->GetCollisionModel()->ClearModel();
 
   m_gear->GetCollisionModel()->SetSafeMargin(0.001);	// inward safe margin
-	m_gear->GetCollisionModel()->SetEnvelope(0.002);		// distance of the outward "collision envelope"
+	m_gear->GetCollisionModel()->SetEnvelope(0.004);		// distance of the outward "collision envelope"
 
   // set the collision material
   m_gear->GetMaterialSurface()->SetSfriction(mu);
@@ -294,38 +300,41 @@ void DriveGear::AddCollisionGeometry(double mu,
     // a set of boxes to represent the top-most flat face of the gear tooth
     // as the gear should be oriented initially with the tooth base directly
     // above the COG, each tooth box is rotated from the initial half rotation angle
-    double init_rot =  CH_C_PI / m_geom->m_num_teeth; // std::atan(0.07334/0.24929); // from sprocket geometry blender file
-    for(size_t b_idx = 0; b_idx < m_geom->m_num_teeth; b_idx++)
+    double init_rot =  CH_C_PI / m_gearPinGeom.m_num_teeth; // std::atan(0.07334/0.24929); // from sprocket geometry blender file
+    for(size_t b_idx = 0; b_idx < m_gearPinGeom.m_num_teeth; b_idx++)
     {
       // this is the angle from the vertical (y-axis local y c-sys).
       double rot_ang = init_rot + 2.0*init_rot*b_idx;
       // distance center of tooth is from the gear spin axis
-      double len_from_rotaxis = ChVector<>(m_geom->m_tooth_mid_bar.x, m_geom->m_tooth_mid_bar.y, 0).Length();
+      double len_from_rotaxis = ChVector<>(m_gearPinGeom.m_tooth_mid_bar.x,
+        m_gearPinGeom.m_tooth_mid_bar.y,
+        0).Length();
       // shift the box vertically, midpoint of base should be at center of gear
       // if the rotation is relative to sprocket COG, then this will end up in the right place
       ChVector<> box_center(0.5*len_from_rotaxis*std::sin(rot_ang), // 0
         0.5*len_from_rotaxis*std::cos(rot_ang), //  0.5*len_from_rotaxis
-        m_geom->m_tooth_mid_bar.z);
+        m_gearPinGeom.m_tooth_mid_bar.z);
       
       // z-axis is out of the page, to rotate clockwise negate the rotation angle.
       ChMatrix33<> box_rot_mat(Q_from_AngAxis(-rot_ang, VECT_Z));
 
-      m_gear->GetCollisionModel()->AddBox(0.5*m_geom->m_tooth_len,
+      m_gear->GetCollisionModel()->AddBox(0.5*m_gearPinGeom.m_tooth_len,
         0.5*len_from_rotaxis,
-        0.5*m_geom->m_tooth_width,
+        0.5*m_gearPinGeom.m_tooth_width,
         box_center,
         box_rot_mat); // does this rotation occur about gear c-sys or center of box ????
 
       // the gear teeth are symmetric about XY plane
       box_center.z *= -1;
-      m_gear->GetCollisionModel()->AddBox(0.5*m_geom->m_tooth_len,
+      m_gear->GetCollisionModel()->AddBox(0.5*m_gearPinGeom.m_tooth_len,
         0.5*len_from_rotaxis,
-        0.5*m_geom->m_tooth_width,
+        0.5*m_gearPinGeom.m_tooth_width,
         box_center,
         box_rot_mat); // does this rotation occur about gear c-sys or center of box ????
 
     }
 
+    /*
     // until the custom callback works, two cylinders (e.g., PRIMITIVES)
     //  with radius of the gear base circle, width of the gear seat
     ChVector<> shape_offset =  ChVector<>(0, 0, 0.5*(m_geom->m_tooth_width + m_geom->m_gear_seat_width_min));
@@ -341,7 +350,15 @@ void DriveGear::AddCollisionGeometry(double mu,
       m_geom->m_gear_base_radius,
       0.5*m_geom->m_tooth_width,
       shape_offset, Q_from_AngAxis(CH_C_PI_2,VECT_X));
+    */
+    
     // a custom callback function to find the pin-gear seat colision
+    m_gearPinGeom = GearPinGeometry();
+
+    // use DVI contact for this callback
+    GearPinCollisionCallback<ChContactContainer> gearSeat(shoes,
+      m_gear, 
+      m_gearPinGeom);
 
     break;
   }
