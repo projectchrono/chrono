@@ -43,48 +43,52 @@ public:
     double pin_width_min = 0.38,  ///< min total pin width
     double pin_x_offset = -0.07581, ///< x-offset of pin from center of shoe c-sys, in shoe c-sys
     double pin_y_offset = 0        ///< y-offset of pin from center of shoe c-sys
-    ): m_gear_base_radius(gear_base_radius),
-    m_gear_pitch_radius(gear_pitch_radius),
-    m_gear_tooth_radius(gear_pitch_radius-gear_base_radius),
-    m_gear_seat_width_max(gear_seat_width_max),
-    m_gear_seat_width_min(gear_seat_width_min),
-    m_tooth_mid_bar(tooth_mid_bar),
-    m_tooth_len(tooth_len),
-    m_tooth_width(tooth_width),
-    m_num_teeth( num_teeth),
-    m_key_angle(key_angle),
-    m_pin_radius(pin_radius),
-    m_pin_width_max(pin_width_max),
-    m_pin_width_min(pin_width_min),
-    m_pin_x_offset(pin_x_offset),
-    m_pin_y_offset(pin_y_offset)
+    ): gear_base_radius(gear_base_radius),
+    gear_pitch_radius(gear_pitch_radius),
+    gear_tooth_radius(gear_pitch_radius-gear_base_radius),
+    gear_seat_width_max(gear_seat_width_max),
+    gear_seat_width_min(gear_seat_width_min),
+    gear_seat_width( (gear_seat_width_max-gear_seat_width_min)/2.0 ),
+    tooth_mid_bar(tooth_mid_bar),
+    tooth_len(tooth_len),
+    tooth_width(tooth_width),
+    num_teeth( num_teeth),
+    key_angle(key_angle),
+    pin_radius(pin_radius),
+    pin_width_max(pin_width_max),
+    pin_width_min(pin_width_min),
+    pin_width( (pin_width_max-pin_width_min)/2.0 ),
+    pin_x_offset(pin_x_offset),
+    pin_y_offset(pin_y_offset)
   {
     // make sure the geometric dimensons are valid
-    assert(m_gear_seat_width_max - m_gear_seat_width_min > 0);
-    assert(m_pin_width_max - m_pin_width_min > 0);
-    assert(m_gear_pitch_radius - m_gear_base_radius > 0);
+    assert(gear_seat_width_max - gear_seat_width_min > 0);
+    assert(pin_width_max - pin_width_min > 0);
+    assert(gear_pitch_radius - gear_base_radius > 0);
   }
 
   // gear geometry
-  double m_gear_base_radius; 
-  double m_gear_pitch_radius; 
-  double m_gear_tooth_radius;
-  double m_gear_seat_width_max;
-  double m_gear_seat_width_min;
-  size_t m_num_teeth;
-  double m_key_angle;
+  double gear_base_radius; 
+  double gear_pitch_radius; 
+  double gear_tooth_radius;
+  double gear_seat_width_max;
+  double gear_seat_width_min;
+  double gear_seat_width;
+  size_t num_teeth;
+  double key_angle;
 
   // gear tooth geometry
-  ChVector<> m_tooth_mid_bar;
-  double m_tooth_len;
-  double m_tooth_width;
+  ChVector<> tooth_mid_bar;
+  double tooth_len;
+  double tooth_width;
 
   // shoe pin geometry
-  double m_pin_radius;
-  double m_pin_width_max;
-  double m_pin_width_min;
-  double m_pin_x_offset;
-  double m_pin_y_offset;
+  double pin_radius;
+  double pin_width_max;
+  double pin_width_min;
+  double pin_width;
+  double pin_x_offset;
+  double pin_y_offset;
 };
 
 // Concave geometry (gear tooth seat) cannot be exactly represented by default collision primitives,
@@ -111,28 +115,28 @@ class GearPinCollisionCallback : public ChSystem::ChCustomComputeCollisionCallba
     // two endpoints of cylinder pin, w.r.t. shoe c-sys. 
     // SYMMETRIC ABOUT XY PLANE (e.g., check for contact for -z)
     // point 1 = inner, 2 = outer
-		m_p1_bar = ChVector<>(m_geom.m_pin_x_offset,
-      m_geom.m_pin_y_offset,
-      m_geom.m_pin_width_min/2.0);
-    m_p2_bar = ChVector<>(m_geom.m_pin_x_offset,
-      m_geom.m_pin_y_offset,
-      m_geom.m_pin_width_max/2.0);
+		m_p1_bar = ChVector<>(m_geom.pin_x_offset,
+      m_geom.pin_y_offset,
+      m_geom.pin_width_min/2.0);
+    m_p2_bar = ChVector<>(m_geom.pin_x_offset,
+      m_geom.pin_y_offset,
+      m_geom.pin_width_max/2.0);
 
     // two endpoints of  the seat cylinder (there are as many as gear teeth
     // SYMMETRIC ABOUT XY PLANE (e.g., check for contact for -z)
     // point 1 = inner, 2 = outer
     m_seat1_bar.clear();
     m_seat2_bar.clear();
-    m_seat1_bar.resize(m_geom.m_num_teeth);
-    m_seat2_bar.resize(m_geom.m_num_teeth);
-    for(int t_idx = 0; t_idx < m_geom.m_num_teeth; t_idx++)
+    m_seat1_bar.resize(m_geom.num_teeth);
+    m_seat2_bar.resize(m_geom.num_teeth);
+    for(int t_idx = 0; t_idx < m_geom.num_teeth; t_idx++)
     {
-      m_seat1_bar[t_idx] = ChVector<>(m_geom.m_gear_base_radius*sin(m_geom.m_key_angle),
-        m_geom.m_gear_base_radius*cos(m_geom.m_key_angle),
-        m_geom.m_gear_seat_width_min/2.0);
-      m_seat2_bar[t_idx] = ChVector<>(m_geom.m_gear_base_radius*sin(m_geom.m_key_angle),
-        m_geom.m_gear_base_radius*cos(m_geom.m_key_angle),
-        m_geom.m_gear_seat_width_max/2.0);
+      m_seat1_bar[t_idx] = ChVector<>(m_geom.gear_base_radius*sin(m_geom.key_angle),
+        m_geom.gear_base_radius*cos(m_geom.key_angle),
+        m_geom.gear_seat_width_min/2.0);
+      m_seat2_bar[t_idx] = ChVector<>(m_geom.gear_base_radius*sin(m_geom.key_angle),
+        m_geom.gear_base_radius*cos(m_geom.key_angle),
+        m_geom.gear_seat_width_max/2.0);
     }
 
 		// alloc the hash table for persistent manifold of gear-cylinder contacts
@@ -191,6 +195,46 @@ class GearPinCollisionCallback : public ChSystem::ChCustomComputeCollisionCallba
 		((ContactEngine*)(gear->GetSystem()->GetContactContainer()))->AddContact(mcont);
 	}
 
+  /// return true if the bounding spheres of specified centers intersect
+  // centers w.r.t. global c-sys
+  // be sure to pass in the pin centers as positive and negative z, w.r.t. gear c-sys
+  bool broadphasePassed(const ChVector<>& gear_cen_Pz,
+    const ChVector<>& gear_cen_Nz,
+    const ChVector<>& pin_cen_Pz,
+    const ChVector<>& pin_cen_Nz)
+  {
+    // Gear bounding sphere circumscribes tips/edges of the tooth
+    // apply one to each side of the sprocket
+    double bound_rad_Gear = std::sqrt( std::pow(m_geom.tooth_mid_bar.Length(),2) + std::pow(m_geom.tooth_len*0.5,2) );
+    
+    // Shoe bounding sphere circumscribes the outside circumference of the pins
+    double bound_rad_Pin = ChVector<>(m_geom.pin_radius,
+      m_geom.pin_radius, 
+      (m_geom.pin_width_max-m_geom.pin_width_min)/4.0).Length();
+
+    // check both sides for contact
+    // broad-phase, is the distance between centers <= sum of bounding sphere?
+    return ( ( (gear_cen_Pz - pin_cen_Pz).Length() <= (bound_rad_Gear + bound_rad_Pin) ||
+      (gear_cen_Nz - pin_cen_Nz).Length() <= (bound_rad_Gear + bound_rad_Pin) )? true : false );
+
+  }
+
+  /// based on the distance between input global centers, find the dist. relative to the gear
+  /// c-sys. Return which gear tooth to perform narrow-phase with
+  size_t get_GearToothIdx(const ChVector<>& gear_cen,
+    const ChVector<>& pin_cen,
+    const ChSharedPtr<ChBody>& gear)
+  {
+    ChVector<> len = pin_cen - gear_cen;  // global c-sys
+    // transform to local coords
+    len = gear->GetRot().RotateBack(len);
+    // in local coords, can find the rotation angle in x-y plane
+    double rot_ang = std::atan2(len.y,len.x);
+    double incr = chrono::CH_C_2PI / m_geom.num_teeth;
+    size_t idx = std::floor( (rot_ang + 0.5*incr) / incr);
+    return idx;
+  }
+
   // callback function used each timestep
 	virtual void PerformCustomCollision(ChSystem* msys)
 	{
@@ -209,24 +253,24 @@ class GearPinCollisionCallback : public ChSystem::ChCustomComputeCollisionCallba
 		{
       // global c-sys
       ChVector<> shoe_pos = m_shoes[idx]->GetPos();
-      ChVector<> gear_pos = m_gear->GetPos();
+      ChVector<> gear_pos_Pz = m_gear->GetPos() 
+        + gear->GetRot().Rotate(ChVector<>(0, 0, (m_geom.gear_seat_width_min + m_geom.gear_seat_width)/2.0 ) );
+      ChVector<> gear_pos_Nz = m_gear->GetPos() 
+        + gear->GetRot().Rotate(ChVector<>(0, 0, -(m_geom.gear_seat_width_min + m_geom.gear_seat_width)/2.0 ) );
 
-      // broad-phase, is the distance between centers > sum of bounding sphere?
-      // Gear bounding sphere circumscribes tips/edges of the tooth
-      double bound_rad_Gear = std::sqrt( std::pow(m_geom.m_tooth_mid_bar.Length(),2) + std::pow(m_geom.m_tooth_len*0.5,2) );
-      // Shoe bounding sphere circumscribes the outside circumference of the pins
-      double bound_rad_Shoe = ChVector<>(m_geom.m_pin_x_offset + m_geom.m_pin_radius,
-        m_geom.m_pin_y_offset, 
-        m_geom.m_pin_width_max/2.0).Length();
-
-      // put the Shoe bounding sphere at the center of the pin
+      // put the Shoe bounding sphere at the center of the pin, on the positive and negative z-dir, w.r.t. gear c-sys
       // TODO: relative to the shoe c-sys, is the pin -x or +x dir ??
-      ChVector<> pin_pos = shoe_pos + shoes[idx]->GetRot().Rotate(ChVector<>(-m_geom.m_pin_x_offset,0,0) );
-      if( (gear_pos - pin_pos).Length() <= ( bound_rad_Gear + bound_rad_Shoe) )
+      ChVector<> pin_pos_Pz = shoe_pos 
+        + shoes[idx]->GetRot().Rotate(ChVector<>(-m_geom.pin_x_offset, 0, (m_geom.pin_width_min + m_geom.pin_width)/2.0 ) );
+      ChVector<> pin_pos_Nz = shoe_pos 
+        + shoes[idx]->GetRot().Rotate(ChVector<>(-m_geom.pin_x_offset, 0, -(m_geom.pin_width_min + m_geom.pin_width)/2.0 ) );
+
+      // broad-phase passes?
+      if( broadphasePassed(gear_pos_Pz, gear_pos_Nz, pin_pos_Pz, pin_pos_Nz) )
       {
 
         // do narrow phase between this shoe and gear
-        
+        size_t tooth_idx = get_GearToothIdx(gear_pos_Pz, pin_pos_Pz, gear);
 
 
         /*
