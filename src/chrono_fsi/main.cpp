@@ -177,7 +177,7 @@ void create_system_particles(ChSystemParallelDVI& mphysicalSystem) {
 	Real3 ellipsoidSize = .3 * mR3(10 * paramsH.HSML, 5 * paramsH.HSML, 7 * paramsH.HSML);
 	ChVector<> size = ChVector<>(ellipsoidSize.x, ellipsoidSize.y, ellipsoidSize.z);
 
-	double density = paramsH.rho0;  // TODO : Arman : Density for now is set to water density
+	double density = .5*paramsH.rho0;  // TODO : Arman : Density for now is set to water density
 	double muFriction = .1;
 
 	// NOTE: mass properties and shapes are all for sphere
@@ -203,7 +203,7 @@ void create_system_particles(ChSystemParallelDVI& mphysicalSystem) {
 	ChSharedBodyPtr body;
 	body = ChSharedBodyPtr(new  ChBody(new ChCollisionModelParallel));
 	body->SetMaterialSurface(mat_g);
-	body->SetIdentifier(bId);
+//	body->SetIdentifier(bId);
 	body->SetPos(pos);
 	body->SetRot(rot);
 	body->SetCollide(true);
@@ -227,7 +227,7 @@ void create_system_particles(ChSystemParallelDVI& mphysicalSystem) {
 	ChSharedPtr<ChMaterialSurface> mat(new ChMaterialSurface);
 	mat->SetFriction(.5);
 	mat->SetDampingF(0.2f);
-	int binId = -200;
+	int binId = 2;
 
 	ChSharedBodyPtr bin;
 	Real3 hdim = paramsH.boxDims;
@@ -235,7 +235,7 @@ void create_system_particles(ChSystemParallelDVI& mphysicalSystem) {
 
 	bin = ChSharedBodyPtr(new ChBody(new ChCollisionModelParallel));
 	bin->SetMaterialSurface(mat);
-	bin->SetIdentifier(binId);
+//	bin->SetIdentifier(binId);
 	bin->SetMass(1);
 	bin->SetPos(ChVector<>(domainCenter.x, domainCenter.y, domainCenter.z));
 	bin->SetRot(ChQuaternion<>(1, 0, 0, 0));
@@ -243,10 +243,10 @@ void create_system_particles(ChSystemParallelDVI& mphysicalSystem) {
 	bin->SetBodyFixed(true);
 	bin->GetCollisionModel()->ClearModel();
 
-	utils::AddBoxGeometry(bin.get_ptr(), 0.5 * ChVector<>(hdim.x, hdim.y, hthick), ChVector<>(0, 0, -0.5 * hdim.z - 0.5*hthick));	//beginning wall
-	utils::AddBoxGeometry(bin.get_ptr(), 0.5 * ChVector<>(hdim.x, hdim.y, hthick), ChVector<>(0, 0, 0.5 * hdim.z + 0.5*hthick));	//end wall
-	utils::AddBoxGeometry(bin.get_ptr(), 0.5 * ChVector<>(hthick, hdim.y, hdim.z + 2 * hthick), ChVector<>(-0.5 * hdim.x - 0.5 * hthick, 0, 0));		//side wall
-	utils::AddBoxGeometry(bin.get_ptr(), 0.5 * ChVector<>(hthick, hdim.y, hdim.z + 2 * hthick), ChVector<>(0.5 * hdim.x + 0.5 * hthick, 0, 0));	//side wall
+//	utils::AddBoxGeometry(bin.get_ptr(), 0.5 * ChVector<>(hdim.x, hdim.y, hthick), ChVector<>(0, 0, -0.5 * hdim.z - 0.5*hthick));	//beginning wall
+//	utils::AddBoxGeometry(bin.get_ptr(), 0.5 * ChVector<>(hdim.x, hdim.y, hthick), ChVector<>(0, 0, 0.5 * hdim.z + 0.5*hthick));	//end wall
+//	utils::AddBoxGeometry(bin.get_ptr(), 0.5 * ChVector<>(hthick, hdim.y, hdim.z + 2 * hthick), ChVector<>(-0.5 * hdim.x - 0.5 * hthick, 0, 0));		//side wall
+//	utils::AddBoxGeometry(bin.get_ptr(), 0.5 * ChVector<>(hthick, hdim.y, hdim.z + 2 * hthick), ChVector<>(0.5 * hdim.x + 0.5 * hthick, 0, 0));	//side wall
 	utils::AddBoxGeometry(bin.get_ptr(), 0.5 * ChVector<>(hdim.x + 2 * hthick, hthick, hdim.z + 2 * hthick), ChVector<>(0, -0.5 * hdim.y - 0.5 * hthick, 0));	//bottom wall
 	bin->GetCollisionModel()->BuildModel();
 
@@ -260,7 +260,7 @@ void AddSphDataToChSystem(
 		const thrust::host_vector<Real4> & velMasH,
 		const NumberOfObjects & numObjects) {
 
-	Real rad = paramsH.MULT_INITSPACE * paramsH.HSML;
+	Real rad = 0.5 * paramsH.MULT_INITSPACE * paramsH.HSML;
 	// NOTE: mass properties and shapes are all for sphere
 	double volume = utils::CalcSphereVolume(rad);
 	ChVector<> gyration = utils::CalcSphereGyration(rad).Get_Diag();
@@ -348,7 +348,7 @@ void UpdateSphDataInChSystem(
 	}
 }
 
-void InitializeChronoGraphics(ChSystemParallelDVI& mphysicalSystem, Real dT) {
+void InitializeChronoGraphics(ChSystemParallelDVI& mphysicalSystem) {
 	Real3 domainCenter = 0.5 * (paramsH.cMin + paramsH.cMax);
 	ChVector<> CameraLocation = ChVector<>(2 * paramsH.cMax.x, 2 * paramsH.cMax.y, 2 * paramsH.cMax.z);
 	ChVector<> CameraLookAt = ChVector<>(domainCenter.x, domainCenter.y, domainCenter.z);
@@ -387,7 +387,6 @@ void InitializeChronoGraphics(ChSystemParallelDVI& mphysicalSystem, Real dT) {
 		application->AssetUpdateAll();
 
 		application->SetStepManage(true);
-		application->SetTimestep(dT);  					//Arman modify
 #endif
 }
 
@@ -395,6 +394,7 @@ int DoStepChronoSystem(ChSystemParallelDVI& mphysicalSystem, Real dT) {
 	Real3 domainCenter = 0.5 * (paramsH.cMin + paramsH.cMax);
 #if irrlichtVisualization
 		if ( !(application->GetDevice()->run()) ) return 0;
+		application->SetTimestep(dT);
 		application->GetVideoDriver()->beginScene(true, true, SColor(255,140,161,192));
 		ChIrrTools::drawGrid(application->GetVideoDriver(), 2 * paramsH.HSML, 2 * paramsH.HSML, 50, 50,
 			ChCoordsys<>(ChVector<>(domainCenter.x, paramsH.worldOrigin.y, domainCenter.z), Q_from_AngAxis(CH_C_PI/2,VECT_X)), video::SColor(50,90,90,150),true);
@@ -485,7 +485,7 @@ int2 CreateFluidMarkers(
 						(posRad.y >  paramsH.straightChannelBoundaryMin.y && posRad.y <  paramsH.straightChannelBoundaryMax.y ) &&
 						(posRad.z >  paramsH.straightChannelBoundaryMin.z && posRad.z <  paramsH.straightChannelBoundaryMax.z ) )
 				{
-					if (i < 0.5 * nFX) {
+					if (i < nFX) {
 						num_FluidMarkers++;
 						posRadH.push_back(posRad);
 						Real3 v3 = mR3(0);
@@ -547,7 +547,7 @@ void SetupParamsH(SimParams & paramsH) {
 		paramsH.mu0 = .001;
 	paramsH.v_Max = 10;//50e-3;//18e-3;//1.5;//2e-1; /*0.2 for Re = 100 */ //2e-3;
 		paramsH.EPS_XSPH = .5f;
-	paramsH.dT = 0.0001;//0.1;//.001; //sph alone: .01 for Re 10;
+	paramsH.dT = 0.0005;//0.1;//.001; //sph alone: .01 for Re 10;
 		paramsH.tFinal = 1000;//20 * paramsH.dT; //400
 		paramsH.timePause = 0;//.0001 * paramsH.tFinal;//.0001 * paramsH.tFinal; 	// time before applying any bodyforce. Particles move only due to initialization. keep it as small as possible. the time step will be 1/10 * dT.
 		paramsH.kdT = 5; // I don't know what is kdT
@@ -752,13 +752,6 @@ int main(int argc, char* argv[]) {
 	ofstream outSimulationInfo;
 	outSimulationInfo.open("SimInfo.txt");
 
-
-
-	// ***** params
-	double dT = .5 * paramsH.dT;   //Arman: What is this? fix it!
-	// ************
-
-
 	// Create a ChronoENGINE physical system
 	ChSystemParallelDVI mphysicalSystem;
 	InitializeMbdPhysicalSystem(mphysicalSystem, argc, argv);
@@ -772,15 +765,16 @@ int main(int argc, char* argv[]) {
 	// Set gravitational acceleration
 
 	//******************* Irrlicht and driver types **************************
+	double dTc = .5 * paramsH.dT;   //Arman: What is this? fix it!
 	int numIter = mphysicalSystem.GetSettings()->solver.max_iteration_normal +
 			mphysicalSystem.GetSettings()->solver.max_iteration_sliding +
 			mphysicalSystem.GetSettings()->solver.max_iteration_spinning +
 			mphysicalSystem.GetSettings()->solver.max_iteration_bilateral;
 	outSimulationInfo << "****************************************************************************" << endl;
-	outSimulationInfo 	<< " dT: " << dT  << " max_iteration: " << numIter <<" muFriction: " << mphysicalSystem.GetParallelThreadNumber() << " number of bodies: " << mphysicalSystem.Get_bodylist()->size() << endl;
-	cout			 	<< " dT: " << dT  << " max_iteration: " << numIter <<" muFriction: " << mphysicalSystem.GetParallelThreadNumber() << " number of bodies: " << mphysicalSystem.Get_bodylist()->size() << endl;
+	outSimulationInfo 	<< " dT: " << dTc  << " max_iteration: " << numIter <<" muFriction: " << mphysicalSystem.GetParallelThreadNumber() << " number of bodies: " << mphysicalSystem.Get_bodylist()->size() << endl;
+	cout			 	<< " dT: " << dTc  << " max_iteration: " << numIter <<" muFriction: " << mphysicalSystem.GetParallelThreadNumber() << " number of bodies: " << mphysicalSystem.Get_bodylist()->size() << endl;
 
-	InitializeChronoGraphics(mphysicalSystem, dT);
+	InitializeChronoGraphics(mphysicalSystem);
 
 	DOUBLEPRECISION ? printf("Double Precision\n") : printf("Single Precision\n");
 	printf("********************\n");
@@ -799,7 +793,7 @@ int main(int argc, char* argv[]) {
 	SimParams paramsH_B = paramsH;
 	paramsH_B.bodyForce3 = mR3(0);
 	paramsH_B.gravity = mR3(0);
-	paramsH_B.dT = .1 * paramsH.dT;
+	paramsH_B.dT = paramsH.dT;
 
 	printf("\ntimePause %f, numPause %d\n", paramsH.timePause, int(paramsH.timePause/paramsH_B.dT));
 	printf("paramsH.timePauseRigidFlex %f, numPauseRigidFlex %d\n\n", paramsH.timePauseRigidFlex, int((paramsH.timePauseRigidFlex-paramsH.timePause)/paramsH.dT + paramsH.timePause/paramsH_B.dT));
