@@ -75,7 +75,7 @@ using namespace chrono;
 #define CONSOLE_TIMING       // time each render and simulation step, log to console
 
 int what_to_save = DBG_FIRSTSHOE | DBG_GEAR | DBG_IDLER | DBG_PTRAIN | DBG_CONSTRAINTS;
-int what_to_console = DBG_PTRAIN | DBG_GEAR; // | DBG_FIRSTSHOE | DBG_IDLER | DBG_PTRAIN | DBG_CONSTRAINTS;
+int what_to_console = DBG_PTRAIN | DBG_GEAR | DBG_IDLER; //DBG_FIRSTSHOE | DBG_CONSTRAINTS;
 
 // Initial vehicle position and heading. Defines the REF frame for the hull body
 ChVector<> initLoc(0, 1.0, 0);
@@ -109,7 +109,7 @@ double sineFreq = 0.3;
 double tStart = 0.1;
 
 // stop at a certain time
-double end_time = 15.0;  // 99999
+double end_time = 15;  // 99999
 
   /*
 #else
@@ -327,8 +327,9 @@ int main(int argc, char* argv[])
     {
       // write data to file
       chainSystem.Log_to_file();  // needs to already be setup before sim loop calls it
-#endif
     }
+#endif
+
     
     if(step_number % console_steps == 0)
     {
