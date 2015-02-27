@@ -351,15 +351,15 @@ void DriveGear::AddCollisionGeometry(std::vector<ChSharedPtr<ChBody> >& shoes,
       0.5*m_gearPinGeom.tooth_width,
       shape_offset, Q_from_AngAxis(CH_C_PI_2,VECT_X));
     
-    /*
-    // a custom callback function to find the pin-gear seat colision
+    // a custom callback function to find the pin-gear seat collision, analytically
     m_gearPinGeom = GearPinGeometry();
 
-    // use DVI contact for this callback
-    GearPinCollisionCallback<ChContactContainer> gearSeat(shoes,
+    GearPinCollisionCallback<ChContactContainer> GearPinContact(shoes,
       m_gear, 
       m_gearPinGeom);
-      */
+      
+    m_gear->GetSystem()->SetCustomComputeCollisionCallback(&GearPinContact);
+
     break;
   }
   default:
