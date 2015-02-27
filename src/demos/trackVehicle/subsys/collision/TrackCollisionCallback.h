@@ -365,7 +365,7 @@ class GearPinCollisionCallback : public ChSystem::ChCustomComputeCollisionCallba
       if( BroadphasePassed(gear_seat_pos_Pz, gear_seat_pos_Nz,
         pin_pos_Pz, pin_pos_Nz) )
       {
-
+        GetLog() << " \n\n Broadphase passed, time = " << msys->GetChTime() << "\n\n";
         bool passed_Narrow = NarrowPhase(gear_seat_pos_Pz, gear_seat_pos_Nz,
           pin_pos_Pz, pin_pos_Nz,
           m_gear, idx);
