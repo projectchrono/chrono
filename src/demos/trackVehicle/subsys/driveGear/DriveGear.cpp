@@ -25,7 +25,6 @@
 #include "assets/ChAssetLevel.h"
 // collision mesh
 #include "geometry/ChCTriangleMeshSoup.h"
-#include "physics/ChContactContainer.h"
 
 #include "utils/ChUtilsData.h"
 #include "utils/ChUtilsInputOutput.h"
@@ -52,7 +51,8 @@ DriveGear::DriveGear(const std::string& name,
     m_chainSys_idx(chainSys_idx),
     m_mass(mass),
     m_inertia(gear_Ixx),
-    m_meshName("gear_mesh") 
+    m_meshName("gear_mesh"),
+    m_gearPinContact(NULL)
 {
   // create the body, set the basic info
   m_gear = ChSharedPtr<ChBody>(new ChBody);
@@ -77,6 +77,13 @@ DriveGear::DriveGear(const std::string& name,
 
 }
 
+DriveGear::~DriveGear() 
+{
+  if(m_gearPinContact)
+  { 
+    delete m_gearPinContact;
+  }
+}
 
 void DriveGear::Initialize(ChSharedPtr<ChBody> chassis,
                            const ChFrame<>& chassis_REF,
@@ -84,6 +91,7 @@ void DriveGear::Initialize(ChSharedPtr<ChBody> chassis,
                            std::vector<ChSharedPtr<ChBody> >& shoes)
 {
 
+  assert(shoes.size() > 0);
   // add any collision geometry
   AddCollisionGeometry(shoes);
 
@@ -353,12 +361,11 @@ void DriveGear::AddCollisionGeometry(std::vector<ChSharedPtr<ChBody> >& shoes,
     
     // a custom callback function to find the pin-gear seat collision, analytically
     m_gearPinGeom = GearPinGeometry();
-
-    GearPinCollisionCallback<ChContactContainer> GearPinContact(shoes,
+    m_gearPinContact = new GearPinCollisionCallback<ChContactContainer>(shoes,
       m_gear, 
       m_gearPinGeom);
-      
-    m_gear->GetSystem()->SetCustomComputeCollisionCallback(&GearPinContact);
+    // shoes in chain must be initialized before calling DriveGear Init(), guaranteed ChSystem has been added to those bodies.
+    shoes[0]->GetSystem()->SetCustomComputeCollisionCallback(m_gearPinContact);
 
     break;
   }

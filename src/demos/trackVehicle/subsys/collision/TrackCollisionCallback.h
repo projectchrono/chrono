@@ -127,7 +127,7 @@ class GearPinCollisionCallback : public ChSystem::ChCustomComputeCollisionCallba
       0.5*(m_geom.gear_seat_width_min + m_geom.gear_seat_width) );
    
 		// alloc the hash table for persistent manifold of gear-cylinder contacts
-		m_hashed_contacts = new ChHashTable<int, GearPinCacheContact>(persistent_hashtable_dim);
+		m_hashed_contacts = new ChHashTable<int, GearPinCacheContact>(m_persistent_hashtable_dim);
 
     // keep track of some persistence of contact info
     m_persistentContactSteps.resize(m_shoes.size(), 0);

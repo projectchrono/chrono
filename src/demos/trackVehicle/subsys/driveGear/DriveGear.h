@@ -28,6 +28,7 @@
 
 // collision callback function
 #include "subsys/collision/TrackCollisionCallback.h"
+#include "physics/ChContactContainer.h"
 
 namespace chrono {
 
@@ -45,7 +46,7 @@ public:
     double gear_mass = 436.7,
     const ChVector<>& gear_Ixx = ChVector<>(12.22, 12.22, 13.87) );
 
-  ~DriveGear() {}
+  ~DriveGear();
 
   /// init the gear with the initial pos. and rot., w.r.t. the chassis c-sys
   void Initialize(ChSharedPtr<ChBody> chassis,
@@ -101,6 +102,7 @@ private:
 
   // data container for callback collision function
   GearPinGeometry m_gearPinGeom;
+  GearPinCollisionCallback<ChContactContainer> *m_gearPinContact;
 
   // static variables
   static const double m_radius;
