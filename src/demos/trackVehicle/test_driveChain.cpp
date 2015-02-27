@@ -69,13 +69,13 @@ using namespace chrono;
 // User Settings
 // =============================================================================
 //  render and total runtimes
-#define WRITE_OUTPUT            // write output data to file
+// #define WRITE_OUTPUT            // write output data to file
 // #define CONSOLE_SYSTEM_INFO  // display the system heirarchy in the console
-// #define CONSOLE_DEBUG_INFO      // log constraint violations to console,
+#define CONSOLE_DEBUG_INFO      // log constraint violations to console,
 #define CONSOLE_TIMING       // time each render and simulation step, log to console
 
 int what_to_save = DBG_FIRSTSHOE | DBG_GEAR | DBG_IDLER | DBG_PTRAIN | DBG_CONSTRAINTS;
-int what_to_console = DBG_PTRAIN; // DBG_FIRSTSHOE | DBG_GEAR | DBG_IDLER | DBG_PTRAIN | DBG_CONSTRAINTS;
+int what_to_console = DBG_PTRAIN | DBG_GEAR; // | DBG_FIRSTSHOE | DBG_IDLER | DBG_PTRAIN | DBG_CONSTRAINTS;
 
 // Initial vehicle position and heading. Defines the REF frame for the hull body
 ChVector<> initLoc(0, 1.0, 0);
@@ -85,7 +85,7 @@ ChQuaternion<> initRot(QUNIT);
 size_t num_idlers = 1;
 size_t num_rollers = 2;
 // Simulation step size
-double step_size = 1e-3;
+double step_size = 5e-4;
 
 // #ifdef USE_IRRLICHT
 int FPS = 40; // render frame rate
@@ -109,7 +109,7 @@ double sineFreq = 0.3;
 double tStart = 0.1;
 
 // stop at a certain time
-double end_time = 2.5;  // 99999
+double end_time = 15.0;  // 99999
 
   /*
 #else

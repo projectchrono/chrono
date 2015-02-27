@@ -170,26 +170,6 @@ void TrackChain::Initialize(ChSharedPtr<ChBody> chassis,
       // first guess at start/end points: center distance vector
       r_21 = rolling_element_loc[i] - rolling_element_loc[i-1];
 
-      /*
-      // find the radial direction from the center of adjacent rolling elements
-      // for seg i, norm = [r(i-2)-r(i-1)] x [r(i)-r(i-1)
-      if(i == 1)
-      {
-        norm_dir = Vcross( rolling_element_loc.back() - rolling_element_loc[i-1],
-          rolling_element_loc[i] - rolling_element_loc[i-1]);
-      } else if( abs(clearance[i] - clearance[i-1]) < 1e-3 && abs(clearance[i-2] - clearance[i-1]) < 1e-3) 
-      {
-        // this works, as long as i, i-1 and i-2 don't have the same clearance (then it's just a line).
-        norm_dir = Vcross( rolling_element_loc[0] - rolling_element_loc[i-1],
-          rolling_element_loc[i] - rolling_element_loc[i-1]);
-      } else {
-        // this works, as long as i, i-1 and i-2 don't have the same clearance (then it's just a line).
-        norm_dir = Vcross( rolling_element_loc[i-2] - rolling_element_loc[i-1],
-          rolling_element_loc[i] - rolling_element_loc[i-1]);
-      }
-      norm_dir.Normalize();
-      */
-
       // if the two rolling elements have the same radius, no angle of wrap.
       rad_dir = Vcross(spin_axis[i].GetNormalized(), r_21.GetNormalized());
       rad_dir.Normalize();
