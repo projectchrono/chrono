@@ -80,7 +80,7 @@ size_t num_idlers = 1;
 size_t num_rollers = 2;
 
 // Simulation step size
-double step_size = 5e-4;
+double step_size = 2e-3;
 // stop at a certain time
 double end_time = 15;  // 99999
 
@@ -89,7 +89,7 @@ double end_time = 15;  // 99999
 int FPS = 40; // render Frames Per Second
 double render_step_size = 1.0 / FPS;  // Time increment for rendered frames
 double output_step_size = step_size;  // Time interval for writing data to file
-double console_step_size = 0.5;       // time interval for writing data to console
+double console_step_size = 0.2;       // time interval for writing data to console
 
 // camera controls, either static or  GUI controlled chase camera:
 bool use_fixed_camera = true;
@@ -333,7 +333,6 @@ int main(int argc, char* argv[])
     }
 #endif
 
-    
     if(step_number % console_steps == 0)
     {
       // log desired output to console

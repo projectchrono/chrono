@@ -30,18 +30,19 @@ const class GearPinGeometry
 {
 public:
   GearPinGeometry(double gear_base_radius = 0.211,  ///< gear base circle radius
-    double gear_pitch_radius = 0.267, ///< center of the circle to define concave gear tooth base surface
-    double gear_seat_width_max = 0.626, ///< max width of the gear seat, w.r.t. gear c-sys
-    double gear_seat_width_min = 0.458, ///< min width of the gear seat, w.r.t. gear c-sys 
+    double gear_pitch_radius = 0.267,   ///< center of the circle to define concave gear tooth base surface
+    double gear_seat_width_max = 0.606, ///< max width of the gear seat, w.r.t. gear c-sys
+    double gear_seat_width_min = 0.438, ///< min width of the gear seat, w.r.t. gear c-sys 
     ChVector<> tooth_mid_bar = ChVector<>(0.079815, 0.24719, 0.2712), ///< assume first seat bottom is directly above COG, then center of top of gear tooth is relative to gear c-sys
     double tooth_len = 0.013119,  ///< length of top of gear tooth, in local XY plane
     double tooth_width = 0.0840,  ///< width of top of gear tooth, in local Z plane
-    size_t num_teeth = 10,      ///< number of gear teeth
+    size_t num_teeth = 10,        ///< number of gear teeth,
+    double key_angle = 0,         ///< if the gear tooth base is not directly above the center
     double pin_radius = 0.0232,   ///< shoe pin radius
-    double pin_width_max = 0.531,  ///< max total pin width
+    double pin_width_max = 0.531, ///< max total pin width
     double pin_width_min = 0.38,  ///< min total pin width
     double pin_x_offset = -0.07581, ///< x-offset of pin from center of shoe c-sys, in shoe c-sys
-    double pin_y_offset = 0        ///< y-offset of pin from center of shoe c-sys
+    double pin_y_offset = 0         ///< y-offset of pin from center of shoe c-sys
     ): gear_base_radius(gear_base_radius),
     gear_pitch_radius(gear_pitch_radius),
     gear_concave_radius(gear_pitch_radius-gear_base_radius),
@@ -52,6 +53,7 @@ public:
     tooth_len(tooth_len),
     tooth_width(tooth_width),
     num_teeth( num_teeth),
+    key_angle(0),
     pin_radius(pin_radius),
     pin_width_max(pin_width_max),
     pin_width_min(pin_width_min),
@@ -115,14 +117,14 @@ class GearPinCollisionCallback : public ChSystem::ChCustomComputeCollisionCallba
     // point 1 = inner, 2 = outer
 		m_pin_pos_bar = ChVector<>(m_geom.pin_x_offset,
       m_geom.pin_y_offset,
-      m_geom.pin_width_min/2.0);
+      0.5*(m_geom.pin_width_min + m_geom.pin_width) );
 
     // two endpoints of  the seat cylinder (there are as many as gear teeth
     // SYMMETRIC ABOUT XY PLANE (e.g., check for contact for -z)
     // point 1 = inner, 2 = outer
     m_seat_pos_bar = ChVector<>(0,
       m_geom.gear_base_radius,
-      (m_geom.gear_seat_width_min + m_geom.gear_seat_width)/2.0 );
+      0.5*(m_geom.gear_seat_width_min + m_geom.gear_seat_width) );
    
 		// alloc the hash table for persistent manifold of gear-cylinder contacts
 		m_hashed_contacts = new ChHashTable<int, GearPinCacheContact>(persistent_hashtable_dim);
@@ -159,6 +161,7 @@ class GearPinCollisionCallback : public ChSystem::ChCustomComputeCollisionCallba
 	{
 		std::vector<float> reaction_cache;
 
+    // see if this contact is in the hash table
 		ChHashTable<int, GearPinCacheContact>::iterator cached = m_hashed_contacts->find(shoeID);
 		if (cached == m_hashed_contacts->end())
       reaction_cache =  (m_hashed_contacts->insert(shoeID))->second.reactions_cache;
@@ -187,7 +190,7 @@ class GearPinCollisionCallback : public ChSystem::ChCustomComputeCollisionCallba
   bool BroadphasePassed(const ChVector<>& gear_cen_Pz,
     const ChVector<>& gear_cen_Nz,
     const ChVector<>& pin_cen_Pz,
-    const ChVector<>& pin_cen_Nz)
+    const ChVector<>& pin_cen_Nz) const
   {
     // Gear bounding sphere circumscribes tips/edges of the tooth
     // apply one to each side of the sprocket
@@ -314,7 +317,7 @@ class GearPinCollisionCallback : public ChSystem::ChCustomComputeCollisionCallba
   /// c-sys. Return which gear tooth to perform narrow-phase with
   size_t Get_GearToothIdx(const ChVector<>& gear_cen,
     const ChVector<>& pin_cen,
-    const ChQuaternion<>& gear_rot)
+    const ChQuaternion<>& gear_rot) const
   {
     ChVector<> len = pin_cen - gear_cen;  // global c-sys
     // transform to local coords
@@ -374,7 +377,7 @@ class GearPinCollisionCallback : public ChSystem::ChCustomComputeCollisionCallba
   // other virtuals
 
   // number of contacts detected
-  int GetNcontacts_GearPin() { return m_Ncontacts; }
+  int GetNcontacts_GearPin() const { return m_Ncontacts; }
 
 
 private:
