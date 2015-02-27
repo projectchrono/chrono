@@ -101,8 +101,8 @@ class GearPinCollisionCallback : public ChSystem::ChCustomComputeCollisionCallba
 {
 	public:
   /// all length units in meters
-	GearPinCollisionCallback(std::vector<ChSharedPtr<ChBody> >& shoes,
-    ChSharedPtr<ChBody>& gear_body,
+	GearPinCollisionCallback(const std::vector<ChSharedPtr<ChBody> > shoes,
+    const ChSharedPtr<ChBody> gear_body,
     const GearPinGeometry& geom,
     int persistent_hashtable_dim = 1000
 	) : m_shoes(shoes),
@@ -153,10 +153,12 @@ class GearPinCollisionCallback : public ChSystem::ChCustomComputeCollisionCallba
 
   
   // check the hash table for persistent contact
-	void Found_GearPin_Contact(ChSharedPtr<ChBody>& gear, ChSharedPtr<ChBody> shoe,
-    int shoeID, 
-    ChVector<> pGear_bar, ChVector<> pPin_bar, 
-    ChVector<> vnGear_bar) 
+	void Found_GearPin_Contact(ChSharedPtr<ChBody> gear,
+    ChSharedPtr<ChBody> shoe,
+    const int shoeID, 
+    const ChVector<>& pGear_bar,
+    const ChVector<>& pPin_bar, 
+    const ChVector<>& vnGear_bar) 
     // ChHashTable<int, GearPinCacheContact>* mhash)
 	{
 		std::vector<float> reaction_cache;
@@ -261,7 +263,7 @@ class GearPinCollisionCallback : public ChSystem::ChCustomComputeCollisionCallba
     const ChVector<>& gear_seat_cen_Nz,
     const ChVector<>& pin_cen_Pz,
     const ChVector<>& pin_cen_Nz,
-    ChSharedPtr<ChBody>& gear,
+    const ChSharedPtr<ChBody> gear,
     const size_t shoe_idx)
   {
 
@@ -332,13 +334,12 @@ class GearPinCollisionCallback : public ChSystem::ChCustomComputeCollisionCallba
   // callback function used each timestep
 	virtual void PerformCustomCollision(ChSystem* msys)
 	{
-		CollisionGearPinFamily(msys, m_gear, m_shoes);
+		CollisionGearPinFamily(msys);
 		
 	}
 
   // function implementation
-	void CollisionGearPinFamily(ChSystem* msys, ChSharedPtr<ChBody> gear,
-    std::vector<ChSharedPtr<ChBody> > shoes)
+	void CollisionGearPinFamily(ChSystem* msys)
     // ChHashTable<int, GearPinCacheContact>* mhash)
 	{
 		//GetLog() << "hash statistics: loading=" << hashed_contacts->loading() << "   size=" << hashed_contacts->size() <<"\n";
@@ -348,16 +349,17 @@ class GearPinCollisionCallback : public ChSystem::ChCustomComputeCollisionCallba
       // global c-sys
       ChVector<> shoe_pos = m_shoes[idx]->GetPos();
       ChVector<> gear_seat_pos_Pz = m_gear->GetPos() 
-        + gear->GetRot().Rotate( m_seat_pos_bar );
+        + m_gear->GetRot().Rotate( m_seat_pos_bar );
+      // same as Pz_bar, negate z
       ChVector<> gear_seat_pos_Nz = m_gear->GetPos() 
-        + gear->GetRot().Rotate( -m_seat_pos_bar );
+        + m_gear->GetRot().Rotate( ChVector<>(m_seat_pos_bar.x, m_seat_pos_bar.y, -m_seat_pos_bar.z) );
 
       // put the Shoe bounding sphere at the center of the pin, on the positive and negative z-dir, w.r.t. gear c-sys
       // TODO: relative to the shoe c-sys, is the pin -x or +x dir ??
       ChVector<> pin_pos_Pz = shoe_pos 
-        + shoes[idx]->GetRot().Rotate( m_pin_pos_bar );
+        + m_shoes[idx]->GetRot().Rotate( m_pin_pos_bar );
       ChVector<> pin_pos_Nz = shoe_pos 
-        + shoes[idx]->GetRot().Rotate( -m_pin_pos_bar );
+        + m_shoes[idx]->GetRot().Rotate( ChVector<>(m_pin_pos_bar.x, m_pin_pos_bar.y, -m_pin_pos_bar.z) );
 
       // broad-phase passes?
       if( BroadphasePassed(gear_seat_pos_Pz, gear_seat_pos_Nz,
@@ -366,7 +368,7 @@ class GearPinCollisionCallback : public ChSystem::ChCustomComputeCollisionCallba
 
         bool passed_Narrow = NarrowPhase(gear_seat_pos_Pz, gear_seat_pos_Nz,
           pin_pos_Pz, pin_pos_Nz,
-          gear, idx);
+          m_gear, idx);
   
       }
     }
@@ -386,8 +388,8 @@ private:
   ChVector<> m_seat_pos_bar; ///< center of gear seat on pos. z side, in shoe c-sys
 
   // handles to bodies to check
-  std::vector<ChSharedPtr<ChBody> >& m_shoes;
-  ChSharedPtr<ChBody>& m_gear;
+  const std::vector<ChSharedPtr<ChBody> > m_shoes;
+  const ChSharedPtr<ChBody> m_gear;
   const GearPinGeometry m_geom; ///< gear and pin geometry data
 
   // following are used for determining if contacts are "persistent"
