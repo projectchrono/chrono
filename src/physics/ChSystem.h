@@ -769,7 +769,9 @@ protected:
 	///    Qc += c*C 
 	virtual void LoadConstraint_C(
 		ChVectorDynamic<>& Qc,		 ///< result: the Qc residual, Qc += c*C 
-		const double c				 ///< a scaling factor
+		const double c,				 ///< a scaling factor
+		const bool do_clamp = false, ///< enable optional clamping of Qc
+		const double mclam = 1e30	 ///< clamping value
 		);
 
 	/// Increment a vector Qc with the term Ct = partial derivative dC/dt:   

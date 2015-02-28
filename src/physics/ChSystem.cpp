@@ -2212,27 +2212,27 @@ void ChSystem::LoadResidual_CqL(
 ///    Qc += c*C 
 void ChSystem::LoadConstraint_C(
 	ChVectorDynamic<>& Qc,		 ///< result: the Qc residual, Qc += c*C 
-	const double c				 ///< a scaling factor
+	const double c,				 ///< a scaling factor
+	const bool mdo_clamp, ///< enable optional clamping of Qc
+	const double mclam	 ///< clamping value
 	)
 {
-	bool do_clamp = true;
-	//max_penetration_recovery_speed = 1e10;
 	for (unsigned int ip = 0; ip < bodylist.size(); ++ip)  // ITERATE on bodies
 	{
 		ChBody* Bpointer = bodylist[ip];
 		if(Bpointer->IsActive())
-			Bpointer->IntLoadConstraint_C(Bpointer->GetOffset_L(), Qc, c, do_clamp, max_penetration_recovery_speed);
+			Bpointer->IntLoadConstraint_C(Bpointer->GetOffset_L(), Qc, c, mdo_clamp, mclam);
 	}
 	for (unsigned int ip = 0; ip < otherphysicslist.size(); ++ip)  // ITERATE on other physics
 	{
 		ChPhysicsItem* PHpointer = otherphysicslist[ip];
-		PHpointer->IntLoadConstraint_C(PHpointer->GetOffset_L(), Qc, c, do_clamp, max_penetration_recovery_speed);
+		PHpointer->IntLoadConstraint_C(PHpointer->GetOffset_L(), Qc, c, mdo_clamp, mclam);
 	}
 	for (unsigned int ip = 0; ip < linklist.size(); ++ip)  // ITERATE on links
 	{
 		ChLink* Lpointer = linklist[ip];
 		if(Lpointer->IsActive())
-			Lpointer->IntLoadConstraint_C(Lpointer->GetOffset_L(), Qc, c, do_clamp, max_penetration_recovery_speed); 
+			Lpointer->IntLoadConstraint_C(Lpointer->GetOffset_L(), Qc, c, mdo_clamp, mclam); 
 	}
 }
 
@@ -2799,6 +2799,13 @@ int ChSystem::Integrate_Y_timestepper()
 
 	ChTimer<double> mtimer_lcp;
 	mtimer_lcp.start();
+
+	// Set some settings in timestepper object
+	this->timestepper->SetQcDoClamp(true);
+	this->timestepper->SetQcClamping(this->max_penetration_recovery_speed);
+	if (this->timestepper.IsType<ChTimestepperHHT>() || 
+		this->timestepper.IsType<ChTimestepperNewmark>())
+			this->timestepper->SetQcDoClamp(false);
 
 
 	// PERFORM TIME STEP HERE!
