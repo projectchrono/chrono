@@ -161,6 +161,11 @@ public:
 				/// Get the master coordinate system for the assets (should be implemented 
 				/// by children classes)
 	virtual ChFrame<> GetAssetsFrame(unsigned int nclone=0) { return ChFrame<>();}
+				/// To get reaction force, expressed in link coordinate system:
+	virtual ChVector<> Get_react_force() {return VNULL;}
+				/// To get reaction torque,  expressed in link coordinate system:
+	virtual ChVector<> Get_react_torque() {return VNULL;}
+				// (Note, functions above might fit better in a specialized subclass, but here for easier GUI interface)
 
 				/// Tells if this link requires that the connected ChBody objects
 				/// must be waken if they are sleeping. By default =true, i.e. always keep awaken, but

@@ -108,6 +108,9 @@ public:
 				/// Number of scalar costraints 
 	virtual int GetDOC_c  () {return 3;}
 
+				/// To get reaction force, expressed in link coordinate system:
+	virtual ChVector<> Get_react_force() {return GetReactionOnBody();}
+
 
 	 		//
 			// STATE FUNCTIONS
