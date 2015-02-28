@@ -279,15 +279,6 @@ void ChLinkLock::ChangeLinkType (int new_link_type)
 }
 
 
-void ChLinkLock::Set2Dmode(int mode)
-{
-    ChLinkMaskLF* mmask = (ChLinkMaskLF*) this->mask;
-
-    if (mmask->Set2Dmode(mode) >0)
-    {
-        ChangedLinkMask ();
-    }
-}
 
 
 // setup the functions when user changes them.

@@ -380,30 +380,6 @@ ChLinkMask* ChLinkMaskLF::NewDuplicate()
 }
 
 
-        // temporarely set OFF the locked costraints, because of 2D mode, and viceversa
-int ChLinkMaskLF::Set2Dmode(int mode)
-{
-  int cnt;
-
-  if (mode == 1) // switching to 2D
-  {
-    cnt = 0;
-    if (Constr_Z().IsDisabled() == false) { Constr_Z().SetDisabled(true); cnt++; }
-    if (Constr_E1().IsDisabled() == false) { Constr_E1().SetDisabled(true); cnt++; }
-    if (Constr_E2().IsDisabled() == false) { Constr_E2().SetDisabled(true); cnt++; }
-    return cnt;
-  }
-  if (mode == 0) // switching back to 3D
-  {
-    cnt = 0;
-    if (Constr_Z().IsDisabled() == true) { Constr_Z().SetDisabled(false); cnt++; }
-    if (Constr_E1().IsDisabled() == true) { Constr_E1().SetDisabled(false); cnt++; }
-    if (Constr_E2().IsDisabled() == true) { Constr_E2().SetDisabled(false); cnt++; }
-    return cnt;
-  }
-  return 0;
-
-}
 
 void ChLinkMaskLF::SetLockMask(bool x, bool y, bool z,
                                bool e0, bool e1, bool e2, bool e3)

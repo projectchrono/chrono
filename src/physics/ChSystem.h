@@ -215,13 +215,6 @@ public:
 	int  GetNormType () {return normtype;}
 
 	
-				/// Impose the 2D mode. Only for very simple systems. Note that,
-				/// given the speed and efficiency of current LCP solvers and integrators,
-				/// there's no need to force the 2D mode - just use the 3D.  
-	void SetXYmode (int m_mode);	// mode = 1 -> switch to 2D; mode = 0 -> switch to 3D (default)
-	int  GetXYmode () {return modeXY;}
-
-
 	
 				/// For elastic collisions, with objects that have nonzero
 				/// restitution coefficient: objects will rebounce only if their

@@ -1808,17 +1808,6 @@ void ChSystem::LCPresult_Li_into_reactions(double mfactor)
 }
 
 
-// obsolete?
-void ChSystem::SetXYmode (int m_mode)
-{
-	modeXY = m_mode;
-	for (unsigned int ip = 0; ip < linklist.size(); ++ip)  // ITERATE on links
-	{
-		ChLink* Lpointer = linklist[ip];
-		Lpointer->Set2Dmode(m_mode);
-	}
-}
-
 
 
 //////////////////////////////////
