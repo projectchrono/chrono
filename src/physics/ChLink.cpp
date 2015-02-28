@@ -70,15 +70,6 @@ void ChLink::Copy(ChLink* source)
 
 
 
- 
-
-
-void ChLink::Set2Dmode(int mode)
-{
-    // Nothing specific to do on mask, 'cause base link.
-    // Chld classes can implement this method,
-}
-
 
 
 

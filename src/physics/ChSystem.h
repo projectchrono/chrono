@@ -59,7 +59,6 @@
 #include "timestepper/ChIntegrable.h"
 #include "timestepper/ChTimestepper.h"
 
-
 namespace chrono
 {
 
@@ -73,7 +72,7 @@ typedef ChSharedPtr<ChControls> ChSharedControlsPtr;
 class ChLcpSolver;
 class ChLcpSystemDescriptor;
 class ChContactContainerBase;
-
+//class ChTimestepper;
 
 
 //  Defines (obsolete: to be removed or ported to enums)

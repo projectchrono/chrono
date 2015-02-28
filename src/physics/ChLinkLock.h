@@ -112,8 +112,6 @@ public:
 
 	void ChangeLinkType (int new_link_type);
 
-	void Set2Dmode(int mode);  // mode=1 use only constraints for 2D xy plane, mode=0 switch back to 3D.
-
 	virtual int GetType	() {return this->type;}
 
 

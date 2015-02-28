@@ -75,7 +75,7 @@ namespace chrono
 #define LNK_REVOLUTEPRISMATIC   48
 ///
 /// Base class for all types of constraints that act like 
-/// mechanical joints ('links').
+/// mechanical joints ('links') in 3D space.
 ///
 ///  Note that there are many specializations of this base class,
 /// for example the ChLinkEngine class inherits this base class and

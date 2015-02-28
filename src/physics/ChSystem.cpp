@@ -52,6 +52,7 @@
 #include "core/ChTimer.h"
 #include "collision/ChCCollisionSystemBullet.h"
 #include "collision/ChCModelBulletBody.h"
+#include "timestepper/ChTimestepper.h"
 #include "timestepper/ChStaticAnalysis.h"
 
 #include "core/ChMemory.h" // must be last include (memory leak debugger). In .cpp only.
@@ -3395,7 +3396,7 @@ void ChSystem::StreamOUT(ChStreamOutBinary& mstream)
 	mstream << (int)0; //v7
 	mstream << (double)0; // v7
 	mstream << G_acc;
-	mstream << GetXYmode();
+	mstream << (int)0;
 	mstream << (int)0; // v7
 	mstream << (int)0; // v7
 	mstream << (double)0;// v7
@@ -3452,7 +3453,7 @@ void ChSystem::StreamIN(ChStreamInBinary& mstream)
 	mstream >> mint;		//SetPredorder(mint);
 	mstream >> mdouble;		//SetStifftol(mdouble);
 	mstream >> mvector;		Set_G_acc(mvector);
-	mstream >> mint;		SetXYmode(mint);
+	mstream >> mint;		//SetXYmode(mint);
 	mstream >> mint;		//SetNsClosePos(mint);
 	mstream >> mint;		//SetNsCloseSpeed(mint);
 	mstream >> mdouble;		//SetMonolattol(mdouble);
