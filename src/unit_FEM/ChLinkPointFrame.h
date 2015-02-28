@@ -140,7 +140,7 @@ public:
 
 			   // Other functions
 	
-	virtual ChFrame<> GetAssetsFrame(unsigned int nclone =0);
+	virtual ChCoordsys<> GetLinkAbsoluteCoords();
 
 				/// Use this function after object creation, to initialize it, given  
 				/// the node and body to join. 

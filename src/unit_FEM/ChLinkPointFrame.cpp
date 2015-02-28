@@ -62,16 +62,17 @@ void ChLinkPointFrame::Copy(ChLinkPointFrame* source)
 	cache_li_pos = source->cache_li_pos;
 }
 
-ChFrame<> ChLinkPointFrame::GetAssetsFrame(unsigned int nclone)
+ChCoordsys<> ChLinkPointFrame::GetLinkAbsoluteCoords()
 {
 	if (this->body)
 	{
-		ChFrame<> pframe(this->attach_position);
-		ChFrame<> linkframe = pframe >> (*this->body);
-		return linkframe;
+		ChCoordsys<> pcsys(this->attach_position);
+		ChCoordsys<> linkcsys = pcsys >> (*this->body);
+		return linkcsys;
 	}
-	return ChFrame<>();
+	return CSYSNORM;
 }
+
 
 
 int ChLinkPointFrame::Initialize(ChSharedPtr<ChIndexedNodes> mnodes, ///< nodes container

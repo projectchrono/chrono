@@ -116,7 +116,7 @@ ChLink* ChLinkDistance::new_Duplicate ()
     return (m_l);
 }
 
-ChCoordsys<> ChLinkDistance::GetLinkRelativeCoords() const
+ChCoordsys<> ChLinkDistance::GetLinkRelativeCoords()
 {
 	ChVector<> D2local;
 	ChVector<> D2temp=(Vnorm(Body1->TransformPointLocalToParent(pos1)-Body2->TransformPointLocalToParent(pos2)));

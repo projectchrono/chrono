@@ -102,7 +102,7 @@ public:
 					/// body). This represents the 'main' reference of the link: reaction forces 
 					/// are expressed in this coordinate system.
 					/// (It is the coordinate system of the contact plane relative to Body2)
-	ChCoordsys<> GetLinkRelativeCoords() const;
+	virtual ChCoordsys<> GetLinkRelativeCoords();
 
 					/// Get the 1st anchor endpoint for the distance (expressed in Body1 coordinate system)
 	ChVector<> GetEndPoint1Rel() const {return pos1;}
