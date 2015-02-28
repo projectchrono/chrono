@@ -80,10 +80,6 @@ public:
 
 
 
-				/// If this link has been created automatically by 
-				/// collision detection, returns true (false by default). (Was used in the past, now useless)
-	virtual bool IsCreatedByCollisionDetection() {return false;};
-
 				/// Get the type identifier of this link. Use if you don't want to use RTTI for performance.
 	virtual int GetType	() {return LNK_BASE;}
 
