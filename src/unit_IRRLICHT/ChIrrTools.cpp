@@ -227,6 +227,114 @@ int ChIrrTools::drawAllContactLabels(chrono::ChSystem&      mphysicalSystem,
 }
 
 // -----------------------------------------------------------------------------
+// Draw links as glyps.
+// ---------------------------------------------------------------------------
+int ChIrrTools::drawAllLinks(chrono::ChSystem&     mphysicalSystem,
+                                  video::IVideoDriver*  driver,
+                                  double                mlen,
+                                  eCh_LinkDrawMode  drawtype)
+{
+	if (drawtype == LINK_NONE)
+		return 0;
+
+	driver->setTransform(video::ETS_WORLD, core::matrix4());
+	video::SMaterial mattransp;
+	mattransp.ZBuffer = false;
+	mattransp.Lighting = false;
+	driver->setMaterial(mattransp);
+
+	chrono::ChSystem::IteratorPhysicsItems myiter = mphysicalSystem.IterBeginPhysicsItems();
+	while (myiter.HasItem())
+	{
+		if ((*myiter).IsType<chrono::ChLinkBase>())
+		{
+			chrono::ChSharedPtr<chrono::ChLinkBase> mylink = (*myiter).DynamicCastTo<chrono::ChLinkBase>();
+			chrono::ChCoordsys<> mlinkframe = mylink->GetLinkAbsoluteCoords();
+			chrono::ChVector<> v1abs = mlinkframe.pos;
+			chrono::ChVector<> v2;
+			chrono::ChVector<> v2abs;
+			switch (drawtype) {
+			case ChIrrTools::LINK_REACT_FORCE:
+				v2 = mylink->Get_react_force();
+				break;
+			case ChIrrTools::LINK_REACT_TORQUE:
+				v2 = mylink->Get_react_torque();
+				break;
+			}
+
+			v2 *= mlen;
+			v2abs = v2 >> mlinkframe;
+
+			video::SColor mcol(200,250,250,0); //yellow vectors
+
+			driver->draw3DLine(core::vector3dfCH(v1abs), core::vector3dfCH(v2abs), mcol);
+		}
+		++myiter;
+	}
+	return 0;
+}
+
+// -----------------------------------------------------------------------------
+// Draw links as labels
+// ---------------------------------------------------------------------------
+int ChIrrTools::drawAllLinkLabels(chrono::ChSystem&     mphysicalSystem,
+                                  irr::IrrlichtDevice*  device,
+                                  eCh_LinkLabelMode labeltype,
+                                  video::SColor         mcol)
+{
+	if (labeltype == LINK_NONE_VAL)
+		return 0;
+
+	chrono::ChSystem::IteratorPhysicsItems myiter = mphysicalSystem.IterBeginPhysicsItems();
+	while (myiter.HasItem())
+	{
+		if ((*myiter).IsType<chrono::ChLinkBase>())
+		{
+			chrono::ChSharedPtr<chrono::ChLinkBase> mylink = (*myiter).DynamicCastTo<chrono::ChLinkBase>();
+			chrono::ChCoordsys<> mlinkframe = mylink->GetLinkAbsoluteCoords(); //GetAssetsFrame();
+
+			char buffer[25];
+			core::vector3df mpos((irr::f32)mlinkframe.pos.x, (irr::f32)mlinkframe.pos.y, (irr::f32)mlinkframe.pos.z);
+			core::position2d<s32> spos = device->getSceneManager()->getSceneCollisionManager()->getScreenCoordinatesFrom3DPosition(mpos);
+			gui::IGUIFont* font = device->getGUIEnvironment()->getBuiltInFont();
+
+			switch (labeltype) {
+			case ChIrrTools::LINK_REACT_FORCE_VAL:
+			  sprintf(buffer,"% 6.3g", mylink->Get_react_force().Length() );
+			  break;
+			case ChIrrTools::LINK_REACT_FORCE_X:
+			  sprintf(buffer,"% 6.3g", mylink->Get_react_force().x);
+			  break;
+			case ChIrrTools::LINK_REACT_FORCE_Y:
+			  sprintf(buffer,"% 6.3g", mylink->Get_react_force().y);
+			  break;
+			case ChIrrTools::LINK_REACT_FORCE_Z:
+			  sprintf(buffer,"% 6.3g", mylink->Get_react_force().z);
+			  break;
+			case ChIrrTools::LINK_REACT_TORQUE_VAL:
+			  sprintf(buffer,"% 6.3g", mylink->Get_react_torque().Length() );
+			  break;
+			case ChIrrTools::LINK_REACT_TORQUE_X:
+			  sprintf(buffer,"% 6.3g", mylink->Get_react_torque().x);
+			  break;
+			case ChIrrTools::LINK_REACT_TORQUE_Y:
+			  sprintf(buffer,"% 6.3g", mylink->Get_react_torque().y);
+			  break;
+			case ChIrrTools::LINK_REACT_TORQUE_Z:
+			  sprintf(buffer,"% 6.3g", mylink->Get_react_torque().z);
+			  break;
+			}
+
+			font->draw(core::stringw(buffer).c_str(),
+					   core::rect<s32>(spos.X-15,spos.Y, spos.X+15, spos.Y+10),
+					   mcol);
+		}
+		++myiter;
+	}
+	return 0;
+}
+
+// -----------------------------------------------------------------------------
 // Draw collision objects bounding boxes for rigid bodies.
 // -----------------------------------------------------------------------------
 int ChIrrTools::drawAllBoundingBoxes(chrono::ChSystem&    mphysicalSystem,
@@ -366,11 +474,19 @@ int ChIrrTools::drawAllLinkframes(chrono::ChSystem&     mphysicalSystem,
   chrono::ChSystem::IteratorPhysicsItems myiter = mphysicalSystem.IterBeginPhysicsItems();
   while (myiter.HasItem())
   {
-    if ((*myiter).IsType<chrono::ChLinkMarkers>() ||
-        (*myiter).IsType<chrono::ChLinkMateGeneric>() ) //item is inherited from ChBody?
+    if ((*myiter).IsType<chrono::ChLinkBase>() ) 
     {
       chrono::ChFrame<> frAabs;
       chrono::ChFrame<> frBabs;
+
+	  chrono::ChSharedPtr<chrono::ChLinkBase> mylinkbase = ((*myiter).DynamicCastTo<chrono::ChLinkBase>());
+
+	  // default frame alignment:
+
+	  frAabs = mylinkbase->GetAssetsFrame();
+	  frBabs = frAabs; 
+
+	  // special cases:
 
       if ((*myiter).IsType<chrono::ChLinkMarkers>()) {
         chrono::ChSharedPtr<chrono::ChLinkMarkers> mylink ((*myiter).DynamicCastTo<chrono::ChLinkMarkers>());
