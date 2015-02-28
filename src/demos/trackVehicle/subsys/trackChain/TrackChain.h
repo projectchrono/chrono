@@ -93,7 +93,7 @@ public:
 
   // accessors
   /// number of track shoes created/initialized
-  double Get_numShoes() const { return m_numShoes; }
+  size_t Get_numShoes() const { return m_numShoes; }
 
   /// damping coef. in the pin revolute constraint
   double Get_pin_damping() const { return m_damping_C;}

@@ -96,14 +96,14 @@ public:
 // This custom collision checks the gear with all the track shoes
 // I suppose since you can choose between DVI and DEM contact, might as well
 // template this so we can add to either contact container type
-template <class ContactEngine>
+template <class ContactEngine = ChContactContainer>
 class GearPinCollisionCallback : public ChSystem::ChCustomComputeCollisionCallback
 {
 	public:
   /// all length units in meters
-	GearPinCollisionCallback(const std::vector<ChSharedPtr<ChBody> > shoes,
-    const ChSharedPtr<ChBody> gear_body,
-    const GearPinGeometry& geom,
+	GearPinCollisionCallback(const std::vector<ChSharedPtr<ChBody> >& shoes,
+    ChSharedPtr<ChBody> gear_body,
+    GearPinGeometry& geom,
     int persistent_hashtable_dim = 1000
 	) : m_shoes(shoes),
   m_gear(gear_body),
