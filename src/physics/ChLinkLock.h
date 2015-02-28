@@ -200,6 +200,12 @@ public:
 	void SetLimit_Rp (ChLinkLimit* m_limit_Rp) {if (limit_Rp)delete limit_Rp; limit_Rp = m_limit_Rp;}
 	void SetLimit_D  (ChLinkLimit* m_limit_D)  {if (limit_D) delete limit_D ; limit_D  = m_limit_D;}
 
+			//
+			// STATE FUNCTIONS
+			//
+
+		/// Specialize the following respect to ChLinkMasked base ,in order to update intuitive react_torque and react_force
+	virtual void IntStateScatterReactions(const unsigned int off_L,	const ChVectorDynamic<>& L);
 
 			//
 			// LCP SYSTEM FUNCTIONS   ( functions to assembly/manage data for system solver)

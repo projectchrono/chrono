@@ -138,7 +138,19 @@ void ChLinkPointFrame::Update (double mytime)
 
 //// STATE BOOKKEEPING FUNCTIONS
 
- 
+void ChLinkPointFrame::IntStateGatherReactions(const unsigned int off_L,	ChVectorDynamic<>& L)
+{
+	L(off_L+0) = this->react.x;
+	L(off_L+1) = this->react.y;
+	L(off_L+2) = this->react.z;
+}
+
+void ChLinkPointFrame::IntStateScatterReactions(const unsigned int off_L,	const ChVectorDynamic<>& L)
+{
+	this->react.x = L(off_L+0);
+	this->react.y = L(off_L+1);
+	this->react.z = L(off_L+2);
+}
 
 void ChLinkPointFrame::IntLoadResidual_CqL(
 					const unsigned int off_L,	 ///< offset in L multipliers

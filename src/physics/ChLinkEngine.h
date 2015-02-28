@@ -192,7 +192,11 @@ public:
 			// add the constraint coming from the inner shaft etc.)
 	virtual void IntStateGather(const unsigned int off_x,	ChState& x,	const unsigned int off_v, ChStateDelta& v,	double& T);	
 	virtual void IntStateScatter(const unsigned int off_x,	const ChState& x, const unsigned int off_v,	const ChStateDelta& v,	const double T);
+	virtual void IntStateGatherAcceleration(const unsigned int off_a, ChStateDelta& a);	
+	virtual void IntStateScatterAcceleration(const unsigned int off_a, const ChStateDelta& a);
 	virtual void IntStateIncrement(const unsigned int off_x, ChState& x_new, const ChState& x,	const unsigned int off_v, const ChStateDelta& Dv); 
+	virtual void IntStateGatherReactions(const unsigned int off_L,	ChVectorDynamic<>& L);	
+	virtual void IntStateScatterReactions(const unsigned int off_L,	const ChVectorDynamic<>& L);
 	virtual void IntLoadResidual_F(const unsigned int off,	ChVectorDynamic<>& R, const double c );
 	virtual void IntLoadResidual_Mv(const unsigned int off,	ChVectorDynamic<>& R, const ChVectorDynamic<>& w, const double c);
 	virtual void IntLoadResidual_CqL(const unsigned int off_L, ChVectorDynamic<>& R, const ChVectorDynamic<>& L, const double c);

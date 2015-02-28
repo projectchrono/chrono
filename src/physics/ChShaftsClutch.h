@@ -101,6 +101,8 @@ public:
 	//
 
 				// (override/implement interfaces for global state vectors, see ChPhysicsItem for comments.)
+	virtual void IntStateGatherReactions(const unsigned int off_L,	ChVectorDynamic<>& L);	
+	virtual void IntStateScatterReactions(const unsigned int off_L,	const ChVectorDynamic<>& L);
 	virtual void IntLoadResidual_CqL(const unsigned int off_L, ChVectorDynamic<>& R, const ChVectorDynamic<>& L, const double c);
 	virtual void IntLoadConstraint_C(const unsigned int off, ChVectorDynamic<>& Qc,	const double c, bool do_clamp,	double recovery_clamp);
 	virtual void IntLoadConstraint_Ct(const unsigned int off, ChVectorDynamic<>& Qc, const double c) {};

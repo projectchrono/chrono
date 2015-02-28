@@ -118,7 +118,15 @@ void ChShaftsGearbox::Update (double mytime)
 
 //// STATE BOOKKEEPING FUNCTIONS
 
- 
+void ChShaftsGearbox::IntStateGatherReactions(const unsigned int off_L,	ChVectorDynamic<>& L)
+{
+	L(off_L)   = this->torque_react;
+}
+
+void ChShaftsGearbox::IntStateScatterReactions(const unsigned int off_L,	const ChVectorDynamic<>& L)
+{
+	this->torque_react = L(off_L);
+}
 
 void ChShaftsGearbox::IntLoadResidual_CqL(
 					const unsigned int off_L,	 ///< offset in L multipliers

@@ -172,7 +172,19 @@ void ChLinkDistance::Update (double mytime)
 
 //// STATE BOOKKEEPING FUNCTIONS
 
- 
+ void ChLinkDistance::IntStateGatherReactions(const unsigned int off_L,	ChVectorDynamic<>& L)
+{
+	L(off_L) = - this->react_force.x;
+}
+
+void ChLinkDistance::IntStateScatterReactions(const unsigned int off_L,	const ChVectorDynamic<>& L)
+{
+	this->react_force.x = - L(off_L);
+	this->react_force.y = 0;
+	this->react_force.z = 0;
+
+	this->react_torque = VNULL;
+}
 
 void ChLinkDistance::IntLoadResidual_CqL(
 					const unsigned int off_L,	 ///< offset in L multipliers
