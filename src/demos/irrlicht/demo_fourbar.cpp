@@ -33,9 +33,8 @@
 #include "physics/ChSystem.h"
 #include "unit_IRRLICHT/ChBodySceneNode.h"
 #include "unit_IRRLICHT/ChBodySceneNodeTools.h" 
-#include "unit_IRRLICHT/ChIrrTools.h" 
-#include "unit_IRRLICHT/ChIrrWizard.h" 
- 
+#include "unit_IRRLICHT/ChIrrApp.h"
+
 #include <irrlicht.h>
 
  
@@ -116,7 +115,196 @@ private:
 
 
 
+
+
+
+int main(int argc, char* argv[])
+{
+	// 1- Create a Chrono::Engine physical system
+	ChSystem my_system;
+
+
+	// Create the Irrlicht visualization (open the Irrlicht device, 
+	// bind a simple user interface, etc. etc.)
+	ChIrrApp application(&my_system, L"Example of integration of Chrono::Engine and Irrlicht, with GUI",core::dimension2d<u32>(800,600),false, true);
+
+	// Easy shortcuts to add camera, lights, logo and sky in Irrlicht scene:
+	application.AddTypicalLogo();
+	application.AddTypicalSky();
+	application.AddTypicalLights();
+	application.AddTypicalCamera();
+
+
+
+	// 2- Create the rigid bodies of the four-bar mechanical system
+	//   (a flywheel, a rod, a rocker, a truss), maybe setting 
+	//   position/mass/inertias of their center of mass (COG) etc.
+	
+	// ..the truss
+	ChSharedBodyPtr  my_body_A(new ChBody);   
+	my_system.AddBody(my_body_A);
+	my_body_A->SetBodyFixed(true);			// truss does not move!
+
+	// ..the flywheel
+	ChSharedBodyPtr  my_body_B(new ChBody);	  
+	my_system.AddBody(my_body_B);
+	my_body_B->SetPos(ChVector<>(0,0,0));	// position of COG of flywheel
+
+	// ..the rod
+	ChSharedBodyPtr  my_body_C(new ChBody);	 
+	my_system.AddBody(my_body_C);
+	my_body_C->SetPos(ChVector<>(4,0,0));	// position of COG of rod
+
+	// ..the rocker
+	ChSharedBodyPtr  my_body_D(new ChBody);	 
+	my_system.AddBody(my_body_D);
+	my_body_D->SetPos(ChVector<>(8,-4,0));	// position of COG of rod
  
+
+	// 3- Create constraints: the mechanical joints between the 
+	//    rigid bodies. Doesn't matter if some constraints are redundant.
+    
+	// .. an engine between flywheel and truss	
+	ChSharedPtr<ChLinkEngine> my_link_AB(new ChLinkEngine);
+	my_link_AB->Initialize(my_body_A, my_body_B, ChCoordsys<>(ChVector<>(0,0,0)));
+	my_link_AB->Set_eng_mode(ChLinkEngine::ENG_MODE_SPEED);
+    if (ChSharedPtr<ChFunction_Const> mfun = my_link_AB->Get_spe_funct().DynamicCastTo<ChFunction_Const>())
+		mfun->Set_yconst(CH_C_PI); // speed w=3.145 rad/sec
+	my_system.AddLink(my_link_AB);
+
+	// .. a revolute joint between flywheel and rod
+	ChSharedPtr<ChLinkLockRevolute>  my_link_BC(new ChLinkLockRevolute);
+	my_link_BC->Initialize(my_body_B, my_body_C, ChCoordsys<>(ChVector<>(2,0,0)));
+	my_system.AddLink(my_link_BC);
+
+	// .. a revolute joint between rod and rocker
+	ChSharedPtr<ChLinkLockRevolute> my_link_CD(new ChLinkLockRevolute);
+	my_link_CD->Initialize(my_body_C, my_body_D, ChCoordsys<>(ChVector<>(8,0,0)));
+	my_system.AddLink(my_link_CD);
+
+	// .. a revolute joint between rocker and truss
+	ChSharedPtr<ChLinkLockRevolute> my_link_DA(new ChLinkLockRevolute);
+	my_link_DA->Initialize(my_body_D, my_body_A, ChCoordsys<>(ChVector<>(8,-8,0)));
+	my_system.AddLink(my_link_DA);
+
+
+
+
+
+	//
+	// Prepare some graphical-user-interface (GUI) items to show
+	// on the screen
+	// 
+ 
+
+	// ..add a GUI text and GUI slider to control motor of mechanism via mouse
+	text_enginespeed         = application.GetIGUIEnvironment()->addStaticText(
+					L"Engine speed:", rect<s32>(300,85,400,100), false);
+	IGUIScrollBar* scrollbar = application.GetIGUIEnvironment()->addScrollBar(
+					true, rect<s32>(300, 105, 450, 120), 0, 101);
+	scrollbar->setMax(100);
+	
+
+	// ..Finally create the event receiver, for handling all the GUI (user will use
+	//   buttons/sliders to modify parameters)
+	MyEventReceiver receiver(&my_system, application.GetDevice(), my_link_AB);
+	  // note how to add the custom event receiver to the default interface:
+	application.SetUserEventReceiver(&receiver);
+
+
+	//
+	// Configure the solver with non-default settings
+	//
+
+	// Note that default iterative solvers cannot guarantee 100% precision in 
+	// satisfying the constraints, expecially in some cases (ex. LCP_ITERATIVE_SOR) 
+	// In this case, we rather choose to use the _direct_ solver of simplex
+	// type (LCP_SIMPLEX) that is very precise. NOTE!! The LCP_SIMPLEX cannot
+	// be used for systems with unilateral constraints or collisions!!! So it
+	// good for simple mechanisms like this one.
+	my_system.SetLcpSolverType(ChSystem::LCP_SIMPLEX);
+
+
+	// By default, the solver uses the INT_ANITESCU stepper, that is very
+	// fast, but may allow some geometric error in constraints (because it is 
+	// based on constraint stabilization). Alternatively, the INT_TASORA
+	// stepper is less fast, but it is based on constraint projection, so
+	// gaps in constraints are less noticeable (hence avoids the 'spongy' 
+	// behaviour of the default INT_ANITESCU solver, which operates only 
+	// on speed-impulse level and keeps constraints'closed' by a continuous 
+	// stabilization)
+	my_system.SetIntegrationType(ChSystem::INT_TASORA);
+	 
+
+
+	//
+	// THE SOFT-REAL-TIME CYCLE, SHOWING THE SIMULATION
+	//
+
+
+	// use this array of points to store trajectory of a rod-point
+	std::vector< chrono::ChVector<> > mtrajectory; 
+
+
+
+	application.SetTimestep(0.001);
+
+	while(application.GetDevice()->run()) 
+	{
+		application.BeginScene();
+
+		// This will draw 3D assets, but in this basic case we will draw some lines later..
+		application.DrawAll();
+
+		// .. draw a grid
+		ChIrrTools::drawGrid(application.GetVideoDriver(), 0.5, 0.5);
+		// .. draw a circle representing flywheel
+		ChIrrTools::drawCircle(application.GetVideoDriver(), 2.1, ChCoordsys<>(ChVector<>(0,0,0), QUNIT));
+		// .. draw a small circle representing joint BC
+		ChIrrTools::drawCircle(application.GetVideoDriver(), 0.06, ChCoordsys<>(my_link_BC->GetMarker1()->GetAbsCoord().pos, QUNIT));
+		// .. draw a small circle representing joint CD
+		ChIrrTools::drawCircle(application.GetVideoDriver(), 0.06, ChCoordsys<>(my_link_CD->GetMarker1()->GetAbsCoord().pos, QUNIT));
+		// .. draw a small circle representing joint DA
+		ChIrrTools::drawCircle(application.GetVideoDriver(), 0.06, ChCoordsys<>(my_link_DA->GetMarker1()->GetAbsCoord().pos, QUNIT));
+		// .. draw the rod (from joint BC to joint CD)
+		ChIrrTools::drawSegment(application.GetVideoDriver(), 
+			my_link_BC->GetMarker1()->GetAbsCoord().pos, 
+			my_link_CD->GetMarker1()->GetAbsCoord().pos,
+			video::SColor(255,   0,255,0));
+		// .. draw the rocker (from joint CD to joint DA)
+		ChIrrTools::drawSegment(application.GetVideoDriver(), 
+			my_link_CD->GetMarker1()->GetAbsCoord().pos, 
+			my_link_DA->GetMarker1()->GetAbsCoord().pos,
+			video::SColor(255, 255,0,0));
+		// .. draw the trajectory of the rod-point
+		ChIrrTools::drawPolyline(application.GetVideoDriver(), 
+			mtrajectory, video::SColor(255, 0,150,0));
+
+
+		// HERE CHRONO INTEGRATION IS PERFORMED: THE 
+		// TIME OF THE SIMULATION ADVANCES FOR A SINGLE
+		// STEP:
+		//my_system.DoStepDynamics(0.01);
+
+		// We need to add another point to the array of 3d
+		// points describing the trajectory to be drawn..
+		mtrajectory.push_back(my_body_C->Point_Body2World(ChVector<>(1,1,0)));
+		// keep only last 150 points..
+		if (mtrajectory.size()>150) mtrajectory.erase(mtrajectory.begin());
+
+
+
+		// THIS PERFORMS THE TIMESTEP INTEGRATION!!!
+		application.DoStep();
+
+		application.EndScene();
+	}
+
+
+	return 0;
+}
+
+/*
 int main(int argc, char* argv[])
 {
 	// Create the IRRLICHT context (device, etc.)
@@ -315,5 +503,5 @@ int main(int argc, char* argv[])
 
 	return 0;
 }
-
+*/
 
