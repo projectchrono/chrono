@@ -104,7 +104,7 @@ class GearPinCollisionCallback : public ChSystem::ChCustomComputeCollisionCallba
 	GearPinCollisionCallback(const std::vector<ChSharedPtr<ChBody> >& shoes,
     ChSharedPtr<ChBody> gear_body,
     GearPinGeometry& geom,
-    int persistent_hashtable_dim = 1000
+    const int persistent_hashtable_dim = 1000
 	) : m_shoes(shoes),
   m_gear(gear_body),
   m_geom(geom),
@@ -125,6 +125,17 @@ class GearPinCollisionCallback : public ChSystem::ChCustomComputeCollisionCallba
     m_seat_pos_bar = ChVector<>(0,
       m_geom.gear_base_radius,
       0.5*(m_geom.gear_seat_width_min + m_geom.gear_seat_width) );
+
+    // Gear bounding sphere circumscribes tips/edges of the tooth
+    // apply one to each side of the sprocket
+    m_bound_rad_Gear = std::sqrt( std::pow(m_geom.tooth_mid_bar.Length(),2) + std::pow(m_geom.tooth_len*0.5,2) );
+    
+    // Shoe bounding sphere circumscribes the outside circumference of the pins
+    m_bound_rad_Pin = ChVector<>(m_geom.pin_radius,
+      m_geom.pin_radius, 
+      (m_geom.pin_width_max-m_geom.pin_width_min)/4.0).Length();
+
+
    
 		// alloc the hash table for persistent manifold of gear-cylinder contacts
 		m_hashed_contacts = new ChHashTable<int, GearPinCacheContact>(m_persistent_hashtable_dim);
@@ -194,19 +205,11 @@ class GearPinCollisionCallback : public ChSystem::ChCustomComputeCollisionCallba
     const ChVector<>& pin_cen_Pz,
     const ChVector<>& pin_cen_Nz) const
   {
-    // Gear bounding sphere circumscribes tips/edges of the tooth
-    // apply one to each side of the sprocket
-    double bound_rad_Gear = std::sqrt( std::pow(m_geom.tooth_mid_bar.Length(),2) + std::pow(m_geom.tooth_len*0.5,2) );
-    
-    // Shoe bounding sphere circumscribes the outside circumference of the pins
-    double bound_rad_Pin = ChVector<>(m_geom.pin_radius,
-      m_geom.pin_radius, 
-      (m_geom.pin_width_max-m_geom.pin_width_min)/4.0).Length();
 
     // check both sides for contact
     // broad-phase, is the distance between centers <= sum of bounding sphere?
-    return ( ( (gear_cen_Pz - pin_cen_Pz).Length() <= (bound_rad_Gear + bound_rad_Pin) ||
-      (gear_cen_Nz - pin_cen_Nz).Length() <= (bound_rad_Gear + bound_rad_Pin) )? true : false );
+    return ( ( (gear_cen_Pz - pin_cen_Pz).Length() <= (m_bound_rad_Gear + m_bound_rad_Pin) ||
+      (gear_cen_Nz - pin_cen_Nz).Length() <= (m_bound_rad_Gear + m_bound_rad_Pin) )? true : false );
 
   }
 
@@ -270,7 +273,7 @@ class GearPinCollisionCallback : public ChSystem::ChCustomComputeCollisionCallba
     // do narrow phase between this shoe and gear
     // find the closest gear to rotate the relate coordinates by the right angle
     size_t tooth_idx = Get_GearToothIdx(gear_seat_cen_Pz, pin_cen_Pz, gear->GetRot() );
-    double rot_ang = CH_C_PI / m_geom.num_teeth + tooth_idx * (CH_C_PI / m_geom.num_teeth);
+    double rot_ang = tooth_idx * CH_C_2PI / m_geom.num_teeth;
 
     // rotate the relative pos. things w.r.t gear c-sys
     ChQuaternion<> rot_q = Q_from_AngAxis(rot_ang, VECT_Z);
@@ -279,7 +282,8 @@ class GearPinCollisionCallback : public ChSystem::ChCustomComputeCollisionCallba
 
     // get the gear seat for this tooth seat
     ChVector<> gear_seat_cen_bar_Pz = (rot_q * seat_frame).GetPos();
-    ChVector<> gear_seat_cen_bar_Nz = -gear_seat_cen_bar_Pz;
+    ChVector<> gear_seat_cen_bar_Nz = gear_seat_cen_bar_Pz;
+    gear_seat_cen_bar_Nz.z *= -1;
 
     // get the pin centers in the gear c-sys, drop the out of plane (lateral) part.
     ChVector<> pin_cen_bar_Pz = gear->GetRot().RotateBack(pin_cen_Pz - gear->GetPos() );
@@ -324,8 +328,8 @@ class GearPinCollisionCallback : public ChSystem::ChCustomComputeCollisionCallba
     ChVector<> len = pin_cen - gear_cen;  // global c-sys
     // transform to local coords
     len = gear_rot.RotateBack(len);
-    // in local coords, can find the rotation angle in x-y plane
-    double rot_ang = std::atan2(len.y,len.x);
+    // in local coords, can find the rotation angle in x-y plane, off the y-axis
+    double rot_ang = std::atan2(len.y,len.x) - CH_C_PI_2;
     double incr = chrono::CH_C_2PI / m_geom.num_teeth;
     size_t idx = std::floor( (rot_ang + 0.5*incr) / incr);
     return idx;
@@ -391,6 +395,10 @@ private:
   const std::vector<ChSharedPtr<ChBody> > m_shoes;
   const ChSharedPtr<ChBody> m_gear;
   const GearPinGeometry m_geom; ///< gear and pin geometry data
+  // broadphase bounding sphere radius for gear
+  double m_bound_rad_Gear;
+  // Shoe bounding sphere circumscribes the outside circumference of the pins
+  double m_bound_rad_Pin
 
   // following are used for determining if contacts are "persistent"
   // i.e., no liftoff once they are engaged with the sprocket. 1 per shoe
