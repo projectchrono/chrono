@@ -31,4 +31,6 @@ How to develop your application based on Chrono::Engine
 
 See the [tutorials](http://www.projectchrono.org/mediawiki/index.php/Tutorials) for examples of C++ code using the Chrono:::Engine library.
 
+[API documentation](http://api.chrono.projectchrono.org/) is generated from `develop` on a nightly basis.
+
 A place for discussions can be the [projectchrono group](https://groups.google.com/forum/#!forum/projectchrono).
