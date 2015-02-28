@@ -109,7 +109,8 @@ class GearPinCollisionCallback : public ChSystem::ChCustomComputeCollisionCallba
   m_gear(gear_body),
   m_geom(geom),
   m_persistent_hashtable_dim(persistent_hashtable_dim),
-  m_Ncontacts(0)
+  m_Ncontacts(0),
+  m_NbroadPhasePassed(0)
 	{
 
     // two endpoints of cylinder pin, w.r.t. shoe c-sys. 
@@ -131,12 +132,11 @@ class GearPinCollisionCallback : public ChSystem::ChCustomComputeCollisionCallba
     m_bound_rad_Gear = std::sqrt( std::pow(m_geom.tooth_mid_bar.Length(),2) + std::pow(m_geom.tooth_len*0.5,2) );
     
     // Shoe bounding sphere circumscribes the outside circumference of the pins
+    // apply one to each side of the shoe body
     m_bound_rad_Pin = ChVector<>(m_geom.pin_radius,
       m_geom.pin_radius, 
       (m_geom.pin_width_max-m_geom.pin_width_min)/4.0).Length();
 
-
-   
 		// alloc the hash table for persistent manifold of gear-cylinder contacts
 		m_hashed_contacts = new ChHashTable<int, GearPinCacheContact>(m_persistent_hashtable_dim);
 
@@ -155,24 +155,21 @@ class GearPinCollisionCallback : public ChSystem::ChCustomComputeCollisionCallba
   class GearPinCacheContact{
 	  public:
 		  GearPinCacheContact()
-			  {reactions_cache.resize(6,0);}
+			  {reactions_cache[0]=reactions_cache[1]=reactions_cache[2]=reactions_cache[3]=reactions_cache[4]=reactions_cache[5]=0; }
 
-		  std::vector<float> reactions_cache; // same structure as in btManifoldPoint for other types of contact
+		  float reactions_cache[6]; // same structure as in btManifoldPoint for other types of contact
 	}; 
 
 	ChHashTable<int, GearPinCacheContact>* m_hashed_contacts;
 
   
   // check the hash table for persistent contact
-	void Found_GearPin_Contact(ChSharedPtr<ChBody> gear,
-    ChSharedPtr<ChBody> shoe,
-    const int shoeID, 
-    const ChVector<>& pGear_bar,
+	void Found_GearPin_Contact(const ChVector<>& pGear_bar,
     const ChVector<>& pPin_bar, 
-    const ChVector<>& vnGear_bar) 
-    // ChHashTable<int, GearPinCacheContact>* mhash)
+    const ChVector<>& vnGear_bar,
+    const int shoeID) 
 	{
-		std::vector<float> reaction_cache;
+		float* reaction_cache = 0;
 
     // see if this contact is in the hash table
 		ChHashTable<int, GearPinCacheContact>::iterator cached = m_hashed_contacts->find(shoeID);
@@ -183,18 +180,18 @@ class GearPinCollisionCallback : public ChSystem::ChCustomComputeCollisionCallba
 			 
     // fill the contact container with info
 		collision::ChCollisionInfo mcont;
-		mcont.modelA = gear->GetCollisionModel();
-		mcont.modelB = shoe->GetCollisionModel();
+		mcont.modelA = m_gear->GetCollisionModel();
+		mcont.modelB = m_shoes[shoeID]->GetCollisionModel();
     // passed in contact points, normal, w.r.t. gear c-sys
-    mcont.vN = gear->GetRot().Rotate(vnGear_bar);
-    mcont.vpA = gear->GetPos() + gear->GetRot().Rotate(pGear_bar);
-    mcont.vpB = gear->GetPos() + gear->GetRot().Rotate(pPin_bar);
+    mcont.vN = m_gear->GetRot().Rotate(vnGear_bar);
+    mcont.vpA = m_gear->GetPos() + m_gear->GetRot().Rotate(pGear_bar);
+    mcont.vpB = m_gear->GetPos() + m_gear->GetRot().Rotate(pPin_bar);
     mcont.distance = (mcont.vpA - mcont.vpB).Length();
-    mcont.reaction_cache = &(reaction_cache[0]);
+    mcont.reaction_cache = reaction_cache;
 
     // increment the counter, add the contact
     m_Ncontacts++;
-		((ContactEngine*)(gear->GetSystem()->GetContactContainer()))->AddContact(mcont);
+		( (ContactEngine*)(m_gear->GetSystem()->GetContactContainer()) )->AddContact(mcont);
 	}
 
   /// return true if the bounding spheres of specified centers intersect
@@ -266,13 +263,12 @@ class GearPinCollisionCallback : public ChSystem::ChCustomComputeCollisionCallba
     const ChVector<>& gear_seat_cen_Nz,
     const ChVector<>& pin_cen_Pz,
     const ChVector<>& pin_cen_Nz,
-    const ChSharedPtr<ChBody> gear,
     const size_t shoe_idx)
   {
 
     // do narrow phase between this shoe and gear
     // find the closest gear to rotate the relate coordinates by the right angle
-    size_t tooth_idx = Get_GearToothIdx(gear_seat_cen_Pz, pin_cen_Pz, gear->GetRot() );
+    size_t tooth_idx = Get_GearToothIdx(gear_seat_cen_Pz, pin_cen_Pz, m_gear->GetRot() );
     double rot_ang = tooth_idx * CH_C_2PI / m_geom.num_teeth;
 
     // rotate the relative pos. things w.r.t gear c-sys
@@ -286,8 +282,8 @@ class GearPinCollisionCallback : public ChSystem::ChCustomComputeCollisionCallba
     gear_seat_cen_bar_Nz.z *= -1;
 
     // get the pin centers in the gear c-sys, drop the out of plane (lateral) part.
-    ChVector<> pin_cen_bar_Pz = gear->GetRot().RotateBack(pin_cen_Pz - gear->GetPos() );
-    ChVector<> pin_cen_bar_Nz = gear->GetRot().RotateBack(pin_cen_Nz - gear->GetPos() );
+    ChVector<> pin_cen_bar_Pz = m_gear->GetRot().RotateBack(pin_cen_Pz - m_gear->GetPos() );
+    ChVector<> pin_cen_bar_Nz = m_gear->GetRot().RotateBack(pin_cen_Nz - m_gear->GetPos() );
 
     // do the x-y plane collision detection. 
     // Fill data, w.r.t. gear c-sys
@@ -300,10 +296,9 @@ class GearPinCollisionCallback : public ChSystem::ChCustomComputeCollisionCallba
     {
       GetLog() << "\n narrow phase contact, positive z-side \n\n";
 
-
-      Found_GearPin_Contact(gear, m_shoes[shoe_idx], shoe_idx, 
-        pGear_bar, pPin_bar,
-        norm_onGear_bar);
+      Found_GearPin_Contact(pGear_bar, pPin_bar,
+        norm_onGear_bar,
+        shoe_idx);
     }
 
     if( eval2Dcontact(gear_seat_cen_bar_Nz, pin_cen_bar_Nz, 
@@ -311,8 +306,9 @@ class GearPinCollisionCallback : public ChSystem::ChCustomComputeCollisionCallba
     {
       GetLog() << "\n narrow phase contact, negative z-side \n\n";
 
-      Found_GearPin_Contact(gear, m_shoes[shoe_idx], shoe_idx,
-        pGear_bar, pPin_bar, norm_onGear_bar);
+      Found_GearPin_Contact(pGear_bar, pPin_bar, 
+        norm_onGear_bar,
+        shoe_idx);
     }
 
     return true;
@@ -344,10 +340,12 @@ class GearPinCollisionCallback : public ChSystem::ChCustomComputeCollisionCallba
 
   // function implementation
 	void CollisionGearPinFamily(ChSystem* msys)
-    // ChHashTable<int, GearPinCacheContact>* mhash)
 	{
-		//GetLog() << "hash statistics: loading=" << hashed_contacts->loading() << "   size=" << hashed_contacts->size() <<"\n";
-		// look thru the shoe list, see if any pins are in contact with the concave gear seat surface.
+		// reset any per-step variables
+    m_Ncontacts = 0;
+    m_NbroadPhasePassed = 0;
+
+		// for each shoe, see if any pins are in contact with the concave gear seat surface.
     for(size_t idx = 0; idx < m_shoes.size(); idx++)
 		{
       // global c-sys
@@ -370,9 +368,11 @@ class GearPinCollisionCallback : public ChSystem::ChCustomComputeCollisionCallba
         pin_pos_Pz, pin_pos_Nz) )
       {
         GetLog() << " \n\n Broadphase passed, time = " << msys->GetChTime() << "\n\n";
+        m_NbroadPhasePassed++;
+        // narrow phase will add the contact if passed.
         bool passed_Narrow = NarrowPhase(gear_seat_pos_Pz, gear_seat_pos_Nz,
           pin_pos_Pz, pin_pos_Nz,
-          m_gear, idx);
+          idx);
   
       }
     }
@@ -392,19 +392,23 @@ private:
   ChVector<> m_seat_pos_bar; ///< center of gear seat on pos. z side, in shoe c-sys
 
   // handles to bodies to check
-  const std::vector<ChSharedPtr<ChBody> > m_shoes;
-  const ChSharedPtr<ChBody> m_gear;
+  std::vector<ChSharedPtr<ChBody> > m_shoes;
+  ChSharedPtr<ChBody> m_gear;
   const GearPinGeometry m_geom; ///< gear and pin geometry data
   // broadphase bounding sphere radius for gear
   double m_bound_rad_Gear;
   // Shoe bounding sphere circumscribes the outside circumference of the pins
-  double m_bound_rad_Pin
+  double m_bound_rad_Pin;
 
   // following are used for determining if contacts are "persistent"
   // i.e., no liftoff once they are engaged with the sprocket. 1 per shoe
   std::vector<bool> m_contactPrevStep;  ///<  was the shoe body in contact with the gear last step? i.e., passed narrow phase last step?
   std::vector<size_t> m_persistentContactSteps;   ///< how many steps in a row was the pin in contact with the gear?
 
+  // # of passed broad phase
+  int m_NbroadPhasePassed;
+
+  // # of passed narrow phase
   int m_Ncontacts;
 
   // hashtable
