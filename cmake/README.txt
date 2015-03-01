@@ -8,14 +8,16 @@ includes and libraries.
 
 An example of usage in your CMakeLists.txt can be:
 
-   PROJECT(myproject)
-   find_package(ChronoEngine COMPONENTS unit_POSTPROCESS unit_FEM)
-   include(${CHRONOENGINE_INCLUDES})
-   add_executable(myexe main.cpp)
-   target_link_libraries(myexe ${CHRONOENGINE_LIBRARIES})
+
+  CMAKE_MINIMUM_REQUIRED(VERSION 2.8)
+  PROJECT(myproject)
+  FIND_PACKAGE(ChronoEngine COMPONENTS unit_POSTPROCESS unit_FEM)
+  INCLUDE_DIRECTORIES(${CHRONOENGINE_INCLUDES})
+  ADD_EXECUTABLE(myexe main.cpp)
+  TARGET_LINK_LIBRARIES(myexe ${CHRONOENGINE_LIBRARIES})
 
 Note, to FindChronoEngine.cmake , either you copy it in the Modules/ directory of 
 your CMake installation, or you put it in your project directory under a directory, 
 say it is yourproject/cmake/ , and you write 
    set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake/")
-right before find_package(..)
+right before FIND_PACKAGE(..)
