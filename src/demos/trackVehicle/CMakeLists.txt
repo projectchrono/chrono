@@ -6,18 +6,17 @@ SET(ENABLE_TRACK_VEHICLE
   "Turn this ON to generate the Tracked Vehicle modeling unit."
 )
 
-# require irrlicht
-IF(NOT ENABLE_UNIT_IRRLICHT)
-  MESSAGE(WARNING "need irrlicht for GUI input")
-  RETURN()
-ENDIF()
-
 IF(NOT ENABLE_TRACK_VEHICLE)
   RETURN()
 ELSE()
   MESSAGE(STATUS "...enabling Tracked Vehicle library and models. Also creates Chrono_Utils library")
 ENDIF()
 
+# require irrlicht
+IF(NOT ENABLE_UNIT_IRRLICHT)
+  MESSAGE(WARNING "need irrlicht for GUI input")
+  RETURN()
+ENDIF()
 
 ADD_SUBDIRECTORY(utils)
 
