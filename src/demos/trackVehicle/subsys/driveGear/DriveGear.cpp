@@ -88,7 +88,7 @@ DriveGear::~DriveGear()
 void DriveGear::Initialize(ChSharedPtr<ChBody> chassis,
                            const ChFrame<>& chassis_REF,
                            const ChCoordsys<>& local_Csys,
-                           std::vector<ChSharedPtr<ChBody> >& shoes)
+                           const std::vector<ChSharedPtr<ChBody> >& shoes)
 {
 
   assert(shoes.size() > 0);
@@ -232,7 +232,7 @@ void DriveGear::AddVisualization()
   }
 }
 
-void DriveGear::AddCollisionGeometry(std::vector<ChSharedPtr<ChBody> >& shoes,
+void DriveGear::AddCollisionGeometry(const std::vector<ChSharedPtr<ChBody> >& shoes,
                                      double mu,
                                      double mu_sliding,
                                      double mu_roll,

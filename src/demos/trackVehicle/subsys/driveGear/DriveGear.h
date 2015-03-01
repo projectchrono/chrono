@@ -52,7 +52,7 @@ public:
   void Initialize(ChSharedPtr<ChBody> chassis,
     const ChFrame<>& chassis_REF,
     const ChCoordsys<>& local_Csys,
-    std::vector<ChSharedPtr<ChBody> >& shoes);
+    const std::vector<ChSharedPtr<ChBody> >& shoes);
 
   // accessors
   ChSharedPtr<ChBody> GetBody() const { return m_gear; }
@@ -77,7 +77,7 @@ private:
   const std::string& getMeshFile() const { return m_meshFile; }
 
   void AddVisualization();
-  void AddCollisionGeometry(std::vector<ChSharedPtr<ChBody> >& shoes,
+  void AddCollisionGeometry(const std::vector<ChSharedPtr<ChBody> >& shoes,
                             double mu = 0.6,
                             double mu_sliding = 0.5,
                             double mu_roll = 0,

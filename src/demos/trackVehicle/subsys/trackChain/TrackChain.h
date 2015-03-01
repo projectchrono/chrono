@@ -80,7 +80,7 @@ public:
   ChSharedPtr<ChBody> GetShoeBody(size_t track_idx) const; 
   
   // get list to track chain body list
-  std::vector<ChSharedPtr<ChBody> > GetShoeBody() const; 
+  const std::vector<ChSharedPtr<ChBody> >& GetShoeBody() const; 
 
   /// reaction force on pin constraint, relative coords
   const ChVector<> GetPinReactForce(size_t pin_idx);

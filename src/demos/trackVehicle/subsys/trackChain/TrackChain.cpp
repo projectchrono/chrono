@@ -1196,7 +1196,7 @@ ChSharedPtr<ChBody> TrackChain::GetShoeBody(size_t track_idx) const
   return (track_idx > m_numShoes-1) ? m_shoes[track_idx] : m_shoes[0] ;
 }
 
-std::vector<ChSharedPtr<ChBody> > TrackChain::GetShoeBody() const
+const std::vector<ChSharedPtr<ChBody> >& TrackChain::GetShoeBody() const
 {
   assert( m_shoes.size() > 0 );
   return m_shoes;
