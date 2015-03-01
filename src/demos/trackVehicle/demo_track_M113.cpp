@@ -41,7 +41,7 @@
  # define USE_IRRLICHT
 #endif
  */
-#include "subsys/trackVehicle/trackVehicle.h"
+#include "subsys/trackVehicle/TrackVehicle.h"
 #include "ModelDefs.h"
 // Use the main namespace of Chrono
 using namespace chrono;
