@@ -103,7 +103,7 @@ private:
   // private functions
 
   /// add visualization assets to the last added body
-  void TrackChain::AddVisualization();
+  void AddVisualization();
 
   /// add visualization assets to a specific track shoe body
   void AddVisualization(size_t track_idx,
