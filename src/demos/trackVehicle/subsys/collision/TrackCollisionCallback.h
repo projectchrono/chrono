@@ -17,7 +17,10 @@
 #ifndef TRACKCOLLISIONCALLBACK_H
 #define TRACKCOLLISIONCALLBACK_H
 
+#include <cmath>
+
 #include "physics/ChSystem.h"
+#include "physics/ChContactContainer.h"
 #include "core/ChHashTable.h"
 #include "core/ChHashFunction.h"
 // #include "collision/CHcModelBulletBody.h"
@@ -26,7 +29,7 @@
 namespace chrono {
 
 /// data container for the M113 gear/pin geometry.
-const class GearPinGeometry
+class GearPinGeometry
 {
 public:
   GearPinGeometry(double gear_base_radius = 0.211,  ///< gear base circle radius
@@ -171,7 +174,7 @@ class GearPinCollisionCallback : public ChSystem::ChCustomComputeCollisionCallba
 	{
     // see if this contact is in the hash table
     float* reaction_cache = 0;
-		ChHashTable<int, GearPinCacheContact>::iterator cached = m_hashed_contacts->find(shoeID);
+		typename ChHashTable<int, GearPinCacheContact>::iterator cached = m_hashed_contacts->find(shoeID);
 		if (cached == m_hashed_contacts->end())
       reaction_cache =  (m_hashed_contacts->insert(shoeID))->second.reactions_cache;
 		else
