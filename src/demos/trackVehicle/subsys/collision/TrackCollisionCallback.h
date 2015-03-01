@@ -197,16 +197,20 @@ class GearPinCollisionCallback : public ChSystem::ChCustomComputeCollisionCallba
   /// return true if the bounding spheres of specified centers intersect
   // centers w.r.t. global c-sys
   // be sure to pass in the pin centers as positive and negative z, w.r.t. gear c-sys
-  bool BroadphasePassed(const ChVector<>& gear_cen_Pz,
-    const ChVector<>& gear_cen_Nz,
-    const ChVector<>& pin_cen_Pz,
+  bool BroadphasePassed(const ChVector<>& pin_cen_Pz,
     const ChVector<>& pin_cen_Nz) const
   {
 
     // check both sides for contact
     // broad-phase, is the distance between centers <= sum of bounding sphere?
-    return ( ( (gear_cen_Pz - pin_cen_Pz).Length() <= (m_bound_rad_Gear + m_bound_rad_Pin) ||
-      (gear_cen_Nz - pin_cen_Nz).Length() <= (m_bound_rad_Gear + m_bound_rad_Pin) )? true : false );
+    ChVector<> dist_Pz = m_gear->GetPos() - pin_cen_Pz;
+    ChVector<> dist_Nz = m_gear->GetPos() - pin_cen_Nz;
+    // only need to check 
+    dist_Pz.z = 0;
+    dist_Nz.z = 0;
+
+    return ( ( dist_Pz.Length() <= (m_bound_rad_Gear + m_bound_rad_Pin) ||
+     dist_Nz.Length() <= (m_bound_rad_Gear + m_bound_rad_Pin) ) ? true : false );
 
   }
 
@@ -222,16 +226,20 @@ class GearPinCollisionCallback : public ChSystem::ChCustomComputeCollisionCallba
     // find the center of the gear base circle, in XY-gear plane.
     ChVector<> pitch_circle_cenXY_bar = gear_seat_cen_bar;
     pitch_circle_cenXY_bar.z = 0;
+    // center of the circle should just be radially outward from the seat position.
     pitch_circle_cenXY_bar *= (m_geom.gear_pitch_radius / m_geom.gear_base_radius);
 
     // vector from circle center to pin center, XY-gear plane
     ChVector<> r_pin_circleXY = pin_cen_bar - pitch_circle_cenXY_bar;
     r_pin_circleXY.z = 0;
 
-    // in the XY gear plane, pin is in contact when dist from pitch_circle_center to pin center + radius > pitch_circle_radius
+    // in the XY gear plane, pin is in contact
     if( r_pin_circleXY.Length() + m_geom.pin_radius > m_geom.gear_concave_radius )
     {
-      // fill in contact info
+      // fill in contact info. NOTE: could check to make sure that this point
+      //  actually does lie w/in the curved part of the gear seat, but bullet should
+      //  detect contact /w the top flat part of the gear tooth (box shape) to
+      //  prevent the pin from ever getting to that point.
 
       // XY normalized direction between pin center, concave circle center
       // points towards gear surface
@@ -364,8 +372,7 @@ class GearPinCollisionCallback : public ChSystem::ChCustomComputeCollisionCallba
         + m_shoes[idx]->GetRot().Rotate( ChVector<>(m_pin_pos_bar.x, m_pin_pos_bar.y, -m_pin_pos_bar.z) );
 
       // broad-phase passes?
-      if( BroadphasePassed(gear_seat_pos_Pz, gear_seat_pos_Nz,
-        pin_pos_Pz, pin_pos_Nz) )
+      if( BroadphasePassed(pin_pos_Pz, pin_pos_Nz) )
       {
         GetLog() << " \n\n Broadphase passed, time = " << msys->GetChTime() << "\n\n";
         m_NbroadPhasePassed++;
