@@ -179,6 +179,16 @@ void ChShaftsPlanetary::IntFromLCP(
 ////////// LCP INTERFACES ////
 
 
+void ChShaftsPlanetary::IntStateGatherReactions(const unsigned int off_L,	ChVectorDynamic<>& L)
+{
+	L(off_L)   = this->torque_react;
+}
+
+void ChShaftsPlanetary::IntStateScatterReactions(const unsigned int off_L,	const ChVectorDynamic<>& L)
+{
+	this->torque_react = L(off_L);
+}
+
 void ChShaftsPlanetary::InjectConstraints(ChLcpSystemDescriptor& mdescriptor)
 {
 	//if (!this->IsActive())

@@ -140,6 +140,25 @@ void ChContactRolling::Reset(	collision::ChCollisionModel* mmodA,	///< model A
 }
 
 
+void ChContactRolling::ContIntStateGatherReactions(const unsigned int off_L,	ChVectorDynamic<>& L)
+{
+	// base behaviour too
+	ChContact::ContIntStateGatherReactions(off_L, L);
+
+	L(off_L+3) = react_torque.x;
+	L(off_L+4) = react_torque.y;
+	L(off_L+5) = react_torque.z;
+}
+
+void ChContactRolling::ContIntStateScatterReactions(const unsigned int off_L,	const ChVectorDynamic<>& L)
+{
+	// base behaviour too
+	ChContact::ContIntStateScatterReactions(off_L, L);
+
+	react_torque.x = L(off_L+3);
+	react_torque.y = L(off_L+4);
+	react_torque.z = L(off_L+5);
+}
 
 void ChContactRolling::ContIntLoadResidual_CqL(
 					const unsigned int off_L,	 ///< offset in L multipliers

@@ -62,16 +62,17 @@ void ChLinkPointFrame::Copy(ChLinkPointFrame* source)
 	cache_li_pos = source->cache_li_pos;
 }
 
-ChFrame<> ChLinkPointFrame::GetAssetsFrame(unsigned int nclone)
+ChCoordsys<> ChLinkPointFrame::GetLinkAbsoluteCoords()
 {
 	if (this->body)
 	{
-		ChFrame<> pframe(this->attach_position);
-		ChFrame<> linkframe = pframe >> (*this->body);
-		return linkframe;
+		ChCoordsys<> pcsys(this->attach_position);
+		ChCoordsys<> linkcsys = pcsys >> (*this->body);
+		return linkcsys;
 	}
-	return ChFrame<>();
+	return CSYSNORM;
 }
+
 
 
 int ChLinkPointFrame::Initialize(ChSharedPtr<ChIndexedNodes> mnodes, ///< nodes container
@@ -137,7 +138,19 @@ void ChLinkPointFrame::Update (double mytime)
 
 //// STATE BOOKKEEPING FUNCTIONS
 
- 
+void ChLinkPointFrame::IntStateGatherReactions(const unsigned int off_L,	ChVectorDynamic<>& L)
+{
+	L(off_L+0) = this->react.x;
+	L(off_L+1) = this->react.y;
+	L(off_L+2) = this->react.z;
+}
+
+void ChLinkPointFrame::IntStateScatterReactions(const unsigned int off_L,	const ChVectorDynamic<>& L)
+{
+	this->react.x = L(off_L+0);
+	this->react.y = L(off_L+1);
+	this->react.z = L(off_L+2);
+}
 
 void ChLinkPointFrame::IntLoadResidual_CqL(
 					const unsigned int off_L,	 ///< offset in L multipliers

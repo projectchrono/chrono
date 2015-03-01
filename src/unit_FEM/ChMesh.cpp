@@ -573,6 +573,32 @@ void ChMesh::IntStateScatter(
 	this->Update(T);
 }
 
+void ChMesh::IntStateGatherAcceleration(const unsigned int off_a, ChStateDelta& a)
+{
+	unsigned int local_off_a=0;
+	for (unsigned int j = 0; j < vnodes.size(); j++)
+	{
+		if (!vnodes[j]->GetFixed())
+		{
+			vnodes[j]->NodeIntStateGatherAcceleration(	off_a+local_off_a,  a);
+			local_off_a += vnodes[j]->Get_ndof_w();
+		}
+	}
+}
+
+void ChMesh::IntStateScatterAcceleration(const unsigned int off_a, const ChStateDelta& a)
+{
+	unsigned int local_off_a=0;
+	for (unsigned int j = 0; j < vnodes.size(); j++)
+	{
+		if (!vnodes[j]->GetFixed())
+		{
+			vnodes[j]->NodeIntStateScatterAcceleration(	off_a+local_off_a, a);
+			local_off_a += vnodes[j]->Get_ndof_w();
+		}
+	}
+}
+
 void ChMesh::IntStateIncrement(
 					const unsigned int off_x,		///< offset in x state vector
 					ChState& x_new,					///< state vector, position part, incremented result

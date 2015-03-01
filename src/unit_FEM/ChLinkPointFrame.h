@@ -108,12 +108,17 @@ public:
 				/// Number of scalar costraints 
 	virtual int GetDOC_c  () {return 3;}
 
+				/// To get reaction force, expressed in link coordinate system:
+	virtual ChVector<> Get_react_force() {return GetReactionOnBody();}
+
 
 	 		//
 			// STATE FUNCTIONS
 			//
 
 				// (override/implement interfaces for global state vectors, see ChPhysicsItem for comments.)
+	virtual void IntStateGatherReactions(const unsigned int off_L,	ChVectorDynamic<>& L);	
+	virtual void IntStateScatterReactions(const unsigned int off_L,	const ChVectorDynamic<>& L);
 	virtual void IntLoadResidual_CqL(const unsigned int off_L, ChVectorDynamic<>& R, const ChVectorDynamic<>& L, const double c);
 	virtual void IntLoadConstraint_C(const unsigned int off, ChVectorDynamic<>& Qc,	const double c, bool do_clamp,	double recovery_clamp);
 	virtual void IntToLCP(const unsigned int off_v,	const ChStateDelta& v, const ChVectorDynamic<>& R, const unsigned int off_L, const ChVectorDynamic<>& L, const ChVectorDynamic<>& Qc);
@@ -137,7 +142,7 @@ public:
 
 			   // Other functions
 	
-	virtual ChFrame<> GetAssetsFrame(unsigned int nclone =0);
+	virtual ChCoordsys<> GetLinkAbsoluteCoords();
 
 				/// Use this function after object creation, to initialize it, given  
 				/// the node and body to join. 

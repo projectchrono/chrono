@@ -326,6 +326,22 @@ void ChMatterMeshless::IntStateScatter(
 	this->Update();
 }
 
+void ChMatterMeshless::IntStateGatherAcceleration(const unsigned int off_a, ChStateDelta& a)
+{
+	for (unsigned int j = 0; j < nodes.size(); j++)
+	{
+		a.PasteVector  (this->nodes[j]->pos_dtdt,   off_a +3*j, 0);
+	}
+}
+
+void ChMatterMeshless::IntStateScatterAcceleration(const unsigned int off_a, const ChStateDelta& a)
+{
+	for (unsigned int j = 0; j < nodes.size(); j++)
+	{
+		this->nodes[j]->SetPos_dtdt  (a.ClipVector(off_a +3*j, 0));
+	}
+}
+
 void ChMatterMeshless::IntLoadResidual_F(
 					const unsigned int off,		 ///< offset in R residual (not used here! use particle's offsets)
 					ChVectorDynamic<>& R,		 ///< result: the R residual, R += c*F 

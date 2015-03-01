@@ -249,6 +249,30 @@ void ChContactContainerNodes::ReportAllContacts(ChReportContactCallback* mcallba
 
 ////////// STATE INTERFACE ////
 
+void ChContactContainerNodes::IntStateGatherReactions(const unsigned int off_L,	ChVectorDynamic<>& L)
+{
+	int coffset = 0;
+	std::list<ChContactNode*>::iterator itercontact = contactlist.begin();
+	while(itercontact != contactlist.end())
+	{
+		(*itercontact)->ContIntStateGatherReactions(off_L+coffset, L);
+		coffset +=3;
+		++itercontact;
+	}
+}
+
+void ChContactContainerNodes::IntStateScatterReactions(const unsigned int off_L,	const ChVectorDynamic<>& L)
+{
+	int coffset = 0;
+	std::list<ChContactNode*>::iterator itercontact = contactlist.begin();
+	while(itercontact != contactlist.end())
+	{
+		(*itercontact)->ContIntStateScatterReactions(off_L+coffset, L);
+		coffset +=3;
+		++itercontact;
+	}
+}
+
 void ChContactContainerNodes::IntLoadResidual_CqL(
 					const unsigned int off_L,	 ///< offset in L multipliers
 					ChVectorDynamic<>& R,		 ///< result: the R residual, R += c*Cq'*L 

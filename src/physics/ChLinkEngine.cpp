@@ -488,7 +488,7 @@ void ChLinkEngine::IntStateGather(const unsigned int off_x,	ChState& x,	const un
 	if (eng_mode == ENG_MODE_TO_POWERTRAIN_SHAFT)
 	{
 		innershaft1->IntStateGather(off_x+0, x, off_v+0, v, T);
-		innershaft2->IntStateGather(off_x+2, x, off_v+1, v, T);
+		innershaft2->IntStateGather(off_x+1, x, off_v+1, v, T);
 	}
 }
 
@@ -504,6 +504,30 @@ void ChLinkEngine::IntStateScatter(const unsigned int off_x,	const ChState& x, c
 	}
 }
 
+void ChLinkEngine::IntStateGatherAcceleration(const unsigned int off_a, ChStateDelta& a)
+{
+	// First, inherit to parent class
+	ChLinkLock::IntStateGatherAcceleration(off_a,a);
+
+	if (eng_mode == ENG_MODE_TO_POWERTRAIN_SHAFT)
+	{
+		innershaft1->IntStateScatterAcceleration(off_a+0, a);
+		innershaft2->IntStateScatterAcceleration(off_a+1, a);
+	}
+}
+
+void ChLinkEngine::IntStateScatterAcceleration(const unsigned int off_a, const ChStateDelta& a)
+{
+	// First, inherit to parent class
+	ChLinkLock::IntStateScatterAcceleration(off_a,	a);
+
+	if (eng_mode == ENG_MODE_TO_POWERTRAIN_SHAFT)
+	{
+		innershaft1->IntStateScatterAcceleration(off_a+0, a);
+		innershaft2->IntStateScatterAcceleration(off_a+1, a);
+	}
+}
+
 void ChLinkEngine::IntStateIncrement(const unsigned int off_x, ChState& x_new, const ChState& x,	const unsigned int off_v, const ChStateDelta& Dv)
 {
 	// First, inherit to parent class
@@ -513,6 +537,30 @@ void ChLinkEngine::IntStateIncrement(const unsigned int off_x, ChState& x_new, c
 	{
 		innershaft1->IntStateIncrement(off_x+0, x_new, x, off_v+0, Dv);
 		innershaft2->IntStateIncrement(off_x+1, x_new, x, off_v+1, Dv);
+	}
+}
+
+ void ChLinkEngine::IntStateGatherReactions(const unsigned int off_L,	ChVectorDynamic<>& L)
+{
+	 // First, inherit to parent class
+	ChLinkLock::IntStateGatherReactions(off_L, L);
+
+	if (eng_mode == ENG_MODE_TO_POWERTRAIN_SHAFT)
+	{
+		innershaft1->IntStateGatherReactions(off_L+0, L);
+		innershaft2->IntStateGatherReactions(off_L+1, L);
+	}
+}
+
+void ChLinkEngine::IntStateScatterReactions(const unsigned int off_L,	const ChVectorDynamic<>& L)
+{
+	 // First, inherit to parent class
+	ChLinkLock::IntStateScatterReactions(off_L, L);
+
+	if (eng_mode == ENG_MODE_TO_POWERTRAIN_SHAFT)
+	{
+		innershaft1->IntStateScatterReactions(off_L+0, L);
+		innershaft2->IntStateScatterReactions(off_L+1, L);
 	}
 }
 

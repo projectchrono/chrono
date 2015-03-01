@@ -113,7 +113,15 @@ void  ChShaftsClutch::SetTorqueLimit(double ml, double mu)
 
 //// STATE BOOKKEEPING FUNCTIONS
 
- 
+void ChShaftsClutch::IntStateGatherReactions(const unsigned int off_L,	ChVectorDynamic<>& L)
+{
+	L(off_L)   = this->torque_react;
+}
+
+void ChShaftsClutch::IntStateScatterReactions(const unsigned int off_L,	const ChVectorDynamic<>& L)
+{
+	this->torque_react = L(off_L);
+}
 
 void ChShaftsClutch::IntLoadResidual_CqL(
 					const unsigned int off_L,	 ///< offset in L multipliers

@@ -1,25 +1,36 @@
+sudo: false
 language: cpp
+#addons: # uncomment after libirrlicht is whitelisted
+#  apt_packages:
+#    - libirrlicht1.8
+#    - libirrlicht-dev
 compiler:
-- gcc
-- clang
+  - gcc
+  - clang
+env:
+  matrix:
+    - CMAKE_EXTRA_FLAGS="-DENABLE_UNIT_IRRLICHT=OFF -DENABLE_UNIT_FEM=OFF -DENABLE_UNIT_POSTPROCESS=OFF"
+    - CMAKE_EXTRA_FLAGS="-DENABLE_UNIT_IRRLICHT=OFF -DENABLE_UNIT_FEM=ON  -DENABLE_UNIT_POSTPROCESS=ON"
 before_install: 
 before_script:
-- mkdir build && cd build && cmake ../src
-script: make
+  - mkdir build && cd build
+  - cmake $CMAKE_EXTRA_FLAGS ../src
+script:
+  - make -j 2
+  - make test
 branches:
-- except:
-  - feature/mpi
+  - except:
+    - feature/mpi
 notifications:
   recipients:
-  - info@projectchrono.org
+    - projectchrono-developers@googlegroups.com
   email:
     on_success: change
     on_failure: always
   irc:
     channels:
-    - chat.freenode.net#projectchrono
+      - chat.freenode.net#projectchrono
     template:
-    - "%{repository}/%{branch} (%{commit} - %{author}): %{message}"
+      - "%{repository}/%{branch} (%{commit} - %{author}): %{message}"
   slack:
     secure: BoCl/C15tcYX+55PQWPBEVCt/nw3j07qONSNecvuUEJ6UbyUKPbt+0HT0Vc2q6f7uphvvw8hRkTyk0XEGEcXAccmRJr9RsOCBvd3kQPdidooDBJ4dI1ZU9y2XcFUjB5VJuKzPgBYSfQSLbt1OVBNZ6ISw02UF1JNaC9DKtFRtSI=
-env: 

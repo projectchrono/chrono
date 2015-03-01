@@ -284,15 +284,15 @@ ChIrrAppInterface::ChIrrAppInterface(
     skin->setFont(font);
   skin->setColor(gui::EGDC_BUTTON_TEXT, video::SColor(255,40,50,50));
 
-  gad_tabbed = GetIGUIEnvironment()->addTabControl(core::rect<s32>(2,70,220,476), 0, true, true);
+  gad_tabbed = GetIGUIEnvironment()->addTabControl(core::rect<s32>(2,70,220,496), 0, true, true);
   gad_tab1 = gad_tabbed->addTab(L"Stats");
   gad_tab2 = gad_tabbed->addTab(L"System");
   gad_tab3 = gad_tabbed->addTab(L"Help");
 
   // create GUI gadgets
-  gad_textFPS = GetIGUIEnvironment()->addStaticText(L"FPS", core::rect<s32>(10,10,200,250), true, true, gad_tab1);
+  gad_textFPS = GetIGUIEnvironment()->addStaticText(L"FPS", core::rect<s32>(10,10,200,230), true, true, gad_tab1);
 
-  gad_labelcontacts = GetIGUIEnvironment()->addComboBox(core::rect<s32>(10,260, 200,260+20), gad_tab1, 9901);
+  gad_labelcontacts = GetIGUIEnvironment()->addComboBox(core::rect<s32>(10,240, 200,240+20), gad_tab1, 9901);
   gad_labelcontacts->addItem(L"Contact distances");
   gad_labelcontacts->addItem(L"Contact force modulus");
   gad_labelcontacts->addItem(L"Contact force (normal)");
@@ -303,7 +303,7 @@ ChIrrAppInterface::ChIrrAppInterface(
   gad_labelcontacts->addItem(L"Don't print contact values");
   gad_labelcontacts->setSelected(7);
 
-  gad_drawcontacts = GetIGUIEnvironment()->addComboBox(core::rect<s32>(10,280, 200,280+20), gad_tab1, 9901);
+  gad_drawcontacts = GetIGUIEnvironment()->addComboBox(core::rect<s32>(10,260, 200,260+20), gad_tab1, 9901);
   gad_drawcontacts->addItem(L"Contact normals");
   gad_drawcontacts->addItem(L"Contact distances");
   gad_drawcontacts->addItem(L"Contact N forces");
@@ -311,21 +311,41 @@ ChIrrAppInterface::ChIrrAppInterface(
   gad_drawcontacts->addItem(L"Don't draw contacts");
   gad_drawcontacts->setSelected(4);
 
-  gad_plot_aabb = GetIGUIEnvironment()->addCheckBox(false,core::rect<s32>(10,310, 200,310+15),
+  gad_labellinks = GetIGUIEnvironment()->addComboBox(core::rect<s32>(10,280, 200,280+20), gad_tab1, 9923);
+  gad_labellinks->addItem(L"Link react.force modulus");
+  gad_labellinks->addItem(L"Link react.force X");
+  gad_labellinks->addItem(L"Link react.force Y");
+  gad_labellinks->addItem(L"Link react.force Z");
+  gad_labellinks->addItem(L"Link react.torque modulus");
+  gad_labellinks->addItem(L"Link react.torque X");
+  gad_labellinks->addItem(L"Link react.torque Y");
+  gad_labellinks->addItem(L"Link react.torque Z");
+  gad_labellinks->addItem(L"Don't print link values");
+  gad_labellinks->setSelected(8);
+
+  gad_drawlinks = GetIGUIEnvironment()->addComboBox(core::rect<s32>(10,300, 200,300+20), gad_tab1, 9924);
+  gad_drawlinks->addItem(L"Link reaction forces");
+  gad_drawlinks->addItem(L"Link reaction torques");
+  gad_drawlinks->addItem(L"Don't draw link vectors");
+  gad_drawlinks->setSelected(2);
+
+
+
+  gad_plot_aabb = GetIGUIEnvironment()->addCheckBox(false,core::rect<s32>(10,330, 200,330+15),
     gad_tab1, 9914, L"Draw AABB");
 
-  gad_plot_cogs = GetIGUIEnvironment()->addCheckBox(false,core::rect<s32>(10,325, 200,325+15),
+  gad_plot_cogs = GetIGUIEnvironment()->addCheckBox(false,core::rect<s32>(10,345, 200,345+15),
     gad_tab1, 9915, L"Draw COGs");
 
-  gad_plot_linkframes = GetIGUIEnvironment()->addCheckBox(false,core::rect<s32>(10,340, 200,340+15),
+  gad_plot_linkframes = GetIGUIEnvironment()->addCheckBox(false,core::rect<s32>(10,360, 200,360+15),
     gad_tab1, 9920, L"Draw link frames");
 
-  gad_symbolscale      = GetIGUIEnvironment()->addEditBox(L"",core::rect<s32>(170,310, 200,310+15), true,
+  gad_symbolscale      = GetIGUIEnvironment()->addEditBox(L"",core::rect<s32>(170,330, 200,330+15), true,
     gad_tab1, 9921);
-  gad_symbolscale_info = GetIGUIEnvironment()->addStaticText(L"Symbols scale", core::rect<s32>(110,310, 170,310+15), false, false, gad_tab1);
+  gad_symbolscale_info = GetIGUIEnvironment()->addStaticText(L"Symbols scale", core::rect<s32>(110,330, 170,330+15), false, false, gad_tab1);
   SetSymbolscale(symbolscale);
 
-  gad_plot_convergence = GetIGUIEnvironment()->addCheckBox(false,core::rect<s32>(10,355, 200,355+15),
+  gad_plot_convergence = GetIGUIEnvironment()->addCheckBox(false,core::rect<s32>(10,375, 200,375+15),
     gad_tab1, 9902, L"Plot convergence");
 
   // --
@@ -565,7 +585,13 @@ void ChIrrAppInterface::DrawAll()
 
   int lmode = gad_labelcontacts->getSelected();
   ChIrrTools::drawAllContactLabels(*system, GetDevice(), (ChIrrTools::eCh_ContactsLabelMode)lmode);
-
+  
+  int dmodeli = gad_drawlinks->getSelected();
+  ChIrrTools::drawAllLinks(*system, GetVideoDriver(), symbolscale, (ChIrrTools::eCh_LinkDrawMode)dmodeli);
+  
+  int lmodeli = gad_labellinks->getSelected();
+  ChIrrTools::drawAllLinkLabels(*system, GetDevice(), (ChIrrTools::eCh_LinkLabelMode)lmodeli);
+  
   if (gad_plot_aabb->isChecked())
     ChIrrTools::drawAllBoundingBoxes(*system, GetVideoDriver());
 

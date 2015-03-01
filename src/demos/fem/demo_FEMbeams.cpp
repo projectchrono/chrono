@@ -142,7 +142,7 @@ int main(int argc, char* argv[])
 	constr_d->SetConstrainedCoords( false, true, true,	  // x, y, z
 									 false, false, false);   // Rx, Ry, Rz
 
-/*	
+	
 	//
 	// Add some EULER-BERNOULLI BEAMS (the fast way!)
 	//
@@ -176,7 +176,6 @@ int main(int argc, char* argv[])
 						ChVector<>(0.2, 0.1, -0.1),	// the 'B' point in space (end of beam)
 						ChVector<>(0,1,0));			// the 'Y' up direction of the section for the beam
 
-*/
 
 
 

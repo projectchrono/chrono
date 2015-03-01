@@ -240,6 +240,8 @@ private:
   gui::IGUIStaticText* gad_textFPS;
   gui::IGUIComboBox*   gad_drawcontacts;
   gui::IGUIComboBox*   gad_labelcontacts;
+  gui::IGUIComboBox*   gad_drawlinks;
+  gui::IGUIComboBox*   gad_labellinks;
   gui::IGUICheckBox*   gad_plot_aabb;
   gui::IGUICheckBox*   gad_plot_cogs;
   gui::IGUICheckBox*   gad_plot_linkframes;

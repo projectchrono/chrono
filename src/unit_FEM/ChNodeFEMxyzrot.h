@@ -168,6 +168,18 @@ public:
 		this->SetWvel_loc(v.ClipVector(off_v+3, 0));
 	}
 
+	virtual void NodeIntStateGatherAcceleration(const unsigned int off_a, ChStateDelta& a)
+	{
+		a.PasteVector  (this->coord_dtdt.pos,   off_a, 0);
+		a.PasteVector  (this->GetWacc_loc(),  off_a+3, 0);
+	}
+
+	virtual void NodeIntStateScatterAcceleration(const unsigned int off_a, const ChStateDelta& a)
+	{
+		this->SetPos_dtdt (a.ClipVector(off_a, 0));
+		this->SetWacc_loc (a.ClipVector(off_a+3, 0));
+	}
+
 	virtual void NodeIntStateIncrement(const unsigned int off_x, ChState& x_new, const ChState& x,	const unsigned int off_v, const ChStateDelta& Dv)
 	{ 
 		x_new(off_x)   = x(off_x)   + Dv(off_v);
