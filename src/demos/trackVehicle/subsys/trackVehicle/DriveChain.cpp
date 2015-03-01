@@ -104,9 +104,9 @@ DriveChain::DriveChain(const std::string& name,
   double tensioner_K = 40e3;
   double tensioner_C = tensioner_K * 0.08;
   m_idlers[0] = ChSharedPtr<IdlerSimple>(new IdlerSimple("idler",
-    VisualizationType::Enum::Mesh,
-    // VisualizationType::Enum::Primitives,
-    CollisionType::Enum::Primitives,
+    VisualizationType::Mesh,
+    // VisualizationType::Primitives,
+    CollisionType::Primitives,
     0,
     idler_mass,
     idler_Ixx,
@@ -117,8 +117,8 @@ DriveChain::DriveChain(const std::string& name,
   double shoe_mass = 18.03/4.0; // 18.03
   ChVector<> shoe_Ixx(0.22/4.0, 0.25/4.0, 0.04/4.0);  // 0.22, 0.25, 0.04
   m_chain = ChSharedPtr<TrackChain>(new TrackChain("chain",
-    VisualizationType::Enum::CompoundPrimitives,
-    CollisionType::Enum::Primitives,
+    VisualizationType::CompoundPrimitives,
+    CollisionType::Primitives,
     0,
     shoe_mass,
     shoe_Ixx) );
@@ -144,8 +144,8 @@ DriveChain::DriveChain(const std::string& name,
     std::stringstream sr_s;
     sr_s << "support roller " << j;
     m_rollers[j] = ChSharedPtr<SupportRoller>(new SupportRoller(sr_s.str(),
-      VisualizationType::Enum::Primitives,
-      CollisionType::Enum::Primitives,
+      VisualizationType::Primitives,
+      CollisionType::Primitives,
       0,
       roller_mass,
       roller_Ixx) );
@@ -155,9 +155,9 @@ DriveChain::DriveChain(const std::string& name,
   {
     // for now, just create 1 more idler
     m_idlers[1] = ChSharedPtr<IdlerSimple>(new IdlerSimple("idler 2",
-    VisualizationType::Enum::Mesh,
-    // VisualizationType::Enum::Primitives,
-    CollisionType::Enum::Primitives,
+    VisualizationType::Mesh,
+    // VisualizationType::Primitives,
+    CollisionType::Primitives,
     0,
     idler_mass,
     idler_Ixx) );
@@ -353,7 +353,7 @@ int DriveChain::reportGearContact(ChVector<>& Fn_info, ChVector<>& Ft_info)
                                        collision::ChCollisionModel* modB)
     {
       // does this collision include the gear?
-      if( modA->GetFamily() == (int)CollisionFam::Enum::Gear || modB->GetFamily() == (int)CollisionFam::Enum::Gear)
+      if( modA->GetFamily() == (int)CollisionFam::Gear || modB->GetFamily() == (int)CollisionFam::Gear)
       {
         // don't count collisions w/ 0 normal force
         if( react_forces.x > 0 )
@@ -553,14 +553,14 @@ int DriveChain::reportShoeGearContact(const std::string& shoe_name,
       {
         // gear body is A, normal will point in the right direction
         m_NormDirRel[idx] = getContactNormDirRel(plane_coord.Get_A_Xaxis(),modA,modB,
-          CollisionFam::Enum::Gear);
+          CollisionFam::Gear);
         m_PosAbs[idx] = pA;
         m_NormDirAbs[idx] = plane_coord.Get_A_Xaxis();
       }
       else {
         // gear body is B, switch normal dir
         m_NormDirRel[idx] = getContactNormDirRel(-(plane_coord.Get_A_Xaxis()),modA,modB,
-          CollisionFam::Enum::Gear);
+          CollisionFam::Gear);
         m_PosAbs[idx] = pB;
         m_NormDirAbs[idx] = -(plane_coord.Get_A_Xaxis());
 
@@ -602,8 +602,8 @@ int DriveChain::reportShoeGearContact(const std::string& shoe_name,
                                        collision::ChCollisionModel* modB)
     {
       // if in contact with the gear, and the other body is the specified shoe
-      if( (modA->GetFamily() == (int)CollisionFam::Enum::Gear && modB->GetPhysicsItem()->GetNameString() == m_shoe_name )
-        || (modB->GetFamily() == (int)CollisionFam::Enum::Gear && modA->GetPhysicsItem()->GetNameString() == m_shoe_name ) )
+      if( (modA->GetFamily() == (int)CollisionFam::Gear && modB->GetPhysicsItem()->GetNameString() == m_shoe_name )
+        || (modB->GetFamily() == (int)CollisionFam::Gear && modA->GetPhysicsItem()->GetNameString() == m_shoe_name ) )
       {
         // don't count collisions w/ normal force = 0
         if( react_forces.x > 0 )
@@ -613,7 +613,7 @@ int DriveChain::reportShoeGearContact(const std::string& shoe_name,
 
           // get the relative location of the contact point on the gear body
           ChVector<> gearpt_PosRel = getContactLocRel(pA,pB,modA,modB,
-            CollisionFam::Enum::Gear);
+            CollisionFam::Gear);
 
           // positive z-relative position will be index 0, else index 1.
           int index = (gearpt_PosRel.z > 0) ? 0 : 1;
@@ -630,7 +630,7 @@ int DriveChain::reportShoeGearContact(const std::string& shoe_name,
             // set some other useful data
             // get the normal force direction relative to the gear
             SetPeristentContactInfo(pA,pB, plane_coord, react_forces, modA, modB, 
-              CollisionFam::Enum::Gear,
+              CollisionFam::Gear,
               index);
 
             if(0)
@@ -662,7 +662,7 @@ int DriveChain::reportShoeGearContact(const std::string& shoe_name,
 
               // set the other data
               SetPeristentContactInfo(pA,pB, plane_coord, react_forces, modA, modB, 
-                CollisionFam::Enum::Gear,
+                CollisionFam::Gear,
                 index);
 
             }
@@ -671,7 +671,7 @@ int DriveChain::reportShoeGearContact(const std::string& shoe_name,
               // this is a different the point on the shoe than the one tracked,
               // want to be able to plot it in Irrlicht
               AddContactInfo_all(pA,pB,plane_coord,react_forces,modA,modB,
-                CollisionFam::Enum::Gear);
+                CollisionFam::Gear);
             }
           }
         }

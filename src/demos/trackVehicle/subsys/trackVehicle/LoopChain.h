@@ -39,8 +39,8 @@ class CH_SUBSYS_API LoopChain : public ChTrackVehicle
 public:
 
   LoopChain(const std::string& name,
-    VisualizationType::Enum chassisVis = VisualizationType::Enum::Primitives,
-    CollisionType::Enum chassisCollide = CollisionType::Enum::Primitives,
+    VisualizationType::Enum chassisVis = VisualizationType::Primitives,
+    CollisionType::Enum chassisCollide = CollisionType::Primitives,
     double gearMass = 100.0,
     const ChVector<>& gearIxx = ChVector<>(10,10,10) ,
     size_t num_idlers = 2,

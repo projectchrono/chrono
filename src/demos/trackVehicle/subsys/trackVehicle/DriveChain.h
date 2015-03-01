@@ -43,8 +43,8 @@ public:
 
   /// chassis is static, so use idler info to create the gear body, instead.
   DriveChain(const std::string& name,
-    VisualizationType::Enum chassisVis = VisualizationType::Enum::Primitives,
-    CollisionType::Enum chassisCollide = CollisionType::Enum::Primitives,
+    VisualizationType::Enum chassisVis = VisualizationType::Primitives,
+    CollisionType::Enum chassisCollide = CollisionType::Primitives,
     size_t num_idlers = 1,
     size_t num_rollers = 1,
     double gear_mass = 100.0,

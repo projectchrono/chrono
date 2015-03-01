@@ -125,24 +125,24 @@ void TrackSystem::BuildSubsystems()
   gearName << "drive gear "<< m_track_idx;
   // build one of each of the following subsystems. VisualizationType and CollisionType defaults are PRIMITIVES
   m_driveGear = ChSharedPtr<DriveGear>(new DriveGear(gearName.str(),
-    VisualizationType::Enum::Mesh,
-   //  CollisionType::Enum::Primitives) );
-    // VisualizationType::Enum::CompoundPrimitives,
-    CollisionType::Enum::CallbackFunction));
+    VisualizationType::Mesh,
+   //  CollisionType::Primitives) );
+    // VisualizationType::CompoundPrimitives,
+    CollisionType::CallbackFunction));
 
   std::stringstream idlerName;
   idlerName << "idler " << m_track_idx;
   m_idler = ChSharedPtr<IdlerSimple>(new IdlerSimple(idlerName.str(),
-    VisualizationType::Enum::Mesh,
-    CollisionType::Enum::Primitives) );
+    VisualizationType::Mesh,
+    CollisionType::Primitives) );
 
   std::stringstream chainname;
   chainname << "chain " << m_track_idx;
   m_chain = ChSharedPtr<TrackChain>(new TrackChain(chainname.str(),
-    // VisualizationType::Enum::Primitives,
-    VisualizationType::Enum::CompoundPrimitives,
-    CollisionType::Enum::Primitives) );
-    // CollisionType::Enum::CompoundPrimitives) );
+    // VisualizationType::Primitives,
+    VisualizationType::CompoundPrimitives,
+    CollisionType::Primitives) );
+    // CollisionType::CompoundPrimitives) );
   
   // build suspension/road wheel subsystems
   for(int i = 0; i < m_numSuspensions; i++)
@@ -150,8 +150,8 @@ void TrackSystem::BuildSubsystems()
     std::stringstream susp_name;
     susp_name << "suspension " << i << ", chain " << m_track_idx;
     m_suspensions[i] = ChSharedPtr<TorsionArmSuspension>(new TorsionArmSuspension(susp_name.str(),
-      VisualizationType::Enum::Primitives,
-      CollisionType::Enum::Primitives) );
+      VisualizationType::Primitives,
+      CollisionType::Primitives) );
   }
 
 }

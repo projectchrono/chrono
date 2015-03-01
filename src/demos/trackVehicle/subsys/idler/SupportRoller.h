@@ -35,8 +35,8 @@ class CH_SUBSYS_API SupportRoller : public ChShared
 public:
 
   SupportRoller(const std::string& name,
-    VisualizationType::Enum vis = VisualizationType::Enum::Primitives,
-    CollisionType::Enum collide = CollisionType::Enum::Primitives,
+    VisualizationType::Enum vis = VisualizationType::Primitives,
+    CollisionType::Enum collide = CollisionType::Primitives,
     size_t chainSys_idx = 0,  ///< what chain system is this gear associated with?
     double mass = 100.0,
     const ChVector<>& Ixx = ChVector<>(3.82, 3.82, 5.06) );

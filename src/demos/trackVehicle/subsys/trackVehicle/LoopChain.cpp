@@ -93,9 +93,9 @@ LoopChain::LoopChain(const std::string& name,
   double idler_mass = 42.96; // 429.6
   ChVector<> idler_Ixx(gearIxx);    // 12.55, 12.55, 14.7
   m_idlers[0] = ChSharedPtr<IdlerSimple>(new IdlerSimple("idler",
-    VisualizationType::Enum::Mesh,
-    // VisualizationType::Enum::Primitives,
-    CollisionType::Enum::Primitives,
+    VisualizationType::Mesh,
+    // VisualizationType::Primitives,
+    CollisionType::Primitives,
     0,
     idler_mass,
     idler_Ixx,
@@ -106,8 +106,8 @@ LoopChain::LoopChain(const std::string& name,
   double shoe_mass = 18.03/10.0; // 18.03
   ChVector<> shoe_Ixx(0.22/10.0, 0.25/10.0, 0.04/10.0);  // 0.22, 0.25, 0.04
   m_chain = ChSharedPtr<TrackChain>(new TrackChain("chain",
-    VisualizationType::Enum::CompoundPrimitives,
-    CollisionType::Enum::Primitives,
+    VisualizationType::CompoundPrimitives,
+    CollisionType::Primitives,
     0,
     shoe_mass,
     shoe_Ixx) );
@@ -123,17 +123,17 @@ LoopChain::LoopChain(const std::string& name,
     std::stringstream r_s;
     r_s << "support roller " << j;
     m_rollers[j] = ChSharedPtr<SupportRoller>(new SupportRoller(r_s.str(),
-      VisualizationType::Enum::Primitives,
-      CollisionType::Enum::Primitives));
+      VisualizationType::Primitives,
+      CollisionType::Primitives));
   }
 
   if(m_num_idlers > 1)
   {
     // for now, just create 1 more idler
     m_idlers[1] = ChSharedPtr<IdlerSimple>(new IdlerSimple("idler 2",
-    VisualizationType::Enum::Mesh,
-    // VisualizationType::Enum::Primitives,
-    CollisionType::Enum::Primitives,
+    VisualizationType::Mesh,
+    // VisualizationType::Primitives,
+    CollisionType::Primitives,
     0,
     idler_mass,
     idler_Ixx,

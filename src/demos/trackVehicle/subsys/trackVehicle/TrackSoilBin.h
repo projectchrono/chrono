@@ -40,8 +40,8 @@ class CH_SUBSYS_API TrackSoilBin : public ChTrackVehicle
 public:
 
   TrackSoilBin(const std::string& name,
-    VisualizationType::Enum chassisVis = VisualizationType::Enum::Primitives,
-    CollisionType::Enum chassisCollide = CollisionType::Enum::Primitives,
+    VisualizationType::Enum chassisVis = VisualizationType::Primitives,
+    CollisionType::Enum chassisCollide = CollisionType::Primitives,
     double mass = 1000.0,
     const ChVector<>& inertia = ChVector<>(12.22*2.5, 12.22*2.5, 13.87*2.5),
     size_t num_idlers = 1,

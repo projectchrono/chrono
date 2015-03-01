@@ -45,8 +45,8 @@ public:
   /// Construct by passing in desired system variables.
   /// Default values are for M113 APC vehicle
   ChTrackVehicle(const std::string& name,
-    VisualizationType::Enum vis = VisualizationType::Enum::None,
-    CollisionType::Enum collide = CollisionType::Enum::None,
+    VisualizationType::Enum vis = VisualizationType::None,
+    CollisionType::Enum collide = CollisionType::None,
     double mass = 5489.2,
     const ChVector<>& Ixx = ChVector<>(1786.9, 10449.7, 10721.2),
     size_t num_engines = 0,
@@ -55,8 +55,8 @@ public:
   /// Construct using the specified ChSystem, with the desired vehicle system settings.
   ChTrackVehicle(ChSystem* system,
     const std::string& name,
-    VisualizationType::Enum vis = VisualizationType::Enum::None,
-    CollisionType::Enum collide = CollisionType::Enum::None,
+    VisualizationType::Enum vis = VisualizationType::None,
+    CollisionType::Enum collide = CollisionType::None,
     double mass = 5489.2,
     const ChVector<>& Ixx = ChVector<>(1786.9, 10449.7, 10721.2),
     size_t num_engines = 0);

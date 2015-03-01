@@ -40,8 +40,8 @@ public:
 
   /// override static values for mass, inertia
   DriveGear(const std::string& name,
-    VisualizationType::Enum vis = VisualizationType::Enum::Primitives,
-    CollisionType::Enum collide = CollisionType::Enum::Primitives,
+    VisualizationType::Enum vis = VisualizationType::Primitives,
+    CollisionType::Enum collide = CollisionType::Primitives,
     size_t chainSys_idx = 0, ///< what chain system is this gear associated with?
     double gear_mass = 436.7,
     const ChVector<>& gear_Ixx = ChVector<>(12.22, 12.22, 13.87) );

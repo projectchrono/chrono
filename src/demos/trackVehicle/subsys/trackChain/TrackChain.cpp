@@ -278,7 +278,7 @@ void TrackChain::AddVisualization(size_t track_idx,
 
   // Attach visualization asset
   switch (m_vis) {
-  case VisualizationType::Enum::Primitives:
+  case VisualizationType::Primitives:
   {
 
     // color the boxes and cylinders differently
@@ -330,7 +330,7 @@ void TrackChain::AddVisualization(size_t track_idx,
 
     break;
   }
-  case VisualizationType::Enum::CompoundPrimitives:
+  case VisualizationType::CompoundPrimitives:
   {
     // use same set of primitives as was used for the corresponding collsion shape
     // shoe geometry provided can be exactly represented by 5 smaller boxes, 2 cylinders.
@@ -402,7 +402,7 @@ void TrackChain::AddVisualization(size_t track_idx,
 
     break;
   } 
-  case VisualizationType::Enum::Mesh:
+  case VisualizationType::Mesh:
   {
     // mesh for visualization only.
     geometry::ChTriangleMeshConnected trimesh;
@@ -453,7 +453,7 @@ void TrackChain::AddCollisionGeometry(size_t track_idx,
 {
   assert(track_idx < m_numShoes);
    // add collision geometrey to the chassis, if enabled. Warn if disabled
-  if( m_collide == CollisionType::Enum::None)
+  if( m_collide == CollisionType::None)
   {
     GetLog() << " !!! track shoe # " << track_idx << " collision deactivated !!! \n\n";
     m_shoes[track_idx]->SetCollide(false);
@@ -473,7 +473,7 @@ void TrackChain::AddCollisionGeometry(size_t track_idx,
   m_shoes[track_idx]->GetMaterialSurface()->SetSpinningFriction(mu_spin);
 
   switch (m_collide) {
-  case CollisionType::Enum::Primitives:
+  case CollisionType::Primitives:
   {
     
     // use a simple box for the shoe
@@ -492,7 +492,7 @@ void TrackChain::AddCollisionGeometry(size_t track_idx,
     
     break;
   }
-  case CollisionType::Enum::CompoundPrimitives:
+  case CollisionType::CompoundPrimitives:
   {
     // shoe geometry provided can be exactly represented by 6 smaller boxes, 2 cylinders.
     double subBox_width = 0.5*0.082;
@@ -523,7 +523,7 @@ void TrackChain::AddCollisionGeometry(size_t track_idx,
     
     break;
   }
-  case CollisionType::Enum::Mesh:
+  case CollisionType::Mesh:
   {
     // use a triangle mesh
    
@@ -538,7 +538,7 @@ void TrackChain::AddCollisionGeometry(size_t track_idx,
 
     break;
   }
-  case CollisionType::Enum::ConvexHull:
+  case CollisionType::ConvexHull:
   {
     // use convex hulls, loaded from file
     ChStreamInAsciiFile chull_file(GetChronoDataFile("track_data/M113/shoe_collision.chulls").c_str());
@@ -559,11 +559,11 @@ void TrackChain::AddCollisionGeometry(size_t track_idx,
   } // end switch
 
   // set collision family
-  m_shoes[track_idx]->GetCollisionModel()->SetFamily( (int)CollisionFam::Enum::Shoe);
+  m_shoes[track_idx]->GetCollisionModel()->SetFamily( (int)CollisionFam::Shoe);
 
   // don't collide with other shoes, but with everything else
-  m_shoes[track_idx]->GetCollisionModel()->SetFamilyMaskNoCollisionWithFamily( (int)CollisionFam::Enum::Shoe );
-  m_shoes[track_idx]->GetCollisionModel()->SetFamilyMaskNoCollisionWithFamily( (int)CollisionFam::Enum::Hull );
+  m_shoes[track_idx]->GetCollisionModel()->SetFamilyMaskNoCollisionWithFamily( (int)CollisionFam::Shoe );
+  m_shoes[track_idx]->GetCollisionModel()->SetFamilyMaskNoCollisionWithFamily( (int)CollisionFam::Hull );
 
   m_shoes[track_idx]->GetCollisionModel()->BuildModel();
 

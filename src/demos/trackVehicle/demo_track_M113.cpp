@@ -107,7 +107,7 @@ ChSharedPtr<ChBody> Add_FlatGround(TrackVehicle* vehicle,
   ground->SetFriction(friction_mu);
 
   // Don't forget to set this collision family!
-  ground->GetCollisionModel()->SetFamily((int)CollisionFam::Enum::Ground);
+  ground->GetCollisionModel()->SetFamily((int)CollisionFam::Ground);
   
   // color asset for the ground
   ChSharedPtr<ChColorAsset> groundColor(new ChColorAsset);
@@ -129,8 +129,8 @@ int main(int argc, char* argv[])
 
   // The vehicle inherits ChSystem. Input chassis visual and collision type
 	TrackVehicle vehicle("Justins M113 model", 
-    VisualizationType::Enum::None,
-    CollisionType::Enum::None);
+    VisualizationType::None,
+    CollisionType::None);
   
   // set the chassis REF at the specified initial config.
   vehicle.Initialize(ChCoordsys<>(initLoc, initRot));

@@ -119,7 +119,7 @@ void DriveGear::AddVisualization()
 {
    // Attach visualization asset
   switch (m_vis) {
-  case VisualizationType::Enum::Primitives:
+  case VisualizationType::Primitives:
   {
     // define the gear as two concentric cylinders with a gap
     ChSharedPtr<ChCylinderShape> cyl(new ChCylinderShape);
@@ -140,7 +140,7 @@ void DriveGear::AddVisualization()
 
     break;
   }
-  case VisualizationType::Enum::Mesh:
+  case VisualizationType::Mesh:
   {
     geometry::ChTriangleMeshConnected trimesh;
     trimesh.LoadWavefrontMesh(getMeshFile(), true, false);
@@ -156,7 +156,7 @@ void DriveGear::AddVisualization()
     
     break;
   }
-  case VisualizationType::Enum::CompoundPrimitives:
+  case VisualizationType::CompoundPrimitives:
   {
     // matches the primitive found in collisionType collisionCallback
     // cylinder and a bunch of boxes
@@ -239,7 +239,7 @@ void DriveGear::AddCollisionGeometry(std::vector<ChSharedPtr<ChBody> >& shoes,
                                      double mu_spin)
 {
   // add collision geometrey, if enabled. Warn if disabled
-  if( m_collide == CollisionType::Enum::None)
+  if( m_collide == CollisionType::None)
   {
       m_gear->SetCollide(false);
       GetLog() << " !!! DriveGear " << m_gear->GetName() << " collision deactivated !!! \n\n";
@@ -260,7 +260,7 @@ void DriveGear::AddCollisionGeometry(std::vector<ChSharedPtr<ChBody> >& shoes,
 
 
   switch (m_collide) {
-  case CollisionType::Enum::Primitives:
+  case CollisionType::Primitives:
   {
     double cyl_width =  (m_width - m_widthGap)/2.0;
     ChVector<> shape_offset =  ChVector<>(0, 0, cyl_width + m_widthGap/2.0);
@@ -275,7 +275,7 @@ void DriveGear::AddCollisionGeometry(std::vector<ChSharedPtr<ChBody> >& shoes,
 
     break;
   }
-  case CollisionType::Enum::Mesh:
+  case CollisionType::Mesh:
   {
     // use a triangle mesh
    
@@ -290,7 +290,7 @@ void DriveGear::AddCollisionGeometry(std::vector<ChSharedPtr<ChBody> >& shoes,
 
     break;
   }
-  case CollisionType::Enum::ConvexHull:
+  case CollisionType::ConvexHull:
   {
     // use convex hulls, loaded from file
     ChStreamInAsciiFile chull_file(GetChronoDataFile("drive_gear.chulls").c_str());
@@ -303,7 +303,7 @@ void DriveGear::AddCollisionGeometry(std::vector<ChSharedPtr<ChBody> >& shoes,
     m_gear->GetCollisionModel()->AddConvexHullsFromFile(chull_file, disp_offset, rot_offset);
     break;
   }
-  case CollisionType::Enum::CallbackFunction:
+  case CollisionType::CallbackFunction:
   {
     // a set of boxes to represent the top-most flat face of the gear tooth
     // as the gear should be oriented initially with the tooth base directly
@@ -377,13 +377,13 @@ void DriveGear::AddCollisionGeometry(std::vector<ChSharedPtr<ChBody> >& shoes,
   } // end switch
 
   // set collision family, gear is a rolling element like the wheels
-  m_gear->GetCollisionModel()->SetFamily((int)CollisionFam::Enum::Gear);
+  m_gear->GetCollisionModel()->SetFamily((int)CollisionFam::Gear);
 
   // don't collide with other rolling elements
-  m_gear->GetCollisionModel()->SetFamilyMaskNoCollisionWithFamily((int)CollisionFam::Enum::Ground);
-  m_gear->GetCollisionModel()->SetFamilyMaskNoCollisionWithFamily((int)CollisionFam::Enum::Gear);
-  m_gear->GetCollisionModel()->SetFamilyMaskNoCollisionWithFamily((int)CollisionFam::Enum::Wheel);
-  m_gear->GetCollisionModel()->SetFamilyMaskNoCollisionWithFamily((int)CollisionFam::Enum::Hull);
+  m_gear->GetCollisionModel()->SetFamilyMaskNoCollisionWithFamily((int)CollisionFam::Ground);
+  m_gear->GetCollisionModel()->SetFamilyMaskNoCollisionWithFamily((int)CollisionFam::Gear);
+  m_gear->GetCollisionModel()->SetFamilyMaskNoCollisionWithFamily((int)CollisionFam::Wheel);
+  m_gear->GetCollisionModel()->SetFamilyMaskNoCollisionWithFamily((int)CollisionFam::Hull);
 
   m_gear->GetCollisionModel()->BuildModel();
 

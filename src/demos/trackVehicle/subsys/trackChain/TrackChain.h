@@ -56,8 +56,8 @@ public:
   
   /// constructor, default values are  for an M113 model
   TrackChain(const std::string& name, 
-    VisualizationType::Enum vis = VisualizationType::Enum::Primitives,
-    CollisionType::Enum collide = CollisionType::Enum::Primitives,
+    VisualizationType::Enum vis = VisualizationType::Primitives,
+    CollisionType::Enum collide = CollisionType::Primitives,
     size_t chainSys_idx = 0,
     double shoe_mass = 18.02,
     const ChVector<>& shoeIxx = ChVector<>(0.22, 0.25, 0.04) );
