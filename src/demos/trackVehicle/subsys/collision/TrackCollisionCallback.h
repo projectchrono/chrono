@@ -194,18 +194,19 @@ class GearPinCollisionCallback : public ChSystem::ChCustomComputeCollisionCallba
 		( (ContactEngine*)(m_gear->GetSystem()->GetContactContainer()) )->AddContact(mcont);
 	}
 
-  /// return true if the bounding spheres of specified centers intersect
-  // centers w.r.t. global c-sys
-  // be sure to pass in the pin centers as positive and negative z, w.r.t. gear c-sys
+  // true when radial dist. from center of gear to pins on either side of shoe, in gear c-sys,
+  //  is less than combined geometry bounding spheres (actually a bounding cylinder in 2D)
   bool BroadphasePassed(const ChVector<>& pin_cen_Pz,
     const ChVector<>& pin_cen_Nz) const
   {
-
     // check both sides for contact
     // broad-phase, is the distance between centers <= sum of bounding sphere?
     ChVector<> dist_Pz = m_gear->GetPos() - pin_cen_Pz;
     ChVector<> dist_Nz = m_gear->GetPos() - pin_cen_Nz;
-    // only need to check 
+    // convert to gear c-sys, so we can drop the z coordinate
+    dist_Pz = m_gear->GetRot().RotateBack(dist_Pz);
+    dist_Nz = m_gear->GetRot().RotateBack(dist_Nz);
+    // only need to check radial distance from gear center
     dist_Pz.z = 0;
     dist_Nz.z = 0;
 
@@ -402,10 +403,8 @@ private:
   std::vector<ChSharedPtr<ChBody> > m_shoes;
   ChSharedPtr<ChBody> m_gear;
   const GearPinGeometry m_geom; ///< gear and pin geometry data
-  // broadphase bounding sphere radius for gear
-  double m_bound_rad_Gear;
-  // Shoe bounding sphere circumscribes the outside circumference of the pins
-  double m_bound_rad_Pin;
+  double m_bound_rad_Gear; ///< broadphase geometry bounding sphere radius for gear
+  double m_bound_rad_Pin; ///< geometry bounding sphere circumscribes the outside circumference of the pins
 
   // following are used for determining if contacts are "persistent"
   // i.e., no liftoff once they are engaged with the sprocket. 1 per shoe
