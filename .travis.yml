@@ -1,12 +1,20 @@
 sudo: false
 language: cpp
+#addons: # uncomment after libirrlicht is whitelisted
+#  apt_packages:
+#    - libirrlicht1.8
+#    - libirrlicht-dev
 compiler:
   - gcc
   - clang
+env:
+  matrix:
+    - CMAKE_EXTRA_FLAGS="-DENABLE_UNIT_IRRLICHT=OFF -DENABLE_UNIT_FEM=OFF -DENABLE_UNIT_POSTPROCESS=OFF"
+    - CMAKE_EXTRA_FLAGS="-DENABLE_UNIT_IRRLICHT=OFF -DENABLE_UNIT_FEM=ON  -DENABLE_UNIT_POSTPROCESS=ON"
 before_install: 
 before_script:
   - mkdir build && cd build
-  - cmake ../src
+  - cmake $CMAKE_EXTRA_FLAGS ../src
 script:
   - make -j 2
   - make test
