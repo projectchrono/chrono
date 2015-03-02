@@ -223,6 +223,8 @@ CH_UTILS_API
 void LoadConvexMesh(const std::string& file_name,
                     geometry::ChTriangleMeshConnected& convex_mesh,
                     collision::ChConvexDecompositionHACDv2& convex_shape,
+                    const ChVector<>& pos = ChVector<>(0, 0, 0),
+                    const ChQuaternion<>& rot = ChQuaternion<>(1, 0, 0, 0),
                     int hacd_maxhullcount = 1024,
                     int hacd_maxhullmerge = 256,
                     int hacd_maxhullvertexes = 64,

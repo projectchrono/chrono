@@ -581,6 +581,8 @@ void FinalizeObject(ChSharedBodyPtr body, ChSystem* system) {
 void LoadConvexMesh(const std::string& file_name,
                 ChTriangleMeshConnected& convex_mesh,
                 ChConvexDecompositionHACDv2& convex_shape,
+                const ChVector<>& pos,
+                const ChQuaternion<>& rot,
                 int hacd_maxhullcount,
                 int hacd_maxhullmerge,
                 int hacd_maxhullvertexes,
@@ -588,6 +590,11 @@ void LoadConvexMesh(const std::string& file_name,
                 double hacd_smallclusterthreshold,
                 double hacd_fusetolerance) {
   convex_mesh.LoadWavefrontMesh(file_name, true, false);
+
+  for (int i = 0; i < convex_mesh.m_vertices.size(); i++) {
+    convex_mesh.m_vertices[i] = pos + rot.Rotate(convex_mesh.m_vertices[i]);
+  }
+
   convex_shape.Reset();
   convex_shape.AddTriangleMesh(convex_mesh);
   convex_shape.SetParameters(hacd_maxhullcount,
@@ -626,8 +633,8 @@ void AddConvexCollisionModel(ChSharedPtr<ChBody>& body,
       ChSharedPtr<ChTriangleMeshShape> trimesh_shape(new ChTriangleMeshShape);
       trimesh_shape->SetMesh(trimesh_convex);
       trimesh_shape->SetName(ss.str());
-      trimesh_shape->Pos = ChVector<>(0, 0, 0);
-      trimesh_shape->Rot = ChQuaternion<>(1, 0, 0, 0);
+      trimesh_shape->Pos = pos;
+      trimesh_shape->Rot = rot;
       body->GetAssets().push_back(trimesh_shape);
     }
   }
@@ -636,8 +643,8 @@ void AddConvexCollisionModel(ChSharedPtr<ChBody>& body,
     ChSharedPtr<ChTriangleMeshShape> trimesh_shape(new ChTriangleMeshShape);
     trimesh_shape->SetMesh(convex_mesh);
     trimesh_shape->SetName(convex_mesh.GetFileName());
-    trimesh_shape->Pos = ChVector<>(0, 0, 0);
-    trimesh_shape->Rot = ChQuaternion<>(1, 0, 0, 0);
+    trimesh_shape->Pos = VNULL;
+    trimesh_shape->Rot = QUNIT;
     body->GetAssets().push_back(trimesh_shape);
   }
 }
