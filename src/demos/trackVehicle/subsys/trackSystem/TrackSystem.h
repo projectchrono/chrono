@@ -75,7 +75,7 @@ private:
   ChSharedPtr<DriveGear>    m_driveGear;
   ChSharedPtr<IdlerSimple>	m_idler;
   ChSharedPtr<TrackChain>   m_chain;
-  std::vector<ChSharedPtr<TorsionArmSuspension>> m_suspensions;
+  std::vector<ChSharedPtr<TorsionArmSuspension> > m_suspensions;
   
   std::string m_name; ///< name of the track chain system
   ChVector<> m_local_pos; ///< location of ref-frame, w.r.t. chassis c-sys
@@ -96,7 +96,7 @@ private:
   static const ChQuaternion<> m_gearRot;
   
   // suspension
-  std::vector<ChVector<>> m_suspensionLocs;  // relative to local c-sys
+  std::vector<ChVector<> > m_suspensionLocs;  // relative to local c-sys
   static const int        m_numSuspensions;
   static const ChVector<> m_armWheel;   // relative arm distance to wheel
 };

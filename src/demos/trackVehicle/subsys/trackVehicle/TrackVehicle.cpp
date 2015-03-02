@@ -44,8 +44,8 @@ const ChCoordsys<> TrackVehicle::m_driverCsys(ChVector<>(0.0, 0.5, 1.2), ChQuate
 
 /// constructor sets the basic integrator settings for this ChSystem, as well as the usual stuff
 TrackVehicle::TrackVehicle(const std::string& name,
-                           VisualizationType chassisVis,
-                           CollisionType chassisCollide,
+                           VisualizationType::Enum chassisVis,
+                           CollisionType::Enum chassisCollide,
                            double mass,
                            const ChVector<>& Ixx,
                            const ChVector<>& left_pos_rel,
@@ -80,14 +80,20 @@ TrackVehicle::TrackVehicle(const std::string& name,
 
   // create track systems
   for (int i = 0; i < m_num_tracks; i++) {
-    m_TrackSystems[i] = ChSharedPtr<TrackSystem>(new TrackSystem("track chain "+std::to_string(i), i) );
+    std::stringstream t_ss;
+    t_ss << "track chain " << i;
+    m_TrackSystems[i] = ChSharedPtr<TrackSystem>(new TrackSystem(t_ss.str(), i) );
   }
   
   // create the powertrain and drivelines
   for (int j = 0; j < m_num_engines; j++)
   {
-    m_drivelines[j] = ChSharedPtr<TrackDriveline>(new TrackDriveline("driveline "+std::to_string(j)) );
-    m_ptrains[j] = ChSharedPtr<TrackPowertrain>(new TrackPowertrain("powertrain "+std::to_string(j)) );
+    std::stringstream dl_ss;
+    dl_ss << "driveline " << j;
+    std::stringstream pt_ss;
+    pt_ss << "powertrain " << j;
+    m_drivelines[j] = ChSharedPtr<TrackDriveline>(new TrackDriveline(dl_ss.str() ) );
+    m_ptrains[j] = ChSharedPtr<TrackPowertrain>(new TrackPowertrain(pt_ss.str() ) );
   }
 
   // TODO: add brakes. Perhaps they are a part of the suspension subsystem?

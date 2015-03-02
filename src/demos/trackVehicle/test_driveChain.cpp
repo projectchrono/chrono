@@ -9,24 +9,18 @@
 //
 ///////////////////////////////////////////////////
 //
-//  Summary: Test the DriveChain system.
+//  Summary: Validate a throttle driven DriveChain system.
 //  Components: Gear, Powertrain, tensioned and passive Idler(s),
 //              
-//  Throttle, gear, pin damping coef., etc. driven by the user with an Irrlicht GUI.
-//  Alternatively, scripted driven simulations supported thru Track_FuncDriver.
+//  Throttle, Brakes, Gear and pin damping interactively controlled w/ GUI.
+//  Alternatively, scripted simulations supported, with or without interactive GUI visuals.
+//  User Settings include: write to file/console, timing info, model info.
+//  Supported visualization and collision geometry types found in ModelDefs.h
+//  List of GUI keyboard commands in driver/ChIrrGuiTrack.cpp, ::OnEvent(SEvent& event)
+//  IF you have python and pandas, data files written can all be auto-plotted with DriveChain_panda.py,
+//    just need to specify the data directory, found in the script section: __name__ == '__main__':   
 //
-//  Output I care about:
-//    The reaction forces in the pins adjoining 5 or so track shoes.
-//    I'm going to analyze the time history of pin tension forces, and also the 
-//    cumulative contact normal and friction forces between the pins and gear surface.
-//    Changing Gear CollisionType from PRIMITIVES to CALLBACKFUNCTION with and without pin/gear
-//    callback function enabled. So the gear collision shapes will be 
-//      a) two concentric cylinders, contact w/ flat shoe surface
-//      b) two concentric cylinders, further laterally outwards. 10 boxes for the top gear tooth surface.
-//      c) same as b), but add the collision callback function, which looks for contact between shoe pins and 
-//         concave gear tooth base surface.
-//
-//    Output to text files for Python plots, by uncommenting #define WRITE_OUTPUT
+//   Output to text files for Python postProcessing, uncomment #define WRITE_OUTPUT
 //	 Author: Justin Madsen, 2015
 ///////////////////////////////////////////////////
   
@@ -68,48 +62,57 @@ using namespace chrono;
 // =============================================================================
 // User Settings
 // =============================================================================
-//  render and total runtimes
-#define WRITE_OUTPUT            // write output data to file
+
+// #define WRITE_OUTPUT            // write output data to file
 // #define CONSOLE_SYSTEM_INFO  // display the system heirarchy in the console
-// #define CONSOLE_DEBUG_INFO      // log constraint violations to console,
+#define CONSOLE_DEBUG_INFO      // log constraint violations to console,
 #define CONSOLE_TIMING       // time each render and simulation step, log to console
 
 int what_to_save = DBG_FIRSTSHOE | DBG_GEAR | DBG_IDLER | DBG_PTRAIN | DBG_CONSTRAINTS;
-int what_to_console = DBG_PTRAIN; // DBG_FIRSTSHOE | DBG_GEAR | DBG_IDLER | DBG_PTRAIN | DBG_CONSTRAINTS;
+int what_to_console = DBG_PTRAIN | DBG_GEAR | DBG_IDLER; //DBG_FIRSTSHOE | DBG_CONSTRAINTS;
 
-// Initial vehicle position and heading. Defines the REF frame for the hull body
+// Initial position and heading
 ChVector<> initLoc(0, 1.0, 0);
 //ChQuaternion<> initRot = Q_from_AngAxis(CH_C_PI_4, VECT_Y);
 ChQuaternion<> initRot(QUNIT);
 
 size_t num_idlers = 1;
 size_t num_rollers = 2;
+
 // Simulation step size
-double step_size = 4e-4;
+double step_size = 2e-3;
+// stop at a certain time
+double end_time = 15;  // 99999
 
-// #ifdef USE_IRRLICHT
-int FPS = 40; // render frame rate
-double render_step_size = 1.0 / FPS;  // Time increment between two rendered frames
-double output_step_size = step_size;  // Time interval between two output frames
-double console_step_size = 0.5;       // time interval between logs to console
 
-ChVector<> trackPoint(-1, 0, 0.2);   // Point on chassis tracked by the camera, chassis c-sys
+// control how often to render a frame, write to file, write to console.
+int FPS = 40; // render Frames Per Second
+double render_step_size = 1.0 / FPS;  // Time increment for rendered frames
+double output_step_size = step_size;  // Time interval for writing data to file
+double console_step_size = 0.2;       // time interval for writing data to console
 
+// camera controls, either static or  GUI controlled chase camera:
 bool use_fixed_camera = true;
-ChVector<> fixed_cameraPos(0.5, 1.5, 2.0); // static camera position, global c-sys
+// static camera position, global c-sys. (Longitude, Vertical, Lateral)
+ChVector<> fixed_cameraPos(0.5, 1.3, 1.7);    // (1.5, 1.5, 1.5)
+
+// Both cameras track this point, relative to the center of the gear
+ChVector<> trackPoint(-0.7, 0, 0.2);
+
 // if chase cam enabled:
 double chaseDist = 2.5;
 double chaseHeight = 0.5;
 
 bool do_shadows = false; // shadow map is experimental
 
+// Automated simulation controls, applies positive half a sine wave.
+// Otherwise, control throttle with W/S
 bool autopilot = true;
 double sineAmp = 0.5;
 double sineFreq = 0.3;
 double tStart = 0.1;
 
-// stop at a certain time
-double end_time = 2.5;  // 99999
+
 
   /*
 #else
@@ -134,9 +137,9 @@ int main(int argc, char* argv[])
   // The drive chain inherits ChSystem. Specify the 
   // collision type used by the gear here.
   DriveChain chainSystem("Justins driveChain system", 
-    VisualizationType::MESH,
-    // VisualizationType::COMPOUNDPRIMITIVES,
-    CollisionType::CALLBACKFUNCTION,
+    VisualizationType::Mesh,
+    // VisualizationType::CompoundPrimitives,
+    CollisionType::CallbackFunction,
     num_idlers,
     num_rollers);
   
@@ -327,9 +330,9 @@ int main(int argc, char* argv[])
     {
       // write data to file
       chainSystem.Log_to_file();  // needs to already be setup before sim loop calls it
-#endif
     }
-    
+#endif
+
     if(step_number % console_steps == 0)
     {
       // log desired output to console

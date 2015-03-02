@@ -37,8 +37,8 @@ const double SupportRoller::m_widthGap = 0.1;
 
 
 SupportRoller::SupportRoller(const std::string& name, 
-                     VisualizationType vis, 
-                     CollisionType collide,
+                     VisualizationType::Enum vis, 
+                     CollisionType::Enum collide,
                      size_t chainSys_idx,
                      double mass,
                      const ChVector<>& Ixx
@@ -89,7 +89,7 @@ void SupportRoller::AddVisualization()
 {
    // Attach visualization asset
   switch (m_vis) {
-  case VisualizationType::PRIMITIVES:
+  case VisualizationType::Primitives:
   {
     // define the gear as two concentric cylinders with a gap
     ChSharedPtr<ChCylinderShape> cyl(new ChCylinderShape);
@@ -111,7 +111,7 @@ void SupportRoller::AddVisualization()
     break;
   }
   /*
-  case VisualizationType::MESH:
+  case VisualizationType::Mesh:
   {
     geometry::ChTriangleMeshConnected trimesh;
     trimesh.LoadWavefrontMesh(getMeshFile(), false, false);
@@ -140,7 +140,7 @@ void SupportRoller::AddCollisionGeometry(double mu,
                             double mu_spin)
 {
   // add collision geometrey, if enabled. Warn if disabled
-  if( m_collide == CollisionType::NONE)
+  if( m_collide == CollisionType::None)
   {
       m_roller->SetCollide(false);
       GetLog() << " !!! SupportRoller " << m_roller->GetName() << " collision deactivated !!! \n\n";
@@ -161,7 +161,7 @@ void SupportRoller::AddCollisionGeometry(double mu,
 
 
   switch (m_collide) {
-  case CollisionType::PRIMITIVES:
+  case CollisionType::Primitives:
   {
     double cyl_width =  0.5*(m_width - m_widthGap);
     ChVector<> shape_offset =  ChVector<>(0, 0, 0.5*(cyl_width + m_widthGap) );
@@ -177,7 +177,7 @@ void SupportRoller::AddCollisionGeometry(double mu,
     break;
   }
   /*
-  case CollisionType::MESH:
+  case CollisionType::Mesh:
   {
     // use a triangle mesh
    
@@ -193,7 +193,7 @@ void SupportRoller::AddCollisionGeometry(double mu,
     break;
   }
   */
-  case CollisionType::CONVEXHULL:
+  case CollisionType::ConvexHull:
   {
     // use convex hulls, loaded from file
     ChStreamInAsciiFile chull_file(GetChronoDataFile("drive_gear.chulls").c_str());
@@ -214,12 +214,12 @@ void SupportRoller::AddCollisionGeometry(double mu,
   } // end switch
 
   // set collision family, gear is a rolling element like the wheels
-  m_roller->GetCollisionModel()->SetFamily((int)CollisionFam::WHEELS);
+  m_roller->GetCollisionModel()->SetFamily((int)CollisionFam::Wheel);
 
   // don't collide with other rolling elements
-  m_roller->GetCollisionModel()->SetFamilyMaskNoCollisionWithFamily((int)CollisionFam::GROUND);
-  m_roller->GetCollisionModel()->SetFamilyMaskNoCollisionWithFamily((int)CollisionFam::WHEELS);
-  m_roller->GetCollisionModel()->SetFamilyMaskNoCollisionWithFamily((int)CollisionFam::HULL);
+  m_roller->GetCollisionModel()->SetFamilyMaskNoCollisionWithFamily((int)CollisionFam::Ground);
+  m_roller->GetCollisionModel()->SetFamilyMaskNoCollisionWithFamily((int)CollisionFam::Wheel);
+  m_roller->GetCollisionModel()->SetFamilyMaskNoCollisionWithFamily((int)CollisionFam::Hull);
 
   m_roller->GetCollisionModel()->BuildModel();
 

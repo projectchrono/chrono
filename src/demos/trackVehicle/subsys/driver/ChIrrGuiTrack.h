@@ -85,7 +85,7 @@ public:
   double GetStepsize() const { return m_stepsize; }
 
 private:
-  void ChIrrGuiTrack::SetDamping(double delta_val, double min_val = 0, double max_val = 2);
+  void SetDamping(double delta_val, double min_val = 0, double max_val = 2);
 
   void renderSprings();
   void renderLinks();

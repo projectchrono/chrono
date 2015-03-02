@@ -23,13 +23,14 @@
 
 #include <vector>
 
-#include "core/ChVector.h"
-#include "physics/ChSystem.h"
-#include "physics/ChBodyAuxRef.h"
-#include "subsys/powertrain/TrackPowertrain.h"
-
-#include "subsys/ChApiSubsys.h"
 #include "ModelDefs.h"
+
+#include "physics/ChSystem.h"
+#include "core/ChVector.h"
+#include "physics/ChBodyAuxRef.h"
+
+#include "subsys/powertrain/TrackPowertrain.h"
+#include "subsys/ChApiSubsys.h"
 
 namespace chrono {
 
@@ -44,8 +45,8 @@ public:
   /// Construct by passing in desired system variables.
   /// Default values are for M113 APC vehicle
   ChTrackVehicle(const std::string& name,
-    VisualizationType vis = VisualizationType::NONE,
-    CollisionType collide = CollisionType::NONE,
+    VisualizationType::Enum vis = VisualizationType::None,
+    CollisionType::Enum collide = CollisionType::None,
     double mass = 5489.2,
     const ChVector<>& Ixx = ChVector<>(1786.9, 10449.7, 10721.2),
     size_t num_engines = 0,
@@ -54,8 +55,8 @@ public:
   /// Construct using the specified ChSystem, with the desired vehicle system settings.
   ChTrackVehicle(ChSystem* system,
     const std::string& name,
-    VisualizationType vis = VisualizationType::NONE,
-    CollisionType collide = CollisionType::NONE,
+    VisualizationType::Enum vis = VisualizationType::None,
+    CollisionType::Enum collide = CollisionType::None,
     double mass = 5489.2,
     const ChVector<>& Ixx = ChVector<>(1786.9, 10449.7, 10721.2),
     size_t num_engines = 0);
@@ -99,7 +100,7 @@ public:
   double GetVehicleSpeedCOM() const { return m_chassis->GetPos_dt().Length(); }
 
   /// Get the global location of the driver.
-  const ChVector<>& GetDriverPos() const;
+  ChVector<> GetDriverPos() const;
 
   /// number of track chain systems attached to the vehicle
   size_t GetNum_Engines() const { return m_num_engines; }
@@ -170,15 +171,15 @@ protected:
    // double m_mass;
   // ChVector<> m_inertia;
 
-  VisualizationType m_vis;    ///< visualize  geometry
-  CollisionType m_collide;    ///< collision geometry
+  VisualizationType::Enum m_vis;    ///< visualize  geometry
+  CollisionType::Enum m_collide;    ///< collision geometry
 
   std::string m_meshName;       ///< name of the mesh, if any
   std::string m_meshFile;       ///< filename of the mesh, if any
   ChVector<>  m_chassisBoxSize; ///< size of chassis box, used for any PRIMITIVES type
 
   const size_t m_num_engines;  ///< can support multiple powertrain/drivetrains
-  std::vector<ChSharedPtr<TrackPowertrain>>  m_ptrains;  ///< powertrain system, one per track system
+  std::vector<ChSharedPtr<TrackPowertrain> >  m_ptrains;  ///< powertrain system, one per track system
 
   double  m_stepsize;   ///< integration step-size for the vehicle system
 
