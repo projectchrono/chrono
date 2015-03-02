@@ -219,6 +219,7 @@ int main(int argc, char* argv[]) {
   int num_steps = std::ceil(time_end / time_step);
   int out_steps = std::ceil((1 / time_step) / out_fps);
   int out_frame = 0;
+  double time = 0;
 
   for (int i = 0; i < num_steps; i++) {
     if (i % out_steps == 0) {
