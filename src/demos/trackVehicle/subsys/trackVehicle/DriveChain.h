@@ -182,6 +182,7 @@ protected:
   std::vector<std::string> m_filename_ICV;  // write to this file, idler constraint violation
   std::vector<std::string> m_filename_RCV;  // write to this file, roller constraint violation
   std::string m_filename_DBG_PTRAIN;        // write to this file, ptrain info
+  std::string m_filename_DBG_COLLISIONCALLBACK; // write collision callback info to file
 
   // static variables. hard-coded for now
   static const ChVector<> m_idlerPos; // relative to chassis frame, which is the same as the gear's (initially)

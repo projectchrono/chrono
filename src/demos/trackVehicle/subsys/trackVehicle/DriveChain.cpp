@@ -1038,6 +1038,16 @@ void DriveChain::Log_to_console(int console_what)
   
   }
 
+  if(console_what & DBG_COLLISIONCALLBACK)
+  {
+    GetLog() << "\n ---- collision callback info :"
+      << "\n Contacts this step: " << m_gear->GetCollisionCallback()->GetNcontacts()
+      << "\n Broadphase passed this step: " << m_gear->GetCollisionCallback()->GetNbroadPhasePassed()
+      << "\n Sum contacts, +z side: " << m_gear->GetCollisionCallback()->Get_sum_Pz_contacts()
+      << "\n Sum contacts, -z side: " << m_gear->GetCollisionCallback()->Get_sum_Nz_contacts()
+      <<"\n";
+  }
+
   GetLog().SetNumFormat("%g");
 
 }
@@ -1174,6 +1184,18 @@ void DriveChain::Log_to_file()
       ofilePT << ss_pt.str().c_str();
     }
 
+    if( m_log_what_to_file & DBG_COLLISIONCALLBACK)
+    {
+      std::stringstream ss_cc;
+      // report # of contacts detected this step between shoe pins # gear.
+      // time,Ncontacts,Nbroadphase,NcPz,NcNz
+      ss_cc << t <<","<< m_gear->GetCollisionCallback()->GetNcontacts()
+        <<","<< m_gear->GetCollisionCallback()->GetNbroadPhasePassed()
+        <<","<< m_gear->GetCollisionCallback()->Get_sum_Pz_contacts()
+        <<","<< m_gear->GetCollisionCallback()->Get_sum_Nz_contacts()
+        <<"\n";
+    }
+
   }
 }
 
@@ -1263,7 +1285,8 @@ void DriveChain::create_fileHeaders(int what)
       ChStreamOutAsciiFile ofileRCV(m_filename_RCV.back().c_str());
       std::stringstream ss_header;
       ofileRCV << ss_rCV.str().c_str();
-      GetLog() << " writing to file: " << m_filename_RCV[roller] << "\n         data: " << ss_header.str().c_str() <<"\n";
+      GetLog() << " writing to file: " << m_filename_RCV[roller] 
+      << "\n         data: " << ss_header.str().c_str() <<"\n";
     }
   }
 
@@ -1275,10 +1298,22 @@ void DriveChain::create_fileHeaders(int what)
     std::stringstream ss_pt;
     ss_pt << "time,throttle,motSpeed,motT,outT\n";
     ofileDBG_PTRAIN << ss_pt.str().c_str();
-    GetLog() << " writing to file: " << m_filename_DBG_PTRAIN << "\n          data: " << ss_pt.str().c_str() <<"\n";
+    GetLog() << " writing to file: " << m_filename_DBG_PTRAIN 
+      << "\n          data: " << ss_pt.str().c_str() <<"\n";
   }
 
+  // write broadphase, narrow phase contact info
+  if(what & DBG_COLLISIONCALLBACK)
+  {
+    m_filename_DBG_COLLISIONCALLBACK = m_log_file_name+"_Ccallback.csv";
+    ChStreamOutAsciiFile ofileDBG_COLLISIONCALLBACK(m_filename_DBG_COLLISIONCALLBACK.c_str());
+    std::stringstream ss_cc;
+    ss_cc << "time,Ncontacts,Nbroadphase,NcPz,NcNz\n";
+    ofileDBG_COLLISIONCALLBACK << ss_cc.str().c_str();
+    GetLog() << " writing to file: " << m_filename_DBG_COLLISIONCALLBACK 
+      << "\n     data: " << ss_cc.str().c_str() <<"\n";
 
+  }
 }
 
 

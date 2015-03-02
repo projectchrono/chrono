@@ -113,8 +113,10 @@ class GearPinCollisionCallback : public ChSystem::ChCustomComputeCollisionCallba
   m_geom(geom),
   m_persistent_hashtable_dim(persistent_hashtable_dim),
   m_Ncontacts(0),
-  m_NbroadPhasePassed(0)
-	{
+  m_NbroadPhasePassed(0),
+  m_sum_Pz_contacts(0),
+  m_sum_Nz_contacts(0)
+  {
 
     // two endpoints of cylinder pin, w.r.t. shoe c-sys. 
     // SYMMETRIC ABOUT XY PLANE (e.g., check for contact for -z)
@@ -304,6 +306,9 @@ class GearPinCollisionCallback : public ChSystem::ChCustomComputeCollisionCallba
       Found_GearPin_Contact(pGear_bar, pPin_bar,
         norm_onGear_bar,
         shoe_idx);
+
+      // curious about Pz/Nz contacts overall
+      m_sum_Pz_contacts++;
     }
 
     if( eval2Dcontact(gear_seat_cen_bar_Nz, pin_cen_bar_Nz, 
@@ -314,6 +319,9 @@ class GearPinCollisionCallback : public ChSystem::ChCustomComputeCollisionCallba
       Found_GearPin_Contact(pGear_bar, pPin_bar, 
         norm_onGear_bar,
         shoe_idx);
+
+      // curious about Pz/Nz contacts overall
+      m_sum_Nz_contacts++;
     }
 
     return true;
@@ -390,11 +398,16 @@ class GearPinCollisionCallback : public ChSystem::ChCustomComputeCollisionCallba
 
   bool Get_contactPrevStep(size_t idx) const { assert(idx<m_shoes.size()); return m_contactPrevStep[idx]; }
 
-  // other virtuals
+  // number of contacts detected this step
+  int GetNcontacts() const { return m_Ncontacts; }
 
-  // number of contacts detected
-  int GetNcontacts_GearPin() const { return m_Ncontacts; }
+  /// time broadphase has passed this step
+  int GetNbroadPhasePassed() const { return m_NbroadPhasePassed;}
 
+  /// total times narrow phase passed on positive/negative z side
+  int Get_sum_Pz_contacts() const { return m_sum_Pz_contacts; }
+
+  int Get_sum_Nz_contacts() const { return m_sum_Nz_contacts; }
 
 private:
 
@@ -422,6 +435,8 @@ private:
   // hashtable
   size_t m_persistent_hashtable_dim;
 
+  size_t m_sum_Pz_contacts; // curious about Pz/Nz contacts overall
+  size_t m_sum_Nz_contacts;
 };  // end class GearPinCollisionCallback
 
 

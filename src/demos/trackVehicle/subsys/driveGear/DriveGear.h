@@ -59,6 +59,8 @@ public:
 
   ChSharedPtr<ChShaft> GetAxle() const { return m_axle; }
 
+  const GearPinCollisionCallback<ChContactContainer>* GetCollisionCallback() const { return m_gearPinContact; }
+
   double GetRadius() const { return m_radius; }
 
   // log constraint violations to console

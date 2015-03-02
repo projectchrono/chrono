@@ -72,7 +72,8 @@ enum DebugInformation {
   DBG_GEAR        = 1 << 1,
   DBG_IDLER       = 1 << 2,
   DBG_PTRAIN      = 1 << 3,
-  DBG_CONSTRAINTS = 1 << 4
+  DBG_CONSTRAINTS = 1 << 4,
+  DBG_COLLISIONCALLBACK = 1 << 5
 };
 
 static std::ostream& operator<< (std::ostream &out, const ChVector<double>& vect)
