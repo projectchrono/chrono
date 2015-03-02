@@ -1,5 +1,3 @@
-#include "custom_cutil_math.h"
-#include "SPHCudaUtils.h"
 #include "SDKCollisionSystem.cuh"
 
 //#include "extraOptionalFunctions.cuh"

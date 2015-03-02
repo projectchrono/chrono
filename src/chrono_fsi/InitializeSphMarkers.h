@@ -8,10 +8,8 @@
 #ifndef INITIALIZESPHMARKERS_H_
 #define INITIALIZESPHMARKERS_H_
 
-#include "custom_cutil_math.h"
-#include "SPHCudaUtils.h"
 #include <thrust/host_vector.h>
-#include "SDKCollisionSystem.cuh" //just for NumberOfObjects
+#include "SDKCollisionSystem.cuh" // and real 4 stuff
 
 int2 CreateFluidMarkers(
 		thrust::host_vector<Real3> & posRadH,

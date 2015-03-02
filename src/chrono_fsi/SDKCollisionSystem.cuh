@@ -1,6 +1,6 @@
 #ifndef SDKCOLLISIONSYSTEM_CUH
 #define SDKCOLLISIONSYSTEM_CUH
-#include <cstdio>
+
 #include "custom_cutil_math.h"
 #include "SPHCudaUtils.h"
 #include <thrust/device_vector.h>
