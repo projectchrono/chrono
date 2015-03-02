@@ -331,7 +331,7 @@ int main(int argc, char* argv[]) {
 
 	// initialize fluid particles
 	Real sphMarkerMass; // To be initialized in CreateFluidMarkers, and used in other places
-	int2 num_fluidOrBoundaryMarkers = CreateFluidMarkers(posRadH, velMasH, rhoPresMuH, bodyIndex, sphMarkerMass);
+	int2 num_fluidOrBoundaryMarkers = CreateFluidMarkers(posRadH, velMasH, rhoPresMuH, bodyIndex, paramsH, sphMarkerMass);
 	referenceArray.push_back(mI3(0, num_fluidOrBoundaryMarkers.x, -1)); //map fluid -1
 	numAllMarkers += num_fluidOrBoundaryMarkers.x;
 	referenceArray.push_back(

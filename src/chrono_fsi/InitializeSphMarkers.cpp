@@ -13,6 +13,7 @@ int2 CreateFluidMarkers(
 		thrust::host_vector<Real4> & velMasH,
 		thrust::host_vector<Real4> & rhoPresMuH,
 		thrust::host_vector<uint> & bodyIndex,
+		const SimParams & paramsH,
 		Real & sphMarkerMass) {
 
 	thrust::host_vector<Real3> mPosRadBoundary; //do not set the size here since you are using push back later

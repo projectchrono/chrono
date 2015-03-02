@@ -18,6 +18,7 @@ int2 CreateFluidMarkers(
 		thrust::host_vector<Real4> & velMasH,
 		thrust::host_vector<Real4> & rhoPresMuH,
 		thrust::host_vector<uint> & bodyIndex,
+		const SimParams & paramsH,
 		Real & sphMarkerMass);
 
 void SetNumObjects(

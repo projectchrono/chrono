@@ -8,10 +8,10 @@
 #ifndef SPHINTERFACE_H_
 #define SPHINTERFACE_H_
 
-#include "custom_cutil_math.h"
-#include "SPHCudaUtils.h"
 #include <thrust/host_vector.h>
 #include <thrust/device_vector.h>
+#include "custom_cutil_math.h"
+#include "SPHCudaUtils.h"
 #include "SDKCollisionSystem.cuh" //just for SimParams
 
 #include "chrono_parallel/physics/ChSystemParallel.h"
