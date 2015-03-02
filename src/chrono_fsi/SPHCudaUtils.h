@@ -14,6 +14,7 @@
 #include <device_functions.h>
 #include <device_launch_parameters.h>
 #include "custom_cutil_math.h"
+#include <ctime>
 
 
 #include <stdio.h>

@@ -5,11 +5,9 @@
  *      Author: arman
  */
 
-#include "custom_cutil_math.h"
-#include "SPHCudaUtils.h"
-#include <thrust/host_vector.h>
-#include <thrust/device_vector.h>
+
 #include "SphInterface.h"
+
 
 
 //**********************************************
@@ -97,6 +95,7 @@ void AddSphDataToChSystem(
 		int & startIndexSph,
 		const thrust::host_vector<Real3> & posRadH,
 		const thrust::host_vector<Real4> & velMasH,
+		const SimParams & paramsH,
 		const NumberOfObjects & numObjects) {
 
 	Real rad = 0.5 * paramsH.MULT_INITSPACE * paramsH.HSML;
