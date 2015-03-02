@@ -148,7 +148,7 @@ void ChTrackVehicle::Advance(double step)
 // -----------------------------------------------------------------------------
 // Return the global driver position
 // -----------------------------------------------------------------------------
-const ChVector<>& ChTrackVehicle::GetDriverPos() const
+ChVector<> ChTrackVehicle::GetDriverPos() const
 {
   return m_chassis->GetCoord().TransformPointLocalToParent(GetLocalDriverCoordsys().pos);
 }

@@ -100,7 +100,7 @@ public:
   double GetVehicleSpeedCOM() const { return m_chassis->GetPos_dt().Length(); }
 
   /// Get the global location of the driver.
-  const ChVector<>& GetDriverPos() const;
+  ChVector<> GetDriverPos() const;
 
   /// number of track chain systems attached to the vehicle
   size_t GetNum_Engines() const { return m_num_engines; }
