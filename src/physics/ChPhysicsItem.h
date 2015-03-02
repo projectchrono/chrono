@@ -94,7 +94,7 @@ public:
 
 
 				/// Get the pointer to the parent ChSystem()
-	ChSystem* GetSystem () { return system;}
+	ChSystem* GetSystem () const { return system;}
 
 				/// Set the pointer to the parent ChSystem()
 	virtual void SetSystem (ChSystem* m_system) {system= m_system;}
@@ -272,6 +272,26 @@ public:
 					const unsigned int off_v,		///< offset in v state vector
 					const ChStateDelta& v,			///< state vector, speed part
 					const double T) {};				///< time
+
+				/// From item's state acceleration to global acceleration vector 
+	virtual void IntStateGatherAcceleration(
+					const unsigned int off_a,		///< offset in a accel. vector
+					ChStateDelta& a) {};			///< acceleration part of state vector derivative
+
+				/// From global acceleration vector to item's state acceleration 
+	virtual void IntStateScatterAcceleration(
+					const unsigned int off_a,		///< offset in a accel. vector
+					const ChStateDelta& a) {};		///< acceleration part of state vector derivative
+
+				/// From item's reaction forces to global reaction vector 
+	virtual void IntStateGatherReactions(
+					const unsigned int off_L,		///< offset in L vector
+					ChVectorDynamic<>& L) {};		///< L vector of reaction forces
+
+				/// From global reaction vector to item's reaction forces 
+		virtual void IntStateScatterReactions(
+					const unsigned int off_L,		///< offset in L vector
+					const ChVectorDynamic<>& L) {};	///< L vector of reaction forces
 
 				/// Computes x_new = x + Dt , using vectors at specified offsets.
 				/// By default, when DOF = DOF_w, it does just the sum, but in some cases (ex when using quaternions 

@@ -59,7 +59,6 @@
 #include "timestepper/ChIntegrable.h"
 #include "timestepper/ChTimestepper.h"
 
-
 namespace chrono
 {
 
@@ -73,7 +72,7 @@ typedef ChSharedPtr<ChControls> ChSharedControlsPtr;
 class ChLcpSolver;
 class ChLcpSystemDescriptor;
 class ChContactContainerBase;
-
+//class ChTimestepper;
 
 
 //  Defines (obsolete: to be removed or ported to enums)
@@ -215,13 +214,6 @@ public:
 	int  GetNormType () {return normtype;}
 
 	
-				/// Impose the 2D mode. Only for very simple systems. Note that,
-				/// given the speed and efficiency of current LCP solvers and integrators,
-				/// there's no need to force the 2D mode - just use the 3D.  
-	void SetXYmode (int m_mode);	// mode = 1 -> switch to 2D; mode = 0 -> switch to 3D (default)
-	int  GetXYmode () {return modeXY;}
-
-
 	
 				/// For elastic collisions, with objects that have nonzero
 				/// restitution coefficient: objects will rebounce only if their
@@ -704,6 +696,18 @@ protected:
 				/// From state Y={x,v} to system.
 	virtual void StateScatter(const ChState& x, const ChStateDelta& v, const double T);
 
+				/// From system to state derivative (acceleration), some timesteppers might need last computed accel.  
+	virtual void StateGatherAcceleration(ChStateDelta& a);
+
+				/// From state derivative (acceleration) to system, sometimes might be needed
+	virtual void StateScatterAcceleration(const ChStateDelta& a);
+
+				/// From system to reaction forces (last computed) - some timestepper might need this
+	virtual void StateGatherReactions(ChVectorDynamic<>& L);
+
+				/// From reaction forces to system, ex. store last computed reactions in ChLink objects for plotting etc.
+	virtual void StateScatterReactions(const ChVectorDynamic<>& L);
+
 				/// Perform x_new = x + dx    for x in    Y = {x, dx/dt}
 				/// It takes care of the fact that x has quaternions, dx has angular vel etc.
 				/// NOTE: the system is not updated automatically after the state increment, so one might
@@ -764,7 +768,9 @@ protected:
 	///    Qc += c*C 
 	virtual void LoadConstraint_C(
 		ChVectorDynamic<>& Qc,		 ///< result: the Qc residual, Qc += c*C 
-		const double c				 ///< a scaling factor
+		const double c,				 ///< a scaling factor
+		const bool do_clamp = false, ///< enable optional clamping of Qc
+		const double mclam = 1e30	 ///< clamping value
 		);
 
 	/// Increment a vector Qc with the term Ct = partial derivative dC/dt:   

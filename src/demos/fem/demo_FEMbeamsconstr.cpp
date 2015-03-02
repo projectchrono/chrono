@@ -567,7 +567,7 @@ my_system.ChangeLcpSolverSpeed(matlab_solver_speed);
 
 		double node_y = endnodes[0][i]->GetPos().y - 0 * y_spacing;
 		double node_z = endnodes[0][i]->GetPos().z - i * z_spacing;
-		double node_a = atan2( endnodes[0][i]->GetA()->Get_A_Yaxis().y, endnodes[0][i]->GetA()->Get_A_Yaxis().z ) - CH_C_PI_2;
+		double node_a = atan2( endnodes[0][i]->GetA().Get_A_Yaxis().y, endnodes[0][i]->GetA().Get_A_Yaxis().z ) - CH_C_PI_2;
 		GetLog() << " Node " << i << " DY=" << node_y << " DZ=" << node_z << "  angle=" << node_a << " [rad]\n";
 		file_out1 << node_y << " " << node_z << " " << node_a << "\n";
 	}
@@ -576,7 +576,7 @@ my_system.ChangeLcpSolverSpeed(matlab_solver_speed);
 	{
 		double node_y = endnodes[1][i]->GetPos().y - 1 * y_spacing;
 		double node_z = endnodes[1][i]->GetPos().z - i * z_spacing;
-		double node_a = atan2( endnodes[1][i]->GetA()->Get_A_Yaxis().y, endnodes[1][i]->GetA()->Get_A_Yaxis().z ) - CH_C_PI_2;
+		double node_a = atan2( endnodes[1][i]->GetA().Get_A_Yaxis().y, endnodes[1][i]->GetA().Get_A_Yaxis().z ) - CH_C_PI_2;
 		GetLog() << " Node " << i << " DY=" << node_y << " DZ=" << node_z << "  angle=" << node_a << " [rad]\n";
 		file_out2 << node_y << " " << node_z << " " << node_a << "\n";
 	}
@@ -585,7 +585,7 @@ my_system.ChangeLcpSolverSpeed(matlab_solver_speed);
 	{
 		double node_y = endnodes[2][i]->GetPos().y - 2 * y_spacing;
 		double node_z = endnodes[2][i]->GetPos().z - i * z_spacing;
-		double node_a = atan2( endnodes[2][i]->GetA()->Get_A_Yaxis().y, endnodes[2][i]->GetA()->Get_A_Yaxis().z ) - CH_C_PI_2;
+		double node_a = atan2( endnodes[2][i]->GetA().Get_A_Yaxis().y, endnodes[2][i]->GetA().Get_A_Yaxis().z ) - CH_C_PI_2;
 		GetLog() << " Node " << i << " DY=" << node_y << " DZ=" << node_z << "  angle=" << node_a << " [rad]\n";
 		file_out3 << node_y << " " << node_z << " " << node_a << "\n";
 	}

@@ -263,7 +263,41 @@ void ChLinkRevoluteSpherical::Update(double time)
 
 //// STATE BOOKKEEPING FUNCTIONS
 
- 
+void ChLinkRevoluteSpherical::IntStateGatherReactions(const unsigned int off_L,	ChVectorDynamic<>& L)
+{
+	if (!this->IsActive())
+		return;
+
+	L(off_L)   = m_cache_speed[0];
+	L(off_L+1) = m_cache_speed[1];
+}
+
+void ChLinkRevoluteSpherical::IntStateScatterReactions(const unsigned int off_L,	const ChVectorDynamic<>& L)
+{
+	if (!this->IsActive())
+		return;
+
+	m_cache_speed[0] = L(off_L);
+	m_cache_speed[1] = L(off_L+1);
+
+	// Also compute 'intuitive' reactions:
+
+  double     lam_dist = m_cache_speed[0];  // ||pos2_abs - pos1_abs|| - dist = 0
+  double     lam_dot = m_cache_speed[1];    // dot(dir1_abs, pos2_abs - pos1_abs) = 0
+
+  // Calculate the reaction torques and forces on Body 2 in the joint frame
+  // (Note: origin of the joint frame is at the center of the revolute joint
+  //  which is defined on body 1, the x-axis is along the vector from the  
+  //  point on body 1 to the point on body 2.  The z axis is along the revolute
+  //  axis defined for the joint)
+  react_force.x = lam_dist;
+  react_force.y = 0;
+  react_force.z = lam_dot;
+
+  react_torque.x = 0;
+  react_torque.y = -m_cur_dist*lam_dot;
+  react_torque.z = 0;
+}
 
 void ChLinkRevoluteSpherical::IntLoadResidual_CqL(
 					const unsigned int off_L,	 ///< offset in L multipliers

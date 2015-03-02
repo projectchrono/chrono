@@ -40,8 +40,8 @@ public:
   /// constructor, where only the body name must be specified.
   //  default mass, inertia, tensioner spring/damping constants for M113 APC
   IdlerSimple(const std::string& name,
-    VisualizationType::Enum vis = VisualizationType::Enum::Primitives,
-    CollisionType::Enum collide = CollisionType::Enum::Primitives,
+    VisualizationType::Enum vis = VisualizationType::Primitives,
+    CollisionType::Enum collide = CollisionType::Primitives,
     size_t chainSys_idx = 0,  ///< what chain system is this idler associated with?
     double mass = 429.6,
     const ChVector<>& Ixx = ChVector<>(12.55, 12.55, 14.7),

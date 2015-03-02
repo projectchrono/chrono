@@ -375,7 +375,97 @@ void ChLinkMateGeneric::Initialize(ChSharedPtr<ChBodyFrame> mbody1,	///< first b
 
 //// STATE BOOKKEEPING FUNCTIONS
 
- 
+
+void ChLinkMateGeneric::IntStateGatherReactions(const unsigned int off_L,	ChVectorDynamic<>& L)
+{
+	if (!this->IsActive())
+		return;
+
+	int nc = 0;
+	if (c_x) 
+	{
+		if (mask->Constr_N(nc).IsActive())
+			L(off_L+nc) = - react_force.x;
+		nc++;
+	}
+	if (c_y) 
+	{
+		if (mask->Constr_N(nc).IsActive())
+			L(off_L+nc) = - react_force.y;
+		nc++;
+	}
+	if (c_z) 
+	{
+		if (mask->Constr_N(nc).IsActive())
+			L(off_L+nc) = - react_force.z;
+		nc++;
+	}
+	if (c_rx) 
+	{
+		if (mask->Constr_N(nc).IsActive())
+			L(off_L+nc) = - 2*react_torque.x;
+		nc++;
+	}
+	if (c_ry) 
+	{
+		if (mask->Constr_N(nc).IsActive())
+			L(off_L+nc) = - 2*react_torque.y;
+		nc++;
+	}
+	if (c_rz) 
+	{
+		if (mask->Constr_N(nc).IsActive())
+			L(off_L+nc) = - 2*react_torque.z;
+		nc++;
+	}
+}
+
+void ChLinkMateGeneric::IntStateScatterReactions(const unsigned int off_L,	const ChVectorDynamic<>& L)
+{
+	react_force  = VNULL;
+	react_torque = VNULL;
+
+	if (!this->IsActive())
+		return;
+
+	int nc = 0;
+	if (c_x) 
+	{
+		if (mask->Constr_N(nc).IsActive())
+			react_force.x = - L(off_L+nc);
+		nc++;
+	}
+	if (c_y) 
+	{
+		if (mask->Constr_N(nc).IsActive())
+			react_force.y = - L(off_L+nc);
+		nc++;
+	}
+	if (c_z) 
+	{
+		if (mask->Constr_N(nc).IsActive())
+			react_force.z = - L(off_L+nc);
+		nc++;
+	}
+	if (c_rx) 
+	{
+		if (mask->Constr_N(nc).IsActive())
+			react_torque.x = - 0.5*L(off_L+nc);
+		nc++;
+	}
+	if (c_ry) 
+	{
+		if (mask->Constr_N(nc).IsActive())
+			react_torque.y = - 0.5*L(off_L+nc);
+		nc++;
+	}
+	if (c_rz) 
+	{
+		if (mask->Constr_N(nc).IsActive())
+			react_torque.z = - 0.5*L(off_L+nc);
+		nc++;
+	}
+}
 
 void ChLinkMateGeneric::IntLoadResidual_CqL(
 					const unsigned int off_L,	 ///< offset in L multipliers

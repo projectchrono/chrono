@@ -85,6 +85,7 @@ void ChContactDEM::CalculateForce()
 
   double dT = sys->GetStep();
   bool use_mat_props = sys->UseMaterialProperties();
+  bool use_history = sys->UseContactHistory();
   ContactForceModel force_model = sys->GetContactForceModel();
 
   // Relative velocity at contact
@@ -115,12 +116,9 @@ void ChContactDEM::CalculateForce()
   double gn;
   double gt;
 
-  double delta_t = 0;
+  double delta_t = use_history ? relvel_t_mag * dT : 0;
 
   switch (force_model) {
-
-  case Hooke_history:
-    delta_t = relvel_t_mag * dT;
 
   case Hooke:
     if (use_mat_props) {
@@ -139,9 +137,6 @@ void ChContactDEM::CalculateForce()
     }
 
     break;
-
-  case Hertz_history:
-    delta_t = relvel_t_mag * dT;
 
   case Hertz:
     if (use_mat_props) {

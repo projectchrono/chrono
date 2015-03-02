@@ -77,6 +77,24 @@ public:
     CONTACT_NONE_VAL        // print nothing
   };
 
+  enum eCh_LinkDrawMode {
+    LINK_REACT_FORCE = 0,   // draw reaction force
+    LINK_REACT_TORQUE,      // draw reaction torque
+    LINK_NONE               // draw nothing
+  };
+
+  enum eCh_LinkLabelMode {
+	LINK_REACT_FORCE_VAL = 0, // print reaction force modulus
+    LINK_REACT_FORCE_X,		// print reaction force x
+	LINK_REACT_FORCE_Y,		// print reaction force y
+	LINK_REACT_FORCE_Z,		// print reaction force z
+	LINK_REACT_TORQUE_VAL,	// print reaction torque modulus
+	LINK_REACT_TORQUE_X,	// print reaction torque x
+	LINK_REACT_TORQUE_Y,	// print reaction torque y
+	LINK_REACT_TORQUE_Z,	// print reaction torque z
+    LINK_NONE_VAL           // draw nothing
+  };
+
   /// Function to align an Irrlicht object to a Chrono::Engine coordsys.
   static void alignIrrlichtNodeToChronoCsys(scene::ISceneNode*          mnode,
                                             const chrono::ChCoordsys<>& mcoords);
@@ -95,6 +113,20 @@ public:
   static int drawAllContactLabels(chrono::ChSystem&     mphysicalSystem,
                                   irr::IrrlichtDevice*  device,
                                   eCh_ContactsLabelMode labeltype = CONTACT_FORCES_N_VAL,
+                                  video::SColor         mcol = video::SColor(255,255,255,255) );
+
+  /// Easy-to-use function which draws reaction forces in all contacts in
+  /// current Irrlicht viewer (the IVideoDriver). 
+  static int drawAllLinks(chrono::ChSystem&     mphysicalSystem,
+                                  video::IVideoDriver*  driver,
+                                  double                mlen = 1.0,
+                                  eCh_LinkDrawMode  drawtype = LINK_REACT_FORCE);
+
+  /// Easy-to-use function which draws contact informations as labels at the
+  /// contact point
+  static int drawAllLinkLabels(chrono::ChSystem&     mphysicalSystem,
+                                  irr::IrrlichtDevice*  device,
+                                  eCh_LinkLabelMode labeltype = LINK_REACT_FORCE_X,
                                   video::SColor         mcol = video::SColor(255,255,255,255) );
 
   /// Easy-to-use function which draws collision objects bounding boxes for

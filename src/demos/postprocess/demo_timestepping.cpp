@@ -465,7 +465,9 @@ int main(int argc, char* argv[])
 			/// nothing to do here- no constraints
 			virtual void LoadConstraint_C(
 				ChVectorDynamic<>& Qc,		 ///< result: the Qc residual, Qc += c*C 
-				const double c				 ///< a scaling factor
+				const double c,				 ///< a scaling factor
+				const bool do_clamp = false, ///< enable optional clamping of Qc
+				const double mclam = 1e30	 ///< clamping value
 				)
 			{};
 
@@ -578,6 +580,7 @@ int main(int argc, char* argv[])
 			double mvx;
 			double mvy;
 			double mlength;
+			double mreaction;
 		public:
 			MyIntegrable()
 			{
@@ -590,6 +593,7 @@ int main(int argc, char* argv[])
 				mpy = -mlength;
 				mvx = 0.2;
 				mvy = 0;	
+				mreaction = 0;
 			}
 
 			/// the number of coordinates in the state, x position part:
@@ -618,6 +622,10 @@ int main(int argc, char* argv[])
 				mT = T;
 			};
 			
+			/// Some timesteppers exploit persistence of reaction information
+			virtual void StateGatherReactions(ChVectorDynamic<>& L) { L(0) = mreaction;};
+			virtual void StateScatterReactions(const ChVectorDynamic<>& L) { mreaction = L(0); };
+
 			/// Compute the correction with linear system
 			///  Dv = [ c_a*M + c_v*dF/dv + c_x*dF/dx ]^-1 * R 
 			virtual void StateSolveCorrection(
@@ -663,8 +671,8 @@ int main(int argc, char* argv[])
 				const double c				 ///< a scaling factor
 				)
 			{
-				R(0) += c * (sin(mT * 20) * 0.0002 - this->K*mpx - this->R*mvx);
-				R(1) += c * 0;
+				R(0) += c * (sin(mT * 20) * 0.000 - this->K*mpx - this->R*mvx);
+				R(1) += c * -5; // vertical force
 			};
 
 			///    R += c*M*w 
@@ -694,7 +702,9 @@ int main(int argc, char* argv[])
 			///  Qc += c * C
 			virtual void LoadConstraint_C(
 				ChVectorDynamic<>& Qc,		 ///< result: the Qc residual, Qc += c*C 
-				const double c				 ///< a scaling factor
+				const double c,				 ///< a scaling factor
+				const bool do_clamp = false, ///< enable optional clamping of Qc
+				const double mclam = 1e30	 ///< clamping value
 				)
 			{
 				ChVector<> distpend(-mpx, -mpy, 0);
@@ -713,6 +723,7 @@ int main(int argc, char* argv[])
 
 		// Create a file to dump results
 		ChStreamOutAsciiFile log_file5("log_timestepper_5.dat");
+		ChStreamOutAsciiFile log_file5r("log_timestepper_5r.dat");
 
 
 		// Create and object from your custom integrable class:
@@ -729,7 +740,7 @@ int main(int argc, char* argv[])
 		ChTimestepperHHT				 mystepper4(mintegrable4);
 		ChTimestepperHHT				 mystepper5(mintegrable5);
 		mystepper4.SetAlpha(0);		// HHT with no dissipation -> trapezoidal
-		mystepper5.SetAlpha(-0.2);  // HHT with max dissipation 
+		mystepper5.SetAlpha(-0.2);  // HHT with dissipation 
 
 		// Execute the time integration
 		while (mystepper1.GetTime() <12)
@@ -748,6 +759,13 @@ int main(int argc, char* argv[])
 				<< ", " << mystepper4.get_X()(0) << ", " << mystepper4.get_X()(1) << ", " << mystepper4.get_V()(0) << ", " << mystepper4.get_V()(1)
 				<< ", " << mystepper5.get_X()(0) << ", " << mystepper5.get_X()(1) << ", " << mystepper5.get_V()(0) << ", " << mystepper5.get_V()(1)
 				<< "\n";
+			log_file5r << mystepper1.GetTime() 
+				<< ", " << mystepper1.get_L()(0)
+				<< ", " << mystepper2.get_L()(0)
+				<< ", " << mystepper3.get_L()(0)
+				<< ", " << mystepper4.get_L()(0)
+				<< ", " << mystepper5.get_L()(0)
+				<< "\n";
 		}
 
 		ChGnuPlot mplot("log_timestepper_5.gpl");
@@ -761,9 +779,21 @@ int main(int argc, char* argv[])
 		mplot.Plot("log_timestepper_5.dat", 1,10, "Trapezoidal", " with lines");
 		mplot.Plot("log_timestepper_5.dat", 1,14, "HHT alpha=0", " with lines");
 		mplot.Plot("log_timestepper_5.dat", 1,18, "HHT alpha=-0.2", " with lines");
+
 		mplot.OutputWindow(1);
 		mplot.SetGrid();
-		mplot.SetTitle("Test: DAE, constrained pendulum");
+		mplot.SetTitle("Test: DAE, constrained pendulum reactions");
+		mplot.SetLabelX("t [s]");
+		mplot.SetLabelY("R [N]");
+		mplot.Plot("log_timestepper_5r.dat", 1,2, "Euler impl. lineariz.",   " with lines");
+		mplot.Plot("log_timestepper_5r.dat", 1,3, "Euler impl.",   " with lines");
+		mplot.Plot("log_timestepper_5r.dat", 1,4, "Trapezoidal", " with lines");
+		mplot.Plot("log_timestepper_5r.dat", 1,5, "HHT alpha=0", " with lines");
+		mplot.Plot("log_timestepper_5r.dat", 1,6, "HHT alpha=-0.2", " with lines");
+
+		mplot.OutputWindow(2);
+		mplot.SetGrid();
+		mplot.SetTitle("Test: DAE, constrained pendulum trajectory");
 		mplot.SetLabelX("x");
 		mplot.SetLabelY("y");
 		mplot.SetRangeX(-0.15,0.15);
@@ -774,6 +804,8 @@ int main(int argc, char* argv[])
 		mplot.Plot("log_timestepper_5.dat", 10,11, "Trapezoidal", " pt 2");
 		mplot.Plot("log_timestepper_5.dat", 14,15, "HHT alpha=0", " pt 3");
 		mplot.Plot("log_timestepper_5.dat", 18,19, "HHT alpha=-0.2", " pt 4");
+
+
 	}
 
 

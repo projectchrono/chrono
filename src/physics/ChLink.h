@@ -80,10 +80,6 @@ public:
 
 
 
-				/// If this link has been created automatically by 
-				/// collision detection, returns true (false by default). (Was used in the past, now useless)
-	virtual bool IsCreatedByCollisionDetection() {return false;};
-
 				/// Get the type identifier of this link. Use if you don't want to use RTTI for performance.
 	virtual int GetType	() {return LNK_BASE;}
 
@@ -104,28 +100,25 @@ public:
 				/// By default is in the origin of Body2, but child classes should implement this.
 	virtual ChCoordsys<> GetLinkRelativeCoords() {return CSYSNORM;}
 
-				/// Get the master coordinate system for the assets (should be implemented 
-				/// by children classes)
-	virtual ChFrame<> GetAssetsFrame(unsigned int nclone=0) { return ChFrame<>();}
+				/// Get the link coordinate system in absolute reference.
+				/// This represents the 'main' reference of the link: reaction forces 
+				/// and reaction torques are expressed in this coordinate system.
+				/// Child classes should implement this.
+	virtual ChCoordsys<> GetLinkAbsoluteCoords() {return GetLinkRelativeCoords() >> Body2->GetCoord();}
+
+
 
 
 				/// To get reaction force, expressed in link coordinate system:
-	ChVector<> Get_react_force() const {return react_force;}
+	virtual ChVector<> Get_react_force() {return react_force;}
 				/// To get reaction torque,  expressed in link coordinate system:
-	ChVector<> Get_react_torque() const {return react_torque;}
+	virtual ChVector<> Get_react_torque() {return react_torque;}
 
 
 				/// If some constraint is redundant, return to normal state  //***OBSOLETE***
 	virtual int  RestoreRedundant() {return 0;};  ///< \return number of changed constraints
 
-				// Sets the link to work only in 2D mode  //***OBSOLETE***
-				// mode=1 use only constraints for 2D xy plane, mode=0 switch back to 3D.
-	virtual void Set2Dmode(int mode);  
 
-				/// Tells if this link requires that the connected ChBody objects
-				/// must be waken if they are sleeping. By default =true, i.e. always keep awaken, but
-				/// child classes might return false for optimizing sleeping, in case no time-dependant.
-	virtual bool IsRequiringWaking() {return true;}
 
 			//
 			// UPDATING FUNCTIONS

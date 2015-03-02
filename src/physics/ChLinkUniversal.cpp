@@ -233,7 +233,55 @@ void ChLinkUniversal::Update(double time)
 
 //// STATE BOOKKEEPING FUNCTIONS
 
- 
+void ChLinkUniversal::IntStateGatherReactions(const unsigned int off_L,	ChVectorDynamic<>& L)
+{
+	if (!this->IsActive())
+		return;
+
+	L(off_L)   = m_cache_speed[0];
+	L(off_L+1) = m_cache_speed[1];
+	L(off_L+2) = m_cache_speed[2];
+	L(off_L+3) = m_cache_speed[3];
+}
+
+void ChLinkUniversal::IntStateScatterReactions(const unsigned int off_L,	const ChVectorDynamic<>& L)
+{
+	if (!this->IsActive())
+		return;
+
+	m_cache_speed[0] = L(off_L);
+	m_cache_speed[1] = L(off_L+1);
+	m_cache_speed[2] = L(off_L+2);
+	m_cache_speed[3] = L(off_L+3);
+
+	// Also compute 'intuitive' reactions:
+
+   // Extract the Lagrange multipliers for the 3 spherical constraints and for
+  // the dot constraint.
+  ChVector<> lam_sph(m_cache_speed[0], m_cache_speed[1], m_cache_speed[2]);
+  double     lam_dot = m_cache_speed[3];
+
+
+  // Calculate the reaction force and torque acting on the 2nd body at the joint
+  // location, expressed in the joint reference frame.  Taking into account the
+  // sign with which Lagrange multipliers show up in the EOM in Chrono, we get:
+  //   F = C^T * A_2^T * Phi_r2^T * lam
+  //   T = C^T * ( Phi_pi2^T - tilde(s2') * A_2^T * Phi_r2^T ) * lam
+  // For the universal joint, after some manipulations, we have:
+  //   F = C^T * A_2^T * lam_sph
+  //   T = C^T * tilde(v2') *A_2^T * u1 * lam_dot
+  //     = -C^T * [A_2 * tilde(v2')]^T * u1 * lam_dot
+
+  // Reaction force
+  ChVector<> F2 = Body2->GetA().MatrT_x_Vect(lam_sph);
+  react_force = m_frame2.GetA().MatrT_x_Vect(F2);
+
+  // Reaction torque
+  ChVector<> u1 = Body1->TransformDirectionLocalToParent(m_frame1.GetA().Get_A_Xaxis());
+  ChMatrix33<> mat2 = Body2->GetA() * m_v2_tilde;
+  ChVector<> T2 = mat2.MatrT_x_Vect(u1) * lam_dot;
+  react_torque = -m_frame2.GetA().MatrT_x_Vect(T2);
+}
 
 void ChLinkUniversal::IntLoadResidual_CqL(
 					const unsigned int off_L,	 ///< offset in L multipliers

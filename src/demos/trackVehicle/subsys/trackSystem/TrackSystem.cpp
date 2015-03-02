@@ -17,6 +17,7 @@
 // =============================================================================
 
 #include <cstdio>
+#include <sstream>
 
 #include "subsys/trackSystem/TrackSystem.h"
 
@@ -120,29 +121,37 @@ void TrackSystem::Create(int track_idx)
 
 void TrackSystem::BuildSubsystems()
 {
+  std::stringstream gearName;
+  gearName << "drive gear "<< m_track_idx;
   // build one of each of the following subsystems. VisualizationType and CollisionType defaults are PRIMITIVES
-  m_driveGear = ChSharedPtr<DriveGear>(new DriveGear("drive gear "+std::to_string(m_track_idx),
-    VisualizationType::Enum::Mesh,
-   //  CollisionType::Enum::Primitives) );
-    // VisualizationType::Enum::CompoundPrimitives,
-    CollisionType::Enum::CallbackFunction));
+  m_driveGear = ChSharedPtr<DriveGear>(new DriveGear(gearName.str(),
+    VisualizationType::Mesh,
+   //  CollisionType::Primitives) );
+    // VisualizationType::CompoundPrimitives,
+    CollisionType::CallbackFunction));
 
-  m_idler = ChSharedPtr<IdlerSimple>(new IdlerSimple("idler "+std::to_string(m_track_idx),
-    VisualizationType::Enum::Mesh,
-    CollisionType::Enum::Primitives) );
+  std::stringstream idlerName;
+  idlerName << "idler " << m_track_idx;
+  m_idler = ChSharedPtr<IdlerSimple>(new IdlerSimple(idlerName.str(),
+    VisualizationType::Mesh,
+    CollisionType::Primitives) );
 
-  m_chain = ChSharedPtr<TrackChain>(new TrackChain("chain "+std::to_string(m_track_idx),
-    // VisualizationType::Enum::Primitives,
-    VisualizationType::Enum::CompoundPrimitives,
-    CollisionType::Enum::Primitives) );
-    // CollisionType::Enum::CompoundPrimitives) );
+  std::stringstream chainname;
+  chainname << "chain " << m_track_idx;
+  m_chain = ChSharedPtr<TrackChain>(new TrackChain(chainname.str(),
+    // VisualizationType::Primitives,
+    VisualizationType::CompoundPrimitives,
+    CollisionType::Primitives) );
+    // CollisionType::CompoundPrimitives) );
   
   // build suspension/road wheel subsystems
   for(int i = 0; i < m_numSuspensions; i++)
   {
-    m_suspensions[i] = ChSharedPtr<TorsionArmSuspension>(new TorsionArmSuspension("suspension "+std::to_string(i) +", chain "+std::to_string(m_track_idx),
-      VisualizationType::Enum::Primitives,
-      CollisionType::Enum::Primitives) );
+    std::stringstream susp_name;
+    susp_name << "suspension " << i << ", chain " << m_track_idx;
+    m_suspensions[i] = ChSharedPtr<TorsionArmSuspension>(new TorsionArmSuspension(susp_name.str(),
+      VisualizationType::Primitives,
+      CollisionType::Primitives) );
   }
 
 }
@@ -163,16 +172,16 @@ void TrackSystem::Initialize(ChSharedPtr<ChBodyAuxRef> chassis,
   // Create list of the center location of the rolling elements and their clearance.
   // Clearance is a sphere shaped envelope at each center location, where it can
   //  be guaranteed that the track chain geometry will not penetrate the sphere.
-  std::vector<ChVector<>> rolling_elem_locs; // w.r.t. chassis ref. frame
+  std::vector<ChVector<> > rolling_elem_locs; // w.r.t. chassis ref. frame
   std::vector<double> clearance;  // 1 per rolling elem
-  std::vector<ChVector<>> rolling_elem_spin_axis; /// w.r.t. abs. frame
+  std::vector<ChVector<> > rolling_elem_spin_axis; /// w.r.t. abs. frame
 
   // initialize 1 of each of the following subsystems.
   // will use the chassis ref frame to do the transforms, since the TrackSystem
   // local ref. frame has same rot (just difference in position)
-  m_driveGear->Initialize(chassis, 
-    chassis->GetFrame_REF_to_abs(),
-    ChCoordsys<>(m_local_pos + Get_gearPosRel(), QUNIT) );
+  // NOTE: move drive Gear Init() AFTER the chain of shoes is created, since
+  //        need the list of shoes to be passed in to create custom collision w/ gear
+  // HOWEVER, still add the info to the rolling element lists passed into TrackChain Init().  
 
   // drive sprocket is First added to the lists passed into TrackChain Init()
   rolling_elem_locs.push_back(m_local_pos + Get_gearPosRel() );
@@ -216,6 +225,13 @@ void TrackSystem::Initialize(ChSharedPtr<ChBodyAuxRef> chassis,
     chassis->GetFrame_REF_to_abs(),
     rolling_elem_locs, clearance, rolling_elem_spin_axis,
     start_pos );
+
+  // chain of shoes available for gear init
+  m_driveGear->Initialize(chassis, 
+    chassis->GetFrame_REF_to_abs(),
+    ChCoordsys<>(m_local_pos + Get_gearPosRel(), QUNIT),
+    m_chain->GetShoeBody() );
+
 
 }
 

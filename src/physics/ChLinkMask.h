@@ -195,10 +195,6 @@ public:
 	ChLcpConstraintTwoBodies& Constr_E2() {return *constraints[5];}
 	ChLcpConstraintTwoBodies& Constr_E3() {return *constraints[6];}
 
-		// If =1, free costraints not used for bidimensional simulation (Z movement and
-	    // Qx,Qy rotations (it is assumed that both markers have Z axis orthogonl to XY abs. plane)
-		// If =0, return to the 3d mode.
-	int Set2Dmode(int mode);
 
 			//
 			// STREAMING

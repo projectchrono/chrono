@@ -187,7 +187,7 @@ void IdlerSimple::AddVisualization(size_t chain_idx,
 
   // add visualization asset
   switch (m_vis) {
-  case VisualizationType::Enum::Primitives:
+  case VisualizationType::Primitives:
   {
     ChSharedPtr<ChCylinderShape> cylA(new ChCylinderShape);
     // define the shape with two concentric cyclinders, with a gap.
@@ -214,7 +214,7 @@ void IdlerSimple::AddVisualization(size_t chain_idx,
 
     break;
   }
-   case VisualizationType::Enum::Mesh:
+   case VisualizationType::Mesh:
   {
     geometry::ChTriangleMeshConnected trimesh;
     trimesh.LoadWavefrontMesh(getMeshFile(), true, false);
@@ -248,7 +248,7 @@ void IdlerSimple::AddCollisionGeometry(double mu,
                                        double mu_spin)
 {
   // add collision geometrey to the chassis, if enabled
-  if(m_collide == CollisionType::Enum::None)
+  if(m_collide == CollisionType::None)
   {
       m_idler->SetCollide(false);
       GetLog() << " !!! Idler " << m_idler->GetName() << " collision deactivated !!! \n\n";
@@ -268,7 +268,7 @@ void IdlerSimple::AddCollisionGeometry(double mu,
   m_idler->GetMaterialSurface()->SetSpinningFriction(mu_spin);
 
   switch (m_collide) {
-  case CollisionType::Enum::Primitives:
+  case CollisionType::Primitives:
   {
     double cyl_width = 0.5*(m_width - m_widthGap);
     ChVector<> shape_offset =  ChVector<>(0, 0, 0.5*(cyl_width + m_widthGap));
@@ -283,7 +283,7 @@ void IdlerSimple::AddCollisionGeometry(double mu,
 
     break;
   }
-  case CollisionType::Enum::Mesh:
+  case CollisionType::Mesh:
   {
     // use a triangle mesh
    
@@ -299,7 +299,7 @@ void IdlerSimple::AddCollisionGeometry(double mu,
 
     break;
   }
-  case CollisionType::Enum::ConvexHull:
+  case CollisionType::ConvexHull:
   {
     // use convex hulls, loaded from file
     ChStreamInAsciiFile chull_file(GetChronoDataFile("idler.chulls").c_str());
@@ -320,13 +320,13 @@ void IdlerSimple::AddCollisionGeometry(double mu,
   } // end switch
 
   // setup collision family, idler is a rolling element
-  m_idler->GetCollisionModel()->SetFamily( (int)CollisionFam::WHEELS );
+  m_idler->GetCollisionModel()->SetFamily( (int)CollisionFam::Wheel );
   
   // don't collide with the other wheels, nor ground
-  m_idler->GetCollisionModel()->SetFamilyMaskNoCollisionWithFamily( (int)CollisionFam::WHEELS );
-  m_idler->GetCollisionModel()->SetFamilyMaskNoCollisionWithFamily((int)CollisionFam::HULL);
-  m_idler->GetCollisionModel()->SetFamilyMaskNoCollisionWithFamily((int)CollisionFam::GEAR);
-  m_idler->GetCollisionModel()->SetFamilyMaskNoCollisionWithFamily((int)CollisionFam::GROUND);
+  m_idler->GetCollisionModel()->SetFamilyMaskNoCollisionWithFamily( (int)CollisionFam::Wheel );
+  m_idler->GetCollisionModel()->SetFamilyMaskNoCollisionWithFamily((int)CollisionFam::Hull);
+  m_idler->GetCollisionModel()->SetFamilyMaskNoCollisionWithFamily((int)CollisionFam::Gear);
+  m_idler->GetCollisionModel()->SetFamilyMaskNoCollisionWithFamily((int)CollisionFam::Ground);
 
   m_idler->GetCollisionModel()->BuildModel();
 }

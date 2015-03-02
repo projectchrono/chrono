@@ -174,6 +174,15 @@ void ChShaftsGearboxAngled::IntFromLCP(
 
 ////////// LCP INTERFACES ////
 
+void ChShaftsGearboxAngled::IntStateGatherReactions(const unsigned int off_L,	ChVectorDynamic<>& L)
+{
+	L(off_L)   = this->torque_react;
+}
+
+void ChShaftsGearboxAngled::IntStateScatterReactions(const unsigned int off_L,	const ChVectorDynamic<>& L)
+{
+	this->torque_react = L(off_L);
+}
 
 void ChShaftsGearboxAngled::InjectConstraints(ChLcpSystemDescriptor& mdescriptor)
 {

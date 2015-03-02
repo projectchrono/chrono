@@ -39,8 +39,8 @@ class CH_SUBSYS_API LoopChain : public ChTrackVehicle
 public:
 
   LoopChain(const std::string& name,
-    VisualizationType::Enum chassisVis = VisualizationType::Enum::Primitives,
-    CollisionType::Enum chassisCollide = CollisionType::Enum::Primitives,
+    VisualizationType::Enum chassisVis = VisualizationType::Primitives,
+    CollisionType::Enum chassisCollide = CollisionType::Primitives,
     double gearMass = 100.0,
     const ChVector<>& gearIxx = ChVector<>(10,10,10) ,
     size_t num_idlers = 2,
@@ -110,7 +110,7 @@ protected:
   // private variables
   // <ChBodyAuxRef> m_chassis   in base class
   ChSharedPtr<DriveGear> m_gear;  		///< drive gear
-  std::vector<ChSharedPtr<IdlerSimple>>	m_idlers;	///< idler wheel
+  std::vector<ChSharedPtr<IdlerSimple> >	m_idlers;	///< idler wheel
   size_t m_num_idlers;  ///< number of idlers to create
   ChSharedPtr<TrackChain> m_chain;    ///< chain
 
@@ -118,7 +118,7 @@ protected:
   
   ChSharedPtr<TrackPowertrain>  m_ptrain;  ///< powertrain system
 
-  std::vector<ChSharedPtr<SupportRoller>> m_rollers;  ///< passive support rollers
+  std::vector<ChSharedPtr<SupportRoller> > m_rollers;  ///< passive support rollers
   size_t m_num_rollers;
 	
 

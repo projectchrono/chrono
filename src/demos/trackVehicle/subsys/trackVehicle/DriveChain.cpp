@@ -104,9 +104,9 @@ DriveChain::DriveChain(const std::string& name,
   double tensioner_K = 40e3;
   double tensioner_C = tensioner_K * 0.08;
   m_idlers[0] = ChSharedPtr<IdlerSimple>(new IdlerSimple("idler",
-    VisualizationType::Enum::Mesh,
-    // VisualizationType::Enum::Primitives,
-    CollisionType::Enum::Primitives,
+    VisualizationType::Mesh,
+    // VisualizationType::Primitives,
+    CollisionType::Primitives,
     0,
     idler_mass,
     idler_Ixx,
@@ -117,8 +117,8 @@ DriveChain::DriveChain(const std::string& name,
   double shoe_mass = 18.03/4.0; // 18.03
   ChVector<> shoe_Ixx(0.22/4.0, 0.25/4.0, 0.04/4.0);  // 0.22, 0.25, 0.04
   m_chain = ChSharedPtr<TrackChain>(new TrackChain("chain",
-    VisualizationType::Enum::CompoundPrimitives,
-    CollisionType::Enum::Primitives,
+    VisualizationType::CompoundPrimitives,
+    CollisionType::Primitives,
     0,
     shoe_mass,
     shoe_Ixx) );
@@ -140,9 +140,12 @@ DriveChain::DriveChain(const std::string& name,
       (3.0*roller_r*roller_r + roller_w*roller_w)/12.0,
       roller_r*roller_r/2.0);
     GetLog() << " I just manually calculated inertia, uh-oh \n\n Ixx = " << roller_Ixx << "\n";
-    m_rollers[j] = ChSharedPtr<SupportRoller>(new SupportRoller("support roller " +std::to_string(j),
-      VisualizationType::Enum::Primitives,
-      CollisionType::Enum::Primitives,
+
+    std::stringstream sr_s;
+    sr_s << "support roller " << j;
+    m_rollers[j] = ChSharedPtr<SupportRoller>(new SupportRoller(sr_s.str(),
+      VisualizationType::Primitives,
+      CollisionType::Primitives,
       0,
       roller_mass,
       roller_Ixx) );
@@ -152,9 +155,9 @@ DriveChain::DriveChain(const std::string& name,
   {
     // for now, just create 1 more idler
     m_idlers[1] = ChSharedPtr<IdlerSimple>(new IdlerSimple("idler 2",
-    VisualizationType::Enum::Mesh,
-    // VisualizationType::Enum::Primitives,
-    CollisionType::Enum::Primitives,
+    VisualizationType::Mesh,
+    // VisualizationType::Primitives,
+    CollisionType::Primitives,
     0,
     idler_mass,
     idler_Ixx) );
@@ -180,17 +183,15 @@ void DriveChain::Initialize(const ChCoordsys<>& gear_Csys)
   // Create list of the center location of the rolling elements and their clearance.
   // Clearance is a sphere shaped envelope at each center location, where it can
   //  be guaranteed that the track chain geometry will not penetrate the sphere.
-  std::vector<ChVector<>> rolling_elem_locs; // w.r.t. chassis ref. frame
+  std::vector<ChVector<> > rolling_elem_locs; // w.r.t. chassis ref. frame
   std::vector<double> clearance;  // 1 per rolling elem  
-  std::vector<ChVector<>> rolling_elem_spin_axis; /// w.r.t. abs. frame
+  std::vector<ChVector<> > rolling_elem_spin_axis; /// w.r.t. abs. frame
   
 
   // initialize 1 of each of the following subsystems.
   // will use the chassis ref frame to do the transforms, since the TrackSystem
   // local ref. frame has same rot (just difference in position)
-  m_gear->Initialize(m_chassis, 
-    m_chassis->GetFrame_REF_to_abs(),
-    ChCoordsys<>());
+  // NOTE: move Gear Init() to after TrackChain Init(), but still add Gear info to list first.
 
   // drive sprocket is First added to the lists passed into TrackChain Init()
   rolling_elem_locs.push_back(ChVector<>() );
@@ -254,6 +255,12 @@ void DriveChain::Initialize(const ChCoordsys<>& gear_Csys)
   
   // can set pin friction between adjoining shoes by activing damping on the DOF
   // m_chain->Set_pin_friction(2.0); // [N-m-sec] ???
+
+  // now, init the gear
+  m_gear->Initialize(m_chassis, 
+    m_chassis->GetFrame_REF_to_abs(),
+    ChCoordsys<>(),
+    m_chain->GetShoeBody() );
 
   // initialize the powertrain, drivelines
   m_ptrains[0]->Initialize(m_chassis, m_gear->GetAxle() );
@@ -346,7 +353,7 @@ int DriveChain::reportGearContact(ChVector<>& Fn_info, ChVector<>& Ft_info)
                                        collision::ChCollisionModel* modB)
     {
       // does this collision include the gear?
-      if( modA->GetFamily() == (int)CollisionFam::GEAR || modB->GetFamily() == (int)CollisionFam::GEAR)
+      if( modA->GetFamily() == (int)CollisionFam::Gear || modB->GetFamily() == (int)CollisionFam::Gear)
       {
         // don't count collisions w/ 0 normal force
         if( react_forces.x > 0 )
@@ -440,11 +447,11 @@ int DriveChain::reportGearContact(ChVector<>& Fn_info, ChVector<>& Ft_info)
 // PosRel, VRel = relative pos, vel of contact point, relative to gear c-sys
 // NormDirRel = tracked contact normal dir., w.r.t. gear c-sys
 int DriveChain::reportShoeGearContact(const std::string& shoe_name,
-                                      std::vector<ChVector<>>& SG_info,
-                                      std::vector<ChVector<>>& Force_mag_info,
-                                      std::vector<ChVector<>>& PosRel_contact,
-                                      std::vector<ChVector<>>& VRel_contact,
-                                      std::vector<ChVector<>>& NormDirRel_contact)
+                                      std::vector<ChVector<> >& SG_info,
+                                      std::vector<ChVector<> >& Force_mag_info,
+                                      std::vector<ChVector<> >& PosRel_contact,
+                                      std::vector<ChVector<> >& VRel_contact,
+                                      std::vector<ChVector<> >& NormDirRel_contact)
 {
   
   // scans the contacts, reports the desired info about any shoe 0 and gear collision pairs
@@ -458,7 +465,7 @@ int DriveChain::reportShoeGearContact(const std::string& shoe_name,
                                       const ChVector<>& pB,
                                       collision::ChCollisionModel* modA,
                                       collision::ChCollisionModel* modB,
-                                      CollisionFam fam)
+                                      CollisionFam::Enum fam)
     {
       ChVector<> pos_abs = ChVector<>();
       ChFrame<> body_frame = ChFrame<>();
@@ -488,7 +495,7 @@ int DriveChain::reportShoeGearContact(const std::string& shoe_name,
     const ChVector<> getContactNormDirRel(const ChVector<> normDir_abs,
                                       collision::ChCollisionModel* modA,
                                       collision::ChCollisionModel* modB,
-                                      CollisionFam fam)
+                                      CollisionFam::Enum fam)
     {
       // TODO: does the normal direction switch depending on which collision model ends up being = to fam ???
       ChFrame<> body_frame = ChFrame<>(); // should end up being the gear body orientation
@@ -537,7 +544,7 @@ int DriveChain::reportShoeGearContact(const std::string& shoe_name,
       const ChVector<>& react_forces,
       collision::ChCollisionModel* modA,
       collision::ChCollisionModel* modB,
-      CollisionFam fam,
+      CollisionFam::Enum fam,
       int idx)
     {
       m_Fn[idx] = react_forces.x;
@@ -546,14 +553,14 @@ int DriveChain::reportShoeGearContact(const std::string& shoe_name,
       {
         // gear body is A, normal will point in the right direction
         m_NormDirRel[idx] = getContactNormDirRel(plane_coord.Get_A_Xaxis(),modA,modB,
-          CollisionFam::GEAR);
+          CollisionFam::Gear);
         m_PosAbs[idx] = pA;
         m_NormDirAbs[idx] = plane_coord.Get_A_Xaxis();
       }
       else {
         // gear body is B, switch normal dir
         m_NormDirRel[idx] = getContactNormDirRel(-(plane_coord.Get_A_Xaxis()),modA,modB,
-          CollisionFam::GEAR);
+          CollisionFam::Gear);
         m_PosAbs[idx] = pB;
         m_NormDirAbs[idx] = -(plane_coord.Get_A_Xaxis());
 
@@ -568,7 +575,7 @@ int DriveChain::reportShoeGearContact(const std::string& shoe_name,
                         const ChVector<>& react_forces,
                         collision::ChCollisionModel* modA,
                         collision::ChCollisionModel* modB,
-                        CollisionFam fam)
+                        CollisionFam::Enum fam)
     {
       if( modA->GetFamily() == (int)fam)
       {
@@ -595,8 +602,8 @@ int DriveChain::reportShoeGearContact(const std::string& shoe_name,
                                        collision::ChCollisionModel* modB)
     {
       // if in contact with the gear, and the other body is the specified shoe
-      if( (modA->GetFamily() == (int)CollisionFam::GEAR && modB->GetPhysicsItem()->GetNameString() == m_shoe_name )
-        || (modB->GetFamily() == (int)CollisionFam::GEAR && modA->GetPhysicsItem()->GetNameString() == m_shoe_name ) )
+      if( (modA->GetFamily() == (int)CollisionFam::Gear && modB->GetPhysicsItem()->GetNameString() == m_shoe_name )
+        || (modB->GetFamily() == (int)CollisionFam::Gear && modA->GetPhysicsItem()->GetNameString() == m_shoe_name ) )
       {
         // don't count collisions w/ normal force = 0
         if( react_forces.x > 0 )
@@ -606,7 +613,7 @@ int DriveChain::reportShoeGearContact(const std::string& shoe_name,
 
           // get the relative location of the contact point on the gear body
           ChVector<> gearpt_PosRel = getContactLocRel(pA,pB,modA,modB,
-            CollisionFam::GEAR);
+            CollisionFam::Gear);
 
           // positive z-relative position will be index 0, else index 1.
           int index = (gearpt_PosRel.z > 0) ? 0 : 1;
@@ -623,7 +630,7 @@ int DriveChain::reportShoeGearContact(const std::string& shoe_name,
             // set some other useful data
             // get the normal force direction relative to the gear
             SetPeristentContactInfo(pA,pB, plane_coord, react_forces, modA, modB, 
-              CollisionFam::GEAR,
+              CollisionFam::Gear,
               index);
 
             if(0)
@@ -655,7 +662,7 @@ int DriveChain::reportShoeGearContact(const std::string& shoe_name,
 
               // set the other data
               SetPeristentContactInfo(pA,pB, plane_coord, react_forces, modA, modB, 
-                CollisionFam::GEAR,
+                CollisionFam::Gear,
                 index);
 
             }
@@ -664,7 +671,7 @@ int DriveChain::reportShoeGearContact(const std::string& shoe_name,
               // this is a different the point on the shoe than the one tracked,
               // want to be able to plot it in Irrlicht
               AddContactInfo_all(pA,pB,plane_coord,react_forces,modA,modB,
-                CollisionFam::GEAR);
+                CollisionFam::Gear);
             }
           }
         }
@@ -685,11 +692,11 @@ int DriveChain::reportShoeGearContact(const std::string& shoe_name,
     std::vector<double> m_t_persist;     // time the contacts have been in persistent contact
     std::vector<double> m_t_persist_max; // max time the shoe stayed in contact with the gear
     std::vector<int> m_num_contacts_side;
-    std::vector<ChVector<>> m_PosRel;  // position of a contact to follow, relative to gear c-sys
-    std::vector<ChVector<>> m_PosAbs;
-    std::vector<ChVector<>> m_VelRel;  // velocity of contact followed, relative to gear c-sys
-    std::vector<ChVector<>> m_NormDirRel;  // relative norm. dir of contact
-    std::vector<ChVector<>> m_NormDirAbs;
+    std::vector<ChVector<> > m_PosRel;  // position of a contact to follow, relative to gear c-sys
+    std::vector<ChVector<> > m_PosAbs;
+    std::vector<ChVector<> > m_VelRel;  // velocity of contact followed, relative to gear c-sys
+    std::vector<ChVector<> > m_NormDirRel;  // relative norm. dir of contact
+    std::vector<ChVector<> > m_NormDirAbs;
     std::vector<bool> m_is_persistentContact_set; // has a contact point to follow been chosen? if yes, check to see, else write to above coord
 
     std::vector<double> m_Fn;  // normal force this step
@@ -698,8 +705,8 @@ int DriveChain::reportShoeGearContact(const std::string& shoe_name,
     // all other contacts
     int m_num_shoeGear_contacts_Pz; // # of contacts with z-positive, relative to gear c-sys
     int m_num_shoeGear_contacts_Nz; // # of contacts with z-negative, relative to gear c-sys
-    std::vector<ChVector<>> m_ContactPos_all; // abs. coords, for irrlicht
-    std::vector<ChVector<>> m_ContactFn_all;  // abs. coords, for irrlicht vis
+    std::vector<ChVector<> > m_ContactPos_all; // abs. coords, for irrlicht
+    std::vector<ChVector<> > m_ContactFn_all;  // abs. coords, for irrlicht vis
 
   };
 
@@ -957,12 +964,12 @@ void DriveChain::Log_to_console(int console_what)
     if(1)
     {
       //  specify some collision info with the gear
-      std::vector<ChVector<>> sg_info;  // output data set
-      std::vector<ChVector<>> Force_mag_info;  // contact forces, (Fn, Ft, 0),
-      std::vector<ChVector<>> Ft_info;  // per step friction contact force statistics
-      std::vector<ChVector<>> PosRel_contact; // location of contact point, relative to gear c-sysss
-      std::vector<ChVector<>> VRel_contact; // velocity of contact point, relative to gear c-sys
-      std::vector<ChVector<>> NormDirRel_contact; // tracked contact normal dir., w.r.t. gear c-sys
+      std::vector<ChVector<> > sg_info;  // output data set
+      std::vector<ChVector<> > Force_mag_info;  // contact forces, (Fn, Ft, 0),
+      std::vector<ChVector<> > Ft_info;  // per step friction contact force statistics
+      std::vector<ChVector<> > PosRel_contact; // location of contact point, relative to gear c-sysss
+      std::vector<ChVector<> > VRel_contact; // velocity of contact point, relative to gear c-sys
+      std::vector<ChVector<> > NormDirRel_contact; // tracked contact normal dir., w.r.t. gear c-sys
       // sg_info = (Num_contacts, t_persist, t_persist_max)
       reportShoeGearContact(m_chain->GetShoeBody(0)->GetNameString(),
         sg_info,
@@ -1031,6 +1038,16 @@ void DriveChain::Log_to_console(int console_what)
   
   }
 
+  if(console_what & DBG_COLLISIONCALLBACK)
+  {
+    GetLog() << "\n ---- collision callback info :"
+      << "\n Contacts this step: " << m_gear->GetCollisionCallback()->GetNcontacts()
+      << "\n Broadphase passed this step: " << m_gear->GetCollisionCallback()->GetNbroadPhasePassed()
+      << "\n Sum contacts, +z side: " << m_gear->GetCollisionCallback()->Get_sum_Pz_contacts()
+      << "\n Sum contacts, -z side: " << m_gear->GetCollisionCallback()->Get_sum_Nz_contacts()
+      <<"\n";
+  }
+
   GetLog().SetNumFormat("%g");
 
 }
@@ -1069,11 +1086,11 @@ void DriveChain::Log_to_file()
 
       // second file, to specify some collision info with the gear
       double num_contacts = 0;
-      std::vector<ChVector<>> sg_info;  // output data set
-      std::vector<ChVector<>> Force_mag_info;  // per step contact force magnitude, (Fn, Ft, 0)
-      std::vector<ChVector<>> PosRel_contact; // location of a contact point relative to the gear c-sys
-      std::vector<ChVector<>> VRel_contact;  // follow the vel. of a contact point relative to the gear c-sys
-      std::vector<ChVector<>> NormDirRel_contact; // tracked contact normal dir., w.r.t. gear c-sys
+      std::vector<ChVector<> > sg_info;  // output data set
+      std::vector<ChVector<> > Force_mag_info;  // per step contact force magnitude, (Fn, Ft, 0)
+      std::vector<ChVector<> > PosRel_contact; // location of a contact point relative to the gear c-sys
+      std::vector<ChVector<> > VRel_contact;  // follow the vel. of a contact point relative to the gear c-sys
+      std::vector<ChVector<> > NormDirRel_contact; // tracked contact normal dir., w.r.t. gear c-sys
       // sg_info = (Num_contacts, t_persist, t_persist_max)
       num_contacts = reportShoeGearContact(m_chain->GetShoeBody(0)->GetNameString(),
         sg_info,
@@ -1167,6 +1184,18 @@ void DriveChain::Log_to_file()
       ofilePT << ss_pt.str().c_str();
     }
 
+    if( m_log_what_to_file & DBG_COLLISIONCALLBACK)
+    {
+      std::stringstream ss_cc;
+      // report # of contacts detected this step between shoe pins # gear.
+      // time,Ncontacts,Nbroadphase,NcPz,NcNz
+      ss_cc << t <<","<< m_gear->GetCollisionCallback()->GetNcontacts()
+        <<","<< m_gear->GetCollisionCallback()->GetNbroadPhasePassed()
+        <<","<< m_gear->GetCollisionCallback()->Get_sum_Pz_contacts()
+        <<","<< m_gear->GetCollisionCallback()->Get_sum_Nz_contacts()
+        <<"\n";
+    }
+
   }
 }
 
@@ -1237,23 +1266,27 @@ void DriveChain::create_fileHeaders(int what)
 
     for(int id = 0; id < m_num_idlers; id++)
     {
-      m_filename_ICV.push_back(m_log_file_name+"_idler"+std::to_string(id)+"CV.csv");
+      std::stringstream ss_iCV;
+      ss_iCV << m_log_file_name << "_idler" << id << "CV.csv";
+      m_filename_ICV.push_back(ss_iCV.str().c_str());
       ChStreamOutAsciiFile ofileICV(m_filename_ICV.back().c_str());
-      std::stringstream ss_idCV;
-      ss_idCV << m_idlers[id]->getFileHeader_ConstraintViolations(id);
-      ofileICV << ss_idCV.str().c_str();
-      GetLog() << " writing to file: " << m_filename_ICV[id] << "\n          data: " << ss_idCV.str().c_str() <<"\n";
+      std::stringstream ss_header;
+      ss_header << m_idlers[id]->getFileHeader_ConstraintViolations(id);
+      ofileICV << ss_header.str().c_str();
+      GetLog() << " writing to file: " << m_filename_ICV[id] << "\n          data: " << ss_header.str().c_str() <<"\n";
     }
 
     // violations of the roller revolute joints
     for(int roller = 0; roller < m_num_rollers; roller++)
     {
-      m_filename_RCV.push_back(m_log_file_name+"_roller"+std::to_string(roller)+"CV.csv");
-      ChStreamOutAsciiFile ofileRCV(m_filename_RCV.back().c_str());
       std::stringstream ss_rCV;
-      ss_rCV << m_rollers[roller]->getFileHeader_ConstraintViolations(roller);
+      ss_rCV << m_log_file_name << "_roller" << roller << "CV.csv";
+      m_filename_RCV.push_back(ss_rCV.str());
+      ChStreamOutAsciiFile ofileRCV(m_filename_RCV.back().c_str());
+      std::stringstream ss_header;
       ofileRCV << ss_rCV.str().c_str();
-      GetLog() << " writing to file: " << m_filename_RCV[roller] << "\n         data: " << ss_rCV.str().c_str() <<"\n";
+      GetLog() << " writing to file: " << m_filename_RCV[roller] 
+      << "\n         data: " << ss_header.str().c_str() <<"\n";
     }
   }
 
@@ -1265,10 +1298,22 @@ void DriveChain::create_fileHeaders(int what)
     std::stringstream ss_pt;
     ss_pt << "time,throttle,motSpeed,motT,outT\n";
     ofileDBG_PTRAIN << ss_pt.str().c_str();
-    GetLog() << " writing to file: " << m_filename_DBG_PTRAIN << "\n          data: " << ss_pt.str().c_str() <<"\n";
+    GetLog() << " writing to file: " << m_filename_DBG_PTRAIN 
+      << "\n          data: " << ss_pt.str().c_str() <<"\n";
   }
 
+  // write broadphase, narrow phase contact info
+  if(what & DBG_COLLISIONCALLBACK)
+  {
+    m_filename_DBG_COLLISIONCALLBACK = m_log_file_name+"_Ccallback.csv";
+    ChStreamOutAsciiFile ofileDBG_COLLISIONCALLBACK(m_filename_DBG_COLLISIONCALLBACK.c_str());
+    std::stringstream ss_cc;
+    ss_cc << "time,Ncontacts,Nbroadphase,NcPz,NcNz\n";
+    ofileDBG_COLLISIONCALLBACK << ss_cc.str().c_str();
+    GetLog() << " writing to file: " << m_filename_DBG_COLLISIONCALLBACK 
+      << "\n     data: " << ss_cc.str().c_str() <<"\n";
 
+  }
 }
 
 

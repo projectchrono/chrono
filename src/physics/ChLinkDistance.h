@@ -102,7 +102,7 @@ public:
 					/// body). This represents the 'main' reference of the link: reaction forces 
 					/// are expressed in this coordinate system.
 					/// (It is the coordinate system of the contact plane relative to Body2)
-	ChCoordsys<> GetLinkRelativeCoords() const;
+	virtual ChCoordsys<> GetLinkRelativeCoords();
 
 					/// Get the 1st anchor endpoint for the distance (expressed in Body1 coordinate system)
 	ChVector<> GetEndPoint1Rel() const {return pos1;}
@@ -146,6 +146,8 @@ public:
 			//
 
 				// (override/implement interfaces for global state vectors, see ChPhysicsItem for comments.)
+	virtual void IntStateGatherReactions(const unsigned int off_L,	ChVectorDynamic<>& L);	
+	virtual void IntStateScatterReactions(const unsigned int off_L,	const ChVectorDynamic<>& L);
 	virtual void IntLoadResidual_CqL(const unsigned int off_L, ChVectorDynamic<>& R, const ChVectorDynamic<>& L, const double c);
 	virtual void IntLoadConstraint_C(const unsigned int off, ChVectorDynamic<>& Qc,	const double c, bool do_clamp,	double recovery_clamp);
 	virtual void IntToLCP(const unsigned int off_v,	const ChStateDelta& v, const ChVectorDynamic<>& R, const unsigned int off_L, const ChVectorDynamic<>& L, const ChVectorDynamic<>& Qc);

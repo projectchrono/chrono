@@ -220,7 +220,7 @@ void TorsionArmSuspension::AddVisualization()
 {
   // add visualization assets
   switch (m_vis) {
-  case VisualizationType::Enum::Primitives:
+  case VisualizationType::Primitives:
   {
     // define the wheel as two concentric cylinders with a gap
     ChSharedPtr<ChCylinderShape> cylA(new ChCylinderShape);
@@ -252,7 +252,7 @@ void TorsionArmSuspension::AddVisualization()
     m_arm->AddAsset(arm_cyl);
     break;
   }
-   case VisualizationType::Enum::Mesh:
+   case VisualizationType::Mesh:
   {
     geometry::ChTriangleMeshConnected trimesh;
     trimesh.LoadWavefrontMesh(getMeshFile(), false, false);
@@ -281,7 +281,7 @@ void TorsionArmSuspension::AddCollisionGeometry(double mu,
                             double mu_spin)
 {
   // add collision geometrey, if enabled. Warn if not
-  if( m_collide == CollisionType::Enum::None)
+  if( m_collide == CollisionType::None)
   {
     m_wheel->SetCollide(false);
     GetLog() << " !!! Road Wheel " << m_wheel->GetName() << " collision deactivated !!! \n\n";
@@ -301,7 +301,7 @@ void TorsionArmSuspension::AddCollisionGeometry(double mu,
   m_wheel->GetMaterialSurface()->SetSpinningFriction(mu_spin);
 
   switch (m_collide) {
-  case CollisionType::Enum::Primitives:
+  case CollisionType::Primitives:
   {
     double cyl_width =  0.5*(m_wheelWidth - m_wheelWidthGap);
     ChVector<> shape_offset =  ChVector<>(0, 0, 0.5*(cyl_width + m_wheelWidthGap));
@@ -314,7 +314,7 @@ void TorsionArmSuspension::AddCollisionGeometry(double mu,
     m_wheel->GetCollisionModel()->AddCylinder(m_wheelRadius, m_wheelRadius, 0.5*cyl_width,
       shape_offset,Q_from_AngAxis(CH_C_PI_2,VECT_X));
   }
-  case CollisionType::Enum::Mesh:
+  case CollisionType::Mesh:
   {
     // use a triangle mesh
     /*
@@ -331,7 +331,7 @@ void TorsionArmSuspension::AddCollisionGeometry(double mu,
 
     break;
   }
-  case CollisionType::Enum::ConvexHull:
+  case CollisionType::ConvexHull:
   {
     /*
     // use convex hulls, loaded from file
@@ -355,13 +355,13 @@ void TorsionArmSuspension::AddCollisionGeometry(double mu,
   } // end switch
 
   // setup collision family, road wheel is a rolling element
-  m_wheel->GetCollisionModel()->SetFamily((int)CollisionFam::WHEELS);
+  m_wheel->GetCollisionModel()->SetFamily((int)CollisionFam::Wheel);
 
   // don't collide with the other rolling elements
-  m_wheel->GetCollisionModel()->SetFamilyMaskNoCollisionWithFamily((int)CollisionFam::WHEELS);
-  m_wheel->GetCollisionModel()->SetFamilyMaskNoCollisionWithFamily((int)CollisionFam::HULL);
-  m_wheel->GetCollisionModel()->SetFamilyMaskNoCollisionWithFamily((int)CollisionFam::GEAR);
-  m_wheel->GetCollisionModel()->SetFamilyMaskNoCollisionWithFamily((int)CollisionFam::GROUND);
+  m_wheel->GetCollisionModel()->SetFamilyMaskNoCollisionWithFamily((int)CollisionFam::Wheel);
+  m_wheel->GetCollisionModel()->SetFamilyMaskNoCollisionWithFamily((int)CollisionFam::Hull);
+  m_wheel->GetCollisionModel()->SetFamilyMaskNoCollisionWithFamily((int)CollisionFam::Gear);
+  m_wheel->GetCollisionModel()->SetFamilyMaskNoCollisionWithFamily((int)CollisionFam::Ground);
 
   m_wheel->GetCollisionModel()->BuildModel();
 }

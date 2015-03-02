@@ -40,8 +40,8 @@ class CH_SUBSYS_API TrackSoilBin : public ChTrackVehicle
 public:
 
   TrackSoilBin(const std::string& name,
-    VisualizationType::Enum chassisVis = VisualizationType::Enum::Primitives,
-    CollisionType::Enum chassisCollide = CollisionType::Enum::Primitives,
+    VisualizationType::Enum chassisVis = VisualizationType::Primitives,
+    CollisionType::Enum chassisCollide = CollisionType::Primitives,
     double mass = 1000.0,
     const ChVector<>& inertia = ChVector<>(12.22*2.5, 12.22*2.5, 13.87*2.5),
     size_t num_idlers = 1,
@@ -112,7 +112,7 @@ protected:
   // private variables
   // <ChBodyAuxRef> m_chassis   in base class
   ChSharedPtr<DriveGear> m_gear;  		///< drive gear
-  std::vector<ChSharedPtr<IdlerSimple>>	m_idlers;	///< idler wheel
+  std::vector<ChSharedPtr<IdlerSimple> >	m_idlers;	///< idler wheel
   const size_t m_num_idlers;  ///< number of idlers to create
   ChSharedPtr<TrackChain> m_chain;    ///< chain
 
@@ -120,7 +120,7 @@ protected:
   
   ChSharedPtr<TrackPowertrain>  m_ptrain;  ///< powertrain system
 
-  std::vector<ChSharedPtr<SupportRoller>> m_rollers;  ///< passive support rollers
+  std::vector<ChSharedPtr<SupportRoller> > m_rollers;  ///< passive support rollers
   const size_t m_num_rollers;
 	
   // static variables. hard-coded for now

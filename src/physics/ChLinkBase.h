@@ -75,7 +75,7 @@ namespace chrono
 #define LNK_REVOLUTEPRISMATIC   48
 ///
 /// Base class for all types of constraints that act like 
-/// mechanical joints ('links').
+/// mechanical joints ('links') in 3D space.
 ///
 ///  Note that there are many specializations of this base class,
 /// for example the ChLinkEngine class inherits this base class and
@@ -152,15 +152,23 @@ public:
 	virtual int GetNumCoords() = 0;
 
 
-				/// Get the link coordinate system, expressed relative to Body2 (the 'master'
-				/// body). This represents the 'main' reference of the link: reaction forces 
-				/// and reaction torques are expressed in this coordinate system.
-				/// By default is in the origin of Body2, but child classes should implement this.
-	virtual ChCoordsys<> GetLinkRelativeCoords() {return CSYSNORM;}
 
-				/// Get the master coordinate system for the assets (should be implemented 
-				/// by children classes)
-	virtual ChFrame<> GetAssetsFrame(unsigned int nclone=0) { return ChFrame<>();}
+				/// Get the link coordinate system in absolute reference.
+				/// This represents the 'main' reference of the link: reaction forces 
+				/// and reaction torques are expressed in this coordinate system.
+				/// Child classes should implement this.
+	virtual ChCoordsys<> GetLinkAbsoluteCoords() {return CSYSNORM;}
+
+				/// Get the master coordinate system for the assets, in absolute reference.
+				/// (should be implemented by children classes)
+	virtual ChFrame<> GetAssetsFrame(unsigned int nclone=0) { return ChFrame<>(GetLinkAbsoluteCoords());}
+
+
+				/// To get reaction force, expressed in link coordinate system:
+	virtual ChVector<> Get_react_force() {return VNULL;}
+				/// To get reaction torque,  expressed in link coordinate system:
+	virtual ChVector<> Get_react_torque() {return VNULL;}
+				// (Note, functions above might fit better in a specialized subclass, but here for easier GUI interface)
 
 				/// Tells if this link requires that the connected ChBody objects
 				/// must be waken if they are sleeping. By default =true, i.e. always keep awaken, but

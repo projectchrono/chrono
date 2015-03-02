@@ -676,6 +676,7 @@ IF (BUILD_CH_SDK)
 			
 
 	SET(ChronoEngine_timestepper_SOURCES
+		timestepper/ChTimestepper.cpp
 	)
 	SET(ChronoEngine_timestepper_HEADERS
 		timestepper/ChState.h

@@ -56,8 +56,8 @@ public:
   
   /// constructor, default values are  for an M113 model
   TrackChain(const std::string& name, 
-    VisualizationType::Enum vis = VisualizationType::Enum::Primitives,
-    CollisionType::Enum collide = CollisionType::Enum::Primitives,
+    VisualizationType::Enum vis = VisualizationType::Primitives,
+    CollisionType::Enum collide = CollisionType::Primitives,
     size_t chainSys_idx = 0,
     double shoe_mass = 18.02,
     const ChVector<>& shoeIxx = ChVector<>(0.22, 0.25, 0.04) );
@@ -70,15 +70,17 @@ public:
   /// NOTE: control_points begin and end with the idler and driveGear
   void Initialize(ChSharedPtr<ChBody> chassis,
     const ChFrame<>& chassis_REF,
-    const std::vector<ChVector<>>& rolling_element_loc, ///< center of rolling element geometry, w.r.t chassis_REF
+    const std::vector<ChVector<> >& rolling_element_loc, ///< center of rolling element geometry, w.r.t chassis_REF
     const std::vector<double>& clearance,       ///< rolling element geometry clearance from center
-     const std::vector<ChVector<>>& spin_axis,  ///< rolling element revolute joint DOF axis, w.r.t absolute c-ssy
+     const std::vector<ChVector<> >& spin_axis,  ///< rolling element revolute joint DOF axis, w.r.t absolute c-sys
     const ChVector<>& start_loc                 ///< where to place the middle of the first shoe, w.r.t. chassis_REF
     );
   
   /// handle to the shoe body
   ChSharedPtr<ChBody> GetShoeBody(size_t track_idx) const; 
-  // ChSharedPtr<ChBodyAuxRef> GetShoeBody(size_t track_idx); 
+  
+  // get list to track chain body list
+  const std::vector<ChSharedPtr<ChBody> >& GetShoeBody() const; 
 
   /// reaction force on pin constraint, relative coords
   const ChVector<> GetPinReactForce(size_t pin_idx);
@@ -91,7 +93,7 @@ public:
 
   // accessors
   /// number of track shoes created/initialized
-  double Get_numShoes() const { return m_numShoes; }
+  size_t Get_numShoes() const { return m_numShoes; }
 
   /// damping coef. in the pin revolute constraint
   double Get_pin_damping() const { return m_damping_C;}
@@ -101,7 +103,7 @@ private:
   // private functions
 
   /// add visualization assets to the last added body
-  void TrackChain::AddVisualization();
+  void AddVisualization();
 
   /// add visualization assets to a specific track shoe body
   void AddVisualization(size_t track_idx,
@@ -126,8 +128,8 @@ private:
   /// Note: start_loc_abs should be between the idler and sprockets
   void CreateChain(ChSharedPtr<ChBody> chassis,
     const ChFrame<>& chassis_REF,
-    const std::vector<ChFrame<>>& control_points_abs,
-    const std::vector<ChFrame<>>& rolling_element_abs,
+    const std::vector<ChFrame<> >& control_points_abs,
+    const std::vector<ChFrame<> >& rolling_element_abs,
     const std::vector<double>& clearance,
     const ChVector<>& start_pos_abs );
 
@@ -161,15 +163,15 @@ private:
   const std::string& getCollisionFilename() const { return m_collisionFile; }
 
   // private variables
-  std::vector<ChSharedPtr<ChBody>> m_shoes;  ///< handle to track shoes
-  // std::vector<ChSharedPtr<ChBodyAuxRef>> m_shoes;  ///< handle to track shoes
+  std::vector<ChSharedPtr<ChBody> > m_shoes;  ///< handle to track shoes
+  // std::vector<ChSharedPtr<ChBodyAuxRef> > m_shoes;  ///< handle to track shoes
   size_t m_numShoes;      ///< number of track shoe bodies added to m_shoes;
 
-  std::vector<ChSharedPtr<ChLinkLockRevolute>> m_pins; ///< handles to inter-shoe pin joints
+  std::vector<ChSharedPtr<ChLinkLockRevolute> > m_pins; ///< handles to inter-shoe pin joints
   std::vector<ChLinkForce*> m_pin_friction; ///< functions to apply inter-shoe pin friction
   double m_damping_C;        ///< shoe pin damping coef.
   bool m_use_custom_damper;  ///< use a nonlinear damping coefficient function?
-  std::vector<ChSharedPtr<ChFunction_CustomDamper>> m_custom_dampers;
+  std::vector<ChSharedPtr<ChFunction_CustomDamper> > m_custom_dampers;
  
   double m_mass;         // mass per shoe
   ChVector<> m_inertia;  // inertia of a shoe

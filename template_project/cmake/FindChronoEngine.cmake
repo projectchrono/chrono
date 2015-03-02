@@ -12,6 +12,8 @@
 #     unit_PYPARSER
 #     unit_POSTPROCESS
 #     unit_IRRLICHT
+#     unit_MATLAB
+#     unit_CASCADE
 # and others that will be added in future.
 #
 # The two most important variables that one gets after a successfull run of this find script:
@@ -29,11 +31,12 @@
 #
 # An example of usage in your CMakeLists.txt can be:
 #
+#	CMAKE_MINIMUM_REQUIRED(VERSION 2.8)
 #   PROJECT(myproject)
-#   find_package(ChronoEngine COMPONENTS unit_POSTPROCESS unit_FEM)
-#   include(${CHRONOENGINE_INCLUDES})
-#   add_executable(myexe main.cpp)
-#   target_link_libraries(myexe ${CHRONOENGINE_LIBRARIES})
+#   FIND_PACKAGE(ChronoEngine COMPONENTS unit_POSTPROCESS unit_FEM)
+#   INCLUDE_DIRECTORIES(${CHRONOENGINE_INCLUDES})
+#   ADD_EXECUTABLE(myexe main.cpp)
+#   TARGET_LINK_LIBRARIES(myexe ${CHRONOENGINE_LIBRARIES})
 #
 # Note, to use this file, either you copy it in the Modules/ directory of your CMake installation,
 # or you put it in your project directory under a directory /cmake/Modules/ , and you write 
@@ -337,8 +340,87 @@ IF( ChronoEngine_FIND_COMPONENTS )
         # Append to easy collective variables
         SET(CHRONOENGINE_LIBRARIES ${CHRONOENGINE_LIBRARIES} ${CHRONOENGINE_LIBRARY_IRRLICHT})
     endif()
+	
 
+    ##### THE unit_MATLAB COMPONENT
+    
+    if (${CH_USE_UNIT_MATLAB})
+        # Find the ChronoEngine_MATLAB interface library
 
+        FIND_LIBRARY(CHRONOENGINE_LIBRARY_MATLAB_RELEASE
+          NAMES ChronoEngine_MATLAB
+          PATHS ${CH_LIBDIR_RELEASE}
+          )
+        FIND_LIBRARY(CHRONOENGINE_LIBRARY_MATLAB_DEBUG
+          NAMES ChronoEngine_MATLAB
+          PATHS ${CH_LIBDIR_DEBUG}
+          )
+
+        SET(CHRONOENGINE_LIBRARY_MATLAB "")
+        IF(CHRONOENGINE_LIBRARY_MATLAB_RELEASE)
+          SET(CHRONOENGINE_LIBRARY_MATLAB
+            ${CHRONOENGINE_LIBRARY_MATLAB}
+            optimized ${CHRONOENGINE_LIBRARY_MATLAB_RELEASE}
+          )
+        ENDIF()
+        IF(CHRONOENGINE_LIBRARY_MATLAB_DEBUG)
+          SET(CHRONOENGINE_LIBRARY_MATLAB
+            ${CHRONOENGINE_LIBRARY_MATLAB}
+            debug ${CHRONOENGINE_LIBRARY_MATLAB_DEBUG}
+          )
+        ENDIF()
+
+        # Hide uneeded stuff from GUI. 
+        MARK_AS_ADVANCED(CHRONOENGINE_LIBRARY_MATLAB_RELEASE)
+        MARK_AS_ADVANCED(CHRONOENGINE_LIBRARY_MATLAB_DEBUG)
+
+		SET(CH_MATLABINC         ""     CACHE PATH   "Where is your for Matlab SDK include/ installed? Ex. C:/Programs/MATLAB/R2006b/extern/include. You must set this path to compile demos with Matlab interface.")
+		
+        # Append to easy collective variables
+        SET(CHRONOENGINE_LIBRARIES ${CHRONOENGINE_LIBRARIES} ${CHRONOENGINE_LIBRARY_MATLAB})
+		SET(CHRONOENGINE_INCLUDES  ${CHRONOENGINE_INCLUDES}  ${CH_MATLABINC})
+    endif()
+	
+	   
+	##### THE unit_CASCADE COMPONENT
+    
+    if (${CH_USE_UNIT_CASCADE})
+        # Find the ChronoEngine_CASCADE interface library
+
+        FIND_LIBRARY(CHRONOENGINE_LIBRARY_CASCADE_RELEASE
+          NAMES ChronoEngine_CASCADE
+          PATHS ${CH_LIBDIR_RELEASE}
+          )
+        FIND_LIBRARY(CHRONOENGINE_LIBRARY_CASCADE_DEBUG
+          NAMES ChronoEngine_CASCADE
+          PATHS ${CH_LIBDIR_DEBUG}
+          )
+
+        SET(CHRONOENGINE_LIBRARY_CASCADE "")
+        IF(CHRONOENGINE_LIBRARY_CASCADE_RELEASE)
+          SET(CHRONOENGINE_LIBRARY_CASCADE
+            ${CHRONOENGINE_LIBRARY_CASCADE}
+            optimized ${CHRONOENGINE_LIBRARY_CASCADE_RELEASE}
+          )
+        ENDIF()
+        IF(CHRONOENGINE_LIBRARY_CASCADE_DEBUG)
+          SET(CHRONOENGINE_LIBRARY_CASCADE
+            ${CHRONOENGINE_LIBRARY_CASCADE}
+            debug ${CHRONOENGINE_LIBRARY_CASCADE_DEBUG}
+          )
+        ENDIF()
+
+        # Hide uneeded stuff from GUI. 
+        MARK_AS_ADVANCED(CHRONOENGINE_LIBRARY_CASCADE_RELEASE)
+        MARK_AS_ADVANCED(CHRONOENGINE_LIBRARY_CASCADE_DEBUG)
+
+		SET(CH_CASCADEINC         ""     CACHE PATH   "Where is your for CASCADE SDK include/ installed? ")
+		
+        # Append to easy collective variables
+        SET(CHRONOENGINE_LIBRARIES ${CHRONOENGINE_LIBRARIES} ${CHRONOENGINE_LIBRARY_CASCADE})
+		SET(CHRONOENGINE_INCLUDES  ${CHRONOENGINE_INCLUDES}  ${CH_MATLABINC})
+    endif()
+	
     # ***TO DO***
     #  for other future units, write the necessary code as in the blocks above
     #
@@ -386,6 +468,137 @@ IF( ChronoEngine_FIND_COMPONENTS )
         SET(CHRONOENGINE_INCLUDES  ${CHRONOENGINE_INCLUDES}  ${CH_IRRLICHTINC})
         SET(CHRONOENGINE_LIBRARIES ${CHRONOENGINE_LIBRARIES} ${CH_IRRLICHTLIB})
 
+		IF(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
+			SET(CH_BUILDFLAGS "${CH_BUILDFLAGS} /wd4275")
+		ENDIF()
+
     endif()
 
 ENDIF()
+
+
+# Macro to easily copy the /data directory in the source  into the binary directory
+
+MACRO(CHRONOENGINE_COPY_PROJECT_DATA_DIR)
+	MESSAGE( STATUS " Copying data files in binary directory."  )
+	# Btw we are not using SET(EXECUTABLE_OUTPUT_PATH ${PROJECT_BINARY_DIR}/bin) 
+	# and SET(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin), otherwise
+	# we should use the commented lines instead.
+	IF(MSVC)
+		#FILE( COPY "${CMAKE_SOURCE_DIR}/data/" DESTINATION "${CMAKE_BINARY_DIR}/bin/data/")
+		FILE( COPY "${CMAKE_SOURCE_DIR}/data/" DESTINATION "${CMAKE_BINARY_DIR}/data/")
+	ELSEIF(XCODE_VERSION)
+		#FILE( COPY "${CMAKE_SOURCE_DIR}/data/" DESTINATION "${CMAKE_BINARY_DIR}/bin/data/")
+		FILE( COPY "${CMAKE_SOURCE_DIR}/data/" DESTINATION "${CMAKE_BINARY_DIR}/data/")
+	ELSE()
+		FILE( COPY "${CMAKE_SOURCE_DIR}/data/" DESTINATION "${CMAKE_BINARY_DIR}/data/")
+	ENDIF()
+ENDMACRO(CHRONOENGINE_COPY_PROJECT_DATA_DIR)
+
+
+# Macro to be used on Windows for enabling automatic copy of the .dll of the Chrono::Engine API 
+# from ChronoEngine binary directory into your project binary directory, at each build
+# of the solution. This done, the .exe files can find the dlls because they are in the same
+# directory. Alternatively you could copy the dlls by hand, or you can put them in a PATH. 
+
+MACRO(CHRONOENGINE_ENABLE_CHRONODLLCOPY)
+	IF(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
+		# HACK?
+		IF(CH_LIBDIR_DEBUG)
+			SET(CH_BINDIR "${CH_LIBDIR_DEBUG}/../../bin")
+		ENDIF()
+		IF(CH_LIBDIR_RELEASE)
+			SET(CH_BINDIR "${CH_LIBDIR_RELEASE}/../../bin")
+		ENDIF()
+
+		# Create custom target for copying DLLs; add it to the default build target
+		ADD_CUSTOM_TARGET(COPY_DLLS ALL)
+
+		# Btw we are not using SET(EXECUTABLE_OUTPUT_PATH ${PROJECT_BINARY_DIR}/bin) 
+		# and SET(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin) , so skip /bin in 
+		# all following "${CMAKE_BINARY_DIR}/bin/$<CONFIGURATION>" that become
+		# "${CMAKE_BINARY_DIR}/$<CONFIGURATION>" 
+		
+		# Create custom commands, invoked post-build to copy DLLs to the appropriate
+		# directory (depending on the configuration selected at build time in VS)
+		ADD_CUSTOM_COMMAND(
+			TARGET COPY_DLLS POST_BUILD
+			COMMAND ${CMAKE_COMMAND} -E copy_if_different
+				"${CH_BINDIR}/$<CONFIGURATION>/ChronoEngine.dll"
+				"${CMAKE_BINARY_DIR}/$<CONFIGURATION>"
+		)
+
+		if (${CH_USE_UNIT_COSIMULATION})
+			ADD_CUSTOM_COMMAND(
+				TARGET COPY_DLLS POST_BUILD
+				COMMAND ${CMAKE_COMMAND} -E copy_if_different
+					"${CH_BINDIR}/$<CONFIGURATION>/ChronoEngine_COSIMULATION.dll"
+					"${CMAKE_BINARY_DIR}/$<CONFIGURATION>"
+			)
+		endif()
+
+		if (${CH_USE_UNIT_FEM})
+			ADD_CUSTOM_COMMAND(
+				TARGET COPY_DLLS POST_BUILD
+				COMMAND ${CMAKE_COMMAND} -E copy_if_different
+					"${CH_BINDIR}/$<CONFIGURATION>/ChronoEngine_FEM.dll"
+					"${CMAKE_BINARY_DIR}/$<CONFIGURATION>"
+			)
+		endif()
+		
+		if (${CH_USE_UNIT_POSTPROCESS})
+			ADD_CUSTOM_COMMAND(
+				TARGET COPY_DLLS POST_BUILD
+				COMMAND ${CMAKE_COMMAND} -E copy_if_different
+					"${CH_BINDIR}/$<CONFIGURATION>/ChronoEngine_POSTPROCESS.dll"
+					"${CMAKE_BINARY_DIR}/$<CONFIGURATION>"
+			)
+		endif()
+
+		if (${CH_USE_UNIT_PYPARSER})
+			ADD_CUSTOM_COMMAND(
+				TARGET COPY_DLLS POST_BUILD
+				COMMAND ${CMAKE_COMMAND} -E copy_if_different
+					"${CH_BINDIR}/$<CONFIGURATION>/ChronoEngine_PYPARSER.dll"
+					"${CMAKE_BINARY_DIR}/$<CONFIGURATION>"
+			)
+		endif()
+	
+		IF(${CH_USE_UNIT_IRRLICHT})
+			IF("${CH_COMPILER}" STREQUAL "COMPILER_MSVC")
+				SET(CH_IRRLICHT_DLL "${CH_IRRLICHT_SDKDIR}/bin/Win32-VisualStudio/Irrlicht.dll")
+			ELSEIF("${CH_COMPILER}" STREQUAL "COMPILER_MSVC_X64")
+				SET(CH_IRRLICHT_DLL "${CH_IRRLICHT_SDKDIR}/bin/Win64-VisualStudio/Irrlicht.dll")
+			ENDIF()
+
+			ADD_CUSTOM_COMMAND(
+				TARGET COPY_DLLS POST_BUILD
+				COMMAND ${CMAKE_COMMAND} -E copy_if_different
+					"${CH_BINDIR}/$<CONFIGURATION>/ChronoEngine_IRRLICHT.dll"
+					"${CMAKE_BINARY_DIR}/$<CONFIGURATION>"
+				COMMAND ${CMAKE_COMMAND} -E copy_if_different
+					"${CH_IRRLICHT_DLL}"
+					"${CMAKE_BINARY_DIR}/$<CONFIGURATION>"
+			)
+		ENDIF()
+
+		if (${CH_USE_UNIT_MATLAB})
+			ADD_CUSTOM_COMMAND(
+				TARGET COPY_DLLS POST_BUILD
+				COMMAND ${CMAKE_COMMAND} -E copy_if_different
+					"${CH_BINDIR}/$<CONFIGURATION>/ChronoEngine_MATLAB.dll"
+					"${CMAKE_BINARY_DIR}/$<CONFIGURATION>"
+			)
+		endif()
+		
+		if (${CH_USE_UNIT_CASCADE})
+			ADD_CUSTOM_COMMAND(
+				TARGET COPY_DLLS POST_BUILD
+				COMMAND ${CMAKE_COMMAND} -E copy_if_different
+					"${CH_BINDIR}/$<CONFIGURATION>/ChronoEngine_CASCADE.dll"
+					"${CMAKE_BINARY_DIR}/$<CONFIGURATION>"
+			)
+		endif()
+
+	ENDIF()
+ENDMACRO(CHRONOENGINE_ENABLE_CHRONODLLCOPY)

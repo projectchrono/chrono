@@ -25,10 +25,14 @@ namespace chrono {
 ChClassRegister<ChSystemDEM> a_registration_ChSystemDEM;
 
 
-ChSystemDEM::ChSystemDEM(bool use_material_properties, unsigned int max_objects, double scene_size)
+ChSystemDEM::ChSystemDEM(bool use_material_properties,
+                         bool use_history,
+                         unsigned int max_objects,
+                         double scene_size)
 : ChSystem(max_objects, scene_size, false),
   m_use_mat_props(use_material_properties),
-  m_contact_model(ChContactDEM::Hertz_history)
+  m_use_history(use_history),
+  m_contact_model(ChContactDEM::Hertz)
 {
   LCP_descriptor = new ChLcpSystemDescriptor;
   LCP_descriptor->SetNumThreads(parallel_thread_number);

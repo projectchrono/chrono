@@ -106,7 +106,7 @@ int main(int argc, char* argv[])
 	double sx = 0.1;
 	double sy = 0.1;
 	double sz = 0.1;
-for (int e = 0; e<1; ++e)
+for (int e = 0; e<6; ++e)
 {
 	double angle = e*(2*CH_C_PI/8.0);
 	hexpos.z = 0.3*cos(angle);

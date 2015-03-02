@@ -139,7 +139,16 @@ void ChShaft::IntStateScatter(
 	this->Update(T);
 }
 
- 
+void ChShaft::IntStateGatherAcceleration(const unsigned int off_a, ChStateDelta& a)
+{
+	a(off_a) =  this->pos_dtdt;
+}
+
+void ChShaft::IntStateScatterAcceleration(const unsigned int off_a, const ChStateDelta& a)
+{
+	this->SetPos_dtdt(a(off_a));
+}
+
 void ChShaft::IntLoadResidual_F(
 					const unsigned int off,		 ///< offset in R residual
 					ChVectorDynamic<>& R,		 ///< result: the R residual, R += c*F 

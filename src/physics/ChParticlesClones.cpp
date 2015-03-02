@@ -258,6 +258,24 @@ void ChParticlesClones::IntStateScatter(
 	this->Update();
 }
 
+void ChParticlesClones::IntStateGatherAcceleration(const unsigned int off_a, ChStateDelta& a)
+{
+	for (unsigned int j = 0; j < particles.size(); j++)
+	{
+		a.PasteVector  (this->particles[j]->coord_dtdt.pos,   off_a +6*j, 0);
+		a.PasteVector  (this->particles[j]->GetWacc_loc(),    off_a +6*j +3, 0);
+	}
+}
+
+void ChParticlesClones::IntStateScatterAcceleration(const unsigned int off_a, const ChStateDelta& a)
+{
+	for (unsigned int j = 0; j < particles.size(); j++)
+	{
+		this->particles[j]->SetPos_dtdt  (a.ClipVector(off_a +6*j, 0));
+		this->particles[j]->SetWacc_loc  (a.ClipVector(off_a +6*j +3, 0));
+	}
+}
+
 void ChParticlesClones::IntStateIncrement(
 					const unsigned int off_x,		///< offset in x state vector
 					ChState& x_new,					///< state vector, position part, incremented result

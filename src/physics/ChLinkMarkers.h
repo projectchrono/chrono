@@ -149,7 +149,7 @@ public:
 					/// body). This represents the 'main' reference of the link: reaction forces 
 					/// and torques are expressed in this coordinate system.
 					/// (It is the coordinate system of the 'master' marker2 relative to Body2)
-	const ChCoordsys<>& GetLinkRelativeCoords() const {return marker2->GetCoord();};
+	virtual ChCoordsys<> GetLinkRelativeCoords() {return marker2->GetCoord();};
 
 					/// Get the master coordinate system for the assets (this will return the 
 					/// absolute coordinate system of the 'master' marker2)

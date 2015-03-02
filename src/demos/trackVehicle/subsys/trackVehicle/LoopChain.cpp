@@ -93,9 +93,9 @@ LoopChain::LoopChain(const std::string& name,
   double idler_mass = 42.96; // 429.6
   ChVector<> idler_Ixx(gearIxx);    // 12.55, 12.55, 14.7
   m_idlers[0] = ChSharedPtr<IdlerSimple>(new IdlerSimple("idler",
-    VisualizationType::Enum::Mesh,
-    // VisualizationType::Enum::Primitives,
-    CollisionType::Enum::Primitives,
+    VisualizationType::Mesh,
+    // VisualizationType::Primitives,
+    CollisionType::Primitives,
     0,
     idler_mass,
     idler_Ixx,
@@ -106,8 +106,8 @@ LoopChain::LoopChain(const std::string& name,
   double shoe_mass = 18.03/10.0; // 18.03
   ChVector<> shoe_Ixx(0.22/10.0, 0.25/10.0, 0.04/10.0);  // 0.22, 0.25, 0.04
   m_chain = ChSharedPtr<TrackChain>(new TrackChain("chain",
-    VisualizationType::Enum::CompoundPrimitives,
-    CollisionType::Enum::Primitives,
+    VisualizationType::CompoundPrimitives,
+    CollisionType::Primitives,
     0,
     shoe_mass,
     shoe_Ixx) );
@@ -120,18 +120,20 @@ LoopChain::LoopChain(const std::string& name,
   m_rollers.resize(m_num_rollers);
   for(int j = 0; j < m_num_rollers; j++)
   {
-    m_rollers[j] = ChSharedPtr<SupportRoller>(new SupportRoller("support roller " +std::to_string(j),
-      VisualizationType::Enum::Primitives,
-      CollisionType::Enum::Primitives));
+    std::stringstream r_s;
+    r_s << "support roller " << j;
+    m_rollers[j] = ChSharedPtr<SupportRoller>(new SupportRoller(r_s.str(),
+      VisualizationType::Primitives,
+      CollisionType::Primitives));
   }
 
   if(m_num_idlers > 1)
   {
     // for now, just create 1 more idler
     m_idlers[1] = ChSharedPtr<IdlerSimple>(new IdlerSimple("idler 2",
-    VisualizationType::Enum::Mesh,
-    // VisualizationType::Enum::Primitives,
-    CollisionType::Enum::Primitives,
+    VisualizationType::Mesh,
+    // VisualizationType::Primitives,
+    CollisionType::Primitives,
     0,
     idler_mass,
     idler_Ixx,
@@ -160,17 +162,15 @@ void LoopChain::Initialize(const ChCoordsys<>& gear_Csys)
   // Create list of the center location of the rolling elements and their clearance.
   // Clearance is a sphere shaped envelope at each center location, where it can
   //  be guaranteed that the track chain geometry will not penetrate the sphere.
-  std::vector<ChVector<>> rolling_elem_locs; // w.r.t. chassis ref. frame
+  std::vector<ChVector<> > rolling_elem_locs; // w.r.t. chassis ref. frame
   std::vector<double> clearance;  // 1 per rolling elem  
-  std::vector<ChVector<>> rolling_elem_spin_axis; /// w.r.t. abs. frame
+  std::vector<ChVector<> > rolling_elem_spin_axis; /// w.r.t. abs. frame
   
 
   // initialize 1 of each of the following subsystems.
   // will use the chassis ref frame to do the transforms, since the TrackSystem
   // local ref. frame has same rot (just difference in position)
-  m_gear->Initialize(m_chassis, 
-    m_chassis->GetFrame_REF_to_abs(),
-    ChCoordsys<>());
+  // NOTE: moved Gear init() to after TrackChain Init()
 
   // drive sprocket is First added to the lists passed into TrackChain Init()
   rolling_elem_locs.push_back(ChVector<>() );
@@ -269,6 +269,12 @@ void LoopChain::Initialize(const ChCoordsys<>& gear_Csys)
   
   // can set pin friction between adjoining shoes by activing damping on the DOF
   // m_chain->Set_pin_friction(2.0); // [N-m-sec] ???
+
+  // init the gear
+  m_gear->Initialize(m_chassis, 
+    m_chassis->GetFrame_REF_to_abs(),
+    ChCoordsys<>(),
+    m_chain->GetShoeBody() );
 
   // initialize the powertrain, drivelines
   m_ptrain->Initialize(m_chassis, m_gear->GetAxle() );

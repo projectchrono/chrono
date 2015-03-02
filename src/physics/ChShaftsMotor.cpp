@@ -103,6 +103,18 @@ void ChShaftsMotor::Update (double mytime)
 
 //// STATE BOOKKEEPING FUNCTIONS
 
+void ChShaftsMotor::IntStateGatherReactions(const unsigned int off_L,	ChVectorDynamic<>& L)
+{
+	if (motor_mode != MOT_MODE_TORQUE)
+		L(off_L)   = this->motor_torque;
+}
+
+void ChShaftsMotor::IntStateScatterReactions(const unsigned int off_L,	const ChVectorDynamic<>& L)
+{
+	if (motor_mode != MOT_MODE_TORQUE)
+		this->motor_torque = L(off_L);
+}
+
 void ChShaftsMotor::IntLoadResidual_F(
 					const unsigned int off,		 ///< offset in R residual
 					ChVectorDynamic<>& R,		 ///< result: the R residual, R += c*F 
