@@ -20,6 +20,7 @@
 typedef unsigned int uint;
 typedef unsigned short ushort;
 
+
 #define DOUBLEPRECISION 1
 #if DOUBLEPRECISION
 typedef double Real;
@@ -2017,17 +2018,17 @@ __host__ __device__ inline Real4 rmodr(Real4 a, Real4 b)
     return make_Real4(rmodr(a.x, b.x), rmodr(a.y, b.y), rmodr(a.z, b.z), rmodr(a.w, b.w));
 }
 
-__host__ __device__ inline Real2 abs(Real2 v)
+__host__ __device__ inline Real2 fabs(Real2 v)
 {
-	return make_Real2(abs(v.x), abs(v.y));
+	return make_Real2(fabs(v.x), fabs(v.y));
 }
-__host__ __device__ inline Real3 abs(Real3 v)
+__host__ __device__ inline Real3 fabs(Real3 v)
 {
-	return make_Real3(abs(v.x), abs(v.y), abs(v.z));
+	return make_Real3(fabs(v.x), fabs(v.y), fabs(v.z));
 }
-__host__ __device__ inline Real4 abs(Real4 v)
+__host__ __device__ inline Real4 fabs(Real4 v)
 {
-	return make_Real4(abs(v.x), abs(v.y), abs(v.z), abs(v.w));
+	return make_Real4(fabs(v.x), fabs(v.y), fabs(v.z), fabs(v.w));
 }
 
 __host__ __device__ inline Real3 reflect(Real3 i, Real3 n)
