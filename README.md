@@ -34,5 +34,3 @@ See the [tutorials](http://www.projectchrono.org/mediawiki/index.php/Tutorials) 
 [API documentation](http://api.chrono.projectchrono.org/) is generated from `develop` on a nightly basis.
 
 A place for discussions can be the [projectchrono group](https://groups.google.com/forum/#!forum/projectchrono).
-
--------------------------------------

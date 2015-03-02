@@ -34,7 +34,6 @@ SET(DEMOS
   demo_earthquake
 )
 
-
 #--------------------------------------------------------------
 # Additional include paths
 

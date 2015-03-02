@@ -124,6 +124,7 @@ void ChLinkSpring::UpdateForces(double mytime)
   C_force = Vadd(C_force, m_force);
 }
 
+
 void ChLinkSpring::StreamOUT(ChStreamOutBinary& mstream)
 {
   // Class version number
