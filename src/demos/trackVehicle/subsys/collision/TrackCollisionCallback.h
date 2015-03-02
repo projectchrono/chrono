@@ -361,33 +361,35 @@ class GearPinCollisionCallback : public ChSystem::ChCustomComputeCollisionCallba
 		// for each shoe, see if any pins are in contact with the concave gear seat surface.
     for(size_t idx = 0; idx < m_shoes.size(); idx++)
 		{
-      // global c-sys
-      ChVector<> shoe_pos = m_shoes[idx]->GetPos();
-      ChVector<> gear_seat_pos_Pz = m_gear->GetPos() 
-        + m_gear->GetRot().Rotate( m_seat_pos_bar );
-      // same as Pz_bar, negate z
-      ChVector<> gear_seat_pos_Nz = m_gear->GetPos() 
-        + m_gear->GetRot().Rotate( ChVector<>(m_seat_pos_bar.x, m_seat_pos_bar.y, -m_seat_pos_bar.z) );
-
-      // put the Shoe bounding sphere at the center of the pin, symmetric about shoe relative z-axis
-      ChVector<> pin_pos_Pz = shoe_pos 
-        + m_shoes[idx]->GetRot().Rotate( m_pin_pos_bar );
-      ChVector<> pin_pos_Nz = shoe_pos 
-        + m_shoes[idx]->GetRot().Rotate( ChVector<>(m_pin_pos_bar.x, m_pin_pos_bar.y, -m_pin_pos_bar.z) );
-
       // check pins on both sides of shoe for contact with the gear
       // broad-phase, is the distance between geometry bounding sphere centers 
       //  <= sum of bounding sphere?
+
+      // put the Shoe bounding sphere at the center of the pin, symmetric about shoe relative z-axis
+      ChVector<> pin_pos_Pz = m_shoes[idx]->GetPos()
+        + m_shoes[idx]->GetRot().Rotate( m_pin_pos_bar );
+      ChVector<> pin_pos_Nz = m_shoes[idx]->GetPos()
+        + m_shoes[idx]->GetRot().Rotate( ChVector<>(m_pin_pos_bar.x, m_pin_pos_bar.y, -m_pin_pos_bar.z) );
+
       // convert to gear c-sys, to find the radial distance between centers
-      ChVector<> dist_Pz_bar = m_gear->GetRot().RotateBack(m_gear->GetPos() - pin_pos_Pz);
-      ChVector<> dist_Nz_bar = m_gear->GetRot().RotateBack(m_gear->GetPos() - pin_pos_Nz);
+      ChVector<> pin_gear_bar_Pz = m_gear->GetRot().RotateBack(m_gear->GetPos() - pin_pos_Pz);
+      ChVector<> pin_gear_bar_Nz = m_gear->GetRot().RotateBack(m_gear->GetPos() - pin_pos_Nz);
 
       // broad-phase passes?
-      if( BroadphasePassed(pin_pos_Pz, pin_pos_Nz) )
+      if( BroadphasePassed(pin_gear_bar_Pz, pin_gear_bar_Nz) )
       {
-        GetLog() << " \n\n Broadphase passed, time = " << msys->GetChTime() << "\n\n";
+        // GetLog() << " \n\n Broadphase passed, time = " << msys->GetChTime() << "\n\n";
         m_NbroadPhasePassed++;
-        // narrow phase will add the contact if passed.
+      
+        // Narrow phase needs coords in global c-sys
+        ChVector<> gear_seat_pos_Pz = m_gear->GetPos() 
+          + m_gear->GetRot().Rotate( m_seat_pos_bar );
+        // same as Pz_bar, negate z
+        ChVector<> gear_seat_pos_Nz = m_gear->GetPos() 
+          + m_gear->GetRot().Rotate( ChVector<>(m_seat_pos_bar.x, m_seat_pos_bar.y, -m_seat_pos_bar.z) );
+
+       
+        // narrow phase will add the contact if passed. All coords are in global c-sys
         bool passed_Narrow = NarrowPhase(gear_seat_pos_Pz, gear_seat_pos_Nz,
           pin_pos_Pz, pin_pos_Nz,
           idx);
