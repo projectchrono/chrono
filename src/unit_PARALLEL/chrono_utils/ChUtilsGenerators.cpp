@@ -365,6 +365,10 @@ void Generator::createObjectsCylinderX(SamplingType sType,
       PDSampler<> sampler(dist);
       points = sampler.SampleCylinderX(pos, radius, halfHeight);
     } break;
+    case HCP_PACK: {
+      HCPSampler<> sampler(dist);
+      points = sampler.SampleCylinderX(pos, radius, halfHeight);
+    } break;
   }
 
   createObjects(points, vel);
@@ -393,6 +397,10 @@ void Generator::createObjectsCylinderY(SamplingType sType,
       PDSampler<> sampler(dist);
       points = sampler.SampleCylinderY(pos, radius, halfHeight);
     } break;
+    case HCP_PACK: {
+      HCPSampler<> sampler(dist);
+      points = sampler.SampleCylinderY(pos, radius, halfHeight);
+    } break;
   }
 
   createObjects(points, vel);
@@ -419,6 +427,10 @@ void Generator::createObjectsCylinderZ(SamplingType sType,
     } break;
     case POISSON_DISK: {
       PDSampler<> sampler(dist);
+      points = sampler.SampleCylinderZ(pos, radius, halfHeight);
+    } break;
+    case HCP_PACK: {
+      HCPSampler<> sampler(dist);
       points = sampler.SampleCylinderZ(pos, radius, halfHeight);
     } break;
   }
