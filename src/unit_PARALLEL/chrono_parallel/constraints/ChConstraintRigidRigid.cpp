@@ -475,29 +475,29 @@ void ChConstraintRigidRigid::Build_D() {
       Compute_Jacobian_Rolling(rot[index], U, V, W, TA, TB, TC);
       Compute_Jacobian_Rolling(rot[index + data_container->num_contacts], U, V, W, TD, TE, TF);
 
-      D_s_T(row * 3 + 0, body_id.x * 6 + 3) = -TA.x;
-      D_s_T(row * 3 + 0, body_id.x * 6 + 4) = -TA.y;
-      D_s_T(row * 3 + 0, body_id.x * 6 + 5) = -TA.z;
+      D_s_T.set(row * 3 + 0, body_id.x * 6 + 3, -TA.x);
+      D_s_T.set(row * 3 + 0, body_id.x * 6 + 4, -TA.y);
+      D_s_T.set(row * 3 + 0, body_id.x * 6 + 5, -TA.z);
 
-      D_s_T(row * 3 + 1, body_id.x * 6 + 3) = -TB.x;
-      D_s_T(row * 3 + 1, body_id.x * 6 + 4) = -TB.y;
-      D_s_T(row * 3 + 1, body_id.x * 6 + 5) = -TB.z;
+      D_s_T.set(row * 3 + 1, body_id.x * 6 + 3, -TB.x);
+      D_s_T.set(row * 3 + 1, body_id.x * 6 + 4, -TB.y);
+      D_s_T.set(row * 3 + 1, body_id.x * 6 + 5, -TB.z);
 
-      D_s_T(row * 3 + 2, body_id.x * 6 + 3) = -TC.x;
-      D_s_T(row * 3 + 2, body_id.x * 6 + 4) = -TC.y;
-      D_s_T(row * 3 + 2, body_id.x * 6 + 5) = -TC.z;
+      D_s_T.set(row * 3 + 2, body_id.x * 6 + 3, -TC.x);
+      D_s_T.set(row * 3 + 2, body_id.x * 6 + 4, -TC.y);
+      D_s_T.set(row * 3 + 2, body_id.x * 6 + 5, -TC.z);
 
-      D_s_T(row * 3 + 0, body_id.y * 6 + 3) = TD.x;
-      D_s_T(row * 3 + 0, body_id.y * 6 + 4) = TD.y;
-      D_s_T(row * 3 + 0, body_id.y * 6 + 5) = TD.z;
+      D_s_T.set(row * 3 + 0, body_id.y * 6 + 3, TD.x);
+      D_s_T.set(row * 3 + 0, body_id.y * 6 + 4, TD.y);
+      D_s_T.set(row * 3 + 0, body_id.y * 6 + 5, TD.z);
 
-      D_s_T(row * 3 + 1, body_id.y * 6 + 3) = TE.x;
-      D_s_T(row * 3 + 1, body_id.y * 6 + 4) = TE.y;
-      D_s_T(row * 3 + 1, body_id.y * 6 + 5) = TE.z;
+      D_s_T.set(row * 3 + 1, body_id.y * 6 + 3, TE.x);
+      D_s_T.set(row * 3 + 1, body_id.y * 6 + 4, TE.y);
+      D_s_T.set(row * 3 + 1, body_id.y * 6 + 5, TE.z);
 
-      D_s_T(row * 3 + 2, body_id.y * 6 + 3) = TF.x;
-      D_s_T(row * 3 + 2, body_id.y * 6 + 4) = TF.y;
-      D_s_T(row * 3 + 2, body_id.y * 6 + 5) = TF.z;
+      D_s_T.set(row * 3 + 2, body_id.y * 6 + 3, TF.x);
+      D_s_T.set(row * 3 + 2, body_id.y * 6 + 4, TF.y);
+      D_s_T.set(row * 3 + 2, body_id.y * 6 + 5, TF.z);
     }
   }
 }
