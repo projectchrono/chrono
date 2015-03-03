@@ -262,24 +262,26 @@ void ChOpenGLHUD::GenerateStats(ChSystem* physics_system) {
 }
 void ChOpenGLHUD::GenerateExtraStats(ChSystem* physics_system) {
   if (ChSystemParallelDVI* parallel_sys = dynamic_cast<ChSystemParallelDVI*>(physics_system)) {
-    sprintf(buffer, "ShurProduct:  %04f", parallel_sys->data_manager->system_timer.GetTime("ShurProduct"));
-    text.Render(buffer, LEFT, BOTTOM + SPACING * 0, sx, sy);
+    ChTimerParallel& system_timer = parallel_sys->data_manager->system_timer;
 
-    sprintf(buffer, "Project:  %04f", parallel_sys->data_manager->system_timer.GetTime("ChSolverParallel_Project"));
-    text.Render(buffer, LEFT, BOTTOM + SPACING * 1, sx, sy);
 
-    sprintf(buffer, "Compute R:  %04f", parallel_sys->data_manager->system_timer.GetTime("ChLcpSolverParallel_R"));
-    text.Render(buffer, LEFT, BOTTOM + SPACING * 2, sx, sy);
-
-    sprintf(buffer, "Compute E:  %04f", parallel_sys->data_manager->system_timer.GetTime("ChLcpSolverParallel_E"));
-    text.Render(buffer, LEFT, BOTTOM + SPACING * 3, sx, sy);
-
-    sprintf(buffer, "Compute D:  %04f", parallel_sys->data_manager->system_timer.GetTime("ChLcpSolverParallel_D"));
-    text.Render(buffer, LEFT, BOTTOM + SPACING * 4, sx, sy);
-
-    sprintf(buffer, "Solve:  %04f", parallel_sys->data_manager->system_timer.GetTime("ChSolverParallel_Solve"));
+    sprintf(buffer, "Compute R:  %04f", system_timer.GetTime("ChLcpSolverParallel_R"));
     text.Render(buffer, LEFT, BOTTOM + SPACING * 5, sx, sy);
 
+    sprintf(buffer, "Compute E:  %04f", system_timer.GetTime("ChLcpSolverParallel_E"));
+    text.Render(buffer, LEFT, BOTTOM + SPACING * 4, sx, sy);
+
+    sprintf(buffer, "Compute D:  %04f", system_timer.GetTime("ChLcpSolverParallel_D"));
+    text.Render(buffer, LEFT, BOTTOM + SPACING * 3, sx, sy);
+
+    sprintf(buffer, "Solve:  %04f", system_timer.GetTime("ChSolverParallel_Solve"));
+    text.Render(buffer, LEFT, BOTTOM + SPACING * 2, sx, sy);
+
+    sprintf(buffer, "ShurProduct:  %04f [%d]", system_timer.GetTime("ShurProduct"), system_timer.GetRuns("ShurProduct"));
+    text.Render(buffer, LEFT, BOTTOM + SPACING * 1, sx, sy);
+
+    sprintf(buffer, "Project:  %04f [%d]", system_timer.GetTime("ChSolverParallel_Project"), system_timer.GetRuns("ChSolverParallel_Project"));
+    text.Render(buffer, LEFT, BOTTOM + SPACING * 0, sx, sy);
 
 
     //    sprintf(buffer, "TimerA:  %04f",
