@@ -53,6 +53,7 @@ void ChLcpSolverParallelDVI::RunTimeStep() {
   ComputeD();
   ComputeE();
   ComputeR();
+  ComputeN();
 
   PreSolve();
 
@@ -100,8 +101,7 @@ void ChLcpSolverParallelDVI::RunTimeStep() {
   ComputeImpulses();
 
   for (int i = 0; i < data_container->measures.solver.iter_hist.size(); i++) {
-    AtIterationEnd(data_container->measures.solver.maxd_hist[i],
-                   data_container->measures.solver.maxdeltalambda_hist[i],
+    AtIterationEnd(data_container->measures.solver.maxd_hist[i], data_container->measures.solver.maxdeltalambda_hist[i],
                    data_container->measures.solver.iter_hist[i]);
   }
   tot_iterations = data_container->measures.solver.iter_hist.size();
@@ -294,6 +294,60 @@ void ChLcpSolverParallelDVI::ComputeR() {
     } break;
   }
   data_container->system_timer.stop("ChLcpSolverParallel_R");
+}
+
+void ChLcpSolverParallelDVI::ComputeN() {
+
+  if(!data_container->settings.solver.compute_N){
+    return;
+  }
+
+  data_container->system_timer.start("ChLcpSolverParallel_N");
+  const CompressedMatrix<real>& D_n_T = data_container->host_data.D_n_T;
+  const CompressedMatrix<real>& D_t_T = data_container->host_data.D_t_T;
+  const CompressedMatrix<real>& D_s_T = data_container->host_data.D_s_T;
+  const CompressedMatrix<real>& D_b_T = data_container->host_data.D_b_T;
+
+  const CompressedMatrix<real>& D_n = data_container->host_data.D_n;
+  const CompressedMatrix<real>& D_t = data_container->host_data.D_t;
+  const CompressedMatrix<real>& D_s = data_container->host_data.D_s;
+  const CompressedMatrix<real>& D_b = data_container->host_data.D_b;
+
+  const CompressedMatrix<real>& M_invD_n = data_container->host_data.M_invD_n;
+  const CompressedMatrix<real>& M_invD_t = data_container->host_data.M_invD_t;
+  const CompressedMatrix<real>& M_invD_s = data_container->host_data.M_invD_s;
+  const CompressedMatrix<real>& M_invD_b = data_container->host_data.M_invD_b;
+
+  CompressedMatrix<real>& N_n = data_container->host_data.N_n;
+  CompressedMatrix<real>& N_t = data_container->host_data.N_t;
+  CompressedMatrix<real>& N_s = data_container->host_data.N_s;
+  CompressedMatrix<real>& N_b = data_container->host_data.N_b;
+
+  const DynamicVector<real>& E = data_container->host_data.E;
+
+  uint num_contacts = data_container->num_contacts;
+  uint num_unilaterals = data_container->num_unilaterals;
+  uint num_bilaterals = data_container->num_bilaterals;
+
+  N_b = D_b_T * M_invD_b;
+
+  switch (data_container->settings.solver.solver_mode) {
+    case NORMAL: {
+      N_n = D_n_T * M_invD_n;
+    } break;
+
+    case SLIDING: {
+      N_n = D_n_T * M_invD_n;
+      N_t = D_t_T * M_invD_t;
+    } break;
+
+    case SPINNING: {
+      N_n = D_n_T * M_invD_n;
+      N_t = D_t_T * M_invD_t;
+      N_s = D_s_T * M_invD_s;
+    } break;
+  }
+  data_container->system_timer.stop("ChLcpSolverParallel_N");
 }
 
 void ChLcpSolverParallelDVI::SetR() {

@@ -150,6 +150,9 @@ struct host_container {
   // a temporary variable used here for illustrative purposes. In reality the
   // entire operation happens inline without a temp variable.
   CompressedMatrix<real> M_invD_n, M_invD_t, M_invD_s, M_invD_b;
+  // N holds the full shur matrix product D_T * M_inv_D
+  // Not necessarily used in the code, more for testing purposes
+  CompressedMatrix<real> N_n, N_t, N_s, N_b;
 
   DynamicVector<real> R_full;  // The right hand side of the system
   DynamicVector<real> R;  // The rhs of the system, changes during solve

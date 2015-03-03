@@ -71,6 +71,8 @@ class CH_PARALLEL_API ChLcpSolverParallelDVI : public ChLcpSolverParallel {
   void ComputeE();
   // Compute the RHS vector. This will not change depending on the solve
   void ComputeR();
+  // Compute the Shur matrix N.
+  void ComputeN();
   // Set the RHS vector depending on the local solver mode
   void SetR();
   // This function computes an initial guess for each contact

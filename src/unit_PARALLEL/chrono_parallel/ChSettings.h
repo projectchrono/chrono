@@ -93,6 +93,7 @@ struct solver_settings {
     perform_stabilization = false;
     collision_in_solver = false;
     presolve = false;
+    compute_N = false;
     max_iteration = 100;
     max_iteration_normal = 0;
     max_iteration_sliding = 100;
@@ -148,6 +149,7 @@ struct solver_settings {
   bool collision_in_solver;
   bool update_rhs;
   bool presolve;
+  bool compute_N;
   bool scale_mass_matrix;
   bool verbose;
   bool test_objective;

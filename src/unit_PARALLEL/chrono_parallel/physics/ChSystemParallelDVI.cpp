@@ -22,6 +22,7 @@ ChSystemParallelDVI::ChSystemParallelDVI(unsigned int max_objects) : ChSystemPar
   data_manager->system_timer.AddTimer("ChLcpSolverParallel_D");
   data_manager->system_timer.AddTimer("ChLcpSolverParallel_E");
   data_manager->system_timer.AddTimer("ChLcpSolverParallel_R");
+  data_manager->system_timer.AddTimer("ChLcpSolverParallel_N");
 }
 
 void ChSystemParallelDVI::AddMaterialSurfaceData(ChSharedPtr<ChBody> newbody) {
