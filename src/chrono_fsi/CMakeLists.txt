@@ -50,13 +50,13 @@ SET(CUDA_NVCC_FLAGS "${CUDA_NVCC_FLAGS} -std=c++11")
 #cuda_add_library(FSI SHARED collideSphereSphere.cu SDKCollisionSystem.cu  printToFile.cu)
 #SET(LIBRARIES "${LIBRARIES} FSI")
 
-# Add executables
-cuda_add_executable(cudaSPHProjEXE main.cpp SphInterface.cpp InitializeSphMarkers.cpp collideSphereSphere.cu SDKCollisionSystem.cu printToFile.cu)
-#ADD_EXECUTABLE(cudaSPHProjEXE main.cpp)
-TARGET_LINK_LIBRARIES(cudaSPHProjEXE ${LIBRARIES})
-ADD_DEPENDENCIES(cudaSPHProjEXE ${LIBRARIES})
-INSTALL(TARGETS cudaSPHProjEXE DESTINATION bin)
+## Add executables
+#cuda_add_executable(cudaSPHProjEXE main.cpp collideSphereSphere.cu SDKCollisionSystem.cu printToFile.cu)
+##ADD_EXECUTABLE(cudaSPHProjEXE main.cpp)
+#TARGET_LINK_LIBRARIES(cudaSPHProjEXE ${LIBRARIES})
+#ADD_DEPENDENCIES(cudaSPHProjEXE ${LIBRARIES})
+#INSTALL(TARGETS cudaSPHProjEXE DESTINATION bin)
 
-
+ADD_SUBDIRECTORY(demos_vehicle)
 
 
