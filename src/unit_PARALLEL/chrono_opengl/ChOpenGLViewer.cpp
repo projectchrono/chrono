@@ -411,6 +411,11 @@ void ChOpenGLViewer::DisplayHUD() {
   } else {
     HUD_renderer.GenerateStats(physics_system);
   }
+
+  if(view_info){
+    HUD_renderer.GenerateExtraStats(physics_system);
+  }
+
   HUD_renderer.Draw();
 }
 
@@ -423,7 +428,7 @@ void ChOpenGLViewer::RenderContacts() {
   contact_renderer.Draw(projection, view);
 }
 void ChOpenGLViewer::RenderAABB() {
-  if (view_aabb == false || view_info) {
+  if (view_aabb == false) {
     return;
   }
 
@@ -453,7 +458,7 @@ void ChOpenGLViewer::RenderAABB() {
 }
 
 void ChOpenGLViewer::RenderGrid() {
-  if (view_grid == false || view_info) {
+  if (view_grid == false) {
     return;
   }
   grid_data.clear();
@@ -499,14 +504,14 @@ void ChOpenGLViewer::RenderGrid() {
 }
 
 void ChOpenGLViewer::RenderPlots() {
-  if (view_info == false || view_help) {
-    return;
-  }
-  graph_renderer.Update(physics_system, window_size);
-
-  projection = glm::ortho(0.0f, float(window_size.x), 0.0f, float(window_size.y), -2.0f, 2.0f);
-  modelview = glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, 0.0f, -1));
-  graph_renderer.Draw(projection, modelview);
+//  if (view_info == false || view_help) {
+//    return;
+//  }
+//  graph_renderer.Update(physics_system, window_size);
+//
+//  projection = glm::ortho(0.0f, float(window_size.x), 0.0f, float(window_size.y), -2.0f, 2.0f);
+//  modelview = glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, 0.0f, -1));
+//  graph_renderer.Draw(projection, modelview);
 }
 
 void ChOpenGLViewer::HandleInput(unsigned char key, int x, int y) {

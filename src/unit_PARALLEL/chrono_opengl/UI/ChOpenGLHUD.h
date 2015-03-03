@@ -36,6 +36,7 @@ class CH_OPENGL_API ChOpenGLHUD : public ChOpenGLBase {
   void GenerateCD(ChSystem* physics_system);
   void GenerateRenderer();
   void GenerateStats(ChSystem* physics_system);
+  void GenerateExtraStats(ChSystem* physics_system);
   void TakeDown();
   void Update(const glm::ivec2& window_size,
               const float& dpi,

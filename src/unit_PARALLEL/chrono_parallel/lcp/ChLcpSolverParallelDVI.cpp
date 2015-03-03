@@ -112,6 +112,7 @@ void ChLcpSolverParallelDVI::RunTimeStep() {
 }
 
 void ChLcpSolverParallelDVI::ComputeD() {
+  data_container->system_timer.start("ChLcpSolverParallel_D");
   uint num_constraints = data_container->num_constraints;
   if (num_constraints <= 0) {
     return;
@@ -214,9 +215,11 @@ void ChLcpSolverParallelDVI::ComputeD() {
 
   D_b = trans(D_b_T);
   M_invD_b = M_inv * D_b;
+  data_container->system_timer.stop("ChLcpSolverParallel_D");
 }
 
 void ChLcpSolverParallelDVI::ComputeE() {
+  data_container->system_timer.start("ChLcpSolverParallel_E");
   if (data_container->num_constraints <= 0) {
     return;
   }
@@ -226,9 +229,11 @@ void ChLcpSolverParallelDVI::ComputeE() {
 
   rigid_rigid.Build_E();
   bilateral.Build_E();
+  data_container->system_timer.stop("ChLcpSolverParallel_E");
 }
 
 void ChLcpSolverParallelDVI::ComputeR() {
+  data_container->system_timer.start("ChLcpSolverParallel_R");
   if (data_container->num_constraints <= 0) {
     return;
   }
@@ -288,6 +293,7 @@ void ChLcpSolverParallelDVI::ComputeR() {
       R_s = -D_s_T * M_invk;
     } break;
   }
+  data_container->system_timer.stop("ChLcpSolverParallel_R");
 }
 
 void ChLcpSolverParallelDVI::SetR() {

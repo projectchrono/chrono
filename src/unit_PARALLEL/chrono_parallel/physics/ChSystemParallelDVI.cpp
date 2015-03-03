@@ -8,13 +8,6 @@ ChSystemParallelDVI::ChSystemParallelDVI(unsigned int max_objects) : ChSystemPar
   // Set this so that the CD can check what type of system it is (needed for narrowphase)
   data_manager->settings.system_type = SYSTEM_DVI;
 
-  data_manager->system_timer.AddTimer("ChConstraintRigidRigid_shurA_normal");
-  data_manager->system_timer.AddTimer("ChConstraintRigidRigid_shurA_sliding");
-  data_manager->system_timer.AddTimer("ChConstraintRigidRigid_shurA_spinning");
-  data_manager->system_timer.AddTimer("ChConstraintRigidRigid_shurA_reduce");
-  data_manager->system_timer.AddTimer("ChConstraintRigidRigid_shurB_normal");
-  data_manager->system_timer.AddTimer("ChConstraintRigidRigid_shurB_sliding");
-  data_manager->system_timer.AddTimer("ChConstraintRigidRigid_shurB_spinning");
 
   data_manager->system_timer.AddTimer("ChSolverParallel_solverA");
   data_manager->system_timer.AddTimer("ChSolverParallel_solverB");
@@ -25,6 +18,10 @@ ChSystemParallelDVI::ChSystemParallelDVI(unsigned int max_objects) : ChSystemPar
   data_manager->system_timer.AddTimer("ChSolverParallel_solverG");
   data_manager->system_timer.AddTimer("ChSolverParallel_Project");
   data_manager->system_timer.AddTimer("ChSolverParallel_Solve");
+  data_manager->system_timer.AddTimer("ShurProduct");
+  data_manager->system_timer.AddTimer("ChLcpSolverParallel_D");
+  data_manager->system_timer.AddTimer("ChLcpSolverParallel_E");
+  data_manager->system_timer.AddTimer("ChLcpSolverParallel_R");
 }
 
 void ChSystemParallelDVI::AddMaterialSurfaceData(ChSharedPtr<ChBody> newbody) {
