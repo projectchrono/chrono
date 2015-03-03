@@ -105,11 +105,21 @@ class CH_PARALLEL_API ChTimerParallel {
   void start(std::string name) { timer_list[name].start(); }
 
   void stop(std::string name) { timer_list[name].stop(); }
+
+  // Returns the time associated with a specific timer
   double GetTime(std::string name) {
     if (timer_list.count(name) == 0) {
       return 0;
     }
     return timer_list[name].time;
+  }
+
+  // Returns the number of times a specific timer was called
+  int GetRuns(std::string name) {
+    if (timer_list.count(name) == 0) {
+      return 0;
+    }
+    return timer_list[name].runs;
   }
   void PrintReport() {
     total_time = average_flops = average_bandwidth = 0;
