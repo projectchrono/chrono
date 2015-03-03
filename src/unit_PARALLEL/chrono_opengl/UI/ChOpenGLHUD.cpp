@@ -265,6 +265,9 @@ void ChOpenGLHUD::GenerateExtraStats(ChSystem* physics_system) {
     ChTimerParallel& system_timer = parallel_sys->data_manager->system_timer;
 
 
+    sprintf(buffer, "Compute N:  %04f", system_timer.GetTime("ChLcpSolverParallel_N"));
+    text.Render(buffer, LEFT, BOTTOM + SPACING * 6, sx, sy);
+
     sprintf(buffer, "Compute R:  %04f", system_timer.GetTime("ChLcpSolverParallel_R"));
     text.Render(buffer, LEFT, BOTTOM + SPACING * 5, sx, sy);
 
