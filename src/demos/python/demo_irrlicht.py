@@ -33,21 +33,45 @@ print ("Example: create a system and visualize it in realtime 3D");
 
 mysystem      = chrono.ChSystem()
 
-# Create rigid body
+# Create a fixed rigid body
 
 mbody1 = chrono.ChBodyShared()
-mbody1.SetBodyFixed(False)
+mbody1.SetBodyFixed(True)
+mbody1.SetPos( chrono.ChVectorD(0,0,-0.2))
 mysystem.Add(mbody1)
 
 mboxasset = chrono.ChBoxShapeShared()
 mboxasset.GetBoxGeometry().Size = chrono.ChVectorD(0.2,0.5,0.1)
 mbody1.AddAsset(mboxasset)
 
+
+
+# Create a swinging rigid body
+
+mbody2 = chrono.ChBodyShared()
+mbody2.SetBodyFixed(False)
+mysystem.Add(mbody2)
+
+mboxasset = chrono.ChBoxShapeShared()
+mboxasset.GetBoxGeometry().Size = chrono.ChVectorD(0.2,0.5,0.1)
+mbody2.AddAsset(mboxasset)
+
 mboxtexture = chrono.ChTextureShared()
 mboxtexture.SetTextureFilename('../data/concrete.jpg')
-mbody1.GetAssets().push_back(mboxtexture)
+mbody2.GetAssets().push_back(mboxtexture)
 
 
+# Create a revolute constraint
+
+mlink = chrono.ChLinkRevoluteShared()
+
+    # the coordinate system of the constraint reference in abs. space:
+mframe = chrono.ChFrameD(chrono.ChVectorD(0.1,0.5,0))
+
+    # initialize the constraint telling which part must be connected, and where:
+mlink.Initialize(mbody1,mbody2, mframe)
+
+mysystem.Add(mlink)
 
 # ---------------------------------------------------------------------
 #

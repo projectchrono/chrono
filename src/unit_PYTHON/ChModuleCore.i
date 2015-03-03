@@ -152,6 +152,8 @@ using namespace chrono::geometry;
 %include "ChLink.i"
 %include "ChLinkMarkers.i"
 %include "ChLinkMasked.i"
+%include "ChLinkLimit.i"
+%include "ChLinkForce.i"
 %include "ChLinkLock.i"
 %include "ChLinkEngine.i"
 %include "ChLinkMate.i"
@@ -161,6 +163,9 @@ using namespace chrono::geometry;
 %include "ChLinkScrew.i"
 %include "ChLinkSpring.i"
 %include "ChLinkGear.i"
+%include "ChLinkRevolute.i"
+%include "ChLinkRevoluteSpherical.i"
+%include "ChLinkUniversal.i"
 /*
 %include "ChShaft.i"
 %include "ChShaftsCouple.i"
@@ -169,6 +174,8 @@ using namespace chrono::geometry;
 %include "ChShaftsMotor.i"
 %include "ChShaftsTorsionSpring.i"
 %include "ChShaftsPlanetary.i"
+%include "ChShaftsTorqueBase.i"
+%include "ChShaftsThermalEngine.i"
 */
 
 // collision/   classes
@@ -250,6 +257,9 @@ using namespace chrono::geometry;
 %DefChSharedPtrCast(chrono::ChLinkPulley, chrono::ChLinkLock)
 %DefChSharedPtrCast(chrono::ChLinkScrew, chrono::ChLinkLock)
 %DefChSharedPtrCast(chrono::ChLinkSpring, chrono::ChLinkMarkers)
+%DefChSharedPtrCast(chrono::ChLinkRevolute, chrono::ChLink)
+%DefChSharedPtrCast(chrono::ChLinkRevoluteSpherical, chrono::ChLink)
+%DefChSharedPtrCast(chrono::ChLinkUniversal, chrono::ChLink)
 /*
 %DefChSharedPtrCast(chrono::ChShaft, chrono::ChPhysicsItem)
 %DefChSharedPtrCast(chrono::ChShaftsBody, chrono::ChPhysicsItem)
@@ -258,6 +268,8 @@ using namespace chrono::geometry;
 %DefChSharedPtrCast(chrono::ChShaftsMotor, chrono::ChShaftsCouple)
 %DefChSharedPtrCast(chrono::ChShaftsTorsionSpring, chrono::ChShaftsCouple)
 %DefChSharedPtrCast(chrono::ChShaftsPlanetary, chrono::ChPhysicsItem)
+%DefChSharedPtrCast(chrono::ChShaftsTorqueBase, chrono::ChShaftsCouple)
+%DefChSharedPtrCast(chrono::ChShaftsThermalEngine, chrono::ChShaftsTorqueBase)
 */
 
 
@@ -322,6 +334,17 @@ using namespace chrono::geometry;
 %DefChSharedPtrDynamicDowncast(ChPhysicsItem, ChLinkPulley)
 %DefChSharedPtrDynamicDowncast(ChPhysicsItem, ChLinkScrew)
 %DefChSharedPtrDynamicDowncast(ChPhysicsItem, ChLinkSpring)
+/*
+%DefChSharedPtrDynamicDowncast(ChPhysicsItem, ChShaft)
+%DefChSharedPtrDynamicDowncast(ChPhysicsItem, ChShaftsBody)
+%DefChSharedPtrDynamicDowncast(ChPhysicsItem, ChShaftsCouple)
+%DefChSharedPtrDynamicDowncast(ChPhysicsItem, ChShaftsClutch)
+%DefChSharedPtrDynamicDowncast(ChPhysicsItem, ChShaftsMotor)
+%DefChSharedPtrDynamicDowncast(ChPhysicsItem, ChShaftsTorsionSpring)
+%DefChSharedPtrDynamicDowncast(ChPhysicsItem, ChShaftsPlanetary)
+%DefChSharedPtrDynamicDowncast(ChPhysicsItem, ChShaftsTorqueBase)
+%DefChSharedPtrDynamicDowncast(ChPhysicsItem, ChShaftsThermalEngine)
+*/
 // .. to complete
 
 

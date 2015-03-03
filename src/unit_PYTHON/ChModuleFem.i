@@ -51,7 +51,19 @@
 #include "unit_FEM/ChNodeFEMxyz.h"
 #include "unit_FEM/ChNodeFEMxyzP.h"
 #include "unit_FEM/ChNodeFEMxyzrot.h"
+#include "unit_FEM/ChElementBase.h"
+#include "unit_FEM/ChElementGeneric.h"
+#include "unit_FEM/ChElementBeam.h"
+#include "unit_FEM/ChElementBeamEuler.h"
+#include "unit_FEM/ChElementTetra_4.h"
+#include "unit_FEM/ChElementTetra_10.h"
+#include "unit_FEM/ChElementHexa_8.h"
+#include "unit_FEM/ChElementHexa_20.h"
+#include "unit_FEM/ChBuilderBeam.h"
 #include "unit_FEM/ChMesh.h"
+#include "physics/ChContinuumMaterial.h"
+#include "unit_FEM/ChContinuumElectrostatics.h"
+#include "unit_FEM/ChContinuumThermal.h"
 
 using namespace chrono;
 using namespace fem;
@@ -104,6 +116,55 @@ using namespace fem;
 %include "../unit_FEM/ChElementBase.h"
 %DefChSharedPtr(chrono::fem::,ChElementBase)
 
+%include "../unit_FEM/ChElementGeneric.h"
+%DefChSharedPtr(chrono::fem::,ChElementGeneric)
+
+%include "../unit_FEM/ChBeamSection.h"
+%DefChSharedPtr(chrono::fem::,ChBeamSection)
+%DefChSharedPtr(chrono::fem::,ChBeamSectionAdvanced)
+
+%include "../unit_FEM/ChElementBeam.h"
+%DefChSharedPtr(chrono::fem::,ChElementBeam)
+
+%include "../unit_FEM/ChElementBeamEuler.h"
+%DefChSharedPtr(chrono::fem::,ChElementBeamEuler)
+
+%include "../physics/ChContinuumMaterial.h"
+%DefChSharedPtr(chrono::fem::,ChContinuumMaterial)
+%DefChSharedPtr(chrono::fem::,ChContinuumElastic)
+%DefChSharedPtr(chrono::fem::,ChContinuumElastoplastic)
+%DefChSharedPtr(chrono::fem::,ChContinuumPlasticVonMises)
+%DefChSharedPtr(chrono::fem::,ChContinuumDruckerPrager)
+
+%include "../unit_FEM/ChContinuumPoisson3D.h"
+%DefChSharedPtr(chrono::fem::,ChContinuumPoisson3D)
+
+%include "../unit_FEM/ChContinuumElectrostatics.h"
+%DefChSharedPtr(chrono::fem::,ChContinuumElectrostatics)
+
+%include "../unit_FEM/ChContinuumThermal.h"
+%DefChSharedPtr(chrono::fem::,ChContinuumThermal)
+
+//%include "../unit_FEM/ChElementTetrahedron.h"  	// pure virtual: do not create Python obj
+//%DefChSharedPtr(chrono::fem::,ChElementTetrahedron)
+
+%include "../unit_FEM/ChElementTetra_4.h"
+%DefChSharedPtr(chrono::fem::,ChElementTetrahedron)
+%DefChSharedPtr(chrono::fem::,ChElementTetra_4)
+
+%include "../unit_FEM/ChElementTetra_10.h"
+%DefChSharedPtr(chrono::fem::,ChElementTetra_10)
+
+//%include "../unit_FEM/ChElementHexahedron.h"		// pure virtual: do not create Python obj
+//%DefChSharedPtr(chrono::fem::,ChElementHexahedron)
+
+%include "../unit_FEM/ChElementHexa_8.h"
+%DefChSharedPtr(chrono::fem::,ChElementHexahedron)
+%DefChSharedPtr(chrono::fem::,ChElementHexa_8)
+
+%include "../unit_FEM/ChElementHexa_20.h"
+%DefChSharedPtr(chrono::fem::,ChElementHexa_20)
+
 %include "../unit_FEM/ChNodeFEMbase.h"
 %DefChSharedPtr(chrono::fem::,ChNodeFEMbase)
 
@@ -115,6 +176,9 @@ using namespace fem;
 
 %include "../unit_FEM/ChNodeFEMxyzrot.h"
 %DefChSharedPtr(chrono::fem::,ChNodeFEMxyzrot)
+
+%include "../unit_FEM/ChBuilderBeam.h"
+//%DefChSharedPtr(chrono::fem::,ChBuilderBeam)
 
 %include "../unit_FEM/ChMesh.h"
 %DefChSharedPtr(chrono::fem::,ChMesh)
@@ -147,6 +211,19 @@ using namespace fem;
 %DefChSharedPtrCast(chrono::fem::ChNodeFEMxyzP, chrono::fem::ChNodeFEMbase)
 %DefChSharedPtrCast(chrono::fem::ChNodeFEMxyzrot, chrono::fem::ChNodeFEMbase)
 %DefChSharedPtrCast(chrono::fem::ChNodeFEMxyzrot, chrono::ChBodyFrame)
+%DefChSharedPtrCast(chrono::fem::ChElementGeneric, chrono::ChElementBase)
+%DefChSharedPtrCast(chrono::fem::ChElementBeam, chrono::ChElementGeneric)
+%DefChSharedPtrCast(chrono::fem::ChElementBeamEuler, chrono::ChElementBeam)
+%DefChSharedPtrCast(chrono::fem::ChElementTetrahedron, chrono::ChElementGeneric)
+%DefChSharedPtrCast(chrono::fem::ChElementTetra_4, chrono::ChElementTetrahedron)
+%DefChSharedPtrCast(chrono::fem::ChElementTetra_10, chrono::ChElementTetrahedron)
+%DefChSharedPtrCast(chrono::fem::ChElementHexahedron, chrono::ChElementGeneric)
+%DefChSharedPtrCast(chrono::fem::ChElementHexa_8, chrono::ChElementHexahedron)
+%DefChSharedPtrCast(chrono::fem::ChElementHexa_20, chrono::ChElementHexahedron)
+%DefChSharedPtrCast(chrono::fem::ChContinuumElastic, chrono::ChContinuumMaterial)
+%DefChSharedPtrCast(chrono::fem::ChContinuumElastoplastic, chrono::ChContinuumElastic)
+%DefChSharedPtrCast(chrono::fem::ChContinuumPlasticVonMises, chrono::ChContinuumElastoplastic)
+%DefChSharedPtrCast(chrono::fem::ChContinuumDruckerPrager, chrono::ChContinuumElastoplastic)
 %DefChSharedPtrCast(chrono::fem::ChMesh, chrono::ChPhysicsItem)
 
 //
@@ -164,7 +241,14 @@ using namespace fem;
 //  print ('Could be cast to visualization object?', !myvis.IsNull())
 
 %DefChSharedPtrDynamicDowncast(ChPhysicsItem,ChMesh)
-
+%DefChSharedPtrDynamicDowncast(ChElementBase,ChElementBeamEuler)
+%DefChSharedPtrDynamicDowncast(ChElementBase,ChElementTetra_4)
+%DefChSharedPtrDynamicDowncast(ChElementBase,ChElementTetra_10)
+%DefChSharedPtrDynamicDowncast(ChElementBase,ChElementHexa_8)
+%DefChSharedPtrDynamicDowncast(ChElementBase,ChElementHexa_20)
+%DefChSharedPtrDynamicDowncast(ChNodeFEMbase,ChNodeFEMxyz)
+%DefChSharedPtrDynamicDowncast(ChNodeFEMbase,ChNodeFEMxyzP)
+%DefChSharedPtrDynamicDowncast(ChNodeFEMbase,ChNodeFEMxyzrot)
 
 //
 // ADDITIONAL C++ FUNCTIONS / CLASSES THAT ARE USED ONLY FOR PYTHON WRAPPER

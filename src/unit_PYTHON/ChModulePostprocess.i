@@ -50,6 +50,7 @@
 #include "unit_POSTPROCESS/ChPostProcessBase.h"
 #include "unit_POSTPROCESS/ChPovRay.h"
 #include "unit_POSTPROCESS/ChPovRayAssetCustom.h"
+#include "unit_POSTPROCESS/ChGnuPlot.h"
 
 using namespace chrono;
 using namespace postprocess;
@@ -60,7 +61,7 @@ using namespace postprocess;
 
 // Undefine ChApi otherwise SWIG gives a syntax error
 #define ChApiPostProcess 
-
+#define ChApi
 
 // Include other .i configuration files for SWIG. 
 // These are divided in many .i files, each per a
@@ -92,12 +93,15 @@ using namespace postprocess;
 // a type B. Otherwise a name mangling is built anyway, but the runtime is not ok.
 
 //  core/  classes
-%include "ChPostProcessBase.i"
-%include "ChPovRay.i"
-
 %import  "ChAsset.i"
 %import  "ChColor.i"
+
+%include "ChPostProcessBase.i"
+%include "ChPovRay.i"
 %include "ChPovRayAssetCustom.i"
+
+%include "../unit_POSTPROCESS/ChGnuPlot.h"
+
 
 
 
