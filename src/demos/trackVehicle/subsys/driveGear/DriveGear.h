@@ -28,6 +28,7 @@
 
 // collision callback function
 #include "subsys/collision/TrackCollisionCallback.h"
+#include "physics/ChContactContainer.h"
 
 namespace chrono {
 
@@ -39,23 +40,26 @@ public:
 
   /// override static values for mass, inertia
   DriveGear(const std::string& name,
-    VisualizationType vis = VisualizationType::PRIMITIVES,
-    CollisionType collide = CollisionType::PRIMITIVES,
+    VisualizationType::Enum vis = VisualizationType::Primitives,
+    CollisionType::Enum collide = CollisionType::Primitives,
     size_t chainSys_idx = 0, ///< what chain system is this gear associated with?
     double gear_mass = 436.7,
     const ChVector<>& gear_Ixx = ChVector<>(12.22, 12.22, 13.87) );
 
-  ~DriveGear() {}
+  ~DriveGear();
 
   /// init the gear with the initial pos. and rot., w.r.t. the chassis c-sys
   void Initialize(ChSharedPtr<ChBody> chassis,
     const ChFrame<>& chassis_REF,
-    const ChCoordsys<>& local_Csys);
+    const ChCoordsys<>& local_Csys,
+    const std::vector<ChSharedPtr<ChBody> >& shoes);
 
   // accessors
   ChSharedPtr<ChBody> GetBody() const { return m_gear; }
 
   ChSharedPtr<ChShaft> GetAxle() const { return m_axle; }
+
+  const GearPinCollisionCallback<ChContactContainer>* GetCollisionCallback() const { return m_gearPinContact; }
 
   double GetRadius() const { return m_radius; }
 
@@ -75,7 +79,8 @@ private:
   const std::string& getMeshFile() const { return m_meshFile; }
 
   void AddVisualization();
-  void AddCollisionGeometry(double mu = 0.6,
+  void AddCollisionGeometry(const std::vector<ChSharedPtr<ChBody> >& shoes,
+                            double mu = 0.6,
                             double mu_sliding = 0.5,
                             double mu_roll = 0,
                             double mu_spin = 0);
@@ -86,8 +91,8 @@ private:
   ChSharedPtr<ChShaftsBody>  m_axle_to_gear;    ///< handle to gear-shaft connector
   ChSharedPtr<ChLinkLockRevolute>  m_revolute;  ///< handle to revolute joint
 
-  VisualizationType m_vis;    // visual asset geometry type
-  CollisionType m_collide;    // collision geometry type
+  VisualizationType::Enum m_vis;    // visual asset geometry type
+  CollisionType::Enum m_collide;    // collision geometry type
   const size_t m_chainSys_idx; ///< if there are multiple chain systems 
   // (e.g., on the M113, the subsystem knows which it is a part of for collision family purposes)
 
@@ -98,7 +103,8 @@ private:
   const std::string m_meshFile;
 
   // data container for callback collision function
-  const ChSharedPtr<GearPinGeometry> m_geom;
+  GearPinGeometry m_gearPinGeom;
+  GearPinCollisionCallback<ChContactContainer> *m_gearPinContact;
 
   // static variables
   static const double m_radius;

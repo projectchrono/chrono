@@ -94,7 +94,7 @@ public:
 
 
 				/// Get the pointer to the parent ChSystem()
-	ChSystem* GetSystem () { return system;}
+	ChSystem* GetSystem () const { return system;}
 
 				/// Set the pointer to the parent ChSystem()
 	virtual void SetSystem (ChSystem* m_system) {system= m_system;}

@@ -49,8 +49,8 @@ class CH_SUBSYS_API TrackVehicle : public ChTrackVehicle
 public:
 
   TrackVehicle(const std::string& name,
-    VisualizationType vis = VisualizationType::NONE,
-    CollisionType collide = CollisionType::NONE,
+    VisualizationType::Enum vis = VisualizationType::None,
+    CollisionType::Enum collide = CollisionType::None,
     double mass = 5489.2, // default for M113 APC
     const ChVector<>& Ixx = ChVector<>(1786.9, 10449.7, 10721.2), // default for M113 APC
     const ChVector<>& left_pos_rel = ChVector<>(0.23644, -0.4780, 0.83475),    // relative to chassis REF c-sys
@@ -103,7 +103,7 @@ private:
   const ChVector<> m_trackSys_R;  ///< where to place right track system origin, relative to chassis REF c-sys
   const size_t m_num_tracks;      ///< how many track systems to build
 
-  std::vector<ChSharedPtr<TrackDriveline>>   m_drivelines;    ///< handle to the driveline subsystem, one for each powertrain/drivegear pair
+  std::vector<ChSharedPtr<TrackDriveline> >   m_drivelines;    ///< handle to the driveline subsystem, one for each powertrain/drivegear pair
 
   // static variables
   static const double     mass_override;     // override chassis mass input

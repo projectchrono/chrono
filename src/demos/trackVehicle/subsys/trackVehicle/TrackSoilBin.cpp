@@ -51,8 +51,8 @@ const ChQuaternion<> TrackSoilBin::m_idlerRot(QUNIT);
 
 /// constructor sets the basic integrator settings for this ChSystem, as well as the usual stuff
 TrackSoilBin::TrackSoilBin(const std::string& name,
-                       VisualizationType chassisVis,
-                       CollisionType chassisCollide,
+                       VisualizationType::Enum chassisVis,
+                       CollisionType::Enum chassisCollide,
                        double mass,
                        const ChVector<>& inertia,
                        size_t num_idlers,
@@ -89,9 +89,9 @@ TrackSoilBin::TrackSoilBin(const std::string& name,
   double idler_mass = 100.0; // 429.6
   ChVector<> idler_Ixx(gear_Ixx);    // 12.55, 12.55, 14.7
   m_idlers[0] = ChSharedPtr<IdlerSimple>(new IdlerSimple("idler",
-    VisualizationType::MESH,
-    // VisualizationType::PRIMITIVES,
-    CollisionType::PRIMITIVES,
+    VisualizationType::Mesh,
+    // VisualizationType::Primitives,
+    CollisionType::Primitives,
     0,
     idler_mass,
     idler_Ixx) );
@@ -100,8 +100,8 @@ TrackSoilBin::TrackSoilBin(const std::string& name,
   double shoe_mass = 18.03/4.0; // 18.03
   ChVector<> shoe_Ixx(0.22/4.0, 0.25/4.0, 0.04/4.0);  // 0.22, 0.25, 0.04
   m_chain = ChSharedPtr<TrackChain>(new TrackChain("chain",
-    VisualizationType::COMPOUNDPRIMITIVES,
-    CollisionType::PRIMITIVES,
+    VisualizationType::CompoundPrimitives,
+    CollisionType::Primitives,
     0,
     shoe_mass,
     shoe_Ixx) );
@@ -114,18 +114,20 @@ TrackSoilBin::TrackSoilBin(const std::string& name,
   m_rollers.resize(m_num_rollers);
   for(int j = 0; j < m_num_rollers; j++)
   {
-    m_rollers[j] = ChSharedPtr<SupportRoller>(new SupportRoller("support roller " +std::to_string(j),
-      VisualizationType::PRIMITIVES,
-      CollisionType::PRIMITIVES));
+    std::stringstream r_ss;
+    r_ss << "support roller " << j;
+    m_rollers[j] = ChSharedPtr<SupportRoller>(new SupportRoller(r_ss.str(),
+      VisualizationType::Primitives,
+      CollisionType::Primitives));
   }
 
   if(m_num_idlers > 1)
   {
     // for now, just create 1 more idler
     m_idlers[1] = ChSharedPtr<IdlerSimple>(new IdlerSimple("idler 2",
-    VisualizationType::MESH,
-    // VisualizationType::PRIMITIVES,
-    CollisionType::PRIMITIVES,
+    VisualizationType::Mesh,
+    // VisualizationType::Primitives,
+    CollisionType::Primitives,
     0,
     idler_mass,
     idler_Ixx) );
@@ -151,17 +153,16 @@ void TrackSoilBin::Initialize(const ChCoordsys<>& gear_Csys)
   // Create list of the center location of the rolling elements and their clearance.
   // Clearance is a sphere shaped envelope at each center location, where it can
   //  be guaranteed that the track chain geometry will not penetrate the sphere.
-  std::vector<ChVector<>> rolling_elem_locs; // w.r.t. chassis ref. frame
+  std::vector<ChVector<> > rolling_elem_locs; // w.r.t. chassis ref. frame
   std::vector<double> clearance;  // 1 per rolling elem  
-  std::vector<ChVector<>> rolling_elem_spin_axis; /// w.r.t. abs. frame
+  std::vector<ChVector<> > rolling_elem_spin_axis; /// w.r.t. abs. frame
   
 
   // initialize 1 of each of the following subsystems.
   // will use the chassis ref frame to do the transforms, since the TrackSystem
   // local ref. frame has same rot (just difference in position)
-  m_gear->Initialize(m_chassis, 
-    m_chassis->GetFrame_REF_to_abs(),
-    ChCoordsys<>());
+  // NOTE: Gear Init() function moved to after TrackChain() Init
+  //      However, still add rolling element info for gear to list first
 
   // drive sprocket is First added to the lists passed into TrackChain Init()
   rolling_elem_locs.push_back(ChVector<>() );
@@ -223,6 +224,12 @@ void TrackSoilBin::Initialize(const ChCoordsys<>& gear_Csys)
   
   // can set pin friction between adjoining shoes by activing damping on the DOF
   // m_chain->Set_pin_friction(2.0); // [N-m-sec] ???
+
+  // Now, the gear can be initialized
+  m_gear->Initialize(m_chassis, 
+    m_chassis->GetFrame_REF_to_abs(),
+    ChCoordsys<>(),
+    m_chain->GetShoeBody() );
 
   // initialize the powertrain, drivelines
   m_ptrain->Initialize(m_chassis, m_gear->GetAxle() );

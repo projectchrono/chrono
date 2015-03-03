@@ -50,8 +50,8 @@ const double TrackChain::m_tooth_COG_offset = -0.07313; // , -0.0731.  local c-s
 const double TrackChain::m_shoe_chain_Yoffset = 0.04; // .03315 exact
   
 TrackChain::TrackChain(const std::string& name, 
-                       VisualizationType vis,
-                       CollisionType collide,
+                       VisualizationType::Enum vis,
+                       CollisionType::Enum collide,
                        size_t chainSys_idx,
                        double shoe_mass,
                        const ChVector<>& shoeIxx
@@ -75,7 +75,9 @@ m_damping_C(0)
 
   m_numShoes++;
 
-  m_shoes.front()->SetNameString("shoe"+std::to_string(m_numShoes));
+  std::stringstream shoe_s;
+  shoe_s << "shoe"<< m_numShoes;
+  m_shoes.front()->SetNameString( shoe_s.str() );
   m_shoes.front()->SetMass(m_mass);
   m_shoes.front()->SetInertiaXX(m_inertia);
 
@@ -87,9 +89,9 @@ m_damping_C(0)
 // figure out the control points, 2 per rolling element to wrap the chain around.
 void TrackChain::Initialize(ChSharedPtr<ChBody> chassis,
                             const ChFrame<>& chassis_REF,
-                            const std::vector<ChVector<>>& rolling_element_loc,
+                            const std::vector<ChVector<> >& rolling_element_loc,
                             const std::vector<double>& clearance,
-                            const std::vector<ChVector<>>& spin_axis,
+                            const std::vector<ChVector<> >& spin_axis,
                             const ChVector<>& start_loc)
 {
   assert(rolling_element_loc.size() == clearance.size() );
@@ -98,8 +100,8 @@ void TrackChain::Initialize(ChSharedPtr<ChBody> chassis,
   start_to_abs.ConcatenatePreTransformation(chassis->GetFrame_REF_to_abs());
 
   // find control points, which lie on the envelope of each rolling element, in abs coords
-  std::vector<ChFrame<>> control_to_abs;
-  std::vector<ChFrame<>> rolling_to_abs;
+  std::vector<ChFrame<> > control_to_abs;
+  std::vector<ChFrame<> > rolling_to_abs;
 
   size_t num_elem = rolling_element_loc.size();  // number of control points
 
@@ -162,31 +164,11 @@ void TrackChain::Initialize(ChSharedPtr<ChBody> chassis,
       // rad_dir is now tangent to r_21, so define the new endpoint of this segment
       end_point = rolling_element_loc[i] + rad_dir * clearance[i];
 
-    } else 
-    {
+    } 
+    else  {
       // intermediate points, find start and end from roller elem locations
       // first guess at start/end points: center distance vector
       r_21 = rolling_element_loc[i] - rolling_element_loc[i-1];
-
-      /*
-      // find the radial direction from the center of adjacent rolling elements
-      // for seg i, norm = [r(i-2)-r(i-1)] x [r(i)-r(i-1)
-      if(i == 1)
-      {
-        norm_dir = Vcross( rolling_element_loc.back() - rolling_element_loc[i-1],
-          rolling_element_loc[i] - rolling_element_loc[i-1]);
-      } else if( abs(clearance[i] - clearance[i-1]) < 1e-3 && abs(clearance[i-2] - clearance[i-1]) < 1e-3) 
-      {
-        // this works, as long as i, i-1 and i-2 don't have the same clearance (then it's just a line).
-        norm_dir = Vcross( rolling_element_loc[0] - rolling_element_loc[i-1],
-          rolling_element_loc[i] - rolling_element_loc[i-1]);
-      } else {
-        // this works, as long as i, i-1 and i-2 don't have the same clearance (then it's just a line).
-        norm_dir = Vcross( rolling_element_loc[i-2] - rolling_element_loc[i-1],
-          rolling_element_loc[i] - rolling_element_loc[i-1]);
-      }
-      norm_dir.Normalize();
-      */
 
       // if the two rolling elements have the same radius, no angle of wrap.
       rad_dir = Vcross(spin_axis[i].GetNormalized(), r_21.GetNormalized());
@@ -296,7 +278,7 @@ void TrackChain::AddVisualization(size_t track_idx,
 
   // Attach visualization asset
   switch (m_vis) {
-  case VisualizationType::PRIMITIVES:
+  case VisualizationType::Primitives:
   {
 
     // color the boxes and cylinders differently
@@ -348,7 +330,7 @@ void TrackChain::AddVisualization(size_t track_idx,
 
     break;
   }
-  case VisualizationType::COMPOUNDPRIMITIVES:
+  case VisualizationType::CompoundPrimitives:
   {
     // use same set of primitives as was used for the corresponding collsion shape
     // shoe geometry provided can be exactly represented by 5 smaller boxes, 2 cylinders.
@@ -420,7 +402,7 @@ void TrackChain::AddVisualization(size_t track_idx,
 
     break;
   } 
-  case VisualizationType::MESH:
+  case VisualizationType::Mesh:
   {
     // mesh for visualization only.
     geometry::ChTriangleMeshConnected trimesh;
@@ -471,7 +453,7 @@ void TrackChain::AddCollisionGeometry(size_t track_idx,
 {
   assert(track_idx < m_numShoes);
    // add collision geometrey to the chassis, if enabled. Warn if disabled
-  if( m_collide == CollisionType::NONE)
+  if( m_collide == CollisionType::None)
   {
     GetLog() << " !!! track shoe # " << track_idx << " collision deactivated !!! \n\n";
     m_shoes[track_idx]->SetCollide(false);
@@ -491,7 +473,7 @@ void TrackChain::AddCollisionGeometry(size_t track_idx,
   m_shoes[track_idx]->GetMaterialSurface()->SetSpinningFriction(mu_spin);
 
   switch (m_collide) {
-  case CollisionType::PRIMITIVES:
+  case CollisionType::Primitives:
   {
     
     // use a simple box for the shoe
@@ -510,7 +492,7 @@ void TrackChain::AddCollisionGeometry(size_t track_idx,
     
     break;
   }
-  case CollisionType::COMPOUNDPRIMITIVES:
+  case CollisionType::CompoundPrimitives:
   {
     // shoe geometry provided can be exactly represented by 6 smaller boxes, 2 cylinders.
     double subBox_width = 0.5*0.082;
@@ -541,7 +523,7 @@ void TrackChain::AddCollisionGeometry(size_t track_idx,
     
     break;
   }
-  case CollisionType::MESH:
+  case CollisionType::Mesh:
   {
     // use a triangle mesh
    
@@ -556,7 +538,7 @@ void TrackChain::AddCollisionGeometry(size_t track_idx,
 
     break;
   }
-  case CollisionType::CONVEXHULL:
+  case CollisionType::ConvexHull:
   {
     // use convex hulls, loaded from file
     ChStreamInAsciiFile chull_file(GetChronoDataFile("track_data/M113/shoe_collision.chulls").c_str());
@@ -577,11 +559,11 @@ void TrackChain::AddCollisionGeometry(size_t track_idx,
   } // end switch
 
   // set collision family
-  m_shoes[track_idx]->GetCollisionModel()->SetFamily( (int)CollisionFam::SHOES);
+  m_shoes[track_idx]->GetCollisionModel()->SetFamily( (int)CollisionFam::Shoe);
 
   // don't collide with other shoes, but with everything else
-  m_shoes[track_idx]->GetCollisionModel()->SetFamilyMaskNoCollisionWithFamily( (int)CollisionFam::SHOES );
-  m_shoes[track_idx]->GetCollisionModel()->SetFamilyMaskNoCollisionWithFamily( (int)CollisionFam::HULL );
+  m_shoes[track_idx]->GetCollisionModel()->SetFamilyMaskNoCollisionWithFamily( (int)CollisionFam::Shoe );
+  m_shoes[track_idx]->GetCollisionModel()->SetFamilyMaskNoCollisionWithFamily( (int)CollisionFam::Hull );
 
   m_shoes[track_idx]->GetCollisionModel()->BuildModel();
 
@@ -591,8 +573,8 @@ void TrackChain::AddCollisionGeometry(size_t track_idx,
 // each two control points correspond to a single rolling element & clearance value, in the same order.
 void TrackChain::CreateChain(ChSharedPtr<ChBody> chassis,
                              const ChFrame<>& chassis_REF,
-                             const std::vector<ChFrame<>>& control_points_abs,
-                             const std::vector<ChFrame<>>& rolling_element_abs,
+                             const std::vector<ChFrame<> >& control_points_abs,
+                             const std::vector<ChFrame<> >& rolling_element_abs,
                              const std::vector<double>& clearance,
                              const ChVector<>& start_pos_abs)
 {
@@ -696,7 +678,9 @@ void TrackChain::CreateShoes(ChSharedPtr<ChBody> chassis,
     (m_numShoes % 2 == 0) ? AddVisualization(m_numShoes -1, true, "spheretexture.png") : AddVisualization();
     
     AddCollisionGeometry();
-    m_shoes.back()->SetNameString( "shoe" + std::to_string(m_numShoes) );
+    std::stringstream shoe_s;
+    shoe_s << "shoe" << m_numShoes;
+    m_shoes.back()->SetNameString( shoe_s.str() );
 
     // Find where the pin to the previous shoe should be positioned.
     // From there, calculate what the body pos/rot should be.
@@ -811,7 +795,9 @@ void TrackChain::CreateShoes(ChSharedPtr<ChBody> chassis,
 
     // create and init. the pin between the last shoe and this one, add to system.
     m_pins.push_back(ChSharedPtr<ChLinkLockRevolute>(new ChLinkLockRevolute));
-    m_pins.back()->SetNameString("pin" + std::to_string(m_pins.size()) );
+    std::stringstream pin_s;
+    pin_s << "pin" << m_pins.size();
+    m_pins.back()->SetNameString(pin_s.str());
     // pin frame picked up from COG_frame, where z-axis should be in the lateral direction.
     m_pins.back()->Initialize(m_shoes.back(), m_shoes.end()[-2], ChCoordsys<>(pin_frame.GetPos(), pin_frame.GetRot() ) );
     chassis->GetSystem()->AddLink(m_pins.back());
@@ -877,7 +863,9 @@ void TrackChain::CreateShoes(ChSharedPtr<ChBody> chassis,
      // even shoes can be a different texture
     (m_numShoes % 2 == 0) ? AddVisualization(m_numShoes -1, true, "spheretexture.png") : AddVisualization();
     AddCollisionGeometry();
-    m_shoes.back()->SetNameString( "shoe" + std::to_string(m_numShoes) );
+    std::stringstream shoe_s;
+    shoe_s << "shoe" << m_numShoes;
+    m_shoes.back()->SetNameString( shoe_s.str() );
 
     // pin between shoes position is know, orient the same as the previous shoe.
     pin_frame = ChFrame<>(COG_frame*COG_to_pin_rel, COG_frame.GetRot() );
@@ -912,7 +900,9 @@ void TrackChain::CreateShoes(ChSharedPtr<ChBody> chassis,
 
     // create and init. the pin between the last shoe and this one, add to system.
     m_pins.push_back(ChSharedPtr<ChLinkLockRevolute>(new ChLinkLockRevolute));
-    m_pins.back()->SetNameString("pin " + std::to_string(m_pins.size()) );
+    std::stringstream pin_s;
+    pin_s << "pin " << m_pins.size();
+    m_pins.back()->SetNameString(pin_s.str());
     // pin frame picked up from COG_frame, where z-axis should be in the lateral direction.
     m_pins.back()->Initialize(m_shoes.back(), m_shoes.end()[-2], ChCoordsys<>(pin_frame.GetPos(), pin_frame.GetRot() ) );
     chassis->GetSystem()->AddLink(m_pins.back());
@@ -980,7 +970,10 @@ void TrackChain::CreateShoes_closeChain(ChSharedPtr<ChBody> chassis,
      // even shoes can be a different texture
     (m_numShoes % 2 == 0) ? AddVisualization(m_numShoes -1, true, "spheretexture.png") : AddVisualization();
     AddCollisionGeometry();
-    m_shoes.back()->SetNameString( "shoe" + std::to_string(m_numShoes) );
+
+    std::stringstream shoe_s;
+    shoe_s <<  "shoe" << m_numShoes;
+    m_shoes.back()->SetNameString( shoe_s.str() );
 
     // Find where the pin to the previous shoe should be positioned.
     // From there, calculate what the body pos/rot should be.
@@ -1089,7 +1082,9 @@ void TrackChain::CreateShoes_closeChain(ChSharedPtr<ChBody> chassis,
 
     // create and init. the pin between the last shoe and this one, add to system.
     m_pins.push_back(ChSharedPtr<ChLinkLockRevolute>(new ChLinkLockRevolute));
-    m_pins.back()->SetNameString("pin" + std::to_string(m_pins.size()) );
+    std::stringstream pin_s;
+    pin_s << "pin" << m_pins.size();
+    m_pins.back()->SetNameString(pin_s.str() );
     // pin frame picked up from COG_frame, where z-axis should be in the lateral direction.
     m_pins.back()->Initialize(m_shoes.back(), m_shoes.end()[-2], ChCoordsys<>(pin_frame.GetPos(), pin_frame.GetRot() ) );
     chassis->GetSystem()->AddLink(m_pins.back());
@@ -1165,7 +1160,9 @@ void TrackChain::CreateShoes_closeChain(ChSharedPtr<ChBody> chassis,
   } 
   // create and init. the pin between the last shoe and first, add to system.
   m_pins.push_back(ChSharedPtr<ChLinkLockRevolute>(new ChLinkLockRevolute));
-  m_pins.back()->SetNameString("pin" + std::to_string(m_pins.size()) );
+  std::stringstream pin_s;
+  pin_s << "pin"  << m_pins.size();
+  m_pins.back()->SetNameString( pin_s.str() );
   // use the orientation of the last shoe added
   m_pins.back()->Initialize(m_shoes.front(), m_shoes.back(), ChCoordsys<>(pin_pos_abs, m_shoes.back()->GetRot() ) );
   chassis->GetSystem()->AddLink(m_pins.back());
@@ -1199,6 +1196,11 @@ ChSharedPtr<ChBody> TrackChain::GetShoeBody(size_t track_idx) const
   return (track_idx > m_numShoes-1) ? m_shoes[track_idx] : m_shoes[0] ;
 }
 
+const std::vector<ChSharedPtr<ChBody> >& TrackChain::GetShoeBody() const
+{
+  assert( m_shoes.size() > 0 );
+  return m_shoes;
+}
 
 const ChVector<> TrackChain::GetPinReactForce(size_t pin_idx)
 {
@@ -1230,7 +1232,7 @@ void TrackChain::Set_pin_friction(double damping_C,
   }
   
   // iterate thru the pin revolute joints, adding a friction force on the DOF for each
-  for(std::vector<ChSharedPtr<ChLinkLockRevolute>>::iterator itr = m_pins.begin(); itr != m_pins.end(); itr++)
+  for(std::vector<ChSharedPtr<ChLinkLockRevolute> >::iterator itr = m_pins.begin(); itr != m_pins.end(); itr++)
   {
     // just use a shared ptr to the force, keep it in an array
     ChLinkForce* pin_friction = new ChLinkForce;
