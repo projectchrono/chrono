@@ -1,7 +1,7 @@
 %{
 
 /* Includes the header in the wrapper code */
-#include "physics/ChLinkforce.h"
+#include "physics/ChLinkForce.h"
 
 %}
  
@@ -15,7 +15,7 @@
 
 
 /* Parse the header file to generate wrappers */
-%include "../physics/ChLinkforce.h"  
+%include "../physics/ChLinkForce.h"
 
 
 
