@@ -372,21 +372,20 @@ void ChConstraintRigidRigid::Build_E() {
 
     real4 cA = data_container->host_data.compliance_data[body.x];
     real4 cB = data_container->host_data.compliance_data[body.y];
-    real4 compliance;
 
-    compliance.x = (cA.x == 0 || cB.x == 0) ? 0 : (cA.x + cB.x) * .5;
-    compliance.y = (cA.y == 0 || cB.y == 0) ? 0 : (cA.y + cB.y) * .5;
-    compliance.z = (cA.z == 0 || cB.z == 0) ? 0 : (cA.z + cB.z) * .5;
-    compliance.w = (cA.w == 0 || cB.w == 0) ? 0 : (cA.w + cB.w) * .5;
+    real compliance_normal = (cA.x == 0 || cB.x == 0) ? 0 : (cA.x + cB.x) * .5;
+    real compliance_sliding = (cA.y == 0 || cB.y == 0) ? 0 : (cA.y + cB.y) * .5;
+    real compliance_spinning = (cA.z == 0 || cB.z == 0) ? 0 : (cA.z + cB.z) * .5;
+    real compliance_rolling = (cA.w == 0 || cB.w == 0) ? 0 : (cA.w + cB.w) * .5;
 
-    E[index * 1 + 0] = compliance.x;  // normal
+    E[index * 1 + 0] = compliance_normal;
     if (solver_mode == SLIDING) {
-      E[num_contacts + index * 2 + 0] = compliance.y;  // sliding
-      E[num_contacts + index * 2 + 1] = compliance.y;  // sliding
+      E[num_contacts + index * 2 + 0] = compliance_sliding;
+      E[num_contacts + index * 2 + 1] = compliance_sliding;
     } else if (solver_mode == SPINNING) {
-      E[3 * num_contacts + index * 3 + 0] = compliance.w;  // sliding
-      E[3 * num_contacts + index * 3 + 1] = compliance.z;  // sliding
-      E[3 * num_contacts + index * 3 + 2] = compliance.z;  // sliding
+      E[3 * num_contacts + index * 3 + 0] = compliance_spinning;
+      E[3 * num_contacts + index * 3 + 1] = compliance_rolling;
+      E[3 * num_contacts + index * 3 + 2] = compliance_rolling;
     }
   }
 }
