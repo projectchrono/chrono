@@ -81,7 +81,7 @@ pov_exporter.SetPictureFilebase("anim/picture")
 pov_exporter.SetCamera(chrono.ChVectorD(0.2,0.3,0.5), chrono.ChVectorD(0,0,0), 35)
 
  # Sets the default ambient light and default light lamp
-pov_exporter.SetAmbientLight(chrono.ChColor(1,1,1))
+pov_exporter.SetAmbientLight(chrono.ChColor(1,1,0.9))
 pov_exporter.SetLight(chrono.ChVectorD(-2,2,-1), chrono.ChColor(0.9,0.9,1.1), 1)
 
  # Sets other settings
