@@ -78,8 +78,9 @@ void ChSolverParallel::ShurProduct(const blaze::DynamicVector<real>& x, blaze::D
         o_b = N_b * x_b + E_b * x_b;
         o_n = N_n * x_n + E_n * x_n;
       } else {
-        o_b = D_b_T * (M_invD_b * x_b) + E_b * x_b;
-        o_n = D_n_T * (M_invD_n * x_n) + E_n * x_n;
+        blaze::DynamicVector<real> tmp = M_invD_b * x_b + M_invD_n * x_n;
+        o_b = D_b_T * tmp + E_b * x_b;
+        o_n = D_n_T * tmp + E_n * x_n;
       }
     } break;
 
@@ -92,9 +93,10 @@ void ChSolverParallel::ShurProduct(const blaze::DynamicVector<real>& x, blaze::D
         o_n = N_n * x_n + E_n * x_n;
         o_t = N_t * x_t + E_t * x_t;
       } else {
-        o_b = D_b_T * (M_invD_b * x_b) + E_b * x_b;
-        o_n = D_n_T * (M_invD_n * x_n) + E_n * x_n;
-        o_t = D_t_T * (M_invD_t * x_t) + E_t * x_t;
+        blaze::DynamicVector<real> tmp = M_invD_b * x_b + M_invD_n * x_n + M_invD_t * x_t;
+        o_b = D_b_T * tmp + E_b * x_b;
+        o_n = D_n_T * tmp + E_n * x_n;
+        o_t = D_t_T * tmp + E_t * x_t;
       }
 
     } break;
@@ -113,10 +115,11 @@ void ChSolverParallel::ShurProduct(const blaze::DynamicVector<real>& x, blaze::D
         o_t = N_t * x_t + E_t * x_t;
         o_s = N_s * x_s + E_s * x_s;
       } else {
-        o_b = D_b_T * (M_invD_b * x_b) + E_b * x_b;
-        o_n = D_n_T * (M_invD_n * x_n) + E_n * x_n;
-        o_t = D_t_T * (M_invD_t * x_t) + E_t * x_t;
-        o_s = D_s_T * (M_invD_s * x_s) + E_s * x_s;
+        blaze::DynamicVector<real> tmp = M_invD_b * x_b + M_invD_n * x_n + M_invD_t * x_t + M_invD_s * x_s;
+        o_b = D_b_T * tmp + E_b * x_b;
+        o_n = D_n_T * tmp + E_n * x_n;
+        o_t = D_t_T * tmp + E_t * x_t;
+        o_s = D_s_T * tmp + E_s * x_s;
       }
 
     } break;
