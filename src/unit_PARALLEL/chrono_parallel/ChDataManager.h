@@ -152,7 +152,10 @@ struct host_container {
   CompressedMatrix<real> M_invD_n, M_invD_t, M_invD_s, M_invD_b;
   // N holds the full shur matrix product D_T * M_inv_D
   // Not necessarily used in the code, more for testing purposes
-  CompressedMatrix<real> N_n, N_t, N_s, N_b;
+  CompressedMatrix<real> N_nn, N_nt, N_ns, N_nb;
+  CompressedMatrix<real> N_tn, N_tt, N_ts, N_tb;
+  CompressedMatrix<real> N_sn, N_st, N_ss, N_sb;
+  CompressedMatrix<real> N_bn, N_bt, N_bs, N_bb;
 
   DynamicVector<real> R_full;  // The right hand side of the system
   DynamicVector<real> R;  // The rhs of the system, changes during solve

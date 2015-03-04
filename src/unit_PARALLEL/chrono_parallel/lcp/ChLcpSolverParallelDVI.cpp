@@ -297,8 +297,7 @@ void ChLcpSolverParallelDVI::ComputeR() {
 }
 
 void ChLcpSolverParallelDVI::ComputeN() {
-
-  if(!data_container->settings.solver.compute_N){
+  if (!data_container->settings.solver.compute_N) {
     return;
   }
 
@@ -318,10 +317,25 @@ void ChLcpSolverParallelDVI::ComputeN() {
   const CompressedMatrix<real>& M_invD_s = data_container->host_data.M_invD_s;
   const CompressedMatrix<real>& M_invD_b = data_container->host_data.M_invD_b;
 
-  CompressedMatrix<real>& N_n = data_container->host_data.N_n;
-  CompressedMatrix<real>& N_t = data_container->host_data.N_t;
-  CompressedMatrix<real>& N_s = data_container->host_data.N_s;
-  CompressedMatrix<real>& N_b = data_container->host_data.N_b;
+  CompressedMatrix<real>& N_nn = data_container->host_data.N_nn;
+  CompressedMatrix<real>& N_nt = data_container->host_data.N_nt;
+  CompressedMatrix<real>& N_ns = data_container->host_data.N_ns;
+  CompressedMatrix<real>& N_nb = data_container->host_data.N_nb;
+
+  CompressedMatrix<real>& N_tn = data_container->host_data.N_tn;
+  CompressedMatrix<real>& N_tt = data_container->host_data.N_tt;
+  CompressedMatrix<real>& N_ts = data_container->host_data.N_ts;
+  CompressedMatrix<real>& N_tb = data_container->host_data.N_tb;
+
+  CompressedMatrix<real>& N_sn = data_container->host_data.N_sn;
+  CompressedMatrix<real>& N_st = data_container->host_data.N_st;
+  CompressedMatrix<real>& N_ss = data_container->host_data.N_ss;
+  CompressedMatrix<real>& N_sb = data_container->host_data.N_sb;
+
+  CompressedMatrix<real>& N_bn = data_container->host_data.N_bn;
+  CompressedMatrix<real>& N_bt = data_container->host_data.N_bt;
+  CompressedMatrix<real>& N_bs = data_container->host_data.N_bs;
+  CompressedMatrix<real>& N_bb = data_container->host_data.N_bb;
 
   const DynamicVector<real>& E = data_container->host_data.E;
 
@@ -329,22 +343,48 @@ void ChLcpSolverParallelDVI::ComputeN() {
   uint num_unilaterals = data_container->num_unilaterals;
   uint num_bilaterals = data_container->num_bilaterals;
 
-  N_b = D_b_T * M_invD_b;
+  data_container->host_data.N_bb = D_b_T * M_invD_b;
 
   switch (data_container->settings.solver.solver_mode) {
     case NORMAL: {
-      N_n = D_n_T * M_invD_n;
+      N_bn = D_b_T * M_invD_n;
+
+      N_nn = D_n_T * M_invD_n;
+      N_nb = D_n_T * M_invD_b;
     } break;
 
     case SLIDING: {
-      N_n = D_n_T * M_invD_n;
-      N_t = D_t_T * M_invD_t;
+      N_bn = D_b_T * M_invD_n;
+      N_bt = D_b_T * M_invD_t;
+
+      N_nb = D_n_T * M_invD_b;
+      N_nn = D_n_T * M_invD_n;
+      N_nt = D_n_T * M_invD_t;
+
+      N_tb = D_t_T * M_invD_b;
+      N_tn = D_t_T * M_invD_n;
+      N_tt = D_t_T * M_invD_t;
     } break;
 
     case SPINNING: {
-      N_n = D_n_T * M_invD_n;
-      N_t = D_t_T * M_invD_t;
-      N_s = D_s_T * M_invD_s;
+      N_bn = D_b_T * M_invD_n;
+      N_bt = D_b_T * M_invD_t;
+      N_bs = D_b_T * M_invD_s;
+
+      N_nb = D_n_T * M_invD_b;
+      N_nn = D_n_T * M_invD_n;
+      N_nt = D_n_T * M_invD_t;
+      N_ns = D_n_T * M_invD_s;
+
+      N_tb = D_t_T * M_invD_b;
+      N_tn = D_t_T * M_invD_n;
+      N_tt = D_t_T * M_invD_t;
+      N_ts = D_t_T * M_invD_s;
+
+      N_sb = D_s_T * M_invD_b;
+      N_sn = D_s_T * M_invD_n;
+      N_st = D_s_T * M_invD_t;
+      N_ss = D_s_T * M_invD_s;
     } break;
   }
   data_container->system_timer.stop("ChLcpSolverParallel_N");
