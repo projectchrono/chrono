@@ -3,7 +3,7 @@
 
 #include <thrust/device_vector.h>
 
-#include "SDKCollisionSystem.cuh" //just for SimParams
+#include "MyStructs.cuh" //just for SimParams
 
 void InitSystem(
 		SimParams paramsH,

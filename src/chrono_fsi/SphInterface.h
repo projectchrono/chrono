@@ -10,7 +10,9 @@
 
 #include <thrust/host_vector.h>
 #include <thrust/device_vector.h>
-#include "SDKCollisionSystem.cuh" //just for SimParams
+#include "custom_cutil_math.h"
+#include "SPHCudaUtils.h"
+#include "MyStructs.cuh" //just for SimParams
 
 #include "chrono_parallel/physics/ChSystemParallel.h"
 #include "chrono_parallel/lcp/ChLcpSystemDescriptorParallel.h"

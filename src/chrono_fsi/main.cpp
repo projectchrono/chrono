@@ -27,7 +27,7 @@
 //#include <crtdbg.h>//just for min
 
 
-#include "SDKCollisionSystem.cuh" //just for SimParams
+#include "MyStructs.cuh" //just for SimParams
 #include "collideSphereSphere.cuh"
 #include "printToFile.cuh"
 #include "custom_cutil_math.h"
