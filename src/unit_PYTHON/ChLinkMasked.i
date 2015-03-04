@@ -13,8 +13,8 @@
 
 
 /* Parse the header file(s) to generate wrappers */
-%include "../physics/ChLinkforce.h"  
-%include "../physics/ChLinkMasked.h"  
+%include "../physics/ChLinkForce.h"
+%include "../physics/ChLinkMasked.h"
 
 
 
