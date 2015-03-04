@@ -90,7 +90,7 @@ void ChSolverParallel::ShurProduct(const blaze::DynamicVector<real>& x, blaze::D
 
     case NORMAL: {
       if (data_container->settings.solver.compute_N) {
-        o_b = N_bb * x_b + N_bn * x_b + E_b * x_b;
+        o_b = N_bb * x_b + N_bn * x_n + E_b * x_b;
         o_n = N_nb * x_b + N_nn * x_n + E_n * x_n;
       } else {
         blaze::DynamicVector<real> tmp = M_invD_b * x_b + M_invD_n * x_n;
