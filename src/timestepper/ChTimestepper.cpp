@@ -430,6 +430,11 @@ void ChTimestepperEulerImplicitLinearized::Advance(
 
 
 /// Performs a step of trapezoidal implicit for II order systems
+/// NOTE this is a modified version of the trapezoidal for DAE: the
+/// original derivation would lead to a scheme that produces oscillatory 
+/// reactions in constraints, so this is a modified version that is first
+/// order in constraint reactions. Use damped HHT or damped Newmark for
+/// more advanced options.
 
 void ChTimestepperTrapezoidal::Advance(
 		const double dt				///< timestep to advance
@@ -453,7 +458,7 @@ void ChTimestepperTrapezoidal::Advance(
 
 
 		mintegrable->StateGather(X, V, T);	// state <- system
-		//mintegrable->StateGatherReactions(L); // <- system  assume l_old = 0;
+		//mintegrable->StateGatherReactions(L); // <- system  assume l_old = 0;  otherwise DAE gives oscillatory reactions
 	
 
 		// extrapolate a prediction as a warm start
@@ -468,7 +473,7 @@ void ChTimestepperTrapezoidal::Advance(
 
 		mintegrable->LoadResidual_F(Rold, dt*0.5);    // dt/2*f_old
 		mintegrable->LoadResidual_Mv(Rold, V, 1.0);  // M*v_old
-		//mintegrable->LoadResidual_CqL(Rold, L, dt*0.5); // dt/2*l_old
+		//mintegrable->LoadResidual_CqL(Rold, L, dt*0.5); // dt/2*l_old   assume L_old = 0
 	
 		for (int i = 0; i < this->GetMaxiters(); ++i)
 		{
@@ -514,7 +519,7 @@ void ChTimestepperTrapezoidal::Advance(
 		T += dt;
 
 		mintegrable->StateScatter(X, V, T);	// state -> system
-		mintegrable->StateScatterReactions(L*=0.5); // -> system auxiliary data   (*=0.5 cause use l_old = 0)
+		mintegrable->StateScatterReactions(L*=0.5); // -> system auxiliary data   (*=0.5 cause we used the hack of l_old = 0)
 	}
 
 
@@ -627,7 +632,7 @@ void ChTimestepperTrapezoidalLinearized2::Advance(
 		Xnew = X + V*dt;		
 		Vnew = V;  	
 
-		// use Newton Raphson iteration to solve implicit Euler for v_new
+		// use Newton Raphson iteration to solve implicit trapezoidal for v_new
 		//
 		// [ M - dt/2*dF/dv - dt^2/4*dF/dx    Cq' ] [ v_new    ] = [ M*(v_old) + dt/2(f_old + f_new)]
 		// [ Cq                               0   ] [ -dt/2*L ] m= [ C/dt                           ]
@@ -705,7 +710,7 @@ void ChTimestepperHHT::Advance(
 		mintegrable->LoadResidual_CqL(Rold, L, -(alpha / (1.0 + alpha)));   // -alpha/(1.0+alpha) * Cq'*l_old
 
 
-		// use Newton Raphson iteration to solve implicit Euler for a_new
+		// use Newton Raphson iteration to solve HHT for a_new
 		// Note: l and l_new and Dl with opposite sign if compared to Negrut et al. 2007.
 
 		//
@@ -797,7 +802,7 @@ void ChTimestepperNewmark::Advance(
 		Xnew = X + Vnew*dt;		 
 
 
-		// use Newton Raphson iteration to solve implicit Euler for a_new
+		// use Newton Raphson iteration to solve implicit Newmark for a_new
 
 		//
 		// [ M - dt*gamma*dF/dv - dt^2*beta*dF/dx    Cq' ] [ Da   ] = [ -M*(a_new) + f_new + Cq*l_new ]

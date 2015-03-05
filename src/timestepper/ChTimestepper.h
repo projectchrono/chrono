@@ -396,7 +396,12 @@ public:
 
 
 
-/// Performs a step of trapezoidal implicit for II order systems
+/// Performs a step of trapezoidal implicit for II order systems.
+/// NOTE this is a modified version of the trapezoidal for DAE: the
+/// original derivation would lead to a scheme that produces oscillatory 
+/// reactions in constraints, so this is a modified version that is first
+/// order in constraint reactions. Use damped HHT or damped Newmark for
+/// more advanced options.
 
 class ChApi ChTimestepperTrapezoidal : public ChTimestepperIIorder, public ChImplicitIterativeTimestepper
 {
@@ -555,7 +560,7 @@ public:
 		: ChTimestepperIIorder(mintegrable),
 		ChImplicitIterativeTimestepper()
 	{
-		SetGammaBeta(0.5,0.25);
+		SetGammaBeta(0.6,0.3); // default values with some damping, and that works also with DAE constraints
 	};
 
 

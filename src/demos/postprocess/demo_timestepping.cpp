@@ -546,9 +546,9 @@ int main(int argc, char* argv[])
 		mplot.Plot("log_timestepper_4.dat", 1,6, "Euler expl.IIorder", " with lines");
 		mplot.Plot("log_timestepper_4.dat", 1,8, "HHT alpha=0", " with lines");
 		mplot.Plot("log_timestepper_4.dat", 1,10, "HHT alpha=-0.33", " with lines");
-		mplot.Plot("log_timestepper_4.dat", 1,12, "Newmark a=0.5, b=1/4", " with lines");
-		mplot.Plot("log_timestepper_4.dat", 1,14, "Newmark a=0.5, b=1/6", " with lines");
-		mplot.Plot("log_timestepper_4.dat", 1,16, "Newmark a=1.0, b=1/4", " with lines");
+		mplot.Plot("log_timestepper_4.dat", 1,12, "Newmark g=0.5, b=1/4", " with lines");
+		mplot.Plot("log_timestepper_4.dat", 1,14, "Newmark g=0.5, b=1/6", " with lines");
+		mplot.Plot("log_timestepper_4.dat", 1,16, "Newmark g=1.0, b=1/4", " with lines");
 	}
 
 
@@ -732,15 +732,19 @@ int main(int argc, char* argv[])
 		MyIntegrable mintegrable3;
 		MyIntegrable mintegrable4;
 		MyIntegrable mintegrable5;
+		MyIntegrable mintegrable6;
+		MyIntegrable mintegrable7;
 
 		// Create few time-integrators to be compared:
 		ChTimestepperEulerImplicitLinearized  mystepper1(mintegrable1);
 		ChTimestepperEulerImplicit		 mystepper2(mintegrable2);
 		ChTimestepperTrapezoidal		 mystepper3(mintegrable3);
 		ChTimestepperHHT				 mystepper4(mintegrable4);
-		ChTimestepperHHT				 mystepper5(mintegrable5);
 		mystepper4.SetAlpha(0);		// HHT with no dissipation -> trapezoidal
+		ChTimestepperHHT				 mystepper5(mintegrable5);
 		mystepper5.SetAlpha(-0.2);  // HHT with dissipation 
+		ChTimestepperNewmark			 mystepper6(mintegrable6);
+		mystepper6.SetGammaBeta(0.6,0.3); // Newmark 
 
 		// Execute the time integration
 		while (mystepper1.GetTime() <12)
@@ -750,6 +754,7 @@ int main(int argc, char* argv[])
 			mystepper3.Advance(0.05);
 			mystepper4.Advance(0.05);
 			mystepper5.Advance(0.05);
+			mystepper6.Advance(0.05);
 
 			GetLog() << "T = " << mystepper1.GetTime() << "  x=" << mystepper1.get_X()(0) << "  y=" << mystepper1.get_X()(1) << "\n";
 			log_file5 << mystepper1.GetTime() 
@@ -758,6 +763,7 @@ int main(int argc, char* argv[])
 				<< ", " << mystepper3.get_X()(0) << ", " << mystepper3.get_X()(1) << ", " << mystepper3.get_V()(0) << ", " << mystepper3.get_V()(1)
 				<< ", " << mystepper4.get_X()(0) << ", " << mystepper4.get_X()(1) << ", " << mystepper4.get_V()(0) << ", " << mystepper4.get_V()(1)
 				<< ", " << mystepper5.get_X()(0) << ", " << mystepper5.get_X()(1) << ", " << mystepper5.get_V()(0) << ", " << mystepper5.get_V()(1)
+				<< ", " << mystepper6.get_X()(0) << ", " << mystepper6.get_X()(1) << ", " << mystepper6.get_V()(0) << ", " << mystepper6.get_V()(1)
 				<< "\n";
 			log_file5r << mystepper1.GetTime() 
 				<< ", " << mystepper1.get_L()(0)
@@ -765,6 +771,7 @@ int main(int argc, char* argv[])
 				<< ", " << mystepper3.get_L()(0)
 				<< ", " << mystepper4.get_L()(0)
 				<< ", " << mystepper5.get_L()(0)
+				<< ", " << mystepper6.get_L()(0)
 				<< "\n";
 		}
 
@@ -776,9 +783,10 @@ int main(int argc, char* argv[])
 		mplot.SetLabelY("x");
 		mplot.Plot("log_timestepper_5.dat", 1,2, "Euler impl. lineariz.",   " with lines");
 		mplot.Plot("log_timestepper_5.dat", 1,6, "Euler impl.",   " with lines");
-		mplot.Plot("log_timestepper_5.dat", 1,10, "Trapezoidal", " with lines");
+		mplot.Plot("log_timestepper_5.dat", 1,10, "Trapezoidal*", " with lines");
 		mplot.Plot("log_timestepper_5.dat", 1,14, "HHT alpha=0", " with lines");
 		mplot.Plot("log_timestepper_5.dat", 1,18, "HHT alpha=-0.2", " with lines");
+		mplot.Plot("log_timestepper_5.dat", 1,22, "Newmark g=0.6,b=0.3", " with lines");
 
 		mplot.OutputWindow(1);
 		mplot.SetGrid();
@@ -787,9 +795,10 @@ int main(int argc, char* argv[])
 		mplot.SetLabelY("R [N]");
 		mplot.Plot("log_timestepper_5r.dat", 1,2, "Euler impl. lineariz.",   " with lines");
 		mplot.Plot("log_timestepper_5r.dat", 1,3, "Euler impl.",   " with lines");
-		mplot.Plot("log_timestepper_5r.dat", 1,4, "Trapezoidal", " with lines");
+		mplot.Plot("log_timestepper_5r.dat", 1,4, "Trapezoidal*", " with lines");
 		mplot.Plot("log_timestepper_5r.dat", 1,5, "HHT alpha=0", " with lines");
 		mplot.Plot("log_timestepper_5r.dat", 1,6, "HHT alpha=-0.2", " with lines");
+		mplot.Plot("log_timestepper_5r.dat", 1,7, "Newmark g=0.6,b=0.3", " with lines");
 
 		mplot.OutputWindow(2);
 		mplot.SetGrid();
@@ -801,7 +810,7 @@ int main(int argc, char* argv[])
 		mplot.SetCommand("set size ratio 0.5");
 		mplot.Plot("log_timestepper_5.dat", 2,3, "Euler impl. lineariz.",   " pt 0");
 		mplot.Plot("log_timestepper_5.dat", 6,7, "Euler impl.",   " pt 1");
-		mplot.Plot("log_timestepper_5.dat", 10,11, "Trapezoidal", " pt 2");
+		mplot.Plot("log_timestepper_5.dat", 10,11, "Trapezoidal*", " pt 2");
 		mplot.Plot("log_timestepper_5.dat", 14,15, "HHT alpha=0", " pt 3");
 		mplot.Plot("log_timestepper_5.dat", 18,19, "HHT alpha=-0.2", " pt 4");
 
