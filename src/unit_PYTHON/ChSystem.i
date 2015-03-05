@@ -104,7 +104,7 @@ class ChCustomComputeCollisionCallbackP
 	  IteratorBodies Next()
 	  {
 			IteratorBodies mynext(*$self);
-			mynext++;
+			++mynext;
 			return mynext;
 	  }
 	  chrono::ChSharedPtr<ChBody> Ref()   // note the chrono:: namespace
@@ -116,7 +116,7 @@ class ChCustomComputeCollisionCallbackP
 	  IteratorLinks Next()
 	  {
 			IteratorLinks mynext(*$self);
-			mynext++;
+			++mynext;
 			return mynext;
 	  }
 	  chrono::ChSharedPtr<ChLink> Ref()   // note the chrono:: namespace
@@ -128,7 +128,7 @@ class ChCustomComputeCollisionCallbackP
 	  IteratorOtherPhysicsItems Next()
 	  {
 			IteratorOtherPhysicsItems mynext(*$self);
-			mynext++;
+			++mynext;
 			return mynext;
 	  }
 	  chrono::ChSharedPtr<ChPhysicsItem> Ref()   // note the chrono:: namespace
@@ -140,7 +140,7 @@ class ChCustomComputeCollisionCallbackP
 	  IteratorPhysicsItems Next()
 	  {
 			IteratorPhysicsItems mynext(*$self);
-			mynext++;
+			++mynext;
 			return mynext;
 	  }
 	  chrono::ChSharedPtr<ChPhysicsItem> Ref()   // note the chrono:: namespace

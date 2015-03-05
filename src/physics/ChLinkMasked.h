@@ -29,7 +29,7 @@
 
 #include "physics/ChLinkMarkers.h"
 #include "physics/ChLinkMask.h"
-#include "physics/ChLinkforce.h"
+#include "physics/ChLinkForce.h"
 
 
 namespace chrono
