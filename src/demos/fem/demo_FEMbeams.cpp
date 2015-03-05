@@ -23,6 +23,7 @@
 #include "lcp/ChLcpIterativePMINRES.h"
 #include "lcp/ChLcpIterativeMINRES.h"
 #include "unit_FEM/ChElementBeamEuler.h"
+#include "unit_FEM/ChElementBeamANCF.h"
 #include "unit_FEM/ChBuilderBeam.h"
 #include "unit_FEM/ChMesh.h"
 #include "unit_FEM/ChVisualizationFEMmesh.h"
@@ -177,6 +178,43 @@ int main(int argc, char* argv[])
 						ChVector<>(0,1,0));			// the 'Y' up direction of the section for the beam
 
 
+
+	//
+	// Add some ANCF CABLE BEAMS:
+	//
+
+	beam_L  = 0.1;
+	
+
+	ChSharedPtr<ChNodeFEMxyzD> hnodeancf1(new ChNodeFEMxyzD( ChVector<>(0,0,-1)) ); 
+	ChSharedPtr<ChNodeFEMxyzD> hnodeancf2(new ChNodeFEMxyzD( ChVector<>(beam_L,0,-1)) );
+	ChSharedPtr<ChNodeFEMxyzD> hnodeancf3(new ChNodeFEMxyzD( ChVector<>(beam_L*2,0,-1)) );
+
+	my_mesh->AddNode(hnodeancf1);
+	my_mesh->AddNode(hnodeancf2);
+	my_mesh->AddNode(hnodeancf3);
+
+	ChSharedPtr<ChElementBeamANCF> belementancf1 (new ChElementBeamANCF);
+
+	belementancf1->SetNodes(hnodeancf1, hnodeancf2);
+	belementancf1->SetSection(msection);
+
+	my_mesh->AddElement(belementancf1);
+
+
+	ChSharedPtr<ChElementBeamANCF> belementancf2 (new ChElementBeamANCF);
+
+	belementancf2->SetNodes(hnodeancf2, hnodeancf3);
+	belementancf2->SetSection(msection);
+
+	my_mesh->AddElement(belementancf1);
+
+
+				// Apply a force or a torque to a node:
+	hnodeancf2->SetForce( ChVector<>(4,2,0));
+
+	hnodeancf1->SetFixed(true);
+	
 
 
 	//

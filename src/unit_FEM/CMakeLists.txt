@@ -51,13 +51,15 @@ SET(ChronoEngine_UNIT_FEM_HEADERS
 	ChNodeFEMxyz.h
 	ChNodeFEMxyzrot.h
 	ChNodeFEMxyzP.h 
+	ChNodeFEMxyzD.h 
 	ChElementBase.h
 	ChElementGeneric.h
 	ChElementCorotational.h
 	ChElementSpring.h
 	ChElementBar.h 
 	ChElementBeam.h
-	ChElementBeamEuler.h 
+	ChElementBeamEuler.h
+	ChElementBeamANCF.h 
 	ChElement3D.h
 	ChElementTetrahedron.h
 	ChElementTetra_4.h

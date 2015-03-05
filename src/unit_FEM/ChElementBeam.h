@@ -16,7 +16,7 @@
 
 #include "ChElementGeneric.h"
 #include "ChElementCorotational.h"
-#include "ChNodeFEMxyzrot.h"
+
 
 
 namespace chrono
@@ -28,8 +28,7 @@ namespace fem
 
 /// Base class for most structral elements of 'beam' type.
 
-class ChApiFem ChElementBeam : public ChElementGeneric,
-							   public ChElementCorotational
+class ChApiFem ChElementBeam : public ChElementGeneric
 {
 protected:
 

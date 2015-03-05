@@ -17,6 +17,7 @@
 
 #include "ChElementBeam.h"
 #include "ChBeamSection.h"
+#include "ChNodeFEMxyzrot.h"
 
 
 namespace chrono
@@ -31,7 +32,8 @@ namespace fem
 /// For this 'basic' implementation, constant section and 
 /// constant material are assumed.
 
-class ChApiFem ChElementBeamEuler : public ChElementBeam
+class ChApiFem ChElementBeamEuler : public ChElementBeam,
+									public ChElementCorotational
 {
 protected:
 	std::vector< ChSharedPtr<ChNodeFEMxyzrot> > nodes;
