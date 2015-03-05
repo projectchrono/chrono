@@ -510,96 +510,114 @@ void ChConstraintRigidRigid::GenerateSparsity() {
 
   const int2* ids = data_container->host_data.bids_rigid_rigid.data();
 
-  for (int index = 0; index < data_container->num_contacts; index++) {
-    int2 body_id = ids[index];
-    int row = index;
+#pragma omp parallel sections
+  {
+#pragma omp section
+    {
+      for (int index = 0; index < data_container->num_contacts; index++) {
+        int2 body_id = ids[index];
+        int row = index;
 
-    D_n_T.append(row * 1 + 0, body_id.x * 6 + 0, 1);
-    D_n_T.append(row * 1 + 0, body_id.x * 6 + 1, 1);
-    D_n_T.append(row * 1 + 0, body_id.x * 6 + 2, 1);
+        D_n_T.append(row * 1 + 0, body_id.x * 6 + 0, 1);
+        D_n_T.append(row * 1 + 0, body_id.x * 6 + 1, 1);
+        D_n_T.append(row * 1 + 0, body_id.x * 6 + 2, 1);
 
-    D_n_T.append(row * 1 + 0, body_id.x * 6 + 3, 1);
-    D_n_T.append(row * 1 + 0, body_id.x * 6 + 4, 1);
-    D_n_T.append(row * 1 + 0, body_id.x * 6 + 5, 1);
+        D_n_T.append(row * 1 + 0, body_id.x * 6 + 3, 1);
+        D_n_T.append(row * 1 + 0, body_id.x * 6 + 4, 1);
+        D_n_T.append(row * 1 + 0, body_id.x * 6 + 5, 1);
 
-    D_n_T.append(row * 1 + 0, body_id.y * 6 + 0, 1);
-    D_n_T.append(row * 1 + 0, body_id.y * 6 + 1, 1);
-    D_n_T.append(row * 1 + 0, body_id.y * 6 + 2, 1);
+        D_n_T.append(row * 1 + 0, body_id.y * 6 + 0, 1);
+        D_n_T.append(row * 1 + 0, body_id.y * 6 + 1, 1);
+        D_n_T.append(row * 1 + 0, body_id.y * 6 + 2, 1);
 
-    D_n_T.append(row * 1 + 0, body_id.y * 6 + 3, 1);
-    D_n_T.append(row * 1 + 0, body_id.y * 6 + 4, 1);
-    D_n_T.append(row * 1 + 0, body_id.y * 6 + 5, 1);
+        D_n_T.append(row * 1 + 0, body_id.y * 6 + 3, 1);
+        D_n_T.append(row * 1 + 0, body_id.y * 6 + 4, 1);
+        D_n_T.append(row * 1 + 0, body_id.y * 6 + 5, 1);
 
-    D_n_T.finalize(row * 1 + 0);
-
-    if (solver_mode == SLIDING || solver_mode == SPINNING) {
-      D_t_T.append(row * 2 + 0, body_id.x * 6 + 0, 1);
-      D_t_T.append(row * 2 + 0, body_id.x * 6 + 1, 1);
-      D_t_T.append(row * 2 + 0, body_id.x * 6 + 2, 1);
-
-      D_t_T.append(row * 2 + 0, body_id.x * 6 + 3, 1);
-      D_t_T.append(row * 2 + 0, body_id.x * 6 + 4, 1);
-      D_t_T.append(row * 2 + 0, body_id.x * 6 + 5, 1);
-
-      D_t_T.append(row * 2 + 0, body_id.y * 6 + 0, 1);
-      D_t_T.append(row * 2 + 0, body_id.y * 6 + 1, 1);
-      D_t_T.append(row * 2 + 0, body_id.y * 6 + 2, 1);
-
-      D_t_T.append(row * 2 + 0, body_id.y * 6 + 3, 1);
-      D_t_T.append(row * 2 + 0, body_id.y * 6 + 4, 1);
-      D_t_T.append(row * 2 + 0, body_id.y * 6 + 5, 1);
-
-      D_t_T.finalize(row * 2 + 0);
-
-      D_t_T.append(row * 2 + 1, body_id.x * 6 + 0, 1);
-      D_t_T.append(row * 2 + 1, body_id.x * 6 + 1, 1);
-      D_t_T.append(row * 2 + 1, body_id.x * 6 + 2, 1);
-
-      D_t_T.append(row * 2 + 1, body_id.x * 6 + 3, 1);
-      D_t_T.append(row * 2 + 1, body_id.x * 6 + 4, 1);
-      D_t_T.append(row * 2 + 1, body_id.x * 6 + 5, 1);
-
-      D_t_T.append(row * 2 + 1, body_id.y * 6 + 0, 1);
-      D_t_T.append(row * 2 + 1, body_id.y * 6 + 1, 1);
-      D_t_T.append(row * 2 + 1, body_id.y * 6 + 2, 1);
-
-      D_t_T.append(row * 2 + 1, body_id.y * 6 + 3, 1);
-      D_t_T.append(row * 2 + 1, body_id.y * 6 + 4, 1);
-      D_t_T.append(row * 2 + 1, body_id.y * 6 + 5, 1);
-
-      D_t_T.finalize(row * 2 + 1);
+        D_n_T.finalize(row * 1 + 0);
+      }
     }
+#pragma omp section
+    {
+      if (solver_mode == SLIDING || solver_mode == SPINNING) {
+        for (int index = 0; index < data_container->num_contacts; index++) {
+          int2 body_id = ids[index];
+          int row = index;
+          D_t_T.append(row * 2 + 0, body_id.x * 6 + 0, 1);
+          D_t_T.append(row * 2 + 0, body_id.x * 6 + 1, 1);
+          D_t_T.append(row * 2 + 0, body_id.x * 6 + 2, 1);
 
-    if (solver_mode == SPINNING) {
-      D_s_T.append(row * 3 + 0, body_id.x * 6 + 3, 1);
-      D_s_T.append(row * 3 + 0, body_id.x * 6 + 4, 1);
-      D_s_T.append(row * 3 + 0, body_id.x * 6 + 5, 1);
+          D_t_T.append(row * 2 + 0, body_id.x * 6 + 3, 1);
+          D_t_T.append(row * 2 + 0, body_id.x * 6 + 4, 1);
+          D_t_T.append(row * 2 + 0, body_id.x * 6 + 5, 1);
 
-      D_s_T.append(row * 3 + 0, body_id.y * 6 + 3, 1);
-      D_s_T.append(row * 3 + 0, body_id.y * 6 + 4, 1);
-      D_s_T.append(row * 3 + 0, body_id.y * 6 + 5, 1);
+          D_t_T.append(row * 2 + 0, body_id.y * 6 + 0, 1);
+          D_t_T.append(row * 2 + 0, body_id.y * 6 + 1, 1);
+          D_t_T.append(row * 2 + 0, body_id.y * 6 + 2, 1);
 
-      D_s_T.finalize(row * 3 + 0);
+          D_t_T.append(row * 2 + 0, body_id.y * 6 + 3, 1);
+          D_t_T.append(row * 2 + 0, body_id.y * 6 + 4, 1);
+          D_t_T.append(row * 2 + 0, body_id.y * 6 + 5, 1);
 
-      D_s_T.append(row * 3 + 1, body_id.x * 6 + 3, 1);
-      D_s_T.append(row * 3 + 1, body_id.x * 6 + 4, 1);
-      D_s_T.append(row * 3 + 1, body_id.x * 6 + 5, 1);
+          D_t_T.finalize(row * 2 + 0);
 
-      D_s_T.append(row * 3 + 1, body_id.y * 6 + 3, 1);
-      D_s_T.append(row * 3 + 1, body_id.y * 6 + 4, 1);
-      D_s_T.append(row * 3 + 1, body_id.y * 6 + 5, 1);
+          D_t_T.append(row * 2 + 1, body_id.x * 6 + 0, 1);
+          D_t_T.append(row * 2 + 1, body_id.x * 6 + 1, 1);
+          D_t_T.append(row * 2 + 1, body_id.x * 6 + 2, 1);
 
-      D_s_T.finalize(row * 3 + 1);
+          D_t_T.append(row * 2 + 1, body_id.x * 6 + 3, 1);
+          D_t_T.append(row * 2 + 1, body_id.x * 6 + 4, 1);
+          D_t_T.append(row * 2 + 1, body_id.x * 6 + 5, 1);
 
-      D_s_T.append(row * 3 + 2, body_id.x * 6 + 3, 1);
-      D_s_T.append(row * 3 + 2, body_id.x * 6 + 4, 1);
-      D_s_T.append(row * 3 + 2, body_id.x * 6 + 5, 1);
+          D_t_T.append(row * 2 + 1, body_id.y * 6 + 0, 1);
+          D_t_T.append(row * 2 + 1, body_id.y * 6 + 1, 1);
+          D_t_T.append(row * 2 + 1, body_id.y * 6 + 2, 1);
 
-      D_s_T.append(row * 3 + 2, body_id.y * 6 + 3, 1);
-      D_s_T.append(row * 3 + 2, body_id.y * 6 + 4, 1);
-      D_s_T.append(row * 3 + 2, body_id.y * 6 + 5, 1);
+          D_t_T.append(row * 2 + 1, body_id.y * 6 + 3, 1);
+          D_t_T.append(row * 2 + 1, body_id.y * 6 + 4, 1);
+          D_t_T.append(row * 2 + 1, body_id.y * 6 + 5, 1);
 
-      D_s_T.finalize(row * 3 + 2);
+          D_t_T.finalize(row * 2 + 1);
+        }
+      }
+    }
+#pragma omp section
+    {
+      if (solver_mode == SPINNING) {
+        for (int index = 0; index < data_container->num_contacts; index++) {
+          int2 body_id = ids[index];
+          int row = index;
+          D_s_T.append(row * 3 + 0, body_id.x * 6 + 3, 1);
+          D_s_T.append(row * 3 + 0, body_id.x * 6 + 4, 1);
+          D_s_T.append(row * 3 + 0, body_id.x * 6 + 5, 1);
+
+          D_s_T.append(row * 3 + 0, body_id.y * 6 + 3, 1);
+          D_s_T.append(row * 3 + 0, body_id.y * 6 + 4, 1);
+          D_s_T.append(row * 3 + 0, body_id.y * 6 + 5, 1);
+
+          D_s_T.finalize(row * 3 + 0);
+
+          D_s_T.append(row * 3 + 1, body_id.x * 6 + 3, 1);
+          D_s_T.append(row * 3 + 1, body_id.x * 6 + 4, 1);
+          D_s_T.append(row * 3 + 1, body_id.x * 6 + 5, 1);
+
+          D_s_T.append(row * 3 + 1, body_id.y * 6 + 3, 1);
+          D_s_T.append(row * 3 + 1, body_id.y * 6 + 4, 1);
+          D_s_T.append(row * 3 + 1, body_id.y * 6 + 5, 1);
+
+          D_s_T.finalize(row * 3 + 1);
+
+          D_s_T.append(row * 3 + 2, body_id.x * 6 + 3, 1);
+          D_s_T.append(row * 3 + 2, body_id.x * 6 + 4, 1);
+          D_s_T.append(row * 3 + 2, body_id.x * 6 + 5, 1);
+
+          D_s_T.append(row * 3 + 2, body_id.y * 6 + 3, 1);
+          D_s_T.append(row * 3 + 2, body_id.y * 6 + 4, 1);
+          D_s_T.append(row * 3 + 2, body_id.y * 6 + 5, 1);
+
+          D_s_T.finalize(row * 3 + 2);
+        }
+      }
     }
   }
 }
@@ -708,18 +726,8 @@ void ChConstraintRigidRigid::SolveQuartic() {
     real lambda12 = N(1, 2) - alpha * beta * invW0;
     real mu = f_mu;
 
-    printf("W0=%e\ninvW0=%e\n,alpha=%e\nbeta=%e\nlambda1=%e\nlambda2=%e\nlambda12=%e\nq=%e\nq1=%e\nq2=%e\nmu=%e",
-           W0,
-           invW0,
-           alpha,
-           beta,
-           lambda1,
-           lambda2,
-           lambda12,
-           q,
-           q1,
-           q2,
-           mu);
+    printf("W0=%e\ninvW0=%e\n,alpha=%e\nbeta=%e\nlambda1=%e\nlambda2=%e\nlambda12=%e\nq=%e\nq1=%e\nq2=%e\nmu=%e", W0,
+           invW0, alpha, beta, lambda1, lambda2, lambda12, q, q1, q2, mu);
 
     cg[0] = -mu * mu * q * q;
     cg[1] = -2 * mu * mu * q * alpha * q1 - 2 * mu * mu * q * beta * q2 - (2 * lambda1 + 2 * lambda2) * mu * mu * q * q;
