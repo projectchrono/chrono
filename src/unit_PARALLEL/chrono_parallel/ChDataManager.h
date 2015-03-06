@@ -47,40 +47,41 @@
 
 using blaze::CompressedMatrix;
 using blaze::DynamicVector;
+using thrust::host_vector;
 namespace chrono {
 
 struct host_container {
   // Collision data
-  thrust::host_vector<real3> ObA_rigid;  // Position of shape
-  thrust::host_vector<real3> ObB_rigid;  // Size of shape (dims or convex data)
-  thrust::host_vector<real3> ObC_rigid;  // Rounded size
-  thrust::host_vector<real4> ObR_rigid;  // Shape rotation
-  thrust::host_vector<short2> fam_rigid;  // Family information
-  thrust::host_vector<int> typ_rigid;  // Shape type
-  thrust::host_vector<real> margin_rigid;  // Inner collision margins
-  thrust::host_vector<uint> id_rigid;  // Body identifier for each shape
-  thrust::host_vector<real3> aabb_rigid;  // List of bounding boxes
-  custom_vector<real3> convex_data;  // list of convex points
+  host_vector<real3> ObA_rigid;    // Position of shape
+  host_vector<real3> ObB_rigid;    // Size of shape (dims or convex data)
+  host_vector<real3> ObC_rigid;    // Rounded size
+  host_vector<real4> ObR_rigid;    // Shape rotation
+  host_vector<short2> fam_rigid;   // Family information
+  host_vector<int> typ_rigid;      // Shape type
+  host_vector<real> margin_rigid;  // Inner collision margins
+  host_vector<uint> id_rigid;      // Body identifier for each shape
+  host_vector<real3> aabb_rigid;   // List of bounding boxes
+  host_vector<real3> convex_data;  // list of convex points
 
   // Contact data
-  thrust::host_vector<real3> norm_rigid_rigid;
-  thrust::host_vector<real3> cpta_rigid_rigid;
-  thrust::host_vector<real3> cptb_rigid_rigid;
-  thrust::host_vector<real> dpth_rigid_rigid;
-  thrust::host_vector<real> erad_rigid_rigid;
-  thrust::host_vector<int2> bids_rigid_rigid;
-  thrust::host_vector<long long> pair_rigid_rigid;
+  host_vector<real3> norm_rigid_rigid;
+  host_vector<real3> cpta_rigid_rigid;
+  host_vector<real3> cptb_rigid_rigid;
+  host_vector<real> dpth_rigid_rigid;
+  host_vector<real> erad_rigid_rigid;
+  host_vector<int2> bids_rigid_rigid;
+  host_vector<long long> pair_rigid_rigid;
 
   // Contact forces (DEM)
   // These vectors hold the total contact force and torque, respectively,
   // for bodies that are involved in at least one contact.
-  thrust::host_vector<real3> ct_body_force;   // Total contact force on bodies
-  thrust::host_vector<real3> ct_body_torque;  // Total contact torque on these bodies
+  host_vector<real3> ct_body_force;   // Total contact force on bodies
+  host_vector<real3> ct_body_torque;  // Total contact torque on these bodies
 
   // Mapping from all bodies in the system to bodies involved in a contact.
   // For bodies that are currently not in contact, the mapping entry is -1.
   // Otherwise, the mapping holds the appropriate index in the vectors above.
-  thrust::host_vector<int> ct_body_map;
+  host_vector<int> ct_body_map;
 
   // This vector holds the friction information as a triplet
   // x - Sliding friction
@@ -88,40 +89,40 @@ struct host_container {
   // z - Spinning Friction
   // This is precomputed at every timestep for all contacts in parallel
   // Improves performance and reduces conditionals later on
-  thrust::host_vector<real3> fric_rigid_rigid;
+  host_vector<real3> fric_rigid_rigid;
   // Holds the cohesion value for each contact, similar to friction this is
   // precomputed for all contacts in parallel
-  thrust::host_vector<real> coh_rigid_rigid;
+  host_vector<real> coh_rigid_rigid;
 
   // Object data
-  thrust::host_vector<real3> pos_data, pos_new_data;
-  thrust::host_vector<real4> rot_data, rot_new_data;
+  host_vector<real3> pos_data, pos_new_data;
+  host_vector<real4> rot_data, rot_new_data;
   // thrust::host_vector<M33> inr_data;
-  thrust::host_vector<bool> active_data;
-  thrust::host_vector<bool> collide_data;
-  thrust::host_vector<real> mass_data;
+  host_vector<bool> active_data;
+  host_vector<bool> collide_data;
+  host_vector<real> mass_data;
 
   // Bilateral constraint type (all supported constraints)
-  thrust::host_vector<int> bilateral_type;
+  host_vector<int> bilateral_type;
 
   // keeps track of active bilateral constraints
-  thrust::host_vector<int> bilateral_mapping;
+  host_vector<int> bilateral_mapping;
 
   // Shaft data
-  thrust::host_vector<real> shaft_rot;     // shaft rotation angles
-  thrust::host_vector<real> shaft_inr;     // shaft inverse inertias
-  thrust::host_vector<bool> shaft_active;  // shaft active (not sleeping nor fixed) flags
+  host_vector<real> shaft_rot;     // shaft rotation angles
+  host_vector<real> shaft_inr;     // shaft inverse inertias
+  host_vector<bool> shaft_active;  // shaft active (not sleeping nor fixed) flags
 
   // Material properties (DVI)
-  thrust::host_vector<real3> fric_data;
-  thrust::host_vector<real> cohesion_data;
-  thrust::host_vector<real4> compliance_data;
+  host_vector<real3> fric_data;
+  host_vector<real> cohesion_data;
+  host_vector<real4> compliance_data;
 
   // Material properties (DEM)
-  thrust::host_vector<real2> elastic_moduli;  // Young's modulus and Poisson ratio
-  thrust::host_vector<real> mu;               // Coefficient of friction
-  thrust::host_vector<real> cr;               // Coefficient of restitution
-  thrust::host_vector<real4> dem_coeffs;      // Stiffness and damping coefficients
+  host_vector<real2> elastic_moduli;  // Young's modulus and Poisson ratio
+  host_vector<real> mu;               // Coefficient of friction
+  host_vector<real> cr;               // Coefficient of restitution
+  host_vector<real4> dem_coeffs;      // Stiffness and damping coefficients
 
   // For the variables below the convention is:
   //_n is normal
@@ -158,13 +159,13 @@ struct host_container {
   CompressedMatrix<real> N_bn, N_bt, N_bs, N_bb;
 
   DynamicVector<real> R_full;  // The right hand side of the system
-  DynamicVector<real> R;  // The rhs of the system, changes during solve
-  DynamicVector<real> b;  // Correction terms
+  DynamicVector<real> R;       // The rhs of the system, changes during solve
+  DynamicVector<real> b;       // Correction terms
   DynamicVector<real> s;
   DynamicVector<real> M_invk;  // result of M_inv multiplied by vector of forces
-  DynamicVector<real> gamma;  // THe unknowns we are solving for
-  DynamicVector<real> v;  // This vector holds the velocities for all objects
-  DynamicVector<real> hf;  // This vector holds h*forces, h is time step
+  DynamicVector<real> gamma;   // THe unknowns we are solving for
+  DynamicVector<real> v;       // This vector holds the velocities for all objects
+  DynamicVector<real> hf;      // This vector holds h*forces, h is time step
   DynamicVector<real> rhs_bilateral;
   // While E is the compliance matrix, in reality it is completely diagonal
   // therefore it is stored in a vector for performance reasons
@@ -189,8 +190,8 @@ class CH_PARALLEL_API ChParallelDataManager {
 
   // These pointers are used to compute the mass matrix instead of filling a
   // a temporary data structure
-  std::vector<ChBody*>* body_list;  // List of bodies
-  std::vector<ChLink*>* link_list;  // List of bilaterals
+  std::vector<ChBody*>* body_list;                  // List of bodies
+  std::vector<ChLink*>* link_list;                  // List of bilaterals
   std::vector<ChPhysicsItem*>* other_physics_list;  // List to other items
 
   // Indexing variables
