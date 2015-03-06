@@ -15,7 +15,7 @@
 
 
 #include "ChNodeFEMbase.h"
-#include "lcp/ChLcpVariablesBodySharedMass.h"
+#include "lcp/ChLcpVariablesBodyOwnMass.h"
 
 
 namespace chrono
@@ -101,9 +101,9 @@ public:
 					}
 
 				/// Get mass of the node.
-	virtual double GetMass() {return this->variables.GetSharedMass()->GetBodyMass();}
+	virtual double GetMass() {return this->variables.GetBodyMass();}
 				/// Set mass of the node.
-	virtual void SetMass(double mm) {this->variables.GetSharedMass()->SetBodyMass(mm);}
+	virtual void SetMass(double mm) {this->variables.SetBodyMass(mm);}
 
 				/// Get inertia (for D vector coord!) of the node.
 	//virtual  ChMatrix33<>& GetInertia() const {return this->variables.GetBodyInertia();}
@@ -284,7 +284,7 @@ public:
 
 private:
 	/// 3D node variables, with x,y,z and Rx,Ry,Rz (Hack! the Rx Ry Rz used here for the D gradient vector stuff)
-	ChLcpVariablesBodySharedMass  variables; 
+	ChLcpVariablesBodyOwnMass  variables; 
 
 	ChVector<> X0;		///< reference position
 	ChVector<> Force;	///< applied force
