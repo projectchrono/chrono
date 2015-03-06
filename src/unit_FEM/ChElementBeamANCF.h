@@ -258,7 +258,7 @@ public:
 									);
 					Kaxial *= E*Area;
 					
-					this->StiffnessMatrix += Kaxial;
+					this->StiffnessMatrix = Kaxial;
 
 					/// 2)
 					/// Integrate   (k_e'*k_e)
