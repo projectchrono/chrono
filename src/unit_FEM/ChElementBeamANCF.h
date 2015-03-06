@@ -50,8 +50,8 @@ protected:
 	
 	ChSharedPtr<ChBeamSection> section;
 
-	ChMatrixDynamic<> StiffnessMatrix; // stiffness matrix
-	ChMatrixDynamic<> MassMatrix;	   // mass matrix
+	ChMatrixNM<double,12,12> StiffnessMatrix; // stiffness matrix
+	ChMatrixNM<double,12,12> MassMatrix;	   // mass matrix
 
 
 public:
@@ -60,8 +60,8 @@ public:
 				{
 					nodes.resize(2);
 
-					this->StiffnessMatrix.Resize(this->GetNdofs(), this->GetNdofs());
-					this->MassMatrix.Resize(this->GetNdofs(), this->GetNdofs());
+					//this->StiffnessMatrix.Resize(this->GetNdofs(), this->GetNdofs());
+					//this->MassMatrix.Resize(this->GetNdofs(), this->GetNdofs());
 
 				}
 
@@ -194,7 +194,7 @@ public:
 					/// 1)
 					/// Integrate   ((strainD'*strainD)+(strain*Sd'*Sd))
 
-					class MyStiffnessAxial : public ChIntegrable1D< ChMatrix<> >
+					class MyStiffnessAxial : public ChIntegrable1D< ChMatrixNM<double,12,12> >
 					{
 					public:
 						ChElementBeamANCF* element;
@@ -208,7 +208,7 @@ public:
 						ChMatrixNM<double, 12,12> temp;
 
 								/// Evaluate ((strainD'*strainD)+(strain*Sd'*Sd)) at point x 
-						virtual void Evaluate(ChMatrix<>& result, const double x)
+						virtual void Evaluate(ChMatrixNM<double,12,12>& result, const double x)
 						{
 							element->ShapeFunctionsDerivatives(Nd, x);
 
@@ -249,7 +249,7 @@ public:
 					myformulaAx.element = this;
 
 					ChMatrixNM<double, 12,12> Kaxial;
-					ChQuadrature::Integrate1D< ChMatrix<> >(
+					ChQuadrature::Integrate1D< ChMatrixNM<double,12,12> >(
 									Kaxial,				// result of integration will go there
 									myformulaAx,		// formula to integrate
 									0,					// start of x
@@ -263,7 +263,7 @@ public:
 					/// 2)
 					/// Integrate   (k_e'*k_e)
 
-					class MyStiffnessCurv : public ChIntegrable1D< ChMatrix<> >
+					class MyStiffnessCurv : public ChIntegrable1D< ChMatrixNM<double,12,12> >
 					{
 					public:
 						ChElementBeamANCF* element;
@@ -282,7 +282,7 @@ public:
 						ChMatrixNM<double, 3,12>  fe1;
 
 								/// Evaluate  at point x 
-						virtual void Evaluate(ChMatrix<>& result, const double x)
+						virtual void Evaluate(ChMatrixNM<double,12,12>& result, const double x)
 						{
 							element->ShapeFunctionsDerivatives(Nd, x);
 							element->ShapeFunctionsDerivatives2(Ndd, x);
@@ -358,7 +358,7 @@ public:
 					myformulaCurv.element = this;
 
 					ChMatrixNM<double, 12,12> Kcurv;
-					ChQuadrature::Integrate1D< ChMatrix<> >(
+					ChQuadrature::Integrate1D< ChMatrixNM<double,12,12> >(
 									Kcurv,				// result of integration will go there
 									myformulaCurv,		// formula to integrate
 									0,					// start of x
@@ -384,7 +384,7 @@ public:
 					/// Integrate  Area*rho*(S'*S)
 					/// where S=[N1*eye(3) N2*eye(3) N3*eye(3) N4*eye(3)]
 
-					class MyMass : public ChIntegrable1D< ChMatrix<> >
+					class MyMass : public ChIntegrable1D< ChMatrixNM<double,12,12> >
 					{
 					public:
 						ChElementBeamANCF* element;
@@ -392,7 +392,7 @@ public:
 						ChMatrixNM<double, 1,4> N;
 
 								/// Evaluate the S'*S  at point x 
-						virtual void Evaluate(ChMatrix<>& result, const double x)
+						virtual void Evaluate(ChMatrixNM<double,12,12>& result, const double x)
 						{
 							element->ShapeFunctions(N, x);
 							// S=[N1*eye(3) N2*eye(3) N3*eye(3) N4*eye(3)]
@@ -413,7 +413,7 @@ public:
 					MyMass myformula;
 					myformula.element = this;
 
-					ChQuadrature::Integrate1D< ChMatrix<> >(
+					ChQuadrature::Integrate1D< ChMatrixNM<double,12,12> >(
 									this->MassMatrix,	// result of integration will go there
 									myformula,			// formula to integrate
 									0,					// start of x
@@ -501,7 +501,7 @@ public:
 					/// 1)
 					/// Integrate   ((strainD'*strainD)+(strain*Sd'*Sd))
 
-					class MyStiffnessAxial : public ChIntegrable1D< ChMatrix<> >
+					class MyForcesAxial : public ChIntegrable1D< ChMatrixNM<double,12,1> >
 					{
 					public:
 						ChElementBeamANCF* element;
@@ -515,7 +515,7 @@ public:
 						ChMatrixNM<double, 12,12> temp;
 
 								/// Evaluate ((strainD'*strainD)+(strain*Sd'*Sd)) at point x 
-						virtual void Evaluate(ChMatrix<>& result, const double x)
+						virtual void Evaluate(ChMatrixNM<double,12,1>& result, const double x)
 						{
 							element->ShapeFunctionsDerivatives(Nd, x);
 
@@ -544,29 +544,29 @@ public:
 						}
 					};
 
-					MyStiffnessAxial myformulaAx;
+					MyForcesAxial myformulaAx;
 					myformulaAx.d(0,0) = pA.x;	myformulaAx.d(0,1) = pA.y;	myformulaAx.d(0,2) = pA.z;
 					myformulaAx.d(1,0) = dA.x;	myformulaAx.d(1,1) = dA.y;	myformulaAx.d(1,2) = dA.z;
 					myformulaAx.d(2,0) = pB.x;	myformulaAx.d(2,1) = pB.y;	myformulaAx.d(2,2) = pB.z;
 					myformulaAx.d(3,0) = dB.x;	myformulaAx.d(3,1) = dB.y;	myformulaAx.d(3,2) = dB.z;
 					myformulaAx.element = this;
 
-					ChMatrixNM<double, 12,12> Kaxial;
-					ChQuadrature::Integrate1D< ChMatrix<> >(
-									Kaxial,				// result of integration will go there
+					ChMatrixNM<double, 12,1> Faxial;
+					ChQuadrature::Integrate1D< ChMatrixNM<double,12,1> >(
+									Faxial,				// result of integration will go there
 									myformulaAx,		// formula to integrate
 									0,					// start of x
 									1,					// end of x
 									5					// order of integration
 									);
-					Kaxial *= E*Area;
+					Faxial *= E*Area;
 					
-					this->StiffnessMatrix += Kaxial;
+					Fi = Faxial;
 
 					/// 2)
 					/// Integrate   (k_e'*k_e)
 
-					class MyStiffnessCurv : public ChIntegrable1D< ChMatrix<> >
+					class MyForcesCurv : public ChIntegrable1D< ChMatrixNM<double,12,1> >
 					{
 					public:
 						ChElementBeamANCF* element;
@@ -585,7 +585,7 @@ public:
 						ChMatrixNM<double, 3,12>  fe1;
 
 								/// Evaluate  at point x 
-						virtual void Evaluate(ChMatrix<>& result, const double x)
+						virtual void Evaluate(ChMatrixNM<double,12,1>& result, const double x)
 						{
 							element->ShapeFunctionsDerivatives(Nd, x);
 							element->ShapeFunctionsDerivatives2(Ndd, x);
@@ -654,24 +654,24 @@ public:
 						}
 					};
 
-					MyStiffnessCurv myformulaCurv;
+					MyForcesCurv myformulaCurv;
 					myformulaCurv.d(0,0) = pA.x;	myformulaCurv.d(0,1) = pA.y;	myformulaCurv.d(0,2) = pA.z;
 					myformulaCurv.d(1,0) = dA.x;	myformulaCurv.d(1,1) = dA.y;	myformulaCurv.d(1,2) = dA.z;
 					myformulaCurv.d(2,0) = pB.x;	myformulaCurv.d(2,1) = pB.y;	myformulaCurv.d(2,2) = pB.z;
 					myformulaCurv.d(3,0) = dB.x;	myformulaCurv.d(3,1) = dB.y;	myformulaCurv.d(3,2) = dB.z;
 					myformulaCurv.element = this;
 
-					ChMatrixNM<double, 12,12> Kcurv;
-					ChQuadrature::Integrate1D< ChMatrix<> >(
-									Kcurv,				// result of integration will go there
+					ChMatrixNM<double, 12,1> Fcurv;
+					ChQuadrature::Integrate1D< ChMatrixNM<double,12,1> >(
+									Fcurv,				// result of integration will go there
 									myformulaCurv,		// formula to integrate
 									0,					// start of x
 									1,					// end of x
 									3					// order of integration
 									);
-					Kcurv *= E*Izz; // note Iyy should be the same value (circular section assumption)
+					Fcurv *= E*Izz; // note Iyy should be the same value (circular section assumption)
 					
-					this->StiffnessMatrix += Kcurv;
+					Fi += Fcurv;
 				}
 
 
@@ -689,7 +689,7 @@ public:
 				{
 					ChMatrixNM<double,1,4> N;
 
-					double xi = (eta*2 - 1.0);
+					double xi = (eta+1.0)*0.5;
 
 					this->ShapeFunctions(N, xi); // because ShapeFunctions() works in 0..1 range
 
@@ -709,7 +709,7 @@ public:
 					
 					ChMatrixNM<double,1,4> N;
 
-					double xi = (eta*2 - 1.0); // because ShapeFunctions() works in 0..1 range
+					double xi = (eta+1.0)*0.5; // because ShapeFunctions() works in 0..1 range
 
 					this->ShapeFunctions(N, xi);
 					
@@ -718,18 +718,18 @@ public:
 					ChVector<> pB = this->nodes[1]->GetPos();
 					ChVector<> dB = this->nodes[1]->GetD();
 
-					point.x = N(0)*pA.x + N(1)*dA.x + N(2)*pA.x + N(3)*dA.x;
-					point.y = N(0)*pA.y + N(1)*dA.y + N(2)*pA.y + N(3)*dA.y;
-					point.z = N(0)*pA.z + N(1)*dA.z + N(2)*pA.z + N(3)*dA.z;
+					point.x = N(0)*pA.x + N(1)*dA.x + N(2)*pB.x + N(3)*dB.x;
+					point.y = N(0)*pA.y + N(1)*dA.y + N(2)*pB.y + N(3)*dB.y;
+					point.z = N(0)*pA.z + N(1)*dA.z + N(2)*pB.z + N(3)*dB.z;
 
 					
 					this->ShapeFunctionsDerivatives(N, xi);
 					
 					ChVector<> Dx;
 
-					Dx.x = N(0)*pA.x + N(1)*dA.x + N(2)*pA.x + N(3)*dA.x;
-					Dx.y = N(0)*pA.y + N(1)*dA.y + N(2)*pA.y + N(3)*dA.y;
-					Dx.z = N(0)*pA.z + N(1)*dA.z + N(2)*pA.z + N(3)*dA.z;
+					Dx.x = N(0)*pA.x + N(1)*dA.x + N(2)*pB.x + N(3)*dB.x;
+					Dx.y = N(0)*pA.y + N(1)*dA.y + N(2)*pB.y + N(3)*dB.y;
+					Dx.z = N(0)*pA.z + N(1)*dA.z + N(2)*pB.z + N(3)*dB.z;
 
 					// This element has no torsional dof, so once we have the Dx direction
 					// of the line, we must compute the Dy and Dz directions by using a 

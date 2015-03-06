@@ -17,6 +17,7 @@
 #include "unit_FEM/ChElementHexa_8.h"
 #include "unit_FEM/ChElementHexa_20.h"
 #include "unit_FEM/ChElementBeamEuler.h"
+#include "unit_FEM/ChElementBeamANCF.h"
 #include "assets/ChTriangleMeshShape.h"
 #include "assets/ChGlyphs.h"
 
@@ -295,7 +296,7 @@ void ChVisualizationFEMmesh::Update ()
 		}
 
 		// ELEMENT IS A BEAM
-		if (this->FEMmesh->GetElement(iel).IsType<ChElementBeamEuler>() )
+		if (this->FEMmesh->GetElement(iel).IsType<ChElementBeam>() )
 		{
 			n_verts +=4*beam_resolution;
 			n_vcols +=4*beam_resolution;
@@ -748,21 +749,40 @@ void ChVisualizationFEMmesh::Update ()
 	{
 		glyphs_asset->SetDrawMode(ChGlyphs::GLYPH_POINT);
 		for (unsigned int inode=0; inode < this->FEMmesh->GetNnodes(); ++inode)
+		{
 			if (this->FEMmesh->GetNode(inode).IsType<ChNodeFEMxyz>())
 			{
 				ChSharedPtr<ChNodeFEMxyz> mynode ( this->FEMmesh->GetNode(inode).DynamicCastTo<ChNodeFEMxyz>() );
 				glyphs_asset->SetGlyphPoint(inode,  mynode->GetPos(), this->symbolscolor );
 			}
+			if (this->FEMmesh->GetNode(inode).IsType<ChNodeFEMxyzrot>())
+			{
+				ChSharedPtr<ChNodeFEMxyzrot> mynode ( this->FEMmesh->GetNode(inode).DynamicCastTo<ChNodeFEMxyzrot>() );
+				glyphs_asset->SetGlyphPoint(inode,  mynode->GetPos(), this->symbolscolor );
+			}
+			if (this->FEMmesh->GetNode(inode).IsType<ChNodeFEMxyzD>())
+			{
+				ChSharedPtr<ChNodeFEMxyzD> mynode ( this->FEMmesh->GetNode(inode).DynamicCastTo<ChNodeFEMxyzD>() );
+				glyphs_asset->SetGlyphPoint(inode,  mynode->GetPos(), this->symbolscolor );
+			}
+		}
 	}
 	if (this->fem_glyph == ChVisualizationFEMmesh::E_GLYPH_NODE_CSYS)
 	{
 		glyphs_asset->SetDrawMode(ChGlyphs::GLYPH_COORDSYS);
 		for (unsigned int inode=0; inode < this->FEMmesh->GetNnodes(); ++inode)
+		{
 			if (this->FEMmesh->GetNode(inode).IsType<ChNodeFEMxyzrot>())
 			{
 				ChSharedPtr<ChNodeFEMxyzrot> mynode ( this->FEMmesh->GetNode(inode).DynamicCastTo<ChNodeFEMxyzrot>() );
 				glyphs_asset->SetGlyphCoordsys(inode,  mynode->Frame().GetCoord());
 			}
+			//if (this->FEMmesh->GetNode(inode).IsType<ChNodeFEMxyzD>())
+			//{
+			//	ChSharedPtr<ChNodeFEMxyzD> mynode ( this->FEMmesh->GetNode(inode).DynamicCastTo<ChNodeFEMxyzD>() );
+			//	glyphs_asset->SetGlyphVector(inode, mynode->GetPos(), mynode->GetD() * this->symbols_scale, this->symbolscolor );
+			//}
+		}
 	}
 	if (this->fem_glyph == ChVisualizationFEMmesh::E_GLYPH_NODE_VECT_SPEED)
 	{
