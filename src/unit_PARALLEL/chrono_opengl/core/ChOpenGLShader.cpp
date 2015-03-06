@@ -9,13 +9,14 @@
 // http://projectchrono.org/license-chrono.txt.
 //
 // =============================================================================
+// Authors: Hammad Mazhar
+// =============================================================================
 // Shader() is a sample shader class that loads and compiles the vertex and
 // fragment shaders. Based on code provided by Perry Kivolowitz.
 // This Shader() class implements or assumes a basic set of uniforms will be
 // provided to all shaders derived from it. These are listed below.
 // ChOpenGLShader::CommonSetup() can be used by call derived classes to send the
 // common values to the shader.
-// Authors: Hammad Mazhar
 // =============================================================================
 
 #include "chrono_opengl/core/ChOpenGLShader.h"

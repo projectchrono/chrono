@@ -9,10 +9,10 @@
 // http://projectchrono.org/license-chrono.txt.
 //
 // =============================================================================
-// Opengl API header
 // Authors: Hammad Mazhar
 // =============================================================================
-
+// Header for OpenGL API export
+// =============================================================================
 #ifndef CHAPIGL_H
 #define CHAPIGL_H
 

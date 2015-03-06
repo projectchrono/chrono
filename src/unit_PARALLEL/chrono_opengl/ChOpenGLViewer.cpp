@@ -9,8 +9,9 @@
 // http://projectchrono.org/license-chrono.txt.
 //
 // =============================================================================
-// OpenGL viewer, this class draws the system to the screen and handles input
 // Authors: Hammad Mazhar
+// =============================================================================
+// OpenGL viewer, this class draws the system to the screen and handles input
 // =============================================================================
 #include "chrono_parallel/ChApiParallel.h"
 #include "chrono_opengl/ChOpenGLViewer.h"

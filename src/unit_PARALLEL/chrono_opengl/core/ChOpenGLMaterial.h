@@ -9,10 +9,11 @@
 // http://projectchrono.org/license-chrono.txt.
 //
 // =============================================================================
+// Authors: Hammad Mazhar
+// =============================================================================
 // Material Class
 // Stores ambient, diffuse, specular and glow colors
 // Useful when sending material info to a renderable object
-// Authors: Hammad Mazhar
 // =============================================================================
 
 #ifndef CHOPENGLMATERIAL_H

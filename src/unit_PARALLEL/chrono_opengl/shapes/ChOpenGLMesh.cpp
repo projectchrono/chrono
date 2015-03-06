@@ -7,10 +7,10 @@
 // Use of this source code is governed by a BSD-style license that can be found
 // in the LICENSE file at the top level of the distribution and at
 // http://projectchrono.org/license-chrono.txt.
-//
 // =============================================================================
-// Generic renderable mesh. Based on code provided by Perry Kivolowitz.
 // Authors: Hammad Mazhar
+// =============================================================================
+// Generic renderable triangle mesh.
 // =============================================================================
 
 #include <iostream>
@@ -137,10 +137,10 @@ bool ChOpenGLMesh::PostInitialize() {
   glEnableVertexAttribArray(2);
   glEnableVertexAttribArray(3);
 
-  glVertexAttribPointer(
-      0, 3, GL_FLOAT, GL_FALSE, sizeof(ChOpenGLVertexAttributesPN), (GLvoid*)(sizeof(vec3) * 0));  // Position
-  glVertexAttribPointer(
-      1, 3, GL_FLOAT, GL_FALSE, sizeof(ChOpenGLVertexAttributesPN), (GLvoid*)(sizeof(vec3) * 1));  // Normal
+  glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(ChOpenGLVertexAttributesPN),
+                        (GLvoid*)(sizeof(vec3) * 0));  // Position
+  glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof(ChOpenGLVertexAttributesPN),
+                        (GLvoid*)(sizeof(vec3) * 1));  // Normal
 
   glGenBuffers(1, &vertex_ambient_handle);
   glBindBuffer(GL_ARRAY_BUFFER, vertex_ambient_handle);
@@ -162,8 +162,7 @@ bool ChOpenGLMesh::PostInitialize() {
   for (int i = 0; i < 4; i++) {
     // Set up the vertex attribute
     glVertexAttribPointer(model_loc + i,  // Location
-                          4,
-                          GL_FLOAT,
+                          4, GL_FLOAT,
                           GL_FALSE,                    // vec4
                           sizeof(mat4),                // Stride
                           (void*)(sizeof(vec4) * i));  // Start offset

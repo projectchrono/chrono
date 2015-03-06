@@ -9,6 +9,8 @@
 // http://projectchrono.org/license-chrono.txt.
 //
 // =============================================================================
+// Authors: Hammad Mazhar
+// =============================================================================
 // This class supports ADS lighting with glow and texture coordinates
 // Nothing too interesting here, note that the order for the members is important
 // Based on code provided by Perry Kivolowitz.
@@ -20,7 +22,6 @@
 // A = Ambient
 // D = Diffuse
 // S = Specular
-// Authors: Hammad Mazhar
 // =============================================================================
 
 #ifndef CHOPENGLVERTEXATTRIBUTE_H

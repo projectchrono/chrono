@@ -9,8 +9,10 @@
 // http://projectchrono.org/license-chrono.txt.
 //
 // =============================================================================
-// Generic renderable text.
 // Authors: Hammad Mazhar
+// =============================================================================
+// Generic renderable text class that uses an atlas stored in the FontData.h
+// file. Add text and once finished run the draw command.
 // =============================================================================
 
 #ifndef CHOPENGLTEXT_H

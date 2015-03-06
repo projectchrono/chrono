@@ -9,8 +9,9 @@
 // http://projectchrono.org/license-chrono.txt.
 //
 // =============================================================================
-// Implementation of quaternion based GL camera class
 // Authors: Hammad Mazhar
+// =============================================================================
+// Implementation of quaternion based GL camera class
 // =============================================================================
 
 #include "chrono_opengl/ChOpenGLCamera.h"

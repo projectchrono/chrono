@@ -9,10 +9,11 @@
 // http://projectchrono.org/license-chrono.txt.
 //
 // =============================================================================
+// Authors: Hammad Mazhar
+// =============================================================================
 // Object() is a sample base class upon which drawable objects might
 // be derived. It assumes that all drawable objects have some geometry
 // to buffer. Based on code provided by Perry Kivolowitz
-// Authors: Hammad Mazhar
 // =============================================================================
 
 #include "chrono_opengl/core/ChOpenGLObject.h"

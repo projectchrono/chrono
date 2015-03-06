@@ -9,8 +9,9 @@
 // http://projectchrono.org/license-chrono.txt.
 //
 // =============================================================================
-// OpenGL window singleton, this class manages the opengl context and window
 // Authors: Hammad Mazhar
+// =============================================================================
+// Shared materials used in the OpenGL viewer
 // =============================================================================
 #ifndef CHOPENGLMATERIALS_H
 #define CHOPENGLMATERIALS_H

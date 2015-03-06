@@ -9,8 +9,9 @@
 // http://projectchrono.org/license-chrono.txt.
 //
 // =============================================================================
-// Generic renderable point cloud. Based on code provided by Perry Kivolowitz.
 // Authors: Hammad Mazhar
+// =============================================================================
+// Renders a wireframe view for triangles
 // =============================================================================
 
 #ifndef CHOPENGLWIRES_H

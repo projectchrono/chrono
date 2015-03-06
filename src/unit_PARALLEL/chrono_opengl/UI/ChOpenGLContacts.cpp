@@ -9,8 +9,9 @@
 // http://projectchrono.org/license-chrono.txt.
 //
 // =============================================================================
-// Class to render contact information
 // Authors: Hammad Mazhar
+// =============================================================================
+// Renders contact points as a point cloud
 // =============================================================================
 
 #include <iostream>

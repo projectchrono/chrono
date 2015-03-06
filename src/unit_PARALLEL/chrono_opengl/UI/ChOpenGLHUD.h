@@ -9,8 +9,9 @@
 // http://projectchrono.org/license-chrono.txt.
 //
 // =============================================================================
-// Class that renders the text and other UI elements
 // Authors: Hammad Mazhar
+// =============================================================================
+// Class that renders the text and other UI elements
 // =============================================================================
 
 #ifndef CHOPENGLHUD_H

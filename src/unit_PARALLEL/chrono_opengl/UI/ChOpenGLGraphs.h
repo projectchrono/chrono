@@ -9,8 +9,9 @@
 // http://projectchrono.org/license-chrono.txt.
 //
 // =============================================================================
-// Class that generates graphs
 // Authors: Hammad Mazhar
+// =============================================================================
+// Class to render simple plots for the UI
 // =============================================================================
 
 #ifndef CHOPENGLGRAPHS_H

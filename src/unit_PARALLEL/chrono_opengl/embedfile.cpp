@@ -1,3 +1,6 @@
+// Original code by ScottManDeath https://www.opengl.org/discussion_boards/showthread.php/163106-GLSL-shader-embedded-in-C
+// For more information see http://hamelot.co.uk/visualization/opengl-glsl-shader-as-a-string/
+
 #include <cstdio>
 #include <cstdlib>
 #include <string>

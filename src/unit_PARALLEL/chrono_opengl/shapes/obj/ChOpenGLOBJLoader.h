@@ -9,8 +9,9 @@
 // http://projectchrono.org/license-chrono.txt.
 //
 // =============================================================================
-// Uses the tiny_obj_loader library to load an OBJ file in the proper format
 // Authors: Hammad Mazhar
+// =============================================================================
+// Uses the tiny_obj_loader library to load an OBJ file in the proper format
 // =============================================================================
 
 #ifndef CHOPENGLOBJLOADER_H

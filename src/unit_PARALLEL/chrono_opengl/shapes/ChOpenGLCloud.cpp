@@ -9,8 +9,9 @@
 // http://projectchrono.org/license-chrono.txt.
 //
 // =============================================================================
-// Generic renderable point cloud. Based on code provided by Perry Kivolowitz.
 // Authors: Hammad Mazhar
+// =============================================================================
+// Generic renderable point cloud.
 // =============================================================================
 
 #include <iostream>

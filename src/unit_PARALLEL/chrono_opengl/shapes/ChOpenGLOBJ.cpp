@@ -9,9 +9,10 @@
 // http://projectchrono.org/license-chrono.txt.
 //
 // =============================================================================
+// Authors: Hammad Mazhar
+// =============================================================================
 // OBJ object class, use this to render an obj file
 // Stores one mesh object per obj object in the file
-// Authors: Hammad Mazhar
 // =============================================================================
 
 #include <iostream>

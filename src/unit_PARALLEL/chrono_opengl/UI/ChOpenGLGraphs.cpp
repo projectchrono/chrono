@@ -9,8 +9,9 @@
 // http://projectchrono.org/license-chrono.txt.
 //
 // =============================================================================
-// Generic renderable text
 // Authors: Hammad Mazhar
+// =============================================================================
+// Class to render simple plots for the UI
 // =============================================================================
 
 #include "chrono_opengl/UI/ChOpenGLGraphs.h"

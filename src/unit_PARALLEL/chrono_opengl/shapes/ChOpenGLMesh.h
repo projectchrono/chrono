@@ -9,8 +9,9 @@
 // http://projectchrono.org/license-chrono.txt.
 //
 // =============================================================================
-// Generic renderable mesh. Based on code provided by Perry Kivolowitz.
 // Authors: Hammad Mazhar
+// =============================================================================
+// Generic renderable triangle mesh.
 // =============================================================================
 
 #ifndef CHOPENGLMESH_H

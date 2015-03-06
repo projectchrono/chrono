@@ -6,6 +6,7 @@
 
 ADD_EXECUTABLE(embedfile embedfile.cpp)
 
+#All shaders are compiled into strings by embedfile.cpp
 SET(GLSL_SHADERS
   cloud_frag
   cloud_vert
@@ -32,6 +33,7 @@ ENDFOREACH()
 
 # ------------------------------------------------------------------------------
 
+# OBJ files are copied to the resources folder in the binary directory
 SET(OBJ_FILES
   box.obj
   cone.obj

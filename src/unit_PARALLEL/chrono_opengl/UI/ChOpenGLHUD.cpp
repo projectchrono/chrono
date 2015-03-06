@@ -9,8 +9,9 @@
 // http://projectchrono.org/license-chrono.txt.
 //
 // =============================================================================
-// Class that renders the text and other UI elements
 // Authors: Hammad Mazhar
+// =============================================================================
+// Class that renders the text and other UI elements
 // =============================================================================
 
 #include "chrono_opengl/UI/ChOpenGLHUD.h"
@@ -146,15 +147,18 @@ void ChOpenGLHUD::GenerateSystem(ChSystem* physics_system) {
   int num_shapes = 0;
   int num_bodies = 0;
   int num_contacts = 0;
+  int num_bilaterals = 0;
   if (ChSystemParallel* parallel_system = dynamic_cast<ChSystemParallel*>(physics_system)) {
     num_shapes = parallel_system->data_manager->num_shapes;
     num_bodies = parallel_system->data_manager->num_bodies + parallel_system->GetNphysicsItems();
     num_contacts = parallel_system->GetNcontacts();
+    num_bilaterals = parallel_system->data_manager->num_bilaterals;
   } else {
     ChCollisionSystemBullet* collision_system = (ChCollisionSystemBullet*)physics_system->GetCollisionSystem();
     num_shapes = collision_system->GetBulletCollisionWorld()->getNumCollisionObjects();
     num_bodies = physics_system->GetNbodiesTotal() + physics_system->GetNphysicsItems();
     num_contacts = physics_system->GetContactContainer()->GetNcontacts();
+    num_bilaterals = parallel_system->data_manager->num_bilaterals;
   }
 
   int average_contacts_per_body = num_bodies > 0 ? num_contacts / num_bodies : 0;
@@ -169,7 +173,7 @@ void ChOpenGLHUD::GenerateSystem(ChSystem* physics_system) {
 
   sprintf(buffer, "CONTACTS   %04d", num_contacts);
   text.Render(buffer, RIGHT, TOP - SPACING * 3, sx, sy);
-  sprintf(buffer, "AVGCONPB   %04d", average_contacts_per_body);
+  sprintf(buffer, "BILATERALS %04d", num_bilaterals);
   text.Render(buffer, RIGHT, TOP - SPACING * 4, sx, sy);
 
   sprintf(buffer, "TIMING INFO");

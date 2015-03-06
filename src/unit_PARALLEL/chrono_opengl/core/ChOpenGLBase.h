@@ -9,8 +9,9 @@
 // http://projectchrono.org/license-chrono.txt.
 //
 // =============================================================================
-// Base Class for all opengl related classes
 // Authors: Hammad Mazhar
+// =============================================================================
+// Base Class for all opengl related classes
 // =============================================================================
 
 #ifndef CHOPENGLBASE_H

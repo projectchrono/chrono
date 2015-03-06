@@ -9,8 +9,9 @@
 // http://projectchrono.org/license-chrono.txt.
 //
 // =============================================================================
-// OpenGL window singleton, this class manages the opengl context and window
 // Authors: Hammad Mazhar
+// =============================================================================
+// OpenGL window singleton, this class manages the opengl context and window
 // =============================================================================
 
 #include "chrono_opengl/ChOpenGLWindow.h"
