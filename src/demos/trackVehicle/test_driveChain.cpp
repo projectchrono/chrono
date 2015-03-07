@@ -68,8 +68,8 @@ using namespace chrono;
 #define CONSOLE_DEBUG_INFO      // log constraint violations to console,
 #define CONSOLE_TIMING       // time each render and simulation step, log to console
 
-int what_to_save = DBG_FIRSTSHOE | DBG_GEAR | DBG_IDLER | DBG_PTRAIN | DBG_CONSTRAINTS;
-int what_to_console = DBG_PTRAIN | DBG_GEAR | DBG_IDLER; //DBG_FIRSTSHOE | DBG_CONSTRAINTS;
+int what_to_save = DBG_FIRSTSHOE | DBG_GEAR | DBG_IDLER | DBG_PTRAIN | DBG_CONSTRAINTS | DBG_COLLISIONCALLBACK;
+int what_to_console = DBG_PTRAIN | DBG_GEAR | DBG_IDLER | DBG_COLLISIONCALLBACK; //DBG_FIRSTSHOE | DBG_CONSTRAINTS;
 
 // Initial position and heading
 ChVector<> initLoc(0, 1.0, 0);
@@ -80,7 +80,7 @@ size_t num_idlers = 1;
 size_t num_rollers = 2;
 
 // Simulation step size
-double step_size = 2e-3;
+double step_size = 1e-3;
 // stop at a certain time
 double end_time = 15;  // 99999
 
