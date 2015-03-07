@@ -1,11 +1,11 @@
 #=============================================================================
-# CMake configuration file for Chrono-T
+# CMake configuration file for Chrono-Vehicle
 #
 #=============================================================================
 
 cmake_minimum_required(VERSION 2.8)
 
-project(Chrono-T)
+project(ChronoVehicle)
 
 # Location of additional CMAKE modules
 SET(CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/cmake)
@@ -32,7 +32,7 @@ ENDIF()
 #       support.  This will require making unit_IRRLICHT a separate DLL.  
 #       For now, we assume we know what we're asking for.
 #       Later on, if Irrlicht is requested, but unit_IRRLICHT is not available,
-#       we will warn the user and disable Irrlicht support in chrono-T
+#       we will warn the user and disable Irrlicht support in Chrono-Vehicle
 
 OPTION(ENABLE_IRRLICHT "Enable Irrlicht support" ON)
 
@@ -212,8 +212,8 @@ SET(CHRONO_DATA_DIR "${CH_CHRONO_SDKDIR}/demos/data/")
 # be found at compile time.
 
 CONFIGURE_FILE(
-  ${CMAKE_MODULE_PATH}/ChronoT_config.h.in
-  ${PROJECT_BINARY_DIR}/ChronoT_config.h
+  ${CMAKE_MODULE_PATH}/ChronoVehicle_config.h.in
+  ${PROJECT_BINARY_DIR}/ChronoVehicle_config.h
   )
 
 INCLUDE_DIRECTORIES(${PROJECT_BINARY_DIR})

@@ -29,7 +29,7 @@
 #include "physics/ChSystem.h"
 #include "physics/ChLinkDistance.h"
 
-#include "ChronoT_config.h"
+#include "ChronoVehicle_config.h"
 
 #include "utils/ChUtilsInputOutput.h"
 

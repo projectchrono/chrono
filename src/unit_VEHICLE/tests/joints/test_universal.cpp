@@ -29,7 +29,7 @@
 
 #include "unit_IRRLICHT/ChIrrApp.h"
 
-#include "ChronoT_config.h"
+#include "ChronoVehicle_config.h"
 #include "utils/ChUtilsInputOutput.h"
 #include "utils/ChUtilsValidation.h"
 

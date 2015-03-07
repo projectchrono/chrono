@@ -34,7 +34,7 @@
 #include "subsys/tire/ChPacejkaTire.h"
 #include "subsys/terrain/FlatTerrain.h"
 
-#include "ChronoT_config.h"
+#include "ChronoVehicle_config.h"
 
 using namespace chrono;
 

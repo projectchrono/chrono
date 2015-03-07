@@ -33,7 +33,7 @@
 #include "physics/ChSystem.h"
 #include "unit_IRRLICHT/ChIrrApp.h"
 
-#include "ChronoT_config.h"
+#include "ChronoVehicle_config.h"
 
 #include "subsys/driver/ChChaseCamera.h"
 
