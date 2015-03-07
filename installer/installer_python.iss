@@ -137,7 +137,7 @@ begin
    
 
         // find 64 bit python:          
-    if RegQueryStringValue(HKEY_LOCAL_MACHINE,
+    if RegQueryStringValue(HKLM64,
                     'SOFTWARE\Python\PythonCore\' +  myvers+ '\InstallPath',
                     '',
                     mallDirPython) then

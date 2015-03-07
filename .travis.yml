@@ -1,9 +1,9 @@
 sudo: false
 language: cpp
-#addons: # uncomment after libirrlicht is whitelisted
-#  apt_packages:
-#    - libirrlicht1.8
-#    - libirrlicht-dev
+addons:
+  apt_packages:
+    - libirrlicht1.7a
+    - libirrlicht-dev
 compiler:
   - gcc
   - clang

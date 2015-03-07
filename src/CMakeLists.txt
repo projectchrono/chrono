@@ -319,7 +319,7 @@ IF (BUILD_CH_SDK)
 		physics/ChBodyFrame.cpp
 		physics/ChBody.cpp
 		physics/ChBodyAuxRef.cpp
-		physics/ChLinkforce.cpp 
+		physics/ChLinkForce.cpp
 		physics/ChLinkMask.cpp
 		physics/ChLinkBase.cpp  
 		physics/ChLink.cpp 
@@ -429,7 +429,7 @@ IF (BUILD_CH_SDK)
 		physics/ChLinkBrake.h
 		physics/ChLinkDistance.h
 		physics/ChLinkEngine.h
-		physics/ChLinkforce.h
+		physics/ChLinkForce.h
 		physics/ChLinkGear.h
 		physics/ChLinkLinActuator.h
 		physics/ChLinkLock.h

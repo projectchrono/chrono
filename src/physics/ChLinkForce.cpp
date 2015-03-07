@@ -11,14 +11,14 @@
 
 ///////////////////////////////////////////////////
 //
-//   ChLinkforce.cpp
+//   ChLinkForce.cpp
 //
 // ------------------------------------------------
 //             www.deltaknowledge.com
 // ------------------------------------------------
 ///////////////////////////////////////////////////
 
-#include "physics/ChLinkforce.h"
+#include "physics/ChLinkForce.h"
  
  
 namespace chrono

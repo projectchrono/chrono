@@ -23,6 +23,7 @@
 #include "lcp/ChLcpIterativePMINRES.h"
 #include "lcp/ChLcpIterativeMINRES.h"
 #include "unit_FEM/ChElementBeamEuler.h"
+#include "unit_FEM/ChElementBeamANCF.h"
 #include "unit_FEM/ChBuilderBeam.h"
 #include "unit_FEM/ChMesh.h"
 #include "unit_FEM/ChVisualizationFEMmesh.h"
@@ -178,6 +179,43 @@ int main(int argc, char* argv[])
 
 
 
+	//
+	// Add some ANCF CABLE BEAMS:
+	//
+
+	beam_L  = 0.1;
+	
+
+	ChSharedPtr<ChNodeFEMxyzD> hnodeancf1(new ChNodeFEMxyzD( ChVector<>(0,0,-0.2)) ); 
+	ChSharedPtr<ChNodeFEMxyzD> hnodeancf2(new ChNodeFEMxyzD( ChVector<>(beam_L,0,-0.2)) );
+	ChSharedPtr<ChNodeFEMxyzD> hnodeancf3(new ChNodeFEMxyzD( ChVector<>(beam_L*2,0,-0.2)) );
+
+	my_mesh->AddNode(hnodeancf1);
+	my_mesh->AddNode(hnodeancf2);
+	my_mesh->AddNode(hnodeancf3);
+
+	ChSharedPtr<ChElementBeamANCF> belementancf1 (new ChElementBeamANCF);
+
+	belementancf1->SetNodes(hnodeancf1, hnodeancf2);
+	belementancf1->SetSection(msection);
+
+	my_mesh->AddElement(belementancf1);
+
+
+	ChSharedPtr<ChElementBeamANCF> belementancf2 (new ChElementBeamANCF);
+
+	belementancf2->SetNodes(hnodeancf2, hnodeancf3);
+	belementancf2->SetSection(msection);
+
+	my_mesh->AddElement(belementancf2);
+
+
+				// Apply a force or a torque to a node:
+	hnodeancf2->SetForce( ChVector<>(4,2,0));
+
+	hnodeancf1->SetFixed(true);
+	
+
 
 	//
 	// Final touches..
@@ -257,8 +295,7 @@ ChLcpMatlabSolver* matlab_solver_stab  = new ChLcpMatlabSolver(matlab_engine);
 ChLcpMatlabSolver* matlab_solver_speed = new ChLcpMatlabSolver(matlab_engine);
 my_system.ChangeLcpSolverStab (matlab_solver_stab);
 my_system.ChangeLcpSolverSpeed(matlab_solver_speed);
-
-//application.GetSystem()->Update();
+application.GetSystem()->Update();
 application.SetPaused(true);
 
 
