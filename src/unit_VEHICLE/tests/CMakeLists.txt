@@ -28,7 +28,6 @@ ENDIF()
 
 #--------------------------------------------------------------
 
-ADD_SUBDIRECTORY(joints)
 ADD_SUBDIRECTORY(pacTest)
 
 
