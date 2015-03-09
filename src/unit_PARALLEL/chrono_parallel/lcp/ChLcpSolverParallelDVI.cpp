@@ -343,10 +343,11 @@ void ChLcpSolverParallelDVI::ComputeN() {
   uint num_unilaterals = data_container->num_unilaterals;
   uint num_bilaterals = data_container->num_bilaterals;
 
-  data_container->host_data.N_bb = D_b_T * M_invD_b;
+
 
   switch (data_container->settings.solver.solver_mode) {
     case NORMAL: {
+      N_bb = D_b_T * M_invD_b;
       N_bn = D_b_T * M_invD_n;
 
       N_nn = D_n_T * M_invD_n;
@@ -354,6 +355,7 @@ void ChLcpSolverParallelDVI::ComputeN() {
     } break;
 
     case SLIDING: {
+      N_bb = D_b_T * M_invD_b;
       N_bn = D_b_T * M_invD_n;
       N_bt = D_b_T * M_invD_t;
 
@@ -367,6 +369,7 @@ void ChLcpSolverParallelDVI::ComputeN() {
     } break;
 
     case SPINNING: {
+      N_bb = D_b_T * M_invD_b;
       N_bn = D_b_T * M_invD_n;
       N_bt = D_b_T * M_invD_t;
       N_bs = D_b_T * M_invD_s;
