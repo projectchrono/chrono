@@ -1483,7 +1483,7 @@ PREDEFINED             = "ChApi = " \
                          "ChApiJS = " \
                          "ChApiMPI = " \
                          "ChApiPostProcess = " \
-                         "ChApiFEM = " \
+                         "ChApiFEA = " \
                          "ChApiCASCADE = " \
                          "ChApiPYPARSER = " \
                          "ChApiPYTHON = " \

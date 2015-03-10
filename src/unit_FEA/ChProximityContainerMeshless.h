@@ -1,33 +1,17 @@
 //
 // PROJECT CHRONO - http://projectchrono.org
 //
-// Copyright (c) 2010 Alessandro Tasora
+// Copyright (c) 2013 Project Chrono
 // All rights reserved.
 //
 // Use of this source code is governed by a BSD-style license that can be 
 // found in the LICENSE file at the top level of the distribution
 // and at http://projectchrono.org/license-chrono.txt.
 //
+// File authors: Alessandro Tasora
 
-#ifndef CHPROXIMITYCONTAINERSPH_H
-#define CHPROXIMITYCONTAINERSPH_H
-
-///////////////////////////////////////////////////
-//
-//   ChProximityContainerSPH.h
-//
-//   Class for container of many proximity pairs for SPH (Smooth 
-//   Particle Hydrodinamics and similar meshless force computations), 
-//   as CPU typical linked list of ChProximitySPH objects
-//
-//   HEADER file for CHRONO,
-//	 Multibody dynamics engine
-//
-// ------------------------------------------------
-//             www.deltaknowledge.com
-// ------------------------------------------------
-///////////////////////////////////////////////////
-
+#ifndef CHPROXIMITYCONTAINERMESHLESS_H
+#define CHPROXIMITYCONTAINERMESHLESS_H
 
 
 #include "physics/ChProximityContainerBase.h"
@@ -40,21 +24,21 @@ namespace chrono
 
 
 ///
-/// Class for a proximity pair information in a SPH cluster 
-/// of particles - that is, an 'edge' topological connectivity in
-/// in a meshless FEA approach, like the Smoothed Particle Hydrodynamics.
+/// Class for a proximity pair information in a meshless deformable continumm,
+/// made with a cluster of particles - that is, an 'edge' topological connectivity in
+/// in a meshless FEA approach, similar to the Smoothed Particle Hydrodynamics.
 /// 
 
-class ChApi ChProximitySPH
+class ChApiFea ChProximityMeshless
 {
 public:
-	ChProximitySPH(collision::ChModelBulletNode* mmodA,	///< model A
+	ChProximityMeshless(collision::ChModelBulletNode* mmodA,	///< model A
 				   collision::ChModelBulletNode* mmodB)	///< model B
 	{
 		Reset(mmodA, mmodB);
 	}
 
-	virtual ~ChProximitySPH () {};
+	virtual ~ChProximityMeshless () {};
 
 				//
 	  			// FUNCTIONS
@@ -87,25 +71,27 @@ private:
 
 
 ///
-/// Class for container of many proximity pairs for SPH (Smooth 
-/// Particle Hydrodinamics and similar meshless force computations), 
-/// as CPU typical linked list of ChProximitySPH objects.
+/// Class for container of many proximity pairs for a meshless
+/// deformable continuum (necessary for inter-particle material forces), 
+/// as CPU typical linked list of ChProximityMeshless objects.
+/// Such an item must be addd to the physical system if you added
+/// an object of class ChMatterMeshless.
 ///
 
-class ChApi ChProximityContainerSPH : public ChProximityContainerBase {
+class ChApiFea ChProximityContainerMeshless : public ChProximityContainerBase {
 
-	CH_RTTI(ChProximityContainerSPH,ChProximityContainerBase);
+	CH_RTTI(ChProximityContainerMeshless,ChProximityContainerBase);
 
 protected:
 				//
 	  			// DATA
 				//
 
-	std::list<ChProximitySPH*>   proximitylist; 
+	std::list<ChProximityMeshless*>   proximitylist; 
 
 	int n_added;
 
-	std::list<ChProximitySPH*>::iterator lastproximity;
+	std::list<ChProximityMeshless*>::iterator lastproximity;
 
 
 public:
@@ -113,9 +99,9 @@ public:
 	  			// CONSTRUCTORS
 				//
 
-	ChProximityContainerSPH ();
+	ChProximityContainerMeshless ();
 
-	virtual ~ChProximityContainerSPH ();
+	virtual ~ChProximityContainerMeshless ();
 
 
 
@@ -152,13 +138,14 @@ public:
 	virtual void ReportAllProximities(ChReportProximityCallback* mcallback);
 
 
+
 					// Perform some SPH per-edge initializations and accumulations of values 
 					// into the connected pairs of particles (summation into partcle's  J, Amoment, m_v, UserForce -viscous only- )
-					// Will be called by the ChMatterSPH item.
+					// Will be called by the ChMatterMeshless item.
 	virtual void AccumulateStep1();
 
 					// Perform some SPH per-edge transfer of forces, given stress tensors in A B nodes
-					// Will be called by the ChMatterSPH item.
+					// Will be called by the ChMatterMeshless item.
 	virtual void AccumulateStep2();
 	
 

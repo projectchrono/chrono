@@ -45,16 +45,16 @@ Source: {#MyChronoEngineSDK}\src\demos\python\*; DestDir: "{app}\python"; Flags:
 Source: {#MyWin64PythonDir}\DLLs\_ChronoEngine_PYTHON_core.pyd; DestDir: {code:myGetPathWin64PythonDLLs};  Flags: ignoreversion;  Check: myFoundWin64Python;
 Source: {#MyWin64PythonDir}\DLLs\_ChronoEngine_PYTHON_postprocess.pyd; DestDir: {code:myGetPathWin64PythonDLLs};  Flags: ignoreversion;  Check: myFoundWin64Python;
 Source: {#MyWin64PythonDir}\DLLs\_ChronoEngine_PYTHON_irrlicht.pyd; DestDir: {code:myGetPathWin64PythonDLLs};  Flags: ignoreversion;  Check: myFoundWin64Python;
-Source: {#MyWin64PythonDir}\DLLs\_ChronoEngine_PYTHON_fem.pyd; DestDir: {code:myGetPathWin64PythonDLLs};  Flags: ignoreversion;  Check: myFoundWin64Python;
+Source: {#MyWin64PythonDir}\DLLs\_ChronoEngine_PYTHON_fea.pyd; DestDir: {code:myGetPathWin64PythonDLLs};  Flags: ignoreversion;  Check: myFoundWin64Python;
 Source: {#MyWin64PythonDir}\DLLs\ChronoEngine.dll; DestDir: {code:myGetPathWin64PythonDLLs};  Flags: ignoreversion;  Check: myFoundWin64Python;
 Source: {#MyWin64PythonDir}\DLLs\ChronoEngine_POSTPROCESS.dll; DestDir: {code:myGetPathWin64PythonDLLs};  Flags: ignoreversion;  Check: myFoundWin64Python;
 Source: {#MyWin64PythonDir}\DLLs\ChronoEngine_IRRLICHT.dll; DestDir: {code:myGetPathWin64PythonDLLs};  Flags: ignoreversion;  Check: myFoundWin64Python;
-Source: {#MyWin64PythonDir}\DLLs\ChronoEngine_FEM.dll; DestDir: {code:myGetPathWin64PythonDLLs};  Flags: ignoreversion;  Check: myFoundWin64Python;
+Source: {#MyWin64PythonDir}\DLLs\ChronoEngine_FEA.dll; DestDir: {code:myGetPathWin64PythonDLLs};  Flags: ignoreversion;  Check: myFoundWin64Python;
 Source: {#MyWin64PythonDir}\DLLs\Irrlicht.dll; DestDir: {code:myGetPathWin64PythonDLLs};  Flags: ignoreversion;  Check: myFoundWin64Python;
 Source: {#MyWin64PythonDir}\lib\ChronoEngine_PYTHON_core.py; DestDir: {code:myGetPathWin64PythonLib};  Flags: ignoreversion;  Check: myFoundWin64Python;
 Source: {#MyWin64PythonDir}\lib\ChronoEngine_PYTHON_postprocess.py; DestDir: {code:myGetPathWin64PythonLib};  Flags: ignoreversion;  Check: myFoundWin64Python;
 Source: {#MyWin64PythonDir}\lib\ChronoEngine_PYTHON_irrlicht.py; DestDir: {code:myGetPathWin64PythonLib};  Flags: ignoreversion;  Check: myFoundWin64Python;
-Source: {#MyWin64PythonDir}\lib\ChronoEngine_PYTHON_fem.py; DestDir: {code:myGetPathWin64PythonLib};  Flags: ignoreversion;  Check: myFoundWin64Python;
+Source: {#MyWin64PythonDir}\lib\ChronoEngine_PYTHON_fea.py; DestDir: {code:myGetPathWin64PythonLib};  Flags: ignoreversion;  Check: myFoundWin64Python;
 
 
 [Icons]

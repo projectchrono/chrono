@@ -8,7 +8,7 @@
 #      find_package(ChronoEngine COMPONENTS [components...])
 # where components can be: 
 #     unit_COSIMULATION
-#     unit_FEM 
+#     unit_FEA 
 #     unit_PYPARSER
 #     unit_POSTPROCESS
 #     unit_IRRLICHT
@@ -22,7 +22,7 @@
 # Other less important variables are:
 #    CHRONOENGINE_LIBRARY               the Chrono::Engine main library to be linked
 #    CHRONOENGINE_LIBRARY_COSIMULATION  the library for the cosimulation unit, optional component
-#    CHRONOENGINE_LIBRARY_FEM           the library for the FEM unit, optional component
+#    CHRONOENGINE_LIBRARY_FEA           the library for the FEA unit, optional component
 #    CHRONOENGINE_LIBRARY_PYPARSER      the library for the python parser unit, optional component
 #    CHRONOENGINE_LIBRARY_POSTPROCESS   the library for the postprocessing unit, optional component
 #    CH_INCLUDES    are the directories with ChronoEngine headers for includes, excluding other units
@@ -33,7 +33,7 @@
 #
 #	CMAKE_MINIMUM_REQUIRED(VERSION 2.8)
 #   PROJECT(myproject)
-#   FIND_PACKAGE(ChronoEngine COMPONENTS unit_POSTPROCESS unit_FEM)
+#   FIND_PACKAGE(ChronoEngine COMPONENTS unit_POSTPROCESS unit_FEA)
 #   INCLUDE_DIRECTORIES(${CHRONOENGINE_INCLUDES})
 #   ADD_EXECUTABLE(myexe main.cpp)
 #   TARGET_LINK_LIBRARIES(myexe ${CHRONOENGINE_LIBRARIES})
@@ -200,38 +200,38 @@ IF( ChronoEngine_FIND_COMPONENTS )
     endif()
     
     
-    ##### THE unit_FEM COMPONENT
+    ##### THE unit_FEA COMPONENT
     
-    if (${CH_USE_UNIT_FEM})
-        FIND_LIBRARY(CHRONOENGINE_LIBRARY_FEM_RELEASE
-          NAMES ChronoEngine_FEM
+    if (${CH_USE_UNIT_FEA})
+        FIND_LIBRARY(CHRONOENGINE_LIBRARY_FEA_RELEASE
+          NAMES ChronoEngine_FEA
           PATHS ${CH_LIBDIR_RELEASE}
           )
-        FIND_LIBRARY(CHRONOENGINE_LIBRARY_FEM_DEBUG
-          NAMES ChronoEngine_FEM
+        FIND_LIBRARY(CHRONOENGINE_LIBRARY_FEA_DEBUG
+          NAMES ChronoEngine_FEA
           PATHS ${CH_LIBDIR_DEBUG}
           )
 
-        SET(CHRONOENGINE_LIBRARY_FEM "")
-        IF(CHRONOENGINE_LIBRARY_FEM_RELEASE)
-          SET(CHRONOENGINE_LIBRARY_FEM
-            ${CHRONOENGINE_LIBRARY_FEM}
-            optimized ${CHRONOENGINE_LIBRARY_FEM_RELEASE}
+        SET(CHRONOENGINE_LIBRARY_FEA "")
+        IF(CHRONOENGINE_LIBRARY_FEA_RELEASE)
+          SET(CHRONOENGINE_LIBRARY_FEA
+            ${CHRONOENGINE_LIBRARY_FEA}
+            optimized ${CHRONOENGINE_LIBRARY_FEA_RELEASE}
             )
         ENDIF()
-        IF(CHRONOENGINE_LIBRARY_FEM_DEBUG)
-          SET(CHRONOENGINE_LIBRARY_FEM
-            ${CHRONOENGINE_LIBRARY_FEM}
-            debug ${CHRONOENGINE_LIBRARY_FEM_DEBUG}
+        IF(CHRONOENGINE_LIBRARY_FEA_DEBUG)
+          SET(CHRONOENGINE_LIBRARY_FEA
+            ${CHRONOENGINE_LIBRARY_FEA}
+            debug ${CHRONOENGINE_LIBRARY_FEA_DEBUG}
             )
         ENDIF()
 
         # Hide uneeded stuff from GUI. 
-        MARK_AS_ADVANCED(CHRONOENGINE_LIBRARY_FEM_RELEASE)
-        MARK_AS_ADVANCED(CHRONOENGINE_LIBRARY_FEM_DEBUG)
+        MARK_AS_ADVANCED(CHRONOENGINE_LIBRARY_FEA_RELEASE)
+        MARK_AS_ADVANCED(CHRONOENGINE_LIBRARY_FEA_DEBUG)
 
         # Append to easy collective variables
-        SET(CHRONOENGINE_LIBRARIES ${CHRONOENGINE_LIBRARIES} ${CHRONOENGINE_LIBRARY_FEM})
+        SET(CHRONOENGINE_LIBRARIES ${CHRONOENGINE_LIBRARIES} ${CHRONOENGINE_LIBRARY_FEA})
     endif()
     
     
@@ -537,11 +537,11 @@ MACRO(CHRONOENGINE_ENABLE_CHRONODLLCOPY)
 			)
 		endif()
 
-		if (${CH_USE_UNIT_FEM})
+		if (${CH_USE_UNIT_FEA})
 			ADD_CUSTOM_COMMAND(
 				TARGET COPY_DLLS POST_BUILD
 				COMMAND ${CMAKE_COMMAND} -E copy_if_different
-					"${CH_BINDIR}/$<CONFIGURATION>/ChronoEngine_FEM.dll"
+					"${CH_BINDIR}/$<CONFIGURATION>/ChronoEngine_FEA.dll"
 					"${CMAKE_BINARY_DIR}/$<CONFIGURATION>"
 			)
 		endif()

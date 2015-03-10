@@ -14,7 +14,7 @@
 //   %DefChSharedPtr(shared_class_namespace, shared_class)
 //
 // for example
-//   %DefChSharedPtr(chrono::fem::,ChMesh)
+//   %DefChSharedPtr(chrono::fea::,ChMesh)
 //
 // Note 1: upcasting of shared pointers in python is not 
 //  automatic as in c++, but you can make it automatic if 

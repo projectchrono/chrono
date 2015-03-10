@@ -36,7 +36,7 @@ SET(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake/")
 #         Here add the Chrono::Engine units that you might want to link 
 #         with your project. Append their name after the COMPONENTS keyword.
 #         Some examples:  
-#           unit_COSIMULATION unit_FEM  unit_PYPARSER unit_POSTPROCESS
+#           unit_COSIMULATION unit_FEA  unit_PYPARSER unit_POSTPROCESS
 #           unit_IRRLICHT unit_MATLAB unit_CASCADE
 #         etc. (see the wiki for the list of available unit components.)
 #         After a successfull run of this find script you will have two 

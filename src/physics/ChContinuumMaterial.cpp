@@ -24,7 +24,7 @@
 
 namespace chrono 
 {
-namespace fem 
+namespace fea
 {
 
 
