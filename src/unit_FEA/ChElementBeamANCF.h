@@ -438,6 +438,11 @@ public:
 
 					// Compute mass matrix
 					ComputeMassMatrix();
+
+					// Compute stiffness matrix 
+					// (this is not constant in ANCF and will be called automatically many times by ComputeKRMmatricesGlobal() 
+					// when the solver will run, yet maybe nice to privide an initial nonzero value)
+					ComputeStiffnessMatrix();
 				}
 
 

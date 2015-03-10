@@ -186,8 +186,8 @@ int main(int argc, char* argv[])
 	beam_L  = 0.1;
 	
 
-	ChSharedPtr<ChNodeFEAxyzD> hnodeancf1(new ChNodeFEAxyzD( ChVector<>(0,0,-0.2)) ); 
-	ChSharedPtr<ChNodeFEAxyzD> hnodeancf2(new ChNodeFEAxyzD( ChVector<>(beam_L,0,-0.2)) );
+	ChSharedPtr<ChNodeFEAxyzD> hnodeancf1(new ChNodeFEAxyzD( ChVector<>(0,0,-0.2), ChVector<>(1,0,0) ) ); 
+	ChSharedPtr<ChNodeFEAxyzD> hnodeancf2(new ChNodeFEAxyzD( ChVector<>(beam_L,0,-0.2), ChVector<>(1,0,0) ) );
 	ChSharedPtr<ChNodeFEAxyzD> hnodeancf3(new ChNodeFEAxyzD( ChVector<>(beam_L*2,0,-0.2)) );
 
 	my_mesh->AddNode(hnodeancf1);
@@ -211,7 +211,7 @@ int main(int argc, char* argv[])
 
 
 				// Apply a force or a torque to a node:
-	hnodeancf2->SetForce( ChVector<>(4,2,0));
+	hnodeancf3->SetForce( ChVector<>(0,3,0));
 
 	hnodeancf1->SetFixed(true);
 	
