@@ -256,7 +256,7 @@ public:
 									1,					// end of x
 									5					// order of integration
 									);
-					Kaxial *= E*Area;
+					Kaxial *= E*Area*length;
 					
 					this->StiffnessMatrix = Kaxial;
 
@@ -365,7 +365,7 @@ public:
 									1,					// end of x
 									3					// order of integration
 									);
-					Kcurv *= E*Izz; // note Iyy should be the same value (circular section assumption)
+					Kcurv *= E*Izz*length; // note Iyy should be the same value (circular section assumption)
 					
 					this->StiffnessMatrix += Kcurv;
 
@@ -421,7 +421,7 @@ public:
 									4					// order of integration
 									);
 					
-					this->MassMatrix *= (rho*Area);
+					this->MassMatrix *= (rho*Area*this->length);
 				}
 
 
@@ -559,7 +559,7 @@ public:
 									1,					// end of x
 									5					// order of integration
 									);
-					Faxial *= E*Area;
+					Faxial *= -E*Area*length;
 					
 					Fi = Faxial;
 
@@ -669,7 +669,7 @@ public:
 									1,					// end of x
 									3					// order of integration
 									);
-					Fcurv *= E*Izz; // note Iyy should be the same value (circular section assumption)
+					Fcurv *= -E*Izz*length; // note Iyy should be the same value (circular section assumption)
 					
 					Fi += Fcurv;
 				}
