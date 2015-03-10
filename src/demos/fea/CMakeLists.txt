@@ -1,21 +1,21 @@
 # List all FEA demos that do not use Irrlich
 SET(FEA_DEMOS
-	demo_FEMbasic
-	demo_FEMdynamics
+	demo_FEAbasic
+	demo_FEAdynamics
 )
 
 # List all FEA demos that use Irrlicht
 SET(FEA_DEMOS_IRR
-	demo_FEMthermal
-	demo_FEMelectrostatics
-	demo_FEMvisualize
+	demo_FEAthermal
+	demo_FEAelectrostatics
+	demo_FEAvisualize
 )
 
 #List all FEA demos that use both Irrlicht and Matlab
 SET(FEA_DEMOS_IRR_MATLAB
-	demo_FEMbeams
-	demo_FEMbeamsconstr
-	demo_FEMminiature
+	demo_FEAbeams
+	demo_FEAbeamsconstr
+	demo_FEAminiature
 )
 
 #--------------------------------------------------------------
