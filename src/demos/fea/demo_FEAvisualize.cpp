@@ -28,7 +28,7 @@
 #include "unit_FEA/ChElementHexa_20.h"
 #include "unit_FEA/ChMesh.h"
 #include "unit_FEA/ChLinkPointFrame.h"
-#include "unit_FEA/ChVisualizationFEMmesh.h"
+#include "unit_FEA/ChVisualizationFEAmesh.h"
 #include "unit_IRRLICHT/ChIrrApp.h"
 //#include "unit_MATLAB/ChMatlabEngine.h"
 //#include "unit_MATLAB/ChLcpMatlabSolver.h"
@@ -93,7 +93,7 @@ int main(int argc, char* argv[])
 	}
 
 				// Apply a force to a node
-	ChSharedPtr<ChNodeFEMxyz> mnodelast = (my_mesh->GetNode(my_mesh->GetNnodes()-1)).DynamicCastTo<ChNodeFEMxyz>();
+	ChSharedPtr<ChNodeFEAxyz> mnodelast = (my_mesh->GetNode(my_mesh->GetNnodes()-1)).DynamicCastTo<ChNodeFEAxyz>();
 	mnodelast->SetForce( ChVector<>(100,0,0));
 */
 
@@ -113,18 +113,18 @@ for (int e = 0; e<6; ++e)
 	hexpos.x = 0.3*sin(angle);
 	ChMatrix33<> hexrot(Q_from_AngAxis(angle, VECT_Y));
 
-	ChSharedPtr<ChNodeFEMxyz> hnode1_lower;
-	ChSharedPtr<ChNodeFEMxyz> hnode2_lower;
-	ChSharedPtr<ChNodeFEMxyz> hnode3_lower;
-	ChSharedPtr<ChNodeFEMxyz> hnode4_lower;
+	ChSharedPtr<ChNodeFEAxyz> hnode1_lower;
+	ChSharedPtr<ChNodeFEAxyz> hnode2_lower;
+	ChSharedPtr<ChNodeFEAxyz> hnode3_lower;
+	ChSharedPtr<ChNodeFEAxyz> hnode4_lower;
 
 	for (int ilayer = 0; ilayer < 6; ++ilayer)
 	{
 		double hy = ilayer*sz;
-		ChSharedPtr<ChNodeFEMxyz> hnode1(new ChNodeFEMxyz(hexpos+hexrot*ChVector<>(0, hy,  0)));
-		ChSharedPtr<ChNodeFEMxyz> hnode2(new ChNodeFEMxyz(hexpos+hexrot*ChVector<>(0, hy,  sz)));
-		ChSharedPtr<ChNodeFEMxyz> hnode3(new ChNodeFEMxyz(hexpos+hexrot*ChVector<>(sx,hy,  sz)));
-		ChSharedPtr<ChNodeFEMxyz> hnode4(new ChNodeFEMxyz(hexpos+hexrot*ChVector<>(sx,hy,  0)));
+		ChSharedPtr<ChNodeFEAxyz> hnode1(new ChNodeFEAxyz(hexpos+hexrot*ChVector<>(0, hy,  0)));
+		ChSharedPtr<ChNodeFEAxyz> hnode2(new ChNodeFEAxyz(hexpos+hexrot*ChVector<>(0, hy,  sz)));
+		ChSharedPtr<ChNodeFEAxyz> hnode3(new ChNodeFEAxyz(hexpos+hexrot*ChVector<>(sx,hy,  sz)));
+		ChSharedPtr<ChNodeFEAxyz> hnode4(new ChNodeFEAxyz(hexpos+hexrot*ChVector<>(sx,hy,  0)));
 		my_mesh->AddNode(hnode1);
 		my_mesh->AddNode(hnode2);
 		my_mesh->AddNode(hnode3);
@@ -173,9 +173,9 @@ for (int e = 0; e<6; ++e)
 				// (for example, fix to ground all nodes which are near y=0
 	for (unsigned int inode = 0; inode < my_mesh->GetNnodes(); ++inode)
 	{
-		if (my_mesh->GetNode(inode).IsType<ChNodeFEMxyz>())
+		if (my_mesh->GetNode(inode).IsType<ChNodeFEAxyz>())
 		{
-			ChSharedPtr<ChNodeFEMxyz> mnode ( my_mesh->GetNode(inode).DynamicCastTo<ChNodeFEMxyz>() ); // downcast
+			ChSharedPtr<ChNodeFEAxyz> mnode ( my_mesh->GetNode(inode).DynamicCastTo<ChNodeFEAxyz>() ); // downcast
 			if (mnode->GetPos().y <0.01)
 			{
 				
@@ -208,35 +208,35 @@ for (int e = 0; e<6; ++e)
 			// postprocessor that can handle a coloured ChTriangleMeshShape).
 			// Do not forget AddAsset() at the end!
 
-	ChSharedPtr<ChVisualizationFEMmesh> mvisualizemesh(new ChVisualizationFEMmesh(*(my_mesh.get_ptr())));
-	mvisualizemesh->SetFEMdataType(ChVisualizationFEMmesh::E_PLOT_NODE_SPEED_NORM);
+	ChSharedPtr<ChVisualizationFEAmesh> mvisualizemesh(new ChVisualizationFEAmesh(*(my_mesh.get_ptr())));
+	mvisualizemesh->SetFEMdataType(ChVisualizationFEAmesh::E_PLOT_NODE_SPEED_NORM);
 	mvisualizemesh->SetColorscaleMinMax(0.0,5.50);
 	mvisualizemesh->SetShrinkElements(true,0.85);
 	mvisualizemesh->SetSmoothFaces(true);
 	my_mesh->AddAsset(mvisualizemesh);
 /*
-	ChSharedPtr<ChVisualizationFEMmesh> mvisualizemeshB(new ChVisualizationFEMmesh(*(my_mesh.get_ptr())));
-	mvisualizemeshB->SetFEMdataType(ChVisualizationFEMmesh::E_PLOT_ELEM_STRAIN_HYDROSTATIC);
+	ChSharedPtr<ChVisualizationFEAmesh> mvisualizemeshB(new ChVisualizationFEAmesh(*(my_mesh.get_ptr())));
+	mvisualizemeshB->SetFEMdataType(ChVisualizationFEAmesh::E_PLOT_ELEM_STRAIN_HYDROSTATIC);
 	mvisualizemeshB->SetColorscaleMinMax(-0.02,0.02);
 	//mvisualizemeshB->SetWireframe(true);
 	my_mesh->AddAsset(mvisualizemeshB);
 */
-	ChSharedPtr<ChVisualizationFEMmesh> mvisualizemeshref(new ChVisualizationFEMmesh(*(my_mesh.get_ptr())));
-	mvisualizemeshref->SetFEMdataType(ChVisualizationFEMmesh::E_PLOT_SURFACE);
+	ChSharedPtr<ChVisualizationFEAmesh> mvisualizemeshref(new ChVisualizationFEAmesh(*(my_mesh.get_ptr())));
+	mvisualizemeshref->SetFEMdataType(ChVisualizationFEAmesh::E_PLOT_SURFACE);
 	mvisualizemeshref->SetWireframe(true);
 	mvisualizemeshref->SetDrawInUndeformedReference(true);
 	my_mesh->AddAsset(mvisualizemeshref);
 
-	ChSharedPtr<ChVisualizationFEMmesh> mvisualizemeshC(new ChVisualizationFEMmesh(*(my_mesh.get_ptr())));
-	mvisualizemeshC->SetFEMglyphType(ChVisualizationFEMmesh::E_GLYPH_NODE_DOT_POS);
-	mvisualizemeshC->SetFEMdataType(ChVisualizationFEMmesh::E_PLOT_NONE);
+	ChSharedPtr<ChVisualizationFEAmesh> mvisualizemeshC(new ChVisualizationFEAmesh(*(my_mesh.get_ptr())));
+	mvisualizemeshC->SetFEMglyphType(ChVisualizationFEAmesh::E_GLYPH_NODE_DOT_POS);
+	mvisualizemeshC->SetFEMdataType(ChVisualizationFEAmesh::E_PLOT_NONE);
 	mvisualizemeshC->SetSymbolsThickness(0.006);
 	my_mesh->AddAsset(mvisualizemeshC);
 /*
-	ChSharedPtr<ChVisualizationFEMmesh> mvisualizemeshD(new ChVisualizationFEMmesh(*(my_mesh.get_ptr())));
-	//mvisualizemeshD->SetFEMglyphType(ChVisualizationFEMmesh::E_GLYPH_NODE_VECT_SPEED);
-	mvisualizemeshD->SetFEMglyphType(ChVisualizationFEMmesh::E_GLYPH_ELEM_TENS_STRAIN);
-	mvisualizemeshD->SetFEMdataType(ChVisualizationFEMmesh::E_PLOT_NONE);
+	ChSharedPtr<ChVisualizationFEAmesh> mvisualizemeshD(new ChVisualizationFEAmesh(*(my_mesh.get_ptr())));
+	//mvisualizemeshD->SetFEMglyphType(ChVisualizationFEAmesh::E_GLYPH_NODE_VECT_SPEED);
+	mvisualizemeshD->SetFEMglyphType(ChVisualizationFEAmesh::E_GLYPH_ELEM_TENS_STRAIN);
+	mvisualizemeshD->SetFEMdataType(ChVisualizationFEAmesh::E_PLOT_NONE);
 	mvisualizemeshD->SetSymbolsScale(1);
 	mvisualizemeshD->SetColorscaleMinMax(-0.15,0.15);
 	mvisualizemeshD->SetZbufferHide(false);

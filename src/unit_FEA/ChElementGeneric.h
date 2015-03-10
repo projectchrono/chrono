@@ -28,9 +28,9 @@ namespace fea
 
 /// Class for all elements whose stiffness matrix can be seen
 /// as a NxN block-matrix to be splitted between N nodes.
-/// Helps reducing the complexity of inherited FEM elements because
+/// Helps reducing the complexity of inherited FEA elements because
 /// it implements some bookkeeping for the interface with LCP solver.
-/// This means that most FEM elements inherited from ChElementGeneric
+/// This means that most FEA elements inherited from ChElementGeneric
 /// need to implement at most the following two fundamental methods: 
 ///	ComputeKRMmatricesGlobal(), ComputeInternalForces()
 

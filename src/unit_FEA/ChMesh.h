@@ -19,13 +19,13 @@
 
 #include "physics/ChIndexedNodes.h"
 #include "physics/ChContinuumMaterial.h"
-#include "ChNodeFEMbase.h"
+#include "ChNodeFEAbase.h"
 #include "ChElementBase.h"
 
 namespace chrono 
 {
 
-/// Namespace with classes for the FEM unit.
+/// Namespace with classes for the FEA unit.
 namespace fea
 {
 
@@ -41,7 +41,7 @@ class ChApiFea ChMesh : public ChIndexedNodes
 
 private:
 
-	std::vector< ChSharedPtr<ChNodeFEMbase> >	 vnodes;	//  nodes
+	std::vector< ChSharedPtr<ChNodeFEAbase> >	 vnodes;	//  nodes
 	std::vector< ChSharedPtr<ChElementBase> >	 velements;	//  elements
 
 	unsigned int n_dofs;	// total degrees of freedom
@@ -53,7 +53,7 @@ public:
 	ChMesh() { n_dofs = 0; n_dofs_w = 0; };
 	~ChMesh() {};
 
-	void AddNode    ( ChSharedPtr<ChNodeFEMbase> m_node);
+	void AddNode    ( ChSharedPtr<ChNodeFEAbase> m_node);
 	void AddElement ( ChSharedPtr<ChElementBase> m_elem);
 	void ClearNodes ();
 	void ClearElements ();
@@ -106,7 +106,7 @@ public:
 				/// Load tetahedrons, if any, saved in a .inp file for Abaqus.
 	void LoadFromAbaqusFile(const char* filename, 
 							ChSharedPtr<ChContinuumMaterial> my_material,
-							std::vector< std::vector< ChSharedPtr<ChNodeFEMbase> > >& node_sets);
+							std::vector< std::vector< ChSharedPtr<ChNodeFEAbase> > >& node_sets);
 
 		//
 		// STATE FUNCTIONS

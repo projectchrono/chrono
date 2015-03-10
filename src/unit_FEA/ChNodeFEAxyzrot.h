@@ -10,11 +10,11 @@
 //
 // File authors: Alessandro Tasora
 
-#ifndef CHNODEFEMXYZROT_H
-#define CHNODEFEMXYZROT_H
+#ifndef CHNODEFEAXYZROT_H
+#define CHNODEFEAXYZROT_H
 
 
-#include "ChNodeFEMbase.h"
+#include "ChNodeFEAbase.h"
 #include "physics/ChBodyFrame.h"
 #include "core/ChFrameMoving.h"
 #include "lcp/ChLcpVariablesBodyOwnMass.h"
@@ -30,13 +30,13 @@ namespace fea
 /// in 3D space, with x,y,z displacement and 3D rotation.
 /// This is the typical node that can be used for beams, etc.
 
-class ChApiFea ChNodeFEMxyzrot : public ChNodeFEMbase,
+class ChApiFea ChNodeFEAxyzrot : public ChNodeFEAbase,
 								 public ChBodyFrame
 
 {
 public:
 
-	ChNodeFEMxyzrot(ChFrame<> initialf = ChFrame<>() ) 	
+	ChNodeFEAxyzrot(ChFrame<> initialf = ChFrame<>() ) 	
 					{
 						this->Frame() = initialf;
 
@@ -49,10 +49,10 @@ public:
 						variables.GetBodyInertia().FillElem(0.0);
 					}
 
-	~ChNodeFEMxyzrot() {};
+	~ChNodeFEAxyzrot() {};
 
-	ChNodeFEMxyzrot (const ChNodeFEMxyzrot& other) :
-						ChNodeFEMbase(other),
+	ChNodeFEAxyzrot (const ChNodeFEAxyzrot& other) :
+						ChNodeFEAbase(other),
 						ChBodyFrame(other)
 	{
 		this->X0 = other.X0;
@@ -63,12 +63,12 @@ public:
 		this->variables = other.variables;
 	}
 
-	ChNodeFEMxyzrot& operator= (const ChNodeFEMxyzrot& other)
+	ChNodeFEAxyzrot& operator= (const ChNodeFEAxyzrot& other)
 	{
 		if (&other == this) 
 			return *this;
 
-		ChNodeFEMbase::operator=(other);
+		ChNodeFEAbase::operator=(other);
 		ChBodyFrame::operator=(other);
 
 		this->X0 = other.X0;

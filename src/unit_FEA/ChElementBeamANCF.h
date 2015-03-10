@@ -17,7 +17,7 @@
 
 #include "ChElementBeam.h"
 #include "ChBeamSection.h"
-#include "ChNodeFEMxyzD.h"
+#include "ChNodeFEAxyzD.h"
 #include "core/ChQuadrature.h"
 
 
@@ -46,7 +46,7 @@ namespace fea
 class  ChElementBeamANCF : public ChElementBeam
 {
 protected:
-	std::vector< ChSharedPtr<ChNodeFEMxyzD> > nodes;
+	std::vector< ChSharedPtr<ChNodeFEAxyzD> > nodes;
 	
 	ChSharedPtr<ChBeamSection> section;
 
@@ -71,9 +71,9 @@ public:
 	virtual int GetNcoords() {return 2*6;}
 	virtual int GetNdofs()   {return 2*6;}
 
-	virtual ChSharedPtr<ChNodeFEMbase> GetNodeN(int n) {return nodes[n];}
+	virtual ChSharedPtr<ChNodeFEAbase> GetNodeN(int n) {return nodes[n];}
 
-	virtual void SetNodes( ChSharedPtr<ChNodeFEMxyzD> nodeA, ChSharedPtr<ChNodeFEMxyzD> nodeB) 
+	virtual void SetNodes( ChSharedPtr<ChNodeFEAxyzD> nodeA, ChSharedPtr<ChNodeFEAxyzD> nodeB) 
 				{
 					assert(!nodeA.IsNull());
 					assert(!nodeB.IsNull());
@@ -99,10 +99,10 @@ public:
 	ChSharedPtr<ChBeamSection> GetSection() {return section;}
 
 				/// Get the first node (beginning) 
-	ChSharedPtr<ChNodeFEMxyzD> GetNodeA() {return nodes[0];}
+	ChSharedPtr<ChNodeFEAxyzD> GetNodeA() {return nodes[0];}
 
 				/// Get the second node (ending)
-	ChSharedPtr<ChNodeFEMxyzD> GetNodeB() {return nodes[1];}
+	ChSharedPtr<ChNodeFEAxyzD> GetNodeB() {return nodes[1];}
 
 
 	

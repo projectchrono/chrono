@@ -10,11 +10,11 @@
 //
 // File authors: Andrea Favali, Alessandro Tasora
 
-#ifndef CHNODEFEMXYZ_H
-#define CHNODEFEMXYZ_H
+#ifndef CHNODEFEAXYZ_H
+#define CHNODEFEAXYZ_H
 
 
-#include "ChNodeFEMbase.h"
+#include "ChNodeFEAbase.h"
 #include "lcp/ChLcpVariablesNode.h"
 
 
@@ -28,12 +28,12 @@ namespace fea
 /// in 3D space, with x,y,z displacement. This is the typical
 /// node that can be used for tetahedrons, etc.
 
-class ChApiFea ChNodeFEMxyz : public ChNodeFEMbase
+class ChApiFea ChNodeFEAxyz : public ChNodeFEAbase
 
 {
 public:
 
-	ChNodeFEMxyz(ChVector<> initial_pos = VNULL)
+	ChNodeFEAxyz(ChVector<> initial_pos = VNULL)
 					{
 						X0 = initial_pos;
 						pos = initial_pos;
@@ -41,10 +41,10 @@ public:
 						variables.SetNodeMass(0.0);
 					}
 
-	~ChNodeFEMxyz() {};
+	~ChNodeFEAxyz() {};
 
-	ChNodeFEMxyz (const ChNodeFEMxyz& other) :
-						ChNodeFEMbase(other) 
+	ChNodeFEAxyz (const ChNodeFEAxyz& other) :
+						ChNodeFEAbase(other) 
 	{
 		this->X0 = other.X0;
 		this->pos = other.pos;
@@ -54,12 +54,12 @@ public:
 		this->variables = other.variables;
 	}
 
-	ChNodeFEMxyz& operator= (const ChNodeFEMxyz& other)
+	ChNodeFEAxyz& operator= (const ChNodeFEAxyz& other)
 	{
 		if (&other == this) 
 			return *this;
 
-		ChNodeFEMbase::operator=(other);
+		ChNodeFEAbase::operator=(other);
 
 		this->X0 = other.X0;
 		this->pos = other.pos;

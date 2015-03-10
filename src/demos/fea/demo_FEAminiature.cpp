@@ -29,7 +29,7 @@
 #include "unit_FEA/ChElementBeamEuler.h"
 #include "unit_FEA/ChBuilderBeam.h"
 #include "unit_FEA/ChMesh.h"
-#include "unit_FEA/ChVisualizationFEMmesh.h"
+#include "unit_FEA/ChVisualizationFEAmesh.h"
 #include "unit_IRRLICHT/ChIrrApp.h"
 #include "unit_MATLAB/ChMatlabEngine.h"
 #include "unit_MATLAB/ChLcpMatlabSolver.h"
@@ -136,8 +136,8 @@ int main(int argc, char* argv[])
 						ChVector<>(0,1, 0));		// the 'Y' up direction of the section for the beam
 	
 				// After having used BuildBeam(), you can retrieve the nodes used for the beam
-	ChSharedPtr<ChNodeFEMxyzrot> node_Ah = builder.GetLastBeamNodes().front();
-	ChSharedPtr<ChNodeFEMxyzrot> node_Bh = builder.GetLastBeamNodes().back();
+	ChSharedPtr<ChNodeFEAxyzrot> node_Ah = builder.GetLastBeamNodes().front();
+	ChSharedPtr<ChNodeFEAxyzrot> node_Bh = builder.GetLastBeamNodes().back();
 
 
 	builder.BuildBeam(	my_mesh,		// the mesh where to put the created nodes and elements 
@@ -148,7 +148,7 @@ int main(int argc, char* argv[])
 						ChVector<>(0,1, 0));		// the 'Y' up direction of the section for the beam
 	
 				// After having used BuildBeam(), you can retrieve the nodes used for the beam
-	ChSharedPtr<ChNodeFEMxyzrot> node_Ch = builder.GetLastBeamNodes().back();
+	ChSharedPtr<ChNodeFEAxyzrot> node_Ch = builder.GetLastBeamNodes().back();
 
 
 	builder.BuildBeam(	my_mesh,		// the mesh where to put the created nodes and elements 
@@ -159,7 +159,7 @@ int main(int argc, char* argv[])
 						ChVector<>(0,1, 0));		// the 'Y' up direction of the section for the beam
 	
 				// After having used BuildBeam(), you can retrieve the nodes used for the beam
-	ChSharedPtr<ChNodeFEMxyzrot> node_Dh = builder.GetLastBeamNodes().back();
+	ChSharedPtr<ChNodeFEAxyzrot> node_Dh = builder.GetLastBeamNodes().back();
 
 
 		// Create the vertical flexible beams
@@ -181,7 +181,7 @@ int main(int argc, char* argv[])
 						ChVector<>(1,0, 0));		// the 'Y' up direction of the section for the beam
 	
 				// After having used BuildBeam(), you can retrieve the nodes used for the beam
-	ChSharedPtr<ChNodeFEMxyzrot> node_Al = builder.GetLastBeamNodes().back();
+	ChSharedPtr<ChNodeFEAxyzrot> node_Al = builder.GetLastBeamNodes().back();
 
 	node_Al->SetFixed(true);
 
@@ -195,7 +195,7 @@ int main(int argc, char* argv[])
 						ChVector<>(1,0, 0));		// the 'Y' up direction of the section for the beam
 	
 				// After having used BuildBeam(), you can retrieve the nodes used for the beam
-	ChSharedPtr<ChNodeFEMxyzrot> node_Dl = builder.GetLastBeamNodes().back();
+	ChSharedPtr<ChNodeFEAxyzrot> node_Dl = builder.GetLastBeamNodes().back();
 
 	node_Dl->SetFixed(true);
 
@@ -211,7 +211,7 @@ int main(int argc, char* argv[])
 							ChVector<>(1,0, 0));		// the 'Y' up direction of the section for the beam
 		
 					// After having used BuildBeam(), you can retrieve the nodes used for the beam
-		ChSharedPtr<ChNodeFEMxyzrot> node_Bl = builder.GetLastBeamNodes().back();
+		ChSharedPtr<ChNodeFEAxyzrot> node_Bl = builder.GetLastBeamNodes().back();
 
 		builder.BuildBeam(	my_mesh,		// the mesh where to put the created nodes and elements 
 							msectionV,		// the ChBeamSectionAdvanced to use for the ChElementBeamEuler elements
@@ -221,7 +221,7 @@ int main(int argc, char* argv[])
 							ChVector<>(1,0, 0));		// the 'Y' up direction of the section for the beam
 		
 					// After having used BuildBeam(), you can retrieve the nodes used for the beam
-		ChSharedPtr<ChNodeFEMxyzrot> node_Cl = builder.GetLastBeamNodes().back();
+		ChSharedPtr<ChNodeFEAxyzrot> node_Cl = builder.GetLastBeamNodes().back();
 
 				
 			// Create the rack
@@ -257,16 +257,16 @@ int main(int argc, char* argv[])
 			// Do not forget AddAsset() at the end!
 
 
-	ChSharedPtr<ChVisualizationFEMmesh> mvisualizebeamA(new ChVisualizationFEMmesh(*(my_mesh.get_ptr())));
-	mvisualizebeamA->SetFEMdataType(ChVisualizationFEMmesh::E_PLOT_NODE_SPEED_NORM) ;//E_PLOT_ELEM_BEAM_MZ);
+	ChSharedPtr<ChVisualizationFEAmesh> mvisualizebeamA(new ChVisualizationFEAmesh(*(my_mesh.get_ptr())));
+	mvisualizebeamA->SetFEMdataType(ChVisualizationFEAmesh::E_PLOT_NODE_SPEED_NORM) ;//E_PLOT_ELEM_BEAM_MZ);
 	mvisualizebeamA->SetColorscaleMinMax(-30,30);
 	mvisualizebeamA->SetSmoothFaces(true);
 	mvisualizebeamA->SetWireframe(false);
 	my_mesh->AddAsset(mvisualizebeamA);
 
-	ChSharedPtr<ChVisualizationFEMmesh> mvisualizebeamC(new ChVisualizationFEMmesh(*(my_mesh.get_ptr())));
-	mvisualizebeamC->SetFEMglyphType(ChVisualizationFEMmesh::E_GLYPH_NODE_CSYS);
-	mvisualizebeamC->SetFEMdataType(ChVisualizationFEMmesh::E_PLOT_NONE);
+	ChSharedPtr<ChVisualizationFEAmesh> mvisualizebeamC(new ChVisualizationFEAmesh(*(my_mesh.get_ptr())));
+	mvisualizebeamC->SetFEMglyphType(ChVisualizationFEAmesh::E_GLYPH_NODE_CSYS);
+	mvisualizebeamC->SetFEMdataType(ChVisualizationFEAmesh::E_PLOT_NONE);
 	mvisualizebeamC->SetSymbolsThickness(0.001);
 	mvisualizebeamC->SetSymbolsScale(0.01);
 	mvisualizebeamC->SetZbufferHide(false);

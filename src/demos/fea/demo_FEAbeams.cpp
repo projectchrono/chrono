@@ -26,7 +26,7 @@
 #include "unit_FEA/ChElementBeamANCF.h"
 #include "unit_FEA/ChBuilderBeam.h"
 #include "unit_FEA/ChMesh.h"
-#include "unit_FEA/ChVisualizationFEMmesh.h"
+#include "unit_FEA/ChVisualizationFEAmesh.h"
 #include "unit_IRRLICHT/ChIrrApp.h"
 #include "unit_MATLAB/ChMatlabEngine.h"
 #include "unit_MATLAB/ChLcpMatlabSolver.h"
@@ -86,9 +86,9 @@ int main(int argc, char* argv[])
 	double beam_L  = 0.1;
 	
 
-	ChSharedPtr<ChNodeFEMxyzrot> hnode1(new ChNodeFEMxyzrot( ChFrame<>(ChVector<>(0,0,0)) )); //, Q_from_AngAxis( -0.5, VECT_Y )) ));
-	ChSharedPtr<ChNodeFEMxyzrot> hnode2(new ChNodeFEMxyzrot( ChFrame<>(ChVector<>(beam_L,0,0)) ));
-	ChSharedPtr<ChNodeFEMxyzrot> hnode3(new ChNodeFEMxyzrot( ChFrame<>(ChVector<>(beam_L*2,0,0)) ));
+	ChSharedPtr<ChNodeFEAxyzrot> hnode1(new ChNodeFEAxyzrot( ChFrame<>(ChVector<>(0,0,0)) )); //, Q_from_AngAxis( -0.5, VECT_Y )) ));
+	ChSharedPtr<ChNodeFEAxyzrot> hnode2(new ChNodeFEAxyzrot( ChFrame<>(ChVector<>(beam_L,0,0)) ));
+	ChSharedPtr<ChNodeFEAxyzrot> hnode3(new ChNodeFEAxyzrot( ChFrame<>(ChVector<>(beam_L*2,0,0)) ));
 
 	my_mesh->AddNode(hnode1);
 	my_mesh->AddNode(hnode2);
@@ -186,9 +186,9 @@ int main(int argc, char* argv[])
 	beam_L  = 0.1;
 	
 
-	ChSharedPtr<ChNodeFEMxyzD> hnodeancf1(new ChNodeFEMxyzD( ChVector<>(0,0,-0.2)) ); 
-	ChSharedPtr<ChNodeFEMxyzD> hnodeancf2(new ChNodeFEMxyzD( ChVector<>(beam_L,0,-0.2)) );
-	ChSharedPtr<ChNodeFEMxyzD> hnodeancf3(new ChNodeFEMxyzD( ChVector<>(beam_L*2,0,-0.2)) );
+	ChSharedPtr<ChNodeFEAxyzD> hnodeancf1(new ChNodeFEAxyzD( ChVector<>(0,0,-0.2)) ); 
+	ChSharedPtr<ChNodeFEAxyzD> hnodeancf2(new ChNodeFEAxyzD( ChVector<>(beam_L,0,-0.2)) );
+	ChSharedPtr<ChNodeFEAxyzD> hnodeancf3(new ChNodeFEAxyzD( ChVector<>(beam_L*2,0,-0.2)) );
 
 	my_mesh->AddNode(hnodeancf1);
 	my_mesh->AddNode(hnodeancf2);
@@ -240,22 +240,22 @@ int main(int argc, char* argv[])
 
 
 	/*
-	ChSharedPtr<ChVisualizationFEMmesh> mvisualizebeamA(new ChVisualizationFEMmesh(*(my_mesh.get_ptr())));
-	mvisualizebeamA->SetFEMdataType(ChVisualizationFEMmesh::E_PLOT_SURFACE);
+	ChSharedPtr<ChVisualizationFEAmesh> mvisualizebeamA(new ChVisualizationFEAmesh(*(my_mesh.get_ptr())));
+	mvisualizebeamA->SetFEMdataType(ChVisualizationFEAmesh::E_PLOT_SURFACE);
 	mvisualizebeamA->SetSmoothFaces(true);
 	my_mesh->AddAsset(mvisualizebeamA);
 	*/
 
-	ChSharedPtr<ChVisualizationFEMmesh> mvisualizebeamA(new ChVisualizationFEMmesh(*(my_mesh.get_ptr())));
-	mvisualizebeamA->SetFEMdataType(ChVisualizationFEMmesh::E_PLOT_ELEM_BEAM_MZ);
+	ChSharedPtr<ChVisualizationFEAmesh> mvisualizebeamA(new ChVisualizationFEAmesh(*(my_mesh.get_ptr())));
+	mvisualizebeamA->SetFEMdataType(ChVisualizationFEAmesh::E_PLOT_ELEM_BEAM_MZ);
 	mvisualizebeamA->SetColorscaleMinMax(-0.4,0.4);
 	mvisualizebeamA->SetSmoothFaces(true);
 	mvisualizebeamA->SetWireframe(false);
 	my_mesh->AddAsset(mvisualizebeamA);
 
-	ChSharedPtr<ChVisualizationFEMmesh> mvisualizebeamC(new ChVisualizationFEMmesh(*(my_mesh.get_ptr())));
-	mvisualizebeamC->SetFEMglyphType(ChVisualizationFEMmesh::E_GLYPH_NODE_CSYS);
-	mvisualizebeamC->SetFEMdataType(ChVisualizationFEMmesh::E_PLOT_NONE);
+	ChSharedPtr<ChVisualizationFEAmesh> mvisualizebeamC(new ChVisualizationFEAmesh(*(my_mesh.get_ptr())));
+	mvisualizebeamC->SetFEMglyphType(ChVisualizationFEAmesh::E_GLYPH_NODE_CSYS);
+	mvisualizebeamC->SetFEMdataType(ChVisualizationFEAmesh::E_PLOT_NONE);
 	mvisualizebeamC->SetSymbolsThickness(0.006);
 	mvisualizebeamC->SetSymbolsScale(0.01);
 	mvisualizebeamC->SetZbufferHide(false);

@@ -25,7 +25,7 @@
 #include "unit_FEA/ChElementBeamEuler.h"
 #include "unit_FEA/ChBuilderBeam.h"
 #include "unit_FEA/ChMesh.h"
-#include "unit_FEA/ChVisualizationFEMmesh.h"
+#include "unit_FEA/ChVisualizationFEAmesh.h"
 #include "unit_IRRLICHT/ChIrrApp.h"
 #include "unit_MATLAB/ChMatlabEngine.h"
 #include "unit_MATLAB/ChLcpMatlabSolver.h"
@@ -161,8 +161,8 @@ int main(int argc, char* argv[])
 				// For example say you want to fix the A end and apply a force to the B end:
 	builder.GetLastBeamNodes().front()->SetFixed(true);
 
-	ChSharedPtr<ChNodeFEMxyzrot> node_tip = builder.GetLastBeamNodes().back();
-	ChSharedPtr<ChNodeFEMxyzrot> node_mid = builder.GetLastBeamNodes()[7];
+	ChSharedPtr<ChNodeFEAxyzrot> node_tip = builder.GetLastBeamNodes().back();
+	ChSharedPtr<ChNodeFEAxyzrot> node_mid = builder.GetLastBeamNodes()[7];
 
 		// Create the vertical beam
 
@@ -182,8 +182,8 @@ int main(int argc, char* argv[])
 						vB+vd,	// the 'B' point in space (end of beam)
 						ChVector<>(1,0, 0));	// the 'Y' up direction of the section for the beam
 	
-	ChSharedPtr<ChNodeFEMxyzrot> node_top  = builder.GetLastBeamNodes().front();
-	ChSharedPtr<ChNodeFEMxyzrot> node_down = builder.GetLastBeamNodes().back();
+	ChSharedPtr<ChNodeFEAxyzrot> node_top  = builder.GetLastBeamNodes().front();
+	ChSharedPtr<ChNodeFEAxyzrot> node_down = builder.GetLastBeamNodes().back();
 
 				
 		// Create a constraint between the vertical and horizontal beams:
@@ -224,8 +224,8 @@ int main(int argc, char* argv[])
 						vB+vd,			// the 'B' point in space (end of beam)
 						ChVector<>(0,1, 0));	// the 'Y' up direction of the section for the beam
 	
-	ChSharedPtr<ChNodeFEMxyzrot> node_crankG  = builder.GetLastBeamNodes().front();
-	ChSharedPtr<ChNodeFEMxyzrot> node_crankB  = builder.GetLastBeamNodes().back();
+	ChSharedPtr<ChNodeFEAxyzrot> node_crankG  = builder.GetLastBeamNodes().front();
+	ChSharedPtr<ChNodeFEAxyzrot> node_crankB  = builder.GetLastBeamNodes().back();
 
 
 		// Create a constraint between the crank beam and body crank:
@@ -286,16 +286,16 @@ int main(int argc, char* argv[])
 			// Do not forget AddAsset() at the end!
 
 
-	ChSharedPtr<ChVisualizationFEMmesh> mvisualizebeamA(new ChVisualizationFEMmesh(*(my_mesh.get_ptr())));
-	mvisualizebeamA->SetFEMdataType(ChVisualizationFEMmesh::E_PLOT_ELEM_BEAM_MX);
+	ChSharedPtr<ChVisualizationFEAmesh> mvisualizebeamA(new ChVisualizationFEAmesh(*(my_mesh.get_ptr())));
+	mvisualizebeamA->SetFEMdataType(ChVisualizationFEAmesh::E_PLOT_ELEM_BEAM_MX);
 	mvisualizebeamA->SetColorscaleMinMax(-5000,5000);
 	mvisualizebeamA->SetSmoothFaces(true);
 	mvisualizebeamA->SetWireframe(false);
 	my_mesh->AddAsset(mvisualizebeamA);
 
-	ChSharedPtr<ChVisualizationFEMmesh> mvisualizebeamC(new ChVisualizationFEMmesh(*(my_mesh.get_ptr())));
-	mvisualizebeamC->SetFEMglyphType(ChVisualizationFEMmesh::E_GLYPH_NODE_CSYS);
-	mvisualizebeamC->SetFEMdataType(ChVisualizationFEMmesh::E_PLOT_NONE);
+	ChSharedPtr<ChVisualizationFEAmesh> mvisualizebeamC(new ChVisualizationFEAmesh(*(my_mesh.get_ptr())));
+	mvisualizebeamC->SetFEMglyphType(ChVisualizationFEAmesh::E_GLYPH_NODE_CSYS);
+	mvisualizebeamC->SetFEMdataType(ChVisualizationFEAmesh::E_PLOT_NONE);
 	mvisualizebeamC->SetSymbolsThickness(0.006);
 	mvisualizebeamC->SetSymbolsScale(0.01);
 	mvisualizebeamC->SetZbufferHide(false);
@@ -419,7 +419,7 @@ my_system.ChangeLcpSolverSpeed(matlab_solver_speed);
 	double z_spacing = -0.1;
 	double y_spacing = -0.2;
 
-	std::vector< ChSharedPtr< ChNodeFEMxyzrot > > endnodes[3];
+	std::vector< ChSharedPtr< ChNodeFEAxyzrot > > endnodes[3];
 
 
 
@@ -500,16 +500,16 @@ my_system.ChangeLcpSolverSpeed(matlab_solver_speed);
 			// Do not forget AddAsset() at the end!
 
 
-	ChSharedPtr<ChVisualizationFEMmesh> mvisualizebeamA(new ChVisualizationFEMmesh(*(my_mesh.get_ptr())));
-	mvisualizebeamA->SetFEMdataType(ChVisualizationFEMmesh::E_PLOT_ELEM_BEAM_MX);
+	ChSharedPtr<ChVisualizationFEAmesh> mvisualizebeamA(new ChVisualizationFEAmesh(*(my_mesh.get_ptr())));
+	mvisualizebeamA->SetFEMdataType(ChVisualizationFEAmesh::E_PLOT_ELEM_BEAM_MX);
 	mvisualizebeamA->SetColorscaleMinMax(-5000,5000);
 	mvisualizebeamA->SetSmoothFaces(true);
 	mvisualizebeamA->SetWireframe(false);
 	my_mesh->AddAsset(mvisualizebeamA);
 
-	ChSharedPtr<ChVisualizationFEMmesh> mvisualizebeamC(new ChVisualizationFEMmesh(*(my_mesh.get_ptr())));
-	mvisualizebeamC->SetFEMglyphType(ChVisualizationFEMmesh::E_GLYPH_NODE_CSYS);
-	mvisualizebeamC->SetFEMdataType(ChVisualizationFEMmesh::E_PLOT_NONE);
+	ChSharedPtr<ChVisualizationFEAmesh> mvisualizebeamC(new ChVisualizationFEAmesh(*(my_mesh.get_ptr())));
+	mvisualizebeamC->SetFEMglyphType(ChVisualizationFEAmesh::E_GLYPH_NODE_CSYS);
+	mvisualizebeamC->SetFEMdataType(ChVisualizationFEAmesh::E_PLOT_NONE);
 	mvisualizebeamC->SetSymbolsThickness(0.006);
 	mvisualizebeamC->SetSymbolsScale(0.01);
 	mvisualizebeamC->SetZbufferHide(false);

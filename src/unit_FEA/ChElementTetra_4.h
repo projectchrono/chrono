@@ -15,8 +15,8 @@
 
 
 #include "ChElementTetrahedron.h"
-#include "ChNodeFEMxyz.h"
-#include "ChNodeFEMxyzP.h"
+#include "ChNodeFEAxyz.h"
+#include "ChNodeFEAxyzP.h"
 #include "ChContinuumPoisson3D.h"
 #include "physics/ChTensors.h"
 
@@ -26,15 +26,15 @@ namespace chrono
 namespace fea
 {
 
-	/// Tetahedron FEM element with 4 nodes.
+	/// Tetahedron FEA element with 4 nodes.
 	/// This is a classical element with linear displacement, hence
 	/// with constant stress, constant strain.
-	/// It can be easily used for 3D FEM problems.
+	/// It can be easily used for 3D FEA problems.
 
 class ChApiFea ChElementTetra_4 : public ChElementTetrahedron
 {
 protected:
-		std::vector< ChSharedPtr<ChNodeFEMxyz> > nodes;
+		std::vector< ChSharedPtr<ChNodeFEAxyz> > nodes;
 		ChSharedPtr<ChContinuumElastic> Material;
 		ChMatrixDynamic<> MatrB;		// matrix of shape function's partial derivatives
 		ChMatrixDynamic<> StiffnessMatrix; // undeformed local stiffness matrix
@@ -50,12 +50,12 @@ public:
 	virtual int GetNcoords() {return 4*3;}
 	virtual int GetNdofs()   {return 4*3;}
 
-	virtual ChSharedPtr<ChNodeFEMbase> GetNodeN(int n) {return nodes[n];}
+	virtual ChSharedPtr<ChNodeFEAbase> GetNodeN(int n) {return nodes[n];}
 
-	virtual void SetNodes(ChSharedPtr<ChNodeFEMxyz> nodeA, 
-						  ChSharedPtr<ChNodeFEMxyz> nodeB, 
-						  ChSharedPtr<ChNodeFEMxyz> nodeC, 
-						  ChSharedPtr<ChNodeFEMxyz> nodeD) 
+	virtual void SetNodes(ChSharedPtr<ChNodeFEAxyz> nodeA, 
+						  ChSharedPtr<ChNodeFEAxyz> nodeB, 
+						  ChSharedPtr<ChNodeFEAxyz> nodeC, 
+						  ChSharedPtr<ChNodeFEAxyz> nodeD) 
 				{
 					nodes[0]=nodeA; 
 					nodes[1]=nodeB;
@@ -404,7 +404,7 @@ if (max_err > 1e-10)
 class ChApiFea ChElementTetra_4_P : public ChElementTetrahedron
 {
 protected:
-		std::vector< ChSharedPtr<ChNodeFEMxyzP> > nodes;
+		std::vector< ChSharedPtr<ChNodeFEAxyzP> > nodes;
 		ChSharedPtr<ChContinuumPoisson3D> Material;
 		ChMatrixDynamic<> MatrB;		// matrix of shape function's partial derivatives
 		ChMatrixDynamic<> StiffnessMatrix; // local stiffness matrix
@@ -426,12 +426,12 @@ public:
 	virtual int GetNcoords() {return 4*3;}
 	virtual int GetNdofs()   {return 4*1;}
 
-	virtual ChSharedPtr<ChNodeFEMbase> GetNodeN(int n) {return nodes[n];}
+	virtual ChSharedPtr<ChNodeFEAbase> GetNodeN(int n) {return nodes[n];}
 
-	virtual void SetNodes(ChSharedPtr<ChNodeFEMxyzP> nodeA, 
-						  ChSharedPtr<ChNodeFEMxyzP> nodeB, 
-						  ChSharedPtr<ChNodeFEMxyzP> nodeC, 
-						  ChSharedPtr<ChNodeFEMxyzP> nodeD) 
+	virtual void SetNodes(ChSharedPtr<ChNodeFEAxyzP> nodeA, 
+						  ChSharedPtr<ChNodeFEAxyzP> nodeB, 
+						  ChSharedPtr<ChNodeFEAxyzP> nodeC, 
+						  ChSharedPtr<ChNodeFEAxyzP> nodeD) 
 				{
 					nodes[0]=nodeA; 
 					nodes[1]=nodeB;

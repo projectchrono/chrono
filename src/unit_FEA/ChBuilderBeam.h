@@ -35,7 +35,7 @@ class ChApiFea ChBuilderBeam
 protected:
 
 	std::vector< ChSharedPtr<ChElementBeamEuler> >	beam_elems;
-	std::vector< ChSharedPtr<ChNodeFEMxyzrot> >		beam_nodes;
+	std::vector< ChSharedPtr<ChNodeFEAxyzrot> >		beam_nodes;
 
 public:
 
@@ -58,8 +58,8 @@ public:
 	void BuildBeam (ChSharedPtr<ChMesh> mesh,				///< mesh to store the resulting elements
 					ChSharedPtr<ChBeamSectionAdvanced> sect,///< section material for beam elements
 					const int N,							///< number of elements in the segment
-					ChSharedPtr<ChNodeFEMxyzrot> nodeA,		///< starting point 
-					ChSharedPtr<ChNodeFEMxyzrot> nodeB,		///< ending point
+					ChSharedPtr<ChNodeFEAxyzrot> nodeA,		///< starting point 
+					ChSharedPtr<ChNodeFEAxyzrot> nodeB,		///< ending point
 					const ChVector<> Ydir					///< the 'up' Y direction of the beam
 					);
 
@@ -70,7 +70,7 @@ public:
 	void BuildBeam (ChSharedPtr<ChMesh> mesh,				///< mesh to store the resulting elements
 					ChSharedPtr<ChBeamSectionAdvanced> sect,///< section material for beam elements
 					const int N,							///< number of elements in the segment
-					ChSharedPtr<ChNodeFEMxyzrot> nodeA,		///< starting point 
+					ChSharedPtr<ChNodeFEAxyzrot> nodeA,		///< starting point 
 					const ChVector<> B,						///< ending point
 					const ChVector<> Ydir					///< the 'up' Y direction of the beam
 					);
@@ -84,7 +84,7 @@ public:
 		/// Access the list of nodes used by the last built beam. 
 		/// It can be useful for adding constraints or changing properties afterwards.
 		/// This list is reset all times a 'Build...' function is called.
-	std::vector< ChSharedPtr<ChNodeFEMxyzrot> >& GetLastBeamNodes() {return beam_nodes;}
+	std::vector< ChSharedPtr<ChNodeFEAxyzrot> >& GetLastBeamNodes() {return beam_nodes;}
 
 };
 

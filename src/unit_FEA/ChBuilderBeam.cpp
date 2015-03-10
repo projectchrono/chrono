@@ -35,7 +35,7 @@ void ChBuilderBeam::BuildBeam ( ChSharedPtr<ChMesh> mesh,  ///< mesh to store th
 	ChMatrix33<> mrot;
 	mrot.Set_A_Xdir(B-A, Ydir);
 
-	ChSharedPtr<ChNodeFEMxyzrot> nodeA (new ChNodeFEMxyzrot( ChFrame<>( A, mrot) ));
+	ChSharedPtr<ChNodeFEAxyzrot> nodeA (new ChNodeFEAxyzrot( ChFrame<>( A, mrot) ));
 	mesh->AddNode(nodeA);
 	beam_nodes.push_back(nodeA);
 
@@ -44,7 +44,7 @@ void ChBuilderBeam::BuildBeam ( ChSharedPtr<ChMesh> mesh,  ///< mesh to store th
 		double eta = (double)i/(double)N;
 		ChVector<> pos = A + (B-A)*eta;
 
-		ChSharedPtr<ChNodeFEMxyzrot> nodeB (new ChNodeFEMxyzrot( ChFrame<>( pos, mrot) ));
+		ChSharedPtr<ChNodeFEAxyzrot> nodeB (new ChNodeFEAxyzrot( ChFrame<>( pos, mrot) ));
 		mesh->AddNode(nodeB);
 		beam_nodes.push_back(nodeB);
 
@@ -65,8 +65,8 @@ void ChBuilderBeam::BuildBeam ( ChSharedPtr<ChMesh> mesh,  ///< mesh to store th
 void ChBuilderBeam::BuildBeam (ChSharedPtr<ChMesh> mesh, ///< mesh to store the resulting elements
 					ChSharedPtr<ChBeamSectionAdvanced> sect, ///< section material for beam elements
 					const int N,	///< number of elements in the segment
-					ChSharedPtr<ChNodeFEMxyzrot> nodeA,	///< starting point 
-					ChSharedPtr<ChNodeFEMxyzrot> nodeB,	///< ending point
+					ChSharedPtr<ChNodeFEAxyzrot> nodeA,	///< starting point 
+					ChSharedPtr<ChNodeFEAxyzrot> nodeB,	///< ending point
 					const ChVector<> Ydir	///< the 'up' Y direction of the beam
 					)
 {
@@ -83,10 +83,10 @@ void ChBuilderBeam::BuildBeam (ChSharedPtr<ChMesh> mesh, ///< mesh to store the 
 		double eta = (double)i/(double)N;
 		ChVector<> pos = nodeA->Frame().GetPos() + ( nodeB->Frame().GetPos() - nodeA->Frame().GetPos() )*eta;
 
-		ChSharedPtr<ChNodeFEMxyzrot> nodeBi;
+		ChSharedPtr<ChNodeFEAxyzrot> nodeBi;
 		if (i < N)
 		{
-			nodeBi = ChSharedPtr<ChNodeFEMxyzrot> (new ChNodeFEMxyzrot( ChFrame<>( pos, mrot) ));
+			nodeBi = ChSharedPtr<ChNodeFEAxyzrot> (new ChNodeFEAxyzrot( ChFrame<>( pos, mrot) ));
 			mesh->AddNode(nodeBi);
 		}
 		else
@@ -114,7 +114,7 @@ void ChBuilderBeam::BuildBeam (ChSharedPtr<ChMesh> mesh, ///< mesh to store the 
 void ChBuilderBeam::BuildBeam (ChSharedPtr<ChMesh> mesh, ///< mesh to store the resulting elements
 					ChSharedPtr<ChBeamSectionAdvanced> sect, ///< section material for beam elements
 					const int N,	///< number of elements in the segment
-					ChSharedPtr<ChNodeFEMxyzrot> nodeA,	///< starting point 
+					ChSharedPtr<ChNodeFEAxyzrot> nodeA,	///< starting point 
 					const ChVector<> B,	///< ending point
 					const ChVector<> Ydir	///< the 'up' Y direction of the beam
 					)
@@ -132,7 +132,7 @@ void ChBuilderBeam::BuildBeam (ChSharedPtr<ChMesh> mesh, ///< mesh to store the 
 		double eta = (double)i/(double)N;
 		ChVector<> pos = nodeA->Frame().GetPos() + ( B - nodeA->Frame().GetPos() )*eta;
 
-		ChSharedPtr<ChNodeFEMxyzrot> nodeBi (new ChNodeFEMxyzrot( ChFrame<>( pos, mrot) ));
+		ChSharedPtr<ChNodeFEAxyzrot> nodeBi (new ChNodeFEAxyzrot( ChFrame<>( pos, mrot) ));
 		mesh->AddNode(nodeBi);
 		beam_nodes.push_back(nodeBi);
 

@@ -15,20 +15,20 @@
 
 
 #include "ChElementHexahedron.h"
-#include "ChNodeFEMxyz.h"
+#include "ChNodeFEAxyz.h"
 
 namespace chrono
 {
 namespace fea
 {
 
-	/// Class for FEM elements of hexahedron type (isoparametric 3D bricks) 
+	/// Class for FEA elements of hexahedron type (isoparametric 3D bricks) 
 	/// with 8 nodes. This element has a linear displacement field.
 
 class ChApiFea ChElementHexa_8 : public ChElementHexahedron
 {
 protected:
-		std::vector< ChSharedPtr<ChNodeFEMxyz> > nodes;
+		std::vector< ChSharedPtr<ChNodeFEAxyz> > nodes;
 		ChSharedPtr<ChContinuumElastic> Material;
 		//std::vector< ChMatrixDynamic<> > MatrB;	// matrices of shape function's partial derivatives (one for each integration point)
 													// we use a vector to keep in memory all the 8 matrices (-> 8 integr. point)
@@ -45,10 +45,10 @@ public:
 	virtual int GetNcoords() {return 8*3;}
 	virtual int GetNdofs()   {return 8*3;}
 
-	virtual ChSharedPtr<ChNodeFEMbase> GetNodeN(int n) {return nodes[n];}
+	virtual ChSharedPtr<ChNodeFEAbase> GetNodeN(int n) {return nodes[n];}
 
-	virtual void SetNodes(ChSharedPtr<ChNodeFEMxyz> nodeA, ChSharedPtr<ChNodeFEMxyz> nodeB, ChSharedPtr<ChNodeFEMxyz> nodeC, ChSharedPtr<ChNodeFEMxyz> nodeD,
-						  ChSharedPtr<ChNodeFEMxyz> nodeE, ChSharedPtr<ChNodeFEMxyz> nodeF, ChSharedPtr<ChNodeFEMxyz> nodeG, ChSharedPtr<ChNodeFEMxyz> nodeH) 
+	virtual void SetNodes(ChSharedPtr<ChNodeFEAxyz> nodeA, ChSharedPtr<ChNodeFEAxyz> nodeB, ChSharedPtr<ChNodeFEAxyz> nodeC, ChSharedPtr<ChNodeFEAxyz> nodeD,
+						  ChSharedPtr<ChNodeFEAxyz> nodeE, ChSharedPtr<ChNodeFEAxyz> nodeF, ChSharedPtr<ChNodeFEAxyz> nodeG, ChSharedPtr<ChNodeFEAxyz> nodeH) 
 				{
 					nodes[0]=nodeA; 
 					nodes[1]=nodeB;
@@ -92,7 +92,7 @@ public:
 
 	
 			//
-			// FEM functions
+			// FEA functions
 			//
 
 	

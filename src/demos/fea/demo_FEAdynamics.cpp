@@ -54,8 +54,8 @@ void test_1()
 				// Create some nodes. These are the classical point-like
 				// nodes with x,y,z degrees of freedom, that can be used 
 				// for many types of FEM elements in space.
-	ChSharedPtr<ChNodeFEMxyz> mnodeA( new ChNodeFEMxyz(ChVector<>(0,0,0)) );
-	ChSharedPtr<ChNodeFEMxyz> mnodeB( new ChNodeFEMxyz(ChVector<>(0,1,0)) );
+	ChSharedPtr<ChNodeFEAxyz> mnodeA( new ChNodeFEAxyz(ChVector<>(0,0,0)) );
+	ChSharedPtr<ChNodeFEAxyz> mnodeB( new ChNodeFEAxyz(ChVector<>(0,1,0)) );
 				
 				// Default mass for FEM nodes is zero, so set point-like 
 				// masses because the ChElementSpring FEM element that we
@@ -146,8 +146,8 @@ void test_2()
 				// Create some nodes. These are the classical point-like
 				// nodes with x,y,z degrees of freedom, that can be used 
 				// for many types of FEM elements in space.
-	ChSharedPtr<ChNodeFEMxyz> mnodeA ( new ChNodeFEMxyz(ChVector<>(0,0,0)) );
-	ChSharedPtr<ChNodeFEMxyz> mnodeB ( new ChNodeFEMxyz(ChVector<>(0,1,0)) );
+	ChSharedPtr<ChNodeFEAxyz> mnodeA ( new ChNodeFEAxyz(ChVector<>(0,0,0)) );
+	ChSharedPtr<ChNodeFEAxyz> mnodeB ( new ChNodeFEAxyz(ChVector<>(0,1,0)) );
 
 				// Set no point-like masses because mass is already in bar element:
 	mnodeA->SetMass(0.0);	
@@ -239,8 +239,8 @@ void test_2b()
 				// Create some nodes. These are the classical point-like
 				// nodes with x,y,z degrees of freedom, that can be used 
 				// for many types of FEM elements in space.
-	ChSharedPtr<ChNodeFEMxyz> mnodeA( new ChNodeFEMxyz(ChVector<>(0,0,0)) );
-	ChSharedPtr<ChNodeFEMxyz> mnodeB( new ChNodeFEMxyz(ChVector<>(0,1,0)) );
+	ChSharedPtr<ChNodeFEAxyz> mnodeA( new ChNodeFEAxyz(ChVector<>(0,0,0)) );
+	ChSharedPtr<ChNodeFEAxyz> mnodeB( new ChNodeFEAxyz(ChVector<>(0,1,0)) );
 				
 				// Default mass for FEM nodes is zero, so set point-like 
 				// masses because the ChElementSpring FEM element that we
@@ -336,10 +336,10 @@ void test_3()
 				// Create some nodes. These are the classical point-like
 				// nodes with x,y,z degrees of freedom, that can be used 
 				// for many types of FEM elements in space.
-	ChSharedPtr<ChNodeFEMxyz> mnode1( new ChNodeFEMxyz(ChVector<>(0,0,0)) );
-	ChSharedPtr<ChNodeFEMxyz> mnode2( new ChNodeFEMxyz(ChVector<>(0,0,1)) );
-	ChSharedPtr<ChNodeFEMxyz> mnode3( new ChNodeFEMxyz(ChVector<>(0,1,0)) );
-	ChSharedPtr<ChNodeFEMxyz> mnode4( new ChNodeFEMxyz(ChVector<>(1,0,0)) );
+	ChSharedPtr<ChNodeFEAxyz> mnode1( new ChNodeFEAxyz(ChVector<>(0,0,0)) );
+	ChSharedPtr<ChNodeFEAxyz> mnode2( new ChNodeFEAxyz(ChVector<>(0,0,1)) );
+	ChSharedPtr<ChNodeFEAxyz> mnode3( new ChNodeFEAxyz(ChVector<>(0,1,0)) );
+	ChSharedPtr<ChNodeFEAxyz> mnode4( new ChNodeFEAxyz(ChVector<>(1,0,0)) );
 
 				// For example, set a point-like mass at a node:
 	mnode1->SetMass(200);
@@ -431,9 +431,9 @@ void test_4()
 				// Create some nodes. These are the classical point-like
 				// nodes with x,y,z degrees of freedom, that can be used 
 				// for many types of FEM elements in space.
-	ChSharedPtr<ChNodeFEMxyz> mnodeA ( new ChNodeFEMxyz(ChVector<>(0,0,0)) );
-	ChSharedPtr<ChNodeFEMxyz> mnodeB ( new ChNodeFEMxyz(ChVector<>(0,1,0)) );
-	ChSharedPtr<ChNodeFEMxyz> mnodeC ( new ChNodeFEMxyz(ChVector<>(0,2,0)) );
+	ChSharedPtr<ChNodeFEAxyz> mnodeA ( new ChNodeFEAxyz(ChVector<>(0,0,0)) );
+	ChSharedPtr<ChNodeFEAxyz> mnodeB ( new ChNodeFEAxyz(ChVector<>(0,1,0)) );
+	ChSharedPtr<ChNodeFEAxyz> mnodeC ( new ChNodeFEAxyz(ChVector<>(0,2,0)) );
 
 				// Set no point-like masses because mass is already in bar element:
 	mnodeA->SetMass(0.0);	

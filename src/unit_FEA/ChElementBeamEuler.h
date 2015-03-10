@@ -17,7 +17,7 @@
 
 #include "ChElementBeam.h"
 #include "ChBeamSection.h"
-#include "ChNodeFEMxyzrot.h"
+#include "ChNodeFEAxyzrot.h"
 
 
 namespace chrono
@@ -36,7 +36,7 @@ class ChApiFea ChElementBeamEuler : public ChElementBeam,
 									public ChElementCorotational
 {
 protected:
-	std::vector< ChSharedPtr<ChNodeFEMxyzrot> > nodes;
+	std::vector< ChSharedPtr<ChNodeFEAxyzrot> > nodes;
 	
 	ChSharedPtr<ChBeamSectionAdvanced> section;
 
@@ -75,9 +75,9 @@ public:
 	virtual int GetNcoords() {return 2*6;}
 	virtual int GetNdofs()   {return 2*6;}
 
-	virtual ChSharedPtr<ChNodeFEMbase> GetNodeN(int n) {return nodes[n];}
+	virtual ChSharedPtr<ChNodeFEAbase> GetNodeN(int n) {return nodes[n];}
 
-	virtual void SetNodes( ChSharedPtr<ChNodeFEMxyzrot> nodeA, ChSharedPtr<ChNodeFEMxyzrot> nodeB) 
+	virtual void SetNodes( ChSharedPtr<ChNodeFEAxyzrot> nodeA, ChSharedPtr<ChNodeFEAxyzrot> nodeB) 
 				{
 					assert(!nodeA.IsNull());
 					assert(!nodeB.IsNull());
@@ -103,10 +103,10 @@ public:
 	ChSharedPtr<ChBeamSectionAdvanced> GetSection() {return section;}
 
 				/// Get the first node (beginning) 
-	ChSharedPtr<ChNodeFEMxyzrot> GetNodeA() {return nodes[0];}
+	ChSharedPtr<ChNodeFEAxyzrot> GetNodeA() {return nodes[0];}
 
 				/// Get the second node (ending)
-	ChSharedPtr<ChNodeFEMxyzrot> GetNodeB() {return nodes[1];}
+	ChSharedPtr<ChNodeFEAxyzrot> GetNodeB() {return nodes[1];}
 
 
 				/// Set the reference rotation of nodeA respect to the element rotation.
@@ -229,7 +229,7 @@ public:
 					ChQuaternion<> q_delta0 =   q_element_abs_rot.GetConjugate() % 
 												nodes[0]->Frame().GetRot() %
 												q_refrotA.GetConjugate() ;
-						// note, for small incremental rotations this is opposite of ChNodeFEMxyzrot::VariablesQbIncrementPosition 
+						// note, for small incremental rotations this is opposite of ChNodeFEAxyzrot::VariablesQbIncrementPosition 
 					q_delta0.Q_to_AngAxis(delta_rot_angle, delta_rot_dir);
 
 					if (delta_rot_angle > CH_C_PI) 
@@ -247,7 +247,7 @@ public:
 					ChQuaternion<> q_delta1 =  	q_element_abs_rot.GetConjugate() % 
 												nodes[1]->Frame().GetRot() % 
 												q_refrotB.GetConjugate();
-						// note, for small incremental rotations this is opposite of ChNodeFEMxyzrot::VariablesQbIncrementPosition 
+						// note, for small incremental rotations this is opposite of ChNodeFEAxyzrot::VariablesQbIncrementPosition 
 					q_delta1.Q_to_AngAxis(delta_rot_angle, delta_rot_dir);
 
 					if (delta_rot_angle > CH_C_PI) 

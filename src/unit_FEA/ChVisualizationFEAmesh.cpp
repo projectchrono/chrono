@@ -11,7 +11,7 @@
 // File author: A. Tasora
   
 
-#include "unit_FEA/ChVisualizationFEMmesh.h"
+#include "unit_FEA/ChVisualizationFEAmesh.h"
 #include "unit_FEA/ChElementTetra_4.h"
 #include "unit_FEA/ChElementTetra_10.h"
 #include "unit_FEA/ChElementHexa_8.h"
@@ -29,7 +29,7 @@ namespace fea
 {
 
 
-ChVisualizationFEMmesh::ChVisualizationFEMmesh(ChMesh& mymesh) 
+ChVisualizationFEAmesh::ChVisualizationFEAmesh(ChMesh& mymesh) 
 {
 	FEMmesh = &mymesh;
 	fem_data_type = E_PLOT_NODE_DISP_NORM;
@@ -63,13 +63,13 @@ ChVisualizationFEMmesh::ChVisualizationFEMmesh(ChMesh& mymesh)
 
 }
 
-ChColor ChVisualizationFEMmesh::ComputeFalseColor2(double mv)
+ChColor ChVisualizationFEAmesh::ComputeFalseColor2(double mv)
 {
 	ChVector<float> mcol = ComputeFalseColor(mv);
 	return ChColor(mcol.x, mcol.y, mcol.z);
 }
 
-ChVector<float> ChVisualizationFEMmesh::ComputeFalseColor(double mv)
+ChVector<float> ChVisualizationFEAmesh::ComputeFalseColor(double mv)
 {   
 	if (mv < this->colorscale_min)
 		return ChVector<float> (0,0,0) ;
@@ -104,7 +104,7 @@ ChVector<float> ChVisualizationFEMmesh::ComputeFalseColor(double mv)
 	return(c);
 }
 
-double ChVisualizationFEMmesh::ComputeScalarOutput( ChSharedPtr<ChNodeFEMxyz> mnode, int nodeID, ChSharedPtr<ChElementBase> melement)
+double ChVisualizationFEAmesh::ComputeScalarOutput( ChSharedPtr<ChNodeFEAxyz> mnode, int nodeID, ChSharedPtr<ChElementBase> melement)
 {
 	switch (this->fem_data_type)
 	{
@@ -165,7 +165,7 @@ double ChVisualizationFEMmesh::ComputeScalarOutput( ChSharedPtr<ChNodeFEMxyz> mn
 	return 0;
 }
 
-double ChVisualizationFEMmesh::ComputeScalarOutput( ChSharedPtr<ChNodeFEMxyzP> mnode, int nodeID, ChSharedPtr<ChElementBase> melement)
+double ChVisualizationFEAmesh::ComputeScalarOutput( ChSharedPtr<ChNodeFEAxyzP> mnode, int nodeID, ChSharedPtr<ChElementBase> melement)
 {
 	switch (this->fem_data_type)
 	{
@@ -222,7 +222,7 @@ void TriangleNormalsSmooth(std::vector< ChVector<> >& normals, std::vector<int>&
 	}
 }
 
-void ChVisualizationFEMmesh::Update ()
+void ChVisualizationFEAmesh::Update ()
 {
 	if (!this->FEMmesh) 
 		return;
@@ -359,10 +359,10 @@ void ChVisualizationFEMmesh::Update ()
 		{
 			// downcasting 
 			ChSharedPtr<ChElementTetra_4> mytetra ( this->FEMmesh->GetElement(iel).DynamicCastTo<ChElementTetra_4>() );
-			ChSharedPtr<ChNodeFEMxyz> node0( mytetra->GetNodeN(0).DynamicCastTo<ChNodeFEMxyz>() ); 
-			ChSharedPtr<ChNodeFEMxyz> node1( mytetra->GetNodeN(1).DynamicCastTo<ChNodeFEMxyz>() );
-			ChSharedPtr<ChNodeFEMxyz> node2( mytetra->GetNodeN(2).DynamicCastTo<ChNodeFEMxyz>() );
-			ChSharedPtr<ChNodeFEMxyz> node3( mytetra->GetNodeN(3).DynamicCastTo<ChNodeFEMxyz>() );
+			ChSharedPtr<ChNodeFEAxyz> node0( mytetra->GetNodeN(0).DynamicCastTo<ChNodeFEAxyz>() ); 
+			ChSharedPtr<ChNodeFEAxyz> node1( mytetra->GetNodeN(1).DynamicCastTo<ChNodeFEAxyz>() );
+			ChSharedPtr<ChNodeFEAxyz> node2( mytetra->GetNodeN(2).DynamicCastTo<ChNodeFEAxyz>() );
+			ChSharedPtr<ChNodeFEAxyz> node3( mytetra->GetNodeN(3).DynamicCastTo<ChNodeFEAxyz>() );
 
 			unsigned int ivert_el = i_verts;
 			unsigned int inorm_el = i_vnorms;
@@ -437,10 +437,10 @@ void ChVisualizationFEMmesh::Update ()
 		{
 			// downcasting 
 			ChSharedPtr<ChElementTetra_4_P> mytetra ( this->FEMmesh->GetElement(iel).DynamicCastTo<ChElementTetra_4_P>() );
-			ChSharedPtr<ChNodeFEMxyzP> node0( mytetra->GetNodeN(0).DynamicCastTo<ChNodeFEMxyzP>() ); 
-			ChSharedPtr<ChNodeFEMxyzP> node1( mytetra->GetNodeN(1).DynamicCastTo<ChNodeFEMxyzP>() );
-			ChSharedPtr<ChNodeFEMxyzP> node2( mytetra->GetNodeN(2).DynamicCastTo<ChNodeFEMxyzP>() );
-			ChSharedPtr<ChNodeFEMxyzP> node3( mytetra->GetNodeN(3).DynamicCastTo<ChNodeFEMxyzP>() );
+			ChSharedPtr<ChNodeFEAxyzP> node0( mytetra->GetNodeN(0).DynamicCastTo<ChNodeFEAxyzP>() ); 
+			ChSharedPtr<ChNodeFEAxyzP> node1( mytetra->GetNodeN(1).DynamicCastTo<ChNodeFEAxyzP>() );
+			ChSharedPtr<ChNodeFEAxyzP> node2( mytetra->GetNodeN(2).DynamicCastTo<ChNodeFEAxyzP>() );
+			ChSharedPtr<ChNodeFEAxyzP> node3( mytetra->GetNodeN(3).DynamicCastTo<ChNodeFEAxyzP>() );
 
 			unsigned int ivert_el = i_verts;
 			unsigned int inorm_el = i_vnorms;
@@ -511,12 +511,12 @@ void ChVisualizationFEMmesh::Update ()
 			unsigned int ivert_el = i_verts;
 			unsigned int inorm_el = i_vnorms;
 
-			ChSharedPtr<ChNodeFEMxyz> nodes[8];
+			ChSharedPtr<ChNodeFEAxyz> nodes[8];
 			ChVector<> pt[8];
 
 			for (int in= 0; in <8; ++in)
 			{
-				nodes[in]= mytetra->GetNodeN(in).DynamicCastTo<ChNodeFEMxyz>();
+				nodes[in]= mytetra->GetNodeN(in).DynamicCastTo<ChNodeFEAxyz>();
 				if (!undeformed_reference)
 					pt[in] = nodes[in]->GetPos();
 				else
@@ -745,66 +745,66 @@ void ChVisualizationFEMmesh::Update ()
 
 	glyphs_asset->SetZbufferHide(this->zbuffer_hide);
 
-	if (this->fem_glyph == ChVisualizationFEMmesh::E_GLYPH_NODE_DOT_POS)
+	if (this->fem_glyph == ChVisualizationFEAmesh::E_GLYPH_NODE_DOT_POS)
 	{
 		glyphs_asset->SetDrawMode(ChGlyphs::GLYPH_POINT);
 		for (unsigned int inode=0; inode < this->FEMmesh->GetNnodes(); ++inode)
 		{
-			if (this->FEMmesh->GetNode(inode).IsType<ChNodeFEMxyz>())
+			if (this->FEMmesh->GetNode(inode).IsType<ChNodeFEAxyz>())
 			{
-				ChSharedPtr<ChNodeFEMxyz> mynode ( this->FEMmesh->GetNode(inode).DynamicCastTo<ChNodeFEMxyz>() );
+				ChSharedPtr<ChNodeFEAxyz> mynode ( this->FEMmesh->GetNode(inode).DynamicCastTo<ChNodeFEAxyz>() );
 				glyphs_asset->SetGlyphPoint(inode,  mynode->GetPos(), this->symbolscolor );
 			}
-			if (this->FEMmesh->GetNode(inode).IsType<ChNodeFEMxyzrot>())
+			if (this->FEMmesh->GetNode(inode).IsType<ChNodeFEAxyzrot>())
 			{
-				ChSharedPtr<ChNodeFEMxyzrot> mynode ( this->FEMmesh->GetNode(inode).DynamicCastTo<ChNodeFEMxyzrot>() );
+				ChSharedPtr<ChNodeFEAxyzrot> mynode ( this->FEMmesh->GetNode(inode).DynamicCastTo<ChNodeFEAxyzrot>() );
 				glyphs_asset->SetGlyphPoint(inode,  mynode->GetPos(), this->symbolscolor );
 			}
-			if (this->FEMmesh->GetNode(inode).IsType<ChNodeFEMxyzD>())
+			if (this->FEMmesh->GetNode(inode).IsType<ChNodeFEAxyzD>())
 			{
-				ChSharedPtr<ChNodeFEMxyzD> mynode ( this->FEMmesh->GetNode(inode).DynamicCastTo<ChNodeFEMxyzD>() );
+				ChSharedPtr<ChNodeFEAxyzD> mynode ( this->FEMmesh->GetNode(inode).DynamicCastTo<ChNodeFEAxyzD>() );
 				glyphs_asset->SetGlyphPoint(inode,  mynode->GetPos(), this->symbolscolor );
 			}
 		}
 	}
-	if (this->fem_glyph == ChVisualizationFEMmesh::E_GLYPH_NODE_CSYS)
+	if (this->fem_glyph == ChVisualizationFEAmesh::E_GLYPH_NODE_CSYS)
 	{
 		glyphs_asset->SetDrawMode(ChGlyphs::GLYPH_COORDSYS);
 		for (unsigned int inode=0; inode < this->FEMmesh->GetNnodes(); ++inode)
 		{
-			if (this->FEMmesh->GetNode(inode).IsType<ChNodeFEMxyzrot>())
+			if (this->FEMmesh->GetNode(inode).IsType<ChNodeFEAxyzrot>())
 			{
-				ChSharedPtr<ChNodeFEMxyzrot> mynode ( this->FEMmesh->GetNode(inode).DynamicCastTo<ChNodeFEMxyzrot>() );
+				ChSharedPtr<ChNodeFEAxyzrot> mynode ( this->FEMmesh->GetNode(inode).DynamicCastTo<ChNodeFEAxyzrot>() );
 				glyphs_asset->SetGlyphCoordsys(inode,  mynode->Frame().GetCoord());
 			}
-			//if (this->FEMmesh->GetNode(inode).IsType<ChNodeFEMxyzD>())
+			//if (this->FEMmesh->GetNode(inode).IsType<ChNodeFEAxyzD>())
 			//{
-			//	ChSharedPtr<ChNodeFEMxyzD> mynode ( this->FEMmesh->GetNode(inode).DynamicCastTo<ChNodeFEMxyzD>() );
+			//	ChSharedPtr<ChNodeFEAxyzD> mynode ( this->FEMmesh->GetNode(inode).DynamicCastTo<ChNodeFEAxyzD>() );
 			//	glyphs_asset->SetGlyphVector(inode, mynode->GetPos(), mynode->GetD() * this->symbols_scale, this->symbolscolor );
 			//}
 		}
 	}
-	if (this->fem_glyph == ChVisualizationFEMmesh::E_GLYPH_NODE_VECT_SPEED)
+	if (this->fem_glyph == ChVisualizationFEAmesh::E_GLYPH_NODE_VECT_SPEED)
 	{
 		glyphs_asset->SetDrawMode(ChGlyphs::GLYPH_VECTOR);
 		for (unsigned int inode=0; inode < this->FEMmesh->GetNnodes(); ++inode)
-			if (this->FEMmesh->GetNode(inode).IsType<ChNodeFEMxyz>())
+			if (this->FEMmesh->GetNode(inode).IsType<ChNodeFEAxyz>())
 			{
-				ChSharedPtr<ChNodeFEMxyz> mynode ( this->FEMmesh->GetNode(inode).DynamicCastTo<ChNodeFEMxyz>() );
+				ChSharedPtr<ChNodeFEAxyz> mynode ( this->FEMmesh->GetNode(inode).DynamicCastTo<ChNodeFEAxyz>() );
 				glyphs_asset->SetGlyphVector(inode, mynode->GetPos(), mynode->GetPos_dt() * this->symbols_scale, this->symbolscolor );
 			}
 	}
-	if (this->fem_glyph == ChVisualizationFEMmesh::E_GLYPH_NODE_VECT_ACCEL)
+	if (this->fem_glyph == ChVisualizationFEAmesh::E_GLYPH_NODE_VECT_ACCEL)
 	{
 		glyphs_asset->SetDrawMode(ChGlyphs::GLYPH_VECTOR);
 		for (unsigned int inode=0; inode < this->FEMmesh->GetNnodes(); ++inode)
-			if (this->FEMmesh->GetNode(inode).IsType<ChNodeFEMxyz>())
+			if (this->FEMmesh->GetNode(inode).IsType<ChNodeFEAxyz>())
 			{
-				ChSharedPtr<ChNodeFEMxyz> mynode ( this->FEMmesh->GetNode(inode).DynamicCastTo<ChNodeFEMxyz>() );
+				ChSharedPtr<ChNodeFEAxyz> mynode ( this->FEMmesh->GetNode(inode).DynamicCastTo<ChNodeFEAxyz>() );
 				glyphs_asset->SetGlyphVector(inode, mynode->GetPos(), mynode->GetPos_dtdt() * this->symbols_scale, this->symbolscolor );
 			}
 	}
-	if (this->fem_glyph == ChVisualizationFEMmesh::E_GLYPH_ELEM_VECT_DP)
+	if (this->fem_glyph == ChVisualizationFEAmesh::E_GLYPH_ELEM_VECT_DP)
 	{
 		glyphs_asset->SetDrawMode(ChGlyphs::GLYPH_VECTOR);
 		for (unsigned int iel=0; iel < this->FEMmesh->GetNelements(); ++iel)
@@ -813,10 +813,10 @@ void ChVisualizationFEMmesh::Update ()
 				ChSharedPtr<ChElementTetra_4_P> myelement ( this->FEMmesh->GetElement(iel).DynamicCastTo<ChElementTetra_4_P>() );
 				ChMatrixNM<double, 3,1> mP = myelement->GetPgradient();
 				ChVector<> mvP(mP(0), mP(1), mP(2) );
-				ChSharedPtr<ChNodeFEMxyzP> n0(myelement->GetNodeN(0).DynamicCastTo<ChNodeFEMxyzP>());
-				ChSharedPtr<ChNodeFEMxyzP> n1(myelement->GetNodeN(1).DynamicCastTo<ChNodeFEMxyzP>());
-				ChSharedPtr<ChNodeFEMxyzP> n2(myelement->GetNodeN(2).DynamicCastTo<ChNodeFEMxyzP>());
-				ChSharedPtr<ChNodeFEMxyzP> n3(myelement->GetNodeN(3).DynamicCastTo<ChNodeFEMxyzP>());
+				ChSharedPtr<ChNodeFEAxyzP> n0(myelement->GetNodeN(0).DynamicCastTo<ChNodeFEAxyzP>());
+				ChSharedPtr<ChNodeFEAxyzP> n1(myelement->GetNodeN(1).DynamicCastTo<ChNodeFEAxyzP>());
+				ChSharedPtr<ChNodeFEAxyzP> n2(myelement->GetNodeN(2).DynamicCastTo<ChNodeFEAxyzP>());
+				ChSharedPtr<ChNodeFEAxyzP> n3(myelement->GetNodeN(3).DynamicCastTo<ChNodeFEAxyzP>());
 				ChVector<> mPoint = ( n0->GetPos() + 
 									  n1->GetPos() + 
 									  n2->GetPos() + 
@@ -824,7 +824,7 @@ void ChVisualizationFEMmesh::Update ()
 				glyphs_asset->SetGlyphVector(iel, mPoint, mvP * this->symbols_scale, this->symbolscolor );
 			}
 	}
-	if (this->fem_glyph == ChVisualizationFEMmesh::E_GLYPH_ELEM_TENS_STRAIN)
+	if (this->fem_glyph == ChVisualizationFEAmesh::E_GLYPH_ELEM_TENS_STRAIN)
 	{
 		glyphs_asset->SetDrawMode(ChGlyphs::GLYPH_VECTOR);
 		int nglyvect = 0;
@@ -841,10 +841,10 @@ void ChVisualizationFEMmesh::Update ()
 				v1.Normalize();
 				v2.Normalize();
 				v3.Normalize();
-				ChSharedPtr<ChNodeFEMxyz> n0(myelement->GetNodeN(0).DynamicCastTo<ChNodeFEMxyz>());
-				ChSharedPtr<ChNodeFEMxyz> n1(myelement->GetNodeN(1).DynamicCastTo<ChNodeFEMxyz>());
-				ChSharedPtr<ChNodeFEMxyz> n2(myelement->GetNodeN(2).DynamicCastTo<ChNodeFEMxyz>());
-				ChSharedPtr<ChNodeFEMxyz> n3(myelement->GetNodeN(3).DynamicCastTo<ChNodeFEMxyz>());
+				ChSharedPtr<ChNodeFEAxyz> n0(myelement->GetNodeN(0).DynamicCastTo<ChNodeFEAxyz>());
+				ChSharedPtr<ChNodeFEAxyz> n1(myelement->GetNodeN(1).DynamicCastTo<ChNodeFEAxyz>());
+				ChSharedPtr<ChNodeFEAxyz> n2(myelement->GetNodeN(2).DynamicCastTo<ChNodeFEAxyz>());
+				ChSharedPtr<ChNodeFEAxyz> n3(myelement->GetNodeN(3).DynamicCastTo<ChNodeFEAxyz>());
 				ChVector<> mPoint = ( n0->GetPos() + 
 									  n1->GetPos() + 
 									  n2->GetPos() + 
@@ -857,7 +857,7 @@ void ChVisualizationFEMmesh::Update ()
 				++nglyvect;
 			}
 	}
-	if (this->fem_glyph == ChVisualizationFEMmesh::E_GLYPH_ELEM_TENS_STRESS)
+	if (this->fem_glyph == ChVisualizationFEAmesh::E_GLYPH_ELEM_TENS_STRESS)
 	{
 		glyphs_asset->SetDrawMode(ChGlyphs::GLYPH_VECTOR);
 		int nglyvect = 0;
@@ -874,10 +874,10 @@ void ChVisualizationFEMmesh::Update ()
 				v1.Normalize();
 				v2.Normalize();
 				v3.Normalize();
-				ChSharedPtr<ChNodeFEMxyz> n0(myelement->GetNodeN(0).DynamicCastTo<ChNodeFEMxyz>());
-				ChSharedPtr<ChNodeFEMxyz> n1(myelement->GetNodeN(1).DynamicCastTo<ChNodeFEMxyz>());
-				ChSharedPtr<ChNodeFEMxyz> n2(myelement->GetNodeN(2).DynamicCastTo<ChNodeFEMxyz>());
-				ChSharedPtr<ChNodeFEMxyz> n3(myelement->GetNodeN(3).DynamicCastTo<ChNodeFEMxyz>());
+				ChSharedPtr<ChNodeFEAxyz> n0(myelement->GetNodeN(0).DynamicCastTo<ChNodeFEAxyz>());
+				ChSharedPtr<ChNodeFEAxyz> n1(myelement->GetNodeN(1).DynamicCastTo<ChNodeFEAxyz>());
+				ChSharedPtr<ChNodeFEAxyz> n2(myelement->GetNodeN(2).DynamicCastTo<ChNodeFEAxyz>());
+				ChSharedPtr<ChNodeFEAxyz> n3(myelement->GetNodeN(3).DynamicCastTo<ChNodeFEAxyz>());
 				ChVector<> mPoint = ( n0->GetPos() + 
 									  n1->GetPos() + 
 									  n2->GetPos() + 

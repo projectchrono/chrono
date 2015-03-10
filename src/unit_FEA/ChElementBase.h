@@ -18,7 +18,7 @@
 #include "core/ChMath.h"
 #include "core/ChShared.h"
 #include "lcp/ChLcpSystemDescriptor.h"
-#include "ChNodeFEMbase.h"
+#include "ChNodeFEAbase.h"
 
 
 namespace chrono
@@ -53,7 +53,7 @@ public:
 	virtual int GetNdofs() =0;
 
 			/// Access the nth node
-	virtual ChSharedPtr<ChNodeFEMbase> GetNodeN(int n) =0;
+	virtual ChSharedPtr<ChNodeFEAbase> GetNodeN(int n) =0;
 	
 
 			//

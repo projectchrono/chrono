@@ -28,10 +28,10 @@
 #include "unit_FEA/ChElementHexa_20.h"
 #include "unit_FEA/ChContinuumThermal.h"
 #include "unit_FEA/ChContinuumElectrostatics.h"
-#include "unit_FEA/ChNodeFEMxyzP.h"
+#include "unit_FEA/ChNodeFEAxyzP.h"
 #include "unit_FEA/ChMesh.h"
 #include "unit_FEA/ChLinkPointFrame.h"
-#include "unit_FEA/ChVisualizationFEMmesh.h"
+#include "unit_FEA/ChVisualizationFEAmesh.h"
 #include "unit_IRRLICHT/ChIrrApp.h"
 
 
@@ -93,9 +93,9 @@ int main(int argc, char* argv[])
 
 	for (unsigned int inode = 0; inode < my_mesh->GetNnodes(); ++inode)
 	{
-		if (my_mesh->GetNode(inode).IsType<ChNodeFEMxyzP>())
+		if (my_mesh->GetNode(inode).IsType<ChNodeFEAxyzP>())
 		{
-			ChSharedPtr<ChNodeFEMxyzP> mnode ( my_mesh->GetNode(inode).DynamicCastTo<ChNodeFEMxyzP>() ); // downcast
+			ChSharedPtr<ChNodeFEAxyzP> mnode ( my_mesh->GetNode(inode).DynamicCastTo<ChNodeFEAxyzP>() ); // downcast
 			mnode->SetPos(mnode->GetPos()*ChVector<>(3,1,3));
 		}
 	}
@@ -105,23 +105,23 @@ int main(int argc, char* argv[])
 	//
 
 		// Impose load on the 180th node
-	ChSharedPtr<ChNodeFEMxyzP> mnode3 (my_mesh->GetNode(180).DynamicCastTo<ChNodeFEMxyzP>() );
+	ChSharedPtr<ChNodeFEAxyzP> mnode3 (my_mesh->GetNode(180).DynamicCastTo<ChNodeFEAxyzP>() );
 	mnode3->SetF( 20 ); // thermal load: heat flux [W] into node
 
 		// Impose field on two top nodes (remember the SetFixed(true); )
-	ChSharedPtr<ChNodeFEMxyzP> mnode1 (my_mesh->GetNode(my_mesh->GetNnodes()-1).DynamicCastTo<ChNodeFEMxyzP>());
+	ChSharedPtr<ChNodeFEAxyzP> mnode1 (my_mesh->GetNode(my_mesh->GetNnodes()-1).DynamicCastTo<ChNodeFEAxyzP>());
 	mnode1->SetFixed(true); 
 	mnode1->SetP(0.5); // field: temperature [K]
-	ChSharedPtr<ChNodeFEMxyzP> mnode2 (my_mesh->GetNode(my_mesh->GetNnodes()-2).DynamicCastTo<ChNodeFEMxyzP>());
+	ChSharedPtr<ChNodeFEAxyzP> mnode2 (my_mesh->GetNode(my_mesh->GetNnodes()-2).DynamicCastTo<ChNodeFEAxyzP>());
 	mnode2->SetFixed(true); 
 	mnode2->SetP(0.5); // field: temperature [K]
 
 		// Impose field on the base points:
 	for (unsigned int inode = 0; inode < my_mesh->GetNnodes(); ++inode)
 	{
-		if (my_mesh->GetNode(inode).IsType<ChNodeFEMxyzP>())
+		if (my_mesh->GetNode(inode).IsType<ChNodeFEAxyzP>())
 		{
-			ChSharedPtr<ChNodeFEMxyzP> mnode ( my_mesh->GetNode(inode).DynamicCastTo<ChNodeFEMxyzP>() ); // downcast
+			ChSharedPtr<ChNodeFEAxyzP> mnode ( my_mesh->GetNode(inode).DynamicCastTo<ChNodeFEAxyzP>() ); // downcast
 			if (mnode->GetPos().y <0.01)
 			{
 				mnode->SetFixed(true); 
@@ -151,23 +151,23 @@ int main(int argc, char* argv[])
 			// Do not forget AddAsset() at the end!
 
 		// This will paint the colored mesh with temperature scale (E_PLOT_NODE_P is the scalar field of the Poisson problem)
-	ChSharedPtr<ChVisualizationFEMmesh> mvisualizemesh(new ChVisualizationFEMmesh(*(my_mesh.get_ptr())));
-	mvisualizemesh->SetFEMdataType(ChVisualizationFEMmesh::E_PLOT_NODE_P);
+	ChSharedPtr<ChVisualizationFEAmesh> mvisualizemesh(new ChVisualizationFEAmesh(*(my_mesh.get_ptr())));
+	mvisualizemesh->SetFEMdataType(ChVisualizationFEAmesh::E_PLOT_NODE_P);
 	mvisualizemesh->SetColorscaleMinMax(-1,12);
 	mvisualizemesh->SetShrinkElements(false,0.85);
 	mvisualizemesh->SetSmoothFaces(true);
 	my_mesh->AddAsset(mvisualizemesh);
 
 		// This will paint the wireframe
-	ChSharedPtr<ChVisualizationFEMmesh> mvisualizemeshB(new ChVisualizationFEMmesh(*(my_mesh.get_ptr())));
-	mvisualizemeshB->SetFEMdataType(ChVisualizationFEMmesh::E_PLOT_SURFACE);
+	ChSharedPtr<ChVisualizationFEAmesh> mvisualizemeshB(new ChVisualizationFEAmesh(*(my_mesh.get_ptr())));
+	mvisualizemeshB->SetFEMdataType(ChVisualizationFEAmesh::E_PLOT_SURFACE);
 	mvisualizemeshB->SetWireframe(true);
 	my_mesh->AddAsset(mvisualizemeshB);	
 
 		// This will paint the heat flux as line vectors
-	ChSharedPtr<ChVisualizationFEMmesh> mvisualizemeshC(new ChVisualizationFEMmesh(*(my_mesh.get_ptr())));
-	mvisualizemeshC->SetFEMdataType(ChVisualizationFEMmesh::E_PLOT_NONE);
-	mvisualizemeshC->SetFEMglyphType(ChVisualizationFEMmesh::E_GLYPH_ELEM_VECT_DP);
+	ChSharedPtr<ChVisualizationFEAmesh> mvisualizemeshC(new ChVisualizationFEAmesh(*(my_mesh.get_ptr())));
+	mvisualizemeshC->SetFEMdataType(ChVisualizationFEAmesh::E_PLOT_NONE);
+	mvisualizemeshC->SetFEMglyphType(ChVisualizationFEAmesh::E_GLYPH_ELEM_VECT_DP);
 	mvisualizemeshC->SetSymbolsScale(0.003);
 	mvisualizemeshC->SetDefaultSymbolsColor(ChColor(0.1f, 0.2f, 0.2f));
 	mvisualizemeshC->SetZbufferHide(false);
@@ -225,9 +225,9 @@ int main(int argc, char* argv[])
 	// Print some node temperatures..
 	for (unsigned int inode = 0; inode < my_mesh->GetNnodes(); ++inode)
 	{
-		if (my_mesh->GetNode(inode).IsType<ChNodeFEMxyzP>())
+		if (my_mesh->GetNode(inode).IsType<ChNodeFEAxyzP>())
 		{
-			ChSharedPtr<ChNodeFEMxyzP> mnode ( my_mesh->GetNode(inode).DynamicCastTo<ChNodeFEMxyzP>() ); // downcast
+			ChSharedPtr<ChNodeFEAxyzP> mnode ( my_mesh->GetNode(inode).DynamicCastTo<ChNodeFEAxyzP>() ); // downcast
 			if (mnode->GetPos().x <0.01)
 			{
 				GetLog() << "Node at y=" << mnode->GetPos().y << " has T=" << mnode->GetP() << "\n"; 

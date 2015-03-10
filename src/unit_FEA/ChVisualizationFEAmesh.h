@@ -10,17 +10,17 @@
 //
 // File author: A. Tasora
 
-#ifndef CHVISUALIZATIONFEMMESH_H
-#define CHVISUALIZATIONFEMMESH_H
+#ifndef CHVISUALIZATIONFEAMESH_H
+#define CHVISUALIZATIONFEAMESH_H
 
 
 #include "assets/ChAssetLevel.h"
 #include "assets/ChColor.h"
 #include "geometry/ChCTriangleMeshConnected.h"
 #include "unit_FEA/ChMesh.h"
-#include "unit_FEA/ChNodeFEMxyz.h"
-#include "unit_FEA/ChNodeFEMxyzP.h"
-#include "unit_FEA/ChNodeFEMxyzrot.h"
+#include "unit_FEA/ChNodeFEAxyz.h"
+#include "unit_FEA/ChNodeFEAxyzP.h"
+#include "unit_FEA/ChNodeFEAxyzrot.h"
 
 
 namespace chrono 
@@ -33,7 +33,7 @@ namespace fea
 /// of class ChTriangleMeshShape that is contained in its sublevel, 
 /// so that it can be rendered or postprocessed.
 
-class ChApiFea ChVisualizationFEMmesh: public ChAssetLevel 
+class ChApiFea ChVisualizationFEAmesh: public ChAssetLevel 
 {
 	public:
 	 enum eChFemDataType {
@@ -116,9 +116,9 @@ class ChApiFea ChVisualizationFEMmesh: public ChAssetLevel
 		// CONSTRUCTORS
 		//
 
-		ChVisualizationFEMmesh(ChMesh& mymesh);
+		ChVisualizationFEAmesh(ChMesh& mymesh);
 
-		virtual ~ChVisualizationFEMmesh() 
+		virtual ~ChVisualizationFEAmesh() 
 			{
 			}
 
@@ -185,8 +185,8 @@ class ChApiFea ChVisualizationFEMmesh: public ChAssetLevel
 		virtual void Update ();
 
 private:
-		double	ComputeScalarOutput( ChSharedPtr<ChNodeFEMxyz> mnode, int nodeID, ChSharedPtr<ChElementBase> melement);
-		double	ComputeScalarOutput( ChSharedPtr<ChNodeFEMxyzP> mnode, int nodeID, ChSharedPtr<ChElementBase> melement);
+		double	ComputeScalarOutput( ChSharedPtr<ChNodeFEAxyz> mnode, int nodeID, ChSharedPtr<ChElementBase> melement);
+		double	ComputeScalarOutput( ChSharedPtr<ChNodeFEAxyzP> mnode, int nodeID, ChSharedPtr<ChElementBase> melement);
 		ChVector<float> ComputeFalseColor(double in);
 		ChColor			ComputeFalseColor2(double in);
 

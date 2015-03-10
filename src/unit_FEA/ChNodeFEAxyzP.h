@@ -10,11 +10,11 @@
 //
 // File authors: Alessandro Tasora
 
-#ifndef CHNODEFEMXYZP_H
-#define CHNODEFEMXYZP_H
+#ifndef CHNODEFEAXYZP_H
+#define CHNODEFEAXYZP_H
 
 
-#include "ChNodeFEMbase.h"
+#include "ChNodeFEAbase.h"
 #include "lcp/ChLcpVariablesGeneric.h"
 
 
@@ -29,12 +29,12 @@ namespace fea
 /// typical Poisson-type problems (ex. thermal, if the scalar field is temperature T,
 /// or electrostatics if the scalar field is electric potential V)
 
-class ChApiFea ChNodeFEMxyzP : public ChNodeFEMbase
+class ChApiFea ChNodeFEAxyzP : public ChNodeFEAbase
 
 {
 public:
 
-	ChNodeFEMxyzP(ChVector<> initial_pos = VNULL)
+	ChNodeFEAxyzP(ChVector<> initial_pos = VNULL)
 					{
 						pos = initial_pos;
 						P = 0;
@@ -43,10 +43,10 @@ public:
 						variables.GetMass()(0)= 0.0;
 					}
 
-	~ChNodeFEMxyzP() {};
+	~ChNodeFEAxyzP() {};
 
-	ChNodeFEMxyzP (const ChNodeFEMxyzP& other) :
-						ChNodeFEMbase(other) 
+	ChNodeFEAxyzP (const ChNodeFEAxyzP& other) :
+						ChNodeFEAbase(other) 
 	{
 		this->pos = other.pos;
 		this->P = other.P;
@@ -55,12 +55,12 @@ public:
 		this->variables = other.variables;
 	}
 
-	ChNodeFEMxyzP& operator= (const ChNodeFEMxyzP& other)
+	ChNodeFEAxyzP& operator= (const ChNodeFEAxyzP& other)
 	{
 		if (&other == this) 
 			return *this;
 
-		ChNodeFEMbase::operator=(other);
+		ChNodeFEAbase::operator=(other);
 
 		this->pos = other.pos;
 		this->P = other.P;

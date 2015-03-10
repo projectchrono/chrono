@@ -47,10 +47,10 @@
 
 %{
 
-#include "unit_FEA/ChNodeFEMbase.h"
-#include "unit_FEA/ChNodeFEMxyz.h"
-#include "unit_FEA/ChNodeFEMxyzP.h"
-#include "unit_FEA/ChNodeFEMxyzrot.h"
+#include "unit_FEA/ChNodeFEAbase.h"
+#include "unit_FEA/ChNodeFEAxyz.h"
+#include "unit_FEA/ChNodeFEAxyzP.h"
+#include "unit_FEA/ChNodeFEAxyzrot.h"
 #include "unit_FEA/ChElementBase.h"
 #include "unit_FEA/ChElementGeneric.h"
 #include "unit_FEA/ChElementBeam.h"
@@ -165,17 +165,17 @@ using namespace fea;
 %include "../unit_FEA/ChElementHexa_20.h"
 %DefChSharedPtr(chrono::fea::,ChElementHexa_20)
 
-%include "../unit_FEA/ChNodeFEMbase.h"
-%DefChSharedPtr(chrono::fea::,ChNodeFEMbase)
+%include "../unit_FEA/ChNodeFEAbase.h"
+%DefChSharedPtr(chrono::fea::,ChNodeFEAbase)
 
-%include "../unit_FEA/ChNodeFEMxyz.h"
-%DefChSharedPtr(chrono::fea::,ChNodeFEMxyz)
+%include "../unit_FEA/ChNodeFEAxyz.h"
+%DefChSharedPtr(chrono::fea::,ChNodeFEAxyz)
 
-%include "../unit_FEA/ChNodeFEMxyzP.h"
-%DefChSharedPtr(chrono::fea::,ChNodeFEMxyzP)
+%include "../unit_FEA/ChNodeFEAxyzP.h"
+%DefChSharedPtr(chrono::fea::,ChNodeFEAxyzP)
 
-%include "../unit_FEA/ChNodeFEMxyzrot.h"
-%DefChSharedPtr(chrono::fea::,ChNodeFEMxyzrot)
+%include "../unit_FEA/ChNodeFEAxyzrot.h"
+%DefChSharedPtr(chrono::fea::,ChNodeFEAxyzrot)
 
 %include "../unit_FEA/ChBuilderBeam.h"
 //%DefChSharedPtr(chrono::fea::,ChBuilderBeam)
@@ -206,11 +206,11 @@ using namespace fea;
 // cast. 
 // So, use the %DefChSharedPtrCast(derived,base) macro to enable the upcasting.
 
-//%DefChSharedPtrCast(chrono::fea::ChNodeFEMbase, chrono::ChNodeBase)
-%DefChSharedPtrCast(chrono::fea::ChNodeFEMxyz, chrono::fea::ChNodeFEMbase)
-%DefChSharedPtrCast(chrono::fea::ChNodeFEMxyzP, chrono::fea::ChNodeFEMbase)
-%DefChSharedPtrCast(chrono::fea::ChNodeFEMxyzrot, chrono::fea::ChNodeFEMbase)
-%DefChSharedPtrCast(chrono::fea::ChNodeFEMxyzrot, chrono::ChBodyFrame)
+//%DefChSharedPtrCast(chrono::fea::ChNodeFEAbase, chrono::ChNodeBase)
+%DefChSharedPtrCast(chrono::fea::ChNodeFEAxyz, chrono::fea::ChNodeFEAbase)
+%DefChSharedPtrCast(chrono::fea::ChNodeFEAxyzP, chrono::fea::ChNodeFEAbase)
+%DefChSharedPtrCast(chrono::fea::ChNodeFEAxyzrot, chrono::fea::ChNodeFEAbase)
+%DefChSharedPtrCast(chrono::fea::ChNodeFEAxyzrot, chrono::ChBodyFrame)
 %DefChSharedPtrCast(chrono::fea::ChElementGeneric, chrono::fea::ChElementBase)
 %DefChSharedPtrCast(chrono::fea::ChElementBeam, chrono::fea::ChElementGeneric)
 %DefChSharedPtrCast(chrono::fea::ChElementBeamEuler, chrono::fea::ChElementBeam)
@@ -246,9 +246,9 @@ using namespace fea;
 %DefChSharedPtrDynamicDowncast(ChElementBase,ChElementTetra_10)
 %DefChSharedPtrDynamicDowncast(ChElementBase,ChElementHexa_8)
 %DefChSharedPtrDynamicDowncast(ChElementBase,ChElementHexa_20)
-%DefChSharedPtrDynamicDowncast(ChNodeFEMbase,ChNodeFEMxyz)
-%DefChSharedPtrDynamicDowncast(ChNodeFEMbase,ChNodeFEMxyzP)
-%DefChSharedPtrDynamicDowncast(ChNodeFEMbase,ChNodeFEMxyzrot)
+%DefChSharedPtrDynamicDowncast(ChNodeFEAbase,ChNodeFEAxyz)
+%DefChSharedPtrDynamicDowncast(ChNodeFEAbase,ChNodeFEAxyzP)
+%DefChSharedPtrDynamicDowncast(ChNodeFEAbase,ChNodeFEAxyzrot)
 
 //
 // ADDITIONAL C++ FUNCTIONS / CLASSES THAT ARE USED ONLY FOR PYTHON WRAPPER

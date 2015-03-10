@@ -16,7 +16,7 @@
 
 
 #include "ChElementGeneric.h"
-#include "ChNodeFEMxyz.h"
+#include "ChNodeFEAxyz.h"
 
 
 namespace chrono
@@ -34,7 +34,7 @@ namespace fea
 class ChApiFea ChElementSpring : public ChElementGeneric
 {
 protected:
-	std::vector< ChSharedPtr<ChNodeFEMxyz> > nodes;
+	std::vector< ChSharedPtr<ChNodeFEAxyz> > nodes;
 	double spring_k;
 	double damper_r;
 public:
@@ -46,10 +46,10 @@ public:
 	virtual int GetNcoords() {return 2*3;}
 	virtual int GetNdofs()   {return 2*3;}
 
-	virtual ChSharedPtr<ChNodeFEMbase> GetNodeN(int n) {return nodes[n];}
+	virtual ChSharedPtr<ChNodeFEAbase> GetNodeN(int n) {return nodes[n];}
 	
 
-	virtual void SetNodes(ChSharedPtr<ChNodeFEMxyz> nodeA, ChSharedPtr<ChNodeFEMxyz> nodeB) 
+	virtual void SetNodes(ChSharedPtr<ChNodeFEAxyz> nodeA, ChSharedPtr<ChNodeFEAxyz> nodeB) 
 				{
 					nodes[0]=nodeA; 
 					nodes[1]=nodeB;
@@ -60,7 +60,7 @@ public:
 				}
 
 			//
-			// FEM functions
+			// FEA functions
 			//
 
 				/// Fills the D vector (column matrix) with the current 

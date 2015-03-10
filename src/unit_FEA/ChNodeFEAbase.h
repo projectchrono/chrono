@@ -10,8 +10,8 @@
 //
 // File authors: Andrea Favali, Alessandro Tasora
 
-#ifndef CHNODEFEMBASE_H
-#define CHNODEFEMBASE_H
+#ifndef CHNODEFEABASE_H
+#define CHNODEFEABASE_H
 
 
 #include "ChApiFEA.h"
@@ -28,7 +28,7 @@ namespace fea
 /// that can be stored in ChMesh containers.
 /// Children classes must implement specialized versions.
 
-class ChApiFea ChNodeFEMbase  :  public chrono::ChNodeBase
+class ChApiFea ChNodeFEAbase  :  public chrono::ChNodeBase
 {
 public:
 

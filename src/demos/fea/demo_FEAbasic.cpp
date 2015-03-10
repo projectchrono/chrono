@@ -58,8 +58,8 @@ void test_1()
 				// nodes with x,y,z degrees of freedom, that can be used 
 				// for many types of FEM elements in space.
 				// While creating them, also set X0 undeformed positions.
-	ChSharedPtr<ChNodeFEMxyz> mnodeA( new ChNodeFEMxyz(ChVector<>(0,0,0)) );
-	ChSharedPtr<ChNodeFEMxyz> mnodeB( new ChNodeFEMxyz(ChVector<>(0,1,0)) );
+	ChSharedPtr<ChNodeFEAxyz> mnodeA( new ChNodeFEAxyz(ChVector<>(0,0,0)) );
+	ChSharedPtr<ChNodeFEAxyz> mnodeB( new ChNodeFEAxyz(ChVector<>(0,1,0)) );
 	mnodeA->SetMass(0.0);
 	mnodeB->SetMass(0.0);
 	
@@ -149,10 +149,10 @@ void test_2()
 				// nodes with x,y,z degrees of freedom, that can be used 
 				// for many types of FEM elements in space.
 				// While creating them, also set X0 undeformed positions.
-	ChSharedPtr<ChNodeFEMxyz> mnode1( new ChNodeFEMxyz(ChVector<>(0,0,0)) );
-	ChSharedPtr<ChNodeFEMxyz> mnode2( new ChNodeFEMxyz(ChVector<>(0,0,1)) );
-	ChSharedPtr<ChNodeFEMxyz> mnode3( new ChNodeFEMxyz(ChVector<>(0,1,0)) );
-	ChSharedPtr<ChNodeFEMxyz> mnode4( new ChNodeFEMxyz(ChVector<>(1,0,0)) );
+	ChSharedPtr<ChNodeFEAxyz> mnode1( new ChNodeFEAxyz(ChVector<>(0,0,0)) );
+	ChSharedPtr<ChNodeFEAxyz> mnode2( new ChNodeFEAxyz(ChVector<>(0,0,1)) );
+	ChSharedPtr<ChNodeFEAxyz> mnode3( new ChNodeFEAxyz(ChVector<>(0,1,0)) );
+	ChSharedPtr<ChNodeFEAxyz> mnode4( new ChNodeFEAxyz(ChVector<>(1,0,0)) );
 
 
 				// For example, set an applied force to a node:
@@ -261,16 +261,16 @@ void test_3()
 				// nodes with x,y,z degrees of freedom, that can be used 
 				// for many types of FEM elements in space.
 				// While creating them, also set X0 undeformed positions.
-	ChSharedPtr<ChNodeFEMxyz> mnode1(new ChNodeFEMxyz(ChVector<>(0,0,0)) );
-	ChSharedPtr<ChNodeFEMxyz> mnode2(new ChNodeFEMxyz(ChVector<>(0.001,0,0)) );
-	ChSharedPtr<ChNodeFEMxyz> mnode3(new ChNodeFEMxyz(ChVector<>(0,0.001,0)) );
-	ChSharedPtr<ChNodeFEMxyz> mnode4(new ChNodeFEMxyz(ChVector<>(0,0,0.001)) );
-	ChSharedPtr<ChNodeFEMxyz> mnode5 (new ChNodeFEMxyz((mnode1->pos + mnode2->pos)*0.5) ); //  nodes at mid length of edges
-	ChSharedPtr<ChNodeFEMxyz> mnode6 (new ChNodeFEMxyz((mnode2->pos + mnode3->pos)*0.5) );
-	ChSharedPtr<ChNodeFEMxyz> mnode7 (new ChNodeFEMxyz((mnode3->pos + mnode1->pos)*0.5) );
-	ChSharedPtr<ChNodeFEMxyz> mnode8 (new ChNodeFEMxyz((mnode1->pos + mnode4->pos)*0.5) );
-	ChSharedPtr<ChNodeFEMxyz> mnode9 (new ChNodeFEMxyz((mnode4->pos + mnode2->pos)*0.5) );
-	ChSharedPtr<ChNodeFEMxyz> mnode10(new ChNodeFEMxyz((mnode3->pos + mnode4->pos)*0.5) );
+	ChSharedPtr<ChNodeFEAxyz> mnode1(new ChNodeFEAxyz(ChVector<>(0,0,0)) );
+	ChSharedPtr<ChNodeFEAxyz> mnode2(new ChNodeFEAxyz(ChVector<>(0.001,0,0)) );
+	ChSharedPtr<ChNodeFEAxyz> mnode3(new ChNodeFEAxyz(ChVector<>(0,0.001,0)) );
+	ChSharedPtr<ChNodeFEAxyz> mnode4(new ChNodeFEAxyz(ChVector<>(0,0,0.001)) );
+	ChSharedPtr<ChNodeFEAxyz> mnode5 (new ChNodeFEAxyz((mnode1->pos + mnode2->pos)*0.5) ); //  nodes at mid length of edges
+	ChSharedPtr<ChNodeFEAxyz> mnode6 (new ChNodeFEAxyz((mnode2->pos + mnode3->pos)*0.5) );
+	ChSharedPtr<ChNodeFEAxyz> mnode7 (new ChNodeFEAxyz((mnode3->pos + mnode1->pos)*0.5) );
+	ChSharedPtr<ChNodeFEAxyz> mnode8 (new ChNodeFEAxyz((mnode1->pos + mnode4->pos)*0.5) );
+	ChSharedPtr<ChNodeFEAxyz> mnode9 (new ChNodeFEAxyz((mnode4->pos + mnode2->pos)*0.5) );
+	ChSharedPtr<ChNodeFEAxyz> mnode10(new ChNodeFEAxyz((mnode3->pos + mnode4->pos)*0.5) );
 	
 				// For example, set an applied force to a node:
 	mnode3->SetForce(ChVector<>(0, -1000, 0));
@@ -386,14 +386,14 @@ void test_4()
 	double sx = 0.01;
 	double sy = 0.10;
 	double sz = 0.01;
-	ChSharedPtr<ChNodeFEMxyz> mnode1(new ChNodeFEMxyz(ChVector<>(0, 0,  0)));
-	ChSharedPtr<ChNodeFEMxyz> mnode2(new ChNodeFEMxyz(ChVector<>(0, 0,  sz)));
-	ChSharedPtr<ChNodeFEMxyz> mnode3(new ChNodeFEMxyz(ChVector<>(sx,0,  sz)));
-	ChSharedPtr<ChNodeFEMxyz> mnode4(new ChNodeFEMxyz(ChVector<>(sx,0,  0)));
-	ChSharedPtr<ChNodeFEMxyz> mnode5(new ChNodeFEMxyz(ChVector<>(0, sy, 0)));
-	ChSharedPtr<ChNodeFEMxyz> mnode6(new ChNodeFEMxyz(ChVector<>(0, sy, sz)));
-	ChSharedPtr<ChNodeFEMxyz> mnode7(new ChNodeFEMxyz(ChVector<>(sx,sy, sz)));
-	ChSharedPtr<ChNodeFEMxyz> mnode8(new ChNodeFEMxyz(ChVector<>(sx,sy, 0)));
+	ChSharedPtr<ChNodeFEAxyz> mnode1(new ChNodeFEAxyz(ChVector<>(0, 0,  0)));
+	ChSharedPtr<ChNodeFEAxyz> mnode2(new ChNodeFEAxyz(ChVector<>(0, 0,  sz)));
+	ChSharedPtr<ChNodeFEAxyz> mnode3(new ChNodeFEAxyz(ChVector<>(sx,0,  sz)));
+	ChSharedPtr<ChNodeFEAxyz> mnode4(new ChNodeFEAxyz(ChVector<>(sx,0,  0)));
+	ChSharedPtr<ChNodeFEAxyz> mnode5(new ChNodeFEAxyz(ChVector<>(0, sy, 0)));
+	ChSharedPtr<ChNodeFEAxyz> mnode6(new ChNodeFEAxyz(ChVector<>(0, sy, sz)));
+	ChSharedPtr<ChNodeFEAxyz> mnode7(new ChNodeFEAxyz(ChVector<>(sx,sy, sz)));
+	ChSharedPtr<ChNodeFEAxyz> mnode8(new ChNodeFEAxyz(ChVector<>(sx,sy, 0)));
 
 				// For example, set applied forces to nodes:
 	mnode5->SetForce(ChVector<>(0, -1000, 0));
@@ -516,26 +516,26 @@ void test_5()
 	double sx = 0.01;
 	double sy = 0.1;
 	double sz = 0.01;
-	ChSharedPtr<ChNodeFEMxyz> mnode1(new ChNodeFEMxyz(ChVector<>(0, 0,  0)));
-	ChSharedPtr<ChNodeFEMxyz> mnode2(new ChNodeFEMxyz(ChVector<>(0, 0,  sz)));
-	ChSharedPtr<ChNodeFEMxyz> mnode3(new ChNodeFEMxyz(ChVector<>(sx,0,  sz)));
-	ChSharedPtr<ChNodeFEMxyz> mnode4(new ChNodeFEMxyz(ChVector<>(sx,0,  0)));
-	ChSharedPtr<ChNodeFEMxyz> mnode5(new ChNodeFEMxyz(ChVector<>(0, sy, 0)));
-	ChSharedPtr<ChNodeFEMxyz> mnode6(new ChNodeFEMxyz(ChVector<>(0, sy, sz)));
-	ChSharedPtr<ChNodeFEMxyz> mnode7(new ChNodeFEMxyz(ChVector<>(sx,sy, sz)));
-	ChSharedPtr<ChNodeFEMxyz> mnode8(new ChNodeFEMxyz(ChVector<>(sx,sy, 0)));
-	ChSharedPtr<ChNodeFEMxyz> mnode9 (new ChNodeFEMxyz((mnode1->pos + mnode2->pos)*0.5)); // in between front face
-	ChSharedPtr<ChNodeFEMxyz> mnode10(new ChNodeFEMxyz((mnode2->pos + mnode3->pos)*0.5)); 
-	ChSharedPtr<ChNodeFEMxyz> mnode11(new ChNodeFEMxyz((mnode3->pos + mnode4->pos)*0.5)); 
-	ChSharedPtr<ChNodeFEMxyz> mnode12(new ChNodeFEMxyz((mnode1->pos + mnode4->pos)*0.5)); 
-	ChSharedPtr<ChNodeFEMxyz> mnode13(new ChNodeFEMxyz((mnode5->pos + mnode6->pos)*0.5)); // in between back face
-	ChSharedPtr<ChNodeFEMxyz> mnode14(new ChNodeFEMxyz((mnode6->pos + mnode7->pos)*0.5)); 
-	ChSharedPtr<ChNodeFEMxyz> mnode15(new ChNodeFEMxyz((mnode7->pos + mnode8->pos)*0.5)); 
-	ChSharedPtr<ChNodeFEMxyz> mnode16(new ChNodeFEMxyz((mnode8->pos + mnode5->pos)*0.5)); 
-	ChSharedPtr<ChNodeFEMxyz> mnode17(new ChNodeFEMxyz((mnode2->pos + mnode6->pos)*0.5)); // in between side edges
-	ChSharedPtr<ChNodeFEMxyz> mnode18(new ChNodeFEMxyz((mnode3->pos + mnode7->pos)*0.5)); 
-	ChSharedPtr<ChNodeFEMxyz> mnode19(new ChNodeFEMxyz((mnode4->pos + mnode8->pos)*0.5)); 
-	ChSharedPtr<ChNodeFEMxyz> mnode20(new ChNodeFEMxyz((mnode1->pos + mnode5->pos)*0.5)); 
+	ChSharedPtr<ChNodeFEAxyz> mnode1(new ChNodeFEAxyz(ChVector<>(0, 0,  0)));
+	ChSharedPtr<ChNodeFEAxyz> mnode2(new ChNodeFEAxyz(ChVector<>(0, 0,  sz)));
+	ChSharedPtr<ChNodeFEAxyz> mnode3(new ChNodeFEAxyz(ChVector<>(sx,0,  sz)));
+	ChSharedPtr<ChNodeFEAxyz> mnode4(new ChNodeFEAxyz(ChVector<>(sx,0,  0)));
+	ChSharedPtr<ChNodeFEAxyz> mnode5(new ChNodeFEAxyz(ChVector<>(0, sy, 0)));
+	ChSharedPtr<ChNodeFEAxyz> mnode6(new ChNodeFEAxyz(ChVector<>(0, sy, sz)));
+	ChSharedPtr<ChNodeFEAxyz> mnode7(new ChNodeFEAxyz(ChVector<>(sx,sy, sz)));
+	ChSharedPtr<ChNodeFEAxyz> mnode8(new ChNodeFEAxyz(ChVector<>(sx,sy, 0)));
+	ChSharedPtr<ChNodeFEAxyz> mnode9 (new ChNodeFEAxyz((mnode1->pos + mnode2->pos)*0.5)); // in between front face
+	ChSharedPtr<ChNodeFEAxyz> mnode10(new ChNodeFEAxyz((mnode2->pos + mnode3->pos)*0.5)); 
+	ChSharedPtr<ChNodeFEAxyz> mnode11(new ChNodeFEAxyz((mnode3->pos + mnode4->pos)*0.5)); 
+	ChSharedPtr<ChNodeFEAxyz> mnode12(new ChNodeFEAxyz((mnode1->pos + mnode4->pos)*0.5)); 
+	ChSharedPtr<ChNodeFEAxyz> mnode13(new ChNodeFEAxyz((mnode5->pos + mnode6->pos)*0.5)); // in between back face
+	ChSharedPtr<ChNodeFEAxyz> mnode14(new ChNodeFEAxyz((mnode6->pos + mnode7->pos)*0.5)); 
+	ChSharedPtr<ChNodeFEAxyz> mnode15(new ChNodeFEAxyz((mnode7->pos + mnode8->pos)*0.5)); 
+	ChSharedPtr<ChNodeFEAxyz> mnode16(new ChNodeFEAxyz((mnode8->pos + mnode5->pos)*0.5)); 
+	ChSharedPtr<ChNodeFEAxyz> mnode17(new ChNodeFEAxyz((mnode2->pos + mnode6->pos)*0.5)); // in between side edges
+	ChSharedPtr<ChNodeFEAxyz> mnode18(new ChNodeFEAxyz((mnode3->pos + mnode7->pos)*0.5)); 
+	ChSharedPtr<ChNodeFEAxyz> mnode19(new ChNodeFEAxyz((mnode4->pos + mnode8->pos)*0.5)); 
+	ChSharedPtr<ChNodeFEAxyz> mnode20(new ChNodeFEAxyz((mnode1->pos + mnode5->pos)*0.5)); 
 
 				// For example, set applied forces to nodes:
 	mnode5->SetForce(ChVector<>(0, -500, 0));

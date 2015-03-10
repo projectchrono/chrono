@@ -15,20 +15,20 @@
 
 
 #include "ChElementHexahedron.h"
-#include "ChNodeFEMxyz.h"
+#include "ChNodeFEAxyz.h"
 
 namespace chrono
 {
 namespace fea
 {
 
-	/// Class for FEM elements of hexahedron type (isoparametric 3D bricks) 
+	/// Class for FEA elements of hexahedron type (isoparametric 3D bricks) 
 	/// with 20 nodes.
 
 class ChApiFea ChElementHexa_20 : public ChElementHexahedron
 {
 protected:
-		std::vector< ChSharedPtr<ChNodeFEMxyz> > nodes;
+		std::vector< ChSharedPtr<ChNodeFEAxyz> > nodes;
 		ChSharedPtr<ChContinuumElastic> Material;
 		//std::vector< ChMatrixDynamic<> > MatrB;		// matrices of shape function's partial derivatives (one for each integration point)
 													// we use a vector to keep in memory all the 27 matrices (-> 27 integr. point)
@@ -44,13 +44,13 @@ public:
 	virtual int GetNcoords() {return 20*3;}
 	virtual int GetNdofs()   {return 20*3;}
 
-	virtual ChSharedPtr<ChNodeFEMbase> GetNodeN(int n) {return nodes[n];}
+	virtual ChSharedPtr<ChNodeFEAbase> GetNodeN(int n) {return nodes[n];}
 
-	virtual void SetNodes(ChSharedPtr<ChNodeFEMxyz> nodeA, ChSharedPtr<ChNodeFEMxyz> nodeB, ChSharedPtr<ChNodeFEMxyz> nodeC, ChSharedPtr<ChNodeFEMxyz> nodeD,
-						  ChSharedPtr<ChNodeFEMxyz> nodeE, ChSharedPtr<ChNodeFEMxyz> nodeF, ChSharedPtr<ChNodeFEMxyz> nodeG, ChSharedPtr<ChNodeFEMxyz> nodeH,
-						  ChSharedPtr<ChNodeFEMxyz> nodeI, ChSharedPtr<ChNodeFEMxyz> nodeJ, ChSharedPtr<ChNodeFEMxyz> nodeK, ChSharedPtr<ChNodeFEMxyz> nodeL,
-						  ChSharedPtr<ChNodeFEMxyz> nodeM, ChSharedPtr<ChNodeFEMxyz> nodeN, ChSharedPtr<ChNodeFEMxyz> nodeO, ChSharedPtr<ChNodeFEMxyz> nodeP,
-						  ChSharedPtr<ChNodeFEMxyz> nodeQ, ChSharedPtr<ChNodeFEMxyz> nodeR, ChSharedPtr<ChNodeFEMxyz> nodeS, ChSharedPtr<ChNodeFEMxyz> nodeT) 
+	virtual void SetNodes(ChSharedPtr<ChNodeFEAxyz> nodeA, ChSharedPtr<ChNodeFEAxyz> nodeB, ChSharedPtr<ChNodeFEAxyz> nodeC, ChSharedPtr<ChNodeFEAxyz> nodeD,
+						  ChSharedPtr<ChNodeFEAxyz> nodeE, ChSharedPtr<ChNodeFEAxyz> nodeF, ChSharedPtr<ChNodeFEAxyz> nodeG, ChSharedPtr<ChNodeFEAxyz> nodeH,
+						  ChSharedPtr<ChNodeFEAxyz> nodeI, ChSharedPtr<ChNodeFEAxyz> nodeJ, ChSharedPtr<ChNodeFEAxyz> nodeK, ChSharedPtr<ChNodeFEAxyz> nodeL,
+						  ChSharedPtr<ChNodeFEAxyz> nodeM, ChSharedPtr<ChNodeFEAxyz> nodeN, ChSharedPtr<ChNodeFEAxyz> nodeO, ChSharedPtr<ChNodeFEAxyz> nodeP,
+						  ChSharedPtr<ChNodeFEAxyz> nodeQ, ChSharedPtr<ChNodeFEAxyz> nodeR, ChSharedPtr<ChNodeFEAxyz> nodeS, ChSharedPtr<ChNodeFEAxyz> nodeT) 
 				{
 					nodes[0]=nodeA; 
 					nodes[1]=nodeB;
@@ -118,7 +118,7 @@ public:
 
 			
 			//
-			// FEM functions
+			// FEA functions
 			//
 
 				/// Fills the D vector (displacement) column matrix with the current 

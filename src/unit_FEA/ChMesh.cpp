@@ -15,7 +15,7 @@
 #include "physics/ChObject.h"
 #include "ChMesh.h"
 // for the TetGen parsing:
-#include "ChNodeFEMxyz.h"
+#include "ChNodeFEAxyz.h"
 #include "ChElementTetra_4.h"
 #include <iostream>
 #include <sstream>
@@ -79,7 +79,7 @@ void ChMesh::SetNoSpeedNoAcceleration()
 }
 
 
-void ChMesh::AddNode ( ChSharedPtr<ChNodeFEMbase> m_node)
+void ChMesh::AddNode ( ChSharedPtr<ChNodeFEAbase> m_node)
 {
 	this->vnodes.push_back(m_node);
 }
@@ -204,12 +204,12 @@ void ChMesh::LoadFromTetGenFile(const char* filename_node, const char* filename_
 				
 				if (my_material.IsType<ChContinuumElastic>() )
 				{
-					ChSharedPtr<ChNodeFEMxyz> mnode( new ChNodeFEMxyz(ChVector<>(x,y,z)) );
+					ChSharedPtr<ChNodeFEAxyz> mnode( new ChNodeFEAxyz(ChVector<>(x,y,z)) );
 					this->AddNode(mnode);
 				}
 				else if (my_material.IsType<ChContinuumPoisson3D>() )
 				{
-					ChSharedPtr<ChNodeFEMxyzP> mnode( new ChNodeFEMxyzP(ChVector<>(x,y,z)) );
+					ChSharedPtr<ChNodeFEAxyzP> mnode( new ChNodeFEAxyzP(ChVector<>(x,y,z)) );
 					this->AddNode(mnode);
 				}
 				else throw ChException("ERROR in TetGen generation. Material type not supported. \n");
@@ -273,10 +273,10 @@ void ChMesh::LoadFromTetGenFile(const char* filename_node, const char* filename_
 				{
 					ChSharedPtr<ChElementTetra_4> mel( new ChElementTetra_4 );
 					mel->SetNodes(
-						this->GetNode(nodes_offset + n1-1).DynamicCastTo<ChNodeFEMxyz>(), 
-						this->GetNode(nodes_offset + n3-1).DynamicCastTo<ChNodeFEMxyz>(), 
-						this->GetNode(nodes_offset + n2-1).DynamicCastTo<ChNodeFEMxyz>(), 
-						this->GetNode(nodes_offset + n4-1).DynamicCastTo<ChNodeFEMxyz>() );
+						this->GetNode(nodes_offset + n1-1).DynamicCastTo<ChNodeFEAxyz>(), 
+						this->GetNode(nodes_offset + n3-1).DynamicCastTo<ChNodeFEAxyz>(), 
+						this->GetNode(nodes_offset + n2-1).DynamicCastTo<ChNodeFEAxyz>(), 
+						this->GetNode(nodes_offset + n4-1).DynamicCastTo<ChNodeFEAxyz>() );
 					mel->SetMaterial(my_material.DynamicCastTo<ChContinuumElastic>());
 					this->AddElement(mel);
 				} 
@@ -284,10 +284,10 @@ void ChMesh::LoadFromTetGenFile(const char* filename_node, const char* filename_
 				{
 					ChSharedPtr<ChElementTetra_4_P> mel( new ChElementTetra_4_P );
 					mel->SetNodes(
-						this->GetNode(nodes_offset + n1-1).DynamicCastTo<ChNodeFEMxyzP>(), 
-						this->GetNode(nodes_offset + n3-1).DynamicCastTo<ChNodeFEMxyzP>(), 
-						this->GetNode(nodes_offset + n2-1).DynamicCastTo<ChNodeFEMxyzP>(), 
-						this->GetNode(nodes_offset + n4-1).DynamicCastTo<ChNodeFEMxyzP>() );
+						this->GetNode(nodes_offset + n1-1).DynamicCastTo<ChNodeFEAxyzP>(), 
+						this->GetNode(nodes_offset + n3-1).DynamicCastTo<ChNodeFEAxyzP>(), 
+						this->GetNode(nodes_offset + n2-1).DynamicCastTo<ChNodeFEAxyzP>(), 
+						this->GetNode(nodes_offset + n4-1).DynamicCastTo<ChNodeFEAxyzP>() );
 					mel->SetMaterial(my_material.DynamicCastTo<ChContinuumPoisson3D>());
 					this->AddElement(mel);
 				}
@@ -305,7 +305,7 @@ void ChMesh::LoadFromTetGenFile(const char* filename_node, const char* filename_
 
 void ChMesh::LoadFromAbaqusFile(const char* filename, 
 								ChSharedPtr<ChContinuumMaterial> my_material, 
-								std::vector< std::vector< ChSharedPtr<ChNodeFEMbase> > >& node_sets)
+								std::vector< std::vector< ChSharedPtr<ChNodeFEAbase> > >& node_sets)
 {
 	node_sets.resize(0);
 
@@ -313,7 +313,7 @@ void ChMesh::LoadFromAbaqusFile(const char* filename,
 	unsigned int nodes_offset = this->GetNnodes();
 	int added_nodes = 0;
 	int added_elements = 0;
-	//std::vector< ChSharedPtr<ChNodeFEMbase> >* current_nodeset = 0;
+	//std::vector< ChSharedPtr<ChNodeFEAbase> >* current_nodeset = 0;
 
 	enum eChAbaqusParserSection {
 				E_PARSE_UNKNOWN = 0,
@@ -383,7 +383,7 @@ void ChMesh::LoadFromAbaqusFile(const char* filename,
 					string s_node_set = line.substr(nse+5,ncom-(nse+5));
 					GetLog() << "Parsing: nodeset: " << s_node_set << "\n";
 					
-					std::vector< ChSharedPtr<ChNodeFEMbase> > empty_set;
+					std::vector< ChSharedPtr<ChNodeFEAbase> > empty_set;
 					node_sets.push_back(empty_set);
 				}
 				e_parse_section  = E_PARSE_NODESET;
@@ -425,12 +425,12 @@ void ChMesh::LoadFromAbaqusFile(const char* filename,
 			
 			if (my_material.IsType<ChContinuumElastic>() )
 			{
-				ChSharedPtr<ChNodeFEMxyz> mnode( new ChNodeFEMxyz(ChVector<>(x,y,z)) );
+				ChSharedPtr<ChNodeFEAxyz> mnode( new ChNodeFEAxyz(ChVector<>(x,y,z)) );
 				this->AddNode(mnode);
 			}
 			else if (my_material.IsType<ChContinuumPoisson3D>() )
 			{
-				ChSharedPtr<ChNodeFEMxyzP> mnode( new ChNodeFEMxyzP(ChVector<>(x,y,z)) );
+				ChSharedPtr<ChNodeFEAxyzP> mnode( new ChNodeFEAxyzP(ChVector<>(x,y,z)) );
 				this->AddNode(mnode);
 			}
 			else throw ChException("ERROR in .inp generation. Material type not supported. \n");
@@ -467,10 +467,10 @@ void ChMesh::LoadFromAbaqusFile(const char* filename,
 			{
 				ChSharedPtr<ChElementTetra_4> mel( new ChElementTetra_4 );
 				mel->SetNodes(
-					this->GetNode(nodes_offset + tokenvals[1]-1).DynamicCastTo<ChNodeFEMxyz>(), 
-					this->GetNode(nodes_offset + tokenvals[3]-1).DynamicCastTo<ChNodeFEMxyz>(), 
-					this->GetNode(nodes_offset + tokenvals[2]-1).DynamicCastTo<ChNodeFEMxyz>(), 
-					this->GetNode(nodes_offset + tokenvals[4]-1).DynamicCastTo<ChNodeFEMxyz>() );
+					this->GetNode(nodes_offset + tokenvals[1]-1).DynamicCastTo<ChNodeFEAxyz>(), 
+					this->GetNode(nodes_offset + tokenvals[3]-1).DynamicCastTo<ChNodeFEAxyz>(), 
+					this->GetNode(nodes_offset + tokenvals[2]-1).DynamicCastTo<ChNodeFEAxyz>(), 
+					this->GetNode(nodes_offset + tokenvals[4]-1).DynamicCastTo<ChNodeFEAxyz>() );
 				mel->SetMaterial(my_material.DynamicCastTo<ChContinuumElastic>());
 				this->AddElement(mel);
 			} 
@@ -478,10 +478,10 @@ void ChMesh::LoadFromAbaqusFile(const char* filename,
 			{
 				ChSharedPtr<ChElementTetra_4_P> mel( new ChElementTetra_4_P );
 				mel->SetNodes(
-					this->GetNode(nodes_offset + tokenvals[1]-1).DynamicCastTo<ChNodeFEMxyzP>(), 
-					this->GetNode(nodes_offset + tokenvals[3]-1).DynamicCastTo<ChNodeFEMxyzP>(), 
-					this->GetNode(nodes_offset + tokenvals[2]-1).DynamicCastTo<ChNodeFEMxyzP>(), 
-					this->GetNode(nodes_offset + tokenvals[4]-1).DynamicCastTo<ChNodeFEMxyzP>() );
+					this->GetNode(nodes_offset + tokenvals[1]-1).DynamicCastTo<ChNodeFEAxyzP>(), 
+					this->GetNode(nodes_offset + tokenvals[3]-1).DynamicCastTo<ChNodeFEAxyzP>(), 
+					this->GetNode(nodes_offset + tokenvals[2]-1).DynamicCastTo<ChNodeFEAxyzP>(), 
+					this->GetNode(nodes_offset + tokenvals[4]-1).DynamicCastTo<ChNodeFEAxyzP>() );
 				mel->SetMaterial(my_material.DynamicCastTo<ChContinuumPoisson3D>());
 				this->AddElement(mel);
 			}
@@ -508,7 +508,7 @@ void ChMesh::LoadFromAbaqusFile(const char* filename,
 			for (int nt = 0; nt< ntoken; ++nt)
 			{
 				int idnode = (int) tokenvals[nt];
-				node_sets.back().push_back( this->GetNode(nodes_offset + idnode -1).DynamicCastTo<ChNodeFEMbase>() );
+				node_sets.back().push_back( this->GetNode(nodes_offset + idnode -1).DynamicCastTo<ChNodeFEAbase>() );
 			}
 
 		}

@@ -83,7 +83,7 @@ int ChLinkPointFrame::Initialize(ChSharedPtr<ChIndexedNodes> mnodes, ///< nodes 
 {
 	assert(!mnodes.IsNull());
 
-	ChSharedPtr<ChNodeFEMxyz> anode(mnodes->GetNode(mnode_index).DynamicCastTo<ChNodeFEMxyz>() ); // downcasting
+	ChSharedPtr<ChNodeFEAxyz> anode(mnodes->GetNode(mnode_index).DynamicCastTo<ChNodeFEAxyz>() ); // downcasting
 	
 	if (anode.IsNull()) 
 		return false; // downcasting wasn't successfull (in a ChIndexedNodes, different types of nodes could be present..)
@@ -92,7 +92,7 @@ int ChLinkPointFrame::Initialize(ChSharedPtr<ChIndexedNodes> mnodes, ///< nodes 
 }
 
 
-int ChLinkPointFrame::Initialize(ChSharedPtr<ChNodeFEMxyz> anode,  ///< node to join
+int ChLinkPointFrame::Initialize(ChSharedPtr<ChNodeFEAxyz> anode,  ///< node to join
 						   ChSharedPtr<ChBodyFrame>  mbody,		///< body to join 
 						   ChVector<>* mattach 	
 						   )

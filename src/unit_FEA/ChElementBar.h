@@ -15,7 +15,7 @@
 
 
 #include "ChElementGeneric.h"
-#include "ChNodeFEMxyz.h"
+#include "ChNodeFEAxyz.h"
 
 
 namespace chrono
@@ -36,7 +36,7 @@ namespace fea
 class ChApiFea ChElementBar : public ChElementGeneric
 {
 protected:
-	std::vector< ChSharedPtr<ChNodeFEMxyz> > nodes;
+	std::vector< ChSharedPtr<ChNodeFEAxyz> > nodes;
 	double area;
 	double density;
 	double E;
@@ -52,9 +52,9 @@ public:
 	virtual int GetNcoords() {return 2*3;}
 	virtual int GetNdofs()   {return 2*3;}
 
-	virtual ChSharedPtr<ChNodeFEMbase> GetNodeN(int n) {return nodes[n];}
+	virtual ChSharedPtr<ChNodeFEAbase> GetNodeN(int n) {return nodes[n];}
 
-	virtual void SetNodes( ChSharedPtr<ChNodeFEMxyz> nodeA, ChSharedPtr<ChNodeFEMxyz> nodeB) 
+	virtual void SetNodes( ChSharedPtr<ChNodeFEAxyz> nodeA, ChSharedPtr<ChNodeFEAxyz> nodeB) 
 				{
 					nodes[0]=nodeA; 
 					nodes[1]=nodeB;

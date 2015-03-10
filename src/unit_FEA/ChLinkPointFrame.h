@@ -33,7 +33,7 @@
 
 #include "physics/ChBodyFrame.h"
 #include "physics/ChLinkBase.h"
-#include "unit_FEA/ChNodeFEMxyz.h"
+#include "unit_FEA/ChNodeFEAxyz.h"
 #include "lcp/ChLcpConstraintTwoGeneric.h"
 
 
@@ -48,7 +48,7 @@ namespace fea
 
 
 
-/// Class for creating a constraint between a xyz FEM node (point)
+/// Class for creating a constraint between a xyz FEA node (point)
 /// and a ChBodyFrame (frame) object (that is, it fixes a 3-DOF point
 /// to a 6-DOF frame). 
 /// Nodes are 3-DOF points that are used in point-based 
@@ -74,7 +74,7 @@ private:
 	ChVector<> cache_li_speed;	// used to cache the last computed value of multiplier (solver warm starting)
 	ChVector<> cache_li_pos;	// used to cache the last computed value of multiplier (solver warm starting)	
 
-	ChSharedPtr<fea::ChNodeFEMxyz> mnode;
+	ChSharedPtr<fea::ChNodeFEAxyz> mnode;
 	ChSharedPtr<ChBodyFrame>  body;
 
 	ChVector<> attach_position; 
@@ -159,13 +159,13 @@ public:
 				/// The attachment position is the actual position of the node (unless
 				/// otherwise defines, using the optional 'mattach' parameter).
 				/// Note, mnodes and mbody must belong to the same ChSystem. 
-	virtual int Initialize(ChSharedPtr<ChNodeFEMxyz> anode,  ///< xyz node (point) to join
+	virtual int Initialize(ChSharedPtr<ChNodeFEAxyz> anode,  ///< xyz node (point) to join
 						   ChSharedPtr<ChBodyFrame>  mbody,  ///< body (frame) to join 
 						   ChVector<>* mattach=0			 ///< optional: if not null, sets the attachment position in absolute coordinates 
 						   );
 
 				/// Get the connected xyz node (point)
-	virtual ChSharedPtr<fea::ChNodeFEMxyz> GetConstrainedNode() { return this->mnode;}
+	virtual ChSharedPtr<fea::ChNodeFEAxyz> GetConstrainedNode() { return this->mnode;}
 				
 				/// Get the connected body (frame)
 	virtual ChSharedPtr<ChBodyFrame> GetConstrainedBodyFrame() { return this->body;}

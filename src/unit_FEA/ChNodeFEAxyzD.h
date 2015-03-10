@@ -10,11 +10,11 @@
 //
 // File authors: Alessandro Tasora
 
-#ifndef CHNODEFEMXYZD_H
-#define CHNODEFEMXYZD_H
+#ifndef CHNODEFEAXYZD_H
+#define CHNODEFEAXYZD_H
 
 
-#include "ChNodeFEMbase.h"
+#include "ChNodeFEAbase.h"
 #include "lcp/ChLcpVariablesBodyOwnMass.h"
 
 
@@ -28,12 +28,12 @@ namespace fea
 /// in 3D space, with x,y,z displacement and a D direction,
 /// (a gradient vector to be used in ANCF gradient deficient beams)
 
-class  ChNodeFEMxyzD : public ChNodeFEMbase
+class  ChNodeFEAxyzD : public ChNodeFEAbase
 
 {
 public:
 
-	ChNodeFEMxyzD(ChVector<> initial_pos = VNULL, ChVector<> initial_dir = VECT_X)
+	ChNodeFEAxyzD(ChVector<> initial_pos = VNULL, ChVector<> initial_dir = VECT_X)
 					{
 						X0 = initial_pos;
 						pos = initial_pos;
@@ -44,10 +44,10 @@ public:
 						D_dtdt = VNULL;
 					}
 
-	~ChNodeFEMxyzD() {};
+	~ChNodeFEAxyzD() {};
 
-	ChNodeFEMxyzD (const ChNodeFEMxyzD& other) :
-						ChNodeFEMbase(other) 
+	ChNodeFEAxyzD (const ChNodeFEAxyzD& other) :
+						ChNodeFEAbase(other) 
 	{
 		this->X0 = other.X0;
 		this->pos = other.pos;
@@ -60,12 +60,12 @@ public:
 		this->D_dtdt = other.D_dtdt;
 	}
 
-	ChNodeFEMxyzD& operator= (const ChNodeFEMxyzD& other)
+	ChNodeFEAxyzD& operator= (const ChNodeFEAxyzD& other)
 	{
 		if (&other == this) 
 			return *this;
 
-		ChNodeFEMbase::operator=(other);
+		ChNodeFEAbase::operator=(other);
 
 		this->X0 = other.X0;
 		this->pos = other.pos;

@@ -15,21 +15,21 @@
 
 
 #include "ChElementTetrahedron.h"
-#include "ChNodeFEMxyz.h"
+#include "ChNodeFEAxyz.h"
 
 namespace chrono
 {
 namespace fea
 {
 
-	/// Tetahedron FEM element with 10 nodes.
+	/// Tetahedron FEA element with 10 nodes.
 	/// This is a quadratic element for displacementes; stress and strain 
 	/// are interpolated depending on Gauss points.
 
 class ChApiFea ChElementTetra_10 : public ChElementTetrahedron
 {
 protected:
-		std::vector< ChSharedPtr<ChNodeFEMxyz> > nodes;
+		std::vector< ChSharedPtr<ChNodeFEAxyz> > nodes;
 		ChSharedPtr<ChContinuumElastic> Material;
 		std::vector<ChMatrixDynamic<> > MatrB;		// matrices of shape function's partial derivatives (one for each integration point)
 													// we use a vector to keep in memory all the four matrices (-> 4 integr. point)
@@ -46,11 +46,11 @@ public:
 	virtual int GetNcoords() {return 10*3;}
 	virtual int GetNdofs()   {return 10*3;}
 
-	virtual ChSharedPtr<ChNodeFEMbase> GetNodeN(int n) {return nodes[n];}
+	virtual ChSharedPtr<ChNodeFEAbase> GetNodeN(int n) {return nodes[n];}
 
-	virtual void SetNodes(ChSharedPtr<ChNodeFEMxyz> nodeA, ChSharedPtr<ChNodeFEMxyz> nodeB, ChSharedPtr<ChNodeFEMxyz> nodeC, ChSharedPtr<ChNodeFEMxyz> nodeD,
-						ChSharedPtr<ChNodeFEMxyz> nodeE, ChSharedPtr<ChNodeFEMxyz> nodeF, ChSharedPtr<ChNodeFEMxyz> nodeG, ChSharedPtr<ChNodeFEMxyz> nodeH, 
-						ChSharedPtr<ChNodeFEMxyz> nodeI, ChSharedPtr<ChNodeFEMxyz> nodeJ) 
+	virtual void SetNodes(ChSharedPtr<ChNodeFEAxyz> nodeA, ChSharedPtr<ChNodeFEAxyz> nodeB, ChSharedPtr<ChNodeFEAxyz> nodeC, ChSharedPtr<ChNodeFEAxyz> nodeD,
+						ChSharedPtr<ChNodeFEAxyz> nodeE, ChSharedPtr<ChNodeFEAxyz> nodeF, ChSharedPtr<ChNodeFEAxyz> nodeG, ChSharedPtr<ChNodeFEAxyz> nodeH, 
+						ChSharedPtr<ChNodeFEAxyz> nodeI, ChSharedPtr<ChNodeFEAxyz> nodeJ) 
 				{
 					nodes[0]=nodeA; 
 					nodes[1]=nodeB;

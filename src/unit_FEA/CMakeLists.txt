@@ -37,7 +37,7 @@ SET(ChronoEngine_UNIT_FEA_SOURCES
 	ChProximityContainerMeshless.cpp
 	ChPolarDecomposition.cpp
 	ChMatrixCorotation.cpp
-	ChVisualizationFEMmesh.cpp
+	ChVisualizationFEAmesh.cpp
 	ChLinkPointFrame.cpp
 	)
 SET(ChronoEngine_UNIT_FEA_HEADERS
@@ -47,11 +47,11 @@ SET(ChronoEngine_UNIT_FEA_HEADERS
 	ChContinuumPoisson3D.h
 	ChContinuumThermal.h
 	ChContinuumElectrostatics.h
-	ChNodeFEMbase.h 
-	ChNodeFEMxyz.h
-	ChNodeFEMxyzrot.h
-	ChNodeFEMxyzP.h 
-	ChNodeFEMxyzD.h 
+	ChNodeFEAbase.h 
+	ChNodeFEAxyz.h
+	ChNodeFEAxyzrot.h
+	ChNodeFEAxyzP.h 
+	ChNodeFEAxyzD.h 
 	ChElementBase.h
 	ChElementGeneric.h
 	ChElementCorotational.h
@@ -74,7 +74,7 @@ SET(ChronoEngine_UNIT_FEA_HEADERS
 	ChProximityContainerMeshless.h
 	ChPolarDecomposition.h
 	ChMatrixCorotation.h
-	ChVisualizationFEMmesh.h
+	ChVisualizationFEAmesh.h
 	ChLinkPointFrame.h 
 	)
 #SET_SOURCE_FILES_PROPERTIES(ChronoEngine_UNIT_FEA_HEADERS PROPERTIES  HEADER_FILE_ONLY)
