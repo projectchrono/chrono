@@ -198,26 +198,39 @@ void ChLcpSolverParallelDVI::ComputeD() {
   LOG(INFO) << "ChConstraintBilateral::Build_D - Compute Transpose";
   switch (data_container->settings.solver.solver_mode) {
     case NORMAL:
+      LOG(INFO) << "ChConstraintBilateral::Build_D - D_n";
       D_n = trans(D_n_T);
+      LOG(INFO) << "ChConstraintBilateral::Build_D - M_invD_n";
       M_invD_n = M_inv * D_n;
       break;
     case SLIDING:
+      LOG(INFO) << "ChConstraintBilateral::Build_D - D_n";
       D_n = trans(D_n_T);
+      LOG(INFO) << "ChConstraintBilateral::Build_D - D_t";
       D_t = trans(D_t_T);
+      LOG(INFO) << "ChConstraintBilateral::Build_D - M_invD_n";
       M_invD_n = M_inv * D_n;
+      LOG(INFO) << "ChConstraintBilateral::Build_D - M_invD_t";
       M_invD_t = M_inv * D_t;
       break;
     case SPINNING:
+      LOG(INFO) << "ChConstraintBilateral::Build_D - D_n";
       D_n = trans(D_n_T);
+      LOG(INFO) << "ChConstraintBilateral::Build_D - D_t";
       D_t = trans(D_t_T);
+      LOG(INFO) << "ChConstraintBilateral::Build_D - D_s";
       D_s = trans(D_s_T);
+      LOG(INFO) << "ChConstraintBilateral::Build_D - M_invD_n";
       M_invD_n = M_inv * D_n;
+      LOG(INFO) << "ChConstraintBilateral::Build_D - M_invD_t";
       M_invD_t = M_inv * D_t;
+      LOG(INFO) << "ChConstraintBilateral::Build_D - M_invD_s";
       M_invD_s = M_inv * D_s;
       break;
   }
-
+  LOG(INFO) << "ChConstraintBilateral::Build_D - D_b";
   D_b = trans(D_b_T);
+  LOG(INFO) << "ChConstraintBilateral::Build_D - M_invD_b";
   M_invD_b = M_inv * D_b;
   data_container->system_timer.stop("ChLcpSolverParallel_D");
 }
