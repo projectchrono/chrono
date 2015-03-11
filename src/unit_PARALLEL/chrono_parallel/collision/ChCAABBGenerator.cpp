@@ -27,13 +27,13 @@ static __device__ __host__ void ComputeAABBTriangle(const real3& A,
   maxp.z = std::max(A.z, std::max(B.z, C.z));
 }
 //%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-static __host__ __device__ void ComputeAABBBox(const real3& dim,
-                                               const real3& lpositon,
-                                               const real3& positon,
-                                               const real4& lrotation,
-                                               const real4& rotation,
-                                               real3& minp,
-                                               real3& maxp) {
+static void ComputeAABBBox(const real3& dim,
+                           const real3& lpositon,
+                           const real3& positon,
+                           const real4& lrotation,
+                           const real4& rotation,
+                           real3& minp,
+                           real3& maxp) {
   real4 q1 = mult(rotation, lrotation);
   M33 rotmat = AMat(q1);
   rotmat = AbsMat(rotmat);
@@ -91,13 +91,13 @@ static __host__ __device__ void ComputeAABBBox(const real3& dim,
   //    maxp = R3(maxb[0], maxb[1], maxb[2]);
 }
 
-static __host__ __device__ void ComputeAABBCone(const real3& dim,
-                                                const real3& lpositon,
-                                                const real3& positon,
-                                                const real4& lrotation,
-                                                const real4& rotation,
-                                                real3& minp,
-                                                real3& maxp) {
+static void ComputeAABBCone(const real3& dim,
+                            const real3& lpositon,
+                            const real3& positon,
+                            const real4& lrotation,
+                            const real4& rotation,
+                            real3& minp,
+                            real3& maxp) {
   real4 q1 = mult(rotation, lrotation);
   M33 rotmat = AMat(q1);
   rotmat = AbsMat(rotmat);
@@ -109,13 +109,13 @@ static __host__ __device__ void ComputeAABBCone(const real3& dim,
   maxp = pos + temp;
 }
 //%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-static __host__ __device__ void ComputeAABBConvex(const real3* convex_points,
-                                                  const real3& B,
-                                                  const real3& lpos,
-                                                  const real3& pos,
-                                                  const real4& rot,
-                                                  real3& minp,
-                                                  real3& maxp) {
+static void ComputeAABBConvex(const real3* convex_points,
+                              const real3& B,
+                              const real3& lpos,
+                              const real3& pos,
+                              const real4& rot,
+                              real3& minp,
+                              real3& maxp) {
   int start = B.y;
   int size = B.x;
   real3 point_0 = quatRotate(convex_points[start] + lpos, rot) + pos;
@@ -215,19 +215,8 @@ void ChCAABBGenerator::host_ComputeAABB(const shape_type* obj_data_T,
 #pragma omp parallel for
 
   for (int i = 0; i < numAABB; i++) {
-    function_ComputeAABB(i,
-                         obj_data_T,
-                         obj_data_A,
-                         obj_data_B,
-                         obj_data_C,
-                         obj_data_R,
-                         obj_data_ID,
-                         convex_data,
-                         body_pos,
-                         body_rot,
-                         numAABB,
-                         collision_envelope,
-                         aabb_data);
+    function_ComputeAABB(i, obj_data_T, obj_data_A, obj_data_B, obj_data_C, obj_data_R, obj_data_ID, convex_data,
+                         body_pos, body_rot, numAABB, collision_envelope, aabb_data);
   }
 }
 //%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -253,26 +242,13 @@ void ChCAABBGenerator::GenerateAABB(const custom_vector<shape_type>& obj_data_T,
   aabb_data.resize(numAABB * 2);
 #ifdef SIM_ENABLE_GPU_MODE
   COPY_TO_CONST_MEM(numAABB);
-  device_ComputeAABB __KERNEL__(BLOCKS(numAABB), THREADS)(CASTS(obj_data_T.data()),
-                                                          CASTR3(obj_data_A.data()),
-                                                          CASTR3(obj_data_B.data()),
-                                                          CASTR3(obj_data_C.data()),
-                                                          CASTR4(obj_data_R.data()),
-                                                          CASTU1(obj_data_ID.data()),
-                                                          CASTR3(body_pos.data()),
-                                                          CASTR4(body_rot.data()),
-                                                          CASTR3(aabb_data.data()));
+  device_ComputeAABB __KERNEL__(BLOCKS(numAABB), THREADS)(
+      CASTS(obj_data_T.data()), CASTR3(obj_data_A.data()), CASTR3(obj_data_B.data()), CASTR3(obj_data_C.data()),
+      CASTR4(obj_data_R.data()), CASTU1(obj_data_ID.data()), CASTR3(body_pos.data()), CASTR4(body_rot.data()),
+      CASTR3(aabb_data.data()));
 #else
-  host_ComputeAABB(obj_data_T.data(),
-                   obj_data_A.data(),
-                   obj_data_B.data(),
-                   obj_data_C.data(),
-                   obj_data_R.data(),
-                   obj_data_ID.data(),
-                   convex_data.data(),
-                   body_pos.data(),
-                   body_rot.data(),
-                   collision_envelope,
+  host_ComputeAABB(obj_data_T.data(), obj_data_A.data(), obj_data_B.data(), obj_data_C.data(), obj_data_R.data(),
+                   obj_data_ID.data(), convex_data.data(), body_pos.data(), body_rot.data(), collision_envelope,
                    aabb_data.data());
 #endif
 #if PRINT_LEVEL == 2
