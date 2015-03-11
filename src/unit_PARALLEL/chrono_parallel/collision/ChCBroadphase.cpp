@@ -49,9 +49,8 @@ ChCBroadphase::ChCBroadphase() {
 //%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 void ChCBroadphase::setBinsPerAxis(int3 binsPerAxis) {
   grid_size = binsPerAxis;
-#if PRINT_LEVEL == 1
-  cout << "Set BPA: " << grid_size.x << " " << grid_size.y << " " << grid_size.z << endl;
-#endif
+
+  LOG(TRACE) << "Set BPA: " << grid_size.x << " " << grid_size.y << " " << grid_size.z;
 }
 int3 ChCBroadphase::getBinsPerAxis() {
   return grid_size;
@@ -323,9 +322,8 @@ int ChCBroadphase::detectPossibleCollisions(ChParallelDataManager* data_containe
   double startTime = omp_get_wtime();
   numAABB = aabb_data.size() / 2;
 
-#if PRINT_LEVEL == 2
-  cout << "Number of AABBs: " << numAABB << endl;
-#endif
+  LOG(TRACE) << "Number of AABBs: " << numAABB;
+
 // STEP 1: Initialization TODO: this could be put in the constructor
 #ifdef SIM_ENABLE_GPU_MODE
   // set the default cache configuration on the device to prefer a larger L1 cache and smaller shared memory
@@ -354,12 +352,12 @@ int ChCBroadphase::detectPossibleCollisions(ChParallelDataManager* data_containe
                                                                             // divide later)
   thrust::transform(aabb_data.begin(), aabb_data.end(), thrust::constant_iterator<real3>(global_origin),
                     aabb_data.begin(), thrust::minus<real3>());
-#if PRINT_LEVEL == 2
-  cout << "Global Origin: (" << global_origin.x << ", " << global_origin.y << ", " << global_origin.z << ")" << endl;
-  cout << "Maximum bounding point: (" << max_bounding_point.x << ", " << max_bounding_point.y << ", "
-       << max_bounding_point.z << ")" << endl;
-  cout << "Bin size vector: (" << bin_size_vec.x << ", " << bin_size_vec.y << ", " << bin_size_vec.z << ")" << endl;
-#endif
+
+  LOG(TRACE) << "Global Origin: (" << global_origin.x << ", " << global_origin.y << ", " << global_origin.z << ")";
+  LOG(TRACE) << "Maximum bounding point: (" << max_bounding_point.x << ", " << max_bounding_point.y << ", "
+             << max_bounding_point.z << ")";
+  LOG(TRACE) << "Bin size vector: (" << bin_size_vec.x << ", " << bin_size_vec.y << ", " << bin_size_vec.z << ")";
+
   // END STEP 2
   // STEP 3: Count the number AABB's that lie in each bin, allocate space for each AABB
   Bins_Intersected.resize(numAABB);  // TODO: how do you know how large to make this vector?
@@ -372,9 +370,9 @@ int ChCBroadphase::detectPossibleCollisions(ChParallelDataManager* data_containe
 #endif
   thrust::inclusive_scan(Bins_Intersected.begin(), Bins_Intersected.end(), Bins_Intersected.begin());
   number_of_bin_intersections = Bins_Intersected.back();
-#if PRINT_LEVEL == 2
-  cout << "Number of bin intersections: " << number_of_bin_intersections << endl;
-#endif
+
+  LOG(TRACE) << "Number of bin intersections: " << number_of_bin_intersections;
+
   bin_number.resize(number_of_bin_intersections);
   shape_number.resize(number_of_bin_intersections);
   bin_start_index.resize(number_of_bin_intersections);
@@ -386,39 +384,34 @@ int ChCBroadphase::detectPossibleCollisions(ChParallelDataManager* data_containe
 #else
   host_Store_AABB_BIN_Intersection(aabb_data.data(), Bins_Intersected.data(), bin_number.data(), shape_number.data());
 #endif
-#if PRINT_LEVEL == 2
-  cout << "DONE WID DAT (device_Store_AABB_BIN_Intersection)" << endl;
-#endif
+
+  LOG(TRACE) << "Completed (device_Store_AABB_BIN_Intersection)";
+
   //    for(int i=0; i<bin_number.size(); i++){
   //    	cout<<bin_number[i]<<" "<<shape_number[i]<<endl;
   //    }
 
   // Thrust_Sort_By_Key(bin_number, shape_number);
   thrust::sort_by_key(bin_number.begin(), bin_number.end(), shape_number.begin());
-//    for(int i=0; i<bin_number.size(); i++){
-//    	cout<<bin_number[i]<<" "<<shape_number[i]<<endl;
-//    }
-
-#if PRINT_LEVEL == 2
-#endif
+  //    for(int i=0; i<bin_number.size(); i++){
+  //    	cout<<bin_number[i]<<" "<<shape_number[i]<<endl;
+  //    }
 
   last_active_bin = (thrust::reduce_by_key(bin_number.begin(), bin_number.end(), thrust::constant_iterator<uint>(1),
                                            bin_number.begin(), bin_start_index.begin()).second) -
                     bin_start_index.begin();
 
-//    host_vector<uint> bin_number_t=bin_number;
-//    host_vector<uint> bin_start_index_t(number_of_bin_intersections);
-//    host_vector<uint> Output(number_of_bin_intersections);
-//    thrust::pair<uint*,uint*> new_end;
-//    last_active_bin=
-//    thrust::reduce_by_key(bin_number_t.begin(),bin_number_t.end(),thrust::constant_iterator<uint>(1),Output.begin(),bin_start_index_t.begin()).first-Output.begin();
-//
-//
-//    bin_number=Output;
-//    bin_start_index=bin_start_index_t;
+  //    host_vector<uint> bin_number_t=bin_number;
+  //    host_vector<uint> bin_start_index_t(number_of_bin_intersections);
+  //    host_vector<uint> Output(number_of_bin_intersections);
+  //    thrust::pair<uint*,uint*> new_end;
+  //    last_active_bin=
+  //    thrust::reduce_by_key(bin_number_t.begin(),bin_number_t.end(),thrust::constant_iterator<uint>(1),Output.begin(),bin_start_index_t.begin()).first-Output.begin();
+  //
+  //
+  //    bin_number=Output;
+  //    bin_start_index=bin_start_index_t;
 
-#if PRINT_LEVEL == 2
-#endif
   ////      //QUESTION: I have no idea what is going on here
   if (last_active_bin <= 0) {
     number_of_contacts_possible = 0;
@@ -434,10 +427,10 @@ int ChCBroadphase::detectPossibleCollisions(ChParallelDataManager* data_containe
   //		}
 
   bin_start_index.resize(last_active_bin);
-#if PRINT_LEVEL == 2
-  cout << val << " " << grid_size.x << " " << grid_size.y << " " << grid_size.z << endl;
-  cout << "Last active bin: " << last_active_bin << endl;
-#endif
+
+  LOG(TRACE) << val << " " << grid_size.x << " " << grid_size.y << " " << grid_size.z;
+  LOG(TRACE) << "Last active bin: " << last_active_bin;
+
   thrust::inclusive_scan(bin_start_index.begin(), bin_start_index.end(), bin_start_index.begin());
   Num_ContactD.resize(last_active_bin);
 // END STEP 4
@@ -454,9 +447,7 @@ int ChCBroadphase::detectPossibleCollisions(ChParallelDataManager* data_containe
   thrust::inclusive_scan(Num_ContactD.begin(), Num_ContactD.end(), Num_ContactD.begin());
   number_of_contacts_possible = Num_ContactD.back();
   potentialCollisions.resize(number_of_contacts_possible);
-#if PRINT_LEVEL == 2
-  cout << "Number of possible collisions: " << number_of_contacts_possible << endl;
-#endif
+  LOG(TRACE) << "Number of possible collisions: " << number_of_contacts_possible;
 // END STEP 5
 // STEP 6: Store the possible AABB collision pairs
 #ifdef SIM_ENABLE_GPU_MODE
@@ -473,14 +464,14 @@ int ChCBroadphase::detectPossibleCollisions(ChParallelDataManager* data_containe
       thrust::unique(potentialCollisions.begin(), potentialCollisions.end()) - potentialCollisions.begin();
 
   potentialCollisions.resize(number_of_contacts_possible);
-#if PRINT_LEVEL == 2
-  cout << "Number of possible collisions: " << number_of_contacts_possible << endl;
-#endif
+
+  LOG(TRACE) << "Number of possible collisions: " << number_of_contacts_possible;
+
   // END STEP 6
   double endTime = omp_get_wtime();
-#if PRINT_LEVEL == 2
-  printf("Time to detect: %lf seconds\n", (endTime - startTime));
-#endif
+
+  LOG(TRACE) << "Time to detect: " << (endTime - startTime) << " seconds";
+
   return 0;
 }
 //%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
