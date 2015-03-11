@@ -391,6 +391,7 @@ void ChConstraintRigidRigid::Build_E() {
 }
 
 void ChConstraintRigidRigid::Build_D() {
+  LOG(INFO) << "ChConstraintRigidRigid::Build_D";
   real3* norm = data_container->host_data.norm_rigid_rigid.data();
   real3* ptA = data_container->host_data.cpta_rigid_rigid.data();
   real3* ptB = data_container->host_data.cptb_rigid_rigid.data();
@@ -502,6 +503,7 @@ void ChConstraintRigidRigid::Build_D() {
 }
 
 void ChConstraintRigidRigid::GenerateSparsity() {
+  LOG(INFO) << "ChConstraintRigidRigid::GenerateSparsity";
   SOLVERMODE solver_mode = data_container->settings.solver.solver_mode;
 
   CompressedMatrix<real>& D_n_T = data_container->host_data.D_n_T;

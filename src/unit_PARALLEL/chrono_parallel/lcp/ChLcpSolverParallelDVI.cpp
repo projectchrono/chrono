@@ -193,7 +193,7 @@ void ChLcpSolverParallelDVI::ComputeD() {
   bilateral.GenerateSparsity();
   rigid_rigid.Build_D();
   bilateral.Build_D();
-
+  LOG(INFO) << "ChConstraintBilateral::Build_D - Compute Transpose";
   switch (data_container->settings.solver.solver_mode) {
     case NORMAL:
       D_n = trans(D_n_T);

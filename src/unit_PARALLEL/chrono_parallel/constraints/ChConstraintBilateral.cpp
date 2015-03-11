@@ -35,6 +35,7 @@ void ChConstraintBilateral::Build_E() {
 }
 
 void ChConstraintBilateral::Build_D() {
+  LOG(INFO) << "ChConstraintBilateral::Build_D";
   // Grab the list of all bilateral constraints present in the system
   // (note that this includes possibly inactive constraints)
   std::vector<ChLcpConstraint*>& mconstraints = data_container->lcp_system_descriptor->GetConstraintsList();
@@ -145,6 +146,7 @@ void ChConstraintBilateral::Build_D() {
 }
 
 void ChConstraintBilateral::GenerateSparsity() {
+  LOG(INFO) << "ChConstraintBilateral::GenerateSparsity";
   // Grab the list of all bilateral constraints present in the system
   // (note that this includes possibly inactive constraints)
   std::vector<ChLcpConstraint*>& mconstraints = data_container->lcp_system_descriptor->GetConstraintsList();
