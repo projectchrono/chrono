@@ -324,15 +324,8 @@ int ChCBroadphase::detectPossibleCollisions(ChParallelDataManager* data_containe
 
   LOG(TRACE) << "Number of AABBs: " << numAABB;
 
-// STEP 1: Initialization TODO: this could be put in the constructor
-#ifdef SIM_ENABLE_GPU_MODE
-  // set the default cache configuration on the device to prefer a larger L1 cache and smaller shared memory
-  cudaFuncSetCacheConfig(device_Count_AABB_BIN_Intersection, cudaFuncCachePreferL1);
-  cudaFuncSetCacheConfig(device_Store_AABB_BIN_Intersection, cudaFuncCachePreferL1);
-  cudaFuncSetCacheConfig(device_Count_AABB_AABB_Intersection, cudaFuncCachePreferL1);
-  cudaFuncSetCacheConfig(device_Store_AABB_AABB_Intersection, cudaFuncCachePreferL1);
-  COPY_TO_CONST_MEM(numAABB);
-#endif
+  // STEP 1: Initialization TODO: this could be put in the constructor
+
   potentialCollisions.clear();
   // END STEP 1
   // STEP 2: determine the bounds on the total space and subdivide based on the bins per axis
@@ -362,12 +355,9 @@ int ChCBroadphase::detectPossibleCollisions(ChParallelDataManager* data_containe
   // STEP 3: Count the number AABB's that lie in each bin, allocate space for each AABB
   Bins_Intersected.resize(numAABB);  // TODO: how do you know how large to make this vector?
                                      // TODO: I think there is something wrong with the hash function...
-#ifdef SIM_ENABLE_GPU_MODE
-  COPY_TO_CONST_MEM(bin_size_vec);
-  device_Count_AABB_BIN_Intersection __KERNEL__(BLOCKS(numAABB), THREADS)(CASTR3(aabb_data), CASTU1(Bins_Intersected));
-#else
+
   host_Count_AABB_BIN_Intersection(aabb_data.data(), Bins_Intersected.data());
-#endif
+
   thrust::inclusive_scan(Bins_Intersected.begin(), Bins_Intersected.end(), Bins_Intersected.begin());
   number_of_bin_intersections = Bins_Intersected.back();
 
@@ -376,14 +366,10 @@ int ChCBroadphase::detectPossibleCollisions(ChParallelDataManager* data_containe
   bin_number.resize(number_of_bin_intersections);
   shape_number.resize(number_of_bin_intersections);
   bin_start_index.resize(number_of_bin_intersections);
-// END STEP 3
-// STEP 4: Indicate what bin each AABB belongs to, then sort based on bin number
-#ifdef SIM_ENABLE_GPU_MODE
-  device_Store_AABB_BIN_Intersection __KERNEL__(BLOCKS(numAABB), THREADS)(CASTR3(aabb_data), CASTU1(Bins_Intersected),
-                                                                          CASTU1(bin_number), CASTU1(shape_number));
-#else
+  // END STEP 3
+  // STEP 4: Indicate what bin each AABB belongs to, then sort based on bin number
+
   host_Store_AABB_BIN_Intersection(aabb_data.data(), Bins_Intersected.data(), bin_number.data(), shape_number.data());
-#endif
 
   LOG(TRACE) << "Completed (device_Store_AABB_BIN_Intersection)";
 
@@ -433,32 +419,23 @@ int ChCBroadphase::detectPossibleCollisions(ChParallelDataManager* data_containe
 
   thrust::inclusive_scan(bin_start_index.begin(), bin_start_index.end(), bin_start_index.begin());
   Num_ContactD.resize(last_active_bin);
-// END STEP 4
-// STEP 5: Count the number of AABB collisions
-#ifdef SIM_ENABLE_GPU_MODE
-  COPY_TO_CONST_MEM(last_active_bin);
-  device_Count_AABB_AABB_Intersection __KERNEL__(BLOCKS(last_active_bin), THREADS)(
-      CASTR3(aabb_data), CASTU1(bin_number), CASTU1(shape_number), CASTU1(bin_start_index), CASTS2(fam_data),
-      CASTU1(Num_ContactD));
-#else
+  // END STEP 4
+  // STEP 5: Count the number of AABB collisions
+
   host_Count_AABB_AABB_Intersection(aabb_data.data(), bin_number.data(), shape_number.data(), bin_start_index.data(),
                                     fam_data.data(), obj_active.data(), obj_data_ID.data(), Num_ContactD.data());
-#endif
+
   thrust::inclusive_scan(Num_ContactD.begin(), Num_ContactD.end(), Num_ContactD.begin());
   number_of_contacts_possible = Num_ContactD.back();
   potentialCollisions.resize(number_of_contacts_possible);
   LOG(TRACE) << "Number of possible collisions: " << number_of_contacts_possible;
-// END STEP 5
-// STEP 6: Store the possible AABB collision pairs
-#ifdef SIM_ENABLE_GPU_MODE
-  device_Store_AABB_AABB_Intersection __KERNEL__(BLOCKS(last_active_bin), THREADS)(
-      CASTR3(aabb_data), CASTU1(bin_number), CASTU1(shape_number), CASTU1(bin_start_index), CASTU1(Num_ContactD),
-      CASTS2(fam_data), CASTLL(potentialCollisions));
-#else
+  // END STEP 5
+  // STEP 6: Store the possible AABB collision pairs
+
   host_Store_AABB_AABB_Intersection(aabb_data.data(), bin_number.data(), shape_number.data(), bin_start_index.data(),
                                     Num_ContactD.data(), fam_data.data(), obj_active.data(), obj_data_ID.data(),
                                     potentialCollisions.data());
-#endif
+
   thrust::stable_sort(thrust_parallel, potentialCollisions.begin(), potentialCollisions.end());
   number_of_contacts_possible =
       thrust::unique(potentialCollisions.begin(), potentialCollisions.end()) - potentialCollisions.begin();
