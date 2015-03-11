@@ -624,6 +624,246 @@ void ChConstraintRigidRigid::GenerateSparsity() {
   }
 }
 
+void ChConstraintRigidRigid::GenerateSparsityTranspose() {
+  LOG(INFO) << "ChConstraintRigidRigid::GenerateSparsityTranspose";
+  SOLVERMODE solver_mode = data_container->settings.solver.solver_mode;
+
+  CompressedMatrix<real>& D_n_T = data_container->host_data.D_n_T;
+  CompressedMatrix<real>& D_t_T = data_container->host_data.D_t_T;
+  CompressedMatrix<real>& D_s_T = data_container->host_data.D_s_T;
+
+  CompressedMatrix<real>& D_n = data_container->host_data.D_n;
+  CompressedMatrix<real>& D_t = data_container->host_data.D_t;
+  CompressedMatrix<real>& D_s = data_container->host_data.D_s;
+
+  const int2* ids = data_container->host_data.bids_rigid_rigid.data();
+
+  host_vector<int> D_n_T_r(data_container->num_contacts * 12);
+  host_vector<int> D_n_T_c(data_container->num_contacts * 12);
+
+  host_vector<int> D_t_T_r(data_container->num_contacts * 12 * 2);
+  host_vector<int> D_t_T_c(data_container->num_contacts * 12 * 2);
+
+  host_vector<int> D_s_T_r(data_container->num_contacts * 18);
+  host_vector<int> D_s_T_c(data_container->num_contacts * 18);
+
+#pragma omp parallel for
+  for (int index = 0; index < data_container->num_contacts; index++) {
+    int2 body_id = ids[index];
+    int row = index;
+    D_n_T_c[index * 12 + 0] = row * 1 + 0;
+    D_n_T_r[index * 12 + 0] = body_id.x * 6 + 0;
+    D_n_T_c[index * 12 + 1] = row * 1 + 0;
+    D_n_T_r[index * 12 + 1] = body_id.x * 6 + 1;
+    D_n_T_c[index * 12 + 2] = row * 1 + 0;
+    D_n_T_r[index * 12 + 2] = body_id.x * 6 + 2;
+    D_n_T_c[index * 12 + 3] = row * 1 + 0;
+    D_n_T_r[index * 12 + 3] = body_id.x * 6 + 3;
+    D_n_T_c[index * 12 + 4] = row * 1 + 0;
+    D_n_T_r[index * 12 + 4] = body_id.x * 6 + 4;
+    D_n_T_c[index * 12 + 5] = row * 1 + 0;
+    D_n_T_r[index * 12 + 5] = body_id.x * 6 + 5;
+
+    D_n_T_c[index * 12 + 6] = row * 1 + 0;
+    D_n_T_r[index * 12 + 6] = body_id.y * 6 + 0;
+    D_n_T_c[index * 12 + 7] = row * 1 + 0;
+    D_n_T_r[index * 12 + 7] = body_id.y * 6 + 1;
+    D_n_T_c[index * 12 + 8] = row * 1 + 0;
+    D_n_T_r[index * 12 + 8] = body_id.y * 6 + 2;
+    D_n_T_c[index * 12 + 9] = row * 1 + 0;
+    D_n_T_r[index * 12 + 9] = body_id.y * 6 + 3;
+    D_n_T_c[index * 12 + 10] = row * 1 + 0;
+    D_n_T_r[index * 12 + 10] = body_id.y * 6 + 4;
+    D_n_T_c[index * 12 + 11] = row * 1 + 0;
+    D_n_T_r[index * 12 + 11] = body_id.y * 6 + 5;
+  }
+  {
+    thrust::sort_by_key(D_n_T_r.begin(), D_n_T_r.end(), D_n_T_c.begin());
+
+    host_vector<int> start_index(data_container->num_contacts * 12);
+
+    int last_body = (thrust::reduce_by_key(D_n_T_r.begin(), D_n_T_r.end(), thrust::constant_iterator<uint>(1),
+                                           D_n_T_c.begin(), start_index.begin()).second) -
+                    start_index.begin();
+
+    start_index.resize(last_body);
+    thrust::inclusive_scan(start_index.begin(), start_index.end(), start_index.begin());
+
+    for (int i = 0; i < last_body; i++) {
+      uint start = (i == 0) ? 0 : start_index[i - 1];
+      uint end = start_index[i];
+      int row = D_n_T_r[i];
+      for (int index = start; index < end; index++) {
+        int col = D_n_T_c[index];
+        D_n.append(row, col, 1);
+      }
+      D_n.finalize(row);
+    }
+  }
+
+  if (solver_mode == SLIDING || solver_mode == SPINNING) {
+#pragma omp parallel for
+    for (int index = 0; index < data_container->num_contacts; index++) {
+      int2 body_id = ids[index];
+      int row = index;
+
+      D_t_T_c[index * 24 + 0] = row * 2 + 0;
+      D_t_T_r[index * 24 + 0] = body_id.x * 6 + 0;
+      D_t_T_c[index * 24 + 1] = row * 2 + 0;
+      D_t_T_r[index * 24 + 1] = body_id.x * 6 + 1;
+      D_t_T_c[index * 24 + 2] = row * 2 + 0;
+      D_t_T_r[index * 24 + 2] = body_id.x * 6 + 2;
+
+      D_t_T_c[index * 24 + 3] = row * 2 + 0;
+      D_t_T_r[index * 24 + 3] = body_id.x * 6 + 3;
+      D_t_T_c[index * 24 + 4] = row * 2 + 0;
+      D_t_T_r[index * 24 + 4] = body_id.x * 6 + 4;
+      D_t_T_c[index * 24 + 5] = row * 2 + 0;
+      D_t_T_r[index * 24 + 5] = body_id.x * 6 + 5;
+
+      D_t_T_c[index * 24 + 6] = row * 2 + 0;
+      D_t_T_r[index * 24 + 6] = body_id.y * 6 + 0;
+      D_t_T_c[index * 24 + 7] = row * 2 + 0;
+      D_t_T_r[index * 24 + 7] = body_id.y * 6 + 1;
+      D_t_T_c[index * 24 + 8] = row * 2 + 0;
+      D_t_T_r[index * 24 + 8] = body_id.y * 6 + 2;
+
+      D_t_T_c[index * 24 + 9] = row * 2 + 0;
+      D_t_T_r[index * 24 + 9] = body_id.y * 6 + 3;
+      D_t_T_c[index * 24 + 10] = row * 2 + 0;
+      D_t_T_r[index * 24 + 10] = body_id.y * 6 + 4;
+      D_t_T_c[index * 24 + 11] = row * 2 + 0;
+      D_t_T_r[index * 24 + 11] = body_id.y * 6 + 5;
+
+      D_t_T_c[index * 24 + 12] = row * 2 + 1;
+      D_t_T_r[index * 24 + 12] = body_id.x * 6 + 0;
+      D_t_T_c[index * 24 + 13] = row * 2 + 1;
+      D_t_T_r[index * 24 + 13] = body_id.x * 6 + 1;
+      D_t_T_c[index * 24 + 14] = row * 2 + 1;
+      D_t_T_r[index * 24 + 14] = body_id.x * 6 + 2;
+
+      D_t_T_c[index * 24 + 15] = row * 2 + 1;
+      D_t_T_r[index * 24 + 15] = body_id.x * 6 + 3;
+      D_t_T_c[index * 24 + 16] = row * 2 + 1;
+      D_t_T_r[index * 24 + 16] = body_id.x * 6 + 4;
+      D_t_T_c[index * 24 + 17] = row * 2 + 1;
+      D_t_T_r[index * 24 + 17] = body_id.x * 6 + 5;
+
+      D_t_T_c[index * 24 + 18] = row * 2 + 1;
+      D_t_T_r[index * 24 + 18] = body_id.y * 6 + 0;
+      D_t_T_c[index * 24 + 19] = row * 2 + 1;
+      D_t_T_r[index * 24 + 19] = body_id.y * 6 + 1;
+      D_t_T_c[index * 24 + 20] = row * 2 + 1;
+      D_t_T_r[index * 24 + 20] = body_id.y * 6 + 2;
+
+      D_t_T_c[index * 24 + 21] = row * 2 + 1;
+      D_t_T_r[index * 24 + 21] = body_id.y * 6 + 3;
+      D_t_T_c[index * 24 + 22] = row * 2 + 1;
+      D_t_T_r[index * 24 + 22] = body_id.y * 6 + 4;
+      D_t_T_c[index * 24 + 23] = row * 2 + 1;
+      D_t_T_r[index * 24 + 23] = body_id.y * 6 + 5;
+    }
+
+    {
+      thrust::sort_by_key(D_t_T_r.begin(), D_t_T_r.end(), D_t_T_c.begin());
+
+      host_vector<int> start_index(data_container->num_contacts * 12 * 2);
+
+      int last_body = (thrust::reduce_by_key(D_t_T_r.begin(), D_t_T_r.end(), thrust::constant_iterator<uint>(1),
+                                             D_t_T_c.begin(), start_index.begin()).second) -
+                      start_index.begin();
+
+      start_index.resize(last_body);
+      thrust::inclusive_scan(start_index.begin(), start_index.end(), start_index.begin());
+
+      for (int i = 0; i < last_body; i++) {
+        uint start = (i == 0) ? 0 : start_index[i - 1];
+        uint end = start_index[i];
+        int row = D_t_T_r[i];
+        for (int index = start; index < end; index++) {
+          int col = D_t_T_c[index];
+          D_t.append(row, col, 1);
+        }
+        D_t.finalize(row);
+      }
+    }
+  }
+
+  if (solver_mode == SPINNING) {
+#pragma omp parallel for
+    for (int index = 0; index < data_container->num_contacts; index++) {
+      int2 body_id = ids[index];
+      int row = index;
+
+      D_s_T_c[index * 18 + 0] = row * 3 + 0;
+      D_s_T_r[index * 18 + 0] = body_id.x * 6 + 3;
+      D_s_T_c[index * 18 + 1] = row * 3 + 0;
+      D_s_T_r[index * 18 + 1] = body_id.x * 6 + 4;
+      D_s_T_c[index * 18 + 2] = row * 3 + 0;
+      D_s_T_r[index * 18 + 2] = body_id.x * 6 + 5;
+
+      D_s_T_c[index * 18 + 3] = row * 3 + 0;
+      D_s_T_r[index * 18 + 3] = body_id.y * 6 + 3;
+      D_s_T_c[index * 18 + 4] = row * 3 + 0;
+      D_s_T_r[index * 18 + 4] = body_id.y * 6 + 4;
+      D_s_T_c[index * 18 + 5] = row * 3 + 0;
+      D_s_T_r[index * 18 + 5] = body_id.y * 6 + 5;
+
+      D_s_T_c[index * 18 + 6] = row * 3 + 1;
+      D_s_T_r[index * 18 + 6] = body_id.x * 6 + 3;
+      D_s_T_c[index * 18 + 7] = row * 3 + 1;
+      D_s_T_r[index * 18 + 7] = body_id.x * 6 + 4;
+      D_s_T_c[index * 18 + 8] = row * 3 + 1;
+      D_s_T_r[index * 18 + 8] = body_id.x * 6 + 5;
+
+      D_s_T_c[index * 18 + 9] = row * 3 + 1;
+      D_s_T_r[index * 18 + 9] = body_id.y * 6 + 3;
+      D_s_T_c[index * 18 + 10] = row * 3 + 1;
+      D_s_T_r[index * 18 + 10] = body_id.y * 6 + 4;
+      D_s_T_c[index * 18 + 11] = row * 3 + 1;
+      D_s_T_r[index * 18 + 11] = body_id.y * 6 + 5;
+
+      D_s_T_c[index * 18 + 12] = row * 3 + 2;
+      D_s_T_r[index * 18 + 12] = body_id.x * 6 + 3;
+      D_s_T_c[index * 18 + 13] = row * 3 + 2;
+      D_s_T_r[index * 18 + 13] = body_id.x * 6 + 4;
+      D_s_T_c[index * 18 + 14] = row * 3 + 2;
+      D_s_T_r[index * 18 + 14] = body_id.x * 6 + 5;
+
+      D_s_T_c[index * 18 + 15] = row * 3 + 2;
+      D_s_T_r[index * 18 + 15] = body_id.y * 6 + 3;
+      D_s_T_c[index * 18 + 16] = row * 3 + 2;
+      D_s_T_r[index * 18 + 16] = body_id.y * 6 + 4;
+      D_s_T_c[index * 18 + 17] = row * 3 + 2;
+      D_s_T_r[index * 18 + 17] = body_id.y * 6 + 5;
+    }
+
+    {
+      thrust::sort_by_key(D_s_T_r.begin(), D_s_T_r.end(), D_s_T_c.begin());
+
+      host_vector<int> start_index(data_container->num_contacts * 18);
+
+      int last_body = (thrust::reduce_by_key(D_s_T_r.begin(), D_s_T_r.end(), thrust::constant_iterator<uint>(1),
+                                             D_s_T_c.begin(), start_index.begin()).second) -
+                      start_index.begin();
+
+      start_index.resize(last_body);
+      thrust::inclusive_scan(start_index.begin(), start_index.end(), start_index.begin());
+
+      for (int i = 0; i < last_body; i++) {
+        uint start = (i == 0) ? 0 : start_index[i - 1];
+        uint end = start_index[i];
+        int row = D_s_T_r[i];
+        for (int index = start; index < end; index++) {
+          int col = D_s_T_c[index];
+          D_s.append(row, col, 1);
+        }
+        D_s.finalize(row);
+      }
+    }
+  }
+}
+
 typedef blaze::CompressedMatrix<real> SpMat;
 
 using blaze::SparseSubmatrix;
