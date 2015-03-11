@@ -75,6 +75,7 @@ void ChLcpSolverParallelDVI::RunTimeStep() {
       solver->SetMaxIterations(data_container->settings.solver.max_iteration_normal);
       data_container->settings.solver.local_solver_mode = NORMAL;
       SetR();
+      LOG(INFO) << "ChLcpSolverParallelDVI::RunTimeStep - Solve Normal";
       solver->Solve();
     }
   }
@@ -84,6 +85,7 @@ void ChLcpSolverParallelDVI::RunTimeStep() {
       solver->SetMaxIterations(data_container->settings.solver.max_iteration_sliding);
       data_container->settings.solver.local_solver_mode = SLIDING;
       SetR();
+      LOG(INFO) << "ChLcpSolverParallelDVI::RunTimeStep - Solve Sliding";
       solver->Solve();
     }
   }
@@ -92,6 +94,7 @@ void ChLcpSolverParallelDVI::RunTimeStep() {
       solver->SetMaxIterations(data_container->settings.solver.max_iteration_spinning);
       data_container->settings.solver.local_solver_mode = SPINNING;
       SetR();
+      LOG(INFO) << "ChLcpSolverParallelDVI::RunTimeStep - Solve Spinning";
       solver->Solve();
     }
   }
@@ -107,9 +110,8 @@ void ChLcpSolverParallelDVI::RunTimeStep() {
   }
   tot_iterations = data_container->measures.solver.iter_hist.size();
 
-#if PRINT_LEVEL == 2
-  std::cout << "Solve Done: " << residual << std::endl;
-#endif
+  LOG(TRACE) << "Solve Done: " << residual;
+
 }
 
 void ChLcpSolverParallelDVI::ComputeD() {
