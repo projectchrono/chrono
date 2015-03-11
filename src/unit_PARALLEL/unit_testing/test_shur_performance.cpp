@@ -33,7 +33,6 @@
 //#include <blaze/math/SymmetricMatrix.h>
 using blaze::CompressedMatrix;
 using blaze::DynamicVector;
-using namespace std;
 using namespace chrono;
 using namespace chrono::collision;
 using namespace chrono::utils;
@@ -113,8 +112,8 @@ int main(int argc, char* argv[]) {
   chrono::ChMatrixDynamic<double> mdgamma;
   sysd->ConvertToMatrixForm(&mdCq, &mdM, &mdE, &mdf, &mdb, &mdfric);
 
-  cout << mdM.GetRows() << " " << mdM.GetColumns() << endl;
-  cout << mdCq.GetRows() << " " << mdCq.GetColumns() << endl;
+  std::cout << mdM.GetRows() << " " << mdM.GetColumns() << std::endl;
+  std::cout << mdCq.GetRows() << " " << mdCq.GetColumns() << std::endl;
 
   //   int mn_c = 0;
   //   for (unsigned int ic = 0; ic < mconstraints.size(); ic++) {
@@ -168,7 +167,7 @@ int main(int argc, char* argv[]) {
     rhs_vector[ic] = mb(ic, 0);
   }
 
-  cout << N.rows() << " " << N.columns() << endl;
+  std::cout << N.rows() << " " << N.columns() << std::endl;
 
   ChTimer<double> timer;
   timer.start();
