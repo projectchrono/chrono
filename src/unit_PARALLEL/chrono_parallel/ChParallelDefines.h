@@ -69,12 +69,10 @@ using namespace thrust;
 #endif
 #endif
 
-// Output Verbosity Level
-// Level 0: none
-// Level 1: basic
-// Level 2: more verbose
-#define PRINT_LEVEL 0
 
+// Enable thread safe logging
+#define ELPP_THREAD_SAFE
+#include "third_party/easylogging/easylogging.h"
 
 #define CHVECCAST(v) ChVector<>(v.x, v.y, v.z)
 #define CHQUATCAST(q) ChQuaternion<>(q.w, q.x, q.y, q.z)
@@ -136,5 +134,8 @@ enum BILATERALTYPE { BODY_BODY, SHAFT_SHAFT, SHAFT_SHAFT_SHAFT, SHAFT_BODY, SHAF
 
 // DEM contact force model
 enum CONTACTFORCEMODEL { HOOKE, HERTZ };
+
+// Supported Logging Levels
+enum LOGGINGLEVEL {LOG_NONE, LOG_INFO, LOG_TRACE, LOG_WARNING, LOG_ERROR};
 
 #endif

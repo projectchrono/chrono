@@ -81,6 +81,7 @@ void ChCollisionSystemParallel::Remove(ChCollisionModel* model) {
 }
 
 void ChCollisionSystemParallel::Run() {
+  LOG(INFO) << "ChCollisionSystemParallel::Run()";
   if (data_container->settings.collision.use_aabb_active) {
     custom_vector<bool> body_active(data_container->num_bodies, false);
     GetOverlappingAABB(

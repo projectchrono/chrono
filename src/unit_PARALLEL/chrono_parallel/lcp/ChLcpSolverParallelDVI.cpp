@@ -16,6 +16,7 @@
 using namespace chrono;
 
 void ChLcpSolverParallelDVI::RunTimeStep() {
+  LOG(INFO) << "ChLcpSolverParallelDVI::RunTimeStep";
   // Compute the offsets and number of constrains depending on the solver mode
   if (data_container->settings.solver.solver_mode == NORMAL) {
     rigid_rigid.offset = 1;
@@ -112,6 +113,7 @@ void ChLcpSolverParallelDVI::RunTimeStep() {
 }
 
 void ChLcpSolverParallelDVI::ComputeD() {
+  LOG(INFO) << "ChLcpSolverParallelDVI::ComputeD()";
   data_container->system_timer.start("ChLcpSolverParallel_D");
   uint num_constraints = data_container->num_constraints;
   if (num_constraints <= 0) {
@@ -219,6 +221,7 @@ void ChLcpSolverParallelDVI::ComputeD() {
 }
 
 void ChLcpSolverParallelDVI::ComputeE() {
+  LOG(INFO) << "ChLcpSolverParallelDVI::ComputeE()";
   data_container->system_timer.start("ChLcpSolverParallel_E");
   if (data_container->num_constraints <= 0) {
     return;
@@ -233,6 +236,7 @@ void ChLcpSolverParallelDVI::ComputeE() {
 }
 
 void ChLcpSolverParallelDVI::ComputeR() {
+  LOG(INFO) << "ChLcpSolverParallelDVI::ComputeR()";
   data_container->system_timer.start("ChLcpSolverParallel_R");
   if (data_container->num_constraints <= 0) {
     return;
@@ -297,6 +301,7 @@ void ChLcpSolverParallelDVI::ComputeR() {
 }
 
 void ChLcpSolverParallelDVI::ComputeN() {
+  LOG(INFO) << "ChLcpSolverParallelDVI::ComputeN()";
   if (!data_container->settings.solver.compute_N) {
     return;
   }
@@ -394,6 +399,7 @@ void ChLcpSolverParallelDVI::ComputeN() {
 }
 
 void ChLcpSolverParallelDVI::SetR() {
+  LOG(INFO) << "ChLcpSolverParallelDVI::SetR()";
   if (data_container->num_constraints <= 0) {
     return;
   }
@@ -433,6 +439,7 @@ void ChLcpSolverParallelDVI::SetR() {
 }
 
 void ChLcpSolverParallelDVI::ComputeImpulses() {
+  LOG(INFO) << "ChLcpSolverParallelDVI::ComputeImpulses()";
   DynamicVector<real>& v = data_container->host_data.v;
 
   const DynamicVector<real>& M_invk = data_container->host_data.M_invk;

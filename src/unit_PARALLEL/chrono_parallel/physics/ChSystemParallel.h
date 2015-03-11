@@ -89,6 +89,8 @@ class CH_PARALLEL_API ChSystemParallel : public ChSystem {
 
   settings_container* GetSettings() { return &(data_manager->settings); }
 
+  void SetLoggingLevel(LOGGINGLEVEL level);
+
   ChParallelDataManager* data_manager;
 
  protected:

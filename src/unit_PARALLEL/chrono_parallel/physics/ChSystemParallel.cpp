@@ -10,6 +10,8 @@
 using namespace chrono;
 using namespace chrono::collision;
 
+INITIALIZE_EASYLOGGINGPP
+
 ChSystemParallel::ChSystemParallel(unsigned int max_objects) : ChSystem(1000, 10000, false) {
   data_manager = new ChParallelDataManager();
 
@@ -39,6 +41,21 @@ ChSystemParallel::ChSystemParallel(unsigned int max_objects) : ChSystem(1000, 10
   data_manager->system_timer.AddTimer("ChLcpSolverParallel_Solve");
   data_manager->system_timer.AddTimer("ChLcpSolverParallel_Setup");
   data_manager->system_timer.AddTimer("ChLcpSolverParallel_Stab");
+
+//  el::Configurations logger_config;
+//  logger_config.setToDefault();
+//  logger_config.set(el::Level::Debug, el::ConfigurationType::ToStandardOutput, "false");
+//  logger_config.set(el::Level::Error, el::ConfigurationType::ToStandardOutput, "false");
+//  logger_config.set(el::Level::Fatal, el::ConfigurationType::ToStandardOutput, "false");
+//  logger_config.set(el::Level::Global, el::ConfigurationType::ToStandardOutput, "false");
+//  logger_config.set(el::Level::Info, el::ConfigurationType::ToStandardOutput, "false");
+//  logger_config.set(el::Level::Trace, el::ConfigurationType::ToStandardOutput, "false");
+//  logger_config.set(el::Level::Verbose, el::ConfigurationType::ToStandardOutput, "false");
+//  logger_config.set(el::Level::Warning, el::ConfigurationType::ToStandardOutput, "false");
+//  el::Loggers::reconfigureAllLoggers(logger_config);
+
+  el::Loggers::reconfigureAllLoggers(el::ConfigurationType::ToStandardOutput, "false");
+  el::Loggers::reconfigureAllLoggers(el::ConfigurationType::Format, "%datetime{%h:%m:%s:%g} %msg");
 }
 
 ChSystemParallel::~ChSystemParallel() {
@@ -46,6 +63,7 @@ ChSystemParallel::~ChSystemParallel() {
 }
 
 int ChSystemParallel::Integrate_Y() {
+  LOG(INFO) << "ChSystemParallel::Integrate_Y()";
   // Get the pointer for the system descriptor and store it into the data manager
   data_manager->lcp_system_descriptor = this->LCP_descriptor;
   data_manager->body_list = &this->bodylist;
@@ -262,6 +280,7 @@ void ChSystemParallel::ClearForceVariables() {
 // 6. Process bilateral constraints
 //
 void ChSystemParallel::Update() {
+  LOG(INFO) << "ChSystemParallel::Update()";
   // Clear the forces for all lcp variables
   ClearForceVariables();
 
@@ -288,6 +307,7 @@ void ChSystemParallel::Update() {
 // vectors.
 //
 void ChSystemParallel::UpdateBodies() {
+  LOG(INFO) << "ChSystemParallel::UpdateBodies()";
   custom_vector<real3>& position = data_manager->host_data.pos_data;
   custom_vector<real4>& rotation = data_manager->host_data.rot_data;
   custom_vector<bool>& active = data_manager->host_data.active_data;
@@ -483,6 +503,7 @@ void ChSystemParallel::UpdateBilaterals() {
 // override this function, but it should invoke this default implementation.
 //
 void ChSystemParallel::Setup() {
+  LOG(INFO) << "ChSystemParallel::Setup()";
   // Cache the integration step size and calculate the tolerance at impulse level.
   data_manager->settings.step_size = step;
   data_manager->settings.solver.tol_speed = step * data_manager->settings.solver.tolerance;
@@ -654,4 +675,32 @@ void ChSystemParallel::ChangeCollisionSystem(COLLISIONSYSTEMTYPE type) {
       collision_system = new ChCollisionSystemBulletParallel(data_manager);
       break;
   }
+}
+
+void ChSystemParallel::SetLoggingLevel(LOGGINGLEVEL level) {
+  el::Configurations logger_config;
+  logger_config.setToDefault();
+
+  switch (level) {
+    case LOG_NONE:
+      el::Loggers::reconfigureAllLoggers(el::ConfigurationType::ToStandardOutput, "false");
+      break;
+    case LOG_INFO:
+      el::Loggers::reconfigureAllLoggers(el::ConfigurationType::ToStandardOutput, "false");
+      logger_config.set(el::Level::Info, el::ConfigurationType::ToStandardOutput, "true");
+      break;
+    case LOG_TRACE:
+      el::Loggers::reconfigureAllLoggers(el::ConfigurationType::ToStandardOutput, "false");
+      logger_config.set(el::Level::Trace, el::ConfigurationType::ToStandardOutput, "true");
+      break;
+    case LOG_WARNING:
+      el::Loggers::reconfigureAllLoggers(el::ConfigurationType::ToStandardOutput, "false");
+      logger_config.set(el::Level::Warning, el::ConfigurationType::ToStandardOutput, "true");
+      break;
+    case LOG_ERROR:
+      el::Loggers::reconfigureAllLoggers(el::ConfigurationType::ToStandardOutput, "false");
+      logger_config.set(el::Level::Error, el::ConfigurationType::ToStandardOutput, "true");
+      break;
+  }
+  el::Loggers::reconfigureAllLoggers(logger_config);
 }
