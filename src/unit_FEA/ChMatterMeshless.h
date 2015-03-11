@@ -1,7 +1,6 @@
 //
 // PROJECT CHRONO - http://projectchrono.org
 //
-// Copyright (c) 2010 Alessandro Tasora
 // Copyright (c) 2013 Project Chrono
 // All rights reserved.
 //
@@ -9,18 +8,19 @@
 // found in the LICENSE file at the top level of the distribution
 // and at http://projectchrono.org/license-chrono.txt.
 //
+// File authors: Alessandro Tasora
 
-#ifndef CHMATTERSPH_H
-#define CHMATTERSPH_H
+#ifndef CHMATTERMESHLESS_H
+#define CHMATTERMESHLESS_H
 
 //////////////////////////////////////////////////
 //
-//   ChMatterSPH.h
+//   ChMatterMeshless.h
 //
-//   Class for clusters of points that can 
-//   simulate a fluid or an elastic / plastic
-//   solid with the SPH Smooth Particle Hydrodynamics
-//   approach, that is with a 'meshless' FEA approach.
+//   Class for clusters of nodes that can 
+//   simulate a visco-elasto-plastic deformable solid 
+//   using the approach in Mueller ("Point based.." paper)
+//   that is with a 'meshless' FEA approach.
 //
 //   HEADER file for CHRONO,
 //	 Multibody dynamics engine
@@ -33,39 +33,49 @@
 
 #include <math.h>
 
+#include "ChApiFEA.h"
 #include "physics/ChIndexedNodes.h"
 #include "physics/ChNodeXYZ.h"
-#include "physics/ChContinuumMaterial.h"
 #include "collision/ChCCollisionModel.h"
 #include "lcp/ChLcpVariablesNode.h"
-
+#include "physics/ChContinuumMaterial.h"
 
 namespace chrono
 {
 
-
 // Forward references (for parent hierarchy pointer)
-
 class ChSystem;
 
+namespace fea
+{
 
-/// Class for a single node in the SPH cluster
-/// (it does not define mass, inertia and shape becuase those
-/// data are shared between them)
+using namespace collision;
 
-class ChApi ChNodeSPH : public ChNodeXYZ  
+
+
+
+
+
+/// Class for a single node in the meshless FEA  cluster
+
+class ChApiFea ChNodeMeshless : public ChNodeXYZ  
 {
 public:
-	ChNodeSPH();
-	~ChNodeSPH();
+	ChNodeMeshless();
+	~ChNodeMeshless();
 
-	ChNodeSPH (const ChNodeSPH& other); // Copy constructor
-	ChNodeSPH& operator= (const ChNodeSPH& other); //Assignment operator
+	ChNodeMeshless (const ChNodeMeshless& other); // Copy constructor
+	ChNodeMeshless& operator= (const ChNodeMeshless& other); //Assignment operator
 
 					//
 					// FUNCTIONS
 					//
 
+			// Reference (initial) position of the node - in absolute csys.
+			// Note that the simulation algorithm might reset this once in a while, exp. for highly plastic objects.
+	ChVector<> GetPosReference() {return pos_ref;}
+			// Reference (initial) position of the node - in absolute csys. 
+	void SetPosReference(const ChVector<>& mpos) {pos_ref = mpos;}
 
 			// Get the kernel radius (max. radius while checking surrounding particles)
 	double GetKernelRadius() {return h_rad;}
@@ -86,82 +96,40 @@ public:
 					//
 					// DATA
 					// 
+	ChVector<> pos_ref; 
 	
-	ChLcpVariablesNode  variables;
+	ChMatrix33<> Amoment;
+	ChMatrix33<> J;
+	ChMatrix33<> FA;
 
-	collision::ChCollisionModel*  collision_model;
+	ChStrainTensor<> t_strain; //
+	ChStrainTensor<> p_strain; // plastic strain
+	ChStrainTensor<> e_strain; // elastic strain
+	ChStressTensor<> e_stress; // stress
 
-	ChVector<> UserForce;
+	ChLcpVariablesNode	variables;
+	ChCollisionModel*	collision_model;
+
+	ChVector<> UserForce;		
 
 	double volume; 
 	double density;
 	double h_rad;
 	double coll_rad;
-	double pressure;
+	double hardening;
 };
 
 
 
-/// Class for SPH fluid material, with basic property 
-/// of uncompressible fluid. 
+/// Class for clusters of nodes that can 
+/// simulate a visco-elasto-plastic deformable solid 
+/// using the approach in Mueller ("Point based.." 2004 paper)
+/// that is with a 'meshless' FEA approach.
 
-class ChApi ChContinuumSPH : public fea::ChContinuumMaterial
-{
-private:
-
-	double viscosity;
-	double surface_tension;
-	double pressure_stiffness;
-
-public:
-
-			/// Create a continuum isothropic elastoplastic material,
-			/// where you can define also plastic and elastic max. stress (yeld limits
-			/// for transition elastic->blastic and plastic->fracture).
-	ChContinuumSPH(double m_refdensity = 1000, double mviscosity = 0.1, double mtension= 0) 
-				: viscosity(mviscosity), surface_tension(mtension), pressure_stiffness(100), ChContinuumMaterial(m_refdensity) {};
-
-	virtual ~ChContinuumSPH() {};
-	
-
-			/// Set the viscosity, in [Pa s] units. 
-	void   Set_viscosity (double mvisc) {viscosity = mvisc;}
-			/// Get the viscosity.
-	double Get_viscosity () {return viscosity;}
-
-			/// Set the surface tension coefficient. 
-	void   Set_surface_tension (double mten) {surface_tension = mten;}
-			/// Get the surface tension coefficient.
-	double Get_surface_tension() {return surface_tension;}
-
-			/// Set the pressure stiffness (should be infinite for water
-			/// or other almost-incompressible fluids, but too large 
-			/// values can cause numerical troubles).
-	void   Set_pressure_stiffness (double mst) {pressure_stiffness = mst;}
-			/// Set the pressure stiffness.
-	double Get_pressure_stiffness() {return pressure_stiffness;}
-
-
-				/// Method to allow deserializing 
-	void StreamIN(ChStreamInBinary& mstream);
-
-				/// Method to allow serializing 
-	void StreamOUT(ChStreamOutBinary& mstream);
-
-};
-
-
-
-
-/// Class for clusters of point nodes that can 
-/// simulate a fluid or an elastic / plastic
-/// solid with the SPH Smooth Particle Hydrodynamics
-/// approach, that is with a 'meshless' FEA approach.
-
-class ChApi ChMatterSPH : public ChIndexedNodes
+class ChApiFea ChMatterMeshless : public ChIndexedNodes
 {
 						// Chrono simulation of RTTI, needed for serialization
-	CH_RTTI(ChMatterSPH,ChIndexedNodes);
+	CH_RTTI(ChMatterMeshless,ChIndexedNodes);
 
 private:
 			//
@@ -169,9 +137,12 @@ private:
 			//
 	
 						// The nodes: 
-	std::vector< ChSharedPtr<ChNodeSPH> > nodes;				
+	std::vector< ChSharedPtr<ChNodeMeshless> > nodes;				
 
-	ChContinuumSPH material;
+	//ChContinuumPlasticVonMises material;
+	ChSharedPtr<ChContinuumElastoplastic> material; //* ChContinuumDruckerPrager material; //***TEST***
+
+	double viscosity;
 
 	bool do_collide;
 
@@ -181,15 +152,15 @@ public:
 	  		// CONSTRUCTORS
 			//
 
-				/// Build a cluster of nodes for SPH and meshless FEM.
+				/// Build a cluster of nodes for Meshless and meshless FEA.
 				/// By default the cluster will contain 0 particles.
-	ChMatterSPH ();
+	ChMatterMeshless ();
 
 				/// Destructor
-	~ChMatterSPH ();
+	~ChMatterMeshless ();
 
-				/// Copy from another ChMatterSPH. 
-	void Copy(ChMatterSPH* source);
+				/// Copy from another ChMatterMeshless. 
+	void Copy(ChMatterMeshless* source);
 
 
 			//
@@ -214,7 +185,7 @@ public:
 	  		// FUNCTIONS
 			//
 
-			 	/// Get the number of nodes
+				/// Get the number of nodes
 	unsigned int GetNnodes() {return (unsigned int) nodes.size();}
 
 				/// Access the N-th node 
@@ -227,7 +198,6 @@ public:
 				/// Add a new node to the particle cluster, passing a 
 				/// vector as initial position.
 	void AddNode(ChVector<double> initial_state);
-
 
 		//
 		// STATE FUNCTIONS
@@ -250,48 +220,20 @@ public:
 			 // Override/implement LCP system functions of ChPhysicsItem
 			 // (to assembly/manage data for LCP system solver)
 
-				/// Sets the 'fb' part of the encapsulated ChLcpVariablesBody to zero.
 	void VariablesFbReset();
 
-				/// Adds the current forces applied to body (including gyroscopic torque) in
-				/// encapsulated ChLcpVariablesBody, in the 'fb' part: qf+=forces*factor
 	void VariablesFbLoadForces(double factor=1.);
 
-				/// Initialize the 'qb' part of the ChLcpVariablesBody with the 
-				/// current value of body speeds. Note: since 'qb' is the unknown of the LCP, this
-				/// function seems unuseful, unless used before VariablesFbIncrementMq()
 	void VariablesQbLoadSpeed();
 
-				/// Adds M*q (masses multiplied current 'qb') to Fb, ex. if qb is initialized
-				/// with v_old using VariablesQbLoadSpeed, this method can be used in 
-				/// timestepping schemes that do: M*v_new = M*v_old + forces*dt
 	void VariablesFbIncrementMq();
 
-				/// Fetches the body speed (both linear and angular) from the
-				/// 'qb' part of the ChLcpVariablesBody (does not updates the full body&markers state)
-				/// and sets it as the current body speed.
-				/// If 'step' is not 0, also computes the approximate acceleration of
-				/// the body using backward differences, that is  accel=(new_speed-old_speed)/step.
-				/// Mostly used after the LCP provided the solution in ChLcpVariablesBody .
 	void VariablesQbSetSpeed(double step=0.);
 
-				/// Increment body position by the 'qb' part of the ChLcpVariablesBody,
-				/// multiplied by a 'step' factor.
-				///     pos+=qb*step
-				/// If qb is a speed, this behaves like a single step of 1-st order
-				/// numerical integration (Eulero integration).
-				/// Does not automatically update markers & forces.
 	void VariablesQbIncrementPosition(double step);
 
-
-				/// Tell to a system descriptor that there are variables of type
-				/// ChLcpVariables in this object (for further passing it to a LCP solver)
-				/// Basically does nothing, but maybe that inherited classes may specialize this.
 	virtual void InjectVariables(ChLcpSystemDescriptor& mdescriptor);
 
-
-
- 
 
 
 			   // Other functions
@@ -309,9 +251,17 @@ public:
 
 
 				/// Access the material
-	ChContinuumSPH&  GetMaterial() {return material;}
-	
-				/// Initialize the fluid as a prismatic region filled with nodes,
+	ChSharedPtr<ChContinuumElastoplastic>&  GetMaterial() {return material;}
+				/// Change the default material (by default it is a ChContinuumPlasticVonMises )
+				/// with a new one, that you create and handle with smart pointer, so you do not have to worry about deletion.
+	void ReplaceMaterial(ChSharedPtr<ChContinuumElastoplastic> newmaterial);
+
+				/// Set the Newtonian viscosity of the material
+	void SetViscosity(double mvisc) { viscosity=mvisc;}
+				/// Get the Newtonian viscosity of the material
+	double GetViscosity() {return viscosity;}
+
+				/// Initialize the material as a prismatic region filled with nodes,
 				/// initially well ordered as a lattice. This is a helper function
 				/// so that you avoid to create all nodes one by one with many calls
 				/// to AddNode() .
@@ -319,7 +269,7 @@ public:
 				  const double spacing,		///< the spacing between two near nodes
 				  const double initial_density, ///< density of the material inside the box, for initialization of node's masses
 				  const ChCoordsys<> cords = CSYSNORM, ///< position and rotation of the box
-				  const bool do_centeredcube =true,	///< if false, array is simply cubic, if true is centered cubes (highest regularity)
+				  const bool do_centeredcube =false,   ///< if false, array is simply cubic, if true is centered cubes (highest regularity)
 				  const double kernel_sfactor =2.2,  ///< the radius of kernel of the particle is 'spacing' multiplied this value
 				  const double randomness = 0.0	///< randomness of the initial distribution lattice, 0...1
 				  );
@@ -354,11 +304,12 @@ public:
 
 
 
+// A shortcut..
+typedef ChSharedPtr<ChMatterMeshless> ChSharedMatterMeshlessPtr;
 
-typedef ChSharedPtr<ChMatterSPH> ChSharedMatterSPHPtr;
 
 
-
+} // END_OF_NAMESPACE____
 } // END_OF_NAMESPACE____
 
 

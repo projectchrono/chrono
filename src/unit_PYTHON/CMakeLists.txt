@@ -271,11 +271,11 @@ IF(ENABLE_UNIT_POSTPROCESS)
 ENDIF(ENABLE_UNIT_POSTPROCESS)	
 
 
-IF(ENABLE_UNIT_FEM)
+IF(ENABLE_UNIT_FEA)
 	
 	#-----------------------------------------------------------------------------
 	#
-	# MODULE for the ChronoEngine_PYTHON_fem python wrapper.
+	# MODULE for the ChronoEngine_PYTHON_fea python wrapper.
 	#
 	# This will build a .pyd python module to be imported via Python language,
 	# not a .dll to be used with c++!!
@@ -284,8 +284,8 @@ IF(ENABLE_UNIT_FEM)
 	# here and re-run the CMake.
 	#
 	
-	SET(ChronoEngine_unit_SWIG_PYTHON_CONFIG_fem 
-		ChModuleFem.i
+	SET(ChronoEngine_unit_SWIG_PYTHON_CONFIG_fea 
+		ChModuleFea.i
 		)
 				
 	INCLUDE_DIRECTORIES(${PYTHON_INCLUDE_PATH})
@@ -293,58 +293,58 @@ IF(ENABLE_UNIT_FEM)
 	SET(CMAKE_SWIG_FLAGS "-c++")
 	IF(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
 		SET(CMAKE_SWIG_OUTDIR "${CH_PYTHONDIR_PY}")
-		SET_SOURCE_FILES_PROPERTIES(${ChronoEngine_unit_SWIG_PYTHON_CONFIG_fem} PROPERTIES COMPILE_FLAGS "-DWIN32")
+		SET_SOURCE_FILES_PROPERTIES(${ChronoEngine_unit_SWIG_PYTHON_CONFIG_fea} PROPERTIES COMPILE_FLAGS "-DWIN32")
 	ENDIF()
 	IF(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
 		SET(CMAKE_SWIG_OUTDIR "${PROJECT_BINARY_DIR}/python")
 	ENDIF()
 	 
-	SET_SOURCE_FILES_PROPERTIES(${ChronoEngine_unit_SWIG_PYTHON_CONFIG_fem} PROPERTIES CPLUSPLUS ON)
+	SET_SOURCE_FILES_PROPERTIES(${ChronoEngine_unit_SWIG_PYTHON_CONFIG_fea} PROPERTIES CPLUSPLUS ON)
 
 	
-	# SET_SOURCE_FILES_PROPERTIES(${ChronoEngine_unit_SWIG_PYTHON_WRAPPERS_fem} PROPERTIES HEADER_FILE_ONLY TRUE)
+	# SET_SOURCE_FILES_PROPERTIES(${ChronoEngine_unit_SWIG_PYTHON_WRAPPERS_fea} PROPERTIES HEADER_FILE_ONLY TRUE)
 
-	SWIG_ADD_MODULE(ChronoEngine_PYTHON_fem python ${ChronoEngine_unit_SWIG_PYTHON_CONFIG_fem}) 
-	SWIG_LINK_LIBRARIES(ChronoEngine_PYTHON_fem 
+	SWIG_ADD_MODULE(ChronoEngine_PYTHON_fea python ${ChronoEngine_unit_SWIG_PYTHON_CONFIG_fea}) 
+	SWIG_LINK_LIBRARIES(ChronoEngine_PYTHON_fea 
 						${PYTHON_LIBRARY}
 						ChronoEngine
-						ChronoEngine_FEM
+						ChronoEngine_FEA
 						)
-	SET_TARGET_PROPERTIES(${SWIG_MODULE_ChronoEngine_PYTHON_fem_REAL_NAME} PROPERTIES 
-					PROJECT_LABEL "ChronoEngine_PYTHON_fem"
-					OUTPUT_NAME   "_ChronoEngine_PYTHON_fem"
+	SET_TARGET_PROPERTIES(${SWIG_MODULE_ChronoEngine_PYTHON_fea_REAL_NAME} PROPERTIES 
+					PROJECT_LABEL "ChronoEngine_PYTHON_fea"
+					OUTPUT_NAME   "_ChronoEngine_PYTHON_fea"
 					LIBRARY_OUTPUT_DIRECTORY "."	
 					)
 					
-	ADD_DEPENDENCIES (${SWIG_MODULE_ChronoEngine_PYTHON_fem_REAL_NAME} ChronoEngine)  
-	ADD_DEPENDENCIES (${SWIG_MODULE_ChronoEngine_PYTHON_fem_REAL_NAME} ChronoEngine_FEM) 
+	ADD_DEPENDENCIES (${SWIG_MODULE_ChronoEngine_PYTHON_fea_REAL_NAME} ChronoEngine)  
+	ADD_DEPENDENCIES (${SWIG_MODULE_ChronoEngine_PYTHON_fea_REAL_NAME} ChronoEngine_FEA) 
 						
 						
 	# To complete the build process, the .pyd and necessary .dll libraries 
 	# must be copied into the DLLs directory (it will be needed by the .pyd file), so..
-			#  ... get the name of the most recent Chrono::Engine fem library to copy:
-	GET_TARGET_PROPERTY(CH_CHRONOFEM_LIBNAME ChronoEngine_FEM LOCATION)
+			#  ... get the name of the most recent Chrono::Engine fea library to copy:
+	GET_TARGET_PROPERTY(CH_CHRONOFEA_LIBNAME ChronoEngine_FEA LOCATION)
 			#  ... get the name of the .pyd library to copy:
-	GET_TARGET_PROPERTY(CH_CHRONOFEMPYD_LIBNAME ${SWIG_MODULE_ChronoEngine_PYTHON_fem_REAL_NAME} LOCATION)
+	GET_TARGET_PROPERTY(CH_CHRONOFEAPYD_LIBNAME ${SWIG_MODULE_ChronoEngine_PYTHON_fea_REAL_NAME} LOCATION)
 			#  ... then copy them to the DLLs Python folder for .pyd and .dll files
 	ADD_CUSTOM_COMMAND(
-				TARGET ${SWIG_MODULE_ChronoEngine_PYTHON_fem_REAL_NAME}
+				TARGET ${SWIG_MODULE_ChronoEngine_PYTHON_fea_REAL_NAME}
 				POST_BUILD
 				COMMAND ${CMAKE_COMMAND} -E copy 
-					${CH_CHRONOFEM_LIBNAME} 
+					${CH_CHRONOFEA_LIBNAME} 
 					${CH_PYTHONDIR_PYD}/.
 				COMMAND ${CMAKE_COMMAND} -E copy 
-					${CH_CHRONOFEMPYD_LIBNAME} 
+					${CH_CHRONOFEAPYD_LIBNAME} 
 					${CH_PYTHONDIR_PYD}/.
 				)
 				
 					
 	#SET_PROPERTY(GLOBAL PROPERTY USE_FOLDERS ON)
-	SET_TARGET_PROPERTIES(${SWIG_MODULE_ChronoEngine_PYTHON_fem_REAL_NAME} PROPERTIES
+	SET_TARGET_PROPERTIES(${SWIG_MODULE_ChronoEngine_PYTHON_fea_REAL_NAME} PROPERTIES
 							FOLDER "ChronoEngine_PYTHON")
 					
 							
-ENDIF(ENABLE_UNIT_FEM)	
+ENDIF(ENABLE_UNIT_FEA)	
 
 
 
