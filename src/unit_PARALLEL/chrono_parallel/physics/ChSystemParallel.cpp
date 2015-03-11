@@ -42,18 +42,6 @@ ChSystemParallel::ChSystemParallel(unsigned int max_objects) : ChSystem(1000, 10
   data_manager->system_timer.AddTimer("ChLcpSolverParallel_Setup");
   data_manager->system_timer.AddTimer("ChLcpSolverParallel_Stab");
 
-  //  el::Configurations logger_config;
-  //  logger_config.setToDefault();
-  //  logger_config.set(el::Level::Debug, el::ConfigurationType::ToStandardOutput, "false");
-  //  logger_config.set(el::Level::Error, el::ConfigurationType::ToStandardOutput, "false");
-  //  logger_config.set(el::Level::Fatal, el::ConfigurationType::ToStandardOutput, "false");
-  //  logger_config.set(el::Level::Global, el::ConfigurationType::ToStandardOutput, "false");
-  //  logger_config.set(el::Level::Info, el::ConfigurationType::ToStandardOutput, "false");
-  //  logger_config.set(el::Level::Trace, el::ConfigurationType::ToStandardOutput, "false");
-  //  logger_config.set(el::Level::Verbose, el::ConfigurationType::ToStandardOutput, "false");
-  //  logger_config.set(el::Level::Warning, el::ConfigurationType::ToStandardOutput, "false");
-  //  el::Loggers::reconfigureAllLoggers(logger_config);
-
   el::Loggers::reconfigureAllLoggers(el::ConfigurationType::ToStandardOutput, "false");
   el::Loggers::reconfigureAllLoggers(el::ConfigurationType::Format, "%datetime{%h:%m:%s:%g} %msg");
 }
@@ -678,8 +666,6 @@ void ChSystemParallel::ChangeCollisionSystem(COLLISIONSYSTEMTYPE type) {
 }
 
 void ChSystemParallel::SetLoggingLevel(LOGGINGLEVEL level, bool state) {
-  el::Configurations logger_config;
-  logger_config.setToDefault();
   std::string value = state ? "true" : "false";
 
   switch (level) {
@@ -687,17 +673,16 @@ void ChSystemParallel::SetLoggingLevel(LOGGINGLEVEL level, bool state) {
       el::Loggers::reconfigureAllLoggers(el::ConfigurationType::ToStandardOutput, "false");
       break;
     case LOG_INFO:
-      logger_config.set(el::Level::Info, el::ConfigurationType::ToStandardOutput, value);
+      el::Loggers::reconfigureAllLoggers(el::Level::Info, el::ConfigurationType::ToStandardOutput, value);
       break;
     case LOG_TRACE:
-      logger_config.set(el::Level::Trace, el::ConfigurationType::ToStandardOutput, value);
+      el::Loggers::reconfigureAllLoggers(el::Level::Trace, el::ConfigurationType::ToStandardOutput, value);
       break;
     case LOG_WARNING:
-      logger_config.set(el::Level::Warning, el::ConfigurationType::ToStandardOutput, value);
+      el::Loggers::reconfigureAllLoggers(el::Level::Warning, el::ConfigurationType::ToStandardOutput, value);
       break;
     case LOG_ERROR:
-      logger_config.set(el::Level::Error, el::ConfigurationType::ToStandardOutput, value);
+      el::Loggers::reconfigureAllLoggers(el::Level::Error, el::ConfigurationType::ToStandardOutput, value);
       break;
   }
-  el::Loggers::reconfigureAllLoggers(logger_config);
 }
