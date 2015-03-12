@@ -640,12 +640,16 @@ void ChConstraintRigidRigid::GenerateSparsityTranspose() {
 
   host_vector<int> D_n_T_r(data_container->num_contacts * 12);
   host_vector<int> D_n_T_c(data_container->num_contacts * 12);
+  host_vector<int> start_n(data_container->num_contacts * 12);
 
-  host_vector<int> D_t_T_r(data_container->num_contacts * 12 * 2);
-  host_vector<int> D_t_T_c(data_container->num_contacts * 12 * 2);
+  host_vector<int> D_t_T_r;
+  host_vector<int> D_t_T_c;
+  host_vector<int> start_t;
 
-  host_vector<int> D_s_T_r(data_container->num_contacts * 18);
-  host_vector<int> D_s_T_c(data_container->num_contacts * 18);
+  host_vector<int> D_s_T_r;
+  host_vector<int> D_s_T_c;
+  host_vector<int> start_s;
+  int last_n, last_t, last_s;
 
 #pragma omp parallel for
   for (int index = 0; index < data_container->num_contacts; index++) {
@@ -677,31 +681,16 @@ void ChConstraintRigidRigid::GenerateSparsityTranspose() {
     D_n_T_c[index * 12 + 11] = row * 1 + 0;
     D_n_T_r[index * 12 + 11] = body_id.y * 6 + 5;
   }
-  {
-    thrust::sort_by_key(D_n_T_r.begin(), D_n_T_r.end(), D_n_T_c.begin());
 
-    host_vector<int> start_index(data_container->num_contacts * 12);
-
-    int last_body = (thrust::reduce_by_key(D_n_T_r.begin(), D_n_T_r.end(), thrust::constant_iterator<uint>(1),
-                                           D_n_T_c.begin(), start_index.begin()).second) -
-                    start_index.begin();
-
-    start_index.resize(last_body);
-    thrust::inclusive_scan(start_index.begin(), start_index.end(), start_index.begin());
-
-    for (int i = 0; i < last_body; i++) {
-      uint start = (i == 0) ? 0 : start_index[i - 1];
-      uint end = start_index[i];
-      int row = D_n_T_r[i];
-      for (int index = start; index < end; index++) {
-        int col = D_n_T_c[index];
-        D_n.append(row, col, 1);
-      }
-      D_n.finalize(row);
-    }
-  }
+  thrust::sort_by_key(D_n_T_r.begin(), D_n_T_r.end(), D_n_T_c.begin());
+  last_n = Thrust_Reduce_By_Key(D_n_T_r, D_n_T_c, start_n);
+  start_n.resize(last_n);
+  thrust::inclusive_scan(start_n.begin(), start_n.end(), start_n.begin());
 
   if (solver_mode == SLIDING || solver_mode == SPINNING) {
+    D_t_T_r.resize(data_container->num_contacts * 12 * 2);
+    D_t_T_c.resize(data_container->num_contacts * 12 * 2);
+    start_t.resize(data_container->num_contacts * 12 * 2);
 #pragma omp parallel for
     for (int index = 0; index < data_container->num_contacts; index++) {
       int2 body_id = ids[index];
@@ -764,32 +753,17 @@ void ChConstraintRigidRigid::GenerateSparsityTranspose() {
       D_t_T_r[index * 24 + 23] = body_id.y * 6 + 5;
     }
 
-    {
-      thrust::sort_by_key(D_t_T_r.begin(), D_t_T_r.end(), D_t_T_c.begin());
-
-      host_vector<int> start_index(data_container->num_contacts * 12 * 2);
-
-      int last_body = (thrust::reduce_by_key(D_t_T_r.begin(), D_t_T_r.end(), thrust::constant_iterator<uint>(1),
-                                             D_t_T_c.begin(), start_index.begin()).second) -
-                      start_index.begin();
-
-      start_index.resize(last_body);
-      thrust::inclusive_scan(start_index.begin(), start_index.end(), start_index.begin());
-
-      for (int i = 0; i < last_body; i++) {
-        uint start = (i == 0) ? 0 : start_index[i - 1];
-        uint end = start_index[i];
-        int row = D_t_T_r[i];
-        for (int index = start; index < end; index++) {
-          int col = D_t_T_c[index];
-          D_t.append(row, col, 1);
-        }
-        D_t.finalize(row);
-      }
-    }
+    thrust::sort_by_key(D_t_T_r.begin(), D_t_T_r.end(), D_t_T_c.begin());
+    last_t = Thrust_Reduce_By_Key(D_t_T_r, D_t_T_c, start_t);
+    start_t.resize(last_t);
+    thrust::inclusive_scan(start_t.begin(), start_t.end(), start_t.begin());
   }
 
   if (solver_mode == SPINNING) {
+    D_s_T_r.resize(data_container->num_contacts * 18);
+    D_s_T_c.resize(data_container->num_contacts * 18);
+    start_s.resize(data_container->num_contacts * 18);
+
 #pragma omp parallel for
     for (int index = 0; index < data_container->num_contacts; index++) {
       int2 body_id = ids[index];
@@ -838,21 +812,44 @@ void ChConstraintRigidRigid::GenerateSparsityTranspose() {
       D_s_T_r[index * 18 + 17] = body_id.y * 6 + 5;
     }
 
+    thrust::sort_by_key(D_s_T_r.begin(), D_s_T_r.end(), D_s_T_c.begin());
+    last_s = Thrust_Reduce_By_Key(D_s_T_r, D_s_T_c, start_s);
+    start_s.resize(last_s);
+    thrust::inclusive_scan(start_s.begin(), start_s.end(), start_s.begin());
+  }
+#pragma omp parallel sections
+  {
+#pragma omp section
     {
-      thrust::sort_by_key(D_s_T_r.begin(), D_s_T_r.end(), D_s_T_c.begin());
-
-      host_vector<int> start_index(data_container->num_contacts * 18);
-
-      int last_body = (thrust::reduce_by_key(D_s_T_r.begin(), D_s_T_r.end(), thrust::constant_iterator<uint>(1),
-                                             D_s_T_c.begin(), start_index.begin()).second) -
-                      start_index.begin();
-
-      start_index.resize(last_body);
-      thrust::inclusive_scan(start_index.begin(), start_index.end(), start_index.begin());
-
-      for (int i = 0; i < last_body; i++) {
-        uint start = (i == 0) ? 0 : start_index[i - 1];
-        uint end = start_index[i];
+      for (int i = 0; i < last_n; i++) {
+        uint start = (i == 0) ? 0 : start_n[i - 1];
+        uint end = start_n[i];
+        int row = D_n_T_r[i];
+        for (int index = start; index < end; index++) {
+          int col = D_n_T_c[index];
+          D_n.append(row, col, 1);
+        }
+        D_n.finalize(row);
+      }
+    }
+#pragma omp section
+    {
+      for (int i = 0; i < last_t; i++) {
+        uint start = (i == 0) ? 0 : start_t[i - 1];
+        uint end = start_t[i];
+        int row = D_t_T_r[i];
+        for (int index = start; index < end; index++) {
+          int col = D_t_T_c[index];
+          D_t.append(row, col, 1);
+        }
+        D_t.finalize(row);
+      }
+    }
+#pragma omp section
+    {
+      for (int i = 0; i < last_s; i++) {
+        uint start = (i == 0) ? 0 : start_s[i - 1];
+        uint end = start_s[i];
         int row = D_s_T_r[i];
         for (int index = start; index < end; index++) {
           int col = D_s_T_c[index];
