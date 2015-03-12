@@ -186,10 +186,7 @@ void ChLcpSolverParallelDVI::ComputeD() {
 
       break;
   }
-
-  clear(D_b_T);
-  D_b_T.reserve(nnz_bilaterals);
-  D_b_T.resize(num_bilaterals, num_dof, false);
+  CLEAR_RESERVE_RESIZE(D_b_T, nnz_bilaterals, num_bilaterals, num_dof)
 
   rigid_rigid.GenerateSparsity();
   bilateral.GenerateSparsity();
@@ -198,29 +195,16 @@ void ChLcpSolverParallelDVI::ComputeD() {
   LOG(INFO) << "ChConstraintBilateral::Build_D - Compute Transpose";
   switch (data_container->settings.solver.solver_mode) {
     case NORMAL:
-      LOG(INFO) << "ChConstraintBilateral::Build_D - D_n";
-
-      D_n = trans(D_n_T);
       LOG(INFO) << "ChConstraintBilateral::Build_D - M_invD_n";
       M_invD_n = M_inv * D_n;
       break;
     case SLIDING:
-      LOG(INFO) << "ChConstraintBilateral::Build_D - D_n";
-      D_n = trans(D_n_T);
-      LOG(INFO) << "ChConstraintBilateral::Build_D - D_t";
-      D_t = trans(D_t_T);
       LOG(INFO) << "ChConstraintBilateral::Build_D - M_invD_n";
       M_invD_n = M_inv * D_n;
       LOG(INFO) << "ChConstraintBilateral::Build_D - M_invD_t";
       M_invD_t = M_inv * D_t;
       break;
     case SPINNING:
-      LOG(INFO) << "ChConstraintBilateral::Build_D - D_n";
-      D_n = trans(D_n_T);
-      LOG(INFO) << "ChConstraintBilateral::Build_D - D_t";
-      D_t = trans(D_t_T);
-      LOG(INFO) << "ChConstraintBilateral::Build_D - D_s";
-      D_s = trans(D_s_T);
       LOG(INFO) << "ChConstraintBilateral::Build_D - M_invD_n";
       M_invD_n = M_inv * D_n;
       LOG(INFO) << "ChConstraintBilateral::Build_D - M_invD_t";
