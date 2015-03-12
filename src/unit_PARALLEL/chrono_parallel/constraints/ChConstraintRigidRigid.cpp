@@ -390,6 +390,38 @@ void ChConstraintRigidRigid::Build_E() {
   }
 }
 
+void inline SetRow3(CompressedMatrix<real>& D, const int row, const int col, const real3& A) {
+  D.set(row, col + 0, A.x);
+  D.set(row, col + 1, A.y);
+  D.set(row, col + 2, A.z);
+}
+
+void inline SetRow6(CompressedMatrix<real>& D, const int row, const int col, const real3& A, const real3& B) {
+  D.set(row, col + 0, A.x);
+  D.set(row, col + 1, A.y);
+  D.set(row, col + 2, A.z);
+
+  D.set(row, col + 3, B.x);
+  D.set(row, col + 4, B.y);
+  D.set(row, col + 5, B.z);
+}
+
+void inline SetCol3(CompressedMatrix<real>& D, const int row, const int col, const real3& A) {
+  D.set(row + 0, col, A.x);
+  D.set(row + 1, col, A.y);
+  D.set(row + 2, col, A.z);
+}
+
+void inline SetCol6(CompressedMatrix<real>& D, const int row, const int col, const real3& A, const real3& B) {
+  D.set(row + 0, col, A.x);
+  D.set(row + 1, col, A.y);
+  D.set(row + 2, col, A.z);
+
+  D.set(row + 3, col, B.x);
+  D.set(row + 4, col, B.y);
+  D.set(row + 5, col, B.z);
+}
+
 void ChConstraintRigidRigid::Build_D() {
   LOG(INFO) << "ChConstraintRigidRigid::Build_D";
   real3* norm = data_container->host_data.norm_rigid_rigid.data();
@@ -403,6 +435,10 @@ void ChConstraintRigidRigid::Build_D() {
   CompressedMatrix<real>& D_t_T = data_container->host_data.D_t_T;
   CompressedMatrix<real>& D_s_T = data_container->host_data.D_s_T;
 
+  CompressedMatrix<real>& D_n = data_container->host_data.D_n;
+  CompressedMatrix<real>& D_t = data_container->host_data.D_t;
+  CompressedMatrix<real>& D_s = data_container->host_data.D_s;
+
   SOLVERMODE solver_mode = data_container->settings.solver.solver_mode;
 
 #pragma omp parallel for
@@ -411,9 +447,7 @@ void ChConstraintRigidRigid::Build_D() {
     real3 T3, T4, T5, T6, T7, T8;
     real3 TA, TB, TC;
     real3 TD, TE, TF;
-
     Orthogonalize(U, V, W);
-
     int2 body_id = ids[index];
 
     int row = index;
@@ -421,83 +455,45 @@ void ChConstraintRigidRigid::Build_D() {
     Compute_Jacobian(rot[body_id.x], U, V, W, ptA[index] - pos_data[body_id.x], T3, T4, T5);
     Compute_Jacobian(rot[body_id.y], U, V, W, ptB[index] - pos_data[body_id.y], T6, T7, T8);
 
-    D_n_T.set(row * 1 + 0, body_id.x * 6 + 0, -U.x);
-    D_n_T.set(row * 1 + 0, body_id.x * 6 + 1, -U.y);
-    D_n_T.set(row * 1 + 0, body_id.x * 6 + 2, -U.z);
+    SetRow6(D_n_T, row * 1 + 0, body_id.x * 6, -U, T3);
+    SetRow6(D_n_T, row * 1 + 0, body_id.y * 6, U, -T6);
 
-    D_n_T.set(row * 1 + 0, body_id.x * 6 + 3, T3.x);
-    D_n_T.set(row * 1 + 0, body_id.x * 6 + 4, T3.y);
-    D_n_T.set(row * 1 + 0, body_id.x * 6 + 5, T3.z);
-
-    D_n_T.set(row * 1 + 0, body_id.y * 6 + 0, U.x);
-    D_n_T.set(row * 1 + 0, body_id.y * 6 + 1, U.y);
-    D_n_T.set(row * 1 + 0, body_id.y * 6 + 2, U.z);
-
-    D_n_T.set(row * 1 + 0, body_id.y * 6 + 3, -T6.x);
-    D_n_T.set(row * 1 + 0, body_id.y * 6 + 4, -T6.y);
-    D_n_T.set(row * 1 + 0, body_id.y * 6 + 5, -T6.z);
+    SetCol6(D_n, body_id.x * 6, row * 1 + 0, -U, T3);
+    SetCol6(D_n, body_id.y * 6, row * 1 + 0, U, -T6);
 
     if (solver_mode == SLIDING || solver_mode == SPINNING) {
-      D_t_T.set(row * 2 + 0, body_id.x * 6 + 0, -V.x);
-      D_t_T.set(row * 2 + 0, body_id.x * 6 + 1, -V.y);
-      D_t_T.set(row * 2 + 0, body_id.x * 6 + 2, -V.z);
+      SetRow6(D_t_T, row * 2 + 0, body_id.x * 6, -V, T4);
+      SetRow6(D_t_T, row * 2 + 1, body_id.x * 6, -W, T5);
 
-      D_t_T.set(row * 2 + 0, body_id.x * 6 + 3, T4.x);
-      D_t_T.set(row * 2 + 0, body_id.x * 6 + 4, T4.y);
-      D_t_T.set(row * 2 + 0, body_id.x * 6 + 5, T4.z);
+      SetRow6(D_t_T, row * 2 + 0, body_id.y * 6, V, -T7);
+      SetRow6(D_t_T, row * 2 + 1, body_id.y * 6, W, -T8);
 
-      D_t_T.set(row * 2 + 1, body_id.x * 6 + 0, -W.x);
-      D_t_T.set(row * 2 + 1, body_id.x * 6 + 1, -W.y);
-      D_t_T.set(row * 2 + 1, body_id.x * 6 + 2, -W.z);
+      SetCol6(D_t, body_id.x * 6, row * 2 + 0, -V, T4);
+      SetCol6(D_t, body_id.x * 6, row * 2 + 1, -W, T5);
 
-      D_t_T.set(row * 2 + 1, body_id.x * 6 + 3, T5.x);
-      D_t_T.set(row * 2 + 1, body_id.x * 6 + 4, T5.y);
-      D_t_T.set(row * 2 + 1, body_id.x * 6 + 5, T5.z);
-
-      D_t_T.set(row * 2 + 0, body_id.y * 6 + 0, V.x);
-      D_t_T.set(row * 2 + 0, body_id.y * 6 + 1, V.y);
-      D_t_T.set(row * 2 + 0, body_id.y * 6 + 2, V.z);
-
-      D_t_T.set(row * 2 + 0, body_id.y * 6 + 3, -T7.x);
-      D_t_T.set(row * 2 + 0, body_id.y * 6 + 4, -T7.y);
-      D_t_T.set(row * 2 + 0, body_id.y * 6 + 5, -T7.z);
-
-      D_t_T.set(row * 2 + 1, body_id.y * 6 + 0, W.x);
-      D_t_T.set(row * 2 + 1, body_id.y * 6 + 1, W.y);
-      D_t_T.set(row * 2 + 1, body_id.y * 6 + 2, W.z);
-
-      D_t_T.set(row * 2 + 1, body_id.y * 6 + 3, -T8.x);
-      D_t_T.set(row * 2 + 1, body_id.y * 6 + 4, -T8.y);
-      D_t_T.set(row * 2 + 1, body_id.y * 6 + 5, -T8.z);
+      SetCol6(D_t, body_id.y * 6, row * 2 + 0, V, -T7);
+      SetCol6(D_t, body_id.y * 6, row * 2 + 1, W, -T8);
     }
 
     if (solver_mode == SPINNING) {
       Compute_Jacobian_Rolling(rot[index], U, V, W, TA, TB, TC);
       Compute_Jacobian_Rolling(rot[index + data_container->num_contacts], U, V, W, TD, TE, TF);
 
-      D_s_T.set(row * 3 + 0, body_id.x * 6 + 3, -TA.x);
-      D_s_T.set(row * 3 + 0, body_id.x * 6 + 4, -TA.y);
-      D_s_T.set(row * 3 + 0, body_id.x * 6 + 5, -TA.z);
+      SetRow3(D_s_T, row * 3 + 0, body_id.x * 6 + 3, -TA);
+      SetRow3(D_s_T, row * 3 + 1, body_id.x * 6 + 3, -TB);
+      SetRow3(D_s_T, row * 3 + 2, body_id.x * 6 + 3, -TC);
 
-      D_s_T.set(row * 3 + 1, body_id.x * 6 + 3, -TB.x);
-      D_s_T.set(row * 3 + 1, body_id.x * 6 + 4, -TB.y);
-      D_s_T.set(row * 3 + 1, body_id.x * 6 + 5, -TB.z);
+      SetRow3(D_s_T, row * 3 + 0, body_id.y * 6 + 3, TD);
+      SetRow3(D_s_T, row * 3 + 1, body_id.y * 6 + 3, TE);
+      SetRow3(D_s_T, row * 3 + 2, body_id.y * 6 + 3, TF);
 
-      D_s_T.set(row * 3 + 2, body_id.x * 6 + 3, -TC.x);
-      D_s_T.set(row * 3 + 2, body_id.x * 6 + 4, -TC.y);
-      D_s_T.set(row * 3 + 2, body_id.x * 6 + 5, -TC.z);
+      SetRow3(D_s, body_id.x * 6 + 3, row * 3 + 0, -TA);
+      SetRow3(D_s, body_id.x * 6 + 3, row * 3 + 1, -TB);
+      SetRow3(D_s, body_id.x * 6 + 3, row * 3 + 2, -TC);
 
-      D_s_T.set(row * 3 + 0, body_id.y * 6 + 3, TD.x);
-      D_s_T.set(row * 3 + 0, body_id.y * 6 + 4, TD.y);
-      D_s_T.set(row * 3 + 0, body_id.y * 6 + 5, TD.z);
-
-      D_s_T.set(row * 3 + 1, body_id.y * 6 + 3, TE.x);
-      D_s_T.set(row * 3 + 1, body_id.y * 6 + 4, TE.y);
-      D_s_T.set(row * 3 + 1, body_id.y * 6 + 5, TE.z);
-
-      D_s_T.set(row * 3 + 2, body_id.y * 6 + 3, TF.x);
-      D_s_T.set(row * 3 + 2, body_id.y * 6 + 4, TF.y);
-      D_s_T.set(row * 3 + 2, body_id.y * 6 + 5, TF.z);
+      SetRow3(D_s, body_id.y * 6 + 3, row * 3 + 0, TD);
+      SetRow3(D_s, body_id.y * 6 + 3, row * 3 + 1, TE);
+      SetRow3(D_s, body_id.y * 6 + 3, row * 3 + 2, TF);
     }
   }
 }
