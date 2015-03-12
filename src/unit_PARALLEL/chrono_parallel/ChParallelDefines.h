@@ -69,7 +69,6 @@ using namespace thrust;
 #endif
 #endif
 
-
 // Enable thread safe logging
 #define ELPP_THREAD_SAFE
 #include "third_party/easylogging/easylogging.h"
@@ -84,8 +83,9 @@ using namespace thrust;
 #define Thrust_Reduce_By_KeyA(x, y, z)                                                                               \
   x = (thrust::reduce_by_key(y.begin(), y.end(), thrust::constant_iterator<uint>(1), y.begin(), z.begin()).second) - \
       z.begin()
-#define Thrust_Reduce_By_KeyB(x, y, z, w)                                                                            \
-  x = (thrust::reduce_by_key(y.begin(), y.end(), thrust::constant_iterator<uint>(1), z.begin(), w.begin()).second) - \
+
+#define Thrust_Reduce_By_Key(y, z, w)                                                                            \
+  (thrust::reduce_by_key(y.begin(), y.end(), thrust::constant_iterator<uint>(1), z.begin(), w.begin()).second) - \
       w.begin()
 #define Thrust_Inclusive_Scan(x) thrust::inclusive_scan(x.begin(), x.end(), x.begin())
 #define Thrust_Fill(x, y) thrust::fill(x.begin(), x.end(), y)
@@ -136,6 +136,6 @@ enum BILATERALTYPE { BODY_BODY, SHAFT_SHAFT, SHAFT_SHAFT_SHAFT, SHAFT_BODY, SHAF
 enum CONTACTFORCEMODEL { HOOKE, HERTZ };
 
 // Supported Logging Levels
-enum LOGGINGLEVEL {LOG_NONE, LOG_INFO, LOG_TRACE, LOG_WARNING, LOG_ERROR};
+enum LOGGINGLEVEL { LOG_NONE, LOG_INFO, LOG_TRACE, LOG_WARNING, LOG_ERROR };
 
 #endif
