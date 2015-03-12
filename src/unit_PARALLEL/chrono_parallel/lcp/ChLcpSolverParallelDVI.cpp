@@ -15,6 +15,11 @@
 #include "chrono_parallel/solver/ChSolverPDIP.h"
 using namespace chrono;
 
+#define CLEAR_RESERVE_RESIZE(M, nnz, rows, cols) \
+  clear(M);                                      \
+  M.reserve(nnz);                                \
+  M.resize(rows, cols, false);
+
 void ChLcpSolverParallelDVI::RunTimeStep() {
   LOG(INFO) << "ChLcpSolverParallelDVI::RunTimeStep";
   // Compute the offsets and number of constrains depending on the solver mode
@@ -111,7 +116,6 @@ void ChLcpSolverParallelDVI::RunTimeStep() {
   tot_iterations = data_container->measures.solver.iter_hist.size();
 
   LOG(TRACE) << "Solve Done: " << residual;
-
 }
 
 void ChLcpSolverParallelDVI::ComputeD() {
@@ -156,34 +160,30 @@ void ChLcpSolverParallelDVI::ComputeD() {
 
   switch (data_container->settings.solver.solver_mode) {
     case NORMAL:
-      clear(D_n_T);
+      CLEAR_RESERVE_RESIZE(D_n_T, nnz_normal, num_normal, num_dof)
+      CLEAR_RESERVE_RESIZE(D_n, nnz_normal, num_dof, num_normal)
 
-      D_n_T.reserve(nnz_normal);
-
-      D_n_T.resize(num_normal, num_dof, false);
       break;
     case SLIDING:
-      clear(D_n_T);
-      clear(D_t_T);
 
-      D_n_T.reserve(nnz_normal);
-      D_t_T.reserve(nnz_tangential);
+      CLEAR_RESERVE_RESIZE(D_n_T, nnz_normal, num_normal, num_dof)
+      CLEAR_RESERVE_RESIZE(D_n, nnz_normal, num_dof, num_normal)
 
-      D_n_T.resize(num_normal, num_dof, false);
-      D_t_T.resize(num_tangential, num_dof, false);
+      CLEAR_RESERVE_RESIZE(D_t_T, nnz_tangential, num_tangential, num_dof)
+      CLEAR_RESERVE_RESIZE(D_t, nnz_tangential, num_dof, num_tangential)
+
       break;
     case SPINNING:
-      clear(D_n_T);
-      clear(D_t_T);
-      clear(D_s_T);
 
-      D_n_T.reserve(nnz_normal);
-      D_t_T.reserve(nnz_tangential);
-      D_s_T.reserve(nnz_spinning);
+      CLEAR_RESERVE_RESIZE(D_n_T, nnz_normal, num_normal, num_dof)
+      CLEAR_RESERVE_RESIZE(D_n, nnz_normal, num_dof, num_normal)
 
-      D_n_T.resize(num_normal, num_dof, false);
-      D_t_T.resize(num_tangential, num_dof, false);
-      D_s_T.resize(num_spinning, num_dof, false);
+      CLEAR_RESERVE_RESIZE(D_t_T, nnz_tangential, num_tangential, num_dof)
+      CLEAR_RESERVE_RESIZE(D_t, nnz_tangential, num_dof, num_tangential)
+
+      CLEAR_RESERVE_RESIZE(D_s_T, nnz_spinning, num_spinning, num_dof)
+      CLEAR_RESERVE_RESIZE(D_s, nnz_spinning, num_dof, num_spinning)
+
       break;
   }
 
@@ -199,6 +199,7 @@ void ChLcpSolverParallelDVI::ComputeD() {
   switch (data_container->settings.solver.solver_mode) {
     case NORMAL:
       LOG(INFO) << "ChConstraintBilateral::Build_D - D_n";
+
       D_n = trans(D_n_T);
       LOG(INFO) << "ChConstraintBilateral::Build_D - M_invD_n";
       M_invD_n = M_inv * D_n;
@@ -362,8 +363,6 @@ void ChLcpSolverParallelDVI::ComputeN() {
   uint num_contacts = data_container->num_contacts;
   uint num_unilaterals = data_container->num_unilaterals;
   uint num_bilaterals = data_container->num_bilaterals;
-
-
 
   switch (data_container->settings.solver.solver_mode) {
     case NORMAL: {
