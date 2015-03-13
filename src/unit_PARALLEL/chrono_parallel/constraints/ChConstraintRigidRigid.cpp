@@ -465,40 +465,12 @@ void ChConstraintRigidRigid::Build_D() {
 
     SetRow6(D_n_T, row * 1 + 0, body_id.x * 6, -U, T3);
     SetRow6(D_n_T, row * 1 + 0, body_id.y * 6, U, -T6);
-
-    //    SetCol6(D_n, body_id.x * 6, row * 1 + 0, -U, T3);
-    //    SetCol6(D_n, body_id.y * 6, row * 1 + 0, U, -T6);
-
-    //    real inv_mass_x = 1.0 / body_list->at(body_id.x)->GetMass();
-    //    real inv_mass_y = 1.0 / body_list->at(body_id.y)->GetMass();
-    //
-    //    ChMatrix33<>& inv_inr_x = body_list->at(body_id.x)->VariablesBody().GetBodyInvInertia();
-    //    ChMatrix33<>& inv_inr_y = body_list->at(body_id.y)->VariablesBody().GetBodyInvInertia();
-    //
-    //    real3 Minv_T3, Minv_T6;
-    //    Minv_T3.x = inv_inr_x.Element(0, 0) * T3.x + inv_inr_x.Element(1, 0) * T3.y + inv_inr_x.Element(2, 0) * T3.z;
-    //    Minv_T3.y = inv_inr_x.Element(0, 1) * T3.x + inv_inr_x.Element(1, 1) * T3.y + inv_inr_x.Element(2, 1) * T3.z;
-    //    Minv_T3.z = inv_inr_x.Element(0, 2) * T3.x + inv_inr_x.Element(1, 2) * T3.y + inv_inr_x.Element(2, 2) * T3.z;
-    //
-    //    Minv_T6.x = inv_inr_y.Element(0, 0) * T6.x + inv_inr_y.Element(1, 0) * T6.y + inv_inr_y.Element(2, 0) * T6.z;
-    //    Minv_T6.y = inv_inr_y.Element(0, 1) * T6.x + inv_inr_y.Element(1, 1) * T6.y + inv_inr_y.Element(2, 1) * T6.z;
-    //    Minv_T6.z = inv_inr_y.Element(0, 2) * T6.x + inv_inr_y.Element(1, 2) * T6.y + inv_inr_y.Element(2, 2) * T6.z;
-    //
-    //    SetCol6(M_invD_n, body_id.x * 6, row * 1 + 0, -U * inv_mass_x,  Minv_T3);
-    //    SetCol6(M_invD_n, body_id.y * 6, row * 1 + 0,  U * inv_mass_y, -Minv_T6);
-
     if (solver_mode == SLIDING || solver_mode == SPINNING) {
       SetRow6(D_t_T, row * 2 + 0, body_id.x * 6, -V, T4);
       SetRow6(D_t_T, row * 2 + 1, body_id.x * 6, -W, T5);
 
       SetRow6(D_t_T, row * 2 + 0, body_id.y * 6, V, -T7);
       SetRow6(D_t_T, row * 2 + 1, body_id.y * 6, W, -T8);
-
-      //      SetCol6(D_t, body_id.x * 6, row * 2 + 0, -V, T4);
-      //      SetCol6(D_t, body_id.x * 6, row * 2 + 1, -W, T5);
-      //
-      //      SetCol6(D_t, body_id.y * 6, row * 2 + 0, V, -T7);
-      //      SetCol6(D_t, body_id.y * 6, row * 2 + 1, W, -T8);
     }
 
     if (solver_mode == SPINNING) {
@@ -513,13 +485,6 @@ void ChConstraintRigidRigid::Build_D() {
       SetRow3(D_s_T, row * 3 + 1, body_id.y * 6 + 3, TE);
       SetRow3(D_s_T, row * 3 + 2, body_id.y * 6 + 3, TF);
 
-      //      SetCol3(D_s, body_id.x * 6 + 3, row * 3 + 0, -TA);
-      //      SetCol3(D_s, body_id.x * 6 + 3, row * 3 + 1, -TB);
-      //      SetCol3(D_s, body_id.x * 6 + 3, row * 3 + 2, -TC);
-      //
-      //      SetCol3(D_s, body_id.y * 6 + 3, row * 3 + 0, TD);
-      //      SetCol3(D_s, body_id.y * 6 + 3, row * 3 + 1, TE);
-      //      SetCol3(D_s, body_id.y * 6 + 3, row * 3 + 2, TF);
     }
   }
 
@@ -679,6 +644,7 @@ void ChConstraintRigidRigid::GenerateSparsity() {
       }
     }
   }
+  // Disabled due to issues with parallelizing properly
   // GenerateSparsityTranspose();
 }
 
@@ -795,11 +761,11 @@ void ChConstraintRigidRigid::GenerateSparsityTranspose() {
     start_s.resize(last_s);
     thrust::inclusive_scan(start_s.begin(), start_s.end(), start_s.begin());
   }
-  LOG(INFO) << "ChConstraintRigidRigid::GenerateSparsityTranspose - D_n";
-  //#pragma omp parallel sections
+  #pragma omp parallel sections
   {
-    //#pragma omp section
+    #pragma omp section
     {
+      LOG(INFO) << "ChConstraintRigidRigid::GenerateSparsityTranspose - D_n";
       for (int i = 0; i < last_n; i++) {
         uint start = (i == 0) ? 0 : start_n[i - 1];
         uint end = start_n[i];
@@ -814,9 +780,9 @@ void ChConstraintRigidRigid::GenerateSparsityTranspose() {
         M_invD_n.finalize(row);
       }
     }
-    //#pragma omp section
-    LOG(INFO) << "ChConstraintRigidRigid::GenerateSparsityTranspose - D_t";
+    #pragma omp section
     {
+      LOG(INFO) << "ChConstraintRigidRigid::GenerateSparsityTranspose - D_t";
       if (solver_mode == SLIDING || solver_mode == SPINNING) {
         for (int i = 0; i < last_t; i++) {
           uint start = (i == 0) ? 0 : start_t[i - 1];
@@ -833,8 +799,9 @@ void ChConstraintRigidRigid::GenerateSparsityTranspose() {
         }
       }
     }
-    //#pragma omp section
+    #pragma omp section
     {
+      LOG(INFO) << "ChConstraintRigidRigid::GenerateSparsityTranspose - D_s";
       if (solver_mode == SPINNING) {
         for (int i = 0; i < last_s; i++) {
           uint start = (i == 0) ? 0 : start_s[i - 1];
