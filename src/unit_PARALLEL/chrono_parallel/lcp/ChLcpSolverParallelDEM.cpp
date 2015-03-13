@@ -374,15 +374,13 @@ void ChLcpSolverParallelDEM::ComputeD() {
 
   CompressedMatrix<real>& D_b_T = data_container->host_data.D_b_T;
   clear(D_b_T);
+
   D_b_T.reserve(nnz_bilaterals);
 
   D_b_T.resize(num_constraints, num_dof, false);
 
   bilateral.GenerateSparsity();
   bilateral.Build_D();
-
-  data_container->host_data.D_b = trans(data_container->host_data.D_b_T);
-  data_container->host_data.M_invD_b = data_container->host_data.M_inv * data_container->host_data.D_b;
 }
 
 void ChLcpSolverParallelDEM::ComputeE() {
