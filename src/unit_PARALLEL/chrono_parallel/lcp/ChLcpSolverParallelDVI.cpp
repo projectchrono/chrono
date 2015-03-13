@@ -162,27 +162,32 @@ void ChLcpSolverParallelDVI::ComputeD() {
     case NORMAL:
       CLEAR_RESERVE_RESIZE(D_n_T, nnz_normal, num_normal, num_dof)
       CLEAR_RESERVE_RESIZE(D_n, nnz_normal, num_dof, num_normal)
-
+      CLEAR_RESERVE_RESIZE(M_invD_n, nnz_normal, num_dof, num_normal)
       break;
     case SLIDING:
 
       CLEAR_RESERVE_RESIZE(D_n_T, nnz_normal, num_normal, num_dof)
       CLEAR_RESERVE_RESIZE(D_n, nnz_normal, num_dof, num_normal)
+      CLEAR_RESERVE_RESIZE(M_invD_n, nnz_normal, num_dof, num_normal)
 
       CLEAR_RESERVE_RESIZE(D_t_T, nnz_tangential, num_tangential, num_dof)
       CLEAR_RESERVE_RESIZE(D_t, nnz_tangential, num_dof, num_tangential)
+      CLEAR_RESERVE_RESIZE(M_invD_t, nnz_tangential, num_dof, num_tangential)
 
       break;
     case SPINNING:
 
       CLEAR_RESERVE_RESIZE(D_n_T, nnz_normal, num_normal, num_dof)
       CLEAR_RESERVE_RESIZE(D_n, nnz_normal, num_dof, num_normal)
+      CLEAR_RESERVE_RESIZE(M_invD_n, nnz_normal, num_dof, num_normal)
 
       CLEAR_RESERVE_RESIZE(D_t_T, nnz_tangential, num_tangential, num_dof)
       CLEAR_RESERVE_RESIZE(D_t, nnz_tangential, num_dof, num_tangential)
+      CLEAR_RESERVE_RESIZE(M_invD_t, nnz_tangential, num_dof, num_tangential)
 
       CLEAR_RESERVE_RESIZE(D_s_T, nnz_spinning, num_spinning, num_dof)
       CLEAR_RESERVE_RESIZE(D_s, nnz_spinning, num_dof, num_spinning)
+      CLEAR_RESERVE_RESIZE(M_invD_s, nnz_spinning, num_dof, num_spinning)
 
       break;
   }
@@ -192,31 +197,7 @@ void ChLcpSolverParallelDVI::ComputeD() {
   bilateral.GenerateSparsity();
   rigid_rigid.Build_D();
   bilateral.Build_D();
-  LOG(INFO) << "ChConstraintBilateral::Build_D - Compute Transpose";
-  switch (data_container->settings.solver.solver_mode) {
-    case NORMAL:
-      LOG(INFO) << "ChConstraintBilateral::Build_D - M_invD_n";
-      M_invD_n = M_inv * D_n;
-      break;
-    case SLIDING:
-      LOG(INFO) << "ChConstraintBilateral::Build_D - M_invD_n";
-      M_invD_n = M_inv * D_n;
-      LOG(INFO) << "ChConstraintBilateral::Build_D - M_invD_t";
-      M_invD_t = M_inv * D_t;
-      break;
-    case SPINNING:
-      LOG(INFO) << "ChConstraintBilateral::Build_D - M_invD_n";
-      M_invD_n = M_inv * D_n;
-      LOG(INFO) << "ChConstraintBilateral::Build_D - M_invD_t";
-      M_invD_t = M_inv * D_t;
-      LOG(INFO) << "ChConstraintBilateral::Build_D - M_invD_s";
-      M_invD_s = M_inv * D_s;
-      break;
-  }
-  LOG(INFO) << "ChConstraintBilateral::Build_D - D_b";
-  D_b = trans(D_b_T);
-  LOG(INFO) << "ChConstraintBilateral::Build_D - M_invD_b";
-  M_invD_b = M_inv * D_b;
+
   data_container->system_timer.stop("ChLcpSolverParallel_D");
 }
 

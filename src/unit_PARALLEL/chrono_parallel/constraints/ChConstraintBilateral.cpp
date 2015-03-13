@@ -43,6 +43,10 @@ void ChConstraintBilateral::Build_D() {
   // Loop over the active constraints and fill in the rows of the Jacobian,
   // taking into account the type of each constraint.
   CompressedMatrix<real>& D_b_T = data_container->host_data.D_b_T;
+  CompressedMatrix<real>& D_b = data_container->host_data.D_b;
+  CompressedMatrix<real>& M_invD_b = data_container->host_data.M_invD_b;
+
+  const CompressedMatrix<real>& M_inv = data_container->host_data.M_inv;
 
   //#pragma omp parallel for
   for (int index = 0; index < data_container->num_bilaterals; index++) {
@@ -143,6 +147,11 @@ void ChConstraintBilateral::Build_D() {
       } break;
     }
   }
+
+  LOG(INFO) << "ChConstraintBilateral::Build_D - D_b";
+  D_b = trans(D_b_T);
+  LOG(INFO) << "ChConstraintBilateral::Build_D - M_invD_b";
+  M_invD_b = M_inv * D_b;
 }
 
 void ChConstraintBilateral::GenerateSparsity() {

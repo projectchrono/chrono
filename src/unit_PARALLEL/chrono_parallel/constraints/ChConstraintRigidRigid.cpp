@@ -439,7 +439,15 @@ void ChConstraintRigidRigid::Build_D() {
   CompressedMatrix<real>& D_t = data_container->host_data.D_t;
   CompressedMatrix<real>& D_s = data_container->host_data.D_s;
 
+  CompressedMatrix<real>& M_invD_n = data_container->host_data.M_invD_n;
+  CompressedMatrix<real>& M_invD_t = data_container->host_data.M_invD_t;
+  CompressedMatrix<real>& M_invD_s = data_container->host_data.M_invD_s;
+
+  const CompressedMatrix<real>& M_inv = data_container->host_data.M_inv;
+
   SOLVERMODE solver_mode = data_container->settings.solver.solver_mode;
+
+  const std::vector<ChBody*>* body_list = data_container->body_list;
 
 #pragma omp parallel for
   for (int index = 0; index < data_container->num_contacts; index++) {
@@ -458,8 +466,26 @@ void ChConstraintRigidRigid::Build_D() {
     SetRow6(D_n_T, row * 1 + 0, body_id.x * 6, -U, T3);
     SetRow6(D_n_T, row * 1 + 0, body_id.y * 6, U, -T6);
 
-    SetCol6(D_n, body_id.x * 6, row * 1 + 0, -U, T3);
-    SetCol6(D_n, body_id.y * 6, row * 1 + 0, U, -T6);
+    //    SetCol6(D_n, body_id.x * 6, row * 1 + 0, -U, T3);
+    //    SetCol6(D_n, body_id.y * 6, row * 1 + 0, U, -T6);
+
+    //    real inv_mass_x = 1.0 / body_list->at(body_id.x)->GetMass();
+    //    real inv_mass_y = 1.0 / body_list->at(body_id.y)->GetMass();
+    //
+    //    ChMatrix33<>& inv_inr_x = body_list->at(body_id.x)->VariablesBody().GetBodyInvInertia();
+    //    ChMatrix33<>& inv_inr_y = body_list->at(body_id.y)->VariablesBody().GetBodyInvInertia();
+    //
+    //    real3 Minv_T3, Minv_T6;
+    //    Minv_T3.x = inv_inr_x.Element(0, 0) * T3.x + inv_inr_x.Element(1, 0) * T3.y + inv_inr_x.Element(2, 0) * T3.z;
+    //    Minv_T3.y = inv_inr_x.Element(0, 1) * T3.x + inv_inr_x.Element(1, 1) * T3.y + inv_inr_x.Element(2, 1) * T3.z;
+    //    Minv_T3.z = inv_inr_x.Element(0, 2) * T3.x + inv_inr_x.Element(1, 2) * T3.y + inv_inr_x.Element(2, 2) * T3.z;
+    //
+    //    Minv_T6.x = inv_inr_y.Element(0, 0) * T6.x + inv_inr_y.Element(1, 0) * T6.y + inv_inr_y.Element(2, 0) * T6.z;
+    //    Minv_T6.y = inv_inr_y.Element(0, 1) * T6.x + inv_inr_y.Element(1, 1) * T6.y + inv_inr_y.Element(2, 1) * T6.z;
+    //    Minv_T6.z = inv_inr_y.Element(0, 2) * T6.x + inv_inr_y.Element(1, 2) * T6.y + inv_inr_y.Element(2, 2) * T6.z;
+    //
+    //    SetCol6(M_invD_n, body_id.x * 6, row * 1 + 0, -U * inv_mass_x,  Minv_T3);
+    //    SetCol6(M_invD_n, body_id.y * 6, row * 1 + 0,  U * inv_mass_y, -Minv_T6);
 
     if (solver_mode == SLIDING || solver_mode == SPINNING) {
       SetRow6(D_t_T, row * 2 + 0, body_id.x * 6, -V, T4);
@@ -468,11 +494,11 @@ void ChConstraintRigidRigid::Build_D() {
       SetRow6(D_t_T, row * 2 + 0, body_id.y * 6, V, -T7);
       SetRow6(D_t_T, row * 2 + 1, body_id.y * 6, W, -T8);
 
-      SetCol6(D_t, body_id.x * 6, row * 2 + 0, -V, T4);
-      SetCol6(D_t, body_id.x * 6, row * 2 + 1, -W, T5);
-
-      SetCol6(D_t, body_id.y * 6, row * 2 + 0, V, -T7);
-      SetCol6(D_t, body_id.y * 6, row * 2 + 1, W, -T8);
+      //      SetCol6(D_t, body_id.x * 6, row * 2 + 0, -V, T4);
+      //      SetCol6(D_t, body_id.x * 6, row * 2 + 1, -W, T5);
+      //
+      //      SetCol6(D_t, body_id.y * 6, row * 2 + 0, V, -T7);
+      //      SetCol6(D_t, body_id.y * 6, row * 2 + 1, W, -T8);
     }
 
     if (solver_mode == SPINNING) {
@@ -487,14 +513,49 @@ void ChConstraintRigidRigid::Build_D() {
       SetRow3(D_s_T, row * 3 + 1, body_id.y * 6 + 3, TE);
       SetRow3(D_s_T, row * 3 + 2, body_id.y * 6 + 3, TF);
 
-      SetRow3(D_s, body_id.x * 6 + 3, row * 3 + 0, -TA);
-      SetRow3(D_s, body_id.x * 6 + 3, row * 3 + 1, -TB);
-      SetRow3(D_s, body_id.x * 6 + 3, row * 3 + 2, -TC);
-
-      SetRow3(D_s, body_id.y * 6 + 3, row * 3 + 0, TD);
-      SetRow3(D_s, body_id.y * 6 + 3, row * 3 + 1, TE);
-      SetRow3(D_s, body_id.y * 6 + 3, row * 3 + 2, TF);
+      //      SetCol3(D_s, body_id.x * 6 + 3, row * 3 + 0, -TA);
+      //      SetCol3(D_s, body_id.x * 6 + 3, row * 3 + 1, -TB);
+      //      SetCol3(D_s, body_id.x * 6 + 3, row * 3 + 2, -TC);
+      //
+      //      SetCol3(D_s, body_id.y * 6 + 3, row * 3 + 0, TD);
+      //      SetCol3(D_s, body_id.y * 6 + 3, row * 3 + 1, TE);
+      //      SetCol3(D_s, body_id.y * 6 + 3, row * 3 + 2, TF);
     }
+  }
+
+  LOG(INFO) << "ChConstraintRigidRigid::Build_D - Compute Transpose";
+  switch (data_container->settings.solver.solver_mode) {
+    case NORMAL:
+      LOG(INFO) << "ChConstraintRigidRigid::Build_D - D_n";
+      D_n = trans(D_n_T);
+      LOG(INFO) << "ChConstraintRigidRigid::Build_D - M_invD_n";
+      M_invD_n = M_inv * D_n;
+      break;
+    case SLIDING:
+      LOG(INFO) << "ChConstraintRigidRigid::Build_D - D_n";
+      D_n = trans(D_n_T);
+      LOG(INFO) << "ChConstraintRigidRigid::Build_D - D_t";
+      D_t = trans(D_t_T);
+      LOG(INFO) << "ChConstraintRigidRigid::Build_D - M_invD_n";
+      M_invD_n = M_inv * D_n;
+      LOG(INFO) << "ChConstraintRigidRigid::Build_D - M_invD_t";
+      M_invD_t = M_inv * D_t;
+      break;
+    case SPINNING:
+      LOG(INFO) << "ChConstraintRigidRigid::Build_D - D_n";
+      D_n = trans(D_n_T);
+      LOG(INFO) << "ChConstraintRigidRigid::Build_D - D_t";
+      D_t = trans(D_t_T);
+      LOG(INFO) << "ChConstraintRigidRigid::Build_D - D_s";
+      D_s = trans(D_s_T);
+
+      LOG(INFO) << "ChConstraintRigidRigid::Build_D - M_invD_n";
+      M_invD_n = M_inv * D_n;
+      LOG(INFO) << "ChConstraintRigidRigid::Build_D - M_invD_t";
+      M_invD_t = M_inv * D_t;
+      LOG(INFO) << "ChConstraintRigidRigid::Build_D - M_invD_s";
+      M_invD_s = M_inv * D_s;
+      break;
   }
 }
 
@@ -618,6 +679,31 @@ void ChConstraintRigidRigid::GenerateSparsity() {
       }
     }
   }
+  // GenerateSparsityTranspose();
+}
+
+void inline ColIndex3(host_vector<int>& Rows, host_vector<int>& Cols, const int id, const int row, const int col) {
+  Rows[id + 0] = row + 0;
+  Cols[id + 0] = col;
+  Rows[id + 1] = row + 1;
+  Cols[id + 1] = col;
+  Rows[id + 2] = row + 2;
+  Cols[id + 2] = col;
+}
+
+void inline ColIndex6(host_vector<int>& Rows, host_vector<int>& Cols, const int id, const int row, const int col) {
+  Rows[id + 0] = row + 0;
+  Cols[id + 0] = col;
+  Rows[id + 1] = row + 1;
+  Cols[id + 1] = col;
+  Rows[id + 2] = row + 2;
+  Cols[id + 2] = col;
+  Rows[id + 3] = row + 3;
+  Cols[id + 3] = col;
+  Rows[id + 4] = row + 4;
+  Cols[id + 4] = col;
+  Rows[id + 5] = row + 5;
+  Cols[id + 5] = col;
 }
 
 void ChConstraintRigidRigid::GenerateSparsityTranspose() {
@@ -632,54 +718,33 @@ void ChConstraintRigidRigid::GenerateSparsityTranspose() {
   CompressedMatrix<real>& D_t = data_container->host_data.D_t;
   CompressedMatrix<real>& D_s = data_container->host_data.D_s;
 
+  CompressedMatrix<real>& M_invD_n = data_container->host_data.M_invD_n;
+  CompressedMatrix<real>& M_invD_t = data_container->host_data.M_invD_t;
+  CompressedMatrix<real>& M_invD_s = data_container->host_data.M_invD_s;
+
   const int2* ids = data_container->host_data.bids_rigid_rigid.data();
 
   host_vector<int> D_n_T_r(data_container->num_contacts * 12);
   host_vector<int> D_n_T_c(data_container->num_contacts * 12);
   host_vector<int> start_n(data_container->num_contacts * 12);
 
-  host_vector<int> D_t_T_r;
-  host_vector<int> D_t_T_c;
-  host_vector<int> start_t;
+  host_vector<int> D_t_T_r, D_s_T_r;
+  host_vector<int> D_t_T_c, D_s_T_c;
+  host_vector<int> start_t, start_s;
 
-  host_vector<int> D_s_T_r;
-  host_vector<int> D_s_T_c;
-  host_vector<int> start_s;
   int last_n, last_t, last_s;
 
 #pragma omp parallel for
   for (int index = 0; index < data_container->num_contacts; index++) {
     int2 body_id = ids[index];
     int row = index;
-    D_n_T_c[index * 12 + 0] = row * 1 + 0;
-    D_n_T_r[index * 12 + 0] = body_id.x * 6 + 0;
-    D_n_T_c[index * 12 + 1] = row * 1 + 0;
-    D_n_T_r[index * 12 + 1] = body_id.x * 6 + 1;
-    D_n_T_c[index * 12 + 2] = row * 1 + 0;
-    D_n_T_r[index * 12 + 2] = body_id.x * 6 + 2;
-    D_n_T_c[index * 12 + 3] = row * 1 + 0;
-    D_n_T_r[index * 12 + 3] = body_id.x * 6 + 3;
-    D_n_T_c[index * 12 + 4] = row * 1 + 0;
-    D_n_T_r[index * 12 + 4] = body_id.x * 6 + 4;
-    D_n_T_c[index * 12 + 5] = row * 1 + 0;
-    D_n_T_r[index * 12 + 5] = body_id.x * 6 + 5;
 
-    D_n_T_c[index * 12 + 6] = row * 1 + 0;
-    D_n_T_r[index * 12 + 6] = body_id.y * 6 + 0;
-    D_n_T_c[index * 12 + 7] = row * 1 + 0;
-    D_n_T_r[index * 12 + 7] = body_id.y * 6 + 1;
-    D_n_T_c[index * 12 + 8] = row * 1 + 0;
-    D_n_T_r[index * 12 + 8] = body_id.y * 6 + 2;
-    D_n_T_c[index * 12 + 9] = row * 1 + 0;
-    D_n_T_r[index * 12 + 9] = body_id.y * 6 + 3;
-    D_n_T_c[index * 12 + 10] = row * 1 + 0;
-    D_n_T_r[index * 12 + 10] = body_id.y * 6 + 4;
-    D_n_T_c[index * 12 + 11] = row * 1 + 0;
-    D_n_T_r[index * 12 + 11] = body_id.y * 6 + 5;
+    ColIndex6(D_n_T_r, D_n_T_c, index * 12 + 0, body_id.x * 6, row * 1);
+    ColIndex6(D_n_T_r, D_n_T_c, index * 12 + 6, body_id.y * 6, row * 1);
   }
 
   thrust::sort_by_key(D_n_T_r.begin(), D_n_T_r.end(), D_n_T_c.begin());
-  last_n = Thrust_Reduce_By_Key(D_n_T_r, D_n_T_c, start_n);
+  last_n = Thrust_Reduce_By_Key(D_n_T_r, D_n_T_r, start_n);
   start_n.resize(last_n);
   thrust::inclusive_scan(start_n.begin(), start_n.end(), start_n.begin());
 
@@ -692,65 +757,15 @@ void ChConstraintRigidRigid::GenerateSparsityTranspose() {
       int2 body_id = ids[index];
       int row = index;
 
-      D_t_T_c[index * 24 + 0] = row * 2 + 0;
-      D_t_T_r[index * 24 + 0] = body_id.x * 6 + 0;
-      D_t_T_c[index * 24 + 1] = row * 2 + 0;
-      D_t_T_r[index * 24 + 1] = body_id.x * 6 + 1;
-      D_t_T_c[index * 24 + 2] = row * 2 + 0;
-      D_t_T_r[index * 24 + 2] = body_id.x * 6 + 2;
+      ColIndex6(D_t_T_r, D_t_T_c, index * 24 + 0, body_id.x * 6, row * 2 + 0);
+      ColIndex6(D_t_T_r, D_t_T_c, index * 24 + 6, body_id.y * 6, row * 2 + 0);
 
-      D_t_T_c[index * 24 + 3] = row * 2 + 0;
-      D_t_T_r[index * 24 + 3] = body_id.x * 6 + 3;
-      D_t_T_c[index * 24 + 4] = row * 2 + 0;
-      D_t_T_r[index * 24 + 4] = body_id.x * 6 + 4;
-      D_t_T_c[index * 24 + 5] = row * 2 + 0;
-      D_t_T_r[index * 24 + 5] = body_id.x * 6 + 5;
-
-      D_t_T_c[index * 24 + 6] = row * 2 + 0;
-      D_t_T_r[index * 24 + 6] = body_id.y * 6 + 0;
-      D_t_T_c[index * 24 + 7] = row * 2 + 0;
-      D_t_T_r[index * 24 + 7] = body_id.y * 6 + 1;
-      D_t_T_c[index * 24 + 8] = row * 2 + 0;
-      D_t_T_r[index * 24 + 8] = body_id.y * 6 + 2;
-
-      D_t_T_c[index * 24 + 9] = row * 2 + 0;
-      D_t_T_r[index * 24 + 9] = body_id.y * 6 + 3;
-      D_t_T_c[index * 24 + 10] = row * 2 + 0;
-      D_t_T_r[index * 24 + 10] = body_id.y * 6 + 4;
-      D_t_T_c[index * 24 + 11] = row * 2 + 0;
-      D_t_T_r[index * 24 + 11] = body_id.y * 6 + 5;
-
-      D_t_T_c[index * 24 + 12] = row * 2 + 1;
-      D_t_T_r[index * 24 + 12] = body_id.x * 6 + 0;
-      D_t_T_c[index * 24 + 13] = row * 2 + 1;
-      D_t_T_r[index * 24 + 13] = body_id.x * 6 + 1;
-      D_t_T_c[index * 24 + 14] = row * 2 + 1;
-      D_t_T_r[index * 24 + 14] = body_id.x * 6 + 2;
-
-      D_t_T_c[index * 24 + 15] = row * 2 + 1;
-      D_t_T_r[index * 24 + 15] = body_id.x * 6 + 3;
-      D_t_T_c[index * 24 + 16] = row * 2 + 1;
-      D_t_T_r[index * 24 + 16] = body_id.x * 6 + 4;
-      D_t_T_c[index * 24 + 17] = row * 2 + 1;
-      D_t_T_r[index * 24 + 17] = body_id.x * 6 + 5;
-
-      D_t_T_c[index * 24 + 18] = row * 2 + 1;
-      D_t_T_r[index * 24 + 18] = body_id.y * 6 + 0;
-      D_t_T_c[index * 24 + 19] = row * 2 + 1;
-      D_t_T_r[index * 24 + 19] = body_id.y * 6 + 1;
-      D_t_T_c[index * 24 + 20] = row * 2 + 1;
-      D_t_T_r[index * 24 + 20] = body_id.y * 6 + 2;
-
-      D_t_T_c[index * 24 + 21] = row * 2 + 1;
-      D_t_T_r[index * 24 + 21] = body_id.y * 6 + 3;
-      D_t_T_c[index * 24 + 22] = row * 2 + 1;
-      D_t_T_r[index * 24 + 22] = body_id.y * 6 + 4;
-      D_t_T_c[index * 24 + 23] = row * 2 + 1;
-      D_t_T_r[index * 24 + 23] = body_id.y * 6 + 5;
+      ColIndex6(D_t_T_r, D_t_T_c, index * 24 + 12, body_id.x * 6, row * 2 + 1);
+      ColIndex6(D_t_T_r, D_t_T_c, index * 24 + 18, body_id.y * 6, row * 2 + 1);
     }
 
     thrust::sort_by_key(D_t_T_r.begin(), D_t_T_r.end(), D_t_T_c.begin());
-    last_t = Thrust_Reduce_By_Key(D_t_T_r, D_t_T_c, start_t);
+    last_t = Thrust_Reduce_By_Key(D_t_T_r, D_t_T_r, start_t);
     start_t.resize(last_t);
     thrust::inclusive_scan(start_t.begin(), start_t.end(), start_t.begin());
   }
@@ -765,57 +780,25 @@ void ChConstraintRigidRigid::GenerateSparsityTranspose() {
       int2 body_id = ids[index];
       int row = index;
 
-      D_s_T_c[index * 18 + 0] = row * 3 + 0;
-      D_s_T_r[index * 18 + 0] = body_id.x * 6 + 3;
-      D_s_T_c[index * 18 + 1] = row * 3 + 0;
-      D_s_T_r[index * 18 + 1] = body_id.x * 6 + 4;
-      D_s_T_c[index * 18 + 2] = row * 3 + 0;
-      D_s_T_r[index * 18 + 2] = body_id.x * 6 + 5;
+      ColIndex3(D_s_T_r, D_s_T_c, index * 18 + 0, body_id.x * 6 + 3, row * 3 + 0);
+      ColIndex3(D_s_T_r, D_s_T_c, index * 18 + 3, body_id.y * 6 + 3, row * 3 + 0);
 
-      D_s_T_c[index * 18 + 3] = row * 3 + 0;
-      D_s_T_r[index * 18 + 3] = body_id.y * 6 + 3;
-      D_s_T_c[index * 18 + 4] = row * 3 + 0;
-      D_s_T_r[index * 18 + 4] = body_id.y * 6 + 4;
-      D_s_T_c[index * 18 + 5] = row * 3 + 0;
-      D_s_T_r[index * 18 + 5] = body_id.y * 6 + 5;
+      ColIndex3(D_s_T_r, D_s_T_c, index * 18 + 6, body_id.x * 6 + 3, row * 3 + 1);
+      ColIndex3(D_s_T_r, D_s_T_c, index * 18 + 9, body_id.y * 6 + 3, row * 3 + 1);
 
-      D_s_T_c[index * 18 + 6] = row * 3 + 1;
-      D_s_T_r[index * 18 + 6] = body_id.x * 6 + 3;
-      D_s_T_c[index * 18 + 7] = row * 3 + 1;
-      D_s_T_r[index * 18 + 7] = body_id.x * 6 + 4;
-      D_s_T_c[index * 18 + 8] = row * 3 + 1;
-      D_s_T_r[index * 18 + 8] = body_id.x * 6 + 5;
-
-      D_s_T_c[index * 18 + 9] = row * 3 + 1;
-      D_s_T_r[index * 18 + 9] = body_id.y * 6 + 3;
-      D_s_T_c[index * 18 + 10] = row * 3 + 1;
-      D_s_T_r[index * 18 + 10] = body_id.y * 6 + 4;
-      D_s_T_c[index * 18 + 11] = row * 3 + 1;
-      D_s_T_r[index * 18 + 11] = body_id.y * 6 + 5;
-
-      D_s_T_c[index * 18 + 12] = row * 3 + 2;
-      D_s_T_r[index * 18 + 12] = body_id.x * 6 + 3;
-      D_s_T_c[index * 18 + 13] = row * 3 + 2;
-      D_s_T_r[index * 18 + 13] = body_id.x * 6 + 4;
-      D_s_T_c[index * 18 + 14] = row * 3 + 2;
-      D_s_T_r[index * 18 + 14] = body_id.x * 6 + 5;
-
-      D_s_T_c[index * 18 + 15] = row * 3 + 2;
-      D_s_T_r[index * 18 + 15] = body_id.y * 6 + 3;
-      D_s_T_c[index * 18 + 16] = row * 3 + 2;
-      D_s_T_r[index * 18 + 16] = body_id.y * 6 + 4;
-      D_s_T_c[index * 18 + 17] = row * 3 + 2;
-      D_s_T_r[index * 18 + 17] = body_id.y * 6 + 5;
+      ColIndex3(D_s_T_r, D_s_T_c, index * 18 + 12, body_id.x * 6 + 3, row * 3 + 2);
+      ColIndex3(D_s_T_r, D_s_T_c, index * 18 + 15, body_id.y * 6 + 3, row * 3 + 2);
     }
 
     thrust::sort_by_key(D_s_T_r.begin(), D_s_T_r.end(), D_s_T_c.begin());
-    last_s = Thrust_Reduce_By_Key(D_s_T_r, D_s_T_c, start_s);
+    last_s = Thrust_Reduce_By_Key(D_s_T_r, D_s_T_r, start_s);
     start_s.resize(last_s);
     thrust::inclusive_scan(start_s.begin(), start_s.end(), start_s.begin());
   }
-#pragma omp parallel sections
+  LOG(INFO) << "ChConstraintRigidRigid::GenerateSparsityTranspose - D_n";
+  //#pragma omp parallel sections
   {
-#pragma omp section
+    //#pragma omp section
     {
       for (int i = 0; i < last_n; i++) {
         uint start = (i == 0) ? 0 : start_n[i - 1];
@@ -823,35 +806,49 @@ void ChConstraintRigidRigid::GenerateSparsityTranspose() {
         int row = D_n_T_r[i];
         for (int index = start; index < end; index++) {
           int col = D_n_T_c[index];
+          std::cout << row << " " << col << std::endl;
           D_n.append(row, col, 1);
+          M_invD_n.append(row, col, 1);
         }
         D_n.finalize(row);
+        M_invD_n.finalize(row);
       }
     }
-#pragma omp section
+    //#pragma omp section
+    LOG(INFO) << "ChConstraintRigidRigid::GenerateSparsityTranspose - D_t";
     {
-      for (int i = 0; i < last_t; i++) {
-        uint start = (i == 0) ? 0 : start_t[i - 1];
-        uint end = start_t[i];
-        int row = D_t_T_r[i];
-        for (int index = start; index < end; index++) {
-          int col = D_t_T_c[index];
-          D_t.append(row, col, 1);
+      if (solver_mode == SLIDING || solver_mode == SPINNING) {
+        for (int i = 0; i < last_t; i++) {
+          uint start = (i == 0) ? 0 : start_t[i - 1];
+          uint end = start_t[i];
+          int row = D_t_T_r[i];
+          for (int index = start; index < end; index++) {
+            int col = D_t_T_c[index];
+            std::cout << row << " " << col << std::endl;
+            D_t.append(row, col, 1);
+            M_invD_t.append(row, col, 1);
+          }
+          D_t.finalize(row);
+          M_invD_t.finalize(row);
         }
-        D_t.finalize(row);
       }
     }
-#pragma omp section
+    //#pragma omp section
     {
-      for (int i = 0; i < last_s; i++) {
-        uint start = (i == 0) ? 0 : start_s[i - 1];
-        uint end = start_s[i];
-        int row = D_s_T_r[i];
-        for (int index = start; index < end; index++) {
-          int col = D_s_T_c[index];
-          D_s.append(row, col, 1);
+      if (solver_mode == SPINNING) {
+        for (int i = 0; i < last_s; i++) {
+          uint start = (i == 0) ? 0 : start_s[i - 1];
+          uint end = start_s[i];
+          int row = D_s_T_r[i];
+          for (int index = start; index < end; index++) {
+            int col = D_s_T_c[index];
+            std::cout << row << " " << col << std::endl;
+            D_s.append(row, col, 1);
+            M_invD_s.append(row, col, 1);
+          }
+          D_s.finalize(row);
+          M_invD_s.finalize(row);
         }
-        D_s.finalize(row);
       }
     }
   }
