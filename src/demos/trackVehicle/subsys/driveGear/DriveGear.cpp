@@ -345,10 +345,7 @@ void DriveGear::AddCollisionGeometry(const std::vector<ChSharedPtr<ChBody> >& sh
     
     // until the custom callback works, two cylinders (e.g., PRIMITIVES)
     //  with radius of the gear base circle, width of the gear seat
-    
-    /*
-
-
+/*
     ChVector<> shape_offset =  ChVector<>(0, 0, 0.5*(m_gearPinGeom.tooth_width + m_gearPinGeom.gear_seat_width_min));
      // use two simple cylinders. 
     m_gear->GetCollisionModel()->AddCylinder(m_gearPinGeom.gear_base_radius,
@@ -363,7 +360,7 @@ void DriveGear::AddCollisionGeometry(const std::vector<ChSharedPtr<ChBody> >& sh
       0.5*m_gearPinGeom.tooth_width,
       shape_offset, Q_from_AngAxis(CH_C_PI_2,VECT_X));
 
-    */
+  */  
 
     // a custom callback function to find the pin-gear seat collision, analytically
     m_gearPinGeom = GearPinGeometry();

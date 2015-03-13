@@ -29,7 +29,7 @@ namespace chrono {
 // idler, right side
 const ChVector<> TrackSystem::m_idlerPos(-2.1904, -0.1443, 0.2447); // relative to local csys
 const ChQuaternion<> TrackSystem::m_idlerRot(QUNIT);
-const double TrackSystem::m_idler_preload = 150000;  // [N]
+const double TrackSystem::m_idler_preload = 100000;  // [N]
   
 // drive gear, right side
 const ChVector<> TrackSystem::m_gearPos(1.7741, -0.0099, 0.2447);  // relative to local csys

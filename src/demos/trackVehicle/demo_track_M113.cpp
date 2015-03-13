@@ -149,7 +149,7 @@ int main(int argc, char* argv[])
 
   ChIrrApp application(vehicle.GetSystem(),
                       L"M113 tracked vehicle demo",
-                      dimension2d<u32>(1400, 1000),
+                      dimension2d<u32>(1200, 800),
                       false,
                       do_shadows);
   // assumes Y-up
