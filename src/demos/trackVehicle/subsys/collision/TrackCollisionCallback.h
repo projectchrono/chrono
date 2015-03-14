@@ -82,8 +82,8 @@ public:
 
   // gear tooth geometry
   ChVector<> tooth_mid_bar;
-  double tooth_len;
-  double tooth_width;
+  double tooth_len; // flat top surface of gear, length in XY plane (z-axis is gear rot axis)
+  double tooth_width; // flat top surface of gear, width in Z plane
 
   // shoe pin geometry
   double pin_radius;
@@ -132,15 +132,16 @@ class GearPinCollisionCallback : public ChSystem::ChCustomComputeCollisionCallba
       m_geom.gear_base_radius,
       0.5*(m_geom.gear_seat_width_min + m_geom.gear_seat_width) );
 
-    // Gear bounding sphere circumscribes tips/edges of the tooth
-    // apply one to each side of the sprocket
-    m_bound_rad_Gear = std::sqrt( std::pow(m_geom.tooth_mid_bar.Length(),2) + std::pow(m_geom.tooth_len*0.5,2) );
+    // Gear broadphase collision shape is a cylinder that circumscribes corners
+    //  of the tooth in the XY plane, z is gear rot axis.
+    ChVector<> tooth_mid_XY_bar = m_geom.tooth_mid_bar;
+    tooth_mid_XY_bar.z = 0;
+    tooth_mid_XY_bar.x += 0.5*m_geom.tooth_len;
+    m_bound_rad_Gear = tooth_mid_XY_bar.Length();
     
-    // Shoe bounding sphere circumscribes the outside circumference of the pins
+    // Shoe pin broadphase collision shape is a cylinder at each pin COG
     // apply one to each side of the shoe body
-    m_bound_rad_Pin = ChVector<>(m_geom.pin_radius,
-      m_geom.pin_radius, 
-      (m_geom.pin_width_max-m_geom.pin_width_min)/4.0).Length();
+    m_bound_rad_Pin = m_geom.pin_radius;
 
 		// alloc the hash table for persistent manifold of gear-cylinder contacts
 		m_hashed_contacts = new ChHashTable<int, GearPinCacheContact>(m_persistent_hashtable_dim);
@@ -207,10 +208,22 @@ class GearPinCollisionCallback : public ChSystem::ChCustomComputeCollisionCallba
     // only need to check radial distance from gear center, in gear c-sys
     ChVector<> pin_gear_XY_Pz(pin_gear_Pz_bar.x, pin_gear_Pz_bar.y, 0);
     ChVector<> pin_gear_XY_Nz(pin_gear_Nz_bar.x, pin_gear_Nz_bar.y, 0);
+    double center_len = m_bound_rad_Gear + m_bound_rad_Pin;
+    double p1_len = pin_gear_XY_Pz.Length();
+    double p2_len =  pin_gear_XY_Nz.Length();
 
-    return ( ( pin_gear_XY_Pz.Length() <= (m_bound_rad_Gear + m_bound_rad_Pin) ||
-     pin_gear_XY_Nz.Length() <= (m_bound_rad_Gear + m_bound_rad_Pin) ) ? true : false );
-
+    if( p1_len <= center_len )
+    {
+      GetLog() << "pin 1 is w/in collision envelope \n";
+      return true;
+    }
+    if( p2_len <= center_len )
+    {
+      GetLog() << "pin 2 is w/in collision envelope \n";
+      return true;
+    }
+    // gear and pin bounding shapes don't intersect
+    return false;
   }
 
   // true if in contact in the x-y plane.
