@@ -44,6 +44,9 @@
 #include <glm/gtx/rotate_vector.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 
+#include "third_party/easylogging/easylogging.h"
+INITIALIZE_EASYLOGGINGPP
+
 namespace chrono {
 namespace opengl {
 

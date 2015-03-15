@@ -16,6 +16,10 @@
 
 #include "chrono_utils/ChUtilsCreators.h"
 #include "collision/ChCConvexDecomposition.h"
+#include "third_party/easylogging/easylogging.h"
+
+INITIALIZE_EASYLOGGINGPP
+
 namespace chrono {
 using namespace geometry;
 using namespace collision;
