@@ -233,6 +233,14 @@ IF(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
 ENDIF()
 
 # ------------------------------------------------------------------------------
+# EASYLOGGING -- flags for windows - otherwise easylogging.h has undefined symbols
+# ------------------------------------------------------------------------------
+IF(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
+  SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /DWIN32_LEAN_AND_MEAN /DELPP_WINSOCK2")
+  SET(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} /DWIN32_LEAN_AND_MEAN /DELPP_WINSOCK2")
+ENDIF()
+
+# ------------------------------------------------------------------------------
 # Find the ChronoEngine library
 # ------------------------------------------------------------------------------
 
