@@ -209,15 +209,13 @@ class GearPinCollisionCallback : public ChSystem::ChCustomComputeCollisionCallba
     ChVector<> pin_gear_XY_Pz(pin_gear_Pz_bar.x, pin_gear_Pz_bar.y, 0);
     ChVector<> pin_gear_XY_Nz(pin_gear_Nz_bar.x, pin_gear_Nz_bar.y, 0);
     double center_len = m_bound_rad_Gear + m_bound_rad_Pin;
-    double p1_len = pin_gear_XY_Pz.Length();
-    double p2_len =  pin_gear_XY_Nz.Length();
 
-    if( p1_len <= center_len )
+    if( pin_gear_XY_Pz.Length() <= center_len )
     {
       GetLog() << "pin 1 is w/in collision envelope \n";
       return true;
     }
-    if( p2_len <= center_len )
+    if( pin_gear_XY_Nz.Length() <= center_len )
     {
       GetLog() << "pin 2 is w/in collision envelope \n";
       return true;
