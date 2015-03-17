@@ -474,8 +474,8 @@ void ChConstraintRigidRigid::Build_D() {
     }
 
     if (solver_mode == SPINNING) {
-      Compute_Jacobian_Rolling(rot[index], U, V, W, TA, TB, TC);
-      Compute_Jacobian_Rolling(rot[index + data_container->num_contacts], U, V, W, TD, TE, TF);
+      Compute_Jacobian_Rolling(rot[body_id.x], U, V, W, TA, TB, TC);
+      Compute_Jacobian_Rolling(rot[body_id.y], U, V, W, TD, TE, TF);
 
       SetRow3(D_s_T, row * 3 + 0, body_id.x * 6 + 3, -TA);
       SetRow3(D_s_T, row * 3 + 1, body_id.x * 6 + 3, -TB);
