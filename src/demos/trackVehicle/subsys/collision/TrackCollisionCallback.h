@@ -252,14 +252,10 @@ class GearPinCollisionCallback : public ChSystem::ChCustomComputeCollisionCallba
     if( r_pitch_pin_XY.Length() + m_geom.pin_radius >= m_geom.gear_concave_radius && r1r2_dot < 0 )
     {
       // fill in contact info. 
-      // TODO: perform check to make sure that this point
-      //  actually does lie w/in the curved part of the gear seat, but bullet should
-      //  detect contact /w the top flat part of the gear tooth (box shape) to
-      //  prevent the pin from ever getting to that point.
 
       // contact points, XY-bar plane
-      double lenxy = r_pitch_pin_XY.Length();
       r_pitch_pin_XY.Normalize();
+      // project the contact points on the gear and the pin onto their surfaces, respectively
       ChVector<> contact_pos_gear_bar = pitch_circle_cenXY_bar + r_pitch_pin_XY * m_geom.gear_concave_radius;
       ChVector<> contact_pos_pin_bar = pin_cen_bar + r_pitch_pin_XY * m_geom.pin_radius;
       // both contact points use pin z-coord, relative to gear
