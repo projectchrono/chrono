@@ -234,7 +234,7 @@ class GearPinCollisionCallback : public ChSystem::ChCustomComputeCollisionCallba
     // find the center of the gear base circle, in XY-gear plane.
     ChVector<> pitch_circle_cenXY_bar = gear_seat_cen_bar;
     pitch_circle_cenXY_bar.z = 0;
-    // center of the circle should just be radially outward from the seat position.
+    // center of the pitch circle should just be radially outward from the seat position, XY gear plane.
     pitch_circle_cenXY_bar *= (m_geom.gear_pitch_radius / m_geom.gear_base_radius);
 
     // vector from pitch circle pos to pin center, XY-gear plane
@@ -249,7 +249,7 @@ class GearPinCollisionCallback : public ChSystem::ChCustomComputeCollisionCallba
 
     // true when the pin intersects with the semi-circle that is radially inwards from the pitch circle center position
     //  (relative to gear c-sys)
-    if( r_pitch_pin_XY.Length() + m_geom.pin_radius <= m_geom.gear_concave_radius && r1r2_dot < 0 )
+    if( r_pitch_pin_XY.Length() + m_geom.pin_radius >= m_geom.gear_concave_radius && r1r2_dot < 0 )
     {
       // fill in contact info. 
       // TODO: perform check to make sure that this point
@@ -258,6 +258,7 @@ class GearPinCollisionCallback : public ChSystem::ChCustomComputeCollisionCallba
       //  prevent the pin from ever getting to that point.
 
       // contact points, XY-bar plane
+      double lenxy = r_pitch_pin_XY.Length();
       r_pitch_pin_XY.Normalize();
       ChVector<> contact_pos_gear_bar = pitch_circle_cenXY_bar + r_pitch_pin_XY * m_geom.gear_concave_radius;
       ChVector<> contact_pos_pin_bar = pin_cen_bar + r_pitch_pin_XY * m_geom.pin_radius;
