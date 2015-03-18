@@ -320,7 +320,8 @@ uint ChSolverPDIP::SolvePDIP(const uint max_iter,
       if (delta_lambda[i] >= 0)
         lambda_tmp[i] = 1.0;
     }
-    s_max = std::fmin(1.0, min(lambda_tmp));
+
+    s_max = std::fmin(1.0, (double)blaze::min(lambda_tmp));
 
     // (11) s = 0.99 * s_max
     s = 0.99 * s_max;
