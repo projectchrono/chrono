@@ -81,6 +81,11 @@ public:
 				/// The rest length of the bar
 	double  GetRestLength() {return this->length;}
 
+				/// Set the rest length of the bar (ususlly this should be automatically done 
+				/// when SetupInitial is called on beams element, given the current state, but one
+				/// might need to override this, ex for precompressed beams etc).
+	void	SetRestLength(double ml) {this->length = ml;}
+
 
 };
 
