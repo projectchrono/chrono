@@ -4,6 +4,8 @@
 #include "chrono_parallel/ChConfigParallel.h"
 #include "chrono_parallel/constraints/ChConstraintRigidRigid.h"
 #include "chrono_parallel/math/quartic.h"
+#include <thrust/iterator/constant_iterator.h>
+
 using namespace chrono;
 
 void chrono::Orthogonalize(real3& Vx, real3& Vy, real3& Vz) {
@@ -463,8 +465,10 @@ void ChConstraintRigidRigid::Build_D() {
     Compute_Jacobian(rot[body_id.x], U, V, W, ptA[index] - pos_data[body_id.x], T3, T4, T5);
     Compute_Jacobian(rot[body_id.y], U, V, W, ptB[index] - pos_data[body_id.y], T6, T7, T8);
 
+    //Normal jacobian entries
     SetRow6(D_n_T, row * 1 + 0, body_id.x * 6, -U, T3);
     SetRow6(D_n_T, row * 1 + 0, body_id.y * 6, U, -T6);
+
     if (solver_mode == SLIDING || solver_mode == SPINNING) {
       SetRow6(D_t_T, row * 2 + 0, body_id.x * 6, -V, T4);
       SetRow6(D_t_T, row * 2 + 1, body_id.x * 6, -W, T5);
