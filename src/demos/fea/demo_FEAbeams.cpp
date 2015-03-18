@@ -20,6 +20,7 @@
 
 #include "physics/ChSystem.h"
 #include "physics/ChLinkMate.h"
+#include "timestepper/ChTimestepper.h"
 #include "lcp/ChLcpIterativePMINRES.h"
 #include "lcp/ChLcpIterativeMINRES.h"
 #include "unit_FEA/ChElementBeamEuler.h"
@@ -185,14 +186,12 @@ int main(int argc, char* argv[])
 
 	beam_L  = 0.1;
 	
-
+	msection->SetIzz(3.6e-9);
 	ChSharedPtr<ChNodeFEAxyzD> hnodeancf1(new ChNodeFEAxyzD( ChVector<>(0,0,-0.2), ChVector<>(1,0,0) ) ); 
 	ChSharedPtr<ChNodeFEAxyzD> hnodeancf2(new ChNodeFEAxyzD( ChVector<>(beam_L,0,-0.2), ChVector<>(1,0,0) ) );
-	ChSharedPtr<ChNodeFEAxyzD> hnodeancf3(new ChNodeFEAxyzD( ChVector<>(beam_L*2,0,-0.2)) );
 
 	my_mesh->AddNode(hnodeancf1);
 	my_mesh->AddNode(hnodeancf2);
-	my_mesh->AddNode(hnodeancf3);
 
 	ChSharedPtr<ChElementBeamANCF> belementancf1 (new ChElementBeamANCF);
 
@@ -202,20 +201,33 @@ int main(int argc, char* argv[])
 	my_mesh->AddElement(belementancf1);
 
 
-	ChSharedPtr<ChElementBeamANCF> belementancf2 (new ChElementBeamANCF);
-
-	belementancf2->SetNodes(hnodeancf2, hnodeancf3);
-	belementancf2->SetSection(msection);
-
-	my_mesh->AddElement(belementancf2);
-
 
 				// Apply a force or a torque to a node:
-	hnodeancf3->SetForce( ChVector<>(0,3,0));
+	hnodeancf2->SetForce( ChVector<>(0,3,0));
 
 	hnodeancf1->SetFixed(true);
 	
 
+	// FOR COMPARISON: AN EULER BEAM:
+
+	ChSharedPtr<ChNodeFEAxyzrot> hnodeeul1(new ChNodeFEAxyzrot( ChFrame<>(ChVector<>(0,0,-0.3) ) )); 
+	ChSharedPtr<ChNodeFEAxyzrot> hnodeeul2(new ChNodeFEAxyzrot( ChFrame<>(ChVector<>(beam_L,0,-0.3) ) ));
+
+	my_mesh->AddNode(hnodeeul1);
+	my_mesh->AddNode(hnodeeul2);
+
+	ChSharedPtr<ChElementBeamEuler> belementeul (new ChElementBeamEuler);
+
+	belementeul->SetNodes(hnodeeul1, hnodeeul2);
+	belementeul->SetSection(msection);
+
+	my_mesh->AddElement(belementeul);
+
+				// Apply a force or a torque to a node:
+	hnodeeul2->SetForce( ChVector<>(0,3,0));
+
+	hnodeeul1->SetFixed(true);
+	
 
 	//
 	// Final touches..
@@ -223,6 +235,10 @@ int main(int argc, char* argv[])
 				// This is necessary in order to precompute the 
 				// stiffness matrices for all inserted elements in mesh
 	my_mesh->SetupInitial();
+
+	
+	belementancf1->SetRestLength(beam_L);
+
 
 				// Remember to add the mesh to the system!
 	my_system.Add(my_mesh);
@@ -278,7 +294,7 @@ int main(int argc, char* argv[])
 	// 
 	// THE SOFT-REAL-TIME CYCLE
 	//
-	my_system.SetLcpSolverType(ChSystem::LCP_ITERATIVE_MINRES); // <- NEEDED because other solvers can't handle stiffness matrices
+	my_system.SetLcpSolverType(ChSystem::LCP_ITERATIVE_MINRES); // <- NEEDED THIS OR ::LCP_SIMPLEX because other solvers can't handle stiffness matrices
 	my_system.SetIterLCPwarmStarting(true); // this helps a lot to speedup convergence in this class of problems
 	my_system.SetIterLCPmaxItersSpeed(460);
 	my_system.SetIterLCPmaxItersStab(460);
@@ -287,9 +303,8 @@ int main(int argc, char* argv[])
 	msolver->SetVerbose(false);
 	msolver->SetDiagonalPreconditioning(true);
 	
-	application.SetTimestep(0.001);
 
-// TEST: The Matlab external linear solver, for max precision in benchmarks
+	// TEST: The Matlab external linear solver, for max precision in benchmarks
 ChMatlabEngine matlab_engine;
 ChLcpMatlabSolver* matlab_solver_stab  = new ChLcpMatlabSolver(matlab_engine);
 ChLcpMatlabSolver* matlab_solver_speed = new ChLcpMatlabSolver(matlab_engine);
@@ -299,46 +314,64 @@ application.GetSystem()->Update();
 application.SetPaused(true);
 
 
+	/*
+	// Change type of integrator: 
+	my_system.SetIntegrationType(chrono::ChSystem::INT_HHT); 
+	
+	// if later you want to change integrator settings:
+	if( ChSharedPtr<ChTimestepperHHT> mystepper = my_system.GetTimestepper().DynamicCastTo<ChTimestepperHHT>() )
+	{
+		mystepper->SetAlpha(-0.2);
+		mystepper->SetMaxiters(6);
+		mystepper->SetTolerance(1e-12);
+	}
+	*/
+
+	application.SetTimestep(0.001);
 
 
 
 
-GetLog()<< "\n\n\n===========STATICS======== \n\n\n";
-
-//application.GetSystem()->DoStaticNonlinear(25);
-//application.GetSystem()->DoStaticLinear();
-
-/*
-belement1->SetDisableCorotate(true);
-belement2->SetDisableCorotate(true);
-application.GetSystem()->DoStaticLinear();
 
 
-GetLog() << "BEAM RESULTS (STATIC ANALYSIS) \n\n";
 
-ChVector<> F, M;
-ChMatrixDynamic<> displ;
 
-belement1->GetField(displ);
-GetLog()<< displ;
-for (double eta = -1; eta <= 1; eta += 0.4)
-{	
-	belement1->EvaluateSectionForceTorque(eta, displ, F, M);
-	GetLog() << "  b1_at " << eta <<  " Mx=" << M.x << " My=" << M.y << " Mz=" << M.z << " Tx=" << F.x << " Ty=" << F.y << " Tz=" << F.z << "\n";
-}
-GetLog()<< "\n";
-belement2->GetField(displ);
-for (double eta = -1; eta <= 1; eta += 0.4)
-{	
-	belement2->EvaluateSectionForceTorque(eta, displ, F, M);
-	GetLog() << "  b2_at " << eta <<  " Mx=" << M.x << " My=" << M.y << " Mz=" << M.z << " Tx=" << F.x << " Ty=" << F.y << " Tz=" << F.z << "\n";
-}
+	GetLog()<< "\n\n\n===========STATICS======== \n\n\n";
 
-GetLog() << "Node 3 coordinate x= " << hnode3->Frame().GetPos().x << "    y=" << hnode3->Frame().GetPos().y << "    z=" << hnode3->Frame().GetPos().z << "\n";
 
-belement1->SetDisableCorotate(false);
-belement2->SetDisableCorotate(false);
-*/
+
+	application.GetSystem()->DoStaticLinear();
+
+
+	GetLog() << "BEAM RESULTS (LINEAR STATIC ANALYSIS) \n\n";
+
+	ChVector<> F, M;
+	ChMatrixDynamic<> displ;
+
+	belement1->GetField(displ);
+	GetLog()<< displ;
+	for (double eta = -1; eta <= 1; eta += 0.4)
+	{	
+		belement1->EvaluateSectionForceTorque(eta, displ, F, M);
+		GetLog() << "  b1_at " << eta <<  " Mx=" << M.x << " My=" << M.y << " Mz=" << M.z << " Tx=" << F.x << " Ty=" << F.y << " Tz=" << F.z << "\n";
+	}
+	GetLog()<< "\n";
+	belement2->GetField(displ);
+	for (double eta = -1; eta <= 1; eta += 0.4)
+	{	
+		belement2->EvaluateSectionForceTorque(eta, displ, F, M);
+		GetLog() << "  b2_at " << eta <<  " Mx=" << M.x << " My=" << M.y << " Mz=" << M.z << " Tx=" << F.x << " Ty=" << F.y << " Tz=" << F.z << "\n";
+	}
+
+	GetLog() << "Node 3 coordinate x= " << hnode3->Frame().GetPos().x << "    y=" << hnode3->Frame().GetPos().y << "    z=" << hnode3->Frame().GetPos().z << "\n";
+
+	GetLog() << "Node 2 ANCF coordinate x= " << hnodeancf2->GetPos().x << "    y=" << hnodeancf2->GetPos().y << "    z=" << hnodeancf2->GetPos().z << "\n\n";
+
+
+
+	GetLog() << "Press SPACE bar to start/stop dynamic simulation \n\n";
+	GetLog() << "Press F10 for nonlinear static solution \n\n";
+	GetLog() << "Press F11 for linear static solution \n\n";
 
 	while(application.GetDevice()->run()) 
 	{
