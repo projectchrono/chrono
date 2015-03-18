@@ -97,9 +97,9 @@ void ChConstraintRigidRigid::func_Project_sliding(int index,
   gamma.z = gam[data_container->num_contacts + index * 2 + 1];
 
   if (data_container->settings.solver.solver_mode == SPINNING) {
-    gamma[3 * data_container->num_contacts + index * 3 + 0] = 0;
-    gamma[3 * data_container->num_contacts + index * 3 + 1] = 0;
-    gamma[3 * data_container->num_contacts + index * 3 + 2] = 0;
+    gam[3 * data_container->num_contacts + index * 3 + 0] = 0;
+    gam[3 * data_container->num_contacts + index * 3 + 1] = 0;
+    gam[3 * data_container->num_contacts + index * 3 + 2] = 0;
   }
 
   real coh = cohesion[index];
