@@ -13,6 +13,9 @@
 #include "chrono_parallel/solver/ChSolverPGS.h"
 #include "chrono_parallel/solver/ChSolverJacobi.h"
 #include "chrono_parallel/solver/ChSolverPDIP.h"
+
+#include "third_party/easylogging/easylogging.h"
+
 using namespace chrono;
 
 #define CLEAR_RESERVE_RESIZE(M, nnz, rows, cols) \

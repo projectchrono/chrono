@@ -10,6 +10,8 @@
 
 #include "chrono_parallel/collision/ChCCollisionSystemParallel.h"
 
+#include "third_party/easylogging/easylogging.h"
+
 namespace chrono {
 namespace collision {
 

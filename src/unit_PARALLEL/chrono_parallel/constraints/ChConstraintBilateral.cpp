@@ -11,6 +11,8 @@
 #include "physics/ChBody.h"
 #include "physics/ChShaft.h"
 
+#include "third_party/easylogging/easylogging.h"
+
 using namespace chrono;
 
 using blaze::DenseSubvector;

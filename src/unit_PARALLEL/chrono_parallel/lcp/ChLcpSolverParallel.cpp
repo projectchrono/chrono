@@ -2,6 +2,8 @@
 #include "chrono_parallel/math/ChThrustLinearAlgebra.h"
 #include "core/ChSpmatrix.h"
 #include "physics/ChBody.h"
+#include "third_party/easylogging/easylogging.h"
+
 using namespace chrono;
 
 ChLcpSolverParallel::ChLcpSolverParallel(ChParallelDataManager* dc) : data_container(dc) {
