@@ -1,7 +1,5 @@
 #include "chrono_parallel/solver/ChSolverParallel.h"
 
-#include "third_party/easylogging/easylogging.h"
-
 using namespace chrono;
 
 ChSolverParallel::ChSolverParallel() {

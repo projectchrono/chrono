@@ -6,8 +6,6 @@
 #include "chrono_parallel/math/quartic.h"
 #include <thrust/iterator/constant_iterator.h>
 
-#include "third_party/easylogging/easylogging.h"
-
 using namespace chrono;
 
 void chrono::Orthogonalize(real3& Vx, real3& Vy, real3& Vz) {

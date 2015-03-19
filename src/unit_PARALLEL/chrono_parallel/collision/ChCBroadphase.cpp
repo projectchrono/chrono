@@ -6,9 +6,6 @@
 #include <thrust/iterator/constant_iterator.h>
 #include "chrono_parallel/collision/ChCBroadphase.h"
 
-#include "third_party/easylogging/easylogging.h"
-
-
 namespace chrono {
 namespace collision {
 

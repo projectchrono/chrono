@@ -5,16 +5,12 @@
 #include "physics/ChShaftsBody.h"
 
 #include "chrono_parallel/physics/ChSystemParallel.h"
-
-#include "third_party/easylogging/easylogging.h"
-
 #include <numeric>
 
 using namespace chrono;
 using namespace chrono::collision;
 
 INITIALIZE_EASYLOGGINGPP
-
 
 ChSystemParallel::ChSystemParallel(unsigned int max_objects) : ChSystem(1000, 10000, false) {
   data_manager = new ChParallelDataManager();
