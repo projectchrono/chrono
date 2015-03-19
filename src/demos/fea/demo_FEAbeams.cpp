@@ -200,8 +200,6 @@ int main(int argc, char* argv[])
 
 	my_mesh->AddElement(belementancf1);
 
-
-
 				// Apply a force or a torque to a node:
 	hnodeancf2->SetForce( ChVector<>(0,3,0));
 
@@ -227,7 +225,7 @@ int main(int argc, char* argv[])
 	hnodeeul2->SetForce( ChVector<>(0,3,0));
 
 	hnodeeul1->SetFixed(true);
-	
+
 
 	//
 	// Final touches..
@@ -345,6 +343,7 @@ application.SetPaused(true);
 
 	GetLog() << "BEAM RESULTS (LINEAR STATIC ANALYSIS) \n\n";
 
+	
 	ChVector<> F, M;
 	ChMatrixDynamic<> displ;
 
@@ -363,9 +362,12 @@ application.SetPaused(true);
 		GetLog() << "  b2_at " << eta <<  " Mx=" << M.x << " My=" << M.y << " Mz=" << M.z << " Tx=" << F.x << " Ty=" << F.y << " Tz=" << F.z << "\n";
 	}
 
-	GetLog() << "Node 3 coordinate x= " << hnode3->Frame().GetPos().x << "    y=" << hnode3->Frame().GetPos().y << "    z=" << hnode3->Frame().GetPos().z << "\n";
+	GetLog() << "Node 3 coordinate x= " << hnode3->Frame().GetPos().x << "    y=" << hnode3->Frame().GetPos().y << "    z=" << hnode3->Frame().GetPos().z << "\n\n";
+	
 
 	GetLog() << "Node 2 ANCF coordinate x= " << hnodeancf2->GetPos().x << "    y=" << hnodeancf2->GetPos().y << "    z=" << hnodeancf2->GetPos().z << "\n\n";
+	GetLog() << "             direction x= " << hnodeancf2->GetD().x << "    y=" << hnodeancf2->GetD().y << "    z=" << hnodeancf2->GetD().z << "\n\n";
+
 
 
 
