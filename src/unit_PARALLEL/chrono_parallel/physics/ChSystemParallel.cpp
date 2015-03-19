@@ -9,9 +9,9 @@
 
 using namespace chrono;
 using namespace chrono::collision;
-
+#ifdef LOGGINGENABLED
 INITIALIZE_EASYLOGGINGPP
-
+#endif
 ChSystemParallel::ChSystemParallel(unsigned int max_objects) : ChSystem(1000, 10000, false) {
   data_manager = new ChParallelDataManager();
 
@@ -41,9 +41,10 @@ ChSystemParallel::ChSystemParallel(unsigned int max_objects) : ChSystem(1000, 10
   data_manager->system_timer.AddTimer("ChLcpSolverParallel_Solve");
   data_manager->system_timer.AddTimer("ChLcpSolverParallel_Setup");
   data_manager->system_timer.AddTimer("ChLcpSolverParallel_Stab");
-
+#ifdef LOGGINGENABLED
   el::Loggers::reconfigureAllLoggers(el::ConfigurationType::ToStandardOutput, "false");
   el::Loggers::reconfigureAllLoggers(el::ConfigurationType::Format, "%datetime{%h:%m:%s:%g} %msg");
+#endif
 }
 
 ChSystemParallel::~ChSystemParallel() {
@@ -666,6 +667,8 @@ void ChSystemParallel::ChangeCollisionSystem(COLLISIONSYSTEMTYPE type) {
 }
 
 void ChSystemParallel::SetLoggingLevel(LOGGINGLEVEL level, bool state) {
+#ifdef LOGGINGENABLED
+
   std::string value = state ? "true" : "false";
 
   switch (level) {
@@ -685,4 +688,5 @@ void ChSystemParallel::SetLoggingLevel(LOGGINGLEVEL level, bool state) {
       el::Loggers::reconfigureAllLoggers(el::Level::Error, el::ConfigurationType::ToStandardOutput, value);
       break;
   }
+#endif
 }

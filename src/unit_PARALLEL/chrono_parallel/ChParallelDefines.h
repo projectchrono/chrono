@@ -69,9 +69,23 @@ using namespace thrust;
 #endif
 #endif
 
+#ifndef _MSC_VER
+
 // Enable thread safe logging
 #define ELPP_THREAD_SAFE
 #include "third_party/easylogging/easylogging.h"
+#define LOGGINGENABLED
+#else
+class NullBuffer : public std::streambuf {
+ public:
+  int overflow(int c) { return c; }
+};
+static NullBuffer null_buffer;
+static std::ostream null_stream(&null_buffer);
+#define LOG(X) null_stream
+#endif
+
+
 
 #define CHVECCAST(v) ChVector<>(v.x, v.y, v.z)
 #define CHQUATCAST(q) ChQuaternion<>(q.w, q.x, q.y, q.z)
