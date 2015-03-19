@@ -38,10 +38,11 @@ public:
 						X0 = initial_pos;
 						pos = initial_pos;
 						Force = VNULL;
-						//variables.SetNodeMass(0.0);
 						D = initial_dir;
 						D_dt = VNULL;
 						D_dtdt = VNULL;
+						variables.SetBodyMass(0.0);
+						variables.SetBodyInertia(ChMatrix33<>(0)); //***TODO*** tensor of inertia not needed, ChLcpVariablesBodyOwnMass is a temporary hack that should be promoted to some other ChLcpVariablesXXX stuff
 					}
 
 	~ChNodeFEAxyzD() {};
