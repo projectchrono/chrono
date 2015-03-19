@@ -1049,6 +1049,8 @@ bool GJKCollide(const ConvexShape& shape0,
     }
   }
 
+  delete m_simplexSolver;
+
   // printf("last Method: %d", m_lastUsedMethod);
 
   if (isValid && ((distance < 0) || (distance * distance < LARGE_REAL)) && distance < (marginA + marginB + envelope) ) {
