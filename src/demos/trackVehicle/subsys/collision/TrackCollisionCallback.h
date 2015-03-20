@@ -97,6 +97,7 @@ public:
   double pin_y_offset;
 };
 
+
 /// Concave geometry (gear tooth seat) cannot be exactly represented by default collision primitives,
 ///  nor can it be accurately modeled with a mesh or convex hull.
 /// This custom collision checks the sprocket gear seat geometry with all the track shoe pins.
@@ -160,7 +161,7 @@ class GearPinCollisionCallback : public ChSystem::ChCustomComputeCollisionCallba
 
 	}
 
-  
+  // data container for 6-DOF contact reaction cache
   class GearPinCacheContact{
 	  public:
 		  GearPinCacheContact()
@@ -450,6 +451,59 @@ private:
   size_t m_sum_Pz_contacts; // curious about Pz/Nz contacts overall
   size_t m_sum_Nz_contacts;
 };  // end class GearPinCollisionCallback
+
+
+// scan through all the contacts, write ascii to console or file
+class _contact_reporter : public ChReportContactCallback
+{
+public:
+
+  // constructor requires user to specify to file or console
+  _contact_reporter(ChStreamOutAscii& out_stream,
+    bool write_to_console = true
+    ): os(out_stream), to_console(write_to_console), contact_num(0) {}
+
+  virtual bool ReportContactCallback(const ChVector<>& pA,
+                                     const ChVector<>& pB,
+                                     const ChMatrix33<>& plane_coord,
+                                     const double& distance,
+                                     const float& mfriction,
+                                     const ChVector<>& react_forces,
+                                     const ChVector<>& react_torques,
+                                     collision::ChCollisionModel* modA,
+                                     collision::ChCollisionModel* modB)
+  {
+    // write to console
+    if(to_console)
+    {
+      os << "\n ---- collision info, # : " << contact_num
+        <<"\n pA : " << pA
+        <<"\n pB : " << pB
+        <<"\n norm: " << plane_coord.Get_A_Xaxis()
+        <<"\n dist: " << distance
+        <<"\n forces: " << react_forces
+        << "\n";
+    }
+    else
+    {
+      // write to file
+      os << pA 
+        <<","<< pB
+        <<","<< plane_coord.Get_A_Xaxis()
+        <<","<< distance
+        <<","<< react_forces
+        << "\n";
+    }
+
+    contact_num++;
+    return true; // to continue scanning contacts
+  }
+
+  // can be console or file
+  ChStreamOutAscii& os;
+  bool to_console;
+  int contact_num;  // this contact #
+};  // end class _contact_reporter
 
 
 }  // end namespace chrono
