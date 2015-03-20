@@ -367,7 +367,8 @@ void DriveGear::AddCollisionGeometry(const std::vector<ChSharedPtr<ChBody> >& sh
     // use default template to indicate DVI contact
     m_gearPinContact = new GearPinCollisionCallback<>(shoes,
       m_gear, 
-      m_gearPinGeom);
+      m_gearPinGeom,
+      0.005);
 
     // after regular C-D, call the concave gear seat/shoe pin collision function
     shoes[0]->GetSystem()->SetCustomComputeCollisionCallback(m_gearPinContact);

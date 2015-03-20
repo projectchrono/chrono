@@ -111,10 +111,12 @@ class GearPinCollisionCallback : public ChSystem::ChCustomComputeCollisionCallba
 	GearPinCollisionCallback(const std::vector<ChSharedPtr<ChBody> >& shoes,
     ChSharedPtr<ChBody> gear_body,
     GearPinGeometry& geom,
+    const double geom_envelope = 0.005,
     const int persistent_hashtable_dim = 1000
 	) : m_shoes(shoes),
   m_gear(gear_body),
   m_geom(geom),
+  m_envelope(geom_envelope),
   m_persistent_hashtable_dim(persistent_hashtable_dim),
   m_Ncontacts(0),
   m_NbroadPhasePassed(0),
@@ -141,11 +143,18 @@ class GearPinCollisionCallback : public ChSystem::ChCustomComputeCollisionCallba
     ChVector<> tooth_mid_XY_bar = m_geom.tooth_mid_bar;
     tooth_mid_XY_bar.z = 0;
     tooth_mid_XY_bar.x += 0.5*m_geom.tooth_len;
-    m_bound_rad_Gear = tooth_mid_XY_bar.Length();
+    m_bound_rad_Gear = tooth_mid_XY_bar.Length() + m_envelope;
     
     // Shoe pin broadphase collision shape is a cylinder at each pin COG
     // apply one to each side of the shoe body
-    m_bound_rad_Pin = m_geom.pin_radius;
+    m_bound_rad_Pin = m_geom.pin_radius + m_envelope;
+
+    // if the center of the pin and gear, in the XY gear c-sys, are less than this value, passes broad phase
+    m_bound_broadphase = m_bound_rad_Gear + m_bound_rad_Pin; // includes the outward envelope
+
+    // the bounding concave section needs to include an outward envelope, which reduces the concave 
+    //  circle radius
+    m_bound_gear_seat_rad = m_geom.gear_concave_radius - m_envelope;
 
 		// alloc the hash table for persistent manifold of gear-cylinder contacts
 		m_hashed_contacts = new ChHashTable<int, GearPinCacheContact>(m_persistent_hashtable_dim);
@@ -213,14 +222,13 @@ class GearPinCollisionCallback : public ChSystem::ChCustomComputeCollisionCallba
     // only need to check radial distance from gear center, in gear c-sys
     ChVector<> pin_gear_XY_Pz(pin_gear_Pz_bar.x, pin_gear_Pz_bar.y, 0);
     ChVector<> pin_gear_XY_Nz(pin_gear_Nz_bar.x, pin_gear_Nz_bar.y, 0);
-    double center_len = m_bound_rad_Gear + m_bound_rad_Pin;
 
-    if( pin_gear_XY_Pz.Length() <= center_len )
+    if( pin_gear_XY_Pz.Length() <= m_bound_broadphase )
     {
       // GetLog() << "pin 1 is w/in collision envelope \n";
       return true;
     }
-    if( pin_gear_XY_Nz.Length() <= center_len )
+    if( pin_gear_XY_Nz.Length() <= m_bound_broadphase )
     {
       // GetLog() << "pin 2 is w/in collision envelope \n";
       return true;
@@ -254,7 +262,7 @@ class GearPinCollisionCallback : public ChSystem::ChCustomComputeCollisionCallba
 
     // true when the pin intersects with the semi-circle that is radially inwards from the pitch circle center position
     //  (relative to gear c-sys)
-    if( r_pitch_pin_XY.Length() + m_geom.pin_radius >= m_geom.gear_concave_radius && r1r2_dot < 0 )
+    if( r_pitch_pin_XY.Length() + m_bound_rad_Pin >= m_bound_gear_seat_rad && r1r2_dot < 0 )
     {
       // fill in contact info. 
 
@@ -399,7 +407,6 @@ class GearPinCollisionCallback : public ChSystem::ChCustomComputeCollisionCallba
         ChVector<> gear_seat_pos_Nz = m_gear->GetPos() 
           + m_gear->GetRot().Rotate( ChVector<>(m_seat_pos_bar.x, m_seat_pos_bar.y, -m_seat_pos_bar.z) );
 
-       
         // narrow phase will add the contact if passed. All coords are in global c-sys
         bool passed_Narrow = NarrowPhase(gear_seat_pos_Pz, gear_seat_pos_Nz,
           pin_pos_Pz, pin_pos_Nz,
@@ -431,8 +438,11 @@ private:
   std::vector<ChSharedPtr<ChBody> > m_shoes;
   ChSharedPtr<ChBody> m_gear;
   const GearPinGeometry m_geom; ///< gear and pin geometry data
+  const double m_envelope; 
   double m_bound_rad_Gear; ///< broadphase geometry bounding sphere radius for gear
   double m_bound_rad_Pin; ///< geometry bounding sphere circumscribes the outside circumference of the pins
+  double m_bound_broadphase;  ///< total bounding radius
+  double m_bound_gear_seat_rad;  ///< radius swept out by the concave gear seat section
 
   // following are used for determining if contacts are "persistent"
   // i.e., no liftoff once they are engaged with the sprocket. 1 per shoe

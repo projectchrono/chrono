@@ -943,7 +943,7 @@ void DriveChain::Setup_log_to_file(int what,
 
 void DriveChain::Log_to_console(int console_what)
 {
-  GetLog().SetNumFormat("%10.2f");
+  GetLog().SetNumFormat("%f");//%10.4f");
 
   if (console_what & DBG_FIRSTSHOE)
   {
