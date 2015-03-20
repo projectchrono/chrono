@@ -123,6 +123,9 @@ public:
   // abs. normal force of all sh oe-gear contacts
   const std::vector<ChVector<> >& Get_SG_Fn_all() const { return m_SG_ContactFn_all; }
 
+  // # of contacts, custom collision class
+  int GetNum_CustomContacts() const {return m_gear->GetCollisionCallback()->GetNcontacts(); }
+
 protected:
 
   /// create files with headers for all specified output data types.
