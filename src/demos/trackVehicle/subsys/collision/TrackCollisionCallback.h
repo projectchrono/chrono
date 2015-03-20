@@ -28,7 +28,10 @@
 
 namespace chrono {
 
-/// data container for the M113 gear/pin geometry.
+/// Gear seat geometry, # of teeth, pin size, spacing, offsets, etc. are parametrized
+///   with this data container class, for the below custom collision between the 
+///   sprocket gear seat and track shoe pins.
+/// Default values for M113 gear/pin geometry.
 class GearPinGeometry
 {
 public:
@@ -94,11 +97,11 @@ public:
   double pin_y_offset;
 };
 
-// Concave geometry (gear tooth seat) cannot be exactly represented by default collision primitives,
-//  nor can it be accurately modeled with a mesh or convex hull.
-// This custom collision checks the gear with all the track shoes
-// I suppose since you can choose between DVI and DEM contact, might as well
-// template this so we can add to either contact container type
+/// Concave geometry (gear tooth seat) cannot be exactly represented by default collision primitives,
+///  nor can it be accurately modeled with a mesh or convex hull.
+/// This custom collision checks the sprocket gear seat geometry with all the track shoe pins.
+/// Gear seat geometry, # of teeth, pin size, spacing, offsets, etc. are parametrized thru class GearPinGeometry. 
+/// Templated based on the type of collision engine you are using, e.g. DVI or DEM, (DVI default).
 template <class ContactEngine = ChContactContainerBase>
 class GearPinCollisionCallback : public ChSystem::ChCustomComputeCollisionCallback
 {
