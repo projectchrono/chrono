@@ -1216,7 +1216,7 @@ void DriveChain::Log_to_file()
 
       // write headers to the file first
       std::stringstream ss_header;
-      ss_header << "pAx,pAy,pAz,pBx,pBy,pBz,Nx,Ny,Nz,dist,Fx,Fy,Fz\n";
+      ss_header << "bodyA,bodyB,pAx,pAy,pAz,pBx,pBy,pBz,Nx,Ny,Nz,dist,Fx,Fy,Fz\n";
       ofileContacts << ss_header.str().c_str();
 
       _contact_reporter m_report(ofileContacts );
