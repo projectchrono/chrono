@@ -59,7 +59,7 @@ public:
 
   ChSharedPtr<ChShaft> GetAxle() const { return m_axle; }
 
-  const GearPinCollisionCallback<ChContactContainer>* GetCollisionCallback() const { return m_gearPinContact; }
+  const GearPinCollisionCallback<ChContactContainerBase>* GetCollisionCallback() const { return m_gearPinContact; }
 
   double GetRadius() const { return m_radius; }
 
@@ -104,7 +104,7 @@ private:
 
   // data container for callback collision function
   GearPinGeometry m_gearPinGeom;
-  GearPinCollisionCallback<ChContactContainer> *m_gearPinContact;
+  GearPinCollisionCallback<ChContactContainerBase> *m_gearPinContact;
 
   // static variables
   static const double m_radius;

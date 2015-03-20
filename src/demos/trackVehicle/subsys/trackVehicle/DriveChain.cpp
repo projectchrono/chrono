@@ -70,8 +70,7 @@ DriveChain::DriveChain(const std::string& name,
   m_SG_PosRel.resize(2, ChVector<>());
   m_SG_PosAbs.resize(2, ChVector<>());
   m_SG_Fn.resize(2, ChVector<>());
-  
-
+ 
 
   // setup the chassis body    
   m_chassis->SetIdentifier(0);
@@ -944,7 +943,7 @@ void DriveChain::Setup_log_to_file(int what,
 
 void DriveChain::Log_to_console(int console_what)
 {
-  GetLog().SetNumFormat("%10.2f");
+  GetLog().SetNumFormat("%f");//%10.4f");
 
   if (console_what & DBG_FIRSTSHOE)
   {
@@ -1046,6 +1045,14 @@ void DriveChain::Log_to_console(int console_what)
       << "\n Sum contacts, +z side: " << m_gear->GetCollisionCallback()->Get_sum_Pz_contacts()
       << "\n Sum contacts, -z side: " << m_gear->GetCollisionCallback()->Get_sum_Nz_contacts()
       <<"\n";
+  }
+
+  if(console_what & DBG_ALL_CONTACTS)
+  {
+    // use the reporter class with the console log
+    _contact_reporter m_report(GetLog() );
+    // add it to the system, should be called next timestep
+    m_system->GetContactContainer()->ReportAllContacts(&m_report);
   }
 
   GetLog().SetNumFormat("%g");
@@ -1194,8 +1201,31 @@ void DriveChain::Log_to_file()
         <<","<< m_gear->GetCollisionCallback()->Get_sum_Pz_contacts()
         <<","<< m_gear->GetCollisionCallback()->Get_sum_Nz_contacts()
         <<"\n";
+      ChStreamOutAsciiFile ofileCCBACK(m_filename_DBG_COLLISIONCALLBACK.c_str(), std::ios::app);
+      ofileCCBACK << ss_cc.str().c_str();
     }
 
+    if( m_log_what_to_file & DBG_ALL_CONTACTS)
+    {
+      // use the reporter class with the console log
+      std::stringstream ss_fn;  // filename
+      ss_fn << m_filename_DBG_ALL_CONTACTS << m_cnt_Log_to_file << ".csv";
+
+      // new file created for each step
+      ChStreamOutAsciiFile ofileContacts(ss_fn.str().c_str());
+
+      // write headers to the file first
+      std::stringstream ss_header;
+      ss_header << "bodyA,bodyB,pAx,pAy,pAz,pBx,pBy,pBz,Nx,Ny,Nz,dist,Fx,Fy,Fz\n";
+      ofileContacts << ss_header.str().c_str();
+
+      _contact_reporter m_report(ofileContacts );
+      // add it to the system, should be called next timestep
+      m_system->GetContactContainer()->ReportAllContacts(&m_report);
+    }
+
+    // increment step number
+    m_cnt_Log_to_file++;
   }
 }
 
@@ -1203,6 +1233,9 @@ void DriveChain::Log_to_file()
 
 void DriveChain::create_fileHeaders(int what)
 {
+  // creating files, reset counter of # of times Log_to_file was called
+  m_cnt_Log_to_file = 0;
+
   GetLog() << " ------ Output Data ------------ \n\n";
 
   if(what & DBG_FIRSTSHOE)
@@ -1314,6 +1347,15 @@ void DriveChain::create_fileHeaders(int what)
       << "\n     data: " << ss_cc.str().c_str() <<"\n";
 
   }
+
+  // write all contact info to a new file each step
+  if(what & DBG_ALL_CONTACTS)
+  {
+    m_filename_DBG_ALL_CONTACTS = m_log_file_name+"_allContacts";
+    // write a file each step, so we'll write a header then.
+    GetLog() << " writing contact info to file name: " << m_filename_DBG_ALL_CONTACTS << "\n\n";
+  }
+
 }
 
 

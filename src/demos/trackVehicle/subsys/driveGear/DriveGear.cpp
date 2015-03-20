@@ -343,9 +343,11 @@ void DriveGear::AddCollisionGeometry(const std::vector<ChSharedPtr<ChBody> >& sh
     }
 
     
-    // until the custom callback works, two cylinders (e.g., PRIMITIVES)
-    //  with radius of the gear base circle, width of the gear seat
-    
+    // NOTE: Custom callback doesn't work well when there is interpenetration,
+    //    which tends to happen to whatever shoe pin is directly opposite from the idler,
+    //    and takes a large fraction of the tensioning force.
+    // Until resolved, maintain the cylinder bodies as a gear seat base.
+    // Only contributes when there is too much penetration between the gear seat and pin.
     ChVector<> shape_offset =  ChVector<>(0, 0, 0.5*(m_gearPinGeom.tooth_width + m_gearPinGeom.gear_seat_width_min));
      // use two simple cylinders. 
     m_gear->GetCollisionModel()->AddCylinder(m_gearPinGeom.gear_base_radius,
@@ -362,11 +364,14 @@ void DriveGear::AddCollisionGeometry(const std::vector<ChSharedPtr<ChBody> >& sh
 
     // a custom callback function to find the pin-gear seat collision, analytically
     m_gearPinGeom = GearPinGeometry();
-    m_gearPinContact = new GearPinCollisionCallback<ChContactContainer>(shoes,
+    // use default template to indicate DVI contact
+    m_gearPinContact = new GearPinCollisionCallback<>(shoes,
       m_gear, 
-      m_gearPinGeom);
+      m_gearPinGeom,
+      0.005);
+
     // after regular C-D, call the concave gear seat/shoe pin collision function
-//    shoes[0]->GetSystem()->SetCustomComputeCollisionCallback(m_gearPinContact);
+    shoes[0]->GetSystem()->SetCustomComputeCollisionCallback(m_gearPinContact);
 
     break;
   }
