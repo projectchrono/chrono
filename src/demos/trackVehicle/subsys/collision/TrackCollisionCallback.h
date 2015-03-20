@@ -481,19 +481,20 @@ public:
         <<"\n pA : " << pA
         <<" pB : " << pB
         <<" norm : " << plane_coord.Get_A_Xaxis()
-        <<"\n dist : " << distance
+        <<" dist : " << distance
         <<"\n forces: " << react_forces;
     }
     else
     {
       // write to file
+      ChVector<> x_hat = plane_coord.Get_A_Xaxis();
       os << modA->GetPhysicsItem()->GetName()
         <<","<< modB->GetPhysicsItem()->GetName()
-        <<","<< pA 
-        <<","<< pB
-        <<","<< plane_coord.Get_A_Xaxis()
+        <<","<< pA.x <<","<< pA.y <<","<< pA.z 
+        <<","<< pB.x <<","<< pB.y <<","<< pB.z
+        <<","<< x_hat.x <<","<< x_hat.y <<","<< x_hat.z
         <<","<< distance
-        <<","<< react_forces
+        <<","<< react_forces.x <<","<< react_forces.y <<","<< react_forces.z
         << "\n";
     }
 
