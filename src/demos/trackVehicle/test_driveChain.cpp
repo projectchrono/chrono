@@ -63,41 +63,51 @@ using namespace chrono;
 // User Settings
 // =============================================================================
 
+// *****  General system settings
+size_t num_idlers = 1;
+size_t num_rollers = 2;
+// Initial position and heading
+ChVector<> initLoc(0, 1.0, 0);
+//ChQuaternion<> initRot = Q_from_AngAxis(CH_C_PI_4, VECT_Y);
+ChQuaternion<> initRot(QUNIT);
+
+// *****  Simulation step size, end time
+double step_size = 1e-4;
+// stop at a certain time
+double end_time = 15;  // 99999
+
+// *****  Driver settings
+// Automated simulation controls, applies positive half a sine wave.
+// Otherwise, control throttle with W/S
+bool autopilot = true;
+double sineAmp = 0.5;
+double sineFreq = 0.3;
+double tStart = 0.1;
+
+// ***** write to console or a file
 // #define WRITE_OUTPUT            // write output data to file
 // #define CONSOLE_SYSTEM_INFO  // display the system heirarchy in the console
 #define CONSOLE_DEBUG_INFO      // log constraint violations to console,
 #define CONSOLE_TIMING       // time each render and simulation step, log to console
 
 int what_to_save = DBG_FIRSTSHOE | DBG_GEAR | DBG_IDLER | DBG_PTRAIN | DBG_CONSTRAINTS | DBG_COLLISIONCALLBACK;
-int what_to_console = DBG_PTRAIN | DBG_GEAR | DBG_COLLISIONCALLBACK;  // | DBG_IDLER | DBG_FIRSTSHOE | DBG_CONSTRAINTS;
-
-// Initial position and heading
-ChVector<> initLoc(0, 1.0, 0);
-//ChQuaternion<> initRot = Q_from_AngAxis(CH_C_PI_4, VECT_Y);
-ChQuaternion<> initRot(QUNIT);
-
-size_t num_idlers = 1;
-size_t num_rollers = 2;
-
-// Simulation step size
-double step_size = 1e-3;
-// stop at a certain time
-double end_time = 15;  // 99999
-
-
-// control how often to render a frame, write to file, write to console.
-int FPS = 40; // render Frames Per Second
-double render_step_size = 1.0 / FPS;  // Time increment for rendered frames
+int what_to_console = DBG_ALL_CONTACTS;
+// int what_to_console = DBG_PTRAIN | DBG_GEAR | DBG_COLLISIONCALLBACK;  // | DBG_IDLER | DBG_FIRSTSHOE | DBG_CONSTRAINTS;
 double output_step_size = step_size;  // Time interval for writing data to file
-double console_step_size = 0.5;       // time interval for writing data to console
+double console_step_size = 0.2;       // time interval for writing data to console
+
+// *****  Visualization and camera settings
+// control how often to render a frame, write to file, write to console.
+int FPS = 400; // render Frames Per Second
+double render_step_size = 1.0 / FPS;  // Time increment for rendered frames
 
 // camera controls, either static or  GUI controlled chase camera:
 bool use_fixed_camera = true;
 // static camera position, global c-sys. (Longitude, Vertical, Lateral)
-ChVector<> fixed_cameraPos(0.5, 1.3, 1.7);    // (1.5, 1.5, 1.5)
+ChVector<> fixed_cameraPos(0.3, 1.5, 1.8);    // (1.5, 1.5, 1.5)
 
 // Both cameras track this point, relative to the center of the gear
-ChVector<> trackPoint(-0.7, 0, 0.2);
+ChVector<> trackPoint(0, 0.2, 0.2);
 
 // if chase cam enabled:
 double chaseDist = 2.5;
@@ -105,12 +115,6 @@ double chaseHeight = 0.5;
 
 bool do_shadows = false; // shadow map is experimental
 
-// Automated simulation controls, applies positive half a sine wave.
-// Otherwise, control throttle with W/S
-bool autopilot = true;
-double sineAmp = 0.5;
-double sineFreq = 0.3;
-double tStart = 0.1;
 
   /*
 #else
@@ -329,16 +333,6 @@ int main(int argc, char* argv[])
       chainSystem.Log_to_file();  // needs to already be setup before sim loop calls it
     }
 #endif
-
-
-    // DEBUGGING
-    if(1 && chainSystem.GetNum_CustomContacts() > 0)
-    {
-      // report all contact into to the console
-      chainSystem.Log_to_console( DBG_ALL_CONTACTS );
-    }
-
-
 
     if(step_number % console_steps == 0)
     {
