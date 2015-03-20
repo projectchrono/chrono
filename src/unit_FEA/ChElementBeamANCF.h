@@ -31,7 +31,7 @@ namespace fea
 /// Simple beam element with two nodes and ANCF gradient-deficient
 /// formulation.
 /// For this 'basic' implementation, constant section and 
-/// constant material are assumed.
+/// constant material are assumed along the beam coordinate.
 /// Torsional stiffness is impossible because of the formulation.
 /// Based on the formulation in:
 ///  "Analysis of Thin Beams and Cables Using the Absolute Nodal Co-ordinate Formulation"
@@ -133,10 +133,10 @@ public:
 				{
 					double l = this->GetRestLength();
 
-					Nd(0) =(6*pow(xi,2)-6*xi)/l;
-					Nd(1) =1-4*xi+3*pow(xi,2);
-					Nd(2) =-(6*pow(xi,2)-6*xi)/l;
-					Nd(3) =-2*xi+3*pow(xi,2);
+					Nd(0) =(6.0*pow(xi,2.0)-6.0*xi)/l;
+					Nd(1) =1.0-4.0*xi+3.0*pow(xi,2.0);
+					Nd(2) =-(6.0*pow(xi,2.0)-6.0*xi)/l;
+					Nd(3) =-2.0*xi+3.0*pow(xi,2.0);
 				};
 
 	virtual void ShapeFunctionsDerivatives2(ChMatrix<>& Ndd, double xi)
@@ -178,197 +178,272 @@ public:
 	virtual void ComputeStiffnessMatrix()
 				{	
 					assert (!section.IsNull());
+					
+					bool use_numerical_differentiation = true;
 
-					double Area = section->Area;
-					double E    = section->E;
-					double Izz  = section->Izz;
-					double Iyy  = section->Iyy;
-
-					double l	= this->length;
-
-					ChVector<> pA = this->nodes[0]->GetPos();
-					ChVector<> dA = this->nodes[0]->GetD();
-					ChVector<> pB = this->nodes[1]->GetPos();
-					ChVector<> dB = this->nodes[1]->GetD();
-
-					/// 1)
-					/// Integrate   ((strainD'*strainD)+(strain*Sd'*Sd))
-
-					class MyStiffnessAxial : public ChIntegrable1D< ChMatrixNM<double,12,12> >
+					// Option: compute the stiffness matrix by doing a numerical differentiation
+					// of the internal forces. This fixes a problem with the code by D.Melanz, that 
+					// produces a rank deficient matrix for straight beams.
+					if (use_numerical_differentiation)
 					{
-					public:
-						ChElementBeamANCF* element;
-						ChMatrixNM<double, 3,12>  Sd;
-						ChMatrixNM<double, 1,4>   N;
-						ChMatrixNM<double, 1,4>   Nd;
-						ChMatrixNM<double, 4,3>   d;
-						ChMatrixNM<double, 1,12>  strainD;
-						ChMatrixNM<double, 1,1>   strain;
-						ChMatrixNM<double, 1,3>   Nd_d;
-						ChMatrixNM<double, 12,12> temp;
+						double diff = 1e-8;
+						ChMatrixDynamic<> Kcolumn(12,1);
+						ChMatrixDynamic<> F0(12,1);
+						ChMatrixDynamic<> F1(12,1);
 
-								/// Evaluate ((strainD'*strainD)+(strain*Sd'*Sd)) at point x 
-						virtual void Evaluate(ChMatrixNM<double,12,12>& result, const double x)
+						this->ComputeInternalForces(F0);
+
+						// the rest could be in a for loop, if implementing a  ComputeInternalForces that
+						// accepts the DOFs values as a 12-vector state where one increments a value at a time,
+						// but ComputeInternalForces avoids moving that data by using nodes[0]->pos.blabla directly, 
+						// so here we do a sort of 'unrolled' loop:
+
+						for (int inode = 0; inode <2; ++inode)
 						{
-							element->ShapeFunctionsDerivatives(Nd, x);
+							this->nodes[inode]->pos.x +=diff;
+							this->ComputeInternalForces(F1);
+							Kcolumn = (F0-F1)*(1.0/diff);
+							this->StiffnessMatrix.PasteClippedMatrix(&Kcolumn,0,0,12,1,0, 0+inode*6);
+							this->nodes[inode]->pos.x -=diff;
 
-							// Sd=[Nd1*eye(3) Nd2*eye(3) Nd3*eye(3) Nd4*eye(3)]
-							ChMatrix33<> Sdi;
-							Sdi.FillDiag(Nd(0));
-							Sd.PasteMatrix(&Sdi, 0,0);
-							Sdi.FillDiag(Nd(1));
-							Sd.PasteMatrix(&Sdi, 0,3);
-							Sdi.FillDiag(Nd(2));
-							Sd.PasteMatrix(&Sdi, 0,6);
-							Sdi.FillDiag(Nd(3));
-							Sd.PasteMatrix(&Sdi, 0,9);
+							this->nodes[inode]->pos.y +=diff;
+							this->ComputeInternalForces(F1);
+							Kcolumn = (F0-F1)*(1.0/diff);
+							this->StiffnessMatrix.PasteClippedMatrix(&Kcolumn,0,0,12,1,0, 1+inode*6);
+							this->nodes[inode]->pos.y -=diff;
 
-							strainD = (Nd*d)*Sd;
+							this->nodes[inode]->pos.z +=diff;
+							this->ComputeInternalForces(F1);
+							Kcolumn = (F0-F1)*(1.0/diff);
+							this->StiffnessMatrix.PasteClippedMatrix(&Kcolumn,0,0,12,1,0, 2+inode*6);
+							this->nodes[inode]->pos.z -=diff;
 
-							// strain = (Nd*(d*d')*Nd'-1)*0.5;
-							Nd_d = Nd*d;
-							strain.MatrMultiplyT(Nd_d,Nd_d);
-							strain(0,0) += -1;
-							strain(0,0) *= 0.5;
+							this->nodes[inode]->D.x +=diff;
+							this->ComputeInternalForces(F1);
+							Kcolumn = (F0-F1)*(1.0/diff);
+							this->StiffnessMatrix.PasteClippedMatrix(&Kcolumn,0,0,12,1,0, 3+inode*6);
+							this->nodes[inode]->D.x -=diff;
 
-							// result:  ((strainD'*strainD)+(strain*Sd'*Sd))
+							this->nodes[inode]->D.y +=diff;
+							this->ComputeInternalForces(F1);
+							Kcolumn = (F0-F1)*(1.0/diff);
+							this->StiffnessMatrix.PasteClippedMatrix(&Kcolumn,0,0,12,1,0, 4+inode*6);
+							this->nodes[inode]->D.y -=diff;
 
-							result.MatrTMultiply(strainD,strainD);  //(strainD'*strainD)
+							this->nodes[inode]->D.z +=diff;
+							this->ComputeInternalForces(F1);
+							Kcolumn = (F0-F1)*(1.0/diff);
+							this->StiffnessMatrix.PasteClippedMatrix(&Kcolumn,0,0,12,1,0, 5+inode*6);
+							this->nodes[inode]->D.z -=diff;
+						}
+					}
+
+					else
+					{
+						// Option B: use the code in D.Melanz thesis. These formulas, however, 
+						// produce a rank deficient matrix for straight beams.
+						double Area = section->Area;
+						double E    = section->E;
+						double Izz  = section->Izz;
+						double Iyy  = section->Iyy;
+
+						double l	= this->length;
+
+						ChVector<> pA = this->nodes[0]->GetPos();
+						ChVector<> dA = this->nodes[0]->GetD();
+						ChVector<> pB = this->nodes[1]->GetPos();
+						ChVector<> dB = this->nodes[1]->GetD();
+
+						// this matrix will be used in both MyStiffnessAxial and MyStiffnessCurv integrators
+						ChMatrixNM<double, 4,3>   d;
+						d(0,0) = pA.x;	d(0,1) = pA.y;	d(0,2) = pA.z;
+						d(1,0) = dA.x;	d(1,1) = dA.y;	d(1,2) = dA.z;
+						d(2,0) = pB.x;	d(2,1) = pB.y;	d(2,2) = pB.z;
+						d(3,0) = dB.x;	d(3,1) = dB.y;	d(3,2) = dB.z;
+
+						/// 1)
+						/// Integrate   ((strainD'*strainD)+(strain*Sd'*Sd))
+
+						class MyStiffnessAxial : public ChIntegrable1D< ChMatrixNM<double,12,12> >
+						{
+						public:
+							ChElementBeamANCF* element;
+							ChMatrixNM<double, 4,3>*  d;
+							ChMatrixNM<double, 3,12>  Sd;
+							ChMatrixNM<double, 1,4>   N;
+							ChMatrixNM<double, 1,4>   Nd;
+							ChMatrixNM<double, 1,12>  strainD;
+							ChMatrixNM<double, 1,1>   strain;
+							ChMatrixNM<double, 1,3>   Nd_d;
+							ChMatrixNM<double, 12,12> temp;
+
+									/// Evaluate ((strainD'*strainD)+(strain*Sd'*Sd)) at point x 
+							virtual void Evaluate(ChMatrixNM<double,12,12>& result, const double x)
+							{
+								element->ShapeFunctionsDerivatives(Nd, x);
+
+								// Sd=[Nd1*eye(3) Nd2*eye(3) Nd3*eye(3) Nd4*eye(3)]
+								ChMatrix33<> Sdi;
+								Sdi.FillDiag(Nd(0));
+								Sd.PasteMatrix(&Sdi, 0,0);
+								Sdi.FillDiag(Nd(1));
+								Sd.PasteMatrix(&Sdi, 0,3);
+								Sdi.FillDiag(Nd(2));
+								Sd.PasteMatrix(&Sdi, 0,6);
+								Sdi.FillDiag(Nd(3));
+								Sd.PasteMatrix(&Sdi, 0,9);
+
+								Nd_d = Nd * (*d);
+
+								strainD =  Nd_d *Sd; 
+
+								// strain = (Nd*(d*d')*Nd'-1)*0.5;
 							
-							temp.MatrTMultiply(Sd,Sd);				//(strain*Sd'*Sd)
-							temp *= strain(0,0);
-							result += temp;
-						}
-					};
+								strain.MatrMultiplyT(Nd_d,Nd_d);
+								strain(0,0) += -1;
+								strain(0,0) *= 0.5; // strain 
+						
+								// result:  ((strainD'*strainD)+(strain*Sd'*Sd))
+						
+								result.MatrTMultiply(strainD,strainD);  //(strainD'*strainD)  
+			
+								temp.MatrTMultiply(Sd,Sd);				//(strain*Sd'*Sd) 
+								temp *= strain(0,0);
+								result += temp;
+							}
+						};
 
-					MyStiffnessAxial myformulaAx;
-					myformulaAx.d(0,0) = pA.x;	myformulaAx.d(0,1) = pA.y;	myformulaAx.d(0,2) = pA.z;
-					myformulaAx.d(1,0) = dA.x;	myformulaAx.d(1,1) = dA.y;	myformulaAx.d(1,2) = dA.z;
-					myformulaAx.d(2,0) = pB.x;	myformulaAx.d(2,1) = pB.y;	myformulaAx.d(2,2) = pB.z;
-					myformulaAx.d(3,0) = dB.x;	myformulaAx.d(3,1) = dB.y;	myformulaAx.d(3,2) = dB.z;
-					myformulaAx.element = this;
+						MyStiffnessAxial myformulaAx;
+						myformulaAx.d = &d;
+						myformulaAx.element = this;
 
-					ChMatrixNM<double, 12,12> Kaxial;
-					ChQuadrature::Integrate1D< ChMatrixNM<double,12,12> >(
-									Kaxial,				// result of integration will go there
-									myformulaAx,		// formula to integrate
-									0,					// start of x
-									1,					// end of x
-									5					// order of integration
-									);
-					Kaxial *= E*Area*length;
-					
-					this->StiffnessMatrix = Kaxial;
+						ChMatrixNM<double, 12,12> Kaxial;
+						ChQuadrature::Integrate1D< ChMatrixNM<double,12,12> >(
+										Kaxial,				// result of integration will go there
+										myformulaAx,		// formula to integrate
+										0,					// start of x
+										1,					// end of x
+										5					// order of integration
+										);
+						Kaxial *= E*Area*length;
 
-					/// 2)
-					/// Integrate   (k_e'*k_e)
+						this->StiffnessMatrix = Kaxial;
 
-					class MyStiffnessCurv : public ChIntegrable1D< ChMatrixNM<double,12,12> >
-					{
-					public:
-						ChElementBeamANCF* element;
-						ChMatrixNM<double, 3,12>  Sd;
-						ChMatrixNM<double, 3,12>  Sdd;
-						ChMatrixNM<double, 1,4>   Nd;
-						ChMatrixNM<double, 1,4>   Ndd;
-						ChMatrixNM<double, 4,3>   d;
+						/// 2)
+						/// Integrate   (k_e'*k_e)
 
-						ChMatrixNM<double, 1,3>   r_x;
-						ChMatrixNM<double, 1,3>   r_xx;
-
-						ChMatrixNM<double, 1,12>  g_e;
-						ChMatrixNM<double, 1,12>  f_e;
-						ChMatrixNM<double, 1,12>  k_e;
-						ChMatrixNM<double, 3,12>  fe1;
-
-								/// Evaluate  at point x 
-						virtual void Evaluate(ChMatrixNM<double,12,12>& result, const double x)
+						class MyStiffnessCurv : public ChIntegrable1D< ChMatrixNM<double,12,12> >
 						{
-							element->ShapeFunctionsDerivatives(Nd, x);
-							element->ShapeFunctionsDerivatives2(Ndd, x);
+						public:
+							ChElementBeamANCF* element;
+							ChMatrixNM<double, 4,3>*  d;
+							ChMatrixNM<double, 3,12>  Sd;
+							ChMatrixNM<double, 3,12>  Sdd;
+							ChMatrixNM<double, 1,4>   Nd;
+							ChMatrixNM<double, 1,4>   Ndd;
 
-							// Sd=[Nd1*eye(3) Nd2*eye(3) Nd3*eye(3) Nd4*eye(3)]
-							// Sdd=[Ndd1*eye(3) Ndd2*eye(3) Ndd3*eye(3) Ndd4*eye(3)]
-							ChMatrix33<> Sdi;
-							Sdi.FillDiag(Nd(0));
-							Sd.PasteMatrix(&Sdi, 0,0);
-							Sdi.FillDiag(Nd(1));
-							Sd.PasteMatrix(&Sdi, 0,3);
-							Sdi.FillDiag(Nd(2));
-							Sd.PasteMatrix(&Sdi, 0,6);
-							Sdi.FillDiag(Nd(3));
-							Sd.PasteMatrix(&Sdi, 0,9);
+							ChMatrixNM<double, 1,3>   r_x;
+							ChMatrixNM<double, 1,3>   r_xx;
 
-							Sdi.FillDiag(Ndd(0));
-							Sdd.PasteMatrix(&Sdi, 0,0);
-							Sdi.FillDiag(Ndd(1));
-							Sdd.PasteMatrix(&Sdi, 0,3);
-							Sdi.FillDiag(Ndd(2));
-							Sdd.PasteMatrix(&Sdi, 0,6);
-							Sdi.FillDiag(Ndd(3));
-							Sdd.PasteMatrix(&Sdi, 0,9);
+							ChMatrixNM<double, 1,12>  g_e;
+							ChMatrixNM<double, 1,12>  f_e;
+							ChMatrixNM<double, 1,12>  k_e;
+							ChMatrixNM<double, 3,12>  fe1;
 
-							r_x.MatrMultiply(Nd,d);	   // r_x=d'*Nd';  (transposed)
-							r_xx.MatrMultiply(Ndd,d);  // r_xx=d'*Ndd';  (transposed)
-
-							// if (r_xx.Length()==0)
-							//     {r_xx(0)=0; r_xx(1)=1; r_xx(2)=0;}
-							ChVector<> vr_x  (r_x(0), r_x(1), r_x(2));
-							ChVector<> vr_xx (r_xx(0), r_xx(1), r_xx(2));
-							ChVector<> vf1 = Vcross(vr_x,vr_xx);
-							double f  = vf1.Length();
-							double g1 = vr_x.Length();
-							double g  = pow(g1,3);
-							double k=f/g;
-
-							g_e =(Nd*d)*Sd;
-							g_e *= (3*g1);
-
-							// do:  fe1=cross(Sd,r_xxrep)+cross(r_xrep,Sdd);
-							for (int col=0; col<12; ++col)
+									/// Evaluate  at point x 
+							virtual void Evaluate(ChMatrixNM<double,12,12>& result, const double x)
 							{
-								ChVector<> Sd_i =Sd.ClipVector(0,col);
-								fe1.PasteVector( Vcross(Sd_i,vr_xx),0,col);
-								ChVector<> Sdd_i =Sdd.ClipVector(0,col);
-								fe1.PasteSumVector( Vcross(vr_x,Sdd_i),0,col);
+								element->ShapeFunctionsDerivatives(Nd, x);
+								element->ShapeFunctionsDerivatives2(Ndd, x);
+
+								// Sd=[Nd1*eye(3) Nd2*eye(3) Nd3*eye(3) Nd4*eye(3)]
+								// Sdd=[Ndd1*eye(3) Ndd2*eye(3) Ndd3*eye(3) Ndd4*eye(3)]
+								ChMatrix33<> Sdi;
+								Sdi.FillDiag(Nd(0));
+								Sd.PasteMatrix(&Sdi, 0,0);
+								Sdi.FillDiag(Nd(1));
+								Sd.PasteMatrix(&Sdi, 0,3);
+								Sdi.FillDiag(Nd(2));
+								Sd.PasteMatrix(&Sdi, 0,6);
+								Sdi.FillDiag(Nd(3));
+								Sd.PasteMatrix(&Sdi, 0,9);
+
+								Sdi.FillDiag(Ndd(0));
+								Sdd.PasteMatrix(&Sdi, 0,0);
+								Sdi.FillDiag(Ndd(1));
+								Sdd.PasteMatrix(&Sdi, 0,3);
+								Sdi.FillDiag(Ndd(2));
+								Sdd.PasteMatrix(&Sdi, 0,6);
+								Sdi.FillDiag(Ndd(3));
+								Sdd.PasteMatrix(&Sdi, 0,9);
+
+								r_x.MatrMultiply(Nd,*d);	   // r_x=d'*Nd';  (transposed)
+								r_xx.MatrMultiply(Ndd,*d);  // r_xx=d'*Ndd';  (transposed)
+
+								// if (r_xx.Length()==0)
+								//     {r_xx(0)=0; r_xx(1)=1; r_xx(2)=0;}
+								ChVector<> vr_x  (r_x(0), r_x(1), r_x(2));
+								ChVector<> vr_xx (r_xx(0), r_xx(1), r_xx(2));
+								ChVector<> vf1 = Vcross(vr_x,vr_xx);
+								double f  = vf1.Length();
+								double g1 = vr_x.Length();
+								double g  = pow(g1,3);
+								double k=f/g;
+
+								g_e =(Nd*(*d))*Sd;
+								g_e *= (3*g1);
+
+								// do:  fe1=cross(Sd,r_xxrep)+cross(r_xrep,Sdd);
+								for (int col=0; col<12; ++col)
+								{
+									ChVector<> Sd_i =Sd.ClipVector(0,col);
+									fe1.PasteVector( Vcross(Sd_i,vr_xx),0,col);
+									ChVector<> Sdd_i =Sdd.ClipVector(0,col);
+									fe1.PasteSumVector( Vcross(vr_x,Sdd_i),0,col);
+								}
+								ChMatrixNM<double,3,1> f1;
+								f1.PasteVector(vf1,0,0);
+
+								if (f==0)
+									f_e.MatrTMultiply(f1,fe1);
+								else
+								{
+									f_e.MatrTMultiply(f1,fe1);
+									f_e *= (1/f);
+								}
+
+								k_e=(f_e*g - g_e*f)*(1/(pow(g,2)));
+
+								// result:  k_e'*k_e
+								result.MatrTMultiply(k_e, k_e); 
 							}
-							ChMatrixNM<double,3,1> f1;
-							f1.PasteVector(vf1,0,0);
+						};
 
-							if (f==0)
-								f_e.MatrTMultiply(f1,fe1);
-							else
-							{
-								f_e.MatrTMultiply(f1,fe1);
-								f_e *= (1/f);
-							}
+						MyStiffnessCurv myformulaCurv;
+						myformulaCurv.d = &d;
+						myformulaCurv.element = this;
 
-							k_e=(f_e*g - g_e*f)*(1/(pow(g,2)));
+						ChMatrixNM<double, 12,12> Kcurv;
+						ChQuadrature::Integrate1D< ChMatrixNM<double,12,12> >(
+										Kcurv,				// result of integration will go there
+										myformulaCurv,		// formula to integrate
+										0,					// start of x
+										1,					// end of x
+										3					// order of integration
+										);
+						Kcurv *= E*Izz*length; // note Iyy should be the same value (circular section assumption)
 
-							// result:  k_e'*k_e
-							result.MatrTMultiply(k_e, k_e); 
-						}
-					};
+						this->StiffnessMatrix += Kcurv;
 
-					MyStiffnessCurv myformulaCurv;
-					myformulaCurv.d(0,0) = pA.x;	myformulaCurv.d(0,1) = pA.y;	myformulaCurv.d(0,2) = pA.z;
-					myformulaCurv.d(1,0) = dA.x;	myformulaCurv.d(1,1) = dA.y;	myformulaCurv.d(1,2) = dA.z;
-					myformulaCurv.d(2,0) = pB.x;	myformulaCurv.d(2,1) = pB.y;	myformulaCurv.d(2,2) = pB.z;
-					myformulaCurv.d(3,0) = dB.x;	myformulaCurv.d(3,1) = dB.y;	myformulaCurv.d(3,2) = dB.z;
-					myformulaCurv.element = this;
+					}
 
-					ChMatrixNM<double, 12,12> Kcurv;
-					ChQuadrature::Integrate1D< ChMatrixNM<double,12,12> >(
-									Kcurv,				// result of integration will go there
-									myformulaCurv,		// formula to integrate
-									0,					// start of x
-									1,					// end of x
-									3					// order of integration
-									);
-					Kcurv *= E*Izz*length; // note Iyy should be the same value (circular section assumption)
-					
-					this->StiffnessMatrix += Kcurv;
-
+							//***DEBUG***
+					/*
+					GetLog() << "Stiffness matr file dump. L=" << this->length << " A=" << this->section->Area << " E=" << this->section->E << " I=" << this->section->Izz << "\n";
+					GetLog() << this->StiffnessMatrix;
+					ChStreamOutAsciiFile mdump("dump_stiff.txt");
+					this->StiffnessMatrix.StreamOUTdenseMatlabFormat(mdump);
+					*/
 				}
 
 				/// Computes the MASS MATRIX of the element
@@ -503,23 +578,31 @@ public:
 					ChVector<> pB = this->nodes[1]->GetPos();
 					ChVector<> dB = this->nodes[1]->GetD();
 
+					// this matrix will be used in both MyForcesAxial and MyForcesCurv integrators
+					ChMatrixNM<double, 4,3>   d;
+					d(0,0) = pA.x;	d(0,1) = pA.y;	d(0,2) = pA.z;
+					d(1,0) = dA.x;	d(1,1) = dA.y;	d(1,2) = dA.z;
+					d(2,0) = pB.x;	d(2,1) = pB.y;	d(2,2) = pB.z;
+					d(3,0) = dB.x;	d(3,1) = dB.y;	d(3,2) = dB.z;
+
+
 					/// 1)
-					/// Integrate   ((strainD'*strainD)+(strain*Sd'*Sd))
+					/// Integrate   (strainD'*strain)
 
 					class MyForcesAxial : public ChIntegrable1D< ChMatrixNM<double,12,1> >
 					{
 					public:
 						ChElementBeamANCF* element;
+						ChMatrixNM<double, 4,3>  *d; //this is an external matrix, use pointer
 						ChMatrixNM<double, 3,12>  Sd;
 						ChMatrixNM<double, 1,4>   N;
 						ChMatrixNM<double, 1,4>   Nd;
-						ChMatrixNM<double, 4,3>   d;
 						ChMatrixNM<double, 1,12>  strainD;
 						ChMatrixNM<double, 1,1>   strain;
 						ChMatrixNM<double, 1,3>   Nd_d;
 						ChMatrixNM<double, 12,12> temp;
 
-								/// Evaluate ((strainD'*strainD)+(strain*Sd'*Sd)) at point x 
+								/// Evaluate (strainD'*strain)  at point x 
 						virtual void Evaluate(ChMatrixNM<double,12,1>& result, const double x)
 						{
 							element->ShapeFunctionsDerivatives(Nd, x);
@@ -530,30 +613,29 @@ public:
 							Sd.PasteMatrix(&Sdi, 0,0);
 							Sdi.FillDiag(Nd(1));
 							Sd.PasteMatrix(&Sdi, 0,3);
-							Sdi.FillDiag(Nd(2));
+							Sdi.FillDiag(Nd(2)); 
 							Sd.PasteMatrix(&Sdi, 0,6);
 							Sdi.FillDiag(Nd(3));
 							Sd.PasteMatrix(&Sdi, 0,9);
 
-							strainD = (Nd*d)*Sd;
+							Nd_d = Nd * (*d);
+
+							strainD = Nd_d * Sd;
 
 							// strain = (Nd*(d*d')*Nd'-1)*0.5;
-							Nd_d = Nd*d;
+
 							strain.MatrMultiplyT(Nd_d,Nd_d);
 							strain(0,0) += -1;
 							strain(0,0) *= 0.5;
 
-							// result:  strainD'*strainD
+							// result:  strainD'*strain
 
-							result.MatrTMultiply(strainD,strain);  //(strainD'*strain)
+							result.MatrTMultiply(strainD,strain);  
 						}
 					};
 
 					MyForcesAxial myformulaAx;
-					myformulaAx.d(0,0) = pA.x;	myformulaAx.d(0,1) = pA.y;	myformulaAx.d(0,2) = pA.z;
-					myformulaAx.d(1,0) = dA.x;	myformulaAx.d(1,1) = dA.y;	myformulaAx.d(1,2) = dA.z;
-					myformulaAx.d(2,0) = pB.x;	myformulaAx.d(2,1) = pB.y;	myformulaAx.d(2,2) = pB.z;
-					myformulaAx.d(3,0) = dB.x;	myformulaAx.d(3,1) = dB.y;	myformulaAx.d(3,2) = dB.z;
+					myformulaAx.d = &d;
 					myformulaAx.element = this;
 
 					ChMatrixNM<double, 12,1> Faxial;
@@ -575,15 +657,13 @@ public:
 					{
 					public:
 						ChElementBeamANCF* element;
+						ChMatrixNM<double, 4,3>  *d; //this is an external matrix, use pointer
 						ChMatrixNM<double, 3,12>  Sd;
 						ChMatrixNM<double, 3,12>  Sdd;
 						ChMatrixNM<double, 1,4>   Nd;
 						ChMatrixNM<double, 1,4>   Ndd;
-						ChMatrixNM<double, 4,3>   d;
-
 						ChMatrixNM<double, 1,3>   r_x;
 						ChMatrixNM<double, 1,3>   r_xx;
-
 						ChMatrixNM<double, 1,12>  g_e;
 						ChMatrixNM<double, 1,12>  f_e;
 						ChMatrixNM<double, 1,12>  k_e;
@@ -616,8 +696,8 @@ public:
 							Sdi.FillDiag(Ndd(3));
 							Sdd.PasteMatrix(&Sdi, 0,9);
 
-							r_x.MatrMultiply(Nd,d);	   // r_x=d'*Nd';  (transposed)
-							r_xx.MatrMultiply(Ndd,d);  // r_xx=d'*Ndd';  (transposed)
+							r_x.MatrMultiply(Nd, (*d));	   // r_x=d'*Nd';  (transposed)
+							r_xx.MatrMultiply(Ndd, (*d));  // r_xx=d'*Ndd';  (transposed)
 
 							// if (r_xx.Length()==0)
 							//     {r_xx(0)=0; r_xx(1)=1; r_xx(2)=0;}
@@ -629,7 +709,7 @@ public:
 							double g  = pow(g1,3);
 							double k=f/g;
 
-							g_e =(Nd*d)*Sd;
+							g_e =(Nd* (*d))*Sd;
 							g_e *= (3*g1);
 
 							// do:  fe1=cross(Sd,r_xxrep)+cross(r_xrep,Sdd);
@@ -660,10 +740,7 @@ public:
 					};
 
 					MyForcesCurv myformulaCurv;
-					myformulaCurv.d(0,0) = pA.x;	myformulaCurv.d(0,1) = pA.y;	myformulaCurv.d(0,2) = pA.z;
-					myformulaCurv.d(1,0) = dA.x;	myformulaCurv.d(1,1) = dA.y;	myformulaCurv.d(1,2) = dA.z;
-					myformulaCurv.d(2,0) = pB.x;	myformulaCurv.d(2,1) = pB.y;	myformulaCurv.d(2,2) = pB.z;
-					myformulaCurv.d(3,0) = dB.x;	myformulaCurv.d(3,1) = dB.y;	myformulaCurv.d(3,2) = dB.z;
+					myformulaCurv.d = &d;
 					myformulaCurv.element = this;
 
 					ChMatrixNM<double, 12,1> Fcurv;
@@ -698,8 +775,8 @@ public:
 
 					this->ShapeFunctions(N, xi); // because ShapeFunctions() works in 0..1 range
 
-					u_displ = VNULL; //**TODO** (not needed in ANCF? )
-					u_rotaz = VNULL; //**TODO** (not needed in ANCF? )
+					u_displ = VNULL; //(not needed in ANCF? )
+					u_rotaz = VNULL; //(not needed in ANCF? )
 				}
 	
 				/// Gets the absolute xyz position of a point on the beam line, 
@@ -768,48 +845,13 @@ public:
 					/*
 					TO DO....
 						 
-					// shape function derivatives are computed here on-the-fly
-					double dN_xa = -(1./length);
-					double dN_xb =  (1./length);
-					double ddN_ua = (6./(length*length))*(eta);  
-					double ddN_ub =-(6./(length*length))*(eta);
-					double ddN_ra = -(1./length) + ((3.0/length)*eta);
-					double ddN_rb =  (1./length) + ((3.0/length)*eta);
-					double dddN_ua = (12./(length*length*length));  
-					double dddN_ub =-(12./(length*length*length));
-					double dddN_ra =  (6.0/(length*length));
-					double dddN_rb =  (6.0/(length*length));
-
-					// generalized strains/curvatures;
-					ChMatrixNM<double,6,1> sect_ek; 
-
-					// e_x
-					sect_ek(0) = (dN_xa*displ(0)+dN_xb*displ(6));      // x_a   x_b
-					// e_y
-					sect_ek(1) = (dddN_ua*displ(1)+dddN_ub*displ(7)+   // y_a   y_b
-								  dddN_ra*displ(5)+dddN_rb*displ(11)); // Rz_a  Rz_b 
-					// e_z
-					sect_ek(2) = (-dddN_ua*displ(2)-dddN_ub*displ(8)+   // z_a   z_b   note - sign
-								  dddN_ra*displ(4)+dddN_rb*displ(10)); // Ry_a  Ry_b
-					
-					// k_x
-					sect_ek(3) = (dN_xa*displ(3)+dN_xb*displ(9));	 // Rx_a  Rx_b
-					// k_y
-					sect_ek(4) = (-ddN_ua*displ(2)-ddN_ub*displ(8)+   // z_a   z_b   note - sign
-								  ddN_ra*displ(4)+ddN_rb*displ(10));  // Ry_a  Ry_b
-					// k_z 
-					sect_ek(5) = (ddN_ua*displ(1)+ddN_ub*displ(7)+   // y_a   y_b
-								  ddN_ra*displ(5)+ddN_rb*displ(11));  // Rz_a  Rz_b 
-
-
-						// Fast computation:
-					Fforce.x = this->section->E * this->section->Area* sect_ek(0);
-					Fforce.y = this->section->E * this->section->Izz * sect_ek(1);
-					Fforce.z = this->section->E * this->section->Iyy * sect_ek(2);		
+					Fforce.x = ...;
+					Fforce.y = ...;
+					Fforce.z = ...;		
 									 
-					Mtorque.x = this->section->G * Jpolar			  * sect_ek(3);
-					Mtorque.y = this->section->E * this->section->Iyy * sect_ek(4);	
-					Mtorque.z = this->section->E * this->section->Izz * sect_ek(5);
+					Mtorque.x = ...;
+					Mtorque.y = ...;	
+					Mtorque.z = ...;
 					*/
 				}
 

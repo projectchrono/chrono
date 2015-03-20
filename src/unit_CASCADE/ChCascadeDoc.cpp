@@ -21,6 +21,7 @@
     
 
 #include "ChCascadeDoc.h"
+#include "core/ChMatrixDynamic.h"
 
 //#include "ChIrrCascadeMeshTools.h"
 
@@ -496,15 +497,15 @@ bool ChCascadeDoc::GetVolumeProperties(const TopoDS_Shape& mshape,	///< pass the
 
  void ChCascadeDoc::FromChronoToCascade(const ChFrame<>& from_coord, TopLoc_Location& to_coord)
 {
-	ChVector<> mpos = ((ChFrame<>&)from_coord).GetPos();
+	const ChVector<>& mpos = from_coord.GetPos();
 	gp_Vec mtr(mpos.x, mpos.y, mpos.z);
 
-	ChMatrix33<>* from_mat = ((ChFrame<>&)from_coord).GetA();
+	const ChMatrix33<>& from_mat = from_coord.GetA();
 
 	((gp_Trsf)(to_coord.Transformation()) ).SetValues( 
-		 (*from_mat)(0,0) ,(*from_mat)(0,1), (*from_mat)(0,2), mpos.x ,
-		 (*from_mat)(1,0) ,(*from_mat)(1,1), (*from_mat)(1,2), mpos.y ,
-		 (*from_mat)(2,0) ,(*from_mat)(2,1), (*from_mat)(2,2), mpos.z ,
+		 from_mat(0,0) ,from_mat(0,1), from_mat(0,2), mpos.x ,
+		 from_mat(1,0) ,from_mat(1,1), from_mat(1,2), mpos.y ,
+		 from_mat(2,0) ,from_mat(2,1), from_mat(2,2), mpos.z ,
 		 0,0);
 }
 
