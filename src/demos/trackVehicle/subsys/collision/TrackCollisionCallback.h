@@ -177,7 +177,7 @@ class GearPinCollisionCallback : public ChSystem::ChCustomComputeCollisionCallba
 	void Found_GearPin_Contact(const ChVector<>& pGear_bar,
     const ChVector<>& pPin_bar, 
     const ChVector<>& vnGear_bar,
-    const int shoeID) 
+    const size_t shoeID) 
 	{
     // see if this contact is in the hash table
     float* reaction_cache = 0;
@@ -200,7 +200,7 @@ class GearPinCollisionCallback : public ChSystem::ChCustomComputeCollisionCallba
 
     // increment the counter, add the contact
     m_Ncontacts++;
-		( (ContactEngine*)(m_gear->GetSystem()->GetContactContainer()) )->AddContact(mcont);
+		(m_gear->GetSystem()->GetContactContainer())->AddContact(mcont);
 	}
 
   // true when radial dist. from center of gear to pins on either side of shoe, in gear c-sys,
