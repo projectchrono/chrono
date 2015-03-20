@@ -353,11 +353,11 @@ class GearPinCollisionCallback : public ChSystem::ChCustomComputeCollisionCallba
   /// c-sys. Return which gear tooth to perform narrow-phase with
   size_t Get_GearToothIdx(const ChVector<>& pin_cen) const
   {
-    ChVector<> len = pin_cen - m_gear->GetPos();  // global c-sys
+    ChVector<> gear_pin = pin_cen - m_gear->GetPos();  // global c-sys
     // transform to local gear c-sys
-    len = (m_gear->GetRot()).RotateBack(len);
+    gear_pin = (m_gear->GetRot()).RotateBack(gear_pin);
     // in local coords, can find the rotation angle in x-y plane, off the vertical y-axis
-    double rot_ang = std::atan2(len.y,len.x) - CH_C_PI_2;
+    double rot_ang = std::atan2(gear_pin.y,gear_pin.x) + 3.0 * CH_C_PI_2;
     double incr = chrono::CH_C_2PI / m_geom.num_teeth;
     size_t idx = std::floor( (rot_ang + 0.5*incr) / incr);
     return idx;
@@ -393,6 +393,14 @@ class GearPinCollisionCallback : public ChSystem::ChCustomComputeCollisionCallba
       // convert to gear c-sys, to find the radial distance between centers
       ChVector<> pin_gear_bar_Pz = m_gear->GetRot().RotateBack(m_gear->GetPos() - pin_pos_Pz);
       ChVector<> pin_gear_bar_Nz = m_gear->GetRot().RotateBack(m_gear->GetPos() - pin_pos_Nz);
+
+
+      // DEBUGGING
+      if(idx == 9 && m_gear->GetSystem()->GetChTime() > 0.09)
+        int arg = 2;
+
+
+
 
       // broad-phase passes?
       if( BroadphasePassed(pin_gear_bar_Pz, pin_gear_bar_Nz) )

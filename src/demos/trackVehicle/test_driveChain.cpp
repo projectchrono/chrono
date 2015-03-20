@@ -72,7 +72,7 @@ ChVector<> initLoc(0, 1.0, 0);
 ChQuaternion<> initRot(QUNIT);
 
 // *****  Simulation step size, end time
-double step_size = 1e-4;
+double step_size = 5e-4;
 // stop at a certain time
 double end_time = 15;  // 99999
 
@@ -85,20 +85,21 @@ double sineFreq = 0.3;
 double tStart = 0.1;
 
 // ***** write to console or a file
-// #define WRITE_OUTPUT            // write output data to file
+// #define WRITE_OUTPUT         // write output data to file
 // #define CONSOLE_SYSTEM_INFO  // display the system heirarchy in the console
-#define CONSOLE_DEBUG_INFO      // log constraint violations to console,
+// #define CONSOLE_DEBUG_INFO      // log constraint violations to console,
 #define CONSOLE_TIMING       // time each render and simulation step, log to console
 
 int what_to_save = DBG_FIRSTSHOE | DBG_GEAR | DBG_IDLER | DBG_PTRAIN | DBG_CONSTRAINTS | DBG_COLLISIONCALLBACK;
-int what_to_console = DBG_ALL_CONTACTS;
-// int what_to_console = DBG_PTRAIN | DBG_GEAR | DBG_COLLISIONCALLBACK;  // | DBG_IDLER | DBG_FIRSTSHOE | DBG_CONSTRAINTS;
+int what_to_console = DBG_PTRAIN | DBG_GEAR | DBG_IDLER | DBG_FIRSTSHOE;  // DBG_COLLISIONCALLBACK | DBG_CONSTRAINTS;
+// int what_to_console = DBG_ALL_CONTACTS;
+
 double output_step_size = step_size;  // Time interval for writing data to file
-double console_step_size = 0.2;       // time interval for writing data to console
+double console_step_size = 1.0;       // time interval for writing data to console
 
 // *****  Visualization and camera settings
 // control how often to render a frame, write to file, write to console.
-int FPS = 400; // render Frames Per Second
+int FPS = 50; // render Frames Per Second
 double render_step_size = 1.0 / FPS;  // Time increment for rendered frames
 
 // camera controls, either static or  GUI controlled chase camera:
