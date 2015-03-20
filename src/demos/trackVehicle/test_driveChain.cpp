@@ -69,7 +69,7 @@ using namespace chrono;
 #define CONSOLE_TIMING       // time each render and simulation step, log to console
 
 int what_to_save = DBG_FIRSTSHOE | DBG_GEAR | DBG_IDLER | DBG_PTRAIN | DBG_CONSTRAINTS | DBG_COLLISIONCALLBACK;
-int what_to_console = DBG_PTRAIN | DBG_GEAR | DBG_IDLER | DBG_COLLISIONCALLBACK;  //  | DBG_FIRSTSHOE | DBG_CONSTRAINTS;
+int what_to_console = DBG_PTRAIN | DBG_GEAR | DBG_COLLISIONCALLBACK;  // | DBG_IDLER | DBG_FIRSTSHOE | DBG_CONSTRAINTS;
 
 // Initial position and heading
 ChVector<> initLoc(0, 1.0, 0);
@@ -89,7 +89,7 @@ double end_time = 15;  // 99999
 int FPS = 40; // render Frames Per Second
 double render_step_size = 1.0 / FPS;  // Time increment for rendered frames
 double output_step_size = step_size;  // Time interval for writing data to file
-double console_step_size = 0.2;       // time interval for writing data to console
+double console_step_size = 0.5;       // time interval for writing data to console
 
 // camera controls, either static or  GUI controlled chase camera:
 bool use_fixed_camera = true;
@@ -329,6 +329,16 @@ int main(int argc, char* argv[])
       chainSystem.Log_to_file();  // needs to already be setup before sim loop calls it
     }
 #endif
+
+
+    // DEBUGGING
+    if(1 && chainSystem.GetNum_CustomContacts() > 0)
+    {
+      // report all contact into to the console
+      chainSystem.Log_to_console( DBG_ALL_CONTACTS );
+    }
+
+
 
     if(step_number % console_steps == 0)
     {
