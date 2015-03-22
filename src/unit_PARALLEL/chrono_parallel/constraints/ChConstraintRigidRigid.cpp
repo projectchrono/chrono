@@ -98,11 +98,11 @@ void ChConstraintRigidRigid::func_Project_sliding(int index,
   gamma.y = gam[data_container->num_contacts + index * 2 + 0];
   gamma.z = gam[data_container->num_contacts + index * 2 + 1];
 
-  if (data_container->settings.solver.solver_mode == SPINNING) {
-    gam[3 * data_container->num_contacts + index * 3 + 0] = 0;
-    gam[3 * data_container->num_contacts + index * 3 + 1] = 0;
-    gam[3 * data_container->num_contacts + index * 3 + 2] = 0;
-  }
+//  if (data_container->settings.solver.solver_mode == SPINNING) {
+//    gam[3 * data_container->num_contacts + index * 3 + 0] = 0;
+//    gam[3 * data_container->num_contacts + index * 3 + 1] = 0;
+//    gam[3 * data_container->num_contacts + index * 3 + 2] = 0;
+//  }
 
   real coh = cohesion[index];
   gamma.x += coh;
@@ -765,9 +765,9 @@ void ChConstraintRigidRigid::GenerateSparsityTranspose() {
     start_s.resize(last_s);
     thrust::inclusive_scan(start_s.begin(), start_s.end(), start_s.begin());
   }
-  #pragma omp parallel sections
+#pragma omp parallel sections
   {
-    #pragma omp section
+#pragma omp section
     {
       LOG(INFO) << "ChConstraintRigidRigid::GenerateSparsityTranspose - D_n";
       for (int i = 0; i < last_n; i++) {
@@ -784,7 +784,7 @@ void ChConstraintRigidRigid::GenerateSparsityTranspose() {
         M_invD_n.finalize(row);
       }
     }
-    #pragma omp section
+#pragma omp section
     {
       LOG(INFO) << "ChConstraintRigidRigid::GenerateSparsityTranspose - D_t";
       if (solver_mode == SLIDING || solver_mode == SPINNING) {
@@ -803,7 +803,7 @@ void ChConstraintRigidRigid::GenerateSparsityTranspose() {
         }
       }
     }
-    #pragma omp section
+#pragma omp section
     {
       LOG(INFO) << "ChConstraintRigidRigid::GenerateSparsityTranspose - D_s";
       if (solver_mode == SPINNING) {
