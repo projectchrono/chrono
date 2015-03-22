@@ -465,7 +465,7 @@ void ChConstraintRigidRigid::Build_D() {
     Compute_Jacobian(rot[body_id.x], U, V, W, ptA[index] - pos_data[body_id.x], T3, T4, T5);
     Compute_Jacobian(rot[body_id.y], U, V, W, ptB[index] - pos_data[body_id.y], T6, T7, T8);
 
-    //Normal jacobian entries
+    // Normal jacobian entries
     SetRow6(D_n_T, row * 1 + 0, body_id.x * 6, -U, T3);
     SetRow6(D_n_T, row * 1 + 0, body_id.y * 6, U, -T6);
 
@@ -488,7 +488,6 @@ void ChConstraintRigidRigid::Build_D() {
       SetRow3(D_s_T, row * 3 + 0, body_id.y * 6 + 3, TD);
       SetRow3(D_s_T, row * 3 + 1, body_id.y * 6 + 3, TE);
       SetRow3(D_s_T, row * 3 + 2, body_id.y * 6 + 3, TF);
-
     }
   }
 
@@ -615,33 +614,33 @@ void ChConstraintRigidRigid::GenerateSparsity() {
         for (int index = 0; index < data_container->num_contacts; index++) {
           int2 body_id = ids[index];
           int row = index;
-          D_s_T.append(row * 3 + 0, body_id.x * 6 + 3, 1);
-          D_s_T.append(row * 3 + 0, body_id.x * 6 + 4, 1);
-          D_s_T.append(row * 3 + 0, body_id.x * 6 + 5, 1);
+          D_s_T.append(row * 3 + 0, body_id.x * 6 + 3, 0);
+          D_s_T.append(row * 3 + 0, body_id.x * 6 + 4, 0);
+          D_s_T.append(row * 3 + 0, body_id.x * 6 + 5, 0);
 
-          D_s_T.append(row * 3 + 0, body_id.y * 6 + 3, 1);
-          D_s_T.append(row * 3 + 0, body_id.y * 6 + 4, 1);
-          D_s_T.append(row * 3 + 0, body_id.y * 6 + 5, 1);
+          D_s_T.append(row * 3 + 0, body_id.y * 6 + 3, 0);
+          D_s_T.append(row * 3 + 0, body_id.y * 6 + 4, 0);
+          D_s_T.append(row * 3 + 0, body_id.y * 6 + 5, 0);
 
           D_s_T.finalize(row * 3 + 0);
 
-          D_s_T.append(row * 3 + 1, body_id.x * 6 + 3, 1);
-          D_s_T.append(row * 3 + 1, body_id.x * 6 + 4, 1);
-          D_s_T.append(row * 3 + 1, body_id.x * 6 + 5, 1);
+          D_s_T.append(row * 3 + 1, body_id.x * 6 + 3, 0);
+          D_s_T.append(row * 3 + 1, body_id.x * 6 + 4, 0);
+          D_s_T.append(row * 3 + 1, body_id.x * 6 + 5, 0);
 
-          D_s_T.append(row * 3 + 1, body_id.y * 6 + 3, 1);
-          D_s_T.append(row * 3 + 1, body_id.y * 6 + 4, 1);
-          D_s_T.append(row * 3 + 1, body_id.y * 6 + 5, 1);
+          D_s_T.append(row * 3 + 1, body_id.y * 6 + 3, 0);
+          D_s_T.append(row * 3 + 1, body_id.y * 6 + 4, 0);
+          D_s_T.append(row * 3 + 1, body_id.y * 6 + 5, 0);
 
           D_s_T.finalize(row * 3 + 1);
 
-          D_s_T.append(row * 3 + 2, body_id.x * 6 + 3, 1);
-          D_s_T.append(row * 3 + 2, body_id.x * 6 + 4, 1);
-          D_s_T.append(row * 3 + 2, body_id.x * 6 + 5, 1);
+          D_s_T.append(row * 3 + 2, body_id.x * 6 + 3, 0);
+          D_s_T.append(row * 3 + 2, body_id.x * 6 + 4, 0);
+          D_s_T.append(row * 3 + 2, body_id.x * 6 + 5, 0);
 
-          D_s_T.append(row * 3 + 2, body_id.y * 6 + 3, 1);
-          D_s_T.append(row * 3 + 2, body_id.y * 6 + 4, 1);
-          D_s_T.append(row * 3 + 2, body_id.y * 6 + 5, 1);
+          D_s_T.append(row * 3 + 2, body_id.y * 6 + 3, 0);
+          D_s_T.append(row * 3 + 2, body_id.y * 6 + 4, 0);
+          D_s_T.append(row * 3 + 2, body_id.y * 6 + 5, 0);
 
           D_s_T.finalize(row * 3 + 2);
         }

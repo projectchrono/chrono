@@ -70,7 +70,7 @@ void ChSolverParallel::ShurProduct(const blaze::DynamicVector<real>& x, blaze::D
   uint num_contacts = data_container->num_contacts;
   uint num_unilaterals = data_container->num_unilaterals;
   uint num_bilaterals = data_container->num_bilaterals;
-
+  output.reset();
   blaze::DenseSubvector<DynamicVector<real> > o_b = blaze::subvector(output, num_unilaterals, num_bilaterals);
   blaze::DenseSubvector<const DynamicVector<real> > x_b = blaze::subvector(x, num_unilaterals, num_bilaterals);
   blaze::DenseSubvector<const DynamicVector<real> > E_b = blaze::subvector(E, num_unilaterals, num_bilaterals);
