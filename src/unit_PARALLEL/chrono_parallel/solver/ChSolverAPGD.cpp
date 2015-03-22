@@ -88,7 +88,11 @@ uint ChSolverAPGD::SolveAPGD(const uint max_iter,
   // When L is zero the step length can't be computed, in this case just return
   // If the N is indeed zero then solving doesn't make sense
   if (L == 0) {
-    return 0;
+    // For certain simulations returning here will not perform any iterations
+    // even when there are contacts that aren't resolved. Changed it from return 0
+    // to L=t=1;
+    // return 0;
+    L = t = 1;
   } else {
     // Compute the step size
     t = 1.0 / L;
