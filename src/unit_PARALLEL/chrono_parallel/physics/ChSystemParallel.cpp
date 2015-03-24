@@ -43,6 +43,7 @@ ChSystemParallel::ChSystemParallel(unsigned int max_objects) : ChSystem(1000, 10
   data_manager->system_timer.AddTimer("ChLcpSolverParallel_Stab");
 #ifdef LOGGINGENABLED
   el::Loggers::reconfigureAllLoggers(el::ConfigurationType::ToStandardOutput, "false");
+  el::Loggers::reconfigureAllLoggers(el::ConfigurationType::ToFile, "false");
   el::Loggers::reconfigureAllLoggers(el::ConfigurationType::Format, "%datetime{%h:%m:%s:%g} %msg");
 #endif
 }
