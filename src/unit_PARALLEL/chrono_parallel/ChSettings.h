@@ -89,6 +89,7 @@ struct solver_settings {
     alpha = .2;
     contact_recovery_speed = .6;
     bilateral_clamp_speed = .6;
+    cohesion_epsilon = 0;
     clamp_bilaterals = true;
     perform_stabilization = false;
     collision_in_solver = false;
@@ -153,6 +154,7 @@ struct solver_settings {
   bool scale_mass_matrix;
   bool verbose;
   bool test_objective;
+  real cohesion_epsilon;
 
   // Contact force model for DEM
   CONTACTFORCEMODEL contact_force_model;

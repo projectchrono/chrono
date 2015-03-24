@@ -98,11 +98,11 @@ void ChConstraintRigidRigid::func_Project_sliding(int index,
   gamma.y = gam[data_container->num_contacts + index * 2 + 0];
   gamma.z = gam[data_container->num_contacts + index * 2 + 1];
 
-//  if (data_container->settings.solver.solver_mode == SPINNING) {
-//    gam[3 * data_container->num_contacts + index * 3 + 0] = 0;
-//    gam[3 * data_container->num_contacts + index * 3 + 1] = 0;
-//    gam[3 * data_container->num_contacts + index * 3 + 2] = 0;
-//  }
+  //  if (data_container->settings.solver.solver_mode == SPINNING) {
+  //    gam[3 * data_container->num_contacts + index * 3 + 0] = 0;
+  //    gam[3 * data_container->num_contacts + index * 3 + 1] = 0;
+  //    gam[3 * data_container->num_contacts + index * 3 + 2] = 0;
+  //  }
 
   real coh = cohesion[index];
   gamma.x += coh;
@@ -264,6 +264,7 @@ void ChConstraintRigidRigid::Build_b() {
       bi = inv_h * depth;
     } else {
       bi = std::max(inv_h * depth, -data_container->settings.solver.contact_recovery_speed);
+      bi = std::min(bi, inv_h * data_container->settings.solver.cohesion_epsilon);
     }
 
     data_container->host_data.b[index * 1 + 0] = bi;
