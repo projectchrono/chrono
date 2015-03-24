@@ -178,7 +178,7 @@ void AddTorusGeometry(ChBody* body,
 // Create a fixed body with contact and asset geometry representing a box with 5
 // walls (no top).
 CH_UTILS_API
-void CreateBoxContainerDEM(ChSystem* system,
+ChSharedPtr<ChBodyDEM>  CreateBoxContainerDEM(ChSystem* system,
                            int id,
                            ChSharedPtr<ChMaterialSurfaceDEM>& mat,
                            const ChVector<>& hdim,
@@ -191,7 +191,7 @@ void CreateBoxContainerDEM(ChSystem* system,
                            bool closed = false);
 
 CH_UTILS_API
-void CreateBoxContainerDVI(ChSystem* system,
+ChSharedPtr<ChBody>  CreateBoxContainerDVI(ChSystem* system,
                            int id,
                            ChSharedPtr<ChMaterialSurface>& mat,
                            const ChVector<>& hdim,

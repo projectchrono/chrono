@@ -422,7 +422,7 @@ void AddWall(ChBody* body, const ChVector<>& loc, const ChVector<>& hdim) {
   body->GetAssets().push_back(box_shape);
 }
 
-void CreateBoxContainerDEM(ChSystem* system,
+ChSharedPtr<ChBodyDEM>  CreateBoxContainerDEM(ChSystem* system,
                            int id,
                            ChSharedPtr<ChMaterialSurfaceDEM>& mat,
                            const ChVector<>& hdim,
@@ -439,12 +439,12 @@ void CreateBoxContainerDEM(ChSystem* system,
   assert(sysType == SEQUENTIAL_DEM || sysType == PARALLEL_DEM);
 
   // Create the body and set material
-  ChBodyDEM* body;
+  ChSharedPtr<ChBodyDEM> body;
 
   if (sysType == SEQUENTIAL_DEM || collType == BULLET_CD)
-    body = new ChBodyDEM();
+    body = ChSharedPtr<ChBodyDEM>(new ChBodyDEM());
   else
-    body = new ChBodyDEM(new collision::ChCollisionModelParallel);
+    body = ChSharedPtr<ChBodyDEM>(new ChBodyDEM(new collision::ChCollisionModelParallel));
 
   body->SetMaterialSurfaceDEM(mat);
 
@@ -461,31 +461,32 @@ void CreateBoxContainerDEM(ChSystem* system,
   }
   body->GetCollisionModel()->ClearModel();
   if (y_up) {
-    AddBoxGeometry(body, ChVector<>(hdim.x + o_lap, hthick, hdim.y + o_lap), ChVector<>(0, -hthick, 0));
-    AddBoxGeometry(body, ChVector<>(hthick, hdim.z + o_lap, hdim.y + o_lap), ChVector<>(-hdim.x - hthick, hdim.z, 0));
-    AddBoxGeometry(body, ChVector<>(hthick, hdim.z + o_lap, hdim.y + o_lap), ChVector<>(hdim.x + hthick, hdim.z, 0));
-    AddBoxGeometry(body, ChVector<>(hdim.x + o_lap, hdim.z + o_lap, hthick), ChVector<>(0, hdim.z, -hdim.y - hthick));
-    AddBoxGeometry(body, ChVector<>(hdim.x + o_lap, hdim.z + o_lap, hthick), ChVector<>(0, hdim.z, hdim.y + hthick));
+    AddBoxGeometry(body.get_ptr(), ChVector<>(hdim.x + o_lap, hthick, hdim.y + o_lap), ChVector<>(0, -hthick, 0));
+    AddBoxGeometry(body.get_ptr(), ChVector<>(hthick, hdim.z + o_lap, hdim.y + o_lap), ChVector<>(-hdim.x - hthick, hdim.z, 0));
+    AddBoxGeometry(body.get_ptr(), ChVector<>(hthick, hdim.z + o_lap, hdim.y + o_lap), ChVector<>(hdim.x + hthick, hdim.z, 0));
+    AddBoxGeometry(body.get_ptr(), ChVector<>(hdim.x + o_lap, hdim.z + o_lap, hthick), ChVector<>(0, hdim.z, -hdim.y - hthick));
+    AddBoxGeometry(body.get_ptr(), ChVector<>(hdim.x + o_lap, hdim.z + o_lap, hthick), ChVector<>(0, hdim.z, hdim.y + hthick));
     if (closed) {
-      AddBoxGeometry(body, ChVector<>(hdim.x + o_lap, hthick, hdim.y + o_lap), ChVector<>(0, hdim.z * 2 + hthick, 0));
+      AddBoxGeometry(body.get_ptr(), ChVector<>(hdim.x + o_lap, hthick, hdim.y + o_lap), ChVector<>(0, hdim.z * 2 + hthick, 0));
     }
   } else {
-    AddBoxGeometry(body, ChVector<>(hdim.x + o_lap, hdim.y + o_lap, hthick), ChVector<>(0, 0, -hthick));
-    AddBoxGeometry(body, ChVector<>(hthick, hdim.y + o_lap, hdim.z + o_lap), ChVector<>(-hdim.x - hthick, 0, hdim.z));
-    AddBoxGeometry(body, ChVector<>(hthick, hdim.y + o_lap, hdim.z + o_lap), ChVector<>(hdim.x + hthick, 0, hdim.z));
-    AddBoxGeometry(body, ChVector<>(hdim.x + o_lap, hthick, hdim.z + o_lap), ChVector<>(0, -hdim.y - hthick, hdim.z));
-    AddBoxGeometry(body, ChVector<>(hdim.x + o_lap, hthick, hdim.z + o_lap), ChVector<>(0, hdim.y + hthick, hdim.z));
+    AddBoxGeometry(body.get_ptr(), ChVector<>(hdim.x + o_lap, hdim.y + o_lap, hthick), ChVector<>(0, 0, -hthick));
+    AddBoxGeometry(body.get_ptr(), ChVector<>(hthick, hdim.y + o_lap, hdim.z + o_lap), ChVector<>(-hdim.x - hthick, 0, hdim.z));
+    AddBoxGeometry(body.get_ptr(), ChVector<>(hthick, hdim.y + o_lap, hdim.z + o_lap), ChVector<>(hdim.x + hthick, 0, hdim.z));
+    AddBoxGeometry(body.get_ptr(), ChVector<>(hdim.x + o_lap, hthick, hdim.z + o_lap), ChVector<>(0, -hdim.y - hthick, hdim.z));
+    AddBoxGeometry(body.get_ptr(), ChVector<>(hdim.x + o_lap, hthick, hdim.z + o_lap), ChVector<>(0, hdim.y + hthick, hdim.z));
     if (closed) {
-      AddBoxGeometry(body, ChVector<>(hdim.x + o_lap, hdim.y + o_lap, hthick), ChVector<>(0, 0, hdim.z * 2 + hthick));
+      AddBoxGeometry(body.get_ptr(), ChVector<>(hdim.x + o_lap, hdim.y + o_lap, hthick), ChVector<>(0, 0, hdim.z * 2 + hthick));
     }
   }
   body->GetCollisionModel()->BuildModel();
 
   // Attach the body to the system.
-  system->AddBody(ChSharedPtr<ChBodyDEM>(body));
+  system->AddBody(body);
+  return body;
 }
 
-void CreateBoxContainerDVI(ChSystem* system,
+ChSharedPtr<ChBody>  CreateBoxContainerDVI(ChSystem* system,
                            int id,
                            ChSharedPtr<ChMaterialSurface>& mat,
                            const ChVector<>& hdim,
@@ -502,12 +503,12 @@ void CreateBoxContainerDVI(ChSystem* system,
   assert(sysType == SEQUENTIAL_DVI || sysType == PARALLEL_DVI);
 
   // Create the body and set material
-  ChBody* body;
+  ChSharedPtr<ChBody> body;
 
   if (sysType == SEQUENTIAL_DVI || cdType == BULLET_CD)
-    body = new ChBody();
+    body = ChSharedPtr<ChBody>(new ChBody());
   else
-    body = new ChBody(new collision::ChCollisionModelParallel);
+    body = ChSharedPtr<ChBody>(new ChBody(new collision::ChCollisionModelParallel));
 
   body->SetMaterialSurface(mat);
 
@@ -524,28 +525,29 @@ void CreateBoxContainerDVI(ChSystem* system,
   }
   body->GetCollisionModel()->ClearModel();
   if (y_up) {
-    AddBoxGeometry(body, ChVector<>(hdim.x + o_lap, hthick, hdim.y + o_lap), ChVector<>(0, -hthick, 0));
-    AddBoxGeometry(body, ChVector<>(hthick, hdim.z + o_lap, hdim.y + o_lap), ChVector<>(-hdim.x - hthick, hdim.z, 0));
-    AddBoxGeometry(body, ChVector<>(hthick, hdim.z + o_lap, hdim.y + o_lap), ChVector<>(hdim.x + hthick, hdim.z, 0));
-    AddBoxGeometry(body, ChVector<>(hdim.x + o_lap, hdim.z + o_lap, hthick), ChVector<>(0, hdim.z, -hdim.y - hthick));
-    AddBoxGeometry(body, ChVector<>(hdim.x + o_lap, hdim.z + o_lap, hthick), ChVector<>(0, hdim.z, hdim.y + hthick));
+    AddBoxGeometry(body.get_ptr(), ChVector<>(hdim.x + o_lap, hthick, hdim.y + o_lap), ChVector<>(0, -hthick, 0));
+    AddBoxGeometry(body.get_ptr(), ChVector<>(hthick, hdim.z + o_lap, hdim.y + o_lap), ChVector<>(-hdim.x - hthick, hdim.z, 0));
+    AddBoxGeometry(body.get_ptr(), ChVector<>(hthick, hdim.z + o_lap, hdim.y + o_lap), ChVector<>(hdim.x + hthick, hdim.z, 0));
+    AddBoxGeometry(body.get_ptr(), ChVector<>(hdim.x + o_lap, hdim.z + o_lap, hthick), ChVector<>(0, hdim.z, -hdim.y - hthick));
+    AddBoxGeometry(body.get_ptr(), ChVector<>(hdim.x + o_lap, hdim.z + o_lap, hthick), ChVector<>(0, hdim.z, hdim.y + hthick));
     if (closed) {
-      AddBoxGeometry(body, ChVector<>(hdim.x + o_lap, hthick, hdim.y + o_lap), ChVector<>(0, hdim.z * 2 + hthick, 0));
+      AddBoxGeometry(body.get_ptr(), ChVector<>(hdim.x + o_lap, hthick, hdim.y + o_lap), ChVector<>(0, hdim.z * 2 + hthick, 0));
     }
   } else {
-    AddBoxGeometry(body, ChVector<>(hdim.x + o_lap, hdim.y + o_lap, hthick), ChVector<>(0, 0, -hthick));
-    AddBoxGeometry(body, ChVector<>(hthick, hdim.y + o_lap, hdim.z + o_lap), ChVector<>(-hdim.x - hthick, 0, hdim.z));
-    AddBoxGeometry(body, ChVector<>(hthick, hdim.y + o_lap, hdim.z + o_lap), ChVector<>(hdim.x + hthick, 0, hdim.z));
-    AddBoxGeometry(body, ChVector<>(hdim.x + o_lap, hthick, hdim.z + o_lap), ChVector<>(0, -hdim.y - hthick, hdim.z));
-    AddBoxGeometry(body, ChVector<>(hdim.x + o_lap, hthick, hdim.z + o_lap), ChVector<>(0, hdim.y + hthick, hdim.z));
+    AddBoxGeometry(body.get_ptr(), ChVector<>(hdim.x + o_lap, hdim.y + o_lap, hthick), ChVector<>(0, 0, -hthick));
+    AddBoxGeometry(body.get_ptr(), ChVector<>(hthick, hdim.y + o_lap, hdim.z + o_lap), ChVector<>(-hdim.x - hthick, 0, hdim.z));
+    AddBoxGeometry(body.get_ptr(), ChVector<>(hthick, hdim.y + o_lap, hdim.z + o_lap), ChVector<>(hdim.x + hthick, 0, hdim.z));
+    AddBoxGeometry(body.get_ptr(), ChVector<>(hdim.x + o_lap, hthick, hdim.z + o_lap), ChVector<>(0, -hdim.y - hthick, hdim.z));
+    AddBoxGeometry(body.get_ptr(), ChVector<>(hdim.x + o_lap, hthick, hdim.z + o_lap), ChVector<>(0, hdim.y + hthick, hdim.z));
     if (closed) {
-      AddBoxGeometry(body, ChVector<>(hdim.x + o_lap, hdim.y + o_lap, hthick), ChVector<>(0, 0, hdim.z * 2 + hthick));
+      AddBoxGeometry(body.get_ptr(), ChVector<>(hdim.x + o_lap, hdim.y + o_lap, hthick), ChVector<>(0, 0, hdim.z * 2 + hthick));
     }
   }
   body->GetCollisionModel()->BuildModel();
 
   // Attach the body to the system.
-  system->AddBody(ChSharedPtr<ChBody>(body));
+  system->AddBody(body);
+  return body;
 }
 
 // -----------------------------------------------------------------------------
