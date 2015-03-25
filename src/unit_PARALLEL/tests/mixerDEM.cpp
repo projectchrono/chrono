@@ -139,7 +139,7 @@ void AddFallingBalls(ChSystemParallelDEM* sys) {
   // Create the falling balls
   int ballId = 0;
   double mass = 1;
-  double radius = 0.15;
+  double radius = 0.1;
   ChVector<> inertia = (2.0 / 5.0) * mass * radius * radius * ChVector<>(1, 1, 1);
 
   for (int ix = -2; ix < 3; ix++) {
