@@ -21,7 +21,7 @@ void ChLcpSolverParallel::ComputeMassMatrix() {
   uint num_bodies = data_container->num_bodies;
   uint num_shafts = data_container->num_shafts;
   uint num_dof = data_container->num_dof;
-
+  bool disable_full_inertia_tensor = data_container->settings.solver.disable_full_inertia_tensor;
   const custom_vector<real>& shaft_inr = data_container->host_data.shaft_inr;
 
   const std::vector<ChBody*>* body_list = data_container->body_list;
@@ -56,15 +56,23 @@ void ChLcpSolverParallel::ComputeMassMatrix() {
       M_inv.finalize(i * 6 + 2);
 
       M_inv.append(i * 6 + 3, i * 6 + 3, body_inv_inr.GetElement(0, 0));
-      M_inv.append(i * 6 + 3, i * 6 + 4, body_inv_inr.GetElement(0, 1));
-      M_inv.append(i * 6 + 3, i * 6 + 5, body_inv_inr.GetElement(0, 2));
+      if (disable_full_inertia_tensor) {
+        M_inv.append(i * 6 + 3, i * 6 + 4, body_inv_inr.GetElement(0, 1));
+        M_inv.append(i * 6 + 3, i * 6 + 5, body_inv_inr.GetElement(0, 2));
+      }
       M_inv.finalize(i * 6 + 3);
-      M_inv.append(i * 6 + 4, i * 6 + 3, body_inv_inr.GetElement(1, 0));
+      if (disable_full_inertia_tensor) {
+        M_inv.append(i * 6 + 4, i * 6 + 3, body_inv_inr.GetElement(1, 0));
+      }
       M_inv.append(i * 6 + 4, i * 6 + 4, body_inv_inr.GetElement(1, 1));
-      M_inv.append(i * 6 + 4, i * 6 + 5, body_inv_inr.GetElement(1, 2));
+      if (disable_full_inertia_tensor) {
+        M_inv.append(i * 6 + 4, i * 6 + 5, body_inv_inr.GetElement(1, 2));
+      }
       M_inv.finalize(i * 6 + 4);
-      M_inv.append(i * 6 + 5, i * 6 + 3, body_inv_inr.GetElement(2, 0));
-      M_inv.append(i * 6 + 5, i * 6 + 4, body_inv_inr.GetElement(2, 1));
+      if (disable_full_inertia_tensor) {
+        M_inv.append(i * 6 + 5, i * 6 + 3, body_inv_inr.GetElement(2, 0));
+        M_inv.append(i * 6 + 5, i * 6 + 4, body_inv_inr.GetElement(2, 1));
+      }
       M_inv.append(i * 6 + 5, i * 6 + 5, body_inv_inr.GetElement(2, 2));
       M_inv.finalize(i * 6 + 5);
     } else {
@@ -107,15 +115,23 @@ void ChLcpSolverParallel::ComputeMassMatrix() {
         M.finalize(i * 6 + 2);
 
         M.append(i * 6 + 3, i * 6 + 3, body_inr.GetElement(0, 0));
-        M.append(i * 6 + 3, i * 6 + 4, body_inr.GetElement(0, 1));
-        M.append(i * 6 + 3, i * 6 + 5, body_inr.GetElement(0, 2));
+        if (disable_full_inertia_tensor) {
+          M.append(i * 6 + 3, i * 6 + 4, body_inr.GetElement(0, 1));
+          M.append(i * 6 + 3, i * 6 + 5, body_inr.GetElement(0, 2));
+        }
         M.finalize(i * 6 + 3);
-        M.append(i * 6 + 4, i * 6 + 3, body_inr.GetElement(1, 0));
+        if (disable_full_inertia_tensor) {
+          M.append(i * 6 + 4, i * 6 + 3, body_inr.GetElement(1, 0));
+        }
         M.append(i * 6 + 4, i * 6 + 4, body_inr.GetElement(1, 1));
-        M.append(i * 6 + 4, i * 6 + 5, body_inr.GetElement(1, 2));
+        if (disable_full_inertia_tensor) {
+          M.append(i * 6 + 4, i * 6 + 5, body_inr.GetElement(1, 2));
+        }
         M.finalize(i * 6 + 4);
-        M.append(i * 6 + 5, i * 6 + 3, body_inr.GetElement(2, 0));
-        M.append(i * 6 + 5, i * 6 + 4, body_inr.GetElement(2, 1));
+        if (disable_full_inertia_tensor) {
+          M.append(i * 6 + 5, i * 6 + 3, body_inr.GetElement(2, 0));
+          M.append(i * 6 + 5, i * 6 + 4, body_inr.GetElement(2, 1));
+        }
         M.append(i * 6 + 5, i * 6 + 5, body_inr.GetElement(2, 2));
         M.finalize(i * 6 + 5);
       } else {
