@@ -234,9 +234,9 @@ void ChCAABBGenerator::GenerateAABB(const custom_vector<shape_type>& obj_data_T,
                                     const custom_vector<real4>& body_rot,
                                     const real collision_envelope,
                                     custom_vector<real3>& aabb_data) {
-#if PRINT_LEVEL == 2
-  cout << "AABB START" << endl;
-#endif
+
+  LOG(TRACE) << "AABB START";
+
 
   numAABB = obj_data_T.size();
   aabb_data.resize(numAABB * 2);
@@ -251,9 +251,9 @@ void ChCAABBGenerator::GenerateAABB(const custom_vector<shape_type>& obj_data_T,
                    obj_data_ID.data(), convex_data.data(), body_pos.data(), body_rot.data(), collision_envelope,
                    aabb_data.data());
 #endif
-#if PRINT_LEVEL == 2
-  cout << "AABB END" << endl;
-#endif
+
+  LOG(TRACE) << "AABB END";
+
 #if PRINT_LEVEL == 2
 //    for(int i=0; i<numAABB; i++){
 //
