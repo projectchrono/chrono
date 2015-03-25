@@ -95,7 +95,7 @@ struct solver_settings {
     collision_in_solver = false;
     presolve = false;
     compute_N = false;
-    disable_full_inertia_tensor = false;
+    use_full_inertia_tensor = false;
     max_iteration = 100;
     max_iteration_normal = 0;
     max_iteration_sliding = 100;
@@ -156,7 +156,7 @@ struct solver_settings {
   bool verbose;
   bool test_objective;
   real cohesion_epsilon;
-  bool disable_full_inertia_tensor;
+  bool use_full_inertia_tensor;
 
   // Contact force model for DEM
   CONTACTFORCEMODEL contact_force_model;
