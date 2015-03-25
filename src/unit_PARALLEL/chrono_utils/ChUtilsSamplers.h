@@ -26,6 +26,8 @@
 // GridSampler
 //  - uniform grid
 //
+// HCPSampler
+// - A class to generate points in a hexagonally close packed structure.
 // =============================================================================
 
 #ifndef CH_UTILS_SAMPLERS_H
@@ -444,7 +446,7 @@ class GridSampler : public Sampler<T> {
 // -----------------------------------------------------------------------------
 // HCPSampler
 //
-// A class to generate points in a HCP closed pack a 3D domain.
+// A class to generate points in a hexagonally close packed structure.
 // -----------------------------------------------------------------------------
 
 template <typename T = double>
@@ -467,6 +469,7 @@ class HCPSampler : public Sampler<T> {
     int nz = (int)(2 * this->m_size.z / (m_cos30 * m_spacing)) + 1;
     double offset_x = 0, offset_z = 0;
     for (int j = 0; j < ny; j++) {
+      //need to offset each alternate layer by radius in both x and z direction
       offset_x = offset_z = (j % 2 != 0) ? 0.5 * m_spacing : 0;
       for (int i = 0; i < nx; i++) {
         for (int k = 0; k < nz; k++) {
