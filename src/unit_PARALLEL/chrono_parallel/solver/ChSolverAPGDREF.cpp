@@ -65,11 +65,20 @@ uint ChSolverAPGDREF::SolveAPGDREF(const uint max_iter,
   // (5) L_k = norm(N * (gamma_0 - gamma_hat_0)) / norm(gamma_0 - gamma_hat_0)
   tmp = gamma - gamma_hat;
   L = sqrt((double)(tmp, tmp));
-  ShurProduct(tmp, tmp);
-  L = sqrt((double)(tmp, tmp)) / L;
+  if (L > 0) {
+    ShurProduct(tmp, tmp);
+    L = sqrt((double)(tmp, tmp)) / L;
+  } else {
+    L = 1;
+  }
 
   // (6) t_k = 1 / L_k
-  t = 1.0 / L;
+  if (L > 0) {
+    t = 1.0 / L;
+  } else {
+    L = 1;
+    t = 1;
+  }
 
   // (7) for k := 0 to N_max
   for (current_iteration = 0; current_iteration < max_iter; current_iteration++) {
