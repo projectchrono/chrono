@@ -264,7 +264,7 @@ void ChConstraintRigidRigid::Build_b() {
       bi = inv_h * depth;
     } else {
       bi = std::max(inv_h * depth, -data_container->settings.solver.contact_recovery_speed);
-      bi = std::min(bi, inv_h * data_container->settings.solver.cohesion_epsilon);
+      //bi = std::min(bi, inv_h * data_container->settings.solver.cohesion_epsilon);
     }
 
     data_container->host_data.b[index * 1 + 0] = bi;
