@@ -95,7 +95,7 @@ struct solver_settings {
     collision_in_solver = false;
     presolve = false;
     compute_N = false;
-    use_full_inertia_tensor = false;
+    use_full_inertia_tensor = true;
     max_iteration = 100;
     max_iteration_normal = 0;
     max_iteration_sliding = 100;
