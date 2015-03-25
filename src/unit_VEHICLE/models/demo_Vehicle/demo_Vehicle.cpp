@@ -159,7 +159,7 @@ int main(int argc, char* argv[])
       map_skybox_side);
   mbox->setRotation( irr::core::vector3df(90,0,0));
  
-  bool do_shadows = true; // shadow map is experimental
+  bool do_shadows = false; // shadow map is experimental
   irr::scene::ILightSceneNode* mlight = 0;
 
   if (do_shadows) {

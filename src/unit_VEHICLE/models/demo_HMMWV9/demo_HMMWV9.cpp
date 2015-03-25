@@ -248,18 +248,15 @@ int main(int argc, char* argv[])
       map_skybox_side);
   mbox->setRotation( irr::core::vector3df(90,0,0));
  
-  bool do_shadows = true; // shadow map is experimental
+  bool do_shadows = false; // shadow map is experimental
   irr::scene::ILightSceneNode* mlight = 0;
 
-  if (do_shadows)
-  {
+  if (do_shadows) {
     mlight = application.AddLightWithShadow(
       irr::core::vector3df(10.f, 30.f, 60.f),
       irr::core::vector3df(0.f, 0.f, 0.f),
       150, 60, 80, 15, 512, irr::video::SColorf(1, 1, 1), false, false);
-  }
-  else
-  {
+  } else {
     application.AddTypicalLights(
       irr::core::vector3df(30.f, -30.f, 100.f),
       irr::core::vector3df(30.f, 50.f, 100.f),
