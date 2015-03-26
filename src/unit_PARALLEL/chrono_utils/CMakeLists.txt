@@ -23,15 +23,46 @@ SET(ChronoEngine_Utils_HEADERS
     ChUtilsInputOutput.h
     )
 
-#
-# INCLUDE Chrono and Chrono_Parallel HEADERS
-#
+# Include Chrono and Chrono_Parallel HEADERS
 
 INCLUDE_DIRECTORIES(
     ${CH_CHRONO_SDKDIR}
     ${CMAKE_SOURCE_DIR}
     ${CMAKE_BINARY_DIR}
     )
+
+# Link to Chrono and Chrono_Parallel LIBRARIES
+
+SET(LIBRARIES
+    ${CHRONOENGINE_LIBRARY}
+    ChronoEngine_Parallel
+    )
+
+# ------------------------------------------------------------------------------
+# Optional Chrono::Vehicle support
+# ------------------------------------------------------------------------------
+IF(ENABLE_VEHICLE)
+
+  SET(ChronoEngine_Utils_SOURCES
+      ${ChronoEngine_Utils_SOURCES}
+      ChUtilsVehicle.cpp
+      )
+
+  SET(ChronoEngine_Utils_HEADERS
+      ${ChronoEngine_Utils_HEADERS}
+      ChUtilsVehicle.h
+      )
+
+   INCLUDE_DIRECTORIES(
+      ${CHRONOVEHICLE_INCLUDES}
+      )
+
+  SET(LIBRARIES
+      ${LIBRARIES}
+      ${CHRONOVEHICLE_LIBRARIES}
+      )
+
+ENDIF()
 
 # ------------------------------------------------------------------------------
 # ADD THE ChronoEngine_Utils LIBRARY
@@ -46,7 +77,7 @@ SET_TARGET_PROPERTIES(ChronoEngine_Utils PROPERTIES
   LINK_FLAGS "${CH_LINKERFLAG_GPU}"
   COMPILE_DEFINITIONS "CH_API_COMPILE_UTILS")
 
-TARGET_LINK_LIBRARIES(ChronoEngine_Utils ${CHRONOENGINE_LIBRARY} ChronoEngine_Parallel)
+TARGET_LINK_LIBRARIES(ChronoEngine_Utils ${LIBRARIES})
 
 INSTALL(TARGETS ChronoEngine_Utils
     RUNTIME DESTINATION bin
