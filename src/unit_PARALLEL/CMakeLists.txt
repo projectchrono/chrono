@@ -38,6 +38,7 @@ INCLUDE(CMakeDependentOption)
 
 OPTION(BUILD_UTILS "Build the ChronoEngine_Utils library" ON)
 OPTION(BUILD_OPENGL "Build the ChronoEngine_OpenGL library" ON)
+OPTION(BUILD_VEHICLE "Enable support for vehicle modeling (requires the Chrono::Vehicle library)" OFF)
 
 # If building the ChronoEngine_Utils library, provide an option to build demo
 # programs (default ON). Otherwise, do not build demo programs.
@@ -268,6 +269,56 @@ ENDIF()
 INCLUDE_DIRECTORIES(${CHRONOENGINE_INCLUDES})
 
 # ------------------------------------------------------------------------------
+# Find the ChronoVehicle library
+# ------------------------------------------------------------------------------
+IF(BUILD_VEHICLE)
+
+  FIND_PACKAGE(ChronoVehicle)
+
+  IF(CHRONOVEHICLE_LIBRARY_DEBUG)
+    MESSAGE(STATUS "ChronoVehicle library (debug) found")
+  ENDIF()
+  IF(CHRONOVEHICLE_LIBRARY_RELEASE)
+    MESSAGE(STATUS "ChronoVehicle library (release) found")
+  ENDIF()
+
+  SET(ENABLE_VEHICLE ON)
+
+  # Disable ChronoVehicle support if we could not find the ChronoVehicle SDK or
+  # if we could not find one of the debug or release ChronoVehicle libraries.
+  IF(NOT EXISTS "${CH_VEHICLE_SDKDIR}/subsys/ChVehicle.h")
+    MESSAGE("Cannot find the ChronoVehicle SDK. Make sure CH_VEHICLE_SDKDIR is set correctly.")
+    SET(ENABLE_VEHICLE OFF)
+  ENDIF()
+  IF(NOT CHRONOVEHICLE_LIBRARY_DEBUG AND NOT CHRONOVEHICLE_LIBRARY_RELEASE)
+    MESSAGE("Cannot find the ChronoVehicle library. Check CH_VEHICLE_LIBDIR_DEBUG and CH_VEHICLE_LIBDIR_RELEASE.")
+    SET(ENABLE_VEHICLE OFF)
+  ENDIF()
+
+ELSE()
+
+  SET(ENABLE_VEHICLE OFF)
+
+ENDIF()
+
+IF(ENABLE_VEHICLE)
+
+  # Add path to ChronoVehicle headers.
+  INCLUDE_DIRECTORIES(${CHRONOVEHICLE_INCLUDES})
+
+  # Prepare substitution variables for configuration header.
+  SET(CHRONO_PARALLEL_HAS_VEHICLE "#define CHRONO_PARALLEL_HAS_VEHICLE")
+  SET(CHRONO_VEHICLE_DATA_DIR "${CH_VEHICLE_SDKDIR}/data/")
+
+ELSE()
+
+  # Dummy substitution variables.
+  SET(CHRONO_PARALLEL_HAS_VEHICLE "")
+  SET(CHRONO_VEHICLE_DATA_DIR "")
+ 
+ENDIF()
+
+# ------------------------------------------------------------------------------
 # Dependencies for ChronoEngine_OpenGL
 # ------------------------------------------------------------------------------
 IF(BUILD_OPENGL)
@@ -328,6 +379,22 @@ IF(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
         "${CH_BINDIR}/$<CONFIGURATION>/ChronoEngine.dll"
         "${CMAKE_BINARY_DIR}/bin/$<CONFIGURATION>"
   )
+
+  # If ChronoVehicle support is enabled, copy the ChronoVehicle DLL
+  IF(ENABLE_VEHICLE)
+    IF(CH_VEHICLE_LIBDIR_DEBUG)
+        SET(CH_VEHICLE_BINDIR "${CH_VEHICLE_LIBDIR_DEBUG}/../../bin")
+    ENDIF()
+    IF(CH_VEHICLE_LIBDIR_RELEASE)
+        SET(CH_VEHICLE_BINDIR "${CH_VEHICLE_LIBDIR_RELEASE}/../../bin")
+    ENDIF()
+    ADD_CUSTOM_COMMAND(
+        TARGET COPY_DLLS POST_BUILD
+        COMMAND ${CMAKE_COMMAND} -E copy_if_different
+            "${CH_VEHICLE_BINDIR}/$<CONFIGURATION>/ChronoVehicle.dll"
+            "${CMAKE_BINARY_DIR}/bin/$<CONFIGURATION>"
+    )
+  ENDIF()
 
   # If building OpenGL support, also copy the DLLs for GLEW and GLFW (if specified)
   IF(ENABLE_OPENGL)

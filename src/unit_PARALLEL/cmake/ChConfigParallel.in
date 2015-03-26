@@ -49,3 +49,13 @@
 // If using double precision
 //   #define CHRONO_PARALLEL_USE_DOUBLE
 @CHRONO_PARALLEL_USE_DOUBLE@
+
+
+// If Chrono::Vehicle was found, then
+//   #define CHRONO_PARALLEL_HAS_VEHICLE
+@CHRONO_PARALLEL_HAS_VEHICLE@
+
+// If support for linking to Chrono::Vehicle is enabled,
+// then specify the path to the Chrono::Vehicle data
+#define CHRONO_VEHICLE_DATA_DIR "@CHRONO_VEHICLE_DATA_DIR@"
+
