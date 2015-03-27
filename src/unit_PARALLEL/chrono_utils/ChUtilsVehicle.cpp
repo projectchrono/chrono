@@ -34,7 +34,7 @@ namespace utils {
 VehicleSystem::VehicleSystem(ChSystem* system,
                              const std::string& vehicle_def_filename,
                              const std::string& powertrain_def_filename)
-    : m_driver_cb(NULL), m_tire_cb(NULL) {
+    : m_driver_cb(NULL), m_tire_cb(NULL), m_chassis_cb(NULL) {
   // Create the vehicle and powertrain systems.
   m_vehicle = ChSharedPtr<Vehicle>(new Vehicle(system, vehicle::GetDataFile(vehicle_def_filename)));
   m_powertrain = ChSharedPtr<SimplePowertrain>(new SimplePowertrain(vehicle::GetDataFile(powertrain_def_filename)));
@@ -51,6 +51,16 @@ void VehicleSystem::Initialize(const ChVector<>& init_loc, const ChQuaternion<>&
   // Initialize the vehicle and powertrain systems.
   m_vehicle->Initialize(ChCoordsys<>(init_loc, init_rot));
   m_powertrain->Initialize();
+
+  // If provided, invoke the user-provided callback to attach chassis contact
+  // geometry.
+  if (m_chassis_cb) {
+    ChSharedPtr<ChBodyAuxRef> chassisBody = m_vehicle->GetChassis();
+
+    chassisBody->ChangeCollisionModel(new collision::ChCollisionModelParallel);
+    m_chassis_cb->onCallback(chassisBody);
+    chassisBody->SetCollide(true);
+  }
 
   // Loop over all vehicle wheels and attach tire contact geometry.
   for (int i = 0; i < 2 * m_vehicle->GetNumberAxles(); i++) {
