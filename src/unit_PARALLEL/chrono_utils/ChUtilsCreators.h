@@ -67,61 +67,70 @@ namespace utils {
 // AddRoundedBoxGeometry
 // AddRoundedCylinderGeometry
 // AddTorusGeometry
+//
 // Utility functions for adding contact and asset geometry shapes to a body
 // -----------------------------------------------------------------------------
 CH_UTILS_API
 void AddSphereGeometry(ChBody* body,
                        double radius,
                        const ChVector<>& pos = ChVector<>(0, 0, 0),
-                       const ChQuaternion<>& rot = ChQuaternion<>(1, 0, 0, 0));
+                       const ChQuaternion<>& rot = ChQuaternion<>(1, 0, 0, 0),
+                       bool visualization = true);
 
 CH_UTILS_API
 void AddEllipsoidGeometry(ChBody* body,
                           const ChVector<>& size,
                           const ChVector<>& pos = ChVector<>(0, 0, 0),
-                          const ChQuaternion<>& rot = ChQuaternion<>(1, 0, 0, 0));
+                          const ChQuaternion<>& rot = ChQuaternion<>(1, 0, 0, 0),
+                          bool visualization = true);
 
 CH_UTILS_API
 void AddBoxGeometry(ChBody* body,
                     const ChVector<>& size,
                     const ChVector<>& pos = ChVector<>(0, 0, 0),
-                    const ChQuaternion<>& rot = ChQuaternion<>(1, 0, 0, 0));
+                    const ChQuaternion<>& rot = ChQuaternion<>(1, 0, 0, 0),
+                    bool visualization = true);
 
 CH_UTILS_API
 void AddCapsuleGeometry(ChBody* body,
                         double radius,
                         double hlen,
                         const ChVector<>& pos = ChVector<>(0, 0, 0),
-                        const ChQuaternion<>& rot = ChQuaternion<>(1, 0, 0, 0));
+                        const ChQuaternion<>& rot = ChQuaternion<>(1, 0, 0, 0),
+                        bool visualization = true);
 
 CH_UTILS_API
 void AddCylinderGeometry(ChBody* body,
                          double radius,
                          double hlen,
                          const ChVector<>& pos = ChVector<>(0, 0, 0),
-                         const ChQuaternion<>& rot = ChQuaternion<>(1, 0, 0, 0));
+                         const ChQuaternion<>& rot = ChQuaternion<>(1, 0, 0, 0),
+                         bool visualization = true);
 
 CH_UTILS_API
 void AddConeGeometry(ChBody* body,
                      double radius,
                      double height,
                      const ChVector<>& pos = ChVector<>(0, 0, 0),
-                     const ChQuaternion<>& rot = ChQuaternion<>(1, 0, 0, 0));
+                     const ChQuaternion<>& rot = ChQuaternion<>(1, 0, 0, 0),
+                     bool visualization = true);
 
 CH_UTILS_API
 void AddTriangleMeshGeometry(ChBody* body,
                              const std::string& obj_filename,
                              const std::string& name,
                              const ChVector<>& pos = ChVector<>(0, 0, 0),
-                             const ChQuaternion<>& rot = ChQuaternion<>(1, 0, 0, 0));
+                             const ChQuaternion<>& rot = ChQuaternion<>(1, 0, 0, 0),
+                             bool visualization = true);
+
 CH_UTILS_API
 void AddTriangleMeshConvexDecomposition(ChBody* body,
                                         const std::string& obj_filename,
                                         const std::string& name,
                                         const ChVector<>& pos = ChVector<>(0, 0, 0),
                                         const ChQuaternion<>& rot = ChQuaternion<>(1, 0, 0, 0),
-                                        const double skin_thickness = 0,
-                                        const bool& use_original_asset = true);
+                                        double skin_thickness = 0,
+                                        bool use_original_asset = true);
 
 CH_UTILS_API
 void AddTriangleMeshConvexDecompositionV2(ChBody* body,
@@ -129,7 +138,7 @@ void AddTriangleMeshConvexDecompositionV2(ChBody* body,
                                           const std::string& name,
                                           const ChVector<>& pos = ChVector<>(0, 0, 0),
                                           const ChQuaternion<>& rot = ChQuaternion<>(1, 0, 0, 0),
-                                          const bool& use_original_asset = true);
+                                          bool use_original_asset = true);
 
 CH_UTILS_API
 void AddTriangleMeshConvexDecompositionSplit(ChSystemParallel* system,
@@ -145,7 +154,8 @@ void AddRoundedBoxGeometry(ChBody* body,
                            const ChVector<>& size,
                            double srad,
                            const ChVector<>& pos = ChVector<>(0, 0, 0),
-                           const ChQuaternion<>& rot = ChQuaternion<>(1, 0, 0, 0));
+                           const ChQuaternion<>& rot = ChQuaternion<>(1, 0, 0, 0),
+                           bool visualization = true);
 
 CH_UTILS_API
 void AddRoundedCylinderGeometry(ChBody* body,
@@ -153,7 +163,8 @@ void AddRoundedCylinderGeometry(ChBody* body,
                                 double hlen,
                                 double srad,
                                 const ChVector<>& pos = ChVector<>(0, 0, 0),
-                                const ChQuaternion<>& rot = ChQuaternion<>(1, 0, 0, 0));
+                                const ChQuaternion<>& rot = ChQuaternion<>(1, 0, 0, 0),
+                                bool visualization = true);
 
 // Creates a compound torus shape using cylinders
 CH_UTILS_API
@@ -163,7 +174,8 @@ void AddTorusGeometry(ChBody* body,
                       int segments = 20,
                       int angle = 360,
                       const ChVector<>& pos = ChVector<>(0, 0, 0),
-                      const ChQuaternion<>& rot = ChQuaternion<>(1, 0, 0, 0));
+                      const ChQuaternion<>& rot = ChQuaternion<>(1, 0, 0, 0),
+                      bool visualization = true);
 
 // -----------------------------------------------------------------------------
 // CreateBoxContainerDEM
@@ -172,36 +184,37 @@ void AddTorusGeometry(ChBody* body,
 // FinalizeObjectDVI
 // LoadConvex
 // AddConvex
+//
 // Utility functions for creating objects
 // -----------------------------------------------------------------------------
 
 // Create a fixed body with contact and asset geometry representing a box with 5
 // walls (no top).
 CH_UTILS_API
-ChSharedPtr<ChBodyDEM>  CreateBoxContainerDEM(ChSystem* system,
-                           int id,
-                           ChSharedPtr<ChMaterialSurfaceDEM>& mat,
-                           const ChVector<>& hdim,
-                           double hthick,
-                           const ChVector<>& pos = ChVector<>(0, 0, 0),
-                           const ChQuaternion<>& rot = ChQuaternion<>(1, 0, 0, 0),
-                           bool collide = true,
-                           bool y_up = false,
-                           bool overlap = false,
-                           bool closed = false);
+ChSharedPtr<ChBodyDEM> CreateBoxContainerDEM(ChSystem* system,
+                                             int id,
+                                             ChSharedPtr<ChMaterialSurfaceDEM>& mat,
+                                             const ChVector<>& hdim,
+                                             double hthick,
+                                             const ChVector<>& pos = ChVector<>(0, 0, 0),
+                                             const ChQuaternion<>& rot = ChQuaternion<>(1, 0, 0, 0),
+                                             bool collide = true,
+                                             bool y_up = false,
+                                             bool overlap = false,
+                                             bool closed = false);
 
 CH_UTILS_API
-ChSharedPtr<ChBody>  CreateBoxContainerDVI(ChSystem* system,
-                           int id,
-                           ChSharedPtr<ChMaterialSurface>& mat,
-                           const ChVector<>& hdim,
-                           double hthick,
-                           const ChVector<>& pos = ChVector<>(0, 0, 0),
-                           const ChQuaternion<>& rot = ChQuaternion<>(1, 0, 0, 0),
-                           bool collide = true,
-                           bool y_up = false,
-                           bool overlap = false,
-                           bool closed = false);
+ChSharedPtr<ChBody> CreateBoxContainerDVI(ChSystem* system,
+                                          int id,
+                                          ChSharedPtr<ChMaterialSurface>& mat,
+                                          const ChVector<>& hdim,
+                                          double hthick,
+                                          const ChVector<>& pos = ChVector<>(0, 0, 0),
+                                          const ChQuaternion<>& rot = ChQuaternion<>(1, 0, 0, 0),
+                                          bool collide = true,
+                                          bool y_up = false,
+                                          bool overlap = false,
+                                          bool closed = false);
 
 CH_UTILS_API
 void InitializeObject(ChSharedBodyPtr body,
