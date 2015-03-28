@@ -109,6 +109,12 @@ class CH_UTILS_API VehicleSystem {
   /// Update the vehicle model at the specified time.
   void Update(double time);
 
+  /// Get handle to the underlying vehicle subsystem.
+  ChSharedPtr<Vehicle> GetVehicle() const { return m_vehicle; }
+
+  /// Get handle to the underlying powertrain subsystem.
+  ChSharedPtr<SimplePowertrain> GetPowertrain() const { return m_powertrain; }
+
  private:
   ChSharedPtr<Vehicle> m_vehicle;
   ChSharedPtr<SimplePowertrain> m_powertrain;
