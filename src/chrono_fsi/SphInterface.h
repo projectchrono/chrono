@@ -15,17 +15,13 @@
 #include "MyStructs.cuh" //just for SimParams
 
 #include "chrono_parallel/physics/ChSystemParallel.h"
-#include "chrono_parallel/lcp/ChLcpSystemDescriptorParallel.h"
-#include "chrono_utils/ChUtilsCreators.h"  //Arman: why is this
-#include "chrono_utils/ChUtilsInputOutput.h" //Arman: Why is this
+//#include "chrono_parallel/lcp/ChLcpSystemDescriptorParallel.h"
+//#include "chrono_utils/ChUtilsCreators.h"  //Arman: why is this
+//#include "chrono_utils/ChUtilsInputOutput.h" //Arman: Why is this
 #include "chrono_utils/ChUtilsGenerators.h"
-#include <vector>
 
-using namespace std;
 using namespace chrono;
 using namespace chrono::collision;
-
-
 
 void SetupParamsH(SimParams & paramsH);
 

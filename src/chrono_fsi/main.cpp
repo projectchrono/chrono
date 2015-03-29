@@ -76,12 +76,12 @@
 			using namespace video;
 			using namespace io;
 			using namespace gui;
-			using namespace std;
+//			using namespace std; //collides with chrono
 
 
 			#define irrlichtVisualization true
 			#if irrlichtVisualization
-			shared_ptr<ChIrrApp> application;
+			std::shared_ptr<ChIrrApp> application;
 			#endif
 
 			#ifdef CHRONO_PARALLEL_HAS_OPENGL2
@@ -241,7 +241,7 @@ void InitializeChronoGraphics(ChSystemParallelDVI& mphysicalSystem) {
 #if irrlichtVisualization
 	// Create the Irrlicht visualization (open the Irrlicht device,
 	// bind a simple user interface, etc. etc.)
-   application = shared_ptr<ChIrrApp>(new ChIrrApp(&mphysicalSystem, L"Bricks test",core::dimension2d<u32>(800,600),false, true));
+   application = std::shared_ptr<ChIrrApp>(new ChIrrApp(&mphysicalSystem, L"Bricks test",core::dimension2d<u32>(800,600),false, true));
 //	ChIrrApp application(&mphysicalSystem, L"Bricks test",core::dimension2d<u32>(800,600),false, true);
 
 
@@ -353,7 +353,7 @@ int main(int argc, char* argv[]) {
 	bool write_povray_data = true;
 
 	myTimerTotal.start();
-	ofstream outSimulationInfo;
+	std::ofstream outSimulationInfo;
 	outSimulationInfo.open("SimInfo.txt");
 
 	// Create a ChronoENGINE physical system
@@ -374,9 +374,9 @@ int main(int argc, char* argv[]) {
 			mphysicalSystem.GetSettings()->solver.max_iteration_sliding +
 			mphysicalSystem.GetSettings()->solver.max_iteration_spinning +
 			mphysicalSystem.GetSettings()->solver.max_iteration_bilateral;
-	outSimulationInfo << "****************************************************************************" << endl;
-	outSimulationInfo 	<< " dT: " << dTc  << " max_iteration: " << numIter <<" muFriction: " << mphysicalSystem.GetParallelThreadNumber() << " number of bodies: " << mphysicalSystem.Get_bodylist()->size() << endl;
-	cout			 	<< " dT: " << dTc  << " max_iteration: " << numIter <<" muFriction: " << mphysicalSystem.GetParallelThreadNumber() << " number of bodies: " << mphysicalSystem.Get_bodylist()->size() << endl;
+	outSimulationInfo << "****************************************************************************" << std::endl;
+	outSimulationInfo 	<< " dT: " << dTc  << " max_iteration: " << numIter <<" muFriction: " << mphysicalSystem.GetParallelThreadNumber() << " number of bodies: " << mphysicalSystem.Get_bodylist()->size() << std::endl;
+	std::cout			 	<< " dT: " << dTc  << " max_iteration: " << numIter <<" muFriction: " << mphysicalSystem.GetParallelThreadNumber() << " number of bodies: " << mphysicalSystem.Get_bodylist()->size() << std::endl;
 
 	InitializeChronoGraphics(mphysicalSystem);
 

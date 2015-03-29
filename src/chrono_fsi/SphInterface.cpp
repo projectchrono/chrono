@@ -8,8 +8,6 @@
 
 #include "SphInterface.h"
 
-
-
 //**********************************************
 void SetupParamsH(SimParams & paramsH) {
 	paramsH.sizeScale = 1; //don't change it.
@@ -180,7 +178,7 @@ void UpdateSphDataInChSystem(
 		ChVector<> vel = ChVector<>(vM4.x, vM4.y, vM4.z);
 
 		int chSystemBodyId = startIndexSph + i;
-		vector<ChBody*>::iterator ibody = mphysicalSystem.Get_bodylist()->begin() + chSystemBodyId;
+		std::vector<ChBody*>::iterator ibody = mphysicalSystem.Get_bodylist()->begin() + chSystemBodyId;
 		(*ibody)->SetPos(pos);
 		(*ibody)->SetPos_dt(vel);
 	}
