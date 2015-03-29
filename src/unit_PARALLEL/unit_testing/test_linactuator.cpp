@@ -239,14 +239,14 @@ bool TestLinActuator(utils::SystemType sys_type,  // type of system (PARALLEL_DE
   int threads = 20;
   bool thread_tuning = false;
 
-  double time_end = 5;
+  double time_end = 2;
   double time_step = 1e-3;
 
   double tolerance = 1e-5;
 
   int max_iteration_bilateral = 100;
-  int max_iteration_normal = 50;
-  int max_iteration_sliding = 100;
+  int max_iteration_normal = 0;
+  int max_iteration_sliding = 0;
   int max_iteration_spinning = 0;
 
   bool clamp_bilaterals = false;
