@@ -37,7 +37,7 @@ using namespace chrono::collision;
 // -----------------------------------------------------------------------------
 ChSystemParallel* CreateSystem(utils::SystemType sys_type) {
   // Settings
-  int threads = 20;
+  int threads = 1;
   bool thread_tuning = false;
 
   double tolerance = 1e-5;
@@ -65,12 +65,7 @@ ChSystemParallel* CreateSystem(utils::SystemType sys_type) {
   }
 
   // Set number of threads.
-  int max_threads = system->GetParallelThreadNumber();
-  if (threads > max_threads)
-    threads = max_threads;
-  system->SetParallelThreadNumber(threads);
   omp_set_num_threads(threads);
-
   system->GetSettings()->max_threads = threads;
   system->GetSettings()->perform_thread_tuning = thread_tuning;
 

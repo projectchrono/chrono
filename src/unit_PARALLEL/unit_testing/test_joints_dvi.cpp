@@ -55,7 +55,7 @@ bool TestMechanism(Options opts, bool animate) {
   // Additional solver settings
   //---------------------------
 
-  int threads = 20;
+  int threads = 1;
   bool thread_tuning = false;
 
   double time_end = 2;
@@ -82,12 +82,7 @@ bool TestMechanism(Options opts, bool animate) {
   system->Set_G_acc(ChVector<>(0, 0, -9.81));
 
   // Set number of threads.
-  int max_threads = system->GetParallelThreadNumber();
-  if (threads > max_threads)
-    threads = max_threads;
-  system->SetParallelThreadNumber(threads);
   omp_set_num_threads(threads);
-
   system->GetSettings()->max_threads = threads;
   system->GetSettings()->perform_thread_tuning = thread_tuning;
 

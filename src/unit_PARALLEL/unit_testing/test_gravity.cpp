@@ -37,6 +37,8 @@ int main(int argc, char* argv[]) {
   ChSystemParallelDVI msystem;
   msystem.Set_G_acc(gravity);
   msystem.SetStep(time_step);
+  msystem.GetSettings()->max_threads = 1;
+  msystem.GetSettings()->perform_thread_tuning = false;
 
   ChSharedBodyPtr ball(new ChBody(new ChCollisionModelParallel));
   double mass = 1;
