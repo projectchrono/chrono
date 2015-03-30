@@ -20,8 +20,6 @@
 #   set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake/Modules/")
 # right before find_package(..)
 
-
-
 SET (CH_VEHICLE_SDKDIR         "" CACHE PATH "Where is your ChronoVehicle SDK source installed")
 SET (CH_VEHICLE_LIBDIR_DEBUG   "" CACHE PATH "Where are your ChronoVehicle DEBUG libraries (ChronoVehicle.lib) installed?")
 SET (CH_VEHICLE_LIBDIR_RELEASE "" CACHE PATH "Where are your ChronoVehicle RELEASE libraries (ChronoVehicle.lib) installed?")
@@ -126,6 +124,76 @@ MARK_AS_ADVANCED(CHRONOVEHICLE_LIBRARY_DEBUG)
 # Append to easy collective variables
 SET(CHRONOVEHICLE_INCLUDES  ${CH_VEHICLE_SDKDIR})
 SET(CHRONOVEHICLE_LIBRARIES ${CHRONOVEHICLE_LIBRARY})
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+# ================================================================================
+# Check if Libraries and headers added successfully
+
+# Stop now if we could not find the ChronoVehicle SDK
+IF(NOT EXISTS "${CH_VEHICLE_SDKDIR}/subsys/ChVehicle.h")
+  MESSAGE(FATAL_ERROR "Cannot find the ChronoVehicle SDK. Make sure CH_VEHICLE_SDKDIR is set correctly.")
+  RETURN()
+ENDIF()
+
+# Check debug/release ChronoVehicle libraries. Stop now if neither could be found.
+IF(CHRONOVEHICLE_LIBRARY_DEBUG)
+  MESSAGE(STATUS "ChronoVehicle library (debug) found")
+ENDIF()
+IF(CHRONOVEHICLE_LIBRARY_RELEASE)
+  MESSAGE(STATUS "ChronoVehicle library (release) found")
+ENDIF()
+
+IF(NOT CHRONOVEHICLE_LIBRARY_DEBUG AND NOT CHRONOVEHICLE_LIBRARY_RELEASE)
+  MESSAGE(FATAL_ERROR "Cannot find the ChronoVehicle library. Check CH_VEHICLE_LIBDIR_DEBUG and CH_VEHICLE_LIBDIR_RELEASE.")
+  RETURN()
+ENDIF()
+
+MESSAGE(STATUS "ChronoVehicle includes:  ${CHRONOVEHICLE_INCLUDES}")
+MESSAGE(STATUS "ChronoVehicle libraries: ${CHRONOVEHICLE_LIBRARIES}")
+
+#--------------------------------------------------------------
+# Generate the configuration file 
+
+SET(CHRONOVEHICLE_DATA_DIR "${CH_VEHICLE_SDKDIR}/data/")
+
+CONFIGURE_FILE(
+  ${CMAKE_CURRENT_LIST_DIR}/config.h.in
+  ${CMAKE_BINARY_DIR}/demos_vehicle/config.h
+  )
+
+MESSAGE(STATUS "PRJ bin dir: ${PROJECT_BINARY_DIR}")
+MESSAGE(STATUS "CMK bin dir: ${CMAKE_BINARY_DIR}")
+
+
+# ================================================================================
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 # ================================================================================
