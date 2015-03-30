@@ -67,7 +67,7 @@ double settling_tol = 0.2;
 // Solver settings
 double time_step = 1e-3;
 int max_iteration_normal = 0;
-int max_iteration_sliding = 1000;
+int max_iteration_sliding = 25;
 int max_iteration_spinning = 0;
 float contact_recovery_speed = 10e30;
 double tolerance = 1e-2;
@@ -137,7 +137,7 @@ void CreateMechanismBodies(ChSystemParallel* system) {
 void CreateGranularMaterial(ChSystemParallel* sys) {
   // Common material
   ChSharedPtr<ChMaterialSurface> ballMat(new ChMaterialSurface);
-  ballMat->SetFriction(0);
+  ballMat->SetFriction(1.0);
 
   // Create the falling balls
   int ballId = 0;
@@ -188,6 +188,8 @@ void SetupSystem(ChSystemParallelDVI* msystem) {
   msystem->ChangeSolverType(APGD);
   msystem->GetSettings()->collision.collision_envelope = 0;
   msystem->GetSettings()->collision.bins_per_axis = I3(10, 10, 10);
+  msystem->GetSettings()->min_threads = 1;
+  msystem->GetSettings()->max_threads = 1;
 
   // Create the mechanism bodies (all fixed).
   CreateMechanismBodies(msystem);
