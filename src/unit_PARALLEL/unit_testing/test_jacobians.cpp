@@ -187,6 +187,7 @@ void SetupSystem(ChSystemParallelDVI* msystem) {
   msystem->ChangeSolverType(APGD);
   msystem->GetSettings()->collision.collision_envelope = 0.00;
   msystem->GetSettings()->collision.bins_per_axis = I3(10, 10, 10);
+  omp_set_num_threads(1);
   msystem->GetSettings()->max_threads = 1;
   msystem->GetSettings()->perform_thread_tuning = false;
 
