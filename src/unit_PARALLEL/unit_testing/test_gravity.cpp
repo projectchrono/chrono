@@ -37,6 +37,7 @@ int main(int argc, char* argv[]) {
   ChSystemParallelDVI msystem;
   msystem.Set_G_acc(gravity);
   msystem.SetStep(time_step);
+  omp_set_num_threads(1);
   msystem.GetSettings()->max_threads = 1;
   msystem.GetSettings()->perform_thread_tuning = false;
 
