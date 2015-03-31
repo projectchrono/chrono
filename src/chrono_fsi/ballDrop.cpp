@@ -12,92 +12,66 @@
 //	Created by Arman Pazouki
 ///////////////////////////////////////////////////////////////////////////////
 
+// General Includes
 #include <iostream>
 #include <fstream>
 #include <string>
 #include <limits.h>
 #include <vector>
-#include <cstdlib> //for RAND_MAX
 #include <ctime>
 #include <assert.h>
 
-//for memory leak detection, apparently does not work in conjunction with cuda
-//#define _CRTDBG_MAP_ALLOC
-//#include <stdlib.h>
-//#include <crtdbg.h>//just for min
-
-
+// SPH includes
 #include "MyStructs.cuh" //just for SimParams
 #include "collideSphereSphere.cuh"
 #include "printToFile.cuh"
 #include "custom_cutil_math.h"
 #include "SPHCudaUtils.h"
 
-#include <algorithm>
+// Chrono Parallel Includes
+#include "chrono_parallel/physics/ChSystemParallel.h"
+#include "chrono_parallel/lcp/ChLcpSystemDescriptorParallel.h"
 
-#include <omp.h>
-//*************************************************************
-			//#include "physics/ChBodyEasy.h"
-			#include "physics/ChContactContainer.h"
-			#include "collision/ChCModelBulletBody.h"
-			//#include "core/ChTimer.h"
-			//#include "core/ChRealtimeStep.h"
-			//#include "assets/ChTexture.h"
-			#include "unit_IRRLICHT/ChIrrApp.h"
-			#include <cstring>
-			#include <fstream>
-			#include <sstream>
-			#include <time.h>
-			#include <cstdlib>
-			//#include <map>
+// Chrono Vehicle Include
 
-			//*************** chrono parallel
-			#include <stdio.h>
-			#include <vector>
-			#include <cmath>
-
-			#include "chrono_parallel/physics/ChSystemParallel.h"
-			#include "chrono_parallel/lcp/ChLcpSystemDescriptorParallel.h"
-
-			#include "chrono_utils/ChUtilsCreators.h"  //Arman: why is this
-			#include "chrono_utils/ChUtilsInputOutput.h" //Arman: Why is this
-			#include "chrono_utils/ChUtilsGenerators.h"
-
-			//***********************************
-			// Use the namespace of Chrono
-
-			using namespace chrono;
-			using namespace chrono::collision;
-
-			// Use the main namespaces of Irrlicht
-			using namespace irr;
-			using namespace core;
-			using namespace scene;
-			using namespace video;
-			using namespace io;
-			using namespace gui;
-//			using namespace std; //collides with chrono
-
-
-			#define irrlichtVisualization true
-			#if irrlichtVisualization
-			std::shared_ptr<ChIrrApp> application;
-			#endif
-
-			#ifdef CHRONO_PARALLEL_HAS_OPENGL2
-			#include "chrono_opengl/ChOpenGLWindow.h"
-			opengl::ChOpenGLWindow &gl_window = opengl::ChOpenGLWindow::getInstance();
-			#endif
-//*************************************************************
+// FSI Interface Includes
 #include "SphInterface.h"
 #include "InitializeSphMarkers.h"
 
+// Irrlicht Include
+#include "unit_IRRLICHT/ChIrrApp.h"
+
+// Chrono namespaces
+using namespace chrono;
+using namespace chrono::collision;
+
+// Irrlicht namespaces
+using namespace chrono;
+using namespace chrono::collision;
+
+// Use the main namespaces of Irrlicht
+using namespace irr;
+using namespace core;
+using namespace scene;
+using namespace video;
+using namespace io;
+using namespace gui;
+
+//*************************************************************
+// Define Graphics
+#define irrlichtVisualization true
+#if irrlichtVisualization
+std::shared_ptr<ChIrrApp> application;
+#endif
+
+#ifdef CHRONO_PARALLEL_HAS_OPENGL2
+#include "chrono_opengl/ChOpenGLWindow.h"
+opengl::ChOpenGLWindow &gl_window = opengl::ChOpenGLWindow::getInstance();
+#endif
+//*************************************************************
+// Define General variables
 SimParams paramsH;
 //*************************************************************
-
-
-
-
 void SetArgumentsForMbdFromInput(int argc, char* argv[], int & threads, uint & max_iteration) {
 	if (argc > 1) {
 		const char* text = argv[1];
