@@ -72,6 +72,7 @@ opengl::ChOpenGLWindow &gl_window = opengl::ChOpenGLWindow::getInstance();
 // Define General variables
 SimParams paramsH;
 //*************************************************************
+
 void SetArgumentsForMbdFromInput(int argc, char* argv[], int & threads, uint & max_iteration) {
 	if (argc > 1) {
 		const char* text = argv[1];
@@ -130,8 +131,6 @@ void create_system_particles(ChSystemParallelDVI& mphysicalSystem) {
 
 
 	//**************** bin and ship
-	int bId = 1;
-
 	// Create a common material
 	ChSharedPtr<ChMaterialSurface> mat_g(new ChMaterialSurface);
 	mat_g->SetFriction(muFriction);
@@ -146,7 +145,6 @@ void create_system_particles(ChSystemParallelDVI& mphysicalSystem) {
 	ChSharedBodyPtr body;
 	body = ChSharedBodyPtr(new  ChBody(new ChCollisionModelParallel));
 	body->SetMaterialSurface(mat_g);
-//	body->SetIdentifier(bId);
 	body->SetPos(pos);
 	body->SetRot(rot);
 	body->SetCollide(true);
@@ -155,17 +153,9 @@ void create_system_particles(ChSystemParallelDVI& mphysicalSystem) {
     body->SetInertiaXX(mass * gyration);
 
 	body->GetCollisionModel()->ClearModel();
-
-//	utils::AddCapsuleGeometry(body.get_ptr(), size.x, size.y);		// X
-//	utils::AddCylinderGeometry(body.get_ptr(), size.x, size.y);		// O
-//	utils::AddConeGeometry(body.get_ptr(), size.x, size.y); 		// X
-//	utils::AddBoxGeometry(body.get_ptr(), size);					// O
 	utils::AddSphereGeometry(body.get_ptr(), size.x);				// O
-//	utils::AddEllipsoidGeometry(body.get_ptr(), size);					// X
-
 	body->GetCollisionModel()->BuildModel();
 	mphysicalSystem.AddBody(body);
-
 	// ****************** create boxes around the fluid domain
 	ChSharedPtr<ChMaterialSurface> mat(new ChMaterialSurface);
 	mat->SetFriction(.5);
@@ -178,18 +168,13 @@ void create_system_particles(ChSystemParallelDVI& mphysicalSystem) {
 
 	bin = ChSharedBodyPtr(new ChBody(new ChCollisionModelParallel));
 	bin->SetMaterialSurface(mat);
-//	bin->SetIdentifier(binId);
 	bin->SetMass(1);
 	bin->SetPos(ChVector<>(domainCenter.x, domainCenter.y, domainCenter.z));
 	bin->SetRot(ChQuaternion<>(1, 0, 0, 0));
 	bin->SetCollide(true);
 	bin->SetBodyFixed(true);
-	bin->GetCollisionModel()->ClearModel();
 
-//	utils::AddBoxGeometry(bin.get_ptr(), 0.5 * ChVector<>(hdim.x, hdim.y, hthick), ChVector<>(0, 0, -0.5 * hdim.z - 0.5*hthick));	//beginning wall
-//	utils::AddBoxGeometry(bin.get_ptr(), 0.5 * ChVector<>(hdim.x, hdim.y, hthick), ChVector<>(0, 0, 0.5 * hdim.z + 0.5*hthick));	//end wall
-//	utils::AddBoxGeometry(bin.get_ptr(), 0.5 * ChVector<>(hthick, hdim.y, hdim.z + 2 * hthick), ChVector<>(-0.5 * hdim.x - 0.5 * hthick, 0, 0));		//side wall
-//	utils::AddBoxGeometry(bin.get_ptr(), 0.5 * ChVector<>(hthick, hdim.y, hdim.z + 2 * hthick), ChVector<>(0.5 * hdim.x + 0.5 * hthick, 0, 0));	//side wall
+	bin->GetCollisionModel()->ClearModel();
 	utils::AddBoxGeometry(bin.get_ptr(), 0.5 * ChVector<>(hdim.x + 2 * hthick, hthick, hdim.z + 2 * hthick), ChVector<>(0, -0.5 * hdim.y - 0.5 * hthick, 0));	//bottom wall
 	bin->GetCollisionModel()->BuildModel();
 
@@ -408,6 +393,7 @@ int main(int argc, char* argv[]) {
 		FillMyThrust4(derivVelRhoD, mR4(0));
 		thrust::host_vector<Real4> derivVelRhoChronoH(numObjects.numAllMarkers);
 
+		// ****************** RK2: 1/2
 		ForceSPH(posRadD, velMasD, vel_XSPH_D, rhoPresMuD, bodyIndexD, derivVelRhoD, referenceArray, numObjects, currentParamsH, 0.5 * currentParamsH.dT); //?$ right now, it does not consider paramsH.gravity or other stuff on rigid bodies. they should be applied at rigid body solver
 		DoStepChronoSystem(mphysicalSystem, 0.5 * currentParamsH.dT);
 		CopyD2H(derivVelRhoChronoH, derivVelRhoD);
@@ -419,6 +405,7 @@ int main(int argc, char* argv[]) {
 		CopyD2H(posRadH2, velMasH2, rhoPresMuH2, posRadD2, velMasD2, rhoPresMuD2);
 		UpdateSphDataInChSystem(mphysicalSystem, posRadH2, velMasH2, numObjects, startIndexSph);
 
+		// ****************** RK2: 2/2
 		ForceSPH(posRadD2, velMasD2, vel_XSPH_D, rhoPresMuD2, bodyIndexD, derivVelRhoD, referenceArray, numObjects, currentParamsH, currentParamsH.dT); //?$ right now, it does not consider paramsH.gravity or other stuff on rigid bodies. they should be applied at rigid body solver
 		DoStepChronoSystem(mphysicalSystem, 0.5 * currentParamsH.dT);
 		CopyD2H(derivVelRhoChronoH, derivVelRhoD);
@@ -430,12 +417,7 @@ int main(int argc, char* argv[]) {
 		CopyD2H(posRadH, velMasH, rhoPresMuH, posRadD, velMasD, rhoPresMuD);
 		UpdateSphDataInChSystem(mphysicalSystem, posRadH, velMasH, numObjects, startIndexSph);
 
-		// *** delete this piece
-//		IntegrateSPH(posRadD2, velMasD2, rhoPresMuD2, posRadD, velMasD, vel_XSPH_D, rhoPresMuD, bodyIndexD, derivVelRhoD, referenceArray, numObjects, currentParamsH, 0.5 * currentParamsH.dT);
-//		CopyD2H(posRadH2, velMasH2, rhoPresMuH2, posRadD2, velMasD2, rhoPresMuD2);
-//		IntegrateSPH(posRadD, velMasD, rhoPresMuD, posRadD2, velMasD2, vel_XSPH_D, rhoPresMuD2, bodyIndexD, derivVelRhoD, referenceArray, numObjects, currentParamsH, currentParamsH.dT);
-//		CopyD2H(posRadH, velMasH, rhoPresMuH, posRadD, velMasD, rhoPresMuD);
-		// *** end delete this piece
+		// ****************** End RK2
 
 		ClearArraysH(posRadH2, velMasH2, rhoPresMuH2);
 		ClearMyThrustR3(posRadD2);
