@@ -691,3 +691,23 @@ void ChSystemParallel::SetLoggingLevel(LOGGINGLEVEL level, bool state) {
   }
 #endif
 }
+
+//
+// Calculate the (linearized) bilateral constraint violations and store them in
+// the provided vector. Return the maximum constraint violation.
+//
+double ChSystemParallel::CalculateConstraintViolation(std::vector<double>& cvec) {
+  std::vector<ChLcpConstraint*>& mconstraints = LCP_descriptor->GetConstraintsList();
+  cvec.resize(data_manager->num_bilaterals);
+  double max_c = 0;
+
+  for (int index = 0; index < data_manager->num_bilaterals; index++) {
+    int cntr = data_manager->host_data.bilateral_mapping[index];
+    cvec[index] = mconstraints[cntr]->Compute_c_i();
+    double abs_c = std::abs(cvec[index]);
+    if (abs_c > max_c)
+      max_c = abs_c;
+  }
+
+  return max_c;
+}

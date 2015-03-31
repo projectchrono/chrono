@@ -93,6 +93,10 @@ class CH_PARALLEL_API ChSystemParallel : public ChSystem {
   // disable logging level
   void SetLoggingLevel(LOGGINGLEVEL level, bool state = true);
 
+  /// Calculate the (linearized) bilateral constraint violations.
+  /// Return the maximum constraint violation.
+  double CalculateConstraintViolation(std::vector<double>& cvec);
+
   ChParallelDataManager* data_manager;
 
  protected:
