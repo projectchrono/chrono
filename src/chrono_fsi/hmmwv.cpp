@@ -205,25 +205,50 @@ int main(int argc, char* argv[]) {
   // --------------------------------------------------------
   // Create the ground body and set contact geometry
   // --------------------------------------------------------
-  double hdimX = 100;
-  double hdimY = 100;
+  double hdimX = 10;
+  double hdimY = 10;
   double hdimZ = 5;
 
+
+	double hdimX3 = hdimX/3;
+//	double hdimY3 = hdimY/3;
+	hdimX = 3 * hdimX3;
+//	hdimY = 3 * hdimY3;
+
+	// basin info
+	double depth = 10;
+	double slope = CH_C_PI / 6;
+	double bottomWidth = hdimX3 - depth / tan(slope); 	// for a 45 degree slope
+	double inclinedWidth = depth / sin(slope); // for a 45 degree slope
+
+
   ChSharedPtr<ChBody> ground = ChSharedPtr<ChBody>(new ChBody(new collision::ChCollisionModelParallel));
-  ground->SetIdentifier(-1);
+//  ground->SetIdentifier(-1);
   ground->SetBodyFixed(true);
   ground->SetCollide(true);
   ground->SetPos(ChVector<>(0, 0, -hdimZ));
 
   ground->GetMaterialSurface()->SetFriction(0.8f);
 
-  ground->GetCollisionModel()->ClearModel();
-  ground->GetCollisionModel()->AddBox(hdimX, hdimY, hdimZ);
-  ground->GetCollisionModel()->BuildModel();
+	ground->GetCollisionModel()->ClearModel();
+//	ground->GetCollisionModel()->AddBox(hdimX, hdimY, hdimZ);
+	utils::AddBoxGeometry(ground.get_ptr(), ChVector<>(hdimX3, hdimY, hdimZ), ChVector<>(-hdimX3, 0, 0));	// beginning third
+	utils::AddBoxGeometry(ground.get_ptr(), ChVector<>(hdimX3, hdimY, hdimZ), ChVector<>(hdimX3, 0, 0));	// end third
+	// basin
+	utils::AddBoxGeometry(ground.get_ptr(), ChVector<>(bottomWidth, hdimY, hdimZ), ChVector<>(0, 0, -depth));	// middle third
+	utils::AddBoxGeometry(ground.get_ptr(), ChVector<>(inclinedWidth , hdimY, hdimZ),
+			ChVector<>(-hdimX3 - inclinedWidth * cos(slope), 0, -inclinedWidth*sin(slope)),
+			Q_from_AngY(slope));	// middle third
+	utils::AddBoxGeometry(ground.get_ptr(), ChVector<>(inclinedWidth , hdimY, hdimZ),
+			ChVector<>(hdimX3 + inclinedWidth * cos(slope), 0, -inclinedWidth*sin(slope)),
+			Q_from_AngY(-slope));	// middle third
 
-  ChSharedPtr<ChBoxShape> box_ground(new ChBoxShape);
-  box_ground->GetBoxGeometry().Size = ChVector<>(hdimX, hdimY, hdimZ);
-  ground->AddAsset(box_ground);
+
+	ground->GetCollisionModel()->BuildModel();
+
+//  ChSharedPtr<ChBoxShape> box_ground(new ChBoxShape);
+//  box_ground->GetBoxGeometry().Size = ChVector<>(hdimX, hdimY, hdimZ);
+//  ground->AddAsset(box_ground);
 
   system->AddBody(ground);
 

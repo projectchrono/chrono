@@ -87,7 +87,12 @@ void SetArgumentsForMbdFromInput(int argc, char* argv[], int & threads, uint & m
 
 void InitializeMbdPhysicalSystem(ChSystemParallelDVI & mphysicalSystem, int argc, char* argv[]) {
 	int threads = 2;
-	uint max_iteration = 20;//10000;
+//	uint max_iteration = 20;//10000;
+	int max_iteration_normal = 0;
+	int max_iteration_sliding = 200;
+	int max_iteration_spinning = 0;
+	int max_iteration_bilateral = 0;
+
 	SetArgumentsForMbdFromInput(argc, argv, threads, max_iteration);
 	//******************** OMP settings **************
 	// Set number of threads.
@@ -103,10 +108,10 @@ void InitializeMbdPhysicalSystem(ChSystemParallelDVI & mphysicalSystem, int argc
 
 	// Set solver parameters
 	mphysicalSystem.GetSettings()->solver.solver_mode = SLIDING; //NORMAL, SPINNING
-	mphysicalSystem.GetSettings()->solver.max_iteration_normal = max_iteration / 3;
-	mphysicalSystem.GetSettings()->solver.max_iteration_sliding = max_iteration / 3;
-	mphysicalSystem.GetSettings()->solver.max_iteration_spinning = 0;
-	mphysicalSystem.GetSettings()->solver.max_iteration_bilateral = max_iteration / 3;
+	mphysicalSystem.GetSettings()->solver.max_iteration_normal = max_iteration_normal; 		// max_iteration / 3
+	mphysicalSystem.GetSettings()->solver.max_iteration_sliding = max_iteration_sliding; 	// max_iteration / 3
+	mphysicalSystem.GetSettings()->solver.max_iteration_spinning = max_iteration_spinning; 	// 0
+	mphysicalSystem.GetSettings()->solver.max_iteration_bilateral = max_iteration / 3;		// max_iteration / 3
 	mphysicalSystem.GetSettings()->solver.tolerance = 0;//tolerance;
 	mphysicalSystem.GetSettings()->solver.alpha = 0;  //Arman, find out what is this
 	mphysicalSystem.GetSettings()->solver.contact_recovery_speed = paramsH.v_Max;
@@ -117,7 +122,77 @@ void InitializeMbdPhysicalSystem(ChSystemParallelDVI & mphysicalSystem, int argc
 	mphysicalSystem.GetSettings()->collision.bins_per_axis = mI3(10, 10, 10); //Arman check
 }
 
-void create_system_particles(ChSystemParallelDVI& mphysicalSystem) {
+void CreateMbdPhysicalSystemObjects(ChSystemParallelDVI& mphysicalSystem) {
+
+	// -----------------------------------------
+	// Create and initialize the vehicle systems
+	// -----------------------------------------
+	MyVehicle vehicle(&mphysicalSystem);
+
+	// --------------------------------------------------------
+	// Create the ground body and set contact geometry
+	// --------------------------------------------------------
+	double hdimX = 100;
+	double hdimY = 100;
+	double hdimZ = 5;
+
+	double hdimX3 = hdimX/3;
+//	double hdimY3 = hdimY/3;
+	hdimX = 3 * hdimX3;
+//	hdimY = 3 * hdimY3;
+
+	// basin info
+	double depth = 10;
+	double slope = CH_C_PI / 6;
+	double bottomWidth = hdimX3 - depth / tan(slope); 	// for a 45 degree slope
+	double inclinedWidth = depth / sin(slope); // for a 45 degree slope
+
+	ChSharedPtr<ChBody> ground = ChSharedPtr<ChBody>(new ChBody(new collision::ChCollisionModelParallel));
+	ground->SetIdentifier(-1);
+	ground->SetBodyFixed(true);
+	ground->SetCollide(true);
+	ground->SetPos(ChVector<>(0, 0, -hdimZ));
+
+	ground->GetMaterialSurface()->SetFriction(0.8f);
+
+	ground->GetCollisionModel()->ClearModel();
+//	ground->GetCollisionModel()->AddBox(hdimX, hdimY, hdimZ);
+	utils::AddBoxGeometry(ground.get_ptr(), ChVector<>(hdimX3, hdimY, hdimZ), ChVector<>(-hdimX3, 0, 0));	// beginning third
+	utils::AddBoxGeometry(ground.get_ptr(), ChVector<>(hdimX3, hdimY, hdimZ), ChVector<>(hdimX3, 0, 0));	// end third
+	// basin
+	utils::AddBoxGeometry(ground.get_ptr(), ChVector<>(bottomWidth, hdimY, hdimZ), ChVector<>(0, 0, -depth));	// middle third
+	utils::AddBoxGeometry(ground.get_ptr(), ChVector<>(inclinedWidth , hdimY, hdimZ),
+			ChVector<>(-hdimX3 - inclinedWidth * cos(slope), 0, -inclinedWidth*sin(slope)),
+			Q_from_AngAxis(slope, ChVector(0, 1, 0)));	// middle third
+	utils::AddBoxGeometry(ground.get_ptr(), ChVector<>(inclinedWidth , hdimY, hdimZ),
+			ChVector<>(hdimX3 + inclinedWidth * cos(slope), 0, -inclinedWidth*sin(slope)),
+			Q_from_AngAxis(-slope, ChVector(0, 1, 0)));	// middle third
+
+
+	ground->GetCollisionModel()->BuildModel();
+
+	ChSharedPtr<ChBoxShape> box_ground(new ChBoxShape);
+	box_ground->GetBoxGeometry().Size = ChVector<>(hdimX, hdimY, hdimZ);
+	ground->AddAsset(box_ground);
+
+	mphysicalSystem->AddBody(ground);
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 	Real3 domainCenter = 0.5 * (paramsH.cMin + paramsH.cMax);
 	Real3 ellipsoidSize = .3 * mR3(10 * paramsH.HSML, 5 * paramsH.HSML, 7 * paramsH.HSML);
 	ChVector<> size = ChVector<>(ellipsoidSize.x, ellipsoidSize.y, ellipsoidSize.z);
@@ -319,7 +394,7 @@ int main(int argc, char* argv[]) {
 	// Create a ChronoENGINE physical system
 	ChSystemParallelDVI mphysicalSystem;
 	InitializeMbdPhysicalSystem(mphysicalSystem, argc, argv);
-	create_system_particles(mphysicalSystem);
+	CreateMbdPhysicalSystemObjects(mphysicalSystem);
 
 	// Add sph data to the physics system
 	int startIndexSph = 0;
