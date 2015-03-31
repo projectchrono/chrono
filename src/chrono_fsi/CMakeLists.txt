@@ -97,6 +97,7 @@ ENDFOREACH(PROGRAM)
 # vehicle builds
 IF(ENABLE_DEMOS_VEHICLE)
 	SET(DEMOS
+	    hmmwv
 	    hmmwv_fluid
 	)
 
