@@ -35,6 +35,7 @@
 // Chrono Vehicle Include
 
 // FSI Interface Includes
+#include "BallDropParams.h"
 #include "SphInterface.h"
 #include "InitializeSphMarkers.h"
 

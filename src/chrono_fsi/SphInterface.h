@@ -2,7 +2,7 @@
  * SphInterface.h
  *
  *  Created on: Mar 2, 2015
- *      Author: arman
+ *      Author: Arman Pazouki
  */
 
 #ifndef SPHINTERFACE_H_
@@ -22,8 +22,6 @@
 
 using namespace chrono;
 using namespace chrono::collision;
-
-void SetupParamsH(SimParams & paramsH);
 
 void AddSphDataToChSystem(
 		ChSystemParallelDVI& mphysicalSystem,
