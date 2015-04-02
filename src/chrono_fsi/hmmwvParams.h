@@ -10,14 +10,22 @@
 #define HMMWVPARAMS_H_
 #include "MyStructs.cuh" //just for SimParams
 
+#include "chrono_parallel/physics/ChSystemParallel.h"
 
 
+// -----------------------------------------------------------------------------
+// Simulation parameters FSI
+// -----------------------------------------------------------------------------
 
 // Duration of the "hold time" (vehicle chassis fixed and no driver inputs).
 // This can be used to allow the granular material to settle.
-double time_hold = 0;//2; 
-float contact_recovery_speed = 10;//0.1;
-double time_step = .5e-3;//1e-3;
+double time_hold = 2; 
+float contact_recovery_speed = 0.1;
+double time_step = 1e-3;
+
+// -----------------------------------------------------------------------------
+// Simulation parameters Fluid
+// -----------------------------------------------------------------------------
 void SetupParamsH(SimParams & paramsH) {
 //**********************************************
 	paramsH.sizeScale = 1; //don't change it.
@@ -98,5 +106,30 @@ void SetupParamsH(SimParams & paramsH) {
 	printf("SIDE: %d, %d, %d\n", paramsH.gridSize.x, paramsH.gridSize.y, paramsH.gridSize.z);
 }
 
+// -----------------------------------------------------------------------------
+// Simulation parameters MBD ground 
+// -----------------------------------------------------------------------------
+
+// Dimensions
+double hdimX = 5.5;
+double hdimY = 1.75;
+double hdimZ = 0.5;
+double hthick = 0.25;
+
+// -----------------------------------------------------------------------------
+// Simulation parameters Granular
+// -----------------------------------------------------------------------------
+
+// Parameters for granular material
+int Id_g = 100;
+double r_g = 0.02;
+double rho_g = 2500;
+double vol_g = (4.0 / 3) * chrono::CH_C_PI * r_g * r_g * r_g;  // Arman: PI or CH_C_PI
+double mass_g = rho_g * vol_g;
+chrono::ChVector<> inertia_g = 0.4 * mass_g * r_g * r_g * chrono::ChVector<>(1, 1, 1);
+
+float mu_g = 0.8;
+
+int num_particles = 1000;
 
 #endif
