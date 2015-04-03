@@ -370,20 +370,29 @@ public:
                 /// Method to serialize only the state (position, speed)
     virtual void StreamOUTstate(ChStreamOutBinary& mstream);    
 
-                /// Access the material surface properties, referenced by this 
-                /// rigid body. The material surface contains properties such as friction, etc. 
-                /// The ChMaterialSurface can be a shared object! (by default, each body creates its
-                /// own as soon as instanced, but later the material object can be replaced).
-    ChSharedPtr<ChMaterialSurface> GetMaterialSurface() {return matsurface.DynamicCastTo<ChMaterialSurface>();}
-    ChSharedPtr<ChMaterialSurfaceDEM> GetMaterialSurfaceDEM() {return matsurface.DynamicCastTo<ChMaterialSurfaceDEM>();}
+    /// Infer the contact method from the underlying material properties object.
+    ContactMethod GetContactMethod() { return matsurface.IsType<ChMaterialSurface>() ? DVI : DEM; }
 
-                /// Set the material surface properties by passing a ChMaterialSurface object.
-                /// Thank to smart pointers, the one that was previously used is replaced and,
-                /// if needed, it is automatically dereferenced and deleted.
-                /// The ChMaterialSurface can be a shared object! (by default, each body creates its
-                /// own as soon as instanced, but later the material object can be replaced).
-    void SetMaterialSurface(const ChSharedPtr<ChMaterialSurfaceBase>& mnewsurf) {matsurface = mnewsurf;}
+    /// Access the (generic) material surface properties associated with this
+    /// body.  This function returns a reference to the shared pointer member
+    /// variable and is therefore THREAD SAFE.
+    ChSharedPtr<ChMaterialSurfaceBase>& GetMaterialSurfaceBase() { return matsurface; }
 
+    /// Access the DVI material surface properties associated with this body.
+    /// This function performs a dynamic cast (and returns an empty pointer
+    /// if matsurface is in fact of DEM type).  As such, it must return a copy
+    /// of the shared pointer and is therefore NOT thread safe.
+    ChSharedPtr<ChMaterialSurface> GetMaterialSurface() { return matsurface.DynamicCastTo<ChMaterialSurface>(); }
+
+    /// Access the DEM material surface properties associated with this body.
+    /// This function performs a dynamic cast (and returns an empty pointer
+    /// if matsurface is in fact of DVI type).  As such, it must return a copy
+    /// of the shared pointer and is therefore NOT thread safe.
+    ChSharedPtr<ChMaterialSurfaceDEM> GetMaterialSurfaceDEM() { return matsurface.DynamicCastTo<ChMaterialSurfaceDEM>(); }
+
+    /// Set the material surface properties by passing a ChMaterialSurface or
+    /// ChMaterialSurfaceDEM object.
+    void SetMaterialSurface(const ChSharedPtr<ChMaterialSurfaceBase>& mnewsurf) { matsurface = mnewsurf; }
 
                 /// The density of the rigid body, as [mass]/[unit volume]. Used just if
                 /// the inertia tensor and mass are automatically recomputed from the
