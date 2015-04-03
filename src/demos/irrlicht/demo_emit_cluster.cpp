@@ -108,7 +108,7 @@ int main(int argc, char* argv[])
 											true,		// collide enable?
 											true));		// visualization?
 	msphereBody->SetPos( ChVector<>(1,1,0) );
-	msphereBody->SetFriction(0.2f);
+  msphereBody->GetMaterialSurface()->SetFriction(0.2f);
 
 	// optional: add further assets, ex for improving visualization:
 	ChSharedPtr<ChTexture> mtexture(new ChTexture());

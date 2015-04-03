@@ -117,8 +117,8 @@ void create_items(ChIrrAppInterface& application)
 				application.GetSystem()->Add(mrigidBody);
 			}
 
-			mrigidBody->SetFriction(0.5f); 
-			mrigidBody->SetImpactC(0.0f); 
+      mrigidBody->GetMaterialSurface()->SetFriction(0.5f);
+      mrigidBody->GetMaterialSurface()->SetRestitution(0.0f);
 
 			mspheres.push_back(mrigidBody);
 
@@ -142,7 +142,7 @@ void create_items(ChIrrAppInterface& application)
 											true,		// collide enable?
 											true));		// visualization?
 					mrigidWall->SetPos(ChVector<>(-8+ui*4.0+2*(bi%2),  1.0+bi*2.0, -5+ ai*6));
-					mrigidWall->SetFriction(0.4f);
+          mrigidWall->GetMaterialSurface()->SetFriction(0.4f);
           mrigidWall->AddAsset(ChSharedPtr<ChTexture>(new ChTexture(GetChronoDataFile("cubetexture_bluwhite.png"))));
 
 					application.GetSystem()->Add(mrigidWall);
@@ -180,7 +180,7 @@ void create_items(ChIrrAppInterface& application)
 											true));		// visualization?
 	mrigidFloor->SetPos( ChVector<>(0,-2,0) );
 	mrigidFloor->SetBodyFixed(true);
-	mrigidFloor->SetFriction(0.6f);
+  mrigidFloor->GetMaterialSurface()->SetFriction(0.6f);
   mrigidFloor->AddAsset(ChSharedPtr<ChTexture>(new ChTexture(GetChronoDataFile("concrete.jpg"))));
 
 	application.GetSystem()->Add(mrigidFloor);

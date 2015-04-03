@@ -71,7 +71,7 @@ ChBodySceneNode* create_wheel(ChVector<> mposition, ChIrrAppInterface& mapplicat
 									mposition  );
 
 	mrigidBody->GetBody()->SetInertiaXX(ChVector<>(10,10,10));
-	mrigidBody->GetBody()->SetFriction(0.5);
+	mrigidBody->GetBody()->GetMaterialSurface()->SetFriction(0.5);
 
 		// turn collision ON, otherwise no collide by default	
 	mrigidBody->GetBody()->SetCollide(true);	 
@@ -140,7 +140,7 @@ void create_some_falling_items(ChSystem& mphysicalSystem, ISceneManager* msceneM
 											 );
 
 		mrigidBody->GetBody()->SetInertiaXX(ChVector<>(sphinertia,sphinertia,sphinertia));
-		mrigidBody->GetBody()->SetFriction(0.4f);
+    mrigidBody->GetBody()->GetMaterialSurface()->SetFriction(0.4f);
 		mrigidBody->GetBody()->SetRot(randrot);
 		//mrigidBody->addShadowVolumeSceneNode();
 		mrigidBody->setMaterialTexture(0,	rockMap);
@@ -157,7 +157,7 @@ void create_some_falling_items(ChSystem& mphysicalSystem, ISceneManager* msceneM
 											ChQuaternion<>(1,0,0,0), 
 											ChVector<>(10,1,10) );
 	mrigidBody->GetBody()->SetBodyFixed(true);
-	mrigidBody->GetBody()->SetFriction(0.5); 
+  mrigidBody->GetBody()->GetMaterialSurface()->SetFriction(0.5);
 	mrigidBody->setMaterialTexture(0,	cubeMap);
 
 } 

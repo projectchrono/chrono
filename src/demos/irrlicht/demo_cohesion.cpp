@@ -163,7 +163,7 @@ void create_some_falling_items(ChSystem& mphysicalSystem)
 											true,		// collide enable?
 											true));		// visualization?
 		mrigidBody->SetPos( ChVector<>(-5+ChRandom()*10, 4+bi*0.05, -5+ChRandom()*10) );
-		mrigidBody->SetFriction(0.3f);
+    mrigidBody->GetMaterialSurface()->SetFriction(0.3f);
 
 		mphysicalSystem.Add(mrigidBody);
 				
@@ -249,7 +249,7 @@ void create_some_falling_items(ChSystem& mphysicalSystem)
 											true,		// collide enable?
 											true));		// visualization?
 	rotatingBody->SetPos( ChVector<>(0,-1.6,0) );
-	rotatingBody->SetFriction(0.4f);
+  rotatingBody->GetMaterialSurface()->SetFriction(0.4f);
 
 	mphysicalSystem.Add(rotatingBody);
 			

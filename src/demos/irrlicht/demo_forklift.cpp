@@ -457,8 +457,8 @@ int main(int argc, char* argv[])
 											ChVector<>(40,2,40) );
 	my_ground->GetBody()->SetBodyFixed(true);
 	my_ground->GetBody()->SetCollide(true);
-	my_ground->GetBody()->SetSfriction(1.0);
-	my_ground->GetBody()->SetKfriction(1.0);
+	my_ground->GetBody()->GetMaterialSurface()->SetSfriction(1.0);
+	my_ground->GetBody()->GetMaterialSurface()->SetKfriction(1.0);
   video::ITexture* groundMap = application.GetVideoDriver()->getTexture(GetChronoDataFile("concrete.jpg").c_str());
 	my_ground->setMaterialTexture(0,groundMap);
 
