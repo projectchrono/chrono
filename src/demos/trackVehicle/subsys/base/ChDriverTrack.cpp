@@ -110,18 +110,9 @@ void ChDriverTrack::SetBraking(double val, int track_idx, double min_val, double
 void ChDriverTrack::SetSteering(double delta_steering, double min_val, double max_val)
 {
   m_steering = clamp(m_steering + delta_steering, min_val, max_val);
-  if( delta_steering < 0) 
-  {
-    // left down, right up = left turn
-    SetThrottle( m_throttle[0] - delta_steering, 0);
-    SetThrottle( m_throttle[1] + delta_steering, 1);
-  }
-  else
-  {
-    // left up, right down = right turn
-    SetThrottle( m_throttle[0] + delta_steering, 0);
-    SetThrottle( m_throttle[1] - delta_steering, 1);
-  }
+  // left up, right down = right turn
+  SetThrottle( m_throttle[0] + delta_steering, 0);
+  SetThrottle( m_throttle[1] - delta_steering, 1);
 }
 
 }  // end namespace chrono

@@ -32,6 +32,10 @@
 #include "subsys/powertrain/TrackPowertrain.h"
 #include "subsys/ChApiSubsys.h"
 
+// collision callback function
+#include "subsys/collision/TrackCollisionCallback.h"
+#include "physics/ChContactContainer.h"
+
 namespace chrono {
 
 ///
@@ -59,7 +63,8 @@ public:
     CollisionType::Enum collide = CollisionType::None,
     double mass = 5489.2,
     const ChVector<>& Ixx = ChVector<>(1786.9, 10449.7, 10721.2),
-    size_t num_engines = 0);
+    size_t num_engines = 0,
+    GearPinCollisionCallback<ChContactContainerBase>* collision_callback = 0);
 
   /// Destructor.
   virtual ~ChTrackVehicle();
@@ -122,15 +127,23 @@ public:
   /// Set the integration step size
   void SetStepsize(double val) { m_stepsize = val; }
 
-  /// Get the current value of the integration step size
-  double GetStepsize() const { return m_stepsize; }
-
   /// can set the pin friction as a damping value
   virtual void SetShoePinDamping(double damping) {}
+
+  /// add the set of gear and shoe bodies on a chain to be included in the custom collision callback
+  void AddGearPinCollisionCallback(const std::vector<ChSharedPtr<ChBody> >& m_shoes,
+    ChSharedPtr<ChBody> gear,
+    ChSharedPtr<GearPinGeometry> geom);
+
+  // Accessors 
+  /// Get the current value of the integration step size
+  double GetStepsize() const { return m_stepsize; }
 
   /// return the contant part of the damping (if any)
   virtual double GetShoePinDamping() const {return 0;}
   
+  virtual const GearPinCollisionCallback<ChContactContainerBase>* GetCollisionCallback() const { return m_gearPin_CollisionCallback; }
+
   // Log data, constraint violations, etc. to console (ChLog), or a file (
 
   /// log the constraint violations of this and all child subsystems to console
@@ -166,10 +179,9 @@ protected:
 
   ChSystem*   m_system;       ///< pointer to the Chrono system
   const bool  m_ownsSystem;   ///< true if system created at construction
+  double  m_stepsize;   ///< integration step-size for the vehicle system
 
   ChSharedPtr<ChBodyAuxRef>  m_chassis; ///< handle to the chassis body
-   // double m_mass;
-  // ChVector<> m_inertia;
 
   VisualizationType::Enum m_vis;    ///< visualize  geometry
   CollisionType::Enum m_collide;    ///< collision geometry
@@ -181,7 +193,8 @@ protected:
   const size_t m_num_engines;  ///< can support multiple powertrain/drivetrains
   std::vector<ChSharedPtr<TrackPowertrain> >  m_ptrains;  ///< powertrain system, one per track system
 
-  double  m_stepsize;   ///< integration step-size for the vehicle system
+  // Custom collision class for gear and shoe pin geometry with non-convex analytically defined shapes
+  GearPinCollisionCallback<ChContactContainerBase> *m_gearPin_CollisionCallback;
 
   // output/Log variables
   bool  m_save_log_to_file;    ///< save the DebugLog() info to file? default false
@@ -189,8 +202,6 @@ protected:
   bool  m_log_file_exists;     ///< written the headers for log file yet?
   int   m_log_what_to_console; ///< pre-set what to write to console when calling 
   std::string m_log_file_name;
-
-
 };
 
 

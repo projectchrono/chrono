@@ -27,7 +27,7 @@
 #include "subsys/base/ChTrackVehicle.h"
 #include "subsys/trackSystem/TrackSystem.h"
 #include "subsys/powertrain/TrackPowertrain.h"
-#include "subsys/driveline/TrackDriveline.h"
+// #include "subsys/driveline/TrackDriveline.h"
 
 namespace chrono {
 
@@ -72,17 +72,16 @@ public:
   /// Advance the vehicle (and the ChSystem)
   virtual void Advance(double step);
 
+    /// set the pin friction as a damping value
+  virtual void SetShoePinDamping(double damping);
+
   // Accessors
+  virtual double GetShoePinDamping() const {return m_pin_damping;}
+
   virtual double GetDriveshaftSpeed(size_t idx) const;
 
   /// pointer to the powertrain
   virtual const ChSharedPtr<TrackPowertrain> GetPowertrain(size_t idx) const;
-
-  /// vehicle's driveline subsystem.
-  const ChSharedPtr<TrackDriveline> GetDriveline(int idx) const { return m_drivelines[idx]; }
-
-  /// vehicle's driveshaft body.
-  const ChSharedPtr<ChShaft> GetDriveshaft(size_t idx) const {return m_drivelines[idx]->GetDriveshaft(); }
 
   /// current value of the integration step size for the vehicle system.
   double GetStepsize() const { return m_stepsize; }
@@ -102,8 +101,8 @@ private:
   const ChVector<> m_trackSys_L;  ///< where to place left track system origin, relative to chassis REF c-sys
   const ChVector<> m_trackSys_R;  ///< where to place right track system origin, relative to chassis REF c-sys
   const size_t m_num_tracks;      ///< how many track systems to build
+  double m_pin_damping;
 
-  std::vector<ChSharedPtr<TrackDriveline> >   m_drivelines;    ///< handle to the driveline subsystem, one for each powertrain/drivegear pair
 
   // static variables
   static const double     mass_override;     // override chassis mass input

@@ -4,6 +4,8 @@ addons:
   apt_packages:
     - libirrlicht1.7a
     - libirrlicht-dev
+    - libxxf86vm-dev
+    - freeglut3-dev
 compiler:
   - gcc
   - clang
@@ -11,6 +13,7 @@ env:
   matrix:
     - CMAKE_EXTRA_FLAGS="-DENABLE_UNIT_IRRLICHT=OFF -DENABLE_UNIT_FEA=OFF -DENABLE_UNIT_POSTPROCESS=OFF"
     - CMAKE_EXTRA_FLAGS="-DENABLE_UNIT_IRRLICHT=OFF -DENABLE_UNIT_FEA=ON  -DENABLE_UNIT_POSTPROCESS=ON"
+    - CMAKE_EXTRA_FLAGS="-DENABLE_UNIT_IRRLICHT=ON  -DENABLE_TRACK_VEHICLE=ON"
 before_install: 
 before_script:
   - mkdir build && cd build
