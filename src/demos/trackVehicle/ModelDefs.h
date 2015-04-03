@@ -57,14 +57,17 @@ namespace CollisionFam
     Ground,
     Hull,
     Wheel,
-    Shoe,
+    ShoeRight,
+    ShoeLeft,
     Gear,
   };
 }
 
+// to specify if the part is on the right or left side,
+// relative to the chassis when facing forward.
 enum VehicleSide {
-    Right = 0,    
-    Left = 1     ///< x-forward leads to right side being position z-dir
+  RIGHTSIDE,
+  LEFTSIDE
 };
 
 enum DebugInformation {
@@ -73,7 +76,8 @@ enum DebugInformation {
   DBG_IDLER       = 1 << 2,
   DBG_PTRAIN      = 1 << 3,
   DBG_CONSTRAINTS = 1 << 4,
-  DBG_COLLISIONCALLBACK = 1 << 5
+  DBG_COLLISIONCALLBACK = 1 << 5,
+  DBG_ALL_CONTACTS = 1 << 6
 };
 
 static std::ostream& operator<< (std::ostream &out, const ChVector<double>& vect)

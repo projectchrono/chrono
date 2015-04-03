@@ -56,62 +56,69 @@ using namespace core;
 #include "subsys/trackVehicle/DriveChain.h"
 #include "subsys/driver/Track_FuncDriver.h"
 #include "ModelDefs.h"
-// Use the main namespace of Chrono
+// Use the main namespace of Chronossssssssssssssssssssssssssssssssssssssssssss
 using namespace chrono;
 
 // =============================================================================
 // User Settings
 // =============================================================================
 
-// #define WRITE_OUTPUT            // write output data to file
-// #define CONSOLE_SYSTEM_INFO  // display the system heirarchy in the console
-#define CONSOLE_DEBUG_INFO      // log constraint violations to console,
-#define CONSOLE_TIMING       // time each render and simulation step, log to console
-
-int what_to_save = DBG_FIRSTSHOE | DBG_GEAR | DBG_IDLER | DBG_PTRAIN | DBG_CONSTRAINTS;
-int what_to_console = DBG_PTRAIN | DBG_GEAR | DBG_IDLER; //DBG_FIRSTSHOE | DBG_CONSTRAINTS;
+// *****  General system settings
+size_t num_idlers = 1;
+size_t num_wheels = 2;
+double pin_damping_coef = 0.05;  // inter-shoe rev. joint damping coef. [N-s/m]
+double tensioner_preload = 5e4; // idler subsystem tensioner preload [N]
 
 // Initial position and heading
 ChVector<> initLoc(0, 1.0, 0);
 //ChQuaternion<> initRot = Q_from_AngAxis(CH_C_PI_4, VECT_Y);
 ChQuaternion<> initRot(QUNIT);
 
-size_t num_idlers = 1;
-size_t num_rollers = 2;
-
-// Simulation step size
-double step_size = 2e-3;
+// *****  Simulation step size, end time
+double step_size = 1e-3;
 // stop at a certain time
-double end_time = 15;  // 99999
+double end_time = 10;  // 99999
 
+// *****  Driver settings
+// Automated simulation controls, applies positive half a sine wave.
+// Otherwise, control throttle with W/S
+bool autopilot = true;
+double sineAmp = 0.4;
+double sineFreq = 0.3;
+double tStart = 0.1;
 
+// ***** write to console or a file
+// #define WRITE_OUTPUT         // write output data to file
+// #define CONSOLE_SYSTEM_INFO  // display the system heirarchy in the console
+// #define CONSOLE_DEBUG_INFO      // log constraint violations to console,
+#define CONSOLE_TIMING       // time each render and simulation step, log to console
+
+int what_to_save = DBG_FIRSTSHOE | DBG_GEAR | DBG_COLLISIONCALLBACK | DBG_PTRAIN; // | DBG_IDLER  | DBG_CONSTRAINTS;
+int what_to_console = DBG_PTRAIN | DBG_GEAR;  // DBG_COLLISIONCALLBACK | DBG_CONSTRAINTS | DBG_IDLER | DBG_FIRSTSHOE;
+// int what_to_console = DBG_ALL_CONTACTS;
+double save_step_size = 1e-3;  // Time interval for writing data to file, don't exceed 1 kHz.
+double console_step_size = 1.0;       // time interval for writing data to console
+std::string save_filename = "driveChain_CC";
+std::string save_outDir = "../outdata_driveChain";
+
+// *****  Visualization and camera settings
 // control how often to render a frame, write to file, write to console.
-int FPS = 40; // render Frames Per Second
+int FPS = 80; // render Frames Per Second
 double render_step_size = 1.0 / FPS;  // Time increment for rendered frames
-double output_step_size = step_size;  // Time interval for writing data to file
-double console_step_size = 0.2;       // time interval for writing data to console
 
 // camera controls, either static or  GUI controlled chase camera:
 bool use_fixed_camera = true;
 // static camera position, global c-sys. (Longitude, Vertical, Lateral)
-ChVector<> fixed_cameraPos(0.5, 1.3, 1.7);    // (1.5, 1.5, 1.5)
+ChVector<> fixed_cameraPos(0.6, 1.2, 1.8); // (0.15, 1.15, 1.5);    // 
 
 // Both cameras track this point, relative to the center of the gear
-ChVector<> trackPoint(-0.7, 0, 0.2);
+ChVector<> trackPoint(-0.4, -0.2, 0.0);
 
 // if chase cam enabled:
 double chaseDist = 2.5;
 double chaseHeight = 0.5;
 
 bool do_shadows = false; // shadow map is experimental
-
-// Automated simulation controls, applies positive half a sine wave.
-// Otherwise, control throttle with W/S
-bool autopilot = true;
-double sineAmp = 0.5;
-double sineFreq = 0.3;
-double tStart = 0.1;
-
 
 
   /*
@@ -122,7 +129,6 @@ double tStart = 0.1;
   const std::string pov_dir = out_dir + "/POVRAY";
 #endif
   */
-
 
 // =============================================================================
 // =============================================================================
@@ -138,19 +144,22 @@ int main(int argc, char* argv[])
   // collision type used by the gear here.
   DriveChain chainSystem("Justins driveChain system", 
     VisualizationType::Mesh,
-    // VisualizationType::CompoundPrimitives,
+    //VisualizationType::Primitives,
     CollisionType::CallbackFunction,
+    //CollisionType::Primitives,
+    pin_damping_coef,
+    tensioner_preload,
     num_idlers,
-    num_rollers);
+    num_wheels);
   
   // set the chassis REF at the specified initial config.
-  chainSystem.Initialize(ChCoordsys<>(initLoc, initRot));
+  chainSystem.Initialize(ChCoordsys<>(initLoc, initRot) );
 
   // if writing an output file, setup what debugInformation we want added each step data is saved.
 #ifdef WRITE_OUTPUT
   chainSystem.Setup_log_to_file(what_to_save,
-    "test_driveChain",
-    "../outdata_driveChain");
+   save_filename,
+    save_outDir);
 #endif
 
   if(autopilot)
@@ -158,11 +167,9 @@ int main(int argc, char* argv[])
 /*
 #ifdef USE_IRRLICHT
 */
+  // Setup the Irrlicht GUI
   size_t window_x_len = 1200;
   size_t window_y_len = 800;
-  // --------------------------
-  // Setup the Irrlicht GUI
-
   // Create the Irrlicht visualization applicaiton
   ChIrrApp application(chainSystem.GetSystem(),
                       L"test driveChain demo",
@@ -232,7 +239,7 @@ int main(int argc, char* argv[])
   int render_steps = (int)std::ceil(render_step_size / step_size);
 
   // Number of simulation steps between two output frames
-  int output_steps = (int)std::ceil(output_step_size / step_size);
+  int save_steps = (int)std::ceil(save_step_size / step_size);
 
   // Number of steps between two log to consoles
   int console_steps = (int)std::ceil(console_step_size / step_size);
@@ -320,13 +327,23 @@ int main(int argc, char* argv[])
       step_number++;
     }
 
+
+
+    // DEBUGGING
+    if( chainSystem.GetCollisionCallback()->GetNcontacts() > 0 && 0)
+    {
+      // write contact info to console when narrow phase passes
+      chainSystem.Log_to_console(DBG_ALL_CONTACTS);
+      int arg = 2;
+    }
+
     // stop and increment the step timer
     step_timer.stop();
     total_step_time += step_timer();
     time_since_last_output += step_timer();
 
 #ifdef WRITE_OUTPUT
-    if (step_number % output_steps == 0) 
+    if (step_number % save_steps == 0) 
     {
       // write data to file
       chainSystem.Log_to_file();  // needs to already be setup before sim loop calls it
@@ -344,7 +361,7 @@ int main(int argc, char* argv[])
       GetLog() << "\n --------- TIMING -------- : time: " << chainSystem.GetSystem()->GetChTime()
        << "\n total render time: " << total_render_time << ",  % of total: " << 100.*total_render_time / total_step_time
        << "\n total compute time: " << total_step_time 
-       << "\n Avg. time per step " << time_since_last_output * chainSystem.GetSystem()->GetStep() / output_step_size
+       << "\n Avg. time per step " << time_since_last_output * chainSystem.GetSystem()->GetStep() / save_steps
        << "\n overall avg. time/step: " << total_step_time/step_number << "    for a stepsize: " << chainSystem.GetSystem()->GetStep()
        << "\n RTR : " << total_step_time / chainSystem.GetSystem()->GetChTime();
       time_since_last_output = 0;

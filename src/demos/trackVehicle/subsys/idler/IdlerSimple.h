@@ -35,6 +35,7 @@ namespace chrono {
 class CH_SUBSYS_API IdlerSimple : public ChShared
 {
 friend class TrackSystem;
+friend class TrackSystemM113;
 public:
 
   /// constructor, where only the body name must be specified.
@@ -45,8 +46,8 @@ public:
     size_t chainSys_idx = 0,  ///< what chain system is this idler associated with?
     double mass = 429.6,
     const ChVector<>& Ixx = ChVector<>(12.55, 12.55, 14.7),
-    double tensionerK = 200000, ///< idler tensioner spring coef. [N/m]
-    double tensionerC = 10000,  ///< idler tensioner damper coef. [N-s/m]
+    double tensionerK = 2e5, ///< idler tensioner spring coef. [N/m]
+    double tensionerC = 1e4,  ///< idler tensioner damper coef. [N-s/m]
     double springFreeLen = 1.0  ///< idler tensioner spring free length [m]
     );
 
@@ -91,7 +92,8 @@ private:
   void AddVisualization(size_t chain_idx,
                         bool custom_texture = false,
                         const std::string& tex_name = "none");
-  void AddCollisionGeometry(double mu = 0.4,
+  void AddCollisionGeometry(VehicleSide side = RIGHTSIDE, // right or left side
+                            double mu = 0.4,
                             double mu_sliding = 0.3,
                             double mu_roll = 0,
                             double mu_spin = 0);

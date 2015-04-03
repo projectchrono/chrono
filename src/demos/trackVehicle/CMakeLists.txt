@@ -33,12 +33,14 @@ SET(CT_BASE_FILES
 SET(CT_VEHICLE_FILES
 	subsys/trackVehicle/TrackVehicle.h
 	subsys/trackVehicle/TrackVehicle.cpp
+	subsys/trackVehicle/TrackVehicleM113.h
+	subsys/trackVehicle/TrackVehicleM113.cpp
 	subsys/trackVehicle/DriveChain.h
 	subsys/trackVehicle/DriveChain.cpp
-	subsys/trackVehicle/LoopChain.h
-	subsys/trackVehicle/LoopChain.cpp
-	subsys/trackVehicle/TrackSoilBin.h
-	subsys/trackVehicle/TrackSoilBin.cpp
+#	subsys/trackVehicle/LoopChain.h
+#	subsys/trackVehicle/LoopChain.cpp
+#	subsys/trackVehicle/TrackSoilBin.h
+#	subsys/trackVehicle/TrackSoilBin.cpp
 )
 
 SET(CT_SUSPENSION_FILES
@@ -63,6 +65,8 @@ SET(CT_DRIVER_FILES
 SET(CT_DRIVEGEAR_FILES
 	subsys/driveGear/DriveGear.h
 	subsys/driveGear/DriveGear.cpp
+	subsys/driveGear/DriveGearMotion.h
+	subsys/driveGear/DriveGearMotion.cpp
 )
 
 SET(CT_CHAIN_FILES
@@ -73,6 +77,8 @@ SET(CT_CHAIN_FILES
 SET(CT_TRACKSYSTEM_FILES
 	subsys/trackSystem/TrackSystem.h
 	subsys/trackSystem/TrackSystem.cpp
+	subsys/trackSystem/TrackSystemM113.h
+	subsys/trackSystem/TrackSystemM113.cpp
 )
 
 SET(CH_POWERTRAIN_FILES
@@ -164,20 +170,20 @@ ENDIF()
 # add demo models here
 
 # ---------------------------------------------
-# DEMO 1: M113 model created by Justin, from report & data from Shabana and Wallin
-ADD_EXECUTABLE(demo_track_M113  demo_track_M113.cpp)
+# DEMO 1: track vehicle model created by Justin, M113 vehicle from Wallin, plus a powertrain
+ADD_EXECUTABLE(demo_trackVehicle  demo_trackVehicle.cpp)
 
-SOURCE_GROUP(""  FILES  demo_track_M113.cpp)
+SOURCE_GROUP(""  FILES  demo_trackVehicle.cpp)
 
-SET_TARGET_PROPERTIES(demo_track_M113  PROPERTIES
+SET_TARGET_PROPERTIES(demo_trackVehicle  PROPERTIES
     FOLDER demos
     COMPILE_FLAGS "${CH_BUILDFLAGS_IRR}"
     LINK_FLAGS "${CH_LINKERFLAG_EXE}"
 )
 
-TARGET_LINK_LIBRARIES(demo_track_M113 ${CT_TARGET_LIBS} TrackVehicle)
+TARGET_LINK_LIBRARIES(demo_trackVehicle ${CT_TARGET_LIBS} TrackVehicle)
 
-INSTALL(TARGETS demo_track_M113 DESTINATION bin)
+INSTALL(TARGETS demo_trackVehicle DESTINATION bin)
 
 # ---------------------------------------------
 # DEMO 2: test the kinematics of the new constraint
@@ -210,3 +216,19 @@ SET_TARGET_PROPERTIES(test_driveChain  PROPERTIES
 TARGET_LINK_LIBRARIES(test_driveChain ${CT_TARGET_LIBS} TrackVehicle)
 
 INSTALL(TARGETS test_driveChain DESTINATION bin)
+
+# ---------------------------------------------
+# DEMO 4: track vehicle model created by Justin, M113 vehicle from Wallin, driven by a motion on the gear sprockets.
+ADD_EXECUTABLE(test_M113  test_M113.cpp)
+
+SOURCE_GROUP(""  FILES  test_M113.cpp)
+
+SET_TARGET_PROPERTIES(test_M113  PROPERTIES
+    FOLDER demos
+    COMPILE_FLAGS "${CH_BUILDFLAGS_IRR}"
+    LINK_FLAGS "${CH_LINKERFLAG_EXE}"
+)
+
+TARGET_LINK_LIBRARIES(test_M113 ${CT_TARGET_LIBS} TrackVehicle)
+
+INSTALL(TARGETS test_M113 DESTINATION bin)

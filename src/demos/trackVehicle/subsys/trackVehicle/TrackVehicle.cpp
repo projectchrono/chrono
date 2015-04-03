@@ -26,7 +26,7 @@
 #include "TrackVehicle.h"
 
 #include "subsys/trackSystem/TrackSystem.h"
-#include "subsys/driveline/TrackDriveline.h"
+// #include "subsys/driveline/TrackDriveline.h"
 
 #include "utils/ChUtilsInputOutput.h"
 #include "utils/ChUtilsData.h"
@@ -60,6 +60,7 @@ TrackVehicle::TrackVehicle(const std::string& name,
   m_meshName = "M113_chassis";
   m_meshFile = utils::GetModelDataFile("M113/Chassis_XforwardYup.obj");
   m_chassisBoxSize = ChVector<>(4.0, 1.2, 1.5); // full length, height, width of chassis box
+  m_pin_damping = 0.5;
 
   // setup the chassis body
   m_chassis->SetIdentifier(0);
@@ -75,7 +76,7 @@ TrackVehicle::TrackVehicle(const std::string& name,
   m_TrackSystem_locs[1] = m_trackSys_R;
 
   // two drive Gears, like a 2WD driven vehicle.
-  m_drivelines.resize(m_num_engines);
+  // m_drivelines.resize(m_num_engines);
   // m_ptrains.resize(m_num_engines); // done by base vehicle class
 
   // create track systems
@@ -92,7 +93,7 @@ TrackVehicle::TrackVehicle(const std::string& name,
     dl_ss << "driveline " << j;
     std::stringstream pt_ss;
     pt_ss << "powertrain " << j;
-    m_drivelines[j] = ChSharedPtr<TrackDriveline>(new TrackDriveline(dl_ss.str() ) );
+    // m_drivelines[j] = ChSharedPtr<TrackDriveline>(new TrackDriveline(dl_ss.str() ) );
     m_ptrains[j] = ChSharedPtr<TrackPowertrain>(new TrackPowertrain(pt_ss.str() ) );
   }
 
@@ -119,7 +120,9 @@ void TrackVehicle::Initialize(const ChCoordsys<>& chassis_Csys)
   // initialize the subsystems with the initial c-sys and specified offsets
   for (int i = 0; i < m_num_tracks; i++)
   {
-    m_TrackSystems[i]->Initialize(m_chassis, m_TrackSystem_locs[i]);
+    m_TrackSystems[i]->Initialize(m_chassis, m_TrackSystem_locs[i], 
+      dynamic_cast<ChTrackVehicle*>(this),
+      m_pin_damping);
   }
 
   // initialize the powertrain, drivelines
@@ -127,10 +130,8 @@ void TrackVehicle::Initialize(const ChCoordsys<>& chassis_Csys)
   {
     size_t driveGear_R_idx = 2*j;
     size_t driveGear_L_idx = 2*j + 1;
-    m_drivelines[j]->Initialize(m_chassis,
-      m_TrackSystems[driveGear_R_idx]->GetDriveGear(),
-      m_TrackSystems[driveGear_L_idx]->GetDriveGear());
-    m_ptrains[j]->Initialize(m_chassis, m_drivelines[j]->GetDriveshaft());
+    // m_drivelines[j]->Initialize(m_chassis, m_TrackSystems[driveGear_R_idx]->GetDriveGear(), m_TrackSystems[driveGear_L_idx]->GetDriveGear());
+    m_ptrains[j]->Initialize(m_chassis, m_TrackSystems[j]->GetDriveGear()->GetAxle() );
   }
 
 }
@@ -145,7 +146,7 @@ void TrackVehicle::Update(double	time,
   // update left and right powertrains, with the new left and right throttle/shaftspeed
   for(int i = 0; i < m_num_engines; i++)
   {
-    m_ptrains[i]->Update(time, throttle[i], m_drivelines[0]->GetDriveshaftSpeed() );
+    m_ptrains[i]->Update(time, throttle[i], GetDriveshaftSpeed(i) );
   }
 
 }
@@ -153,22 +154,20 @@ void TrackVehicle::Update(double	time,
 void TrackVehicle::Advance(double step)
 {
   double t = 0;
-  double settlePhaseA = 0.3;
-  double settlePhaseB = 0.8;
-  m_system->SetIterLCPmaxItersStab(80);
-  m_system->SetIterLCPmaxItersSpeed(100);
+  double settlePhaseA = 0.05;
+  double settlePhaseB = 0.1;
+  m_system->SetIterLCPmaxItersStab(100);
+  m_system->SetIterLCPmaxItersSpeed(150);
   while (t < step) {
     double h = std::min<>(m_stepsize, step - t);
     if( m_system->GetChTime() < settlePhaseA )
     {
-      h = 4e-4;
-      m_system->SetIterLCPmaxItersStab(120);
-      m_system->SetIterLCPmaxItersSpeed(150);
+      m_system->SetIterLCPmaxItersStab(80);
+      m_system->SetIterLCPmaxItersSpeed(100);
     } else if ( m_system->GetChTime() < settlePhaseB )
     {
       m_system->SetIterLCPmaxItersStab(100);
       m_system->SetIterLCPmaxItersSpeed(150);
-      h = 6e-4;
     }
     m_system->DoStepDynamics(h);
     t += h;
@@ -176,10 +175,20 @@ void TrackVehicle::Advance(double step)
 }
 
 
+// call the chain function to update the constant damping coef.
+void TrackVehicle::SetShoePinDamping(double damping)
+{
+  m_pin_damping = damping;
+  for( int i = 0; i < m_num_tracks; i++)
+  {
+    m_TrackSystems[i]->m_chain->Set_pin_friction(damping);
+  }
+}
+
 double TrackVehicle::GetDriveshaftSpeed(size_t idx) const
 {
-  assert(idx < m_drivelines.size() );
-  return m_drivelines[idx]->GetDriveshaftSpeed();
+  assert(idx < m_num_tracks );
+  return m_TrackSystems[idx]->GetDriveGear()->GetAxle()->GetPos_dt();
 }
 
 
