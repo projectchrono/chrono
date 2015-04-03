@@ -69,12 +69,13 @@ public:
   /// set the pin friction as a damping value
   virtual void SetShoePinDamping(double damping) { m_chain->Set_pin_friction(damping); }
 
-  /// log the constraint violations, w/ and w/o chain body, to either the console or a file
-  virtual void LogConstraintViolations(bool include_chain = false);
+  /// log the constraint violations to either the console
+  virtual void LogConstraintViolations();
 
-  /// save the constraint violations, w/ and w/o chain body, to the 
-  virtual void SaveConstraintViolations(bool include_chain = false);
+  /// save the constraint violations, to file
+  virtual void SaveConstraintViolations();
 
+  /// log the desired debug info to the console
   virtual void Log_to_console(int console_what);
 
   /// Log data to file.
@@ -178,7 +179,7 @@ protected:
   // or bogie wheels w/ torsion arm-suspension
   size_t m_num_wheels;
 	
-  // I/O stuff
+  // filename for each subsystem when writing time domain data
   std::string m_filename_DBG_FIRSTSHOE;     // write to this file, first shoe/pin info
   std::string m_filename_DBG_shoeGear;      // info about gear/shoe contact
   std::string m_filename_DBG_GEAR;          // write to this file, gear body

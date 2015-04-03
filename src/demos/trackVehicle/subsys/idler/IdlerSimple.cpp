@@ -390,7 +390,7 @@ void IdlerSimple::SaveConstraintViolations(std::stringstream& ss)
   ss <<"\n";
 }
 
-const std::string IdlerSimple::getFileHeader_ConstraintViolations(size_t idx) const
+const std::string IdlerSimple::getFileHeader_ConstraintViolations() const
 {
   // idler has x-translational and z-rot DOFs
   // y, z reaction Forces, x,y reaction torques
