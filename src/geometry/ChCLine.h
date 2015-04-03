@@ -121,6 +121,14 @@ public:
 			/// Returns curve length. Typical sampling 1..5 (1 already gives correct result with degree1 curves)
 	virtual double Length (int sampling);
 
+			/// Return the start point of the line.
+			/// By default, evaluates line at U=0.
+	virtual ChVector<> GetEndA() { ChVector<> pos; this->Evaluate(pos, 0,0,0); return pos; }
+
+			/// Return the end point of the line.
+			/// By default, evaluates line at U=1.
+	virtual ChVector<> GetEndB() { ChVector<> pos; this->Evaluate(pos, 1,0,0); return pos; }
+
 			/// Returns an adimensional information on "how much" this curve is similar to another
 			/// in its overall shape (doesnot matter parametrization or start point). Try with 20 samples.
 			/// The return value is somewhat the "average distance between the two curves".
