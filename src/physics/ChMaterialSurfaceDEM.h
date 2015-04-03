@@ -20,10 +20,6 @@
 /// Class for material surface data for DEM contact
 namespace chrono {
 
-// Forward references
-class ChBodyDEM;
-
-
 struct ChCompositeMaterialDEM
 {
   float E_eff;                ///< Effective elasticity modulus

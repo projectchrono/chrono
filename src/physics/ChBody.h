@@ -375,6 +375,7 @@ public:
                 /// The ChMaterialSurface can be a shared object! (by default, each body creates its
                 /// own as soon as instanced, but later the material object can be replaced).
     ChSharedPtr<ChMaterialSurface> GetMaterialSurface() {return matsurface.DynamicCastTo<ChMaterialSurface>();}
+    ChSharedPtr<ChMaterialSurfaceDEM> GetMaterialSurfaceDEM() {return matsurface.DynamicCastTo<ChMaterialSurfaceDEM>();}
 
                 /// Set the material surface properties by passing a ChMaterialSurface object.
                 /// Thank to smart pointers, the one that was previously used is replaced and,

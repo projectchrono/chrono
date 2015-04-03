@@ -15,7 +15,6 @@
 
 #include "physics/ChMaterialSurfaceDEM.h"
 #include "physics/ChSystem.h"
-#include "physics/ChBodyDEM.h"
 
 
 namespace chrono {
