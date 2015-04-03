@@ -83,7 +83,8 @@ inline SystemType GetSystemType(ChSystem* system) {
 // -----------------------------------------------------------------------------
 // GetCollisionType()
 //
-// This utility function infers the type of the specified ChCollisionSystem.
+// This utility function infers the type of the collision system associated with
+// the specified ChSystem.
 // -----------------------------------------------------------------------------
 inline CollisionType GetCollisionType(ChSystem* system) {
   if (dynamic_cast<collision::ChCollisionSystemParallel*>(system->GetCollisionSystem()))
@@ -96,6 +97,19 @@ inline CollisionType GetCollisionType(ChSystem* system) {
     return BULLET_CD;
 
   return BULLET_CD;
+}
+
+// -----------------------------------------------------------------------------
+// GetContactMethod()
+//
+// This utility function infers the type of the contact method type from the
+// specified material properties object.
+// -----------------------------------------------------------------------------
+inline ChBody::ContactMethod GetContactMethod(ChSharedPtr<ChMaterialSurfaceBase> mat) {
+  if (mat.IsType<ChMaterialSurface>())
+    return ChBody::DVI;
+
+  return ChBody::DEM;
 }
 
 }  // end namespace utils
