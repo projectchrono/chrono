@@ -68,7 +68,7 @@ bool WriteCheckpoint(ChSystem*          system,
     ChBody* body = *ibody;
 
     // Infer body type (0: DVI, 1:DEM)
-    int btype = (body->GetMaterialSurfaceDEM()) ? 1 : 0;
+    int btype = (body->GetContactMethod() == ChBody::DVI) ? 0 : 1;
 
     // Write body type, body identifier, the body fixed flag, and the collide flag
     csv << btype << body->GetIdentifier() << body->GetBodyFixed() << body->GetCollide();
