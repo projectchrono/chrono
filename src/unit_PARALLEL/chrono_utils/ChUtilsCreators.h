@@ -31,7 +31,6 @@
 #include "physics/ChSystem.h"
 #include "physics/ChSystemDEM.h"
 #include "physics/ChBody.h"
-#include "physics/ChBodyDEM.h"
 #include "physics/ChMaterialSurface.h"
 #include "physics/ChMaterialSurfaceDEM.h"
 
@@ -146,7 +145,7 @@ void AddTriangleMeshConvexDecompositionSplit(ChSystemParallel* system,
                                              const std::string& name,
                                              const ChVector<>& pos,
                                              const ChQuaternion<>& rot,
-                                             ChSharedPtr<ChMaterialSurface>& material,
+                                             ChSharedPtr<ChMaterialSurface> material,
                                              double total_mass);
 
 CH_UTILS_API
@@ -178,10 +177,9 @@ void AddTorusGeometry(ChBody* body,
                       bool visualization = true);
 
 // -----------------------------------------------------------------------------
-// CreateBoxContainerDEM
-// CreateBoxContainerDVI
-// InitializeObjectDVI
-// FinalizeObjectDVI
+// CreateBoxContainer
+// InitializeObject
+// FinalizeObject
 // LoadConvex
 // AddConvex
 //
@@ -191,35 +189,22 @@ void AddTorusGeometry(ChBody* body,
 // Create a fixed body with contact and asset geometry representing a box with 5
 // walls (no top).
 CH_UTILS_API
-ChSharedPtr<ChBodyDEM> CreateBoxContainerDEM(ChSystem* system,
-                                             int id,
-                                             ChSharedPtr<ChMaterialSurfaceDEM>& mat,
-                                             const ChVector<>& hdim,
-                                             double hthick,
-                                             const ChVector<>& pos = ChVector<>(0, 0, 0),
-                                             const ChQuaternion<>& rot = ChQuaternion<>(1, 0, 0, 0),
-                                             bool collide = true,
-                                             bool y_up = false,
-                                             bool overlap = false,
-                                             bool closed = false);
+ChSharedPtr<ChBody> CreateBoxContainer(ChSystem* system,
+                                       int id,
+                                       ChSharedPtr<ChMaterialSurfaceBase> mat,
+                                       const ChVector<>& hdim,
+                                       double hthick,
+                                       const ChVector<>& pos = ChVector<>(0, 0, 0),
+                                       const ChQuaternion<>& rot = ChQuaternion<>(1, 0, 0, 0),
+                                       bool collide = true,
+                                       bool y_up = false,
+                                       bool overlap = false,
+                                       bool closed = false);
 
 CH_UTILS_API
-ChSharedPtr<ChBody> CreateBoxContainerDVI(ChSystem* system,
-                                          int id,
-                                          ChSharedPtr<ChMaterialSurface>& mat,
-                                          const ChVector<>& hdim,
-                                          double hthick,
-                                          const ChVector<>& pos = ChVector<>(0, 0, 0),
-                                          const ChQuaternion<>& rot = ChQuaternion<>(1, 0, 0, 0),
-                                          bool collide = true,
-                                          bool y_up = false,
-                                          bool overlap = false,
-                                          bool closed = false);
-
-CH_UTILS_API
-void InitializeObject(ChSharedBodyPtr body,
+void InitializeObject(ChSharedPtr<ChBody> body,
                       double mass,
-                      ChSharedPtr<ChMaterialSurface>& mat,
+                      ChSharedPtr<ChMaterialSurfaceBase> mat,
                       const ChVector<>& pos = ChVector<>(0, 0, 0),
                       const ChQuaternion<>& rot = ChQuaternion<>(1, 0, 0, 0),
                       bool collide = true,
@@ -228,7 +213,7 @@ void InitializeObject(ChSharedBodyPtr body,
                       int do_not_collide_with = 4);
 
 CH_UTILS_API
-void FinalizeObject(ChSharedBodyPtr body, ChSystem* system);
+void FinalizeObject(ChSharedPtr<ChBody> body, ChSystem* system);
 
 // Given a file containing an obj, this function will load the obj file into a
 // mesh and generate its convex decomposition

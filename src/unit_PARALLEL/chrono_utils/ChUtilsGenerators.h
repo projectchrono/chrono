@@ -34,7 +34,6 @@
 #include "physics/ChSystem.h"
 #include "physics/ChSystemDEM.h"
 #include "physics/ChBody.h"
-#include "physics/ChBodyDEM.h"
 #include "physics/ChMaterialSurface.h"
 #include "physics/ChMaterialSurfaceDEM.h"
 

@@ -505,20 +505,20 @@ void Generator::createObjects(const PointVector& points, const ChVector<>& vel) 
 
     switch (m_sysType) {
       case SEQUENTIAL_DVI:
-        body = new ChBody();
+        body = new ChBody(ChBody::DVI);
         m_mixture[index]->setMaterialProperties(body->GetMaterialSurface());
         break;
       case SEQUENTIAL_DEM:
-        body = new ChBodyDEM();
-        m_mixture[index]->setMaterialProperties(((ChBodyDEM*)body)->GetMaterialSurfaceDEM());
+        body = new ChBody(ChBody::DEM);
+        m_mixture[index]->setMaterialProperties(body->GetMaterialSurfaceDEM());
         break;
       case PARALLEL_DVI:
         switch (m_collisionType) {
           case BULLET_CD:
-            body = new ChBody();
+            body = new ChBody(ChBody::DVI);
             break;
           case PARALLEL_CD:
-            body = new ChBody(new collision::ChCollisionModelParallel);
+            body = new ChBody(new collision::ChCollisionModelParallel, ChBody::DVI);
             break;
         }
         m_mixture[index]->setMaterialProperties(body->GetMaterialSurface());
@@ -526,13 +526,13 @@ void Generator::createObjects(const PointVector& points, const ChVector<>& vel) 
       case PARALLEL_DEM:
         switch (m_collisionType) {
           case BULLET_CD:
-            body = new ChBodyDEM();
+            body = new ChBody(ChBody::DEM);
             break;
           case PARALLEL_CD:
-            body = new ChBodyDEM(new collision::ChCollisionModelParallel);
+            body = new ChBody(new collision::ChCollisionModelParallel, ChBody::DEM);
             break;
         }
-        m_mixture[index]->setMaterialProperties(((ChBodyDEM*)body)->GetMaterialSurfaceDEM());
+        m_mixture[index]->setMaterialProperties(body->GetMaterialSurfaceDEM());
         break;
     }
 
@@ -622,7 +622,7 @@ void Generator::writeObjectInfo(const std::string& filename) {
       } break;
       case SEQUENTIAL_DEM:
       case PARALLEL_DEM: {
-        ChSharedPtr<ChMaterialSurfaceDEM> mat = ((ChBodyDEM*)m_bodies[i].m_body.get_ptr())->GetMaterialSurfaceDEM();
+        ChSharedPtr<ChMaterialSurfaceDEM> mat = m_bodies[i].m_body->GetMaterialSurfaceDEM();
         csv << mat->GetYoungModulus() << mat->GetPoissonRatio() << mat->GetSfriction() << mat->GetRestitution();
       } break;
     }
