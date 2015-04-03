@@ -31,7 +31,7 @@
 #include "subsys/idler/IdlerSimple.h"
 #include "subsys/trackChain/TrackChain.h"
 #include "subsys/powertrain/TrackPowertrain.h"
-#include "subsys/idler/SupportRoller.h"
+#include "subsys/suspension/TorsionArmSuspension.h"
 
 namespace chrono {
 
@@ -45,15 +45,18 @@ public:
   DriveChain(const std::string& name,
     VisualizationType::Enum chassisVis = VisualizationType::Primitives,
     CollisionType::Enum chassisCollide = CollisionType::Primitives,
+    double pin_damping_coef = 0,  ///< inter-shoe body revolute joint damping coef., [N-s/m]
+    double tensioner_preload =  1e5,  ///< idler tensioner-spring preload [N]
     size_t num_idlers = 1,
-    size_t num_rollers = 1,
+    size_t num_wheels = 1,
     double gear_mass = 100.0,
     const ChVector<>& gear_inertia = ChVector<>(12.22/4.0, 12.22/4.0, 13.87/4.0) );
 
   ~DriveChain();
   
   /// Initialize the drive chain system
-  virtual void Initialize(const ChCoordsys<>& gear_Csys);  ///< [in] initial config of gear
+  virtual void Initialize(const ChCoordsys<>& gear_Csys ///< initial config of gear
+    ); 
   
   /// Update the vehicle with the new settings for throttle and brake
   virtual void Update(double time,
@@ -64,7 +67,7 @@ public:
   virtual void Advance(double step);
 
   /// set the pin friction as a damping value
-  virtual void SetShoePinDamping(double damping);
+  virtual void SetShoePinDamping(double damping) { m_chain->Set_pin_friction(damping); }
 
   /// log the constraint violations, w/ and w/o chain body, to either the console or a file
   virtual void LogConstraintViolations(bool include_chain = false);
@@ -86,7 +89,7 @@ public:
 
   // ---------------------------------------------------------------------------
   // Accessors
-  virtual double GetShoePinDamping() const {return m_chain->Get_pin_damping(); }
+  virtual double GetShoePinDamping() const {return m_pin_damping; }
 
   /// Get the angular speed of the driveshaft.
   virtual double GetDriveshaftSpeed(size_t idx) const { return m_gear->GetAxle()->GetPos_dt(); }
@@ -166,11 +169,14 @@ protected:
   ChSharedPtr<DriveGear> m_gear;  		///< drive gear
   std::vector<ChSharedPtr<IdlerSimple> >	m_idlers;	///< idler wheel
   size_t m_num_idlers;  ///< number of idlers to create
+  double m_tensioner_preload;  ///< preload to apply to tensioner
   ChSharedPtr<TrackChain> m_chain;    ///< chain
+  double m_pin_damping; ///< inter-shoe body pin damping coef, [N-s/m]
 
   ChVector<> m_idlerPosRel;	///< position of idler COG relative to local c-sys
-  std::vector<ChSharedPtr<SupportRoller> > m_rollers;  ///< passive support rollers
-  size_t m_num_rollers;
+  std::vector<ChSharedPtr<TorsionArmSuspension> > m_wheels;  ///< passive support rollers,
+  // or bogie wheels w/ torsion arm-suspension
+  size_t m_num_wheels;
 	
   // I/O stuff
   std::string m_filename_DBG_FIRSTSHOE;     // write to this file, first shoe/pin info
@@ -183,6 +189,8 @@ protected:
   std::vector<std::string> m_filename_RCV;  // write to this file, roller constraint violation
   std::string m_filename_DBG_PTRAIN;        // write to this file, ptrain info
   std::string m_filename_DBG_COLLISIONCALLBACK; // write collision callback info to file
+  std::string m_filename_DBG_ALL_CONTACTS;  // write to a new file each time step, with this base name.
+  size_t m_cnt_Log_to_file; // how many times was Log_to_file called?
 
   // static variables. hard-coded for now
   static const ChVector<> m_idlerPos; // relative to chassis frame, which is the same as the gear's (initially)

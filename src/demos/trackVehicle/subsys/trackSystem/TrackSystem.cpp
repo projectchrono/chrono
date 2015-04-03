@@ -12,7 +12,8 @@
 // Authors: Justin Madsen
 // =============================================================================
 //
-// model a single track chain system, as part of a tracked vehicle. Uses JSON input files
+// model a single track chain system, as part of a tracked vehicle. 
+//	TODO: read in subsystem data w/ JSON input files
 //
 // =============================================================================
 
@@ -29,7 +30,6 @@ namespace chrono {
 // idler, right side
 const ChVector<> TrackSystem::m_idlerPos(-2.1904, -0.1443, 0.2447); // relative to local csys
 const ChQuaternion<> TrackSystem::m_idlerRot(QUNIT);
-const double TrackSystem::m_idler_preload = 150000;  // [N]
   
 // drive gear, right side
 const ChVector<> TrackSystem::m_gearPos(1.7741, -0.0099, 0.2447);  // relative to local csys
@@ -39,7 +39,7 @@ const ChQuaternion<> TrackSystem::m_gearRot(QUNIT);
 const int TrackSystem::m_numSuspensions = 5;
 
 TrackSystem::TrackSystem(const std::string& name, int track_idx)
-  : m_track_idx(track_idx), m_name(name)
+  : m_track_idx(track_idx), m_name(name), m_idler_preload(0)
 {
   // FILE* fp = fopen(filename.c_str(), "r");
   // char readBuffer[65536];
@@ -65,6 +65,12 @@ void TrackSystem::Create(int track_idx)
   m_idlerWidth = d["Spindle"]["Width"].GetDouble();
   m_idler_K = d["Idler"]["SpringK"].GetDouble();
   m_idler_C = d["Idler"]["SpringC"].GetDouble();
+  */
+
+  m_idler_preload = 1e5;
+
+
+  /*
 
   // Read Drive Gear data
   assert(d.HasMember("Drive Gear"));
@@ -127,7 +133,7 @@ void TrackSystem::BuildSubsystems()
   m_driveGear = ChSharedPtr<DriveGear>(new DriveGear(gearName.str(),
     VisualizationType::Mesh,
    //  CollisionType::Primitives) );
-    // VisualizationType::CompoundPrimitives,
+    // VisualizationType::Primitives,
     CollisionType::CallbackFunction));
 
   std::stringstream idlerName;
@@ -157,7 +163,9 @@ void TrackSystem::BuildSubsystems()
 }
 
 void TrackSystem::Initialize(ChSharedPtr<ChBodyAuxRef> chassis,
-			 const ChVector<>&  local_pos)
+			 const ChVector<>&  local_pos,
+       ChTrackVehicle* vehicle,
+       double pin_damping)
 {
   m_local_pos = local_pos;
   m_gearPosRel = m_gearPos;
@@ -226,12 +234,16 @@ void TrackSystem::Initialize(ChSharedPtr<ChBodyAuxRef> chassis,
     rolling_elem_locs, clearance, rolling_elem_spin_axis,
     start_pos );
 
+  // add some initial damping to the inter-shoe pin joints
+  if(pin_damping > 0)
+    m_chain->Set_pin_friction(pin_damping);
+
   // chain of shoes available for gear init
   m_driveGear->Initialize(chassis, 
     chassis->GetFrame_REF_to_abs(),
     ChCoordsys<>(m_local_pos + Get_gearPosRel(), QUNIT),
-    m_chain->GetShoeBody() );
-
+    m_chain->GetShoeBody(),
+    vehicle);
 
 }
 

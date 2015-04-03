@@ -32,14 +32,6 @@
 
 namespace chrono {
 
-// static variables
-const double TorsionArmSuspension::m_wheelWidth = 0.16*2.4;  // [m]
-const double TorsionArmSuspension::m_wheelWidthGap = 0.038*2.4;  // inner gap between outer cylinders .038?
-const double TorsionArmSuspension::m_wheelRadius = 0.305; // [m]
-const ChVector<> TorsionArmSuspension::m_wheel_Pos(-0.2034, -0.2271, 0.24475); // loc of right wheel COG in the local c-sys
-const double TorsionArmSuspension::m_armRadius = 0.05; // [m]
-
-
 TorsionArmSuspension::TorsionArmSuspension(const std::string& name,
                                            VisualizationType::Enum vis,
                                            CollisionType::Enum collide,
@@ -51,6 +43,11 @@ TorsionArmSuspension::TorsionArmSuspension(const std::string& name,
                                            double springK,
                                            double springC,
                                            double springPreload,
+                                           double wheel_width,
+                                           double wheel_width_gap,
+                                           double wheel_radius,
+                                           ChVector<> wheel_pos_rel,
+                                           double arm_radius,
                                            bool use_custom_spring
 ): m_vis(vis),
   m_collide(collide),
@@ -62,6 +59,11 @@ TorsionArmSuspension::TorsionArmSuspension(const std::string& name,
   m_springK(springK),
   m_springC(springC),
   m_TorquePreload(springPreload),
+  m_wheelWidth(wheel_width),
+  m_wheelWidthGap(wheel_width_gap),
+  m_wheelRadius(wheel_radius),
+  m_wheel_PosRel(wheel_pos_rel),
+  m_armRadius(arm_radius),
   m_use_custom_spring(use_custom_spring),
   m_meshFile(utils::GetModelDataFile("M113/Roller_XforwardYup.obj")),
   m_meshName("Road wheel")
@@ -108,7 +110,6 @@ void TorsionArmSuspension::Create(const std::string& name)
 
   // relative distance from chassis/arm pin to wheel center 
   // NOTE: correct for which side its on Initialize()
-  m_wheel_PosRel = m_wheel_Pos;
 
   // create the constraints
   m_armChassis_rev = ChSharedPtr<ChLinkLockRevolute>(new ChLinkLockRevolute);
@@ -144,14 +145,14 @@ void TorsionArmSuspension::Initialize(ChSharedPtr<ChBody> chassis,
                                       const ChFrame<>& chassis_REF,
                                       const ChCoordsys<>& local_Csys)
 {
+  // add collision geometry, for the wheel
+  (local_Csys.pos.z < 0) ? AddCollisionGeometry(LEFTSIDE) : AddCollisionGeometry();
+
   // correct armpin to wheel distance for left/right sides
   if(local_Csys.pos.z < 0)
   {
     m_wheel_PosRel.z *= -1;
   }
-
-  // add collision geometry, for the wheel
-  AddCollisionGeometry();
 
   // Express the revolute joint location in the absolute coordinate system.
   ChFrame<> pin1_abs(local_Csys);
@@ -200,18 +201,8 @@ void TorsionArmSuspension::Initialize(ChSharedPtr<ChBody> chassis,
   chassis->GetSystem()->AddLink(m_armChassis_rev);
 
   // wheel-arm, z-axis is already in the lateral direction
-  
-  // TODO: figure out how to have a non-zero, constant, lateral (z-dir) offset (to calculate rxn. forces correctly)
-  //      For now, just use the point in the middle of pin2 and wheel COG.
   ChVector<> rev_pos_abs = (wheel_COG_abs.GetPos() - pin2_abs.GetPos())/2.0 + pin2_abs.GetPos();
   m_armWheel_rev->Initialize(m_wheel, m_arm, ChCoordsys<>(rev_pos_abs, wheel_COG_abs.GetRot()) );
-  /*
-  m_armWheel_rev->Initialize(m_wheel, m_arm, true, 
-    ChCoordsys<>(ChVector<>(), QUNIT), 
-    ChCoordsys<>(ChVector<>(0, arm_rel.Length()/2.0 ,0), QUNIT) );
-  ChSharedPtr<ChFunction_Const> z_func(new ChFunction_Const(abs(GetWheelPosRel().z) ));
-  m_armWheel_rev->SetMotion_Z(z_func.get_ptr());
-  */
   chassis->GetSystem()->AddLink(m_armWheel_rev);
 }
 
@@ -242,7 +233,10 @@ void TorsionArmSuspension::AddVisualization()
     m_wheel->AddAsset(tex);
 
     // define the arm cylinder shape, link is along the y-axis
-    double armLength = m_wheel_Pos.Length();
+    ChVector<> wheel_posRel_XY = m_wheel_PosRel;
+    wheel_posRel_XY.z = 0;
+    // arm length will be the x-y dims
+    double armLength = wheel_posRel_XY.Length();
     ChVector<> p1_arm(0, armLength/2.0, 0);
     ChVector<> p2_arm(0, -armLength/2.0, 0);
     ChSharedPtr<ChCylinderShape> arm_cyl(new ChCylinderShape);
@@ -275,7 +269,8 @@ void TorsionArmSuspension::AddVisualization()
 }
 
 /// only the road wheels are used for collision
-void TorsionArmSuspension::AddCollisionGeometry(double mu,
+void TorsionArmSuspension::AddCollisionGeometry(VehicleSide side,
+                            double mu,
                             double mu_sliding,
                             double mu_roll,
                             double mu_spin)
@@ -291,8 +286,8 @@ void TorsionArmSuspension::AddCollisionGeometry(double mu,
   m_wheel->SetCollide(true);
   m_wheel->GetCollisionModel()->ClearModel();
 
-  m_wheel->GetCollisionModel()->SetSafeMargin(0.001);	// inward safe margin
-	m_wheel->GetCollisionModel()->SetEnvelope(0.002);		// distance of the outward "collision envelope"
+  m_wheel->GetCollisionModel()->SetSafeMargin(0.002);	// inward safe margin
+	m_wheel->GetCollisionModel()->SetEnvelope(0.004);		// distance of the outward "collision envelope"
 
   // set the collision material
   m_wheel->GetMaterialSurface()->SetSfriction(mu);
@@ -356,6 +351,16 @@ void TorsionArmSuspension::AddCollisionGeometry(double mu,
 
   // setup collision family, road wheel is a rolling element
   m_wheel->GetCollisionModel()->SetFamily((int)CollisionFam::Wheel);
+
+  // only collide w/ shoes on the same side of the vehicle
+  if(side == RIGHTSIDE)
+  {
+    m_wheel->GetCollisionModel()->SetFamilyMaskNoCollisionWithFamily((int)CollisionFam::ShoeLeft);
+  }
+  else
+  {
+    m_wheel->GetCollisionModel()->SetFamilyMaskNoCollisionWithFamily((int)CollisionFam::ShoeRight);
+  }
 
   // don't collide with the other rolling elements
   m_wheel->GetCollisionModel()->SetFamilyMaskNoCollisionWithFamily((int)CollisionFam::Wheel);

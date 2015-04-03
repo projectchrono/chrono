@@ -68,10 +68,11 @@ private:
 
   // private functions
   void AddVisualization();
-  void AddCollisionGeometry(double mu = 0.4,
-                            double mu_sliding = 0.3,
-                            double mu_roll = 0.0,
-                            double mu_spin = 0.0);
+  void AddCollisionGeometry(VehicleSide side = RIGHTSIDE,
+    double mu = 0.4,
+    double mu_sliding = 0.3,
+    double mu_roll = 0.0,
+    double mu_spin = 0.0);
   
   // private variables
   ChSharedPtr<ChBody> m_roller;

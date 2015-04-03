@@ -203,9 +203,9 @@ class DriveChain_panda:
         axRHS.set_ylabel('throttle [-]')
         axarr[1].set_ylabel('engine torque [N-m]')
         axarr[2].set_ylabel('output torque [N-m]')
-        axarr[0].legend()
+        axarr[0].legend(loc = 'upper left')
         axRHS.legend(loc ='lower right')
-        axarr[1].legend()
+        axarr[1].legend(loc='upper left')
         axarr[0].set_title('powertrain')
         
     # plot shoe 0 body info, and pin 0 force/torque, with an optional time interval
@@ -598,7 +598,7 @@ class DriveChain_panda:
         axRHSFt.set_ylabel('# contacts')     
         # first plot, legend
         axRHSFt.legend(loc='upper left')
-        axarrA[0].legend(loc='upper left')
+        axarrA[0].legend(loc='upper right')
         axarrA[1].legend(loc='upper left')
         axarrA[2].legend(loc='upper left')
         axRHSFn.legend(loc='upper right')
@@ -637,7 +637,7 @@ class DriveChain_panda:
         DFsgci['pitchVelN'] = pitch_velN        
         
          # -----  fourth plot, follow a single gear-shoe contact point, its pos and vel relative to the gear c-sys
-        DFsgci.plot(ax = axarrD[0], linewidth=1.5, x='time', y=['xRelP','yRelP','zRelP','xRelN','yRelN','zRelN'])
+        DFsgci.plot(ax = axarrD[0], linewidth=1.5, x='time', y=['xRelP','yRelP','xRelN','yRelN'])
         DFsgci.plot(ax = axarrD[1], linewidth=1.5, x='time', y=['VxRelP','VyRelP','VzRelP','VxRelN','VyRelN','VzRelN'])
         DFsgci.plot(ax = axarrD[2], linewidth=1.5, x='time', y=['pitchRadP','pitchRadN'])
         axRHS = axarrD[2].twinx()
@@ -655,7 +655,11 @@ class DriveChain_panda:
         # plot label axes, legend
         axarrD[0].set_xlabel('time [s]')
         axarrD[0].set_ylabel('relative position [m]')
-        axarrD[1].set_ylabel('realtive vel. [m/s]')
+        axarrD[1].set_ylabel('reltive vel. [m/s]')
+
+        axarrD[0].set_ylim(-0.3,0.1)
+        axarrD[1].set_ylim(-1,1)        
+        
         axarrD[2].set_ylabel('relative position [m]')
         axRHS.set_ylabel('relative vel. [m/s]')
         #  legend
@@ -677,11 +681,12 @@ if __name__ == '__main__':
     #  **********************************************************************    
     #  ===============   USER INPUT   =======================================
     # laptop data dir, end w/ '/'
-    data_dir = 'E:/Chrono_github_Build/bin/outdata_driveChain/'
+    # data_dir = 'E:/Chrono_github_Build/bin/outdata_driveChain/'
     # desktop data dir, end w/ '/'
-    # data_dir = 'D:/Chrono_github_Build/bin/outdata_driveChain/'
+    data_dir = 'C:/Users/newJustin/Google Drive/Chrono_TrackedVehicle/outdata_driveChain/'
     
     # list of data files to plot
+    '''
     gearSubsys = 'test_driveChain_gear.csv'
     idlerSubsys = 'test_driveChain_idler.csv'
     ptrainSubsys = 'test_driveChain_ptrain.csv'
@@ -694,29 +699,54 @@ if __name__ == '__main__':
     
     data_files = [data_dir + gearSubsys, data_dir + idlerSubsys, data_dir + ptrainSubsys, data_dir + shoe0, data_dir + gearCV, data_dir + idlerCV, data_dir + rollerCV, data_dir + gearContact, data_dir+shoeGearContact]
     handle_list = ['Gear','idler','ptrain','shoe0','gearCV','idlerCV','rollerCV','gearContact','shoeGearContact']
+    '''
     
+    # list of data files for gear/pin comparison plots    
+    #  Primitive gear geometry
+    '''
+    gear = 'driveChain_P_gear.csv'
+    gearContact = 'driveChain_P_gearContact.csv'
+    shoe = 'driveChain_P_shoe0.csv'
+    shoeContact = 'driveChain_P_shoe0GearContact.csv'
+    ptrain = 'driveChain_P_ptrain.csv'    
+    
+    '''
+    #  Collision Callback gear geometry     
+    gear = 'driveChain_CC_gear.csv'
+    gearContact = 'driveChain_CC_gearContact.csv'
+    shoe = 'driveChain_CC_shoe0.csv'
+    shoeContact = 'driveChain_CC_shoe0GearContact.csv'
+    ptrain = 'driveChain_CC_ptrain.csv'    
+    
+    
+    data_files = [data_dir+gear, data_dir+gearContact, data_dir+shoe, data_dir+shoeContact, data_dir+ptrain]
+   
+    handle_list = ['Gear','gearContact','shoe0','shoeGearContact','ptrain']
  
     # construct the panda class for the DriveChain, file list and list of legend
-    Chain = DriveChain_panda(data_files,handle_list)
+    Chain = DriveChain_panda(data_files, handle_list)
     
     # set the time limits. tmin = -1 will plot the entire time range
-    tmin = 1.65
-    tmax = 2.10
+    tmin = -5.05
+    tmax = 5.25
     
     
     # 1) plot the gear body info
     Chain.plot_gear()
     
+    '''
     # 2) plot idler body info, tensioner force
     Chain.plot_idler(tmin,tmax)
+
+    '''
 
     # 3) plot powertrain info
     Chain.plot_ptrain()    
     
-    '''
     # 4) plot shoe 0 body info, and pin 0 force/torque
     Chain.plot_shoe(tmin,tmax)
     
+    '''
     # 5) plot gear Constraint Violations
     Chain.plot_gearCV(tmin,tmax)
     
@@ -725,10 +755,11 @@ if __name__ == '__main__':
     
     # 7) plot roller Constraint Violations
     Chain.plot_rollerCV(tmin,tmax)
+    '''    
     
     # 8) from the contact report callback function, gear contact info
     Chain.plot_gearContactInfo(tmin,tmax)
-    '''
+
     # 9)  from shoe-gear report callback function, contact info
     Chain.plot_shoeGearContactInfo(tmin,tmax)
 

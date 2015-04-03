@@ -72,7 +72,7 @@ public:
     const ChFrame<>& chassis_REF,
     const std::vector<ChVector<> >& rolling_element_loc, ///< center of rolling element geometry, w.r.t chassis_REF
     const std::vector<double>& clearance,       ///< rolling element geometry clearance from center
-     const std::vector<ChVector<> >& spin_axis,  ///< rolling element revolute joint DOF axis, w.r.t absolute c-sys
+    const std::vector<ChVector<> >& spin_axis,  ///< rolling element revolute joint DOF axis, w.r.t absolute c-sys
     const ChVector<>& start_loc                 ///< where to place the middle of the first shoe, w.r.t. chassis_REF
     );
   
@@ -95,9 +95,6 @@ public:
   /// number of track shoes created/initialized
   size_t Get_numShoes() const { return m_numShoes; }
 
-  /// damping coef. in the pin revolute constraint
-  double Get_pin_damping() const { return m_damping_C;}
-
 private:
 
   // private functions
@@ -111,13 +108,15 @@ private:
     const std::string& tex_name = "none");
 
   /// add collision geometry to the last shoe added
-  void AddCollisionGeometry(double mu = 0.6,
+  void AddCollisionGeometry(VehicleSide side,
+                            double mu = 0.6,
                             double mu_sliding = 0.5,
                             double mu_roll = 0,
                             double mu_spin = 0);
 
   /// add collision geometrey to a certain track shoe
-  void AddCollisionGeometry(size_t track_idx,
+  void AddCollisionGeometry(VehicleSide side,
+                            size_t track_idx,
                             double mu = 0.6,
                             double mu_sliding = 0.5,
                             double mu_roll = 0,
@@ -169,7 +168,6 @@ private:
 
   std::vector<ChSharedPtr<ChLinkLockRevolute> > m_pins; ///< handles to inter-shoe pin joints
   std::vector<ChLinkForce*> m_pin_friction; ///< functions to apply inter-shoe pin friction
-  double m_damping_C;        ///< shoe pin damping coef.
   bool m_use_custom_damper;  ///< use a nonlinear damping coefficient function?
   std::vector<ChSharedPtr<ChFunction_CustomDamper> > m_custom_dampers;
  
@@ -187,6 +185,7 @@ private:
   const std::string m_meshName;  // name of the mesh
   
   // helper variable
+  ChVector<> m_start_loc_bar; ///< where to create the first shoe, chassis c-sys
   bool m_aligned_with_seg;  ///< when building track chain, was last shoe created exactly aligned with the envelope?
 
   //static values 

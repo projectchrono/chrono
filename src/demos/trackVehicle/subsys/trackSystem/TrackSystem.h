@@ -47,7 +47,9 @@ public:
   /// of the chassis). It is assumed that the suspension reference frame is
   /// always aligned with the chassis reference frame.
   void Initialize(ChSharedPtr<ChBodyAuxRef> chassis,
-				 const ChVector<>&         location);
+    const ChVector<>&  location,
+    ChTrackVehicle* vehicle,
+    double pin_damping = 0);
 
   void Create(int track_idx);
 
@@ -55,6 +57,9 @@ public:
 
   /// handle to the drive gear subsystem, to initialize the driveline
   const ChSharedPtr<DriveGear> GetDriveGear() const { return m_driveGear; }
+
+  /// handle to track chain
+  ChSharedPtr<TrackChain> GetTrackChain() const { return m_chain; }
   
   // subsystem relative to trackSystem coords
   const ChVector<>& Get_gearPosRel() const { return m_gearPosRel; }
@@ -82,6 +87,7 @@ private:
 
   ChVector<> m_gearPosRel;
   ChVector<> m_idlerPosRel;
+  double  m_idler_preload;
 
   int m_track_idx;  // give unique ID to each TrackSystem, to use as a collision family ID for all associated sub-systems 
   
@@ -89,7 +95,6 @@ private:
   // idler
   static const ChVector<>     m_idlerPos; // relative to TrackSystem _REF c-sys
   static const ChQuaternion<> m_idlerRot; 
-  static const double         m_idler_preload;
   
   // drive gear
   static const ChVector<> m_gearPos;  // relative to Tracksystem _REF c-sys
