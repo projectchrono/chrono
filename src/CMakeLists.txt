@@ -454,6 +454,7 @@ IF (BUILD_CH_SDK)
 		physics/ChLinkUniversal.h
 		physics/ChMarker.h
 		physics/ChMaterialCouple.h
+		physics/ChMaterialSurfaceBase.h
 		physics/ChMaterialSurface.h
 		physics/ChMaterialSurfaceDEM.h
 		physics/ChMatterSPH.h
