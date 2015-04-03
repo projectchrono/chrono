@@ -20,15 +20,15 @@
 #define DRIVEGEAR_H
 
 #include "subsys/ChApiSubsys.h"
+#include "subsys/base/ChTrackVehicle.h"
 #include "physics/ChSystem.h"
 #include "physics/ChBodyAuxRef.h"
 #include "physics/ChShaft.h"
 #include "physics/ChShaftsBody.h"
 #include "ModelDefs.h"
-
 // collision callback function
 #include "subsys/collision/TrackCollisionCallback.h"
-#include "physics/ChContactContainer.h"
+
 
 namespace chrono {
 
@@ -52,14 +52,13 @@ public:
   void Initialize(ChSharedPtr<ChBody> chassis,
     const ChFrame<>& chassis_REF,
     const ChCoordsys<>& local_Csys,
-    const std::vector<ChSharedPtr<ChBody> >& shoes);
+    const std::vector<ChSharedPtr<ChBody> >& shoes,
+    ChTrackVehicle* vehicle);
 
   // accessors
   ChSharedPtr<ChBody> GetBody() const { return m_gear; }
 
   ChSharedPtr<ChShaft> GetAxle() const { return m_axle; }
-
-  const GearPinCollisionCallback<ChContactContainer>* GetCollisionCallback() const { return m_gearPinContact; }
 
   double GetRadius() const { return m_radius; }
 
@@ -80,13 +79,17 @@ private:
 
   void AddVisualization();
   void AddCollisionGeometry(const std::vector<ChSharedPtr<ChBody> >& shoes,
-                            double mu = 0.6,
-                            double mu_sliding = 0.5,
-                            double mu_roll = 0,
-                            double mu_spin = 0);
+    ChTrackVehicle* vehicle,
+    VehicleSide side = RIGHTSIDE,
+    double mu = 0.6,
+    double mu_sliding = 0.5,
+    double mu_roll = 0,
+    double mu_spin = 0);
   
   // private variables
   ChSharedPtr<ChBody> m_gear;
+  ChSharedPtr<GearPinGeometry> m_gearPinGeom;  ///< gear and pin geometry info
+
   ChSharedPtr<ChShaft> m_axle;                  ///< handle to axle shaft
   ChSharedPtr<ChShaftsBody>  m_axle_to_gear;    ///< handle to gear-shaft connector
   ChSharedPtr<ChLinkLockRevolute>  m_revolute;  ///< handle to revolute joint
@@ -102,14 +105,12 @@ private:
   const std::string m_meshName;
   const std::string m_meshFile;
 
-  // data container for callback collision function
-  GearPinGeometry m_gearPinGeom;
-  GearPinCollisionCallback<ChContactContainer> *m_gearPinContact;
+  // most basic gear geometry: two concentric cylinders.
+  const double m_radius;
+  const double m_width;
+  const double m_widthGap; // inner distance between cylinders
 
   // static variables
-  static const double m_radius;
-  static const double m_width;
-  static const double m_widthGap; // inner distance between cydliners
   static const double m_shaft_inertia;
   
 };

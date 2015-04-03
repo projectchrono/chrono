@@ -47,8 +47,7 @@ ChTrackVehicle::ChTrackVehicle(const std::string& name,
 : m_ownsSystem(true),
   m_vis(vis),
   m_collide(collide),
-  // m_mass(mass),
-  // m_inertia(Ixx),
+  m_gearPin_CollisionCallback(0),
   m_num_engines(num_engines),
   m_stepsize(step_size),
   m_save_log_to_file(false), // save the DebugLog() info to file? default false
@@ -94,13 +93,13 @@ ChTrackVehicle::ChTrackVehicle(ChSystem* system,
                                CollisionType::Enum collide,
                                double mass,
                                const ChVector<>& Ixx,
-                               size_t num_engines
+                               size_t num_engines,
+                               GearPinCollisionCallback<ChContactContainerBase>* collision_callback
 ): m_ownsSystem(false),
   m_system(system),
   m_vis(vis),
   m_collide(collide),
-  // m_mass(mass),
-  // m_inertia(Ixx),
+  m_gearPin_CollisionCallback(collision_callback),
   m_num_engines(num_engines),
   m_stepsize(system->GetStep()),
   m_save_log_to_file(false), // save the DebugLog() info to file? default false
@@ -129,6 +128,10 @@ ChTrackVehicle::~ChTrackVehicle()
 {
   if (m_ownsSystem)
     delete m_system;
+  // question: collision callback is created on the stack in here, but passed to the
+  //  ChSystem at some point. Will the ChSystem delete it for me?? 
+  if(m_gearPin_CollisionCallback)
+    delete m_gearPin_CollisionCallback;
 }
 
 
@@ -143,6 +146,23 @@ void ChTrackVehicle::Advance(double step)
     m_system->DoStepDynamics(h);
     t += h;
   }
+}
+
+
+// Add the bodies to a collision callback for gear/pins
+void ChTrackVehicle::AddGearPinCollisionCallback(const std::vector<ChSharedPtr<ChBody> >& shoes,
+                          ChSharedPtr<ChBody> gear,
+                          ChSharedPtr<GearPinGeometry> geom)
+{
+  // first time adding a gear & chain of shoe bodies, create the custom callback class
+  if(m_gearPin_CollisionCallback == 0)
+  {
+    m_gearPin_CollisionCallback = new GearPinCollisionCallback<ChContactContainerBase>(0.003);
+    // add the collision callback to the system
+    m_system->SetCustomComputeCollisionCallback(m_gearPin_CollisionCallback);
+  }
+  // add the handles to the relevant bodies to the callback class
+  m_gearPin_CollisionCallback->AddGearChain(shoes, gear, geom);
 }
 
 // -----------------------------------------------------------------------------
@@ -281,7 +301,8 @@ void ChTrackVehicle::AddCollisionGeometry(double mu,
   m_chassis->GetCollisionModel()->SetFamily( (int)CollisionFam::Hull );
   // don't collide with rolling elements or tracks
   m_chassis->GetCollisionModel()->SetFamilyMaskNoCollisionWithFamily( (int)(CollisionFam::Wheel) );
-  m_chassis->GetCollisionModel()->SetFamilyMaskNoCollisionWithFamily( (int)(CollisionFam::Shoe) );
+  m_chassis->GetCollisionModel()->SetFamilyMaskNoCollisionWithFamily( (int)(CollisionFam::ShoeLeft) );
+  m_chassis->GetCollisionModel()->SetFamilyMaskNoCollisionWithFamily( (int)(CollisionFam::ShoeRight) );
   m_chassis->GetCollisionModel()->SetFamilyMaskNoCollisionWithFamily((int)CollisionFam::Gear);
 
   m_chassis->GetCollisionModel()->BuildModel();

@@ -66,9 +66,8 @@ void SupportRoller::Initialize(ChSharedPtr<ChBody> chassis,
                            const ChFrame<>& chassis_REF,
                            const ChCoordsys<>& local_Csys)
 {
-
-  // add any collision geometry
-  AddCollisionGeometry();
+  // add collision geometry for the wheel
+  (local_Csys.pos.z < 0) ? AddCollisionGeometry(LEFTSIDE) : AddCollisionGeometry();
 
   // get the local frame in the absolute ref. frame
   ChFrame<> frame_to_abs(local_Csys);
@@ -134,10 +133,11 @@ void SupportRoller::AddVisualization()
   }
 }
 
-void SupportRoller::AddCollisionGeometry(double mu,
-                            double mu_sliding,
-                            double mu_roll,
-                            double mu_spin)
+void SupportRoller::AddCollisionGeometry(VehicleSide side,
+                                         double mu,
+                                         double mu_sliding,
+                                         double mu_roll,
+                                         double mu_spin)
 {
   // add collision geometrey, if enabled. Warn if disabled
   if( m_collide == CollisionType::None)
@@ -216,6 +216,15 @@ void SupportRoller::AddCollisionGeometry(double mu,
   // set collision family, gear is a rolling element like the wheels
   m_roller->GetCollisionModel()->SetFamily((int)CollisionFam::Wheel);
 
+  // only collide w/ shoes on the same side of the vehicle
+  if(side == RIGHTSIDE)
+  {
+    m_roller->GetCollisionModel()->SetFamilyMaskNoCollisionWithFamily((int)CollisionFam::ShoeLeft);
+  }
+  else
+  {
+    m_roller->GetCollisionModel()->SetFamilyMaskNoCollisionWithFamily((int)CollisionFam::ShoeRight);
+  }
   // don't collide with other rolling elements
   m_roller->GetCollisionModel()->SetFamilyMaskNoCollisionWithFamily((int)CollisionFam::Ground);
   m_roller->GetCollisionModel()->SetFamilyMaskNoCollisionWithFamily((int)CollisionFam::Wheel);
