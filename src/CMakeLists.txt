@@ -531,6 +531,9 @@ IF (BUILD_CH_SDK)
 		geometry/ChCLine.h
 		geometry/ChCLineCam.h
 		geometry/ChCLinePoly.h
+		geometry/ChCLineArc.h
+		geometry/ChCLineSegment.h
+		geometry/ChCLinePath.h
 		geometry/ChCTriangle.h
 		geometry/ChCTriangleMesh.h
 		geometry/ChCTriangleMeshSoup.h
