@@ -26,7 +26,7 @@ ChSystemParallelDVI::ChSystemParallelDVI(unsigned int max_objects) : ChSystemPar
 }
 
 void ChSystemParallelDVI::AddMaterialSurfaceData(ChSharedPtr<ChBody> newbody) {
-  assert(typeid(*newbody.get_ptr()) == typeid(ChBody) || typeid(*newbody.get_ptr()) == typeid(ChBodyAuxRef));
+  assert(newbody->GetContactMethod() == ChBody::DVI);
 
   // Reserve space for material properties for the specified body. Not that the
   // actual data is set in UpdateMaterialProperties().
@@ -40,12 +40,17 @@ void ChSystemParallelDVI::UpdateMaterialSurfaceData(int index, ChBody* body) {
   custom_vector<real3>& friction = data_manager->host_data.fric_data;
   custom_vector<real4>& compliance = data_manager->host_data.compliance_data;
 
-  ChSharedPtr<ChMaterialSurface>& mat = body->GetMaterialSurface();
+  // Since this function is called in a parallel for loop, we must access the
+  // material properties in a thread-safe manner (we cannot use the function
+  // ChBody::GetMaterialSurface since that returns a copy of the reference
+  // counted shared pointer).
+  ChSharedPtr<ChMaterialSurfaceBase>& mat = body->GetMaterialSurfaceBase();
+  ChMaterialSurface* mat_ptr = static_cast<ChMaterialSurface*>(mat.get_ptr());
 
-  friction[index] = R3(mat->GetKfriction(), mat->GetRollingFriction(), mat->GetSpinningFriction());
-  cohesion[index] = mat->GetCohesion();
-  compliance[index] =
-      R4(mat->GetCompliance(), mat->GetComplianceT(), mat->GetComplianceRolling(), mat->GetComplianceSpinning());
+  friction[index] = R3(mat_ptr->GetKfriction(), mat_ptr->GetRollingFriction(), mat_ptr->GetSpinningFriction());
+  cohesion[index] = mat_ptr->GetCohesion();
+  compliance[index] = R4(mat_ptr->GetCompliance(), mat_ptr->GetComplianceT(), mat_ptr->GetComplianceRolling(),
+                         mat_ptr->GetComplianceSpinning());
 }
 
 void ChSystemParallelDVI::CalculateContactForces() {

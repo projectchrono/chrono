@@ -15,7 +15,7 @@ ChSystemParallelDEM::ChSystemParallelDEM(unsigned int max_objects) : ChSystemPar
 }
 
 void ChSystemParallelDEM::AddMaterialSurfaceData(ChSharedPtr<ChBody> newbody) {
-  assert(typeid(*newbody.get_ptr()) == typeid(ChBodyDEM));
+  assert(newbody->GetContactMethod() == ChBody::DEM);
 
   // Reserve space for material properties for the specified body. Not that the
   // actual data is set in UpdateMaterialProperties().
@@ -40,17 +40,22 @@ void ChSystemParallelDEM::UpdateMaterialSurfaceData(int index, ChBody* body) {
   custom_vector<real>& cr = data_manager->host_data.cr;
   custom_vector<real4>& dem_coeffs = data_manager->host_data.dem_coeffs;
 
-  ChSharedPtr<ChMaterialSurfaceDEM>& mat = ((ChBodyDEM*)body)->GetMaterialSurfaceDEM();
+  // Since this function is called in a parallel for loop, we must access the
+  // material properties in a thread-safe manner (we cannot use the function
+  // ChBody::GetMaterialSurfaceDEM since that returns a copy of the reference
+  // counted shared pointer).
+  ChSharedPtr<ChMaterialSurfaceBase>& mat = body->GetMaterialSurfaceBase();
+  ChMaterialSurfaceDEM* mat_ptr = static_cast<ChMaterialSurfaceDEM*>(mat.get_ptr());
 
   mass[index] = body->GetMass();
-  mu[index] = mat->GetSfriction();
-  cohesion[index] = mat->GetCohesion();
+  mu[index] = mat_ptr->GetSfriction();
+  cohesion[index] = mat_ptr->GetCohesion();
 
   if (data_manager->settings.solver.use_material_properties) {
-    elastic_moduli[index] = R2(mat->GetYoungModulus(), mat->GetPoissonRatio());
-    cr[index] = mat->GetRestitution();
+    elastic_moduli[index] = R2(mat_ptr->GetYoungModulus(), mat_ptr->GetPoissonRatio());
+    cr[index] = mat_ptr->GetRestitution();
   } else {
-    dem_coeffs[index] = R4(mat->GetKn(), mat->GetKt(), mat->GetGn(), mat->GetGt());
+    dem_coeffs[index] = R4(mat_ptr->GetKn(), mat_ptr->GetKt(), mat_ptr->GetGn(), mat_ptr->GetGt());
   }
 }
 
