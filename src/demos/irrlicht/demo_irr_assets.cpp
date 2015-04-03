@@ -39,6 +39,7 @@
 // Use the namespace of Chrono
 
 using namespace chrono;
+using namespace geometry;
 
 // Use the main namespaces of Irrlicht
 using namespace irr;
@@ -108,6 +109,16 @@ int main(int argc, char* argv[])
 	ChSharedPtr<ChColorAsset> mfloorcolor(new ChColorAsset);
 	mfloorcolor->SetColor(ChColor(0.3f,0.3f,0.6f));
 	mfloor->AddAsset(mfloorcolor);
+
+			// ==Asset== attach a 'path' shape populated with segments and arc fillets:
+	ChSharedPtr<ChPathShape> mpathfloor(new ChPathShape);
+	ChLineSegment mseg1 (ChVector<>(1,2,0), ChVector<>(1,3,0));
+	mpathfloor->GetPathGeometry().AddSubLine(mseg1);
+	ChLineSegment mseg2 (ChVector<>(1,3,0), ChVector<>(2,3,0));
+	mpathfloor->GetPathGeometry().AddSubLine(mseg2);
+	ChLineArc     marc1 (ChCoordsys<>(ChVector<>(2,3.5,0)), 0.5, -CH_C_PI_2, CH_C_PI_2);
+	mpathfloor->GetPathGeometry().AddSubLine(marc1);
+	mfloor->AddAsset(mpathfloor);
 
 	/*
 			//  ==Asset== IRRLICHT! Add a ChIrrNodeAsset so that Irrlicht will be able
@@ -256,13 +267,13 @@ int main(int argc, char* argv[])
 
 			// Do not forget to add the particle cluster to the system:
 	application.GetSystem()->Add(mparticles);
-
+/*
 			//  ==Asset== Attach a 'sphere' shape asset.. it will be used as a sample 
 			// shape to display all particles when rendering in 3D! 
 	ChSharedPtr<ChSphereShape> mspherepart(new ChSphereShape);
 	mspherepart->GetSphereGeometry().rad = 0.05;
 	mparticles->AddAsset(mspherepart);
-
+*/
 	/*
 			//  ==Asset== IRRLICHT! Add a ChIrrNodeAsset so that Irrlicht will be able
 			// to 'show' all the assets that we added to the body! 

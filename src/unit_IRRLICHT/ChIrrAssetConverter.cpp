@@ -15,6 +15,7 @@
 #include "geometry/ChCSphere.h"
 #include "geometry/ChCBox.h"
 #include "geometry/ChCTriangleMeshSoup.h"
+#include "geometry/ChCLinePath.h"
 
 #include "unit_IRRLICHT/ChIrrAssetConverter.h"
 #include "unit_IRRLICHT/ChIrrTools.h"
@@ -289,6 +290,23 @@ void ChIrrAssetConverter::_recursePopulateIrrlicht(
       buffer->drop();
 
       ChIrrNodeProxyToAsset* mproxynode = new ChIrrNodeProxyToAsset(myglyphs, mnode);
+      ISceneNode* mchildnode = scenemanager->addMeshSceneNode(newmesh,mproxynode);
+      newmesh->drop();
+      mproxynode->Update(); // force syncing of triangle positions & face indexes
+
+      //mchildnode->setMaterialFlag(video::EMF_WIREFRAME,  mytrimesh->IsWireframe() ); 
+      //mchildnode->setMaterialFlag(video::EMF_BACK_FACE_CULLING, mytrimesh->IsBackfaceCull() );
+    }
+	if ( k_asset.IsType<chrono::ChPathShape>() )
+    {
+      chrono::ChSharedPtr<chrono::ChPathShape> mypath(k_asset.DynamicCastTo<chrono::ChPathShape>());
+
+      CDynamicMeshBuffer * buffer = new CDynamicMeshBuffer(irr::video::EVT_STANDARD, irr::video::EIT_32BIT);
+      SMesh* newmesh = new SMesh;
+      newmesh->addMeshBuffer(buffer);
+      buffer->drop();
+
+      ChIrrNodeProxyToAsset* mproxynode = new ChIrrNodeProxyToAsset(mypath, mnode);
       ISceneNode* mchildnode = scenemanager->addMeshSceneNode(newmesh,mproxynode);
       newmesh->drop();
       mproxynode->Update(); // force syncing of triangle positions & face indexes

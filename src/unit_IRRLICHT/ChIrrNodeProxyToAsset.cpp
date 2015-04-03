@@ -14,6 +14,7 @@
 #include "assets/ChAsset.h"
 #include "assets/ChTriangleMeshShape.h"
 #include "assets/ChGlyphs.h"
+#include "assets/ChPathShape.h"
 
 #include "unit_IRRLICHT/ChIrrNodeProxyToAsset.h"
 
@@ -409,6 +410,86 @@ void ChIrrNodeProxyToAsset::Update()
       meshnode->setMaterialFlag(video::EMF_ZBUFFER,   false );
 
     meshnode->setMaterialFlag(video::EMF_COLOR_MATERIAL, true); // so color shading = vertexes  color
+
+  }
+
+
+  if (visualization_asset.IsType<chrono::ChPathShape>())
+  {
+    chrono::ChSharedPtr<chrono::ChPathShape> mpath = visualization_asset.DynamicCastTo<chrono::ChPathShape>();
+
+    // Fetch the 1st child, i.e. the mesh
+    ISceneNode* mchildnode = *(getChildren().begin()); 
+    if (!mchildnode || mchildnode->getType() != ESNT_MESH) 
+      return;
+
+    IMeshSceneNode* meshnode = (IMeshSceneNode*)mchildnode; // dynamic_cast not enabled in Irrlicht dll
+    IMesh*          amesh    = meshnode->getMesh();
+    if (amesh->getMeshBufferCount() == 0)
+      return;
+
+    //SMeshBuffer* irrmesh = (SMeshBuffer*)amesh->getMeshBuffer(0);
+    CDynamicMeshBuffer* irrmesh = (CDynamicMeshBuffer*)amesh->getMeshBuffer(0);
+
+	video::SColor clr(255, (u32)(0), (u32)(0), (u32)(0) );
+  
+	size_t  nvertexes  =  100;
+    size_t  ntriangles =  nvertexes-1;
+    
+    // smart inflating of allocated buffers, only if necessary, and once in a while shrinking
+    if (irrmesh->getIndexBuffer().allocated_size() > (ntriangles*3) * 1.5)
+      irrmesh->getIndexBuffer().reallocate(0);//clear();
+    if (irrmesh->getVertexBuffer().allocated_size() > nvertexes * 1.5)
+      irrmesh->getVertexBuffer().reallocate(0);
+
+    irrmesh->getIndexBuffer().set_used((u32)ntriangles*3);
+    irrmesh->getVertexBuffer().set_used((u32)nvertexes);
+
+    int itri = 0;
+
+	chrono::ChVector<> t1;
+	mpath->GetPathGeometry().Evaluate(t1, 0,0,0);
+
+	irrmesh->getVertexBuffer()[0] = 
+						   video::S3DVertex((f32)t1.x, (f32)t1.y, (f32)t1.z,
+                           1, 0, 0,
+                           clr,
+                           0, 0);
+	
+	double maxU = mpath->GetPathGeometry().GetPathDuration();
+
+    for (unsigned int ig= 0; ig< ntriangles; ++ig)
+    {
+		double mU = maxU*((double)ig/(double)(ntriangles-1)); // abscyssa
+
+        chrono::ChVector<> t2;
+		mpath->GetPathGeometry().Evaluate(t2, mU,0,0);
+
+        // create a  small line (a degenerate triangle) per each vector
+
+        irrmesh->getVertexBuffer()[1+ig] = 
+          video::S3DVertex((f32)t2.x, (f32)t2.y, (f32)t2.z,
+                           1, 0, 0,
+                           clr,
+                           0, 0);
+
+        irrmesh->getIndexBuffer().setValue(0+itri*3, 0+ig);
+        irrmesh->getIndexBuffer().setValue(1+itri*3, 1+ig);
+        irrmesh->getIndexBuffer().setValue(2+itri*3, 1+ig);
+
+        ++itri;
+
+		t1= t2;
+    }
+	irrmesh->setDirty(); // to force update of hardware buffers
+    irrmesh->setHardwareMappingHint(EHM_DYNAMIC);//EHM_NEVER); //EHM_DYNAMIC for faster hw mapping
+    irrmesh->recalculateBoundingBox();
+
+    meshnode->setMaterialFlag(video::EMF_WIREFRAME,         true );
+    meshnode->setMaterialFlag(video::EMF_LIGHTING,          false ); // avoid shading for wireframe
+    meshnode->setMaterialFlag(video::EMF_BACK_FACE_CULLING, false );
+ 
+   // meshnode->setMaterialFlag(video::EMF_COLOR_MATERIAL, true); // so color shading = vertexes  color
 
   }
 

@@ -26,6 +26,7 @@
 #include "assets/ChAssetLevel.h"
 #include "assets/ChTriangleMeshShape.h"
 #include "assets/ChGlyphs.h"
+#include "assets/ChPathShape.h"
 
 #include "unit_IRRLICHT/ChApiIrr.h"
 #include "unit_IRRLICHT/ChBodySceneNodeTools.h"
