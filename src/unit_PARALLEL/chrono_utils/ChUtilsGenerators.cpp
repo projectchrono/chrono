@@ -150,7 +150,7 @@ void MixtureIngredient::freeMaterialDist() {
 }
 
 // Modify the specified DVI material surface based on attributes of this ingredient.
-void MixtureIngredient::setMaterialProperties(ChSharedPtr<ChMaterialSurface>& mat) {
+void MixtureIngredient::setMaterialProperties(ChSharedPtr<ChMaterialSurface> mat) {
   if (m_frictionDist)
     mat->SetFriction(sampleTruncatedDist<float>(*m_frictionDist, m_minFriction, m_maxFriction));
   else
@@ -163,7 +163,7 @@ void MixtureIngredient::setMaterialProperties(ChSharedPtr<ChMaterialSurface>& ma
 }
 
 // Modify the specified DEM material surface based on attributes of this ingredient.
-void MixtureIngredient::setMaterialProperties(ChSharedPtr<ChMaterialSurfaceDEM>& mat) {
+void MixtureIngredient::setMaterialProperties(ChSharedPtr<ChMaterialSurfaceDEM> mat) {
   if (m_youngDist)
     mat->SetYoungModulus(sampleTruncatedDist<float>(*m_youngDist, m_minYoung, m_maxYoung));
   else
